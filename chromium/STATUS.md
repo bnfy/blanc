@@ -533,8 +533,23 @@ remain pending. D3 beta-only no-DRM exception accepted; EME notice/handoff requi
   Neutral Start Page restyled with one stylesheet, no tint, the panel opened
   with priority results); settings-and-theming, island-and-commands and
   internal-pages match their last runs, and tabs-and-groups 356 (site icons)
-  passes through the new switch. `webrtcAudioBuffer` is next, native in
-  Blink (owner, V15).
+  passes through the new switch.
+- **S1.7 Call audio, candidate macos-960785b1fcb658e4 (2026-11-04):** V15
+  (owner): native in Blink. Patch 0024 (seven newly pinned files, 110 in
+  all) registers `blanc.webrtc.audio_buffer` (automatic; an unsynced
+  profile pref, so device-local as in shipping), carries shipping's targets
+  (automatic -1, stable 400 ms, resilient 1000 ms) in RendererPreferences,
+  refreshes open tabs through PrefWatcher, and has RTCRtpReceiver start each
+  new audio receiver with the target (a page's own jitterBufferTarget still
+  replaces it and reads as the page set it). Privacy and security shows Call
+  audio with shipping's three choices. The owner approved the rebuild it
+  needed (1,460 steps, 7 minutes). A probe moved an open tab's renderer
+  preference to 400, 1000 and back to -1 as the setting changed. Not yet
+  verified: a real call taking the target (the fixture gathers no ICE
+  candidates, even with Chromium's default policy and loopback allowed),
+  and the settings, island and internal-pages reruns on this candidate,
+  which stopped because the display locked. Every S1.7 key is now built
+  (`tools/settings-keys.mjs` lists none to build).
 - **Open question, file picker hang (2026-11-04):** the owner's live
   instance on macos-61b9387a2d9a8841 hung when choosing a custom Start Page
   wallpaper. The hang report shows the UI thread inside AppKit's
@@ -788,5 +803,5 @@ checkout and cache, the 157 fallback, signing, backups, profiles, toolchains.
 
 Legacy macOS stages come from the approved spec; they await verification on the canonical candidate. No legacy stage counts as Verified.
 
-Candidate identities: macOS: macos-8d8381846146471d; Windows: none; Linux: none.
+Candidate identities: macOS: macos-960785b1fcb658e4; Windows: none; Linux: none.
 <!-- END GENERATED PROGRESS -->

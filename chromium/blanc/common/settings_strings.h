@@ -14,7 +14,7 @@ struct String {
   std::string_view name;
   std::u16string_view value;
 };
-inline constexpr std::array<String, 47> kStrings_en = {{
+inline constexpr std::array<String, 52> kStrings_en = {{
     {"blancIslandHoverOpen", u"Open the Island on hover"},
     {"blancIslandHoverOpenHint", u"Rest the pointer on the Island’s address to open it without clicking."},
     {"blancIslandAutoHide", u"Auto-hide the Island"},
@@ -54,6 +54,11 @@ inline constexpr std::array<String, 47> kStrings_en = {{
     {"blancBlockingStatusInitializing", u"{provider} initializing."},
     {"blancBlockingStatusDisabled", u"{provider} disabled."},
     {"blancBlockingStatusFailed", u"{provider} could not continue ({error}). Affected requests remain blocked."},
+    {"blancCallAudio", u"Call audio"},
+    {"blancCallAudioHint", u"Automatic keeps conversation delay as low as possible. Stable targets about 400 ms of receive buffering. Resilient targets about 1 second for severe crackling or chopped speech, making back-and-forth conversation slower. Start a new call after changing it."},
+    {"blancCallAudioAutomatic", u"Automatic (lowest latency)"},
+    {"blancCallAudioStable", u"Stable — smoother playback, about 400 ms buffer"},
+    {"blancCallAudioResilient", u"Resilient — high stability, about 1 second buffer"},
     {"blancExceptions", u"Sites listed here load with ad-blocking turned off, e.g. for sites that break under it."},
     {"blancExceptionsAdd", u"Add"},
     {"blancExceptionsEmpty", u"No exceptions added."},
@@ -63,7 +68,7 @@ inline constexpr std::array<String, 47> kStrings_en = {{
     {"blancLanguageSystem", u"System ({language})"},
     {"blancLanguageRelaunch", u"Relaunch to apply"},
 }};
-inline constexpr std::array<String, 47> kStrings_de = {{
+inline constexpr std::array<String, 52> kStrings_de = {{
     {"blancIslandHoverOpen", u"Island beim Darüberfahren öffnen"},
     {"blancIslandHoverOpenHint", u"Lass den Zeiger auf der Adresse in der Island ruhen, um sie ohne Klick zu öffnen."},
     {"blancIslandAutoHide", u"Island automatisch ausblenden"},
@@ -103,6 +108,11 @@ inline constexpr std::array<String, 47> kStrings_de = {{
     {"blancBlockingStatusInitializing", u"{provider} wird gestartet."},
     {"blancBlockingStatusDisabled", u"{provider} ist deaktiviert."},
     {"blancBlockingStatusFailed", u"{provider} konnte nicht weiterarbeiten ({error}). Betroffene Anfragen bleiben blockiert."},
+    {"blancCallAudio", u"Anruf-Audio"},
+    {"blancCallAudioHint", u"Automatisch hält die Gesprächsverzögerung so gering wie möglich. Stabil puffert beim Empfang etwa 400 ms. Belastbar puffert etwa 1 Sekunde gegen starkes Knistern oder abgehackte Sprache, was Gespräche träger macht. Starte nach einer Änderung einen neuen Anruf."},
+    {"blancCallAudioAutomatic", u"Automatisch (geringste Verzögerung)"},
+    {"blancCallAudioStable", u"Stabil – flüssigere Wiedergabe, etwa 400 ms Puffer"},
+    {"blancCallAudioResilient", u"Belastbar – sehr stabil, etwa 1 Sekunde Puffer"},
     {"blancExceptions", u"Hier aufgeführte Websites laden ohne Werbeblocker, z. B. für Websites, die damit nicht funktionieren."},
     {"blancExceptionsAdd", u"Hinzufügen"},
     {"blancExceptionsEmpty", u"Keine Ausnahmen hinzugefügt."},
@@ -112,7 +122,7 @@ inline constexpr std::array<String, 47> kStrings_de = {{
     {"blancLanguageSystem", u"System ({language})"},
     {"blancLanguageRelaunch", u"Zum Übernehmen neu starten"},
 }};
-inline constexpr std::array<String, 47> kStrings_es = {{
+inline constexpr std::array<String, 52> kStrings_es = {{
     {"blancIslandHoverOpen", u"Abrir la Island al pasar el cursor"},
     {"blancIslandHoverOpenHint", u"Deja el puntero sobre la dirección de la Island para abrirla sin hacer clic."},
     {"blancIslandAutoHide", u"Ocultar la Island automáticamente"},
@@ -152,6 +162,11 @@ inline constexpr std::array<String, 47> kStrings_es = {{
     {"blancBlockingStatusInitializing", u"{provider} iniciándose."},
     {"blancBlockingStatusDisabled", u"{provider} desactivado."},
     {"blancBlockingStatusFailed", u"{provider} no pudo continuar ({error}). Las solicitudes afectadas siguen bloqueadas."},
+    {"blancCallAudio", u"Audio de las llamadas"},
+    {"blancCallAudioHint", u"Automático mantiene el retardo de la conversación lo más bajo posible. Estable busca unos 400 ms de búfer de recepción. Resistente busca alrededor de 1 segundo para crujidos fuertes o voz entrecortada, lo que hace más lenta la conversación. Inicia una llamada nueva después de cambiarlo."},
+    {"blancCallAudioAutomatic", u"Automático (latencia mínima)"},
+    {"blancCallAudioStable", u"Estable: reproducción más fluida, búfer de unos 400 ms"},
+    {"blancCallAudioResilient", u"Resistente: alta estabilidad, búfer de 1 segundo aprox."},
     {"blancExceptions", u"Los sitios de esta lista se cargan con el bloqueo de anuncios desactivado, p. ej., los que dejan de funcionar con él."},
     {"blancExceptionsAdd", u"Añadir"},
     {"blancExceptionsEmpty", u"No se ha añadido ninguna excepción."},
@@ -161,7 +176,7 @@ inline constexpr std::array<String, 47> kStrings_es = {{
     {"blancLanguageSystem", u"Sistema ({language})"},
     {"blancLanguageRelaunch", u"Reiniciar para aplicar"},
 }};
-inline constexpr std::array<String, 47> kStrings_fr = {{
+inline constexpr std::array<String, 52> kStrings_fr = {{
     {"blancIslandHoverOpen", u"Ouvrir l’Island au survol"},
     {"blancIslandHoverOpenHint", u"Laissez le pointeur sur l’adresse de l’Island pour l’ouvrir sans cliquer."},
     {"blancIslandAutoHide", u"Masquer automatiquement l’Island"},
@@ -201,6 +216,11 @@ inline constexpr std::array<String, 47> kStrings_fr = {{
     {"blancBlockingStatusInitializing", u"{provider} en cours d’initialisation."},
     {"blancBlockingStatusDisabled", u"{provider} désactivé."},
     {"blancBlockingStatusFailed", u"{provider} n’a pas pu continuer ({error}). Les requêtes concernées restent bloquées."},
+    {"blancCallAudio", u"Son des appels"},
+    {"blancCallAudioHint", u"Automatique garde le délai de conversation aussi bas que possible. Stable vise environ 400 ms de mémoire tampon en réception. Résilient vise environ 1 seconde en cas de crépitements forts ou de voix hachée, ce qui ralentit les échanges. Lancez un nouvel appel après l’avoir modifié."},
+    {"blancCallAudioAutomatic", u"Automatique (latence minimale)"},
+    {"blancCallAudioStable", u"Stable — lecture plus fluide, tampon d’environ 400 ms"},
+    {"blancCallAudioResilient", u"Résilient — grande stabilité, tampon d’environ 1 seconde"},
     {"blancExceptions", u"Les sites listés ici se chargent sans blocage des publicités, p. ex. ceux qui ne fonctionnent plus avec."},
     {"blancExceptionsAdd", u"Ajouter"},
     {"blancExceptionsEmpty", u"Aucune exception ajoutée."},
@@ -210,7 +230,7 @@ inline constexpr std::array<String, 47> kStrings_fr = {{
     {"blancLanguageSystem", u"Système ({language})"},
     {"blancLanguageRelaunch", u"Redémarrer pour appliquer"},
 }};
-inline constexpr std::array<String, 47> kStrings_it = {{
+inline constexpr std::array<String, 52> kStrings_it = {{
     {"blancIslandHoverOpen", u"Apri l’Island al passaggio del puntatore"},
     {"blancIslandHoverOpenHint", u"Lascia il puntatore sull’indirizzo dell’Island per aprirla senza fare clic."},
     {"blancIslandAutoHide", u"Nascondi automaticamente l’Island"},
@@ -250,6 +270,11 @@ inline constexpr std::array<String, 47> kStrings_it = {{
     {"blancBlockingStatusInitializing", u"{provider} in fase di avvio."},
     {"blancBlockingStatusDisabled", u"{provider} disattivato."},
     {"blancBlockingStatusFailed", u"{provider} non è riuscito a continuare ({error}). Le richieste interessate restano bloccate."},
+    {"blancCallAudio", u"Audio delle chiamate"},
+    {"blancCallAudioHint", u"Automatico mantiene il ritardo della conversazione il più basso possibile. Stabile punta a circa 400 ms di buffer in ricezione. Resistente punta a circa 1 secondo, per audio molto disturbato o voce a scatti, rendendo più lento il botta e risposta. Avvia una nuova chiamata dopo averlo cambiato."},
+    {"blancCallAudioAutomatic", u"Automatico (latenza minima)"},
+    {"blancCallAudioStable", u"Stabile — riproduzione più fluida, buffer di circa 400 ms"},
+    {"blancCallAudioResilient", u"Resistente — alta stabilità, buffer di circa 1 secondo"},
     {"blancExceptions", u"I siti di questo elenco si caricano con il blocco degli annunci disattivato, ad esempio quelli che smettono di funzionare con il blocco."},
     {"blancExceptionsAdd", u"Aggiungi"},
     {"blancExceptionsEmpty", u"Nessuna eccezione aggiunta."},
@@ -259,7 +284,7 @@ inline constexpr std::array<String, 47> kStrings_it = {{
     {"blancLanguageSystem", u"Sistema ({language})"},
     {"blancLanguageRelaunch", u"Riavvia per applicare"},
 }};
-inline constexpr std::array<String, 47> kStrings_pt_BR = {{
+inline constexpr std::array<String, 52> kStrings_pt_BR = {{
     {"blancIslandHoverOpen", u"Abrir a Island ao passar o cursor"},
     {"blancIslandHoverOpenHint", u"Deixe o ponteiro sobre o endereço da Island para abri-la sem clicar."},
     {"blancIslandAutoHide", u"Ocultar a Island automaticamente"},
@@ -299,6 +324,11 @@ inline constexpr std::array<String, 47> kStrings_pt_BR = {{
     {"blancBlockingStatusInitializing", u"{provider} iniciando."},
     {"blancBlockingStatusDisabled", u"{provider} desativado."},
     {"blancBlockingStatusFailed", u"{provider} não conseguiu continuar ({error}). As solicitações afetadas continuam bloqueadas."},
+    {"blancCallAudio", u"Áudio das chamadas"},
+    {"blancCallAudioHint", u"Automático mantém o atraso da conversa o mais baixo possível. Estável busca cerca de 400 ms de buffer de recepção. Resiliente busca cerca de 1 segundo para chiados fortes ou voz cortada, deixando a conversa mais lenta. Comece uma nova chamada depois de mudar."},
+    {"blancCallAudioAutomatic", u"Automático (menor latência)"},
+    {"blancCallAudioStable", u"Estável — reprodução mais suave, buffer de cerca de 400 ms"},
+    {"blancCallAudioResilient", u"Resiliente — alta estabilidade, buffer de cerca de 1 segundo"},
     {"blancExceptions", u"Os sites listados aqui carregam com o bloqueio de anúncios desativado, por exemplo os que quebram com ele."},
     {"blancExceptionsAdd", u"Adicionar"},
     {"blancExceptionsEmpty", u"Nenhuma exceção adicionada."},

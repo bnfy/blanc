@@ -381,9 +381,9 @@
    "row": "F14",
    "slice": "S1.7",
    "pref": "blanc.webrtc.audio_buffer",
-   "scope": "local",
-   "status": "to-build",
-   "note": "No spec row; owner 2026-11-03: built in S1.7. Device-local in shipping; a receive-buffer target for call audio"
+   "scope": "profile",
+   "status": "built",
+   "note": "No spec row; owner 2026-11-03: built in S1.7. Device-local as in shipping (an unsynced profile pref, so PrefWatcher refreshes open tabs); native in Blink through RendererPreferences (V15, owner 2026-11-04)"
   },
   {
    "key": "secureDns",

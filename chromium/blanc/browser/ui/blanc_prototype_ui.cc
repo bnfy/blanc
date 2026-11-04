@@ -117,6 +117,7 @@
 #include "ui/views/view_observer.h"
 #include "base/strings/stringprintf.h"
 #include "base/values.h"
+#include "third_party/blink/public/common/renderer_preferences/renderer_preferences.h"
 #include "base/strings/string_split.h"
 #include "chrome/browser/ui/webui/settings/settings_page_ui_handler.h"
 #include "chrome/common/webui_url_constants.h"
@@ -3695,6 +3696,11 @@ class Handler : public content::WebUIMessageHandler, public extensions::Extensio
       Reply(id, true, base::Value(base::DictValue()
           .Set("webrtcPolicy", GetOwner(web_ui()->GetWebContents())->browser->GetProfile()
               ->GetPrefs()->GetString(prefs::kWebRTCIPHandlingPolicy))
+          // V15: the Call audio target the active tab's renderers get.
+          .Set("callAudioTargetMs", [&] {
+            auto* tab = GetOwner(web_ui()->GetWebContents())->browser->GetTabStripModel()->GetActiveWebContents();
+            return tab ? tab->GetMutableRendererPrefs()->blanc_webrtc_audio_jitter_buffer_target_ms : -2;
+          }())
           .Set("secureDnsMode", SecureDnsConfig::ModeToString(config.mode()))
           .Set("secureDnsServers", config.doh_servers().ToString())));
       return;
