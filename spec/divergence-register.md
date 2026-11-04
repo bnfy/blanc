@@ -900,3 +900,42 @@ labels (`settings-schema/`, `copy/messages/`), and device-local settings stay
 device-local everywhere.
 
 **Status:** iOS implemented; Android planned (A5).
+
+---
+
+## D36 — Private tabs in their own section on Android
+**Features:** F4, F2
+
+**Why:** Chromium keeps private tabs in a separate tab model (its off-the-record
+profile), with its own order, selection and closes. Showing them mixed into the
+normal tabs would mean replacing Chromium's tab model.
+
+- **Desktop:** private tabs sit among the window's tabs.
+- **iOS:** private tabs sit in the one tab list, marked private.
+- **Android:** the tab grid and the palette list normal tabs first and private
+  tabs after a "Private" heading. Private tabs are never grouped.
+
+**Parity contract that still holds:** private tabs are never in History, never
+saved or synced, never reopened after a close, their children stay private, and
+the private theme and Private chip are the same.
+
+**Status:** Android implemented in A2, unreleased.
+
+---
+
+## D37 — Find bar at the bottom on phones
+**Features:** F8
+
+**Why:** On a phone the keyboard is up while you type what to find, and the
+thumb is at the bottom of the screen.
+
+- **Desktop:** a find capsule over the top of the page.
+- **iOS:** the system find bar above the keyboard (`UIFindInteraction`).
+- **Android:** Blanc's find bar above the keyboard, with the match count,
+  Previous, Next and Done, matching the iPhone's.
+
+**Parity contract that still holds:** the match count, moving between matches,
+and the page staying usable while the bar is open.
+
+**Status:** iOS implemented; Android implemented in A2, unreleased.
+
