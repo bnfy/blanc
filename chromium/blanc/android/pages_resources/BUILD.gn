@@ -1,0 +1,25 @@
+# Copyright 2026 Bananify Creative. MIT; see LICENSE.
+# Blanc for Android's pages, compiled into the browser: the files pages.json
+# lists, copied unchanged by tools/android-pages.mjs, and the adapter.
+pinned = read_file("//blanc/android/pages.json", "json")
+action("generate") {
+  script = "//blanc/island_resources/embed.py"
+  adapter = "//blanc/android/pages-adapter/android-pages-adapter.js"
+  inputs = [ "//blanc/android/pages.json", adapter ]
+  outputs = [ "$target_gen_dir/pages_resources.cc" ]
+  args = [
+    "--root", ".",
+    "--output", rebase_path(outputs[0], root_build_dir),
+    "--include", "blanc/android/pages_resources/pages_resources.h",
+    "--namespace", "blanc::android::pages_resources",
+    "--generated", "android-pages-adapter.js=" + rebase_path(adapter, root_build_dir),
+  ]
+  foreach(file, pinned.files) {
+    inputs += [ "//blanc/android/pages/" + file ]
+    args += [ "--generated", file + "=" + rebase_path("//blanc/android/pages/" + file, root_build_dir) ]
+  }
+}
+source_set("pages_resources") {
+  sources = [ "pages_resources.h" ] + get_target_outputs(":generate")
+  deps = [ ":generate", "//base" ]
+}
