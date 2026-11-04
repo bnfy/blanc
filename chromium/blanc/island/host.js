@@ -793,6 +793,13 @@
   settingsSheet.addEventListener('click', event => { if (event.target === settingsSheet) hideSheet(); });
   document.getElementById('settingsSheetClose').addEventListener('click', () => hideSheet());
   window.addEventListener('resize', syncSettingsSheet);
+  const grownViewport = () => new Promise(resolve => {
+    if (settingsBody.getBoundingClientRect().height > 0) return resolve();
+    const done = () => { clearTimeout(timer); window.removeEventListener('resize', grown); resolve(); };
+    const grown = () => { if (settingsBody.getBoundingClientRect().height > 0) done(); };
+    const timer = setTimeout(done, 1000);
+    window.addEventListener('resize', grown);
+  });
   async function showSettingsSheet(section) {
     // Re-invoking Settings closes it, as shipping's showUtilityPage toggles.
     if (sheet.page === 'settings') return hideSheet();
@@ -812,6 +819,10 @@
     placeSettingsSheet();
     settingsSheet.hidden = false;
     await request('height', [10000]);
+    if (epoch !== sheet.epoch) return;
+    // The host grows after the request returns; measure the card once it has
+    // (the resize listener corrects the bounds if no frame comes in time).
+    await grownViewport();
     if (epoch !== sheet.epoch) return;
     await request('settingsSheet', ['show', typeof section === 'string' ? section : '', ...settingsRect()]);
     if (epoch !== sheet.epoch) return;

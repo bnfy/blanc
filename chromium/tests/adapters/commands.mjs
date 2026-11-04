@@ -109,17 +109,21 @@ async function settingsPage(w){
  await w.app.refresh();
  return w.app.windows().find(p=>p.targetId===target.id)??null;
 }
+// The Blanc page fills its controls from its bridges after it loads; each
+// section marks itself ready once its stored values show and its controls work.
+// (Its page address shows as blanc://settings/, so ask the document itself.)
+async function settingsReady(page){
+ await page.waitForLoadState();
+ await page.waitForFunction(()=>{if(!/\/blocking-settings\.html$/.test(location.pathname))return true;const d=document.documentElement.dataset;
+  return d.searchReady==='true'&&d.bangsReady==='true'&&d.blockingReady==='true';},null,{timeout:8000});
+}
 // Opens Settings through the Island's own action, runs `fn` in its document,
 // and closes the sheet again when Settings was not already open.
 async function inSettings(w,fn,arg){
  const had=await settingsPage(w);
  if(!had)await w.api('openPage',['settings']);
  const page=await w.waitFor(()=>settingsPage(w),Boolean,'the settings sheet',8000);
- await page.waitForLoadState();
- // The Blanc page fills its controls from its bridges after it loads; each
- // section marks itself ready once its stored values show and its controls work.
- if(/blocking-settings/.test(page.url()))await page.waitForFunction(()=>{const d=document.documentElement.dataset;
-  return d.searchReady==='true'&&d.bangsReady==='true'&&d.blockingReady==='true';},null,{timeout:8000});
+ await settingsReady(page);
  const result=await page.evaluate(fn,arg);
  if(result?.missing)throw Error(`Settings (${page.url()}) has no #${result.missing} control`);
  if(!had)await w.hostEval('window.BlancPrototypeHost.closeSheet()');
@@ -139,7 +143,7 @@ const readControl=(w,id)=>inSettings(w,a=>{const el=document.getElementById(a.id
  return {value:el.type==='checkbox'?el.checked:el.value};},{id});
 // Inside an already open Settings tab, as shipping reads its sheet: null
 // when Settings isn't open.
-async function settingsEval(w,fn,arg,none=null){const page=await settingsPage(w);return page?page.evaluate(fn,arg):none;}
+async function settingsEval(w,fn,arg,none=null){const page=await settingsPage(w);if(!page)return none;await settingsReady(page);return page.evaluate(fn,arg);}
 // --- Search suggestions: shipping's fixture and request log, at the native
 // suggestion service's network boundary (browser_api/search.h). ---
 export const commands={
@@ -180,7 +184,10 @@ export const commands={
  async setCustomBangs(w,list){
   for(const b of list)await inSettings(w,a=>{for(const id of ['customBangCode','customBangName','customBangTemplate','customBangAdd'])if(!document.getElementById(id))return {missing:id};
    document.getElementById('customBangCode').value=a.code;document.getElementById('customBangName').value=a.name;
-   document.getElementById('customBangTemplate').value=a.template;document.getElementById('customBangAdd').click();return {value:true};},b);
+   document.getElementById('customBangTemplate').value=a.template;document.getElementById('customBangAdd').click();
+   // The add saves asynchronously; it has settled once the draft clears or a notice shows.
+   return new Promise(resolve=>{const until=Date.now()+5000;(function settled(){const error=document.getElementById('customBangError');
+    if(document.getElementById('customBangCode').value===''||(error&&!error.hidden)||Date.now()>until)return resolve({value:true});setTimeout(settled,25);})();});},b);
   return (await w.api('bangs')).custom;
  },
  // The overlay's own bang source.

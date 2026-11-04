@@ -421,7 +421,7 @@ remain pending. D3 beta-only no-DRM exception accepted; EME notice/handoff requi
   - The patch set covers 91 files with 296 hunks. navigation-and-context-
     menu, island-and-commands, tabs-and-groups, private-tabs, ad-blocking
     and site-certificate-safety are otherwise unchanged.
-- **S1.7 settings sheet, candidate macos-0282cf522e277d87 (2026-11-03):** Settings opens
+- **S1.7 settings sheet, candidate macos-61b9387a2d9a8841 (2026-11-04):** Settings opens
   in a native sheet. The host draws shipping's scrim, card and close button
   (`#settingsSheet`); a `views::WebView` sibling of the Island view, above
   it, shows the page over the card's body, in the regular profile in either
@@ -432,18 +432,27 @@ remain pending. D3 beta-only no-DRM exception accepted; EME notice/handoff requi
   open it in an Island window (patch 0019). General and Blocking show Blanc's
   own page there (`#embedded`, without its own scrim and card) until those
   sections move into chrome://settings; Chromium's sections (search,
-  appearance, privacy and others) load chrome://settings itself. Verified by a
-  probe on macos-80eb2099924c1845 (attached above the Island, sized to the
-  card, focused; each way of closing it; an outbound link as a tab) and by
-  targeted runs on macos-325df93d849321ef, where island-and-commands and
-  settings-and-theming matched earlier results except the bang manager and
-  the default-engine read. The adapters now find Settings in the sheet and
-  wait for the page's readiness markers, which should clear those; that rerun
-  and the later fixes (`#embedded`, `close()` keeping an open sheet's height)
-  are unverified: the screen locked, and a locked display draws no frames,
-  so the runner stops and native layout doesn't run.
-  `tests/window-snapshot.mjs` composites DevTools captures into window
-  screenshots without Screen Recording.
+  appearance, privacy and others) load chrome://settings itself. The host
+  measures the card only after it has grown, so a quick reopen no longer
+  gets a zero-height sheet. Verified by a probe on macos-80eb2099924c1845
+  (attached above the Island, sized to the card, focused; each way of
+  closing it; an outbound link as a tab) and by targeted runs on
+  macos-61b9387a2d9a8841: settings-and-theming matches its pre-sheet result,
+  internal-pages matches sh1, and island-and-commands matches s16c once
+  four Auto-hide pointer cases (241, 258, 276, 403), disturbed by the owner
+  using the machine during the run, passed alone, as did 573. The adapters
+  had read the page before it filled itself in: the page's address shows as
+  blanc://settings/, so the readiness wait never ran; it now asks the
+  document, in-sheet readers wait too, and a custom bang's add settles
+  before the sheet closes. `tests/window-snapshot.mjs` composites DevTools
+  captures into window screenshots without Screen Recording.
+- **Open question, file picker hang (2026-11-04):** the owner's live
+  instance on macos-61b9387a2d9a8841 hung when choosing a custom Start Page
+  wallpaper. The hang report shows the UI thread inside AppKit's
+  `-[NSSavePanel _initBridgeAndStuff]`, waiting on the system open/save
+  panel service (Chromium's ordinary `SelectFileDialogBridge` path, from a
+  plain `<input type=file>`). The same click in an isolated fixture did not
+  hang. Not yet reproduced or explained.
 - **Live dev instance (owner, 2026-11-03):** after every native build,
   `node chromium/tools/live-dev.mjs <runtime config>` relaunches the
   newest candidate from a copy in `~/Projects/BlancChromium158/live/`,
@@ -689,5 +698,5 @@ checkout and cache, the 157 fallback, signing, backups, profiles, toolchains.
 
 Legacy macOS stages come from the approved spec; they await verification on the canonical candidate. No legacy stage counts as Verified.
 
-Candidate identities: macOS: macos-0282cf522e277d87; Windows: none; Linux: none.
+Candidate identities: macOS: macos-61b9387a2d9a8841; Windows: none; Linux: none.
 <!-- END GENERATED PROGRESS -->
