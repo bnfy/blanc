@@ -539,6 +539,10 @@ Recorded in the spec (§4, §9) and plan:
 - 2026-11-02: no built-in Dark Reader (F42 dark websites) in the Chromium
   builds. With the Chrome Web Store supported, people install Dark Reader
   themselves; F42's cases become an approved divergence, not a port.
+- 2026-11-03: Settings (S1.7) opens in a native sheet: Chromium's restyled
+  chrome://settings in its own native view, drawn as shipping's utility
+  sheet card over the page (scrim, card, Escape and ×), since it can't load
+  in an Island host frame. Not a tab, and not a port of shipping's page.
 - 2026-11-03: the rest of S1.6 goes native. N4: only a tab that inherited
   its opener's sandbox is marked (Chromium can read the flags; shipping
   marks every page-opened tab), the mark keeps the flags in Chromium's
@@ -590,9 +594,9 @@ first-run/checklist/Patron/launch-Sunrise state once stored; address context men
 list/run; overlay drag flag; microphone capture seed.
 
 ## Next
-1. S1.6 is built. Settings in the sheet belongs to S1.7,
-   whose restyled chrome://settings can't load in a host frame; how it is
-   presented is the owner's call there. Verify each change with targeted
+1. S1.7 (F14): chrome://settings restyled, in a native sheet (owner,
+   2026-11-03). Inventory every shipping key first, then propose where each
+   lives before building. Verify each change with targeted
    `--only` runs merged by `tests/merge-baseline.mjs`. Owner, 2026-10-31: no full S1 run
    (~2 h) unless development can't continue without it; propose one with
    the reason first.
