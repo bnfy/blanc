@@ -459,6 +459,25 @@ remain pending. D3 beta-only no-DRM exception accepted; EME notice/handoff requi
   (the Settings TypeScript chain plus per-language InfoPlist strings after
   a manifest rebuild; no toolchain change), above the usual 50, so it was
   reviewed and run once with `--max-actions=60`.
+- **S1.7 Blanc's controls in chrome://settings, candidate macos-b1e03720c5fd6337 (2026-11-04):**
+  the owner chose to put Blanc's settings into Chromium's matching
+  sections (not one Blanc section). Patch 0021 (eight newly pinned files,
+  100 in all) allowlists `blanc.island.hover_open`, `.auto_hide`,
+  `.auto_hide_style`, `blanc.bangs.enabled` and `blanc.blocking.enabled`
+  in settings_private, and adds the controls with `pref-key`: Appearance
+  gets Open the Island on hover, Auto-hide and (while Auto-hide is on) how
+  the Island comes back; Search engine gets Search suggestions (Chromium's
+  only switch for it was in the removed Sync section) and Bangs; Privacy
+  and security starts with Block ads & trackers. Their labels are
+  shipping's in each selectable language, generated into
+  `blanc/common/settings_strings.h` by `tools/settings-strings.mjs` and
+  added to the page's strings by settings_ui.cc. Their readers already
+  normalize what they read. A probe toggled each and saw Blanc's own page
+  follow; settings-and-theming matches s17g. Still to come: Your bangs,
+  the Blocking exceptions list and the interface language (validated
+  natively, so through a handler), then retiring blocking-settings.html.
+  Chromium's own Appearance rows that don't apply to the Island (toolbar,
+  bookmarks bar, tab strip, side panel) are still shown.
 - **Open question, file picker hang (2026-11-04):** the owner's live
   instance on macos-61b9387a2d9a8841 hung when choosing a custom Start Page
   wallpaper. The hang report shows the UI thread inside AppKit's
@@ -712,5 +731,5 @@ checkout and cache, the 157 fallback, signing, backups, profiles, toolchains.
 
 Legacy macOS stages come from the approved spec; they await verification on the canonical candidate. No legacy stage counts as Verified.
 
-Candidate identities: macOS: macos-61b9387a2d9a8841; Windows: none; Linux: none.
+Candidate identities: macOS: macos-b1e03720c5fd6337; Windows: none; Linux: none.
 <!-- END GENERATED PROGRESS -->

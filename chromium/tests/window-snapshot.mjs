@@ -3,7 +3,8 @@
 // captured separately over DevTools and composited at their window
 // positions (lib/compose-png.swift). Runs only in an isolated fixture.
 //   node chromium/tests/window-snapshot.mjs runtime-config.json out-dir [scene ...]
-// Scenes: page, palette, settings, settings-privacy (default: all).
+// Scenes: page, palette, settings, settings-<section> such as settings-privacy
+// (default: page, palette, settings).
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
@@ -76,9 +77,9 @@ const SCENES = {
     await pause(800);
   },
   settings: fixture => openSettings(fixture, ''),
-  // Chromium's own sections, in the same sheet.
-  'settings-privacy': fixture => openSettings(fixture, 'privacy'),
 };
+// settings-<section> opens that section in the same sheet (settings-privacy).
+const scene = name => SCENES[name] ?? (name.startsWith('settings-') ? fixture => openSettings(fixture, name.slice(9)) : null);
 async function openSettings(fixture, section) {
   await fixture.host.eval(`window.BlancPrototypeHost.api.openPage('settings', ${JSON.stringify(section)})`);
   await waitFor(() => nativeCall(fixture.host, 'settingsSheetState'), s => s.attached, 'settings sheet');
@@ -93,16 +94,16 @@ if (process.argv[1] === fileURLToPath(import.meta.url)) {
   const [configPath, outDir, ...asked] = process.argv.slice(2);
   if (!configPath || !outDir) throw Error('Usage: window-snapshot.mjs runtime-config.json out-dir [scene ...]');
   const scenes = asked.length ? asked : Object.keys(SCENES);
-  for (const scene of scenes) if (!SCENES[scene]) throw Error('Unknown scene: ' + scene);
+  for (const name of scenes) if (!scene(name)) throw Error('Unknown scene: ' + name);
   const config = JSON.parse(fs.readFileSync(configPath));
   fs.mkdirSync(outDir, {recursive: true});
-  for (const scene of scenes) {
+  for (const name of scenes) {
     const fixture = new NativeFixture();
     try {
       await fixture.launch(config, fs.mkdtempSync(path.join(os.tmpdir(), 'blanc-snapshot-run-')) + '/case', {diskAssets: false, testHooks: true});
       await installDriver(fixture.host);
-      await SCENES[scene](fixture);
-      console.log(await snapshotWindow(fixture, path.join(outDir, `${scene}.png`)));
+      await scene(name)(fixture);
+      console.log(await snapshotWindow(fixture, path.join(outDir, `${name}.png`)));
     } finally {
       await fixture.close();
     }

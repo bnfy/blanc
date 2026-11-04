@@ -23,12 +23,12 @@ export const LABELS = [['new_private_tab', 'menu.newPrivateTab'], ['new_private_
 
 const show = file => execFileSync('git', ['show', `${ref}:${file}`], {cwd: root, encoding: 'utf8'});
 
-export function catalogs() {
+export function catalogs(labels = LABELS) {
   const locales = JSON.parse(show('src/main/i18n-locales.json')).filter(l => l.status === 'selectable');
   return locales.map(({code}) => {
     const context = {module: {exports: {}}};
     vm.runInNewContext(show(`src/renderer/pages/strings.${code}.js`), context);
-    const values = LABELS.map(([, key]) => {
+    const values = labels.map(([, key]) => {
       const value = context.module.exports.messages?.[key];
       if (typeof value !== 'string' || !value) throw Error(`${code}: missing ${key}`);
       return value;
