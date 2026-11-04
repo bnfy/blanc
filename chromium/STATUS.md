@@ -877,6 +877,64 @@ nowhere; all fixed with tests, and the gate rerun on the fixed build. The
 arm64 candidate below predates those fixes. Divergences: D11 and
 D15 (Android bullets), D34 and D35.
 
+### A2 Tabs, groups, palette and tab grid
+
+Plan: `docs/superpowers/plans/2026-11-04-android-a2-tabs.md`; spike:
+`docs/android/a2-tabs-spike.md`. Every emulator gate passes; the Pixel
+hands-on waits for the device.
+
+- **Tabs and groups are Chromium's** (its model saves and restores them),
+  with Blanc's rules: group names matched without regard to case, the eight
+  preset colors (kept beside Chromium's nearest), a plain new tab always
+  ungrouped, pins leading, and a grouped tab's pin kept by Blanc, since
+  Chromium keeps pinned tabs apart from groups. Blanc restores what Chromium
+  doesn't: the active tab and mute. Private tabs close on a cold start and sit
+  in their own section (D36).
+- **Palette:** the iPhone's sheet from the Island's site: the tab list with
+  groups (fold, "N tabs tucked away"), the Quick Switcher over tabs,
+  Favorites and groups (history not yet), and 11 slash commands. `/space`,
+  `/sync`, `/send`, `/settings`, `/reader`, `/block-ads` and `/allow-ads`
+  wait for their milestones.
+- **Tab grid:** from the Island's tab count or a swipe from the Island into
+  the page, with group headers and menus (rename, color, new tab in group,
+  close), a card menu (pin, mute, duplicate, move to group) and a sideways
+  swipe to close with five seconds of Undo. Chrome's own undo snackbar is off.
+- **Find in page** above the keyboard (D37), from the Sunrise menu or `/find`.
+- **Quiet Tabs:** a background tab is discarded after an hour (the iPhone's
+  rules: never the active, pinned, muted, playing or capturing tab, nor one
+  with unload handlers) and comes back with its back history. Pull to refresh
+  reloads web pages, never Blanc's.
+- **Still not built:** a Blanc Undo banner over the page for closes from the
+  palette (the grid has one), history in the Quick Switcher, and the bridge
+  members `start.openIsland` and `surface.*`, which still answer `not-yet`.
+- **Candidate** (x86_64, emulator): `out/AndroidDebugX64/apks/ChromePublic.apk`,
+  624 MB, SHA-256 `0dd92ce5330868c90c9eeed4818bedccacb34f41c2c7638271989ce15ec2196c`.
+  No arm64 build for the Pixel yet.
+
+| A2 gate | Result | Evidence (`~/blanc-evidence/android/a2-merged/`) |
+| --- | --- | --- |
+| A1 gate, rerun: Robolectric, insets, menu, pages, outbound gate | Pass (Robolectric 268) | `a1/`, `a1-gate.log` |
+| Tabs, palette (three sizes, rotation, commands, groups) | 2 of 2, 7 of 7 | `tabs/`, `palette/` |
+| Tab grid at the top and bottom at three sizes, swipe to open, swipe to close and Undo, group menu | 10 of 10 | `tab-grid/` |
+| Find in page | 5 of 5 | `find/` |
+| Session after a background kill, a force-stop and a reboot | 3 of 3 | `session-restore/` |
+| Quiet Tabs and pull to refresh | 4 of 4 | `quiet-tabs/` |
+| Groups, private tabs and links over Chromium's model | 5 of 5 | `tab-store/` |
+| Shared acceptance scenarios (`tests/android/acceptance/`) | 23 of 23 | `acceptance/` |
+| Owner hands-on on the Pixel: palette, grid swipe, groups, pull to refresh, Island swipe | **Pending the Pixel** | — |
+
+Run it all with `tests/android/a2-gate.sh` on the server. The shared
+scenarios found two gaps, fixed with tests: pinning a grouped tab took it out
+of its group, and the palette had no tucked-away row. A final review of the A2
+branch found nine more, also fixed with tests, among them moving one tab taking
+its whole group, `/group` crashing on a grouped or private tab, ungroup
+reversing the order, Undo after Chromium had committed the close, a link on a
+cold start losing to the saved tab, and find staying on the old page. A
+background tab's mute was queried too: `session-restore.mjs` keeps it through
+all three restarts, though it doesn't prove that tab was frozen. The gate was
+rerun on the fixed build, on top of `chromium/migration`; none of migration's
+changes feed Android's build, so its APK is unchanged. Divergences: D36, D37.
+
 <!-- BEGIN GENERATED PROGRESS -->
 ### Bar A — executable shipping cases on the fork
 
