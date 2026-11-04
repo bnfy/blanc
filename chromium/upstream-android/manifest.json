@@ -1,0 +1,18 @@
+{
+  "upstream": "a21ce95c24ce3964416f09ae1862f53f319eb4d0",
+  "version": "156.0.8078.79",
+  "files": {
+    "BUILD.gn": "3ac1c40941ec13b48f3a855c6d5aef985b6bdf3cb7272d3940cf6cdf5f188617",
+    "chrome/android/BUILD.gn": "0ddb8f56c59166dcdb6cc49f2e5a8d2ab22491aa8a3822d4ac27a133fa2d3760",
+    "chrome/android/java/res_base/drawable/ic_launcher.xml": "f817d44b43a7798b93829d8c81e72482484886997ef03ca9f11bfc88e3c0aec7",
+    "chrome/android/java/res_base/drawable/ic_launcher_round.xml": "c059dc4d529f084b91dfffdf09c19ba62cbe61c91a1d01b17bda3d6d2d80e936",
+    "chrome/android/java/src/org/chromium/chrome/browser/base/SplitCompatApplication.java": "bcd45e73b8fa5daf1eb2939f2199bc8522b56beaccb9d58feae775ec2439e9dd",
+    "chrome/android/java/src/org/chromium/chrome/browser/tabbed_mode/TabbedRootUiCoordinator.java": "b8d53ba766d70c9fb08ecb9375218fdaf8625a0cb9e80a380442bf83ba43f760",
+    "chrome/browser/flags/android/chrome_feature_list.cc": "c4d157b9d4e8007c6fea81fe87c6a46026b6c900813d7eeb9a430c201e52674d",
+    "chrome/browser/flags/android/java/src/org/chromium/chrome/browser/flags/ChromeFeatureList.java": "dfa696a398bfbd5dd7f49921c251060e3cafb51aebc81d9f498abb20c32526e2",
+    "chrome/browser/ui/webui/BUILD.gn": "5f3bcd81e34b2998409a8568d0f628e6120b34cea6ef766824320c2bc94b837a",
+    "chrome/browser/ui/webui/chrome_web_ui_configs.cc": "daf53cfff18969192d13c7db7a98bb93ba183ebe8c7c4ba6e297029c302ce9e2",
+    "chrome/browser/url_constants/android/java/src/org/chromium/chrome/browser/url_constants/UrlConstantResolverFactory.java": "28ff58a5f3ebd8d34afbfbc5c1dde68c1c762d66845fae817bb40afe08c608dc",
+    "components/signin/internal/identity_manager/gaia_cookie_manager_service.cc": "065fb50c3c08b7577ad3bb5a8bf7065bdec88bdb56cba7294a5f1d317e5bb7e4"
+  }
+}

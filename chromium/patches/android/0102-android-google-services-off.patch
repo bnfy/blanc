@@ -1,0 +1,96 @@
+diff -ruN a/chrome/android/java/src/org/chromium/chrome/browser/base/SplitCompatApplication.java b/chrome/android/java/src/org/chromium/chrome/browser/base/SplitCompatApplication.java
+--- a/chrome/android/java/src/org/chromium/chrome/browser/base/SplitCompatApplication.java
++++ b/chrome/android/java/src/org/chromium/chrome/browser/base/SplitCompatApplication.java
+@@ -20,6 +20,7 @@
+ import org.chromium.base.ApplicationState;
+ import org.chromium.base.ApplicationStatus;
+ import org.chromium.base.BundleUtils;
++import org.chromium.base.CommandLine;
+ import org.chromium.base.CommandLineInitUtil;
+ import org.chromium.base.ContextUtils;
+ import org.chromium.base.EarlyTraceEvent;
+@@ -53,6 +54,9 @@
+ import org.chromium.components.policy.PolicyCache;
+ import org.chromium.ui.base.ResourceBundle;
+ 
++import java.util.ArrayList;
++import java.util.Arrays;
++import java.util.List;
+ import java.util.function.Supplier;
+ 
+ /**
+@@ -69,6 +73,24 @@
+     public static final String ON_DEMAND_SPLIT_NAME = "on_demand";
+     private static final String TAG = "SplitCompatApp";
+     private static final String COMMAND_LINE_FILE = "chrome-command-line";
++    // Blanc for Android (patch 0102): Chromium services that reach Google on their own.
++    // Desktop's list (blanc/common/background_services.h) plus Android's, found by the
++    // Android outbound gate; chromium/tools/android-background-services.test.mjs keeps
++    // this a superset of desktop's.
++    // disable-fre: Chromium's first run (Google sign-in, Google's terms and usage reporting)
++    // never shows; usage and crash reporting stays off, its default until someone opts in.
++    private static final String[] BLANC_SWITCHES = {"disable-component-update", "disable-fre"};
++    private static final String[] BLANC_DISABLED_FEATURES = {
++        "NetworkTimeServiceQuerying",
++        "AutofillServerCommunication",
++        "AimEnabled",
++        "AimServerEligibilityEnabled",
++        "Prewarm",
++        "MediaDrmPreprovisioningAtStartup",
++        "PredictionModelComponentDelivery",
++        "PreconnectToSearch",
++        "SearchEnginePreconnect2",
++    };
+     private static final String ATTACH_BASE_CONTEXT_EVENT = "ChromeApplication.attachBaseContext";
+     // Public to allow use in ChromeBackupAgent
+     public static final String PRIVATE_DATA_DIRECTORY_SUFFIX = "chrome";
+@@ -228,6 +250,7 @@
+             // (see ChildProcessService.java).
+             CommandLineInitUtil.initCommandLine(
+                     COMMAND_LINE_FILE, SplitCompatApplication::shouldUseDebugFlags);
++            disableBlancBackgroundServices(CommandLine.getInstance());
+             PathUtils.setPrivateDataDirectorySuffix(PRIVATE_DATA_DIRECTORY_SUFFIX);
+             // Register for activity lifecycle callbacks. Must be done before any activities are
+             // created and is needed only by processes that use the ApplicationStatus api (which
+@@ -391,4 +414,17 @@
+             throw new RuntimeException("App out of date, getResources() null, closing app.");
+         }
+     }
++
++    // Set before native code or the feature list reads the command line; added to any
++    // --disable-features already given.
++    private static void disableBlancBackgroundServices(CommandLine commandLine) {
++        for (String blancSwitch : BLANC_SWITCHES) commandLine.appendSwitch(blancSwitch);
++        List<String> features = new ArrayList<>();
++        String given = commandLine.getSwitchValue("disable-features");
++        if (given != null && !given.isEmpty()) features.addAll(Arrays.asList(given.split(",")));
++        for (String feature : BLANC_DISABLED_FEATURES) {
++            if (!features.contains(feature)) features.add(feature);
++        }
++        commandLine.appendSwitchWithValue("disable-features", String.join(",", features));
++    }
+ }
+diff -ruN a/components/signin/internal/identity_manager/gaia_cookie_manager_service.cc b/components/signin/internal/identity_manager/gaia_cookie_manager_service.cc
+--- a/components/signin/internal/identity_manager/gaia_cookie_manager_service.cc
++++ b/components/signin/internal/identity_manager/gaia_cookie_manager_service.cc
+@@ -525,6 +525,12 @@
+ }
+ 
+ void GaiaCookieManagerService::TriggerListAccounts() {
++#if BUILDFLAG(IS_ANDROID)
++  // Blanc for Android (patch 0102) has no Google sign-in, so it never lists the
++  // Google accounts in its cookie jar: sign-in metrics and Sync's session
++  // recorder called accounts.google.com/ListAccounts at every startup. Callers
++  // see the jar as not yet fetched.
++#else
+   // Callers suspect that a check to Gaia needs to be done, don't rely on the
+   // in progress request, conditions might have changed while the request is
+   // in-flight.
+@@ -540,6 +546,7 @@
+         base::BindOnce(&GaiaCookieManagerService::StartFetchingListAccounts,
+                        weak_ptr_factory_.GetWeakPtr()));
+   }
++#endif  // BUILDFLAG(IS_ANDROID)
+ }
+ 
+ void GaiaCookieManagerService::TriggerListAccountsIfStale() {

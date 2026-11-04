@@ -3,7 +3,7 @@ import { test } from 'node:test';
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
-import { changedInputs, plannedActions, checkPlan, planSummary, localJobs, maximumActions, selectedSdk, outputName } from './build.mjs';
+import { changedInputs, plannedActions, checkPlan, planSummary, localJobs, maximumActions, selectedSdk, outputName, buildLane, requireAndroidHost, competingBuild, processListArgs } from './build.mjs';
 
 test('cold plans larger than the former capture limit retain their final count', () => {
   const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'blanc-plan-test-'));
@@ -120,4 +120,31 @@ test('explicit recovered SDK must match the real sysroot and never hides Xcode d
     assert.throws(() => selectedSdk([`--sdk-root=${sdk}`], out), /No sysroot/);
     assert.deepEqual(changedInputs({xcode:'old',sdkPath:sdk}, {xcode:'new',sdkPath:sdk}), ['xcode']);
   } finally { fs.rmSync(dir, {recursive:true,force:true}); }
+});
+
+test('desktop lane keeps its defaults', () => {
+  assert.deepEqual(buildLane(['--build']), { lane: 'desktop', out: 'BlancPrototype', target: 'chrome' });
+  assert.deepEqual(buildLane(['--lane=desktop', '--out=BlancRelease']), { lane: 'desktop', out: 'BlancRelease', target: 'chrome' });
+});
+test('android lane resolves its out dir and target', () => {
+  assert.deepEqual(buildLane(['--lane=android']), { lane: 'android', out: 'AndroidDebug', target: 'chrome_public_apk' });
+  assert.deepEqual(buildLane(['--lane=android', '--out=AndroidDebugX64']), { lane: 'android', out: 'AndroidDebugX64', target: 'chrome_public_apk' });
+});
+test('lanes and outputs never mix', () => {
+  for (const options of [['--lane=ios'], ['--lane='], ['--lane=android', '--lane=desktop'], ['--lane=desktop', '--out=AndroidDebug'],
+    ['--lane=android', '--out=BlancPrototype'], ['--lane=android', '--out=../AndroidDebug'], ['--lane=android', '--sdk-root=/tmp']])
+    assert.throws(() => buildLane(options), undefined, options.join(' '));
+});
+test('android lane refuses anything but x86-64 Linux', () => {
+  assert.doesNotThrow(() => requireAndroidHost('linux', 'x64'));
+  for (const [platform, arch] of [['darwin', 'arm64'], ['linux', 'arm64'], ['win32', 'x64']])
+    assert.throws(() => requireAndroidHost(platform, arch), /only on x86-64 Linux/);
+});
+test('android lane refuses a competing build', () => {
+  const linux = 'bash     -bash\nsiso     /home/build/chromium-android/src/third_party/siso/cipd/siso ninja -offline -C out/AndroidDebug chrome_public_apk\n';
+  assert.equal(competingBuild(linux), true);
+  assert.equal(competingBuild('/Users/x/src/third_party/siso/cipd/siso /Users/x/src/third_party/siso/cipd/siso ninja -C out/BlancPrototype chrome'), true);
+  assert.equal(competingBuild('bash     -bash\nnode     node build.mjs --check\nvim      vim siso-notes.txt\n'), false);
+  assert.deepEqual(processListArgs('linux'), ['-eo', 'comm=,args=']);
+  assert.deepEqual(processListArgs('darwin'), ['-axo', 'comm=,args=']);
 });
