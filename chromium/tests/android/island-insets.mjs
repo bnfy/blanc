@@ -13,7 +13,9 @@ import {execFileSync} from 'node:child_process';
 import {fileURLToPath} from 'node:url';
 
 const PACKAGE = 'me.bnfy.blanc.dev';
-const PAGE = 'https://www.iana.org/help/example-domains';
+// Long at every size: within 8 of the page's end the Island always shows (IslandTuck), so a
+// short page can't tuck it on a tall screen.
+const PAGE = 'https://www.iana.org/domains/root/db';
 const PREFS = `shared_prefs/${PACKAGE}_preferences.xml`;
 
 // Bounds "[l,t][r,b]" of a node in a UI Automator dump, or null.

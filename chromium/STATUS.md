@@ -392,9 +392,10 @@ checkout and cache, the 157 fallback, signing, backups, profiles, toolchains.
 
 ## Android
 Plan: `docs/superpowers/plans/2026-11-03-android-port.md` (design and plan in
-[PR #1333](https://github.com/bnfy/blanc/pull/1333)). Milestone: **A0
-Foundation**, 5 of 6 exit gates passed on the emulator; the Pixel run waits
-for the device. Owner approved the download and cold builds on 2026-11-03.
+[PR #1333](https://github.com/bnfy/blanc/pull/1333)). Milestones: **A0
+Foundation**, 5 of 6 exit gates passed on the emulator, and **A1 Island and
+pages**, every emulator gate passed (below); both Pixel runs wait for the
+device. Next: A2, `docs/superpowers/plans/2026-11-04-android-a2-tabs.md`. Owner approved the download and cold builds on 2026-11-03.
 
 - **Lane:** Chrome stable for Android 156.0.8078.79, chromium
   `a21ce95c24ce3964416f09ae1862f53f319eb4d0` (chromiumdash, 2026-11-03).
@@ -431,6 +432,53 @@ page's account icon. Debug args differ from the plan's: `is_java_debug`,
 `android_static_analysis = "on"` and `disable_android_lint` (reasons in
 `android/args/`).
 
+### A1 Island and pages
+
+Plan: `docs/superpowers/plans/2026-11-04-android-a1-island.md`; spike:
+`docs/android/a1-island-spike.md`. Owner direction (2026-11-04): Android
+follows Blanc for iPhone wherever it can. Milestone **A1**: every emulator gate
+passes; the Pixel hands-on waits for the device.
+
+- **Island:** the iPhone's floating Island over a full-screen page (Chromium's
+  toolbar hidden, patch 0104): the Sunrise menu, the site, the private chip,
+  Reload or Stop, the tab count and New Tab, with the iPhone's sizes, surface,
+  tuck rules, top or bottom position and sideways tab swipe. TalkBack hears the
+  iPhone's labels, and the tab count as "Show all tabs, 3 tabs".
+- **Sunrise menu:** Save to or Remove from Favorites, Share, New Private Tab.
+  Customize Start Page (A5), blocking (A3), Find (A2) and Send (A4) are hidden
+  until their milestones.
+- **Address sheet:** the site opens a sheet above the keyboard; addresses load,
+  words search DuckDuckGo (desktop's address rules, 1,746-input differential).
+  A2's palette replaces it.
+- **Pages:** shipping's page files from v1.46.0, unchanged, at
+  `chrome://blanc/<page>.html` (D34, patch 0105) with the iPhone's bridge and
+  phone layout; new tabs, Favorites and History open them, so Chrome's New Tab
+  page is never created. Bridge members answered in A1: `appVersion`,
+  `start.data`/`topSites`/`focusGroup`/`layoutUsed`, `bookmarks.list`/
+  `remove`/`capabilities`/`clearFavicon`, `history.list`/`remove`/`clear`,
+  `shortcuts.list`, `mahjong.played`. Every other member rejects `not-yet`:
+  `start.openIsland` and `surface.*` (A2), `pins.*` and Start Page appearance
+  (A5), `start.openSent`/`dismissSent`/`onSentItems`/`onRemoteTabs` (A4),
+  `archive.*` (after A2), `errorPage.continueUnsafe` (A6),
+  `bookmarks.setFolder`/`renameFolder`/`removeFolder` and imports (after 1.0).
+- **No startup prompts:** Chrome's notification prompt is gone (patch 0104);
+  Android asks in context.
+- **Candidate** (x86_64, emulator): `out/AndroidDebugX64/apks/ChromePublic.apk`,
+  SHA-256 `240de78564688e0dda63abe7241ba70623601134542913d0c8ca240957946f99`.
+  The arm64 build for the Pixel follows.
+
+| A1 gate | Result | Evidence (`~/blanc-evidence/android/a1/`) |
+| --- | --- | --- |
+| Robolectric: Island rules, view, menu, address input | 114 pass (57 per SDK) | `junit.log` |
+| Island inside the insets and tucking, gesture and three-button navigation, portrait and landscape, top and bottom, at 1080×1920@480, 1080×2400@420 and 720×1280@320 | 24 of 24 | `insets-*/island-insets.json` |
+| Sunrise menu, no startup prompt | 7 of 7 | `menu/island-menu.json` |
+| Pages: fresh install opens the Start Page; six pages × six languages, phone layout, no sideways scroll, no script errors | 37 of 37 | `pages/pages-phone.json` |
+| Outbound gate | Pass | `outbound/` |
+| Owner hands-on on the Pixel: one-handed at the bottom, tuck feel, swipe, pages at phone width | **Pending the Pixel** | — |
+
+Run it all with `tests/android/a1-gate.sh` on the server. Divergences: D11 and
+D15 (Android bullets), D34 and D35.
+
 <!-- BEGIN GENERATED PROGRESS -->
 ### Bar A — executable shipping cases on the fork
 
@@ -448,10 +496,10 @@ Android's Bar A will count the companion scenario set once Android steps are bou
 
 | State | macOS | Windows | Linux | Android |
 | --- | ---: | ---: | ---: | ---: |
-| Not started / unassessed | 42 | 79 | 79 | 79 |
+| Not started / unassessed | 42 | 79 | 79 | 77 |
 | Research only | 1 | 0 | 0 | 0 |
 | Drafted | 11 | 0 | 0 | 0 |
-| Implemented | 0 | 0 | 0 | 0 |
+| Implemented | 0 | 0 | 0 | 2 |
 | Built, isolated (legacy) | 9 | 0 | 0 | 0 |
 | Integrated, partial (legacy) | 16 | 0 | 0 | 0 |
 | Integrated | 0 | 0 | 0 | 0 |
