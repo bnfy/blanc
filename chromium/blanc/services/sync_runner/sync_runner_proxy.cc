@@ -29,6 +29,7 @@
 #include "build/build_config.h"
 #include "content/public/browser/service_process_host.h"
 #include "crypto/hash.h"
+#include "mojo/public/cpp/bindings/callback_helpers.h"
 #include "mojo/public/cpp/bindings/receiver.h"
 #include "mojo/public/cpp/bindings/remote.h"
 #include "net/base/load_flags.h"
@@ -51,6 +52,9 @@ namespace {
 constexpr size_t kMaxBody = 32 * 1024 * 1024;
 // The Worker caps a blob at 512 KB; SimpleURLLoader allows 5 MB as a string.
 constexpr size_t kMaxResponse = 4 * 1024 * 1024;
+constexpr base::TimeDelta kCrashWindow = base::Seconds(10);
+constexpr base::TimeDelta kCrashLimitWindow = base::Minutes(10);
+constexpr size_t kCrashLimit = 3;
 constexpr net::NetworkTrafficAnnotationTag kAnnotation = net::DefineNetworkTrafficAnnotation("blanc_sync", R"(
   semantics { sender: "Blanc Sync" description: "End-to-end encrypted sync with the person's other devices."
     trigger: "Sync is on." data: "Ciphertext only." destination: OTHER
@@ -76,6 +80,8 @@ std::string ReadBundle() {
   base::File file(fd);
   script.resize(region.size);
   if (!file.ReadAndCheck(region.offset, base::as_writable_byte_span(script))) return std::string();
+  // For the emulator check: a wrong bundle must never run.
+  if (base::CommandLine::ForCurrentProcess()->HasSwitch("blanc-sync-test-bad-bundle")) script.back() ^= 1;
 #else
   auto path = base::CommandLine::ForCurrentProcess()->GetSwitchValuePath("blanc-sync-assets").AppendASCII("sync-bundle.js");
   if (!base::ReadFileToStringWithMaxSize(path, &script, 16 * 1024 * 1024)) return std::string();
@@ -102,7 +108,8 @@ class Runner : public mojom::SyncHost {
   Runner() = default;
 
   void Call(std::string method, std::string args, SyncCallback callback) {
-    if (ready_) { service_->Call(method, args, std::move(callback)); return; }
+    if (failed_) { std::move(callback).Run(false, "unavailable"); return; }
+    if (ready_) { Send(method, args, std::move(callback)); return; }
     waiting_.push_back({std::move(method), std::move(args), std::move(callback)});
     if (!starting_) Start();
   }
@@ -158,6 +165,11 @@ class Runner : public mojom::SyncHost {
   struct Waiting { std::string method, args; SyncCallback callback; };
   using Loaders = std::list<std::unique_ptr<network::SimpleURLLoader>>;
 
+  // A call the runner never answers, because it ended, still answers here.
+  void Send(const std::string& method, const std::string& args, SyncCallback callback) {
+    service_->Call(method, args, mojo::WrapCallbackWithDefaultInvokeIfNotRun(std::move(callback), false, std::string("ended")));
+  }
+
   void Fetched(Loaders::iterator it, FetchCallback callback, std::optional<std::string> body) {
     auto loader = std::move(*it);
     loaders_.erase(it);
@@ -194,14 +206,25 @@ class Runner : public mojom::SyncHost {
   void Started(bool ready) {
     if (!ready) { Fail("start"); return; }
     ready_ = true;
+    ready_at_ = base::TimeTicks::Now();
     starting_ = false;
     auto pending = std::move(waiting_);
-    for (auto& call : pending) service_->Call(call.method, call.args, std::move(call.callback));
+    for (auto& call : pending) Send(call.method, call.args, std::move(call.callback));
   }
+  // Android ends background processes in normal use, so an end is only a crash soon after
+  // starting: three of those in ten minutes stop the runner, as the blocker's limit does.
   void Ended() {
+    const base::TimeTicks now = base::TimeTicks::Now();
+    const bool crash = !ready_ || now - ready_at_ < kCrashWindow;
     service_.reset();
+    host_.reset();
     ready_ = false;
     starting_ = false;
+    if (crash) {
+      std::erase_if(crashes_, [&](base::TimeTicks at) { return now - at > kCrashLimitWindow; });
+      crashes_.push_back(now);
+      if (crashes_.size() >= kCrashLimit) { Fail("ended"); failed_ = true; return; }
+    }
     if (!waiting_.empty()) Start();
   }
   void Fail(const char* why) {
@@ -213,7 +236,9 @@ class Runner : public mojom::SyncHost {
 
   mojo::Remote<mojom::SyncRunner> service_;
   mojo::Receiver<mojom::SyncHost> host_{this};
-  bool ready_ = false, starting_ = false;
+  bool ready_ = false, starting_ = false, failed_ = false;
+  base::TimeTicks ready_at_;
+  std::vector<base::TimeTicks> crashes_;
   std::list<Waiting> waiting_;
   Loaders loaders_;
   scoped_refptr<base::SequencedTaskRunner> writer_ = base::ThreadPool::CreateSequencedTaskRunner(

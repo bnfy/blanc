@@ -82,6 +82,7 @@ android_library("sync_java") {
   sources = [
     "java/src/org/chromium/blanc/sync/BlancKeyStore.java",
     "java/src/org/chromium/blanc/sync/SyncBridge.java",
+    "java/src/org/chromium/blanc/sync/SyncTestDriver.java",
   ]
   deps = [
     "//base:base_java",
@@ -218,6 +219,7 @@ robolectric_binary("blanc_android_junit_tests") {
     "junit/src/org/chromium/blanc/island/FindCapsuleTest.java",
     "junit/src/org/chromium/blanc/island/IslandMenuPopupTest.java",
     "junit/src/org/chromium/blanc/island/IslandMenuTest.java",
+    "junit/src/org/chromium/blanc/sync/BlancKeyStoreTest.java",
     "junit/src/org/chromium/blanc/island/IslandPositionTest.java",
     "junit/src/org/chromium/blanc/island/IslandStyleTest.java",
     "junit/src/org/chromium/blanc/island/IslandSwipeGestureTest.java",
@@ -244,6 +246,7 @@ robolectric_binary("blanc_android_junit_tests") {
   deps = [
     ":island_java",
     ":island_view_java",
+    ":sync_java",
     ":tabs_java",
     "//base:base_java_test_support",
     "//base:base_junit_test_support",
