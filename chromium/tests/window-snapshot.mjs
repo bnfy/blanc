@@ -83,10 +83,11 @@ const SCENES = {
 // island-<size> picks that Island size in Settings and shows the window.
 const scene = name => SCENES[name] ?? (name.startsWith('settings-') ? fixture => openSettings(fixture, name.slice(9))
   : /^island-(default|large|extra-large)$/.test(name) ? fixture => setIslandSize(fixture, name.slice(7))
-  : /^newtab(-(de|es|fr|it|pt-BR))?$/.test(name) ? fixture => openStartPage(fixture, name.slice(7) || null) : null);
+  : /^newtab(-(de|es|fr|it|pt-BR))?$/.test(name) ? fixture => openStartPage(fixture, name.slice(7) || null)
+  : /^newtab-(ledger|billboard|shelf|tally)$/.test(name) ? fixture => openStartPage(fixture, null, name.slice(7)) : null);
 // newtab[-<language>] shows the Start Page, after relaunching with that
 // interface language chosen in Settings when one is named.
-async function openStartPage(fixture, language) {
+async function openStartPage(fixture, language, layout = null) {
   if (language) {
     await nativeCall(fixture.host, 'setStoredUiLanguage', [language]);
     await fixture.stop();
@@ -95,6 +96,13 @@ async function openStartPage(fixture, language) {
   }
   await nativeCall(fixture.host, 'createTab', ['chrome://newtab/']);
   await pause(2500);
+  if (layout) {
+    const target = await waitFor(async () => (await fixture.targets()).find(t => t.type === 'page' && /newtab/.test(t.url)), Boolean, 'Start Page');
+    const page = await fixture.connectTarget(target);
+    await page.eval(`window.bowserPages.start.setLayout(${JSON.stringify(layout)})`);
+    page.close();
+    await pause(2000);
+  }
 }
 export async function setIslandSize(fixture, size) {
   const settings = await openSettings(fixture, 'appearance', true);

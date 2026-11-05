@@ -11,15 +11,17 @@ index 006bf19..258435c 100644
    (*s_allowlist)["blanc.island.auto_hide"] = settings_api::PrefType::kBoolean;
    (*s_allowlist)["blanc.island.auto_hide_style"] =
 diff --git a/chrome/browser/prefs/browser_prefs.cc b/chrome/browser/prefs/browser_prefs.cc
-index f0f7b0d..f0d3f29 100644
+index f0f7b0d..b8fa6d4 100644
 --- a/chrome/browser/prefs/browser_prefs.cc
 +++ b/chrome/browser/prefs/browser_prefs.cc
-@@ -2081,6 +2081,8 @@ void RegisterProfilePrefs(user_prefs::PrefRegistrySyncable* registry,
+@@ -2081,6 +2081,10 @@ void RegisterProfilePrefs(user_prefs::PrefRegistrySyncable* registry,
  #if __has_include("blanc/browser/ui/blanc_prototype_ui.h")
    // The Island's own settings (F1), with shipping's defaults: open it on
    // hover, auto-hide it, and how a hidden Island comes back.
 +  // Shipping's islandSize (#1292): default, large or extra-large.
 +  registry->RegisterStringPref("blanc.island.size", "default");
++  // The Start Page's weekly blocked counter (shipping's adblock-stats.json).
++  registry->RegisterDictionaryPref("blanc.blocking.week_stats");
    registry->RegisterBooleanPref("blanc.island.hover_open", false);
    registry->RegisterBooleanPref("blanc.island.auto_hide", false);
    registry->RegisterStringPref("blanc.island.auto_hide_style", "float");

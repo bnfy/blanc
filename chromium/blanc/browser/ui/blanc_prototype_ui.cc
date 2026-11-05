@@ -1089,6 +1089,31 @@ class Owner : public base::SupportsUserData::Data,
       for (const auto& inserted : change.GetInsert()->contents) {
         blanc::quiet::MediaHistory::Get(inserted.contents, true);
         NoteInheritedSandbox(inserted.contents);
+        // Shipping opens link children ungrouped, at the end with the other
+        // ungrouped tabs (owner, October 2026). Chromium puts a tab opened
+        // from a grouped tab into that group as it inserts it; Blanc's own
+        // group commands join a group only after inserting.
+        auto* model = browser->GetTabStripModel();
+        const int index = model->GetIndexOfWebContents(inserted.contents);
+        // A link child's first navigation is a link; Blanc's own new tabs
+        // (New Tab Below, which Chromium also gives an opener) are typed.
+        auto* entry = inserted.contents->GetController().GetPendingEntry();
+        if (!entry) entry = inserted.contents->GetController().GetLastCommittedEntry();
+        const bool from_link = !entry || ui::PageTransitionCoreTypeIs(entry->GetTransitionType(),
+                                                                      ui::PAGE_TRANSITION_LINK);
+        if (index != TabStripModel::kNoTab && from_link && model->GetTabGroupForTab(index) &&
+            model->GetOpenerOfTabAt(index)) {
+          base::SequencedTaskRunner::GetCurrentDefault()->PostTask(FROM_HERE, base::BindOnce(
+              [](base::WeakPtr<Owner> owner, base::WeakPtr<content::WebContents> contents) {
+                if (!owner || !contents) return;
+                auto* model = owner->browser->GetTabStripModel();
+                const int at = model->GetIndexOfWebContents(contents.get());
+                if (at == TabStripModel::kNoTab || !model->GetTabGroupForTab(at)) return;
+                model->RemoveFromGroup({at});
+                const int now = model->GetIndexOfWebContents(contents.get());
+                if (now != TabStripModel::kNoTab) model->MoveWebContentsAt(now, model->count() - 1, false);
+              }, GetWeakPtr(), inserted.contents->GetWeakPtr()));
+        }
       }
     }
     for (int i = 0; i < browser->GetTabStripModel()->count(); ++i)
@@ -2694,6 +2719,12 @@ class NewTabHandler : public content::WebUIMessageHandler,
                                      method == "pinsPin" ? args[1].GetString() : std::string()));
       return;
     }
+    // The weekly blocked counter (shipping's blockedThisWeek, blockedByDay and
+    // blockedBarHeights); private Start Pages show no counts, so get none.
+    if (method == "blockedWeek" && args.empty()) {
+      Reply(id, true, profile->IsOffTheRecord() ? base::Value() : base::Value(blanc::BlockedThisWeek(profile)));
+      return;
+    }
     if (profile->IsOffTheRecord()) {
       if (method == "topSites" && args.empty()) {
         Reply(id, true, base::Value(base::ListValue())); return;
@@ -3833,6 +3864,13 @@ class Handler : public content::WebUIMessageHandler, public extensions::Extensio
                                                   message[2].GetList()[0].GetString());
       g_browser_process->local_state()->CommitPendingWrite();
       Reply(id, true, base::Value());
+      return;
+    }
+    // Read-only: the profile's blocking exceptions, as Settings lists them,
+    // without opening Settings (which would close an open surface).
+    if (message[1].GetString() == "blockingExceptions") {
+      Reply(id, true, base::Value(Profile::FromWebUI(web_ui())->GetOriginalProfile()->GetPrefs()
+          ->GetList("blanc.blocking.exceptions").Clone()));
       return;
     }
     if (message[1].GetString() == "storedUiLanguage") {
@@ -5633,7 +5671,7 @@ class Handler : public content::WebUIMessageHandler, public extensions::Extensio
         args[0].is_string()) {
       const GURL url(args[0].GetString());
       const bool make_private = args.size() == 2 && args[1].GetBool();
-      if (!url.SchemeIsHTTPOrHTTPS() && url != GURL("chrome://newtab/") &&
+      if (!url.SchemeIsHTTPOrHTTPS() && !url.IsAboutBlank() && url != GURL("chrome://newtab/") &&
           url != GURL("chrome://extensions/") &&
           url != GURL("chrome://settings/") &&
           url != GURL("chrome://downloads/") &&
@@ -5650,6 +5688,16 @@ class Handler : public content::WebUIMessageHandler, public extensions::Extensio
       // A private tab (D1) is born in the window profile's private profile.
       if (make_private && browser->GetProfile()->IsOffTheRecord()) {
         reply(false, base::Value("This window is already private.")); return;
+      }
+      // Utility pages open in the sheet, and re-invoking the shown one closes
+      // it (shipping's createTab routes them through showUtilityPage).
+      if (!make_private) {
+        for (const char* page : {"settings", "downloads", "bookmarks", "history"}) {
+          if (url == GURL(std::string("chrome://") + page + "/") && OpenUtilitySheet(browser, page)) {
+            reply(true, base::Value(base::DictValue().Set("status", "sheet")));
+            return;
+          }
+        }
       }
       auto* returned = make_private ? NewPrivateTab(browser, url) : chrome::AddAndReturnTabAt(browser, url, -1, true);
       if (!weak_self || !weak_browser || !weak_owner) return;
@@ -6163,6 +6211,16 @@ class Handler : public content::WebUIMessageHandler, public extensions::Extensio
         const bool loose_group_boundary = !pinned && !target && before_group &&
             model->group_model()->GetTabGroup(*before_group)->ListTabs().start() ==
                 static_cast<size_t>(b);
+        // A group's first tab dropped just above its own group (before
+        // itself, loose): Chromium leaves a tab removed from the front of a
+        // group in place, directly above it.
+        if (before == tab && !pinned && !target && before_group &&
+            model->group_model()->GetTabGroup(*before_group)->ListTabs().start() ==
+                static_cast<size_t>(b)) {
+          model->RemoveFromGroup({b});
+          reply(true, base::Value(!model->GetTabGroupForTab(model->GetIndexOfWebContents(tab))));
+          return;
+        }
         if (!before || before == tab || model->IsTabPinned(b) != pinned ||
             (before_group != target && !loose_group_boundary)) {
           reply(true, base::Value(before == tab));

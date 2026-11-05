@@ -140,7 +140,7 @@ async function settingsReady(page,section){
 // Opens Settings at a section through the Island's own action (or moves the
 // open sheet there), runs `fn` in its document, and closes the sheet again
 // when Settings was not already open.
-export async function inSettings(w,section,fn,arg){
+export async function inSettings(w,section,fn,arg,{full=false}={}){
  const had=await settingsPage(w);
  if(!had)await w.api('openPage',['settings',section]);
  let page=had??await w.waitFor(()=>settingsPage(w),Boolean,'the settings sheet',8000);
@@ -152,7 +152,7 @@ export async function inSettings(w,section,fn,arg){
   await w.hostEval('window.BlancPrototypeHost.closeSheet()');
   await w.waitFor(async()=>!(await w.fixture.targets()).some(t=>t.type==='page'&&SETTINGS.test(t.url)),Boolean,'the settings sheet to close',8000);
  }
- return result?.value;
+ return full?result:result?.value;
 }
 // A person's click on a Settings switch, to the wanted state.
 const setSwitch=(w,section,id,on)=>inSettings(w,section,async(a,d)=>{
@@ -228,7 +228,11 @@ export const commands={
   if(!radio){d.find('#cancelButton',root).click();await wait(300);}
   else{radio.click();await wait(100);d.find('#setAsDefaultButton',root).click();
    for(let i=0;i<50&&d.find('.search-engine-name')?.textContent.trim()!==a.name;i++)await wait(100);}
-  return {value:d.find('.search-engine-name')?.textContent.trim()??''};},{name:ENGINES[engine]??null}).then(engineOf),
+  return {value:d.find('.search-engine-name')?.textContent.trim()??'',offered:!!radio};},{name:ENGINES[engine]??null},{full:true}).then(r=>{
+  // V12 (owner, 2026-11-04): an engine the Change dialog doesn't list (Kagi)
+  // is added under Manage search engines, which shipping's step doesn't do.
+  if(!r.offered&&engineOf(r.value)!==engine)throw new UndefinedNativeAdapterError(`V12: ${ENGINES[engine]??engine} is added under chrome://settings → Manage search engines`);
+  return engineOf(r.value);}),
  searchEngine:w=>inSettings(w,'search',(a,d)=>({value:d.find('.search-engine-name')?.textContent.trim()??''})).then(engineOf),
  // V12 (owner, 2026-11-04): a custom address is added under Chromium's Manage
  // search engines and made the default there.

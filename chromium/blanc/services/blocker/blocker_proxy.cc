@@ -5,6 +5,8 @@
 #include "content/public/browser/navigation_throttle_registry.h"
 #include "content/public/browser/navigation_handle.h"
 #include "third_party/blink/public/mojom/loader/referrer.mojom.h"
+#include <algorithm>
+#include <cmath>
 #include <deque>
 #include <limits>
 #include "chrome/browser/profiles/profile.h"
@@ -890,6 +892,19 @@ class Factory : public network::SelfDeletingURLLoaderFactory {
 };
 }
 const char* BlockerHealth() { return Engine::Get().Health(); }
+base::DictValue BlockedThisWeek(content::BrowserContext* context) {
+  auto* profile = context ? Profile::FromBrowserContext(context) : nullptr;
+  if (!profile) return base::DictValue();
+  base::DictValue week = CurrentWeekStats(profile->GetOriginalProfile()->GetPrefs(), base::Time::Now());
+  // Tally's bars, normalized to the busiest day (shipping's barHeights).
+  int busiest = 0;
+  for (const auto& day : *week.FindList("days")) busiest = std::max(busiest, day.GetInt());
+  base::ListValue heights;
+  for (const auto& day : *week.FindList("days"))
+    heights.Append(busiest ? static_cast<int>(std::lround(day.GetInt() * 100.0 / busiest)) : 0);
+  week.Set("barHeights", std::move(heights));
+  return week;
+}
 int ShieldBlockedCount(content::WebContents* contents) {
   if (!contents || !contents->GetPrimaryMainFrame()) return 0;
   const auto* count = ShieldTabCount::FromWebContents(contents);
