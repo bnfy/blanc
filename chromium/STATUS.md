@@ -764,6 +764,12 @@ remain pending. D3 beta-only no-DRM exception accepted; EME notice/handoff requi
   island-and-commands 64 / 2 (F1-13 passed this time, still unexplained),
   settings-and-theming 6 / 0, browser-migration 5 / 0, internal-pages 9 / 1,
   newtab-layouts 12 / 3 (Mahjong only).
+- **S3 decisions (owner, 2026-11-05):** S3 finishes Blanc's own vertical rail
+  (F28), not Chromium's native vertical tabs, and shipping's Ctrl+Tab switcher
+  with its card (F59), not Chromium's `kCtrlTabMru`, which only flips between
+  the last two tabs. Mute Site (N13) is Chromium's own sound setting, so a mute
+  now outlives a relaunch (V21). Plan's "Mac stays positional" for F59 is out
+  of date: since v1.46.0 recent order ships on every desktop platform.
 - **Mahjong goes last (owner, 2026-11-04):** the fork has no Mahjong yet
   (F35-3, F35-4, F35-9 fail at the footer launch). When it is built it is an
   Island page (shipping's files served as byte-identical copies, opened as an
