@@ -716,6 +716,17 @@ remain pending. D3 beta-only no-DRM exception accepted; EME notice/handoff requi
   flags in `first_run.inc`. newtab-layouts 12 pass / 3 fail (Mahjong only):
   F35-7 and F35-8 pass, and F35-10 and F35-18 now wait only on the Billboard
   history-seeding test op.
+- **S2.4 What's New (F51), candidate macos-28492a27347b09a4 (2026-11-05):** shipping's
+  `whats-new.js` runs unmodified (a generated wrapper) in the host and on
+  the Start Page, over a Local State dictionary `blanc.whats_new` with
+  shipping's five fields; `whatsNewCheck` is its one HEAD (no cookies, no
+  redirects, only https://blanc.day/whats-new/<release>). It keys off the
+  Blanc release version, which the preview doesn't have, so it is inert until
+  a release channel supplies `BlancReleaseVersion()`: Implemented, not
+  Integrated. A probe with `--blanc-test-version=1.47.0` shows the pill and
+  its changelog link and that closing it sticks, and the preview stays
+  silent. Not exercised: the page-found path (a 200 from blanc.day, and the
+  one-time tab), which the offline fixture can't reach.
 - **Mahjong goes last (owner, 2026-11-04):** the fork has no Mahjong yet
   (F35-3, F35-4, F35-9 fail at the footer launch). When it is built it is an
   Island page (shipping's files served as byte-identical copies, opened as an
@@ -1102,10 +1113,10 @@ Android's Bar A counts the shared scenarios bound in `chromium/tests/android/acc
 
 | State | macOS | Windows | Linux | Android |
 | --- | ---: | ---: | ---: | ---: |
-| Not started / unassessed | 28 | 80 | 80 | 69 |
+| Not started / unassessed | 27 | 80 | 80 | 69 |
 | Research only | 1 | 0 | 0 | 0 |
 | Drafted | 7 | 0 | 0 | 0 |
-| Implemented | 0 | 0 | 0 | 11 |
+| Implemented | 1 | 0 | 0 | 11 |
 | Built, isolated (legacy) | 5 | 0 | 0 | 0 |
 | Integrated, partial (legacy) | 3 | 0 | 0 | 0 |
 | Integrated | 36 | 0 | 0 | 0 |
@@ -1116,5 +1127,5 @@ Android's Bar A counts the shared scenarios bound in `chromium/tests/android/acc
 
 Legacy macOS stages come from the approved spec; they await verification on the canonical candidate. No legacy stage counts as Verified.
 
-Candidate identities: macOS: macos-27de7410e9f9d890; Windows: none; Linux: none; Android: android-arm64-7bd35e94ef746069.
+Candidate identities: macOS: macos-28492a27347b09a4; Windows: none; Linux: none; Android: android-arm64-7bd35e94ef746069.
 <!-- END GENERATED PROGRESS -->

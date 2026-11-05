@@ -1394,8 +1394,9 @@
       },
       "platformProgress": {
         "macos": {
-          "stage": "not-started",
-          "basis": "approved spec macOS inventory; awaiting candidate verification"
+          "stage": "implemented",
+          "candidate": "macos-28492a27347b09a4",
+          "basis": "S2 (2026-11-05): in candidate macos-28492a27347b09a4, inert until a release channel reports a Blanc version; pill, changelog link and close checked with a test version"
         },
         "windows": {
           "stage": "not-started",
@@ -2453,8 +2454,8 @@
   ],
   "currentCandidates": {
     "macos": {
-      "id": "macos-27de7410e9f9d890",
-      "frameworkSha256": "27de7410e9f9d8900ad75b586222c964eb56b5f43b7a7164c932f5bf90af88aa",
+      "id": "macos-28492a27347b09a4",
+      "frameworkSha256": "28492a27347b09a418234669caeaca44dff37a194a4d0361146cbf7b807f0f38",
       "executableSha256": "cca20d7ed00bbdecf8db310c6802fbed003b4e63c6bc3b1f71dabc9dbff2ff01",
       "version": "158.0.8127.2",
       "qualification": "compiled candidate; runtime acceptance pending"

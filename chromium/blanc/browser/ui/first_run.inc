@@ -104,6 +104,41 @@ void NoteDefaultBrowser(shell_integration::DefaultWebClientState state) {
     g_browser_process->local_state()->SetBoolean(kChecklistDefaultPref, true);
 }
 
+// What's New (F51). The rules are shipping's whats-new.js, run by the host and
+// the Start Page; this holds their state and the one request they make. They
+// key off the Blanc release version, and the preview has none and no updates,
+// so nothing runs until a release channel supplies one here.
+constexpr char kWhatsNewPref[] = "blanc.whats_new";
+std::string BlancReleaseVersion() {
+  const auto* command_line = base::CommandLine::ForCurrentProcess();
+  if (command_line->HasSwitch("blanc-test")) return command_line->GetSwitchValueASCII("blanc-test-version");
+  return std::string();
+}
+base::Value WhatsNewState() {
+  const std::string version = BlancReleaseVersion();
+  if (version.empty()) return base::Value();
+  return base::Value(base::DictValue().Set("version", version)
+      .Set("state", g_browser_process->local_state()->GetDict(kWhatsNewPref).Clone()));
+}
+// Shipping's five settings and no others.
+void SaveWhatsNew(const base::DictValue& patch) {
+  PrefService* local = g_browser_process->local_state();
+  base::DictValue state = local->GetDict(kWhatsNewPref).Clone();
+  for (const char* key : {"lastRunVersion", "whatsNewVersion", "whatsNewPageVersion", "whatsNewTabRelease"}) {
+    if (const auto* value = patch.FindString(key)) state.Set(key, *value);
+  }
+  if (const auto since = patch.FindDouble("whatsNewSince")) state.Set("whatsNewSince", *since);
+  local->SetDict(kWhatsNewPref, std::move(state));
+}
+// whats-new-check.js may ask only about a feature release's page.
+bool IsWhatsNewPage(const GURL& url) {
+  const std::string path(url.path());
+  return url.is_valid() && url.SchemeIs("https") && url.host() == "blanc.day" && !url.has_port() &&
+      !url.has_query() && !url.has_ref() && !url.has_username() && !url.has_password() &&
+      base::StartsWith(path, "/whats-new/") &&
+      path.find_first_not_of("0123456789.", std::string_view("/whats-new/").size()) == std::string::npos;
+}
+
 namespace browser_import {
 
 constexpr int64_t kMaxBookmarkBytes = 20 * 1024 * 1024;

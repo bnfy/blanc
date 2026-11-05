@@ -367,8 +367,12 @@
         // First run: the privacy gate and the walkthrough's saved values.
         const firstRun = isPrivatePage ? null : await request('firstRun').catch(error => { console.warn(error.message); return null; });
         const migrationChecklist = isPrivatePage ? null : await request('checklist').catch(() => null);
+        // What's New (F51): nothing until a release build reports a version.
+        const release = isPrivatePage ? null : await request('whatsNew').catch(() => null);
+        const whatsNew = release?.version
+          ? window.BlancWhatsNew.whatsNewState(release.state, { version: release.version, now: Date.now() }) : null;
         return { ...preferences(), remoteDevices: [], privacy: firstRun?.privacy, onboarding: firstRun?.onboarding ?? null,
-          migrationChecklist,
+          migrationChecklist, whatsNew,
           blockedThisWeek: Number.isInteger(week?.blocked) ? week.blocked : 0,
           blockerStatisticsAvailable: Number.isInteger(week?.blocked),
           blockedByDay: days, blockedBarHeights: heights,
@@ -444,6 +448,7 @@
       setWallpaperFollowSpace: async () => { throw new Error('Spaces are not available in this prototype.'); },
       setDynamicWallpaper: async (enabled) => save({ dynamicWallpaperEnabled: enabled === true }).dynamicWallpaperEnabled,
       dismissMigrationChecklist: () => request('checklistDismiss'),
+      dismissWhatsNew: () => request('whatsNewDismiss'),
       // First run (F36). The walkthrough's guard wants all of these real.
       onboardingReady: true,
       onboardingSet: partial => request('onboardingSet', [partial ?? {}]),

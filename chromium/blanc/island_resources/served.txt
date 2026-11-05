@@ -93,4 +93,5 @@ tab-drag.js
 tab-sections.js
 tab-selection.js
 vertical-tabs.js
+whats-new.js
 workspace-ui.js

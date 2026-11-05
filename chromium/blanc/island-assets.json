@@ -54,8 +54,8 @@
     "extensions.js": "e6c24a5f8fb1559e077045c3707a0dd33d3e58a8af7c16c5a5365eb9cf74ca4d",
     "glance-card-drag.js": "3876836179a5f062d77c899c8d90efbb3a4c1b4b7d37bbcfae727501383fef37",
     "host.css": "a76995ea7d7c6e68b17165ec19296c2238c4d90a92150113ceb1ab0dc1ba1259",
-    "host.html": "76afaee84e69a6458a82c3a0904ae5f7251017bbfcddff3d7bcbe6b4c5595975",
-    "host.js": "fbfe89eca0f81bcbc66038937c40f009a5c38f3244e9d9eacdd80a53c88aedda",
+    "host.html": "e72721982ee955577059d2524f06cacccf8c0ac5083b5019ea091a4358d3bc3e",
+    "host.js": "23ebde73327a75c0e05436e17456b54eefd118197ea2e26828e0dc236cd00f67",
     "hover-panel-leave.js": "b1dec3e1bfc4f53932e651d6345fdea1199b07cdfea6c0926928377b28b7eb1a",
     "i18n.js": "5749b9e67f1876fdd535f6f47908d8a3982ee7c5868b2e23dc50085a1ab27793",
     "icons/chevron-left.svg": "83b0681aa38bf55e9d52a1e4b4cced624abe1fe7678ecafda133a574f1161d93",
@@ -95,11 +95,11 @@
     "pages/instrument-sans-latin-wdth-normal.woff2": "8b74e9bc6e415d564a5ffd32125c92ffd50b1635043e77543cb871e0a3cfcaf2",
     "pages/inter-latin.woff2": "c940764593d0fe5d596be327ca7558855e018039fb78509aa21921fd3644c3e4",
     "pages/jetbrains-mono-latin.woff2": "2c32b9b3ee358c119e210f6f5195f9bd34894d78a785ff2e95d60e718e400af4",
-    "pages/newtab-adapter.js": "da611ae6c0d6e75bcaf87b2e2fc86ee9121d0947db4a2cd87bbe00d728525d22",
+    "pages/newtab-adapter.js": "f48383fb3ba0d37160f4cc1ce4eb69f777b6a4c4965224686755bcbd95318442",
     "pages/newtab-prototype.css": "722abad9ac5ce4a75d371ab9df308bbffafeb6796c00def20eea88f572375530",
     "pages/newtab-shared-spaces.js": "2db5af963383cc37c0046be8c565f252ad6edc8c40c24c97959d52c641a86896",
     "pages/newtab-wallpaper.js": "c079ac33cbde79bb96f6cbc76254dc7f44a87586bde31b4c9452269be30c9580",
-    "pages/newtab.html": "b4d44f957f67e0c16cf4d97fe12b98c7046847d39128a6abba6c7f1427813e68",
+    "pages/newtab.html": "516e98f92065d8a950369f15370124ca3dd281c7dbb9d6444ab5adc7d549d976",
     "pages/newtab.js": "1b3a3e042b7dfc15e8b565dbc1415d28adcab986e8734e2052135c69f8317239",
     "pages/onboarding-guard.js": "1fc049bbf420dff38fa0f8bf87a08f76c123a120b6076ecce9fbbbb85bd3a3b9",
     "pages/onboarding-island-dark.png": "ab97411877170a2083c3daa8186963faeb5fff3b27cdf4f7e5ed81c4865f9079",
@@ -143,6 +143,7 @@
     "tab-sections.js": "3e30fbc4dd29173feeda65fbf07af0455898a5f91fc002815644f7efcd74fd78",
     "tab-selection.js": "6dc7576d8cb2a6e74964a9f3b3ce56dcafc4d3bbf78f4156486a220921ce96ea",
     "vertical-tabs.js": "bc729325f14b39ddf507bb07d1d3170d79a2f1ce36388852b4bf20049b62a2be",
+    "whats-new.js": "ed48700b7808264312543422d8576320dfcd95ed3497aa1f20e0e5cd89a5e339",
     "workspace-ui.js": "c7bb4fb11bae7e903c643cc1a696e1f8bc44aec0be981147f45c19828a18fed4"
   }
 }

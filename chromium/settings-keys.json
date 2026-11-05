@@ -522,31 +522,36 @@
    "key": "lastRunVersion",
    "kind": "later",
    "row": "F51",
-   "slice": "S2"
+   "slice": "S2",
+   "note": "A field of the blanc.whats_new dictionary (S2.4), used once a release channel reports a Blanc version"
   },
   {
    "key": "whatsNewVersion",
    "kind": "later",
    "row": "F51",
-   "slice": "S2"
+   "slice": "S2",
+   "note": "A field of the blanc.whats_new dictionary (S2.4), used once a release channel reports a Blanc version"
   },
   {
    "key": "whatsNewSince",
    "kind": "later",
    "row": "F51",
-   "slice": "S2"
+   "slice": "S2",
+   "note": "A field of the blanc.whats_new dictionary (S2.4), used once a release channel reports a Blanc version"
   },
   {
    "key": "whatsNewPageVersion",
    "kind": "later",
    "row": "F51",
-   "slice": "S2"
+   "slice": "S2",
+   "note": "A field of the blanc.whats_new dictionary (S2.4), used once a release channel reports a Blanc version"
   },
   {
    "key": "whatsNewTabRelease",
    "kind": "later",
    "row": "F51",
-   "slice": "S2"
+   "slice": "S2",
+   "note": "A field of the blanc.whats_new dictionary (S2.4), used once a release channel reports a Blanc version"
   },
   {
    "key": "supporter",

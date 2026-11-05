@@ -1752,6 +1752,22 @@
     emit('onBangsChanged', bangState);
   });
   loadBangs().catch(() => {});
+  // What's New (F51): shipping's maybeOpenWhatsNew, on shipping's own rules.
+  // Native answers only in a release build, once per launch.
+  async function maybeWhatsNew() {
+    const launch = await request('whatsNewLaunch');
+    if (!launch?.version) return;
+    const rules = window.BlancWhatsNew, { version, firstRunComplete } = launch, now = Date.now();
+    let state = launch.state;
+    const patch = rules.whatsNewOnLaunch(state, { version, now, firstRunComplete });
+    if (patch) { state = { ...state, ...patch }; await request('whatsNewSave', [patch]); }
+    if (!rules.whatsNewCheckDue(state, { version, now })) return;
+    const found = await request('whatsNewCheck', [rules.whatsNewPageUrl(version)]);
+    const after = rules.whatsNewAfterCheck(state, { version, found, canOpen: !sheet.page });
+    if (after.patch) await request('whatsNewSave', [after.patch]);
+    if (after.openUrl) await request('createTab', [after.openUrl]);
+  }
+  maybeWhatsNew().catch(() => {});
   setInterval(refresh, 300);
   applyRail().catch(error => notice(error.message));
 })();

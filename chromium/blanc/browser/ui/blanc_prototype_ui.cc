@@ -2765,6 +2765,15 @@ class NewTabHandler : public content::WebUIMessageHandler,
         else worker->StartSetAsDefault(std::move(done));
         return;
       }
+      if (method == "whatsNew" && args.empty()) {
+        Reply(id, true, WhatsNewState());
+        return;
+      }
+      if (method == "whatsNewDismiss" && args.empty()) {
+        SaveWhatsNew(base::DictValue().Set("whatsNewVersion", ""));
+        Reply(id, true, base::Value(true));
+        return;
+      }
       if (method == "checklist" && args.empty()) {
         base::MakeRefCounted<shell_integration::DefaultBrowserWorker>()->StartCheckIsDefault(
             base::BindOnce(&NewTabHandler::AnswerChecklist, weak_factory_.GetWeakPtr(), id));
@@ -4466,6 +4475,10 @@ class Handler : public content::WebUIMessageHandler, public extensions::Extensio
   std::map<std::string, uint64_t> history_saves_;
   std::set<std::string> history_optional_;
   void HistoryCleared(std::string id) { Reply(id, true, base::Value()); }
+  void WhatsNewChecked(std::string id, scoped_refptr<net::HttpResponseHeaders> headers) {
+    icon_loaders_.erase(id);
+    Reply(id, true, base::Value(headers && headers->response_code() == 200));
+  }
   void HistoryReady(std::string id, history::QueryResults results) {
     base::ListValue items;
     for (const history::URLResult& result : results) {
@@ -5032,6 +5045,45 @@ class Handler : public content::WebUIMessageHandler, public extensions::Extensio
       icon_loaders_[id] = std::move(loader);
       pending->DownloadToString(profile->GetDefaultStoragePartition()->GetURLLoaderFactoryForBrowserProcess().get(),
           base::BindOnce(&Handler::StoreIcon, weak_factory_.GetWeakPtr(), id), 256 * 1024);
+      return;
+    }
+    // What's New (F51): once per launch, from the host's first window.
+    if (method == "whatsNewLaunch" && args.empty()) {
+      static bool asked = false;
+      if (asked || BlancReleaseVersion().empty()) { reply(true, base::Value()); return; }
+      asked = true;
+      base::Value launch = WhatsNewState();
+      launch.GetDict().Set("firstRunComplete", !FirstRunPending());
+      reply(true, std::move(launch));
+      return;
+    }
+    if (method == "whatsNewSave" && args.size() == 1 && args[0].is_dict()) {
+      SaveWhatsNew(args[0].GetDict());
+      reply(true, base::Value(true));
+      return;
+    }
+    // whats-new-check.js: a HEAD with no cookies and no redirects; only a 200
+    // counts, and any failure is a plain no.
+    if (method == "whatsNewCheck" && args.size() == 1 && args[0].is_string()) {
+      const GURL url(args[0].GetString());
+      if (!IsWhatsNewPage(url) || icon_loaders_.contains(id)) { reply(true, base::Value(false)); return; }
+      auto request = std::make_unique<network::ResourceRequest>();
+      request->url = url;
+      request->method = "HEAD";
+      request->credentials_mode = network::mojom::CredentialsMode::kOmit;
+      request->redirect_mode = network::mojom::RedirectMode::kError;
+      auto loader = network::SimpleURLLoader::Create(std::move(request),
+          net::DefineNetworkTrafficAnnotation("blanc_whats_new", R"(
+            semantics { sender: "Blanc What's New" description: "Asks whether this release's What's New page exists."
+              trigger: "Once per launch for seven days after a feature update." data: "The page's public address; no cookies or credentials."
+              destination: OTHER }
+            policy { cookies_allowed: NO setting: "Only in release builds, after an update."
+              policy_exception_justification: "Shipping behaviour." })"));
+      loader->SetTimeoutDuration(base::Seconds(5));
+      auto* pending = loader.get();
+      icon_loaders_[id] = std::move(loader);
+      pending->DownloadHeadersOnly(profile->GetDefaultStoragePartition()->GetURLLoaderFactoryForBrowserProcess().get(),
+          base::BindOnce(&Handler::WhatsNewChecked, weak_factory_.GetWeakPtr(), id));
       return;
     }
     if (method == "storeSearch" && args.size() == 1 && args[0].is_string()) {
