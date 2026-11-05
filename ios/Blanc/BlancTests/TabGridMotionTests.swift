@@ -47,4 +47,37 @@ final class TabGridMotionTests: XCTestCase {
         XCTAssertTrue(TabGridMotion.opens(scale: 0.9, velocity: -1))
         XCTAssertFalse(TabGridMotion.opens(scale: 0.7, velocity: 1))
     }
+
+    func testOnlyADragIntoThePageLifts() {
+        XCTAssertTrue(TabGridMotion.isLift(CGSize(width: 2, height: -20), islandAtTop: false))
+        XCTAssertFalse(TabGridMotion.isLift(CGSize(width: 2, height: 20), islandAtTop: false), "down, off the screen")
+        XCTAssertTrue(TabGridMotion.isLift(CGSize(width: 2, height: 20), islandAtTop: true), "a top Island drags down")
+        XCTAssertFalse(TabGridMotion.isLift(CGSize(width: 30, height: -20), islandAtTop: false), "sideways switches tabs")
+        XCTAssertFalse(TabGridMotion.isLift(CGSize(width: 0, height: -8), islandAtTop: false), "not yet a drag")
+    }
+
+    func testThePagesEdgeStaysUnderTheFinger() {
+        let height: CGFloat = 800
+        let frame = CGRect(x: 0, y: 0, width: 400, height: height)
+        let motion = TabGridMotion.transform(TabGridMotion.lifted(CGSize(width: 10, height: -200), islandAtTop: false, height: height),
+                                             in: frame, card: nil)
+        XCTAssertEqual(motion.scale, 0.75, accuracy: 0.001)
+        XCTAssertEqual(frame.midY + height * motion.scale / 2 + motion.offset.height, height - 200, accuracy: 0.001)
+        XCTAssertEqual(motion.offset.width, 10)
+        let top = TabGridMotion.transform(TabGridMotion.lifted(CGSize(width: 0, height: 200), islandAtTop: true, height: height),
+                                          in: frame, card: nil)
+        XCTAssertEqual(frame.midY - height * top.scale / 2 + top.offset.height, 200, accuracy: 0.001)
+    }
+
+    func testDraggingBackPastTheStartLeavesThePageFull() {
+        let page = TabGridMotion.lifted(CGSize(width: 0, height: 30), islandAtTop: false, height: 800)
+        XCTAssertEqual(TabGridMotion.transform(page, in: CGRect(x: 0, y: 0, width: 400, height: 800), card: nil).scale, 1)
+    }
+
+    func testALiftOpensWhenFarOrFlickedAndNotWhenHeadingBack() {
+        XCTAssertTrue(TabGridMotion.liftOpens(travel: 60, predicted: 90))
+        XCTAssertTrue(TabGridMotion.liftOpens(travel: 25, predicted: 200), "a quick flick")
+        XCTAssertFalse(TabGridMotion.liftOpens(travel: 25, predicted: 50))
+        XCTAssertFalse(TabGridMotion.liftOpens(travel: 120, predicted: 10), "the finger came back")
+    }
 }

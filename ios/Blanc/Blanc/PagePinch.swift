@@ -8,6 +8,14 @@ enum PagePinchUpdate: Equatable {
     case ended(opens: Bool)
 }
 
+extension TabGridMotion.Page {
+    /// What the window does to show this page mid-gesture.
+    var pinchUpdate: PagePinchUpdate {
+        if case .pinching(let scale, let translation) = self { return .moved(scale: scale, translation: translation) }
+        return .moved(scale: 1, translation: .zero)
+    }
+}
+
 /// The page shrinking into the tab grid, as Safari's does: a rounded card that
 /// follows the fingers around the screen's center over a grid coming into
 /// focus, then springs to its place. Pure, so its numbers can be tested.
@@ -38,6 +46,32 @@ enum TabGridMotion {
     static func opens(scale: CGFloat, velocity: CGFloat) -> Bool {
         if velocity > 0.3 { return false }
         return scale < opensBelowScale || velocity < -0.6
+    }
+
+    /// How far a drag on the Island has gone into the page, up from a bottom
+    /// Island or down from a top one.
+    static func liftTravel(_ translation: CGSize, islandAtTop: Bool) -> CGFloat {
+        islandAtTop ? translation.height : -translation.height
+    }
+
+    /// A drag counts once it's clearly into the page rather than sideways.
+    static func isLift(_ translation: CGSize, islandAtTop: Bool) -> Bool {
+        let travel = liftTravel(translation, islandAtTop: islandAtTop)
+        return travel >= 12 && travel > abs(translation.width)
+    }
+
+    /// The page on a drag of the Island: it shrinks as it goes, and the edge
+    /// by the Island stays under the finger.
+    static func lifted(_ translation: CGSize, islandAtTop: Bool, height: CGFloat) -> Page {
+        let travel = max(0, liftTravel(translation, islandAtTop: islandAtTop))
+        let rise = (islandAtTop ? 1 : -1) * travel / 2
+        return .pinching(scale: 1 - travel / max(height, 1), translation: CGSize(width: translation.width, height: rise))
+    }
+
+    /// Far enough to open, unless the finger is heading back; a quick flick
+    /// counts even when short.
+    static func liftOpens(travel: CGFloat, predicted: CGFloat) -> Bool {
+        predicted > 40 && (travel > 40 || predicted > 120)
     }
 
     static func transform(_ page: Page, in frame: CGRect, card: CGRect?) -> Transform {
