@@ -26,8 +26,8 @@ import XCTest
         XCTAssertEqual(calls, 2)
     }
 
-    func testTheOfferWaitsForTheEntitlement() {
-        XCTAssertFalse(DefaultBrowserOffer.enabled, "turned on only with com.apple.developer.web-browser")
+    func testTheOfferIsOnWithTheEntitlement() {
+        XCTAssertTrue(DefaultBrowserOffer.enabled, "on only with com.apple.developer.web-browser")
         XCTAssertNotNil(DefaultBrowserOffer.settingsURL)
     }
 }

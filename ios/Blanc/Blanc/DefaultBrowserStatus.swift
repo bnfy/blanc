@@ -2,11 +2,10 @@ import SwiftUI
 import UIKit
 
 /// The default-browser offer (M18 §5): the walkthrough's step and a Settings
-/// row. iOS lists Blanc under Default Browser App only once Apple grants
-/// `com.apple.developer.web-browser` (request P2X5BCD4C9), so both stay hidden
-/// until then. The change that adds the entitlement turns this on.
+/// row. iOS lists Blanc under Default Browser App because the app carries
+/// `com.apple.developer.web-browser`, so this stays on only with that key.
 enum DefaultBrowserOffer {
-    static let enabled = false
+    static let enabled = true
 
     /// iOS's Default Apps screen, where the person picks their browser.
     static var settingsURL: URL? { URL(string: UIApplication.openDefaultApplicationsSettingsURLString) }

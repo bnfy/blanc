@@ -36,6 +36,7 @@ struct WalkthroughSheet: View {
         }
         .foregroundStyle(style.text)
         .tint(style.text)
+        .toggleStyle(BrowserSwitchStyle())
         .presentationDetents(Set([detent]), selection: $detent)
         .presentationDragIndicator(.visible)
         .presentationBackground(style.surface)

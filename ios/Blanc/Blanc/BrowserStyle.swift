@@ -1,6 +1,28 @@
 import SwiftUI
 import CoreText
 
+/// The native switch in `BrowserStyle.switchOn`, for a sheet whose `.tint` is
+/// the text color. Set once on the sheet; pushed pages inherit it.
+struct BrowserSwitchStyle: ToggleStyle {
+    @Environment(\.colorScheme) private var scheme
+
+    func makeBody(configuration: Configuration) -> some View {
+        Toggle(configuration).toggleStyle(.switch).tint(BrowserStyle(scheme: scheme).switchOn)
+    }
+}
+
+/// A menu picker keeps the label color it was first drawn with, so a theme
+/// change while Settings is open leaves its value unreadable. A new identity
+/// redraws it.
+private struct RedrawsWithColorScheme: ViewModifier {
+    @Environment(\.colorScheme) private var scheme
+    func body(content: Content) -> some View { content.id(scheme) }
+}
+
+extension View {
+    func redrawsWithColorScheme() -> some View { modifier(RedrawsWithColorScheme()) }
+}
+
 /// Native chrome mirrors the desktop's neutral Island palette. Keep separate
 /// from the older generated tokens until the shared token source is migrated.
 struct BrowserStyle {
@@ -12,6 +34,9 @@ struct BrowserStyle {
     var text: Color { color("0e0e0e", "f5f5f5") }
     var secondary: Color { color("6b6b6b", "9c9c9c") }
     var selection: Color { text.opacity(scheme == .dark ? 0.12 : 0.06) }
+    /// The filled part of a switch or slider. Their knobs are always white, so
+    /// `text` can't fill them in dark mode; dark uses the desktop's `--row-selected`.
+    var switchOn: Color { color("0e0e0e", "536f8b") }
 
     private func color(_ light: String, _ dark: String) -> Color {
         Color(blancHex: scheme == .dark ? dark : light)!
