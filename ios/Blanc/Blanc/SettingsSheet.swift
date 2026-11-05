@@ -117,6 +117,8 @@ struct SettingsSheet: View {
         .tint(BrowserStyle.adaptiveText)
         .toggleStyle(BrowserSwitchStyle())
         .presentationDetents([.large])
+        // A wide window's tall card, which a long list needs; a phone's sheet is unchanged.
+        .presentationSizing(.page)
         .presentationDragIndicator(.visible)
         .presentationBackground(style.surface)
         .onAppear { if destination != .root { path = [destination] } }

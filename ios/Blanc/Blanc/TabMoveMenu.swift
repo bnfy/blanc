@@ -8,10 +8,11 @@ struct TabMoveMenu: View {
     let tab: TabModel
     let newGroup: () -> Void
     let newSpace: () -> Void
+    /// Closes the grid or palette the menu opened from.
+    let close: () -> Void
 
     @Environment(\.horizontalSizeClass) private var horizontalSizeClass
     @Environment(\.verticalSizeClass) private var verticalSizeClass
-    @Environment(\.dismiss) private var dismiss
 
     var body: some View {
         SplitMenu(manager: manager, tab: tab,
@@ -20,8 +21,7 @@ struct TabMoveMenu: View {
         // it was chosen in closes, so the card shows.
         if manager.canOpenGlance, manager.glanceCandidates.contains(where: { $0.id == tab.id }) {
             Button(SyncCopy.text("tabMenu.glance")) {
-                manager.isPalettePresented = false
-                dismiss()
+                close()
                 manager.showInGlance(tab.id)
             }
         }
@@ -29,8 +29,7 @@ struct TabMoveMenu: View {
         // and all, into a window of its own.
         if UIApplication.shared.supportsMultipleScenes, manager.tabs.count > 1 {
             Button(SyncCopy.text("tabMenu.moveToNewWindow")) {
-                manager.isPalettePresented = false
-                dismiss()
+                close()
                 manager.services.openNewWindow(moving: tab.id)
             }
         }

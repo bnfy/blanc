@@ -749,6 +749,7 @@ Vous pouvez réessayer avec « %2$s » ou réinstaller depuis blanc.day.</stri
     <string name="sync_error_offline">Impossible de joindre la synchronisation — vérifiez votre connexion.</string>
     <string name="sync_error_off">La synchronisation est désactivée.</string>
     <string name="sync_error_account_gone">Cette synchronisation n’existe plus. Désactivez-la ici, puis ajoutez de nouveau ce téléphone depuis votre ordinateur.</string>
+    <string name="sync_error_account_gone_ipad">Cette synchronisation n’existe plus. Désactivez-la ici, puis ajoutez de nouveau cet iPad depuis votre ordinateur.</string>
     <string name="settings_sync_recovery_dialog_message">Copier le code de récupération de la synchronisation ?</string>
     <string name="settings_sync_recovery_dialog_detail">Quiconque possède ce code peut lire et modifier vos données synchronisées. Collez-le maintenant dans votre gestionnaire de mots de passe, et nulle part ailleurs.</string>
     <string name="settings_sync_recovery_dialog_copy">Copier dans le presse-papiers</string>
@@ -2375,6 +2376,7 @@ Vous pouvez réessayer avec « %2$s » ou réinstaller depuis blanc.day.</stri
     <string name="favorites_read_only_note">Les favoris sont synchronisés depuis votre ordinateur. Modifiez-les là-bas pour le moment.</string>
     <string name="favorites_edit_on_computer">Modifiez les favoris sur votre ordinateur pour le moment.</string>
     <string name="settings_sync_create_on_computer">Configurez la synchronisation sur votre ordinateur, puis ajoutez ce téléphone avec un code.</string>
+    <string name="settings_sync_create_on_computer_ipad">Configurez la synchronisation sur votre ordinateur, puis ajoutez cet iPad avec un code.</string>
     <string name="settings_sync_enter_sync_name">Saisissez le nom de votre synchronisation</string>
     <string name="settings_sync_enter_passphrase">Saisissez votre phrase secrète</string>
     <string name="tab_menu_send_to_device">Envoyer vers un appareil</string>
@@ -2488,8 +2490,11 @@ Vous pouvez réessayer avec « %2$s » ou réinstaller depuis blanc.day.</stri
     <string name="ios_pair_camera_usage">Blanc utilise l’appareil photo uniquement pour scanner le code de jumelage sur votre ordinateur.</string>
     <string name="ios_photos_add_usage">Blanc enregistre des images dans votre photothèque uniquement lorsque vous le demandez.</string>
     <string name="ios_settings_share_tabs_help">Partagez les onglets ouverts ordinaires de cet iPhone avec vos autres appareils. Les onglets privés ne sont jamais partagés.</string>
+    <string name="ios_settings_share_tabs_help_ipad">Partagez les onglets ouverts ordinaires de cet iPad avec vos autres appareils. Les onglets privés ne sont jamais partagés.</string>
     <string name="ios_settings_disconnect_help">Déconnecter cet iPhone ? Vos favoris et réglages locaux restent ici. Vos autres appareils ne sont pas affectés.</string>
+    <string name="ios_settings_disconnect_help_ipad">Déconnecter cet iPad ? Vos favoris et réglages locaux restent ici. Vos autres appareils ne sont pas affectés.</string>
     <string name="ios_settings_switch_help">Cet iPhone quittera sa synchronisation actuelle. Vos favoris et réglages locaux restent ici. Vos autres appareils ne sont pas affectés.</string>
+    <string name="ios_settings_switch_help_ipad">Cet iPad quittera sa synchronisation actuelle. Vos favoris et réglages locaux restent ici. Vos autres appareils ne sont pas affectés.</string>
     <string name="ios_settings_time_of_day">Heure de la journée</string>
     <string name="tabs_closed_toast">Onglet fermé</string>
     <string name="tab_menu_new_space">Nouveau Space…</string>
@@ -2578,17 +2583,23 @@ Vous pouvez réessayer avec « %2$s » ou réinstaller depuis blanc.day.</stri
     <string name="group_menu_rename">Renommer…</string>
     <string name="tab_groups_create">Créer</string>
     <string name="shared_spaces_switch_iphone">Garder les Spaces et les groupes synchronisés sur cet iPhone</string>
+    <string name="shared_spaces_switch_iphone_ipad">Garder les Spaces et les groupes synchronisés sur cet iPad</string>
     <string name="shared_spaces_switch_line_iphone">Les onglets de vos Spaces partagés sont synchronisés depuis cet iPhone.</string>
+    <string name="shared_spaces_switch_line_iphone_ipad">Les onglets de vos Spaces partagés sont synchronisés depuis cet iPad.</string>
     <plurals name="shared_spaces_waiting_count">
         <item quantity="one">%1$d Space partagé vous attend</item>
         <item quantity="many">%1$d Spaces partagés vous attendent</item>
         <item quantity="other">%1$d Spaces partagés vous attendent</item>
     </plurals>
     <string name="shared_spaces_save_this_i_phone">Enregistrer Cet iPhone comme Space</string>
+    <string name="shared_spaces_save_this_i_phone_ipad">Enregistrer Cet iPad comme Space</string>
     <string name="shared_spaces_recovery_name_iphone">%1$s · conservé sur cet iPhone</string>
+    <string name="shared_spaces_recovery_name_iphone_ipad">%1$s · conservé sur cet iPad</string>
     <string name="shared_spaces_deleted_everywhere">Supprimé partout. Annuler garde une copie sur cet iPhone.</string>
+    <string name="shared_spaces_deleted_everywhere_ipad">Supprimé partout. Annuler garde une copie sur cet iPad.</string>
     <string name="spaces_on_device">Sur %1$s</string>
     <string name="bring_space_action">Copier sur l’iPhone</string>
+    <string name="bring_space_action_ipad">Copier sur l’iPad</string>
     <string name="bring_space_copy_note">Cette copie ne changera pas quand le Space changera sur %1$s. Activez la synchronisation des Spaces pour les garder identiques.</string>
     <string name="ios_island_search_or_switch">Rechercher ou changer d’onglet, %1$s</string>
     <string name="ios_island_show_all_tabs">Afficher tous les onglets</string>
@@ -2616,6 +2627,7 @@ Vous pouvez réessayer avec « %2$s » ou réinstaller depuis blanc.day.</stri
     <string name="ios_pages_supporter_unavailable">L’activation Supporter n’est pas encore disponible dans cette version.</string>
     <string name="ios_settings_background_refresh_off">L’actualisation en arrière-plan est désactivée pour Blanc : les modifications des autres appareils arrivent quand vous l’ouvrez. Activez-la dans Réglages iOS → Apps → Blanc.</string>
     <string name="ios_welcome_title">Votre Blanc, dans votre poche.</string>
+    <string name="ios_welcome_title_ipad">Votre Blanc, sur votre iPad.</string>
     <string name="ios_welcome_body">Récupérez les onglets, les Spaces et les favoris de Blanc sur votre ordinateur.</string>
     <string name="ios_welcome_browse">Naviguer sans associer</string>
     <string name="ios_welcome_connected">Connecté à « %1$s »</string>
@@ -2627,6 +2639,11 @@ Vous pouvez réessayer avec « %2$s » ou réinstaller depuis blanc.day.</stri
     <string name="ios_welcome_arriving">Récupération en cours…</string>
     <string name="ios_welcome_continue">Continuer</string>
     <string name="ios_welcome_share_title">Partager depuis cet iPhone</string>
+    <string name="ios_welcome_share_title_ipad">Partager depuis cet iPad</string>
+    <string name="ios_menu_request_mobile_site">Demander le site web mobile</string>
+    <string name="ios_menu_request_desktop_site">Demander le site web pour ordinateur</string>
+    <string name="menu_focus_next_pane">Panneau suivant</string>
+    <string name="menu_focus_previous_pane">Panneau précédent</string>
     <string name="ios_welcome_share_body">Les deux restent désactivés jusqu’à ce que vous les activiez. Vous pourrez les modifier dans Réglages → Synchronisation.</string>
     <string name="ios_welcome_privacy_title">Votre confidentialité</string>
     <string name="ios_welcome_measure_usage">Mesurer l’utilisation</string>

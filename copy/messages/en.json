@@ -2698,6 +2698,10 @@
     "message": "This sync no longer exists. Turn sync off here, then add this phone again from your computer.",
     "note": "Profile Sync error on iPhone when the sync's data is gone from the server (deleted from desktop); the phone stops instead of recreating it."
   },
+  "sync.error.accountGone.ipad": {
+    "message": "This sync no longer exists. Turn sync off here, then add this iPad again from your computer.",
+    "note": "iPad: sync.error.accountGone's counterpart on an iPad. SyncCopy uses a key's .ipad sibling there."
+  },
   "settings.sync.recovery.dialogMessage": {
     "message": "Copy your sync recovery code?",
     "note": "Settings → Sync → Copy recovery code: native dialog title."
@@ -8621,6 +8625,10 @@
     "message": "Start your sync on your computer, then add this phone with a code.",
     "note": "iOS M7a capability guidance in the shared Favorites or Sync page."
   },
+  "settings.sync.createOnComputer.ipad": {
+    "message": "Start your sync on your computer, then add this iPad with a code.",
+    "note": "iPad: settings.sync.createOnComputer's counterpart on an iPad. SyncCopy uses a key's .ipad sibling there."
+  },
   "settings.sync.enterSyncName": {
     "message": "Enter your sync name",
     "note": "Settings → Sync: field label when joining an existing sync; asks for the credential already used on another device, not a new one."
@@ -9073,13 +9081,25 @@
     "message": "Share this phone’s regular open tabs with your other devices. Private tabs are never shared.",
     "note": "Native iOS Settings sheet: shareTabsHelp."
   },
+  "ios.settings.shareTabsHelp.ipad": {
+    "message": "Share this iPad’s regular open tabs with your other devices. Private tabs are never shared.",
+    "note": "iPad: ios.settings.shareTabsHelp's counterpart on an iPad. SyncCopy uses a key's .ipad sibling there."
+  },
   "ios.settings.disconnectHelp": {
     "message": "Disconnect this phone? Your local Favorites and settings stay here. Your other devices are not affected.",
     "note": "Native iOS Settings sheet: disconnectHelp."
   },
+  "ios.settings.disconnectHelp.ipad": {
+    "message": "Disconnect this iPad? Your local Favorites and settings stay here. Your other devices are not affected.",
+    "note": "iPad: ios.settings.disconnectHelp's counterpart on an iPad. SyncCopy uses a key's .ipad sibling there."
+  },
   "ios.settings.switchHelp": {
     "message": "This phone will leave its current sync. Your local Favorites and settings stay here. Your other devices are not affected.",
     "note": "Native iOS Settings sheet: switchHelp."
+  },
+  "ios.settings.switchHelp.ipad": {
+    "message": "This iPad will leave its current sync. Your local Favorites and settings stay here. Your other devices are not affected.",
+    "note": "iPad: ios.settings.switchHelp's counterpart on an iPad. SyncCopy uses a key's .ipad sibling there."
   },
   "ios.settings.timeOfDay": {
     "message": "Time of day",
@@ -9386,9 +9406,17 @@
     "message": "Keep Spaces and groups in sync on this iPhone",
     "note": "iPhone Settings → Sync: the per-device switch for Shared Spaces (M17)."
   },
+  "sharedSpaces.switch.iphone.ipad": {
+    "message": "Keep Spaces and groups in sync on this iPad",
+    "note": "iPad: sharedSpaces.switch.iphone's counterpart on an iPad. SyncCopy uses a key's .ipad sibling there."
+  },
   "sharedSpaces.switch.line.iphone": {
     "message": "Tabs in your shared Spaces are synced from this iPhone.",
     "note": "iPhone Settings → Sync: the consent line under the Shared Spaces switch (M17)."
+  },
+  "sharedSpaces.switch.line.iphone.ipad": {
+    "message": "Tabs in your shared Spaces are synced from this iPad.",
+    "note": "iPad: sharedSpaces.switch.line.iphone's counterpart on an iPad. SyncCopy uses a key's .ipad sibling there."
   },
   "sharedSpaces.waitingCount": {
     "message": "{count, plural, one {# shared Space is waiting} other {# shared Spaces are waiting}}",
@@ -9398,13 +9426,25 @@
     "message": "Save This iPhone as a Space",
     "note": "iPhone: first-time Shared Spaces sheet, a row that saves the loose tabs (This iPhone) as a Space before sharing (M17)."
   },
+  "sharedSpaces.saveThisIPhone.ipad": {
+    "message": "Save This iPad as a Space",
+    "note": "iPad: sharedSpaces.saveThisIPhone's counterpart on an iPad. SyncCopy uses a key's .ipad sibling there."
+  },
   "sharedSpaces.recoveryName.iphone": {
     "message": "{name} · kept on this iPhone",
     "note": "iPhone: name of the local Space that keeps tabs a long-stale phone could not publish (M17)."
   },
+  "sharedSpaces.recoveryName.iphone.ipad": {
+    "message": "{name} · kept on this iPad",
+    "note": "iPad: sharedSpaces.recoveryName.iphone's counterpart on an iPad. SyncCopy uses a key's .ipad sibling there."
+  },
   "sharedSpaces.deletedEverywhere": {
     "message": "Deleted everywhere. Undo keeps a copy on this iPhone.",
     "note": "iPhone: Undo banner after deleting a shared Space; Undo restores only a local copy because the deletion reached every device (M17)."
+  },
+  "sharedSpaces.deletedEverywhere.ipad": {
+    "message": "Deleted everywhere. Undo keeps a copy on this iPad.",
+    "note": "iPad: sharedSpaces.deletedEverywhere's counterpart on an iPad. SyncCopy uses a key's .ipad sibling there."
   },
   "spaces.onDevice": {
     "message": "On {device}",
@@ -9413,6 +9453,10 @@
   "bringSpace.action": {
     "message": "Bring to iPhone",
     "note": "iPhone: primary button of the Bring a Space review sheet, with the Spaces switch off (M17)."
+  },
+  "bringSpace.action.ipad": {
+    "message": "Bring to iPad",
+    "note": "iPad: bringSpace.action's counterpart on an iPad. SyncCopy uses a key's .ipad sibling there."
   },
   "bringSpace.copyNote": {
     "message": "This copy won’t change when the Space changes on {device}. Turn on Spaces sync to keep them together.",
@@ -9522,6 +9566,10 @@
     "message": "Your Blanc, in your pocket.",
     "note": "iOS first-minute walkthrough (M18 §3): the Welcome card's heading."
   },
+  "ios.welcome.title.ipad": {
+    "message": "Your Blanc, on your iPad.",
+    "note": "iOS first-minute walkthrough on an iPad: the Welcome card's heading. ios.welcome.title's counterpart; the phone's says “in your pocket.”"
+  },
   "ios.welcome.body": {
     "message": "Bring the tabs, Spaces and Favorites from Blanc on your computer.",
     "note": "iOS walkthrough: the Welcome card's line under the heading."
@@ -9565,6 +9613,26 @@
   "ios.welcome.shareTitle": {
     "message": "Share from this iPhone",
     "note": "iOS walkthrough: the Share back card's heading, over two switches that are off by default."
+  },
+  "ios.welcome.shareTitle.ipad": {
+    "message": "Share from this iPad",
+    "note": "iPad: ios.welcome.shareTitle's counterpart on an iPad. SyncCopy uses a key's .ipad sibling there."
+  },
+  "ios.menu.requestMobileSite": {
+    "message": "Request Mobile Website",
+    "note": "iPad Sunrise menu: asks this site for its phone layout, as Safari's item does. iPads get desktop sites by default."
+  },
+  "ios.menu.requestDesktopSite": {
+    "message": "Request Desktop Website",
+    "note": "iPad Sunrise menu: on a site set to its phone layout, goes back to the desktop site."
+  },
+  "menu.focusNextPane": {
+    "message": "Focus Next Pane",
+    "note": "iPad menu bar, Tabs: moves focus to the split's other pane (⌥⌘→)."
+  },
+  "menu.focusPreviousPane": {
+    "message": "Focus Previous Pane",
+    "note": "iPad menu bar, Tabs: moves focus to the split's other pane (⌥⌘←)."
   },
   "ios.welcome.shareBody": {
     "message": "Both stay off until you turn them on. You can change them later in Settings → Sync.",
