@@ -703,8 +703,8 @@ remain pending. D3 beta-only no-DRM exception accepted; EME notice/handoff requi
   internal-pages 9 / 1, newtab-layouts 10 / 3 (Mahjong only). F30, F33, F36
   and N10 are Integrated on macOS. The default-browser step uses Chromium's
   check and registration (V20). Bring Your Tabs (F40) stays hidden until S3.
-  Open: the privacy step's copy says counts go to Blanc's collector and that
-  Blanc checks for updates, and the preview does neither (F21 consent only).
+  The privacy step keeps shipping's copy (owner, 2026-11-05), though the
+  preview neither checks for updates nor sends counts (F21 consent only).
   macOS 27.3 changed clang's `--version` text (same binary); the owner
   approved recording the environment, and the plan stayed small.
 - **Mahjong goes last (owner, 2026-11-04):** the fork has no Mahjong yet
