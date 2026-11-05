@@ -73,9 +73,21 @@
     <string name="blanc_find_placeholder">Auf der Seite suchen</string>
     <string name="blanc_find_prev">Vorheriger Treffer</string>
     <string name="blanc_menu_find_in_page">Auf Seite suchen</string>
+    <string name="blanc_newtab_startup_failed">Das Blockieren konnte nicht starten.</string>
+    <string name="blanc_newtab_startup_retry">Wiederholen</string>
+    <string name="blanc_shield_ad_blocking">Werbe- und Tracker-Blockierung</string>
+    <string name="blanc_shield_count_global_off">Werbe- und Tracker-Blockierung ist überall aus</string>
+    <string name="blanc_shield_count_none">Auf dieser Seite noch nichts blockiert</string>
+    <string name="blanc_shield_count_site_off">Werbung auf dieser Website erlaubt</string>
+    <string name="blanc_slash_allow_ads_hint">Werbung auf dieser Website erlauben</string>
+    <string name="blanc_slash_block_ads_hint">Werbung hier blockieren oder das Blockieren überall umschalten</string>
     <plurals name="blanc_newtab_groups_count">
         <item quantity="one">%d Tab</item>
         <item quantity="other">%d Tabs</item>
+    </plurals>
+    <plurals name="blanc_shield_count_blocked">
+        <item quantity="one">%d Anzeige oder Tracker auf dieser Seite blockiert</item>
+        <item quantity="other">%d Anzeigen und Tracker auf dieser Seite blockiert</item>
     </plurals>
     <plurals name="blanc_tab_groups_tucked">
         <item quantity="one">%d Tab eingeklappt</item>

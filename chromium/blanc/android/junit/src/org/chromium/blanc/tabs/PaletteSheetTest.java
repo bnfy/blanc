@@ -61,6 +61,16 @@ public class PaletteSheetTest {
                 public void find() {
                     mThemes.add("find");
                 }
+
+                @Override
+                public void blockAds() {
+                    mThemes.add("block-ads");
+                }
+
+                @Override
+                public void allowAds() {
+                    mThemes.add("allow-ads");
+                }
             };
 
     @Before
@@ -157,7 +167,7 @@ public class PaletteSheetTest {
         type(sheet, "/");
         assertEquals(PaletteSheet.Mode.SLASH, sheet.mode());
         assertEquals(List.of("/favorites", "/history", "/new", "/private", "/close", "/reopen", "/group",
-                "/ungroup", "/close-group", "/find", "/theme"), titles(sheet, PaletteSheet.RowKind.COMMAND));
+                "/ungroup", "/close-group", "/find", "/block-ads", "/allow-ads", "/theme"), titles(sheet, PaletteSheet.RowKind.COMMAND));
         assertEquals("Close this tab", row(sheet, "/close").subtitle);
         type(sheet, "/cl");
         assertEquals(List.of("/close", "/close-group"), titles(sheet, PaletteSheet.RowKind.COMMAND));
@@ -271,5 +281,12 @@ public class PaletteSheetTest {
     public void aGroupsHeaderSaysItsCountAndWhetherItIsFolded() {
         PaletteSheet sheet = show();
         assertEquals("Research, 2 tabs, Fold group", row(sheet, "Research").view.getContentDescription().toString());
+    }
+
+    @Test
+    public void theBlockingCommandsRunThroughTheCallbacks() {
+        go(withText("/block-ads"));
+        go(withText("/allow-ads"));
+        assertEquals(List.of("block-ads", "allow-ads"), mThemes);
     }
 }

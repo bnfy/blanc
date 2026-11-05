@@ -71,6 +71,10 @@ public final class PaletteSheet extends Dialog {
 
         /** /find: the find bar. */
         void find();
+
+        void blockAds();
+
+        void allowAds();
     }
 
     public enum Mode {
@@ -658,6 +662,8 @@ public final class PaletteSheet extends Dialog {
             }
             case THEME -> mCallbacks.setTheme(argument.toLowerCase(Locale.ROOT));
             case FIND -> mCallbacks.find();
+            case BLOCK_ADS -> mCallbacks.blockAds();
+            case ALLOW_ADS -> mCallbacks.allowAds();
             default -> {
                 return;
             }
@@ -683,6 +689,8 @@ public final class PaletteSheet extends Dialog {
             case UNGROUP -> R.string.blanc_slash_ungroup_hint;
             case CLOSE_GROUP -> R.string.blanc_slash_close_group_hint;
             case FIND -> R.string.blanc_slash_find_hint;
+            case BLOCK_ADS -> R.string.blanc_slash_block_ads_hint;
+            case ALLOW_ADS -> R.string.blanc_slash_allow_ads_hint;
             case THEME -> R.string.blanc_slash_theme_hint;
             default -> R.string.blanc_ios_palette_no_command;
         };

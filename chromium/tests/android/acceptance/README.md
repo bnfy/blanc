@@ -25,6 +25,8 @@ run with `--tags`, for example `--tags @F2`.
   command-line file (`/data/local/tmp/chrome-command-line`, read by a debug build on this userdebug
   emulator) maps the hosts to it through `adb reverse` and accepts its self-signed certificate.
   The file is removed when the run ends. A page's title is its host (and its path, if not `/`).
+- **The fixture server has its own thread** (`fixture-server.mjs`). `adb` and `sleep()` block this
+  one, and a server on it stops answering, which looks exactly like a page that won't load.
 - **Timing.** A close's Undo lasts five seconds and a UI Automator dump takes over one, so steps
   that act during an Undo read the screen once and act on that.
 

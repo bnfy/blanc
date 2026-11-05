@@ -1,6 +1,16 @@
 #include "blanc/services/blocker/blocker_proxy.h"
+#include "blanc/services/blocker/blocker_available.h"
 #include "blanc/content/public/common/blanc_research_build.h"
+#include "build/build_config.h"
+#if !BUILDFLAG(IS_ANDROID)
 #include "chrome/browser/profiles/nuke_profile_directory_utils.h"
+#endif
+#if BUILDFLAG(IS_ANDROID)
+#include "base/android/apk_assets.h"
+#include "base/containers/span.h"
+#include "base/files/file.h"
+#include "base/files/memory_mapped_file.h"
+#endif
 #include "content/public/browser/navigation_throttle.h"
 #include "content/public/browser/navigation_throttle_registry.h"
 #include "content/public/browser/navigation_handle.h"
@@ -25,6 +35,8 @@
 #include "services/network/public/cpp/resource_request_body.h"
 #include <memory>
 #include "base/command_line.h"
+#include "base/containers/circular_deque.h"
+#include "base/time/time.h"
 #include "base/files/file_util.h"
 #include "base/functional/bind.h"
 #include "base/json/json_writer.h"
@@ -48,8 +60,10 @@
 #include "content/public/browser/weak_document_ptr.h"
 #include "content/public/browser/service_process_host.h"
 #include "crypto/hash.h"
+#if BLANC_RESEARCH_HOOKS
 #include "extensions/browser/process_manager.h"
 #include "extensions/browser/extension_api_frame_id_map.h"
+#endif
 #include "mojo/public/cpp/bindings/callback_helpers.h"
 #include "mojo/public/cpp/bindings/receiver.h"
 #include "mojo/public/cpp/bindings/remote.h"
@@ -96,6 +110,26 @@ void Record(base::DictValue value) {
   static_cast<void>(value);
 #endif
 }
+// The engine's bytes, only if they are exactly the pinned bundle; otherwise empty, which fails closed.
+std::string ReadBundle() {
+  std::string script;
+#if BUILDFLAG(IS_ANDROID)
+  base::MemoryMappedFile::Region region;
+  const int fd = base::android::OpenApkAsset("assets/blanc_blocker/engine.js", &region);
+  if (fd < 0 || region.size > 16 * 1024 * 1024) return std::string();
+  // For the emulator check: a wrong bundle must fail closed. It can only make Blanc stop pages.
+  const bool test_bad_bundle = base::CommandLine::ForCurrentProcess()->HasSwitch("blanc-blocker-test-bad-bundle");
+  base::File file(fd);
+  script.resize(region.size);
+  if (!file.ReadAndCheck(region.offset, base::as_writable_byte_span(script))) return std::string();
+  if (test_bad_bundle) script.back() ^= 1;
+#else
+  auto path = base::CommandLine::ForCurrentProcess()->GetSwitchValuePath("blanc-blocker-assets").AppendASCII("engine.js");
+  if (!base::ReadFileToStringWithMaxSize(path, &script, 16 * 1024 * 1024)) return std::string();
+#endif
+  if (base::ToLowerASCII(base::HexEncode(crypto::hash::Sha256(script))) != kBlancBlockerBundleSha256) return std::string();
+  return script;
+}
 class Engine {
  public:
   static Engine& Get() { static base::NoDestructor<Engine> engine; return *engine; }
@@ -117,9 +151,18 @@ class Engine {
     if (inflight_ >= 256) { std::move(callback).Run(-1); return; }
     ++inflight_;
     service_->Decide(url, type, referrer, mojo::WrapCallbackWithDefaultInvokeIfNotRun(
-      base::BindOnce([](Engine* self, DecisionCallback cb, int result) {
-        --self->inflight_; std::move(cb).Run(result);
-      }, base::Unretained(this), std::move(callback)), -1));
+      base::BindOnce([](Engine* self, int generation, std::string url, std::string type, std::string referrer,
+                       DecisionCallback cb, int result) {
+        --self->inflight_;
+#if BUILDFLAG(IS_ANDROID)
+        // Its process ended while deciding: asked again of the next one, not refused.
+        if (result == -1 && generation != self->generation_ && !self->failed_) {
+          self->Decide(std::move(url), std::move(type), std::move(referrer), std::move(cb));
+          return;
+        }
+#endif
+        std::move(cb).Run(result);
+      }, base::Unretained(this), generation_, url, type, referrer, std::move(callback)), -1));
   }
   void Cosmetics(std::string input, base::OnceCallback<void(bool, const std::string&)> callback) {
     if (failed_) { std::move(callback).Run(false, ""); return; }
@@ -132,10 +175,44 @@ class Engine {
     if (inflight_ >= 256) { std::move(callback).Run(false, ""); return; }
     ++inflight_;
     service_->Cosmetics(input, mojo::WrapCallbackWithDefaultInvokeIfNotRun(
-      base::BindOnce([](Engine* self, base::OnceCallback<void(bool, const std::string&)> cb,
+      base::BindOnce([](Engine* self, int generation, std::string input,
+                       base::OnceCallback<void(bool, const std::string&)> cb,
                        bool ready, const std::string& output) {
-        --self->inflight_; std::move(cb).Run(ready && !self->failed_, output);
-      }, base::Unretained(this), std::move(callback)), false, std::string()));
+        --self->inflight_;
+#if BUILDFLAG(IS_ANDROID)
+        if (!ready && generation != self->generation_ && !self->failed_) {
+          self->Cosmetics(std::move(input), std::move(cb));
+          return;
+        }
+#endif
+        std::move(cb).Run(ready && !self->failed_, output);
+      }, base::Unretained(this), generation_, input, std::move(callback)), false, std::string()));
+  }
+  // The engine's process ended or stopped answering. Android ends background processes in normal
+  // use, so there the engine comes back when next needed, and requests it was deciding are asked
+  // again. Only an end soon after starting counts as a crash: three in ten minutes (shipping's
+  // limit for uBlock Origin) and pages stop until Retry. Desktop fails at once.
+  void Recover() {
+#if BUILDFLAG(IS_ANDROID)
+    const base::TimeTicks now = base::TimeTicks::Now();
+    const bool crash = !ready_ || now - ready_at_ < base::Seconds(10);
+    ++generation_;
+    ready_ = false; started_ = false; startup_.Stop(); service_.reset();
+    if (crash) {
+      while (!restarts_.empty() && now - restarts_.front() > base::Minutes(10)) restarts_.pop_front();
+      if (restarts_.size() >= 3) { Fail(); return; }
+      restarts_.push_back(now);
+    }
+    if (!waiting_.empty()) Start();
+#else
+    Fail();
+#endif
+  }
+  // After a failure: starts over. Requests already refused stay refused.
+  void Restart() {
+    if (!failed_) return;
+    failed_ = false; started_ = false; restarts_.clear(); ++generation_;
+    Start();
   }
   void Fail() {
     failed_ = true; ready_ = false; startup_.Stop(); service_.reset();
@@ -145,36 +222,32 @@ class Engine {
  private:
   void Start() {
     started_ = true;
-    startup_.Start(FROM_HERE, base::Seconds(30), base::BindOnce(&Engine::Fail, base::Unretained(this)));
-    auto file = base::CommandLine::ForCurrentProcess()->GetSwitchValuePath("blanc-blocker-assets").AppendASCII("engine.js");
+    startup_.Start(FROM_HERE, base::Seconds(30), base::BindOnce(&Engine::Recover, base::Unretained(this)));
     base::ThreadPool::PostTaskAndReplyWithResult(FROM_HERE, {base::MayBlock()},
-      base::BindOnce([](base::FilePath path) {
-        std::string script;
-        if (!base::ReadFileToStringWithMaxSize(path, &script, 16 * 1024 * 1024)) return std::string();
-        if (base::ToLowerASCII(base::HexEncode(crypto::hash::Sha256(script))) != kBlancBlockerBundleSha256) return std::string();
-        return script;
-      }, file), base::BindOnce(&Engine::Loaded, base::Unretained(this)));
+      base::BindOnce(&ReadBundle), base::BindOnce(&Engine::Loaded, base::Unretained(this), generation_));
   }
-  void Loaded(std::string script) {
-    if (failed_) return;
+  void Loaded(int generation, std::string script) {
+    if (failed_ || generation != generation_) return;
     if (script.empty()) { Fail(); return; }
     service_ = content::ServiceProcessHost::Launch<mojom::Blocker>(
         content::ServiceProcessHost::Options().WithDisplayName("Blanc Blocker").Pass());
-    service_.set_disconnect_handler(base::BindOnce(&Engine::Fail, base::Unretained(this)));
+    service_.set_disconnect_handler(base::BindOnce(&Engine::Recover, base::Unretained(this)));
     service_->Initialize(script, base::BindOnce(&Engine::Initialized, base::Unretained(this)));
   }
   void Initialized(bool ready) {
     if (failed_) return;
     if (!ready) { Fail(); return; }
-    ready_ = true; startup_.Stop();
+    ready_ = true; ready_at_ = base::TimeTicks::Now(); startup_.Stop();
     base::DictValue event; event.Set("event", "engine-ready");
     event.Set("bundle_sha256", kBlancBlockerBundleSha256); Record(std::move(event));
     auto pending = std::move(waiting_);
     for (auto& callback : pending) std::move(callback).Run();
   }
   bool started_ = false, ready_ = false, failed_ = false;
-  int inflight_ = 0;
+  int inflight_ = 0, generation_ = 0;
+  base::TimeTicks ready_at_;
   std::deque<base::OnceClosure> waiting_;
+  base::circular_deque<base::TimeTicks> restarts_;
   mojo::Remote<mojom::Blocker> service_;
   base::OneShotTimer startup_;
 };
@@ -402,8 +475,12 @@ class TransportDecision {
   void Done(int result) {
     // A deleted profile may remain allocated while workers/proxies drain.
     // WeakPtr validity alone does not authorize a new network connection.
+#if BUILDFLAG(IS_ANDROID)
+    const bool profile_unavailable = !context_ || context_->ShutdownStarted();
+#else
     const bool profile_unavailable = !context_ || context_->ShutdownStarted() ||
         IsProfileDirectoryMarkedForDeletion(context_->GetPath());
+#endif
     if (profile_unavailable ||
         (document_scoped_ && !document_.AsRenderFrameHostIfValid()))
       result = -1;
@@ -771,7 +848,7 @@ class Request : public network::mojom::URLLoader, public network::mojom::URLLoad
   }
   void TimedOut() {
     TraceDecision(-1, true);
-    Log(-1); Complete(net::ERR_BLOCKED_BY_CLIENT); Engine::Get().Fail();
+    Log(-1); Complete(net::ERR_BLOCKED_BY_CLIENT); Engine::Get().Recover();
   }
   void Log(int result) {
     const auto elapsed = base::TimeTicks::Now() - start_;
@@ -891,6 +968,7 @@ class Factory : public network::SelfDeletingURLLoaderFactory {
   scoped_refptr<network::SharedURLLoaderFactory> target_;
 };
 }
+void RestartBlocker() { Engine::Get().Restart(); }
 const char* BlockerHealth() { return Engine::Get().Health(); }
 base::DictValue BlockedThisWeek(content::BrowserContext* context) {
   auto* profile = context ? Profile::FromBrowserContext(context) : nullptr;
@@ -913,7 +991,7 @@ int ShieldBlockedCount(content::WebContents* contents) {
 content::ContentBrowserClient::WebSocketFactory WrapWebSocketFactory(
     int process_id, int frame_routing_id, const url::Origin& initiator_origin,
     content::ContentBrowserClient::WebSocketFactory factory) {
-  if (!base::CommandLine::ForCurrentProcess()->HasSwitch("blanc-blocker-assets"))
+  if (!BlockerAvailable())
     return factory;
   auto* process = content::RenderProcessHost::FromID(process_id);
   // Preserve the separate experimental uBO provider. Its regular-profile socket
@@ -945,7 +1023,7 @@ content::ContentBrowserClient::WillCreateWebTransportCallback WrapWebTransportCa
     int process_id, int frame_routing_id, const GURL& url,
     const url::Origin& initiator_origin,
     content::ContentBrowserClient::WillCreateWebTransportCallback callback) {
-  if (!base::CommandLine::ForCurrentProcess()->HasSwitch("blanc-blocker-assets"))
+  if (!BlockerAvailable())
     return callback;
   auto* process = content::RenderProcessHost::FromID(process_id);
 #if BLANC_RESEARCH_HOOKS
@@ -976,7 +1054,11 @@ content::ContentBrowserClient::WillCreateWebTransportCallback WrapWebTransportCa
       initiator_origin.Serialize(), std::move(callback));
 }
 void BindCosmetics(content::RenderFrameHost* frame, mojo::PendingReceiver<mojom::Cosmetics> receiver) {
+#if BUILDFLAG(IS_ANDROID)
+  new CosmeticDocument(*frame, std::move(receiver));  // Chromium 156's DocumentService has no pass key.
+#else
   base::MakeSelfDeleting<CosmeticDocument>(*frame, std::move(receiver));
+#endif
 }
 void SetDocumentStartPrerenderPolicy(content::MojoBinderPolicyMap& policy_map) {
   // Read-only engine selection, bound to this prerender document. Existing
@@ -1002,25 +1084,23 @@ std::unique_ptr<content::CommitDeferringCondition> MaybeCreateActivationGate(
     content::CommitDeferringCondition::NavigationType type) {
   if (type != content::CommitDeferringCondition::NavigationType::kPrerenderedPageActivation ||
       !navigation.GetURL().SchemeIsHTTPOrHTTPS()) return nullptr;
-  auto* command = base::CommandLine::ForCurrentProcess();
-  if (!command->HasSwitch("blanc-blocker-assets")) return nullptr;
+  if (!BlockerAvailable()) return nullptr;
 #if BLANC_RESEARCH_HOOKS
-  if (command->HasSwitch("blanc-ubo-component-probe")) return nullptr;
+  if (base::CommandLine::ForCurrentProcess()->HasSwitch("blanc-ubo-component-probe")) return nullptr;
 #endif
   return std::make_unique<ActivationGate>(navigation);
 }
 void AddNavigationResponseGate(content::NavigationThrottleRegistry& registry) {
-  auto* command = base::CommandLine::ForCurrentProcess();
-  if (!command->HasSwitch("blanc-blocker-assets")) return;
+  if (!BlockerAvailable()) return;
 #if BLANC_RESEARCH_HOOKS
-  if (command->HasSwitch("blanc-ubo-component-probe")) return;
+  if (base::CommandLine::ForCurrentProcess()->HasSwitch("blanc-ubo-component-probe")) return;
 #endif
   registry.AddThrottle(std::make_unique<NavigationResponseGate>(registry));
 }
 bool MaybeProxy(content::BrowserContext* context, content::RenderFrameHost* frame,
                 int factory_type, const net::IsolationInfo& isolation_info,
                 network::URLLoaderFactoryBuilder& builder) {
-  if (!base::CommandLine::ForCurrentProcess()->HasSwitch("blanc-blocker-assets")
+  if (!BlockerAvailable()
 #if BLANC_RESEARCH_HOOKS
       && !UboProbe()
 #endif

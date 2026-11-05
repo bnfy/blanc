@@ -371,8 +371,8 @@
           "basis": "no fork build"
         },
         "android": {
-          "stage": "not-started",
-          "basis": "no fork build"
+          "stage": "implemented",
+          "basis": "A3 the fork's blocker on the emulator: blocking.mjs and acceptance F12-1–6 (a3-gate.sh, 2026-11-05); Pixel hands-on pending"
         }
       }
     },

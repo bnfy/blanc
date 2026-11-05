@@ -73,10 +73,23 @@
     <string name="blanc_find_placeholder">Localizar na página</string>
     <string name="blanc_find_prev">Ocorrência anterior</string>
     <string name="blanc_menu_find_in_page">Localizar na página</string>
+    <string name="blanc_newtab_startup_failed">Não foi possível iniciar o bloqueio.</string>
+    <string name="blanc_newtab_startup_retry">Repetir</string>
+    <string name="blanc_shield_ad_blocking">Bloqueio de anúncios e rastreadores</string>
+    <string name="blanc_shield_count_global_off">O bloqueio de anúncios está desativado em todos os sites</string>
+    <string name="blanc_shield_count_none">Nada bloqueado nesta página ainda</string>
+    <string name="blanc_shield_count_site_off">Anúncios permitidos neste site</string>
+    <string name="blanc_slash_allow_ads_hint">Permitir anúncios neste site</string>
+    <string name="blanc_slash_block_ads_hint">Bloquear anúncios aqui, ou ativar ou desativar o bloqueio em todos os sites</string>
     <plurals name="blanc_newtab_groups_count">
         <item quantity="one">%d aba</item>
         <item quantity="many">%d abas</item>
         <item quantity="other">%d abas</item>
+    </plurals>
+    <plurals name="blanc_shield_count_blocked">
+        <item quantity="one">%d anúncio ou rastreador bloqueado nesta página</item>
+        <item quantity="many">%d anúncios e rastreadores bloqueados nesta página</item>
+        <item quantity="other">%d anúncios e rastreadores bloqueados nesta página</item>
     </plurals>
     <plurals name="blanc_tab_groups_tucked">
         <item quantity="one">%d aba recolhida</item>

@@ -1,20 +1,21 @@
 // Driving Blanc for Android on the emulator for the acceptance steps: adb input, UI Automator
-// dumps, DevTools for page state, and an HTTPS fixture server that every *.example host resolves
-// to (Chromium's debug command-line file maps them to it through `adb reverse`).
+// dumps, DevTools for page state, and an HTTPS fixture server (fixture-server.mjs) that every
+// *.example host resolves to (Chromium's debug command-line file maps them to it through `adb reverse`).
 import fs from 'node:fs';
-import https from 'node:https';
 import os from 'node:os';
 import path from 'node:path';
 import {execFileSync} from 'node:child_process';
+import {Worker} from 'node:worker_threads';
 import {nodeBounds} from '../../island-menu.mjs';
 import {matching, paletteField} from '../../palette.mjs';
 import {findCount} from '../../find.mjs';
 import {renderers} from '../../quiet-tabs.mjs';
-import {gridState, paletteRows, pageTitle, rawPixel} from './parse.mjs';
+import {gridState, paletteRows, rawPixel} from './parse.mjs';
 
 export const PACKAGE = 'me.bnfy.blanc.dev';
 const PREFS = `shared_prefs/${PACKAGE}_preferences.xml`;
 const FIXTURE_PORT = 8765;
+let requestLog = null;
 const DEVTOOLS_PORT = 9333;
 const COMMAND_LINE = '/data/local/tmp/chrome-command-line';
 
@@ -23,48 +24,47 @@ export const adb = (...args) => execFileSync('adb', args, {encoding: 'utf8', max
 const center = b => [Math.round((b.left + b.right) / 2), Math.round((b.top + b.bottom) / 2)];
 const escape = s => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 
-// A page per address: its title is its host (and path), "/words?w=widget&n=3" repeats a word,
-// "/link" is one link to child.example filling the page (target=_blank), and every page has a
-// button that counts its clicks in document.title's data-clicks.
-const text = value => value.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+let commandLineDir = null;
 
-export function fixturePage(url) {
-  const title = text(decodeURIComponent(pageTitle(url.hostname, url.pathname)));
-  const word = text(url.searchParams.get('w') ?? '');
-  const words = word ? Array.from({length: Number(url.searchParams.get('n'))}, (_, i) => `<p>${word} number ${i + 1}</p>`).join('') : '';
-  const link = url.pathname === '/link'
-    ? '<a id="child" href="https://child.example/" target="_blank" style="position:fixed;inset:0;z-index:1;display:block;font-size:40px">Open child</a>' : '';
-  return `<!doctype html><meta name="viewport" content="width=device-width"><title>${title}</title>
-<button id="clicker" style="width:100%;height:40vh;font-size:30px" onclick="this.dataset.clicks=(+this.dataset.clicks||0)+1">${title}</button>
-${words}${link}<div style="height:150vh"></div>`;
+// Test-only switches, read by a debug build on this userdebug emulator: the fixture hosts, their
+// self-signed certificate, and any `extra`. Nothing else in Blanc changes.
+export function setSwitches(extra = '') {
+  const switches = `_ --host-resolver-rules="MAP *.example 127.0.0.1:${FIXTURE_PORT},MAP *.doubleclick.net 127.0.0.1:${FIXTURE_PORT}" --ignore-certificate-errors ${extra}`;
+  const file = path.join(commandLineDir, 'chrome-command-line');
+  fs.writeFileSync(file, switches.trim() + '\n');
+  adb('push', file, COMMAND_LINE);
+  adb('shell', 'chmod', '644', COMMAND_LINE);
 }
 
+// The fixture server runs in its own thread: adb and sleep() here block this one, and a server on
+// it would stop answering, which looks exactly like a page that won't load.
 export function startFixtures() {
   const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'blanc-acceptance-'));
   execFileSync('openssl', ['req', '-x509', '-newkey', 'rsa:2048', '-nodes', '-days', '2', '-subj', '/CN=*.example',
     '-keyout', path.join(dir, 'key.pem'), '-out', path.join(dir, 'cert.pem')], {stdio: 'ignore'});
-  const server = https.createServer({key: fs.readFileSync(path.join(dir, 'key.pem')), cert: fs.readFileSync(path.join(dir, 'cert.pem'))},
-    (request, response) => {
-      response.setHeader('content-type', 'text/html; charset=utf-8');
-      response.setHeader('cache-control', 'no-store');
-      response.end(fixturePage(new URL(request.url, `https://${request.headers.host}`)));
-    });
-  server.listen(FIXTURE_PORT);
+  // Root first, which a reboot drops: it restarts adbd, so it can't come after adb reverse.
+  adb('root');
+  adb('wait-for-device');
+  // Shared with the server's thread: this thread reads it even while the server is busy.
+  requestLog = new SharedArrayBuffer(1024 * 1024);
+  const worker = new Worker(new URL('./fixture-server.mjs', import.meta.url), {workerData: {dir, port: FIXTURE_PORT, requestLog}});
   adb('reverse', `tcp:${FIXTURE_PORT}`, `tcp:${FIXTURE_PORT}`);
-  // Test-only switches, read by a debug build on this userdebug emulator: the fixture hosts, and
-  // their self-signed certificate. Nothing else in Blanc changes.
-  const switches = `_ --host-resolver-rules="MAP *.example 127.0.0.1:${FIXTURE_PORT}" --ignore-certificate-errors`;
-  const file = path.join(dir, 'chrome-command-line');
-  fs.writeFileSync(file, switches + '\n');
-  adb('push', file, COMMAND_LINE);
-  adb('shell', 'chmod', '644', COMMAND_LINE);
+  commandLineDir = dir;
+  setSwitches();
   return () => {
-    server.close();
+    worker.terminate();
     adb('shell', 'rm', '-f', COMMAND_LINE);
     adb('reverse', '--remove', `tcp:${FIXTURE_PORT}`);
     fs.rmSync(dir, {recursive: true, force: true});
   };
 }
+
+// Every address the fixture server has been asked for since the last clear.
+export function fixtureRequests() {
+  const size = Atomics.load(new Int32Array(requestLog, 0, 1), 0);
+  return new TextDecoder().decode(new Uint8Array(requestLog, 4, size).slice()).split('\n').filter(Boolean);
+}
+export function clearFixtureRequests() { Atomics.store(new Int32Array(requestLog, 0, 1), 0, 0); }
 
 async function evaluate(target, expression, timeoutMs = 3000) {
   const ws = new WebSocket(target.webSocketDebuggerUrl);
@@ -72,7 +72,7 @@ async function evaluate(target, expression, timeoutMs = 3000) {
     return await new Promise((resolve, reject) => {
       const timer = setTimeout(() => resolve(undefined), timeoutMs);
       ws.onerror = () => { clearTimeout(timer); resolve(undefined); };
-      ws.onopen = () => ws.send(JSON.stringify({id: 1, method: 'Runtime.evaluate', params: {expression, returnByValue: true}}));
+      ws.onopen = () => ws.send(JSON.stringify({id: 1, method: 'Runtime.evaluate', params: {expression, returnByValue: true, awaitPromise: true}}));
       ws.onmessage = m => { clearTimeout(timer); resolve(JSON.parse(m.data).result?.result?.value); };
     });
   } finally {
@@ -181,6 +181,25 @@ export class Device {
   }
 
   renderers() { return renderers(adb('shell', 'ps', '-A')); }
+
+  // Ends Blanc's sandboxed processes, the blocker's among them, as Android does under pressure.
+  // Needs root (see startFixtures). A kill that fails must fail the check: a check that ends
+  // nothing passes without testing anything.
+  killSandboxed() {
+    const pids = adb('shell', 'ps', '-A', '-o', 'PID,NAME').split('\n').filter(l => /sandboxed_process/.test(l))
+      .map(l => l.trim().split(/\s+/)[0]);
+    if (!pids.length) throw Error('No sandboxed process to end');
+    let ended = 0;
+    for (const pid of pids) {
+      try {
+        adb('shell', 'kill', '-9', pid);
+        ended++;
+      } catch (error) {
+        if (!/No such process/.test(String(error.stderr))) throw Error(`Could not end ${pid}: ${error.stderr}`);
+      }
+    }
+    if (!ended) throw Error('Ended no process');
+  }
 
   // The palette: tap the Island's address; what's typed then goes into its field.
   // Waits for its field to have focus, so nothing typed is lost while the sheet opens.

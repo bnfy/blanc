@@ -8,7 +8,7 @@ import {fileURLToPath} from 'node:url';
 import {gridState, paletteRows, fixtureUrl, pageTitle, rawPixel} from '../tests/android/acceptance/support/parse.mjs';
 import {RUNNABLE} from '../tests/android/acceptance/cucumber.mjs';
 import {boundsAfter} from '../tests/android/tab-store.mjs';
-import {fixturePage} from '../tests/android/acceptance/support/device.mjs';
+import {fixturePage} from '../tests/android/acceptance/support/fixture-server.mjs';
 
 const card = (title, selected = false) =>
   `<node text="" content-desc="Switch to ${title}" selected="${selected}" bounds="[0,0][10,10]" />`;

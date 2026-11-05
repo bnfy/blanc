@@ -1,7 +1,8 @@
-// F5 navigation and F8 find in page on Android.
+// F5 navigation, F6 the Quick Switcher, F7 slash commands and F8 find in page on Android.
 import {Given, When, Then} from '@cucumber/cucumber';
 import assert from 'node:assert/strict';
 import {adb, sleep} from '../support/device.mjs';
+import {host, makeGroup} from '../support/scenario.mjs';
 
 const SEARCH = {duckduckgo: 'https://duckduckgo.com/?q='};
 
@@ -48,6 +49,64 @@ Then('the active tab navigates to a {string} search for {string}', async functio
   const prefix = SEARCH[engine] + encodeURIComponent(query);
   let url = null;
   await this.device.waitFor(async () => (url = await this.device.visibleUrl())?.startsWith(prefix), `${prefix} (it is ${url})`, 30);
+});
+
+// ---- F6 ----
+
+Given('a favorite for {string}', async function (name) {
+  await this.open(name);
+  this.device.menu('Save to Favorites');
+  this.device.runInPalette('/close');
+  // Past the close's Undo, so it's a favorite and not an open tab.
+  sleep(6);
+});
+
+When('I type {string}', function (text) { this.device.type(text); });
+
+Then('the results include the tab {string}', function (name) {
+  const rows = this.device.paletteRows();
+  assert.ok(rows.some(r => r.kind === 'tab' && r.title === host(name)), JSON.stringify(rows));
+});
+
+Then('the results include the favorite {string}', function (name) {
+  const rows = this.device.paletteRows();
+  assert.ok(rows.some(r => r.kind === 'favorite' && r.subtitle.startsWith(this.url(name))), JSON.stringify(rows));
+});
+
+Given('a group named {string} with {int} tabs that is not active', async function (name, count) {
+  this.groupTitles = await makeGroup(this, name, count);
+  await this.open('elsewhere');
+});
+
+Then('a group result {string} is listed above any tab results', function (name) {
+  const rows = this.device.paletteRows();
+  const group = rows.findIndex(r => r.kind === 'group' && r.title === name);
+  const tab = rows.findIndex(r => r.kind === 'tab');
+  assert.ok(group >= 0 && (tab < 0 || group < tab), JSON.stringify(rows));
+});
+
+When('I choose the group result {string}', function (name) {
+  const xml = this.device.dump();
+  // The row's title, not the field holding the same text.
+  const after = xml.slice(xml.search(/class="android\.widget\.EditText"/));
+  this.device.tapAt(this.device.find({text: name}, after.slice(after.indexOf('<node', 1))));
+});
+
+Then('the active tab is one of the tabs in {string}', function (name) {
+  const active = this.device.grid().tabs.find(t => t.selected);
+  assert.equal(active?.group, name, JSON.stringify(active));
+});
+
+// ---- F7 ----
+
+Then('the command {string} is listed', function (command) {
+  assert.ok(this.device.paletteRows().some(r => r.kind === 'command' && r.title === command));
+});
+
+Then('the command {string} is not listed', function (command) {
+  const rows = this.device.paletteRows();
+  assert.ok(rows.some(r => r.kind === 'command'), 'no commands listed at all');
+  assert.ok(!rows.some(r => r.kind === 'command' && r.title === command), JSON.stringify(rows));
 });
 
 // ---- F8 ----

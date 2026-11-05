@@ -73,10 +73,23 @@
     <string name="blanc_find_placeholder">Rechercher dans la page</string>
     <string name="blanc_find_prev">Occurrence précédente</string>
     <string name="blanc_menu_find_in_page">Rechercher dans la page</string>
+    <string name="blanc_newtab_startup_failed">Le blocage n’a pas pu démarrer.</string>
+    <string name="blanc_newtab_startup_retry">Réessayer</string>
+    <string name="blanc_shield_ad_blocking">Blocage des publicités et traceurs</string>
+    <string name="blanc_shield_count_global_off">Le blocage des publicités est désactivé partout</string>
+    <string name="blanc_shield_count_none">Rien de bloqué sur cette page pour l’instant</string>
+    <string name="blanc_shield_count_site_off">Publicités autorisées sur ce site</string>
+    <string name="blanc_slash_allow_ads_hint">Autoriser les publicités sur ce site</string>
+    <string name="blanc_slash_block_ads_hint">Bloquer les publicités ici, ou activer ou désactiver le blocage partout</string>
     <plurals name="blanc_newtab_groups_count">
         <item quantity="one">%d onglet</item>
         <item quantity="many">%d onglets</item>
         <item quantity="other">%d onglets</item>
+    </plurals>
+    <plurals name="blanc_shield_count_blocked">
+        <item quantity="one">%d publicité ou traceur bloqué sur cette page</item>
+        <item quantity="many">%d publicités et traceurs bloqués sur cette page</item>
+        <item quantity="other">%d publicités et traceurs bloqués sur cette page</item>
     </plurals>
     <plurals name="blanc_tab_groups_tucked">
         <item quantity="one">%d onglet replié</item>
