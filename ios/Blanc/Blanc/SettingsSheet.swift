@@ -114,7 +114,7 @@ struct SettingsSheet: View {
         .font(BrowserStyle.font(17))
         .tracking(0.17)
         .foregroundStyle(style.text)
-        .tint(style.text)
+        .tint(BrowserStyle.adaptiveText)
         .toggleStyle(BrowserSwitchStyle())
         .presentationDetents([.large])
         .presentationDragIndicator(.visible)
@@ -129,8 +129,8 @@ struct SettingsSheet: View {
                     get: { manager.settingsStore.searchEngine == .custom ? .duckduckgo : manager.settingsStore.searchEngine },
                     set: { manager.applySettingsPatch(["searchEngine": $0.rawValue]) })) {
                     ForEach(SettingsCopy.searchEngines, id: \.self) { Text($0.label).tag($0) }
-                }.accessibilityIdentifier("settings.searchEngine").redrawsWithColorScheme()
-                if DefaultBrowserOffer.enabled { DefaultBrowserRow() }
+                }.accessibilityIdentifier("settings.searchEngine")
+                DefaultBrowserRow()
             }
             Section {
                 Picker(SettingsCopy.text("islandPosition"), selection: Binding(
@@ -139,7 +139,7 @@ struct SettingsSheet: View {
                     ForEach(IslandPosition.allCases, id: \.self) {
                         Text(SettingsCopy.text("islandPosition." + $0.rawValue)).tag($0)
                     }
-                }.accessibilityIdentifier("settings.islandPosition").redrawsWithColorScheme()
+                }.accessibilityIdentifier("settings.islandPosition")
                 Toggle(SettingsCopy.text("islandTuck"), isOn: Binding(
                     get: { manager.settingsStore.islandTucksOnScroll },
                     set: { manager.settingsStore.update(islandTucksOnScroll: $0) }))
@@ -148,7 +148,7 @@ struct SettingsSheet: View {
             Section(SettingsCopy.text("appearance")) {
                 Picker(SettingsCopy.text("theme"), selection: Binding(get: { manager.settingsStore.theme }, set: { manager.applySettingsPatch(["theme": $0.rawValue]) })) {
                     ForEach(BlancThemePreference.allCases, id: \.self) { Text(SettingsCopy.text($0.rawValue)).tag($0) }
-                }.accessibilityIdentifier("settings.theme").redrawsWithColorScheme()
+                }.accessibilityIdentifier("settings.theme")
                 NavigationLink { AppIconSettingsView(model: appIcons) } label: {
                     summary("appIcon", value: appIcons.current.label)
                 }.accessibilityIdentifier("settings.appIcon")
@@ -322,7 +322,7 @@ struct StartSettingsView: View {
                     .listRowInsets(EdgeInsets())
                 Picker(SettingsCopy.text("layout"), selection: Binding(get: { manager.settingsStore.newtabLayout }, set: { manager.setStartLayout($0) })) {
                     ForEach(BlancStartPageLayout.allCases, id: \.self) { Text(SettingsCopy.text($0.rawValue)).tag($0) }
-                }.accessibilityIdentifier("settings.layout").redrawsWithColorScheme()
+                }.accessibilityIdentifier("settings.layout")
             }
             Section {
                 NavigationLink(SettingsCopy.text("wallpaper")) { WallpaperSettingsView(manager: manager) }.accessibilityIdentifier("settings.wallpaper")

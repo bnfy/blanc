@@ -416,7 +416,7 @@ final class TabsManager {
             paired: SyncStateStore(directory: syncDirectory).state.enabled,
             completedVersion: Self.walkthroughForced ? 0
                 : Self.walkthroughSuppressed ? .max : settingsStore.walkthroughCompletedVersion,
-            offerDefaultBrowser: DefaultBrowserOffer.enabled, isDefaultBrowser: nil)
+            isDefaultBrowser: nil)
         #if DEBUG
         // Screenshots of the What arrived card from a seeded sync.
         if ProcessInfo.processInfo.arguments.contains("-BlancUITestWalkthroughArrived") { walkthrough.joined() }
@@ -426,7 +426,7 @@ final class TabsManager {
     // MARK: The first-minute walkthrough (M18 §3)
 
     /// The card over the start page; `current == nil` hides it.
-    var walkthrough = WalkthroughFlow(paired: true, completedVersion: .max, offerDefaultBrowser: false, isDefaultBrowser: nil)
+    var walkthrough = WalkthroughFlow(paired: true, completedVersion: .max, isDefaultBrowser: nil)
 
     /// UI tests start past the walkthrough unless one asks for it with
     /// `-BlancUITestWalkthrough`, which shows it as on a fresh install.
@@ -453,7 +453,7 @@ final class TabsManager {
         Task { @MainActor in
             try? await Task.sleep(for: .milliseconds(600))
             walkthrough = .replay(paired: syncEngine.stateStore.state.enabled,
-                                  offerDefaultBrowser: DefaultBrowserOffer.enabled, isDefaultBrowser: nil)
+                                  isDefaultBrowser: nil)
         }
     }
 

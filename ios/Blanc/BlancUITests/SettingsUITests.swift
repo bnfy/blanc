@@ -216,6 +216,21 @@ final class SettingsUITests: XCTestCase {
         XCTFail("iOS did not confirm the icon change")
     }
     private func appIcon(_ id: String) -> XCUIElement { app.buttons["appIcon.\(id)"] }
+    /// A dropdown's value and a switch stay readable when the theme changes with
+    /// Settings open. Dark then Light: one of them differs from the system's.
+    func testControlsStayReadableAfterAThemeChange() {
+        open()
+        for theme in ["Dark", "Light"] {
+            tap("settings.theme"); app.buttons[theme].tap()
+            sleep(2)
+            let value = app.descendants(matching: .any)["settings.searchEngine"].screenshot().image
+            XCTAssertGreaterThan(value.contrast(inRightFraction: 0.45), 0.35, "\(theme): the search engine's value")
+        }
+        tap("settings.theme"); app.buttons["Dark"].tap()
+        sleep(2)
+        let toggle = app.descendants(matching: .any)["settings.islandTuck"].screenshot().image
+        XCTAssertGreaterThan(toggle.saturation(inRightFraction: 0.2), 0.12, "a switch that's on isn't white on white")
+    }
     func testAppIconPicker() {
         let ids = ["sunrise-gold", "sunrise-dawn", "sunrise", "sunrise-dark", "sunrise-spectrum", "sunrise-amber"]
         open()
@@ -233,6 +248,38 @@ final class SettingsUITests: XCTestCase {
         dismissIconChangedNotice("sunrise-gold")
         XCTAssertTrue(appIcon("sunrise-gold").waitForSelection(timeout: 15))
         XCTAssertFalse(appIcon("sunrise-dawn").isSelected)
+    }
+}
+
+private extension UIImage {
+    /// RGB values, 0 to 1, of the image's right-hand part.
+    private func pixels(inRightFraction fraction: CGFloat) -> [(r: Double, g: Double, b: Double)] {
+        guard let image = cgImage else { return [] }
+        let width = image.width, height = image.height
+        var bytes = [UInt8](repeating: 0, count: width * height * 4)
+        let context = CGContext(data: &bytes, width: width, height: height, bitsPerComponent: 8, bytesPerRow: width * 4,
+                                space: CGColorSpaceCreateDeviceRGB(),
+                                bitmapInfo: CGImageAlphaInfo.premultipliedLast.rawValue)
+        context?.draw(image, in: CGRect(x: 0, y: 0, width: width, height: height))
+        var result: [(r: Double, g: Double, b: Double)] = []
+        for y in stride(from: 0, to: height, by: 2) {
+            for x in stride(from: Int(CGFloat(width) * (1 - fraction)), to: width, by: 2) {
+                let i = (y * width + x) * 4
+                result.append((Double(bytes[i]) / 255, Double(bytes[i + 1]) / 255, Double(bytes[i + 2]) / 255))
+            }
+        }
+        return result
+    }
+
+    /// How far apart the lightest and darkest pixels are.
+    func contrast(inRightFraction fraction: CGFloat) -> Double {
+        let luma = pixels(inRightFraction: fraction).map { 0.2126 * $0.r + 0.7152 * $0.g + 0.0722 * $0.b }
+        return (luma.max() ?? 0) - (luma.min() ?? 0)
+    }
+
+    /// The most colorful pixel: 0 for gray.
+    func saturation(inRightFraction fraction: CGFloat) -> Double {
+        pixels(inRightFraction: fraction).map { max($0.r, $0.g, $0.b) - min($0.r, $0.g, $0.b) }.max() ?? 0
     }
 }
 

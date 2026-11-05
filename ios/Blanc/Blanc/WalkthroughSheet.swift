@@ -11,6 +11,7 @@ struct WalkthroughSheet: View {
     @Environment(\.colorScheme) private var colorScheme
     @Environment(\.openURL) private var openURL
     @Environment(\.scenePhase) private var scenePhase
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
     @State private var pairModel = SyncSettingsModel()
     @State private var measureUsage = BlancSettingsDefaults.usagePing
     @State private var showSpacesChooser = false
@@ -43,9 +44,12 @@ struct WalkthroughSheet: View {
         .presentationCornerRadius(30)
         .onAppear {
             measureUsage = manager.settingsStore.usagePingShown
-            detent = Self.detent(for: step)
+            detent = detent(for: step)
+            // Someone already default skips the offer.
+            defaultBrowser.refresh()
+            manager.walkthrough.defaultBrowserChanged(defaultBrowser.isDefault)
         }
-        .onChange(of: step) { _, step in withAnimation { detent = Self.detent(for: step) } }
+        .onChange(of: step) { _, step in withAnimation { detent = detent(for: step) } }
         // A join from the Pair step, or from a pairing link confirmed meanwhile.
         .onChange(of: SettingsSyncStatus(engine.status).enabled) { _, enabled in
             if enabled { manager.walkthrough.joined() }
@@ -62,8 +66,10 @@ struct WalkthroughSheet: View {
         .interactiveDismissDisabled(step != .welcome)
     }
 
-    private static func detent(for step: WalkthroughStep?) -> PresentationDetent {
-        switch step {
+    private func detent(for step: WalkthroughStep?) -> PresentationDetent {
+        // Fixed heights are sized for ordinary text; large text gets the room.
+        if dynamicTypeSize.isAccessibilitySize { return .large }
+        return switch step {
         case .pair: .large
         case .arrived: .height(430)
         case .shareBack: .height(490)
@@ -181,7 +187,6 @@ struct WalkthroughSheet: View {
                 quiet(SyncCopy.text("ios.defaultBrowser.notNow"), id: "welcome.notNow") { finish() }
             }
         }
-        .onAppear { defaultBrowser.refresh() }
     }
 
     // MARK: Pieces
@@ -204,8 +209,13 @@ struct WalkthroughSheet: View {
 
     private func card<Body: View, Actions: View>(@ViewBuilder _ body: () -> Body,
                                                   @ViewBuilder actions: () -> Actions) -> some View {
-        VStack(spacing: 16) {
-            body()
+        let content = VStack(spacing: 16) { body() }
+        return VStack(spacing: 16) {
+            // A scroll only when it has to, so the actions always stay on screen.
+            ViewThatFits(in: .vertical) {
+                content
+                ScrollView { content }
+            }
             Spacer(minLength: 8)
             VStack(spacing: 4) { actions() }
         }

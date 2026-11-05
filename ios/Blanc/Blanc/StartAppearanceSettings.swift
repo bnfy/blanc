@@ -40,7 +40,7 @@ struct WallpaperSettingsView: View {
                     else { controls.save("setWallpaper", value: $0) }
                 })) {
                     ForEach(["sunrise", "time-of-day", "color", "custom"], id: \.self) { Text(SettingsCopy.text($0)).tag($0) }
-                }.accessibilityIdentifier("settings.wallpaperSource").redrawsWithColorScheme()
+                }.accessibilityIdentifier("settings.wallpaperSource")
                 Button(SettingsCopy.text("choosePhoto")) { showPhotos = true }.accessibilityIdentifier("settings.choosePhoto")
                 if FileManager.default.fileExists(atPath: manager.startAppearance.imageURL.path) {
                     Button(SettingsCopy.text("removePhoto"), role: .destructive) { controls.save("removeWallpaper", value: nil) }
@@ -51,13 +51,13 @@ struct WallpaperSettingsView: View {
                     colorPicker("color", selection: controls.string("newtabWallpaperColor", fallback: "sage", method: "setWallpaperColor"))
                     Picker(SettingsCopy.text("fill"), selection: controls.string("newtabWallpaperFill", fallback: "soft", method: "setWallpaperFill")) {
                         ForEach(["soft", "solid", "gradient"], id: \.self) { Text(SettingsCopy.text($0)).tag($0) }
-                    }.redrawsWithColorScheme()
+                    }
                 }
             }
             Section {
                 Picker(SettingsCopy.text("treatment"), selection: controls.string("newtabWallpaperStyle", fallback: "auto", method: "setWallpaperStyle")) {
                     ForEach(["auto", "light", "dark", "spotlight"], id: \.self) { Text(SettingsCopy.text($0)).tag($0) }
-                }.redrawsWithColorScheme()
+                }
                 SettingsSlider(key: "wash", value: controls.number("newtabWallpaperWash", fallback: 100, method: "setWallpaperWash"), range: 0...100)
             }
             if let error { Section { Text(error).foregroundStyle(.red) } }
@@ -91,7 +91,7 @@ struct ClockSettingsView: View {
             Section {
                 Picker(SettingsCopy.text("font"), selection: controls.string("newtabClockFont", fallback: "flex", method: "setClock", clock: true)) {
                     ForEach(["instrument", "condensed", "inter", "flex"], id: \.self) { Text(SettingsCopy.text($0)).tag($0) }
-                }.accessibilityIdentifier("settings.clockFont").redrawsWithColorScheme()
+                }.accessibilityIdentifier("settings.clockFont")
                 SettingsSlider(key: "weight", value: constrained("newtabClockWeight", fallback: 450, range: weightRange), range: weightRange)
                 if heightMax > 100 {
                     SettingsSlider(key: "height", value: constrained("newtabClockHeight", fallback: 300, range: 100...heightMax), range: 100...heightMax)
@@ -102,7 +102,7 @@ struct ClockSettingsView: View {
                 SettingsSlider(key: "tone", value: controls.number("newtabClockTone", fallback: 50, method: "setClock", clock: true), range: 0...100)
                 Picker(SettingsCopy.text("style"), selection: controls.string("newtabClockStyle", fallback: "glass", method: "setClock", clock: true)) {
                     ForEach(["solid", "glass"], id: \.self) { Text(SettingsCopy.text($0)).tag($0) }
-                }.redrawsWithColorScheme()
+                }
             } footer: { Text(SettingsCopy.text("glassHelp")) }
             if let error { Section { Text(error).foregroundStyle(.red) } }
         }.settingsFormStyle().settingsTitle(SettingsCopy.text("clock"))
@@ -122,7 +122,7 @@ private struct SettingsSlider: View {
         VStack(alignment: .leading) {
             LabeledContent(SettingsCopy.text(key), value: "\(Int(value))")
             Slider(value: $value, in: range, step: 1)
-                .tint(BrowserStyle(scheme: scheme).switchOn)
+                .tint(BrowserStyle(scheme: scheme).controlFill)
                 .accessibilityLabel(SettingsCopy.text(key))
                 .accessibilityIdentifier("settings." + key)
         }
@@ -132,7 +132,7 @@ private struct SettingsSlider: View {
 private func colorPicker(_ key: String, selection: Binding<String>, automatic: Bool = false) -> some View {
     Picker(SettingsCopy.text(key), selection: selection) {
         ForEach((automatic ? ["auto"] : []) + SettingsCopy.colors, id: \.self) { Text(SettingsCopy.text($0)).tag($0) }
-    }.redrawsWithColorScheme()
+    }
 }
 
 struct StartSettingsPreviewRow: View {

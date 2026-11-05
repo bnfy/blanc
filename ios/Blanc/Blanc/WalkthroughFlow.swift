@@ -11,7 +11,6 @@ struct WalkthroughFlow: Equatable {
     static let version = 1
 
     private(set) var current: WalkthroughStep?
-    private let offerDefaultBrowser: Bool
     private var isDefaultBrowser: Bool?
     /// Whether the privacy choice has been saved by this run of the card.
     private(set) var privacySaved = false
@@ -19,15 +18,14 @@ struct WalkthroughFlow: Equatable {
     /// `nil` `current` means the card isn't shown. A phone already paired
     /// skips pairing and starts at Share back; one that has seen this
     /// version of the walkthrough sees nothing.
-    init(paired: Bool, completedVersion: Int, offerDefaultBrowser: Bool, isDefaultBrowser: Bool?) {
-        self.offerDefaultBrowser = offerDefaultBrowser
+    init(paired: Bool, completedVersion: Int, isDefaultBrowser: Bool?) {
         self.isDefaultBrowser = isDefaultBrowser
         current = completedVersion >= Self.version ? nil : (paired ? .shareBack : .welcome)
     }
 
     /// Settings → Show the welcome again.
-    static func replay(paired: Bool, offerDefaultBrowser: Bool, isDefaultBrowser: Bool?) -> WalkthroughFlow {
-        WalkthroughFlow(paired: paired, completedVersion: 0, offerDefaultBrowser: offerDefaultBrowser, isDefaultBrowser: isDefaultBrowser)
+    static func replay(paired: Bool, isDefaultBrowser: Bool?) -> WalkthroughFlow {
+        WalkthroughFlow(paired: paired, completedVersion: 0, isDefaultBrowser: isDefaultBrowser)
     }
 
     mutating func pairWithBlanc() { if current == .welcome { current = .pair } }
@@ -61,5 +59,5 @@ struct WalkthroughFlow: Equatable {
         return current != nil && !privacySaved
     }
 
-    private var showsDefaultBrowser: Bool { offerDefaultBrowser && isDefaultBrowser != true }
+    private var showsDefaultBrowser: Bool { isDefaultBrowser != true }
 }
