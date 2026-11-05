@@ -1,0 +1,52 @@
+diff -ruN a/chrome/browser/BUILD.gn b/chrome/browser/BUILD.gn
+--- a/chrome/browser/BUILD.gn
++++ b/chrome/browser/BUILD.gn
+@@ -923,6 +923,7 @@
+     ":unexpire_flags",
+     ":universal_web_contents_observers",
+     "//blanc/android:blocker_bridge",
++    "//blanc/android:sync_bridge",
+     "//blanc/services/blocker:browser",
+     "//base/allocator:buildflags",
+     "//build/config/linux/dbus:buildflags",
+diff -ruN a/chrome/utility/BUILD.gn b/chrome/utility/BUILD.gn
+--- a/chrome/utility/BUILD.gn
++++ b/chrome/utility/BUILD.gn
+@@ -34,6 +34,7 @@
+   public_deps = []
+   deps = [
+     "//blanc/services/blocker:service",
++    "//blanc/services/sync_runner:service",
+     "//base",
+     "//build:chromeos_buildflags",
+     "//chrome:resources",
+diff -ruN a/chrome/utility/services.cc b/chrome/utility/services.cc
+--- a/chrome/utility/services.cc
++++ b/chrome/utility/services.cc
+@@ -4,6 +4,7 @@
+ 
+ #include "chrome/utility/services.h"
+ #include "blanc/services/blocker/blocker_service.h"
++#include "blanc/services/sync_runner/sync_runner_service.h"
+ 
+ #include <memory>
+ #include <utility>
+@@ -163,6 +164,10 @@
+   return std::make_unique<blanc::BlockerService>(std::move(receiver));
+ }
+ 
++auto RunBlancSync(mojo::PendingReceiver<blanc::mojom::SyncRunner> receiver) {
++  return std::make_unique<blanc::SyncRunnerService>(std::move(receiver));
++}
++
+ auto RunFilePatcher(mojo::PendingReceiver<patch::mojom::FilePatcher> receiver) {
+   return std::make_unique<patch::FilePatcherImpl>(std::move(receiver));
+ }
+@@ -503,6 +508,7 @@
+ 
+ void RegisterMainThreadServices(mojo::ServiceFactory& services) {
+   services.Add(RunBlancBlocker);
++  services.Add(RunBlancSync);
+   services.Add(RunFilePatcher);
+   services.Add(RunUnzipper);
+   services.Add(RunCSVPasswordParser);

@@ -1,0 +1,21 @@
+// Shipping sync, run in a sandbox. The utility holds the sync key in memory.
+// Everything it reaches goes through SyncHost; the browser checks each request.
+module blanc.mojom;
+import "sandbox/policy/mojom/sandbox.mojom";
+
+interface SyncHost {
+  // Only to the sync endpoint: the browser refuses every other address.
+  Fetch(string url, string method, string headers_json, array<uint8>? body)
+      => (string error, int32 status, string headers_json, array<uint8> body);
+  WriteStore(string name, array<uint8> data);
+  [Sync] Protect(array<uint8> data) => (array<uint8>? protected_data);
+  [Sync] Unprotect(array<uint8> data) => (array<uint8>? data);
+  Emit(string event, string json);
+};
+
+[ServiceSandbox=sandbox.mojom.Sandbox.kService]
+interface SyncRunner {
+  Start(string script, map<string, array<uint8>> stores, string config_json,
+        pending_remote<SyncHost> host) => (bool ready);
+  Call(string method, string args_json) => (bool ok, string result);
+};

@@ -61,6 +61,43 @@ source_set("blocker_bridge") {
   ]
 }
 
+generate_jni("sync_jni") {
+  sources = [ "java/src/org/chromium/blanc/sync/SyncBridge.java" ]
+}
+
+# Keys, files and network for the sync runner. //chrome/browser depends on this (patch 0107).
+source_set("sync_bridge") {
+  sources = [ "browser/sync_bridge.cc" ]
+  deps = [
+    ":sync_jni",
+    "//base",
+    "//blanc/services/sync_runner:browser",
+    "//components/version_info",
+    "//services/network/public/cpp",
+  ]
+}
+
+android_library("sync_java") {
+  srcjar_deps = [ ":sync_jni" ]
+  sources = [
+    "java/src/org/chromium/blanc/sync/BlancKeyStore.java",
+    "java/src/org/chromium/blanc/sync/SyncBridge.java",
+  ]
+  deps = [
+    "//base:base_java",
+    "//build/android:build_java",
+    "//third_party/jni_zero:jni_zero_java",
+  ]
+}
+
+# Shipping's sync, bundled by chromium/tools/build-sync-bundle.mjs. The runner refuses any bytes
+# but the pinned hash.
+android_assets("sync_assets") {
+  renaming_sources = [ "//blanc/services/sync_runner/generated/sync-bundle.js" ]
+  renaming_destinations = [ "blanc_sync/sync-bundle.js" ]
+  disable_compression = true
+}
+
 android_library("tabs_ui_java") {
   srcjar_deps = [ ":blocking_jni" ]
   sources = [
@@ -70,6 +107,7 @@ android_library("tabs_ui_java") {
     "java/src/org/chromium/blanc/tabs/chromium/ChromiumTabStore.java",
   ]
   deps = [
+    ":sync_java",
     ":tabs_java",
     "//base:base_java",
     "//build/android:build_java",
@@ -138,6 +176,7 @@ android_library("island_view_java") {
   ]
   deps = [
     ":blocker_assets",
+    ":sync_assets",
     ":island_java",
     ":island_view_resources",
     ":tabs_java",
