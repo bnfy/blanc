@@ -12,14 +12,14 @@ final class KeyboardShortcutsUITests: XCTestCase {
     let app = XCUIApplication()
     app.launchArguments = ["-BlancUITestTwoTabs"]
     app.launch()
-    XCTAssertTrue(app.buttons["pill.tabs"].waitForExistence(timeout: 15))
+    XCTAssertTrue(app.buttons["pill.palette"].waitForExistence(timeout: 15))
     return app
   }
 
   private func tabCount(_ app: XCUIApplication, is count: Int) {
     let label = count == 1 ? "1 tab" : "\(count) tabs"
-    let shown = XCTNSPredicateExpectation(predicate: NSPredicate(format: "value == %@", label), object: app.buttons["pill.tabs"])
-    XCTAssertEqual(XCTWaiter().wait(for: [shown], timeout: 5), .completed, app.buttons["pill.tabs"].value as? String ?? "")
+    let shown = XCTNSPredicateExpectation(predicate: NSPredicate(format: "value == %@", label), object: app.buttons["pill.palette"])
+    XCTAssertEqual(XCTWaiter().wait(for: [shown], timeout: 5), .completed, app.buttons["pill.palette"].value as? String ?? "")
   }
 
   func testNewCloseAndReopenTabs() throws {

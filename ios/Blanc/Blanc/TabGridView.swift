@@ -2,7 +2,10 @@ import SwiftUI
 
 struct TabGridView: View {
     let manager: TabsManager
-    @Environment(\.dismiss) private var dismiss
+    /// Closes the grid; the window moves the page back out of its card.
+    let close: () -> Void
+    /// Where each tab's card sits, for its page to land on or grow from.
+    let onCardFrame: (UUID, CGRect) -> Void
     @Environment(\.horizontalSizeClass) private var sizeClass
     @Environment(\.colorScheme) private var colorScheme
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
@@ -33,7 +36,7 @@ struct TabGridView: View {
                 }
                 Text("\(manager.tabs.count)").font(.system(size: 14)).foregroundStyle(style.secondary)
                 Spacer()
-                Button(SettingsCopy.text("done")) { dismiss() }
+                Button(SettingsCopy.text("done")) { close() }
                     .font(BrowserStyle.font(16, semibold: true))
                     .frame(minWidth: 44, minHeight: 44)
             }
@@ -68,7 +71,7 @@ struct TabGridView: View {
             }
             Button {
                 manager.createTab()
-                dismiss()
+                close()
             } label: {
                 Label(SyncCopy.text("tab.new"), systemImage: "plus")
                     .font(BrowserStyle.font(16, semibold: true))
@@ -172,6 +175,7 @@ struct TabGridView: View {
                 withAnimation { manager.closeTab(tab.id) }
             }
             .accessibilityIdentifier("tab.card")
+            .onGeometryChange(for: CGRect.self) { $0.frame(in: .global) } action: { onCardFrame(tab.id, $0) }
             .accessibilityLabel(SyncCopy.text("ios.tabs.switchTo", ["title": title(tab)]))
             .accessibilityAddTraits(manager.activeTabId == tab.id ? .isSelected : [])
             .overlay(alignment: .topLeading) {
@@ -205,7 +209,7 @@ struct TabGridView: View {
 
     private func select(_ tab: TabModel) {
         manager.setActive(tab.id)
-        dismiss()
+        close()
     }
 
     private func title(_ tab: TabModel) -> String { TabTitle.display(tab) }

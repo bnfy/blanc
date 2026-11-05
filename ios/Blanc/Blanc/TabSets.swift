@@ -10,6 +10,14 @@ struct SavedTab: Codable, Equatable {
     var groupId: String?
     /// The shared record's id while the tab is in a shared Space (M17c).
     var tabId: String?
+    /// Finds this tab's Back and Forward list in `TabHistoryStore`. This
+    /// device's only: sync builds its records field by field and never reads
+    /// it, and it isn't part of what the tab is, so `==` ignores it.
+    var historyId: String?
+
+    static func == (a: SavedTab, b: SavedTab) -> Bool {
+        a.url == b.url && a.title == b.title && a.pinned == b.pinned && a.groupId == b.groupId && a.tabId == b.tabId
+    }
 }
 
 /// One set of tabs: This iPhone or a Space.

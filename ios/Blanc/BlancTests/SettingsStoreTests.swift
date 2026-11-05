@@ -52,6 +52,17 @@ final class SettingsStoreTests: XCTestCase {
         XCTAssertFalse(SettingsStore(directory: dir).islandTucksOnScroll)
     }
 
+    /// Back and Forward stay off the iPhone Island until the person asks; the
+    /// choice survives a relaunch.
+    func testIslandHistoryButtonsAreOffByDefaultAndPersistWhenOn() {
+        let dir = tmpDir()
+        let store = SettingsStore(directory: dir)
+        XCTAssertFalse(store.islandHistoryButtons)
+        store.update(islandHistoryButtons: true)
+        store.flush()
+        XCTAssertTrue(SettingsStore(directory: dir).islandHistoryButtons)
+    }
+
     /// The Island sits along the bottom unless the person moves it to the top;
     /// an unknown saved value falls back to the bottom.
     func testIslandPositionDefaultsToBottomAndPersists() {

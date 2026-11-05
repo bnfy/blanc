@@ -10,15 +10,15 @@ final class MultipleWindowsUITests: XCTestCase {
     let app = XCUIApplication()
     app.launchArguments = ["-BlancUITestTwoTabs"]
     app.launch()
-    XCTAssertTrue(app.buttons["pill.tabs"].firstMatch.waitForExistence(timeout: 15))
+    XCTAssertTrue(app.buttons["pill.palette"].firstMatch.waitForExistence(timeout: 15))
     return app
   }
 
-  /// Waits for an Island whose tab button reads `value` and whose site reads `site`.
+  /// Waits for an Island whose tab count reads `value` and whose site reads `site`.
   private func window(_ app: XCUIApplication, tabs value: String, site: String) -> Bool {
     let deadline = Date().addingTimeInterval(10)
     while Date() < deadline {
-      let counts = app.buttons.matching(identifier: "pill.tabs").allElementsBoundByIndex.compactMap { $0.value as? String }
+      let counts = app.buttons.matching(identifier: "pill.palette").allElementsBoundByIndex.compactMap { $0.value as? String }
       let sites = app.buttons.matching(identifier: "pill.palette").allElementsBoundByIndex.map(\.label)
       if counts.contains(value), sites.contains(where: { $0.contains(site) }) { return true }
       RunLoop.current.run(until: Date().addingTimeInterval(0.5))
@@ -34,7 +34,7 @@ final class MultipleWindowsUITests: XCTestCase {
 
   func testMoveTabToNewWindowCarriesThePage() throws {
     let app = try launch()
-    app.buttons["pill.tabs"].firstMatch.tap()
+    app.openTabGrid()
     let cards = app.descendants(matching: .any).matching(identifier: "tab.card")
     XCTAssertTrue(cards.element(boundBy: 1).waitForExistence(timeout: 5))
     cards.element(boundBy: 1).press(forDuration: 1.2)

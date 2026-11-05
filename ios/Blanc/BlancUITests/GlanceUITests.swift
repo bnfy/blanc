@@ -27,7 +27,7 @@ final class GlanceUITests: XCTestCase {
     app.buttons["glance.close"].tap()
     waitGone(app.otherElements["glance.card"])
     XCTAssertTrue(app.buttons["pill.palette"].label.contains("example.com"), "still on the page beneath")
-    XCTAssertEqual(app.buttons["pill.tabs"].value as? String, "2 tabs")
+    XCTAssertEqual(app.buttons["pill.palette"].value as? String, "2 tabs")
   }
 
   func testOpenAsTabMakesItsPageCurrent() throws {
@@ -55,10 +55,10 @@ final class GlanceUITests: XCTestCase {
     let app = XCUIApplication()
     app.launchArguments = ["-BlancUITestTwoTabs"]
     app.launch()
-    XCTAssertTrue(app.buttons["pill.tabs"].waitForExistence(timeout: 15))
+    XCTAssertTrue(app.buttons["pill.palette"].waitForExistence(timeout: 15))
     let size = app.windows.firstMatch.frame.size
     try XCTSkipUnless(min(size.width, size.height) >= 600, "not an unfolded layout (\(size))")
-    app.buttons["pill.tabs"].tap()
+    app.openTabGrid()
     let cards = app.descendants(matching: .any).matching(identifier: "tab.card")
     XCTAssertTrue(cards.element(boundBy: 1).waitForExistence(timeout: 5))
     cards.element(boundBy: 1).press(forDuration: 1.2)

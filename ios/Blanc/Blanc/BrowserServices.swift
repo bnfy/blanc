@@ -18,6 +18,7 @@ final class BrowserServices {
     let startAppearance: StartAppearanceStore
     let schemeHandler: BlancSchemeHandler
     let sessionStore: SessionStore
+    let tabHistory: TabHistoryStore
     let contentBlocker = ContentBlocker()
     /// The web store normal tabs share; tests pass their own.
     let siteDataStore: WKWebsiteDataStore
@@ -41,6 +42,7 @@ final class BrowserServices {
         })
         settingsStore = SettingsStore(directory: settingsDirectory)
         sessionStore = SessionStore(directory: sessionDirectory)
+        tabHistory = TabHistoryStore(directory: sessionDirectory)
         historyStore = HistoryStore(directory: settingsDirectory)
         contentBlocker.enabled = settingsStore.adblockEnabled
         // Always compile the blocklist, even when disabled — `enabled` gates only
@@ -53,6 +55,7 @@ final class BrowserServices {
         // Every UI test starts with an empty Recently closed.
         if ProcessInfo.processInfo.arguments.contains(where: { $0.hasPrefix("-BlancUITest") }) {
             try? FileManager.default.removeItem(at: syncDirectory.appendingPathComponent("recently-closed.json"))
+            if !UITestSeed.settings { tabHistory.removeAll() }
         }
         #endif
     }
@@ -113,6 +116,24 @@ final class BrowserServices {
         let urls = saved.isEmpty ? [TabsManager.newTabURL.absoluteString] : saved.map { $0.currentURL.absoluteString }
         let active = saved.firstIndex(where: { $0.id == front.activeTabId }) ?? 0
         sessionStore.save(urls: urls, activeIndex: active, state: library.state(shown: front.shownSetId, windows: savedWindows))
+    }
+
+    // MARK: Back and Forward across a relaunch
+
+    /// When Blanc leaves the screen: saves what's open and drops what no tab,
+    /// window or Space shows any more.
+    func saveTabHistories() {
+        windows.forEach { $0.saveTabHistories() }
+        let saved = [library.iphoneSet] + library.spaces.map(\.set) + savedWindows.compactMap(\.set)
+        let open = windows.flatMap(\.tabs).filter { !$0.isPrivate }.map(\.historyId)
+        tabHistory.keepOnly(Set(saved.flatMap { $0.tabs.compactMap(\.historyId) } + open))
+    }
+
+    /// With the person's history or site data: nothing saved stays, and pages
+    /// open now keep their list only in memory.
+    func forgetTabHistories() {
+        tabHistory.removeAll()
+        windows.forEach { $0.stopSavingTabHistories() }
     }
 
     // MARK: Opening, closing and moving between windows
