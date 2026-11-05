@@ -19,6 +19,7 @@ index.html
 installed-theme.js
 invite-friend.js
 island-autohide.js
+glance-card.js
 island-hover-open.js
 overlay.html
 overlay.js

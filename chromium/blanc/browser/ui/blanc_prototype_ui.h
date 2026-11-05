@@ -91,6 +91,7 @@ uint32_t RestoredSandboxFlags(const std::map<std::string, std::string>& extra_da
 void RestoreInheritedSandbox(content::WebContents* tab, uint32_t flags);
 bool RestoreClosedSplitFromCommand(BrowserWindowInterface* browser);
 bool SelectIslandSlot(BrowserWindowInterface* browser, int slot);
+bool ToggleGlance(BrowserWindowInterface* browser);
 // Returns a dismissal closure; no browser/profile/session state is created.
 base::OnceClosure ShowSessionRecovery();
 bool IsEnabled();

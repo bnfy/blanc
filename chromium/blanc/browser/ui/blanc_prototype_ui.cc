@@ -270,6 +270,8 @@ namespace blanc_prototype {
 // The Island's own header height, before auto-hide moves the page over it.
 int BaseHeaderHeight(views::View* parent);
 namespace {
+// The remembered Glance card: device-wide, never synced (F34).
+constexpr char kGlanceFramePref[] = "blanc.glance.frame";
 // The Start Page a regular window commits: plain, or the welcome tour's
 // replay (F36). Never any other query.
 constexpr char kWelcomeTourUrl[] = "chrome://blanc-prototype/pages/newtab.html?tour=1";
@@ -791,6 +793,7 @@ class Owner;
 // Auto-hide (island_autohide_controller.inc).
 void AutoHidePageMove(Owner* owner, const blink::WebInputEvent& event);
 void AutoHideActivated(Owner* owner);
+void EndGlanceSoon(Owner* owner, int next_reference);
 
 class Owner : public base::SupportsUserData::Data,
               public content::WebContentsObserver,
@@ -863,6 +866,16 @@ class Owner : public base::SupportsUserData::Data,
   std::optional<AutoHideSlide> autohide_slide;
   int glance_main = -1;
   int glance_reference = -1;
+  // The floating card (F34), in the Island's coordinates: where the Glance
+  // page sits, and the card's chrome around it that takes the Island's input.
+  bool glance_opening = false;
+  gfx::Rect glance_page;
+  std::vector<gfx::Rect> glance_ring;
+  // Where the reference tab came from. Chromium's split needs its two tabs
+  // side by side and alike, so the tab goes back when the Glance ends.
+  int glance_origin_index = -1;
+  bool glance_origin_pinned = false;
+  std::optional<tab_groups::TabGroupId> glance_origin_group;
   // Settings in the sheet (S1.7): Chromium's chrome://settings, a sibling
   // of the Island view placed over the card's body.
   views::ViewTracker settings_sheet;
@@ -1103,6 +1116,19 @@ class Owner : public base::SupportsUserData::Data,
   }
   void OnTabStripModelChanged(TabStripModel*, const TabStripModelChange& change,
                               const TabStripSelectionChange& selection) override {
+    // A Glance belongs to the page it opened over: switching away ends it.
+    if (selection.active_tab_changed() && glance_main >= 0 && selection.new_contents) {
+      const int id = sessions::SessionTabHelper::IdForTab(selection.new_contents).id();
+      if (id != glance_main && id != glance_reference) {
+        // A link that opens a new tab from the Glance page lands in the Glance.
+        auto* model = browser->GetTabStripModel();
+        const int index = model->GetIndexOfWebContents(selection.new_contents);
+        auto* opener = index != TabStripModel::kNoTab ? model->GetOpenerOfTabAt(index) : nullptr;
+        const bool from_glance = opener && opener->GetContents() &&
+            sessions::SessionTabHelper::IdForTab(opener->GetContents()).id() == glance_reference;
+        EndGlanceSoon(this, from_glance ? id : -1);
+      }
+    }
     if (change.type() == TabStripModelChange::kInserted) {
       for (const auto& inserted : change.GetInsert()->contents) {
         blanc::quiet::MediaHistory::Get(inserted.contents, true);
@@ -1555,6 +1581,55 @@ Owner* SettingsSheetOwner(content::WebContents* contents) {
 void CloseSettingsSheet(Owner* owner) {
   if (owner && owner->view) owner->view->GetWebContents()->GetPrimaryMainFrame()->ExecuteJavaScript(
       u"window.BlancPrototypeHost?.closeSheet()", base::NullCallback());
+}
+// Ends a Glance: the pair stops being a split, the reference tab goes back to
+// where it came from, and `activate` (if live) becomes the current tab.
+void EndGlance(Owner* owner, content::WebContents* activate) {
+  auto* model = owner->browser->GetTabStripModel();
+  content::WebContents* reference = nullptr;
+  for (int i = 0; i < model->count(); ++i)
+    if (sessions::SessionTabHelper::IdForTab(model->GetWebContentsAt(i)).id() == owner->glance_reference)
+      reference = model->GetWebContentsAt(i);
+  owner->glance_main = owner->glance_reference = -1;
+  owner->glance_page = gfx::Rect();
+  owner->glance_ring.clear();
+  owner->split_geometry.clear();
+  owner->split_hit_regions.clear();
+  const int index = reference ? model->GetIndexOfWebContents(reference) : TabStripModel::kNoTab;
+  if (index == TabStripModel::kNoTab) return;
+  if (const auto split = model->GetSplitForTab(index)) model->RemoveSplit(*split);
+  if (owner->glance_origin_index >= 0) {
+    if (model->IsTabPinned(model->GetIndexOfWebContents(reference)) != owner->glance_origin_pinned)
+      model->SetTabPinned(model->GetIndexOfWebContents(reference), owner->glance_origin_pinned);
+    const int now = model->GetIndexOfWebContents(reference);
+    if (model->GetTabGroupForTab(now) != owner->glance_origin_group) {
+      if (owner->glance_origin_group && model->group_model()->ContainsTabGroup(*owner->glance_origin_group))
+        model->AddToExistingGroup({now}, *owner->glance_origin_group);
+      else
+        model->RemoveFromGroup({now});
+    }
+    model->MoveWebContentsAt(model->GetIndexOfWebContents(reference),
+                             std::min(owner->glance_origin_index, model->count() - 1), false);
+    owner->glance_origin_index = -1;
+  }
+  if (activate) {
+    const int target = model->GetIndexOfWebContents(activate);
+    if (target != TabStripModel::kNoTab) model->ActivateTabAt(target);
+  }
+}
+void EndGlanceSoon(Owner* owner, int next_reference) {
+  base::SingleThreadTaskRunner::GetCurrentDefault()->PostTask(FROM_HERE, base::BindOnce([](Owner* candidate, int next) {
+    if (!Owner::Live().contains(candidate) || candidate->glance_main < 0) return;
+    if (next < 0) { EndGlance(candidate, nullptr); return; }
+    auto* model = candidate->browser->GetTabStripModel();
+    content::WebContents* main = nullptr;
+    for (int i = 0; i < model->count(); ++i)
+      if (sessions::SessionTabHelper::IdForTab(model->GetWebContentsAt(i)).id() == candidate->glance_main)
+        main = model->GetWebContentsAt(i);
+    EndGlance(candidate, main);
+    candidate->view->GetWebContents()->GetPrimaryMainFrame()->ExecuteJavaScript(
+        u"window.BlancPrototypeHost?.api.setGlanceTab('" + base::NumberToString16(next) + u"')", base::NullCallback());
+  }, owner, next_reference));
 }
 // The sheet shows chrome://settings, Blanc's sections inside Chromium's
 // (S1.7, owner): shipping's General opens at the top, Blocking on Privacy
@@ -2443,6 +2518,8 @@ base::DictValue Snapshot(BrowserWindowInterface* browser, Owner* owner) {
       .Set("blockerHealth", blanc::BlockerHealth())
       .Set("installedTheme", InstalledTheme(browser->GetProfile()))
       .Set("splitGeometry", owner->split_geometry.Clone())
+      .Set("glanceFrame", g_browser_process->local_state()->GetDict(kGlanceFramePref).empty()
+          ? base::Value() : base::Value(g_browser_process->local_state()->GetDict(kGlanceFramePref).Clone()))
       .Set("spaceName", owner->space_name)
       .Set("spaceAutosaveError", owner->space_error)
       .Set("spaceBusy", owner->space_busy)
@@ -5324,12 +5401,17 @@ class Handler : public content::WebUIMessageHandler, public extensions::Extensio
         if (tab_id == args[1].GetInt()) second = i;
       }
       if (first < 0 || second < 0 || first == second ||
-          (method != "createSplit" && (model->IsTabPinned(first) || model->IsTabPinned(second) ||
-                                      model->GetTabGroupForTab(first) || model->GetTabGroupForTab(second))) ||
+          (method == "previewSplitPair" && (model->IsTabPinned(first) || model->IsTabPinned(second) ||
+                                            model->GetTabGroupForTab(first) || model->GetTabGroupForTab(second))) ||
           model->GetSplitForTab(first) || model->GetSplitForTab(second)) {
         reply(true, base::Value(false)); return;
       }
-      if (method == "createSplit") {
+      if (method == "previewGlancePair") {
+        owner->glance_origin_index = second;
+        owner->glance_origin_pinned = model->IsTabPinned(second);
+        owner->glance_origin_group = model->GetTabGroupForTab(second);
+      }
+      if (method == "createSplit" || method == "previewGlancePair") {
         auto* initiating = model->GetWebContentsAt(first);
         auto* other = model->GetWebContentsAt(second);
         // Shipping Blanc pins the whole split when either member is pinned.
@@ -5352,10 +5434,13 @@ class Handler : public content::WebUIMessageHandler, public extensions::Extensio
       MarkPersistentSplit(browser, model->GetWebContentsAt(first), method != "previewGlancePair", true);
       MarkPersistentSplit(browser, model->GetWebContentsAt(second), method != "previewGlancePair");
       const bool reverse = first > second;
+      // Chromium styles the pair as it makes the split: no padding for a Glance.
+      owner->glance_opening = method == "previewGlancePair";
       const auto split = model->AddToNewSplit({first, second},
           split_tabs::SplitTabVisualData(split_tabs::SplitTabLayout::kSideBySide, method != "previewGlancePair" ? 0.5 : 0.62),
           split_tabs::SplitTabCreatedSource::kToolbarButton);
       if (reverse) model->ReverseTabsInSplit(split);
+      owner->glance_opening = false;
       owner->glance_main = method != "previewGlancePair" ? -1 : args[0].GetInt();
       owner->glance_reference = method != "previewGlancePair" ? -1 : args[1].GetInt();
       if (method != "previewGlancePair") model->ActivateTabAt(first);
@@ -5404,6 +5489,49 @@ class Handler : public content::WebUIMessageHandler, public extensions::Extensio
           }, weak_factory_.GetWeakPtr(), owner->GetWeakPtr(), profile->GetWeakPtr(),
              id, browser->GetWeakPtr(), first, second, key, value, RatioPath(profile, key)));
       return;
+    }
+    // The card's frame, from the host (F34): the page and the chrome around it.
+    if (method == "glanceFrame" && args.size() == 8 &&
+        std::all_of(args.begin(), args.end(), [](const base::Value& value) { return value.is_int(); })) {
+      if (owner->glance_main < 0) { reply(true, base::Value(false)); return; }
+      const gfx::Rect page(args[0].GetInt(), args[1].GetInt(), args[2].GetInt(), args[3].GetInt());
+      const gfx::Rect chrome(args[4].GetInt(), args[5].GetInt(), args[6].GetInt(), args[7].GetInt());
+      owner->glance_page = page;
+      owner->glance_ring = {
+          gfx::Rect(chrome.x(), chrome.y(), chrome.width(), page.y() - chrome.y()),
+          gfx::Rect(chrome.x(), page.y(), page.x() - chrome.x(), page.height()),
+          gfx::Rect(page.right(), page.y(), chrome.right() - page.right(), page.height()),
+          gfx::Rect(chrome.x(), page.bottom(), chrome.width(), chrome.bottom() - page.bottom())};
+      if (auto* view = BrowserView::GetBrowserViewForBrowser(browser)) view->multi_contents_view()->InvalidateLayout();
+      reply(true, base::Value(true)); return;
+    }
+    // The remembered card: fractions of the page area, or none. Device-wide.
+    if (method == "glanceSaveFrame" && args.size() == 1 && (args[0].is_dict() || args[0].is_none())) {
+      PrefService* local = g_browser_process->local_state();
+      if (args[0].is_dict()) local->SetDict(kGlanceFramePref, args[0].GetDict().Clone());
+      else local->ClearPref(kGlanceFramePref);
+      reply(true, base::Value(true)); return;
+    }
+    // Keyboard focus moves between the two pages without ending the Glance.
+    if (method == "focusGlancePane" && args.size() == 1 && args[0].is_int()) {
+      for (int i = 0; i < model->count(); ++i) {
+        if (sessions::SessionTabHelper::IdForTab(model->GetWebContentsAt(i)).id() != args[0].GetInt()) continue;
+        if (args[0].GetInt() != owner->glance_main && args[0].GetInt() != owner->glance_reference) break;
+        model->ActivateTabAt(i);
+        model->GetWebContentsAt(i)->Focus();
+        reply(true, base::Value(true)); return;
+      }
+      reply(true, base::Value(false)); return;
+    }
+    if ((method == "openGlanceAsTab" || method == "closeGlance") && args.empty()) {
+      if (owner->glance_main < 0) { reply(true, base::Value(false)); return; }
+      content::WebContents* target = nullptr;
+      const int wanted = method == "openGlanceAsTab" ? owner->glance_reference : owner->glance_main;
+      for (int i = 0; i < model->count(); ++i)
+        if (sessions::SessionTabHelper::IdForTab(model->GetWebContentsAt(i)).id() == wanted)
+          target = model->GetWebContentsAt(i);
+      EndGlance(owner, target);
+      reply(true, base::Value(true)); return;
     }
     if ((method == "previewGlanceClose" || method == "removeFromSplit") && args.size() == 1 && args[0].is_int()) {
       for (int i = 0; i < model->count(); ++i) {
@@ -6538,7 +6666,13 @@ class Handler : public content::WebUIMessageHandler, public extensions::Extensio
       return;
     }
     if (method == "switchTab") {
-      model->ActivateTabAt(index);
+      // Choosing the Glance tab another way opens it as the tab (F34).
+      if (owner->glance_main >= 0 &&
+          sessions::SessionTabHelper::IdForTab(tab).id() == owner->glance_reference) {
+        EndGlance(owner, tab);
+      } else {
+        model->ActivateTabAt(index);
+      }
     } else if (method == "closeSplit") {
       const auto split = model->GetSplitForTab(index);
       if (!split || !tab->GetUserData(kPersistentSplitKey)) {
@@ -6871,6 +7005,17 @@ bool RestoreClosedSplitFromCommand(BrowserWindowInterface* browser) {
   return true;
 }
 
+bool ToggleGlance(BrowserWindowInterface* browser) {
+  if (!IsIslandWindow(browser)) return false;
+  for (auto* owner : Owner::Live()) {
+    if (owner->browser != browser || !owner->view) continue;
+    owner->view->GetWebContents()->GetPrimaryMainFrame()->ExecuteJavaScript(
+        u"window.BlancPrototypeHost?.toggleGlance()", base::NullCallback());
+    return true;
+  }
+  return false;
+}
+
 bool SelectIslandSlot(BrowserWindowInterface* browser, int slot) {
   if (!IsIslandWindow(browser)) return false;
   auto* model = browser->GetTabStripModel();
@@ -6917,7 +7062,14 @@ bool IsPersistentSplitTab(content::WebContents* tab) {
 }
 bool HasSplitPresentation(content::WebContents* tab) {
   // Presentation markers also exist in private windows; this performs no I/O.
-  return IsEnabled() && tab && tab->GetUserData(kPersistentSplitKey);
+  if (!IsEnabled() || !tab) return false;
+  if (tab->GetUserData(kPersistentSplitKey)) return true;
+  // A Glance's two pages keep no split padding either.
+  const int id = sessions::SessionTabHelper::IdForTab(tab).id();
+  for (auto* owner : Owner::Live())
+    if (owner->glance_opening || (owner->glance_main >= 0 && (id == owner->glance_main || id == owner->glance_reference)))
+      return true;
+  return false;
 }
 std::string TabIdentity(content::WebContents* tab) {
   if (!IsEnabled() || tab->GetBrowserContext()->IsOffTheRecord()) return "";
@@ -7151,7 +7303,7 @@ UI::UI(content::WebUI* web_ui) : ui::MojoWebUIController(web_ui, /*enable_chrome
             // arbitrary queries never become filesystem paths.
             const std::string asset_path =
                 path == "pages/newtab.html?private=1" || path == "pages/newtab.html?tour=1" ? "pages/newtab.html"
-                : path == "index.html?surface=float" ? "index.html" : path;
+                : path == "index.html?surface=float" || path == "index.html?surface=glance" ? "index.html" : path;
 #if BUILDFLAG(ENABLE_BLANC_DISK_ASSETS)
             // Build outputs such as the compiled bindings exist only embedded.
             if (!root.empty() && !blanc::island_resources::IsGenerated(asset_path)) {
@@ -7401,6 +7553,29 @@ void AdjustSplitLayout(const MultiContentsView* view, views::ProposedLayout* lay
   }
   if (!owner) return;
   auto* model = owner->browser->GetTabStripModel();
+  // Floating Glance (F34): the main page keeps the whole pane and the
+  // reference floats over it in the card. Nothing shows until the host has
+  // placed the card.
+  if (owner->glance_main >= 0 && model->active_index() >= 0 && model->GetSplitForTab(model->active_index()) &&
+      view->contents_container_views().size() == 2) {
+    const auto& containers = view->contents_container_views();
+    const int width = layout->host_size.width(), height = layout->host_size.height();
+    gfx::Point origin;
+    views::View::ConvertPointToTarget(view, browser_view, &origin);
+    if (auto* island = browser_view->GetViewByID(kIslandViewId)) origin.Offset(-island->x(), -island->y());
+    gfx::Rect page = owner->glance_page;
+    page.Offset(-origin.x(), -origin.y());
+    for (auto& child : layout->child_layouts) {
+      if (child.child_view == containers[0]) { child.bounds = gfx::Rect(0, 0, width, height); child.visible = true; }
+      else if (child.child_view == containers[1]) { child.bounds = page; child.visible = true; }
+      else if (std::string(child.child_view->GetClassName()) == "MultiContentsResizeArea") child.bounds = gfx::Rect();
+    }
+    if (width <= 0 || width != view->width() || height != view->height()) return;
+    owner->split_hit_regions = owner->glance_ring;
+    owner->split_geometry = base::DictValue().Set("mode", "glance").Set("pageArea", base::DictValue()
+        .Set("x", origin.x()).Set("y", origin.y()).Set("width", width).Set("height", height));
+    return;
+  }
   if (model->active_index() < 0 || !model->GetSplitForTab(model->active_index()) ||
       !model->GetActiveWebContents()->GetUserData(kPersistentSplitKey)) {
     owner->split_geometry.clear(); owner->split_hit_regions.clear(); return;

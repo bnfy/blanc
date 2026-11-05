@@ -114,6 +114,10 @@ if (location.origin === 'chrome://blanc-prototype' && parent !== window) {
       const changed = await window.browserAPI.toggleStartPin(id, startPin.url);
       if (!changed) parent.BlancPrototypeHost.notice('This page could not be changed on the Start Page.');
     }, !startPin?.enabled]);
+    // Open in Glance: any other tab of this window, while no split shows.
+    if (id !== state.activeTabId && !split && !state.splits?.some(s => s.tabIds.includes(state.activeTabId))) {
+      actions.push([localized('tabMenu.glance', 'Open in Glance'), () => window.browserAPI.setGlanceTab(id), id === state.glanceTabId]);
+    }
     if (split) actions.unshift(
       [localized('tabMenu.removeFromSplit', 'Remove from Split View'), () => window.browserAPI.removeFromSplit(id)],
       [localized('tabMenu.closeSplit', 'Close Split View'), () => window.browserAPI.closeSplit(id)]);

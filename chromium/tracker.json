@@ -912,8 +912,9 @@
       },
       "platformProgress": {
         "macos": {
-          "stage": "drafted",
-          "basis": "approved spec macOS inventory; awaiting candidate verification"
+          "stage": "implemented",
+          "candidate": "macos-29b321d4c0aa5f9d",
+          "basis": "S3.2 (2026-11-05): in candidate macos-29b321d4c0aa5f9d; 20 of 69 cases pass, 18 fail, 31 undefined (s3-glance); Open Link in Glance has no context menu item yet; regressions not rerun on this candidate"
         },
         "windows": {
           "stage": "not-started",
@@ -2457,8 +2458,8 @@
   ],
   "currentCandidates": {
     "macos": {
-      "id": "macos-4a72fe8259c85d77",
-      "frameworkSha256": "4a72fe8259c85d77e0594bc434cfc2a8a54050c995a8b4d2b52dc506e6419714",
+      "id": "macos-29b321d4c0aa5f9d",
+      "frameworkSha256": "29b321d4c0aa5f9d2c4b0b5619599e27114ee9017935a9a94c24ef9e915fabdf",
       "executableSha256": "cca20d7ed00bbdecf8db310c6802fbed003b4e63c6bc3b1f71dabc9dbff2ff01",
       "version": "158.0.8127.2",
       "qualification": "compiled candidate; runtime acceptance pending"

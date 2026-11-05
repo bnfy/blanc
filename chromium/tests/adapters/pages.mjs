@@ -373,13 +373,26 @@ export const pages={
  },
  // Fork steps read the active Start Page through this (null when it isn't).
  executeStartPage:onStart(null,source=>String(source)),
- // ---- Glance: the fork's only Glance primitive is the native 0.62 split
- // preview (previewGlancePair); it has no floating card. ----
- async setGlance(w,id){
-  const s=await w.snapshot();
-  return w.api('previewGlancePair',[String(s.activeTabId),String(id)]);
+ // ---- Glance (F34): the floating card over the page. ----
+ setGlance:(w,id)=>w.api('setGlanceTab',[String(id)]),
+ glanceShortcutEnabled:async()=>true,
+ pressGlanceShortcut:async w=>{await w.hostEval('window.BlancPrototypeHost.toggleGlance()');return true;},
+ openLinkInGlance:async(w,id,url)=>{await w.call('activateTab',id);return w.api('openLinkInGlance',[String(url)]);},
+ sendGlanceCardInput:async(w,input)=>{const fr=w.frame('glanceCardFrame');if(!fr)return false;
+  if(input.type==='keyDown'){await fr.keyboard.press(input.keyCode);return true;}
+  throw new UndefinedNativeAdapterError('Card pointer input needs an adapter: '+input.type);},
+ glancePageViewVisible:async w=>{const s=await w.snapshot();return !!s.tabs.find(t=>t.id===s.glanceTabId)?.viewBounds;},
+ glanceCardFocused:async w=>{const fr=w.frame('glanceCardFrame');return fr?fr.evaluate(()=>document.hasFocus()):false;},
+ async closeGlance(w){const s=await w.snapshot();if(s.glanceTabId==null)return false;await w.api('closeGlance');return true;},
+ async getGlanceCard(w){
+  // The host places the card a moment after the Glance opens.
+  let s=await w.snapshot();let g=await w.hostEval('window.BlancPrototypeHost.glanceState()');
+  for(let i=0;i<40&&s.glanceTabId!=null&&!g.layout;i++){await new Promise(r=>setTimeout(r,50));s=await w.snapshot();g=await w.hostEval('window.BlancPrototypeHost.glanceState()');}
+  if(!g.layout)return null;
+  const view=id=>s.tabs.find(t=>t.id===id)?.viewBounds??null;
+  const area=s.splitGeometry.pageArea;
+  return {...g.layout.card,cardViewVisible:g.shown,pageArea:area,pageBounds:area,generation:g.layout.generation,focusedPane:g.layout.focusedPane,
+   viewBounds:view(s.glanceTabId),mainViewBounds:view(s.activeTabId),savedFrame:s.glanceFrame??null};
  },
- async closeGlance(w){const s=await w.snapshot();if(s.glanceTabId==null)return false;await w.api('previewGlanceClose',[String(s.glanceTabId)]);return true;},
- getGlanceCard:()=>{throw Error('getGlanceCard: the fork shows Glance as a side-by-side split preview, not a floating card');},
- glanceHeaderMotion:()=>{throw Error('glanceHeaderMotion: the fork has no Glance card header');},
+ glanceHeaderMotion:()=>{throw new UndefinedNativeAdapterError('glanceHeaderMotion needs an adapter');},
 };

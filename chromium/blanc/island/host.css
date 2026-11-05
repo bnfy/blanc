@@ -3,6 +3,8 @@ iframe { position: absolute; inset: 0; width: 100%; border: 0; }
 #strip { height: var(--strip-h, 68px); }
 /* Above the split divider, or the divider takes clicks on the panel's middle. */
 #overlay { height: 100%; z-index: 5; }
+/* The Glance card's chrome: placed by host.js, below the Island's surfaces. */
+#glanceCardFrame { inset: auto; background: transparent; z-index: 3; }
 /* The permission prompt: placed bottom-centre over the page by host.js. */
 #permission { inset: auto; background: transparent; }
 /* Auto-hide's floating pill (float style): a tight frame onto a copy of the
