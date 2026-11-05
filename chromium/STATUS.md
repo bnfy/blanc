@@ -735,7 +735,13 @@ remain pending. D3 beta-only no-DRM exception accepted; EME notice/handoff requi
   which pins the two About page files); the Dock takes shipping's flat
   images, its development-build path, because the adaptive stacks need
   Assets.car from a packaged build. Sunrise itself is the bundle's icon.
-  Not yet run on a candidate: the display locked.
+  F17-1 and F17-3 pass, settings-and-theming 6 pass / 1 undefined (F14-2 now
+  runs) and island-and-commands 63 / 3 as before. The checkout line is read
+  through loadTimeData, not `$i18n{}`: its "$4/month" is a dangling
+  placeholder to Chromium's template expressions, which crashed Settings on
+  the first candidate. The Dock change itself is not visible to the tests.
+  chrome://settings' About page still reads About Chromium, with Chromium's
+  logo and an update-check error; that belongs with the product strings.
 - **Mahjong goes last (owner, 2026-11-04):** the fork has no Mahjong yet
   (F35-3, F35-4, F35-9 fail at the footer launch). When it is built it is an
   Island page (shipping's files served as byte-identical copies, opened as an
@@ -1122,13 +1128,13 @@ Android's Bar A counts the shared scenarios bound in `chromium/tests/android/acc
 
 | State | macOS | Windows | Linux | Android |
 | --- | ---: | ---: | ---: | ---: |
-| Not started / unassessed | 27 | 80 | 80 | 69 |
+| Not started / unassessed | 26 | 80 | 80 | 69 |
 | Research only | 1 | 0 | 0 | 0 |
 | Drafted | 7 | 0 | 0 | 0 |
 | Implemented | 1 | 0 | 0 | 11 |
 | Built, isolated (legacy) | 5 | 0 | 0 | 0 |
 | Integrated, partial (legacy) | 3 | 0 | 0 | 0 |
-| Integrated | 36 | 0 | 0 | 0 |
+| Integrated | 37 | 0 | 0 | 0 |
 | Verification needs recheck | 0 | 0 | 0 | 0 |
 | Verified | 0 | 0 | 0 | 0 |
 | Release-ready | 0 | 0 | 0 | 0 |

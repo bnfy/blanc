@@ -555,7 +555,7 @@
     "chrome/browser/resources/settings/people_page/people_page.html.ts": "ece3ef14240d9670bf37d5afee75a682871ddfd95f8859084cd2bb59048a7624",
     "chrome/browser/resources/settings/people_page/people_page.ts": "5e97f8760b397d6b26bb72f4a1b9f1472b645324451d437a92d574d1558b541c",
     "chrome/browser/signin/identity_manager_factory.cc": "5b94fe0b08ff5480e06985cf7d2a0feb0e45f71d30c5f5c68f27982954629659",
-    "chrome/browser/resources/settings/about_page/about_page.html.ts": "15d40f2827e22603e44811064e4e659af8acac6e2a78d6a18448d53aacce9f60",
-    "chrome/browser/resources/settings/about_page/about_page.ts": "b3dd08fbb7ebb10093979e1d7dd43c8dfd8428901b56d73d80b7be2227d5598c"
+    "chrome/browser/resources/settings/about_page/about_page.html.ts": "cf5e677552c8b4cc5a5f7a1107d3a8273ad118f3c9abdb3b6158c460a806ba80",
+    "chrome/browser/resources/settings/about_page/about_page.ts": "c6787b5dcaddb4bac87a643924ae11ead6ecb7533ef0f1b6ff549861e84f9904"
   }
 }

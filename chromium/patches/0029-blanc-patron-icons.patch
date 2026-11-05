@@ -24,23 +24,24 @@ index 28d96bc..ba4a9d6 100644
    // reaches renderers through RendererPreferences.
    registry->RegisterStringPref("blanc.webrtc.audio_buffer", "automatic");
 diff --git a/chrome/browser/resources/settings/about_page/about_page.html.ts b/chrome/browser/resources/settings/about_page/about_page.html.ts
-index b9ac4e6..e8a4302 100644
+index b9ac4e6..487e5c5 100644
 --- a/chrome/browser/resources/settings/about_page/about_page.html.ts
 +++ b/chrome/browser/resources/settings/about_page/about_page.html.ts
-@@ -89,6 +89,11 @@ export function getHtml(this: SettingsAboutPageElement) {
+@@ -89,6 +89,12 @@ export function getHtml(this: SettingsAboutPageElement) {
      </div>
    ` : ''}
  </if>
 +  <!-- Blanc (S2, owner): the preview offers the checkout only; key activation
 +       comes with the release channel. -->
 +  <cr-link-row class="hr" id="patronCheckout" @click="${this.onBlancPatronClick_}"
-+      label="$i18n{blancPatron}" sub-label="$i18n{blancPatronCheckout}" external>
++      label="$i18n{blancPatron}" .subLabel="${this.blancPatronCheckout_()}"
++      external>
 +  </cr-link-row>
    <cr-link-row class="hr" id="help" @click="${this.onHelpClick_}"
        label="$i18n{aboutGetHelpUsingChrome}" external></cr-link-row>
  <if expr="_google_chrome">
 diff --git a/chrome/browser/resources/settings/about_page/about_page.ts b/chrome/browser/resources/settings/about_page/about_page.ts
-index 30855ec..bb5cd22 100644
+index 30855ec..4dfde0a 100644
 --- a/chrome/browser/resources/settings/about_page/about_page.ts
 +++ b/chrome/browser/resources/settings/about_page/about_page.ts
 @@ -24,6 +24,7 @@ import {assert} from 'chrome://resources/js/assert.js';
@@ -51,10 +52,16 @@ index 30855ec..bb5cd22 100644
  import {sanitizeInnerHtml} from 'chrome://resources/js/parse_html_subset.js';
  import {CrLitElement} from 'chrome://resources/lit/v3_0/lit.rollup.js';
  import type {PropertyValues} from 'chrome://resources/lit/v3_0/lit.rollup.js';
-@@ -220,6 +221,11 @@ export class SettingsAboutPageElement extends SettingsAboutPageElementBase
+@@ -220,6 +221,17 @@ export class SettingsAboutPageElement extends SettingsAboutPageElementBase
      event.stopPropagation();
    }
  
++  // Read here, not through $i18n{}: its "$4/month" would be taken for a
++  // dangling placeholder.
++  protected blancPatronCheckout_(): string {
++    return loadTimeData.getString('blancPatronCheckout');
++  }
++
 +  protected onBlancPatronClick_() {
 +    BlancOpenWindow.getInstance().openUrl(
 +        'https://buy.polar.sh/polar_cl_auwRq39Q2hIVLJwANEqFWgWuZ8DGjdJmEI4mE0JaNDf');

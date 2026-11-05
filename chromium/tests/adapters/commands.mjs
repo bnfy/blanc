@@ -127,7 +127,7 @@ async function moveTo(w,page,section){
 }
 // What shows that a section has drawn Blanc's controls, and filled its lists.
 const READY={search:'settings-search-page[blanc-ready] #blancBangs',appearance:'#blancIslandAutoHide',
- privacy:'settings-privacy-page[blanc-ready] #blancBlocking',languages:'#blancUiLanguage'};
+ privacy:'settings-privacy-page[blanc-ready] #blancBlocking',languages:'#blancUiLanguage',help:'#patronCheckout'};
 async function settingsReady(page,section){
  await page.waitForLoadState();
  const selector=READY[section];

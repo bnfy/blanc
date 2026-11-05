@@ -244,7 +244,9 @@ export const pages={
  setAppIcon:(w,id)=>inSettings(w,'appearance',async(a,d)=>{const select=d.find('#blancAppIcon')?.shadowRoot?.querySelector('select');
   if(!select)return {missing:'#blancAppIcon'};if([...select.options].some(o=>o.value===a)){select.value=a;select.dispatchEvent(new Event('change',{bubbles:true}));await new Promise(r=>setTimeout(r,300));}
   return {value:select.value};},String(id)),
- clickPatronCheckout:w=>inSettings(w,'help',(a,d)=>{const row=d.find('#patronCheckout');if(!row)return {missing:'#patronCheckout'};row.click();return {value:true};}),
+ clickPatronCheckout:w=>inSettings(w,'help',(a,d)=>{const row=d.find('#patronCheckout');if(!row)return {missing:'#patronCheckout'};
+  // After the reply: the click closes the sheet this page lives in.
+  setTimeout(()=>row.click(),50);return {value:true};}),
  // First run (F36). Test profiles finish it at launch, as shipping's do.
  firstRunState:w=>w.native('firstRunState'),
  setUsagePing:(w,on)=>w.native('setUsagePing',[!!on]),
