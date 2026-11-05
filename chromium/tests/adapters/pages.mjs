@@ -265,8 +265,8 @@ export const pages={
   return dialog.dataset.step==='${Number(step)}';})()`),
  readOnboardingArchiveOffer:onStart(null,`(()=>{const row=document.getElementById('obArchiveRow');const toggle=document.getElementById('obArchive');
   return {hidden:!row||row.hidden||row.closest('section')?.hidden===true,checked:toggle?.getAttribute('aria-checked')==='true',label:row?.textContent.replace(/\\s+/g,' ').trim()??''};})()`),
- clickOnboarding:onStart(false,selector=>`(()=>{const el=document.querySelector(${JSON.stringify(String(selector))});if(!el||el.disabled||document.getElementById('onboardDialog').hidden)return false;el.click();return true;})()`),
- sendOnboardingSet:onStart(false,partial=>`window.bowserPages.start.onboardingSet(${JSON.stringify(partial??{})}).then(()=>true)`),
+ clickOnboarding:onStart(false,selector=>`(()=>{const el=document.querySelector(${jsLiteral(String(selector))});if(!el||el.disabled||document.getElementById('onboardDialog').hidden)return false;el.click();return true;})()`),
+ sendOnboardingSet:onStart(false,partial=>`window.bowserPages.start.onboardingSet(${jsLiteral(partial??{})}).then(()=>true)`),
  readFirstRunMigrationDom:onStart(null,`({initialReady:(document.getElementById('footerLeft')?.textContent??'').length>0,
   privacyHidden:document.getElementById('onboardDialog')?.hidden??true,migrationHidden:document.querySelector('#obContent [data-step="1"]')?.hidden??true,
   findHidden:document.getElementById('obLook')?.hidden??true,options:[...document.querySelectorAll('#obSources .ob-src-row')].map(row=>row.textContent),
@@ -310,7 +310,7 @@ export const pages={
   buttonHidden:document.getElementById('browserImportBtn')?.hidden??true,findHidden:document.getElementById('browserFindBtn')?.hidden??true,status:document.getElementById('importStatus')?.textContent??''})`),
  clickBrowserFind:w=>onSheet(w,`(()=>{const button=document.getElementById('browserFindBtn');if(!button||button.hidden)return false;button.click();return true;})()`),
  selectBrowserSource:(w,label)=>onSheet(w,`((label)=>{const select=document.getElementById('browserSource');const option=[...(select?.options??[])].find(o=>o.textContent===label&&!o.disabled);
-  if(!option)return false;select.value=option.value;select.dispatchEvent(new Event('change',{bubbles:true}));return true;})(${JSON.stringify(String(label))})`),
+  if(!option)return false;select.value=option.value;select.dispatchEvent(new Event('change',{bubbles:true}));return true;})(${jsLiteral(String(label))})`),
  clickBrowserImport:w=>onSheet(w,`(()=>{const button=document.getElementById('browserImportBtn');if(!button||button.hidden)return false;button.click();return true;})()`),
  // Shipping's reset; the fork keeps only the default-browser task's state.
  async resetMigrationChecklist(w){
