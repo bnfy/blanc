@@ -14,6 +14,52 @@ async function startDom(world,expression){
 // Shipping's find capsule lives in the Island overlay document.
 const overlay=world=>world.frame('overlay');
 export default function register(step){
+ // ---- F21: telemetry (spec row F21) ----
+ // A release build, with the real first-run state and the collector on a
+ // loopback capture server. The preview has no release version and sends
+ // nothing, so these flags are what makes this a "packaged build".
+ const sent=(world,path)=>world.telemetry.filter(event=>event.path===path);
+ const commitUsagePing=async(world,usagePing)=>{
+  await world.call('openTab','blanc://newtab/');
+  const saved=await startDom(world,`window.bowserPages.start.completePrivacy({searchSuggestions:false,usagePing:${usagePing}})`);
+  assert.equal(saved?.completed,true);
+ };
+ step('this is a packaged build with a fresh profile',async function(){
+  const events=this.telemetry=[];
+  const server=http.createServer((request,response)=>{let body='';request.on('data',chunk=>{body+=chunk;});
+   request.on('end',()=>{events.push({path:request.url,body:JSON.parse(body||'{}')});response.writeHead(204);response.end();});});
+  await new Promise(resolve=>server.listen(0,'127.0.0.1',resolve));server.unref();
+  // The blocker starts with the first web request, and the fixture's relaunch
+  // waits for it, so a web page has to come back with the session.
+  await this.call('openTab',this.fixtureUrl('find-page'));
+  this.fixture.extraArgs=['--blanc-test-first-run','--blanc-test-version=1.46.0',`--blanc-test-telemetry-host=http://127.0.0.1:${server.address().port}`];
+  await this.relaunch();
+ });
+ step('the app launches',async function(){await this.relaunch();});
+ step('the app launches again',async function(){await this.relaunch();});
+ step('no usage ping is sent',async function(){
+  await new Promise(resolve=>setTimeout(resolve,1500));
+  assert.deepEqual(sent(this,'/ping'),[]);
+ });
+ step('I commit the enabled usage ping choice',async function(){await commitUsagePing(this,true);});
+ step('I commit the disabled usage ping choice',async function(){await commitUsagePing(this,false);});
+ step('exactly one launch ping is sent',async function(){
+  await until(this,()=>sent(this,'/ping').length,count=>count>0,'the launch ping');
+  await new Promise(resolve=>setTimeout(resolve,1000));
+  assert.equal(sent(this,'/ping').length,1);
+ });
+ step('it contains only an install id, session id, version, platform, architecture, and coarse operating-system version',async function(){
+  const {body}=sent(this,'/ping')[0];
+  assert.deepEqual(Object.keys(body).sort(),['arch','installId','osVersion','platform','sessionId','version']);
+  assert.match(body.installId,/^[0-9a-f-]{36}$/);assert.ok(Number.isInteger(body.sessionId)&&body.sessionId>0);
+  assert.equal(body.version,'1.46.0');assert.match(body.osVersion,/^\d+$/);
+ });
+ step('it contains no browsing data',async function(){
+  assert.ok(!JSON.stringify(sent(this,'/ping')[0].body).includes('127.0.0.1'));
+ });
+ step('no telemetry install id exists',async function(){
+  assert.equal((await this.native('telemetryState')).installId,false);
+ });
  // ---- F8-1: find in page (spec row F8; Island overlay find capsule) ----
  step('a page containing the word {string} {int} times',async function(word,count){
   // The loopback fixture's body repeats "widget" three times; its name and

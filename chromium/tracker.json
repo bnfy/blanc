@@ -637,8 +637,9 @@
       },
       "platformProgress": {
         "macos": {
-          "stage": "not-started",
-          "basis": "approved spec macOS inventory; awaiting candidate verification"
+          "stage": "implemented",
+          "candidate": "macos-9a9442cac7df94a0",
+          "basis": "S2 (2026-11-05): in candidate macos-9a9442cac7df94a0, silent until a release channel reports a Blanc version (owner); F21-1 and F21-2 pass with a test version and a capture server (s2-tt-platform-services); a preview run sent nothing and minted no id; mahjong_play waits for Mahjong; day-one signals not exercised by a case"
         },
         "windows": {
           "stage": "not-started",
@@ -972,8 +973,8 @@
       "platformProgress": {
         "macos": {
           "stage": "integrated",
-          "candidate": "macos-86a75dc4b5d45861",
-          "basis": "S2 (2026-11-05): in candidate macos-86a75dc4b5d45861; seven of eight cases pass (s2d-2); the tour replay (F36-8) is not built; manual accessibility/visual checklist pending for Verified"
+          "candidate": "macos-9a9442cac7df94a0",
+          "basis": "S2 (2026-11-05): in candidate macos-9a9442cac7df94a0; all eight cases pass (s2-tt-onboarding); the tour replays from Settings \u2192 About; manual accessibility/visual checklist pending for Verified"
         },
         "windows": {
           "stage": "not-started",
@@ -2455,8 +2456,8 @@
   ],
   "currentCandidates": {
     "macos": {
-      "id": "macos-df08efed32b15890",
-      "frameworkSha256": "df08efed32b1589062ab1e6f874a238fe335a5873b902fcc33396fa515c3c625",
+      "id": "macos-9a9442cac7df94a0",
+      "frameworkSha256": "9a9442cac7df94a07f62f8ecc9fd1fa04635fabd609820e1d309b50a303d1d42",
       "executableSha256": "cca20d7ed00bbdecf8db310c6802fbed003b4e63c6bc3b1f71dabc9dbff2ff01",
       "version": "158.0.8127.2",
       "qualification": "compiled candidate; runtime acceptance pending"

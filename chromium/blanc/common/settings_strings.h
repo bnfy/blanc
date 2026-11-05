@@ -14,7 +14,7 @@ struct String {
   std::string_view name;
   std::u16string_view value;
 };
-inline constexpr std::array<String, 66> kStrings_en = {{
+inline constexpr std::array<String, 73> kStrings_en = {{
     {"blancIslandHoverOpen", u"Open the Island on hover"},
     {"blancIslandHoverOpenHint", u"Rest the pointer on the Island’s address to open it without clicking."},
     {"blancIslandAutoHide", u"Auto-hide the Island"},
@@ -35,6 +35,13 @@ inline constexpr std::array<String, 66> kStrings_en = {{
     {"blancProfiles", u"Profiles"},
     {"blancPatron", u"Blanc Patron"},
     {"blancPatronCheckout", u"Become a Patron — $4/month or $30/year"},
+    {"blancWelcomeTour", u"Welcome tour"},
+    {"blancWelcomeTourHint", u"Replay the first-run walkthrough; saved choices stay put"},
+    {"blancUsagePing", u"Help improve Blanc"},
+    {"blancUsagePingHint", u"Counts active users and which start-page layouts and local features get used. Sends a random install and session id, app version, platform, architecture, coarse OS major, and fixed feature names; never URLs, searches, page content, or private-tab activity. This is pseudonymous measurement sent to a Blanc-owned Cloudflare collector. It stores a keyed hash of the install id; an optional Google Analytics mirror receives that hash and the same limited fields. Turn this off to stop future events."},
+    {"blancResetInstallId", u"Reset install ID"},
+    {"blancResetInstallIdDone", u"Reset — this install now counts as brand new."},
+    {"blancResetInstallIdFailed", u"Couldn’t save the reset — check disk space and try again."},
     {"blancAppIcon", u"App icon"},
     {"blancAppIconHint", u"Choose the Blanc icon shown by your system"},
     {"blancImportBar", u"Bookmarks bar"},
@@ -82,7 +89,7 @@ inline constexpr std::array<String, 66> kStrings_en = {{
     {"blancLanguageSystem", u"System ({language})"},
     {"blancLanguageRelaunch", u"Relaunch to apply"},
 }};
-inline constexpr std::array<String, 66> kStrings_de = {{
+inline constexpr std::array<String, 73> kStrings_de = {{
     {"blancIslandHoverOpen", u"Island beim Darüberfahren öffnen"},
     {"blancIslandHoverOpenHint", u"Lass den Zeiger auf der Adresse in der Island ruhen, um sie ohne Klick zu öffnen."},
     {"blancIslandAutoHide", u"Island automatisch ausblenden"},
@@ -103,6 +110,13 @@ inline constexpr std::array<String, 66> kStrings_de = {{
     {"blancProfiles", u"Profile"},
     {"blancPatron", u"Blanc Patron"},
     {"blancPatronCheckout", u"Patron werden – $4/Monat oder $30/Jahr"},
+    {"blancWelcomeTour", u"Willkommenstour"},
+    {"blancWelcomeTourHint", u"Die Einführung beim ersten Start erneut abspielen; gespeicherte Einstellungen bleiben erhalten"},
+    {"blancUsagePing", u"Blanc verbessern helfen"},
+    {"blancUsagePingHint", u"Zählt aktive Nutzer und welche Startseiten-Layouts und lokalen Funktionen genutzt werden. Sendet eine zufällige Installations- und Sitzungs-ID, App-Version, Plattform, Architektur, grobe Hauptversion des Betriebssystems und feste Funktionsnamen; nie URLs, Suchen, Seiteninhalte oder Aktivitäten in privaten Tabs. Das ist eine pseudonyme Messung an einen Cloudflare-Sammler von Blanc. Er speichert einen verschlüsselten Hash der Installations-ID; ein optionaler Google-Analytics-Spiegel erhält diesen Hash und dieselben eingeschränkten Felder. Schalte dies aus, um künftige Ereignisse zu stoppen."},
+    {"blancResetInstallId", u"Installations-ID zurücksetzen"},
+    {"blancResetInstallIdDone", u"Zurückgesetzt – diese Installation zählt jetzt als ganz neu."},
+    {"blancResetInstallIdFailed", u"Das Zurücksetzen konnte nicht gespeichert werden – prüfe den freien Speicherplatz und versuch es noch einmal."},
     {"blancAppIcon", u"App-Symbol"},
     {"blancAppIconHint", u"Wähle das Blanc-Symbol, das dein System anzeigt"},
     {"blancImportBar", u"Lesezeichenleiste"},
@@ -150,7 +164,7 @@ inline constexpr std::array<String, 66> kStrings_de = {{
     {"blancLanguageSystem", u"System ({language})"},
     {"blancLanguageRelaunch", u"Zum Übernehmen neu starten"},
 }};
-inline constexpr std::array<String, 66> kStrings_es = {{
+inline constexpr std::array<String, 73> kStrings_es = {{
     {"blancIslandHoverOpen", u"Abrir la Island al pasar el cursor"},
     {"blancIslandHoverOpenHint", u"Deja el puntero sobre la dirección de la Island para abrirla sin hacer clic."},
     {"blancIslandAutoHide", u"Ocultar la Island automáticamente"},
@@ -171,6 +185,13 @@ inline constexpr std::array<String, 66> kStrings_es = {{
     {"blancProfiles", u"Perfiles"},
     {"blancPatron", u"Blanc Patron"},
     {"blancPatronCheckout", u"Hazte Patron — $4/mes o $30/año"},
+    {"blancWelcomeTour", u"Visita de bienvenida"},
+    {"blancWelcomeTourHint", u"Repite la guía del primer inicio; tus elecciones guardadas no cambian"},
+    {"blancUsagePing", u"Ayudar a mejorar Blanc"},
+    {"blancUsagePingHint", u"Cuenta los usuarios activos y qué diseños de la página de inicio y funciones locales se usan. Envía un identificador aleatorio de instalación y de sesión, la versión de la app, la plataforma, la arquitectura, la versión principal aproximada del sistema y nombres fijos de funciones; nunca URL, búsquedas, contenido de páginas ni actividad de pestañas privadas. Es una medición seudónima enviada a un recopilador de Cloudflare propiedad de Blanc. Guarda un hash con clave del identificador de instalación; un espejo opcional de Google Analytics recibe ese hash y los mismos campos limitados. Desactívalo para detener los eventos futuros."},
+    {"blancResetInstallId", u"Restablecer el ID de instalación"},
+    {"blancResetInstallIdDone", u"Restablecido: esta instalación cuenta ahora como nueva."},
+    {"blancResetInstallIdFailed", u"No se pudo guardar el restablecimiento: comprueba el espacio en disco e inténtalo de nuevo."},
     {"blancAppIcon", u"Icono de la app"},
     {"blancAppIconHint", u"Elige el icono de Blanc que muestra tu sistema"},
     {"blancImportBar", u"Barra de marcadores"},
@@ -218,7 +239,7 @@ inline constexpr std::array<String, 66> kStrings_es = {{
     {"blancLanguageSystem", u"Sistema ({language})"},
     {"blancLanguageRelaunch", u"Reiniciar para aplicar"},
 }};
-inline constexpr std::array<String, 66> kStrings_fr = {{
+inline constexpr std::array<String, 73> kStrings_fr = {{
     {"blancIslandHoverOpen", u"Ouvrir l’Island au survol"},
     {"blancIslandHoverOpenHint", u"Laissez le pointeur sur l’adresse de l’Island pour l’ouvrir sans cliquer."},
     {"blancIslandAutoHide", u"Masquer automatiquement l’Island"},
@@ -239,6 +260,13 @@ inline constexpr std::array<String, 66> kStrings_fr = {{
     {"blancProfiles", u"Profils"},
     {"blancPatron", u"Blanc Patron"},
     {"blancPatronCheckout", u"Devenir Patron — $4/mois ou $30/an"},
+    {"blancWelcomeTour", u"Visite de bienvenue"},
+    {"blancWelcomeTourHint", u"Revoir la présentation du premier lancement ; vos choix enregistrés restent inchangés"},
+    {"blancUsagePing", u"Aider à améliorer Blanc"},
+    {"blancUsagePingHint", u"Compte les utilisateurs actifs et les dispositions de la page d’accueil et fonctions locales utilisées. Envoie un identifiant aléatoire d’installation et de session, la version de l’app, la plateforme, l’architecture, la version majeure approximative du système et des noms de fonctions fixes ; jamais d’URL, de recherches, de contenu de pages ni d’activité des onglets privés. Il s’agit d’une mesure pseudonyme envoyée à un collecteur Cloudflare appartenant à Blanc. Il stocke un hachage à clé de l’identifiant d’installation ; un miroir Google Analytics facultatif reçoit ce hachage et les mêmes champs limités. Désactivez-le pour arrêter les futurs événements."},
+    {"blancResetInstallId", u"Nouvel ID d’installation"},
+    {"blancResetInstallIdDone", u"Réinitialisé — cette installation compte désormais comme nouvelle."},
+    {"blancResetInstallIdFailed", u"Impossible d’enregistrer la réinitialisation — vérifiez l’espace disque et réessayez."},
     {"blancAppIcon", u"Icône de l’app"},
     {"blancAppIconHint", u"Choisissez l’icône de Blanc affichée par votre système"},
     {"blancImportBar", u"Barre de favoris"},
@@ -286,7 +314,7 @@ inline constexpr std::array<String, 66> kStrings_fr = {{
     {"blancLanguageSystem", u"Système ({language})"},
     {"blancLanguageRelaunch", u"Redémarrer pour appliquer"},
 }};
-inline constexpr std::array<String, 66> kStrings_it = {{
+inline constexpr std::array<String, 73> kStrings_it = {{
     {"blancIslandHoverOpen", u"Apri l’Island al passaggio del puntatore"},
     {"blancIslandHoverOpenHint", u"Lascia il puntatore sull’indirizzo dell’Island per aprirla senza fare clic."},
     {"blancIslandAutoHide", u"Nascondi automaticamente l’Island"},
@@ -307,6 +335,13 @@ inline constexpr std::array<String, 66> kStrings_it = {{
     {"blancProfiles", u"Profili"},
     {"blancPatron", u"Blanc Patron"},
     {"blancPatronCheckout", u"Diventa Patron — $4/mese o $30/anno"},
+    {"blancWelcomeTour", u"Tour di benvenuto"},
+    {"blancWelcomeTourHint", u"Rivedi la guida del primo avvio; le scelte salvate restano invariate"},
+    {"blancUsagePing", u"Aiuta a migliorare Blanc"},
+    {"blancUsagePingHint", u"Conta gli utenti attivi e quali layout della pagina iniziale e funzioni locali vengono usati. Invia un ID casuale di installazione e di sessione, la versione dell’app, la piattaforma, l’architettura, la versione principale approssimativa del sistema operativo e nomi fissi di funzioni; mai URL, ricerche, contenuti delle pagine o attività delle schede private. È una misurazione pseudonima inviata a un raccoglitore Cloudflare gestito da Blanc, che conserva un hash con chiave dell’ID di installazione; un mirror opzionale di Google Analytics riceve quell’hash e gli stessi campi limitati. Disattiva questa opzione per interrompere gli eventi futuri."},
+    {"blancResetInstallId", u"Reimposta ID di installazione"},
+    {"blancResetInstallIdDone", u"Reimpostato: ora questa installazione conta come nuova."},
+    {"blancResetInstallIdFailed", u"Impossibile salvare la reimpostazione: controlla lo spazio su disco e riprova."},
     {"blancAppIcon", u"Icona dell’app"},
     {"blancAppIconHint", u"Scegli l’icona di Blanc mostrata dal sistema"},
     {"blancImportBar", u"Barra dei preferiti"},
@@ -354,7 +389,7 @@ inline constexpr std::array<String, 66> kStrings_it = {{
     {"blancLanguageSystem", u"Sistema ({language})"},
     {"blancLanguageRelaunch", u"Riavvia per applicare"},
 }};
-inline constexpr std::array<String, 66> kStrings_pt_BR = {{
+inline constexpr std::array<String, 73> kStrings_pt_BR = {{
     {"blancIslandHoverOpen", u"Abrir a Island ao passar o cursor"},
     {"blancIslandHoverOpenHint", u"Deixe o ponteiro sobre o endereço da Island para abri-la sem clicar."},
     {"blancIslandAutoHide", u"Ocultar a Island automaticamente"},
@@ -375,6 +410,13 @@ inline constexpr std::array<String, 66> kStrings_pt_BR = {{
     {"blancProfiles", u"Perfis"},
     {"blancPatron", u"Blanc Patron"},
     {"blancPatronCheckout", u"Torne-se Patron — $4/mês ou $30/ano"},
+    {"blancWelcomeTour", u"Tour de boas-vindas"},
+    {"blancWelcomeTourHint", u"Rever o guia da primeira execução; suas escolhas salvas continuam iguais"},
+    {"blancUsagePing", u"Ajudar a melhorar o Blanc"},
+    {"blancUsagePingHint", u"Conta os usuários ativos e quais layouts da página inicial e recursos locais são usados. Envia um ID aleatório de instalação e de sessão, a versão do app, a plataforma, a arquitetura, a versão principal aproximada do sistema e nomes fixos de recursos; nunca URLs, pesquisas, conteúdo de páginas ou atividade de abas privadas. É uma medição pseudônima enviada a um coletor da Cloudflare do próprio Blanc. Ele guarda um hash com chave do ID de instalação; um espelho opcional do Google Analytics recebe esse hash e os mesmos campos limitados. Desative para interromper eventos futuros."},
+    {"blancResetInstallId", u"Redefinir ID de instalação"},
+    {"blancResetInstallIdDone", u"Redefinido — esta instalação agora conta como nova."},
+    {"blancResetInstallIdFailed", u"Não foi possível salvar a redefinição — verifique o espaço em disco e tente de novo."},
     {"blancAppIcon", u"Ícone do app"},
     {"blancAppIconHint", u"Escolha o ícone do Blanc mostrado pelo sistema"},
     {"blancImportBar", u"Barra de favoritos"},

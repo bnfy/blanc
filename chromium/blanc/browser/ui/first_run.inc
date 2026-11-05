@@ -11,10 +11,12 @@ constexpr char kUsagePingPref[] = "blanc.telemetry.usage_ping";
 constexpr char kTabArchivePref[] = "blanc.tabs.archive";
 
 // Shipping's acceptance profile completes first run at launch and a test
-// asks for the walkthrough; the fork's test profiles do the same.
+// asks for the walkthrough; the fork's test profiles do the same, unless a
+// test asks for the real saved state (--blanc-test-first-run).
 bool g_first_run_pending_for_test = false;
 bool FirstRunPending() {
-  if (base::CommandLine::ForCurrentProcess()->HasSwitch("blanc-test"))
+  const auto* command_line = base::CommandLine::ForCurrentProcess();
+  if (command_line->HasSwitch("blanc-test") && !command_line->HasSwitch("blanc-test-first-run"))
     return g_first_run_pending_for_test;
   return g_browser_process->local_state()->GetDouble(kFirstRunCompletedPref) <= 0;
 }

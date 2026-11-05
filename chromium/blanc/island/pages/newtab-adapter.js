@@ -456,7 +456,7 @@
       defaultBrowser: () => request('defaultBrowser'),
       setDefaultBrowser: () => request('setDefaultBrowser', [], 60000),
       // The preview channel sends no telemetry (F21).
-      layoutUsed: async () => {},
+      layoutUsed: name => request('layoutUsed', [String(name)]),
       onStatus: callback => { listeners.add(callback); return () => listeners.delete(callback); },
       onVisibility: callback => {
         const update = () => callback(!document.hidden);

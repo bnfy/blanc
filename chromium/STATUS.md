@@ -698,8 +698,8 @@ remain pending. D3 beta-only no-DRM exception accepted; EME notice/handoff requi
   parsed in the page (`pages/bookmark-file.js`) and merged natively with
   bookmark-data.js's rules, for the walkthrough and the Favorites sheet.
   Patch 0028 registers the prefs; test profiles finish first run at launch.
-  F30 passes all 5; F36 passes 7 and F36-8 is undefined (the welcome tour
-  replay needs a Settings row and a tour address). island-and-commands 63 / 3,
+  F30 passes all 5; F36 passed 7 here, with F36-8 undefined until S2.6.
+  island-and-commands 63 / 3,
   internal-pages 9 / 1, newtab-layouts 10 / 3 (Mahjong only). F30, F33, F36
   and N10 are Integrated on macOS. The default-browser step uses Chromium's
   check and registration (V20). Bring Your Tabs (F40) stays hidden until S3.
@@ -742,6 +742,28 @@ remain pending. D3 beta-only no-DRM exception accepted; EME notice/handoff requi
   the first candidate. The Dock change itself is not visible to the tests.
   chrome://settings' About page still reads About Chromium, with Chromium's
   logo and an update-check error; that belongs with the product strings.
+- **S2.6 welcome tour and telemetry (F36-8, F21), candidate macos-9a9442cac7df94a0 (2026-11-05):**
+  Settings → About has shipping's Welcome tour row. It opens
+  `chrome://blanc-prototype/pages/newtab.html?tour=1`, the one extra Start Page
+  address `IsRegularStartPage` accepts, and the tab reads as a new tab
+  everywhere else. From a private window it opens in a regular one. F36 passes
+  all 8. Telemetry is `telemetry.inc`, shipping's telemetry.js and
+  day-one-signals.js: launch ping, `newtab_layout`, `day1_default` and
+  `day1_browsed`, with the install id in Local State
+  (`blanc.telemetry.install`, patch 0030) and minted only on the way to a send.
+  Settings → Privacy and security has Help improve Blanc and Reset install ID.
+  Reset clears the record rather than minting a new id, so a declined choice
+  still leaves none. The preview stays silent because `BlancReleaseVersion()`
+  is empty outside tests; `tests/telemetry-gate.test.mjs` fails if anything
+  else can supply one, and a preview run with a completed first run sent
+  nothing and minted no id. F21-1 and F21-2 pass with a test version and a
+  capture server. Not exercised: the two day-one signals (no case reaches
+  them) and `mahjong_play`, which waits for Mahjong. A page counts toward
+  `day1_browsed` only in the active tab, where shipping counts every tab.
+  The Help improve Blanc row keeps shipping's copy, which describes sending.
+  island-and-commands 64 / 2 (F1-13 passed this time, still unexplained),
+  settings-and-theming 6 / 0, browser-migration 5 / 0, internal-pages 9 / 1,
+  newtab-layouts 12 / 3 (Mahjong only).
 - **Mahjong goes last (owner, 2026-11-04):** the fork has no Mahjong yet
   (F35-3, F35-4, F35-9 fail at the footer launch). When it is built it is an
   Island page (shipping's files served as byte-identical copies, opened as an
@@ -1128,10 +1150,10 @@ Android's Bar A counts the shared scenarios bound in `chromium/tests/android/acc
 
 | State | macOS | Windows | Linux | Android |
 | --- | ---: | ---: | ---: | ---: |
-| Not started / unassessed | 26 | 80 | 80 | 69 |
+| Not started / unassessed | 25 | 80 | 80 | 69 |
 | Research only | 1 | 0 | 0 | 0 |
 | Drafted | 7 | 0 | 0 | 0 |
-| Implemented | 1 | 0 | 0 | 11 |
+| Implemented | 2 | 0 | 0 | 11 |
 | Built, isolated (legacy) | 5 | 0 | 0 | 0 |
 | Integrated, partial (legacy) | 3 | 0 | 0 | 0 |
 | Integrated | 37 | 0 | 0 | 0 |
@@ -1142,5 +1164,5 @@ Android's Bar A counts the shared scenarios bound in `chromium/tests/android/acc
 
 Legacy macOS stages come from the approved spec; they await verification on the canonical candidate. No legacy stage counts as Verified.
 
-Candidate identities: macOS: macos-df08efed32b15890; Windows: none; Linux: none; Android: android-arm64-7bd35e94ef746069.
+Candidate identities: macOS: macos-9a9442cac7df94a0; Windows: none; Linux: none; Android: android-arm64-7bd35e94ef746069.
 <!-- END GENERATED PROGRESS -->

@@ -106,6 +106,8 @@
 #include "base/memory/raw_ptr.h"
 #include "base/memory/weak_ptr.h"
 #include "base/no_destructor.h"
+#include "base/rand_util.h"
+#include "base/system/sys_info.h"
 #include "base/json/string_escape.h"
 #include "base/memory/ref_counted_memory.h"
 #include "base/strings/string_number_conversions.h"
@@ -268,6 +270,13 @@ namespace blanc_prototype {
 // The Island's own header height, before auto-hide moves the page over it.
 int BaseHeaderHeight(views::View* parent);
 namespace {
+// The Start Page a regular window commits: plain, or the welcome tour's
+// replay (F36). Never any other query.
+constexpr char kWelcomeTourUrl[] = "chrome://blanc-prototype/pages/newtab.html?tour=1";
+bool IsRegularStartPage(const GURL& url) {
+  return url == GURL("chrome://blanc-prototype/pages/newtab.html") || url == GURL(kWelcomeTourUrl);
+}
+void TelemetryNotePage(content::WebContents* tab);
 // Every sandbox flag Chromium defines (bits 0-18).
 constexpr uint32_t kKnownSandboxFlags = (1u << 19) - 1;
 uint32_t ActiveSandboxFlags(content::RenderFrameHost* frame) {
@@ -992,8 +1001,7 @@ class Owner : public base::SupportsUserData::Data,
     if (closing_ || !web_contents() || web_contents()->GetBrowserContext()->IsOffTheRecord()) return false;
     if (!browser->GetProfile()->GetOriginalProfile()->GetPrefs()->GetBoolean(kIslandSiteColorsPref)) return false;
     const auto& url = web_contents()->GetPrimaryMainFrame()->GetLastCommittedURL();
-    return url.SchemeIsHTTPOrHTTPS() || url.SchemeIs("chrome-extension") ||
-        url == GURL("chrome://blanc-prototype/pages/newtab.html");
+    return url.SchemeIsHTTPOrHTTPS() || url.SchemeIs("chrome-extension") || IsRegularStartPage(url);
   }
   bool CanSample() const {
     return CanTint() &&
@@ -1224,6 +1232,7 @@ class Owner : public base::SupportsUserData::Data,
     StopFind(true);
     ObserveInput();
     ResetTint();
+    TelemetryNotePage(web_contents());
   }
   void SuppressStorePromotion() {
     if (!web_contents()) return;
@@ -1572,7 +1581,12 @@ std::optional<GURL> SettingsSheetURL(std::string_view section) {
 // sheet ends, as shipping's sheet links open real tabs.
 void OpenFromSettingsSheet(Owner* owner, const GURL& url) {
   if (!owner || !url.is_valid()) return;
-  NavigateParams params(owner->browser.get(), url, ui::PAGE_TRANSITION_LINK);
+  // The tour replays in a regular window: a private Start Page has no
+  // walkthrough to show.
+  Profile* profile = owner->browser->GetProfile();
+  NavigateParams params = url == GURL(kWelcomeTourUrl) && profile->IsOffTheRecord()
+      ? NavigateParams(profile->GetOriginalProfile(), url, ui::PAGE_TRANSITION_LINK)
+      : NavigateParams(owner->browser.get(), url, ui::PAGE_TRANSITION_LINK);
   params.disposition = WindowOpenDisposition::kNewForegroundTab;
   Navigate(&params);
   CloseSettingsSheet(owner);
@@ -2106,8 +2120,7 @@ std::optional<base::DictValue> CaptureNativeSpace(BrowserWindowInterface* browse
       split_ids.Append(captured_splits.at(*id));
     } else split_ids.Append(base::Value());
     GURL url = tab->GetLastCommittedURL();
-    if (tab->GetVisibleURL() == GURL("chrome://newtab/") ||
-        url == GURL("chrome://blanc-prototype/pages/newtab.html")) url = GURL("chrome://newtab/");
+    if (tab->GetVisibleURL() == GURL("chrome://newtab/") || IsRegularStartPage(url)) url = GURL("chrome://newtab/");
     int group_index = -1;
     if (const auto group = model->GetTabGroupForTab(i)) {
       const auto it = std::ranges::find(order, *group);
@@ -2325,7 +2338,7 @@ base::DictValue Snapshot(BrowserWindowInterface* browser, Owner* owner) {
     tabs.Append(base::DictValue()
                     .Set("id", tab_id)
                     .Set("url", contents->GetVisibleURL() == GURL("chrome://newtab/") ||
-                                  contents->GetLastCommittedURL() == GURL("chrome://blanc-prototype/pages/newtab.html")
+                                  IsRegularStartPage(contents->GetLastCommittedURL())
                               ? "blanc://newtab/" : contents->GetVisibleURL().spec())
                     .Set("committedUrl", committed.spec())
                     .Set("searchDocumentId", base::NumberToString(contents->GetPrimaryMainFrame()->GetNavigationId()))
@@ -2469,6 +2482,7 @@ base::DictValue Snapshot(BrowserWindowInterface* browser, Owner* owner) {
 #include "blanc/browser/ui/start_page_pins.inc"
 #include "blanc/browser/ui/start_page_pin_menu.inc"
 #include "blanc/browser/ui/first_run.inc"
+#include "blanc/browser/ui/telemetry.inc"
 
 class NewTabHandler : public content::WebUIMessageHandler,
                       public bookmarks::BaseBookmarkModelObserver,
@@ -2506,13 +2520,12 @@ class NewTabHandler : public content::WebUIMessageHandler,
     auto* profile = Profile::FromWebUI(web_ui());
     if (!profile || !frame || frame != web_ui()->GetWebContents()->GetPrimaryMainFrame())
       return false;
-    const GURL expected((profile->IsIncognitoProfile() && profile->IsPrimaryOTRProfile())
-        ? "chrome://blanc-prototype/pages/newtab.html?private=1"
-        : "chrome://blanc-prototype/pages/newtab.html");
+    const bool primary_private = profile->IsIncognitoProfile() && profile->IsPrimaryOTRProfile();
+    const GURL& committed = frame->GetLastCommittedURL();
     // Do not allow Guest or other off-the-record contexts to impersonate a
     // regular Start Page, even with its exact trusted URL.
-    return (!profile->IsOffTheRecord() || (profile->IsIncognitoProfile() && profile->IsPrimaryOTRProfile())) &&
-           frame->GetLastCommittedURL() == expected;
+    return primary_private ? committed == GURL("chrome://blanc-prototype/pages/newtab.html?private=1")
+                           : !profile->IsOffTheRecord() && IsRegularStartPage(committed);
   }
   void Reply(const std::string& id, bool success, base::Value value) {
     if (!IsStartPage() || !IsJavascriptAllowed()) return;
@@ -2579,11 +2592,13 @@ class NewTabHandler : public content::WebUIMessageHandler,
   void Answer(const std::string& id, base::Value value) { Reply(id, true, std::move(value)); }
   void AnswerDefaultBrowser(const std::string& id, shell_integration::DefaultWebClientState state) {
     NoteDefaultBrowser(state);
+    TelemetryNoteDefault(state);
     Reply(id, true, DefaultBrowserStatus(state));
     Notify("checklist");
   }
   void AnswerChecklist(const std::string& id, shell_integration::DefaultWebClientState state) {
     NoteDefaultBrowser(state);
+    TelemetryNoteDefault(state);
     Reply(id, true, MigrationChecklist(Profile::FromWebUI(web_ui())));
   }
   void Handle(const base::ListValue& message) {
@@ -2757,8 +2772,16 @@ class NewTabHandler : public content::WebUIMessageHandler,
         return;
       }
       if (method == "completePrivacy" && args.size() == 1 && args[0].is_dict()) {
-        Reply(id, true, base::Value(base::DictValue().Set("completed",
-            CompleteFirstRunPrivacy(profile, args[0].GetDict()))));
+        const bool completed = CompleteFirstRunPrivacy(profile, args[0].GetDict());
+        if (completed) TelemetryLaunch();
+        Reply(id, true, base::Value(base::DictValue().Set("completed", completed)));
+        return;
+      }
+      // Each layout that really rendered, once per session (F21). Private
+      // pages report nothing.
+      if (method == "layoutUsed" && args.size() == 1 && args[0].is_string()) {
+        if (!profile->IsOffTheRecord()) TelemetryLayoutUsed(args[0].GetString());
+        Reply(id, true, base::Value());
         return;
       }
       if ((method == "defaultBrowser" || method == "setDefaultBrowser") && args.empty()) {
@@ -3978,6 +4001,11 @@ class Handler : public content::WebUIMessageHandler, public extensions::Extensio
           .Set("tabArchive", profile->GetOriginalProfile()->GetPrefs()->GetString(kTabArchivePref))));
       return;
     }
+    if (message[1].GetString() == "telemetryState") {
+      Reply(id, true, base::Value(base::DictValue().Set("installId",
+          g_browser_process->local_state()->GetDict(kTelemetryInstallPref).FindString("id") != nullptr)));
+      return;
+    }
     if (message[1].GetString() == "setUsagePing" && message[2].GetList().size() == 1 &&
         message[2].GetList()[0].is_bool()) {
       g_browser_process->local_state()->SetBoolean(kUsagePingPref, message[2].GetList()[0].GetBool());
@@ -5078,6 +5106,7 @@ class Handler : public content::WebUIMessageHandler, public extensions::Extensio
     }
     // What's New (F51): once per launch, from the host's first window.
     if (method == "whatsNewLaunch" && args.empty()) {
+      TelemetryLaunch();
       static bool asked = false;
       if (asked || BlancReleaseVersion().empty()) { reply(true, base::Value()); return; }
       asked = true;
@@ -7104,10 +7133,11 @@ UI::UI(content::WebUI* web_ui) : ui::MojoWebUIController(web_ui, /*enable_chrome
                   neutral ? blanc::island_resources::Find("pages/pages-neutral.css") : nullptr));
               return;
             }
-            // Only the exact private Start Page query, the floating pill's
-            // surface query alias their shared static assets;
+            // Only the exact private and tour Start Page queries and the
+            // floating pill's surface query alias their shared static assets;
             // arbitrary queries never become filesystem paths.
-            const std::string asset_path = path == "pages/newtab.html?private=1" ? "pages/newtab.html"
+            const std::string asset_path =
+                path == "pages/newtab.html?private=1" || path == "pages/newtab.html?tour=1" ? "pages/newtab.html"
                 : path == "index.html?surface=float" ? "index.html" : path;
 #if BUILDFLAG(ENABLE_BLANC_DISK_ASSETS)
             // Build outputs such as the compiled bindings exist only embedded.
