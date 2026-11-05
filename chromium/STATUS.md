@@ -1010,10 +1010,10 @@ Android's Bar A counts the shared scenarios bound in `chromium/tests/android/acc
 
 | State | macOS | Windows | Linux | Android |
 | --- | ---: | ---: | ---: | ---: |
-| Not started / unassessed | 43 | 80 | 80 | 69 |
+| Not started / unassessed | 43 | 80 | 80 | 68 |
 | Research only | 1 | 0 | 0 | 0 |
 | Drafted | 11 | 0 | 0 | 0 |
-| Implemented | 0 | 0 | 0 | 11 |
+| Implemented | 0 | 0 | 0 | 12 |
 | Built, isolated (legacy) | 9 | 0 | 0 | 0 |
 | Integrated, partial (legacy) | 16 | 0 | 0 | 0 |
 | Integrated | 0 | 0 | 0 | 0 |

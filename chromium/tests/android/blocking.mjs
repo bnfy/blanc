@@ -99,21 +99,50 @@ async function main(argv) {
       d.runInPalette('https://commands.example/ads?again');
       return blockingProblems(await pageState(d, 'https://commands.example/ads?again'));
     });
-    await check('the engine starts again by itself', async () => {
+    await check('a request held while the engine comes back is still filtered', async () => {
       await d.view('https://before-kill.example/ads');
       await pageState(d, 'https://before-kill.example/ads');
       d.killSandboxed();
-      sleep(3);
       clearFixtureRequests();
       await d.view('https://after-kill.example/ads');
       return blockingProblems(await pageState(d, 'https://after-kill.example/ads'));
+    });
+    await check('endings long after starting never stop pages', async () => {
+      await d.view('https://steady.example/ads');
+      await pageState(d, 'https://steady.example/ads');
+      for (let i = 0; i < 5; i++) {
+        // Past the crash window: an ordinary background kill.
+        sleep(12);
+        d.killSandboxed();
+        sleep(1);
+        clearFixtureRequests();
+        await d.view(`https://steady${i}.example/ads`);
+        const problems = blockingProblems(await pageState(d, `https://steady${i}.example/ads`));
+        if (problems.length) return problems;
+      }
+      return [];
+    });
+    await check('restored tabs are filtered on a cold launch', async () => {
+      for (const site of ['r1', 'r2', 'r3', 'r4']) await d.view(`https://${site}.example/ads`);
+      adb('shell', 'input', 'keyevent', 'KEYCODE_HOME');
+      sleep(3);
+      clearFixtureRequests();
+      await d.relaunch();
+      for (const site of ['r1', 'r2', 'r3']) {
+        d.openGrid();
+        d.tap(d.card(`${site}.example/ads`));
+        await pageState(d, `https://${site}.example/ads`);
+      }
+      const requests = fixtureRequests();
+      return [...(requests.some(r => r.startsWith('ad.doubleclick.net')) ? ['a restored tab reached the ad'] : []),
+        ...(requests.some(r => r.startsWith('lib.example')) ? [] : ['no restored tab loaded'])];
     });
     await check('four quick endings stop pages, and Retry recovers', async () => {
       await d.view('https://burst.example/');
       for (let i = 0; i < 4; i++) {
         d.killSandboxed();
         sleep(1);
-        // A page wakes the engine, which is what the next ending ends.
+        // A page starts the engine, and an end this soon after counts as a crash.
         adb('shell', 'am', 'start', '-a', 'android.intent.action.VIEW', '-d', `'https://burst${i}.example/'`, '-p', PACKAGE);
         sleep(4);
       }
@@ -121,6 +150,7 @@ async function main(argv) {
       adb('shell', 'am', 'start', '-a', 'android.intent.action.VIEW', '-d', "'https://stopped.example/ads'", '-p', PACKAGE);
       sleep(6);
       const problems = fixtureRequests().some(r => r.startsWith('ad.doubleclick.net')) ? ['an ad loaded while the blocker was down'] : [];
+      if (!d.has({text: 'Blocking could not start.'})) problems.push('nothing on screen says why');
       d.tap({id: 'blanc_island_menu'});
       if (!d.has({text: 'Blocking could not start.'})) problems.push('the menu does not say blocking is down');
       d.tap({text: 'Retry'});
@@ -183,7 +213,7 @@ async function main(argv) {
         return told;
       }, 'the menu to say blocking is down', 30);
       setSwitches();
-      // The address itself may be asked for; its response is refused, so nothing of it runs.
+      // A page's own document may be requested; the response gate refuses it, so nothing of it runs.
       const reached = fixtureRequests().filter(r => !r.startsWith('tampered.example/ads'));
       return reached.length ? [`requests left the page: ${reached.join(', ')}`] : [];
     });

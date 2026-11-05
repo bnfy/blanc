@@ -98,6 +98,18 @@ diff -ruN a/chrome/browser/prefs/browser_prefs.cc b/chrome/browser/prefs/browser
    TRACE_EVENT0("browser", "chrome::RegisterProfilePrefs");
    // User prefs. Please keep this list alphabetized.
    AccessibilityLabelsService::RegisterProfilePrefs(registry);
+diff -ruN a/chrome/browser/preloading/preloading_prefs.cc b/chrome/browser/preloading/preloading_prefs.cc
+--- a/chrome/browser/preloading/preloading_prefs.cc
++++ b/chrome/browser/preloading/preloading_prefs.cc
+@@ -16,7 +16,7 @@
+     user_prefs::PrefRegistrySyncable* registry) {
+   registry->RegisterIntegerPref(
+       prefs::kNetworkPredictionOptions,
+-      static_cast<int>(NetworkPredictionOptions::kDefault),
++      static_cast<int>(NetworkPredictionOptions::kDisabled),
+       user_prefs::PrefRegistrySyncable::SYNCABLE_PREF);
+ }
+ 
 diff -ruN a/chrome/common/chrome_isolated_world_ids.h b/chrome/common/chrome_isolated_world_ids.h
 --- a/chrome/common/chrome_isolated_world_ids.h
 +++ b/chrome/common/chrome_isolated_world_ids.h

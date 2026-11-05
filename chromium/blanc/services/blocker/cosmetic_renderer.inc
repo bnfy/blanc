@@ -1,4 +1,5 @@
 #include <set>
+#include "build/build_config.h"
 #include <vector>
 #include "mojo/public/cpp/bindings/receiver.h"
 #include "base/json/json_reader.h"
@@ -89,6 +90,10 @@ class BlancCosmeticFrame final : public content::RenderFrameObserver,
   }
   void Update() {
     if (cached_ || !filtering_ || pending_ || !remote_.is_connected()) return;
+#if BUILDFLAG(IS_ANDROID)
+    // A phone's battery: a tab nobody can see has nothing to hide yet.
+    if (render_frame()->IsHidden()) return;
+#endif
     auto weak = weak_.GetWeakPtr();
     if (!Procedural("globalThis.__blancProcedural.tick(true)") || !weak) return;
     auto hints = Collect();

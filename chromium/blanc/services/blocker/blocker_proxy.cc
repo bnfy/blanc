@@ -149,9 +149,18 @@ class Engine {
     if (inflight_ >= 256) { std::move(callback).Run(-1); return; }
     ++inflight_;
     service_->Decide(url, type, referrer, mojo::WrapCallbackWithDefaultInvokeIfNotRun(
-      base::BindOnce([](Engine* self, DecisionCallback cb, int result) {
-        --self->inflight_; std::move(cb).Run(result);
-      }, base::Unretained(this), std::move(callback)), -1));
+      base::BindOnce([](Engine* self, int generation, std::string url, std::string type, std::string referrer,
+                       DecisionCallback cb, int result) {
+        --self->inflight_;
+#if BUILDFLAG(IS_ANDROID)
+        // Its process ended while deciding: asked again of the next one, not refused.
+        if (result == -1 && generation != self->generation_ && !self->failed_) {
+          self->Decide(std::move(url), std::move(type), std::move(referrer), std::move(cb));
+          return;
+        }
+#endif
+        std::move(cb).Run(result);
+      }, base::Unretained(this), generation_, url, type, referrer, std::move(callback)), -1));
   }
   void Cosmetics(std::string input, base::OnceCallback<void(bool, const std::string&)> callback) {
     if (failed_) { std::move(callback).Run(false, ""); return; }
@@ -164,15 +173,43 @@ class Engine {
     if (inflight_ >= 256) { std::move(callback).Run(false, ""); return; }
     ++inflight_;
     service_->Cosmetics(input, mojo::WrapCallbackWithDefaultInvokeIfNotRun(
-      base::BindOnce([](Engine* self, base::OnceCallback<void(bool, const std::string&)> cb,
+      base::BindOnce([](Engine* self, int generation, std::string input,
+                       base::OnceCallback<void(bool, const std::string&)> cb,
                        bool ready, const std::string& output) {
-        --self->inflight_; std::move(cb).Run(ready && !self->failed_, output);
-      }, base::Unretained(this), std::move(callback)), false, std::string()));
+        --self->inflight_;
+#if BUILDFLAG(IS_ANDROID)
+        if (!ready && generation != self->generation_ && !self->failed_) {
+          self->Cosmetics(std::move(input), std::move(cb));
+          return;
+        }
+#endif
+        std::move(cb).Run(ready && !self->failed_, output);
+      }, base::Unretained(this), generation_, input, std::move(callback)), false, std::string()));
+  }
+  // The engine's process ended or stopped answering. Android ends background processes in normal
+  // use, so there the engine comes back when next needed, and requests it was deciding are asked
+  // again. Only an end soon after starting counts as a crash: three in ten minutes (shipping's
+  // limit for uBlock Origin) and pages stop until Retry. Desktop fails at once.
+  void Recover() {
+#if BUILDFLAG(IS_ANDROID)
+    const base::TimeTicks now = base::TimeTicks::Now();
+    const bool crash = !ready_ || now - ready_at_ < base::Seconds(10);
+    ++generation_;
+    ready_ = false; started_ = false; startup_.Stop(); service_.reset();
+    if (crash) {
+      while (!restarts_.empty() && now - restarts_.front() > base::Minutes(10)) restarts_.pop_front();
+      if (restarts_.size() >= 3) { Fail(); return; }
+      restarts_.push_back(now);
+    }
+    if (!waiting_.empty()) Start();
+#else
+    Fail();
+#endif
   }
   // After a failure: starts over. Requests already refused stay refused.
   void Restart() {
     if (!failed_) return;
-    failed_ = false; started_ = false; restarts_.clear();
+    failed_ = false; started_ = false; restarts_.clear(); ++generation_;
     Start();
   }
   void Fail() {
@@ -183,45 +220,30 @@ class Engine {
  private:
   void Start() {
     started_ = true;
-    startup_.Start(FROM_HERE, base::Seconds(30), base::BindOnce(&Engine::Fail, base::Unretained(this)));
+    startup_.Start(FROM_HERE, base::Seconds(30), base::BindOnce(&Engine::Recover, base::Unretained(this)));
     base::ThreadPool::PostTaskAndReplyWithResult(FROM_HERE, {base::MayBlock()},
-      base::BindOnce(&ReadBundle), base::BindOnce(&Engine::Loaded, base::Unretained(this)));
+      base::BindOnce(&ReadBundle), base::BindOnce(&Engine::Loaded, base::Unretained(this), generation_));
   }
-  void Loaded(std::string script) {
-    if (failed_) return;
+  void Loaded(int generation, std::string script) {
+    if (failed_ || generation != generation_) return;
     if (script.empty()) { Fail(); return; }
     service_ = content::ServiceProcessHost::Launch<mojom::Blocker>(
         content::ServiceProcessHost::Options().WithDisplayName("Blanc Blocker").Pass());
-    service_.set_disconnect_handler(base::BindOnce(&Engine::Disconnected, base::Unretained(this)));
+    service_.set_disconnect_handler(base::BindOnce(&Engine::Recover, base::Unretained(this)));
     service_->Initialize(script, base::BindOnce(&Engine::Initialized, base::Unretained(this)));
-  }
-  // Android ends background processes in normal use, so the engine starts again by itself, holding
-  // requests meanwhile, at most three times in ten minutes (shipping's limit for uBlock Origin).
-  // Requests it was deciding are refused, as on any failure. Desktop fails at once.
-  void Disconnected() {
-#if BUILDFLAG(IS_ANDROID)
-    const base::TimeTicks now = base::TimeTicks::Now();
-    while (!restarts_.empty() && now - restarts_.front() > base::Minutes(10)) restarts_.pop_front();
-    if (restarts_.size() < 3) {
-      restarts_.push_back(now);
-      ready_ = false; service_.reset(); startup_.Stop();
-      Start();
-      return;
-    }
-#endif
-    Fail();
   }
   void Initialized(bool ready) {
     if (failed_) return;
     if (!ready) { Fail(); return; }
-    ready_ = true; startup_.Stop();
+    ready_ = true; ready_at_ = base::TimeTicks::Now(); startup_.Stop();
     base::DictValue event; event.Set("event", "engine-ready");
     event.Set("bundle_sha256", kBlancBlockerBundleSha256); Record(std::move(event));
     auto pending = std::move(waiting_);
     for (auto& callback : pending) std::move(callback).Run();
   }
   bool started_ = false, ready_ = false, failed_ = false;
-  int inflight_ = 0;
+  int inflight_ = 0, generation_ = 0;
+  base::TimeTicks ready_at_;
   std::deque<base::OnceClosure> waiting_;
   base::circular_deque<base::TimeTicks> restarts_;
   mojo::Remote<mojom::Blocker> service_;
@@ -824,7 +846,7 @@ class Request : public network::mojom::URLLoader, public network::mojom::URLLoad
   }
   void TimedOut() {
     TraceDecision(-1, true);
-    Log(-1); Complete(net::ERR_BLOCKED_BY_CLIENT); Engine::Get().Fail();
+    Log(-1); Complete(net::ERR_BLOCKED_BY_CLIENT); Engine::Get().Recover();
   }
   void Log(int result) {
     const auto elapsed = base::TimeTicks::Now() - start_;

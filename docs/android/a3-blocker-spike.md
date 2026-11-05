@@ -16,7 +16,8 @@ it and doesn't port anything, and the spike's hooks became patch 0106 instead of
 | What about a missing command-line switch? | Desktop filters only with `--blanc-blocker-assets`. Android has no such switch, so `BlockerAvailable()` is always true there: a build can't quietly run unfiltered. |
 | The service-worker hook? | Left out. `BlancUpdateFactory` only logs for a diagnostic switch; update fetches go through the same factory wrapper as other requests. |
 | A private tab's exception? | The iPhone keeps exceptions in one shared settings list, whichever tab set them, and so does the desktop fork (`GetOriginalProfile()`). Android does the same. |
-| Where does the count show? | The iPhone has none (D13). Android's goes in the Sunrise menu's blocking row and on the Start Page. |
+| Where does the count show? | The iPhone has none (D13). Android's goes under the Sunrise menu's blocking row. The Start Page shows protection on or off, as the iPhone's script does. |
+| What decides requests no tab makes? | Everything through the URLLoader factory is decided: subresources, service-worker fetches, `<link rel=prefetch>`. Speculation-rules prefetches and prerenders take another path, so page preloading is off by default on Android (patch 0106). A page's own document may be requested, and `NavigationResponseGate` refuses the response; a download is a navigation, so it takes that path. The Start Page's `chrome://` loads pass, by one rule: only http(s) is filtered. |
 
 ## A warning for later checks
 

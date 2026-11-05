@@ -38,6 +38,11 @@
 #include "ui/base/models/tree_node_iterator.h"
 #include "url/gurl.h"
 
+// blocker_proxy.h needs the blocker's mojom, which this target (inside webui:configs) can't depend on.
+namespace blanc {
+const char* BlockerHealth();
+}
+
 namespace blanc::android {
 namespace {
 
@@ -178,7 +183,8 @@ class PagesHandler : public content::WebUIMessageHandler {
         .Set("dynamicWallpaperEnabled", false)
         // The iPhone's Start Page script shows this state in place of a count.
         .Set("mobileAdblockEnabled",
-             profile()->GetOriginalProfile()->GetPrefs()->GetBoolean("blanc.blocking.enabled"))
+             profile()->GetOriginalProfile()->GetPrefs()->GetBoolean("blanc.blocking.enabled") &&
+                 std::string_view(::blanc::BlockerHealth()) != "unavailable")
         .Set("remoteDevices", base::ListValue())
         .Set("sentItems", base::ListValue())
         .Set("bookmarks", Favorites(Bookmarks()))

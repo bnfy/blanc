@@ -16,6 +16,7 @@
     "chrome/browser/flags/android/chrome_feature_list.cc": "c4d157b9d4e8007c6fea81fe87c6a46026b6c900813d7eeb9a430c201e52674d",
     "chrome/browser/flags/android/java/src/org/chromium/chrome/browser/flags/ChromeFeatureList.java": "dfa696a398bfbd5dd7f49921c251060e3cafb51aebc81d9f498abb20c32526e2",
     "chrome/browser/prefs/browser_prefs.cc": "758e5727c98e59e423e8903527db456d44a10914c671f58ddc94b30667698078",
+    "chrome/browser/preloading/preloading_prefs.cc": "a0582ae62ef2ff7d64bf9f5406f5fe3884eb76784964c220a980732e3753f9c5",
     "chrome/browser/ui/webui/BUILD.gn": "5f3bcd81e34b2998409a8568d0f628e6120b34cea6ef766824320c2bc94b837a",
     "chrome/browser/ui/webui/chrome_web_ui_configs.cc": "daf53cfff18969192d13c7db7a98bb93ba183ebe8c7c4ba6e297029c302ce9e2",
     "chrome/browser/url_constants/android/java/src/org/chromium/chrome/browser/url_constants/UrlConstantResolverFactory.java": "28ff58a5f3ebd8d34afbfbc5c1dde68c1c762d66845fae817bb40afe08c608dc",

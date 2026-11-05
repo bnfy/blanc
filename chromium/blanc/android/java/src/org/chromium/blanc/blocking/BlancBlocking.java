@@ -39,6 +39,7 @@ public final class BlancBlocking {
     public void blockAds() {
         if (mEngine.blockable() && mEngine.excepted()) {
             mEngine.setExcepted(false);
+            mEngine.setEnabled(true);
         } else {
             mEngine.setEnabled(!mEngine.enabled());
         }

@@ -44,6 +44,15 @@ public class BlancBlockingTest {
     }
 
     @Test
+    public void blockAdsOnAnAllowedSiteTurnsBlockingBackOnToo() {
+        mEngine.mExcepted = true;
+        mEngine.mEnabled = false;
+        mBlocking.blockAds();
+        assertFalse(mEngine.mExcepted);
+        assertTrue(mEngine.mEnabled);
+    }
+
+    @Test
     public void blockAdsElsewhereTogglesBlockingEverywhere() {
         mBlocking.blockAds();
         assertFalse(mEngine.mEnabled);
