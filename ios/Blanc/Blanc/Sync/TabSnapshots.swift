@@ -84,12 +84,12 @@ nonisolated enum TabSnapshots {
     return .object(
       result.pairs.filter { Double(now) - ($0.1["updatedAt"]?.number ?? 0) <= Double(pruneMs) })
   }
-  static func ownEntry(tabs: [(url: String, title: String)], previous: JSONValue?,
-    name: String = ThisDevice.name, now: Int64) -> JSONValue
+  static func ownEntry(tabs: [(url: String, title: String)], previous: JSONValue?, now: Int64)
+    -> JSONValue
   {
     ownEntry(
       tabs: tabs.map { SnapshotTab(url: $0.url, title: $0.title) }, groups: [], previous: previous,
-      name: name, now: now)
+      now: now)
   }
   private static func snapshotTab(_ t: SnapshotTab) -> JSONValue? {
     tab(
@@ -111,7 +111,7 @@ nonisolated enum TabSnapshots {
   /// and the heartbeat isn't due; when `membership` differs from
   /// `previousMembership` it moves past the previous entry's, so an older
   /// sidecar binding can't tie and win.
-  static func ownEntry(tabs: [SnapshotTab], groups: [(id: String, name: String)], previous: JSONValue?, name: String = ThisDevice.name,
+  static func ownEntry(tabs: [SnapshotTab], groups: [(id: String, name: String)], previous: JSONValue?,
     now: Int64, membership: String? = nil, previousMembership: String? = nil) -> JSONValue
   {
     let valid = Array(tabs.compactMap(snapshotTab).prefix(500))
@@ -126,7 +126,7 @@ nonisolated enum TabSnapshots {
     // Desktop compares the stored (sanitized) entry with the fresh snapshot,
     // whose group names are not yet cut to 80; the published entry is sanitized.
     var next: JSONValue = .object([
-      ("name", .string(name)), ("platform", .string("ios")),
+      ("name", .string("iPhone")), ("platform", .string("ios")),
       ("updatedAt", .number(Double(now))), ("tabs", .array(valid)), ("groups", groupList(.max)),
     ])
     if let previous, previous["retracted"]?.isTruthy != true,

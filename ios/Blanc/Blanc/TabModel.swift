@@ -175,16 +175,13 @@ final class TabModel: Identifiable {
         navigationDelegate.load(dest, in: webView)
     }
 
-    /// Twice the detail for an iPad-sized page, whose cards are drawn bigger.
-    static func thumbnailSide(_ page: CGSize) -> CGFloat { min(page.width, page.height) >= 600 ? 640 : 320 }
-
     /// In-memory square preview of the last visible page, including native glass.
     /// Never mount or load background tabs just to produce a thumbnail.
     @MainActor
     func captureThumbnail(allowCovered: Bool = false) {
         guard let webView = storage, let window = webView.window, allowCovered || window.rootViewController?.presentedViewController == nil,
               webView.bounds.width > 0, webView.bounds.height > 0 else { return }
-        let side = Self.thumbnailSide(webView.bounds.size)
+        let side: CGFloat = 320
         let scale = side / min(webView.bounds.width, webView.bounds.height)
         let size = CGSize(width: webView.bounds.width * scale, height: webView.bounds.height * scale)
         let rect = CGRect(x: (side - size.width) / 2, y: currentURL.scheme == "blanc" ? (side - size.height) / 2 : 0, width: size.width, height: size.height)
@@ -211,10 +208,10 @@ final class TabModel: Identifiable {
             return
         }
         let configuration = WKSnapshotConfiguration()
-        configuration.snapshotWidth = NSNumber(value: Double(Self.thumbnailSide(webView.bounds.size)))
+        configuration.snapshotWidth = 320
         guard let full = try? await webView.takeSnapshot(configuration: configuration),
               currentURL == url, !Task.isCancelled, full.size.width > 0, full.size.height > 0 else { return }
-        let side = Self.thumbnailSide(webView.bounds.size)
+        let side: CGFloat = 320
         let factor = side / min(full.size.width, full.size.height)
         let size = CGSize(width: full.size.width * factor, height: full.size.height * factor)
         let format = UIGraphicsImageRendererFormat()

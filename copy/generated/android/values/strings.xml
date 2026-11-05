@@ -729,7 +729,6 @@ You can retry with “%2$s”, or reinstall from blanc.day.</string>
     <string name="sync_error_offline">Couldn’t reach sync — check your connection.</string>
     <string name="sync_error_off">Sync is off.</string>
     <string name="sync_error_account_gone">This sync no longer exists. Turn sync off here, then add this phone again from your computer.</string>
-    <string name="sync_error_account_gone_ipad">This sync no longer exists. Turn sync off here, then add this iPad again from your computer.</string>
     <string name="settings_sync_recovery_dialog_message">Copy your sync recovery code?</string>
     <string name="settings_sync_recovery_dialog_detail">Anyone with this code can read and change your synced data. Paste it into your password manager now, and nowhere else.</string>
     <string name="settings_sync_recovery_dialog_copy">Copy to Clipboard</string>
@@ -2305,7 +2304,6 @@ You can retry with “%2$s”, or reinstall from blanc.day.</string>
     <string name="favorites_read_only_note">Favorites sync from your computer. Edit them there for now.</string>
     <string name="favorites_edit_on_computer">Edit Favorites on your computer for now.</string>
     <string name="settings_sync_create_on_computer">Start your sync on your computer, then add this phone with a code.</string>
-    <string name="settings_sync_create_on_computer_ipad">Start your sync on your computer, then add this iPad with a code.</string>
     <string name="settings_sync_enter_sync_name">Enter your sync name</string>
     <string name="settings_sync_enter_passphrase">Enter your passphrase</string>
     <string name="tab_menu_send_to_device">Send to Device</string>
@@ -2419,11 +2417,8 @@ You can retry with “%2$s”, or reinstall from blanc.day.</string>
     <string name="ios_pair_camera_usage">Blanc uses the camera only to scan the pairing code on your computer.</string>
     <string name="ios_photos_add_usage">Blanc saves images to your photo library only when you ask it to.</string>
     <string name="ios_settings_share_tabs_help">Share this phone’s regular open tabs with your other devices. Private tabs are never shared.</string>
-    <string name="ios_settings_share_tabs_help_ipad">Share this iPad’s regular open tabs with your other devices. Private tabs are never shared.</string>
     <string name="ios_settings_disconnect_help">Disconnect this phone? Your local Favorites and settings stay here. Your other devices are not affected.</string>
-    <string name="ios_settings_disconnect_help_ipad">Disconnect this iPad? Your local Favorites and settings stay here. Your other devices are not affected.</string>
     <string name="ios_settings_switch_help">This phone will leave its current sync. Your local Favorites and settings stay here. Your other devices are not affected.</string>
-    <string name="ios_settings_switch_help_ipad">This iPad will leave its current sync. Your local Favorites and settings stay here. Your other devices are not affected.</string>
     <string name="ios_settings_time_of_day">Time of day</string>
     <string name="tabs_closed_toast">Tab closed</string>
     <string name="tab_menu_new_space">New Space…</string>
@@ -2509,22 +2504,16 @@ You can retry with “%2$s”, or reinstall from blanc.day.</string>
     <string name="group_menu_rename">Rename…</string>
     <string name="tab_groups_create">Create</string>
     <string name="shared_spaces_switch_iphone">Keep Spaces and groups in sync on this iPhone</string>
-    <string name="shared_spaces_switch_iphone_ipad">Keep Spaces and groups in sync on this iPad</string>
     <string name="shared_spaces_switch_line_iphone">Tabs in your shared Spaces are synced from this iPhone.</string>
-    <string name="shared_spaces_switch_line_iphone_ipad">Tabs in your shared Spaces are synced from this iPad.</string>
     <plurals name="shared_spaces_waiting_count">
         <item quantity="one">%1$d shared Space is waiting</item>
         <item quantity="other">%1$d shared Spaces are waiting</item>
     </plurals>
     <string name="shared_spaces_save_this_i_phone">Save This iPhone as a Space</string>
-    <string name="shared_spaces_save_this_i_phone_ipad">Save This iPad as a Space</string>
     <string name="shared_spaces_recovery_name_iphone">%1$s · kept on this iPhone</string>
-    <string name="shared_spaces_recovery_name_iphone_ipad">%1$s · kept on this iPad</string>
     <string name="shared_spaces_deleted_everywhere">Deleted everywhere. Undo keeps a copy on this iPhone.</string>
-    <string name="shared_spaces_deleted_everywhere_ipad">Deleted everywhere. Undo keeps a copy on this iPad.</string>
     <string name="spaces_on_device">On %1$s</string>
     <string name="bring_space_action">Bring to iPhone</string>
-    <string name="bring_space_action_ipad">Bring to iPad</string>
     <string name="bring_space_copy_note">This copy won’t change when the Space changes on %1$s. Turn on Spaces sync to keep them together.</string>
     <string name="ios_island_search_or_switch">Search or switch tabs, %1$s</string>
     <string name="ios_island_show_all_tabs">Show all tabs</string>
@@ -2552,7 +2541,6 @@ You can retry with “%2$s”, or reinstall from blanc.day.</string>
     <string name="ios_pages_supporter_unavailable">Supporter activation isn’t available in this build yet.</string>
     <string name="ios_settings_background_refresh_off">Background App Refresh is off for Blanc, so other devices’ changes arrive when you open it. Turn it on in iOS Settings → Apps → Blanc.</string>
     <string name="ios_welcome_title">Your Blanc, in your pocket.</string>
-    <string name="ios_welcome_title_ipad">Your Blanc, on your iPad.</string>
     <string name="ios_welcome_body">Bring the tabs, Spaces and Favorites from Blanc on your computer.</string>
     <string name="ios_welcome_browse">Browse without pairing</string>
     <string name="ios_welcome_connected">Connected to “%1$s”</string>
@@ -2564,11 +2552,6 @@ You can retry with “%2$s”, or reinstall from blanc.day.</string>
     <string name="ios_welcome_arriving">Bringing them over…</string>
     <string name="ios_welcome_continue">Continue</string>
     <string name="ios_welcome_share_title">Share from this iPhone</string>
-    <string name="ios_welcome_share_title_ipad">Share from this iPad</string>
-    <string name="ios_menu_request_mobile_site">Request Mobile Website</string>
-    <string name="ios_menu_request_desktop_site">Request Desktop Website</string>
-    <string name="menu_focus_next_pane">Focus Next Pane</string>
-    <string name="menu_focus_previous_pane">Focus Previous Pane</string>
     <string name="ios_welcome_share_body">Both stay off until you turn them on. You can change them later in Settings → Sync.</string>
     <string name="ios_welcome_privacy_title">Your privacy</string>
     <string name="ios_welcome_measure_usage">Measure usage</string>

@@ -17,9 +17,6 @@ struct PaletteSheet: View {
     @State private var newGroupTab: NewGroupTab?
     @State private var newSpaceTab: UUID?
 
-    /// The row the arrow keys are on, by its place in the list.
-    @State private var keyRow: Int?
-
     private struct NewGroupTab: Identifiable { let id: UUID }
 
     private enum Mode {
@@ -75,18 +72,6 @@ struct PaletteSheet: View {
     }
 
     private var list: some View {
-        ScrollViewReader { proxy in
-            styledList
-                .onChange(of: keyRow) { _, row in
-                    guard let row, let id = keyRowId(row) else { return }
-                    withAnimation(.snappy(duration: 0.15)) { proxy.scrollTo(id) }
-                }
-                // The rows moved under it: a stale place would open another tab.
-                .onChange(of: tabRows.map(\.id)) { keyRow = nil }
-        }
-    }
-
-    private var styledList: some View {
         listContent
             .listStyle(.plain)
             .environment(\.defaultMinListRowHeight, 44)
@@ -115,19 +100,6 @@ struct PaletteSheet: View {
                 .submitLabel(.go)
                 .focused($inputFocused)
                 .onSubmit { handleSubmit() }
-                .onChange(of: input) { keyRow = nil }
-                .onKeyPress(keys: [.upArrow, .downArrow], phases: [.down, .repeat]) { press in
-                    moveKeyRow(press.key == .downArrow ? 1 : -1)
-                    return .handled
-                }
-                .onKeyPress(.return, phases: .down) { press in
-                    // Here, not only in onSubmit: an empty field doesn't submit.
-                    if press.modifiers.contains(.command) {
-                        submitInBackground()
-                        return .handled
-                    }
-                    return openKeyRow() ? .handled : .ignored
-                }
                 .accessibilityIdentifier("island.address")
             if !input.isEmpty {
                 Button { input = "" } label: {
@@ -195,7 +167,7 @@ struct PaletteSheet: View {
     }
 
     /// A tab's row; in a group, `last` closes the group's block under it.
-    private func tabRow(_ tab: TabModel, in group: TabGroup? = nil, last: Bool = false, keyIndex: Int?) -> some View {
+    private func tabRow(_ tab: TabModel, in group: TabGroup? = nil, last: Bool = false) -> some View {
         HStack(spacing: 0) {
             Button {
                 manager.setActive(tab.id)
@@ -217,10 +189,9 @@ struct PaletteSheet: View {
         }
         .padding(.leading, 10)
         .background(tab.id == manager.activeTabId ? style.selection : .clear, in: RoundedRectangle(cornerRadius: 10))
-        .overlay { keyHighlight(keyIndex).allowsHitTesting(false) }
         .contentShape(.contextMenuPreview, RoundedRectangle(cornerRadius: 10))
         .contextMenu {
-            TabMoveMenu(manager: manager, tab: tab, newGroup: { newGroupTab = NewGroupTab(id: tab.id) }, newSpace: { newSpaceTab = tab.id }, close: close)
+            TabMoveMenu(manager: manager, tab: tab, newGroup: { newGroupTab = NewGroupTab(id: tab.id) }, newSpace: { newSpaceTab = tab.id })
         }
         .tabDrag(tab)
         .listRowSeparator(.hidden)
@@ -258,11 +229,6 @@ struct PaletteSheet: View {
         .padding(.top, 8)
     }
 
-    /// The row under the arrow keys, drawn apart from the current tab's.
-    private func keyHighlight(_ index: Int?) -> some View {
-        RoundedRectangle(cornerRadius: 10).strokeBorder(style.text.opacity(index != nil && index == keyRow ? 0.4 : 0), lineWidth: 1)
-    }
-
     private func row(icon: String, title: String, subtitle: String, selected: Bool = false) -> some View {
         HStack(spacing: 10) {
             Image(systemName: icon).font(.system(size: 16, weight: .regular))
@@ -298,8 +264,7 @@ struct PaletteSheet: View {
     }
 
     private var tabList: some View {
-        let keyIndex = Dictionary(uniqueKeysWithValues: tabRows.enumerated().map { ($1.id, $0) })
-        return List {
+        List {
             Section {
                 ForEach(manager.displaySections, id: \.id) { section in
                     if let group = section.group {
@@ -326,12 +291,10 @@ struct PaletteSheet: View {
                         .listRowBackground(groupBlock(group, top: true, bottom: group.collapsed || section.tabs.isEmpty))
                         .listRowInsets(EdgeInsets(top: 6, leading: 26, bottom: group.collapsed ? 4 : 0, trailing: 16))
                         if !group.collapsed {
-                            ForEach(section.tabs) { tab in
-                                tabRow(tab, in: group, last: tab.id == section.tabs.last?.id, keyIndex: keyIndex[tab.id])
-                            }
+                            ForEach(section.tabs) { tab in tabRow(tab, in: group, last: tab.id == section.tabs.last?.id) }
                         }
                     } else {
-                        ForEach(section.tabs) { tab in tabRow(tab, keyIndex: keyIndex[tab.id]) }
+                        ForEach(section.tabs) { tab in tabRow(tab) }
                     }
                 }
             } header: { groupHeading(SyncCopy.text("ios.tabs.openTabs"), count: manager.tabs.count) }
@@ -387,126 +350,39 @@ struct PaletteSheet: View {
     }
 
     private var slashList: some View {
-        let matches = slashMatches
+        let slashWord = String(input.trimmingCharacters(in: .whitespaces)
+            .split(separator: " ").first ?? Substring(input))
+        let matches = SlashCommand.filter(prefix: slashWord, in: manager)
         return List {
             if matches.isEmpty {
                 Text(SyncCopy.text("ios.palette.noCommand"))
                     .foregroundStyle(style.secondary)
             } else {
-                ForEach(Array(matches.enumerated()), id: \.element.id) { index, cmd in
-                    Button { run(cmd) } label: {
+                ForEach(matches) { cmd in
+                    Button {
+                        // A tapped row runs with what's typed after its name.
+                        finish(cmd.execute(manager, argument: SlashCommand.argument(from: input)))
+                    } label: {
                         row(icon: "command", title: cmd.command, subtitle: cmd.hint)
                     }
-                    .overlay { keyHighlight(index).allowsHitTesting(false) }
                 }
             }
         }
     }
 
-    private var switcherResults: [SyncedSwitcherResult] {
-        QuickSwitcher.search(
+    private var switcherList: some View {
+        let results = QuickSwitcher.search(
             query: input.trimmingCharacters(in: .whitespacesAndNewlines),
             tabs: manager.tabs, remote: manager.syncEngine.remoteDevices, favorites: manager.syncEngine.favorites,
             history: manager.historyStore.entries, groups: manager.groups, sets: switcherSets,
             remoteSpaces: switcherRemoteSpaces
         )
-    }
-
-    private var slashMatches: [SlashCommand] {
-        let slashWord = String(input.trimmingCharacters(in: .whitespaces)
-            .split(separator: " ").first ?? Substring(input))
-        return SlashCommand.filter(prefix: slashWord, in: manager)
-    }
-
-    /// The tabs a folded group doesn't hide, in the list's order.
-    private var tabRows: [TabModel] {
-        manager.displaySections.flatMap { $0.group?.collapsed == true ? [] : $0.tabs }
-    }
-
-    private var keyRowCount: Int {
-        switch mode {
-        case .tabs: tabRows.count
-        case .slash: slashMatches.count
-        case .switcher: switcherResults.count
-        }
-    }
-
-    /// The chosen row's id in its `ForEach`, which a list can scroll to
-    /// before it has built the row.
-    private func keyRowId(_ row: Int) -> AnyHashable? {
-        switch mode {
-        case .tabs: tabRows.indices.contains(row) ? AnyHashable(tabRows[row].id) : nil
-        case .slash: slashMatches.indices.contains(row) ? AnyHashable(slashMatches[row].id) : nil
-        case .switcher: switcherResults.indices.contains(row) ? AnyHashable(switcherResults[row].id) : nil
-        }
-    }
-
-    /// ↑ and ↓ in the palette (D7): the first press lands on an end of the list.
-    private func moveKeyRow(_ step: Int) {
-        let count = keyRowCount
-        guard count > 0 else { return }
-        guard let row = keyRow else {
-            keyRow = step > 0 ? 0 : count - 1
-            return
-        }
-        keyRow = min(max(row + step, 0), count - 1)
-    }
-
-    /// A tapped or chosen row runs with what's typed after its name.
-    private func run(_ command: SlashCommand) {
-        finish(command.execute(manager, argument: SlashCommand.argument(from: input)))
-    }
-
-    /// Return on the row the arrow keys chose. False with no row chosen.
-    private func openKeyRow() -> Bool {
-        guard let keyRow else { return false }
-        switch mode {
-        case .tabs:
-            guard tabRows.indices.contains(keyRow) else { return false }
-            manager.setActive(tabRows[keyRow].id)
-            close()
-        case .slash:
-            let matches = slashMatches
-            guard matches.indices.contains(keyRow) else { return false }
-            run(matches[keyRow])
-        case .switcher:
-            let results = switcherResults
-            guard results.indices.contains(keyRow) else { return false }
-            open(results[keyRow])
-            close()
-        }
-        return true
-    }
-
-    /// ⌘Return: the chosen result, or what's typed, in a new tab behind this
-    /// one. A row that isn't a page opens as Return would.
-    private func submitInBackground() {
-        let trimmed = input.trimmingCharacters(in: .whitespacesAndNewlines)
-        if mode == .switcher {
-            let results = switcherResults
-            if let keyRow, results.indices.contains(keyRow) {
-                guard let url = results[keyRow].url, results[keyRow].localTabID == nil else {
-                    _ = openKeyRow()
-                    return
-                }
-                manager.openInBackground(url)
-            } else {
-                manager.openInBackground(typed: trimmed)
-            }
-            close()
-        } else {
-            handleSubmit()
-        }
-    }
-
-    private var switcherList: some View {
-        let results = switcherResults
         return List {
             if results.isEmpty {
                 Text(SyncCopy.text("ios.palette.noMatches"))
                     .foregroundStyle(style.secondary)
             } else {
-                ForEach(Array(results.enumerated()), id: \.element.id) { index, result in
+                ForEach(results) { result in
                     Button {
                         open(result)
                         close()
@@ -514,7 +390,6 @@ struct PaletteSheet: View {
                         row(icon: result.groupId != nil ? "rectangle.stack" : result.setId != nil ? "square.on.square" : result.localTabID == nil ? "magnifyingglass" : "globe",
                             title: result.title, subtitle: result.subtitle)
                     }
-                    .overlay { keyHighlight(index).allowsHitTesting(false) }
                 }
             }
         }
@@ -556,7 +431,6 @@ struct PaletteSheet: View {
     }
 
     private func handleSubmit() {
-        if openKeyRow() { return }
         let trimmed = input.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !trimmed.isEmpty else { return }
 

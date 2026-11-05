@@ -34,7 +34,7 @@ struct SharedSpacesSheet: View {
                                 load()
                             }
                         } label: {
-                            Label(SyncCopy.text("sharedSpaces.saveThisIPhone"), systemImage: ThisDevice.symbol)
+                            Label(SyncCopy.text("sharedSpaces.saveThisIPhone"), systemImage: "iphone")
                                 .frame(minHeight: 44)
                         }
                         .accessibilityIdentifier("sharedSpaces.saveIPhone")

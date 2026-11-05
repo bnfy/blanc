@@ -2630,10 +2630,6 @@
     "message": "Esta sincronização não existe mais. Desative-a aqui e adicione este telefone de novo pelo seu computador.",
     "source": "sha256:342277ecfd5ccbdacb710e5e2298d117d09f2c93ed789df46e65a8c170878f01"
   },
-  "sync.error.accountGone.ipad": {
-    "message": "Esta sincronização não existe mais. Desative-a aqui e adicione este iPad de novo pelo seu computador.",
-    "source": "sha256:1931925bccfddf21adc23eb371e617e8370dc8250bdd1a9501b4aa24c105d064"
-  },
   "settings.sync.recovery.dialogMessage": {
     "message": "Copiar o código de recuperação da sincronização?",
     "source": "sha256:f845de77b6c5ee8077b4523af5750307d27f07c5805b9e6d4ef92fb3934817fa"
@@ -8335,10 +8331,6 @@
     "message": "Inicie a sincronização no seu computador e adicione este telefone com um código.",
     "source": "sha256:afd19ac9e6a3c113db62227c93337efcff83cfbd57e0ac89625576ed0a69db94"
   },
-  "settings.sync.createOnComputer.ipad": {
-    "message": "Inicie a sincronização no seu computador e adicione este iPad com um código.",
-    "source": "sha256:5c2568d59005c18c7ffc4927335198d152c66c919bf3a3727a192e336fe25b49"
-  },
   "settings.sync.enterSyncName": {
     "message": "Digite o nome da sua sincronização",
     "source": "sha256:21c2e58d05113dfe2f34338ed74a4f308bb6e0f5adf43b77754fc2107cbf540d"
@@ -8791,25 +8783,13 @@
     "message": "Compartilhe as abas abertas normais deste iPhone com seus outros dispositivos. Abas privadas nunca são compartilhadas.",
     "source": "sha256:83d7996fbe9b9d874ba434cbe43221a9fd2799fc25d6f692d05310d6844e087b"
   },
-  "ios.settings.shareTabsHelp.ipad": {
-    "message": "Compartilhe as abas abertas normais deste iPad com seus outros dispositivos. Abas privadas nunca são compartilhadas.",
-    "source": "sha256:8856a9ddc34f97998d7b672757de8378f7279da16210ca14f98b79cacd63af7b"
-  },
   "ios.settings.disconnectHelp": {
     "message": "Desconectar este iPhone? Seus Favoritos e ajustes locais ficam aqui. Seus outros dispositivos não são afetados.",
     "source": "sha256:0d8334eb54e8e7eb72a963a6d65e2b3f72ddcf351d20fe7ec101467fc4b4b1dd"
   },
-  "ios.settings.disconnectHelp.ipad": {
-    "message": "Desconectar este iPad? Seus Favoritos e ajustes locais ficam aqui. Seus outros dispositivos não são afetados.",
-    "source": "sha256:1cd1481e376119473a304b072dddcc0ee0ebb14c37c5dae99a114acdd25dca1d"
-  },
   "ios.settings.switchHelp": {
     "message": "Este iPhone sairá da sincronização atual. Seus Favoritos e ajustes locais ficam aqui. Seus outros dispositivos não são afetados.",
     "source": "sha256:82889fc299ef71255083ed05c51921fbfccc2eb8977562d6a8ae7c56b793c272"
-  },
-  "ios.settings.switchHelp.ipad": {
-    "message": "Este iPad sairá da sincronização atual. Seus Favoritos e ajustes locais ficam aqui. Seus outros dispositivos não são afetados.",
-    "source": "sha256:a1c1a51482b0d8f4264e4a55dea3e68d240c16cceb90bc27607fe8b94b0a24d1"
   },
   "ios.settings.timeOfDay": {
     "message": "Hora do dia",
@@ -9117,17 +9097,9 @@
     "message": "Manter Spaces e grupos sincronizados neste iPhone",
     "source": "sha256:37f571fc1dc4b0a7299b0c4062eee63119c24848a52820fa96405910b0ea0683"
   },
-  "sharedSpaces.switch.iphone.ipad": {
-    "message": "Manter Spaces e grupos sincronizados neste iPad",
-    "source": "sha256:3ce594881d5c46e96863d972e9b48ba9beff75c9a62d1127d3fcd580baf6c9d3"
-  },
   "sharedSpaces.switch.line.iphone": {
     "message": "As abas dos seus Spaces compartilhados são sincronizadas a partir deste iPhone.",
     "source": "sha256:3a52ae761ef984f6537ac718ef7cedb34fe1f6b59d01620d9daeb0218cb6c242"
-  },
-  "sharedSpaces.switch.line.iphone.ipad": {
-    "message": "As abas dos seus Spaces compartilhados são sincronizadas a partir deste iPad.",
-    "source": "sha256:6b31e8c7523b0c0f758b9cbed0cd67513d03e11b86cb351dad6c08a01f042d91"
   },
   "sharedSpaces.waitingCount": {
     "message": "{count, plural, one {# Space compartilhado está esperando} many {# Spaces compartilhados estão esperando} other {# Spaces compartilhados estão esperando}}",
@@ -9137,25 +9109,13 @@
     "message": "Salvar Este iPhone como Space",
     "source": "sha256:29322ed63d9fca7aca123a8d29dc57c0a922a43fb008c9200098b0b7ae357249"
   },
-  "sharedSpaces.saveThisIPhone.ipad": {
-    "message": "Salvar Este iPad como Space",
-    "source": "sha256:eefbb4136228567c028b7d81b8511d4805c5134f50d1f31ada985b95820cdd7b"
-  },
   "sharedSpaces.recoveryName.iphone": {
     "message": "{name} · mantido neste iPhone",
     "source": "sha256:4fc90d0e3a8eda549190a942e5b17c1a84a1ce47c17803da49681e2132c32c38"
   },
-  "sharedSpaces.recoveryName.iphone.ipad": {
-    "message": "{name} · mantido neste iPad",
-    "source": "sha256:cf35525e5abdf98f03fac55871601309408e05e0b7ec09e8fb382f7326477c6e"
-  },
   "sharedSpaces.deletedEverywhere": {
     "message": "Excluído em todos os lugares. Desfazer mantém uma cópia neste iPhone.",
     "source": "sha256:8321dabd3f5afe88f2cecd37514c421fa323e4e7f662a13e0a34b282c1f484ec"
-  },
-  "sharedSpaces.deletedEverywhere.ipad": {
-    "message": "Excluído em todos os lugares. Desfazer mantém uma cópia neste iPad.",
-    "source": "sha256:6a614aff72b50de906d5d7823c762682f8480cd2cfff0ff7eef2b8713d45c9b6"
   },
   "spaces.onDevice": {
     "message": "Em {device}",
@@ -9164,10 +9124,6 @@
   "bringSpace.action": {
     "message": "Trazer para o iPhone",
     "source": "sha256:ea5b99999b3b68bd5611ae0e535c7372be51f0cdc24fdf62fef0d03d1dd70d3e"
-  },
-  "bringSpace.action.ipad": {
-    "message": "Trazer para o iPad",
-    "source": "sha256:09f4059d161d3ae253303a844736d34f186059a21056d2af5f09eadea8285fe2"
   },
   "bringSpace.copyNote": {
     "message": "Esta cópia não muda quando o Space mudar em {device}. Ative a sincronização de Spaces para mantê-los iguais.",
@@ -9277,10 +9233,6 @@
     "message": "Seu Blanc, no seu bolso.",
     "source": "sha256:9b3d61d7c90b5e7efb6caab1e5abe9561db5d8701d0cfc23ad3291cc847fb9d1"
   },
-  "ios.welcome.title.ipad": {
-    "message": "Seu Blanc, no seu iPad.",
-    "source": "sha256:0a588438f990307df5acdd5232d9bc88f4745ecd8afef73071aa233ecccc2c08"
-  },
   "ios.welcome.body": {
     "message": "Traga as abas, os Spaces e os Favoritos do Blanc no seu computador.",
     "source": "sha256:9cae8f7c784f5c23d22ef226a6915d9672df23dba2df337951c3ed2ce54ed05b"
@@ -9324,26 +9276,6 @@
   "ios.welcome.shareTitle": {
     "message": "Compartilhar deste iPhone",
     "source": "sha256:61dd993df0201b989d53efd771e1d61505b3e653e4c43fdc60c1edc0ad5498fd"
-  },
-  "ios.welcome.shareTitle.ipad": {
-    "message": "Compartilhar deste iPad",
-    "source": "sha256:b2710f3259484b8979dfe18aab1d64924103bac618b8276b8eb518fe0c7b674d"
-  },
-  "ios.menu.requestMobileSite": {
-    "message": "Solicitar site para celular",
-    "source": "sha256:18811c9eb691ba477ea5989dab4bfb497b56f9619ac817b6d56ac9ed31dfbf38"
-  },
-  "ios.menu.requestDesktopSite": {
-    "message": "Solicitar site para computador",
-    "source": "sha256:527f089f6269388ded9f5cd79a376ca933cd5475dc40b51f79e82bf6256a5d0e"
-  },
-  "menu.focusNextPane": {
-    "message": "Próximo painel",
-    "source": "sha256:11dc6350ef1ae461ccb42190827924d52f4cad3c6a0120717ebf2ea55825f22f"
-  },
-  "menu.focusPreviousPane": {
-    "message": "Painel anterior",
-    "source": "sha256:de933dbf93f18b308af517f1758b7f69d31394e277488b353280f907c6b8288e"
   },
   "ios.welcome.shareBody": {
     "message": "Os dois ficam desativados até você ativá-los. Você pode mudá-los depois em Ajustes → Sincronização.",

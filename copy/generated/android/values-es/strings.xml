@@ -749,7 +749,6 @@ Puedes reintentarlo con «%2$s» o reinstalar desde blanc.day.</string>
     <string name="sync_error_offline">No se pudo conectar con la sincronización: comprueba tu conexión.</string>
     <string name="sync_error_off">La sincronización está desactivada.</string>
     <string name="sync_error_account_gone">Esta sincronización ya no existe. Desactívala aquí y vuelve a añadir este teléfono desde tu ordenador.</string>
-    <string name="sync_error_account_gone_ipad">Esta sincronización ya no existe. Desactívala aquí y vuelve a añadir este iPad desde tu ordenador.</string>
     <string name="settings_sync_recovery_dialog_message">¿Copiar el código de recuperación de la sincronización?</string>
     <string name="settings_sync_recovery_dialog_detail">Cualquiera con este código puede leer y cambiar tus datos sincronizados. Pégalo ahora en tu gestor de contraseñas, y en ningún otro sitio.</string>
     <string name="settings_sync_recovery_dialog_copy">Copiar al portapapeles</string>
@@ -2376,7 +2375,6 @@ Puedes reintentarlo con «%2$s» o reinstalar desde blanc.day.</string>
     <string name="favorites_read_only_note">Los favoritos se sincronizan desde tu ordenador. Por ahora, edítalos allí.</string>
     <string name="favorites_edit_on_computer">Por ahora, edita los favoritos en tu ordenador.</string>
     <string name="settings_sync_create_on_computer">Inicia la sincronización en tu ordenador y después añade este teléfono con un código.</string>
-    <string name="settings_sync_create_on_computer_ipad">Inicia la sincronización en tu ordenador y después añade este iPad con un código.</string>
     <string name="settings_sync_enter_sync_name">Introduce el nombre de tu sincronización</string>
     <string name="settings_sync_enter_passphrase">Introduce tu frase de contraseña</string>
     <string name="tab_menu_send_to_device">Enviar a dispositivo</string>
@@ -2490,11 +2488,8 @@ Puedes reintentarlo con «%2$s» o reinstalar desde blanc.day.</string>
     <string name="ios_pair_camera_usage">Blanc usa la cámara solo para escanear el código de vinculación de tu ordenador.</string>
     <string name="ios_photos_add_usage">Blanc guarda imágenes en tu fototeca solo cuando se lo pides.</string>
     <string name="ios_settings_share_tabs_help">Comparte las pestañas abiertas normales de este iPhone con tus otros dispositivos. Las pestañas privadas nunca se comparten.</string>
-    <string name="ios_settings_share_tabs_help_ipad">Comparte las pestañas abiertas normales de este iPad con tus otros dispositivos. Las pestañas privadas nunca se comparten.</string>
     <string name="ios_settings_disconnect_help">¿Desconectar este iPhone? Tus Favoritos y ajustes locales permanecerán aquí. Tus otros dispositivos no se verán afectados.</string>
-    <string name="ios_settings_disconnect_help_ipad">¿Desconectar este iPad? Tus Favoritos y ajustes locales permanecerán aquí. Tus otros dispositivos no se verán afectados.</string>
     <string name="ios_settings_switch_help">Este iPhone saldrá de su sincronización actual. Tus Favoritos y ajustes locales permanecerán aquí. Tus otros dispositivos no se verán afectados.</string>
-    <string name="ios_settings_switch_help_ipad">Este iPad saldrá de su sincronización actual. Tus Favoritos y ajustes locales permanecerán aquí. Tus otros dispositivos no se verán afectados.</string>
     <string name="ios_settings_time_of_day">Hora del día</string>
     <string name="tabs_closed_toast">Pestaña cerrada</string>
     <string name="tab_menu_new_space">Nuevo Space…</string>
@@ -2583,23 +2578,17 @@ Puedes reintentarlo con «%2$s» o reinstalar desde blanc.day.</string>
     <string name="group_menu_rename">Cambiar nombre…</string>
     <string name="tab_groups_create">Crear</string>
     <string name="shared_spaces_switch_iphone">Mantener Spaces y grupos sincronizados en este iPhone</string>
-    <string name="shared_spaces_switch_iphone_ipad">Mantener Spaces y grupos sincronizados en este iPad</string>
     <string name="shared_spaces_switch_line_iphone">Las pestañas de tus Spaces compartidos se sincronizan desde este iPhone.</string>
-    <string name="shared_spaces_switch_line_iphone_ipad">Las pestañas de tus Spaces compartidos se sincronizan desde este iPad.</string>
     <plurals name="shared_spaces_waiting_count">
         <item quantity="one">%1$d Space compartido está esperando</item>
         <item quantity="many">%1$d Spaces compartidos están esperando</item>
         <item quantity="other">%1$d Spaces compartidos están esperando</item>
     </plurals>
     <string name="shared_spaces_save_this_i_phone">Guardar Este iPhone como Space</string>
-    <string name="shared_spaces_save_this_i_phone_ipad">Guardar Este iPad como Space</string>
     <string name="shared_spaces_recovery_name_iphone">%1$s · guardado en este iPhone</string>
-    <string name="shared_spaces_recovery_name_iphone_ipad">%1$s · guardado en este iPad</string>
     <string name="shared_spaces_deleted_everywhere">Eliminado en todas partes. Deshacer conserva una copia en este iPhone.</string>
-    <string name="shared_spaces_deleted_everywhere_ipad">Eliminado en todas partes. Deshacer conserva una copia en este iPad.</string>
     <string name="spaces_on_device">En %1$s</string>
     <string name="bring_space_action">Traer al iPhone</string>
-    <string name="bring_space_action_ipad">Traer al iPad</string>
     <string name="bring_space_copy_note">Esta copia no cambiará cuando el Space cambie en %1$s. Activa la sincronización de Spaces para mantenerlos iguales.</string>
     <string name="ios_island_search_or_switch">Buscar o cambiar de pestaña, %1$s</string>
     <string name="ios_island_show_all_tabs">Mostrar todas las pestañas</string>
@@ -2627,7 +2616,6 @@ Puedes reintentarlo con «%2$s» o reinstalar desde blanc.day.</string>
     <string name="ios_pages_supporter_unavailable">La activación de Supporter aún no está disponible en esta versión.</string>
     <string name="ios_settings_background_refresh_off">La actualización en segundo plano está desactivada para Blanc, así que los cambios de otros dispositivos llegan cuando lo abres. Actívala en Ajustes de iOS → Apps → Blanc.</string>
     <string name="ios_welcome_title">Tu Blanc, en tu bolsillo.</string>
-    <string name="ios_welcome_title_ipad">Tu Blanc, en tu iPad.</string>
     <string name="ios_welcome_body">Trae las pestañas, los Spaces y los Favoritos de Blanc en tu ordenador.</string>
     <string name="ios_welcome_browse">Navegar sin vincular</string>
     <string name="ios_welcome_connected">Conectado a «%1$s»</string>
@@ -2639,11 +2627,6 @@ Puedes reintentarlo con «%2$s» o reinstalar desde blanc.day.</string>
     <string name="ios_welcome_arriving">Trayéndolos…</string>
     <string name="ios_welcome_continue">Continuar</string>
     <string name="ios_welcome_share_title">Compartir desde este iPhone</string>
-    <string name="ios_welcome_share_title_ipad">Compartir desde este iPad</string>
-    <string name="ios_menu_request_mobile_site">Solicitar sitio web móvil</string>
-    <string name="ios_menu_request_desktop_site">Solicitar sitio web de escritorio</string>
-    <string name="menu_focus_next_pane">Panel siguiente</string>
-    <string name="menu_focus_previous_pane">Panel anterior</string>
     <string name="ios_welcome_share_body">Ambos siguen desactivados hasta que los actives. Puedes cambiarlos después en Ajustes → Sincronización.</string>
     <string name="ios_welcome_privacy_title">Tu privacidad</string>
     <string name="ios_welcome_measure_usage">Medir el uso</string>

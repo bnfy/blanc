@@ -4,10 +4,6 @@ import XCTest
 final class WalkthroughUITests: XCTestCase {
   override func setUp() { continueAfterFailure = false }
 
-  private var welcomeTitle: String {
-    UIDevice.current.userInterfaceIdiom == .pad ? "Your Blanc, on your iPad." : "Your Blanc, in your pocket."
-  }
-
   private func launch() -> XCUIApplication {
     let app = XCUIApplication()
     app.launchArguments = ["-BlancUITestStartPage", "-BlancUITestWalkthrough"]
@@ -17,7 +13,7 @@ final class WalkthroughUITests: XCTestCase {
 
   func testBrowseWithoutPairingReachesPrivacyThenTheDefaultBrowserOfferAndCloses() {
     let app = launch()
-    XCTAssertTrue(app.staticTexts[welcomeTitle].waitForExistence(timeout: 10))
+    XCTAssertTrue(app.staticTexts["Your Blanc, in your pocket."].waitForExistence(timeout: 10))
     app.buttons["welcome.browse"].tap()
     XCTAssertTrue(app.switches["welcome.measureUsage"].waitForExistence(timeout: 5))
     app.buttons["welcome.continue"].tap()
@@ -30,7 +26,7 @@ final class WalkthroughUITests: XCTestCase {
     // No -BlancUITest argument: the app reads what the first launch saved.
     again.launchArguments = ["-BlancWalkthroughSeen"]
     again.launch()
-    XCTAssertFalse(again.staticTexts[welcomeTitle].waitForExistence(timeout: 4))
+    XCTAssertFalse(again.staticTexts["Your Blanc, in your pocket."].waitForExistence(timeout: 4))
   }
 
   func testPairOpensThePairingChoices() {
@@ -46,7 +42,7 @@ final class WalkthroughUITests: XCTestCase {
   /// Review Focus 1: a link from another app opens behind the card, which stays.
   func testLinkWhileTheCardShowsOpensBehindIt() {
     let app = launch()
-    let title = app.staticTexts[welcomeTitle]
+    let title = app.staticTexts["Your Blanc, in your pocket."]
     XCTAssertTrue(title.waitForExistence(timeout: 10))
     app.open(URL(string: "https://example.org/")!)
     sleep(2)
