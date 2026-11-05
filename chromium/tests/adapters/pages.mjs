@@ -377,7 +377,7 @@ export const pages={
  setGlance:(w,id)=>w.api('setGlanceTab',[String(id)]),
  glanceShortcutEnabled:async()=>true,
  pressGlanceShortcut:async w=>{await w.hostEval('window.BlancPrototypeHost.toggleGlance()');return true;},
- openLinkInGlance:async(w,id,url)=>{await w.call('activateTab',id);return w.api('openLinkInGlance',[String(url)]);},
+ openLinkInGlance:async(w,id,url)=>{const s=await w.snapshot();if(String(s.glanceTabId)!==String(id))await w.call('activateTab',id);return w.api('openLinkInGlance',[String(url)]);},
  sendGlanceCardInput:async(w,input)=>{const fr=w.frame('glanceCardFrame');if(!fr)return false;
   if(input.type==='keyDown'){await fr.keyboard.press(input.keyCode);return true;}
   throw new UndefinedNativeAdapterError('Card pointer input needs an adapter: '+input.type);},
@@ -389,9 +389,12 @@ export const pages={
   let s=await w.snapshot();let g=await w.hostEval('window.BlancPrototypeHost.glanceState()');
   for(let i=0;i<40&&s.glanceTabId!=null&&!g.layout;i++){await new Promise(r=>setTimeout(r,50));s=await w.snapshot();g=await w.hostEval('window.BlancPrototypeHost.glanceState()');}
   if(!g.layout)return null;
+  // The page follows the card on Chromium's next layout.
+  const same=(a,b)=>a&&b&&a.x===b.x&&a.y===b.y&&a.width===b.width&&a.height===b.height;
+  for(let i=0;i<20&&!same(s.tabs.find(t=>t.id===s.glanceTabId)?.viewBounds,g.layout.card.page);i++){await new Promise(r=>setTimeout(r,50));s=await w.snapshot();}
   const view=id=>s.tabs.find(t=>t.id===id)?.viewBounds??null;
   const area=s.splitGeometry.pageArea;
-  return {...g.layout.card,cardViewVisible:g.shown,pageArea:area,pageBounds:area,generation:g.layout.generation,focusedPane:g.layout.focusedPane,
+  return {...g.layout.card,cardViewBounds:g.layout.card.chrome,cardViewVisible:g.shown,pageArea:area,pageBounds:area,generation:g.layout.generation,focusedPane:g.layout.focusedPane,
    viewBounds:view(s.glanceTabId),mainViewBounds:view(s.activeTabId),savedFrame:s.glanceFrame??null};
  },
  glanceHeaderMotion:()=>{throw new UndefinedNativeAdapterError('glanceHeaderMotion needs an adapter');},

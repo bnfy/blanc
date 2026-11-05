@@ -1500,8 +1500,11 @@
     },
     // Open Link in Glance: the link becomes a background tab, then the Glance.
     openLinkInGlance: async url => {
-      const main = snapshot.activeTabId;
-      const created = await request('createTab', [String(url)]);
+      const open = snapshot.glanceTabId != null;
+      const main = open ? glance.mainId : snapshot.activeTabId;
+      const isPrivate = !!snapshot.tabs.find(tab => tab.id === main)?.private;
+      if (open) { glance.closing = true; await request('closeGlance'); glance.closing = false; }
+      const created = await request('createTab', [String(url), isPrivate]);
       if (created?.tabId == null) return false;
       await request('switchTab', [nativeId(main)]);
       return api.setGlanceTab(String(created.tabId));

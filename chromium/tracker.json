@@ -913,8 +913,8 @@
       "platformProgress": {
         "macos": {
           "stage": "implemented",
-          "candidate": "macos-29b321d4c0aa5f9d",
-          "basis": "S3.2 (2026-11-05): in candidate macos-29b321d4c0aa5f9d; 20 of 69 cases pass, 18 fail, 31 undefined (s3-glance); Open Link in Glance has no context menu item yet; regressions not rerun on this candidate"
+          "candidate": "macos-1935c1d14bb29c5b",
+          "basis": "S3.2 (2026-11-05): in candidate macos-1935c1d14bb29c5b; 24 of 69 cases pass, 14 fail, 31 undefined (s3-glance); Open Link in Glance has no context menu item yet"
         },
         "windows": {
           "stage": "not-started",
@@ -1459,8 +1459,8 @@
       "platformProgress": {
         "macos": {
           "stage": "implemented",
-          "candidate": "macos-4a72fe8259c85d77",
-          "basis": "S3.1 (2026-11-05): in candidate macos-4a72fe8259c85d77; 22 of 32 cases pass (s3-probe-split); the rest wait for floating Glance, Spaces, Mahjong, a session read and a float-view read; manual accessibility/visual checklist pending for Verified"
+          "candidate": "macos-1935c1d14bb29c5b",
+          "basis": "S3.2 (2026-11-05): in candidate macos-1935c1d14bb29c5b; 24 of 32 cases pass (s3g-split-view); the rest wait for Spaces, Mahjong, a session read and float-view reads; manual accessibility/visual checklist pending for Verified"
         },
         "windows": {
           "stage": "not-started",
@@ -2458,8 +2458,8 @@
   ],
   "currentCandidates": {
     "macos": {
-      "id": "macos-29b321d4c0aa5f9d",
-      "frameworkSha256": "29b321d4c0aa5f9d2c4b0b5619599e27114ee9017935a9a94c24ef9e915fabdf",
+      "id": "macos-1935c1d14bb29c5b",
+      "frameworkSha256": "1935c1d14bb29c5b2e440db80c1a9f01f81897becd2679dfb5a8349b45ce3f27",
       "executableSha256": "cca20d7ed00bbdecf8db310c6802fbed003b4e63c6bc3b1f71dabc9dbff2ff01",
       "version": "158.0.8127.2",
       "qualification": "compiled candidate; runtime acceptance pending"

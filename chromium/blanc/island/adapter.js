@@ -118,6 +118,13 @@ if (location.origin === 'chrome://blanc-prototype' && parent !== window) {
     if (id !== state.activeTabId && !split && !state.splits?.some(s => s.tabIds.includes(state.activeTabId))) {
       actions.push([localized('tabMenu.glance', 'Open in Glance'), () => window.browserAPI.setGlanceTab(id), id === state.glanceTabId]);
     }
+    // A split pane opens in Glance over the pane that stays.
+    if (split) actions.push([localized('tabMenu.glance', 'Open in Glance'), async () => {
+      const other = split.tabIds.find(tabId => tabId !== id);
+      await window.browserAPI.removeFromSplit(id);
+      await window.browserAPI.switchTab(other);
+      await window.browserAPI.setGlanceTab(id);
+    }]);
     if (split) actions.unshift(
       [localized('tabMenu.removeFromSplit', 'Remove from Split View'), () => window.browserAPI.removeFromSplit(id)],
       [localized('tabMenu.closeSplit', 'Close Split View'), () => window.browserAPI.closeSplit(id)]);

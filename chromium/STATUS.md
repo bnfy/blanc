@@ -798,11 +798,14 @@ remain pending. D3 beta-only no-DRM exception accepted; EME notice/handoff requi
   back when it ends; the ⌘L list shows that order meanwhile. ⌘⇧G is Chromium's
   Find Previous command, redirected (patch 0031); the Edit menu still says Find
   Previous and View has no Glance item. The tab menu has Open in Glance.
-  Open Link in Glance has a host path but no context menu item yet. 20 of 69
-  cases pass (from 2), 18 fail, 31 undefined. Open failures: picker waits for a
-  quiet tab, card focus, links from the Glance page, Open Link in Glance, and
-  card frame reads. split-view, island-and-commands and tabs-and-groups were
-  not rerun on this candidate: the display locked.
+  A split pane's tab menu opens it in Glance. Open Link in Glance has a host
+  path but no context menu item yet. On macos-1935c1d14bb29c5b: 24 of 69 cases pass (from 2), 14
+  fail, 31 undefined. Open failures: the picker's wait for a quiet tab (four),
+  card focus after the picker, links from the Glance page (two, not yet
+  landing in the card), Keep as split's announcement, and harness gaps. A
+  closing Glance's reference goes back to its place. split-view 24 of 32;
+  island-and-commands 64 / 2 (F1-13, F1-39) and tabs-and-groups 32 / 1 (F3-3)
+  ran one candidate earlier, with no new failures.
 - **Mahjong goes last (owner, 2026-11-04):** the fork has no Mahjong yet
   (F35-3, F35-4, F35-9 fail at the footer launch). When it is built it is an
   Island page (shipping's files served as byte-identical copies, opened as an
@@ -1203,5 +1206,5 @@ Android's Bar A counts the shared scenarios bound in `chromium/tests/android/acc
 
 Legacy macOS stages come from the approved spec; they await verification on the canonical candidate. No legacy stage counts as Verified.
 
-Candidate identities: macOS: macos-29b321d4c0aa5f9d; Windows: none; Linux: none; Android: android-arm64-7bd35e94ef746069.
+Candidate identities: macOS: macos-1935c1d14bb29c5b; Windows: none; Linux: none; Android: android-arm64-7bd35e94ef746069.
 <!-- END GENERATED PROGRESS -->

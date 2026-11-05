@@ -1121,11 +1121,11 @@ class Owner : public base::SupportsUserData::Data,
       const int id = sessions::SessionTabHelper::IdForTab(selection.new_contents).id();
       if (id != glance_main && id != glance_reference) {
         // A link that opens a new tab from the Glance page lands in the Glance.
-        auto* model = browser->GetTabStripModel();
-        const int index = model->GetIndexOfWebContents(selection.new_contents);
-        auto* opener = index != TabStripModel::kNoTab ? model->GetOpenerOfTabAt(index) : nullptr;
-        const bool from_glance = opener && opener->GetContents() &&
-            sessions::SessionTabHelper::IdForTab(opener->GetContents()).id() == glance_reference;
+        auto* entry = selection.new_contents->GetController().GetPendingEntry();
+        if (!entry) entry = selection.new_contents->GetController().GetLastCommittedEntry();
+        const bool from_glance = change.type() == TabStripModelChange::kInserted && selection.old_contents &&
+            sessions::SessionTabHelper::IdForTab(selection.old_contents).id() == glance_reference &&
+            entry && ui::PageTransitionCoreTypeIs(entry->GetTransitionType(), ui::PAGE_TRANSITION_LINK);
         EndGlanceSoon(this, from_glance ? id : -1);
       }
     }
