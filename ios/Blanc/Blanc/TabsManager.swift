@@ -359,6 +359,13 @@ final class TabsManager {
         // Glance needs the layout, which the window reports once it shows.
         defer { if UITestSeed.glance { DispatchQueue.main.asyncAfter(deadline: .now() + 1) { [self] in showInGlance(tabs[1].id) } } }
         defer { if UITestSeed.twoTabs { activeTabId = tabs.first?.id } }
+        defer {
+            if UITestSeed.formPage {
+                DispatchQueue.main.asyncAfter(deadline: .now() + 1) { [self] in
+                    activeTab?.webView.loadHTMLString(UITestSeed.formPageHTML, baseURL: UITestSeed.pageURL)
+                }
+            }
+        }
         #endif
         // The first window to start reads the saved sets; the rest share them.
         if !library.loaded {
@@ -567,6 +574,9 @@ final class TabsManager {
         tab.uiDelegate.canGlance = { [weak self] in self?.canOpenGlance ?? false }
         tab.uiDelegate.onGlance = { [weak self] url in self?.openInGlance(url) }
         tab.navigationDelegate.onSettingsNavigation = { [weak self] url in self?.routeSettings(url) ?? false }
+        tab.navigationDelegate.wantsMobileSite = { [weak self] url in
+            self?.wantsMobileSite(url, isPrivate: isPrivate) ?? false
+        }
         // Re-persist whenever this tab settles on a new URL (navigation/redirect).
         tab.navigationDelegate.onURLChange = { [weak self] _ in
             self?.persistSession()
@@ -601,6 +611,8 @@ final class TabsManager {
     /// Each step of a pinch on a page, for the window to follow. A callback,
     /// because `onChange` merges steps that land together and would lose one.
     @ObservationIgnored var onPagePinch: ((PagePinchUpdate) -> Void)?
+    /// Private tabs' Request Mobile Website choices, gone when the app quits.
+    @ObservationIgnored private var privateMobileSites: [String: Bool] = [:]
 
     /// A link from another app (`IncomingLinks`): a new ordinary tab, never
     /// private, made current over whatever sheet was open.
@@ -931,6 +943,21 @@ final class TabsManager {
         setActive(tabs[(index + offset + tabs.count) % tabs.count].id)
     }
 
+    /// ⌥⌘← and ⌥⌘→: focus moves to the split's other pane.
+    func focusPane(by offset: Int) {
+        guard let split = activeSplit, let id = activeTabId, let index = split.tabIds.firstIndex(of: id) else { return }
+        let count = split.tabIds.count
+        setActive(split.tabIds[(index + offset + count) % count])
+    }
+
+    /// ⌘Return in the palette: a new tab behind this one, as private as it is.
+    func openInBackground(_ url: URL) {
+        // Only a web page can wait behind; Blanc's pages open as they always do.
+        let background = ["http", "https"].contains(url.scheme?.lowercased() ?? "")
+        createTab(url: url, isPrivate: activeTab?.isPrivate ?? false, quiet: background)
+    }
+    func openInBackground(typed text: String) { openInBackground(normalizer.normalize(text)) }
+
     /// ⌘+, ⌘− and ⌘0 on the current page.
     func zoomActive(step: Int) {
         guard let webView = activeTab?.existingWebView else { return }
@@ -980,6 +1007,13 @@ final class TabsManager {
     }
 
     func closeGlance() { glanceTabId = nil }
+
+    /// ⌘⇧G: closes the card, or shows the next tab in it. (Desktop opens a
+    /// picker; here the Sunrise menu's Open in Glance ▸ is that list.)
+    func toggleGlance() {
+        if glanceTabId != nil { closeGlance() } else if let next = glanceCandidates.first { showInGlance(next.id) }
+    }
+    var canToggleGlance: Bool { glanceTabId != nil || (canOpenGlance && !glanceCandidates.isEmpty) }
 
     /// The tabs Glance could show over the current one.
     var glanceCandidates: [TabModel] {
@@ -2363,6 +2397,31 @@ final class TabsManager {
         var list = settingsStore.adblockExceptions.filter { $0 != host }
         if !on { list.append(host) }
         setAdblockExceptions(list)
+    }
+
+    /// Request Mobile Website (iPad): whether `tab`'s site gets its phone
+    /// layout, which it keeps across tabs and launches. A private tab's choice
+    /// stays in memory and only applies to private tabs.
+    func wantsMobileSite(_ url: URL, isPrivate: Bool) -> Bool {
+        guard let host = AdblockExceptions.host(for: url) else { return false }
+        if isPrivate, let chosen = privateMobileSites.first(where: { SettingsStore.site($0.key, covers: host) }) {
+            return chosen.value
+        }
+        return settingsStore.mobileSites.contains { SettingsStore.site($0, covers: host) }
+    }
+
+    /// Asks the site `tab` shows for its phone or desktop layout, then reloads it.
+    func setMobileSite(_ tab: TabModel, mobile: Bool) {
+        guard let host = AdblockExceptions.host(for: tab.currentURL) else { return }
+        if tab.isPrivate {
+            privateMobileSites = privateMobileSites.filter { !SettingsStore.site($0.key, covers: host) }
+            privateMobileSites[host] = mobile
+        } else {
+            settingsStore.setMobileSite(host, mobile: mobile)
+        }
+        tab.exitReader()
+        // Loaded afresh: a reload keeps the layout the page was asked for with.
+        tab.navigationDelegate.load(tab.currentURL, in: tab.webView)
     }
 
     /// Puts the tab's blocking rules on or off for the site it is about to show.

@@ -276,6 +276,7 @@ struct ContentView: View {
             .padding(.horizontal, 16)
             .padding(.vertical, 10)
             .frame(maxWidth: .infinity)
+            .clearOfWindowControls(islandAtTop)
             .onGeometryChange(for: CGFloat.self) { $0.size.height } action: { islandHeight = $0 }
             .environment(\.colorScheme, islandScheme)
             .animation(.easeInOut(duration: 0.25), value: islandScheme)
@@ -591,7 +592,7 @@ struct ContentView: View {
 
     /// Puts the grid behind the page, which is still full size.
     private func revealTabGrid() {
-        manager.activeTab?.captureThumbnail()
+        for tab in visibleTabs { tab.captureThumbnail() }
         cardFrames = [:]
         gridPage = .pinching(scale: 1, translation: .zero)
         gridPageOpacity = 1
@@ -838,6 +839,10 @@ struct ContentView: View {
                 return action("share.picker.share", "square.and.arrow.up") { share(tab.currentURL) }
             case .find:
                 return action("menu.findInPage", "magnifyingglass") { manager.presentFind() }
+            case .requestSite(let mobile):
+                guard let tab else { return nil }
+                return action(mobile ? "ios.menu.requestMobileSite" : "ios.menu.requestDesktopSite",
+                              mobile ? "iphone" : "desktopcomputer") { manager.setMobileSite(tab, mobile: mobile) }
             case .glance:
                 return UIMenu(title: SyncCopy.text("tabMenu.glance"), image: UIImage(systemName: "rectangle.on.rectangle"),
                               children: manager.glanceCandidates.map { other in
@@ -885,6 +890,18 @@ struct ContentView: View {
 }
 
 #Preview { ContentView(manager: TabsManager()) }
+
+private extension View {
+    /// An iPad window's close and resize controls sit in its top corner: at
+    /// the top of a small window the Island starts after them.
+    @ViewBuilder func clearOfWindowControls(_ atTop: Bool) -> some View {
+        if #available(iOS 26, *), atTop {
+            containerCornerOffset(.leading, sizeToFit: true)
+        } else {
+            self
+        }
+    }
+}
 
 /// Split View (F53): one subview fills the area; two sit side by side,
 /// inset, with a gap between them that the divider sits in.

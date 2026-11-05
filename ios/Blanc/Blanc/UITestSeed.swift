@@ -15,7 +15,24 @@ enum UITestSeed {
   /// `-BlancUITestStartPage`: sync off, one tab on the Start Page.
   static var startPage: Bool { ProcessInfo.processInfo.arguments.contains("-BlancUITestStartPage") }
   /// `-BlancUITestTwoTabs`: sync off, example.com (current) and example.org.
-  static var twoTabs: Bool { glance || ProcessInfo.processInfo.arguments.contains("-BlancUITestTwoTabs") }
+  static var twoTabs: Bool { glance || formPage || ProcessInfo.processInfo.arguments.contains("-BlancUITestTwoTabs") }
+  /// `-BlancUITestFormPage`: two tabs, the first a local page with a text
+  /// field, a count of its loads and its own ⌘Y (no network needed).
+  static var formPage: Bool { ProcessInfo.processInfo.arguments.contains("-BlancUITestFormPage") }
+  static let formPageHTML = """
+    <title>Form</title><meta name="viewport" content="width=device-width">
+    <body style="font: 20px sans-serif; padding: 80px 24px">
+    <input aria-label="Note" style="font-size: 20px"><p id="loads"></p><p id="key">No key yet</p><p id="mode"></p>
+    <script>
+    const loads = Number(sessionStorage.loads || 0) + 1;
+    sessionStorage.loads = loads;
+    document.getElementById('loads').textContent = 'Loaded ' + loads;
+    document.getElementById('mode').textContent = /Mobile/.test(navigator.userAgent) ? 'Phone layout' : 'Desktop layout';
+    addEventListener('keydown', (e) => {
+      if (e.metaKey && e.key === 'y') { e.preventDefault(); document.getElementById('key').textContent = 'Page kept it'; }
+    });
+    </script>
+    """
   /// The second of two tabs in a Glance card over the first (F34).
   static var glance: Bool { ProcessInfo.processInfo.arguments.contains("-BlancUITestGlance") }
   /// Two tabs side by side (F53), restored from the session as at a relaunch.
