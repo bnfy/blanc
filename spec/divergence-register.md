@@ -168,7 +168,7 @@ Desktop bindings and their mobile intent:
 
 | Desktop | Action | Mobile equivalent |
 |---------|--------|-------------------|
-| ⌘[ / ⌘] (pill buttons) | Back / Forward | edge-swipe gesture (`allowsBackForwardNavigationGestures`) — no pill buttons |
+| ⌘[ / ⌘] (pill buttons) | Back / Forward | edge-swipe gesture (`allowsBackForwardNavigationGestures`); iPhone pill buttons are opt-in |
 | ⌘L | Search & Commands (palette) | tap the pill / pull-down |
 | ⌘T | New Tab | new-tab button |
 | ⌘⇧N | New Private Tab | new-private-tab action |
@@ -272,6 +272,17 @@ mobile is a single full-screen surface with system insets.
   strip, its own always-on-top overlay view, and traffic-lights / window controls.
 - **Mobile:** a single surface; the island adapts to safe-area insets; no window
   controls; multi-window is a tablet/foldable consideration, not a phone one.
+- **iOS (2026-11-05, owner request):** Settings → Island → Back and Forward
+  buttons (off by default, device-local `islandHistoryButtons`, never synced)
+  puts them on the iPhone Island in place of Reload and New Tab, after a
+  visitor asked where Back was. The Island has no tab count on any layout:
+  a pinch in on a fully zoomed-out page, as in Safari, or a swipe up from the
+  Island opens the tab grid. The page shrinks into its card as Safari's does. Stop still shows while a page loads. Pull to
+  refresh and the tab grid and palette's New Tab stay. The unfolded Island
+  always shows every button. Back and Forward also survive a relaunch: each
+  tab's `interactionState` is saved on this device only (never synced, never
+  backed up, never a private tab), found through `SavedTab.historyId` and kept
+  apart from it, and dropped when the person clears their history or site data.
 - **iOS (2026-11-03, owner request):** the Island floats over every page at
   the bottom, with the page running behind it, and tucks away below the
   screen's edge while the person scrolls a website down, as Safari's bar does.

@@ -1,6 +1,13 @@
 import XCTest
 
 extension XCUIApplication {
+  /// A drag from the Island into the page. `swipeUp` stays inside an element
+  /// this short, which is less than the gesture needs.
+  func openTabGrid() {
+    let start = buttons["pill.palette"].firstMatch.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.5))
+    start.press(forDuration: 0.05, thenDragTo: start.withOffset(CGVector(dx: 0, dy: -180)))
+  }
+
   /// Finds `element` in an open sheet's list, scrolling the list itself: a
   /// SwiftUI list builds rows only as they scroll in, and on the unfolded
   /// iPhone Duo a sheet is a centered card shorter than an iPhone's screen, so

@@ -132,16 +132,15 @@ final class AppStoreScreenshotsUITests: XCTestCase {
 
   func test5TabGrid() throws {
     launch()
-    let tabs = app.buttons["pill.tabs"]
     let cards = app.buttons.matching(identifier: "tab.card")
     // Visit each tab once so its card shows the page, not a placeholder.
     for index in [1, 2, 3, 4, 0] {
-      tabs.tap()
+      app.openTabGrid()
       XCTAssertTrue(cards.element(boundBy: index).waitForExistence(timeout: 5))
       cards.element(boundBy: index).tap()
       sleep(7)
     }
-    if !cards.firstMatch.waitForExistence(timeout: 2) { tabs.tap() }
+    if !cards.firstMatch.waitForExistence(timeout: 2) { app.openTabGrid() }
     XCTAssertTrue(cards.firstMatch.waitForExistence(timeout: 5))
     try shoot("5-grid", settle: 3)
   }

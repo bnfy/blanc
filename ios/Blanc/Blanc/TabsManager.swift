@@ -215,6 +215,7 @@ final class TabsManager {
             for store in stores { group.addTask { await Self.clearWebsites(in: store) } }
         }
         pagesToReloadAfterClearing.forEach { $0.reload() }
+        services.forgetTabHistories()
     }
 
     /// Open web pages; quiet tabs load fresh when shown, and Blanc's own pages
@@ -513,7 +514,30 @@ final class TabsManager {
         } else {
             applyBlocking(to: tab, for: tab.currentURL)
         }
-        tab.wake()
+        tab.wake(history: tab.isPrivate ? nil : services.tabHistory.state(id: tab.historyId))
+    }
+
+    /// After the person clears their history: nothing open now, or waiting on
+    /// Undo, writes its list again.
+    func stopSavingTabHistories() {
+        tabs.forEach { $0.savesHistory = false }
+        lastClosed?.tab.savesHistory = false
+    }
+
+    /// Saves each open page's Back and Forward list; a quiet tab's stays as it was.
+    func saveTabHistories() {
+        tabs.forEach(saveHistory(of:))
+    }
+
+    private func saveHistory(of tab: TabModel) {
+        guard !tab.isPrivate, tab.savesHistory, let view = tab.existingWebView else { return }
+        // A Start Page comes back fresh, as a new tab does.
+        if tab.currentURL.scheme != "blanc", view.canGoBack || view.canGoForward,
+           let state = view.interactionState as? Data {
+            services.tabHistory.save(state, id: tab.historyId)
+        } else {
+            services.tabHistory.remove(tab.historyId)
+        }
     }
 
     /// A tab a page opened: last in the list and current, private when its
@@ -539,6 +563,7 @@ final class TabsManager {
             && !AdblockExceptions.isExcepted(tab.currentURL, in: settingsStore.adblockExceptions) {
             contentBlocker.attach(to: tab.webView)
         }
+        tab.onPagePinch = { [weak self] in self?.onPagePinch?($0) }
         tab.uiDelegate.canGlance = { [weak self] in self?.canOpenGlance ?? false }
         tab.uiDelegate.onGlance = { [weak self] url in self?.openInGlance(url) }
         tab.navigationDelegate.onSettingsNavigation = { [weak self] url in self?.routeSettings(url) ?? false }
@@ -573,6 +598,9 @@ final class TabsManager {
     /// Counts links opened from other apps; ContentView closes the tab grid on
     /// each, so the page shows.
     private(set) var incomingLinkCount = 0
+    /// Each step of a pinch on a page, for the window to follow. A callback,
+    /// because `onChange` merges steps that land together and would lose one.
+    @ObservationIgnored var onPagePinch: ((PagePinchUpdate) -> Void)?
 
     /// A link from another app (`IncomingLinks`): a new ordinary tab, never
     /// private, made current over whatever sheet was open.
@@ -1289,7 +1317,7 @@ final class TabsManager {
         let columns = SplitModel.capture(splits, saved: saved.map(\.id))
         return SavedSet(
             tabs: saved.map { SavedTab(url: $0.currentURL.absoluteString, title: $0.pageTitle, pinned: $0.pinned,
-                                       groupId: $0.groupId, tabId: $0.sharedTabId) },
+                                       groupId: $0.groupId, tabId: $0.sharedTabId, historyId: $0.historyId) },
             groups: groups,
             activeIndex: saved.firstIndex { $0.id == activeTabId } ?? 0,
             splits: columns.splits.isEmpty ? nil : columns.splits,
@@ -1311,6 +1339,7 @@ final class TabsManager {
     /// Replaces the ordinary tabs with `set`'s, all quiet but the selected
     /// one. Private tabs stay open; they belong to no set.
     private func show(_ set: SavedSet) {
+        saveTabHistories()
         let privates = tabs.filter(\.isPrivate)
         for tab in tabs where !tab.isPrivate {
             tab.exitReader()
@@ -1329,6 +1358,7 @@ final class TabsManager {
             tabs.last?.pinned = saved.pinned
             tabs.last?.groupId = saved.groupId
             tabs.last?.sharedTabId = saved.tabId
+            if let historyId = saved.historyId { tabs.last?.historyId = historyId }
             if let id = tabs.last?.id { restored.append(id) }
         }
         splits += SplitModel.restore(set.splits, splitIds: set.splitIds, restored: restored)
@@ -1436,7 +1466,9 @@ final class TabsManager {
               tabs.filter({ !$0.isPrivate }).count > 1 else { return }
         let tab = tabs[index]
         removeFromSplit(tab.id)
-        let saved = SavedTab(url: tab.currentURL.absoluteString, title: tab.pageTitle, pinned: tab.pinned)
+        saveHistory(of: tab)
+        let saved = SavedTab(url: tab.currentURL.absoluteString, title: tab.pageTitle, pinned: tab.pinned,
+                             historyId: tab.historyId)
         if id == TabSets.iphoneId { iphoneSet.tabs.append(saved) }
         else if let target = spaces.firstIndex(where: { $0.id == id }) { spaces[target].set.tabs.append(saved) }
         tab.exitReader()
@@ -1763,6 +1795,7 @@ final class TabsManager {
             } else {
                 createTab(url: URL(string: saved.url) ?? Self.newTabURL, title: saved.title, quiet: true)
                 guard let made = tabs.last else { continue }
+                if let historyId = saved.historyId { made.historyId = historyId }
                 tab = made
             }
             tab.pinned = saved.pinned
@@ -1863,7 +1896,12 @@ final class TabsManager {
         var copy = space
         copy.sharedId = nil
         copy.link = nil
-        copy.set.tabs = copy.set.tabs.map { (tab: SavedTab) -> SavedTab in var t = tab; t.tabId = nil; return t }
+        copy.set.tabs = copy.set.tabs.map { (tab: SavedTab) -> SavedTab in
+            var t = tab
+            t.tabId = nil
+            t.historyId = nil
+            return t
+        }
         return copy
     }
 

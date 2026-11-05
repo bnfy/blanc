@@ -24,13 +24,27 @@ final class TabModel: Identifiable {
     var pinned = false
     /// The shared record's id while this tab is in a shared Space (M17c).
     var sharedTabId: String?
-    var reader: ReaderController?
+    var reader: ReaderController? {
+        didSet {
+            readerPinch = reader.map { PagePinchWatcher(webView: $0.webView) { [weak self] in self?.onPagePinch?($0) } }
+        }
+    }
     var readerAvailable = false
     var readerGeneration = 0
     var readerAllowed = true
     var readerBusy = false
     @ObservationIgnored private var readerURLObservation: NSKeyValueObservation?
     @ObservationIgnored private var titleObservation: NSKeyValueObservation?
+    @ObservationIgnored private var historyObservations: [NSKeyValueObservation] = []
+    /// Off once the person clears their history or site data: a live web view
+    /// can't forget its list, so it just never goes to disk.
+    @ObservationIgnored var savesHistory = true
+    /// Which saved Back and Forward list is this tab's; kept across a relaunch.
+    @ObservationIgnored var historyId = UUID().uuidString
+    /// A pinch in on the page, which moves it into the tab grid.
+    @ObservationIgnored var onPagePinch: ((PagePinchUpdate) -> Void)?
+    @ObservationIgnored private var pagePinch: PagePinchWatcher?
+    @ObservationIgnored private var readerPinch: PagePinchWatcher?
     @ObservationIgnored private var pageColorObservation: NSKeyValueObservation?
     @ObservationIgnored private var scrollObservation: NSKeyValueObservation?
     /// Whether the Island has tucked away for this page's scrolling. Changed
@@ -80,11 +94,12 @@ final class TabModel: Identifiable {
         }
     }
 
-    /// Loads a quiet tab's page; nothing for a tab that is already live.
-    func wake() {
+    /// Loads a quiet tab's page, with its saved Back and Forward list if it has
+    /// one; nothing for a tab that is already live.
+    func wake(history: Data? = nil) {
         guard isQuiet else { return }
         isQuiet = false
-        navigationDelegate.wake(currentURL, in: webView)
+        navigationDelegate.wake(currentURL, in: webView, history: history)
     }
 
     private func makeWebView() -> WKWebView {
@@ -93,6 +108,7 @@ final class TabModel: Identifiable {
         webView.isFindInteractionEnabled = true
         webView.navigationDelegate = navigationDelegate
         webView.uiDelegate = uiDelegate
+        pagePinch = PagePinchWatcher(webView: webView) { [weak self] in self?.onPagePinch?($0) }
         // pushState/replaceState and fragment changes do not consistently
         // produce a finished navigation. Invalidate stale reader snapshots
         // from WebKit's actual document URL as well as delegate callbacks.
@@ -109,6 +125,20 @@ final class TabModel: Identifiable {
                 self.navigationDelegate.applyTitle(title)
             }
         }
+        // Sites that change pages with pushState finish no navigation, so Back
+        // and Forward follow WebKit directly.
+        historyObservations = [
+            webView.observe(\.canGoBack, options: [.new]) { [weak self] webView, _ in
+                Task { @MainActor [weak self, weak webView] in
+                    if let webView { self?.canGoBack = webView.canGoBack }
+                }
+            },
+            webView.observe(\.canGoForward, options: [.new]) { [weak self] webView, _ in
+                Task { @MainActor [weak self, weak webView] in
+                    if let webView { self?.canGoForward = webView.canGoForward }
+                }
+            },
+        ]
         // The pull's spinner and the Island take the style that shows against
         // the page.
         pageColorObservation = webView.observe(\.underPageBackgroundColor, options: [.new]) { [weak self] _, _ in

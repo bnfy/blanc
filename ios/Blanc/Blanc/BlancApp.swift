@@ -32,6 +32,7 @@ struct BlancApp: App {
             } else {
                 engine.stopForegroundChecks()
                 if phase == .background {
+                    BrowserServices.shared.saveTabHistories()
                     BackgroundRefresh.schedule(hasAccount: engine.stateStore.state.enabled)
                 }
             }

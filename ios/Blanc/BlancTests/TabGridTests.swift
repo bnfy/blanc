@@ -44,7 +44,7 @@ final class TabGridTests: XCTestCase {
         manager.setActive(originalID)
         XCTAssertEqual(manager.activeTabId, originalID)
         XCTAssertNotNil(manager.activeTab?.thumbnail)
-        let grid = UIHostingController(rootView: TabGridView(manager: manager))
+        let grid = UIHostingController(rootView: TabGridView(manager: manager, close: {}, onCardFrame: { _, _ in }))
         window.rootViewController = grid
         grid.view.frame = window.bounds
         for _ in 0..<100 {

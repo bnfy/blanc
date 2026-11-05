@@ -72,7 +72,7 @@ final class AppStorePreviewUITests: XCTestCase {
     pause(2.2)
 
     mark("grid")
-    app.buttons["pill.tabs"].tap()
+    app.openTabGrid()
     pause(2.0)
     let cards = app.buttons.matching(identifier: "tab.card")
     XCTAssertTrue(cards.element(boundBy: 3).waitForExistence(timeout: 5))

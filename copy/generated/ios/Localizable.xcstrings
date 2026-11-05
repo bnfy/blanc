@@ -103003,6 +103003,90 @@
         }
       }
     },
+    "ios.settings.islandHistoryButtons": {
+      "comment": "iOS Settings → Island: switch that puts Back and Forward on the iPhone Island. Off by default.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Back and Forward buttons"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tasten „Zurück“ und „Vorwärts“"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Botones Atrás y Adelante"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Boutons Précédent et Suivant"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pulsanti Indietro e Avanti"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Botões Voltar e Avançar"
+          }
+        }
+      }
+    },
+    "ios.settings.islandHistoryButtonsHelp": {
+      "comment": "iOS Settings → Island: footer under the Back and Forward switch. 'Narrow' is the iPhone Island; the wider Island keeps every button.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "When the Island is narrow, they take the place of Reload and New Tab. Pull down on a page to reload it."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ist die Island schmal, ersetzen sie „Neu laden“ und „Neuer Tab“. Ziehe eine Seite nach unten, um sie neu zu laden."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cuando la Island es estrecha, sustituyen a Recargar y Nueva pestaña. Desliza una página hacia abajo para recargarla."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Quand l’Island est étroite, ils remplacent Actualiser et Nouvel onglet. Tirez une page vers le bas pour l’actualiser."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Quando la Island è stretta, sostituiscono Ricarica e Nuova scheda. Trascina una pagina verso il basso per ricaricarla."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Quando a Island está estreita, eles substituem Recarregar e Nova aba. Puxe uma página para baixo para recarregá-la."
+          }
+        }
+      }
+    },
     "ios.settings.islandPosition": {
       "comment": "iOS Settings → Island: picker for where the Island sits on the screen, under the Island header.",
       "extractionState": "manual",

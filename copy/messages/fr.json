@@ -9145,6 +9145,14 @@
     "message": "Masquer l’Island pendant le défilement",
     "source": "sha256:b2880c6b19c41edf58338069bb2a673ca49e360df2a3827a331bf3f9186d5f7e"
   },
+  "ios.settings.islandHistoryButtons": {
+    "message": "Boutons Précédent et Suivant",
+    "source": "sha256:7ec1dc0623cd5f25a9dcfa770869e362aafdc346e914ccc97f40dea0f71903bc"
+  },
+  "ios.settings.islandHistoryButtonsHelp": {
+    "message": "Quand l’Island est étroite, ils remplacent Actualiser et Nouvel onglet. Tirez une page vers le bas pour l’actualiser.",
+    "source": "sha256:9b44c7b2c85805ae6a76e80aab9923e805e4820cfe9a1b0f457ca7be60456265"
+  },
   "ios.settings.islandPosition": {
     "message": "Position",
     "source": "sha256:5e36b380b1a6313a28b506c3f362800c429010f9dbeac405fd02c10c94119fbf"

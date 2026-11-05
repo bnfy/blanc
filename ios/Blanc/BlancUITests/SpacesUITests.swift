@@ -66,13 +66,13 @@ final class SpacesUITests: XCTestCase {
     XCTAssertTrue(app.descendants(matching: .any)["group.header.Later"].waitForExistence(timeout: 5))
   }
 
-  /// The Island's tabs button shows the count and opens the grid (owner, 2026-10-29).
-  func testTheIslandsTabsButtonOpensTheGrid() {
+  /// The Island tells VoiceOver the count, and a swipe up opens the grid.
+  func testASwipeUpOnTheIslandOpensTheGrid() {
     let app = launch()
-    let tabs = app.buttons["pill.tabs"]
-    XCTAssertTrue(tabs.waitForExistence(timeout: 5))
-    XCTAssertEqual(tabs.value as? String, "4 tabs")
-    tabs.tap()
+    let island = app.buttons["pill.palette"]
+    XCTAssertTrue(island.waitForExistence(timeout: 5))
+    XCTAssertEqual(island.value as? String, "4 tabs")
+    app.openTabGrid()
     XCTAssertTrue(app.buttons.matching(identifier: "tab.card").firstMatch.waitForExistence(timeout: 5))
   }
 

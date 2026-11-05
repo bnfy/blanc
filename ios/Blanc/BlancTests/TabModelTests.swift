@@ -143,4 +143,32 @@ final class TabModelTests: XCTestCase {
         XCTAssertEqual(TabModel.spinnerStyle(on: UIColor(red: 0.13, green: 0.13, blue: 0.14, alpha: 1)), .dark)
         XCTAssertEqual(TabModel.spinnerStyle(on: .clear), .unspecified)
     }
+
+    /// A site that changes pages with pushState never finishes a navigation,
+    /// so the Island's Back has to follow WebKit, not the navigation delegate
+    /// (removed here so only WebKit's own report can reach the tab).
+    @MainActor func testBackFollowsWebKitWithoutANavigationCallback() async throws {
+        let tab = TabModel(url: URL(string: "https://example.com/")!, configuration: WKWebViewConfiguration(), load: false)
+        tab.webView.navigationDelegate = nil
+        let folder = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
+        try FileManager.default.createDirectory(at: folder, withIntermediateDirectories: true)
+        defer { try? FileManager.default.removeItem(at: folder) }
+        let one = folder.appendingPathComponent("one.html"), two = folder.appendingPathComponent("two.html")
+        try Data("<title>One</title>".utf8).write(to: one)
+        try Data("<title>Two</title>".utf8).write(to: two)
+        tab.webView.loadFileURL(one, allowingReadAccessTo: folder)
+        try await waitUntil { tab.webView.url == one && !tab.webView.isLoading }
+        XCTAssertFalse(tab.canGoBack)
+        tab.webView.loadFileURL(two, allowingReadAccessTo: folder)
+        try await waitUntil { tab.webView.canGoBack }
+        try await waitUntil { tab.canGoBack }
+    }
+
+    @MainActor private func waitUntil(_ condition: () -> Bool) async throws {
+        for _ in 0..<100 {
+            if condition() { return }
+            try await Task.sleep(for: .milliseconds(50))
+        }
+        XCTFail("timed out")
+    }
 }
