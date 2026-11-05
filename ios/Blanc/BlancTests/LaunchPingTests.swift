@@ -11,9 +11,8 @@ import XCTest
 
     func testBodyIsDesktopsShape() {
         let id = UUID(uuidString: "01234567-89AB-4CDE-8F01-23456789ABCD")!
-        let body = LaunchPing.body(installId: id, sessionId: 42, version: "1.0.0", osMajor: 26, device: "ipad")
-        XCTAssertEqual(Set(body.keys), ["installId", "sessionId", "version", "platform", "arch", "osVersion", "device"])
-        XCTAssertEqual(body["device"] as? String, "ipad", "so iPad installs can be counted")
+        let body = LaunchPing.body(installId: id, sessionId: 42, version: "1.0.0", osMajor: 26)
+        XCTAssertEqual(Set(body.keys), ["installId", "sessionId", "version", "platform", "arch", "osVersion"])
         XCTAssertEqual(body["installId"] as? String, "01234567-89ab-4cde-8f01-23456789abcd", "lowercased, as the Worker's UUID check reads it")
         XCTAssertEqual(body["sessionId"] as? Int32, 42)
         XCTAssertEqual(body["platform"] as? String, "ios")

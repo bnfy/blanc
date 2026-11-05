@@ -80,7 +80,7 @@ enum TabSets {
     /// The device's own set's name: This iPad on an iPad, This iPhone
     /// elsewhere (the Duo too). Its id stays "iphone" everywhere.
     static var deviceSetName: String {
-        SyncCopy.text(ThisDevice.isPad ? "spaces.thisIPad" : "spaces.thisIPhone")
+        SyncCopy.text(UIDevice.current.userInterfaceIdiom == .pad ? "spaces.thisIPad" : "spaces.thisIPhone")
     }
     static let spaceLimit = 25
     static let nameLimit = 60

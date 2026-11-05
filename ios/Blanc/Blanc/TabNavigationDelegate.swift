@@ -27,8 +27,6 @@ final class TabNavigationDelegate: NSObject, WKNavigationDelegate {
     /// A main-frame navigation is about to load `url` (Blanc Blocker's per-site
     /// switch puts the tab's blocking rules on or off for that site first).
     var onWillLoadMainFrame: ((URL) -> Void)?
-    /// Whether this page's site gets its phone layout on an iPad.
-    var wantsMobileSite: ((URL) -> Bool)?
 
     func load(_ url: URL, in webView: WKWebView) {
         guard url != lastRequested else { return }
@@ -112,13 +110,12 @@ final class TabNavigationDelegate: NSObject, WKNavigationDelegate {
 
     func webView(_ webView: WKWebView,
                  decidePolicyFor navigationAction: WKNavigationAction,
-                 preferences: WKWebpagePreferences,
-                 decisionHandler: @escaping (WKNavigationActionPolicy, WKWebpagePreferences) -> Void) {
+                 decisionHandler: @escaping (WKNavigationActionPolicy) -> Void) {
         if let url = navigationAction.request.url,
            let scheme = url.scheme?.lowercased(),
            OSHandoff.schemes.contains(scheme) {
             UIApplication.shared.open(url)
-            decisionHandler(.cancel, preferences)
+            decisionHandler(.cancel)
             return
         }
         if navigationAction.targetFrame?.isMainFrame != false, let url = navigationAction.request.url {
@@ -126,14 +123,12 @@ final class TabNavigationDelegate: NSObject, WKNavigationDelegate {
             // New links into Settings open the native sheet instead.
             if (navigationAction.navigationType == .linkActivated || tab?.currentURL.host != "settings"),
                onSettingsNavigation?(url) == true {
-                decisionHandler(.cancel, preferences)
+                decisionHandler(.cancel)
                 return
             }
             onWillLoadMainFrame?(url)
-            // WebKit's own default otherwise: desktop sites on an iPad.
-            if wantsMobileSite?(url) == true { preferences.preferredContentMode = .mobile }
         }
-        decisionHandler(.allow, preferences)
+        decisionHandler(.allow)
     }
 
     private func sync(_ webView: WKWebView, finished: Bool = false) {

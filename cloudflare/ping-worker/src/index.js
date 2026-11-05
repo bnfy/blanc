@@ -64,8 +64,6 @@ function prefixedKV(kv, prefix) {
   };
 }
 const ALLOWED_ARCHES = new Set(['arm64', 'x64', 'ia32']);
-// iOS only, and optional: the iPhone 1.0 build sends none and still counts.
-const ALLOWED_IOS_DEVICES = new Set(['iphone', 'ipad']);
 const VERSION_RE = /^\d+\.\d+\.\d+(?:-[a-zA-Z0-9.]+)?$/;
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 // The client already coarsens the OS to a bare major (src/main/telemetry.js
@@ -306,8 +304,7 @@ function validatedClientFields(body) {
       ? String(Math.floor(body.sessionId))
       : null;
   if (!version || !platform || !arch || !installId || !sessionId) return null;
-  const device = platform === 'ios' && ALLOWED_IOS_DEVICES.has(body.device) ? body.device : null;
-  return { version, platform, arch, osVersion, installId, sessionId, device };
+  return { version, platform, arch, osVersion, installId, sessionId };
 }
 
 async function readClientRequest(request) {
@@ -326,7 +323,7 @@ async function handlePing(request, env, ctx, now) {
     console.warn(JSON.stringify({ event: 'ping-rejected', reason: 'implausible-payload' }));
     return new Response('bad request', { status: 400 });
   }
-  const { version, platform, arch, osVersion, installId, sessionId, device } = client.fields;
+  const { version, platform, arch, osVersion, installId, sessionId } = client.fields;
 
   // The raw id stops here: everything downstream — KV seen-keys AND the GA
   // mirror — sees only the keyed hash (or nothing, if the secret is unset).
@@ -359,15 +356,12 @@ async function handlePing(request, env, ctx, now) {
     // 11. The phone's own namespace holds only iOS, so it keys the major alone.
     bump(kv, ios ? `os:${osVersion}` : `os:${platform}:${osVersion}`),
   ];
-  if (device) work.push(bump(kv, `device:${device}`));
   if (hashedId) {
     work.push(
       // One extra KV read per install per launch-day at most — the event:
       // dedup and markActive reads already dwarf it.
-      markFirstSeen(kv, hashedId, dayBucket(now), bump).then(async (isNew) => {
-        if (isNew && device) await bump(kv, `new:device:${device}`);
-        if (isNew && sendsDayOneSignals(version, platform)) await markDayOneEligible(kv, hashedId, dayBucket(now), bump);
-      }),
+      markFirstSeen(kv, hashedId, dayBucket(now), bump).then((isNew) =>
+        isNew && sendsDayOneSignals(version, platform) && markDayOneEligible(kv, hashedId, dayBucket(now), bump)),
       markNextDayReturn(kv, hashedId, dayBucket(now), prevDayBucket(now), bump),
       markWeekTwoReturn(kv, hashedId, dayBucket(now), bump),
       markActive(kv, 'day', dayBucket(now), hashedId, DAY_SEEN_TTL),
@@ -673,14 +667,12 @@ function monthReturnByCohort(newByDay, returnM1ByDay, today) {
 // plus the 30-day return. No downloads, product usage or first-day split.
 async function iosStats(kv, now) {
   const [
-    total, byDay, byVersion, byOsVersion, byDevice, newByDevice, daily, weekly, monthly, newByDay, returnD1ByDay, returnW2ByDay, returnM1ByDay,
+    total, byDay, byVersion, byOsVersion, daily, weekly, monthly, newByDay, returnD1ByDay, returnW2ByDay, returnM1ByDay,
   ] = await Promise.all([
     kv.get('total'),
     readMap(kv, 'day:'),
     readMap(kv, 'version:'),
     readMap(kv, 'os:'),
-    readMap(kv, 'device:'),
-    readMap(kv, 'new:device:'),
     readMap(kv, 'active:day:'),
     readMap(kv, 'active:week:'),
     readMap(kv, 'active:month:'),
@@ -700,7 +692,7 @@ async function iosStats(kv, now) {
   const cohortSize = cohort.ids.size;
   const today = dayBucket(now);
   return {
-    launches: { total: parseInt(total ?? '0', 10), byDay, byVersion, byOsVersion, byDevice },
+    launches: { total: parseInt(total ?? '0', 10), byDay, byVersion, byOsVersion },
     activeUsers: { daily: pickRecent(daily, 30), weekly: pickRecent(weekly, 12), monthly: pickRecent(monthly, 12) },
     retention: {
       cohortMonth: lastMonth,
@@ -710,7 +702,7 @@ async function iosStats(kv, now) {
       rate: cohortSize ? Number((returned / cohortSize).toFixed(4)) : 0,
       truncated: cohort.truncated || current.truncated,
     },
-    newInstalls: { byDay: pickRecent(newByDay, 60), byDevice: newByDevice },
+    newInstalls: { byDay: pickRecent(newByDay, 60) },
     nextDayReturn: nextDayReturnByCohort(newByDay, returnD1ByDay, today),
     weekTwoReturn: weekTwoReturnByCohort(newByDay, returnW2ByDay, today),
     monthReturn: monthReturnByCohort(newByDay, returnM1ByDay, today),

@@ -18,14 +18,6 @@ final class NativeCopyTests: XCTestCase {
         for key in Self.keys { XCTAssertNotEqual(SyncCopy.text(key), key, key) }
     }
 
-    func testAnIPadUsesItsOwnWordingWhereThereIsOne() {
-        let messages = ["welcome": "In your pocket.", "welcome.ipad": "On your iPad.", "done": "Done"]
-        XCTAssertEqual(SyncCopy.message("welcome", in: messages, onPad: true), "On your iPad.")
-        XCTAssertEqual(SyncCopy.message("welcome", in: messages, onPad: false), "In your pocket.")
-        XCTAssertEqual(SyncCopy.message("done", in: messages, onPad: true), "Done", "no iPad wording: the shared one")
-        XCTAssertEqual(SyncCopy.message("gone", in: messages, onPad: true), "gone")
-    }
-
     func testParametersAreFilled() {
         XCTAssertEqual(SyncCopy.text("ios.tabs.close", ["title": "Example"]), "Close Example")
         XCTAssertEqual(SyncCopy.plural("tabsMenu.header", count: 3), "3 tabs")

@@ -550,7 +550,7 @@ final class MemorySyncTransport: SyncTransport, @unchecked Sendable {
         try await f.transport.install(accountA, .sends, sendsStore([("mac", macEntry())]), key: f.key)
         await f.engine.syncNow()
         let own = try await f.transport.value(accountA, .sends, key: f.key)?["devices"]?[f.state.state.deviceId]
-        XCTAssertEqual(own?["name"], .string(ThisDevice.name))
+        XCTAssertEqual(own?["name"], .string("iPhone"))
         XCTAssertEqual(own?["platform"], .string("ios"))
         await f.engine.syncNow()
         let puts = await requestCount(f.transport, "PUT", suffix: "/sends")

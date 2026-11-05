@@ -19,7 +19,7 @@ final class TabSnapshotsTests: XCTestCase {
     let i = v["input"]!
     let tabs = i["tabs"]!.array.map { (url: $0["url"]!.string!, title: $0["title"]!.string!) }
     XCTAssertEqual(
-      TabSnapshots.ownEntry(tabs: tabs, previous: nil, name: "iPhone", now: i["now"]!.intValue!).canonical(),
+      TabSnapshots.ownEntry(tabs: tabs, previous: nil, now: i["now"]!.intValue!).canonical(),
       v["expected"]!.canonical())
   }
   func testOwnEntryKeepsClockWithoutChange() {
@@ -46,7 +46,7 @@ final class TabSnapshotsTests: XCTestCase {
       let groups = step["groups"]!.array.map { (id: $0["id"]!.string!, name: $0["name"]!.string!) }
       let membership = TabSnapshots.membership(tabs)
       let entry = TabSnapshots.ownEntry(
-        tabs: tabs, groups: groups, previous: previous, name: "iPhone", now: step["now"]!.intValue!,
+        tabs: tabs, groups: groups, previous: previous, now: step["now"]!.intValue!,
         membership: membership, previousMembership: previousMembership)
       let expected = step["expected"]!
       XCTAssertEqual(entry.canonical(), expected["entry"]!.canonical(), "step \(n)")
