@@ -41,12 +41,12 @@ namespace blanc {
 namespace {
 constexpr char kEndpoint[] = "https://blanc-sync.bnfy-441.workers.dev";
 
-// Compiled out of release: only a test build can point sync elsewhere.
+// Compiled out of release (blanc/config.gni): only a test build can point sync elsewhere.
 std::string TestEndpoint() {
-#if defined(OFFICIAL_BUILD)
-  return std::string();
-#else
+#if defined(BLANC_SYNC_TEST_HOOKS)
   return base::CommandLine::ForCurrentProcess()->GetSwitchValueASCII("blanc-sync-endpoint");
+#else
+  return std::string();
 #endif
 }
 
@@ -183,10 +183,25 @@ static void JNI_SyncBridge_FavoritesApply(JNIEnv* env, const jni_zero::JavaRef<j
   ForEach(*plan, "retitle", [&](const base::DictValue& item) {
     const std::string* url = item.FindString("url");
     const std::string* title = item.FindString("title");
+    const std::string* folder = item.FindString("folder");
     if (!url || !title) return;
-    for (const bookmarks::BookmarkNode* node : model->GetNodesByURL(GURL(*url)))
+    const auto* parent = FolderNamed(model, folder ? *folder : std::string());
+    for (const bookmarks::BookmarkNode* node : model->GetNodesByURL(GURL(*url))) {
       model->SetTitle(node, base::UTF8ToUTF16(*title), bookmarks::metrics::BookmarkEditSource::kOther);
+      if (node->parent() != parent) model->Move(node, parent, parent->children().size());
+    }
   });
+}
+
+static jni_zero::ScopedJavaLocalRef<jstring> JNI_SyncBridge_CanonicalUrls(JNIEnv* env, const jni_zero::JavaRef<jstring>& urls_json) {
+  base::ListValue out;
+  if (auto urls = base::JSONReader::Read(base::android::ConvertJavaStringToUTF8(env, urls_json), base::JSON_PARSE_RFC); urls && urls->is_list()) {
+    for (const base::Value& url : urls->GetList()) {
+      GURL address(url.is_string() ? url.GetString() : std::string());
+      out.Append(address.is_valid() ? address.spec() : std::string());
+    }
+  }
+  return base::android::ConvertUTF8ToJavaString(env, base::WriteJson(out).value_or("[]"));
 }
 
 static jboolean JNI_SyncBridge_BlockingEnabled(JNIEnv*) {

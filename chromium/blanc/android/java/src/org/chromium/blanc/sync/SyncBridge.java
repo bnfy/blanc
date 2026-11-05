@@ -6,6 +6,7 @@ import android.content.ClipData;
 import android.content.ClipDescription;
 import android.content.ClipboardManager;
 import android.content.Context;
+import android.content.SharedPreferences;
 import android.os.PersistableBundle;
 
 import org.json.JSONException;
@@ -30,6 +31,42 @@ import java.nio.charset.StandardCharsets;
 @JNINamespace("blanc")
 public final class SyncBridge {
     private static final BlancKeyStore sKeys = new BlancKeyStore();
+    private static final ProfileSync sProfile = new ProfileSync(new ProfileSync.Host() {
+        @Override
+        public void call(String method, String argsJson, Callback<String> done) {
+            SyncBridge.call(method, argsJson, done);
+        }
+
+        @Override
+        public @Nullable String favoritesList() {
+            return SyncBridge.favoritesList();
+        }
+
+        @Override
+        public void favoritesApply(String planJson) {
+            SyncBridgeJni.get().favoritesApply(planJson);
+        }
+
+        @Override
+        public String canonicalUrls(String urlsJson) {
+            return SyncBridgeJni.get().canonicalUrls(urlsJson);
+        }
+
+        @Override
+        public boolean blockingEnabled() {
+            return SyncBridgeJni.get().blockingEnabled();
+        }
+
+        @Override
+        public void setBlockingEnabled(boolean on) {
+            SyncBridgeJni.get().setBlockingEnabled(on);
+        }
+
+        @Override
+        public SharedPreferences prefs() {
+            return ContextUtils.getAppSharedPreferences();
+        }
+    });
 
     private SyncBridge() {}
 
@@ -48,18 +85,25 @@ public final class SyncBridge {
         return sKeys.unprotect(data);
     }
 
-    /** Starts the runner for a phone that syncs. A phone that doesn't never starts it. */
-    public static void startIfOn() {
+    private static boolean on() {
         File file = new File(PathUtils.getDataDirectory(), "blanc_sync/sync.json");
         try (FileInputStream in = new FileInputStream(file)) {
             byte[] data = new byte[(int) Math.min(file.length(), 1 << 20)];
             int read = in.read(data);
-            if (read > 0 && new JSONObject(new String(data, 0, read, StandardCharsets.UTF_8)).optBoolean("enabled")) {
-                ProfileSync.reconcile();
-            }
+            return read > 0 && new JSONObject(new String(data, 0, read, StandardCharsets.UTF_8)).optBoolean("enabled");
         } catch (IOException | JSONException e) {
-            // No file, or one that isn't ours yet: nothing to start.
+            return false;
         }
+    }
+
+    /** Starts the runner for a phone that syncs. A phone that doesn't never starts it. */
+    public static void startIfOn() {
+        if (on()) sProfile.reconcile();
+    }
+
+    /** Whether the wrapping key is really gone. */
+    public static boolean keyLost() {
+        return sKeys.lost();
     }
 
     /** Chromium's Favorites as JSON, or null until they've loaded. */
@@ -67,28 +111,16 @@ public final class SyncBridge {
         return SyncBridgeJni.get().favoritesList();
     }
 
-    static void favoritesApply(String planJson) {
-        SyncBridgeJni.get().favoritesApply(planJson);
-    }
-
-    static boolean blockingEnabled() {
-        return SyncBridgeJni.get().blockingEnabled();
-    }
-
-    static void setBlockingEnabled(boolean on) {
-        SyncBridgeJni.get().setBlockingEnabled(on);
-    }
-
     @CalledByNative
     private static void onFavoritesChanged() {
-        ProfileSync.reconcile();
+        if (on()) sProfile.reconcile();
     }
 
     /** Shipping's recovery code goes to the clipboard, marked sensitive. */
     @CalledByNative
     private static void onEvent(String event, String text) {
         if (!"clipboard".equals(event)) {
-            ProfileSync.reconcile();
+            sProfile.reconcile();
             return;
         }
         Context context = ContextUtils.getApplicationContext();
@@ -111,6 +143,8 @@ public final class SyncBridge {
         @Nullable String favoritesList();
 
         void favoritesApply(String planJson);
+
+        String canonicalUrls(String urlsJson);
 
         boolean blockingEnabled();
 

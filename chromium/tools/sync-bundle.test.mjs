@@ -89,3 +89,21 @@ test('a setting this bundle does not know survives a merge and is published agai
   const again = peer('Again', 'http://127.0.0.1:1', {stores: device.stores});
   assert.equal(again.module('settings').exportForSync().values.futureSetting, 'kept', 'kept across a restart');
 });
+
+test('a value this version cannot hold for a known setting is published as it came', () => {
+  const device = peer('Newer enum', 'http://127.0.0.1:1');
+  const settings = device.module('settings');
+  settings.mergeFromSync({values: {theme: 'sepia'}, meta: {theme: 7}, tieBreakers: {theme: 'z'}});
+  assert.notEqual(settings.getSettings().theme, 'sepia', 'never applied');
+  assert.equal(settings.exportForSync().values.theme, 'sepia');
+  settings.setSettings({theme: 'dark'});
+  assert.equal(settings.exportForSync().values.theme, 'dark', 'a change here wins with its newer clock');
+});
+
+test('runner.flush saves a pending store now', async () => {
+  const device = peer('Flush', 'http://127.0.0.1:1');
+  device.module('bookmarks').saveFavorite('https://example.org/flushed', 'Flushed');
+  assert.equal(device.stores['bookmarks.json'], undefined, 'still debounced');
+  await new Promise(done => device.context.__call('runner.flush', '[]', done));
+  assert.match(Buffer.from(device.stores['bookmarks.json']).toString(), /flushed/);
+});

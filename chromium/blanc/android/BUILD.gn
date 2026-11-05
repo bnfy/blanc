@@ -2,6 +2,7 @@
 # Blanc for Android's Java code (A1 onward). Plans:
 # docs/superpowers/plans/2026-11-04-android-a1-island.md.
 
+import("//blanc/config.gni")
 import("//build/config/android/rules.gni")
 import("//third_party/jni_zero/jni_zero.gni")
 
@@ -67,6 +68,9 @@ generate_jni("sync_jni") {
 
 # Keys, files and network for the sync runner. //chrome/browser depends on this (patch 0107).
 source_set("sync_bridge") {
+  if (blanc_enable_test_hooks) {
+    defines = [ "BLANC_SYNC_TEST_HOOKS" ]
+  }
   sources = [ "browser/sync_bridge.cc" ]
   deps = [
     ":sync_jni",
@@ -77,6 +81,13 @@ source_set("sync_bridge") {
     "//components/version_info",
     "//services/network/public/cpp",
   ]
+}
+
+# A build without test hooks gets the empty driver: no exported receiver exists at all.
+if (blanc_enable_test_hooks) {
+  blanc_sync_test_driver = "java/src/org/chromium/blanc/sync/SyncTestDriver.java"
+} else {
+  blanc_sync_test_driver = "java/stub/org/chromium/blanc/sync/SyncTestDriver.java"
 }
 
 android_library("sync_java") {
@@ -91,7 +102,7 @@ android_library("sync_java") {
     "java/src/org/chromium/blanc/sync/SyncSheetModel.java",
     "java/src/org/chromium/blanc/sync/SyncedFavorites.java",
     "java/src/org/chromium/blanc/sync/SyncedSettings.java",
-    "java/src/org/chromium/blanc/sync/SyncTestDriver.java",
+    blanc_sync_test_driver,
   ]
   deps = [
     ":zxing_java",
@@ -242,6 +253,7 @@ robolectric_binary("blanc_android_junit_tests") {
     "junit/src/org/chromium/blanc/island/IslandMenuTest.java",
     "junit/src/org/chromium/blanc/sync/BlancKeyStoreTest.java",
     "junit/src/org/chromium/blanc/sync/PairScannerTest.java",
+    "junit/src/org/chromium/blanc/sync/ProfileSyncTest.java",
     "junit/src/org/chromium/blanc/sync/SyncPairingTest.java",
     "junit/src/org/chromium/blanc/sync/SyncSheetTest.java",
     "junit/src/org/chromium/blanc/sync/SyncedFavoritesTest.java",

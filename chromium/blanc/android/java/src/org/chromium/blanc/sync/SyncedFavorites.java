@@ -10,12 +10,15 @@ import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 
 /**
  * Keeps Chromium's bookmarks and the runner's Favorites alike. The runner is sync's truth and its
  * clocks decide between devices; this only carries changes across the two sides. `seen` is every
- * address both sides last agreed on, which tells a new Favorite from a removed one.
+ * address both sides held, which tells a new Favorite from a removed one. An address goes in only
+ * once both hold it, and leaves only once neither does, so a step that never landed is tried again
+ * and can't read as a removal.
  */
 @NullMarked
 public final class SyncedFavorites {
@@ -55,6 +58,15 @@ public final class SyncedFavorites {
         return out;
     }
 
+    // Chromium tidies whitespace in a title, which mustn't read as a change on every pass.
+    private static String tidy(String title) {
+        return title.replaceAll("\\s+", " ").trim();
+    }
+
+    private static boolean differs(Entry mine, Entry theirs) {
+        return !tidy(mine.title).equals(tidy(theirs.title)) || !Objects.equals(mine.folder, theirs.folder);
+    }
+
     public static Plan plan(List<Entry> modelEntries, List<Entry> runnerEntries, Set<String> seen) {
         Map<String, Entry> model = byUrl(modelEntries);
         Map<String, Entry> runner = byUrl(runnerEntries);
@@ -63,21 +75,21 @@ public final class SyncedFavorites {
             Entry other = runner.get(entry.url);
             if (other != null) {
                 plan.seen.add(entry.url);
-                if (!other.title.equals(entry.title)) plan.retitleModel.add(other);
+                if (differs(entry, other)) plan.retitleModel.add(other);
             } else if (seen.contains(entry.url)) {
                 plan.removeFromModel.add(entry);
+                plan.seen.add(entry.url);
             } else {
                 plan.addToRunner.add(entry);
-                plan.seen.add(entry.url);
             }
         }
         for (Entry entry : runner.values()) {
             if (model.containsKey(entry.url)) continue;
             if (seen.contains(entry.url)) {
                 plan.removeFromRunner.add(entry);
+                plan.seen.add(entry.url);
             } else {
                 plan.addToModel.add(entry);
-                plan.seen.add(entry.url);
             }
         }
         return plan;

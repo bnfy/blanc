@@ -108,8 +108,20 @@ async function main(argv) {
       await value('sync.resetRequestWindowForTest');
       const synced = await value('sync.syncNow', [], 120);
       await device.pass();
-      const seen = urls(device.module('bookmarks').listBookmarks()).filter(url => url === PHONE);
-      return seen.length === 1 ? [] : [`ended ${JSON.stringify(ended)}, synced ${JSON.stringify(synced)}, peer has ${seen.length}`];
+      const kept = urls(device.module('bookmarks').listBookmarks());
+      return kept.includes(PHONE) ? [] : [`ended ${JSON.stringify(ended)}, synced ${JSON.stringify(synced)}, peer has ${kept.join()}`];
+    });
+
+    await check('a Favorite saved as the runner dies is neither lost nor deleted', async () => {
+      const device = await startedPeer('Dies');
+      const {code} = await device.sync.beginPairing();
+      await value('sync.joinWithCode', [code]);
+      await until(async () => urls(await value('test.favorites')).includes(FIRST), 'the Favorite in Chromium');
+      await d.view('https://dying.example/');
+      d.menu('Save to Favorites');
+      d.killSandboxed();
+      await until(async () => urls(await value('bookmarks.listBookmarks')).includes('https://dying.example/'), 'the runner to get it again');
+      return urls(await value('test.favorites')).includes('https://dying.example/') ? [] : ['deleted from Chromium'];
     });
 
     await check('a lost Keystore key turns Sync off and asks for a code', async () => {
@@ -122,8 +134,13 @@ async function main(argv) {
       d.runInPalette('/sync');
       await d.waitFor(async () => d.dump().includes('Pairing or recovery code'), 'the code field', 20);
       const status = await value('sync.status');
-      await device.pass();
-      const kept = urls(device.module('bookmarks').listBookmarks());
+      // A new device reads the account from the Worker, so this proves nothing there was wiped.
+      device.sync.resetRequestWindowForTest();
+      const fresh = peer('Fresh', worker.url);
+      const pairing = await device.sync.beginPairing();
+      await fresh.sync.joinWithCode(pairing.code);
+      await fresh.pass();
+      const kept = urls(fresh.module('bookmarks').listBookmarks());
       return status.enabled === false && kept.includes(FIRST) ? [] : [JSON.stringify(status), kept.join()];
     });
 

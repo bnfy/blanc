@@ -39,6 +39,9 @@ public final class SyncSheet {
     /** The runner: SyncBridge in the app, a fake in tests. */
     public interface Runner {
         void call(String method, String argsJson, Callback<String> done);
+
+        /** Whether Keystore really has no key, rather than failing for a moment. */
+        boolean keyLost();
     }
 
     /** Asks for a code from the camera; null means the person didn't scan one. */
@@ -106,7 +109,18 @@ public final class SyncSheet {
 
     /** Opens the sheet on the real runner. */
     public static void open(Activity activity, PairScanner.Permissions permissions) {
-        new SyncSheet(activity, SyncBridge::call, new PairScanner(activity, permissions)).show();
+        Runner runner = new Runner() {
+            @Override
+            public void call(String method, String argsJson, Callback<String> done) {
+                SyncBridge.call(method, argsJson, done);
+            }
+
+            @Override
+            public boolean keyLost() {
+                return SyncBridge.keyLost();
+            }
+        };
+        new SyncSheet(activity, runner, new PairScanner(activity, permissions)).show();
     }
 
     public void show() {
@@ -125,7 +139,7 @@ public final class SyncSheet {
                 mStatus = value;
                 mDeviceName = value.optString("deviceName", "");
                 if (mDeviceName.isEmpty()) mDeviceName = value.optString("deviceNamePublished", "");
-                if (value.optBoolean("enabled") && keyLost(value.optString("lastError"))) {
+                if (value.optBoolean("enabled") && keyError(value.optString("lastError")) && mRunner.keyLost()) {
                     forgetLostKey();
                     return;
                 }
@@ -135,7 +149,7 @@ public final class SyncSheet {
     }
 
     // A phone restored from a backup, or a key Android dropped: this phone's sync can't be opened.
-    private static boolean keyLost(String error) {
+    private static boolean keyError(String error) {
         return error.equals("local-key-unlock") || error.startsWith("key:");
     }
 

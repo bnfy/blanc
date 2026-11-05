@@ -44,6 +44,15 @@ public final class BlancKeyStore {
         mKeys = keys;
     }
 
+    /** Whether the key is really gone, not just out of reach for a moment. */
+    public boolean lost() {
+        try {
+            return mKeys.existing() == null;
+        } catch (GeneralSecurityException e) {
+            return false;
+        }
+    }
+
     /** The IV and ciphertext, or null if Keystore refuses. */
     public byte @Nullable [] protect(byte[] data) {
         try {

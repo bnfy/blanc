@@ -54,8 +54,21 @@ public class SyncSheetTest {
         reply("sync.status", "{\"enabled\":false}");
     }
 
+    private final SyncSheet.Runner mRunner = new SyncSheet.Runner() {
+        @Override
+        public void call(String method, String args, Callback<String> done) {
+            SyncSheetTest.this.call(method, args, done);
+        }
+
+        @Override
+        public boolean keyLost() {
+            return mKeyLost;
+        }
+    };
+    private boolean mKeyLost = true;
+
     private void open() {
-        new SyncSheet(mActivity, this::call, done -> done.onResult(mScanned)).show();
+        new SyncSheet(mActivity, mRunner, done -> done.onResult(mScanned)).show();
     }
 
     private void collect(View view, List<View> out) {
@@ -156,14 +169,30 @@ public class SyncSheetTest {
     public void aLostKeyTurnsSyncOffAndAsksForACode() {
         reply("sync.status", "{\"enabled\":true,\"handle\":\"tester\",\"lastError\":\"local-key-unlock\"}");
         mReplies.put("sync.disable", "{\"ok\":true,\"value\":{\"ok\":true}}");
-        SyncSheet sheet = new SyncSheet(mActivity, (method, args, done) -> {
-            if (method.equals("sync.disable")) reply("sync.status", "{\"enabled\":false}");
-            call(method, args, done);
-        }, done -> done.onResult(null));
-        sheet.show();
+        SyncSheet.Runner disabling = new SyncSheet.Runner() {
+            @Override
+            public void call(String method, String args, Callback<String> done) {
+                if (method.equals("sync.disable")) reply("sync.status", "{\"enabled\":false}");
+                SyncSheetTest.this.call(method, args, done);
+            }
+
+            @Override
+            public boolean keyLost() {
+                return true;
+            }
+        };
+        new SyncSheet(mActivity, disabling, done -> done.onResult(null)).show();
         assertTrue(mCalls.toString(), mCalls.contains("sync.disable [{\"wipeRemote\":false}]"));
         assertTrue(shows(R.string.blanc_sync_error_local_key_unlock));
         assertNotNull(field(R.string.blanc_ios_settings_pairing_code));
+    }
+
+    @Test
+    public void aKeystoreHiccupLeavesSyncOn() {
+        mKeyLost = false;
+        reply("sync.status", "{\"enabled\":true,\"handle\":\"tester\",\"lastError\":\"key:decryption-failed\"}");
+        open();
+        assertFalse(mCalls.toString().contains("sync.disable"));
     }
 
     @Test

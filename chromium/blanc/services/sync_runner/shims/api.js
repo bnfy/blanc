@@ -2,6 +2,12 @@
 // module and an export, from this list only.
 const MODULES = {sync: 'sync', bookmarks: 'bookmarks', settings: 'settings'};
 globalThis.__call = (method, argsJson, done) => {
+  // Saves every store's pending change now, so what the phone writes down as agreed is on disk.
+  if (method === 'runner.flush') {
+    __require('shim:electron').__quit();
+    done(true, 'null');
+    return;
+  }
   const [mod, fn] = String(method).split('.');
   const file = MODULES[mod];
   Promise.resolve().then(() => {
@@ -39,12 +45,24 @@ globalThis.__keepUnknownSettings = known => {
       kept[key] = {at, value: remote.values[key], tie: remote.tieBreakers?.[key]};
       changed = true;
     }
+    const result = merge(remote);
+    // A known key with a value this version can't hold: shipping keeps its old value at the new
+    // clock, which would overwrite the newer device's. The value it was sent rides here instead.
+    const after = exportForSync();
+    for (const key of known) {
+      const at = remote.meta?.[key], value = remote.values?.[key];
+      if (key === 'deviceNames' || key === 'startPagePins' || value === undefined || !Number.isFinite(at)) continue;
+      if (after.meta[key] !== at || JSON.stringify(after.values[key]) === JSON.stringify(value)) continue;
+      kept[key] = {at, value, tie: remote.tieBreakers?.[key]};
+      changed = true;
+    }
     if (changed) fs.writeFileSync(FILE, JSON.stringify(kept));
-    return merge(remote);
+    return result;
   };
   settings.exportForSync = () => {
     const out = exportForSync();
     for (const [key, entry] of Object.entries(kept)) {
+      if (known.includes(key) && out.meta[key] !== entry.at) continue;
       out.values[key] = entry.value;
       out.meta[key] = entry.at;
       if (entry.tie) out.tieBreakers[key] = entry.tie;

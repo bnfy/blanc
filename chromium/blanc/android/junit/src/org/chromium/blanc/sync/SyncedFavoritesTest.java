@@ -38,8 +38,10 @@ public class SyncedFavoritesTest {
         Plan plan = SyncedFavorites.plan(List.of(), List.of(entry("a")), seen());
         assertEquals(List.of("a"), urls(plan.addToModel));
         assertTrue(plan.addToRunner.isEmpty());
+        assertTrue(plan.seen.isEmpty());
         Plan next = SyncedFavorites.plan(List.of(entry("a")), List.of(entry("a")), plan.seen);
         assertTrue(next.isEmpty());
+        assertEquals(seen("a"), next.seen);
     }
 
     @Test
@@ -54,7 +56,8 @@ public class SyncedFavoritesTest {
         Plan plan = SyncedFavorites.plan(List.of(entry("a")), List.of(), seen("a"));
         assertEquals(List.of("a"), urls(plan.removeFromModel));
         assertTrue(plan.addToRunner.isEmpty());
-        assertTrue(plan.seen.isEmpty());
+        assertEquals("kept until it's gone from both", seen("a"), plan.seen);
+        assertTrue(SyncedFavorites.plan(List.of(), List.of(), plan.seen).seen.isEmpty());
     }
 
     @Test
@@ -75,7 +78,19 @@ public class SyncedFavoritesTest {
         Plan plan = SyncedFavorites.plan(List.of(entry("local")), List.of(entry("remote")), seen());
         assertEquals(List.of("local"), urls(plan.addToRunner));
         assertEquals(List.of("remote"), urls(plan.addToModel));
-        assertEquals(seen("local", "remote"), plan.seen);
+        assertTrue(plan.seen.isEmpty());
+    }
+
+    @Test
+    public void aRemoteFolderMoveComesHere() {
+        Plan plan = SyncedFavorites.plan(List.of(entry("a")), List.of(new Entry("a", "a", "work")), seen("a"));
+        assertEquals("work", plan.retitleModel.get(0).folder);
+    }
+
+    @Test
+    public void whitespaceChromiumTidiedIsNoChange() {
+        Plan plan = SyncedFavorites.plan(List.of(new Entry("a", "two words", null)), List.of(new Entry("a", "two\n words ", null)), seen("a"));
+        assertTrue(plan.isEmpty());
     }
 
     @Test

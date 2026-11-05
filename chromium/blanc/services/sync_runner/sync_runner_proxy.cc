@@ -35,6 +35,7 @@
 #include "net/base/load_flags.h"
 #include "net/base/net_errors.h"
 #include "net/http/http_response_headers.h"
+#include "net/http/http_util.h"
 #include "net/traffic_annotation/network_traffic_annotation.h"
 #include "services/network/public/cpp/resource_request.h"
 #include "services/network/public/cpp/shared_url_loader_factory.h"
@@ -80,8 +81,10 @@ std::string ReadBundle() {
   base::File file(fd);
   script.resize(region.size);
   if (!file.ReadAndCheck(region.offset, base::as_writable_byte_span(script))) return std::string();
+#if defined(BLANC_SYNC_TEST_HOOKS)
   // For the emulator check: a wrong bundle must never run.
   if (base::CommandLine::ForCurrentProcess()->HasSwitch("blanc-sync-test-bad-bundle")) script.back() ^= 1;
+#endif
 #else
   auto path = base::CommandLine::ForCurrentProcess()->GetSwitchValuePath("blanc-sync-assets").AppendASCII("sync-bundle.js");
   if (!base::ReadFileToStringWithMaxSize(path, &script, 16 * 1024 * 1024)) return std::string();
@@ -127,10 +130,15 @@ class Runner : public mojom::SyncHost {
     request->method = method;
     request->credentials_mode = network::mojom::CredentialsMode::kOmit;
     request->load_flags = net::LOAD_DISABLE_CACHE;
+    // The address was checked above; a redirect mustn't take the request anywhere else.
+    request->redirect_mode = network::mojom::RedirectMode::kError;
     std::string content_type = "application/octet-stream";
     if (auto parsed = base::JSONReader::ReadDict(headers_json, base::JSON_PARSE_RFC)) {
       for (auto [name, value] : *parsed) {
-        if (!value.is_string()) continue;
+        if (!value.is_string() || !net::HttpUtil::IsValidHeaderName(name) ||
+            !net::HttpUtil::IsValidHeaderValue(value.GetString())) {
+          continue;
+        }
         if (base::EqualsCaseInsensitiveASCII(name, "content-type")) content_type = value.GetString();
         else request->headers.SetHeader(name, value.GetString());
       }
@@ -152,10 +160,13 @@ class Runner : public mojom::SyncHost {
     }, g_platform->StoreDir().AppendASCII(name), data));
   }
   void Protect(const std::vector<uint8_t>& data, ProtectCallback callback) override {
-    std::move(callback).Run(g_platform->Protect(data));
+    // Keystore goes through binder: never on the thread that draws the app.
+    base::ThreadPool::PostTaskAndReplyWithResult(FROM_HERE, {base::MayBlock()},
+        base::BindOnce(&SyncPlatform::Protect, base::Unretained(g_platform), data), std::move(callback));
   }
   void Unprotect(const std::vector<uint8_t>& data, UnprotectCallback callback) override {
-    std::move(callback).Run(g_platform->Unprotect(data));
+    base::ThreadPool::PostTaskAndReplyWithResult(FROM_HERE, {base::MayBlock()},
+        base::BindOnce(&SyncPlatform::Unprotect, base::Unretained(g_platform), data), std::move(callback));
   }
   void Emit(const std::string& event, const std::string& json) override {
     g_platform->OnEvent(event, json);
@@ -190,7 +201,8 @@ class Runner : public mojom::SyncHost {
   void Start() {
     CHECK(g_platform);
     starting_ = true;
-    base::ThreadPool::PostTaskAndReplyWithResult(FROM_HERE, {base::MayBlock()},
+    // On the writer's sequence: a restart reads what the last runner wrote, not what it had.
+    writer_->PostTaskAndReplyWithResult(FROM_HERE,
         base::BindOnce([](base::FilePath dir) { return std::make_pair(ReadBundle(), ReadStores(dir)); }, g_platform->StoreDir()),
         base::BindOnce(&Runner::Loaded, base::Unretained(this)));
   }
@@ -223,7 +235,7 @@ class Runner : public mojom::SyncHost {
     if (crash) {
       std::erase_if(crashes_, [&](base::TimeTicks at) { return now - at > kCrashLimitWindow; });
       crashes_.push_back(now);
-      if (crashes_.size() >= kCrashLimit) { Fail("ended"); failed_ = true; return; }
+      if (crashes_.size() >= kCrashLimit) { failed_ = true; Fail("ended"); return; }
     }
     if (!waiting_.empty()) Start();
   }
