@@ -17,10 +17,13 @@ import path from 'node:path';
 import {fileURLToPath} from 'node:url';
 import {Device, PACKAGE, adb, clearFixtureRequests, fixtureRequests, setSwitches, sleep, startFixtures} from './acceptance/support/device.mjs';
 
+// Whether a logged request ("host/path") went to the ad's exact host.
+const isAd = request => new URL(`https://${request}`).hostname === 'ad.doubleclick.net';
+
 // What a page's check found: problems, if any.
 export function blockingProblems({requests, libLoaded, hidden}) {
   const problems = [];
-  if (requests.some(r => r.startsWith('ad.doubleclick.net'))) problems.push('the ad request reached the network');
+  if (requests.some(r => isAd(r))) problems.push('the ad request reached the network');
   if (!requests.some(r => r.startsWith('lib.example'))) problems.push('the allowed request never left');
   if (!libLoaded) problems.push('the allowed script did not run');
   if (!hidden) problems.push('the ad element is showing');
@@ -59,7 +62,7 @@ async function main(argv) {
       await d.view('https://news.example/ads');
       return blockingProblems(await pageState(d, 'https://news.example/ads'));
     });
-    const adLoaded = () => fixtureRequests().some(r => r.startsWith('ad.doubleclick.net'));
+    const adLoaded = () => fixtureRequests().some(r => isAd(r));
     await check('the menu counts what it blocked', async () => {
       await d.view('https://news.example/ads');
       await pageState(d, 'https://news.example/ads');
@@ -134,7 +137,7 @@ async function main(argv) {
         await pageState(d, `https://${site}.example/ads`);
       }
       const requests = fixtureRequests();
-      return [...(requests.some(r => r.startsWith('ad.doubleclick.net')) ? ['a restored tab reached the ad'] : []),
+      return [...(requests.some(r => isAd(r)) ? ['a restored tab reached the ad'] : []),
         ...(requests.some(r => r.startsWith('lib.example')) ? [] : ['no restored tab loaded'])];
     });
     await check('quick endings stop pages, and Retry recovers', async () => {
@@ -151,7 +154,7 @@ async function main(argv) {
       clearFixtureRequests();
       adb('shell', 'am', 'start', '-a', 'android.intent.action.VIEW', '-d', "'https://stopped.example/ads'", '-p', PACKAGE);
       sleep(6);
-      const problems = fixtureRequests().some(r => r.startsWith('ad.doubleclick.net')) ? ['an ad loaded while the blocker was down'] : [];
+      const problems = fixtureRequests().some(r => isAd(r)) ? ['an ad loaded while the blocker was down'] : [];
       if (!d.has({text: 'Blocking could not start.'})) problems.push('nothing on screen says why');
       d.tap({id: 'blanc_island_menu'});
       if (!d.has({text: 'Blocking could not start.'})) problems.push('the menu does not say blocking is down');
@@ -164,13 +167,13 @@ async function main(argv) {
       await d.view('https://worker.example/sw');
       await d.waitFor(async () => (await d.page('window.workerUp===true')) === true, 'the worker to install', 20);
       const requests = fixtureRequests();
-      return [...(requests.some(r => r.startsWith('ad.doubleclick.net')) ? ['the worker reached the ad'] : []),
+      return [...(requests.some(r => isAd(r)) ? ['the worker reached the ad'] : []),
         ...(requests.some(r => r.startsWith('lib.example/sw-allowed')) ? [] : ['the worker\'s allowed fetch never left'])];
     });
     await check('a prefetch is filtered', async () => {
       await d.view('https://hint.example/prefetch');
       await d.waitFor(() => fixtureRequests().some(r => r.startsWith('lib.example/prefetch-allowed')), 'the allowed prefetch', 20);
-      return fixtureRequests().some(r => r.startsWith('ad.doubleclick.net')) ? ['the prefetch reached the ad'] : [];
+      return fixtureRequests().some(r => isAd(r)) ? ['the prefetch reached the ad'] : [];
     });
     await check('the Start Page reports whether protection is on', async () => {
       const on = await d.page('window.bowserPages.start.data().then(x=>x.mobileAdblockEnabled)');

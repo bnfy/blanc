@@ -30,11 +30,21 @@ ${words}${link}${ads}${worker}${prefetch}<div style="height:150vh"></div>`;
 
 if (!isMainThread) {
   const {dir, port, requestLog} = workerData;
+  const size = new Int32Array(requestLog, 0, 1);
+  const bytes = new Uint8Array(requestLog, 4);
+  const encoder = new TextEncoder();
+  const record = line => {
+    const encoded = encoder.encode(`${line}\n`);
+    const at = Atomics.load(size, 0);
+    if (at + encoded.length > bytes.length) return;
+    bytes.set(encoded, at);
+    Atomics.store(size, 0, at + encoded.length);
+  };
   https.createServer({key: fs.readFileSync(path.join(dir, 'key.pem')), cert: fs.readFileSync(path.join(dir, 'cert.pem'))},
     (request, response) => {
       response.setHeader('content-type', 'text/html; charset=utf-8');
       response.setHeader('cache-control', 'no-store');
-      fs.appendFileSync(requestLog, `${request.headers.host}${request.url}\n`);
+      record(`${request.headers.host}${request.url}`);
       if (request.url === '/worker.js') {
         response.setHeader('content-type', 'text/javascript');
         response.end(`self.addEventListener('install',e=>{self.skipWaiting();e.waitUntil(Promise.all(['https://ad.doubleclick.net/sw-fetch.js','https://lib.example/sw-allowed.js'].map(u=>fetch(u,{mode:'no-cors'}).catch(()=>{}))))});`);

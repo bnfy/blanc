@@ -45,8 +45,8 @@ export function startFixtures() {
   // Root first, which a reboot drops: it restarts adbd, so it can't come after adb reverse.
   adb('root');
   adb('wait-for-device');
-  requestLog = path.join(dir, 'requests.log');
-  fs.writeFileSync(requestLog, '');
+  // Shared with the server's thread: this thread reads it even while the server is busy.
+  requestLog = new SharedArrayBuffer(1024 * 1024);
   const worker = new Worker(new URL('./fixture-server.mjs', import.meta.url), {workerData: {dir, port: FIXTURE_PORT, requestLog}});
   adb('reverse', `tcp:${FIXTURE_PORT}`, `tcp:${FIXTURE_PORT}`);
   commandLineDir = dir;
@@ -61,9 +61,10 @@ export function startFixtures() {
 
 // Every address the fixture server has been asked for since the last clear.
 export function fixtureRequests() {
-  return fs.readFileSync(requestLog, 'utf8').split('\n').filter(Boolean);
+  const size = Atomics.load(new Int32Array(requestLog, 0, 1), 0);
+  return new TextDecoder().decode(new Uint8Array(requestLog, 4, size).slice()).split('\n').filter(Boolean);
 }
-export function clearFixtureRequests() { fs.writeFileSync(requestLog, ''); }
+export function clearFixtureRequests() { Atomics.store(new Int32Array(requestLog, 0, 1), 0, 0); }
 
 async function evaluate(target, expression, timeoutMs = 3000) {
   const ws = new WebSocket(target.webSocketDebuggerUrl);
