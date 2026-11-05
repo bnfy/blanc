@@ -662,6 +662,108 @@ remain pending. D3 beta-only no-DRM exception accepted; EME notice/handoff requi
     macos-41cadf1e05df1804 (in the candidate, on by default, reachable through shipping
     UI). Verified still needs each row's manual accessibility and visual
     checklist. F35 stays partial until Mahjong.
+- **S2 decisions (owner, 2026-11-04):** V18, local profiles are Chromium's
+  profiles with its own picker and Manage profile pages, settings per
+  profile (F33); V19, Chromium's native passkeys (N7); V20, Chromium's
+  Default browser section (N10); telemetry (F21) is built consent-first with
+  shipping's fixed events, but the preview channel never sends (only a
+  release-channel build would). Favorites import (F30) follows the spec:
+  Chromium's importer where it covers a source (Safari, Firefox) and
+  shipping's reader for Chromium-family profiles and Arc.
+- **S2.1 native profiles in Settings (V18), candidate macos-09aa3d8b79584378
+  (2026-11-05):** patch 0027 keeps chrome://settings' People section for
+  Chromium's profiles, retitled Profiles (shipping's label), with the
+  profile's name and picture (Manage profile), a Profiles row that opens
+  Chromium's profile picker (`blancSettingsProfilePicker`; the Island has
+  no avatar button) and Chromium's Import bookmarks and settings dialog (the
+  native half of F30). Its Sync and Google services rows are gone, and
+  `signin.allowed` defaults to false (identity_manager_factory.cc, newly
+  pinned with the two People page files; 118 upstream files), so no
+  sign-in or Sync promo shows anywhere. The sheet opens it as `profiles` or
+  `people`. A probe confirms the row opens chrome://profile-picker.
+  settings-and-theming 5 pass / 1 undefined and interface-language 5 pass,
+  as before. Default browser (V20) was already Chromium's section. Open: the
+  default profile is named "Your Chromium" (Chromium's product string, not
+  shipping's Personal), which belongs with the fork's product-name strings;
+  F33's three shipping cases drive shipping's own Profiles section and stay
+  undefined under V18.
+- **S2.2 first run and Favorites import, candidate macos-86a75dc4b5d45861 (2026-11-05):**
+  shipping's walkthrough now runs on the Start Page. `first_run.inc` holds
+  settings.js's first-run state (Local State `blanc.first_run.completed_at`
+  and `blanc.telemetry.usage_ping`, device-wide), pages.js's narrow
+  onboarding setters (blocking, theme, and `blanc.tabs.archive` only while
+  first run is pending) and browser-data-import.js's reader: Chrome, Edge,
+  Brave, Chromium and Vivaldi profiles, Bookmarks and AccountBookmarks, read
+  only when asked, labels only to the page. A bookmarks file is chosen and
+  parsed in the page (`pages/bookmark-file.js`) and merged natively with
+  bookmark-data.js's rules, for the walkthrough and the Favorites sheet.
+  Patch 0028 registers the prefs; test profiles finish first run at launch.
+  F30 passes all 5; F36 passed 7 here, with F36-8 undefined until S2.6.
+  island-and-commands 63 / 3,
+  internal-pages 9 / 1, newtab-layouts 10 / 3 (Mahjong only). F30, F33, F36
+  and N10 are Integrated on macOS. The default-browser step uses Chromium's
+  check and registration (V20). Bring Your Tabs (F40) stays hidden until S3.
+  The privacy step keeps shipping's copy (owner, 2026-11-05), though the
+  preview neither checks for updates nor sends counts (F21 consent only).
+  macOS 27.3 changed clang's `--version` text (same binary); the owner
+  approved recording the environment, and the plan stayed small.
+- **S2.3 moving-in checklist (N11), candidate macos-27de7410e9f9d890 (2026-11-05):**
+  shipping's Finish setup pill runs on the Start Page from native state
+  (Local State `blanc.checklist.dismissed` and `default_done`), never in a
+  private tab or a named profile. A task is listed only where it works, so
+  today it holds Make Blanc your default alone; Sync (F27), Bring your tabs
+  (F40), the first space (F41) and the iPhone join through their availability
+  flags in `first_run.inc`. newtab-layouts 12 pass / 3 fail (Mahjong only):
+  F35-7 and F35-8 pass, and F35-10 and F35-18 now wait only on the Billboard
+  history-seeding test op.
+- **S2.4 What's New (F51), candidate macos-28492a27347b09a4 (2026-11-05):** shipping's
+  `whats-new.js` runs unmodified (a generated wrapper) in the host and on
+  the Start Page, over a Local State dictionary `blanc.whats_new` with
+  shipping's five fields; `whatsNewCheck` is its one HEAD (no cookies, no
+  redirects, only https://blanc.day/whats-new/<release>). It keys off the
+  Blanc release version, which the preview doesn't have, so it is inert until
+  a release channel supplies `BlancReleaseVersion()`: Implemented, not
+  Integrated. A probe with `--blanc-test-version=1.47.0` shows the pill and
+  its changelog link and that closing it sticks, and the preview stays
+  silent. Not exercised: the page-found path (a 200 from blanc.day, and the
+  one-time tab), which the offline fixture can't reach.
+- **S2.5 Patron and app icons (F17), candidate macos-df08efed32b15890 (2026-11-05):**
+  owner decisions: the preview offers the Blanc Patron row and its checkout
+  link only (chrome://settings → About; no license key activation until a
+  release channel), and the Start Page's upgrade pill stays off. Settings →
+  Appearance has shipping's five macOS icons (`blanc.app_icon`, patch 0029,
+  which pins the two About page files); the Dock takes shipping's flat
+  images, its development-build path, because the adaptive stacks need
+  Assets.car from a packaged build. Sunrise itself is the bundle's icon.
+  F17-1 and F17-3 pass, settings-and-theming 6 pass / 1 undefined (F14-2 now
+  runs) and island-and-commands 63 / 3 as before. The checkout line is read
+  through loadTimeData, not `$i18n{}`: its "$4/month" is a dangling
+  placeholder to Chromium's template expressions, which crashed Settings on
+  the first candidate. The Dock change itself is not visible to the tests.
+  chrome://settings' About page still reads About Chromium, with Chromium's
+  logo and an update-check error; that belongs with the product strings.
+- **S2.6 welcome tour and telemetry (F36-8, F21), candidate macos-9a9442cac7df94a0 (2026-11-05):**
+  Settings → About has shipping's Welcome tour row. It opens
+  `chrome://blanc-prototype/pages/newtab.html?tour=1`, the one extra Start Page
+  address `IsRegularStartPage` accepts, and the tab reads as a new tab
+  everywhere else. From a private window it opens in a regular one. F36 passes
+  all 8. Telemetry is `telemetry.inc`, shipping's telemetry.js and
+  day-one-signals.js: launch ping, `newtab_layout`, `day1_default` and
+  `day1_browsed`, with the install id in Local State
+  (`blanc.telemetry.install`, patch 0030) and minted only on the way to a send.
+  Settings → Privacy and security has Help improve Blanc and Reset install ID.
+  Reset clears the record rather than minting a new id, so a declined choice
+  still leaves none. The preview stays silent because `BlancReleaseVersion()`
+  is empty outside tests; `tests/telemetry-gate.test.mjs` fails if anything
+  else can supply one, and a preview run with a completed first run sent
+  nothing and minted no id. F21-1 and F21-2 pass with a test version and a
+  capture server. Not exercised: the two day-one signals (no case reaches
+  them) and `mahjong_play`, which waits for Mahjong. A page counts toward
+  `day1_browsed` only in the active tab, where shipping counts every tab.
+  The Help improve Blanc row keeps shipping's copy, which describes sending.
+  island-and-commands 64 / 2 (F1-13 passed this time, still unexplained),
+  settings-and-theming 6 / 0, browser-migration 5 / 0, internal-pages 9 / 1,
+  newtab-layouts 12 / 3 (Mahjong only).
 - **Mahjong goes last (owner, 2026-11-04):** the fork has no Mahjong yet
   (F35-3, F35-4, F35-9 fail at the footer launch). When it is built it is an
   Island page (shipping's files served as byte-identical copies, opened as an
@@ -1048,13 +1150,13 @@ Android's Bar A counts the shared scenarios bound in `chromium/tests/android/acc
 
 | State | macOS | Windows | Linux | Android |
 | --- | ---: | ---: | ---: | ---: |
-| Not started / unassessed | 33 | 80 | 80 | 69 |
+| Not started / unassessed | 25 | 80 | 80 | 69 |
 | Research only | 1 | 0 | 0 | 0 |
 | Drafted | 7 | 0 | 0 | 0 |
-| Implemented | 0 | 0 | 0 | 11 |
+| Implemented | 2 | 0 | 0 | 11 |
 | Built, isolated (legacy) | 5 | 0 | 0 | 0 |
 | Integrated, partial (legacy) | 3 | 0 | 0 | 0 |
-| Integrated | 31 | 0 | 0 | 0 |
+| Integrated | 37 | 0 | 0 | 0 |
 | Verification needs recheck | 0 | 0 | 0 | 0 |
 | Verified | 0 | 0 | 0 | 0 |
 | Release-ready | 0 | 0 | 0 | 0 |
@@ -1062,5 +1164,5 @@ Android's Bar A counts the shared scenarios bound in `chromium/tests/android/acc
 
 Legacy macOS stages come from the approved spec; they await verification on the canonical candidate. No legacy stage counts as Verified.
 
-Candidate identities: macOS: macos-41cadf1e05df1804; Windows: none; Linux: none; Android: android-arm64-7bd35e94ef746069.
+Candidate identities: macOS: macos-9a9442cac7df94a0; Windows: none; Linux: none; Android: android-arm64-7bd35e94ef746069.
 <!-- END GENERATED PROGRESS -->

@@ -27,3 +27,8 @@
     host.sheetEscape(window);
   }, true);
 })();
+// Bring Your Tabs (F40) arrives with S3; its page isn't in the fork yet.
+document.addEventListener('DOMContentLoaded', () => {
+  const bringTabs = document.getElementById('bringTabsBtn');
+  if (bringTabs) bringTabs.style.display = 'none';
+});

@@ -304,6 +304,10 @@ function paintMigrationChecklist(checklist, { completing = false } = {}) {
   setMigrationTask(migrationSyncTask, migrationSyncAction, checklist.syncComplete, t('newtab.checklist.sync'));
   setMigrationTask(migrationTabsTask, migrationTabsAction, checklist.tabsComplete, t('newtab.checklist.tabs'));
   setMigrationTask(migrationSpaceTask, migrationSpaceAction, checklist.spaceComplete, t('newtab.checklist.space'));
+  // The fork lists a task only where it works (first_run.inc).
+  migrationSyncTask.hidden = checklist.syncAvailable === false;
+  migrationTabsTask.hidden = checklist.tabsAvailable === false;
+  migrationSpaceTask.hidden = checklist.spaceAvailable === false;
 }
 
 function hideMigrationChecklist() {

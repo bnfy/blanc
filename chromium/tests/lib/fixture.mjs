@@ -1,4 +1,5 @@
 import fs from 'node:fs';
+import os from 'node:os';
 import path from 'node:path';
 import http from 'node:http';
 import net from 'node:net';
@@ -19,6 +20,22 @@ const LOCAL_HOSTS=['nas.home.arpa','lab.home.arpa'];
 const TLS_HOSTS=['insecure.test','secure.test','badcert.test',...LOCAL_HOSTS];
 import {connect, waitFor, pause} from './cdp.mjs';
 const digest = file => crypto.createHash('sha256').update(fs.readFileSync(file)).digest('hex');
+// Shipping's acceptance home: a Chrome with two profiles to import from.
+function browserHome(fixture){
+ const home=fs.mkdtempSync(path.join(os.tmpdir(),'blanc-browser-home-'));fixture.browserHome=home;
+ const root=path.join(home,'Library','Application Support','Google','Chrome');
+ fs.mkdirSync(path.join(root,'Default'),{recursive:true});fs.mkdirSync(path.join(root,'Profile 1'),{recursive:true});
+ fs.writeFileSync(path.join(root,'Local State'),JSON.stringify({profile:{info_cache:{Default:{name:'Acceptance profile'},'Profile 1':{name:'Tab migration fixture'}}}}));
+ fs.writeFileSync(path.join(root,'Default','Bookmarks'),JSON.stringify({roots:{
+  bookmark_bar:{type:'folder',name:'Bookmarks bar',children:[
+   {type:'url',name:'Migration one',url:'https://migration-one.example/',date_added:'13370000000000000'},
+   {type:'folder',name:'Reading',children:[{type:'url',name:'Migration two',url:'https://migration-two.example/',date_added:'13371000000000000'},
+    {type:'url',name:'Browser internals',url:'chrome://settings/'}]}]},
+  other:{type:'folder',name:'Other bookmarks',children:[{type:'url',name:'Migration three',url:'https://migration-three.example/'}]}}}));
+ fs.writeFileSync(path.join(root,'Profile 1','Bookmarks'),JSON.stringify({roots:{bookmark_bar:{type:'folder',name:'Bookmarks bar',
+  children:[{type:'url',name:'Hotels',url:'https://hotels.example/stay'}]}}}));
+ return home;
+}
 export class NativeFixture {
   async launch(config, directory, {testHooks=false, privateMode=false, pages=null, diskAssets=true, direct=null} = {}) {
     this.directory=directory; this.connections=[]; this.sockets=new Set();
@@ -77,7 +94,7 @@ export class NativeFixture {
       ...(direct?['--no-proxy-server',...direct]:[`--proxy-server=http://127.0.0.1:${this.proxy.address().port}`,`--proxy-bypass-list=127.0.0.1;localhost;${TLS_HOSTS.join(';')}`,
       `--host-resolver-rules=${TLS_HOSTS.map(h=>'MAP '+h+' 127.0.0.1, ').join('')}MAP * ~NOTFOUND, EXCLUDE localhost, EXCLUDE 127.0.0.1`,'--disable-quic']),...tlsFlags,
       '--disable-background-networking','--no-first-run','--no-default-browser-check','--use-mock-keychain',
-      ...(testHooks?['--blanc-test']:[]),...(privateMode?['--incognito']:[])];
+      ...(testHooks?['--blanc-test',`--blanc-test-browser-home=${browserHome(this)}`]:[]),...(privateMode?['--incognito']:[])];
     await this.start(this.base+'/initial');
     this.page=await connect((await this.targets()).find(t=>t.url===this.base+'/initial'));this.connections.push(this.page);
     await waitFor(this.snapshot,s=>s.tabs.some(t=>t.url===this.base+'/initial'&&!t.isLoading),'local page');

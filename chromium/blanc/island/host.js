@@ -170,7 +170,19 @@
   const stripH = () => islandSize().strip;
   // A length drawn inside the zoomed pill, at this size (scaleForIslandSize).
   const scaleForSize = px => Math.ceil(px * islandSize().zoom / ISLAND_SIZES.default.zoom);
+  // The Dock icon (F17) follows the setting, and the appearance for the
+  // icons with a Dark image, as shipping reapplies it.
+  const darkScheme = matchMedia('(prefers-color-scheme: dark)');
+  let dockIconKey = '';
+  function syncDockIcon() {
+    const key = snapshot?.appIcon ? `${snapshot.appIcon}:${darkScheme.matches}` : '';
+    if (!key || key === dockIconKey) return;
+    dockIconKey = key;
+    request('applyAppIcon', [snapshot.appIcon, darkScheme.matches]).catch(() => {});
+  }
+  darkScheme.addEventListener('change', syncDockIcon);
   function paintHeader() {
+    syncDockIcon();
     const active = snapshot?.tabs.find(tab => tab.id === snapshot.activeTabId);
     const theme = active?.private ? null : snapshot?.installedTheme;
     for (const doc of [document, strip.contentDocument, floatPill.contentDocument, overlay.contentDocument])
@@ -1000,13 +1012,18 @@
     };
     if (page === 'bookmarks') return { surface,
       bookmarks: {
-        // The fork's import arrives with the M.2 importer; until then the
-        // page hides its import actions, as it does where import is absent.
-        capabilities: async () => ({ editable: true, import: false }),
+        capabilities: async () => ({ editable: true, import: true }),
         list: () => call('listFavorites'),
         remove: (id) => call('sheetFavoriteRemove', [String(id)]),
         clearFavicon: async () => {},
-        import: unavailable, browserSources: unavailable, importBrowser: unavailable,
+        // Favorites import (F30). The file is chosen and parsed here; native
+        // merges it, as it does a detected browser's Favorites.
+        import: async () => {
+          const picked = await window.BlancBookmarkFile.pick();
+          return picked.entries ? call('sheetImportEntries', [picked.entries]) : picked;
+        },
+        browserSources: () => call('sheetBrowserSources'),
+        importBrowser: (id) => call('sheetImportBrowser', [String(id ?? '')]),
         setFolder: (id, folder) => call('sheetFavoriteFolder', [String(id), typeof folder === 'string' ? folder : '']),
         renameFolder: (oldName, newName) => call('sheetFolderRename', [String(oldName), String(newName)]),
         removeFolder: (name) => call('sheetFolderRemove', [String(name)]),
@@ -1535,7 +1552,6 @@
     if (!doc || hoverHooked.has(doc)) return;
     hoverHooked.add(doc);
     doc.addEventListener('mousemove', (event) => {
-      hover.moves = (hover.moves ?? 0) + 1;
       const from = frame?.getBoundingClientRect() ?? { x: 0, y: 0 };
       const to = strip.getBoundingClientRect();
       hover.lastPoint = { x: event.clientX + from.x - to.x, y: event.clientY + from.y - to.y };
@@ -1663,9 +1679,7 @@
   window.BlancPrototypeHost = {
     api,
     apiForDocument,
-    hoverState: () => ({ ...hover.state, point: hover.lastPoint ?? null, rect: pillRect?.hoverRect ?? null,
-      capable: pillRect?.hoverCapable === true, prompts: prompts.size, moves: hover.moves ?? 0,
-      hooked: hoverHooked.has(strip.contentDocument) }),
+    hoverState: () => ({ ...hover.state }),
     // Whether the how-to tip is on screen (shipping's introTipShown).
     autoHideIntroShown: () => introTip && !tooltip.hidden,
     // The floating pill's frame as shipping's floatViewState reports its
@@ -1750,6 +1764,22 @@
     emit('onBangsChanged', bangState);
   });
   loadBangs().catch(() => {});
+  // What's New (F51): shipping's maybeOpenWhatsNew, on shipping's own rules.
+  // Native answers only in a release build, once per launch.
+  async function maybeWhatsNew() {
+    const launch = await request('whatsNewLaunch');
+    if (!launch?.version) return;
+    const rules = window.BlancWhatsNew, { version, firstRunComplete } = launch, now = Date.now();
+    let state = launch.state;
+    const patch = rules.whatsNewOnLaunch(state, { version, now, firstRunComplete });
+    if (patch) { state = { ...state, ...patch }; await request('whatsNewSave', [patch]); }
+    if (!rules.whatsNewCheckDue(state, { version, now })) return;
+    const found = await request('whatsNewCheck', [rules.whatsNewPageUrl(version)]);
+    const after = rules.whatsNewAfterCheck(state, { version, found, canOpen: !sheet.page });
+    if (after.patch) await request('whatsNewSave', [after.patch]);
+    if (after.openUrl) await request('createTab', [after.openUrl]);
+  }
+  maybeWhatsNew().catch(() => {});
   setInterval(refresh, 300);
   applyRail().catch(error => notice(error.message));
 })();

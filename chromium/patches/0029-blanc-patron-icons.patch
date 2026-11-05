@@ -1,0 +1,124 @@
+diff --git a/chrome/browser/extensions/api/settings_private/prefs_util.cc b/chrome/browser/extensions/api/settings_private/prefs_util.cc
+index 258435c..c736942 100644
+--- a/chrome/browser/extensions/api/settings_private/prefs_util.cc
++++ b/chrome/browser/extensions/api/settings_private/prefs_util.cc
+@@ -226,6 +226,7 @@ const PrefsUtil::TypedPrefMap& PrefsUtil::GetAllowlistedKeys() {
+   // Blanc's own controls (S1.7): the Island, Bangs and Blocking switches.
+   // Their readers normalize what they read, as for Blanc's own pages.
+   (*s_allowlist)["blanc.island.size"] = settings_api::PrefType::kString;
++  (*s_allowlist)["blanc.app_icon"] = settings_api::PrefType::kString;
+   (*s_allowlist)["blanc.island.hover_open"] = settings_api::PrefType::kBoolean;
+   (*s_allowlist)["blanc.island.auto_hide"] = settings_api::PrefType::kBoolean;
+   (*s_allowlist)["blanc.island.auto_hide_style"] =
+diff --git a/chrome/browser/prefs/browser_prefs.cc b/chrome/browser/prefs/browser_prefs.cc
+index 28d96bc..ba4a9d6 100644
+--- a/chrome/browser/prefs/browser_prefs.cc
++++ b/chrome/browser/prefs/browser_prefs.cc
+@@ -2106,6 +2106,8 @@ void RegisterProfilePrefs(user_prefs::PrefRegistrySyncable* registry,
+   registry->RegisterBooleanPref("blanc.island.search_priority_results", false);
+   // Blanc's own pages: Sunrise or Neutral (S1.7).
+   registry->RegisterStringPref("blanc.appearance.surface_style", "sunrise");
++  // Shipping's appIcon (F17): the Dock icon, on macOS.
++  registry->RegisterStringPref("blanc.app_icon", "sunrise");
+   // Call audio (S1.7): automatic, stable or resilient, as shipping; it
+   // reaches renderers through RendererPreferences.
+   registry->RegisterStringPref("blanc.webrtc.audio_buffer", "automatic");
+diff --git a/chrome/browser/resources/settings/about_page/about_page.html.ts b/chrome/browser/resources/settings/about_page/about_page.html.ts
+index b9ac4e6..487e5c5 100644
+--- a/chrome/browser/resources/settings/about_page/about_page.html.ts
++++ b/chrome/browser/resources/settings/about_page/about_page.html.ts
+@@ -89,6 +89,12 @@ export function getHtml(this: SettingsAboutPageElement) {
+     </div>
+   ` : ''}
+ </if>
++  <!-- Blanc (S2, owner): the preview offers the checkout only; key activation
++       comes with the release channel. -->
++  <cr-link-row class="hr" id="patronCheckout" @click="${this.onBlancPatronClick_}"
++      label="$i18n{blancPatron}" .subLabel="${this.blancPatronCheckout_()}"
++      external>
++  </cr-link-row>
+   <cr-link-row class="hr" id="help" @click="${this.onHelpClick_}"
+       label="$i18n{aboutGetHelpUsingChrome}" external></cr-link-row>
+ <if expr="_google_chrome">
+diff --git a/chrome/browser/resources/settings/about_page/about_page.ts b/chrome/browser/resources/settings/about_page/about_page.ts
+index 30855ec..4dfde0a 100644
+--- a/chrome/browser/resources/settings/about_page/about_page.ts
++++ b/chrome/browser/resources/settings/about_page/about_page.ts
+@@ -24,6 +24,7 @@ import {assert} from 'chrome://resources/js/assert.js';
+ // <if expr="_google_chrome">
+ import {OpenWindowProxyImpl} from 'chrome://resources/js/open_window_proxy.js';
+ // </if>
++import {OpenWindowProxyImpl as BlancOpenWindow} from 'chrome://resources/js/open_window_proxy.js';
+ import {sanitizeInnerHtml} from 'chrome://resources/js/parse_html_subset.js';
+ import {CrLitElement} from 'chrome://resources/lit/v3_0/lit.rollup.js';
+ import type {PropertyValues} from 'chrome://resources/lit/v3_0/lit.rollup.js';
+@@ -220,6 +221,17 @@ export class SettingsAboutPageElement extends SettingsAboutPageElementBase
+     event.stopPropagation();
+   }
+ 
++  // Read here, not through $i18n{}: its "$4/month" would be taken for a
++  // dangling placeholder.
++  protected blancPatronCheckout_(): string {
++    return loadTimeData.getString('blancPatronCheckout');
++  }
++
++  protected onBlancPatronClick_() {
++    BlancOpenWindow.getInstance().openUrl(
++        'https://buy.polar.sh/polar_cl_auwRq39Q2hIVLJwANEqFWgWuZ8DGjdJmEI4mE0JaNDf');
++  }
++
+   protected onHelpClick_() {
+     this.aboutBrowserProxy_.openHelpPage();
+   }
+diff --git a/chrome/browser/resources/settings/appearance_page/appearance_page.html.ts b/chrome/browser/resources/settings/appearance_page/appearance_page.html.ts
+index 34cbef5..b46a4f0 100644
+--- a/chrome/browser/resources/settings/appearance_page/appearance_page.html.ts
++++ b/chrome/browser/resources/settings/appearance_page/appearance_page.html.ts
+@@ -137,6 +137,20 @@ export function getHtml(this: SettingsAppearancePageElement) {
+           .menuOptions="${this.blancSurfaceStyleOptions_}">
+       </settings-dropdown-menu>
+     </div>
++<if expr="is_macosx">
++    <!-- Blanc's app icon (F17): shipping's macOS catalog. -->
++    <div id="blancAppIconRow" class="cr-row">
++      <div class="flex cr-padded-text" aria-hidden="true">
++        <div>$i18n{blancAppIcon}</div>
++        <div class="secondary">$i18n{blancAppIconHint}</div>
++      </div>
++      <settings-dropdown-menu id="blancAppIcon" no-label-float
++          pref-key="blanc.app_icon"
++          label="$i18n{blancAppIcon}"
++          .menuOptions="${this.blancAppIconOptions_}">
++      </settings-dropdown-menu>
++    </div>
++</if>
+     <div class="hr"
+         ?hidden="${!this.showHr_(
+             this.pageVisibility_.setTheme, this.pageVisibility_.homeButton)}">
+diff --git a/chrome/browser/resources/settings/appearance_page/appearance_page.ts b/chrome/browser/resources/settings/appearance_page/appearance_page.ts
+index 98c4518..1de9be6 100644
+--- a/chrome/browser/resources/settings/appearance_page/appearance_page.ts
++++ b/chrome/browser/resources/settings/appearance_page/appearance_page.ts
+@@ -150,6 +150,7 @@ export class SettingsAppearancePageElement extends
+       blancIslandAutoHidePref_: {type: Object},
+       blancIslandAutoHideStyleOptions_: {type: Array},
+       blancIslandSizeOptions_: {type: Array},
++      blancAppIconOptions_: {type: Array},
+       blancSurfaceStyleOptions_: {type: Array},
+       sidePanelAlignmentOverridesPref_: {type: Object},
+       sidePanelIsRightAlignedPref_: {type: Object},
+@@ -230,6 +231,14 @@ export class SettingsAppearancePageElement extends
+     {value: 'extra-large',
+      name: loadTimeData.getString('blancIslandSizeExtraLarge')},
+   ];
++  // Shipping's APP_ICON_LABELS: names, the same in every language.
++  protected accessor blancAppIconOptions_: DropdownMenuOptionList = [
++    {value: 'sunrise', name: 'Sunrise'},
++    {value: 'sunrise-dark', name: 'Sunrise Dark'},
++    {value: 'sunrise-gold', name: 'Sunrise Gold'},
++    {value: 'sunrise-spectrum', name: 'Sunrise Spectrum'},
++    {value: 'sunrise-amber', name: 'Sunrise Amber'},
++  ];
+   protected accessor blancSurfaceStyleOptions_: DropdownMenuOptionList = [
+     {value: 'sunrise', name: loadTimeData.getString('blancSurfaceStyleSunrise')},
+     {value: 'neutral', name: loadTimeData.getString('blancSurfaceStyleNeutral')},

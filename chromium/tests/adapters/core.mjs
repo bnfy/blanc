@@ -40,7 +40,8 @@ async function created(w,reply){
 }
 // Shipping's internal addresses, as the fork serves them: the Start Page and
 // the utility pages are chrome:// pages (the sheet takes the utility ones).
-const forkUrl=url=>{const m=/^blanc:\/\/(newtab|settings|downloads|bookmarks|history)\/?(?:[?#].*)?$/i.exec(String(url));
+const forkUrl=url=>{
+ const m=/^blanc:\/\/(newtab|settings|downloads|bookmarks|history)\/?(?:[?#].*)?$/i.exec(String(url));
  return m?`chrome://${m[1].toLowerCase()}/`:String(url);};
 export const core={
  state:w=>w.state(),
@@ -50,6 +51,19 @@ export const core={
   // shipping address is the private Start Page, blanc://newtab/?private=1:
   // a private tab's Start Page is the fork's chrome://newtab/.
   if(opts?.private)return created(w,await w.native('createTab',[forkUrl(url),true]));
+  // The tour opens from its Settings row, as a person replays it.
+  if(/^blanc:\/\/newtab\/\?tour=1$/.test(String(url))){
+   const {inSettings}=await import('./commands.mjs');
+   const before=new Set((await w.snapshot()).tabs.map(t=>String(t.id)));
+   // Open first: inSettings closes a sheet it opened itself, ahead of the click.
+   await w.api('openPage',['settings','help']);
+   await w.waitFor(async()=>(await w.fixture.targets()).some(t=>t.type==='page'&&t.url.startsWith('chrome://settings')),Boolean,'the settings sheet',8000);
+   await inSettings(w,'help',(a,d)=>{const row=d.find('#blancWelcomeTour');if(!row)return {missing:'#blancWelcomeTour'};
+    // After the reply: the click closes the sheet this page lives in.
+    setTimeout(()=>row.click(),50);return {value:true};});
+   const state=await w.waitFor(()=>w.state(),s=>s.tabs.some(t=>!before.has(String(t.id))&&!t.loading),'the welcome tour tab',8000);
+   return String(state.tabs.find(t=>!before.has(String(t.id))).id);
+  }
   return created(w,await w.native('createTab',[forkUrl(url)]));
  },
  newTab:async w=>created(w,await w.native('createTab',['chrome://newtab/'])),

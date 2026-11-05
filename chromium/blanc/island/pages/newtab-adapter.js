@@ -334,6 +334,14 @@
         await new Promise(resolve => setTimeout(resolve, 100));
       }
       throw new Error('Bookmarks are still loading');
+    },
+    // Favorites import (F30): detected browsers only when asked, and a
+    // bookmarks file the person picks.
+    browserSources: () => request('browserSources', [], 30000),
+    importBrowser: id => request('importBrowser', [String(id ?? '')], 60000),
+    import: async () => {
+      const picked = await window.BlancBookmarkFile.pick();
+      return picked.entries ? request('importEntries', [picked.entries], 60000) : picked;
     } },
     start: {
       data: async () => {
@@ -356,7 +364,16 @@
         if (!isPrivatePage) week = await request('blockedWeek').catch(error => { console.warn(error.message); return null; });
         const days = Array.isArray(week?.days) && week.days.length === 7 ? week.days : [0, 0, 0, 0, 0, 0, 0];
         const heights = Array.isArray(week?.barHeights) && week.barHeights.length === 7 ? week.barHeights : [0, 0, 0, 0, 0, 0, 0];
-        return { ...preferences(), remoteDevices: [], blockedThisWeek: Number.isInteger(week?.blocked) ? week.blocked : 0,
+        // First run: the privacy gate and the walkthrough's saved values.
+        const firstRun = isPrivatePage ? null : await request('firstRun').catch(error => { console.warn(error.message); return null; });
+        const migrationChecklist = isPrivatePage ? null : await request('checklist').catch(() => null);
+        // What's New (F51): nothing until a release build reports a version.
+        const release = isPrivatePage ? null : await request('whatsNew').catch(() => null);
+        const whatsNew = release?.version
+          ? window.BlancWhatsNew.whatsNewState(release.state, { version: release.version, now: Date.now() }) : null;
+        return { ...preferences(), remoteDevices: [], privacy: firstRun?.privacy, onboarding: firstRun?.onboarding ?? null,
+          migrationChecklist, whatsNew,
+          blockedThisWeek: Number.isInteger(week?.blocked) ? week.blocked : 0,
           blockerStatisticsAvailable: Number.isInteger(week?.blocked),
           blockedByDay: days, blockedBarHeights: heights,
           topSites, __topSitesAvailable: available, __topSitesEpoch: epoch, wallpaperVisible: !document.hidden };
@@ -430,6 +447,16 @@
       },
       setWallpaperFollowSpace: async () => { throw new Error('Spaces are not available in this prototype.'); },
       setDynamicWallpaper: async (enabled) => save({ dynamicWallpaperEnabled: enabled === true }).dynamicWallpaperEnabled,
+      dismissMigrationChecklist: () => request('checklistDismiss'),
+      dismissWhatsNew: () => request('whatsNewDismiss'),
+      // First run (F36). The walkthrough's guard wants all of these real.
+      onboardingReady: true,
+      onboardingSet: partial => request('onboardingSet', [partial ?? {}]),
+      completePrivacy: choices => request('completePrivacy', [choices ?? {}]),
+      defaultBrowser: () => request('defaultBrowser'),
+      setDefaultBrowser: () => request('setDefaultBrowser', [], 60000),
+      // The preview channel sends no telemetry (F21).
+      layoutUsed: name => request('layoutUsed', [String(name)]),
       onStatus: callback => { listeners.add(callback); return () => listeners.delete(callback); },
       onVisibility: callback => {
         const update = () => callback(!document.hidden);
@@ -446,6 +473,12 @@
   // visits, /clear). Bursts coalesce per kind into one re-fetch, which
   // re-renders through the copied page's own globals once it is ready.
   const refreshers = {
+    // The moving-in checklist (N11): a status push, as shipping's.
+    checklist: async () => {
+      if (isPrivatePage) return;
+      const migrationChecklist = await request('checklist');
+      for (const fn of listeners) fn({ migrationChecklist });
+    },
     startData: async () => { applyStartData(await window.bowserPages.start.data()); },
     pins: async () => { await Promise.all([...pinListeners].map(fn => fn())); },
     clock: async () => { if (await refreshClock()) publish(); },

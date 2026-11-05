@@ -61,7 +61,7 @@ export function check(doc, defaults, prefs) {
     if (kind === 'divergence' && !entry.decision) errors.push(`${key}: a divergence names its decision`);
     if ((kind === 'pending-decision' || kind === 'unassigned') && !entry.decision && !entry.note) errors.push(`${key}: say what it waits on`);
     if (kind === 'blanc-pref' || kind === 'native') {
-      if (entry.slice !== 'S1.7') errors.push(`${key}: an S1.7 key`);
+      if (!['S1.7', 'S2'].includes(entry.slice)) errors.push(`${key}: an S1.7 or S2 key`);
       if (!['built', 'to-build'].includes(entry.status)) errors.push(`${key}: status is built or to-build`);
       if (entry.status === 'to-build') toBuild.push(key);
     }
