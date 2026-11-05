@@ -1025,9 +1025,8 @@ checkout and cache, the 157 fallback, signing, backups, profiles, toolchains.
 Plan: `docs/superpowers/plans/2026-11-03-android-port.md` (design and plan in
 [PR #1333](https://github.com/bnfy/blanc/pull/1333)). Milestones: **A0
 Foundation**, 5 of 6 exit gates passed on the emulator, and **A1 Island and
-pages**, and **A2 Tabs, groups, palette and tab grid**, every emulator gate
-passed (below); the Pixel runs wait for the device. Next: A3, blocking,
-`docs/superpowers/plans/2026-11-04-android-a3-blocking.md`. Owner approved the download and cold builds on 2026-11-03.
+pages**, **A2 Tabs, groups, palette and tab grid** and **A3 Blocking**, every
+emulator gate passed (below); the Pixel runs wait for the device. Next: A4, sync. Owner approved the download and cold builds on 2026-11-03.
 
 - **Lane:** Chrome stable for Android 156.0.8078.79, chromium
   `a21ce95c24ce3964416f09ae1862f53f319eb4d0` (chromiumdash, 2026-11-03).
@@ -1132,9 +1131,8 @@ hands-on waits for the device.
   in their own section (D36).
 - **Palette:** the iPhone's sheet from the Island's site: the tab list with
   groups (fold, "N tabs tucked away"), the Quick Switcher over tabs,
-  Favorites and groups (history not yet), and 11 slash commands. `/space`,
-  `/sync`, `/send`, `/settings`, `/reader`, `/block-ads` and `/allow-ads`
-  wait for their milestones.
+  Favorites and groups (history not yet), and 11 slash commands (13 with A3's). `/space`,
+  `/sync`, `/send`, `/settings` and `/reader` wait for their milestones.
 - **Tab grid:** from the Island's tab count or a swipe from the Island into
   the page, with group headers and menus (rename, color, new tab in group,
   close), a card menu (pin, mute, duplicate, move to group) and a sideways
@@ -1175,6 +1173,51 @@ all three restarts, though it doesn't prove that tab was frozen. The gate was
 rerun on the fixed build, on top of `chromium/migration`; none of migration's
 changes feed Android's build, so its APK is unchanged. Divergences: D36, D37.
 
+### A3 Blocking
+
+Plan: `docs/superpowers/plans/2026-11-04-android-a3-blocking.md`; spike:
+`docs/android/a3-blocker-spike.md`. Every emulator gate passes; the Pixel
+hands-on waits for the device.
+
+- **The desktop fork's blocker, unported:** Ghostery's engine over the pinned
+  EasyList and EasyPrivacy, in a sandboxed utility process, with network,
+  cosmetic and scriptlet filtering, in normal and private tabs. Patch 0106
+  carries the hooks. The bundle is an uncompressed APK asset, refused unless it
+  matches the pinned hash, and isn't in git (`android/server/README.md`).
+- **Controls:** the iPhone's blocking row in the Sunrise menu, with desktop's
+  per-page count under it, `/block-ads` and `/allow-ads`. The Start Page shows
+  protection On or Off, as the iPhone's script does (owner, 2026-11-05).
+- **Failing closed on a phone:** Android ends background processes in normal
+  use, so the engine comes back when next needed and requests it was deciding
+  are asked again. Only an end within 10 s of starting counts as a crash: three
+  in ten minutes, or a wrong bundle, stop pages, with a notice and Retry on
+  screen and in the menu.
+- **Page preloading is off by default** (owner, 2026-11-05): speculation-rules
+  prefetches and prerenders take a path the blocker doesn't sit on.
+- **Hidden tabs stop their cosmetic scan.** A visible page's scan is unmeasured.
+- **Desktop:** the shared blocker files syntax-compile for desktop on Chromium
+  158 (Mac Studio, `out/BlancRelease` flags, proved with a deliberate error).
+  Not linked, and no desktop smoke run with these changes.
+- **Not measured:** the engine's memory by process; `ps` can't tell it apart on
+  the emulator, so the Pixel run should.
+- **Candidate** (x86_64, emulator): `out/AndroidDebugX64/apks/ChromePublic.apk`,
+  SHA-256 `a2d7b0dbe98b346d6860f21c13c6caeb50fbfb96138fcccdd80fb3d9a241e7e3`.
+
+| A3 gate | Result | Evidence (`~/blanc-evidence/android/a3/` and, on this candidate, `a3-merged/`) |
+| --- | --- | --- |
+| Blocking: normal and private tabs, count, allow and re-block, restart, background kills, restored tabs, crash stop and Retry, service worker, prefetch, Start Page state, no network, wrong bundle | 14 of 14 on this candidate | `a3-merged/blocking/` |
+| A2 gate, rerun: Robolectric 296, A1's checks and every A2 check | Pass on the build before desktop's week-stats merge (Quiet Tabs rerun alone after its check learned to count the blocker's process); Robolectric rerun on this candidate | `a2/` |
+| Shared acceptance scenarios | 32 of 32 on this candidate | `a3-merged/acceptance/` |
+| Owner hands-on on the Pixel: blocking on real sites, allow and re-block, a cold launch | **Pending the Pixel** | — |
+
+Run it all with `tests/android/a3-gate.sh` on the server. A final review found
+that the first restart rule counted ordinary background kills as crashes, which
+could have stopped every page after normal phone use; fixed, with six others.
+Merging desktop's weekly count then crashed Android on its first block, because
+its preference is registered in a desktop patch; patch 0106 registers it, and
+`tools/android-blocking.test.mjs` now fails on any unregistered blocker
+preference. Divergences: D1, D13 and D14 corrected.
+
 <!-- BEGIN GENERATED PROGRESS -->
 ### Bar A — executable shipping cases on the fork
 
@@ -1186,16 +1229,16 @@ changes feed Android's build, so its APK is unchanged. Divergences: D36, D37.
 
 640 executable cases from 591 declarations. Exclusions stay visible in the fixed total; inventory is not a fork run.
 
-Android's Bar A counts the shared scenarios bound in `chromium/tests/android/acceptance/` (A2): 23 (F2–F5, F8, F18, and the phone-only F31-11 and F56-1–3), run on the build server's emulator by `run.sh`; desktop cases don't apply to it. F6-1, F6-2 and F7-1 join with ad blocking (A3), whose Background they share.
+Android's Bar A counts the shared scenarios bound in `chromium/tests/android/acceptance/` (A2, A3): 32 (F2–F8, F12, F18, and the phone-only F31-11 and F56-1–3), run on the build server's emulator by `run.sh`; desktop cases don't apply to it.
 
 ### Bar B — requirement rows by platform
 
 | State | macOS | Windows | Linux | Android |
 | --- | ---: | ---: | ---: | ---: |
-| Not started / unassessed | 25 | 80 | 80 | 69 |
+| Not started / unassessed | 25 | 80 | 80 | 68 |
 | Research only | 1 | 0 | 0 | 0 |
 | Drafted | 6 | 0 | 0 | 0 |
-| Implemented | 4 | 0 | 0 | 11 |
+| Implemented | 4 | 0 | 0 | 12 |
 | Built, isolated (legacy) | 4 | 0 | 0 | 0 |
 | Integrated, partial (legacy) | 3 | 0 | 0 | 0 |
 | Integrated | 37 | 0 | 0 | 0 |

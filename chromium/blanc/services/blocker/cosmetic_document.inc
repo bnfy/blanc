@@ -1,7 +1,11 @@
 // Included inside blanc's anonymous namespace, after Engine.
 class CosmeticDocument final : public content::DocumentService<mojom::Cosmetics> {
  public:
+#if BUILDFLAG(IS_ANDROID)
+  CosmeticDocument(content::RenderFrameHost& frame, mojo::PendingReceiver<mojom::Cosmetics> receiver);
+#else
   CosmeticDocument(content::RenderFrameHost& frame, mojo::PendingReceiver<mojom::Cosmetics> receiver, base::SelfDeletingPassKey key);
+#endif
   void Get(bool initial, bool refresh, const std::string& hints, GetCallback callback) override;
   void ObservePolicy(mojo::PendingRemote<mojom::CosmeticPolicyClient> client) override;
  private:
@@ -25,8 +29,13 @@ class CosmeticDocument final : public content::DocumentService<mojom::Cosmetics>
   base::WeakPtrFactory<CosmeticDocument> weak_{this};
 };
 
+#if BUILDFLAG(IS_ANDROID)
+CosmeticDocument::CosmeticDocument(content::RenderFrameHost& frame, mojo::PendingReceiver<mojom::Cosmetics> receiver)
+    : DocumentService(frame, std::move(receiver)) {
+#else
 CosmeticDocument::CosmeticDocument(content::RenderFrameHost& frame, mojo::PendingReceiver<mojom::Cosmetics> receiver, base::SelfDeletingPassKey key)
     : DocumentService(frame, std::move(receiver), key) {
+#endif
   filtering_ = ShouldFilter(frame.GetBrowserContext(),
                             frame.GetMainFrame()->GetLastCommittedURL());
   if (auto* prefs = BlockingPrefs(frame.GetBrowserContext())) {
@@ -61,7 +70,7 @@ void CosmeticDocument::PolicyChanged() {
   if (policy_client_) policy_client_->PolicyChanged(enabled);
 }
 void CosmeticDocument::Get(bool initial, bool refresh, const std::string& hints, GetCallback callback) {
-    if (!base::CommandLine::ForCurrentProcess()->HasSwitch("blanc-blocker-assets")) {
+    if (!BlockerAvailable()) {
       std::move(callback).Run(true, "{\"styles\":\"\",\"scripts\":[],\"extended\":[]}"); return;
     }
     if (pending_ || initial == initialized_ || hints.size() > 128 * 1024) {

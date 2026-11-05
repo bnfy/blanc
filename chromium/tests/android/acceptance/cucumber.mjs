@@ -17,16 +17,19 @@ const common = {
   format: ['progress', ...(process.env.BLANC_ANDROID_REPORT ? [['json', process.env.BLANC_ANDROID_REPORT]] : [])],
 };
 
-// The @all scenarios of F2–F8 and F18 that Android has built (A2), and the phone-only F31 and F56.
+// The @all scenarios of F2–F8, F12 and F18 that Android has built, and the phone-only F31 and F56.
 // Left out: F3-2 (the Island's dots, A3), F4-4 (session isolation, no observable on a phone),
 // F5-2/F5-4/F5-5/F5-9–F5-11 (search engines and suggestions, A5), F7-2 (/downloads, A5), and
-// F6-1, F6-2 and F7-1, whose feature's Background turns on ad blocking (A3).
+// F12-8 (site controls reporting HTTPS: no Android surface yet).
 export const RUNNABLE = [
   '@F2-1', '@F2-2', '@F2-3', '@F2-4', '@F2-6',
   '@F3-1', '@F3-3', '@F3-4', '@F3-5',
   '@F4-1', '@F4-2', '@F4-3', '@F4-5',
   '@F5-1', '@F5-3', '@F5-6', '@F5-8',
+  '@F6-1', '@F6-2',
+  '@F7-1',
   '@F8-1',
+  '@F12-1', '@F12-2', '@F12-3', '@F12-4', '@F12-5', '@F12-6',
   '@F18-1',
   '@F31-11',
   '@F56-1', '@F56-2', '@F56-3',

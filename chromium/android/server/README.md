@@ -24,3 +24,11 @@ real run downloads the whole Android checkout and is part of the owner's
 approval for A0's cold build. Re-running it is safe: it skips what is already
 in place, never deletes an output folder, and stops if an `args.gn` differs
 from the tree's.
+
+## The blocker's bundle
+
+`blanc/android/blocker_assets/engine.js` isn't in git. Keep the bundle in `~/blanc-assets/blocker/`
+and copy it into the checkout after `apply.py` (`mkdir -p blanc/android/blocker_assets`); a missing
+file fails the build. It comes from
+`experiments/chromium-extension-spike/native/blocker/bundle.mjs`, and Blanc refuses any bytes but
+`kBlancBlockerBundleSha256` (`blanc/services/blocker/bundle_hash.h`).

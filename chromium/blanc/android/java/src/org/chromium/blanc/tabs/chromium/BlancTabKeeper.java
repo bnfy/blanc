@@ -7,6 +7,7 @@ import android.os.Handler;
 import android.os.Looper;
 
 import org.chromium.base.ContextUtils;
+import org.chromium.blanc.blocking.BlockerBridge;
 import org.chromium.blanc.tabs.BlancTabState;
 import org.chromium.blanc.tabs.QuietTabs;
 import org.chromium.build.annotations.NullMarked;
@@ -93,6 +94,11 @@ public final class BlancTabKeeper {
 
     private void sweep() {
         if (mDestroyed) return;
+        // Reloading a quiet tab couldn't load it while the blocker is down, so nothing goes quiet.
+        if (BlockerBridge.UNAVAILABLE.equals(BlockerBridge.health())) {
+            mHandler.postDelayed(mSweep, QuietTabs.SWEEP_MILLIS);
+            return;
+        }
         TabModel model = mSelector.getModel(false);
         List<QuietTabs.Candidate> candidates = new ArrayList<>();
         List<Tab> tabs = new ArrayList<>();

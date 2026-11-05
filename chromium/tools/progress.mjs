@@ -77,7 +77,7 @@ export function renderProgress(tracker, loadBaseline = () => null) {
     lines.push(`| ${name} | ${status} |`);
   }
   lines.push('', `${caseTotal} executable cases from ${tracker.scenarioIds?.length || 0} declarations. Exclusions stay visible in the fixed total; inventory is not a fork run.`,
-    '', "Android's Bar A counts the shared scenarios bound in `chromium/tests/android/acceptance/` (A2): 23 (F2–F5, F8, F18, and the phone-only F31-11 and F56-1–3), run on the build server's emulator by `run.sh`; desktop cases don't apply to it. F6-1, F6-2 and F7-1 join with ad blocking (A3), whose Background they share.",
+    '', "Android's Bar A counts the shared scenarios bound in `chromium/tests/android/acceptance/` (A2, A3): 32 (F2–F8, F12, F18, and the phone-only F31-11 and F56-1–3), run on the build server's emulator by `run.sh`; desktop cases don't apply to it.",
     '', '### Bar B — requirement rows by platform', '', `| State | ${platforms.map(([, name]) => name).join(' | ')} |`, `| --- |${platforms.map(() => ' ---: |').join('')}`);
   for (const [stage, label] of stages) lines.push(`| ${label} | ${platforms.map(([p]) => counts[p][stage]).join(' | ')} |`);
   lines.push(`| Total | ${platforms.map(() => tracker.rows.length).join(' | ')} |`, '',

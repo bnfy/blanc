@@ -25,6 +25,7 @@
 #include "components/bookmarks/browser/bookmark_model.h"
 #include "components/bookmarks/browser/bookmark_node.h"
 #include "components/bookmarks/common/bookmark_metrics.h"
+#include "components/prefs/pref_service.h"
 #include "components/history/core/browser/history_service.h"
 #include "components/history/core/browser/history_types.h"
 #include "components/keyed_service/core/service_access_type.h"
@@ -36,6 +37,11 @@
 #include "services/network/public/mojom/content_security_policy.mojom.h"
 #include "ui/base/models/tree_node_iterator.h"
 #include "url/gurl.h"
+
+// blocker_proxy.h needs the blocker's mojom, which this target (inside webui:configs) can't depend on.
+namespace blanc {
+const char* BlockerHealth();
+}
 
 namespace blanc::android {
 namespace {
@@ -175,8 +181,10 @@ class PagesHandler : public content::WebUIMessageHandler {
         .Set("topSites", base::ListValue())
         .Set("wallpaperVisible", true)
         .Set("dynamicWallpaperEnabled", false)
-        // Android has no blocker until A3, so the Start Page says Off.
-        .Set("mobileAdblockEnabled", false)
+        // The iPhone's Start Page script shows this state in place of a count.
+        .Set("mobileAdblockEnabled",
+             profile()->GetOriginalProfile()->GetPrefs()->GetBoolean("blanc.blocking.enabled") &&
+                 std::string_view(::blanc::BlockerHealth()) != "unavailable")
         .Set("remoteDevices", base::ListValue())
         .Set("sentItems", base::ListValue())
         .Set("bookmarks", Favorites(Bookmarks()))

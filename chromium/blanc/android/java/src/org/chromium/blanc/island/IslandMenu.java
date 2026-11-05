@@ -20,6 +20,7 @@ public final class IslandMenu {
         CUSTOMIZE_START_PAGE,
         BLOCKING,
         BLOCKING_SETTINGS,
+        BLOCKING_UNAVAILABLE,
         FAVORITE,
         SEND,
         SHARE,
@@ -74,6 +75,11 @@ public final class IslandMenu {
 
         public boolean blockingEnabled;
         public boolean siteProtected;
+
+        /** The blocker has failed and pages are stopped until it's started again. */
+        public boolean blockingUnavailable;
+
+        public int blockedCount;
         public boolean privateTab;
         public boolean canFavorite;
         public boolean favorite;
@@ -86,8 +92,12 @@ public final class IslandMenu {
     public static List<Item> items(Context c) {
         List<Item> items = new ArrayList<>();
         if (c.startPage) items.add(Item.of(Kind.CUSTOMIZE_START_PAGE));
+        // Wherever it's asked: a page the blocker stopped never commits, so the tab isn't on a web page.
+        if (c.blockingUnavailable) items.add(Item.of(Kind.BLOCKING_UNAVAILABLE));
         if (c.blockableSite) {
-            items.add(c.blockingEnabled ? Item.blocking(c.siteProtected) : Item.of(Kind.BLOCKING_SETTINGS));
+            if (!c.blockingUnavailable) {
+                items.add(c.blockingEnabled ? Item.blocking(c.siteProtected) : Item.of(Kind.BLOCKING_SETTINGS));
+            }
             if (!c.privateTab && c.canFavorite) items.add(Item.favorite(c.favorite));
             if (c.canSend && c.hasSendTargets) items.add(Item.of(Kind.SEND));
             items.add(Item.of(Kind.SHARE));

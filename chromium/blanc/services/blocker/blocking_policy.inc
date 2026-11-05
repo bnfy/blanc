@@ -13,6 +13,12 @@ PrefService* BlockingPrefs(content::BrowserContext* context) {
       !prefs->FindPreference(kBlockingExceptions)) return nullptr;
   return prefs;
 }
+// Android may end the app any moment after someone changes this, before Chromium's delayed write.
+void CommitBlockingChoice(PrefService* prefs) {
+#if BUILDFLAG(IS_ANDROID)
+  prefs->CommitPendingWrite();
+#endif
+}
 }
 std::string BlockingHostname(const GURL& url) {
   if (!url.SchemeIsHTTPOrHTTPS()) return {};
@@ -40,6 +46,7 @@ bool SetBlockingEnabled(content::BrowserContext* context, bool enabled) {
   auto* prefs = BlockingPrefs(context);
   if (!prefs) return false;
   prefs->SetBoolean(kBlockingEnabled, enabled);
+  CommitBlockingChoice(prefs);
   return true;
 }
 bool SetBlockingSiteException(content::BrowserContext* context,
@@ -53,5 +60,6 @@ bool SetBlockingSiteException(content::BrowserContext* context,
   }
   if (allow) list.Append(host);
   prefs->SetList(kBlockingExceptions, std::move(list));
+  CommitBlockingChoice(prefs);
   return true;
 }
