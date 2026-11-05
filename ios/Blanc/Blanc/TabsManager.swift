@@ -2200,8 +2200,8 @@ final class TabsManager {
     /// shown now; This iPhone keeps a Start Page. Returns the Space's id.
     @discardableResult
     func saveIPhoneAsSpace() throws -> String {
-        let base = syncEngine.status["deviceName"]?.text.flatMap { $0.isEmpty ? nil : $0 } ?? "iPhone"
-        var name = TabSets.spaceName(base) ?? "iPhone"
+        let base = syncEngine.status["deviceName"]?.text.flatMap { $0.isEmpty ? nil : $0 } ?? ThisDevice.name
+        var name = TabSets.spaceName(base) ?? ThisDevice.name
         var n = 2
         while nameTaken(name) { name = TabSets.spaceName("\(base) \(n)") ?? "\(base) \(n)"; n += 1 }
         let preset = SpaceIdentity.presets[spaces.count % SpaceIdentity.presets.count]

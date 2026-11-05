@@ -29473,6 +29473,48 @@
         }
       }
     },
+    "sync.error.accountGone.ipad": {
+      "comment": "iPad: sync.error.accountGone's counterpart on an iPad. SyncCopy uses a key's .ipad sibling there.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This sync no longer exists. Turn sync off here, then add this iPad again from your computer."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Diese Synchronisierung gibt es nicht mehr. Schalte sie hier aus und füge dieses iPad dann auf deinem Computer erneut hinzu."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Esta sincronización ya no existe. Desactívala aquí y vuelve a añadir este iPad desde tu ordenador."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cette synchronisation n’existe plus. Désactivez-la ici, puis ajoutez de nouveau cet iPad depuis votre ordinateur."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Questa sincronizzazione non esiste più. Disattivala qui, poi aggiungi di nuovo questo iPad dal tuo computer."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Esta sincronização não existe mais. Desative-a aqui e adicione este iPad de novo pelo seu computador."
+          }
+        }
+      }
+    },
     "settings.sync.recovery.dialogMessage": {
       "comment": "Settings → Sync → Copy recovery code: native dialog title.",
       "extractionState": "manual",
@@ -94093,6 +94135,48 @@
         }
       }
     },
+    "settings.sync.createOnComputer.ipad": {
+      "comment": "iPad: settings.sync.createOnComputer's counterpart on an iPad. SyncCopy uses a key's .ipad sibling there.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Start your sync on your computer, then add this iPad with a code."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Starte die Synchronisierung auf deinem Computer und füge dann dieses iPad mit einem Code hinzu."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Inicia la sincronización en tu ordenador y después añade este iPad con un código."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Configurez la synchronisation sur votre ordinateur, puis ajoutez cet iPad avec un code."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Avvia la sincronizzazione sul computer, poi aggiungi questo iPad con un codice."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Inicie a sincronização no seu computador e adicione este iPad com um código."
+          }
+        }
+      }
+    },
     "settings.sync.enterSyncName": {
       "comment": "Settings → Sync: field label when joining an existing sync; asks for the credential already used on another device, not a new one.",
       "extractionState": "manual",
@@ -98839,6 +98923,48 @@
         }
       }
     },
+    "ios.settings.shareTabsHelp.ipad": {
+      "comment": "iPad: ios.settings.shareTabsHelp's counterpart on an iPad. SyncCopy uses a key's .ipad sibling there.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Share this iPad’s regular open tabs with your other devices. Private tabs are never shared."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Teile die normalen offenen Tabs dieses iPads mit deinen anderen Geräten. Private Tabs werden nie geteilt."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Comparte las pestañas abiertas normales de este iPad con tus otros dispositivos. Las pestañas privadas nunca se comparten."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Partagez les onglets ouverts ordinaires de cet iPad avec vos autres appareils. Les onglets privés ne sont jamais partagés."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Condividi le normali schede aperte di questo iPad con gli altri dispositivi. Le schede private non vengono mai condivise."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Compartilhe as abas abertas normais deste iPad com seus outros dispositivos. Abas privadas nunca são compartilhadas."
+          }
+        }
+      }
+    },
     "ios.settings.disconnectHelp": {
       "comment": "Native iOS Settings sheet: disconnectHelp.",
       "extractionState": "manual",
@@ -98881,6 +99007,48 @@
         }
       }
     },
+    "ios.settings.disconnectHelp.ipad": {
+      "comment": "iPad: ios.settings.disconnectHelp's counterpart on an iPad. SyncCopy uses a key's .ipad sibling there.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Disconnect this iPad? Your local Favorites and settings stay here. Your other devices are not affected."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dieses iPad trennen? Deine lokalen Favoriten und Einstellungen bleiben hier. Deine anderen Geräte sind nicht betroffen."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "¿Desconectar este iPad? Tus Favoritos y ajustes locales permanecerán aquí. Tus otros dispositivos no se verán afectados."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Déconnecter cet iPad ? Vos favoris et réglages locaux restent ici. Vos autres appareils ne sont pas affectés."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Disconnettere questo iPad? I preferiti e le impostazioni locali restano qui. Gli altri dispositivi non sono interessati."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Desconectar este iPad? Seus Favoritos e ajustes locais ficam aqui. Seus outros dispositivos não são afetados."
+          }
+        }
+      }
+    },
     "ios.settings.switchHelp": {
       "comment": "Native iOS Settings sheet: switchHelp.",
       "extractionState": "manual",
@@ -98919,6 +99087,48 @@
           "stringUnit": {
             "state": "translated",
             "value": "Este iPhone sairá da sincronização atual. Seus Favoritos e ajustes locais ficam aqui. Seus outros dispositivos não são afetados."
+          }
+        }
+      }
+    },
+    "ios.settings.switchHelp.ipad": {
+      "comment": "iPad: ios.settings.switchHelp's counterpart on an iPad. SyncCopy uses a key's .ipad sibling there.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This iPad will leave its current sync. Your local Favorites and settings stay here. Your other devices are not affected."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dieses iPad verlässt seine aktuelle Synchronisierung. Deine lokalen Favoriten und Einstellungen bleiben hier. Deine anderen Geräte sind nicht betroffen."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Este iPad saldrá de su sincronización actual. Tus Favoritos y ajustes locales permanecerán aquí. Tus otros dispositivos no se verán afectados."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cet iPad quittera sa synchronisation actuelle. Vos favoris et réglages locaux restent ici. Vos autres appareils ne sont pas affectés."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Questo iPad lascerà la sincronizzazione attuale. I preferiti e le impostazioni locali restano qui. Gli altri dispositivi non sono interessati."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Este iPad sairá da sincronização atual. Seus Favoritos e ajustes locais ficam aqui. Seus outros dispositivos não são afetados."
           }
         }
       }
@@ -102403,6 +102613,48 @@
         }
       }
     },
+    "sharedSpaces.switch.iphone.ipad": {
+      "comment": "iPad: sharedSpaces.switch.iphone's counterpart on an iPad. SyncCopy uses a key's .ipad sibling there.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Keep Spaces and groups in sync on this iPad"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Spaces und Gruppen auf diesem iPad synchron halten"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mantener Spaces y grupos sincronizados en este iPad"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Garder les Spaces et les groupes synchronisés sur cet iPad"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mantieni Spaces e gruppi sincronizzati su questo iPad"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Manter Spaces e grupos sincronizados neste iPad"
+          }
+        }
+      }
+    },
     "sharedSpaces.switch.line.iphone": {
       "comment": "iPhone Settings → Sync: the consent line under the Shared Spaces switch (M17).",
       "extractionState": "manual",
@@ -102441,6 +102693,48 @@
           "stringUnit": {
             "state": "translated",
             "value": "As abas dos seus Spaces compartilhados são sincronizadas a partir deste iPhone."
+          }
+        }
+      }
+    },
+    "sharedSpaces.switch.line.iphone.ipad": {
+      "comment": "iPad: sharedSpaces.switch.line.iphone's counterpart on an iPad. SyncCopy uses a key's .ipad sibling there.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tabs in your shared Spaces are synced from this iPad."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tabs in deinen geteilten Spaces werden von diesem iPad synchronisiert."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Las pestañas de tus Spaces compartidos se sincronizan desde este iPad."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Les onglets de vos Spaces partagés sont synchronisés depuis cet iPad."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Le schede dei tuoi Spaces condivisi vengono sincronizzate da questo iPad."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "As abas dos seus Spaces compartilhados são sincronizadas a partir deste iPad."
           }
         }
       }
@@ -102625,6 +102919,48 @@
         }
       }
     },
+    "sharedSpaces.saveThisIPhone.ipad": {
+      "comment": "iPad: sharedSpaces.saveThisIPhone's counterpart on an iPad. SyncCopy uses a key's .ipad sibling there.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Save This iPad as a Space"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dieses iPad als Space sichern"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Guardar Este iPad como Space"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Enregistrer Cet iPad comme Space"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Salva Questo iPad come Space"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Salvar Este iPad como Space"
+          }
+        }
+      }
+    },
     "sharedSpaces.recoveryName.iphone": {
       "comment": "iPhone: name of the local Space that keeps tabs a long-stale phone could not publish (M17).",
       "extractionState": "manual",
@@ -102667,6 +103003,48 @@
         }
       }
     },
+    "sharedSpaces.recoveryName.iphone.ipad": {
+      "comment": "iPad: sharedSpaces.recoveryName.iphone's counterpart on an iPad. SyncCopy uses a key's .ipad sibling there.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ · kept on this iPad"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ · auf diesem iPad behalten"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ · guardado en este iPad"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ · conservé sur cet iPad"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ · conservato su questo iPad"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ · mantido neste iPad"
+          }
+        }
+      }
+    },
     "sharedSpaces.deletedEverywhere": {
       "comment": "iPhone: Undo banner after deleting a shared Space; Undo restores only a local copy because the deletion reached every device (M17).",
       "extractionState": "manual",
@@ -102705,6 +103083,48 @@
           "stringUnit": {
             "state": "translated",
             "value": "Excluído em todos os lugares. Desfazer mantém uma cópia neste iPhone."
+          }
+        }
+      }
+    },
+    "sharedSpaces.deletedEverywhere.ipad": {
+      "comment": "iPad: sharedSpaces.deletedEverywhere's counterpart on an iPad. SyncCopy uses a key's .ipad sibling there.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Deleted everywhere. Undo keeps a copy on this iPad."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Überall gelöscht. Rückgängig behält eine Kopie auf diesem iPad."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Eliminado en todas partes. Deshacer conserva una copia en este iPad."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Supprimé partout. Annuler garde une copie sur cet iPad."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Eliminato ovunque. Annulla ne conserva una copia su questo iPad."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Excluído em todos os lugares. Desfazer mantém uma cópia neste iPad."
           }
         }
       }
@@ -102789,6 +103209,48 @@
           "stringUnit": {
             "state": "translated",
             "value": "Trazer para o iPhone"
+          }
+        }
+      }
+    },
+    "bringSpace.action.ipad": {
+      "comment": "iPad: bringSpace.action's counterpart on an iPad. SyncCopy uses a key's .ipad sibling there.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bring to iPad"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Auf das iPad holen"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Traer al iPad"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Copier sur l’iPad"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Porta su iPad"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Trazer para o iPad"
           }
         }
       }
@@ -103927,6 +104389,48 @@
         }
       }
     },
+    "ios.welcome.title.ipad": {
+      "comment": "iOS first-minute walkthrough on an iPad: the Welcome card's heading. ios.welcome.title's counterpart; the phone's says “in your pocket.”",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Your Blanc, on your iPad."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dein Blanc, auf deinem iPad."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tu Blanc, en tu iPad."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Votre Blanc, sur votre iPad."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Il tuo Blanc, sul tuo iPad."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Seu Blanc, no seu iPad."
+          }
+        }
+      }
+    },
     "ios.welcome.body": {
       "comment": "iOS walkthrough: the Welcome card's line under the heading.",
       "extractionState": "manual",
@@ -104385,6 +104889,216 @@
           "stringUnit": {
             "state": "translated",
             "value": "Compartilhar deste iPhone"
+          }
+        }
+      }
+    },
+    "ios.welcome.shareTitle.ipad": {
+      "comment": "iPad: ios.welcome.shareTitle's counterpart on an iPad. SyncCopy uses a key's .ipad sibling there.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Share from this iPad"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Von diesem iPad teilen"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Compartir desde este iPad"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Partager depuis cet iPad"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Condividi da questo iPad"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Compartilhar deste iPad"
+          }
+        }
+      }
+    },
+    "ios.menu.requestMobileSite": {
+      "comment": "iPad Sunrise menu: asks this site for its phone layout, as Safari's item does. iPads get desktop sites by default.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Request Mobile Website"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mobile Website anfordern"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Solicitar sitio web móvil"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Demander le site web mobile"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Richiedi sito web mobile"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Solicitar site para celular"
+          }
+        }
+      }
+    },
+    "ios.menu.requestDesktopSite": {
+      "comment": "iPad Sunrise menu: on a site set to its phone layout, goes back to the desktop site.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Request Desktop Website"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Desktop-Website anfordern"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Solicitar sitio web de escritorio"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Demander le site web pour ordinateur"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Richiedi sito web desktop"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Solicitar site para computador"
+          }
+        }
+      }
+    },
+    "menu.focusNextPane": {
+      "comment": "iPad menu bar, Tabs: moves focus to the split's other pane (⌥⌘→).",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Focus Next Pane"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nächster Bereich"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Panel siguiente"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Panneau suivant"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Riquadro successivo"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Próximo painel"
+          }
+        }
+      }
+    },
+    "menu.focusPreviousPane": {
+      "comment": "iPad menu bar, Tabs: moves focus to the split's other pane (⌥⌘←).",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Focus Previous Pane"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vorheriger Bereich"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Panel anterior"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Panneau précédent"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Riquadro precedente"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Painel anterior"
           }
         }
       }
