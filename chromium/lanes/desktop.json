@@ -5,7 +5,7 @@
   "upstream": "681cd621e82e606d7536eae8ea2576afb3c7d65c",
   "upstreamDir": "upstream",
   "sourceMap": "source-map.json",
-  "fileCount": 120,
+  "fileCount": 121,
   "patches": [
     "patches/baseline/0001-foundation-baseline.patch",
     "patches/0002-canonical-layout.patch",
@@ -37,6 +37,7 @@
     "patches/0028-blanc-first-run.patch",
     "patches/0029-blanc-patron-icons.patch",
     "patches/0030-blanc-tour-telemetry.patch",
-    "patches/0031-blanc-glance.patch"
+    "patches/0031-blanc-glance.patch",
+    "patches/0032-blanc-link-glance.patch"
   ]
 }

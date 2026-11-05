@@ -6001,6 +6001,10 @@ class Handler : public content::WebUIMessageHandler, public extensions::Extensio
       reply(false, base::Value("Bad settings sheet request."));
       return;
     }
+    if (method == "focusIsland" && args.empty()) {
+      owner->view->GetWebContents()->Focus();
+      reply(true, base::Value()); return;
+    }
     if (method == "focusPage" && args.empty()) {
       // Escape and outside clicks hand focus back to the page, as Electron's
       // hideOverlay does, instead of parking it in the hidden overlay.
@@ -6092,6 +6096,21 @@ class Handler : public content::WebUIMessageHandler, public extensions::Extensio
       if (!group) {
         reply(true, base::Value(false));
         return;
+      }
+      if (method == "closeGroup") {
+        // The Glance tab only joined this group to sit beside its main page:
+        // it goes back first, and becomes the current tab if the group held
+        // the main page and it didn't belong here.
+        if (owner->glance_main >= 0 && owner->glance_origin_group != group) {
+          content::WebContents* reference = nullptr;
+          bool main_in_group = false;
+          for (int i = 0; i < model->count(); ++i) {
+            const int tab_id = sessions::SessionTabHelper::IdForTab(model->GetWebContentsAt(i)).id();
+            if (tab_id == owner->glance_reference) reference = model->GetWebContentsAt(i);
+            if (tab_id == owner->glance_main) main_in_group = model->GetTabGroupForTab(i) == group;
+          }
+          if (main_in_group) EndGlance(owner, reference);
+        }
       }
       const auto* visuals = GroupVisuals(model, *group);
       const gfx::Range range = model->group_model()->GetTabGroup(*group)->ListTabs();
@@ -6234,6 +6253,12 @@ class Handler : public content::WebUIMessageHandler, public extensions::Extensio
       blanc::quiet::DirtyProbe::Run(tab, base::BindOnce(&Handler::QuietProbed,
           weak_factory_.GetWeakPtr(), id, method == "quietTab", browser->GetWeakPtr(), tab->GetWeakPtr(), document));
       return;
+    }
+    // A quiet tab chosen for Glance loads before the card opens, as shipping's.
+    if (method == "wakeTab" && args.size() == 1) {
+      tab->GetController().SetNeedsReload();
+      tab->GetController().LoadIfNecessary();
+      reply(true, base::Value(true)); return;
     }
     if (method == "quietState" && args.size() == 1) {
       const auto active_split = model->active_index() >= 0 ?
@@ -6538,6 +6563,9 @@ class Handler : public content::WebUIMessageHandler, public extensions::Extensio
           return;
         }
       }
+      // A person grouping the Glance tab means it: it stays there afterwards.
+      if (sessions::SessionTabHelper::IdForTab(model->GetWebContentsAt(index)).id() == owner->glance_reference)
+        owner->glance_origin_group = target;
       if (model->GetTabGroupForTab(index) != target) {
         if (target) model->AddToExistingGroup(members, *target);
         else model->RemoveFromGroup(members);
@@ -7003,6 +7031,29 @@ bool RestoreClosedSplitFromCommand(BrowserWindowInterface* browser) {
       WindowOpenDisposition::kNewForegroundTab);
   if (restored) RestoreClosedSplitMetadata(browser, focus, *restored);
   return true;
+}
+
+namespace {
+Owner* OwnerOfTab(content::WebContents* source) {
+  for (auto* owner : Owner::Live())
+    if (owner->browser->GetTabStripModel()->GetIndexOfWebContents(source) != TabStripModel::kNoTab) return owner;
+  return nullptr;
+}
+}  // namespace
+bool CanOpenLinkInGlance(content::WebContents* source, const GURL& url) {
+  return IsEnabled() && source && url.SchemeIsHTTPOrHTTPS() && OwnerOfTab(source);
+}
+std::u16string OpenLinkInGlanceLabel() {
+  for (const auto& string : blanc::settings::ForLocale(g_browser_process->GetApplicationLocale()))
+    if (string.name == "blancOpenLinkInGlance") return std::u16string(string.value);
+  return u"Open Link in Glance";
+}
+void OpenLinkInGlance(content::WebContents* source, const GURL& url) {
+  auto* owner = OwnerOfTab(source);
+  if (!owner || !owner->view || !url.SchemeIsHTTPOrHTTPS()) return;
+  owner->view->GetWebContents()->GetPrimaryMainFrame()->ExecuteJavaScript(
+      u"window.BlancPrototypeHost?.api.openLinkInGlance(" +
+          base::UTF8ToUTF16(base::GetQuotedJSONString(url.spec())) + u")", base::NullCallback());
 }
 
 bool ToggleGlance(BrowserWindowInterface* browser) {
@@ -7572,8 +7623,12 @@ void AdjustSplitLayout(const MultiContentsView* view, views::ProposedLayout* lay
     }
     if (width <= 0 || width != view->width() || height != view->height()) return;
     owner->split_hit_regions = owner->glance_ring;
-    owner->split_geometry = base::DictValue().Set("mode", "glance").Set("pageArea", base::DictValue()
-        .Set("x", origin.x()).Set("y", origin.y()).Set("width", width).Set("height", height));
+    // The page area is fixed to the window: below the Island's resting band,
+    // whatever Auto-hide is doing to the page.
+    auto* island = browser_view->GetViewByID(kIslandViewId);
+    const int band = island ? BaseHeaderHeight(island->parent()) - island->y() : origin.y();
+    owner->split_geometry = base::DictValue().Set("mode", "glance").Set("islandY", island ? island->y() : 0).Set("pageArea", base::DictValue()
+        .Set("x", origin.x()).Set("y", band).Set("width", width).Set("height", origin.y() + height - band));
     return;
   }
   if (model->active_index() < 0 || !model->GetSplitForTab(model->active_index()) ||

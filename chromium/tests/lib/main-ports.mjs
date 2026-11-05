@@ -33,6 +33,10 @@ const windows = async fixture => (await fixture.targets())
   .filter(t => t.type === 'page' && t.url === 'chrome://blanc-prototype/host.html').length;
 
 export const PORTS = {
+  // Whether a pane's contents hold focus: the host's focused tab.
+  'ffe82b57714edbb86a70d42ba87b0e6582b9138abb48ee03d3b4241e44da35a0': async (fixture, state, id) => String((await nativeCall(fixture.host, 'snapshot')).focusedTabId) === String(id),
+  // process.platform, for the platform's new-tab modifier.
+  '5ab682247983acf33b7a57d5d4aec583451f33be98a23aacabdd3ae0e2485a60': async () => process.platform,
   // test/desktop/steps/http-auth.steps.js (F20), installProbe: Blanc's
   // refusal records each challenge natively (http_auth.h). A credential
   // dialog could only be a new window or a tab-modal one, and with no login

@@ -372,7 +372,7 @@
         },
         "android": {
           "stage": "implemented",
-          "basis": "A3 the fork's blocker on the emulator: blocking.mjs and acceptance F12-1–6 (a3-gate.sh, 2026-11-05); Pixel hands-on pending"
+          "basis": "A3 the fork's blocker on the emulator: blocking.mjs and acceptance F12-1\u20136 (a3-gate.sh, 2026-11-05); Pixel hands-on pending"
         }
       }
     },
@@ -912,9 +912,9 @@
       },
       "platformProgress": {
         "macos": {
-          "stage": "implemented",
-          "candidate": "macos-1935c1d14bb29c5b",
-          "basis": "S3.2 (2026-11-05): in candidate macos-1935c1d14bb29c5b; 24 of 69 cases pass, 14 fail, 31 undefined (s3-glance); Open Link in Glance has no context menu item yet"
+          "stage": "integrated",
+          "candidate": "macos-87bb16d760497fc1",
+          "basis": "S3.3 (2026-11-05): in candidate macos-87bb16d760497fc1, on by default and reachable; 38 of 69 cases pass, 4 fail, 27 undefined (s3-glance); manual accessibility/visual checklist pending for Verified"
         },
         "windows": {
           "stage": "not-started",
@@ -2458,8 +2458,8 @@
   ],
   "currentCandidates": {
     "macos": {
-      "id": "macos-1935c1d14bb29c5b",
-      "frameworkSha256": "1935c1d14bb29c5b2e440db80c1a9f01f81897becd2679dfb5a8349b45ce3f27",
+      "id": "macos-87bb16d760497fc1",
+      "frameworkSha256": "87bb16d760497fc1891aa6769d45855f27ee7c696325cbbc7fa040bbf0ecac02",
       "executableSha256": "cca20d7ed00bbdecf8db310c6802fbed003b4e63c6bc3b1f71dabc9dbff2ff01",
       "version": "158.0.8127.2",
       "qualification": "compiled candidate; runtime acceptance pending"

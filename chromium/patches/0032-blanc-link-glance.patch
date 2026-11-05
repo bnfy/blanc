@@ -1,0 +1,44 @@
+diff --git a/chrome/browser/renderer_context_menu/render_view_context_menu.cc b/chrome/browser/renderer_context_menu/render_view_context_menu.cc
+index e4600f1..9522245 100644
+--- a/chrome/browser/renderer_context_menu/render_view_context_menu.cc
++++ b/chrome/browser/renderer_context_menu/render_view_context_menu.cc
+@@ -4,6 +4,8 @@
+ 
+ #include "chrome/browser/renderer_context_menu/render_view_context_menu.h"
+ 
++#include "blanc/browser/ui/blanc_prototype_ui.h"
++
+ #include <stddef.h>
+ 
+ #include <algorithm>
+@@ -2037,6 +2039,11 @@ void RenderViewContextMenu::AppendLinkItems() {
+           in_app ? IDS_CONTENT_CONTEXT_OPENLINKNEWTAB_INAPP
+                  : IDS_CONTENT_CONTEXT_OPENLINKNEWTAB);
+     }
++    // Blanc (F34): Open Link in Glance, in an Island window, for web links.
++    if (blanc_prototype::CanOpenLinkInGlance(source_web_contents_, params_.link_url)) {
++      menu_model_.AddItem(blanc_prototype::kOpenLinkInGlanceCommand,
++                          blanc_prototype::OpenLinkInGlanceLabel());
++    }
+ 
+     if (show_open_in_new_window) {
+       AddItemWithOptionalIcon(IDC_CONTENT_CONTEXT_OPENLINKNEWWINDOW,
+@@ -3478,6 +3485,7 @@ void RenderViewContextMenu::AppendLiveCaptionItem() {
+ // Menu delegate functions -----------------------------------------------------
+ 
+ bool RenderViewContextMenu::IsCommandIdEnabled(int id) const {
++  if (id == blanc_prototype::kOpenLinkInGlanceCommand) return true;
+ #if BUILDFLAG(IS_CHROMEOS)
+   // Disable context menu in locked fullscreen mode to prevent users from
+   // exiting this mode (the menu is not really disabled as the user can still
+@@ -3914,6 +3922,10 @@ void RenderViewContextMenu::OpenURLWithExtraHeaders(
+ }
+ 
+ void RenderViewContextMenu::ExecuteCommand(int id, int event_flags) {
++  if (id == blanc_prototype::kOpenLinkInGlanceCommand) {
++    blanc_prototype::OpenLinkInGlance(source_web_contents_, params_.link_url);
++    return;
++  }
+   RenderViewContextMenuBase::ExecuteCommand(id, event_flags);
+   if (command_executed_) {
+     return;

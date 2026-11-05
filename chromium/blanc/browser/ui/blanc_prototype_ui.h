@@ -92,6 +92,12 @@ void RestoreInheritedSandbox(content::WebContents* tab, uint32_t flags);
 bool RestoreClosedSplitFromCommand(BrowserWindowInterface* browser);
 bool SelectIslandSlot(BrowserWindowInterface* browser, int slot);
 bool ToggleGlance(BrowserWindowInterface* browser);
+// Open Link in Glance, in the page context menu (F34). Above every id
+// Chromium's menus use, so no generated command header has to change.
+inline constexpr int kOpenLinkInGlanceCommand = 59990;
+bool CanOpenLinkInGlance(content::WebContents* source, const GURL& url);
+std::u16string OpenLinkInGlanceLabel();
+void OpenLinkInGlance(content::WebContents* source, const GURL& url);
 // Returns a dismissal closure; no browser/profile/session state is created.
 base::OnceClosure ShowSessionRecovery();
 bool IsEnabled();

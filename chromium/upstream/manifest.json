@@ -19,6 +19,7 @@
     "chrome/browser/lifetime/application_lifetime_desktop.cc": "80adb29041a1f25af0c90cc550ed7c092c3abe50f6a4cf527d07cba137d88cc2",
     "chrome/browser/prefs/browser_prefs.cc": "380ab7f07fe47c5743f9799d5e864a1f487254cc8cefaac74642fbcb71181306",
     "chrome/browser/prefs/session_startup_pref.cc": "7b0dca1623466f2fa39fafaec6fd7f6cc0d3b7b46d6843298a377d27d0fc229c",
+    "chrome/browser/renderer_context_menu/render_view_context_menu.cc": "0344bd88b932d431a80b06d0ece5e1c545d7a10522ae8e861ecede0ffccbe398",
     "chrome/browser/renderer_preferences_util.cc": "11a762affd6386416dc68be52ced662c8432c10a69754a5e5b9cf65501a409e2",
     "chrome/browser/resource_coordinator/tab_lifecycle_unit.cc": "1f8e897703624324d0b31538d2f22954e7d9215d642c2f643db1fa8bcee30eb2",
     "chrome/browser/resources/glic/glic_api_impl/generate_impl/BUILD.gn": "5041820bd71607d810909c275a5b36a9f67987dcdfb89711548c3596540b9dfc",

@@ -7,6 +7,18 @@ import {UndefinedNativeAdapterError} from '../lib/adapters.mjs';
 const tabDom = (world, id, expression) => world.call('executeTab', id, expression);
 
 export const DIVERGENCES = new Map([
+  // V22 (2026-11-05): the Island is above the page views here, so the card's
+  // chrome sits above the Glance page with a hole for it, not below it. Same
+  // picture; shipping's view stacking has nothing to read.
+  ['the Glance is a large centered card over the whole main page', {divergence: 'V22', async run() {
+    const card = await this.waitFor(() => this.call('getGlanceCard'), value => value?.cardViewVisible === true, 'the Glance card to show', 5000);
+    const {pageArea} = card;
+    const width = Math.min(1100, Math.round(pageArea.width * 0.8));
+    assert.deepEqual(card.frame, {x: pageArea.x + Math.round((pageArea.width - width) / 2), y: pageArea.y + 16, width, height: pageArea.height - 48});
+    assert.deepEqual(card.mainViewBounds, card.pageBounds, 'the main page keeps the whole page area');
+    assert.deepEqual(card.viewBounds, card.page, 'the Glance page sits inside the card, below its header');
+    assert.deepEqual(card.cardViewBounds, card.chrome);
+  }}],
   // V8 (owner, 2026-10-31): certificate errors show Chromium's warning page
   // and use its proceed decisions instead of blanc://error and shipping's
   // session-only continue. Same warning, in Chromium's words.
