@@ -1000,13 +1000,18 @@
     };
     if (page === 'bookmarks') return { surface,
       bookmarks: {
-        // The fork's import arrives with the M.2 importer; until then the
-        // page hides its import actions, as it does where import is absent.
-        capabilities: async () => ({ editable: true, import: false }),
+        capabilities: async () => ({ editable: true, import: true }),
         list: () => call('listFavorites'),
         remove: (id) => call('sheetFavoriteRemove', [String(id)]),
         clearFavicon: async () => {},
-        import: unavailable, browserSources: unavailable, importBrowser: unavailable,
+        // Favorites import (F30). The file is chosen and parsed here; native
+        // merges it, as it does a detected browser's Favorites.
+        import: async () => {
+          const picked = await window.BlancBookmarkFile.pick();
+          return picked.entries ? call('sheetImportEntries', [picked.entries]) : picked;
+        },
+        browserSources: () => call('sheetBrowserSources'),
+        importBrowser: (id) => call('sheetImportBrowser', [String(id ?? '')]),
         setFolder: (id, folder) => call('sheetFavoriteFolder', [String(id), typeof folder === 'string' ? folder : '']),
         renameFolder: (oldName, newName) => call('sheetFolderRename', [String(oldName), String(newName)]),
         removeFolder: (name) => call('sheetFolderRemove', [String(name)]),
@@ -1535,7 +1540,6 @@
     if (!doc || hoverHooked.has(doc)) return;
     hoverHooked.add(doc);
     doc.addEventListener('mousemove', (event) => {
-      hover.moves = (hover.moves ?? 0) + 1;
       const from = frame?.getBoundingClientRect() ?? { x: 0, y: 0 };
       const to = strip.getBoundingClientRect();
       hover.lastPoint = { x: event.clientX + from.x - to.x, y: event.clientY + from.y - to.y };
@@ -1663,9 +1667,7 @@
   window.BlancPrototypeHost = {
     api,
     apiForDocument,
-    hoverState: () => ({ ...hover.state, point: hover.lastPoint ?? null, rect: pillRect?.hoverRect ?? null,
-      capable: pillRect?.hoverCapable === true, prompts: prompts.size, moves: hover.moves ?? 0,
-      hooked: hoverHooked.has(strip.contentDocument) }),
+    hoverState: () => ({ ...hover.state }),
     // Whether the how-to tip is on screen (shipping's introTipShown).
     autoHideIntroShown: () => introTip && !tooltip.hidden,
     // The floating pill's frame as shipping's floatViewState reports its

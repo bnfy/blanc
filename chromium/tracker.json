@@ -62,13 +62,13 @@
         },
         "android": {
           "stage": "implemented",
-          "basis": "A2 tabs on the emulator: close/reopen, duplicate, pin, mute; acceptance F2-1–4/6 (a2-gate.sh, 2026-11-04); Pixel hands-on pending"
+          "basis": "A2 tabs on the emulator: close/reopen, duplicate, pin, mute; acceptance F2-1\u20134/6 (a2-gate.sh, 2026-11-04); Pixel hands-on pending"
         }
       }
     },
     {
       "id": "F3",
-      "requirement": "Groups: names, case rules, optional color, group menu, ⌘1–9 clusters",
+      "requirement": "Groups: names, case rules, optional color, group menu, \u23181\u20139 clusters",
       "slice": "S1",
       "legacyMacState": "Integrated in an isolated candidate",
       "platformVerification": {
@@ -124,7 +124,7 @@
         },
         "android": {
           "stage": "implemented",
-          "basis": "A2 private tabs (Chromium's off-the-record model, own grid section) on the emulator; acceptance F4-1–3/5 (a2-gate.sh, 2026-11-04); Pixel hands-on pending"
+          "basis": "A2 private tabs (Chromium's off-the-record model, own grid section) on the emulator; acceptance F4-1\u20133/5 (a2-gate.sh, 2026-11-04); Pixel hands-on pending"
         }
       }
     },
@@ -193,7 +193,7 @@
     {
       "id": "F7",
       "requirement": "34 slash commands with shipping names and hints",
-      "slice": "S1–S5",
+      "slice": "S1\u2013S5",
       "legacyMacState": "Integrated (partial: some commands)",
       "platformVerification": {
         "macos": null,
@@ -787,8 +787,9 @@
       },
       "platformProgress": {
         "macos": {
-          "stage": "not-started",
-          "basis": "approved spec macOS inventory; awaiting candidate verification"
+          "stage": "integrated",
+          "candidate": "macos-86a75dc4b5d45861",
+          "basis": "S2 (2026-11-05): in candidate macos-86a75dc4b5d45861; all five shipping scenarios pass (s2d-3); manual accessibility/visual checklist pending for Verified"
         },
         "windows": {
           "stage": "not-started",
@@ -878,8 +879,9 @@
       },
       "platformProgress": {
         "macos": {
-          "stage": "not-started",
-          "basis": "approved spec macOS inventory; awaiting candidate verification"
+          "stage": "integrated",
+          "candidate": "macos-86a75dc4b5d45861",
+          "basis": "S2 (2026-11-05): in candidate macos-86a75dc4b5d45861; Chromium profiles and UI under V18; shipping cases stay undefined; manual accessibility/visual checklist pending for Verified"
         },
         "windows": {
           "stage": "not-started",
@@ -968,8 +970,9 @@
       },
       "platformProgress": {
         "macos": {
-          "stage": "not-started",
-          "basis": "approved spec macOS inventory; awaiting candidate verification"
+          "stage": "integrated",
+          "candidate": "macos-86a75dc4b5d45861",
+          "basis": "S2 (2026-11-05): in candidate macos-86a75dc4b5d45861; seven of eight cases pass (s2d-2); the tour replay (F36-8) is not built; manual accessibility/visual checklist pending for Verified"
         },
         "windows": {
           "stage": "not-started",
@@ -2065,8 +2068,9 @@
       },
       "platformProgress": {
         "macos": {
-          "stage": "not-started",
-          "basis": "approved spec macOS inventory; awaiting candidate verification"
+          "stage": "integrated",
+          "candidate": "macos-86a75dc4b5d45861",
+          "basis": "S2 (2026-11-05): in candidate macos-86a75dc4b5d45861; Chromium's Default browser section under V20; manual accessibility/visual checklist pending for Verified"
         },
         "windows": {
           "stage": "not-started",
@@ -2448,8 +2452,8 @@
   ],
   "currentCandidates": {
     "macos": {
-      "id": "macos-09aa3d8b79584378",
-      "frameworkSha256": "09aa3d8b79584378c322a891bf7e6d94c81380a636dc0abebd09ae59dc4cc82b",
+      "id": "macos-86a75dc4b5d45861",
+      "frameworkSha256": "86a75dc4b5d4586127c986508a89707072744e670768a165a10fab3a39e2c55e",
       "executableSha256": "cca20d7ed00bbdecf8db310c6802fbed003b4e63c6bc3b1f71dabc9dbff2ff01",
       "version": "158.0.8127.2",
       "qualification": "compiled candidate; runtime acceptance pending"

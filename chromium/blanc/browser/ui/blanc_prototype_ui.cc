@@ -81,6 +81,12 @@
 #include <string>
 #include <utility>
 #include "base/base64.h"
+#include "base/base64url.h"
+#include "base/base_paths.h"
+#include "base/files/file.h"
+#include "base/files/file_enumerator.h"
+#include "base/path_service.h"
+#include "crypto/hash.h"
 #include "base/strings/escape.h"
 #include "content/public/browser/storage_partition.h"
 #include "services/network/public/cpp/simple_url_loader.h"
@@ -233,6 +239,7 @@
 #include "chrome/browser/ui/autofill/chrome_autofill_client.h"
 #include "content/public/common/url_constants.h"
 #include "blanc/common/menu_strings.h"
+#include "blanc/common/settings_strings.h"
 #include "content/public/browser/context_menu_params.h"
 #include "third_party/blink/public/common/context_menu_data/edit_flags.h"
 #include "ui/base/accelerators/accelerator.h"
@@ -2458,6 +2465,7 @@ base::DictValue Snapshot(BrowserWindowInterface* browser, Owner* owner) {
 #include "blanc/browser/ui/billboard_clock_settings.inc"
 #include "blanc/browser/ui/start_page_pins.inc"
 #include "blanc/browser/ui/start_page_pin_menu.inc"
+#include "blanc/browser/ui/first_run.inc"
 
 class NewTabHandler : public content::WebUIMessageHandler,
                       public bookmarks::BaseBookmarkModelObserver,
@@ -2564,6 +2572,10 @@ class NewTabHandler : public content::WebUIMessageHandler,
   void Notify(const char* kind) {
     if (!IsStartPage() || !IsJavascriptAllowed()) return;
     web_ui()->CallJavascriptFunctionUnsafe("blancNewTabEvent", base::Value(kind));
+  }
+  void Answer(const std::string& id, base::Value value) { Reply(id, true, std::move(value)); }
+  void AnswerDefaultBrowser(const std::string& id, shell_integration::DefaultWebClientState state) {
+    Reply(id, true, DefaultBrowserStatus(state));
   }
   void Handle(const base::ListValue& message) {
     if (!IsStartPage() || message.size() != 3 || !message[0].is_string() ||
@@ -2721,6 +2733,45 @@ class NewTabHandler : public content::WebUIMessageHandler,
       Reply(id, true, ChangeStartPin(prefs, method == "pinsPin", args[0].GetString(),
                                      method == "pinsPin" ? args[1].GetString() : std::string()));
       return;
+    }
+    // First run and Favorites import (F36, F30). A private Start Page never
+    // shows the walkthrough, so it gets none of this.
+    if (!profile->IsOffTheRecord()) {
+      if (method == "firstRun" && args.empty()) {
+        Reply(id, true, base::Value(base::DictValue().Set("privacy", FirstRunPrivacy(profile))
+            .Set("onboarding", OnboardingState(profile))));
+        return;
+      }
+      if (method == "onboardingSet" && args.size() == 1 && args[0].is_dict()) {
+        ApplyOnboardingSet(profile, args[0].GetDict());
+        Reply(id, true, base::Value());
+        return;
+      }
+      if (method == "completePrivacy" && args.size() == 1 && args[0].is_dict()) {
+        Reply(id, true, base::Value(base::DictValue().Set("completed",
+            CompleteFirstRunPrivacy(profile, args[0].GetDict()))));
+        return;
+      }
+      if ((method == "defaultBrowser" || method == "setDefaultBrowser") && args.empty()) {
+        auto worker = base::MakeRefCounted<shell_integration::DefaultBrowserWorker>();
+        auto done = base::BindOnce(&NewTabHandler::AnswerDefaultBrowser, weak_factory_.GetWeakPtr(), id);
+        if (method == "defaultBrowser") worker->StartCheckIsDefault(std::move(done));
+        else worker->StartSetAsDefault(std::move(done));
+        return;
+      }
+      if (method == "browserSources" && args.empty()) {
+        browser_import::ListSources(base::BindOnce(&NewTabHandler::Answer, weak_factory_.GetWeakPtr(), id));
+        return;
+      }
+      if (method == "importBrowser" && args.size() == 1 && args[0].is_string()) {
+        browser_import::ImportSource(profile->GetWeakPtr(), args[0].GetString(),
+            base::BindOnce(&NewTabHandler::Answer, weak_factory_.GetWeakPtr(), id));
+        return;
+      }
+      if (method == "importEntries" && args.size() == 1 && args[0].is_list()) {
+        Reply(id, true, browser_import::ImportParsed(profile, args[0].GetList()));
+        return;
+      }
     }
     // The weekly blocked counter (shipping's blockedThisWeek, blockedByDay and
     // blockedBarHeights); private Start Pages show no counts, so get none.
@@ -3874,6 +3925,28 @@ class Handler : public content::WebUIMessageHandler, public extensions::Extensio
     if (message[1].GetString() == "blockingExceptions") {
       Reply(id, true, base::Value(Profile::FromWebUI(web_ui())->GetOriginalProfile()->GetPrefs()
           ->GetList("blanc.blocking.exceptions").Clone()));
+      return;
+    }
+    // First run (F36): shipping's acceptance profile finishes it at launch,
+    // and a scenario asks for the walkthrough with these choices on screen.
+    if (message[1].GetString() == "setFirstRunPending" && message[2].GetList().size() == 1 &&
+        message[2].GetList()[0].is_bool()) {
+      g_first_run_pending_for_test = message[2].GetList()[0].GetBool();
+      Reply(id, true, base::Value(true));
+      return;
+    }
+    if (message[1].GetString() == "firstRunState") {
+      auto* profile = Profile::FromWebUI(web_ui());
+      Reply(id, true, base::Value(base::DictValue().Set("complete", !FirstRunPending())
+          .Set("searchSuggestions", profile->GetOriginalProfile()->GetPrefs()->GetBoolean(prefs::kSearchSuggestEnabled))
+          .Set("usagePing", g_browser_process->local_state()->GetBoolean(kUsagePingPref))
+          .Set("tabArchive", profile->GetOriginalProfile()->GetPrefs()->GetString(kTabArchivePref))));
+      return;
+    }
+    if (message[1].GetString() == "setUsagePing" && message[2].GetList().size() == 1 &&
+        message[2].GetList()[0].is_bool()) {
+      g_browser_process->local_state()->SetBoolean(kUsagePingPref, message[2].GetList()[0].GetBool());
+      Reply(id, true, base::Value(message[2].GetList()[0].GetBool()));
       return;
     }
     if (message[1].GetString() == "storedUiLanguage") {
@@ -5376,6 +5449,24 @@ class Handler : public content::WebUIMessageHandler, public extensions::Extensio
         history->ExpireHistoryBetween({url}, /*restrict_app_id=*/std::nullopt, at, at + base::Milliseconds(1),
             /*user_initiated=*/true, base::BindOnce(&Handler::HistoryCleared, weak_factory_.GetWeakPtr(), id),
             &tracker_);
+        return;
+      }
+      // The Favorites sheet's imports (F30).
+      if (method == "sheetBrowserSources" && args.empty()) {
+        browser_import::ListSources(base::BindOnce([](base::WeakPtr<Handler> self, std::string id, base::Value value) {
+          if (self) self->Reply(id, true, std::move(value));
+        }, weak_factory_.GetWeakPtr(), id));
+        return;
+      }
+      if (method == "sheetImportBrowser" && args.size() == 1 && args[0].is_string()) {
+        browser_import::ImportSource(profile->GetWeakPtr(), args[0].GetString(),
+            base::BindOnce([](base::WeakPtr<Handler> self, std::string id, base::Value value) {
+              if (self) self->Reply(id, true, std::move(value));
+            }, weak_factory_.GetWeakPtr(), id));
+        return;
+      }
+      if (method == "sheetImportEntries" && args.size() == 1 && args[0].is_list()) {
+        reply(true, browser_import::ImportParsed(profile, args[0].GetList()));
         return;
       }
       if (method == "sheetDownloads" && args.empty()) {

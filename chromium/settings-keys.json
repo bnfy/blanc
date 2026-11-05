@@ -419,21 +419,29 @@
   },
   {
    "key": "usagePing",
-   "kind": "later",
+   "kind": "blanc-pref",
    "row": "F21",
-   "slice": "S2"
+   "slice": "S2",
+   "pref": "blanc.telemetry.usage_ping",
+   "scope": "local",
+   "status": "built",
+   "note": "The consent choice, device-wide as in shipping; the preview channel never sends (owner, 2026-11-04)"
   },
   {
    "key": "onboardingVersion",
    "kind": "later",
    "row": "F36",
-   "slice": "S2"
+   "slice": "S2",
+   "note": "No fork profile predates first run, so completion alone gates it until a new walkthrough version ships"
   },
   {
    "key": "firstRunCompletedAt",
-   "kind": "later",
+   "kind": "blanc-pref",
    "row": "F36",
-   "slice": "S2"
+   "slice": "S2",
+   "pref": "blanc.first_run.completed_at",
+   "scope": "local",
+   "status": "built"
   },
   {
    "key": "migrationChecklistDismissed",

@@ -33,6 +33,7 @@
     "patches/0024-blanc-call-audio.patch",
     "patches/0025-blanc-settings-look.patch",
     "patches/0026-blanc-island-size.patch",
-    "patches/0027-blanc-profiles.patch"
+    "patches/0027-blanc-profiles.patch",
+    "patches/0028-blanc-first-run.patch"
   ]
 }

@@ -25,6 +25,7 @@ overlay.js
 pages/bangs-catalog.js
 pages/bangs.js
 pages/billboard-clock-adapter.js
+pages/bookmark-file.js
 pages/bookmarks.html
 pages/bookmarks.js
 pages/caveat-latin.woff2
@@ -50,8 +51,10 @@ pages/newtab-shared-spaces.js
 pages/newtab-wallpaper.js
 pages/newtab.html
 pages/newtab.js
+pages/onboarding-guard.js
 pages/onboarding-island-dark.png
 pages/onboarding-island-light.png
+pages/onboarding.js
 pages/pages-neutral.css
 pages/pages.css
 pages/roboto-flex-clock.woff2

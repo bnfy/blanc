@@ -334,6 +334,14 @@
         await new Promise(resolve => setTimeout(resolve, 100));
       }
       throw new Error('Bookmarks are still loading');
+    },
+    // Favorites import (F30): detected browsers only when asked, and a
+    // bookmarks file the person picks.
+    browserSources: () => request('browserSources', [], 30000),
+    importBrowser: id => request('importBrowser', [String(id ?? '')], 60000),
+    import: async () => {
+      const picked = await window.BlancBookmarkFile.pick();
+      return picked.entries ? request('importEntries', [picked.entries], 60000) : picked;
     } },
     start: {
       data: async () => {
@@ -356,7 +364,10 @@
         if (!isPrivatePage) week = await request('blockedWeek').catch(error => { console.warn(error.message); return null; });
         const days = Array.isArray(week?.days) && week.days.length === 7 ? week.days : [0, 0, 0, 0, 0, 0, 0];
         const heights = Array.isArray(week?.barHeights) && week.barHeights.length === 7 ? week.barHeights : [0, 0, 0, 0, 0, 0, 0];
-        return { ...preferences(), remoteDevices: [], blockedThisWeek: Number.isInteger(week?.blocked) ? week.blocked : 0,
+        // First run: the privacy gate and the walkthrough's saved values.
+        const firstRun = isPrivatePage ? null : await request('firstRun').catch(error => { console.warn(error.message); return null; });
+        return { ...preferences(), remoteDevices: [], privacy: firstRun?.privacy, onboarding: firstRun?.onboarding ?? null,
+          blockedThisWeek: Number.isInteger(week?.blocked) ? week.blocked : 0,
           blockerStatisticsAvailable: Number.isInteger(week?.blocked),
           blockedByDay: days, blockedBarHeights: heights,
           topSites, __topSitesAvailable: available, __topSitesEpoch: epoch, wallpaperVisible: !document.hidden };
@@ -430,6 +441,14 @@
       },
       setWallpaperFollowSpace: async () => { throw new Error('Spaces are not available in this prototype.'); },
       setDynamicWallpaper: async (enabled) => save({ dynamicWallpaperEnabled: enabled === true }).dynamicWallpaperEnabled,
+      // First run (F36). The walkthrough's guard wants all of these real.
+      onboardingReady: true,
+      onboardingSet: partial => request('onboardingSet', [partial ?? {}]),
+      completePrivacy: choices => request('completePrivacy', [choices ?? {}]),
+      defaultBrowser: () => request('defaultBrowser'),
+      setDefaultBrowser: () => request('setDefaultBrowser', [], 60000),
+      // The preview channel sends no telemetry (F21).
+      layoutUsed: async () => {},
       onStatus: callback => { listeners.add(callback); return () => listeners.delete(callback); },
       onVisibility: callback => {
         const update = () => callback(!document.hidden);

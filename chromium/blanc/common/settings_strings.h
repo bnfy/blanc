@@ -14,7 +14,7 @@ struct String {
   std::string_view name;
   std::u16string_view value;
 };
-inline constexpr std::array<String, 58> kStrings_en = {{
+inline constexpr std::array<String, 62> kStrings_en = {{
     {"blancIslandHoverOpen", u"Open the Island on hover"},
     {"blancIslandHoverOpenHint", u"Rest the pointer on the Island’s address to open it without clicking."},
     {"blancIslandAutoHide", u"Auto-hide the Island"},
@@ -33,6 +33,10 @@ inline constexpr std::array<String, 58> kStrings_en = {{
     {"blancIslandTabIcons", u"Show site icons on the Island"},
     {"blancIslandTabIconsHint", u"Show each tab’s site icon instead of a dot. Icons take more room, so fewer tabs fit."},
     {"blancProfiles", u"Profiles"},
+    {"blancImportBar", u"Bookmarks bar"},
+    {"blancImportOther", u"Other bookmarks"},
+    {"blancImportMobile", u"Mobile bookmarks"},
+    {"blancImportPermission", u"macOS blocked access to this browser’s profile folder. Grant Blanc Full Disk Access in System Settings → Privacy & Security, then try again."},
     {"blancSurfaceStyle", u"Surface style"},
     {"blancSurfaceStyleHint", u"The look of Blanc’s own pages. Neutral swaps the cream and gold for plain ink and gray."},
     {"blancSurfaceStyleSunrise", u"Sunrise"},
@@ -74,7 +78,7 @@ inline constexpr std::array<String, 58> kStrings_en = {{
     {"blancLanguageSystem", u"System ({language})"},
     {"blancLanguageRelaunch", u"Relaunch to apply"},
 }};
-inline constexpr std::array<String, 58> kStrings_de = {{
+inline constexpr std::array<String, 62> kStrings_de = {{
     {"blancIslandHoverOpen", u"Island beim Darüberfahren öffnen"},
     {"blancIslandHoverOpenHint", u"Lass den Zeiger auf der Adresse in der Island ruhen, um sie ohne Klick zu öffnen."},
     {"blancIslandAutoHide", u"Island automatisch ausblenden"},
@@ -93,6 +97,10 @@ inline constexpr std::array<String, 58> kStrings_de = {{
     {"blancIslandTabIcons", u"Website-Symbole in der Island zeigen"},
     {"blancIslandTabIconsHint", u"Zeigt für jeden Tab das Symbol der Website statt eines Punkts. Symbole brauchen mehr Platz, deshalb passen weniger Tabs hinein."},
     {"blancProfiles", u"Profile"},
+    {"blancImportBar", u"Lesezeichenleiste"},
+    {"blancImportOther", u"Weitere Lesezeichen"},
+    {"blancImportMobile", u"Mobile Lesezeichen"},
+    {"blancImportPermission", u"macOS hat den Zugriff auf den Profilordner dieses Browsers blockiert. Gib Blanc in den Systemeinstellungen unter Datenschutz & Sicherheit den Festplattenvollzugriff und versuche es dann erneut."},
     {"blancSurfaceStyle", u"Oberflächenstil"},
     {"blancSurfaceStyleHint", u"Das Aussehen der eigenen Seiten von Blanc. „Neutral“ ersetzt Creme und Gold durch schlichtes Schwarz und Grau."},
     {"blancSurfaceStyleSunrise", u"Sunrise"},
@@ -134,7 +142,7 @@ inline constexpr std::array<String, 58> kStrings_de = {{
     {"blancLanguageSystem", u"System ({language})"},
     {"blancLanguageRelaunch", u"Zum Übernehmen neu starten"},
 }};
-inline constexpr std::array<String, 58> kStrings_es = {{
+inline constexpr std::array<String, 62> kStrings_es = {{
     {"blancIslandHoverOpen", u"Abrir la Island al pasar el cursor"},
     {"blancIslandHoverOpenHint", u"Deja el puntero sobre la dirección de la Island para abrirla sin hacer clic."},
     {"blancIslandAutoHide", u"Ocultar la Island automáticamente"},
@@ -153,6 +161,10 @@ inline constexpr std::array<String, 58> kStrings_es = {{
     {"blancIslandTabIcons", u"Mostrar iconos de sitios en la Island"},
     {"blancIslandTabIconsHint", u"Muestra el icono del sitio de cada pestaña en lugar de un punto. Los iconos ocupan más espacio, así que caben menos pestañas."},
     {"blancProfiles", u"Perfiles"},
+    {"blancImportBar", u"Barra de marcadores"},
+    {"blancImportOther", u"Otros marcadores"},
+    {"blancImportMobile", u"Marcadores del móvil"},
+    {"blancImportPermission", u"macOS bloqueó el acceso a la carpeta de perfil de este navegador. Concede a Blanc acceso total al disco en Ajustes del Sistema → Privacidad y seguridad y vuelve a intentarlo."},
     {"blancSurfaceStyle", u"Estilo de superficie"},
     {"blancSurfaceStyleHint", u"El aspecto de las páginas propias de Blanc. «Neutro» cambia el crema y el dorado por tinta y gris lisos."},
     {"blancSurfaceStyleSunrise", u"Sunrise"},
@@ -194,7 +206,7 @@ inline constexpr std::array<String, 58> kStrings_es = {{
     {"blancLanguageSystem", u"Sistema ({language})"},
     {"blancLanguageRelaunch", u"Reiniciar para aplicar"},
 }};
-inline constexpr std::array<String, 58> kStrings_fr = {{
+inline constexpr std::array<String, 62> kStrings_fr = {{
     {"blancIslandHoverOpen", u"Ouvrir l’Island au survol"},
     {"blancIslandHoverOpenHint", u"Laissez le pointeur sur l’adresse de l’Island pour l’ouvrir sans cliquer."},
     {"blancIslandAutoHide", u"Masquer automatiquement l’Island"},
@@ -213,6 +225,10 @@ inline constexpr std::array<String, 58> kStrings_fr = {{
     {"blancIslandTabIcons", u"Afficher les icônes des sites dans l’Island"},
     {"blancIslandTabIconsHint", u"Affiche l’icône du site de chaque onglet au lieu d’un point. Les icônes prennent plus de place : moins d’onglets y tiennent."},
     {"blancProfiles", u"Profils"},
+    {"blancImportBar", u"Barre de favoris"},
+    {"blancImportOther", u"Autres favoris"},
+    {"blancImportMobile", u"Favoris mobiles"},
+    {"blancImportPermission", u"macOS a bloqué l’accès au dossier de profil de ce navigateur. Accordez à Blanc l’accès complet au disque dans Réglages Système → Confidentialité et sécurité, puis réessayez."},
     {"blancSurfaceStyle", u"Style des surfaces"},
     {"blancSurfaceStyleHint", u"L’apparence des pages propres à Blanc. « Neutre » remplace la crème et l’or par de l’encre et du gris unis."},
     {"blancSurfaceStyleSunrise", u"Sunrise"},
@@ -254,7 +270,7 @@ inline constexpr std::array<String, 58> kStrings_fr = {{
     {"blancLanguageSystem", u"Système ({language})"},
     {"blancLanguageRelaunch", u"Redémarrer pour appliquer"},
 }};
-inline constexpr std::array<String, 58> kStrings_it = {{
+inline constexpr std::array<String, 62> kStrings_it = {{
     {"blancIslandHoverOpen", u"Apri l’Island al passaggio del puntatore"},
     {"blancIslandHoverOpenHint", u"Lascia il puntatore sull’indirizzo dell’Island per aprirla senza fare clic."},
     {"blancIslandAutoHide", u"Nascondi automaticamente l’Island"},
@@ -273,6 +289,10 @@ inline constexpr std::array<String, 58> kStrings_it = {{
     {"blancIslandTabIcons", u"Mostra le icone dei siti nell’Island"},
     {"blancIslandTabIconsHint", u"Mostra l’icona del sito di ogni scheda invece di un punto. Le icone occupano più spazio, quindi ci stanno meno schede."},
     {"blancProfiles", u"Profili"},
+    {"blancImportBar", u"Barra dei preferiti"},
+    {"blancImportOther", u"Altri preferiti"},
+    {"blancImportMobile", u"Preferiti per dispositivi mobili"},
+    {"blancImportPermission", u"macOS ha bloccato l’accesso alla cartella del profilo di questo browser. Concedi a Blanc l’accesso completo al disco in Impostazioni di Sistema → Privacy e sicurezza, poi riprova."},
     {"blancSurfaceStyle", u"Stile delle superfici"},
     {"blancSurfaceStyleHint", u"L’aspetto delle pagine di Blanc. «Neutro» sostituisce crema e oro con inchiostro e grigio semplici."},
     {"blancSurfaceStyleSunrise", u"Sunrise"},
@@ -314,7 +334,7 @@ inline constexpr std::array<String, 58> kStrings_it = {{
     {"blancLanguageSystem", u"Sistema ({language})"},
     {"blancLanguageRelaunch", u"Riavvia per applicare"},
 }};
-inline constexpr std::array<String, 58> kStrings_pt_BR = {{
+inline constexpr std::array<String, 62> kStrings_pt_BR = {{
     {"blancIslandHoverOpen", u"Abrir a Island ao passar o cursor"},
     {"blancIslandHoverOpenHint", u"Deixe o ponteiro sobre o endereço da Island para abri-la sem clicar."},
     {"blancIslandAutoHide", u"Ocultar a Island automaticamente"},
@@ -333,6 +353,10 @@ inline constexpr std::array<String, 58> kStrings_pt_BR = {{
     {"blancIslandTabIcons", u"Mostrar ícones dos sites na Island"},
     {"blancIslandTabIconsHint", u"Mostra o ícone do site de cada aba em vez de um ponto. Os ícones ocupam mais espaço, então cabem menos abas."},
     {"blancProfiles", u"Perfis"},
+    {"blancImportBar", u"Barra de favoritos"},
+    {"blancImportOther", u"Outros favoritos"},
+    {"blancImportMobile", u"Favoritos do celular"},
+    {"blancImportPermission", u"O macOS bloqueou o acesso à pasta de perfil deste navegador. Dê ao Blanc Acesso Total ao Disco em Ajustes do Sistema → Privacidade e Segurança e tente de novo."},
     {"blancSurfaceStyle", u"Estilo das superfícies"},
     {"blancSurfaceStyleHint", u"A aparência das páginas do próprio Blanc. «Neutro» troca o creme e o dourado por tinta e cinza lisos."},
     {"blancSurfaceStyleSunrise", u"Sunrise"},

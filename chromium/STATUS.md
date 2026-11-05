@@ -687,6 +687,26 @@ remain pending. D3 beta-only no-DRM exception accepted; EME notice/handoff requi
   shipping's Personal), which belongs with the fork's product-name strings;
   F33's three shipping cases drive shipping's own Profiles section and stay
   undefined under V18.
+- **S2.2 first run and Favorites import, candidate macos-86a75dc4b5d45861 (2026-11-05):**
+  shipping's walkthrough now runs on the Start Page. `first_run.inc` holds
+  settings.js's first-run state (Local State `blanc.first_run.completed_at`
+  and `blanc.telemetry.usage_ping`, device-wide), pages.js's narrow
+  onboarding setters (blocking, theme, and `blanc.tabs.archive` only while
+  first run is pending) and browser-data-import.js's reader: Chrome, Edge,
+  Brave, Chromium and Vivaldi profiles, Bookmarks and AccountBookmarks, read
+  only when asked, labels only to the page. A bookmarks file is chosen and
+  parsed in the page (`pages/bookmark-file.js`) and merged natively with
+  bookmark-data.js's rules, for the walkthrough and the Favorites sheet.
+  Patch 0028 registers the prefs; test profiles finish first run at launch.
+  F30 passes all 5; F36 passes 7 and F36-8 is undefined (the welcome tour
+  replay needs a Settings row and a tour address). island-and-commands 63 / 3,
+  internal-pages 9 / 1, newtab-layouts 10 / 3 (Mahjong only). F30, F33, F36
+  and N10 are Integrated on macOS. The default-browser step uses Chromium's
+  check and registration (V20). Bring Your Tabs (F40) stays hidden until S3.
+  Open: the privacy step's copy says counts go to Blanc's collector and that
+  Blanc checks for updates, and the preview does neither (F21 consent only).
+  macOS 27.3 changed clang's `--version` text (same binary); the owner
+  approved recording the environment, and the plan stayed small.
 - **Mahjong goes last (owner, 2026-11-04):** the fork has no Mahjong yet
   (F35-3, F35-4, F35-9 fail at the footer launch). When it is built it is an
   Island page (shipping's files served as byte-identical copies, opened as an
@@ -1073,13 +1093,13 @@ Android's Bar A counts the shared scenarios bound in `chromium/tests/android/acc
 
 | State | macOS | Windows | Linux | Android |
 | --- | ---: | ---: | ---: | ---: |
-| Not started / unassessed | 33 | 80 | 80 | 69 |
+| Not started / unassessed | 29 | 80 | 80 | 69 |
 | Research only | 1 | 0 | 0 | 0 |
 | Drafted | 7 | 0 | 0 | 0 |
 | Implemented | 0 | 0 | 0 | 11 |
 | Built, isolated (legacy) | 5 | 0 | 0 | 0 |
 | Integrated, partial (legacy) | 3 | 0 | 0 | 0 |
-| Integrated | 31 | 0 | 0 | 0 |
+| Integrated | 35 | 0 | 0 | 0 |
 | Verification needs recheck | 0 | 0 | 0 | 0 |
 | Verified | 0 | 0 | 0 | 0 |
 | Release-ready | 0 | 0 | 0 | 0 |
@@ -1087,5 +1107,5 @@ Android's Bar A counts the shared scenarios bound in `chromium/tests/android/acc
 
 Legacy macOS stages come from the approved spec; they await verification on the canonical candidate. No legacy stage counts as Verified.
 
-Candidate identities: macOS: macos-09aa3d8b79584378; Windows: none; Linux: none; Android: android-arm64-7bd35e94ef746069.
+Candidate identities: macOS: macos-86a75dc4b5d45861; Windows: none; Linux: none; Android: android-arm64-7bd35e94ef746069.
 <!-- END GENERATED PROGRESS -->

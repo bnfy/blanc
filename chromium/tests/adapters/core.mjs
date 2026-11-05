@@ -40,7 +40,10 @@ async function created(w,reply){
 }
 // Shipping's internal addresses, as the fork serves them: the Start Page and
 // the utility pages are chrome:// pages (the sheet takes the utility ones).
-const forkUrl=url=>{const m=/^blanc:\/\/(newtab|settings|downloads|bookmarks|history)\/?(?:[?#].*)?$/i.exec(String(url));
+const forkUrl=url=>{
+ // The welcome tour's replay isn't built yet (Settings row and tour address).
+ if(/^blanc:\/\/newtab\/\?tour=1$/.test(String(url)))throw new UndefinedNativeAdapterError('The fork has no welcome tour replay yet');
+ const m=/^blanc:\/\/(newtab|settings|downloads|bookmarks|history)\/?(?:[?#].*)?$/i.exec(String(url));
  return m?`chrome://${m[1].toLowerCase()}/`:String(url);};
 export const core={
  state:w=>w.state(),
