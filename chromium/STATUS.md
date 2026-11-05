@@ -727,6 +727,15 @@ remain pending. D3 beta-only no-DRM exception accepted; EME notice/handoff requi
   its changelog link and that closing it sticks, and the preview stays
   silent. Not exercised: the page-found path (a 200 from blanc.day, and the
   one-time tab), which the offline fixture can't reach.
+- **S2.5 Patron and app icons (F17), candidate macos-df08efed32b15890 (2026-11-05):**
+  owner decisions: the preview offers the Blanc Patron row and its checkout
+  link only (chrome://settings → About; no license key activation until a
+  release channel), and the Start Page's upgrade pill stays off. Settings →
+  Appearance has shipping's five macOS icons (`blanc.app_icon`, patch 0029,
+  which pins the two About page files); the Dock takes shipping's flat
+  images, its development-build path, because the adaptive stacks need
+  Assets.car from a packaged build. Sunrise itself is the bundle's icon.
+  Not yet run on a candidate: the display locked.
 - **Mahjong goes last (owner, 2026-11-04):** the fork has no Mahjong yet
   (F35-3, F35-4, F35-9 fail at the footer launch). When it is built it is an
   Island page (shipping's files served as byte-identical copies, opened as an
@@ -1127,5 +1136,5 @@ Android's Bar A counts the shared scenarios bound in `chromium/tests/android/acc
 
 Legacy macOS stages come from the approved spec; they await verification on the canonical candidate. No legacy stage counts as Verified.
 
-Candidate identities: macOS: macos-28492a27347b09a4; Windows: none; Linux: none; Android: android-arm64-7bd35e94ef746069.
+Candidate identities: macOS: macos-df08efed32b15890; Windows: none; Linux: none; Android: android-arm64-7bd35e94ef746069.
 <!-- END GENERATED PROGRESS -->

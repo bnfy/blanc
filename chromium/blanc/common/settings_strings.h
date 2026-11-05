@@ -14,7 +14,7 @@ struct String {
   std::string_view name;
   std::u16string_view value;
 };
-inline constexpr std::array<String, 62> kStrings_en = {{
+inline constexpr std::array<String, 66> kStrings_en = {{
     {"blancIslandHoverOpen", u"Open the Island on hover"},
     {"blancIslandHoverOpenHint", u"Rest the pointer on the Island’s address to open it without clicking."},
     {"blancIslandAutoHide", u"Auto-hide the Island"},
@@ -33,6 +33,10 @@ inline constexpr std::array<String, 62> kStrings_en = {{
     {"blancIslandTabIcons", u"Show site icons on the Island"},
     {"blancIslandTabIconsHint", u"Show each tab’s site icon instead of a dot. Icons take more room, so fewer tabs fit."},
     {"blancProfiles", u"Profiles"},
+    {"blancPatron", u"Blanc Patron"},
+    {"blancPatronCheckout", u"Become a Patron — $4/month or $30/year"},
+    {"blancAppIcon", u"App icon"},
+    {"blancAppIconHint", u"Choose the Blanc icon shown by your system"},
     {"blancImportBar", u"Bookmarks bar"},
     {"blancImportOther", u"Other bookmarks"},
     {"blancImportMobile", u"Mobile bookmarks"},
@@ -78,7 +82,7 @@ inline constexpr std::array<String, 62> kStrings_en = {{
     {"blancLanguageSystem", u"System ({language})"},
     {"blancLanguageRelaunch", u"Relaunch to apply"},
 }};
-inline constexpr std::array<String, 62> kStrings_de = {{
+inline constexpr std::array<String, 66> kStrings_de = {{
     {"blancIslandHoverOpen", u"Island beim Darüberfahren öffnen"},
     {"blancIslandHoverOpenHint", u"Lass den Zeiger auf der Adresse in der Island ruhen, um sie ohne Klick zu öffnen."},
     {"blancIslandAutoHide", u"Island automatisch ausblenden"},
@@ -97,6 +101,10 @@ inline constexpr std::array<String, 62> kStrings_de = {{
     {"blancIslandTabIcons", u"Website-Symbole in der Island zeigen"},
     {"blancIslandTabIconsHint", u"Zeigt für jeden Tab das Symbol der Website statt eines Punkts. Symbole brauchen mehr Platz, deshalb passen weniger Tabs hinein."},
     {"blancProfiles", u"Profile"},
+    {"blancPatron", u"Blanc Patron"},
+    {"blancPatronCheckout", u"Patron werden – $4/Monat oder $30/Jahr"},
+    {"blancAppIcon", u"App-Symbol"},
+    {"blancAppIconHint", u"Wähle das Blanc-Symbol, das dein System anzeigt"},
     {"blancImportBar", u"Lesezeichenleiste"},
     {"blancImportOther", u"Weitere Lesezeichen"},
     {"blancImportMobile", u"Mobile Lesezeichen"},
@@ -142,7 +150,7 @@ inline constexpr std::array<String, 62> kStrings_de = {{
     {"blancLanguageSystem", u"System ({language})"},
     {"blancLanguageRelaunch", u"Zum Übernehmen neu starten"},
 }};
-inline constexpr std::array<String, 62> kStrings_es = {{
+inline constexpr std::array<String, 66> kStrings_es = {{
     {"blancIslandHoverOpen", u"Abrir la Island al pasar el cursor"},
     {"blancIslandHoverOpenHint", u"Deja el puntero sobre la dirección de la Island para abrirla sin hacer clic."},
     {"blancIslandAutoHide", u"Ocultar la Island automáticamente"},
@@ -161,6 +169,10 @@ inline constexpr std::array<String, 62> kStrings_es = {{
     {"blancIslandTabIcons", u"Mostrar iconos de sitios en la Island"},
     {"blancIslandTabIconsHint", u"Muestra el icono del sitio de cada pestaña en lugar de un punto. Los iconos ocupan más espacio, así que caben menos pestañas."},
     {"blancProfiles", u"Perfiles"},
+    {"blancPatron", u"Blanc Patron"},
+    {"blancPatronCheckout", u"Hazte Patron — $4/mes o $30/año"},
+    {"blancAppIcon", u"Icono de la app"},
+    {"blancAppIconHint", u"Elige el icono de Blanc que muestra tu sistema"},
     {"blancImportBar", u"Barra de marcadores"},
     {"blancImportOther", u"Otros marcadores"},
     {"blancImportMobile", u"Marcadores del móvil"},
@@ -206,7 +218,7 @@ inline constexpr std::array<String, 62> kStrings_es = {{
     {"blancLanguageSystem", u"Sistema ({language})"},
     {"blancLanguageRelaunch", u"Reiniciar para aplicar"},
 }};
-inline constexpr std::array<String, 62> kStrings_fr = {{
+inline constexpr std::array<String, 66> kStrings_fr = {{
     {"blancIslandHoverOpen", u"Ouvrir l’Island au survol"},
     {"blancIslandHoverOpenHint", u"Laissez le pointeur sur l’adresse de l’Island pour l’ouvrir sans cliquer."},
     {"blancIslandAutoHide", u"Masquer automatiquement l’Island"},
@@ -225,6 +237,10 @@ inline constexpr std::array<String, 62> kStrings_fr = {{
     {"blancIslandTabIcons", u"Afficher les icônes des sites dans l’Island"},
     {"blancIslandTabIconsHint", u"Affiche l’icône du site de chaque onglet au lieu d’un point. Les icônes prennent plus de place : moins d’onglets y tiennent."},
     {"blancProfiles", u"Profils"},
+    {"blancPatron", u"Blanc Patron"},
+    {"blancPatronCheckout", u"Devenir Patron — $4/mois ou $30/an"},
+    {"blancAppIcon", u"Icône de l’app"},
+    {"blancAppIconHint", u"Choisissez l’icône de Blanc affichée par votre système"},
     {"blancImportBar", u"Barre de favoris"},
     {"blancImportOther", u"Autres favoris"},
     {"blancImportMobile", u"Favoris mobiles"},
@@ -270,7 +286,7 @@ inline constexpr std::array<String, 62> kStrings_fr = {{
     {"blancLanguageSystem", u"Système ({language})"},
     {"blancLanguageRelaunch", u"Redémarrer pour appliquer"},
 }};
-inline constexpr std::array<String, 62> kStrings_it = {{
+inline constexpr std::array<String, 66> kStrings_it = {{
     {"blancIslandHoverOpen", u"Apri l’Island al passaggio del puntatore"},
     {"blancIslandHoverOpenHint", u"Lascia il puntatore sull’indirizzo dell’Island per aprirla senza fare clic."},
     {"blancIslandAutoHide", u"Nascondi automaticamente l’Island"},
@@ -289,6 +305,10 @@ inline constexpr std::array<String, 62> kStrings_it = {{
     {"blancIslandTabIcons", u"Mostra le icone dei siti nell’Island"},
     {"blancIslandTabIconsHint", u"Mostra l’icona del sito di ogni scheda invece di un punto. Le icone occupano più spazio, quindi ci stanno meno schede."},
     {"blancProfiles", u"Profili"},
+    {"blancPatron", u"Blanc Patron"},
+    {"blancPatronCheckout", u"Diventa Patron — $4/mese o $30/anno"},
+    {"blancAppIcon", u"Icona dell’app"},
+    {"blancAppIconHint", u"Scegli l’icona di Blanc mostrata dal sistema"},
     {"blancImportBar", u"Barra dei preferiti"},
     {"blancImportOther", u"Altri preferiti"},
     {"blancImportMobile", u"Preferiti per dispositivi mobili"},
@@ -334,7 +354,7 @@ inline constexpr std::array<String, 62> kStrings_it = {{
     {"blancLanguageSystem", u"Sistema ({language})"},
     {"blancLanguageRelaunch", u"Riavvia per applicare"},
 }};
-inline constexpr std::array<String, 62> kStrings_pt_BR = {{
+inline constexpr std::array<String, 66> kStrings_pt_BR = {{
     {"blancIslandHoverOpen", u"Abrir a Island ao passar o cursor"},
     {"blancIslandHoverOpenHint", u"Deixe o ponteiro sobre o endereço da Island para abri-la sem clicar."},
     {"blancIslandAutoHide", u"Ocultar a Island automaticamente"},
@@ -353,6 +373,10 @@ inline constexpr std::array<String, 62> kStrings_pt_BR = {{
     {"blancIslandTabIcons", u"Mostrar ícones dos sites na Island"},
     {"blancIslandTabIconsHint", u"Mostra o ícone do site de cada aba em vez de um ponto. Os ícones ocupam mais espaço, então cabem menos abas."},
     {"blancProfiles", u"Perfis"},
+    {"blancPatron", u"Blanc Patron"},
+    {"blancPatronCheckout", u"Torne-se Patron — $4/mês ou $30/ano"},
+    {"blancAppIcon", u"Ícone do app"},
+    {"blancAppIconHint", u"Escolha o ícone do Blanc mostrado pelo sistema"},
     {"blancImportBar", u"Barra de favoritos"},
     {"blancImportOther", u"Outros favoritos"},
     {"blancImportMobile", u"Favoritos do celular"},

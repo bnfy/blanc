@@ -326,9 +326,12 @@
   },
   {
    "key": "appIcon",
-   "kind": "later",
+   "kind": "blanc-pref",
    "row": "F17",
-   "slice": "S2"
+   "slice": "S2",
+   "pref": "blanc.app_icon",
+   "scope": "profile",
+   "status": "built"
   },
   {
    "key": "presentationDefaultsResetVersion",

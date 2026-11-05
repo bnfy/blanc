@@ -32,4 +32,13 @@ bool ClickDockMenuItem(int item_tag) {
   return [NSApp sendAction:item.action to:item.target from:item];
 }
 
+void SetDockIcon(base::span<const uint8_t> png) {
+  NSImage* image = nil;
+  if (!png.empty()) {
+    image = [[NSImage alloc] initWithData:[NSData dataWithBytes:png.data() length:png.size()]];
+    if (!image) return;
+  }
+  NSApp.applicationIconImage = image;
+}
+
 }  // namespace blanc

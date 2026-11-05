@@ -3,6 +3,7 @@
 // bridge (window.bowserPages), the Island facade and native dispatch.
 import {UndefinedNativeAdapterError,nativeId} from '../lib/adapters.mjs';
 import {jsLiteral} from '../lib/js-literal.mjs';
+import {inSettings} from './commands.mjs';
 export const NEWTAB=/^chrome:\/\/(newtab\/|new-tab-page\/|blanc-prototype\/pages\/newtab\.html)/;
 // Fork utility pages shown as tabs: Chromium's managers and Settings, when
 // opened other than through the Island, whose sheet shows them otherwise.
@@ -236,6 +237,14 @@ export const pages={
   'copyMahjongDealFromBoards','readMahjongRecordsGeometry'].map(h=>[h,()=>{throw Error(h+': the fork ships no Mahjong page');}])),
  // Durable first-run, checklist, Patron and launch-scene settings live in
  // Electron main; the fork's Start Page bridge carries none of them.
+ // Patron and the app icon (F17). The preview has no license keys (owner,
+ // 2026-11-05), so there is never a supporter to clear.
+ clearSupporter:async()=>true,
+ appIcon:async w=>(await w.snapshot()).appIcon,
+ setAppIcon:(w,id)=>inSettings(w,'appearance',async(a,d)=>{const select=d.find('#blancAppIcon')?.shadowRoot?.querySelector('select');
+  if(!select)return {missing:'#blancAppIcon'};if([...select.options].some(o=>o.value===a)){select.value=a;select.dispatchEvent(new Event('change',{bubbles:true}));await new Promise(r=>setTimeout(r,300));}
+  return {value:select.value};},String(id)),
+ clickPatronCheckout:w=>inSettings(w,'help',(a,d)=>{const row=d.find('#patronCheckout');if(!row)return {missing:'#patronCheckout'};row.click();return {value:true};}),
  // First run (F36). Test profiles finish it at launch, as shipping's do.
  firstRunState:w=>w.native('firstRunState'),
  setUsagePing:(w,on)=>w.native('setUsagePing',[!!on]),

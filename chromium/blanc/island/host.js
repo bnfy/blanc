@@ -170,7 +170,19 @@
   const stripH = () => islandSize().strip;
   // A length drawn inside the zoomed pill, at this size (scaleForIslandSize).
   const scaleForSize = px => Math.ceil(px * islandSize().zoom / ISLAND_SIZES.default.zoom);
+  // The Dock icon (F17) follows the setting, and the appearance for the
+  // icons with a Dark image, as shipping reapplies it.
+  const darkScheme = matchMedia('(prefers-color-scheme: dark)');
+  let dockIconKey = '';
+  function syncDockIcon() {
+    const key = snapshot?.appIcon ? `${snapshot.appIcon}:${darkScheme.matches}` : '';
+    if (!key || key === dockIconKey) return;
+    dockIconKey = key;
+    request('applyAppIcon', [snapshot.appIcon, darkScheme.matches]).catch(() => {});
+  }
+  darkScheme.addEventListener('change', syncDockIcon);
   function paintHeader() {
+    syncDockIcon();
     const active = snapshot?.tabs.find(tab => tab.id === snapshot.activeTabId);
     const theme = active?.private ? null : snapshot?.installedTheme;
     for (const doc of [document, strip.contentDocument, floatPill.contentDocument, overlay.contentDocument])

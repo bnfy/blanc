@@ -285,6 +285,8 @@ constexpr char kIslandSiteColorsPref[] = "blanc.island.site_colors";
 constexpr char kIslandTabIconsPref[] = "blanc.island.tab_icons";
 constexpr char kSearchPriorityResultsPref[] = "blanc.island.search_priority_results";
 constexpr char kSurfaceStylePref[] = "blanc.appearance.surface_style";
+// Shipping's appIcon (F17; registered by patch 0029).
+constexpr char kAppIconPref[] = "blanc.app_icon";
 // Shipping's islandSize (#1292; registered by patch 0026): the strip a window
 // draws, as island-size.js's stripHeightFor. styles.css and host.js draw the
 // same table; the split header band stays 30px below it.
@@ -2435,6 +2437,7 @@ base::DictValue Snapshot(BrowserWindowInterface* browser, Owner* owner) {
       // is the one in front, as shipping's islandHoverEligible does.
       .Set("islandHoverOpen", browser->GetProfile()->GetOriginalProfile()->GetPrefs()->GetBoolean(kIslandHoverOpenPref))
       // Site icons instead of dots, and search priority results (S1.7).
+      .Set("appIcon", browser->GetProfile()->GetOriginalProfile()->GetPrefs()->GetString(kAppIconPref))
       .Set("islandSize", owner->strip_height == 84 ? "extra-large" : owner->strip_height == 76 ? "large" : "default")
       .Set("islandTabIcons", browser->GetProfile()->GetOriginalProfile()->GetPrefs()->GetBoolean(kIslandTabIconsPref))
       .Set("searchPriorityResults", browser->GetProfile()->GetOriginalProfile()->GetPrefs()->GetBoolean(kSearchPriorityResultsPref))
@@ -3441,7 +3444,7 @@ class Handler : public content::WebUIMessageHandler, public extensions::Extensio
                       base::BindRepeating(&Handler::OnIslandAutoHideChanged, base::Unretained(this)));
     island_prefs_.Add(std::string(blanc::island_autohide::kStylePref),
                       base::BindRepeating(&Handler::OnIslandAutoHideStyleChanged, base::Unretained(this)));
-    for (const char* pref : {kIslandTabIconsPref, kSearchPriorityResultsPref})
+    for (const char* pref : {kIslandTabIconsPref, kSearchPriorityResultsPref, kAppIconPref})
       island_prefs_.Add(pref, base::BindRepeating(&Handler::OnIslandSettingChanged, base::Unretained(this)));
     island_prefs_.Add(kIslandSiteColorsPref,
                       base::BindRepeating(&Handler::OnSiteColorsChanged, base::Unretained(this)));
@@ -5045,6 +5048,32 @@ class Handler : public content::WebUIMessageHandler, public extensions::Extensio
       icon_loaders_[id] = std::move(loader);
       pending->DownloadToString(profile->GetDefaultStoragePartition()->GetURLLoaderFactoryForBrowserProcess().get(),
           base::BindOnce(&Handler::StoreIcon, weak_factory_.GetWeakPtr(), id), 256 * 1024);
+      return;
+    }
+    // The Dock icon (F17): shipping's flat images, which is what its
+    // development builds use; the adaptive stacks need Assets.car from a
+    // packaged build. Sunrise itself is the bundle's own icon, so the Dock
+    // goes back to that.
+    if (method == "applyAppIcon" && args.size() == 2 && args[0].is_string() && args[1].is_bool()) {
+#if BUILDFLAG(IS_MAC)
+      static bool replaced = false;
+      const std::string& icon = args[0].GetString();
+      const bool dark = args[1].GetBool();
+      std::string file;
+      if (icon == "sunrise-dark") file = "pages/icon-sunrise-dark.png";
+      else if (icon == "sunrise-gold") file = dark ? "pages/icon-sunrise-gold-dark.png" : "pages/icon-sunrise-gold.png";
+      else if (icon == "sunrise-spectrum") file = dark ? "pages/icon-sunrise-spectrum-dark.png" : "pages/icon-sunrise-spectrum.png";
+      else if (icon == "sunrise-amber") file = dark ? "pages/icon-sunrise-amber-dark.png" : "pages/icon-sunrise-amber.png";
+      const auto bytes = file.empty() ? nullptr : blanc::island_resources::Find(file);
+      if (bytes) {
+        blanc::SetDockIcon(base::span(*bytes));
+        replaced = true;
+      } else if (replaced) {
+        blanc::SetDockIcon({});
+        replaced = false;
+      }
+#endif
+      reply(true, base::Value());
       return;
     }
     // What's New (F51): once per launch, from the host's first window.

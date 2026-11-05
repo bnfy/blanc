@@ -23,6 +23,8 @@
     "chrome/browser/resource_coordinator/tab_lifecycle_unit.cc": "1f8e897703624324d0b31538d2f22954e7d9215d642c2f643db1fa8bcee30eb2",
     "chrome/browser/resources/glic/glic_api_impl/generate_impl/BUILD.gn": "5041820bd71607d810909c275a5b36a9f67987dcdfb89711548c3596540b9dfc",
     "chrome/browser/resources/settings/BUILD.gn": "3dd8bd0b5d1fa4eda892bb3e95b2ee3477af410833524296db7e48acc5556153",
+    "chrome/browser/resources/settings/about_page/about_page.html.ts": "5565e3a6a80db8690e4bb6a2a3612c39709df528173c3050ba45fc769feb594b",
+    "chrome/browser/resources/settings/about_page/about_page.ts": "42903171748531e9630294aa96a12307936a8c92bdf6b37d35b4512e1b6a9ec7",
     "chrome/browser/resources/settings/appearance_page/appearance_page.html.ts": "1023fa8ed8867d323d5be1588884f0211929b370d2fcb0eb22f0bb7df708597d",
     "chrome/browser/resources/settings/appearance_page/appearance_page.ts": "93a97474df76d2ec544b0456e9d671e05cef1e6944091e42caf0dc55f2e6d4ae",
     "chrome/browser/resources/settings/autofill_page/autofill_page.html.ts": "02f49f07d83fc80df875c28fc7b407f71605fb4b3bfea399fe0daac606774c6f",

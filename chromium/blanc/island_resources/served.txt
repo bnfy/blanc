@@ -39,7 +39,13 @@ pages/history-groups.js
 pages/history.html
 pages/history.js
 pages/i18n.js
+pages/icon-sunrise-amber-dark.png
+pages/icon-sunrise-amber.png
 pages/icon-sunrise-dark.png
+pages/icon-sunrise-gold-dark.png
+pages/icon-sunrise-gold.png
+pages/icon-sunrise-spectrum-dark.png
+pages/icon-sunrise-spectrum.png
 pages/icon-sunrise.png
 pages/installed-theme.js
 pages/instrument-sans-latin-wdth-normal.woff2
