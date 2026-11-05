@@ -18,7 +18,7 @@ const PACKAGE = 'me.bnfy.blanc.dev';
 const PREFS = `shared_prefs/${PACKAGE}_preferences.xml`;
 const PORT = 9333;
 
-// Blanc's renderer processes in `ps -A` (a quiet tab has none).
+// Blanc's sandboxed processes in `ps -A`: renderers (a quiet tab has none) and the blocker's engine.
 export function renderers(ps) {
   return ps.split('\n').filter(line => /me\.bnfy\.blanc\.dev:sandboxed_process/.test(line)).length;
 }
@@ -79,7 +79,7 @@ async function main(argv) {
     sleep(80);
     const after = renderers(adb('shell', 'ps', '-A'));
     const showing = await devtools('location.href');
-    check('background tabs go quiet and the active one stays', before >= 4 && after <= 2 && /numbers/.test(showing || '')
+    check('background tabs go quiet and the active one stays', before >= 4 && before - after >= 2 && /numbers/.test(showing || '')
       ? [] : [`${before} renderers then ${after}; showing ${showing}`]);
 
     tap({id: 'blanc_island_tabs'});
