@@ -839,6 +839,10 @@ struct ContentView: View {
                 return action("share.picker.share", "square.and.arrow.up") { share(tab.currentURL) }
             case .find:
                 return action("menu.findInPage", "magnifyingglass") { manager.presentFind() }
+            case .requestSite(let mobile):
+                guard let tab else { return nil }
+                return action(mobile ? "ios.menu.requestMobileSite" : "ios.menu.requestDesktopSite",
+                              mobile ? "iphone" : "desktopcomputer") { manager.setMobileSite(tab, mobile: mobile) }
             case .glance:
                 return UIMenu(title: SyncCopy.text("tabMenu.glance"), image: UIImage(systemName: "rectangle.on.rectangle"),
                               children: manager.glanceCandidates.map { other in

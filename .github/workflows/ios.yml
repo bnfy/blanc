@@ -105,3 +105,41 @@ jobs:
           for f in $(ls -t ~/Library/Logs/DiagnosticReports/Blanc* 2>/dev/null | head -3); do
             echo "::group::$f"; head -c 60000 "$f"; echo "::endgroup::"
           done
+
+  # The same app on an iPad: the unit tests, and a smoke of what only the wide
+  # layout and iPad windows show. The iPhone job above runs the full UI suite.
+  xctest-ipad:
+    runs-on: macos-26
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - name: Select the newest Xcode
+        run: |
+          ls -d /Applications/Xcode*.app
+          xcode=$(ls -d /Applications/Xcode_[0-9]*.app | sort -V | tail -1)
+          sudo xcode-select -s "$xcode"
+          xcodebuild -version
+      - name: Pick an iPad simulator
+        id: sim
+        run: |
+          udid=$(xcrun simctl list devices available --json \
+            | python3 -c 'import json,sys; d=json.load(sys.stdin)["devices"]; ios=[(r,x) for r,v in d.items() if "iOS" in r for x in v if x["name"].startswith("iPad Pro 11")]; ios.sort(key=lambda p: [int(n) for n in p[0].rsplit("iOS-",1)[1].split("-")]); print(ios[-1][1]["udid"])')
+          echo "udid=$udid" >> "$GITHUB_OUTPUT"
+      - name: Build and test
+        working-directory: ios/Blanc
+        run: |
+          xcodebuild test \
+            -project Blanc.xcodeproj \
+            -scheme Blanc \
+            -destination "id=${{ steps.sim.outputs.udid }}" \
+            -only-testing:BlancTests \
+            -only-testing:BlancUITests/IPadWindowUITests \
+            -only-testing:BlancUITests/MultipleWindowsUITests \
+            -only-testing:BlancUITests/DuoUITests \
+            CODE_SIGNING_ALLOWED=NO
+      - name: Print app crash reports
+        if: failure()
+        run: |
+          for f in $(ls -t ~/Library/Logs/DiagnosticReports/Blanc* 2>/dev/null | head -3); do
+            echo "::group::$f"; head -c 60000 "$f"; echo "::endgroup::"
+          done
