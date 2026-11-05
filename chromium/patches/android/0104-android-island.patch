@@ -76,7 +76,7 @@ diff -ruN a/chrome/android/java/src/org/chromium/chrome/browser/tabbed_mode/Tabb
          if (mVerticalTabsPreferenceListener != null) {
              ContextUtils.getAppSharedPreferences()
                      .unregisterOnSharedPreferenceChangeListener(mVerticalTabsPreferenceListener);
-@@ -1293,9 +1313,399 @@
+@@ -1293,9 +1313,414 @@
          }
      }
  
@@ -127,6 +127,21 @@ diff -ruN a/chrome/android/java/src/org/chromium/chrome/browser/tabbed_mode/Tabb
 +                            @Override
 +                            public void find() {
 +                                showBlancFind();
++                            }
++
++                            @Override
++                            public void sync() {
++                                org.chromium.blanc.sync.SyncSheet.open(
++                                        mActivity,
++                                        (permission, done) ->
++                                                mWindowAndroid
++                                                        .requestPermissions(
++                                                                new String[] {permission},
++                                                                (permissions, results) ->
++                                                                        done.onResult(
++                                                                                results.length > 0
++                                                                                        && results[0]
++                                                                                                == android.content.pm.PackageManager.PERMISSION_GRANTED)));
 +                            }
 +
 +                            @Override
@@ -476,7 +491,7 @@ diff -ruN a/chrome/android/java/src/org/chromium/chrome/browser/tabbed_mode/Tabb
          assert mLayoutManager != null;
  
          if (mCountrySupplier != null && mCountrySupplier.get() == null) {
-@@ -2962,9 +3372,8 @@
+@@ -2962,9 +3387,8 @@
          mNotificationPermissionController =
                  new NotificationPermissionController(mWindowAndroid, rationaleUIDelegateSupplier);
          NotificationPermissionController.attach(mWindowAndroid, mNotificationPermissionController);

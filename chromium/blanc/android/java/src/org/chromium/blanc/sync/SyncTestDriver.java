@@ -12,6 +12,10 @@ import org.chromium.base.ContextUtils;
 import org.chromium.base.Log;
 import org.chromium.build.annotations.NullMarked;
 
+import java.io.IOException;
+import java.security.GeneralSecurityException;
+import java.security.KeyStore;
+
 /**
  * For chromium/tests/android/sync.mjs: `adb shell am broadcast` calls the runner, and the answer
  * goes to logcat. Needs the switch, which Chromium reads from a file only on debuggable builds.
@@ -24,6 +28,17 @@ public final class SyncTestDriver {
 
     private SyncTestDriver() {}
 
+    private static boolean loseKey() {
+        try {
+            KeyStore store = KeyStore.getInstance("AndroidKeyStore");
+            store.load(null);
+            store.deleteEntry(BlancKeyStore.ALIAS);
+            return true;
+        } catch (GeneralSecurityException | IOException e) {
+            return false;
+        }
+    }
+
     public static void maybeStart() {
         if (sStarted || !CommandLine.getInstance().hasSwitch("blanc-sync-test")) return;
         sStarted = true;
@@ -33,6 +48,14 @@ public final class SyncTestDriver {
                     @Override
                     public void onReceive(Context context, Intent intent) {
                         String id = intent.getStringExtra("id");
+                        if ("test.loseKey".equals(intent.getStringExtra("method"))) {
+                            Log.w(TAG, "result " + id + " {\"ok\":" + loseKey() + ",\"value\":null}");
+                            return;
+                        }
+                        if ("test.favorites".equals(intent.getStringExtra("method"))) {
+                            Log.w(TAG, "result " + id + " {\"ok\":true,\"value\":" + SyncBridge.favoritesList() + "}");
+                            return;
+                        }
                         SyncBridge.call(
                                 String.valueOf(intent.getStringExtra("method")),
                                 String.valueOf(intent.getStringExtra("args")),

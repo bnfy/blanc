@@ -74,3 +74,18 @@ test('two devices pair and sync a Favorite both ways', async () => {
     await worker.close();
   }
 });
+
+test('a setting this bundle does not know survives a merge and is published again', async () => {
+  const device = peer('Keeps', 'http://127.0.0.1:1');
+  const settings = device.module('settings');
+  settings.mergeFromSync({values: {futureSetting: 'kept', theme: 'dark'}, meta: {futureSetting: 5, theme: 6}, tieBreakers: {futureSetting: 'z'}});
+  const out = settings.exportForSync();
+  assert.equal(out.values.futureSetting, 'kept');
+  assert.equal(out.meta.futureSetting, 5);
+  assert.equal(out.tieBreakers.futureSetting, 'z');
+  assert.equal(settings.getSettings().futureSetting, undefined, 'never applied');
+  settings.mergeFromSync({values: {futureSetting: 'older'}, meta: {futureSetting: 4}});
+  assert.equal(settings.exportForSync().values.futureSetting, 'kept', 'an older clock loses');
+  const again = peer('Again', 'http://127.0.0.1:1', {stores: device.stores});
+  assert.equal(again.module('settings').exportForSync().values.futureSetting, 'kept', 'kept across a restart');
+});

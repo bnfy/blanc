@@ -12,16 +12,30 @@
 #include "base/base_paths_android.h"
 #include "base/command_line.h"
 #include "base/functional/bind.h"
+#include "base/functional/function_ref.h"
+#include "base/json/json_reader.h"
 #include "base/json/json_writer.h"
 #include "base/no_destructor.h"
 #include "base/path_service.h"
+#include "base/scoped_observation.h"
+#include "base/strings/utf_string_conversions.h"
 #include "base/values.h"
 #include "blanc/android/sync_jni/SyncBridge_jni.h"
+#include "blanc/services/blocker/blocker_proxy.h"
 #include "blanc/services/sync_runner/sync_runner_proxy.h"
+#include "chrome/browser/bookmarks/bookmark_model_factory.h"
 #include "chrome/browser/browser_process.h"
 #include "chrome/browser/net/system_network_context_manager.h"
+#include "chrome/browser/profiles/profile.h"
+#include "chrome/browser/profiles/profile_manager.h"
+#include "components/bookmarks/browser/base_bookmark_model_observer.h"
+#include "components/bookmarks/browser/bookmark_model.h"
+#include "components/bookmarks/browser/bookmark_node.h"
+#include "components/bookmarks/common/bookmark_metrics.h"
 #include "components/version_info/version_info.h"
 #include "services/network/public/cpp/shared_url_loader_factory.h"
+#include "ui/base/models/tree_node_iterator.h"
+#include "url/gurl.h"
 
 namespace blanc {
 namespace {
@@ -69,7 +83,11 @@ class AndroidSync : public SyncPlatform {
   std::optional<std::vector<uint8_t>> Unprotect(const std::vector<uint8_t>& data) override {
     return Wrap(data, false);
   }
-  void OnEvent(const std::string& event, const std::string& json) override {}
+  void OnEvent(const std::string& event, const std::string& json) override {
+    JNIEnv* env = jni_zero::AttachCurrentThread();
+    Java_SyncBridge_onEvent(env, base::android::ConvertUTF8ToJavaString(env, event),
+                            base::android::ConvertUTF8ToJavaString(env, json));
+  }
 
  private:
   std::optional<std::vector<uint8_t>> Wrap(const std::vector<uint8_t>& data, bool protect) {
@@ -82,7 +100,101 @@ class AndroidSync : public SyncPlatform {
     return out;
   }
 };
+Profile* MainProfile() {
+  Profile* profile = ProfileManager::GetLastUsedProfile();
+  return profile ? profile->GetOriginalProfile() : nullptr;
+}
+
+bookmarks::BookmarkModel* Bookmarks() {
+  Profile* profile = MainProfile();
+  return profile ? BookmarkModelFactory::GetForBrowserContext(profile) : nullptr;
+}
+
+// Any change to Chromium's Favorites, however it's made, reaches ProfileSync.
+class FavoritesWatch : public bookmarks::BaseBookmarkModelObserver {
+ public:
+  void Watch(bookmarks::BookmarkModel* model) {
+    if (model && !observation_.IsObserving()) observation_.Observe(model);
+  }
+  void BookmarkModelChanged() override { Java_SyncBridge_onFavoritesChanged(jni_zero::AttachCurrentThread()); }
+  void BookmarkModelLoaded(bool) override { BookmarkModelChanged(); }
+
+ private:
+  base::ScopedObservation<bookmarks::BookmarkModel, bookmarks::BookmarkModelObserver> observation_{this};
+};
+
+const bookmarks::BookmarkNode* FolderNamed(bookmarks::BookmarkModel* model, const std::string& name) {
+  const bookmarks::BookmarkNode* parent = model->mobile_node();
+  if (name.empty()) return parent;
+  const std::u16string title = base::UTF8ToUTF16(name);
+  for (const auto& child : parent->children())
+    if (child->is_folder() && child->GetTitle() == title) return child.get();
+  return model->AddFolder(parent, parent->children().size(), title);
+}
+
+void ForEach(const base::DictValue& plan, const char* key, base::FunctionRef<void(const base::DictValue&)> run) {
+  const base::ListValue* list = plan.FindList(key);
+  if (!list) return;
+  for (const base::Value& item : *list)
+    if (item.is_dict()) run(item.GetDict());
+}
 }  // namespace
+
+static jni_zero::ScopedJavaLocalRef<jstring> JNI_SyncBridge_FavoritesList(JNIEnv* env) {
+  static base::NoDestructor<FavoritesWatch> watch;
+  auto* model = Bookmarks();
+  watch->Watch(model);
+  if (!model || !model->loaded()) return nullptr;
+  base::ListValue list;
+  ui::TreeNodeIterator<const bookmarks::BookmarkNode> it(model->root_node());
+  while (it.has_next()) {
+    const bookmarks::BookmarkNode* node = it.Next();
+    if (!node->is_url()) continue;
+    const bookmarks::BookmarkNode* parent = node->parent();
+    list.Append(base::DictValue()
+                    .Set("url", node->url().spec())
+                    .Set("title", base::UTF16ToUTF8(node->GetTitle()))
+                    .Set("folder", parent && !parent->is_permanent_node()
+                                       ? base::Value(base::UTF16ToUTF8(parent->GetTitle()))
+                                       : base::Value()));
+  }
+  return base::android::ConvertUTF8ToJavaString(env, base::WriteJson(list).value_or("[]"));
+}
+
+static void JNI_SyncBridge_FavoritesApply(JNIEnv* env, const jni_zero::JavaRef<jstring>& plan_json) {
+  auto* model = Bookmarks();
+  auto plan = base::JSONReader::ReadDict(base::android::ConvertJavaStringToUTF8(env, plan_json), base::JSON_PARSE_RFC);
+  if (!model || !model->loaded() || !plan) return;
+  ForEach(*plan, "add", [&](const base::DictValue& item) {
+    const std::string* url = item.FindString("url");
+    const std::string* title = item.FindString("title");
+    const std::string* folder = item.FindString("folder");
+    GURL address(url ? *url : std::string());
+    if (!address.is_valid()) return;
+    const auto* parent = FolderNamed(model, folder ? *folder : std::string());
+    model->AddURL(parent, parent->children().size(), base::UTF8ToUTF16(title ? *title : *url), address);
+  });
+  ForEach(*plan, "remove", [&](const base::DictValue& item) {
+    const std::string* url = item.FindString("url");
+    if (!url) return;
+    for (const bookmarks::BookmarkNode* node : model->GetNodesByURL(GURL(*url)))
+      model->Remove(node, bookmarks::metrics::BookmarkEditSource::kOther, FROM_HERE);
+  });
+  ForEach(*plan, "retitle", [&](const base::DictValue& item) {
+    const std::string* url = item.FindString("url");
+    const std::string* title = item.FindString("title");
+    if (!url || !title) return;
+    for (const bookmarks::BookmarkNode* node : model->GetNodesByURL(GURL(*url)))
+      model->SetTitle(node, base::UTF8ToUTF16(*title), bookmarks::metrics::BookmarkEditSource::kOther);
+  });
+}
+
+static jboolean JNI_SyncBridge_BlockingEnabled(JNIEnv*) {
+  return BlockingEnabled(MainProfile());
+}
+static void JNI_SyncBridge_SetBlockingEnabled(JNIEnv*, jboolean on) {
+  SetBlockingEnabled(MainProfile(), on);
+}
 
 static void JNI_SyncBridge_Call(JNIEnv* env, const jni_zero::JavaRef<jstring>& method,
                                 const jni_zero::JavaRef<jstring>& args,

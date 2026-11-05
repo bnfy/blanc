@@ -8,7 +8,7 @@
     "chrome/android/java/res_base/drawable/ic_launcher_round.xml": "0a7b0fe2ae98d76b45db4c24397a36bf2eff0475882320a8dfd584ae2de9a495",
     "chrome/android/java/src/org/chromium/chrome/browser/SwipeRefreshHandler.java": "bd1234a82d6a5d3e38f993a0113b17678afae0095c880802a05097f79231831f",
     "chrome/android/java/src/org/chromium/chrome/browser/base/SplitCompatApplication.java": "af19c62f69bf27963e11e3886e7cb4c4a74e9282e726b7d1d768da3039339996",
-    "chrome/android/java/src/org/chromium/chrome/browser/tabbed_mode/TabbedRootUiCoordinator.java": "9d63f8a68e0722764e0131b2af170e2c78bb990161d98aff4f461edbe3025869",
+    "chrome/android/java/src/org/chromium/chrome/browser/tabbed_mode/TabbedRootUiCoordinator.java": "346f4e09dab3f822c17011fb9ab013e5aed42e5c05a12bafde8794489c5c0b6a",
     "chrome/android/java/src/org/chromium/chrome/browser/undo_tab_close_snackbar/TabUndoBarController.java": "659449a7e37ff753a3977cd6d98b39b1225f85e24b00b9410bf1d2200f1c277b",
     "chrome/browser/BUILD.gn": "3919a98174a733349d930a83c45a3feb17f152878d6ec6543c6ae6b7f4fc30a9",
     "chrome/browser/chrome_content_browser_client.cc": "188603e1205b3444f9d9c14ed17292f41ef409f492c1abb60b1bbdfa69523a72",

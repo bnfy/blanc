@@ -24,7 +24,7 @@ module.exports = {
     encryptString: s => { const r = host.protect(Buffer.from(s)); if (!r) throw new Error('keystore'); return Buffer.from(r); },
     decryptString: b => { const r = host.unprotect(b); if (!r) throw new Error('keystore'); return Buffer.from(r).toString(); }},
   dialog: {showMessageBox: async () => ({response: 0})},
-  clipboard: {writeText() {}},
+  clipboard: {writeText: text => host.emit('clipboard', text)},
   nativeImage: {createFromBuffer: () => ({isEmpty: () => true}), createFromBitmap: () => ({isEmpty: () => true})},
   nativeTheme: {}, shell: {}, screen: {}, systemPreferences: {}, BrowserWindow: {getAllWindows: () => []},
   __quit() { for (const f of quitHandlers) f(); },

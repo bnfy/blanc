@@ -38,6 +38,10 @@ export function bundle(tag) {
     return id;
   };
   visit('src/main/sync.js');
+  const synced = /const SYNCED_KEYS = (\[[^\]]*\]);/.exec(modules.get('src/main/settings.js'));
+  if (!synced) throw Error('SYNCED_KEYS not found in settings.js');
+  // startPagePins rides in the settings payload but isn't one of settings.js's own keys.
+  const known = JSON.stringify([...JSON.parse(synced[1].replace(/'/g, '"')), 'startPagePins']);
   const shim = name => fs.readFileSync(path.join(runner, 'shims', `${name}.js`), 'utf8');
   const entries = SHIMS.map(name => `${JSON.stringify(`shim:${name}`)}:[function(module,exports,require){\n${shim(name)}\n},{}]`);
   for (const id of [...modules.keys()].sort()) {
@@ -58,7 +62,9 @@ function load(id){if(C[id])return C[id].exports;const e=M[id];if(!e)throw new Er
 e[0](m,m.exports,r=>{const t=e[1][r];if(!t)throw new Error('no require '+r+' in '+id);return load(t)});return m.exports}
 g.__require=load;})(globalThis);
 ${shim('api')}
+__keepUnknownSettings(${known});
 __require('src/main/sync.js').init();
+__listen();
 `;
 }
 

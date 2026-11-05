@@ -6,11 +6,18 @@ import fs from 'node:fs';
 import path from 'node:path';
 import {createRequire} from 'node:module';
 import {fileURLToPath} from 'node:url';
-import {Device, adb, sleep, startFixtures} from './acceptance/support/device.mjs';
+import {Device, PACKAGE, adb, sleep, startFixtures} from './acceptance/support/device.mjs';
 import {answer, call, callNoWait, startWorker, useWorker, value} from './support/sync-device.mjs';
 
 const {peer} = createRequire(import.meta.url)('./support/sync-peer.cjs');
 const urls = list => [...list].map(item => item.url).sort();
+async function until(test, what, seconds = 30) {
+  for (let waited = 0; waited < seconds; waited++) {
+    if (await test()) return;
+    await new Promise(done => setTimeout(done, 1000));
+  }
+  throw Error(`waiting for ${what}`);
+}
 const sandboxed = () => adb('shell', 'ps', '-A', '-o', 'PID,NAME').split('\n').filter(l => /sandboxed_process/.test(l)).map(l => l.trim().split(/\s+/)[0]);
 const FIRST = 'https://example.org/first', PHONE = 'https://example.org/phone';
 
@@ -34,6 +41,8 @@ async function main(argv) {
     } catch (error) {
       results.push({case: name, problems: [error.message]});
     }
+    const last = results.at(-1);
+    console.log(`${last.problems.length ? 'FAIL' : 'pass'} ${last.case}${last.problems.length ? ': ' + last.problems.join('; ') : ''}`);
   };
   // A peer with an account the phone can join, holding one Favorite.
   const startedPeer = async name => {
@@ -103,6 +112,64 @@ async function main(argv) {
       return seen.length === 1 ? [] : [`ended ${JSON.stringify(ended)}, synced ${JSON.stringify(synced)}, peer has ${seen.length}`];
     });
 
+    await check('a lost Keystore key turns Sync off and asks for a code', async () => {
+      const device = await startedPeer('Keeps');
+      const {code} = await device.sync.beginPairing();
+      await value('sync.joinWithCode', [code]);
+      await value('test.loseKey');
+      await d.relaunch();
+      sleep(4);
+      d.runInPalette('/sync');
+      await d.waitFor(async () => d.dump().includes('Pairing or recovery code'), 'the code field', 20);
+      const status = await value('sync.status');
+      await device.pass();
+      const kept = urls(device.module('bookmarks').listBookmarks());
+      return status.enabled === false && kept.includes(FIRST) ? [] : [JSON.stringify(status), kept.join()];
+    });
+
+    await check('a peer\'s Favorite and theme arrive, and a Favorite saved here reaches it', async () => {
+      const device = await startedPeer('Profile');
+      const {code} = await device.sync.beginPairing();
+      await value('sync.joinWithCode', [code]);
+      await until(async () => urls(await value('test.favorites')).includes(FIRST), 'the Favorite in Chromium');
+      device.module('settings').setSettings({theme: 'dark'});
+      await device.pass();
+      await value('sync.resetRequestWindowForTest');
+      await value('sync.syncNow', [], 120);
+      await until(async () => adb('shell', 'run-as', PACKAGE, 'cat', `shared_prefs/${PACKAGE}_preferences.xml`).includes('name="ui_theme_setting" value="2"'), 'the theme');
+      await d.view('https://saved.example/');
+      d.menu('Save to Favorites');
+      await until(async () => urls(await value('bookmarks.listBookmarks')).includes('https://saved.example/'), 'the runner to hear');
+      await value('sync.resetRequestWindowForTest');
+      await value('sync.syncNow', [], 120);
+      await device.pass();
+      const kept = urls(device.module('bookmarks').listBookmarks());
+      return kept.includes('https://saved.example/') ? [] : [kept.join()];
+    });
+
+    await check('a setting a newer desktop added survives a phone edit and a restart', async () => {
+      const device = await startedPeer('Newer');
+      const settings = device.module('settings');
+      const exportSettings = settings.exportForSync;
+      settings.exportForSync = () => {
+        const out = exportSettings();
+        out.values.futureSetting = 'kept';
+        out.meta.futureSetting = Date.now();
+        return out;
+      };
+      settings.setSettings({theme: 'light'});
+      await device.pass();
+      device.sync.resetRequestWindowForTest();
+      const {code} = await device.sync.beginPairing();
+      await value('sync.joinWithCode', [code]);
+      await value('settings.setSettings', [{theme: 'dark'}]);
+      await value('sync.resetRequestWindowForTest');
+      await value('sync.syncNow', [], 120);
+      await d.relaunch();
+      const exported = await value('settings.exportForSync');
+      return exported.values.futureSetting === 'kept' && exported.values.theme === 'dark' ? [] : [JSON.stringify(exported).slice(0, 300)];
+    });
+
     await check('three early endings stop the runner, and it says so', async () => {
       for (let i = 0; i < 3; i++) {
         await value('sync.status');
@@ -122,7 +189,6 @@ async function main(argv) {
     stopFixtures();
   }
   fs.writeFileSync(path.join(evidence, 'sync.json'), JSON.stringify({results, measures, checkedAt: new Date().toISOString()}, null, 2) + '\n');
-  for (const r of results) console.log(`${r.problems.length ? 'FAIL' : 'pass'} ${r.case}${r.problems.length ? ': ' + r.problems.join('; ') : ''}`);
   console.log(`Sync: ${JSON.stringify(measures)}`);
   if (!results.length || results.some(r => r.problems.length)) process.exitCode = 1;
   process.exit();
