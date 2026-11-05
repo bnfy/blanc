@@ -12,7 +12,7 @@ const SHIPPING = '6479ed3a314e4fd6219b8de1598bacffa78b4d7c';
 const steps = file => execFileSync('git', ['show', `${SHIPPING}:test/desktop/steps/${file}`], {cwd: root, encoding: 'utf8'});
 
 test('every port answers a shipping evaluation', () => {
-  const shipped = new Set(shippingEvaluations(steps('http-auth.steps.js')).map(sourceKey));
+  const shipped = new Set(['http-auth.steps.js', 'glance.steps.js'].flatMap(file => shippingEvaluations(steps(file))).map(sourceKey));
   for (const key of Object.keys(PORTS)) assert.ok(shipped.has(key), key);
 });
 
