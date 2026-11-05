@@ -1234,10 +1234,10 @@ Rulings: `docs/android/a4-rulings.md`.
 - On the emulator: first full sync about 270 ms, a passphrase sign-in about
   300 ms, the runner about 48 MB.
 
-| A4a gate | Result | Evidence (`~/blanc-evidence/android/a4/`) |
+| A4a gate | Result | Evidence (`~/blanc-evidence/android/a4-merged/`) |
 | --- | --- | --- |
 | Sync: passphrase and both pairing directions, a killed runner, a Favorite saved as it dies, a lost key, Favorites and theme both ways, a newer device's setting, the restart limit, a wrong bundle | 10 of 10 against the real Worker code | `sync/` |
-| A3 gate: A2 gate pass, acceptance 32 of 32, blocking BLOCKING_RESULT | BLOCKING_NOTE | `a3/` |
+| A3 gate: every A2 check, acceptance 32 of 32, blocking 14 of 14 | Pass. Two earlier runs each failed one blocking case that passed alone (3 of 3 and 6 of 6); the menu count was a race in the test, now fixed, and `/allow-ads` wasn't explained | `a4-merged/a3/` |
 | Robolectric | 386 | server log |
 | Real camera scan | **Pending the Pixel** | — |
 | Owner hands-on, Pixel and desktop | **Pending A4's end** | — |
