@@ -114,7 +114,8 @@ struct SettingsSheet: View {
         .font(BrowserStyle.font(17))
         .tracking(0.17)
         .foregroundStyle(style.text)
-        .tint(style.text)
+        .tint(BrowserStyle.adaptiveText)
+        .toggleStyle(BrowserSwitchStyle())
         .presentationDetents([.large])
         .presentationDragIndicator(.visible)
         .presentationBackground(style.surface)
@@ -129,7 +130,7 @@ struct SettingsSheet: View {
                     set: { manager.applySettingsPatch(["searchEngine": $0.rawValue]) })) {
                     ForEach(SettingsCopy.searchEngines, id: \.self) { Text($0.label).tag($0) }
                 }.accessibilityIdentifier("settings.searchEngine")
-                if DefaultBrowserOffer.enabled { DefaultBrowserRow() }
+                DefaultBrowserRow()
             }
             Section {
                 Picker(SettingsCopy.text("islandPosition"), selection: Binding(

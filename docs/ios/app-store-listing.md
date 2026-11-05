@@ -10,9 +10,9 @@ is checked against TestFlight build **0.1.0 (202610292048)**, uploaded from
 work merged after that build (or still in review) and must be checked again
 in the 1.0 build before this text goes live. Follow
 [`docs/marketing-claims.md`](../marketing-claims.md): no AI wording, blocking
-isn't the pitch, and nothing about default browser or passkeys until Apple
-grants the entitlement (request `P2X5BCD4C9`) and both are verified on a real
-iPhone.
+isn't the pitch, and nothing about default browser or passkeys until both
+are verified on a real iPhone in a released build (Apple granted the
+entitlement on 2026-11-04).
 
 ## Fields
 
@@ -99,7 +99,7 @@ iPhone.
 | Open source under MIT; the name and logo stay Bananify Creative's | Blanc | `LICENSE`, `ASSET-LICENSE.md` | Never describe the whole repository as blanket MIT | verified |
 | Companion to Blanc for Mac, Windows and Linux | Blanc | Current public desktop release v1.45.0 on all three | none | verified |
 
-**Left out on purpose:** the default browser and passkeys (waiting on Apple),
+**Left out on purpose:** the default browser and passkeys (not in the 1.0 build),
 the walkthrough, six languages, Background App Refresh and the share sheet
 (M18, merged or in review after build 202610292048: add them only once the
 1.0 build has them and they're checked), memory or speed claims, and any

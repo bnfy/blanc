@@ -11,13 +11,15 @@ final class WalkthroughUITests: XCTestCase {
     return app
   }
 
-  func testBrowseWithoutPairingReachesPrivacyAndCloses() {
+  func testBrowseWithoutPairingReachesPrivacyThenTheDefaultBrowserOfferAndCloses() {
     let app = launch()
     XCTAssertTrue(app.staticTexts["Your Blanc, in your pocket."].waitForExistence(timeout: 10))
     app.buttons["welcome.browse"].tap()
     XCTAssertTrue(app.switches["welcome.measureUsage"].waitForExistence(timeout: 5))
     app.buttons["welcome.continue"].tap()
-    XCTAssertTrue(app.staticTexts["Your Blanc, in your pocket."].waitForNonExistence(timeout: 5))
+    XCTAssertTrue(app.buttons["welcome.openDefaultApps"].waitForExistence(timeout: 5))
+    app.buttons["welcome.notNow"].tap()
+    XCTAssertTrue(app.buttons["welcome.notNow"].waitForNonExistence(timeout: 5))
     // Seen once: a relaunch shows no card.
     app.terminate()
     let again = XCUIApplication()
@@ -47,6 +49,8 @@ final class WalkthroughUITests: XCTestCase {
     XCTAssertTrue(title.exists, "the card stays")
     app.buttons["welcome.browse"].tap()
     app.buttons["welcome.continue"].tap()
+    XCTAssertTrue(app.buttons["welcome.notNow"].waitForExistence(timeout: 5))
+    app.buttons["welcome.notNow"].tap()
     let site = app.buttons["pill.palette"]
     let shown = XCTNSPredicateExpectation(predicate: NSPredicate(format: "label CONTAINS 'example.org'"), object: site)
     XCTAssertEqual(XCTWaiter().wait(for: [shown], timeout: 10), .completed, "the link's tab is current")

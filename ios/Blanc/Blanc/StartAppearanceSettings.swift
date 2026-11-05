@@ -114,6 +114,7 @@ struct ClockSettingsView: View {
 }
 
 private struct SettingsSlider: View {
+    @Environment(\.colorScheme) private var scheme
     let key: String
     @Binding var value: Double
     let range: ClosedRange<Double>
@@ -121,6 +122,7 @@ private struct SettingsSlider: View {
         VStack(alignment: .leading) {
             LabeledContent(SettingsCopy.text(key), value: "\(Int(value))")
             Slider(value: $value, in: range, step: 1)
+                .tint(BrowserStyle(scheme: scheme).controlFill)
                 .accessibilityLabel(SettingsCopy.text(key))
                 .accessibilityIdentifier("settings." + key)
         }

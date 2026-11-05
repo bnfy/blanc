@@ -94,7 +94,9 @@ cap** are identical; only where the bytes land and how you re-open them differ.
   the Linux desktop entry's `WebBrowser` category and HTTP(S) scheme-handler
   types).
 - **iOS:** default-browser **entitlement** + universal-link/URI handling; hand-off
-  via `UIApplication.open`.
+  via `UIApplication.open`. The app can't set itself: the walkthrough and
+  Settings open the system's Default Apps screen. Apple rate-limits the check,
+  so a refused one keeps the last answer.
 - **Android:** intent filters + the default-browser role; hand-off via `Intent`.
 
 **Parity contract:** a bare `mailto:`/`tel:`/etc. is handed to the OS (never
