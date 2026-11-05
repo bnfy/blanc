@@ -764,6 +764,48 @@ remain pending. D3 beta-only no-DRM exception accepted; EME notice/handoff requi
   island-and-commands 64 / 2 (F1-13 passed this time, still unexplained),
   settings-and-theming 6 / 0, browser-migration 5 / 0, internal-pages 9 / 1,
   newtab-layouts 12 / 3 (Mahjong only).
+- **S3 decisions (owner, 2026-11-05):** S3 finishes Blanc's own vertical rail
+  (F28), not Chromium's native vertical tabs, and shipping's Ctrl+Tab switcher
+  with its card (F59), not Chromium's `kCtrlTabMru`, which only flips between
+  the last two tabs. Mute Site (N13) is Chromium's own sound setting, so a mute
+  now outlives a relaunch (V21). Plan's "Mac stays positional" for F59 is out
+  of date: since v1.46.0 recent order ships on every desktop platform.
+- **S3.1 Split View (F53), candidate macos-4a72fe8259c85d77 (2026-11-05):** the fork's split
+  was already most of the way there, so this is shipping's `split-view` steps
+  loaded with adapters, plus three product changes. The tab menu has shipping's
+  Split with list (localized, grouped, and open to pinned tabs) in place of one
+  English row per tab. The ⌘L panel draws a split as one row, because tab
+  records now carry `splitId`. The overlay sits above the split divider, which
+  was covering the panel's middle and taking its clicks. The snapshot gains
+  `viewBounds`, the page's real rectangle, and the host a `quietTab` call.
+  22 of 32 cases pass. Five fail: Keep as split (two) and split pane to Glance
+  (two) wait for floating Glance, and F53's floating-Island case can't read a
+  float view yet. Five are undefined: Space round trip (Spaces), a corner tab
+  after navigating to Mahjong, two pinned-split relaunch reads (no session.json
+  to read) and raising a pane above the Island. Windows and Linux not run.
+  island-and-commands 63 / 3 (F1-13 failed again, F1-33, F1-39),
+  tabs-and-groups 32 / 1 (F3-3), vertical-tabs 0 / 7 as before.
+- **S3.2 floating Glance (F34), candidate macos-29b321d4c0aa5f9d (2026-11-05), in progress:**
+  Glance stays Chromium's two-tab split underneath, so focus and page commands
+  still follow the focused page, with a new layout: the main page fills the
+  pane and the reference sits in the card. The card's chrome is
+  `index.html?surface=glance`, a host frame above both pages with a clip-path
+  hole for the page, because the Island is above page views here (in shipping
+  the chrome view is below). Its frame logic is shipping's glance-card.js
+  (generated) and the controller's rules in host.js; `blanc.glance.frame` keeps
+  the size and place. Chromium's split needs its tabs adjacent and alike, so
+  the reference moves next to the main page while a Glance is open and goes
+  back when it ends; the ⌘L list shows that order meanwhile. ⌘⇧G is Chromium's
+  Find Previous command, redirected (patch 0031); the Edit menu still says Find
+  Previous and View has no Glance item. The tab menu has Open in Glance.
+  A split pane's tab menu opens it in Glance. Open Link in Glance has a host
+  path but no context menu item yet. On macos-1935c1d14bb29c5b: 24 of 69 cases pass (from 2), 14
+  fail, 31 undefined. Open failures: the picker's wait for a quiet tab (four),
+  card focus after the picker, links from the Glance page (two, not yet
+  landing in the card), Keep as split's announcement, and harness gaps. A
+  closing Glance's reference goes back to its place. split-view 24 of 32;
+  island-and-commands 64 / 2 (F1-13, F1-39) and tabs-and-groups 32 / 1 (F3-3)
+  ran one candidate earlier, with no new failures.
 - **Mahjong goes last (owner, 2026-11-04):** the fork has no Mahjong yet
   (F35-3, F35-4, F35-9 fail at the footer launch). When it is built it is an
   Island page (shipping's files served as byte-identical copies, opened as an
@@ -1224,9 +1266,9 @@ Android's Bar A counts the shared scenarios bound in `chromium/tests/android/acc
 | --- | ---: | ---: | ---: | ---: |
 | Not started / unassessed | 25 | 80 | 80 | 68 |
 | Research only | 1 | 0 | 0 | 0 |
-| Drafted | 7 | 0 | 0 | 0 |
-| Implemented | 2 | 0 | 0 | 12 |
-| Built, isolated (legacy) | 5 | 0 | 0 | 0 |
+| Drafted | 6 | 0 | 0 | 0 |
+| Implemented | 4 | 0 | 0 | 12 |
+| Built, isolated (legacy) | 4 | 0 | 0 | 0 |
 | Integrated, partial (legacy) | 3 | 0 | 0 | 0 |
 | Integrated | 37 | 0 | 0 | 0 |
 | Verification needs recheck | 0 | 0 | 0 | 0 |
@@ -1236,5 +1278,5 @@ Android's Bar A counts the shared scenarios bound in `chromium/tests/android/acc
 
 Legacy macOS stages come from the approved spec; they await verification on the canonical candidate. No legacy stage counts as Verified.
 
-Candidate identities: macOS: macos-9a9442cac7df94a0; Windows: none; Linux: none; Android: android-arm64-7bd35e94ef746069.
+Candidate identities: macOS: macos-1935c1d14bb29c5b; Windows: none; Linux: none; Android: android-arm64-7bd35e94ef746069.
 <!-- END GENERATED PROGRESS -->

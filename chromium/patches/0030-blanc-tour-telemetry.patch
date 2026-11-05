@@ -1,12 +1,13 @@
 diff --git a/chrome/browser/prefs/browser_prefs.cc b/chrome/browser/prefs/browser_prefs.cc
-index ba4a9d6..4cb0e79 100644
+index ba4a9d6..91e6335 100644
 --- a/chrome/browser/prefs/browser_prefs.cc
 +++ b/chrome/browser/prefs/browser_prefs.cc
-@@ -1727,6 +1727,7 @@ void RegisterLocalState(PrefRegistrySimple* registry) {
+@@ -1727,6 +1727,8 @@ void RegisterLocalState(PrefRegistrySimple* registry) {
    // shipping's are. The preview channel never sends.
    registry->RegisterDoublePref("blanc.first_run.completed_at", 0);
    registry->RegisterBooleanPref("blanc.telemetry.usage_ping", true);
 +  registry->RegisterDictionaryPref("blanc.telemetry.install");
++  registry->RegisterDictionaryPref("blanc.glance.frame");
    // The moving-in checklist (N11), device-wide as in shipping.
    registry->RegisterBooleanPref("blanc.checklist.dismissed", false);
    registry->RegisterBooleanPref("blanc.checklist.default_done", false);

@@ -20,7 +20,7 @@ export function shippingState(snapshot){
   // A renamed tab's snapshot title is its name and pageTitle the page's
   // own; shipping's state keeps them as title and customTitle.
   loading:!!t.isLoading,isLoading:!!t.isLoading,title:(t.pageTitle??t.title)||'',customTitle:t.pageTitle!=null?t.title:null,favicon:t.favicon||null,
-  groupId:id(t.groupId),splitId:splitOf.get(String(t.id))??null,pinned:!!t.pinned,
+  bounds:t.viewBounds??null,groupId:id(t.groupId),splitId:splitOf.get(String(t.id))??null,pinned:!!t.pinned,
   muted:!!(t.muted||t.siteMuted),audible:!!t.audible,canGoBack:!!t.canGoBack,canGoForward:!!t.canGoForward,
   // A private tab's contents live in the off-the-record profile (D1), the
   // fork's private session, which never persists.
@@ -34,6 +34,6 @@ export function shippingState(snapshot){
  const pins=tabs.filter(t=>t.pinned&&!t.groupId).map(t=>t.id);
  if(pins.length)clusters.unshift({key:'pinned',groupId:null,tabIds:pins});
  return {tabs,tabOrder:tabs.map(t=>t.id),clusters,groups,
-  splits:(snapshot.splits||[]).map(s=>({id:String(s.id),tabIds:s.tabIds.map(String)})),
+  splits:(snapshot.splits||[]).map(s=>({id:String(s.id),tabIds:s.tabIds.map(String),layout:s.layout,focusedIndex:s.focusedIndex})),
   activeTabId:id(snapshot.activeTabId),glanceTabId:id(snapshot.glanceTabId),focusedPaneTabId:id(snapshot.focusedTabId)};
 }

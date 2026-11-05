@@ -176,6 +176,7 @@ export const island={
   for(const type of ['keyDown','char','keyUp'])await page.cdp.send('Input.dispatchKeyEvent',cdpKey({type,keyCode:key}));return true;},
  // The rail's activate-and-focus-page path; shipping focuses the active tab.
  async focusTabContents(w,id){
+  if((await w.snapshot()).glanceTabId!=null)return w.api('focusGlancePane',[String(id)]);
   if(String((await w.snapshot()).activeTabId)!==String(id))throw Error('focusTabContents expects the active tab');
   await w.api('activateTabFromRail',[String(id)]);return true;
  },

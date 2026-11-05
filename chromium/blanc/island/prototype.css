@@ -4,9 +4,9 @@
    drag-to-reorder by TabStripModel; the warning badge by the host's siteInfo
    (S1.6). Glance has no native counterpart yet. */
 #pillFillHint, #pillCapture, #pillDisplayShare,
-#pillSpace, #glanceHeader, #panelSiteInfo,
+#pillSpace, #panelSiteInfo,
 #footerNewPrivate, #footerWorkspace,
-#footerSettings, .row-glance {
+#footerSettings {
   display: none !important;
 }
 /* Private windows have no Favorites (Electron: private tabs never populate
@@ -56,6 +56,7 @@
 html, body { background: transparent; }
 
 .prototype-tab-menu { max-height:calc(100vh - 16px); overflow-y:auto; }
+.prototype-tab-menu-header { padding:6px 10px 3px; font-size:11px; opacity:.65; }
 
 /* PR993 clustered Split View rail row. */
 .vertical-split-icons { display: flex; flex: none; gap: 3px; }

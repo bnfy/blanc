@@ -1,7 +1,7 @@
 // Shipping hook adapters for the tabs area (see tests/adapters/core.mjs):
 // windows, closed entries, the group and tab menus, Shield and site
 // controls, and the chrome-document guards.
-import {UndefinedNativeAdapterError} from '../lib/adapters.mjs';
+import {UndefinedNativeAdapterError,nativeId} from '../lib/adapters.mjs';
 import {installDriver,nativeCall} from '../lib/test-driver.mjs';
 import {waitFor} from '../lib/cdp.mjs';
 import {shippingPageUrl} from '../lib/page-shim.mjs';
@@ -85,7 +85,12 @@ async function activeTab(w){const s=await w.snapshot();return s.tabs.find(t=>Str
 async function openTabMenu(w,tabId){
  if(!await overlayShown(w))await w.hostEval('window.BlancPrototypeHost.open(false)');
  const page=overlay(w);
- const row=page.locator(`#islandList [data-tab-id="${String(tabId)}"]`).first();
+ // A split is one row; its tabs are listed under its disclosure.
+ const split=(await w.state()).splits.find(s=>s.tabIds.includes(String(tabId)));
+ if(split){const splitRow=page.locator(`#islandList .split-row[data-split-id="${split.id}"]`);await splitRow.first().waitFor({state:'visible'});
+  const disclosure=splitRow.locator('.split-row-disclosure:not(.open)');
+  if(await disclosure.count())await disclosure.first().click();}
+ const row=page.locator(`#islandList ${split?'.in-split':''}[data-tab-id="${String(tabId)}"]`).first();
  await row.click({button:'right'});
  await page.locator('.prototype-tab-menu').waitFor({state:'visible'});
  return page;
@@ -177,11 +182,57 @@ export const tabs={
   await page.keyboard.press('Escape');
   return item&&{label:item.label,enabled:item.enabled};
  },
- async runTabMenuItem(w,tabId,itemId){
+ async runTabMenuItem(w,tabId,itemId,options){
+  // Split with ▸ opens its list in place; the pick is the tab it names.
+  if(itemId==='split-with-tab'){
+   const {page,item}=await menuItem(w,tabId,'split-with');
+   if(!item?.enabled){await page.keyboard.press('Escape');return false;}
+   await page.locator('.prototype-tab-menu button').nth(item.index).click();
+   await page.locator(`.prototype-tab-menu button[data-tab-id="${String(options.otherTabId)}"]`).click();
+   return true;
+  }
   const {page,item}=await menuItem(w,tabId,itemId);
   if(!item||!item.enabled){await page.keyboard.press('Escape');return false;}
   await page.locator('.prototype-tab-menu button').nth(item.index).click();
   return true;
+ },
+ // Split View (F53). Chromium's split holds two tabs, the shipped 2-pane view.
+ async makeSplit(w,tabId,others){
+  if(others.length!==1)throw new UndefinedNativeAdapterError('A native split holds two tabs');
+  await w.api('createSplit',[tabId,others[0]]);
+  return (await w.state()).splits.find(s=>s.tabIds.includes(String(tabId)))?.id??null;
+ },
+ async splitLayout(w){
+  const s=await w.snapshot();const split=(s.splits||[]).find(x=>x.tabIds.includes(s.activeTabId));const g=s.splitGeometry;
+  if(!split||!g?.frames||g.frames.length!==split.tabIds.length)return null;
+  return {mode:g.mode,panes:split.tabIds.map((id,i)=>{const f=g.frames[i];
+   return {tabId:String(id),focused:id===(s.focusedTabId??s.activeTabId),frame:{...f},content:{x:f.x+1,y:f.y+1,width:f.width-2,height:f.height-2}};})};
+ },
+ workspacePageScript:(w,id,source)=>w.call('executeTab',id,source),
+ pressBrowserCommand:async(w,id,command)=>{if(command!=='reload')throw new UndefinedNativeAdapterError('Browser command needs an adapter: '+command);await w.api('reload',[id]);return true;},
+ sleepBackgroundTabsNow:w=>w.api('sleepBackgroundTabs'),
+ sleepTab:(w,id)=>w.api('quietTab',[id]),
+ keepGlanceAsSplit:w=>w.api('keepGlanceAsSplit'),
+ moveGroupToNewWindow:async(w,id)=>{await w.api('moveGroupToNewWindow',[id]);return true;},
+ closedEntrySummaries:async w=>[...(await w.snapshot()).closed].reverse().map(e=>({id:String(e.id),title:e.title,tabCount:e.tabCount})),
+ // A native split lives on the tab strip, so no tab can name one that's gone;
+ // the snapshot only lists splits with both tabs.
+ straySplitIds:async w=>{const s=await w.snapshot();const open=new Set(s.tabs.map(t=>String(t.id)));
+  return (s.splits||[]).filter(x=>x.tabIds.some(id=>!open.has(String(id)))).map(x=>String(x.id));},
+ windowChildViewCount:async w=>({tabViews:(await w.snapshot()).tabs.filter(t=>t.viewBounds).length}),
+ attachedTabViewIds:async w=>(await w.snapshot()).tabs.filter(t=>t.viewBounds).map(t=>String(t.id)),
+ focusPane:async(w,tabId)=>{await w.native('switchTab',[nativeId(tabId)]);return true;},
+ focusedWebContentsId:async w=>(await w.snapshot()).focusedTabId??null,
+ async splitCornerTabs(w){
+  const s=await w.snapshot();const split=(s.splits||[]).find(x=>x.tabIds.includes(s.activeTabId));if(!split)return [];
+  const rows=await w.hostEval(`[...document.querySelectorAll('#splitHeaders .split-pane-header')].map(pane=>{const r=pane.getBoundingClientRect();const title=pane.querySelector('.split-pane-title');
+   return {bounds:{x:r.x,y:r.y,width:r.width,height:r.height},width:r.width,shown:r.width>0,site:title.hidden?'':title.textContent};})`);
+  return split.tabIds.map((id,i)=>({tabId:String(id),focused:id===s.activeTabId,...rows[i]}));
+ },
+ async clickSplitCorner(w,tabId,part){
+  const s=await w.snapshot();const split=(s.splits||[]).find(x=>x.tabIds.map(String).includes(String(tabId)));if(!split)return false;
+  const index=split.tabIds.map(String).indexOf(String(tabId));const selector=part==='close'?'.split-corner-close':'.split-pane-title';
+  return w.hostEval(`(()=>{const button=document.querySelectorAll('#splitHeaders .split-pane-header')[${index}]?.querySelector(${jsLiteral(selector)});if(!button||button.hidden)return false;button.click();return true;})()`);
  },
  // Shield and site controls (F12). DOM reads match shipping's hooks; clicks
  // are real CDP pointer input on the Island frames.
