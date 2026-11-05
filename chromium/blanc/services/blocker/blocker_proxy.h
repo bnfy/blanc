@@ -10,6 +10,8 @@ namespace net { class IsolationInfo; }
 namespace blanc {
 // Read-only process-wide health; never starts or resets the engine.
 const char* BlockerHealth();
+// After a failure, starts the engine again.
+void RestartBlocker();
 std::string BlockingHostname(const GURL& url);
 bool BlockingEnabled(content::BrowserContext* context);
 bool BlockingSiteExcepted(content::BrowserContext* context, const GURL& url);

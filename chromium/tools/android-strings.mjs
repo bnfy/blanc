@@ -39,9 +39,12 @@ export const ANDROID_KEYS = [
   'ws.editor.done',
   // Find in page (A2 Task 6).
   'find.next', 'find.placeholder', 'find.prev', 'menu.findInPage',
+  // Blocking (A3 Task 5), the iPhone's and desktop's words.
+  'newtab.startup.failed', 'newtab.startup.retry', 'shield.adBlocking', 'shield.count.globalOff', 'shield.count.none',
+  'shield.count.siteOff', 'slash.allowAds.hint', 'slash.blockAds.hint',
 ];
 // ICU plurals, as Android <plurals>: the Island's tab count for TalkBack.
-export const ANDROID_PLURALS = ['newtab.groups.count', 'tabGroups.tucked', 'tabsMenu.header'];
+export const ANDROID_PLURALS = ['newtab.groups.count', 'shield.count.blocked', 'tabGroups.tucked', 'tabsMenu.header'];
 export const LOCALES = [['en', 'values'], ['de', 'values-de'], ['es', 'values-es'], ['fr', 'values-fr'],
   ['it', 'values-it'], ['pt-BR', 'values-pt-rBR']];
 

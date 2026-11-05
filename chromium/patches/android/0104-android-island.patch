@@ -72,7 +72,7 @@ diff -ruN a/chrome/android/java/src/org/chromium/chrome/browser/tabbed_mode/Tabb
          if (mVerticalTabsPreferenceListener != null) {
              ContextUtils.getAppSharedPreferences()
                      .unregisterOnSharedPreferenceChangeListener(mVerticalTabsPreferenceListener);
-@@ -1293,9 +1309,327 @@
+@@ -1293,9 +1309,365 @@
          }
      }
  
@@ -123,6 +123,16 @@ diff -ruN a/chrome/android/java/src/org/chromium/chrome/browser/tabbed_mode/Tabb
 +                            @Override
 +                            public void find() {
 +                                showBlancFind();
++                            }
++
++                            @Override
++                            public void blockAds() {
++                                blancBlocking().blockAds();
++                            }
++
++                            @Override
++                            public void allowAds() {
++                                blancBlocking().allowAds();
 +                            }
 +                        });
 +        palette.setOnDismissListener(
@@ -266,6 +276,11 @@ diff -ruN a/chrome/android/java/src/org/chromium/chrome/browser/tabbed_mode/Tabb
 +        context.startPage = url.getSpec().startsWith("chrome://blanc/newtab.html");
 +        context.blockableSite = UrlUtilities.isHttpOrHttps(url);
 +        context.privateTab = tab.isIncognito();
++        org.chromium.blanc.tabs.chromium.ChromiumBlocking blocker = blancBlocker();
++        context.blockingEnabled = blocker.enabled();
++        context.siteProtected = !blocker.excepted();
++        context.blockingUnavailable = blocker.unavailable();
++        context.blockedCount = blocker.blockedCount();
 +        context.canFavorite = bookmarks.isBookmarkModelLoaded();
 +        context.favorite = context.canFavorite && bookmarks.isBookmarked(url);
 +        org.chromium.blanc.island.IslandMenuPopup.show(
@@ -302,6 +317,21 @@ diff -ruN a/chrome/android/java/src/org/chromium/chrome/browser/tabbed_mode/Tabb
 +                    }
 +
 +                    @Override
++                    public void setSiteProtected(boolean on) {
++                        blancBlocking().setSiteProtected(on);
++                    }
++
++                    @Override
++                    public void turnBlockingOn() {
++                        blancBlocking().turnOn();
++                    }
++
++                    @Override
++                    public void retryBlocking() {
++                        blancBlocking().retry();
++                    }
++
++                    @Override
 +                    public void newPrivateTab() {
 +                        mTabCreatorManagerSupplier
 +                                .asNonNull()
@@ -310,6 +340,14 @@ diff -ruN a/chrome/android/java/src/org/chromium/chrome/browser/tabbed_mode/Tabb
 +                                .launchNtp(TabLaunchType.FROM_CHROME_UI);
 +                    }
 +                });
++    }
++
++    private org.chromium.blanc.tabs.chromium.ChromiumBlocking blancBlocker() {
++        return new org.chromium.blanc.tabs.chromium.ChromiumBlocking(mActivityTabProvider);
++    }
++
++    private org.chromium.blanc.blocking.BlancBlocking blancBlocking() {
++        return new org.chromium.blanc.blocking.BlancBlocking(blancBlocker());
 +    }
 +
 +    private org.chromium.blanc.tabs.chromium.@Nullable BlancTabKeeper mBlancTabKeeper;
@@ -400,7 +438,7 @@ diff -ruN a/chrome/android/java/src/org/chromium/chrome/browser/tabbed_mode/Tabb
          assert mLayoutManager != null;
  
          if (mCountrySupplier != null && mCountrySupplier.get() == null) {
-@@ -2962,9 +3296,8 @@
+@@ -2962,9 +3334,8 @@
          mNotificationPermissionController =
                  new NotificationPermissionController(mWindowAndroid, rationaleUIDelegateSupplier);
          NotificationPermissionController.attach(mWindowAndroid, mNotificationPermissionController);

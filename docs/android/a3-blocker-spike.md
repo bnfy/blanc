@@ -8,7 +8,7 @@ it and doesn't port anything, and the spike's hooks became patch 0106 instead of
 | --- | --- |
 | Does it compile? | Yes. The hooks needed no change. `blocker_proxy.cc` needed `//extensions/browser` made desktop-only (the extension includes sit behind `BLANC_RESEARCH_HOOKS`), `IsProfileDirectoryMarkedForDeletion` skipped on Android, and Chromium 156's `DocumentService` constructor, which has no pass key yet. |
 | Does the V8 utility process start? | Yes, in Android's sandbox with no changes. |
-| Does it block? | A request EasyList blocks never reaches the network, a request it allows loads, and an element it hides is hidden, in normal and private tabs. Ten checks across the four paths (from the Start Page and from a web page, each normal and private): hidden within half a second. |
+| Does it block? | A request EasyList blocks never reaches the network, a request it allows loads, and an element it hides is hidden, in normal and private tabs. Twelve checks across the four paths (from the Start Page and from a web page, each normal and private): hidden within half a second. |
 | How long does the engine take? | The first page after launch took 2.2 s on the emulator with the engine starting (it waits, filtered); later pages about 0.4 s. |
 | How much memory? | Blanc gains three sandboxed processes on the first page, 212–299 MB resident each on this debug x86_64 build. `ps` can't tell the blocker's apart, and resident size counts shared pages. The Pixel run should measure it. |
 | How does the bundle ship? | As an uncompressed APK asset, `assets/blanc_blocker/engine.js`, read with `base::android::OpenApkAsset` and refused unless its SHA-256 equals `kBlancBlockerBundleSha256`. 8.4 MB. A `.pak` resource would be compressed and need a copy. |
@@ -20,7 +20,8 @@ it and doesn't port anything, and the spike's hooks became patch 0106 instead of
 
 ## A warning for later checks
 
-Most of a day's debugging here turned out to be the probes, not Blanc: reading a page before it had
-loaded looks exactly like a missing hook. Wait for the page's address, then for its state. A
-`chrome-error://` page appeared twice after a private navigation from the Start Page and never in
-twelve careful runs; `blocking.mjs` fails on it, so it will show up if it's real.
+Most of this spike's debugging turned out to be the harness, not Blanc. `sleep()` and `adb` are
+synchronous in Node, and the fixture server ran in the same thread, so it stopped answering whenever
+a check waited: pages stalled, requests vanished, and an error page came and went. It looked like
+missing hooks and a private-tab bug. The server now has its own thread (`fixture-server.mjs`). Keep
+it there.

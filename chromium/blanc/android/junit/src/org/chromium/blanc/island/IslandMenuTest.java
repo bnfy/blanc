@@ -75,4 +75,13 @@ public class IslandMenuTest {
         c.hasSendTargets = true;
         assertEquals(Item.of(Kind.SEND), IslandMenu.items(c).get(2));
     }
+
+    @Test
+    public void anUnavailableBlockerShowsOffAWebPageToo() {
+        // A page the blocker stopped never commits, so the tab isn't on a web page.
+        IslandMenu.Context c = new IslandMenu.Context();
+        c.blockingUnavailable = true;
+        assertEquals(List.of(IslandMenu.Item.of(IslandMenu.Kind.BLOCKING_UNAVAILABLE), IslandMenu.Item.of(IslandMenu.Kind.NEW_PRIVATE_TAB)),
+                IslandMenu.items(c));
+    }
 }

@@ -73,10 +73,23 @@
     <string name="blanc_find_placeholder">Trova nella pagina</string>
     <string name="blanc_find_prev">Risultato precedente</string>
     <string name="blanc_menu_find_in_page">Trova nella pagina</string>
+    <string name="blanc_newtab_startup_failed">Impossibile avviare il blocco.</string>
+    <string name="blanc_newtab_startup_retry">Riprova</string>
+    <string name="blanc_shield_ad_blocking">Blocco di annunci e tracker</string>
+    <string name="blanc_shield_count_global_off">Il blocco degli annunci è disattivato ovunque</string>
+    <string name="blanc_shield_count_none">Ancora nulla di bloccato in questa pagina</string>
+    <string name="blanc_shield_count_site_off">Annunci consentiti su questo sito</string>
+    <string name="blanc_slash_allow_ads_hint">Consenti gli annunci su questo sito</string>
+    <string name="blanc_slash_block_ads_hint">Blocca gli annunci qui, o attiva/disattiva il blocco ovunque</string>
     <plurals name="blanc_newtab_groups_count">
         <item quantity="one">%d scheda</item>
         <item quantity="many">%d schede</item>
         <item quantity="other">%d schede</item>
+    </plurals>
+    <plurals name="blanc_shield_count_blocked">
+        <item quantity="one">%d annuncio o tracker bloccato in questa pagina</item>
+        <item quantity="many">%d annunci e tracker bloccati in questa pagina</item>
+        <item quantity="other">%d annunci e tracker bloccati in questa pagina</item>
     </plurals>
     <plurals name="blanc_tab_groups_tucked">
         <item quantity="one">%d scheda compressa</item>

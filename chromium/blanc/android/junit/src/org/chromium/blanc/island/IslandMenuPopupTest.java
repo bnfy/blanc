@@ -3,7 +3,9 @@
 package org.chromium.blanc.island;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
 
 import android.app.Activity;
 import android.view.Menu;
@@ -28,6 +30,21 @@ public class IslandMenuPopupTest {
     private final List<String> mRan = new ArrayList<>();
     private final IslandMenuPopup.Actions mActions =
             new IslandMenuPopup.Actions() {
+                @Override
+                public void setSiteProtected(boolean on) {
+                    mRan.add("protect:" + on);
+                }
+
+                @Override
+                public void turnBlockingOn() {
+                    mRan.add("blocking-on");
+                }
+
+                @Override
+                public void retryBlocking() {
+                    mRan.add("retry");
+                }
+
                 @Override
                 public void toggleFavorite() {
                     mRan.add("favorite");
@@ -60,6 +77,7 @@ public class IslandMenuPopupTest {
         IslandMenu.Context c = new IslandMenu.Context();
         c.blockableSite = true;
         c.blockingEnabled = true;
+        c.siteProtected = true;
         c.privateTab = privateTab;
         c.canFavorite = true;
         c.favorite = favorite;
@@ -86,19 +104,19 @@ public class IslandMenuPopupTest {
     @Test
     public void aWebPageShowsTheIphonesOrderWithA1sEntries() {
         assertEquals(
-                List.of("Save to Favorites", "Share", "Find in Page", "New Private Tab"),
+                List.of("Ad & tracker blocking", "Nothing blocked on this page yet", "Save to Favorites", "Share", "Find in Page", "New Private Tab"),
                 titles(IslandMenuPopup.show(mAnchor, page(false, false), mActions)));
     }
 
     @Test
     public void aSavedPageOffersRemoval() {
-        assertEquals("Remove from Favorites", titles(IslandMenuPopup.show(mAnchor, page(false, true), mActions)).get(0));
+        assertEquals("Remove from Favorites", titles(IslandMenuPopup.show(mAnchor, page(false, true), mActions)).get(2));
     }
 
     @Test
     public void aPrivateTabHasNoFavorite() {
         assertEquals(
-                List.of("Share", "Find in Page", "New Private Tab"),
+                List.of("Ad & tracker blocking", "Nothing blocked on this page yet", "Share", "Find in Page", "New Private Tab"),
                 titles(IslandMenuPopup.show(mAnchor, page(true, false), mActions)));
     }
 
@@ -110,6 +128,60 @@ public class IslandMenuPopupTest {
             assertNotNull(menu.getItem(i));
             menu.performIdentifierAction(menu.getItem(i).getItemId(), 0);
         }
-        assertEquals(List.of("favorite", "share", "find", "private"), mRan);
+        assertEquals(List.of("protect:false", "favorite", "share", "find", "private"), mRan);
+    }
+
+    private IslandMenu.Context blockable() {
+        IslandMenu.Context c = new IslandMenu.Context();
+        c.blockableSite = true;
+        c.blockingEnabled = true;
+        c.siteProtected = true;
+        return c;
+    }
+
+    @Test
+    public void aProtectedSiteShowsTheSwitchOnAndItsCount() {
+        IslandMenu.Context c = blockable();
+        c.blockedCount = 3;
+        PopupMenu popup = IslandMenuPopup.show(mAnchor, c, mActions);
+        assertEquals(List.of("Ad & tracker blocking", "3 ads & trackers blocked on this page", "Share", "Find in Page", "New Private Tab"), titles(popup));
+        assertTrue(popup.getMenu().getItem(0).isChecked());
+        assertFalse(popup.getMenu().getItem(1).isEnabled());
+    }
+
+    @Test
+    public void nothingBlockedYetSaysSo() {
+        assertEquals("Nothing blocked on this page yet", titles(IslandMenuPopup.show(mAnchor, blockable(), mActions)).get(1));
+    }
+
+    @Test
+    public void anAllowedSiteSaysSoAndTheSwitchProtectsIt() {
+        IslandMenu.Context c = blockable();
+        c.siteProtected = false;
+        PopupMenu popup = IslandMenuPopup.show(mAnchor, c, mActions);
+        assertEquals("Ads allowed on this site", titles(popup).get(1));
+        assertFalse(popup.getMenu().getItem(0).isChecked());
+        popup.getMenu().performIdentifierAction(popup.getMenu().getItem(0).getItemId(), 0);
+        assertEquals(List.of("protect:true"), mRan);
+    }
+
+    @Test
+    public void blockingOffEverywhereOffersTheWayBack() {
+        IslandMenu.Context c = blockable();
+        c.blockingEnabled = false;
+        PopupMenu popup = IslandMenuPopup.show(mAnchor, c, mActions);
+        assertEquals("Ad blocking is off everywhere", titles(popup).get(1));
+        popup.getMenu().performIdentifierAction(popup.getMenu().getItem(0).getItemId(), 0);
+        assertEquals(List.of("blocking-on"), mRan);
+    }
+
+    @Test
+    public void anUnavailableBlockerSaysSoAndOffersRetry() {
+        IslandMenu.Context c = blockable();
+        c.blockingUnavailable = true;
+        PopupMenu popup = IslandMenuPopup.show(mAnchor, c, mActions);
+        assertEquals(List.of("Blocking could not start.", "Retry"), titles(popup).subList(0, 2));
+        popup.getMenu().performIdentifierAction(popup.getMenu().getItem(1).getItemId(), 0);
+        assertEquals(List.of("retry"), mRan);
     }
 }

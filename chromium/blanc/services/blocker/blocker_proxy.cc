@@ -7,7 +7,9 @@
 #endif
 #if BUILDFLAG(IS_ANDROID)
 #include "base/android/apk_assets.h"
+#include "base/containers/span.h"
 #include "base/files/file.h"
+#include "base/files/memory_mapped_file.h"
 #endif
 #include "content/public/browser/navigation_throttle.h"
 #include "content/public/browser/navigation_throttle_registry.h"
@@ -31,6 +33,8 @@
 #include "services/network/public/cpp/resource_request_body.h"
 #include <memory>
 #include "base/command_line.h"
+#include "base/containers/circular_deque.h"
+#include "base/time/time.h"
 #include "base/files/file_util.h"
 #include "base/functional/bind.h"
 #include "base/json/json_writer.h"
@@ -111,9 +115,12 @@ std::string ReadBundle() {
   base::MemoryMappedFile::Region region;
   const int fd = base::android::OpenApkAsset("assets/blanc_blocker/engine.js", &region);
   if (fd < 0 || region.size > 16 * 1024 * 1024) return std::string();
+  // For the emulator check: a wrong bundle must fail closed. It can only make Blanc stop pages.
+  const bool test_bad_bundle = base::CommandLine::ForCurrentProcess()->HasSwitch("blanc-blocker-test-bad-bundle");
   base::File file(fd);
   script.resize(region.size);
   if (!file.ReadAndCheck(region.offset, base::as_writable_byte_span(script))) return std::string();
+  if (test_bad_bundle) script.back() ^= 1;
 #else
   auto path = base::CommandLine::ForCurrentProcess()->GetSwitchValuePath("blanc-blocker-assets").AppendASCII("engine.js");
   if (!base::ReadFileToStringWithMaxSize(path, &script, 16 * 1024 * 1024)) return std::string();
@@ -162,6 +169,12 @@ class Engine {
         --self->inflight_; std::move(cb).Run(ready && !self->failed_, output);
       }, base::Unretained(this), std::move(callback)), false, std::string()));
   }
+  // After a failure: starts over. Requests already refused stay refused.
+  void Restart() {
+    if (!failed_) return;
+    failed_ = false; started_ = false; restarts_.clear();
+    Start();
+  }
   void Fail() {
     failed_ = true; ready_ = false; startup_.Stop(); service_.reset();
     auto pending = std::move(waiting_);
@@ -179,8 +192,24 @@ class Engine {
     if (script.empty()) { Fail(); return; }
     service_ = content::ServiceProcessHost::Launch<mojom::Blocker>(
         content::ServiceProcessHost::Options().WithDisplayName("Blanc Blocker").Pass());
-    service_.set_disconnect_handler(base::BindOnce(&Engine::Fail, base::Unretained(this)));
+    service_.set_disconnect_handler(base::BindOnce(&Engine::Disconnected, base::Unretained(this)));
     service_->Initialize(script, base::BindOnce(&Engine::Initialized, base::Unretained(this)));
+  }
+  // Android ends background processes in normal use, so the engine starts again by itself, holding
+  // requests meanwhile, at most three times in ten minutes (shipping's limit for uBlock Origin).
+  // Requests it was deciding are refused, as on any failure. Desktop fails at once.
+  void Disconnected() {
+#if BUILDFLAG(IS_ANDROID)
+    const base::TimeTicks now = base::TimeTicks::Now();
+    while (!restarts_.empty() && now - restarts_.front() > base::Minutes(10)) restarts_.pop_front();
+    if (restarts_.size() < 3) {
+      restarts_.push_back(now);
+      ready_ = false; service_.reset(); startup_.Stop();
+      Start();
+      return;
+    }
+#endif
+    Fail();
   }
   void Initialized(bool ready) {
     if (failed_) return;
@@ -194,6 +223,7 @@ class Engine {
   bool started_ = false, ready_ = false, failed_ = false;
   int inflight_ = 0;
   std::deque<base::OnceClosure> waiting_;
+  base::circular_deque<base::TimeTicks> restarts_;
   mojo::Remote<mojom::Blocker> service_;
   base::OneShotTimer startup_;
 };
@@ -914,6 +944,7 @@ class Factory : public network::SelfDeletingURLLoaderFactory {
   scoped_refptr<network::SharedURLLoaderFactory> target_;
 };
 }
+void RestartBlocker() { Engine::Get().Restart(); }
 const char* BlockerHealth() { return Engine::Get().Health(); }
 int ShieldBlockedCount(content::WebContents* contents) {
   if (!contents || !contents->GetPrimaryMainFrame()) return 0;

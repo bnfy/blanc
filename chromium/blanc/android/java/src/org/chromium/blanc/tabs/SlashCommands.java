@@ -15,8 +15,7 @@ import java.util.Set;
 /**
  * The palette's slash commands, in Blanc for iPhone's order (SlashCommand.swift). Commands whose
  * feature Android doesn't have yet are left out of {@link #available()} until their milestone:
- * /settings (A5), /sync and /send (A4), /reader (after A2), /block-ads and /allow-ads (A3), /space
- * (A4).
+ * /settings (A5), /sync and /send (A4), /reader (after A2), /space (A4).
  */
 @NullMarked
 public final class SlashCommands {
@@ -38,7 +37,7 @@ public final class SlashCommands {
 
     private static final Set<Kind> BUILT =
             EnumSet.of(Kind.FAVORITES, Kind.HISTORY, Kind.NEW, Kind.PRIVATE, Kind.CLOSE, Kind.REOPEN,
-                    Kind.GROUP, Kind.UNGROUP, Kind.CLOSE_GROUP, Kind.FIND, Kind.THEME);
+                    Kind.GROUP, Kind.UNGROUP, Kind.CLOSE_GROUP, Kind.FIND, Kind.BLOCK_ADS, Kind.ALLOW_ADS, Kind.THEME);
 
     private SlashCommands() {}
 

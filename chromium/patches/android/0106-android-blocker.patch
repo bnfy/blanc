@@ -1,10 +1,11 @@
 diff -ruN a/chrome/browser/BUILD.gn b/chrome/browser/BUILD.gn
 --- a/chrome/browser/BUILD.gn
 +++ b/chrome/browser/BUILD.gn
-@@ -922,6 +922,7 @@
+@@ -922,6 +922,8 @@
      ":startup_data",
      ":unexpire_flags",
      ":universal_web_contents_observers",
++    "//blanc/android:blocker_bridge",
 +    "//blanc/services/blocker:browser",
      "//base/allocator:buildflags",
      "//build/config/linux/dbus:buildflags",

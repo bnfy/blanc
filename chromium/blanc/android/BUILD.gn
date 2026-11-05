@@ -3,6 +3,7 @@
 # docs/superpowers/plans/2026-11-04-android-a1-island.md.
 
 import("//build/config/android/rules.gni")
+import("//third_party/jni_zero/jni_zero.gni")
 
 # The Island's rules, ported from Blanc for iPhone (ios/Blanc/Blanc/Island*.swift):
 # plain Java with no views, so they test without a device.
@@ -26,6 +27,7 @@ android_library("island_java") {
 android_library("tabs_java") {
   sources = [
     "java/src/org/chromium/blanc/tabs/BlancTabState.java",
+    "java/src/org/chromium/blanc/blocking/BlancBlocking.java",
     "java/src/org/chromium/blanc/tabs/BlancTabs.java",
     "java/src/org/chromium/blanc/tabs/CardSwipe.java",
     "java/src/org/chromium/blanc/tabs/GroupColors.java",
@@ -43,15 +45,35 @@ android_library("tabs_java") {
 }
 
 # BlancTabs' store over Chromium's tab model.
+generate_jni("blocking_jni") {
+  sources = [ "java/src/org/chromium/blanc/blocking/BlockerBridge.java" ]
+}
+
+# The Island's way to the blocker. //chrome/browser depends on this (patch 0106).
+source_set("blocker_bridge") {
+  sources = [ "browser/blocker_bridge.cc" ]
+  deps = [
+    ":blocking_jni",
+    "//base",
+    "//blanc/services/blocker:browser",
+    "//content/public/browser",
+    "//url",
+  ]
+}
+
 android_library("tabs_ui_java") {
+  srcjar_deps = [ ":blocking_jni" ]
   sources = [
+    "java/src/org/chromium/blanc/blocking/BlockerBridge.java",
     "java/src/org/chromium/blanc/tabs/chromium/BlancTabKeeper.java",
+    "java/src/org/chromium/blanc/tabs/chromium/ChromiumBlocking.java",
     "java/src/org/chromium/blanc/tabs/chromium/ChromiumTabStore.java",
   ]
   deps = [
     ":tabs_java",
     "//base:base_java",
     "//build/android:build_java",
+    "//third_party/jni_zero:jni_zero_java",
     "//chrome/browser/tab:java",
     "//chrome/browser/tabmodel:java",
     "//components/tab_groups:tab_groups_java",
@@ -165,6 +187,7 @@ robolectric_binary("blanc_android_junit_tests") {
     "junit/src/org/chromium/blanc/island/IslandTuckTest.java",
     "junit/src/org/chromium/blanc/island/IslandViewTest.java",
     "junit/src/org/chromium/blanc/island/IslandVisibilityTest.java",
+    "junit/src/org/chromium/blanc/tabs/BlancBlockingTest.java",
     "junit/src/org/chromium/blanc/tabs/BlancTabStateTest.java",
     "junit/src/org/chromium/blanc/tabs/BlancTabsTest.java",
     "junit/src/org/chromium/blanc/tabs/CardSwipeTest.java",

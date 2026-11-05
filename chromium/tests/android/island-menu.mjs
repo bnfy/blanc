@@ -21,7 +21,7 @@ const center = b => [Math.round((b.left + b.right) / 2), Math.round((b.top + b.b
 
 // Bounds of the node with resource id `id`, or of the node whose text is `text`.
 export function nodeBounds(xml, {id, text}) {
-  const attr = id ? `resource-id="[^"]*:id/${id}"` : `text="${text.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}"`;
+  const attr = id ? `resource-id="[^"]*:id/${id}"` : `text="${text.replace(/&/g, '&amp;').replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}"`;
   const m = new RegExp(`<node[^>]*${attr}[^>]*bounds="\\[(\\d+),(\\d+)\\]\\[(\\d+),(\\d+)\\]"`).exec(xml);
   return m ? {left: +m[1], top: +m[2], right: +m[3], bottom: +m[4]} : null;
 }

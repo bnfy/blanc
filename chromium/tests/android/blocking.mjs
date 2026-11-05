@@ -1,12 +1,18 @@
-// A3 on the emulator: Blanc Blocker. A page's request EasyList blocks never reaches the network,
-// one it doesn't still loads, and an element it hides is hidden, in a normal and a private tab.
+// A3 on the emulator: Blanc Blocker.
+//   - A request EasyList blocks never reaches the network, one it doesn't still loads, and an
+//     element it hides is hidden, in a normal and a private tab.
+//   - Allowing ads on a site loads its ad and shows that in the menu; blocking it again stops the
+//     ad; both last across a relaunch. /allow-ads and /block-ads do the same.
+//   - The engine's process ending starts it again by itself, and pages stay filtered.
+//   - Four quick endings leave pages stopped and the menu saying so; Retry recovers.
+//   - A bundle with the wrong hash stops every page: nothing loads unfiltered.
 // Fails closed: a missing page or state fails.
 //
-//   node chromium/tests/android/blocking.mjs --apk <ChromePublic.apk> --evidence <dir>
+//   node chromium/tests/android/blocking.mjs --apk <ChromePublic.apk> --evidence <dir> [--only <case>]
 import fs from 'node:fs';
 import path from 'node:path';
 import {fileURLToPath} from 'node:url';
-import {Device, adb, fixtureRequests, sleep, startFixtures} from './acceptance/support/device.mjs';
+import {Device, PACKAGE, adb, clearFixtureRequests, fixtureRequests, setSwitches, sleep, startFixtures} from './acceptance/support/device.mjs';
 
 // What a page's check found: problems, if any.
 export function blockingProblems({requests, libLoaded, hidden}) {
@@ -24,7 +30,7 @@ async function pageState(d, url) {
   // The ad's rule arrives with the first scan after the page's elements exist.
   sleep(2);
   return {
-    requests: [...fixtureRequests],
+    requests: fixtureRequests(),
     libLoaded: await d.page('(window.loaded||[]).length>0'),
     hidden: await d.page('getComputedStyle(document.getElementById("hidden-ad")).display==="none"'),
   };
@@ -39,22 +45,109 @@ async function main(argv) {
   const stop = startFixtures();
   const d = new Device();
   const results = [];
+  const only = option('--only');
   const check = async (name, body) => {
-    try { results.push({case: name, problems: await body()}); } catch (error) { results.push({case: name, problems: [error.message]}); }
+    if (only && !name.includes(only)) return;
+    try { await d.reset(); results.push({case: name, problems: await body()}); } catch (error) { results.push({case: name, problems: [error.message]}); }
   };
   try {
-    await d.reset();
     await check('a normal tab blocks the ad and loads the rest', async () => {
-      fixtureRequests.length = 0;
+      clearFixtureRequests();
       await d.view('https://news.example/ads');
       return blockingProblems(await pageState(d, 'https://news.example/ads'));
+    });
+    const adLoaded = () => fixtureRequests().some(r => r.startsWith('ad.doubleclick.net'));
+    await check('the menu counts what it blocked', async () => {
+      await d.view('https://news.example/ads');
+      await pageState(d, 'https://news.example/ads');
+      d.tap({id: 'blanc_island_menu'});
+      const xml = d.dump();
+      d.back();
+      return /\d+ ads? (&amp; trackers|or tracker) blocked on this page/.test(xml) ? [] : ['no count in the menu'];
+    });
+    await check('allowing ads on a site loads its ad, across a relaunch', async () => {
+      await d.view('https://news.example/ads');
+      await pageState(d, 'https://news.example/ads');
+      clearFixtureRequests();
+      d.menu('Ad & tracker blocking');
+      await d.waitFor(adLoaded, 'the ad to load after allowing the site');
+      // Force-stopped soon after, as Android may: the write Blanc asked for at once has had time.
+      sleep(2);
+      await d.relaunch();
+      clearFixtureRequests();
+      d.runInPalette('https://news.example/ads');
+      await d.waitFor(adLoaded, 'the ad to load after a relaunch');
+      d.tap({id: 'blanc_island_menu'});
+      const shown = d.has({text: 'Ads allowed on this site'});
+      d.back();
+      return shown ? [] : ['the menu does not say ads are allowed'];
+    });
+    await check('/allow-ads allows a site and /block-ads blocks it again', async () => {
+      await d.view('https://commands.example/ads');
+      await pageState(d, 'https://commands.example/ads');
+      clearFixtureRequests();
+      d.runInPalette('/allow-ads');
+      await d.waitFor(adLoaded, 'the ad to load after /allow-ads');
+      await d.waitFor(async () => (await d.page('document.readyState')) === 'complete', 'the reload');
+      d.runInPalette('/block-ads');
+      sleep(2);
+      await d.waitFor(async () => (await d.page('document.readyState')) === 'complete', 'the reload');
+      clearFixtureRequests();
+      d.runInPalette('https://commands.example/ads?again');
+      return blockingProblems(await pageState(d, 'https://commands.example/ads?again'));
+    });
+    await check('the engine starts again by itself', async () => {
+      await d.view('https://before-kill.example/ads');
+      await pageState(d, 'https://before-kill.example/ads');
+      d.killSandboxed();
+      sleep(3);
+      clearFixtureRequests();
+      await d.view('https://after-kill.example/ads');
+      return blockingProblems(await pageState(d, 'https://after-kill.example/ads'));
+    });
+    await check('four quick endings stop pages, and Retry recovers', async () => {
+      await d.view('https://burst.example/');
+      for (let i = 0; i < 4; i++) {
+        d.killSandboxed();
+        sleep(1);
+        // A page wakes the engine, which is what the next ending ends.
+        adb('shell', 'am', 'start', '-a', 'android.intent.action.VIEW', '-d', `'https://burst${i}.example/'`, '-p', PACKAGE);
+        sleep(4);
+      }
+      clearFixtureRequests();
+      adb('shell', 'am', 'start', '-a', 'android.intent.action.VIEW', '-d', "'https://stopped.example/ads'", '-p', PACKAGE);
+      sleep(6);
+      const problems = fixtureRequests().some(r => r.startsWith('ad.doubleclick.net')) ? ['an ad loaded while the blocker was down'] : [];
+      d.tap({id: 'blanc_island_menu'});
+      if (!d.has({text: 'Blocking could not start.'})) problems.push('the menu does not say blocking is down');
+      d.tap({text: 'Retry'});
+      clearFixtureRequests();
+      await d.view('https://recovered.example/ads');
+      return [...problems, ...blockingProblems(await pageState(d, 'https://recovered.example/ads'))];
     });
     await check('a private tab blocks the ad and loads the rest', async () => {
       d.menu('New Private Tab');
       sleep(2);
-      fixtureRequests.length = 0;
+      clearFixtureRequests();
       d.runInPalette('https://private.example/ads');
       return blockingProblems(await pageState(d, 'https://private.example/ads'));
+    });
+    await check('a wrong bundle stops every page', async () => {
+      setSwitches('--blanc-blocker-test-bad-bundle');
+      await d.reset();
+      clearFixtureRequests();
+      adb('shell', 'am', 'start', '-a', 'android.intent.action.VIEW', '-d', "'https://tampered.example/ads'", '-p', PACKAGE);
+      let told = false;
+      await d.waitFor(() => {
+        d.tap({id: 'blanc_island_menu'});
+        told = d.has({text: 'Blocking could not start.'});
+        d.back();
+        return told;
+      }, 'the menu to say blocking is down', 30);
+      setSwitches();
+      // The address itself may be asked for; its response is refused, so nothing of it runs.
+      const reached = fixtureRequests().filter(r => !r.startsWith('tampered.example/ads'));
+      return reached.length ? [`requests left the page: ${reached.join(', ')}`] : [];
     });
   } finally {
     stop();
