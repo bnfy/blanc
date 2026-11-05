@@ -34,6 +34,7 @@ feature's row in [`../parity-matrix.md`](../parity-matrix.md) shouldn't reach
 | Vertical tabs | `vertical-tabs.feature` | F28 (D19) |
 | Browser migration | `browser-migration.feature` | F30 (D22) |
 | Quiet Tabs | `quiet-tabs.feature` | F31 (D8, D23) |
+| Tab gestures | `tab-gestures.feature` | F56 (D7) |
 | Tab Archive | `tab-archive.feature` | F52 |
 | Split View | `split-view.feature` | F53 (D11) |
 | Independent windows | `multi-window.feature` | F32 (D11) |
@@ -212,6 +213,7 @@ feature's row in [`../parity-matrix.md`](../parity-matrix.md) shouldn't reach
 | F31-8 | A private tab wakes inside the private session | D8 | ✅ | ⬜ | ⬜ |
 | F31-9 | Page state never escapes snapshots into persistence, sync, or renderer IPC | D8 | ✅ | ⬜ | ⬜ |
 | F31-10 | Quieting a tab releases a real renderer process, and waking brings one back | D8 | ✅ | ⬜ | ⬜ |
+| F31-11 | A phone's background tab goes quiet and comes back with its page and history | D8 | ➖ | ⬜ | ⬜ |
 | F32-1 | A secondary window owns and discards its own workspace | D11 | ✅ | ➖ | ➖ |
 | F32-2 | Independent window workspaces restore separately | D11 | ✅ | ➖ | ➖ |
 | F33-1 | Settings creates a profile with isolated records and sessions | D25 | ✅ | ➖ | ➖ |
@@ -296,6 +298,9 @@ feature's row in [`../parity-matrix.md`](../parity-matrix.md) shouldn't reach
 | F46-8 | Choosing `/rename` without a name asks for one | — | ✅ | ➖ | ➖ |
 | F46-9 | Enter on an untouched rename prompt keeps the page title after the page retitles | — | ✅ | ➖ | ➖ |
 | F46-10 | A renamed tab keeps its name in the command panel while it loads | — | ✅ | ➖ | ➖ |
+| F56-1 | A sideways swipe on the Island moves to the next and previous tab | D7 | ➖ | ⬜ | ⬜ |
+| F56-2 | A tab grid card closes with a swipe and Undo brings it back | D7 | ➖ | ⬜ | ⬜ |
+| F56-3 | Pulling a web page down reloads it, and Blanc's pages don't | D7 | ➖ | ⬜ | ⬜ |
 | F60-1 | The link routing group is offered only when there is somewhere to route to | — | ✅ | ➖ | ➖ |
 | F60-2 | A rule added in Settings sends a domain's links to its profile | — | ✅ | ➖ | ➖ |
 | F60-3 | Deleting a profile removes its rules and its links fall through | — | ✅ | ➖ | ➖ |

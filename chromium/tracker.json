@@ -61,14 +61,14 @@
           "basis": "no fork build"
         },
         "android": {
-          "stage": "not-started",
-          "basis": "no fork build"
+          "stage": "implemented",
+          "basis": "A2 tabs on the emulator: close/reopen, duplicate, pin, mute; acceptance F2-1–4/6 (a2-gate.sh, 2026-11-04); Pixel hands-on pending"
         }
       }
     },
     {
       "id": "F3",
-      "requirement": "Groups: names, case rules, optional color, group menu, \u23181\u20139 clusters",
+      "requirement": "Groups: names, case rules, optional color, group menu, ⌘1–9 clusters",
       "slice": "S1",
       "legacyMacState": "Integrated in an isolated candidate",
       "platformVerification": {
@@ -92,8 +92,8 @@
           "basis": "no fork build"
         },
         "android": {
-          "stage": "not-started",
-          "basis": "no fork build"
+          "stage": "implemented",
+          "basis": "A2 groups (names, preset colors, fold, grouped pins) on the emulator; acceptance F3-1/3-5 (a2-gate.sh, 2026-11-04); Pixel hands-on pending"
         }
       }
     },
@@ -123,8 +123,8 @@
           "basis": "no fork build"
         },
         "android": {
-          "stage": "not-started",
-          "basis": "no fork build"
+          "stage": "implemented",
+          "basis": "A2 private tabs (Chromium's off-the-record model, own grid section) on the emulator; acceptance F4-1–3/5 (a2-gate.sh, 2026-11-04); Pixel hands-on pending"
         }
       }
     },
@@ -154,8 +154,8 @@
           "basis": "no fork build"
         },
         "android": {
-          "stage": "not-started",
-          "basis": "no fork build"
+          "stage": "implemented",
+          "basis": "A2 palette addresses, searches and app handoff on the emulator; acceptance F5-1/3/6/8 (a2-gate.sh, 2026-11-04); search engines and suggestions wait for A5"
         }
       }
     },
@@ -185,15 +185,15 @@
           "basis": "no fork build"
         },
         "android": {
-          "stage": "not-started",
-          "basis": "no fork build"
+          "stage": "implemented",
+          "basis": "A2 Quick Switcher (tabs, Favorites, groups; history not yet) on the emulator (palette.mjs, Robolectric); shared scenarios wait for A3 (their Background turns on blocking)"
         }
       }
     },
     {
       "id": "F7",
       "requirement": "34 slash commands with shipping names and hints",
-      "slice": "S1\u2013S5",
+      "slice": "S1–S5",
       "legacyMacState": "Integrated (partial: some commands)",
       "platformVerification": {
         "macos": null,
@@ -216,8 +216,8 @@
           "basis": "no fork build"
         },
         "android": {
-          "stage": "not-started",
-          "basis": "no fork build"
+          "stage": "implemented",
+          "basis": "A2 slash commands (11 built) on the emulator (palette.mjs, Robolectric); shared scenarios wait for A3 (their Background turns on blocking)"
         }
       }
     },
@@ -247,8 +247,8 @@
           "basis": "no fork build"
         },
         "android": {
-          "stage": "not-started",
-          "basis": "no fork build"
+          "stage": "implemented",
+          "basis": "A2 find in page on the emulator (find.mjs 4/4); acceptance F8-1 (a2-gate.sh, 2026-11-04); Pixel hands-on pending"
         }
       }
     },
@@ -556,8 +556,8 @@
           "basis": "no fork build"
         },
         "android": {
-          "stage": "not-started",
-          "basis": "no fork build"
+          "stage": "implemented",
+          "basis": "A2 session restore through a background kill, force-stop and reboot (session-restore.mjs 3/3); acceptance F18-1 (a2-gate.sh, 2026-11-04)"
         }
       }
     },
@@ -829,8 +829,8 @@
           "basis": "no fork build"
         },
         "android": {
-          "stage": "not-started",
-          "basis": "no fork build"
+          "stage": "implemented",
+          "basis": "A2 Quiet Tabs (1 h, Chromium discard) on the emulator (quiet-tabs.mjs 4/4); acceptance F31-11 (a2-gate.sh, 2026-11-04)"
         }
       }
     },
