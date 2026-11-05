@@ -21,9 +21,13 @@ capabilities, and this is non-negotiable — you cannot ship a common engine.
   **programmatic and comparably powerful** to desktop; can consult the full rule
   set per request. Alternatively a bundled Chromium fork if the app ever ships its
   own engine.
-  **Update 2026-11-04:** Android ships its own engine: it is built on the
-  Chromium fork's Android lane and uses the fork's blocker host, shared with
-  desktop (milestone A3), not `WebView.shouldInterceptRequest`.
+  **Update 2026-11-05:** Android ships its own engine: it is built on the
+  Chromium fork's Android lane and uses the fork's blocker, shared with desktop
+  (milestone A3, unreleased), not `WebView.shouldInterceptRequest`: the same
+  Ghostery engine, pinned lists and hash-checked bundle, in a sandboxed utility
+  process. Android ends background processes in normal use, so the engine starts
+  again by itself, holding requests, at most three times in ten minutes; after
+  that, or with a wrong bundle, pages stop and the Sunrise menu offers Retry.
 - **iOS:** `WKContentRuleList` — **declarative JSON, ~150k-rule cap per list, no
   programmatic per-request logic.** Requires curating EasyList+EasyPrivacy down to
   fit and compiling to Apple's format. This is structurally the same constraint as
@@ -335,8 +339,10 @@ app can observe individual blocked requests depends on the engine model.
 
 - **Desktop:** exact — the Ghostery engine emits a `request-blocked` event per
   block (main.js already counts these per tab).
-- **Android:** exact — `shouldInterceptRequest` is programmatic, so a per-tab
-  counter increments on each block.
+- **Android:** exact — the fork's blocker counts each block per tab. There's no
+  shield chip: the count is a line under the Sunrise menu's blocking row (A3).
+  The Start Page runs the iPhone's script, so it shows protection on or off, not
+  a weekly count.
 - **iOS:** **not directly available** — `WKContentRuleList` blocks silently with no
   per-request callback. Recommended: show a binary "protected / paused" state
   instead of a live count (an approximate number that disagrees with reality is
@@ -357,13 +363,13 @@ F12-1 acceptance step is relaxed on iOS accordingly.
 **Why:** Element-hiding (vs. request-blocking) has different ceilings per engine.
 
 - **Desktop:** the library drives full cosmetic filtering (including procedural).
-- **Android:** no cosmetic API — inject element-hiding CSS/JS on page load
-  (`onPageStarted`/`onPageFinished`); can do procedural hiding, but hand-rolled.
+- **Android:** the same as desktop: the fork's blocker applies cosmetic rules,
+  procedural ones and scriptlets from document start in Chromium's renderer (A3).
 - **iOS:** `css-display-none` rules only — static selectors, a **subset**;
   procedural cosmetics (`:has`, scriptlets) are dropped.
 
 **Parity contract:** obvious ad elements are hidden everywhere; the depth of
-cosmetic coverage differs (full desktop / procedural-but-manual Android / static
+cosmetic coverage differs (full desktop and Android / static
 iOS). Not a bug — a documented ceiling.
 
 **Detailed design:** [`blocking-backends.md`](./blocking-backends.md).
