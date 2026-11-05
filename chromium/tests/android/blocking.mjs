@@ -6,7 +6,7 @@
 //   - The engine's process ending starts it again by itself, and pages stay filtered.
 //   - A service worker's fetch and a prefetch are filtered like a page's own requests.
 //   - The Start Page reports whether protection is on.
-//   - Four quick endings leave pages stopped and the menu saying so; Retry recovers.
+//   - Repeated quick endings leave pages stopped and the menu saying so; Retry recovers.
 //   - A first launch with no network still blocks, from the bundled lists.
 //   - A bundle with the wrong hash stops every page: nothing loads unfiltered.
 // Fails closed: a missing page or state fails.
@@ -137,14 +137,16 @@ async function main(argv) {
       return [...(requests.some(r => r.startsWith('ad.doubleclick.net')) ? ['a restored tab reached the ad'] : []),
         ...(requests.some(r => r.startsWith('lib.example')) ? [] : ['no restored tab loaded'])];
     });
-    await check('four quick endings stop pages, and Retry recovers', async () => {
+    await check('quick endings stop pages, and Retry recovers', async () => {
       await d.view('https://burst.example/');
-      for (let i = 0; i < 4; i++) {
+      // Each ending must land after the engine is up (a few seconds) and within ten seconds of that,
+      // or it isn't a crash: too soon ends nothing, too late is an ordinary background kill.
+      for (let i = 0; i < 6; i++) {
         d.killSandboxed();
         sleep(1);
-        // A page starts the engine, and an end this soon after counts as a crash.
+        // A page starts the engine, for the next ending to end.
         adb('shell', 'am', 'start', '-a', 'android.intent.action.VIEW', '-d', `'https://burst${i}.example/'`, '-p', PACKAGE);
-        sleep(4);
+        sleep(6);
       }
       clearFixtureRequests();
       adb('shell', 'am', 'start', '-a', 'android.intent.action.VIEW', '-d', "'https://stopped.example/ads'", '-p', PACKAGE);

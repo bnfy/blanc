@@ -42,6 +42,9 @@ export function startFixtures() {
   const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'blanc-acceptance-'));
   execFileSync('openssl', ['req', '-x509', '-newkey', 'rsa:2048', '-nodes', '-days', '2', '-subj', '/CN=*.example',
     '-keyout', path.join(dir, 'key.pem'), '-out', path.join(dir, 'cert.pem')], {stdio: 'ignore'});
+  // Root first, which a reboot drops: it restarts adbd, so it can't come after adb reverse.
+  adb('root');
+  adb('wait-for-device');
   requestLog = path.join(dir, 'requests.log');
   fs.writeFileSync(requestLog, '');
   const worker = new Worker(new URL('./fixture-server.mjs', import.meta.url), {workerData: {dir, port: FIXTURE_PORT, requestLog}});
@@ -179,12 +182,22 @@ export class Device {
   renderers() { return renderers(adb('shell', 'ps', '-A')); }
 
   // Ends Blanc's sandboxed processes, the blocker's among them, as Android does under pressure.
+  // Needs root (see startFixtures). A kill that fails must fail the check: a check that ends
+  // nothing passes without testing anything.
   killSandboxed() {
     const pids = adb('shell', 'ps', '-A', '-o', 'PID,NAME').split('\n').filter(l => /sandboxed_process/.test(l))
       .map(l => l.trim().split(/\s+/)[0]);
+    if (!pids.length) throw Error('No sandboxed process to end');
+    let ended = 0;
     for (const pid of pids) {
-      try { adb('shell', 'kill', '-9', pid); } catch { /* It ended with another. */ }
+      try {
+        adb('shell', 'kill', '-9', pid);
+        ended++;
+      } catch (error) {
+        if (!/No such process/.test(String(error.stderr))) throw Error(`Could not end ${pid}: ${error.stderr}`);
+      }
     }
+    if (!ended) throw Error('Ended no process');
   }
 
   // The palette: tap the Island's address; what's typed then goes into its field.

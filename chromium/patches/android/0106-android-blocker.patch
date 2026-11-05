@@ -89,12 +89,13 @@ diff -ruN a/chrome/browser/chrome_content_browser_client_receiver_bindings.cc b/
 diff -ruN a/chrome/browser/prefs/browser_prefs.cc b/chrome/browser/prefs/browser_prefs.cc
 --- a/chrome/browser/prefs/browser_prefs.cc
 +++ b/chrome/browser/prefs/browser_prefs.cc
-@@ -1853,6 +1853,8 @@
+@@ -1853,6 +1853,9 @@
  // Register prefs applicable to all profiles.
  void RegisterProfilePrefs(user_prefs::PrefRegistrySyncable* registry,
                            const std::string& locale) {
 +  registry->RegisterBooleanPref("blanc.blocking.enabled", true);
 +  registry->RegisterListPref("blanc.blocking.exceptions");
++  registry->RegisterDictionaryPref("blanc.blocking.week_stats");
    TRACE_EVENT0("browser", "chrome::RegisterProfilePrefs");
    // User prefs. Please keep this list alphabetized.
    AccessibilityLabelsService::RegisterProfilePrefs(registry);

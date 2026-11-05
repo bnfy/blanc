@@ -1159,19 +1159,22 @@ hands-on waits for the device.
 - **Not measured:** the engine's memory by process; `ps` can't tell it apart on
   the emulator, so the Pixel run should.
 - **Candidate** (x86_64, emulator): `out/AndroidDebugX64/apks/ChromePublic.apk`,
-  SHA-256 `ae72433e5cf3a32cf0206466ae5e9b836b888a45565d5973c94e306b724202ca`.
+  SHA-256 `a2d7b0dbe98b346d6860f21c13c6caeb50fbfb96138fcccdd80fb3d9a241e7e3`.
 
-| A3 gate | Result | Evidence (`~/blanc-evidence/android/a3/`) |
+| A3 gate | Result | Evidence (`~/blanc-evidence/android/a3/` and, on this candidate, `a3-merged/`) |
 | --- | --- | --- |
-| Blocking: normal and private tabs, count, allow and re-block, restart, background kills, restored tabs, crash stop and Retry, service worker, prefetch, Start Page state, no network, wrong bundle | 14 of 14 | `blocking/` |
-| A2 gate, rerun: Robolectric 296, A1's checks and every A2 check | Pass (Quiet Tabs rerun alone on the same APK after its check learned to count the blocker's process) | `a2/` |
-| Shared acceptance scenarios | 32 of 32 | `a2/acceptance/` |
+| Blocking: normal and private tabs, count, allow and re-block, restart, background kills, restored tabs, crash stop and Retry, service worker, prefetch, Start Page state, no network, wrong bundle | 14 of 14 on this candidate | `a3-merged/blocking/` |
+| A2 gate, rerun: Robolectric 296, A1's checks and every A2 check | Pass on the build before desktop's week-stats merge (Quiet Tabs rerun alone after its check learned to count the blocker's process); Robolectric rerun on this candidate | `a2/` |
+| Shared acceptance scenarios | 32 of 32 on this candidate | `a3-merged/acceptance/` |
 | Owner hands-on on the Pixel: blocking on real sites, allow and re-block, a cold launch | **Pending the Pixel** | — |
 
 Run it all with `tests/android/a3-gate.sh` on the server. A final review found
 that the first restart rule counted ordinary background kills as crashes, which
 could have stopped every page after normal phone use; fixed, with six others.
-Divergences: D1, D13 and D14 corrected.
+Merging desktop's weekly count then crashed Android on its first block, because
+its preference is registered in a desktop patch; patch 0106 registers it, and
+`tools/android-blocking.test.mjs` now fails on any unregistered blocker
+preference. Divergences: D1, D13 and D14 corrected.
 
 <!-- BEGIN GENERATED PROGRESS -->
 ### Bar A — executable shipping cases on the fork

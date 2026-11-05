@@ -15,7 +15,7 @@
     "chrome/browser/chrome_content_browser_client_receiver_bindings.cc": "9cd1231ae36e0b49588f94a3e297dfced32e6b711be1aec50f97bbe8ccdfc55b",
     "chrome/browser/flags/android/chrome_feature_list.cc": "dd83ae9e29c40fcf2e87ecf6b2c086f629be348c07fd53d65b39d24590a461a5",
     "chrome/browser/flags/android/java/src/org/chromium/chrome/browser/flags/ChromeFeatureList.java": "d8a5eeba9a9c1d93942693ba6c735e540a86bd6d11d052447120238a3da27eba",
-    "chrome/browser/prefs/browser_prefs.cc": "34a78ab399b1ce004e2e6abf0bcb8968229469165262a4c0935ad0d99db467d9",
+    "chrome/browser/prefs/browser_prefs.cc": "e4eca4c358e356ae80413225fd8fb974a211691f6340f5aecc38e19836e7f770",
     "chrome/browser/preloading/preloading_prefs.cc": "e4840e98bdfd82289adce1f8521c8cdab36c048c048f4eed53b4c860b3593bb1",
     "chrome/browser/ui/webui/BUILD.gn": "b18afbde19349da54bf1c1b1a3c60395eeeaa4fd3831649ba4da183e475e0c34",
     "chrome/browser/ui/webui/chrome_web_ui_configs.cc": "4b39a589f9b1489f02737a0575656dfa6941f029a0a7901c94aed7077b298f8d",
