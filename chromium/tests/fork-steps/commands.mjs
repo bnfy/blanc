@@ -107,6 +107,8 @@ export default function register(step){
   if(value in LABELS){await storeLanguage(this,LABELS[value]);return;}
   await this.waitFor(()=>stripLang(this),l=>l===value,'interface language '+value,5000);
  });
+ // F17-3: Settings in the sheet, at the About page's Patron row.
+ step('Personal profile settings are open',async function(){await this.api('openPage',['settings','help']);});
  // The Language row is on chrome://settings/languages in the sheet (S1.7);
  // the sheet stays open so the next step reads the same row.
  step('the user chooses {string} in Settings',async function(label){

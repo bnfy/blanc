@@ -59,6 +59,7 @@ class ChromiumSettingsHandler final : public settings::SettingsPageUIHandler {
     // Shipping's sheet look follows Surface style (S1.7).
     state.Set("surfaceStyle",
               prefs->GetString("blanc.appearance.surface_style") == "neutral" ? "neutral" : "sunrise");
+    state.Set("usagePing", g_browser_process->local_state()->GetBoolean(kUsagePingPref));
     state.Set("uiLanguage", g_browser_process->local_state()->GetString(std::string(blanc::ui_language::kPref)));
     state.Set("uiLanguages", std::move(languages));
     // This launch's pinned language, or none when it follows the browser's.
@@ -181,6 +182,39 @@ class ChromiumSettingsHandler final : public settings::SettingsPageUIHandler {
     const auto bytes = blanc::island_resources::Find("pages/instrument-sans-latin-wdth-normal.woff2");
     ResolveJavascriptCallback(args[0], bytes ? base::Value(base::Base64Encode(*bytes)) : base::Value());
   }
+  // Chromium's profile picker (V18): add, open and delete profiles there.
+  void HandleProfilePicker(const base::ListValue& args) {
+    if (!Begin(args, 0)) return;
+    ProfilePicker::Show(ProfilePicker::Params::FromEntryPoint(
+        ProfilePicker::EntryPoint::kProfileMenuManageProfiles));
+    ResolveJavascriptCallback(args[0], base::Value(true));
+  }
+  // Device-wide choices, so they live outside this profile's prefs (F21).
+  void HandleSetUsagePing(const base::ListValue& args) {
+    if (!Begin(args, 1)) return;
+    PrefService* local = g_browser_process->local_state();
+    local->SetBoolean(kUsagePingPref, args[1].GetString() == "on");
+    local->CommitPendingWrite();
+    Resolve(args, base::DictValue());
+  }
+  void HandleResetInstallId(const base::ListValue& args) {
+    if (!Begin(args, 0)) return;
+    ResolveJavascriptCallback(args[0], base::Value(TelemetryResetInstall()));
+  }
+  // The tour opens as a real tab, and the sheet closes, as shipping's does.
+  // A plain Settings tab has no sheet to close.
+  void HandleWelcomeTour(const base::ListValue& args) {
+    if (!Begin(args, 0)) return;
+    ResolveJavascriptCallback(args[0], base::Value(true));
+    const GURL url(kWelcomeTourUrl);
+    if (auto* owner = SettingsSheetOwner(web_ui()->GetWebContents())) {
+      OpenFromSettingsSheet(owner, url);
+      return;
+    }
+    NavigateParams params(profile_, url, ui::PAGE_TRANSITION_LINK);
+    params.disposition = WindowOpenDisposition::kNewForegroundTab;
+    Navigate(&params);
+  }
   void HandleRelaunch(const base::ListValue& args) {
     if (!Begin(args, 0)) return;
     ResolveJavascriptCallback(args[0], base::Value(true));
@@ -229,6 +263,10 @@ void ChromiumSettingsHandler::RegisterMessages() {
   bind("blancSettingsRemoveException", &ChromiumSettingsHandler::HandleRemoveException);
   bind("blancSettingsSetUiLanguage", &ChromiumSettingsHandler::HandleSetUiLanguage);
   bind("blancSettingsRelaunch", &ChromiumSettingsHandler::HandleRelaunch);
+  bind("blancSettingsProfilePicker", &ChromiumSettingsHandler::HandleProfilePicker);
+  bind("blancSettingsSetUsagePing", &ChromiumSettingsHandler::HandleSetUsagePing);
+  bind("blancSettingsResetInstallId", &ChromiumSettingsHandler::HandleResetInstallId);
+  bind("blancSettingsWelcomeTour", &ChromiumSettingsHandler::HandleWelcomeTour);
   bind("blancSettingsFont", &ChromiumSettingsHandler::HandleFont);
 }
 

@@ -1,0 +1,155 @@
+diff --git a/chrome/browser/prefs/browser_prefs.cc b/chrome/browser/prefs/browser_prefs.cc
+index ba4a9d6..4cb0e79 100644
+--- a/chrome/browser/prefs/browser_prefs.cc
++++ b/chrome/browser/prefs/browser_prefs.cc
+@@ -1727,6 +1727,7 @@ void RegisterLocalState(PrefRegistrySimple* registry) {
+   // shipping's are. The preview channel never sends.
+   registry->RegisterDoublePref("blanc.first_run.completed_at", 0);
+   registry->RegisterBooleanPref("blanc.telemetry.usage_ping", true);
++  registry->RegisterDictionaryPref("blanc.telemetry.install");
+   // The moving-in checklist (N11), device-wide as in shipping.
+   registry->RegisterBooleanPref("blanc.checklist.dismissed", false);
+   registry->RegisterBooleanPref("blanc.checklist.default_done", false);
+diff --git a/chrome/browser/resources/settings/about_page/about_page.html.ts b/chrome/browser/resources/settings/about_page/about_page.html.ts
+index 487e5c5..e68514f 100644
+--- a/chrome/browser/resources/settings/about_page/about_page.html.ts
++++ b/chrome/browser/resources/settings/about_page/about_page.html.ts
+@@ -95,6 +95,10 @@ export function getHtml(this: SettingsAboutPageElement) {
+       label="$i18n{blancPatron}" .subLabel="${this.blancPatronCheckout_()}"
+       external>
+   </cr-link-row>
++  <!-- Blanc (F36): replays the first-run walkthrough. -->
++  <cr-link-row class="hr" id="blancWelcomeTour" @click="${this.onBlancWelcomeTourClick_}"
++      label="$i18n{blancWelcomeTour}" sub-label="$i18n{blancWelcomeTourHint}">
++  </cr-link-row>
+   <cr-link-row class="hr" id="help" @click="${this.onHelpClick_}"
+       label="$i18n{aboutGetHelpUsingChrome}" external></cr-link-row>
+ <if expr="_google_chrome">
+diff --git a/chrome/browser/resources/settings/about_page/about_page.ts b/chrome/browser/resources/settings/about_page/about_page.ts
+index 4dfde0a..6ef56ee 100644
+--- a/chrome/browser/resources/settings/about_page/about_page.ts
++++ b/chrome/browser/resources/settings/about_page/about_page.ts
+@@ -25,6 +25,7 @@ import {assert} from 'chrome://resources/js/assert.js';
+ import {OpenWindowProxyImpl} from 'chrome://resources/js/open_window_proxy.js';
+ // </if>
+ import {OpenWindowProxyImpl as BlancOpenWindow} from 'chrome://resources/js/open_window_proxy.js';
++import {blancSettings} from '../blanc_settings_proxy.js';
+ import {sanitizeInnerHtml} from 'chrome://resources/js/parse_html_subset.js';
+ import {CrLitElement} from 'chrome://resources/lit/v3_0/lit.rollup.js';
+ import type {PropertyValues} from 'chrome://resources/lit/v3_0/lit.rollup.js';
+@@ -232,6 +233,10 @@ export class SettingsAboutPageElement extends SettingsAboutPageElementBase
+         'https://buy.polar.sh/polar_cl_auwRq39Q2hIVLJwANEqFWgWuZ8DGjdJmEI4mE0JaNDf');
+   }
+ 
++  protected onBlancWelcomeTourClick_() {
++    blancSettings.openWelcomeTour();
++  }
++
+   protected onHelpClick_() {
+     this.aboutBrowserProxy_.openHelpPage();
+   }
+diff --git a/chrome/browser/resources/settings/blanc_settings_proxy.ts b/chrome/browser/resources/settings/blanc_settings_proxy.ts
+index 6954ce4..2d5e010 100644
+--- a/chrome/browser/resources/settings/blanc_settings_proxy.ts
++++ b/chrome/browser/resources/settings/blanc_settings_proxy.ts
+@@ -30,6 +30,7 @@ export interface BlancSettingsState {
+   uiLanguages: BlancLanguage[];
+   launchUiLanguage: string|null;
+   surfaceStyle: string;
++  usagePing: boolean;
+ }
+ 
+ export interface BlancResult {
+@@ -53,6 +54,10 @@ export const blancSettings = {
+       sendWithPromise<BlancResult>('blancSettingsSetUiLanguage', code),
+   relaunch: () => sendWithPromise<boolean>('blancSettingsRelaunch'),
+   openProfilePicker: () => sendWithPromise<boolean>('blancSettingsProfilePicker'),
++  setUsagePing: (on: boolean) =>
++      sendWithPromise<BlancResult>('blancSettingsSetUsagePing', on ? 'on' : 'off'),
++  resetInstallId: () => sendWithPromise<boolean>('blancSettingsResetInstallId'),
++  openWelcomeTour: () => sendWithPromise<boolean>('blancSettingsWelcomeTour'),
+   font: () => sendWithPromise<string|null>('blancSettingsFont'),
+   listen: (callback: (state: BlancSettingsState) => void): WebUiListener =>
+       addWebUiListener('blanc-settings-changed', callback),
+diff --git a/chrome/browser/resources/settings/privacy_page/privacy_page.html b/chrome/browser/resources/settings/privacy_page/privacy_page.html
+index f6b08ef..d28ad65 100644
+--- a/chrome/browser/resources/settings/privacy_page/privacy_page.html
++++ b/chrome/browser/resources/settings/privacy_page/privacy_page.html
+@@ -60,6 +60,23 @@
+         </cr-button>
+       </div>
+     </div>
++    <!-- Blanc's usage measurement (F21); device-wide, so not a profile pref. -->
++    <div id="blancUsagePingRow" class="cr-row">
++      <div class="flex cr-padded-text" aria-hidden="true">
++        <div>$i18n{blancUsagePing}</div>
++        <div class="secondary">$i18n{blancUsagePingHint}</div>
++      </div>
++      <cr-toggle id="blancUsagePing" ?checked="${this.blancUsagePing_}"
++          aria-label="$i18n{blancUsagePing}"
++          @change="${this.onBlancUsagePingChange_}"></cr-toggle>
++    </div>
++    <div id="blancResetInstallIdRow" class="cr-row continuation">
++      <div class="flex cr-padded-text secondary" role="status"
++          id="blancResetInstallIdStatus">${this.blancResetStatus_}</div>
++      <cr-button id="blancResetInstallId" @click="${this.onBlancResetInstallIdClick_}">
++        $i18n{blancResetInstallId}
++      </cr-button>
++    </div>
+     <cr-link-row id="clearBrowsingData" class="hr"
+         start-icon="cr:delete"
+         label="$i18n{clearBrowsingData}"
+diff --git a/chrome/browser/resources/settings/privacy_page/privacy_page.ts b/chrome/browser/resources/settings/privacy_page/privacy_page.ts
+index d38c339..7ff12cd 100644
+--- a/chrome/browser/resources/settings/privacy_page/privacy_page.ts
++++ b/chrome/browser/resources/settings/privacy_page/privacy_page.ts
+@@ -18,6 +18,7 @@ import '../controls/settings_dropdown_menu.js';
+ import 'chrome://resources/cr_elements/cr_button/cr_button.js';
+ import 'chrome://resources/cr_elements/cr_icon_button/cr_icon_button.js';
+ import 'chrome://resources/cr_elements/cr_input/cr_input.js';
++import 'chrome://resources/cr_elements/cr_toggle/cr_toggle.js';  // Blanc (F21)
+ import './privacy_guide/privacy_guide_dialog.js';
+ 
+ import {PrefServiceObserverMixinLit} from '/shared/settings/prefs2/pref_service_observer_mixin_lit.js';
+@@ -86,6 +87,8 @@ export class SettingsPrivacyPageElement extends SettingsPrivacyPageElementBase {
+     return {
+       blancExceptions_: {type: Array},
+       blancBlockingStatus_: {type: String},
++      blancUsagePing_: {type: Boolean},
++      blancResetStatus_: {type: String},
+       blancCallAudioOptions_: {type: Array},
+       showClearBrowsingDataDialog_: {type: Boolean},
+       showPrivacyGuideDialog_: {type: Boolean},
+@@ -104,6 +107,8 @@ export class SettingsPrivacyPageElement extends SettingsPrivacyPageElementBase {
+   // Blanc's sites that load without blocking (S1.7).
+   protected accessor blancExceptions_: string[] = [];
+   protected accessor blancBlockingStatus_: string = '';
++  protected accessor blancUsagePing_: boolean = false;
++  protected accessor blancResetStatus_: string = '';
+   // Blanc's Call audio (S1.7): shipping's three choices.
+   protected accessor blancCallAudioOptions_: DropdownMenuOptionList = [
+     {value: 'automatic',
+@@ -147,6 +152,7 @@ export class SettingsPrivacyPageElement extends SettingsPrivacyPageElementBase {
+   // Shipping's Blocking status line (blocking-settings.js).
+   private blancShow_(state: BlancSettingsState) {
+     this.blancExceptions_ = state.exceptions;
++    this.blancUsagePing_ = state.usagePing;
+     const provider = 'Blanc Blocker';
+     this.blancBlockingStatus_ = !state.blockingEnabled ?
+         blancString('blancBlockingStatusDisabled', {provider}) :
+@@ -184,6 +190,15 @@ export class SettingsPrivacyPageElement extends SettingsPrivacyPageElementBase {
+ 
+   // Blanc's sites that load without blocking (S1.7): a host or an address,
+   // normalized natively as shipping's settings do.
++  protected async onBlancUsagePingChange_(event: CustomEvent<boolean>) {
++    this.blancShow_((await blancSettings.setUsagePing(event.detail)).state);
++  }
++
++  protected async onBlancResetInstallIdClick_() {
++    this.blancResetStatus_ = blancString(await blancSettings.resetInstallId() ?
++        'blancResetInstallIdDone' : 'blancResetInstallIdFailed');
++  }
++
+   protected async onBlancAddExceptionClick_() {
+     const input = this.shadowRoot.querySelector<CrInputElement>(
+         '#blancExceptionInput')!;

@@ -29,6 +29,7 @@
   "mainFiles": [
     "island-hover-open.js",
     "island-autohide.js",
+    "whats-new.js",
     "clean-link.js",
     "invite-friend.js",
     "site-security.js"

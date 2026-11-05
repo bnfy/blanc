@@ -3,6 +3,7 @@
 // bridge (window.bowserPages), the Island facade and native dispatch.
 import {UndefinedNativeAdapterError,nativeId} from '../lib/adapters.mjs';
 import {jsLiteral} from '../lib/js-literal.mjs';
+import {inSettings} from './commands.mjs';
 export const NEWTAB=/^chrome:\/\/(newtab\/|new-tab-page\/|blanc-prototype\/pages\/newtab\.html)/;
 // Fork utility pages shown as tabs: Chromium's managers and Settings, when
 // opened other than through the Island, whose sheet shows them otherwise.
@@ -236,8 +237,86 @@ export const pages={
   'copyMahjongDealFromBoards','readMahjongRecordsGeometry'].map(h=>[h,()=>{throw Error(h+': the fork ships no Mahjong page');}])),
  // Durable first-run, checklist, Patron and launch-scene settings live in
  // Electron main; the fork's Start Page bridge carries none of them.
- firstRunState:noState('firstRunState','first-run completion or privacy choices'),
- resetMigrationChecklist:noState('resetMigrationChecklist','migration-checklist progress'),
+ // Patron and the app icon (F17). The preview has no license keys (owner,
+ // 2026-11-05), so there is never a supporter to clear.
+ clearSupporter:async()=>true,
+ appIcon:async w=>(await w.snapshot()).appIcon,
+ setAppIcon:(w,id)=>inSettings(w,'appearance',async(a,d)=>{const select=d.find('#blancAppIcon')?.shadowRoot?.querySelector('select');
+  if(!select)return {missing:'#blancAppIcon'};if([...select.options].some(o=>o.value===a)){select.value=a;select.dispatchEvent(new Event('change',{bubbles:true}));await new Promise(r=>setTimeout(r,300));}
+  return {value:select.value};},String(id)),
+ clickPatronCheckout:w=>inSettings(w,'help',(a,d)=>{const row=d.find('#patronCheckout');if(!row)return {missing:'#patronCheckout'};
+  // After the reply: the click closes the sheet this page lives in.
+  setTimeout(()=>row.click(),50);return {value:true};}),
+ // First run (F36). Test profiles finish it at launch, as shipping's do.
+ firstRunState:w=>w.native('firstRunState'),
+ setUsagePing:(w,on)=>w.native('setUsagePing',[!!on]),
+ tabArchiveSetting:async w=>(await w.native('firstRunState')).tabArchive,
+ // Shipping pushes a synthetic status; here the page reloads and reads the
+ // real one, with suggestions on and the ping off on screen.
+ async showTestFirstRunMigration(w){
+  const page=await startPage(w);if(!page)return false;
+  await w.native('setFirstRunPending',[true]);await w.native('setUsagePing',[false]);
+  await page.evalExpression('location.reload()');return true;
+ },
+ readOnboardingDom:onStart(null,`({shown:!(document.getElementById('onboardDialog')?.hidden??true),step:document.getElementById('onboardDialog')?.dataset.step??null})`),
+ skipOnboarding:onStart(false,`(()=>{const skip=document.getElementById('obSkip');if(!skip||document.getElementById('onboardDialog').hidden)return false;skip.click();return true;})()`),
+ advanceOnboardingTo:onStart(false,step=>`(async()=>{const dialog=document.getElementById('onboardDialog');if(!dialog||dialog.hidden)return false;
+  for(let i=0;i<200&&Number(dialog.dataset.step)<${Number(step)};i+=1){const next=document.getElementById('obNext');if(!next.disabled)next.click();await new Promise(r=>setTimeout(r,25));}
+  return dialog.dataset.step==='${Number(step)}';})()`),
+ readOnboardingArchiveOffer:onStart(null,`(()=>{const row=document.getElementById('obArchiveRow');const toggle=document.getElementById('obArchive');
+  return {hidden:!row||row.hidden||row.closest('section')?.hidden===true,checked:toggle?.getAttribute('aria-checked')==='true',label:row?.textContent.replace(/\\s+/g,' ').trim()??''};})()`),
+ clickOnboarding:onStart(false,selector=>`(()=>{const el=document.querySelector(${jsLiteral(String(selector))});if(!el||el.disabled||document.getElementById('onboardDialog').hidden)return false;el.click();return true;})()`),
+ sendOnboardingSet:onStart(false,partial=>`window.bowserPages.start.onboardingSet(${jsLiteral(partial??{})}).then(()=>true)`),
+ readFirstRunMigrationDom:onStart(null,`({initialReady:(document.getElementById('footerLeft')?.textContent??'').length>0,
+  privacyHidden:document.getElementById('onboardDialog')?.hidden??true,migrationHidden:document.querySelector('#obContent [data-step="1"]')?.hidden??true,
+  findHidden:document.getElementById('obLook')?.hidden??true,options:[...document.querySelectorAll('#obSources .ob-src-row')].map(row=>row.textContent),
+  status:document.getElementById('obImportStatus')?.textContent??'',bringTabsHidden:document.getElementById('obBringTabs')?.hidden??true,
+  bringTabsLabel:document.getElementById('obBringTabs')?.textContent??'',step:document.getElementById('onboardDialog')?.dataset.step??null})`),
+ openFirstRunImportStep:onStart(false,`(()=>{const dialog=document.getElementById('onboardDialog');if(!dialog||dialog.hidden)return false;
+  if(dialog.dataset.step==='0')document.getElementById('obNext').click();return dialog.dataset.step==='1';})()`),
+ clickFirstRunMigrationFind:onStart(false,`(()=>{const button=document.getElementById('obLook');if(!button||button.hidden)return false;button.click();return true;})()`),
+ clickFirstRunMigration:onStart(false,`(()=>{const dialog=document.getElementById('onboardDialog');if(!dialog||dialog.hidden||dialog.dataset.step!=='1')return false;
+  const rows=[...document.querySelectorAll('#obSources .ob-src-row')].filter(row=>!row.textContent.includes('bookmarks file'));if(!rows.length)return false;
+  if(!rows[0].classList.contains('selected'))rows[0].click();document.getElementById('obNext').click();return true;})()`),
+ async auditOnboardingInvitationTypography(w){
+  const page=await startPage(w);if(!page)return null;
+  const reset=`(async()=>{const dialog=document.getElementById('onboardDialog');if(!dialog||dialog.hidden)return false;
+   const waitFor=async expected=>{for(let i=0;i<80;i+=1){if(dialog.dataset.step===String(expected))return true;await new Promise(r=>setTimeout(r,25));}return false;};
+   while(Number(dialog.dataset.step)>0){const expected=Number(dialog.dataset.step)-1;document.getElementById('obBack').click();if(!(await waitFor(expected)))return false;}return true;})()`;
+  const capture=async(theme,forward)=>{
+   await page.evalExpression('1');await page.cdp.send('Emulation.setEmulatedMedia',{features:[{name:'prefers-color-scheme',value:theme}]});
+   return page.evalExpression(`(async()=>{const dialog=document.getElementById('onboardDialog');const content=document.getElementById('obContent');
+    const waitFor=async predicate=>{for(let i=0;i<120;i+=1){if(predicate())return true;await new Promise(r=>setTimeout(r,25));}return false;};
+    if(!dialog||dialog.hidden)return null;const dark=${JSON.stringify(theme==='dark')};
+    if(!(await waitFor(()=>matchMedia('(prefers-color-scheme: dark)').matches===dark)))throw new Error('theme did not settle');
+    await document.fonts.ready;const order=${forward?'[0,1,2,3,4,5]':'[5,4,3,2,1,0]'};const steps=[];
+    for(let index=0;index<order.length;index+=1){const step=order[index];
+     if(!(await waitFor(()=>dialog.dataset.step===String(step))))throw new Error('onboarding step did not settle: '+step);
+     const section=document.querySelector('#obContent [data-step="'+step+'"]');const title=section.querySelector('h1');const style=getComputedStyle(title);
+     const titleRect=title.getBoundingClientRect();const contentRect=content.getBoundingClientRect();const next=document.getElementById('obNext');next.focus();const focus=getComputedStyle(next);
+     steps.push({step,text:title.textContent,font:style.fontFamily,size:style.fontSize,weight:style.fontWeight,lineHeight:style.lineHeight,tracking:style.letterSpacing,opticalSizing:style.fontOpticalSizing,
+      insideContent:titleRect.left>=contentRect.left-1&&titleRect.right<=contentRect.right+1,horizontalOverflow:section.scrollWidth>section.clientWidth+1,focusOutline:focus.outlineStyle!=='none'&&parseFloat(focus.outlineWidth)>=1});
+     if(index<order.length-1)document.getElementById(${forward?"'obNext'":"'obBack'"}).click();}
+    return {theme:dark?'dark':'light',fontLoaded:document.fonts.check('22px "Instrument Sans"'),dialogOverflow:dialog.scrollWidth>dialog.clientWidth+1,pageOverflow:document.documentElement.scrollWidth>document.documentElement.clientWidth+1,steps};})()`);
+  };
+  // Playwright emulates focus for shipping's audit; without it a background
+  // test window never matches :focus-visible.
+  await page.evalExpression('1');await page.cdp.send('Emulation.setFocusEmulationEnabled',{enabled:true});
+  try{if(!(await page.evalExpression(reset)))return null;const light=await capture('light',true);const dark=await capture('dark',false);return {light,dark};}
+  finally{await page.cdp.send('Emulation.setEmulatedMedia',{features:[]});await page.cdp.send('Emulation.setFocusEmulationEnabled',{enabled:false});}
+ },
+ // The Favorites sheet's import controls (F30).
+ readBrowserImportDom:w=>onSheet(w,`({options:[...document.querySelectorAll('#browserSource option')].map(o=>({value:o.value,label:o.textContent})),
+  buttonHidden:document.getElementById('browserImportBtn')?.hidden??true,findHidden:document.getElementById('browserFindBtn')?.hidden??true,status:document.getElementById('importStatus')?.textContent??''})`),
+ clickBrowserFind:w=>onSheet(w,`(()=>{const button=document.getElementById('browserFindBtn');if(!button||button.hidden)return false;button.click();return true;})()`),
+ selectBrowserSource:(w,label)=>onSheet(w,`((label)=>{const select=document.getElementById('browserSource');const option=[...(select?.options??[])].find(o=>o.textContent===label&&!o.disabled);
+  if(!option)return false;select.value=option.value;select.dispatchEvent(new Event('change',{bubbles:true}));return true;})(${jsLiteral(String(label))})`),
+ clickBrowserImport:w=>onSheet(w,`(()=>{const button=document.getElementById('browserImportBtn');if(!button||button.hidden)return false;button.click();return true;})()`),
+ // Shipping's reset; the fork keeps only the default-browser task's state.
+ async resetMigrationChecklist(w){
+  await w.native('resetChecklist');const page=await startPage(w);if(page)await page.evalExpression("window.blancNewTabEvent('checklist')");
+  return {dismissed:false,syncComplete:false,tabsComplete:false,spaceComplete:false};
+ },
  setPatronCalloutDismissedAt:noState('setPatronCalloutDismissedAt','Patron callout snooze clock'),
  patronCalloutDismissedAt:noState('patronCalloutDismissedAt','Patron callout snooze clock'),
  setLaunchSunrise:noState('setLaunchSunrise','launch Sunrise setting'),

@@ -25,6 +25,7 @@ overlay.js
 pages/bangs-catalog.js
 pages/bangs.js
 pages/billboard-clock-adapter.js
+pages/bookmark-file.js
 pages/bookmarks.html
 pages/bookmarks.js
 pages/caveat-latin.woff2
@@ -38,7 +39,13 @@ pages/history-groups.js
 pages/history.html
 pages/history.js
 pages/i18n.js
+pages/icon-sunrise-amber-dark.png
+pages/icon-sunrise-amber.png
 pages/icon-sunrise-dark.png
+pages/icon-sunrise-gold-dark.png
+pages/icon-sunrise-gold.png
+pages/icon-sunrise-spectrum-dark.png
+pages/icon-sunrise-spectrum.png
 pages/icon-sunrise.png
 pages/installed-theme.js
 pages/instrument-sans-latin-wdth-normal.woff2
@@ -50,8 +57,10 @@ pages/newtab-shared-spaces.js
 pages/newtab-wallpaper.js
 pages/newtab.html
 pages/newtab.js
+pages/onboarding-guard.js
 pages/onboarding-island-dark.png
 pages/onboarding-island-light.png
+pages/onboarding.js
 pages/pages-neutral.css
 pages/pages.css
 pages/roboto-flex-clock.woff2
@@ -90,4 +99,5 @@ tab-drag.js
 tab-sections.js
 tab-selection.js
 vertical-tabs.js
+whats-new.js
 workspace-ui.js

@@ -58,7 +58,7 @@ export function createWorld(fixture){
    // Shipping's relaunch helpers: same profile, no launch URL, so the
    // browser's own session restore decides what returns.
    const relaunch=async(options)=>{await this.relaunch(options);};
-   shippingCore.resetContext({app,profileDir:fixture.profile,fixturesBase:fixture.base,tabByName:{},scenarioApp:app,
+   shippingCore.resetContext({app,browserHomeDir:fixture.browserHome,profileDir:fixture.profile,fixturesBase:fixture.base,tabByName:{},scenarioApp:app,
     localFixtures:fixture.localFixtures,localFixturesPort:fixture.localServer?.port,localFixturesBase:fixture.localServer&&`https://nas.home.arpa:${fixture.localServer.port}`,
     relaunch:async(extraEnv={},{freshProfile=false}={})=>{
      if(Object.keys(extraEnv).length||freshProfile)throw new UndefinedNativeAdapterError('Relaunch with an environment or fresh profile needs an adapter');

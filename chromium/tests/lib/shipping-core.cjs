@@ -12,7 +12,7 @@ const stepFiles = [
  'custom-tab-names', 'bangs', 'multi-window', 'newtab-layouts', 'pinned-home',
  'onboarding', 'migration-checklist', 'http-auth', 'site-certificate-safety',
  'tab-drag', 'workspace-recovery', 'group-names', 'link-children', 'group-colors',
- 'tab-menu-additions',
+ 'tab-menu-additions', 'browser-migration',
 ].map(name => `test/desktop/steps/${name}.steps.js`);
 // Every import was audited for module-load effects: support helpers reach the
 // app only through the context the runner injects, and the product modules are
@@ -25,10 +25,12 @@ const allowed = new Set([...stepFiles,
  'src/renderer/pages/bangs.js', 'src/main/tabicons-model.js',
  'src/main/chrome-layout.js', 'src/main/island-autohide.js',
  'src/renderer/tab-sections.js', 'test/desktop/support/fixtures-server.js',
+ 'src/main/browser-data-import.js', 'src/main/bookmark-validate.js', 'src/main/bookmark-tree.js',
+ 'src/main/chromium-session.js', 'src/main/tabicons-model.js',
 ]);
 // Used only for temporary fixture files and env-gated captures.
 // node:http(s) serve shipping's loopback fixture pages.
-const builtins = new Set(['node:assert', 'node:assert/strict', 'node:fs', 'node:os', 'node:path', 'node:url', 'node:http', 'node:https']);
+const builtins = new Set(['node:assert', 'node:assert/strict', 'node:crypto', 'node:fs', 'node:os', 'node:path', 'node:url', 'node:http', 'node:https']);
 module.exports.stepFiles = stepFiles;
 function createLoader(register) {
  const repo = path.resolve(__dirname, '../../..');

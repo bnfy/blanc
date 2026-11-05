@@ -270,7 +270,7 @@ export const island={
  // named by that host's target and its frame.
  async floatWebContentsIds(w,runtimeId){
   const id=String(runtimeId);
-  const {targets}=await w.fixture.browser.send('Target.getTargets');
+  const {targetInfos:targets}=await w.fixture.browser.send('Target.getTargets');
   const host=id==='primary'?null:targets.find(t=>t.targetId===id);
   if(id!=='primary'&&!host)return [];
   return [`${id}:floatPill`];
@@ -279,7 +279,7 @@ export const island={
  async chromeSurfaceRegistered(w,surface){
   const [id]=String(surface).split(':');
   if(id==='primary')return true;
-  const {targets}=await w.fixture.browser.send('Target.getTargets');
+  const {targetInfos:targets}=await w.fixture.browser.send('Target.getTargets');
   return targets.some(t=>t.targetId===id);
  },
 };

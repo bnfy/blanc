@@ -1,6 +1,7 @@
 #ifndef CHROME_SERVICES_BLANC_BLOCKER_PROXY_H_
 #define CHROME_SERVICES_BLANC_BLOCKER_PROXY_H_
 #include <string>
+#include "base/values.h"
 #include "blanc/services/blocker/blocker.mojom.h"
 #include "content/public/browser/commit_deferring_condition.h"
 #include "content/public/browser/content_browser_client.h"
@@ -19,6 +20,9 @@ bool ShouldFilter(content::BrowserContext* context, const GURL& top_url);
 bool SetBlockingEnabled(content::BrowserContext* context, bool enabled);
 bool SetBlockingSiteException(content::BrowserContext* context,
                               const GURL& url, bool allow);
+// Read-only: this week's blocked total, day buckets and Tally bar heights
+// for the profile (shipping's adblock-stats.js week), for the Start Page.
+base::DictValue BlockedThisWeek(content::BrowserContext* context);
 // Read-only tab-lifetime count; never creates state.
 int ShieldBlockedCount(content::WebContents* contents);
 void AddNavigationResponseGate(content::NavigationThrottleRegistry& registry);
