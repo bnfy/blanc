@@ -75,6 +75,35 @@ base::Value DefaultBrowserStatus(shell_integration::DefaultWebClientState state)
       .Set("canSet", shell_integration::CanSetAsDefaultBrowser()));
 }
 
+// The moving-in checklist (N11): shipping's migration-checklist.js. A task is
+// listed only where it works, so Sync (F27), Bring your tabs (F40), the first
+// space (F41) and the iPhone join as those features land. Device-wide, and
+// never in a private tab or a named profile (migrationChecklistForTab).
+constexpr char kChecklistDismissedPref[] = "blanc.checklist.dismissed";
+constexpr char kChecklistDefaultPref[] = "blanc.checklist.default_done";
+base::Value MigrationChecklist(Profile* profile) {
+  if (profile->IsOffTheRecord() || profile->GetBaseName().value() != FILE_PATH_LITERAL("Default"))
+    return base::Value();
+  PrefService* local = g_browser_process->local_state();
+  const bool default_shown = shell_integration::CanSetAsDefaultBrowser();
+  const bool default_done = default_shown && local->GetBoolean(kChecklistDefaultPref);
+  const int tasks = default_shown ? 1 : 0;
+  const int completed = default_done ? 1 : 0;
+  return base::Value(base::DictValue()
+      .Set("visible", !FirstRunPending() && !local->GetBoolean(kChecklistDismissedPref) && completed < tasks)
+      .Set("completedCount", completed).Set("taskCount", tasks)
+      .Set("defaultAvailable", default_shown).Set("defaultComplete", default_done)
+      .Set("syncAvailable", false).Set("syncComplete", false)
+      .Set("tabsAvailable", false).Set("tabsComplete", false)
+      .Set("spaceAvailable", false).Set("spaceComplete", false)
+      .Set("iphoneAvailable", false).Set("iphoneComplete", false));
+}
+// Noted whenever the OS is asked, as shipping notes it on launch and focus.
+void NoteDefaultBrowser(shell_integration::DefaultWebClientState state) {
+  if (state == shell_integration::IS_DEFAULT)
+    g_browser_process->local_state()->SetBoolean(kChecklistDefaultPref, true);
+}
+
 namespace browser_import {
 
 constexpr int64_t kMaxBookmarkBytes = 20 * 1024 * 1024;

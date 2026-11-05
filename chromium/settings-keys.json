@@ -445,15 +445,19 @@
   },
   {
    "key": "migrationChecklistDismissed",
-   "kind": "later",
+   "kind": "blanc-pref",
    "row": "N11",
-   "slice": "S2"
+   "slice": "S2",
+   "pref": "blanc.checklist.dismissed",
+   "scope": "local",
+   "status": "built"
   },
   {
    "key": "syncMigrationCompleted",
    "kind": "later",
-   "row": "N11",
-   "slice": "S2"
+   "row": "F27",
+   "slice": "S4",
+   "note": "The checklist lists Sync once F27 lands"
   },
   {
    "key": "tabImportCompleted",
@@ -464,8 +468,9 @@
   {
    "key": "spaceMigrationCompleted",
    "kind": "later",
-   "row": "N11",
-   "slice": "S2"
+   "row": "F41",
+   "slice": "S3",
+   "note": "The checklist lists the first space once F41 lands"
   },
   {
    "key": "spaceChecklistIntroduced",
@@ -482,8 +487,9 @@
   {
    "key": "iphoneMigrationCompleted",
    "kind": "later",
-   "row": "N11",
-   "slice": "S2"
+   "row": "F27",
+   "slice": "S4",
+   "note": "The checklist lists the iPhone once pairing lands"
   },
   {
    "key": "iphoneChecklistIntroduced",
@@ -493,9 +499,12 @@
   },
   {
    "key": "defaultBrowserMigrationCompleted",
-   "kind": "later",
+   "kind": "blanc-pref",
    "row": "N10",
-   "slice": "S2"
+   "slice": "S2",
+   "pref": "blanc.checklist.default_done",
+   "scope": "local",
+   "status": "built"
   },
   {
    "key": "defaultBrowserReminderShown",

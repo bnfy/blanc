@@ -366,7 +366,9 @@
         const heights = Array.isArray(week?.barHeights) && week.barHeights.length === 7 ? week.barHeights : [0, 0, 0, 0, 0, 0, 0];
         // First run: the privacy gate and the walkthrough's saved values.
         const firstRun = isPrivatePage ? null : await request('firstRun').catch(error => { console.warn(error.message); return null; });
+        const migrationChecklist = isPrivatePage ? null : await request('checklist').catch(() => null);
         return { ...preferences(), remoteDevices: [], privacy: firstRun?.privacy, onboarding: firstRun?.onboarding ?? null,
+          migrationChecklist,
           blockedThisWeek: Number.isInteger(week?.blocked) ? week.blocked : 0,
           blockerStatisticsAvailable: Number.isInteger(week?.blocked),
           blockedByDay: days, blockedBarHeights: heights,
@@ -441,6 +443,7 @@
       },
       setWallpaperFollowSpace: async () => { throw new Error('Spaces are not available in this prototype.'); },
       setDynamicWallpaper: async (enabled) => save({ dynamicWallpaperEnabled: enabled === true }).dynamicWallpaperEnabled,
+      dismissMigrationChecklist: () => request('checklistDismiss'),
       // First run (F36). The walkthrough's guard wants all of these real.
       onboardingReady: true,
       onboardingSet: partial => request('onboardingSet', [partial ?? {}]),
@@ -465,6 +468,12 @@
   // visits, /clear). Bursts coalesce per kind into one re-fetch, which
   // re-renders through the copied page's own globals once it is ready.
   const refreshers = {
+    // The moving-in checklist (N11): a status push, as shipping's.
+    checklist: async () => {
+      if (isPrivatePage) return;
+      const migrationChecklist = await request('checklist');
+      for (const fn of listeners) fn({ migrationChecklist });
+    },
     startData: async () => { applyStartData(await window.bowserPages.start.data()); },
     pins: async () => { await Promise.all([...pinListeners].map(fn => fn())); },
     clock: async () => { if (await refreshClock()) publish(); },

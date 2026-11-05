@@ -301,7 +301,11 @@ export const pages={
  selectBrowserSource:(w,label)=>onSheet(w,`((label)=>{const select=document.getElementById('browserSource');const option=[...(select?.options??[])].find(o=>o.textContent===label&&!o.disabled);
   if(!option)return false;select.value=option.value;select.dispatchEvent(new Event('change',{bubbles:true}));return true;})(${JSON.stringify(String(label))})`),
  clickBrowserImport:w=>onSheet(w,`(()=>{const button=document.getElementById('browserImportBtn');if(!button||button.hidden)return false;button.click();return true;})()`),
- resetMigrationChecklist:noState('resetMigrationChecklist','migration-checklist progress'),
+ // Shipping's reset; the fork keeps only the default-browser task's state.
+ async resetMigrationChecklist(w){
+  await w.native('resetChecklist');const page=await startPage(w);if(page)await page.evalExpression("window.blancNewTabEvent('checklist')");
+  return {dismissed:false,syncComplete:false,tabsComplete:false,spaceComplete:false};
+ },
  setPatronCalloutDismissedAt:noState('setPatronCalloutDismissedAt','Patron callout snooze clock'),
  patronCalloutDismissedAt:noState('patronCalloutDismissedAt','Patron callout snooze clock'),
  setLaunchSunrise:noState('setLaunchSunrise','launch Sunrise setting'),

@@ -707,6 +707,15 @@ remain pending. D3 beta-only no-DRM exception accepted; EME notice/handoff requi
   preview neither checks for updates nor sends counts (F21 consent only).
   macOS 27.3 changed clang's `--version` text (same binary); the owner
   approved recording the environment, and the plan stayed small.
+- **S2.3 moving-in checklist (N11), candidate macos-27de7410e9f9d890 (2026-11-05):**
+  shipping's Finish setup pill runs on the Start Page from native state
+  (Local State `blanc.checklist.dismissed` and `default_done`), never in a
+  private tab or a named profile. A task is listed only where it works, so
+  today it holds Make Blanc your default alone; Sync (F27), Bring your tabs
+  (F40), the first space (F41) and the iPhone join through their availability
+  flags in `first_run.inc`. newtab-layouts 12 pass / 3 fail (Mahjong only):
+  F35-7 and F35-8 pass, and F35-10 and F35-18 now wait only on the Billboard
+  history-seeding test op.
 - **Mahjong goes last (owner, 2026-11-04):** the fork has no Mahjong yet
   (F35-3, F35-4, F35-9 fail at the footer launch). When it is built it is an
   Island page (shipping's files served as byte-identical copies, opened as an
@@ -1093,13 +1102,13 @@ Android's Bar A counts the shared scenarios bound in `chromium/tests/android/acc
 
 | State | macOS | Windows | Linux | Android |
 | --- | ---: | ---: | ---: | ---: |
-| Not started / unassessed | 29 | 80 | 80 | 69 |
+| Not started / unassessed | 28 | 80 | 80 | 69 |
 | Research only | 1 | 0 | 0 | 0 |
 | Drafted | 7 | 0 | 0 | 0 |
 | Implemented | 0 | 0 | 0 | 11 |
 | Built, isolated (legacy) | 5 | 0 | 0 | 0 |
 | Integrated, partial (legacy) | 3 | 0 | 0 | 0 |
-| Integrated | 35 | 0 | 0 | 0 |
+| Integrated | 36 | 0 | 0 | 0 |
 | Verification needs recheck | 0 | 0 | 0 | 0 |
 | Verified | 0 | 0 | 0 | 0 |
 | Release-ready | 0 | 0 | 0 | 0 |
@@ -1107,5 +1116,5 @@ Android's Bar A counts the shared scenarios bound in `chromium/tests/android/acc
 
 Legacy macOS stages come from the approved spec; they await verification on the canonical candidate. No legacy stage counts as Verified.
 
-Candidate identities: macOS: macos-86a75dc4b5d45861; Windows: none; Linux: none; Android: android-arm64-7bd35e94ef746069.
+Candidate identities: macOS: macos-27de7410e9f9d890; Windows: none; Linux: none; Android: android-arm64-7bd35e94ef746069.
 <!-- END GENERATED PROGRESS -->

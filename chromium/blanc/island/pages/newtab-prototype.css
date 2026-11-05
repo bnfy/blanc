@@ -1,6 +1,6 @@
 /* These Electron services are not implemented by the Chromium prototype. */
 #startupCard, #obBringTabs, #patronCallout,
-#migrationChecklistShell, #mahjongLink, #version,
+#mahjongLink, #version,
 #remoteSection { display: none !important; }
 
 /* The fork has no Spaces model yet; fixed preset colors remain available. */

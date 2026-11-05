@@ -2575,7 +2575,13 @@ class NewTabHandler : public content::WebUIMessageHandler,
   }
   void Answer(const std::string& id, base::Value value) { Reply(id, true, std::move(value)); }
   void AnswerDefaultBrowser(const std::string& id, shell_integration::DefaultWebClientState state) {
+    NoteDefaultBrowser(state);
     Reply(id, true, DefaultBrowserStatus(state));
+    Notify("checklist");
+  }
+  void AnswerChecklist(const std::string& id, shell_integration::DefaultWebClientState state) {
+    NoteDefaultBrowser(state);
+    Reply(id, true, MigrationChecklist(Profile::FromWebUI(web_ui())));
   }
   void Handle(const base::ListValue& message) {
     if (!IsStartPage() || message.size() != 3 || !message[0].is_string() ||
@@ -2757,6 +2763,17 @@ class NewTabHandler : public content::WebUIMessageHandler,
         auto done = base::BindOnce(&NewTabHandler::AnswerDefaultBrowser, weak_factory_.GetWeakPtr(), id);
         if (method == "defaultBrowser") worker->StartCheckIsDefault(std::move(done));
         else worker->StartSetAsDefault(std::move(done));
+        return;
+      }
+      if (method == "checklist" && args.empty()) {
+        base::MakeRefCounted<shell_integration::DefaultBrowserWorker>()->StartCheckIsDefault(
+            base::BindOnce(&NewTabHandler::AnswerChecklist, weak_factory_.GetWeakPtr(), id));
+        return;
+      }
+      if (method == "checklistDismiss" && args.empty()) {
+        g_browser_process->local_state()->SetBoolean(kChecklistDismissedPref, true);
+        Reply(id, true, base::Value(true));
+        Notify("checklist");
         return;
       }
       if (method == "browserSources" && args.empty()) {
@@ -3932,6 +3949,12 @@ class Handler : public content::WebUIMessageHandler, public extensions::Extensio
     if (message[1].GetString() == "setFirstRunPending" && message[2].GetList().size() == 1 &&
         message[2].GetList()[0].is_bool()) {
       g_first_run_pending_for_test = message[2].GetList()[0].GetBool();
+      Reply(id, true, base::Value(true));
+      return;
+    }
+    if (message[1].GetString() == "resetChecklist") {
+      g_browser_process->local_state()->SetBoolean(kChecklistDismissedPref, false);
+      g_browser_process->local_state()->SetBoolean(kChecklistDefaultPref, false);
       Reply(id, true, base::Value(true));
       return;
     }

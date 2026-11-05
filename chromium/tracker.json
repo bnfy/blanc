@@ -2099,8 +2099,9 @@
       },
       "platformProgress": {
         "macos": {
-          "stage": "not-started",
-          "basis": "approved spec macOS inventory; awaiting candidate verification"
+          "stage": "integrated",
+          "candidate": "macos-27de7410e9f9d890",
+          "basis": "S2 (2026-11-05): in candidate macos-27de7410e9f9d890; lists the default-browser task only until Sync, Bring your tabs, Spaces and the iPhone land; F35-7 and F35-8 pass; manual accessibility/visual checklist pending for Verified"
         },
         "windows": {
           "stage": "not-started",
@@ -2452,8 +2453,8 @@
   ],
   "currentCandidates": {
     "macos": {
-      "id": "macos-86a75dc4b5d45861",
-      "frameworkSha256": "86a75dc4b5d4586127c986508a89707072744e670768a165a10fab3a39e2c55e",
+      "id": "macos-27de7410e9f9d890",
+      "frameworkSha256": "27de7410e9f9d8900ad75b586222c964eb56b5f43b7a7164c932f5bf90af88aa",
       "executableSha256": "cca20d7ed00bbdecf8db310c6802fbed003b4e63c6bc3b1f71dabc9dbff2ff01",
       "version": "158.0.8127.2",
       "qualification": "compiled candidate; runtime acceptance pending"
