@@ -52,4 +52,20 @@ final class KeyboardShortcutsUITests: XCTestCase {
     app.typeKey("l", modifierFlags: .command)
     XCTAssertTrue(app.textFields["island.address"].waitForExistence(timeout: 5))
   }
+
+  /// The first ↓ lands on the first row, the next on the second, and Return
+  /// opens it.
+  func testArrowKeysChooseAPaletteRow() throws {
+    let app = try launch()
+    app.typeKey("l", modifierFlags: .command)
+    let input = app.textFields["island.address"]
+    XCTAssertTrue(input.waitForExistence(timeout: 5))
+    sleep(1)
+    app.typeKey(XCUIKeyboardKey.downArrow, modifierFlags: [])
+    app.typeKey(XCUIKeyboardKey.downArrow, modifierFlags: [])
+    input.typeText("\n")
+    let site = app.buttons["pill.palette"]
+    let org = XCTNSPredicateExpectation(predicate: NSPredicate(format: "label CONTAINS %@", "example.org"), object: site)
+    XCTAssertEqual(XCTWaiter().wait(for: [org], timeout: 5), .completed, site.label)
+  }
 }
