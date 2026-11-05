@@ -819,8 +819,8 @@ remain pending. D3 beta-only no-DRM exception accepted; EME notice/handoff requi
   moveTabToNewWindow call), the Change picker's restore probe, focus in a
   background tab (Chromium can't), and the pushed-Island frames. Most undefined
   cases need adapters: 1Password, media, mouse gestures, Find on the card and
-  the strip's chip cases. V22 (card chrome above the page) is proposed, not
-  approved. split-view 24 / 2 (F53-18's group note isn't announced, F53-22),
+  the strip's chip cases. V22 (card chrome above the page) is approved
+  (owner, 2026-11-05). split-view 24 / 2 (F53-18's group note isn't announced, F53-22),
   island-and-commands 64 / 2 (F1-13 failed again, F1-39), tabs-and-groups
   32 / 1 (F3-3). Real clicks in the card page were not exercised: the tests
   move focus through the host, because CDP input skips Chromium's views.

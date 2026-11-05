@@ -7,7 +7,7 @@ import {UndefinedNativeAdapterError} from '../lib/adapters.mjs';
 const tabDom = (world, id, expression) => world.call('executeTab', id, expression);
 
 export const DIVERGENCES = new Map([
-  // V22 (2026-11-05): the Island is above the page views here, so the card's
+  // V22 (owner, 2026-11-05): the Island is above the page views here, so the card's
   // chrome sits above the Glance page with a hole for it, not below it. Same
   // picture; shipping's view stacking has nothing to read.
   ['the Glance is a large centered card over the whole main page', {divergence: 'V22', async run() {

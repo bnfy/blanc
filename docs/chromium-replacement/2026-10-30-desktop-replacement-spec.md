@@ -306,7 +306,7 @@ Each row has its own status, decided only by the owner. **Until a row is approve
 | V19 | Passkeys are Chromium's own: its Touch ID authenticator and iCloud Keychain passkeys on macOS, instead of shipping's Blanc-owned Secure Enclave passkey store (N7, S2); signing still carries the keychain entitlement and provisioning profile | Native model | **Approved** (owner, November 4, 2026) |
 | V20 | Default-browser status is Chromium's Default browser section and checks in chrome://settings (restyled), instead of shipping's own status row; shipping's reminder may sit on top (N10, S2) | Native model | **Approved** (owner, November 4, 2026) |
 | V21 | Mute Site is Chromium's own sound setting, so a muted site stays muted after a relaunch until it is unmuted, instead of shipping's mute that lasts until Blanc quits (N13, S3); private tabs keep their own set, which ends with the private session | Native model | **Approved** (owner, November 5, 2026) |
-| V22 | Glance's card chrome sits above the Glance page with a hole for it, because the Island is above page views here; shipping's chrome view sits below the page. The picture is the same (F34, S3) | Native model | **Proposed** |
+| V22 | Glance's card chrome sits above the Glance page with a hole for it, because the Island is above page views here; shipping's chrome view sits below the page. The picture is the same (F34, S3) | Native model | **Approved** (owner, November 5, 2026) |
 
 ## 10. Release gates for the replacement
 
