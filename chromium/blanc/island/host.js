@@ -3,7 +3,7 @@
   let nextId = 0;
   let snapshot = null;
   let tabSelection = BlancTabSelection.emptySelection();
-  const selectionTabs = () => (snapshot?.tabs ?? []).map(tab => ({ ...tab, splitId: snapshot.splits?.find(split => split.tabIds.includes(tab.id))?.id ?? null }));
+  const selectionTabs = () => snapshot?.tabs ?? [];
   let serialized = '';
   let pillRect = null;
   let opened = false;
@@ -438,6 +438,8 @@
     const attempt = ++snapshotRefreshAttempt;
     try {
       snapshot = await request('snapshot');
+      // Shipping's tab records name their split; the panel draws one row from it.
+      for (const tab of snapshot.tabs) tab.splitId = snapshot.splits?.find(split => split.tabIds.includes(tab.id))?.id ?? null;
       settleHover();
       syncAutoHide();
       const pill = strip.contentDocument?.getElementById('islandPill');
@@ -1286,6 +1288,7 @@
       const tab = snapshot?.tabs.find(item => String(item.id) === String(id));
       if (tab) await show(`/rename ${tab.title || ''}`, 'panel', null, { renameTabId: tab.id });
     },
+    quietTab: id => request('quietTab', [nativeId(id)]),
     // /sleep: quiet every eligible background tab of this window now, as
     // shipping's sleepBackgroundTabsNow. Native's safety check decides each.
     sleepBackgroundTabs: async () => {

@@ -770,6 +770,21 @@ remain pending. D3 beta-only no-DRM exception accepted; EME notice/handoff requi
   the last two tabs. Mute Site (N13) is Chromium's own sound setting, so a mute
   now outlives a relaunch (V21). Plan's "Mac stays positional" for F59 is out
   of date: since v1.46.0 recent order ships on every desktop platform.
+- **S3.1 Split View (F53), candidate macos-4a72fe8259c85d77 (2026-11-05):** the fork's split
+  was already most of the way there, so this is shipping's `split-view` steps
+  loaded with adapters, plus three product changes. The tab menu has shipping's
+  Split with list (localized, grouped, and open to pinned tabs) in place of one
+  English row per tab. The ⌘L panel draws a split as one row, because tab
+  records now carry `splitId`. The overlay sits above the split divider, which
+  was covering the panel's middle and taking its clicks. The snapshot gains
+  `viewBounds`, the page's real rectangle, and the host a `quietTab` call.
+  22 of 32 cases pass. Five fail: Keep as split (two) and split pane to Glance
+  (two) wait for floating Glance, and F53's floating-Island case can't read a
+  float view yet. Five are undefined: Space round trip (Spaces), a corner tab
+  after navigating to Mahjong, two pinned-split relaunch reads (no session.json
+  to read) and raising a pane above the Island. Windows and Linux not run.
+  island-and-commands 63 / 3 (F1-13 failed again, F1-33, F1-39),
+  tabs-and-groups 32 / 1 (F3-3), vertical-tabs 0 / 7 as before.
 - **Mahjong goes last (owner, 2026-11-04):** the fork has no Mahjong yet
   (F35-3, F35-4, F35-9 fail at the footer launch). When it is built it is an
   Island page (shipping's files served as byte-identical copies, opened as an
@@ -1159,8 +1174,8 @@ Android's Bar A counts the shared scenarios bound in `chromium/tests/android/acc
 | Not started / unassessed | 25 | 80 | 80 | 69 |
 | Research only | 1 | 0 | 0 | 0 |
 | Drafted | 7 | 0 | 0 | 0 |
-| Implemented | 2 | 0 | 0 | 11 |
-| Built, isolated (legacy) | 5 | 0 | 0 | 0 |
+| Implemented | 3 | 0 | 0 | 11 |
+| Built, isolated (legacy) | 4 | 0 | 0 | 0 |
 | Integrated, partial (legacy) | 3 | 0 | 0 | 0 |
 | Integrated | 37 | 0 | 0 | 0 |
 | Verification needs recheck | 0 | 0 | 0 | 0 |
@@ -1170,5 +1185,5 @@ Android's Bar A counts the shared scenarios bound in `chromium/tests/android/acc
 
 Legacy macOS stages come from the approved spec; they await verification on the canonical candidate. No legacy stage counts as Verified.
 
-Candidate identities: macOS: macos-9a9442cac7df94a0; Windows: none; Linux: none; Android: android-arm64-7bd35e94ef746069.
+Candidate identities: macOS: macos-4a72fe8259c85d77; Windows: none; Linux: none; Android: android-arm64-7bd35e94ef746069.
 <!-- END GENERATED PROGRESS -->

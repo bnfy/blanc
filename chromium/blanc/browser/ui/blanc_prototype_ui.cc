@@ -2318,6 +2318,18 @@ base::Value CertificateState(content::WebContents* contents) {
   return base::Value(base::DictValue().Set("state", "exception"));
 }
 
+// A shown page's rectangle in the Island's coordinates, as splitGeometry
+// reports its cards; none for a tab the window isn't showing.
+base::Value IslandRelativeBounds(BrowserWindowInterface* browser, content::WebContents* contents) {
+  auto* view = BrowserView::GetBrowserViewForBrowser(browser);
+  auto* island = view ? view->GetViewByID(kIslandViewId) : nullptr;
+  if (!island || contents->GetVisibility() != content::Visibility::VISIBLE) return base::Value();
+  gfx::Rect bounds = contents->GetContainerBounds();
+  bounds.Offset(-island->GetBoundsInScreen().OffsetFromOrigin());
+  return base::Value(base::DictValue().Set("x", bounds.x()).Set("y", bounds.y())
+      .Set("width", bounds.width()).Set("height", bounds.height()));
+}
+
 base::DictValue Snapshot(BrowserWindowInterface* browser, Owner* owner) {
   owner->SyncActive();
   auto* model = browser->GetTabStripModel();
@@ -2341,6 +2353,7 @@ base::DictValue Snapshot(BrowserWindowInterface* browser, Owner* owner) {
                                   IsRegularStartPage(contents->GetLastCommittedURL())
                               ? "blanc://newtab/" : contents->GetVisibleURL().spec())
                     .Set("committedUrl", committed.spec())
+                    .Set("viewBounds", IslandRelativeBounds(browser, contents))
                     .Set("searchDocumentId", base::NumberToString(contents->GetPrimaryMainFrame()->GetNavigationId()))
                     .Set("title", CustomTabName(contents).empty() ? base::UTF16ToUTF8(contents->GetTitle()) : CustomTabName(contents))
                     .Set("pageTitle", CustomTabName(contents).empty() ? base::Value() : base::Value(base::UTF16ToUTF8(contents->GetTitle())))

@@ -117,16 +117,51 @@ if (location.origin === 'chrome://blanc-prototype' && parent !== window) {
     if (split) actions.unshift(
       [localized('tabMenu.removeFromSplit', 'Remove from Split View'), () => window.browserAPI.removeFromSplit(id)],
       [localized('tabMenu.closeSplit', 'Close Split View'), () => window.browserAPI.closeSplit(id)]);
-    else if (!tab.pinned) {
-      for (const other of state.tabs.filter(t => t.id !== id && !t.pinned && !state.splits?.some(s => s.tabIds.includes(t.id)))) {
-        const groupNote = other.groupId !== tab.groupId ? ' (moves to this tab’s group)' : '';
-        actions.push([`Split with ${other.title || other.url}${groupNote}`, () => window.browserAPI.createSplit(id, other.id)]);
+    else {
+      // Shipping's Split with ▸ (F53): this tab's own group first, then each
+      // other group under a note saying how the group rule moves the pick.
+      const free = state.tabs.filter(t => t.id !== id && !t.private === !tab.private && !t.asleep
+        && !state.splits?.some(s => s.tabIds.includes(t.id)));
+      const ownGroup = state.groups?.find(g => g.id === tab.groupId);
+      const sections = [{ tabs: free.filter(t => (t.groupId ?? null) === (tab.groupId ?? null)), header: ownGroup?.name }];
+      for (const group of state.groups ?? []) {
+        if (group.id === tab.groupId) continue;
+        sections.push({ tabs: free.filter(t => t.groupId === group.id), header: ownGroup
+          ? window.blancI18n.t('split.menuMovesInto', { group: ownGroup.name })
+          : window.blancI18n.t('split.menuMovesOutOf', { group: group.name }) });
       }
+      if (ownGroup) sections.push({ tabs: free.filter(t => t.groupId == null),
+        header: window.blancI18n.t('split.menuMovesInto', { group: ownGroup.name }) });
+      const shown = sections.filter(section => section.tabs.length);
+      const pick = () => {
+        menu.replaceChildren();
+        for (const section of shown) {
+          if (section.header) {
+            const header = document.createElement('div');
+            header.className = 'prototype-tab-menu-header'; header.textContent = section.header;
+            menu.append(header);
+          }
+          for (const other of section.tabs) {
+            const button = document.createElement('button');
+            button.type = 'button'; button.setAttribute('role', 'menuitem');
+            button.dataset.tabId = other.id; button.textContent = other.title || other.url;
+            button.addEventListener('click', () => { dismissMenu();
+              window.browserAPI.createSplit(id, other.id).catch(error => parent.BlancPrototypeHost.notice(error.message)); });
+            menu.append(button);
+          }
+        }
+        menu.querySelector('button')?.focus();
+      };
+      actions.push([localized('tabMenu.splitWith', 'Split with'), pick, !shown.length, true]);
     }
-    for (const [label, action, disabled = false] of actions) {
+    for (const [label, action, disabled = false, opensList = false] of actions) {
       const button = document.createElement('button');
       button.type = 'button'; button.textContent = label; button.disabled = disabled; button.setAttribute('role', 'menuitem');
-      button.addEventListener('click', () => { dismissMenu(); action().catch(error => parent.BlancPrototypeHost.notice(error.message)); });
+      if (opensList) button.setAttribute('aria-haspopup', 'menu');
+      button.addEventListener('click', () => {
+        if (opensList) { action(); return; }
+        dismissMenu(); action().catch(error => parent.BlancPrototypeHost.notice(error.message));
+      });
       menu.append(button);
     }
     document.body.append(menu);
