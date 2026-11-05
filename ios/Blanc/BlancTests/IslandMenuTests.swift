@@ -12,14 +12,14 @@ import XCTest
     func testWebPageOffersEverything() {
         let m = manager()
         m.activeTab!.currentURL = URL(string: "https://nintendo.com/")!
-        XCTAssertEqual(IslandMenu.items(for: m.activeTab, manager: m),
+        XCTAssertEqual(IslandMenu.items(for: m.activeTab, manager: m, onPad: false),
                        [.blocking(on: true), .favorite(saved: false), .share, .find, .newPrivateTab])
     }
 
     func testStartPageOffersCustomizeAndAPrivateTab() {
         let m = manager()
         m.activeTab!.currentURL = TabsManager.newTabURL
-        XCTAssertEqual(IslandMenu.items(for: m.activeTab, manager: m), [.customizeStartPage, .newPrivateTab])
+        XCTAssertEqual(IslandMenu.items(for: m.activeTab, manager: m, onPad: false), [.customizeStartPage, .newPrivateTab])
     }
 
     func testHoldingTheStartPageOpensItsSettings() {
@@ -44,7 +44,7 @@ import XCTest
         let m = manager()
         let id = m.createTab(url: URL(string: "https://secret.example/")!, isPrivate: true)
         let tab = m.tabs.first { $0.id == id }
-        XCTAssertEqual(IslandMenu.items(for: tab, manager: m), [.blocking(on: true), .share, .find, .newPrivateTab])
+        XCTAssertEqual(IslandMenu.items(for: tab, manager: m, onPad: false), [.blocking(on: true), .share, .find, .newPrivateTab])
     }
 
     func testStatesFollowTheSiteAndTheFavorite() {
@@ -53,13 +53,49 @@ import XCTest
         tab.currentURL = URL(string: "https://nintendo.com/")!
         m.setSiteProtection(tab, on: false)
         m.toggleFavorite(tab)
-        XCTAssertEqual(Array(IslandMenu.items(for: tab, manager: m).prefix(2)), [.blocking(on: false), .favorite(saved: true)])
+        XCTAssertEqual(Array(IslandMenu.items(for: tab, manager: m, onPad: false).prefix(2)), [.blocking(on: false), .favorite(saved: true)])
     }
 
     func testBlockingOffEverywhereOffersSettings() {
         let m = manager()
         m.activeTab!.currentURL = URL(string: "https://nintendo.com/")!
         m.applySettingsPatch(["adblockEnabled": false])
-        XCTAssertEqual(IslandMenu.items(for: m.activeTab, manager: m).first, .blockingSettings)
+        XCTAssertEqual(IslandMenu.items(for: m.activeTab, manager: m, onPad: false).first, .blockingSettings)
+    }
+
+    func testAnIPadOffersTheOtherLayoutOfTheSite() {
+        let m = manager()
+        let tab = m.activeTab!
+        tab.currentURL = URL(string: "https://www.nintendo.com/store")!
+        XCTAssertFalse(IslandMenu.items(for: tab, manager: m, onPad: false).contains(.requestSite(mobile: true)), "a phone asks for nothing")
+        XCTAssertTrue(IslandMenu.items(for: tab, manager: m, onPad: true).contains(.requestSite(mobile: true)))
+        m.setMobileSite(tab, mobile: true)
+        XCTAssertEqual(m.settingsStore.mobileSites, ["nintendo.com"])
+        XCTAssertTrue(IslandMenu.items(for: tab, manager: m, onPad: true).contains(.requestSite(mobile: false)))
+        XCTAssertTrue(m.wantsMobileSite(URL(string: "https://nintendo.com/news")!, isPrivate: false), "the whole site, in any tab")
+        m.setMobileSite(tab, mobile: false)
+        XCTAssertEqual(m.settingsStore.mobileSites, [])
+    }
+
+    func testASitesPhoneLayoutCoversItsSubdomains() {
+        let m = manager()
+        let tab = m.activeTab!
+        tab.currentURL = URL(string: "https://example.com/")!
+        m.setMobileSite(tab, mobile: true)
+        XCTAssertTrue(m.wantsMobileSite(URL(string: "https://m.example.com/")!, isPrivate: false), "the redirect keeps the phone layout")
+        XCTAssertFalse(m.wantsMobileSite(URL(string: "https://notexample.com/")!, isPrivate: false))
+        tab.currentURL = URL(string: "https://m.example.com/")!
+        m.setMobileSite(tab, mobile: false)
+        XCTAssertEqual(m.settingsStore.mobileSites, [], "Request Desktop Website works from the subdomain")
+    }
+
+    func testAPrivateTabsLayoutChoiceIsNeverSaved() {
+        let m = manager()
+        let id = m.createTab(url: URL(string: "https://secret.example/")!, isPrivate: true)
+        let tab = m.tabs.first { $0.id == id }!
+        m.setMobileSite(tab, mobile: true)
+        XCTAssertTrue(m.wantsMobileSite(tab.currentURL, isPrivate: true))
+        XCTAssertFalse(m.wantsMobileSite(tab.currentURL, isPrivate: false), "only private tabs")
+        XCTAssertEqual(m.settingsStore.mobileSites, [])
     }
 }

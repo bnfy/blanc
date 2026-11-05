@@ -34,6 +34,9 @@ final class SettingsStore {
     /// always on screen. iPhone-only and device-local, never synced (D11).
     private(set) var islandTucksOnScroll = true
     private(set) var islandHistoryButtons = false
+    /// Sites an iPad asks for their phone layout (Request Mobile Website),
+    /// hosts as in `adblockExceptions`. Device-local, never synced.
+    private(set) var mobileSites: [String] = []
     /// The Island along the bottom of the screen (the default) or the top.
     /// iPhone-only and device-local, never synced (D11).
     private(set) var islandPosition: IslandPosition = .bottom
@@ -128,14 +131,27 @@ final class SettingsStore {
         if let v = dict["walkthroughCompletedVersion"] as? Int { walkthroughCompletedVersion = v }
         if let v = dict["islandTucksOnScroll"] as? Bool { islandTucksOnScroll = v }
         if let v = dict["islandHistoryButtons"] as? Bool { islandHistoryButtons = v }
+        if let list = dict["mobileSites"] as? [String] { mobileSites = list.compactMap(AdblockExceptions.normalize) }
         if let raw = dict["islandPosition"] as? String, let v = IslandPosition(rawValue: raw) { islandPosition = v }
 
         let knownKeys: Set<String> = ["theme", "searchEngine", "adblockEnabled", "adblockExceptions", "newtabLayout",
                                       "usagePing", "walkthroughCompletedVersion", "islandTucksOnScroll", "islandHistoryButtons",
-                                      "islandPosition"]
+                                      "islandPosition", "mobileSites"]
         for (key, value) in dict where !knownKeys.contains(key) {
             unknownKeys[key] = value
         }
+    }
+
+    /// A saved site takes in its subdomains: its phone layout often lives on
+    /// m.example.com, and asking there for the desktop site would send it back.
+    static func site(_ site: String, covers host: String) -> Bool {
+        host == site || host.hasSuffix("." + site)
+    }
+
+    func setMobileSite(_ host: String, mobile: Bool) {
+        mobileSites.removeAll { Self.site($0, covers: host) }
+        if mobile { mobileSites.append(host) }
+        scheduleSave()
     }
 
     private func scheduleSave() {
@@ -156,6 +172,7 @@ final class SettingsStore {
         dict["walkthroughCompletedVersion"] = walkthroughCompletedVersion
         dict["islandTucksOnScroll"] = islandTucksOnScroll
         dict["islandHistoryButtons"] = islandHistoryButtons
+        dict["mobileSites"] = mobileSites
         dict["islandPosition"] = islandPosition.rawValue
 
         guard let data = try? JSONSerialization.data(withJSONObject: dict, options: [.sortedKeys]) else { return }
