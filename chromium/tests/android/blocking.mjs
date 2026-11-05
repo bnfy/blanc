@@ -67,9 +67,11 @@ async function main(argv) {
       await d.view('https://news.example/ads');
       await pageState(d, 'https://news.example/ads');
       d.tap({id: 'blanc_island_menu'});
+      const count = /\d+ ads? (&amp; trackers|or tracker) blocked on this page/;
+      await d.waitFor(async () => count.test(d.dump()), 'the count in the menu', 5).catch(() => {});
       const xml = d.dump();
       d.back();
-      return /\d+ ads? (&amp; trackers|or tracker) blocked on this page/.test(xml) ? [] : ['no count in the menu'];
+      return count.test(xml) ? [] : ['no count in the menu'];
     });
     await check('allowing ads on a site loads its ad, across a relaunch', async () => {
       await d.view('https://news.example/ads');
