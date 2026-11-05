@@ -662,6 +662,31 @@ remain pending. D3 beta-only no-DRM exception accepted; EME notice/handoff requi
     macos-41cadf1e05df1804 (in the candidate, on by default, reachable through shipping
     UI). Verified still needs each row's manual accessibility and visual
     checklist. F35 stays partial until Mahjong.
+- **S2 decisions (owner, 2026-11-04):** V18, local profiles are Chromium's
+  profiles with its own picker and Manage profile pages, settings per
+  profile (F33); V19, Chromium's native passkeys (N7); V20, Chromium's
+  Default browser section (N10); telemetry (F21) is built consent-first with
+  shipping's fixed events, but the preview channel never sends (only a
+  release-channel build would). Favorites import (F30) follows the spec:
+  Chromium's importer where it covers a source (Safari, Firefox) and
+  shipping's reader for Chromium-family profiles and Arc.
+- **S2.1 native profiles in Settings (V18), candidate macos-09aa3d8b79584378
+  (2026-11-05):** patch 0027 keeps chrome://settings' People section for
+  Chromium's profiles, retitled Profiles (shipping's label), with the
+  profile's name and picture (Manage profile), a Profiles row that opens
+  Chromium's profile picker (`blancSettingsProfilePicker`; the Island has
+  no avatar button) and Chromium's Import bookmarks and settings dialog (the
+  native half of F30). Its Sync and Google services rows are gone, and
+  `signin.allowed` defaults to false (identity_manager_factory.cc, newly
+  pinned with the two People page files; 118 upstream files), so no
+  sign-in or Sync promo shows anywhere. The sheet opens it as `profiles` or
+  `people`. A probe confirms the row opens chrome://profile-picker.
+  settings-and-theming 5 pass / 1 undefined and interface-language 5 pass,
+  as before. Default browser (V20) was already Chromium's section. Open: the
+  default profile is named "Your Chromium" (Chromium's product string, not
+  shipping's Personal), which belongs with the fork's product-name strings;
+  F33's three shipping cases drive shipping's own Profiles section and stay
+  undefined under V18.
 - **Mahjong goes last (owner, 2026-11-04):** the fork has no Mahjong yet
   (F35-3, F35-4, F35-9 fail at the footer launch). When it is built it is an
   Island page (shipping's files served as byte-identical copies, opened as an
@@ -1062,5 +1087,5 @@ Android's Bar A counts the shared scenarios bound in `chromium/tests/android/acc
 
 Legacy macOS stages come from the approved spec; they await verification on the canonical candidate. No legacy stage counts as Verified.
 
-Candidate identities: macOS: macos-41cadf1e05df1804; Windows: none; Linux: none; Android: android-arm64-7bd35e94ef746069.
+Candidate identities: macOS: macos-09aa3d8b79584378; Windows: none; Linux: none; Android: android-arm64-7bd35e94ef746069.
 <!-- END GENERATED PROGRESS -->

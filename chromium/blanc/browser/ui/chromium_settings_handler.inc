@@ -181,6 +181,13 @@ class ChromiumSettingsHandler final : public settings::SettingsPageUIHandler {
     const auto bytes = blanc::island_resources::Find("pages/instrument-sans-latin-wdth-normal.woff2");
     ResolveJavascriptCallback(args[0], bytes ? base::Value(base::Base64Encode(*bytes)) : base::Value());
   }
+  // Chromium's profile picker (V18): add, open and delete profiles there.
+  void HandleProfilePicker(const base::ListValue& args) {
+    if (!Begin(args, 0)) return;
+    ProfilePicker::Show(ProfilePicker::Params::FromEntryPoint(
+        ProfilePicker::EntryPoint::kProfileMenuManageProfiles));
+    ResolveJavascriptCallback(args[0], base::Value(true));
+  }
   void HandleRelaunch(const base::ListValue& args) {
     if (!Begin(args, 0)) return;
     ResolveJavascriptCallback(args[0], base::Value(true));
@@ -229,6 +236,7 @@ void ChromiumSettingsHandler::RegisterMessages() {
   bind("blancSettingsRemoveException", &ChromiumSettingsHandler::HandleRemoveException);
   bind("blancSettingsSetUiLanguage", &ChromiumSettingsHandler::HandleSetUiLanguage);
   bind("blancSettingsRelaunch", &ChromiumSettingsHandler::HandleRelaunch);
+  bind("blancSettingsProfilePicker", &ChromiumSettingsHandler::HandleProfilePicker);
   bind("blancSettingsFont", &ChromiumSettingsHandler::HandleFont);
 }
 

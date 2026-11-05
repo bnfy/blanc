@@ -231,7 +231,8 @@ export const commands={
   return {value:d.find('.search-engine-name')?.textContent.trim()??'',offered:!!radio};},{name:ENGINES[engine]??null},{full:true}).then(r=>{
   // V12 (owner, 2026-11-04): an engine the Change dialog doesn't list (Kagi)
   // is added under Manage search engines, which shipping's step doesn't do.
-  if(!r.offered&&engineOf(r.value)!==engine)throw new UndefinedNativeAdapterError(`V12: ${ENGINES[engine]??engine} is added under chrome://settings → Manage search engines`);
+  // An unknown engine (shipping's invalid-engine case) is simply refused.
+  if(ENGINES[engine]&&!r.offered&&engineOf(r.value)!==engine)throw new UndefinedNativeAdapterError(`V12: ${ENGINES[engine]??engine} is added under chrome://settings → Manage search engines`);
   return engineOf(r.value);}),
  searchEngine:w=>inSettings(w,'search',(a,d)=>({value:d.find('.search-engine-name')?.textContent.trim()??''})).then(engineOf),
  // V12 (owner, 2026-11-04): a custom address is added under Chromium's Manage

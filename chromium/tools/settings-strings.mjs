@@ -31,6 +31,7 @@ export const STRINGS = [
   ['blancIslandSiteColorsHint', 'settings.general.islandSiteColors.hint'],
   ['blancIslandTabIcons', 'settings.general.islandTabIcons.label'],
   ['blancIslandTabIconsHint', 'settings.general.islandTabIcons.hint'],
+  ['blancProfiles', 'settings.profiles.title'],
   ['blancSurfaceStyle', 'settings.general.surfaceStyle.label'],
   ['blancSurfaceStyleHint', 'settings.general.surfaceStyle.hint'],
   ['blancSurfaceStyleSunrise', 'settings.general.surfaceStyle.sunrise'],

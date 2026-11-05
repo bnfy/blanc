@@ -45,6 +45,7 @@
 #include "ui/views/window/dialog_delegate.h"
 #include "chrome/browser/lifetime/application_lifetime.h"
 #include "blanc/services/blocker/blocker_proxy.h"
+#include "chrome/browser/ui/profiles/profile_picker.h"
 #include "ui/views/controls/label.h"
 #include "ui/views/border.h"
 #include "chrome/browser/extensions/extension_uninstall_dialog.h"
@@ -1551,7 +1552,9 @@ std::optional<GURL> SettingsSheetURL(std::string_view section) {
       {"appearance", "appearance"}, {"privacy", "privacy"}, {"security", "security"},
       {"content", "content"}, {"clearBrowserData", "clearBrowserData"},
       {"downloads", "downloads"}, {"languages", "languages"},
-      {"defaultBrowser", "defaultBrowser"}, {"help", "help"}};
+      {"defaultBrowser", "defaultBrowser"}, {"help", "help"},
+      // Chromium's profiles (S2, V18).
+      {"profiles", "people"}, {"people", "people"}};
   for (const auto& [name, path] : kSections)
     if (name == section) return GURL("chrome://settings/" + std::string(path));
   return std::nullopt;
