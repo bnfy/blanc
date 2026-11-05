@@ -57,5 +57,7 @@ final class TabGridSwipeUITests: XCTestCase {
     start.press(forDuration: 0.05, thenDragTo: start.withOffset(CGVector(dx: 0, dy: -24)), withVelocity: 40, thenHoldForDuration: 0.3)
     XCTAssertFalse(app.buttons.matching(identifier: "tab.card").firstMatch.waitForExistence(timeout: 2))
     XCTAssertTrue(site.isHittable, "the Island is back and usable")
+    site.tap()
+    XCTAssertTrue(app.textFields["island.address"].waitForExistence(timeout: 5), "a tap right after isn't lost")
   }
 }

@@ -133,7 +133,8 @@ struct ContentView: View {
                     .offset(x: swipeOffset + (swipeOffset < 0 ? pageWidth : -pageWidth))
             }
             // Glance (F34): a tab floating over the current page.
-            if layout.showsSplitView, shownSplit == nil, !showTabGrid, let glance = manager.glanceTab {
+            // It stays through a lift, which may still settle back.
+            if layout.showsSplitView, shownSplit == nil, !showTabGrid || isLifting, let glance = manager.glanceTab {
                 GlanceCard(manager: manager, tab: glance, style: BrowserStyle(scheme: glance.isPrivate ? .dark : colorScheme))
                     .id(glance.id)
                     // Clear of the floating Island, which stays put while it's open.
@@ -149,7 +150,7 @@ struct ContentView: View {
                 // Barely there, not gone, while it's being dragged: a view at
                 // zero opacity would lose the finger.
                 .opacity(isIslandTucked && reduceMotion ? 0 : max(isLifting ? 0.01 : 0, 1 - min(1, gridMotion.progress * 3)))
-                .allowsHitTesting(!isIslandTucked && (!showTabGrid || isLifting))
+                .allowsHitTesting(!isIslandTucked && islandTakesTouches)
                 .accessibilityHidden(showTabGrid)
                 .animation(.snappy(duration: 0.3), value: isIslandTucked)
         }
@@ -322,8 +323,8 @@ struct ContentView: View {
             // A two-finger swipe on a trackpad switches tabs the same way; it
             // never opens the tab grid, which is a touch gesture.
             .gesture(TrackpadSwipe(
-                changed: { swipeChanged($0, lifts: false) },
-                ended: { swipeEnded($0, predicted: $1) },
+                changed: { if !isLifting { swipeChanged($0, lifts: false) } },
+                ended: { if !isLifting { swipeEnded($0, predicted: $1) } },
                 cancelled: {
                     guard isSwiping else { return }
                     isSwiping = false
@@ -525,10 +526,11 @@ struct ContentView: View {
     private func swipeChanged(_ translation: CGSize, lifts: Bool = true) {
         guard !isCommitting else { return }
         if isLifting {
-            followPagePinch(TabGridMotion.lifted(translation, islandAtTop: islandAtTop, height: pageFrame.height).pinchUpdate)
+            let lifted = TabGridMotion.lifted(translation, islandAtTop: islandAtTop, height: pageFrame.height)
+            followPagePinch(.moved(scale: lifted.scale, translation: lifted.translation))
             return
         }
-        if lifts, !isSwiping, !showTabGrid, TabGridMotion.isLift(translation, islandAtTop: islandAtTop) {
+        if lifts, !isSwiping, islandTakesTouches, TabGridMotion.isLift(translation, islandAtTop: islandAtTop) {
             isLifting = true
             followPagePinch(.started)
             return
@@ -613,6 +615,10 @@ struct ContentView: View {
         }
     }
 
+    /// Off while the grid is up, on again as soon as the page is on its way
+    /// back, so a quick tap or swipe after a short drag isn't lost.
+    private var islandTakesTouches: Bool { !showTabGrid || isLifting || gridPage == .full }
+
     private var gridMotion: TabGridMotion.Transform {
         TabGridMotion.transform(gridPage, in: pageFrame, card: manager.activeTabId.flatMap { cardFrames[$0] })
     }
@@ -621,9 +627,16 @@ struct ContentView: View {
 
     /// Puts the grid behind the page, which is still full size.
     private func revealTabGrid() {
-        // Off the main thread: a page's picture taken here would hold up the
-        // first frame of the motion. The page covers its card until it lands.
-        if let tab = manager.activeTab { Task { await tab.capturePreparedThumbnail() } }
+        // Kept off the first frame of the motion: a web page's picture comes
+        // back later, and the page covers its card until it lands. Blanc's own
+        // pages are drawn as they stand, for the native clock.
+        if let tab = manager.activeTab {
+            if tab.currentURL.scheme == "blanc" {
+                tab.captureThumbnail(afterScreenUpdates: false)
+            } else {
+                Task { await tab.capturePreparedThumbnail() }
+            }
+        }
         cardFrames = [:]
         gridPage = .pinching(scale: 1, translation: .zero)
         gridPageOpacity = 1
@@ -655,6 +668,7 @@ struct ContentView: View {
 
     private func closeTabGrid() {
         guard showTabGrid else { return }
+        isLifting = false
         gridPage = .card
         if reduceMotion {
             gridPage = .full

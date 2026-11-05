@@ -56,22 +56,30 @@ final class TabGridMotionTests: XCTestCase {
         XCTAssertFalse(TabGridMotion.isLift(CGSize(width: 0, height: -8), islandAtTop: false), "not yet a drag")
     }
 
+    private func page(_ lifted: (scale: CGFloat, translation: CGSize)) -> TabGridMotion.Page {
+        .pinching(scale: lifted.scale, translation: lifted.translation)
+    }
+
     func testThePagesEdgeStaysUnderTheFinger() {
         let height: CGFloat = 800
         let frame = CGRect(x: 0, y: 0, width: 400, height: height)
-        let motion = TabGridMotion.transform(TabGridMotion.lifted(CGSize(width: 10, height: -200), islandAtTop: false, height: height),
+        let motion = TabGridMotion.transform(page(TabGridMotion.lifted(CGSize(width: 10, height: -200), islandAtTop: false, height: height)),
                                              in: frame, card: nil)
         XCTAssertEqual(motion.scale, 0.75, accuracy: 0.001)
         XCTAssertEqual(frame.midY + height * motion.scale / 2 + motion.offset.height, height - 200, accuracy: 0.001)
         XCTAssertEqual(motion.offset.width, 10)
-        let top = TabGridMotion.transform(TabGridMotion.lifted(CGSize(width: 0, height: 200), islandAtTop: true, height: height),
+        let top = TabGridMotion.transform(page(TabGridMotion.lifted(CGSize(width: 0, height: 200), islandAtTop: true, height: height)),
                                           in: frame, card: nil)
         XCTAssertEqual(frame.midY - height * top.scale / 2 + top.offset.height, 200, accuracy: 0.001)
+        let far = TabGridMotion.transform(page(TabGridMotion.lifted(CGSize(width: 0, height: -700), islandAtTop: false, height: height)),
+                                          in: frame, card: nil)
+        XCTAssertEqual(far.scale, 0.3, accuracy: 0.001, "no smaller than a pinch")
+        XCTAssertEqual(frame.midY + height * far.scale / 2 + far.offset.height, height - 700, accuracy: 0.001, "still under the finger")
     }
 
     func testDraggingBackPastTheStartLeavesThePageFull() {
-        let page = TabGridMotion.lifted(CGSize(width: 0, height: 30), islandAtTop: false, height: 800)
-        XCTAssertEqual(TabGridMotion.transform(page, in: CGRect(x: 0, y: 0, width: 400, height: 800), card: nil).scale, 1)
+        let lifted = TabGridMotion.lifted(CGSize(width: 0, height: 30), islandAtTop: false, height: 800)
+        XCTAssertEqual(TabGridMotion.transform(page(lifted), in: CGRect(x: 0, y: 0, width: 400, height: 800), card: nil).scale, 1)
     }
 
     func testALiftOpensWhenFarOrFlickedAndNotWhenHeadingBack() {

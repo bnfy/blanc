@@ -8,14 +8,6 @@ enum PagePinchUpdate: Equatable {
     case ended(opens: Bool)
 }
 
-extension TabGridMotion.Page {
-    /// What the window does to show this page mid-gesture.
-    var pinchUpdate: PagePinchUpdate {
-        if case .pinching(let scale, let translation) = self { return .moved(scale: scale, translation: translation) }
-        return .moved(scale: 1, translation: .zero)
-    }
-}
-
 /// The page shrinking into the tab grid, as Safari's does: a rounded card that
 /// follows the fingers around the screen's center over a grid coming into
 /// focus, then springs to its place. Pure, so its numbers can be tested.
@@ -60,12 +52,13 @@ enum TabGridMotion {
         return travel >= 12 && travel > abs(translation.width)
     }
 
-    /// The page on a drag of the Island: it shrinks as it goes, and the edge
-    /// by the Island stays under the finger.
-    static func lifted(_ translation: CGSize, islandAtTop: Bool, height: CGFloat) -> Page {
+    /// The page on a drag of the Island: it shrinks as it goes, down to the
+    /// smallest a pinch allows, and the edge by the Island stays under the finger.
+    static func lifted(_ translation: CGSize, islandAtTop: Bool, height: CGFloat) -> (scale: CGFloat, translation: CGSize) {
         let travel = max(0, liftTravel(translation, islandAtTop: islandAtTop))
-        let rise = (islandAtTop ? 1 : -1) * travel / 2
-        return .pinching(scale: 1 - travel / max(height, 1), translation: CGSize(width: translation.width, height: rise))
+        let scale = max(smallestScale, 1 - travel / max(height, 1))
+        let rise = travel - (1 - scale) * height / 2
+        return (scale, CGSize(width: translation.width, height: islandAtTop ? rise : -rise))
     }
 
     /// Far enough to open, unless the finger is heading back; a quick flick
