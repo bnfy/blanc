@@ -4,7 +4,10 @@
 //   - Allowing ads on a site loads its ad and shows that in the menu; blocking it again stops the
 //     ad; both last across a relaunch. /allow-ads and /block-ads do the same.
 //   - The engine's process ending starts it again by itself, and pages stay filtered.
+//   - A service worker's fetch and a prefetch are filtered like a page's own requests.
+//   - The Start Page reports whether protection is on.
 //   - Four quick endings leave pages stopped and the menu saying so; Retry recovers.
+//   - A first launch with no network still blocks, from the bundled lists.
 //   - A bundle with the wrong hash stops every page: nothing loads unfiltered.
 // Fails closed: a missing page or state fails.
 //
@@ -125,12 +128,47 @@ async function main(argv) {
       await d.view('https://recovered.example/ads');
       return [...problems, ...blockingProblems(await pageState(d, 'https://recovered.example/ads'))];
     });
+    await check('a service worker\'s fetch is filtered', async () => {
+      await d.view('https://worker.example/sw');
+      await d.waitFor(async () => (await d.page('window.workerUp===true')) === true, 'the worker to install', 20);
+      const requests = fixtureRequests();
+      return [...(requests.some(r => r.startsWith('ad.doubleclick.net')) ? ['the worker reached the ad'] : []),
+        ...(requests.some(r => r.startsWith('lib.example/sw-allowed')) ? [] : ['the worker\'s allowed fetch never left'])];
+    });
+    await check('a prefetch is filtered', async () => {
+      await d.view('https://hint.example/prefetch');
+      await d.waitFor(() => fixtureRequests().some(r => r.startsWith('lib.example/prefetch-allowed')), 'the allowed prefetch', 20);
+      return fixtureRequests().some(r => r.startsWith('ad.doubleclick.net')) ? ['the prefetch reached the ad'] : [];
+    });
+    await check('the Start Page reports whether protection is on', async () => {
+      const on = await d.page('window.bowserPages.start.data().then(x=>x.mobileAdblockEnabled)');
+      await d.view('https://off.example/');
+      d.runInPalette('/block-ads');
+      sleep(2);
+      d.tap({id: 'blanc_island_new_tab'});
+      await d.waitFor(async () => /^chrome:\/\/blanc\/newtab/.test((await d.visibleUrl()) || ''), 'the Start Page');
+      const off = await d.page('window.bowserPages.start.data().then(x=>x.mobileAdblockEnabled)');
+      return on === true && off === false ? [] : [`on ${on}, off ${off}`];
+    });
     await check('a private tab blocks the ad and loads the rest', async () => {
       d.menu('New Private Tab');
       sleep(2);
       clearFixtureRequests();
       d.runInPalette('https://private.example/ads');
       return blockingProblems(await pageState(d, 'https://private.example/ads'));
+    });
+    await check('a first launch with no network still blocks', async () => {
+      adb('shell', 'cmd', 'connectivity', 'airplane-mode', 'enable');
+      sleep(3);
+      try {
+        await d.reset();
+        clearFixtureRequests();
+        await d.view('https://offline.example/ads');
+        return blockingProblems(await pageState(d, 'https://offline.example/ads'));
+      } finally {
+        adb('shell', 'cmd', 'connectivity', 'airplane-mode', 'disable');
+        sleep(3);
+      }
     });
     await check('a wrong bundle stops every page', async () => {
       setSwitches('--blanc-blocker-test-bad-bundle');

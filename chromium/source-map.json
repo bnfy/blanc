@@ -48,7 +48,7 @@
   "canonicalSha256": {
     "blanc/BUILD.gn": "7fe9606b4d5423708b84c6d3e637eef34403c13877949cd02cc240b58c4b4a98",
     "blanc/android/BUILD.gn": "2e9e25f95c8af4e4158e34abbcb210afc2f1d482f3da20e5bf565305bb97e9f4",
-    "blanc/android/browser/blanc_pages_ui.cc": "e3d26b67c330d77799b1b9d34ead4b03e951dbffa850cd4f5b6ca8bd41b692ad",
+    "blanc/android/browser/blanc_pages_ui.cc": "e75ca53e84093dc7cd7cb79e12691173e99ce03852de3814c2673a9c16503ab1",
     "blanc/android/browser/blanc_pages_ui.h": "6969cac9a6e8b4b237a1809b8e81f04e07f75737247119f037d9614c06e01387",
     "blanc/android/browser/blocker_bridge.cc": "24b74439b750f8ad4c3fd39e6f6121598396293372661e37310e6825375c4011",
     "blanc/android/browser/sources.gni": "6d8a949412912a32fa72531efd234d702283d48830afb6ee6fc184dcd6f8c326",

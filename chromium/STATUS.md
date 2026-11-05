@@ -1004,7 +1004,7 @@ changes feed Android's build, so its APK is unchanged. Divergences: D36, D37.
 
 640 executable cases from 591 declarations. Exclusions stay visible in the fixed total; inventory is not a fork run.
 
-Android's Bar A counts the shared scenarios bound in `chromium/tests/android/acceptance/` (A2): 23 (F2–F5, F8, F18, and the phone-only F31-11 and F56-1–3), run on the build server's emulator by `run.sh`; desktop cases don't apply to it. F6-1, F6-2 and F7-1 join with ad blocking (A3), whose Background they share.
+Android's Bar A counts the shared scenarios bound in `chromium/tests/android/acceptance/` (A2, A3): 32 (F2–F8, F12, F18, and the phone-only F31-11 and F56-1–3), run on the build server's emulator by `run.sh`; desktop cases don't apply to it.
 
 ### Bar B — requirement rows by platform
 

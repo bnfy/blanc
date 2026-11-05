@@ -20,9 +20,12 @@ export function fixturePage(url) {
   // "/ads": a request EasyList blocks, one it doesn't, and an element it hides.
   const ads = url.pathname === '/ads' ? `<script src="https://ad.doubleclick.net/tag.js"></script>
 <script src="https://lib.example/lib.js"></script><div id="hidden-ad" class="ADBox">ad</div>` : '';
+  // Requests no tab makes: a service worker's fetch, and a prefetch.
+  const worker = url.pathname === '/sw' ? `<script>window.workerReady=navigator.serviceWorker.register('/worker.js').then(()=>navigator.serviceWorker.ready).then(()=>{window.workerUp=true});</script>` : '';
+  const prefetch = url.pathname === '/prefetch' ? '<link rel="prefetch" href="https://ad.doubleclick.net/prefetch.js"><link rel="prefetch" href="https://lib.example/prefetch-allowed.js">' : '';
   return `<!doctype html><meta name="viewport" content="width=device-width"><title>${title}</title>
 <button id="clicker" style="width:100%;height:40vh;font-size:30px" onclick="this.dataset.clicks=(+this.dataset.clicks||0)+1">${title}</button>
-${words}${link}${ads}<div style="height:150vh"></div>`;
+${words}${link}${ads}${worker}${prefetch}<div style="height:150vh"></div>`;
 }
 
 if (!isMainThread) {
@@ -32,6 +35,11 @@ if (!isMainThread) {
       response.setHeader('content-type', 'text/html; charset=utf-8');
       response.setHeader('cache-control', 'no-store');
       fs.appendFileSync(requestLog, `${request.headers.host}${request.url}\n`);
+      if (request.url === '/worker.js') {
+        response.setHeader('content-type', 'text/javascript');
+        response.end(`self.addEventListener('install',e=>{self.skipWaiting();e.waitUntil(Promise.all(['https://ad.doubleclick.net/sw-fetch.js','https://lib.example/sw-allowed.js'].map(u=>fetch(u,{mode:'no-cors'}).catch(()=>{}))))});`);
+        return;
+      }
       if (request.url.endsWith('.js')) {
         response.setHeader('content-type', 'text/javascript');
         response.end(`window.loaded=(window.loaded||[]).concat(location.hostname);`);

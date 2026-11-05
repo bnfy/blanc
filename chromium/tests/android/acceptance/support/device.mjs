@@ -68,7 +68,7 @@ async function evaluate(target, expression, timeoutMs = 3000) {
     return await new Promise((resolve, reject) => {
       const timer = setTimeout(() => resolve(undefined), timeoutMs);
       ws.onerror = () => { clearTimeout(timer); resolve(undefined); };
-      ws.onopen = () => ws.send(JSON.stringify({id: 1, method: 'Runtime.evaluate', params: {expression, returnByValue: true}}));
+      ws.onopen = () => ws.send(JSON.stringify({id: 1, method: 'Runtime.evaluate', params: {expression, returnByValue: true, awaitPromise: true}}));
       ws.onmessage = m => { clearTimeout(timer); resolve(JSON.parse(m.data).result?.result?.value); };
     });
   } finally {
