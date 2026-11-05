@@ -35,7 +35,7 @@ const SHEET_BRIDGE = ['  <script src="strings.js"></script>\n', '  <script src="
 // siteInfo as shipping's tab projection does (S1.6). Each exposes its
 // exports on window under the given name.
 export const MAIN_FILES = {'island-hover-open.js': 'BlancIslandHoverOpen', 'island-autohide.js': 'BlancIslandAutoHide',
-  'whats-new.js': 'BlancWhatsNew', 'clean-link.js': 'BlancCleanLink', 'invite-friend.js': 'BlancInviteFriend', 'site-security.js': 'BlancSiteSecurity'};
+  'whats-new.js': 'BlancWhatsNew', 'glance-card.js': 'BlancGlanceCard', 'clean-link.js': 'BlancCleanLink', 'invite-friend.js': 'BlancInviteFriend', 'site-security.js': 'BlancSiteSecurity'};
 // Trusted Types policy names, per hardened script.
 const HARDEN = {'overlay.js': 'overlay', 'renderer.js': 'renderer', 'vertical-tabs.js': 'vertical-tabs'};
 const PREVIEW_META = fs.readFileSync(path.join(root, 'tools/preview-build-meta.html'), 'utf8').trimEnd();
@@ -73,6 +73,9 @@ export const EDITS = {
     // blanc-chrome://float/, so the host names the surface in its address.
     ["  const floatSurface = window.location.hostname === 'float';\n",
       "  const floatSurface = window.location.hostname === 'float' || window.location.search === '?surface=float';\n"],
+    // The floating Glance card's chrome is a frame of the host too.
+    ["  const glanceSurface = window.location.hostname === 'glance';\n",
+      "  const glanceSurface = window.location.hostname === 'glance' || window.location.search === '?surface=glance';\n"],
   ],
   'overlay.js': [
     // Dark websites come from the Dark Reader extension in the Chromium

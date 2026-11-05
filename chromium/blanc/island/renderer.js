@@ -15,7 +15,7 @@ const __blancMarkup = trustedTypes.createPolicy("blanc-static-renderer", {create
   if (floatSurface) document.documentElement.dataset.surface = 'float';
   // The floating Glance card's chrome runs it again too, showing only the
   // card (main.js ensureGlanceCardView).
-  const glanceSurface = window.location.hostname === 'glance';
+  const glanceSurface = window.location.hostname === 'glance' || window.location.search === '?surface=glance';
   if (glanceSurface) document.documentElement.dataset.surface = 'glance';
   // Copies of the strip draw from its broadcasts but never report geometry:
   // the strip itself is the one authority.

@@ -3,7 +3,7 @@
   let nextId = 0;
   let snapshot = null;
   let tabSelection = BlancTabSelection.emptySelection();
-  const selectionTabs = () => (snapshot?.tabs ?? []).map(tab => ({ ...tab, splitId: snapshot.splits?.find(split => split.tabIds.includes(tab.id))?.id ?? null }));
+  const selectionTabs = () => snapshot?.tabs ?? [];
   let serialized = '';
   let pillRect = null;
   let opened = false;
@@ -71,6 +71,7 @@
   const overlayShowDocuments = new WeakMap();
   const strip = document.getElementById('strip');
   const floatPill = document.getElementById('floatPill');
+  const glanceCardFrame = document.getElementById('glanceCardFrame');
   const overlay = document.getElementById('overlay');
   const tooltip = document.createElement('div');
   tooltip.id = 'prototypeTooltip';
@@ -115,6 +116,9 @@
     if (event === 'onPermissionPrompt') queueMicrotask(() => {
       for (const payload of prompts.values())
         if (subscribers.get(event)?.has(callback)) callback(payload);
+    });
+    if (event === 'onGlanceLayout') queueMicrotask(() => {
+      if (subscribers.get(event)?.has(callback)) callback(glancePayload());
     });
     if (event === 'onSplitLayout') queueMicrotask(() => {
       if (subscribers.get(event)?.has(callback)) callback(currentSplitLayout());
@@ -224,6 +228,81 @@
       ? [{ index: 0, axis: 'x', rect: { ...rect }, saved: true }] : [];
     return { splitId: split.id, panes, dividers };
   }
+
+  // Floating Glance (F34), shipping's glance-card-controller.js: the one place
+  // the card's frame changes. Every move, resize and reset carries the open
+  // card's generation, so a message from a card that has gone is refused. The
+  // save is debounced and a close flushes it.
+  const GlanceCard = window.BlancGlanceCard;
+  const glance = { tabId: null, generation: 0, pending: undefined, timer: null, key: '' };
+  const glanceArea = () => snapshot?.splitGeometry?.mode === 'glance' ? snapshot.splitGeometry.pageArea : null;
+  const glanceFractions = () => (glance.pending !== undefined ? glance.pending : snapshot?.glanceFrame ?? null);
+  const glanceCardFrameNow = () => GlanceCard.fractionsToFrame(glanceFractions(), glanceArea());
+  function glancePayload() {
+    const area = glanceArea();
+    if (snapshot?.glanceTabId == null || !area) return null;
+    return { card: GlanceCard.cardGeometry(glanceCardFrameNow(), area), generation: glance.generation,
+      focusedPane: snapshot.focusedTabId === snapshot.glanceTabId ? 'glance' : 'main' };
+  }
+  const glanceSay = (key, params) => emit('onGlanceStatus', strip.contentWindow.blancI18n.t(key, params));
+  const glanceTitle = id => snapshot?.tabs.find(tab => tab.id === id)?.title || strip.contentWindow.blancI18n.t('tab.untitledShort');
+  function flushGlanceSave() {
+    clearTimeout(glance.timer); glance.timer = null;
+    if (glance.pending === undefined) return;
+    const value = glance.pending;
+    glance.pending = undefined;
+    if (snapshot) snapshot.glanceFrame = value;
+    request('glanceSaveFrame', [value]).catch(error => notice(error.message));
+  }
+  function publishGlance() {
+    const payload = glancePayload();
+    const key = JSON.stringify(payload);
+    if (key === glance.key) return;
+    glance.key = key;
+    if (payload) {
+      const { chrome, page } = payload.card;
+      Object.assign(glanceCardFrame.style, { left: `${chrome.x}px`, top: `${chrome.y}px`, width: `${chrome.width}px`, height: `${chrome.height}px` });
+      // The card's chrome floats above the pages here, so it leaves a hole for
+      // the Glance page, with the page's rounded corners.
+      const x = page.x - chrome.x, y = page.y - chrome.y, r = GlanceCard.CARD_PAGE_RADIUS;
+      glanceCardFrame.style.clipPath = `path(evenodd, 'M0 0H${chrome.width}V${chrome.height}H0Z`
+        + `M${x + r} ${y}H${x + page.width - r}A${r} ${r} 0 0 1 ${x + page.width} ${y + r}V${y + page.height - r}`
+        + `A${r} ${r} 0 0 1 ${x + page.width - r} ${y + page.height}H${x + r}A${r} ${r} 0 0 1 ${x} ${y + page.height - r}`
+        + `V${y + r}A${r} ${r} 0 0 1 ${x + r} ${y}Z')`;
+      glanceCardFrame.hidden = false;
+      request('glanceFrame', [page.x, page.y, page.width, page.height, chrome.x, chrome.y, chrome.width, chrome.height])
+        .catch(error => notice(error.message));
+    } else {
+      glanceCardFrame.hidden = true;
+    }
+    emit('onGlanceLayout', payload);
+  }
+  function syncGlance() {
+    const id = snapshot?.glanceTabId ?? null;
+    if (id !== glance.tabId) {
+      // Shipping's announcements for a Glance that ended with its tab.
+      const open = tabId => snapshot.tabs.find(tab => tab.id === tabId);
+      if (id == null && glance.tabId != null && !glance.closing) {
+        if (!open(glance.tabId)) glanceSay('glance.status.tabClosed');
+        else if (!open(glance.mainId)) glanceSay('glance.status.mainClosed', { title: glanceTitle(glance.tabId) });
+      }
+      flushGlanceSave(); glance.tabId = id; glance.generation += 1;
+    }
+    if (id != null) glance.mainId = snapshot.activeTabId;
+    publishGlance();
+    // Native reports the page area after its next layout.
+    if (id != null && !glanceArea()) setTimeout(refresh, 50);
+  }
+  function changeGlanceCard(input, next) {
+    if (snapshot?.glanceTabId == null || Number(input?.generation) !== glance.generation) return null;
+    const area = glanceArea();
+    glance.pending = GlanceCard.frameToFractions(next(glanceCardFrameNow(), area), area);
+    clearTimeout(glance.timer);
+    glance.timer = setTimeout(flushGlanceSave, 250);
+    publishGlance();
+    return glanceCardFrameNow();
+  }
+  const finiteOr0 = value => (Number.isFinite(Number(value)) ? Number(value) : 0);
 
   let resizeQueue = Promise.resolve();
   function resizeSplit(pair, ratio) {
@@ -438,6 +517,9 @@
     const attempt = ++snapshotRefreshAttempt;
     try {
       snapshot = await request('snapshot');
+      // Shipping's tab records name their split; the panel draws one row from it.
+      for (const tab of snapshot.tabs) tab.splitId = snapshot.splits?.find(split => split.tabIds.includes(tab.id))?.id ?? null;
+      syncGlance();
       settleHover();
       syncAutoHide();
       const pill = strip.contentDocument?.getElementById('islandPill');
@@ -1286,6 +1368,7 @@
       const tab = snapshot?.tabs.find(item => String(item.id) === String(id));
       if (tab) await show(`/rename ${tab.title || ''}`, 'panel', null, { renameTabId: tab.id });
     },
+    quietTab: id => request('quietTab', [nativeId(id)]),
     // /sleep: quiet every eligible background tab of this window now, as
     // shipping's sleepBackgroundTabsNow. Native's safety check decides each.
     sleepBackgroundTabs: async () => {
@@ -1393,11 +1476,60 @@
       return focusId;
     },
     keepGlanceAsSplit: async () => {
+      glance.closing = true;
       const result = await request('keepGlanceAsSplit');
       await refresh();
+      glance.closing = false;
       return result;
     },
     previewGlancePair: (main, reference) => request('previewGlancePair', [nativeId(main), nativeId(reference)]),
+    setGlanceTab: async id => {
+      await refresh();
+      if (snapshot?.glanceTabId != null) await request('closeGlance');
+      const opened = await request('previewGlancePair', [nativeId(snapshot.activeTabId), nativeId(id)]);
+      await close(); await refresh();
+      if (opened === true) glanceSay('glance.status.opened', { title: glanceTitle(String(id)) });
+      return opened === true;
+    },
+    closeGlance: async () => {
+      if (overlayMode === 'glance') await close();
+      glance.closing = true;
+      await request('closeGlance'); await refresh();
+      glance.closing = false;
+      glanceSay('glance.status.closed');
+    },
+    // Open Link in Glance: the link becomes a background tab, then the Glance.
+    openLinkInGlance: async url => {
+      const open = snapshot.glanceTabId != null;
+      const main = open ? glance.mainId : snapshot.activeTabId;
+      const isPrivate = !!snapshot.tabs.find(tab => tab.id === main)?.private;
+      if (open) { glance.closing = true; await request('closeGlance'); glance.closing = false; }
+      const created = await request('createTab', [String(url), isPrivate]);
+      if (created?.tabId == null) return false;
+      await request('switchTab', [nativeId(main)]);
+      return api.setGlanceTab(String(created.tabId));
+    },
+    openGlanceAsTab: async () => {
+      const title = glanceTitle(snapshot?.glanceTabId);
+      glance.closing = true;
+      await request('openGlanceAsTab'); await refresh();
+      glance.closing = false;
+      glanceSay('glance.status.openedAsTab', { title });
+    },
+    openGlancePicker: async text => show(text ?? '', 'glance', null, snapshot?.glanceTabId != null ? 'change' : 'open'),
+    focusGlancePane: async id => { const moved = await request('focusGlancePane', [nativeId(id)]); await refresh(); return moved; },
+    moveGlanceCard: async input => changeGlanceCard(input, (frame, area) =>
+      GlanceCard.moveCardFrame(frame, finiteOr0(input.dx), finiteOr0(input.dy), area)),
+    resizeGlanceCard: async input => changeGlanceCard(input, (frame, area) => (GlanceCard.EDGES.includes(input.edge)
+      ? GlanceCard.resizeCardFrame(frame, input.edge, finiteOr0(input.dx), finiteOr0(input.dy), area) : frame)),
+    resetGlanceCard: async input => {
+      if (snapshot?.glanceTabId == null || Number(input?.generation) !== glance.generation) return null;
+      clearTimeout(glance.timer); glance.timer = null; glance.pending = undefined;
+      snapshot.glanceFrame = null;
+      await request('glanceSaveFrame', [null]);
+      publishGlance();
+      return glanceCardFrameNow();
+    },
     previewGlanceClose: id => request('previewGlanceClose', [nativeId(id)]),
     previewPageCommand: command => request('previewPageCommand', [command]),
     previewSpaceRecover: () => request('previewSpaceRecover'),
@@ -1678,6 +1810,8 @@
 
   window.BlancPrototypeHost = {
     api,
+    toggleGlance: () => (snapshot?.glanceTabId != null ? api.closeGlance() : api.openGlancePicker()),
+    glanceState: () => ({ layout: glancePayload(), shown: !glanceCardFrame.hidden, generation: glance.generation }),
     apiForDocument,
     hoverState: () => ({ ...hover.state }),
     // Whether the how-to tip is on screen (shipping's introTipShown).
@@ -1746,6 +1880,13 @@
   // fast relaunch load the overlay first and leave its bridge undefined.
   strip.src = strip.dataset.src;
   floatPill.src = floatPill.dataset.src;
+  glanceCardFrame.src = glanceCardFrame.dataset.src;
+  // Escape closes a Glance only from the card's own chrome (F34).
+  glanceCardFrame.addEventListener('load', () => {
+    glanceCardFrame.contentDocument.addEventListener('keydown', event => {
+      if (event.key === 'Escape' && snapshot?.glanceTabId != null) window.BlancPrototypeHost.api.closeGlance();
+    });
+  });
   overlay.src = overlay.dataset.src;
   permissionFrame.src = permissionFrame.dataset.src;
 

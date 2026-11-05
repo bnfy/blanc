@@ -49,6 +49,16 @@ export async function snapshotWindow(fixture, file) {
       page.close();
       layers.push(['page.png', bounds.width - size.w, bounds.height - size.h, size.w, size.h]);
     }
+    // A Glance's page floats over the active page, under the Island's card.
+    const glance = snapshot.tabs.find(t => String(t.id) === String(snapshot.glanceTabId));
+    const glanceTarget = glance?.viewBounds && (await fixture.targets()).find(t => t.type === 'page' && t.url === glance.committedUrl);
+    if (glanceTarget) {
+      const page = await fixture.connectTarget(glanceTarget);
+      await capture(page, path.join(dir, 'glance.png'));
+      page.close();
+      const {x, y, width, height} = glance.viewBounds;
+      layers.push(['glance.png', x, y, width, height]);
+    }
     await capture(host, path.join(dir, 'host.png'), {transparent: true});
     layers.push(['host.png', 0, 0, hostSize.w, hostSize.h]);
     const sheet = await nativeCall(host, 'settingsSheetState').catch(() => null);

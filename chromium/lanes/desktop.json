@@ -36,6 +36,7 @@
     "patches/0027-blanc-profiles.patch",
     "patches/0028-blanc-first-run.patch",
     "patches/0029-blanc-patron-icons.patch",
-    "patches/0030-blanc-tour-telemetry.patch"
+    "patches/0030-blanc-tour-telemetry.patch",
+    "patches/0031-blanc-glance.patch"
   ]
 }
