@@ -17,6 +17,7 @@ function fetch(url, init = {}) {
   });
 }
 const quitHandlers = [];
+const flushers = [];
 module.exports = {
   app: {isPackaged: !host.testEndpoint, getPath: () => '/sync', getVersion: () => host.version, on(e, f) { if (e === 'before-quit') quitHandlers.push(f); }, whenReady: async () => {}},
   net: {fetch},
@@ -27,5 +28,8 @@ module.exports = {
   clipboard: {writeText: text => host.emit('clipboard', text)},
   nativeImage: {createFromBuffer: () => ({isEmpty: () => true}), createFromBitmap: () => ({isEmpty: () => true})},
   nativeTheme: {}, shell: {}, screen: {}, systemPreferences: {}, BrowserWindow: {getAllWindows: () => []},
-  __quit() { for (const f of quitHandlers) f(); },
+  // Shipping's stores save on quit, and sync.js cancels a live pairing code on quit. The runner
+  // saves often and never means quit, so it takes only what was registered before sync starts.
+  __sealFlush() { flushers.push(...quitHandlers); },
+  __flush() { for (const f of flushers) f(); },
 };

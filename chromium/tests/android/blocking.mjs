@@ -66,12 +66,16 @@ async function main(argv) {
     await check('the menu counts what it blocked', async () => {
       await d.view('https://news.example/ads');
       await pageState(d, 'https://news.example/ads');
-      d.tap({id: 'blanc_island_menu'});
+      // The menu shows the count as it stands when it opens, so a busy machine can open it early.
       const count = /\d+ ads? (&amp; trackers|or tracker) blocked on this page/;
-      await d.waitFor(async () => count.test(d.dump()), 'the count in the menu', 5).catch(() => {});
-      const xml = d.dump();
-      d.back();
-      return count.test(xml) ? [] : ['no count in the menu'];
+      for (let i = 0; i < 10; i++) {
+        d.tap({id: 'blanc_island_menu'});
+        sleep(1);
+        const xml = d.dump();
+        d.back();
+        if (count.test(xml)) return [];
+      }
+      return ['no count in the menu'];
     });
     await check('allowing ads on a site loads its ad, across a relaunch', async () => {
       await d.view('https://news.example/ads');
@@ -95,7 +99,8 @@ async function main(argv) {
       await pageState(d, 'https://commands.example/ads');
       clearFixtureRequests();
       d.runInPalette('/allow-ads');
-      await d.waitFor(adLoaded, 'the ad to load after /allow-ads');
+      // Unexplained: twice in full gate runs (A4a, A4b) this missed 15 s, never alone (11 of 11).
+      await d.waitFor(adLoaded, 'the ad to load after /allow-ads', 30);
       await d.waitFor(async () => (await d.page('document.readyState')) === 'complete', 'the reload');
       d.runInPalette('/block-ads');
       sleep(2);

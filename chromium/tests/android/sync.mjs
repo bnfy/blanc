@@ -29,12 +29,15 @@ async function main(argv) {
   fs.mkdirSync(evidence, {recursive: true});
   adb('install', '-r', apk);
   const stopFixtures = startFixtures();
-  const worker = await startWorker();
+  // Each check gets its own: the Worker's limits would otherwise carry from one to the next.
+  let worker = await startWorker();
   const d = new Device();
   const results = [], measures = {};
   const check = async (name, body, extra = '') => {
     if (only && !name.includes(only)) return;
     try {
+      worker.stop();
+      worker = await startWorker();
       useWorker(worker, extra);
       adb('logcat', '-c');
       await d.reset();
@@ -158,6 +161,8 @@ async function main(argv) {
       await d.view('https://saved.example/');
       d.menu('Save to Favorites');
       await until(async () => holds(await value('bookmarks.listBookmarks'), 'https://saved.example/'), 'the runner to hear');
+      // The Worker allows an account 30 reads a minute, and this check has used them.
+      sleep(61);
       await value('sync.resetRequestWindowForTest');
       await value('sync.syncNow', [], 120);
       await device.pass();
@@ -186,6 +191,133 @@ async function main(argv) {
       await d.relaunch();
       const exported = await value('settings.exportForSync');
       return exported.values.futureSetting === 'kept' && exported.values.theme === 'dark' ? [] : [JSON.stringify(exported).slice(0, 300)];
+    });
+
+    // A peer and the phone on one account, ready to pass as often as a check needs.
+    const paired = async name => {
+      const device = await startedPeer(name);
+      const {code} = await device.sync.beginPairing();
+      await value('sync.joinWithCode', [code]);
+      return device;
+    };
+    const phonePass = async () => {
+      await value('sync.resetRequestWindowForTest');
+      await value('sync.syncNow', [], 120);
+    };
+    const peerTabs = device => {
+      const list = [...device.sync.listRemoteDevices()].flatMap(entry => [...entry.tabs]);
+      return new Set(list.map(tab => tab.url));
+    };
+
+    await check('sharing is off until asked, then open tabs reach a peer and private ones never', async () => {
+      const device = await paired('Tabs');
+      await d.view('https://shared.example/');
+      adb('shell', 'input', 'keyevent', 'KEYCODE_HOME');
+      sleep(2);
+      await d.launch();
+      await phonePass();
+      await device.pass();
+      if (peerTabs(device).has('https://shared.example/')) return ['shared before asked'];
+      await value('sync.setSyncTabs', [true]);
+      d.menu('New Private Tab');
+      sleep(2);
+      d.runInPalette('https://shared2.example/');
+      await d.waitForUrl('https://shared2.example/', 20);
+      adb('shell', 'input', 'keyevent', 'KEYCODE_HOME');
+      sleep(2);
+      await d.launch();
+      await phonePass();
+      await device.pass();
+      const seen = peerTabs(device);
+      if (!seen.has('https://shared.example/')) return [`missing: ${[...seen].join()}`];
+      if (seen.has('https://shared2.example/')) return ['a private tab reached the peer'];
+      await value('sync.setSyncTabs', [false]);
+      await phonePass();
+      await device.pass();
+      return peerTabs(device).has('https://shared.example/') ? ['still shared after turning it off'] : [];
+    });
+
+    await check('a sent page waits in the palette, opens in a tab and goes', async () => {
+      const device = await paired('Sender');
+      await device.pass();
+      const targets = [...device.sync.listSendTargets()];
+      if (!targets.length) return ['no target on the peer'];
+      device.sync.resetRequestWindowForTest();
+      const sent = await device.sync.sendTab({url: 'https://sent.example/', title: 'Sent page', to: targets[0].id});
+      if (sent.status !== 'sent') return [JSON.stringify(sent)];
+      // The Worker allows an account 30 reads a minute; these passes are far faster than a phone's.
+      sleep(61);
+      await phonePass();
+      await until(async () => [...await value('sync.listSentToThisDevice')].length === 1, 'the page to arrive');
+      d.tap({id: 'blanc_island_domain'});
+      await d.waitFor(async () => d.dump().includes('Sent page'), 'the sent row', 15);
+      d.tap({text: 'Sent page'});
+      await d.waitForUrl('https://sent.example/', 20);
+      await until(async () => [...await value('sync.listSentToThisDevice')].length === 0, 'the page to go');
+      return [];
+    });
+
+    await check('a sent page reaches an open Start Page and dismisses there', async () => {
+      const device = await paired('Start');
+      await device.pass();
+      const [target] = [...device.sync.listSendTargets()];
+      device.sync.resetRequestWindowForTest();
+      await device.sync.sendTab({url: 'https://onstart.example/', title: 'On the Start Page', to: target.id});
+      sleep(61);
+      await phonePass();
+      // The list belongs to the Ledger layout, so on Billboard it's filled but out of sight.
+      const shown = async () => d.page(`document.getElementById('sentList').textContent.includes('On the Start Page')`);
+      await until(shown, 'the row on the Start Page');
+      await d.page(`document.querySelector('.sent-dismiss').click()`);
+      await until(async () => [...await value('sync.listSentToThisDevice')].length === 0, 'the dismissal');
+      return [];
+    });
+
+    await check('/send sends the current page to the named device', async () => {
+      const device = await paired('Receiver');
+      await d.view('https://tosend.example/');
+      await until(async () => [...await value('sync.listSendTargets')].length > 0, 'a target');
+      d.runInPalette('/send Receiver');
+      // The Worker allows an account 30 reads a minute, and pairing has used most of them.
+      sleep(61);
+      device.sync.resetRequestWindowForTest();
+      await device.pass();
+      const inbox = [...device.sync.listSentToThisDevice()];
+      return inbox.some(item => item.url === 'https://tosend.example/') ? [] : [JSON.stringify(inbox)];
+    });
+
+    await check('a background run with no window keeps this phone\'s tabs and brings Favorites', async () => {
+      const device = await paired('Background');
+      await d.view('https://kept.example/');
+      await value('sync.setSyncTabs', [true]);
+      await d.relaunch();
+      sleep(61);
+      await phonePass();
+      await device.pass();
+      if (!peerTabs(device).has('https://kept.example/')) return ['the tab never reached the peer'];
+      device.module('bookmarks').saveFavorite('https://later.example/', 'Later');
+      sleep(61);
+      device.sync.resetRequestWindowForTest();
+      await device.pass();
+      adb('shell', 'input', 'keyevent', 'KEYCODE_HOME');
+      sleep(2);
+      adb('shell', 'am', 'kill', PACKAGE);
+      sleep(2);
+      // pidof exits non-zero when nothing runs, which is what this check needs.
+      let running = true;
+      try { adb('shell', 'pidof', PACKAGE); } catch { running = false; }
+      if (running) return ['Blanc is still running'];
+      sleep(61);
+      adb('shell', 'cmd', 'jobscheduler', 'run', '-f', PACKAGE, '120');
+      sleep(20);
+      device.sync.resetRequestWindowForTest();
+      await device.pass();
+      if (!peerTabs(device).has('https://kept.example/')) return ['the run wiped this phone\'s tabs'];
+      // Before any window opens, so only the background run can have brought it.
+      if (!adb('shell', 'run-as', PACKAGE, 'cat', 'app_chrome/blanc_sync/bookmarks.json').includes('later.example')) return ['the job brought nothing'];
+      await d.launch();
+      await until(async () => holds(await value('test.favorites'), 'https://later.example/'), 'the Favorite');
+      return [];
     });
 
     await check('three early endings stop the runner, and it says so', async () => {

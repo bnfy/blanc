@@ -34,6 +34,9 @@ public class ProfileSyncTest implements ProfileSync.Host {
     private final List<String> mCalls = new ArrayList<>();
     private final List<String> mApplied = new ArrayList<>();
     private String mModel = "[]";
+    private final List<Boolean> mSchedules = new ArrayList<>();
+    private final List<Runnable> mLater = new ArrayList<>();
+    private long mNow;
     private SharedPreferences mPrefs;
 
     @Before
@@ -56,6 +59,9 @@ public class ProfileSyncTest implements ProfileSync.Host {
     @Override public boolean blockingEnabled() { return true; }
     @Override public void setBlockingEnabled(boolean on) {}
     @Override public SharedPreferences prefs() { return mPrefs; }
+    @Override public void schedule(boolean on) { mSchedules.add(on); }
+    @Override public long now() { return mNow; }
+    @Override public void later(Runnable run, long millis) { mLater.add(run); }
 
     @Override
     public String canonicalUrls(String urls) {
@@ -167,5 +173,54 @@ public class ProfileSyncTest implements ProfileSync.Host {
         mCalls.clear();
         reconcile();
         assertTrue(mCalls.contains("settings.setSettings"));
+    }
+
+    @Test
+    public void backgroundSyncFollowsSyncOnceEachWay() {
+        ProfileSync profile = new ProfileSync(this);
+        profile.reconcile();
+        profile.reconcile();
+        assertEquals(List.of(true), mSchedules);
+        mReplies.put("sync.status", "{\"ok\":true,\"value\":{\"enabled\":false}}");
+        profile.reconcile();
+        profile.reconcile();
+        assertEquals(List.of(true, false), mSchedules);
+    }
+
+    @Test
+    public void aNewLaunchSchedulesAgainBecauseAForceStopDropsTheJob() {
+        new ProfileSync(this).reconcile();
+        new ProfileSync(this).reconcile();
+        assertEquals(List.of(true, true), mSchedules);
+    }
+
+    @Test
+    public void aRunnerThatDoesntAnswerLeavesTheScheduleAlone() {
+        mReplies.put("sync.status", "{\"ok\":false,\"error\":\"unavailable\"}");
+        reconcile();
+        assertTrue(mSchedules.isEmpty());
+    }
+
+    @Test
+    public void anAddressJustAddedHereIsntAgreedUntilChromiumHasSavedIt() {
+        mReplies.put("bookmarks.listBookmarks", "{\"ok\":true,\"value\":[" + favorite("a") + "]}");
+        ProfileSync profile = new ProfileSync(this);
+        profile.reconcile();
+        assertEquals(1, mApplied.size());
+        assertEquals(1, mLater.size());
+        mModel = "[" + favorite("a") + "]";
+        mNow = 1000;
+        profile.reconcile();
+        assertTrue("too soon", seen().isEmpty());
+        mNow = ProfileSync.SETTLE_MILLIS + 1000;
+        mLater.get(0).run();
+        assertEquals(Set.of("a"), seen());
+    }
+
+    @Test
+    public void aRunWaitsForThePassToSettle() {
+        List<String> order = new ArrayList<>();
+        new ProfileSync(this).reconcile(() -> order.add("done"));
+        assertEquals(List.of("done"), order);
     }
 }

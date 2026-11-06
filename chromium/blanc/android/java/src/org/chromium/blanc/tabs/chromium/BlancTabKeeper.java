@@ -6,10 +6,15 @@ import android.content.SharedPreferences;
 import android.os.Handler;
 import android.os.Looper;
 
+import org.json.JSONException;
+
+import org.chromium.base.ApplicationStatus;
 import org.chromium.base.ContextUtils;
 import org.chromium.blanc.blocking.BlockerBridge;
+import org.chromium.blanc.sync.OtherDevices;
 import org.chromium.blanc.sync.SyncBridge;
 import org.chromium.blanc.sync.SyncTestDriver;
+import org.chromium.blanc.sync.SyncedTabs;
 import org.chromium.blanc.tabs.BlancTabState;
 import org.chromium.blanc.tabs.QuietTabs;
 import org.chromium.build.annotations.NullMarked;
@@ -76,12 +81,14 @@ public final class BlancTabKeeper {
     /** {@code opensLink}: another app opened Blanc on a link. */
     public void start(boolean opensLink) {
         SyncTestDriver.maybeStart();
+        OtherDevices.setOpener(url -> mStore.create(url, false, null, -1));
         SyncBridge.startIfOn();
         boolean coldStart = !sStarted;
         sStarted = true;
         TabModelUtils.runOnTabStateInitialized(mSelector, selector -> {
             if (mDestroyed) return;
             BlancTabState.restore(mStore, prefs(), coldStart, opensLink);
+            publishTabs();
             mHandler.postDelayed(mSweep, QuietTabs.SWEEP_MILLIS);
         });
     }
@@ -89,15 +96,29 @@ public final class BlancTabKeeper {
     /** When the app goes to the background, which is before Android may end it. */
     public void save() {
         if (mSelector.isTabStateInitialized()) BlancTabState.save(mStore, prefs());
+        publishTabs();
+    }
+
+    /** Only once Chromium's tabs have loaded: an empty list would read as every tab closed. */
+    private void publishTabs() {
+        if (!mSelector.isTabStateInitialized()) return;
+        try {
+            SyncBridge.setTabs(SyncedTabs.arguments(mStore.tabs(false), mStore.groups()));
+        } catch (JSONException e) {
+            // Nothing to publish this time.
+        }
     }
 
     public void destroy() {
         mDestroyed = true;
+        OtherDevices.setOpener(null);
         mHandler.removeCallbacks(mSweep);
     }
 
     private void sweep() {
         if (mDestroyed) return;
+        // Out of sight, this would restart a runner Android ended, every sweep.
+        if (ApplicationStatus.hasVisibleActivities()) publishTabs();
         // Reloading a quiet tab couldn't load it while the blocker is down, so nothing goes quiet.
         if (BlockerBridge.UNAVAILABLE.equals(BlockerBridge.health())) {
             mHandler.postDelayed(mSweep, QuietTabs.SWEEP_MILLIS);

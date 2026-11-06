@@ -21,6 +21,30 @@ The decisions made while building A4 (sync), each with what it costs if wrong. P
 - The desktop syntax compile of the runner was skipped: its Mojo headers aren't generated in the Mac Studio tree, and desktop doesn't build the target until S4. Cost if wrong: compile fixes at S4.
 - Sync's test hooks follow `blanc_enable_test_hooks`, so A7 must build with the release channel or as an official build. Cost if wrong: a release would carry the test receiver, and A7's checks need to confirm it doesn't.
 
+## A4b: open tabs, Send to device, background sync
+
+- Background sync uses Chromium's own `BackgroundTaskScheduler`, not WorkManager. It's the same Android job underneath, already knows how to start Chromium with no window, and needs no new library. Cost if wrong: one job class to move.
+- Synced Recently closed moves to A4c, because the iPhone shows those rows only with the Spaces switch on. Cost if wrong: none until A4c.
+- This phone's tab icons aren't published yet, so other devices show their default icon. Cost if wrong: plainer rows elsewhere.
+- Other-device pages in the Quick Switcher open as a Favorite does. Cost if wrong: a small difference from the iPhone.
+- Tabs reach the runner at launch, when the app leaves the screen, and on the 30-second sweep. Cost if wrong: a shared tab can take that long to go out, on top of shipping's own delay.
+
+- The first sync after pairing isn't told the phone is in front for 20 seconds: in front, shipping leaves requests free for change checks, which held a first sync for 15 seconds. Cost if wrong: checks run at the background rate for those 20 seconds.
+- The Start Page's sent list belongs to the Ledger layout, so on Android's Billboard it's filled but out of sight, as on the iPhone; the palette is where a person sees it. Cost if wrong: none beyond the iPhone's.
+
+### Fixed in A4b's review
+
+- Saving after a call cancelled a live pairing code (Critical). `sync-bundle.test.mjs`, through `__call`.
+- Start Page sent rows did nothing, and an open Start Page never heard list changes.
+- The background job could replace itself mid-run, and ended before reconcile settled.
+- An address just added to Chromium could read as removed if Blanc died before Chromium saved it. `ProfileSyncTest`.
+- Two vacuous tests, now proven: the job's result is read before any window opens, and a private tab really loads.
+
+### Deferred minors
+
+- Other-device lists refresh with three calls per event, not coalesced.
+- The tab replay after pairing can miss if the store isn't written yet; the 30-second sweep repairs it.
+
 ## Fixed in A4a's review
 
 - A saved agreement could outrun what landed, so a refused or interrupted save read as a removal and deleted the person's bookmark (Critical). Agreement is now written only after the runner confirms and saves. `ProfileSyncTest`, `SyncedFavoritesTest`, and `sync.mjs` "a Favorite saved as the runner dies".

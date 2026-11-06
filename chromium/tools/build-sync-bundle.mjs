@@ -66,6 +66,8 @@ e[0](m,m.exports,r=>{const t=e[1][r];if(!t)throw new Error('no require '+r+' in 
 g.__require=load;})(globalThis);
 ${shim('api')}
 __keepUnknownSettings(${known});
+__require('src/main/sync.js');
+__require('shim:electron').__sealFlush();
 __require('src/main/sync.js').init();
 __listen();
 `;

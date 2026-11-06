@@ -66,6 +66,9 @@ public class PaletteSheetTest {
                 public void sync() {}
 
                 @Override
+                public void notice(String text) {}
+
+                @Override
                 public void blockAds() {
                     mThemes.add("block-ads");
                 }
@@ -170,7 +173,7 @@ public class PaletteSheetTest {
         type(sheet, "/");
         assertEquals(PaletteSheet.Mode.SLASH, sheet.mode());
         assertEquals(List.of("/favorites", "/history", "/sync", "/new", "/private", "/close", "/reopen", "/group",
-                "/ungroup", "/close-group", "/find", "/block-ads", "/allow-ads", "/theme"), titles(sheet, PaletteSheet.RowKind.COMMAND));
+                "/ungroup", "/close-group", "/send", "/find", "/block-ads", "/allow-ads", "/theme"), titles(sheet, PaletteSheet.RowKind.COMMAND));
         assertEquals("Close this tab", row(sheet, "/close").subtitle);
         type(sheet, "/cl");
         assertEquals(List.of("/close", "/close-group"), titles(sheet, PaletteSheet.RowKind.COMMAND));

@@ -37,7 +37,7 @@ public final class SlashCommands {
 
     private static final Set<Kind> BUILT =
             EnumSet.of(Kind.FAVORITES, Kind.HISTORY, Kind.SYNC, Kind.NEW, Kind.PRIVATE, Kind.CLOSE, Kind.REOPEN,
-                    Kind.GROUP, Kind.UNGROUP, Kind.CLOSE_GROUP, Kind.FIND, Kind.BLOCK_ADS, Kind.ALLOW_ADS, Kind.THEME);
+                    Kind.GROUP, Kind.UNGROUP, Kind.CLOSE_GROUP, Kind.SEND, Kind.FIND, Kind.BLOCK_ADS, Kind.ALLOW_ADS, Kind.THEME);
 
     private SlashCommands() {}
 

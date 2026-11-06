@@ -44,9 +44,19 @@ final class ProfileSync {
         void setBlockingEnabled(boolean on);
 
         SharedPreferences prefs();
+
+        /** Background sync on or off. */
+        void schedule(boolean on);
+
+        long now();
+
+        void later(Runnable run, long millis);
     }
 
     private static final String TAG = "BlancSync";
+    // Chromium writes its bookmarks a few seconds after a change. Until it surely has, an address
+    // this added isn't recorded as held by both, so dying in the gap can't read as a removal.
+    static final long SETTLE_MILLIS = 10_000;
     static final String SEEN_FAVORITES = "blanc.sync.favorites.seen";
     private static final String SEEN_THEME = "blanc.sync.theme.seen";
     private static final String SEEN_BLOCKING = "blanc.sync.blocking.seen";
@@ -54,11 +64,20 @@ final class ProfileSync {
     private static final String[] THEMES = {"system", "light", "dark"};
 
     private final Host mHost;
+    private @Nullable Boolean mScheduled;
+    private final Map<String, Long> mFresh = new HashMap<>();
+    private final List<Runnable> mDone = new ArrayList<>();
     private boolean mRunning;
     private boolean mAgain;
 
     ProfileSync(Host host) {
         mHost = host;
+    }
+
+    /** Runs `done` once no pass is left to run. */
+    void reconcile(Runnable done) {
+        mDone.add(done);
+        reconcile();
     }
 
     /** One pass at a time; a change during a pass runs another after it. */
@@ -76,11 +95,20 @@ final class ProfileSync {
                 finish();
             } else if (!status.optBoolean("enabled")) {
                 mHost.prefs().edit().remove(SEEN_FAVORITES).remove(SEEN_THEME).remove(SEEN_BLOCKING).apply();
+                schedule(false);
                 finish();
             } else {
+                schedule(true);
                 favorites();
             }
         });
+    }
+
+    // Once per launch and per change, not once ever: a force-stop makes Android drop the job.
+    private void schedule(boolean on) {
+        if (mScheduled != null && mScheduled == on) return;
+        mHost.schedule(on);
+        mScheduled = on;
     }
 
     private void finish() {
@@ -88,7 +116,11 @@ final class ProfileSync {
         if (mAgain) {
             mAgain = false;
             reconcile();
+            return;
         }
+        List<Runnable> done = new ArrayList<>(mDone);
+        mDone.clear();
+        for (Runnable run : done) run.run();
     }
 
     private static @Nullable JSONObject parse(String reply) {
@@ -153,6 +185,11 @@ final class ProfileSync {
         }
         SyncedFavorites.Plan plan = SyncedFavorites.plan(mine, theirs,
                 mHost.prefs().getStringSet(SEEN_FAVORITES, new HashSet<>()));
+        long now = mHost.now();
+        mFresh.values().removeIf(at -> now - at >= SETTLE_MILLIS);
+        for (Entry entry : plan.addToModel) mFresh.put(entry.url, now);
+        plan.seen.removeAll(mFresh.keySet());
+        if (!plan.addToModel.isEmpty()) mHost.later(this::reconcile, SETTLE_MILLIS + 1000);
         if (!plan.addToModel.isEmpty() || !plan.removeFromModel.isEmpty() || !plan.retitleModel.isEmpty()) {
             mHost.favoritesApply(new JSONObject().put("add", json(plan.addToModel))
                     .put("remove", json(plan.removeFromModel)).put("retitle", json(plan.retitleModel)).toString());

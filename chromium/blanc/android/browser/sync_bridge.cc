@@ -20,6 +20,7 @@
 #include "base/scoped_observation.h"
 #include "base/strings/utf_string_conversions.h"
 #include "base/values.h"
+#include "blanc/android/browser/sync_start_data.h"
 #include "blanc/android/sync_jni/SyncBridge_jni.h"
 #include "blanc/services/blocker/blocker_proxy.h"
 #include "blanc/services/sync_runner/sync_runner_proxy.h"
@@ -100,6 +101,14 @@ class AndroidSync : public SyncPlatform {
     return out;
   }
 };
+struct Lists {
+  base::ListValue devices, sent;
+};
+Lists& StartLists() {
+  static base::NoDestructor<Lists> lists;
+  return *lists;
+}
+
 Profile* MainProfile() {
   Profile* profile = ProfileManager::GetLastUsedProfile();
   return profile ? profile->GetOriginalProfile() : nullptr;
@@ -202,6 +211,30 @@ static jni_zero::ScopedJavaLocalRef<jstring> JNI_SyncBridge_CanonicalUrls(JNIEnv
     }
   }
   return base::android::ConvertUTF8ToJavaString(env, base::WriteJson(out).value_or("[]"));
+}
+
+static void JNI_SyncBridge_SetStartData(JNIEnv* env, const jni_zero::JavaRef<jstring>& devices,
+                                        const jni_zero::JavaRef<jstring>& sent) {
+  auto read = [&](const jni_zero::JavaRef<jstring>& json) {
+    auto value = base::JSONReader::Read(base::android::ConvertJavaStringToUTF8(env, json), base::JSON_PARSE_RFC);
+    return value && value->is_list() ? std::move(value->GetList()) : base::ListValue();
+  };
+  StartLists().devices = read(devices);
+  StartLists().sent = read(sent);
+  SyncStartListsChanged();
+}
+
+void SyncSentAction(const std::string& id, bool open) {
+  JNIEnv* env = jni_zero::AttachCurrentThread();
+  Java_SyncBridge_sentAction(env, base::android::ConvertUTF8ToJavaString(env, id), open);
+}
+
+base::ListValue SyncRemoteDevices() {
+  return StartLists().devices.Clone();
+}
+
+base::ListValue SyncSentItems() {
+  return StartLists().sent.Clone();
 }
 
 static jboolean JNI_SyncBridge_BlockingEnabled(JNIEnv*) {

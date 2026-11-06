@@ -97,3 +97,29 @@ test('runner.flush saves a pending store now', async () => {
   await new Promise(done => device.context.__call('runner.flush', '[]', done));
   assert.match(Buffer.from(device.stores['bookmarks.json']).toString(), /flushed/);
 });
+
+test('a call is saved before it answers', async () => {
+  const device = peer('Saved', 'http://127.0.0.1:1');
+  const answer = await new Promise(done => device.context.__call('bookmarks.saveFavorite', '["https://example.org/kept","Kept"]', (ok, value) => done({ok, value})));
+  assert.equal(answer.ok, true);
+  const saved = JSON.parse(Buffer.from(device.stores['bookmarks.json']).toString());
+  assert.deepEqual(saved.items.map(item => item.url), ['https://example.org/kept']);
+});
+
+test('a pairing code survives the save after its own call', async () => {
+  const worker = await createSyncFixture();
+  try {
+    const device = peer('Pairs', worker.url);
+    await device.sync.startNew({handle: 'tester'});
+    device.sync.resetRequestWindowForTest();
+    const call = (method, args = []) => new Promise(done => device.context.__call(method, JSON.stringify(args), (ok, value) => done({ok, value: JSON.parse(value)})));
+    const {value} = await call('sync.beginPairing');
+    assert.equal(value.ok, true);
+    await call('bookmarks.listBookmarks');
+    assert.equal((await call('sync.pairingState')).value.active, true);
+    const other = peer('Joins', worker.url);
+    assert.equal((await other.sync.joinWithCode(value.code)).ok, true);
+  } finally {
+    await worker.close();
+  }
+});

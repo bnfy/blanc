@@ -4,7 +4,17 @@ const MODULES = {sync: 'sync', bookmarks: 'bookmarks', settings: 'settings'};
 globalThis.__call = (method, argsJson, done) => {
   // Saves every store's pending change now, so what the phone writes down as agreed is on disk.
   if (method === 'runner.flush') {
-    __require('shim:electron').__quit();
+    __require('shim:electron').__flush();
+    done(true, 'null');
+    return;
+  }
+  // The phone's tabs, once its tab model has them. Until then the session store stays a no-op, so
+  // a background run with no window can't publish an empty list.
+  if (method === 'phone.setTabs') {
+    const [tabList, groups] = JSON.parse(argsJson);
+    globalThis.__phoneTabs = {tabList, groups};
+    __require('src/main/tabsync.js').noteTabsChanged();
+    __require('src/main/sync.js').setTabStateReady(true);
     done(true, 'null');
     return;
   }
@@ -14,7 +24,11 @@ globalThis.__call = (method, argsJson, done) => {
     const target = file && __require(`src/main/${file}.js`)[fn];
     if (typeof target !== 'function') throw new Error(`no method ${method}`);
     return target(...JSON.parse(argsJson || '[]'));
-  }).then(value => done(true, JSON.stringify(value === undefined ? null : value)), error => done(false, String(error && error.message || error)));
+  }).then(value => {
+    // Android can end Blanc at any moment: what a call changed is saved before it answers.
+    __require('shim:electron').__flush();
+    done(true, JSON.stringify(value === undefined ? null : value));
+  }, error => done(false, String(error && error.message || error)));
 };
 
 // What the phone needs to hear about. Merges count: they're how another device's change arrives.
@@ -25,6 +39,12 @@ globalThis.__listen = () => {
   bookmarks.onMerged(() => __host.emit('favorites', ''));
   settings.onSettingsChanged(() => __host.emit('settings', ''));
   sync.onAccountChanged(() => __host.emit('account', ''));
+  const tabsync = __require('src/main/tabsync.js');
+  globalThis.__phoneTabs = {tabList: [], groups: []};
+  tabsync.setSnapshotProvider(() => globalThis.__phoneTabs);
+  __require('src/main/tabicons.js').setSnapshotProvider(() => ({tabList: []}));
+  tabsync.onRemoteChanged(() => __host.emit('remote', ''));
+  sync.onSendsChanged(() => __host.emit('remote', ''));
 };
 
 // A setting a newer device added stays in the blob, as on the iPhone. Shipping's settings module
