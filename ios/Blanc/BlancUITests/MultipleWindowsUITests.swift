@@ -34,7 +34,11 @@ final class MultipleWindowsUITests: XCTestCase {
 
   func testMoveTabToNewWindowCarriesThePage() throws {
     let app = try launch()
-    app.openTabGrid()
+    // A pinch, because iPadOS's "Hidden Windows" hint can sit over the Island's
+    // middle after a relaunch, and the previous test leaves a window behind.
+    let page = app.webViews.firstMatch
+    XCTAssertTrue(page.waitForExistence(timeout: 10))
+    page.pinch(withScale: 0.4, velocity: -1)
     let cards = app.descendants(matching: .any).matching(identifier: "tab.card")
     XCTAssertTrue(cards.element(boundBy: 1).waitForExistence(timeout: 5))
     cards.element(boundBy: 1).press(forDuration: 1.2)
