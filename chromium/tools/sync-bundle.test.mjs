@@ -102,7 +102,8 @@ test('a call is saved before it answers', async () => {
   const device = peer('Saved', 'http://127.0.0.1:1');
   const answer = await new Promise(done => device.context.__call('bookmarks.saveFavorite', '["https://example.org/kept","Kept"]', (ok, value) => done({ok, value})));
   assert.equal(answer.ok, true);
-  assert.match(Buffer.from(device.stores['bookmarks.json']).toString(), /example\.org\/kept/);
+  const saved = JSON.parse(Buffer.from(device.stores['bookmarks.json']).toString());
+  assert.deepEqual(saved.items.map(item => item.url), ['https://example.org/kept']);
 });
 
 test('a pairing code survives the save after its own call', async () => {
