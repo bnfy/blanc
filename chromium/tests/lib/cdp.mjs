@@ -1,5 +1,8 @@
 import {jsLiteral} from './js-literal.mjs';
 export const pause = ms => new Promise(resolve => setTimeout(resolve, ms));
+// Playwright's wording: shipping's steps recognise a page that closed under a
+// call by this message (isTargetClosedError in poll.js).
+const closedError = () => Error('CDP connection closed: Target page, context or browser has been closed');
 export async function connect(target) {
   const socket = new WebSocket(target.webSocketDebuggerUrl);
   await new Promise((resolve, reject) => { socket.onopen = resolve; socket.onerror = reject; });
@@ -15,7 +18,7 @@ export async function connect(target) {
     message.error ? call.reject(Error(JSON.stringify(message.error))) : call.resolve(message.result);
   };
   socket.onclose = () => {
-    for (const call of pending.values()) { clearTimeout(call.timer); call.reject(Error('CDP connection closed')); }
+    for (const call of pending.values()) { clearTimeout(call.timer); call.reject(closedError()); }
     pending.clear();
   };
   return {
@@ -27,6 +30,7 @@ export async function connect(target) {
     },
     send(method, params = {}) {
       return new Promise((resolve, reject) => {
+        if (socket.readyState !== WebSocket.OPEN) { reject(closedError()); return; }
         const id = ++next;
         const timer = setTimeout(() => { pending.delete(id); reject(Error('CDP timeout: ' + method)); }, 15000);
         pending.set(id, { resolve, reject, timer }); socket.send(JSON.stringify({id, method, params}));

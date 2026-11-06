@@ -224,6 +224,9 @@ export const tabs={
    return {tabId:String(id),focused:id===(s.focusedTabId??s.activeTabId),frame:{...f},content:{x:f.x+1,y:f.y+1,width:f.width-2,height:f.height-2}};})};
  },
  workspacePageScript:(w,id,source)=>w.call('executeTab',id,source),
+ // Shipping reads the WebContents id; a mark in the document also changes if
+ // the page reloads, which is what its steps rule out.
+ workspacePageIdentity:(w,id)=>w.call('executeTab',id,'window.__blancPageIdentity??=crypto.randomUUID()'),
  // Spaces (F41), through the host's bridge as the menu calls it.
  workspaceAction:(w,action,...args)=>spaceAction((method,list)=>w.api(method,list),action,args),
  async workspaceActionInWindow(w,id,action,...args){

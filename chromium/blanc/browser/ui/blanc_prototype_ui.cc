@@ -1127,8 +1127,8 @@ class Owner : public base::SupportsUserData::Data,
   void OnTabStripModelChanged(TabStripModel*, const TabStripModelChange& change,
                               const TabStripSelectionChange& selection) override {
     // A tab that arrives without taking over was opened in the background.
-    if (const auto* insert = change.GetInsert()) {
-      for (const auto& inserted : insert->contents)
+    if (change.type() == TabStripModelChange::kInserted) {
+      for (const auto& inserted : change.GetInsert()->contents)
         if (inserted.contents != selection.new_contents)
           background_opened.insert(sessions::SessionTabHelper::IdForTab(inserted.contents).id());
     }
@@ -2294,6 +2294,13 @@ bool ValidSpace(const base::DictValue& record) {
   }
   return true;
 }
+// A page still arriving. A frame that keeps reloading leaves IsLoading() true
+// for good once the document itself has loaded, and that page can be set aside.
+bool MainDocumentLoading(content::WebContents* tab) {
+  return tab->IsLoading() && (!tab->IsDocumentOnLoadCompletedInPrimaryMainFrame() ||
+      tab->GetController().GetPendingEntry());
+}
+
 std::optional<base::DictValue> CaptureNativeSpace(BrowserWindowInterface* browser) {
   if (browser->GetProfile()->IsOffTheRecord()) return std::nullopt;
   auto* model = browser->GetTabStripModel();
@@ -2320,9 +2327,9 @@ std::optional<base::DictValue> CaptureNativeSpace(BrowserWindowInterface* browse
       continue;
     }
     if (i == model->active_index()) active = static_cast<int>(tabs.size());
-    // In-flight navigation and unload-sensitive forms remain ineligible.
-    if (tab->IsLoading() ||
-        tab->NeedToFireBeforeUnload()) return std::nullopt;
+    // A page in flight can't be saved. Unsaved work can: a set-aside page stays
+    // live, and HeldTabCanQuiet never lets one with a beforeunload handler go.
+    if (MainDocumentLoading(tab)) return std::nullopt;
     if (auto id = model->GetSplitForTab(i)) {
       if (!tab->GetUserData(kPersistentSplitKey)) return std::nullopt;
       if (!captured_splits.contains(*id)) {
@@ -3667,7 +3674,8 @@ class CreatedSearchTabCapture : public TabStripModelObserver {
   void OnTabStripModelChanged(TabStripModel* model, const TabStripModelChange& change,
                               const TabStripSelectionChange& selection) override {
     if (model != model_ || invalid_) return;
-    if (const auto* insert = change.GetInsert()) {
+    if (change.type() == TabStripModelChange::kInserted) {
+      const auto* insert = change.GetInsert();
       if (seen_ || insert->contents.size() != 1 || !original_ ||
           selection.old_contents != original_.get()) { invalid_ = true; return; }
       auto* candidate = insert->contents[0].contents.get();
@@ -5541,7 +5549,7 @@ class Handler : public content::WebUIMessageHandler, public extensions::Extensio
         });
         auto* opener = tab->GetOpener();
         const char* reason = tab->IsBeingCaptured() ? "capture" : popups ? "popup"
-            : tab->IsLoading() && !tab->IsDocumentOnLoadCompletedInPrimaryMainFrame() ? "loading"
+            : MainDocumentLoading(tab) ? "loading"
             : opener && opener->IsRenderFrameLive() && !owner->background_opened.contains(tab_id) ? "opener"
             : nullptr;
         if (!reason) continue;

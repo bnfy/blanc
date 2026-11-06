@@ -875,6 +875,22 @@ remain pending. D3 beta-only no-DRM exception accepted; EME notice/handoff requi
   same way; only that one has shown up. 12 of 84 cases pass, 10 fail, 62
   undefined. split-view 24 / 2, island-and-commands 64 / 2, tabs-and-groups
   32 / 1, the same known failures.
+- **S3.7 Spaces sign-in guard, candidate macos-fe6c9becc12242de (2026-11-06):** a
+  switch is refused while a page has a live pop-up, a live opener, capture, or a
+  main document still loading, naming the pages (F41-13, F41-14). A closed
+  opener, a frame that keeps reloading and a tab opened in the background don't
+  block (F41-80, F41-81, F41-82). Saving no longer refuses a page with a
+  `beforeunload` handler: set-aside pages stay live, and `HeldTabCanQuiet` never
+  releases one. Two crashes fixed: `TabStripModelChange::GetInsert()` aborts on
+  a change that isn't an insert, which the guard's first version hit on every
+  tab close and the older search-tab capture could also hit. The Spaces menu now
+  sits under the mark; it had been at the window's top left with the wrong click
+  region. The test shim gained `context().pages()`, `$`, `$$eval`, `close`
+  waits and held keys on mouse clicks, so modifier clicks are tested for the
+  first time. 22 of 84 cases pass, 5 fail, 57 undefined. Other features were
+  not rerun on this candidate. The five failures are F41-5, F41-6, F41-7, F41-9
+  and F41-11; F41-9 is a real gap, because `newWindow` isn't built and the
+  decision dialog's New Window button only asks again.
 - **Mahjong goes last (owner, 2026-11-04):** the fork has no Mahjong yet
   (F35-3, F35-4, F35-9 fail at the footer launch). When it is built it is an
   Island page (shipping's files served as byte-identical copies, opened as an
@@ -1374,5 +1390,5 @@ Android's Bar A counts the shared scenarios bound in `chromium/tests/android/acc
 
 Legacy macOS stages come from the approved spec; they await verification on the canonical candidate. No legacy stage counts as Verified.
 
-Candidate identities: macOS: macos-b58823f2ae9957ff; Windows: none; Linux: none; Android: android-arm64-7bd35e94ef746069.
+Candidate identities: macOS: macos-fe6c9becc12242de; Windows: none; Linux: none; Android: android-arm64-7bd35e94ef746069.
 <!-- END GENERATED PROGRESS -->

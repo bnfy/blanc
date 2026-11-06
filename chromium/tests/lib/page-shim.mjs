@@ -29,9 +29,9 @@ export class Keyboard{
  async insertText(text){await this.cdp.send('Input.insertText',{text});}
 }
 export class Mouse{
- constructor(cdp,offset){this.cdp=cdp;this.offset=offset;this.x=0;this.y=0;this.buttons=0;}
+ constructor(cdp,offset,modifiers=()=>0){this.cdp=cdp;this.offset=offset;this.modifiers=modifiers;this.x=0;this.y=0;this.buttons=0;}
  async event(type,x,y,extra={}){const o=await this.offset();
-  await this.cdp.send('Input.dispatchMouseEvent',{type,x:x+o.x,y:y+o.y,buttons:this.buttons,...extra});}
+  await this.cdp.send('Input.dispatchMouseEvent',{type,x:x+o.x,y:y+o.y,buttons:this.buttons,modifiers:this.modifiers(),...extra});}
  async move(x,y,{steps=1}={}){const fx=this.x,fy=this.y;
   for(let i=1;i<=steps;i++)await this.event('mouseMoved',fx+(x-fx)*i/steps,fy+(y-fy)*i/steps,this.buttons?{button:'left'}:{});
   this.x=x;this.y=y;}
@@ -125,7 +125,7 @@ export class Page{
  // frame: null for a top-level target; otherwise the host iframe's id.
  constructor({cdp,url,frame=null,host=null,closed=()=>false}){
   this.cdp=cdp;this.pageUrl=url;this.frame=frame;this.host=host;this.closedProbe=closed;this.contexts=new Map();
-  this.keyboard=new Keyboard(cdp);this.mouse=new Mouse(cdp,()=>this.offset());
+  this.keyboard=new Keyboard(cdp);this.mouse=new Mouse(cdp,()=>this.offset(),()=>this.keyboard.modifiers);
  }
  async offset(){if(!this.frame)return {x:0,y:0};
   return this.cdp.eval(`(()=>{const r=document.getElementById(${jsLiteral(this.frame)}).getBoundingClientRect();return {x:r.x,y:r.y}})()`);}
@@ -155,6 +155,9 @@ export class Page{
  waitForTimeout(ms){return pause(ms);}
  async waitForLoadState(){await this.waitForFunction(()=>document.readyState!=='loading');}
  locator(selector,options){return new Locator(this,[step(selector,options)]);}
+ // Playwright's page.$: the first match, or null when nothing matches.
+ async $(selector){const found=this.locator(selector);return await found.count()?found.first():null;}
+ $$eval(selector,fn,arg){return this.locator(selector).all(fn,arg);}
  getByRole(){throw new UndefinedNativeAdapterError('Page shim lacks getByRole');}
  fill(selector,value){return this.locator(selector).fill(value);}
  press(selector,key){return this.locator(selector).press(key);}
@@ -168,8 +171,13 @@ export class Page{
  url(){return this.pageUrl;}
  isClosed(){return this.closed===true||this.closedProbe();}
  screenshot(){throw new UndefinedNativeAdapterError('Page shim lacks screenshot');}
- waitForEvent(){throw new UndefinedNativeAdapterError('Page shim lacks waitForEvent');}
- context(){throw new UndefinedNativeAdapterError('Page shim lacks context');}
+ // Only a target's close: a page's own events don't cross this connection.
+ async waitForEvent(name,{timeout=5000}={}){
+  if(name!=='close'||!this.app)throw new UndefinedNativeAdapterError('Page shim waits only for a tab closing');
+  const end=Date.now()+timeout;
+  for(;;){await this.app.refresh();if(this.isClosed())return;
+   if(Date.now()>end)throw Error('Timeout waiting for the page to close');await pause(50);}}
+ context(){if(!this.app)throw new UndefinedNativeAdapterError('Page shim lacks context');return this.app.context();}
  bringToFront(){return this.cdp.send('Page.bringToFront');}
 }
 // Shipping URLs for the Island's documents and its internal pages.
@@ -195,17 +203,25 @@ export function createAppShim(fixture){
    return port(fixture,ported,arg);
   },
   firstWindow(){return pages.get('strip');},
+  // Playwright's BrowserContext. pages() is synchronous, so a poll sees a
+  // new or navigated tab on its next read.
+  context(){return {
+   pages(){app.refresh().catch(()=>{});return [...pages.values()].filter(page=>page.targetId);},
+   async cookies(){return (await fixture.browser.send('Storage.getCookies')).cookies;},
+  };},
   // A relaunch replaces every connection; pages are rebuilt on refresh.
   reset(){for(const page of pages.values())page.closed=true;pages.clear();},
   async refresh(){
-   for(const [url,frame] of Object.entries(ISLAND_FRAMES))if(!pages.has(frame))pages.set(frame,new Page({cdp:fixture.host,url,frame,host:fixture.host}));
+   for(const [url,frame] of Object.entries(ISLAND_FRAMES))if(!pages.has(frame)){const page=new Page({cdp:fixture.host,url,frame,host:fixture.host});page.app=app;pages.set(frame,page);}
    const targets=(await fixture.targets()).filter(t=>t.type==='page'&&!t.url.startsWith('chrome://blanc-prototype/host.html'));
    const live=new Set(targets.map(t=>t.id));
    for(const [key,page] of pages)if(page.targetId&&!live.has(page.targetId)){page.closed=true;pages.delete(key);}
+   // A tab keeps its target as it navigates.
+   for(const t of targets)if(pages.has(t.id))pages.get(t.id).pageUrl=shippingPageUrl(t.url);
    for(const t of targets)if(!pages.has(t.id)){
-    const page=new Page({cdp:null,url:shippingPageUrl(t.url),closed:()=>page.closed===true});page.targetId=t.id;
+    const page=new Page({cdp:null,url:shippingPageUrl(t.url),closed:()=>page.closed===true});page.targetId=t.id;page.app=app;
     // Connect lazily; most steps never touch tab documents.
-    const connectFor=async()=>{if(!page.cdp){page.cdp=await fixture.connectTarget(t);page.keyboard=new Keyboard(page.cdp);page.mouse=new Mouse(page.cdp,()=>page.offset());}return page.cdp;};
+    const connectFor=async()=>{if(!page.cdp){page.cdp=await fixture.connectTarget(t);page.keyboard=new Keyboard(page.cdp);page.mouse=new Mouse(page.cdp,()=>page.offset(),()=>page.keyboard.modifiers);}return page.cdp;};
     for(const m of ['evalExpression','offset'])page[m]=(orig=>async(...a)=>{await connectFor();return orig.apply(page,a);})(Page.prototype[m]);
     pages.set(t.id,page);
    }

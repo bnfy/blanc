@@ -803,9 +803,26 @@
     }
   }
 
+  // Shipping's calculateSpacesBounds: the 300px menu's left edge under the
+  // mark, kept in the window, in a view reaching 44px past its sides and 16px
+  // above it for its shadow. CSS places the menu at (44, 16) in that view.
+  function positionSpaces() {
+    const rect = strip.contentDocument?.getElementById('pillSpace')?.getBoundingClientRect();
+    const stripRect = strip.getBoundingClientRect();
+    const wanted = rect ? stripRect.x + rect.x : (innerWidth - 300) / 2;
+    const pill = strip.contentDocument?.getElementById('islandPill')?.getBoundingClientRect();
+    const bottom = stripRect.y + Math.max(rect?.bottom ?? 0, pill?.bottom ?? 0);
+    const below = rect ? Math.min(bottom, stripH()) : stripH();
+    const x = Math.round(Math.max(0, Math.min(wanted, innerWidth - 300))) - 44;
+    const y = Math.max(0, Math.round(below + 6 - 16));
+    Object.assign(overlay.style, {left: x + 'px', top: y + 'px', right: 'auto', bottom: 'auto',
+      width: '388px', height: Math.max(0, Math.min(640, innerHeight - y)) + 'px'});
+  }
+
   // Shipping chrome-layout.js: 404px view, 380px card, centered on the
   // measured trigger and clamped inside the window. CSS paints the card.
   function positionShield() {
+    if (opened && overlayMode === 'spaces') { positionSpaces(); return; }
     if (!opened || overlayMode !== 'shield') {
       for (const key of ['left', 'top', 'width', 'height', 'right', 'bottom']) overlay.style[key] = '';
       return;
@@ -828,7 +845,7 @@
     const panel = paneMenu ?? (extensionsOpened ? document.getElementById('extensionsPanel')
       : !opened && !sheet.page && prompts.size ? permissionFrame
       : opened ? overlay.contentDocument?.getElementById(overlayMode === 'find' ? 'findBar' : overlayMode === 'shield' ? 'shieldPop'
-        : overlayMode === 'group-menu' ? 'groupMenu' : 'islandPanel')
+        : overlayMode === 'group-menu' ? 'groupMenu' : overlayMode === 'spaces' ? 'workspaceSwitcher' : 'islandPanel')
       : strip.contentDocument?.getElementById('islandPill'));
     if (!slot || !panel) return;
     const a = slot.getBoundingClientRect();

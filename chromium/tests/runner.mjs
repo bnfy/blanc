@@ -71,7 +71,12 @@ async function runCase(matches,steps,tags=[]){
    .then(()=>assertRendering(e=>fixture.host.eval(e))).catch(stop=>{if(stop.code==='BLANC_ENVIRONMENT_STOP')error=stop;});
   if(error.code==='BLANC_ENVIRONMENT_STOP'){entry.stop=error;}
   else{entry.result=error.code==='BLANC_ADAPTER_UNDEFINED'?'undefined':'fail';entry.error=String(error.message||error);if(fs.existsSync(fixture.directory||''))fs.writeFileSync(path.join(fixture.directory,'error.txt'),String(error.stack||error));}}
- finally{entry.browserExit=await fixture.close();if(fixture.reapedHelpers)entry.reapedHelpers=fixture.reapedHelpers;
+ finally{
+  // Shipping's After hooks restore its shared app, which a fresh browser per
+  // case doesn't need. A Before hook's server still has to close, or Node
+  // never exits.
+  await world.lifecycleFixture?.close().catch(()=>{});
+  entry.browserExit=await fixture.close();if(fixture.reapedHelpers)entry.reapedHelpers=fixture.reapedHelpers;
   if(fixture.directory&&fs.existsSync(fixture.directory)){const keep=path.join(out,'fixtures',entry.fixture);fs.mkdirSync(keep,{recursive:true});
    for(const f of ['browser.log','error.txt'])if(fs.existsSync(path.join(fixture.directory,f)))fs.copyFileSync(path.join(fixture.directory,f),path.join(keep,f));
    fs.rmSync(fixture.directory,{recursive:true,force:true});}if(entry.result==='pass'&&entry.browserExit?.code!==0){entry.result='fail';entry.error='Native fixture did not exit cleanly';}}
