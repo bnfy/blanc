@@ -11,14 +11,16 @@ struct ContentView: View {
     /// A private tab uses the private (dark) look whatever the appearance setting.
     private var style: BrowserStyle { BrowserStyle(scheme: isPrivate ? .dark : colorScheme) }
     @State private var showTabGrid = false
-    /// Where the page is on its way into or out of the tab grid.
+    /// Which way the page is going; a finger's moves go straight to the stage.
     @State private var gridPage = TabGridMotion.Page.full
-    /// The page's opacity, which fades as it lands in its card.
+    /// 0 while the stage stands in for the page.
     @State private var gridPageOpacity: Double = 1
     /// Each tab's card in the grid, so the page knows where any tab's sits.
     @State private var cardFrames = TabCardFrames()
-    /// The cards the pages on screen land on or leave from, read as they do.
-    @State private var landingCards: [UUID: CGRect] = [:]
+    /// Pictures of the pages, which travel to and from the grid in their place.
+    @State private var stage = PageStageView()
+    /// The Island fades out as the grid opens and back as it closes.
+    @State private var islandGoneForGrid = false
     /// Goes up as the grid opens or closes, so a delayed step can tell it's stale.
     @State private var gridPass = 0
     @State private var pageFrame = CGRect.zero
@@ -111,23 +113,13 @@ struct ContentView: View {
                 .onGeometryChange(for: CGRect.self) { $0.frame(in: .global) } action: { pageFrame = $0 }
             if showTabGrid {
                 TabGridView(manager: manager, close: { closeTabGrid() }, onCardFrame: { cardFrames.byTab[$0] = $1 })
-                    // In whole points, so it's redrawn less often as the fingers move.
-                    .blur(radius: reduceMotion ? 0 : (20 * (1 - gridProgress)).rounded())
             }
             // One layout for one page or a split's panes: the current tab's
             // view keeps its identity when a split opens or closes around it,
             // so its web view moves and never reloads.
             SplitPaneLayout(ratio: draggedRatio ?? shownSplit?.ratio ?? 0.5,
                             inset: Self.splitInset, gap: Self.splitGap) {
-                // Each page moves on its own, so a split's panes can land on
-                // their own cards.
-                ForEach(Array(visibleTabs.enumerated()), id: \.element.id) { index, tab in
-                    let motion = gridMotion(tab, at: index)
-                    pane(tab)
-                        .clipShape(RoundedRectangle(cornerRadius: motion.cornerRadius, style: .continuous))
-                        .scaleEffect(motion.scale)
-                        .offset(motion.offset)
-                }
+                ForEach(visibleTabs, id: \.id) { tab in pane(tab) }
             }
             .overlay { if let split = shownSplit { splitDivider(split).opacity(showTabGrid ? 0 : 1) } }
             .padding(islandAtTop ? .top : .bottom, shownSplit != nil ? islandBand : 0)
@@ -136,6 +128,8 @@ struct ContentView: View {
             .opacity(gridPageOpacity)
             .allowsHitTesting(!showTabGrid)
             .accessibilityHidden(showTabGrid)
+            // Pictures of the pages, while they go to and from the grid.
+            PageStageHost(stage: stage).ignoresSafeArea().allowsHitTesting(false).accessibilityHidden(true)
             if swipeOffset != 0, let tab = manager.activeTab,
                let neighbor = manager.neighbor(of: tab.id, offset: swipeOffset < 0 ? 1 : -1) {
                 neighborPage(neighbor)
@@ -161,7 +155,7 @@ struct ContentView: View {
                 .offset(y: isIslandTucked && !reduceMotion ? (islandAtTop ? -(islandHeight + 80) : islandHeight + 40) : 0)
                 // Barely there, not gone, while it's being dragged: a view at
                 // zero opacity would lose the finger.
-                .opacity(isIslandTucked && reduceMotion ? 0 : max(isLifting ? 0.01 : 0, 1 - min(1, gridProgress * 3)))
+                .opacity(isIslandTucked && reduceMotion ? 0 : islandGoneForGrid ? (isLifting ? 0.01 : 0) : 1)
                 .allowsHitTesting(!isIslandTucked && islandTakesTouches)
                 .accessibilityHidden(showTabGrid)
                 .animation(.snappy(duration: 0.3), value: isIslandTucked)
@@ -623,8 +617,6 @@ struct ContentView: View {
     /// back, so a quick tap or swipe after a short drag isn't lost.
     private var islandTakesTouches: Bool { !showTabGrid || isLifting || gridPage == .full }
 
-    private var gridProgress: CGFloat { TabGridMotion.progress(gridPage) }
-
     /// Glance stays through a lift, which may still settle back.
     private var showsGlance: Bool { layout.showsSplitView && shownSplit == nil && (!showTabGrid || isLifting) }
 
@@ -639,18 +631,53 @@ struct ContentView: View {
             .frames(in: area, count: visibleTabs.count)
     }
 
-    private func gridMotion(_ tab: TabModel, at index: Int) -> TabGridMotion.Transform {
+    /// Where each page on screen sits at a point of the motion.
+    private func stageSpots(_ page: TabGridMotion.Page, cards: [UUID: CGRect] = [:]) -> [UUID: PageStageView.Spot] {
         let panes = paneFrames
-        return TabGridMotion.transform(gridPage, pane: panes.indices.contains(index) ? panes[index] : nil, in: pageFrame,
-                                       card: landingCards[tab.id], centered: tab.currentURL.scheme == "blanc")
+        var spots: [UUID: PageStageView.Spot] = [:]
+        for (index, tab) in visibleTabs.enumerated() {
+            let pane = panes.indices.contains(index) ? panes[index] : pageFrame
+            let motion = TabGridMotion.transform(page, pane: pane, in: pageFrame, card: cards[tab.id],
+                                                 centered: tab.currentURL.scheme == "blanc")
+            spots[tab.id] = PageStageView.Spot(clip: TabGridMotion.clip(page, motion, pane: pane, card: cards[tab.id]),
+                                               scale: motion.scale,
+                                               radius: max(motion.cornerRadius * motion.scale, shownSplit == nil ? 0 : Self.paneRadius))
+        }
+        return spots
+    }
+
+    /// A tab's last picture on a plain page, for a tab that isn't on the stage.
+    private func stagePicture(_ tab: TabModel, size: CGSize) -> UIView {
+        let view = UIView(frame: CGRect(origin: .zero, size: size))
+        view.backgroundColor = UIColor(BrowserStyle(scheme: tab.isPrivate ? .dark : colorScheme).background)
+        if let image = tab.pagePicture ?? tab.thumbnail, image.size.width > 0 {
+            let picture = UIImageView(image: image)
+            let height = size.width * image.size.height / image.size.width
+            let top = tab.currentURL.scheme == "blanc" ? (size.height - height) / 2 : 0
+            picture.frame = CGRect(x: 0, y: top, width: size.width, height: height)
+            view.addSubview(picture)
+        }
+        return view
+    }
+
+    /// Puts each page on screen on the stage, as it stands if `live`.
+    private func stagePages(live: Bool) {
+        stage.setCover(UIColor(style.surface))
+        stage.keepPages(live ? [] : Set(visibleTabs.map(\.id)))
+        let panes = paneFrames
+        for (index, tab) in visibleTabs.enumerated() {
+            let size = (panes.indices.contains(index) ? panes[index] : pageFrame).size
+            guard live || !stage.hasPage(tab.id, size: size) else { continue }
+            let content = (live ? tab.existingWebView?.snapshotView(afterScreenUpdates: false) : nil)
+                ?? stagePicture(tab, size: size)
+            stage.addPage(tab.id, content: content, size: size, centered: tab.currentURL.scheme == "blanc")
+        }
     }
 
     /// The cards of the pages on screen, as the grid has them now.
     private var shownCards: [UUID: CGRect] {
         Dictionary(uniqueKeysWithValues: visibleTabs.compactMap { tab in cardFrames.byTab[tab.id].map { (tab.id, $0) } })
     }
-
-    private static let gridSpring = Animation.spring(response: 0.42, dampingFraction: 0.86)
 
     /// Puts the grid behind the page, which is still full size.
     private func revealTabGrid() {
@@ -666,9 +693,15 @@ struct ContentView: View {
         }
         gridPass += 1
         cardFrames.byTab = [:]
-        landingCards = [:]
         gridPage = .pinching(scale: 1, translation: .zero)
-        gridPageOpacity = 1
+        if reduceMotion {
+            gridPageOpacity = 1
+        } else {
+            stagePages(live: true)
+            stage.place(stageSpots(.full), coverAlpha: 1)
+            gridPageOpacity = 0
+        }
+        withAnimation(.easeOut(duration: 0.15)) { islandGoneForGrid = true }
         showTabGrid = true
         UIAccessibility.post(notification: .screenChanged, argument: nil)
     }
@@ -692,62 +725,60 @@ struct ContentView: View {
             }
             return
         }
-        landingCards = shownCards
+        gridPage = .card
         if reduceMotion {
-            gridPage = .card
             withAnimation(.easeInOut(duration: 0.2)) { gridPageOpacity = 0 }
             return
         }
-        withAnimation(Self.gridSpring) { gridPage = .card }
-        withAnimation(.easeOut(duration: 0.16).delay(0.2)) { gridPageOpacity = 0 }
+        let pass = gridPass
+        stage.animate(to: stageSpots(.card, cards: shownCards), coverAlpha: 0) {
+            if pass == gridPass { stage.fadeOut() }
+        }
     }
 
     private func closeTabGrid() {
         guard showTabGrid else { return }
-        gridPass += 1
         isLifting = false
-        let cards = shownCards
-        let moved = cards != landingCards
-        landingCards = cards
-        gridPage = .card
-        guard moved else { return leaveTabGrid() }
-        let pass = gridPass
-        // The grid scrolled or another tab was chosen: the page has to be
-        // drawn on that card once before it can grow from it.
-        Task { @MainActor in
-            try? await Task.sleep(for: .milliseconds(20))
-            if pass == gridPass { leaveTabGrid() }
+        if !reduceMotion {
+            // Interrupted on its way down, a page carries on from where it is.
+            let landed = stage.isHidden
+            stagePages(live: false)
+            if landed { stage.place(stageSpots(.card, cards: shownCards), coverAlpha: 0) }
         }
+        returnToPage()
     }
 
-    private func leaveTabGrid() {
+    /// The page back to full size, from a card or a pinch that let go.
+    private func returnToPage() {
+        gridPass += 1
+        let pass = gridPass
+        gridPage = .full
+        withAnimation(.easeOut(duration: 0.2)) { islandGoneForGrid = false }
         if reduceMotion {
-            gridPage = .full
-            withAnimation(.easeInOut(duration: 0.2)) { gridPageOpacity = 1 } completion: { hideTabGridIfPageIsFull() }
+            withAnimation(.easeInOut(duration: 0.2)) { gridPageOpacity = 1 } completion: {
+                if pass == gridPass { showTabGrid = false }
+            }
             return
         }
-        withAnimation(.easeIn(duration: 0.08)) { gridPageOpacity = 1 }
-        withAnimation(Self.gridSpring) { gridPage = .full } completion: { hideTabGridIfPageIsFull() }
+        stage.animate(to: stageSpots(.full), coverAlpha: 1) {
+            guard pass == gridPass else { return }
+            gridPageOpacity = 1
+            showTabGrid = false
+            stage.fadeOut(removing: true)
+        }
     }
 
-    /// Not if a new pinch or swipe began while the page was on its way back.
-    private func hideTabGridIfPageIsFull() {
-        if gridPage == .full { showTabGrid = false }
-    }
-
-    /// A pinch moves the page itself, so it follows the fingers with no animation.
+    /// A pinch moves the page's picture directly: nothing redraws for a finger.
     private func followPagePinch(_ update: PagePinchUpdate) {
         switch update {
         case .started:
             revealTabGrid()
         case .moved(let scale, let translation):
-            if !reduceMotion { gridPage = .pinching(scale: scale, translation: translation) }
+            guard !reduceMotion else { return }
+            let page = TabGridMotion.Page.pinching(scale: scale, translation: translation)
+            stage.place(stageSpots(page), coverAlpha: 1 - 0.85 * TabGridMotion.progress(page))
         case .ended(let opens):
-            if opens {
-                settleInTabGrid()
-            } else {
-                withAnimation(Self.gridSpring) { gridPage = .full } completion: { hideTabGridIfPageIsFull() }
-            }
+            if opens { settleInTabGrid() } else { returnToPage() }
         }
     }
 

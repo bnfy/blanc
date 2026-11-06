@@ -19,6 +19,9 @@ final class TabModel: Identifiable {
     /// memory (`TabsManager.privateDataStore`).
     let isPrivate: Bool
     var thumbnail: UIImage?
+    /// The whole page, for growing out of its card. Kept apart from `thumbnail`
+    /// so a new picture never redraws the grid.
+    @ObservationIgnored var pagePicture: UIImage?
     /// The group this tab belongs to (M17), nil when ungrouped.
     var groupId: String?
     var pinned = false
@@ -194,6 +197,7 @@ final class TabModel: Identifiable {
             drawn = webView.drawHierarchy(in: webView.bounds, afterScreenUpdates: afterScreenUpdates)
         }
         guard drawn else { return }
+        pagePicture = full
         thumbnail = UIGraphicsImageRenderer(size: CGSize(width: side, height: side), format: format).image { _ in
             full.draw(in: rect)
         }
@@ -217,6 +221,8 @@ final class TabModel: Identifiable {
         let factor = side / min(full.size.width, full.size.height)
         let size = CGSize(width: full.size.width * factor, height: full.size.height * factor)
         let format = UIGraphicsImageRendererFormat()
+        format.scale = 2
+        pagePicture = UIGraphicsImageRenderer(size: full.size, format: format).image { _ in full.draw(at: .zero) }
         format.scale = 1
         thumbnail = UIGraphicsImageRenderer(size: CGSize(width: side, height: side), format: format).image { _ in
             full.draw(in: CGRect(x: (side - size.width) / 2, y: 0, width: size.width, height: size.height))

@@ -21,6 +21,9 @@
 -->
 <plist version="1.0">
 <dict>
+	<!-- Without this, an iPhone caps every animation at 60 frames a second, even on a 120 Hz display. -->
+	<key>CADisableMinimumFrameDurationOnPhone</key>
+	<true/>
 	<key>NSUserActivityTypes</key>
 	<array>
 		<string>me.bnfy.blanc.moveTab</string>
