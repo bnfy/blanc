@@ -16,6 +16,27 @@ final class MobileStartPageTests: XCTestCase {
         }
     }
 
+    /// Holding the Start Page opens its settings, so a hold must not also
+    /// select the text under the finger and bring up the text menu.
+    func testHoldingTheStartPageCannotSelectItsText() async throws {
+        let directory = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
+        defer { try? FileManager.default.removeItem(at: directory) }
+        let manager = TabsManager(settingsDirectory: directory, sessionDirectory: directory)
+        let webView = try XCTUnwrap(manager.activeTab?.webView)
+        var selectable: String?
+        for _ in 0..<100 {
+            selectable = try? await webView.evaluateJavaScript("""
+                document.readyState !== 'complete' || location.host !== 'newtab' ? null : JSON.stringify(
+                  [...document.body.querySelectorAll('*')]
+                    .filter(e => !e.matches('input, textarea, select') && getComputedStyle(e).webkitUserSelect !== 'none')
+                    .map(e => e.id || e.className || e.tagName).slice(0, 10))
+                """) as? String
+            if selectable != nil { break }
+            try await Task.sleep(nanoseconds: 100_000_000)
+        }
+        XCTAssertEqual(selectable, "[]")
+    }
+
     func testAllLayoutsLoadFitAndPersistInWebKit() async throws {
         let directory = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
         defer { try? FileManager.default.removeItem(at: directory) }

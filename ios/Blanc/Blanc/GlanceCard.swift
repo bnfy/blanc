@@ -25,9 +25,13 @@ struct GlanceCard: View {
                     .padding([.horizontal, .bottom], GlanceGeometry.pageInset)
             }
             .frame(width: frame.width, height: frame.height)
-            .background(style.raised, in: RoundedRectangle(cornerRadius: GlanceGeometry.radius))
+            // The shadow is the card's shape's alone: on the whole card it
+            // would be redrawn from the live page beneath it.
+            .background {
+                RoundedRectangle(cornerRadius: GlanceGeometry.radius).fill(style.raised)
+                    .shadow(color: .black.opacity(style.scheme == .dark ? 0.35 : 0.16), radius: 18, y: 8)
+            }
             .overlay(RoundedRectangle(cornerRadius: GlanceGeometry.radius).strokeBorder(style.border, lineWidth: 0.5))
-            .shadow(color: .black.opacity(style.scheme == .dark ? 0.35 : 0.16), radius: 18, y: 8)
             .overlay(alignment: .bottomTrailing) { grip(base: base, area: area) }
             .accessibilityElement(children: .contain)
             .accessibilityIdentifier("glance.card")
