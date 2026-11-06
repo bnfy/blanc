@@ -9,8 +9,7 @@
   "public TestFlight beta",
   "in beta through Apple",
   "Blanc for iPhone, in beta",
-  "Join the beta on TestFlight",
-  "iPhone · Beta"
+    "iPhone · Beta"
  ],
  "evidenceGroups": {
   "iphoneAppStore": {
@@ -74,7 +73,7 @@
   {
    "id": "iphone10-003",
    "source": "site/src/pages/download.astro",
-   "exactWording": "Needs iOS 18.4 or later. Early builds are on TestFlight.",
+   "exactWording": "Needs iOS 18.4 or later. The beta gets new builds first and needs Apple's free TestFlight app.",
    "subject": "Blanc",
    "evidenceGroups": [
     "iphoneAppStore"

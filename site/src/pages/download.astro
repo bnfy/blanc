@@ -155,8 +155,11 @@ const latest = releases[0];
           <h2 id="iphone-title">Blanc for iPhone.</h2>
         </div>
         <p>Blanc for iPhone is free on the App Store. It joins the Sync you set up in Blanc on your computer, so your other devices' tabs and your Favorites come with you, and it blocks ads and trackers.</p>
-        <a class="iphone-band-cta" href={ios.storeUrl} target="_blank" rel="noopener">Get it on the App Store <span aria-hidden="true">↗</span></a>
-        <p class="iphone-band-note">Needs iOS 18.4 or later. Early builds are on <a href={ios.joinUrl} target="_blank" rel="noopener">TestFlight</a>.</p>
+        <div class="iphone-band-ctas">
+          <a class="iphone-band-cta" href={ios.storeUrl} target="_blank" rel="noopener">Get it on the App Store <span aria-hidden="true">↗</span></a>
+          <a class="iphone-band-cta iphone-band-cta--beta" href={ios.joinUrl} target="_blank" rel="noopener">Join the beta on TestFlight <span aria-hidden="true">↗</span></a>
+        </div>
+        <p class="iphone-band-note">Needs iOS 18.4 or later. The beta gets new builds first and needs Apple's free TestFlight app.</p>
       </div>
       <figure class="iphone-band-shot">
         <img src="/iphone/blanc-day-on-iphone.webp" width="921" height="2000" alt="Blanc for iPhone showing blanc.day, with the Island at the bottom" loading="lazy" decoding="async" />
