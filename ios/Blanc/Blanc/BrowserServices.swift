@@ -58,6 +58,26 @@ final class BrowserServices {
             if !UITestSeed.settings { tabHistory.removeAll() }
         }
         #endif
+        memoryObserver = NotificationCenter.default.addObserver(
+            forName: UIApplication.didReceiveMemoryWarningNotification, object: nil, queue: .main
+        ) { [weak self] _ in
+            MainActor.assumeIsolated { self?.releaseThumbnails() }
+        }
+    }
+
+    deinit {
+        if let memoryObserver { NotificationCenter.default.removeObserver(memoryObserver) }
+    }
+
+    private var memoryObserver: Any?
+
+    /// On a memory warning: every tab's picture but the pages on screen. The
+    /// grid takes them again, for tabs still loaded, when it next opens.
+    @MainActor func releaseThumbnails() {
+        for window in windows {
+            let shown = Set((window.activeSplit?.tabIds ?? []) + [window.activeTabId].compactMap { $0 })
+            for tab in window.tabs where !shown.contains(tab.id) { tab.thumbnail = nil }
+        }
     }
 
     // MARK: Windows

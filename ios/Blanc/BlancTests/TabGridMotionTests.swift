@@ -32,6 +32,60 @@ final class TabGridMotionTests: XCTestCase {
         XCTAssertEqual(t.progress, 1)
     }
 
+    /// A page wider than tall fills its card by height, as its picture does.
+    func testAWidePageFillsItsCardLikeItsPicture() {
+        let wide = CGRect(x: 0, y: 0, width: 1200, height: 900)
+        let card = CGRect(x: 100, y: 200, width: 240, height: 240)
+        let t = TabGridMotion.transform(.card, in: wide, card: card)
+        XCTAssertEqual(t.scale, 240.0 / 900.0, accuracy: 0.001)
+        XCTAssertEqual(wide.midX + t.offset.width, card.midX, accuracy: 0.001)
+        XCTAssertEqual(wide.midY + t.offset.height - wide.height * t.scale / 2, card.minY, accuracy: 0.001)
+    }
+
+    /// Blanc's own pages are pictured from their middle.
+    func testACenteredPageLandsOnTheCardsMiddle() {
+        let card = CGRect(x: 220, y: 300, width: 160, height: 160)
+        let t = TabGridMotion.transform(.card, in: screen, card: card, centered: true)
+        XCTAssertEqual(screen.midY + t.offset.height, card.midY, accuracy: 0.001)
+    }
+
+    /// A split's panes shrink as one around the page area's center.
+    func testPanesShrinkTogetherAroundTheCenter() {
+        let area = CGRect(x: 0, y: 0, width: 1000, height: 800)
+        let left = CGRect(x: 0, y: 0, width: 500, height: 800), right = CGRect(x: 500, y: 0, width: 500, height: 800)
+        let page = TabGridMotion.Page.pinching(scale: 0.5, translation: .zero)
+        let a = TabGridMotion.transform(page, pane: left, in: area, card: nil)
+        let b = TabGridMotion.transform(page, pane: right, in: area, card: nil)
+        // Their inner edges still meet, at the center.
+        XCTAssertEqual(left.midX + a.offset.width + left.width * a.scale / 2, area.midX, accuracy: 0.001)
+        XCTAssertEqual(right.midX + b.offset.width - right.width * b.scale / 2, area.midX, accuracy: 0.001)
+    }
+
+    func testEachPaneLandsOnItsOwnCard() {
+        let area = CGRect(x: 0, y: 0, width: 1000, height: 800)
+        let right = CGRect(x: 500, y: 0, width: 500, height: 800)
+        let card = CGRect(x: 300, y: 100, width: 200, height: 200)
+        let t = TabGridMotion.transform(.card, pane: right, in: area, card: card)
+        XCTAssertEqual(t.scale, 0.4, accuracy: 0.001)
+        XCTAssertEqual(right.midX + t.offset.width, card.midX, accuracy: 0.001)
+    }
+
+    func testProgressRunsFromThePageToItsCard() {
+        XCTAssertEqual(TabGridMotion.progress(.full), 0)
+        XCTAssertEqual(TabGridMotion.progress(.pinching(scale: 0.75, translation: .zero)), 0.5, accuracy: 0.001)
+        XCTAssertEqual(TabGridMotion.progress(.card), 1)
+    }
+
+    func testOnePaneFillsTheAreaAndTwoShareIt() {
+        let layout = SplitPaneLayout(ratio: 0.5, inset: 8, gap: 8)
+        let area = CGRect(x: 0, y: 0, width: 1000, height: 800)
+        XCTAssertEqual(layout.frames(in: area, count: 1), [area])
+        let two = layout.frames(in: area, count: 2)
+        XCTAssertEqual(two[0].minX, 8)
+        XCTAssertEqual(two[1].maxX, 992, accuracy: 0.001)
+        XCTAssertEqual(two[1].minX - two[0].maxX, 8, accuracy: 0.001)
+    }
+
     func testWithNoCardYetThePageShrinksInPlace() {
         let t = TabGridMotion.transform(.card, in: screen, card: nil)
         XCTAssertEqual(t.offset, .zero)
