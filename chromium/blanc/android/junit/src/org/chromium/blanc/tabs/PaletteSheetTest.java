@@ -63,6 +63,9 @@ public class PaletteSheetTest {
                 }
 
                 @Override
+                public void sync() {}
+
+                @Override
                 public void blockAds() {
                     mThemes.add("block-ads");
                 }
@@ -166,7 +169,7 @@ public class PaletteSheetTest {
         PaletteSheet sheet = show();
         type(sheet, "/");
         assertEquals(PaletteSheet.Mode.SLASH, sheet.mode());
-        assertEquals(List.of("/favorites", "/history", "/new", "/private", "/close", "/reopen", "/group",
+        assertEquals(List.of("/favorites", "/history", "/sync", "/new", "/private", "/close", "/reopen", "/group",
                 "/ungroup", "/close-group", "/find", "/block-ads", "/allow-ads", "/theme"), titles(sheet, PaletteSheet.RowKind.COMMAND));
         assertEquals("Close this tab", row(sheet, "/close").subtitle);
         type(sheet, "/cl");

@@ -42,6 +42,20 @@ export const ANDROID_KEYS = [
   // Blocking (A3 Task 5), the iPhone's and desktop's words.
   'newtab.startup.failed', 'newtab.startup.retry', 'shield.adBlocking', 'shield.count.globalOff', 'shield.count.none',
   'shield.count.siteOff', 'slash.allowAds.hint', 'slash.blockAds.hint',
+  // Sync (A4), with the iPhone's copy.
+  'sync.error.localKeyUnlock',
+  'ios.settings.connected', 'ios.settings.notConnected', 'ios.settings.status', 'ios.settings.account',
+  'ios.settings.lastSynced', 'ios.settings.pairingCode', 'ios.settings.switchAccount', 'ios.settings.passphrase',
+  'ios.settings.signIn', 'ios.settings.deviceName', 'ios.settings.saveName', 'ios.settings.saved',
+  'ios.settings.disconnect', 'ios.settings.working', 'ios.settings.syncHelp', 'ios.settings.pairingHelp',
+  'ios.settings.syncOffTitle', 'ios.settings.syncOffBody', 'ios.settings.pairWithBlanc', 'ios.settings.otherWays',
+  'ios.settings.enterCode', 'ios.settings.usePassphrase', 'ios.settings.typeCodeShown', 'ios.settings.disconnectHelp',
+  'settings.nav.sync', 'settings.sync.switch.connect', 'settings.sync.syncName', 'fill.setupEnable.cancelLabel',
+  'settings.sync.syncNow', 'settings.sync.addAnotherDevice', 'settings.sync.recovery.copy', 'settings.sync.recovery.dialogMessage',
+  'settings.sync.createOnComputer', 'settings.sync.pairing.instruction', 'shield.done', 'sync.error.badPassphrase',
+  'sync.error.pairNotFound', 'sync.error.pairUnavailable', 'sync.error.pairInvalid', 'sync.error.rateLimited',
+  'sync.error.offline', 'sync.error.server', 'sync.error.serverError', 'sync.error.syncOn',
+  'sync.error.off', 'sync.error.credentialsSave', 'sync.error.accountGone', 'slash.sync.hint',
 ];
 // ICU plurals, as Android <plurals>: the Island's tab count for TalkBack.
 export const ANDROID_PLURALS = ['newtab.groups.count', 'shield.count.blocked', 'tabGroups.tucked', 'tabsMenu.header'];

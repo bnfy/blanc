@@ -13,6 +13,7 @@
     "patches/android/0103-android-blanc-java.patch",
     "patches/android/0104-android-island.patch",
     "patches/android/0105-android-blanc-pages.patch",
-    "patches/android/0106-android-blocker.patch"
+    "patches/android/0106-android-blocker.patch",
+    "patches/android/0107-android-sync.patch"
   ]
 }

@@ -72,6 +72,9 @@ public final class PaletteSheet extends Dialog {
         /** /find: the find bar. */
         void find();
 
+        /** /sync: the Sync sheet. */
+        void sync();
+
         void blockAds();
 
         void allowAds();
@@ -633,6 +636,7 @@ public final class PaletteSheet extends Dialog {
     private void run(SlashCommands.Kind kind, String argument) {
         String active = mTabs.activeId();
         switch (kind) {
+            case SYNC -> mCallbacks.sync();
             case FAVORITES -> mCallbacks.openTab(PAGES + "bookmarks.html");
             case HISTORY -> mCallbacks.openTab(PAGES + "history.html");
             case NEW -> mTabs.newTab();
@@ -680,6 +684,7 @@ public final class PaletteSheet extends Dialog {
     private static int hint(SlashCommands.Kind kind) {
         return switch (kind) {
             case FAVORITES -> R.string.blanc_slash_favorites_hint;
+            case SYNC -> R.string.blanc_slash_sync_hint;
             case HISTORY -> R.string.blanc_slash_history_hint;
             case NEW -> R.string.blanc_slash_new_hint;
             case PRIVATE -> R.string.blanc_slash_private_hint;

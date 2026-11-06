@@ -1,0 +1,22 @@
+import("//blanc/config.gni")
+import("//mojo/public/tools/bindings/mojom.gni")
+mojom("mojom") {
+  sources = [ "//blanc/services/sync_runner/sync_runner.mojom" ]
+  public_deps = [ "//sandbox/policy/mojom" ]
+}
+source_set("service") {
+  sources = [ "//blanc/services/sync_runner/sync_runner_service.cc", "//blanc/services/sync_runner/sync_runner_service.h" ]
+  configs += [ "//v8:external_startup_data" ]
+  deps = [ ":mojom", "//base", "//crypto", "//gin", "//mojo/public/cpp/bindings",
+           "//third_party/boringssl", "//tools/v8_context_snapshot:buildflags", "//url", "//v8" ]
+}
+source_set("browser") {
+  # //blanc:buildflags would pull desktop's BUILD.gn into the Android build.
+  if (blanc_enable_test_hooks) {
+    defines = [ "BLANC_SYNC_TEST_HOOKS" ]
+  }
+  sources = [ "//blanc/services/sync_runner/bundle_hash.h", "//blanc/services/sync_runner/sync_runner_proxy.cc",
+              "//blanc/services/sync_runner/sync_runner_proxy.h" ]
+  deps = [ ":mojom", "//base", "//content/public/browser", "//crypto", "//mojo/public/cpp/bindings", "//net",
+           "//services/network/public/cpp", "//services/network/public/mojom", "//url" ]
+}

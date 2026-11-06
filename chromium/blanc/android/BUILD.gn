@@ -2,6 +2,7 @@
 # Blanc for Android's Java code (A1 onward). Plans:
 # docs/superpowers/plans/2026-11-04-android-a1-island.md.
 
+import("//blanc/config.gni")
 import("//build/config/android/rules.gni")
 import("//third_party/jni_zero/jni_zero.gni")
 
@@ -61,6 +62,71 @@ source_set("blocker_bridge") {
   ]
 }
 
+generate_jni("sync_jni") {
+  sources = [ "java/src/org/chromium/blanc/sync/SyncBridge.java" ]
+}
+
+# Keys, files and network for the sync runner. //chrome/browser depends on this (patch 0107).
+source_set("sync_bridge") {
+  if (blanc_enable_test_hooks) {
+    defines = [ "BLANC_SYNC_TEST_HOOKS" ]
+  }
+  sources = [ "browser/sync_bridge.cc" ]
+  deps = [
+    ":sync_jni",
+    "//base",
+    "//blanc/services/blocker:browser",
+    "//blanc/services/sync_runner:browser",
+    "//components/bookmarks/browser",
+    "//components/version_info",
+    "//services/network/public/cpp",
+  ]
+}
+
+# A build without test hooks gets the empty driver: no exported receiver exists at all.
+if (blanc_enable_test_hooks) {
+  blanc_sync_test_driver = "java/src/org/chromium/blanc/sync/SyncTestDriver.java"
+} else {
+  blanc_sync_test_driver = "java/stub/org/chromium/blanc/sync/SyncTestDriver.java"
+}
+
+android_library("sync_java") {
+  srcjar_deps = [ ":sync_jni" ]
+  sources = [
+    "java/src/org/chromium/blanc/sync/BlancKeyStore.java",
+    "java/src/org/chromium/blanc/sync/PairLink.java",
+    "java/src/org/chromium/blanc/sync/ProfileSync.java",
+    "java/src/org/chromium/blanc/sync/QrDecoder.java",
+    "java/src/org/chromium/blanc/sync/SyncBridge.java",
+    "java/src/org/chromium/blanc/sync/SyncCode.java",
+    "java/src/org/chromium/blanc/sync/SyncSheetModel.java",
+    "java/src/org/chromium/blanc/sync/SyncedFavorites.java",
+    "java/src/org/chromium/blanc/sync/SyncedSettings.java",
+    blanc_sync_test_driver,
+  ]
+  deps = [
+    ":zxing_java",
+    "//base:base_java",
+    "//build/android:build_java",
+    "//third_party/jni_zero:jni_zero_java",
+  ]
+}
+
+# The pairing scanner's QR decoder: ZXing core 3.5.3 (Apache-2.0) from Maven Central, sha256
+# 8d8064c1636fdaef7189dd9055c7d59950a8940a12f2293956446ec3c109fd82. Like the blocker bundle it isn't
+# in git; it's copied here from the server's assets.
+android_java_prebuilt("zxing_java") {
+  jar_path = "zxing/core-3.5.3.jar"
+}
+
+# Shipping's sync, bundled by chromium/tools/build-sync-bundle.mjs. The runner refuses any bytes
+# but the pinned hash.
+android_assets("sync_assets") {
+  renaming_sources = [ "//blanc/services/sync_runner/generated/sync-bundle.js" ]
+  renaming_destinations = [ "blanc_sync/sync-bundle.js" ]
+  disable_compression = true
+}
+
 android_library("tabs_ui_java") {
   srcjar_deps = [ ":blocking_jni" ]
   sources = [
@@ -70,6 +136,7 @@ android_library("tabs_ui_java") {
     "java/src/org/chromium/blanc/tabs/chromium/ChromiumTabStore.java",
   ]
   deps = [
+    ":sync_java",
     ":tabs_java",
     "//base:base_java",
     "//build/android:build_java",
@@ -135,12 +202,17 @@ android_library("island_view_java") {
     "java/src/org/chromium/blanc/grid/GroupNameDialog.java",
     "java/src/org/chromium/blanc/grid/TabGrid.java",
     "java/src/org/chromium/blanc/palette/PaletteSheet.java",
+    "java/src/org/chromium/blanc/sync/PairScanner.java",
+    "java/src/org/chromium/blanc/sync/SyncSheet.java",
   ]
   deps = [
     ":blocker_assets",
+    ":sync_assets",
+    ":sync_java",
     ":island_java",
     ":island_view_resources",
     ":tabs_java",
+    "//base:base_java",
     "//build/android:build_java",
   ]
 }
@@ -179,6 +251,13 @@ robolectric_binary("blanc_android_junit_tests") {
     "junit/src/org/chromium/blanc/island/FindCapsuleTest.java",
     "junit/src/org/chromium/blanc/island/IslandMenuPopupTest.java",
     "junit/src/org/chromium/blanc/island/IslandMenuTest.java",
+    "junit/src/org/chromium/blanc/sync/BlancKeyStoreTest.java",
+    "junit/src/org/chromium/blanc/sync/PairScannerTest.java",
+    "junit/src/org/chromium/blanc/sync/ProfileSyncTest.java",
+    "junit/src/org/chromium/blanc/sync/SyncPairingTest.java",
+    "junit/src/org/chromium/blanc/sync/SyncSheetTest.java",
+    "junit/src/org/chromium/blanc/sync/SyncedFavoritesTest.java",
+    "junit/src/org/chromium/blanc/sync/SyncedSettingsTest.java",
     "junit/src/org/chromium/blanc/island/IslandPositionTest.java",
     "junit/src/org/chromium/blanc/island/IslandStyleTest.java",
     "junit/src/org/chromium/blanc/island/IslandSwipeGestureTest.java",
@@ -205,9 +284,12 @@ robolectric_binary("blanc_android_junit_tests") {
   deps = [
     ":island_java",
     ":island_view_java",
+    ":sync_java",
     ":tabs_java",
+    ":zxing_java",
     "//base:base_java_test_support",
     "//base:base_junit_test_support",
+    "//base:callback_java",
     "//third_party/junit",
   ]
 }

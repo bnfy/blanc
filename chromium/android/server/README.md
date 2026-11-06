@@ -27,6 +27,8 @@ from the tree's.
 
 ## The blocker's bundle
 
+ZXing core 3.5.3 (`blanc/android/zxing/core-3.5.3.jar`, sha256 in `blanc/android/BUILD.gn`) isn't in git either: keep it in `~/blanc-assets/zxing/` and copy it into the checkout after `apply.py`.
+
 `blanc/android/blocker_assets/engine.js` isn't in git. Keep the bundle in `~/blanc-assets/blocker/`
 and copy it into the checkout after `apply.py` (`mkdir -p blanc/android/blocker_assets`); a missing
 file fails the build. It comes from

@@ -1026,7 +1026,7 @@ Plan: `docs/superpowers/plans/2026-11-03-android-port.md` (design and plan in
 [PR #1333](https://github.com/bnfy/blanc/pull/1333)). Milestones: **A0
 Foundation**, 5 of 6 exit gates passed on the emulator, and **A1 Island and
 pages**, **A2 Tabs, groups, palette and tab grid** and **A3 Blocking**, every
-emulator gate passed (below); the Pixel runs wait for the device. Next: A4, sync. Owner approved the download and cold builds on 2026-11-03.
+emulator gate passed (below); the Pixel runs wait for the device. **A4 Sync** is in three PRs; A4a (the runner, keys, pairing and Profile Sync) is below. Owner approved the download and cold builds on 2026-11-03.
 
 - **Lane:** Chrome stable for Android 156.0.8078.79, chromium
   `a21ce95c24ce3964416f09ae1862f53f319eb4d0` (chromiumdash, 2026-11-03).
@@ -1217,6 +1217,35 @@ Merging desktop's weekly count then crashed Android on its first block, because
 its preference is registered in a desktop patch; patch 0106 registers it, and
 `tools/android-blocking.test.mjs` now fails on any unregistered blocker
 preference. Divergences: D1, D13 and D14 corrected.
+
+### A4a Sync: the runner, keys, pairing and Profile Sync
+
+Shipping's sync at v1.46.0 runs unmodified in a jitless, sandboxed utility
+(`blanc/services/sync_runner/`, bundled by `tools/build-sync-bundle.mjs`,
+hash-pinned). Crypto is BoringSSL, URLs are GURL, and the sync key is wrapped by
+Android Keystore. `/sync` opens the iPhone's sheet: pair by an in-app QR scanner
+or a typed code, or sign in with a passphrase. Favorites reconcile with
+Chromium's bookmarks, and the theme and blocking switch follow. Site exceptions
+don't sync, as on the iPhone. Desktop doesn't build the runner until its S4.
+Rulings: `docs/android/a4-rulings.md`.
+
+- **Candidate** (x86_64, emulator): SHA-256
+  `fe931dfb18215f5ea88fccece0f97b323501395dea09c3f60c8a97040335a6df`.
+- On the emulator: first full sync about 270 ms, a passphrase sign-in about
+  300 ms, the runner about 48 MB.
+
+| A4a gate | Result | Evidence (`~/blanc-evidence/android/a4-merged/`) |
+| --- | --- | --- |
+| Sync: passphrase and both pairing directions, a killed runner, a Favorite saved as it dies, a lost key, Favorites and theme both ways, a newer device's setting, the restart limit, a wrong bundle | 10 of 10 against the real Worker code | `sync/` |
+| A3 gate: every A2 check, acceptance 32 of 32, blocking 14 of 14 | Pass. Two earlier runs each failed one blocking case that passed alone (3 of 3 and 6 of 6); the menu count was a race in the test, now fixed, and `/allow-ads` wasn't explained | `a4-merged/a3/` |
+| Robolectric | 386 | server log |
+| Real camera scan | **Pending the Pixel** | — |
+| Owner hands-on, Pixel and desktop | **Pending A4's end** | — |
+
+Run it with `tests/android/a4-gate.sh`. A final review found that a refused or
+interrupted Favorite could read as a removal and delete the bookmark, and that a
+runner not answering read as Sync off; both fixed with tests that fail when the
+bugs are put back, with the rest in the rulings.
 
 <!-- BEGIN GENERATED PROGRESS -->
 ### Bar A — executable shipping cases on the fork

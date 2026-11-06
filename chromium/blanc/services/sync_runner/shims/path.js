@@ -1,0 +1,3 @@
+const norm = p => { const abs = p.startsWith('/'); const out = []; for (const s of p.split('/')) { if (!s || s === '.') continue; if (s === '..') out.pop(); else out.push(s); } return (abs ? '/' : '') + out.join('/'); };
+const path = {sep: '/', join: (...a) => norm(a.filter(Boolean).join('/')), basename: (p, e) => { let b = p.split('/').pop(); if (e && b.endsWith(e)) b = b.slice(0, -e.length); return b; }, dirname: p => p.split('/').slice(0, -1).join('/') || '/', extname: p => { const m = /\.[^./]*$/.exec(p); return m ? m[0] : ''; }, resolve: (...a) => norm(a.join('/')), isAbsolute: p => p.startsWith('/'), relative: (a, b) => b.replace(`${a}/`, ''), normalize: norm};
+path.posix = path; module.exports = path;

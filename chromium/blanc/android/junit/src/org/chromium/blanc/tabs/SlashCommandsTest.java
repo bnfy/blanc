@@ -16,8 +16,8 @@ import java.util.List;
 @RunWith(BaseRobolectricTestRunner.class)
 public class SlashCommandsTest {
     @Test
-    public void offersThirteenInTheIphonesOrder() {
-        assertEquals(List.of(SlashCommands.Kind.FAVORITES, SlashCommands.Kind.HISTORY, SlashCommands.Kind.NEW,
+    public void offersFourteenInTheIphonesOrder() {
+        assertEquals(List.of(SlashCommands.Kind.FAVORITES, SlashCommands.Kind.HISTORY, SlashCommands.Kind.SYNC, SlashCommands.Kind.NEW,
                 SlashCommands.Kind.PRIVATE, SlashCommands.Kind.CLOSE, SlashCommands.Kind.REOPEN, SlashCommands.Kind.GROUP,
                 SlashCommands.Kind.UNGROUP, SlashCommands.Kind.CLOSE_GROUP, SlashCommands.Kind.FIND,
                 SlashCommands.Kind.BLOCK_ADS, SlashCommands.Kind.ALLOW_ADS, SlashCommands.Kind.THEME),

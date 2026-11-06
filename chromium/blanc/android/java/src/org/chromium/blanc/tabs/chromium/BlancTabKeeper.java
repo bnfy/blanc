@@ -8,6 +8,8 @@ import android.os.Looper;
 
 import org.chromium.base.ContextUtils;
 import org.chromium.blanc.blocking.BlockerBridge;
+import org.chromium.blanc.sync.SyncBridge;
+import org.chromium.blanc.sync.SyncTestDriver;
 import org.chromium.blanc.tabs.BlancTabState;
 import org.chromium.blanc.tabs.QuietTabs;
 import org.chromium.build.annotations.NullMarked;
@@ -73,6 +75,8 @@ public final class BlancTabKeeper {
 
     /** {@code opensLink}: another app opened Blanc on a link. */
     public void start(boolean opensLink) {
+        SyncTestDriver.maybeStart();
+        SyncBridge.startIfOn();
         boolean coldStart = !sStarted;
         sStarted = true;
         TabModelUtils.runOnTabStateInitialized(mSelector, selector -> {
