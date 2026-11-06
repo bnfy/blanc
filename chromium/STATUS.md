@@ -824,6 +824,11 @@ remain pending. D3 beta-only no-DRM exception accepted; EME notice/handoff requi
   island-and-commands 64 / 2 (F1-13 failed again, F1-39), tabs-and-groups
   32 / 1 (F3-3). Real clicks in the card page were not exercised: the tests
   move focus through the host, because CDP input skips Chromium's views.
+- **Spaces direction (owner, 2026-11-06):** set-aside Spaces keep their pages
+  live, as shipping's do, not reloaded on return. Chromium has no equivalent.
+  The fork had only a preview store and crash-safe swap, with no mark, menu,
+  set-aside Spaces, undo or moves, so F41 is a real build, in slices: mark,
+  menu, save and switch; set-aside Spaces; Move to Space; multi-tab selection.
 - **Mahjong goes last (owner, 2026-11-04):** the fork has no Mahjong yet
   (F35-3, F35-4, F35-9 fail at the footer launch). When it is built it is an
   Island page (shipping's files served as byte-identical copies, opened as an
