@@ -62,7 +62,13 @@ Then('the shield count for the tab is greater than 0', function () {
 
 Given('the active tab is on {string} with a shield count greater than 0', async function (name) {
   await loadTrackers(this, name);
-  assert.match(menuText(this.device), COUNT);
+  // The menu shows the count as it stands when it opens, so a busy machine can open it early.
+  let text = menuText(this.device);
+  for (let i = 0; i < 10 && !COUNT.test(text); i++) {
+    sleep(1);
+    text = menuText(this.device);
+  }
+  assert.match(text, COUNT);
 });
 
 Then('the shield count for {string} becomes 0', async function (_name) {

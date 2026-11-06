@@ -161,6 +161,8 @@ async function main(argv) {
       await d.view('https://saved.example/');
       d.menu('Save to Favorites');
       await until(async () => holds(await value('bookmarks.listBookmarks'), 'https://saved.example/'), 'the runner to hear');
+      // The Worker allows an account 30 reads a minute, and this check has used them.
+      sleep(61);
       await value('sync.resetRequestWindowForTest');
       await value('sync.syncNow', [], 120);
       await device.pass();
