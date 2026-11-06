@@ -19,7 +19,17 @@ final class PageKeysTests: XCTestCase {
     }
 
     private func offer(_ key: String, to webView: WKWebView, shift: Bool = false) async throws -> Bool {
-        try await webView.evaluateJavaScript(PageKeys.script(key: key, shift: shift, option: false)) as? Bool ?? false
+        try await webView.evaluateJavaScript(PageKeys.script(key: key, shift: shift, option: false, deadline: .max)) as? Bool ?? false
+    }
+
+    /// A page too busy to answer in time never gets the key, so one press
+    /// can't do Blanc's command and the page's too.
+    func testALatePageNeverSeesTheKey() async throws {
+        let webView = try await page("<script>window.seen = 0; addEventListener('keydown', e => { seen += 1; e.preventDefault() })</script>")
+        let kept = try await webView.evaluateJavaScript(PageKeys.script(key: "r", shift: false, option: false, deadline: 0)) as? Bool
+        XCTAssertEqual(kept, false)
+        let seen = try await webView.evaluateJavaScript("seen") as? Int
+        XCTAssertEqual(seen, 0)
     }
 
     private final class Loaded: NSObject, WKNavigationDelegate {
@@ -56,7 +66,7 @@ final class PageKeysTests: XCTestCase {
     }
 
     func testAQuoteInAKeyStaysInsideItsString() {
-        XCTAssertTrue(PageKeys.script(key: "'", shift: false, option: false).contains(#"key: "'""#))
-        XCTAssertTrue(PageKeys.script(key: "\"", shift: false, option: false).contains(#"key: "\"""#))
+        XCTAssertTrue(PageKeys.script(key: "'", shift: false, option: false, deadline: 0).contains(#"key: "'""#))
+        XCTAssertTrue(PageKeys.script(key: "\"", shift: false, option: false, deadline: 0).contains(#"key: "\"""#))
     }
 }

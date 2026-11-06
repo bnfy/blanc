@@ -19,6 +19,14 @@ struct PaletteSheet: View {
 
     /// The row the arrow keys are on, by its place in the list.
     @State private var keyRow: Int?
+    @State private var search = SearchMemo()
+
+    /// The last search, kept apart from view state: a held arrow key asks for
+    /// the results several times a press, and each search reads all of History.
+    private final class SearchMemo {
+        var key: [String] = []
+        var results: [SyncedSwitcherResult] = []
+    }
 
     private struct NewGroupTab: Identifiable { let id: UUID }
 
@@ -404,12 +412,19 @@ struct PaletteSheet: View {
     }
 
     private var switcherResults: [SyncedSwitcherResult] {
-        QuickSwitcher.search(
-            query: input.trimmingCharacters(in: .whitespacesAndNewlines),
-            tabs: manager.tabs, remote: manager.syncEngine.remoteDevices, favorites: manager.syncEngine.favorites,
-            history: manager.historyStore.entries, groups: manager.groups, sets: switcherSets,
-            remoteSpaces: switcherRemoteSpaces
-        )
+        let query = input.trimmingCharacters(in: .whitespacesAndNewlines)
+        let sets = switcherSets, remoteSpaces = switcherRemoteSpaces
+        let tabs = manager.tabs, remote = manager.syncEngine.remoteDevices, favorites = manager.syncEngine.favorites
+        let history = manager.historyStore.entries, groups = manager.groups
+        // What can change under an open palette, as sync lands or a tab closes.
+        let key = [query] + [tabs.count, remote.count, favorites.count, history.count, groups.count,
+                             sets.count, remoteSpaces.count].map(String.init)
+        if key != search.key {
+            search.key = key
+            search.results = QuickSwitcher.search(query: query, tabs: tabs, remote: remote, favorites: favorites,
+                                                  history: history, groups: groups, sets: sets, remoteSpaces: remoteSpaces)
+        }
+        return search.results
     }
 
     private var slashMatches: [SlashCommand] {
