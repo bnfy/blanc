@@ -391,7 +391,7 @@
   {
    "id": "compare-1451-015",
    "source": "site/src/pages/compare.astro",
-   "exactWording": "Phones. Blanc for iPhone is on the App Store; there is no Android app.",
+   "exactWording": "Phones. Blanc for iPhone is on the App Store, with a TestFlight beta for early builds; there is no Android app.",
    "subject": "Blanc",
    "evidenceGroups": [
     "platforms"
@@ -547,13 +547,13 @@
    "source": "site/src/data/compare.json",
    "row": "platforms",
    "column": "blanc",
-   "exactWording": "macOS, Windows, Linux and iPhone.",
+   "exactWording": "macOS, Windows, Linux. iPhone on the App Store, with a TestFlight beta.",
    "subject": "Blanc",
    "evidenceGroups": [
     "platforms"
    ],
    "verdict": "verified",
-   "reason": "November 6, 2026: reworded from “macOS, Windows, Linux. iPhone is a public TestFlight beta.” after Blanc for iPhone 1.0 was released on the App Store. Changed cell wording awaits the owner’s approval in review."
+   "reason": "November 6, 2026: reworded from “macOS, Windows, Linux. iPhone is a public TestFlight beta.” after Blanc for iPhone 1.0 was released on the App Store. The owner asked on November 6, 2026 for the TestFlight beta to stay named next to the App Store."
   },
   {
    "id": "compare-1451-031",
