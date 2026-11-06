@@ -9,7 +9,7 @@
   "public TestFlight beta",
   "in beta through Apple",
   "Blanc for iPhone, in beta",
-    "iPhone · Beta"
+  "iPhone · Beta"
  ],
  "evidenceGroups": {
   "iphoneAppStore": {
@@ -99,6 +99,17 @@
     "iphoneAppStore"
    ],
    "verdict": "verified"
+  },
+  {
+   "id": "iphone10-006",
+   "source": "site/src/pages/index.astro",
+   "exactWording": "For macOS, Windows, Linux and iPhone",
+   "subject": "Blanc",
+   "evidenceGroups": [
+    "iphoneAppStore"
+   ],
+   "verdict": "verified",
+   "replaces": "v140-035"
   }
  ]
 }
