@@ -9,7 +9,7 @@ const {
   easeOutCubic, slidingBounds, SLIDE_IN_MS, SLIDE_OUT_MS,
   REVEAL_DWELL_BAND_PX, REVEAL_DWELL_MS, REVEAL_DWELL_DRIFT_PX, revealDwellStep,
   AUTO_HIDE_STYLES, normalizeAutoHideStyle,
-  DRAG_BAND_PX, FLOAT_SIDE_PX, FLOAT_BOTTOM_PX, FLOAT_CHROME_PAD_PX,
+  DRAG_BAND_PX, WINDOWS_DRAG_BAND_PX, dragBandHeight, FLOAT_SIDE_PX, FLOAT_BOTTOM_PX, FLOAT_CHROME_PAD_PX,
   floatingLayout, floatViewsWanted, floatViewsShown, floatViewBounds,
   COVERED_STRIP_ROW_PX, coveredStripHeight,
 } = require('../../src/main/island-autohide');
@@ -317,9 +317,21 @@ test('normalizeAutoHideStyle keeps push and turns anything else into float', () 
 
 test('floating Island constants', () => {
   assert.equal(DRAG_BAND_PX, 6);
+  assert.equal(WINDOWS_DRAG_BAND_PX, 10);
   assert.equal(FLOAT_SIDE_PX, 20);
   assert.equal(FLOAT_BOTTOM_PX, 24);
   assert.equal(FLOAT_CHROME_PAD_PX, 8);
+});
+
+test('dragBandHeight: taller on Windows only (#1369)', () => {
+  assert.equal(dragBandHeight('win32'), WINDOWS_DRAG_BAND_PX);
+  for (const platform of ['darwin', 'linux', undefined]) assert.equal(dragBandHeight(platform), DRAG_BAND_PX);
+});
+
+test('reaching for the drag band still reveals the Island on every platform', () => {
+  for (const platform of ['darwin', 'linux', 'win32']) {
+    assert.ok(dragBandHeight(platform) <= REVEAL_EDGE_PX, `${platform} band within the reveal edge`);
+  }
 });
 
 test('floatingLayout: only auto-hide with float, Glance or not', () => {
@@ -390,12 +402,14 @@ test('the strip learns it is covered whenever the page covers it, hidden or floa
   assert.match(main, /function applyIslandAutoHideStyle\(next\) \{[\s\S]*?scheduleMenuRebuild\(\);/);
 });
 
-test('the strip document draws a 6px drag band while the page covers it', () => {
+test('the strip document draws the drag band while the page covers it', () => {
   const html = fs.readFileSync(path.join(ROOT, 'src/renderer/index.html'), 'utf8');
   const css = fs.readFileSync(path.join(ROOT, 'src/renderer/styles.css'), 'utf8');
   const renderer = fs.readFileSync(path.join(ROOT, 'src/renderer/renderer.js'), 'utf8');
   assert.match(html, /<div id="strip">\s*<div id="dragBand" aria-hidden="true"><\/div>/);
-  assert.match(css, /#dragBand \{[^}]*display: none;[^}]*height: 6px;[^}]*-webkit-app-region: drag;/);
+  assert.match(css, /#dragBand \{[^}]*display: none;[^}]*height: var\(--drag-band-h\);[^}]*-webkit-app-region: drag;/);
+  assert.match(css, new RegExp(`:root:not\\(\\[data-platform="win32"\\]\\) \\{ --drag-band-h: ${dragBandHeight('darwin')}px; \\}`));
+  assert.match(css, new RegExp(`:root\\[data-platform="win32"\\] \\{ --drag-band-h: ${dragBandHeight('win32')}px; \\}`));
   assert.match(css, /#strip\.strip-hidden #dragBand \{ display: block; \}/);
   assert.match(css, /#strip\.drag-suspended #dragBand \{ -webkit-app-region: no-drag; \}/);
   assert.match(css, /:root\[data-tab-layout="vertical"\] #dragBand \{ left: var\(--vertical-tabs-w\); \}/);

@@ -740,9 +740,9 @@ pointer reaching the window's top edge, which touch input has no equivalent for.
   and the Island would land on it, and the floating Island hides as soon as
   the pointer moves below the strip. Glance always uses the push layout.
   Turning it on shows the Island for a few seconds with a tip on how to bring
-  it back. While hidden, a 6px band along the page pane's
-  top edge drags the window (both styles); below it the page's top band
-  belongs to the page. With vertical tabs the rail is never reveal territory;
+  it back. While hidden, a band along the page pane's top edge drags the
+  window (both styles): 6px, or 10px on Windows, whose top 5 rows are the
+  window's resize border. Below it the page's top band belongs to the page. With vertical tabs the rail is never reveal territory;
   only the page pane's top band is. On Linux under native Wayland, which gives
   apps no pointer position outside their windows, the Island is revealed from
   just inside the top edge only, not from the band above a floating window.
@@ -755,16 +755,26 @@ differs.
 
 **Status:** Accepted 2026-10-19; float style added 2026-10-20. Windows and
 Linux (X11 and native Wayland) hand checks ran 2026-10-20 (bnfy/blanc#994):
-on Windows the drag band drags but a double-click on it does not maximise, in
-either style (the same with a transparent drag view, so it is Windows' own
-hit test). On Linux the window document went `hidden` while the page
+the Windows record of that check, that the band drags but a double-click on
+it does not maximise, is corrected below. On Linux the window document went `hidden` while the page
 covered it whole and stopped tracking resizes, leaving the floating pill and
 window controls at stale positions after a maximise; on Linux a covered strip
 now keeps one row uncovered (bnfy/blanc#999). Windows does the same: its
 covered strip also went `hidden`, so a pill that grew while covered (more
 tabs, a longer domain) was drawn wider than its view and lost its ends
 (reported on v1.42.0; 2026-10-22 VM check), and a covered strip there keeps
-one row uncovered too (bnfy/blanc#1052).
+one row uncovered too (bnfy/blanc#1052). On Windows the top 5 rows are the
+window's resize border, not the band: the rows the 2026-10-20 check read as
+dragging were resizing the window's top edge, and a double-click there
+stretches it to full height, while the first row below them maximised. So a
+6px band left one row that dragged, and only sideways or up, because Windows
+drops the drag if the pointer's first move leaves the band (bnfy/blanc#1369).
+The band there is now 10px, measured 2026-11-06 with real mouse input on a
+GitHub-hosted Windows machine at 100% scale: in float, rows 5–9 drag sideways
+and up, and rows 5–8 down at a 1px step; in push the strip is revealed by the
+press, so rows 5–10 drag; rows 8–9 stop short of the window controls, which
+keep their clicks. The October VM logs put the same row 4/5 boundary at 200%
+scale; the 10px band has not been measured in the Windows VM.
 
 ---
 
