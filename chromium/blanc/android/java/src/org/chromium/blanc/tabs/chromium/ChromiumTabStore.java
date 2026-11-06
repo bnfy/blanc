@@ -17,10 +17,15 @@ import org.chromium.chrome.browser.tabmodel.TabCreatorManager;
 import org.chromium.chrome.browser.tabmodel.TabModel;
 import org.chromium.chrome.browser.tabmodel.TabModelSelector;
 import org.chromium.chrome.browser.tabmodel.TabModelUtils;
+import org.chromium.chrome.browser.crypto.CipherFactory;
+import org.chromium.chrome.browser.tab.TabState;
+import org.chromium.chrome.browser.tab.TabStateExtractor;
+import org.chromium.chrome.browser.tabpersistence.TabStateFileManager;
 import org.chromium.components.tab_groups.TabGroupColorId;
 import org.chromium.content_public.browser.LoadUrlParams;
 import org.chromium.content_public.browser.WebContents;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -54,6 +59,7 @@ public final class ChromiumTabStore implements TabStore {
 
     private final TabModelSelector mSelector;
     private final TabCreatorManager mCreators;
+    private final CipherFactory mCipher = new CipherFactory();
 
     public ChromiumTabStore(TabModelSelector selector, TabCreatorManager creators) {
         mSelector = selector;
@@ -150,6 +156,30 @@ public final class ChromiumTabStore implements TabStore {
         String id = String.valueOf(tab.getId());
         if (groupId != null) addToGroup(id, groupId);
         return id;
+    }
+
+    /** Saves a tab's whole state, Back and Forward included, under its id. */
+    public boolean freeze(String id, File directory) {
+        Tab tab = tab(id);
+        if (tab == null) return false;
+        TabState state = TabStateExtractor.from(tab);
+        if (state == null || state.contentsState == null) return false;
+        directory.mkdirs();
+        TabStateFileManager.saveState(directory, state, tab.getId(), false, mCipher);
+        return true;
+    }
+
+    /** Brings a frozen tab back without loading it. Its id, group and pin come with it. */
+    public String thaw(int id, File directory, int index) {
+        TabState state = TabStateFileManager.restoreTabState(directory, id, mCipher);
+        if (state == null) return "";
+        Tab tab = mCreators.getTabCreator(false).createFrozenTab(state, id, index);
+        return tab == null ? "" : String.valueOf(tab.getId());
+    }
+
+    /** Removes a frozen tab's file for good. */
+    public void forgetFrozen(int id, File directory) {
+        TabStateFileManager.deleteTabState(directory, id, false);
     }
 
     @Override

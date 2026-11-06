@@ -81,6 +81,30 @@
     <string name="blanc_shield_count_site_off">Ads allowed on this site</string>
     <string name="blanc_slash_allow_ads_hint">Allow ads on this site</string>
     <string name="blanc_slash_block_ads_hint">Block ads here, or toggle blocking everywhere</string>
+    <string name="blanc_spaces_this_phone">This phone</string>
+    <string name="blanc_spaces_menu_label">Spaces</string>
+    <string name="blanc_spaces_menu_edit">Edit</string>
+    <string name="blanc_spaces_mark_current">Space: %1$s</string>
+    <string name="blanc_ws_new">New space…</string>
+    <string name="blanc_ws_editor_new_title">New space</string>
+    <string name="blanc_ws_editor_edit_title">Edit space</string>
+    <string name="blanc_ws_editor_name">Name</string>
+    <string name="blanc_ws_editor_color">Color</string>
+    <string name="blanc_ws_editor_symbol">Symbol</string>
+    <string name="blanc_ws_editor_create_button">Create space</string>
+    <string name="blanc_ws_delete_button">Delete space</string>
+    <string name="blanc_ws_undo_deleted">%1$s deleted</string>
+    <string name="blanc_ws_error_limit">You have %1$s spaces. Delete one before adding another.</string>
+    <string name="blanc_ws_error_duplicate_name">That name is already in use. Choose another name.</string>
+    <string name="blanc_ws_error_invalid_name">Enter a space name.</string>
+    <string name="blanc_ws_row_current">Current space</string>
+    <string name="blanc_ws_recovery_restore_named">Restore %1$s</string>
+    <string name="blanc_ws_recovery_restore">Restore</string>
+    <string name="blanc_ws_row_edit">Edit %1$s</string>
+    <string name="blanc_settings_link_routes_move_up">Move up</string>
+    <string name="blanc_settings_link_routes_move_down">Move down</string>
+    <string name="blanc_slash_space_hint">Switch to a space, or type a new name to save this window</string>
+    <string name="blanc_tab_menu_move_to_space">Move to Space</string>
     <string name="blanc_sync_error_local_key_unlock">Could not unlock the local sync key</string>
     <string name="blanc_footer_devices">Other devices</string>
     <string name="blanc_sends_section">Sent to this device</string>
@@ -158,5 +182,9 @@
     <plurals name="blanc_tabs_menu_header">
         <item quantity="one">%d tab</item>
         <item quantity="other">%d tabs</item>
+    </plurals>
+    <plurals name="blanc_ws_list_recently_deleted">
+        <item quantity="one">Recently Deleted (%d)</item>
+        <item quantity="other">Recently Deleted (%d)</item>
     </plurals>
 </resources>

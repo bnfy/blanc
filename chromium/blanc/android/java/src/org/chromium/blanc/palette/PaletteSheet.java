@@ -36,6 +36,9 @@ import android.widget.TextView;
 import org.chromium.blanc.address.AddressInput;
 import org.chromium.blanc.island.IslandStyle;
 import org.chromium.blanc.island.R;
+import org.chromium.blanc.spaces.BlancSpaces;
+import org.chromium.blanc.spaces.SpacesCard;
+import org.chromium.blanc.spaces.SpacesController;
 import org.chromium.blanc.sync.OtherDevices;
 import org.chromium.blanc.tabs.BlancTabs;
 import org.chromium.blanc.tabs.QuickSwitcher;
@@ -61,6 +64,7 @@ import java.util.Set;
 @NullMarked
 public final class PaletteSheet extends Dialog {
     /** What the palette asks of the browser. */
+    private static final String SPACE_ROW = "blanc-space:";
     private final Set<String> mOpenDevices = new HashSet<>();
 
     public interface Callbacks {
@@ -374,8 +378,7 @@ public final class PaletteSheet extends Dialog {
         heading(mActivity.getString(R.string.blanc_sends_section), sent.size());
         for (OtherDevices.Sent item : sent) {
             CharSequence ago = DateUtils.getRelativeTimeSpanString(item.sentAt);
-            String subtitle = mActivity.getString(R.string.blanc_sends_from)
-                    .replace("{device}", item.from).replace("{time}", ago);
+            String subtitle = mActivity.getString(R.string.blanc_sends_from, item.from, ago);
             String title = item.title.isEmpty() ? item.url : item.title;
             LinearLayout line = new LinearLayout(mActivity);
             line.setGravity(Gravity.CENTER_VERTICAL);
@@ -458,6 +461,21 @@ public final class PaletteSheet extends Dialog {
         }
     }
 
+    /** /space: bare, the menu; a name, that set, This Phone too; a new name, the editor. */
+    private void space(String name) {
+        SpacesController spaces = SpacesController.current();
+        if (spaces == null) return;
+        if (name.isEmpty()) {
+            SpacesCard.open(mActivity);
+        } else if (name.equalsIgnoreCase(mActivity.getString(R.string.blanc_spaces_this_phone))) {
+            spaces.show(null);
+        } else {
+            BlancSpaces.Space space = spaces.library().named(name);
+            if (space != null) spaces.show(space.id);
+            else SpacesCard.create(mActivity, name, null);
+        }
+    }
+
     /** /send: the current page to the device with that name, in any case. */
     private void sendActive(String name) {
         OtherDevices.Target target = OtherDevices.target(name);
@@ -469,7 +487,7 @@ public final class PaletteSheet extends Dialog {
             return;
         }
         if (target == null) {
-            mCallbacks.notice(mActivity.getString(R.string.blanc_sends_no_match).replace("{name}", name));
+            mCallbacks.notice(mActivity.getString(R.string.blanc_sends_no_match, name));
             return;
         }
         if (current == null || mTabs.privateSelected()) return;
@@ -479,7 +497,7 @@ public final class PaletteSheet extends Dialog {
 
     /** "Sent", never "delivered". */
     public static String sendResult(Activity activity, String status, String device) {
-        if ("sent".equals(status)) return activity.getString(R.string.blanc_sends_sent).replace("{device}", device);
+        if ("sent".equals(status)) return activity.getString(R.string.blanc_sends_sent, device);
         return activity.getString("unavailable".equals(status) ? R.string.blanc_sends_unavailable : R.string.blanc_sends_failed);
     }
 
@@ -494,6 +512,12 @@ public final class PaletteSheet extends Dialog {
         for (TabStore.Group group : mTabs.groups()) groups.add(new QuickSwitcher.Group(group.id, group.name));
         // History joins the switcher with Android's history search (after A2).
         List<QuickSwitcher.Page> pages = new ArrayList<>(mCallbacks.favorites());
+        SpacesController spaces = SpacesController.current();
+        if (spaces != null) {
+            for (BlancSpaces.Space space : spaces.library().spaces) {
+                pages.add(new QuickSwitcher.Page(SPACE_ROW + space.id, space.name, SPACE_ROW + space.id));
+            }
+        }
         for (OtherDevices.Device device : OtherDevices.devices()) {
             for (OtherDevices.Page tab : device.tabs) pages.add(new QuickSwitcher.Page(tab.url, tab.title, tab.url));
         }
@@ -712,6 +736,9 @@ public final class PaletteSheet extends Dialog {
             }
         } else if (result.id.startsWith("local:")) {
             mTabs.select(result.id.substring("local:".length()));
+        } else if (result.url != null && result.url.startsWith(SPACE_ROW)) {
+            SpacesController spaces = SpacesController.current();
+            if (spaces != null) spaces.show(result.url.substring(SPACE_ROW.length()));
         } else if (result.url != null) {
             mCallbacks.openTab(result.url);
         }
@@ -733,6 +760,11 @@ public final class PaletteSheet extends Dialog {
         String active = mTabs.activeId();
         switch (kind) {
             case SYNC -> mCallbacks.sync();
+            case SPACE -> {
+                space(argument);
+                dismiss();
+                return;
+            }
             case SEND -> {
                 if (argument.isEmpty()) {
                     mField.setText("/send ");
@@ -790,6 +822,7 @@ public final class PaletteSheet extends Dialog {
             case FAVORITES -> R.string.blanc_slash_favorites_hint;
             case SYNC -> R.string.blanc_slash_sync_hint;
             case SEND -> R.string.blanc_slash_send_hint;
+            case SPACE -> R.string.blanc_slash_space_hint;
             case HISTORY -> R.string.blanc_slash_history_hint;
             case NEW -> R.string.blanc_slash_new_hint;
             case PRIVATE -> R.string.blanc_slash_private_hint;

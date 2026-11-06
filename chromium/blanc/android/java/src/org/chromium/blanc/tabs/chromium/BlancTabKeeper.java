@@ -11,6 +11,7 @@ import org.json.JSONException;
 import org.chromium.base.ApplicationStatus;
 import org.chromium.base.ContextUtils;
 import org.chromium.blanc.blocking.BlockerBridge;
+import org.chromium.blanc.spaces.SpacesController;
 import org.chromium.blanc.sync.OtherDevices;
 import org.chromium.blanc.sync.SyncBridge;
 import org.chromium.blanc.sync.SyncTestDriver;
@@ -88,14 +89,24 @@ public final class BlancTabKeeper {
         TabModelUtils.runOnTabStateInitialized(mSelector, selector -> {
             if (mDestroyed) return;
             BlancTabState.restore(mStore, prefs(), coldStart, opensLink);
+            startSpaces();
             publishTabs();
             mHandler.postDelayed(mSweep, QuietTabs.SWEEP_MILLIS);
         });
     }
 
+    private void startSpaces() {
+        ChromiumSpaces tabs = new ChromiumSpaces(mStore);
+        SpacesController spaces = new SpacesController(tabs.load(), tabs);
+        SpacesController.setCurrent(spaces);
+        spaces.start(System.currentTimeMillis());
+    }
+
     /** When the app goes to the background, which is before Android may end it. */
     public void save() {
         if (mSelector.isTabStateInitialized()) BlancTabState.save(mStore, prefs());
+        SpacesController spaces = SpacesController.current();
+        if (spaces != null) spaces.saveShown();
         publishTabs();
     }
 
@@ -112,6 +123,7 @@ public final class BlancTabKeeper {
     public void destroy() {
         mDestroyed = true;
         OtherDevices.setOpener(null);
+        SpacesController.setCurrent(null);
         mHandler.removeCallbacks(mSweep);
     }
 

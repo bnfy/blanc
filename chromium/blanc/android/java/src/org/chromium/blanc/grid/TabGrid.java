@@ -37,6 +37,9 @@ import android.widget.TextView;
 import org.chromium.blanc.island.IslandStyle;
 import org.chromium.blanc.island.IslandSwipe;
 import org.chromium.blanc.island.R;
+import org.chromium.blanc.spaces.BlancSpaces;
+import org.chromium.blanc.spaces.SpacesCard;
+import org.chromium.blanc.spaces.SpacesController;
 import org.chromium.blanc.tabs.BlancTabs;
 import org.chromium.blanc.tabs.CardSwipe;
 import org.chromium.blanc.tabs.GroupColors;
@@ -196,7 +199,14 @@ public final class TabGrid extends Dialog {
             window.setBackgroundDrawable(new ColorDrawable(mSurface));
             window.setLayout(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT);
         }
-        setOnDismissListener(d -> mHandler.removeCallbacks(mExpire));
+        // A tab moved to a Space, here or from the card, leaves the grid at once.
+        Runnable spacesChanged = this::render;
+        SpacesController spaces = SpacesController.current();
+        if (spaces != null) spaces.addListener(spacesChanged);
+        setOnDismissListener(d -> {
+            mHandler.removeCallbacks(mExpire);
+            if (spaces != null) spaces.removeListener(spacesChanged);
+        });
         render();
     }
 
@@ -543,6 +553,7 @@ public final class TabGrid extends Dialog {
             return true;
         });
         if (!tab.privateTab) {
+            addMoveToSpace(menu, tab);
             Menu groups = menu.addSubMenu(R.string.blanc_tab_menu_move_to_group);
             groups.add(R.string.blanc_tab_menu_new_group).setOnMenuItemClickListener(item -> {
                 GroupNameDialog.show(mActivity, "", name -> {
@@ -711,5 +722,29 @@ public final class TabGrid extends Dialog {
         if (start < 0) return url;
         int end = url.indexOf('/', start + 3);
         return end < 0 ? url.substring(start + 3) : url.substring(start + 3, end);
+    }
+
+    // Move to Space, shown with more than one ordinary tab, as on the iPhone.
+    private void addMoveToSpace(Menu menu, TabStore.Entry tab) {
+        SpacesController spaces = SpacesController.current();
+        if (spaces == null || tab.privateTab || mTabs.entries(false).size() < 2) return;
+        Menu move = menu.addSubMenu(R.string.blanc_tab_menu_move_to_space);
+        move.add(R.string.blanc_ws_new).setOnMenuItemClickListener(item -> {
+            SpacesCard.create(mActivity, "", tab.id);
+            return true;
+        });
+        if (spaces.library().shownId != null) {
+            move.add(R.string.blanc_spaces_this_phone).setOnMenuItemClickListener(item -> {
+                spaces.moveTab(tab.id, null);
+                return true;
+            });
+        }
+        for (BlancSpaces.Space space : spaces.library().spaces) {
+            if (space.id.equals(spaces.library().shownId)) continue;
+            move.add(space.name).setOnMenuItemClickListener(item -> {
+                spaces.moveTab(tab.id, space.id);
+                return true;
+            });
+        }
     }
 }

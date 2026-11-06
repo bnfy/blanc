@@ -81,6 +81,30 @@
     <string name="blanc_shield_count_site_off">Anúncios permitidos neste site</string>
     <string name="blanc_slash_allow_ads_hint">Permitir anúncios neste site</string>
     <string name="blanc_slash_block_ads_hint">Bloquear anúncios aqui, ou ativar ou desativar o bloqueio em todos os sites</string>
+    <string name="blanc_spaces_this_phone">Este telefone</string>
+    <string name="blanc_spaces_menu_label">Spaces</string>
+    <string name="blanc_spaces_menu_edit">Editar</string>
+    <string name="blanc_spaces_mark_current">Space: %1$s</string>
+    <string name="blanc_ws_new">Novo Space…</string>
+    <string name="blanc_ws_editor_new_title">Novo Space</string>
+    <string name="blanc_ws_editor_edit_title">Editar Space</string>
+    <string name="blanc_ws_editor_name">Nome</string>
+    <string name="blanc_ws_editor_color">Cor</string>
+    <string name="blanc_ws_editor_symbol">Símbolo</string>
+    <string name="blanc_ws_editor_create_button">Criar Space</string>
+    <string name="blanc_ws_delete_button">Excluir Space</string>
+    <string name="blanc_ws_undo_deleted">%1$s excluído</string>
+    <string name="blanc_ws_error_limit">Você tem %1$s Spaces. Exclua um antes de adicionar outro.</string>
+    <string name="blanc_ws_error_duplicate_name">Esse nome já está em uso. Escolha outro.</string>
+    <string name="blanc_ws_error_invalid_name">Digite um nome para o Space.</string>
+    <string name="blanc_ws_row_current">Space atual</string>
+    <string name="blanc_ws_recovery_restore_named">Restaurar %1$s</string>
+    <string name="blanc_ws_recovery_restore">Restaurar</string>
+    <string name="blanc_ws_row_edit">Editar %1$s</string>
+    <string name="blanc_settings_link_routes_move_up">Mover para cima</string>
+    <string name="blanc_settings_link_routes_move_down">Mover para baixo</string>
+    <string name="blanc_slash_space_hint">Mudar para um Space, ou digitar um novo nome para salvar esta janela</string>
+    <string name="blanc_tab_menu_move_to_space">Mover para o Space</string>
     <string name="blanc_sync_error_local_key_unlock">Não foi possível desbloquear a chave de sincronização local</string>
     <string name="blanc_footer_devices">Dispositivos</string>
     <string name="blanc_sends_section">Enviado para este dispositivo</string>
@@ -162,5 +186,10 @@
         <item quantity="one">%d aba</item>
         <item quantity="many">%d abas</item>
         <item quantity="other">%d abas</item>
+    </plurals>
+    <plurals name="blanc_ws_list_recently_deleted">
+        <item quantity="one">Excluídos recentemente (%d)</item>
+        <item quantity="many">Excluídos recentemente (%d)</item>
+        <item quantity="other">Excluídos recentemente (%d)</item>
     </plurals>
 </resources>

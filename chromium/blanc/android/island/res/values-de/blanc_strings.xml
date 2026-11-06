@@ -81,6 +81,30 @@
     <string name="blanc_shield_count_site_off">Werbung auf dieser Website erlaubt</string>
     <string name="blanc_slash_allow_ads_hint">Werbung auf dieser Website erlauben</string>
     <string name="blanc_slash_block_ads_hint">Werbung hier blockieren oder das Blockieren überall umschalten</string>
+    <string name="blanc_spaces_this_phone">Dieses Telefon</string>
+    <string name="blanc_spaces_menu_label">Spaces</string>
+    <string name="blanc_spaces_menu_edit">Bearbeiten</string>
+    <string name="blanc_spaces_mark_current">Space: %1$s</string>
+    <string name="blanc_ws_new">Neuer Space…</string>
+    <string name="blanc_ws_editor_new_title">Neuer Space</string>
+    <string name="blanc_ws_editor_edit_title">Space bearbeiten</string>
+    <string name="blanc_ws_editor_name">Name</string>
+    <string name="blanc_ws_editor_color">Farbe</string>
+    <string name="blanc_ws_editor_symbol">Symbol</string>
+    <string name="blanc_ws_editor_create_button">Space erstellen</string>
+    <string name="blanc_ws_delete_button">Space löschen</string>
+    <string name="blanc_ws_undo_deleted">%1$s gelöscht</string>
+    <string name="blanc_ws_error_limit">Du hast %1$s Spaces. Lösche einen, bevor du einen weiteren hinzufügst.</string>
+    <string name="blanc_ws_error_duplicate_name">Dieser Name wird schon verwendet. Wähle einen anderen Namen.</string>
+    <string name="blanc_ws_error_invalid_name">Gib einen Namen für den Space ein.</string>
+    <string name="blanc_ws_row_current">Aktueller Space</string>
+    <string name="blanc_ws_recovery_restore_named">%1$s wiederherstellen</string>
+    <string name="blanc_ws_recovery_restore">Wiederherstellen</string>
+    <string name="blanc_ws_row_edit">%1$s bearbeiten</string>
+    <string name="blanc_settings_link_routes_move_up">Nach oben</string>
+    <string name="blanc_settings_link_routes_move_down">Nach unten</string>
+    <string name="blanc_slash_space_hint">Zu einem Space wechseln oder einen neuen Namen eingeben, um dieses Fenster zu speichern</string>
+    <string name="blanc_tab_menu_move_to_space">In Space verschieben</string>
     <string name="blanc_sync_error_local_key_unlock">Der lokale Synchronisierungsschlüssel konnte nicht entsperrt werden</string>
     <string name="blanc_footer_devices">Andere Geräte</string>
     <string name="blanc_sends_section">An dieses Gerät gesendet</string>
@@ -158,5 +182,9 @@
     <plurals name="blanc_tabs_menu_header">
         <item quantity="one">%d Tab</item>
         <item quantity="other">%d Tabs</item>
+    </plurals>
+    <plurals name="blanc_ws_list_recently_deleted">
+        <item quantity="one">Zuletzt gelöscht (%d)</item>
+        <item quantity="other">Zuletzt gelöscht (%d)</item>
     </plurals>
 </resources>
