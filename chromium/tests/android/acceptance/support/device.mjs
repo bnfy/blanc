@@ -81,9 +81,17 @@ async function evaluate(target, expression, timeoutMs = 3000) {
 }
 
 export class Device {
+  // UI Automator refuses a dump while the screen won't settle, so it gets a moment and a second go.
   dump() {
-    adb('shell', 'uiautomator', 'dump', '/sdcard/blanc-ui.xml');
-    return adb('shell', 'cat', '/sdcard/blanc-ui.xml');
+    for (let attempt = 0; ; attempt++) {
+      try {
+        adb('shell', 'uiautomator', 'dump', '/sdcard/blanc-ui.xml');
+        return adb('shell', 'cat', '/sdcard/blanc-ui.xml');
+      } catch (error) {
+        if (attempt === 2) throw error;
+        sleep(1);
+      }
+    }
   }
 
   tapAt(b, wait = 1.5) { adb('shell', 'input', 'tap', ...center(b).map(String)); sleep(wait); }

@@ -275,13 +275,11 @@ async function main(argv) {
 
     await check('/send sends the current page to the named device', async () => {
       const device = await paired('Receiver');
-      await phonePass();
-      await device.pass();
-      await phonePass();
       await d.view('https://tosend.example/');
       await until(async () => [...await value('sync.listSendTargets')].length > 0, 'a target');
       d.runInPalette('/send Receiver');
-      sleep(3);
+      // The Worker allows an account 30 reads a minute, and pairing has used most of them.
+      sleep(61);
       device.sync.resetRequestWindowForTest();
       await device.pass();
       const inbox = [...device.sync.listSentToThisDevice()];
