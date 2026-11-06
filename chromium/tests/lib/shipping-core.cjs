@@ -12,7 +12,8 @@ const stepFiles = [
  'custom-tab-names', 'bangs', 'multi-window', 'newtab-layouts', 'pinned-home',
  'onboarding', 'migration-checklist', 'http-auth', 'site-certificate-safety',
  'tab-drag', 'workspace-recovery', 'group-names', 'link-children', 'group-colors',
- 'tab-menu-additions', 'browser-migration', 'split-view',
+ 'tab-menu-additions', 'browser-migration', 'split-view', 'spaces-redesign',
+ 'workspace-lifecycle',
 ].map(name => `test/desktop/steps/${name}.steps.js`);
 // Every import was audited for module-load effects: support helpers reach the
 // app only through the context the runner injects, and the product modules are
@@ -20,7 +21,7 @@ const stepFiles = [
 const allowed = new Set([...stepFiles,
  'test/desktop/support/context.js', 'test/desktop/support/poll.js',
  'test/desktop/support/overlay.js', 'test/desktop/support/tab-drag.js',
- 'test/desktop/support/main-turn.js',
+ 'test/desktop/support/main-turn.js', 'test/desktop/support/workspace-fixtures.js',
  'src/renderer/space-identity.js', 'src/renderer/pages/bangs-catalog.js',
  'src/renderer/pages/bangs.js', 'src/main/tabicons-model.js',
  'src/main/chrome-layout.js', 'src/main/island-autohide.js',
@@ -50,7 +51,7 @@ function createLoader(register) {
    if(request==='@cucumber/cucumber')return {...Object.fromEntries(['Given','When','Then'].map(kind=>[kind,(expression,...args)=>{
     const run=args.at(-1);if(typeof run!=='function')throw Error('Invalid shipping step definition');
     register(expression,run,file,sources.get(file));
-   }])),After(){}};
+   }])),Before(){},After(){}};
    if(request.startsWith('.'))return load(path.posix.normalize(path.posix.join(path.posix.dirname(file),request.endsWith('.js')?request:request+'.js')));
    throw Error('Unaudited shipping test import: '+request);
   };

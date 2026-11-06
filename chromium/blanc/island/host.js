@@ -229,6 +229,158 @@
     return { splitId: split.id, panes, dividers };
   }
 
+  // Blanc Spaces (F41). The checked native store keeps each Space's tabs under
+  // its id and does the crash-safe swap; names, colors and order are this
+  // small list, shipping's WorkspacesPayload. A window in no Space parks its
+  // tabs under one reserved id on the way to a saved one.
+  const SPACE_SCRATCH = '__scratch__';
+  const SPACE_LIMIT = 25;
+  let spacesBound = '';
+  const spaceList = async () => {
+    const { meta, elsewhere, held } = await request('spaceMeta');
+    return { meta: { order: [], items: {}, deleted: [], ...meta }, elsewhere: new Set(elsewhere), held: new Set(held) };
+  };
+  const spaceProjection = ({ meta, elsewhere, held }) => ({
+    status: 'saved', tint: 'mark', recoveryNotice: null, windowTabCount: snapshot?.tabs.length ?? 0,
+    deleted: meta.deleted.map(id => ({ id, ...meta.items[id] })),
+    items: meta.order.filter(id => meta.items[id]).map(id => ({
+      id, ...meta.items[id], active: snapshot?.spaceName === id, openElsewhere: elsewhere.has(id),
+      resident: held.has(id), revision: 0 })),
+  });
+  const spacesPayload = async () => spaceProjection(await spaceList());
+  async function announceSpaces() {
+    try { emit('onWorkspacesUpdated', await spacesPayload()); } catch { /* private windows keep no Spaces */ }
+  }
+  const spaceResult = async (fields) => ({ ok: true, ...fields, ...(await spacesPayload()) });
+  const spaceName = raw => (typeof raw === 'string' ? raw.trim().replace(/\s+/g, ' ').slice(0, 60) : '') || null;
+  function checkSpaceName(list, raw, except = null) {
+    const name = spaceName(raw);
+    if (!name) return { error: 'invalid-name' };
+    const same = id => id !== except && list.meta.items[id]?.name.toLocaleLowerCase() === name.toLocaleLowerCase();
+    if (list.meta.order.some(same)) return { error: 'duplicate-name' };
+    return { name };
+  }
+  function spaceIdentity(list, input) {
+    const Identity = window.SpaceIdentity;
+    const used = list.meta.order.map(id => list.meta.items[id]);
+    const fallback = Identity.PRESETS[used.length % Identity.PRESETS.length].hex;
+    return { color: input?.color || fallback, symbol: Identity.isSymbol(input?.symbol) ? input.symbol : Identity.SYMBOL_IDS[0] };
+  }
+  async function writeSpaces(list) {
+    await request('spaceMetaSave', [list.meta]);
+    await announceSpaces();
+  }
+  async function saveSpaceAs(rawName, identity) {
+    const list = await spaceList();
+    const checked = checkSpaceName(list, rawName);
+    if (checked.error) return { ok: false, error: checked.error };
+    if (list.meta.order.length >= SPACE_LIMIT) return { ok: false, error: 'limit' };
+    const id = crypto.randomUUID();
+    try { await request('previewSpaceSave', [id]); } catch { return { ok: false, error: 'storage-failed' }; }
+    list.meta.items[id] = { name: checked.name, ...spaceIdentity(list, identity), tabCount: snapshot?.tabs.length ?? 0 };
+    list.meta.order.push(id);
+    await writeSpaces(list);
+    await refresh();
+    return spaceResult({ workspaceId: id, action: 'swap' });
+  }
+  async function swapToSpace(id, list) {
+    const current = snapshot?.spaceName || SPACE_SCRATCH;
+    try {
+      await request('previewSpaceSave', [current]);
+      await request('previewSpaceOpen', [id]);
+    } catch (e) { return { ok: false, error: 'activation-failed', detail: e.message }; }
+    if (list.meta.items[current]) list.meta.items[current].tabCount = snapshot?.tabs.length ?? 0;
+    await close(false);
+    await refresh();
+    await writeSpaces(list);
+    return spaceResult({ workspaceId: id, action: 'swap' });
+  }
+  async function openSpace(id, options = {}) {
+    const list = await spaceList();
+    if (!list.meta.items[id] || list.meta.deleted.includes(id)) return { ok: false, error: 'not-found' };
+    await refresh();
+    if (snapshot.spaceName === id) return spaceResult({ workspaceId: id, action: 'noop' });
+    if (list.elsewhere.has(id)) return { ok: false, error: 'busy' };
+    // Leaving unsaved tabs asks first, as shipping's switch guard does.
+    const scratch = !snapshot.spaceName || snapshot.spaceName === SPACE_SCRATCH;
+    const real = snapshot.tabs.filter(tab => !/^blanc:\/\/newtab/.test(tab.url));
+    if (scratch && real.length && options.decision !== spacesDecision) {
+      spacesDecision = crypto.randomUUID();
+      return { ok: false, error: 'unsaved-scratch', tabCount: real.length,
+        privateCount: real.filter(tab => tab.private).length, decision: spacesDecision };
+    }
+    return swapToSpace(id, list);
+  }
+  let spacesDecision = null;
+  async function createBlankSpace(rawName, options = {}) {
+    const list = await spaceList();
+    const checked = checkSpaceName(list, rawName);
+    if (checked.error) return { ok: false, error: checked.error };
+    if (list.meta.order.length >= SPACE_LIMIT) return { ok: false, error: 'limit' };
+    const id = crypto.randomUUID();
+    try { await request('spaceCreateBlank', [id]); } catch (e) { return { ok: false, error: 'storage-failed', detail: e.message }; }
+    list.meta.items[id] = { name: checked.name, ...spaceIdentity(list, options), tabCount: 1 };
+    list.meta.order.push(id);
+    await request('spaceMetaSave', [list.meta]);
+    return openSpace(id, options);
+  }
+  async function updateSpace(id, patch = {}) {
+    const list = await spaceList();
+    const item = list.meta.items[id];
+    if (!item) return { ok: false, error: 'not-found' };
+    if (patch.name !== undefined) {
+      const checked = checkSpaceName(list, patch.name, id);
+      if (checked.error) return { ok: false, error: checked.error };
+      item.name = checked.name;
+    }
+    if (patch.color !== undefined) item.color = patch.color;
+    if (patch.symbol !== undefined) item.symbol = patch.symbol;
+    await writeSpaces(list);
+    return spaceResult({ workspaceId: id });
+  }
+  async function moveSpaceTo(id, index) {
+    const list = await spaceList();
+    const from = list.meta.order.indexOf(id);
+    if (from < 0) return { ok: false, error: 'not-found' };
+    if (!Number.isInteger(index) || index < 0 || index >= list.meta.order.length) return { ok: false, error: 'invalid-index' };
+    list.meta.order.splice(index, 0, ...list.meta.order.splice(from, 1));
+    await writeSpaces(list);
+    return spaceResult({ workspaceId: id });
+  }
+  // Deleting keeps the record for Undo and Recently deleted.
+  async function removeSpace(id) {
+    const list = await spaceList();
+    if (!list.meta.items[id]) return { ok: false, error: 'not-found' };
+    list.meta.order = list.meta.order.filter(item => item !== id);
+    list.meta.deleted.unshift(id);
+    list.meta.items[id].deletedAt = Date.now();
+    // Undo puts this window back in it.
+    if (snapshot?.spaceName === id) { glance.undoSpace = id; await request('spaceUnbind'); }
+    await writeSpaces(list);
+    await refresh();
+    return spaceResult({ workspaceId: id });
+  }
+  async function restoreSpace(id) {
+    const list = await spaceList();
+    if (!list.meta.deleted.includes(id)) return { ok: false, error: 'not-found' };
+    list.meta.deleted = list.meta.deleted.filter(item => item !== id);
+    delete list.meta.items[id].deletedAt;
+    list.meta.order.push(id);
+    if (glance.undoSpace === id && !snapshot?.spaceName) await request('previewSpaceSave', [id]);
+    glance.undoSpace = null;
+    await writeSpaces(list);
+    await refresh();
+    return spaceResult({ workspaceId: id });
+  }
+  async function forgetSpace(id) {
+    const list = await spaceList();
+    list.meta.deleted = list.meta.deleted.filter(item => item !== id);
+    delete list.meta.items[id];
+    await request('spaceForget', [id]);
+    await writeSpaces(list);
+    return spaceResult({ workspaceId: id });
+  }
+
   // Floating Glance (F34), shipping's glance-card-controller.js: the one place
   // the card's frame changes. Every move, resize and reset carries the open
   // card's generation, so a message from a card that has gone is refused. The
@@ -524,6 +676,7 @@
       // Shipping's tab records name their split; the panel draws one row from it.
       for (const tab of snapshot.tabs) tab.splitId = snapshot.splits?.find(split => split.tabIds.includes(tab.id))?.id ?? null;
       syncGlance();
+      if ((snapshot.spaceName || '') !== spacesBound) { spacesBound = snapshot.spaceName || ''; announceSpaces(); }
       settleHover();
       syncAutoHide();
       const pill = strip.contentDocument?.getElementById('islandPill');
@@ -1558,7 +1711,21 @@
     previewSpaceSave: name => request('previewSpaceSave', [name]),
     previewSpaceList: () => request('previewSpaceList'),
     previewSpaceOpen: name => request('previewSpaceOpen', [name]),
-    listWorkspaces: async () => ({ items: [], tint: 'mark' }),
+    listWorkspaces: () => spacesPayload(),
+    saveWorkspaceAs: (name, identity) => saveSpaceAs(name, identity),
+    openWorkspace: (id, options) => openSpace(id, options),
+    createBlankWorkspace: (name, options) => createBlankSpace(name, options),
+    updateWorkspace: (id, patch) => updateSpace(id, patch),
+    moveWorkspaceTo: (id, index) => moveSpaceTo(id, index),
+    removeWorkspace: id => removeSpace(id),
+    undoRemoveWorkspace: id => restoreSpace(id),
+    restoreWorkspace: id => restoreSpace(id),
+    forgetWorkspace: id => forgetSpace(id),
+    openSpacesMenu: anchor => {
+      if (overlayMode === 'spaces') { close(false); return; }
+      if (anchor?.closing === true) return;
+      show('', 'spaces');
+    },
     // Tab Archive (F52) and sending tabs (Profile Sync) are not ported yet:
     // the overlay reads them with favorites and history at startup, so they
     // answer as shipping does with nothing archived, sent or paired.
@@ -1847,6 +2014,8 @@
     api,
     toggleGlance: () => (snapshot?.glanceTabId != null ? api.closeGlance() : api.openGlancePicker()),
     focusGlanceCard,
+    spaceHeldState: () => request('spaceMeta'),
+    spacesChanged: () => announceSpaces(),
     glanceState: () => ({ layout: glancePayload(), shown: !glanceCardFrame.hidden, generation: glance.generation }),
     apiForDocument,
     hoverState: () => ({ ...hover.state }),
