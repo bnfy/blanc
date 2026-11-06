@@ -891,6 +891,24 @@ remain pending. D3 beta-only no-DRM exception accepted; EME notice/handoff requi
   not rerun on this candidate. The five failures are F41-5, F41-6, F41-7, F41-9
   and F41-11; F41-9 is a real gap, because `newWindow` isn't built and the
   decision dialog's New Window button only asks again.
+- **S3.8 Spaces fixes, and a crash in set-aside Spaces, candidate macos-8597d2d3b8936eee (2026-11-06):**
+  F41-5, F41-7, F41-9 and F41-11 pass in targeted runs. A Space left with only
+  private tabs saves a Start Page, so closed pages can't come back. Private
+  pages ask in any Space and close on a switch. Opening a Space in a new window
+  works, a Space showing elsewhere is focused, and deleting a set-aside Space
+  moves its live pages to a window. **Open defect, on `chromium/migration` since
+  S3.5:** a set-aside page's `history.pushState` crashes the browser
+  (`LensOverlayEntryPointController::From` with a null window; F41-6 reaches
+  it). It is the same family as patch 0033: tab features assume a tab has a
+  window, and `tab_interface.h` makes that a rule, so a held `TabModel` has no
+  safe state. An adversarial review also confirmed, by reading, that
+  `window.print()` or a client certificate crashes through the null modal
+  delegate, that returning destroys a held page whose URL changed, that closing
+  a window destroys its held pages, that the room budget destroys a page with a
+  `beforeunload` handler, that `IsBeingCaptured()` misses a live camera or
+  screen share, and that a decision has no fingerprint or expiry. Proposed
+  fix, not yet built or approved: hold set-aside pages as ordinary tabs in one
+  never-shown popup Browser per profile.
 - **Mahjong goes last (owner, 2026-11-04):** the fork has no Mahjong yet
   (F35-3, F35-4, F35-9 fail at the footer launch). When it is built it is an
   Island page (shipping's files served as byte-identical copies, opened as an
@@ -1390,5 +1408,5 @@ Android's Bar A counts the shared scenarios bound in `chromium/tests/android/acc
 
 Legacy macOS stages come from the approved spec; they await verification on the canonical candidate. No legacy stage counts as Verified.
 
-Candidate identities: macOS: macos-fe6c9becc12242de; Windows: none; Linux: none; Android: android-arm64-7bd35e94ef746069.
+Candidate identities: macOS: macos-8597d2d3b8936eee; Windows: none; Linux: none; Android: android-arm64-7bd35e94ef746069.
 <!-- END GENERATED PROGRESS -->

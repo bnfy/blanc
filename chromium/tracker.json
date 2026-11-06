@@ -1096,8 +1096,8 @@
       "platformProgress": {
         "macos": {
           "stage": "implemented",
-          "candidate": "macos-fe6c9becc12242de",
-          "basis": "S3.7 (2026-11-06): in candidate macos-fe6c9becc12242de: mark, menu, save, switch, edit, delete, undo, live set-aside Spaces, the room budget and the sign-in guard; 22 of 84 cases pass, 5 fail, 57 undefined (s3c-spaces); opening a Space in a new window, moves and multi-tab selection not built"
+          "candidate": "macos-8597d2d3b8936eee",
+          "basis": "S3.8 (2026-11-06): in candidate macos-8597d2d3b8936eee: mark, menu, save, switch, edit, delete, undo, the room budget, the sign-in guard and opening in a new window; F41-5, F41-7, F41-9 and F41-11 pass in targeted runs; set-aside pages crash on history.pushState (F41-6), redesign pending; moves and multi-tab selection not built"
         },
         "windows": {
           "stage": "not-started",
@@ -2459,8 +2459,8 @@
   ],
   "currentCandidates": {
     "macos": {
-      "id": "macos-fe6c9becc12242de",
-      "frameworkSha256": "fe6c9becc12242de5d2b62fa46dd4b24211905c8a6f7774d483eb7e1dbb4a720",
+      "id": "macos-8597d2d3b8936eee",
+      "frameworkSha256": "8597d2d3b8936eee6669534093c4063e5d4a5b0718ab0e367c337c92ff6902e1",
       "executableSha256": "cca20d7ed00bbdecf8db310c6802fbed003b4e63c6bc3b1f71dabc9dbff2ff01",
       "version": "158.0.8127.2",
       "qualification": "compiled candidate; runtime acceptance pending"

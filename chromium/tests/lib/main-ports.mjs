@@ -4,6 +4,7 @@
 // changed shipping step finds no port and stays undefined instead of running
 // a stale one. tests/main-ports.test.mjs checks every key against shipping.
 import crypto from 'node:crypto';
+import {pause} from './cdp.mjs';
 import {nativeCall} from './test-driver.mjs';
 
 export const sourceKey = fn => crypto.createHash('sha256').update(String(fn)).digest('hex');
@@ -33,6 +34,19 @@ const windows = async fixture => (await fixture.targets())
   .filter(t => t.type === 'page' && t.url === 'chrome://blanc-prototype/host.html').length;
 
 export const PORTS = {
+  // Whether a set-aside page's download was stopped: shipping's will-download,
+  // as the count of downloads started, from a page's own download link.
+  '270cc54fc97d5ae90d03ddf003f93e0e4039021fc2b627e44432ee24a29f7d99': async (fixture, state, identity) => {
+    const id = fixture.pageIdentities?.get(identity);
+    const targetId = (await nativeCall(fixture.host, 'tabTargets'))[String(id)];
+    const target = (await fixture.targets()).find(t => t.id === targetId);
+    const before = await nativeCall(fixture.host, 'downloadCount');
+    const page = await fixture.connectTarget(target);
+    await page.eval(`(()=>{const a=document.createElement('a');a.href=new URL('/workspace-download',location.href).href;a.download='';document.body.append(a);a.click();})()`);
+    await pause(1500);
+    page.close();
+    return await nativeCall(fixture.host, 'downloadCount') === before;
+  },
   // Whether a pane's contents hold focus: the host's focused tab.
   'ffe82b57714edbb86a70d42ba87b0e6582b9138abb48ee03d3b4241e44da35a0': async (fixture, state, id) => String((await nativeCall(fixture.host, 'snapshot')).focusedTabId) === String(id),
   // process.platform, for the platform's new-tab modifier.

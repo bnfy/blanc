@@ -135,6 +135,8 @@
 #include "chrome/browser/shell_integration.h"
 #include "chrome/browser/sessions/tab_restore_service_factory.h"
 #include "chrome/browser/ui/browser_live_tab_context.h"
+#include "chrome/browser/ui/browser_window/public/create_browser_window.h"
+#include "content/public/browser/download_manager.h"
 #include "components/sessions/core/tab_restore_service.h"
 #include "components/prefs/pref_service.h"
 #include "components/prefs/pref_change_registrar.h"
@@ -1639,7 +1641,29 @@ void EndGlance(Owner* owner, content::WebContents* activate) {
 constexpr size_t kMaxSetAside = 6;
 constexpr size_t kMaxLoadedSetAside = 2;
 constexpr int kMaxLoadedTabs = 16;
+// A set-aside page has no window to show anything in, so it may not open one
+// or start a download. The tab strip takes over as delegate when it comes back.
+class HeldTabDelegate : public content::WebContentsDelegate {
+ public:
+  bool IsWebContentsCreationOverridden(content::RenderFrameHost*, content::SiteInstance*,
+                                       content::mojom::WindowContainerType, const GURL&,
+                                       const std::string&, const GURL&) override {
+    return true;
+  }
+  void CanDownload(const GURL&, const std::string&, base::OnceCallback<void(bool)> callback) override {
+    std::move(callback).Run(false);
+  }
+};
+HeldTabDelegate* GetHeldTabDelegate() {
+  static base::NoDestructor<HeldTabDelegate> delegate;
+  return delegate.get();
+}
 struct HeldRef { raw_ptr<Owner> owner; std::string name; int since; };
+// Spaces waiting for their new window's Island, by window session id.
+std::map<int, std::string>& PendingSpaceOpens() {
+  static base::NoDestructor<std::map<int, std::string>> pending;
+  return *pending;
+}
 std::string& LastRoomPass() { static base::NoDestructor<std::string> outcome; return *outcome; }
 int& HeldSerial() { static int serial = 0; return serial; }
 std::vector<HeldRef> HeldSpaces(Profile* profile) {
@@ -2319,11 +2343,13 @@ std::optional<base::DictValue> CaptureNativeSpace(BrowserWindowInterface* browse
   // A Space never holds a private tab (shipping), so private tabs are left
   // out and the active index counts only the tabs the Space keeps.
   int active = 0;
+  bool active_private = false;
   for (int i = 0; i < model->count(); ++i) {
     auto* tab = model->GetWebContentsAt(i);
     if (blanc::private_tabs::IsPrivateTab(tab)) {
       // A split is saved whole or not at all.
       if (model->GetSplitForTab(i)) return std::nullopt;
+      active_private |= i == model->active_index();
       continue;
     }
     if (i == model->active_index()) active = static_cast<int>(tabs.size());
@@ -2364,7 +2390,19 @@ std::optional<base::DictValue> CaptureNativeSpace(BrowserWindowInterface* browse
     }
     tabs.Append(base::DictValue().Set("url", url.spec()).Set("pinned", model->IsTabPinned(i)).Set("group", group_index));
   }
-  if (tabs.empty()) return std::nullopt;
+  // With only private tabs left the Space holds a Start Page, as shipping's
+  // does: the pages closed from it must not come back from an older record.
+  if (tabs.empty()) {
+    tabs.Append(base::DictValue().Set("url", "chrome://newtab/").Set("pinned", false).Set("group", -1));
+    active = 0;
+  }
+  // A private tab isn't saved, so the saved active tab stays as it was.
+  if (active_private) {
+    for (auto* owner : Owner::Live()) {
+      if (owner->browser != browser || !owner->space_saved) continue;
+      active = std::clamp(owner->space_saved->FindInt("active").value_or(0), 0, static_cast<int>(tabs.size()) - 1);
+    }
+  }
   // Groups only private tabs referenced stay out, as in shipping's session
   // file, and the kept tabs' group indexes follow.
   std::vector<int> remap(groups.size(), -1);
@@ -4002,6 +4040,13 @@ class Handler : public content::WebUIMessageHandler, public extensions::Extensio
       Reply(id, true, base::Value(std::move(list)));
       return;
     }
+    // How many downloads this profile has started.
+    if (message[1].GetString() == "downloadCount" && message[2].GetList().empty()) {
+      content::DownloadManager::DownloadVector items;
+      Profile::FromWebUI(web_ui())->GetDownloadManager()->GetAllDownloads(&items);
+      Reply(id, true, base::Value(static_cast<int>(items.size())));
+      return;
+    }
     // HTTP auth challenges Blanc refused (http_auth.h, F20), or forgets them.
     if (message[1].GetString() == "authChallenges" && message[2].GetList().empty()) {
       base::ListValue list;
@@ -4294,13 +4339,16 @@ class Handler : public content::WebUIMessageHandler, public extensions::Extensio
     // apart documents that share an address, such as two Start Pages.
     if (message[1].GetString() == "tabTargets") {
       base::DictValue targets;
-      if (auto* owner = GetOwner(web_ui()->GetWebContents()); owner && owner->browser) {
-        auto* model = owner->browser->GetTabStripModel();
-        for (int index = 0; index < model->count(); ++index) {
-          auto* contents = model->GetWebContentsAt(index);
+      // Every window's tabs and the set-aside ones, as ids stay unique.
+      for (auto* owner : Owner::Live()) {
+        auto note = [&](content::WebContents* contents) {
           targets.Set(base::NumberToString(sessions::SessionTabHelper::IdForTab(contents).id()),
                       content::DevToolsAgentHost::GetOrCreateFor(contents)->GetId());
-        }
+        };
+        auto* model = owner->browser->GetTabStripModel();
+        for (int index = 0; index < model->count(); ++index) note(model->GetWebContentsAt(index));
+        for (const auto& [name, held] : owner->held_spaces)
+          for (const auto& tab : held) if (tab) note(tab->GetContents());
       }
       Reply(id, true, base::Value(std::move(targets)));
       return;
@@ -5266,6 +5314,8 @@ class Handler : public content::WebUIMessageHandler, public extensions::Extensio
       if (std::ranges::contains(added, tab)) continue;
       const int index = model->GetIndexOfWebContents(tab);
       if (index < 0) continue;
+      // A private page is never set aside; the switch's decision covered it.
+      if (blanc::private_tabs::IsPrivateTab(tab)) { model->CloseWebContentsAt(index, TabCloseTypes::CLOSE_NONE); continue; }
       if (!hold_old) { model->CloseWebContentsAt(index, TabCloseTypes::CLOSE_CREATE_HISTORICAL_TAB); continue; }
       aside_pinned.push_back(model->IsTabPinned(index));
       aside_ids.push_back(sessions::SessionTabHelper::IdForTab(tab).id());
@@ -5273,6 +5323,7 @@ class Handler : public content::WebUIMessageHandler, public extensions::Extensio
       model->RemoveFromGroup({model->GetIndexOfWebContents(tab)});
       model->SetTabPinned(model->GetIndexOfWebContents(tab), false);
       aside.push_back(model->DetachTabAtForInsertion(model->GetIndexOfWebContents(tab)));
+      tab->SetDelegate(GetHeldTabDelegate());
     }
     if (hold_old && !aside.empty()) {
       owner->held_spaces[owner->space_name] = std::move(aside);
@@ -5532,6 +5583,50 @@ class Handler : public content::WebUIMessageHandler, public extensions::Extensio
     // Shipping's space-switch-guard: a page counts only while setting it aside
     // would break what it's doing now. A frame loading inside it never does,
     // and neither does a tab the person opened in the background.
+    if (method == "spaceFocus" && args.size() == 1 && args[0].is_string()) {
+      for (auto* other : Owner::Live())
+        if (other->browser->GetProfile() == profile && other->space_name == args[0].GetString())
+          other->browser->GetWindow()->Activate();
+      reply(true, base::Value(true)); return;
+    }
+    if (method == "spaceOpenNewWindow" && args.size() == 1 && args[0].is_string()) {
+      auto* created = CreateBrowserWindow(BrowserWindowCreateParams(profile, true));
+      chrome::AddAndReturnTabAt(created, GURL("chrome://newtab/"), -1, true);
+      PendingSpaceOpens()[created->GetSessionID().id()] = args[0].GetString();
+      created->GetWindow()->Show();
+      reply(true, base::Value(true)); return;
+    }
+    if (method == "spacePendingOpen" && args.empty()) {
+      auto& pending = PendingSpaceOpens();
+      const auto found = pending.find(browser->GetSessionID().id());
+      std::string name;
+      if (found != pending.end()) { name = found->second; pending.erase(found); }
+      reply(true, base::Value(name)); return;
+    }
+    if (method == "spaceReveal" && args.size() == 1 && args[0].is_string()) {
+      const std::string& name = args[0].GetString();
+      for (auto* other : Owner::Live()) {
+        if (other->browser->GetProfile() != profile) continue;
+        const auto found = other->held_spaces.find(name);
+        if (found == other->held_spaces.end()) continue;
+        auto held = std::move(found->second);
+        const auto pinned = other->held_pinned[name];
+        ForgetHeld(other, name);
+        // A tab released for room has no page left: it stays in the record.
+        if (std::ranges::none_of(held, [](const auto& tab) { return !!tab; })) break;
+        auto* created = CreateBrowserWindow(BrowserWindowCreateParams(profile, true));
+        auto* shown = created->GetTabStripModel();
+        for (size_t i = 0; i < held.size(); ++i) {
+          if (!held[i]) continue;
+          shown->InsertDetachedTabAt(shown->count(), std::move(held[i]),
+              shown->empty() ? AddTabTypes::ADD_ACTIVE : AddTabTypes::ADD_NONE);
+          if (i < pinned.size() && pinned[i]) shown->SetTabPinned(shown->count() - 1, true);
+        }
+        created->GetWindow()->Show();
+        break;
+      }
+      reply(true, base::Value(true)); return;
+    }
     if (method == "spaceProtection" && args.empty()) {
       base::ListValue pages;
       for (int i = 0; i < model->count(); ++i) {
@@ -5617,13 +5712,17 @@ class Handler : public content::WebUIMessageHandler, public extensions::Extensio
         space_save_pending_ = true;
         const uint64_t generation = ++space_save_generation_;
         base::ListValue source_ids;
+        // One identity per saved tab: a private tab isn't saved, and a window
+        // of only private tabs saves a Start Page no live tab stands for.
         for (int i = 0; i < model->count(); ++i) {
           auto* tab = model->GetWebContentsAt(i);
+          if (blanc::private_tabs::IsPrivateTab(tab)) continue;
           const auto tab_identity = TabIdentity(tab);
           source_ids.Append(tab_identity);
           service->AddTabExtraData(browser->GetSessionID(),
               sessions::SessionTabHelper::IdForTab(tab), kTabIdentityKey, tab_identity);
         }
+        if (source_ids.empty()) source_ids.Append(base::Uuid::GenerateRandomV4().AsLowercaseString());
         disk_capture.Set("_source_tabs", std::move(source_ids));
         service->AddWindowExtraData(browser->GetSessionID(), kWindowIdentityKey, identity);
         service->SaveAndFlushSession(base::BindOnce(&Handler::SpaceSaveAcknowledged,

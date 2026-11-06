@@ -6,13 +6,13 @@ const same=(a,b)=>String(a).toLocaleLowerCase()===String(b).toLocaleLowerCase();
 // A tab's document, found by its committed URL: CDP page targets carry no
 // tab id, so a URL shared by two tabs is ambiguous rather than guessed.
 export async function tabPage(w,id){
- const tabs=(await w.snapshot()).tabs;const tab=tabs.find(t=>String(t.id)===String(id));
- if(!tab)throw Error('Unknown native tab '+id);
- // The browser names each tab's DevTools target, so documents that share an
- // address (two Start Pages) stay apart; older candidates fall back to the
- // address, which must then be unique.
+ // The browser names each tab's DevTools target, in any window or set aside,
+ // so documents that share an address (two Start Pages) stay apart; older
+ // candidates fall back to the address, which must then be unique.
  const targetId=(await w.native('tabTargets',[]).catch(()=>null))?.[String(id)];
  if(targetId){await w.app.refresh();const page=w.app.windows().find(p=>p.targetId===targetId);if(page)return page;}
+ const tabs=(await w.snapshot()).tabs;const tab=tabs.find(t=>String(t.id)===String(id));
+ if(!tab)throw Error('Unknown native tab '+id);
  // The snapshot names the Start Page blanc://newtab/ and commits it as its
  // blanc-prototype document; its page target says chrome://newtab/. Compare
  // all of them through the shipping URL projection.
@@ -67,7 +67,15 @@ export const core={
   return created(w,await w.native('createTab',[forkUrl(url)]));
  },
  newTab:async w=>created(w,await w.native('createTab',['chrome://newtab/'])),
- closeTab:(w,id)=>w.native('closeTab',[nativeId(id)]),
+ // Shipping's hook closes without asking. A page scripted with a user gesture
+ // may hold a beforeunload dialog here, and only a scripted page can.
+ async closeTab(w,id){
+  const targetId=(await w.native('tabTargets',[]).catch(()=>null))?.[String(id)];
+  const page=targetId&&w.app.windows().find(p=>p.targetId===targetId&&p.cdp);
+  if(page){page.cdp.on('Page.javascriptDialogOpening',()=>page.cdp.send('Page.handleJavaScriptDialog',{accept:true}).catch(()=>{}));
+   await page.cdp.send('Page.enable');}
+  return w.native('closeTab',[nativeId(id)]);
+ },
  activateTab:(w,id)=>w.native('switchTab',[nativeId(id)]),
  duplicateActive:async w=>w.native('duplicateTab',[(await w.snapshot()).activeTabId]),
  pinTab:(w,id)=>w.native('togglePinned',[nativeId(id)]),

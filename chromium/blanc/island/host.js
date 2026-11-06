@@ -245,6 +245,8 @@
     deleted: meta.deleted.map(id => ({ id, ...meta.items[id] })),
     items: meta.order.filter(id => meta.items[id]).map(id => ({
       id, ...meta.items[id], active: snapshot?.spaceName === id, openElsewhere: elsewhere.has(id),
+      // The window showing it knows better than the last switch did.
+      ...(snapshot?.spaceName === id && { tabCount: snapshot.tabs.filter(tab => !tab.private).length }),
       resident: held.has(id), revision: 0 })),
   });
   const spacesPayload = async () => spaceProjection(await spaceList());
@@ -300,31 +302,55 @@
     if (!list.meta.items[id] || list.meta.deleted.includes(id)) return { ok: false, error: 'not-found' };
     await refresh();
     if (snapshot.spaceName === id) return spaceResult({ workspaceId: id, action: 'noop' });
-    if (list.elsewhere.has(id)) return { ok: false, error: 'busy' };
+    // Already showing in another window: go there.
+    if (list.elsewhere.has(id)) {
+      await request('spaceFocus', [id]);
+      return spaceResult({ workspaceId: id, action: 'focus' });
+    }
+    if (options.newWindow) return openSpaceElsewhere(id);
+    const guard = await switchGuard(id, options);
+    return guard ?? swapToSpace(id, list);
+  }
+  // Shipping's authorize(): pages that can't be left stop a switch. Private
+  // pages always ask, since a switch closes them, and a window in no Space
+  // asks about all its pages. An answer holds for the switch it was asked for.
+  let spacesDecision = null;
+  async function switchGuard(target, options) {
     const blockingTabs = await request('spaceProtection');
     if (blockingTabs.length) return { ok: false, error: 'protected-pages', reason: 'active-page', blockingTabs };
-    // Leaving unsaved tabs asks first, as shipping's switch guard does.
+    await refresh();
     const scratch = !snapshot.spaceName || snapshot.spaceName === SPACE_SCRATCH;
     const real = snapshot.tabs.filter(tab => !/^blanc:\/\/newtab/.test(tab.url));
-    if (scratch && real.length && options.decision !== spacesDecision) {
-      spacesDecision = crypto.randomUUID();
-      return { ok: false, error: 'unsaved-scratch', tabCount: real.length,
-        privateCount: real.filter(tab => tab.private).length, decision: spacesDecision };
-    }
-    return swapToSpace(id, list);
+    const privateCount = real.filter(tab => tab.private).length;
+    const tabCount = scratch ? real.length : privateCount;
+    if (!tabCount) return null;
+    const asked = spacesDecision;
+    spacesDecision = null;
+    if (options.decision && asked?.token === options.decision && asked.target === target) return null;
+    spacesDecision = { token: crypto.randomUUID(), target };
+    return { ok: false, error: 'unsaved-scratch', tabCount, privateCount, decision: spacesDecision.token };
   }
-  let spacesDecision = null;
+  async function openSpaceElsewhere(id) {
+    try { await request('spaceOpenNewWindow', [id]); } catch (e) { return { ok: false, error: 'activation-failed', detail: e.message }; }
+    return spaceResult({ workspaceId: id, action: 'focus' });
+  }
   async function createBlankSpace(rawName, options = {}) {
     const list = await spaceList();
     const checked = checkSpaceName(list, rawName);
     if (checked.error) return { ok: false, error: checked.error };
     if (list.meta.order.length >= SPACE_LIMIT) return { ok: false, error: 'limit' };
+    if (!options.newWindow) {
+      const guard = await switchGuard(`new:${checked.name}`, options);
+      if (guard) return guard;
+    }
     const id = crypto.randomUUID();
     try { await request('spaceCreateBlank', [id]); } catch (e) { return { ok: false, error: 'storage-failed', detail: e.message }; }
     list.meta.items[id] = { name: checked.name, ...spaceIdentity(list, options), tabCount: 1 };
     list.meta.order.push(id);
     await request('spaceMetaSave', [list.meta]);
-    return openSpace(id, options);
+    const opened = options.newWindow ? await openSpaceElsewhere(id) : await swapToSpace(id, list);
+    // The saved Space stays findable, so a retry can't fail as a duplicate.
+    return opened.ok ? { ...opened, workspaceId: id } : { ok: false, error: 'saved-not-opened', cause: opened.error, detail: opened.detail, workspaceId: id };
   }
   async function updateSpace(id, patch = {}) {
     const list = await spaceList();
@@ -353,6 +379,11 @@
   async function removeSpace(id) {
     const list = await spaceList();
     if (!list.meta.items[id]) return { ok: false, error: 'not-found' };
+    // Deleting a Space never destroys a page set aside in it: its live pages
+    // come out into an ordinary window first.
+    if (list.held.has(id)) {
+      try { await request('spaceReveal', [id]); } catch (e) { return { ok: false, error: 'activation-failed', detail: e.message }; }
+    }
     list.meta.order = list.meta.order.filter(item => item !== id);
     list.meta.deleted.unshift(id);
     list.meta.items[id].deletedAt = Date.now();
@@ -1730,7 +1761,7 @@
     previewSpaceSave: name => request('previewSpaceSave', [name]),
     previewSpaceList: () => request('previewSpaceList'),
     previewSpaceOpen: name => request('previewSpaceOpen', [name]),
-    listWorkspaces: () => spacesPayload(),
+    listWorkspaces: async () => { await refresh(); return spacesPayload(); },
     saveWorkspaceAs: (name, identity) => saveSpaceAs(name, identity),
     openWorkspace: (id, options) => openSpace(id, options),
     createBlankWorkspace: (name, options) => createBlankSpace(name, options),
@@ -2145,6 +2176,20 @@
     if (after.openUrl) await request('createTab', [after.openUrl]);
   }
   maybeWhatsNew().catch(() => {});
+  // A Space opened in a new window: this window exists to show it. Capture
+  // waits for its first tab, and a failure leaves no blank window behind.
+  async function openPendingSpace() {
+    const id = await request('spacePendingOpen');
+    if (!id) return;
+    for (let i = 0; i < 100; i++) {
+      await refresh();
+      if (snapshot?.tabs.length && !snapshot.tabs.some(tab => tab.isLoading)) break;
+      await new Promise(done => setTimeout(done, 50));
+    }
+    const result = await swapToSpace(id, await spaceList());
+    if (!result.ok) await request('previewPageCommand', ['closeWindow']);
+  }
+  openPendingSpace().catch(error => notice(error.message));
   setInterval(refresh, 300);
   applyRail().catch(error => notice(error.message));
 })();
