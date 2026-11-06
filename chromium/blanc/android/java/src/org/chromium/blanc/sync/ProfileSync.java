@@ -44,6 +44,9 @@ final class ProfileSync {
         void setBlockingEnabled(boolean on);
 
         SharedPreferences prefs();
+
+        /** Background sync on or off. */
+        void schedule(boolean on);
     }
 
     private static final String TAG = "BlancSync";
@@ -54,6 +57,7 @@ final class ProfileSync {
     private static final String[] THEMES = {"system", "light", "dark"};
 
     private final Host mHost;
+    private @Nullable Boolean mScheduled;
     private boolean mRunning;
     private boolean mAgain;
 
@@ -76,11 +80,20 @@ final class ProfileSync {
                 finish();
             } else if (!status.optBoolean("enabled")) {
                 mHost.prefs().edit().remove(SEEN_FAVORITES).remove(SEEN_THEME).remove(SEEN_BLOCKING).apply();
+                schedule(false);
                 finish();
             } else {
+                schedule(true);
                 favorites();
             }
         });
+    }
+
+    // Once per launch and per change, not once ever: a force-stop makes Android drop the job.
+    private void schedule(boolean on) {
+        if (mScheduled != null && mScheduled == on) return;
+        mHost.schedule(on);
+        mScheduled = on;
     }
 
     private void finish() {

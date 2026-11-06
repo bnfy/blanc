@@ -21,6 +21,14 @@ The decisions made while building A4 (sync), each with what it costs if wrong. P
 - The desktop syntax compile of the runner was skipped: its Mojo headers aren't generated in the Mac Studio tree, and desktop doesn't build the target until S4. Cost if wrong: compile fixes at S4.
 - Sync's test hooks follow `blanc_enable_test_hooks`, so A7 must build with the release channel or as an official build. Cost if wrong: a release would carry the test receiver, and A7's checks need to confirm it doesn't.
 
+## A4b: open tabs, Send to device, background sync
+
+- Background sync uses Chromium's own `BackgroundTaskScheduler`, not WorkManager. It's the same Android job underneath, already knows how to start Chromium with no window, and needs no new library. Cost if wrong: one job class to move.
+- Synced Recently closed moves to A4c, because the iPhone shows those rows only with the Spaces switch on. Cost if wrong: none until A4c.
+- This phone's tab icons aren't published yet, so other devices show their default icon. Cost if wrong: plainer rows elsewhere.
+- Other-device pages in the Quick Switcher open as a Favorite does. Cost if wrong: a small difference from the iPhone.
+- Tabs reach the runner at launch, when the app leaves the screen, and on the 30-second sweep. Cost if wrong: a shared tab can take that long to go out, on top of shipping's own delay.
+
 ## Fixed in A4a's review
 
 - A saved agreement could outrun what landed, so a refused or interrupted save read as a removal and deleted the person's bookmark (Critical). Agreement is now written only after the runner confirms and saves. `ProfileSyncTest`, `SyncedFavoritesTest`, and `sync.mjs` "a Favorite saved as the runner dies".

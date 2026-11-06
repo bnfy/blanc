@@ -11818,7 +11818,11 @@ globalThis.__call = (method, argsJson, done) => {
     const target = file && __require(`src/main/${file}.js`)[fn];
     if (typeof target !== 'function') throw new Error(`no method ${method}`);
     return target(...JSON.parse(argsJson || '[]'));
-  }).then(value => done(true, JSON.stringify(value === undefined ? null : value)), error => done(false, String(error && error.message || error)));
+  }).then(value => {
+    // Android can end Blanc at any moment: what a call changed is saved before it answers.
+    __require('shim:electron').__quit();
+    done(true, JSON.stringify(value === undefined ? null : value));
+  }, error => done(false, String(error && error.message || error)));
 };
 
 // What the phone needs to hear about. Merges count: they're how another device's change arrives.

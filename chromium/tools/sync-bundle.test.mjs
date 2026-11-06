@@ -97,3 +97,10 @@ test('runner.flush saves a pending store now', async () => {
   await new Promise(done => device.context.__call('runner.flush', '[]', done));
   assert.match(Buffer.from(device.stores['bookmarks.json']).toString(), /flushed/);
 });
+
+test('a call is saved before it answers', async () => {
+  const device = peer('Saved', 'http://127.0.0.1:1');
+  const answer = await new Promise(done => device.context.__call('bookmarks.saveFavorite', '["https://example.org/kept","Kept"]', (ok, value) => done({ok, value})));
+  assert.equal(answer.ok, true);
+  assert.match(Buffer.from(device.stores['bookmarks.json']).toString(), /example\.org\/kept/);
+});

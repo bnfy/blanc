@@ -15,6 +15,8 @@ import org.jni_zero.CalledByNative;
 import org.jni_zero.JNINamespace;
 import org.jni_zero.NativeMethods;
 
+import org.chromium.base.ApplicationState;
+import org.chromium.base.ApplicationStatus;
 import org.chromium.base.Callback;
 import org.chromium.base.ContextUtils;
 import org.chromium.base.PathUtils;
@@ -33,6 +35,7 @@ public final class SyncBridge {
     private static final BlancKeyStore sKeys = new BlancKeyStore();
     /** The tabs last reported, for a phone that pairs after launching. */
     private static @Nullable String sTabs;
+    private static boolean sWatching;
     private static final ProfileSync sProfile = new ProfileSync(new ProfileSync.Host() {
         @Override
         public void call(String method, String argsJson, Callback<String> done) {
@@ -68,6 +71,11 @@ public final class SyncBridge {
         public SharedPreferences prefs() {
             return ContextUtils.getAppSharedPreferences();
         }
+
+        @Override
+        public void schedule(boolean on) {
+            SyncSchedule.set(on);
+        }
     });
 
     private SyncBridge() {}
@@ -87,7 +95,7 @@ public final class SyncBridge {
         return sKeys.unprotect(data);
     }
 
-    private static boolean on() {
+    static boolean on() {
         File file = new File(PathUtils.getDataDirectory(), "blanc_sync/sync.json");
         try (FileInputStream in = new FileInputStream(file)) {
             byte[] data = new byte[(int) Math.min(file.length(), 1 << 20)];
@@ -100,7 +108,18 @@ public final class SyncBridge {
 
     /** Starts the runner for a phone that syncs. A phone that doesn't never starts it. */
     public static void startIfOn() {
+        if (!sWatching) {
+            sWatching = true;
+            ApplicationStatus.registerApplicationStateListener(state -> {
+                if (!on()) return;
+                boolean front = state == ApplicationState.HAS_RUNNING_ACTIVITIES;
+                call("sync.setForeground", "[" + front + "]", result -> {});
+                // A theme or blocking change made while Sync was on is published here.
+                if (front) sProfile.reconcile();
+            });
+        }
         if (!on()) return;
+        call("sync.setForeground", "[true]", result -> {});
         sProfile.reconcile();
         OtherDevices.refresh();
     }

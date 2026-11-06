@@ -265,6 +265,38 @@ async function main(argv) {
       return inbox.some(item => item.url === 'https://tosend.example/') ? [] : [JSON.stringify(inbox)];
     });
 
+    await check('a background run with no window keeps this phone\'s tabs and brings Favorites', async () => {
+      const device = await paired('Background');
+      await d.view('https://kept.example/');
+      await value('sync.setSyncTabs', [true]);
+      await d.relaunch();
+      sleep(61);
+      await phonePass();
+      await device.pass();
+      if (!peerTabs(device).has('https://kept.example/')) return ['the tab never reached the peer'];
+      device.module('bookmarks').saveFavorite('https://later.example/', 'Later');
+      sleep(61);
+      device.sync.resetRequestWindowForTest();
+      await device.pass();
+      adb('shell', 'input', 'keyevent', 'KEYCODE_HOME');
+      sleep(2);
+      adb('shell', 'am', 'kill', PACKAGE);
+      sleep(2);
+      // pidof exits non-zero when nothing runs, which is what this check needs.
+      let running = true;
+      try { adb('shell', 'pidof', PACKAGE); } catch { running = false; }
+      if (running) return ['Blanc is still running'];
+      sleep(61);
+      adb('shell', 'cmd', 'jobscheduler', 'run', '-f', PACKAGE, '120');
+      sleep(20);
+      device.sync.resetRequestWindowForTest();
+      await device.pass();
+      if (!peerTabs(device).has('https://kept.example/')) return ['the run wiped this phone\'s tabs'];
+      await d.launch();
+      await until(async () => holds(await value('test.favorites'), 'https://later.example/'), 'the Favorite');
+      return [];
+    });
+
     await check('three early endings stop the runner, and it says so', async () => {
       for (let i = 0; i < 3; i++) {
         await value('sync.status');

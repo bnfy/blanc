@@ -34,6 +34,7 @@ public class ProfileSyncTest implements ProfileSync.Host {
     private final List<String> mCalls = new ArrayList<>();
     private final List<String> mApplied = new ArrayList<>();
     private String mModel = "[]";
+    private final List<Boolean> mSchedules = new ArrayList<>();
     private SharedPreferences mPrefs;
 
     @Before
@@ -56,6 +57,7 @@ public class ProfileSyncTest implements ProfileSync.Host {
     @Override public boolean blockingEnabled() { return true; }
     @Override public void setBlockingEnabled(boolean on) {}
     @Override public SharedPreferences prefs() { return mPrefs; }
+    @Override public void schedule(boolean on) { mSchedules.add(on); }
 
     @Override
     public String canonicalUrls(String urls) {
@@ -167,5 +169,31 @@ public class ProfileSyncTest implements ProfileSync.Host {
         mCalls.clear();
         reconcile();
         assertTrue(mCalls.contains("settings.setSettings"));
+    }
+
+    @Test
+    public void backgroundSyncFollowsSyncOnceEachWay() {
+        ProfileSync profile = new ProfileSync(this);
+        profile.reconcile();
+        profile.reconcile();
+        assertEquals(List.of(true), mSchedules);
+        mReplies.put("sync.status", "{\"ok\":true,\"value\":{\"enabled\":false}}");
+        profile.reconcile();
+        profile.reconcile();
+        assertEquals(List.of(true, false), mSchedules);
+    }
+
+    @Test
+    public void aNewLaunchSchedulesAgainBecauseAForceStopDropsTheJob() {
+        new ProfileSync(this).reconcile();
+        new ProfileSync(this).reconcile();
+        assertEquals(List.of(true, true), mSchedules);
+    }
+
+    @Test
+    public void aRunnerThatDoesntAnswerLeavesTheScheduleAlone() {
+        mReplies.put("sync.status", "{\"ok\":false,\"error\":\"unavailable\"}");
+        reconcile();
+        assertTrue(mSchedules.isEmpty());
     }
 }

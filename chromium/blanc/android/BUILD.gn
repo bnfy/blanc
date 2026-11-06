@@ -94,12 +94,14 @@ android_library("sync_java") {
   srcjar_deps = [ ":sync_jni" ]
   sources = [
     "java/src/org/chromium/blanc/sync/BlancKeyStore.java",
+    "java/src/org/chromium/blanc/sync/BlancSyncTask.java",
     "java/src/org/chromium/blanc/sync/OtherDevices.java",
     "java/src/org/chromium/blanc/sync/PairLink.java",
     "java/src/org/chromium/blanc/sync/ProfileSync.java",
     "java/src/org/chromium/blanc/sync/QrDecoder.java",
     "java/src/org/chromium/blanc/sync/SyncBridge.java",
     "java/src/org/chromium/blanc/sync/SyncCode.java",
+    "java/src/org/chromium/blanc/sync/SyncSchedule.java",
     "java/src/org/chromium/blanc/sync/SyncSheetModel.java",
     "java/src/org/chromium/blanc/sync/SyncedFavorites.java",
     "java/src/org/chromium/blanc/sync/SyncedSettings.java",
@@ -110,6 +112,9 @@ android_library("sync_java") {
     ":tabs_java",
     ":zxing_java",
     "//base:base_java",
+    "//components/background_task_scheduler:background_task_scheduler_task_ids_java",
+    "//components/background_task_scheduler:factory_java",
+    "//components/background_task_scheduler:public_java",
     "//build/android:build_java",
     "//third_party/jni_zero:jni_zero_java",
   ]
