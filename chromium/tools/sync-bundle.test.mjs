@@ -5,7 +5,6 @@ import assert from 'node:assert/strict';
 import {execFileSync} from 'node:child_process';
 import fs from 'node:fs';
 import path from 'node:path';
-import vm from 'node:vm';
 import {createRequire} from 'node:module';
 import {fileURLToPath} from 'node:url';
 import {bundle, hashHeader, sha256} from './build-sync-bundle.mjs';
@@ -30,24 +29,15 @@ test('every shipped module in the bundle is byte for byte the tag\'s', () => {
     assert.ok(text.includes(execFileSync('git', ['-C', root, 'show', `${tag}:${file}`], {encoding: 'utf8', maxBuffer: 1e8})), file);
 });
 
-function prelude() {
-  const context = peer('prelude', 'http://127.0.0.1:1').context;
-  return source => vm.runInContext(source, context);
-}
-
 test('Buffer matches Node on what sync encodes', () => {
-  const run = prelude();
-  for (const text of ['', 'plain', 'é€😀', 'lone \ud83d surrogate', '\u0000\u007f\u0080߿ࠀ￿']) {
-    const quoted = JSON.stringify(text);
-    assert.equal(run(`Buffer.from(${quoted}).toString('hex')`), Buffer.from(text).toString('hex'), text);
-    assert.equal(run(`Buffer.from(${quoted}).toString('base64')`), Buffer.from(text).toString('base64'), text);
-    assert.equal(run(`Buffer.from(${quoted}).toString('base64url')`), Buffer.from(text).toString('base64url'), text);
-    assert.equal(run(`Buffer.from(Buffer.from(${quoted}).toString('base64'), 'base64').toString()`), Buffer.from(text).toString(), text);
-    assert.equal(run(`Buffer.byteLength(${quoted})`), Buffer.byteLength(text), text);
+  const Bare = peer('prelude', 'http://127.0.0.1:1').context.Buffer;
+  for (const text of ['', 'plain', 'é€😀', 'lone \ud83d surrogate', '\u0000\u007f\u0080\u07ff\u0800\uffff']) {
+    for (const encoding of ['hex', 'base64', 'base64url']) assert.equal(Bare.from(text).toString(encoding), Buffer.from(text).toString(encoding), text);
+    assert.equal(Bare.from(Bare.from(text).toString('base64'), 'base64').toString(), Buffer.from(text).toString(), text);
+    assert.equal(Bare.byteLength(text), Buffer.byteLength(text), text);
   }
-  for (const hex of ['ff', 'c0af', 'e28', 'f09f98', 'eda080', 'f4908080', 'c3a9ff']) {
-    assert.equal(run(`Buffer.from('${hex}', 'hex').toString()`), Buffer.from(hex, 'hex').toString(), hex);
-  }
+  for (const hex of ['ff', 'c0af', 'e28', 'f09f98', 'eda080', 'f4908080', 'c3a9ff'])
+    assert.equal(Bare.from(hex, 'hex').toString(), Buffer.from(hex, 'hex').toString(), hex);
 });
 
 const urls = device => [...device.module('bookmarks').listBookmarks()].map(b => b.url).sort();

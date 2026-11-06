@@ -11,6 +11,7 @@ import {answer, call, callNoWait, startWorker, useWorker, value} from './support
 
 const {peer} = createRequire(import.meta.url)('./support/sync-peer.cjs');
 const urls = list => [...list].map(item => item.url).sort();
+const holds = (list, url) => new Set(urls(list)).has(url);
 async function until(test, what, seconds = 30) {
   for (let waited = 0; waited < seconds; waited++) {
     if (await test()) return;
@@ -68,7 +69,7 @@ async function main(argv) {
       if (runner) measures.runnerPssKb = Number(/TOTAL PSS:\s*(\d+)/.exec(adb('shell', 'dumpsys', 'meminfo', runner))?.[1]);
       if (!enabled.ok) return [JSON.stringify(enabled)];
       const list = await value('bookmarks.listBookmarks');
-      return urls(list).includes(FIRST) ? [] : [JSON.stringify(list)];
+      return holds(list, FIRST) ? [] : [JSON.stringify(list)];
     });
 
     await check('the phone joins with a code a peer shows', async () => {
@@ -77,7 +78,7 @@ async function main(argv) {
       const joined = await value('sync.joinWithCode', [code]);
       if (!joined.ok) return [JSON.stringify(joined)];
       const list = await value('bookmarks.listBookmarks');
-      return urls(list).includes(FIRST) ? [] : [JSON.stringify(list)];
+      return holds(list, FIRST) ? [] : [JSON.stringify(list)];
     });
 
     await check('a peer joins with a code the phone shows and gets its Favorite', async () => {
@@ -91,7 +92,7 @@ async function main(argv) {
       if (!(await device.sync.joinWithCode(code)).ok) return ['peer join'];
       await device.pass();
       const list = device.module('bookmarks').listBookmarks();
-      return urls(list).includes(PHONE) ? [] : [JSON.stringify(list)];
+      return holds(list, PHONE) ? [] : [JSON.stringify(list)];
     });
 
     await check('a killed runner answers, restarts and keeps what it saved', async () => {
@@ -104,24 +105,24 @@ async function main(argv) {
       d.killSandboxed();
       const ended = await answer(id);
       const list = await value('bookmarks.listBookmarks');
-      if (!urls(list).includes(PHONE)) return [`after the kill: ${JSON.stringify(list)}`];
+      if (!holds(list, PHONE)) return [`after the kill: ${JSON.stringify(list)}`];
       await value('sync.resetRequestWindowForTest');
       const synced = await value('sync.syncNow', [], 120);
       await device.pass();
       const kept = urls(device.module('bookmarks').listBookmarks());
-      return kept.includes(PHONE) ? [] : [`ended ${JSON.stringify(ended)}, synced ${JSON.stringify(synced)}, peer has ${kept.join()}`];
+      return new Set(kept).has(PHONE) ? [] : [`ended ${JSON.stringify(ended)}, synced ${JSON.stringify(synced)}, peer has ${kept.join()}`];
     });
 
     await check('a Favorite saved as the runner dies is neither lost nor deleted', async () => {
       const device = await startedPeer('Dies');
       const {code} = await device.sync.beginPairing();
       await value('sync.joinWithCode', [code]);
-      await until(async () => urls(await value('test.favorites')).includes(FIRST), 'the Favorite in Chromium');
+      await until(async () => holds(await value('test.favorites'), FIRST), 'the Favorite in Chromium');
       await d.view('https://dying.example/');
       d.menu('Save to Favorites');
       d.killSandboxed();
-      await until(async () => urls(await value('bookmarks.listBookmarks')).includes('https://dying.example/'), 'the runner to get it again');
-      return urls(await value('test.favorites')).includes('https://dying.example/') ? [] : ['deleted from Chromium'];
+      await until(async () => holds(await value('bookmarks.listBookmarks'), 'https://dying.example/'), 'the runner to get it again');
+      return holds(await value('test.favorites'), 'https://dying.example/') ? [] : ['deleted from Chromium'];
     });
 
     await check('a lost Keystore key turns Sync off and asks for a code', async () => {
@@ -141,14 +142,14 @@ async function main(argv) {
       await fresh.sync.joinWithCode(pairing.code);
       await fresh.pass();
       const kept = urls(fresh.module('bookmarks').listBookmarks());
-      return status.enabled === false && kept.includes(FIRST) ? [] : [JSON.stringify(status), kept.join()];
+      return status.enabled === false && new Set(kept).has(FIRST) ? [] : [JSON.stringify(status), kept.join()];
     });
 
     await check('a peer\'s Favorite and theme arrive, and a Favorite saved here reaches it', async () => {
       const device = await startedPeer('Profile');
       const {code} = await device.sync.beginPairing();
       await value('sync.joinWithCode', [code]);
-      await until(async () => urls(await value('test.favorites')).includes(FIRST), 'the Favorite in Chromium');
+      await until(async () => holds(await value('test.favorites'), FIRST), 'the Favorite in Chromium');
       device.module('settings').setSettings({theme: 'dark'});
       await device.pass();
       await value('sync.resetRequestWindowForTest');
@@ -156,12 +157,12 @@ async function main(argv) {
       await until(async () => adb('shell', 'run-as', PACKAGE, 'cat', `shared_prefs/${PACKAGE}_preferences.xml`).includes('name="ui_theme_setting" value="2"'), 'the theme');
       await d.view('https://saved.example/');
       d.menu('Save to Favorites');
-      await until(async () => urls(await value('bookmarks.listBookmarks')).includes('https://saved.example/'), 'the runner to hear');
+      await until(async () => holds(await value('bookmarks.listBookmarks'), 'https://saved.example/'), 'the runner to hear');
       await value('sync.resetRequestWindowForTest');
       await value('sync.syncNow', [], 120);
       await device.pass();
       const kept = urls(device.module('bookmarks').listBookmarks());
-      return kept.includes('https://saved.example/') ? [] : [kept.join()];
+      return new Set(kept).has('https://saved.example/') ? [] : [kept.join()];
     });
 
     await check('a setting a newer desktop added survives a phone edit and a restart', async () => {
