@@ -877,6 +877,7 @@ class Owner : public base::SupportsUserData::Data,
   // Which held tabs were pinned, and when each Space was set aside.
   std::map<std::string, std::vector<bool>> held_pinned;
   std::map<std::string, std::vector<int>> held_ids;
+  std::set<int> background_opened;
   std::map<std::string, int> held_since;
   gfx::Rect glance_page;
   std::vector<gfx::Rect> glance_ring;
@@ -1125,6 +1126,12 @@ class Owner : public base::SupportsUserData::Data,
   }
   void OnTabStripModelChanged(TabStripModel*, const TabStripModelChange& change,
                               const TabStripSelectionChange& selection) override {
+    // A tab that arrives without taking over was opened in the background.
+    if (const auto* insert = change.GetInsert()) {
+      for (const auto& inserted : insert->contents)
+        if (inserted.contents != selection.new_contents)
+          background_opened.insert(sessions::SessionTabHelper::IdForTab(inserted.contents).id());
+    }
     // A Glance belongs to the page it opened over: switching away ends it.
     if (selection.active_tab_changed() && glance_main >= 0 && selection.new_contents) {
       const int id = sessions::SessionTabHelper::IdForTab(selection.new_contents).id();
@@ -5513,6 +5520,37 @@ class Handler : public content::WebUIMessageHandler, public extensions::Extensio
     if (method == "spaceUnbind" && args.empty()) {
       owner->space_name.clear(); owner->space_saved.reset();
       reply(true, base::Value(true)); return;
+    }
+    // Shipping's space-switch-guard: a page counts only while setting it aside
+    // would break what it's doing now. A frame loading inside it never does,
+    // and neither does a tab the person opened in the background.
+    if (method == "spaceProtection" && args.empty()) {
+      base::ListValue pages;
+      for (int i = 0; i < model->count(); ++i) {
+        auto* tab = model->GetWebContentsAt(i);
+        const int tab_id = sessions::SessionTabHelper::IdForTab(tab).id();
+        int popups = 0;
+        GlobalBrowserCollection::GetInstance()->ForEach([&](BrowserWindowInterface* candidate) {
+          if (candidate == browser) return true;
+          auto* tabs = candidate->GetTabStripModel();
+          for (int j = 0; j < tabs->count(); ++j) {
+            auto* opener = tabs->GetWebContentsAt(j)->GetOpener();
+            if (opener && content::WebContents::FromRenderFrameHost(opener) == tab) ++popups;
+          }
+          return true;
+        });
+        auto* opener = tab->GetOpener();
+        const char* reason = tab->IsBeingCaptured() ? "capture" : popups ? "popup"
+            : tab->IsLoading() && !tab->IsDocumentOnLoadCompletedInPrimaryMainFrame() ? "loading"
+            : opener && opener->IsRenderFrameLive() && !owner->background_opened.contains(tab_id) ? "opener"
+            : nullptr;
+        if (!reason) continue;
+        pages.Append(base::DictValue().Set("id", base::NumberToString(tab_id))
+            .Set("title", base::UTF16ToUTF8(tab->GetTitle())).Set("reason", reason));
+        if (pages.size() == 20) break;
+      }
+      reply(true, base::Value(std::move(pages)));
+      return;
     }
     // A record no window is showing: a blank new Space, or forgetting one.
     if ((method == "spaceCreateBlank" || method == "spaceForget") && args.size() == 1 && args[0].is_string() &&

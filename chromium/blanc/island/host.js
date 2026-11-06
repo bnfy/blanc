@@ -301,6 +301,8 @@
     await refresh();
     if (snapshot.spaceName === id) return spaceResult({ workspaceId: id, action: 'noop' });
     if (list.elsewhere.has(id)) return { ok: false, error: 'busy' };
+    const blockingTabs = await request('spaceProtection');
+    if (blockingTabs.length) return { ok: false, error: 'protected-pages', reason: 'active-page', blockingTabs };
     // Leaving unsaved tabs asks first, as shipping's switch guard does.
     const scratch = !snapshot.spaceName || snapshot.spaceName === SPACE_SCRATCH;
     const real = snapshot.tabs.filter(tab => !/^blanc:\/\/newtab/.test(tab.url));

@@ -46,6 +46,7 @@ for(const area of ['island','commands','pages','tabs']){
  const {default:registerArea}=await import(`./fork-steps/${area}.mjs`);
  registerArea((expression,run)=>step(expression,run,`chromium/tests/fork-steps/${area}.mjs`));
 }
+export const beforeHooks=require('./lib/shipping-core.cjs').beforeHooks;
 export function matchStep(text){
  const matches=definitions.flatMap(d=>{const args=d.matcher.match(text);return args?[{definition:d,args:args.map(a=>a.getValue(null))}]:[];});
  if(matches.length>1)throw Error('Ambiguous fork step: '+text);
