@@ -142,4 +142,17 @@ final class TabGridMotionTests: XCTestCase {
         XCTAssertFalse(TabGridMotion.liftOpens(travel: 25, predicted: 50))
         XCTAssertFalse(TabGridMotion.liftOpens(travel: 120, predicted: 10), "the finger came back")
     }
+
+    func testThePageShowsThroughItsWholeSelfUntilItLandsExactlyOnItsCard() {
+        let frame = CGRect(x: 0, y: 0, width: 400, height: 800)
+        let card = CGRect(x: 20, y: 100, width: 170, height: 170)
+        func clip(_ page: TabGridMotion.Page, card: CGRect? = nil) -> CGRect {
+            TabGridMotion.clip(page, TabGridMotion.transform(page, in: frame, card: card), pane: frame, card: card)
+        }
+        XCTAssertEqual(clip(.full), frame)
+        XCTAssertEqual(clip(.pinching(scale: 0.5, translation: CGSize(width: 10, height: -20))),
+                       CGRect(x: 110, y: 180, width: 200, height: 400))
+        XCTAssertEqual(clip(.card, card: card), card)
+        XCTAssertEqual(clip(.card), CGRect(x: 100, y: 200, width: 200, height: 400), "no card yet: half size, centered")
+    }
 }

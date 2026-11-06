@@ -9,8 +9,8 @@ enum PagePinchUpdate: Equatable {
 }
 
 /// The page shrinking into the tab grid, as Safari's does: a rounded card that
-/// follows the fingers around the screen's center over a grid coming into
-/// focus, then springs to its place. Pure, so its numbers can be tested.
+/// follows the fingers around the screen's center over a grid fading in, then
+/// springs to its place. Pure, so its numbers can be tested.
 enum TabGridMotion {
     /// How far the fingers must close for a lift to open the grid.
     static let opensBelowScale: CGFloat = 0.8
@@ -105,6 +105,18 @@ enum TabGridMotion {
                                 height: top + pane.height * scale / 2 - pane.midY)
             return Transform(scale: scale, offset: offset, cornerRadius: cardRadius / scale, progress: 1)
         }
+    }
+}
+
+extension TabGridMotion {
+    /// The rectangle a page shows through, in window points: the whole page
+    /// until it lands, then exactly its card.
+    static func clip(_ page: Page, _ motion: Transform, pane: CGRect, card: CGRect?) -> CGRect {
+        if case .card = page, let card { return card }
+        let size = CGSize(width: pane.width * motion.scale, height: pane.height * motion.scale)
+        return CGRect(x: pane.midX + motion.offset.width - size.width / 2,
+                      y: pane.midY + motion.offset.height - size.height / 2,
+                      width: size.width, height: size.height)
     }
 }
 
