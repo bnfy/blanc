@@ -1095,8 +1095,9 @@
       },
       "platformProgress": {
         "macos": {
-          "stage": "drafted",
-          "basis": "approved spec macOS inventory; awaiting candidate verification"
+          "stage": "implemented",
+          "candidate": "macos-b58823f2ae9957ff",
+          "basis": "S3.6 (2026-11-06): in candidate macos-b58823f2ae9957ff: mark, menu, save, switch, edit, delete, undo, live set-aside Spaces and the room budget; 12 of 84 cases pass, 10 fail, 62 undefined (s3b-F41-named-workspaces); moves and multi-tab selection not built"
         },
         "windows": {
           "stage": "not-started",
@@ -2458,8 +2459,8 @@
   ],
   "currentCandidates": {
     "macos": {
-      "id": "macos-87bb16d760497fc1",
-      "frameworkSha256": "87bb16d760497fc1891aa6769d45855f27ee7c696325cbbc7fa040bbf0ecac02",
+      "id": "macos-b58823f2ae9957ff",
+      "frameworkSha256": "b58823f2ae9957ff4593cdeac75a2986bf7205329e73c6f1d9adf6862c677aed",
       "executableSha256": "cca20d7ed00bbdecf8db310c6802fbed003b4e63c6bc3b1f71dabc9dbff2ff01",
       "version": "158.0.8127.2",
       "qualification": "compiled candidate; runtime acceptance pending"

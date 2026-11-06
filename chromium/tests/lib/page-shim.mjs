@@ -160,6 +160,7 @@ export class Page{
  press(selector,key){return this.locator(selector).press(key);}
  click(selector,o){return this.locator(selector).click(o);}
  dblclick(selector,o){return this.locator(selector).dblclick(o);}
+ waitForSelector(selector,o){return this.locator(selector).waitFor(o);}
  focus(selector){return this.locator(selector).focus();}
  textContent(selector){return this.locator(selector).textContent();}
  getAttribute(selector,name){return this.locator(selector).getAttribute(name);}

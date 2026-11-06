@@ -4,8 +4,8 @@
    drag-to-reorder by TabStripModel; the warning badge by the host's siteInfo
    (S1.6). Glance has no native counterpart yet. */
 #pillFillHint, #pillCapture, #pillDisplayShare,
-#pillSpace, #panelSiteInfo,
-#footerNewPrivate, #footerWorkspace,
+#panelSiteInfo,
+#footerNewPrivate,
 #footerSettings {
   display: none !important;
 }
