@@ -126,6 +126,8 @@ final class SettingsUITests: XCTestCase {
     func testSyncPairingAndDisconnectConfirmation() {
         open("/sync")
         tap("settings.otherWays")
+        // The code field is built after "Other ways" opens; wait before asking what kind it is.
+        XCTAssertTrue(app.descendants(matching: .any)["settings.syncCode"].waitForExistence(timeout: 5))
         let code = app.textViews["settings.syncCode"]
         // TextField(axis: .vertical) is exposed as a text view on current iOS.
         let input = code.exists ? code : app.textFields["settings.syncCode"]
@@ -190,6 +192,8 @@ final class SettingsUITests: XCTestCase {
         app.terminate(); launch(reset: true, extra: ["-BlancUITestSettingsOffline"])
         open("/sync")
         tap("settings.otherWays")
+        // The code field is built after "Other ways" opens; wait before asking what kind it is.
+        XCTAssertTrue(app.descendants(matching: .any)["settings.syncCode"].waitForExistence(timeout: 5))
         let code = app.textViews["settings.syncCode"]
         let input = code.exists ? code : app.textFields["settings.syncCode"]
         input.tap(); input.typeText("K7MR-4PX2")
