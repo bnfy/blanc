@@ -12,7 +12,12 @@ const COUNT = /\d+ ads? (&amp; trackers|or tracker) blocked on this page/;
 // The menu's text while open, then closed again.
 function menuText(device) {
   device.tap({id: 'blanc_island_menu'});
-  const xml = device.dump();
+  // The popup can take a moment to draw; every entry here includes the blocking row.
+  let xml = device.dump();
+  for (let i = 0; i < 10 && !xml.includes('Ad &amp; tracker blocking'); i++) {
+    sleep(0.5);
+    xml = device.dump();
+  }
   device.back();
   return xml;
 }

@@ -29,12 +29,15 @@ async function main(argv) {
   fs.mkdirSync(evidence, {recursive: true});
   adb('install', '-r', apk);
   const stopFixtures = startFixtures();
-  const worker = await startWorker();
+  // Each check gets its own: the Worker's limits would otherwise carry from one to the next.
+  let worker = await startWorker();
   const d = new Device();
   const results = [], measures = {};
   const check = async (name, body, extra = '') => {
     if (only && !name.includes(only)) return;
     try {
+      worker.stop();
+      worker = await startWorker();
       useWorker(worker, extra);
       adb('logcat', '-c');
       await d.reset();
@@ -216,7 +219,8 @@ async function main(argv) {
       await value('sync.setSyncTabs', [true]);
       d.menu('New Private Tab');
       sleep(2);
-      await d.view('https://shared2.example/');
+      d.runInPalette('https://shared2.example/');
+      await d.waitForUrl('https://shared2.example/', 20);
       adb('shell', 'input', 'keyevent', 'KEYCODE_HOME');
       sleep(2);
       await d.launch();
@@ -224,6 +228,7 @@ async function main(argv) {
       await device.pass();
       const seen = peerTabs(device);
       if (!seen.has('https://shared.example/')) return [`missing: ${[...seen].join()}`];
+      if (seen.has('https://shared2.example/')) return ['a private tab reached the peer'];
       await value('sync.setSyncTabs', [false]);
       await phonePass();
       await device.pass();
@@ -247,6 +252,22 @@ async function main(argv) {
       d.tap({text: 'Sent page'});
       await d.waitForUrl('https://sent.example/', 20);
       await until(async () => [...await value('sync.listSentToThisDevice')].length === 0, 'the page to go');
+      return [];
+    });
+
+    await check('a sent page reaches an open Start Page and dismisses there', async () => {
+      const device = await paired('Start');
+      await device.pass();
+      const [target] = [...device.sync.listSendTargets()];
+      device.sync.resetRequestWindowForTest();
+      await device.sync.sendTab({url: 'https://onstart.example/', title: 'On the Start Page', to: target.id});
+      sleep(61);
+      await phonePass();
+      // The list belongs to the Ledger layout, so on Billboard it's filled but out of sight.
+      const shown = async () => d.page(`document.getElementById('sentList').textContent.includes('On the Start Page')`);
+      await until(shown, 'the row on the Start Page');
+      await d.page(`document.querySelector('.sent-dismiss').click()`);
+      await until(async () => [...await value('sync.listSentToThisDevice')].length === 0, 'the dismissal');
       return [];
     });
 
@@ -292,6 +313,8 @@ async function main(argv) {
       device.sync.resetRequestWindowForTest();
       await device.pass();
       if (!peerTabs(device).has('https://kept.example/')) return ['the run wiped this phone\'s tabs'];
+      // Before any window opens, so only the background run can have brought it.
+      if (!adb('shell', 'run-as', PACKAGE, 'cat', 'app_chrome/blanc_sync/bookmarks.json').includes('later.example')) return ['the job brought nothing'];
       await d.launch();
       await until(async () => holds(await value('test.favorites'), 'https://later.example/'), 'the Favorite');
       return [];

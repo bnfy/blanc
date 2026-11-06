@@ -87,6 +87,8 @@
     <string name="blanc_sends_from">De %1$s · %2$s</string>
     <string name="blanc_sends_dismiss">Descartar</string>
     <string name="blanc_sends_sent">Enviado a %1$s.</string>
+    <string name="blanc_sends_none">No hay otros dispositivos</string>
+    <string name="blanc_sends_no_match">No hay ningún dispositivo llamado «%1$s».</string>
     <string name="blanc_sends_unavailable">El envío aún no está disponible.</string>
     <string name="blanc_sends_failed">No se pudo enviar. Comprueba tu conexión y vuelve a intentarlo.</string>
     <string name="blanc_slash_send_hint">Escribe un espacio y luego el nombre de un dispositivo, p. ej., «iPhone»</string>

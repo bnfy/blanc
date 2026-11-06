@@ -4,7 +4,7 @@ const MODULES = {sync: 'sync', bookmarks: 'bookmarks', settings: 'settings'};
 globalThis.__call = (method, argsJson, done) => {
   // Saves every store's pending change now, so what the phone writes down as agreed is on disk.
   if (method === 'runner.flush') {
-    __require('shim:electron').__quit();
+    __require('shim:electron').__flush();
     done(true, 'null');
     return;
   }
@@ -26,7 +26,7 @@ globalThis.__call = (method, argsJson, done) => {
     return target(...JSON.parse(argsJson || '[]'));
   }).then(value => {
     // Android can end Blanc at any moment: what a call changed is saved before it answers.
-    __require('shim:electron').__quit();
+    __require('shim:electron').__flush();
     done(true, JSON.stringify(value === undefined ? null : value));
   }, error => done(false, String(error && error.message || error)));
 };

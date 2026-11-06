@@ -464,10 +464,15 @@ public final class PaletteSheet extends Dialog {
         String active = mTabs.activeId();
         TabStore.Entry current = null;
         for (TabStore.Entry tab : mTabs.entries(false)) if (tab.id.equals(active)) current = tab;
-        if (target == null || current == null || mTabs.privateSelected()) {
-            mCallbacks.notice(mActivity.getString(R.string.blanc_sends_unavailable));
+        if (OtherDevices.targets().isEmpty()) {
+            mCallbacks.notice(mActivity.getString(R.string.blanc_sends_none));
             return;
         }
+        if (target == null) {
+            mCallbacks.notice(mActivity.getString(R.string.blanc_sends_no_match).replace("{name}", name));
+            return;
+        }
+        if (current == null || mTabs.privateSelected()) return;
         OtherDevices.send(current.url, current.title, target,
                 status -> mCallbacks.notice(sendResult(mActivity, status, target.name)));
     }

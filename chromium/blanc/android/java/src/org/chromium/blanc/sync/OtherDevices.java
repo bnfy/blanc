@@ -72,6 +72,7 @@ public final class OtherDevices {
     private static List<Device> sDevices = new ArrayList<>();
     private static List<Sent> sSent = new ArrayList<>();
     private static List<Target> sTargets = new ArrayList<>();
+    private static @Nullable Callback<String> sOpener;
 
     private OtherDevices() {}
 
@@ -169,6 +170,21 @@ public final class OtherDevices {
                 });
             });
         });
+    }
+
+    /** Opens a page in a new tab; the tab keeper sets it. */
+    public static void setOpener(@Nullable Callback<String> opener) {
+        sOpener = opener;
+    }
+
+    /** A sent page opened or dismissed on the Start Page. */
+    static void act(String id, boolean open) {
+        for (Sent item : sSent) {
+            if (!item.id.equals(id)) continue;
+            if (open && sOpener != null) sOpener.onResult(item.url);
+            hide(id);
+            return;
+        }
     }
 
     /** A sent page opened or dismissed goes from this phone's list. */

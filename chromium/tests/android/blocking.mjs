@@ -95,7 +95,8 @@ async function main(argv) {
       await pageState(d, 'https://commands.example/ads');
       clearFixtureRequests();
       d.runInPalette('/allow-ads');
-      await d.waitFor(adLoaded, 'the ad to load after /allow-ads');
+      // Unexplained: twice in full gate runs (A4a, A4b) this missed 15 s, never alone (11 of 11).
+      await d.waitFor(adLoaded, 'the ad to load after /allow-ads', 30);
       await d.waitFor(async () => (await d.page('document.readyState')) === 'complete', 'the reload');
       d.runInPalette('/block-ads');
       sleep(2);

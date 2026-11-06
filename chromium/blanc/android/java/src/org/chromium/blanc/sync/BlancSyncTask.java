@@ -24,7 +24,8 @@ public final class BlancSyncTask extends NativeBackgroundTask {
     @Override
     protected void onStartTaskWithNative(
             Context context, TaskParameters parameters, TaskFinishedCallback callback) {
-        SyncBridge.call("sync.syncNow", "[]", reply -> callback.taskFinished(false));
+        SyncBridge.call("sync.syncNow", "[]",
+                reply -> SyncBridge.reconcileThen(() -> callback.taskFinished(false)));
     }
 
     @Override

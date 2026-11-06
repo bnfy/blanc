@@ -7,7 +7,10 @@ import android.content.ClipDescription;
 import android.content.ClipboardManager;
 import android.content.Context;
 import android.content.SharedPreferences;
+import android.os.Handler;
+import android.os.Looper;
 import android.os.PersistableBundle;
+import android.os.SystemClock;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -34,6 +37,7 @@ import java.nio.charset.StandardCharsets;
 public final class SyncBridge {
     private static final BlancKeyStore sKeys = new BlancKeyStore();
     /** The tabs last reported, for a phone that pairs after launching. */
+    private static final long FIRST_SYNC_MILLIS = 20_000;
     private static @Nullable String sTabs;
     private static boolean sWatching;
     private static final ProfileSync sProfile = new ProfileSync(new ProfileSync.Host() {
@@ -75,6 +79,16 @@ public final class SyncBridge {
         @Override
         public void schedule(boolean on) {
             SyncSchedule.set(on);
+        }
+
+        @Override
+        public long now() {
+            return SystemClock.elapsedRealtime();
+        }
+
+        @Override
+        public void later(Runnable run, long millis) {
+            new Handler(Looper.getMainLooper()).postDelayed(run, millis);
         }
     });
 
@@ -145,6 +159,16 @@ public final class SyncBridge {
     }
 
     @CalledByNative
+    private static void sentAction(String id, boolean open) {
+        OtherDevices.act(id, open);
+    }
+
+    /** One pass, then `done`: a background run stays open until it has settled. */
+    static void reconcileThen(Runnable done) {
+        sProfile.reconcile(done);
+    }
+
+    @CalledByNative
     private static void onFavoritesChanged() {
         if (on()) sProfile.reconcile();
     }
@@ -157,7 +181,14 @@ public final class SyncBridge {
             return;
         }
         if (!"clipboard".equals(event)) {
-            if ("account".equals(event) && sTabs != null) setTabs(sTabs);
+            if ("account".equals(event)) {
+                if (sTabs != null) setTabs(sTabs);
+                // After the first sync: in front, shipping leaves requests free for change checks,
+                // and the first sync would wait a whole 15 seconds for its last ones.
+                new Handler(Looper.getMainLooper()).postDelayed(
+                        () -> call("sync.setForeground", "[" + ApplicationStatus.hasVisibleActivities() + "]", result -> {}),
+                        FIRST_SYNC_MILLIS);
+            }
             sProfile.reconcile();
             OtherDevices.refresh();
             return;

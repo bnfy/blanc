@@ -221,6 +221,12 @@ static void JNI_SyncBridge_SetStartData(JNIEnv* env, const jni_zero::JavaRef<jst
   };
   StartLists().devices = read(devices);
   StartLists().sent = read(sent);
+  SyncStartListsChanged();
+}
+
+void SyncSentAction(const std::string& id, bool open) {
+  JNIEnv* env = jni_zero::AttachCurrentThread();
+  Java_SyncBridge_sentAction(env, base::android::ConvertUTF8ToJavaString(env, id), open);
 }
 
 base::ListValue SyncRemoteDevices() {

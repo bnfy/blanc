@@ -11,6 +11,7 @@
 
 #include "base/memory/ref_counted_memory.h"
 #include "base/memory/weak_ptr.h"
+#include "base/no_destructor.h"
 #include "base/strings/string_util.h"
 #include "base/strings/string_view_util.h"
 #include "base/strings/utf_string_conversions.h"
@@ -56,6 +57,7 @@ constexpr std::pair<std::string_view, std::string_view> kAnswered[] = {
     {"newtab", "appVersion"},          {"newtab", "start.data"},
     {"newtab", "start.topSites"},      {"newtab", "start.focusGroup"},
     {"newtab", "start.layoutUsed"},    {"newtab", "start.openIsland"},
+    {"newtab", "start.openSent"},      {"newtab", "start.dismissSent"},
     {"newtab", "bookmarks.list"},      {"newtab", "bookmarks.clearFavicon"},
     {"bookmarks", "bookmarks.list"},   {"bookmarks", "bookmarks.capabilities"},
     {"bookmarks", "bookmarks.remove"}, {"bookmarks", "bookmarks.clearFavicon"},
@@ -117,11 +119,17 @@ class PagesHandler : public content::WebUIMessageHandler {
   PagesHandler() = default;
   PagesHandler(const PagesHandler&) = delete;
   PagesHandler& operator=(const PagesHandler&) = delete;
-  ~PagesHandler() override = default;
+  ~PagesHandler() override { Open().erase(this); }
 
   void RegisterMessages() override {
     web_ui()->RegisterMessageCallback(
         "blancPages", base::BindRepeating(&PagesHandler::OnCall, base::Unretained(this)));
+    Open().insert(this);
+  }
+
+  // Every open Start Page hears when other devices' lists change. Private ones never do.
+  static void StartListsChanged() {
+    for (PagesHandler* handler : Open()) handler->PushStartLists();
   }
 
   void OnJavascriptDisallowed() override {
@@ -130,6 +138,15 @@ class PagesHandler : public content::WebUIMessageHandler {
   }
 
  private:
+  static std::set<PagesHandler*>& Open() {
+    static base::NoDestructor<std::set<PagesHandler*>> open;
+    return *open;
+  }
+  void PushStartLists() {
+    if (!IsJavascriptAllowed() || profile()->IsOffTheRecord()) return;
+    CallJavascriptFunction("__blancEmit", base::Value("start.onRemoteTabs"), base::Value(::blanc::SyncRemoteDevices()));
+    CallJavascriptFunction("__blancEmit", base::Value("start.onSentItems"), base::Value(::blanc::SyncSentItems()));
+  }
   Profile* profile() { return Profile::FromWebUI(web_ui()); }
 
   void Reply(int id, bool ok, base::Value payload) {
@@ -159,6 +176,11 @@ class PagesHandler : public content::WebUIMessageHandler {
     if (method == "bookmarks.list") return Reply(id, true, base::Value(Favorites(Bookmarks())));
     if (method == "bookmarks.capabilities")
       return Reply(id, true, base::Value(base::DictValue().Set("editable", true).Set("import", false).Set("pins", false)));
+    if (method == "start.openSent" || method == "start.dismissSent") {
+      if (!profile()->IsOffTheRecord() && args.size() == 1 && args[0].is_string())
+        ::blanc::SyncSentAction(args[0].GetString(), method == "start.openSent");
+      return Done(id);
+    }
     if (method == "bookmarks.remove") return RemoveFavorite(id, args);
     if (method == "history.list") return ListHistory(id, args);
     if (method == "history.remove") return RemoveHistory(id, args);
@@ -289,4 +311,14 @@ PagesUI::~PagesUI() = default;
 
 WEB_UI_CONTROLLER_TYPE_IMPL(PagesUI)
 
+void PushStartLists() {
+  PagesHandler::StartListsChanged();
+}
+
 }  // namespace blanc::android
+
+namespace blanc {
+void SyncStartListsChanged() {
+  android::PushStartLists();
+}
+}  // namespace blanc

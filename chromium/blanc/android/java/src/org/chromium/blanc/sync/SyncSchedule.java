@@ -25,7 +25,8 @@ final class SyncSchedule {
                         TaskIds.BLANC_SYNC_JOB_ID,
                         TaskInfo.PeriodicInfo.create().setIntervalMs(INTERVAL_MS).build())
                 .setRequiredNetworkType(TaskInfo.NetworkType.ANY)
-                .setUpdateCurrent(true)
+                // Scheduling can run inside the job itself, and replacing it would stop that run.
+                .setUpdateCurrent(false)
                 .setIsPersisted(true)
                 .build();
         BackgroundTaskSchedulerFactory.getScheduler().schedule(ContextUtils.getApplicationContext(), task);

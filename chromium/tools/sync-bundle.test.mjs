@@ -104,3 +104,21 @@ test('a call is saved before it answers', async () => {
   assert.equal(answer.ok, true);
   assert.match(Buffer.from(device.stores['bookmarks.json']).toString(), /example\.org\/kept/);
 });
+
+test('a pairing code survives the save after its own call', async () => {
+  const worker = await createSyncFixture();
+  try {
+    const device = peer('Pairs', worker.url);
+    await device.sync.startNew({handle: 'tester'});
+    device.sync.resetRequestWindowForTest();
+    const call = (method, args = []) => new Promise(done => device.context.__call(method, JSON.stringify(args), (ok, value) => done({ok, value: JSON.parse(value)})));
+    const {value} = await call('sync.beginPairing');
+    assert.equal(value.ok, true);
+    await call('bookmarks.listBookmarks');
+    assert.equal((await call('sync.pairingState')).value.active, true);
+    const other = peer('Joins', worker.url);
+    assert.equal((await other.sync.joinWithCode(value.code)).ok, true);
+  } finally {
+    await worker.close();
+  }
+});

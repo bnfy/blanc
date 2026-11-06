@@ -3,12 +3,18 @@
 #ifndef BLANC_ANDROID_BROWSER_SYNC_START_DATA_H_
 #define BLANC_ANDROID_BROWSER_SYNC_START_DATA_H_
 
+#include <string>
+
 #include "base/values.h"
 
 namespace blanc {
 // What the Start Page shows from other devices: the last lists the runner gave.
 base::ListValue SyncRemoteDevices();
 base::ListValue SyncSentItems();
+// Tells every open Start Page the lists changed (blanc_pages_ui.cc).
+void SyncStartListsChanged();
+// A sent page opened or dismissed on the Start Page.
+void SyncSentAction(const std::string& id, bool open);
 }  // namespace blanc
 
 #endif  // BLANC_ANDROID_BROWSER_SYNC_START_DATA_H_
