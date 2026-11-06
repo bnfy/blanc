@@ -521,8 +521,17 @@ original reports:
 - **Connect your iPhone:** Since v1.45.0, Settings → Sync → **Connect your
   iPhone** (and the Start Page's Finish setup list) shows a QR code that
   Blanc for iPhone scans with **Pair with your Blanc** to join the same Sync.
-  Blanc for iPhone is a public beta on TestFlight, not on the App Store: say
-  so wherever it's named. If Sync is off, Blanc asks before turning it on.
+  If Sync is off, Blanc asks before turning it on.
+- **Blanc for iPhone on the App Store:** Since November 6, 2026, Blanc for
+  iPhone 1.0 (build 202611030537) is free on the App Store
+  (<https://apps.apple.com/app/id6828027794>), after a public TestFlight beta
+  from October 28. Don't call it a beta any more; early builds still go to
+  TestFlight. That build is iPhone only and needs iOS 18.4 or later. It
+  doesn't offer to be the default browser, use website passkeys or run on
+  iPad: those are in later builds and are claimed only once an App Store
+  update ships them. There is no Android app. Evidence:
+  `docs/ios/app-store-connect.md` item 21 and
+  `docs/website-iphone-1.0-claims.json`.
 - **Play the Sunrise when Blanc opens:** Since v1.45.0, opt-in in Settings →
   Appearance and set on each device: the Sunrise plays once on the first
   Start Page after launch, ends on any click or key and is skipped when the

@@ -14,9 +14,10 @@
    "evidence": [
     "package.json",
     "site/src/data/ios-availability.json",
-    "site/src/pages/download.astro"
+    "site/src/pages/download.astro",
+    "docs/ios/app-store-connect.md"
    ],
-   "qualification": "Desktop builds for macOS, Windows and Linux. Blanc for iPhone is a public TestFlight beta since October 28, 2026, not on the App Store."
+   "qualification": "Desktop builds for macOS, Windows and Linux. Blanc for iPhone was a public TestFlight beta from October 28, 2026; version 1.0 (build 202611030537, iPhone only, iOS 18.4 or later) was approved by App Review and released on the App Store by the owner on November 6, 2026 (docs/ios/app-store-connect.md, item 21; site/src/data/ios-availability.json). The TestFlight beta stays open for early builds. There is no Android app."
   },
   "cost": {
    "evidence": [
@@ -390,12 +391,13 @@
   {
    "id": "compare-1451-015",
    "source": "site/src/pages/compare.astro",
-   "exactWording": "Phones. Blanc for iPhone is a public beta on TestFlight; there is no Android app.",
+   "exactWording": "Phones. Blanc for iPhone is on the App Store; there is no Android app.",
    "subject": "Blanc",
    "evidenceGroups": [
     "platforms"
    ],
-   "verdict": "verified"
+   "verdict": "verified",
+   "reason": "November 6, 2026: reworded from “a public beta on TestFlight” after Blanc for iPhone 1.0 was released on the App Store."
   },
   {
    "id": "compare-1451-016",
@@ -545,12 +547,13 @@
    "source": "site/src/data/compare.json",
    "row": "platforms",
    "column": "blanc",
-   "exactWording": "macOS, Windows, Linux. iPhone is a public TestFlight beta.",
+   "exactWording": "macOS, Windows, Linux and iPhone.",
    "subject": "Blanc",
    "evidenceGroups": [
     "platforms"
    ],
-   "verdict": "verified"
+   "verdict": "verified",
+   "reason": "November 6, 2026: reworded from “macOS, Windows, Linux. iPhone is a public TestFlight beta.” after Blanc for iPhone 1.0 was released on the App Store. Changed cell wording awaits the owner’s approval in review."
   },
   {
    "id": "compare-1451-031",

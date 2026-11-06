@@ -1,7 +1,10 @@
 {
   "public": true,
-  "channel": "testflight",
+  "channel": "app-store",
+  "storeUrl": "https://apps.apple.com/app/id6828027794",
+  "since": "2026-11-06",
+  "build": "1.0 (202611030537)",
   "joinUrl": "https://testflight.apple.com/join/AfczdZne",
-  "since": "2026-10-28",
-  "note": "Blanc for iPhone is a public TestFlight beta, not on the App Store. test/unit/iphone-pairing-offered.test.js reads public before the desktop may set IPHONE_PAIRING_FROM; site/src/pages/pair.astro links joinUrl."
+  "betaSince": "2026-10-28",
+  "note": "Blanc for iPhone 1.0 is on the App Store (Apple ID 6828027794), approved by App Review and released by the owner on 2026-11-06 (docs/ios/app-store-connect.md, item 21). The public TestFlight beta (joinUrl) stays open for early builds. test/unit/iphone-pairing-offered.test.js reads public before the desktop may set IPHONE_PAIRING_FROM; site/src/pages/pair.astro and the download page link storeUrl."
 }
