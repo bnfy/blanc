@@ -18,6 +18,8 @@ export function cdpMouse(input,offset={x:0,y:0}){
 // Electron keyDown/char/keyUp with a one-character keyCode -> CDP key events.
 export function cdpKey(input){
  const key=String(input?.keyCode??'');
+ if(key==='Escape'){const base={key,code:'Escape',windowsVirtualKeyCode:27};
+  return input.type==='keyDown'?{type:'rawKeyDown',...base}:{type:'keyUp',...base};}
  if(key.length!==1)throw new UndefinedNativeAdapterError('Key input shim lacks '+key);
  const code=/[a-z]/i.test(key)?'Key'+key.toUpperCase():/\d/.test(key)?'Digit'+key:undefined;
  const base={key,code,windowsVirtualKeyCode:key.toUpperCase().charCodeAt(0)};

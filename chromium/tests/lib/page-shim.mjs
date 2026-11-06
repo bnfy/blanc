@@ -159,6 +159,7 @@ export class Page{
  fill(selector,value){return this.locator(selector).fill(value);}
  press(selector,key){return this.locator(selector).press(key);}
  click(selector,o){return this.locator(selector).click(o);}
+ dblclick(selector,o){return this.locator(selector).dblclick(o);}
  focus(selector){return this.locator(selector).focus();}
  textContent(selector){return this.locator(selector).textContent();}
  getAttribute(selector,name){return this.locator(selector).getAttribute(name);}

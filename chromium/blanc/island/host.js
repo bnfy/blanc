@@ -234,7 +234,7 @@
   // card's generation, so a message from a card that has gone is refused. The
   // save is debounced and a close flushes it.
   const GlanceCard = window.BlancGlanceCard;
-  const glance = { tabId: null, generation: 0, pending: undefined, timer: null, key: '' };
+  const glance = { tabId: null, generation: 0, pending: undefined, timer: null, key: '', requestEpoch: 0 };
   const glanceArea = () => snapshot?.splitGeometry?.mode === 'glance' ? snapshot.splitGeometry.pageArea : null;
   const glanceFractions = () => (glance.pending !== undefined ? glance.pending : snapshot?.glanceFrame ?? null);
   const glanceCardFrameNow = () => GlanceCard.fractionsToFrame(glanceFractions(), glanceArea());
@@ -245,7 +245,7 @@
       focusedPane: snapshot.focusedTabId === snapshot.glanceTabId ? 'glance' : 'main' };
   }
   const glanceSay = (key, params) => emit('onGlanceStatus', strip.contentWindow.blancI18n.t(key, params));
-  const glanceTitle = id => snapshot?.tabs.find(tab => tab.id === id)?.title || strip.contentWindow.blancI18n.t('tab.untitledShort');
+  const glanceTitle = id => snapshot?.tabs.find(tab => String(tab.id) === String(id))?.title || strip.contentWindow.blancI18n.t('tab.untitledShort');
   function flushGlanceSave() {
     clearTimeout(glance.timer); glance.timer = null;
     if (glance.pending === undefined) return;
@@ -253,6 +253,10 @@
     glance.pending = undefined;
     if (snapshot) snapshot.glanceFrame = value;
     request('glanceSaveFrame', [value]).catch(error => notice(error.message));
+  }
+  async function focusGlanceCard() {
+    await request('focusIsland');
+    glanceCardFrame.contentWindow.focus();
   }
   function publishGlance() {
     const payload = glancePayload();
@@ -715,7 +719,7 @@
     shieldTrigger = mode === 'shield' ? trigger : null;
     opened = true;
     overlay.hidden = false;
-    emit('onIslandState', { mode, trigger: shieldTrigger });
+    emit('onIslandState', { mode, trigger: shieldTrigger, restoreTrigger: null });
     requestAnimationFrame(() => {
       if (epoch !== findShowEpoch || !opened || overlayMode !== mode) return;
       // Search priority results (S1.7) is read where the panel opens, as
@@ -1476,16 +1480,34 @@
       return focusId;
     },
     keepGlanceAsSplit: async () => {
+      const [main, reference] = [glanceTitle(glance.mainId), glanceTitle(snapshot?.glanceTabId)];
       glance.closing = true;
       const result = await request('keepGlanceAsSplit');
       await refresh();
       glance.closing = false;
+      if (result) glanceSay('split.made', { first: main, second: reference });
       return result;
     },
     previewGlancePair: (main, reference) => request('previewGlancePair', [nativeId(main), nativeId(reference)]),
     setGlanceTab: async id => {
       await refresh();
-      if (snapshot?.glanceTabId != null) await request('closeGlance');
+      // A quiet tab loads first; a dismissal or a newer choice ends the wait.
+      const epoch = ++glance.requestEpoch;
+      if (snapshot?.tabs.find(tab => tab.id === String(id))?.asleep) {
+        await request('wakeTab', [nativeId(id)]);
+        for (let i = 0; i < 300 && epoch === glance.requestEpoch; i++) {
+          await new Promise(resolve => setTimeout(resolve, 50));
+          await refresh();
+          const tab = snapshot?.tabs.find(item => item.id === String(id));
+          if (!tab) return false;
+          if (!tab.asleep && !tab.isLoading) break;
+        }
+        if (epoch !== glance.requestEpoch) {
+          if (snapshot?.glanceTabId !== String(id)) glanceSay('glance.status.cancelled');
+          return false;
+        }
+      }
+      if (snapshot?.glanceTabId != null) { glance.closing = true; await request('closeGlance'); glance.closing = false; await refresh(); }
       const opened = await request('previewGlancePair', [nativeId(snapshot.activeTabId), nativeId(id)]);
       await close(); await refresh();
       if (opened === true) glanceSay('glance.status.opened', { title: glanceTitle(String(id)) });
@@ -1558,7 +1580,20 @@
     openIsland: () => show(),
     openIslandTyping: (character) => show(character),
     openIslandCommands: () => show('/'),
-    closeOverlay: close,
+    // Cancelling the Change picker hands focus back to its control on the card.
+    closeOverlay: async reason => {
+      if (overlayMode === 'glance' && reason !== 'selected') {
+        glance.requestEpoch += 1;
+        if (overlayPurpose === 'change' && snapshot?.glanceTabId != null) {
+          await close(false);
+          emit('onIslandState', { mode: null, trigger: null, restoreTrigger: 'glance-change' });
+          await focusGlanceCard();
+          glanceCardFrame.contentDocument.getElementById('glanceChange')?.focus();
+          return;
+        }
+      }
+      return close(reason);
+    },
     reportIslandRect: (rect) => { pillRect = rect; reportGeometry(); syncFloat(); },
     reportChromeLayout: () => {},
     reportPanelDrawn: () => emit('onIslandCovered'),
@@ -1811,6 +1846,7 @@
   window.BlancPrototypeHost = {
     api,
     toggleGlance: () => (snapshot?.glanceTabId != null ? api.closeGlance() : api.openGlancePicker()),
+    focusGlanceCard,
     glanceState: () => ({ layout: glancePayload(), shown: !glanceCardFrame.hidden, generation: glance.generation }),
     apiForDocument,
     hoverState: () => ({ ...hover.state }),

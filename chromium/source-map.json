@@ -269,8 +269,8 @@
     "blanc/browser/ui/app_menus_mac.mm": "541e0d4b641fd409b7b659530e973b78657961b88132d612c30836f40503967f",
     "blanc/browser/ui/billboard_clock_settings.inc": "57ce0ed0160903e1b90c3d65fd5cd7cd33218d5774a3b2d8fdb448b0d49c9892",
     "blanc/browser/ui/blanc_extensions_branding.h": "17d77bbc267d13477a24bd971021f2291c505567a32383229505c13b53238a02",
-    "blanc/browser/ui/blanc_prototype_ui.cc": "356f4bc66d6f79342933e7cdb9af8c1d3708b6501f26e035302d424c810edbfe",
-    "blanc/browser/ui/blanc_prototype_ui.h": "6ad65f3318a09c86b748170adc3fc30a52b9fbfc3ae8b3c5ef034d3a663708dc",
+    "blanc/browser/ui/blanc_prototype_ui.cc": "0b6f9bed0a9a038e4ce109fb3e2ccef31aadc761ac803c8e2ac7d1c43dbbbdd9",
+    "blanc/browser/ui/blanc_prototype_ui.h": "85a524f561044e57ad2a3a3f817c34de1105523575e10aca7d45fac8f6b8bfa9",
     "blanc/browser/ui/blanc_quiet_media.h": "8fb187c5b49e762de12f5db114149ac462b06c9ca16f16a78ef50363a80e061f",
     "blanc/browser/ui/blanc_quiet_probe.h": "47467fe0a2004e804cda235613a0aea6b88d494b84b3608bf6af991a6aa07dfd",
     "blanc/browser/ui/blanc_quiet_schedule.h": "f5e3c6919a752eb63393cd7c1d4e54436746ce79179fb3d16fbd2df7c0c3fcc4",
@@ -328,7 +328,7 @@
     "blanc/common/browser_api/browser_api_factory_base.h": "00bb754d8dd6a1e567bde9a1a7fce55bc0579bacdf608c0926e1f33303af9de7",
     "blanc/common/island_mode.h": "e0bee373b84221917aaccbc8b465e6755797b6145ed5fe3e593360213e532503",
     "blanc/common/menu_strings.h": "8d0336a98bb01b0f989ae17e7c59d2728cbc2013dde6f8717b51d8d839401f46",
-    "blanc/common/settings_strings.h": "9b2631ab8c394585428a5bb6da85ce268f441416d08a81c424bb7678b15b4bd9",
+    "blanc/common/settings_strings.h": "374b7d80eac4ee093e27e7f05a13afa5392f2799b9b360c9f52c0492f35dbb7d",
     "blanc/config.gni": "882d1925ee3e1dbd1b2a71ae1e3f95ed509d2a283a95673b1a11635a26a5bfcf",
     "blanc/content/browser/service_worker/blanc_update_identity.inc": "dd7242e1f78ce6a36b78cfedf6f3a7a3a504df28acca8acd49143e01461232e8",
     "blanc/content/public/browser/blanc_document_token.h": "7fba8c8ac526416683e43128737e4c5ce06e8228910fa4ccd952d1ac5d58de1c",
@@ -346,7 +346,7 @@
     "blanc/island/glance-card.js": "3dede7f39231795ee861571c3cd053fb097425f195741eebbab72474a2cdb659",
     "blanc/island/host.css": "f24844ece9115edc48c5299bb4d9aa2f94de98a3e0420c94d3700915158797f9",
     "blanc/island/host.html": "0a7287b2c9ef05efad13936b40692f8bf06e0f175a67300937fbf0bd5470d238",
-    "blanc/island/host.js": "fdd431ef88aea4c5c4a421d602f52a83a0b57e87a573039f5dc2e693157712e7",
+    "blanc/island/host.js": "d6e0c1d6255b0634d6abaa893bd736d7fdfbed920e0d7337a2a86f702777b146",
     "blanc/island/hover-panel-leave.js": "b1dec3e1bfc4f53932e651d6345fdea1199b07cdfea6c0926928377b28b7eb1a",
     "blanc/island/i18n.js": "5749b9e67f1876fdd535f6f47908d8a3982ee7c5868b2e23dc50085a1ab27793",
     "blanc/island/icons/chevron-left.svg": "83b0681aa38bf55e9d52a1e4b4cced624abe1fe7678ecafda133a574f1161d93",
@@ -442,7 +442,7 @@
     "blanc/island/vertical-tabs.js": "bc729325f14b39ddf507bb07d1d3170d79a2f1ce36388852b4bf20049b62a2be",
     "blanc/island/whats-new.js": "ed48700b7808264312543422d8576320dfcd95ed3497aa1f20e0e5cd89a5e339",
     "blanc/island/workspace-ui.js": "c7bb4fb11bae7e903c643cc1a696e1f8bc44aec0be981147f45c19828a18fed4",
-    "blanc/island-assets.json": "c9a5738d1d2e40e4d0a7369313e6d6e94c79d42225c02b440f1b97fcf34c4a60",
+    "blanc/island-assets.json": "0b314dbb27bea5aec14106b559b9f10516d4b1cd1c329cb5746753a3541ecbd5",
     "blanc/island-renderer.json": "69158566df0ab2fbcaab6bfcaf49b73c33d5b7928ef17e08ba2d1ff7312fd68d",
     "blanc/island_resources/BUILD.gn": "a4a34ef6c570287c86c2df34e378bdb0ea1b62e1b22e1106357a99ef6865ecac",
     "blanc/island_resources/embed.py": "98dd6e6d0bc68d75628e27ff62c52a825de38d6ffcba81993b4b3979b8a4d5d4",
@@ -609,6 +609,7 @@
     "chrome/browser/resources/settings/people_page/people_page.ts": "5e97f8760b397d6b26bb72f4a1b9f1472b645324451d437a92d574d1558b541c",
     "chrome/browser/signin/identity_manager_factory.cc": "5b94fe0b08ff5480e06985cf7d2a0feb0e45f71d30c5f5c68f27982954629659",
     "chrome/browser/resources/settings/about_page/about_page.html.ts": "5cf43803884ad92805fddccf02d0d2750930b75fd447411575386e9c30603a6d",
-    "chrome/browser/resources/settings/about_page/about_page.ts": "327ef436c2a39567c41bef96e20dd355b206076e0eea7c9ebff76ddf3e6a6dff"
+    "chrome/browser/resources/settings/about_page/about_page.ts": "327ef436c2a39567c41bef96e20dd355b206076e0eea7c9ebff76ddf3e6a6dff",
+    "chrome/browser/renderer_context_menu/render_view_context_menu.cc": "5157506d32e4c0aa32bc068f40432504ebf06274668cf74855747afb0418140e"
   }
 }
