@@ -45,6 +45,7 @@ ${elements.map(element => `    <path
 const path_ = d => ['path', {d}];
 const CONTROLS = {
   check: [path_('M20 6 9 17l-5-5')],
+  phone: [['rect', {x: 5, y: 2, width: 14, height: 20, rx: 2}], path_('M12 18h.01')],
   arrow_up: [path_('m5 12 7-7 7 7'), path_('M12 19V5')],
   arrow_down: [path_('M12 5v14'), path_('m19 12-7 7-7-7')],
   pencil: [path_('M21.174 6.812a1 1 0 0 0-3.986-3.987L3.842 16.174a2 2 0 0 0-.5.83l-1.321 4.352a.5.5 0 0 0 .623.622l4.353-1.32a2 2 0 0 0 .83-.497z'),

@@ -96,10 +96,13 @@ public final class BlancSpaces {
     public static final class Deleted {
         public final Space space;
         public final long deletedAt;
+        /** Where it stood in the list: Undo and Restore put it back there. */
+        public final int index;
 
-        Deleted(Space space, long deletedAt) {
+        Deleted(Space space, long deletedAt, int index) {
             this.space = space;
             this.deletedAt = deletedAt;
+            this.index = index;
         }
     }
 
@@ -107,7 +110,6 @@ public final class BlancSpaces {
     public static final class Pending {
         public final @Nullable String from;
         public final @Nullable String to;
-        public final List<String> closing = new ArrayList<>();
 
         Pending(@Nullable String from, @Nullable String to) {
             this.from = from;
@@ -162,13 +164,71 @@ public final class BlancSpaces {
         return space == null ? null : space.set;
     }
 
-    /** The next colors a new Space starts with, in turn. */
+    /** The first color no Space uses, cycling once all are. */
     public String nextColor() {
+        for (String color : COLORS) {
+            boolean used = false;
+            for (Space space : spaces) used |= space.color.equalsIgnoreCase(color);
+            if (!used) return color;
+        }
         return COLORS[spaces.size() % COLORS.length];
     }
 
+    /** The first symbol no Space uses, cycling once all are. */
     public String nextSymbol() {
+        for (String symbol : SYMBOLS) {
+            boolean used = false;
+            for (Space space : spaces) used |= space.symbol.equals(symbol);
+            if (!used) return symbol;
+        }
         return SYMBOLS[spaces.size() % SYMBOLS.length];
+    }
+
+    /** How a stored color draws: the fill, the symbol on it, and whether it needs an edge. */
+    public static final class Paint {
+        public final int fill;
+        public final int on;
+        public final boolean edge;
+
+        Paint(int fill, int on, boolean edge) {
+            this.fill = fill;
+            this.on = on;
+            this.edge = edge;
+        }
+    }
+
+    private static final int WHITE = 0xFFFFFFFF;
+    private static final int BLACK = 0xFF000000;
+    private static final int[] LIGHT_SURFACES = {0xFFFFFFFF, 0xFFF7F7F7, 0xFFF5F5F5};
+    private static final int[] DARK_SURFACES = {0xFF1F1F1F, 0xFF171717, 0xFF282828};
+    private static final double EDGE_CONTRAST = 3.0;
+
+    private static double luminance(int color) {
+        double[] linear = new double[3];
+        for (int i = 0; i < 3; i++) {
+            double value = ((color >> (16 - 8 * i)) & 0xFF) / 255.0;
+            linear[i] = value <= 0.04045 ? value / 12.92 : Math.pow((value + 0.055) / 1.055, 2.4);
+        }
+        return 0.2126 * linear[0] + 0.7152 * linear[1] + 0.0722 * linear[2];
+    }
+
+    private static double contrast(int a, int b) {
+        double x = luminance(a);
+        double y = luminance(b);
+        return (Math.max(x, y) + 0.05) / (Math.min(x, y) + 0.05);
+    }
+
+    /** The rules of desktop's space-identity.js. A color that isn't one draws as slate. */
+    public static Paint paint(String hex, boolean dark) {
+        int fill = 0xFF000000 | Integer.parseInt((isColor(hex) ? hex : COLORS[6]).substring(1), 16);
+        int on = contrast(fill, WHITE) >= contrast(fill, BLACK) ? WHITE : BLACK;
+        boolean edge = false;
+        for (int surface : dark ? DARK_SURFACES : LIGHT_SURFACES) edge |= contrast(fill, surface) < EDGE_CONTRAST;
+        return new Paint(fill, on, edge);
+    }
+
+    private static boolean isColor(String value) {
+        return value.matches("#[0-9a-fA-F]{6}");
     }
 
     /** A new Space, or why not: read `lastCreated` after OK. */
@@ -211,8 +271,9 @@ public final class BlancSpaces {
     public void delete(String id, long now) {
         Space space = space(id);
         if (space == null || id.equals(shownId)) return;
+        int index = spaces.indexOf(space);
         spaces.remove(space);
-        deleted.add(0, new Deleted(space, now));
+        deleted.add(0, new Deleted(space, now, index));
     }
 
     /** Back from Recently deleted, refused at the limit or on a name now in use. */
@@ -222,7 +283,7 @@ public final class BlancSpaces {
             if (spaces.size() >= LIMIT) return Result.LIMIT;
             if (taken(entry.space.name, null)) return Result.DUPLICATE_NAME;
             deleted.remove(entry);
-            spaces.add(entry.space);
+            spaces.add(Math.min(entry.index, spaces.size()), entry.space);
             return Result.OK;
         }
         return Result.OK;
@@ -295,23 +356,26 @@ public final class BlancSpaces {
         for (Space space : spaces) list.put(spaceJson(space));
         JSONArray gone = new JSONArray();
         for (Deleted entry : deleted) {
-            gone.put(new JSONObject().put("space", spaceJson(entry.space)).put("deletedAt", entry.deletedAt));
+            gone.put(new JSONObject().put("space", spaceJson(entry.space)).put("deletedAt", entry.deletedAt).put("index", entry.index));
         }
         JSONObject out = new JSONObject().put("version", 1).put("phone", setJson(phone)).put("spaces", list)
                 .put("deleted", gone).put("shownId", shownId == null ? JSONObject.NULL : shownId);
         if (pending != null) {
-            JSONArray closing = new JSONArray();
-            for (String id : pending.closing) closing.put(id);
             out.put("pending", new JSONObject().put("from", pending.from == null ? JSONObject.NULL : pending.from)
-                    .put("to", pending.to == null ? JSONObject.NULL : pending.to).put("closing", closing));
+                    .put("to", pending.to == null ? JSONObject.NULL : pending.to));
         }
         return out.toString();
     }
 
     /** A file that can't be read gives an empty library: Chromium still has the tabs on show. */
     public static BlancSpaces fromJson(@Nullable String json) {
+        BlancSpaces library = json == null ? null : read(json);
+        return library == null ? new BlancSpaces() : library;
+    }
+
+    /** The library in a file, or null if it can't be read. */
+    public static @Nullable BlancSpaces read(String json) {
         BlancSpaces library = new BlancSpaces();
-        if (json == null) return library;
         try {
             JSONObject root = new JSONObject(json);
             library.phone = set(root.optJSONObject("phone"));
@@ -324,18 +388,16 @@ public final class BlancSpaces {
             for (int i = 0; gone != null && i < gone.length(); i++) {
                 JSONObject item = gone.optJSONObject(i);
                 JSONObject space = item == null ? null : item.optJSONObject("space");
-                if (space != null) library.deleted.add(new Deleted(space(space), item.optLong("deletedAt")));
+                if (space != null) library.deleted.add(new Deleted(space(space), item.optLong("deletedAt"), item.optInt("index", Integer.MAX_VALUE)));
             }
             library.shownId = text(root, "shownId");
             if (library.shown() == null) library.shownId = null;
             JSONObject pending = root.optJSONObject("pending");
             if (pending != null) {
                 library.pending = new Pending(text(pending, "from"), text(pending, "to"));
-                JSONArray closing = pending.optJSONArray("closing");
-                for (int i = 0; closing != null && i < closing.length(); i++) library.pending.closing.add(closing.optString(i));
             }
         } catch (JSONException e) {
-            return new BlancSpaces();
+            return null;
         }
         return library;
     }

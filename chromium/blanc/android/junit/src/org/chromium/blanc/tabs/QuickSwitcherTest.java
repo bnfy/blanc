@@ -86,4 +86,12 @@ public class QuickSwitcherTest {
         assertNull(QuickSwitcher.goTarget("example.com", QuickSwitcher.search("example.com", List.of(tab("t", "Example", "https://example.com/")), NONE, NONE, List.of())));
         assertNull(QuickSwitcher.goTarget("eml", QuickSwitcher.search("eml", List.of(tab("t", "Example", "https://example.com/")), NONE, NONE, List.of())));
     }
+
+    @Test
+    public void aSetIsFoundByNameAboveItsTabsWithItsCount() {
+        List<QuickSwitcher.Result> results = QuickSwitcher.search("work", List.of(tab("1", "Work notes", "https://a.example/")),
+                NONE, NONE, List.of(), List.of(new QuickSwitcher.TabSet("s1", "Work", 3)));
+        assertEquals("set:s1", results.get(0).id);
+        assertEquals(3, results.get(0).count);
+    }
 }

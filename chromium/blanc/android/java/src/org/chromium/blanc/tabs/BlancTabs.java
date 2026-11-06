@@ -2,6 +2,7 @@
 
 package org.chromium.blanc.tabs;
 
+import org.chromium.blanc.spaces.SpacesController;
 import org.chromium.build.annotations.NullMarked;
 import org.chromium.build.annotations.Nullable;
 
@@ -9,6 +10,7 @@ import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Deque;
 import java.util.List;
+import java.util.Objects;
 import java.util.function.LongSupplier;
 
 /**
@@ -46,6 +48,8 @@ public final class BlancTabs {
         final boolean group;
         final @Nullable String blankId;
         final long at;
+        /** The set on show when it closed: Undo can't bring it back into another. */
+        final @Nullable String shownSet = shownSet();
 
         Closed(List<TabStore.Entry> tabs, boolean group, @Nullable String blankId, long at) {
             this.group = group;
@@ -165,7 +169,13 @@ public final class BlancTabs {
     }
 
     private boolean undoable() {
-        return mPending != null && mNow.getAsLong() - mPending.at <= UNDO_MILLIS;
+        return mPending != null && mNow.getAsLong() - mPending.at <= UNDO_MILLIS
+                && Objects.equals(mPending.shownSet, shownSet());
+    }
+
+    private static @Nullable String shownSet() {
+        SpacesController spaces = SpacesController.current();
+        return spaces == null ? null : spaces.library().shownId;
     }
 
     /** The closed tab Undo would bring back, while it can; null otherwise. */

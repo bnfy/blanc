@@ -77,7 +77,7 @@ diff -ruN a/chrome/android/java/src/org/chromium/chrome/browser/tabbed_mode/Tabb
          if (mVerticalTabsPreferenceListener != null) {
              ContextUtils.getAppSharedPreferences()
                      .unregisterOnSharedPreferenceChangeListener(mVerticalTabsPreferenceListener);
-@@ -1293,9 +1313,453 @@
+@@ -1293,9 +1313,462 @@
          }
      }
  
@@ -449,7 +449,16 @@ diff -ruN a/chrome/android/java/src/org/chromium/chrome/browser/tabbed_mode/Tabb
 +        // What Chromium doesn't keep across a restart, and Quiet Tabs (A2 Task 7).
 +        mBlancTabKeeper =
 +                new org.chromium.blanc.tabs.chromium.BlancTabKeeper(
-+                        selector, store, org.chromium.chrome.browser.tab.TabUtils::isCapturingForMedia);
++                        selector,
++                        store,
++                        org.chromium.chrome.browser.tab.TabUtils::isCapturingForMedia,
++                        () -> {
++                            org.chromium.chrome.browser.app.tabmodel.TabModelOrchestrator orchestrator =
++                                    ((org.chromium.chrome.browser.app.ChromeActivity) mActivity)
++                                            .getTabModelOrchestratorSupplier()
++                                            .get();
++                            if (orchestrator != null) orchestrator.getTabPersistentStore().saveState();
++                        });
 +        mBlancBlockerNotice =
 +                new org.chromium.chrome.browser.tabmodel.TabModelSelectorTabObserver(selector) {
 +                    @Override
@@ -531,7 +540,7 @@ diff -ruN a/chrome/android/java/src/org/chromium/chrome/browser/tabbed_mode/Tabb
          assert mLayoutManager != null;
  
          if (mCountrySupplier != null && mCountrySupplier.get() == null) {
-@@ -2962,9 +3426,8 @@
+@@ -2962,9 +3435,8 @@
          mNotificationPermissionController =
                  new NotificationPermissionController(mWindowAndroid, rationaleUIDelegateSupplier);
          NotificationPermissionController.attach(mWindowAndroid, mNotificationPermissionController);

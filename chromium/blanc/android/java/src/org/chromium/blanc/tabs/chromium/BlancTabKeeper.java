@@ -48,13 +48,17 @@ public final class BlancTabKeeper {
     private final TabModelSelector mSelector;
     private final ChromiumTabStore mStore;
     private final Predicate<Tab> mCapturing;
+    private final Runnable mSaveTabList;
     private final Handler mHandler = new Handler(Looper.getMainLooper());
     private final Runnable mSweep = this::sweep;
     /** Tabs this keeper quieted, with when each was last shown: quiet until it's shown again. */
     private final Map<Integer, Long> mQuieted = new HashMap<>();
     private boolean mDestroyed;
 
-    public BlancTabKeeper(TabModelSelector selector, ChromiumTabStore store, Predicate<Tab> capturing) {
+    /** {@code saveTabList} writes Chromium's tab list to disk at once. */
+    public BlancTabKeeper(
+            TabModelSelector selector, ChromiumTabStore store, Predicate<Tab> capturing, Runnable saveTabList) {
+        mSaveTabList = saveTabList;
         mSelector = selector;
         mStore = store;
         mCapturing = capturing;
@@ -96,7 +100,7 @@ public final class BlancTabKeeper {
     }
 
     private void startSpaces() {
-        ChromiumSpaces tabs = new ChromiumSpaces(mStore);
+        ChromiumSpaces tabs = new ChromiumSpaces(mStore, mSaveTabList);
         SpacesController spaces = new SpacesController(tabs.load(), tabs);
         SpacesController.setCurrent(spaces);
         spaces.start(System.currentTimeMillis());
@@ -105,8 +109,6 @@ public final class BlancTabKeeper {
     /** When the app goes to the background, which is before Android may end it. */
     public void save() {
         if (mSelector.isTabStateInitialized()) BlancTabState.save(mStore, prefs());
-        SpacesController spaces = SpacesController.current();
-        if (spaces != null) spaces.saveShown();
         publishTabs();
     }
 

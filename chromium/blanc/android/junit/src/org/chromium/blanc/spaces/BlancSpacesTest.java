@@ -38,6 +38,9 @@ public class BlancSpacesTest {
     private static final class FakeTabs implements SpaceSwitcher.Tabs {
         final Map<String, TabStore.Entry> mOpen = new LinkedHashMap<>();
         final Set<String> mFrozen = new HashSet<>();
+        final Map<String, Boolean> mKeptGroup = new LinkedHashMap<>();
+        boolean mSaveFails;
+        boolean mFlushed;
         final Map<String, TabStore.Entry> mDisk = new LinkedHashMap<>();
         final List<String> mRestored = new ArrayList<>();
         @org.chromium.build.annotations.Nullable String mActive;
@@ -62,7 +65,8 @@ public class BlancSpacesTest {
         @Override public String activeId() { return mActive; }
 
         @Override
-        public boolean freeze(String id) {
+        public boolean freeze(String id, boolean keepGroup) {
+            mKeptGroup.put(id, keepGroup);
             mFrozen.add(id);
             mDisk.put(id, mOpen.get(id));
             return true;
@@ -100,14 +104,24 @@ public class BlancSpacesTest {
         @Override public void setPinned(String id, boolean pinned) {}
         @Override public void forget(String id) { mDisk.remove(id); }
 
+        @Override public List<String> frozen() { return new ArrayList<>(mDisk.keySet()); }
+
         @Override
-        public void save(BlancSpaces library) {
+        public void flush() {
+            step("flush");
+            mFlushed = true;
+        }
+
+        @Override
+        public boolean save(BlancSpaces library) {
+            if (mSaveFails) return false;
             try {
                 mSaved = library.toJson();
             } catch (JSONException e) {
                 throw new AssertionError(e);
             }
             step("save");
+            return true;
         }
     }
 
@@ -365,5 +379,125 @@ public class BlancSpacesTest {
         switcher().delete(id, 5);
         switcher().expire(5 + BlancSpaces.DELETED_MILLIS);
         assertNull(mTabs.mDisk.get("1"));
+    }
+
+    @Test
+    public void undoAndRestorePutASpaceBackWhereItStood() {
+        String one = create("One");
+        create("Two");
+        create("Three");
+        SpacesController spaces = new SpacesController(mLibrary, mTabs);
+        spaces.delete(one, 5);
+        spaces.undoDelete();
+        assertEquals(one, mLibrary.spaces.get(0).id);
+        mLibrary.delete(one, 5);
+        BlancSpaces reopened = BlancSpaces.fromJson(toJson());
+        reopened.restore(one);
+        assertEquals(one, reopened.spaces.get(0).id);
+    }
+
+    private String toJson() {
+        try {
+            return mLibrary.toJson();
+        } catch (JSONException e) {
+            throw new AssertionError(e);
+        }
+    }
+
+    @Test
+    public void aSwitchThatCantBeWrittenDownClosesNothing() {
+        mTabs.add("1", "https://a.example/");
+        String id = create("Work");
+        mTabs.mSaveFails = true;
+        switcher().show(id);
+        assertEquals(Set.of("1"), mTabs.mOpen.keySet());
+        assertNull(mLibrary.shownId);
+        assertNull(mLibrary.pending);
+    }
+
+    @Test
+    public void aSwitchStaysOpenUntilChromiumsListIsOnDisk() {
+        mTabs.add("1", "https://a.example/");
+        String id = create("Work");
+        mTabs.mDieAt = "flush";
+        try {
+            switcher().show(id);
+            throw new AssertionError("never flushed");
+        } catch (Killed e) {
+            assertTrue(mTabs.mSaved.contains("pending"));
+        }
+        BlancSpaces reopened = BlancSpaces.fromJson(mTabs.mSaved);
+        new SpaceSwitcher(reopened, mTabs).recover();
+        assertNull(reopened.pending);
+        assertEquals(id, reopened.shownId);
+        assertTrue(mTabs.mFlushed);
+    }
+
+    @Test
+    public void tabsChromiumReopenedUnderNewIdsAreClosedByTheRecovery() {
+        mTabs.add("1", "https://a.example/");
+        String id = create("Work");
+        mTabs.mDieAt = "close";
+        try {
+            switcher().show(id);
+            throw new AssertionError("never closed");
+        } catch (Killed e) {
+            // Android ended the app, and Chromium brought the tab back with a new id.
+        }
+        mTabs.mOpen.remove("1");
+        mTabs.add("50", "https://a.example/");
+        BlancSpaces reopened = BlancSpaces.fromJson(mTabs.mSaved);
+        new SpaceSwitcher(reopened, mTabs).recover();
+        assertFalse(mTabs.mOpen.containsKey("50"));
+        assertEquals("the left set keeps it", "1", reopened.phone.tabs.get(0).id);
+    }
+
+    @Test
+    public void aMovedTabLeavesItsGroup() {
+        mTabs.add("1", "https://a.example/");
+        mTabs.add("2", "https://b.example/");
+        String id = create("Work");
+        switcher().moveTab("2", id);
+        assertFalse(mTabs.mKeptGroup.get("2"));
+    }
+
+    @Test
+    public void theSweepDropsFilesNoHiddenSetHolds() {
+        mTabs.add("1", "https://a.example/");
+        String id = create("Work");
+        mLibrary.space(id).set.tabs.add(new SavedTab("9", "https://kept.example/", "K", false, null));
+        mTabs.mDisk.put("9", mTabs.mOpen.get("1"));
+        mTabs.mDisk.put("8", mTabs.mOpen.get("1"));
+        mTabs.mDisk.put("1", mTabs.mOpen.get("1"));
+        switcher().sweep();
+        assertEquals(Set.of("9"), mTabs.mDisk.keySet());
+    }
+
+    @Test
+    public void aNewSpaceTakesTheFirstUnusedColorAndSymbol() {
+        create("One");
+        String two = create("Two");
+        mLibrary.spaces.get(0).color = BlancSpaces.COLORS[1];
+        mLibrary.spaces.get(0).symbol = BlancSpaces.SYMBOLS[1];
+        mLibrary.space(two).color = BlancSpaces.COLORS[0];
+        mLibrary.space(two).symbol = BlancSpaces.SYMBOLS[0];
+        assertEquals(BlancSpaces.COLORS[2], mLibrary.nextColor());
+        assertEquals(BlancSpaces.SYMBOLS[2], mLibrary.nextSymbol());
+        mLibrary.spaces.remove(0);
+        assertEquals(BlancSpaces.COLORS[1], mLibrary.nextColor());
+    }
+
+    @Test
+    public void paintFollowsDesktopsRules() {
+        assertEquals(0xFFFFFFFF, BlancSpaces.paint("#3a3a3a", true).on);
+        assertTrue("graphite needs an edge on the dark Island", BlancSpaces.paint("#3a3a3a", true).edge);
+        assertFalse(BlancSpaces.paint("#3a3a3a", false).edge);
+        assertEquals("a bad color draws as slate", 0xFF576471, BlancSpaces.paint("oops", false).fill);
+    }
+
+    @Test
+    public void anUnreadableFileIsToldApartFromAnEmptyOne() {
+        assertNull(BlancSpaces.read("not json"));
+        assertNotNull(BlancSpaces.read("{}"));
     }
 }

@@ -31,8 +31,8 @@ public final class SpaceSwitcher {
 
         @Nullable String activeId();
 
-        /** Saves a tab's state under its id; false if it has none. */
-        boolean freeze(String id);
+        /** Saves a tab's state under its id, in its group or out of it; false if it has none. */
+        boolean freeze(String id, boolean keepGroup);
 
         /** Brings a saved tab back unloaded, under its id, or "" without a state. */
         String thaw(String id);
@@ -53,8 +53,14 @@ public final class SpaceSwitcher {
 
         void forget(String id);
 
-        /** Writes the library now, before anything else happens. */
-        void save(BlancSpaces library);
+        /** The ids with a saved state. */
+        List<String> frozen();
+
+        /** Writes Chromium's own tab list to disk now. */
+        void flush();
+
+        /** Writes the library now, before anything else happens; false if it didn't reach disk. */
+        boolean save(BlancSpaces library);
     }
 
     private final BlancSpaces mLibrary;
@@ -69,7 +75,7 @@ public final class SpaceSwitcher {
     private SavedSet capture() {
         SavedSet set = new SavedSet();
         for (TabStore.Entry tab : mTabs.tabs()) {
-            mTabs.freeze(tab.id);
+            mTabs.freeze(tab.id, true);
             set.tabs.add(new SavedTab(tab.id, tab.url, tab.title, tab.pinned, tab.groupId));
         }
         for (TabStore.Group group : mTabs.groups()) {
@@ -88,13 +94,6 @@ public final class SpaceSwitcher {
         }
     }
 
-    /** Keeps the shown set's file current, without moving anything. */
-    public void saveShown() {
-        if (mLibrary.pending != null) return;
-        store(mLibrary.shownId, capture());
-        mTabs.save(mLibrary);
-    }
-
     /** Shows a set; null is This Phone. Showing what's shown changes nothing. */
     public void show(@Nullable String id) {
         if (mLibrary.pending != null) recover();
@@ -104,9 +103,12 @@ public final class SpaceSwitcher {
         SavedSet leaving = capture();
         store(from, leaving);
         Pending pending = new Pending(from, id);
-        for (SavedTab tab : leaving.tabs) pending.closing.add(tab.id);
         mLibrary.pending = pending;
-        mTabs.save(mLibrary);
+        if (!mTabs.save(mLibrary)) {
+            // Nothing's safe on disk, so nothing closes.
+            mLibrary.pending = null;
+            return;
+        }
         finish(pending);
     }
 
@@ -140,11 +142,15 @@ public final class SpaceSwitcher {
         }
         for (SavedGroup group : target.groups) mTabs.restoreGroup(group);
         if (shown.isEmpty()) shown.add(mTabs.startPage());
-        for (String id : pending.closing) {
-            if (open.contains(id) && !shown.contains(id)) mTabs.close(id);
+        // Everything else belongs to the set just left, saved before the switch began. After a
+        // kill Chromium may have reopened those tabs under new ids, so they aren't matched by id.
+        for (TabStore.Entry tab : mTabs.tabs()) {
+            if (!shown.contains(tab.id)) mTabs.close(tab.id);
         }
         String active = target.activeId != null && shown.contains(target.activeId) ? target.activeId : shown.get(0);
         mTabs.select(active);
+        // Until Chromium's list is on disk a kill brings the old tabs back, so the switch stays open.
+        mTabs.flush();
         mLibrary.shownId = pending.to;
         mLibrary.pending = null;
         mTabs.save(mLibrary);
@@ -159,7 +165,7 @@ public final class SpaceSwitcher {
         if (target == null || tabs.size() < 2) return;
         for (TabStore.Entry tab : tabs) {
             if (!tab.id.equals(tabId)) continue;
-            mTabs.freeze(tab.id);
+            mTabs.freeze(tab.id, false);
             target.tabs.add(new SavedTab(tab.id, tab.url, tab.title, tab.pinned, null));
             mTabs.save(mLibrary);
             mTabs.close(tab.id);
@@ -172,6 +178,23 @@ public final class SpaceSwitcher {
         if (id.equals(mLibrary.shownId)) show(null);
         mLibrary.delete(id, now);
         mTabs.save(mLibrary);
+    }
+
+    /** Drops state files only a hidden set could need that no hidden set holds. */
+    public void sweep() {
+        Set<String> keep = new HashSet<>();
+        if (mLibrary.shownId != null) addIds(keep, mLibrary.phone);
+        for (BlancSpaces.Space space : mLibrary.spaces) {
+            if (!space.id.equals(mLibrary.shownId)) addIds(keep, space.set);
+        }
+        for (BlancSpaces.Deleted entry : mLibrary.deleted) addIds(keep, entry.space.set);
+        for (String id : mTabs.frozen()) {
+            if (!keep.contains(id)) mTabs.forget(id);
+        }
+    }
+
+    private static void addIds(Set<String> ids, SavedSet set) {
+        for (SavedTab tab : set.tabs) ids.add(tab.id);
     }
 
     /** Past seven days, a deleted Space's tab files go too. */

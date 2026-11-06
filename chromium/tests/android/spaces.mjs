@@ -86,6 +86,64 @@ async function main(argv) {
       return tab?.group === 'Keep' ? [] : [JSON.stringify(state).slice(0, 300)];
     });
 
+    const restart = async () => {
+      adb('shell', 'input', 'keyevent', 'KEYCODE_HOME');
+      sleep(3);
+      adb('shell', 'am', 'force-stop', PACKAGE);
+      await d.launch();
+      sleep(3);
+    };
+
+    await check('a tab a switch brought back keeps Back and its group after a restart', async () => {
+      await d.view(url('first'));
+      d.runInPalette(url('second'));
+      await d.waitForUrl(url('second'));
+      d.runInPalette('/group Keep');
+      sleep(1);
+      // The Start Page on show, so nothing has reason to load the tab under test.
+      d.openGrid();
+      d.tapAt(d.find(d.card('New Tab')));
+      create('Work');
+      show('This phone');
+      await restart();
+      const state = d.grid();
+      const tab = state.tabs.find(t => t.title === 'second.example');
+      if (tab?.group !== 'Keep') return [`after restart: ${JSON.stringify(state).slice(0, 300)}`];
+      d.openGrid();
+      d.tapAt(d.find(d.card('second.example')));
+      await d.waitForUrl(url('second'));
+      adb('shell', 'input', 'keyevent', 'KEYCODE_BACK');
+      await d.waitForUrl(url('first'));
+      return [];
+    });
+
+    await check('a moved tab comes up out of its group', async () => {
+      await d.view(url('stays'));
+      await d.view(url('goes'));
+      d.runInPalette('/group Keep');
+      sleep(1);
+      create('Work');
+      show('This phone');
+      d.openGrid();
+      d.longPressAt(d.find(d.card('goes.example')));
+      d.tap({text: 'Move to Space'});
+      d.tap({text: 'Work'});
+      sleep(2);
+      show('Work');
+      const tab = d.grid().tabs.find(t => t.title === 'goes.example');
+      return tab && !tab.group ? [] : [JSON.stringify(tab)];
+    });
+
+    await check('a Space is found by name in the palette', async () => {
+      await d.view(url('home'));
+      create('Work');
+      await d.view(url('work'));
+      show('This phone');
+      d.runInPalette('Work');
+      sleep(3);
+      return titles(d.grid()).includes('work.example') ? [] : ['Go didn\'t switch to Work'];
+    });
+
     await check('a private tab stays through a switch and belongs to no Space', async () => {
       await d.view(url('open'));
       d.menu('New Private Tab');
@@ -166,6 +224,8 @@ async function main(argv) {
 
     await check('Recently deleted restores a Space after Undo ends', async () => {
       await d.view(url('home'));
+      create('Play');
+      show('This phone');
       create('Work');
       await d.view(url('kept'));
       show('This phone');

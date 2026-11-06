@@ -96,6 +96,7 @@ public final class TabGrid extends Dialog {
     private final IslandStyle mStyle;
     private final float mDensity;
     private final int mSurface;
+    private final FrameLayout mSpaceTile;
     private final TextView mTitle;
     private final TextView mCount;
     private final TextView mDone;
@@ -135,8 +136,12 @@ public final class TabGrid extends Dialog {
         LinearLayout header = new LinearLayout(activity);
         header.setGravity(Gravity.CENTER_VERTICAL);
         header.setPadding(dp(20), dp(12), dp(20), dp(12));
+        mSpaceTile = new FrameLayout(activity);
+        mSpaceTile.setPadding(0, 0, dp(10), 0);
+        header.addView(mSpaceTile);
         mTitle = text(activity.getString(R.string.blanc_ios_tabs_open_tabs), 24, mStyle.text);
         mTitle.setTypeface(Typeface.DEFAULT_BOLD);
+        mTitle.setMaxLines(1);
         header.addView(mTitle);
         mCount = text("", 14, secondary());
         mCount.setPadding(dp(8), 0, 0, 0);
@@ -297,7 +302,18 @@ public final class TabGrid extends Dialog {
 
     // Drawing.
 
+    /** The shown Space's tile and name, as the iPhone's grid. */
+    private void renderTitle() {
+        SpacesController spaces = SpacesController.current();
+        BlancSpaces.@Nullable Space space = spaces == null || mTabs.privateSelected() ? null : spaces.mark();
+        mSpaceTile.removeAllViews();
+        mSpaceTile.setVisibility(space == null ? View.GONE : View.VISIBLE);
+        if (space != null) mSpaceTile.addView(SpacesCard.tile(mActivity, space.color, space.symbol, dp(28)));
+        mTitle.setText(space == null ? mActivity.getString(R.string.blanc_ios_tabs_open_tabs) : space.name);
+    }
+
     private void render() {
+        renderTitle();
         mContent.removeAllViews();
         mCards.clear();
         mGroupHeaders.clear();
@@ -729,10 +745,6 @@ public final class TabGrid extends Dialog {
         SpacesController spaces = SpacesController.current();
         if (spaces == null || tab.privateTab || mTabs.entries(false).size() < 2) return;
         Menu move = menu.addSubMenu(R.string.blanc_tab_menu_move_to_space);
-        move.add(R.string.blanc_ws_new).setOnMenuItemClickListener(item -> {
-            SpacesCard.create(mActivity, "", tab.id);
-            return true;
-        });
         if (spaces.library().shownId != null) {
             move.add(R.string.blanc_spaces_this_phone).setOnMenuItemClickListener(item -> {
                 spaces.moveTab(tab.id, null);
@@ -746,5 +758,9 @@ public final class TabGrid extends Dialog {
                 return true;
             });
         }
+        move.add(R.string.blanc_tab_menu_new_space).setOnMenuItemClickListener(item -> {
+            SpacesCard.create(mActivity, "", tab.id);
+            return true;
+        });
     }
 }

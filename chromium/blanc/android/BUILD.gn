@@ -189,6 +189,7 @@ android_resources("island_view_resources") {
     "island/res/drawable/blanc_spaces_check.xml",
     "island/res/drawable/blanc_spaces_glyph.xml",
     "island/res/drawable/blanc_spaces_pencil.xml",
+    "island/res/drawable/blanc_spaces_phone.xml",
     "island/res/drawable-mdpi/blanc_island_mark.png",
     "island/res/drawable-hdpi/blanc_island_mark.png",
     "island/res/drawable-xhdpi/blanc_island_mark.png",

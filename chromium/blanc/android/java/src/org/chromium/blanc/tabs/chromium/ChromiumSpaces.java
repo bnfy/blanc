@@ -17,6 +17,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
+import java.util.ArrayList;
 import java.util.List;
 
 /** A switch over Chromium's tabs: frozen state files, and the library in one small file. */
@@ -29,20 +30,30 @@ public final class ChromiumSpaces implements SpaceSwitcher.Tabs {
     private final File mTabs = new File(mDirectory, "tabs");
     private final File mLibraryFile = new File(mDirectory, "library.json");
 
-    public ChromiumSpaces(ChromiumTabStore store) {
+    private final Runnable mFlush;
+
+    /** {@code flush} writes Chromium's tab list to disk. */
+    public ChromiumSpaces(ChromiumTabStore store, Runnable flush) {
         mStore = store;
+        mFlush = flush;
     }
 
     public BlancSpaces load() {
+        if (!mLibraryFile.exists()) return new BlancSpaces();
+        BlancSpaces library = null;
         try {
-            return BlancSpaces.fromJson(new String(Files.readAllBytes(mLibraryFile.toPath()), StandardCharsets.UTF_8));
+            library = BlancSpaces.read(new String(Files.readAllBytes(mLibraryFile.toPath()), StandardCharsets.UTF_8));
         } catch (IOException e) {
-            return new BlancSpaces();
+            Log.w(TAG, "library: " + e.getMessage());
         }
+        if (library != null) return library;
+        // An empty library is about to be saved over it: keep what was there.
+        if (!mLibraryFile.renameTo(new File(mDirectory, "library.unreadable.json"))) Log.w(TAG, "library: unreadable");
+        return new BlancSpaces();
     }
 
     @Override
-    public void save(BlancSpaces library) {
+    public boolean save(BlancSpaces library) {
         mDirectory.mkdirs();
         File temporary = new File(mDirectory, "library.json.tmp");
         try (FileOutputStream out = new FileOutputStream(temporary)) {
@@ -50,9 +61,11 @@ public final class ChromiumSpaces implements SpaceSwitcher.Tabs {
             out.getFD().sync();
         } catch (IOException | JSONException e) {
             Log.w(TAG, "library: " + e.getMessage());
-            return;
+            return false;
         }
-        if (!temporary.renameTo(mLibraryFile)) Log.w(TAG, "library: rename failed");
+        boolean saved = temporary.renameTo(mLibraryFile);
+        if (!saved) Log.w(TAG, "library: rename failed");
+        return saved;
     }
 
     @Override
@@ -71,8 +84,25 @@ public final class ChromiumSpaces implements SpaceSwitcher.Tabs {
     }
 
     @Override
-    public boolean freeze(String id) {
-        return mStore.freeze(id, mTabs);
+    public boolean freeze(String id, boolean keepGroup) {
+        return mStore.freeze(id, mTabs, keepGroup);
+    }
+
+    @Override
+    public List<String> frozen() {
+        List<String> ids = new ArrayList<>();
+        String[] names = mTabs.list();
+        if (names == null) return ids;
+        for (String name : names) {
+            String id = name.replaceAll("^.*\\D", "");
+            if (!id.isEmpty() && !ids.contains(id)) ids.add(id);
+        }
+        return ids;
+    }
+
+    @Override
+    public void flush() {
+        mFlush.run();
     }
 
     @Override

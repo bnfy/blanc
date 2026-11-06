@@ -14,6 +14,7 @@ import java.util.List;
 @NullMarked
 public final class SpacesController {
     private static @Nullable SpacesController sCurrent;
+    private static @Nullable Runnable sCurrentListener;
 
     private final BlancSpaces mLibrary;
     private final SpaceSwitcher mSwitcher;
@@ -22,6 +23,11 @@ public final class SpacesController {
     private @Nullable String mUndoId;
     private boolean mDeletedWasShown;
 
+    /** Told when a window's controller arrives, after anything drawn before it. */
+    public static void setCurrentListener(@Nullable Runnable listener) {
+        sCurrentListener = listener;
+    }
+
     /** The window's controller, once its tabs have loaded. */
     public static @Nullable SpacesController current() {
         return sCurrent;
@@ -29,6 +35,7 @@ public final class SpacesController {
 
     public static void setCurrent(@Nullable SpacesController controller) {
         sCurrent = controller;
+        if (controller != null && sCurrentListener != null) sCurrentListener.run();
     }
 
     public SpacesController(BlancSpaces library, SpaceSwitcher.Tabs tabs) {
@@ -58,12 +65,16 @@ public final class SpacesController {
     public void start(long now) {
         mSwitcher.recover();
         mSwitcher.expire(now);
+        mSwitcher.sweep();
         changed();
     }
 
-    /** Before Android may end the app: the set on show, as it stands. */
-    public void saveShown() {
-        mSwitcher.saveShown();
+    /** How many tabs a set holds; null is This Phone. */
+    public int tabCount(@Nullable String id) {
+        String shown = mLibrary.shownId;
+        if (shown == null ? id == null : shown.equals(id)) return mTabs.tabs().size();
+        BlancSpaces.SavedSet set = mLibrary.set(id);
+        return set == null ? 0 : set.tabs.size();
     }
 
     /** Shows a set; null is This Phone. */

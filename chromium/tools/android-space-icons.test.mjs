@@ -6,7 +6,7 @@ import {fileURLToPath} from 'node:url';
 import {files, pathData} from './android-space-icons.mjs';
 
 test('every symbol has a drawable and they match their source', () => {
-  assert.equal(Object.keys(files()).length, 21);
+  assert.equal(Object.keys(files()).length, 22);
   execFileSync('node', [path.join(path.dirname(fileURLToPath(import.meta.url)), 'android-space-icons.mjs'), '--check']);
 });
 

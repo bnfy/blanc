@@ -166,6 +166,7 @@ public final class IslandCoordinator {
             @Nullable InsetObserver insets,
             Callbacks callbacks) {
         mActivity = activity;
+        SpacesController.setCurrentListener(this::refresh);
         mActiveTab = activeTab;
         mSelector = selector;
         mInsets = insets;
@@ -253,6 +254,7 @@ public final class IslandCoordinator {
     }
 
     public void destroy() {
+        SpacesController.setCurrentListener(null);
         setTab(null);
         mActiveTab.removeObserver(mTabChanged);
         mCountObserver.destroy();
@@ -388,7 +390,7 @@ public final class IslandCoordinator {
             return;
         }
         mark.setVisibility(View.VISIBLE);
-        SpacesCard.bindMark(mActivity, mark, spaces.mark(), mView.textColor());
+        SpacesCard.bindMark(mActivity, mark, spaces.mark(), (mView.textColor() & 0x00FFFFFF) | 0x99000000);
     }
 
     private void updateTuck() {

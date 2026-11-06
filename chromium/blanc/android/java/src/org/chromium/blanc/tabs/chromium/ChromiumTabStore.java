@@ -19,6 +19,7 @@ import org.chromium.chrome.browser.tabmodel.TabModelSelector;
 import org.chromium.chrome.browser.tabmodel.TabModelUtils;
 import org.chromium.chrome.browser.crypto.CipherFactory;
 import org.chromium.chrome.browser.tab.TabState;
+import org.chromium.chrome.browser.tab.TabStateAttributes;
 import org.chromium.chrome.browser.tab.TabStateExtractor;
 import org.chromium.chrome.browser.tabpersistence.TabStateFileManager;
 import org.chromium.components.tab_groups.TabGroupColorId;
@@ -159,11 +160,12 @@ public final class ChromiumTabStore implements TabStore {
     }
 
     /** Saves a tab's whole state, Back and Forward included, under its id. */
-    public boolean freeze(String id, File directory) {
+    public boolean freeze(String id, File directory, boolean keepGroup) {
         Tab tab = tab(id);
         if (tab == null) return false;
         TabState state = TabStateExtractor.from(tab);
         if (state == null || state.contentsState == null) return false;
+        if (!keepGroup) state.tabGroupId = null;
         directory.mkdirs();
         TabStateFileManager.saveState(directory, state, tab.getId(), false, mCipher);
         return true;
@@ -174,7 +176,10 @@ public final class ChromiumTabStore implements TabStore {
         TabState state = TabStateFileManager.restoreTabState(directory, id, mCipher);
         if (state == null) return "";
         Tab tab = mCreators.getTabCreator(false).createFrozenTab(state, id, index);
-        return tab == null ? "" : String.valueOf(tab.getId());
+        if (tab == null) return "";
+        // Chromium takes a frozen tab to be on disk already; this one's state file went when it closed.
+        TabStateAttributes.setDirty(tab);
+        return String.valueOf(tab.getId());
     }
 
     /** Removes a frozen tab's file for good. */

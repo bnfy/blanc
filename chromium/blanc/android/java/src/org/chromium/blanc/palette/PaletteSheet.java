@@ -64,7 +64,6 @@ import java.util.Set;
 @NullMarked
 public final class PaletteSheet extends Dialog {
     /** What the palette asks of the browser. */
-    private static final String SPACE_ROW = "blanc-space:";
     private final Set<String> mOpenDevices = new HashSet<>();
 
     public interface Callbacks {
@@ -448,7 +447,7 @@ public final class PaletteSheet extends Dialog {
             return;
         }
         for (QuickSwitcher.Result result : results) {
-            boolean group = result.id.startsWith("group:");
+            boolean group = result.id.startsWith("group:") || result.id.startsWith("set:");
             String subtitle = group
                     ? mActivity.getResources().getQuantityString(R.plurals.blanc_newtab_groups_count, result.count, result.count)
                     : result.subtitle;
@@ -512,16 +511,26 @@ public final class PaletteSheet extends Dialog {
         for (TabStore.Group group : mTabs.groups()) groups.add(new QuickSwitcher.Group(group.id, group.name));
         // History joins the switcher with Android's history search (after A2).
         List<QuickSwitcher.Page> pages = new ArrayList<>(mCallbacks.favorites());
-        SpacesController spaces = SpacesController.current();
-        if (spaces != null) {
-            for (BlancSpaces.Space space : spaces.library().spaces) {
-                pages.add(new QuickSwitcher.Page(SPACE_ROW + space.id, space.name, SPACE_ROW + space.id));
-            }
-        }
         for (OtherDevices.Device device : OtherDevices.devices()) {
             for (OtherDevices.Page tab : device.tabs) pages.add(new QuickSwitcher.Page(tab.url, tab.title, tab.url));
         }
-        return QuickSwitcher.search(query, candidates, pages, List.of(), groups);
+        return QuickSwitcher.search(query, candidates, pages, List.of(), groups, switcherSets());
+    }
+
+    /** Every Space but the shown one, and This Phone while a Space is shown. */
+    private List<QuickSwitcher.TabSet> switcherSets() {
+        List<QuickSwitcher.TabSet> sets = new ArrayList<>();
+        SpacesController spaces = SpacesController.current();
+        if (spaces == null) return sets;
+        String shown = spaces.library().shownId;
+        if (shown != null) {
+            sets.add(new QuickSwitcher.TabSet(
+                    "", mActivity.getString(R.string.blanc_spaces_this_phone), spaces.tabCount(null)));
+        }
+        for (BlancSpaces.Space space : spaces.library().spaces) {
+            if (!space.id.equals(shown)) sets.add(new QuickSwitcher.TabSet(space.id, space.name, spaces.tabCount(space.id)));
+        }
+        return sets;
     }
 
     private void heading(String title, int count) {
@@ -736,9 +745,10 @@ public final class PaletteSheet extends Dialog {
             }
         } else if (result.id.startsWith("local:")) {
             mTabs.select(result.id.substring("local:".length()));
-        } else if (result.url != null && result.url.startsWith(SPACE_ROW)) {
+        } else if (result.id.startsWith("set:")) {
             SpacesController spaces = SpacesController.current();
-            if (spaces != null) spaces.show(result.url.substring(SPACE_ROW.length()));
+            String id = result.id.substring("set:".length());
+            if (spaces != null) spaces.show(id.isEmpty() ? null : id);
         } else if (result.url != null) {
             mCallbacks.openTab(result.url);
         }

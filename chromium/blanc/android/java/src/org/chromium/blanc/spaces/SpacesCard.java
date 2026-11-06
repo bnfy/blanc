@@ -8,12 +8,15 @@ import android.content.res.ColorStateList;
 import android.content.res.Configuration;
 import android.graphics.Color;
 import android.graphics.Typeface;
+import android.graphics.drawable.ColorDrawable;
 import android.graphics.drawable.GradientDrawable;
+import android.graphics.drawable.InsetDrawable;
 import android.util.TypedValue;
 import android.view.Gravity;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.Button;
+import android.view.Window;
+import android.view.WindowManager;
 import android.widget.EditText;
 import android.widget.FrameLayout;
 import android.widget.GridLayout;
@@ -36,31 +39,97 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * The Spaces menu, Blanc for iPhone's SpacesCard: This Phone, then the Spaces, New Space, and Edit
- * with moving, renaming and Recently deleted. The same sheet holds the editor.
+ * The Spaces menu, as Blanc for iPhone's SpacesCard: a card rising from the Island, which stays
+ * visible below it. This Phone, then the phone's Spaces, then New Space and Edit, with moving,
+ * renaming and Recently deleted in Edit. The same card holds the editor. A tap outside closes it.
  */
 @NullMarked
 public final class SpacesCard {
-    private final Activity mActivity;
     private static final long UNDO_MILLIS = 5000;
+    private static final String UNDO_TAG = "blanc_spaces_undo";
+    /** Above the Island at the bottom of the screen. */
+    private static final int ABOVE_ISLAND_DP = 84;
+    private static final int LIST_HEIGHT_DP = 420;
+    private static final int EDITOR_HEIGHT_DP = 560;
+    private static final int FOOTER_HEIGHT_DP = 60;
 
+    /** In {@link BlancSpaces#COLORS} order. */
+    private static final int[] COLOR_NAMES = {
+        R.string.blanc_spaces_color_sage, R.string.blanc_spaces_color_sky, R.string.blanc_spaces_color_iris,
+        R.string.blanc_spaces_color_rose, R.string.blanc_spaces_color_clay, R.string.blanc_spaces_color_sand,
+        R.string.blanc_spaces_color_slate, R.string.blanc_spaces_color_graphite
+    };
+
+    /** In {@link BlancSpaces#SYMBOLS} order. */
+    private static final int[] SYMBOL_NAMES = {
+        R.string.blanc_spaces_symbol_briefcase, R.string.blanc_spaces_symbol_house, R.string.blanc_spaces_symbol_code,
+        R.string.blanc_spaces_symbol_flask, R.string.blanc_spaces_symbol_book, R.string.blanc_spaces_symbol_music,
+        R.string.blanc_spaces_symbol_camera, R.string.blanc_spaces_symbol_plane, R.string.blanc_spaces_symbol_heart,
+        R.string.blanc_spaces_symbol_star, R.string.blanc_spaces_symbol_leaf, R.string.blanc_spaces_symbol_coffee,
+        R.string.blanc_spaces_symbol_cap, R.string.blanc_spaces_symbol_gamepad, R.string.blanc_spaces_symbol_wallet,
+        R.string.blanc_spaces_symbol_sun
+    };
+
+    private final Activity mActivity;
     private final SpacesController mSpaces;
+    private final IslandStyle mStyle;
     private final Dialog mDialog;
     private final LinearLayout mList;
+    private final LinearLayout mFooter;
+    private int mHeightDp = LIST_HEIGHT_DP;
     private boolean mEditing;
 
     private SpacesCard(Activity activity, SpacesController spaces) {
         mActivity = activity;
         mSpaces = spaces;
-        mDialog = new Dialog(activity, android.R.style.Theme_DeviceDefault_DayNight);
+        mStyle = IslandStyle.forTab(false, dark(activity));
+        mDialog = new Dialog(activity);
+        mDialog.requestWindowFeature(Window.FEATURE_NO_TITLE);
+        mDialog.setCanceledOnTouchOutside(true);
         mList = new LinearLayout(activity);
         mList.setOrientation(LinearLayout.VERTICAL);
-        int pad = dp(20);
-        mList.setPadding(pad, pad, pad, pad);
-        ScrollView scroll = new ScrollView(activity);
-        scroll.setFitsSystemWindows(true);
+        mList.setPadding(dp(16), dp(6), dp(16), dp(6));
+        ScrollView scroll = new ScrollView(activity) {
+            @Override
+            protected void onMeasure(int width, int height) {
+                int room = MeasureSpec.getSize(height) - dp(FOOTER_HEIGHT_DP);
+                super.onMeasure(width, MeasureSpec.makeMeasureSpec(Math.min(room, dp(mHeightDp)), MeasureSpec.AT_MOST));
+            }
+        };
         scroll.addView(mList);
-        mDialog.setContentView(scroll);
+        mFooter = new LinearLayout(activity);
+        mFooter.setGravity(Gravity.CENTER_VERTICAL);
+        mFooter.setPadding(dp(16), 0, dp(16), dp(4));
+        LinearLayout card = new LinearLayout(activity);
+        card.setOrientation(LinearLayout.VERTICAL);
+        GradientDrawable fill = new GradientDrawable();
+        fill.setColor(mStyle.raised);
+        fill.setCornerRadius(dp(22));
+        fill.setStroke(Math.max(1, dp(1) / 2), mStyle.border);
+        card.setBackground(fill);
+        card.addView(scroll);
+        card.addView(mFooter);
+        FrameLayout frame = new FrameLayout(activity);
+        frame.setPadding(dp(12), 0, dp(12), 0);
+        frame.addView(card);
+        mDialog.setContentView(frame);
+        Window window = mDialog.getWindow();
+        if (window != null) {
+            window.setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
+            window.setLayout(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+            window.setGravity(Gravity.BOTTOM);
+            WindowManager.LayoutParams place = window.getAttributes();
+            place.y = dp(ABOVE_ISLAND_DP);
+            window.setAttributes(place);
+            window.setDimAmount(0.25f);
+            window.setWindowAnimations(android.R.style.Animation_InputMethod);
+            window.setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_ADJUST_RESIZE);
+        }
+    }
+
+    private static boolean dark(Activity activity) {
+        return (activity.getResources().getConfiguration().uiMode & Configuration.UI_MODE_NIGHT_MASK)
+                == Configuration.UI_MODE_NIGHT_YES;
     }
 
     /** Opens the menu. */
@@ -72,14 +141,15 @@ public final class SpacesCard {
         card.mDialog.show();
     }
 
-    /** "Work deleted · Undo" over the page for Undo's five seconds. */
+    /** "Work deleted · Undo" over the page for Undo's five seconds. A new one replaces the last. */
     private static void undoBanner(Activity activity, SpacesController spaces, String name) {
         FrameLayout content = activity.findViewById(android.R.id.content);
-        boolean dark = (activity.getResources().getConfiguration().uiMode & Configuration.UI_MODE_NIGHT_MASK)
-                == Configuration.UI_MODE_NIGHT_YES;
-        IslandStyle style = IslandStyle.forTab(false, dark);
+        View last = content.findViewWithTag(UNDO_TAG);
+        if (last != null) content.removeView(last);
+        IslandStyle style = IslandStyle.forTab(false, dark(activity));
         float density = activity.getResources().getDisplayMetrics().density;
         LinearLayout banner = new LinearLayout(activity);
+        banner.setTag(UNDO_TAG);
         banner.setGravity(Gravity.CENTER_VERTICAL);
         banner.setPadding(Math.round(16 * density), Math.round(6 * density), Math.round(6 * density), Math.round(6 * density));
         GradientDrawable fill = new GradientDrawable();
@@ -129,46 +199,74 @@ public final class SpacesCard {
         return Math.round(value * mActivity.getResources().getDisplayMetrics().density);
     }
 
+    private int secondary() {
+        return (mStyle.text & 0x00FFFFFF) | 0x99000000;
+    }
+
     private TextView text(String value, int sp) {
         TextView view = new TextView(mActivity);
         view.setText(value);
+        view.setTextColor(mStyle.text);
         view.setTextSize(TypedValue.COMPLEX_UNIT_SP, sp);
         view.setPadding(0, dp(6), 0, dp(6));
         return view;
     }
 
-    private Button button(String label, View.OnClickListener click) {
-        Button view = new Button(mActivity);
-        view.setText(label);
-        view.setAllCaps(false);
+    private TextView action(String label, View.OnClickListener click) {
+        TextView view = text(label, 15);
+        view.setTypeface(Typeface.DEFAULT_BOLD);
+        view.setGravity(Gravity.CENTER_VERTICAL);
+        view.setMinHeight(dp(44));
+        view.setMinWidth(dp(44));
         view.setOnClickListener(click);
-        mList.addView(view);
         return view;
+    }
+
+    /** Fills the footer: `start` at the left, `end` at the right, either left out when null. */
+    private void footer(@Nullable View start, @Nullable View end) {
+        mFooter.removeAllViews();
+        if (start != null) mFooter.addView(start);
+        mFooter.addView(new View(mActivity), new LinearLayout.LayoutParams(0, 1, 1));
+        if (end != null) mFooter.addView(end);
     }
 
     /** The colored square with the symbol on it. */
-    private static ImageView tile(Activity activity, String color, String symbol, int size) {
+    public static ImageView tile(Activity activity, String color, String symbol, int size) {
         ImageView view = new ImageView(activity);
-        GradientDrawable fill = new GradientDrawable();
-        fill.setColor(Color.parseColor(color));
-        fill.setCornerRadius(size * 0.3f);
-        view.setBackground(fill);
-        view.setImageResource(symbolDrawable(symbol));
-        view.setImageTintList(ColorStateList.valueOf(Color.WHITE));
-        view.setScaleType(ImageView.ScaleType.CENTER_INSIDE);
-        int inset = size / 5;
-        view.setPadding(inset, inset, inset, inset);
-        view.setLayoutParams(new LinearLayout.LayoutParams(size, size));
+        paintTile(activity, view, color, symbol, size, 0);
+        view.setLayoutParams(new FrameLayout.LayoutParams(size, size));
         return view;
     }
 
-    /** The Island's mark: the shown Space's symbol in its color, or the Spaces glyph on This Phone. */
+    /** `view` as a tile of `size`, `inset` inside its own bounds. */
+    private static void paintTile(Activity activity, ImageView view, String color, String symbol, int size, int inset) {
+        BlancSpaces.Paint paint = BlancSpaces.paint(color, dark(activity));
+        GradientDrawable fill = new GradientDrawable();
+        fill.setColor(paint.fill);
+        fill.setCornerRadius(size * 0.3f);
+        if (paint.edge) fill.setStroke(1, dark(activity) ? 0x33FFFFFF : 0x33000000);
+        view.setBackground(new InsetDrawable(fill, inset));
+        view.setImageResource(symbolDrawable(symbol));
+        view.setImageTintList(ColorStateList.valueOf(paint.on));
+        view.setScaleType(ImageView.ScaleType.FIT_CENTER);
+        int padding = inset + Math.round(size * 0.22f);
+        view.setPadding(padding, padding, padding, padding);
+    }
+
+    /** The Island's mark: the shown Space's tile, or the plain Spaces glyph on This Phone. */
     public static void bindMark(Activity activity, ImageButton mark, @Nullable Space space, int plainColor) {
-        mark.setImageResource(space == null ? R.drawable.blanc_spaces_glyph : symbolDrawable(space.symbol));
-        mark.setImageTintList(ColorStateList.valueOf(space == null ? plainColor : Color.parseColor(space.color)));
-        mark.setContentDescription(space == null
-                ? activity.getString(R.string.blanc_spaces_menu_label)
-                : activity.getString(R.string.blanc_spaces_mark_current, space.name));
+        if (space == null) {
+            mark.setBackground(null);
+            mark.setPadding(0, 0, 0, 0);
+            mark.setScaleType(ImageView.ScaleType.CENTER);
+            mark.setImageResource(R.drawable.blanc_spaces_glyph);
+            mark.setImageTintList(ColorStateList.valueOf(plainColor));
+            mark.setContentDescription(activity.getString(R.string.blanc_spaces_menu_label));
+        } else {
+            float density = activity.getResources().getDisplayMetrics().density;
+            paintTile(activity, mark, space.color, space.symbol, Math.round(28 * density), Math.round(4 * density));
+            mark.setContentDescription(activity.getString(R.string.blanc_spaces_mark_current, space.name));
+        }
         mark.setOnClickListener(v -> open(activity));
     }
 
@@ -202,20 +300,45 @@ public final class SpacesCard {
         return row;
     }
 
+    private View phoneTile() {
+        ImageView view = new ImageView(mActivity);
+        GradientDrawable fill = new GradientDrawable();
+        fill.setColor(mStyle.dark ? 0xFF161616 : 0xFFF4F4F2);
+        fill.setCornerRadius(dp(9));
+        view.setBackground(fill);
+        view.setImageResource(R.drawable.blanc_spaces_phone);
+        view.setImageTintList(ColorStateList.valueOf(mStyle.text));
+        view.setPadding(dp(6), dp(6), dp(6), dp(6));
+        return view;
+    }
+
     private void row(@Nullable Space space, String name) {
         LinearLayout row = rowLayout();
-        if (space != null) row.addView(tile(mActivity, space.color, space.symbol, dp(30)));
-        TextView label = text(name, 16);
-        label.setPadding(dp(12), 0, dp(12), 0);
-        row.addView(label, new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1));
+        View icon = space == null ? phoneTile() : tile(mActivity, space.color, space.symbol, dp(30));
+        row.addView(icon, new LinearLayout.LayoutParams(dp(30), dp(30)));
         String id = space == null ? null : space.id;
+        int count = mSpaces.tabCount(id);
+        String tabs = mActivity.getResources().getQuantityString(R.plurals.blanc_newtab_groups_count, count, count);
+        LinearLayout labels = new LinearLayout(mActivity);
+        labels.setOrientation(LinearLayout.VERTICAL);
+        labels.setPadding(dp(12), 0, dp(12), 0);
+        TextView label = text(name, 16);
+        label.setTypeface(Typeface.DEFAULT_BOLD);
+        label.setMaxLines(1);
+        label.setPadding(0, 0, 0, 0);
+        labels.addView(label);
+        TextView detail = text(tabs, 13);
+        detail.setTextColor(secondary());
+        detail.setPadding(0, 0, 0, 0);
+        labels.addView(detail);
+        row.addView(labels, new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1));
         String shown = mSpaces.library().shownId;
-        if (id == null ? shown == null : id.equals(shown)) {
+        if (!mEditing && (id == null ? shown == null : id.equals(shown))) {
             ImageView check = new ImageView(mActivity);
             check.setImageResource(R.drawable.blanc_spaces_check);
-            check.setImageTintList(ink());
+            check.setImageTintList(ColorStateList.valueOf(mStyle.text));
             check.setContentDescription(mActivity.getString(R.string.blanc_ws_row_current));
-            row.addView(check);
+            row.addView(check, new LinearLayout.LayoutParams(dp(20), dp(20)));
         }
         if (mEditing && space != null) {
             List<Space> spaces = mSpaces.library().spaces;
@@ -232,18 +355,14 @@ public final class SpacesCard {
                 mSpaces.show(id);
             });
         }
-        row.setContentDescription(name);
+        row.setContentDescription(name + ", " + tabs);
         mList.addView(row);
-    }
-
-    private ColorStateList ink() {
-        return new TextView(mActivity).getTextColors();
     }
 
     private ImageButton icon(int drawable, String description, View.OnClickListener click) {
         ImageButton view = new ImageButton(mActivity);
         view.setImageResource(drawable);
-        view.setImageTintList(ink());
+        view.setImageTintList(ColorStateList.valueOf(mStyle.text));
         view.setBackground(null);
         view.setContentDescription(description);
         view.setOnClickListener(click);
@@ -265,44 +384,46 @@ public final class SpacesCard {
         LinearLayout row = rowLayout();
         View tile = tile(mActivity, entry.space.color, entry.space.symbol, dp(30));
         tile.setAlpha(0.6f);
-        row.addView(tile);
+        row.addView(tile, new LinearLayout.LayoutParams(dp(30), dp(30)));
         TextView label = text(entry.space.name, 16);
         label.setPadding(dp(12), 0, dp(12), 0);
+        label.setMaxLines(1);
         row.addView(label, new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1));
-        TextView restore = text(mActivity.getString(R.string.blanc_ws_recovery_restore), 15);
-        restore.setTypeface(Typeface.DEFAULT_BOLD);
-        restore.setGravity(Gravity.CENTER);
-        restore.setMinHeight(dp(44));
-        restore.setMinWidth(dp(44));
-        restore.setContentDescription(mActivity.getString(R.string.blanc_ws_recovery_restore_named, entry.space.name));
-        boolean room = mSpaces.library().spaces.size() < BlancSpaces.LIMIT;
-        restore.setEnabled(room);
-        restore.setAlpha(room ? 1f : 0.4f);
-        restore.setOnClickListener(v -> {
+        TextView restore = action(mActivity.getString(R.string.blanc_ws_recovery_restore), v -> {
             Result result = mSpaces.restore(entry.space.id);
             if (result != Result.OK) Toast.makeText(mActivity, errorText(result), Toast.LENGTH_LONG).show();
             render();
         });
+        restore.setContentDescription(mActivity.getString(R.string.blanc_ws_recovery_restore_named, entry.space.name));
+        boolean room = mSpaces.library().spaces.size() < BlancSpaces.LIMIT;
+        restore.setEnabled(room);
+        restore.setAlpha(room ? 1f : 0.4f);
         row.addView(restore);
         mList.addView(row);
     }
 
     private void render() {
+        mHeightDp = LIST_HEIGHT_DP;
         mList.removeAllViews();
-        mList.addView(text(mActivity.getString(R.string.blanc_spaces_menu_label), 24));
         row(null, mActivity.getString(R.string.blanc_spaces_this_phone));
-        for (Space space : new ArrayList<>(mSpaces.library().spaces)) row(space, space.name);
-        button(mActivity.getString(R.string.blanc_ws_new), v -> editor(null, "", null));
-        button(mActivity.getString(mEditing ? R.string.blanc_ws_editor_done : R.string.blanc_spaces_menu_edit), v -> {
-            mEditing = !mEditing;
-            render();
-        });
+        List<Space> spaces = new ArrayList<>(mSpaces.library().spaces);
+        if (spaces.isEmpty()) mEditing = false;
+        for (Space space : spaces) row(space, space.name);
         List<Deleted> deleted = new ArrayList<>(mSpaces.library().deleted);
         if (mEditing && !deleted.isEmpty()) {
-            mList.addView(text(mActivity.getResources().getQuantityString(R.plurals.blanc_ws_list_recently_deleted,
-                    deleted.size(), deleted.size()), 13));
+            TextView heading = text(mActivity.getResources().getQuantityString(R.plurals.blanc_ws_list_recently_deleted,
+                    deleted.size(), deleted.size()), 13);
+            heading.setTypeface(Typeface.DEFAULT_BOLD);
+            heading.setTextColor(secondary());
+            mList.addView(heading);
             for (Deleted entry : deleted) deletedRow(entry);
         }
+        footer(action(mActivity.getString(R.string.blanc_ws_new), v -> editor(null, "", null)),
+                spaces.isEmpty() ? null
+                        : action(mActivity.getString(mEditing ? R.string.blanc_ws_editor_done : R.string.blanc_spaces_menu_edit), v -> {
+                            mEditing = !mEditing;
+                            render();
+                        }));
     }
 
     private String errorText(Result result) {
@@ -320,30 +441,36 @@ public final class SpacesCard {
         BlancSpaces library = mSpaces.library();
         String[] color = {space != null ? space.color : library.nextColor()};
         String[] symbol = {space != null ? space.symbol : library.nextSymbol()};
+        mHeightDp = EDITOR_HEIGHT_DP;
         mList.removeAllViews();
-        mList.addView(text(mActivity.getString(space == null ? R.string.blanc_ws_editor_new_title : R.string.blanc_ws_editor_edit_title), 24));
+        TextView title = text(mActivity.getString(space == null ? R.string.blanc_ws_editor_new_title : R.string.blanc_ws_editor_edit_title), 20);
+        title.setTypeface(Typeface.DEFAULT_BOLD);
+        mList.addView(title);
         EditText name = new EditText(mActivity);
         name.setHint(R.string.blanc_ws_editor_name);
         name.setText(startName);
+        name.setTextColor(mStyle.text);
+        name.setHintTextColor(secondary());
         name.setSingleLine(true);
         mList.addView(name);
         TextView error = text("", 14);
         mList.addView(text(mActivity.getString(R.string.blanc_ws_editor_color), 14));
         GridLayout colors = new GridLayout(mActivity);
         colors.setColumnCount(8);
-        for (String hex : BlancSpaces.COLORS) {
+        for (int i = 0; i < BlancSpaces.COLORS.length; i++) {
+            String hex = BlancSpaces.COLORS[i];
             View swatch = new View(mActivity);
             GradientDrawable fill = new GradientDrawable();
-            fill.setColor(Color.parseColor(hex));
+            fill.setColor(BlancSpaces.paint(hex, mStyle.dark).fill);
             fill.setShape(GradientDrawable.OVAL);
             swatch.setBackground(fill);
             swatch.setOnClickListener(v -> {
                 color[0] = hex;
-                for (int i = 0; i < colors.getChildCount(); i++) colors.getChildAt(i).setAlpha(0.4f);
+                for (int c = 0; c < colors.getChildCount(); c++) colors.getChildAt(c).setAlpha(0.4f);
                 v.setAlpha(1f);
             });
-            swatch.setAlpha(hex.equals(color[0]) ? 1f : 0.4f);
-            swatch.setContentDescription(hex);
+            swatch.setAlpha(hex.equalsIgnoreCase(color[0]) ? 1f : 0.4f);
+            swatch.setContentDescription(mActivity.getString(COLOR_NAMES[i]));
             GridLayout.LayoutParams params = new GridLayout.LayoutParams();
             params.width = dp(32);
             params.height = dp(32);
@@ -354,16 +481,17 @@ public final class SpacesCard {
         mList.addView(text(mActivity.getString(R.string.blanc_ws_editor_symbol), 14));
         GridLayout symbols = new GridLayout(mActivity);
         symbols.setColumnCount(8);
-        for (String id : BlancSpaces.SYMBOLS) {
+        for (int i = 0; i < BlancSpaces.SYMBOLS.length; i++) {
+            String id = BlancSpaces.SYMBOLS[i];
             ImageButton choice = new ImageButton(mActivity);
             choice.setImageResource(symbolDrawable(id));
             choice.setBackground(null);
-            choice.setImageTintList(ColorStateList.valueOf(Color.GRAY));
+            choice.setImageTintList(ColorStateList.valueOf(mStyle.text));
             choice.setAlpha(id.equals(symbol[0]) ? 1f : 0.4f);
-            choice.setContentDescription(id);
+            choice.setContentDescription(mActivity.getString(SYMBOL_NAMES[i]));
             choice.setOnClickListener(v -> {
                 symbol[0] = id;
-                for (int i = 0; i < symbols.getChildCount(); i++) symbols.getChildAt(i).setAlpha(0.4f);
+                for (int c = 0; c < symbols.getChildCount(); c++) symbols.getChildAt(c).setAlpha(0.4f);
                 v.setAlpha(1f);
             });
             GridLayout.LayoutParams params = new GridLayout.LayoutParams();
@@ -373,7 +501,17 @@ public final class SpacesCard {
         }
         mList.addView(symbols);
         mList.addView(error);
-        button(mActivity.getString(space == null ? R.string.blanc_ws_editor_create_button : R.string.blanc_ws_editor_done), v -> {
+        if (space != null) {
+            mList.addView(action(mActivity.getString(R.string.blanc_ws_delete_button), v -> {
+                mDialog.dismiss();
+                mSpaces.delete(space.id, System.currentTimeMillis());
+                undoBanner(mActivity, mSpaces, space.name);
+            }));
+        }
+        footer(action(mActivity.getString(R.string.blanc_fill_setup_enable_cancel_label), v -> {
+            if (space != null) render();
+            else mDialog.dismiss();
+        }), action(mActivity.getString(space == null ? R.string.blanc_ws_editor_create_button : R.string.blanc_ws_editor_done), v -> {
             String typed = name.getText().toString();
             Result result = space != null ? mSpaces.update(space.id, typed, color[0], symbol[0])
                     : tabId != null ? mSpaces.createWithTab(tabId, typed, color[0], symbol[0])
@@ -385,17 +523,6 @@ public final class SpacesCard {
             } else {
                 mDialog.dismiss();
             }
-        });
-        if (space != null) {
-            button(mActivity.getString(R.string.blanc_ws_delete_button), v -> {
-                mDialog.dismiss();
-                mSpaces.delete(space.id, System.currentTimeMillis());
-                undoBanner(mActivity, mSpaces, space.name);
-            });
-        }
-        button(mActivity.getString(R.string.blanc_fill_setup_enable_cancel_label), v -> {
-            if (space != null) render();
-            else mDialog.dismiss();
-        });
+        }));
     }
 }
