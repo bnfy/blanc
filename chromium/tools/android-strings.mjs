@@ -43,6 +43,13 @@ export const ANDROID_KEYS = [
   'newtab.startup.failed', 'newtab.startup.retry', 'shield.adBlocking', 'shield.count.globalOff', 'shield.count.none',
   'shield.count.siteOff', 'slash.allowAds.hint', 'slash.blockAds.hint',
   // Sync (A4), with the iPhone's copy.
+  'spaces.thisPhone', 'spaces.menuLabel', 'spaces.menuEdit', 'spaces.mark.current', 'ws.new', 'ws.editor.newTitle',
+  'ws.editor.editTitle', 'ws.editor.name', 'ws.editor.color', 'ws.editor.symbol', 'ws.editor.createButton', 'ws.delete.button',
+  'ws.undo.deleted', 'ws.error.limit', 'ws.error.duplicateName', 'ws.error.invalidName', 'ws.row.current', 'ws.recovery.restoreNamed',
+  'ws.recovery.restore', 'ws.row.edit', 'tabMenu.newSpace',
+  'spaces.symbol.briefcase', 'spaces.symbol.house', 'spaces.symbol.code', 'spaces.symbol.flask', 'spaces.symbol.book', 'spaces.symbol.music', 'spaces.symbol.camera', 'spaces.symbol.plane', 'spaces.symbol.heart', 'spaces.symbol.star', 'spaces.symbol.leaf', 'spaces.symbol.coffee', 'spaces.symbol.cap', 'spaces.symbol.gamepad', 'spaces.symbol.wallet', 'spaces.symbol.sun',
+  'settings.linkRoutes.moveUp', 'settings.linkRoutes.moveDown',
+  'slash.space.hint', 'tabMenu.moveToSpace',
   'sync.error.localKeyUnlock', 'footer.devices', 'sends.section', 'sends.from', 'sends.dismiss', 'sends.sent', 'sends.none', 'sends.noMatch',
   'sends.unavailable', 'sends.failed', 'slash.send.hint', 'ios.settings.shareTabs', 'ios.settings.shareTabsHelp',
   'tabMenu.sendToDevice',
@@ -60,7 +67,8 @@ export const ANDROID_KEYS = [
   'sync.error.off', 'sync.error.credentialsSave', 'sync.error.accountGone', 'slash.sync.hint',
 ];
 // ICU plurals, as Android <plurals>: the Island's tab count for TalkBack.
-export const ANDROID_PLURALS = ['newtab.groups.count', 'shield.count.blocked', 'tabGroups.tucked', 'tabsMenu.header'];
+export const ANDROID_PLURALS = ['newtab.groups.count', 'shield.count.blocked', 'tabGroups.tucked', 'tabsMenu.header',
+  'ws.list.recentlyDeleted'];
 export const LOCALES = [['en', 'values'], ['de', 'values-de'], ['es', 'values-es'], ['fr', 'values-fr'],
   ['it', 'values-it'], ['pt-BR', 'values-pt-rBR']];
 

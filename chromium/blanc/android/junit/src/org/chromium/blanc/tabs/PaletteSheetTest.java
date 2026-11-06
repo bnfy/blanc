@@ -173,7 +173,7 @@ public class PaletteSheetTest {
         type(sheet, "/");
         assertEquals(PaletteSheet.Mode.SLASH, sheet.mode());
         assertEquals(List.of("/favorites", "/history", "/sync", "/new", "/private", "/close", "/reopen", "/group",
-                "/ungroup", "/close-group", "/send", "/find", "/block-ads", "/allow-ads", "/theme"), titles(sheet, PaletteSheet.RowKind.COMMAND));
+                "/ungroup", "/close-group", "/send", "/find", "/block-ads", "/allow-ads", "/theme", "/space"), titles(sheet, PaletteSheet.RowKind.COMMAND));
         assertEquals("Close this tab", row(sheet, "/close").subtitle);
         type(sheet, "/cl");
         assertEquals(List.of("/close", "/close-group"), titles(sheet, PaletteSheet.RowKind.COMMAND));
@@ -294,5 +294,10 @@ public class PaletteSheetTest {
         go(withText("/block-ads"));
         go(withText("/allow-ads"));
         assertEquals(List.of("block-ads", "allow-ads"), mThemes);
+    }
+
+    @Test
+    public void aSendResultNamesTheDevice() {
+        assertEquals("Sent to Mac.", PaletteSheet.sendResult(Robolectric.buildActivity(Activity.class).get(), "sent", "Mac"));
     }
 }

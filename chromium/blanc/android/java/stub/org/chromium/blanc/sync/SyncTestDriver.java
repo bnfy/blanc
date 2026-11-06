@@ -10,4 +10,6 @@ public final class SyncTestDriver {
     private SyncTestDriver() {}
 
     public static void maybeStart() {}
+
+    public static void hook(String method, java.util.function.Supplier<String> run) {}
 }

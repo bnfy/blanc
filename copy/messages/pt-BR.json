@@ -9065,6 +9065,10 @@
     "message": "Este iPhone",
     "source": "sha256:872a9b15efd10d5c23b321f11d4d2d26630ac2b462424389c61a940f04e7887c"
   },
+  "spaces.thisPhone": {
+    "message": "Este telefone",
+    "source": "sha256:b026046d8dfbc3b8b3eade4d617aecce3c30cbd1b4aa8b741164583a8a88a4a9"
+  },
   "spaces.menuLabel": {
     "message": "Spaces",
     "source": "sha256:8e891bb692010b9fa0e4ac71d8f835de61caa035dce16f05c8933e0618b7924a"

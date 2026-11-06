@@ -24,7 +24,13 @@ import java.security.KeyStore;
 public final class SyncTestDriver {
     private static final String ACTION = "me.bnfy.blanc.SYNC_TEST";
     private static final String TAG = "BlancSync";
+    private static final java.util.Map<String, java.util.function.Supplier<String>> HOOKS = new java.util.HashMap<>();
     private static boolean sStarted;
+
+    /** A method the emulator checks can call, answering JSON. */
+    public static void hook(String method, java.util.function.Supplier<String> run) {
+        HOOKS.put(method, run);
+    }
 
     private SyncTestDriver() {}
 
@@ -48,6 +54,11 @@ public final class SyncTestDriver {
                     @Override
                     public void onReceive(Context context, Intent intent) {
                         String id = intent.getStringExtra("id");
+                        java.util.function.Supplier<String> hook = HOOKS.get(intent.getStringExtra("method"));
+                        if (hook != null) {
+                            Log.w(TAG, "result " + id + " {\"ok\":true,\"value\":" + hook.get() + "}");
+                            return;
+                        }
                         if ("test.loseKey".equals(intent.getStringExtra("method"))) {
                             Log.w(TAG, "result " + id + " {\"ok\":" + loseKey() + ",\"value\":null}");
                             return;

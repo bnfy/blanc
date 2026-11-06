@@ -27,6 +27,9 @@ android_library("island_java") {
 # (A2 plan, Task 2): plain Java with no views.
 android_library("tabs_java") {
   sources = [
+    "java/src/org/chromium/blanc/spaces/BlancSpaces.java",
+    "java/src/org/chromium/blanc/spaces/SpaceSwitcher.java",
+    "java/src/org/chromium/blanc/spaces/SpacesController.java",
     "java/src/org/chromium/blanc/tabs/BlancTabState.java",
     "java/src/org/chromium/blanc/blocking/BlancBlocking.java",
     "java/src/org/chromium/blanc/tabs/BlancTabs.java",
@@ -140,6 +143,7 @@ android_library("tabs_ui_java") {
   sources = [
     "java/src/org/chromium/blanc/blocking/BlockerBridge.java",
     "java/src/org/chromium/blanc/tabs/chromium/BlancTabKeeper.java",
+    "java/src/org/chromium/blanc/tabs/chromium/ChromiumSpaces.java",
     "java/src/org/chromium/blanc/tabs/chromium/ChromiumBlocking.java",
     "java/src/org/chromium/blanc/tabs/chromium/ChromiumTabStore.java",
   ]
@@ -149,8 +153,10 @@ android_library("tabs_ui_java") {
     "//base:base_java",
     "//build/android:build_java",
     "//third_party/jni_zero:jni_zero_java",
+    "//chrome/browser/android/crypto:java",
     "//chrome/browser/tab:java",
     "//chrome/browser/tabmodel:java",
+    "//chrome/browser/tabpersistence:java",
     "//components/tab_groups:tab_groups_java",
     "//content/public/android:content_java",
     "//url:url_java",
@@ -162,6 +168,28 @@ android_library("tabs_ui_java") {
 # scripts/android-app-icons.js.
 android_resources("island_view_resources") {
   sources = [
+    "island/res/drawable/blanc_space_book.xml",
+    "island/res/drawable/blanc_space_briefcase.xml",
+    "island/res/drawable/blanc_space_camera.xml",
+    "island/res/drawable/blanc_space_cap.xml",
+    "island/res/drawable/blanc_space_code.xml",
+    "island/res/drawable/blanc_space_coffee.xml",
+    "island/res/drawable/blanc_space_flask.xml",
+    "island/res/drawable/blanc_space_gamepad.xml",
+    "island/res/drawable/blanc_space_heart.xml",
+    "island/res/drawable/blanc_space_house.xml",
+    "island/res/drawable/blanc_space_leaf.xml",
+    "island/res/drawable/blanc_space_music.xml",
+    "island/res/drawable/blanc_space_plane.xml",
+    "island/res/drawable/blanc_space_star.xml",
+    "island/res/drawable/blanc_space_sun.xml",
+    "island/res/drawable/blanc_space_wallet.xml",
+    "island/res/drawable/blanc_spaces_arrow_down.xml",
+    "island/res/drawable/blanc_spaces_arrow_up.xml",
+    "island/res/drawable/blanc_spaces_check.xml",
+    "island/res/drawable/blanc_spaces_glyph.xml",
+    "island/res/drawable/blanc_spaces_pencil.xml",
+    "island/res/drawable/blanc_spaces_phone.xml",
     "island/res/drawable-mdpi/blanc_island_mark.png",
     "island/res/drawable-hdpi/blanc_island_mark.png",
     "island/res/drawable-xhdpi/blanc_island_mark.png",
@@ -210,6 +238,7 @@ android_library("island_view_java") {
     "java/src/org/chromium/blanc/grid/GroupNameDialog.java",
     "java/src/org/chromium/blanc/grid/TabGrid.java",
     "java/src/org/chromium/blanc/palette/PaletteSheet.java",
+    "java/src/org/chromium/blanc/spaces/SpacesCard.java",
     "java/src/org/chromium/blanc/sync/PairScanner.java",
     "java/src/org/chromium/blanc/sync/SyncSheet.java",
   ]
@@ -233,6 +262,7 @@ android_library("island_ui_java") {
   deps = [
     ":island_java",
     ":island_view_java",
+    ":tabs_java",
     "//base:base_java",
     "//base:callback_java",
     "//base:supplier_java",
@@ -259,6 +289,7 @@ robolectric_binary("blanc_android_junit_tests") {
     "junit/src/org/chromium/blanc/island/FindCapsuleTest.java",
     "junit/src/org/chromium/blanc/island/IslandMenuPopupTest.java",
     "junit/src/org/chromium/blanc/island/IslandMenuTest.java",
+    "junit/src/org/chromium/blanc/spaces/BlancSpacesTest.java",
     "junit/src/org/chromium/blanc/sync/BlancKeyStoreTest.java",
     "junit/src/org/chromium/blanc/sync/OtherDevicesTest.java",
     "junit/src/org/chromium/blanc/sync/PairScannerTest.java",

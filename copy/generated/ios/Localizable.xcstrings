@@ -101971,6 +101971,48 @@
         }
       }
     },
+    "spaces.thisPhone": {
+      "comment": "Android: the phone's own tabs that are in no Space, first row of the Spaces menu.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This phone"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dieses Telefon"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Este teléfono"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ce téléphone"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Questo telefono"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Este telefone"
+          }
+        }
+      }
+    },
     "spaces.menuLabel": {
       "comment": "iPhone: accessible name of the Island's Space mark and the Spaces menu it opens (M17).",
       "extractionState": "manual",

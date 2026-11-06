@@ -13,7 +13,11 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 
 import org.chromium.base.test.BaseRobolectricTestRunner;
+import org.chromium.blanc.spaces.BlancSpaces;
+import org.chromium.blanc.spaces.SpaceSwitcher;
+import org.chromium.blanc.spaces.SpacesController;
 
+import java.lang.reflect.Proxy;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -268,5 +272,24 @@ public class BlancTabsTest {
         mStore.commitClose(a);
         assertTrue(mTabs.undoClose());
         assertEquals(List.of("https://a.example/"), urls());
+    }
+
+    @Test
+    public void undoEndsWhenAnotherSetComesOnShow() {
+        BlancSpaces library = new BlancSpaces();
+        assertEquals(BlancSpaces.Result.OK, library.create("Work", BlancSpaces.COLORS[0], "star"));
+        SpaceSwitcher.Tabs unused = (SpaceSwitcher.Tabs) Proxy.newProxyInstance(
+                SpaceSwitcher.Tabs.class.getClassLoader(), new Class<?>[] {SpaceSwitcher.Tabs.class}, (o, m, args) -> null);
+        SpacesController.setCurrent(new SpacesController(library, unused));
+        try {
+            open("https://a.example/");
+            String b = open("https://b.example/");
+            mTabs.close(b);
+            assertEquals("https://b.example/", mTabs.undoTitle());
+            library.shownId = library.spaces.get(0).id;
+            assertNull(mTabs.undoTitle());
+        } finally {
+            SpacesController.setCurrent(null);
+        }
     }
 }
