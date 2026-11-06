@@ -57,7 +57,7 @@ final class SpacesUITests: XCTestCase {
     openGrid(app)
     let cards = app.buttons.matching(identifier: "tab.card")
     app.holdForMenu(cards.element(boundBy: 1))
-    app.tapMenuItem("Move to Group")
+    app.tapMenuItem("Move to Group", opensSubmenu: true)
     app.tapMenuItem("New Group…")
     let field = app.textFields["group.nameField"]
     XCTAssertTrue(field.waitForExistence(timeout: 5))
@@ -88,7 +88,7 @@ final class SpacesUITests: XCTestCase {
   func testMoveATabToANewGroupFromItsPaletteRow() {
     let app = launch()
     _ = pressPaletteRow(app, 1)
-    app.tapMenuItem("Move to Group")
+    app.tapMenuItem("Move to Group", opensSubmenu: true)
     app.tapMenuItem("New Group…")
     let field = app.textFields["group.nameField"]
     XCTAssertTrue(field.waitForExistence(timeout: 5))
@@ -100,7 +100,7 @@ final class SpacesUITests: XCTestCase {
   func testMoveATabToASpaceFromItsPaletteRow() {
     let app = launch()
     let rows = pressPaletteRow(app, 1)
-    app.tapMenuItem("Move to Space")
+    app.tapMenuItem("Move to Space", opensSubmenu: true)
     app.tapMenuItem("Work")
     waitCount(rows, 3, "the tab left This iPhone for Work")
   }
