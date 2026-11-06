@@ -230,7 +230,11 @@ export const tabs={
   const r=(await runtimes(w)).find(item=>item.id===String(id));if(!r)throw Error('No window '+id);
   return spaceAction((method,list)=>r.cdp.eval(`window.BlancPrototypeHost.api[${jsLiteral(method)}](...${jsLiteral(list)})`),action,args);
  },
- residentSpaces:async w=>(await w.api('listWorkspaces',[])).items.filter(item=>item.resident).map(item=>item.id),
+ async residentSpaces(w){
+  const state=await w.hostEval('window.BlancPrototypeHost.spaceHeldState()');
+  return state.held.map(id=>({id,name:state.meta.items[id]?.name,tabs:(state.heldTabs[id]||[]).map(t=>({...t,id:String(t.id)}))}));
+ },
+ roomPass:async w=>{const pass=(await w.hostEval('window.BlancPrototypeHost.spaceHeldState()')).roomPass||'';return {outcome:pass.split(':')[0]};},
  spaceMarkState:w=>strip(w).evalExpression("(() => { const mark = document.getElementById('pillSpace'); if (!mark) return null; const rect = mark.getBoundingClientRect(); const parts = [document.getElementById('pillSpaceSymbol'), document.getElementById('pillSpaceName')]; return { hidden: mark.hidden, state: mark.dataset.state, name: parts[1].textContent, label: mark.getAttribute('aria-label'), expanded: mark.getAttribute('aria-expanded'), fill: mark.style.getPropertyValue('--space-fill'), on: mark.style.getPropertyValue('--space-on'), edge: mark.dataset.edge ?? null, markBackground: getComputedStyle(mark).backgroundColor, squareBackground: getComputedStyle(parts[0]).backgroundColor, symbolColor: getComputedStyle(parts[0]).color, nameColor: getComputedStyle(parts[1]).color, islandText: getComputedStyle(document.getElementById('islandPill')).color, square: (() => { const b = parts[0].getBoundingClientRect(); return { width: b.width, height: b.height, inset: b.left - rect.left }; })(), nameTruncated: parts[1].scrollWidth > parts[1].clientWidth, symbol: parts[0].dataset.symbol ?? null, left: rect.left, bottom: rect.bottom, islandBottom: document.getElementById('islandPill').getBoundingClientRect().bottom, animatedProperties: [...new Set(parts.flatMap((p) => p.getAnimations()).flatMap((a) => a.effect.getKeyframes().flatMap((k) => Object.keys(k))))], animations: parts.flatMap((p) => p.getAnimations()).map((a) => ({ kind: a.constructor.name, time: a.currentTime, duration: a.effect.getTiming().duration })), reducedMotion: window.matchMedia('(prefers-reduced-motion: reduce)').matches, }; })()"),
  async clickPillSpace(w){await strip(w).locator('#pillSpace').click();},
  pressBrowserCommand:async(w,id,command)=>{

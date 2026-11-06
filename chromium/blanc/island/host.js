@@ -288,7 +288,7 @@
     try {
       await request('previewSpaceSave', [current]);
       await request('previewSpaceOpen', [id]);
-    } catch { return { ok: false, error: 'activation-failed' }; }
+    } catch (e) { return { ok: false, error: 'activation-failed', detail: e.message }; }
     if (list.meta.items[current]) list.meta.items[current].tabCount = snapshot?.tabs.length ?? 0;
     await close(false);
     await refresh();
@@ -318,7 +318,7 @@
     if (checked.error) return { ok: false, error: checked.error };
     if (list.meta.order.length >= SPACE_LIMIT) return { ok: false, error: 'limit' };
     const id = crypto.randomUUID();
-    try { await request('spaceCreateBlank', [id]); } catch { return { ok: false, error: 'storage-failed' }; }
+    try { await request('spaceCreateBlank', [id]); } catch (e) { return { ok: false, error: 'storage-failed', detail: e.message }; }
     list.meta.items[id] = { name: checked.name, ...spaceIdentity(list, options), tabCount: 1 };
     list.meta.order.push(id);
     await request('spaceMetaSave', [list.meta]);
@@ -2014,6 +2014,7 @@
     api,
     toggleGlance: () => (snapshot?.glanceTabId != null ? api.closeGlance() : api.openGlancePicker()),
     focusGlanceCard,
+    spaceHeldState: () => request('spaceMeta'),
     spacesChanged: () => announceSpaces(),
     glanceState: () => ({ layout: glancePayload(), shown: !glanceCardFrame.hidden, generation: glance.generation }),
     apiForDocument,

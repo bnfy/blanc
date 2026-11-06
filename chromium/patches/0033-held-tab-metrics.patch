@@ -1,0 +1,14 @@
+diff --git a/chrome/browser/ui/tabs/tab_creation_metrics_controller.cc b/chrome/browser/ui/tabs/tab_creation_metrics_controller.cc
+index 2339b1e..9f3e482 100644
+--- a/chrome/browser/ui/tabs/tab_creation_metrics_controller.cc
++++ b/chrome/browser/ui/tabs/tab_creation_metrics_controller.cc
+@@ -70,7 +70,8 @@ void TabCreationMetricsController::ScheduleRecordTabGroupingTransition() {
+ 
+ void TabCreationMetricsController::RecordTabGroupingTransition(
+     std::optional<tab_groups::TabGroupId> last_active_group_id) {
+-  if (!tab_) {
++  // Blanc: a set-aside Space holds its tabs outside any window.
++  if (!tab_ || !tab_->GetBrowserWindowInterface()) {
+     return;
+   }
+ 

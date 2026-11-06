@@ -874,6 +874,10 @@ class Owner : public base::SupportsUserData::Data,
   // left, still running, in saved order. Oldest first in held_order.
   std::map<std::string, std::vector<std::unique_ptr<tabs::TabModel>>> held_spaces;
   std::vector<std::string> held_order;
+  // Which held tabs were pinned, and when each Space was set aside.
+  std::map<std::string, std::vector<bool>> held_pinned;
+  std::map<std::string, std::vector<int>> held_ids;
+  std::map<std::string, int> held_since;
   gfx::Rect glance_page;
   std::vector<gfx::Rect> glance_ring;
   // Where the reference tab came from. Chromium's split needs its two tabs
@@ -1621,6 +1625,143 @@ void EndGlance(Owner* owner, content::WebContents* activate) {
     const int target = model->GetIndexOfWebContents(activate);
     if (target != TabStripModel::kNoTab) model->ActivateTabAt(target);
   }
+}
+// Making room for set-aside Spaces (shipping's makeRoomForSpaces): at most six
+// stay set aside, at most two keep loaded tabs and at most 16 tabs stay loaded.
+// Anything with unsaved work is left alone; it stays and still counts.
+constexpr size_t kMaxSetAside = 6;
+constexpr size_t kMaxLoadedSetAside = 2;
+constexpr int kMaxLoadedTabs = 16;
+struct HeldRef { raw_ptr<Owner> owner; std::string name; int since; };
+std::string& LastRoomPass() { static base::NoDestructor<std::string> outcome; return *outcome; }
+int& HeldSerial() { static int serial = 0; return serial; }
+std::vector<HeldRef> HeldSpaces(Profile* profile) {
+  std::vector<HeldRef> found;
+  for (auto* owner : Owner::Live()) {
+    if (owner->browser->GetProfile() != profile) continue;
+    for (const auto& name : owner->held_order) found.push_back({owner, name, owner->held_since[name]});
+  }
+  std::ranges::sort(found, [](const HeldRef& a, const HeldRef& b) { return a.since < b.since; });  // oldest first
+  return found;
+}
+void ForgetHeld(Owner* owner, const std::string& name) {
+  owner->held_spaces.erase(name);
+  owner->held_pinned.erase(name);
+  owner->held_ids.erase(name);
+  owner->held_since.erase(name);
+  std::erase(owner->held_order, name);
+}
+// Quiet Tabs' rules for a tab off the strip: nothing playing or capturing,
+// loaded, a web page, no opener family and no unload warning.
+bool HeldTabCanQuiet(content::WebContents* tab) {
+  if (!tab || tab->IsLoading() || tab->GetController().GetPendingEntry() ||
+      tab->IsAudioMuted() || tab->IsCurrentlyAudible() || tab->IsBeingCaptured() ||
+      !tab->GetLastCommittedURL().SchemeIsHTTPOrHTTPS() || tab->HasOpener() || tab->HasLiveOriginalOpenerChain())
+    return false;
+  bool blocked = false;
+  tab->GetPrimaryMainFrame()->ForEachRenderFrameHost([&](content::RenderFrameHost* frame) {
+    blocked |= !frame->IsRenderFrameLive() || frame->GetSuddenTerminationDisablerState(
+        blink::mojom::SuddenTerminationDisablerType::kBeforeUnloadHandler);
+  });
+  return !blocked;
+}
+void ProbeHeldTabs(std::vector<base::WeakPtr<content::WebContents>> tabs, size_t next, bool dirty,
+                   base::OnceCallback<void(bool)> done) {
+  while (next < tabs.size() && !tabs[next]) ++next;
+  if (dirty || next >= tabs.size()) { std::move(done).Run(dirty); return; }
+  auto* tab = tabs[next].get();
+  blanc::quiet::DirtyProbe::Run(tab, base::BindOnce(
+      [](std::vector<base::WeakPtr<content::WebContents>> tabs, size_t next, base::OnceCallback<void(bool)> done,
+         blanc::quiet::DirtyResult result) {
+        ProbeHeldTabs(std::move(tabs), next + 1, !result.complete || result.dirty, std::move(done));
+      }, std::move(tabs), next, std::move(done)));
+}
+void QuietHeldTabs(std::vector<base::WeakPtr<content::WebContents>> plan, size_t next, int quieted) {
+  while (next < plan.size() && !plan[next]) ++next;
+  if (next >= plan.size()) { LastRoomPass() = "done:" + base::NumberToString(quieted); return; }
+  auto* tab = plan[next].get();
+  blanc::quiet::DirtyProbe::Run(tab, base::BindOnce(
+      [](std::vector<base::WeakPtr<content::WebContents>> plan, size_t next, int quieted,
+         blanc::quiet::DirtyResult result) {
+        auto* tab = plan[next].get();
+        // Desktop Chromium discards by swapping a tab's contents inside the tab
+        // strip, which a held tab isn't in, so a quieted held tab is released
+        // and opens again from the Space's record.
+        if (tab && result.complete && !result.dirty && !result.deep_scrolled && HeldTabCanQuiet(tab)) {
+          for (auto* owner : Owner::Live())
+            for (auto& [name, tabs] : owner->held_spaces)
+              for (auto& held : tabs)
+                if (held && held->GetContents() == tab) { held.reset(); ++quieted; }
+        }
+        QuietHeldTabs(std::move(plan), next + 1, quieted);
+      }, std::move(plan), next, quieted));
+}
+void QuietOverBudget(Profile* profile) {
+  PrefService* local = g_browser_process->local_state();
+  if (!local->FindPreference("blanc.prototype.quiet_delay") ||
+      local->GetString("blanc.prototype.quiet_delay") == "off") {
+    LastRoomPass() = "quiet-tabs-off";
+    return;
+  }
+  struct Loaded {
+    size_t tabs = 0;
+    std::vector<base::WeakPtr<content::WebContents>> quietable;
+  };
+  std::vector<Loaded> newest_first;
+  auto held = HeldSpaces(profile);
+  for (auto it = held.rbegin(); it != held.rend(); ++it) {
+    Loaded space;
+    const auto& tabs = it->owner->held_spaces[it->name];
+    const auto& pinned = it->owner->held_pinned[it->name];
+    for (size_t i = 0; i < tabs.size(); ++i) {
+      if (!tabs[i]) continue;
+      auto* tab = tabs[i]->GetContents();
+      ++space.tabs;
+      if (!(i < pinned.size() && pinned[i]) && HeldTabCanQuiet(tab)) space.quietable.push_back(tab->GetWeakPtr());
+    }
+    std::ranges::sort(space.quietable, {}, [](const auto& tab) { return tab->GetLastActiveTimeTicks(); });
+    if (space.tabs) newest_first.push_back(std::move(space));
+  }
+  std::vector<base::WeakPtr<content::WebContents>> plan;
+  int over = -kMaxLoadedTabs;
+  for (size_t i = 0; i < newest_first.size(); ++i) {
+    const auto& space = newest_first[i];
+    if (i < kMaxLoadedSetAside) { over += space.tabs; continue; }
+    for (const auto& tab : space.quietable) plan.push_back(tab);
+    over += space.tabs - space.quietable.size();
+  }
+  for (size_t i = std::min(newest_first.size(), kMaxLoadedSetAside); i-- > 0 && over > 0;) {
+    for (const auto& tab : newest_first[i].quietable) {
+      if (over <= 0) break;
+      plan.push_back(tab);
+      --over;
+    }
+  }
+  QuietHeldTabs(std::move(plan), 0, 0);
+}
+void MakeRoomForSpaces(Profile* profile, std::set<std::string> skipped) {
+  bool live = false;
+  for (auto* owner : Owner::Live()) live |= owner->browser->GetProfile() == profile;
+  if (!live) return;
+  auto held = HeldSpaces(profile);
+  std::optional<HeldRef> next;
+  if (held.size() - std::min(held.size(), skipped.size()) > kMaxSetAside || held.size() > kMaxSetAside + skipped.size())
+    for (const auto& space : held) if (!skipped.contains(space.name)) { next = space; break; }
+  if (!next) { QuietOverBudget(profile); return; }
+  std::vector<base::WeakPtr<content::WebContents>> tabs;
+  bool busy = false;
+  for (const auto& tab : next->owner->held_spaces[next->name]) {
+    if (!tab) continue;
+    auto* contents = tab->GetContents();
+    busy |= contents->IsCurrentlyAudible() || contents->IsBeingCaptured();
+    tabs.push_back(contents->GetWeakPtr());
+  }
+  ProbeHeldTabs(std::move(tabs), 0, busy, base::BindOnce(
+      [](Profile* profile, std::set<std::string> skipped, Owner* owner, std::string name, bool dirty) {
+        if (dirty || !Owner::Live().contains(owner)) skipped.insert(name);
+        else ForgetHeld(owner, name);
+        MakeRoomForSpaces(profile, std::move(skipped));
+      }, profile, std::move(skipped), next->owner.get(), next->name));
 }
 void EndGlanceSoon(Owner* owner, int next_reference) {
   base::SingleThreadTaskRunner::GetCurrentDefault()->PostTask(FROM_HERE, base::BindOnce([](Owner* candidate, int next) {
@@ -4886,12 +5027,15 @@ class Handler : public content::WebUIMessageHandler, public extensions::Extensio
     auto* profile = owner->browser->GetProfile();
     if (owner->space_expected) {
       if (owner->space_busy || !owner->space_error.empty()) return;
-      auto current = CaptureNativeSpace(owner->browser);
-      if (!current || *current != *owner->space_expected) return;
+      // The switch is done once the destination's tabs are here and the source's
+      // have gone (closing can finish late). Tabs opened since don't matter:
+      // waiting for an exact match would leave the switch pending for good.
       std::vector<int> ids;
       auto* model = owner->browser->GetTabStripModel();
       for (int i = 0; i < model->count(); ++i) ids.push_back(sessions::SessionTabHelper::IdForTab(model->GetWebContentsAt(i)).id());
-      if (ids != owner->space_destination_ids) return;
+      for (int id : owner->space_destination_ids) if (!std::ranges::contains(ids, id)) return;
+      for (int id : owner->space_pending_ids)
+        if (std::ranges::contains(ids, id) && !std::ranges::contains(owner->space_destination_ids, id)) return;
       owner->space_busy = true;
       SpaceRunner()->PostTaskAndReplyWithResult(FROM_HERE, base::BindOnce(&SpaceDisk, profile->GetPath().AppendASCII("BlancPrototypeSpaces.json"), "spaceCommit", owner->space_transaction, base::DictValue()), base::BindOnce(&Handler::SwitchCommitted, weak_factory_.GetWeakPtr()));
       return;
@@ -5030,8 +5174,7 @@ class Handler : public content::WebUIMessageHandler, public extensions::Extensio
         const auto found = live->held_spaces.find(name);
         if (found == live->held_spaces.end()) continue;
         held_target = std::move(found->second);
-        live->held_spaces.erase(found);
-        std::erase(live->held_order, name);
+        ForgetHeld(live, name);
         break;
       }
       if (held_target.size() != record->FindList("tabs")->size()) held_target.clear();
@@ -5039,7 +5182,7 @@ class Handler : public content::WebUIMessageHandler, public extensions::Extensio
     size_t source_index = 0;
     for (const auto& item : *record->FindList("tabs")) {
       content::WebContents* retained = nullptr;
-      if (source_index < held_target.size()) {
+      if (source_index < held_target.size() && held_target[source_index]) {
         auto* contents = held_target[source_index]->GetContents();
         const GURL committed = IsRegularStartPage(contents->GetLastCommittedURL())
             ? GURL("chrome://newtab/") : contents->GetLastCommittedURL();
@@ -5102,11 +5245,15 @@ class Handler : public content::WebUIMessageHandler, public extensions::Extensio
     const bool hold_old = method == "previewSpaceOpen" && !owner->space_name.empty() &&
         owner->space_name != "__scratch__";
     std::vector<std::unique_ptr<tabs::TabModel>> aside;
+    std::vector<bool> aside_pinned;
+    std::vector<int> aside_ids;
     for (auto* tab : old_tabs) {
       if (std::ranges::contains(added, tab)) continue;
       const int index = model->GetIndexOfWebContents(tab);
       if (index < 0) continue;
       if (!hold_old) { model->CloseWebContentsAt(index, TabCloseTypes::CLOSE_CREATE_HISTORICAL_TAB); continue; }
+      aside_pinned.push_back(model->IsTabPinned(index));
+      aside_ids.push_back(sessions::SessionTabHelper::IdForTab(tab).id());
       if (const auto split = model->GetSplitForTab(index)) model->RemoveSplit(*split);
       model->RemoveFromGroup({model->GetIndexOfWebContents(tab)});
       model->SetTabPinned(model->GetIndexOfWebContents(tab), false);
@@ -5114,14 +5261,13 @@ class Handler : public content::WebUIMessageHandler, public extensions::Extensio
     }
     if (hold_old && !aside.empty()) {
       owner->held_spaces[owner->space_name] = std::move(aside);
+      owner->held_pinned[owner->space_name] = std::move(aside_pinned);
+      owner->held_ids[owner->space_name] = std::move(aside_ids);
+      owner->held_since[owner->space_name] = ++HeldSerial();
       std::erase(owner->held_order, owner->space_name);
       owner->held_order.push_back(owner->space_name);
-      // Blanc never keeps more than six Spaces set aside; the oldest gives way
-      // and opens from its saved record.
-      while (owner->held_order.size() > 6) {
-        owner->held_spaces.erase(owner->held_order.front());
-        owner->held_order.erase(owner->held_order.begin());
-      }
+      base::SingleThreadTaskRunner::GetCurrentDefault()->PostTask(FROM_HERE,
+          base::BindOnce(&MakeRoomForSpaces, browser->GetProfile(), std::set<std::string>()));
     }
     // Closing an old tab can finish asynchronously. Its pinned slot still
     // constrains absolute indices, so establish desired relative order at the
@@ -5332,14 +5478,28 @@ class Handler : public content::WebUIMessageHandler, public extensions::Extensio
     // in the checked store below, under each Space's id.
     if (method == "spaceMeta" && args.empty()) {
       base::ListValue elsewhere, held;
+      base::DictValue held_tabs;
       for (auto* other : Owner::Live()) {
         if (other->browser->GetProfile()->GetOriginalProfile() != profile->GetOriginalProfile()) continue;
         if (other != owner && !other->space_name.empty()) elsewhere.Append(other->space_name);
-        for (const auto& space : other->held_order) held.Append(space);
+        for (const auto& space : other->held_order) {
+          held.Append(space);
+          base::ListValue rows;
+          const auto& pinned = other->held_pinned[space];
+          const auto& tabs = other->held_spaces[space];
+          for (size_t i = 0; i < tabs.size(); ++i) {
+            const auto& ids = other->held_ids[space];
+            rows.Append(base::DictValue().Set("id", i < ids.size() ? ids[i] : -1)
+                .Set("pinned", i < pinned.size() && pinned[i]).Set("asleep", !tabs[i])
+                .Set("live", !!tabs[i]));
+          }
+          held_tabs.Set(space, std::move(rows));
+        }
       }
       reply(true, base::Value(base::DictValue()
           .Set("meta", profile->GetOriginalProfile()->GetPrefs()->GetDict(kSpacesMetaPref).Clone())
-          .Set("elsewhere", std::move(elsewhere)).Set("held", std::move(held))));
+          .Set("elsewhere", std::move(elsewhere)).Set("held", std::move(held))
+          .Set("heldTabs", std::move(held_tabs)).Set("roomPass", LastRoomPass())));
       return;
     }
     if (method == "spaceMetaSave" && args.size() == 1 && args[0].is_dict()) {
@@ -5359,10 +5519,7 @@ class Handler : public content::WebUIMessageHandler, public extensions::Extensio
         !args[0].GetString().empty() && args[0].GetString().size() <= 120 && !profile->IsOffTheRecord()) {
       base::DictValue blank;
       if (method == "spaceForget") {
-        for (auto* live : Owner::Live()) {
-          live->held_spaces.erase(args[0].GetString());
-          std::erase(live->held_order, args[0].GetString());
-        }
+        for (auto* live : Owner::Live()) ForgetHeld(live, args[0].GetString());
       }
       if (method == "spaceCreateBlank") {
         base::ListValue tabs;

@@ -861,6 +861,20 @@ remain pending. D3 beta-only no-DRM exception accepted; EME notice/handoff requi
   undefined. Moves and multi-tab selection (about 40 of those) aren't built.
   split-view 24 / 2, island-and-commands 64 / 2, tabs-and-groups 32 / 1, the
   same known failures as S3.3.
+- **S3.6 Spaces' room budget, candidate macos-b58823f2ae9957ff (2026-11-06):** shipping's limits
+  now hold across a profile's windows: at most six Spaces set aside, two with
+  loaded tabs, 16 loaded tabs. Each is checked for unsaved work first, and
+  anything with it, pinned, playing, capturing or in an opener family stays.
+  Quiet Tabs off leaves loaded tabs alone. A quieted held tab differs from
+  shipping's: desktop Chromium discards by swapping contents inside the tab
+  strip (`kWebContentsDiscard` is off), so it is released and opens again from
+  the record, which loses its back and forward history. Two real bugs fixed: a
+  tab held soon after it opened crashed in a delayed metrics task (patch 0033),
+  and opening a tab right after a switch left it pending for good, failing every
+  later Space action. Other delayed Chromium tasks could assume a window the
+  same way; only that one has shown up. 12 of 84 cases pass, 10 fail, 62
+  undefined. split-view 24 / 2, island-and-commands 64 / 2, tabs-and-groups
+  32 / 1, the same known failures.
 - **Mahjong goes last (owner, 2026-11-04):** the fork has no Mahjong yet
   (F35-3, F35-4, F35-9 fail at the footer launch). When it is built it is an
   Island page (shipping's files served as byte-identical copies, opened as an
@@ -1360,5 +1374,5 @@ Android's Bar A counts the shared scenarios bound in `chromium/tests/android/acc
 
 Legacy macOS stages come from the approved spec; they await verification on the canonical candidate. No legacy stage counts as Verified.
 
-Candidate identities: macOS: macos-6756e7fb9c9633d1; Windows: none; Linux: none; Android: android-arm64-7bd35e94ef746069.
+Candidate identities: macOS: macos-b58823f2ae9957ff; Windows: none; Linux: none; Android: android-arm64-7bd35e94ef746069.
 <!-- END GENERATED PROGRESS -->
