@@ -54,7 +54,9 @@ const latest = releases[0];
 
   <aside class="download-handheld" data-handheld-note hidden aria-labelledby="handheld-title">
     <h2 id="handheld-title">On a phone or tablet?</h2>
-    <p>Blanc is a desktop browser for macOS, Windows and Linux.</p>
+    <p data-not-iphone>Blanc is a desktop browser for macOS, Windows and Linux.</p>
+    <p data-iphone-store hidden>Blanc for iPhone is free on the App Store. Blanc for your Mac or PC is a desktop browser for macOS, Windows and Linux.</p>
+    <a class="download-handheld-action" href={ios.storeUrl} rel="noopener" data-iphone-store hidden>Get it on the App Store</a>
     <a class="download-handheld-action" href="/download" data-handheld-share="download-share-status" data-handheld-label="Send to my computer" data-handheld-text="Blanc is a desktop browser for macOS, Windows and Linux.">Send to my computer</a>
     <p id="download-share-status" role="status" aria-live="polite"></p>
   </aside>

@@ -430,16 +430,6 @@
       "verdict": "qualified"
     },
     {
-      "id": "v140-035",
-      "source": "site/src/pages/index.astro",
-      "exactWording": "For macOS, Windows and Linux",
-      "subject": "Blanc",
-      "evidenceGroups": [
-        "platformsAndBlocking"
-      ],
-      "verdict": "verified"
-    },
-    {
       "id": "v140-034",
       "source": "site/src/components/FloatingIslandWindow.astro",
       "exactWording": "A web page filling a Blanc window to its top edge. With Auto-hide on, Blanc’s Island hides, then floats back over the page when the pointer reaches the top edge.",
@@ -448,6 +438,19 @@
         "floatStyle"
       ],
       "verdict": "qualified"
+    }
+  ],
+  "supersededClaims": [
+    {
+      "id": "v140-035",
+      "source": "site/src/pages/index.astro",
+      "exactWording": "For macOS, Windows and Linux",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "platformsAndBlocking"
+      ],
+      "verdict": "qualified",
+      "reason": "November 6, 2026, after Blanc for iPhone 1.0 was released on the App Store: the hero note adds iPhone. The replacement wording is recorded in docs/website-iphone-1.0-claims.json (iphone10-006)."
     }
   ]
 }

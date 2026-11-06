@@ -9,7 +9,7 @@
   "public TestFlight beta",
   "in beta through Apple",
   "Blanc for iPhone, in beta",
-    "iPhone · Beta"
+  "iPhone · Beta"
  ],
  "evidenceGroups": {
   "iphoneAppStore": {
@@ -94,6 +94,27 @@
    "id": "iphone10-005",
    "source": "site/src/pages/privacy.astro",
    "exactWording": "Blanc for iPhone is available on Apple's App Store, and as a beta through Apple's TestFlight.",
+   "subject": "Blanc",
+   "evidenceGroups": [
+    "iphoneAppStore"
+   ],
+   "verdict": "verified"
+  },
+  {
+   "id": "iphone10-006",
+   "source": "site/src/pages/index.astro",
+   "exactWording": "For macOS, Windows, Linux and iPhone",
+   "subject": "Blanc",
+   "evidenceGroups": [
+    "iphoneAppStore"
+   ],
+   "verdict": "verified",
+   "replaces": "v140-035"
+  },
+  {
+   "id": "iphone10-007",
+   "source": "site/src/pages/download.astro",
+   "exactWording": "Blanc for iPhone is free on the App Store. Blanc for your Mac or PC is a desktop browser for macOS, Windows and Linux.",
    "subject": "Blanc",
    "evidenceGroups": [
     "iphoneAppStore"

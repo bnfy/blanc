@@ -7,6 +7,7 @@ import SpacesDemo from "../components/SpacesDemo.astro";
 import FloatingIslandWindow from "../components/FloatingIslandWindow.astro";
 import "../styles/home.css";
 import pkg from "../../../package.json";
+import ios from "../data/ios-availability.json";
 import chromiumMark from "../assets/summary-icons/chromium.svg?raw";
 import electronMark from "../assets/summary-icons/electron.svg?raw";
 const structuredData = {
@@ -176,9 +177,10 @@ const faqs = [
             of sight. Free, with ad and tracker blocking on from the first launch.
           </p>
           <div class="actions">
+            <a class="planned-action" href={ios.storeUrl} rel="noopener" data-iphone-store hidden>Get it on the App Store</a>
             <a class="planned-action" href="/download" data-download-cta data-track="download_click" data-cta-position="hero" data-handheld-share="hero-share-status" data-handheld-label="Send to my computer" data-handheld-text="Blanc is a desktop browser for macOS, Windows and Linux.">Download Blanc Browser</a>
           </div>
-          <p class="hero-platforms">For macOS, Windows and Linux</p>
+          <p class="hero-platforms">For macOS, Windows, Linux and iPhone</p>
           <p class="handheld-note" data-handheld-note hidden>
             <span id="hero-share-status" role="status" aria-live="polite"></span>
           </p>
