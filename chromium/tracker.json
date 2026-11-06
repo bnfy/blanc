@@ -1095,8 +1095,9 @@
       },
       "platformProgress": {
         "macos": {
-          "stage": "drafted",
-          "basis": "approved spec macOS inventory; awaiting candidate verification"
+          "stage": "implemented",
+          "candidate": "macos-94134c211b905005",
+          "basis": "S3.4 (2026-11-06): slice 1 in candidate macos-94134c211b905005: mark, menu, save, switch, edit, delete and undo; 2 of the feature file's cases pass, the rest wait for set-aside Spaces, moves, selection and test adapters (s3-spaces)"
         },
         "windows": {
           "stage": "not-started",
@@ -2458,8 +2459,8 @@
   ],
   "currentCandidates": {
     "macos": {
-      "id": "macos-87bb16d760497fc1",
-      "frameworkSha256": "87bb16d760497fc1891aa6769d45855f27ee7c696325cbbc7fa040bbf0ecac02",
+      "id": "macos-94134c211b905005",
+      "frameworkSha256": "94134c211b905005f4f42ed0aa0a980c8563d0f6f92a2f48bc210f2b7baee2e2",
       "executableSha256": "cca20d7ed00bbdecf8db310c6802fbed003b4e63c6bc3b1f71dabc9dbff2ff01",
       "version": "158.0.8127.2",
       "qualification": "compiled candidate; runtime acceptance pending"

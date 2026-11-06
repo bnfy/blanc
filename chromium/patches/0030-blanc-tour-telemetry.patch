@@ -1,5 +1,5 @@
 diff --git a/chrome/browser/prefs/browser_prefs.cc b/chrome/browser/prefs/browser_prefs.cc
-index ba4a9d6..91e6335 100644
+index ba4a9d6..efc9d57 100644
 --- a/chrome/browser/prefs/browser_prefs.cc
 +++ b/chrome/browser/prefs/browser_prefs.cc
 @@ -1727,6 +1727,8 @@ void RegisterLocalState(PrefRegistrySimple* registry) {
@@ -11,6 +11,14 @@ index ba4a9d6..91e6335 100644
    // The moving-in checklist (N11), device-wide as in shipping.
    registry->RegisterBooleanPref("blanc.checklist.dismissed", false);
    registry->RegisterBooleanPref("blanc.checklist.default_done", false);
+@@ -2094,6 +2096,7 @@ void RegisterProfilePrefs(user_prefs::PrefRegistrySyncable* registry,
+   registry->RegisterStringPref("blanc.island.size", "default");
+   // Tab Archive's first-run offer (F52 spec D5); F52 itself is S3.
+   registry->RegisterStringPref("blanc.tabs.archive", "off");
++  registry->RegisterDictionaryPref("blanc.spaces.meta");
+   // The Start Page's weekly blocked counter (shipping's adblock-stats.json).
+   registry->RegisterDictionaryPref("blanc.blocking.week_stats");
+   registry->RegisterBooleanPref("blanc.island.hover_open", false);
 diff --git a/chrome/browser/resources/settings/about_page/about_page.html.ts b/chrome/browser/resources/settings/about_page/about_page.html.ts
 index 487e5c5..e68514f 100644
 --- a/chrome/browser/resources/settings/about_page/about_page.html.ts

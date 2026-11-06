@@ -270,6 +270,7 @@ namespace blanc_prototype {
 // The Island's own header height, before auto-hide moves the page over it.
 int BaseHeaderHeight(views::View* parent);
 namespace {
+constexpr char kSpacesMetaPref[] = "blanc.spaces.meta";
 // The remembered Glance card: device-wide, never synced (F34).
 constexpr char kGlanceFramePref[] = "blanc.glance.frame";
 // The Start Page a regular window commits: plain, or the welcome tour's
@@ -2272,6 +2273,13 @@ base::DictValue SpaceDisk(base::FilePath path, std::string method,
   for (const auto [key, value] : *items) {
     if (key.empty() || key.size() > 120 || !value.is_dict() || !ValidSpace(value.GetDict()))
       return base::DictValue().Set("error", "Space record invalid; unchanged.");
+  }
+  if (method == "spaceForget") {
+    items->Remove(name);
+    auto json = base::WriteJson(store);
+    if (!json || !base::ImportantFileWriter::WriteFileAtomically(path, *json))
+      return base::DictValue().Set("error", "Space write failed.");
+    return base::DictValue();
   }
   if (method == "previewSpaceSave") {
     if (!ValidSpace(capture) || (!items->contains(name) && items->size() >= 25))
@@ -4902,6 +4910,10 @@ class Handler : public content::WebUIMessageHandler, public extensions::Extensio
             "previewSpaceSave", owner->space_name, capture->Clone()),
         base::BindOnce(&Handler::AutosaveReady, weak_factory_.GetWeakPtr(), std::move(*capture)));
   }
+  void SpaceStored(std::string id, base::DictValue result) {
+    const auto* error = result.FindString("error");
+    Reply(id, !error, error ? base::Value(*error) : base::Value(true));
+  }
   void SpaceReady(std::string id, std::string method, std::string name,
                   base::DictValue before, base::DictValue result) {
     auto* owner = GetOwner(web_ui()->GetWebContents());
@@ -5268,6 +5280,44 @@ class Handler : public content::WebUIMessageHandler, public extensions::Extensio
       return;
     }
 
+    // Spaces' list data (F41): names, colors and order, per profile. Tabs stay
+    // in the checked store below, under each Space's id.
+    if (method == "spaceMeta" && args.empty()) {
+      base::ListValue elsewhere;
+      for (auto* other : Owner::Live())
+        if (other != owner && other->browser->GetProfile()->GetOriginalProfile() == profile->GetOriginalProfile() &&
+            !other->space_name.empty()) elsewhere.Append(other->space_name);
+      reply(true, base::Value(base::DictValue()
+          .Set("meta", profile->GetOriginalProfile()->GetPrefs()->GetDict(kSpacesMetaPref).Clone())
+          .Set("elsewhere", std::move(elsewhere))));
+      return;
+    }
+    if (method == "spaceMetaSave" && args.size() == 1 && args[0].is_dict()) {
+      profile->GetOriginalProfile()->GetPrefs()->SetDict(kSpacesMetaPref, args[0].GetDict().Clone());
+      reply(true, base::Value(true)); return;
+    }
+    if (method == "spaceUnbind" && args.empty()) {
+      owner->space_name.clear(); owner->space_saved.reset();
+      reply(true, base::Value(true)); return;
+    }
+    // A record no window is showing: a blank new Space, or forgetting one.
+    if ((method == "spaceCreateBlank" || method == "spaceForget") && args.size() == 1 && args[0].is_string() &&
+        !args[0].GetString().empty() && args[0].GetString().size() <= 120 && !profile->IsOffTheRecord()) {
+      base::DictValue blank;
+      if (method == "spaceCreateBlank") {
+        base::ListValue tabs;
+        tabs.Append(base::DictValue().Set("url", "chrome://newtab/").Set("pinned", false).Set("group", -1));
+        blank.Set("tabs", std::move(tabs));
+        blank.Set("groups", base::ListValue());
+        blank.Set("active", 0);
+      }
+      SpaceRunner()->PostTaskAndReplyWithResult(FROM_HERE,
+          base::BindOnce(&SpaceDisk, profile->GetPath().AppendASCII("BlancPrototypeSpaces.json"),
+              method == "spaceForget" ? std::string("spaceForget") : std::string("previewSpaceSave"),
+              args[0].GetString(), std::move(blank)),
+          base::BindOnce(&Handler::SpaceStored, weak_factory_.GetWeakPtr(), id));
+      return;
+    }
     if (method == "previewSpaceSave" || method == "previewSpaceOpen" || method == "previewSpaceList" || method == "previewSpaceRecover") {
       const bool list = method == "previewSpaceList" || method == "previewSpaceRecover";
       if (profile->IsOffTheRecord() || owner->space_busy ||

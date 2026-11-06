@@ -108,6 +108,21 @@ async function menuItem(w,tabId,itemId){
  return {page,item};
 }
 const domRead=(page,fn)=>page.evaluate(fn);
+// Shipping's test actions on Spaces, through the host's bridge as the menu calls it.
+async function spaceAction(api,action,args){
+ const withRecord=result=>result?.workspaceId?{...result,workspace:{id:result.workspaceId}}:result;
+ if(action==='list')return api('listWorkspaces',[]);
+ if(action==='save')return withRecord(await api('saveWorkspaceAs',[args[0],args[1]]));
+ if(action==='open')return api('openWorkspace',[args[0],args[1]??{}]);
+ if(action==='create')return withRecord(await api('createBlankWorkspace',[args[0],args[1]??{}]));
+ if(action==='remove')return api('removeWorkspace',[args[0]]);
+ if(action==='undo-remove')return api('undoRemoveWorkspace',[args[0]]);
+ if(action==='update')return api('updateWorkspace',[args[0],args[1]]);
+ if(action==='flush')return true;
+ if(action==='reset'){const p=await api('listWorkspaces',[]);for(const item of p.items)await api('removeWorkspace',[item.id]);
+  for(const item of (await api('listWorkspaces',[])).deleted)await api('forgetWorkspace',[item.id]);return {ok:true};}
+ throw new UndefinedNativeAdapterError('Space action needs an adapter: '+action);
+}
 export const tabs={
  // Windows (F32). The primary window keeps shipping's id 'primary'; others
  // are named by their Island host target.
@@ -209,6 +224,16 @@ export const tabs={
    return {tabId:String(id),focused:id===(s.focusedTabId??s.activeTabId),frame:{...f},content:{x:f.x+1,y:f.y+1,width:f.width-2,height:f.height-2}};})};
  },
  workspacePageScript:(w,id,source)=>w.call('executeTab',id,source),
+ // Spaces (F41), through the host's bridge as the menu calls it.
+ workspaceAction:(w,action,...args)=>spaceAction((method,list)=>w.api(method,list),action,args),
+ async workspaceActionInWindow(w,id,action,...args){
+  const r=(await runtimes(w)).find(item=>item.id===String(id));if(!r)throw Error('No window '+id);
+  return spaceAction((method,list)=>r.cdp.eval(`window.BlancPrototypeHost.api[${jsLiteral(method)}](...${jsLiteral(list)})`),action,args);
+ },
+ spaceMarkState:async w=>domRead(strip(w),()=>{const mark=document.getElementById('pillSpace');if(!mark)return null;
+  return {hidden:mark.hidden,state:mark.dataset.state,name:document.getElementById('pillSpaceName').textContent,label:mark.getAttribute('aria-label'),
+   expanded:mark.getAttribute('aria-expanded'),fill:mark.style.getPropertyValue('--space-fill'),on:mark.style.getPropertyValue('--space-on'),edge:mark.dataset.edge??null};}),
+ async clickPillSpace(w){await strip(w).locator('#pillSpace').click();},
  pressBrowserCommand:async(w,id,command)=>{
   if(command==='reload'){await w.api('reload',[id]);return true;}
   const native={'close-tab':'close','zoom-in':'zoomIn','zoom-out':'zoomOut','zoom-reset':'zoomReset'}[command];

@@ -829,6 +829,23 @@ remain pending. D3 beta-only no-DRM exception accepted; EME notice/handoff requi
   The fork had only a preview store and crash-safe swap, with no mark, menu,
   set-aside Spaces, undo or moves, so F41 is a real build, in slices: mark,
   menu, save and switch; set-aside Spaces; Move to Space; multi-tab selection.
+- **S3.4 Spaces slice 1 (F41), candidate macos-94134c211b905005 (2026-11-06):** the Island's
+  space mark and shipping's Spaces menu now work over the fork's crash-safe
+  store: save, create, switch, edit, reorder, delete, undo and forget.
+  Tabs stay in `BlancPrototypeSpaces.json` under each Space's id; names, colors
+  and order are `blanc.spaces.meta`, a profile pref (patch 0030). A window in no
+  Space parks its tabs under `__scratch__` on the way to a saved one. A switch
+  still rebuilds the tabs, so pages reload until set-aside Spaces land: slice 2.
+  A spike proved that part: a tab held by `DetachTabAtForInsertion` kept its
+  page, form state and sessionStorage with no reload, came back live, and Blanc
+  quit cleanly while holding one. A held page counts as hidden, so its timers
+  throttle as a background tab's do. Groups and splits weren't in the spike.
+  A probe of save, create and switch both ways kept the right tabs. 2 of the
+  feature file's cases pass, 42 fail, the rest are undefined; most failures are
+  test gaps (`page.waitForSelector`, cucumber Before hooks, the selection and
+  move steps), not yet sorted from product gaps. Keyboard, motion and the
+  guards around sign-in pages and loading frames are unverified.
+  island-and-commands 64 / 2; see the S3.3 note for its known failures.
 - **Mahjong goes last (owner, 2026-11-04):** the fork has no Mahjong yet
   (F35-3, F35-4, F35-9 fail at the footer launch). When it is built it is an
   Island page (shipping's files served as byte-identical copies, opened as an
@@ -1316,8 +1333,8 @@ Android's Bar A counts the shared scenarios bound in `chromium/tests/android/acc
 | --- | ---: | ---: | ---: | ---: |
 | Not started / unassessed | 25 | 80 | 80 | 68 |
 | Research only | 1 | 0 | 0 | 0 |
-| Drafted | 6 | 0 | 0 | 0 |
-| Implemented | 3 | 0 | 0 | 12 |
+| Drafted | 5 | 0 | 0 | 0 |
+| Implemented | 4 | 0 | 0 | 12 |
 | Built, isolated (legacy) | 4 | 0 | 0 | 0 |
 | Integrated, partial (legacy) | 3 | 0 | 0 | 0 |
 | Integrated | 38 | 0 | 0 | 0 |
@@ -1328,5 +1345,5 @@ Android's Bar A counts the shared scenarios bound in `chromium/tests/android/acc
 
 Legacy macOS stages come from the approved spec; they await verification on the canonical candidate. No legacy stage counts as Verified.
 
-Candidate identities: macOS: macos-87bb16d760497fc1; Windows: none; Linux: none; Android: android-arm64-7bd35e94ef746069.
+Candidate identities: macOS: macos-94134c211b905005; Windows: none; Linux: none; Android: android-arm64-7bd35e94ef746069.
 <!-- END GENERATED PROGRESS -->
