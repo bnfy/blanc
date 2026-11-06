@@ -9,14 +9,17 @@ const settle = () => new Promise(resolve => setImmediate(resolve));
 function fixture({ userAgent = 'Mozilla/5.0 (iPhone; CPU iPhone OS 18_0 like Mac OS X)', maxTouchPoints = 5, share, clipboard } = {}) {
   const status = { textContent: '' };
   const note = { hidden: true };
+  const store = { hidden: true };
+  const desktopOnly = { hidden: false };
+  const classes = new Set();
   const link = {
-    href: 'https://blanc.day/download', textContent: 'Download Blanc', events: {},
+    href: 'https://blanc.day/download', textContent: 'Download Blanc', events: {}, classList: { add: name => classes.add(name), contains: name => classes.has(name) },
     dataset: { handheldShare: 'share-status', handheldLabel: 'Send to my computer', handheldText: 'Blanc is a desktop browser for macOS, Windows and Linux.', track: 'download_click' },
     addEventListener(type, handler) { this.events[type] = handler; },
   };
   const calls = { share: [], copy: [], assign: [] };
   const document = {
-    querySelectorAll: selector => selector === 'a[data-handheld-share]' ? [link] : selector === '[data-handheld-note]' ? [note] : [],
+    querySelectorAll: selector => ({ 'a[data-handheld-share]': [link], '[data-handheld-note]': [note], '[data-iphone-store]': [store], '[data-not-iphone]': [desktopOnly] })[selector] || [],
     getElementById: id => (id === 'share-status' ? status : null),
   };
   const navigator = { userAgent, maxTouchPoints };
@@ -25,7 +28,7 @@ function fixture({ userAgent = 'Mozilla/5.0 (iPhone; CPU iPhone OS 18_0 like Mac
   const view = { navigator, location: { assign: url => calls.assign.push(url) } };
   let prevented = 0;
   const click = async () => { await link.events.click({ preventDefault() { prevented++; } }); await settle(); };
-  return { document, view, link, note, status, calls, click, prevented: () => prevented };
+  return { document, view, link, note, store, desktopOnly, status, calls, click, prevented: () => prevented };
 }
 
 test('phones and tablets are recognised, including iPadOS with a desktop user agent', async () => {
@@ -41,6 +44,31 @@ test('phones and tablets are recognised, including iPadOS with a desktop user ag
     [{}, false],
   ];
   for (const [nav, expected] of cases) assert.equal(isHandheld(nav), expected, JSON.stringify(nav));
+});
+
+test('only an iPhone is offered the App Store; iPads and Android phones are not', async () => {
+  const { isIphone, initHandheldDownload } = await load();
+  assert.equal(isIphone({ userAgent: 'Mozilla/5.0 (iPhone; CPU iPhone OS 18_0 like Mac OS X)' }), true);
+  assert.equal(isIphone({ userAgent: 'Mozilla/5.0 (iPad; CPU OS 17_0 like Mac OS X)' }), false);
+  assert.equal(isIphone({ userAgent: 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7)', maxTouchPoints: 5 }), false);
+  assert.equal(isIphone({ userAgent: 'Mozilla/5.0 (Linux; Android 15; Pixel 9)' }), false);
+
+  const phone = fixture();
+  initHandheldDownload(phone);
+  assert.equal(phone.store.hidden, false, 'the App Store button shows on an iPhone');
+  assert.equal(phone.desktopOnly.hidden, true, 'desktop-only copy hides on an iPhone');
+  assert.ok(phone.link.classList.contains('is-secondary'), 'sending the link becomes the second choice');
+
+  for (const userAgent of ['Mozilla/5.0 (Linux; Android 15; Pixel 9)', 'Mozilla/5.0 (iPad; CPU OS 17_0 like Mac OS X)']) {
+    const other = fixture({ userAgent });
+    initHandheldDownload(other);
+    assert.equal(other.store.hidden, true, userAgent);
+    assert.equal(other.desktopOnly.hidden, false, userAgent);
+    assert.ok(!other.link.classList.contains('is-secondary'), userAgent);
+  }
+  const desk = fixture({ userAgent: 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7)', maxTouchPoints: 0 });
+  initHandheldDownload(desk);
+  assert.equal(desk.store.hidden, true);
 });
 
 test('desktop pages are left exactly as they are', async () => {
@@ -112,7 +140,12 @@ test('the homepage hero and /download carry the phone markup and load the module
   assert.match(read('site/src/scripts/home.js'), /import \{ initHandheldDownload \} from "\.\/handheld-download\.js"/);
   assert.match(read('site/src/scripts/home.js'), /initHandheldDownload\(\{ document, view \}\);/);
 
+  // The App Store button is in the page but hidden until the script sees an iPhone.
+  assert.match(home, /<a class="planned-action" href=\{ios\.storeUrl\} rel="noopener" data-iphone-store hidden>Get it on the App Store<\/a>/);
+  assert.doesNotMatch(home.match(/<a class="planned-action" href=\{ios\.storeUrl\}[^>]*>/)[0], /data-track/, 'no new measured event: the privacy policy lists them all');
+
   const download = read('site/src/pages/download.astro');
+  assert.match(download, /href=\{ios\.storeUrl\} rel="noopener" data-iphone-store hidden>Get it on the App Store<\/a>/);
   assert.match(download, /<aside class="download-handheld" data-handheld-note hidden/);
   assert.match(download, /data-handheld-share="download-share-status"/);
   assert.match(download, /id="download-share-status" role="status"/);

@@ -110,6 +110,16 @@
    ],
    "verdict": "verified",
    "replaces": "v140-035"
+  },
+  {
+   "id": "iphone10-007",
+   "source": "site/src/pages/download.astro",
+   "exactWording": "Blanc for iPhone is free on the App Store. Blanc for your Mac or PC is a desktop browser for macOS, Windows and Linux.",
+   "subject": "Blanc",
+   "evidenceGroups": [
+    "iphoneAppStore"
+   ],
+   "verdict": "verified"
   }
  ]
 }
