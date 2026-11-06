@@ -1096,8 +1096,8 @@
       "platformProgress": {
         "macos": {
           "stage": "implemented",
-          "candidate": "macos-94134c211b905005",
-          "basis": "S3.4 (2026-11-06): slice 1 in candidate macos-94134c211b905005: mark, menu, save, switch, edit, delete and undo; 2 of the feature file's cases pass, the rest wait for set-aside Spaces, moves, selection and test adapters (s3-spaces)"
+          "candidate": "macos-6756e7fb9c9633d1",
+          "basis": "S3.5 (2026-11-06): in candidate macos-6756e7fb9c9633d1: mark, menu, save, switch, edit, delete, undo and live set-aside Spaces; 10 of 84 cases pass, 10 fail, 64 undefined (s3a-F41-named-workspaces); moves and multi-tab selection not built"
         },
         "windows": {
           "stage": "not-started",
@@ -2459,8 +2459,8 @@
   ],
   "currentCandidates": {
     "macos": {
-      "id": "macos-94134c211b905005",
-      "frameworkSha256": "94134c211b905005f4f42ed0aa0a980c8563d0f6f92a2f48bc210f2b7baee2e2",
+      "id": "macos-6756e7fb9c9633d1",
+      "frameworkSha256": "6756e7fb9c9633d1b372b0767ac82b1e6f2c3eefe0cb384854397d20f779ae7e",
       "executableSha256": "cca20d7ed00bbdecf8db310c6802fbed003b4e63c6bc3b1f71dabc9dbff2ff01",
       "version": "158.0.8127.2",
       "qualification": "compiled candidate; runtime acceptance pending"

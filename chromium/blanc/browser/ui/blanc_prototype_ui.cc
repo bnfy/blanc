@@ -870,6 +870,10 @@ class Owner : public base::SupportsUserData::Data,
   // The floating card (F34), in the Island's coordinates: where the Glance
   // page sits, and the card's chrome around it that takes the Island's input.
   bool glance_opening = false;
+  // Set-aside Spaces (F41, owner 2026-11-06): the tabs of a Space this window
+  // left, still running, in saved order. Oldest first in held_order.
+  std::map<std::string, std::vector<std::unique_ptr<tabs::TabModel>>> held_spaces;
+  std::vector<std::string> held_order;
   gfx::Rect glance_page;
   std::vector<gfx::Rect> glance_ring;
   // Where the reference tab came from. Chromium's split needs its two tabs
@@ -5018,9 +5022,32 @@ class Handler : public content::WebUIMessageHandler, public extensions::Extensio
         return;
       }
     }
+    // A Space set aside in any of this profile's windows comes back live.
+    std::vector<std::unique_ptr<tabs::TabModel>> held_target;
+    if (method == "previewSpaceOpen") {
+      for (auto* live : Owner::Live()) {
+        if (live->browser->GetProfile() != browser->GetProfile()) continue;
+        const auto found = live->held_spaces.find(name);
+        if (found == live->held_spaces.end()) continue;
+        held_target = std::move(found->second);
+        live->held_spaces.erase(found);
+        std::erase(live->held_order, name);
+        break;
+      }
+      if (held_target.size() != record->FindList("tabs")->size()) held_target.clear();
+    }
     size_t source_index = 0;
     for (const auto& item : *record->FindList("tabs")) {
       content::WebContents* retained = nullptr;
+      if (source_index < held_target.size()) {
+        auto* contents = held_target[source_index]->GetContents();
+        const GURL committed = IsRegularStartPage(contents->GetLastCommittedURL())
+            ? GURL("chrome://newtab/") : contents->GetLastCommittedURL();
+        if (committed == GURL(*item.GetDict().FindString("url"))) {
+          model->InsertDetachedTabAt(model->count(), std::move(held_target[source_index]), AddTabTypes::ADD_NONE);
+          retained = contents;
+        }
+      }
       if (source_ids && !survivors.empty()) {
         auto found = survivors.find((*source_ids)[source_index].GetString());
         if (found != survivors.end() &&
@@ -5070,10 +5097,31 @@ class Handler : public content::WebUIMessageHandler, public extensions::Extensio
     owner->glance_main = owner->glance_reference = -1;
     model->RemoveFromGroup(regroup);
     for (auto* tab : added) model->SetTabPinned(model->GetIndexOfWebContents(tab), false);
+    // The Space being left keeps running, set aside, in saved order. Tabs in no
+    // Space close as before. Groups and splits come back from the saved record.
+    const bool hold_old = method == "previewSpaceOpen" && !owner->space_name.empty() &&
+        owner->space_name != "__scratch__";
+    std::vector<std::unique_ptr<tabs::TabModel>> aside;
     for (auto* tab : old_tabs) {
       if (std::ranges::contains(added, tab)) continue;
       const int index = model->GetIndexOfWebContents(tab);
-      if (index >= 0) model->CloseWebContentsAt(index, TabCloseTypes::CLOSE_CREATE_HISTORICAL_TAB);
+      if (index < 0) continue;
+      if (!hold_old) { model->CloseWebContentsAt(index, TabCloseTypes::CLOSE_CREATE_HISTORICAL_TAB); continue; }
+      if (const auto split = model->GetSplitForTab(index)) model->RemoveSplit(*split);
+      model->RemoveFromGroup({model->GetIndexOfWebContents(tab)});
+      model->SetTabPinned(model->GetIndexOfWebContents(tab), false);
+      aside.push_back(model->DetachTabAtForInsertion(model->GetIndexOfWebContents(tab)));
+    }
+    if (hold_old && !aside.empty()) {
+      owner->held_spaces[owner->space_name] = std::move(aside);
+      std::erase(owner->held_order, owner->space_name);
+      owner->held_order.push_back(owner->space_name);
+      // Blanc never keeps more than six Spaces set aside; the oldest gives way
+      // and opens from its saved record.
+      while (owner->held_order.size() > 6) {
+        owner->held_spaces.erase(owner->held_order.front());
+        owner->held_order.erase(owner->held_order.begin());
+      }
     }
     // Closing an old tab can finish asynchronously. Its pinned slot still
     // constrains absolute indices, so establish desired relative order at the
@@ -5283,17 +5331,23 @@ class Handler : public content::WebUIMessageHandler, public extensions::Extensio
     // Spaces' list data (F41): names, colors and order, per profile. Tabs stay
     // in the checked store below, under each Space's id.
     if (method == "spaceMeta" && args.empty()) {
-      base::ListValue elsewhere;
-      for (auto* other : Owner::Live())
-        if (other != owner && other->browser->GetProfile()->GetOriginalProfile() == profile->GetOriginalProfile() &&
-            !other->space_name.empty()) elsewhere.Append(other->space_name);
+      base::ListValue elsewhere, held;
+      for (auto* other : Owner::Live()) {
+        if (other->browser->GetProfile()->GetOriginalProfile() != profile->GetOriginalProfile()) continue;
+        if (other != owner && !other->space_name.empty()) elsewhere.Append(other->space_name);
+        for (const auto& space : other->held_order) held.Append(space);
+      }
       reply(true, base::Value(base::DictValue()
           .Set("meta", profile->GetOriginalProfile()->GetPrefs()->GetDict(kSpacesMetaPref).Clone())
-          .Set("elsewhere", std::move(elsewhere))));
+          .Set("elsewhere", std::move(elsewhere)).Set("held", std::move(held))));
       return;
     }
     if (method == "spaceMetaSave" && args.size() == 1 && args[0].is_dict()) {
       profile->GetOriginalProfile()->GetPrefs()->SetDict(kSpacesMetaPref, args[0].GetDict().Clone());
+      // Every window's mark and menu show the same list.
+      for (auto* other : Owner::Live())
+        if (other != owner && other->view) other->view->GetWebContents()->GetPrimaryMainFrame()->ExecuteJavaScript(
+            u"window.BlancPrototypeHost?.spacesChanged()", base::NullCallback());
       reply(true, base::Value(true)); return;
     }
     if (method == "spaceUnbind" && args.empty()) {
@@ -5304,6 +5358,12 @@ class Handler : public content::WebUIMessageHandler, public extensions::Extensio
     if ((method == "spaceCreateBlank" || method == "spaceForget") && args.size() == 1 && args[0].is_string() &&
         !args[0].GetString().empty() && args[0].GetString().size() <= 120 && !profile->IsOffTheRecord()) {
       base::DictValue blank;
+      if (method == "spaceForget") {
+        for (auto* live : Owner::Live()) {
+          live->held_spaces.erase(args[0].GetString());
+          std::erase(live->held_order, args[0].GetString());
+        }
+      }
       if (method == "spaceCreateBlank") {
         base::ListValue tabs;
         tabs.Append(base::DictValue().Set("url", "chrome://newtab/").Set("pinned", false).Set("group", -1));

@@ -846,6 +846,21 @@ remain pending. D3 beta-only no-DRM exception accepted; EME notice/handoff requi
   move steps), not yet sorted from product gaps. Keyboard, motion and the
   guards around sign-in pages and loading frames are unverified.
   island-and-commands 64 / 2; see the S3.3 note for its known failures.
+- **S3.5 set-aside Spaces, candidate macos-6756e7fb9c9633d1 (2026-11-06):** leaving a saved Space
+  now detaches its tabs into the window's `held_spaces`, in saved order, and
+  returning reinserts them: no reload, form text and sessionStorage kept, with
+  groups and splits rebuilt from the saved record (a probe with one of each).
+  Up to six Spaces stay held per window; the oldest then opens from its record.
+  A tab that navigated while held no longer matches its record, so that one
+  rebuilds. A window's held Spaces end with the window and with quitting, and
+  reopen from their records. Not built: shipping's room plan, which quiets
+  set-aside tabs over a budget, so held pages stay loaded; a held page can't be
+  quieted yet. Tabs of a window in no Space still close on a switch. Also fixed:
+  saving could fail before the strip loaded its colors; every window's list now
+  stays current; Undo rebinds the window. 10 of 84 cases pass, 10 fail, 64
+  undefined. Moves and multi-tab selection (about 40 of those) aren't built.
+  split-view 24 / 2, island-and-commands 64 / 2, tabs-and-groups 32 / 1, the
+  same known failures as S3.3.
 - **Mahjong goes last (owner, 2026-11-04):** the fork has no Mahjong yet
   (F35-3, F35-4, F35-9 fail at the footer launch). When it is built it is an
   Island page (shipping's files served as byte-identical copies, opened as an
@@ -1345,5 +1360,5 @@ Android's Bar A counts the shared scenarios bound in `chromium/tests/android/acc
 
 Legacy macOS stages come from the approved spec; they await verification on the canonical candidate. No legacy stage counts as Verified.
 
-Candidate identities: macOS: macos-94134c211b905005; Windows: none; Linux: none; Android: android-arm64-7bd35e94ef746069.
+Candidate identities: macOS: macos-6756e7fb9c9633d1; Windows: none; Linux: none; Android: android-arm64-7bd35e94ef746069.
 <!-- END GENERATED PROGRESS -->

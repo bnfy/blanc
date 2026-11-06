@@ -237,15 +237,15 @@
   const SPACE_LIMIT = 25;
   let spacesBound = '';
   const spaceList = async () => {
-    const { meta, elsewhere } = await request('spaceMeta');
-    return { meta: { order: [], items: {}, deleted: [], ...meta }, elsewhere: new Set(elsewhere) };
+    const { meta, elsewhere, held } = await request('spaceMeta');
+    return { meta: { order: [], items: {}, deleted: [], ...meta }, elsewhere: new Set(elsewhere), held: new Set(held) };
   };
-  const spaceProjection = ({ meta, elsewhere }) => ({
+  const spaceProjection = ({ meta, elsewhere, held }) => ({
     status: 'saved', tint: 'mark', recoveryNotice: null, windowTabCount: snapshot?.tabs.length ?? 0,
     deleted: meta.deleted.map(id => ({ id, ...meta.items[id] })),
     items: meta.order.filter(id => meta.items[id]).map(id => ({
       id, ...meta.items[id], active: snapshot?.spaceName === id, openElsewhere: elsewhere.has(id),
-      resident: false, revision: 0 })),
+      resident: held.has(id), revision: 0 })),
   });
   const spacesPayload = async () => spaceProjection(await spaceList());
   async function announceSpaces() {
@@ -261,7 +261,7 @@
     return { name };
   }
   function spaceIdentity(list, input) {
-    const Identity = strip.contentWindow.SpaceIdentity;
+    const Identity = window.SpaceIdentity;
     const used = list.meta.order.map(id => list.meta.items[id]);
     const fallback = Identity.PRESETS[used.length % Identity.PRESETS.length].hex;
     return { color: input?.color || fallback, symbol: Identity.isSymbol(input?.symbol) ? input.symbol : Identity.SYMBOL_IDS[0] };
@@ -354,7 +354,8 @@
     list.meta.order = list.meta.order.filter(item => item !== id);
     list.meta.deleted.unshift(id);
     list.meta.items[id].deletedAt = Date.now();
-    if (snapshot?.spaceName === id) await request('spaceUnbind');
+    // Undo puts this window back in it.
+    if (snapshot?.spaceName === id) { glance.undoSpace = id; await request('spaceUnbind'); }
     await writeSpaces(list);
     await refresh();
     return spaceResult({ workspaceId: id });
@@ -365,7 +366,10 @@
     list.meta.deleted = list.meta.deleted.filter(item => item !== id);
     delete list.meta.items[id].deletedAt;
     list.meta.order.push(id);
+    if (glance.undoSpace === id && !snapshot?.spaceName) await request('previewSpaceSave', [id]);
+    glance.undoSpace = null;
     await writeSpaces(list);
+    await refresh();
     return spaceResult({ workspaceId: id });
   }
   async function forgetSpace(id) {
@@ -2010,6 +2014,7 @@
     api,
     toggleGlance: () => (snapshot?.glanceTabId != null ? api.closeGlance() : api.openGlancePicker()),
     focusGlanceCard,
+    spacesChanged: () => announceSpaces(),
     glanceState: () => ({ layout: glancePayload(), shown: !glanceCardFrame.hidden, generation: glance.generation }),
     apiForDocument,
     hoverState: () => ({ ...hover.state }),
