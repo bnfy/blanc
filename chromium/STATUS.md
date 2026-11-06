@@ -806,6 +806,24 @@ remain pending. D3 beta-only no-DRM exception accepted; EME notice/handoff requi
   closing Glance's reference goes back to its place. split-view 24 of 32;
   island-and-commands 64 / 2 (F1-13, F1-39) and tabs-and-groups 32 / 1 (F3-3)
   ran one candidate earlier, with no new failures.
+- **S3.3 Glance finished for now, candidate macos-87bb16d760497fc1 (2026-11-05):** links from
+  the Glance page land in the card; a quiet tab loads before the card opens and
+  a dismissal cancels it; cancelling the Change picker returns focus to its
+  control; a split pane's menu and the page context menu's Open Link in Glance
+  (patch 0032, which pins render_view_context_menu.cc) work. The menu item uses
+  an id outside Chromium's command header, to avoid a large rebuild, and no
+  test clicks it. Closing the main page's group now keeps a Glance tab that only
+  joined to sit beside it; one a person grouped closes with it. The page area
+  stays fixed under a pushed Auto-hide. 38 of 69 cases pass, 4 fail, 27
+  undefined. The four: moving a tab to a new window (the fork has no
+  moveTabToNewWindow call), the Change picker's restore probe, focus in a
+  background tab (Chromium can't), and the pushed-Island frames. Most undefined
+  cases need adapters: 1Password, media, mouse gestures, Find on the card and
+  the strip's chip cases. V22 (card chrome above the page) is approved
+  (owner, 2026-11-05). split-view 24 / 2 (F53-18's group note isn't announced, F53-22),
+  island-and-commands 64 / 2 (F1-13 failed again, F1-39), tabs-and-groups
+  32 / 1 (F3-3). Real clicks in the card page were not exercised: the tests
+  move focus through the host, because CDP input skips Chromium's views.
 - **Mahjong goes last (owner, 2026-11-04):** the fork has no Mahjong yet
   (F35-3, F35-4, F35-9 fail at the footer launch). When it is built it is an
   Island page (shipping's files served as byte-identical copies, opened as an
@@ -1267,10 +1285,10 @@ Android's Bar A counts the shared scenarios bound in `chromium/tests/android/acc
 | Not started / unassessed | 25 | 80 | 80 | 68 |
 | Research only | 1 | 0 | 0 | 0 |
 | Drafted | 6 | 0 | 0 | 0 |
-| Implemented | 4 | 0 | 0 | 12 |
+| Implemented | 3 | 0 | 0 | 12 |
 | Built, isolated (legacy) | 4 | 0 | 0 | 0 |
 | Integrated, partial (legacy) | 3 | 0 | 0 | 0 |
-| Integrated | 37 | 0 | 0 | 0 |
+| Integrated | 38 | 0 | 0 | 0 |
 | Verification needs recheck | 0 | 0 | 0 | 0 |
 | Verified | 0 | 0 | 0 | 0 |
 | Release-ready | 0 | 0 | 0 | 0 |
@@ -1278,5 +1296,5 @@ Android's Bar A counts the shared scenarios bound in `chromium/tests/android/acc
 
 Legacy macOS stages come from the approved spec; they await verification on the canonical candidate. No legacy stage counts as Verified.
 
-Candidate identities: macOS: macos-1935c1d14bb29c5b; Windows: none; Linux: none; Android: android-arm64-7bd35e94ef746069.
+Candidate identities: macOS: macos-87bb16d760497fc1; Windows: none; Linux: none; Android: android-arm64-7bd35e94ef746069.
 <!-- END GENERATED PROGRESS -->

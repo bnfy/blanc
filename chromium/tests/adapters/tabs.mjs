@@ -209,7 +209,11 @@ export const tabs={
    return {tabId:String(id),focused:id===(s.focusedTabId??s.activeTabId),frame:{...f},content:{x:f.x+1,y:f.y+1,width:f.width-2,height:f.height-2}};})};
  },
  workspacePageScript:(w,id,source)=>w.call('executeTab',id,source),
- pressBrowserCommand:async(w,id,command)=>{if(command!=='reload')throw new UndefinedNativeAdapterError('Browser command needs an adapter: '+command);await w.api('reload',[id]);return true;},
+ pressBrowserCommand:async(w,id,command)=>{
+  if(command==='reload'){await w.api('reload',[id]);return true;}
+  const native={'close-tab':'close','zoom-in':'zoomIn','zoom-out':'zoomOut','zoom-reset':'zoomReset'}[command];
+  if(!native)throw new UndefinedNativeAdapterError('Browser command needs an adapter: '+command);
+  return (await w.native('previewPageCommand',[native]))!==false;},
  sleepBackgroundTabsNow:w=>w.api('sleepBackgroundTabs'),
  sleepTab:(w,id)=>w.api('quietTab',[id]),
  keepGlanceAsSplit:w=>w.api('keepGlanceAsSplit'),
@@ -220,6 +224,7 @@ export const tabs={
  straySplitIds:async w=>{const s=await w.snapshot();const open=new Set(s.tabs.map(t=>String(t.id)));
   return (s.splits||[]).filter(x=>x.tabIds.some(id=>!open.has(String(id)))).map(x=>String(x.id));},
  windowChildViewCount:async w=>({tabViews:(await w.snapshot()).tabs.filter(t=>t.viewBounds).length}),
+ tabBounds:async(w,id)=>(await w.snapshot()).tabs.find(t=>String(t.id)===String(id))?.viewBounds??null,
  attachedTabViewIds:async w=>(await w.snapshot()).tabs.filter(t=>t.viewBounds).map(t=>String(t.id)),
  focusPane:async(w,tabId)=>{await w.native('switchTab',[nativeId(tabId)]);return true;},
  focusedWebContentsId:async w=>(await w.snapshot()).focusedTabId??null,
@@ -274,6 +279,9 @@ export const tabs={
  allowAdsOnActive:w=>w.api('allowAdsOnActiveSite'),
  // A real mouse click on a tab's page element.
  async clickInTab(w,tabId,selector,modifiers=[]){
+  // A person's click in the Glance page moves focus there first; a CDP click
+  // reaches the page without going through Chromium's views.
+  if(String((await w.snapshot()).glanceTabId)===String(tabId))await w.api('focusGlancePane',[String(tabId)]);
   const page=await tabPage(w,tabId);
   if(!await page.evaluate(s=>!!document.querySelector(s),String(selector)))return false;
   await page.locator(String(selector)).click({modifiers});return true;

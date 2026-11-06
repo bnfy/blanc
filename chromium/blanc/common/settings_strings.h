@@ -14,7 +14,7 @@ struct String {
   std::string_view name;
   std::u16string_view value;
 };
-inline constexpr std::array<String, 73> kStrings_en = {{
+inline constexpr std::array<String, 74> kStrings_en = {{
     {"blancIslandHoverOpen", u"Open the Island on hover"},
     {"blancIslandHoverOpenHint", u"Rest the pointer on the Island’s address to open it without clicking."},
     {"blancIslandAutoHide", u"Auto-hide the Island"},
@@ -35,6 +35,7 @@ inline constexpr std::array<String, 73> kStrings_en = {{
     {"blancProfiles", u"Profiles"},
     {"blancPatron", u"Blanc Patron"},
     {"blancPatronCheckout", u"Become a Patron — $4/month or $30/year"},
+    {"blancOpenLinkInGlance", u"Open Link in Glance"},
     {"blancWelcomeTour", u"Welcome tour"},
     {"blancWelcomeTourHint", u"Replay the first-run walkthrough; saved choices stay put"},
     {"blancUsagePing", u"Help improve Blanc"},
@@ -89,7 +90,7 @@ inline constexpr std::array<String, 73> kStrings_en = {{
     {"blancLanguageSystem", u"System ({language})"},
     {"blancLanguageRelaunch", u"Relaunch to apply"},
 }};
-inline constexpr std::array<String, 73> kStrings_de = {{
+inline constexpr std::array<String, 74> kStrings_de = {{
     {"blancIslandHoverOpen", u"Island beim Darüberfahren öffnen"},
     {"blancIslandHoverOpenHint", u"Lass den Zeiger auf der Adresse in der Island ruhen, um sie ohne Klick zu öffnen."},
     {"blancIslandAutoHide", u"Island automatisch ausblenden"},
@@ -110,6 +111,7 @@ inline constexpr std::array<String, 73> kStrings_de = {{
     {"blancProfiles", u"Profile"},
     {"blancPatron", u"Blanc Patron"},
     {"blancPatronCheckout", u"Patron werden – $4/Monat oder $30/Jahr"},
+    {"blancOpenLinkInGlance", u"Link in Glance öffnen"},
     {"blancWelcomeTour", u"Willkommenstour"},
     {"blancWelcomeTourHint", u"Die Einführung beim ersten Start erneut abspielen; gespeicherte Einstellungen bleiben erhalten"},
     {"blancUsagePing", u"Blanc verbessern helfen"},
@@ -164,7 +166,7 @@ inline constexpr std::array<String, 73> kStrings_de = {{
     {"blancLanguageSystem", u"System ({language})"},
     {"blancLanguageRelaunch", u"Zum Übernehmen neu starten"},
 }};
-inline constexpr std::array<String, 73> kStrings_es = {{
+inline constexpr std::array<String, 74> kStrings_es = {{
     {"blancIslandHoverOpen", u"Abrir la Island al pasar el cursor"},
     {"blancIslandHoverOpenHint", u"Deja el puntero sobre la dirección de la Island para abrirla sin hacer clic."},
     {"blancIslandAutoHide", u"Ocultar la Island automáticamente"},
@@ -185,6 +187,7 @@ inline constexpr std::array<String, 73> kStrings_es = {{
     {"blancProfiles", u"Perfiles"},
     {"blancPatron", u"Blanc Patron"},
     {"blancPatronCheckout", u"Hazte Patron — $4/mes o $30/año"},
+    {"blancOpenLinkInGlance", u"Abrir enlace en Glance"},
     {"blancWelcomeTour", u"Visita de bienvenida"},
     {"blancWelcomeTourHint", u"Repite la guía del primer inicio; tus elecciones guardadas no cambian"},
     {"blancUsagePing", u"Ayudar a mejorar Blanc"},
@@ -239,7 +242,7 @@ inline constexpr std::array<String, 73> kStrings_es = {{
     {"blancLanguageSystem", u"Sistema ({language})"},
     {"blancLanguageRelaunch", u"Reiniciar para aplicar"},
 }};
-inline constexpr std::array<String, 73> kStrings_fr = {{
+inline constexpr std::array<String, 74> kStrings_fr = {{
     {"blancIslandHoverOpen", u"Ouvrir l’Island au survol"},
     {"blancIslandHoverOpenHint", u"Laissez le pointeur sur l’adresse de l’Island pour l’ouvrir sans cliquer."},
     {"blancIslandAutoHide", u"Masquer automatiquement l’Island"},
@@ -260,6 +263,7 @@ inline constexpr std::array<String, 73> kStrings_fr = {{
     {"blancProfiles", u"Profils"},
     {"blancPatron", u"Blanc Patron"},
     {"blancPatronCheckout", u"Devenir Patron — $4/mois ou $30/an"},
+    {"blancOpenLinkInGlance", u"Ouvrir le lien dans Glance"},
     {"blancWelcomeTour", u"Visite de bienvenue"},
     {"blancWelcomeTourHint", u"Revoir la présentation du premier lancement ; vos choix enregistrés restent inchangés"},
     {"blancUsagePing", u"Aider à améliorer Blanc"},
@@ -314,7 +318,7 @@ inline constexpr std::array<String, 73> kStrings_fr = {{
     {"blancLanguageSystem", u"Système ({language})"},
     {"blancLanguageRelaunch", u"Redémarrer pour appliquer"},
 }};
-inline constexpr std::array<String, 73> kStrings_it = {{
+inline constexpr std::array<String, 74> kStrings_it = {{
     {"blancIslandHoverOpen", u"Apri l’Island al passaggio del puntatore"},
     {"blancIslandHoverOpenHint", u"Lascia il puntatore sull’indirizzo dell’Island per aprirla senza fare clic."},
     {"blancIslandAutoHide", u"Nascondi automaticamente l’Island"},
@@ -335,6 +339,7 @@ inline constexpr std::array<String, 73> kStrings_it = {{
     {"blancProfiles", u"Profili"},
     {"blancPatron", u"Blanc Patron"},
     {"blancPatronCheckout", u"Diventa Patron — $4/mese o $30/anno"},
+    {"blancOpenLinkInGlance", u"Apri link in Glance"},
     {"blancWelcomeTour", u"Tour di benvenuto"},
     {"blancWelcomeTourHint", u"Rivedi la guida del primo avvio; le scelte salvate restano invariate"},
     {"blancUsagePing", u"Aiuta a migliorare Blanc"},
@@ -389,7 +394,7 @@ inline constexpr std::array<String, 73> kStrings_it = {{
     {"blancLanguageSystem", u"Sistema ({language})"},
     {"blancLanguageRelaunch", u"Riavvia per applicare"},
 }};
-inline constexpr std::array<String, 73> kStrings_pt_BR = {{
+inline constexpr std::array<String, 74> kStrings_pt_BR = {{
     {"blancIslandHoverOpen", u"Abrir a Island ao passar o cursor"},
     {"blancIslandHoverOpenHint", u"Deixe o ponteiro sobre o endereço da Island para abri-la sem clicar."},
     {"blancIslandAutoHide", u"Ocultar a Island automaticamente"},
@@ -410,6 +415,7 @@ inline constexpr std::array<String, 73> kStrings_pt_BR = {{
     {"blancProfiles", u"Perfis"},
     {"blancPatron", u"Blanc Patron"},
     {"blancPatronCheckout", u"Torne-se Patron — $4/mês ou $30/ano"},
+    {"blancOpenLinkInGlance", u"Abrir link no Glance"},
     {"blancWelcomeTour", u"Tour de boas-vindas"},
     {"blancWelcomeTourHint", u"Rever o guia da primeira execução; suas escolhas salvas continuam iguais"},
     {"blancUsagePing", u"Ajudar a melhorar o Blanc"},

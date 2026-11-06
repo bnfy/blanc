@@ -379,7 +379,7 @@ export const pages={
  pressGlanceShortcut:async w=>{await w.hostEval('window.BlancPrototypeHost.toggleGlance()');return true;},
  openLinkInGlance:async(w,id,url)=>{const s=await w.snapshot();if(String(s.glanceTabId)!==String(id))await w.call('activateTab',id);return w.api('openLinkInGlance',[String(url)]);},
  sendGlanceCardInput:async(w,input)=>{const fr=w.frame('glanceCardFrame');if(!fr)return false;
-  if(input.type==='keyDown'){await fr.keyboard.press(input.keyCode);return true;}
+  if(input.type==='keyDown'){await w.hostEval('window.BlancPrototypeHost.focusGlanceCard()');await fr.keyboard.press(input.keyCode);return true;}
   throw new UndefinedNativeAdapterError('Card pointer input needs an adapter: '+input.type);},
  glancePageViewVisible:async w=>{const s=await w.snapshot();return !!s.tabs.find(t=>t.id===s.glanceTabId)?.viewBounds;},
  glanceCardFocused:async w=>{const fr=w.frame('glanceCardFrame');return fr?fr.evaluate(()=>document.hasFocus()):false;},
@@ -392,9 +392,12 @@ export const pages={
   // The page follows the card on Chromium's next layout.
   const same=(a,b)=>a&&b&&a.x===b.x&&a.y===b.y&&a.width===b.width&&a.height===b.height;
   for(let i=0;i<20&&!same(s.tabs.find(t=>t.id===s.glanceTabId)?.viewBounds,g.layout.card.page);i++){await new Promise(r=>setTimeout(r,50));s=await w.snapshot();}
-  const view=id=>s.tabs.find(t=>t.id===id)?.viewBounds??null;
-  const area=s.splitGeometry.pageArea;
-  return {...g.layout.card,cardViewBounds:g.layout.card.chrome,cardViewVisible:g.shown,pageArea:area,pageBounds:area,generation:g.layout.generation,focusedPane:g.layout.focusedPane,
+  // Shipping reads these in the window; the fork's are the Island's, which
+  // moves under a pushed Auto-hide.
+  const dy=s.splitGeometry.islandY||0;const win=r=>r&&{...r,y:r.y+dy};
+  const view=id=>win(s.tabs.find(t=>t.id===id)?.viewBounds??null);
+  const area=win(s.splitGeometry.pageArea);const c=g.layout.card;
+  return {chrome:win(c.chrome),frame:win(c.frame),header:win(c.header),page:win(c.page),cardViewBounds:win(c.chrome),cardViewVisible:g.shown,pageArea:area,pageBounds:area,generation:g.layout.generation,focusedPane:g.layout.focusedPane,
    viewBounds:view(s.glanceTabId),mainViewBounds:view(s.activeTabId),savedFrame:s.glanceFrame??null};
  },
  glanceHeaderMotion:()=>{throw new UndefinedNativeAdapterError('glanceHeaderMotion needs an adapter');},

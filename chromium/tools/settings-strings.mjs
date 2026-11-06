@@ -34,6 +34,7 @@ export const STRINGS = [
   ['blancProfiles', 'settings.profiles.title'],
   ['blancPatron', 'settings.patron.title'],
   ['blancPatronCheckout', 'settings.patron.patronCheckout'],
+  ['blancOpenLinkInGlance', 'contextMenu.openLinkInGlance'],
   ['blancWelcomeTour', 'settings.general.showWelcomeTour.label'],
   ['blancWelcomeTourHint', 'settings.general.showWelcomeTour.hint'],
   ['blancUsagePing', 'settings.privacy.usagePing.label'],
