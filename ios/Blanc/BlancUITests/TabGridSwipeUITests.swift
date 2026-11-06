@@ -44,4 +44,20 @@ final class TabGridSwipeUITests: XCTestCase {
     let shown = XCTNSPredicateExpectation(predicate: NSPredicate(format: "label CONTAINS %@", "example.org"), object: site)
     XCTAssertEqual(XCTWaiter().wait(for: [shown], timeout: 5), .completed, site.label)
   }
+
+  /// A short drag on the Island lets the page settle back.
+  func testAShortDragLeavesThePage() {
+    continueAfterFailure = false
+    let app = XCUIApplication()
+    app.launchArguments = ["-BlancUITestTwoTabs"]
+    app.launch()
+    let site = app.buttons["pill.palette"]
+    XCTAssertTrue(site.waitForExistence(timeout: 15))
+    let start = site.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.5))
+    start.press(forDuration: 0.05, thenDragTo: start.withOffset(CGVector(dx: 0, dy: -24)), withVelocity: 40, thenHoldForDuration: 0.3)
+    XCTAssertFalse(app.buttons.matching(identifier: "tab.card").firstMatch.waitForExistence(timeout: 2))
+    XCTAssertTrue(site.isHittable, "the Island is back and usable")
+    site.tap()
+    XCTAssertTrue(app.textFields["island.address"].waitForExistence(timeout: 5), "a tap right after isn't lost")
+  }
 }

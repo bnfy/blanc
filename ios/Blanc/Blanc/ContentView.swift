@@ -24,6 +24,8 @@ struct ContentView: View {
     /// M11: how far the page has followed a sideways swipe on the Island.
     @State private var swipeOffset: CGFloat = 0
     @State private var isSwiping = false
+    /// True while a drag on the Island carries the page toward the tab grid.
+    @State private var isLifting = false
     /// True while a switch's slide finishes; a new swipe waits for it.
     @State private var isCommitting = false
     /// Resets on its own when the drag ends or is cancelled.
@@ -131,7 +133,8 @@ struct ContentView: View {
                     .offset(x: swipeOffset + (swipeOffset < 0 ? pageWidth : -pageWidth))
             }
             // Glance (F34): a tab floating over the current page.
-            if layout.showsSplitView, shownSplit == nil, !showTabGrid, let glance = manager.glanceTab {
+            // It stays through a lift, which may still settle back.
+            if layout.showsSplitView, shownSplit == nil, !showTabGrid || isLifting, let glance = manager.glanceTab {
                 GlanceCard(manager: manager, tab: glance, style: BrowserStyle(scheme: glance.isPrivate ? .dark : colorScheme))
                     .id(glance.id)
                     // Clear of the floating Island, which stays put while it's open.
@@ -144,8 +147,10 @@ struct ContentView: View {
             // (or only fades, with Reduce Motion) and takes no touches.
             islandContainer
                 .offset(y: isIslandTucked && !reduceMotion ? (islandAtTop ? -(islandHeight + 80) : islandHeight + 40) : 0)
-                .opacity(isIslandTucked && reduceMotion ? 0 : 1 - min(1, gridMotion.progress * 3))
-                .allowsHitTesting(!isIslandTucked && !showTabGrid)
+                // Barely there, not gone, while it's being dragged: a view at
+                // zero opacity would lose the finger.
+                .opacity(isIslandTucked && reduceMotion ? 0 : max(isLifting ? 0.01 : 0, 1 - min(1, gridMotion.progress * 3)))
+                .allowsHitTesting(!isIslandTucked && islandTakesTouches)
                 .accessibilityHidden(showTabGrid)
                 .animation(.snappy(duration: 0.3), value: isIslandTucked)
         }
@@ -319,8 +324,8 @@ struct ContentView: View {
             // A two-finger swipe on a trackpad switches tabs the same way; it
             // never opens the tab grid, which is a touch gesture.
             .gesture(TrackpadSwipe(
-                changed: { swipeChanged($0) },
-                ended: { swipeEnded($0, predicted: $1, opensTabGrid: false) },
+                changed: { if !isLifting { swipeChanged($0, lifts: false) } },
+                ended: { if !isLifting { swipeEnded($0, predicted: $1) } },
                 cancelled: {
                     guard isSwiping else { return }
                     isSwiping = false
@@ -328,6 +333,10 @@ struct ContentView: View {
                 }))
             .onChange(of: isDragging) { _, dragging in
                 // A cancelled drag (a call, Control Center) gets no onEnded.
+                if !dragging, isLifting {
+                    isLifting = false
+                    followPagePinch(.ended(opens: false))
+                }
                 guard !dragging, isSwiping else { return }
                 isSwiping = false
                 if !isCommitting { withAnimation(Self.swipeSpring) { swipeOffset = 0 } }
@@ -514,10 +523,22 @@ struct ContentView: View {
         .allowsHitTesting(false)
     }
 
-    private func swipeChanged(_ translation: CGSize) {
+    /// A trackpad's swipe never lifts: the tab grid is a touch gesture.
+    private func swipeChanged(_ translation: CGSize, lifts: Bool = true) {
+        guard !isCommitting else { return }
+        if isLifting {
+            let lifted = TabGridMotion.lifted(translation, islandAtTop: islandAtTop, height: pageFrame.height)
+            followPagePinch(.moved(scale: lifted.scale, translation: lifted.translation))
+            return
+        }
+        if lifts, !isSwiping, islandTakesTouches, TabGridMotion.isLift(translation, islandAtTop: islandAtTop) {
+            isLifting = true
+            followPagePinch(.started)
+            return
+        }
         // Side by side, the Island's sideways swipe would slide two pages at
         // once; the tab grid and palette switch tabs instead.
-        guard !isCommitting, shownSplit == nil else { return }
+        guard shownSplit == nil else { return }
         if !isSwiping {
             guard IslandSwipe.isSideways(translation) else { return }
             isSwiping = true
@@ -529,18 +550,29 @@ struct ContentView: View {
                                             hasNext: manager.neighbor(of: id, offset: 1) != nil)
     }
 
-    private func swipeEnded(_ translation: CGSize, predicted: CGSize, opensTabGrid: Bool = true) {
-        guard !isCommitting else { return }
-        guard isSwiping else {
-            guard opensTabGrid else { return }
-            // A swipe from the Island into the page (up from the bottom, down
-            // from the top) opens the tab grid.
-            let intoPage = islandAtTop ? translation.height : -translation.height
-            if intoPage > 40 && abs(translation.height) > abs(translation.width) {
-                openTabGrid()
-            }
+    /// The finger lifted from carrying the page: on to the grid or back.
+    private func endLift(_ translation: CGSize, predicted: CGSize) {
+        isLifting = false
+        let opens = TabGridMotion.liftOpens(travel: TabGridMotion.liftTravel(translation, islandAtTop: islandAtTop),
+                                            predicted: TabGridMotion.liftTravel(predicted, islandAtTop: islandAtTop))
+        guard opens, manager.activeTabId.flatMap({ cardFrames[$0] }) == nil else {
+            followPagePinch(.ended(opens: opens))
             return
         }
+        // A flick can end before the card is laid out.
+        Task { @MainActor in
+            try? await Task.sleep(for: .milliseconds(40))
+            followPagePinch(.ended(opens: true))
+        }
+    }
+
+    private func swipeEnded(_ translation: CGSize, predicted: CGSize) {
+        guard !isCommitting else { return }
+        if isLifting {
+            endLift(translation, predicted: predicted)
+            return
+        }
+        guard isSwiping else { return }
         isSwiping = false
         let id = manager.activeTabId
         let outcome = IslandSwipe.outcome(dx: translation.width,
@@ -584,6 +616,10 @@ struct ContentView: View {
         }
     }
 
+    /// Off while the grid is up, on again as soon as the page is on its way
+    /// back, so a quick tap or swipe after a short drag isn't lost.
+    private var islandTakesTouches: Bool { !showTabGrid || isLifting || gridPage == .full }
+
     private var gridMotion: TabGridMotion.Transform {
         TabGridMotion.transform(gridPage, in: pageFrame, card: manager.activeTabId.flatMap { cardFrames[$0] })
     }
@@ -592,7 +628,16 @@ struct ContentView: View {
 
     /// Puts the grid behind the page, which is still full size.
     private func revealTabGrid() {
-        for tab in visibleTabs { tab.captureThumbnail() }
+        // Kept off the first frame of the motion: a web page's picture comes
+        // back later, and the page covers its card until it lands. Blanc's own
+        // pages are drawn as they stand, for the native clock.
+        if let tab = manager.activeTab {
+            if tab.currentURL.scheme == "blanc" {
+                tab.captureThumbnail(afterScreenUpdates: false)
+            } else {
+                Task { await tab.capturePreparedThumbnail() }
+            }
+        }
         cardFrames = [:]
         gridPage = .pinching(scale: 1, translation: .zero)
         gridPageOpacity = 1
@@ -624,6 +669,7 @@ struct ContentView: View {
 
     private func closeTabGrid() {
         guard showTabGrid else { return }
+        isLifting = false
         gridPage = .card
         if reduceMotion {
             gridPage = .full

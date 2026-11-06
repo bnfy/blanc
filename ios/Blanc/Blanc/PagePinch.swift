@@ -40,6 +40,33 @@ enum TabGridMotion {
         return scale < opensBelowScale || velocity < -0.6
     }
 
+    /// How far a drag on the Island has gone into the page, up from a bottom
+    /// Island or down from a top one.
+    static func liftTravel(_ translation: CGSize, islandAtTop: Bool) -> CGFloat {
+        islandAtTop ? translation.height : -translation.height
+    }
+
+    /// A drag counts once it's clearly into the page rather than sideways.
+    static func isLift(_ translation: CGSize, islandAtTop: Bool) -> Bool {
+        let travel = liftTravel(translation, islandAtTop: islandAtTop)
+        return travel >= 12 && travel > abs(translation.width)
+    }
+
+    /// The page on a drag of the Island: it shrinks as it goes, down to the
+    /// smallest a pinch allows, and the edge by the Island stays under the finger.
+    static func lifted(_ translation: CGSize, islandAtTop: Bool, height: CGFloat) -> (scale: CGFloat, translation: CGSize) {
+        let travel = max(0, liftTravel(translation, islandAtTop: islandAtTop))
+        let scale = max(smallestScale, 1 - travel / max(height, 1))
+        let rise = travel - (1 - scale) * height / 2
+        return (scale, CGSize(width: translation.width, height: islandAtTop ? rise : -rise))
+    }
+
+    /// Far enough to open, unless the finger is heading back; a quick flick
+    /// counts even when short.
+    static func liftOpens(travel: CGFloat, predicted: CGFloat) -> Bool {
+        predicted > 40 && (travel > 40 || predicted > 120)
+    }
+
     static func transform(_ page: Page, in frame: CGRect, card: CGRect?) -> Transform {
         switch page {
         case .full:

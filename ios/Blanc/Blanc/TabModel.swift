@@ -181,7 +181,7 @@ final class TabModel: Identifiable {
     /// In-memory square preview of the last visible page, including native glass.
     /// Never mount or load background tabs just to produce a thumbnail.
     @MainActor
-    func captureThumbnail(allowCovered: Bool = false) {
+    func captureThumbnail(allowCovered: Bool = false, afterScreenUpdates: Bool = true) {
         guard let webView = storage, let window = webView.window, allowCovered || window.rootViewController?.presentedViewController == nil,
               webView.bounds.width > 0, webView.bounds.height > 0 else { return }
         let side = Self.thumbnailSide(webView.bounds.size)
@@ -194,7 +194,7 @@ final class TabModel: Identifiable {
         // hierarchy rect. Capture at its real size, then crop/downsample.
         var drawn = false
         let full = UIGraphicsImageRenderer(bounds: webView.bounds, format: format).image { _ in
-            drawn = webView.drawHierarchy(in: webView.bounds, afterScreenUpdates: true)
+            drawn = webView.drawHierarchy(in: webView.bounds, afterScreenUpdates: afterScreenUpdates)
         }
         guard drawn else { return }
         thumbnail = UIGraphicsImageRenderer(size: CGSize(width: side, height: side), format: format).image { _ in
@@ -211,7 +211,9 @@ final class TabModel: Identifiable {
             return
         }
         let configuration = WKSnapshotConfiguration()
-        configuration.snapshotWidth = NSNumber(value: Double(Self.thumbnailSide(webView.bounds.size)))
+        // The side is the page's short one: a page wider than tall would otherwise be scaled up.
+        let bounds = webView.bounds.size
+        configuration.snapshotWidth = NSNumber(value: Double(Self.thumbnailSide(bounds) * max(1, bounds.width / max(bounds.height, 1))))
         guard let full = try? await webView.takeSnapshot(configuration: configuration),
               currentURL == url, !Task.isCancelled, full.size.width > 0, full.size.height > 0 else { return }
         let side = Self.thumbnailSide(webView.bounds.size)
