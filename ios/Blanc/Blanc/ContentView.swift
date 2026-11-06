@@ -16,7 +16,11 @@ struct ContentView: View {
     /// The page's opacity, which fades as it lands in its card.
     @State private var gridPageOpacity: Double = 1
     /// Each tab's card in the grid, so the page knows where any tab's sits.
-    @State private var cardFrames: [UUID: CGRect] = [:]
+    @State private var cardFrames = TabCardFrames()
+    /// The cards the pages on screen land on or leave from, read as they do.
+    @State private var landingCards: [UUID: CGRect] = [:]
+    /// Goes up as the grid opens or closes, so a delayed step can tell it's stale.
+    @State private var gridPass = 0
     @State private var pageFrame = CGRect.zero
     /// The Island's controls either side of the address, to center it between them.
     @State private var islandLeadingWidth: CGFloat = 0
@@ -106,24 +110,29 @@ struct ContentView: View {
             Color.clear.ignoresSafeArea(edges: pageEdges)
                 .onGeometryChange(for: CGRect.self) { $0.frame(in: .global) } action: { pageFrame = $0 }
             if showTabGrid {
-                TabGridView(manager: manager, close: { closeTabGrid() }, onCardFrame: { cardFrames[$0] = $1 })
-                    .blur(radius: reduceMotion ? 0 : 20 * (1 - gridMotion.progress))
+                TabGridView(manager: manager, close: { closeTabGrid() }, onCardFrame: { cardFrames.byTab[$0] = $1 })
+                    // In whole points, so it's redrawn less often as the fingers move.
+                    .blur(radius: reduceMotion ? 0 : (20 * (1 - gridProgress)).rounded())
             }
             // One layout for one page or a split's panes: the current tab's
             // view keeps its identity when a split opens or closes around it,
             // so its web view moves and never reloads.
             SplitPaneLayout(ratio: draggedRatio ?? shownSplit?.ratio ?? 0.5,
                             inset: Self.splitInset, gap: Self.splitGap) {
-                ForEach(visibleTabs) { tab in pane(tab) }
+                // Each page moves on its own, so a split's panes can land on
+                // their own cards.
+                ForEach(Array(visibleTabs.enumerated()), id: \.element.id) { index, tab in
+                    let motion = gridMotion(tab, at: index)
+                    pane(tab)
+                        .clipShape(RoundedRectangle(cornerRadius: motion.cornerRadius, style: .continuous))
+                        .scaleEffect(motion.scale)
+                        .offset(motion.offset)
+                }
             }
-            .overlay { if let split = shownSplit { splitDivider(split) } }
+            .overlay { if let split = shownSplit { splitDivider(split).opacity(showTabGrid ? 0 : 1) } }
             .padding(islandAtTop ? .top : .bottom, shownSplit != nil ? islandBand : 0)
-            // Inside `ignoresSafeArea`, or it clips the page to the safe area.
-            .clipShape(RoundedRectangle(cornerRadius: gridMotion.cornerRadius, style: .continuous))
             .ignoresSafeArea(edges: pageEdges)
             .offset(x: swipeOffset)
-            .scaleEffect(gridMotion.scale)
-            .offset(gridMotion.offset)
             .opacity(gridPageOpacity)
             .allowsHitTesting(!showTabGrid)
             .accessibilityHidden(showTabGrid)
@@ -133,13 +142,16 @@ struct ContentView: View {
                     .offset(x: swipeOffset + (swipeOffset < 0 ? pageWidth : -pageWidth))
             }
             // Glance (F34): a tab floating over the current page.
-            // It stays through a lift, which may still settle back.
-            if layout.showsSplitView, shownSplit == nil, !showTabGrid || isLifting, let glance = manager.glanceTab {
-                GlanceCard(manager: manager, tab: glance, style: BrowserStyle(scheme: glance.isPrivate ? .dark : colorScheme))
-                    .id(glance.id)
-                    // Clear of the floating Island, which stays put while it's open.
-                    .padding(islandAtTop ? .top : .bottom, islandBand)
+            ZStack {
+                if showsGlance, let glance = manager.glanceTab {
+                    GlanceCard(manager: manager, tab: glance, style: BrowserStyle(scheme: glance.isPrivate ? .dark : colorScheme))
+                        .id(glance.id)
+                        // Clear of the floating Island, which stays put while it's open.
+                        .padding(islandAtTop ? .top : .bottom, islandBand)
+                }
             }
+            // It fades as the grid comes and goes, rather than blinking.
+            .animation(.easeOut(duration: 0.18), value: showsGlance)
         }
         .onGeometryChange(for: CGFloat.self) { $0.size.width } action: { pageWidth = $0 }
         .overlay(alignment: islandAtTop ? .top : .bottom) {
@@ -149,7 +161,7 @@ struct ContentView: View {
                 .offset(y: isIslandTucked && !reduceMotion ? (islandAtTop ? -(islandHeight + 80) : islandHeight + 40) : 0)
                 // Barely there, not gone, while it's being dragged: a view at
                 // zero opacity would lose the finger.
-                .opacity(isIslandTucked && reduceMotion ? 0 : max(isLifting ? 0.01 : 0, 1 - min(1, gridMotion.progress * 3)))
+                .opacity(isIslandTucked && reduceMotion ? 0 : max(isLifting ? 0.01 : 0, 1 - min(1, gridProgress * 3)))
                 .allowsHitTesting(!isIslandTucked && islandTakesTouches)
                 .accessibilityHidden(showTabGrid)
                 .animation(.snappy(duration: 0.3), value: isIslandTucked)
@@ -555,15 +567,7 @@ struct ContentView: View {
         isLifting = false
         let opens = TabGridMotion.liftOpens(travel: TabGridMotion.liftTravel(translation, islandAtTop: islandAtTop),
                                             predicted: TabGridMotion.liftTravel(predicted, islandAtTop: islandAtTop))
-        guard opens, manager.activeTabId.flatMap({ cardFrames[$0] }) == nil else {
-            followPagePinch(.ended(opens: opens))
-            return
-        }
-        // A flick can end before the card is laid out.
-        Task { @MainActor in
-            try? await Task.sleep(for: .milliseconds(40))
-            followPagePinch(.ended(opens: true))
-        }
+        followPagePinch(.ended(opens: opens))
     }
 
     private func swipeEnded(_ translation: CGSize, predicted: CGSize) {
@@ -620,8 +624,31 @@ struct ContentView: View {
     /// back, so a quick tap or swipe after a short drag isn't lost.
     private var islandTakesTouches: Bool { !showTabGrid || isLifting || gridPage == .full }
 
-    private var gridMotion: TabGridMotion.Transform {
-        TabGridMotion.transform(gridPage, in: pageFrame, card: manager.activeTabId.flatMap { cardFrames[$0] })
+    private var gridProgress: CGFloat { TabGridMotion.progress(gridPage) }
+
+    /// Glance stays through a lift, which may still settle back.
+    private var showsGlance: Bool { layout.showsSplitView && shownSplit == nil && (!showTabGrid || isLifting) }
+
+    /// Where the page area's panes sit: the whole of it for one page.
+    private var paneFrames: [CGRect] {
+        var area = pageFrame
+        if shownSplit != nil {
+            area.size.height -= islandBand
+            if islandAtTop { area.origin.y += islandBand }
+        }
+        return SplitPaneLayout(ratio: draggedRatio ?? shownSplit?.ratio ?? 0.5, inset: Self.splitInset, gap: Self.splitGap)
+            .frames(in: area, count: visibleTabs.count)
+    }
+
+    private func gridMotion(_ tab: TabModel, at index: Int) -> TabGridMotion.Transform {
+        let panes = paneFrames
+        return TabGridMotion.transform(gridPage, pane: panes.indices.contains(index) ? panes[index] : nil, in: pageFrame,
+                                       card: landingCards[tab.id], centered: tab.currentURL.scheme == "blanc")
+    }
+
+    /// The cards of the pages on screen, as the grid has them now.
+    private var shownCards: [UUID: CGRect] {
+        Dictionary(uniqueKeysWithValues: visibleTabs.compactMap { tab in cardFrames.byTab[tab.id].map { (tab.id, $0) } })
     }
 
     private static let gridSpring = Animation.spring(response: 0.42, dampingFraction: 0.86)
@@ -631,14 +658,16 @@ struct ContentView: View {
         // Kept off the first frame of the motion: a web page's picture comes
         // back later, and the page covers its card until it lands. Blanc's own
         // pages are drawn as they stand, for the native clock.
-        if let tab = manager.activeTab {
+        for tab in visibleTabs {
             if tab.currentURL.scheme == "blanc" {
                 tab.captureThumbnail(afterScreenUpdates: false)
             } else {
                 Task { await tab.capturePreparedThumbnail() }
             }
         }
-        cardFrames = [:]
+        gridPass += 1
+        cardFrames.byTab = [:]
+        landingCards = [:]
         gridPage = .pinching(scale: 1, translation: .zero)
         gridPageOpacity = 1
         showTabGrid = true
@@ -648,16 +677,23 @@ struct ContentView: View {
     /// From the Island's swipe or VoiceOver: the same landing a pinch ends in.
     private func openTabGrid() {
         revealTabGrid()
-        // The card has to be laid out before the page can aim for it.
-        Task { @MainActor in
-            try? await Task.sleep(for: .milliseconds(40))
-            settleInTabGrid()
-        }
+        settleInTabGrid()
     }
 
-    private func settleInTabGrid() {
+    private func settleInTabGrid(waitingForCards: Bool = true) {
         // A link can close the grid before a delayed landing runs.
         guard showTabGrid else { return }
+        // A flick can end before the cards are laid out, and the landing reads
+        // them once.
+        if waitingForCards, shownCards.count < visibleTabs.count {
+            let pass = gridPass
+            Task { @MainActor in
+                try? await Task.sleep(for: .milliseconds(40))
+                if pass == gridPass { settleInTabGrid(waitingForCards: false) }
+            }
+            return
+        }
+        landingCards = shownCards
         if reduceMotion {
             gridPage = .card
             withAnimation(.easeInOut(duration: 0.2)) { gridPageOpacity = 0 }
@@ -669,8 +705,23 @@ struct ContentView: View {
 
     private func closeTabGrid() {
         guard showTabGrid else { return }
+        gridPass += 1
         isLifting = false
+        let cards = shownCards
+        let moved = cards != landingCards
+        landingCards = cards
         gridPage = .card
+        guard moved else { return leaveTabGrid() }
+        let pass = gridPass
+        // The grid scrolled or another tab was chosen: the page has to be
+        // drawn on that card once before it can grow from it.
+        Task { @MainActor in
+            try? await Task.sleep(for: .milliseconds(20))
+            if pass == gridPass { leaveTabGrid() }
+        }
+    }
+
+    private func leaveTabGrid() {
         if reduceMotion {
             gridPage = .full
             withAnimation(.easeInOut(duration: 0.2)) { gridPageOpacity = 1 } completion: { hideTabGridIfPageIsFull() }
@@ -961,14 +1012,17 @@ struct SplitPaneLayout: Layout {
     }
 
     func placeSubviews(in bounds: CGRect, proposal: ProposedViewSize, subviews: Subviews, cache: inout ()) {
-        guard subviews.count == 2 else {
-            for subview in subviews { subview.place(at: bounds.origin, proposal: ProposedViewSize(bounds.size)) }
-            return
+        for (subview, frame) in zip(subviews, frames(in: bounds, count: subviews.count)) {
+            subview.place(at: frame.origin, proposal: ProposedViewSize(frame.size))
         }
+    }
+
+    /// Where `count` panes go in `bounds`.
+    func frames(in bounds: CGRect, count: Int) -> [CGRect] {
+        guard count == 2 else { return Array(repeating: bounds, count: count) }
         let inner = bounds.insetBy(dx: inset, dy: inset)
         let widths = SplitModel.paneWidths(ratio, width: inner.width, gap: gap)
-        subviews[0].place(at: inner.origin, proposal: ProposedViewSize(width: widths.leading, height: inner.height))
-        subviews[1].place(at: CGPoint(x: inner.minX + widths.leading + gap, y: inner.minY),
-                          proposal: ProposedViewSize(width: widths.trailing, height: inner.height))
+        return [CGRect(x: inner.minX, y: inner.minY, width: widths.leading, height: inner.height),
+                CGRect(x: inner.minX + widths.leading + gap, y: inner.minY, width: widths.trailing, height: inner.height)]
     }
 }
