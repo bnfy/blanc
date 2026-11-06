@@ -1,5 +1,5 @@
 {
-  "updated": "2026-11-02",
+  "updated": "2026-11-06",
   "stages": [
     { "id": "now", "label": "Now", "summary": "In the works" },
     { "id": "next", "label": "Next", "summary": "On the horizon" },
@@ -28,13 +28,6 @@
       "product": "Blanc Browser",
       "title": "Opt-in crash reports",
       "line": "Help us fix bugs faster, only if you turn it on. Reports never include the pages you visit."
-    },
-    {
-      "id": "iphone",
-      "stage": "now",
-      "product": "Mobile",
-      "title": "Blanc on iPhone",
-      "line": "A public beta is on TestFlight. Pair it with Blanc on your computer by scanning a code."
     },
     {
       "id": "page-translation",

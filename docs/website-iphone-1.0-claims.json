@@ -1,0 +1,104 @@
+{
+ "iosRelease": "1.0 (202611030537)",
+ "iosSourceSha": "84f861dfc9dbaa782231c4d93df88a82c12b3d7b",
+ "desktopRelease": "v1.45.0",
+ "releaseEvidence": "docs/ios/app-store-connect.md",
+ "scope": "Site copy changed on November 6, 2026, after the owner reported that App Review approved Blanc for iPhone 1.0 and released it on the App Store: the download page’s iPhone card and section, the /pair fallback, the homepage answer “Can I sync with my phone?” and the /compare chart (recorded in docs/website-compare-claims-v1.46.0.json) say it is on the App Store instead of a TestFlight beta. The privacy policy’s iPhone section was revised the same day. The App Store listing itself could not be read from the build environment (apps.apple.com unreachable); the release rests on the owner’s report and the App Store Connect record.",
+ "prohibitedClaims": [
+  "public beta on TestFlight",
+  "public TestFlight beta",
+  "in beta through Apple",
+  "Blanc for iPhone, in beta",
+    "iPhone · Beta"
+ ],
+ "evidenceGroups": {
+  "iphoneAppStore": {
+   "ref": "84f861dfc9dbaa782231c4d93df88a82c12b3d7b",
+   "evidence": [
+    "ios/Blanc/Blanc.xcodeproj/project.pbxproj",
+    "ios/Blanc/Blanc/ContentBlocker.swift",
+    "ios/Blanc/Blanc/PairWithBlancView.swift",
+    "ios/Blanc/Blanc/Sync/SyncEngine.swift"
+   ],
+   "records": [
+    "docs/ios/app-store-connect.md",
+    "site/src/data/ios-availability.json"
+   ],
+   "qualification": "Blanc for iPhone 1.0, build 202611030537 from 84f861dfc, approved by App Review and released on the App Store (Apple ID 6828027794, free) by the owner on November 6, 2026. That build is iPhone only (TARGETED_DEVICE_FAMILY 1) and needs iOS 18.4 or later; it carries no default-browser setting, no website passkeys and no iPad support, which later builds add and which are not claimed until an App Store update ships them. It blocks ads and trackers with WKContentRuleList from the bundled EasyList and EasyPrivacy rules and joins a desktop Sync, including Pair with your Blanc. The public TestFlight beta stays open for early builds."
+  },
+  "iphonePairing": {
+   "ref": "v1.45.0",
+   "evidence": [
+    "src/main/main.js",
+    "copy/messages/en.json",
+    "docs/press/release-notes/v1.45.0.md"
+   ],
+   "qualification": "Since desktop v1.45.0 (IPHONE_PAIRING_FROM is 1.45) Settings → Sync → Connect your iPhone, and Add device when Sync is on, show a QR code that Blanc for iPhone scans with Pair with your Blanc to join the same Sync, bringing Favorites and the other devices’ tabs. Android has no Blanc app."
+  },
+  "syncWithoutPassphrase": {
+   "ref": "v1.45.0",
+   "evidence": [
+    "src/main/sync.js",
+    "src/main/sync-pairing.js",
+    "docs/press/release-notes/v1.45.0.md"
+   ],
+   "qualification": "Optional Sync keeps Favorites, settings and open tabs in step across computers, end-to-end encrypted; history and passwords never sync. See docs/website-v1.45-claims.json."
+  }
+ },
+ "claims": [
+  {
+   "id": "iphone10-001",
+   "source": "site/src/pages/index.astro",
+   "exactWording": "On an iPhone, yes: Blanc for iPhone is on the App Store. Since Blanc 1.45 you pair it by scanning a code in Settings → Sync, and your Favorites and your other devices’ tabs come with you. Optional sync keeps Favorites, settings and open tabs in step across your computers, end-to-end encrypted. History and passwords never sync.",
+   "subject": "Blanc",
+   "evidenceGroups": [
+    "iphoneAppStore",
+    "iphonePairing",
+    "syncWithoutPassphrase"
+   ],
+   "verdict": "verified",
+   "replaces": "v145-020"
+  },
+  {
+   "id": "iphone10-002",
+   "source": "site/src/pages/download.astro",
+   "exactWording": "Blanc for iPhone is free on the App Store. It joins the Sync you set up in Blanc on your computer, so your other devices' tabs and your Favorites come with you, and it blocks ads and trackers.",
+   "subject": "Blanc",
+   "evidenceGroups": [
+    "iphoneAppStore",
+    "iphonePairing"
+   ],
+   "verdict": "verified"
+  },
+  {
+   "id": "iphone10-003",
+   "source": "site/src/pages/download.astro",
+   "exactWording": "Needs iOS 18.4 or later. The beta gets new builds first and needs Apple's free TestFlight app.",
+   "subject": "Blanc",
+   "evidenceGroups": [
+    "iphoneAppStore"
+   ],
+   "verdict": "verified"
+  },
+  {
+   "id": "iphone10-004",
+   "source": "site/src/pages/pair.astro",
+   "exactWording": "Don’t have Blanc for iPhone yet? It’s free on the App Store.",
+   "subject": "Blanc",
+   "evidenceGroups": [
+    "iphoneAppStore"
+   ],
+   "verdict": "verified"
+  },
+  {
+   "id": "iphone10-005",
+   "source": "site/src/pages/privacy.astro",
+   "exactWording": "Blanc for iPhone is available on Apple's App Store, and as a beta through Apple's TestFlight.",
+   "subject": "Blanc",
+   "evidenceGroups": [
+    "iphoneAppStore"
+   ],
+   "verdict": "verified"
+  }
+ ]
+}
