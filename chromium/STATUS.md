@@ -1265,6 +1265,33 @@ interrupted Favorite could read as a removal and delete the bookmark, and that a
 runner not answering read as Sync off; both fixed with tests that fail when the
 bugs are put back, with the rest in the rulings.
 
+### A4b Sync: open tabs, Send to device, background sync
+
+Sharing open tabs is off until asked, and private tabs never reach it. Other
+devices and sent pages show in the palette and reach the Start Page, and `/send`
+and the Sunrise menu send the current page. Background sync runs through
+Chromium's own scheduler every 15 minutes at best: it fetches and keeps, and with
+no tab model it can't touch this phone's tab list elsewhere. Synced Recently
+closed moved to A4c, because the iPhone shows it only with the Spaces switch on.
+
+- **Candidate** (x86_64, emulator): SHA-256
+  `d3373a848ae82b558af0ca1db00cc8c730549b0f337db040feef45612c46685a`.
+
+| A4b gate | Result | Evidence (`~/blanc-evidence/android/a4b-final/`) |
+| --- | --- | --- |
+| Sync: A4a's checks, sharing, private tabs, sent pages, `/send`, a background run with Blanc killed | 15 of 15 | `sync/` |
+| Blocking, acceptance | 14 of 14, 32 of 32 | `a3/` |
+| Robolectric | 402 | server log |
+| A1 and A2 checks | Pass (A1's rerun after the rotation check was fixed) | `a1-rerun/`, `a3/a2/` |
+| Owner hands-on, Pixel and desktop | **Pending A4's end** | — |
+
+The review found that saving after each runner call also ran shipping's quit
+handler, which cancelled a pairing code as soon as it showed; fixed, with a test
+through the real call path. Long gate runs also exposed emulator races in the
+tests (the menu's count, rotation after a navigation mode change, refused UI
+dumps, the Worker's 30 reads a minute), now fixed in the tests. One `/allow-ads`
+timeout stays unexplained: it missed 15 seconds in two full runs and never alone.
+
 <!-- BEGIN GENERATED PROGRESS -->
 ### Bar A — executable shipping cases on the fork
 

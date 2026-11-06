@@ -109,7 +109,12 @@ function main(argv) {
         // Island has been laid out in it. One that never gets there still fails below.
         const inside = pill => pill && pill.right <= screen.width && pill.bottom <= screen.height;
         let xml = dump();
-        for (let i = 0; i < 10 && !(shapedLike(xml, screen) && inside(boundsOf(xml, 'blanc_island_pill'))); i++) { sleep(1); xml = dump(); }
+        for (let i = 0; i < 10 && !(shapedLike(xml, screen) && inside(boundsOf(xml, 'blanc_island_pill'))); i++) {
+          // A navigation mode change can swallow the request to rotate, so it's made again.
+          adb('shell', 'settings', 'put', 'system', 'user_rotation', String(rotation));
+          sleep(1);
+          xml = dump();
+        }
         const bars = barsOf(adb('shell', 'dumpsys', 'window'));
         const rest = boundsOf(xml, 'blanc_island_pill');
         const problems = placementProblems({pill: rest, screen, bars, density, position});
