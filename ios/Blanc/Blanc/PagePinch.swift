@@ -67,26 +67,51 @@ enum TabGridMotion {
         predicted > 40 && (travel > 40 || predicted > 120)
     }
 
-    static func transform(_ page: Page, in frame: CGRect, card: CGRect?) -> Transform {
+    /// How far along the page is, for the grid's focus and the Island's fade.
+    static func progress(_ page: Page) -> CGFloat {
+        switch page {
+        case .full: 0
+        case .pinching(let raw, _): min(1, (1 - min(1, max(smallestScale, raw))) / (1 - fullProgressScale))
+        case .card: 1
+        }
+    }
+
+    /// `pane` is the page's own place inside `frame`, the whole page area: a
+    /// split's panes shrink together around the area's center, then each
+    /// lands on its own card. `centered` is for Blanc's own pages, whose
+    /// pictures are cut from the middle.
+    static func transform(_ page: Page, pane: CGRect? = nil, in frame: CGRect, card: CGRect?,
+                          centered: Bool = false) -> Transform {
+        let pane = pane ?? frame
         switch page {
         case .full:
             return Transform()
         case .pinching(let raw, let translation):
             let scale = min(1, max(smallestScale, raw))
-            let progress = min(1, (1 - scale) / (1 - fullProgressScale))
-            return Transform(scale: scale, offset: translation,
+            let progress = progress(page)
+            let offset = CGSize(width: translation.width + (scale - 1) * (pane.midX - frame.midX),
+                                height: translation.height + (scale - 1) * (pane.midY - frame.midY))
+            return Transform(scale: scale, offset: offset,
                              cornerRadius: cardRadius * min(1, progress * 3) / scale, progress: progress)
         case .card:
-            guard let card, frame.width > 0 else {
+            guard let card, pane.width > 0, pane.height > 0 else {
                 return Transform(scale: fullProgressScale, cornerRadius: cardRadius / fullProgressScale, progress: 1)
             }
-            let scale = card.width / frame.width
-            // The page's top meets the card's; the rest fades as it lands.
-            let offset = CGSize(width: card.midX - frame.midX,
-                                height: card.minY + frame.height * scale / 2 - frame.midY)
+            // The card's picture is the page's short side, filled: match it, so
+            // the page and its card line up as one fades into the other.
+            let scale = max(card.width / pane.width, card.height / pane.height)
+            let top = centered ? card.midY - pane.height * scale / 2 : card.minY
+            let offset = CGSize(width: card.midX - pane.midX,
+                                height: top + pane.height * scale / 2 - pane.midY)
             return Transform(scale: scale, offset: offset, cornerRadius: cardRadius / scale, progress: 1)
         }
     }
+}
+
+/// Where each tab's card sits in the grid. A plain box, not observed: cards
+/// report on every frame of a scroll, and nothing redraws for that.
+final class TabCardFrames {
+    var byTab: [UUID: CGRect] = [:]
 }
 
 /// Watches a web view's pinches alongside its own, never instead of them. A

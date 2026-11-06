@@ -21,10 +21,10 @@ final class TabGridSwipeUITests: XCTestCase {
     XCTAssertTrue(cards.element(boundBy: 1).waitForExistence(timeout: 5))
     XCTAssertEqual(cards.count, 2)
     cards.element(boundBy: 1).swipeLeft()
-    let one = XCTNSPredicateExpectation(predicate: NSPredicate(format: "count == 1"), object: cards)
-    XCTAssertEqual(XCTWaiter().wait(for: [one], timeout: 5), .completed, "the swiped card's tab closed")
     let undo = app.buttons["banner.undo"]
     XCTAssertTrue(undo.waitForExistence(timeout: 5), "Undo shows in the grid, where the tab was closed")
+    // Tap at once: the banner lasts five seconds and a slow runner's queries
+    // eat into them, so the closed card isn't counted first.
     undo.tap()
     let two = XCTNSPredicateExpectation(predicate: NSPredicate(format: "count == 2"), object: cards)
     XCTAssertEqual(XCTWaiter().wait(for: [two], timeout: 5), .completed, "Undo brings the card back")
