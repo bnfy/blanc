@@ -272,6 +272,15 @@ public final class SyncSheet {
             case DEVICE_NAME -> field(text(R.string.blanc_ios_settings_device_name), mDeviceName, false, value -> mDeviceName = value);
             case SAVE_NAME -> button(text(R.string.blanc_ios_settings_save_name),
                     v -> run("sync.setThisDeviceName", new Object[] {mDeviceName}, text(R.string.blanc_ios_settings_saved)));
+            case SHARE_TABS -> {
+                android.widget.Switch share = new android.widget.Switch(mActivity);
+                share.setText(R.string.blanc_ios_settings_share_tabs);
+                share.setChecked(mStatus.optBoolean("syncTabs"));
+                share.setEnabled(!mBusy);
+                share.setOnCheckedChangeListener((v, on) -> run("sync.setSyncTabs", new Object[] {on}, null));
+                mList.addView(share);
+            }
+            case SHARE_HELP -> line(text(R.string.blanc_ios_settings_share_tabs_help));
             case SYNC_NOW -> button(text(R.string.blanc_settings_sync_sync_now), v -> run("sync.syncNow", new Object[] {}, null));
             case PAIR_DEVICE -> button(text(R.string.blanc_settings_sync_add_another_device), v -> beginPairing());
             case COPY_RECOVERY -> button(text(R.string.blanc_settings_sync_recovery_copy), v -> confirmRecovery());

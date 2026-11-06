@@ -1,5 +1,6 @@
 // Copyright 2026 Bananify Creative. MIT; see LICENSE.
 #include "blanc/android/browser/blanc_pages_ui.h"
+#include "blanc/android/browser/sync_start_data.h"
 
 #include <algorithm>
 #include <set>
@@ -185,8 +186,9 @@ class PagesHandler : public content::WebUIMessageHandler {
         .Set("mobileAdblockEnabled",
              profile()->GetOriginalProfile()->GetPrefs()->GetBoolean("blanc.blocking.enabled") &&
                  std::string_view(::blanc::BlockerHealth()) != "unavailable")
-        .Set("remoteDevices", base::ListValue())
-        .Set("sentItems", base::ListValue())
+        // A private Start Page gets neither, as on desktop.
+        .Set("remoteDevices", profile()->IsOffTheRecord() ? base::ListValue() : ::blanc::SyncRemoteDevices())
+        .Set("sentItems", profile()->IsOffTheRecord() ? base::ListValue() : ::blanc::SyncSentItems())
         .Set("bookmarks", Favorites(Bookmarks()))
         .Set("appearance", base::DictValue()
                                .Set("settings", base::DictValue())

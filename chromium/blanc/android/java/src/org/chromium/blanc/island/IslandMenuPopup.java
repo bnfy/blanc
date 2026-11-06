@@ -34,12 +34,14 @@ public final class IslandMenuPopup {
 
         void find();
 
+        void send();
+
         void newPrivateTab();
     }
 
     static final Set<IslandMenu.Kind> BUILT =
             EnumSet.of(IslandMenu.Kind.BLOCKING, IslandMenu.Kind.BLOCKING_SETTINGS, IslandMenu.Kind.BLOCKING_UNAVAILABLE,
-                    IslandMenu.Kind.FAVORITE, IslandMenu.Kind.SHARE, IslandMenu.Kind.FIND,
+                    IslandMenu.Kind.FAVORITE, IslandMenu.Kind.SEND, IslandMenu.Kind.SHARE, IslandMenu.Kind.FIND,
                     IslandMenu.Kind.NEW_PRIVATE_TAB);
 
     private IslandMenuPopup() {}
@@ -66,6 +68,10 @@ public final class IslandMenuPopup {
                 case SHARE:
                     title = R.string.blanc_share_picker_share;
                     run = actions::share;
+                    break;
+                case SEND:
+                    title = R.string.blanc_tab_menu_send_to_device;
+                    run = actions::send;
                     break;
                 case FIND:
                     title = R.string.blanc_menu_find_in_page;

@@ -71,7 +71,7 @@ source_set("sync_bridge") {
   if (blanc_enable_test_hooks) {
     defines = [ "BLANC_SYNC_TEST_HOOKS" ]
   }
-  sources = [ "browser/sync_bridge.cc" ]
+  sources = [ "browser/sync_bridge.cc", "browser/sync_start_data.h" ]
   deps = [
     ":sync_jni",
     "//base",
@@ -94,6 +94,7 @@ android_library("sync_java") {
   srcjar_deps = [ ":sync_jni" ]
   sources = [
     "java/src/org/chromium/blanc/sync/BlancKeyStore.java",
+    "java/src/org/chromium/blanc/sync/OtherDevices.java",
     "java/src/org/chromium/blanc/sync/PairLink.java",
     "java/src/org/chromium/blanc/sync/ProfileSync.java",
     "java/src/org/chromium/blanc/sync/QrDecoder.java",
@@ -102,9 +103,11 @@ android_library("sync_java") {
     "java/src/org/chromium/blanc/sync/SyncSheetModel.java",
     "java/src/org/chromium/blanc/sync/SyncedFavorites.java",
     "java/src/org/chromium/blanc/sync/SyncedSettings.java",
+    "java/src/org/chromium/blanc/sync/SyncedTabs.java",
     blanc_sync_test_driver,
   ]
   deps = [
+    ":tabs_java",
     ":zxing_java",
     "//base:base_java",
     "//build/android:build_java",
@@ -252,6 +255,7 @@ robolectric_binary("blanc_android_junit_tests") {
     "junit/src/org/chromium/blanc/island/IslandMenuPopupTest.java",
     "junit/src/org/chromium/blanc/island/IslandMenuTest.java",
     "junit/src/org/chromium/blanc/sync/BlancKeyStoreTest.java",
+    "junit/src/org/chromium/blanc/sync/OtherDevicesTest.java",
     "junit/src/org/chromium/blanc/sync/PairScannerTest.java",
     "junit/src/org/chromium/blanc/sync/ProfileSyncTest.java",
     "junit/src/org/chromium/blanc/sync/SyncPairingTest.java",

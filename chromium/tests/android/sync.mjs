@@ -188,6 +188,83 @@ async function main(argv) {
       return exported.values.futureSetting === 'kept' && exported.values.theme === 'dark' ? [] : [JSON.stringify(exported).slice(0, 300)];
     });
 
+    // A peer and the phone on one account, ready to pass as often as a check needs.
+    const paired = async name => {
+      const device = await startedPeer(name);
+      const {code} = await device.sync.beginPairing();
+      await value('sync.joinWithCode', [code]);
+      return device;
+    };
+    const phonePass = async () => {
+      await value('sync.resetRequestWindowForTest');
+      await value('sync.syncNow', [], 120);
+    };
+    const peerTabs = device => {
+      const list = [...device.sync.listRemoteDevices()].flatMap(entry => [...entry.tabs]);
+      return new Set(list.map(tab => tab.url));
+    };
+
+    await check('sharing is off until asked, then open tabs reach a peer and private ones never', async () => {
+      const device = await paired('Tabs');
+      await d.view('https://shared.example/');
+      adb('shell', 'input', 'keyevent', 'KEYCODE_HOME');
+      sleep(2);
+      await d.launch();
+      await phonePass();
+      await device.pass();
+      if (peerTabs(device).has('https://shared.example/')) return ['shared before asked'];
+      await value('sync.setSyncTabs', [true]);
+      d.menu('New Private Tab');
+      sleep(2);
+      await d.view('https://shared2.example/');
+      adb('shell', 'input', 'keyevent', 'KEYCODE_HOME');
+      sleep(2);
+      await d.launch();
+      await phonePass();
+      await device.pass();
+      const seen = peerTabs(device);
+      if (!seen.has('https://shared.example/')) return [`missing: ${[...seen].join()}`];
+      await value('sync.setSyncTabs', [false]);
+      await phonePass();
+      await device.pass();
+      return peerTabs(device).has('https://shared.example/') ? ['still shared after turning it off'] : [];
+    });
+
+    await check('a sent page waits in the palette, opens in a tab and goes', async () => {
+      const device = await paired('Sender');
+      await device.pass();
+      const targets = [...device.sync.listSendTargets()];
+      if (!targets.length) return ['no target on the peer'];
+      device.sync.resetRequestWindowForTest();
+      const sent = await device.sync.sendTab({url: 'https://sent.example/', title: 'Sent page', to: targets[0].id});
+      if (sent.status !== 'sent') return [JSON.stringify(sent)];
+      // The Worker allows an account 30 reads a minute; these passes are far faster than a phone's.
+      sleep(61);
+      await phonePass();
+      await until(async () => [...await value('sync.listSentToThisDevice')].length === 1, 'the page to arrive');
+      d.tap({id: 'blanc_island_domain'});
+      await d.waitFor(async () => d.dump().includes('Sent page'), 'the sent row', 15);
+      d.tap({text: 'Sent page'});
+      await d.waitForUrl('https://sent.example/', 20);
+      await until(async () => [...await value('sync.listSentToThisDevice')].length === 0, 'the page to go');
+      return [];
+    });
+
+    await check('/send sends the current page to the named device', async () => {
+      const device = await paired('Receiver');
+      await phonePass();
+      await device.pass();
+      await phonePass();
+      await d.view('https://tosend.example/');
+      await until(async () => [...await value('sync.listSendTargets')].length > 0, 'a target');
+      d.runInPalette('/send Receiver');
+      sleep(3);
+      device.sync.resetRequestWindowForTest();
+      await device.pass();
+      const inbox = [...device.sync.listSentToThisDevice()];
+      return inbox.some(item => item.url === 'https://tosend.example/') ? [] : [JSON.stringify(inbox)];
+    });
+
     await check('three early endings stop the runner, and it says so', async () => {
       for (let i = 0; i < 3; i++) {
         await value('sync.status');

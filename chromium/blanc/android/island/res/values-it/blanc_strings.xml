@@ -82,6 +82,17 @@
     <string name="blanc_slash_allow_ads_hint">Consenti gli annunci su questo sito</string>
     <string name="blanc_slash_block_ads_hint">Blocca gli annunci qui, o attiva/disattiva il blocco ovunque</string>
     <string name="blanc_sync_error_local_key_unlock">Impossibile sbloccare la chiave di sincronizzazione locale</string>
+    <string name="blanc_footer_devices">Dispositivi</string>
+    <string name="blanc_sends_section">Inviate a questo dispositivo</string>
+    <string name="blanc_sends_from">Da %1$s · %2$s</string>
+    <string name="blanc_sends_dismiss">Ignora</string>
+    <string name="blanc_sends_sent">Inviata a %1$s.</string>
+    <string name="blanc_sends_unavailable">L’invio non è ancora disponibile.</string>
+    <string name="blanc_sends_failed">Invio non riuscito. Controlla la connessione e riprova.</string>
+    <string name="blanc_slash_send_hint">Digita uno spazio, poi il nome di un dispositivo, ad es. “iPhone”</string>
+    <string name="blanc_ios_settings_share_tabs">Condividi schede aperte</string>
+    <string name="blanc_ios_settings_share_tabs_help">Condividi le normali schede aperte di questo iPhone con gli altri dispositivi. Le schede private non vengono mai condivise.</string>
+    <string name="blanc_tab_menu_send_to_device">Invia a dispositivo</string>
     <string name="blanc_ios_settings_connected">Connesso</string>
     <string name="blanc_ios_settings_not_connected">Non connesso</string>
     <string name="blanc_ios_settings_status">Stato</string>

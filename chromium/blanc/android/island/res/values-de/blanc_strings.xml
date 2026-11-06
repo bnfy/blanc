@@ -82,6 +82,17 @@
     <string name="blanc_slash_allow_ads_hint">Werbung auf dieser Website erlauben</string>
     <string name="blanc_slash_block_ads_hint">Werbung hier blockieren oder das Blockieren überall umschalten</string>
     <string name="blanc_sync_error_local_key_unlock">Der lokale Synchronisierungsschlüssel konnte nicht entsperrt werden</string>
+    <string name="blanc_footer_devices">Andere Geräte</string>
+    <string name="blanc_sends_section">An dieses Gerät gesendet</string>
+    <string name="blanc_sends_from">Von %1$s · %2$s</string>
+    <string name="blanc_sends_dismiss">Ausblenden</string>
+    <string name="blanc_sends_sent">An %1$s gesendet.</string>
+    <string name="blanc_sends_unavailable">Senden ist noch nicht verfügbar.</string>
+    <string name="blanc_sends_failed">Senden fehlgeschlagen. Prüfe deine Verbindung und versuche es erneut.</string>
+    <string name="blanc_slash_send_hint">Leerzeichen, dann einen Gerätenamen eingeben – z. B. „iPhone“</string>
+    <string name="blanc_ios_settings_share_tabs">Offene Tabs teilen</string>
+    <string name="blanc_ios_settings_share_tabs_help">Teile die normalen offenen Tabs dieses iPhones mit deinen anderen Geräten. Private Tabs werden nie geteilt.</string>
+    <string name="blanc_tab_menu_send_to_device">An Gerät senden</string>
     <string name="blanc_ios_settings_connected">Verbunden</string>
     <string name="blanc_ios_settings_not_connected">Nicht verbunden</string>
     <string name="blanc_ios_settings_status">Status</string>

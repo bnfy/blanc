@@ -1,13 +1,14 @@
 diff -ruN a/chrome/android/BUILD.gn b/chrome/android/BUILD.gn
 --- a/chrome/android/BUILD.gn
 +++ b/chrome/android/BUILD.gn
-@@ -531,6 +531,11 @@
+@@ -531,6 +531,12 @@
        "//chrome/browser/sync/android:java",
        "//chrome/browser/sync/android:ui_java",
        "//chrome/browser/sync/synced_set_up/android:java",
 +      "//blanc/android:island_java",  # Blanc (patch 0104)
 +      "//blanc/android:island_ui_java",
 +      "//blanc/android:island_view_java",
++      "//blanc/android:sync_java",
 +      "//blanc/android:tabs_java",
 +      "//blanc/android:tabs_ui_java",
        "//chrome/browser/tab:java",
@@ -76,7 +77,7 @@ diff -ruN a/chrome/android/java/src/org/chromium/chrome/browser/tabbed_mode/Tabb
          if (mVerticalTabsPreferenceListener != null) {
              ContextUtils.getAppSharedPreferences()
                      .unregisterOnSharedPreferenceChangeListener(mVerticalTabsPreferenceListener);
-@@ -1293,9 +1313,414 @@
+@@ -1293,9 +1313,453 @@
          }
      }
  
@@ -127,6 +128,11 @@ diff -ruN a/chrome/android/java/src/org/chromium/chrome/browser/tabbed_mode/Tabb
 +                            @Override
 +                            public void find() {
 +                                showBlancFind();
++                            }
++
++                            @Override
++                            public void notice(String text) {
++                                android.widget.Toast.makeText(mActivity, text, android.widget.Toast.LENGTH_LONG).show();
 +                            }
 +
 +                            @Override
@@ -181,6 +187,33 @@ diff -ruN a/chrome/android/java/src/org/chromium/chrome/browser/tabbed_mode/Tabb
 +    }
 +
 +    // Favorites for the palette's Quick Switcher: every bookmarked address, from Chromium's model.
++    private void blancSendActive() {
++        Tab tab = mActivityTabProvider.get();
++        if (tab == null) return;
++        java.util.List<org.chromium.blanc.sync.OtherDevices.Target> targets =
++                org.chromium.blanc.sync.OtherDevices.targets();
++        String[] names = new String[targets.size()];
++        for (int i = 0; i < names.length; i++) names[i] = targets.get(i).name;
++        String url = tab.getUrl().getSpec();
++        String title = tab.getTitle();
++        new android.app.AlertDialog.Builder(mActivity)
++                .setItems(
++                        names,
++                        (dialog, which) ->
++                                org.chromium.blanc.sync.OtherDevices.send(
++                                        url,
++                                        title,
++                                        targets.get(which),
++                                        status ->
++                                                android.widget.Toast.makeText(
++                                                                mActivity,
++                                                                org.chromium.blanc.palette.PaletteSheet.sendResult(
++                                                                        mActivity, status, names[which]),
++                                                                android.widget.Toast.LENGTH_LONG)
++                                                        .show()))
++                .show();
++    }
++
 +    private java.util.List<org.chromium.blanc.tabs.QuickSwitcher.Page> blancFavorites() {
 +        java.util.List<org.chromium.blanc.tabs.QuickSwitcher.Page> out = new java.util.ArrayList<>();
 +        Tab tab = mActivityTabProvider.get();
@@ -300,6 +333,8 @@ diff -ruN a/chrome/android/java/src/org/chromium/chrome/browser/tabbed_mode/Tabb
 +        context.siteProtected = !blocker.excepted();
 +        context.blockingUnavailable = blocker.unavailable();
 +        context.blockedCount = blocker.blockedCount();
++        context.canSend = !tab.isIncognito() && UrlUtilities.isHttpOrHttps(url);
++        context.hasSendTargets = !org.chromium.blanc.sync.OtherDevices.targets().isEmpty();
 +        context.canFavorite = bookmarks.isBookmarkModelLoaded();
 +        context.favorite = context.canFavorite && bookmarks.isBookmarked(url);
 +        org.chromium.blanc.island.IslandMenuPopup.show(
@@ -333,6 +368,11 @@ diff -ruN a/chrome/android/java/src/org/chromium/chrome/browser/tabbed_mode/Tabb
 +                    @Override
 +                    public void find() {
 +                        showBlancFind();
++                    }
++
++                    @Override
++                    public void send() {
++                        blancSendActive();
 +                    }
 +
 +                    @Override
@@ -491,7 +531,7 @@ diff -ruN a/chrome/android/java/src/org/chromium/chrome/browser/tabbed_mode/Tabb
          assert mLayoutManager != null;
  
          if (mCountrySupplier != null && mCountrySupplier.get() == null) {
-@@ -2962,9 +3387,8 @@
+@@ -2962,9 +3426,8 @@
          mNotificationPermissionController =
                  new NotificationPermissionController(mWindowAndroid, rationaleUIDelegateSupplier);
          NotificationPermissionController.attach(mWindowAndroid, mNotificationPermissionController);

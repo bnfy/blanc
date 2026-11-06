@@ -6,10 +6,13 @@ import android.content.SharedPreferences;
 import android.os.Handler;
 import android.os.Looper;
 
+import org.json.JSONException;
+
 import org.chromium.base.ContextUtils;
 import org.chromium.blanc.blocking.BlockerBridge;
 import org.chromium.blanc.sync.SyncBridge;
 import org.chromium.blanc.sync.SyncTestDriver;
+import org.chromium.blanc.sync.SyncedTabs;
 import org.chromium.blanc.tabs.BlancTabState;
 import org.chromium.blanc.tabs.QuietTabs;
 import org.chromium.build.annotations.NullMarked;
@@ -82,6 +85,7 @@ public final class BlancTabKeeper {
         TabModelUtils.runOnTabStateInitialized(mSelector, selector -> {
             if (mDestroyed) return;
             BlancTabState.restore(mStore, prefs(), coldStart, opensLink);
+            publishTabs();
             mHandler.postDelayed(mSweep, QuietTabs.SWEEP_MILLIS);
         });
     }
@@ -89,6 +93,17 @@ public final class BlancTabKeeper {
     /** When the app goes to the background, which is before Android may end it. */
     public void save() {
         if (mSelector.isTabStateInitialized()) BlancTabState.save(mStore, prefs());
+        publishTabs();
+    }
+
+    /** Only once Chromium's tabs have loaded: an empty list would read as every tab closed. */
+    private void publishTabs() {
+        if (!mSelector.isTabStateInitialized()) return;
+        try {
+            SyncBridge.setTabs(SyncedTabs.arguments(mStore.tabs(false), mStore.groups()));
+        } catch (JSONException e) {
+            // Nothing to publish this time.
+        }
     }
 
     public void destroy() {
@@ -98,6 +113,7 @@ public final class BlancTabKeeper {
 
     private void sweep() {
         if (mDestroyed) return;
+        publishTabs();
         // Reloading a quiet tab couldn't load it while the blocker is down, so nothing goes quiet.
         if (BlockerBridge.UNAVAILABLE.equals(BlockerBridge.health())) {
             mHandler.postDelayed(mSweep, QuietTabs.SWEEP_MILLIS);

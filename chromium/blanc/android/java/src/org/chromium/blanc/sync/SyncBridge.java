@@ -31,6 +31,8 @@ import java.nio.charset.StandardCharsets;
 @JNINamespace("blanc")
 public final class SyncBridge {
     private static final BlancKeyStore sKeys = new BlancKeyStore();
+    /** The tabs last reported, for a phone that pairs after launching. */
+    private static @Nullable String sTabs;
     private static final ProfileSync sProfile = new ProfileSync(new ProfileSync.Host() {
         @Override
         public void call(String method, String argsJson, Callback<String> done) {
@@ -98,7 +100,19 @@ public final class SyncBridge {
 
     /** Starts the runner for a phone that syncs. A phone that doesn't never starts it. */
     public static void startIfOn() {
-        if (on()) sProfile.reconcile();
+        if (!on()) return;
+        sProfile.reconcile();
+        OtherDevices.refresh();
+    }
+
+    /** This phone's tabs for other devices, once its tab model has them. */
+    public static void setTabs(String argsJson) {
+        sTabs = argsJson;
+        if (on()) call("phone.setTabs", argsJson, result -> {});
+    }
+
+    static void setStartData(String devicesJson, String sentJson) {
+        SyncBridgeJni.get().setStartData(devicesJson, sentJson);
     }
 
     /** Whether the wrapping key is really gone. */
@@ -119,8 +133,14 @@ public final class SyncBridge {
     /** Shipping's recovery code goes to the clipboard, marked sensitive. */
     @CalledByNative
     private static void onEvent(String event, String text) {
+        if ("remote".equals(event)) {
+            OtherDevices.refresh();
+            return;
+        }
         if (!"clipboard".equals(event)) {
+            if ("account".equals(event) && sTabs != null) setTabs(sTabs);
             sProfile.reconcile();
+            OtherDevices.refresh();
             return;
         }
         Context context = ContextUtils.getApplicationContext();
@@ -143,6 +163,8 @@ public final class SyncBridge {
         @Nullable String favoritesList();
 
         void favoritesApply(String planJson);
+
+        void setStartData(String devicesJson, String sentJson);
 
         String canonicalUrls(String urlsJson);
 

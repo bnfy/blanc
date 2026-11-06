@@ -43,7 +43,9 @@ export const ANDROID_KEYS = [
   'newtab.startup.failed', 'newtab.startup.retry', 'shield.adBlocking', 'shield.count.globalOff', 'shield.count.none',
   'shield.count.siteOff', 'slash.allowAds.hint', 'slash.blockAds.hint',
   // Sync (A4), with the iPhone's copy.
-  'sync.error.localKeyUnlock',
+  'sync.error.localKeyUnlock', 'footer.devices', 'sends.section', 'sends.from', 'sends.dismiss', 'sends.sent',
+  'sends.unavailable', 'sends.failed', 'slash.send.hint', 'ios.settings.shareTabs', 'ios.settings.shareTabsHelp',
+  'tabMenu.sendToDevice',
   'ios.settings.connected', 'ios.settings.notConnected', 'ios.settings.status', 'ios.settings.account',
   'ios.settings.lastSynced', 'ios.settings.pairingCode', 'ios.settings.switchAccount', 'ios.settings.passphrase',
   'ios.settings.signIn', 'ios.settings.deviceName', 'ios.settings.saveName', 'ios.settings.saved',

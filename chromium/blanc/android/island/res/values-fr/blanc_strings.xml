@@ -82,6 +82,17 @@
     <string name="blanc_slash_allow_ads_hint">Autoriser les publicités sur ce site</string>
     <string name="blanc_slash_block_ads_hint">Bloquer les publicités ici, ou activer ou désactiver le blocage partout</string>
     <string name="blanc_sync_error_local_key_unlock">Impossible de déverrouiller la clé de synchronisation locale</string>
+    <string name="blanc_footer_devices">Autres appareils</string>
+    <string name="blanc_sends_section">Envoyé à cet appareil</string>
+    <string name="blanc_sends_from">De %1$s · %2$s</string>
+    <string name="blanc_sends_dismiss">Ignorer</string>
+    <string name="blanc_sends_sent">Envoyé à %1$s.</string>
+    <string name="blanc_sends_unavailable">L’envoi n’est pas encore disponible.</string>
+    <string name="blanc_sends_failed">Échec de l’envoi. Vérifiez votre connexion et réessayez.</string>
+    <string name="blanc_slash_send_hint">Tapez une espace, puis un nom d’appareil, par ex. « iPhone »</string>
+    <string name="blanc_ios_settings_share_tabs">Partager les onglets ouverts</string>
+    <string name="blanc_ios_settings_share_tabs_help">Partagez les onglets ouverts ordinaires de cet iPhone avec vos autres appareils. Les onglets privés ne sont jamais partagés.</string>
+    <string name="blanc_tab_menu_send_to_device">Envoyer vers un appareil</string>
     <string name="blanc_ios_settings_connected">Connecté</string>
     <string name="blanc_ios_settings_not_connected">Non connecté</string>
     <string name="blanc_ios_settings_status">État</string>

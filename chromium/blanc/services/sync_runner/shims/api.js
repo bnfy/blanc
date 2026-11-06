@@ -8,6 +8,16 @@ globalThis.__call = (method, argsJson, done) => {
     done(true, 'null');
     return;
   }
+  // The phone's tabs, once its tab model has them. Until then the session store stays a no-op, so
+  // a background run with no window can't publish an empty list.
+  if (method === 'phone.setTabs') {
+    const [tabList, groups] = JSON.parse(argsJson);
+    globalThis.__phoneTabs = {tabList, groups};
+    __require('src/main/tabsync.js').noteTabsChanged();
+    __require('src/main/sync.js').setTabStateReady(true);
+    done(true, 'null');
+    return;
+  }
   const [mod, fn] = String(method).split('.');
   const file = MODULES[mod];
   Promise.resolve().then(() => {
@@ -25,6 +35,12 @@ globalThis.__listen = () => {
   bookmarks.onMerged(() => __host.emit('favorites', ''));
   settings.onSettingsChanged(() => __host.emit('settings', ''));
   sync.onAccountChanged(() => __host.emit('account', ''));
+  const tabsync = __require('src/main/tabsync.js');
+  globalThis.__phoneTabs = {tabList: [], groups: []};
+  tabsync.setSnapshotProvider(() => globalThis.__phoneTabs);
+  __require('src/main/tabicons.js').setSnapshotProvider(() => ({tabList: []}));
+  tabsync.onRemoteChanged(() => __host.emit('remote', ''));
+  sync.onSendsChanged(() => __host.emit('remote', ''));
 };
 
 // A setting a newer device added stays in the blob, as on the iPhone. Shipping's settings module

@@ -61,6 +61,11 @@ public class IslandMenuPopupTest {
                 }
 
                 @Override
+                public void send() {
+                    mRan.add("send");
+                }
+
+                @Override
                 public void newPrivateTab() {
                     mRan.add("private");
                 }
@@ -81,7 +86,7 @@ public class IslandMenuPopupTest {
         c.privateTab = privateTab;
         c.canFavorite = true;
         c.favorite = favorite;
-        c.canSend = true;
+        c.canSend = !privateTab;
         c.hasSendTargets = true;
         return c;
     }
@@ -104,7 +109,7 @@ public class IslandMenuPopupTest {
     @Test
     public void aWebPageShowsTheIphonesOrderWithA1sEntries() {
         assertEquals(
-                List.of("Ad & tracker blocking", "Nothing blocked on this page yet", "Save to Favorites", "Share", "Find in Page", "New Private Tab"),
+                List.of("Ad & tracker blocking", "Nothing blocked on this page yet", "Save to Favorites", "Send to Device", "Share", "Find in Page", "New Private Tab"),
                 titles(IslandMenuPopup.show(mAnchor, page(false, false), mActions)));
     }
 
@@ -128,7 +133,7 @@ public class IslandMenuPopupTest {
             assertNotNull(menu.getItem(i));
             menu.performIdentifierAction(menu.getItem(i).getItemId(), 0);
         }
-        assertEquals(List.of("protect:false", "favorite", "share", "find", "private"), mRan);
+        assertEquals(List.of("protect:false", "favorite", "send", "share", "find", "private"), mRan);
     }
 
     private IslandMenu.Context blockable() {

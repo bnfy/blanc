@@ -16,6 +16,7 @@ import android.text.Editable;
 import android.text.InputType;
 import android.text.TextUtils;
 import android.text.TextWatcher;
+import android.text.format.DateUtils;
 import android.util.TypedValue;
 import android.view.Gravity;
 import android.view.View;
@@ -35,6 +36,7 @@ import android.widget.TextView;
 import org.chromium.blanc.address.AddressInput;
 import org.chromium.blanc.island.IslandStyle;
 import org.chromium.blanc.island.R;
+import org.chromium.blanc.sync.OtherDevices;
 import org.chromium.blanc.tabs.BlancTabs;
 import org.chromium.blanc.tabs.QuickSwitcher;
 import org.chromium.blanc.tabs.SlashCommands;
@@ -45,9 +47,11 @@ import org.chromium.build.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * Blanc for iPhone's palette (PaletteSheet.swift) as a bottom sheet: the address row, then the
@@ -57,6 +61,8 @@ import java.util.Map;
 @NullMarked
 public final class PaletteSheet extends Dialog {
     /** What the palette asks of the browser. */
+    private final Set<String> mOpenDevices = new HashSet<>();
+
     public interface Callbacks {
         /** Opens an address or search in the current tab. */
         void load(String url);
@@ -74,6 +80,9 @@ public final class PaletteSheet extends Dialog {
 
         /** /sync: the Sync sheet. */
         void sync();
+
+        /** What a send said, shown briefly. */
+        void notice(String text);
 
         void blockAds();
 
@@ -351,9 +360,67 @@ public final class PaletteSheet extends Dialog {
         }
         // Chromium keeps private tabs apart, so they're their own section (A2 spike, decision 4).
         List<TabStore.Entry> privateTabs = mTabs.entries(true);
-        if (privateTabs.isEmpty()) return;
-        heading(mActivity.getString(R.string.blanc_pill_private_chip), privateTabs.size());
-        for (TabStore.Entry tab : privateTabs) tabRow(tab);
+        if (!privateTabs.isEmpty()) {
+            heading(mActivity.getString(R.string.blanc_pill_private_chip), privateTabs.size());
+            for (TabStore.Entry tab : privateTabs) tabRow(tab);
+        }
+        renderSent();
+        renderDevices();
+    }
+
+    private void renderSent() {
+        List<OtherDevices.Sent> sent = OtherDevices.sent();
+        if (sent.isEmpty()) return;
+        heading(mActivity.getString(R.string.blanc_sends_section), sent.size());
+        for (OtherDevices.Sent item : sent) {
+            CharSequence ago = DateUtils.getRelativeTimeSpanString(item.sentAt);
+            String subtitle = mActivity.getString(R.string.blanc_sends_from)
+                    .replace("{device}", item.from).replace("{time}", ago);
+            String title = item.title.isEmpty() ? item.url : item.title;
+            LinearLayout line = new LinearLayout(mActivity);
+            line.setGravity(Gravity.CENTER_VERTICAL);
+            View main = row(R.drawable.blanc_palette_globe, title, subtitle, false, v -> {
+                mCallbacks.openTab(item.url);
+                OtherDevices.hide(item.id);
+                dismiss();
+            });
+            mList.removeView(main);
+            line.addView(main, new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1));
+            ImageButton hide = button(R.drawable.blanc_palette_close, 0, v -> {
+                OtherDevices.hide(item.id);
+                render();
+            });
+            hide.setContentDescription(mActivity.getString(R.string.blanc_sends_dismiss));
+            line.addView(hide, new LinearLayout.LayoutParams(dp(44), dp(48)));
+            mList.addView(line);
+        }
+    }
+
+    private void renderDevices() {
+        List<OtherDevices.Device> devices = OtherDevices.devices();
+        if (devices.isEmpty()) return;
+        TextView heading = new TextView(mActivity);
+        heading.setText(R.string.blanc_footer_devices);
+        heading.setTextSize(TypedValue.COMPLEX_UNIT_SP, 11);
+        heading.setTypeface(Typeface.DEFAULT_BOLD);
+        heading.setTextColor(secondary());
+        heading.setPadding(dp(22), dp(8), dp(22), dp(4));
+        mList.addView(heading);
+        for (OtherDevices.Device device : devices) {
+            boolean open = mOpenDevices.contains(device.name);
+            row(open ? R.drawable.blanc_palette_chevron_down : R.drawable.blanc_palette_chevron_right,
+                    device.name + " (" + device.tabs.size() + ")", "", false, v -> {
+                        if (!mOpenDevices.remove(device.name)) mOpenDevices.add(device.name);
+                        render();
+                    });
+            if (!open) continue;
+            for (OtherDevices.Page tab : device.tabs) {
+                row(R.drawable.blanc_palette_globe, tab.title.isEmpty() ? tab.url : tab.title, tab.url, false, v -> {
+                    mCallbacks.openTab(tab.url);
+                    dismiss();
+                });
+            }
+        }
     }
 
     private void renderCommands() {
@@ -391,6 +458,26 @@ public final class PaletteSheet extends Dialog {
         }
     }
 
+    /** /send: the current page to the device with that name, in any case. */
+    private void sendActive(String name) {
+        OtherDevices.Target target = OtherDevices.target(name);
+        String active = mTabs.activeId();
+        TabStore.Entry current = null;
+        for (TabStore.Entry tab : mTabs.entries(false)) if (tab.id.equals(active)) current = tab;
+        if (target == null || current == null || mTabs.privateSelected()) {
+            mCallbacks.notice(mActivity.getString(R.string.blanc_sends_unavailable));
+            return;
+        }
+        OtherDevices.send(current.url, current.title, target,
+                status -> mCallbacks.notice(sendResult(mActivity, status, target.name)));
+    }
+
+    /** "Sent", never "delivered". */
+    public static String sendResult(Activity activity, String status, String device) {
+        if ("sent".equals(status)) return activity.getString(R.string.blanc_sends_sent).replace("{device}", device);
+        return activity.getString("unavailable".equals(status) ? R.string.blanc_sends_unavailable : R.string.blanc_sends_failed);
+    }
+
     private List<QuickSwitcher.Result> search(String query) {
         List<QuickSwitcher.Tab> candidates = new ArrayList<>();
         for (boolean privateTabs : new boolean[] {false, true}) {
@@ -401,7 +488,11 @@ public final class PaletteSheet extends Dialog {
         List<QuickSwitcher.Group> groups = new ArrayList<>();
         for (TabStore.Group group : mTabs.groups()) groups.add(new QuickSwitcher.Group(group.id, group.name));
         // History joins the switcher with Android's history search (after A2).
-        return QuickSwitcher.search(query, candidates, mCallbacks.favorites(), List.of(), groups);
+        List<QuickSwitcher.Page> pages = new ArrayList<>(mCallbacks.favorites());
+        for (OtherDevices.Device device : OtherDevices.devices()) {
+            for (OtherDevices.Page tab : device.tabs) pages.add(new QuickSwitcher.Page(tab.url, tab.title, tab.url));
+        }
+        return QuickSwitcher.search(query, candidates, pages, List.of(), groups);
     }
 
     private void heading(String title, int count) {
@@ -637,6 +728,14 @@ public final class PaletteSheet extends Dialog {
         String active = mTabs.activeId();
         switch (kind) {
             case SYNC -> mCallbacks.sync();
+            case SEND -> {
+                if (argument.isEmpty()) {
+                    mField.setText("/send ");
+                    mField.setSelection(mField.length());
+                    return;
+                }
+                sendActive(argument);
+            }
             case FAVORITES -> mCallbacks.openTab(PAGES + "bookmarks.html");
             case HISTORY -> mCallbacks.openTab(PAGES + "history.html");
             case NEW -> mTabs.newTab();
@@ -685,6 +784,7 @@ public final class PaletteSheet extends Dialog {
         return switch (kind) {
             case FAVORITES -> R.string.blanc_slash_favorites_hint;
             case SYNC -> R.string.blanc_slash_sync_hint;
+            case SEND -> R.string.blanc_slash_send_hint;
             case HISTORY -> R.string.blanc_slash_history_hint;
             case NEW -> R.string.blanc_slash_new_hint;
             case PRIVATE -> R.string.blanc_slash_private_hint;
