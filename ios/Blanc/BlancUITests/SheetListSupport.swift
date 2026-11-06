@@ -1,6 +1,25 @@
 import XCTest
 
 extension XCUIApplication {
+  /// Holds `element` until its context menu opens. Xcode's test runner waits a
+  /// full minute before and after each step while such a menu is open, as it
+  /// never reports its animations done, so that wait stays off for the rest of
+  /// the test. Falls back to the slow wait if Xcode drops the private setter.
+  func holdForMenu(_ element: XCUIElement) {
+    if responds(to: NSSelectorFromString("setIdleAnimationWaitEnabled:")) {
+      setValue(false, forKey: "idleAnimationWaitEnabled")
+    }
+    element.press(forDuration: 1.2)
+  }
+
+  /// Taps a button in a menu `holdForMenu` opened, once it has finished moving.
+  func tapMenuItem(_ title: String) {
+    let item = buttons[title]
+    XCTAssertTrue(item.waitForExistence(timeout: 5), title)
+    RunLoop.current.run(until: Date().addingTimeInterval(0.5))
+    item.tap()
+  }
+
   /// A drag from the Island into the page. `swipeUp` stays inside an element
   /// this short, which is less than the gesture needs.
   func openTabGrid() {
