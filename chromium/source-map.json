@@ -153,7 +153,7 @@
     "blanc/android/java/src/org/chromium/blanc/tabs/chromium/BlancTabKeeper.java": "ef99d21a9f03a763f60d4e14123e1e4adae37454686e8d3460504fc0045aadab",
     "blanc/android/java/src/org/chromium/blanc/tabs/chromium/ChromiumBlocking.java": "250f692a921117d28ce451274a9539fd52b39055bc95a8bc63d8b6dcbb9adc62",
     "blanc/android/java/src/org/chromium/blanc/tabs/chromium/ChromiumSpaces.java": "0dbfe0d4d06f825215d268f0317e617d9b3037758d09c4f4f5b974eed1d1a016",
-    "blanc/android/java/src/org/chromium/blanc/tabs/chromium/ChromiumTabStore.java": "cbb5fda9a4c4073cf4cdef47bd609888ad11c01e56c8e7a82ee3a7e3b264a851",
+    "blanc/android/java/src/org/chromium/blanc/tabs/chromium/ChromiumTabStore.java": "82625a0eddef23b31663c53d73f904d96271421de7593c4a770b9ca77109ee91",
     "blanc/android/java/stub/org/chromium/blanc/sync/SyncTestDriver.java": "7243062e164ccf42fe2350901af4cb7ed88f5f5d7890ea1488adaa5a3096e2cc",
     "blanc/android/junit/src/org/chromium/blanc/address/AddressFixtures.java": "17c9e5ab4e4f48f4ed564b26e9722d40f6e82113fd657285307a9a51df7368bc",
     "blanc/android/junit/src/org/chromium/blanc/address/AddressInputTest.java": "9a6788f759c4fef1cca511a1bf2d0f72d1963dd427e4a4afa7c77d94c559730b",

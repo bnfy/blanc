@@ -162,6 +162,7 @@ async function main(argv) {
       adb('shell', 'am', 'force-stop', PACKAGE);
       await d.launch();
       sleep(3);
+      if (!d.has({id: 'blanc_island_space'})) return ['no mark after the restart'];
       const work = titles(d.grid());
       if (!work.includes('work.example')) return [`after restart: ${work}`];
       show('This phone');

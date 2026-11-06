@@ -17,9 +17,11 @@ export function fixturePage(url) {
   const words = word ? Array.from({length: Number(url.searchParams.get('n'))}, (_, i) => `<p>${word} number ${i + 1}</p>`).join('') : '';
   const link = url.pathname === '/link'
     ? '<a id="child" href="https://child.example/" target="_blank" style="position:fixed;inset:0;z-index:1;display:block;font-size:40px">Open child</a>' : '';
-  // "/ads": a request EasyList blocks, one it doesn't, and an element it hides.
+  // "/ads": a request EasyList blocks, one it doesn't, and an element it hides. The second blocked
+  // request comes after load: a request racing the page's commit can miss the shield count.
   const ads = url.pathname === '/ads' ? `<script src="https://ad.doubleclick.net/tag.js"></script>
-<script src="https://lib.example/lib.js"></script><div id="hidden-ad" class="ADBox">ad</div>` : '';
+<script src="https://lib.example/lib.js"></script><div id="hidden-ad" class="ADBox">ad</div>
+<script>addEventListener('load',()=>document.head.append(Object.assign(document.createElement('script'),{src:'https://ad.doubleclick.net/late.js'})))</script>` : '';
   // Requests no tab makes: a service worker's fetch, and a prefetch.
   const worker = url.pathname === '/sw' ? `<script>window.workerReady=navigator.serviceWorker.register('/worker.js').then(()=>navigator.serviceWorker.ready).then(()=>{window.workerUp=true});</script>` : '';
   const prefetch = url.pathname === '/prefetch' ? '<link rel="prefetch" href="https://ad.doubleclick.net/prefetch.js"><link rel="prefetch" href="https://lib.example/prefetch-allowed.js"><script type="speculationrules">{"prefetch":[{"source":"list","urls":["https://ad.doubleclick.net/speculation.js"]}]}</script>' : '';

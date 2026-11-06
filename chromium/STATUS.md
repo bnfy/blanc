@@ -1292,6 +1292,36 @@ tests (the menu's count, rotation after a navigation mode change, refused UI
 dumps, the Worker's 30 reads a minute), now fixed in the tests. One `/allow-ads`
 timeout stays unexplained: it missed 15 seconds in two full runs and never alone.
 
+### A4c Spaces on this phone
+
+The Island mark, the Spaces card and editor, `/space`, Move to Space, Undo and
+Recently deleted, over Chromium's real tabs. A switch keeps each tab's Back and
+Forward, its group and its pin, leaves private tabs alone, and a killed app
+finishes it on the next launch. Spaces are found in the palette, and the grid
+names the Space on show. Shared Spaces and synced Recently closed are A4d.
+
+Chromium's tab group sync is off (patch 0109): it closes groups it doesn't know
+at launch, which is every group a switch brings back. Rulings are in
+`docs/android/a4-rulings.md`.
+
+- **Candidate** (x86_64, emulator): SHA-256
+  `11d4d348464113495caf292487b345696c7fa054e1c981672bd3ac7be5a22766`.
+
+| A4c gate | Result | Evidence (`~/blanc-evidence/android/a4c/`) |
+| --- | --- | --- |
+| Spaces: switches, restarts, moves, Undo, Recently deleted, the editor, the palette | 15 of 15 | `spaces/` |
+| Sync | 15 of 15 | `sync/` |
+| Blocking, acceptance | 14 of 14, 32 of 32 | `a3/` |
+| Robolectric | 468 | server log |
+| A1 and A2 checks | Pass | `a3/a2/` |
+| Owner hands-on, Pixel and desktop | **Pending A4's end** | — |
+
+The first full run failed one acceptance scenario, also seen in the A4b run: a
+page's only blocked request can miss the shield count, probably by racing the
+page's commit. The `/ads` fixture now makes a second blocked request after load,
+and A3 passed on the same APK. The count itself is not fixed; that belongs in the
+blocker code desktop shares.
+
 <!-- BEGIN GENERATED PROGRESS -->
 ### Bar A — executable shipping cases on the fork
 

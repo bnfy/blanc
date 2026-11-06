@@ -60,3 +60,28 @@ The decisions made while building A4 (sync), each with what it costs if wrong. P
 
 - A local theme or blocking change publishes at the next reconcile, not at once. Task 9's foreground hook reconciles on resume.
 - Restarting can drop a queued store write; the next write repairs it.
+
+## A4c: Spaces on this phone
+
+Rulings:
+
+- **A switch moves Chromium's real tabs.** Each tab's state, with its Back and Forward, is saved under its own id in `blanc_spaces/tabs`, the switch is written down, the new set comes up frozen, the old tabs close, and Chromium's list is written to disk before the switch counts as finished. An app killed before that finishes the switch on its next launch. Cost if wrong: a tab comes back without its history, never lost.
+- **Chromium's tab group sync is off (patch 0109).** It closes any group it doesn't know at launch, with its tabs, and every group a switch brings back is one. Blanc's own Sync carries groups, and off is a state Chromium supports. Cost if wrong: a Chromium feature that assumes it is on; the acceptance gate found none.
+- **The set on show isn't kept current in the library.** Chromium owns those tabs, and the set is captured when a switch leaves it. A4d will need it for sharing and should capture without freezing.
+- **The card leaves swipe-to-close out.** A tap outside and Back close it. The iPhone also closes on a swipe down, which fights the card's own scrolling on Android.
+- **Move to Space is in the grid's card menu only.** The palette's rows have no press and hold.
+
+The review of this milestone found, and these are fixed:
+
+- A grouped tab brought back by a switch was gone after the next restart (Critical). The review put this down to Chromium not saving frozen tabs, but the emulator showed the list and state file on disk and the tab closed at launch by tab group sync. Patch 0109 is the fix: `spaces.mjs`, a tab a switch brought back keeps Back and its group after a restart, failed without it. `TabStateAttributes.setDirty` on thaw stays as a cheap precaution and is unproven: with it removed the same case still passes, because attaching the tab already marks it for saving.
+- A kill just after a switch could overwrite a hidden Space with the tabs on show, and a tab reopened under a new id stayed in the new set. `BlancSpacesTest.aSwitchStaysOpenUntilChromiumsListIsOnDisk`, `tabsChromiumReopenedUnderNewIdsAreClosedByTheRecovery`.
+- Every tab was written to disk on each pause, and closed tabs' files stayed for good. The pause no longer writes, and launch removes what no hidden set holds. `theSweepDropsFilesNoHiddenSetHolds`.
+- A moved tab kept its old group; Undo put a Space at the end of the list; Spaces never showed in palette search; a failed library write still closed the old tabs; a tab closed before a switch could be undone into the wrong set; an unreadable library was overwritten at once; a second delete's Undo acted on the first Space.
+- The menu, its tab counts, the shown Space in the grid header, the tile in the Island, the next color and symbol, and TalkBack's color and symbol names now follow the iPhone.
+
+Also fixed: strings with `{name}` went through `replace()` after Android had already turned them into `%1$s`, so send rows and Spaces messages showed the placeholder. That included A4b's send rows.
+
+Deferred minors:
+
+- A page's blocked request can miss the shield count, probably by racing the page's commit. Seen twice in acceptance; the cause isn't proven, and the fix belongs in the shared blocker code.
+- A kill between saving a moved tab and closing it leaves the tab in both sets. Nothing is lost, and the next switch settles it.

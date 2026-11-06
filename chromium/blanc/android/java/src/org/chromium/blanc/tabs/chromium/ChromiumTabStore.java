@@ -177,7 +177,7 @@ public final class ChromiumTabStore implements TabStore {
         if (state == null) return "";
         Tab tab = mCreators.getTabCreator(false).createFrozenTab(state, id, index);
         if (tab == null) return "";
-        // Chromium takes a frozen tab to be on disk already; this one's state file went when it closed.
+        // Its own state file went when it closed, so it's queued for the next save.
         TabStateAttributes.setDirty(tab);
         return String.valueOf(tab.getId());
     }
