@@ -37,6 +37,24 @@ public final class BlockerBridge {
         return BlockerBridgeJni.get().blockedCount(contents);
     }
 
+    /** The blocking switch for the profile, with no page: Settings has none (blocker_bridge.cc). */
+    public static boolean profileEnabled() {
+        return BlockerBridgeJni.get().profileEnabled();
+    }
+
+    public static void setProfileEnabled(boolean on) {
+        BlockerBridgeJni.get().setProfileEnabled(on);
+    }
+
+    /** The hosts where blocking is off, as the blocker stores them. */
+    public static String[] allowedSites() {
+        return BlockerBridgeJni.get().allowedSites();
+    }
+
+    public static void allowSite(String host, boolean allow) {
+        BlockerBridgeJni.get().allowSite(host, allow);
+    }
+
     public static String health() {
         return BlockerBridgeJni.get().health();
     }
@@ -56,6 +74,14 @@ public final class BlockerBridge {
         void setExcepted(WebContents contents, boolean allow);
 
         int blockedCount(WebContents contents);
+
+        boolean profileEnabled();
+
+        void setProfileEnabled(boolean on);
+
+        String[] allowedSites();
+
+        void allowSite(String host, boolean allow);
 
         String health();
 

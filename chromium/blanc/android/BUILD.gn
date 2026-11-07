@@ -28,10 +28,12 @@ android_library("island_java") {
 # Settings' own rules, with no Chromium dependency, so they run under Robolectric.
 android_library("settings_model_java") {
   sources = [
+    "java/src/org/chromium/blanc/settings/AllowedSites.java",
     "java/src/org/chromium/blanc/settings/SearchEngines.java",
     "java/src/org/chromium/blanc/settings/SettingsDestination.java",
     "java/src/org/chromium/blanc/settings/SettingsLayout.java",
     "java/src/org/chromium/blanc/settings/SettingsStore.java",
+    "java/src/org/chromium/blanc/settings/SiteDataClearer.java",
   ]
   deps = [ "//build/android:build_java" ]
 }
@@ -40,7 +42,10 @@ android_library("settings_model_java") {
 # (patch 0110), so it can't depend on chrome_java: it works on AndroidX preferences only.
 android_library("settings_java") {
   resources_package = "org.chromium.blanc.island"
-  sources = [ "java/src/org/chromium/blanc/settings/BlancSettingsScreen.java" ]
+  sources = [
+    "java/src/org/chromium/blanc/settings/AllowedSitesDialog.java",
+    "java/src/org/chromium/blanc/settings/BlancSettingsScreen.java",
+  ]
   deps = [
     ":island_view_resources",
     ":settings_model_java",
@@ -359,6 +364,8 @@ robolectric_binary("blanc_android_junit_tests") {
     "junit/src/org/chromium/blanc/tabs/QuickSwitcherTest.java",
     "junit/src/org/chromium/blanc/tabs/QuietTabsTest.java",
     "junit/src/org/chromium/blanc/tabs/RecentlyClosedTest.java",
+    "junit/src/org/chromium/blanc/settings/AllowedSitesDialogTest.java",
+    "junit/src/org/chromium/blanc/settings/AllowedSitesTest.java",
     "junit/src/org/chromium/blanc/settings/BlancSettingsScreenTest.java",
     "junit/src/org/chromium/blanc/settings/SearchEnginesTest.java",
     "junit/src/org/chromium/blanc/settings/SettingsDestinationTest.java",
