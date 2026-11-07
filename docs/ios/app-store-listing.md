@@ -117,7 +117,7 @@ the real app in a plain dark frame. The canvas's files are copied in
 `npm run ios:app-store-screenshots` captures every phone screen from the real
 app (`AppStoreScreenshotsUITests`, from the `-BlancUITestAppStore` seed) on an
 iPhone 17 Pro Max simulator, iOS 26.5 by default (27.2+ when that runtime
-isn't installed; see [[ios-simulators-27-2-only]]), light, English, then
+isn't installed), light, English, then
 composes the set (`scripts/ios-app-store-compose.mjs`) at Apple's 6.9" size,
 1320 × 2868, in `docs/ios/app-store/6.9/`, and the same design at 6.3",
 1206 × 2622, in `docs/ios/app-store/6.3/`. The captures are in
