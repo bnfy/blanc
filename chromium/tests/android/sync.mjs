@@ -251,9 +251,9 @@ async function main(argv) {
       d.runInPalette('/close');
       await phonePass();
       await device.pass();
-      const rows = peerClosed().map(row => row.url);
-      if (!rows.includes('https://closed-here.example/')) return [`not on the peer: ${rows.join()}`];
-      if (rows.includes('https://closed-private.example/')) return ['a private close reached the peer'];
+      const rows = new Set(peerClosed().map(row => row.url));
+      if (!rows.has('https://closed-here.example/')) return [`not on the peer: ${[...rows].join()}`];
+      if (rows.has('https://closed-private.example/')) return ['a private close reached the peer'];
       const ctx = device.sync.sharedContext();
       device.module('synced-closed').addOwnItem(ctx, {id: 'peer-closed-1', url: 'https://closed-there.example/',
         title: 'Closed there', closedAt: Date.now(), spaceId: null});
