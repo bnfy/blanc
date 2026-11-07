@@ -79,6 +79,21 @@ public final class SpacesCard {
     private int mHeightDp = LIST_HEIGHT_DP;
     private boolean mEditing;
 
+    /** Shared Spaces' part of the card, which lives with Sync. */
+    public interface Marks {
+        /** A shared Space's state in words, or null for a local one. */
+        @Nullable String mark(Space space);
+
+        /** Other devices' Spaces, under this list, with the switch off. */
+        void addRemote(Activity activity, LinearLayout list, Runnable close);
+    }
+
+    private static @Nullable Marks sMarks;
+
+    public static void setMarks(@Nullable Marks marks) {
+        sMarks = marks;
+    }
+
     private SpacesCard(Activity activity, SpacesController spaces) {
         mActivity = activity;
         mSpaces = spaces;
@@ -157,7 +172,10 @@ public final class SpacesCard {
         fill.setCornerRadius(22 * density);
         banner.setBackground(fill);
         TextView label = new TextView(activity);
-        label.setText(activity.getString(R.string.blanc_ws_undo_deleted, name));
+        List<Deleted> deleted = spaces.library().deleted;
+        boolean everywhere = !deleted.isEmpty() && "active".equals(deleted.get(0).space.sharedLink);
+        label.setText(everywhere ? activity.getString(R.string.blanc_shared_spaces_deleted_everywhere_android)
+                : activity.getString(R.string.blanc_ws_undo_deleted, name));
         label.setTextColor(style.raised);
         label.setTextSize(TypedValue.COMPLEX_UNIT_SP, 13);
         label.setMaxLines(1);
@@ -327,7 +345,8 @@ public final class SpacesCard {
         label.setMaxLines(1);
         label.setPadding(0, 0, 0, 0);
         labels.addView(label);
-        TextView detail = text(tabs, 13);
+        String mark = sMarks == null || space == null ? null : sMarks.mark(space);
+        TextView detail = text(mark == null ? tabs : tabs + " · " + mark, 13);
         detail.setTextColor(secondary());
         detail.setPadding(0, 0, 0, 0);
         labels.addView(detail);
@@ -408,7 +427,11 @@ public final class SpacesCard {
         row(null, mActivity.getString(R.string.blanc_spaces_this_phone));
         List<Space> spaces = new ArrayList<>(mSpaces.library().spaces);
         if (spaces.isEmpty()) mEditing = false;
-        for (Space space : spaces) row(space, space.name);
+        for (Space space : spaces) {
+            row(space, space.name);
+            if (space.recoveredFrom != null) mList.addView(text(mActivity.getString(R.string.blanc_shared_spaces_recovery_note), 13));
+        }
+        if (sMarks != null) sMarks.addRemote(mActivity, mList, mDialog::dismiss);
         List<Deleted> deleted = new ArrayList<>(mSpaces.library().deleted);
         if (mEditing && !deleted.isEmpty()) {
             TextView heading = text(mActivity.getResources().getQuantityString(R.plurals.blanc_ws_list_recently_deleted,

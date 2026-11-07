@@ -13,6 +13,23 @@ import java.util.List;
 /** What the Spaces surfaces call: the library and the switcher, and who to tell when they change. */
 @NullMarked
 public final class SpacesController {
+    /** Shared Spaces, which live with Sync. */
+    public interface Hook {
+        /** The shown tabs are about to move: what they are now goes out first, then nothing does. */
+        void beforeSwitch();
+
+        void afterChange();
+
+        void edited(Space space);
+
+        void deleted(Space space);
+
+        void restored(String id);
+
+        void reordered();
+    }
+
+    private static @Nullable Hook sHook;
     private static @Nullable SpacesController sCurrent;
     private static @Nullable Runnable sCurrentListener;
 
@@ -26,6 +43,10 @@ public final class SpacesController {
     /** Told when a window's controller arrives, after anything drawn before it. */
     public static void setCurrentListener(@Nullable Runnable listener) {
         sCurrentListener = listener;
+    }
+
+    public static void setHook(@Nullable Hook hook) {
+        sHook = hook;
     }
 
     /** The window's controller, once its tabs have loaded. */
@@ -59,6 +80,22 @@ public final class SpacesController {
     private void changed() {
         mTabs.save(mLibrary);
         for (Runnable listener : new ArrayList<>(mListeners)) listener.run();
+        if (sHook != null) sHook.afterChange();
+    }
+
+    /** The runner changed the library; it's already in it, so only the listeners need telling. */
+    public void absorbed() {
+        mTabs.save(mLibrary);
+        for (Runnable listener : new ArrayList<>(mListeners)) listener.run();
+    }
+
+    /** What's on show now, nothing frozen. */
+    public BlancSpaces.SavedSet shown() {
+        return mSwitcher.shown();
+    }
+
+    public SpaceSwitcher.Tabs tabs() {
+        return mTabs;
     }
 
     /** At launch: finishes a switch a killed app left, and clears what's expired. */
@@ -79,6 +116,7 @@ public final class SpacesController {
 
     /** Shows a set; null is This Phone. */
     public void show(@Nullable String id) {
+        if (sHook != null) sHook.beforeSwitch();
         mSwitcher.show(id);
         changed();
     }
@@ -87,6 +125,30 @@ public final class SpacesController {
     public Result createAndShow(String name, String color, String symbol) {
         Result result = mLibrary.create(name, color, symbol);
         if (result == Result.OK && mLibrary.lastCreated != null) show(mLibrary.lastCreated.id);
+        return result;
+    }
+
+    /** "Save This Phone as a Space": the tabs on show become a new Space, and stay on show. */
+    public @Nullable String saveThisPhone(String base) {
+        if (mLibrary.shownId != null) show(null);
+        String name = base;
+        for (int n = 2; mLibrary.named(name) != null; n++) name = base + " " + n;
+        Result result = mLibrary.create(name, mLibrary.nextColor(), mLibrary.nextSymbol());
+        if (result != Result.OK || mLibrary.lastCreated == null) return null;
+        // What's on show moves across as it is, and This Phone starts again from a Start Page.
+        mLibrary.phone = new BlancSpaces.SavedSet();
+        mLibrary.shownId = mLibrary.lastCreated.id;
+        changed();
+        return mLibrary.lastCreated.id;
+    }
+
+    /** Copies another device's Space here with no link to it, and shows it. */
+    public Result bring(String name, String color, String symbol, BlancSpaces.SavedSet set) {
+        Result result = mLibrary.create(name, color, symbol);
+        if (result == Result.OK && mLibrary.lastCreated != null) {
+            mLibrary.lastCreated.set = set;
+            show(mLibrary.lastCreated.id);
+        }
         return result;
     }
 
@@ -99,7 +161,11 @@ public final class SpacesController {
 
     public Result update(String id, String name, String color, String symbol) {
         Result result = mLibrary.update(id, name, color, symbol);
-        if (result == Result.OK) changed();
+        if (result == Result.OK) {
+            Space space = mLibrary.space(id);
+            if (sHook != null && space != null) sHook.edited(space);
+            changed();
+        }
         return result;
     }
 
@@ -110,11 +176,15 @@ public final class SpacesController {
 
     public void reorder(String id, int by) {
         mLibrary.move(id, by);
+        if (sHook != null) sHook.reordered();
         changed();
     }
 
     public void delete(String id, long now) {
         mDeletedWasShown = id.equals(mLibrary.shownId);
+        Space space = mLibrary.space(id);
+        if (sHook != null && space != null) sHook.deleted(space);
+        if (mDeletedWasShown && sHook != null) sHook.beforeSwitch();
         mSwitcher.delete(id, now);
         mUndoId = id;
         changed();
@@ -134,7 +204,10 @@ public final class SpacesController {
 
     public Result restore(String id) {
         Result result = mLibrary.restore(id);
-        if (result == Result.OK) changed();
+        if (result == Result.OK) {
+            if (sHook != null) sHook.restored(id);
+            changed();
+        }
         return result;
     }
 

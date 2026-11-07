@@ -100,16 +100,37 @@ public final class SyncedClosed {
     static @Nullable String record(TabStore.Entry tab) {
         RecentlyClosed local = sLocal;
         if (local == null || tab.privateTab || !RecentlyClosed.web(tab.url)) return null;
-        String id = UUID.randomUUID().toString();
+        // In a shared Space the row's id is the record's, so every device lists the page once.
+        String shared = SyncedSpaces.recordOf(tab.id);
+        String space = shared == null ? null : SyncedSpaces.shownSpace();
+        String id = shared != null ? shared : UUID.randomUUID().toString();
         long now = System.currentTimeMillis();
-        local.add(new RecentlyClosed.Row(id, tab.url, tab.title, now, null, null, null));
+        local.add(new RecentlyClosed.Row(id, tab.url, tab.title, now, space, null, null));
         try {
             call("closed.add", new JSONArray().put(new JSONObject().put("id", id).put("url", tab.url)
-                    .put("title", tab.title).put("closedAt", now).put("spaceId", JSONObject.NULL)));
+                    .put("title", tab.title).put("closedAt", now).put("spaceId", space == null ? JSONObject.NULL : space)));
         } catch (JSONException e) {
             // The row stays on this phone.
         }
         return id;
+    }
+
+    /** A tab another device closed here: its row names that device, and keeps the shared id. */
+    static void closedElsewhere(JSONObject row) {
+        RecentlyClosed local = sLocal;
+        JSONObject page = row.optJSONObject("page");
+        if (local == null || page == null) return;
+        long now = System.currentTimeMillis();
+        String id = row.optString("id"), url = page.optString("url"), title = page.optString("title");
+        String space = row.isNull("spaceId") ? null : row.optString("spaceId");
+        String name = row.isNull("fromName") ? null : row.optString("fromName");
+        local.add(new RecentlyClosed.Row(id, url, title, now, space, row.optString("fromId"), name));
+        try {
+            call("closed.add", new JSONArray().put(new JSONObject().put("id", id).put("url", url).put("title", title)
+                    .put("closedAt", now).put("spaceId", space == null ? JSONObject.NULL : space)));
+        } catch (JSONException e) {
+            // The row stays on this phone.
+        }
     }
 
     /** Undo brought these tabs back: no longer recently closed here. */

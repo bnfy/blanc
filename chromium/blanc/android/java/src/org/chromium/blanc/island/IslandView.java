@@ -85,6 +85,7 @@ public class IslandView extends FrameLayout {
 
     public IslandView(Context context) {
         super(context);
+        org.chromium.blanc.sync.SharedSpacesUi.install(context);
         LayoutInflater.from(context).inflate(R.layout.blanc_island, this, true);
         Resources res = getResources();
         mDensity = res.getDisplayMetrics().density;

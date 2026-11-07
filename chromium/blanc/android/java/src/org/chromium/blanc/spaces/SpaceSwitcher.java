@@ -11,8 +11,10 @@ import org.chromium.build.annotations.NullMarked;
 import org.chromium.build.annotations.Nullable;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 /**
@@ -39,6 +41,16 @@ public final class SpaceSwitcher {
 
         /** A tab that loads when shown, for a saved tab with no state. "" if refused. */
         String open(String url);
+
+        /** The tabs themselves, for what another device changed. */
+        default TabStore store() {
+            throw new UnsupportedOperationException();
+        }
+
+        /** Puts a tab in a group, made now when `local` is null; returns the group's id. */
+        default String joinGroup(String tabId, SavedGroup group, @Nullable String local) {
+            return local == null ? "" : local;
+        }
 
         /** A new Start Page tab. */
         String startPage();
@@ -73,13 +85,22 @@ public final class SpaceSwitcher {
 
     /** What's on show, as a saved set. Tabs with no state still keep their address. */
     private SavedSet capture() {
+        for (TabStore.Entry tab : mTabs.tabs()) mTabs.freeze(tab.id, true);
+        return shown();
+    }
+
+    /** What's on show now, with nothing frozen: what a shared Space publishes. */
+    public SavedSet shown() {
         SavedSet set = new SavedSet();
         for (TabStore.Entry tab : mTabs.tabs()) {
-            mTabs.freeze(tab.id, true);
-            set.tabs.add(new SavedTab(tab.id, tab.url, tab.title, tab.pinned, tab.groupId));
+            SavedTab saved = new SavedTab(tab.id, tab.url, tab.title, tab.pinned, tab.groupId);
+            saved.sharedId = mLibrary.tabBindings.get(tab.id);
+            set.tabs.add(saved);
         }
         for (TabStore.Group group : mTabs.groups()) {
-            set.groups.add(new SavedGroup(group.id, group.name, group.color, group.collapsed));
+            SavedGroup saved = new SavedGroup(group.id, group.name, group.color, group.collapsed);
+            saved.sharedId = mLibrary.groupBindings.get(group.id);
+            set.groups.add(saved);
         }
         set.activeId = mTabs.activeId();
         return set;
@@ -129,18 +150,21 @@ public final class SpaceSwitcher {
         Set<String> open = new HashSet<>();
         for (TabStore.Entry tab : mTabs.tabs()) open.add(tab.id);
         List<String> shown = new ArrayList<>();
+        Map<String, String> bindings = new HashMap<>();
+        Map<String, List<String>> members = new HashMap<>();
         for (SavedTab tab : target.tabs) {
-            if (open.contains(tab.id)) {
-                shown.add(tab.id);
-                continue;
+            String id = tab.id;
+            if (!open.contains(id)) {
+                id = mTabs.thaw(tab.id);
+                if (id.isEmpty()) id = mTabs.open(tab.url);
+                if (id.isEmpty()) continue;
+                if (tab.pinned) mTabs.setPinned(id, true);
             }
-            String id = mTabs.thaw(tab.id);
-            if (id.isEmpty()) id = mTabs.open(tab.url);
-            if (id.isEmpty()) continue;
             shown.add(id);
-            if (tab.pinned) mTabs.setPinned(id, true);
+            if (tab.sharedId != null) bindings.put(id, tab.sharedId);
+            if (tab.groupId != null) members.computeIfAbsent(tab.groupId, key -> new ArrayList<>()).add(id);
         }
-        for (SavedGroup group : target.groups) mTabs.restoreGroup(group);
+        Map<String, String> groupBindings = restoreGroups(target, members);
         if (shown.isEmpty()) shown.add(mTabs.startPage());
         // Everything else belongs to the set just left, saved before the switch began. After a
         // kill Chromium may have reopened those tabs under new ids, so they aren't matched by id.
@@ -153,7 +177,35 @@ public final class SpaceSwitcher {
         mTabs.flush();
         mLibrary.shownId = pending.to;
         mLibrary.pending = null;
+        mLibrary.tabBindings.clear();
+        mLibrary.tabBindings.putAll(bindings);
+        mLibrary.groupBindings.clear();
+        mLibrary.groupBindings.putAll(groupBindings);
         mTabs.save(mLibrary);
+    }
+
+    /**
+     * Groups come back with their tabs when those have saved state. A group another device made, or
+     * a tab it added, has none: it's made here and takes the group's name and color.
+     */
+    private Map<String, String> restoreGroups(SavedSet target, Map<String, List<String>> members) {
+        Map<String, String> current = new HashMap<>();
+        for (TabStore.Entry tab : mTabs.tabs()) if (tab.groupId != null) current.put(tab.id, tab.groupId);
+        Map<String, String> bindings = new HashMap<>();
+        for (SavedGroup group : target.groups) {
+            String local = null;
+            List<String> ids = members.getOrDefault(group.id, new ArrayList<>());
+            for (String id : ids) if (local == null) local = current.get(id);
+            for (String id : ids) {
+                if (local == null || !local.equals(current.get(id))) local = mTabs.joinGroup(id, group, local);
+            }
+            if (local == null) local = group.id;
+            if (local.isEmpty()) continue;
+            SavedGroup restored = new SavedGroup(local, group.name, group.color, group.collapsed);
+            mTabs.restoreGroup(restored);
+            if (group.sharedId != null) bindings.put(local, group.sharedId);
+        }
+        return bindings;
     }
 
     /** A tab to the end of a set that isn't showing; null is This Phone. The only tab here stays. */
@@ -169,6 +221,7 @@ public final class SpaceSwitcher {
             target.tabs.add(new SavedTab(tab.id, tab.url, tab.title, tab.pinned, null));
             mTabs.save(mLibrary);
             mTabs.close(tab.id);
+            mLibrary.tabBindings.remove(tab.id);
             return;
         }
     }

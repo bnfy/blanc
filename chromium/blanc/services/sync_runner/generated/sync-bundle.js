@@ -368,12 +368,21 @@ function capture() {
   return out;
 }
 
+// A row says what Java can't look up: the group a tab joins, and who closed a tab.
+function detailed(row) {
+  const blob = context()?.blob, joins = row.op === 'create' ? row.record.groupId.v : row.field === 'groupId' ? row.value.v : null;
+  const by = row.op === 'close' ? row.value.by : null;
+  return {...row, ...(joins ? {group: blob?.groups[joins]} : {}),
+    ...(by ? {fromId: by, fromName: sync().pairingDevices().find(device => device.deviceId === by)?.name ?? null,
+      page: blob?.tabs[row.id]?.nav?.v, spaceId: context()?.spaceId} : {})};
+}
+
 function applyRow(_, row) {
   const token = ++nextToken;
   return new Promise(done => {
     const timer = setTimeout(() => { waiting.delete(token); done(false); }, ROW_MILLIS);
     waiting.set(token, ok => { clearTimeout(timer); done(ok); });
-    emit('spaces-row', {token, row});
+    emit('spaces-row', {token, row: detailed(row)});
   });
 }
 
@@ -454,8 +463,8 @@ module.exports = {
     report();
   },
   // What Java has now. `capture` is the shown tabs, null with no Space on show.
-  async push({revision: seen, rows: next, shownId: id, capture: tabs, protectedIds: guarded, recoveryFormat: format}) {
-    if (seen < revision) return {stale: true, revision};
+  async push({revision: seen, rows: next, shownId: id, capture: tabs, protectedIds: guarded, recoveryFormat: format, restoring}) {
+    if (seen < revision) return {stale: true, revision, rows};
     if (applying) return {busy: true, revision};
     start();
     const moved = rows === null || id !== shownId;
@@ -469,6 +478,7 @@ module.exports = {
     // A Space just shown may be behind its record: remote work first, and the tabs it changed come
     // in the next push. Otherwise these tabs are newer than the receipt, and what waited for the
     // tab on screen or for a switch can land now.
+    if (restoring) sharing.restored(restoring);
     if (!moved && captured && context()?.window) runtimeSync.local(window);
     await settle();
     await sharing.autoShare();
@@ -480,8 +490,34 @@ module.exports = {
   preview: options => { start(); return sharing.preview(options); },
   apply: payload => { start(); return sharing.apply(payload); },
   metadata: (id, patch) => { start(); return sharing.metadata(rows?.find(row => row.id === id), patch); },
-  restored: id => { start(); return sharing.restored(id); },
   reorder: () => { start(); return sharing.reorder(); },
+  // With the switch off: the library's Spaces this phone doesn't hold, read-only, as on the iPhone.
+  remote() {
+    const ctx = sync().sharedContext(), snapshot = state().snapshot(ctx);
+    if (!sync().status().enabled || snapshot.enabled) return [];
+    const held = new Set((rows ?? []).map(row => row.sharedId)), devices = sync().pairingDevices();
+    return model().orderOf(snapshot.index.spaces).flatMap(id => {
+      const record = snapshot.index.spaces[id];
+      if (record.deleted.v || held.has(id) || record.createdBy === ctx.deviceId) return [];
+      return [{id, name: record.name.v, color: record.color.v, symbol: record.symbol.v,
+        device: devices.find(device => device.deviceId === record.createdBy)?.name ?? record.createdBy}];
+    });
+  },
+  // One Space for the Bring sheet, read straight from the Worker: never merged, kept or uploaded.
+  async previewSpace(id) {
+    const ctx = sync().sharedContext(), {net, safeStorage} = __require('shim:electron');
+    const {unprotectSyncKey} = __require('src/main/sync-key-storage.js'), {decrypt} = __require('src/main/sync-crypto.js');
+    if (!/^[0-9a-f]{32}$/.test(id)) return null;
+    const stored = JSON.parse(fs.readFileSync('/sync/sync.json', 'utf8'));
+    const endpoint = __host.env?.BLANC_TEST_SYNC_ENDPOINT || 'https://blanc-sync.bnfy-441.workers.dev';
+    const response = await net.fetch(`${endpoint}/v1/blob/${ctx.accountId}/space-${id}`);
+    if (!response.ok) return null;
+    const key = unprotectSyncKey(safeStorage, stored.protectedKey);
+    try {
+      const blob = model().sanitizeBlob(JSON.parse(decrypt(key, (await response.json()).blob)));
+      return blob?.spaceId === id ? __require('src/main/shared-spaces-sharing.js').projectSpace(blob) : null;
+    } finally { key.fill(0); }
+  },
   status() {
     const shared = sync().sharedStatus(), ctx = sync().sharedContext();
     const blobs = Object.values(state().snapshot(ctx).blobs).map(entry => entry?.reason);
@@ -12420,7 +12456,8 @@ const spaces = name => (...args) => __require('shim:spaces')[name](...args);
 const PHONE = {
   'spaces.push': spaces('push'), 'spaces.hold': spaces('hold'), 'spaces.rowDone': spaces('rowDone'),
   'spaces.preview': spaces('preview'), 'spaces.apply': spaces('apply'), 'spaces.metadata': spaces('metadata'),
-  'spaces.restored': spaces('restored'), 'spaces.reorder': spaces('reorder'), 'spaces.status': spaces('status'),
+  'spaces.reorder': spaces('reorder'), 'spaces.status': spaces('status'), 'spaces.remote': spaces('remote'),
+  'spaces.previewSpace': spaces('previewSpace'),
   'closed.add': closed('addOwnItem', false),
   'closed.inbox': closed('inbox', []),
   'closed.hide': closed('hide', null),

@@ -11,8 +11,11 @@ import org.chromium.build.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 import java.util.UUID;
 
 /**
@@ -44,6 +47,8 @@ public final class BlancSpaces {
         public final String title;
         public final boolean pinned;
         public final @Nullable String groupId;
+        /** Its record in a shared Space. */
+        public @Nullable String sharedId;
 
         public SavedTab(String id, String url, String title, boolean pinned, @Nullable String groupId) {
             this.id = id;
@@ -60,6 +65,8 @@ public final class BlancSpaces {
         public final String name;
         public final @Nullable String color;
         public final boolean collapsed;
+        /** Its record in a shared Space. */
+        public @Nullable String sharedId;
 
         public SavedGroup(String id, String name, @Nullable String color, boolean collapsed) {
             this.id = id;
@@ -83,6 +90,10 @@ public final class BlancSpaces {
         public String color;
         public String symbol;
         public SavedSet set = new SavedSet();
+        /** Shared Spaces: the library's id, "active" or "dormant", and what a recovery copy came from. */
+        public @Nullable String sharedId;
+        public @Nullable String sharedLink;
+        public @Nullable String recoveredFrom;
 
         Space(String id, String name, String color, String symbol) {
             this.id = id;
@@ -122,6 +133,9 @@ public final class BlancSpaces {
     public final List<Deleted> deleted = new ArrayList<>();
     public @Nullable String shownId;
     public @Nullable Pending pending;
+    /** The shown set's Chromium tabs and groups, each to its shared record. */
+    public final Map<String, String> tabBindings = new HashMap<>();
+    public final Map<String, String> groupBindings = new HashMap<>();
 
     /** The name to use, or null: trimmed, at most NAME_LIMIT long, not empty. */
     public static @Nullable String cleanName(String raw) {
@@ -304,12 +318,14 @@ public final class BlancSpaces {
         JSONArray tabs = new JSONArray();
         for (SavedTab tab : set.tabs) {
             tabs.put(new JSONObject().put("id", tab.id).put("url", tab.url).put("title", tab.title)
-                    .put("pinned", tab.pinned).put("groupId", tab.groupId == null ? JSONObject.NULL : tab.groupId));
+                    .put("pinned", tab.pinned).put("groupId", tab.groupId == null ? JSONObject.NULL : tab.groupId)
+                    .put("sharedId", tab.sharedId == null ? JSONObject.NULL : tab.sharedId));
         }
         JSONArray groups = new JSONArray();
         for (SavedGroup group : set.groups) {
             groups.put(new JSONObject().put("id", group.id).put("name", group.name)
-                    .put("color", group.color == null ? JSONObject.NULL : group.color).put("collapsed", group.collapsed));
+                    .put("color", group.color == null ? JSONObject.NULL : group.color).put("collapsed", group.collapsed)
+                    .put("sharedId", group.sharedId == null ? JSONObject.NULL : group.sharedId));
         }
         return new JSONObject().put("tabs", tabs).put("groups", groups)
                 .put("activeId", set.activeId == null ? JSONObject.NULL : set.activeId);
@@ -326,28 +342,46 @@ public final class BlancSpaces {
         for (int i = 0; tabs != null && i < tabs.length(); i++) {
             JSONObject tab = tabs.optJSONObject(i);
             if (tab == null || tab.optString("id").isEmpty()) continue;
-            set.tabs.add(new SavedTab(tab.optString("id"), tab.optString("url"), tab.optString("title"),
-                    tab.optBoolean("pinned"), text(tab, "groupId")));
+            SavedTab saved = new SavedTab(tab.optString("id"), tab.optString("url"), tab.optString("title"),
+                    tab.optBoolean("pinned"), text(tab, "groupId"));
+            saved.sharedId = text(tab, "sharedId");
+            set.tabs.add(saved);
         }
         JSONArray groups = json.optJSONArray("groups");
         for (int i = 0; groups != null && i < groups.length(); i++) {
             JSONObject group = groups.optJSONObject(i);
             if (group == null) continue;
-            set.groups.add(new SavedGroup(group.optString("id"), group.optString("name"), text(group, "color"),
-                    group.optBoolean("collapsed")));
+            SavedGroup saved = new SavedGroup(group.optString("id"), group.optString("name"), text(group, "color"),
+                    group.optBoolean("collapsed"));
+            saved.sharedId = text(group, "sharedId");
+            set.groups.add(saved);
         }
         set.activeId = text(json, "activeId");
         return set;
     }
 
+    private static void readMap(@Nullable JSONObject json, Map<String, String> into) {
+        if (json == null) return;
+        for (Iterator<String> keys = json.keys(); keys.hasNext();) {
+            String key = keys.next();
+            into.put(key, json.optString(key));
+        }
+    }
+
     private static JSONObject spaceJson(Space space) throws JSONException {
         return new JSONObject().put("id", space.id).put("name", space.name).put("color", space.color)
-                .put("symbol", space.symbol).put("set", setJson(space.set));
+                .put("symbol", space.symbol).put("set", setJson(space.set))
+                .put("sharedId", space.sharedId == null ? JSONObject.NULL : space.sharedId)
+                .put("sharedLink", space.sharedLink == null ? JSONObject.NULL : space.sharedLink)
+                .put("recoveredFrom", space.recoveredFrom == null ? JSONObject.NULL : space.recoveredFrom);
     }
 
     private static Space space(JSONObject json) {
         Space space = new Space(json.optString("id"), json.optString("name"), json.optString("color"), json.optString("symbol"));
         space.set = set(json.optJSONObject("set"));
+        space.sharedId = text(json, "sharedId");
+        space.sharedLink = text(json, "sharedLink");
+        space.recoveredFrom = text(json, "recoveredFrom");
         return space;
     }
 
@@ -359,7 +393,8 @@ public final class BlancSpaces {
             gone.put(new JSONObject().put("space", spaceJson(entry.space)).put("deletedAt", entry.deletedAt).put("index", entry.index));
         }
         JSONObject out = new JSONObject().put("version", 1).put("phone", setJson(phone)).put("spaces", list)
-                .put("deleted", gone).put("shownId", shownId == null ? JSONObject.NULL : shownId);
+                .put("deleted", gone).put("shownId", shownId == null ? JSONObject.NULL : shownId)
+                .put("tabBindings", new JSONObject(tabBindings)).put("groupBindings", new JSONObject(groupBindings));
         if (pending != null) {
             out.put("pending", new JSONObject().put("from", pending.from == null ? JSONObject.NULL : pending.from)
                     .put("to", pending.to == null ? JSONObject.NULL : pending.to));
@@ -379,6 +414,8 @@ public final class BlancSpaces {
         try {
             JSONObject root = new JSONObject(json);
             library.phone = set(root.optJSONObject("phone"));
+            readMap(root.optJSONObject("tabBindings"), library.tabBindings);
+            readMap(root.optJSONObject("groupBindings"), library.groupBindings);
             JSONArray list = root.optJSONArray("spaces");
             for (int i = 0; list != null && i < list.length(); i++) {
                 JSONObject item = list.optJSONObject(i);

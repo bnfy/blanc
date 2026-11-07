@@ -12,7 +12,8 @@ const spaces = name => (...args) => __require('shim:spaces')[name](...args);
 const PHONE = {
   'spaces.push': spaces('push'), 'spaces.hold': spaces('hold'), 'spaces.rowDone': spaces('rowDone'),
   'spaces.preview': spaces('preview'), 'spaces.apply': spaces('apply'), 'spaces.metadata': spaces('metadata'),
-  'spaces.restored': spaces('restored'), 'spaces.reorder': spaces('reorder'), 'spaces.status': spaces('status'),
+  'spaces.reorder': spaces('reorder'), 'spaces.status': spaces('status'), 'spaces.remote': spaces('remote'),
+  'spaces.previewSpace': spaces('previewSpace'),
   'closed.add': closed('addOwnItem', false),
   'closed.inbox': closed('inbox', []),
   'closed.hide': closed('hide', null),

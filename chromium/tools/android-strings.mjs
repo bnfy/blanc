@@ -64,11 +64,18 @@ export const ANDROID_KEYS = [
   'settings.sync.createOnComputer', 'settings.sync.pairing.instruction', 'shield.done', 'sync.error.badPassphrase',
   'sync.error.pairNotFound', 'sync.error.pairUnavailable', 'sync.error.pairInvalid', 'sync.error.rateLimited',
   'sync.error.offline', 'sync.error.server', 'sync.error.serverError', 'sync.error.syncOn',
+  'sharedSpaces.title', 'sharedSpaces.explanation', 'sharedSpaces.confirm', 'sharedSpaces.count', 'sharedSpaces.tabs',
+  'sharedSpaces.rejoin', 'sharedSpaces.copy', 'sharedSpaces.full', 'sharedSpaces.accountFull', 'sharedSpaces.unavailable',
+  'sharedSpaces.shared', 'sharedSpaces.waiting', 'sharedSpaces.notSynced', 'sharedSpaces.fullState',
+  'sharedSpaces.unavailableState', 'sharedSpaces.accountLine', 'sharedSpaces.offLine', 'sharedSpaces.tombstones',
+  'sharedSpaces.capacity', 'sharedSpaces.busy', 'sharedSpaces.recoveryNote', 'sharedSpaces.switch.android',
+  'sharedSpaces.switch.line.android', 'sharedSpaces.saveThisPhone', 'sharedSpaces.recoveryName.android',
+  'sharedSpaces.deletedEverywhere.android', 'bringSpace.action.android', 'bringSpace.copyNote', 'spaces.onDevice',
   'closed.header', 'closed.fold', 'closed.unfold', 'closed.clear', 'closed.clearAll', 'closed.forget', 'sharedSpaces.closedOn',
   'sync.error.off', 'sync.error.credentialsSave', 'sync.error.accountGone', 'slash.sync.hint',
 ];
 // ICU plurals, as Android <plurals>: the Island's tab count for TalkBack.
-export const ANDROID_PLURALS = ['newtab.groups.count', 'shield.count.blocked', 'tabGroups.tucked', 'tabsMenu.header',
+export const ANDROID_PLURALS = ['sharedSpaces.waitingCount', 'newtab.groups.count', 'shield.count.blocked', 'tabGroups.tucked', 'tabsMenu.header',
   'ws.list.recentlyDeleted'];
 export const LOCALES = [['en', 'values'], ['de', 'values-de'], ['es', 'values-es'], ['fr', 'values-fr'],
   ['it', 'values-it'], ['pt-BR', 'values-pt-rBR']];

@@ -9340,5 +9340,29 @@
   "settings.general.miniWindow.shortcut.ctrlShiftSpace": {
     "message": "Ctrl+Maiusc+Spazio",
     "source": "sha256:5f579d29dff6300530617e41e4a883a52c075e51ffb3573d781ced720a7601a8"
+  },
+  "sharedSpaces.switch.android": {
+    "message": "Mantieni Spaces e gruppi sincronizzati su questo telefono",
+    "source": "sha256:3fd5725f20014ae99a8e54ec771f70bbd0aded56cb6824418f77a77cfc7bb6c1"
+  },
+  "sharedSpaces.switch.line.android": {
+    "message": "Le schede dei tuoi Spaces condivisi vengono sincronizzate da questo telefono.",
+    "source": "sha256:dae75716c578c9f174cf391630377e6676fca184fd18647585425a86875711ab"
+  },
+  "sharedSpaces.saveThisPhone": {
+    "message": "Salva Questo telefono come Space",
+    "source": "sha256:3d504e97fd5a0cddac0a501fa8d33ca344ed24a3713465e62185521241253809"
+  },
+  "sharedSpaces.recoveryName.android": {
+    "message": "{name} · conservato su questo telefono",
+    "source": "sha256:4ccdeab1c50b3fe66996ffa42c4a38124fde8c3f993668d7eb50aca7d00a2e57"
+  },
+  "sharedSpaces.deletedEverywhere.android": {
+    "message": "Eliminato ovunque. Annulla ne conserva una copia su questo telefono.",
+    "source": "sha256:0b22cfb62b4d2dc6a91b7a64abc4d4013cd2ac2c4ce370e256b185300f2e9dda"
+  },
+  "bringSpace.action.android": {
+    "message": "Porta su questo telefono",
+    "source": "sha256:40fcc327dd131cea58c7905b3b43f52fa94da02544a82c79a46c5fea88ca8abf"
   }
 }

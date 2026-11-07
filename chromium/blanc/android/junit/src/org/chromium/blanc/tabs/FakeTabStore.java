@@ -12,6 +12,9 @@ import java.util.Map;
 
 /** A TabStore over plain lists, for BlancTabsTest. Groups vanish with their last tab, as Chromium's do. */
 public final class FakeTabStore implements TabStore {
+    /** Tabs made to stay unloaded. */
+    public final List<String> quiet = new ArrayList<>();
+
     private static final class Tab {
         String id;
         String url;
@@ -78,6 +81,21 @@ public final class FakeTabStore implements TabStore {
         mActive.put(privateTab, t.id);
         mPrivateSelected = privateTab;
         return t.id;
+    }
+
+    @Override
+    public String createQuiet(String url, String title) {
+        String id = create(url, false, null, -1);
+        quiet.add(id);
+        return id;
+    }
+
+    @Override
+    public String navigate(String id, String url, String title) {
+        Tab t = find(id);
+        if (t == null) return "";
+        t.url = url;
+        return id;
     }
 
     @Override

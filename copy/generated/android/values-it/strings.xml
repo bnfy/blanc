@@ -2643,4 +2643,10 @@ Puoi riprovare con «%2$s» o reinstallare Blanc da blanc.day.</string>
     <string name="settings_general_mini_window_shortcut_ctrl_alt_space_mac">⌃⌥Spazio</string>
     <string name="settings_general_mini_window_shortcut_ctrl_alt_space">Ctrl+Alt+Spazio</string>
     <string name="settings_general_mini_window_shortcut_ctrl_shift_space">Ctrl+Maiusc+Spazio</string>
+    <string name="shared_spaces_switch_android">Mantieni Spaces e gruppi sincronizzati su questo telefono</string>
+    <string name="shared_spaces_switch_line_android">Le schede dei tuoi Spaces condivisi vengono sincronizzate da questo telefono.</string>
+    <string name="shared_spaces_save_this_phone">Salva Questo telefono come Space</string>
+    <string name="shared_spaces_recovery_name_android">%1$s · conservato su questo telefono</string>
+    <string name="shared_spaces_deleted_everywhere_android">Eliminato ovunque. Annulla ne conserva una copia su questo telefono.</string>
+    <string name="bring_space_action_android">Porta su questo telefono</string>
 </resources>

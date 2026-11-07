@@ -28,6 +28,8 @@ android_library("island_java") {
 android_library("tabs_java") {
   sources = [
     "java/src/org/chromium/blanc/spaces/BlancSpaces.java",
+    "java/src/org/chromium/blanc/spaces/SharedRows.java",
+    "java/src/org/chromium/blanc/spaces/SpaceRows.java",
     "java/src/org/chromium/blanc/spaces/SpaceSwitcher.java",
     "java/src/org/chromium/blanc/spaces/SpacesController.java",
     "java/src/org/chromium/blanc/tabs/BlancTabState.java",
@@ -110,6 +112,7 @@ android_library("sync_java") {
     "java/src/org/chromium/blanc/sync/SyncedFavorites.java",
     "java/src/org/chromium/blanc/sync/SyncedSettings.java",
     "java/src/org/chromium/blanc/sync/SyncedClosed.java",
+    "java/src/org/chromium/blanc/sync/SyncedSpaces.java",
     "java/src/org/chromium/blanc/sync/SyncedTabs.java",
     blanc_sync_test_driver,
   ]
@@ -241,7 +244,10 @@ android_library("island_view_java") {
     "java/src/org/chromium/blanc/grid/TabGrid.java",
     "java/src/org/chromium/blanc/palette/PaletteSheet.java",
     "java/src/org/chromium/blanc/spaces/SpacesCard.java",
+    "java/src/org/chromium/blanc/sync/BringSpaceSheet.java",
     "java/src/org/chromium/blanc/sync/PairScanner.java",
+    "java/src/org/chromium/blanc/sync/SharedSpacesSheet.java",
+    "java/src/org/chromium/blanc/sync/SharedSpacesUi.java",
     "java/src/org/chromium/blanc/sync/SyncSheet.java",
   ]
   deps = [
@@ -294,6 +300,8 @@ robolectric_binary("blanc_android_junit_tests") {
     "junit/src/org/chromium/blanc/spaces/BlancSpacesTest.java",
     "junit/src/org/chromium/blanc/sync/BlancKeyStoreTest.java",
     "junit/src/org/chromium/blanc/sync/OtherDevicesTest.java",
+    "junit/src/org/chromium/blanc/spaces/SharedRowsTest.java",
+    "junit/src/org/chromium/blanc/spaces/SpaceRowsTest.java",
     "junit/src/org/chromium/blanc/sync/SyncedClosedTest.java",
     "junit/src/org/chromium/blanc/sync/PairScannerTest.java",
     "junit/src/org/chromium/blanc/sync/ProfileSyncTest.java",

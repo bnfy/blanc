@@ -2568,4 +2568,10 @@ You can retry with “%2$s”, or reinstall from blanc.day.</string>
     <string name="settings_general_mini_window_shortcut_ctrl_alt_space_mac">⌃⌥Spacebar</string>
     <string name="settings_general_mini_window_shortcut_ctrl_alt_space">Ctrl+Alt+Spacebar</string>
     <string name="settings_general_mini_window_shortcut_ctrl_shift_space">Ctrl+Shift+Spacebar</string>
+    <string name="shared_spaces_switch_android">Keep Spaces and groups in sync on this phone</string>
+    <string name="shared_spaces_switch_line_android">Tabs in your shared Spaces are synced from this phone.</string>
+    <string name="shared_spaces_save_this_phone">Save This Phone as a Space</string>
+    <string name="shared_spaces_recovery_name_android">%1$s · kept on this phone</string>
+    <string name="shared_spaces_deleted_everywhere_android">Deleted everywhere. Undo keeps a copy on this phone.</string>
+    <string name="bring_space_action_android">Bring to this phone</string>
 </resources>

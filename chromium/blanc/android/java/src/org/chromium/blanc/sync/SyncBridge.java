@@ -123,6 +123,7 @@ public final class SyncBridge {
     /** Starts the runner for a phone that syncs. A phone that doesn't never starts it. */
     public static void startIfOn() {
         SyncedClosed.start();
+        SyncedSpaces.start();
         if (!sWatching) {
             sWatching = true;
             ApplicationStatus.registerApplicationStateListener(state -> {
@@ -143,7 +144,10 @@ public final class SyncBridge {
     /** This phone's tabs for other devices, once its tab model has them. */
     public static void setTabs(String argsJson) {
         sTabs = argsJson;
-        if (on()) call("phone.setTabs", argsJson, result -> {});
+        if (on()) {
+            call("phone.setTabs", argsJson, result -> {});
+            SyncedSpaces.push();
+        }
     }
 
     static void setStartData(String devicesJson, String sentJson) {
@@ -180,6 +184,10 @@ public final class SyncBridge {
     private static void onEvent(String event, String text) {
         if ("remote".equals(event)) {
             OtherDevices.refresh();
+            return;
+        }
+        if (event.startsWith("spaces-")) {
+            SyncedSpaces.onEvent(event, text);
             return;
         }
         if ("closed".equals(event)) {

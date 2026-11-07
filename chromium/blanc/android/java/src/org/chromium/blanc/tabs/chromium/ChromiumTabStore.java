@@ -19,11 +19,13 @@ import org.chromium.chrome.browser.tabmodel.TabModelSelector;
 import org.chromium.chrome.browser.tabmodel.TabModelUtils;
 import org.chromium.chrome.browser.crypto.CipherFactory;
 import org.chromium.chrome.browser.tab.TabState;
+import org.chromium.chrome.browser.tab.WebContentsState;
 import org.chromium.chrome.browser.tab.TabStateAttributes;
 import org.chromium.chrome.browser.tab.TabStateExtractor;
 import org.chromium.chrome.browser.tabpersistence.TabStateFileManager;
 import org.chromium.components.tab_groups.TabGroupColorId;
 import org.chromium.content_public.browser.LoadUrlParams;
+import org.chromium.network.mojom.ReferrerPolicy;
 import org.chromium.content_public.browser.WebContents;
 
 import java.io.File;
@@ -157,6 +159,39 @@ public final class ChromiumTabStore implements TabStore {
         String id = String.valueOf(tab.getId());
         if (groupId != null) addToGroup(id, groupId);
         return id;
+    }
+
+    @Override
+    public String createQuiet(String url, String title) {
+        return frozen(url, title, -1);
+    }
+
+    private String frozen(String url, String title, int index) {
+        WebContentsState contents = WebContentsState.createSingleNavigationWebContentsState(
+                mSelector.getModel(false).getProfile(), title, url, null, ReferrerPolicy.DEFAULT, null);
+        if (contents == null) return "";
+        TabState state = new TabState();
+        state.contentsState = contents;
+        state.tabLaunchTypeAtCreation = TabLaunchType.FROM_RESTORE;
+        state.timestampMillis = System.currentTimeMillis();
+        Tab tab = mCreators.getTabCreator(false).createFrozenTab(state, Tab.INVALID_TAB_ID, index);
+        if (tab == null) return "";
+        TabStateAttributes.setDirty(tab);
+        return String.valueOf(tab.getId());
+    }
+
+    @Override
+    public String navigate(String id, String url, String title) {
+        Tab tab = tab(id);
+        if (tab == null) return "";
+        if (!tab.isFrozen()) {
+            tab.loadUrl(new LoadUrlParams(url));
+            return id;
+        }
+        TabModel model = mSelector.getModel(false);
+        String next = frozen(url, title, model.indexOf(tab));
+        if (!next.isEmpty()) close(id, false);
+        return next;
     }
 
     /** Saves a tab's whole state, Back and Forward included, under its id. */
