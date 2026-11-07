@@ -119,6 +119,11 @@ test('Recently closed is only there with the Spaces switch on', async () => {
     assert.equal((await call('closed.add', [item])).value, true);
     const own = device.module('synced-closed').rebind(device.sync.sharedContext().accountId).data.devices;
     assert.deepEqual(Object.values(own).flatMap(entry => [...entry.items]).map(row => row.id), ['row-1']);
+    // Clear all needs only Sync on, as on the iPhone: this phone's entry empties with the switch off.
+    device.sync.setSyncSpaces(false);
+    await call('closed.clear');
+    const cleared = device.module('synced-closed').rebind(device.sync.sharedContext().accountId).data.devices;
+    assert.deepEqual(Object.values(cleared).flatMap(entry => [...entry.items]), []);
   } finally {
     await worker.close();
   }

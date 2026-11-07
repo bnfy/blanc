@@ -3,16 +3,17 @@
 const MODULES = {sync: 'sync', bookmarks: 'bookmarks', settings: 'settings'};
 // Recently closed takes the account's context, and is only there with the Spaces switch on, as on
 // desktop: the store it syncs through is one a person has to agree to.
-const closed = (name, off) => (...args) => {
+// Clear all needs only Sync, as on the iPhone: what this phone already shared must be able to go.
+const closed = (name, off, always) => (...args) => {
   const sync = __require('src/main/sync.js');
-  if (!sync.status().enabled || !sync.sharedStatus().enabled) return off;
+  if (!sync.status().enabled || !(always || sync.sharedStatus().enabled)) return off;
   return __require('src/main/synced-closed.js')[name](sync.sharedContext(), ...args);
 };
 const PHONE = {
   'closed.add': closed('addOwnItem', false),
   'closed.inbox': closed('inbox', []),
   'closed.hide': closed('hide', null),
-  'closed.clear': closed('clear', null),
+  'closed.clear': closed('clear', null, true),
 };
 globalThis.__call = (method, argsJson, done) => {
   // Saves every store's pending change now, so what the phone writes down as agreed is on disk.
