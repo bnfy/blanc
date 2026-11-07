@@ -158,11 +158,11 @@ async function main(argv) {
 
     await check('a remote address on a tab that isn\'t loaded keeps its group', async () => {
       const {other} = await sharedWork();
-      const one = d.grid().tabs.find(tab => tab.title.includes('one'));
-      if (!one) return ['no tab one'];
-      d.tap({text: 'two.example'});
-      sleep(2);
+      // Two joins a group and stops being the tab on screen; a switch away and back leaves it unloaded.
       d.runInPalette('/group Reading');
+      sleep(2);
+      d.openGrid();
+      d.tap(d.card('one.example'));
       sleep(2);
       d.runInPalette('/space This phone');
       sleep(3);
@@ -173,7 +173,8 @@ async function main(argv) {
       await other.pass();
       const grouped = other.tabs.find(tab => tab.url === url('two'));
       if (!grouped?.group) return ['the group never reached the peer'];
-      other.tabs.find(tab => tab.url === url('one')).url = url('three');
+      const group = grouped.group;
+      grouped.url = url('three');
       await other.push();
       wait();
       await other.pass();
@@ -181,7 +182,8 @@ async function main(argv) {
       await phonePass();
       wait();
       await other.pass();
-      return other.tabs.find(tab => tab.url === url('two'))?.group === grouped.group ? [] : ['the group was lost'];
+      const moved = other.tabs.find(tab => tab.url === url('three'));
+      return moved?.group === group ? [] : [`peer holds ${JSON.stringify(other.tabs)}`];
     });
 
     await check('switching away and back keeps a shared Space and closes nothing elsewhere', async () => {
