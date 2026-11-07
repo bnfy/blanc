@@ -137,3 +137,21 @@ answers the runner's microphone dialog, the same notarized build passed strict
 unmuted playback in run `42340331632`, advancing 5.03 seconds, so this was
 October's runner audio stall (`docs/ecs-production-integration.md`). That run
 records one aborted `storage.googleapis.com` request, as October's did.
+
+## Runtime update to ECS 45.2.1+wvcus (November 2026, pending)
+
+`src/main/ublock-platforms.json` moves `electron` to `45.2.1` and `ecsRuntime`
+to `45.2.1+wvcus` (Chromium 156.0.8078.75, Node 24.22.1). uBO 1.75.0 and its
+pinned upstream files are unchanged. Rosetta stays excluded. Manifest V2 still
+loads in Chromium 156.
+
+Signed-package uBO acceptance has **not** run, so `ecsEvidence` starts with
+`PENDING` and `release.sh` refuses an ECS release. What has run, all on official
+npm Electron 45.2.1 from the spike branch `claude/ecs-45-spike`:
+
+| Target | Evidence |
+| --- | --- |
+| Apple Silicon | Local, November 6, 2026: real provider, full suite, dashboard, logger tools, noscript, slow install, unavailable; also an installed, VMP-signed (not notarized) ECS package with provider restarts and native Quit |
+| Native Intel Mac | Run `42376493576` (desktop job) |
+| Windows x64 | Run `42376493576` (desktop job) |
+| Linux x64 | Run `42376493576` (desktop job) |
