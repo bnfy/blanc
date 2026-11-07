@@ -2,7 +2,7 @@
  "publicRelease": "v1.47.0",
  "sourceSha": "988a9bf093d500af18f94235afbe4ab62ce79110",
  "releaseEvidence": "docs/release-incidents/2026-11-07-v1.47.0.md",
- "scope": "Owner-approved /compare chart and page copy (November 2, 2026; spec docs/superpowers/specs/2026-11-02-compare-page-design.md). Blanc answers rest on public v1.47.0; answers about Crest, Arc, Helium and Brave rest on their first-party pages read November 2, 2026. A cell reading Not stated records that the listed pages for that browser do not say, and cites them all. Re-check every cell before checkedAgainst moves to a new feature release.",
+ "scope": "Owner-approved /compare chart and page copy (November 2, 2026; spec docs/superpowers/specs/2026-11-02-compare-page-design.md). Blanc answers rest on public v1.47.0; answers about Crest, Arc, Helium and Brave rest on their first-party pages read November 2, 2026. A cell reading Not stated records that the listed pages for that browser do not say, and cites them all. Re-check every cell before checkedAgainst moves to a new feature release. Re-checked for v1.47.0 on November 7, 2026: each of the eleven Blanc answers was read against the v1.47.0 release notes and none is affected (the release adds page zoom, a Windows drag band, a quit fix and the ECS 45.2.1 runtime); the other browsers' pages were not re-read, so their answers still date from November 2, 2026.",
  "evidenceGroups": {
   "page": {
    "evidence": [

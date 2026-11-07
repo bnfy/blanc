@@ -91,12 +91,12 @@ original reports:
 
 - **Optional uBlock Origin:** Public v1.39.0 offers full uBO 1.75.0 on
   Apple Silicon, native Intel Mac, Windows x64 and Linux x64. Since v1.43.0 it
-  runs on castLabs' Electron for Content Security 44.9.3 (Chromium
-  152.0.7977.167, as on official Electron 44.8.0 from v1.35.0 to v1.42.1), where it
-  passed signed-package uBO acceptance on all four. Since v1.47.0 the runtime is
-  ECS 45.2.1 (Chromium 156.0.8078.75), which passed the same acceptance on all
-  four; its native-source review is waived by the owner, not passed, so never
-  call the runtime audited or reviewed. The move from 44.5.1 passed the real blocking and tools
+  runs on castLabs' Electron for Content Security: 45.2.1 (Chromium
+  156.0.8078.75) since v1.47.0, and 44.9.3 (Chromium 152.0.7977.167) from
+  v1.43.0 to v1.46.0 (official Electron 44.8.0 from v1.35.0 to v1.42.1). Each
+  passed signed-package uBO acceptance on all four. The native-source review
+  of 45.2.1 is waived by the owner, not passed, so never call the runtime
+  audited or reviewed. The move from 44.5.1 passed the real blocking and tools
   suite on all four in hosted CI; the installed-candidate acceptance dates
   from v1.27.0 on 44.5.1. Click the Island shield to choose a blocker and restart
   Blanc to apply it. Blanc Blocker stays the default and protects private
