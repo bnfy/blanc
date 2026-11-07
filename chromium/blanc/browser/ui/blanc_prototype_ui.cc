@@ -2068,6 +2068,70 @@ std::vector<base::WeakPtr<content::WebContents>> LoadedPages(SpaceHold* hold, co
   }
   return pages;
 }
+// Re-checks that `name`'s held pages are still exactly `probed`, in the same
+// order, none newly protected: the invariant every step between the probe
+// and actually letting a page go must hold, since each step is another trip
+// through the event loop the Space can change during. False means something
+// did; the caller must not destroy anything and should retry later instead.
+void MakeRoomForSpaces(base::WeakPtr<Profile> profile, std::set<std::string> skipped);
+bool HeldSpaceUnchanged(SpaceHold* hold, const std::string& name,
+                        const std::vector<base::WeakPtr<content::WebContents>>& probed) {
+  auto* space = hold->Find(name);
+  if (!space) return false;
+  auto now = LoadedPages(hold, *space);
+  if (now.size() != probed.size()) return false;
+  for (size_t i = 0; i < now.size(); ++i)
+    if (now[i].get() != probed[i].get() || HeldPageMustStay(now[i].get())) return false;
+  return true;
+}
+// Lets `name` go: its own saved record is refreshed from what its held pages
+// actually show first, so a page that merely navigated while set aside is
+// found at its current address next time, not the one it had when the Space
+// was first set aside. A refresh that can't be trusted (the record's shape
+// doesn't match the held pages 1:1) is skipped rather than guessed at; the
+// Space is still let go, since nothing destroys live state either way.
+void ForgetWithFreshRecord(base::WeakPtr<Profile> profile, std::set<std::string> skipped,
+                           std::string name, std::vector<base::WeakPtr<content::WebContents>> probed) {
+  auto* hold = profile ? SpaceHold::Get(profile.get()) : nullptr;
+  if (!hold) return;
+  if (!HeldSpaceUnchanged(hold, name, probed)) { skipped.insert(name); MakeRoomForSpaces(profile, std::move(skipped)); return; }
+  SpaceRunner()->PostTaskAndReplyWithResult(FROM_HERE,
+      base::BindOnce(&SpaceDisk, profile->GetPath().AppendASCII("BlancPrototypeSpaces.json"), "spaceRecord", name, base::DictValue()),
+      base::BindOnce([](base::WeakPtr<Profile> profile, std::set<std::string> skipped, std::string name,
+                        std::vector<base::WeakPtr<content::WebContents>> probed, base::DictValue read) {
+        auto* hold = profile ? SpaceHold::Get(profile.get()) : nullptr;
+        if (!hold) return;
+        if (!HeldSpaceUnchanged(hold, name, probed)) { skipped.insert(name); MakeRoomForSpaces(profile, std::move(skipped)); return; }
+        const auto* record = read.FindDict("record");
+        const auto* tabs = record ? record->FindList("tabs") : nullptr;
+        if (!tabs || tabs->size() != probed.size()) {
+          // Shape mismatch (a stale or unreadable record): nothing to refresh
+          // safely. Let the Space go as it was last saved, rather than block
+          // the room budget on a record this pass can't trust.
+          hold->Forget(name);
+          MakeRoomForSpaces(profile, std::move(skipped));
+          return;
+        }
+        auto next = record->Clone();
+        auto* next_tabs = next.FindList("tabs");
+        for (size_t i = 0; i < probed.size(); ++i)
+          (*next_tabs)[i].GetDict().Set("url", probed[i]->GetLastCommittedURL().spec());
+        if (!ValidSpace(next)) { hold->Forget(name); MakeRoomForSpaces(profile, std::move(skipped)); return; }
+        SpaceRunner()->PostTaskAndReplyWithResult(FROM_HERE,
+            base::BindOnce(&SpaceDisk, profile->GetPath().AppendASCII("BlancPrototypeSpaces.json"), "previewSpaceSave", name, std::move(next)),
+            base::BindOnce([](base::WeakPtr<Profile> profile, std::set<std::string> skipped, std::string name,
+                              std::vector<base::WeakPtr<content::WebContents>> probed, base::DictValue written) {
+              auto* hold = profile ? SpaceHold::Get(profile.get()) : nullptr;
+              if (!hold) return;
+              // A write failure leaves the prior (stale but valid) record on
+              // disk; letting the Space go is still correct either way, just
+              // not fresher when the write didn't land.
+              if (HeldSpaceUnchanged(hold, name, probed)) hold->Forget(name);
+              else skipped.insert(name);
+              MakeRoomForSpaces(profile, std::move(skipped));
+            }, profile, std::move(skipped), name, probed));
+      }, profile, std::move(skipped), name, probed));
+}
 void MakeRoomForSpaces(base::WeakPtr<Profile> profile, std::set<std::string> skipped) {
   auto* hold = profile ? SpaceHold::Get(profile.get()) : nullptr;
   if (!hold) return;
@@ -2087,17 +2151,8 @@ void MakeRoomForSpaces(base::WeakPtr<Profile> profile, std::set<std::string> ski
         if (!hold) return;
         // The probe took time: the Space may have come back and gone again, or
         // a page may have started something.
-        auto* space = hold->Find(name);
-        bool changed = !space;
-        if (space) {
-          auto now = LoadedPages(hold, *space);
-          changed = now.size() != probed.size();
-          for (size_t i = 0; !changed && i < now.size(); ++i)
-            changed = now[i].get() != probed[i].get() || HeldPageMustStay(now[i].get());
-        }
-        if (dirty || changed) skipped.insert(name);
-        else hold->Forget(name);
-        MakeRoomForSpaces(profile, std::move(skipped));
+        if (dirty || !HeldSpaceUnchanged(hold, name, probed)) { skipped.insert(name); MakeRoomForSpaces(profile, std::move(skipped)); return; }
+        ForgetWithFreshRecord(profile, std::move(skipped), name, std::move(probed));
       }, profile, std::move(skipped), next->name, pages));
 }
 // Puts a page from the hold into a visible window.

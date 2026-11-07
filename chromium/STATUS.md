@@ -936,12 +936,27 @@ remain pending. D3 beta-only no-DRM exception accepted; EME notice/handoff requi
   window then back with the page live, and a clean quit with a `beforeunload`
   page held. F41-26 passes in light mode (it failed the night before only
   because macOS had switched to Dark). The one Spaces failure, F41-6, stops at
-  `pinned`, because Chromium keeps pinned tabs out of groups. **Open:** the
-  room budget doesn't save a page's newer URL before releasing it, so a page
-  that navigated while held reopens at its saved address. Undo after a reveal
-  flattens groups and splits. A notification click for a held page does
-  nothing. Space records carry no sandbox stamp. Not run: the Dock, Window menu
-  and reopen paths with only the hold open, which were read, not exercised.
+  `pinned`, because Chromium keeps pinned tabs out of groups. **Fixed
+  (2026-11-07, candidate macos-958f4f03569501f7):** the room budget's eviction
+  path (`ForgetWithFreshRecord`/`HeldSpaceUnchanged`) now re-reads the Space's
+  saved record, replaces each tab's URL with what its held page actually
+  shows, and writes that back before `Forget()` destroys the pages — a page
+  that navigated while held is found at its real address next time, not the
+  one it had when first set aside. The re-check after every async hop (the
+  existing discipline this function already had around the dirty-probe) now
+  covers the disk read and write too, so nothing is destroyed on stale state.
+  A record whose shape doesn't match the held pages 1:1 is left as last saved
+  rather than guessed at. Verified directly: held a real page, navigated it
+  while held, forced eviction (7 Spaces past the 6-Space cap), and read the
+  saved record back — it showed the navigated address. The full F41 suite
+  stayed at 52 of 53 runnable cases, no new failures. **Still open:** Undo
+  after a reveal flattens groups and splits. A notification click for a held
+  page does nothing (deeper than it looks: Chromium's persistent and non-
+  persistent notification-click paths differ, and neither currently reveals a
+  held page's window). Space records carry no sandbox stamp (the fork hasn't
+  ported inherited-document-policy tracking at all yet, not a small gap in an
+  otherwise-built system). Not run: the Dock, Window menu and reopen paths
+  with only the hold open, which were read, not exercised.
 - **S3.10 Move to Space, candidate macos-071c3fa883ea19ff (2026-11-07):** the tab
   menu's Move to Space ▸ lists every Space (this window's checked) and New
   Space…, and is shown once a Space exists, never for a private tab, and disabled
@@ -1530,5 +1545,5 @@ Android's Bar A counts the shared scenarios bound in `chromium/tests/android/acc
 
 Legacy macOS stages come from the approved spec; they await verification on the canonical candidate. No legacy stage counts as Verified.
 
-Candidate identities: macOS: macos-e554011ad2a2b1d2; Windows: none; Linux: none; Android: android-arm64-7bd35e94ef746069.
+Candidate identities: macOS: macos-958f4f03569501f7; Windows: none; Linux: none; Android: android-arm64-7bd35e94ef746069.
 <!-- END GENERATED PROGRESS -->
