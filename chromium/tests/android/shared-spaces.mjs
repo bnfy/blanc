@@ -4,7 +4,7 @@
 //   node chromium/tests/android/shared-spaces.mjs --apk <ChromePublic.apk> --evidence <dir> [--only <text>]
 import fs from 'node:fs';
 import path from 'node:path';
-import {Device, adb, sleep, startFixtures} from './acceptance/support/device.mjs';
+import {Device, adb, fixtureRequests, sleep, startFixtures} from './acceptance/support/device.mjs';
 import {startWorker, useWorker, value} from './support/sync-device.mjs';
 import {Phone} from './support/spaces-phone.mjs';
 
@@ -108,8 +108,8 @@ async function main(argv) {
       wait();
       await phonePass();
       await until(() => titles(d.grid()).includes('Three'), 'the new tab in the grid');
-      const loaded = (await d.targets()).filter(target => String(target.url).includes('three.example'));
-      if (loaded.length) return [`the new tab loaded: ${JSON.stringify(loaded)}`];
+      const asked = fixtureRequests().filter(address => address.includes('three.example'));
+      if (asked.length) return [`the new tab loaded: ${asked}`];
       other.tabs = other.tabs.filter(tab => tab.local !== 'added');
       await other.push();
       wait();
