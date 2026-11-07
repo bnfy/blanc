@@ -6,9 +6,9 @@ since then are below as they're recorded.
 ## Still open from 1.47
 
 - **The update-restart change in #1405:** the macOS and Windows updater
-  handoffs were confirmed on November 7, 2026, but nobody has reported whether
-  windows came back after **Restart Now** on the Mac, so that part is still
-  unconfirmed.
+  handoffs were confirmed on November 7, 2026, and the owner reported
+  everything fine after the Mac update. How many windows were open wasn't
+  recorded, so a multi-window restart is still unproven.
 - **Page zoom** in a packaged ECS build on Windows and Linux, and its PDF,
   private-tab, sign-in popup and second-profile cases in a packaged build.
 - **1Password fill** misses forms in iframes, shadow DOM or hidden behind a
