@@ -153,3 +153,93 @@ source/target focus and session bookkeeping in the guarded build and tests.
 - Native build and acceptance: **not run**, as explicitly required by the brief.
 - Git commit: **blocked by sandbox index.lock write denial**; all listed source,
   manifest, test and notes changes remain uncommitted for Claude's review.
+
+## Review follow-up (2026-11-07)
+
+- #7: Map native refusal to Busy and preparation failure to activation-failed before returning an unsaved New Space result. Added editor-error regression coverage.
+
+- #6: Menu closures copy their displayed IDs into the action request. The host
+  refreshes and compares membership before acting, reports tabsSelection.failed
+  on any shrink/replacement, and binds New Group directly to beginGroupTabIds
+  (including a single surviving explicit ID). Tests cover empty, smaller and
+  replaced selections, and binding a single selected tab instead of the active tab.
+- #9: Mark a context-menu replacement as such and carry that provenance through
+  selection pruning/refresh. The adapter keeps that selection on the ordinary
+  menu until an explicit selection gesture replaces it. This preserves whole
+  split selection rather than introducing a partial split into selectionState.
+  A new test runs the actual host prepareTabMenu and adapter twice, with Escape
+  between right-clicks; another checks provenance across pruning and gestures.
+- #10: The pill fixture now runs index.html, opens the Island and dispatches into
+  a separate overlay fixture whose active tab belongs to the existing selection.
+  It asserts both blancSingleTabMenu and the resulting ordinary menu.
+- #8: Native menu state supplies canMutate only for a complete resolved selection
+  outside a Space operation; Pin and Mute use it. A busy-menu test guards both.
+- #11: Added CanPlaceBatchTab for in-memory grouping and window moves. It retains
+  private/capture/audio/popup guards but permits quiet, loading, Start Page,
+  file and other non-http(s) pages. SpaceBatchRows uses this only for new-window;
+  spaceMoveTabs and its write/revalidation paths retain Space eligibility.
+  canMove now controls new-window/ungroup/group-menu placement, independently
+  of canPlace for Spaces. A menu regression checks this distinction.
+  Chromium's existing inability to group pinned tabs remains explicit; this
+  fixes Space-record eligibility, not that previously documented limitation.
+- #4: Unpin walks the captured pages in reverse, then places ungrouped rows at
+  the end in original source order. Splits move whole via MoveSplitTo, once at
+  their leading pane. Pin and mute retain forward order. The new regression
+  executes the native mutation-loop text after a small syntax translation
+  against a strip double with Chromium's pinned-boundary behavior: selecting
+  A/B from pinned A/B/C followed by D produces C/D/A/B. This is a unit model,
+  not compiled C++ or native TabStripModel execution.
+- #5: Capture the source active page before any transfer, falling back to the
+  first row's saved focused pane only when the active page is not moved.
+  Activate it before rebuilding splits, so RestoreBatchSplit restores the right
+  active page and cannot overwrite a background split's saved focus with the
+  first inserted pane.
+- #1: Scan the destination for its actual regular Start Page and remove it only
+  when it is the sole non-private tab. A private active tab is never the
+  deletion candidate; a private-only destination has no candidate at all.
+  Only activate the incoming row when the deleted Start Page was active.
+- #2: SpaceHold::RemoveBlankSlot validates the actual sole held page before
+  forgetting a replaced blank slot. Both single and batch Space moves use it
+  before appending pages. Missing/dead slots can be dropped; an unexpected live
+  non-Start Page refuses the transfer rather than being deleted. Empty/new holds
+  remain valid. Thus held pages align with the record after blank replacement,
+  including split row indexes. A zero-arrival rollback can reload its blank
+  from the restored record.
+- #3: Remove the temporary source floor on every incomplete transfer when another
+  source page remains, including partial progress and pane rollback. Complete
+  all-tab transfers retain their required floor.
+- #12: Every saved batch reply now carries tabCount from the persisted record.
+  Successful recovery uses the rewritten count; failed recovery uses the original
+  write-ahead record's count, not the number of moved pages. New Space stores
+  that value. Tests cover complete, partial, zero-move and failed-rewrite replies.
+
+No finding was rejected as a false positive. Refreshed only the changed
+canonical source/Island asset digests; upstream patches and copies are unchanged.
+
+### Follow-up verification and delivery
+
+- Focused tests: 26 passed, including the new #4 and #9 regressions.
+- Full required glob with /usr/local/bin/node v22.14.0: 251 tests, 249 passed,
+  2 failed solely on loopback listen EPERM in the existing sync pairing tests.
+  Log: /private/tmp/tab-selection-unit-node22.log. No failures were skipped or
+  weakened. The default PATH's Node 20 also lacks stripTypeScriptTypes; the
+  Node 22 run resolves that tooling mismatch.
+- python3 chromium/tools/check-patches.py: passed (128 upstream files,
+  441 custom files), reconstruction only.
+- node chromium/tools/progress.mjs --check: passed.
+- Native compilation/build, application/sync, acceptance runner and browser
+  launches: not run, per the brief. Real split focus, held-page alignment,
+  partial-transfer cleanup and native pin ordering still need Claude's build
+  and acceptance verification.
+- Git could not create repo/.git/worktrees/codex-selection/index.lock:
+  Operation not permitted. No follow-up commit or staging succeeded.
+  The branch still starts at 60ca746c; the pre-existing node_modules symlink
+  remains untouched. This is the same delivery restriction noted above.
+
+Suggested follow-up commit boundaries, once Git writes are available:
+#7 editor errors; #6 bound menu actions; #9/#10 menu identity and regressions;
+#8/#11 eligibility; #4 unpin ordering; #5 new-window focus; #1/#2 blank target
+handling; #3 source floor cleanup; #12 persisted counts. Include corresponding
+notes/tests and current source/asset digests in each commit, stage explicit
+paths/hunks, inspect git diff --cached --stat, and end every message with
+Co-Authored-By: Codex <noreply@openai.com>.

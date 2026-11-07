@@ -10,6 +10,7 @@
     tabSelection = BlancTabSelection.emptySelection();
     if (snapshot) {
       snapshot.selectedTabIds = [];
+      snapshot.contextMenuSelection = false;
       if (broadcast) emit('onTabsUpdated', snapshot);
     }
   }
@@ -17,6 +18,7 @@
     ++selectionRevision;
     tabSelection = BlancTabSelection.selectionState(ids, anchor, selectionTabs());
     snapshot.selectedTabIds = [...tabSelection.selectedTabIds];
+    snapshot.contextMenuSelection = !!tabSelection.contextMenu;
     emit('onTabsUpdated', snapshot);
   }
   let serialized = '';
@@ -503,8 +505,8 @@
     if (selectionRevision === revision) {
       if (result.ok) clearSelection(); else retainSelection(ids, anchor);
     }
-    if (!result.saved) return { ...result, ...(await spacesPayload()) };
-    list.meta.items[id] = { name: checked.name, ...spaceIdentity(list, identity), tabCount: ids.length };
+    if (!result.saved) return { ...result, error: ({ refused: 'busy', 'prepare-failed': 'activation-failed' }[result.error] ?? result.error), ...(await spacesPayload()) };
+    list.meta.items[id] = { name: checked.name, ...spaceIdentity(list, identity), tabCount: result.tabCount };
     list.meta.order.push(id);
     await writeSpaces(list);
     return result.ok ? spaceResult({ workspaceId: id })
@@ -901,6 +903,7 @@
       } : null;
       tabSelection = BlancTabSelection.pruneSelection(tabSelection, selectionTabs());
       snapshot.selectedTabIds = [...tabSelection.selectedTabIds];
+      snapshot.contextMenuSelection = !!tabSelection.contextMenu;
       const items = strip.contentWindow?.TabSections?.itemsOf(snapshot.tabs) ?? [];
       snapshot.closedSlot = closedSlotFor(items.map(item => item.id));
       strip.contentDocument?.documentElement?.toggleAttribute('data-extensions-page',
@@ -1783,7 +1786,8 @@
       if (!snapshot?.tabs.some(tab => tab.id === id)) return false;
       if (!tabSelection.selectedTabIds.includes(id)) {
         ++selectionRevision;
-        tabSelection = BlancTabSelection.selectionState([id], id, selectionTabs());
+        tabSelection = { ...BlancTabSelection.selectionState([id], id, selectionTabs()), contextMenu: true };
+        snapshot.contextMenuSelection = true;
         snapshot.selectedTabIds = [...tabSelection.selectedTabIds];
         emit('onTabsUpdated', snapshot);
       }
@@ -1796,19 +1800,24 @@
       ++selectionRevision;
       tabSelection = next;
       snapshot.selectedTabIds = [...next.selectedTabIds];
+      snapshot.contextMenuSelection = false;
       emit('onTabsUpdated', snapshot);
       return focusId;
     },
     runSelectedTabsAction: async (action, options = {}) => {
       await refresh();
-      const ids = [...tabSelection.selectedTabIds];
+      const ids = [...(options.selectedTabIds ?? tabSelection.selectedTabIds)];
+      if (!ids.length || ids.length !== tabSelection.selectedTabIds.length ||
+          ids.some(id => !tabSelection.selectedTabIds.includes(id))) {
+        glanceSay('tabsSelection.failed');
+        return false;
+      }
       const revision = selectionRevision;
-      if (!ids.length) return false;
       if (action === 'batch-group-new' || action === 'batch-space-new') {
         const rules = await request('batchTabsMenuState', [ids.map(nativeId)]);
-        if (!(action === 'batch-group-new' ? rules.canGroup : rules.canPlace)) return false;
-        if (selectionRevision !== revision) return false;
-        if (action === 'batch-group-new') await implemented.beginNewGroup();
+        if (!(action === 'batch-group-new' ? rules.canGroup : rules.canPlace)) { glanceSay('tabsSelection.failed'); return false; }
+        if (selectionRevision !== revision) { glanceSay('tabsSelection.failed'); return false; }
+        if (action === 'batch-group-new') await show('/group ', 'panel', null, { beginGroupTabIds: ids });
         else await show('', 'spaces', null, { newSpaceTabIds: ids });
         return true;
       }

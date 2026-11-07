@@ -138,7 +138,7 @@ function newSpaceHost(result) {
  return ctx;
 }
 test('New Space writes the complete bound selection and adds its list entry',async()=>{
- const ctx=newSpaceHost({ok:true,movedCount:3,saved:true});
+ const ctx=newSpaceHost({ok:true,movedCount:3,saved:true,tabCount:3});
  const result=await ctx.createSpaceWithTabs('Reading',{},['a','b','c']);
  assert.equal(result.workspaceId,'new-space');
  assert.deepEqual(plain(ctx.calls),[['spaceMoveTabs',[['a','b','c'],'new-space',true]]]);
@@ -150,9 +150,80 @@ test('New Space retains a failed draft; a saved partial move remains findable',a
  assert.equal((await failed.createSpaceWithTabs('Reading',{},['a','b','c'])).error,'storage-failed');
  assert.equal(failed.writes.length,0);
  assert.deepEqual(plain(failed.tabSelection.selectedTabIds),['a','b','c']);
- const partial=newSpaceHost({ok:false,error:'moved-partly',movedCount:1,saved:true});
+ const partial=newSpaceHost({ok:false,error:'moved-partly',movedCount:1,saved:true,tabCount:1});
  partial.snapshot.tabs=partial.snapshot.tabs.slice(1);
  assert.equal((await partial.createSpaceWithTabs('Reading',{},['a','b','c'])).error,'saved-not-moved');
  assert.equal(partial.writes[0].meta.items['new-space'].name,'Reading');
  assert.deepEqual(plain(partial.tabSelection.selectedTabIds),['b','c']);
+});
+
+test('New Space maps native refusal and preparation failures to editor errors', async () => {
+ for (const [error, expected] of [['refused','busy'],['prepare-failed','activation-failed']]) {
+  const ctx=newSpaceHost({ok:false,error,saved:false});
+  assert.equal((await ctx.createSpaceWithTabs('Reading',{},['a','b','c'])).error,expected);
+  assert.equal(ctx.writes.length,0);
+ }
+});
+
+test('menu actions refuse a pruned or replaced selection visibly',async()=>{
+ for(const selected of [[],['a'],['a','b'],['b','c','d']]){
+  const ctx=actionHost(()=>true);
+  ctx.tabSelection.selectedTabIds=selected;
+  assert.equal(await ctx.action('batch-pin',{selectedTabIds:['a','b','c']}),false);
+  assert.equal(ctx.calls.length,0);
+  assert.deepEqual(plain(ctx.announcements),[['tabsSelection.failed']]);
+ }
+});
+test('New Group binds the menu ids even for a one-member selection',async()=>{
+ const ctx=actionHost(()=>({canGroup:true}));
+ ctx.tabSelection.selectedTabIds=['b'];ctx.show=async(...args)=>ctx.shown=args;
+ assert.equal(await ctx.action('batch-group-new',{selectedTabIds:['b']}),true);
+ assert.deepEqual(plain(ctx.shown[3]),{beginGroupTabIds:['b']});
+});
+test('context-menu provenance survives refresh but ends on a selection gesture',()=>{
+ const state={...selection.selectionState(['c'],'c',list),contextMenu:true};
+ assert.equal(selection.pruneSelection(state,list).contextMenu,true);
+ assert.equal(selection.selectTabs(state,list,groups,'d','a','toggle').contextMenu,undefined);
+});
+
+test('New Space uses the persisted count for complete, partial, zero and failed-rewrite moves',async()=>{
+ for(const result of [
+  {ok:true,saved:true,movedCount:3,tabCount:3},
+  {ok:false,saved:true,error:'moved-partly',movedCount:1,tabCount:1},
+  {ok:false,saved:true,error:'move-failed',movedCount:0,tabCount:1},
+  {ok:false,saved:true,recorded:false,error:'move-failed',movedCount:0,tabCount:3},
+ ]){
+  const ctx=newSpaceHost(result);await ctx.createSpaceWithTabs('Reading',{},['a','b','c']);
+  assert.equal(ctx.writes[0].meta.items['new-space'].tabCount,result.tabCount);
+ }
+});
+const nativeSource=fs.readFileSync(new URL('../blanc/browser/ui/blanc_prototype_ui.cc',import.meta.url),'utf8');
+test('batch unpin keeps source order at the end, matching single-tab placement',()=>{
+ // Execute the native loop with a strip double implementing Chromium's pinned boundary.
+ const start=nativeSource.indexOf('        auto ordered = pages;');
+ const end=nativeSource.indexOf('        reply',start);
+ assert.ok(start>=0 && end>start);
+ const loop=nativeSource.slice(start,end)
+  .replace('auto ordered = pages;', 'const ordered = [...pages];')
+  .replace('std::ranges::reverse(ordered)', 'ordered.reverse()')
+  .replaceAll(/for \(auto\* page : (\w+)\)/g,'for (const page of $1)')
+  .replaceAll('const int ', 'const ').replaceAll('const auto ', 'const ').replaceAll('->','.')
+  .replaceAll('*split','split').replaceAll('std::nullopt','null')
+  .replaceAll('static_cast<int>(range.start())','range.start()')
+  .replaceAll('TabStripModel::CommandTogglePinned','"toggle"')
+  .replaceAll('SiteMuteTab::Get(page)','page');
+ const strip=['a','b','c','d'].map(id=>({id,pinned:id!=='d'}));
+ const model={
+  GetIndexOfWebContents:page=>strip.indexOf(page),
+  IsTabPinned:at=>strip[at].pinned,
+  GetSplitForTab:()=>null,GetTabGroupForTab:()=>null,count:()=>strip.length,
+  SetTabPinned(at,value){
+   const boundary=strip.filter(page=>page.pinned).length;
+   const [page]=strip.splice(at,1);page.pinned=value;strip.splice(boundary-1,0,page);
+  },
+  MoveWebContentsAt(from,to){const [page]=strip.splice(from,1);strip.splice(to,0,page);},
+ };
+ vm.runInNewContext(loop,{pages:strip.slice(0,2),model,action:'pin',enable:false});
+ assert.deepEqual(strip.map(page=>page.id),['c','d','a','b']);
+ assert.deepEqual(strip.filter(page=>page.pinned).map(page=>page.id),['c']);
 });

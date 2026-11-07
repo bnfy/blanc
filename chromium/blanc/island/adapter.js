@@ -74,13 +74,13 @@ if (location.origin === 'chrome://blanc-prototype' && parent !== window) {
     menu.querySelector('button:not(:disabled)')?.focus();
   }
   async function batchMenu(state, event, requestEpoch) {
-    const ids = state.selectedTabIds;
+    const ids = [...state.selectedTabIds];
     const members = state.tabs.filter(tab => ids.includes(tab.id));
     const [rules, spaces] = await Promise.all([
       window.browserAPI.selectedTabsMenuState(ids), window.browserAPI.listWorkspaces(),
     ]);
     if (requestEpoch !== menuEpoch || !menu) return;
-    const run = (action, options) => () => window.browserAPI.runSelectedTabsAction(`batch-${action}`, options);
+    const run = (action, options) => () => window.browserAPI.runSelectedTabsAction(`batch-${action}`, { ...options, selectedTabIds: ids });
     const item = (action, key, fallback, enabled = true) => [localized(key, fallback), run(action), !enabled, false, `batch-${action}`];
     const pick = entries => () => {
       menu.replaceChildren(); appendActions(entries); placeMenu(event);
@@ -94,15 +94,15 @@ if (location.origin === 'chrome://blanc-prototype' && parent !== window) {
       ...spaces.items.map(space => [space.name, run('space-move', { workspaceId: space.id }), !rules.canPlace || space.active, false, 'batch-space-move', !!space.active]),
       item('space-new', 'tabMenu.newSpace', 'New Space…', rules.canPlace && spaces.items.length < 25),
     ]), !rules.canPlace, true, 'batch-space']);
-    actions.push(item('new-window', 'tabsMenu.newWindow', 'Move Tabs to New Window', rules.canPlace));
+    actions.push(item('new-window', 'tabsMenu.newWindow', 'Move Tabs to New Window', rules.canMove));
     actions.push([localized('tabMenu.moveToGroup', 'Move to Group'), pick([
       ...(state.groups ?? []).map(group => [group.name, run('group-move', { groupId: group.id }), !rules.canGroup, false, 'batch-group-move', members.every(tab => tab.groupId === group.id)]),
-      ...(members.some(tab => tab.groupId) ? [item('group-none', 'tabMenu.removeFromGroup', 'Remove from Group', rules.canPlace)] : []),
+      ...(members.some(tab => tab.groupId) ? [item('group-none', 'tabMenu.removeFromGroup', 'Remove from Group', rules.canMove)] : []),
       item('group-new', 'tabMenu.newGroup', 'New Group…', rules.canGroup),
-    ]), !rules.canPlace || (!rules.canGroup && !members.some(tab => tab.groupId)), true, 'batch-group']);
+    ]), !rules.canMove || (!rules.canGroup && !members.some(tab => tab.groupId)), true, 'batch-group']);
     const pinned = members.every(tab => tab.pinned), muted = members.every(tab => tab.muted);
-    actions.push(item('pin', pinned ? 'tabsMenu.unpin' : 'tabsMenu.pin', pinned ? 'Unpin Tabs' : 'Pin Tabs'),
-      item('mute', muted ? 'tabsMenu.unmute' : 'tabsMenu.mute', muted ? 'Unmute Tabs' : 'Mute Tabs'),
+    actions.push(item('pin', pinned ? 'tabsMenu.unpin' : 'tabsMenu.pin', pinned ? 'Unpin Tabs' : 'Pin Tabs', rules.canMutate),
+      item('mute', muted ? 'tabsMenu.unmute' : 'tabsMenu.mute', muted ? 'Unmute Tabs' : 'Mute Tabs', rules.canMutate),
       item('reload', 'tabsMenu.reload', 'Reload Tabs', rules.canReload),
       item('quiet', 'tabsMenu.quiet', 'Quiet Tabs', rules.canQuiet),
       item('copy', 'tabsMenu.copy', 'Copy Links', rules.canCopy),
@@ -130,7 +130,7 @@ if (location.origin === 'chrome://blanc-prototype' && parent !== window) {
     const single = event.blancSingleTabMenu === true || !selectable;
     const selected = (state.selectedTabIds ?? []).includes(id);
     if (split && row?.closest('.vertical-tab-row') && !selected) return;
-    const batch = !single && selected && state.selectedTabIds.length > 1;
+    const batch = !single && !state.contextMenuSelection && selected && state.selectedTabIds.length > 1;
     if (!single && !selected) await window.browserAPI.prepareTabMenu(id);
     if (location.pathname.endsWith('/index.html')) {
       await window.browserAPI.openIsland();

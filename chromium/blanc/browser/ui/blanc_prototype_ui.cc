@@ -1799,6 +1799,17 @@ class SpaceHold : public base::SupportsUserData::Data, public TabStripModelObser
         if (auto* page = Contents(tab)) strip()->DetachAndDeleteWebContentsAt(strip()->GetIndexOfWebContents(page));
     Drop(name);
   }
+  bool RemoveBlankSlot(std::string_view name) {
+    auto* space = Find(name);
+    if (!space || space->tabs.empty()) return true;
+    if (space->tabs.size() != 1) return false;
+    auto* page = Contents(space->tabs.front());
+    if (page && (blanc::private_tabs::IsPrivateTab(page) ||
+        (!IsRegularStartPage(page->GetLastCommittedURL()) && page->GetVisibleURL() != GURL("chrome://newtab/"))))
+      return false;
+    Forget(name);
+    return true;
+  }
   void OnTabStripModelChanged(TabStripModel*, const TabStripModelChange& change,
                               const TabStripSelectionChange&) override {
     // Discarding a held page swaps its contents and the window's delegate back.
@@ -1873,6 +1884,13 @@ bool CanMoveTabToSpace(TabStripModel* model, int index, bool batch = false) {
   return !blanc::private_tabs::IsPrivateTab(tab) && !tab->WasDiscarded() &&
       tab->GetLastCommittedURL().SchemeIsHTTPOrHTTPS() && !MainDocumentLoading(tab) &&
       !TabIsCapturing(tab) && !tab->IsCurrentlyAudible() && !OpenedAnotherPage(tab);
+}
+// In-memory moves do not serialize pages into a Space record.
+bool CanPlaceBatchTab(TabStripModel* model, int index) {
+  if (index < 0 || index >= model->count()) return false;
+  auto* tab = model->GetWebContentsAt(index);
+  return !blanc::private_tabs::IsPrivateTab(tab) && !TabIsCapturing(tab) &&
+      !tab->IsCurrentlyAudible() && !OpenedAnotherPage(tab);
 }
 // Resolve every id before changing anything, in the window's order. A split
 // is always one row, including requests naming only one of its panes.
@@ -2709,14 +2727,15 @@ std::optional<base::DictValue> CaptureNativeSpace(BrowserWindowInterface* browse
   return record;
 }
 // A batch plan is grouped into drawn rows so a split can roll back whole.
-std::optional<base::ListValue> SpaceBatchRows(TabStripModel* model, const base::ListValue& ids) {
+std::optional<base::ListValue> SpaceBatchRows(TabStripModel* model, const base::ListValue& ids, bool memory_only = false) {
+  const auto eligible = [&](int at) { return memory_only ? CanPlaceBatchTab(model, at) : CanMoveTabToSpace(model, at, true); };
   const auto pages = BatchPages(model, ids);
   if (pages.empty()) return std::nullopt;
   base::ListValue rows;
   std::set<split_tabs::SplitTabId> seen;
   for (auto* page : pages) {
     const int at = model->GetIndexOfWebContents(page);
-    if (!CanMoveTabToSpace(model, at, true)) return std::nullopt;
+    if (!eligible(at)) return std::nullopt;
     const auto split = model->GetSplitForTab(at);
     if (split && seen.contains(*split)) continue;
     base::DictValue row;
@@ -2731,7 +2750,7 @@ std::optional<base::ListValue> SpaceBatchRows(TabStripModel* model, const base::
       for (int i = range.start(); i < static_cast<int>(range.end()); ++i) {
         auto* member = model->GetWebContentsAt(i);
         const auto* state = static_cast<PersistentSplitData*>(member->GetUserData(kPersistentSplitKey));
-        if (!state || !CanMoveTabToSpace(model, i, true)) return std::nullopt;
+        if (!state || !eligible(i)) return std::nullopt;
         if (state->focused) { if (focused >= 0) return std::nullopt; focused = i - range.start(); }
         members.Append(base::DictValue().Set("id", sessions::SessionTabHelper::IdForTab(member).id())
             .Set("url", member->GetLastCommittedURL().spec()));
@@ -5588,7 +5607,7 @@ class Handler : public content::WebUIMessageHandler, public extensions::Extensio
     // moved, so the record goes back to what the Space really holds. If that
     // write fails too, the record still lists the tab: a duplicate, not a loss.
     if (index < 0 || (holder && (holder->space_busy || holder->space_expected)) || (!holder && !hold) ||
-        TakeSpaceMoveFault("transfer")) {
+        TakeSpaceMoveFault("transfer") || (!holder && slots == 0 && !hold->RemoveBlankSlot(name))) {
       auto restore = holder ? CaptureNativeSpace(holder->browser) : std::optional(std::move(prior));
       if (!restore || TakeSpaceMoveFault("rewrite")) { SpaceMoveReply(id, "move-failed", false); return; }
       SpaceRunner()->PostTaskAndReplyWithResult(FROM_HERE,
@@ -5629,9 +5648,9 @@ class Handler : public content::WebUIMessageHandler, public extensions::Extensio
   void SpaceMoveRewritten(std::string id, base::DictValue result) {
     SpaceMoveReply(id, "move-failed", !result.FindString("error"));
   }
-  void SpaceBatchReply(const std::string& id, const char* error, int moved, bool saved, bool recorded = true) {
+  void SpaceBatchReply(const std::string& id, const char* error, int moved, bool saved, bool recorded = true, int tab_count = 0) {
     if (auto* owner = GetOwner(web_ui()->GetWebContents())) owner->space_busy = false;
-    auto result = base::DictValue().Set("ok", !error).Set("movedCount", moved).Set("saved", saved).Set("recorded", recorded);
+    auto result = base::DictValue().Set("ok", !error).Set("movedCount", moved).Set("saved", saved).Set("recorded", recorded).Set("tabCount", tab_count);
     if (error) result.Set("error", error);
     Reply(id, true, base::Value(std::move(result)));
   }
@@ -5680,12 +5699,24 @@ class Handler : public content::WebUIMessageHandler, public extensions::Extensio
     }
     SpaceHold* hold = holder || failed ? nullptr : SpaceHold::Open(profile, browser->GetWindow()->GetBounds());
     failed |= !holder && !hold;
+    if (!failed && !holder && slots == 0) failed = !hold->RemoveBlankSlot(name);
     base::ListValue arrived;
     int moved = 0;
     auto* source_active = model->GetActiveWebContents();
     content::WebContents* floor = nullptr;
-    content::WebContents* target_blank = holder && slots == 0 && !failed
-        ? holder->browser->GetTabStripModel()->GetActiveWebContents() : nullptr;
+    content::WebContents* target_blank = nullptr;
+    if (holder && slots == 0 && !failed) {
+      auto* target = holder->browser->GetTabStripModel();
+      int regular = 0;
+      for (int i = 0; i < target->count(); ++i) {
+        auto* page = target->GetWebContentsAt(i);
+        if (blanc::private_tabs::IsPrivateTab(page)) continue;
+        ++regular;
+        if (IsRegularStartPage(page->GetLastCommittedURL()) || page->GetVisibleURL() == GURL("chrome://newtab/"))
+          target_blank = page;
+      }
+      if (regular != 1) target_blank = nullptr;
+    }
     if (!failed) {
       if (!holder && !hold->Find(name)) {
         HeldSpace space{name, {}}; space.tabs.resize(slots);
@@ -5739,10 +5770,11 @@ class Handler : public content::WebUIMessageHandler, public extensions::Extensio
           RestoreBatchSplit(holder->browser, row);
           if (target_blank) {
             auto* target = holder->browser->GetTabStripModel();
+            const bool was_active = target->GetActiveWebContents() == target_blank;
             target->DetachAndDeleteWebContentsAt(target->GetIndexOfWebContents(target_blank));
             target_blank = nullptr;
             const int focus = row.FindInt("focused").value_or(0);
-            target->ActivateTabAt(target->GetIndexOfWebContents(transferred[focus]));
+            if (was_active) target->ActivateTabAt(target->GetIndexOfWebContents(transferred[focus]));
           }
         } else if (auto* session = SessionServiceFactory::GetForProfile(profile))
           for (auto* page : transferred) session->TabClosed(browser->GetSessionID(), sessions::SessionTabHelper::IdForTab(page));
@@ -5751,35 +5783,36 @@ class Handler : public content::WebUIMessageHandler, public extensions::Extensio
         if (TakeSpaceMoveFault("transfer")) { failed = true; break; }
       }
     }
+    const bool complete = arrived.size() == rows.size();
+    if (!complete && floor && model->count() > 1)
+      model->DetachAndDeleteWebContentsAt(model->GetIndexOfWebContents(floor));
     if (moved == 0) {
-      if (floor) model->DetachAndDeleteWebContentsAt(model->GetIndexOfWebContents(floor));
       const int active = model->GetIndexOfWebContents(source_active);
       if (active >= 0) model->ActivateTabAt(active);
     }
-    const bool complete = arrived.size() == rows.size();
     if (complete) {
       if (holder) holder->space_saved = next.Clone();
       NoteSpaceTabCount(profile, name, next.FindList("tabs")->size());
-      SpaceBatchReply(id, nullptr, moved, true);
+      SpaceBatchReply(id, nullptr, moved, true, true, next.FindList("tabs")->size());
     } else {
       auto restore = holder ? CaptureNativeSpace(holder->browser) : SpaceRecordWithRows(&prior, arrived);
       if (!restore || TakeSpaceMoveFault("rewrite")) {
-        SpaceBatchReply(id, moved ? "moved-partly" : "move-failed", moved, true, false); return;
+        SpaceBatchReply(id, moved ? "moved-partly" : "move-failed", moved, true, false, next.FindList("tabs")->size()); return;
       }
       const int count = restore->FindList("tabs")->size();
       SpaceRunner()->PostTaskAndReplyWithResult(FROM_HERE,
           base::BindOnce(&SpaceDisk, profile->GetPath().AppendASCII("BlancPrototypeSpaces.json"),
               "previewSpaceSave", name, std::move(*restore)),
-          base::BindOnce(&Handler::SpaceBatchRewritten, weak_factory_.GetWeakPtr(), id, name, moved, count));
+          base::BindOnce(&Handler::SpaceBatchRewritten, weak_factory_.GetWeakPtr(), id, name, moved, count, static_cast<int>(next.FindList("tabs")->size())));
       return;
     }
     base::SingleThreadTaskRunner::GetCurrentDefault()->PostTask(FROM_HERE,
         base::BindOnce(&MakeRoomForSpaces, profile->GetWeakPtr(), std::set<std::string>()));
   }
-  void SpaceBatchRewritten(std::string id, std::string name, int moved, int count, base::DictValue result) {
+  void SpaceBatchRewritten(std::string id, std::string name, int moved, int count, int written_count, base::DictValue result) {
     const bool saved = !result.FindString("error");
     if (saved) if (auto* owner = GetOwner(web_ui()->GetWebContents())) NoteSpaceTabCount(owner->browser->GetProfile(), name, count);
-    SpaceBatchReply(id, moved ? "moved-partly" : "move-failed", moved, true, saved);
+    SpaceBatchReply(id, moved ? "moved-partly" : "move-failed", moved, true, saved, saved ? count : written_count);
   }
   void SpaceStored(std::string id, base::DictValue result) {
     const auto* error = result.FindString("error");
@@ -7392,11 +7425,15 @@ class Handler : public content::WebUIMessageHandler, public extensions::Extensio
     }
     if (method == "batchTabsMenuState" && args.size() == 1 && args[0].is_list()) {
       const auto pages = BatchPages(model, args[0].GetList());
-      const bool can_place = !pages.empty() && !owner->space_busy && !owner->space_expected &&
+      const bool can_mutate = !pages.empty() && !owner->space_busy && !owner->space_expected;
+      const bool can_place = can_mutate &&
           std::ranges::all_of(pages, [&](auto* page) { return CanMoveTabToSpace(model, model->GetIndexOfWebContents(page), true); });
-      const bool can_group = can_place && model->SupportsTabGroups() &&
+      const bool can_move = can_mutate &&
+          std::ranges::all_of(pages, [&](auto* page) { return CanPlaceBatchTab(model, model->GetIndexOfWebContents(page)); });
+      const bool can_group = can_move && model->SupportsTabGroups() &&
           std::ranges::none_of(pages, [&](auto* page) { return model->IsTabPinned(model->GetIndexOfWebContents(page)); });
       reply(true, base::Value(base::DictValue().Set("canPlace", can_place).Set("canGroup", can_group)
+          .Set("canMutate", can_mutate).Set("canMove", can_move)
           .Set("canQuiet", std::ranges::any_of(pages, [&](auto* page) { return QuietAllowed(browser, page); }))
           .Set("canReload", !pages.empty()).Set("canCopy", std::ranges::any_of(pages, [](auto* page) {
             const auto& url = page->GetLastCommittedURL(); return url.SchemeIsHTTPOrHTTPS() || url.SchemeIsFile();
@@ -7410,9 +7447,12 @@ class Handler : public content::WebUIMessageHandler, public extensions::Extensio
       if (pages.empty() || owner->space_busy || owner->space_expected) { reply(true, base::Value(false)); return; }
       const auto& action = args[1].GetString();
       if (action == "new-window") {
-        const auto rows = SpaceBatchRows(model, args[0].GetList());
+        const auto rows = SpaceBatchRows(model, args[0].GetList(), true);
         if (!rows || GetBrowserWindowCreationStatusForProfile(*profile) != BrowserWindowInterface::CreationStatus::kOk ||
             TakeSpaceMoveFault("transfer")) { reply(true, base::Value(false)); return; }
+        auto* source_active = model->GetActiveWebContents();
+        auto* destination_active = std::ranges::find(pages, source_active) != pages.end()
+            ? source_active : pages[rows->front().GetDict().FindInt("focused").value_or(0)];
         std::map<tab_groups::TabGroupId, tab_groups::TabGroupVisualData> groups;
         std::map<int, std::optional<tab_groups::TabGroupId>> membership;
         std::map<int, bool> pins;
@@ -7447,8 +7487,8 @@ class Handler : public content::WebUIMessageHandler, public extensions::Extensio
           const auto added = target->AddToNewGroup(indices);
           target->ChangeTabGroupVisuals(added, visuals);
         }
+        target->ActivateTabAt(target->GetIndexOfWebContents(destination_active));
         for (const auto& row : *rows) RestoreBatchSplit(created, row.GetDict());
-        target->ActivateTabAt(target->GetIndexOfWebContents(pages.front()));
         created->GetWindow()->Show();
         reply(true, base::Value(true)); return;
       }
@@ -7474,7 +7514,9 @@ class Handler : public content::WebUIMessageHandler, public extensions::Extensio
           for (int selected : model->selection_model().GetListSelectionModel().selected_indices())
             if (model->GetSplitForTab(selected) != split) { reply(true, base::Value(false)); return; }
         }
-        for (auto* page : pages) {
+        auto ordered = pages;
+        if (action == "pin" && !enable) std::ranges::reverse(ordered);
+        for (auto* page : ordered) {
           if (action == "pin") {
             const int at = model->GetIndexOfWebContents(page);
             if (model->IsTabPinned(at) == enable) continue;
@@ -7482,11 +7524,21 @@ class Handler : public content::WebUIMessageHandler, public extensions::Extensio
             else model->SetTabPinned(at, enable);
           } else if (page->IsAudioMuted() != enable) SiteMuteTab::Get(page)->ToggleTab();
         }
+        if (action == "pin" && !enable) for (auto* page : pages) {
+          const int at = model->GetIndexOfWebContents(page);
+          if (model->GetTabGroupForTab(at)) continue;
+          const auto split = model->GetSplitForTab(at);
+          if (split) {
+            const auto range = model->GetSplitData(*split)->GetIndexRange();
+            if (at == static_cast<int>(range.start()))
+              model->MoveSplitTo(*split, model->count() - range.length(), false, std::nullopt);
+          } else model->MoveWebContentsAt(at, model->count() - 1, false);
+        }
         reply(true, base::Value(true)); return;
       }
       if (action == "group-name" || action == "group-move" || action == "group-none") {
         if (!model->SupportsTabGroups() || (action != "group-none" && !args[2].is_string()) ||
-            !std::ranges::all_of(pages, [&](auto* page) { return CanMoveTabToSpace(model, model->GetIndexOfWebContents(page), true); })) {
+            !std::ranges::all_of(pages, [&](auto* page) { return CanPlaceBatchTab(model, model->GetIndexOfWebContents(page)); })) {
           reply(true, base::Value(false)); return;
         }
         std::optional<tab_groups::TabGroupId> target;
