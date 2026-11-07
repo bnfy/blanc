@@ -1,5 +1,5 @@
 /* These Electron services are not implemented by the Chromium prototype. */
-#startupCard, #obBringTabs, #patronCallout,
+#startupCard, #obBringTabs,
 #mahjongLink, #version,
 #remoteSection { display: none !important; }
 
