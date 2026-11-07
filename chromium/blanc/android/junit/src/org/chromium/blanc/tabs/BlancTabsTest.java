@@ -206,6 +206,15 @@ public class BlancTabsTest {
     }
 
     @Test
+    public void aRecentlyClosedPageReopensOutsidePrivateTabs() {
+        open("https://a.example/");
+        mTabs.newPrivateTab();
+        mTabs.reopen("https://closed.example/");
+        assertEquals(1, mStore.tabs(true).size());
+        assertEquals(List.of("https://a.example/", "https://closed.example/"), urls());
+    }
+
+    @Test
     public void undoEndsByItselfAfterFiveSeconds() {
         List<Runnable> later = new ArrayList<>();
         List<Long> delays = new ArrayList<>();

@@ -415,7 +415,7 @@ public final class PaletteSheet extends Dialog {
             line.setGravity(Gravity.CENTER_VERTICAL);
             View main = row(R.drawable.blanc_palette_history, label, subtitle, false, v -> {
                 SyncedClosed.forget(item);
-                mCallbacks.openTab(item.url);
+                mTabs.reopen(item.url);
                 dismiss();
             });
             mList.removeView(main);

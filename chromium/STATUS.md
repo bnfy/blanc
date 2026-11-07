@@ -1372,6 +1372,18 @@ page's only blocked request can miss the shield count, probably by racing the
 page's commit. The `/ads` fixture now makes a second blocked request after load,
 and A3 passed on the same APK.
 
+### A4d Recently closed
+
+The palette's Recently closed band, on or off Sync: 25 rows for 24 hours, Forget
+and Clear all, and with the Spaces switch on, other devices' rows through shipping's
+`closed` store. Rulings are in `docs/android/a4-rulings.md`.
+
+| A4d Recently closed gate | Result | Evidence (`~/blanc-evidence/android/a4d-closed-gate/`) |
+| --- | --- | --- |
+| Sync, with the two new band checks | 17 of 17 | `sync/` |
+| Spaces, shield race, blocking, acceptance, A1 and A2 | Pass | `spaces/`, `a3/` |
+| Owner hands-on, Pixel and desktop | **Pending A4's end** | — |
+
 ### Shield count across a page's commit
 
 The count is fixed in the blocker code desktop shares. A page's first request can

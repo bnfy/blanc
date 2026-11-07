@@ -129,6 +129,11 @@ public final class BlancTabs {
         return mStore.create(url, mStore.privateSelected(), null, -1);
     }
 
+    /** A Recently closed page: its own list never holds private tabs, so it never opens as one. */
+    public String reopen(String url) {
+        return mStore.create(url, false, null, -1);
+    }
+
     public String newPrivateTab() {
         return mStore.create(null, true, null, -1);
     }
