@@ -16,8 +16,8 @@ import java.util.Set;
 public final class SpacesController {
     /** Shared Spaces, which live with Sync. */
     public interface Hook {
-        /** The shown tabs are about to move: what they are now goes out first, then nothing does. */
-        void beforeSwitch();
+        /** The shown tabs are about to move: what they are now goes out first, then `then` runs. */
+        void beforeSwitch(Runnable then);
 
         void afterChange();
 
@@ -124,9 +124,15 @@ public final class SpacesController {
 
     /** Shows a set; null is This Phone. */
     public void show(@Nullable String id) {
-        if (sHook != null) sHook.beforeSwitch();
-        mSwitcher.show(id);
-        changed();
+        whenReady(() -> {
+            mSwitcher.show(id);
+            changed();
+        });
+    }
+
+    private void whenReady(Runnable change) {
+        if (sHook == null) change.run();
+        else sHook.beforeSwitch(change);
     }
 
     /** A new Space, shown. */
@@ -184,18 +190,21 @@ public final class SpacesController {
 
     public void reorder(String id, int by) {
         mLibrary.move(id, by);
-        if (sHook != null) sHook.reordered();
         changed();
+        if (sHook != null) sHook.reordered();
     }
 
     public void delete(String id, long now) {
         mDeletedWasShown = id.equals(mLibrary.shownId);
         Space space = mLibrary.space(id);
         if (sHook != null && space != null) sHook.deleted(space);
-        if (mDeletedWasShown && sHook != null) sHook.beforeSwitch();
-        mSwitcher.delete(id, now);
-        mUndoId = id;
-        changed();
+        Runnable change = () -> {
+            mSwitcher.delete(id, now);
+            mUndoId = id;
+            changed();
+        };
+        if (mDeletedWasShown) whenReady(change);
+        else change.run();
     }
 
     /** Brings back the Space just deleted, on show again if it was. */

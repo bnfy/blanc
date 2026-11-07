@@ -40,7 +40,7 @@ public final class SpaceSwitcher {
         String thaw(String id);
 
         /** A tab that loads when shown, for a saved tab with no state. "" if refused. */
-        String open(String url);
+        String open(String url, String title);
 
         /** The tabs themselves, for what another device changed. */
         default TabStore store() {
@@ -156,7 +156,7 @@ public final class SpaceSwitcher {
             String id = tab.id;
             if (!open.contains(id)) {
                 id = mTabs.thaw(tab.id);
-                if (id.isEmpty()) id = mTabs.open(tab.url);
+                if (id.isEmpty()) id = mTabs.open(tab.url, tab.title);
                 if (id.isEmpty()) continue;
                 if (tab.pinned) mTabs.setPinned(id, true);
             }

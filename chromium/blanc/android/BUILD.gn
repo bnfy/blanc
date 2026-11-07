@@ -309,6 +309,7 @@ robolectric_binary("blanc_android_junit_tests") {
     "junit/src/org/chromium/blanc/sync/SyncPairingTest.java",
     "junit/src/org/chromium/blanc/sync/SyncSheetTest.java",
     "junit/src/org/chromium/blanc/sync/SyncedFavoritesTest.java",
+    "junit/src/org/chromium/blanc/sync/SyncedSpacesTest.java",
     "junit/src/org/chromium/blanc/sync/SyncedSettingsTest.java",
     "junit/src/org/chromium/blanc/island/IslandPositionTest.java",
     "junit/src/org/chromium/blanc/island/IslandStyleTest.java",

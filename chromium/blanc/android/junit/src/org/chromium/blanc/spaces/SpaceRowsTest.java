@@ -22,6 +22,8 @@ import org.chromium.blanc.spaces.BlancSpaces.SavedSet;
 import org.chromium.blanc.spaces.BlancSpaces.SavedTab;
 import org.chromium.blanc.spaces.BlancSpaces.Space;
 
+import java.util.Map;
+
 @RunWith(BaseRobolectricTestRunner.class)
 @Config(manifest = Config.NONE)
 public class SpaceRowsTest {
@@ -69,7 +71,7 @@ public class SpaceRowsTest {
         JSONObject row = rows.getJSONObject(0);
         row.put("sharedId", SHARED).put("sharedLink", "active");
         row.put("tabIds", new JSONArray().put("c".repeat(32)));
-        assertNull(SpaceRows.absorb(mLibrary, rows, new SavedSet(), 0));
+        assertNull(SpaceRows.absorb(mLibrary, rows, new SavedSet(), 0, SpaceRows.fingerprints(mLibrary)));
         SavedTab tab = mSpace.set.tabs.get(0);
         assertEquals("7", tab.id);
         assertEquals("c".repeat(32), tab.sharedId);
@@ -85,7 +87,7 @@ public class SpaceRowsTest {
         row.getJSONArray("meta").put(new JSONObject().put("title", "New"));
         row.getJSONArray("pinned").put(false);
         row.getJSONArray("groupIds").put(JSONObject.NULL);
-        SpaceRows.absorb(mLibrary, rows, new SavedSet(), 0);
+        SpaceRows.absorb(mLibrary, rows, new SavedSet(), 0, SpaceRows.fingerprints(mLibrary));
         SavedTab tab = mSpace.set.tabs.get(1);
         assertEquals("r" + "d".repeat(32), tab.id);
         assertEquals("New", tab.title);
@@ -93,7 +95,7 @@ public class SpaceRowsTest {
 
     @Test
     public void aDroppedHiddenSpaceGoesToRecentlyDeleted() throws JSONException {
-        SpaceRows.absorb(mLibrary, new JSONArray(), new SavedSet(), 5);
+        SpaceRows.absorb(mLibrary, new JSONArray(), new SavedSet(), 5, SpaceRows.fingerprints(mLibrary));
         assertTrue(mLibrary.spaces.isEmpty());
         assertEquals(1, mLibrary.deleted.size());
     }
@@ -101,7 +103,7 @@ public class SpaceRowsTest {
     @Test
     public void aDroppedShownSpaceIsLeftForTheCaller() throws JSONException {
         mLibrary.shownId = mSpace.id;
-        assertEquals(mSpace.id, SpaceRows.absorb(mLibrary, new JSONArray(), new SavedSet(), 5));
+        assertEquals(mSpace.id, SpaceRows.absorb(mLibrary, new JSONArray(), new SavedSet(), 5, SpaceRows.fingerprints(mLibrary)));
         assertNotNull(mLibrary.space(mSpace.id));
     }
 
@@ -114,7 +116,7 @@ public class SpaceRowsTest {
         JSONArray rows = SpaceRows.rows(mLibrary, shown);
         rows.getJSONObject(0).put("tabIds", new JSONArray().put(SHARED));
         rows.getJSONObject(0).getJSONArray("groups").getJSONObject(0).put("id", GROUP);
-        SpaceRows.absorb(mLibrary, rows, shown, 0);
+        SpaceRows.absorb(mLibrary, rows, shown, 0, SpaceRows.fingerprints(mLibrary));
         assertEquals(SHARED, mLibrary.tabBindings.get("9"));
         assertEquals(GROUP, mLibrary.groupBindings.get("token"));
         assertEquals("7", mSpace.set.tabs.get(0).id);
@@ -147,5 +149,71 @@ public class SpaceRowsTest {
         mSpace.sharedLink = "active";
         mLibrary.shownId = null;
         assertTrue(SpaceRows.unsynced(mLibrary, each).isEmpty());
+    }
+
+    private JSONArray runnerRows(Space... spaces) throws JSONException {
+        JSONArray rows = new JSONArray();
+        for (Space space : spaces) {
+            rows.put(SpaceRows.columns(space.set).put("id", space.id).put("name", space.name)
+                    .put("color", space.color).put("symbol", space.symbol));
+        }
+        return rows;
+    }
+
+    @Test
+    public void aSpaceTheRunnerHasNotHeardOfStays() throws JSONException {
+        Map<String, String> sent = SpaceRows.fingerprints(mLibrary);
+        JSONArray rows = runnerRows(mSpace);
+        mLibrary.create("New", BlancSpaces.COLORS[0], BlancSpaces.SYMBOLS[0]);
+        Space made = mLibrary.lastCreated;
+        SpaceRows.absorb(mLibrary, rows, new SavedSet(), 5, sent);
+        assertNotNull(mLibrary.space(made.id));
+        assertTrue(mLibrary.deleted.isEmpty());
+    }
+
+    @Test
+    public void aSpaceDeletedHereIsNotBroughtBackByARowFromBefore() throws JSONException {
+        Map<String, String> sent = SpaceRows.fingerprints(mLibrary);
+        JSONArray rows = runnerRows(mSpace);
+        mLibrary.delete(mSpace.id, 1);
+        SpaceRows.absorb(mLibrary, rows, new SavedSet(), 5, sent);
+        assertNull(mLibrary.space(mSpace.id));
+    }
+
+    @Test
+    public void aSetChangedHereSinceTheLastPushIsKept() throws JSONException {
+        Map<String, String> sent = SpaceRows.fingerprints(mLibrary);
+        JSONArray rows = runnerRows(mSpace);
+        mSpace.set.tabs.add(new SavedTab("9", "https://moved.example/", "Moved", false, null));
+        mSpace.name = "Renamed";
+        SpaceRows.absorb(mLibrary, rows, new SavedSet(), 5, sent);
+        assertEquals(2, mLibrary.space(mSpace.id).set.tabs.size());
+        assertEquals("Renamed", mLibrary.space(mSpace.id).name);
+    }
+
+    @Test
+    public void twoRowsNeverShareATabId() throws JSONException {
+        JSONObject row = SpaceRows.columns(mSpace.set).put("id", mSpace.id).put("name", mSpace.name)
+                .put("color", mSpace.color).put("symbol", mSpace.symbol);
+        row.put("urls", new JSONArray().put("https://new.example/").put("https://a.example/"));
+        row.put("tabIds", new JSONArray().put("c".repeat(32)).put(JSONObject.NULL));
+        row.put("localIds", new JSONArray().put("7").put("7"));
+        row.put("meta", new JSONArray().put(new JSONObject()).put(new JSONObject()));
+        row.put("pinned", new JSONArray().put(false).put(false));
+        row.put("groupIds", new JSONArray().put(JSONObject.NULL).put(JSONObject.NULL));
+        SpaceRows.absorb(mLibrary, new JSONArray().put(row), new SavedSet(), 5, SpaceRows.fingerprints(mLibrary));
+        SavedSet set = mLibrary.space(mSpace.id).set;
+        assertFalse(set.tabs.get(0).id.equals(set.tabs.get(1).id));
+    }
+
+    @Test
+    public void aRowForATabThatIsGoneBindsNothing() throws JSONException {
+        mLibrary.shownId = mSpace.id;
+        SavedSet shown = new SavedSet();
+        shown.tabs.add(new SavedTab("8", "https://a.example/", "A", false, null));
+        JSONObject row = SpaceRows.columns(mSpace.set).put("id", mSpace.id).put("name", mSpace.name)
+                .put("color", mSpace.color).put("symbol", mSpace.symbol).put("tabIds", new JSONArray().put(SHARED));
+        SpaceRows.absorb(mLibrary, new JSONArray().put(row), shown, 5, SpaceRows.fingerprints(mLibrary));
+        assertFalse(mLibrary.tabBindings.containsKey("7"));
     }
 }

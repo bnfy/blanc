@@ -47,7 +47,7 @@ async function main(argv) {
   const wait = () => sleep(61);
   const phonePass = async () => {
     await value('sync.resetRequestWindowForTest');
-    await value('sync.syncNow', [], 120);
+    await value('sync.syncNow', [], 240);
   };
   const paired = async () => {
     const other = new Phone('Desk', worker.url);

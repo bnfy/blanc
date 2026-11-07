@@ -41,11 +41,17 @@ public final class SharedRows {
         return null;
     }
 
+    /** By the open tabs, not the bindings: a replaced tab can leave its old id bound too. */
     private TabStore.@Nullable Entry tab(String shared) {
-        String local = key(mLibrary.tabBindings, shared);
-        if (local == null) return null;
-        for (TabStore.Entry tab : mStore.tabs(false)) if (tab.id.equals(local)) return tab;
+        for (TabStore.Entry tab : mStore.tabs(false)) {
+            if (shared.equals(mLibrary.tabBindings.get(tab.id))) return tab;
+        }
         return null;
+    }
+
+    /** The runner hears which tab is on screen only when it's told; this phone always knows. */
+    private boolean onScreen(TabStore.Entry tab) {
+        return tab.id.equals(mStore.activeId(false));
     }
 
     private @Nullable String liveGroup(String shared) {
@@ -121,6 +127,7 @@ public final class SharedRows {
         if ("create".equals(op)) return create(row, id, tab);
         if (tab == null) return true;
         if ("close".equals(op)) {
+            if (onScreen(tab)) return false;
             // A phone always shows a tab.
             if (mStore.tabs(false).size() == 1) mStore.create(null, false, null, -1);
             mStore.close(tab.id, false);
@@ -133,7 +140,8 @@ public final class SharedRows {
         switch (row.optString("field")) {
             case "nav":
                 JSONObject nav = value.optJSONObject("v");
-                return nav == null || go(tab.id, id, nav.optString("url"), nav.optString("title"));
+                if (nav == null) return true;
+                return !onScreen(tab) && go(tab.id, id, nav.optString("url"), nav.optString("title"));
             case "pinned":
                 mStore.setPinned(tab.id, value.optBoolean("v"));
                 break;
@@ -164,10 +172,10 @@ public final class SharedRows {
         String url = page.optString("url");
         String local;
         if (tab != null) {
-            local = tab.id;
-            if (!url.equals(tab.url) && !go(local, id, url, page.optString("title"))) return false;
-            local = key(mLibrary.tabBindings, id);
-            if (local == null) return false;
+            if (!url.equals(tab.url) && (onScreen(tab) || !go(tab.id, id, url, page.optString("title")))) return false;
+            TabStore.Entry now = tab(id);
+            if (now == null) return false;
+            local = now.id;
         } else {
             local = mStore.createQuiet(url, page.optString("title"));
             if (local.isEmpty()) return false;
@@ -186,7 +194,8 @@ public final class SharedRows {
         if (order == null) return;
         List<String> wanted = new ArrayList<>();
         for (int i = 0; i < order.length(); i++) {
-            String local = key(mLibrary.tabBindings, order.optString(i));
+            TabStore.Entry tab = tab(order.optString(i));
+            String local = tab == null ? null : tab.id;
             if (local != null) wanted.add(local);
         }
         for (int i = 0; i < wanted.size(); i++) {

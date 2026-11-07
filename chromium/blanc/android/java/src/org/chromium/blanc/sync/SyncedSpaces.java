@@ -2,6 +2,9 @@
 
 package org.chromium.blanc.sync;
 
+import android.os.Handler;
+import android.os.Looper;
+
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -17,6 +20,8 @@ import org.chromium.build.annotations.Nullable;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 
 /**
@@ -26,20 +31,60 @@ import java.util.Set;
  */
 @NullMarked
 public final class SyncedSpaces {
+    /** The runner, for tests to stand in for. */
+    interface Bridge {
+        boolean on();
+
+        void call(String method, String argsJson, Callback<String> done);
+    }
+
+    private static final Bridge PHONE = new Bridge() {
+        @Override
+        public boolean on() {
+            return SyncBridge.on();
+        }
+
+        @Override
+        public void call(String method, String argsJson, Callback<String> done) {
+            SyncBridge.call(method, argsJson, done);
+        }
+    };
+
+    private static final long BUSY_MILLIS = 300;
+    private static final long SWITCH_MILLIS = 5000;
+
+    private static Bridge sBridge = PHONE;
     private static int sRevision;
     private static boolean sHolding;
     private static @Nullable String sRestoring;
+    // One push at a time: the runner works through a push in stages, and a second would land in the
+    // middle of it. A push asked for meanwhile goes when the first answers.
+    private static boolean sPushing;
+    private static boolean sAgain;
+    private static final List<Runnable> sAfterPush = new ArrayList<>();
+    private static @Nullable Runnable sSwitch;
+    /** What the runner last took, so what it says can be told from what's changed here since. */
+    private static Map<String, String> sSent = Map.of();
     private static String sRecoveryFormat = "{name}";
     private static Set<String> sUnsynced = Set.of();
     private static List<JSONObject> sRemote = List.of();
 
     private static final SpacesController.Hook HOOK = new SpacesController.Hook() {
         @Override
-        public void beforeSwitch() {
-            if (!SyncBridge.on()) return;
-            push();
-            sHolding = true;
-            SyncBridge.call("spaces.hold", "[]", reply -> {});
+        public void beforeSwitch(Runnable then) {
+            if (sSwitch != null) return;
+            if (!sBridge.on()) {
+                then.run();
+                return;
+            }
+            sSwitch = then;
+            if (!sPushing) send();
+            // A runner that never answers can't stop a person changing Space.
+            new Handler(Looper.getMainLooper()).postDelayed(() -> {
+                if (sSwitch != then) return;
+                sBridge.call("spaces.hold", "[]", reply -> {});
+                release();
+            }, SWITCH_MILLIS);
         }
 
         @Override
@@ -74,7 +119,10 @@ public final class SyncedSpaces {
 
         @Override
         public void reordered() {
-            if (SyncBridge.on()) SyncBridge.call("spaces.reorder", "[]", reply -> {});
+            // After the new order has reached the runner: this writes the order it has.
+            pushThen(() -> {
+                if (sBridge.on()) sBridge.call("spaces.reorder", "[]", reply -> {});
+            });
         }
 
         @Override
@@ -89,14 +137,26 @@ public final class SyncedSpaces {
         SpacesController.setHook(HOOK);
     }
 
+    /** A stand-in for the runner, or null for the real one; it also forgets what's under way. */
+    static void useBridge(@Nullable Bridge bridge) {
+        sBridge = bridge == null ? PHONE : bridge;
+        sPushing = false;
+        sAgain = false;
+        sHolding = false;
+        sSwitch = null;
+        sRevision = 0;
+        sSent = Map.of();
+        sAfterPush.clear();
+    }
+
     /** A recovery Space's name, in this phone's language, with {name} in it. */
     public static void setRecoveryFormat(String format) {
         sRecoveryFormat = format;
     }
 
     private static void metadata(BlancSpaces.Space space, JSONObject patch) {
-        if (space.sharedId == null || !"active".equals(space.sharedLink) || !SyncBridge.on()) return;
-        SyncBridge.call("spaces.metadata", new JSONArray().put(space.id).put(patch).toString(), reply -> {});
+        if (space.sharedId == null || !"active".equals(space.sharedLink) || !sBridge.on()) return;
+        sBridge.call("spaces.metadata", new JSONArray().put(space.id).put(patch).toString(), reply -> {});
     }
 
     /** The record of a tab on show, for Recently closed. */
@@ -130,27 +190,52 @@ public final class SyncedSpaces {
     }
 
     private static void pushThen(@Nullable Runnable done) {
+        if (done != null) sAfterPush.add(done);
+        if (sPushing) sAgain = true;
+        else send();
+    }
+
+    private static void send() {
+        sPushing = false;
         SpacesController spaces = SpacesController.current();
-        if (spaces == null || sHolding || !SyncBridge.on()) {
-            if (done != null) done.run();
+        if (spaces == null || sHolding || !sBridge.on()) {
+            settled();
             return;
         }
+        boolean preparing = sSwitch != null;
+        String restoring = sRestoring;
         try {
-            JSONObject args = pushArguments(spaces.library(), spaces.shown(), sRevision, sRestoring, sRecoveryFormat);
-            sRestoring = null;
-            SyncBridge.call("spaces.push", new JSONArray().put(args).toString(), reply -> {
-                onPushed(spaces, reply);
-                readUnsynced(spaces);
-                remote(rows -> {});
-                if (done != null) done.run();
-            });
+            JSONObject args = pushArguments(spaces.library(), spaces.shown(), sRevision, restoring, sRecoveryFormat);
+            Map<String, String> sent = SpaceRows.fingerprints(spaces.library());
+            sPushing = true;
+            sAgain = false;
+            sBridge.call(preparing ? "spaces.prepare" : "spaces.push", new JSONArray().put(args).toString(),
+                    reply -> onPushed(spaces, reply, sent, restoring, preparing));
         } catch (JSONException e) {
-            if (done != null) done.run();
+            settled();
         }
     }
 
+    /** Nothing more will go for now: what was waiting on a push runs. */
+    private static void settled() {
+        if (sSwitch != null) release();
+        if (sPushing) return;
+        List<Runnable> waiting = new ArrayList<>(sAfterPush);
+        sAfterPush.clear();
+        for (Runnable run : waiting) run.run();
+    }
+
+    /** The switch goes ahead. Rows and pushes wait until it's done. */
+    private static void release() {
+        Runnable change = sSwitch;
+        sSwitch = null;
+        if (change == null) return;
+        sHolding = true;
+        change.run();
+    }
+
     private static void readUnsynced(SpacesController spaces) {
-        SyncBridge.call("spaces.status", "[]", reply -> {
+        sBridge.call("spaces.status", "[]", reply -> {
             try {
                 JSONObject value = new JSONObject(reply).optJSONObject("value");
                 JSONObject each = value == null ? null : value.optJSONObject("each");
@@ -161,23 +246,48 @@ public final class SyncedSpaces {
         });
     }
 
-    /** The runner changed something this phone hadn't heard: that comes first, then this goes again. */
-    private static void onPushed(SpacesController spaces, String reply) {
+    private static void onPushed(SpacesController spaces, String reply, Map<String, String> sent,
+            @Nullable String restoring, boolean preparing) {
+        sPushing = false;
+        JSONObject value = null;
         try {
-            JSONObject value = new JSONObject(reply).optJSONObject("value");
-            if (value == null || !value.optBoolean("stale")) return;
-            absorb(spaces, value);
-            push();
+            value = new JSONObject(reply).optJSONObject("value");
         } catch (JSONException e) {
-            // The next push tries again.
+            // Treated as no answer: nothing here counts as taken.
         }
+        if (value != null && value.optBoolean("stale")) {
+            // The runner changed something this phone hadn't heard: that comes first, then this goes again.
+            absorb(spaces, value);
+            send();
+            return;
+        }
+        if (value != null && value.optBoolean("busy")) {
+            sPushing = true;
+            new Handler(Looper.getMainLooper()).postDelayed(SyncedSpaces::send, BUSY_MILLIS);
+            return;
+        }
+        if (value != null) {
+            sSent = sent;
+            if (Objects.equals(restoring, sRestoring)) sRestoring = null;
+            JSONObject bindings = value.optJSONObject("bindings");
+            if (bindings != null) {
+                bind(spaces.library(), bindings);
+                spaces.absorbed();
+            }
+        }
+        readUnsynced(spaces);
+        remote(rows -> {});
+        if (preparing) release();
+        if (sPushing) return;
+        if (sAgain || sSwitch != null) send();
+        else settled();
     }
 
     private static void absorb(SpacesController spaces, JSONObject event) {
         JSONArray rows = event.optJSONArray("rows");
         sRevision = Math.max(sRevision, event.optInt("revision"));
         if (rows == null) return;
-        String gone = SpaceRows.absorb(spaces.library(), rows, spaces.shown(), System.currentTimeMillis());
+        String gone = SpaceRows.absorb(spaces.library(), rows, spaces.shown(), System.currentTimeMillis(), sSent);
         spaces.absorbed();
         if (gone != null) spaces.delete(gone, System.currentTimeMillis());
     }
@@ -208,7 +318,7 @@ public final class SyncedSpaces {
                             .apply(value.getJSONObject("row"));
                     spaces.absorbed();
                 }
-                SyncBridge.call("spaces.rowDone", new JSONArray().put(value.optInt("token")).put(done).toString(), reply -> {});
+                sBridge.call("spaces.rowDone", new JSONArray().put(value.optInt("token")).put(done).toString(), reply -> {});
                 return;
             }
             if (spaces == null) return;
@@ -231,7 +341,7 @@ public final class SyncedSpaces {
 
     /** Calls the runner with the library current, for the sheets. `done` gets the value, or null. */
     public static void ask(String method, String argsJson, Callback<@Nullable JSONObject> done) {
-        pushThen(() -> SyncBridge.call(method, argsJson, reply -> {
+        pushThen(() -> sBridge.call(method, argsJson, reply -> {
             try {
                 JSONObject outer = new JSONObject(reply);
                 done.onResult(outer.optBoolean("ok") ? outer.optJSONObject("value") : null);
@@ -243,7 +353,7 @@ public final class SyncedSpaces {
 
     /** The library's Spaces held elsewhere, with the switch off. `done` gets a JSON array, or null. */
     public static void remote(Callback<@Nullable JSONArray> done) {
-        SyncBridge.call("spaces.remote", "[]", reply -> {
+        sBridge.call("spaces.remote", "[]", reply -> {
             JSONArray rows = null;
             try {
                 rows = new JSONObject(reply).optJSONArray("value");

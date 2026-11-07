@@ -12,7 +12,7 @@ const ids = () => __require('shim:crypto').randomUUID().replace(/-/g, '');
 const emit = (event, value) => __host.emit(event, JSON.stringify(value));
 
 let rows = null, revision = 0, shownId = null, captured = null, protectedIds = [];
-let holding = false, applying = 0, nextToken = 0, recoveryFormat = '{name}';
+let holding = false, applying = 0, nextToken = 0, recoveryFormat = '{name}', work = Promise.resolve(), bound = null;
 const waiting = new Map();
 const window = {id: 'phone'};
 
@@ -25,13 +25,40 @@ function report() {
   emit('spaces-library', {revision, rows});
 }
 
+// Java keeps a tab's title and nothing else of its meta, so nothing else counts as a change.
+const plain = row => JSON.stringify({...row, meta: row.meta?.map(meta => meta?.title ?? '')});
+
+// Shipping's reconcile rebuilds the columns it knows and carries the rest over, so this phone's ids
+// would slip onto other tabs. They follow their records; a tab with none yet follows its address.
+function alignLocalIds(previous, next) {
+  if (!previous?.localIds) return;
+  const byRecord = new Map(), loose = [];
+  previous.urls.forEach((url, index) => {
+    const id = previous.tabIds?.[index];
+    if (id) byRecord.set(id, previous.localIds[index]);
+    else loose.push({url, local: previous.localIds[index]});
+  });
+  next.localIds = next.urls.map((url, index) => {
+    const id = next.tabIds?.[index];
+    if (id && byRecord.has(id)) return byRecord.get(id);
+    const at = loose.findIndex(item => item.url === url);
+    return at < 0 ? null : loose.splice(at, 1)[0].local;
+  });
+}
+
 const workspaces = {
   list: () => rows ?? [],
   setSharedLink(id, patch) {
     const row = rows?.find(item => item.id === id);
     if (!row) return {error: 'not-found'};
+    const groups = row.groups;
     Object.assign(row, patch);
     report();
+    // A share gives the shown Space's groups their records, in the order they were sent.
+    if (id === shownId && patch.groups) {
+      const groupBindings = Object.fromEntries((groups ?? []).map((group, index) => [group.id, patch.groups[index]?.id]));
+      emit('spaces-bindings', {localIds: [], tabIds: [], groupBindings});
+    }
     return {ok: true, workspace: row};
   },
   upsertShared({sharedId, recoveredFrom, name, color, symbol, capture}) {
@@ -39,7 +66,8 @@ const workspaces = {
     const current = rows.find(row => sharedId ? row.sharedId === sharedId : row.recoveredFrom === recoveredFrom);
     const next = {...current, ...structuredClone(capture), id: current?.id ?? ids(), name, color, symbol,
       ...(sharedId ? {sharedId, sharedLink: 'active'} : {recoveredFrom})};
-    if (current && JSON.stringify(current) === JSON.stringify(next)) return {ok: true, workspace: current};
+    alignLocalIds(current, next);
+    if (current && plain(current) === plain(next)) return {ok: true, workspace: current};
     if (current) rows[rows.indexOf(current)] = next;
     else rows.push(next);
     report();
@@ -120,7 +148,8 @@ function start() {
       const current = context();
       if (!current) return;
       state().noteLocalSpace(current.spaceId, blob, edits, current.ctx);
-      emit('spaces-bindings', {localIds: captured.localIds, tabIds: diff.tabIds, groupBindings: diff.groupBindings});
+      bound = {localIds: captured.localIds, tabIds: diff.tabIds, groupBindings: diff.groupBindings};
+      emit('spaces-bindings', bound);
     },
     applyRow,
     layout(_, blob) {
@@ -156,7 +185,9 @@ function apply() {
     return Promise.resolve(false);
   }
   applying++;
-  return runtimeSync.apply(window).finally(() => { applying--; });
+  const run = runtimeSync.apply(window).finally(() => { applying--; });
+  work = Promise.allSettled([work, run]);
+  return run;
 }
 
 // Undo of a Space deleted everywhere keeps a copy here. Shipping's reconcile removes anything still
@@ -197,6 +228,7 @@ module.exports = {
     rows = next;
     shownId = id;
     captured = tabs;
+    bound = null;
     protectedIds = guarded ?? [];
     recoveryFormat = format ?? recoveryFormat;
     holding = false;
@@ -208,7 +240,18 @@ module.exports = {
     if (!moved && captured && context()?.window) runtimeSync.local(window);
     await settle();
     await sharing.autoShare();
-    return {revision};
+    return {revision, bindings: bound};
+  },
+  // Before a switch: what's on show goes out, and the answer says what it was bound to, because the
+  // tabs are about to be saved. Nothing is under way when it answers, and nothing starts until the
+  // next push.
+  async prepare(args) {
+    await work;
+    const answer = await module.exports.push(args);
+    if (answer.stale || answer.busy) return answer;
+    holding = true;
+    await work;
+    return answer;
   },
   // A switch is moving the tabs: nothing is read from them or done to them until the next push.
   hold() { holding = true; },

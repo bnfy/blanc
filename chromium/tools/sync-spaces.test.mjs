@@ -138,6 +138,50 @@ test('turning the switch off keeps the Space here, dormant, and the other phone 
   assert.equal(preview.choices[0].mode, 'rejoin');
 }));
 
+test('a switch waits for the records of tabs opened just before it', withWorker(async worker => {
+  const {a} = await shared(worker);
+  a.tabs.push({local: 'late', url: 'https://late.example/', title: 'Late'});
+  // The answer carries them: the switch can't rely on the event arriving first.
+  const answer = await a.prepare();
+  const at = answer.bindings.localIds.indexOf('late');
+  assert.match(answer.bindings.tabIds[at], /^[0-9a-f]{32}$/);
+}));
+
+test('a tab another device adds above a hidden Space\'s tabs takes no other tab\'s id', withWorker(async worker => {
+  const {a, b} = await shared(worker);
+  const hidden = b.rows.find(row => row.name === 'Work');
+  hidden.localIds = hidden.tabIds.map((_, index) => `kept${index}`);
+  const before = Object.fromEntries(hidden.tabIds.map((id, index) => [id, hidden.localIds[index]]));
+  await b.push();
+  a.tabs.unshift({local: 'top', url: 'https://top.example/', title: 'Top'});
+  await a.push();
+  await a.pass();
+  await b.pass();
+  const row = b.rows.find(item => item.name === 'Work');
+  assert.equal(row.urls.length, 3);
+  row.tabIds.forEach((id, index) => assert.equal(row.localIds[index] ?? null, before[id] ?? null));
+}));
+
+test('a pass with nothing new tells the phone nothing', withWorker(async worker => {
+  const {b} = await shared(worker);
+  await b.pass();
+  await b.push();
+  const seen = b.revision;
+  await b.pass();
+  assert.equal(b.revision, seen);
+}));
+
+test('sharing the Space on show gives its groups their records', withWorker(async worker => {
+  const {a} = await pair(worker);
+  a.addRow('space-a', 'Work', ['https://one.example/']);
+  a.show('space-a', ['https://one.example/']);
+  a.groups = [{id: 'local-group', name: 'Reading', color: null, collapsed: false}];
+  a.tabs[0].group = 'local-group';
+  await a.push();
+  assert.equal((await a.call('spaces.apply', {enabled: true, selections: [{id: 'space-a', mode: 'copy'}]})).ok, true);
+  assert.match(a.groupBindings['local-group'], /^[0-9a-f]{32}$/);
+}));
+
 test('a stale push is refused, so a change the runner made is never overwritten', withWorker(async worker => {
   const {a} = await shared(worker);
   const answer = await a.call('spaces.push', {revision: 0, rows: [], shownId: null, capture: null});

@@ -115,8 +115,8 @@ public final class ChromiumSpaces implements SpaceSwitcher.Tabs {
     }
 
     @Override
-    public String open(String url) {
-        return mStore.createQuiet(url, "");
+    public String open(String url, String title) {
+        return mStore.createQuiet(url, title);
     }
 
     @Override

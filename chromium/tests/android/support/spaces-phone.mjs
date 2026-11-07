@@ -19,6 +19,7 @@ export class Phone {
     this.layouts = [];
     this.deleted = [];
     this.closedEvents = 0;
+    this.groupBindings = {};
     this.refuse = false;
     this.device = peer(name, url, {emit: (event, text) => this.on(event, JSON.parse(text || 'null'))});
   }
@@ -30,7 +31,8 @@ export class Phone {
     if (event === 'closed') this.closedEvents++;
     if (event === 'spaces-library') {
       this.revision = value.revision;
-      this.rows = value.rows;
+      // Java keeps a tab's title and nothing else of its meta.
+      this.rows = value.rows.map(row => ({...row, meta: row.meta?.map(meta => ({title: meta?.title ?? ''}))}));
       for (const row of this.rows) if (row.id === this.shownId && row.tabIds) {
         row.localIds?.forEach((local, index) => {
           const tab = this.tabs.find(item => item.local === local);
@@ -39,7 +41,8 @@ export class Phone {
       }
     }
     if (event === 'spaces-bindings') {
-      value.localIds.forEach((local, index) => {
+      Object.assign(this.groupBindings, value.groupBindings);
+      (value.localIds ?? []).forEach((local, index) => {
         const tab = this.tabs.find(item => item.local === local);
         if (tab && value.tabIds[index]) tab.shared = value.tabIds[index];
       });
@@ -74,10 +77,12 @@ export class Phone {
       groupIds: this.tabs.map(tab => tab.group ?? null), groups: this.groups ?? [], activeIndex: 0,
       documentPolicy: 1, inheritsDocumentPolicy: this.tabs.map(() => false), localFiles: this.tabs.map(() => false)};
   }
-  async push(protectedIds = []) {
+  push(protectedIds = []) { return this.send('spaces.push', protectedIds); }
+  prepare() { return this.send('spaces.prepare', []); }
+  async send(method, protectedIds) {
     const shown = this.capture();
     const rows = this.rows.map(row => row.id === this.shownId ? {...row, ...shown} : row);
-    const answer = await this.call('spaces.push', {revision: this.revision, rows, shownId: this.shownId, capture: shown, protectedIds, recoveryFormat: '{name} · kept here'});
+    const answer = await this.call(method, {revision: this.revision, rows, shownId: this.shownId, capture: shown, protectedIds, recoveryFormat: '{name} · kept here'});
     await settled();
     return answer;
   }

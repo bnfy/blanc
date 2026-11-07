@@ -108,6 +108,29 @@ public final class SpaceRows {
         return rows;
     }
 
+    /** What a Space is now: the one on show by name alone, because its tabs are Chromium's. */
+    private static String fingerprint(BlancSpaces library, Space space) throws JSONException {
+        JSONObject print = new JSONObject().put("name", space.name).put("color", space.color).put("symbol", space.symbol);
+        if (!space.id.equals(library.shownId)) print.put("set", columns(space.set));
+        return print.toString();
+    }
+
+    /** Every Space as the runner is about to take it. `absorb` compares against this. */
+    public static Map<String, String> fingerprints(BlancSpaces library) throws JSONException {
+        Map<String, String> prints = new HashMap<>();
+        for (Space space : library.spaces) prints.put(space.id, fingerprint(library, space));
+        return prints;
+    }
+
+    private static boolean changedHere(BlancSpaces library, Space space, Map<String, String> sent) {
+        String was = sent.get(space.id);
+        try {
+            return was != null && !was.equals(fingerprint(library, space));
+        } catch (JSONException e) {
+            return true;
+        }
+    }
+
     private static @Nullable String text(JSONObject object, String key) {
         return object.isNull(key) ? null : object.optString(key);
     }
@@ -148,13 +171,14 @@ public final class SpaceRows {
         JSONArray pinned = row.optJSONArray("pinned");
         JSONArray groupIds = row.optJSONArray("groupIds");
         int active = row.optInt("activeIndex");
+        Set<String> used = new HashSet<>();
         for (int i = 0; urls != null && i < urls.length(); i++) {
             String shared = tabIds == null || tabIds.isNull(i) ? null : tabIds.optString(i);
             String local = localIds == null || localIds.isNull(i) ? null : localIds.optString(i);
             SavedTab before = shared != null && byShared.containsKey(shared) ? byShared.get(shared)
                     : local == null ? null : byLocal.get(local);
             // No Chromium tab behind it: "r" can't be a saved state's name, so a switch opens the address.
-            String id = before != null ? before.id : "r" + (shared == null ? i : shared);
+            String id = before != null && used.add(before.id) ? before.id : "r" + (shared == null ? i : shared);
             JSONObject info = meta == null ? null : meta.optJSONObject(i);
             String group = groupIds == null || groupIds.isNull(i) ? null : groupIds.optString(i);
             SavedTab tab = new SavedTab(id, urls.optString(i), info == null ? "" : info.optString("title"),
@@ -166,17 +190,15 @@ public final class SpaceRows {
         return set;
     }
 
+    /** Only tabs still open: a row can name one a remote change has since replaced. Groups come as bindings. */
     private static void bindShown(BlancSpaces library, JSONObject row, SavedSet shown) {
+        Set<String> open = new HashSet<>();
+        for (SavedTab tab : shown.tabs) open.add(tab.id);
         JSONArray tabIds = row.optJSONArray("tabIds");
         JSONArray localIds = row.optJSONArray("localIds");
         for (int i = 0; tabIds != null && localIds != null && i < localIds.length(); i++) {
-            if (!tabIds.isNull(i)) library.tabBindings.put(localIds.optString(i), tabIds.optString(i));
-        }
-        JSONArray groups = row.optJSONArray("groups");
-        for (int i = 0; groups != null && i < groups.length() && i < shown.groups.size(); i++) {
-            JSONObject group = groups.optJSONObject(i);
-            if (group != null && record(group.optString("id"))) {
-                library.groupBindings.put(shown.groups.get(i).id, group.optString("id"));
+            if (!tabIds.isNull(i) && open.contains(localIds.optString(i))) {
+                library.tabBindings.put(localIds.optString(i), tabIds.optString(i));
             }
         }
     }
@@ -185,8 +207,12 @@ public final class SpaceRows {
      * Takes the runner's rows. The set on show is Chromium's, so only its record ids come in, and a
      * Space the runner dropped goes to Recently deleted unless it's on show: the caller handles that
      * one, because it needs a switch. Returns the id of a shown Space it dropped, or null.
+     *
+     * The rows can be older than this phone: `sent` is what the runner last took, so a Space it hasn't
+     * heard of stays, one deleted here stays deleted, and one changed here keeps its change.
      */
-    public static @Nullable String absorb(BlancSpaces library, JSONArray rows, SavedSet shown, long now) {
+    public static @Nullable String absorb(
+            BlancSpaces library, JSONArray rows, SavedSet shown, long now, Map<String, String> sent) {
         List<Space> next = new ArrayList<>();
         for (int i = 0; i < rows.length(); i++) {
             JSONObject row = rows.optJSONObject(i);
@@ -194,16 +220,20 @@ public final class SpaceRows {
             String id = row.optString("id");
             Space space = library.space(id);
             if (space == null) {
+                if (sent.containsKey(id)) continue;
                 space = new Space(id, row.optString("name"), row.optString("color"), row.optString("symbol"));
             }
-            space.name = row.optString("name", space.name);
-            space.color = row.optString("color", space.color);
-            space.symbol = row.optString("symbol", space.symbol);
+            boolean mine = changedHere(library, space, sent);
+            if (!mine) {
+                space.name = row.optString("name", space.name);
+                space.color = row.optString("color", space.color);
+                space.symbol = row.optString("symbol", space.symbol);
+            }
             space.sharedId = text(row, "sharedId");
             space.sharedLink = text(row, "sharedLink");
             space.recoveredFrom = text(row, "recoveredFrom");
             if (id.equals(library.shownId)) bindShown(library, row, shown);
-            else space.set = set(row, space.set);
+            else if (!mine) space.set = set(row, space.set);
             next.add(space);
         }
         String shownGone = null;
@@ -212,7 +242,9 @@ public final class SpaceRows {
             boolean kept = false;
             for (Space item : next) kept |= item == space;
             if (kept) continue;
-            if (space.id.equals(library.shownId)) {
+            if (!sent.containsKey(space.id)) {
+                next.add(space);
+            } else if (space.id.equals(library.shownId)) {
                 shownGone = space.id;
                 next.add(space);
             } else {

@@ -126,4 +126,35 @@ public class SharedRowsTest {
         mRows.layout(new JSONObject().put("order", new JSONArray().put(OTHER).put(TAB)));
         assertEquals(second, mStore.tabs(false).get(0).id);
     }
+
+    private static JSONObject onTab(String op, String field, Object value) throws JSONException {
+        JSONObject row = new JSONObject().put("op", op).put("kind", "tabs").put("id", TAB);
+        if (field != null) row.put("field", field).put("value", field(value));
+        return row;
+    }
+
+    @Test
+    public void theTabOnScreenIsNeverClosedOrMovedFromUnderThePerson() throws JSONException {
+        String other = mStore.create("https://other.example/", false, null, -1);
+        mStore.select(mBound);
+        assertFalse(mRows.apply(onTab("close", null, null)));
+        assertFalse(mRows.apply(onTab("update", "nav", new JSONObject().put("url", "https://next.example/").put("title", ""))));
+        assertEquals("https://one.example/", mStore.tabs(false).get(0).url);
+        mStore.select(other);
+        assertTrue(mRows.apply(onTab("close", null, null)));
+        assertEquals(1, mStore.tabs(false).size());
+    }
+
+    @Test
+    public void aRecordBoundTwiceFindsTheTabStillOpen() throws JSONException {
+        mStore.create("https://other.example/", false, null, -1);
+        mLibrary.tabBindings.clear();
+        mLibrary.tabBindings.put("gone", TAB);
+        mLibrary.tabBindings.put(mBound, TAB);
+        String other = mStore.tabs(false).get(1).id;
+        mStore.select(other);
+        assertTrue(mRows.apply(onTab("close", null, null)));
+        assertEquals(1, mStore.tabs(false).size());
+        assertEquals(other, mStore.tabs(false).get(0).id);
+    }
 }

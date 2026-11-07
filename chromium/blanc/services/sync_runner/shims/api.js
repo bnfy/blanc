@@ -11,7 +11,7 @@ const closed = (name, off, always) => (...args) => {
 };
 const spaces = name => (...args) => __require('shim:spaces')[name](...args);
 const PHONE = {
-  'spaces.push': spaces('push'), 'spaces.hold': spaces('hold'), 'spaces.rowDone': spaces('rowDone'),
+  'spaces.push': spaces('push'), 'spaces.prepare': spaces('prepare'), 'spaces.hold': spaces('hold'), 'spaces.rowDone': spaces('rowDone'),
   'spaces.preview': spaces('preview'), 'spaces.apply': spaces('apply'), 'spaces.metadata': spaces('metadata'),
   'spaces.reorder': spaces('reorder'), 'spaces.status': spaces('status'), 'spaces.remote': spaces('remote'),
   'spaces.previewSpace': spaces('previewSpace'),

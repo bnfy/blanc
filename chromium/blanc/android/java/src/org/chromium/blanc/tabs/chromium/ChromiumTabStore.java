@@ -192,7 +192,12 @@ public final class ChromiumTabStore implements TabStore {
         }
         TabModel model = mSelector.getModel(false);
         String next = frozen(url, title, model.indexOf(tab));
-        if (!next.isEmpty()) close(id, false);
+        if (next.isEmpty()) return next;
+        // Before the old tab closes: a group with no tabs left is gone.
+        Entry old = entry(tab);
+        if (old.groupId != null) addToGroup(next, old.groupId);
+        if (old.pinned) setPinned(next, true);
+        close(id, false);
         return next;
     }
 
