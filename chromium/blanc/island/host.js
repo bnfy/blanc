@@ -427,6 +427,42 @@
     return spaceResult({ workspaceId: id });
   }
 
+  // Move to Space ▸ (F41): native writes the target's record first, already
+  // holding the tab, then moves the page; a failed write moves nothing. The
+  // window stays in its own Space.
+  let lastSpaceMove = null;
+  async function moveTabToSpace(tabId, id) {
+    const list = await spaceList();
+    if (!list.meta.items[id] || list.meta.deleted.includes(id)) return { ok: false, error: 'not-found', moved: false };
+    const result = await request('spaceMoveTab', [nativeId(tabId), id, false]);
+    await refresh();
+    await announceSpaces();
+    // The Spaces menu says what failed, as shipping's does.
+    if (!result.ok) show('', 'spaces', null, { spaceMoveError: { name: list.meta.items[id].name, error: result.error } });
+    return result;
+  }
+  // New Space… from a tab: one record holding the tab, then its list entry.
+  // The Space is saved once its record is, so a failed move after that leaves
+  // it findable instead of inviting a retry that can only be a duplicate.
+  async function createSpaceWithTab(rawName, identity, tabId) {
+    const list = await spaceList();
+    const checked = checkSpaceName(list, rawName);
+    if (checked.error) return { ok: false, error: checked.error, ...(await spacesPayload()) };
+    if (list.meta.order.length >= SPACE_LIMIT) return { ok: false, error: 'limit', ...(await spacesPayload()) };
+    const id = crypto.randomUUID();
+    const moved = await request('spaceMoveTab', [nativeId(tabId), id, true]);
+    if (!moved.ok && moved.error !== 'move-failed') {
+      const error = { refused: 'busy' }[moved.error] ?? moved.error;
+      return { ok: false, error, ...(await spacesPayload()) };
+    }
+    list.meta.items[id] = { name: checked.name, ...spaceIdentity(list, identity), tabCount: 1 };
+    list.meta.order.push(id);
+    await writeSpaces(list);
+    await refresh();
+    return moved.ok ? spaceResult({ workspaceId: id })
+      : { ok: false, error: 'saved-not-moved', workspaceId: id, ...(await spacesPayload()) };
+  }
+
   // Floating Glance (F34), shipping's glance-card-controller.js: the one place
   // the card's frame changes. Every move, resize and reset carries the open
   // card's generation, so a message from a card that has gone is refused. The
@@ -1784,6 +1820,11 @@
     undoRemoveWorkspace: id => restoreSpace(id),
     restoreWorkspace: id => restoreSpace(id),
     forgetWorkspace: id => forgetSpace(id),
+    moveTabToSpace: (tabId, id) => (lastSpaceMove = moveTabToSpace(tabId, id)),
+    // The last menu move's result, for the harness (shipping returns it from the click).
+    lastSpaceMove: () => lastSpaceMove,
+    createSpaceWithTab: (name, identity, tabId) => createSpaceWithTab(name, identity, tabId),
+    beginNewSpaceForTab: tabId => show('', 'spaces', null, { newSpaceTabId: String(tabId) }),
     openSpacesMenu: anchor => {
       if (overlayMode === 'spaces') { close(false); return; }
       if (anchor?.closing === true) return;

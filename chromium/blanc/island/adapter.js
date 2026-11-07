@@ -125,6 +125,38 @@ if (location.origin === 'chrome://blanc-prototype' && parent !== window) {
       await window.browserAPI.switchTab(other);
       await window.browserAPI.setGlanceTab(id);
     }]);
+    // Move to Space ▸ (F41): shown once the profile has a Space, never for a
+    // private tab. Every Space is listed, this window's checked; New Space…
+    // makes one holding the tab. Native rechecks the move.
+    let spaces = null;
+    if (!tab.private) { try { spaces = await window.browserAPI.listWorkspaces(); } catch {} }
+    if (requestEpoch !== menuEpoch || !menu) return;
+    if (spaces?.items?.length) {
+      const canMove = state.tabs.length > 1 && !tab.asleep && !tab.audible && !tab.capturing && /^https?:\/\//.test(tab.url || '');
+      const canCreate = spaces.items.length < 25;
+      const reachable = spaces.items.some(space => !space.active);
+      const pickSpace = () => {
+        menu.replaceChildren();
+        for (const space of spaces.items) {
+          const button = document.createElement('button');
+          button.type = 'button'; button.setAttribute('role', 'menuitemradio');
+          button.setAttribute('aria-checked', String(!!space.active));
+          button.dataset.workspaceId = space.id; button.textContent = space.name;
+          button.addEventListener('click', () => { dismissMenu();
+            if (!space.active) window.browserAPI.moveTabToSpace(id, space.id).catch(error => parent.BlancPrototypeHost.notice(error.message)); });
+          menu.append(button);
+        }
+        menu.append(Object.assign(document.createElement('hr'), { className: 'prototype-tab-menu-separator' }));
+        const create = document.createElement('button');
+        create.type = 'button'; create.setAttribute('role', 'menuitem'); create.dataset.action = 'space-new';
+        create.textContent = localized('tabMenu.newSpace', 'New Space…'); create.disabled = !canCreate;
+        create.addEventListener('click', () => { dismissMenu();
+          window.browserAPI.beginNewSpaceForTab(id).catch(error => parent.BlancPrototypeHost.notice(error.message)); });
+        menu.append(create);
+        menu.querySelector('button:not(:disabled)')?.focus();
+      };
+      actions.push([localized('tabMenu.moveToSpace', 'Move to Space'), pickSpace, !(canMove && (reachable || canCreate)), true]);
+    }
     if (split) actions.unshift(
       [localized('tabMenu.removeFromSplit', 'Remove from Split View'), () => window.browserAPI.removeFromSplit(id)],
       [localized('tabMenu.closeSplit', 'Close Split View'), () => window.browserAPI.closeSplit(id)]);

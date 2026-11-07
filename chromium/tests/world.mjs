@@ -25,7 +25,11 @@ export function createWorld(fixture){
   localFixtureUrl(name,query='',host='nas.home.arpa'){return `https://${host}:${fixture.localServer.port}/site/${encodeURIComponent(name)}${query}`;},
   native(method,args=[]){return nativeCall(fixture.host,method,args);},
   async snapshot(){return nativeCall(fixture.host,'snapshot');},
-  async state(){return observedState(shippingState(await this.snapshot()));},
+  async state(){
+   // The overlay's mode lives in the Island host, not the native snapshot.
+   const overlayMode=await fixture.host.eval(`(()=>{const f=document.querySelector('#overlay');return !f||f.hidden?null:f.dataset.mode||null})()`);
+   return observedState({...shippingState(await this.snapshot()),overlayMode});
+  },
   async waitForState(predicate,options={}){return waitFor(()=>this.state(),predicate,'shipping state assertion',options.timeout||5000);},
   // The Island facade is the fork's browserAPI: a method it does not
   // implement rejects with the product's own refusal, which is a failure.

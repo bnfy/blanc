@@ -1097,7 +1097,7 @@
         "macos": {
           "stage": "implemented",
           "candidate": "macos-1dd80a8fa99b18c2",
-          "basis": "S3.9 (2026-11-06): set-aside pages live in a hidden window per profile; on macos-1dd80a8fa99b18c2 (2026-11-07) 26 of 84 cases pass, 1 fails (F41-6, pinned tabs leave groups), 57 undefined (s3c-spaces); moves and multi-tab selection not built"
+          "basis": "S3.9 (2026-11-06): set-aside pages live in a hidden window per profile; on macos-1dd80a8fa99b18c2 (2026-11-07) 26 of 84 cases pass, 1 fails (F41-6, pinned tabs leave groups), 57 undefined (s3c-spaces). S3.10 (2026-11-07, macos-4a066a63875aac81): Move to Space for one tab and New Space… from a tab, 8 of 11 cases pass, the 3 crash cases stop at the fork's missing crash restore; Open Link in Space, several tabs and Move Group to Space not built"
         },
         "windows": {
           "stage": "not-started",
@@ -2459,8 +2459,8 @@
   ],
   "currentCandidates": {
     "macos": {
-      "id": "macos-1dd80a8fa99b18c2",
-      "frameworkSha256": "1dd80a8fa99b18c2066e1ce786534ab694de644307cf93ea1ef9ab9ae2794bc7",
+      "id": "macos-4a066a63875aac81",
+      "frameworkSha256": "4a066a63875aac8115ec3f2be80ab644710b56a829afe60ad0fa90b00d7fc05d",
       "executableSha256": "cca20d7ed00bbdecf8db310c6802fbed003b4e63c6bc3b1f71dabc9dbff2ff01",
       "version": "158.0.8127.2",
       "qualification": "compiled candidate; runtime acceptance pending"

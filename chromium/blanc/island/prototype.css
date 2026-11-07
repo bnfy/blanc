@@ -57,6 +57,8 @@ html, body { background: transparent; }
 
 .prototype-tab-menu { max-height:calc(100vh - 16px); overflow-y:auto; }
 .prototype-tab-menu-header { padding:6px 10px 3px; font-size:11px; opacity:.65; }
+.prototype-tab-menu-separator { border:0; border-top:1px solid var(--border, rgba(127,127,127,.25)); margin:4px 6px; }
+.prototype-tab-menu button[aria-checked="true"]::after { content:" ✓"; opacity:.7; }
 
 /* PR993 clustered Split View rail row. */
 .vertical-split-icons { display: flex; flex: none; gap: 3px; }

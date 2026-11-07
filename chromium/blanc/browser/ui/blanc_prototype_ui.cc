@@ -779,6 +779,8 @@ class IslandToolbarProvider final : public ToolbarButtonProvider,
 scoped_refptr<base::SequencedTaskRunner> SpaceRunner();
 std::optional<base::DictValue> CaptureNativeSpace(BrowserWindowInterface* browser);
 void NoteSpaceTabCount(Profile* profile, const std::string& name, size_t tabs);
+bool ValidSpace(const base::DictValue& record);
+bool MainDocumentLoading(content::WebContents* tab);
 base::DictValue SpaceDisk(base::FilePath path, std::string method,
                          std::string name, base::DictValue capture);
 
@@ -1861,6 +1863,49 @@ bool OpenedAnotherPage(content::WebContents* tab) {
   });
   return found;
 }
+// Move to Space ▸ (F41, shipping's canMoveTabToSpace): never a private tab, the
+// window's only tab, a quiet page or one a Space's record can't hold, and never
+// a page using the camera or microphone, playing sound or holding a popup,
+// since a Space set aside keeps its pages out of sight.
+bool CanMoveTabToSpace(TabStripModel* model, int index) {
+  if (index < 0 || index >= model->count() || model->count() < 2) return false;
+  auto* tab = model->GetWebContentsAt(index);
+  return !blanc::private_tabs::IsPrivateTab(tab) && !tab->WasDiscarded() &&
+      tab->GetLastCommittedURL().SchemeIsHTTPOrHTTPS() && !MainDocumentLoading(tab) &&
+      !TabIsCapturing(tab) && !tab->IsCurrentlyAudible() && !OpenedAnotherPage(tab);
+}
+// Acceptance-only faults for a move's steps (shipping's arm-move-fault): each
+// armed step fails once. Only the --blanc-test channel arms one.
+std::map<std::string, std::string>& SpaceMoveFaults() {
+  static base::NoDestructor<std::map<std::string, std::string>> faults;
+  return *faults;
+}
+std::optional<std::string> TakeSpaceMoveFault(const std::string& step) {
+  auto found = SpaceMoveFaults().find(step);
+  if (found == SpaceMoveFaults().end()) return std::nullopt;
+  auto error = found->second;
+  SpaceMoveFaults().erase(found);
+  return error;
+}
+// The record a Space holds once `url` joins it last, ungrouped and unpinned
+// (shipping's appendTabToCapture). A Space saved empty is one Start Page,
+// which the moved tab replaces (emptiedCapture); `replaced` says so.
+std::optional<base::DictValue> SpaceRecordWithTab(const base::DictValue* base, const GURL& url, bool* replaced) {
+  auto entry = base::DictValue().Set("url", url.spec()).Set("pinned", false).Set("group", -1);
+  const auto* tabs = base ? base->FindList("tabs") : nullptr;
+  *replaced = !tabs || (tabs->size() == 1 && (*tabs)[0].is_dict() &&
+      (*tabs)[0].GetDict().FindString("url") && *(*tabs)[0].GetDict().FindString("url") == "chrome://newtab/");
+  if (*replaced) {
+    base::ListValue only; only.Append(std::move(entry));
+    auto record = base::DictValue().Set("tabs", std::move(only)).Set("groups", base::ListValue()).Set("active", 0);
+    return ValidSpace(record) ? std::optional(std::move(record)) : std::nullopt;
+  }
+  auto record = base->Clone();
+  if (tabs->size() >= 200) return std::nullopt;
+  record.FindList("tabs")->Append(std::move(entry));
+  if (auto* ids = record.FindList("splitIds")) ids->Append(base::Value());
+  return ValidSpace(record) ? std::optional(std::move(record)) : std::nullopt;
+}
 // Quiet Tabs' rules for a set-aside page: loaded, a web page, not muted and no
 // opener family.
 bool HeldTabCanQuiet(content::WebContents* tab) {
@@ -2685,6 +2730,12 @@ base::DictValue SpaceDisk(base::FilePath path, std::string method,
   for (const auto [key, value] : *items) {
     if (key.empty() || key.size() > 120 || !value.is_dict() || !ValidSpace(value.GetDict()))
       return base::DictValue().Set("error", "Space record invalid; unchanged.");
+  }
+  // Move to Space reads the record it will add a tab to.
+  if (method == "spaceRecord") {
+    const auto* item = items->FindDict(name);
+    if (!item) return base::DictValue().Set("error", "Space does not exist.");
+    return base::DictValue().Set("record", item->Clone());
   }
   if (method == "spaceForget") {
     items->Remove(name);
@@ -4255,6 +4306,32 @@ class Handler : public content::WebUIMessageHandler, public extensions::Extensio
       Reply(id, true, base::Value(std::move(list)));
       return;
     }
+    // Arms one failure for a Move to Space step (shipping's arm-move-fault).
+    if (message[1].GetString() == "spaceMoveFault" && message[2].GetList().size() == 2 &&
+        message[2].GetList()[0].is_string() && message[2].GetList()[1].is_string()) {
+      const auto& step = message[2].GetList()[0].GetString();
+      const bool known = step == "write" || step == "transfer" || step == "rewrite";
+      if (known) SpaceMoveFaults()[step] = message[2].GetList()[1].GetString();
+      Reply(id, true, base::Value(known));
+      return;
+    }
+    // A Space's saved addresses, or null with no record (shipping's saved-urls).
+    if (message[1].GetString() == "spaceSavedUrls" && message[2].GetList().size() == 1 &&
+        message[2].GetList()[0].is_string()) {
+      auto* profile = Profile::FromWebUI(web_ui())->GetOriginalProfile();
+      SpaceRunner()->PostTaskAndReplyWithResult(FROM_HERE,
+          base::BindOnce(&SpaceDisk, profile->GetPath().AppendASCII("BlancPrototypeSpaces.json"),
+              "spaceRecord", message[2].GetList()[0].GetString(), base::DictValue()),
+          base::BindOnce([](base::WeakPtr<Handler> handler, std::string id, base::DictValue result) {
+            if (!handler) return;
+            const auto* record = result.FindDict("record");
+            if (!record) { handler->Reply(id, true, base::Value()); return; }
+            base::ListValue urls;
+            for (const auto& tab : *record->FindList("tabs")) urls.Append(*tab.GetDict().FindString("url"));
+            handler->Reply(id, true, base::Value(std::move(urls)));
+          }, weak_factory_.GetWeakPtr(), id));
+      return;
+    }
     // How many downloads this profile has started.
     if (message[1].GetString() == "downloadCount" && message[2].GetList().empty()) {
       content::DownloadManager::DownloadVector items;
@@ -5332,6 +5409,108 @@ class Handler : public content::WebUIMessageHandler, public extensions::Extensio
             "previewSpaceSave", owner->space_name, capture->Clone()),
         base::BindOnce(&Handler::AutosaveReady, weak_factory_.GetWeakPtr(), std::move(*capture)));
   }
+  // Move to Space, the source window's side. Each step finds the tab again by
+  // its id: the page may have closed while the disk worked.
+  int SpaceMoveIndex(int tab_id) {
+    auto* owner = GetOwner(web_ui()->GetWebContents());
+    if (!owner) return -1;
+    auto* model = owner->browser->GetTabStripModel();
+    for (int i = 0; i < model->count(); ++i)
+      if (sessions::SessionTabHelper::IdForTab(model->GetWebContentsAt(i)).id() == tab_id) return i;
+    return -1;
+  }
+  void SpaceMoveReply(const std::string& id, const char* error, bool recorded = true) {
+    auto result = base::DictValue().Set("ok", !error);
+    if (error) { result.Set("error", error); result.Set("moved", false); result.Set("recorded", recorded); }
+    Reply(id, true, base::Value(std::move(result)));
+  }
+  // `found` holds the target's current record (none for a new Space).
+  void SpaceMoveWrite(std::string id, int tab_id, std::string name, bool create, base::DictValue found) {
+    auto* owner = GetOwner(web_ui()->GetWebContents());
+    if (!owner) return;
+    if (found.FindString("error")) { SpaceMoveReply(id, "not-found"); return; }
+    auto* model = owner->browser->GetTabStripModel();
+    const int index = SpaceMoveIndex(tab_id);
+    if (!CanMoveTabToSpace(model, index)) { SpaceMoveReply(id, "refused"); return; }
+    const auto* base = found.FindDict("record");
+    bool replaced = false;
+    auto next = SpaceRecordWithTab(create ? nullptr : base, model->GetWebContentsAt(index)->GetLastCommittedURL(), &replaced);
+    if (!next) { SpaceMoveReply(id, "refused"); return; }
+    if (TakeSpaceMoveFault("write")) { SpaceMoveReply(id, "storage-failed"); return; }
+    // What the record goes back to if the move fails after the write: as it
+    // was, or for a new Space one Start Page, so the saved Space opens.
+    base::DictValue prior = base && !create ? base->Clone() : base::DictValue();
+    if (prior.empty()) {
+      base::ListValue tabs;
+      tabs.Append(base::DictValue().Set("url", "chrome://newtab/").Set("pinned", false).Set("group", -1));
+      prior.Set("tabs", std::move(tabs)); prior.Set("groups", base::ListValue()); prior.Set("active", 0);
+    }
+    const size_t slots = replaced || !base ? 0 : base->FindList("tabs")->size();
+    auto copy = next->Clone();
+    SpaceRunner()->PostTaskAndReplyWithResult(FROM_HERE,
+        base::BindOnce(&SpaceDisk, owner->browser->GetProfile()->GetPath().AppendASCII("BlancPrototypeSpaces.json"),
+            "previewSpaceSave", name, std::move(copy)),
+        base::BindOnce(&Handler::SpaceMoveWritten, weak_factory_.GetWeakPtr(), id, tab_id, name,
+            std::move(*next), std::move(prior), slots));
+  }
+  void SpaceMoveWritten(std::string id, int tab_id, std::string name, base::DictValue next,
+                        base::DictValue prior, size_t slots, base::DictValue written) {
+    auto* owner = GetOwner(web_ui()->GetWebContents());
+    if (!owner) return;
+    if (written.FindString("error")) { SpaceMoveReply(id, "storage-failed"); return; }
+    auto* browser = owner->browser.get();
+    auto* profile = browser->GetProfile();
+    auto* model = browser->GetTabStripModel();
+    const int index = SpaceMoveIndex(tab_id);
+    Owner* holder = nullptr;
+    for (auto* other : Owner::Live())
+      if (other != owner && other->browser->GetProfile() == profile && other->space_name == name) holder = other;
+    SpaceHold* hold = holder || index < 0 ? nullptr : SpaceHold::Open(profile, browser->GetWindow()->GetBounds());
+    // The tab went, the Space's window began a switch, or a fault: nothing
+    // moved, so the record goes back to what the Space really holds. If that
+    // write fails too, the record still lists the tab: a duplicate, not a loss.
+    if (index < 0 || (holder && (holder->space_busy || holder->space_expected)) || (!holder && !hold) ||
+        TakeSpaceMoveFault("transfer")) {
+      auto restore = holder ? CaptureNativeSpace(holder->browser) : std::optional(std::move(prior));
+      if (!restore || TakeSpaceMoveFault("rewrite")) { SpaceMoveReply(id, "move-failed", false); return; }
+      SpaceRunner()->PostTaskAndReplyWithResult(FROM_HERE,
+          base::BindOnce(&SpaceDisk, profile->GetPath().AppendASCII("BlancPrototypeSpaces.json"),
+              "previewSpaceSave", name, std::move(*restore)),
+          base::BindOnce(&Handler::SpaceMoveRewritten, weak_factory_.GetWeakPtr(), id));
+      return;
+    }
+    // Last, ungrouped, unpinned and in no split: the record's shape for it.
+    auto* page = model->GetWebContentsAt(index);
+    if (const auto split = model->GetSplitForTab(index)) model->RemoveSplit(*split);
+    page->RemoveUserData(kPersistentSplitKey);
+    model->RemoveFromGroup({model->GetIndexOfWebContents(page)});
+    model->SetTabPinned(model->GetIndexOfWebContents(page), false);
+    const int at = model->GetIndexOfWebContents(page);
+    if (holder) {
+      auto* target = holder->browser->GetTabStripModel();
+      target->InsertWebContentsAt(target->count(), model->DetachWebContentsAtForInsertion(at), AddTabTypes::ADD_NONE);
+      holder->space_saved = next.Clone();
+    } else {
+      if (!hold->Find(name)) {
+        // A Space open nowhere is set aside to receive the page; its saved
+        // tabs keep their slots and load from the record when it opens.
+        HeldSpace space{name, {}};
+        space.tabs.resize(slots);
+        hold->spaces().push_back(std::move(space));
+      }
+      hold->Find(name)->tabs.push_back(hold->Take(model, at, false));
+      // Out of this window's session: a crash must not restore it here.
+      if (auto* session = SessionServiceFactory::GetForProfile(profile))
+        session->TabClosed(browser->GetSessionID(), SessionID::FromSerializedValue(hold->Find(name)->tabs.back().id));
+      base::SingleThreadTaskRunner::GetCurrentDefault()->PostTask(FROM_HERE,
+          base::BindOnce(&MakeRoomForSpaces, profile->GetWeakPtr(), std::set<std::string>()));
+    }
+    NoteSpaceTabCount(profile, name, next.FindList("tabs")->size());
+    SpaceMoveReply(id, nullptr);
+  }
+  void SpaceMoveRewritten(std::string id, base::DictValue result) {
+    SpaceMoveReply(id, "move-failed", !result.FindString("error"));
+  }
   void SpaceStored(std::string id, base::DictValue result) {
     const auto* error = result.FindString("error");
     Reply(id, !error, error ? base::Value(*error) : base::Value(true));
@@ -5849,6 +6028,43 @@ class Handler : public content::WebUIMessageHandler, public extensions::Extensio
         std::move(done).Run(args[0].GetBool(), args[1].GetString());
       }
       reply(true, base::Value(true)); return;
+    }
+    // Move to Space ▸ (F41, shipping's space-move.js): the target's record is
+    // written first, already holding the tab, and checked; only then does the
+    // tab move. A failed write moves nothing. `create` makes a new Space's
+    // record with just this tab (New Space…). The Space shown in another
+    // window takes the tab there; any other is set aside, holding it live.
+    if (method == "spaceMoveTab" && args.size() == 3 && args[0].is_int() && args[1].is_string() &&
+        !args[1].GetString().empty() && args[1].GetString().size() <= 120 && args[2].is_bool()) {
+      const int tab_id = args[0].GetInt();
+      const std::string name = args[1].GetString();
+      const bool create = args[2].GetBool();
+      const auto refuse = [&](const char* error) {
+        reply(true, base::Value(base::DictValue().Set("ok", false).Set("error", error).Set("moved", false)));
+      };
+      int index = -1;
+      for (int i = 0; i < model->count(); ++i)
+        if (sessions::SessionTabHelper::IdForTab(model->GetWebContentsAt(i)).id() == tab_id) index = i;
+      if (profile->IsOffTheRecord() || owner->space_busy || owner->space_expected ||
+          (!create && owner->space_name == name) || !CanMoveTabToSpace(model, index)) { refuse("refused"); return; }
+      Owner* holder = nullptr;
+      for (auto* other : Owner::Live())
+        if (other != owner && other->browser->GetProfile() == profile && other->space_name == name) holder = other;
+      auto* hold = SpaceHold::Get(profile);
+      if (create && (holder || (hold && hold->Find(name)))) { refuse("refused"); return; }
+      if (holder) {
+        if (holder->space_busy || holder->space_expected) { refuse("busy"); return; }
+        auto capture = CaptureNativeSpace(holder->browser);
+        if (!capture) { refuse("busy"); return; }
+        SpaceMoveWrite(id, tab_id, name, create, base::DictValue().Set("record", std::move(*capture)));
+        return;
+      }
+      if (create) { SpaceMoveWrite(id, tab_id, name, true, base::DictValue()); return; }
+      SpaceRunner()->PostTaskAndReplyWithResult(FROM_HERE,
+          base::BindOnce(&SpaceDisk, profile->GetPath().AppendASCII("BlancPrototypeSpaces.json"),
+              "spaceRecord", name, base::DictValue()),
+          base::BindOnce(&Handler::SpaceMoveWrite, weak_factory_.GetWeakPtr(), id, tab_id, name, false));
+      return;
     }
     if (method == "spaceReveal" && args.size() == 1 && space_named) {
       if (GetBrowserWindowCreationStatusForProfile(*profile) != BrowserWindowInterface::CreationStatus::kOk) {

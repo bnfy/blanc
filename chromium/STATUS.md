@@ -942,6 +942,29 @@ remain pending. D3 beta-only no-DRM exception accepted; EME notice/handoff requi
   flattens groups and splits. A notification click for a held page does
   nothing. Space records carry no sandbox stamp. Not run: the Dock, Window menu
   and reopen paths with only the hold open, which were read, not exercised.
+- **S3.10 Move to Space, candidate macos-4a066a63875aac81 (2026-11-07):** the tab
+  menu's Move to Space ▸ lists every Space (this window's checked) and New
+  Space…, and is shown once a Space exists, never for a private tab, and disabled
+  for a window's only tab or a page that can't move (quiet, loading, playing
+  sound, capturing, holding a popup, not a web page). Native `spaceMoveTab`
+  follows shipping's space-move.js order: the target's record is written first,
+  already holding the tab, and checked; only then does the page move, last,
+  ungrouped and unpinned. A Space shown in another window takes the tab there
+  without selecting it; any other Space is set aside holding the live page (a
+  Space open nowhere keeps empty slots for its saved tabs, which load from its
+  record when it opens). A failed transfer rewrites the record from what the
+  Space holds; if that write fails too, the record keeps the tab, a duplicate,
+  never a loss. New Space… writes one record holding the tab, then its list
+  entry; a move that fails after that leaves the saved Space with "Saved {name},
+  but the tab couldn't move." Test seams: `spaceMoveFault` and `spaceSavedUrls`
+  (--blanc-test only). **Evidence:** 8 of the 11 Move to Space cases pass
+  (F41-40, 41, 42, 46, 47, 48, 49, 50; s3m-*, s3n-*). **Open:** F41-43, 44 and 45
+  pass every step before their crash, then stop because the fork restores
+  nothing after a crash: it opens one New Tab page, so the blocker never starts
+  and the harness waits for it. Shipping restores its session after a crash;
+  which way the fork should go is the owner's call (Chromium's Restore pages?
+  bubble, or restoring automatically). Not built: Open Link in Space (F41-51 to
+  57), several tabs (F41-58 to 74), Move Group to Space (F41-75 to 79).
 - **Mahjong goes last (owner, 2026-11-04):** the fork has no Mahjong yet
   (F35-3, F35-4, F35-9 fail at the footer launch). When it is built it is an
   Island page (shipping's files served as byte-identical copies, opened as an
@@ -1441,5 +1464,5 @@ Android's Bar A counts the shared scenarios bound in `chromium/tests/android/acc
 
 Legacy macOS stages come from the approved spec; they await verification on the canonical candidate. No legacy stage counts as Verified.
 
-Candidate identities: macOS: macos-1dd80a8fa99b18c2; Windows: none; Linux: none; Android: android-arm64-7bd35e94ef746069.
+Candidate identities: macOS: macos-4a066a63875aac81; Windows: none; Linux: none; Android: android-arm64-7bd35e94ef746069.
 <!-- END GENERATED PROGRESS -->
