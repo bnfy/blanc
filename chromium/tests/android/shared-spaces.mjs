@@ -121,6 +121,9 @@ async function main(argv) {
       d.openPalette();
       await d.waitFor(async () => d.dump().includes('Recently closed'), 'the band', 15);
       d.tap({text: 'Recently closed  1'});
+      // Below the open tabs: the list scrolls.
+      const {width, height} = d.screenSize();
+      d.swipe(width / 2, height * 0.6, width / 2, height * 0.3);
       await d.waitFor(async () => d.dump().includes('Closed on Desk'), 'who closed it', 15);
       return [];
     });
