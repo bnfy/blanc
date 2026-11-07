@@ -30,10 +30,9 @@ final class SpacesUITests: XCTestCase {
     XCTAssertTrue(app.otherElements["group.header.Research"].exists || app.descendants(matching: .any)["group.header.Research"].exists)
 
     app.buttons["group.fold"].tap()
-    XCTAssertTrue(app.buttons["group.tucked"].waitForExistence(timeout: 5))
     waitCount(cards, 2, "a folded group hides its cards")
-    app.buttons["group.tucked"].tap()
-    waitCount(cards, 4, "the tucked row unfolds the group")
+    app.buttons["group.fold"].tap()
+    waitCount(cards, 4, "its header unfolds the group")
 
     app.buttons["group.menu"].tap()
     app.buttons["Rename…"].tap()
