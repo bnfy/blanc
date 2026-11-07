@@ -56,8 +56,9 @@ final class PillButtonsUITests: XCTestCase {
     XCTAssertTrue(page.waitForExistence(timeout: 15))
     sleep(2)
     page.pinch(withScale: 0.4, velocity: -1)
-    XCTAssertTrue(app.buttons.matching(identifier: "tab.card").firstMatch.waitForExistence(timeout: 5))
-    app.buttons["Done"].tap()
+    let card = app.buttons.matching(identifier: "tab.card").firstMatch
+    XCTAssertTrue(card.waitForExistence(timeout: 5))
+    card.tap()
     XCTAssertTrue(app.buttons["pill.palette"].waitForExistence(timeout: 5))
     XCTAssertFalse(app.buttons.matching(identifier: "tab.card").firstMatch.waitForExistence(timeout: 1))
   }

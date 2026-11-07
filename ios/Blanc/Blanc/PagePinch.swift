@@ -61,6 +61,13 @@ enum TabGridMotion {
         return (scale, CGSize(width: translation.width, height: islandAtTop ? rise : -rise))
     }
 
+    /// Where a tab's last picture sits in its pane. A page's content starts at
+    /// `pageTop`, so a picture taken with less clearance moves down to match.
+    static func pictureTop(centered: Bool, paneHeight: CGFloat, pictureHeight: CGFloat,
+                           capturedTop: CGFloat, pageTop: CGFloat) -> CGFloat {
+        centered ? (paneHeight - pictureHeight) / 2 : max(0, pageTop - capturedTop)
+    }
+
     /// Far enough to open, unless the finger is heading back; a quick flick
     /// counts even when short.
     static func liftOpens(travel: CGFloat, predicted: CGFloat) -> Bool {

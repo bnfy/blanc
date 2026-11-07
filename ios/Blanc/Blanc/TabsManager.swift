@@ -323,7 +323,7 @@ final class TabsManager {
         var savedURLs = sessionStore.urls.compactMap { URL(string: $0) }
         var restoredState = sessionStore.state
         #if DEBUG
-        if UITestSeed.sends || UITestSeed.twoTabs || UITestSeed.startPage || UITestSeed.favorites || UITestSeed.privateTab {
+        if UITestSeed.sends || UITestSeed.twoTabs || UITestSeed.startPage || UITestSeed.favorites || UITestSeed.privateTab || UITestSeed.tapPage {
             restoredState = nil
         }
         if UITestSeed.groups {
@@ -350,6 +350,10 @@ final class TabsManager {
         if UITestSeed.startPage {
             UITestSeed.seedFavorites(into: syncDirectory)
             savedURLs = [TabsManager.newTabURL]
+        }
+        if UITestSeed.tapPage {
+            UITestSeed.seedFavorites(into: syncDirectory)
+            savedURLs = [UITestSeed.tapPageURL]
         }
         if UITestSeed.favorites || UITestSeed.privateTab {
             UITestSeed.seedFavorites(into: syncDirectory)
