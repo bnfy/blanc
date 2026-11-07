@@ -5228,6 +5228,11 @@ class Handler : public content::WebUIMessageHandler, public extensions::Extensio
         tab->GetController().GetPendingEntry() || model->IsTabPinned(index) ||
         tab->IsAudioMuted() || tab->IsCurrentlyAudible() || TabIsCapturing(tab) ||
         !tab->GetLastCommittedURL().SchemeIsHTTPOrHTTPS()) return false;
+    // A page reached by POST would show Chromium's resubmit-confirmation
+    // prompt on reload; waking it after discard reloads the committed entry,
+    // so a non-refetchable POST page must never be quieted.
+    auto* committed_entry = tab->GetController().GetLastCommittedEntry();
+    if (committed_entry && committed_entry->GetHasPostData()) return false;
     const auto split = model->GetSplitForTab(index);
     if (split && model->active_index() >= 0 && split == model->GetSplitForTab(model->active_index())) return false;
     auto* media = blanc::quiet::MediaHistory::Get(tab);

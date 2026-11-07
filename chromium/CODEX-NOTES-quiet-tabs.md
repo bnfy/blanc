@@ -243,3 +243,69 @@ page hover shim; real protection conditions; OS process observations and focused
 checks; these notes. Include the required Codex co-author trailer on every
 commit. All implementation files are present in the working tree and registered
 in adapters/index.mjs; none has native-build or acceptance verification yet.
+
+## Claude's review, build and first real acceptance run — 2026-11-07
+
+Reviewed the implementation line by line against the actual Chromium headers
+(`browser_live_tab_context.h`'s `AddRestoredTab` signature, `tab_restore_types.h`'s
+`Tab` struct defaults, the pre-existing `quietDelay`/`quietState` handlers,
+`auto_running_`/`AutoTick`/`AutoAvailable`) — nothing fabricated, every call
+matches a real production path. Applied into
+`~/Projects/BlancChromium158/src` via `apply.py` (1 file), built clean (6
+steps), committed as `df3d0a80` on `chromium/s3-quiet-tabs-codex2`.
+
+This was the first time any F31 scenario ran against a **real compiled
+candidate** (`macos-a0ca85ae1edc5c19`) rather than the mocked `w.native`/`w.api`
+calls the Node unit tests use. `node chromium/tests/runner.mjs ... --only=quiet-tabs`
+(needs `/usr/local/bin/node`, v22+; the shell default v20 lacks global
+`WebSocket` and the runner refuses to start) found 3 real failures out of 27
+executed quiet-tabs.feature cases:
+
+1. **`quiet-tabs.feature:28:example-42` (non-refetchable POST) — fixed.**
+   `grep -rn "HasPostData" chromium/blanc/` returned nothing: the fork never
+   checked a tab's last committed entry for POST data before offering to
+   quiet it, despite shipping Electron protecting exactly this case. Added
+   to `QuietAllowed` in `blanc_prototype_ui.cc`:
+   `GetController().GetLastCommittedEntry()->GetHasPostData()`, same pattern
+   as the function's other eligibility checks, right after the existing
+   loading/pinned/audio checks. Rebuilt (`macos-53fb0155deee71ea`), reran —
+   the scenario now passes. No adapter change was needed; the gap was purely
+   in native eligibility.
+
+2. **`quiet-tabs.feature:8` (droppedPageState) — flagged, not fixed.**
+   Reproduces every run: `assert.equal(state?.droppedPageState, true)` at
+   `test/desktop/steps/quiet-tabs.steps.js:300` fails because
+   `sleepState(id).asleep` correctly reports the real condition — Chromium's
+   native discard keeps the full 600 KB `pushState` payload the step creates,
+   it never drops it. This is exactly what I already called out as
+   impossible to honestly pass in the earlier investigation pass above; it
+   is a real behavioral difference from shipping Electron (which does drop
+   oversized state), not a bug in this round's adapters. Recorded in
+   STATUS.md for an owner decision (register a divergence vs. something
+   else) rather than weakened here.
+
+3. **`quiet-tabs.feature:118` (renderer process count) — investigated,
+   unresolved, flagged.** `sleepTab` returns `true`, `sleepState().asleep`
+   becomes `true` (lifecycle state genuinely `DISCARDED`), but
+   `tabProcessCount` never drops: the discarded tab's OS renderer PID stays
+   running. Spiked this directly (`spike-process-count2.mjs`, not committed —
+   scratch) against the real candidate: confirmed with a raw `ps -o stat=`
+   read during the wait that the PID is `S` (running), never `Z` (zombie), so
+   this is not the documented `kill(pid,0)`-reports-zombie-as-alive hazard.
+   Read Chromium's actual discard path for this case
+   (`TabLifecycleUnit::Discard` → `FinishDiscard`, since
+   `features::kWebContentsDiscard` defaults off outside Android): it swaps in
+   a brand-new `WebContents` created with `kNoRendererProcess` and destroys
+   the old one via `old_contents_deleter.reset()` — in principle the old
+   renderer process should go down with it. Why the OS PID survives 30+
+   seconds past that is unresolved. Two real hypotheses, neither confirmed:
+   Chromium's renderer-process-reuse pool may be keeping that PID alive for
+   something unrelated (same number, different purpose — which would make
+   PID-based observation the wrong test, not a real leak), or the fork's own
+   post-swap tab lookup isn't resolving to the replacement WebContents the
+   way it looks like it should. Stopped here rather than guess at a fix in
+   either the adapter or native code. Recorded in STATUS.md for the owner.
+
+Unit tests after the POST fix: 257/258 (the 1 failure is the pre-existing,
+unrelated `stripTypeScriptTypes` Node-version issue in `ui-language.test.mjs`,
+present on `main` too). `check-patches.py` and `git diff --check` both pass.

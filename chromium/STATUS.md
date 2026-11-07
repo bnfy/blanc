@@ -1004,6 +1004,53 @@ remain pending. D3 beta-only no-DRM exception accepted; EME notice/handoff requi
   `chromium/CODEX-NOTES-quiet-tabs.md`'s table). Full findings, evidence and
   the harness fix: `chromium/CODEX-NOTES-quiet-tabs.md`, branch
   `chromium/s3-quiet-tabs` (`db7ea5d9`, pushed, no PR yet).
+- **F31 Quiet Tabs continuation, 8 scenarios built and run against a compiled
+  candidate for the first time; two more real findings, owner decision needed
+  (2026-11-07):** the 8 unblocked scenarios' adapters are built on real
+  Chromium primitives (`BrowserLiveTabContext::AddRestoredTab` for lazy
+  restore, `TabLifecycleUnitExternal`, `DiscardEligibilityPolicy`, the
+  production `AutoTick`/`AutoNext` sweep) — nothing synthetic. Reviewed line
+  by line against the actual Chromium headers, applied, committed
+  (`df3d0a80`). This was also the first time any F31 scenario ran against a
+  real compiled candidate rather than mocked adapters; the run surfaced 3
+  failures. One was a genuine, scoped gap: **non-refetchable POST protection
+  had never been ported to the fork at all** (zero native references to
+  `GetHasPostData` anywhere in `blanc/`), despite shipping Electron having it.
+  Fixed directly in `QuietAllowed` (checks the last committed entry's
+  `GetHasPostData()`, same pattern as the other eligibility checks),
+  candidate `macos-53fb0155deee71ea`; the scenario now passes. The other two
+  are real, not adapter bugs, and need an owner decision:
+  - **F31-1's dropped-oversized-state assertion:** `quiet-tabs.steps.js:300`
+    (`assert.equal(state?.droppedPageState, true)`) encodes Electron
+    shipping's limitation that an oversized page's state is dropped on
+    discard. Real Chromium discard keeps full navigation/page state
+    regardless of size — verified directly: a 600 KB `pushState` payload
+    survives quiet→wake intact. This looks like a genuine, probably-better
+    behavioral difference between the fork and shipping, not a fork defect,
+    but changing the assertion is a product call, not mine to make
+    unilaterally: register it as a new divergence and update this one
+    scenario's expectation, or decide otherwise. Evidence:
+    `spec/acceptance/quiet-tabs.feature:8`.
+  - **F31-10's renderer-process-count assertion:** after a confirmed-real
+    discard (`asleep: true`, lifecycle state `DISCARDED` via the production
+    `TabLifecycleUnitExternal::DiscardTab` → `FinishDiscard` swap-WebContents
+    path — not a flag-only fake), the discarded tab's OS renderer process
+    does not exit within 30 seconds. Confirmed via a direct `ps` STAT read
+    during the wait: the process is reported `S` (sleeping/running), never
+    `Z` (zombie), ruling out the one documented false-alive hazard from the
+    memory-benchmark work. Root cause is unresolved, with two live
+    hypotheses, neither confirmed: Chromium's renderer-process-reuse pool
+    keeps that OS PID alive for something unrelated to this tab (making
+    PID-based observation the wrong test, not a real resource leak), or the
+    fork's own post-discard tab lookup isn't correctly resolving to the
+    swapped-in replacement WebContents. Needs real investigation before
+    deciding whether the fix belongs in the test's observation method or in
+    native code — flagging rather than guessing. Evidence:
+    `spec/acceptance/quiet-tabs.feature:118`.
+
+  Full accounting, adapter-by-adapter notes and this round's evidence:
+  `chromium/CODEX-NOTES-quiet-tabs.md`, branch
+  `chromium/s3-quiet-tabs-codex2` (merged into `chromium/s3-quiet-tabs`).
 - **S3.10 Move to Space, candidate macos-071c3fa883ea19ff (2026-11-07):** the tab
   menu's Move to Space ▸ lists every Space (this window's checked) and New
   Space…, and is shown once a Space exists, never for a private tab, and disabled
@@ -1592,5 +1639,5 @@ Android's Bar A counts the shared scenarios bound in `chromium/tests/android/acc
 
 Legacy macOS stages come from the approved spec; they await verification on the canonical candidate. No legacy stage counts as Verified.
 
-Candidate identities: macOS: macos-958f4f03569501f7; Windows: none; Linux: none; Android: android-arm64-7bd35e94ef746069.
+Candidate identities: macOS: macos-53fb0155deee71ea; Windows: none; Linux: none; Android: android-arm64-7bd35e94ef746069.
 <!-- END GENERATED PROGRESS -->
