@@ -30,13 +30,15 @@ struct TabGridView: View {
             ScrollViewReader { proxy in
                 ScrollView {
                     VStack(alignment: .leading, spacing: 20) {
+                        if let space = manager.shownSpace { spaceName(space) }
                         ForEach(manager.displaySections, id: \.id) { section in
                             if let group = section.group {
                                 VStack(alignment: .leading, spacing: 12) {
                                     GroupHeader(group: group, count: section.tabs.count, manager: manager, style: style) {
                                         naming = .rename(group)
                                     }
-                                    if !group.collapsed { cards(section.tabs) }
+                                    let shown = shownTabs(of: group, in: section.tabs)
+                                    if !shown.isEmpty { cards(shown) }
                                 }
                             } else {
                                 cards(section.tabs)
@@ -45,6 +47,7 @@ struct TabGridView: View {
                     }
                     .padding(20)
                 }
+                .clippedBeforeSoftEdge()
                 .onAppear {
                     if let id = manager.activeTabId { proxy.scrollTo(id, anchor: .center) }
                 }
@@ -89,6 +92,23 @@ struct TabGridView: View {
         .sheet(item: Binding(get: { newSpaceTab.map(SpaceEditorTarget.newWithTab) }, set: { if $0 == nil { newSpaceTab = nil } })) { target in
             SpaceEditor(manager: manager, target: target)
         }
+    }
+
+    /// Which Space this is, since the Island is away while the grid is open.
+    private func spaceName(_ space: SpaceRecord) -> some View {
+        HStack(spacing: 8) {
+            SpaceTile(color: space.color, symbol: space.symbol, size: 22)
+            Text(space.name).font(BrowserStyle.font(17, semibold: true)).lineLimit(1)
+        }
+        .accessibilityElement(children: .combine)
+        .accessibilityAddTraits(.isHeader)
+        .accessibilityIdentifier("tabs.spaceName")
+    }
+
+    /// A folded group keeps the current tab's card: it's the way back to that
+    /// page, and where the page lands.
+    private func shownTabs(of group: TabGroup, in tabs: [TabModel]) -> [TabModel] {
+        group.collapsed ? tabs.filter { $0.id == manager.activeTabId } : tabs
     }
 
     private func cards(_ tabs: [TabModel]) -> some View {
@@ -221,5 +241,12 @@ private struct SwipeToClose<Content: View>: View {
                         withAnimation(.spring(response: 0.35, dampingFraction: 0.85)) { dx = 0 }
                     }
                 })
+    }
+}
+
+private extension View {
+    /// Before iOS 26's soft scroll edge, cards would run sharply under the clock.
+    @ViewBuilder func clippedBeforeSoftEdge() -> some View {
+        if #available(iOS 26, *) { self } else { clipped() }
     }
 }

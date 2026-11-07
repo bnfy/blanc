@@ -29,6 +29,9 @@ final class SpacesUITests: XCTestCase {
     waitCount(cards, 4, "two loose tabs and two in Research")
     XCTAssertTrue(app.otherElements["group.header.Research"].exists || app.descendants(matching: .any)["group.header.Research"].exists)
 
+    XCTAssertEqual(app.buttons["group.fold"].label, "Research")
+    XCTAssertEqual(app.buttons["group.fold"].value as? String, "2")
+
     app.buttons["group.fold"].tap()
     waitCount(cards, 2, "a folded group hides its cards")
     app.buttons["group.fold"].tap()
@@ -49,6 +52,21 @@ final class SpacesUITests: XCTestCase {
     XCTAssertTrue(undo.waitForExistence(timeout: 5))
     undo.tap()
     waitCount(cards, 4, "Undo brings the whole group back")
+  }
+
+  func testAFoldedGroupKeepsTheCurrentTab() {
+    let app = launch()
+    openGrid(app)
+    let cards = app.buttons.matching(identifier: "tab.card")
+    waitCount(cards, 4, "two loose tabs and two in Research")
+    cards.element(boundBy: 2).tap()
+    XCTAssertTrue(app.buttons["pill.palette"].waitForExistence(timeout: 5))
+    openGrid(app)
+
+    app.buttons["group.fold"].tap()
+    waitCount(cards, 3, "the current tab's card stays, as the way back to it")
+    cards.element(boundBy: 2).tap()
+    XCTAssertTrue(app.buttons["pill.palette"].waitForExistence(timeout: 5), "the card leaves the grid")
   }
 
   func testMoveTabToANewGroupFromItsMenu() {
@@ -117,10 +135,19 @@ final class SpacesUITests: XCTestCase {
     XCTAssertEqual(XCTWaiter().wait(for: [edu], timeout: 5), .completed, site.label)
     XCTAssertEqual(mark.label, "Space: Work")
 
+    openGrid(app)
+    let name = app.descendants(matching: .any)["tabs.spaceName"]
+    XCTAssertTrue(name.waitForExistence(timeout: 5), "the grid says which Space it holds")
+    XCTAssertEqual(name.label, "Work")
+    app.buttons.matching(identifier: "tab.card").firstMatch.tap()
+    XCTAssertTrue(site.waitForExistence(timeout: 5))
+
     mark.tap()
     app.buttons["spaces.iphone"].tap()
     let com = XCTNSPredicateExpectation(predicate: NSPredicate(format: "label CONTAINS %@", "example.com"), object: site)
     XCTAssertEqual(XCTWaiter().wait(for: [com], timeout: 5), .completed, "This iPhone's tabs come back")
+    openGrid(app)
+    XCTAssertFalse(name.exists, "This iPhone needs no name in the grid")
   }
 
   func testCreateSpaceThenDeleteWithUndo() {
