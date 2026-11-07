@@ -91,9 +91,12 @@ original reports:
 
 - **Optional uBlock Origin:** Public v1.39.0 offers full uBO 1.75.0 on
   Apple Silicon, native Intel Mac, Windows x64 and Linux x64. Since v1.43.0 it
-  runs on castLabs' Electron for Content Security 44.9.3 (Chromium
-  152.0.7977.167, as on official Electron 44.8.0 from v1.35.0 to v1.42.1), where it
-  passed signed-package uBO acceptance on all four. The move from 44.5.1 passed the real blocking and tools
+  runs on castLabs' Electron for Content Security: 45.2.1 (Chromium
+  156.0.8078.75) since v1.47.0, and 44.9.3 (Chromium 152.0.7977.167) from
+  v1.43.0 to v1.46.0 (official Electron 44.8.0 from v1.35.0 to v1.42.1). Each
+  passed signed-package uBO acceptance on all four. The native-source review
+  of 45.2.1 is waived by the owner, not passed, so never call the runtime
+  audited or reviewed. The move from 44.5.1 passed the real blocking and tools
   suite on all four in hosted CI; the installed-candidate acceptance dates
   from v1.27.0 on 44.5.1. Click the Island shield to choose a blocker and restart
   Blanc to apply it. Blanc Blocker stays the default and protects private
@@ -565,6 +568,25 @@ original reports:
 - **Sync checks for changes every 15 seconds:** Since v1.46.0, while a Blanc
   window is in front, and it downloads only what changed. Never call it
   instant or real-time.
+- **Default page zoom:** Since v1.47.0, Settings → General → **Default page
+  zoom** sets the size web pages open at (50% to 200%), and open tabs change at
+  once. Zooming a site with ⌘+ and ⌘− (Ctrl++ and Ctrl+− on Windows and Linux)
+  saves a size for that site in the current profile, every tab on it follows,
+  and ⌘0 (Ctrl+0) forgets it. Settings lists saved sites with Remove and
+  Clear all. Private tabs save nothing, and Blanc's own pages stay at 100%.
+  ⌘+ and ⌘− step through Chrome's sizes (… 75, 80, 90, 100, 110, 125 …). Don't
+  claim zoom for sign-in popup windows (they stay at 100%) or show a zoom
+  percentage on screen (none appears). Hand-checked in a packaged ECS build on
+  Apple Silicon only (15 of 15 with real keys); on Windows and Linux it passed
+  CI acceptance but wasn't tried in a packaged build, so don't show it there.
+- **Windows drag band with Island auto-hide:** Since v1.47.0 the strip that
+  drags the window while the Island is tucked away is 10 px tall on Windows
+  (6 px on macOS and Linux), measured on a hosted runner at 100% scale, not
+  at 200% scale or in maximized or fullscreen windows. The top rows of the page
+  under it don't take clicks. Don't claim it for every Windows setup.
+- **Quitting with Shared Spaces:** Since v1.47.0 a Shared Space arriving from
+  another device during a quit no longer overwrites the saved windows file.
+  Don't claim more than that, and don't say any tabs were lost before.
 - **Auto-hide the Island:** Since v1.39.0 an opt-in, device-local setting
   (Settings → General, the View menu, ⌘⌥B or Ctrl+Alt+B) hides the Island's
   strip so the page fills the window. Pointing at or just above the top edge,

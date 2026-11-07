@@ -1,5 +1,121 @@
 [
   {
+    "tag": "v1.47.0",
+    "version": "1.47.0",
+    "name": "1.47.0",
+    "publishedAt": "2026-11-07T17:18:21.000Z",
+    "humanDate": "November 7, 2026",
+    "machineDate": "2026-11-07",
+    "url": "https://github.com/bnfy/blanc/releases/tag/v1.47.0",
+    "anchor": "v1-47-0",
+    "compareUrl": null,
+    "sections": [
+      {
+        "heading": "Added",
+        "blocks": [
+          {
+            "type": "list",
+            "items": [
+              {
+                "spans": [
+                  {
+                    "type": "strong",
+                    "value": "Default page zoom."
+                  },
+                  {
+                    "type": "text",
+                    "value": " Settings → General → "
+                  },
+                  {
+                    "type": "strong",
+                    "value": "Default page zoom"
+                  },
+                  {
+                    "type": "text",
+                    "value": " sets the size web pages open at, from 50% to 200%, and open tabs change at once. Zooming in or out on a site (⌘+ and ⌘− on a Mac, Ctrl++ and Ctrl+− on Windows and Linux) saves a size just for that site in the current profile, and every tab on that site follows; ⌘0 or Ctrl+0 forgets it and returns to the default. Settings lists the sites with their own zoom, each with "
+                  },
+                  {
+                    "type": "strong",
+                    "value": "Remove"
+                  },
+                  {
+                    "type": "text",
+                    "value": ", plus "
+                  },
+                  {
+                    "type": "strong",
+                    "value": "Clear all"
+                  },
+                  {
+                    "type": "text",
+                    "value": ". Private tabs save nothing, and zoom you set in earlier versions carries over. Sign-in popup windows aren't covered yet: they stay at 100%."
+                  }
+                ],
+                "url": null
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "heading": "Changed",
+        "blocks": [
+          {
+            "type": "list",
+            "items": [
+              {
+                "spans": [
+                  {
+                    "type": "text",
+                    "value": "Zooming in and out now steps through the same sizes as Chrome (… 75%, 80%, 90%, 100%, 110%, 125% …), so zooming back always lands on 100%."
+                  }
+                ],
+                "url": null
+              },
+              {
+                "spans": [
+                  {
+                    "type": "text",
+                    "value": "On Windows, with Island auto-hide on, the band along the top of the page that drags the window is 10 pixels tall instead of 6, so it's easier to grab. The top few rows of the page under it no longer take clicks while the Island is tucked away. macOS and Linux keep 6 pixels."
+                  }
+                ],
+                "url": null
+              },
+              {
+                "spans": [
+                  {
+                    "type": "text",
+                    "value": "Blanc now runs on castLabs' Electron for Content Security 45.2.1, with Chromium 156.0.8078.75, instead of 44.9.3 with Chromium 152. The optional uBlock Origin blocker remains available on this version."
+                  }
+                ],
+                "url": null
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "heading": "Fixed",
+        "blocks": [
+          {
+            "type": "list",
+            "items": [
+              {
+                "spans": [
+                  {
+                    "type": "text",
+                    "value": "With sync on and a shared Space open or set aside, quitting Blanc while a shared Space was arriving from another device could overwrite the saved windows file with an empty one. Quitting now keeps it."
+                  }
+                ],
+                "url": null
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
     "tag": "v1.46.0",
     "version": "1.46.0",
     "name": "1.46.0",

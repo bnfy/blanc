@@ -1,19 +1,18 @@
 # Unreleased notes
 
-v1.46.0 is the current public release ([notes](v1.46.0.md)). The next release
-is 1.47.0, a feature release ([notes](v1.47.0.md)). Changes merged after its
-release commit are below as they're recorded.
+v1.47.0 is the current public release ([notes](v1.47.0.md)). Changes merged
+since then are below as they're recorded.
 
-## Before 1.47.0 publishes
+## Still open from 1.47
 
-- **What's New:** `https://blanc.day/whats-new/1.47` must be live, with the
-  owner's sign-off on its text and media.
-- **Default page zoom hands-on checks** in a packaged build on the ECS
-  runtime, and on Windows and Linux: it has only been run unpackaged on macOS.
-- **Protected playback, 1Password and passkeys** on ECS 45.2.1, the first
-  release on Electron 45.
-- **The macOS update restart** (#1405): confirm in the 1.46.0 → 1.47.0
-  updater handoff that secondary windows come back after **Restart Now**.
+- **The macOS and Windows updater handoffs** from v1.46.0: neither is
+  confirmed. The macOS one is also the first real test of the update-restart
+  change in #1405 (windows should come back after **Restart Now**).
+- **Page zoom** in a packaged ECS build on Windows and Linux, and its PDF,
+  private-tab, sign-in popup and second-profile cases in a packaged build.
+- **1Password fill** misses forms in iframes, shadow DOM or hidden behind a
+  button, as it did in v1.46.0.
+- **The first release on ECS 45.2.1** has no native-source review (waived).
 
 ## Still open from 1.46
 
