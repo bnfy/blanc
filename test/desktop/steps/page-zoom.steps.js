@@ -110,7 +110,8 @@ When('the zoom page crashes and loads again', async function () {
   await this.call('activateTab', id);
   await waitForValue(() => this.call('drawnZoomPercent', id), (value) => Math.abs(value - 75) <= 1, 'zoomed before the crash');
   assert.ok(await this.call('crashTabRenderer', id));
-  await waitForValue(() => this.call('tabUrl', id), (value) => value?.startsWith('blanc://error') || value === zoomUrl(this), 'the crash handled');
+  // Navigating before the crash page lands would lose to it.
+  await waitForValue(() => this.call('tabUrl', id), (value) => value?.startsWith('blanc://error'), 'the crash page');
   await this.call('navigateTab', id, this.fixtureUrl('zoom-after-crash'));
   await loaded(this, id, this.fixtureUrl('zoom-after-crash'));
 });
