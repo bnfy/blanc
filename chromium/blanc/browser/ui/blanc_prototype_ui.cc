@@ -4668,6 +4668,35 @@ class Handler : public content::WebUIMessageHandler, public extensions::Extensio
           weak_factory_.GetWeakPtr(), id, history, top_sites, std::move(expected), 0));
       return;
     }
+    // F9-3: a seeded favorite's own page never really loads in the offline
+    // fixture (every proxied request is refused), so it never earns a real
+    // favicon the way a production visit does. Seeds one directly via
+    // FaviconService, the same MergeFavicon pattern as Billboard above;
+    // bookmarks::BookmarkModel::GetFavicon reads from the same database.
+    if (quiet_method == "seedFavicon" && quiet_args.size() == 1 && quiet_args[0].is_string()) {
+      auto* owner = GetOwner(web_ui()->GetWebContents());
+      Profile* profile = owner ? owner->browser->GetProfile() : nullptr;
+      if (!profile || profile->IsOffTheRecord()) {
+        reject("Favicon seeding requires a regular profile."); return;
+      }
+      const GURL url(quiet_args[0].GetString());
+      if (!url.is_valid() || !url.SchemeIsHTTPOrHTTPS()) {
+        reject("Favicon seeding needs a valid http(s) URL."); return;
+      }
+      auto* favicon_service = FaviconServiceFactory::GetForProfile(
+          profile, ServiceAccessType::EXPLICIT_ACCESS);
+      if (!favicon_service) { reject("Favicons unavailable."); return; }
+      SkBitmap bitmap;
+      bitmap.allocN32Pixels(16, 16);
+      bitmap.eraseColor(SK_ColorBLUE);
+      const std::optional<std::vector<uint8_t>> png =
+          gfx::PNGCodec::EncodeBGRASkBitmap(bitmap, /*discard_transparency=*/false);
+      favicon_service->MergeFavicon(url, GURL(url.spec() + "favicon.ico"),
+          favicon_base::IconType::kFavicon,
+          base::MakeRefCounted<base::RefCountedBytes>(png.value()), gfx::Size(16, 16));
+      Reply(id, true, base::Value(true));
+      return;
+    }
     if (quiet_method == "quietThreshold" && quiet_args.size() == 1 && quiet_args[0].is_int() &&
         quiet_args[0].GetInt() >= 0) {
       test_quiet_delay_ = quiet_args[0].GetInt();

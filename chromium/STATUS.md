@@ -1190,6 +1190,22 @@ remain pending. D3 beta-only no-DRM exception accepted; EME notice/handoff requi
   reports `undefined` until this is revisited. No further action unless the
   owner asks for it again. Full writeup in
   `chromium/CODEX-NOTES-billboard-history.md`.
+- **F9-3 Favorites rows show a saved icon, candidate macos-1f63b73deaf4cd94
+  (2026-11-07):** `adapters/pages.mjs`'s `seedFavorite` carried its own
+  comment flagging the gap directly ("A seeded icon has no fork path"): the
+  seeded favorite's page never really loads in the offline fixture (every
+  proxied request is refused — `fixture.mjs`'s `this.proxy` destroys every
+  connection it sees), so it never earns a real favicon the way a real visit
+  does. Same shape as F35-5/F35-6 just above: added a `seedFavicon` native
+  test op (`FaviconService::MergeFavicon`, the same 16×16 PNG-encoded
+  `SkBitmap` pattern) and one call to it from `seedFavorite`, right after
+  bookmarking. `bookmarks::BookmarkModel::GetFavicon` reads from the same
+  favicon database, so no further wiring was needed. Passes clean on the
+  first build (7/7 in `find-favorites-history.feature`); regression-checked
+  `newtab-layouts.feature` (still 19/4/2 — unchanged) and `vertical-tabs.
+  feature` (0/7/19 — unrelated: that feature is broadly unbuilt, no
+  favicon-adjacent failures). Branch: committed directly on
+  `chromium/s3-quiet-tabs`.
 - **S3.10 Move to Space, candidate macos-071c3fa883ea19ff (2026-11-07):** the tab
   menu's Move to Space ▸ lists every Space (this window's checked) and New
   Space…, and is shown once a Space exists, never for a private tab, and disabled
@@ -1778,5 +1794,5 @@ Android's Bar A counts the shared scenarios bound in `chromium/tests/android/acc
 
 Legacy macOS stages come from the approved spec; they await verification on the canonical candidate. No legacy stage counts as Verified.
 
-Candidate identities: macOS: macos-7a7adbe83d0dc7b0; Windows: none; Linux: none; Android: android-arm64-7bd35e94ef746069.
+Candidate identities: macOS: macos-1f63b73deaf4cd94; Windows: none; Linux: none; Android: android-arm64-7bd35e94ef746069.
 <!-- END GENERATED PROGRESS -->

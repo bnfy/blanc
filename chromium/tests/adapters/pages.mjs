@@ -93,7 +93,9 @@ export const pages={
  bookmarkRecords:async w=>(await favorites(w)).map(({url,title,folder})=>({url,title,folder})),
  // A user saves a Favorite by visiting the page and pressing the heart; the
  // seed does that in a scratch tab, giving the page the seeded title first
- // (as core's setTabPresentation does). A seeded icon has no fork path.
+ // (as core's setTabPresentation does). The page itself never really loads
+ // in the offline fixture, so it seeds a production-accepted PNG favicon
+ // too (F9-3) via the native seedFavicon op.
  async seedFavorite(w,url,title){
   if((await favorites(w)).some(f=>f.url===url))return;
   const before=String((await w.snapshot()).activeTabId);
@@ -106,6 +108,7 @@ export const pages={
    await w.waitFor(()=>w.snapshot(),s=>s.tabs.some(t=>String(t.id)===String(id)&&t.title===title),'seeded title');
   }
   await toggle(w,id);
+  await w.native('seedFavicon',[url]);
   await w.native('closeTab',[id]);
   if((await w.snapshot()).tabs.some(t=>String(t.id)===before))await w.native('switchTab',[nativeId(before)]);
   await w.waitFor(()=>favorites(w),l=>l.some(f=>f.url===url),'seeded favorite');
