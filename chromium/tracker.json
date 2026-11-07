@@ -1097,7 +1097,7 @@
         "macos": {
           "stage": "implemented",
           "candidate": "macos-1dd80a8fa99b18c2",
-          "basis": "S3.9 (2026-11-06): set-aside pages live in a hidden window per profile; on macos-16d66064b5a930dc 25 of 84 cases pass, 2 fail, 57 undefined (s3c-spaces); macos-1dd80a8fa99b18c2 adds review fixes and has not had a valid run; moves and multi-tab selection not built"
+          "basis": "S3.9 (2026-11-06): set-aside pages live in a hidden window per profile; on macos-1dd80a8fa99b18c2 (2026-11-07) 26 of 84 cases pass, 1 fails (F41-6, pinned tabs leave groups), 57 undefined (s3c-spaces); moves and multi-tab selection not built"
         },
         "windows": {
           "stage": "not-started",
