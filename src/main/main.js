@@ -6779,7 +6779,10 @@ app.on('will-quit', () => {
   blockingProviders?.stop();
   onePasswordBroker?.stop();
 });
-app.on('before-quit', () => {
+// The start of every quit: the final Space captures, and the flag every
+// session writer checks. Runs again harmlessly when an update restart's own
+// before-quit follows.
+function beginQuit() {
   // Shared targets were persisted before materialization. Leave them for
   // restoration rather than starting or waiting on page loads during quit.
   glanceCards.flush(); // a card moved inside the save debounce keeps its place
@@ -6794,8 +6797,8 @@ app.on('before-quit', () => {
   for (const runtime of windowRuntimes.all()) {
     forgetTabImportForRuntime(runtime.id, 'cancel');
   }
-
-});
+}
+app.on('before-quit', beginQuit);
 
 /** Builds one window's persistable session entry — the exact shape
  * persistSession() writes into session.json's windows[] array. Pulled out
@@ -8300,8 +8303,17 @@ function adoptSharedGroupIds(runtime,bindings) {
   }
   return changed;
 }
+// Shared Space passes stop while Blanc quits, while the last Windows/Linux
+// window is held for its quit, and on a window that is closing (F57-15): that
+// is teardown, and its windows are saved already. A primary closed to the
+// Dock still takes changes, as its tabs stay saved for reopen.
+function sharedSpaceWorkHalted(runtime) {
+  return isQuitting||sessionHeldForQuit||(runtime.closing&&!runtime.dockClosed);
+}
 const sharedRuntimeSync=createRuntimeSync({
-  read:sharedSpaceRuntimeContext,
+  // Every step of a pass reads here first, so a pass already queued when the
+  // work halts stops at its next step instead of applying rows and saving.
+  read:runtime=>sharedSpaceWorkHalted(runtime)?null:sharedSpaceRuntimeContext(runtime),
   capture:runtime=>withWindowRuntime(runtime,()=>workspaceCapture(runtime)),
   checkpoint:runtime=>withWindowRuntime(runtime,()=>{
     if(!namedWorkspaces.saveCapture(runtime.workspaceId,workspaceCapture(runtime)).ok)return false;
@@ -8374,6 +8386,7 @@ function hasDeferredSharedChanges(runtime) {
   return !!sharedSpaceRuntimeContext(runtime)?.window?.accepted?.length;
 }
 function applySharedSpaceChanges(runtime, options={}) {
+  if(sharedSpaceWorkHalted(runtime))return Promise.resolve(false);
   const context=sharedSpaceRuntimeContext(runtime);
   if(!context||runtime.workspaceTransition||sharedSpaceState.isDormant(context.spaceId,context.ctx)||(!options.force&&!sharedSpaceState.isEnabled(context.ctx)))return Promise.resolve(false);
   if(context.store.data.index.spaces[context.spaceId]?.deleted?.v===true) {
@@ -8557,9 +8570,17 @@ function checkpointWorkspaceSession(runtime, { excludeRuntime = null } = {}) {
 
 function flushWorkspaceSession({ excludeRuntime = null } = {}) {
   if (sessionReadOnly) return { ok: false, error: 'future-format' };
+  // A quit, or the last Windows/Linux window held for one, has already saved
+  // every window. Each is marked closing by now, so a write here would save
+  // one empty entry over them, and persistSession, which refuses during a
+  // quit, could never repair it (F57-15).
+  if (isQuitting || sessionHeldForQuit) return { ok: false, error: 'busy' };
   const saved = ensureSessionStore().updateAndFlush((data) => {
     const previous = new Map(loadWorkspace(data).windows.map((entry) => [entry.id, entry]));
-    const windows = windowRuntimes.all().filter((r) => r !== excludeRuntime && !r.closing && savesSessionEntry(r))
+    // A closing window is leaving the session, except the macOS primary
+    // closed to the Dock: it keeps its tabs for reopen, and persistSession
+    // keeps saving it, so another window's save must not drop it.
+    const windows = windowRuntimes.all().filter((r) => r !== excludeRuntime && (!r.closing || r.dockClosed) && savesSessionEntry(r))
       .map((r) => captureWindowEntry(r, { previousActiveIndex: previous.get(r.id)?.activeIndex ?? 0 }));
     Object.assign(data, buildSaveShape(windows, data, { activeWindowId: focusedRuntime?.id ?? PRIMARY_WINDOW_ID }));
   });
@@ -13218,6 +13239,7 @@ function profileWindowTitle(profile) {
 function createMainWindowForRuntime(runtime, { ensureStartTab = false, inactive = false } = {}) {
   if (runtime.window && !runtime.window.isDestroyed()) return runtime;
   runtime.closing = false;
+  runtime.dockClosed = false;
   runtime.chromeReady = false;
   // The strip reports its height only once it has drawn at the saved Island
   // size (#1292), so pages start there rather than jumping down.
@@ -17370,6 +17392,30 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
   }
 
   setupAutoUpdater({ t: mainI18n.t });
+  // A macOS update restart closes every window before it emits before-quit
+  // (Electron's autoUpdater.quitAndInstall, which electron-updater's MacUpdater
+  // calls). Start the quit first, so those closes keep their windows saved as
+  // Quit does rather than each leaving the session, and no Shared Space pass
+  // saves the session over them in between. If the install fails instead, the
+  // app keeps running: end the quit that never came.
+  if (process.platform === 'darwin' && app.isPackaged) {
+    const { autoUpdater: nativeUpdater } = require('electron');
+    let updateQuitPending = false;
+    nativeUpdater.on('before-quit-for-update', () => { updateQuitPending = true; beginQuit(); });
+    // Not before-quit: the macOS visibility gate may only pause that one.
+    app.on('will-quit', () => { updateQuitPending = false; });
+    nativeUpdater.on('error', () => {
+      if (!updateQuitPending) return;
+      updateQuitPending = false;
+      isQuitting = false;
+      for (const runtime of windowRuntimes.all()) {
+        if (runtime.window && !runtime.window.isDestroyed()) runtime.closing = false;
+        // A window the update already closed kept its tabs, as on Quit: keep
+        // them saved, as a primary closed to the Dock is, until it reopens.
+        else if (runtime.closing && runtime.tabOrder.length) runtime.dockClosed = true;
+      }
+    });
+  }
 
   app.on('activate', () => {
     if (isQuitting) return;

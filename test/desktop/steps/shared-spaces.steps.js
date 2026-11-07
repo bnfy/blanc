@@ -278,13 +278,17 @@ Given('a Shared Spaces fixture whose shared Work Space has a tab alone in a grou
 });
 // An unpackaged Blanc keeps its data in "<profile>-Dev".
 const sharedStoreOnDisk=profileDir=>JSON.parse(require('node:fs').readFileSync(require('node:path').join(profileDir+'-Dev','shared-spaces.json'),'utf8'));
+const sessionOnDisk=profileDir=>JSON.parse(require('node:fs').readFileSync(require('node:path').join(profileDir+'-Dev','session.json'),'utf8'));
 When('the Shared Spaces client quits normally and relaunches',{timeout:180000},async function(){
  const state=await this.call('sharedSpacesTest','state');
  assert.ok(Object.values(state.shared.windows).some(w=>w.accepted.some(row=>row.op==='nav'&&row.id===this.navigated)),'the active navigation is held before the quit');
  this.deviceId=state.context.deviceId;
- await ctx.quitAndRelaunch(profileDir=>{this.storeAtQuit=sharedStoreOnDisk(profileDir);});
+ await ctx.quitAndRelaunch(profileDir=>{this.storeAtQuit=sharedStoreOnDisk(profileDir);this.sessionAtQuit=sessionOnDisk(profileDir);});
 });
 Then('the quit saved no closed Work tab and kept the held navigation',function(){
+ // F57-15: a Space pass that landed during the quit wrote one empty window here.
+ const windows=this.sessionAtQuit.windows??[];
+ assert.ok(windows.some(w=>w.workspaceId&&w.urls?.length),`the quit kept the Work window in session.json: ${JSON.stringify(windows.map(w=>({workspaceId:w.workspaceId,urls:w.urls?.length})))}`);
  const saved=this.storeAtQuit,blob=saved.blobs[this.sid].blob;
  const closed=Object.values(blob.tabs).filter(r=>r.deleted.v===true).map(r=>`${r.nav.v.url} (by ${r.deleted.by===this.deviceId?'this device':r.deleted.by})`);
  assert.deepEqual(closed,[],'the quit must not close a Work tab');

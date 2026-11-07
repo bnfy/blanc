@@ -1480,14 +1480,14 @@
     },
     {
       "type": "framework",
-      "bom-ref": "pkg:npm/electron@44.10.1",
+      "bom-ref": "pkg:npm/electron@45.2.1",
       "name": "electron",
-      "version": "44.10.1",
+      "version": "45.2.1",
       "scope": "required",
       "hashes": [
         {
           "alg": "SHA-512",
-          "content": "093ab1bf1d363fec4247fc54c405817b1404278da0f51cf2d7fd0dfa87c602d23f6ad8126192909d35fdfe3bb0cdfb687166d9b681767ed10630626e8c90de07"
+          "content": "b78df7caea3c2a1f161bf9934ad9cf453fcdb695b0f00f9c68d2c981e534b52fc595f3a478d127b45b1a7385622e00f164e9837bb05e4a4380355aaba8d1e10c"
         }
       ],
       "licenses": [
@@ -1497,7 +1497,7 @@
           }
         }
       ],
-      "purl": "pkg:npm/electron@44.10.1",
+      "purl": "pkg:npm/electron@45.2.1",
       "properties": [
         {
           "name": "blanc:declaration",
@@ -1511,7 +1511,7 @@
       "externalReferences": [
         {
           "type": "distribution",
-          "url": "https://registry.npmjs.org/electron/-/electron-44.10.1.tgz"
+          "url": "https://registry.npmjs.org/electron/-/electron-45.2.1.tgz"
         }
       ]
     },
@@ -2161,7 +2161,7 @@
         "pkg:npm/%40mozilla/readability@0.6.0",
         "pkg:npm/dompurify@3.4.17",
         "pkg:npm/electron-updater@6.8.9",
-        "pkg:npm/electron@44.10.1"
+        "pkg:npm/electron@45.2.1"
       ]
     },
     {
@@ -2351,7 +2351,7 @@
       ]
     },
     {
-      "ref": "pkg:npm/electron@44.10.1",
+      "ref": "pkg:npm/electron@45.2.1",
       "dependsOn": []
     },
     {

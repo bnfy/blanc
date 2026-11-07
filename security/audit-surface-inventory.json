@@ -260,7 +260,7 @@
     },
     {
       "file": "src/main/main.js",
-      "sha256": "a0ad64be6a100aa06e3b648f0475be511d941209b05afcf0b31e268bfeb382a6",
+      "sha256": "639b73f041db9cd103758b4e3d41c694fd6644b401c9aaf8145bc2c6fe640083",
       "literalChannels": [
         "activate",
         "bang-icons:changed",
@@ -268,6 +268,7 @@
         "before-input-event",
         "before-mouse-event",
         "before-quit",
+        "before-quit-for-update",
         "blur",
         "browser-window-blur",
         "browser-window-focus",
@@ -376,6 +377,7 @@
         "did-finish-load",
         "did-navigate",
         "display-capture:picker-resolve",
+        "error",
         "fill:reply",
         "focus",
         "groups:move-closed",
