@@ -191,6 +191,7 @@
     <string name="blanc_shared_spaces_account_full">Le stockage de synchronisation des Spaces est plein. Supprimez un Space pour libérer le stockage de son contenu. Un Space supprimé conserve un petit enregistrement dans le stockage de synchronisation pendant 30 jours.</string>
     <string name="blanc_shared_spaces_unavailable">La synchronisation des Spaces est indisponible. Les favoris, les réglages, les onglets ouverts et Envoyer à un appareil restent disponibles.</string>
     <string name="blanc_shared_spaces_shared">Partagé</string>
+    <string name="blanc_shared_spaces_unsynced_tab">Non synchronisé</string>
     <string name="blanc_shared_spaces_waiting">En attente d’envoi</string>
     <string name="blanc_shared_spaces_not_synced">Non synchronisé depuis %1$s</string>
     <string name="blanc_shared_spaces_full_state">Plein pour la synchronisation</string>

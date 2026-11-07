@@ -131,4 +131,21 @@ public class SpaceRowsTest {
         assertEquals("active", back.spaces.get(0).sharedLink);
         assertEquals("c".repeat(32), back.spaces.get(0).set.tabs.get(0).sharedId);
     }
+
+    @Test
+    public void aTabPastTheBudgetIsMarkedOnlyInTheSharedSpaceOnShow() throws JSONException {
+        mSpace.sharedId = SHARED;
+        mSpace.sharedLink = "active";
+        mLibrary.tabBindings.put("7", "c".repeat(32));
+        mLibrary.tabBindings.put("8", "d".repeat(32));
+        JSONObject each = new JSONObject().put(mSpace.id,
+                new JSONObject().put("unsyncedTabIds", new JSONArray().put("d".repeat(32))));
+        mLibrary.shownId = mSpace.id;
+        assertEquals(java.util.Set.of("8"), SpaceRows.unsynced(mLibrary, each));
+        mSpace.sharedLink = "dormant";
+        assertTrue(SpaceRows.unsynced(mLibrary, each).isEmpty());
+        mSpace.sharedLink = "active";
+        mLibrary.shownId = null;
+        assertTrue(SpaceRows.unsynced(mLibrary, each).isEmpty());
+    }
 }

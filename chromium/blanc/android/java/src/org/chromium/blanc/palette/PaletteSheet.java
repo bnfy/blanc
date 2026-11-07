@@ -33,14 +33,18 @@ import android.widget.LinearLayout;
 import android.widget.ScrollView;
 import android.widget.TextView;
 
+import org.json.JSONObject;
+
 import org.chromium.blanc.address.AddressInput;
 import org.chromium.blanc.island.IslandStyle;
 import org.chromium.blanc.island.R;
 import org.chromium.blanc.spaces.BlancSpaces;
 import org.chromium.blanc.spaces.SpacesCard;
 import org.chromium.blanc.spaces.SpacesController;
+import org.chromium.blanc.sync.BringSpaceSheet;
 import org.chromium.blanc.sync.OtherDevices;
 import org.chromium.blanc.sync.SyncedClosed;
+import org.chromium.blanc.sync.SyncedSpaces;
 import org.chromium.blanc.tabs.BlancTabs;
 import org.chromium.blanc.tabs.QuickSwitcher;
 import org.chromium.blanc.tabs.SlashCommands;
@@ -505,9 +509,11 @@ public final class PaletteSheet extends Dialog {
             return;
         }
         for (QuickSwitcher.Result result : results) {
-            boolean group = result.id.startsWith("group:") || result.id.startsWith("set:");
-            String subtitle = group
-                    ? mActivity.getResources().getQuantityString(R.plurals.blanc_newtab_groups_count, result.count, result.count)
+            boolean remote = result.id.startsWith("remoteSpace:");
+            boolean group = remote || result.id.startsWith("group:") || result.id.startsWith("set:");
+            String subtitle = remote
+                    ? mActivity.getString(R.string.blanc_spaces_on_device, result.subtitle)
+                    : group ? mActivity.getResources().getQuantityString(R.plurals.blanc_newtab_groups_count, result.count, result.count)
                     : result.subtitle;
             View view = row(group ? R.drawable.blanc_palette_chevron_right : R.drawable.blanc_palette_globe,
                     result.title, subtitle, false, v -> {
@@ -572,7 +578,11 @@ public final class PaletteSheet extends Dialog {
         for (OtherDevices.Device device : OtherDevices.devices()) {
             for (OtherDevices.Page tab : device.tabs) pages.add(new QuickSwitcher.Page(tab.url, tab.title, tab.url));
         }
-        return QuickSwitcher.search(query, candidates, pages, List.of(), groups, switcherSets());
+        List<QuickSwitcher.RemoteSpace> remote = new ArrayList<>();
+        for (JSONObject row : SyncedSpaces.remoteSpaces()) {
+            remote.add(new QuickSwitcher.RemoteSpace(row.optString("id"), row.optString("name"), row.optString("device")));
+        }
+        return QuickSwitcher.search(query, candidates, pages, List.of(), groups, switcherSets(), remote);
     }
 
     /** Every Space but the shown one, and This Phone while a Space is shown. */
@@ -803,6 +813,11 @@ public final class PaletteSheet extends Dialog {
             }
         } else if (result.id.startsWith("local:")) {
             mTabs.select(result.id.substring("local:".length()));
+        } else if (result.id.startsWith("remoteSpace:")) {
+            String id = result.id.substring("remoteSpace:".length());
+            for (JSONObject row : SyncedSpaces.remoteSpaces()) {
+                if (id.equals(row.optString("id"))) new BringSpaceSheet(mActivity, row).show();
+            }
         } else if (result.id.startsWith("set:")) {
             SpacesController spaces = SpacesController.current();
             String id = result.id.substring("set:".length());

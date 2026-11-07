@@ -191,6 +191,7 @@
     <string name="blanc_shared_spaces_account_full">Spaces sync storage is full. Delete a Space to free its content storage. A deleted Space keeps a small record in sync storage for 30 days.</string>
     <string name="blanc_shared_spaces_unavailable">Spaces sync is unavailable. Favorites, settings, open-tab sharing and Send to device continue.</string>
     <string name="blanc_shared_spaces_shared">Shared</string>
+    <string name="blanc_shared_spaces_unsynced_tab">Not synced</string>
     <string name="blanc_shared_spaces_waiting">Waiting to upload</string>
     <string name="blanc_shared_spaces_not_synced">Not synced since %1$s</string>
     <string name="blanc_shared_spaces_full_state">Full for sync</string>

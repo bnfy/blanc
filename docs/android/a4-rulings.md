@@ -96,3 +96,18 @@ Rulings:
 - **A reopened row is an ordinary tab, even from a private tab**, as `reopenClosed` is on the iPhone: the band only holds ordinary pages, and a private reopen would lose the page for good. Cost if wrong: none.
 - **Clear all needs only Sync on, not the Spaces switch**, as `clearClosed` on the iPhone: what this phone already shared can always go. Desktop gates it on the switch. Cost if wrong: one more small write with the switch off.
 - **`/reopen` stays on its in-memory list of ten**, separate from the band, as on the iPhone.
+
+## A4d: Shared Spaces
+
+Every sharing rule is shipping's: `shims/spaces.js` gives `shared-spaces-service.js` and `shared-spaces-runtime.js` the phone's library as their `workspaces` store and one window, and Java carries out what comes back.
+
+Rulings:
+
+- **Java's library is the truth, and the runner keeps a copy with a revision.** A push older than the runner's copy is refused with the newer rows, and Java takes them and pushes again, so neither side overwrites the other. A background run has no copy until the phone pushes, so it reads and changes nothing. Cost if wrong: a change waits for the next push.
+- **A tab nothing has loaded yet arrives as a quiet tab.** A remote add makes a frozen Chromium tab with its title and address, and it loads when chosen, as the iPhone's quiet tabs do. Cost if wrong: none.
+- **The tab on screen keeps its page when another device closes or changes it**, and the row waits until the phone moves off it, as shipping's protected tabs do. There's no check for an unsaved form on other tabs, which matches the iPhone. Cost if wrong: text typed in a background tab can go when another device closes that tab.
+- **Undo of a deleted shared Space keeps an unlinked copy.** Shipping removes whatever is linked to a deleted record, so the restored Space drops its link first; it can be shared again from the sheet. Cost if wrong: one more step to share it again.
+- **Bring reads the Space directly, outside shipping's request queue.** It's one read, started by a person, with the switch off, when the queue isn't running. Cost if wrong: the read can count against the account's limit at a busy moment, and the sheet then says it's unavailable.
+- **No second recovery of live tabs.** Shipping's `recoverNative` is a no-op here, because a live Chromium tab stays on show through a failed apply. Cost if wrong: none seen; the failure leaves the tabs as they were.
+- **Other devices' Spaces show in palette search and the Spaces card with the switch off**, and open the Bring sheet, as on the iPhone. The list refreshes after each push and each remote change, not while typing. Cost if wrong: a new Space shows one pass late.
+- **A tab past its Space's budget gets the iPhone's small dot on its grid card**, labeled Not synced. Cost if wrong: none.

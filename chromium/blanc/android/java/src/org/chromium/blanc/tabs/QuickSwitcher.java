@@ -74,13 +74,26 @@ public final class QuickSwitcher {
         }
     }
 
+    /** A Space on another device, with the switch off. */
+    public static final class RemoteSpace {
+        public final String id;
+        public final String name;
+        public final String device;
+
+        public RemoteSpace(String id, String name, String device) {
+            this.id = id;
+            this.name = name;
+            this.device = device;
+        }
+    }
+
     public static final class Result {
-        /** "group:<id>", "set:<id>", "local:<tab id>", "favorite:<id>" or "history:<url>". */
+        /** "group:<id>", "set:<id>", "remoteSpace:<id>", "local:<tab id>", "favorite:<id>" or "history:<url>". */
         public final String id;
 
         public final String title;
 
-        /** The site or address; for a group or set, empty (the palette shows its tab count). */
+        /** The site or address; for a group or set, empty (the palette shows its tab count); for a remote Space, its device. */
         public final String subtitle;
 
         public final double score;
@@ -124,6 +137,11 @@ public final class QuickSwitcher {
 
     public static List<Result> search(String query, List<Tab> tabs, List<Page> favorites, List<Page> history,
             List<Group> groups, List<TabSet> sets) {
+        return search(query, tabs, favorites, history, groups, sets, List.of());
+    }
+
+    public static List<Result> search(String query, List<Tab> tabs, List<Page> favorites, List<Page> history,
+            List<Group> groups, List<TabSet> sets, List<RemoteSpace> remoteSpaces) {
         String q = query.toLowerCase(Locale.ROOT);
         if (q.isEmpty()) return new ArrayList<>();
         List<Result> named = new ArrayList<>();
@@ -137,6 +155,12 @@ public final class QuickSwitcher {
         for (TabSet set : sets) {
             double score = matchScore(q, set.name);
             if (score > 0) named.add(new Result("set:" + set.id, set.name, "", score + 6, score, set.count, null));
+        }
+        for (RemoteSpace space : remoteSpaces) {
+            double score = matchScore(q, space.name);
+            if (score > 0) {
+                named.add(new Result("remoteSpace:" + space.id, space.name, space.device, score + 5, score, 0, null));
+            }
         }
         named.sort(byScore());
         List<Result> out = new ArrayList<>(named);

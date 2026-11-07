@@ -184,6 +184,7 @@ public final class SyncBridge {
     private static void onEvent(String event, String text) {
         if ("remote".equals(event)) {
             OtherDevices.refresh();
+            SyncedSpaces.remote(rows -> {});
             return;
         }
         if (event.startsWith("spaces-")) {

@@ -191,6 +191,7 @@
     <string name="blanc_shared_spaces_account_full">El almacenamiento de sincronización de Spaces está lleno. Elimina un Space para liberar el almacenamiento de su contenido. Un Space eliminado conserva un pequeño registro en el almacenamiento de sincronización durante 30 días.</string>
     <string name="blanc_shared_spaces_unavailable">La sincronización de Spaces no está disponible. Los favoritos, los ajustes, las pestañas abiertas y Enviar a dispositivo siguen funcionando.</string>
     <string name="blanc_shared_spaces_shared">Compartido</string>
+    <string name="blanc_shared_spaces_unsynced_tab">Sin sincronizar</string>
     <string name="blanc_shared_spaces_waiting">Esperando para subir</string>
     <string name="blanc_shared_spaces_not_synced">Sin sincronizar desde %1$s</string>
     <string name="blanc_shared_spaces_full_state">Lleno para sincronizar</string>

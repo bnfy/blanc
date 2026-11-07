@@ -66,7 +66,7 @@ export const ANDROID_KEYS = [
   'sync.error.offline', 'sync.error.server', 'sync.error.serverError', 'sync.error.syncOn',
   'sharedSpaces.title', 'sharedSpaces.explanation', 'sharedSpaces.confirm', 'sharedSpaces.count', 'sharedSpaces.tabs',
   'sharedSpaces.rejoin', 'sharedSpaces.copy', 'sharedSpaces.full', 'sharedSpaces.accountFull', 'sharedSpaces.unavailable',
-  'sharedSpaces.shared', 'sharedSpaces.waiting', 'sharedSpaces.notSynced', 'sharedSpaces.fullState',
+  'sharedSpaces.shared', 'sharedSpaces.unsyncedTab', 'sharedSpaces.waiting', 'sharedSpaces.notSynced', 'sharedSpaces.fullState',
   'sharedSpaces.unavailableState', 'sharedSpaces.accountLine', 'sharedSpaces.offLine', 'sharedSpaces.tombstones',
   'sharedSpaces.capacity', 'sharedSpaces.busy', 'sharedSpaces.recoveryNote', 'sharedSpaces.switch.android',
   'sharedSpaces.switch.line.android', 'sharedSpaces.saveThisPhone', 'sharedSpaces.recoveryName.android',

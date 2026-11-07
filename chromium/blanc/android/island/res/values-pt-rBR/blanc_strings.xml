@@ -191,6 +191,7 @@
     <string name="blanc_shared_spaces_account_full">O armazenamento da sincronização de Spaces está cheio. Exclua um Space para liberar o armazenamento do seu conteúdo. Um Space excluído mantém um pequeno registro no armazenamento da sincronização por 30 dias.</string>
     <string name="blanc_shared_spaces_unavailable">A sincronização de Spaces está indisponível. Favoritos, configurações, abas abertas e Enviar para dispositivo continuam funcionando.</string>
     <string name="blanc_shared_spaces_shared">Compartilhado</string>
+    <string name="blanc_shared_spaces_unsynced_tab">Não sincronizado</string>
     <string name="blanc_shared_spaces_waiting">Aguardando envio</string>
     <string name="blanc_shared_spaces_not_synced">Não sincronizado desde %1$s</string>
     <string name="blanc_shared_spaces_full_state">Cheio para sincronização</string>

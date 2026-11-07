@@ -14,7 +14,10 @@ import org.chromium.blanc.spaces.SpacesController;
 import org.chromium.build.annotations.NullMarked;
 import org.chromium.build.annotations.Nullable;
 
+import java.util.ArrayList;
 import java.util.Iterator;
+import java.util.List;
+import java.util.Set;
 
 /**
  * Between the phone's Spaces and shipping's Shared Spaces in the runner (shims/spaces.js). The
@@ -27,6 +30,8 @@ public final class SyncedSpaces {
     private static boolean sHolding;
     private static @Nullable String sRestoring;
     private static String sRecoveryFormat = "{name}";
+    private static Set<String> sUnsynced = Set.of();
+    private static List<JSONObject> sRemote = List.of();
 
     private static final SpacesController.Hook HOOK = new SpacesController.Hook() {
         @Override
@@ -70,6 +75,11 @@ public final class SyncedSpaces {
         @Override
         public void reordered() {
             if (SyncBridge.on()) SyncBridge.call("spaces.reorder", "[]", reply -> {});
+        }
+
+        @Override
+        public Set<String> unsynced() {
+            return sUnsynced;
         }
     };
 
@@ -130,11 +140,25 @@ public final class SyncedSpaces {
             sRestoring = null;
             SyncBridge.call("spaces.push", new JSONArray().put(args).toString(), reply -> {
                 onPushed(spaces, reply);
+                readUnsynced(spaces);
+                remote(rows -> {});
                 if (done != null) done.run();
             });
         } catch (JSONException e) {
             if (done != null) done.run();
         }
+    }
+
+    private static void readUnsynced(SpacesController spaces) {
+        SyncBridge.call("spaces.status", "[]", reply -> {
+            try {
+                JSONObject value = new JSONObject(reply).optJSONObject("value");
+                JSONObject each = value == null ? null : value.optJSONObject("each");
+                sUnsynced = each == null ? Set.of() : SpaceRows.unsynced(spaces.library(), each);
+            } catch (JSONException e) {
+                // A reply that doesn't parse leaves the last good marks.
+            }
+        });
     }
 
     /** The runner changed something this phone hadn't heard: that comes first, then this goes again. */
@@ -220,11 +244,24 @@ public final class SyncedSpaces {
     /** The library's Spaces held elsewhere, with the switch off. `done` gets a JSON array, or null. */
     public static void remote(Callback<@Nullable JSONArray> done) {
         SyncBridge.call("spaces.remote", "[]", reply -> {
+            JSONArray rows = null;
             try {
-                done.onResult(new JSONObject(reply).optJSONArray("value"));
+                rows = new JSONObject(reply).optJSONArray("value");
             } catch (JSONException e) {
-                done.onResult(null);
+                // Nothing to show: the callers treat it as no Spaces.
             }
+            List<JSONObject> kept = new ArrayList<>();
+            for (int i = 0; rows != null && i < rows.length(); i++) {
+                JSONObject row = rows.optJSONObject(i);
+                if (row != null) kept.add(row);
+            }
+            sRemote = kept;
+            done.onResult(rows);
         });
+    }
+
+    /** The last read of other devices' Spaces, for the palette to search as it's typed in. */
+    public static List<JSONObject> remoteSpaces() {
+        return sRemote;
     }
 }

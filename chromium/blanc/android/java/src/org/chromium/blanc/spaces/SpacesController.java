@@ -9,6 +9,7 @@ import org.chromium.build.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 
 /** What the Spaces surfaces call: the library and the switcher, and who to tell when they change. */
 @NullMarked
@@ -27,6 +28,9 @@ public final class SpacesController {
         void restored(String id);
 
         void reordered();
+
+        /** The tabs on show that couldn't be synced, by this phone's ids. */
+        Set<String> unsynced();
     }
 
     private static @Nullable Hook sHook;
@@ -43,6 +47,10 @@ public final class SpacesController {
     /** Told when a window's controller arrives, after anything drawn before it. */
     public static void setCurrentListener(@Nullable Runnable listener) {
         sCurrentListener = listener;
+    }
+
+    public static Set<String> unsynced() {
+        return sHook == null ? Set.of() : sHook.unsynced();
     }
 
     public static void setHook(@Nullable Hook hook) {

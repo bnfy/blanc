@@ -78,7 +78,7 @@ async function main(argv) {
     const other = await paired();
     create('Work');
     await d.view(url('one'));
-    d.runInPalette(url('two'));
+    await d.view(url('two'));
     await d.waitForUrl(url('two'));
     await turnOn();
     await phonePass();
@@ -108,7 +108,8 @@ async function main(argv) {
       wait();
       await phonePass();
       await until(() => titles(d.grid()).includes('Three'), 'the new tab in the grid');
-      if ((await d.targets()).some(target => String(target.url).includes('three.example'))) return ['the new tab loaded'];
+      const loaded = (await d.targets()).filter(target => String(target.url).includes('three.example'));
+      if (loaded.length) return [`the new tab loaded: ${JSON.stringify(loaded)}`];
       other.tabs = other.tabs.filter(tab => tab.local !== 'added');
       await other.push();
       wait();

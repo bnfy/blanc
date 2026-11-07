@@ -15,8 +15,10 @@ import org.chromium.build.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * The library in shipping's workspace shape, and back. The runner's copy holds only record ids: a
@@ -79,6 +81,22 @@ public final class SpaceRows {
         if (space.sharedLink != null) row.put("sharedLink", space.sharedLink);
         if (space.recoveredFrom != null) row.put("recoveredFrom", space.recoveredFrom);
         return row;
+    }
+
+    /** The tabs on show past their Space's budget, by this phone's ids; `each` is the runner's status per Space. */
+    public static Set<String> unsynced(BlancSpaces library, JSONObject each) {
+        Set<String> local = new HashSet<>();
+        Space shown = library.shown();
+        if (shown == null || shown.sharedId == null || !"active".equals(shown.sharedLink)) return local;
+        JSONObject status = each.optJSONObject(shown.id);
+        JSONArray ids = status == null ? null : status.optJSONArray("unsyncedTabIds");
+        if (ids == null) return local;
+        Set<String> shared = new HashSet<>();
+        for (int i = 0; i < ids.length(); i++) shared.add(ids.optString(i));
+        for (Map.Entry<String, String> binding : library.tabBindings.entrySet()) {
+            if (shared.contains(binding.getValue())) local.add(binding.getKey());
+        }
+        return local;
     }
 
     /** Every Space, the one on show as it is now. */
