@@ -107,7 +107,7 @@ export const core={
  // Shipping's openPanel (showOverlay('panel')): the command bar expanded at
  // the pill with the page's address in the field, the host's show(); not the
  // new-tab panel, whose field starts empty.
- openPanel:async w=>{await w.hostEval('window.BlancPrototypeHost.api.openIsland()');
+ openPanel:async w=>{w.app.releasePages();await w.hostEval('window.BlancPrototypeHost.api.openIsland()');
   await w.hostEval(`new Promise(r=>{const end=Date.now()+2000;(function check(){
    if(document.getElementById('overlay').hidden||innerHeight>68||Date.now()>end)return r(true);
    requestAnimationFrame(check);})();})`);},
