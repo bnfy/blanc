@@ -2484,6 +2484,11 @@ Versuche es erneut mit „%2$s“ oder installiere Blanc neu von blanc.day.</str
     <string name="reader_mono">JetBrains Mono</string>
     <string name="settings_general_island_size_label">Größe der Island</string>
     <string name="settings_general_island_size_hint">Macht die Island und ihre Schaltflächen größer. Die Seite rückt nach unten, um Platz zu machen.</string>
+    <string name="settings_general_page_zoom_label">Standard-Seitenzoom</string>
+    <string name="settings_general_page_zoom_hint">Die Größe, in der Webseiten geöffnet werden. Wenn du eine Website vergrößerst oder verkleinerst, wird die Größe nur für diese Website gespeichert.</string>
+    <string name="settings_general_page_zoom_percent">%1$s %%</string>
+    <string name="settings_general_site_zoom_hint">Diese Websites haben einen eigenen Zoom. Entferne eine, um zum Standard zurückzukehren.</string>
+    <string name="settings_general_site_zoom_clear_all">Alle löschen</string>
     <string name="settings_general_island_size_default">Standard</string>
     <string name="settings_general_island_size_large">Groß</string>
     <string name="settings_general_island_size_extra_large">Sehr groß</string>

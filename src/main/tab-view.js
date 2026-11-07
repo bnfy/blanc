@@ -136,7 +136,7 @@ function initTabView(injected) {
     'registerPopupCaptureSurface', 'clearTabCaptureState', 'recordRendererCrash',
     'dispatchMouseGesture',
     'sanitizeCertificate', 'certificateErrorQuery',
-    'certificateExceptions', 'certificateObserver', 't',
+    'certificateExceptions', 'certificateObserver', 't', 'tabZoom',
   ];
   for (const name of required) {
     if (injected?.[name] === undefined) throw new Error(`initTabView missing dependency: ${name}`);
@@ -194,10 +194,11 @@ function wireTabView(tab, view, { owner, adopted }) {
     registerPopupCaptureSurface, clearTabCaptureState, recordRendererCrash,
     dispatchMouseGesture,
     sanitizeCertificate, certificateErrorQuery,
-    certificateExceptions, certificateObserver,
+    certificateExceptions, certificateObserver, tabZoom,
   } = deps;
   const id = tab.id;
   const wc = view.webContents;
+  tabZoom.prepare(wc);
   const gesture = createRecognizer();
   const heldModifiers = new Set();
   let gestureButton = null;
@@ -384,6 +385,7 @@ function wireTabView(tab, view, { owner, adopted }) {
     // commits, history holds only it: Back and Forward have nothing to reach.
     if (tab.inert) setImmediate(() => { if (!wc.isDestroyed() && tab.inert) wc.navigationHistory.clear(); });
     tab.navEpoch++;
+    tabZoom.applyToTab(tab, wc, String(url));
     deps.noteMainFrameCommitted?.(tab, wc, url);
     // The not-secure mark belongs to the history entry that committed
     // (certificate spec §4.5). The session-wide certificate observer is

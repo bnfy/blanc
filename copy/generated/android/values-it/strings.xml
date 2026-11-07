@@ -2557,6 +2557,11 @@ Puoi riprovare con «%2$s» o reinstallare Blanc da blanc.day.</string>
     <string name="reader_mono">JetBrains Mono</string>
     <string name="settings_general_island_size_label">Dimensione dell’Island</string>
     <string name="settings_general_island_size_hint">Ingrandisce l’Island e i suoi pulsanti. La pagina scende per farle spazio.</string>
+    <string name="settings_general_page_zoom_label">Zoom predefinito delle pagine</string>
+    <string name="settings_general_page_zoom_hint">Le dimensioni con cui si aprono le pagine web. Ingrandendo o riducendo un sito, le dimensioni vengono salvate solo per quel sito.</string>
+    <string name="settings_general_page_zoom_percent">%1$s%%</string>
+    <string name="settings_general_site_zoom_hint">Questi siti hanno uno zoom proprio. Rimuovine uno per tornare a quello predefinito.</string>
+    <string name="settings_general_site_zoom_clear_all">Cancella tutto</string>
     <string name="settings_general_island_size_default">Predefinita</string>
     <string name="settings_general_island_size_large">Grande</string>
     <string name="settings_general_island_size_extra_large">Molto grande</string>

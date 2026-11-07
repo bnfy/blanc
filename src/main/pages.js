@@ -848,6 +848,10 @@ function setupPages(hooks = {}) {
   handle('pages:permissions:list', 'settings', () => listDecisions());
   handle('pages:permissions:remove', 'settings', (key) => removeDecision(String(key)));
 
+  handle('pages:zoom:list', 'settings', () => hooks.pageZoom?.list() ?? []);
+  handle('pages:zoom:remove', 'settings', (site) => hooks.pageZoom?.remove(String(site)));
+  handle('pages:zoom:clear', 'settings', () => hooks.pageZoom?.clear());
+
   // Privacy reset for the usage ping's per-install id (see telemetry.js) —
   // from the next ping on, this install counts as brand new.
   handle('pages:telemetry:reset-install-id', 'settings', () => telemetry.resetInstallId());

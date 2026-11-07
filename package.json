@@ -46,6 +46,7 @@
     "test:acceptance:gate": "node scripts/acceptance-gate.mjs",
     "test:workspaces:desktop": "cucumber-js -c test/desktop/cucumber.mjs -p runnable --tags @workspace",
     "test:quiet-tabs:desktop": "cucumber-js -c test/desktop/cucumber.mjs -p runnable --tags @quiet-tabs",
+    "test:page-zoom:desktop": "cucumber-js -c test/desktop/cucumber.mjs -p runnable --tags @F62",
     "test:favorites-import:desktop": "cucumber-js -c test/desktop/cucumber.mjs -p runnable --tags @browser-migration",
     "test:tab-view-drawing:desktop": "node test/desktop/tab-view-drawing-smoke.mjs",
     "pretest:acceptance:healing:desktop": "npm run runtime:check",

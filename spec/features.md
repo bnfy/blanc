@@ -1950,3 +1950,19 @@ candidate branch (PR 1); not in a public release.
 - **Open in Blanc.** The Island's leading button (and a File menu item) keeps
   it as an ordinary window: a new window's size, saved from then on.
 - **Mobile.** Not applicable.
+
+## F62 — Default page zoom (desktop)
+
+- **Default page zoom.** Settings → General → Appearance sets the size web pages
+  open at, from 50% to 200%. A change reaches open tabs at once. Blanc's own
+  pages stay at 100%; PDFs keep the viewer's zoom; sign-in popup windows are not
+  covered.
+- **Per-site zoom.** ⌘+ and ⌘− save a size for that site in the current profile,
+  and every tab on the site follows. ⌘0 forgets it and returns to the default. A
+  site can stay at 100% under another default. Steps follow Chrome's list, so
+  100% is always reachable. Settings lists saved sites with Remove and Clear all.
+- **Privacy.** Saved sites stay on the device, are never synced, and stay when
+  history is cleared. Private tabs read them and write nothing: their own zoom
+  lasts until quit. Browsing leaves no list of visited sites in Chromium's files.
+- **Mobile.** Not applicable: pages use native pinch-zoom and reflow (F23, D10).
+- **Acceptance:** `spec/acceptance/page-zoom.feature`.

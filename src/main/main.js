@@ -274,10 +274,13 @@ const localProfiles = require('./local-profiles');
 const profileDeletions = require('./profile-deletions');
 const {
   withLocalProfile,
+  activeLocalProfileId,
   setFocusedLocalProfile,
 } = require('./local-profile-context');
 const { filterRestoredSession, restoreTargetId, restoredLastViewedAt } = require('./session-restore');
-const { UTILITY_PAGES, isUtilityUrl } = require('./utility-pages');
+const { KNOWN_PAGES, UTILITY_PAGES, isUtilityUrl } = require('./utility-pages');
+const siteZoom = require('./site-zoom');
+const { createTabZoom } = require('./tab-zoom');
 const {
   MAX_TAB_IMPORT_ENVELOPE_BYTES,
   MAX_TAB_IMPORT_TABS,
@@ -9283,10 +9286,23 @@ function notePopupChild(openerTabId, childWindow, sourceContentsId, targetUrl) {
 }
 
 // tab-view.js owns every per-tab WebContentsView listener and setup call.
+const tabZoom = createTabZoom({
+  tabs,
+  liveContents,
+  defaultPercent: () => settings.getSettings().pageZoom,
+  siteZoom,
+  withLocalProfile,
+  activeProfileId: activeLocalProfileId,
+  readPreferences: (profileId) => fs.readFileSync(
+    path.join(profileSessionRegistry.normal(profileId).getStoragePath(), 'Preferences'), 'utf8'),
+  internalHosts: [...KNOWN_PAGES],
+});
+
 // Function declarations below are hoisted; every const this reads is already
 // initialized before this module-scope call.
 initTabView({
   t: mainI18n.t,
+  tabZoom,
   readerAction: tab => ({ active: readerMode.active(tab), click: () => toggleReaderMode(tab) }),
   readerInvalidated: tab => readerMode.invalidate(tab),
   readerLoaded: tab => readerMode.probe(tab),
@@ -9601,6 +9617,8 @@ function createTab(url = newTabUrl(), { private: isPrivate = false, groupId = nu
     wc.setAudioMuted(effectiveTabMuted(tab));
     view.setVisible(true);
     tab.url = wc.getURL() || tab.url;
+    // The default or this site's zoom may have changed while it was parked.
+    tabZoom.refresh(tab, wc);
     // An inert local-file record keeps its saved title, not the placeholder's.
     tab.title = recordTitle(tab, wc.getTitle() || tab.title);
     // Every other re-derivation of this flag hangs off a navigation event, and
@@ -11168,10 +11186,6 @@ function refreshBookmarkFlags() {
   scheduleMenuRebuild();
 }
 
-const ZOOM_STEP = 0.5;
-const ZOOM_MIN = -8;
-const ZOOM_MAX = 8;
-
 /** Zoom acts on what the user is looking at: the sheet when open, else the
  * focused page pane (glance-focus.js). Menu clicks carry no sender. */
 function zoomTargetWebContents() {
@@ -11179,15 +11193,27 @@ function zoomTargetWebContents() {
   return presentationContents(browserCommandTab(rt()));
 }
 
-function zoomActiveTab(delta) {
+/** The tab the zoom target belongs to; null for the sheet and Reader, whose
+ * zoom stays on that one view. */
+function zoomTargetTab(wc) {
+  const tab = browserCommandTab(rt());
+  return !rt().utilitySheetUrl && tab && liveContents(tab) === wc ? tab : null;
+}
+
+function zoomActiveTab(direction) {
   const wc = zoomTargetWebContents();
   if (!wc) return;
-  const level = Math.max(ZOOM_MIN, Math.min(ZOOM_MAX, wc.getZoomLevel() + delta));
-  wc.setZoomLevel(level);
+  const tab = zoomTargetTab(wc);
+  if (tab) tabZoom.step(tab, wc, direction);
+  else tabZoom.stepDirect(wc, direction);
 }
 
 function resetZoomForActiveTab() {
-  zoomTargetWebContents()?.setZoomLevel(0);
+  const wc = zoomTargetWebContents();
+  if (!wc) return;
+  const tab = zoomTargetTab(wc);
+  if (tab) tabZoom.reset(tab, wc);
+  else wc.setZoomLevel(0);
 }
 
 /** The tab an open find capsule searches; null when none is open. */
@@ -12708,10 +12734,10 @@ function buildMenuForRuntime(runtime) {
         command('forward'),
         command('reload'),
         command('hard-reload'),
-        { id: 'zoom-in', label: t('menu.zoomIn'), accelerator: 'CmdOrCtrl+Plus', click: bound(() => zoomActiveTab(ZOOM_STEP)) },
+        { id: 'zoom-in', label: t('menu.zoomIn'), accelerator: 'CmdOrCtrl+Plus', click: bound(() => zoomActiveTab(1)) },
         // Plus requires Shift on most keyboards; Cmd/Ctrl+= is the common alternate, bound silently to the same action.
-        { label: t('menu.zoomIn'), accelerator: 'CmdOrCtrl+=', visible: false, click: bound(() => zoomActiveTab(ZOOM_STEP)) },
-        { id: 'zoom-out', label: t('menu.zoomOut'), accelerator: 'CmdOrCtrl+-', click: bound(() => zoomActiveTab(-ZOOM_STEP)) },
+        { label: t('menu.zoomIn'), accelerator: 'CmdOrCtrl+=', visible: false, click: bound(() => zoomActiveTab(1)) },
+        { id: 'zoom-out', label: t('menu.zoomOut'), accelerator: 'CmdOrCtrl+-', click: bound(() => zoomActiveTab(-1)) },
         { id: 'zoom-reset', label: t('menu.actualSize'), accelerator: 'CmdOrCtrl+0', click: bound(resetZoomForActiveTab) },
         { type: 'separator' },
         {
@@ -15666,11 +15692,18 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
   // A layout picked in Settings (or arriving from Profile Sync) must reach
   // every open start page, not just the one that made the change.
   settings.onSettingsChanged(() => broadcastStartPageStatus());
+  let appliedPageZoom = settings.getSettings().pageZoom;
+  settings.onSettingsChanged(({ pageZoom }) => {
+    if (pageZoom === appliedPageZoom) return;
+    appliedPageZoom = pageZoom;
+    tabZoom.applyAll();
+  });
   onSpacesChangedForStartPage = () => broadcastStartPageStatus();
   // pages.js's IPC surface derives runtime ownership from the sender before
   // any window-local hook runs. A background window's ledger/sheet can never
   // read or mutate the focused window's groups or overlay.
   const pagesRegistration = setupPages({
+    pageZoom: { list: tabZoom.list, remove: tabZoom.remove, clear: tabZoom.clear },
     syncPairing: {
       offered: () => isIphonePairingOffered(),
       // Finish setup asked for the sheet; the page opens it once.
@@ -16451,6 +16484,7 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
         };
       },
       getUtilitySheetWebContents: () => liveUtilitySheet()?.wc ?? null,
+      zoomActiveTab,
       getOverlayWebContents: () => rt().overlayView?.webContents ?? null,
       getChromeWebContents: () => rt().window?.webContents ?? null,
       setWindowContentSize: (width, height) => {
