@@ -15,7 +15,7 @@ run settings node "$TREE/chromium/tests/android/settings.mjs" --apk "$APK" --evi
 run patches-android python3 "$TREE/chromium/tools/check-patches.py" --lane android
 run patches-desktop python3 "$TREE/chromium/tools/check-patches.py" --lane desktop
 run robolectric out/AndroidDebugX64/bin/run_blanc_android_junit_tests
-run tools-tests node --test "$TREE/chromium/tools/"
+run tools-tests node --test "$TREE"/chromium/tools/*.test.mjs
 run a4-gate env BLANC_EVIDENCE="$EVIDENCE/a4" bash "$TREE/chromium/tests/android/a4-gate.sh"
 sha256sum "$APK" > "$EVIDENCE/apk.sha256"
 if ((${#failed[@]})); then echo "A5a gate: FAIL (${failed[*]})"; exit 1; fi
