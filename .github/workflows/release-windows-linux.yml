@@ -452,7 +452,7 @@ jobs:
 
       - name: Preserve public ECS acceptance evidence
         if: ${{ always() && inputs.runtime == 'ecs' }}
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: Blanc-Windows-public-ECS-evidence-${{ github.run_id }}
           if-no-files-found: warn
@@ -509,7 +509,7 @@ jobs:
 
       - name: Preserve Windows candidate uBO evidence
         if: ${{ always() && inputs.mode == 'validation' && inputs.ublock_candidate }}
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: Blanc-Windows-uBO-scripting-${{ github.run_id }}
           if-no-files-found: ignore
@@ -520,7 +520,7 @@ jobs:
 
       - name: Upload private signed Windows validation artifact
         if: ${{ inputs.mode == 'validation' }}
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: Blanc-Windows-${{ github.run_id }}-validation
           if-no-files-found: error
@@ -649,7 +649,7 @@ jobs:
         run: node scripts/prepare-evs-ci.cjs --clean
       - name: Upload sanitized evidence only
         if: always()
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: ecs-production-windows-${{ github.run_id }}
           path: output/ecs-production/*.json
@@ -698,7 +698,7 @@ jobs:
           dbus-run-session -- xvfb-run -a node test/desktop/ecs-production-smoke.mjs
       - name: Upload sanitized evidence only
         if: always()
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: ecs-production-linux-${{ github.run_id }}
           path: |
@@ -983,7 +983,7 @@ jobs:
 
       - name: Preserve public ECS acceptance evidence
         if: ${{ always() && inputs.runtime == 'ecs' }}
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: Blanc-Linux-public-ECS-evidence-${{ github.run_id }}
           if-no-files-found: warn
@@ -1011,7 +1011,7 @@ jobs:
       # The release upload and attestation happen in linux-legacy-launch, after
       # this exact AppImage has launched on Ubuntu 22.04.
       - name: Hand the AppImage to the Ubuntu 22.04 launch check
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: Blanc-Linux-${{ github.run_id }}-built
           if-no-files-found: error
@@ -1022,7 +1022,7 @@ jobs:
 
       - name: Preserve Linux candidate scripting-policy evidence
         if: ${{ always() && inputs.mode == 'validation' && inputs.ublock_candidate }}
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: Blanc-Linux-uBO-scripting-${{ github.run_id }}
           if-no-files-found: ignore
@@ -1034,7 +1034,7 @@ jobs:
 
       - name: Upload private Linux validation artifact
         if: ${{ inputs.mode == 'validation' }}
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: Blanc-Linux-${{ github.run_id }}-validation
           if-no-files-found: error
@@ -1155,7 +1155,7 @@ jobs:
         run: |
           IMAGE="$PWD/dist/Blanc-$(node -p "require('./package.json').version").AppImage"
           dbus-run-session -- xvfb-run -a node scripts/verify-linux-sandbox-candidate.mjs "$IMAGE" "$PWD/squashfs-root/blanc"
-      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         if: always()
         with:
           name: sandbox-evidence-${{ matrix.os }}-${{ github.run_id }}
@@ -1298,7 +1298,7 @@ jobs:
           dbus-run-session -- xvfb-run -a node test/desktop/ecs-drm-playback-smoke.cjs "$APP_DIR" output/ecs-native/drm-shared-profile.json
       - name: Upload sanitized evidence only, never installers or profiles
         if: always()
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: ecs-native-evidence-${{ matrix.os }}-${{ github.run_id }}
           path: output/ecs-native/*.json
