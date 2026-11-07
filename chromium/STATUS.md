@@ -959,10 +959,33 @@ remain pending. D3 beta-only no-DRM exception accepted; EME notice/handoff requi
   but the tab couldn't move." Test seams: `spaceMoveFault` and `spaceSavedUrls`
   (--blanc-test only). **Evidence:** all 11 of 11 Move to Space cases pass
   (s3ce-*), including the three crash cases (F41-43, 44, 45) once the crash-
-  restore work below landed. Spaces as a whole: 37 of 38 runnable cases pass
-  (s3cf-spaces), the one failure being the known F41-6 (pinned tabs leave
-  groups). Not built: Open Link in Space (F41-51 to 57), several tabs (F41-58
-  to 74), Move Group to Space (F41-75 to 79).
+  restore work below landed.
+- **S3.11 Several tabs (F41-58 to 74), candidate macos-e554011ad2a2b1d2
+  (2026-11-07):** selecting several rows (toggle, Shift-click, Shift-arrow) and
+  acting on the whole selection through the tab menu — batch pin, mute, quiet,
+  move to a Space, move to a new window, New Space…, New Group… — built by
+  Codex (gpt-6.1-sol, then gpt-6-astra for the fix pass; the owner's call,
+  Astra reserved for work this delicate) from a written brief, under the same
+  rule as S3.10: write the target's record first, checked, before any transfer;
+  a failed write moves nothing, a failed transfer returns every page whole to
+  one place. A multi-reviewer pass (five review dimensions, each finding
+  adversarially re-checked, then a completeness critic) found 12 real defects
+  before any of this merged, two of them data-loss bugs: a batch move into a
+  Space already shown elsewhere could delete that window's active tab even
+  when it was a private page with unsaved work, and moving into a Space whose
+  held-aside record was a lone Start Page could silently misalign its held
+  pages against the record, one position off, corrupting a restored split.
+  Codex (gpt-6-astra) fixed all 12, each committed with new regression tests;
+  Claude read the fixes for the two highest-risk ones (both above; neither has
+  acceptance coverage, since private tabs are outside the Space record) before
+  merging. **Evidence:** 251 of 251 unit tests pass; 16 of 19 tab-selection
+  scenario rows pass, the other 2 undefined because batch-close (Recently
+  closed as one entry) and reading the persisted session aren't built. Spaces
+  as a whole: 52 of 53 runnable cases pass (s3ci-spaces-full), the one failure
+  still the known F41-6. **Not built:** batch close/restore as one entry; the
+  Space-move write path's own test seam doesn't yet cover several tabs beyond
+  what the scenarios above exercise. Open Link in Space (F41-51 to 57) and
+  Move Group to Space (F41-75 to 79) are also not built.
 - **After a crash, Chromium's Restore pages? bubble (owner, 2026-11-07, candidate
   macos-071c3fa883ea19ff):** shipping doesn't restore silently: it opens one
   window with a "Pick up where you left off?" card (Restore tabs, Start fresh)
@@ -1507,5 +1530,5 @@ Android's Bar A counts the shared scenarios bound in `chromium/tests/android/acc
 
 Legacy macOS stages come from the approved spec; they await verification on the canonical candidate. No legacy stage counts as Verified.
 
-Candidate identities: macOS: macos-071c3fa883ea19ff; Windows: none; Linux: none; Android: android-arm64-7bd35e94ef746069.
+Candidate identities: macOS: macos-e554011ad2a2b1d2; Windows: none; Linux: none; Android: android-arm64-7bd35e94ef746069.
 <!-- END GENERATED PROGRESS -->
