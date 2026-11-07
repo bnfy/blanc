@@ -41,15 +41,13 @@ function siteKeyFor(url) {
   return parsed.protocol === 'blanc:' ? `blanc://${parsed.hostname}` : null;
 }
 
-function usesDefaultZoom(url) {
-  const protocol = parseUrl(url)?.protocol;
-  return protocol === 'http:' || protocol === 'https:' || protocol === 'file:';
-}
+const WEB_CONTENT_PROTOCOLS = new Set(['http:', 'https:', 'file:', 'blob:', 'data:']);
+const usesDefaultZoom = (url) => WEB_CONTENT_PROTOCOLS.has(parseUrl(url)?.protocol);
 
 function resolveZoomPercent({ url, privateSites, savedSites, defaultPercent }) {
   const key = siteKeyFor(url);
   // Hosts are page-controlled names: `constructor` must not read Object's.
-  const sites = [privateSites, savedSites].find((map) => map && Object.hasOwn(map, key));
+  const sites = key && [privateSites, savedSites].find((map) => map && Object.hasOwn(map, key));
   return sites ? sites[key] : usesDefaultZoom(url) ? defaultPercent : ACTUAL_SIZE;
 }
 

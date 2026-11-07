@@ -65,6 +65,8 @@ test('the default reaches web pages and local files, not internal pages', () => 
   assert.equal(usesDefaultZoom('https://example.com/'), true);
   assert.equal(usesDefaultZoom('http://example.com/'), true);
   assert.equal(usesDefaultZoom('file:///tmp/a.html'), true);
+  assert.equal(usesDefaultZoom('blob:https://example.com/1234'), true);
+  assert.equal(usesDefaultZoom('data:text/html,x'), true);
   assert.equal(usesDefaultZoom('blanc://newtab/'), false);
   assert.equal(usesDefaultZoom('about:blank'), false);
 });
@@ -83,6 +85,10 @@ test('a host named after an Object method is not a saved site', () => {
     assert.equal(resolveZoomPercent({ url: `http://${host}/`, privateSites: {}, savedSites: {}, defaultPercent: 75 }), 75);
   }
   assert.equal(resolveZoomPercent({ url: 'http://constructor/', savedSites: { constructor: 110 }, defaultPercent: 75 }), 110);
+});
+
+test('a page with no site key never matches a host named null', () => {
+  assert.equal(resolveZoomPercent({ url: 'file:///tmp/a.html', savedSites: { null: 150 }, defaultPercent: 75 }), 75);
 });
 
 test('a site saved at 100 stays there under another default', () => {

@@ -74,6 +74,13 @@ Feature: default page zoom
     When I zoom in on the zoom page
     Then the zoom page is drawn at 80%
 
+  @F62-11 @F62
+  Scenario: a page that crashed comes back at its zoom
+    Given the default page zoom is 75%
+    And the zoom page is open
+    When the zoom page crashes and loads again
+    Then the zoom page is drawn at 75%
+
   @F62-8 @F62
   Scenario: a quiet tab wakes at the current default
     Given the zoom page is open

@@ -27,7 +27,7 @@ function tabOf(world, name) {
 }
 async function zoom(world, name, command) {
   const id = tabOf(world, name);
-  if (name !== 'Work profile tab') await world.call('activateTab', id);
+  await world.call('activateTab', id);
   assert.equal(await world.call('pressBrowserCommand', id, command), true);
 }
 
@@ -73,8 +73,13 @@ When('the zoom page opens a child tab', async function () {
   this.zoomTabs['child tab'] = state.tabs.find((tab) => !before.has(tab.id)).id;
 });
 
-When(/^I zoom in on the (zoom page|other zoom page|second tab|private tab|Work profile tab)$/, async function (name) {
+When(/^I zoom in on the (zoom page|other zoom page|second tab|private tab)$/, async function (name) {
   await zoom(this, name, 'zoom-in');
+});
+When('I zoom in on the Work profile tab', async function () {
+  const { runtimeId } = this.zoomProfile;
+  await this.call('activateTabInWindow', runtimeId, tabOf(this, 'Work profile tab'));
+  await this.call('zoomInWindow', runtimeId);
 });
 When('I zoom in on the zoom page three times', async function () {
   for (let i = 0; i < 3; i++) await zoom(this, 'zoom page', 'zoom-in');
@@ -98,6 +103,16 @@ When('the zoom page shows a PDF and then a web page', async function () {
   await waitForValue(() => this.call('zoomMode', id), (mode) => mode === 'manual', 'the PDF viewer');
   await this.call('navigateTab', id, zoomUrl(this));
   await loaded(this, id, zoomUrl(this));
+});
+
+When('the zoom page crashes and loads again', async function () {
+  const id = tabOf(this, 'zoom page');
+  await this.call('activateTab', id);
+  await waitForValue(() => this.call('drawnZoomPercent', id), (value) => Math.abs(value - 75) <= 1, 'zoomed before the crash');
+  assert.ok(await this.call('crashTabRenderer', id));
+  await waitForValue(() => this.call('tabUrl', id), (value) => value?.startsWith('blanc://error') || value === zoomUrl(this), 'the crash handled');
+  await this.call('navigateTab', id, this.fixtureUrl('zoom-after-crash'));
+  await loaded(this, id, this.fixtureUrl('zoom-after-crash'));
 });
 
 When('I relaunch Blanc and open the zoom page', async function () {

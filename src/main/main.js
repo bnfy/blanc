@@ -16483,6 +16483,7 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
         };
       },
       getUtilitySheetWebContents: () => liveUtilitySheet()?.wc ?? null,
+      zoomActiveTab,
       getOverlayWebContents: () => rt().overlayView?.webContents ?? null,
       getChromeWebContents: () => rt().window?.webContents ?? null,
       setWindowContentSize: (width, height) => {

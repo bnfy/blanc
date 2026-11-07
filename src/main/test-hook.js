@@ -188,6 +188,7 @@ function install(refs) {
     hideUtilitySheet,
     getUtilitySheetState,
     getUtilitySheetWebContents,
+    zoomActiveTab,
     getOverlayWebContents,
     getChromeWebContents,
     setWindowContentSize,
@@ -3005,6 +3006,8 @@ function install(refs) {
         return true;
       })()`);
     },
+    /** ⌘+ in one window, whichever window the OS has focused. */
+    zoomInWindow(id) { return refs.runInWindowRuntime(String(id), () => zoomActiveTab(1)); },
     openSettingsInWindow(id) { return refs.runInWindowRuntime(String(id), () => openInternalPage('blanc://settings/')); },
     async settingsSiteZoomRowsInWindow(id) {
       return refs.runInWindowRuntime(String(id), () => getUtilitySheetWebContents()?.executeJavaScript(
