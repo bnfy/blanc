@@ -21,9 +21,9 @@ if (location.origin === 'chrome://blanc-prototype' && parent !== window) {
   let menu = null;
   let menuOrigin = null;
   let menuEpoch = 0;
-  const localized = (key, fallback) => {
+  const localized = (key, fallback, values) => {
     try {
-      const value = window.blancI18n?.t?.(key);
+      const value = window.blancI18n?.t?.(key, values);
       return typeof value === 'string' && value && value !== key ? value : fallback;
     } catch { return fallback; }
   };
@@ -53,6 +53,62 @@ if (location.origin === 'chrome://blanc-prototype' && parent !== window) {
       buttons[next].focus();
     }
   }, true);
+  function appendActions(actions) {
+    for (const [label, action, disabled = false, opensList = false, actionId = null, checked = null] of actions) {
+      const button = document.createElement('button');
+      button.type = 'button'; button.textContent = label; button.disabled = disabled; button.setAttribute('role', 'menuitem');
+      if (actionId) button.dataset.action = actionId;
+      if (typeof checked === 'boolean') { button.setAttribute('role', 'menuitemradio'); button.setAttribute('aria-checked', String(checked)); }
+      if (opensList) button.setAttribute('aria-haspopup', 'menu');
+      button.addEventListener('click', () => {
+        if (opensList) { action(); return; }
+        dismissMenu(); Promise.resolve(action()).catch(error => parent.BlancPrototypeHost.notice(error.message));
+      });
+      menu.append(button);
+    }
+  }
+  function placeMenu(event) {
+    document.body.append(menu);
+    menu.style.left = `${Math.max(4, Math.min(innerWidth - menu.offsetWidth - 4, event.clientX))}px`;
+    menu.style.top = `${Math.max(4, Math.min(innerHeight - menu.offsetHeight - 4, event.clientY))}px`;
+    menu.querySelector('button:not(:disabled)')?.focus();
+  }
+  async function batchMenu(state, event, requestEpoch) {
+    const ids = state.selectedTabIds;
+    const members = state.tabs.filter(tab => ids.includes(tab.id));
+    const [rules, spaces] = await Promise.all([
+      window.browserAPI.selectedTabsMenuState(ids), window.browserAPI.listWorkspaces(),
+    ]);
+    if (requestEpoch !== menuEpoch || !menu) return;
+    const run = (action, options) => () => window.browserAPI.runSelectedTabsAction(`batch-${action}`, options);
+    const item = (action, key, fallback, enabled = true) => [localized(key, fallback), run(action), !enabled, false, `batch-${action}`];
+    const pick = entries => () => {
+      menu.replaceChildren(); appendActions(entries); placeMenu(event);
+    };
+    const header = document.createElement('div');
+    header.className = 'prototype-tab-menu-header';
+    header.textContent = localized('tabsMenu.header', `${ids.length} tabs`, { count: ids.length });
+    menu.setAttribute('aria-label', header.textContent); menu.append(header);
+    const actions = [];
+    if (spaces.items.length) actions.push([localized('tabMenu.moveToSpace', 'Move to Space'), pick([
+      ...spaces.items.map(space => [space.name, run('space-move', { workspaceId: space.id }), !rules.canPlace || space.active, false, 'batch-space-move', !!space.active]),
+      item('space-new', 'tabMenu.newSpace', 'New Space…', rules.canPlace && spaces.items.length < 25),
+    ]), !rules.canPlace, true, 'batch-space']);
+    actions.push(item('new-window', 'tabsMenu.newWindow', 'Move Tabs to New Window', rules.canPlace));
+    actions.push([localized('tabMenu.moveToGroup', 'Move to Group'), pick([
+      ...(state.groups ?? []).map(group => [group.name, run('group-move', { groupId: group.id }), !rules.canGroup, false, 'batch-group-move', members.every(tab => tab.groupId === group.id)]),
+      ...(members.some(tab => tab.groupId) ? [item('group-none', 'tabMenu.removeFromGroup', 'Remove from Group', rules.canPlace)] : []),
+      item('group-new', 'tabMenu.newGroup', 'New Group…', rules.canGroup),
+    ]), !rules.canPlace || (!rules.canGroup && !members.some(tab => tab.groupId)), true, 'batch-group']);
+    const pinned = members.every(tab => tab.pinned), muted = members.every(tab => tab.muted);
+    actions.push(item('pin', pinned ? 'tabsMenu.unpin' : 'tabsMenu.pin', pinned ? 'Unpin Tabs' : 'Pin Tabs'),
+      item('mute', muted ? 'tabsMenu.unmute' : 'tabsMenu.mute', muted ? 'Unmute Tabs' : 'Mute Tabs'),
+      item('reload', 'tabsMenu.reload', 'Reload Tabs', rules.canReload),
+      item('quiet', 'tabsMenu.quiet', 'Quiet Tabs', rules.canQuiet),
+      item('copy', 'tabsMenu.copy', 'Copy Links', rules.canCopy),
+      item('close', 'tabsMenu.close', 'Close Tabs', false));
+    appendActions(actions); placeMenu(event);
+  }
   document.addEventListener('contextmenu', async event => {
     const row = event.target.closest('[data-tab-id]');
     if (!row && !event.target.closest('#islandPill')) return;
@@ -63,13 +119,19 @@ if (location.origin === 'chrome://blanc-prototype' && parent !== window) {
     const requestEpoch = menuEpoch;
     const state = await window.browserAPI.getAllTabs();
     if (requestEpoch !== menuEpoch) return;
-    const id = row?.dataset.tabId || state.activeTabId;
+    const id = event.target.closest('#islandPill') ? state.activeTabId : row?.dataset.tabId || state.activeTabId;
     const tabIndex = state.tabs.findIndex(item => item.id === id);
     if (tabIndex < 0) return;
     const tab = state.tabs[tabIndex];
     const canCloseAbove = state.tabs.slice(0, tabIndex).some(item => !item.pinned);
     const canCloseBelow = state.tabs.slice(tabIndex + 1).some(item => !item.pinned);
     const split = state.splits?.find(s => s.tabIds.includes(id));
+    const selectable = !!row?.closest('.vertical-tab-row,.tab-row,.split-row');
+    const single = event.blancSingleTabMenu === true || !selectable;
+    const selected = (state.selectedTabIds ?? []).includes(id);
+    if (split && row?.closest('.vertical-tab-row') && !selected) return;
+    const batch = !single && selected && state.selectedTabIds.length > 1;
+    if (!single && !selected) await window.browserAPI.prepareTabMenu(id);
     if (location.pathname.endsWith('/index.html')) {
       await window.browserAPI.openIsland();
       if (requestEpoch !== menuEpoch) return;
@@ -77,7 +139,7 @@ if (location.origin === 'chrome://blanc-prototype' && parent !== window) {
         if (requestEpoch !== menuEpoch) return;
         const frame = parent.document.getElementById('overlay');
         const target = [...frame.contentDocument.querySelectorAll('[data-tab-id]')].find(el => el.dataset.tabId === id);
-        if (target) target.dispatchEvent(new frame.contentWindow.MouseEvent('contextmenu', { bubbles: true, cancelable: true, clientX: 40, clientY: 100 }));
+        if (target) target.dispatchEvent(Object.assign(new frame.contentWindow.MouseEvent('contextmenu', { bubbles: true, cancelable: true, clientX: 40, clientY: 100 }), { blancSingleTabMenu: single }));
       }, 100);
       return;
     }
@@ -86,6 +148,7 @@ if (location.origin === 'chrome://blanc-prototype' && parent !== window) {
     menu.className = 'prototype-tab-menu';
     menu.setAttribute('role', 'menu');
     menu.setAttribute('aria-label', tab.title || tab.url || localized('tab.untitled', 'Tab'));
+    if (batch) { await batchMenu(state, event, requestEpoch); return; }
     const actions = [
       [localized(tab.bookmarked ? 'tabMenu.removeFavorite' : 'tabMenu.saveFavorite', tab.bookmarked ? 'Remove from Favorites' : 'Save to Favorites'),
        () => window.browserAPI.toggleBookmark(id), tab.private || !/^https?:\/\//.test(tab.url || '')],
@@ -197,20 +260,7 @@ if (location.origin === 'chrome://blanc-prototype' && parent !== window) {
       };
       actions.push([localized('tabMenu.splitWith', 'Split with'), pick, !shown.length, true]);
     }
-    for (const [label, action, disabled = false, opensList = false] of actions) {
-      const button = document.createElement('button');
-      button.type = 'button'; button.textContent = label; button.disabled = disabled; button.setAttribute('role', 'menuitem');
-      if (opensList) button.setAttribute('aria-haspopup', 'menu');
-      button.addEventListener('click', () => {
-        if (opensList) { action(); return; }
-        dismissMenu(); action().catch(error => parent.BlancPrototypeHost.notice(error.message));
-      });
-      menu.append(button);
-    }
-    document.body.append(menu);
-    menu.style.left = `${Math.max(4, Math.min(innerWidth - menu.offsetWidth - 4, event.clientX))}px`;
-    menu.style.top = `${Math.max(4, Math.min(innerHeight - menu.offsetHeight - 4, event.clientY))}px`;
-    menu.querySelector('button:not(:disabled)')?.focus();
+    appendActions(actions); placeMenu(event);
   });
   window.addEventListener('unhandledrejection', (event) => {
     parent.BlancPrototypeHost.notice(event.reason?.message ?? String(event.reason));

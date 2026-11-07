@@ -124,6 +124,13 @@ async function spaceAction(api,action,args){
  throw new UndefinedNativeAdapterError('Space action needs an adapter: '+action);
 }
 export const tabs={
+ selectTabRows:(w,id,mode)=>w.api('selectTab',[id==null?null:String(id),mode]),
+ selectedTabIds:async w=>(await w.api('getAllTabs')).selectedTabIds,
+ runSelectedTabsAction:(w,action,options={})=>{
+  if(!['batch-pin','batch-mute','batch-group-new','batch-group-move','batch-group-none','batch-quiet','batch-reload','batch-copy','batch-space-new','batch-space-move','batch-new-window'].includes(action))
+   throw new UndefinedNativeAdapterError('Batch operation is not built: '+action);
+  return w.api('runSelectedTabsAction',[action,options]);
+ },
  // Windows (F32). The primary window keeps shipping's id 'primary'; others
  // are named by their Island host target.
  async windowRuntimes(w){
@@ -232,7 +239,9 @@ export const tabs={
  // Split View (F53). Chromium's split holds two tabs, the shipped 2-pane view.
  async makeSplit(w,tabId,others){
   if(others.length!==1)throw new UndefinedNativeAdapterError('A native split holds two tabs');
+  const active = (await w.state()).activeTabId;
   await w.api('createSplit',[tabId,others[0]]);
+  if (active != null) await w.api('switchTab',[active]);
   return (await w.state()).splits.find(s=>s.tabIds.includes(String(tabId)))?.id??null;
  },
  async splitLayout(w){
