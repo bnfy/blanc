@@ -182,7 +182,7 @@ export const tabs={
   return String(after.activeTabId)!==before?String(after.activeTabId):null;
  },
  moveTabToNewWindow:(w,id)=>w.api('moveTabToNewWindow',[String(id)]),
- persistedSessionData(){throw new UndefinedNativeAdapterError('The fork persists windows through Chromium session restore (SNSS), with no session.json projection; needs a sessionWindows test op');},
+ persistedSessionData:w=>w.native('sessionWindows'),
  // Closed entries (F2).
  async closedEntriesSummary(w){return (await w.snapshot()).closed.map(e=>strict(closedSummary(e),'closedEntry'));},
  // The tab payload the Island renders from: the host's processed snapshot.

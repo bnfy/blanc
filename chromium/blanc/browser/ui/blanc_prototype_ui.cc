@@ -59,6 +59,8 @@
 #include "ui/base/clipboard/scoped_clipboard_writer.h"
 #include "chrome/browser/sessions/session_restore.h"
 #include "chrome/browser/sessions/session_service_factory.h"
+#include "chrome/browser/sessions/session_service.h"
+#include "components/sessions/core/session_types.h"
 #include "chrome/browser/sessions/exit_type_service.h"
 #include "chrome/browser/ui/views/session_crashed_bubble_view.h"
 #include "ui/views/bubble/bubble_dialog_delegate_view.h"
@@ -5066,7 +5068,7 @@ class Handler : public content::WebUIMessageHandler, public extensions::Extensio
     static constexpr std::string_view methods[] = {
         "snapshot", "createTab", "closeTab", "switchTab", "navigate",
         "togglePinned", "reopenClosedTab", "previewPageCommand", "duplicateTab",
-        "quietDelay", "quietState"};
+        "quietDelay", "quietState", "sessionWindows"};
     if (!std::ranges::contains(methods, method)) {
       Reply(id, false, base::Value("Unsupported fork test operation: " + method));
       return;
@@ -5076,6 +5078,38 @@ class Handler : public content::WebUIMessageHandler, public extensions::Extensio
     forwarded.Append(method);
     forwarded.Append(message[2].Clone());
     Handle(forwarded);
+  }
+  void TestSessionWindowsRead(
+      std::string id,
+      std::vector<std::unique_ptr<sessions::SessionWindow>> windows,
+      SessionID,
+      sessions::CommandStorageReadStatus status,
+      sessions::SessionReplayResult replay_result) {
+    if (sessions::IsCommandStorageReadError(status) ||
+        replay_result == sessions::SessionReplayResult::kCorruptedCommand) {
+      Reply(id, false, base::Value("Could not read persisted session windows."));
+      return;
+    }
+    base::ListValue saved_windows;
+    for (const auto& window : windows) {
+      base::ListValue tabs;
+      for (const auto& tab : window->tabs) {
+        base::DictValue saved_tab;
+        const auto name = tab->extra_data.find(kTabNameKey);
+        saved_tab.Set("customTitle", name == tab->extra_data.end()
+            ? base::Value() : base::Value(name->second));
+        std::string url;
+        if (!tab->navigations.empty()) {
+          url = tab->navigations[tab->normalized_navigation_index()]
+                    .virtual_url().spec();
+        }
+        saved_tab.Set("url", url);
+        tabs.Append(std::move(saved_tab));
+      }
+      saved_windows.Append(base::DictValue().Set("tabs", std::move(tabs)));
+    }
+    Reply(id, true, base::Value(
+        base::DictValue().Set("windows", std::move(saved_windows))));
   }
   std::optional<int64_t> test_quiet_delay_;
   void WaitForTestQuietSweep(const std::string& id) {
@@ -6364,6 +6398,21 @@ class Handler : public content::WebUIMessageHandler, public extensions::Extensio
     auto* profile = browser->GetProfile();
     const std::string& method = message[1].GetString();
     const base::ListValue& args = message[2].GetList();
+#if BUILDFLAG(ENABLE_BLANC_TEST_HOOKS)
+    if (method == "sessionWindows" && args.empty()) {
+      auto* service = SessionServiceFactory::GetForProfile(profile);
+      if (!service) {
+        reply(false, base::Value("Session service unavailable."));
+        return;
+      }
+      // Checkpoint the real session, including pending extra-data writes,
+      // so tests can inspect persistence without quitting the process.
+      service->MoveCurrentSessionToLastSession();
+      service->GetLastSession(base::BindOnce(&Handler::TestSessionWindowsRead,
+          weak_factory_.GetWeakPtr(), id));
+      return;
+    }
+#endif
     if (method == "storeIcon" && args.size() == 1 && args[0].is_string()) {
       const GURL url(args[0].GetString());
       if (!url.is_valid() || !url.SchemeIs("https") || url.host() != "lh3.googleusercontent.com" ||
