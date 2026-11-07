@@ -957,6 +957,53 @@ remain pending. D3 beta-only no-DRM exception accepted; EME notice/handoff requi
   ported inherited-document-policy tracking at all yet, not a small gap in an
   otherwise-built system). Not run: the Dock, Window menu and reopen paths
   with only the hold open, which were read, not exercised.
+- **F31 Quiet Tabs, two real upstream blockers found (2026-11-07, owner
+  decision needed):** the fork's native quiet/discard machinery is mostly
+  already built (`QuietAllowed`, `DirtyProbe`, `DiscardPage`, the `quietDelay`
+  setting, `/sleep`, the batch "Quiet Tabs" action, the panel/rail's `.quiet`
+  dimming), built as shared groundwork for Spaces and tab-selection. Wiring
+  shipping's `quiet-tabs.feature` into the test harness (step file now loaded;
+  `tests/adapters/tabs.mjs`'s quiet dispatch now releases DevTools connections
+  first, since the pinned Chromium discard policy protects a page with
+  DevTools attached — committed, `db7ea5d9`) surfaced two defects in
+  **upstream Chromium itself**, not the fork's own code, that block F31-8 and
+  F31-9 specifically:
+  - **F31-8 (a private tab wakes in the private session):** `TabLifecycleUnit::
+    FinishDiscard` (`upstream/chrome/browser/resource_coordinator/
+    tab_lifecycle_unit.cc:270`) creates the replacement WebContents a
+    discarded tab wakes into using `tab_strip_model_->profile()` — the
+    *window's* profile, not the discarded tab's own. Shipping's in-window
+    private-tabs model (D1) puts a private, off-the-record WebContents inside
+    an ordinary window's TabStripModel, so a private tab that gets discarded
+    and later wakes would be recreated in the **wrong BrowserContext**. No
+    existing patch touches this; patch 0017 only adds inherited-sandbox flags
+    to the same call. Relaxing `QuietAllowed`'s private-tab checks to route
+    around this would be masking the defect, not fixing it.
+  - **F31-9 (page state never escapes persistence):** Chromium's session
+    serialization (`upstream/components/sessions/content/
+    content_serialized_navigation_builder.cc:40`, used by
+    `SessionServiceBase::BuildCommandsForTab`) copies a committed entry's full
+    `PageState` — which can hold form data and other page state — into
+    `session.json`'s SNSS commands by default. `EXCLUDE_PAGE_STATE` is only
+    requested for one narrow pending-navigation fallback, not for ordinary
+    committed history, which is exactly what a quiet tab keeps. F31-9 requires
+    that state to stay in memory only. This needs a real persistence-policy
+    decision, not a test seam: the fix must cover incremental saves, session
+    rebuilds, Recently closed and any future sync serialization, while not
+    silently breaking the **crash-restore work this session just shipped**
+    (S3.10), which relies on committed PageState surviving normal persistence
+    for scroll/form recovery on an ordinary crash. Scoping an exclusion to
+    quiet-tab-sourced entries only, without touching crash-restore's own
+    recovery, is the open design question.
+
+  Per standing instruction, flagging both to the owner rather than patching
+  upstream Chromium unilaterally. The other 8 of 10 desktop F31 scenarios
+  (F31-1 through -7, F31-10) are **not** blocked by either finding and can
+  keep moving — each still needs its own test fixtures/adapters (the exact
+  per-scenario remaining work is itemized in
+  `chromium/CODEX-NOTES-quiet-tabs.md`'s table). Full findings, evidence and
+  the harness fix: `chromium/CODEX-NOTES-quiet-tabs.md`, branch
+  `chromium/s3-quiet-tabs` (`db7ea5d9`, pushed, no PR yet).
 - **S3.10 Move to Space, candidate macos-071c3fa883ea19ff (2026-11-07):** the tab
   menu's Move to Space ▸ lists every Space (this window's checked) and New
   Space…, and is shown once a Space exists, never for a private tab, and disabled
