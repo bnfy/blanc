@@ -159,6 +159,7 @@ android_library("tabs_ui_java") {
     "//build/android:build_java",
     "//third_party/jni_zero:jni_zero_java",
     "//chrome/browser/android/crypto:java",
+    "//chrome/browser/profiles/android:java",
     "//chrome/browser/tab:java",
     "//chrome/browser/tabmodel:java",
     "//chrome/browser/tabpersistence:java",

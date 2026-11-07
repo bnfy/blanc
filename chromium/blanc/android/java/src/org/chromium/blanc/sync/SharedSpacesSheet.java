@@ -136,8 +136,10 @@ public final class SharedSpacesSheet {
     }
 
     private void row(JSONObject row) {
-        String id = row.optString("id"), name = row.optString("name");
-        boolean shared = row.optBoolean("shared"), rejoin = row.optBoolean("rejoin");
+        String id = row.optString("id");
+        String name = row.optString("name");
+        boolean shared = row.optBoolean("shared");
+        boolean rejoin = row.optBoolean("rejoin");
         boolean blocked = !row.isNull("reason") && !rejoin && !shared;
         String tabs = mActivity.getString(R.string.blanc_shared_spaces_tabs, String.valueOf(row.optInt("tabCount")));
         CheckBox box = new CheckBox(mActivity);

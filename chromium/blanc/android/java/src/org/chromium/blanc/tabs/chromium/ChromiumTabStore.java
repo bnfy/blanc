@@ -9,6 +9,7 @@ import org.chromium.base.Token;
 import org.chromium.blanc.tabs.TabStore;
 import org.chromium.build.annotations.NullMarked;
 import org.chromium.build.annotations.Nullable;
+import org.chromium.chrome.browser.profiles.Profile;
 import org.chromium.chrome.browser.tab.Tab;
 import org.chromium.chrome.browser.tab.TabLaunchType;
 import org.chromium.chrome.browser.tab.TabSelectionType;
@@ -25,7 +26,6 @@ import org.chromium.chrome.browser.tab.TabStateExtractor;
 import org.chromium.chrome.browser.tabpersistence.TabStateFileManager;
 import org.chromium.components.tab_groups.TabGroupColorId;
 import org.chromium.content_public.browser.LoadUrlParams;
-import org.chromium.network.mojom.ReferrerPolicy;
 import org.chromium.content_public.browser.WebContents;
 
 import java.io.File;
@@ -167,8 +167,10 @@ public final class ChromiumTabStore implements TabStore {
     }
 
     private String frozen(String url, String title, int index) {
+        Profile profile = mSelector.getModel(false).getProfile();
+        if (profile == null) return "";
         WebContentsState contents = WebContentsState.createSingleNavigationWebContentsState(
-                mSelector.getModel(false).getProfile(), title, url, null, ReferrerPolicy.DEFAULT, null);
+                profile, title, new LoadUrlParams(url));
         if (contents == null) return "";
         TabState state = new TabState();
         state.contentsState = contents;

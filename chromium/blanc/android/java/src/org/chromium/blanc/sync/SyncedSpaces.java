@@ -159,7 +159,8 @@ public final class SyncedSpaces {
     }
 
     private static void bind(BlancSpaces library, JSONObject event) {
-        JSONArray localIds = event.optJSONArray("localIds"), tabIds = event.optJSONArray("tabIds");
+        JSONArray localIds = event.optJSONArray("localIds");
+        JSONArray tabIds = event.optJSONArray("tabIds");
         for (int i = 0; localIds != null && tabIds != null && i < localIds.length(); i++) {
             if (!tabIds.isNull(i)) library.tabBindings.put(localIds.optString(i), tabIds.optString(i));
         }

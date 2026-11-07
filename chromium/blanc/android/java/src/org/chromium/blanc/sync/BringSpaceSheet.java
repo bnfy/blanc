@@ -82,6 +82,7 @@ public final class BringSpaceSheet {
         line(mActivity.getString(R.string.blanc_spaces_on_device, device));
         JSONObject projection = mProjection;
         JSONArray urls = projection == null ? null : projection.optJSONArray("urls");
+        JSONArray meta = projection == null ? null : projection.optJSONArray("meta");
         if (mLoading) {
             line(mActivity.getString(R.string.blanc_ios_settings_working));
         } else if (urls == null) {
@@ -89,7 +90,6 @@ public final class BringSpaceSheet {
         } else {
             int count = urls.length();
             line(mActivity.getResources().getQuantityString(R.plurals.blanc_newtab_groups_count, count, count));
-            JSONArray meta = projection.optJSONArray("meta");
             for (int i = 0; i < count; i++) {
                 JSONObject info = meta == null ? null : meta.optJSONObject(i);
                 String page = info == null ? "" : info.optString("title");
@@ -123,8 +123,10 @@ public final class BringSpaceSheet {
             set.groups.add(new BlancSpaces.SavedGroup(group.getString("id"), group.optString("name"),
                     group.isNull("color") ? null : group.optString("color"), group.optBoolean("collapsed")));
         }
-        JSONArray urls = projection.getJSONArray("urls"), meta = projection.getJSONArray("meta");
-        JSONArray pinned = projection.getJSONArray("pinned"), groupIds = projection.getJSONArray("groupIds");
+        JSONArray urls = projection.getJSONArray("urls");
+        JSONArray meta = projection.getJSONArray("meta");
+        JSONArray pinned = projection.getJSONArray("pinned");
+        JSONArray groupIds = projection.getJSONArray("groupIds");
         for (int i = 0; i < urls.length(); i++) {
             set.tabs.add(new BlancSpaces.SavedTab("r" + i, urls.getString(i), meta.getJSONObject(i).optString("title"),
                     pinned.optBoolean(i), groupIds.isNull(i) ? null : groupIds.optString(i)));

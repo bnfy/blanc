@@ -45,8 +45,14 @@ public final class SpaceRows {
             groups.put(new JSONObject().put("id", groupId(group)).put("name", group.name)
                     .put("color", orNull(group.color)).put("collapsed", group.collapsed));
         }
-        JSONArray urls = new JSONArray(), tabIds = new JSONArray(), localIds = new JSONArray(), meta = new JSONArray();
-        JSONArray pinned = new JSONArray(), groupColumn = new JSONArray(), policy = new JSONArray(), files = new JSONArray();
+        JSONArray urls = new JSONArray();
+        JSONArray tabIds = new JSONArray();
+        JSONArray localIds = new JSONArray();
+        JSONArray meta = new JSONArray();
+        JSONArray pinned = new JSONArray();
+        JSONArray groupColumn = new JSONArray();
+        JSONArray policy = new JSONArray();
+        JSONArray files = new JSONArray();
         int active = 0;
         for (int i = 0; i < set.tabs.size(); i++) {
             SavedTab tab = set.tabs.get(i);
@@ -95,7 +101,8 @@ public final class SpaceRows {
     /** A hidden set as the runner left it. A tab keeps its Chromium id, and so its Back and Forward. */
     private static SavedSet set(JSONObject row, SavedSet old) {
         SavedSet set = new SavedSet();
-        Map<String, SavedTab> byShared = new HashMap<>(), byLocal = new HashMap<>();
+        Map<String, SavedTab> byShared = new HashMap<>();
+        Map<String, SavedTab> byLocal = new HashMap<>();
         for (SavedTab tab : old.tabs) {
             byLocal.put(tab.id, tab);
             if (tab.sharedId != null) byShared.put(tab.sharedId, tab);
@@ -116,8 +123,12 @@ public final class SpaceRows {
             localGroups.put(id, group.id);
             set.groups.add(group);
         }
-        JSONArray urls = row.optJSONArray("urls"), tabIds = row.optJSONArray("tabIds"), localIds = row.optJSONArray("localIds");
-        JSONArray meta = row.optJSONArray("meta"), pinned = row.optJSONArray("pinned"), groupIds = row.optJSONArray("groupIds");
+        JSONArray urls = row.optJSONArray("urls");
+        JSONArray tabIds = row.optJSONArray("tabIds");
+        JSONArray localIds = row.optJSONArray("localIds");
+        JSONArray meta = row.optJSONArray("meta");
+        JSONArray pinned = row.optJSONArray("pinned");
+        JSONArray groupIds = row.optJSONArray("groupIds");
         int active = row.optInt("activeIndex");
         for (int i = 0; urls != null && i < urls.length(); i++) {
             String shared = tabIds == null || tabIds.isNull(i) ? null : tabIds.optString(i);
@@ -138,7 +149,8 @@ public final class SpaceRows {
     }
 
     private static void bindShown(BlancSpaces library, JSONObject row, SavedSet shown) {
-        JSONArray tabIds = row.optJSONArray("tabIds"), localIds = row.optJSONArray("localIds");
+        JSONArray tabIds = row.optJSONArray("tabIds");
+        JSONArray localIds = row.optJSONArray("localIds");
         for (int i = 0; tabIds != null && localIds != null && i < localIds.length(); i++) {
             if (!tabIds.isNull(i)) library.tabBindings.put(localIds.optString(i), tabIds.optString(i));
         }

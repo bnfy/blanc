@@ -121,7 +121,9 @@ public final class SyncedClosed {
         JSONObject page = row.optJSONObject("page");
         if (local == null || page == null) return;
         long now = System.currentTimeMillis();
-        String id = row.optString("id"), url = page.optString("url"), title = page.optString("title");
+        String id = row.optString("id");
+        String url = page.optString("url");
+        String title = page.optString("title");
         String space = row.isNull("spaceId") ? null : row.optString("spaceId");
         String name = row.isNull("fromName") ? null : row.optString("fromName");
         local.add(new RecentlyClosed.Row(id, url, title, now, space, row.optString("fromId"), name));
