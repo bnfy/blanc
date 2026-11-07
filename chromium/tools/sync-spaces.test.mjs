@@ -142,3 +142,52 @@ test('a stale push is refused, so a change the runner made is never overwritten'
   assert.equal(answer.stale, true);
   assert.equal(a.rows.length, 1);
 }));
+
+test('an older Worker leaves Spaces unavailable while everything else syncs', withWorker(async worker => {
+  const {a, b} = await pair(worker);
+  a.addRow('space-a', 'Work', ['https://one.example/']);
+  a.show('space-a', ['https://one.example/']);
+  await a.push();
+  worker.inject({type: 'unknown-store', spacesOnly: true, times: 1000});
+  const refused = await a.call('spaces.apply', {enabled: true, selections: [{id: 'space-a', mode: 'copy'}]});
+  assert.equal(refused.ok, false);
+  assert.equal((await a.call('spaces.status')).enabled, false);
+  a.device.module('bookmarks').saveFavorite('https://example.org/still', 'Still');
+  await a.pass();
+  await b.pass();
+  assert.ok([...b.device.module('bookmarks').listBookmarks()].some(item => item.url === 'https://example.org/still'));
+}));
+
+test('a Space from another device can be reviewed with the switch off, and nothing merges', withWorker(async worker => {
+  const {a, b} = await pair(worker);
+  a.addRow('space-a', 'Work', ['https://one.example/']);
+  a.show('space-a', ['https://one.example/']);
+  await a.push();
+  assert.equal((await a.call('spaces.apply', {enabled: true, selections: [{id: 'space-a', mode: 'copy'}]})).ok, true);
+  await a.pass();
+  await b.push();
+  assert.equal((await b.call('spaces.preview')).ok, true);
+  const remote = await b.call('spaces.remote');
+  assert.equal(remote.length, 1);
+  assert.equal(remote[0].name, 'Work');
+  assert.equal(remote[0].device, 'A');
+  const projection = await b.call('spaces.previewSpace', remote[0].id);
+  assert.deepEqual(projection.urls, ['https://one.example/']);
+  const blobs = b.device.module('shared-spaces').snapshot(b.device.sync.sharedContext()).blobs;
+  assert.equal(Object.keys(blobs).length, 0);
+}));
+
+test('Undo of a Space deleted everywhere keeps a copy here, with no link', withWorker(async worker => {
+  const {a} = await shared(worker);
+  const row = a.rows[0];
+  a.shownId = null;
+  a.tabs = [];
+  await a.push();
+  await a.call('spaces.metadata', row.id, {deleted: true});
+  const rows = a.rows;
+  await a.call('spaces.push', {revision: a.revision, rows, shownId: null, capture: null, restoring: row.id});
+  await settled();
+  const kept = a.rows.find(item => item.id === row.id);
+  assert.ok(kept, JSON.stringify(a.rows));
+  assert.equal(kept.sharedId, undefined);
+}));

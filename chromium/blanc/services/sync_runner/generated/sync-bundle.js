@@ -445,6 +445,18 @@ function apply() {
   return runtimeSync.apply(window).finally(() => { applying--; });
 }
 
+// Undo of a Space deleted everywhere keeps a copy here. Shipping's reconcile removes anything still
+// linked to a deleted record, so the copy lets go of the link.
+function keepCopy(id) {
+  sharing.restored(id);
+  const row = rows.find(item => item.id === id);
+  if (!row || row.sharedLink !== 'dormant') return;
+  delete row.sharedId;
+  delete row.sharedLink;
+  row.tabIds = row.urls.map(() => null);
+  report();
+}
+
 async function settle() {
   if (!rows) return;
   await sharing.reconcile();
@@ -478,7 +490,7 @@ module.exports = {
     // A Space just shown may be behind its record: remote work first, and the tabs it changed come
     // in the next push. Otherwise these tabs are newer than the receipt, and what waited for the
     // tab on screen or for a switch can land now.
-    if (restoring) sharing.restored(restoring);
+    if (restoring) keepCopy(restoring);
     if (!moved && captured && context()?.window) runtimeSync.local(window);
     await settle();
     await sharing.autoShare();

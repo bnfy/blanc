@@ -171,13 +171,6 @@ async function main(argv) {
       return other.tabs.length === 2 ? [] : [`peer holds ${other.tabs.map(tab => tab.url)} after coming back`];
     });
 
-    await check('a Worker with no Spaces store leaves the switch off and Sync working', async () => {
-      await paired();
-      await d.view(url('one'));
-      useWorker(worker, '');
-      const status = await value('spaces.status');
-      return status.enabled ? ['on before asked'] : [];
-    });
   } finally {
     worker.stop();
     stopFixtures();
