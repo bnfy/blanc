@@ -683,7 +683,7 @@ struct ContentView: View {
         Dictionary(uniqueKeysWithValues: visibleTabs.compactMap { tab in cardFrames.byTab[tab.id].map { (tab.id, $0) } })
     }
 
-    /// Puts the grid behind the page, which is still full size.
+    /// Opens the grid over the page, with the page's picture over it at full size.
     private func revealTabGrid() {
         // Kept off the first frame of the motion: a web page's picture comes
         // back later, and the page covers its card until it lands. Blanc's own
@@ -699,7 +699,9 @@ struct ContentView: View {
         cardFrames.byTab = [:]
         gridPage = .pinching(scale: 1, translation: .zero)
         if reduceMotion {
-            gridOpacity = 0
+            // Barely there, not gone: at zero, the page would take touches
+            // and VoiceOver wouldn't find the grid.
+            gridOpacity = 0.01
         } else {
             gridOpacity = 1
             stagePages(live: true)
