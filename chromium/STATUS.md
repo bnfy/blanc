@@ -1370,8 +1370,35 @@ at launch, which is every group a switch brings back. Rulings are in
 The first full run failed one acceptance scenario, also seen in the A4b run: a
 page's only blocked request can miss the shield count, probably by racing the
 page's commit. The `/ads` fixture now makes a second blocked request after load,
-and A3 passed on the same APK. The count itself is not fixed; that belongs in the
-blocker code desktop shares.
+and A3 passed on the same APK.
+
+### Shield count across a page's commit
+
+The count is fixed in the blocker code desktop shares. A page's first request can
+reach the browser before the browser has processed the commit, so it was charged
+to the old page or wiped by the page change. Requests from a committing page now
+carry that navigation's id, and `shield_page_count.h` holds their blocks until the
+commit lands, then drops them if the navigation is abandoned. A page restored from
+the back-forward cache keeps its tag.
+
+| Check | Result |
+| --- | --- |
+| `shield-race.mjs`, attribution off (control) | 6 of 120 loads lost their count |
+| `shield-race.mjs`, this fix | 0 of 120, then 0 of 40 in the A4 gate |
+| Back-forward cache check | Passes, and fails with the document tag removed |
+| `tools/shield-page-count.test.mjs` | Passes |
+| Desktop | Compiles and links into candidate `macos-8597d2d3b8936eee` (a clone, not the live tree); shield scenarios not run yet |
+
+An iframe's first request can still miss the count, because only the main frame's
+factories are tagged. The A4 gate ran on APK
+`7874b3de499cb70a521852c7335b227775376aa5390456b8e54da896ef9ff33c`, evidence in
+`~/blanc-evidence/android/shield-race/`: sync, Spaces, the race check, blocking and
+A1 and A2 passed, and acceptance passed 32 of 32 after the search change below.
+
+The same gate failed the search scenario: DuckDuckGo now sends the build server's
+address to its own error page, which drops the search. Blanc had sent the right
+address. `duckduckgo.com` is now a fixture host, so the scenario no longer depends
+on that site, and a wrong search address still fails it.
 
 <!-- BEGIN GENERATED PROGRESS -->
 ### Bar A — executable shipping cases on the fork
