@@ -198,6 +198,9 @@ function withStartPagePins(payload) {
 }
 
 let timer = null, sessionTimer = null, iconTimer = null;
+// True from schedule() until its timer fires: the acceptance harness runs a
+// pass the setup left pending instead of waiting for it (settleRequestsForTest).
+let scheduledPass = false;
 /** Tab-driven publishes are trailing debounces, re-armed on every change —
  * but bounded: a tab whose title changes more often than the delay (a ticker,
  * a timer, a flashing unread title) would otherwise postpone the publish
@@ -259,6 +262,36 @@ function invalidateGeneration(reason='generation') {
 async function resetRequestWindowForTest() {
   getRequestQueue().resetWindow();
   return true;
+}
+/** Acceptance harness only (sharedSpacesTest "settleRequests"): put the device
+ * where one that has run a while is. Turning Spaces on schedules a full pass
+ * about a second later, and that pass spends the request window while routine
+ * work is held back for the change check; a focus change in that moment
+ * releases the held requests (setCheckShare wakes the queue) and leaves no room
+ * for the fetch the next check asks for. So that pass runs now, with the window
+ * freed until nothing waits or runs, and the window is freed once more. The
+ * pass's own changes schedule another one a few seconds out; it is dropped, not
+ * run, because a second pass in a row would take the account past the Worker's
+ * 30 GETs a minute (the next full pass is five minutes away, as on a device that
+ * has run a while). Answers whether the device ended with nothing queued or
+ * scheduled (not whether the pass succeeded: a failed one fails the scenario). */
+async function settleRequestsForTest() {
+  const queue=getRequestQueue(),idle=()=>{const {waiting,running}=queue.status();return !waiting&&!running;};
+  const pause=ms=>new Promise(resolve=>setTimeout(resolve,ms));
+  const deadline=performance.now()+30000;
+  let passDone=true;
+  if(scheduledPass){
+    clearTimeout(timer);timer=null;scheduledPass=false;passDone=false;
+    withLocalProfile(DEFAULT_PROFILE_ID,()=>syncNow()).catch(()=>{}).finally(()=>{passDone=true;});
+  }
+  while(performance.now()<deadline&&(!passDone||!idle())){queue.resetWindow();await pause(50);}
+  // What the pass changed schedules the next one a moment later.
+  await pause(300);
+  clearTimeout(timer);timer=null;scheduledPass=false;
+  while(performance.now()<deadline&&!idle()){queue.resetWindow();await pause(50);}
+  queue.resetWindow();
+  // A pass scheduled after the drop would run inside the measured interval.
+  return passDone&&idle()&&!scheduledPass;
 }
 function getRequestQueue() {
   if(requestQueue)return requestQueue;
@@ -742,6 +775,7 @@ async function disable({ wipeRemote = false } = {}) {
   }
   clearTimeout(timer);
   timer = null;
+  scheduledPass = false;
   clearTimeout(sessionTimer);
   sessionTimer = null;
   sessionPendingSince = 0;
@@ -1216,9 +1250,10 @@ async function retryPass(now=Date.now()) {
 
 function schedule(delay = 4000) {
   clearTimeout(timer);
+  scheduledPass = true;
   timer = setTimeout(() => withLocalProfile(
     DEFAULT_PROFILE_ID,
-    () => { syncNow().catch(() => {}); }
+    () => { scheduledPass = false; syncNow().catch(() => {}); }
   ), delay);
 }
 
@@ -1526,6 +1561,7 @@ module.exports = {
   copyRecoveryCode,
   syncNow,
   resetRequestWindowForTest,
+  settleRequestsForTest,
   sharedStatus,
   seenVersions,
   checkVersions,
