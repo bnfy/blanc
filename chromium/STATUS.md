@@ -1576,6 +1576,7 @@ all six languages; Accessibility is left out of More because its page names Chro
 | Runner and tool tests (`node --test chromium/tools/*.test.mjs`, on the Mac) | 216 pass | local |
 | A4 gate (A1 to A3, sync, Spaces, Shared Spaces, shield race) | Pass | `a4/` |
 | APK (x86_64, emulator) | `b57a4ca6…` | `apk.sha256` |
+| APK (arm64, for the Pixel) | `fed28dc1…` (`out/AndroidDebug/apks/ChromePublic.apk`, built; not yet installed) | — |
 | Owner hands-on, Pixel and desktop (Sync through Settings) | **Pending** | — |
 
 The first full run failed twice: the A3 check "quick endings stop pages, and Retry recovers" slept a fixed six
