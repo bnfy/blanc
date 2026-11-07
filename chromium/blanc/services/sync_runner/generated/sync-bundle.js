@@ -283,6 +283,221 @@ module.exports = {
 };
 
 },{}],
+"shim:spaces":[function(module,exports,require){
+// The phone's Spaces for shipping's Shared Spaces. Every rule stays in shipping's modules: this is
+// their `workspaces` store and their window. Java's library is the truth; `rows` is its copy, in
+// workspaces.js's shape, null until Java has sent it, so a background run with no window touches
+// nothing. What shipping changes goes back as events, and each push says which change it has seen.
+const fs = __require('shim:fs');
+const VISIBLE_FILE = '/sync/spaces-visible.json';
+const ROW_MILLIS = 15000;
+const sync = () => __require('src/main/sync.js');
+const state = () => __require('src/main/shared-spaces.js');
+const model = () => __require('src/main/shared-spaces-model.js');
+const ids = () => __require('shim:crypto').randomUUID().replace(/-/g, '');
+const emit = (event, value) => __host.emit(event, JSON.stringify(value));
+
+let rows = null, revision = 0, shownId = null, captured = null, protectedIds = [];
+let holding = false, applying = 0, nextToken = 0, recoveryFormat = '{name}';
+const waiting = new Map();
+const window = {id: 'phone'};
+
+function visible() {
+  return (rows ?? []).filter(row => row.sharedId && row.sharedLink === 'active').map(row => row.sharedId);
+}
+function report() {
+  revision++;
+  try { fs.writeFileSync(VISIBLE_FILE, JSON.stringify(visible())); } catch {}
+  emit('spaces-library', {revision, rows});
+}
+
+const workspaces = {
+  list: () => rows ?? [],
+  setSharedLink(id, patch) {
+    const row = rows?.find(item => item.id === id);
+    if (!row) return {error: 'not-found'};
+    Object.assign(row, patch);
+    report();
+    return {ok: true, workspace: row};
+  },
+  upsertShared({sharedId, recoveredFrom, name, color, symbol, capture}) {
+    if (!rows) return {error: 'not-found'};
+    const current = rows.find(row => sharedId ? row.sharedId === sharedId : row.recoveredFrom === recoveredFrom);
+    const next = {...current, ...structuredClone(capture), id: current?.id ?? ids(), name, color, symbol,
+      ...(sharedId ? {sharedId, sharedLink: 'active'} : {recoveredFrom})};
+    if (current && JSON.stringify(current) === JSON.stringify(next)) return {ok: true, workspace: current};
+    if (current) rows[rows.indexOf(current)] = next;
+    else rows.push(next);
+    report();
+    return {ok: true, workspace: next};
+  },
+  remove(id) {
+    if (!rows?.some(row => row.id === id)) return {error: 'not-found'};
+    rows = rows.filter(row => row.id !== id);
+    report();
+    return {ok: true};
+  },
+  reorderShared(order) {
+    if (!rows) return;
+    const rank = new Map(order.map((id, index) => [id, index]));
+    const shared = rows.filter(row => rank.has(row.sharedId)).sort((a, b) => rank.get(a.sharedId) - rank.get(b.sharedId));
+    let at = 0;
+    const next = rows.map(row => rank.has(row.sharedId) ? shared[at++] : row);
+    if (next.some((row, index) => row !== rows[index])) {
+      rows = next;
+      report();
+    }
+  },
+};
+
+function context() {
+  if (!rows || holding || !shownId) return null;
+  const row = rows.find(item => item.id === shownId);
+  if (!row?.sharedId || !sync().status().enabled) return null;
+  const ctx = sync().sharedContext(), store = state().rebind(ctx.accountId), entry = store.data.blobs[row.sharedId];
+  if (!entry?.blob) return null;
+  const saved = Object.values(store.data.windows).find(item => item?.spaceId === row.sharedId);
+  return {spaceId: row.sharedId, accountId: ctx.accountId, deviceId: ctx.deviceId, blob: entry.blob, window: saved,
+    protectedIds, ctx, store, workspace: row};
+}
+
+// Android has no tab names of its own, so a name set elsewhere rides along unchanged.
+function capture() {
+  const shown = context()?.window?.displayed, out = structuredClone(captured);
+  out.meta = out.meta.map((meta, index) => ({...meta, customTitle: shown?.tabs[out.tabIds[index]]?.name?.v ?? null}));
+  return out;
+}
+
+function applyRow(_, row) {
+  const token = ++nextToken;
+  return new Promise(done => {
+    const timer = setTimeout(() => { waiting.delete(token); done(false); }, ROW_MILLIS);
+    waiting.set(token, ok => { clearTimeout(timer); done(ok); });
+    emit('spaces-row', {token, row});
+  });
+}
+
+let runtimeSync, sharing;
+function start() {
+  if (runtimeSync) return;
+  runtimeSync = __require('src/main/shared-spaces-runtime.js').createRuntimeSync({
+    read: context,
+    capture,
+    ids,
+    saveWindow(_, saved) {
+      const current = context();
+      if (!current) return false;
+      current.store.update(data => {
+        for (const [key, value] of Object.entries(data.windows)) if (value?.spaceId === saved.spaceId) delete data.windows[key];
+        data.windows[`phone:${saved.spaceId}`] = saved;
+      });
+      return saved.accepted?.length ? current.store.flush() : true;
+    },
+    writeLocal(_, blob, edits, diff) {
+      const current = context();
+      if (!current) return;
+      state().noteLocalSpace(current.spaceId, blob, edits, current.ctx);
+      emit('spaces-bindings', {localIds: captured.localIds, tabIds: diff.tabIds, groupBindings: diff.groupBindings});
+    },
+    applyRow,
+    layout(_, blob) {
+      if (!blob) return;
+      const m = model();
+      emit('spaces-layout', {order: m.orderOf(blob.tabs).filter(id => blob.tabs[id].deleted.v !== true),
+        groups: m.orderOf(blob.groups).filter(id => blob.groups[id].deleted.v !== true)});
+    },
+  });
+  sharing = __require('src/main/shared-spaces-service.js').createSharingService({
+    sync: sync(), spaces: state(), workspaces, offered: () => true, ids,
+    devices: () => sync().pairingDevices(),
+    captureLocal: async () => {},
+    isOpen: id => id === shownId,
+    bind(item) {
+      if (!item.blob || item.workspaceId !== shownId) return;
+      // The phone already shows this exact snapshot: seed its receipt without replaying creates.
+      const ctx = sync().sharedContext(), store = state().rebind(ctx.accountId);
+      store.update(data => { data.windows[`phone:${item.spaceId}`] = {spaceId: item.spaceId, displayed: item.blob, accepted: [], groupBindings: {}}; });
+      if (!store.flush()) throw new Error('save-failed');
+    },
+    recoveryName: name => recoveryFormat.replace('{name}', name),
+    changed: () => {},
+  });
+  state().onRemoteChanged(settle);
+}
+
+function apply() {
+  const current = context();
+  if (!current || state().isDormant(current.spaceId, current.ctx) || !state().isEnabled(current.ctx)) return Promise.resolve(false);
+  if (current.store.data.index.spaces[current.spaceId]?.deleted?.v === true) {
+    emit('spaces-deleted', {id: current.workspace.id});
+    return Promise.resolve(false);
+  }
+  applying++;
+  return runtimeSync.apply(window).finally(() => { applying--; });
+}
+
+async function settle() {
+  if (!rows) return;
+  await sharing.reconcile();
+  await apply();
+}
+
+module.exports = {
+  start,
+  visible() {
+    if (rows) return visible();
+    try { return JSON.parse(fs.readFileSync(VISIBLE_FILE, 'utf8')); } catch { return []; }
+  },
+  accountChanged() {
+    if (!rows) return;
+    for (const row of rows) { delete row.sharedId; delete row.sharedLink; delete row.tabIds; }
+    report();
+  },
+  // What Java has now. `capture` is the shown tabs, null with no Space on show.
+  async push({revision: seen, rows: next, shownId: id, capture: tabs, protectedIds: guarded, recoveryFormat: format}) {
+    if (seen < revision) return {stale: true, revision};
+    if (applying) return {busy: true, revision};
+    start();
+    const moved = rows === null || id !== shownId;
+    rows = next;
+    shownId = id;
+    captured = tabs;
+    protectedIds = guarded ?? [];
+    recoveryFormat = format ?? recoveryFormat;
+    holding = false;
+    try { fs.writeFileSync(VISIBLE_FILE, JSON.stringify(visible())); } catch {}
+    // A Space just shown may be behind its record: remote work first, and the tabs it changed come
+    // in the next push. Otherwise these tabs are newer than the receipt, and what waited for the
+    // tab on screen or for a switch can land now.
+    if (!moved && captured && context()?.window) runtimeSync.local(window);
+    await settle();
+    await sharing.autoShare();
+    return {revision};
+  },
+  // A switch is moving the tabs: nothing is read from them or done to them until the next push.
+  hold() { holding = true; },
+  rowDone(token, ok) { waiting.get(token)?.(ok); waiting.delete(token); },
+  preview: options => { start(); return sharing.preview(options); },
+  apply: payload => { start(); return sharing.apply(payload); },
+  metadata: (id, patch) => { start(); return sharing.metadata(rows?.find(row => row.id === id), patch); },
+  restored: id => { start(); return sharing.restored(id); },
+  reorder: () => { start(); return sharing.reorder(); },
+  status() {
+    const shared = sync().sharedStatus(), ctx = sync().sharedContext();
+    const blobs = Object.values(state().snapshot(ctx).blobs).map(entry => entry?.reason);
+    const keys = [];
+    if (shared.enabled) {
+      if (blobs.some(reason => ['full', 'tabs', 'remote-over-budget', 'required-state-over-budget'].includes(reason))) keys.push('capacity');
+      if (blobs.includes('tombstones')) keys.push('tombstones');
+      if (shared.backoff) keys.push('busy');
+    }
+    const each = {};
+    for (const row of rows ?? []) if (row.sharedId && row.sharedLink === 'active') each[row.id] = sync().spaceStatus(row.sharedId);
+    return {...shared, keys, each};
+  },
+};
+
+},{}],
 "package.json":[function(module){module.exports={"productName":"Blanc","version":"1.46.0"}},{}],
 "src/main/app-icon-assets.js":[function(module,exports,require){
 // Native Icon Composer asset names and source colors for every Dock colorway.
@@ -5507,6 +5722,401 @@ function settleUpload(plan, originalPending, {blobStored = false, indexStored = 
 module.exports.settleUpload=settleUpload;
 
 },{"node:crypto":"shim:crypto","./tabsync-model":"src/main/tabsync-model.js","../renderer/space-identity":"src/renderer/space-identity.js","./tab-name":"src/main/tab-name.js"}],
+"src/main/shared-spaces-runtime.js":[function(module,exports,require){
+'use strict';
+// Window orchestration over the pure adapter. Electron actions are supplied
+// by main; displayed receipts and deferred targets remain local to a window.
+const model=require('./shared-spaces-model');
+const adapter=require('./shared-spaces-adapter');
+const copy=value=>structuredClone(value);
+const key=row=>`${row.kind}:${row.id}:${row.field??'*'}`;
+function createRuntimeSync({read,saveWindow,writeLocal,capture,applyRow,layout,checkpoint=()=>true,now=Date.now,ids}={}) {
+  const operations=new WeakMap();
+  function operation(runtime) {
+    if(!operations.has(runtime))operations.set(runtime,{tail:Promise.resolve(),mutating:false,pending:new Map(),superseded:new Set(),blocked:false,unsaved:null});
+    return operations.get(runtime);
+  }
+  function save(runtime,state) {
+    const op=operation(runtime);
+    // Even if disk is unavailable, this is what the live window displays.
+    // Keep that receipt for local diffs; replaying from the older disk receipt
+    // would both echo remote actions and overwrite edits made during failure.
+    op.unsaved={accountId:read(runtime)?.accountId,state:copy(state)};
+    op.blocked=checkpoint(runtime,state)===false||saveWindow(runtime,state)===false;
+    if(!op.blocked)op.unsaved=null;
+    return !op.blocked;
+  }
+  function effective(context,state) {
+    let target=context.blob;
+    for(const row of state.accepted??[]) {
+      const record=row.field?{...state.displayed[row.kind]?.[row.id],[row.field]:row.value}:row.record;
+      if(record)target=model.mergeBlob(target,{v:1,spaceId:context.spaceId,tabs:{},groups:{},[row.kind]:{[row.id]:record}});
+    }
+    return target;
+  }
+  function nonvisual(before,plan) {
+    const next=copy(plan.nextBaseline);
+    for(const row of [...plan.apply,...plan.accept]) {
+      if(row.field){if(before[row.kind]?.[row.id]?.[row.field])next[row.kind][row.id][row.field]=copy(before[row.kind][row.id][row.field]);}
+      else if(before[row.kind]?.[row.id])next[row.kind][row.id]=copy(before[row.kind][row.id]);
+      else delete next[row.kind][row.id];
+    }
+    return next;
+  }
+  function stateFor(context,op) {
+    if(op.unsaved) {
+      if(op.unsaved.accountId===context.accountId&&op.unsaved.state.spaceId===context.spaceId)return copy(op.unsaved.state);
+      op.unsaved=null;op.blocked=false;
+    }
+    return context.window?.spaceId===context.spaceId?copy(context.window):{
+      spaceId:context.spaceId,displayed:{v:1,spaceId:context.spaceId,tabs:{},groups:{}},accepted:[],groupBindings:{}};
+  }
+  function settleAccepted(state) {
+    state.accepted=(state.accepted??[]).filter(row=>{
+      const shown=state.displayed[row.kind]?.[row.id]?.[row.field];
+      return !row.field||!model.acknowledged(shown,row.value,row.field);
+    });
+  }
+  function local(runtime) {
+    const context=read(runtime),op=operation(runtime);if(!context||op.mutating)return null;
+    const state=stateFor(context,op),before=state.displayed;
+    const diff=adapter.diffWindow(before,{...capture(runtime),groupBindings:state.groupBindings,accepted:state.accepted},now(),context.deviceId,ids);
+    // A navigation's native promise can outlive its first broadcast. Suppress
+    // only that remote field, not unrelated local edits in the same window.
+    for(const [rowKey,row] of op.pending)if(row.field&&!op.superseded.has(rowKey)) {
+      if(diff.edits[row.kind]?.[row.id]) {
+        delete diff.edits[row.kind][row.id][row.field];
+        if(!Object.keys(diff.edits[row.kind][row.id]).length)delete diff.edits[row.kind][row.id];
+      }
+      if(before[row.kind]?.[row.id]?.[row.field])diff.nextBaseline[row.kind][row.id][row.field]=copy(before[row.kind][row.id][row.field]);
+    }
+    for(const kind of ['tabs','groups'])if(diff.edits[kind]&&!Object.keys(diff.edits[kind]).length)delete diff.edits[kind];
+    state.displayed=diff.nextBaseline;state.groupBindings=diff.groupBindings;settleAccepted(state);
+    if(Object.keys(diff.edits).length)writeLocal(runtime,diff.nextBaseline,diff.edits,diff);
+    save(runtime,state);return diff;
+  }
+  function supersede(runtime,id,field) {operation(runtime).superseded.add(key({kind:'tabs',id,field}));}
+  function apply(runtime,{force=false}={}) {
+    const op=operation(runtime);
+    const run=async()=>{
+      // Capture edits against the in-memory materialized receipt before a
+      // retry can apply any remote work. Keep remote work paused if saving
+      // still fails, but never pause the recording of local intent.
+      if(op.blocked){local(runtime);if(op.blocked)return false;}
+      const context=read(runtime);if(!context)return false;
+      const initial=stateFor(context,op);
+      const plan=adapter.planApply(initial.displayed,effective(context,initial),force?[]:context.protectedIds);
+      initial.displayed=nonvisual(initial.displayed,plan);
+      const pending=[...plan.accept,...plan.apply];
+      // Persist intent before touching a live view. A crash replays the same
+      // field/id, rather than manufacturing a new tab or losing the target.
+      initial.accepted=pending;if(save(runtime,initial)===false)return false;
+      for(const planned of plan.apply) {
+        const current=read(runtime);if(!current||current.spaceId!==context.spaceId||current.accountId!==context.accountId)break;
+        const latest=stateFor(current,op),livePlan=adapter.planApply(latest.displayed,effective(current,latest),force?[]:current.protectedIds);
+        const row=livePlan.apply.find(candidate=>key(candidate)===key(planned));
+        if(!row)continue;
+        const rowKey=key(row);op.pending.set(rowKey,row);op.superseded.delete(rowKey);op.mutating=true;
+        let done=false;
+        try {
+          const result=applyRow(runtime,{...row,...(row.op==='create'?{quiet:true}:{})});
+          if(result&&typeof result.then==='function'){op.mutating=false;done=await result!==false;}
+          else done=result!==false;
+        } finally {op.mutating=false;op.pending.delete(rowKey);}
+        const fresh=read(runtime);if(!fresh||fresh.spaceId!==context.spaceId||fresh.accountId!==context.accountId)break;
+        const state=stateFor(fresh,op);
+        if(done&&!op.superseded.has(rowKey)) {
+          if(row.field) {
+            state.displayed[row.kind][row.id]??={};
+            state.displayed[row.kind][row.id][row.field]=model.mergeField(state.displayed[row.kind][row.id][row.field],row.value,row.field);
+          } else state.displayed[row.kind][row.id]=copy(row.record);
+          state.accepted=state.accepted.filter(candidate=>key(candidate)!==rowKey);
+        }
+        op.superseded.delete(rowKey);op.mutating=true;try{layout(runtime,state.displayed);}finally{op.mutating=false;}
+        if(!save(runtime,state))return false;
+      }
+      const finalContext=read(runtime);if(!finalContext||finalContext.accountId!==context.accountId||finalContext.spaceId!==context.spaceId)return false;
+      const finalState=stateFor(finalContext,op),remaining=adapter.planApply(finalState.displayed,effective(finalContext,finalState),force?[]:finalContext.protectedIds);
+      finalState.displayed=nonvisual(finalState.displayed,remaining);finalState.accepted=[...remaining.accept,...remaining.apply];
+      op.mutating=true;
+      try {layout(runtime,finalState.displayed);}finally{op.mutating=false;}
+      if(!save(runtime,finalState))return false;
+      return true;
+    };
+    const result=op.tail.then(run);op.tail=result.catch(()=>{});return result;
+  }
+  return {local,apply,supersede,isMutating:runtime=>operation(runtime).mutating};
+}
+module.exports={createRuntimeSync};
+
+},{"./shared-spaces-model":"src/main/shared-spaces-model.js","./shared-spaces-adapter":"src/main/shared-spaces-adapter.js"}],
+"src/main/shared-spaces-service.js":[function(module,exports,require){
+'use strict';
+const model=require('./shared-spaces-model');
+const {planSharing,reconcileCapture,recoveryCapture}=require('./shared-spaces-sharing');
+function createSharingService({sync,spaces,workspaces,offered,now=Date.now,ids,isOpen=()=>false,bind=()=>{},changed=()=>{},recoverNative=()=>{},recoveryName=name=>name+' · kept on this device',captureLocal=()=>{},devices=()=>[]}) {
+  const context=()=>sync.sharedContext();
+  const persist=ctx=>{if(!spaces.rebind(ctx.accountId).flush())throw new Error('save-failed');};
+  function plan(selections,ctx) {
+    // The model needs a synchronous encryption callback. Admission below uses
+    // the actual account key, before any state is changed.
+    const state=spaces.snapshot(ctx),rows=workspaces.list(),resumed=new Map();
+    for(const choice of selections) {
+      const row=rows.find(row=>row.id===choice.id),staged=Object.values(state.draftPlans??{}).find(item=>item.workspaceId===choice.id);
+      if(staged&&choice.mode==='copy')resumed.set(choice.id,{...staged,...(row?.sharedId===staged.spaceId?{tabIds:row.tabIds}:{}),blob:state.blobs[staged.spaceId]?.blob??staged.blob});
+      else if(row&&choice.mode==='rejoin'&&state.draftPlans?.[row.sharedId])resumed.set(choice.id,{...state.draftPlans[row.sharedId],tabIds:row.tabIds,blob:state.blobs[row.sharedId]?.blob??state.draftPlans[row.sharedId].blob});
+    }
+    const result=planSharing(state.index,rows,selections.filter(choice=>!resumed.has(choice.id)),{now:now(),deviceId:ctx.deviceId,ids,encryptFn:()=>''});
+    if(result.ok)result.items=selections.map(choice=>resumed.get(choice.id)??result.items.find(item=>item.workspaceId===choice.id));
+    if(result.ok&&result.items.some(item=>item.blob&&!sync.sharedPayloadFits(item.blob)))return {ok:false,error:'full'};
+    return result;
+  }
+  // Spaces the person has seen in a Choose Spaces sheet. A Space saved after
+  // that, while the switch is on, joins the library by itself (autoShare);
+  // one they left unticked stays on this device until they choose it.
+  const shown=new Set();
+  // With none to add, a state with no list still gets one, so a switch
+  // turned on with no Spaces doesn't read as an earlier version's.
+  function markKnown(ids,ctx) {
+    const store=spaces.rebind(ctx.accountId);
+    if(!ids.length&&Array.isArray(store.data.knownWorkspaceIds))return;
+    store.update(data=>{data.knownWorkspaceIds=[...new Set([...(data.knownWorkspaceIds??[]),...ids])];});persist(ctx);
+  }
+  const isShared=(row,enabled)=>enabled&&row.sharedLink==='active'&&!!row.sharedId;
+  // {local:true} answers at once from the index this device already holds,
+  // so the sheet can open while the fresh fetch waits for its request turn.
+  async function preview({local=false}={}) {
+    if(!offered())return {offered:false};
+    if(!local){const fetched=await sync.sharedIndexPreview();if(!fetched.ok)return {offered:true,...fetched};}
+    await captureLocal();const ctx=context(),state=spaces.snapshot(ctx),enabled=spaces.isEnabled(ctx);
+    const choices=workspaces.list().filter(row=>!row.recoveredFrom).map(row=>{
+      const rejoin=!!state.index.spaces[row.sharedId]&&!state.index.spaces[row.sharedId].deleted.v;
+      const shared=isShared(row,enabled)&&rejoin,mode=rejoin?'rejoin':'copy',candidate=plan([{id:row.id,mode}],ctx);
+      return {id:row.id,name:row.name,tabCount:candidate.items?.[0]?.blob?model.liveTabCount(candidate.items[0].blob):row.urls.length,mode,rejoin,shared,checked:shared||candidate.ok,reason:shared?null:candidate.error??null};
+    });
+    for(const choice of choices)shown.add(choice.id);
+    return {offered:true,ok:true,fresh:!local,enabled,count:spaces.spaceCount(ctx),limit:model.LIMITS.spaces,choices};
+  }
+  async function applyNow({enabled,selections=[]},{check=true}={}) {
+    if(!offered())return {ok:false,error:'unavailable'};
+    try {
+      await captureLocal();const ctx=context();
+      if(!enabled) {
+        if(sync.setSyncSpaces(false).error)throw new Error('save-failed');persist(ctx);
+        const linked=workspaces.list().filter(row=>row.sharedId);
+        for(const row of linked)if(!workspaces.setSharedLink(row.id,{sharedLink:'dormant'}).ok)throw new Error('save-failed');
+        spaces.setDormant(linked.map(row=>row.sharedId),ctx);persist(ctx);changed();return {ok:true,enabled:false};
+      }
+      // The sheet's own check counts if it is under 30 s old; otherwise
+      // this fetches again (an urgent request) before anything is planned.
+      // Sharing by itself plans from the index routine sync keeps instead:
+      // the index upload merges with whatever changed since.
+      if(check){const fetched=await sync.sharedIndexPreview({maxAge:30000});if(!fetched.ok)return fetched;}
+      if(context().accountId!==ctx.accountId)return {ok:false,error:'account-changed'};
+      // A Space already in the library from this device (shared by autoShare
+      // while the sheet was open, say) is never added a second time.
+      const wasEnabled=spaces.isEnabled(ctx),rows=workspaces.list();
+      selections=selections.filter(choice=>!isShared(rows.find(row=>row.id===choice.id)??{},wasEnabled));
+      const result=plan(selections,ctx);if(!result.ok)return result;
+      const store=spaces.rebind(ctx.accountId);
+      // Drafts are never scheduled, including after a crash between staging
+      // the protocol records and saving their local workspace binding.
+      store.update(data=>{data.draftIds=[...new Set([...(data.draftIds??[]),...result.items.filter(item=>item.mode==='copy').map(item=>item.spaceId)])];data.draftPlans??={};for(const item of result.items)if(item.mode==='copy')data.draftPlans[item.spaceId]=item;});persist(ctx);
+      for(const item of result.items) {
+        if(context().accountId!==ctx.accountId)throw new Error('account-changed');
+        if(item.blob) {
+          spaces.noteLocalSpace(item.spaceId,item.blob,item.edits,ctx);
+          spaces.setIndex({v:1,spaces:{[item.spaceId]:item.index}},ctx);persist(ctx);
+        }
+        const original=workspaces.list().find(row=>row.id===item.workspaceId);
+        const patch={sharedId:item.spaceId,sharedLink:'active',...(item.blob?{tabIds:item.tabIds,groups:(original.groups??[]).map(group=>({...group,id:item.groupBindings[group.id]??group.id})),groupIds:(original.groupIds??[]).map(id=>item.groupBindings[id]??id)}:{})};
+        if(!workspaces.setSharedLink(item.workspaceId,patch).ok)throw new Error('save-failed');
+        await bind(item);
+        if(context().accountId!==ctx.accountId)throw new Error('account-changed');
+
+      }
+      const active=new Set(result.items.map(item=>item.spaceId));
+      store.update(data=>{data.draftIds=(data.draftIds??[]).filter(id=>!active.has(id));for(const id of active)if(data.draftPlans)delete data.draftPlans[id];});
+      spaces.setDormant((store.data.dormantIds??[]).filter(id=>!active.has(id)),ctx);persist(ctx);
+      markKnown([...new Set([...shown,...selections.map(choice=>choice.id)])],ctx);
+      // Choosing more Spaces while the switch is on keeps the running sync.
+      if(!wasEnabled&&sync.setSyncSpaces(true).error)throw new Error('save-failed');persist(ctx);changed();
+      // Everything is saved here; the upload is the ordinary sync cycle (the
+      // pending set replays until it lands), so the sheet need not wait for it.
+      const upload=result.items.length?sync.syncNow(result.items.map(item=>'space-'+item.spaceId)).catch(()=>({ok:false})):Promise.resolve({ok:true});
+      return {ok:true,enabled:true,upload};
+    } catch(error) {return {ok:false,error:['save-failed','account-changed'].includes(error.message)?error.message:'unavailable'};}
+  }
+  async function reconcile() {
+    if(!offered())return;
+    const ctx=context(),state=spaces.snapshot(ctx);if(!state.enabled)return;
+    for(const [sid,records] of Object.entries(state.recoveries)) {
+      if(context().accountId!==ctx.accountId)return;
+      const original=workspaces.list().find(row=>row.sharedId===sid);
+      const previous=workspaces.list().find(row=>row.recoveredFrom===sid);
+      const done=new Set(state.recoveryDone?.[sid]??[]),fresh=Object.fromEntries(Object.entries(records.tabs??{}).filter(([id])=>!done.has(id)));
+      if(!Object.keys(fresh).length){if(previous)await recoverNative(sid,previous,records);continue;}
+      const blob={v:1,spaceId:sid,tabs:fresh,groups:records.groups??{}};
+      const saved=workspaces.upsertShared({recoveredFrom:sid,name:recoveryName(original?.name??state.index.spaces[sid]?.name.v??'Space'),capture:recoveryCapture(previous,blob)});
+      if(saved.ok){const store=spaces.rebind(ctx.accountId);store.update(data=>{data.recoveryDone??={};data.recoveryDone[sid]=[...new Set([...(data.recoveryDone[sid]??[]),...Object.keys(fresh)])];});persist(ctx);await recoverNative(sid,saved.workspace,records);}
+    }
+    for(const [sid,record] of Object.entries(state.index.spaces)) {
+      if(context().accountId!==ctx.accountId)return;
+      const existing=workspaces.list().find(row=>row.sharedId===sid);
+      if(record.deleted.v){if(existing&&!isOpen(existing.id))workspaces.remove(existing.id);continue;}
+      if(spaces.isDormant(sid,ctx)||spaces.isDraft(sid,ctx)||!state.blobs[sid])continue;
+      workspaces.upsertShared({sharedId:sid,name:record.name.v,color:record.color.v,symbol:record.symbol.v,
+        capture:existing&&isOpen(existing.id)?existing:reconcileCapture(existing,state.blobs[sid].blob)});
+    }
+    workspaces.reorderShared?.(model.orderOf(state.index.spaces).filter(id=>!state.index.spaces[id].deleted.v));
+    changed();
+  }
+  function metadata(workspace,patch) {
+    if(!offered()||!workspace?.sharedId)return true;
+    const ctx=context(),record=spaces.snapshot(ctx).index.spaces[workspace.sharedId];if(!record)return true;
+    const updated={...record};let dirty=false;
+    for(const name of ['name','color','symbol','deleted','pos'])if(Object.hasOwn(patch,name)&&patch[name]!==record[name]?.v){updated[name]=model.field(patch[name],Math.max(now(),(record[name]?.c??0)+1),ctx.deviceId);dirty=true;}
+    if(dirty){spaces.setIndex({v:1,spaces:{[workspace.sharedId]:updated}},ctx);try{persist(ctx);}catch{return false;}}
+    return true;
+  }
+  function restored(id){const row=workspaces.list().find(row=>row.id===id);if(!offered()||!row?.sharedId)return true;const ctx=context(),state=spaces.snapshot(ctx);if(!state.index.spaces[row.sharedId]?.deleted.v)return true;if(!workspaces.setSharedLink(id,{sharedLink:'dormant'}).ok)return false;spaces.setDormant([...(state.dormantIds??[]),row.sharedId],ctx);try{persist(ctx);return true;}catch{return false;}}
+  function reorder(){let left='';for(const row of workspaces.list().filter(row=>row.sharedId)){left=model.keyFor(left,'',row.sharedId);if(!metadata(row,{pos:left}))return false;}return true;}
+  function question() {
+    if(!offered())return null;
+    const state=spaces.snapshot(context());if(state.enabled||!Array.isArray(state.pairingBaseline))return null;
+    return devices().find(device=>!state.pairingBaseline.includes(device.deviceId)&&!(state.askedDeviceIds??[]).includes(device.deviceId))??null;
+  }
+  function armPairing() {if(!offered())return;const ctx=context(),store=spaces.rebind(ctx.accountId);store.update(data=>{data.pairingBaseline=devices().map(device=>device.deviceId);});store.flush();}
+  function acknowledge(deviceId) {
+    const ctx=context();if(!offered()||!devices().some(device=>device.deviceId===deviceId))return false;
+    const store=spaces.rebind(ctx.accountId);store.update(data=>{data.askedDeviceIds=[...new Set([...(data.askedDeviceIds??[]),deviceId])];});return store.flush();
+  }
+  async function autoShareNow() {
+    if(!offered())return {ok:true,shared:[]};
+    const ctx=context(),state=spaces.snapshot(ctx);if(!state.enabled)return {ok:true,shared:[]};
+    const rows=workspaces.list().filter(row=>!row.recoveredFrom);
+    // Switched on before this existed: what is here now was already offered.
+    if(!Array.isArray(state.knownWorkspaceIds)){markKnown(rows.map(row=>row.id),ctx);return {ok:true,shared:[]};}
+    const known=new Set(state.knownWorkspaceIds),fresh=rows.filter(row=>!row.sharedId&&!known.has(row.id));
+    if(!fresh.length)return {ok:true,shared:[]};
+    // One that can't be shared (too many tabs, too large, no room) stays
+    // here and is offered in the Choose Spaces sheet; it is not retried.
+    const fits=fresh.filter(row=>plan([{id:row.id,mode:'copy'}],ctx).ok);
+    markKnown(fresh.filter(row=>!fits.includes(row)).map(row=>row.id),ctx);
+    if(!fits.length)return {ok:true,shared:[]};
+    const result=await applyNow({enabled:true,selections:fits.map(row=>({id:row.id,mode:'copy'}))},{check:false});
+    if(!result.ok&&['limit','full','tabs'].includes(result.error))markKnown(fits.map(row=>row.id),ctx);
+    return result.ok?{ok:true,shared:fits.map(row=>row.id)}:result;
+  }
+  let tail=Promise.resolve();
+  const serial=work=>{const result=tail.then(work);tail=result.catch(()=>{});return result;};
+  // {waitForUpload:true} (the acceptance harness) also waits for the upload.
+  const apply=(payload,{waitForUpload=false}={})=>serial(async()=>{
+    const {upload,...result}=await applyNow(payload);if(waitForUpload&&upload)await upload;return result;
+  });
+  const autoShare=()=>serial(autoShareNow);
+  return {preview,apply,autoShare,reconcile,question,acknowledge,armPairing,metadata,reorder,restored};
+}
+module.exports={createSharingService};
+
+},{"./shared-spaces-model":"src/main/shared-spaces-model.js","./shared-spaces-sharing":"src/main/shared-spaces-sharing.js"}],
+"src/main/shared-spaces-sharing.js":[function(module,exports,require){
+'use strict';
+const model=require('./shared-spaces-model');
+const adapter=require('./shared-spaces-adapter');
+const copy=value=>structuredClone(value);
+function projectSpace(blob) {
+  const {DOCUMENT_POLICY_VERSION}=require('./document-policy');
+  const clean=model.sanitizeBlob(blob);if(!clean)throw new TypeError('Invalid Space');
+  const ids=model.orderOf(clean.tabs).filter(id=>!clean.tabs[id].deleted.v);
+  const groupIds=model.orderOf(clean.groups).filter(id=>!clean.groups[id].deleted.v);
+  return {urls:ids.map(id=>clean.tabs[id].nav.v.url),tabIds:ids,
+    meta:ids.map(id=>({title:clean.tabs[id].nav.v.title,customTitle:clean.tabs[id].name.v})),
+    pinned:ids.map(id=>clean.tabs[id].pinned.v),groupIds:ids.map(id=>model.effectiveGroup(clean,clean.tabs[id])),
+    groups:groupIds.map(id=>({id,name:clean.groups[id].name.v,color:clean.groups[id].color.v,collapsed:clean.groups[id].collapsed.v})),
+    documentPolicy:DOCUMENT_POLICY_VERSION,inheritsDocumentPolicy:ids.map(()=>false),localFiles:ids.map(()=>false),
+    activeIndex:Math.max(0,ids.indexOf(model.activeTabId(clean))),sectionOrder:true};
+}
+function planSharing(index,workspaces,selections,{now,deviceId,ids,encryptFn}) {
+  const current=model.sanitizeIndex(index);if(!current)return {ok:false,error:'unavailable',items:[]};
+  const byId=new Map(workspaces.map(w=>[w.id,w])),seen=new Set(),items=[];
+  const live=Object.values(current.spaces).filter(record=>!record.deleted.v).length;
+  const copies=selections.filter(choice=>choice.mode!=='rejoin').length;
+  if(copies>0&&live+copies>model.LIMITS.spaces)return {ok:false,error:'limit',items:[]};
+  let left=model.orderOf(current.spaces).map(id=>current.spaces[id]).filter(record=>!record.deleted.v).at(-1)?.pos.v??'';
+  for(const choice of selections) {
+    const workspace=byId.get(choice.id);if(!workspace||seen.has(choice.id))return {ok:false,error:'not-found',items:[]};seen.add(choice.id);
+    if(choice.mode==='rejoin') {
+      const record=current.spaces[workspace.sharedId];
+      if(!record||record.deleted.v)return {ok:false,error:'deleted',items:[]};
+      items.push({workspaceId:workspace.id,spaceId:workspace.sharedId,mode:'rejoin'});continue;
+    }
+    if(choice.mode!=='copy')return {ok:false,error:'invalid-choice',items:[]};
+    const spaceId=ids(),groups=(workspace.groups??[]).map((group,index)=>({...group,id:'local-group-'+index}));
+    const mapping=new Map((workspace.groups??[]).map((group,index)=>[group.id,groups[index].id]));
+    const capture={...workspace,groups,groupIds:(workspace.groupIds??[]).map(id=>mapping.get(id)??null),tabIds:undefined};
+    const result=adapter.diffWindow({v:1,spaceId,tabs:{},groups:{}},capture,now,deviceId,ids);
+    const blob=result.nextBaseline;
+    if(model.liveTabCount(blob)>model.LIMITS.tabsPerSpace)return {ok:false,error:'tabs',items:[]};
+    if(!model.blobFits(blob,encryptFn))return {ok:false,error:'full',items:[]};
+    const field=value=>model.field(value,now,deviceId),pos=model.keyFor(left,'',spaceId);left=pos;
+    items.push({workspaceId:workspace.id,spaceId,mode:'copy',blob,edits:result.edits,tabIds:result.tabIds,
+      groupBindings:Object.fromEntries([...mapping].map(([oldId,localId])=>[oldId,result.groupBindings[localId]])),
+      index:{name:field(workspace.name),color:field(workspace.color),symbol:field(workspace.symbol),pos:field(pos),deleted:field(false),createdAt:now,createdBy:deviceId}});
+  }
+  return {ok:true,items};
+}
+function reconcileCapture(previous,blob) {
+  if(!previous)return projectSpace(blob);
+  const {restoredMarker,DOCUMENT_POLICY_VERSION}=require('./document-policy');
+  const projected=projectSpace(blob),oldIds=previous.tabIds??[],rows=[];
+  const previousAt=new Map(oldIds.map((id,index)=>[id,index]).filter(([id])=>id));
+  for(let i=0;i<projected.urls.length;i++) {
+    const old=previousAt.get(projected.tabIds[i]);
+    if(old!==undefined&&restoredMarker(previous,old))continue;
+    rows.push({url:projected.urls[i],id:projected.tabIds[i],meta:{...(old!==undefined&&previous.urls[old]===projected.urls[i]?previous.meta?.[old]:{}),...projected.meta[i]},pinned:projected.pinned[i],group:projected.groupIds[i],old});
+  }
+  for(let i=0;i<previous.urls.length;i++)if(!oldIds[i]||restoredMarker(previous,i)||!/^https?:/.test(previous.urls[i])) {
+    rows.splice(Math.min(i,rows.length),0,{url:previous.urls[i],id:null,meta:previous.meta?.[i]??{},pinned:!!previous.pinned?.[i],group:previous.groupIds?.[i]??null,old:i,local:true});
+  }
+  const active=rows.findIndex(row=>row.old===previous.activeIndex);
+  const groups=new Map(projected.groups.map(group=>[group.id,group]));
+  for(const group of previous.groups??[])if(rows.some(row=>row.local&&row.group===group.id))groups.set(group.id,group);
+  return {...previous,urls:rows.map(row=>row.url),tabIds:rows.map(row=>row.id),meta:rows.map(row=>row.meta),pinned:rows.map(row=>row.pinned),groupIds:rows.map(row=>row.group),groups:[...groups.values()],
+    localFiles:rows.map(row=>row.local===true&&previous.localFiles?.[row.old]===true),documentPolicy:DOCUMENT_POLICY_VERSION,
+    inheritsDocumentPolicy:rows.map(row=>row.local===true&&restoredMarker(previous,row.old)),
+    ...(previous.splitIds?.length===previous.urls.length?{splitIds:rows.map(row=>row.old===undefined?null:previous.splitIds[row.old])}:{}),
+    activeIndex:active<0?Math.max(0,rows.findIndex(row=>row.id===projected.tabIds[projected.activeIndex])):active};
+}
+function recoveryCapture(previous,blob) {
+  const {restoredMarker,DOCUMENT_POLICY_VERSION}=require('./document-policy');
+  const added=projectSpace(blob),old=previous??{urls:[],tabIds:[],meta:[],pinned:[],groupIds:[],groups:[],activeIndex:0};
+  const result=copy(old),seen=new Set(old.tabIds??[]);
+  result.groups??=[];
+  for(const [field,fallback] of Object.entries({tabIds:null,meta:{},pinned:false,groupIds:null}))result[field]=old.urls.map((_,i)=>copy(old[field]?.[i]??fallback));
+  result.documentPolicy=DOCUMENT_POLICY_VERSION;
+  result.inheritsDocumentPolicy=old.urls.map((_,i)=>restoredMarker(old,i));
+  result.localFiles=old.urls.map((_,i)=>old.localFiles?.[i]===true);
+  if(old.splitIds)result.splitIds=old.urls.map((_,i)=>old.splitIds[i]??null);
+  for(let i=0;i<added.tabIds.length;i++)if(!seen.has(added.tabIds[i])) {
+    seen.add(added.tabIds[i]);for(const field of ['urls','tabIds','meta','pinned','groupIds'])result[field].push(added[field][i]);
+    result.inheritsDocumentPolicy.push(false);result.localFiles.push(false);
+    if(result.splitIds)result.splitIds.push(null);
+  }
+  const groups=new Map(result.groups.map(group=>[group.id,group]));for(const group of added.groups)if(!groups.has(group.id))groups.set(group.id,group);
+  result.groups=[...groups.values()];return result;
+}
+// A recovered record can replace this exact quiet projection, but never a
+// visited page, retained snapshot, or locally edited recovery copy.
+function isRecoveryPlaceholder(tab,record,hasSnapshot) {
+  return !!(tab&&record&&tab.asleep&&!tab.sleeping&&!tab.waking&&!tab.isLoading&&!tab.view&&!hasSnapshot&&!tab.inheritsDocumentPolicy&&!tab.splitId&&!tab.muted&&
+    tab.url===record.nav?.v.url&&(tab.title??'')===record.nav?.v.title&&
+    (tab.customTitle??null)===record.name?.v&&!!tab.pinned===record.pinned?.v&&
+    (tab.groupId??null)===record.groupId?.v&&(!tab.pinnedHomeUrl||tab.pinnedHomeUrl===record.nav?.v.url));
+}
+module.exports={planSharing,projectSpace,recoveryCapture,reconcileCapture,isRecoveryPlaceholder};
+
+},{"./shared-spaces-model":"src/main/shared-spaces-model.js","./shared-spaces-adapter":"src/main/shared-spaces-adapter.js","./document-policy":"src/main/document-policy.js"}],
 "src/main/shared-spaces-surfaces.js":[function(module,exports,require){
 'use strict';
 function publishedOccurrence(tab,record){return !!record&&!record.deleted.v&&record.nav.v.url===tab.url&&(record.name.v||record.nav.v.title)===(tab.customTitle||tab.title)&&record.pinned.v===!!tab.pinned&&(record.groupId.v??null)===(tab.groupId??null);}
@@ -11806,7 +12416,11 @@ const closed = (name, off) => (...args) => {
   if (!sync.status().enabled || !sync.sharedStatus().enabled) return off;
   return __require('src/main/synced-closed.js')[name](sync.sharedContext(), ...args);
 };
+const spaces = name => (...args) => __require('shim:spaces')[name](...args);
 const PHONE = {
+  'spaces.push': spaces('push'), 'spaces.hold': spaces('hold'), 'spaces.rowDone': spaces('rowDone'),
+  'spaces.preview': spaces('preview'), 'spaces.apply': spaces('apply'), 'spaces.metadata': spaces('metadata'),
+  'spaces.restored': spaces('restored'), 'spaces.reorder': spaces('reorder'), 'spaces.status': spaces('status'),
   'closed.add': closed('addOwnItem', false),
   'closed.inbox': closed('inbox', []),
   'closed.hide': closed('hide', null),
@@ -11857,6 +12471,9 @@ globalThis.__listen = () => {
   tabsync.onRemoteChanged(() => __host.emit('remote', ''));
   sync.onSendsChanged(() => __host.emit('remote', ''));
   __require('src/main/synced-closed.js').onChanged(() => __host.emit('closed', ''));
+  const phoneSpaces = __require('shim:spaces');
+  sync.setSharedVisibilityProvider(phoneSpaces.visible);
+  sync.onAccountChanged(phoneSpaces.accountChanged);
 };
 
 // A setting a newer device added stays in the blob, as on the iPhone. Shipping's settings module

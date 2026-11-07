@@ -8,7 +8,11 @@ const closed = (name, off) => (...args) => {
   if (!sync.status().enabled || !sync.sharedStatus().enabled) return off;
   return __require('src/main/synced-closed.js')[name](sync.sharedContext(), ...args);
 };
+const spaces = name => (...args) => __require('shim:spaces')[name](...args);
 const PHONE = {
+  'spaces.push': spaces('push'), 'spaces.hold': spaces('hold'), 'spaces.rowDone': spaces('rowDone'),
+  'spaces.preview': spaces('preview'), 'spaces.apply': spaces('apply'), 'spaces.metadata': spaces('metadata'),
+  'spaces.restored': spaces('restored'), 'spaces.reorder': spaces('reorder'), 'spaces.status': spaces('status'),
   'closed.add': closed('addOwnItem', false),
   'closed.inbox': closed('inbox', []),
   'closed.hide': closed('hide', null),
@@ -59,6 +63,9 @@ globalThis.__listen = () => {
   tabsync.onRemoteChanged(() => __host.emit('remote', ''));
   sync.onSendsChanged(() => __host.emit('remote', ''));
   __require('src/main/synced-closed.js').onChanged(() => __host.emit('closed', ''));
+  const phoneSpaces = __require('shim:spaces');
+  sync.setSharedVisibilityProvider(phoneSpaces.visible);
+  sync.onAccountChanged(phoneSpaces.accountChanged);
 };
 
 // A setting a newer device added stays in the blob, as on the iPhone. Shipping's settings module
