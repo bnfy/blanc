@@ -1169,22 +1169,27 @@ remain pending. D3 beta-only no-DRM exception accepted; EME notice/handoff requi
   failure is the pre-existing `ui-language.test.mjs` Node-version issue,
   unrelated). Branch `chromium/f35-billboard-history-codex` (merged into
   `chromium/s3-quiet-tabs`).
-- **F35-15 Billboard overflow: blocked on a real native cap, flagged to the
-  owner, not decided unilaterally.** `seedBillboardOverflowHistory` (the
-  scenario "Billboard continues past its initial candidate page", 60 seeded
-  sites, 48 hidden, backfill to rank 49) cannot be built by seeding alone:
-  `history::TopSitesImpl::GetMostVisitedURLs` unconditionally truncates to
-  `kTopSitesNumber` (10; `top_sites_constants.h`, `top_sites_impl.cc`), and
-  the native `topSites` WebUI message takes no arguments at all, while the
-  ported `newtab.js` (`fillBillboardSites`) already calls
-  `window.bowserPages.start.topSites({offset, limit})` expecting page-2+
-  support the native handler has never implemented (shipping Electron's own
-  Billboard has no such cap — it's backed by JS history, not Chromium's real
-  TopSites). Needs an owner decision — patch `kTopSitesNumber`, add a
-  parallel non-TopSites query path for ranks beyond 10, or scope this one
-  scenario out — before further work; not something to decide alone per
-  standing direction to flag native Chromium option changes first. Full
-  writeup in `chromium/CODEX-NOTES-billboard-history.md`.
+- **F35-15 Billboard overflow: scoped out (owner decision, 2026-11-07).**
+  `seedBillboardOverflowHistory` (the scenario "Billboard continues past its
+  initial candidate page", 60 seeded sites, 48 hidden, backfill to rank 49)
+  cannot be built by seeding alone: `history::TopSitesImpl::
+  GetMostVisitedURLs` unconditionally truncates to `kTopSitesNumber` (10;
+  `top_sites_constants.h`, `top_sites_impl.cc`), and the native `topSites`
+  WebUI message takes no arguments at all, while the ported `newtab.js`
+  (`fillBillboardSites`) already calls `window.bowserPages.start.topSites(
+  {offset, limit})` expecting page-2+ support the native handler has never
+  implemented (shipping Electron's own Billboard has no such cap — it's
+  backed by JS history, not Chromium's real TopSites). Flagged three paths —
+  patch `kTopSitesNumber`, add a parallel non-TopSites query path for ranks
+  beyond 10, or scope this one scenario out — per standing direction to
+  raise native Chromium option changes rather than decide alone; the owner
+  chose to scope it out. `seedBillboardOverflowHistory` keeps throwing
+  `UndefinedNativeAdapterError` citing the real cap (`pages.mjs`), which is
+  the fork harness's only backlog mechanism — it has no RUNNABLE/backlog tag
+  system like shipping's `test/desktop/cucumber.mjs`, so the scenario simply
+  reports `undefined` until this is revisited. No further action unless the
+  owner asks for it again. Full writeup in
+  `chromium/CODEX-NOTES-billboard-history.md`.
 - **S3.10 Move to Space, candidate macos-071c3fa883ea19ff (2026-11-07):** the tab
   menu's Move to Space ▸ lists every Space (this window's checked) and New
   Space…, and is shown once a Space exists, never for a private tab, and disabled

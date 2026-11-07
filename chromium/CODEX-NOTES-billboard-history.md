@@ -59,7 +59,7 @@ this change. `python3 chromium/tools/check-patches.py` passes after
 are Claude's to run next; not yet verified against a real browser at the
 time this note was written.
 
-## seedBillboardOverflowHistory: still blocked, needs an owner decision
+## seedBillboardOverflowHistory: blocked, scoped out (owner decision, 2026-11-07)
 
 Codex's research here was correct and is kept:
 
@@ -81,17 +81,21 @@ store with no such cap; the native port inherited the call shape without
 the capability.
 
 Unlike `seedBillboardHistory` (6 sites, within the real 10-site cap), this
-scenario cannot be unblocked by writing a test-only op: it needs a real
+scenario could not be unblocked by writing a test-only op: it needed a real
 product/architecture decision — whether to patch `kTopSitesNumber`, add a
 parallel non-`TopSites` query path for "overflow" ranks beyond 10, or scope
 the one dependent scenario ("Billboard continues past its initial candidate
 page") out for now. Flagged to the owner rather than decided unilaterally,
 per this fork's standing rule to raise native Chromium option changes
-before building them.
+before building them; **the owner chose to scope it out.**
 
-`seedBillboardOverflowHistory` in `pages.mjs` still throws
-`UndefinedNativeAdapterError`, with its message updated to cite the real
-blocker instead of describing it as a missing test op.
+`seedBillboardOverflowHistory` in `pages.mjs` keeps throwing
+`UndefinedNativeAdapterError`, citing the real blocker rather than
+describing it as a missing test op — the fork's acceptance harness has no
+RUNNABLE/backlog tag system (unlike shipping's `test/desktop/cucumber.mjs`),
+so an undefined adapter reporting the scenario as `undefined` is its only
+"scoped out" state. No further action on this scenario unless the owner
+asks for it again.
 
 ## Credit
 
