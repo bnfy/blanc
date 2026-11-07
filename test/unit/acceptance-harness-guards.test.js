@@ -25,12 +25,17 @@ const RESETTING_STEPS = [
   'device B closes the active Work tab',
   'the restored client retries the missing index entry',
   'the relaunched client applies the held navigation and keeps every Work tab',
+  // F57-25 times a peer's new Space arriving through the once-a-minute pass;
+  // turning sync on and sharing Work just before fill the window, and the
+  // pass the setup scheduled is what finds that Space (see the step's comment).
+  'Blanc is in front',
 ];
 
-// F57-24/25 time a peer's new Space arriving. Turning sync on and sharing Work
-// just before fills the window and leaves a full pass scheduled, so the device
-// is put past that burst: the pending pass runs, then the window is freed.
-const SETTLING_STEPS = ['Blanc is in front'];
+// F57-24 times a peer's new Space arriving through the change check. Turning
+// sync on and sharing Work just before fills the window and leaves a full pass
+// scheduled, so the device is put past that burst: the pending pass runs, then
+// the window is freed.
+const SETTLING_STEPS = ['Blanc is in front and has finished its launch pass'];
 
 /** Helpers that reset for the steps calling them, and those steps. */
 const RESETTING_HELPERS = ['sharedCopy'];

@@ -486,15 +486,21 @@ Then('the selection sheet is closed and Settings says the Spaces are uploading',
 // The change check (design 2026-11-02): another device's new Space reaches
 // this one on its next check, or on the minute pass without the check.
 // Setting up turns sync on and shares Work, which uses the request window,
-// and leaves a full pass scheduled that would spend it a second later; the
-// device is then put past that burst, as it is once it has run a while. (A
+// and leaves a full pass scheduled that would spend it a second later.
+// F57-24 puts the device past that pass, as it is once it has run a while. (A
 // plain window reset ran before that pass, so a focus change during it, which
 // the app reports as a blur, left the check no room to fetch the new Space for
 // a minute.)
-Given('Blanc is in front',async function(){
+Given('Blanc is in front and has finished its launch pass',async function(){
  assert.equal(await this.call('sharedSpacesTest','foreground',true),true);
  assert.equal(await this.call('sharedSpacesTest','settleRequests'),true,'the setup\'s requests settle');
 });
+// F57-25 (no change check) keeps the plain reset: its Space is found by the
+// pass the setup scheduled, whose second wave then waits out the window, and
+// that is the minute the scenario allows. Settling that pass first leaves the
+// minute pass to find the Space, and its second wave waits out a further window
+// (the Linux run showed the Space in the index after 70 s, its blob not fetched).
+Given('Blanc is in front',async function(){assert.equal(await this.call('sharedSpacesTest','foreground',true),true);await this.call('sharedSpacesTest','resetRequestWindow');});
 Given('the sync Worker can\'t answer change checks',function(){this.sharedFixture.setVersions(false);});
 When('another device shares a new Space {string}',{timeout:60000},async function(name){
  const {accountId,key}=this.sharedKey,base=`${this.sharedFixture.url}/v1/blob/${accountId}/`,sid=require('node:crypto').randomBytes(16).toString('hex');
