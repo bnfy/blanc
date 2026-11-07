@@ -16119,6 +16119,7 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
         if(action==='apply')return sharedSharing.apply(payload,{waitForUpload:true});
         if(action==='pull')return sync.syncNow(payload);
         if(action==='resetRequestWindow')return sync.resetRequestWindowForTest();
+        if(action==='settleRequests')return sync.settleRequestsForTest();
         if(action==='foreground'){sync.setForeground(payload!==false);return true;}
         if(action==='check'){try{return await sync.checkVersions();}catch(error){return {threw:error.message};}}
         if(action==='cadence')return sync.cadenceForTest();
