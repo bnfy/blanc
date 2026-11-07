@@ -27,9 +27,10 @@ const escape = s => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 let commandLineDir = null;
 
 // Test-only switches, read by a debug build on this userdebug emulator: the fixture hosts, their
-// self-signed certificate, and any `extra`. Nothing else in Blanc changes.
+// self-signed certificate, and any `extra`. Nothing else in Blanc changes. The search engine is a
+// fixture too: the real one sends this server's address to an error page, which drops the search.
 export function setSwitches(extra = '') {
-  const switches = `_ --host-resolver-rules="MAP *.example 127.0.0.1:${FIXTURE_PORT},MAP *.doubleclick.net 127.0.0.1:${FIXTURE_PORT}" --ignore-certificate-errors ${extra}`;
+  const switches = `_ --host-resolver-rules="MAP *.example 127.0.0.1:${FIXTURE_PORT},MAP *.doubleclick.net 127.0.0.1:${FIXTURE_PORT},MAP duckduckgo.com 127.0.0.1:${FIXTURE_PORT}" --ignore-certificate-errors ${extra}`;
   const file = path.join(commandLineDir, 'chrome-command-line');
   fs.writeFileSync(file, switches.trim() + '\n');
   adb('push', file, COMMAND_LINE);
@@ -176,16 +177,18 @@ export class Device {
   }
   visibleUrl() { return this.page('location.href'); }
 
+  // `what` names the wait in its timeout error. Pass a function when the error should report a value
+  // the condition reads, because a plain string is built before the first read.
   async waitFor(condition, what, seconds = 15) {
     for (let i = 0; i < seconds * 2; i++) {
       if (await condition()) return;
       await new Promise(r => setTimeout(r, 500));
     }
-    throw Error(`Timed out waiting for ${what}`);
+    throw Error(`Timed out waiting for ${typeof what === 'function' ? what() : what}`);
   }
   async waitForUrl(url, seconds = 20) {
     let last = null;
-    await this.waitFor(async () => (last = await this.visibleUrl()) === url, `the page to be ${url} (it is ${last})`, seconds);
+    await this.waitFor(async () => (last = await this.visibleUrl()) === url, () => `the page to be ${url} (it is ${last})`, seconds);
   }
 
   renderers() { return renderers(adb('shell', 'ps', '-A')); }

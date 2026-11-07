@@ -4,27 +4,70 @@ class ShieldTabCount final
     : public content::WebContentsUserData<ShieldTabCount>,
       public content::WebContentsObserver {
  public:
-  ~ShieldTabCount() override = default;
+  ~ShieldTabCount() override;
   void PrimaryMainFrameRenderProcessGone(base::TerminationStatus) override;
   // Each committed page starts from zero, as shipping resets on main-frame
   // navigation (tab-view.js); a same-document change keeps its count.
   void PrimaryPageChanged(content::Page&) override;
   void AboutToBeDiscarded(content::WebContents*) override;
   void WasDiscarded() override;
-  int value = 0;
+  void ReadyToCommitNavigation(content::NavigationHandle* navigation) override;
+  void DidFinishNavigation(content::NavigationHandle* navigation) override;
+  // The navigation a factory made now for `frame` belongs to, if any: factories
+  // for a commit are made after ReadyToCommitNavigation and before the commit.
+  int64_t CommittingNavigation(content::RenderFrameHost* frame) const {
+    return frame->GetGlobalId() == committing_frame ? committing_navigation
+                                                    : blanc::ShieldPageCount::kShownPage;
+  }
+  blanc::ShieldPageCount count;
  private:
   explicit ShieldTabCount(content::WebContents* contents);
   friend content::WebContentsUserData<ShieldTabCount>;
   WEB_CONTENTS_USER_DATA_KEY_DECL();
+  content::GlobalRenderFrameHostId committing_frame;
+  int64_t committing_navigation = blanc::ShieldPageCount::kShownPage;
 };
+// The navigation that first made a document: what its requests are tagged with,
+// even after a stay in the back-forward cache under a later navigation.
+class ShieldDocumentPage final : public content::DocumentUserData<ShieldDocumentPage> {
+ public:
+  ~ShieldDocumentPage() override;
+  int64_t navigation = blanc::ShieldPageCount::kShownPage;
+ private:
+  explicit ShieldDocumentPage(content::RenderFrameHost* frame);
+  friend content::DocumentUserData<ShieldDocumentPage>;
+  DOCUMENT_USER_DATA_KEY_DECL();
+};
+ShieldDocumentPage::ShieldDocumentPage(content::RenderFrameHost* frame) : DocumentUserData(frame) {}
+ShieldDocumentPage::~ShieldDocumentPage() = default;
+DOCUMENT_USER_DATA_KEY_IMPL(ShieldDocumentPage);
+ShieldTabCount::~ShieldTabCount() = default;
 ShieldTabCount::ShieldTabCount(content::WebContents* contents)
     : WebContentsUserData(*contents), WebContentsObserver(contents) {}
 void ShieldTabCount::PrimaryMainFrameRenderProcessGone(base::TerminationStatus) {
-  value = 0;
+  count.Reset();
 }
-void ShieldTabCount::PrimaryPageChanged(content::Page&) { value = 0; }
-void ShieldTabCount::AboutToBeDiscarded(content::WebContents*) { value = 0; }
-void ShieldTabCount::WasDiscarded() { value = 0; }
+void ShieldTabCount::PrimaryPageChanged(content::Page&) { count.PageChanged(); }
+void ShieldTabCount::AboutToBeDiscarded(content::WebContents*) { count.Reset(); }
+void ShieldTabCount::WasDiscarded() { count.Reset(); }
+void ShieldTabCount::ReadyToCommitNavigation(content::NavigationHandle* navigation) {
+  if (!navigation->IsInPrimaryMainFrame() || navigation->IsSameDocument()) return;
+  committing_frame = navigation->GetRenderFrameHost()->GetGlobalId();
+  committing_navigation = navigation->GetNavigationId();
+  count.BeginCommit(committing_navigation);
+}
+void ShieldTabCount::DidFinishNavigation(content::NavigationHandle* navigation) {
+  if (!navigation->IsInPrimaryMainFrame() || navigation->IsSameDocument()) return;
+  const int64_t id = navigation->GetNavigationId();
+  if (id == committing_navigation) committing_navigation = blanc::ShieldPageCount::kShownPage;
+  if (!navigation->HasCommitted()) {
+    count.Abandoned(id);
+    return;
+  }
+  auto* page = ShieldDocumentPage::GetOrCreateForCurrentDocument(navigation->GetRenderFrameHost());
+  if (page->navigation == blanc::ShieldPageCount::kShownPage) page->navigation = id;
+  count.Committed(id, page->navigation);
+}
 WEB_CONTENTS_USER_DATA_KEY_IMPL(ShieldTabCount);
 
 // The Start Page's "blocked this week" (shipping's adblock-stats.js): a
@@ -85,26 +128,43 @@ void RecordWeekBlock(content::WebContents* contents) {
 // child frame must not charge a newly committed top-level document.
 class ShieldCountTicket {
  public:
-  explicit ShieldCountTicket(content::RenderFrameHost* frame) {
-    if (!frame) return;
-    source_ = frame->GetWeakDocumentPtr();
-    top_ = frame->GetMainFrame()->GetWeakDocumentPtr();
-  }
+  // `navigation`: the commit the request's factory was made for, if any. Such a
+  // request may come before the browser has processed that commit, when neither
+  // document pointer can say whose it is.
+  explicit ShieldCountTicket(content::RenderFrameHost* frame,
+                             int64_t navigation = blanc::ShieldPageCount::kShownPage);
+  ~ShieldCountTicket();
   void RecordRuleBlock(int result) {
     if (recorded_ || result != 1) return;
+    if (navigation_ != blanc::ShieldPageCount::kShownPage) {
+      if (!contents_) return;
+      auto* tab = ShieldTabCount::GetOrCreateForWebContents(contents_.get());
+      if (tab->count.Record(navigation_)) RecordWeekBlock(contents_.get());
+      recorded_ = true;
+      return;
+    }
     auto* source = source_.AsRenderFrameHostIfValid();
     auto* top = top_.AsRenderFrameHostIfValid();
     if (!source || !top || !source->IsRenderFrameLive() ||
         !top->IsRenderFrameLive() || source->GetMainFrame() != top) return;
     auto* contents = content::WebContents::FromRenderFrameHost(top);
     if (!contents || contents->GetPrimaryMainFrame() != top) return;
-    auto* count = ShieldTabCount::GetOrCreateForWebContents(contents);
-    if (count->value < std::numeric_limits<int>::max()) ++count->value;
+    ShieldTabCount::GetOrCreateForWebContents(contents)->count.Record(blanc::ShieldPageCount::kShownPage);
     RecordWeekBlock(contents);
     recorded_ = true;
   }
  private:
   content::WeakDocumentPtr source_;
   content::WeakDocumentPtr top_;
+  base::WeakPtr<content::WebContents> contents_;
+  int64_t navigation_;
   bool recorded_ = false;
 };
+ShieldCountTicket::ShieldCountTicket(content::RenderFrameHost* frame, int64_t navigation)
+    : navigation_(navigation) {
+  if (!frame) return;
+  source_ = frame->GetWeakDocumentPtr();
+  top_ = frame->GetMainFrame()->GetWeakDocumentPtr();
+  contents_ = content::WebContents::FromRenderFrameHost(frame)->GetWeakPtr();
+}
+ShieldCountTicket::~ShieldCountTicket() = default;

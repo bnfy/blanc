@@ -10,7 +10,7 @@ source_set("service") {
            "//tools/v8_context_snapshot:buildflags", "//v8" ]
 }
 source_set("browser") {
-  sources = [ "//blanc/services/blocker/blocker_proxy.cc", "//blanc/services/blocker/blocker_available.h", "//blanc/services/blocker/blocker_proxy.h", "//blanc/services/blocker/bundle_hash.h" ]
+  sources = [ "//blanc/services/blocker/blocker_proxy.cc", "//blanc/services/blocker/shield_page_count.h", "//blanc/services/blocker/blocker_available.h", "//blanc/services/blocker/blocker_proxy.h", "//blanc/services/blocker/bundle_hash.h" ]
   deps = [ ":mojom", "//base", "//content/public/browser", "//crypto", "//components/sessions", "//chrome/browser/profiles:profile", "//components/prefs",
            "//mojo/public/cpp/bindings", "//net", "//services/network/public/cpp",
            "//services/network/public/mojom", "//url" ]

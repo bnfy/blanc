@@ -25,7 +25,12 @@ export function fixturePage(url) {
   // Requests no tab makes: a service worker's fetch, and a prefetch.
   const worker = url.pathname === '/sw' ? `<script>window.workerReady=navigator.serviceWorker.register('/worker.js').then(()=>navigator.serviceWorker.ready).then(()=>{window.workerUp=true});</script>` : '';
   const prefetch = url.pathname === '/prefetch' ? '<link rel="prefetch" href="https://ad.doubleclick.net/prefetch.js"><link rel="prefetch" href="https://lib.example/prefetch-allowed.js"><script type="speculationrules">{"prefetch":[{"source":"list","urls":["https://ad.doubleclick.net/speculation.js"]}]}</script>' : '';
-  return `<!doctype html><meta name="viewport" content="width=device-width"><title>${title}</title>
+  // "/first-ad": the page's first bytes ask for a blocked script, so the request can reach the
+  // browser before the browser has processed the commit.
+  // Back to it from the back-forward cache, it asks for another.
+  const first = url.pathname === '/first-ad' ? `<script src="https://ad.doubleclick.net/first.js"></script>
+<script>addEventListener('pageshow',e=>{if(e.persisted){document.title='restored';document.head.append(Object.assign(document.createElement('script'),{src:'https://ad.doubleclick.net/back.js?'+Date.now()}))}})</script>` : '';
+  return `<!doctype html>${first}<meta name="viewport" content="width=device-width"><title>${title}</title>
 <button id="clicker" style="width:100%;height:40vh;font-size:30px" onclick="this.dataset.clicks=(+this.dataset.clicks||0)+1">${title}</button>
 ${words}${link}${ads}${worker}${prefetch}<div style="height:150vh"></div>`;
 }
@@ -45,7 +50,8 @@ if (!isMainThread) {
   https.createServer({key: fs.readFileSync(path.join(dir, 'key.pem')), cert: fs.readFileSync(path.join(dir, 'cert.pem'))},
     (request, response) => {
       response.setHeader('content-type', 'text/html; charset=utf-8');
-      response.setHeader('cache-control', 'no-store');
+      // no-store would keep a page out of the back-forward cache.
+      if (!request.url.endsWith('?cached')) response.setHeader('cache-control', 'no-store');
       record(`${request.headers.host}${request.url}`);
       if (request.url === '/worker.js') {
         response.setHeader('content-type', 'text/javascript');

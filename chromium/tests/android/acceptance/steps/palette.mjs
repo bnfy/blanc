@@ -48,7 +48,7 @@ Given('the search engine is {string}', function (engine) {
 Then('the active tab navigates to a {string} search for {string}', async function (engine, query) {
   const prefix = SEARCH[engine] + encodeURIComponent(query);
   let url = null;
-  await this.device.waitFor(async () => (url = await this.device.visibleUrl())?.startsWith(prefix), `${prefix} (it is ${url})`, 30);
+  await this.device.waitFor(async () => (url = await this.device.visibleUrl())?.startsWith(prefix), () => `${prefix} (it is ${url})`, 30);
 });
 
 // ---- F6 ----
@@ -121,7 +121,7 @@ When('I search for {string}', function (text) { this.device.type(text); });
 
 Then('the match count shows {int}', async function (count) {
   let shown = null;
-  await this.device.waitFor(() => (shown = this.device.findCount())?.[1] === count, `${count} matches (shows ${shown})`);
+  await this.device.waitFor(() => (shown = this.device.findCount())?.[1] === count, () => `${count} matches (shows ${shown})`);
 });
 
 Then('I can navigate to the next and previous match', function () {

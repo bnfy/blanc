@@ -21,7 +21,7 @@ run with `--tags`, for example `--tags @F2`.
 - **Each scenario starts fresh.** Blanc's data is cleared and it launches on its Start Page. The
   emulator is set to light mode and 1080x1920 at density 320 for the run, so the grid and the
   palette show a scenario's tabs without scrolling; size and density are reset afterwards.
-- **Fixture sites.** Every `*.example` host is a local HTTPS server. Chromium's debug
+- **Fixture sites.** Every `*.example` host, and `duckduckgo.com`, is a local HTTPS server. Chromium's debug
   command-line file (`/data/local/tmp/chrome-command-line`, read by a debug build on this userdebug
   emulator) maps the hosts to it through `adb reverse` and accepts its self-signed certificate.
   The file is removed when the run ends. A page's title is its host (and its path, if not `/`).

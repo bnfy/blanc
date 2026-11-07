@@ -83,5 +83,5 @@ Also fixed: strings with `{name}` went through `replace()` after Android had alr
 
 Deferred minors:
 
-- A page's blocked request can miss the shield count, probably by racing the page's commit. Seen twice in acceptance; the cause isn't proven, and the fix belongs in the shared blocker code.
+- An iframe's first request can still miss the shield count, the race the main frame had before `shield_page_count.h`.
 - A kill between saving a moved tab and closing it leaves the tab in both sets. Nothing is lost, and the next switch settles it.
