@@ -5,7 +5,8 @@
 //   node chromium/tests/android/shield-race.mjs --apk <ChromePublic.apk> [--rounds <n>]
 import {Device, adb, sleep, startFixtures} from './acceptance/support/device.mjs';
 
-const COUNT = /\d+ ads? (&amp; trackers|or tracker) blocked on this page/;
+// Exactly one: each page blocks one script, so a higher count is a block from the page before it.
+const COUNT = /\b1 ad or tracker blocked on this page/;
 
 const option = name => { const i = process.argv.indexOf(name); return i >= 0 ? process.argv[i + 1] : undefined; };
 const apk = option('--apk'), rounds = Number(option('--rounds') ?? 40);
