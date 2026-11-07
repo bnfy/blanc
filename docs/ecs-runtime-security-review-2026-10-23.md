@@ -176,9 +176,24 @@ records the source work only; **nothing here is a release approval.**
 - **Not in this runtime:** upstream 45.2.2 and 45.2.3 (Chromium 156.0.8078.80,
   Node 24.22.2 and backports for ANGLE, Chromium, Dawn, FFmpeg, PDFium, Skia and
   V8) have no ECS build yet.
-- **R2 is open.** The November 7 waiver covers `44.10.1+wvcus` only.
+- **R2:** the morning waiver of November 7 covered `44.10.1+wvcus` only.
 - Signed-package uBO acceptance and protected playback passed on all four
   targets on `73992c725`, and `src/main/ublock-platforms.json` records it. See
   the [uBO support matrix](ublock-origin-support-matrix-2026-10-03.md).
-- **The owner chose to hold this pin (November 7, 2026)** rather than waive R2.
-  It must not ship until R2 is waived or resolved.
+- **R2 is waived again by the owner, not passed.** See the waiver below.
+
+### Owner waiver — November 7, 2026, 14:08 UTC (R2, 45.2.1 only)
+
+**R2 is waived by the owner for `45.2.1+wvcus`, not passed.** In chat, the
+owner first chose to hold the pin, then, after R2 was explained (castLabs ships
+binaries only, so its native changes cannot be reviewed; the earlier waivers
+covered 44.9.3 and 44.10.1 only), selected "Waive R2".
+
+- **Missing evidence:** the exact native source or backport manifest for
+  `45.2.1+wvcus`, with its redistribution notices. `vendorCommit` is release
+  metadata, not reviewed source.
+- **Accepted risk:** the vendor's native changes in this runtime are unaudited.
+  Archive hashes, code signing and VMP show integrity and identity only.
+- **Conditions:** every other release gate still runs. Do not describe the
+  runtime as reviewed. No vendor contact or legal waiver is implied.
+- **Scope:** this runtime pin only. Any later pin needs a new owner decision.
