@@ -1550,6 +1550,39 @@ so a tab opened just before it isn't shared twice. Rulings are in
 | APK | `572e310c…` | `apk.sha256` |
 | Owner hands-on, Pixel and desktop | **Pending A4's end** | — |
 
+### A5a Settings shell
+
+Blanc's Settings on Chromium's settings stack (spec `docs/superpowers/specs/2026-11-07-android-settings-design.md`,
+rulings `docs/android/a5a-settings-spike.md`). Chromium's `MainSettings` keeps its class; patch 0110 hides the
+Google and Chrome rows, adds a Sunrise header and the iPhone's sections (Browsing, Appearance, Privacy, Sync,
+More, About), and `ThemeOverlay.Blanc.Settings` paints it light and dark. Settings' own search is off, because
+it found the hidden pages. Rows: Search engine (syncs), Theme (syncs), Island position (moves the Island at
+once), the blocker switch, Allowed sites, Clear site data, the Sync row (opens the Sync sheet), and under More
+Chromium's Site settings, Notifications and Downloads. Ways in: `/settings`, the palette's Settings button,
+`blanc://settings` with `#sync` and `#privacy`. One Chrome-worded string (auto-revoke summary) is overridden in
+all six languages; Accessibility is left out of More because its page names Chrome.
+
+- **Not built (A5b, A5c):** Start page layout, wallpaper and clock, the default-browser row, Language, Measure
+  usage and onboarding.
+- **Known gaps:** Chromium's own default search engine follows Blanc's choice only after Settings has been
+  opened (a startup sync is a follow-up); Settings asks the sync runner for its status on every update; the
+  Open-source licenses row opens Chromium's legal page, which the wording scan doesn't cover.
+
+| A5a gate | Result | Evidence (`~/blanc-evidence/android/a5a-gate/`) |
+| --- | --- | --- |
+| Settings on the emulator (rows, order, wording, every row, every way in, no crash) | Pass, 15 checks | `settings/`, `settings.log` |
+| Patch reconstruction, android and desktop lanes | Pass | `patches-*.log` |
+| Robolectric | 676 pass | `robolectric.log` |
+| Runner and tool tests (`node --test chromium/tools/*.test.mjs`, on the Mac) | 216 pass | local |
+| A4 gate (A1 to A3, sync, Spaces, Shared Spaces, shield race) | Pass | `a4/` |
+| APK (x86_64, emulator) | `b57a4ca6…` | `apk.sha256` |
+| Owner hands-on, Pixel and desktop (Sync through Settings) | **Pending** | — |
+
+The first full run failed twice: the A3 check "quick endings stop pages, and Retry recovers" slept a fixed six
+seconds and looked once for its notice (it passed alone; it now waits up to 30 s), and the tools tests need iOS
+fixtures the server lacks (they run on the Mac). An earlier standalone Settings run had failed
+`blanc://settings#privacy` once; it passed in both gate runs, cause not found, so it stays watched.
+
 ### Shield count across a page's commit
 
 The count is fixed in the blocker code desktop shares. A page's first request can
