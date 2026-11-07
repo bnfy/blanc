@@ -9029,6 +9029,26 @@
     "message": "Macht die Island und ihre Schaltflächen größer. Die Seite rückt nach unten, um Platz zu machen.",
     "source": "sha256:48c1d3a1a214af35519502d499581a6d02de870bcacc9b805359bb539b21f58d"
   },
+  "settings.general.pageZoom.label": {
+    "message": "Standard-Seitenzoom",
+    "source": "sha256:fe73fcb3567cd53127a2d319a777c0b71e678eb9519d48093ebbd771a3b15b83"
+  },
+  "settings.general.pageZoom.hint": {
+    "message": "Die Größe, in der Webseiten geöffnet werden. Wenn du eine Website vergrößerst oder verkleinerst, wird die Größe nur für diese Website gespeichert.",
+    "source": "sha256:92d47376c4e3ddeba8965ebdaaa4bb85838869de83f14c5daaf425ad7a96bf22"
+  },
+  "settings.general.pageZoom.percent": {
+    "message": "{percent} %",
+    "source": "sha256:5f1c7869f205f85c914f58cc7090021e03baf27faaaa382b41353ffc6312fb8b"
+  },
+  "settings.general.siteZoom.hint": {
+    "message": "Diese Websites haben einen eigenen Zoom. Entferne eine, um zum Standard zurückzukehren.",
+    "source": "sha256:b6b6948ccced487b221de55765e76c5eea4d539e0258878db9552d31a085eb5a"
+  },
+  "settings.general.siteZoom.clearAll": {
+    "message": "Alle löschen",
+    "source": "sha256:b39813f37a5cb176f968bbe93d8e610bd12021fa8ab48ac4c793ce29c346352b"
+  },
   "settings.general.islandSize.default": {
     "message": "Standard",
     "source": "sha256:ff21948bae12e207abf2eb10170dcc542a289349152b11bb45cf2bfecf684e53"

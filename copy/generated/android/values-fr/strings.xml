@@ -2557,6 +2557,11 @@ Vous pouvez réessayer avec « %2$s » ou réinstaller depuis blanc.day.</stri
     <string name="reader_mono">JetBrains Mono</string>
     <string name="settings_general_island_size_label">Taille de l’Island</string>
     <string name="settings_general_island_size_hint">Agrandit l’Island et ses boutons. La page descend pour lui faire de la place.</string>
+    <string name="settings_general_page_zoom_label">Zoom de page par défaut</string>
+    <string name="settings_general_page_zoom_hint">La taille d’ouverture des pages web. Zoomer sur un site enregistre une taille pour ce site uniquement.</string>
+    <string name="settings_general_page_zoom_percent">%1$s %%</string>
+    <string name="settings_general_site_zoom_hint">Ces sites ont leur propre zoom. Retirez-en un pour revenir au zoom par défaut.</string>
+    <string name="settings_general_site_zoom_clear_all">Tout effacer</string>
     <string name="settings_general_island_size_default">Par défaut</string>
     <string name="settings_general_island_size_large">Grande</string>
     <string name="settings_general_island_size_extra_large">Très grande</string>

@@ -167,6 +167,11 @@ function start() {
   const server = http.createServer((req, res) => {
     if (workspaceResponse(req, res)) return;
     if (handleAuthFixture(req, res)) return;
+    if (req.url === '/zoom.pdf') {
+      res.writeHead(200, { 'Content-Type': 'application/pdf' });
+      res.end('%PDF-1.4\n1 0 obj<</Type/Catalog/Pages 2 0 R>>endobj\n2 0 obj<</Type/Pages/Kids[3 0 R]/Count 1>>endobj\n3 0 obj<</Type/Page/Parent 2 0 R/MediaBox[0 0 300 300]>>endobj\ntrailer<</Root 1 0 R>>\n');
+      return;
+    }
     const url = new URL(req.url || '/', 'http://fixture.invalid');
     if (url.searchParams.has('redirect-start')) {
       url.searchParams.delete('redirect-start');

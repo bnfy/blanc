@@ -247,14 +247,18 @@ button svg {
    drag the window. */
 #strip.strip-hidden { -webkit-app-region: no-drag; }
 /* While the page covers the strip, a thin band along the page pane's top edge
-   is the window's only drag handle (a click there never reaches the page). */
+   is the window's only drag handle (a click there never reaches the page).
+   Its height is dragBandHeight() in island-autohide.js. Declared off :root {}
+   so tokens:check stays desktop-only. */
+:root:not([data-platform="win32"]) { --drag-band-h: 6px; }
+:root[data-platform="win32"] { --drag-band-h: 10px; }
 #dragBand {
   display: none;
   position: absolute;
   top: 0;
   left: 0;
   right: 0;
-  height: 6px;
+  height: var(--drag-band-h);
   -webkit-app-region: drag;
 }
 #strip.strip-hidden #dragBand { display: block; }

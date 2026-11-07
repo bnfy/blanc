@@ -280,7 +280,7 @@ After({ tags: '@island-autohide' }, async function () {
   await this.call('setCursorSamplingUnavailable', false).catch(() => {});
 });
 
-// The 6px band the strip document keeps at the top of the page pane while
+// The thin band the strip document keeps at the top of the page pane while
 // the page covers the strip: the window's only drag handle then.
 Then('the thin top band drags the window', async function () {
   await waitForValue(() => this.call('dragBandAppRegion'), (region) => region === 'drag', 'the top band to drag the window');

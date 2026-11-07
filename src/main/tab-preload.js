@@ -307,6 +307,11 @@ if (window.location.protocol === 'blanc:') {
         list: () => invoke('pages:permissions:list'),
         remove: (key) => invoke('pages:permissions:remove', key),
       },
+      zoom: {
+        list: () => invoke('pages:zoom:list'),
+        remove: (site) => invoke('pages:zoom:remove', site),
+        clear: () => invoke('pages:zoom:clear'),
+      },
       defaultBrowser: {
         get: () => invoke('pages:default-browser:get'),
         set: () => invoke('pages:default-browser:set'),

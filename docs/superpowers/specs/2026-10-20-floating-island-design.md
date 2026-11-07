@@ -109,9 +109,11 @@ page.
   soft shadow (the pill's existing surface, the shadow from the overlay's
   popovers) rather than relying on the strip's page tint. The `tint-dark`
   adaptation does not apply to them.
-- **Drag band height: 6px.** Thin enough to cost the page almost nothing.
-  The pill's 12px top margin keeps it clear of the pill. The builder may
-  tune it after hand testing on each platform.
+- **Drag band height: 6px, 10px on Windows.** Thin enough to cost the page
+  almost nothing. The pill's 12px top margin keeps it clear of the pill.
+  Windows is taller after hand testing (bnfy/blanc#1369): its top 5 rows are
+  the resize border, so 6px left one row that dragged. It stays within the
+  10px reveal edge.
 - **No new menu item or slash command** for float versus push. The choice
   lives in Settings only.
 
@@ -323,6 +325,8 @@ fallback; other failures must be resolved before merge.
    document's own region, so the fallback view is not needed. Double-click
    maximises on Linux but not on Windows (the fallback view is no better
    there; recorded as a known limit in the 2026-10-19 spec and D29).
+   Corrected 2026-11-06 (bnfy/blanc#1369): the Windows rows measured here
+   were the window's resize border, not the band. See D29.
 2. **Tight transparent views.** Composite with their shadow, take clicks only
    inside their bounds, and keep drawing across tab switches on all three
    (the drawing check passes 22 of 22 on xvfb and Wayland). On Linux in float
