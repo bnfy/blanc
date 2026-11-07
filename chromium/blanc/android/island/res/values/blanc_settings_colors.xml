@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright 2026 Bananify Creative. MIT; see LICENSE. -->
+<!-- The Sunrise tokens (tokens/tokens.json, light) Blanc's Settings is drawn with; android-settings-theme.test.mjs pins them. -->
+<resources>
+    <color name="blanc_sunrise_bg">#f8f2e8</color>
+    <color name="blanc_sunrise_surface">#f2eade</color>
+    <color name="blanc_sunrise_surface_raised">#ffffff</color>
+    <color name="blanc_sunrise_border">#e1d7c9</color>
+    <color name="blanc_sunrise_text">#12100b</color>
+    <color name="blanc_sunrise_text_dim">#6b6257</color>
+    <color name="blanc_sunrise_accent">#805d28</color>
+</resources>

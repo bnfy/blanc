@@ -173,6 +173,33 @@ android_assets("sync_assets") {
   disable_compression = true
 }
 
+# Blanc's Settings, wired to Chromium (A5a). //chrome/android:chrome_java depends on this (patch 0110).
+android_library("settings_chromium_java") {
+  resources_package = "org.chromium.blanc.island"
+  sources = [
+    "java/src/org/chromium/blanc/settings/chromium/BlancSettingsHook.java",
+    "java/src/org/chromium/blanc/settings/chromium/ChromiumSettingsHost.java",
+  ]
+  deps = [
+    ":island_view_java",
+    ":island_view_resources",
+    ":settings_java",
+    ":settings_model_java",
+    ":sync_java",
+    ":tabs_ui_java",
+    "//base:base_java",
+    "//build/android:build_java",
+    "//chrome/browser/browsing_data/android:java",
+    "//chrome/browser/profiles/android:java",
+    "//chrome/browser/search_engines/android:java",
+    "//components/browsing_data/core:java",
+    "//components/search_engines/android:java",
+    "//third_party/androidx:androidx_fragment_fragment_java",
+    "//third_party/androidx:androidx_preference_preference_java",
+    "//ui/android:ui_java",
+  ]
+}
+
 android_library("tabs_ui_java") {
   srcjar_deps = [ ":blocking_jni" ]
   sources = [
@@ -248,7 +275,10 @@ android_resources("island_view_resources") {
     "island/res/layout/blanc_settings_header.xml",
     "island/res/values/blanc_grid_ids.xml",
     "island/res/values/blanc_island_dimens.xml",
+    "island/res/values/blanc_settings_colors.xml",
     "island/res/values/blanc_settings_dimens.xml",
+    "island/res/values/blanc_settings_theme.xml",
+    "island/res/values-night/blanc_settings_colors.xml",
     "island/res/values/blanc_strings.xml",
     "island/res/values-de/blanc_strings.xml",
     "island/res/values-es/blanc_strings.xml",
@@ -256,6 +286,7 @@ android_resources("island_view_resources") {
     "island/res/values-it/blanc_strings.xml",
     "island/res/values-pt-rBR/blanc_strings.xml",
   ]
+  deps = [ "//third_party/android_deps:material_design_java" ]
 }
 
 # The blocker's engine bundle (Ghostery over the pinned lists), uncompressed so native code can read

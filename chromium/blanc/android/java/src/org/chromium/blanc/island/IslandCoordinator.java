@@ -87,15 +87,7 @@ public final class IslandCoordinator {
     private final Callback<@Nullable Tab> mTabChanged = this::setTab;
     // Settings can move the Island while it is showing, so it follows the stored position at once.
     private final SharedPreferences.OnSharedPreferenceChangeListener mPositionChanged =
-            (prefs, key) -> {
-                if (!POSITION_KEY.equals(key)) return;
-                mView.animate().cancel();
-                mView.setTranslationY(0);
-                mView.setAlpha(1f);
-                mShownTucked = false;
-                applyInsets();
-                refresh();
-            };
+            (prefs, key) -> onPositionChanged(key);
     private final TabModelSelectorTabModelObserver mCountObserver;
     private final InsetObserver.WindowInsetObserver mInsetObserver =
             new InsetObserver.WindowInsetObserver() {
@@ -452,6 +444,16 @@ public final class IslandCoordinator {
             mView.reloadButton(), mView.tabsButton(), mView.newTabButton()
         };
         for (View button : buttons) button.setEnabled(enabled);
+    }
+
+    private void onPositionChanged(@Nullable String key) {
+        if (!POSITION_KEY.equals(key)) return;
+        mView.animate().cancel();
+        mView.setTranslationY(0);
+        mView.setAlpha(1f);
+        mShownTucked = false;
+        applyInsets();
+        refresh();
     }
 
     private static IslandPosition position() {
