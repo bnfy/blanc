@@ -3610,7 +3610,6 @@ class NewTabHandler : public content::WebUIMessageHandler,
       }
       if (method == "launchSunrise" && args.empty()) {
         auto& state = LaunchSunrise();
-        auto* contents = web_ui()->GetWebContents();
         bool play = false;
         const bool asked = std::ranges::any_of(state.asked,
             [contents](const auto& page) { return page.get() == contents; });
