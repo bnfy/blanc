@@ -7,7 +7,7 @@ const read = name => fs.readFileSync(path.join(__dirname, '../..', name), 'utf8'
 test('ECS production packaging is opt-in, unpublished, and keeps the normal application identity', () => {
   const base = require('../../package.json');
   const source = read('scripts/build-ecs-production.cjs');
-  assert.equal(base.devDependencies.electron, '^44.9.3');
+  assert.equal(base.devDependencies.electron, '45.2.1');
   assert.equal(base.build.appId, 'me.bnfy.bowser');
   assert.equal(base.build.electronFuses.grantFileProtocolExtraPrivileges, false);
   assert.match(source, /publish: 'never'/);
@@ -18,7 +18,7 @@ test('ECS production packaging is opt-in, unpublished, and keeps the normal appl
 });
 test('ECS archives are immutable and each supported target has an independent digest', () => {
   const pin = require('../../build/ecs-runtime.json');
-  assert.equal(pin.version, '44.9.3+wvcus');
+  assert.equal(pin.version, '45.2.1+wvcus');
   assert.match(pin.vendorCommit, /^[a-f0-9]{40}$/);
   assert.deepEqual(Object.keys(pin.archives).sort(), ['darwin-arm64', 'darwin-x64', 'linux-x64', 'win32-x64']);
   for (const digest of Object.values(pin.archives)) assert.match(digest, /^[a-f0-9]{64}$/);
