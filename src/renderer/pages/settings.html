@@ -178,6 +178,22 @@
               </div>
             </div>
 
+            <div class="setting" id="pageZoomSetting">
+              <div class="label">
+                <span data-i18n="settings.general.pageZoom.label">Default page zoom</span>
+                <span class="hint" id="pageZoomHint" data-i18n="settings.general.pageZoom.hint">The size web pages open at. Zooming in or out on a site saves a size just for that site.</span>
+              </div>
+              <select id="pageZoom" aria-label="Default page zoom" aria-describedby="pageZoomHint" data-i18n-aria-label="settings.general.pageZoom.label"></select>
+            </div>
+
+            <div id="siteZoomBlock" class="site-list-block" hidden>
+              <p class="section-hint" data-i18n="settings.general.siteZoom.hint">These sites have their own zoom. Remove one to go back to the default.</p>
+              <div class="site-list">
+                <div id="siteZoomList" class="site-list-rows"></div>
+              </div>
+              <button id="siteZoomClear" type="button" class="site-list-clear" data-i18n="settings.general.siteZoom.clearAll">Clear all</button>
+            </div>
+
             <div class="setting" id="appIconSetting">
               <div class="label">
                 <span data-i18n="settings.general.appIconSetting.label">App icon</span>

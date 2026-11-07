@@ -2,6 +2,8 @@
 
 const test = require('node:test');
 const assert = require('node:assert/strict');
+const fs = require('node:fs');
+const path = require('node:path');
 const {
   ZOOM_STEPS, DEFAULT_ZOOM_OPTIONS, normalizePageZoom, percentToLevel, levelToPercent,
   nextZoomPercent, siteKeyFor, usesDefaultZoom, resolveZoomPercent, legacyZoomSites,
@@ -15,6 +17,11 @@ test('every default option is a step, and 100 can be reached from each', () => {
     for (let i = 0; percent !== 100 && i < ZOOM_STEPS.length; i++) percent = nextZoomPercent(percent, direction);
     assert.equal(percent, 100, `from ${option}`);
   }
+});
+
+test('Settings offers exactly the default options', () => {
+  const source = fs.readFileSync(path.join(__dirname, '../../src/renderer/pages/settings.js'), 'utf8');
+  assert.equal(source.match(/const PAGE_ZOOM_OPTIONS = \[([^\]]*)\]/)[1], DEFAULT_ZOOM_OPTIONS.join(', '));
 });
 
 test('stepping from 75 reaches 100 in three presses', () => {
@@ -69,6 +76,13 @@ test('private zoom wins, then the saved site, then the default', () => {
   assert.equal(resolve({}, { 'example.com': 110 }), 110);
   assert.equal(resolve({}, { 'other.com': 110 }), 75);
   assert.equal(resolve(null, null), 75);
+});
+
+test('a host named after an Object method is not a saved site', () => {
+  for (const host of ['constructor', 'tostring', 'valueof']) {
+    assert.equal(resolveZoomPercent({ url: `http://${host}/`, privateSites: {}, savedSites: {}, defaultPercent: 75 }), 75);
+  }
+  assert.equal(resolveZoomPercent({ url: 'http://constructor/', savedSites: { constructor: 110 }, defaultPercent: 75 }), 110);
 });
 
 test('a site saved at 100 stays there under another default', () => {

@@ -48,8 +48,9 @@ function usesDefaultZoom(url) {
 
 function resolveZoomPercent({ url, privateSites, savedSites, defaultPercent }) {
   const key = siteKeyFor(url);
-  return (key && (privateSites?.[key] ?? savedSites?.[key]))
-    ?? (usesDefaultZoom(url) ? defaultPercent : ACTUAL_SIZE);
+  // Hosts are page-controlled names: `constructor` must not read Object's.
+  const sites = [privateSites, savedSites].find((map) => map && Object.hasOwn(map, key));
+  return sites ? sites[key] : usesDefaultZoom(url) ? defaultPercent : ACTUAL_SIZE;
 }
 
 /** Zoom saved by earlier versions, from a parsed Chromium Preferences file.

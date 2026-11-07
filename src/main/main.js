@@ -15702,6 +15702,7 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
   // any window-local hook runs. A background window's ledger/sheet can never
   // read or mutate the focused window's groups or overlay.
   const pagesRegistration = setupPages({
+    pageZoom: { list: tabZoom.list, remove: tabZoom.remove, clear: tabZoom.clear },
     syncPairing: {
       offered: () => isIphonePairingOffered(),
       // Finish setup asked for the sheet; the page opens it once.

@@ -1974,6 +1974,44 @@
         "doc": "Delete a named profile; requires its exact name as confirmation."
       },
       {
+        "name": "zoom.list",
+        "kind": "invoke",
+        "channel": "pages:zoom:list",
+        "hosts": [
+          "settings"
+        ],
+        "params": [],
+        "returns": "unknown",
+        "doc": "The current profile's sites with a saved page zoom."
+      },
+      {
+        "name": "zoom.remove",
+        "kind": "invoke",
+        "channel": "pages:zoom:remove",
+        "hosts": [
+          "settings"
+        ],
+        "params": [
+          {
+            "name": "site",
+            "type": "unknown"
+          }
+        ],
+        "returns": "unknown",
+        "doc": "Forgets one site's saved page zoom."
+      },
+      {
+        "name": "zoom.clear",
+        "kind": "invoke",
+        "channel": "pages:zoom:clear",
+        "hosts": [
+          "settings"
+        ],
+        "params": [],
+        "returns": "unknown",
+        "doc": "Forgets every saved page zoom in the current profile."
+      },
+      {
         "name": "permissions.list",
         "kind": "invoke",
         "channel": "pages:permissions:list",

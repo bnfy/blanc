@@ -15,7 +15,10 @@ const archive = require('./archive');
 const bookmarks = require('./bookmarks');
 const startPagePins = require('./start-page-pins');
 const path = require('node:path');
-const { app, BrowserWindow, Menu, clipboard, nativeImage, powerMonitor, webContents } = require('electron');
+const fs = require('node:fs');
+const { app, BrowserWindow, Menu, clipboard, nativeImage, powerMonitor, session, webContents } = require('electron');
+const siteZoom = require('./site-zoom');
+const { levelToPercent } = require('./page-zoom');
 // A 1×1 PNG the bang icon server stub answers with (stubBangIconServer).
 const TEST_BANG_ICON_PNG = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8DwHwAFBQIAX8jx0gAAAABJRU5ErkJggg==';
 const { buildAddressMenu } = require('./address-menu-model');
@@ -919,6 +922,30 @@ function install(refs) {
       return (focused ?? webContents.getFocusedWebContents())?.id ?? null;
     },
     zoomLevel(tabId) { return liveContents(tabs.get(tabId))?.getZoomLevel() ?? null; },
+    zoomMode(tabId) { return liveContents(tabs.get(tabId))?.getZoomMode() ?? null; },
+    zoomPercent(tabId) {
+      const level = liveContents(tabs.get(tabId))?.getZoomLevel();
+      return typeof level === 'number' ? levelToPercent(level) : null;
+    },
+    /** What the page is really drawn at, not what Electron reports: in manual
+     * mode a level reads back without the page changing. */
+    async drawnZoomPercent(tabId) {
+      const tab = tabs.get(tabId);
+      const wc = liveContents(tab);
+      if (!wc) return null;
+      return Math.round(100 * tab.view.getBounds().width / await wc.executeJavaScript('innerWidth'));
+    },
+    tabUrl(tabId) { return liveContents(tabs.get(tabId))?.getURL() ?? null; },
+    pageZoom() { return settings.getSettings().pageZoom; },
+    setPageZoom(percent) { return settings.setSettings({ pageZoom: percent }).pageZoom; },
+    siteZoomSites() { return siteZoom.sites(); },
+    clearSiteZoom() { siteZoom.clearSites(); },
+    /** Hosts in Chromium's saved per-host zoom for the Personal session. */
+    chromiumZoomHosts() {
+      const file = path.join(session.defaultSession.getStoragePath(), 'Preferences');
+      const partitions = JSON.parse(fs.readFileSync(file, 'utf8')).partition?.per_host_zoom_levels ?? {};
+      return Object.values(partitions).flatMap((hosts) => Object.keys(hosts));
+    },
     // A real mouse click on an element of a tab's page, so the page's own
     // target=_blank / modifier handling decides the window-open disposition.
     async clickInTab(tabId, selector, modifiers = []) {
@@ -2976,6 +3003,41 @@ function install(refs) {
         if (!row) return false;
         row.querySelector('.site-row-remove').click();
         return true;
+      })()`);
+    },
+    openSettingsInWindow(id) { return refs.runInWindowRuntime(String(id), () => openInternalPage('blanc://settings/')); },
+    async settingsSiteZoomRowsInWindow(id) {
+      return refs.runInWindowRuntime(String(id), () => getUtilitySheetWebContents()?.executeJavaScript(
+        `[...document.querySelectorAll('#siteZoomList .site-row-name')].map((name) => name.textContent)`) ?? []);
+    },
+    closeUtilitySurfaceInWindow(id) { return refs.runInWindowRuntime(String(id), () => hideUtilitySheet()); },
+    async settingsChoosePageZoom(percent) {
+      const wc = getUtilitySheetWebContents();
+      if (!wc) return false;
+      return wc.executeJavaScript(`(() => {
+        const select = document.getElementById('pageZoom');
+        if (!select?.options.length) return false;
+        select.value = ${JSON.stringify(String(percent))};
+        select.dispatchEvent(new Event('change', { bubbles: true }));
+        return true;
+      })()`);
+    },
+    async settingsSiteZoomRows() {
+      const wc = getUtilitySheetWebContents();
+      if (!wc) return [];
+      return wc.executeJavaScript(`[...document.querySelectorAll('#siteZoomList .site-row')].map((row) => ({
+        name: row.querySelector('.site-row-name')?.textContent ?? '',
+        detail: row.querySelector('.site-row-detail')?.textContent ?? '',
+      }))`);
+    },
+    async settingsRemoveSiteZoom(site) {
+      const wc = getUtilitySheetWebContents();
+      if (!wc) return false;
+      return wc.executeJavaScript(`(() => {
+        const row = [...document.querySelectorAll('#siteZoomList .site-row')]
+          .find((candidate) => candidate.querySelector('.site-row-name')?.textContent === ${JSON.stringify(String(site))});
+        row?.querySelector('.site-row-remove').click();
+        return !!row;
       })()`);
     },
     async settingsProfileRows() {

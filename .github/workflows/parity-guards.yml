@@ -375,6 +375,12 @@ jobs:
       - name: Quiet Tabs (Windows)
         if: runner.os != 'Linux'
         run: npm run test:quiet-tabs:desktop
+      - name: Page zoom (Linux)
+        if: ${{ !cancelled() && runner.os == 'Linux' }}
+        run: xvfb-run -a npm run test:page-zoom:desktop
+      - name: Page zoom (Windows)
+        if: ${{ !cancelled() && runner.os != 'Linux' }}
+        run: npm run test:page-zoom:desktop
       - name: Tab views keep drawing (Linux)
         if: ${{ !cancelled() && runner.os == 'Linux' }}
         run: xvfb-run -a npm run test:tab-view-drawing:desktop

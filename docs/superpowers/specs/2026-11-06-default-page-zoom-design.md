@@ -8,7 +8,7 @@ A person who reads most sites at 75% has to press ⌘− on every site. Chrome h
 
 ## What the person gets
 
-- **Settings → General → Default page zoom**: 50, 67, 75, 80, 90, 100, 110, 125, 150, 175 or 200%. The default is 100%, so nothing changes for anyone who doesn't touch it.
+- **Settings → General → Appearance → Default page zoom**: 50, 67, 75, 80, 90, 100, 110, 125, 150, 175 or 200%. The default is 100%, so nothing changes for anyone who doesn't touch it.
 - Changing it applies at once to every open tab showing a web page with no saved zoom of its own, in every window. No reload, no relaunch.
 - ⌘+ and ⌘− on a site save that site's zoom. Other tabs on the site follow at once, and the zoom survives a relaunch, as it does today.
 - ⌘0 forgets the site's saved zoom and returns it to Default page zoom, as Chrome does. The menu item keeps its name, Actual Size, which is also Chrome's name for it.

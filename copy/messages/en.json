@@ -9318,6 +9318,26 @@
     "message": "Make the Island and its buttons bigger. The page moves down to make room.",
     "note": "Desktop Settings, General → Island: hint under Island size. The strip grows with the Island, so web pages start lower."
   },
+  "settings.general.pageZoom.label": {
+    "message": "Default page zoom",
+    "note": "Desktop Settings, General → Appearance: the setting's name."
+  },
+  "settings.general.pageZoom.hint": {
+    "message": "The size web pages open at. Zooming in or out on a site saves a size just for that site.",
+    "note": "Desktop Settings, General → Appearance: hint under Default page zoom."
+  },
+  "settings.general.pageZoom.percent": {
+    "message": "{percent}%",
+    "note": "Desktop Settings: a zoom size in the Default page zoom menu and the saved sites list; {percent} is a whole number from 25 to 500."
+  },
+  "settings.general.siteZoom.hint": {
+    "message": "These sites have their own zoom. Remove one to go back to the default.",
+    "note": "Desktop Settings, General → Appearance: above the list of sites with a saved zoom. Removing one returns it to the Default page zoom."
+  },
+  "settings.general.siteZoom.clearAll": {
+    "message": "Clear all",
+    "note": "Desktop Settings, General → Appearance: button that forgets every saved site zoom in this profile."
+  },
   "settings.general.islandSize.default": {
     "message": "Default",
     "note": "Desktop Settings, General → Island size option."
