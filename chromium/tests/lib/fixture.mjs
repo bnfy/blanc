@@ -108,7 +108,10 @@ export class NativeFixture {
   }
   // One browser process on the fixture profile; `url` is the launch page, or
   // none for a relaunch, where the browser's own session restore decides.
-  async start(url=null){
+  // `waitBlocker:false` skips the ready wait: after a crash relaunch the
+  // window may hold nothing but Chromium's native "Restore pages?" bubble,
+  // which starts no web page and so never starts the blocker.
+  async start(url=null,{waitBlocker=true}={}){
     this.exit=null;this.launchError=null;fs.rmSync(path.join(this.profile,'DevToolsActivePort'),{force:true});
     const fd=fs.openSync(path.join(this.directory,'browser.log'),'a');
     const child=this.process=spawn(this.config.executable,[...this.flags,...(this.extraArgs||[]),...(url?[url]:[])],{stdio:['ignore',fd,fd]});
@@ -121,7 +124,7 @@ export class NativeFixture {
     const targets=await waitFor(this.targets,ts=>ts.some(t=>t.url.includes('/host.html'))&&(!url||ts.some(t=>t.url===url)),'Island');
     this.host=await connect(targets.find(t=>t.url.includes('/host.html')));this.connections.push(this.host);
     this.snapshot=()=>this.host.eval('window.BlancPrototypeHost.api.getAllTabs()');
-    await waitFor(this.snapshot,s=>s.blockerHealth==='ready','blocker');
+    if(waitBlocker)await waitFor(this.snapshot,s=>s.blockerHealth==='ready','blocker');
   }
   // Quit (Browser.close, which must exit cleanly) or crash (SIGKILL), keeping
   // the profile and fixture servers for the next start.

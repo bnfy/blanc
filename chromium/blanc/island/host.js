@@ -3,7 +3,24 @@
   let nextId = 0;
   let snapshot = null;
   let tabSelection = BlancTabSelection.emptySelection();
+  let selectionRevision = 0;
   const selectionTabs = () => snapshot?.tabs ?? [];
+  function clearSelection(broadcast = true) {
+    ++selectionRevision;
+    tabSelection = BlancTabSelection.emptySelection();
+    if (snapshot) {
+      snapshot.selectedTabIds = [];
+      snapshot.contextMenuSelection = false;
+      if (broadcast) emit('onTabsUpdated', snapshot);
+    }
+  }
+  function retainSelection(ids, anchor = null) {
+    ++selectionRevision;
+    tabSelection = BlancTabSelection.selectionState(ids, anchor, selectionTabs());
+    snapshot.selectedTabIds = [...tabSelection.selectedTabIds];
+    snapshot.contextMenuSelection = !!tabSelection.contextMenu;
+    emit('onTabsUpdated', snapshot);
+  }
   let serialized = '';
   let pillRect = null;
   let opened = false;
@@ -292,6 +309,7 @@
       await request('previewSpaceSave', [current]);
       await request('previewSpaceOpen', [id]);
     } catch (e) { return { ok: false, error: 'activation-failed', detail: e.message }; }
+    clearSelection();
     const leftCount = savedTabCount();
     await close(false);
     await refresh();
@@ -425,6 +443,74 @@
     await request('spaceForget', [id]);
     await writeSpaces(list);
     return spaceResult({ workspaceId: id });
+  }
+
+  // Move to Space ▸ (F41): native writes the target's record first, already
+  // holding the tab, then moves the page; a failed write moves nothing. The
+  // window stays in its own Space.
+  let lastSpaceMove = null;
+  async function moveTabToSpace(tabId, id) {
+    const list = await spaceList();
+    if (!list.meta.items[id] || list.meta.deleted.includes(id)) return { ok: false, error: 'not-found', moved: false };
+    const result = await request('spaceMoveTab', [nativeId(tabId), id, false]);
+    await refresh();
+    await announceSpaces();
+    // The Spaces menu says what failed, as shipping's does.
+    if (!result.ok) show('', 'spaces', null, { spaceMoveError: { name: list.meta.items[id].name, error: result.error } });
+    return result;
+  }
+  // New Space… from a tab: one record holding the tab, then its list entry.
+  // The Space is saved once its record is, so a failed move after that leaves
+  // it findable instead of inviting a retry that can only be a duplicate.
+  async function createSpaceWithTab(rawName, identity, tabId) {
+    const list = await spaceList();
+    const checked = checkSpaceName(list, rawName);
+    if (checked.error) return { ok: false, error: checked.error, ...(await spacesPayload()) };
+    if (list.meta.order.length >= SPACE_LIMIT) return { ok: false, error: 'limit', ...(await spacesPayload()) };
+    const id = crypto.randomUUID();
+    const moved = await request('spaceMoveTab', [nativeId(tabId), id, true]);
+    if (!moved.ok && moved.error !== 'move-failed') {
+      const error = { refused: 'busy' }[moved.error] ?? moved.error;
+      return { ok: false, error, ...(await spacesPayload()) };
+    }
+    list.meta.items[id] = { name: checked.name, ...spaceIdentity(list, identity), tabCount: 1 };
+    list.meta.order.push(id);
+    await writeSpaces(list);
+    await refresh();
+    return moved.ok ? spaceResult({ workspaceId: id })
+      : { ok: false, error: 'saved-not-moved', workspaceId: id, ...(await spacesPayload()) };
+  }
+  async function moveTabsToSpace(ids, id) {
+    const list = await spaceList();
+    if (!list.meta.items[id] || list.meta.deleted.includes(id)) return { ok: false, error: 'not-found', movedCount: 0 };
+    const revision = selectionRevision, anchor = tabSelection.selectionAnchorId;
+    const result = await request('spaceMoveTabs', [ids.map(nativeId), id, false]);
+    await refresh();
+    if (selectionRevision === revision) {
+      if (result.ok) clearSelection(); else retainSelection(ids, anchor);
+    }
+    await announceSpaces();
+    if (!result.ok) show('', 'spaces', null, { spaceMoveError: { name: list.meta.items[id].name, error: result.error, movedCount: result.movedCount } });
+    return result;
+  }
+  async function createSpaceWithTabs(rawName, identity, ids) {
+    const list = await spaceList();
+    const checked = checkSpaceName(list, rawName);
+    if (checked.error) return { ok: false, error: checked.error, ...(await spacesPayload()) };
+    if (list.meta.order.length >= SPACE_LIMIT) return { ok: false, error: 'limit', ...(await spacesPayload()) };
+    const id = crypto.randomUUID();
+    const revision = selectionRevision, anchor = tabSelection.selectionAnchorId;
+    const result = await request('spaceMoveTabs', [ids.map(nativeId), id, true]);
+    await refresh();
+    if (selectionRevision === revision) {
+      if (result.ok) clearSelection(); else retainSelection(ids, anchor);
+    }
+    if (!result.saved) return { ...result, error: ({ refused: 'busy', 'prepare-failed': 'activation-failed' }[result.error] ?? result.error), ...(await spacesPayload()) };
+    list.meta.items[id] = { name: checked.name, ...spaceIdentity(list, identity), tabCount: result.tabCount };
+    list.meta.order.push(id);
+    await writeSpaces(list);
+    return result.ok ? spaceResult({ workspaceId: id })
+      : { ...result, ok: false, error: 'saved-not-moved', workspaceId: id, ...(await spacesPayload()) };
   }
 
   // Floating Glance (F34), shipping's glance-card-controller.js: the one place
@@ -722,7 +808,11 @@
       // Shipping's tab records name their split; the panel draws one row from it.
       for (const tab of snapshot.tabs) tab.splitId = snapshot.splits?.find(split => split.tabIds.includes(tab.id))?.id ?? null;
       syncGlance();
-      if ((snapshot.spaceName || '') !== spacesBound) { spacesBound = snapshot.spaceName || ''; announceSpaces(); }
+      if ((snapshot.spaceName || '') !== spacesBound) {
+        ++selectionRevision;
+        tabSelection = BlancTabSelection.emptySelection();
+        spacesBound = snapshot.spaceName || ''; announceSpaces();
+      }
       settleHover();
       syncAutoHide();
       const pill = strip.contentDocument?.getElementById('islandPill');
@@ -813,6 +903,7 @@
       } : null;
       tabSelection = BlancTabSelection.pruneSelection(tabSelection, selectionTabs());
       snapshot.selectedTabIds = [...tabSelection.selectedTabIds];
+      snapshot.contextMenuSelection = !!tabSelection.contextMenu;
       const items = strip.contentWindow?.TabSections?.itemsOf(snapshot.tabs) ?? [];
       snapshot.closedSlot = closedSlotFor(items.map(item => item.id));
       strip.contentDocument?.documentElement?.toggleAttribute('data-extensions-page',
@@ -1428,7 +1519,7 @@
     setTabLayout: async value => { layout = value === 'vertical' ? 'vertical' : 'island'; await applyRail(true); return layout; },
     setVerticalTabsWidth: async width => { railWidth = Number(width) || 248; return applyRail(true); },
     previewVerticalTabsWidth: async width => { railWidth = Number(width) || 248; return applyRail(); },
-    activateTabFromRail: async id => { await request('switchTab', [nativeId(id)]); await request('focusPage'); await refresh(); },
+    activateTabFromRail: async id => { clearSelection(); await request('switchTab', [nativeId(id)]); await request('focusPage'); await refresh(); },
     toggleSiteMute: async id => { const result = await request('toggleSiteMute', [nativeId(id)]); await refresh(); return result; },
     moveClosedSection: async before => { closedBefore = before == null ? '' : String(before); closedBelow = null; localStorage.setItem('blanc.prototype.closedBefore', closedBefore); await refresh(); return true; },
     showTooltip: ({ text, anchor, privateTheme }) => {
@@ -1546,9 +1637,12 @@
     },
     // A selection's "New Group…": each selected tab joins the named group.
     groupTabsByName: async (ids, name) => {
-      for (const id of Array.isArray(ids) ? ids : [])
-        await request('groupTabByName', [nativeId(id), String(name ?? '')]);
+      const revision = selectionRevision;
+      const result = await request('batchTabsAction', [(ids ?? []).map(nativeId), 'group-name', String(name ?? '')]);
+      if (result && selectionRevision === revision) clearSelection(false);
+      if (!result) glanceSay('tabsSelection.failed');
       await refresh();
+      return result;
     },
     // ---- Slash commands (F7) on the fork's native operations ----
     // /rename: Blanc's tab name (an empty name hands back the page title).
@@ -1686,14 +1780,74 @@
     },
     removeFromSplit: async id => { await request('removeFromSplit', [nativeId(id)]); await refresh(); },
     previewSplitPair: (main, reference) => request('previewSplitPair', [nativeId(main), nativeId(reference)]),
+    selectedTabsMenuState: ids => request('batchTabsMenuState', [ids.map(nativeId)]),
+    prepareTabMenu: async id => {
+      await refresh();
+      if (!snapshot?.tabs.some(tab => tab.id === id)) return false;
+      if (!tabSelection.selectedTabIds.includes(id)) {
+        ++selectionRevision;
+        tabSelection = { ...BlancTabSelection.selectionState([id], id, selectionTabs()), contextMenu: true };
+        snapshot.contextMenuSelection = true;
+        snapshot.selectedTabIds = [...tabSelection.selectedTabIds];
+        emit('onTabsUpdated', snapshot);
+      }
+      return true;
+    },
     selectTab: async (id, mode) => {
       await refresh();
       if (!snapshot) return null;
       const { focusId, ...next } = BlancTabSelection.selectTabs(tabSelection, selectionTabs(), snapshot.groups ?? [], snapshot.activeTabId, id, mode);
+      ++selectionRevision;
       tabSelection = next;
       snapshot.selectedTabIds = [...next.selectedTabIds];
+      snapshot.contextMenuSelection = false;
       emit('onTabsUpdated', snapshot);
       return focusId;
+    },
+    runSelectedTabsAction: async (action, options = {}) => {
+      await refresh();
+      const ids = [...(options.selectedTabIds ?? tabSelection.selectedTabIds)];
+      if (!ids.length || ids.length !== tabSelection.selectedTabIds.length ||
+          ids.some(id => !tabSelection.selectedTabIds.includes(id))) {
+        glanceSay('tabsSelection.failed');
+        return false;
+      }
+      const revision = selectionRevision;
+      if (action === 'batch-group-new' || action === 'batch-space-new') {
+        const rules = await request('batchTabsMenuState', [ids.map(nativeId)]);
+        if (!(action === 'batch-group-new' ? rules.canGroup : rules.canPlace)) { glanceSay('tabsSelection.failed'); return false; }
+        if (selectionRevision !== revision) { glanceSay('tabsSelection.failed'); return false; }
+        if (action === 'batch-group-new') await show('/group ', 'panel', null, { beginGroupTabIds: ids });
+        else await show('', 'spaces', null, { newSpaceTabIds: ids });
+        return true;
+      }
+      if (action === 'batch-space-move') return moveTabsToSpace(ids, options.workspaceId);
+      if (action === 'batch-quiet' || action === 'batch-reload') {
+        const done = [];
+        for (const id of ids) {
+          try {
+            if (action === 'batch-quiet') {
+              if (await request('quietTab', [nativeId(id)]) === true) done.push(id);
+            } else {
+              const tab = snapshot.tabs.find(tab => tab.id === id);
+              if (!tab) continue;
+              const result = tab.asleep ? await request('wakeTab', [nativeId(id)]) : await typed('reload', [id]);
+              if (result !== false) done.push(id);
+            }
+          } catch (error) { notice(error.message); }
+        }
+        await refresh();
+        if (selectionRevision === revision) retainSelection(ids.filter(id => !done.includes(id)));
+        glanceSay(action === 'batch-quiet' ? 'tabsSelection.quieted' : 'tabsSelection.reloaded', { count: done.length, total: ids.length });
+        return done.length === ids.length;
+      }
+      const nativeAction = { 'batch-new-window': 'new-window', 'batch-copy': 'copy', 'batch-pin': 'pin', 'batch-mute': 'mute', 'batch-group-move': 'group-move', 'batch-group-none': 'group-none' }[action];
+      if (!nativeAction) throw new Error(`Batch action is not implemented: ${action}`);
+      const result = await request('batchTabsAction', [ids.map(nativeId), nativeAction, options.groupId ?? null]);
+      if (result && selectionRevision === revision) clearSelection(false);
+      if (!result) glanceSay('tabsSelection.failed');
+      await refresh();
+      return result;
     },
     keepGlanceAsSplit: async () => {
       const [main, reference] = [glanceTitle(glance.mainId), glanceTitle(snapshot?.glanceTabId)];
@@ -1784,6 +1938,12 @@
     undoRemoveWorkspace: id => restoreSpace(id),
     restoreWorkspace: id => restoreSpace(id),
     forgetWorkspace: id => forgetSpace(id),
+    moveTabToSpace: (tabId, id) => (lastSpaceMove = moveTabToSpace(tabId, id)),
+    // The last menu move's result, for the harness (shipping returns it from the click).
+    lastSpaceMove: () => lastSpaceMove,
+    createSpaceWithTab: (name, identity, tabId) => createSpaceWithTab(name, identity, tabId),
+    createSpaceWithTabs: (name, identity, ids) => createSpaceWithTabs(name, identity, ids),
+    beginNewSpaceForTab: tabId => show('', 'spaces', null, { newSpaceTabId: String(tabId) }),
     openSpacesMenu: anchor => {
       if (overlayMode === 'spaces') { close(false); return; }
       if (anchor?.closing === true) return;
@@ -1857,6 +2017,7 @@
 
   for (const method of ['switchTab', 'closeTab', 'closeSplit', 'goBack', 'goForward', 'reload', 'stop', 'newTabBelow', 'closeAbove', 'closeBelow']) {
     implemented[method] = async (id) => {
+      if (method === 'switchTab') clearSelection();
       const pageCommand = ['goBack', 'goForward', 'reload', 'stop'].includes(method);
       const routed = pageCommand && String(id) === snapshot?.activeTabId
         ? snapshot.focusedTabId ?? id : id;

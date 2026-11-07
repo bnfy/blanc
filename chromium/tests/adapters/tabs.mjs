@@ -124,6 +124,13 @@ async function spaceAction(api,action,args){
  throw new UndefinedNativeAdapterError('Space action needs an adapter: '+action);
 }
 export const tabs={
+ selectTabRows:(w,id,mode)=>w.api('selectTab',[id==null?null:String(id),mode]),
+ selectedTabIds:async w=>(await w.api('getAllTabs')).selectedTabIds,
+ runSelectedTabsAction:(w,action,options={})=>{
+  if(!['batch-pin','batch-mute','batch-group-new','batch-group-move','batch-group-none','batch-quiet','batch-reload','batch-copy','batch-space-new','batch-space-move','batch-new-window'].includes(action))
+   throw new UndefinedNativeAdapterError('Batch operation is not built: '+action);
+  return w.api('runSelectedTabsAction',[action,options]);
+ },
  // Windows (F32). The primary window keeps shipping's id 'primary'; others
  // are named by their Island host target.
  async windowRuntimes(w){
@@ -211,6 +218,19 @@ export const tabs={
    await page.locator(`.prototype-tab-menu button[data-tab-id="${String(options.otherTabId)}"]`).click();
    return true;
   }
+  // Move to Space ▸ (F41): its list names each Space, then New Space….
+  if(itemId==='space-move'||itemId==='space-new'){
+   const {page,item}=await menuItem(w,tabId,'space');
+   if(!item?.enabled){await page.keyboard.press('Escape');return itemId==='space-new'?false:{ok:false,error:'refused',moved:false};}
+   await page.locator('.prototype-tab-menu button').nth(item.index).click();
+   if(itemId==='space-new'){await page.locator('.prototype-tab-menu button[data-action="space-new"]').click();return true;}
+   // The click starts the move; its result is the host's, so ask it directly
+   // for the Space's row instead of racing the menu.
+   const row=page.locator(`.prototype-tab-menu button[data-workspace-id="${options.workspaceId}"]`);
+   if(!await row.count()){await page.keyboard.press('Escape');return {ok:false,error:'not-found',moved:false};}
+   await row.click();
+   return w.hostEval('window.BlancPrototypeHost.api.lastSpaceMove()');
+  }
   const {page,item}=await menuItem(w,tabId,itemId);
   if(!item||!item.enabled){await page.keyboard.press('Escape');return false;}
   await page.locator('.prototype-tab-menu button').nth(item.index).click();
@@ -219,7 +239,9 @@ export const tabs={
  // Split View (F53). Chromium's split holds two tabs, the shipped 2-pane view.
  async makeSplit(w,tabId,others){
   if(others.length!==1)throw new UndefinedNativeAdapterError('A native split holds two tabs');
+  const active = (await w.state()).activeTabId;
   await w.api('createSplit',[tabId,others[0]]);
+  if (active != null) await w.api('switchTab',[active]);
   return (await w.state()).splits.find(s=>s.tabIds.includes(String(tabId)))?.id??null;
  },
  async splitLayout(w){
@@ -238,6 +260,9 @@ export const tabs={
  },
  // Spaces (F41), through the host's bridge as the menu calls it.
  async workspaceAction(w,action,...args){
+  // Move to Space's test seams (shipping's arm-move-fault and saved-urls).
+  if(action==='arm-move-fault')return {ok:await nativeCall(w.fixture.host,'spaceMoveFault',[String(args[0]),String(args[1]??'storage-failed')])};
+  if(action==='saved-urls')return nativeCall(w.fixture.host,'spaceSavedUrls',[String(args[0])]);
   const before=new Set((await runtimes(w)).map(r=>r.id));
   if(action==='open'||action==='create')w.app.releasePages();
   const result=await spaceAction((method,list)=>w.api(method,list),action,args);
