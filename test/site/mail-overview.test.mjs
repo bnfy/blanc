@@ -113,7 +113,7 @@ test('Pricing says purchases are not open before any price, and recommends neith
     assert.match(pricing.text, /^Purchases are not open yet\./);
     assert.ok(pricing.first, 'the status comes before the plans');
     assert.deepEqual(pricing.plans, ['Blanc Mail', 'Blanc Suite']);
-    assert.deepEqual(pricing.prices, ['$4.99 / month or $49.99 / year', '$7 / month or $70 / year']);
+    assert.deepEqual(pricing.prices, ['$4.99 / month or $49.99 / year', '$9 / month or $90 / year']);
     assert.ok(pricing.tabular, 'prices use tabular figures');
     assert.equal(pricing.badge, false);
     assert.equal(pricing.checkout, 0, 'no checkout until it opens');
