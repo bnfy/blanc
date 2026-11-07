@@ -60,4 +60,36 @@ public class SyncedSettingsTest {
         assertEquals(Map.of("theme", "dark"), plan.apply);
         assertTrue(plan.publish.isEmpty());
     }
+
+    private static Map<String, String> withEngine(Map<String, String> base, String engine) {
+        Map<String, String> out = new java.util.HashMap<>(base);
+        out.put("searchEngine", engine);
+        return out;
+    }
+
+    @Test
+    public void aKnownEngineFromAnotherDeviceIsApplied() {
+        SyncedSettings.Plan plan = SyncedSettings.plan(withEngine(LIGHT, "duckduckgo"), withEngine(LIGHT, "kagi"),
+                withEngine(LIGHT, "duckduckgo"));
+        assertEquals(Map.of("searchEngine", "kagi"), plan.apply);
+        assertTrue(plan.publish.isEmpty());
+    }
+
+    @Test
+    public void aLocalEngineChangePublishes() {
+        SyncedSettings.Plan plan = SyncedSettings.plan(withEngine(LIGHT, "brave"), withEngine(LIGHT, "duckduckgo"),
+                withEngine(LIGHT, "duckduckgo"));
+        assertEquals(Map.of("searchEngine", "brave"), plan.publish);
+        assertTrue(plan.apply.isEmpty());
+    }
+
+    @Test
+    public void aCustomEngineIsNeitherAppliedNorRepublished() {
+        for (String agreed : new String[] {"duckduckgo", "kagi", "custom"}) {
+            SyncedSettings.Plan plan = SyncedSettings.plan(withEngine(LIGHT, "kagi"), withEngine(LIGHT, "custom"),
+                    withEngine(LIGHT, agreed));
+            assertTrue(agreed, plan.apply.isEmpty());
+            if (!agreed.equals("custom")) assertTrue(agreed, plan.publish.isEmpty());
+        }
+    }
 }

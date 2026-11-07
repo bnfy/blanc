@@ -15,6 +15,7 @@ import org.junit.runner.RunWith;
 import org.robolectric.Robolectric;
 import org.robolectric.shadows.ShadowLooper;
 
+import org.chromium.base.ContextUtils;
 import org.chromium.base.test.BaseRobolectricTestRunner;
 import org.chromium.blanc.palette.PaletteSheet;
 
@@ -193,6 +194,17 @@ public class PaletteSheetTest {
         assertFalse(sheet.isShowing());
         assertEquals(1, mStore.groups().size());
         assertEquals(mStore.groups().get(0).id, mStore.tabs(false).get(2).groupId);
+    }
+
+    @Test
+    public void aSearchGoesToTheEngineChosenInSettings() {
+        ContextUtils.getAppSharedPreferences().edit().putString("blanc.search_engine", "kagi").commit();
+        try {
+            go(withText("hello world"));
+            assertEquals("https://kagi.com/search?q=hello%20world", mLoaded.get(mLoaded.size() - 1));
+        } finally {
+            ContextUtils.getAppSharedPreferences().edit().remove("blanc.search_engine").commit();
+        }
     }
 
     @Test

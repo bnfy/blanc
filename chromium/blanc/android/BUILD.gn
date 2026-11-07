@@ -31,6 +31,7 @@ android_library("settings_model_java") {
     "java/src/org/chromium/blanc/settings/SearchEngines.java",
     "java/src/org/chromium/blanc/settings/SettingsDestination.java",
     "java/src/org/chromium/blanc/settings/SettingsLayout.java",
+    "java/src/org/chromium/blanc/settings/SettingsStore.java",
   ]
   deps = [ "//build/android:build_java" ]
 }
@@ -140,6 +141,7 @@ android_library("sync_java") {
     blanc_sync_test_driver,
   ]
   deps = [
+    ":settings_model_java",
     ":tabs_java",
     ":zxing_java",
     "//base:base_java",
@@ -281,6 +283,7 @@ android_library("island_view_java") {
     ":sync_assets",
     ":sync_java",
     ":island_java",
+    ":settings_model_java",
     ":island_view_resources",
     ":tabs_java",
     "//base:base_java",
@@ -295,6 +298,7 @@ android_library("island_ui_java") {
   sources = [ "java/src/org/chromium/blanc/island/IslandCoordinator.java" ]
   deps = [
     ":island_java",
+    ":settings_model_java",
     ":island_view_java",
     ":tabs_java",
     "//base:base_java",
@@ -358,6 +362,7 @@ robolectric_binary("blanc_android_junit_tests") {
     "junit/src/org/chromium/blanc/settings/BlancSettingsScreenTest.java",
     "junit/src/org/chromium/blanc/settings/SearchEnginesTest.java",
     "junit/src/org/chromium/blanc/settings/SettingsDestinationTest.java",
+    "junit/src/org/chromium/blanc/settings/SettingsStoreTest.java",
     "junit/src/org/chromium/blanc/settings/SettingsLayoutTest.java",
     "junit/src/org/chromium/blanc/tabs/SlashCommandsTest.java",
     "junit/src/org/chromium/blanc/tabs/TabGridTest.java",

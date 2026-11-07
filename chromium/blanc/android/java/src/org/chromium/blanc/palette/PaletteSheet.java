@@ -35,9 +35,11 @@ import android.widget.TextView;
 
 import org.json.JSONObject;
 
+import org.chromium.base.ContextUtils;
 import org.chromium.blanc.address.AddressInput;
 import org.chromium.blanc.island.IslandStyle;
 import org.chromium.blanc.island.R;
+import org.chromium.blanc.settings.SettingsStore;
 import org.chromium.blanc.spaces.BlancSpaces;
 import org.chromium.blanc.spaces.SpacesCard;
 import org.chromium.blanc.spaces.SpacesController;
@@ -792,7 +794,8 @@ public final class PaletteSheet extends Dialog {
         } else {
             AddressInput.Result r = AddressInput.interpret(input);
             if (r.kind == AddressInput.Kind.SEARCH) {
-                mCallbacks.load(AddressInput.searchUrl(r.value));
+                mCallbacks.load(AddressInput.searchUrl(
+                        r.value, new SettingsStore(ContextUtils.getAppSharedPreferences()).searchTemplate()));
             } else if (!AddressInput.isBlancPage(r.value)) {
                 mCallbacks.load(r.value);
             } else {
