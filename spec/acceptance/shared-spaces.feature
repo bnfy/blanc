@@ -203,7 +203,7 @@ Feature: Shared Spaces
   @F57-24
   Scenario: A Space made on another device arrives within seconds
     Given a Shared Spaces fixture with the Work Space shared
-    And Blanc is in front
+    And Blanc is in front and has finished its launch pass
     When another device shares a new Space "Travel"
     Then the "Travel" Space appears here within 25 seconds
 
