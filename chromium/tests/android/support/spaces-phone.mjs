@@ -8,7 +8,7 @@ const settled = () => new Promise(done => setTimeout(done, 20));
 // What Java does: holds the library and the shown tabs, answers rows, and takes the runner's changes.
 export class Phone {
   // `reopen` runs while a pass waits, for a test that has to get past the request limits.
-  constructor(name, url, reopen = () => {}) {
+  constructor(name, url, reopen = () => {}, platform = 'android') {
     this.reopen = reopen;
     this.tabs = [];          // {local, shared, url, title, pinned, group}
     this.rows = [];
@@ -21,7 +21,7 @@ export class Phone {
     this.closedEvents = 0;
     this.groupBindings = {};
     this.refuse = false;
-    this.device = peer(name, url, {emit: (event, text) => this.on(event, JSON.parse(text || 'null'))});
+    this.device = peer(name, url, {platform, emit: (event, text) => this.on(event, JSON.parse(text || 'null'))});
   }
   call(method, ...args) {
     return new Promise((done, fail) => this.device.context.__call(method, JSON.stringify(args),

@@ -113,3 +113,9 @@ Rulings:
 - **No second recovery of live tabs.** Shipping's `recoverNative` is a no-op here, because a live Chromium tab stays on show through a failed apply. Cost if wrong: none seen; the failure leaves the tabs as they were.
 - **Other devices' Spaces show in palette search and the Spaces card with the switch off**, and open the Bring sheet, as on the iPhone. The list refreshes after each push and each remote change, not while typing. Cost if wrong: a new Space shows one pass late.
 - **A tab past its Space's budget gets the iPhone's small dot on its grid card**, labeled Not synced. Cost if wrong: none.
+
+## A4 exit: the iPhone on the wire
+
+- **Both directions are pinned by tests, not by a staging Worker**, which doesn't exist. `chromium/tests/android/a4-iphone-fixture.mjs` records what Android's runner puts on the wire (a tab, a closed page, a sent page, a shared Space) into `android-written.json`, and `AndroidWireTests.swift` reads it with the iPhone's own decoders. The same Swift test pins what the iPhone writes as `iphone-written.json`, and `chromium/tools/sync-iphone.test.mjs` writes that through the Worker's API for Android's runner to read. Cost if wrong: a change to either side's format that both fixtures miss shows up only in the owner's two-device check.
+- **Android's closed and sent entries carry an empty platform**, as desktop's do: shipping's `closed` and `sends` stores take it from a context that has none. The iPhone and desktop accept it. Cost if wrong: none seen.
+
