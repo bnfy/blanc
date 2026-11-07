@@ -1387,7 +1387,7 @@ the back-forward cache keeps its tag.
 | `shield-race.mjs`, this fix | 0 of 120, then 0 of 40 in the A4 gate |
 | Back-forward cache check | Passes, and fails with the document tag removed |
 | `tools/shield-page-count.test.mjs` | Passes |
-| Desktop | Compiles and links into candidate `macos-8597d2d3b8936eee` (a clone, not the live tree); shield scenarios not run yet |
+| Desktop | Patched candidate `macos-6301f30b369c7ed5` (`macos-8597d2d3b8936eee` plus this fix, relinked in a clone, not the live tree): all 9 `ad-blocking.feature` scenarios and the Island's blocked-count scenario pass on macOS |
 
 An iframe's first request can still miss the count, because only the main frame's
 factories are tagged. The A4 gate ran on APK
