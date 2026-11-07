@@ -1,13 +1,13 @@
 {
-  "version": "44.9.3+wvcus",
-  "chromium": "152.0.7977.167",
-  "vendorCommit": "2263925eabe847eed890701134e6168d71c3d0a1",
-  "release": "https://github.com/castlabs/electron-releases/releases/tag/v44.9.3%2Bwvcus",
-  "publishedAt": "2026-10-22T21:31:20Z",
+  "version": "44.10.1+wvcus",
+  "chromium": "152.0.7977.169",
+  "vendorCommit": "565f102561dc7a57a8e38c750939cc8a940b4f87",
+  "release": "https://github.com/castlabs/electron-releases/releases/tag/v44.10.1%2Bwvcus",
+  "publishedAt": "2026-11-04T00:33:18Z",
   "archives": {
-    "darwin-arm64": "3f49f11710e87974b6b7c7acb2c172c1f37c804f319f7c887e0a791bbda8dc6b",
-    "darwin-x64": "99ca1b2c3bb295d7927ef8d17137952385844d67f63dbe827a7214aecca181fe",
-    "linux-x64": "80cb5218ab814597282ebe41d16fb5a98abb0c75370e9195914e40e097359fad",
-    "win32-x64": "1ab1e5aa4566f218873d272af1a57c6162ad83911a69bbd4b0e341c37c6c40fc"
+    "darwin-arm64": "4eeca8c117a778b4bfaa2ab90c82b62d119b23bff172da382e14aa289c5ddf33",
+    "darwin-x64": "33260e6456488853d81bcf0dba5d52faed5418f2a89eea6906a08f4cc90200ef",
+    "linux-x64": "ee726ff1e8db21a1975b827063cb9d1f6fd024122d6ae07da4661451a00daa93",
+    "win32-x64": "f118d8b611998270acfdc85872d12203035078f07252a761822e9324223302e6"
   }
 }

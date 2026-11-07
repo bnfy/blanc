@@ -114,3 +114,12 @@ Blanc can no longer rebuild a page-opened tab with its opener's HTML/CSP
 sandbox. Blanc now marks those tabs and keeps them inert wherever a rebuild
 would be needed (`src/main/document-policy.js`). The same four jobs run
 `test:document-policy:desktop` and `test:modified-links:desktop` on the PR head.
+
+## Runtime update to ECS 44.10.1+wvcus (November 2026, unreleased)
+
+`src/main/ublock-platforms.json` moves `electron` to `44.10.1` and `ecsRuntime`
+to `44.10.1+wvcus` (Chromium 152.0.7977.169, Node 24.22.1). uBO 1.75.0 and its
+pinned upstream files are unchanged. **This runtime has not passed signed-package
+uBO acceptance yet.** `ecsEvidence` says `PENDING`, and `release.sh` refuses an
+ECS release until that text is replaced with passed evidence naming the runtime,
+for the same four platform records. Rosetta stays excluded.
