@@ -22,6 +22,9 @@ final class TabModel: Identifiable {
     /// The whole page, for growing out of its card. Kept apart from `thumbnail`
     /// so a new picture never redraws the grid.
     @ObservationIgnored var pagePicture: UIImage?
+    /// How far down the page's content began in that picture: off screen, a
+    /// web view has no safe area to clear.
+    @ObservationIgnored var pagePictureTop: CGFloat = 0
     /// The group this tab belongs to (M17), nil when ungrouped.
     var groupId: String?
     var pinned = false
@@ -198,6 +201,7 @@ final class TabModel: Identifiable {
         }
         guard drawn else { return }
         pagePicture = full
+        pagePictureTop = webView.safeAreaInsets.top
         thumbnail = UIGraphicsImageRenderer(size: CGSize(width: side, height: side), format: format).image { _ in
             full.draw(in: rect)
         }
@@ -223,6 +227,7 @@ final class TabModel: Identifiable {
         let format = UIGraphicsImageRendererFormat()
         format.scale = 2
         pagePicture = UIGraphicsImageRenderer(size: full.size, format: format).image { _ in full.draw(at: .zero) }
+        pagePictureTop = webView.safeAreaInsets.top
         format.scale = 1
         thumbnail = UIGraphicsImageRenderer(size: CGSize(width: side, height: side), format: format).image { _ in
             full.draw(in: CGRect(x: (side - size.width) / 2, y: 0, width: size.width, height: size.height))

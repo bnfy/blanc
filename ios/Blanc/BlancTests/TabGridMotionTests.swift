@@ -5,6 +5,12 @@ import XCTest
 final class TabGridMotionTests: XCTestCase {
     private let screen = CGRect(x: 0, y: 0, width: 400, height: 800)
 
+    func testAPictureTakenOffScreenMovesDownToThePagesTop() {
+        XCTAssertEqual(TabGridMotion.pictureTop(centered: false, paneHeight: 900, pictureHeight: 800, capturedTop: 0, pageTop: 68), 68)
+        XCTAssertEqual(TabGridMotion.pictureTop(centered: false, paneHeight: 900, pictureHeight: 900, capturedTop: 68, pageTop: 68), 0)
+        XCTAssertEqual(TabGridMotion.pictureTop(centered: true, paneHeight: 900, pictureHeight: 500, capturedTop: 0, pageTop: 68), 200)
+    }
+
     func testAFullPageIsUntouched() {
         XCTAssertEqual(TabGridMotion.transform(.full, in: screen, card: nil), TabGridMotion.Transform())
     }

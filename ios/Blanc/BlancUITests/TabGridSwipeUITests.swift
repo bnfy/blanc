@@ -9,6 +9,72 @@ final class TabGridSwipeUITests: XCTestCase {
     start.press(forDuration: 0.05, thenDragTo: start.withOffset(CGVector(dx: 0, dy: -250)))
   }
 
+  /// The two things that once made the page's picture jump as it landed: a
+  /// page frame shorter than the page, and a web view losing its safe area.
+  func testThePageKeepsItsPlaceUnderTheGrid() {
+    continueAfterFailure = false
+    let app = XCUIApplication()
+    app.launchArguments = ["-BlancUITestTwoTabs", "-BlancUITestPageGeometry"]
+    app.launch()
+    let site = app.buttons["pill.palette"]
+    XCTAssertTrue(site.waitForExistence(timeout: 15))
+    let geometry = app.descendants(matching: .any)["test.pageGeometry"]
+    XCTAssertTrue(geometry.waitForExistence(timeout: 5))
+    sleep(2)
+    let before = geometry.value as? String ?? ""
+    let parts = before.split(separator: " ").compactMap { Int($0) }
+    XCTAssertEqual(parts.count, 2, before)
+    XCTAssertEqual(parts[0], Int(app.windows.firstMatch.frame.height), "the page's frame is the whole window")
+    XCTAssertGreaterThan(parts[1], 0, "the web view clears the status bar")
+
+    openGrid(site)
+    XCTAssertTrue(app.buttons.matching(identifier: "tab.card").firstMatch.waitForExistence(timeout: 5))
+    sleep(2)
+    XCTAssertEqual(geometry.value as? String, before)
+  }
+
+  func testTheGridTakesThePagesTouches() {
+    continueAfterFailure = false
+    let app = XCUIApplication()
+    app.launchArguments = ["-BlancUITestTapPage"]
+    app.launch()
+    let site = app.buttons["pill.palette"]
+    XCTAssertTrue(site.waitForExistence(timeout: 15))
+    sleep(2)
+    openGrid(site)
+    let card = app.buttons.matching(identifier: "tab.card").firstMatch
+    XCTAssertTrue(card.waitForExistence(timeout: 5))
+    app.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.6)).tap()
+    sleep(1)
+    XCTAssertFalse(card.label.contains("tapped"), card.label)
+
+    // The same tap on the page itself does reach it.
+    card.tap()
+    XCTAssertTrue(site.waitForExistence(timeout: 5))
+    sleep(1)
+    app.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.6)).tap()
+    sleep(1)
+    openGrid(site)
+    XCTAssertTrue(card.waitForExistence(timeout: 5))
+    let tapped = XCTNSPredicateExpectation(predicate: NSPredicate(format: "label CONTAINS %@", "tapped"), object: card)
+    XCTAssertEqual(XCTWaiter().wait(for: [tapped], timeout: 5), .completed, card.label)
+  }
+
+  func testReduceMotionOpensAndLeavesTheGrid() {
+    continueAfterFailure = false
+    let app = XCUIApplication()
+    app.launchArguments = ["-BlancUITestTwoTabs", "-BlancUITestReduceMotion"]
+    app.launch()
+    let site = app.buttons["pill.palette"]
+    XCTAssertTrue(site.waitForExistence(timeout: 15))
+    openGrid(site)
+    let cards = app.buttons.matching(identifier: "tab.card")
+    XCTAssertTrue(cards.element(boundBy: 1).waitForExistence(timeout: 5))
+    cards.element(boundBy: 1).tap()
+    XCTAssertTrue(app.otherElements["tabs.grid"].waitForNonExistence(timeout: 5), "the grid fades away")
+    XCTAssertTrue(site.waitForExistence(timeout: 5))
+  }
+
   func testSwipeCardClosesTheTabWithUndo() {
     continueAfterFailure = false
     let app = XCUIApplication()

@@ -15,6 +15,9 @@ struct ContentView: View {
     @State private var gridPage = TabGridMotion.Page.full
     /// Fades the grid in and out with Reduce Motion, in place of the stage.
     @State private var gridOpacity: Double = 1
+    /// True while the stage stands in for the page, so a page playing video
+    /// isn't drawn under the grid for nothing.
+    @State private var pageHidden = false
     /// Each tab's card in the grid, so the page knows where any tab's sits.
     @State private var cardFrames = TabCardFrames()
     /// Pictures of the pages, which travel to and from the grid in their place.
@@ -39,7 +42,13 @@ struct ContentView: View {
     @State private var pageWidth: CGFloat = 0
     /// The Island's height with its padding, so the Spaces card rises from it.
     @State private var islandHeight: CGFloat = 0
-    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @Environment(\.accessibilityReduceMotion) private var systemReduceMotion
+    private var reduceMotion: Bool {
+        #if DEBUG
+        if UITestSeed.reduceMotion { return true }
+        #endif
+        return systemReduceMotion
+    }
     @Environment(\.horizontalSizeClass) private var horizontalSizeClass
     @Environment(\.verticalSizeClass) private var verticalSizeClass
     /// Duo-1: the unfolded layout on the Duo's inner display.
@@ -124,6 +133,7 @@ struct ContentView: View {
             .padding(islandAtTop ? .top : .bottom, shownSplit != nil ? islandBand : 0)
             .ignoresSafeArea(edges: pageEdges)
             .offset(x: swipeOffset)
+            .opacity(pageHidden ? 0 : 1)
             .accessibilityHidden(showTabGrid)
             // The grid takes the page's touches by covering it. `allowsHitTesting`
             // on the page would put a view around the web view that cuts it off
@@ -139,6 +149,9 @@ struct ContentView: View {
                 neighborPage(neighbor)
                     .offset(x: swipeOffset + (swipeOffset < 0 ? pageWidth : -pageWidth))
             }
+            #if DEBUG
+            if UITestSeed.pageGeometry { pageGeometryProbe }
+            #endif
             // Glance (F34): a tab floating over the current page.
             ZStack {
                 if showsGlance, let glance = manager.glanceTab {
@@ -429,8 +442,9 @@ struct ContentView: View {
                     // blank white: keep the theme's background instead.
                     if !tab.hasCommitted { style.background.allowsHitTesting(false) }
                 }
+                // Unseen, it takes no touches. `allowsHitTesting` here would
+                // cut it off from the safe area and move the page.
                 .opacity(tab.reader == nil ? 1 : 0)
-                .allowsHitTesting(tab.reader == nil)
                 .accessibilityHidden(tab.reader != nil)
             if let reader = tab.reader {
                 ReaderWebView(reader: reader, islandInset: split == nil ? islandBand : 0, islandEdge: islandEdge)
@@ -657,7 +671,9 @@ struct ContentView: View {
         if let image = tab.pagePicture ?? tab.thumbnail, image.size.width > 0 {
             let picture = UIImageView(image: image)
             let height = size.width * image.size.height / image.size.width
-            let top = tab.currentURL.scheme == "blanc" ? (size.height - height) / 2 : 0
+            let top = TabGridMotion.pictureTop(centered: tab.currentURL.scheme == "blanc", paneHeight: size.height,
+                                               pictureHeight: height, capturedTop: tab.pagePictureTop,
+                                               pageTop: shownSplit == nil ? stage.window?.safeAreaInsets.top ?? 0 : 0)
             picture.frame = CGRect(x: 0, y: top, width: size.width, height: height)
             view.addSubview(picture)
         }
@@ -706,6 +722,7 @@ struct ContentView: View {
             gridOpacity = 1
             stagePages(live: true)
             stage.place(stageSpots(.full), coverAlpha: 1)
+            pageHidden = true
         }
         withAnimation(.easeOut(duration: 0.15)) { islandGoneForGrid = true }
         showTabGrid = true
@@ -768,10 +785,24 @@ struct ContentView: View {
         }
         stage.animate(to: stageSpots(.full), coverAlpha: 1) {
             guard pass == gridPass else { return }
+            pageHidden = false
             showTabGrid = false
             stage.fadeOut(removing: true)
         }
     }
+
+    #if DEBUG
+    /// For UI tests: the page's frame height and the web view's safe top.
+    private var pageGeometryProbe: some View {
+        TimelineView(.periodic(from: .now, by: 0.25)) { _ in
+            Color.clear.frame(width: 1, height: 1)
+                .accessibilityElement()
+                .accessibilityIdentifier("test.pageGeometry")
+                .accessibilityValue("\(Int(pageFrame.height)) \(Int(manager.activeTab?.existingWebView?.safeAreaInsets.top ?? -1))")
+        }
+        .allowsHitTesting(false)
+    }
+    #endif
 
     /// A pinch moves the page's picture directly: nothing redraws for a finger.
     private func followPagePinch(_ update: PagePinchUpdate) {
