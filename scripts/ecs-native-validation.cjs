@@ -6,20 +6,16 @@ const path = require('node:path');
 const os = require('node:os');
 const { createHash } = require('node:crypto');
 const { buildFull } = require('./build-full-ecs-candidate.cjs');
-const pins = Object.freeze({
-  'darwin-arm64': '3f49f11710e87974b6b7c7acb2c172c1f37c804f319f7c887e0a791bbda8dc6b',
-  'darwin-x64': '99ca1b2c3bb295d7927ef8d17137952385844d67f63dbe827a7214aecca181fe',
-  'linux-x64': '80cb5218ab814597282ebe41d16fb5a98abb0c75370e9195914e40e097359fad',
-  'win32-x64': '1ab1e5aa4566f218873d272af1a57c6162ad83911a69bbd4b0e341c37c6c40fc',
-});
+const pin = require('../build/ecs-runtime.json');
+const pins = Object.freeze(pin.archives);
 async function main() {
   const target = `${process.platform}-${process.arch}`;
   if (!pins[target]) throw Error(`No reviewed native ECS pin for ${target}`);
   const dir = await fs.mkdtemp(path.join(os.tmpdir(), 'blanc-ecs-vendor-'));
-  const name = `electron-v44.9.3+wvcus-${target}.zip`;
-  const url = `https://github.com/castlabs/electron-releases/releases/download/v44.9.3%2Bwvcus/${encodeURIComponent(name)}`;
+  const name = `electron-v${pin.version}-${target}.zip`;
+  const url = `https://github.com/castlabs/electron-releases/releases/download/v${encodeURIComponent(pin.version)}/${encodeURIComponent(name)}`;
   const { downloadArtifact } = await import('@electron/get');
-  const archive = await downloadArtifact({ version: '44.9.3+wvcus', artifactName: 'electron',
+  const archive = await downloadArtifact({ version: pin.version, artifactName: 'electron',
     platform: process.platform, arch: process.arch, checksums: { [name]: pins[target] },
     mirrorOptions: { resolveAssetURL: async () => url } });
   // Independently recheck the reviewed pin, including cached downloads.

@@ -1620,6 +1620,8 @@
           "tabLayout": "island",
           "verticalTabsTextSize": "tabs-snapshot-1",
           "islandTabIcons": true,
+          "miniWindow": true,
+          "islandSize": "tabs-snapshot-1",
           "verticalTabsWidth": 1,
           "verticalTabsPreferredWidth": 1,
           "verticalTabsMinWidth": 1,
@@ -1712,6 +1714,8 @@
           "tabLayout": "island",
           "verticalTabsTextSize": "tabs-snapshot-1",
           "islandTabIcons": true,
+          "miniWindow": true,
+          "islandSize": "tabs-snapshot-1",
           "verticalTabsWidth": 1,
           "verticalTabsPreferredWidth": 1,
           "verticalTabsMinWidth": 1,
@@ -6569,6 +6573,32 @@
         ]
       ]
     },
+    "keepMiniWindow": {
+      "kind": "invoke",
+      "platforms": [
+        "darwin",
+        "win32",
+        "linux"
+      ],
+      "channel": "chrome:mini-keep",
+      "calls": [
+        {
+          "label": "typical",
+          "args": [],
+          "sends": [
+            {
+              "kind": "invoke",
+              "channel": "chrome:mini-keep",
+              "args": []
+            }
+          ]
+        }
+      ],
+      "replies": [
+        true,
+        false
+      ]
+    },
     "inviteFriend": {
       "kind": "invoke",
       "platforms": [
@@ -6835,6 +6865,8 @@
               "tabLayout": "island",
               "verticalTabsTextSize": "tabs-updated-payload-1",
               "islandTabIcons": true,
+              "miniWindow": true,
+              "islandSize": "tabs-updated-payload-1",
               "adblockEnabled": true,
               "shieldPopover": {
                 "variant": "site",
@@ -6896,6 +6928,8 @@
                 "tabLayout": "island",
                 "verticalTabsTextSize": "tabs-updated-payload-1",
                 "islandTabIcons": true,
+                "miniWindow": true,
+                "islandSize": "tabs-updated-payload-1",
                 "adblockEnabled": true,
                 "shieldPopover": {
                   "variant": "site",
@@ -7032,6 +7066,8 @@
               "tabLayout": "island",
               "verticalTabsTextSize": "tabs-updated-payload-1",
               "islandTabIcons": true,
+              "miniWindow": true,
+              "islandSize": "tabs-updated-payload-1",
               "adblockEnabled": true,
               "shieldPopover": {
                 "variant": "site",
@@ -7200,6 +7236,8 @@
                 "tabLayout": "island",
                 "verticalTabsTextSize": "tabs-updated-payload-1",
                 "islandTabIcons": true,
+                "miniWindow": true,
+                "islandSize": "tabs-updated-payload-1",
                 "adblockEnabled": true,
                 "shieldPopover": {
                   "variant": "site",

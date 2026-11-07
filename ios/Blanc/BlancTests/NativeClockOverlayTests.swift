@@ -25,7 +25,11 @@ final class NativeClockOverlayTests: XCTestCase {
         XCTAssertFalse(tab.nativeClock.render(nil, in: tab.webView))
         XCTAssertFalse(tab.nativeClock.isVisible)
         XCTAssertTrue(tab.nativeClock.render(data, in: tab.webView))
+        // Until the next page commits the Start Page is still showing (a load
+        // can fail before it commits), so its clock stays until then.
         tab.navigationDelegate.webView(tab.webView, didStartProvisionalNavigation: nil)
+        XCTAssertTrue(tab.nativeClock.isVisible)
+        tab.navigationDelegate.webView(tab.webView, didCommit: nil)
         XCTAssertFalse(tab.nativeClock.isVisible)
     }
 }

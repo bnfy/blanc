@@ -1,6 +1,10 @@
 # Self-hosted macOS CI runner
 
 **Status:** optional, off until the repository variable below is set (October 2026).
+Off since November 2, 2026: the runner then registered (`blanc-mac`) was a direct
+install on the release MacBook Pro, which [The machine](#the-machine) rules out, so
+the variable was deleted and the runner removed. Turn it back on only from a
+dedicated Mac, preferably with the Tart VMs below.
 **Why:** GitHub allows 5 concurrent macOS jobs on the Free, Pro and Team plans,
 shared by every workflow ([Actions limits](https://docs.github.com/en/actions/reference/limits)).
 Larger runners share that cap. Pull requests waited 28–41 minutes for a macOS
@@ -24,7 +28,8 @@ One repository variable, `MAC_RUNNER_LABELS`, switches it on:
 | Job | Variable unset (default) | Variable set |
 |---|---|---|
 | `unit (macos-15)` (unit-tests.yml) | GitHub-hosted, every PR | **unchanged: GitHub-hosted, every PR** |
-| `workspace-regressions`, `favorites-import`, `browser-shortcuts` macOS legs (parity-guards.yml) | GitHub-hosted, nightly and manual runs only | self-hosted, nightly and manual runs only. On every pull request they'd queue three more jobs per PR for the Mac's two slots |
+| `workspace-regressions`, `favorites-import` macOS legs (parity-guards.yml) | GitHub-hosted, nightly and manual runs only | self-hosted, nightly and manual runs only. On every pull request they'd queue more jobs per PR for the Mac's two slots |
+| `browser-shortcuts` macOS leg (parity-guards.yml) | GitHub-hosted, nightly and manual runs only | **unchanged: GitHub-hosted** (real key input, below) |
 | `desktop (macos-15)` (ublock-origin.yml) | GitHub-hosted, nightly and manual runs only | self-hosted, matching PRs, plus nightly |
 | `desktop (macos-15-intel)`, iOS `xctest`, nightly desktop acceptance, release and prerelease workflows | GitHub-hosted | **unchanged: GitHub-hosted** |
 
@@ -58,7 +63,7 @@ Each job then starts from a clean macOS image and leaves nothing behind for the 
 4. **Labels:** `self-hosted`, `macOS`, `ARM64` and `blanc-ci`, the same as the direct install, so `MAC_RUNNER_LABELS` doesn't change.
 5. **Switching over.** Once a VM runner is online, the script retires a direct-install runner left by `scripts/ci-mac-runner-setup.sh`, waiting for it to finish any job it's running, and sets `MAC_RUNNER_LABELS` if it isn't set. If GitHub won't unregister it yet, `retire-direct` finishes the job later.
 
-**Accessibility for real key input.** The browser-shortcuts smoke drives Ctrl+Tab with real key events (`test/desktop/support/native-keys-mac.swift`, `CGEvent`), which macOS delivers only for processes allowed under System Settings → Privacy & Security → Accessibility. The runner starts every job's processes, so allow the runner itself: in the golden image, open System Settings (boot it with a display, `tart run blanc-ci-golden`), and add `~/actions-runner/bin/Runner.Listener` and `~/actions-runner/bin/Runner.Worker` under Accessibility. Then shut the VM down so the change is saved in the image. `rebuild-image` starts from the base image again, so repeat this after it. Without it the smoke fails on CI with *posting key events needs Accessibility permission*, and macOS can't join recent-order Ctrl+Tab (`recentOrderAvailable()` in `src/main/tab-switcher.js`).
+**Real key input stays on GitHub-hosted macOS.** The browser-shortcuts smoke drives Ctrl+Tab with real key events (`test/desktop/support/native-keys-mac.swift`, `CGEvent`), which macOS delivers only for processes allowed under System Settings → Privacy & Security → Accessibility. GitHub's hosted macOS images already grant that to their runner (`configure-tccdb-macos.sh` in actions/runner-images), so the `browser-shortcuts` macOS leg always runs there (`test/unit/ci-self-hosted-mac.test.js`). Don't grant Accessibility to a self-hosted runner: every job it runs could then drive that Mac's keyboard and mouse.
 
 Day to day: `status` shows the loop, the VMs and the runners GitHub sees. `rebuild-image` refreshes the image with a newer macOS image or runner. `stop` and `start` pause the loop; jobs wait meanwhile. `uninstall` deletes the variable first, then the loop, the VMs and their runners. Logs are in `~/blanc-ci-vms`.
 

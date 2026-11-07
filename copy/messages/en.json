@@ -9310,6 +9310,46 @@
     "message": "JetBrains Mono",
     "note": "Reader Mode font family name; keep the font name unchanged."
   },
+  "settings.general.islandSize.label": {
+    "message": "Island size",
+    "note": "Desktop Settings, General → Island: label of the dropdown that sets the resting Island's size (#1292)."
+  },
+  "settings.general.islandSize.hint": {
+    "message": "Make the Island and its buttons bigger. The page moves down to make room.",
+    "note": "Desktop Settings, General → Island: hint under Island size. The strip grows with the Island, so web pages start lower."
+  },
+  "settings.general.pageZoom.label": {
+    "message": "Default page zoom",
+    "note": "Desktop Settings, General → Appearance: the setting's name."
+  },
+  "settings.general.pageZoom.hint": {
+    "message": "The size web pages open at. Zooming in or out on a site saves a size just for that site.",
+    "note": "Desktop Settings, General → Appearance: hint under Default page zoom."
+  },
+  "settings.general.pageZoom.percent": {
+    "message": "{percent}%",
+    "note": "Desktop Settings: a zoom size in the Default page zoom menu and the saved sites list; {percent} is a whole number from 25 to 500."
+  },
+  "settings.general.siteZoom.hint": {
+    "message": "These sites have their own zoom. Remove one to go back to the default.",
+    "note": "Desktop Settings, General → Appearance: above the list of sites with a saved zoom. Removing one returns it to the Default page zoom."
+  },
+  "settings.general.siteZoom.clearAll": {
+    "message": "Clear all",
+    "note": "Desktop Settings, General → Appearance: button that forgets every saved site zoom in this profile."
+  },
+  "settings.general.islandSize.default": {
+    "message": "Default",
+    "note": "Desktop Settings, General → Island size option."
+  },
+  "settings.general.islandSize.large": {
+    "message": "Large",
+    "note": "Desktop Settings, General → Island size option."
+  },
+  "settings.general.islandSize.extraLarge": {
+    "message": "Extra large",
+    "note": "Desktop Settings, General → Island size option."
+  },
   "settings.general.verticalTabsTextSize.label": {
     "message": "Vertical tab text size",
     "note": "Desktop Settings, General → Island. Vertical-tab sidebar text-size label. Applies on this device; tab titles and group names grow together."
@@ -9333,6 +9373,10 @@
   "spaces.thisIPhone": {
     "message": "This iPhone",
     "note": "iPhone: the phone's own tabs that are in no Space, first row of the Spaces menu (M17)."
+  },
+  "spaces.thisIPad": {
+    "message": "This iPad",
+    "note": "iPad: the iPad's own tabs that are in no Space, first row of the Spaces menu. spaces.thisIPhone's counterpart on an iPad."
   },
   "spaces.menuLabel": {
     "message": "Spaces",
@@ -9405,6 +9449,38 @@
   "ios.island.reload": {
     "message": "Reload page",
     "note": "iOS Island: accessible name of the reload button."
+  },
+  "ios.settings.islandTuck": {
+    "message": "Hide the Island while scrolling",
+    "note": "iOS Settings → Appearance: switch for the Island tucking away while a page scrolls down. On by default."
+  },
+  "ios.settings.islandHistoryButtons": {
+    "message": "Back and Forward buttons",
+    "note": "iOS Settings → Island: switch that puts Back and Forward on the iPhone Island. Off by default."
+  },
+  "ios.settings.islandHistoryButtonsHelp": {
+    "message": "When the Island is narrow, they take the place of Reload and New Tab. Pull down on a page to reload it.",
+    "note": "iOS Settings → Island: footer under the Back and Forward switch. 'Narrow' is the iPhone Island; the wider Island keeps every button."
+  },
+  "ios.settings.islandPosition": {
+    "message": "Position",
+    "note": "iOS Settings → Island: picker for where the Island sits on the screen, under the Island header."
+  },
+  "ios.settings.islandPosition.bottom": {
+    "message": "Bottom",
+    "note": "iOS Settings → Appearance → Island position: along the bottom of the screen (the default)."
+  },
+  "ios.settings.islandPosition.top": {
+    "message": "Top",
+    "note": "iOS Settings → Appearance → Island position: along the top of the screen."
+  },
+  "ios.settings.island": {
+    "message": "Island",
+    "note": "iOS Settings: header over the Island position and hide-while-scrolling rows. The product name Island stays untranslated."
+  },
+  "ios.settings.privacySync": {
+    "message": "Privacy & Sync",
+    "note": "iOS Settings: header over the Blanc Blocker and Sync rows."
   },
   "ios.island.stop": {
     "message": "Stop loading",
@@ -9557,5 +9633,55 @@
   "ios.defaultBrowser.notBlanc": {
     "message": "Not Blanc",
     "note": "iOS Settings: the default-browser row's value when another browser is the default or iOS didn't say."
+  },
+  "menu.newMiniWindow": {
+    "message": "New Mini Window",
+    "note": "Menu command (File menu, macOS Dock menu) that opens a mini window: a small Blanc window that isn't saved and closes after an hour unused. Title case like the other menu commands."
+  },
+  "mini.openInBlanc": {
+    "message": "Open in Blanc",
+    "note": "Button at the front of the Island in a mini window (a small window that isn't saved), and a File menu command there: keeps the mini window as an ordinary Blanc window. Keep \"Blanc\" untranslated.",
+    "maxLength": 18
+  },
+  "mini.openInBlanc.title": {
+    "message": "Keep this mini window as an ordinary Blanc window",
+    "note": "Tooltip of the Island's Open in Blanc button in a mini window."
+  },
+  "mini.openInBlanc.label": {
+    "message": "Open in Blanc — keep this mini window as an ordinary Blanc window",
+    "note": "Accessible name of the Island's Open in Blanc button in a mini window."
+  },
+  "settings.general.miniWindow.label": {
+    "message": "Mini window shortcut",
+    "note": "Settings → General: setting name. A keyboard shortcut that works in every app and opens a mini window (a small Blanc window)."
+  },
+  "settings.general.miniWindow.hint": {
+    "message": "Opens a small Blanc window over the app you're in, while Blanc is running. A mini window isn't saved, and closes after an hour unused. Open in Blanc keeps it.",
+    "note": "Settings → General: explanation under the Mini window shortcut setting. \"Open in Blanc\" is the name of the button in a mini window (mini.openInBlanc)."
+  },
+  "settings.general.miniWindow.unavailable": {
+    "message": "Another app is using this shortcut, or your desktop doesn't allow it. Choose another.",
+    "note": "Settings → General: shown under the Mini window shortcut setting when the chosen shortcut can't be used."
+  },
+  "settings.general.miniWindow.off": {
+    "message": "Off",
+    "note": "Settings → General → Mini window shortcut: option (no shortcut; the default).",
+    "maxLength": 19
+  },
+  "settings.general.miniWindow.shortcut.altCmdN": {
+    "message": "⌥⌘N",
+    "note": "Settings → General → Mini window shortcut: option on macOS, Option-Command-N. Keep the symbols."
+  },
+  "settings.general.miniWindow.shortcut.ctrlAltSpaceMac": {
+    "message": "⌃⌥Spacebar",
+    "note": "Settings → General → Mini window shortcut: option on macOS, Control-Option-Spacebar. Translate only the name of the spacebar key."
+  },
+  "settings.general.miniWindow.shortcut.ctrlAltSpace": {
+    "message": "Ctrl+Alt+Spacebar",
+    "note": "Settings → General → Mini window shortcut: option on Windows and Linux. Use the key names keyboards in your language print (for example Strg in German)."
+  },
+  "settings.general.miniWindow.shortcut.ctrlShiftSpace": {
+    "message": "Ctrl+Shift+Spacebar",
+    "note": "Settings → General → Mini window shortcut: option on Windows and Linux. Use the key names keyboards in your language print (for example Strg and Umschalt in German)."
   }
 }

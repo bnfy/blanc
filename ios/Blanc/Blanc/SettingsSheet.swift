@@ -114,7 +114,8 @@ struct SettingsSheet: View {
         .font(BrowserStyle.font(17))
         .tracking(0.17)
         .foregroundStyle(style.text)
-        .tint(style.text)
+        .tint(BrowserStyle.adaptiveText)
+        .toggleStyle(BrowserSwitchStyle())
         .presentationDetents([.large])
         .presentationDragIndicator(.visible)
         .presentationBackground(style.surface)
@@ -129,8 +130,25 @@ struct SettingsSheet: View {
                     set: { manager.applySettingsPatch(["searchEngine": $0.rawValue]) })) {
                     ForEach(SettingsCopy.searchEngines, id: \.self) { Text($0.label).tag($0) }
                 }.accessibilityIdentifier("settings.searchEngine")
-                if DefaultBrowserOffer.enabled { DefaultBrowserRow() }
+                DefaultBrowserRow()
             }
+            Section {
+                Picker(SettingsCopy.text("islandPosition"), selection: Binding(
+                    get: { manager.settingsStore.islandPosition },
+                    set: { manager.setIslandPosition($0) })) {
+                    ForEach(IslandPosition.allCases, id: \.self) {
+                        Text(SettingsCopy.text("islandPosition." + $0.rawValue)).tag($0)
+                    }
+                }.accessibilityIdentifier("settings.islandPosition")
+                Toggle(SettingsCopy.text("islandTuck"), isOn: Binding(
+                    get: { manager.settingsStore.islandTucksOnScroll },
+                    set: { manager.settingsStore.update(islandTucksOnScroll: $0) }))
+                    .accessibilityIdentifier("settings.islandTuck")
+                Toggle(SettingsCopy.text("islandHistoryButtons"), isOn: Binding(
+                    get: { manager.settingsStore.islandHistoryButtons },
+                    set: { manager.settingsStore.update(islandHistoryButtons: $0) }))
+                    .accessibilityIdentifier("settings.islandHistoryButtons")
+            } header: { Text(SettingsCopy.text("island")) } footer: { Text(SettingsCopy.text("islandHistoryButtonsHelp")) }
             Section(SettingsCopy.text("appearance")) {
                 Picker(SettingsCopy.text("theme"), selection: Binding(get: { manager.settingsStore.theme }, set: { manager.applySettingsPatch(["theme": $0.rawValue]) })) {
                     ForEach(BlancThemePreference.allCases, id: \.self) { Text(SettingsCopy.text($0.rawValue)).tag($0) }
@@ -142,12 +160,10 @@ struct SettingsSheet: View {
                     summary("startPage", value: SettingsCopy.text(manager.settingsStore.newtabLayout.rawValue))
                 }.accessibilityIdentifier("settings.startPage")
             }
-            Section(SettingsCopy.text("privacy")) {
+            Section(SettingsCopy.text("privacySync")) {
                 NavigationLink(value: SettingsDestination.privacy) {
                     summary("blocker", value: SettingsCopy.text(manager.settingsStore.adblockEnabled ? "on" : "off"))
                 }.accessibilityIdentifier("settings.privacy")
-            }
-            Section(SettingsCopy.text("sync")) {
                 NavigationLink(value: SettingsDestination.sync) {
                     summary("sync", value: SettingsCopy.text(manager.syncEngine.status["enabled"]?.bool == true ? "connected" : "notConnected"))
                 }.accessibilityIdentifier("settings.sync")

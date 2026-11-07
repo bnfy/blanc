@@ -18,6 +18,14 @@ async function assertPageAtCoveredTop(world) {
   assert.equal(state.activeBounds.y, coveredTop(state));
 }
 
+/** Native focus gates every reveal (the watch stops on blur), and a step must
+ * not lean on focus an earlier step left behind: the scenario may start in a
+ * just-relaunched app, or another app may take focus during the tip's wait.
+ * Synthetic input does not front the window, so front it before pointing. */
+async function frontForPointer(world) {
+  await waitForValue(() => world.call('focusWindow'), Boolean, 'the window to receive the pointer');
+}
+
 async function waitForAutoHide(world, predicate, label) {
   return waitForValue(() => autoHideState(world), predicate, label);
 }
@@ -105,8 +113,7 @@ Then('the page starts below the Island', async function () {
 });
 
 When('I point at the top edge of the window', async function () {
-  // Native focus gates edge reveal; synthetic input does not front the window.
-  await waitForValue(() => this.call('focusWindow'), Boolean, 'the window to receive the pointer');
+  await frontForPointer(this);
   const state = await this.call('state');
   await restCursor(this, { x: 400, y: 2 });
   assert.equal(await this.call('sendMouseInput', state.activeTabId, { type: 'mouseMove', x: 400, y: 2 }), true);
@@ -122,19 +129,19 @@ Then('the Island is shown above the page', async function () {
 // Only the cursor sample moves: no input event reaches any view, as when the
 // pointer overshoots the window or the platform keeps the band for itself.
 When('the pointer rests at the top edge without the page seeing it move', async function () {
-  await this.call('focusWindow');
+  await frontForPointer(this);
   await restCursor(this, { x: 400, y: 2 });
 });
 
 // Below the instant edge the pointer must rest a moment (REVEAL_DWELL_MS) to
 // reveal the Island; the hidden strip's cursor sampling sees it either way.
 When('the pointer rests {int} pixels below the top edge', async function (y) {
-  await this.call('focusWindow');
+  await frontForPointer(this);
   await restCursor(this, { x: 400, y });
 });
 
 When('the pointer passes {int} pixels below the top edge for {int} milliseconds', async function (y, ms) {
-  await this.call('focusWindow');
+  await frontForPointer(this);
   await restCursor(this, { x: 400, y });
   await sleep(ms);
   await restCursor(this, { x: 400, y: 400 });
@@ -150,17 +157,17 @@ Then('the Island stays hidden after {int} milliseconds', async function (ms) {
 // The rail keeps its column with auto-hide on, so its top is not a reveal
 // band: only the page pane's is. The rail is 248 px wide by default.
 When('the pointer rests at the top edge over the rail', async function () {
-  await this.call('focusWindow');
+  await frontForPointer(this);
   await restCursor(this, { x: 100, y: 2 });
 });
 
 When('the pointer rests {int} pixels down over the rail', async function (y) {
-  await this.call('focusWindow');
+  await frontForPointer(this);
   await restCursor(this, { x: 100, y });
 });
 
 When('the pointer rests at the top edge over the page pane', async function () {
-  await this.call('focusWindow');
+  await frontForPointer(this);
   await restCursor(this, { x: 400, y: 2 });
 });
 
@@ -172,6 +179,7 @@ When('the pointer rests on the page where the hidden address will appear', async
   assert.ok(rect, 'the hover-open steps recorded the address rectangle');
   const point = { x: Math.round(rect.x + rect.width / 2), y: Math.round(rect.y + rect.height / 2) };
   this.hiddenAddressPoint = point;
+  await frontForPointer(this);
   await restCursor(this, point);
   const state = await this.call('state');
   assert.equal(await this.call('sendMouseInput', state.activeTabId, { type: 'mouseMove', ...point }), true);
@@ -272,7 +280,7 @@ After({ tags: '@island-autohide' }, async function () {
   await this.call('setCursorSamplingUnavailable', false).catch(() => {});
 });
 
-// The 6px band the strip document keeps at the top of the page pane while
+// The thin band the strip document keeps at the top of the page pane while
 // the page covers the strip: the window's only drag handle then.
 Then('the thin top band drags the window', async function () {
   await waitForValue(() => this.call('dragBandAppRegion'), (region) => region === 'drag', 'the top band to drag the window');
@@ -508,6 +516,7 @@ Then('the floating pill shows the private theme', async function () {
 });
 
 When('I point at the top edge of the window and switch auto-hide to push at once', async function () {
+  await frontForPointer(this);
   const state = await this.call('state');
   await restCursor(this, { x: 400, y: 2 });
   assert.equal(await this.call('sendMouseInput', state.activeTabId, { type: 'mouseMove', x: 400, y: 2 }), true);

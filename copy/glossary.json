@@ -241,7 +241,9 @@
       "settings.sync.devices.platform.darwin",
       "settings.sync.devices.platform.win32",
       "settings.sync.devices.platform.linux",
-      "settings.sync.devices.platform.ios"
+      "settings.sync.devices.platform.ios",
+      "settings.general.miniWindow.shortcut.altCmdN",
+      "ios.settings.islandPosition"
     ],
     "es": [
       "about.chromium",
@@ -297,7 +299,8 @@
       "settings.sync.devices.platform.darwin",
       "settings.sync.devices.platform.win32",
       "settings.sync.devices.platform.linux",
-      "settings.sync.devices.platform.ios"
+      "settings.sync.devices.platform.ios",
+      "settings.general.miniWindow.shortcut.altCmdN"
     ],
     "fr": [
       "about.chromium",
@@ -362,7 +365,9 @@
       "settings.sync.devices.platform.darwin",
       "settings.sync.devices.platform.win32",
       "settings.sync.devices.platform.linux",
-      "settings.sync.devices.platform.ios"
+      "settings.sync.devices.platform.ios",
+      "settings.general.miniWindow.shortcut.altCmdN",
+      "ios.settings.islandPosition"
     ],
     "pt-BR": [
       "about.chromium",
@@ -417,7 +422,8 @@
       "settings.sync.devices.platform.darwin",
       "settings.sync.devices.platform.win32",
       "settings.sync.devices.platform.linux",
-      "settings.sync.devices.platform.ios"
+      "settings.sync.devices.platform.ios",
+      "settings.general.miniWindow.shortcut.altCmdN"
     ],
     "it": [
       "about.chromium",
@@ -485,7 +491,8 @@
       "settings.sync.devices.platform.darwin",
       "settings.sync.devices.platform.win32",
       "settings.sync.devices.platform.linux",
-      "settings.sync.devices.platform.ios"
+      "settings.sync.devices.platform.ios",
+      "settings.general.miniWindow.shortcut.altCmdN"
     ]
   }
 }

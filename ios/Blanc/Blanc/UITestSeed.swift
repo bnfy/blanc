@@ -12,10 +12,21 @@ enum UITestSeed {
   static var sends: Bool { ProcessInfo.processInfo.arguments.contains("-BlancUITestSends") }
   static var favorites: Bool { ProcessInfo.processInfo.arguments.contains("-BlancUITestFavorites") }
   static var privateTab: Bool { ProcessInfo.processInfo.arguments.contains("-BlancUITestPrivate") }
+  /// `-BlancUITestReduceMotion`: as if Reduce Motion were on.
+  static var reduceMotion: Bool { ProcessInfo.processInfo.arguments.contains("-BlancUITestReduceMotion") }
+  /// `-BlancUITestPageGeometry`: reports the page's frame and safe area.
+  static var pageGeometry: Bool { ProcessInfo.processInfo.arguments.contains("-BlancUITestPageGeometry") }
+  /// `-BlancUITestTapPage`: sync off, one local page titled "tapped" once tapped.
+  static var tapPage: Bool { ProcessInfo.processInfo.arguments.contains("-BlancUITestTapPage") }
+  static let tapPageURL = URL(string: "data:text/html,%3Ctitle%3Eready%3C/title%3E%3Cbody%20style=%22height:100vh;margin:0%22%20onclick=%22document.title='tapped'%22%3E")!
   /// `-BlancUITestStartPage`: sync off, one tab on the Start Page.
   static var startPage: Bool { ProcessInfo.processInfo.arguments.contains("-BlancUITestStartPage") }
   /// `-BlancUITestTwoTabs`: sync off, example.com (current) and example.org.
-  static var twoTabs: Bool { ProcessInfo.processInfo.arguments.contains("-BlancUITestTwoTabs") }
+  static var twoTabs: Bool { glance || ProcessInfo.processInfo.arguments.contains("-BlancUITestTwoTabs") }
+  /// The second of two tabs in a Glance card over the first (F34).
+  static var glance: Bool { ProcessInfo.processInfo.arguments.contains("-BlancUITestGlance") }
+  /// Two tabs side by side (F53), restored from the session as at a relaunch.
+  static var split: Bool { ProcessInfo.processInfo.arguments.contains("-BlancUITestSplit") }
   static let pageURL = URL(string: "https://example.com/")!
   /// `-BlancUITestGroups`: sync off; This iPhone has example.com and
   /// example.org loose and a "Research" group of two example.net pages, and
@@ -34,41 +45,10 @@ enum UITestSeed {
     return SessionState(shown: TabSets.iphoneId, iphone: iphone, spaces: [work])
   }
 
-  /// `-BlancUITestAppStore`: the App Store screenshots' state
-  /// (`scripts/ios-app-store-screenshots.sh`). This iPhone shows blanc.day's
-  /// What's New page (the home page's hero shows another site, and Download
-  /// tells phone visitors Blanc is for computers), with Download loose and a
-  /// "Getting started" group of
-  /// two blanc.day pages, a "Work" Space holds blanc.day's support page, and a
-  /// MacBook Pro sent two pages here. All Blanc's own pages, so no third
-  /// party's site appears in the store.
+  /// `-BlancUITestAppStore`: the App Store screenshots' and preview's state
+  /// (`scripts/ios-app-store-screenshots.sh`); built below, beside the
+  /// Shared Spaces seeds it shares a fake Worker with.
   static var appStore: Bool { ProcessInfo.processInfo.arguments.contains("-BlancUITestAppStore") }
-  static func appStoreState() -> SessionState {
-    let started = TabGroup(id: String(repeating: "e", count: 32), name: "Getting started", color: "#376694")
-    let iphone = SavedSet(tabs: [
-      SavedTab(url: "https://blanc.day/whats-new", title: "What's New"),
-      SavedTab(url: "https://blanc.day/download", title: "Download Blanc"),
-      SavedTab(url: "https://blanc.day/pair", title: "Pair your iPhone", groupId: started.id),
-      SavedTab(url: "https://blanc.day/support", title: "Support", groupId: started.id),
-    ], groups: [started], activeIndex: 0)
-    let work = SpaceRecord(id: String(repeating: "f", count: 32), name: "Work", color: "#426c4c", symbol: "briefcase",
-                           set: SavedSet(tabs: [SavedTab(url: "https://blanc.day/support", title: "Support")]))
-    return SessionState(shown: TabSets.iphoneId, iphone: iphone, spaces: [work])
-  }
-
-  static func seedAppStoreSends(into directory: URL) {
-    let now = Int64(Date().timeIntervalSince1970 * 1000)
-    let state = #"{"enabled":true,"handle":"Blanc","accountId":"\#(String(repeating: "c", count: 64))","deviceId":"phone-test","syncTabs":false}"#
-    let sends = """
-      {"devices":{"mac":{"name":"MacBook Pro","platform":"darwin","updatedAt":\(now),"items":[\
-      {"id":"s1","to":"phone-test","url":"https://blanc.day/whats-new","title":"What's New in Blanc","sentAt":\(now - 240_000)},\
-      {"id":"s2","to":"phone-test","url":"https://blanc.day/features","title":"Blanc features","sentAt":\(now - 10_800_000)}]}},\
-      "dismissed":{}}
-      """
-    try? FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
-    try? Data(state.utf8).write(to: directory.appendingPathComponent("sync.json"))
-    try? Data(sends.utf8).write(to: directory.appendingPathComponent("sync-sends.json"))
-  }
 
   static func seedSends(into directory: URL) {
     let now = Int64(Date().timeIntervalSince1970 * 1000)
@@ -242,6 +222,7 @@ extension UITestSeed {
     }
     /// What the fake Worker serves, by store name.
     static func workerStores() -> [String: JSONValue] {
+        if appStore { return appStoreWorkerStores() }
         var stores: [String: JSONValue] = [
             "settings": .object([("values", .object([])), ("clocks", .object([]))]),
             "session": macSession(),
@@ -274,6 +255,15 @@ extension UITestSeed {
         try? shared.noteLocalSpace(id: workId, blob: old, edits: nil)
     }
 
+    /// `-BlancUITestSplit`: This iPhone's two tabs saved as a split, plus a third.
+    static func splitState() -> SessionState {
+        SessionState(iphone: SavedSet(
+            tabs: [SavedTab(url: pageURL.absoluteString, title: "Example Domain"),
+                   SavedTab(url: "https://example.org/", title: "Example Domain"),
+                   SavedTab(url: "https://example.net/", title: "Example Domain")],
+            splits: [SavedSplit(id: "split-seed", ratio: 0.5)], splitIds: ["split-seed", "split-seed", nil]))
+    }
+
     static func sharedSpacesState() -> SessionState {
         if sharedSpacesOn {
             let work = SpaceRecord(
@@ -295,6 +285,102 @@ extension UITestSeed {
         return SessionState(shown: TabSets.iphoneId,
                             iphone: SavedSet(tabs: [SavedTab(url: pageURL.absoluteString, title: "Example Domain")]),
                             spaces: [reading, archive])
+    }
+}
+
+/// `-BlancUITestAppStore`: This iPhone holds public-domain paintings from
+/// The Met's open-access collection (owner's choice, November 2, 2026), three
+/// of them in a "Museum day" group; a "Work" Space holds blanc.day pages, and
+/// "Trip", made on a MacBook Pro, is shared with it. The MacBook Pro's open
+/// tabs and two pages it sent here come from the same in-memory fake Worker
+/// as the Shared Spaces seeds, so nothing reaches the network but the pages.
+extension UITestSeed {
+    static func met(_ id: Int) -> String { "https://www.metmuseum.org/art/collection/search/\(id)" }
+    static let tripId = hex(0x7a)
+    static func appStoreTripBlob() -> JSONValue {
+        blob(tripId, tabs: [(hex(0x7a1), "https://www.metmuseum.org/plan-your-visit", "Plan Your Visit | The Met", nil),
+                            (hex(0x7a2), "https://www.metmuseum.org/plan-your-visit/met-cloisters", "The Met Cloisters", nil)])
+    }
+
+    static func appStoreState() -> SessionState {
+        let museum = TabGroup(id: hex(0xe1), name: "Museum day", color: "#815c02")
+        let iphone = SavedSet(tabs: [
+            SavedTab(url: met(436535), title: "Wheat Field with Cypresses"),
+            SavedTab(url: met(45434), title: "Under the Wave off Kanagawa"),
+            SavedTab(url: met(437127), title: "Bridge over a Pond of Water Lilies", groupId: museum.id),
+            SavedTab(url: met(436524), title: "Sunflowers", groupId: museum.id),
+            SavedTab(url: met(437881), title: "Young Woman with a Water Pitcher", groupId: museum.id),
+        ], groups: [museum], activeIndex: 0)
+        let work = SpaceRecord(id: hex(0xf1), name: "Work", color: "#426c4c", symbol: "briefcase",
+                               set: SavedSet(tabs: [SavedTab(url: "https://blanc.day/features", title: "Blanc features"),
+                                                    SavedTab(url: "https://blanc.day/support", title: "Support")]))
+        let trip = SpaceRecord(
+            id: hex(0xf2), name: "Trip", color: "#376694", symbol: "plane",
+            set: SavedSet(tabs: [SavedTab(url: "https://www.metmuseum.org/plan-your-visit", title: "Plan Your Visit | The Met", tabId: hex(0x7a1)),
+                                 SavedTab(url: "https://www.metmuseum.org/plan-your-visit/met-cloisters", title: "The Met Cloisters", tabId: hex(0x7a2))]),
+            sharedId: tripId, link: .active)
+        return SessionState(shown: TabSets.iphoneId, iphone: iphone, spaces: [work, trip],
+                            sharedBaselines: [tripId: appStoreTripBlob()], sharedAccount: sharedAccount)
+    }
+
+    private static func appStoreMacSession() -> JSONValue {
+        let now = Double(Int64(Date().timeIntervalSince1970 * 1000))
+        let tabs: [(String, String)] = [
+            (met(436528), "Irises"),
+            ("https://www.metmuseum.org/exhibitions", "Exhibitions | The Met"),
+            ("https://blanc.day/whats-new", "What’s New in Blanc"),
+            ("https://blanc.day/features", "Blanc features"),
+        ]
+        return .object([("devices", .object([("mac", .object([
+            ("name", .string("MacBook Pro")), ("platform", .string("darwin")), ("updatedAt", .number(now)),
+            ("tabs", .array(tabs.map { url, title in
+                .object([("url", .string(url)), ("title", .string(title)), ("groupId", .null), ("pinned", .bool(false))])
+            })),
+            ("groups", .array([])),
+        ]))]))])
+    }
+
+    private static func appStoreSends() -> JSONValue {
+        let now = Double(Int64(Date().timeIntervalSince1970 * 1000))
+        func item(_ id: String, _ url: String, _ title: String, ago: Double) -> JSONValue {
+            .object([("id", .string(id)), ("to", .string("phone-test")), ("url", .string(url)),
+                     ("title", .string(title)), ("sentAt", .number(now - ago))])
+        }
+        return .object([("mac", .object([
+            ("name", .string("MacBook Pro")), ("platform", .string("darwin")), ("updatedAt", .number(now)),
+            ("items", .array([
+                item("s1", met(436532), "Self-Portrait with a Straw Hat", ago: 240_000),
+                item("s2", "https://www.metmuseum.org/plan-your-visit", "Plan Your Visit | The Met", ago: 10_800_000),
+            ])),
+        ]))])
+    }
+
+    static func appStoreWorkerStores() -> [String: JSONValue] {
+        [
+            "settings": .object([("values", .object([])), ("clocks", .object([]))]),
+            "session": appStoreMacSession(),
+            "sends": .object([("devices", appStoreSends())]),
+            "spaces": index([(tripId, "Trip", appStoreTripBlob())]),
+            "space-" + tripId: appStoreTripBlob(),
+        ]
+    }
+
+    static func seedAppStore(into directory: URL) {
+        let state = #"{"enabled":true,"handle":"Blanc","accountId":"\#(sharedAccount)","deviceId":"phone-test","syncTabs":false}"#
+        try? FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
+        for name in ["shared-spaces.json", "sync-closed.json", "sync-favorites.json",
+                     "recently-closed.json", "sync-settings.json", "sync-icons.json"] {
+            try? FileManager.default.removeItem(at: directory.appendingPathComponent(name))
+        }
+        try? Data(state.utf8).write(to: directory.appendingPathComponent("sync.json"))
+        try? Data(appStoreMacSession().jsStringify().utf8).write(to: directory.appendingPathComponent("sync-session.json"))
+        let sends = JSONValue.object([("devices", appStoreSends()), ("dismissed", .object([]))])
+        try? Data(sends.jsStringify().utf8).write(to: directory.appendingPathComponent("sync-sends.json"))
+        let shared = SharedSpacesState(directory: directory)
+        shared.rebind(accountId: sharedAccount)
+        shared.setEnabled(true)
+        try? shared.setIndex(index([(tripId, "Trip", appStoreTripBlob())]))
+        try? shared.noteLocalSpace(id: tripId, blob: appStoreTripBlob(), edits: nil)
     }
 }
 

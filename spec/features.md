@@ -26,7 +26,11 @@ toolbar (Bowser Design System "Island Chrome").
   draws each direct tab as its site icon instead, and fewer fit before `+N`;
   a pinned tab's dot is a rounded square), favicon,
   domain, shield count (F12), a private chip when private (F4), and a trailing
-  action cluster (reload / favorite / close tab / downloads). The resting pill
+  action cluster (reload / favorite / close tab / downloads). On desktop,
+  Settings → General → **Island size** (Default, Large, Extra large;
+  device-local, never synced) scales the resting pill and everything in it,
+  and the strip that holds it grows with it, so pages start lower. The
+  expanded panel keeps its size. The resting pill
   carries **no group name** — group identity is named in full in the panel
   (F3). Each dot always represents one tab; making a tab quiet (F31) never
   removes, moves, or restyles its dot. In
@@ -1750,6 +1754,12 @@ Two gestures Arc's iPhone users rely on, asked for on r/ArcBrowser
 - **Flick up to close.** The palette's resting switcher is a horizontal strip
   of page cards, groups as labeled runs; a card closes when flicked up, like
   the iOS app switcher, and reopens like a tab closed with `/close`.
+- **Pull to refresh.** Pulling a page down from its top reloads it, the
+  Island's Reload (desktop's ⌘R, D7), as Safari does. The system spinner, in
+  its light or dark style, whichever shows against the page, stays until the
+  reload finishes or fails, and Stop ends it. A page scrolled down scrolls back up first. Not on the Start
+  Page, in Reader (its own view, the page beneath untouched), or on a quiet tab
+  until it wakes. Added on 2026-11-02 at the owner's request.
 - **Equivalents.** VoiceOver actions (Next tab, Previous tab, Close) and
   `/close`; Reduce Motion replaces the slide with a cross-fade.
 - **Desktop.** Not applicable: trackpad and keyboard tab switching already
@@ -1847,10 +1857,11 @@ the candidate branch; not shipped in public v1.43.1.
   you used them (default) or in the order of the tab list. Device-local, never
   synced. Ctrl+PageDown / Ctrl+PageUp always go by list position.
 - **Platforms.** Recent order needs Blanc to see the Ctrl release; it ships
-  only where that has been proven with real keys (Linux and Windows).
+  only where that has been proven with real keys (Linux, Windows and macOS).
   Elsewhere Ctrl+Tab keeps going by position and the setting is hidden. On
   Windows, Ctrl+Esc is the Start menu, so Esc can't cancel; Blanc losing focus
-  cancels the switch.
+  cancels the switch. On macOS, where ⌘W closes tabs, Ctrl+W during a switch
+  cancels like any other key.
 - **Card.** From the second step (or 150 ms into a held Ctrl), a row of
   favicon tiles under the Island shows the pick raised, with its title and
   host. It never takes focus; a click on a tile switches at once; Ctrl+W closes
@@ -1915,3 +1926,43 @@ candidate branch (PR 1); not shipped in public v1.43.1.
   write its host to settings; the pill says so.
 - **Mobile.** Not applicable until a mobile Blanc has profiles to route
   between (D32).
+
+## F61 — Mini Window (desktop)
+
+A small Blanc window opened over the app the person is in, to look something
+up or open a link without going back to the Blanc window (#1138). Design:
+`docs/superpowers/specs/2026-11-02-mini-window-design.md`. Implemented on the
+candidate branch (PR 1); not in a public release.
+
+- **Opening one.** File → New Mini Window, the macOS Dock menu, or an opt-in
+  shortcut that works in any app while Blanc runs (Settings → General → Mini
+  window shortcut; off by default, device-local). The choices are ⌥⌘N or ⌃⌥Space
+  on macOS, and Ctrl+Alt+Space or Ctrl+Shift+Space on Windows and Linux. A
+  chord that can't be used is reported in Settings.
+- **The window.** 760 × 600 on the display under the pointer, a new tab with
+  the Island's search focused. Otherwise an ordinary window: the same Island,
+  blocking and permissions.
+- **Ephemeral.** Never saved with the session, never where a link from
+  another app or a link rule opens, and holds no Space. Closes by itself after
+  an hour without focus, unless a page in it is in use or has unsaved work.
+  Its pages stay in History. Closing its last tab (⌘W) closes the window
+  rather than leaving a blank tab.
+- **Open in Blanc.** The Island's leading button (and a File menu item) keeps
+  it as an ordinary window: a new window's size, saved from then on.
+- **Mobile.** Not applicable.
+
+## F62 — Default page zoom (desktop)
+
+- **Default page zoom.** Settings → General → Appearance sets the size web pages
+  open at, from 50% to 200%. A change reaches open tabs at once. Blanc's own
+  pages stay at 100%; PDFs keep the viewer's zoom; sign-in popup windows are not
+  covered.
+- **Per-site zoom.** ⌘+ and ⌘− save a size for that site in the current profile,
+  and every tab on the site follows. ⌘0 forgets it and returns to the default. A
+  site can stay at 100% under another default. Steps follow Chrome's list, so
+  100% is always reachable. Settings lists saved sites with Remove and Clear all.
+- **Privacy.** Saved sites stay on the device, are never synced, and stay when
+  history is cleared. Private tabs read them and write nothing: their own zoom
+  lasts until quit. Browsing leaves no list of visited sites in Chromium's files.
+- **Mobile.** Not applicable: pages use native pinch-zoom and reflow (F23, D10).
+- **Acceptance:** `spec/acceptance/page-zoom.feature`.

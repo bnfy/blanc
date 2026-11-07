@@ -13,6 +13,10 @@ enum IslandMenuItem: Equatable {
     case send
     case share
     case find
+    /// Glance (F34), in the wide layout: Open in Glance ▸ lists the other
+    /// open tabs; Close Glance while a card is open.
+    case glance
+    case closeGlance
     case newPrivateTab
 }
 
@@ -33,6 +37,8 @@ enum IslandMenu {
             if manager.canSend(tab), !manager.syncEngine.sendTargets.isEmpty { items.append(.send) }
             items.append(contentsOf: [.share, .find])
         }
+        if manager.glanceTab != nil { items.append(.closeGlance) }
+        else if manager.canOpenGlance, !manager.glanceCandidates.isEmpty { items.append(.glance) }
         items.append(.newPrivateTab)
         return items
     }

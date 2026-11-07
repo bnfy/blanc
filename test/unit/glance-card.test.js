@@ -112,3 +112,12 @@ test("the card's stylesheet matches its geometry: ring, corner radius and page i
   assert.equal(px('glance-card-radius'), CARD_RADIUS);
   assert.equal(px('glance-page-inset'), CARD_PAGE_INSET);
 });
+
+test('the card draws no border and no line around its page, focused or not', () => {
+  const css = fs.readFileSync(path.join(__dirname, '../../src/renderer/styles.css'), 'utf8');
+  assert.doesNotMatch(css, /\.glance-card(\.focused)?::(after|before)/);
+  assert.doesNotMatch(css, /\.glance-card\.focused \{/);
+  const card = css.match(/html\[data-surface="glance"\] \.glance-card \{([^}]*)\}/)?.[1] ?? '';
+  // 1 px wide still: the header and page inset are measured inside it.
+  assert.match(card, /border: 1px solid transparent;/);
+});

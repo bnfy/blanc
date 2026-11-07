@@ -71,6 +71,14 @@ publication, so it has to be live first.
   `site:build` failing with `astro: command not found`.
 - Confirm that no `vX.Y.Z` tag, draft or release exists. A draft doesn't show
   up under `releases/tags/<tag>`, so list releases instead.
+- **Run the press gate ahead of time** in that worktree, after the last
+  merge to `main`: `npm run release:prepare`. It installs as `release.sh`
+  does and runs the whole gate unattended (no 1Password, no TTY, publishes
+  nothing, so an agent may run it in the background), keeping going past a
+  failure; rerun it to retry only what failed. `npm run release:gate:status`
+  shows what is still owed. When only `release:security` (always rerun) is
+  left, start the release. Any commit on `main` after it voids the passes, so
+  hold merges until the release starts, and use the same `node` for both.
 - Confirm `gh auth status`, `op` and `cosign` work, and that no other release
   is running (`ps -eo pid,command | grep -E 'release\.sh|electron-builder'`).
   A second run's `npm ci` deletes `node_modules` under the first.
@@ -168,6 +176,12 @@ before another release.
    failures fail at once), the desktop smokes (Favorites
    picker, wallpaper, cold launch, browser shortcuts, Web Store, OAuth,
    modified links, DNS), the security audit, and the site build.
+   `scripts/release-gate.mjs` runs them and keeps a ledger in
+   `output/release-gate/<commit>/`: a stage or scenario that already passed
+   on this commit, installed tree, Node and Electron (within 48 hours, its
+   log or message file unchanged) is skipped, so after `release:prepare` the
+   gate takes seconds. `release:security` always reruns. It ends with a
+   `Press gate evidence:` block.
 3. Preflights the macOS identity and provisioning profile, then builds
    notarized macOS artifacts for both architectures inside
    `op run --env-file=.env.1password`. If `op` is missing it refuses; it
@@ -199,7 +213,12 @@ before another release.
   `ecs-acceptance` (ECS releases only: installed uBO, file isolation and
   protected playback on the signed app).
   This reuses the stamped build instead of rebuilding and re-notarizing.
-  Press-gate and build failures can't be resumed this way.
+  Build failures can't be resumed this way.
+- **Press gate failure or Ctrl+C:** relaunch the same command (or
+  `npm run release:prepare` first) on the same commit. The gate runs only
+  what is still owed; in acceptance, only the scenarios that failed or never
+  finished, each with the full in-run retry and fresh rerun. A real bug
+  still means a fix, which is a new commit and a whole fresh gate.
 - **Before the tag push, real bug:** stop and ask the user. Fix it in its own
   PR, then rerun the same version, which is allowed because no tag exists.
   Before relaunching, list every commit that landed on main since the failed
@@ -239,9 +258,10 @@ short:
    so rerun just that job.
 4. **Records PR** from a separate clean worktree:
    - a dated incident in `docs/release-incidents/`, linking any evidence the
-     release gate requires, and quoting verbatim any `Acceptance rerun passed`
-     block from the release log (the owner allows a passing rerun only if it
-     is logged);
+     release gate requires, and quoting verbatim the `Press gate evidence:`
+     block and any `Acceptance rerun passed` block from the release log (the
+     owner allows a passing rerun only if it is logged); keep the release
+     worktree's `output/release-gate/` until this PR merges;
    - the public baseline in `CLAUDE.md` and `AGENTS.md`, kept byte-identical;
    - the capability boundaries in `docs/marketing-claims.md`;
    - `site/src/data/releases.json` (`npm run site:changelog`), plus the

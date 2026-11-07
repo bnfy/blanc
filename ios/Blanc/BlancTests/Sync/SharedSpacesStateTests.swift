@@ -99,6 +99,60 @@ import XCTest
     XCTAssertNotNil(out["spaces"]?[id(2)])
   }
 
+  // Nov 2, 2026: the phone published its 47-minute-old receipt over the Mac's
+  // newer hint, and then never fetched the Mac's later writes.
+  func hinted(_ rev: String, _ revAt: Int64, _ revBy: String) throws -> JSONValue {
+    .object([
+      ("v", .number(1)),
+      (
+        "spaces",
+        .object([
+          (
+            space,
+            .object([
+              ("name", f(.string("Work"))), ("color", f(.string("#426c4c"))), ("symbol", f(.string("briefcase"))),
+              ("pos", f(.string(try M.keyFor("", "", space)))), ("deleted", f(.bool(false))),
+              ("rev", .string(rev)), ("revAt", .number(Double(revAt))), ("revBy", .string(revBy)),
+            ])
+          )
+        ])
+      ),
+    ])
+  }
+  func testAReceiptAnotherDevicePublishedOverIsDroppedAndThePhoneFetches() throws {
+    let state = make()
+    state.rebind(accountId: "a")
+    let remote = blob([])
+    try state.mergeIndex(try hinted(M.revisionOf(remote), 10, "mac"))
+    try state.noteLocalSpace(id: space, blob: blob([(id(1), try tab(1, c: 300))]), edits: .object([("tabs", .object([(id(1), try tab(1, c: 300))]))]))
+    let plan = try state.mergeSpace(
+      id: space, remote: remote, version: "v", deviceId: "phone", now: clock, encrypt: SharedSpacesModelTests.encrypt())
+    XCTAssertNotNil(plan.upload)
+    state.settleSpace(id: space, plan: plan, blobStored: true, indexStored: false)
+    XCTAssertNotNil(state.data["pending"]?[space]?["index"]?["base"], "the receipt names the hint it replaces")
+    // Before the phone publishes its receipt, the Mac writes over the phone's
+    // blob and publishes that newer revision by a clock that runs behind.
+    try state.mergeIndex(try hinted("3333333333333333", clock - 5000, "mac"))
+    let out = try state.exportIndex(deviceId: "phone", now: clock)
+    XCTAssertEqual(out["spaces"]?[space]?["rev"], .string("3333333333333333"), "the stale receipt does not regress the hint")
+    state.settleIndex(out, accountId: "a", deviceId: "phone")
+    XCTAssertNil(state.data["pending"]?[space]?["index"])
+    XCTAssertNotEqual(state.data["index"]?["spaces"]?[space]?["rev"], state.data["blobs"]?[space]?["rev"], "due to fetch")
+  }
+  func testADownloadTheHintDoesNotDescribeCorrectsIt() throws {
+    let state = make()
+    state.rebind(accountId: "a")
+    let remote = blob([(id(1), try tab(1, c: 300, by: "mac"))])
+    try state.mergeIndex(try hinted("1111111111111111", 70, "phone"))
+    let plan = try state.mergeSpace(
+      id: space, remote: remote, version: "v2", deviceId: "phone", now: clock, encrypt: SharedSpacesModelTests.encrypt())
+    XCTAssertNil(plan.upload)
+    XCTAssertEqual(state.data["pending"]?[space]?["index"]?["rev"], .string(M.revisionOf(remote)))
+    let out = try state.exportIndex(deviceId: "phone", now: clock)
+    XCTAssertEqual(out["spaces"]?[space]?["rev"], .string(M.revisionOf(remote)))
+    XCTAssertGreaterThan(out["spaces"]?[space]?["revAt"]?.number ?? 0, 70)
+  }
+
   func testAFailedUploadKeepsPendingWrites() throws {
     let state = make()
     state.rebind(accountId: "a")

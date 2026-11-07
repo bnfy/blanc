@@ -89,6 +89,52 @@ test('the rerun profile is runnable without paths and without retries', async ()
   assert.deepEqual(rerun.import, runnable.import);
 });
 
+test('the remaining profile resumes owed scenarios with the full run\'s retry', async () => {
+  const { runnable, rerun, remaining } = await cucumberConfig();
+  assert.equal(remaining.paths, undefined, 'positional path:line arguments are the whole selection');
+  assert.equal(remaining.retry, runnable.retry, 'a resumed scenario gets the same in-run budget');
+  assert.equal(remaining.tags, runnable.tags);
+  assert.deepEqual(remaining.require, rerun.require);
+});
+
+test('the first run is the whole profile, or exactly the owed list from --only', async () => {
+  const { firstRun, parseOnly } = await gate();
+  assert.deepEqual(firstRun(null), { profile: 'runnable', args: [] });
+  assert.deepEqual(firstRun(['spec/acceptance/a.feature:20']), { profile: 'remaining', args: ['spec/acceptance/a.feature:20'] });
+  assert.equal(parseOnly(['--other']), null);
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'blanc-acceptance-only-'));
+  try {
+    const file = path.join(dir, 'only.json');
+    fs.writeFileSync(file, JSON.stringify(['spec/acceptance/a.feature:20', 'spec/acceptance/b.feature:5']));
+    assert.deepEqual(parseOnly(['--only', file]), ['spec/acceptance/a.feature:20', 'spec/acceptance/b.feature:5']);
+    for (const bad of [[], ['spec/acceptance/a.feature'], [20]]) {
+      fs.writeFileSync(file, JSON.stringify(bad));
+      assert.throws(() => parseOnly(['--only', file]), /path:line/);
+    }
+  } finally {
+    fs.rmSync(dir, { recursive: true, force: true });
+  }
+});
+
+test('the dry run writes the message stream the press gate takes its expected scenarios from', async () => {
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'blanc-acceptance-messages-'));
+  try {
+    const file = path.join(dir, 'expected.ndjson');
+    const result = spawnSync('npx', ['cucumber-js', '-c', 'test/desktop/cucumber.mjs', '-p', 'dry'], {
+      cwd: root, encoding: 'utf8', shell: process.platform === 'win32', env: { ...process.env, BLANC_ACCEPTANCE_MESSAGES: file },
+    });
+    assert.equal(result.status, 0, result.stderr);
+    const { expectedScenarios, readMessages } = await import(pathToFileURL(path.join(root, 'scripts', 'release-gate.mjs')).href);
+    const expected = expectedScenarios(readMessages(file));
+    assert.ok(expected.length > 500, `${expected.length} runnable scenarios`);
+    const locations = expected.map((s) => s.location);
+    assert.equal(new Set(locations).size, locations.length, 'path:line locations are unique');
+    assert.ok(locations.every((l) => /^spec\/acceptance\/.+\.feature:\d+$/.test(l)));
+  } finally {
+    fs.rmSync(dir, { recursive: true, force: true });
+  }
+});
+
 test('a path:line rerun selects exactly those scenarios, Outline example rows included', () => {
   const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'blanc-gate-select-'));
   try {
@@ -113,14 +159,30 @@ test('a path:line rerun selects exactly those scenarios, Outline example rows in
   }
 });
 
-test('the press gate runs acceptance through the rerunning gate', () => {
+test('the press gate runs acceptance through the rerunning gate', async () => {
   const pkg = JSON.parse(fs.readFileSync(path.join(root, 'package.json'), 'utf8'));
-  const press = pkg.scripts['release:verify:press'];
-  assert.match(press, /npm run test:acceptance:gate &&/);
-  assert.doesNotMatch(press, /test:acceptance:desktop/);
+  assert.equal(pkg.scripts['release:verify:press'], 'node scripts/release-gate.mjs run');
+  const { STAGES } = await import(pathToFileURL(path.join(root, 'scripts', 'release-gate.mjs')).href);
+  const scripts = STAGES.map((s) => s.script);
+  assert.ok(scripts.includes('test:acceptance:gate'));
+  assert.ok(!scripts.includes('test:acceptance:desktop'));
   assert.equal(pkg.scripts['test:acceptance:gate'], 'node scripts/acceptance-gate.mjs');
   assert.equal(pkg.scripts['pretest:acceptance:gate'], 'npm run runtime:check');
   assert.equal(pkg.scripts['test:acceptance:desktop'], 'cucumber-js -c test/desktop/cucumber.mjs -p runnable', 'nightly and PR runs stay plain');
+});
+
+test('an owner press waiver skips only the press gate and prints its reason', () => {
+  const release = fs.readFileSync(path.join(root, 'scripts', 'release.sh'), 'utf8');
+  const block = release.match(/  if \[ -n "\$\{BLANC_RELEASE_PRESS_WAIVER:-\}" \]; then\n([\s\S]*?)\n  fi\n/);
+  assert.ok(block, 'the waiver wraps the press gate');
+  assert.match(block[1], /echo "    Waiver: \$BLANC_RELEASE_PRESS_WAIVER"/);
+  assert.match(block[1], /  else\n    npm run release:verify:press$/);
+  assert.equal(release.split('npm run release:verify:press').length, 2, 'the press gate runs nowhere else');
+  const after = release.slice(release.indexOf(block[0]) + block[0].length);
+  assert.match(after, /preflight-mac-signing\.mjs/, 'signing preflight still runs');
+  assert.match(after, /Cleaning and building notarized macOS artifacts/, 'the build still runs');
+  const docs = fs.readFileSync(path.join(root, 'docs', 'release-verification.md'), 'utf8');
+  assert.match(docs, /BLANC_RELEASE_PRESS_WAIVER/);
 });
 
 test('release.sh keeps the Mac awake for the whole release, and the skill says how to record a rerun', () => {

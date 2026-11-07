@@ -81,7 +81,7 @@
     },
     {
       "file": "cloudflare/sync-worker/src/index.js",
-      "sha256": "af0c77e55123f03b181465f384cd4625f6edae49a065e571a966787ff6ce48e4",
+      "sha256": "4fcd6fe77d0dddd211cdf1edc25fcb1eec712548b1dcb29c7ce55a6cd420514e",
       "literalChannels": [],
       "role": "privileged implementation or service"
     },
@@ -260,7 +260,7 @@
     },
     {
       "file": "src/main/main.js",
-      "sha256": "8155fe84c72a494e59cd40cf15c9807a91049488453dd9e45d5bebe07e47124e",
+      "sha256": "639b73f041db9cd103758b4e3d41c694fd6644b401c9aaf8145bc2c6fe640083",
       "literalChannels": [
         "activate",
         "bang-icons:changed",
@@ -268,6 +268,7 @@
         "before-input-event",
         "before-mouse-event",
         "before-quit",
+        "before-quit-for-update",
         "blur",
         "browser-window-blur",
         "browser-window-focus",
@@ -309,6 +310,7 @@
         "chrome:island-rect",
         "chrome:island-state",
         "chrome:layout",
+        "chrome:mini-keep",
         "chrome:new-group",
         "chrome:onepassword-fill",
         "chrome:open-capture",
@@ -375,6 +377,7 @@
         "did-finish-load",
         "did-navigate",
         "display-capture:picker-resolve",
+        "error",
         "fill:reply",
         "focus",
         "groups:move-closed",
@@ -515,7 +518,7 @@
     },
     {
       "file": "src/main/pages.js",
-      "sha256": "30ba5622820c6283b841c89f7da2829029ff36635b3445727c498c26ea19347f",
+      "sha256": "0b3e4a1d96ff351d4b432ef607e862f6ef49a144fd582ee524743f874ad10a16",
       "literalChannels": [
         "blanc",
         "pages:app-version",
@@ -651,7 +654,10 @@
         "pages:tab-import:submit-embeddings",
         "pages:tab-import:suggest-embed",
         "pages:tab-import:suggest-source-groups",
-        "pages:telemetry:reset-install-id"
+        "pages:telemetry:reset-install-id",
+        "pages:zoom:clear",
+        "pages:zoom:list",
+        "pages:zoom:remove"
       ],
       "role": "privileged implementation or service"
     },
@@ -663,7 +669,7 @@
     },
     {
       "file": "src/main/preload.js",
-      "sha256": "f22fdd3da2335968ae4f9cbf66c954ba159dcd0812c719637e8c10847cd54953",
+      "sha256": "61b13ec4e7d6da6e7fe5e5ac4642bf9904bf7e490f437d46a909b0ce86f64882",
       "literalChannels": [
         "bang-icons:changed",
         "bangs:changed",
@@ -701,6 +707,7 @@
         "chrome:island-rect",
         "chrome:island-state",
         "chrome:layout",
+        "chrome:mini-keep",
         "chrome:new-group",
         "chrome:onepassword-fill",
         "chrome:open-capture",
@@ -962,7 +969,7 @@
     },
     {
       "file": "src/main/sync.js",
-      "sha256": "95fbe103c873417275d0382ae1a010f959bc1799823db0e90b25189f9c790562",
+      "sha256": "0a7c5974677f186c08ab657512173eb20beaf3f5571e1373ceb5aa3cb701271f",
       "literalChannels": [
         "before-quit"
       ],
@@ -976,7 +983,7 @@
     },
     {
       "file": "src/main/tab-preload.js",
-      "sha256": "b1c9163a2e555eba26ed2b28967d4a458052b8a527d93d0827b49a5504f7b1c0",
+      "sha256": "77c36a7b0ef913b38a90983ec9534f594ff7beba05c40440a7d68ef4a738f38d",
       "literalChannels": [
         "page-tint:changed",
         "pages:app-version",
@@ -1121,7 +1128,10 @@
         "pages:tab-import:submit-embeddings",
         "pages:tab-import:suggest-embed",
         "pages:tab-import:suggest-source-groups",
-        "pages:telemetry:reset-install-id"
+        "pages:telemetry:reset-install-id",
+        "pages:zoom:clear",
+        "pages:zoom:list",
+        "pages:zoom:remove"
       ],
       "role": "preload"
     },
@@ -1133,7 +1143,7 @@
     },
     {
       "file": "src/main/tab-view.js",
-      "sha256": "83cf296d7abda8e716a350defc5521474ca5bb491bcd3dd9cd6a2f4524e3f441",
+      "sha256": "1addfe4ae5bd844a2384c6fcea421ba2c3da5bcdc24cc18191a41a5d88e05d28",
       "literalChannels": [
         "audio-state-changed",
         "before-input-event",

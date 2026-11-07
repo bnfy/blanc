@@ -126,6 +126,8 @@ final class SettingsUITests: XCTestCase {
     func testSyncPairingAndDisconnectConfirmation() {
         open("/sync")
         tap("settings.otherWays")
+        // The code field is built after "Other ways" opens; wait before asking what kind it is.
+        XCTAssertTrue(app.descendants(matching: .any)["settings.syncCode"].waitForExistence(timeout: 5))
         let code = app.textViews["settings.syncCode"]
         // TextField(axis: .vertical) is exposed as a text view on current iOS.
         let input = code.exists ? code : app.textFields["settings.syncCode"]
@@ -190,6 +192,8 @@ final class SettingsUITests: XCTestCase {
         app.terminate(); launch(reset: true, extra: ["-BlancUITestSettingsOffline"])
         open("/sync")
         tap("settings.otherWays")
+        // The code field is built after "Other ways" opens; wait before asking what kind it is.
+        XCTAssertTrue(app.descendants(matching: .any)["settings.syncCode"].waitForExistence(timeout: 5))
         let code = app.textViews["settings.syncCode"]
         let input = code.exists ? code : app.textFields["settings.syncCode"]
         input.tap(); input.typeText("K7MR-4PX2")
@@ -200,18 +204,37 @@ final class SettingsUITests: XCTestCase {
         capture("Native Settings — Sync error")
     }
     /// iOS confirms every icon change with its own alert, shown by SpringBoard.
-    private func dismissIconChangedNotice() {
+    private func dismissIconChangedNotice(_ id: String) {
         // It can come from either, and on a busy CI simulator it can take
-        // more than 5 s, so both are watched for one longer window.
+        // more than 5 s, so both are watched for one longer window. XCTest
+        // can also dismiss it itself, as an interruption of the tap that
+        // asked for the change (CI, iOS 26.5, 2026-11-03): then the choice
+        // shows with no alert left to dismiss.
         let springboard = XCUIApplication(bundleIdentifier: "com.apple.springboard")
         let buttons = [springboard.alerts.buttons["OK"], app.alerts.buttons["OK"]]
         let deadline = Date().addingTimeInterval(20)
         while Date() < deadline {
             for ok in buttons where ok.waitForExistence(timeout: 1) { ok.tap(); return }
+            if appIcon(id).isSelected, !springboard.alerts.firstMatch.exists { return }
         }
         XCTFail("iOS did not confirm the icon change")
     }
     private func appIcon(_ id: String) -> XCUIElement { app.buttons["appIcon.\(id)"] }
+    /// A dropdown's value and a switch stay readable when the theme changes with
+    /// Settings open. Dark then Light: one of them differs from the system's.
+    func testControlsStayReadableAfterAThemeChange() {
+        open()
+        for theme in ["Dark", "Light"] {
+            tap("settings.theme"); app.buttons[theme].tap()
+            sleep(2)
+            let value = app.descendants(matching: .any)["settings.searchEngine"].screenshot().image
+            XCTAssertGreaterThan(value.contrast(inRightFraction: 0.45), 0.35, "\(theme): the search engine's value")
+        }
+        tap("settings.theme"); app.buttons["Dark"].tap()
+        sleep(2)
+        let toggle = app.descendants(matching: .any)["settings.islandTuck"].screenshot().image
+        XCTAssertGreaterThan(toggle.saturation(inRightFraction: 0.2), 0.12, "a switch that's on isn't white on white")
+    }
     func testAppIconPicker() {
         let ids = ["sunrise-gold", "sunrise-dawn", "sunrise", "sunrise-dark", "sunrise-spectrum", "sunrise-amber"]
         open()
@@ -220,15 +243,47 @@ final class SettingsUITests: XCTestCase {
         XCTAssertEqual(ids.filter { appIcon($0).isSelected }, ["sunrise-gold"])
         capture("Native Settings — App icon")
         appIcon("sunrise-dawn").tap()
-        dismissIconChangedNotice()
-        XCTAssertTrue(appIcon("sunrise-dawn").waitForSelection())
+        dismissIconChangedNotice("sunrise-dawn")
+        XCTAssertTrue(appIcon("sunrise-dawn").waitForSelection(timeout: 15))
         app.terminate(); launch(reset: false)
         open(); tap("settings.appIcon")
         XCTAssertTrue(appIcon("sunrise-dawn").waitForSelection(), "the choice survives a relaunch")
         appIcon("sunrise-gold").tap()
-        dismissIconChangedNotice()
-        XCTAssertTrue(appIcon("sunrise-gold").waitForSelection())
+        dismissIconChangedNotice("sunrise-gold")
+        XCTAssertTrue(appIcon("sunrise-gold").waitForSelection(timeout: 15))
         XCTAssertFalse(appIcon("sunrise-dawn").isSelected)
+    }
+}
+
+private extension UIImage {
+    /// RGB values, 0 to 1, of the image's right-hand part.
+    private func pixels(inRightFraction fraction: CGFloat) -> [(r: Double, g: Double, b: Double)] {
+        guard let image = cgImage else { return [] }
+        let width = image.width, height = image.height
+        var bytes = [UInt8](repeating: 0, count: width * height * 4)
+        let context = CGContext(data: &bytes, width: width, height: height, bitsPerComponent: 8, bytesPerRow: width * 4,
+                                space: CGColorSpaceCreateDeviceRGB(),
+                                bitmapInfo: CGImageAlphaInfo.premultipliedLast.rawValue)
+        context?.draw(image, in: CGRect(x: 0, y: 0, width: width, height: height))
+        var result: [(r: Double, g: Double, b: Double)] = []
+        for y in stride(from: 0, to: height, by: 2) {
+            for x in stride(from: Int(CGFloat(width) * (1 - fraction)), to: width, by: 2) {
+                let i = (y * width + x) * 4
+                result.append((Double(bytes[i]) / 255, Double(bytes[i + 1]) / 255, Double(bytes[i + 2]) / 255))
+            }
+        }
+        return result
+    }
+
+    /// How far apart the lightest and darkest pixels are.
+    func contrast(inRightFraction fraction: CGFloat) -> Double {
+        let luma = pixels(inRightFraction: fraction).map { 0.2126 * $0.r + 0.7152 * $0.g + 0.0722 * $0.b }
+        return (luma.max() ?? 0) - (luma.min() ?? 0)
+    }
+
+    /// The most colorful pixel: 0 for gray.
+    func saturation(inRightFraction fraction: CGFloat) -> Double {
+        pixels(inRightFraction: fraction).map { max($0.r, $0.g, $0.b) - min($0.r, $0.g, $0.b) }.max() ?? 0
     }
 }
 

@@ -1,7 +1,7 @@
 // macOS Dock icon right-click menu. AppKit's automatic window list does not
 // appear for Blanc's frameless, profile-titled windows, so the app draws the
 // frontmost window's active tab itself as the top line (matching Chrome and
-// Safari), above the app-authored New Window / New Private Window. macOS still
+// Safari), above the app-authored New Window / New Private Window / New Mini Window. macOS still
 // supplies Options ▸ / Show All Windows / Hide / Quit below.
 
 function buildDockMenu({ activeTab, t }) {
@@ -12,6 +12,7 @@ function buildDockMenu({ activeTab, t }) {
   }
   items.push({ id: 'new-window', label: t('menu.newWindow') });
   items.push({ id: 'new-private-window', label: t('menu.newPrivateWindow') });
+  items.push({ id: 'new-mini-window', label: t('menu.newMiniWindow') });
   return items;
 }
 
@@ -24,7 +25,7 @@ function buildDockMenu({ activeTab, t }) {
  * AppKit holding a stale native submenu pointer (observed with Electron 44).
  *
  * `activeTab` is `{ label, iconDataUrl }` or null. `actions` supplies
- * `focusActiveWindow` / `newWindow` / `newPrivateWindow`; `t` is the
+ * `focusActiveWindow` / `newWindow` / `newPrivateWindow` / `newMiniWindow`; `t` is the
  * interface translator.
  */
 function installDockMenu({ app, Menu, nativeImage, actions, t, platform = process.platform }) {
@@ -33,6 +34,7 @@ function installDockMenu({ app, Menu, nativeImage, actions, t, platform = proces
     'active-tab': actions.focusActiveWindow,
     'new-window': actions.newWindow,
     'new-private-window': actions.newPrivateWindow,
+    'new-mini-window': actions.newMiniWindow,
   };
   const menu = Menu.buildFromTemplate([
     {
@@ -51,6 +53,11 @@ function installDockMenu({ app, Menu, nativeImage, actions, t, platform = proces
       id: 'new-private-window',
       label: t('menu.newPrivateWindow'),
       click: () => clicks['new-private-window'] && clicks['new-private-window'](),
+    },
+    {
+      id: 'new-mini-window',
+      label: t('menu.newMiniWindow'),
+      click: () => clicks['new-mini-window'] && clicks['new-mini-window'](),
     },
   ]);
   const activeItem = menu.getMenuItemById('active-tab');

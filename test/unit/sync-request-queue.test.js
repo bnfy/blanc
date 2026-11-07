@@ -151,3 +151,49 @@ test('an upload that downloads nothing runs on a full window and is not charged;
   await advance(60000);assert.equal((await upload).outcome,'stored');await routine;
   assert.deepEqual(order.slice(1).sort(),['F','S1']);assert.equal(scheduler.snapshot().log.length,2,'the retry is charged');
 });
+test('a change check runs ahead of waiting rotation work',async()=>{
+  const {queue}=setup();const order=[];
+  const routine=queue.enqueue({class:'F',item:'settings',run:async()=>{order.push('F');}});
+  const check=queue.enqueue({class:'C',item:'versions',ahead:true,run:async()=>{order.push('C');return 'named';}});
+  assert.equal((await check).outcome,'named');await routine;assert.deepEqual(order,['C','F']);
+});
+test('on a full window a change check waits for the first free request, ahead of rotation work, and leaves the reserve',async()=>{
+  const {scheduler,queue,advance}=setup();for(let i=0;i<9;i++)scheduler.record();const order=[];
+  const routine=queue.enqueue({class:'F',item:'settings',run:async()=>{order.push('F');}});
+  const check=queue.enqueue({class:'C',item:'versions',ahead:true,run:async()=>{order.push('C');}});
+  await tick();assert.deepEqual(order,[]);assert.equal(scheduler.canRequest(),true,'the reserved request is still free for the sheet');
+  const again=queue.enqueue({class:'C',item:'versions',ahead:true,run:async()=>{order.push('C2');}});
+  await advance(60000);await check;await again;await routine;
+  assert.deepEqual(order,['C','F'],'the check goes first, and a second one joined it');
+});
+test('with a check share, background work leaves that many requests for checks',async()=>{
+  const {scheduler,queue}=setup();queue.setCheckShare(4);const order=[];
+  for(let i=0;i<8;i++)queue.enqueue({class:'F',item:'s'+i,run:async()=>{order.push('F');}});
+  for(let i=0;i<20;i++)await tick();
+  assert.equal(order.length,5,'background stops at five: one kept for the sheet, four for checks');
+  const check=await queue.enqueue({class:'C',item:'versions',ahead:true,run:async()=>{order.push('C');}});void check;
+  assert.equal(order.at(-1),'C','a check still finds room');assert.equal(scheduler.canRequest({reserve:true}),true);
+});
+test('with a check every 15 s, routine work still gets five requests a minute',async()=>{
+  const {queue,advance}=setup();queue.setCheckShare(4);const done=[];
+  for(let i=0;i<40;i++)queue.enqueue({class:'F',item:'s'+i,run:async()=>{done.push(i);}});
+  let at=0;const perMinute=[0,0,0,0];
+  for(let s=0;s<240;s++){
+    if(s%15===0)queue.enqueue({class:'C',item:'versions',generation:'check:'+s,ahead:true,run:async()=>{}});
+    const before=done.length;await advance(1000);at++;perMinute[Math.floor(s/60)]+=done.length-before;
+  }
+  void at;assert.ok(perMinute.slice(1).every(n=>n>=5),`routine requests per minute: ${perMinute}`);
+});
+test('a fetch a check asked for keeps its place ahead when it joins a waiting request',async()=>{
+  const {scheduler,queue,advance}=setup();for(let i=0;i<9;i++)scheduler.record();const order=[];
+  queue.enqueue({class:'F',item:'bookmarks',run:async()=>{order.push('bookmarks');}});
+  queue.enqueue({class:'F',item:'shared',run:async()=>{order.push('shared');}});
+  const asked=queue.enqueue({class:'F',item:'shared',ahead:true,run:async()=>{order.push('shared');}});
+  await advance(60000);await asked;assert.equal(order[0],'shared');
+});
+test('during a 429 backoff nothing is kept for checks',async()=>{
+  const {scheduler,queue}=setup();queue.setCheckShare(4);scheduler.onRateLimited();const order=[];
+  for(let i=0;i<8;i++)queue.enqueue({class:'F',item:'s'+i,run:async()=>{order.push(i);}});
+  for(let i=0;i<20;i++)await tick();
+  assert.equal(order.length,4,'the reduced window of five, less the request kept for a person');
+});

@@ -350,6 +350,14 @@ export interface SettingsPagesAPI {
     /** Delete a named profile; requires its exact name as confirmation. IPC: invoke `pages:profiles:remove`. */
     remove: (id: unknown, confirmation: unknown) => Promise<unknown>;
   };
+  zoom: {
+    /** The current profile's sites with a saved page zoom. IPC: invoke `pages:zoom:list`. */
+    list: () => Promise<unknown>;
+    /** Forgets one site's saved page zoom. IPC: invoke `pages:zoom:remove`. */
+    remove: (site: unknown) => Promise<unknown>;
+    /** Forgets every saved page zoom in the current profile. IPC: invoke `pages:zoom:clear`. */
+    clear: () => Promise<unknown>;
+  };
   permissions: {
     /** Remembered site permission decisions. IPC: invoke `pages:permissions:list`. */
     list: () => Promise<unknown>;

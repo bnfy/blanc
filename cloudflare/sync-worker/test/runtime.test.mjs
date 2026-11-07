@@ -73,6 +73,10 @@ test('real local KV and SQLite cover every legacy subset without inventory',{tim
  assert.ok(4*(Buffer.byteLength(historical)+256)+4*(524288+58+256)<=8391120);
  const object=env.ACCOUNT_QUOTA.get(env.ACCOUNT_QUOTA.idFromName(account));
  assert.equal((await object.fetch('https://quota.invalid/write',{method:'POST',body:JSON.stringify({accountId:account,store:'settings',stored:JSON.stringify(row)})})).status,200);
+ // The largest historical fixed value (about 1.5 MB) can be adopted as a copy
+ // in real SQLite storage, and is read back whole.
+ const adopted=await (await object.fetch('https://quota.invalid/read',{method:'POST',body:JSON.stringify({accountId:account,store:'bookmarks',kv:historical})})).json();
+ assert.equal(adopted.record.blob.ct.length,524279);
  // A late fixed-only legacy writer must not invalidate the unchanged reserve.
  await env.SYNC.put(`blob:${account}:settings`,historical);
  assert.deepEqual((await (await object.fetch('https://quota.invalid/ledger')).json()).stores,{});
@@ -87,4 +91,27 @@ test('real local KV and SQLite cover every legacy subset without inventory',{tim
   assert.equal((await post('delete-account',{})).status,204);
   assert.equal(await (await object.fetch('https://quota.invalid/ledger')).json(),null);
  }
+});
+
+test('fixed stores read from the object survive eviction and keep KV written',{timeout:120000},async t=>{
+ const server=createTestHarness({root,workers:[{configPath:'./wrangler.toml'}]});t.after(()=>server.close());await server.listen();
+ const worker=server.getWorker(),account='c'.repeat(64),base='/v1/blob/'+account+'/';
+ const put=async(blob,ifVersion)=>{const r=await worker.fetch(base+'settings',{method:'PUT',body:JSON.stringify({blob,ifVersion})});return {status:r.status,body:await r.json()};};
+ const first=await put({ct:'one'},null);assert.equal(first.status,200);
+ const second=await put({ct:'two'},first.body.version);assert.equal(second.status,200);
+ assert.equal((await put({ct:'late'},first.body.version)).status,409,'the object compares fixed stores');
+ await worker.evictDurableObject('ACCOUNT_QUOTA',{name:account});
+ const read=await worker.fetch(base+'settings');assert.equal(read.status,200);
+ assert.equal((await read.json()).version,second.body.version);
+});
+
+test('versions survive eviction and match GET versions',{timeout:120000},async t=>{
+ const server=createTestHarness({root,workers:[{configPath:'./wrangler.toml'}]});t.after(()=>server.close());await server.listen();
+ const worker=server.getWorker(),account='e'.repeat(64),base='/v1/blob/'+account+'/';
+ assert.deepEqual(await (await worker.fetch('/v1/versions/'+account)).json(),{v:1,stores:null});
+ for(const store of ['settings','spaces']){const r=await worker.fetch(base+store,{method:'PUT',body:JSON.stringify({blob:{ct:store},ifVersion:null})});assert.equal(r.status,200);await r.arrayBuffer();}
+ await worker.evictDurableObject('ACCOUNT_QUOTA',{name:account});
+ const {stores}=await (await worker.fetch('/v1/versions/'+account)).json();
+ for(const store of ['settings','spaces'])assert.equal(stores[store],(await (await worker.fetch(base+store)).json()).version);
+ assert.equal(stores.bookmarks,null);
 });

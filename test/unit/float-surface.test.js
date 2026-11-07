@@ -43,7 +43,7 @@ test('the renderer becomes a float surface on the float host and reports nothing
   // The strip underneath stays the one geometry authority; its copies (the
   // float views and the Glance card) never report.
   assert.match(js, /const copySurface = floatSurface \|\| glanceSurface;/);
-  assert.match(js, /const reportLayout = \(\) => \{\s+if \(copySurface\) return;/);
+  assert.match(js, /function reportLayout\(\) \{\s+if \(copySurface \|\| !islandSizeApplied\) return;/);
   assert.match(js, /const reportIslandRect = \(\) => \{\s+if \(copySurface\) return;/);
   // The page's tint belongs to the strip; a floating element keeps its theme.
   assert.match(js, /function applyStripTint\(tab\) \{\s+if \(copySurface\) return;/);

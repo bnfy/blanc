@@ -457,3 +457,13 @@ test('seeded same-record three-way merges remain associative with selection dele
     }
   }
 });
+
+test('a Space this device made uploads even when it holds nothing, so other devices learn of it', () => {
+  const args={fetchedBlob:null,fetchedVersion:null,localBlob:blob({}),pending:{},lastMergeAt:1000,now:2000,deviceId:'a',encryptFn:seal,firstUpload:true};
+  const p=m.pushPlan(args);
+  assert.deepEqual(p.upload?.blob,blob({}));assert.equal(p.upload.ifVersion,null);
+  assert.equal(p.indexEntry?.id,id(99));assert.equal(p.indexEntry.rev,m.revisionOf(blob({})));
+  // One the Worker named whose blob is gone, or one published before, is not recreated.
+  assert.equal(m.pushPlan({...args,firstUpload:false}).upload,null);
+  assert.equal(m.pushPlan({...args,lastPublishable:blob({})}).upload,null);
+});

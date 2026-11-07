@@ -263,6 +263,13 @@ G4. No data probes or test accounts. Those remain held.
   `workers_dev = true` and would re-enable the route.
 - A stop in phase C or D leaves Version URLs off or the cron removed. Both are
   safe resting states for the legacy Worker.
+- **Change check (design 2026-11-02, once deployed).** Rolling back to the
+  Worker before it (fixed stores in KV only) is safe, because KV stays
+  complete. **Before rolling forward again, increase `FIXED_COPY_EPOCH` in
+  `cloudflare/sync-worker/wrangler.toml`** and deploy from the commit that
+  carries the new value. Never reuse an earlier value, and never set it only in
+  the dashboard. Otherwise the object serves fixed-store copies from before the
+  rollback.
 
 ## Owner decisions
 

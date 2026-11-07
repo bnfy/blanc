@@ -7,6 +7,7 @@
     capabilities,
     onePasswordAvailable,
     recentTabOrderAvailable,
+    miniWindow,
     languages,
   } =
     await window.bowserPages.settings.get();
@@ -21,6 +22,8 @@
   // abort this whole IIFE, and removing a container first makes its children
   // un-findable by id (getElementById → null → `.addEventListener` throws).
   const { t } = blancI18n;
+  // The Default page zoom choices; page-zoom.js holds the same list.
+  const PAGE_ZOOM_OPTIONS = [50, 67, 75, 80, 90, 100, 110, 125, 150, 175, 200];
   const cap = capabilities ? new Set(capabilities) : null;
   const supports = (feature) => !cap || cap.has(feature);
 
@@ -31,7 +34,7 @@
   // Removals run one at a time and each reads the saved list afresh, so two
   // quick clicks can never write back a site the first one removed.
   let siteRemovals = Promise.resolve();
-  function renderSiteList({ list, input, hostnames, emptyKey, onRemove }) {
+  function renderSiteList({ list, input, hostnames, emptyKey, onRemove, detailOf }) {
     list.replaceChildren();
     if (hostnames.length === 0) {
       const empty = document.createElement('div');
@@ -60,7 +63,14 @@
         const buttons = list.querySelectorAll('.site-row-remove');
         (buttons[Math.min(index, buttons.length - 1)] ?? input).focus();
       });
-      row.append(name, remove);
+      row.append(name);
+      if (detailOf) {
+        const detail = document.createElement('span');
+        detail.className = 'site-row-detail';
+        detail.textContent = detailOf(hostname);
+        row.append(detail);
+      }
+      row.append(remove);
       list.append(row);
     });
   }
@@ -529,6 +539,21 @@
     document.getElementById('tabLayoutSetting')?.remove();
   }
 
+  if (supports('islandSize')) {
+    const islandSize = document.getElementById('islandSize');
+    const showIslandSize = (value) => { islandSize.value = value || 'default'; };
+    showIslandSize(settings.islandSize);
+    islandSize.addEventListener('change', async () => {
+      try {
+        showIslandSize((await window.bowserPages.settings.set({ islandSize: islandSize.value })).islandSize);
+      } catch {
+        window.bowserPages.settings.get().then(({ settings: saved }) => showIslandSize(saved.islandSize), () => {});
+      }
+    });
+  } else {
+    document.getElementById('islandSizeSetting')?.remove();
+  }
+
   if (supports('tabLayout')) {
     const textSize = document.getElementById('verticalTabsTextSize');
     textSize.value = settings.verticalTabsTextSize ?? 'default';
@@ -588,6 +613,46 @@
   } else {
     document.getElementById('islandAutoHideSetting')?.remove();
     islandAutoHideStyleSetting?.remove();
+  }
+
+  // --- Default page zoom, and the sites with a zoom of their own ---
+  if (supports('pageZoom')) {
+    const percentLabel = (percent) => t('settings.general.pageZoom.percent', { percent });
+    const pageZoom = document.getElementById('pageZoom');
+    pageZoom.replaceChildren(...PAGE_ZOOM_OPTIONS.map((percent) => new Option(percentLabel(percent), String(percent))));
+    pageZoom.value = String(settings.pageZoom ?? 100);
+    pageZoom.addEventListener('change', async () => {
+      const saved = await window.bowserPages.settings.set({ pageZoom: Number(pageZoom.value) });
+      pageZoom.value = String(saved.pageZoom);
+    });
+
+    const siteZoomBlock = document.getElementById('siteZoomBlock');
+    const siteZoomList = document.getElementById('siteZoomList');
+    const renderSiteZoom = async () => {
+      const sites = await window.bowserPages.zoom.list();
+      const percents = new Map(sites.map(({ site, percent }) => [site, percent]));
+      siteZoomBlock.hidden = sites.length === 0;
+      if (!sites.length) return;
+      renderSiteList({
+        list: siteZoomList,
+        input: pageZoom,
+        hostnames: [...percents.keys()],
+        detailOf: (site) => percentLabel(percents.get(site)),
+        onRemove: async (site) => {
+          await window.bowserPages.zoom.remove(site);
+          await renderSiteZoom();
+        },
+      });
+    };
+    document.getElementById('siteZoomClear').addEventListener('click', async () => {
+      await window.bowserPages.zoom.clear();
+      await renderSiteZoom();
+      pageZoom.focus();
+    });
+    renderSiteZoom().catch((error) => console.error(error));
+  } else {
+    document.getElementById('pageZoomSetting')?.remove();
+    document.getElementById('siteZoomBlock')?.remove();
   }
 
   // --- Quiet Tabs idle delay (device-local memory policy) ---
@@ -708,6 +773,41 @@
     });
   } else {
     document.getElementById('tabSwitchOrderSetting')?.remove();
+  }
+
+  // Mini Window (#1138): the global shortcut, from the choices this platform
+  // offers (mini-window.js). Off by default; the status line says when the
+  // chosen chord can't be used.
+  if (supports('miniWindowShortcut') && Array.isArray(miniWindow?.choices) && miniWindow.choices.length) {
+    const select = document.getElementById('miniWindowShortcut');
+    const status = document.getElementById('miniWindowStatus');
+    const mac = appInfo?.platform === 'darwin';
+    const labelKeys = {
+      'alt-cmd-n': 'settings.general.miniWindow.shortcut.altCmdN',
+      'ctrl-alt-space': mac ? 'settings.general.miniWindow.shortcut.ctrlAltSpaceMac' : 'settings.general.miniWindow.shortcut.ctrlAltSpace',
+      'ctrl-shift-space': 'settings.general.miniWindow.shortcut.ctrlShiftSpace',
+    };
+    for (const id of miniWindow.choices) {
+      if (!labelKeys[id]) continue;
+      const option = document.createElement('option');
+      option.value = id;
+      option.textContent = t(labelKeys[id]);
+      select.append(option);
+    }
+    const show = (value, state) => {
+      select.value = [...select.options].some((option) => option.value === value) ? value : 'off';
+      status.hidden = state !== 'unavailable';
+    };
+    show(settings.miniWindowShortcut, miniWindow.status);
+    select.addEventListener('change', async () => {
+      try {
+        await window.bowserPages.settings.set({ miniWindowShortcut: select.value });
+      } catch { /* shown from the saved state below */ }
+      const fresh = await window.bowserPages.settings.get().catch(() => null);
+      if (fresh) show(fresh.settings.miniWindowShortcut, fresh.miniWindow?.status);
+    });
+  } else {
+    document.getElementById('miniWindowSetting')?.remove();
   }
 
   if (supports('tabSleep')) {

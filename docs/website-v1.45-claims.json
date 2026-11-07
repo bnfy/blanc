@@ -262,7 +262,9 @@
       ],
       "verdict": "verified",
       "replaces": "trust-125-378"
-    },
+    }
+  ],
+  "supersededClaims": [
     {
       "id": "v145-020",
       "source": "site/src/pages/index.astro",
@@ -272,8 +274,9 @@
         "iphonePairing",
         "syncWithoutPassphrase"
       ],
-      "verdict": "verified",
-      "replaces": "cinema-data-30"
+      "verdict": "qualified",
+      "replaces": "cinema-data-30",
+      "reason": "November 6, 2026, after Blanc for iPhone 1.0 was released on the App Store. The replacement wording is recorded in docs/website-iphone-1.0-claims.json."
     }
   ]
 }

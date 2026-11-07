@@ -90,13 +90,17 @@ export function nativeGlanceCardArt({ styles, document, renderer, host, icon }) 
   };
   const selectors = [
     '*', '*, *::before, *::after', 'button, input, select, textarea', 'button', 'button svg',
-    '.favicon', '.favicon.has-icon', '.split-panes, .split-tab-surface, .glance-card',
+    '.favicon', '.favicon.has-icon',
     '.glance-header', '.glance-copy', '.glance-eyebrow', '.glance-tab-identity',
     '.glance-tab-identity .favicon', '#glanceTitle', '.glance-actions', '.glance-header button',
     '.glance-action', '.glance-action svg, .glance-move svg', '.glance-close', '.glance-move',
     '.glance-nav', '.glance-header .glance-nav-btn', '.glance-nav-btn svg', '.glance-header .glance-nav-btn:disabled',
   ];
-  const css = [tokens, ...selectors.map(take), surface('.glance-card'), surface('.glance-header')].join('\n');
+  // The card's own measures (radius, ring, page inset) sit on the Glance
+  // document's root in the app; here they ride on the card itself.
+  const measures = rules.find((candidate) => candidate.selector === 'html[data-surface="glance"]');
+  if (!measures) throw new Error('Missing native Glance rule: html[data-surface="glance"]');
+  const css = [tokens, ...selectors.map(take), `.glance-card {${measures.body}}`, surface('.glance-card'), surface('.glance-header')].join('\n');
   const start = document.indexOf('<header id="glanceHeader"');
   const end = document.indexOf('</header>', start) + '</header>'.length;
   if (start < 0 || end < start) throw new Error('Missing native Glance header markup');

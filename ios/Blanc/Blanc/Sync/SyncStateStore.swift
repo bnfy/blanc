@@ -9,6 +9,13 @@ nonisolated struct SyncState: Codable, Equatable, Sendable {
   var syncTabs = false
   var lastSyncedAt: Int64?
   var lastError: String?
+  /// The version this phone last read or wrote for each fixed store, for the
+  /// account that read it (design 2026-11-02); null for a store not written yet.
+  var seenVersions: SeenVersions?
+}
+nonisolated struct SeenVersions: Codable, Equatable, Sendable {
+  var accountId: String
+  var stores: [String: String?]
 }
 
 @MainActor @Observable final class SyncStateStore {

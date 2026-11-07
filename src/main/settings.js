@@ -48,6 +48,11 @@ const isSearchEngineId = (id) => typeof id === 'string' && Object.hasOwn(SEARCH_
 const THEMES = ['system', 'light', 'dark'];
 const TAB_LAYOUTS = ['island', 'vertical'];
 const VERTICAL_TABS_TEXT_SIZES = ['default', 'large', 'extra-large'];
+// Mini Window (#1138): the global shortcut that opens one from any app.
+const { MINI_WINDOW_SHORTCUT_IDS } = require('./mini-window');
+// The resting Island's size (#1292); the strip grows with it.
+const { ISLAND_SIZES } = require('./island-size');
+const { DEFAULT_ZOOM_OPTIONS, normalizePageZoom } = require('./page-zoom');
 // Start-page layouts (Bowser Design System, "New tab v2" handoff). Same class
 // of preference as the theme — it describes the browser you want, so it syncs.
 const NEWTAB_LAYOUTS = ['ledger', 'billboard', 'shelf', 'tally'];
@@ -275,6 +280,15 @@ const DEFAULTS = {
   // the minimum website pane, but that window-size cap is never persisted.
   verticalTabsWidth: VERTICAL_TABS_DEFAULT_WIDTH,
   verticalTabsTextSize: 'default',
+  // Mini Window (#1138): 'off' or a shortcut id from mini-window.js. Off by
+  // default: a global shortcut takes the chord from every other app.
+  // Device-local, not Profile Synced (chords differ by platform).
+  miniWindowShortcut: 'off',
+  // The resting Island's size (#1292). Device-local, not Profile Synced.
+  islandSize: 'default',
+  // Default page zoom in percent. Device-local, not Profile Synced; each
+  // site's own zoom lives in site-zoom.js.
+  pageZoom: 100,
   // 'off' disables automatic quieting; the manual /sleep command still works.
   tabSleep: '1h',
   tabArchive: 'off',
@@ -589,6 +603,9 @@ function getSettings() {
   data.homePage = normalizeHomepage(data.homePage, DEFAULTS.homePage);
   data.verticalTabsWidth = normalizeVerticalTabsWidth(data.verticalTabsWidth);
   if (!VERTICAL_TABS_TEXT_SIZES.includes(data.verticalTabsTextSize)) data.verticalTabsTextSize = DEFAULTS.verticalTabsTextSize;
+  if (!MINI_WINDOW_SHORTCUT_IDS.includes(data.miniWindowShortcut)) data.miniWindowShortcut = DEFAULTS.miniWindowShortcut;
+  if (!ISLAND_SIZES.includes(data.islandSize)) data.islandSize = DEFAULTS.islandSize;
+  data.pageZoom = normalizePageZoom(data.pageZoom);
   if (!isAppIconAllowed(data.appIcon)) data.appIcon = DEFAULTS.appIcon;
   // Read coercion for a corrupted stored state (hand-edited settings.json): custom
   // without a valid template reads back as the default, never as plaintext-capable
@@ -670,6 +687,9 @@ function sanitize(partial) {
   if (NEWTAB_LAYOUTS.includes(partial.newtabLayout)) clean.newtabLayout = partial.newtabLayout;
   if (TAB_LAYOUTS.includes(partial.tabLayout)) clean.tabLayout = partial.tabLayout;
   if (VERTICAL_TABS_TEXT_SIZES.includes(partial.verticalTabsTextSize)) clean.verticalTabsTextSize = partial.verticalTabsTextSize;
+  if (MINI_WINDOW_SHORTCUT_IDS.includes(partial.miniWindowShortcut)) clean.miniWindowShortcut = partial.miniWindowShortcut;
+  if (ISLAND_SIZES.includes(partial.islandSize)) clean.islandSize = partial.islandSize;
+  if (DEFAULT_ZOOM_OPTIONS.includes(partial.pageZoom)) clean.pageZoom = partial.pageZoom;
   if (typeof partial.islandSiteColors === 'boolean') clean.islandSiteColors = partial.islandSiteColors;
   if (typeof partial.islandHoverOpen === 'boolean') clean.islandHoverOpen = partial.islandHoverOpen;
   if (typeof partial.islandTabIcons === 'boolean') clean.islandTabIcons = partial.islandTabIcons;

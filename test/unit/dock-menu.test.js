@@ -4,22 +4,22 @@ const test = require('node:test');
 const { buildDockMenu, installDockMenu } = require('../../src/main/dock-menu');
 const { englishT: t } = require('../support/english-t');
 
-test('dock menu offers New Window and New Private Window, in order', () => {
+test('dock menu offers New Window, New Private Window and New Mini Window, in order', () => {
   const items = buildDockMenu({ t });
-  assert.deepEqual(items.map((i) => i.id), ['new-window', 'new-private-window']);
-  assert.deepEqual(items.map((i) => i.label), ['New Window', 'New Private Window']);
+  assert.deepEqual(items.map((i) => i.id), ['new-window', 'new-private-window', 'new-mini-window']);
+  assert.deepEqual(items.map((i) => i.label), ['New Window', 'New Private Window', 'New Mini Window']);
 });
 
 test('an active tab adds a top line above a separator', () => {
   const items = buildDockMenu({ activeTab: { label: 'Example — example.com' }, t });
   assert.deepEqual(items.map((i) => i.id ?? i.type),
-    ['active-tab', 'separator', 'new-window', 'new-private-window']);
+    ['active-tab', 'separator', 'new-window', 'new-private-window', 'new-mini-window']);
   assert.equal(items[0].label, 'Example — example.com');
 });
 
 test('an empty active-tab label is omitted (no dangling separator)', () => {
   const items = buildDockMenu({ activeTab: { label: '' }, t });
-  assert.deepEqual(items.map((i) => i.id), ['new-window', 'new-private-window']);
+  assert.deepEqual(items.map((i) => i.id), ['new-window', 'new-private-window', 'new-mini-window']);
 });
 
 test('installDockMenu is a no-op off macOS and returns an inert handle', () => {
@@ -52,6 +52,7 @@ test('installDockMenu wires each item click to its action on macOS', () => {
   const actions = {
     newWindow: () => hits.push('w'),
     newPrivateWindow: () => hits.push('p'),
+    newMiniWindow: () => hits.push('m'),
     focusActiveWindow: () => hits.push('focus'),
   };
   const { handle, templates } = fakeDarwin(actions);
@@ -60,7 +61,8 @@ test('installDockMenu wires each item click to its action on macOS', () => {
   t.find((i) => i.label === 'Docs').click();
   t.find((i) => i.label === 'New Window').click();
   t.find((i) => i.label === 'New Private Window').click();
-  assert.deepEqual(hits, ['focus', 'w', 'p']);
+  t.find((i) => i.label === 'New Mini Window').click();
+  assert.deepEqual(hits, ['focus', 'w', 'p', 'm']);
 });
 
 test('update mutates one stable menu instead of replacing it under AppKit', () => {

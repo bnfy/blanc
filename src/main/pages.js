@@ -454,6 +454,9 @@ function setupPages(hooks = {}) {
     },
     onePasswordAvailable: onePasswordAvailable(),
     recentTabOrderAvailable: recentTabOrderAvailable(),
+    // Mini Window (#1138): the shortcut choices this platform offers and
+    // whether the chosen one is working ('off', 'on' or 'unavailable').
+    miniWindow: hooks.miniWindow?.status?.() ?? { choices: [], status: 'off' },
     searchEngines: Object.fromEntries(
       Object.entries(settings.SEARCH_ENGINES).map(([key, { label }]) => [key, label])
     ),
@@ -844,6 +847,10 @@ function setupPages(hooks = {}) {
 
   handle('pages:permissions:list', 'settings', () => listDecisions());
   handle('pages:permissions:remove', 'settings', (key) => removeDecision(String(key)));
+
+  handle('pages:zoom:list', 'settings', () => hooks.pageZoom?.list() ?? []);
+  handle('pages:zoom:remove', 'settings', (site) => hooks.pageZoom?.remove(String(site)));
+  handle('pages:zoom:clear', 'settings', () => hooks.pageZoom?.clear());
 
   // Privacy reset for the usage ping's per-install id (see telemetry.js) —
   // from the next ping on, this install counts as brand new.

@@ -1,9 +1,69 @@
 {
   "firstRelease": "1.36",
   "noPage": [
-    "1.42"
+    "1.42",
+    "1.47"
   ],
   "pages": [
+    {
+      "release": "1.46",
+      "highlights": [
+        {
+          "id": "island-size",
+          "tile": "Island size",
+          "title": "Make the Island bigger",
+          "body": "Choose Large or Extra large, and the Island grows with everything in it: its buttons, its tab dots and the site address. The page moves down to make room.",
+          "steps": [
+            "Open Settings, then General.",
+            "Under Island size, choose Default, Large or Extra large."
+          ],
+          "note": "It’s set on each device.",
+          "learnMore": "/features/island",
+          "media": {
+            "kind": "image",
+            "src": "/feature-captures/island-size-v1.46.0.webp",
+            "width": 1440,
+            "height": 900,
+            "alt": "Blanc’s Settings sheet open on General over a Wikipedia page, with Island size set to Extra large. Above it, the Island is drawn at its larger size, with bigger buttons and site address."
+          }
+        },
+        {
+          "id": "mini-window",
+          "tile": "Mini Window",
+          "title": "A small Blanc window over any app",
+          "body": "Look something up or open a link without leaving what you’re doing. A mini window opens over the app you’re in, isn’t saved, and closes by itself after an hour unused. Choose Open in Blanc to keep it.",
+          "steps": [
+            "Choose File → New Mini Window, or New Mini Window in Blanc’s Dock menu on a Mac.",
+            "To open one from any app, choose a shortcut in Settings → General → Mini window shortcut."
+          ],
+          "note": "The shortcut is off by default. Links from other apps never open in a mini window, and one with a page in use or unsaved changes stays open.",
+          "media": {
+            "kind": "image",
+            "src": "/feature-captures/mini-window-v1.46.0.webp",
+            "width": 1440,
+            "height": 900,
+            "alt": "A small Blanc window open over a TextEdit note titled Trip notes, showing the Wikipedia article Sunrise equation. Its Island starts with an Open in Blanc button."
+          }
+        },
+        {
+          "id": "ctrl-tab-recent-order",
+          "tile": "Ctrl+Tab",
+          "title": "Ctrl+Tab takes you back to your last tab",
+          "body": "Hold `Ctrl` and press `Tab` to step back through the tabs you used last, then let go to switch. A quick `Ctrl+Tab` flips between your two latest tabs, and `Esc` stays where you are.",
+          "note": "To go by position instead, open Settings → General → Switch tabs with Ctrl+Tab and choose In the order of the tab list.",
+          "platforms": [
+            "mac"
+          ],
+          "media": {
+            "kind": "image",
+            "src": "/feature-captures/ctrl-tab-recent-order-v1.46.0.webp",
+            "width": 1440,
+            "height": 900,
+            "alt": "Blanc’s tab switcher below the Island while Ctrl is held: a row of six tab tiles in the order they were last used, with the third tile selected and its name, Harbor - Wikipedia, underneath."
+          }
+        }
+      ]
+    },
     {
       "release": "1.45",
       "highlights": [

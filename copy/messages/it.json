@@ -9021,6 +9021,46 @@
     "note": "Reader Mode font family name; keep the font name unchanged.",
     "source": "sha256:3c0883b4aaec8dc4b7089202a5de987c2590516927f130dcd0dc686532968e13"
   },
+  "settings.general.islandSize.label": {
+    "message": "Dimensione dell’Island",
+    "source": "sha256:5b677c1f7b3bd64d58dc35d4510ae26968c48d9adf0d8a492dc509aae7d539ea"
+  },
+  "settings.general.islandSize.hint": {
+    "message": "Ingrandisce l’Island e i suoi pulsanti. La pagina scende per farle spazio.",
+    "source": "sha256:48c1d3a1a214af35519502d499581a6d02de870bcacc9b805359bb539b21f58d"
+  },
+  "settings.general.pageZoom.label": {
+    "message": "Zoom predefinito delle pagine",
+    "source": "sha256:fe73fcb3567cd53127a2d319a777c0b71e678eb9519d48093ebbd771a3b15b83"
+  },
+  "settings.general.pageZoom.hint": {
+    "message": "Le dimensioni con cui si aprono le pagine web. Ingrandendo o riducendo un sito, le dimensioni vengono salvate solo per quel sito.",
+    "source": "sha256:92d47376c4e3ddeba8965ebdaaa4bb85838869de83f14c5daaf425ad7a96bf22"
+  },
+  "settings.general.pageZoom.percent": {
+    "message": "{percent}%",
+    "source": "sha256:5f1c7869f205f85c914f58cc7090021e03baf27faaaa382b41353ffc6312fb8b"
+  },
+  "settings.general.siteZoom.hint": {
+    "message": "Questi siti hanno uno zoom proprio. Rimuovine uno per tornare a quello predefinito.",
+    "source": "sha256:b6b6948ccced487b221de55765e76c5eea4d539e0258878db9552d31a085eb5a"
+  },
+  "settings.general.siteZoom.clearAll": {
+    "message": "Cancella tutto",
+    "source": "sha256:b39813f37a5cb176f968bbe93d8e610bd12021fa8ab48ac4c793ce29c346352b"
+  },
+  "settings.general.islandSize.default": {
+    "message": "Predefinita",
+    "source": "sha256:ff21948bae12e207abf2eb10170dcc542a289349152b11bb45cf2bfecf684e53"
+  },
+  "settings.general.islandSize.large": {
+    "message": "Grande",
+    "source": "sha256:903afe8f378e91e5d24a80ca2f438442b54b016211e752bd6318a4b17a81a898"
+  },
+  "settings.general.islandSize.extraLarge": {
+    "message": "Molto grande",
+    "source": "sha256:49b07d55c85367e18b84af51bf3cc2d8772cc2b3a3b6a08c1363c2a9b1092bea"
+  },
   "settings.general.verticalTabsTextSize.label": {
     "message": "Dimensione del testo delle schede verticali",
     "source": "sha256:980577e5feb9a37e9a7c0a9a232897f11b858680a721d83b919cc47860c1a532"
@@ -9044,6 +9084,10 @@
   "spaces.thisIPhone": {
     "message": "Questo iPhone",
     "source": "sha256:872a9b15efd10d5c23b321f11d4d2d26630ac2b462424389c61a940f04e7887c"
+  },
+  "spaces.thisIPad": {
+    "message": "Questo iPad",
+    "source": "sha256:1585758383f584e1390802e41ffe68d77fa9d99d958b462f50a6cd08561edb39"
   },
   "spaces.menuLabel": {
     "message": "Spaces",
@@ -9116,6 +9160,38 @@
   "ios.island.reload": {
     "message": "Ricarica la pagina",
     "source": "sha256:a97b578f423dbbb6a41916f986dab254f7855930346ab81e04fe955ed8fd29ed"
+  },
+  "ios.settings.islandTuck": {
+    "message": "Nascondi l’Island durante lo scorrimento",
+    "source": "sha256:b2880c6b19c41edf58338069bb2a673ca49e360df2a3827a331bf3f9186d5f7e"
+  },
+  "ios.settings.islandHistoryButtons": {
+    "message": "Pulsanti Indietro e Avanti",
+    "source": "sha256:7ec1dc0623cd5f25a9dcfa770869e362aafdc346e914ccc97f40dea0f71903bc"
+  },
+  "ios.settings.islandHistoryButtonsHelp": {
+    "message": "Quando la Island è stretta, sostituiscono Ricarica e Nuova scheda. Trascina una pagina verso il basso per ricaricarla.",
+    "source": "sha256:9b44c7b2c85805ae6a76e80aab9923e805e4820cfe9a1b0f457ca7be60456265"
+  },
+  "ios.settings.islandPosition": {
+    "message": "Posizione",
+    "source": "sha256:5e36b380b1a6313a28b506c3f362800c429010f9dbeac405fd02c10c94119fbf"
+  },
+  "ios.settings.islandPosition.bottom": {
+    "message": "In basso",
+    "source": "sha256:9777aa9f73ae775741f6da6b6debbd232fb32c68c0880ca887ccd2a822e7a967"
+  },
+  "ios.settings.islandPosition.top": {
+    "message": "In alto",
+    "source": "sha256:250636ac6f210db91413e7f10809e3218296d9932f13ec3f7d2e514ade52d389"
+  },
+  "ios.settings.island": {
+    "message": "Island",
+    "source": "sha256:c7651da6acb66d3cbb701eece1bfbb39fe9ab063e6ae104732720b010b1abb09"
+  },
+  "ios.settings.privacySync": {
+    "message": "Privacy e sincronizzazione",
+    "source": "sha256:aee4b9a1361196db220e4bb7945a425d25fdf0ea8988dc92de489a34f0fb474f"
   },
   "ios.island.stop": {
     "message": "Interrompi il caricamento",
@@ -9268,5 +9344,53 @@
   "ios.defaultBrowser.notBlanc": {
     "message": "Non Blanc",
     "source": "sha256:0faee873d1f38ea949b3c0c4c7a50891b19d285b32dd49efef488caa805b880b"
+  },
+  "menu.newMiniWindow": {
+    "message": "Nuova minifinestra",
+    "source": "sha256:62d7994d5bc6b97b50844ebee54ff1f2f2d22d6aa35f997e31257a4691a959fe"
+  },
+  "mini.openInBlanc": {
+    "message": "Apri in Blanc",
+    "source": "sha256:244f5331c43bbc46edbda91f86f419bd4bf8dadc4fd5036f3b9e1189b8095f00"
+  },
+  "mini.openInBlanc.title": {
+    "message": "Tieni questa minifinestra come una normale finestra di Blanc",
+    "source": "sha256:a5aacb4d8eebdc2d6a40ac90d4d9001ffb7ac3e03473611000c6d7ccf9a371a6"
+  },
+  "mini.openInBlanc.label": {
+    "message": "Apri in Blanc: tieni questa minifinestra come una normale finestra di Blanc",
+    "source": "sha256:2a3abd0192e7db866dc79f7990b6bcd02f67183db434a555f0385bb96f3d6006"
+  },
+  "settings.general.miniWindow.label": {
+    "message": "Scorciatoia della minifinestra",
+    "source": "sha256:4488c3586ecb8d4ec9773227c5ec6ba1b7055b54699ddcc96c66e27ff255f62e"
+  },
+  "settings.general.miniWindow.hint": {
+    "message": "Apre una piccola finestra di Blanc sopra l’app in cui ti trovi, mentre Blanc è aperto. Una minifinestra non viene salvata e si chiude dopo un’ora di inutilizzo. Apri in Blanc la tiene.",
+    "source": "sha256:b184a8e1a2b228742c80ae0fcb833f173447ffc70c060eb08ef7194c46796e8e"
+  },
+  "settings.general.miniWindow.unavailable": {
+    "message": "Un’altra app usa questa scorciatoia, oppure il tuo desktop non la consente. Scegline un’altra.",
+    "source": "sha256:73999e1c29162cdb9edfc53dc46f36bc9ddb977fe00e54a659be2737eb534dce"
+  },
+  "settings.general.miniWindow.off": {
+    "message": "Disattivata",
+    "source": "sha256:eaece69f698fc2a5ae0a6425a005236f0ee6e179db7bbe523beadd781b36720a"
+  },
+  "settings.general.miniWindow.shortcut.altCmdN": {
+    "message": "⌥⌘N",
+    "source": "sha256:61f6b03678f0ff104b7b31c75bf517ce6969545c84abf75f64091cc0f3d9acb9"
+  },
+  "settings.general.miniWindow.shortcut.ctrlAltSpaceMac": {
+    "message": "⌃⌥Spazio",
+    "source": "sha256:cda016970ef473927380c668c2c91e25fa6ca39f7b3c8577f530df2db38ff06f"
+  },
+  "settings.general.miniWindow.shortcut.ctrlAltSpace": {
+    "message": "Ctrl+Alt+Spazio",
+    "source": "sha256:b2c2f80b33307545dc01b1242229898063ee7b63438df0474b55cd0fb5c4a09d"
+  },
+  "settings.general.miniWindow.shortcut.ctrlShiftSpace": {
+    "message": "Ctrl+Maiusc+Spazio",
+    "source": "sha256:5f579d29dff6300530617e41e4a883a52c075e51ffb3573d781ced720a7601a8"
   }
 }

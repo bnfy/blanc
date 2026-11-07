@@ -1,0 +1,424 @@
+{
+  "v": 3,
+  "attachments": {},
+  "boards": {
+    "Commands.dc.html": {
+      "h": 2868,
+      "title": "Slash commands",
+      "w": 1320,
+      "x": 4200,
+      "y": 0
+    },
+    "Computer.dc.html": {
+      "h": 2868,
+      "title": "Your computer's tabs",
+      "w": 1320,
+      "x": 1400,
+      "y": 0
+    },
+    "DuoClosedComputer.dc.html": {
+      "h": 2034,
+      "page": "page-tsyv0r",
+      "title": "Duo folded · Your computer's tabs",
+      "w": 1398,
+      "x": 1478,
+      "y": 1100
+    },
+    "DuoClosedMain.dc.html": {
+      "h": 2034,
+      "page": "page-tsyv0r",
+      "title": "Duo folded · Start Page",
+      "w": 1398,
+      "x": 0,
+      "y": 1100
+    },
+    "DuoClosedPrivate.dc.html": {
+      "h": 2034,
+      "page": "page-tsyv0r",
+      "title": "Duo folded · Private tabs",
+      "w": 1398,
+      "x": 5912,
+      "y": 1100
+    },
+    "DuoClosedSpaces.dc.html": {
+      "h": 2034,
+      "page": "page-tsyv0r",
+      "title": "Duo folded · Spaces",
+      "w": 1398,
+      "x": 2956,
+      "y": 1100
+    },
+    "DuoClosedTabs.dc.html": {
+      "h": 2034,
+      "page": "page-tsyv0r",
+      "title": "Duo folded · Tab grid",
+      "w": 1398,
+      "x": 4434,
+      "y": 1100
+    },
+    "DuoOpenCommands.dc.html": {
+      "h": 2007,
+      "page": "page-tsyv0r",
+      "title": "Duo unfolded · Slash commands",
+      "w": 2853,
+      "x": 5866,
+      "y": 3420
+    },
+    "DuoOpenMain.dc.html": {
+      "h": 2007,
+      "page": "page-tsyv0r",
+      "title": "Duo unfolded · Start Page",
+      "w": 2853,
+      "x": 0,
+      "y": 3420
+    },
+    "DuoOpenPrivate.dc.html": {
+      "h": 2007,
+      "page": "page-tsyv0r",
+      "title": "Duo unfolded · Private tabs",
+      "w": 2853,
+      "x": 11732,
+      "y": 3420
+    },
+    "DuoOpenSpaces.dc.html": {
+      "h": 2007,
+      "page": "page-tsyv0r",
+      "title": "Duo unfolded · Spaces",
+      "w": 2853,
+      "x": 2933,
+      "y": 3420
+    },
+    "DuoOpenTabs.dc.html": {
+      "h": 2007,
+      "page": "page-tsyv0r",
+      "title": "Duo unfolded · Tab grid",
+      "w": 2853,
+      "x": 8799,
+      "y": 3420
+    },
+    "Main.dc.html": {
+      "h": 2868,
+      "title": "Start Page",
+      "w": 1320,
+      "x": 0,
+      "y": 0
+    },
+    "Private.dc.html": {
+      "h": 2868,
+      "title": "Private tabs",
+      "w": 1320,
+      "x": 7000,
+      "y": 0
+    },
+    "Spaces.dc.html": {
+      "h": 2868,
+      "title": "Spaces",
+      "w": 1320,
+      "x": 2800,
+      "y": 0
+    },
+    "Tabs.dc.html": {
+      "h": 2868,
+      "title": "Tab grid",
+      "w": 1320,
+      "x": 5600,
+      "y": 0
+    },
+    "CompanionPair.dc.html": {
+      "h": 2868,
+      "page": "cpp-companion",
+      "title": "Pair with your computer",
+      "w": 1320,
+      "x": 0,
+      "y": 0
+    },
+    "CompanionSharedSpaces.dc.html": {
+      "h": 2868,
+      "page": "cpp-companion",
+      "title": "Shared Spaces",
+      "w": 1320,
+      "x": 1400,
+      "y": 0
+    },
+    "CompanionStartPage.dc.html": {
+      "h": 2868,
+      "page": "cpp-companion",
+      "title": "Start Page",
+      "w": 1320,
+      "x": 2800,
+      "y": 0
+    },
+    "CompanionCommands.dc.html": {
+      "h": 2868,
+      "page": "cpp-companion",
+      "title": "Slash commands",
+      "w": 1320,
+      "x": 4200,
+      "y": 0
+    },
+    "CompanionTabGrid.dc.html": {
+      "h": 2868,
+      "page": "cpp-companion",
+      "title": "Tab grid",
+      "w": 1320,
+      "x": 5600,
+      "y": 0
+    },
+    "CompanionPrivate.dc.html": {
+      "h": 2868,
+      "page": "cpp-companion",
+      "title": "Private tabs",
+      "w": 1320,
+      "x": 7000,
+      "y": 0
+    },
+    "GroupsSpaces.dc.html": {
+      "h": 2868,
+      "page": "cpp-spaces-and-groups",
+      "title": "Spaces",
+      "w": 1320,
+      "x": 0,
+      "y": 0
+    },
+    "GroupsTabGrid.dc.html": {
+      "h": 2868,
+      "page": "cpp-spaces-and-groups",
+      "title": "Tab grid",
+      "w": 1320,
+      "x": 1400,
+      "y": 0
+    },
+    "GroupsComputer.dc.html": {
+      "h": 2868,
+      "page": "cpp-spaces-and-groups",
+      "title": "Your computer's tabs",
+      "w": 1320,
+      "x": 2800,
+      "y": 0
+    },
+    "GroupsCommands.dc.html": {
+      "h": 2868,
+      "page": "cpp-spaces-and-groups",
+      "title": "Slash commands",
+      "w": 1320,
+      "x": 4200,
+      "y": 0
+    },
+    "GroupsStartPage.dc.html": {
+      "h": 2868,
+      "page": "cpp-spaces-and-groups",
+      "title": "Start Page",
+      "w": 1320,
+      "x": 5600,
+      "y": 0
+    },
+    "GroupsPrivate.dc.html": {
+      "h": 2868,
+      "page": "cpp-spaces-and-groups",
+      "title": "Private tabs",
+      "w": 1320,
+      "x": 7000,
+      "y": 0
+    },
+    "PrivacyPrivate.dc.html": {
+      "h": 2868,
+      "page": "cpp-private",
+      "title": "Private tabs",
+      "w": 1320,
+      "x": 0,
+      "y": 0
+    },
+    "PrivacyStartPage.dc.html": {
+      "h": 2868,
+      "page": "cpp-private",
+      "title": "Start Page",
+      "w": 1320,
+      "x": 1400,
+      "y": 0
+    },
+    "PrivacyCommands.dc.html": {
+      "h": 2868,
+      "page": "cpp-private",
+      "title": "Slash commands",
+      "w": 1320,
+      "x": 2800,
+      "y": 0
+    },
+    "PrivacyTabGrid.dc.html": {
+      "h": 2868,
+      "page": "cpp-private",
+      "title": "Tab grid",
+      "w": 1320,
+      "x": 4200,
+      "y": 0
+    },
+    "PrivacySpaces.dc.html": {
+      "h": 2868,
+      "page": "cpp-private",
+      "title": "Spaces",
+      "w": 1320,
+      "x": 5600,
+      "y": 0
+    },
+    "PrivacyComputer.dc.html": {
+      "h": 2868,
+      "page": "cpp-private",
+      "title": "Your computer's tabs",
+      "w": 1320,
+      "x": 7000,
+      "y": 0
+    }
+  },
+  "createdOnFiles": {
+    "at": "2026-11-03T04:45:00Z",
+    "v": 1
+  },
+  "designSystems": [
+    {
+      "artifact": "https://claude.ai/artifact/HaLaZtRyL4FSv9xxkH3e1D",
+      "copiedAt": "2026-11-03T04:45:00Z",
+      "namespace": "blanc-design-system",
+      "title": "Blanc Design System",
+      "version": "1793679947-e2f3"
+    }
+  ],
+  "launch": {
+    "view": "canvas"
+  },
+  "notes": {
+    "duoHeading": {
+      "kind": "title1",
+      "maxW": 8000,
+      "page": "page-tsyv0r",
+      "text": "iPhone Duo · folded (1398 × 2034) and unfolded (2853 × 2007)",
+      "w": 240,
+      "x": 0,
+      "y": 720
+    },
+    "heading": {
+      "kind": "title1",
+      "maxW": 8000,
+      "text": "Blanc for iPhone 1.0 · App Store screenshots, dawn to day",
+      "w": 240,
+      "x": 0,
+      "y": -420
+    },
+    "howto": {
+      "size": 40,
+      "text": "Each artboard is one 6.9-inch App Store screenshot (1320 × 2868), in order. Retype a headline or subtitle in place; every caption must pass docs/marketing-claims.md before it goes to Apple. The phone screens are real captures from Blanc for iPhone, made by npm run ios:app-store-screenshots; never draw or edit them. When this canvas changes, ask Claude to pull it into docs/ios/app-store/design/ and re-render the 6.9-inch and 6.3-inch sets.",
+      "w": 1320,
+      "x": 0,
+      "y": 3040
+    },
+    "cpp-companion-heading": {
+      "kind": "title1",
+      "maxW": 8000,
+      "page": "cpp-companion",
+      "text": "Custom product page · Blanc on your computer",
+      "w": 240,
+      "x": 0,
+      "y": -420
+    },
+    "cpp-companion-about": {
+      "page": "cpp-companion",
+      "size": 40,
+      "w": 2640,
+      "x": 0,
+      "y": 3040,
+      "text": "For: People who already use Blanc on a Mac or PC: blanc.day's iPhone links, the desktop app's Connect your iPhone, What's New pages, the newsletter and r/blancbrowser.\n\nPromotional text (160/170): Use Blanc on your Mac or PC? Scan the code in its Settings → Sync, and your computer’s tabs, the pages it sends and the Spaces you share are on your iPhone too.\n\nThe same captures and sky as the default page, in this page's order. Every caption must pass docs/marketing-claims.md; see the Custom product pages section of docs/ios/app-store-listing.md."
+    },
+    "cpp-spaces-and-groups-heading": {
+      "kind": "title1",
+      "maxW": 8000,
+      "page": "cpp-spaces-and-groups",
+      "text": "Custom product page · Spaces and groups",
+      "w": 240,
+      "x": 0,
+      "y": -420
+    },
+    "cpp-spaces-and-groups-about": {
+      "page": "cpp-spaces-and-groups",
+      "size": 40,
+      "w": 2640,
+      "x": 0,
+      "y": 3040,
+      "text": "For: People who keep a lot of tabs and want them sorted: blanc.day's Spaces and Arc alternative pages, and posts about organizing tabs.\n\nPromotional text (158/170): Give each part of your day a Space, like Work or Trip. Keep tabs that belong together in named groups, and share a Space to keep it the same on your computer.\n\nThe same captures and sky as the default page, in this page's order. Every caption must pass docs/marketing-claims.md; see the Custom product pages section of docs/ios/app-store-listing.md."
+    },
+    "cpp-private-heading": {
+      "kind": "title1",
+      "maxW": 8000,
+      "page": "cpp-private",
+      "text": "Custom product page · Private browsing",
+      "w": 240,
+      "x": 0,
+      "y": -420
+    },
+    "cpp-private-about": {
+      "page": "cpp-private",
+      "size": 40,
+      "w": 2640,
+      "x": 0,
+      "y": 3040,
+      "text": "For: People looking for a private browser: blanc.day's private tabs and privacy pages, and privacy-minded communities.\n\nPromotional text (165/170): Private tabs keep no history, and their cookies and site data go when the last one closes. Ads and trackers are blocked by default, and Sync is end-to-end encrypted.\n\nThe same captures and sky as the default page, in this page's order. Every caption must pass docs/marketing-claims.md; see the Custom product pages section of docs/ios/app-store-listing.md."
+    }
+  },
+  "order": [
+    "Main.dc.html",
+    "Computer.dc.html",
+    "Spaces.dc.html",
+    "Commands.dc.html",
+    "Tabs.dc.html",
+    "Private.dc.html",
+    "DuoClosedMain.dc.html",
+    "DuoClosedComputer.dc.html",
+    "DuoClosedSpaces.dc.html",
+    "DuoClosedTabs.dc.html",
+    "DuoClosedPrivate.dc.html",
+    "DuoOpenMain.dc.html",
+    "DuoOpenSpaces.dc.html",
+    "DuoOpenCommands.dc.html",
+    "DuoOpenTabs.dc.html",
+    "DuoOpenPrivate.dc.html",
+    "CompanionPair.dc.html",
+    "CompanionSharedSpaces.dc.html",
+    "CompanionStartPage.dc.html",
+    "CompanionCommands.dc.html",
+    "CompanionTabGrid.dc.html",
+    "CompanionPrivate.dc.html",
+    "GroupsSpaces.dc.html",
+    "GroupsTabGrid.dc.html",
+    "GroupsComputer.dc.html",
+    "GroupsCommands.dc.html",
+    "GroupsStartPage.dc.html",
+    "GroupsPrivate.dc.html",
+    "PrivacyPrivate.dc.html",
+    "PrivacyStartPage.dc.html",
+    "PrivacyCommands.dc.html",
+    "PrivacyTabGrid.dc.html",
+    "PrivacySpaces.dc.html",
+    "PrivacyComputer.dc.html"
+  ],
+  "pages": [
+    {
+      "id": "page-1",
+      "name": "Blanc on iPhone 1.0"
+    },
+    {
+      "id": "page-tsyv0r",
+      "name": "iPhone Duo"
+    },
+    {
+      "id": "cpp-companion",
+      "name": "Custom page · Blanc on your computer"
+    },
+    {
+      "id": "cpp-spaces-and-groups",
+      "name": "Custom page · Spaces and groups"
+    },
+    {
+      "id": "cpp-private",
+      "name": "Custom page · Private browsing"
+    }
+  ],
+  "title": "Blanc for iPhone App Store Screenshots"
+}

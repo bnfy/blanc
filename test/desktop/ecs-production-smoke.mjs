@@ -46,7 +46,7 @@ try {
       await chrome.evaluate(() => window.browserAPI.openPage('settings'));
       const settings = await waitFor(() => app.pages().find(p => p.url() === 'blanc://settings/'), 'settings', 15000);
       const info = await settings.evaluate(async () => (await window.bowserPages.settings.get()).appInfo);
-      assert.equal(info.electronVersion, '44.9.3');
+      assert.equal(info.electronVersion, '45.2.1');
       const readyMs = Date.now() - start;
       assert(readyMs < 15000, `Offline readiness exceeded 15 seconds: ${readyMs}`);
       await chrome.evaluate(url => window.browserAPI.createTab(url), url);

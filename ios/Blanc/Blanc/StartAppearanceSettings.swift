@@ -80,7 +80,7 @@ struct ClockSettingsView: View {
     let manager: TabsManager
     @State private var error: String?
     private var controls: AppearanceControls { AppearanceControls(manager: manager, reportError: { error = $0 }) }
-    private var font: String { manager.startAppearance.values["newtabClockFont"] as? String ?? "instrument" }
+    private var font: String { manager.startAppearance.values["newtabClockFont"] as? String ?? "flex" }
     private var weightRange: ClosedRange<Double> {
         switch font { case "inter": return 100...900; case "flex": return 100...1000; default: return 400...700 }
     }
@@ -89,18 +89,18 @@ struct ClockSettingsView: View {
         Form {
             Section { StartSettingsPreviewRow(manager: manager, layout: .billboard) }
             Section {
-                Picker(SettingsCopy.text("font"), selection: controls.string("newtabClockFont", fallback: "instrument", method: "setClock", clock: true)) {
+                Picker(SettingsCopy.text("font"), selection: controls.string("newtabClockFont", fallback: "flex", method: "setClock", clock: true)) {
                     ForEach(["instrument", "condensed", "inter", "flex"], id: \.self) { Text(SettingsCopy.text($0)).tag($0) }
                 }.accessibilityIdentifier("settings.clockFont")
-                SettingsSlider(key: "weight", value: constrained("newtabClockWeight", fallback: 500, range: weightRange), range: weightRange)
+                SettingsSlider(key: "weight", value: constrained("newtabClockWeight", fallback: 450, range: weightRange), range: weightRange)
                 if heightMax > 100 {
-                    SettingsSlider(key: "height", value: constrained("newtabClockHeight", fallback: 100, range: 100...heightMax), range: 100...heightMax)
+                    SettingsSlider(key: "height", value: constrained("newtabClockHeight", fallback: 300, range: 100...heightMax), range: 100...heightMax)
                 }
             }
             Section {
                 colorPicker("color", selection: controls.string("newtabClockColor", fallback: "auto", method: "setClock", clock: true), automatic: true)
                 SettingsSlider(key: "tone", value: controls.number("newtabClockTone", fallback: 50, method: "setClock", clock: true), range: 0...100)
-                Picker(SettingsCopy.text("style"), selection: controls.string("newtabClockStyle", fallback: "solid", method: "setClock", clock: true)) {
+                Picker(SettingsCopy.text("style"), selection: controls.string("newtabClockStyle", fallback: "glass", method: "setClock", clock: true)) {
                     ForEach(["solid", "glass"], id: \.self) { Text(SettingsCopy.text($0)).tag($0) }
                 }
             } footer: { Text(SettingsCopy.text("glassHelp")) }
@@ -114,6 +114,7 @@ struct ClockSettingsView: View {
 }
 
 private struct SettingsSlider: View {
+    @Environment(\.colorScheme) private var scheme
     let key: String
     @Binding var value: Double
     let range: ClosedRange<Double>
@@ -121,6 +122,7 @@ private struct SettingsSlider: View {
         VStack(alignment: .leading) {
             LabeledContent(SettingsCopy.text(key), value: "\(Int(value))")
             Slider(value: $value, in: range, step: 1)
+                .tint(BrowserStyle(scheme: scheme).controlFill)
                 .accessibilityLabel(SettingsCopy.text(key))
                 .accessibilityIdentifier("settings." + key)
         }

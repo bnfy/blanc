@@ -363,6 +363,15 @@ Feature: Tabs and tab groups
     When I turn off site icons on the Island
     Then the island shows 3 direct tab dots
     And the direct tabs are dots again
+  @F3-35 @F3 @desktop
+  Scenario: The Island can be made bigger, and the page moves down to make room
+    Then the Island is 44px tall in a 68px strip, with the page just below
+    When I set the Island size to "large"
+    Then the Island is 50px tall in a 76px strip, with the page just below
+    When I set the Island size to "extra-large"
+    Then the Island is 56px tall in a 84px strip, with the page just below
+    When I set the Island size to "default"
+    Then the Island is 44px tall in a 68px strip, with the page just below
   @F2-9 @F2 @desktop
   Scenario: New Tab Below opens inside the group, directly below
     Given a group "work" with 2 tabs

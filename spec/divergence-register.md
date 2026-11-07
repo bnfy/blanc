@@ -21,6 +21,13 @@ capabilities, and this is non-negotiable — you cannot ship a common engine.
   **programmatic and comparably powerful** to desktop; can consult the full rule
   set per request. Alternatively a bundled Chromium fork if the app ever ships its
   own engine.
+  **Update 2026-11-05:** Android ships its own engine: it is built on the
+  Chromium fork's Android lane and uses the fork's blocker, shared with desktop
+  (milestone A3, unreleased), not `WebView.shouldInterceptRequest`: the same
+  Ghostery engine, pinned lists and hash-checked bundle, in a sandboxed utility
+  process. Android ends background processes in normal use, so the engine starts
+  again by itself, holding requests, at most three times in ten minutes; after
+  that, or with a wrong bundle, pages stop and the Sunrise menu offers Retry.
 - **iOS:** `WKContentRuleList` — **declarative JSON, ~150k-rule cap per list, no
   programmatic per-request logic.** Requires curating EasyList+EasyPrivacy down to
   fit and compiling to Apple's format. This is structurally the same constraint as
@@ -91,7 +98,9 @@ cap** are identical; only where the bytes land and how you re-open them differ.
   the Linux desktop entry's `WebBrowser` category and HTTP(S) scheme-handler
   types).
 - **iOS:** default-browser **entitlement** + universal-link/URI handling; hand-off
-  via `UIApplication.open`.
+  via `UIApplication.open`. The app can't set itself: the walkthrough and
+  Settings open the system's Default Apps screen. Apple rate-limits the check,
+  so a refused one keeps the last answer.
 - **Android:** intent filters + the default-browser role; hand-off via `Intent`.
 
 **Parity contract:** a bare `mailto:`/`tel:`/etc. is handed to the OS (never
@@ -159,7 +168,7 @@ Desktop bindings and their mobile intent:
 
 | Desktop | Action | Mobile equivalent |
 |---------|--------|-------------------|
-| ⌘[ / ⌘] (pill buttons) | Back / Forward | edge-swipe gesture (`allowsBackForwardNavigationGestures`) — no pill buttons |
+| ⌘[ / ⌘] (pill buttons) | Back / Forward | edge-swipe gesture (`allowsBackForwardNavigationGestures`); iPhone pill buttons are opt-in |
 | ⌘L | Search & Commands (palette) | tap the pill / pull-down |
 | ⌘T | New Tab | new-tab button |
 | ⌘⇧N | New Private Tab | new-private-tab action |
@@ -181,6 +190,15 @@ Desktop bindings and their mobile intent:
 
 - **iPad** with a hardware keyboard **may reintroduce** the desktop shortcuts on
   iOS only — a permitted iOS-only enhancement, not an Android obligation.
+  Built 2026-11-03 (on main, unreleased): ⌘T, ⌘⇧N, ⌘L, ⌘W, ⌘⇧T, ⌘,, ⌘F,
+  ⌘R, ⌘[ / ⌘], ⌘+ / ⌘− / ⌘0, ⌘Y, ⌘⌥B, ⌘D and ⌘1–9 (desktop's cluster
+  rule), from iPadOS's menu bar and ⌘-hold list. Next and previous tab are
+  Safari's ⌘⇧] / ⌘⇧[, because iPadOS keeps Ctrl+Tab for moving keyboard
+  focus and it never reaches the app.
+  Pointer and trackpad (2026-11-03, unreleased): the pointer highlights the
+  Island's controls and palette rows and lifts tab grid cards; secondary click
+  opens the long-press menus (F19); a two-finger swipe on the Island switches
+  tabs, as the touch swipe does.
 - **Slash commands (F7) are the cross-platform equalizer:** every keyboard action
   also has a `/command`, so the *capability* stays reachable on touch even where a
   shortcut doesn't.
@@ -254,6 +272,43 @@ mobile is a single full-screen surface with system insets.
   strip, its own always-on-top overlay view, and traffic-lights / window controls.
 - **Mobile:** a single surface; the island adapts to safe-area insets; no window
   controls; multi-window is a tablet/foldable consideration, not a phone one.
+- **iOS (2026-11-05, owner request):** Settings → Island → Back and Forward
+  buttons (off by default, device-local `islandHistoryButtons`, never synced)
+  puts them on the iPhone Island in place of Reload and New Tab, after a
+  visitor asked where Back was. The Island has no tab count on any layout:
+  a pinch in on a fully zoomed-out page, as in Safari, or a swipe up from the
+  Island opens the tab grid. The page shrinks into its card as Safari's does. Stop still shows while a page loads. Pull to
+  refresh and the tab grid and palette's New Tab stay. The unfolded Island
+  always shows every button. Back and Forward also survive a relaunch: each
+  tab's `interactionState` is saved on this device only (never synced, never
+  backed up, never a private tab), found through `SavedTab.historyId` and kept
+  apart from it, and dropped when the person clears their history or site data.
+- **iOS (2026-11-03, owner request):** the Island floats over every page at
+  the bottom, with the page running behind it, and tucks away below the
+  screen's edge while the person scrolls a website down, as Safari's bar does.
+  A scroll back up, the top or end of the page, a new page or a tab switch
+  brings it back. It never tucks on the Start Page, with VoiceOver on, or while
+  the Spaces menu, palette panel or a banner over it shows. Settings →
+  Hide the Island while scrolling (on by default, device-local
+  `islandTucksOnScroll`, never synced) keeps it always on screen, and Settings
+  → Island position (`islandPosition`, `bottom` by default or `top`, also
+  device-local) moves it to the top of the screen, where it tucks upward, its
+  notices, Spaces menu and unfolded-Duo palette hang below it, a swipe down
+  opens the tab grid, and the Start Page moves its header below it. This is the
+  owner's deliberate choice for the phone, where the Island is under the
+  thumb; desktop's August 2026 rejection of a scroll-away Island (it would
+  make the desktop Island transient chrome) still stands, and D29's
+  pointer-driven auto-hide remains desktop's only hiding mode.
+- **Android (A1, 2026-11-04, owner: as close to the iPhone as possible):**
+  the iPhone's floating Island, its tuck rules, Island position and Hide the
+  Island while scrolling, ported value for value. Chromium's toolbar stays
+  hidden and the page fills the screen behind the Island, which sits inside
+  the system bars and display cutout in gesture and three-button navigation.
+  Two differences Chromium forces: a sideways swipe moves through the current
+  tab list only (normal or private, which Chromium keeps apart; the iPhone
+  mixes them, and A2's tab grid settles it), and the switched-in page slides
+  in from 30% of the width and settles in 350 ms instead of following the
+  finger, because Chromium draws one tab's page at a time.
 - **Desktop workspace-local state:** reopen-closed history belongs to the native
   window that closed the tab (F2), and Glance can expose a second tab inside
   that same window (F34). Neither operation may cross a workspace/profile edge.
@@ -295,8 +350,10 @@ app can observe individual blocked requests depends on the engine model.
 
 - **Desktop:** exact — the Ghostery engine emits a `request-blocked` event per
   block (main.js already counts these per tab).
-- **Android:** exact — `shouldInterceptRequest` is programmatic, so a per-tab
-  counter increments on each block.
+- **Android:** exact — the fork's blocker counts each block per tab. There's no
+  shield chip: the count is a line under the Sunrise menu's blocking row (A3).
+  The Start Page runs the iPhone's script, so it shows protection on or off, not
+  a weekly count.
 - **iOS:** **not directly available** — `WKContentRuleList` blocks silently with no
   per-request callback. Recommended: show a binary "protected / paused" state
   instead of a live count (an approximate number that disagrees with reality is
@@ -317,13 +374,13 @@ F12-1 acceptance step is relaxed on iOS accordingly.
 **Why:** Element-hiding (vs. request-blocking) has different ceilings per engine.
 
 - **Desktop:** the library drives full cosmetic filtering (including procedural).
-- **Android:** no cosmetic API — inject element-hiding CSS/JS on page load
-  (`onPageStarted`/`onPageFinished`); can do procedural hiding, but hand-rolled.
+- **Android:** the same as desktop: the fork's blocker applies cosmetic rules,
+  procedural ones and scriptlets from document start in Chromium's renderer (A3).
 - **iOS:** `css-display-none` rules only — static selectors, a **subset**;
   procedural cosmetics (`:has`, scriptlets) are dropped.
 
 **Parity contract:** obvious ad elements are hidden everywhere; the depth of
-cosmetic coverage differs (full desktop / procedural-but-manual Android / static
+cosmetic coverage differs (full desktop and Android / static
 iOS). Not a bug — a documented ceiling.
 
 **Detailed design:** [`blocking-backends.md`](./blocking-backends.md).
@@ -342,7 +399,10 @@ with no desktop/Android equivalent.
 - **iOS (26+):** `.glassEffect(.regular.interactive, in: .capsule)` — the
   platform-native translucent material. Falls back to the token surface on
   iOS 17–25 via `#available(iOS 26, *)`.
-- **Android:** token-defined surface (same as desktop).
+- **Android:** token-defined surface (same as desktop). As built in A1
+  (2026-11-04), it's the iPhone's pre-26 fallback (`IslandSurface.swift`): the
+  raised fill, a 0.5 dp hairline and a soft shadow (Android's elevation shadow
+  tinted to the iPhone's 10% or 25% black). Android has no Liquid Glass.
 
 **Parity contract:** the island pill is present and functional on every
 platform; the *material treatment* differs — opaque tokens on desktop/Android,
@@ -680,9 +740,9 @@ pointer reaching the window's top edge, which touch input has no equivalent for.
   and the Island would land on it, and the floating Island hides as soon as
   the pointer moves below the strip. Glance always uses the push layout.
   Turning it on shows the Island for a few seconds with a tip on how to bring
-  it back. While hidden, a 6px band along the page pane's
-  top edge drags the window (both styles); below it the page's top band
-  belongs to the page. With vertical tabs the rail is never reveal territory;
+  it back. While hidden, a band along the page pane's top edge drags the
+  window (both styles): 6px, or 10px on Windows, whose top 5 rows are the
+  window's resize border. Below it the page's top band belongs to the page. With vertical tabs the rail is never reveal territory;
   only the page pane's top band is. On Linux under native Wayland, which gives
   apps no pointer position outside their windows, the Island is revealed from
   just inside the top edge only, not from the band above a floating window.
@@ -695,16 +755,26 @@ differs.
 
 **Status:** Accepted 2026-10-19; float style added 2026-10-20. Windows and
 Linux (X11 and native Wayland) hand checks ran 2026-10-20 (bnfy/blanc#994):
-on Windows the drag band drags but a double-click on it does not maximise, in
-either style (the same with a transparent drag view, so it is Windows' own
-hit test). On Linux the window document went `hidden` while the page
+the Windows record of that check, that the band drags but a double-click on
+it does not maximise, is corrected below. On Linux the window document went `hidden` while the page
 covered it whole and stopped tracking resizes, leaving the floating pill and
 window controls at stale positions after a maximise; on Linux a covered strip
 now keeps one row uncovered (bnfy/blanc#999). Windows does the same: its
 covered strip also went `hidden`, so a pill that grew while covered (more
 tabs, a longer domain) was drawn wider than its view and lost its ends
 (reported on v1.42.0; 2026-10-22 VM check), and a covered strip there keeps
-one row uncovered too (bnfy/blanc#1052).
+one row uncovered too (bnfy/blanc#1052). On Windows the top 5 rows are the
+window's resize border, not the band: the rows the 2026-10-20 check read as
+dragging were resizing the window's top edge, and a double-click there
+stretches it to full height, while the first row below them maximised. So a
+6px band left one row that dragged, and only sideways or up, because Windows
+drops the drag if the pointer's first move leaves the band (bnfy/blanc#1369).
+The band there is now 10px, measured 2026-11-06 with real mouse input on a
+GitHub-hosted Windows machine at 100% scale: in float, rows 5–9 drag sideways
+and up, and rows 5–8 down at a 1px step; in push the strip is revealed by the
+press, so rows 5–10 drag; rows 8–9 stop short of the window controls, which
+keep their clicks. The October VM logs put the same row 4/5 boundary at 200%
+scale; the 10px band has not been measured in the Windows VM.
 
 ---
 
@@ -739,8 +809,10 @@ never crosses a workspace. Only the number of panes and the presentation
 differ.
 
 **Status:** Proposed 2026-10-21 in
-`docs/superpowers/specs/2026-10-21-ios-iphone-duo-design.md`. Nothing has
-shipped on iOS.
+`docs/superpowers/specs/2026-10-21-ios-iphone-duo-design.md`. Duo-1 (the
+unfolded Island and palette panel) is in the TestFlight beta and iOS 1.0;
+two-pane Split View and floating Glance (2026-11-03) are on main and
+unreleased; fold avoidance and multiple windows are not built.
 
 
 ---
@@ -810,3 +882,89 @@ shared settings schema until the Mac offers it.
 
 **Status:** iPhone implemented, unreleased. Spec:
 `docs/superpowers/specs/2026-10-29-ios-liquid-glass-app-icons-design.md`.
+
+---
+
+## D34 — Blanc's pages at `chrome://blanc/` on Android
+**Features:** F16, F9, F10
+
+**Why:** Android Blanc is built on Chromium, which serves browser pages from
+WebUI hosts under `chrome://`. A `blanc://` scheme would need a new URL scheme
+through Chromium's navigation, security and storage code; a WebUI host gets the
+same isolation (its own origin, no web content linking in) from code Chromium
+already maintains.
+
+- **Desktop:** `blanc://<page>/`, served by `src/main/pages.js`.
+- **iOS:** `blanc://<page>/`, served by a `WKURLSchemeHandler`.
+- **Android:** `chrome://blanc/<page>.html`, served by a WebUI
+  (`chromium/blanc/android/browser/blanc_pages_ui.cc`) from shipping's page
+  files, byte-identical to a pinned release. An adapter loaded first in each
+  page links `blanc://` addresses to it. New tabs, Favorites and History open
+  these pages, so Chrome's New Tab page is never created. As on the iPhone,
+  the utility pages open as ordinary tabs in the phone layout, not desktop's
+  sheet.
+
+**Parity contract that still holds:** the same page files, the same
+`window.bowserPages` members per page (from `browser-api/bridges.json`), and
+pages that can't reach the web or local files.
+
+**Status:** Android implemented in A1, unreleased.
+
+---
+
+## D35 — Settings as a native screen on phones
+**Features:** F14
+
+**Why:** On a phone, Settings is a short list of switches and choices that
+belongs in the platform's own controls; desktop's `blanc://settings` page is
+built for a pointer and a wide window.
+
+- **Desktop:** `blanc://settings/`, a utility page.
+- **iOS:** a native SwiftUI Settings sheet.
+- **Android:** a native Settings screen, matching the iPhone's, in A5. Until
+  then, Android shows no Settings and its pages' Settings links do nothing.
+
+**Parity contract that still holds:** the same settings keys, defaults and
+labels (`settings-schema/`, `copy/messages/`), and device-local settings stay
+device-local everywhere.
+
+**Status:** iOS implemented; Android planned (A5).
+
+---
+
+## D36 — Private tabs in their own section on Android
+**Features:** F4, F2
+
+**Why:** Chromium keeps private tabs in a separate tab model (its off-the-record
+profile), with its own order, selection and closes. Showing them mixed into the
+normal tabs would mean replacing Chromium's tab model.
+
+- **Desktop:** private tabs sit among the window's tabs.
+- **iOS:** private tabs sit in the one tab list, marked private.
+- **Android:** the tab grid and the palette list normal tabs first and private
+  tabs after a "Private" heading. Private tabs are never grouped.
+
+**Parity contract that still holds:** private tabs are never in History, never
+saved or synced, never reopened after a close, their children stay private, and
+the private theme and Private chip are the same.
+
+**Status:** Android implemented in A2, unreleased.
+
+---
+
+## D37 — Find bar at the bottom on phones
+**Features:** F8
+
+**Why:** On a phone the keyboard is up while you type what to find, and the
+thumb is at the bottom of the screen.
+
+- **Desktop:** a find capsule over the top of the page.
+- **iOS:** the system find bar above the keyboard (`UIFindInteraction`).
+- **Android:** Blanc's find bar above the keyboard, with the match count,
+  Previous, Next and Done, matching the iPhone's.
+
+**Parity contract that still holds:** the match count, moving between matches,
+and the page staying usable while the bar is open.
+
+**Status:** iOS implemented; Android implemented in A2, unreleased.
+

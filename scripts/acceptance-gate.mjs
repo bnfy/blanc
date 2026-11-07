@@ -6,7 +6,12 @@
 // log keeps and the release incident quotes. More than 10 failures means a
 // broken build or environment, so the gate fails without rerunning.
 // Nightly and pull-request runs keep the plain `test:acceptance:desktop`.
-// Spec: docs/superpowers/specs/2026-10-27-acceptance-gate-speed-design.md §3.
+// Inside the press gate (scripts/release-gate.mjs) it also writes Cucumber's
+// message stream for each process to BLANC_ACCEPTANCE_MESSAGES_DIR, so passes
+// survive a failed or stopped attempt, and `--only <file>` (a JSON list of
+// path:line) runs just the scenarios still owed.
+// Spec: docs/superpowers/specs/2026-10-27-acceptance-gate-speed-design.md §3,
+// and 2026-11-02-press-gate-ledger-design.md §3.
 import { spawnSync } from 'node:child_process';
 import fs from 'node:fs';
 import os from 'node:os';
@@ -67,14 +72,30 @@ export function rerunBlock(passed) {
   ].join('\n');
 }
 
+/** The first run's Cucumber profile and arguments: the whole profile, or exactly the owed scenarios. */
+export function firstRun(only) {
+  return only ? { profile: 'remaining', args: only } : { profile: 'runnable', args: [] };
+}
+
+/** `--only <file>` from argv: the owed path:line list, or null for a full run. */
+export function parseOnly(argv) {
+  const index = argv.indexOf('--only');
+  if (index < 0) return null;
+  const list = JSON.parse(fs.readFileSync(argv[index + 1], 'utf8'));
+  if (!Array.isArray(list) || !list.length || !list.every((s) => typeof s === 'string' && /:\d+$/.test(s))) {
+    throw new Error('--only needs a non-empty JSON list of path:line');
+  }
+  return list;
+}
+
 function readReport(file) {
   try { return JSON.parse(fs.readFileSync(file, 'utf8')); } catch { return null; }
 }
 
-function cucumber(profile, args, report, cwd) {
+function cucumber(profile, args, report, cwd, messages) {
   const run = spawnSync('npx', ['cucumber-js', '-c', 'test/desktop/cucumber.mjs', '-p', profile, ...args], {
     cwd, stdio: 'inherit', shell: process.platform === 'win32',
-    env: { ...process.env, BLANC_ACCEPTANCE_REPORT: report },
+    env: { ...process.env, BLANC_ACCEPTANCE_REPORT: report, ...(messages ? { BLANC_ACCEPTANCE_MESSAGES: messages } : {}) },
   });
   return run.status ?? 1;
 }
@@ -84,8 +105,13 @@ function main() {
   const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'blanc-acceptance-gate-'));
   const firstReport = path.join(dir, 'first-run.json');
   console.log(`acceptance gate: reports in ${dir}`);
+  const messagesDir = process.env.BLANC_ACCEPTANCE_MESSAGES_DIR;
+  const messages = (label) => (messagesDir ? path.join(messagesDir, `${process.env.BLANC_ACCEPTANCE_RUN_PREFIX ?? ''}${label}.ndjson`) : null);
 
-  const firstStatus = cucumber('runnable', [], firstReport, root);
+  const only = parseOnly(process.argv.slice(2));
+  const { profile, args } = firstRun(only);
+  if (only) console.log(`acceptance gate: running the ${only.length} scenario(s) still owed`);
+  const firstStatus = cucumber(profile, args, firstReport, root, messages('first'));
   const first = readReport(firstReport);
   if (!first) {
     console.error('acceptance gate: the run wrote no readable report; failing.');
@@ -106,7 +132,7 @@ function main() {
   console.log(`\nacceptance gate: rerunning ${failed.length} failed scenario(s) once in a fresh process:`);
   for (const s of failed) console.log(`  ${s.location}  ${s.name}\n    ${s.error}`);
   const rerunReport = path.join(dir, 'rerun.json');
-  const rerunStatus = cucumber('rerun', failed.map((s) => s.location), rerunReport, root);
+  const rerunStatus = cucumber('rerun', failed.map((s) => s.location), rerunReport, root, messages('rerun'));
   const problems = checkRerun(failed, readReport(rerunReport));
   if (rerunStatus !== 0 && problems.length === 0) problems.push(`the rerun exited ${rerunStatus}`);
   if (problems.length) {

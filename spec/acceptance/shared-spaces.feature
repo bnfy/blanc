@@ -199,3 +199,18 @@ Feature: Shared Spaces
     Then the selection sheet is closed and Settings says the Spaces are uploading
     When the held Spaces index fetch is released
     Then the "Work" Space is shared once and Spaces sync is on
+
+  @F57-24
+  Scenario: A Space made on another device arrives within seconds
+    Given a Shared Spaces fixture with the Work Space shared
+    And Blanc is in front and has finished its launch pass
+    When another device shares a new Space "Travel"
+    Then the "Travel" Space appears here within 25 seconds
+
+  @F57-25
+  Scenario: Without the change check, a Space made on another device still arrives within a minute
+    Given a Shared Spaces fixture with the Work Space shared
+    And the sync Worker can't answer change checks
+    And Blanc is in front
+    When another device shares a new Space "Travel"
+    Then the "Travel" Space appears here within 70 seconds

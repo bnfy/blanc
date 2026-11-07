@@ -278,13 +278,17 @@ Given('a Shared Spaces fixture whose shared Work Space has a tab alone in a grou
 });
 // An unpackaged Blanc keeps its data in "<profile>-Dev".
 const sharedStoreOnDisk=profileDir=>JSON.parse(require('node:fs').readFileSync(require('node:path').join(profileDir+'-Dev','shared-spaces.json'),'utf8'));
+const sessionOnDisk=profileDir=>JSON.parse(require('node:fs').readFileSync(require('node:path').join(profileDir+'-Dev','session.json'),'utf8'));
 When('the Shared Spaces client quits normally and relaunches',{timeout:180000},async function(){
  const state=await this.call('sharedSpacesTest','state');
  assert.ok(Object.values(state.shared.windows).some(w=>w.accepted.some(row=>row.op==='nav'&&row.id===this.navigated)),'the active navigation is held before the quit');
  this.deviceId=state.context.deviceId;
- await ctx.quitAndRelaunch(profileDir=>{this.storeAtQuit=sharedStoreOnDisk(profileDir);});
+ await ctx.quitAndRelaunch(profileDir=>{this.storeAtQuit=sharedStoreOnDisk(profileDir);this.sessionAtQuit=sessionOnDisk(profileDir);});
 });
 Then('the quit saved no closed Work tab and kept the held navigation',function(){
+ // F57-15: a Space pass that landed during the quit wrote one empty window here.
+ const windows=this.sessionAtQuit.windows??[];
+ assert.ok(windows.some(w=>w.workspaceId&&w.urls?.length),`the quit kept the Work window in session.json: ${JSON.stringify(windows.map(w=>({workspaceId:w.workspaceId,urls:w.urls?.length})))}`);
  const saved=this.storeAtQuit,blob=saved.blobs[this.sid].blob;
  const closed=Object.values(blob.tabs).filter(r=>r.deleted.v===true).map(r=>`${r.nav.v.url} (by ${r.deleted.by===this.deviceId?'this device':r.deleted.by})`);
  assert.deepEqual(closed,[],'the quit must not close a Work tab');
@@ -479,3 +483,50 @@ Then('the selection sheet is closed and Settings says the Spaces are uploading',
  assert.match(await this.sharedPage.locator('#sharedSpacesControl').textContent(),/Uploading your Spaces/);
  assert.equal(await this.sharedPage.locator('#sharedSpacesToggle').isChecked(),true);await evidence(this,'uploading');
 });
+// The change check (design 2026-11-02): another device's new Space reaches
+// this one on its next check, or on the minute pass without the check.
+// Setting up turns sync on and shares Work, which uses the request window,
+// and leaves a full pass scheduled that would spend it a second later.
+// F57-24 puts the device past that pass, as it is once it has run a while. (A
+// plain window reset ran before that pass, so a focus change during it, which
+// the app reports as a blur, left the check no room to fetch the new Space for
+// a minute.)
+Given('Blanc is in front and has finished its launch pass',async function(){
+ assert.equal(await this.call('sharedSpacesTest','foreground',true),true);
+ assert.equal(await this.call('sharedSpacesTest','settleRequests'),true,'the setup\'s requests settle');
+});
+// F57-25 (no change check) keeps the plain reset: its Space is found by the
+// pass the setup scheduled, whose second wave then waits out the window, and
+// that is the minute the scenario allows. Settling that pass first leaves the
+// minute pass to find the Space, and its second wave waits out a further window
+// (the Linux run showed the Space in the index after 70 s, its blob not fetched).
+Given('Blanc is in front',async function(){assert.equal(await this.call('sharedSpacesTest','foreground',true),true);await this.call('sharedSpacesTest','resetRequestWindow');});
+Given('the sync Worker can\'t answer change checks',function(){this.sharedFixture.setVersions(false);});
+When('another device shares a new Space {string}',{timeout:60000},async function(name){
+ const {accountId,key}=this.sharedKey,base=`${this.sharedFixture.url}/v1/blob/${accountId}/`,sid=require('node:crypto').randomBytes(16).toString('hex');
+ const field=v=>({v,c:Date.now(),by:'peer'}),tabId=require('node:crypto').randomBytes(16).toString('hex');
+ const blob={v:1,spaceId:sid,groups:{},tabs:{[tabId]:{nav:field({url:this.fixtureUrl('shared-first'),title:'Peer tab'}),name:field(null),pinned:field(false),groupId:field(null),pos:field(model.keyFor('','',tabId)),deleted:field(false)}}};
+ const put=async(store,body)=>{const r=await fetch(base+store,{method:'PUT',body:JSON.stringify(body)});return r;};
+ assert.equal((await put('space-'+sid,{ifVersion:null,blob:encrypt(key,JSON.stringify(blob))})).status,200);
+ for(let attempt=0;attempt<3;attempt++){
+  const current=await fetch(base+'spaces'),record=current.status===200?await current.json():null;
+  const index=record?JSON.parse(decrypt(key,record.blob)):{v:1,spaces:{}};
+  index.spaces[sid]={name:field(name),color:field('#426c4c'),symbol:field('briefcase'),pos:field(model.keyFor('','',sid)),deleted:field(false),
+   rev:model.revisionOf(blob),revAt:Date.now(),revBy:'peer',createdAt:Date.now(),createdBy:'peer'};
+  const written=await put('spaces',{ifVersion:record?.version??null,blob:encrypt(key,JSON.stringify(index))});
+  if(written.status===200)return;assert.equal(written.status,409);
+ }
+ assert.fail('the peer could not update the Spaces index');
+});
+Then('the {string} Space appears here within {int} seconds',{timeout:120000},async function(name,seconds){
+ const started=Date.now();
+ // Other windows on the test machine can take focus, which slows the check
+ // to once a minute; the scenario measures a device whose window stays in front.
+ try{await waitForValue(async()=>{await this.call('sharedSpacesTest','foreground',true);return (await this.call('workspaceAction','list')).items.some(row=>row.name===name);},Boolean,name+' arrives',seconds*1000);}
+ catch(error){
+  // What the device holds and asked for, for the failure report.
+  const st=await this.call('sharedSpacesTest','state');
+  process.stderr.write('[F57] '+JSON.stringify({cadence:await this.call('sharedSpacesTest','cadence'),check:await this.call('sharedSpacesTest','check'),index:Object.fromEntries(Object.entries(st.shared.index.spaces).map(([k,v])=>[k,v.name?.v])),blobs:Object.keys(st.shared.blobs),checks:this.sharedFixture.requests.filter(r=>r.store==='versions').length,last:this.sharedFixture.requests.slice(-12).map(r=>r.method+' '+r.store+' '+(r.status??''))})+'\n');throw error;}
+ process.stderr.write(`[F57] ${name} arrived after ${((Date.now()-started)/1000).toFixed(1)} s\n`);
+});
+

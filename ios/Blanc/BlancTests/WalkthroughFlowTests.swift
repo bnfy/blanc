@@ -3,8 +3,8 @@ import XCTest
 
 /// M18 §3.2–§3.3: every path through the first-minute card.
 final class WalkthroughFlowTests: XCTestCase {
-    private func flow(paired: Bool = false, completed: Int = 0, offer: Bool = false, isDefault: Bool? = nil) -> WalkthroughFlow {
-        WalkthroughFlow(paired: paired, completedVersion: completed, offerDefaultBrowser: offer, isDefaultBrowser: isDefault)
+    private func flow(paired: Bool = false, completed: Int = 0, isDefault: Bool? = true) -> WalkthroughFlow {
+        WalkthroughFlow(paired: paired, completedVersion: completed, isDefaultBrowser: isDefault)
     }
     private func walk(_ f: inout WalkthroughFlow, _ moves: [(inout WalkthroughFlow) -> Void]) -> [WalkthroughStep?] {
         var seen: [WalkthroughStep?] = [f.current]
@@ -33,20 +33,14 @@ final class WalkthroughFlowTests: XCTestCase {
 
     func testDefaultBrowserFollowsPrivacyWhenOffered() {
         for isDefault in [false, nil] as [Bool?] {
-            var f = flow(offer: true, isDefault: isDefault)
+            var f = flow(isDefault: isDefault)
             let seen = walk(&f, [{ $0.browseWithoutPairing() }, { $0.next() }, { $0.next() }])
             XCTAssertEqual(seen, [.welcome, .privacy, .defaultBrowser, nil], "\(String(describing: isDefault))")
         }
     }
 
     func testDefaultBrowserSkippedWhenBlancIsDefault() {
-        var f = flow(offer: true, isDefault: true)
-        let seen = walk(&f, [{ $0.browseWithoutPairing() }, { $0.next() }])
-        XCTAssertEqual(seen, [.welcome, .privacy, nil])
-    }
-
-    func testDefaultBrowserSkippedWhileTheOfferIsHidden() {
-        var f = flow(offer: false, isDefault: false)
+        var f = flow(isDefault: true)
         let seen = walk(&f, [{ $0.browseWithoutPairing() }, { $0.next() }])
         XCTAssertEqual(seen, [.welcome, .privacy, nil])
     }
@@ -62,7 +56,7 @@ final class WalkthroughFlowTests: XCTestCase {
     }
 
     func testClosingAfterPrivacySavesNothingMore() {
-        var f = flow(offer: true, isDefault: false)
+        var f = flow(isDefault: false)
         _ = walk(&f, [{ $0.browseWithoutPairing() }, { $0.next() }])
         XCTAssertEqual(f.current, .defaultBrowser)
         XCTAssertFalse(f.close())
@@ -78,12 +72,12 @@ final class WalkthroughFlowTests: XCTestCase {
     }
 
     func testReplayStartsOverForThePairingState() {
-        XCTAssertEqual(WalkthroughFlow.replay(paired: false, offerDefaultBrowser: false, isDefaultBrowser: nil).current, .welcome)
-        XCTAssertEqual(WalkthroughFlow.replay(paired: true, offerDefaultBrowser: false, isDefaultBrowser: nil).current, .shareBack)
+        XCTAssertEqual(WalkthroughFlow.replay(paired: false, isDefaultBrowser: nil).current, .welcome)
+        XCTAssertEqual(WalkthroughFlow.replay(paired: true, isDefaultBrowser: nil).current, .shareBack)
     }
 
     func testBecomingDefaultMidFlowSkipsTheStep() {
-        var f = flow(offer: true, isDefault: false)
+        var f = flow(isDefault: false)
         f.browseWithoutPairing()
         f.defaultBrowserChanged(true)
         f.next()

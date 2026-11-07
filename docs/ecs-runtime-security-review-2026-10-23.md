@@ -26,6 +26,46 @@ the press gate passes and the owner signs off on What's New.
   all four archives, rerun the TLS probe, rebuild, sign and requalify, and ship
   that as the next release. This waiver covers this runtime pin only.
 
+## Follow-up — November 6, 2026: ECS 44.10.1+wvcus
+
+castLabs published `v44.10.1+wvcus` on November 4, 2026, so the follow-up above
+is now possible. This section records the source work only. **R1 is closed for
+the TLS defect once 44.10.1 ships; nothing here is a release approval.**
+
+- All four archives were downloaded and match castLabs' `SHASUMS256.txt` and
+  `build/ecs-runtime.json`. The runtime reports Electron `44.10.1`, Chromium
+  `152.0.7977.169`, Node `24.22.1`, Undici `7.30.1`, c-ares `1.34.9`.
+- The TLS probe was rerun in pure `tls.checkServerIdentity` calls against the
+  extracted Apple Silicon framework (SHA-256
+  `1f51a568476de81f045f4c9b7c822fe170d17ca9153d1ab2e8489db4331a4fef`). Fullwidth,
+  octal, hexadecimal and shortened IP spellings are now rejected against a
+  numeric DNS SAN, and the three controls still behave. The same script on
+  Electron 44.9.3 accepts all four, so it does detect the defect.
+- **Not closed by this:** the other Node advisories were still not dynamically
+  tested, and upstream 44.10.2 (Node 24.22.2 and further backports) has no ECS
+  build yet.
+- **R2 is waived again by the owner, not passed.** See the waiver below.
+- Signed-package uBO acceptance passed on all four targets on `c40477ab7`, and
+  `src/main/ublock-platforms.json` records it. See the
+  [uBO support matrix](ublock-origin-support-matrix-2026-10-03.md).
+
+### Owner waiver — November 7, 2026, 03:21 UTC (R2, 44.10.1 only)
+
+**R2 is waived by the owner for `44.10.1+wvcus`, not passed.** In chat, after
+being told that the October waiver covered the 44.9.3 pin only and that R2 is
+open for any newer runtime, the owner selected "Waive R2, continue".
+
+- **Missing evidence:** the exact native source or backport manifest for
+  `44.10.1+wvcus`, with its redistribution notices. `vendorCommit` is release
+  metadata, not reviewed source.
+- **Accepted risk:** the vendor's native changes in this runtime are unaudited.
+  Archive hashes, code signing and VMP show integrity and identity only.
+- **Conditions:** every other release gate still runs, including native
+  qualification on all four targets and the `PENDING` uBO evidence check. Do not
+  describe the runtime as reviewed. No vendor contact or legal waiver is implied.
+- **Scope:** this runtime pin only. Electron 45 or any later pin needs a new
+  owner decision.
+
 ## Decision
 
 **Not cleared for release.** The selected ECS engine reproduces upstream Node
@@ -120,3 +160,40 @@ The bounded raw probe and npm audit JSON are retained in the isolated
 qualification directory as `ecs-node-tls-security-probe.json` and
 `npm-runtime-audit.json`. The source selection and remediation remain visible
 in `docs/ecs-production-integration.md` and draft PR #1063.
+
+## Follow-up — November 7, 2026: ECS 45.2.1+wvcus
+
+The runtime pin moves to castLabs `v45.2.1+wvcus` (published November 5, 2026):
+Electron `45.2.1`, Chromium `156.0.8078.75`, Node `24.22.1`. This section
+records the source work only; **nothing here is a release approval.**
+
+- All four archives match the SHA-256 digests GitHub publishes for castLabs'
+  release assets and `build/ecs-runtime.json`. `vendorCommit` is the release
+  tag's commit, `ab2120c6a5d49d412bcb2b7e3f9c9c3e74cb0243`.
+- **R1 (TLS):** the same probe rejected all four odd IP spellings on 45.2.1 and
+  the 44.9.3 positive control accepted them (spike of November 6, 2026). Node
+  24.22.1 is the same fixed Node as 44.10.1.
+- **Not in this runtime:** upstream 45.2.2 and 45.2.3 (Chromium 156.0.8078.80,
+  Node 24.22.2 and backports for ANGLE, Chromium, Dawn, FFmpeg, PDFium, Skia and
+  V8) have no ECS build yet.
+- **R2:** the morning waiver of November 7 covered `44.10.1+wvcus` only.
+- Signed-package uBO acceptance and protected playback passed on all four
+  targets on `73992c725`, and `src/main/ublock-platforms.json` records it. See
+  the [uBO support matrix](ublock-origin-support-matrix-2026-10-03.md).
+- **R2 is waived again by the owner, not passed.** See the waiver below.
+
+### Owner waiver — November 7, 2026, 14:08 UTC (R2, 45.2.1 only)
+
+**R2 is waived by the owner for `45.2.1+wvcus`, not passed.** In chat, the
+owner first chose to hold the pin, then, after R2 was explained (castLabs ships
+binaries only, so its native changes cannot be reviewed; the earlier waivers
+covered 44.9.3 and 44.10.1 only), selected "Waive R2".
+
+- **Missing evidence:** the exact native source or backport manifest for
+  `45.2.1+wvcus`, with its redistribution notices. `vendorCommit` is release
+  metadata, not reviewed source.
+- **Accepted risk:** the vendor's native changes in this runtime are unaudited.
+  Archive hashes, code signing and VMP show integrity and identity only.
+- **Conditions:** every other release gate still runs. Do not describe the
+  runtime as reviewed. No vendor contact or legal waiver is implied.
+- **Scope:** this runtime pin only. Any later pin needs a new owner decision.

@@ -1,7 +1,24 @@
 # Unreleased notes
 
-v1.45.1 is the current public release ([notes](v1.45.1.md)). Changes merged
+v1.47.0 is the current public release ([notes](v1.47.0.md)). Changes merged
 since then are below as they're recorded.
+
+## Still open from 1.47
+
+- **The update-restart change in #1405:** the macOS and Windows updater
+  handoffs were confirmed on November 7, 2026, and the owner reported
+  everything fine after the Mac update. How many windows were open wasn't
+  recorded, so a multi-window restart is still unproven.
+- **Page zoom** in a packaged ECS build on Windows and Linux, and its PDF,
+  private-tab, sign-in popup and second-profile cases in a packaged build.
+- **1Password fill** misses forms in iframes, shadow DOM or hidden behind a
+  button, as it did in v1.46.0.
+- **The first release on ECS 45.2.1** has no native-source review (waived).
+
+## Still open from 1.46
+
+- **Mini Window:** not hand-checked on Linux, with several displays, or for
+  the hour-long close.
 
 ## Still open from 1.45
 

@@ -31,6 +31,22 @@ final class StartAppearanceTests: XCTestCase {
         XCTAssertEqual(saved["newtabDynamicWallpaper"] as? Bool, true)
     }
 
+    func testFirstRunClockIsTallThinGlassFlexAndNeverSaved() throws {
+        let dir = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
+        defer { try? FileManager.default.removeItem(at: dir) }
+        let store = StartAppearanceStore(directory: dir)
+        XCTAssertEqual(store.values["newtabClockFont"] as? String, "flex")
+        XCTAssertEqual(store.values["newtabClockHeight"] as? Int, 300)
+        XCTAssertEqual(store.values["newtabClockStyle"] as? String, "glass")
+        XCTAssertEqual(store.values["newtabClockWeight"] as? Int, 450)
+        try store.change("setClock", value: ["style": "solid"])
+        let reopened = StartAppearanceStore(directory: dir)
+        XCTAssertEqual(reopened.values["newtabClockStyle"] as? String, "solid")
+        XCTAssertEqual(reopened.values["newtabClockFont"] as? String, "flex")
+        let file = try JSONSerialization.jsonObject(with: Data(contentsOf: dir.appendingPathComponent("start-appearance.json"))) as? [String: Any]
+        XCTAssertEqual(file?.keys.sorted(), ["newtabClockStyle"], "Defaults stay out of the file so they can change later")
+    }
+
     func testCustomImageIsLocalResizedReplaceableAndRemovable() throws {
         let dir = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
         defer { try? FileManager.default.removeItem(at: dir) }

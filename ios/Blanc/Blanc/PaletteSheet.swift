@@ -160,6 +160,7 @@ struct PaletteSheet: View {
         } label: {
             Image(systemName: icon).font(.system(size: 16)).frame(width: 44, height: 44)
                 .contentShape(Rectangle())
+                .pointerHighlight()
         }
         .accessibilityLabel(label)
         .accessibilityIdentifier("palette." + page)
@@ -182,6 +183,7 @@ struct PaletteSheet: View {
             Button { manager.closeTab(tab.id) } label: {
                 Image(systemName: "xmark").font(.system(size: 12)).foregroundStyle(style.secondary)
                     .frame(width: 44, height: 48)
+                    .pointerHighlight()
             }
             .accessibilityLabel(SyncCopy.text("ios.tabs.close", ["title": TabTitle.display(tab)]))
         }
@@ -191,6 +193,7 @@ struct PaletteSheet: View {
         .contextMenu {
             TabMoveMenu(manager: manager, tab: tab, newGroup: { newGroupTab = NewGroupTab(id: tab.id) }, newSpace: { newSpaceTab = tab.id })
         }
+        .tabDrag(tab)
         .listRowSeparator(.hidden)
         .listRowBackground(Group {
             if let group { groupBlock(group, top: false, bottom: last) } else { Color.clear }
@@ -239,6 +242,7 @@ struct PaletteSheet: View {
         }
         .frame(maxWidth: .infinity, minHeight: 48, alignment: .leading)
         .contentShape(Rectangle())
+        .pointerHighlight()
     }
 
     @ViewBuilder
@@ -396,7 +400,7 @@ struct PaletteSheet: View {
     private var switcherSets: [(id: String, name: String, count: Int)] {
         var sets = manager.spaces.filter { $0.id != manager.shownSetId }.map { ($0.id, $0.name, manager.tabCount($0.id)) }
         if manager.shownSetId != TabSets.iphoneId {
-            sets.insert((TabSets.iphoneId, SyncCopy.text("spaces.thisIPhone"), manager.tabCount(TabSets.iphoneId)), at: 0)
+            sets.insert((TabSets.iphoneId, TabSets.deviceSetName, manager.tabCount(TabSets.iphoneId)), at: 0)
         }
         return sets
     }

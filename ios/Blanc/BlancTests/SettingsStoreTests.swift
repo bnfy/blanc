@@ -41,6 +41,43 @@ final class SettingsStoreTests: XCTestCase {
         XCTAssertEqual(store2.adblockEnabled, false)
     }
 
+    /// The Island tucks on scroll unless the person turns it off; the choice
+    /// survives a relaunch.
+    func testIslandTuckIsOnByDefaultAndPersistsWhenOff() {
+        let dir = tmpDir()
+        let store = SettingsStore(directory: dir)
+        XCTAssertTrue(store.islandTucksOnScroll)
+        store.update(islandTucksOnScroll: false)
+        store.flush()
+        XCTAssertFalse(SettingsStore(directory: dir).islandTucksOnScroll)
+    }
+
+    /// Back and Forward stay off the iPhone Island until the person asks; the
+    /// choice survives a relaunch.
+    func testIslandHistoryButtonsAreOffByDefaultAndPersistWhenOn() {
+        let dir = tmpDir()
+        let store = SettingsStore(directory: dir)
+        XCTAssertFalse(store.islandHistoryButtons)
+        store.update(islandHistoryButtons: true)
+        store.flush()
+        XCTAssertTrue(SettingsStore(directory: dir).islandHistoryButtons)
+    }
+
+    /// The Island sits along the bottom unless the person moves it to the top;
+    /// an unknown saved value falls back to the bottom.
+    func testIslandPositionDefaultsToBottomAndPersists() {
+        let dir = tmpDir()
+        let store = SettingsStore(directory: dir)
+        XCTAssertEqual(store.islandPosition, .bottom)
+        store.update(islandPosition: .top)
+        store.flush()
+        XCTAssertEqual(SettingsStore(directory: dir).islandPosition, .top)
+
+        let other = tmpDir()
+        writeJSON(["islandPosition": "left"], to: other)
+        XCTAssertEqual(SettingsStore(directory: other).islandPosition, .bottom)
+    }
+
     func testFirstEverSaveCreatesFile() {
         // Regression guard: a first-run save must CREATE settings.json, not throw
         // because the destination doesn't exist yet. `.atomic` handles create.

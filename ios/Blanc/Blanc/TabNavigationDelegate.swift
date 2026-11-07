@@ -20,7 +20,10 @@ final class TabNavigationDelegate: NSObject, WKNavigationDelegate {
     /// already visited, so, like desktop's `tab.waking`, it records no visit
     /// and renames none until it settles.
     private(set) var wakeNavigation: WKNavigation?
-    var isWaking: Bool { wakeNavigation != nil }
+    /// A wake from saved history, whose load WebKit starts with no navigation
+    /// to compare against.
+    private var isRestoringHistory = false
+    var isWaking: Bool { wakeNavigation != nil || isRestoringHistory }
     /// A main-frame navigation is about to load `url` (Blanc Blocker's per-site
     /// switch puts the tab's blocking rules on or off for that site first).
     var onWillLoadMainFrame: ((URL) -> Void)?
@@ -31,9 +34,17 @@ final class TabNavigationDelegate: NSObject, WKNavigationDelegate {
         webView.load(URLRequest(url: url))
     }
 
-    /// Loads a quiet tab's page as a wake, not a visit.
-    func wake(_ url: URL, in webView: WKWebView) {
+    /// Loads a quiet tab's page as a wake, not a visit, with its saved Back and
+    /// Forward list when that list still ends on this page.
+    func wake(_ url: URL, in webView: WKWebView, history: Data? = nil) {
         lastRequested = url
+        if let history {
+            webView.interactionState = history
+            if webView.backForwardList.currentItem?.url == url {
+                isRestoringHistory = true
+                return
+            }
+        }
         wakeNavigation = webView.load(URLRequest(url: url))
     }
 
@@ -41,18 +52,25 @@ final class TabNavigationDelegate: NSObject, WKNavigationDelegate {
                  didStartProvisionalNavigation navigation: WKNavigation!) {
         tab?.exitReader()
         tab?.readerAvailable = false
-        tab?.nativeClock.hide()
         tab?.isLoading = true
     }
 
     func webView(_ webView: WKWebView, didCommit navigation: WKNavigation!) {
+        // The Start Page's glass clock goes with its page: a load that fails
+        // before it commits leaves the page, so the clock stays too.
+        tab?.nativeClock.hide()
         tab?.hasCommitted = true
+        tab?.showIsland()
         committed(navigation, url: webView.url, title: webView.title ?? "")
     }
 
     /// Test seam: what a committed main-frame navigation reports. A commit
     /// other than the wake's means the wake was left behind.
     func committed(_ navigation: WKNavigation?, url: URL?, title: String) {
+        if isRestoringHistory {
+            isRestoringHistory = false
+            return
+        }
         if let wakeNavigation, navigation === wakeNavigation { return }
         wakeNavigation = nil
         if let url { onVisit?(url, title) }
@@ -60,6 +78,7 @@ final class TabNavigationDelegate: NSObject, WKNavigationDelegate {
 
     /// The wake is over once its own load finishes or fails.
     private func settled(_ navigation: WKNavigation?) {
+        isRestoringHistory = false
         if let wakeNavigation, navigation === wakeNavigation { self.wakeNavigation = nil }
     }
 
@@ -115,8 +134,8 @@ final class TabNavigationDelegate: NSObject, WKNavigationDelegate {
     private func sync(_ webView: WKWebView, finished: Bool = false) {
         guard let tab else { return }
         tab.isLoading = webView.isLoading
-        tab.canGoBack = webView.canGoBack
-        tab.canGoForward = webView.canGoForward
+        // A load the reload replaced also fails; the spinner waits for its own.
+        if !webView.isLoading { tab.endPullToRefresh() }
         apply(url: webView.url, title: webView.title ?? "", finished: finished)
     }
 
@@ -158,6 +177,9 @@ final class TabNavigationDelegate: NSObject, WKNavigationDelegate {
         let changed = newURL != tab.currentURL
         tab.currentURL = newURL
         tab.addressText = newURL.absoluteString
+        // Every time, not only on a change: a typed address sets `currentURL`
+        // before its page commits.
+        tab.syncPullToRefresh()
         if changed {
             tab.exitReader()
             tab.readerAvailable = false
