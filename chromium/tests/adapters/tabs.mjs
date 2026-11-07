@@ -290,8 +290,8 @@ export const tabs={
   const native={'close-tab':'close','zoom-in':'zoomIn','zoom-out':'zoomOut','zoom-reset':'zoomReset'}[command];
   if(!native)throw new UndefinedNativeAdapterError('Browser command needs an adapter: '+command);
   return (await w.native('previewPageCommand',[native]))!==false;},
- sleepBackgroundTabsNow:w=>w.api('sleepBackgroundTabs'),
- sleepTab:(w,id)=>w.api('quietTab',[id]),
+ sleepBackgroundTabsNow:w=>{w.app.releasePages();return w.api('sleepBackgroundTabs');},
+ sleepTab:(w,id)=>{w.app.releasePages();return w.api('quietTab',[id]);},
  keepGlanceAsSplit:w=>w.api('keepGlanceAsSplit'),
  moveGroupToNewWindow:async(w,id)=>{await w.api('moveGroupToNewWindow',[id]);return true;},
  closedEntrySummaries:async w=>[...(await w.snapshot()).closed].reverse().map(e=>({id:String(e.id),title:e.title,tabCount:e.tabCount})),
