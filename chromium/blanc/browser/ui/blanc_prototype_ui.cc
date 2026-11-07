@@ -79,6 +79,7 @@
 #include "chrome/browser/ui/views/frame/multi_contents_view.h"
 #include "ui/views/layout/proposed_layout.h"
 #include <array>
+#include <vector>
 #include <cmath>
 #include <algorithm>
 #include <memory>
@@ -3268,6 +3269,20 @@ base::DictValue Snapshot(BrowserWindowInterface* browser, Owner* owner) {
 #include "blanc/browser/ui/first_run.inc"
 #include "blanc/browser/ui/telemetry.inc"
 
+// Process-wide launch window, shared by every Start Page WebContents.
+const base::TimeTicks kLaunchSunriseStartedAt = base::TimeTicks::Now();
+struct LaunchSunriseState {
+  base::TimeTicks start = kLaunchSunriseStartedAt;
+  bool spent = false;
+  std::vector<base::WeakPtr<content::WebContents>> asked;
+};
+LaunchSunriseState& LaunchSunrise() {
+  static base::NoDestructor<LaunchSunriseState> state;
+  return *state;
+}
+constexpr char kPatronCalloutDismissedAtPref[] = "blanc.start.patron_callout_dismissed_at";
+constexpr char kLaunchSunrisePref[] = "blanc.start.launch_sunrise";
+
 class NewTabHandler : public content::WebUIMessageHandler,
                       public bookmarks::BaseBookmarkModelObserver,
                       public history::HistoryServiceObserver,
@@ -3578,6 +3593,40 @@ class NewTabHandler : public content::WebUIMessageHandler,
       if (method == "whatsNew" && args.empty()) {
         Reply(id, true, WhatsNewState());
         return;
+      }
+      if (method == "patronCallout" && args.empty()) {
+        const double dismissed = g_browser_process->local_state()->GetInt64(kPatronCalloutDismissedAtPref);
+        const double now = base::Time::Now().InMillisecondsSinceUnixEpoch();
+        constexpr double snooze = 90.0 * 24 * 60 * 60 * 1000;
+        const double until = dismissed > 0 && dismissed - now <= snooze && now - dismissed < snooze
+            ? dismissed + snooze : 0;
+        Reply(id, true, base::Value(base::DictValue().Set("active", false).Set("snoozedUntil", until)));
+        return;
+      }
+      if (method == "patronCalloutDismiss" && args.empty()) {
+        g_browser_process->local_state()->SetInt64(kPatronCalloutDismissedAtPref,
+            base::Time::Now().InMillisecondsSinceUnixEpoch());
+        Reply(id, true, base::Value(true)); return;
+      }
+      if (method == "launchSunrise" && args.empty()) {
+        auto& state = LaunchSunrise();
+        bool play = false;
+        const bool asked = std::ranges::any_of(state.asked,
+            [contents](const auto& page) { return page.get() == contents; });
+        if (!asked) {
+          std::erase_if(state.asked, [](const auto& page) { return !page; });
+          state.asked.push_back(contents->GetWeakPtr());
+          if (!state.spent) {
+            if (base::TimeTicks::Now() - state.start > base::Seconds(30)) state.spent = true;
+            else if (g_browser_process->local_state()->GetBoolean(kLaunchSunrisePref) &&
+                     !profile->IsOffTheRecord() &&
+                     contents->GetVisibility() == content::Visibility::VISIBLE) {
+              state.spent = true;
+              play = true;
+            }
+          }
+        }
+        Reply(id, true, base::Value(play)); return;
       }
       if (method == "whatsNewDismiss" && args.empty()) {
         SaveWhatsNew(base::DictValue().Set("whatsNewVersion", ""));
@@ -4523,6 +4572,31 @@ class Handler : public content::WebUIMessageHandler, public extensions::Extensio
     }
     const auto& quiet_args = message[2].GetList();
     const auto& quiet_method = message[1].GetString();
+    if (quiet_method == "patronCalloutDismissedAt") {
+      auto* prefs = g_browser_process->local_state();
+      if (quiet_args.size() == 1 && quiet_args[0].is_double()) {
+        const double ms = quiet_args[0].GetDouble();
+        if (!std::isfinite(ms) || std::trunc(ms) != ms || std::abs(ms) > 9007199254740991.0) {
+          reject("Timestamp must be a safe integer."); return;
+        }
+        prefs->SetInt64(kPatronCalloutDismissedAtPref, static_cast<int64_t>(ms));
+      } else if (quiet_args.size() == 1 && quiet_args[0].is_int()) {
+        prefs->SetInt64(kPatronCalloutDismissedAtPref, quiet_args[0].GetInt());
+      } else if (!quiet_args.empty()) {
+        reject("Expected one integer timestamp or no arguments."); return;
+      }
+      Reply(id, true, base::Value(static_cast<double>(prefs->GetInt64(kPatronCalloutDismissedAtPref))));
+      return;
+    }
+    if (quiet_method == "setLaunchSunrise" && quiet_args.size() == 1 && quiet_args[0].is_bool()) {
+      const bool enabled = quiet_args[0].GetBool();
+      g_browser_process->local_state()->SetBoolean(kLaunchSunrisePref, enabled);
+      auto& state = LaunchSunrise();
+      state.start = base::TimeTicks::Now();
+      state.spent = false;
+      state.asked.clear();
+      Reply(id, true, base::Value(enabled)); return;
+    }
     if (quiet_method == "quietThreshold" && quiet_args.size() == 1 && quiet_args[0].is_int() &&
         quiet_args[0].GetInt() >= 0) {
       test_quiet_delay_ = quiet_args[0].GetInt();

@@ -227,16 +227,14 @@ export const pages={
  clickPatronCalloutClose:onStart(false,`(()=>{const btn=document.getElementById('patronCalloutHide');if(!btn||btn.closest('[hidden]'))return false;btn.click();return document.getElementById('patronCallout').hidden;})()`),
  readLaunchSunrise:onStart(null,`(()=>{const scene=document.getElementById('launchSunrise');
   if(!scene)return {present:false,layoutReady:document.body.classList.contains('layout-ready')};const style=getComputedStyle(scene);
-  return {present:true,shown:!scene.hidden&&style.display!=='none',pointerEvents:style.pointerEvents,
-   animations:scene.getAnimations({subtree:true}).map(a=>a.animationName).sort(),layoutReady:document.body.classList.contains('layout-ready')};})()`),
+  return {present:true,shown:!scene.hidden,pointerEvents:style.pointerEvents,
+   animations:[scene,...scene.querySelectorAll('.launch-sunrise-sky,.launch-sunrise-horizon,.launch-sunrise-mark .launch-sunrise-disc,.launch-sunrise-rays,.launch-sunrise-reflect')].flatMap(el=>getComputedStyle(el).animationName.split(', ')),layoutReady:document.body.classList.contains('layout-ready')};})()`),
  readMahjongFooterLink:onStart(null,`(()=>({href:document.getElementById('mahjongLink')?.href??null,target:document.getElementById('mahjongLink')?.target??null,
   layout:document.body.dataset.layout,switcherCount:document.querySelectorAll('[data-layout-pick]').length,frameCount:document.querySelectorAll('iframe').length}))()`),
  clickMahjongFooterLink:onStart(false,`(()=>{const link=document.getElementById('mahjongLink');if(!link)return false;link.click();return true;})()`),
  // The fork ships no Mahjong page (no pages/mahjong.html asset).
  ...Object.fromEntries(['readMahjongDom','readMahjongCompletionGeometry','rapidUndoMahjongMatch','auditMahjongCorrectness','readMahjongDealState',
   'copyMahjongDealFromBoards','readMahjongRecordsGeometry'].map(h=>[h,()=>{throw Error(h+': the fork ships no Mahjong page');}])),
- // Durable first-run, checklist, Patron and launch-scene settings live in
- // Electron main; the fork's Start Page bridge carries none of them.
  // Patron and the app icon (F17). The preview has no license keys (owner,
  // 2026-11-05), so there is never a supporter to clear.
  clearSupporter:async()=>true,
@@ -317,9 +315,9 @@ export const pages={
   await w.native('resetChecklist');const page=await startPage(w);if(page)await page.evalExpression("window.blancNewTabEvent('checklist')");
   return {dismissed:false,syncComplete:false,tabsComplete:false,spaceComplete:false};
  },
- setPatronCalloutDismissedAt:noState('setPatronCalloutDismissedAt','Patron callout snooze clock'),
- patronCalloutDismissedAt:noState('patronCalloutDismissedAt','Patron callout snooze clock'),
- setLaunchSunrise:noState('setLaunchSunrise','launch Sunrise setting'),
+ setPatronCalloutDismissedAt:(w,ms)=>w.native('patronCalloutDismissedAt',[Number(ms)]),
+ patronCalloutDismissedAt:w=>w.native('patronCalloutDismissedAt',[]),
+ setLaunchSunrise:(w,enabled)=>w.native('setLaunchSunrise',[Boolean(enabled)]),
  // ---- utility pages: the facade's openPage is the production command ----
  openFavoritesSheet:w=>w.api('openPage',['bookmarks']),
  openHistorySheet:w=>w.api('openPage',['history']),
