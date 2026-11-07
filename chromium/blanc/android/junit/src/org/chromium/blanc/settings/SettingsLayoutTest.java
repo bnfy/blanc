@@ -13,6 +13,7 @@ import org.chromium.base.test.BaseRobolectricTestRunner;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 
 /** What the Settings root shows, in the iPhone's order (SettingsSheet.swift) with More and Android's rows. */
 @RunWith(BaseRobolectricTestRunner.class)
@@ -56,28 +57,28 @@ public class SettingsLayoutTest {
     }
 
     @Test
-    public void chromesGoogleAndAccountRowsAreAlwaysHidden() {
+    public void shownKeysAreEverySectionHeadingAndRow() {
+        Set<String> keys = SettingsLayout.shownKeys(RELEASE);
+        assertTrue(keys.contains("blanc_privacy_section"));
+        assertTrue(keys.contains("blanc_allowed_sites"));
+        assertTrue(keys.contains("accessibility"));
+        assertFalse(keys.contains("developer"));
+        assertTrue(SettingsLayout.shownKeys(DEBUG).contains("developer"));
+    }
+
+    @Test
+    public void noChromeAccountOrGoogleRowIsShown() {
         for (String key : List.of("sign_in", "google_services", "account_and_google_services_section", "settings_promo_card",
                 "safety_hub", "address_bar", "tabs", "homepage", "glic", "about_chrome", "search_engine", "privacy",
                 "appearance", "default_browser", "languages", "passwords", "autofill_and_passwords")) {
-            assertTrue(key, SettingsLayout.hiddenKeys(RELEASE).contains(key));
-            assertTrue(key, SettingsLayout.hiddenKeys(DEBUG).contains(key));
+            assertFalse(key, SettingsLayout.shownKeys(DEBUG).contains(key));
         }
     }
 
     @Test
-    public void aShownRowIsNeverAlsoHidden() {
-        for (boolean debug : new boolean[] {false, true}) {
-            SettingsLayout.State state = new SettingsLayout.State(debug);
-            for (SettingsLayout.Section section : SettingsLayout.sections(state)) {
-                for (String row : section.rows) assertFalse(row, SettingsLayout.hiddenKeys(state).contains(row));
-            }
-        }
-    }
-
-    @Test
-    public void developerIsHiddenExactlyWhenItIsNotShown() {
-        assertTrue(SettingsLayout.hiddenKeys(RELEASE).contains("developer"));
-        assertFalse(SettingsLayout.hiddenKeys(DEBUG).contains("developer"));
+    public void onlySignInAndThePromoCardAreRemovedRatherThanHidden() {
+        assertTrue(SettingsLayout.isRemoved("sign_in"));
+        assertTrue(SettingsLayout.isRemoved("settings_promo_card"));
+        assertFalse(SettingsLayout.isRemoved("search_engine"));
     }
 }

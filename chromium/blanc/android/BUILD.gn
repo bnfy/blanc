@@ -35,6 +35,19 @@ android_library("settings_model_java") {
   deps = [ "//build/android:build_java" ]
 }
 
+# Blanc's step over Chromium's Settings root (A5a). //chrome/android:chrome_java depends on this
+# (patch 0110), so it can't depend on chrome_java: it works on AndroidX preferences only.
+android_library("settings_java") {
+  resources_package = "org.chromium.blanc.island"
+  sources = [ "java/src/org/chromium/blanc/settings/BlancSettingsScreen.java" ]
+  deps = [
+    ":island_view_resources",
+    ":settings_model_java",
+    "//build/android:build_java",
+    "//third_party/androidx:androidx_preference_preference_java",
+  ]
+}
+
 android_library("tabs_java") {
   sources = [
     "java/src/org/chromium/blanc/spaces/BlancSpaces.java",
@@ -225,8 +238,10 @@ android_resources("island_view_resources") {
     "island/res/drawable/blanc_island_reload.xml",
     "island/res/drawable/blanc_island_stop.xml",
     "island/res/layout/blanc_island.xml",
+    "island/res/layout/blanc_settings_header.xml",
     "island/res/values/blanc_grid_ids.xml",
     "island/res/values/blanc_island_dimens.xml",
+    "island/res/values/blanc_settings_dimens.xml",
     "island/res/values/blanc_strings.xml",
     "island/res/values-de/blanc_strings.xml",
     "island/res/values-es/blanc_strings.xml",
@@ -340,6 +355,7 @@ robolectric_binary("blanc_android_junit_tests") {
     "junit/src/org/chromium/blanc/tabs/QuickSwitcherTest.java",
     "junit/src/org/chromium/blanc/tabs/QuietTabsTest.java",
     "junit/src/org/chromium/blanc/tabs/RecentlyClosedTest.java",
+    "junit/src/org/chromium/blanc/settings/BlancSettingsScreenTest.java",
     "junit/src/org/chromium/blanc/settings/SearchEnginesTest.java",
     "junit/src/org/chromium/blanc/settings/SettingsDestinationTest.java",
     "junit/src/org/chromium/blanc/settings/SettingsLayoutTest.java",
@@ -351,6 +367,7 @@ robolectric_binary("blanc_android_junit_tests") {
   deps = [
     ":island_java",
     ":island_view_java",
+    ":settings_java",
     ":settings_model_java",
     ":sync_java",
     ":tabs_java",
@@ -358,6 +375,7 @@ robolectric_binary("blanc_android_junit_tests") {
     "//base:base_java_test_support",
     "//base:base_junit_test_support",
     "//base:callback_java",
+    "//third_party/androidx:androidx_preference_preference_java",
     "//third_party/junit",
   ]
 }

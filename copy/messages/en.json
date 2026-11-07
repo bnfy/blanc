@@ -9655,5 +9655,25 @@
   "bringSpace.action.android": {
     "message": "Bring to this phone",
     "note": "Blanc for Android: the iPhone string with \"this phone\"."
+  },
+  "android.settings.more": {
+    "message": "More",
+    "note": "Android Settings: heading of the section holding Chromium’s own pages (Site settings, Accessibility, Notifications, Downloads)."
+  },
+  "android.settings.islandPosition": {
+    "message": "Island position",
+    "note": "Android Settings → Appearance: row choosing whether the Island sits at the top or the bottom of the screen."
+  },
+  "android.settings.islandPosition.top": {
+    "message": "Top",
+    "note": "Android Settings → Island position: the Island sits at the top of the screen."
+  },
+  "android.settings.islandPosition.bottom": {
+    "message": "Bottom",
+    "note": "Android Settings → Island position: the Island sits at the bottom of the screen."
+  },
+  "android.settings.openSourceLicenses": {
+    "message": "Open-source licenses",
+    "note": "Android Settings → About: row opening the list of open-source licenses."
   }
 }

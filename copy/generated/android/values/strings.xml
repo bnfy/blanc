@@ -2574,4 +2574,9 @@ You can retry with “%2$s”, or reinstall from blanc.day.</string>
     <string name="shared_spaces_recovery_name_android">%1$s · kept on this phone</string>
     <string name="shared_spaces_deleted_everywhere_android">Deleted everywhere. Undo keeps a copy on this phone.</string>
     <string name="bring_space_action_android">Bring to this phone</string>
+    <string name="android_settings_more">More</string>
+    <string name="android_settings_island_position">Island position</string>
+    <string name="android_settings_island_position_top">Top</string>
+    <string name="android_settings_island_position_bottom">Bottom</string>
+    <string name="android_settings_open_source_licenses">Open-source licenses</string>
 </resources>

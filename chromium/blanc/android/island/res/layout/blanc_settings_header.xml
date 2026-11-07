@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright 2026 Bananify Creative. MIT; see LICENSE. -->
+<!-- The Sunrise mark, the name and the version, at the top of Blanc's Settings. -->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:gravity="center_vertical"
+    android:orientation="horizontal"
+    android:paddingHorizontal="@dimen/blanc_settings_header_padding_horizontal"
+    android:paddingVertical="@dimen/blanc_settings_header_padding_vertical">
+
+    <ImageView
+        android:layout_width="@dimen/blanc_settings_header_mark"
+        android:layout_height="@dimen/blanc_settings_header_mark"
+        android:importantForAccessibility="no"
+        android:src="@drawable/blanc_island_mark" />
+
+    <LinearLayout
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="@dimen/blanc_settings_header_gap"
+        android:layout_weight="1"
+        android:orientation="vertical">
+
+        <TextView
+            android:id="@android:id/title"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textColor="?android:attr/textColorPrimary"
+            android:textSize="@dimen/blanc_settings_header_title_size"
+            android:textStyle="bold" />
+
+        <TextView
+            android:id="@android:id/summary"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textColor="?android:attr/textColorSecondary"
+            android:textSize="@dimen/blanc_settings_header_summary_size" />
+    </LinearLayout>
+</LinearLayout>

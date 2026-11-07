@@ -34,12 +34,11 @@ public final class SettingsLayout {
         }
     }
 
-    /** Chromium's root rows Blanc never shows. `languages` and `default_browser` return with A5c, `passwords` with A6. */
-    private static final List<String> ALWAYS_HIDDEN = List.of("settings_promo_card",
-            "account_and_google_services_section", "sign_in", "google_services", "basics_section", "search_engine",
-            "address_bar", "privacy", "safety_hub", "default_browser", "autofill_and_passwords", "autofill_section",
-            "passwords", "autofill_payment_methods", "autofill_addresses", "autofill_options", "advanced_section",
-            "tabs", "homepage", "appearance", "glic", "languages", "about_chrome");
+    /**
+     * The two Chromium rows that decide their own visibility, so hiding them doesn't last: Blanc removes
+     * them (docs/android/a5a-settings-spike.md, R1). Every other row Blanc doesn't list is hidden.
+     */
+    private static final Set<String> REMOVED = Set.of("sign_in", "settings_promo_card");
 
     private SettingsLayout() {}
 
@@ -57,10 +56,17 @@ public final class SettingsLayout {
                         "blanc_support", "blanc_licenses")));
     }
 
-    /** The Chromium root keys to hide: the always-hidden set, plus Developer outside debug builds. */
-    public static Set<String> hiddenKeys(State state) {
-        Set<String> hidden = new HashSet<>(ALWAYS_HIDDEN);
-        if (!state.debugBuild) hidden.add("developer");
-        return hidden;
+    /** Every key the root shows: each section's heading and its rows. */
+    public static Set<String> shownKeys(State state) {
+        Set<String> keys = new HashSet<>();
+        for (Section section : sections(state)) {
+            keys.add(section.key);
+            keys.addAll(section.rows);
+        }
+        return keys;
+    }
+
+    public static boolean isRemoved(String key) {
+        return REMOVED.contains(key);
     }
 }

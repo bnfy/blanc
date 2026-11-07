@@ -73,6 +73,18 @@ export const ANDROID_KEYS = [
   'sharedSpaces.deletedEverywhere.android', 'bringSpace.action.android', 'bringSpace.copyNote', 'spaces.onDevice',
   'closed.header', 'closed.fold', 'closed.unfold', 'closed.clear', 'closed.clearAll', 'closed.forget', 'sharedSpaces.closedOn',
   'sync.error.off', 'sync.error.credentialsSave', 'sync.error.accountGone', 'slash.sync.hint',
+  // Settings (A5a): the iPhone's Settings sheet keys, and Android's own.
+  'android.settings.islandPosition', 'android.settings.islandPosition.bottom', 'android.settings.islandPosition.top',
+  'android.settings.more', 'android.settings.openSourceLicenses', 'footer.settings', 'ios.settings.about',
+  'ios.settings.addSite', 'ios.settings.blocker', 'ios.settings.blockerHelp',
+  'ios.settings.duplicateSite', 'ios.settings.exceptions', 'ios.settings.exceptionsHelp', 'ios.settings.invalidSite',
+  'ios.settings.privacy', 'ios.settings.privacyPolicy', 'ios.settings.removeSite',
+  'ios.settings.site', 'ios.settings.support', 'ios.settings.version', 'ios.settings.website',
+  'settings.general.cards.appearance', 'settings.general.cards.browsing', 'settings.general.searchEngine.label',
+  'settings.general.theme.dark', 'settings.general.theme.label', 'settings.general.theme.light',
+  'settings.general.theme.system', 'settings.privacy.clearBrowsingData',
+  'settings.privacy.clearBrowsingData.confirm', 'settings.privacy.clearBrowsingData.done',
+  'settings.privacy.removesCookiesCacheAnd',
 ];
 // ICU plurals, as Android <plurals>: the Island's tab count for TalkBack.
 export const ANDROID_PLURALS = ['sharedSpaces.waitingCount', 'newtab.groups.count', 'shield.count.blocked', 'tabGroups.tucked', 'tabsMenu.header',

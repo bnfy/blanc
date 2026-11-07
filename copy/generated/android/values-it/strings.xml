@@ -2649,4 +2649,9 @@ Puoi riprovare con «%2$s» o reinstallare Blanc da blanc.day.</string>
     <string name="shared_spaces_recovery_name_android">%1$s · conservato su questo telefono</string>
     <string name="shared_spaces_deleted_everywhere_android">Eliminato ovunque. Annulla ne conserva una copia su questo telefono.</string>
     <string name="bring_space_action_android">Porta su questo telefono</string>
+    <string name="android_settings_more">Altro</string>
+    <string name="android_settings_island_position">Posizione dell’Island</string>
+    <string name="android_settings_island_position_top">In alto</string>
+    <string name="android_settings_island_position_bottom">In basso</string>
+    <string name="android_settings_open_source_licenses">Licenze open source</string>
 </resources>

@@ -2649,4 +2649,9 @@ Você pode tentar de novo com “%2$s” ou reinstalar a partir de blanc.day.</s
     <string name="shared_spaces_recovery_name_android">%1$s · mantido neste telefone</string>
     <string name="shared_spaces_deleted_everywhere_android">Excluído em todos os lugares. Desfazer mantém uma cópia neste telefone.</string>
     <string name="bring_space_action_android">Trazer para este telefone</string>
+    <string name="android_settings_more">Mais</string>
+    <string name="android_settings_island_position">Posição da Island</string>
+    <string name="android_settings_island_position_top">No topo</string>
+    <string name="android_settings_island_position_bottom">Na parte inferior</string>
+    <string name="android_settings_open_source_licenses">Licenças de código aberto</string>
 </resources>
