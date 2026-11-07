@@ -29,7 +29,7 @@ export const GATES = [
   {gate: 'Widevine VMP certification (X2)', status: 'Waiting on castLabs', note: 'A custom Chromium build needs castLabs\' commercial certification; NDA signed 2026-10-26, requirements not yet shared.'},
   {gate: 'Windows and Linux fork builds', status: 'Not started', note: 'No fork candidate exists for either platform yet.'},
   {gate: 'Distribution and updates (F22)', status: 'Not started', note: 'No fork release channel or updater yet.'},
-  {gate: 'Full macOS run on the current candidate', status: 'Stale', note: 'The last full run was on macos-3f969a35b9f9f7ad (2026-11-01); every build since, including the current macos-e554011ad2a2b1d2, is checked with targeted runs only.'},
+  {gate: 'Full macOS run on the current candidate', status: 'Stale', note: 'The last full run was on macos-3f969a35b9f9f7ad (2026-11-01); every build since, including the current macos-53fb0155deee71ea, is checked with targeted runs only.'},
 ];
 
 // tracker.json's stages, with the labels STATUS.md's Bar B gives them.
