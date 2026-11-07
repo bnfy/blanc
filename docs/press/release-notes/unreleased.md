@@ -5,10 +5,10 @@ since then are below as they're recorded.
 
 ## Still open from 1.47
 
-- **The Windows updater handoff** from v1.46.0 isn't confirmed. The macOS one
-  was confirmed on November 7, 2026, but nobody has reported whether windows
-  came back after **Restart Now**, so the update-restart change in #1405 is
-  still untested against a real update.
+- **The update-restart change in #1405:** the macOS and Windows updater
+  handoffs were confirmed on November 7, 2026, but nobody has reported whether
+  windows came back after **Restart Now** on the Mac, so that part is still
+  unconfirmed.
 - **Page zoom** in a packaged ECS build on Windows and Linux, and its PDF,
   private-tab, sign-in popup and second-profile cases in a packaged build.
 - **1Password fill** misses forms in iframes, shadow DOM or hidden behind a
