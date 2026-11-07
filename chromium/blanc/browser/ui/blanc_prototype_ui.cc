@@ -3794,9 +3794,17 @@ class NewTabHandler : public content::WebUIMessageHandler,
       RetryTopSites(std::move(id), retry);
       return;
     }
+    // Chromium's real TopSites pads a sparse history with its own
+    // prepopulated pages (desktop: the Chrome Web Store) up to
+    // history::kTopSitesNumber. Blanc ships no extension store, so that
+    // filler must never reach the Billboard as if it were a visited site.
+    std::set<GURL> prepopulated;
+    if (top_sites_)
+      for (const auto& page : top_sites_->GetPrepopulatedPages())
+        prepopulated.insert(page.most_visited.url);
     base::ListValue items;
     for (const auto& site : sites) {
-      if (!site.url.SchemeIsHTTPOrHTTPS()) continue;
+      if (!site.url.SchemeIsHTTPOrHTTPS() || prepopulated.contains(site.url)) continue;
       std::string key(site.url.host());
       if (base::StartsWith(key, "www.")) key.erase(0, 4);
       items.Append(base::DictValue().Set("url", site.url.spec())
@@ -4597,6 +4605,46 @@ class Handler : public content::WebUIMessageHandler, public extensions::Extensio
       state.asked.clear();
       Reply(id, true, base::Value(enabled)); return;
     }
+    // Seeds six real, ranked Billboard sites (F35 Billboard history-seeding
+    // test op). Each visit is a genuine ui::PAGE_TRANSITION_TYPED navigation,
+    // the only transition type HistoryBackend::CalculateSegmentID credits
+    // toward a "most visited" segment; chrome.history.addUrl()'s plain
+    // AddPage(url, time, source) overload defaults to PAGE_TRANSITION_LINK,
+    // which is never scored and would leave TopSites empty.
+    if (quiet_method == "seedBillboardHistory" && quiet_args.empty()) {
+      auto* owner = GetOwner(web_ui()->GetWebContents());
+      Profile* profile = owner ? owner->browser->GetProfile() : nullptr;
+      if (!profile || profile->IsOffTheRecord()) {
+        reject("Billboard history seeding requires a regular profile."); return;
+      }
+      auto* history = HistoryServiceFactory::GetForProfile(
+          profile, ServiceAccessType::EXPLICIT_ACCESS);
+      auto top_sites = TopSitesFactory::GetForProfile(profile);
+      if (!history || !top_sites) {
+        reject("History or Top Sites unavailable."); return;
+      }
+      static constexpr std::pair<const char*, int> kSeeds[] = {
+          {"youtube.com", 12}, {"cnet.com", 9}, {"wikipedia.org", 7},
+          {"github.com", 5}, {"nytimes.com", 3}, {"weather.com", 1}};
+      const base::Time now = base::Time::Now();
+      int minutes_ago = 0;
+      std::set<std::string> expected;
+      for (const auto& [host, visits] : kSeeds) {
+        expected.insert(host);
+        const GURL url(std::string("https://") + host + "/");
+        for (int i = 0; i < visits; ++i) {
+          history->AddPage(url, now - base::Minutes(++minutes_ago),
+              /*context_id=*/0, /*nav_entry_id=*/0, /*referrer=*/GURL(),
+              history::RedirectList(), ui::PAGE_TRANSITION_TYPED,
+              history::VisitSource::SOURCE_BROWSED,
+              history::VisitResponseCodeCategory::kNot404,
+              /*did_replace_entry=*/false);
+        }
+      }
+      history->FlushForTest(base::BindOnce(&Handler::SeedBillboardHistorySync,
+          weak_factory_.GetWeakPtr(), id, top_sites, std::move(expected), 0));
+      return;
+    }
     if (quiet_method == "quietThreshold" && quiet_args.size() == 1 && quiet_args[0].is_int() &&
         quiet_args[0].GetInt() >= 0) {
       test_quiet_delay_ = quiet_args[0].GetInt();
@@ -5184,6 +5232,47 @@ class Handler : public content::WebUIMessageHandler, public extensions::Extensio
     }
     Reply(id, true, base::Value(
         base::DictValue().Set("windows", std::move(saved_windows))));
+  }
+  // SyncWithHistory() is a no-op until TopSites has loaded, and even once
+  // loaded its query to HistoryBackend is asynchronous; GetMostVisitedURLs
+  // can still answer from the pre-seed cache on the first calls after it.
+  // Poll (bounded) until the ranked read-back actually contains every
+  // seeded host, rather than trusting a single round-trip.
+  void SeedBillboardHistorySync(std::string id, scoped_refptr<history::TopSites> top_sites,
+                                std::set<std::string> expected, int attempt) {
+    top_sites->SyncWithHistory();
+    top_sites->GetMostVisitedURLs(base::BindOnce(&Handler::SeedBillboardHistoryCheck,
+        weak_factory_.GetWeakPtr(), id, top_sites, std::move(expected), attempt));
+  }
+  void SeedBillboardHistoryCheck(std::string id, scoped_refptr<history::TopSites> top_sites,
+                                 std::set<std::string> expected, int attempt,
+                                 const history::MostVisitedURLList& sites) {
+    std::set<GURL> prepopulated;
+    for (const auto& page : top_sites->GetPrepopulatedPages())
+      prepopulated.insert(page.most_visited.url);
+    base::ListValue items;
+    std::set<std::string> seen;
+    for (const auto& site : sites) {
+      if (!site.url.SchemeIsHTTPOrHTTPS() || prepopulated.contains(site.url)) continue;
+      std::string key(site.url.host());
+      if (base::StartsWith(key, "www.")) key.erase(0, 4);
+      seen.insert(key);
+      items.Append(base::DictValue().Set("url", site.url.spec())
+          .Set("key", key).Set("title", base::UTF16ToUTF8(site.title)));
+    }
+    if (seen != expected) {
+      if (attempt >= 40) {
+        Reply(id, false, base::Value(
+            "Billboard history seeding did not reach the expected ranking."));
+        return;
+      }
+      base::SequencedTaskRunner::GetCurrentDefault()->PostDelayedTask(FROM_HERE,
+          base::BindOnce(&Handler::SeedBillboardHistorySync, weak_factory_.GetWeakPtr(),
+                         std::move(id), top_sites, std::move(expected), attempt + 1),
+          base::Milliseconds(100));
+      return;
+    }
+    Reply(id, true, base::Value(std::move(items)));
   }
   std::optional<int64_t> test_quiet_delay_;
   void WaitForTestQuietSweep(const std::string& id) {
