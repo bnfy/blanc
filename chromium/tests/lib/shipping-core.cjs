@@ -33,6 +33,9 @@ const allowed = new Set([...stepFiles,
 // node:http(s) serve shipping's loopback fixture pages.
 const builtins = new Set(['node:assert', 'node:assert/strict', 'node:crypto', 'node:fs', 'node:os', 'node:path', 'node:url', 'node:http', 'node:https']);
 module.exports.stepFiles = stepFiles;
+// Shipping's tagged Before hooks, run for matching cases (tests/runner.mjs).
+const beforeHooks = [];
+module.exports.beforeHooks = beforeHooks;
 function createLoader(register) {
  const repo = path.resolve(__dirname, '../../..');
  const cache = new Map();
@@ -51,7 +54,7 @@ function createLoader(register) {
    if(request==='@cucumber/cucumber')return {...Object.fromEntries(['Given','When','Then'].map(kind=>[kind,(expression,...args)=>{
     const run=args.at(-1);if(typeof run!=='function')throw Error('Invalid shipping step definition');
     register(expression,run,file,sources.get(file));
-   }])),Before(){},After(){}};
+   }])),Before(options,run){beforeHooks.push({tags:String(options?.tags??''),run});},After(){}};
    if(request.startsWith('.'))return load(path.posix.normalize(path.posix.join(path.posix.dirname(file),request.endsWith('.js')?request:request+'.js')));
    throw Error('Unaudited shipping test import: '+request);
   };

@@ -118,7 +118,7 @@ async function spaceAction(api,action,args){
  if(action==='remove')return api('removeWorkspace',[args[0]]);
  if(action==='undo-remove')return api('undoRemoveWorkspace',[args[0]]);
  if(action==='update')return api('updateWorkspace',[args[0],args[1]]);
- if(action==='flush')return true;
+ if(action==='flush')return {ok:true};
  if(action==='reset'){const p=await api('listWorkspaces',[]);for(const item of p.items)await api('removeWorkspace',[item.id]);
   for(const item of (await api('listWorkspaces',[])).deleted)await api('forgetWorkspace',[item.id]);return {ok:true};}
  throw new UndefinedNativeAdapterError('Space action needs an adapter: '+action);
@@ -150,7 +150,12 @@ export const tabs={
  async openTabInWindow(w,id,url,options){
   if(options&&Object.keys(options).length){
    if(Object.keys(options).some(k=>k!=='private'))throw new UndefinedNativeAdapterError('Tab creation options need an adapter: '+Object.keys(options));
-   if(options.private)await w.api('createTab',[url,options]);
+   if(options.private){
+    const r=await runtime(w,id);const known=new Set((await snap(r)).tabs.map(t=>String(t.id)));
+    await r.cdp.eval(`window.BlancPrototypeHost.api.createTab(${jsLiteral(url)},${jsLiteral(options)})`);
+    const s=await waitFor(()=>snap(r),s=>s.tabs.some(t=>t.private&&!known.has(String(t.id))&&!t.isLoading),'private tab in window '+id);
+    return String(s.tabs.find(t=>t.private&&!known.has(String(t.id))).id);
+   }
   }
   const r=await runtime(w,id);const tabId=String((await nativeCall(r.cdp,'createTab',[url])).tabId);
   await waitFor(()=>snap(r),s=>s.tabs.some(t=>String(t.id)===tabId&&!t.isLoading),'tab in window '+id);
@@ -224,10 +229,28 @@ export const tabs={
    return {tabId:String(id),focused:id===(s.focusedTabId??s.activeTabId),frame:{...f},content:{x:f.x+1,y:f.y+1,width:f.width-2,height:f.height-2}};})};
  },
  workspacePageScript:(w,id,source)=>w.call('executeTab',id,source),
+ // Shipping reads the WebContents id; a mark in the document also changes if
+ // the page reloads, which is what its steps rule out.
+ async workspacePageIdentity(w,id){
+  const identity=await w.call('executeTab',id,'window.__blancPageIdentity??=crypto.randomUUID()');
+  (w.fixture.pageIdentities??=new Map()).set(identity,id);
+  return identity;
+ },
  // Spaces (F41), through the host's bridge as the menu calls it.
- workspaceAction:(w,action,...args)=>spaceAction((method,list)=>w.api(method,list),action,args),
+ async workspaceAction(w,action,...args){
+  const before=new Set((await runtimes(w)).map(r=>r.id));
+  if(action==='open'||action==='create')w.app.releasePages();
+  const result=await spaceAction((method,list)=>w.api(method,list),action,args);
+  if(action!=='open'||!args[1]?.newWindow||!result?.ok)return result;
+  // The new window's Island does the switch, so wait for it to finish.
+  const r=await waitFor(async()=>(await runtimes(w)).find(r=>!before.has(r.id)),Boolean,'the Space window');
+  await waitFor(()=>snap(r),s=>s.spaceName===args[0]&&s.tabs.every(t=>!t.isLoading),'the Space to open in its window');
+  return {...result,windowId:r.id};
+ },
  async workspaceActionInWindow(w,id,action,...args){
   const r=(await runtimes(w)).find(item=>item.id===String(id));if(!r)throw Error('No window '+id);
+  // A new window's native side answers before its Island has loaded.
+  await waitFor(()=>r.cdp.eval('!!window.BlancPrototypeHost?.api'),Boolean,'the Island in window '+id);
   return spaceAction((method,list)=>r.cdp.eval(`window.BlancPrototypeHost.api[${jsLiteral(method)}](...${jsLiteral(list)})`),action,args);
  },
  async residentSpaces(w){

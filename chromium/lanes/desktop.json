@@ -5,7 +5,7 @@
   "upstream": "681cd621e82e606d7536eae8ea2576afb3c7d65c",
   "upstreamDir": "upstream",
   "sourceMap": "source-map.json",
-  "fileCount": 122,
+  "fileCount": 127,
   "patches": [
     "patches/baseline/0001-foundation-baseline.patch",
     "patches/0002-canonical-layout.patch",
@@ -39,6 +39,6 @@
     "patches/0030-blanc-tour-telemetry.patch",
     "patches/0031-blanc-glance.patch",
     "patches/0032-blanc-link-glance.patch",
-    "patches/0033-held-tab-metrics.patch"
+    "patches/0034-blanc-space-hold.patch"
   ]
 }

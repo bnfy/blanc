@@ -15,6 +15,10 @@ void SetWindowButtonsVisible(gfx::NativeWindow window, bool visible) {
   for (NSWindowButton type : kButtons) [[ns_window standardWindowButton:type] setHidden:!visible];
 }
 
+void KeepWindowOutOfMenus(gfx::NativeWindow window) {
+  window.GetNativeNSWindow().excludedFromWindowsMenu = YES;
+}
+
 bool WindowButtonsVisible(gfx::NativeWindow window) {
   NSButton* close = [window.GetNativeNSWindow() standardWindowButton:NSWindowCloseButton];
   return close && !close.hidden;

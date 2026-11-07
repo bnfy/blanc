@@ -8,7 +8,7 @@ import {NativeFixture} from './lib/fixture.mjs';
 import {waitFor} from './lib/cdp.mjs';
 import {installDriver,nativeCall} from './lib/test-driver.mjs';
 import {assertRendering,assertNodeRuntime} from './lib/render-guard.mjs';
-import {matchStep} from './steps.mjs';
+import {matchStep,beforeHooks} from './steps.mjs';
 import {aggregateCases} from './results.mjs';
 import {awaitMemory} from './lib/memory-guard.mjs';
 import {createWorld,missingAdapters} from './world.mjs';
@@ -43,7 +43,7 @@ let executed=0;
 // Hold the display awake for the run (released when it exits): a sleeping
 // display stops the run through the render guard.
 spawn('/usr/bin/caffeinate',['-d','-i','-w',String(process.pid)],{stdio:'ignore'}).unref();
-async function runCase(matches,steps){
+async function runCase(matches,steps,tags=[]){
  const entry={executed:false};
  const fixture=new NativeFixture();
  const world=createWorld(fixture);
@@ -57,6 +57,7 @@ async function runCase(matches,steps){
   await world.reset();
   world.bindShippingContext();
   entry.executed=true;entry.steps=[];
+  for(const hook of beforeHooks)if(hook.tags.split(' or ').some(tag=>tags.includes(tag)))await hook.run.call(world);
   for(let i=0;i<matches.length;i++){
    const match=matches[i];await world.app.refresh();await match.definition.run.call(world,...match.args);
    entry.steps.push({text:steps[i].text,result:'pass',shippingDefinition:match.definition.shippingSource});
@@ -70,7 +71,12 @@ async function runCase(matches,steps){
    .then(()=>assertRendering(e=>fixture.host.eval(e))).catch(stop=>{if(stop.code==='BLANC_ENVIRONMENT_STOP')error=stop;});
   if(error.code==='BLANC_ENVIRONMENT_STOP'){entry.stop=error;}
   else{entry.result=error.code==='BLANC_ADAPTER_UNDEFINED'?'undefined':'fail';entry.error=String(error.message||error);if(fs.existsSync(fixture.directory||''))fs.writeFileSync(path.join(fixture.directory,'error.txt'),String(error.stack||error));}}
- finally{entry.browserExit=await fixture.close();if(fixture.reapedHelpers)entry.reapedHelpers=fixture.reapedHelpers;
+ finally{
+  // Shipping's After hooks restore its shared app, which a fresh browser per
+  // case doesn't need. A Before hook's server still has to close, or Node
+  // never exits.
+  await world.lifecycleFixture?.close().catch(()=>{});
+  entry.browserExit=await fixture.close();if(fixture.reapedHelpers)entry.reapedHelpers=fixture.reapedHelpers;
   if(fixture.directory&&fs.existsSync(fixture.directory)){const keep=path.join(out,'fixtures',entry.fixture);fs.mkdirSync(keep,{recursive:true});
    for(const f of ['browser.log','error.txt'])if(fs.existsSync(path.join(fixture.directory,f)))fs.copyFileSync(path.join(fixture.directory,f),path.join(keep,f));
    fs.rmSync(fixture.directory,{recursive:true,force:true});}if(entry.result==='pass'&&entry.browserExit?.code!==0){entry.result='fail';entry.error='Native fixture did not exit cleanly';}}
@@ -101,7 +107,7 @@ for(const scenario of inventory.scenarios){
     for(let attempt=1;attempt<=2;attempt++){
      // Outside the case: a memory stop ends the run, never records a result.
      await awaitMemory();
-     const result=await runCase(matches.slice(0,runnable),test.steps);
+     const result=await runCase(matches.slice(0,runnable),test.steps,scenario.tags);
      if(attempt===2){entry.retried=true;entry.firstAttempt={result:entry.result,error:entry.error};delete entry.error;}
      Object.assign(entry,result);
      if(runnable<matches.length&&entry.result==='pass'){entry.result='undefined';entry.prefixPassed=true;}

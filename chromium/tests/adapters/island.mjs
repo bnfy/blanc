@@ -7,6 +7,7 @@ import {tabPage} from './core.mjs';
 import {shippingPageUrl} from '../lib/page-shim.mjs';
 import {jsLiteral} from '../lib/js-literal.mjs';
 const undef=reason=>()=>{throw new UndefinedNativeAdapterError(reason);};
+const SPACES_MENU_PAD=16,SPACES_MENU_SIDE=44;
 // Electron sendInputEvent mouse types -> CDP Input.dispatchMouseEvent types.
 const MOUSE={mouseMove:'mouseMoved',mouseDown:'mousePressed',mouseUp:'mouseReleased'};
 export function cdpMouse(input,offset={x:0,y:0}){
@@ -159,7 +160,12 @@ export const island={
  // The overlay iframe is the fork's overlay view: shown is attached.
  overlayViewAttached:async w=>!!(await frameRect(w,'overlay')),
  overlayViewBounds:w=>frameRect(w,'overlay'),
- overlayBounds:w=>frameRect(w,'overlay'),
+ // The Spaces menu is drawn inside the overlay iframe, which fills the window;
+ // shipping's view is the menu plus its shadow room (chrome-layout.js).
+ async overlayBounds(w){const frame=await frameRect(w,'overlay');
+  if(!frame||await w.call('overlayRendererMode')!=='spaces')return frame;
+  const menu=await overlay(w).locator('#workspaceSwitcher').boundingBox();if(!menu)return frame;
+  return {x:frame.x+menu.x-SPACES_MENU_SIDE,y:frame.y+menu.y-SPACES_MENU_PAD,width:menu.width+SPACES_MENU_SIDE*2,height:menu.height+SPACES_MENU_PAD*2};},
  sendOverlayInput:(w,input)=>frameInput(w,'overlay',input),
  // Counts the host's own onOverlayShow broadcasts to the current overlay
  // document, from the reset onward.

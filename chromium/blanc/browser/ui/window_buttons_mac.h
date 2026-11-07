@@ -11,6 +11,8 @@ namespace blanc {
 // shipping's auto-hide Island.
 void SetWindowButtonsVisible(gfx::NativeWindow window, bool visible);
 bool WindowButtonsVisible(gfx::NativeWindow window);
+// Keeps a window out of the Window menu and the Dock's list.
+void KeepWindowOutOfMenus(gfx::NativeWindow window);
 
 }  // namespace blanc
 
