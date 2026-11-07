@@ -29,6 +29,6 @@ test('the ECS uBO runtime record names exactly the pinned ECS runtime and its ev
   const pin = require('../../build/ecs-runtime.json');
   assert.equal(matrix.ecsRuntime, pin.version);
   assert.ok(matrix.ecsEvidence.includes(pin.version));
-  assert.match(matrix.ecsEvidence, /Chromium 152\.0\.7977\.169/);
+  assert.ok(matrix.ecsEvidence.includes(`Chromium ${pin.chromium}`));
   assert.match(matrix.ecsEvidence, /Rosetta stays excluded/);
 });

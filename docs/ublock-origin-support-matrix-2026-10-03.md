@@ -137,3 +137,29 @@ answers the runner's microphone dialog, the same notarized build passed strict
 unmuted playback in run `42340331632`, advancing 5.03 seconds, so this was
 October's runner audio stall (`docs/ecs-production-integration.md`). That run
 records one aborted `storage.googleapis.com` request, as October's did.
+
+## Runtime update to ECS 45.2.1+wvcus (November 2026, unreleased)
+
+`src/main/ublock-platforms.json` moves `electron` to `45.2.1` and `ecsRuntime`
+to `45.2.1+wvcus` (Chromium 156.0.8078.75, Node 24.22.1). uBO 1.75.0 and its
+pinned upstream files are unchanged. Rosetta stays excluded. Manifest V2 still
+loads in Chromium 156.
+
+Signed-package uBO acceptance passed on source `73992c725` on November 7, 2026:
+
+| Target | Evidence | Package |
+| --- | --- | --- |
+| Apple Silicon | Local run on this Mac | Notarized, stapled, Gatekeeper and VMP verified |
+| Native Intel Mac | Run `42379528773` | The same notarized build, pinned by DMG, `app.asar` and executable hash |
+| Windows x64 | Run `42378362544` | Authenticode and VMP signed |
+| Linux x64 | Run `42378364429` | Public ECS AppImage |
+
+Each target passed the installed uBO checks (provider restarts, filtering,
+popup and logger, private isolation, quiet tabs, Blanc restart, filters across
+restarts, global switch, and the platform's quit or last-window path), the
+scripting-policy probe, local-file isolation and unmuted protected playback.
+Widevine reported `PLATFORM_SOFTWARE_VERIFIED` on macOS and Windows; Linux has
+no VMP and reported `PLATFORM_UNVERIFIED`, with the CDM inside its own seccomp
+and namespace sandbox, so the repointed zygote patch works on this runtime.
+Intel playback advanced 4.47 seconds (others about 5), with no media errors,
+using the owner-approved step that answers the runner's microphone dialog.

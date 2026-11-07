@@ -160,3 +160,40 @@ The bounded raw probe and npm audit JSON are retained in the isolated
 qualification directory as `ecs-node-tls-security-probe.json` and
 `npm-runtime-audit.json`. The source selection and remediation remain visible
 in `docs/ecs-production-integration.md` and draft PR #1063.
+
+## Follow-up — November 7, 2026: ECS 45.2.1+wvcus
+
+The runtime pin moves to castLabs `v45.2.1+wvcus` (published November 5, 2026):
+Electron `45.2.1`, Chromium `156.0.8078.75`, Node `24.22.1`. This section
+records the source work only; **nothing here is a release approval.**
+
+- All four archives match the SHA-256 digests GitHub publishes for castLabs'
+  release assets and `build/ecs-runtime.json`. `vendorCommit` is the release
+  tag's commit, `ab2120c6a5d49d412bcb2b7e3f9c9c3e74cb0243`.
+- **R1 (TLS):** the same probe rejected all four odd IP spellings on 45.2.1 and
+  the 44.9.3 positive control accepted them (spike of November 6, 2026). Node
+  24.22.1 is the same fixed Node as 44.10.1.
+- **Not in this runtime:** upstream 45.2.2 and 45.2.3 (Chromium 156.0.8078.80,
+  Node 24.22.2 and backports for ANGLE, Chromium, Dawn, FFmpeg, PDFium, Skia and
+  V8) have no ECS build yet.
+- **R2:** the morning waiver of November 7 covered `44.10.1+wvcus` only.
+- Signed-package uBO acceptance and protected playback passed on all four
+  targets on `73992c725`, and `src/main/ublock-platforms.json` records it. See
+  the [uBO support matrix](ublock-origin-support-matrix-2026-10-03.md).
+- **R2 is waived again by the owner, not passed.** See the waiver below.
+
+### Owner waiver — November 7, 2026, 14:08 UTC (R2, 45.2.1 only)
+
+**R2 is waived by the owner for `45.2.1+wvcus`, not passed.** In chat, the
+owner first chose to hold the pin, then, after R2 was explained (castLabs ships
+binaries only, so its native changes cannot be reviewed; the earlier waivers
+covered 44.9.3 and 44.10.1 only), selected "Waive R2".
+
+- **Missing evidence:** the exact native source or backport manifest for
+  `45.2.1+wvcus`, with its redistribution notices. `vendorCommit` is release
+  metadata, not reviewed source.
+- **Accepted risk:** the vendor's native changes in this runtime are unaudited.
+  Archive hashes, code signing and VMP show integrity and identity only.
+- **Conditions:** every other release gate still runs. Do not describe the
+  runtime as reviewed. No vendor contact or legal waiver is implied.
+- **Scope:** this runtime pin only. Any later pin needs a new owner decision.
