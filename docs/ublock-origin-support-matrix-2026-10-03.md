@@ -130,8 +130,10 @@ Signed-package uBO acceptance passed on source `c40477ab7` on November 7, 2026:
 | Windows x64 | Run `42337900427` | Authenticode and VMP signed |
 | Linux x64 | Run `42334059332` | Public ECS AppImage |
 
-This covers uBO only. Apple Silicon, Windows and Linux also passed protected
-playback. On Intel, VMP verified and playback advanced about 5 seconds muted,
-with no media errors, but unmuted playback stalled at about 0.1 seconds per
-sample. That matches the runner audio privacy stall recorded in
-`docs/ecs-production-integration.md`, but it isn't confirmed for this build.
+All four targets also passed protected playback. On Intel, the first run
+(`42339778316`) stalled with sound on, while muted playback advanced about 5
+seconds, with VMP verified and no media errors. With the owner-approved step that
+answers the runner's microphone dialog, the same notarized build passed strict
+unmuted playback in run `42340331632`, advancing 5.03 seconds, so this was
+October's runner audio stall (`docs/ecs-production-integration.md`). That run
+records one aborted `storage.googleapis.com` request, as October's did.
