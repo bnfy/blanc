@@ -90,7 +90,7 @@ public class BlancSpacesTest {
 
         @Override
         public String startPage() {
-            return open("start");
+            return open("start", "");
         }
 
         @Override

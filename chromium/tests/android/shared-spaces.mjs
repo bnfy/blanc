@@ -156,6 +156,34 @@ async function main(argv) {
       return other.tabs.filter(tab => tab.url === url('one')).length === 1 ? [] : [`peer holds ${other.tabs.map(tab => tab.url)}`];
     });
 
+    await check('a remote address on a tab that isn\'t loaded keeps its group', async () => {
+      const {other} = await sharedWork();
+      const one = d.grid().tabs.find(tab => tab.title.includes('one'));
+      if (!one) return ['no tab one'];
+      d.tap({text: 'two.example'});
+      sleep(2);
+      d.runInPalette('/group Reading');
+      sleep(2);
+      d.runInPalette('/space This phone');
+      sleep(3);
+      d.runInPalette('/space Work');
+      sleep(3);
+      await phonePass();
+      wait();
+      await other.pass();
+      const grouped = other.tabs.find(tab => tab.url === url('two'));
+      if (!grouped?.group) return ['the group never reached the peer'];
+      other.tabs.find(tab => tab.url === url('one')).url = url('three');
+      await other.push();
+      wait();
+      await other.pass();
+      wait();
+      await phonePass();
+      wait();
+      await other.pass();
+      return other.tabs.find(tab => tab.url === url('two'))?.group === grouped.group ? [] : ['the group was lost'];
+    });
+
     await check('switching away and back keeps a shared Space and closes nothing elsewhere', async () => {
       const {other} = await sharedWork();
       d.runInPalette('/space This phone');

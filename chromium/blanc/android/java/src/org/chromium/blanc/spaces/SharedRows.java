@@ -128,8 +128,6 @@ public final class SharedRows {
         if (tab == null) return true;
         if ("close".equals(op)) {
             if (onScreen(tab)) return false;
-            // A phone always shows a tab.
-            if (mStore.tabs(false).size() == 1) mStore.create(null, false, null, -1);
             mStore.close(tab.id, false);
             mLibrary.tabBindings.remove(tab.id);
             mCloses.closedElsewhere(row);

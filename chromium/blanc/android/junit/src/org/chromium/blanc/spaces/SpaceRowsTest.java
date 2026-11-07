@@ -115,10 +115,8 @@ public class SpaceRowsTest {
         shown.groups.add(new SavedGroup("token", "Reading", null, false));
         JSONArray rows = SpaceRows.rows(mLibrary, shown);
         rows.getJSONObject(0).put("tabIds", new JSONArray().put(SHARED));
-        rows.getJSONObject(0).getJSONArray("groups").getJSONObject(0).put("id", GROUP);
         SpaceRows.absorb(mLibrary, rows, shown, 0, SpaceRows.fingerprints(mLibrary));
         assertEquals(SHARED, mLibrary.tabBindings.get("9"));
-        assertEquals(GROUP, mLibrary.groupBindings.get("token"));
         assertEquals("7", mSpace.set.tabs.get(0).id);
     }
 

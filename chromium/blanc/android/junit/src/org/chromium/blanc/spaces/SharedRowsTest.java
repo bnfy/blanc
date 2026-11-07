@@ -78,11 +78,11 @@ public class SharedRowsTest {
     }
 
     @Test
-    public void aRemoteCloseGoesToRecentlyClosedAndLeavesATab() throws JSONException {
+    public void aRemoteCloseGoesToRecentlyClosed() throws JSONException {
+        mStore.select(mStore.create("https://other.example/", false, null, -1));
         assertTrue(mRows.apply(new JSONObject().put("op", "close").put("kind", "tabs").put("id", TAB).put("field", "deleted")));
         assertEquals(List.of(TAB), mClosed);
         assertEquals(1, mStore.tabs(false).size());
-        assertEquals(TabStore.START_PAGE, mStore.tabs(false).get(0).url);
         assertFalse(mLibrary.tabBindings.containsKey(mBound));
     }
 
@@ -94,6 +94,7 @@ public class SharedRowsTest {
 
     @Test
     public void aNavigationFollows() throws JSONException {
+        mStore.select(mStore.create("https://other.example/", false, null, -1));
         JSONObject nav = new JSONObject().put("url", "https://moved.example/").put("title", "M");
         assertTrue(mRows.apply(new JSONObject().put("op", "nav").put("kind", "tabs").put("id", TAB).put("field", "nav")
                 .put("value", field(nav))));
