@@ -123,13 +123,24 @@ export const core={
  // A presentation seed: the title goes through the page itself so Chromium
  // reports it as a real title; seeds with no page path stay undefined.
  async setTabPresentation(w,id,patch={}){
-  const keys=Object.keys(patch).filter(k=>k!=='title'&&k!=='muted');
+  const keys=Object.keys(patch).filter(k=>k!=='title'&&k!=='muted'&&k!=='isLoading');
   if(keys.length)throw new UndefinedNativeAdapterError('Tab presentation seed needs an adapter: '+keys);
   if(typeof patch.title==='string'){
    await (await tabPage(w,id)).evaluate(t=>{document.title=t;},patch.title);
    await w.waitForState(s=>s.tabs.some(t=>t.id===String(id)&&t.title===patch.title));
   }
   if(typeof patch.muted==='boolean'&&(await w.state()).tabs.find(t=>t.id===String(id)).muted!==patch.muted)await w.api('toggleTabMuted',[String(id)]);
+  if(patch.isLoading===true){
+   // A real, slow navigation to the tab's own address: headers arrive at
+   // once (the tab genuinely starts loading) and the body 2.5s later, via
+   // shipping's own ?hold=slow fixture mechanism. Not awaited to settle:
+   // the caller observes the loading state itself.
+   const tab=(await w.snapshot()).tabs.find(t=>String(t.id)===String(id));
+   if(!tab)throw Error('Unknown native tab '+id);
+   const holdUrl=new URL(tab.committedUrl||tab.url);
+   holdUrl.searchParams.set('hold','slow');
+   w.native('navigate',[nativeId(id),holdUrl.toString()]);
+  }
   return true;
  },
  zoomIn:w=>w.native('previewPageCommand',['zoomIn']),
