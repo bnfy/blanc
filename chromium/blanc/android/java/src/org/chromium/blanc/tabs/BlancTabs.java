@@ -44,6 +44,8 @@ public final class BlancTabs {
     private static final class Closed {
         final List<String> ids = new ArrayList<>();
         final List<String> urls = new ArrayList<>();
+        /** Their rows in Recently closed. */
+        final List<String> rows = new ArrayList<>();
         final String title;
         final boolean group;
         final @Nullable String blankId;
@@ -56,11 +58,27 @@ public final class BlancTabs {
             for (TabStore.Entry tab : tabs) {
                 ids.add(tab.id);
                 urls.add(tab.url);
+                String row = sCloseLog == null ? null : sCloseLog.closed(tab);
+                if (row != null) rows.add(row);
             }
             this.title = tabs.get(0).title;
             this.blankId = blankId;
             this.at = at;
         }
+    }
+
+    /** Recently closed, which lives with Sync: told of each close, and of Undo. */
+    public interface CloseLog {
+        /** The tab's row, or null if it leaves none. */
+        @Nullable String closed(TabStore.Entry tab);
+
+        void reopened(List<String> rows);
+    }
+
+    private static @Nullable CloseLog sCloseLog;
+
+    public static void setCloseLog(@Nullable CloseLog log) {
+        sCloseLog = log;
     }
 
     /** Runs something later: the Undo's end (the main looper on the phone). */
@@ -109,6 +127,11 @@ public final class BlancTabs {
     /** An address in a new tab of whichever list is shown (a Favorite or History from the palette). */
     public String open(String url) {
         return mStore.create(url, mStore.privateSelected(), null, -1);
+    }
+
+    /** A Recently closed page: its own list never holds private tabs, so it never opens as one. */
+    public String reopen(String url) {
+        return mStore.create(url, false, null, -1);
     }
 
     public String newPrivateTab() {
@@ -195,6 +218,7 @@ public final class BlancTabs {
             return false;
         }
         mPending = null;
+        if (sCloseLog != null) sCloseLog.reopened(closed.rows);
         // Chromium commits pending closes when the app pauses: a tab it committed opens again.
         String first = null;
         for (int i = 0; i < closed.ids.size(); i++) {

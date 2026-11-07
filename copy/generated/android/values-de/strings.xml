@@ -2568,4 +2568,10 @@ Versuche es erneut mit „%2$s“ oder installiere Blanc neu von blanc.day.</str
     <string name="settings_general_mini_window_shortcut_ctrl_alt_space_mac">⌃⌥Leertaste</string>
     <string name="settings_general_mini_window_shortcut_ctrl_alt_space">Strg+Alt+Leertaste</string>
     <string name="settings_general_mini_window_shortcut_ctrl_shift_space">Strg+Umschalt+Leertaste</string>
+    <string name="shared_spaces_switch_android">Spaces und Gruppen auf diesem Telefon synchron halten</string>
+    <string name="shared_spaces_switch_line_android">Tabs in deinen geteilten Spaces werden von diesem Telefon synchronisiert.</string>
+    <string name="shared_spaces_save_this_phone">Dieses Telefon als Space sichern</string>
+    <string name="shared_spaces_recovery_name_android">%1$s · auf diesem Telefon behalten</string>
+    <string name="shared_spaces_deleted_everywhere_android">Überall gelöscht. Rückgängig behält eine Kopie auf diesem Telefon.</string>
+    <string name="bring_space_action_android">Auf dieses Telefon holen</string>
 </resources>

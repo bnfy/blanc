@@ -88,6 +88,16 @@ public class QuickSwitcherTest {
     }
 
     @Test
+    public void anotherDevicesSpaceIsFoundBelowThisPhonesOwn() {
+        List<QuickSwitcher.Result> results = QuickSwitcher.search("work", List.of(), NONE, NONE, List.of(),
+                List.of(new QuickSwitcher.TabSet("s1", "Work", 3)),
+                List.of(new QuickSwitcher.RemoteSpace("r1", "Work trip", "MacBook")));
+        assertEquals("set:s1", results.get(0).id);
+        assertEquals("remoteSpace:r1", results.get(1).id);
+        assertEquals("MacBook", results.get(1).subtitle);
+    }
+
+    @Test
     public void aSetIsFoundByNameAboveItsTabsWithItsCount() {
         List<QuickSwitcher.Result> results = QuickSwitcher.search("work", List.of(tab("1", "Work notes", "https://a.example/")),
                 NONE, NONE, List.of(), List.of(new QuickSwitcher.TabSet("s1", "Work", 3)));

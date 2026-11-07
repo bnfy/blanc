@@ -9,6 +9,7 @@ import org.chromium.base.Token;
 import org.chromium.blanc.tabs.TabStore;
 import org.chromium.build.annotations.NullMarked;
 import org.chromium.build.annotations.Nullable;
+import org.chromium.chrome.browser.profiles.Profile;
 import org.chromium.chrome.browser.tab.Tab;
 import org.chromium.chrome.browser.tab.TabLaunchType;
 import org.chromium.chrome.browser.tab.TabSelectionType;
@@ -19,6 +20,7 @@ import org.chromium.chrome.browser.tabmodel.TabModelSelector;
 import org.chromium.chrome.browser.tabmodel.TabModelUtils;
 import org.chromium.chrome.browser.crypto.CipherFactory;
 import org.chromium.chrome.browser.tab.TabState;
+import org.chromium.chrome.browser.tab.WebContentsState;
 import org.chromium.chrome.browser.tab.TabStateAttributes;
 import org.chromium.chrome.browser.tab.TabStateExtractor;
 import org.chromium.chrome.browser.tabpersistence.TabStateFileManager;
@@ -157,6 +159,46 @@ public final class ChromiumTabStore implements TabStore {
         String id = String.valueOf(tab.getId());
         if (groupId != null) addToGroup(id, groupId);
         return id;
+    }
+
+    @Override
+    public String createQuiet(String url, String title) {
+        return frozen(url, title, -1);
+    }
+
+    private String frozen(String url, String title, int index) {
+        Profile profile = mSelector.getModel(false).getProfile();
+        if (profile == null) return "";
+        WebContentsState contents = WebContentsState.createSingleNavigationWebContentsState(
+                profile, title, new LoadUrlParams(url));
+        if (contents == null) return "";
+        TabState state = new TabState();
+        state.contentsState = contents;
+        state.tabLaunchTypeAtCreation = TabLaunchType.FROM_RESTORE;
+        state.timestampMillis = System.currentTimeMillis();
+        Tab tab = mCreators.getTabCreator(false).createFrozenTab(state, Tab.INVALID_TAB_ID, index);
+        if (tab == null) return "";
+        TabStateAttributes.setDirty(tab);
+        return String.valueOf(tab.getId());
+    }
+
+    @Override
+    public String navigate(String id, String url, String title) {
+        Tab tab = tab(id);
+        if (tab == null) return "";
+        if (!tab.isFrozen()) {
+            tab.loadUrl(new LoadUrlParams(url));
+            return id;
+        }
+        TabModel model = mSelector.getModel(false);
+        String next = frozen(url, title, model.indexOf(tab));
+        if (next.isEmpty()) return next;
+        // Before the old tab closes: a group with no tabs left is gone.
+        Entry old = entry(tab);
+        if (old.groupId != null) addToGroup(next, old.groupId);
+        if (old.pinned) setPinned(next, true);
+        close(id, false);
+        return next;
     }
 
     /** Saves a tab's whole state, Back and Forward included, under its id. */

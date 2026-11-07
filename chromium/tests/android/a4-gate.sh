@@ -12,6 +12,7 @@ failed=()
 run() { local name=$1; shift; echo "== $name"; if "$@" > "$EVIDENCE/$name.log" 2>&1; then echo pass; else echo FAIL; failed+=("$name"); fi; tail -2 "$EVIDENCE/$name.log"; }
 run sync node "$TREE/chromium/tests/android/sync.mjs" --apk "$APK" --evidence "$EVIDENCE/sync"
 run spaces node "$TREE/chromium/tests/android/spaces.mjs" --apk "$APK" --evidence "$EVIDENCE/spaces"
+run shared-spaces node "$TREE/chromium/tests/android/shared-spaces.mjs" --apk "$APK" --evidence "$EVIDENCE/shared-spaces"
 run shield-race node "$TREE/chromium/tests/android/shield-race.mjs" --apk "$APK" --rounds 40
 run a3-gate env BLANC_EVIDENCE="$EVIDENCE/a3" bash "$TREE/chromium/tests/android/a3-gate.sh"
 sha256sum "$APK" > "$EVIDENCE/apk.sha256"

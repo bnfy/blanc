@@ -115,8 +115,20 @@ public final class ChromiumSpaces implements SpaceSwitcher.Tabs {
     }
 
     @Override
-    public String open(String url) {
-        return mStore.create(url, false, null, -1);
+    public String open(String url, String title) {
+        return mStore.createQuiet(url, title);
+    }
+
+    @Override
+    public TabStore store() {
+        return mStore;
+    }
+
+    @Override
+    public String joinGroup(String tabId, BlancSpaces.SavedGroup group, @Nullable String local) {
+        if (local == null) return mStore.createGroup(tabId, group.name);
+        mStore.addToGroup(tabId, local);
+        return local;
     }
 
     @Override

@@ -2643,4 +2643,10 @@ Vous pouvez réessayer avec « %2$s » ou réinstaller depuis blanc.day.</stri
     <string name="settings_general_mini_window_shortcut_ctrl_alt_space_mac">⌃⌥Espace</string>
     <string name="settings_general_mini_window_shortcut_ctrl_alt_space">Ctrl+Alt+Espace</string>
     <string name="settings_general_mini_window_shortcut_ctrl_shift_space">Ctrl+Maj+Espace</string>
+    <string name="shared_spaces_switch_android">Garder les Spaces et les groupes synchronisés sur ce téléphone</string>
+    <string name="shared_spaces_switch_line_android">Les onglets de vos Spaces partagés sont synchronisés depuis ce téléphone.</string>
+    <string name="shared_spaces_save_this_phone">Enregistrer Ce téléphone comme Space</string>
+    <string name="shared_spaces_recovery_name_android">%1$s · conservé sur ce téléphone</string>
+    <string name="shared_spaces_deleted_everywhere_android">Supprimé partout. Annuler garde une copie sur ce téléphone.</string>
+    <string name="bring_space_action_android">Copier sur ce téléphone</string>
 </resources>

@@ -1372,6 +1372,28 @@ page's only blocked request can miss the shield count, probably by racing the
 page's commit. The `/ads` fixture now makes a second blocked request after load,
 and A3 passed on the same APK.
 
+### A4d Shared Spaces and Recently closed
+
+The palette's Recently closed band, on or off Sync, and with the Spaces switch on,
+other devices' closed tabs. Shared Spaces through shipping's own sharing code in the
+runner: the switch and its sheet, a Space shared or joined, tabs added, moved and
+closed on either device, Bring a Space with the switch off, other devices' Spaces in
+palette search, and the Not synced mark. A tab nothing has loaded arrives quietly, the
+tab on screen is never closed from under the person, and a switch waits for the runner
+so a tab opened just before it isn't shared twice. Rulings are in
+`docs/android/a4-rulings.md`.
+
+| A4d gate | Result | Evidence (`~/blanc-evidence/android/a4d-gate/`) |
+| --- | --- | --- |
+| Sync, with the two band checks | Pass, 17 checks | `sync/` |
+| Shared Spaces on the emulator against a Node peer | Pass, 6 of 6 | `shared-spaces/` |
+| Spaces, shield race, blocking, acceptance, A1 and A2 | Pass: Spaces 15 checks, 0 of 40 counts lost, A2, A3 and A4 gates pass | `spaces/`, `a3/` |
+| Runner tests (`sync-spaces`, `sync-bundle`, `sync-iphone`) | 15, 10 and 1 pass | CI |
+| iPhone reads what Android writes (`AndroidWireTests`) | Pass, iOS 27.2 simulator | local |
+| Robolectric | 562 pass | server log |
+| APK | `572e310c…` | `apk.sha256` |
+| Owner hands-on, Pixel and desktop | **Pending A4's end** | — |
+
 ### Shield count across a page's commit
 
 The count is fixed in the blocker code desktop shares. A page's first request can

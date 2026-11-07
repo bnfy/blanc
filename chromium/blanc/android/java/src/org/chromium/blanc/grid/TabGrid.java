@@ -512,6 +512,14 @@ public final class TabGrid extends Dialog {
         FrameLayout.LayoutParams closeLp = new FrameLayout.LayoutParams(dp(28), dp(28), Gravity.TOP | Gravity.END);
         closeLp.setMargins(0, dp(8), dp(8), 0);
         picture.addView(close, closeLp);
+        if (SpacesController.unsynced().contains(tab.id)) {
+            View mark = new View(mActivity);
+            mark.setBackground(rounded(secondary(), 4, 0, 0));
+            mark.setContentDescription(mActivity.getString(R.string.blanc_shared_spaces_unsynced_tab));
+            FrameLayout.LayoutParams markLp = new FrameLayout.LayoutParams(dp(8), dp(8), Gravity.TOP | Gravity.START);
+            markLp.setMargins(dp(12), dp(12), 0, 0);
+            picture.addView(mark, markLp);
+        }
         column.addView(picture, new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT));
 
         TextView name = text(title, 14, mStyle.text);

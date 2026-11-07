@@ -82,7 +82,7 @@ public class BlancSpacesTest {
         }
 
         @Override
-        public String open(String url) {
+        public String open(String url, String title) {
             String id = String.valueOf(mNext++);
             add(id, url);
             return id;
@@ -90,7 +90,7 @@ public class BlancSpacesTest {
 
         @Override
         public String startPage() {
-            return open("start");
+            return open("start", "");
         }
 
         @Override

@@ -33,16 +33,22 @@ import android.widget.LinearLayout;
 import android.widget.ScrollView;
 import android.widget.TextView;
 
+import org.json.JSONObject;
+
 import org.chromium.blanc.address.AddressInput;
 import org.chromium.blanc.island.IslandStyle;
 import org.chromium.blanc.island.R;
 import org.chromium.blanc.spaces.BlancSpaces;
 import org.chromium.blanc.spaces.SpacesCard;
 import org.chromium.blanc.spaces.SpacesController;
+import org.chromium.blanc.sync.BringSpaceSheet;
 import org.chromium.blanc.sync.OtherDevices;
+import org.chromium.blanc.sync.SyncedClosed;
+import org.chromium.blanc.sync.SyncedSpaces;
 import org.chromium.blanc.tabs.BlancTabs;
 import org.chromium.blanc.tabs.QuickSwitcher;
 import org.chromium.blanc.tabs.SlashCommands;
+import org.chromium.blanc.tabs.RecentlyClosed;
 import org.chromium.blanc.tabs.TabSections;
 import org.chromium.blanc.tabs.TabStore;
 import org.chromium.build.annotations.NullMarked;
@@ -65,6 +71,7 @@ import java.util.Set;
 public final class PaletteSheet extends Dialog {
     /** What the palette asks of the browser. */
     private final Set<String> mOpenDevices = new HashSet<>();
+    private boolean mClosedOpen;
 
     public interface Callbacks {
         /** Opens an address or search in the current tab. */
@@ -367,8 +374,63 @@ public final class PaletteSheet extends Dialog {
             heading(mActivity.getString(R.string.blanc_pill_private_chip), privateTabs.size());
             for (TabStore.Entry tab : privateTabs) tabRow(tab);
         }
+        renderClosed();
         renderSent();
         renderDevices();
+    }
+
+    /** Folded each time the palette opens, as the iPhone's and desktop's bands are. */
+    private void renderClosed() {
+        List<RecentlyClosed.Row> rows = SyncedClosed.band();
+        if (rows.isEmpty()) return;
+        LinearLayout head = new LinearLayout(mActivity);
+        head.setGravity(Gravity.CENTER_VERTICAL);
+        TextView title = text(mActivity.getString(R.string.blanc_closed_header) + "  " + rows.size(), 11, secondary());
+        title.setTypeface(Typeface.DEFAULT_BOLD);
+        title.setPadding(dp(22), dp(8), dp(22), dp(8));
+        title.setMinHeight(dp(32));
+        title.setContentDescription(mActivity.getString(R.string.blanc_closed_header) + ", " + rows.size() + ", "
+                + mActivity.getString(mClosedOpen ? R.string.blanc_closed_fold : R.string.blanc_closed_unfold));
+        title.setOnClickListener(v -> {
+            mClosedOpen = !mClosedOpen;
+            render();
+        });
+        head.addView(title, new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1));
+        if (mClosedOpen) {
+            TextView clear = text(mActivity.getString(R.string.blanc_closed_clear), 11, secondary());
+            clear.setTypeface(Typeface.DEFAULT_BOLD);
+            clear.setPadding(dp(12), dp(8), dp(22), dp(8));
+            clear.setContentDescription(mActivity.getString(R.string.blanc_closed_clear_all));
+            clear.setOnClickListener(v -> {
+                SyncedClosed.clear();
+                render();
+            });
+            head.addView(clear);
+        }
+        mList.addView(head);
+        if (!mClosedOpen) return;
+        for (RecentlyClosed.Row item : rows) {
+            String label = item.title.isEmpty() ? item.url : item.title;
+            String subtitle = item.fromId != null
+                    ? mActivity.getString(R.string.blanc_shared_spaces_closed_on,
+                            item.fromName == null ? item.fromId : item.fromName)
+                    : host(item.url);
+            LinearLayout line = new LinearLayout(mActivity);
+            line.setGravity(Gravity.CENTER_VERTICAL);
+            View main = row(R.drawable.blanc_palette_history, label, subtitle, false, v -> {
+                SyncedClosed.forget(item);
+                mTabs.reopen(item.url);
+                dismiss();
+            });
+            mList.removeView(main);
+            line.addView(main, new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1));
+            ImageButton forget = button(R.drawable.blanc_palette_close, R.string.blanc_closed_forget, v -> {
+                SyncedClosed.forget(item);
+                render();
+            });
+            line.addView(forget, new LinearLayout.LayoutParams(dp(44), dp(48)));
+            mList.addView(line);
+        }
     }
 
     private void renderSent() {
@@ -447,9 +509,11 @@ public final class PaletteSheet extends Dialog {
             return;
         }
         for (QuickSwitcher.Result result : results) {
-            boolean group = result.id.startsWith("group:") || result.id.startsWith("set:");
-            String subtitle = group
-                    ? mActivity.getResources().getQuantityString(R.plurals.blanc_newtab_groups_count, result.count, result.count)
+            boolean remote = result.id.startsWith("remoteSpace:");
+            boolean group = remote || result.id.startsWith("group:") || result.id.startsWith("set:");
+            String subtitle = remote
+                    ? mActivity.getString(R.string.blanc_spaces_on_device, result.subtitle)
+                    : group ? mActivity.getResources().getQuantityString(R.plurals.blanc_newtab_groups_count, result.count, result.count)
                     : result.subtitle;
             View view = row(group ? R.drawable.blanc_palette_chevron_right : R.drawable.blanc_palette_globe,
                     result.title, subtitle, false, v -> {
@@ -514,7 +578,11 @@ public final class PaletteSheet extends Dialog {
         for (OtherDevices.Device device : OtherDevices.devices()) {
             for (OtherDevices.Page tab : device.tabs) pages.add(new QuickSwitcher.Page(tab.url, tab.title, tab.url));
         }
-        return QuickSwitcher.search(query, candidates, pages, List.of(), groups, switcherSets());
+        List<QuickSwitcher.RemoteSpace> remote = new ArrayList<>();
+        for (JSONObject row : SyncedSpaces.remoteSpaces()) {
+            remote.add(new QuickSwitcher.RemoteSpace(row.optString("id"), row.optString("name"), row.optString("device")));
+        }
+        return QuickSwitcher.search(query, candidates, pages, List.of(), groups, switcherSets(), remote);
     }
 
     /** Every Space but the shown one, and This Phone while a Space is shown. */
@@ -745,6 +813,11 @@ public final class PaletteSheet extends Dialog {
             }
         } else if (result.id.startsWith("local:")) {
             mTabs.select(result.id.substring("local:".length()));
+        } else if (result.id.startsWith("remoteSpace:")) {
+            String id = result.id.substring("remoteSpace:".length());
+            for (JSONObject row : SyncedSpaces.remoteSpaces()) {
+                if (id.equals(row.optString("id"))) new BringSpaceSheet(mActivity, row).show();
+            }
         } else if (result.id.startsWith("set:")) {
             SpacesController spaces = SpacesController.current();
             String id = result.id.substring("set:".length());
