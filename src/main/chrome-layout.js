@@ -2,7 +2,7 @@
 // outside main.js makes the 640px minimum-window edge case testable without
 // Electron and gives the renderer one authoritative rail-width constant.
 
-const { DRAG_BAND_PX } = require('./island-autohide');
+const { dragBandHeight } = require('./island-autohide');
 
 const VERTICAL_TABS_DEFAULT_WIDTH = 248;
 const VERTICAL_TABS_MIN_WIDTH = 200;
@@ -52,6 +52,7 @@ function normalizeVerticalTabsWidth(value) {
  *   islandHeight?: number,
  *   tabLayout?: string,
  *   verticalTabsWidth?: number,
+ *   platform?: string,
  * }} input
  */
 function calculateChromeLayout({
@@ -63,6 +64,7 @@ function calculateChromeLayout({
   islandHeight = chromeHeight,
   tabLayout = 'island',
   verticalTabsWidth = VERTICAL_TABS_DEFAULT_WIDTH,
+  platform,
 }) {
   const windowWidth = dimension(width);
   const windowHeight = dimension(height);
@@ -146,7 +148,7 @@ function calculateChromeLayout({
       x: railWidth,
       y: 0,
       width: pageWidth,
-      height: Math.min(DRAG_BAND_PX, windowHeight),
+      height: Math.min(dragBandHeight(platform), windowHeight),
     },
     findCapsuleMaxWidth: Math.max(
       0,

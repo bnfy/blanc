@@ -3639,6 +3639,7 @@ function currentChromeLayout(content = rt().window.getContentBounds()) {
     islandHeight: islandStripHidden() ? 0 : rt().chromeHeight,
     tabLayout,
     verticalTabsWidth: verticalTabsPreferredWidth,
+    platform: chromePlatform(),
   });
 }
 

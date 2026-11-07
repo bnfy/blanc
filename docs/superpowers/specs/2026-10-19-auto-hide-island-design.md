@@ -114,17 +114,21 @@ and the toolbar comes back on demand. Blanc has no such mode.
 - Revealing resizes the page (68px shorter) in the push style. The float
   style, the default since `2026-10-20-floating-island-design.md`, draws the
   revealed Island in views above the page so the page never moves.
-- The hidden strip now keeps a 6px drag band at the page pane's top in both
-  styles (same follow-up), so the window can be dragged while it is hidden.
+- The hidden strip now keeps a drag band at the page pane's top in both
+  styles (same follow-up), so the window can be dragged while it is hidden:
+  6px, or 10px on Windows (bnfy/blanc#1369).
 - On native Wayland the pointer outside the window cannot be seen, so the
   band above a floating window's top edge does not reveal the strip, and a
   pointer that leaves the window over the strip keeps it shown until it comes
   back into the window. Point just inside the top edge instead.
-- On Windows the drag band drags the window but does not maximise on a
-  double-click, in either style (hand check of 2026-10-20). A transparent
-  6px drag view behaves the same, so it is how Windows resolves a
-  double-click on an app-region, not the band. Pressing just below the band
-  zooms but does not drag.
+- On Windows the top 5 rows of the window are its resize border, so a press
+  there resizes the top edge and a double-click stretches the window to full
+  height, in either style. The 2026-10-20 hand check read those rows as the
+  band dragging without maximising; its logs show the top edge moving while
+  the bottom stayed put. The band's rows below them drag, and in that check
+  the one such row maximised on a double-click. Windows drops a drag if the
+  pointer's first move leaves the band, so a downward drag needs a row or two
+  of band below the press (bnfy/blanc#1369).
 - On Linux and Windows a covered strip keeps one row uncovered (the page starts at
   y = 1). Chromium reports a window document that a page covers whole as
   `hidden` and stops tracking its size, which left the floating pill and
