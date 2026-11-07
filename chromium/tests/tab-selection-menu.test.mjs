@@ -1,0 +1,96 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import fs from 'node:fs';
+import vm from 'node:vm';
+
+const source=fs.readFileSync(new URL('../blanc/island/adapter.js',import.meta.url),'utf8');
+function fixture({selected=['a','b','c'],target='a',pill=false,split=false,rules={}}={}) {
+ class Element {
+  constructor(tag){this.tag=tag;this.children=[];this.dataset={};this.style={};this.attrs={};this.listeners={};this.offsetWidth=200;this.offsetHeight=300;}
+  setAttribute(key,value){this.attrs[key]=value;}
+  addEventListener(name,fn){this.listeners[name]=fn;}
+  append(...children){this.children.push(...children);}
+  replaceChildren(...children){this.children=children;}
+  remove(){this.removed=true;}
+  focus(){}
+  querySelectorAll(){return this.children.filter(el=>el.tag==='button'&&!el.disabled);}
+  querySelector(){return this.querySelectorAll()[0];}
+ }
+ const listeners={},body=new Element('body'),calls=[];
+ const state={tabs:['a','b','c'].map(id=>({id,title:id,url:'https://example.test/'+id})),groups:[],splits:split?[{id:'s',tabIds:['a','b']}]:[],activeTabId:'c',selectedTabIds:selected};
+ const hostContext=vm.createContext({snapshot:state,selectionRevision:0,refresh:async()=>{},selectionTabs:()=>state.tabs,emit:()=>{}});
+ for(const file of ['selection-tab-sections.js','tab-selection.js'])
+  vm.runInContext(fs.readFileSync(new URL('../blanc/island/'+file,import.meta.url),'utf8'),hostContext);
+ if(split) state.tabs.slice(0,2).forEach(tab=>tab.splitId='s');
+ hostContext.tabSelection=hostContext.BlancTabSelection.selectionState(selected,null,state.tabs);
+ const hostSource=fs.readFileSync(new URL('../blanc/island/host.js',import.meta.url),'utf8');
+ const start=hostSource.indexOf('    prepareTabMenu:');
+ const prepare=vm.runInContext('({'+hostSource.slice(start,hostSource.indexOf('    selectTab:',start))+'}).prepareTabMenu',hostContext);
+ const api={getAllTabs:async()=>state,onOverlayHide:()=>{},
+  selectedTabsMenuState:async()=>({canPlace:true,canMove:true,canMutate:true,canGroup:true,canQuiet:false,canReload:true,canCopy:true,...rules}),
+  listWorkspaces:async()=>({items:[{id:'one',name:'One',active:true},{id:'reading',name:'Reading'}]}),
+  prepareTabMenu:async id=>{calls.push(['prepare',id]);await prepare(id);},
+  openIsland:async()=>calls.push(['openIsland']),
+  runSelectedTabsAction:async(...args)=>calls.push(args)};
+ const document={body,activeElement:null,createElement:tag=>new Element(tag),addEventListener:(name,fn)=>{listeners[name]=fn;}};
+ const dispatched=[];let overlay, forwarded;
+ const parent={document:{getElementById:()=>({contentDocument:{querySelectorAll:()=>[{dataset:{tabId:'c'},dispatchEvent:event=>{dispatched.push(event);forwarded=overlay.open(event);}}]},contentWindow:{MouseEvent:class{constructor(type,options){Object.assign(this,options);}}}})},BlancPrototypeHost:{apiForDocument:()=>api,notice:message=>{throw Error(message);}}};
+ const window={addEventListener:()=>{},blancI18n:{t:(key,values)=>key==='tabsMenu.header'?`${values.count} tabs`:key}};
+ vm.runInNewContext(source,{window,parent,document,location:{origin:'chrome://blanc-prototype',pathname:pill?'/index.html':'/overlay.html'},innerWidth:1000,innerHeight:800,Promise,setTimeout:fn=>fn()});
+ const row={dataset:{tabId:target},closest:selector=>selector.includes('.tab-row')?row:null};
+ const event={preventDefault(){},clientX:20,clientY:30,target:{closest:selector=>selector==='[data-tab-id]'?(pill?null:row):selector==='#islandPill'&&pill?{}:null}};
+ if(pill) overlay=fixture({selected,target:'c'});
+ return {open:async extra=>{await listeners.contextmenu({...event,...extra,target:event.target});if(forwarded) await forwarded;},escape:()=>listeners.keydown({key:'Escape',preventDefault(){},stopImmediatePropagation(){}}),body:pill?overlay.body:body,calls,dispatched};
+}
+test('right-clicking a selected row builds only the several-tab menu',async()=>{
+ const f=fixture();await f.open();const menu=f.body.children.at(-1);
+ assert.equal(menu.attrs['aria-label'],'3 tabs');
+ assert.equal(menu.children[0].textContent,'3 tabs');
+ assert.ok(menu.children.some(b=>b.dataset.action==='batch-pin'));
+ assert.equal(menu.children.find(b=>b.dataset.action==='batch-quiet').disabled,true);
+ assert.equal(menu.children.find(b=>b.dataset.action==='batch-close').disabled,true);
+ assert.ok(!menu.children.some(b=>/Duplicate|Rename/.test(b.textContent)));
+ menu.children.find(b=>b.dataset.action==='batch-pin').listeners.click();
+ await Promise.resolve();assert.deepEqual(JSON.parse(JSON.stringify(f.calls)),[['batch-pin',{selectedTabIds:['a','b','c']}]]);
+});
+test('the Space submenu disables the current Space and sends its target id',async()=>{
+ const f=fixture();await f.open();const menu=f.body.children.at(-1);
+ menu.children.find(b=>b.dataset.action==='batch-space').listeners.click();
+ assert.equal(menu.children.find(b=>b.textContent==='One').disabled,true);
+ menu.children.find(b=>b.textContent==='Reading').listeners.click();
+ await Promise.resolve();
+ assert.deepEqual(JSON.parse(JSON.stringify(f.calls)),[['batch-space-move',{workspaceId:'reading',selectedTabIds:['a','b','c']}]]);
+});
+test('an unselected row replaces selection and opens the ordinary menu',async()=>{
+ const f=fixture({selected:['b','c']});await f.open();
+ assert.deepEqual(f.calls,[['prepare','a']]);
+ const menu=f.body.children.at(-1);
+ assert.ok(menu.children.some(b=>b.textContent==='Duplicate'));
+ assert.ok(!menu.children.some(b=>b.dataset.action==='batch-pin'));
+});
+test('the resting pill always keeps its ordinary one-tab menu',async()=>{
+ const f=fixture({pill:true});await f.open();
+ assert.deepEqual(f.calls,[['openIsland']]);
+ assert.equal(f.dispatched[0].blancSingleTabMenu,true);
+ assert.ok(f.body.children.at(-1).children.some(b=>b.textContent==='Duplicate'));
+});
+
+test('a split pane context replacement stays single on the second right-click',async()=>{
+ const f=fixture({selected:[],split:true});
+ await f.open();f.escape();await f.open();
+ assert.ok(f.body.children.at(-1).children.some(b=>b.textContent==='Duplicate'));
+ assert.ok(!f.body.children.at(-1).children.some(b=>b.dataset.action==='batch-pin'));
+});
+
+test('busy operations disable Pin and Mute',async()=>{
+ const f=fixture({rules:{canMutate:false}});await f.open();
+ for(const action of ['batch-pin','batch-mute'])
+  assert.equal(f.body.children.at(-1).children.find(b=>b.dataset.action===action).disabled,true);
+});
+test('memory-only placement stays enabled when a Space cannot store the selection',async()=>{
+ const f=fixture({rules:{canPlace:false,canMove:true,canGroup:true}});await f.open();
+ const menu=f.body.children.at(-1);
+ assert.equal(menu.children.find(b=>b.dataset.action==='batch-space').disabled,true);
+ assert.equal(menu.children.find(b=>b.dataset.action==='batch-new-window').disabled,false);
+ assert.equal(menu.children.find(b=>b.dataset.action==='batch-group').disabled,false);
+});
