@@ -506,7 +506,7 @@
     "chrome/browser/extensions/component_extensions_allowlist/allowlist.cc": "c05f9e6bcfa71a277a956ddd320dd876bc3a8d0911ce9565db701df6cec9d925",
     "chrome/browser/extensions/component_loader.cc": "cf051264cc9e2eccf9a3fa5ec9e239b374325783114bd7728057aa684436f879",
     "chrome/browser/lifetime/application_lifetime_desktop.cc": "1f96b198dbb40fb181e885b4065fc857a4754c925bfad00470c9b65538777089",
-    "chrome/browser/prefs/browser_prefs.cc": "30ebbcbe997847fd1dbab0886c901d50652f8716b6815ab6b257f04c2a2bec4f",
+    "chrome/browser/prefs/browser_prefs.cc": "5161c460775e1c9cad1ce92eba828eb52533be53eab33999ee87d1acbea87e3b",
     "chrome/browser/prefs/session_startup_pref.cc": "da151f9280c2095dea87ed68ad1196a8a9a7b907eb04f1b3a4f4407c5a533063",
     "chrome/browser/renderer_preferences_util.cc": "3ed41eaa7c6101a1d067495890a622806b5ad1791482b00316bfc5bd87f2a028",
     "chrome/browser/resource_coordinator/tab_lifecycle_unit.cc": "b5bdf042e29285e501b8949cfe23428bfa0a55c38ed5407aa595b38e5ffa16e4",
