@@ -388,6 +388,7 @@ test('the release runtime is chosen explicitly, ECS needs the EVS account and th
   assert.match(releaseScript, /BLANC_RELEASE_RUNTIME must be explicitly set to ecs or official\./);
   assert.match(releaseScript, /for var in BLANC_EVS_PYTHON EVS_CONFIG_FILE EVS_CACHE_FILE/);
   assert.match(releaseScript, /matrix\.ecsRuntime !== pin\.version/);
+  assert.match(releaseScript, /\/\^PENDING\/\.test\(evidence\) \|\| !evidence\.includes\(pin\.version\)/);
   assert.match(releaseScript, /BLANC_ECS_RELEASE_PIPELINE=1 node scripts\/build-ecs-production\.cjs --release --mac/);
   assert.match(releaseScript, /verify-ecs-production-package\.cjs --release "dist\/mac-arm64\/Blanc\.app"/);
   assert.match(releaseScript, /verify-ecs-production-package\.cjs --release "dist\/mac\/Blanc\.app"/);

@@ -170,9 +170,10 @@ case "$RELEASE_RUNTIME" in
     node -e '
       const matrix = require("./src/main/ublock-platforms.json");
       const pin = require("./build/ecs-runtime.json");
-      if (matrix.ecsRuntime !== pin.version) process.exit(1);
+      const evidence = String(matrix.ecsEvidence ?? "");
+      if (matrix.ecsRuntime !== pin.version || /^PENDING/.test(evidence) || !evidence.includes(pin.version)) process.exit(1);
     ' || {
-      echo "An ECS release requires the reviewed uBO runtime record for $(node -p 'require("./build/ecs-runtime.json").version')." >&2
+      echo "An ECS release requires the reviewed uBO runtime record, with passed evidence naming $(node -p 'require("./build/ecs-runtime.json").version'), in src/main/ublock-platforms.json." >&2
       exit 1
     }
     # Checked before any tag or draft exists: the native workflow must accept

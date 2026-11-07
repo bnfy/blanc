@@ -114,3 +114,26 @@ Blanc can no longer rebuild a page-opened tab with its opener's HTML/CSP
 sandbox. Blanc now marks those tabs and keeps them inert wherever a rebuild
 would be needed (`src/main/document-policy.js`). The same four jobs run
 `test:document-policy:desktop` and `test:modified-links:desktop` on the PR head.
+
+## Runtime update to ECS 44.10.1+wvcus (November 2026, unreleased)
+
+`src/main/ublock-platforms.json` moves `electron` to `44.10.1` and `ecsRuntime`
+to `44.10.1+wvcus` (Chromium 152.0.7977.169, Node 24.22.1). uBO 1.75.0 and its
+pinned upstream files are unchanged. Rosetta stays excluded.
+
+Signed-package uBO acceptance passed on source `c40477ab7` on November 7, 2026:
+
+| Target | Evidence | Package |
+| --- | --- | --- |
+| Apple Silicon | Local run on this Mac | Notarized, Gatekeeper and VMP verified |
+| Native Intel Mac | Run `42339778316` | The same notarized build, pinned by DMG, `app.asar` and executable hash |
+| Windows x64 | Run `42337900427` | Authenticode and VMP signed |
+| Linux x64 | Run `42334059332` | Public ECS AppImage |
+
+All four targets also passed protected playback. On Intel, the first run
+(`42339778316`) stalled with sound on, while muted playback advanced about 5
+seconds, with VMP verified and no media errors. With the owner-approved step that
+answers the runner's microphone dialog, the same notarized build passed strict
+unmuted playback in run `42340331632`, advancing 5.03 seconds, so this was
+October's runner audio stall (`docs/ecs-production-integration.md`). That run
+records one aborted `storage.googleapis.com` request, as October's did.

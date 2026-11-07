@@ -170,12 +170,12 @@ jobs:
           test "$(uname -m)" = x86_64
           test "$(node -p 'process.arch')" = x64
           mkdir -p "$RUNNER_TEMP/official-audio"
-          gh release download v44.9.3 -R electron/electron -p electron-v44.9.3-darwin-x64.zip -p SHASUMS256.txt -D "$RUNNER_TEMP/official-audio"
+          gh release download v44.10.1 -R electron/electron -p electron-v44.10.1-darwin-x64.zip -p SHASUMS256.txt -D "$RUNNER_TEMP/official-audio"
           cd "$RUNNER_TEMP/official-audio"
-          awk '$2 == "*electron-v44.9.3-darwin-x64.zip" || $2 == "electron-v44.9.3-darwin-x64.zip"' SHASUMS256.txt > expected.sha256
+          awk '$2 == "*electron-v44.10.1-darwin-x64.zip" || $2 == "electron-v44.10.1-darwin-x64.zip"' SHASUMS256.txt > expected.sha256
           test "$(wc -l < expected.sha256 | tr -d ' ')" = 1
           shasum -a 256 -c expected.sha256
-          ditto -x -k electron-v44.9.3-darwin-x64.zip .
+          ditto -x -k electron-v44.10.1-darwin-x64.zip .
           echo "OFFICIAL_AUDIO_EXECUTABLE=$RUNNER_TEMP/official-audio/Electron.app/Contents/MacOS/Electron" >> "$GITHUB_ENV"
           cd "$GITHUB_WORKSPACE"
           node -e 'require("./scripts/prepare-ecs-runtime.cjs").prepareEcsRuntime("darwin","x64").then(r=>require("node:fs").appendFileSync(process.env.GITHUB_ENV,"ECS_AUDIO_EXECUTABLE="+r.directory+"/Electron.app/Contents/MacOS/Electron\n"))'

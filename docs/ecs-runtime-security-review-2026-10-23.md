@@ -26,6 +26,46 @@ the press gate passes and the owner signs off on What's New.
   all four archives, rerun the TLS probe, rebuild, sign and requalify, and ship
   that as the next release. This waiver covers this runtime pin only.
 
+## Follow-up — November 6, 2026: ECS 44.10.1+wvcus
+
+castLabs published `v44.10.1+wvcus` on November 4, 2026, so the follow-up above
+is now possible. This section records the source work only. **R1 is closed for
+the TLS defect once 44.10.1 ships; nothing here is a release approval.**
+
+- All four archives were downloaded and match castLabs' `SHASUMS256.txt` and
+  `build/ecs-runtime.json`. The runtime reports Electron `44.10.1`, Chromium
+  `152.0.7977.169`, Node `24.22.1`, Undici `7.30.1`, c-ares `1.34.9`.
+- The TLS probe was rerun in pure `tls.checkServerIdentity` calls against the
+  extracted Apple Silicon framework (SHA-256
+  `1f51a568476de81f045f4c9b7c822fe170d17ca9153d1ab2e8489db4331a4fef`). Fullwidth,
+  octal, hexadecimal and shortened IP spellings are now rejected against a
+  numeric DNS SAN, and the three controls still behave. The same script on
+  Electron 44.9.3 accepts all four, so it does detect the defect.
+- **Not closed by this:** the other Node advisories were still not dynamically
+  tested, and upstream 44.10.2 (Node 24.22.2 and further backports) has no ECS
+  build yet.
+- **R2 is waived again by the owner, not passed.** See the waiver below.
+- Signed-package uBO acceptance passed on all four targets on `c40477ab7`, and
+  `src/main/ublock-platforms.json` records it. See the
+  [uBO support matrix](ublock-origin-support-matrix-2026-10-03.md).
+
+### Owner waiver — November 7, 2026, 03:21 UTC (R2, 44.10.1 only)
+
+**R2 is waived by the owner for `44.10.1+wvcus`, not passed.** In chat, after
+being told that the October waiver covered the 44.9.3 pin only and that R2 is
+open for any newer runtime, the owner selected "Waive R2, continue".
+
+- **Missing evidence:** the exact native source or backport manifest for
+  `44.10.1+wvcus`, with its redistribution notices. `vendorCommit` is release
+  metadata, not reviewed source.
+- **Accepted risk:** the vendor's native changes in this runtime are unaudited.
+  Archive hashes, code signing and VMP show integrity and identity only.
+- **Conditions:** every other release gate still runs, including native
+  qualification on all four targets and the `PENDING` uBO evidence check. Do not
+  describe the runtime as reviewed. No vendor contact or legal waiver is implied.
+- **Scope:** this runtime pin only. Electron 45 or any later pin needs a new
+  owner decision.
+
 ## Decision
 
 **Not cleared for release.** The selected ECS engine reproduces upstream Node

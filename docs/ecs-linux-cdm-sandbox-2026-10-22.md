@@ -19,6 +19,13 @@ those are CDM, network and no-sandbox. Chromium's normal CDM selection uses the
 generic sandboxed zygote instead. This explains why JavaScript
 `app.enableSandbox()` and a native `--enable-sandbox` argument did not fix it.
 
+**ECS 44.10.1+wvcus (November 6, 2026).** The same instruction appears once, at
+ELF file offset `0x860f8e2` (virtual address `0x86108e2`) in the executable with
+SHA-256 `686b2967ee133d0de96729168a7bc2a15f45b0ea7ba63146c8484910799550f3`.
+Vendor Breakpad symbols place `GetZygote` at `0x86108d0` in the same source file,
+so the mask keeps its `+0x12` position. `scripts/ecs-linux-cdm-zygote-trial.cjs`
+now targets this binary; the CDM sandbox still has to be requalified on Linux.
+
 Primary-source comparison:
 
 - [Chromium 152 utility sandbox selection](https://chromium.googlesource.com/chromium/src/+/152.0.7977.167/content/browser/service_host/utility_sandbox_delegate.cc)
