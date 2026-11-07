@@ -1190,7 +1190,7 @@ remain pending. D3 beta-only no-DRM exception accepted; EME notice/handoff requi
   reports `undefined` until this is revisited. No further action unless the
   owner asks for it again. Full writeup in
   `chromium/CODEX-NOTES-billboard-history.md`.
-- **F9-3 Favorites rows show a saved icon, candidate macos-1f63b73deaf4cd94
+- **F9-3 Favorites rows show a saved icon, candidate macos-c9349c0989f548b8
   (2026-11-07):** `adapters/pages.mjs`'s `seedFavorite` carried its own
   comment flagging the gap directly ("A seeded icon has no fork path"): the
   seeded favorite's page never really loads in the offline fixture (every
@@ -1200,8 +1200,16 @@ remain pending. D3 beta-only no-DRM exception accepted; EME notice/handoff requi
   test op (`FaviconService::MergeFavicon`, the same 16×16 PNG-encoded
   `SkBitmap` pattern) and one call to it from `seedFavorite`, right after
   bookmarking. `bookmarks::BookmarkModel::GetFavicon` reads from the same
-  favicon database, so no further wiring was needed. Passes clean on the
-  first build (7/7 in `find-favorites-history.feature`); regression-checked
+  favicon database, so no further wiring was needed. Passed clean on the
+  first build (7/7 in `find-favorites-history.feature`), but
+  `FaviconServiceImpl::MergeFavicon` just forwards to
+  `HistoryService::MergeFavicon`, which (like `AddPage`/`DeleteURLs`) only
+  posts to the backend sequence — found by spiking the op standalone
+  (seed, then poll the sheet's own row-icon query directly) outside the
+  Cucumber harness's extra per-step latency, where it never showed an image
+  even after 24s of polling; added the same `FlushForTest`-before-reply
+  fix as Billboard's seeding, closing a real race that happened not to
+  flake in-harness but would have eventually. Regression-checked
   `newtab-layouts.feature` (still 19/4/2 — unchanged) and `vertical-tabs.
   feature` (0/7/19 — unrelated: that feature is broadly unbuilt, no
   favicon-adjacent failures). Branch: committed directly on
@@ -1794,5 +1802,5 @@ Android's Bar A counts the shared scenarios bound in `chromium/tests/android/acc
 
 Legacy macOS stages come from the approved spec; they await verification on the canonical candidate. No legacy stage counts as Verified.
 
-Candidate identities: macOS: macos-1f63b73deaf4cd94; Windows: none; Linux: none; Android: android-arm64-7bd35e94ef746069.
+Candidate identities: macOS: macos-c9349c0989f548b8; Windows: none; Linux: none; Android: android-arm64-7bd35e94ef746069.
 <!-- END GENERATED PROGRESS -->

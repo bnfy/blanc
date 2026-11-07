@@ -4673,6 +4673,11 @@ class Handler : public content::WebUIMessageHandler, public extensions::Extensio
     // favicon the way a production visit does. Seeds one directly via
     // FaviconService, the same MergeFavicon pattern as Billboard above;
     // bookmarks::BookmarkModel::GetFavicon reads from the same database.
+    // FaviconServiceImpl::MergeFavicon forwards to HistoryService::
+    // MergeFavicon, which (like AddPage/DeleteURLs) just posts to the
+    // backend sequence — flush before replying, or a reader racing ahead of
+    // that write (BookmarkModel's first GetFavicon for this node, which can
+    // cache a negative result) sees nothing there yet.
     if (quiet_method == "seedFavicon" && quiet_args.size() == 1 && quiet_args[0].is_string()) {
       auto* owner = GetOwner(web_ui()->GetWebContents());
       Profile* profile = owner ? owner->browser->GetProfile() : nullptr;
@@ -4683,9 +4688,11 @@ class Handler : public content::WebUIMessageHandler, public extensions::Extensio
       if (!url.is_valid() || !url.SchemeIsHTTPOrHTTPS()) {
         reject("Favicon seeding needs a valid http(s) URL."); return;
       }
+      auto* history = HistoryServiceFactory::GetForProfile(
+          profile, ServiceAccessType::EXPLICIT_ACCESS);
       auto* favicon_service = FaviconServiceFactory::GetForProfile(
           profile, ServiceAccessType::EXPLICIT_ACCESS);
-      if (!favicon_service) { reject("Favicons unavailable."); return; }
+      if (!history || !favicon_service) { reject("History or Favicons unavailable."); return; }
       SkBitmap bitmap;
       bitmap.allocN32Pixels(16, 16);
       bitmap.eraseColor(SK_ColorBLUE);
@@ -4694,7 +4701,10 @@ class Handler : public content::WebUIMessageHandler, public extensions::Extensio
       favicon_service->MergeFavicon(url, GURL(url.spec() + "favicon.ico"),
           favicon_base::IconType::kFavicon,
           base::MakeRefCounted<base::RefCountedBytes>(png.value()), gfx::Size(16, 16));
-      Reply(id, true, base::Value(true));
+      history->FlushForTest(base::BindOnce(
+          [](base::WeakPtr<Handler> self, std::string id) {
+            if (self) self->Reply(id, true, base::Value(true));
+          }, weak_factory_.GetWeakPtr(), id));
       return;
     }
     if (quiet_method == "quietThreshold" && quiet_args.size() == 1 && quiet_args[0].is_int() &&
