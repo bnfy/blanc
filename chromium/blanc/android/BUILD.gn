@@ -25,6 +25,16 @@ android_library("island_java") {
 # Blanc's tab rules, ported from Blanc for iPhone (TabGroups, TabSections,
 # QuickSwitcher, SlashCommand) and checked against desktop's JavaScript
 # (A2 plan, Task 2): plain Java with no views.
+# Settings' own rules, with no Chromium dependency, so they run under Robolectric.
+android_library("settings_model_java") {
+  sources = [
+    "java/src/org/chromium/blanc/settings/SearchEngines.java",
+    "java/src/org/chromium/blanc/settings/SettingsDestination.java",
+    "java/src/org/chromium/blanc/settings/SettingsLayout.java",
+  ]
+  deps = [ "//build/android:build_java" ]
+}
+
 android_library("tabs_java") {
   sources = [
     "java/src/org/chromium/blanc/spaces/BlancSpaces.java",
@@ -330,6 +340,9 @@ robolectric_binary("blanc_android_junit_tests") {
     "junit/src/org/chromium/blanc/tabs/QuickSwitcherTest.java",
     "junit/src/org/chromium/blanc/tabs/QuietTabsTest.java",
     "junit/src/org/chromium/blanc/tabs/RecentlyClosedTest.java",
+    "junit/src/org/chromium/blanc/settings/SearchEnginesTest.java",
+    "junit/src/org/chromium/blanc/settings/SettingsDestinationTest.java",
+    "junit/src/org/chromium/blanc/settings/SettingsLayoutTest.java",
     "junit/src/org/chromium/blanc/tabs/SlashCommandsTest.java",
     "junit/src/org/chromium/blanc/tabs/TabGridTest.java",
     "junit/src/org/chromium/blanc/tabs/TabSectionsFixtures.java",
@@ -338,6 +351,7 @@ robolectric_binary("blanc_android_junit_tests") {
   deps = [
     ":island_java",
     ":island_view_java",
+    ":settings_model_java",
     ":sync_java",
     ":tabs_java",
     ":zxing_java",
