@@ -45,9 +45,9 @@ the TLS defect once 44.10.1 ships; nothing here is a release approval.**
   tested, and upstream 44.10.2 (Node 24.22.2 and further backports) has no ECS
   build yet.
 - **R2 is waived again by the owner, not passed.** See the waiver below.
-- `src/main/ublock-platforms.json` carries a `PENDING` evidence record, which
-  `release.sh` refuses, until signed-package uBO acceptance passes on all four
-  targets.
+- Signed-package uBO acceptance passed on all four targets on `c40477ab7`, and
+  `src/main/ublock-platforms.json` records it. See the
+  [uBO support matrix](ublock-origin-support-matrix-2026-10-03.md).
 
 ### Owner waiver — November 7, 2026, 03:21 UTC (R2, 44.10.1 only)
 

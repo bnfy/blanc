@@ -119,7 +119,19 @@ would be needed (`src/main/document-policy.js`). The same four jobs run
 
 `src/main/ublock-platforms.json` moves `electron` to `44.10.1` and `ecsRuntime`
 to `44.10.1+wvcus` (Chromium 152.0.7977.169, Node 24.22.1). uBO 1.75.0 and its
-pinned upstream files are unchanged. **This runtime has not passed signed-package
-uBO acceptance yet.** `ecsEvidence` says `PENDING`, and `release.sh` refuses an
-ECS release until that text is replaced with passed evidence naming the runtime,
-for the same four platform records. Rosetta stays excluded.
+pinned upstream files are unchanged. Rosetta stays excluded.
+
+Signed-package uBO acceptance passed on source `c40477ab7` on November 7, 2026:
+
+| Target | Evidence | Package |
+| --- | --- | --- |
+| Apple Silicon | Local run on this Mac | Notarized, Gatekeeper and VMP verified |
+| Native Intel Mac | Run `42339778316` | The same notarized build, pinned by DMG, `app.asar` and executable hash |
+| Windows x64 | Run `42337900427` | Authenticode and VMP signed |
+| Linux x64 | Run `42334059332` | Public ECS AppImage |
+
+This covers uBO only. Apple Silicon, Windows and Linux also passed protected
+playback. On Intel, VMP verified and playback advanced about 5 seconds muted,
+with no media errors, but unmuted playback stalled at about 0.1 seconds per
+sample. That matches the runner audio privacy stall recorded in
+`docs/ecs-production-integration.md`, but it isn't confirmed for this build.

@@ -1,7 +1,7 @@
 {
   "electron": "44.10.1",
   "ecsRuntime": "44.10.1+wvcus",
-  "ecsEvidence": "PENDING: castLabs ECS 44.10.1+wvcus (Chromium 152.0.7977.169) has not yet passed signed-package uBO acceptance on Apple Silicon, native Intel Mac, Windows x64 or Linux x64. release.sh refuses an ECS release while this record is pending. Replace this text with the run evidence, for the same four platform records; Rosetta stays excluded.",
+  "ecsEvidence": "castLabs ECS 44.10.1+wvcus (Chromium 152.0.7977.169) passed signed-package uBO acceptance on Apple Silicon (notarized c40477ab7, local) and native Intel Mac (same notarized build, run 42339778316), Windows x64 (42337900427) and Linux x64 (42334059332). Applies only to the same four platform records; Rosetta stays excluded. Owner R2 waiver of November 7, 2026 recorded in docs/ecs-runtime-security-review-2026-10-23.md",
   "manifestV2": "supported",
   "ublock": "1.75.0",
   "platforms": {
