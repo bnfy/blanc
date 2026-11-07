@@ -19,6 +19,7 @@ import androidx.core.view.WindowInsetsCompat;
 import org.chromium.base.Callback;
 import org.chromium.base.ContextUtils;
 import org.chromium.base.supplier.NullableObservableSupplier;
+import org.chromium.blanc.settings.SettingsStore;
 import org.chromium.blanc.spaces.SpacesCard;
 import org.chromium.blanc.spaces.SpacesController;
 import org.chromium.build.annotations.NullMarked;
@@ -65,7 +66,7 @@ public final class IslandCoordinator {
     }
 
     /** Device-local settings, as the iPhone stores them (SettingsStore.swift). */
-    public static final String POSITION_KEY = "blanc.island_position";
+    public static final String POSITION_KEY = SettingsStore.POSITION_KEY;
 
     public static final String TUCK_KEY = "blanc.island_tucks_on_scroll";
 
@@ -84,6 +85,9 @@ public final class IslandCoordinator {
     private final IslandTuck mTuck = new IslandTuck();
     private final float mDensity;
     private final Callback<@Nullable Tab> mTabChanged = this::setTab;
+    // Settings can move the Island while it is showing, so it follows the stored position at once.
+    private final SharedPreferences.OnSharedPreferenceChangeListener mPositionChanged =
+            (prefs, key) -> onPositionChanged(key);
     private final TabModelSelectorTabModelObserver mCountObserver;
     private final InsetObserver.WindowInsetObserver mInsetObserver =
             new InsetObserver.WindowInsetObserver() {
@@ -233,6 +237,7 @@ public final class IslandCoordinator {
                     }
                 };
         if (mInsets != null) mInsets.addObserver(mInsetObserver);
+        ContextUtils.getAppSharedPreferences().registerOnSharedPreferenceChangeListener(mPositionChanged);
         mActiveTab.addSyncObserverAndCall(mTabChanged);
         applyInsets();
     }
@@ -255,6 +260,7 @@ public final class IslandCoordinator {
 
     public void destroy() {
         SpacesController.setCurrentListener(null);
+        ContextUtils.getAppSharedPreferences().unregisterOnSharedPreferenceChangeListener(mPositionChanged);
         setTab(null);
         mActiveTab.removeObserver(mTabChanged);
         mCountObserver.destroy();
@@ -438,6 +444,16 @@ public final class IslandCoordinator {
             mView.reloadButton(), mView.tabsButton(), mView.newTabButton()
         };
         for (View button : buttons) button.setEnabled(enabled);
+    }
+
+    private void onPositionChanged(@Nullable String key) {
+        if (!POSITION_KEY.equals(key)) return;
+        mView.animate().cancel();
+        mView.setTranslationY(0);
+        mView.setAlpha(1f);
+        mShownTucked = false;
+        applyInsets();
+        refresh();
     }
 
     private static IslandPosition position() {

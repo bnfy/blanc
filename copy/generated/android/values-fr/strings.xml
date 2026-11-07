@@ -2649,4 +2649,10 @@ Vous pouvez réessayer avec « %2$s » ou réinstaller depuis blanc.day.</stri
     <string name="shared_spaces_recovery_name_android">%1$s · conservé sur ce téléphone</string>
     <string name="shared_spaces_deleted_everywhere_android">Supprimé partout. Annuler garde une copie sur ce téléphone.</string>
     <string name="bring_space_action_android">Copier sur ce téléphone</string>
+    <string name="android_settings_more">Plus</string>
+    <string name="android_settings_island_position">Position de l’Island</string>
+    <string name="android_settings_island_position_top">En haut</string>
+    <string name="android_settings_island_position_bottom">En bas</string>
+    <string name="android_settings_open_source_licenses">Licences open source</string>
+    <string name="android_settings_auto_revoke_summary">Pour protéger vos données, laissez Blanc supprimer les autorisations des sites que vous n’avez pas consultés récemment</string>
 </resources>

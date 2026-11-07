@@ -48,3 +48,12 @@ test('the TalkBack tab count is in every language', () => {
   assert.ok(ANDROID_PLURALS.includes('tabsMenu.header'));
   for (const [locale] of LOCALES) assert.match(render(locale), /<plurals name="blanc_tabs_menu_header">/, locale);
 });
+
+test('Chromium strings that name Chrome are overridden in every language', async () => {
+  const {CHROMIUM_OVERRIDES, renderOverrides} = await import('./android-strings.mjs');
+  for (const [locale] of LOCALES) {
+    const xml = renderOverrides(locale);
+    for (const name of Object.values(CHROMIUM_OVERRIDES)) assert.match(xml, new RegExp(`<string name="${name}">[^<]+</string>`), `${locale} ${name}`);
+    assert.ok(!/\bChrome\b/.test(xml), `${locale} still says Chrome`);
+  }
+});

@@ -9,15 +9,16 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * The settings this phone follows, Blanc for iPhone's: the theme and the blocking switch. (Search
- * engine joins them when A5's Settings gives Android a choice.) Every other synced key stays in the
+ * The settings this phone follows, Blanc for iPhone's: the theme, the blocking switch and the search
+ * engine (a synced `custom` or a value from a newer Blanc isn't applied, and never republished). Every other synced key stays in the
  * runner untouched. `seen` holds what both sides last agreed on.
  */
 @NullMarked
 public final class SyncedSettings {
     private static final Map<String, List<String>> KEYS = Map.of(
             "theme", List.of("system", "light", "dark"),
-            "adblockEnabled", List.of("true", "false"));
+            "adblockEnabled", List.of("true", "false"),
+            "searchEngine", List.of("duckduckgo", "google", "bing", "brave", "kagi"));
 
     /** What to change on the phone, and what to tell the runner. */
     public static final class Plan {

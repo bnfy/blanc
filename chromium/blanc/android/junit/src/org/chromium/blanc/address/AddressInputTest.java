@@ -29,6 +29,12 @@ public class AddressInputTest {
     }
 
     @Test
+    public void aTemplateChoosesTheEngineAndTheEncodingStaysTheSame() {
+        assertEquals("https://kagi.com/search?q=caf%C3%A9%20x", AddressInput.searchUrl("café x", "https://kagi.com/search?q=%s"));
+        assertEquals(AddressInput.searchUrl("a b"), AddressInput.searchUrl("a b", "https://duckduckgo.com/?q=%s"));
+    }
+
+    @Test
     public void searchesGoToDuckDuckGoEncodedAsShippingDoes() {
         assertEquals("https://duckduckgo.com/?q=how%20tall%20is%20everest", AddressInput.searchUrl("how tall is everest"));
         assertEquals("https://duckduckgo.com/?q=site%3Aexample.com", AddressInput.searchUrl("site:example.com"));

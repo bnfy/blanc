@@ -175,6 +175,44 @@ public class ProfileSyncTest implements ProfileSync.Host {
         assertTrue(mCalls.contains("settings.setSettings"));
     }
 
+    private void engineOnTheRunner(String engine) {
+        mReplies.put("settings.getSettings", "{\"ok\":true,\"value\":{\"theme\":\"system\",\"adblockEnabled\":true,\"searchEngine\":\""
+                + engine + "\"}}");
+    }
+
+    @Test
+    public void aSyncedSearchEngineIsAppliedToThePhone() {
+        engineOnTheRunner("kagi");
+        reconcile();
+        assertEquals("kagi", mPrefs.getString("blanc.search_engine", null));
+    }
+
+    @Test
+    public void aSyncedCustomEngineIsNeitherAppliedNorRepublished() {
+        engineOnTheRunner("custom");
+        reconcile();
+        assertEquals(null, mPrefs.getString("blanc.search_engine", null));
+        assertFalse(mCalls.contains("settings.setSettings"));
+        mPrefs.edit().putString("blanc.search_engine", "kagi").commit();
+        mCalls.clear();
+        reconcile();
+        assertFalse(mCalls.contains("settings.setSettings"));
+    }
+
+    @Test
+    public void aLocalEngineChangeIsPublishedOnce() {
+        mPrefs.edit().putString("blanc.search_engine", "brave").putString("blanc.sync.searchEngine.seen", "duckduckgo")
+                .putString("blanc.sync.theme.seen", "system").putString("blanc.sync.blocking.seen", "true").commit();
+        engineOnTheRunner("duckduckgo");
+        reconcile();
+        assertTrue(mCalls.contains("settings.setSettings"));
+        assertEquals("brave", mPrefs.getString("blanc.sync.searchEngine.seen", null));
+        engineOnTheRunner("brave");
+        mCalls.clear();
+        reconcile();
+        assertFalse(mCalls.contains("settings.setSettings"));
+    }
+
     @Test
     public void backgroundSyncFollowsSyncOnceEachWay() {
         ProfileSync profile = new ProfileSync(this);

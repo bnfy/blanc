@@ -2574,4 +2574,10 @@ Versuche es erneut mit „%2$s“ oder installiere Blanc neu von blanc.day.</str
     <string name="shared_spaces_recovery_name_android">%1$s · auf diesem Telefon behalten</string>
     <string name="shared_spaces_deleted_everywhere_android">Überall gelöscht. Rückgängig behält eine Kopie auf diesem Telefon.</string>
     <string name="bring_space_action_android">Auf dieses Telefon holen</string>
+    <string name="android_settings_more">Mehr</string>
+    <string name="android_settings_island_position">Position der Island</string>
+    <string name="android_settings_island_position_top">Oben</string>
+    <string name="android_settings_island_position_bottom">Unten</string>
+    <string name="android_settings_open_source_licenses">Open-Source-Lizenzen</string>
+    <string name="android_settings_auto_revoke_summary">Zum Schutz deiner Daten kann Blanc Berechtigungen von Websites entfernen, die du länger nicht besucht hast</string>
 </resources>
