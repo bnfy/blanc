@@ -1083,6 +1083,40 @@ remain pending. D3 beta-only no-DRM exception accepted; EME notice/handoff requi
   All 10 `@F46` scenarios in `spec/acceptance/tabs-and-groups.feature` pass
   on this candidate. Branches `chromium/f46-session-codex` (merged) and the
   harness-only `isLoading` commit, both on `chromium/s3-quiet-tabs`.
+- **F35-11 Patron callout snooze and F35-19 Launch Sunrise, both pass,
+  candidate macos-dea5366ef70d77b9 (2026-11-07):** the next two gaps found
+  sweeping `newtab-layouts.feature` — both genuinely not started (zero
+  native references), unlike F31/F46's "mostly built, needs wiring"
+  pattern, and both needed a new native pref. Registering a pref means
+  extending the upstream `browser_prefs.cc` patch
+  (`RegisterLocalState`), which is a real patch-budget question — flagged
+  to the owner first rather than decided unilaterally; approved. New patch
+  `0035-blanc-start-prefs.patch` adds `blanc.start.patron_callout_dismissed_at`
+  (Int64Pref) and `blanc.start.launch_sunrise` (BooleanPref), both
+  device-local `local_state()`, alongside the existing `blanc.whats_new`
+  etc. in the same function. Both features then ported faithfully from
+  shipping Electron:
+  - **Patron callout**: the pill's markup and JS show/hide logic were
+    already built in the fork; only the native `patronCallout`/
+    `patronCalloutDismiss` handlers (porting the exact 90-day,
+    corrupt-future-time rules from `src/main/patron-callout.js`) and one
+    missing bridge method were needed.
+  - **Launch Sunrise**: the scene markup, CSS animation and
+    `playLaunchSunrise()` are ported verbatim from shipping's
+    `newtab.html`/`pages.css`/`newtab.js`. Native state is a process-wide,
+    `NoDestructor`-held 30-second launch window with a once-per-WebContents
+    guard, porting `src/main/launch-sunrise.js`'s `take()`/`rearm()` logic
+    exactly.
+  First build caught a real `-Wshadow` error (a redundant local variable);
+  fixed directly. First acceptance run then found the Patron scenario
+  failing with `patronVisible` always `false` despite the native/JS state
+  being correct — spiked the live candidate's DOM directly and found
+  `newtab-prototype.css`'s blanket "not implemented by the Chromium
+  prototype" rule (`#patronCallout { display: none !important }`,
+  predating this feature) was overriding the real show/hide logic
+  entirely. Dropped `#patronCallout` from that list; both scenarios pass
+  on the rebuilt candidate, no regressions. Branch
+  `chromium/f35-start-settings-codex` (merged into `chromium/s3-quiet-tabs`).
 - **S3.10 Move to Space, candidate macos-071c3fa883ea19ff (2026-11-07):** the tab
   menu's Move to Space ▸ lists every Space (this window's checked) and New
   Space…, and is shown once a Space exists, never for a private tab, and disabled
@@ -1671,5 +1705,5 @@ Android's Bar A counts the shared scenarios bound in `chromium/tests/android/acc
 
 Legacy macOS stages come from the approved spec; they await verification on the canonical candidate. No legacy stage counts as Verified.
 
-Candidate identities: macOS: macos-40a41ac818ea4e2f; Windows: none; Linux: none; Android: android-arm64-7bd35e94ef746069.
+Candidate identities: macOS: macos-dea5366ef70d77b9; Windows: none; Linux: none; Android: android-arm64-7bd35e94ef746069.
 <!-- END GENERATED PROGRESS -->
