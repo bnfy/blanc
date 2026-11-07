@@ -128,3 +128,118 @@ Suggested single reviewable implementation commit once Git is writable:
 `Co-Authored-By: Codex <noreply@openai.com>` trailer. Stage only the two adapter
 files and their new test; commit these notes separately. The remaining task
 needs Claude/owner resolution of the brief's upstream-change boundary.
+
+## Continuation implementation — 2026-11-07
+
+Worktree `codex-quiet-tabs-2`, branch `chromium/s3-quiet-tabs-codex2`, base
+`e018c4e6`. Read the continuation brief, the preceding investigation, the
+saved failing run and pinned shipping steps/fixture server. This is source
+implementation awaiting Claude's native build and acceptance, with no runtime
+credit. No native build, acceptance runner, apply/sync script, upstream copy,
+patch, spec, shipping step, Electron source, output or cache was touched.
+STATUS.md and tracker.json remain unchanged.
+
+### Scenario work
+
+- **F31-1:** `navigateTab`, `tabNavigation`, `sleepState`, `wakeTab` and
+  `wakeTabAtIndex` now use the native navigation controller. The history
+  observation never attaches page DevTools or wakes a discarded page. Indexed
+  wake uses `GoToIndex`/`LoadIfNecessary` before activation. The shipping server
+  already serves the actual history pages, redirect-start redirect, POST/form
+  controls, scroll area and ordinary sessionStorage load counter; it is loaded
+  unchanged from the pinned reference. Oversized history state is created by
+  the unchanged step's real `history.pushState` (600000 characters), not a new
+  fixture seam. **The first scenario cannot honestly pass its unchanged
+  `droppedPageState === true` assertion:** Chromium retains the page state and
+  this adapter reports false. The brief also forbids inventing a 512 KiB
+  fallback. No assertion was relaxed or unapproved divergence registered.
+- **F31-2:** `setSleepThresholdOverride` sets a test-build-only delay used by
+  the existing `AutoDelay`; `runSleepSweep` calls the production `AutoTick` /
+  `AutoNext`, waits for completion and observes the actual newly quiet ids.
+  The override clears after the sweep (and on unavailable dispatch/host
+  teardown). Unavailable sweeps reject rather than claiming a quieting result.
+  Existing active-tab guards are unchanged.
+- **F31-3:** `setQuietProtection` uses actual pin/mute actions, an HTML Audio
+  element playing a generated PCM WAV, a live `window.open` child and a real
+  geolocation permission request. Media, opener-family and pending-permission
+  conditions must appear in native observations before the adapter returns.
+  Used-media pauses playback only after the native media-history observer has
+  recorded it. Dirty input, checkbox, POST, deep scroll and stored-handler
+  fixtures remain shipping's real page actions. `armBeforeUnloadObjection`
+  installs a real handler. **The objection example remains undefined:**
+  `tabListenerState` and `beforeUnloadProbe` explicitly throw undefined errors
+  because Chromium protects beforeunload-bearing frames before closing; there
+  are no Electron listener counts or will-prevent-unload event to report.
+  Other protection examples can proceed independently. No synthetic events or
+  seeded protection flags were added.
+- **F31-4:** `addressCommandNotice` reads the actual rendered command-notice
+  text and role. The `/sleep` command's implementation is unchanged.
+- **F31-5:** `quietChromeState`, `clickIslandDot`, `quietRowDimStyles` read or
+  click the actual dot, panel and rail DOM. Dim observations inspect quiet
+  classes, hover/focus, layout boxes, visibility and ancestor opacity, crossing
+  enclosing iframe elements as well. Added the page shim's missing `hover`
+  forwarding so shipping can park its pointer on the address input.
+- **F31-6:** `setTabSleep` / `tabSleep` call the production `quietDelay`
+  preference setter/getter, including its existing validation and
+  `CommitPendingWrite`. No replacement scheduler, settings store, or wake-on-Off
+  logic was added. Actual disk persistence and timed behavior await native
+  testing; these unchanged acceptance examples do not prove elapsed auto-quiet.
+- **F31-7:** `createQuietTab` constructs a saved native navigation and invokes
+  `BrowserLiveTabContext::AddRestoredTab` unselected. That existing path uses
+  Chromium's restored-tab construction with `kNoRendererProcess` and restored
+  navigation controller; it never creates and discards a live fixture. The
+  native snapshot now exposes `IsRenderFrameLive`, and recognizes a viewless
+  controller needing reload as asleep alongside a discarded lifecycle unit.
+  Shipping's `webContentsId` projects null when the renderer is not live.
+- **F31-10:** `tabProcessCount` observes actual native tab renderer OS PIDs,
+  deduplicates them and checks their existence with OS signal 0. Previously
+  observed PIDs continue to count after discard until the OS process really
+  exits, so disappearing targets or rows cannot fake a decrement. No signals
+  that terminate processes are sent by the adapter. A quietable fixture sharing
+  its PID with another tab rejects the isolated-decrement claim. Native testing
+  must establish actual process isolation and the expected drop/wake count.
+
+**F31-8 and F31-9 remain undefined and their upstream blockers are untouched.**
+Because `sleepState` is now shared infrastructure, the existing `sleepTab`
+explicitly refuses private candidates with an undefined-adapter error before
+any discard dispatch, keeping F31-8 from accidentally becoming runnable on the
+known wrong-context path. No private wake adapter or eligibility relaxation was
+added. `persistedSessionData` still throws and `sessionSyncSnapshot` remains
+absent; no fake persistence or sync projection was added for F31-9.
+
+The new native operations are behind the existing compile-time test-hook and
+`--blanc-test` checks. Production observations gained renderer liveness / lazy
+restore state; production eligibility, private handling and scheduler sequencing
+remain intact. The source-map digest was refreshed for the custom native file;
+no upstream patch-budget change was needed.
+
+### Checks and delivery
+
+- Full required Node suite using `/usr/local/bin/node` v22.14.0: **256 pass,
+  2 fail (258 total)**. The two failures are the existing sync loopback tests,
+  both denied `listen EPERM: operation not permitted 127.0.0.1`. No test was
+  skipped or relaxed. Output: `/tmp/blanc-quiet-tabs-continue-unit.tap`.
+- Seven focused adapter/observation checks pass, including the existing detach
+  checks, explicit private refusal, hidden ancestor/opacity detection, viewless
+  identity, a real child OS process that continues to count after native state
+  drops its PID, and refusal of a shared renderer decrement.
+- `python3 chromium/tools/check-patches.py` passes: 128 upstream files,
+  441 custom files; reconstruction only, no compilation credit.
+- `node chromium/tools/progress.mjs --check` fails with
+  `STATUS progress is stale; run node chromium/tools/progress.mjs`. Its inputs
+  (tracker/status/evidence) were not edited here. The brief explicitly forbids
+  updating STATUS.md/tracker.json, so Claude must reconcile that stale generated
+  block when recording actual acceptance evidence.
+- `git diff --check` passes.
+- **Commits blocked by filesystem policy:** explicit-path `git add` failed on
+  `/Users/anthonyjloria/Projects/BlancChromium158/repo/.git/worktrees/codex-quiet-tabs-2/index.lock`
+  with `Operation not permitted`. Approval escalation is unavailable. The index
+  remains empty. No push/merge/rebase/stash/reset ran, and node_modules remains
+  the pre-existing untracked symlink.
+
+Suggested review groups once Git is writable: native lifecycle/history/lazy
+restore plus `quiet-native.mjs` and state projection; DOM observations plus the
+page hover shim; real protection conditions; OS process observations and focused
+checks; these notes. Include the required Codex co-author trailer on every
+commit. All implementation files are present in the working tree and registered
+in adapters/index.mjs; none has native-build or acceptance verification yet.

@@ -2,8 +2,12 @@ import {core} from './core.mjs';
 import {island} from './island.mjs';
 import {commands} from './commands.mjs';
 import {pages} from './pages.mjs';
+import {quietNative} from './quiet-native.mjs';
+import {quietChrome} from './quiet-chrome.mjs';
+import {quietProtections} from './quiet-protections.mjs';
+import {quietProcess} from './quiet-process.mjs';
 import {tabs} from './tabs.mjs';
-const modules=[core,island,commands,pages,tabs];
+const modules=[core,island,commands,pages,tabs,quietNative,quietChrome,quietProtections,quietProcess];
 export const adapters={};
 for(const m of modules)for(const [name,fn] of Object.entries(m)){
  if(adapters[name])throw Error('Duplicate adapter: '+name);adapters[name]=fn;
