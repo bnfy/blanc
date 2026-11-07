@@ -161,6 +161,7 @@ export class Page{
  getByRole(){throw new UndefinedNativeAdapterError('Page shim lacks getByRole');}
  fill(selector,value){return this.locator(selector).fill(value);}
  press(selector,key){return this.locator(selector).press(key);}
+ hover(selector){return this.locator(selector).hover();}
  click(selector,o){return this.locator(selector).click(o);}
  dblclick(selector,o){return this.locator(selector).dblclick(o);}
  waitForSelector(selector,o){return this.locator(selector).waitFor(o);}

@@ -153,6 +153,7 @@
 #include "components/prefs/pref_service.h"
 #include "components/prefs/pref_change_registrar.h"
 #include "components/sessions/core/live_tab.h"
+#include "components/sessions/core/serialized_navigation_entry.h"
 #include "chrome/browser/bookmarks/bookmark_model_factory.h"
 #include "chrome/browser/history/history_service_factory.h"
 #include "chrome/browser/history/top_sites_factory.h"
@@ -3121,9 +3122,11 @@ base::DictValue Snapshot(BrowserWindowInterface* browser, Owner* owner) {
                     .Set("searchDocumentId", base::NumberToString(contents->GetPrimaryMainFrame()->GetNavigationId()))
                     .Set("title", CustomTabName(contents).empty() ? base::UTF16ToUTF8(contents->GetTitle()) : CustomTabName(contents))
                     .Set("pageTitle", CustomTabName(contents).empty() ? base::Value() : base::Value(base::UTF16ToUTF8(contents->GetTitle())))
+                    .Set("rendererLive", contents->GetPrimaryMainFrame()->IsRenderFrameLive())
                     .Set("asleep", [&] {
                       auto* lifecycle = resource_coordinator::TabLifecycleUnitExternal::FromWebContents(contents);
-                      return lifecycle && lifecycle->GetTabState() == ::mojom::LifecycleUnitState::DISCARDED;
+                      return (lifecycle && lifecycle->GetTabState() == ::mojom::LifecycleUnitState::DISCARDED) ||
+                          (!contents->GetPrimaryMainFrame()->IsRenderFrameLive() && controller.NeedsReload());
                     }())
                     .Set("blockedCount", blanc::ShieldBlockedCount(contents))
                     .Set("certificate", CertificateState(contents))
@@ -4321,6 +4324,7 @@ class Handler : public content::WebUIMessageHandler, public extensions::Extensio
     split_closes_.clear();
     pending_navigations_.clear();
 #if BUILDFLAG(ENABLE_BLANC_TEST_HOOKS)
+    test_quiet_delay_.reset();
     test_calls_.clear();
     largest_test_call_ = 0;
 #endif
@@ -4513,6 +4517,74 @@ class Handler : public content::WebUIMessageHandler, public extensions::Extensio
           ->browser->GetProfile()->IsOffTheRecord());
       result.Set("contract", "native-production-dispatch-v1");
       Reply(id, true, base::Value(std::move(result)));
+      return;
+    }
+    const auto& quiet_args = message[2].GetList();
+    const auto& quiet_method = message[1].GetString();
+    if (quiet_method == "quietThreshold" && quiet_args.size() == 1 && quiet_args[0].is_int() &&
+        quiet_args[0].GetInt() >= 0) {
+      test_quiet_delay_ = quiet_args[0].GetInt();
+      Reply(id, true, base::Value(true)); return;
+    }
+    if (quiet_method == "quietSweep" && quiet_args.empty()) {
+      if (auto_running_ || !AutoAvailable()) {
+        test_quiet_delay_.reset(); reject("Quiet sweep unavailable."); return;
+      }
+      AutoTick();
+      WaitForTestQuietSweep(id); return;
+    }
+    if (quiet_method == "createQuietTab" && quiet_args.size() == 2 &&
+        quiet_args[0].is_string() && quiet_args[1].is_string()) {
+      const GURL url(quiet_args[0].GetString());
+      if (!url.SchemeIsHTTPOrHTTPS()) { reject("Restore fixture requires HTTP(S)."); return; }
+      auto* browser = GetOwner(web_ui()->GetWebContents())->browser.get();
+      sessions::tab_restore::Tab saved;
+      sessions::SerializedNavigationEntry navigation;
+      navigation.set_index(0);
+      navigation.set_virtual_url(url);
+      navigation.set_title(base::UTF8ToUTF16(quiet_args[1].GetString()));
+      saved.navigations.push_back(std::move(navigation));
+      saved.current_navigation_index = 0;
+      auto* live = BrowserLiveTabContext::From(browser)->AddRestoredTab(
+          saved, browser->GetTabStripModel()->count(), false, false, sessions::tab_restore::TAB);
+      if (!live) { reject("Native lazy restore failed."); return; }
+      Reply(id, true, base::Value(live->GetSessionID().id())); return;
+    }
+    if ((quiet_method == "quietNavigation" || quiet_method == "quietSleepState" ||
+         quiet_method == "quietHistoryIndex") && !quiet_args.empty() && quiet_args[0].is_int()) {
+      auto* model = GetOwner(web_ui()->GetWebContents())->browser->GetTabStripModel();
+      content::WebContents* tab = nullptr;
+      for (int i = 0; i < model->count(); ++i)
+        if (sessions::SessionTabHelper::IdForTab(model->GetWebContentsAt(i)).id() == quiet_args[0].GetInt())
+          tab = model->GetWebContentsAt(i);
+      if (!tab) { reject("Unknown quiet tab."); return; }
+      auto& controller = tab->GetController();
+      if (quiet_method == "quietHistoryIndex" && quiet_args.size() == 2 && quiet_args[1].is_int()) {
+        const int index = quiet_args[1].GetInt();
+        if (index < 0 || index >= controller.GetEntryCount()) { reject("Invalid history index."); return; }
+        controller.GoToIndex(index);
+        controller.LoadIfNecessary();
+        Reply(id, true, base::Value(true)); return;
+      }
+      const bool live = tab->GetPrimaryMainFrame()->IsRenderFrameLive();
+      if (quiet_method == "quietSleepState") {
+        auto* lifecycle = resource_coordinator::TabLifecycleUnitExternal::FromWebContents(tab);
+        const bool asleep = (lifecycle && lifecycle->GetTabState() == ::mojom::LifecycleUnitState::DISCARDED) ||
+            (!live && controller.NeedsReload());
+        Reply(id, true, base::Value(base::DictValue().Set("asleep", asleep)
+            .Set("hasSnapshot", asleep && controller.GetEntryCount() > 0)
+            .Set("entryCount", controller.GetEntryCount()).Set("droppedPageState", false)
+            .Set("rendererPid", live ? static_cast<int>(tab->GetPrimaryMainFrame()->GetProcess()->GetProcess().Pid()) : 0)));
+      } else if (quiet_method == "quietNavigation") {
+        base::ListValue entries;
+        for (int i = 0; i < controller.GetEntryCount(); ++i) {
+          auto* entry = controller.GetEntryAtIndex(i);
+          entries.Append(base::DictValue().Set("url", entry->GetVirtualURL().spec())
+              .Set("title", base::UTF16ToUTF8(entry->GetTitle())));
+        }
+        Reply(id, true, base::Value(base::DictValue().Set("entries", std::move(entries))
+            .Set("activeIndex", controller.GetCurrentEntryIndex())));
+      } else { reject("Invalid quiet operation arguments."); }
       return;
     }
     // Read-only: typed hand-offs the navigation group recorded instead of
@@ -4993,7 +5065,8 @@ class Handler : public content::WebUIMessageHandler, public extensions::Extensio
     // unsupported shipping hooks must be implemented explicitly, never faked.
     static constexpr std::string_view methods[] = {
         "snapshot", "createTab", "closeTab", "switchTab", "navigate",
-        "togglePinned", "reopenClosedTab", "previewPageCommand", "duplicateTab"};
+        "togglePinned", "reopenClosedTab", "previewPageCommand", "duplicateTab",
+        "quietDelay", "quietState"};
     if (!std::ranges::contains(methods, method)) {
       Reply(id, false, base::Value("Unsupported fork test operation: " + method));
       return;
@@ -5003,6 +5076,16 @@ class Handler : public content::WebUIMessageHandler, public extensions::Extensio
     forwarded.Append(method);
     forwarded.Append(message[2].Clone());
     Handle(forwarded);
+  }
+  std::optional<int64_t> test_quiet_delay_;
+  void WaitForTestQuietSweep(const std::string& id) {
+    if (!auto_running_) {
+      test_quiet_delay_.reset();
+      Reply(id, true, base::Value(true)); return;
+    }
+    base::SequencedTaskRunner::GetCurrentDefault()->PostDelayedTask(FROM_HERE,
+        base::BindOnce(&Handler::WaitForTestQuietSweep, weak_factory_.GetWeakPtr(), id),
+        base::Milliseconds(20));
   }
 #endif
   // Every reply, synchronous or not, re-checks the host before touching it.
@@ -5074,6 +5157,9 @@ class Handler : public content::WebUIMessageHandler, public extensions::Extensio
   int64_t last_auto_wall_ = 0;
   base::TimeTicks auto_grace_ = base::TimeTicks::Now();
   std::optional<int64_t> AutoDelay() {
+#if BUILDFLAG(ENABLE_BLANC_TEST_HOOKS)
+    if (test_quiet_delay_) return test_quiet_delay_;
+#endif
     auto* prefs = g_browser_process->local_state();
     if (!prefs || !prefs->FindPreference(kQuietDelay)) return std::nullopt;
     return blanc::quiet::DelayMilliseconds(prefs->GetString(kQuietDelay));
@@ -5142,6 +5228,11 @@ class Handler : public content::WebUIMessageHandler, public extensions::Extensio
         tab->GetController().GetPendingEntry() || model->IsTabPinned(index) ||
         tab->IsAudioMuted() || tab->IsCurrentlyAudible() || TabIsCapturing(tab) ||
         !tab->GetLastCommittedURL().SchemeIsHTTPOrHTTPS()) return false;
+    // A page reached by POST would show Chromium's resubmit-confirmation
+    // prompt on reload; waking it after discard reloads the committed entry,
+    // so a non-refetchable POST page must never be quieted.
+    auto* committed_entry = tab->GetController().GetLastCommittedEntry();
+    if (committed_entry && committed_entry->GetHasPostData()) return false;
     const auto split = model->GetSplitForTab(index);
     if (split && model->active_index() >= 0 && split == model->GetSplitForTab(model->active_index())) return false;
     auto* media = blanc::quiet::MediaHistory::Get(tab);

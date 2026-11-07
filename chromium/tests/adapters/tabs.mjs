@@ -291,7 +291,11 @@ export const tabs={
   if(!native)throw new UndefinedNativeAdapterError('Browser command needs an adapter: '+command);
   return (await w.native('previewPageCommand',[native]))!==false;},
  sleepBackgroundTabsNow:w=>{w.app.releasePages();return w.api('sleepBackgroundTabs');},
- sleepTab:(w,id)=>{w.app.releasePages();return w.api('quietTab',[id]);},
+ sleepTab:async(w,id)=>{
+  if((await w.snapshot()).tabs.find(t=>String(t.id)===String(id))?.private)
+   throw new UndefinedNativeAdapterError('F31-8 remains undefined pending private discard context preservation');
+  w.app.releasePages();return w.api('quietTab',[id]);
+ },
  keepGlanceAsSplit:w=>w.api('keepGlanceAsSplit'),
  moveGroupToNewWindow:async(w,id)=>{await w.api('moveGroupToNewWindow',[id]);return true;},
  closedEntrySummaries:async w=>[...(await w.snapshot()).closed].reverse().map(e=>({id:String(e.id),title:e.title,tabCount:e.tabCount})),
