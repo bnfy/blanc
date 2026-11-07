@@ -189,6 +189,8 @@ export function shippingPageUrl(url){
  if(url.startsWith('chrome://settings/'))return 'blanc://settings/';
  return url;
 }
+// The blank active tab of the window set-aside pages live in: not a page.
+const HOLD_ANCHOR='about:blank#blanc-hold';
 // Playwright's ElectronApplication, minus the main process: main-process
 // evaluation has no fork equivalent, so each one is ported (main-ports.mjs)
 // and any other stays undefined.
@@ -209,11 +211,14 @@ export function createAppShim(fixture){
    pages(){app.refresh().catch(()=>{});return [...pages.values()].filter(page=>page.targetId);},
    async cookies(){return (await fixture.browser.send('Storage.getCookies')).cookies;},
   };},
+  // Lets go of every tab: Chromium won't discard a page with DevTools attached,
+  // and Playwright's hold on shipping's pages doesn't count as that.
+  releasePages(){for(const page of pages.values())if(page.targetId&&page.cdp){page.cdp.close();page.cdp=null;}},
   // A relaunch replaces every connection; pages are rebuilt on refresh.
   reset(){for(const page of pages.values())page.closed=true;pages.clear();},
   async refresh(){
    for(const [url,frame] of Object.entries(ISLAND_FRAMES))if(!pages.has(frame)){const page=new Page({cdp:fixture.host,url,frame,host:fixture.host});page.app=app;pages.set(frame,page);}
-   const targets=(await fixture.targets()).filter(t=>t.type==='page'&&!t.url.startsWith('chrome://blanc-prototype/host.html'));
+   const targets=(await fixture.targets()).filter(t=>t.type==='page'&&!t.url.startsWith('chrome://blanc-prototype/host.html')&&t.url!==HOLD_ANCHOR);
    const live=new Set(targets.map(t=>t.id));
    for(const [key,page] of pages)if(page.targetId&&!live.has(page.targetId)){page.closed=true;pages.delete(key);}
    // A tab keeps its target as it navigates.

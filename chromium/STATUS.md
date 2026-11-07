@@ -906,9 +906,42 @@ remain pending. D3 beta-only no-DRM exception accepted; EME notice/handoff requi
   delegate, that returning destroys a held page whose URL changed, that closing
   a window destroys its held pages, that the room budget destroys a page with a
   `beforeunload` handler, that `IsBeingCaptured()` misses a live camera or
-  screen share, and that a decision has no fingerprint or expiry. Proposed
-  fix, not yet built or approved: hold set-aside pages as ordinary tabs in one
-  never-shown popup Browser per profile.
+  screen share, and that a decision has no fingerprint or expiry. Fixed in S3.9.
+- **S3.9 Set-aside pages get a window, candidate macos-1dd80a8fa99b18c2 (2026-11-06):** the
+  owner approved a hidden window (2026-11-06). Chromium requires every tab to
+  have a window, so a Space's pages now live as ordinary background tabs in one
+  never-shown popup Browser per profile (`SpaceHold`), moved by WebContents
+  because a tab's window type may never change. A blank anchor stays active,
+  which keeps held pages hidden and inactive. Patch 0034 adds 19 hunks in 9
+  files and patch 0033 is gone. **Owner decisions (2026-11-06):** held pages
+  stay until Blanc quits, even with no ordinary window open (macOS; Windows and
+  Linux need their own rule, because the hunk that hides the hold from
+  last-window checks would start shutdown there while the hold keeps the process
+  alive). A held page's permission requests are refused, cancelled rather than
+  denied, because a denial would be saved for the site. Also fixed: `window.print()`
+  returns (a modal lock), client certificates and external protocols are refused,
+  a page keeps a URL it changed while held, closing a window no longer loses
+  held pages, a quieted held page keeps its history (native discard, which
+  retires S3.6's note), the guard sees real camera, microphone and screen
+  capture (`TabIsCapturing`), a decision has a fingerprint and 60 s expiry,
+  a refused switch clears its journal, the commit no longer waits on tabs, the
+  room budget rechecks after its probe, skips quieted pages so the six-Space cap
+  holds, and does nothing offline, a delete unbinds every window and Undo retries,
+  and an extension moving a held tab by id leaves it an ordinary page.
+  **Evidence:** on macos-16d66064b5a930dc, 25 of 84 Spaces cases pass, 2 fail, 57
+  undefined; tabs-and-groups 33 / 1 (F3-3), split-view 25 / 2 (F53-18, F53-22),
+  glance 38 / 4 (the known four), island-and-commands 69 / 2 (F1-13, F1-39). A
+  spike passed there: 16 tabs round trip, pushState, print, `tel:`, no ordinary
+  window then back, and a clean quit with a `beforeunload` page held. The two
+  Spaces failures: F41-26 assumes light mode and macOS had switched to Dark for
+  the night; F41-6 stops at `pinned`, because Chromium keeps pinned tabs out of
+  groups. **macos-1dd80a8fa99b18c2 itself has not had a valid run:** it adds the second
+  review's fixes, and its run stopped when the screen locked. **Open:** the
+  room budget doesn't save a page's newer URL before releasing it, so a page
+  that navigated while held reopens at its saved address. Undo after a reveal
+  flattens groups and splits. A notification click for a held page does
+  nothing. Space records carry no sandbox stamp. Not run: the Dock, Window menu
+  and reopen paths with only the hold open, which were read, not exercised.
 - **Mahjong goes last (owner, 2026-11-04):** the fork has no Mahjong yet
   (F35-3, F35-4, F35-9 fail at the footer launch). When it is built it is an
   Island page (shipping's files served as byte-identical copies, opened as an
@@ -1408,5 +1441,5 @@ Android's Bar A counts the shared scenarios bound in `chromium/tests/android/acc
 
 Legacy macOS stages come from the approved spec; they await verification on the canonical candidate. No legacy stage counts as Verified.
 
-Candidate identities: macOS: macos-8597d2d3b8936eee; Windows: none; Linux: none; Android: android-arm64-7bd35e94ef746069.
+Candidate identities: macOS: macos-1dd80a8fa99b18c2; Windows: none; Linux: none; Android: android-arm64-7bd35e94ef746069.
 <!-- END GENERATED PROGRESS -->

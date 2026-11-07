@@ -147,7 +147,7 @@
   function request(method, args = []) {
     return new Promise((resolve, reject) => {
       const id = String(++nextId);
-      const timeout = ['extensionContextMenu', 'closeSplit', 'closeTab'].includes(method) ? null : setTimeout(() => {
+      const timeout = ['extensionContextMenu', 'closeSplit', 'closeTab', 'spaceOpenNewWindow'].includes(method) ? null : setTimeout(() => {
         pending.delete(id);
         const error = new Error(`Native bridge timed out: ${method}`);
         if (method === 'snapshot') error[snapshotTimeoutMarker] = true;
@@ -240,13 +240,14 @@
     const { meta, elsewhere, held } = await request('spaceMeta');
     return { meta: { order: [], items: {}, deleted: [], ...meta }, elsewhere: new Set(elsewhere), held: new Set(held) };
   };
+  const savedTabCount = () => snapshot?.tabs.filter(tab => !tab.private).length ?? 0;
   const spaceProjection = ({ meta, elsewhere, held }) => ({
-    status: 'saved', tint: 'mark', recoveryNotice: null, windowTabCount: snapshot?.tabs.length ?? 0,
+    status: 'saved', tint: 'mark', recoveryNotice: null, windowTabCount: savedTabCount(),
     deleted: meta.deleted.map(id => ({ id, ...meta.items[id] })),
     items: meta.order.filter(id => meta.items[id]).map(id => ({
       id, ...meta.items[id], active: snapshot?.spaceName === id, openElsewhere: elsewhere.has(id),
       // The window showing it knows better than the last switch did.
-      ...(snapshot?.spaceName === id && { tabCount: snapshot.tabs.filter(tab => !tab.private).length }),
+      ...(snapshot?.spaceName === id && { tabCount: savedTabCount() }),
       resident: held.has(id), revision: 0 })),
   });
   const spacesPayload = async () => spaceProjection(await spaceList());
@@ -279,22 +280,25 @@
     if (list.meta.order.length >= SPACE_LIMIT) return { ok: false, error: 'limit' };
     const id = crypto.randomUUID();
     try { await request('previewSpaceSave', [id]); } catch { return { ok: false, error: 'storage-failed' }; }
-    list.meta.items[id] = { name: checked.name, ...spaceIdentity(list, identity), tabCount: snapshot?.tabs.length ?? 0 };
+    list.meta.items[id] = { name: checked.name, ...spaceIdentity(list, identity), tabCount: savedTabCount() };
     list.meta.order.push(id);
     await writeSpaces(list);
     await refresh();
     return spaceResult({ workspaceId: id, action: 'swap' });
   }
-  async function swapToSpace(id, list) {
+  async function swapToSpace(id) {
     const current = snapshot?.spaceName || SPACE_SCRATCH;
     try {
       await request('previewSpaceSave', [current]);
       await request('previewSpaceOpen', [id]);
     } catch (e) { return { ok: false, error: 'activation-failed', detail: e.message }; }
-    if (list.meta.items[current]) list.meta.items[current].tabCount = snapshot?.tabs.length ?? 0;
+    const leftCount = savedTabCount();
     await close(false);
     await refresh();
-    await writeSpaces(list);
+    // Read again: another window may have changed the list during the switch.
+    const fresh = await spaceList();
+    if (fresh.meta.items[current]) fresh.meta.items[current].tabCount = leftCount;
+    await writeSpaces(fresh);
     return spaceResult({ workspaceId: id, action: 'swap' });
   }
   async function openSpace(id, options = {}) {
@@ -309,7 +313,7 @@
     }
     if (options.newWindow) return openSpaceElsewhere(id);
     const guard = await switchGuard(id, options);
-    return guard ?? swapToSpace(id, list);
+    return guard ?? swapToSpace(id);
   }
   // Shipping's authorize(): pages that can't be left stop a switch. Private
   // pages always ask, since a switch closes them, and a window in no Space
@@ -324,14 +328,21 @@
     const privateCount = real.filter(tab => tab.private).length;
     const tabCount = scratch ? real.length : privateCount;
     if (!tabCount) return null;
+    // Shipping's fingerprint: an answer covers the tabs it was asked about.
+    const fingerprint = JSON.stringify([snapshot.spaceName, snapshot.tabs.map(tab => [tab.id, tab.url, !!tab.private])]);
     const asked = spacesDecision;
     spacesDecision = null;
-    if (options.decision && asked?.token === options.decision && asked.target === target) return null;
-    spacesDecision = { token: crypto.randomUUID(), target };
+    if (options.decision && asked?.token === options.decision && asked.target === target &&
+        asked.fingerprint === fingerprint && asked.expires > Date.now()) return null;
+    spacesDecision = { token: crypto.randomUUID(), target, fingerprint, expires: Date.now() + 60000 };
     return { ok: false, error: 'unsaved-scratch', tabCount, privateCount, decision: spacesDecision.token };
   }
   async function openSpaceElsewhere(id) {
-    try { await request('spaceOpenNewWindow', [id]); } catch (e) { return { ok: false, error: 'activation-failed', detail: e.message }; }
+    // Answered by the new window once it has switched, or not at all if it closed.
+    const gaveUp = new Promise((_, refuse) => setTimeout(() => refuse(new Error('The new window did not open the Space.')), 20000));
+    try { await Promise.race([request('spaceOpenNewWindow', [id]), gaveUp]); } catch (e) {
+      return { ok: false, error: 'activation-failed', detail: e.message };
+    }
     return spaceResult({ workspaceId: id, action: 'focus' });
   }
   async function createBlankSpace(rawName, options = {}) {
@@ -348,7 +359,7 @@
     list.meta.items[id] = { name: checked.name, ...spaceIdentity(list, options), tabCount: 1 };
     list.meta.order.push(id);
     await request('spaceMetaSave', [list.meta]);
-    const opened = options.newWindow ? await openSpaceElsewhere(id) : await swapToSpace(id, list);
+    const opened = options.newWindow ? await openSpaceElsewhere(id) : await swapToSpace(id);
     // The saved Space stays findable, so a retry can't fail as a duplicate.
     return opened.ok ? { ...opened, workspaceId: id } : { ok: false, error: 'saved-not-opened', cause: opened.error, detail: opened.detail, workspaceId: id };
   }
@@ -387,8 +398,8 @@
     list.meta.order = list.meta.order.filter(item => item !== id);
     list.meta.deleted.unshift(id);
     list.meta.items[id].deletedAt = Date.now();
-    // Undo puts this window back in it.
-    if (snapshot?.spaceName === id) { glance.undoSpace = id; await request('spaceUnbind'); }
+    // Every window showing it leaves it, and Undo puts them back.
+    await request('spaceUnbind', [id]);
     await writeSpaces(list);
     await refresh();
     return spaceResult({ workspaceId: id });
@@ -399,14 +410,16 @@
     list.meta.deleted = list.meta.deleted.filter(item => item !== id);
     delete list.meta.items[id].deletedAt;
     list.meta.order.push(id);
-    if (glance.undoSpace === id && !snapshot?.spaceName) await request('previewSpaceSave', [id]);
-    glance.undoSpace = null;
     await writeSpaces(list);
+    await request('spaceRebind', [id]);
     await refresh();
     return spaceResult({ workspaceId: id });
   }
   async function forgetSpace(id) {
     const list = await spaceList();
+    if (list.held.has(id)) {
+      try { await request('spaceReveal', [id]); } catch (e) { return { ok: false, error: 'activation-failed', detail: e.message }; }
+    }
     list.meta.deleted = list.meta.deleted.filter(item => item !== id);
     delete list.meta.items[id];
     await request('spaceForget', [id]);
@@ -1815,7 +1828,7 @@
     reportChromeLayout: () => {},
     reportPanelDrawn: () => emit('onIslandCovered'),
     // Shared panel cleanup runs even though this prototype has no workspace actions.
-    cancelWorkspaceAction: () => {},
+    cancelWorkspaceAction: () => { spacesDecision = null; },
     setWorkspaceSwitcherOpen: () => {},
     setOverlayDragState: () => {},
     acknowledgeDownloads: () => {},
@@ -2066,6 +2079,15 @@
     focusGlanceCard,
     spaceHeldState: () => request('spaceMeta'),
     spacesChanged: () => announceSpaces(),
+    // Undo of a delete: this window's tabs go back to saving into the Space.
+    // A page may be loading, so it tries for a while.
+    spaceRebind: async id => {
+      for (let i = 0; i < 60 && !snapshot?.spaceName; i++) {
+        try { await request('previewSpaceSave', [id]); } catch { await new Promise(done => setTimeout(done, 500)); }
+        await refresh();
+      }
+      await announceSpaces();
+    },
     glanceState: () => ({ layout: glancePayload(), shown: !glanceCardFrame.hidden, generation: glance.generation }),
     apiForDocument,
     hoverState: () => ({ ...hover.state }),
@@ -2186,7 +2208,9 @@
       if (snapshot?.tabs.length && !snapshot.tabs.some(tab => tab.isLoading)) break;
       await new Promise(done => setTimeout(done, 50));
     }
-    const result = await swapToSpace(id, await spaceList());
+    let result;
+    try { result = await swapToSpace(id); } catch (e) { result = { ok: false, detail: e.message }; }
+    await request('spacePendingDone', [!!result.ok, result.detail ?? result.error ?? '']);
     if (!result.ok) await request('previewPageCommand', ['closeWindow']);
   }
   openPendingSpace().catch(error => notice(error.message));

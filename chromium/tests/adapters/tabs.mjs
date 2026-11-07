@@ -239,6 +239,7 @@ export const tabs={
  // Spaces (F41), through the host's bridge as the menu calls it.
  async workspaceAction(w,action,...args){
   const before=new Set((await runtimes(w)).map(r=>r.id));
+  if(action==='open'||action==='create')w.app.releasePages();
   const result=await spaceAction((method,list)=>w.api(method,list),action,args);
   if(action!=='open'||!args[1]?.newWindow||!result?.ok)return result;
   // The new window's Island does the switch, so wait for it to finish.

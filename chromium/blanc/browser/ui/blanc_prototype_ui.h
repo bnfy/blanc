@@ -102,6 +102,8 @@ void OpenLinkInGlance(content::WebContents* source, const GURL& url);
 base::OnceClosure ShowSessionRecovery();
 bool IsEnabled();
 bool IsIslandWindow(const BrowserWindowInterface* browser);
+// The never-shown window a profile's set-aside Space pages live in (F41).
+bool IsHoldWindow(BrowserWindowInterface* browser);
 // Shipping's private tab (owner decision D1): |url| (the private Start Page
 // when empty) in a new private tab of |browser|, an ordinary window.
 content::WebContents* NewPrivateTab(BrowserWindowInterface* browser, const GURL& url);
