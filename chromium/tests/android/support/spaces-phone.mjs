@@ -18,6 +18,7 @@ export class Phone {
     this.applied = [];
     this.layouts = [];
     this.deleted = [];
+    this.closedEvents = 0;
     this.refuse = false;
     this.device = peer(name, url, {emit: (event, text) => this.on(event, JSON.parse(text || 'null'))});
   }
@@ -26,6 +27,7 @@ export class Phone {
       (ok, value) => ok ? done(JSON.parse(value)) : fail(Error(value))));
   }
   on(event, value) {
+    if (event === 'closed') this.closedEvents++;
     if (event === 'spaces-library') {
       this.revision = value.revision;
       this.rows = value.rows;

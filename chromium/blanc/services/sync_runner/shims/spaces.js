@@ -214,7 +214,8 @@ module.exports = {
   hold() { holding = true; },
   rowDone(token, ok) { waiting.get(token)?.(ok); waiting.delete(token); },
   preview: options => { start(); return sharing.preview(options); },
-  apply: payload => { start(); return sharing.apply(payload); },
+  // The switch decides what the Recently closed band may show, so the band hears about it at once.
+  apply: payload => { start(); return Promise.resolve(sharing.apply(payload)).finally(() => emit('closed', null)); },
   metadata: (id, patch) => { start(); return sharing.metadata(rows?.find(row => row.id === id), patch); },
   reorder: () => { start(); return sharing.reorder(); },
   // With the switch off: the library's Spaces this phone doesn't hold, read-only, as on the iPhone.

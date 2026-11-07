@@ -127,8 +127,10 @@ test('deleting a Space takes it off the other phone and frees the account', with
 
 test('turning the switch off keeps the Space here, dormant, and the other phone unchanged', withWorker(async worker => {
   const {a, b} = await shared(worker);
+  const closedEvents = a.closedEvents;
   assert.equal((await a.call('spaces.apply', {enabled: false})).ok, true);
   assert.equal(a.rows[0].sharedLink, 'dormant');
+  assert.ok(a.closedEvents > closedEvents, 'the band hears the switch change');
   await a.pass();
   await b.pass();
   assert.ok(b.rows.some(row => row.name === 'Work'));
