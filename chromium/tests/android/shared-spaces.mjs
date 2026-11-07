@@ -39,6 +39,7 @@ async function main(argv) {
       results.push({case: name, problems: (await body()) ?? []});
     } catch (error) {
       results.push({case: name, problems: [error.message]});
+      try { fs.writeFileSync(path.join(evidence, `failed-${results.length}.xml`), d.dump()); } catch {}
     }
     const last = results.at(-1);
     console.log(`${last.problems.length ? 'FAIL' : 'pass'} ${last.case}${last.problems.length ? ': ' + last.problems.join('; ') : ''}`);
@@ -117,7 +118,7 @@ async function main(argv) {
       wait();
       await phonePass();
       await until(() => !titles(d.grid()).includes('Three'), 'the tab to close');
-      d.tap({id: 'blanc_island_domain'});
+      d.openPalette();
       await d.waitFor(async () => d.dump().includes('Recently closed'), 'the band', 15);
       d.tap({text: 'Recently closed  1'});
       await d.waitFor(async () => d.dump().includes('Closed on Desk'), 'who closed it', 15);
