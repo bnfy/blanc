@@ -13,7 +13,7 @@ const stepFiles = [
  'onboarding', 'migration-checklist', 'http-auth', 'site-certificate-safety',
  'tab-drag', 'workspace-recovery', 'group-names', 'link-children', 'group-colors',
  'tab-menu-additions', 'browser-migration', 'split-view', 'spaces-redesign',
- 'workspace-lifecycle',
+ 'workspace-lifecycle', 'move-to-space', 'tab-selection',
 ].map(name => `test/desktop/steps/${name}.steps.js`);
 // Every import was audited for module-load effects: support helpers reach the
 // app only through the context the runner injects, and the product modules are

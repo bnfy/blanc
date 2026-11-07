@@ -1097,7 +1097,7 @@
         "macos": {
           "stage": "implemented",
           "candidate": "macos-1dd80a8fa99b18c2",
-          "basis": "S3.9 (2026-11-06): set-aside pages live in a hidden window per profile; on macos-1dd80a8fa99b18c2 (2026-11-07) 26 of 84 cases pass, 1 fails (F41-6, pinned tabs leave groups), 57 undefined (s3c-spaces); moves and multi-tab selection not built"
+          "basis": "S3.9 (2026-11-06): set-aside pages live in a hidden window per profile; on macos-1dd80a8fa99b18c2 (2026-11-07) 26 of 84 cases pass, 1 fails (F41-6, pinned tabs leave groups), 57 undefined (s3c-spaces). S3.10 (2026-11-07, macos-071c3fa883ea19ff): Move to Space for one tab and New Space… from a tab, all 11 cases pass including the 3 crash cases, once Chromium's own Restore pages? bubble was wired in and shown correctly in the fork's window. S3.11 (2026-11-07, macos-e554011ad2a2b1d2): several tabs (Codex-built, 12 reviewer-found defects fixed before merge, two of them data loss), 16 of 19 scenario rows pass, batch-close and persisted-session reads not built; Spaces overall 52 of 53 runnable cases pass; Open Link in Space and Move Group to Space not built"
         },
         "windows": {
           "stage": "not-started",
@@ -2459,8 +2459,8 @@
   ],
   "currentCandidates": {
     "macos": {
-      "id": "macos-1dd80a8fa99b18c2",
-      "frameworkSha256": "1dd80a8fa99b18c2066e1ce786534ab694de644307cf93ea1ef9ab9ae2794bc7",
+      "id": "macos-e554011ad2a2b1d2",
+      "frameworkSha256": "e554011ad2a2b1d22c9d021b7f764155e0f082840dd437c87a90a4f5487a6238",
       "executableSha256": "cca20d7ed00bbdecf8db310c6802fbed003b4e63c6bc3b1f71dabc9dbff2ff01",
       "version": "158.0.8127.2",
       "qualification": "compiled candidate; runtime acceptance pending"

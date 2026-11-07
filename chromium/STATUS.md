@@ -942,6 +942,95 @@ remain pending. D3 beta-only no-DRM exception accepted; EME notice/handoff requi
   flattens groups and splits. A notification click for a held page does
   nothing. Space records carry no sandbox stamp. Not run: the Dock, Window menu
   and reopen paths with only the hold open, which were read, not exercised.
+- **S3.10 Move to Space, candidate macos-071c3fa883ea19ff (2026-11-07):** the tab
+  menu's Move to Space ▸ lists every Space (this window's checked) and New
+  Space…, and is shown once a Space exists, never for a private tab, and disabled
+  for a window's only tab or a page that can't move (quiet, loading, playing
+  sound, capturing, holding a popup, not a web page). Native `spaceMoveTab`
+  follows shipping's space-move.js order: the target's record is written first,
+  already holding the tab, and checked; only then does the page move, last,
+  ungrouped and unpinned. A Space shown in another window takes the tab there
+  without selecting it; any other Space is set aside holding the live page (a
+  Space open nowhere keeps empty slots for its saved tabs, which load from its
+  record when it opens). A failed transfer rewrites the record from what the
+  Space holds; if that write fails too, the record keeps the tab, a duplicate,
+  never a loss. New Space… writes one record holding the tab, then its list
+  entry; a move that fails after that leaves the saved Space with "Saved {name},
+  but the tab couldn't move." Test seams: `spaceMoveFault` and `spaceSavedUrls`
+  (--blanc-test only). **Evidence:** all 11 of 11 Move to Space cases pass
+  (s3ce-*), including the three crash cases (F41-43, 44, 45) once the crash-
+  restore work below landed.
+- **S3.11 Several tabs (F41-58 to 74), candidate macos-e554011ad2a2b1d2
+  (2026-11-07):** selecting several rows (toggle, Shift-click, Shift-arrow) and
+  acting on the whole selection through the tab menu — batch pin, mute, quiet,
+  move to a Space, move to a new window, New Space…, New Group… — built by
+  Codex (gpt-6.1-sol, then gpt-6-astra for the fix pass; the owner's call,
+  Astra reserved for work this delicate) from a written brief, under the same
+  rule as S3.10: write the target's record first, checked, before any transfer;
+  a failed write moves nothing, a failed transfer returns every page whole to
+  one place. A multi-reviewer pass (five review dimensions, each finding
+  adversarially re-checked, then a completeness critic) found 12 real defects
+  before any of this merged, two of them data-loss bugs: a batch move into a
+  Space already shown elsewhere could delete that window's active tab even
+  when it was a private page with unsaved work, and moving into a Space whose
+  held-aside record was a lone Start Page could silently misalign its held
+  pages against the record, one position off, corrupting a restored split.
+  Codex (gpt-6-astra) fixed all 12, each committed with new regression tests;
+  Claude read the fixes for the two highest-risk ones (both above; neither has
+  acceptance coverage, since private tabs are outside the Space record) before
+  merging. **Evidence:** 251 of 251 unit tests pass; 16 of 19 tab-selection
+  scenario rows pass, the other 2 undefined because batch-close (Recently
+  closed as one entry) and reading the persisted session aren't built. Spaces
+  as a whole: 52 of 53 runnable cases pass (s3ci-spaces-full), the one failure
+  still the known F41-6. **Not built:** batch close/restore as one entry; the
+  Space-move write path's own test seam doesn't yet cover several tabs beyond
+  what the scenarios above exercise. Open Link in Space (F41-51 to 57) and
+  Move Group to Space (F41-75 to 79) are also not built.
+- **After a crash, Chromium's Restore pages? bubble (owner, 2026-11-07, candidate
+  macos-071c3fa883ea19ff):** shipping doesn't restore silently: it opens one
+  window with a "Pick up where you left off?" card (Restore tabs, Start fresh)
+  and loads no saved site until you choose. The fork keeps Chromium's own
+  ask-first prompt, the Restore pages? bubble, made visible in its window,
+  instead of porting the card or restoring automatically. (The owner first
+  chose "restore automatically" from a question that wrongly said shipping did
+  so; asked again with shipping described correctly, they chose the bubble, and
+  separately declined restyling it to look Blanc-branded for now.)
+  `IslandView::GetAnchorBoundsInScreen()` anchors the bubble (and every other
+  bubble Chromium anchors to the app menu) to the Island's resting band, not its
+  full view bounds, which can run the window's full height or grow to 10000px
+  while a panel is open; no upstream patch needed. Two `--blanc-test` ops
+  (`crashBubble`, `flushExitType`) read its state, press Restore with the exact
+  button-press recipe `exit_type_service_browsertest.cc` uses, and land the
+  crash exit-type mark on disk before a test's SIGKILL (it's set in memory at
+  launch but normally only committed on a ~10s delayed writer). One upstream
+  hunk, in the already-patched `session_restore.cc` (patch 0002, which already
+  renames this file's one include): a reused (not freshly created) browser
+  window during crash restore was never getting `RestoreWindowIdentity`,
+  silently breaking its Space/split identity on every future save; both paths
+  call it now. `MaybeRollback` also now waits for the crash to be acknowledged
+  before touching the Space-switch journal, so a window still showing only the
+  crash placeholder can't be mistaken for one with nothing to roll back to.
+  **Evidence:** a direct spike (native `crashBubble`/`flushExitType`) confirmed
+  the bubble shows, anchored to the window and inside it, with Chromium's own
+  title and button text, and that pressing it for real restores both original
+  tabs. F41-43, 44 and 45 (the three crash scenarios) now pass through the real
+  harness; `tests/world.mjs`'s crash relaunch presses the bubble and waits for
+  the restore to be acknowledged before continuing, and waits for the blocker
+  only when a restored tab is actually a web page (F41-45's successful move
+  leaves the source with nothing but a Start Page, which never starts it). Also
+  fixed in the harness: `adapters/tabs.mjs`'s `runtimes()` caches the primary
+  window's CDP target id across calls; a relaunch is a new process with new
+  target ids throughout, and the stale cache made it reinstall the test driver
+  a second time on the live post-relaunch page, resetting its id counter mid-
+  process and colliding with ids already on native's record — a pre-existing
+  gap in the harness (the plain, non-crash relaunch path never cleared it
+  either), only ever exercised once a crash scenario actually got this far.
+  **Open:** up to 2.5s of tab changes can be lost in a real crash (Chromium's
+  session-save debounce; shipping's is 250ms). No guard against a restore loop
+  if a restored page itself crashes. No "Start fresh" option, unlike shipping.
+  Whether a restored window keeps its Space and split wasn't traced further
+  than the identity fix above. Windows and Linux need their own crash-restore
+  verification; this was built and tested on macOS only.
 - **Mahjong goes last (owner, 2026-11-04):** the fork has no Mahjong yet
   (F35-3, F35-4, F35-9 fail at the footer launch). When it is built it is an
   Island page (shipping's files served as byte-identical copies, opened as an
@@ -1520,5 +1609,5 @@ Android's Bar A counts the shared scenarios bound in `chromium/tests/android/acc
 
 Legacy macOS stages come from the approved spec; they await verification on the canonical candidate. No legacy stage counts as Verified.
 
-Candidate identities: macOS: macos-1dd80a8fa99b18c2; Windows: none; Linux: none; Android: android-arm64-7bd35e94ef746069.
+Candidate identities: macOS: macos-e554011ad2a2b1d2; Windows: none; Linux: none; Android: android-arm64-7bd35e94ef746069.
 <!-- END GENERATED PROGRESS -->

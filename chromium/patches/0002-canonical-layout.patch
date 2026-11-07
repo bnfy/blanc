@@ -118,7 +118,7 @@ index 2896076..2b06974 100644
  #endif
    // User prefs. Please keep this list alphabetized.
 diff --git a/chrome/browser/sessions/session_restore.cc b/chrome/browser/sessions/session_restore.cc
-index 14398b1..ad5461e 100644
+index 14398b1..bb19f4c 100644
 --- a/chrome/browser/sessions/session_restore.cc
 +++ b/chrome/browser/sessions/session_restore.cc
 @@ -2,7 +2,7 @@
@@ -130,6 +130,18 @@ index 14398b1..ad5461e 100644
  #include "chrome/browser/sessions/session_restore.h"
  
  #include <stddef.h>
+@@ -918,6 +918,11 @@ class SessionRestoreImpl : public BrowserCollectionObserver {
+           ShouldRestoreToExistingBrowser()) {
+         // The first set of tabs is added to the existing browser.
+         browser = browser_;
++        // Chromium otherwise restores this window's identity (split-ratio
++        // keys, the Space-switch journal's window match) only for a browser
++        // it creates fresh here, never for the startup window this reuses -
++        // which is exactly the window crash restore reuses. Owner 2026-11-07.
++        blanc_prototype::RestoreWindowIdentity(browser, window->extra_data);
+       } else {
+ #if BUILDFLAG(IS_CHROMEOS)
+         ash::BootTimesRecorder::Get()->AddLoginTimeMarker(
 diff --git a/chrome/browser/sessions/session_service_base.cc b/chrome/browser/sessions/session_service_base.cc
 index a20252b..65764fd 100644
 --- a/chrome/browser/sessions/session_service_base.cc

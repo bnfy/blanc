@@ -28,7 +28,7 @@ function pruneSelection(state, list) {
     const after = byId.get(id)?.splitId ?? null;
     if (before !== after) return emptySelection();
   }
-  return selectionState(state.selectedTabIds ?? [], byId.has(state.selectionAnchorId) ? state.selectionAnchorId : null, list);
+  return { ...selectionState(state.selectedTabIds ?? [], byId.has(state.selectionAnchorId) ? state.selectionAnchorId : null, list), contextMenu: !!state.contextMenu };
 }
 function selectTabs(state, list, groups, activeId, id, mode) {
   if (mode === 'clear') return { ...emptySelection(), focusId: null };

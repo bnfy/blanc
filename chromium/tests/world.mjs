@@ -1,4 +1,4 @@
-import {waitFor} from './lib/cdp.mjs';
+import {waitFor,pause} from './lib/cdp.mjs';
 import {nativeCall,installDriver} from './lib/test-driver.mjs';
 import {shippingCore} from './steps.mjs';
 import {UndefinedNativeAdapterError,observedState} from './lib/adapters.mjs';
@@ -25,7 +25,11 @@ export function createWorld(fixture){
   localFixtureUrl(name,query='',host='nas.home.arpa'){return `https://${host}:${fixture.localServer.port}/site/${encodeURIComponent(name)}${query}`;},
   native(method,args=[]){return nativeCall(fixture.host,method,args);},
   async snapshot(){return nativeCall(fixture.host,'snapshot');},
-  async state(){return observedState(shippingState(await this.snapshot()));},
+  async state(){
+   // The overlay's mode lives in the Island host, not the native snapshot.
+   const overlayMode=await fixture.host.eval(`(()=>{const f=document.querySelector('#overlay');return !f||f.hidden?null:f.dataset.mode||null})()`);
+   return observedState({...shippingState(await this.snapshot()),overlayMode});
+  },
   async waitForState(predicate,options={}){return waitFor(()=>this.state(),predicate,'shipping state assertion',options.timeout||5000);},
   // The Island facade is the fork's browserAPI: a method it does not
   // implement rejects with the product's own refusal, which is a failure.
@@ -51,8 +55,47 @@ export function createWorld(fixture){
    await app.refresh();
   },
   async relaunch({crash=false}={}){
-   await fixture.stop({crash});await fixture.start();
-   await installDriver(fixture.host);app.reset();await app.refresh();
+   // adapters/tabs.mjs's runtimes() caches the primary window's CDP target id
+   // on this world object (_primaryTarget) and its secondary hosts (_hosts)
+   // to avoid reinstalling the test driver on every call. A relaunch is a new
+   // process with new target ids throughout, so a stale cache makes runtimes()
+   // treat the one real window as unknown and reinstall the driver a second
+   // time onto the SAME live page - resetting its id counter mid-process and
+   // colliding with ids the native side already has on record for it.
+   delete this._primaryTarget;this._hosts=new Map();
+   if(!crash){
+    await fixture.stop({crash});await fixture.start();
+    await installDriver(fixture.host);app.reset();await app.refresh();
+    return;
+   }
+   // Chromium's own session save is debounced 2.5s after the first unsaved
+   // change (components/sessions/core/command_storage_manager.cc), and later
+   // changes don't restart that timer: shipping's own 1.5s pre-crash wait
+   // (test/desktop/steps/move-to-space.steps.js) isn't enough here. Land the
+   // crash exit-type mark on disk too (it's set in memory at launch, but by
+   // default only committed to Preferences on a ~10s delayed writer), or the
+   // next launch can read a stale "Normal" and skip the bubble entirely.
+   await pause(2800);
+   await nativeCall(fixture.host,'flushExitType');
+   await fixture.stop({crash:true});
+   // Crash startup shows Chromium's native "Restore pages?" bubble instead of
+   // restoring on its own (owner, 2026-11-07); the window holds nothing worth
+   // waiting the blocker on until that choice is made.
+   try{await fixture.start(null,{waitBlocker:false});}
+   catch(e){throw Error('Crash relaunch failed to start: '+e.message);}
+   await installDriver(fixture.host);
+   const bubble=await waitFor(()=>nativeCall(fixture.host,'crashBubble',['state']),s=>s.shown,'crash-restore bubble',15000);
+   if(!bubble.visible||!bubble.anchoredHere)throw Error('Crash-restore bubble not usable: '+JSON.stringify(bubble));
+   const pressed=await nativeCall(fixture.host,'crashBubble',['restore']);
+   if(!pressed.pressed)throw Error('Could not press the bubble\'s Restore button: '+JSON.stringify(pressed));
+   await waitFor(()=>nativeCall(fixture.host,'crashBubble',['state']),s=>!s.awaitingAck,'the crash acknowledged',45000);
+   // The blocker only starts once something needs it. A restored window can
+   // hold nothing but chrome://newtab/ (e.g. a successful move leaves the
+   // source with no page of its own), and would never reach "ready" then.
+   const restored=await fixture.snapshot();
+   if(restored.tabs.some(t=>/^https?:\/\//.test(t.url)))
+    await waitFor(fixture.snapshot,s=>s.blockerHealth==='ready','blocker',45000);
+   await app.refresh();
   },
   bindShippingContext(){
    // Shipping's relaunch helpers: same profile, no launch URL, so the
