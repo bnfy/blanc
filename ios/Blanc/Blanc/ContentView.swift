@@ -13,8 +13,8 @@ struct ContentView: View {
     @State private var showTabGrid = false
     /// Which way the page is going; a finger's moves go straight to the stage.
     @State private var gridPage = TabGridMotion.Page.full
-    /// 0 while the stage stands in for the page.
-    @State private var gridPageOpacity: Double = 1
+    /// Fades the grid in and out with Reduce Motion, in place of the stage.
+    @State private var gridOpacity: Double = 1
     /// Each tab's card in the grid, so the page knows where any tab's sits.
     @State private var cardFrames = TabCardFrames()
     /// Pictures of the pages, which travel to and from the grid in their place.
@@ -109,11 +109,10 @@ struct ContentView: View {
     private var browser: some View {
         ZStack {
             style.background.ignoresSafeArea()
-            Color.clear.ignoresSafeArea(edges: pageEdges)
+            // Measured inside `ignoresSafeArea`: outside it, this is the safe area.
+            Color.clear
                 .onGeometryChange(for: CGRect.self) { $0.frame(in: .global) } action: { pageFrame = $0 }
-            if showTabGrid {
-                TabGridView(manager: manager, close: { closeTabGrid() }, onCardFrame: { cardFrames.byTab[$0] = $1 })
-            }
+                .ignoresSafeArea(edges: pageEdges)
             // One layout for one page or a split's panes: the current tab's
             // view keeps its identity when a split opens or closes around it,
             // so its web view moves and never reloads.
@@ -125,9 +124,14 @@ struct ContentView: View {
             .padding(islandAtTop ? .top : .bottom, shownSplit != nil ? islandBand : 0)
             .ignoresSafeArea(edges: pageEdges)
             .offset(x: swipeOffset)
-            .opacity(gridPageOpacity)
-            .allowsHitTesting(!showTabGrid)
             .accessibilityHidden(showTabGrid)
+            // The grid takes the page's touches by covering it. `allowsHitTesting`
+            // on the page would put a view around the web view that cuts it off
+            // from the safe area, which moves the page and what its picture shows.
+            if showTabGrid {
+                TabGridView(manager: manager, close: { closeTabGrid() }, onCardFrame: { cardFrames.byTab[$0] = $1 })
+                    .opacity(gridOpacity)
+            }
             // Pictures of the pages, while they go to and from the grid.
             PageStageHost(stage: stage).ignoresSafeArea().allowsHitTesting(false).accessibilityHidden(true)
             if swipeOffset != 0, let tab = manager.activeTab,
@@ -679,7 +683,7 @@ struct ContentView: View {
         Dictionary(uniqueKeysWithValues: visibleTabs.compactMap { tab in cardFrames.byTab[tab.id].map { (tab.id, $0) } })
     }
 
-    /// Puts the grid behind the page, which is still full size.
+    /// Opens the grid over the page, with the page's picture over it at full size.
     private func revealTabGrid() {
         // Kept off the first frame of the motion: a web page's picture comes
         // back later, and the page covers its card until it lands. Blanc's own
@@ -695,11 +699,13 @@ struct ContentView: View {
         cardFrames.byTab = [:]
         gridPage = .pinching(scale: 1, translation: .zero)
         if reduceMotion {
-            gridPageOpacity = 1
+            // Barely there, not gone: at zero, the page would take touches
+            // and VoiceOver wouldn't find the grid.
+            gridOpacity = 0.01
         } else {
+            gridOpacity = 1
             stagePages(live: true)
             stage.place(stageSpots(.full), coverAlpha: 1)
-            gridPageOpacity = 0
         }
         withAnimation(.easeOut(duration: 0.15)) { islandGoneForGrid = true }
         showTabGrid = true
@@ -727,7 +733,7 @@ struct ContentView: View {
         }
         gridPage = .card
         if reduceMotion {
-            withAnimation(.easeInOut(duration: 0.2)) { gridPageOpacity = 0 }
+            withAnimation(.easeInOut(duration: 0.2)) { gridOpacity = 1 }
             return
         }
         let pass = gridPass
@@ -755,14 +761,13 @@ struct ContentView: View {
         gridPage = .full
         withAnimation(.easeOut(duration: 0.2)) { islandGoneForGrid = false }
         if reduceMotion {
-            withAnimation(.easeInOut(duration: 0.2)) { gridPageOpacity = 1 } completion: {
+            withAnimation(.easeInOut(duration: 0.2)) { gridOpacity = 0 } completion: {
                 if pass == gridPass { showTabGrid = false }
             }
             return
         }
         stage.animate(to: stageSpots(.full), coverAlpha: 1) {
             guard pass == gridPass else { return }
-            gridPageOpacity = 1
             showTabGrid = false
             stage.fadeOut(removing: true)
         }
