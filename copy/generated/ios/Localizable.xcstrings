@@ -105522,6 +105522,48 @@
           }
         }
       }
+    },
+    "android.settings.autoRevokeSummary": {
+      "comment": "Android Settings → Site settings: summary under the unused-permissions switch (replaces Chromium’s text, which names Chrome).",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "To protect your data, let Blanc remove permissions from sites that you haven’t visited recently"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zum Schutz deiner Daten kann Blanc Berechtigungen von Websites entfernen, die du länger nicht besucht hast"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Para proteger tus datos, permite que Blanc quite los permisos de los sitios que no has visitado recientemente"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pour protéger vos données, laissez Blanc supprimer les autorisations des sites que vous n’avez pas consultés récemment"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Per proteggere i tuoi dati, consenti a Blanc di rimuovere le autorizzazioni dai siti che non visiti da un po’"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Para proteger seus dados, deixe o Blanc remover as permissões de sites que você não visita há algum tempo"
+          }
+        }
+      }
     }
   },
   "version": "1.0"

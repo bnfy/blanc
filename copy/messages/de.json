@@ -9389,5 +9389,10 @@
     "message": "Open-Source-Lizenzen",
     "note": "Android Settings → About: row opening the list of open-source licenses.",
     "source": "sha256:ee73136a612e3f11806cd153e9242381073980855674daf373395a55d4bee467"
+  },
+  "android.settings.autoRevokeSummary": {
+    "message": "Zum Schutz deiner Daten kann Blanc Berechtigungen von Websites entfernen, die du länger nicht besucht hast",
+    "note": "Android Settings → Site settings: summary under the unused-permissions switch (replaces Chromium’s text, which names Chrome).",
+    "source": "sha256:11f7585d6d6ab59263e345cb2858770fa61bbd956373179f8accfe4cf0afb3f8"
   }
 }

@@ -9675,5 +9675,9 @@
   "android.settings.openSourceLicenses": {
     "message": "Open-source licenses",
     "note": "Android Settings → About: row opening the list of open-source licenses."
+  },
+  "android.settings.autoRevokeSummary": {
+    "message": "To protect your data, let Blanc remove permissions from sites that you haven’t visited recently",
+    "note": "Android Settings → Site settings: summary under the unused-permissions switch (replaces Chromium’s text, which names Chrome)."
   }
 }

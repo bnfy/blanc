@@ -4,7 +4,6 @@ package org.chromium.blanc.settings;
 
 import android.app.Activity;
 import android.app.Dialog;
-import android.content.Context;
 import android.text.InputType;
 import android.util.TypedValue;
 import android.view.Gravity;
@@ -50,16 +49,16 @@ public final class AllowedSitesDialog {
         mDialog = new Dialog(activity, android.R.style.Theme_DeviceDefault_DayNight);
         mList = new LinearLayout(activity);
         mList.setOrientation(LinearLayout.VERTICAL);
-        int pad = dp(20);
+        int pad = dimen(R.dimen.blanc_settings_dialog_padding);
         mList.setPadding(pad, pad, pad, pad);
         ScrollView scroll = new ScrollView(activity);
         scroll.setFitsSystemWindows(true);
         scroll.addView(mList);
         mDialog.setContentView(scroll);
 
-        TextView title = text(activity.getString(R.string.blanc_ios_settings_exceptions), 22, true);
+        TextView title = text(activity.getString(R.string.blanc_ios_settings_exceptions), R.dimen.blanc_settings_dialog_title_size, true);
         mList.addView(title);
-        mList.addView(text(activity.getString(R.string.blanc_ios_settings_exceptions_help), 14, false));
+        mList.addView(text(activity.getString(R.string.blanc_ios_settings_exceptions_help), R.dimen.blanc_settings_dialog_body_size, false));
         mSites = new LinearLayout(activity);
         mSites.setOrientation(LinearLayout.VERTICAL);
         mList.addView(mSites);
@@ -80,9 +79,9 @@ public final class AllowedSitesDialog {
         addButton.setText(R.string.blanc_ios_settings_add_site);
         addButton.setOnClickListener(v -> add());
         mList.addView(addButton);
-        mError = text("", 14, false);
+        mError = text("", R.dimen.blanc_settings_dialog_body_size, false);
         mError.setTag("allowed.error");
-        mError.setTextColor(0xFFD93025);
+        mError.setTextColor(mActivity.getColor(R.color.blanc_settings_error));
         mError.setVisibility(View.GONE);
         mList.addView(mError);
         Button done = new Button(activity);
@@ -111,9 +110,8 @@ public final class AllowedSitesDialog {
             showError(R.string.blanc_ios_settings_duplicate_site);
             return;
         }
-        for (String host : result.sites) {
-            if (!mBackend.sites().contains(host)) mBackend.setAllowed(host, true);
-        }
+        // AllowedSites.add appends the new host last.
+        mBackend.setAllowed(result.sites.get(result.sites.size() - 1), true);
         mField.setText("");
         mError.setVisibility(View.GONE);
         render();
@@ -131,13 +129,13 @@ public final class AllowedSitesDialog {
             row.setTag("allowed.site");
             row.setOrientation(LinearLayout.HORIZONTAL);
             row.setGravity(Gravity.CENTER_VERTICAL);
-            TextView name = text(host, 17, false);
+            TextView name = text(host, R.dimen.blanc_settings_dialog_row_size, false);
             row.addView(name, new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f));
             Button remove = new Button(mActivity);
             remove.setTag("allowed.remove");
             remove.setText("−");
-            remove.setMinWidth(dp(48));
-            remove.setMinHeight(dp(48));
+            remove.setMinWidth(dimen(R.dimen.blanc_settings_dialog_touch));
+            remove.setMinHeight(dimen(R.dimen.blanc_settings_dialog_touch));
             remove.setContentDescription(
                     mActivity.getString(R.string.blanc_ios_settings_remove_site) + ": " + host);
             remove.setOnClickListener(v -> {
@@ -149,17 +147,17 @@ public final class AllowedSitesDialog {
         }
     }
 
-    private TextView text(String value, int sp, boolean bold) {
+    private TextView text(String value, int sizeRes, boolean bold) {
         TextView view = new TextView(mActivity);
         view.setText(value);
-        view.setTextSize(TypedValue.COMPLEX_UNIT_SP, sp);
+        view.setTextSize(TypedValue.COMPLEX_UNIT_PX, mActivity.getResources().getDimension(sizeRes));
         if (bold) view.setTypeface(android.graphics.Typeface.DEFAULT_BOLD);
-        view.setPadding(0, dp(6), 0, dp(6));
+        int gap = dimen(R.dimen.blanc_settings_dialog_gap);
+        view.setPadding(0, gap, 0, gap);
         return view;
     }
 
-    private int dp(int value) {
-        Context context = mActivity;
-        return Math.round(value * context.getResources().getDisplayMetrics().density);
+    private int dimen(int res) {
+        return mActivity.getResources().getDimensionPixelSize(res);
     }
 }

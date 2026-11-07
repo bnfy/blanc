@@ -196,6 +196,7 @@ android_library("settings_chromium_java") {
     "//components/search_engines/android:java",
     "//third_party/androidx:androidx_fragment_fragment_java",
     "//third_party/androidx:androidx_preference_preference_java",
+    "//third_party/androidx:androidx_recyclerview_recyclerview_java",
     "//ui/android:ui_java",
   ]
 }
@@ -269,6 +270,7 @@ android_resources("island_view_resources") {
     "island/res/drawable/blanc_palette_globe.xml",
     "island/res/drawable/blanc_palette_history.xml",
     "island/res/drawable/blanc_palette_search.xml",
+    "island/res/drawable/blanc_palette_settings.xml",
     "island/res/drawable/blanc_island_reload.xml",
     "island/res/drawable/blanc_island_stop.xml",
     "island/res/layout/blanc_island.xml",

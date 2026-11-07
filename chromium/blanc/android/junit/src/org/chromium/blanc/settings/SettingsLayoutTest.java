@@ -44,7 +44,7 @@ public class SettingsLayoutTest {
         assertEquals(List.of("blanc_blocker", "blanc_allowed_sites", "blanc_clear_site_data"),
                 section("blanc_privacy_section", RELEASE).rows);
         assertEquals(List.of("blanc_sync"), section("blanc_sync_section", RELEASE).rows);
-        assertEquals(List.of("content_settings", "accessibility", "notifications", "downloads"),
+        assertEquals(List.of("content_settings", "notifications", "downloads"),
                 section("blanc_more_section", RELEASE).rows);
         assertEquals(List.of("blanc_version", "blanc_website", "blanc_privacy_policy", "blanc_support", "blanc_licenses"),
                 section("blanc_about_section", RELEASE).rows);
@@ -61,7 +61,8 @@ public class SettingsLayoutTest {
         Set<String> keys = SettingsLayout.shownKeys(RELEASE);
         assertTrue(keys.contains("blanc_privacy_section"));
         assertTrue(keys.contains("blanc_allowed_sites"));
-        assertTrue(keys.contains("accessibility"));
+        assertTrue(keys.contains("content_settings"));
+        assertFalse(keys.contains("accessibility"));
         assertFalse(keys.contains("developer"));
         assertTrue(SettingsLayout.shownKeys(DEBUG).contains("developer"));
     }

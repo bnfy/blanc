@@ -11,6 +11,20 @@ diff -ruN a/chrome/android/BUILD.gn b/chrome/android/BUILD.gn
        "//blanc/android:sync_java",
        "//blanc/android:tabs_java",
        "//blanc/android:tabs_ui_java",
+@@ -1835,6 +1838,13 @@
+       "//blanc/android/res/mipmap-xxxhdpi/layered_app_icon.png",
+       "//blanc/android/res/mipmap-xxxhdpi/layered_app_icon_background.png",
+       "//blanc/android/res/values/channel_constants.xml",
++      # Blanc (patch 0110): Chromium strings that name Chrome, replaced.
++      "//blanc/android/res/values/blanc_chromium_strings.xml",
++      "//blanc/android/res/values-de/blanc_chromium_strings.xml",
++      "//blanc/android/res/values-es/blanc_chromium_strings.xml",
++      "//blanc/android/res/values-fr/blanc_chromium_strings.xml",
++      "//blanc/android/res/values-it/blanc_chromium_strings.xml",
++      "//blanc/android/res/values-pt-rBR/blanc_chromium_strings.xml",
+     ]
+ 
+     # Dep needed to ensure override works properly.
 diff -ruN a/chrome/android/java/src/org/chromium/chrome/browser/settings/MainSettings.java b/chrome/android/java/src/org/chromium/chrome/browser/settings/MainSettings.java
 --- a/chrome/android/java/src/org/chromium/chrome/browser/settings/MainSettings.java	2026-11-07 10:33:27
 +++ b/chrome/android/java/src/org/chromium/chrome/browser/settings/MainSettings.java	2026-11-07 10:35:18
@@ -48,8 +62,17 @@ diff -ruN a/chrome/android/java/src/org/chromium/chrome/browser/settings/MainSet
  
 diff -ruN a/chrome/android/java/src/org/chromium/chrome/browser/settings/SettingsActivity.java b/chrome/android/java/src/org/chromium/chrome/browser/settings/SettingsActivity.java
 --- a/chrome/android/java/src/org/chromium/chrome/browser/settings/SettingsActivity.java	2026-11-07 10:33:31
-+++ b/chrome/android/java/src/org/chromium/chrome/browser/settings/SettingsActivity.java	2026-11-07 10:43:05
-@@ -532,6 +532,9 @@
++++ b/chrome/android/java/src/org/chromium/chrome/browser/settings/SettingsActivity.java	2026-11-07 11:56:14
+@@ -471,6 +471,8 @@
+     }
+ 
+     private void createSearchCoordinator(@Nullable Bundle savedState) {
++        // Blanc (patch 0110): Settings' search would still find the Chromium pages Blanc hides.
++        if (org.chromium.blanc.settings.chromium.BlancSettingsHook.hidesSearch()) return;
+         Callback<Integer> updateFirstVisibleTitle =
+                 isMultiColumnSettingEnabled()
+                         ? this::updateFirstVisibleTitle
+@@ -532,6 +534,9 @@
      public void applyThemeOverlays() {
          applySingleThemeOverlay(R.style.ThemeOverlay_Chromium_Settings_Containment);
          super.applyThemeOverlays();
@@ -59,3 +82,32 @@ diff -ruN a/chrome/android/java/src/org/chromium/chrome/browser/settings/Setting
      }
  
      @Override
+diff -ruN a/chrome/android/java/src/org/chromium/chrome/browser/tabbed_mode/TabbedRootUiCoordinator.java b/chrome/android/java/src/org/chromium/chrome/browser/tabbed_mode/TabbedRootUiCoordinator.java
+--- a/chrome/android/java/src/org/chromium/chrome/browser/tabbed_mode/TabbedRootUiCoordinator.java	2026-11-07 11:04:09
++++ b/chrome/android/java/src/org/chromium/chrome/browser/tabbed_mode/TabbedRootUiCoordinator.java	2026-11-07 11:04:09
+@@ -1383,6 +1383,25 @@
+                             }
+ 
+                             @Override
++                            public void settings(
++                                    org.chromium.blanc.settings.SettingsDestination destination) {
++                                if (destination
++                                        == org.chromium.blanc.settings.SettingsDestination.SYNC) {
++                                    sync();
++                                    return;
++                                }
++                                if (destination
++                                        == org.chromium.blanc.settings.SettingsDestination
++                                                .PRIVACY) {
++                                    org.chromium.blanc.settings.chromium.BlancSettingsHook
++                                            .requestSection("blanc_privacy_section");
++                                }
++                                org.chromium.chrome.browser.settings.SettingsNavigationFactory
++                                        .createSettingsNavigation()
++                                        .startSettings(mActivity);
++                            }
++
++                            @Override
+                             public void blockAds() {
+                                 blancBlocking().blockAds();
+                             }

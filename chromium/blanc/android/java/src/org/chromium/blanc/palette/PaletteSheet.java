@@ -39,6 +39,7 @@ import org.chromium.base.ContextUtils;
 import org.chromium.blanc.address.AddressInput;
 import org.chromium.blanc.island.IslandStyle;
 import org.chromium.blanc.island.R;
+import org.chromium.blanc.settings.SettingsDestination;
 import org.chromium.blanc.settings.SettingsStore;
 import org.chromium.blanc.spaces.BlancSpaces;
 import org.chromium.blanc.spaces.SpacesCard;
@@ -92,6 +93,9 @@ public final class PaletteSheet extends Dialog {
 
         /** /sync: the Sync sheet. */
         void sync();
+
+        /** /settings, the footer's Settings button and blanc://settings: Settings, at `destination`. */
+        void settings(SettingsDestination destination);
 
         /** What a send said, shown briefly. */
         void notice(String text);
@@ -151,6 +155,7 @@ public final class PaletteSheet extends Dialog {
     private final View mNewTab;
     private final ImageButton mFavorites;
     private final ImageButton mHistory;
+    private final ImageButton mSettings;
     private final List<Row> mRows = new ArrayList<>();
 
     private PaletteSheet(Activity activity, BlancTabs tabs, Callbacks callbacks) {
@@ -237,6 +242,11 @@ public final class PaletteSheet extends Dialog {
         mHistory = button(R.drawable.blanc_palette_history, R.string.blanc_pages_nav_history,
                 v -> openTab(PAGES + "history.html"));
         footer.addView(mHistory, new LinearLayout.LayoutParams(dp(44), dp(44)));
+        mSettings = button(R.drawable.blanc_palette_settings, R.string.blanc_pages_nav_settings, v -> {
+            dismiss();
+            mCallbacks.settings(SettingsDestination.ROOT);
+        });
+        footer.addView(mSettings, new LinearLayout.LayoutParams(dp(44), dp(44)));
         root.addView(footer);
 
         mField.addTextChangedListener(new TextWatcher() {
@@ -323,6 +333,10 @@ public final class PaletteSheet extends Dialog {
 
     public View historyButton() {
         return mHistory;
+    }
+
+    public View settingsButton() {
+        return mSettings;
     }
 
     public List<Row> rows() {
@@ -793,9 +807,13 @@ public final class PaletteSheet extends Dialog {
             open(target);
         } else {
             AddressInput.Result r = AddressInput.interpret(input);
+            SettingsDestination settings = SettingsDestination.resolve(r.value);
             if (r.kind == AddressInput.Kind.SEARCH) {
                 mCallbacks.load(AddressInput.searchUrl(
                         r.value, new SettingsStore(ContextUtils.getAppSharedPreferences()).searchTemplate()));
+            } else if (settings != null) {
+                // blanc://settings is Settings itself, native as on the iPhone, not a served page.
+                mCallbacks.settings(settings);
             } else if (!AddressInput.isBlancPage(r.value)) {
                 mCallbacks.load(r.value);
             } else {
@@ -846,6 +864,10 @@ public final class PaletteSheet extends Dialog {
         String active = mTabs.activeId();
         switch (kind) {
             case SYNC -> mCallbacks.sync();
+            case SETTINGS -> {
+                dismiss();
+                mCallbacks.settings(SettingsDestination.ROOT);
+            }
             case SPACE -> {
                 space(argument);
                 dismiss();
@@ -907,6 +929,7 @@ public final class PaletteSheet extends Dialog {
         return switch (kind) {
             case FAVORITES -> R.string.blanc_slash_favorites_hint;
             case SYNC -> R.string.blanc_slash_sync_hint;
+            case SETTINGS -> R.string.blanc_slash_settings_hint;
             case SEND -> R.string.blanc_slash_send_hint;
             case SPACE -> R.string.blanc_slash_space_hint;
             case HISTORY -> R.string.blanc_slash_history_hint;

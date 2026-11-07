@@ -8,4 +8,11 @@
     <dimen name="blanc_settings_header_gap">16dp</dimen>
     <dimen name="blanc_settings_header_title_size">22sp</dimen>
     <dimen name="blanc_settings_header_summary_size">14sp</dimen>
+    <!-- The allowed-sites dialog. -->
+    <dimen name="blanc_settings_dialog_padding">20dp</dimen>
+    <dimen name="blanc_settings_dialog_gap">6dp</dimen>
+    <dimen name="blanc_settings_dialog_touch">48dp</dimen>
+    <dimen name="blanc_settings_dialog_title_size">22sp</dimen>
+    <dimen name="blanc_settings_dialog_body_size">14sp</dimen>
+    <dimen name="blanc_settings_dialog_row_size">17sp</dimen>
 </resources>

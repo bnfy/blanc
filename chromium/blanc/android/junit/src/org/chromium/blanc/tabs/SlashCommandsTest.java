@@ -16,8 +16,8 @@ import java.util.List;
 @RunWith(BaseRobolectricTestRunner.class)
 public class SlashCommandsTest {
     @Test
-    public void offersSixteenInTheIphonesOrder() {
-        assertEquals(List.of(SlashCommands.Kind.FAVORITES, SlashCommands.Kind.HISTORY, SlashCommands.Kind.SYNC, SlashCommands.Kind.NEW,
+    public void offersSeventeenInTheIphonesOrder() {
+        assertEquals(List.of(SlashCommands.Kind.FAVORITES, SlashCommands.Kind.HISTORY, SlashCommands.Kind.SETTINGS, SlashCommands.Kind.SYNC, SlashCommands.Kind.NEW,
                 SlashCommands.Kind.PRIVATE, SlashCommands.Kind.CLOSE, SlashCommands.Kind.REOPEN, SlashCommands.Kind.GROUP,
                 SlashCommands.Kind.UNGROUP, SlashCommands.Kind.CLOSE_GROUP, SlashCommands.Kind.SEND, SlashCommands.Kind.FIND,
                 SlashCommands.Kind.BLOCK_ADS, SlashCommands.Kind.ALLOW_ADS, SlashCommands.Kind.THEME, SlashCommands.Kind.SPACE),
@@ -28,7 +28,8 @@ public class SlashCommandsTest {
     public void typingNarrowsByPrefix() {
         assertEquals(List.of(SlashCommands.Kind.CLOSE, SlashCommands.Kind.CLOSE_GROUP), SlashCommands.matching("/cl"));
         assertEquals(SlashCommands.available(), SlashCommands.matching("/"));
-        assertEquals(List.of(), SlashCommands.matching("/settings"));
+        assertEquals(List.of(SlashCommands.Kind.SETTINGS), SlashCommands.matching("/settings"));
+        assertEquals(List.of(SlashCommands.Kind.SETTINGS, SlashCommands.Kind.SEND), SlashCommands.matching("/se"));
     }
 
     @Test
@@ -38,7 +39,8 @@ public class SlashCommandsTest {
         assertEquals("Research Notes", parsed.argument);
         assertEquals(SlashCommands.Kind.CLOSE, SlashCommands.parse("/cl").kind);
         assertEquals("", SlashCommands.parse("/new").argument);
-        assertNull(SlashCommands.parse("/settings"));
+        assertEquals(SlashCommands.Kind.SETTINGS, SlashCommands.parse("/settings").kind);
+        assertNull(SlashCommands.parse("/reader"));
         assertNull(SlashCommands.parse("/nothing here"));
     }
 

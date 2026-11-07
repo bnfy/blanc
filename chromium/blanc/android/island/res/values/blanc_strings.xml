@@ -221,6 +221,8 @@
     <string name="blanc_sync_error_credentials_save">Could not save protected sync credentials.</string>
     <string name="blanc_sync_error_account_gone">This sync no longer exists. Turn sync off here, then add this phone again from your computer.</string>
     <string name="blanc_slash_sync_hint">Set up or manage sync</string>
+    <string name="blanc_pages_nav_settings">Settings</string>
+    <string name="blanc_slash_settings_hint">Open settings</string>
     <string name="blanc_android_settings_island_position">Island position</string>
     <string name="blanc_android_settings_island_position_bottom">Bottom</string>
     <string name="blanc_android_settings_island_position_top">Top</string>

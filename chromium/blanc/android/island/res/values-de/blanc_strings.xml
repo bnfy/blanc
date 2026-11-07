@@ -221,6 +221,8 @@
     <string name="blanc_sync_error_credentials_save">Die geschützten Synchronisierungsdaten konnten nicht gespeichert werden.</string>
     <string name="blanc_sync_error_account_gone">Diese Synchronisierung gibt es nicht mehr. Schalte sie hier aus und füge dieses Telefon dann auf deinem Computer erneut hinzu.</string>
     <string name="blanc_slash_sync_hint">Synchronisierung einrichten oder verwalten</string>
+    <string name="blanc_pages_nav_settings">Einstellungen</string>
+    <string name="blanc_slash_settings_hint">Einstellungen öffnen</string>
     <string name="blanc_android_settings_island_position">Position der Island</string>
     <string name="blanc_android_settings_island_position_bottom">Unten</string>
     <string name="blanc_android_settings_island_position_top">Oben</string>

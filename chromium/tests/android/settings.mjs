@@ -15,7 +15,7 @@ const PACKAGE = 'me.bnfy.blanc.dev';
 const SETTINGS = `${PACKAGE}/org.chromium.chrome.browser.settings.SettingsActivity`;
 // In order, top to bottom, down the root.
 const ROWS = ['Blanc', 'Browsing', 'Search engine', 'Appearance', 'Theme', 'Island position', 'Privacy', 'Blanc Blocker',
-  'Allowed sites', 'Clear cookies, cache & site data', 'Sync', 'More', 'Site settings', 'Accessibility', 'Notifications',
+  'Allowed sites', 'Clear cookies, cache & site data', 'Sync', 'More', 'Site settings', 'Notifications',
   'Downloads', 'About', 'Version', 'Website', 'Privacy policy', 'Support', 'Open-source licenses'];
 const BANNED = [/\bChrome\b/, /\bGoogle\b/, /Sign in/, /Safety/, /Homepage/];
 // DuckDuckGo, Google, Bing, Brave Search and Kagi are engine names, not Google wording.
@@ -29,6 +29,14 @@ const bounds = (xml, text) => {
 // Bounds of the first text field on screen, or null.
 const fieldBounds = xml => {
   const m = /<node[^>]*class="android.widget.EditText"[^>]*bounds="\[(\d+),(\d+)\]\[(\d+),(\d+)\]"/.exec(xml);
+  return m ? {left: +m[1], top: +m[2], right: +m[3], bottom: +m[4]} : null;
+};
+const byId = (xml, id) => {
+  const m = new RegExp(`<node[^>]*resource-id="[^"]*:id/${id}"[^>]*bounds="\\[(\\d+),(\\d+)\\]\\[(\\d+),(\\d+)\\]"`).exec(xml);
+  return m ? {left: +m[1], top: +m[2], right: +m[3], bottom: +m[4]} : null;
+};
+const byDescription = (xml, text) => {
+  const m = new RegExp(`<node[^>]*content-desc="${text}"[^>]*bounds="\\[(\\d+),(\\d+)\\]\\[(\\d+),(\\d+)\\]"`).exec(xml);
   return m ? {left: +m[1], top: +m[2], right: +m[3], bottom: +m[4]} : null;
 };
 const texts = xml => [...xml.matchAll(/ text="([^"]+)"/g)].map(m => m[1].replace(/&amp;/g, '&'));
@@ -82,6 +90,8 @@ function main(argv) {
   check('the root lists Blanc\'s rows in order', JSON.stringify(seen) === JSON.stringify(ROWS) ? [] : [`saw ${JSON.stringify(seen)}`]);
   check('no Chrome or Google wording on the root', everything.filter(t => BANNED.some(b => b.test(t)) && !ENGINE_NAMES.test(t))
     .map(t => `"${t}"`));
+
+  check('Settings has no search box (it would find the Chromium pages Blanc hides)', everything.includes('Search settings') ? ['"Search settings" is on screen'] : []);
 
   // Search engine.
   open();
@@ -190,6 +200,115 @@ function main(argv) {
     adb('shell', 'input', 'keyevent', 'KEYCODE_BACK');
   }
   check('Clear site data asks before it clears', problems);
+
+  // The ways in, and the Island following the setting live. The Island is at the top (set above).
+  const launch = () => { adb('shell', 'am', 'force-stop', PACKAGE); adb('shell', 'monkey', '-p', PACKAGE, '-c', 'android.intent.category.LAUNCHER', '1'); sleep(6); };
+  const inSettings = () => texts(dump()).includes('Browsing');
+  const viaPalette = text => {
+    const domain = byId(dump(), 'blanc_island_domain');
+    if (!domain) return false;
+    tapAt(domain);
+    adb('shell', 'input', 'text', text.replace(/ /g, '%s'));
+    sleep(1);
+    adb('shell', 'input', 'keyevent', 'KEYCODE_ENTER');
+    sleep(3);
+    return true;
+  };
+  launch();
+  problems = [];
+  const island = byId(dump(), 'blanc_island_pill');
+  if (!island) problems.push('no Island');
+  else if (island.top > height * 0.3) problems.push(`the Island is not at the top (${island.top} of ${height})`);
+  check('the Island sits at the top when Settings says Top', problems);
+
+  problems = [];
+  if (!viaPalette('/settings')) problems.push('no palette');
+  else if (!inSettings()) problems.push('/settings did not open Settings');
+  else {
+    if (!tapText('Island position')) problems.push('no Island position row');
+    else if (!tapText('Bottom')) problems.push('no Bottom option');
+    adb('shell', 'input', 'keyevent', 'KEYCODE_BACK');
+    sleep(2);
+    const moved = byId(dump(), 'blanc_island_pill');
+    if (!moved) problems.push('no Island after Back');
+    else if (moved.bottom < height * 0.7) problems.push(`the Island did not move to the bottom (${moved.bottom} of ${height})`);
+    shot('island-moved');
+  }
+  check('/settings opens Settings, and Island position moves the Island at once', problems);
+
+  launch();
+  problems = [];
+  if (!viaPalette('blanc://settings#privacy')) problems.push('no palette');
+  else {
+    const t = texts(dump());
+    if (!t.includes('Blanc Blocker')) problems.push('Privacy was not on screen');
+    if (t.includes('Browsing')) problems.push('the root was not scrolled to Privacy');
+  }
+  check('blanc://settings#privacy opens Settings at Privacy', problems);
+
+  launch();
+  problems = [];
+  if (!viaPalette('blanc://settings#sync')) problems.push('no palette');
+  else if (!texts(dump()).includes('Pair with your Blanc')) problems.push('the Sync sheet did not open');
+  check('blanc://settings#sync opens the Sync sheet', problems);
+
+  launch();
+  problems = [];
+  const domain = byId(dump(), 'blanc_island_domain');
+  if (!domain) problems.push('no Island');
+  else {
+    tapAt(domain);
+    const button = byDescription(dump(), 'Settings');
+    if (!button) problems.push('no Settings button in the palette');
+    else { tapAt(button); sleep(3); if (!inSettings()) problems.push('the Settings button did not open Settings'); }
+  }
+  check('the palette\'s Settings button opens Settings', problems);
+
+  // The pages kept under More: every screen of each, one level down, scanned for Chrome's wording.
+  // Each row's screen is reached from a fresh start, so a Back that lands somewhere else can't derail
+  // the crawl. A row that opens a system screen (Notifications) is checked only up to that row.
+  const scanScreen = () => {
+    const found = [];
+    let previous = '';
+    for (let i = 0; i < 8; i++) {
+      const t = texts(dump());
+      const key = JSON.stringify(t);
+      if (key === previous) break;
+      previous = key;
+      found.push(...t);
+      scroll(true);
+    }
+    return found;
+  };
+  const wording = (label, all) => [...new Set(all.filter(t => BANNED.some(b => b.test(t)) && !ENGINE_NAMES.test(t)))].map(t => `${label}: "${t}"`);
+  const visit = (page, row) => {
+    open();
+    if (!tapText(page)) return null;
+    sleep(1.2);
+    if (row && !tapText(row)) return null;
+    sleep(1.2);
+    return scanScreen();
+  };
+  for (const page of ['Site settings', 'Downloads']) {
+    problems = [];
+    const top = visit(page);
+    if (!top) problems.push(`no ${page} row`);
+    else {
+      problems.push(...wording(page, top));
+      // The page's rows: its first-screen titles (not their summaries) that open a screen of their own.
+      open();
+      tapText(page);
+      sleep(1.2);
+      shot(`more-${page.toLowerCase().replace(/ /g, '-')}`);
+      const rows = [...new Set(texts(dump()))].filter(t => !['Settings', 'Search settings', page].includes(t)).slice(0, 10);
+      for (const row of rows) {
+        const inside = visit(page, row);
+        if (inside) problems.push(...wording(`${page} > ${row}`, inside));
+      }
+    }
+    check(`no Chrome or Google wording in ${page}`, [...new Set(problems)]);
+    console.log(`${problems.length ? 'FAIL' : 'pass'}  no Chrome or Google wording in ${page}`);
+  }
 
   const crashes = adb('logcat', '-d', '-b', 'crash');
   check('no crash during the run', /FATAL EXCEPTION/.test(crashes) ? ['a crash was logged'] : []);

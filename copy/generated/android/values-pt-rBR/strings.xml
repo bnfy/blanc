@@ -2654,4 +2654,5 @@ Você pode tentar de novo com “%2$s” ou reinstalar a partir de blanc.day.</s
     <string name="android_settings_island_position_top">No topo</string>
     <string name="android_settings_island_position_bottom">Na parte inferior</string>
     <string name="android_settings_open_source_licenses">Licenças de código aberto</string>
+    <string name="android_settings_auto_revoke_summary">Para proteger seus dados, deixe o Blanc remover as permissões de sites que você não visita há algum tempo</string>
 </resources>

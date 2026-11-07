@@ -4,6 +4,7 @@ package org.chromium.blanc.settings.chromium;
 
 import android.app.Activity;
 import android.app.AlertDialog;
+import android.content.ActivityNotFoundException;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.ApplicationInfo;
@@ -12,7 +13,7 @@ import android.net.Uri;
 import android.widget.Toast;
 
 import org.chromium.base.ContextUtils;
-import org.chromium.base.Callback;
+import org.chromium.base.Log;
 import org.chromium.blanc.blocking.BlockerBridge;
 import org.chromium.blanc.island.R;
 import org.chromium.blanc.settings.AllowedSites;
@@ -41,6 +42,8 @@ import java.util.function.Supplier;
 /** Blanc's Settings rows wired to the app: the stores, the blocker, Sync, Chromium's data clearing. */
 @NullMarked
 final class ChromiumSettingsHost implements BlancSettingsScreen.Host {
+    private static final String TAG = "BlancSettings";
+
     private final Activity mActivity;
     private final Supplier<@Nullable WindowAndroid> mWindow;
     private final Runnable mLicenses;
@@ -98,20 +101,28 @@ final class ChromiumSettingsHost implements BlancSettingsScreen.Host {
         return mStore.searchEngine();
     }
 
-    /** Blanc's own choice, and Chromium's default engine where it has a match, so no stray surface searches Google. */
     @Override
     public void setSearchEngine(String id) {
         mStore.setSearchEngine(id);
-        Profile profile = ProfileManager.getLastUsedRegularProfile();
-        TemplateUrlService service = TemplateUrlServiceFactory.getForProfile(profile);
+        syncChromiumEngine();
+    }
+
+    /**
+     * Chromium's default engine, which its own search surfaces use (the page menu's Search for), follows
+     * Blanc's choice where Chromium has a matching engine. Kept in step at every Settings update, so a
+     * fresh install doesn't keep sending those searches to Google.
+     */
+    void syncChromiumEngine() {
+        TemplateUrlService service = TemplateUrlServiceFactory.getForProfile(ProfileManager.getLastUsedRegularProfile());
+        if (!service.isLoaded()) return;
         String host = Uri.parse(mStore.searchTemplate().replace("%s", "x")).getHost();
         if (host == null) return;
         String bare = host.startsWith("www.") ? host.substring(4) : host;
+        TemplateUrl current = service.getDefaultSearchEngineTemplateUrl();
         for (TemplateUrl url : service.getTemplateUrls()) {
-            if (url.getKeyword().equals(bare) || url.getKeyword().endsWith("." + bare)) {
-                service.setSearchEngine(url.getKeyword());
-                return;
-            }
+            if (!(url.getKeyword().equals(bare) || url.getKeyword().endsWith("." + bare))) continue;
+            if (current == null || !current.getKeyword().equals(url.getKeyword())) service.setSearchEngine(url.getKeyword());
+            return;
         }
     }
 
@@ -186,7 +197,12 @@ final class ChromiumSettingsHost implements BlancSettingsScreen.Host {
 
     @Override
     public void openUrl(String url) {
-        mActivity.startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse(url)));
+        try {
+            mActivity.startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse(url)));
+        } catch (ActivityNotFoundException e) {
+            // No browser or mail app to hand it to (a phone with no mail client): nothing to open.
+            Log.w(TAG, "Nothing opens %s", url);
+        }
     }
 
     @Override

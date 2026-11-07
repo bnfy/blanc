@@ -11,7 +11,9 @@ import java.util.Set;
 
 /**
  * What Blanc's Settings root shows, in order: the iPhone's sections (SettingsSheet.swift), then
- * More (Chromium's own pages) and About. Blanc's rows have keys of their own; the Chromium rows that
+ * More (Chromium's own pages that carry no Chrome wording) and About. Accessibility is left out: its page
+ * names Chrome and holds Chrome-only features (Reading Mode, the Chrome menu's zoom, Google's image
+ * descriptions); Blanc's own page comes with A6 (spike R9). Blanc's rows have keys of their own; the Chromium rows that
  * stay keep Chromium's keys. Everything else in Chromium's root is hidden (docs/android/a5a-settings-spike.md).
  */
 @NullMarked
@@ -43,7 +45,7 @@ public final class SettingsLayout {
     private SettingsLayout() {}
 
     public static List<Section> sections(State state) {
-        List<String> more = new ArrayList<>(List.of("content_settings", "accessibility", "notifications", "downloads"));
+        List<String> more = new ArrayList<>(List.of("content_settings", "notifications", "downloads"));
         if (state.debugBuild) more.add("developer");
         return List.of(
                 new Section("blanc_header_section", List.of("blanc_header")),

@@ -110,7 +110,7 @@ public class BlancSettingsScreenTest {
                 "blanc_appearance_section", "blanc_theme", "blanc_island_position",
                 "blanc_privacy_section", "blanc_blocker", "blanc_allowed_sites", "blanc_clear_site_data",
                 "blanc_sync_section", "blanc_sync",
-                "blanc_more_section", "content_settings", "accessibility", "notifications", "downloads",
+                "blanc_more_section", "content_settings", "notifications", "downloads",
                 "blanc_about_section", "blanc_version", "blanc_website", "blanc_privacy_policy", "blanc_support",
                 "blanc_licenses"), shown());
     }
@@ -120,7 +120,7 @@ public class BlancSettingsScreenTest {
         BlancSettingsScreen.apply(mScreen, mHost);
         for (String key : List.of("google_services", "safety_hub", "address_bar", "tabs", "homepage", "glic",
                 "about_chrome", "search_engine", "privacy", "appearance", "default_browser", "languages", "passwords",
-                "autofill_and_passwords", "basics_section", "advanced_section", "developer")) {
+                "autofill_and_passwords", "basics_section", "advanced_section", "developer", "accessibility")) {
             Preference row = row(key);
             assertFalse(key, row.isVisible());
             assertNull(key, row.getFragment());

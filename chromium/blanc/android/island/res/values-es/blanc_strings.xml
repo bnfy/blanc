@@ -221,6 +221,8 @@
     <string name="blanc_sync_error_credentials_save">No se pudieron guardar las credenciales de sincronización protegidas.</string>
     <string name="blanc_sync_error_account_gone">Esta sincronización ya no existe. Desactívala aquí y vuelve a añadir este teléfono desde tu ordenador.</string>
     <string name="blanc_slash_sync_hint">Configurar o gestionar la sincronización</string>
+    <string name="blanc_pages_nav_settings">Configuración</string>
+    <string name="blanc_slash_settings_hint">Abrir la configuración</string>
     <string name="blanc_android_settings_island_position">Posición de la Island</string>
     <string name="blanc_android_settings_island_position_bottom">Abajo</string>
     <string name="blanc_android_settings_island_position_top">Arriba</string>

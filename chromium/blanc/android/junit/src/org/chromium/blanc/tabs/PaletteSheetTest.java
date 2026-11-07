@@ -16,6 +16,7 @@ import org.robolectric.Robolectric;
 import org.robolectric.shadows.ShadowLooper;
 
 import org.chromium.base.ContextUtils;
+import org.chromium.blanc.settings.SettingsDestination;
 import org.chromium.base.test.BaseRobolectricTestRunner;
 import org.chromium.blanc.palette.PaletteSheet;
 
@@ -29,6 +30,7 @@ public class PaletteSheetTest {
     private FakeTabStore mStore;
     private BlancTabs mTabs;
     private final List<String> mLoaded = new ArrayList<>();
+    private final List<SettingsDestination> mSettings = new ArrayList<>();
     private final List<String> mOpened = new ArrayList<>();
     private final List<String> mThemes = new ArrayList<>();
     private List<QuickSwitcher.Page> mFavorites = new ArrayList<>();
@@ -65,6 +67,11 @@ public class PaletteSheetTest {
 
                 @Override
                 public void sync() {}
+
+                @Override
+                public void settings(SettingsDestination destination) {
+                    mSettings.add(destination);
+                }
 
                 @Override
                 public void notice(String text) {}
@@ -173,7 +180,7 @@ public class PaletteSheetTest {
         PaletteSheet sheet = show();
         type(sheet, "/");
         assertEquals(PaletteSheet.Mode.SLASH, sheet.mode());
-        assertEquals(List.of("/favorites", "/history", "/sync", "/new", "/private", "/close", "/reopen", "/group",
+        assertEquals(List.of("/favorites", "/history", "/settings", "/sync", "/new", "/private", "/close", "/reopen", "/group",
                 "/ungroup", "/close-group", "/send", "/find", "/block-ads", "/allow-ads", "/theme", "/space"), titles(sheet, PaletteSheet.RowKind.COMMAND));
         assertEquals("Close this tab", row(sheet, "/close").subtitle);
         type(sheet, "/cl");
@@ -293,6 +300,32 @@ public class PaletteSheetTest {
         go(settings);
         assertEquals(2, mLoaded.size());
         assertFalse(settings.isShowing());
+    }
+
+    @Test
+    public void blancSettingsAddressesOpenSettingsAtTheirPart() {
+        go(withText("blanc://settings"));
+        go(withText("blanc://settings#sync"));
+        go(withText("blanc://settings#privacy"));
+        assertEquals(List.of(SettingsDestination.ROOT, SettingsDestination.SYNC, SettingsDestination.PRIVACY), mSettings);
+        assertTrue(mLoaded.isEmpty());
+    }
+
+    @Test
+    public void slashSettingsOpensSettings() {
+        PaletteSheet sheet = withText("/settings");
+        go(sheet);
+        assertEquals(List.of(SettingsDestination.ROOT), mSettings);
+        assertFalse(sheet.isShowing());
+    }
+
+    @Test
+    public void theSettingsButtonInTheFooterOpensSettings() {
+        PaletteSheet sheet = show();
+        assertEquals("Settings", sheet.settingsButton().getContentDescription().toString());
+        sheet.settingsButton().performClick();
+        assertEquals(List.of(SettingsDestination.ROOT), mSettings);
+        assertFalse(sheet.isShowing());
     }
 
     @Test

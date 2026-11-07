@@ -221,6 +221,8 @@
     <string name="blanc_sync_error_credentials_save">Impossible d’enregistrer les identifiants de synchronisation protégés.</string>
     <string name="blanc_sync_error_account_gone">Cette synchronisation n’existe plus. Désactivez-la ici, puis ajoutez de nouveau ce téléphone depuis votre ordinateur.</string>
     <string name="blanc_slash_sync_hint">Configurer ou gérer la synchronisation</string>
+    <string name="blanc_pages_nav_settings">Réglages</string>
+    <string name="blanc_slash_settings_hint">Ouvrir les réglages</string>
     <string name="blanc_android_settings_island_position">Position de l’Island</string>
     <string name="blanc_android_settings_island_position_bottom">En bas</string>
     <string name="blanc_android_settings_island_position_top">En haut</string>
