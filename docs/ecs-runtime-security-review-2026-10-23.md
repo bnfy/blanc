@@ -161,7 +161,7 @@ qualification directory as `ecs-node-tls-security-probe.json` and
 `npm-runtime-audit.json`. The source selection and remediation remain visible
 in `docs/ecs-production-integration.md` and draft PR #1063.
 
-## Follow-up — November 7, 2026: ECS 45.2.1+wvcus (pending)
+## Follow-up — November 7, 2026: ECS 45.2.1+wvcus
 
 The runtime pin moves to castLabs `v45.2.1+wvcus` (published November 5, 2026):
 Electron `45.2.1`, Chromium `156.0.8078.75`, Node `24.22.1`. This section
@@ -176,8 +176,9 @@ records the source work only; **nothing here is a release approval.**
 - **Not in this runtime:** upstream 45.2.2 and 45.2.3 (Chromium 156.0.8078.80,
   Node 24.22.2 and backports for ANGLE, Chromium, Dawn, FFmpeg, PDFium, Skia and
   V8) have no ECS build yet.
-- **R2 is open.** The November 7 waiver covers `44.10.1+wvcus` only. This pin
-  needs a new owner decision before release.
-- Signed-package uBO acceptance has not run for this pin, so
-  `src/main/ublock-platforms.json` records `PENDING` evidence and `release.sh`
-  refuses an ECS release until it is replaced with passed evidence.
+- **R2 is open.** The November 7 waiver covers `44.10.1+wvcus` only.
+- Signed-package uBO acceptance and protected playback passed on all four
+  targets on `73992c725`, and `src/main/ublock-platforms.json` records it. See
+  the [uBO support matrix](ublock-origin-support-matrix-2026-10-03.md).
+- **The owner chose to hold this pin (November 7, 2026)** rather than waive R2.
+  It must not ship until R2 is waived or resolved.
