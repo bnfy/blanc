@@ -64,6 +64,7 @@ export const ANDROID_KEYS = [
   'settings.sync.createOnComputer', 'settings.sync.pairing.instruction', 'shield.done', 'sync.error.badPassphrase',
   'sync.error.pairNotFound', 'sync.error.pairUnavailable', 'sync.error.pairInvalid', 'sync.error.rateLimited',
   'sync.error.offline', 'sync.error.server', 'sync.error.serverError', 'sync.error.syncOn',
+  'closed.header', 'closed.fold', 'closed.unfold', 'closed.clear', 'closed.clearAll', 'closed.forget', 'sharedSpaces.closedOn',
   'sync.error.off', 'sync.error.credentialsSave', 'sync.error.accountGone', 'slash.sync.hint',
 ];
 // ICU plurals, as Android <plurals>: the Island's tab count for TalkBack.

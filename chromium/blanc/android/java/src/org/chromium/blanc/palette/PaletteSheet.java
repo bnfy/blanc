@@ -40,9 +40,11 @@ import org.chromium.blanc.spaces.BlancSpaces;
 import org.chromium.blanc.spaces.SpacesCard;
 import org.chromium.blanc.spaces.SpacesController;
 import org.chromium.blanc.sync.OtherDevices;
+import org.chromium.blanc.sync.SyncedClosed;
 import org.chromium.blanc.tabs.BlancTabs;
 import org.chromium.blanc.tabs.QuickSwitcher;
 import org.chromium.blanc.tabs.SlashCommands;
+import org.chromium.blanc.tabs.RecentlyClosed;
 import org.chromium.blanc.tabs.TabSections;
 import org.chromium.blanc.tabs.TabStore;
 import org.chromium.build.annotations.NullMarked;
@@ -65,6 +67,7 @@ import java.util.Set;
 public final class PaletteSheet extends Dialog {
     /** What the palette asks of the browser. */
     private final Set<String> mOpenDevices = new HashSet<>();
+    private boolean mClosedOpen;
 
     public interface Callbacks {
         /** Opens an address or search in the current tab. */
@@ -367,8 +370,63 @@ public final class PaletteSheet extends Dialog {
             heading(mActivity.getString(R.string.blanc_pill_private_chip), privateTabs.size());
             for (TabStore.Entry tab : privateTabs) tabRow(tab);
         }
+        renderClosed();
         renderSent();
         renderDevices();
+    }
+
+    /** Folded each time the palette opens, as the iPhone's and desktop's bands are. */
+    private void renderClosed() {
+        List<RecentlyClosed.Row> rows = SyncedClosed.band();
+        if (rows.isEmpty()) return;
+        LinearLayout head = new LinearLayout(mActivity);
+        head.setGravity(Gravity.CENTER_VERTICAL);
+        TextView title = text(mActivity.getString(R.string.blanc_closed_header) + "  " + rows.size(), 11, secondary());
+        title.setTypeface(Typeface.DEFAULT_BOLD);
+        title.setPadding(dp(22), dp(8), dp(22), dp(8));
+        title.setMinHeight(dp(32));
+        title.setContentDescription(mActivity.getString(R.string.blanc_closed_header) + ", " + rows.size() + ", "
+                + mActivity.getString(mClosedOpen ? R.string.blanc_closed_fold : R.string.blanc_closed_unfold));
+        title.setOnClickListener(v -> {
+            mClosedOpen = !mClosedOpen;
+            render();
+        });
+        head.addView(title, new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1));
+        if (mClosedOpen) {
+            TextView clear = text(mActivity.getString(R.string.blanc_closed_clear), 11, secondary());
+            clear.setTypeface(Typeface.DEFAULT_BOLD);
+            clear.setPadding(dp(12), dp(8), dp(22), dp(8));
+            clear.setContentDescription(mActivity.getString(R.string.blanc_closed_clear_all));
+            clear.setOnClickListener(v -> {
+                SyncedClosed.clear();
+                render();
+            });
+            head.addView(clear);
+        }
+        mList.addView(head);
+        if (!mClosedOpen) return;
+        for (RecentlyClosed.Row item : rows) {
+            String label = item.title.isEmpty() ? item.url : item.title;
+            String subtitle = item.fromId != null
+                    ? mActivity.getString(R.string.blanc_shared_spaces_closed_on,
+                            item.fromName == null ? item.fromId : item.fromName)
+                    : host(item.url);
+            LinearLayout line = new LinearLayout(mActivity);
+            line.setGravity(Gravity.CENTER_VERTICAL);
+            View main = row(R.drawable.blanc_palette_history, label, subtitle, false, v -> {
+                SyncedClosed.forget(item);
+                mCallbacks.openTab(item.url);
+                dismiss();
+            });
+            mList.removeView(main);
+            line.addView(main, new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1));
+            ImageButton forget = button(R.drawable.blanc_palette_close, R.string.blanc_closed_forget, v -> {
+                SyncedClosed.forget(item);
+                render();
+            });
+            line.addView(forget, new LinearLayout.LayoutParams(dp(44), dp(48)));
+            mList.addView(line);
+        }
     }
 
     private void renderSent() {

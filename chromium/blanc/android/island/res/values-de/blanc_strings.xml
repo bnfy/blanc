@@ -180,6 +180,13 @@
     <string name="blanc_sync_error_server">Die Synchronisierung hat eine unerwartete Antwort gesendet – versuche es später erneut.</string>
     <string name="blanc_sync_error_server_error">Serverfehler bei der Synchronisierung – versuche es später erneut.</string>
     <string name="blanc_sync_error_sync_on">Die Synchronisierung ist bereits an. Um dieses Gerät zu einer anderen Synchronisierung zu bewegen, verwende „Mit einer anderen Synchronisierung verbinden“.</string>
+    <string name="blanc_closed_header">Zuletzt geschlossen</string>
+    <string name="blanc_closed_fold">Zuletzt geschlossene einklappen</string>
+    <string name="blanc_closed_unfold">Zuletzt geschlossene aufklappen</string>
+    <string name="blanc_closed_clear">Alle leeren</string>
+    <string name="blanc_closed_clear_all">Alle geschlossenen Tabs vergessen</string>
+    <string name="blanc_closed_forget">Geschlossenen Tab vergessen</string>
+    <string name="blanc_shared_spaces_closed_on">Auf %1$s geschlossen</string>
     <string name="blanc_sync_error_off">Die Synchronisierung ist aus.</string>
     <string name="blanc_sync_error_credentials_save">Die geschützten Synchronisierungsdaten konnten nicht gespeichert werden.</string>
     <string name="blanc_sync_error_account_gone">Diese Synchronisierung gibt es nicht mehr. Schalte sie hier aus und füge dieses Telefon dann auf deinem Computer erneut hinzu.</string>

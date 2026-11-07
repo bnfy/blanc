@@ -237,6 +237,53 @@ async function main(argv) {
       return peerTabs(device).has('https://shared.example/') ? ['still shared after turning it off'] : [];
     });
 
+    await check('a tab closed here reaches a peer, a peer\'s close reopens from the palette, a private close stays', async () => {
+      const device = await paired('Closer');
+      await value('sync.setSyncSpaces', [true]);
+      device.sync.setSyncSpaces(true);
+      const peerClosed = () => [...device.module('synced-closed').inbox(device.sync.sharedContext())];
+      await d.view('https://closed-here.example/');
+      d.runInPalette('/close');
+      d.menu('New Private Tab');
+      sleep(2);
+      d.runInPalette('https://closed-private.example/');
+      await d.waitForUrl('https://closed-private.example/', 20);
+      d.runInPalette('/close');
+      await phonePass();
+      await device.pass();
+      const rows = peerClosed().map(row => row.url);
+      if (!rows.includes('https://closed-here.example/')) return [`not on the peer: ${rows.join()}`];
+      if (rows.includes('https://closed-private.example/')) return ['a private close reached the peer'];
+      const ctx = device.sync.sharedContext();
+      device.module('synced-closed').addOwnItem(ctx, {id: 'peer-closed-1', url: 'https://closed-there.example/',
+        title: 'Closed there', closedAt: Date.now(), spaceId: null});
+      device.sync.resetRequestWindowForTest();
+      await device.pass();
+      // The Worker allows an account 30 reads a minute; these passes are far faster than a phone's.
+      sleep(61);
+      await phonePass();
+      await until(async () => [...await value('closed.inbox')].some(row => row.id === 'peer-closed-1'), 'the peer\'s close');
+      d.tap({id: 'blanc_island_domain'});
+      await d.waitFor(async () => d.dump().includes('Recently closed'), 'the band', 15);
+      d.tap({text: 'Recently closed  2'});
+      await d.waitFor(async () => d.dump().includes('Closed on Closer'), 'the device line', 15);
+      d.tap({text: 'Closed there'});
+      await d.waitForUrl('https://closed-there.example/', 20);
+      await until(async () => ![...await value('closed.inbox')].some(row => row.id === 'peer-closed-1'), 'the row to go');
+      return [];
+    });
+
+    await check('closing a tab without Sync keeps it in the palette, and the row survives a restart', async () => {
+      await d.view('https://closed-alone.example/');
+      d.runInPalette('/close');
+      await d.relaunch();
+      d.tap({id: 'blanc_island_domain'});
+      await d.waitFor(async () => d.dump().includes('Recently closed'), 'the band', 15);
+      d.tap({text: 'Recently closed  1'});
+      await d.waitFor(async () => d.dump().includes('closed-alone.example'), 'the row', 15);
+      return [];
+    });
+
     await check('a sent page waits in the palette, opens in a tab and goes', async () => {
       const device = await paired('Sender');
       await device.pass();

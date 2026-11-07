@@ -85,3 +85,12 @@ Deferred minors:
 
 - An iframe's first request can still miss the shield count, the race the main frame had before `shield_page_count.h`.
 - A kill between saving a moved tab and closing it leaves the tab in both sets. Nothing is lost, and the next switch settles it.
+
+## A4d: Recently closed
+
+Rulings:
+
+- **The band belongs to the palette, on or off Sync.** This phone's closes are kept in `blanc_closed.json` for 24 hours, 25 rows, as `RecentlyClosedStore.swift` keeps them. Other devices' rows and this phone's synced entry need the Spaces switch, because shipping's `closed` store is one a person agrees to. Cost if wrong: none; desktop and the iPhone do the same.
+- **A row is written when the tab closes, and Undo takes it off this phone only**, as on the iPhone. A peer that already synced keeps the row until it expires. Cost if wrong: a page shows as closed on another device for up to a day.
+- **Forget is a close button on the row, not a swipe.** The sent rows beside it already work this way. Cost if wrong: one gesture differs from the iPhone.
+- **`/reopen` stays on its in-memory list of ten**, separate from the band, as on the iPhone.

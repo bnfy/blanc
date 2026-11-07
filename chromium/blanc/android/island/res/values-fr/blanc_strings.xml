@@ -180,6 +180,13 @@
     <string name="blanc_sync_error_server">La synchronisation a renvoyé une réponse inattendue — réessayez plus tard.</string>
     <string name="blanc_sync_error_server_error">Erreur du serveur de synchronisation — réessayez plus tard.</string>
     <string name="blanc_sync_error_sync_on">La synchronisation est déjà activée. Pour déplacer cet appareil vers une autre synchronisation, utilisez « Se connecter à une autre synchronisation ».</string>
+    <string name="blanc_closed_header">Fermés récemment</string>
+    <string name="blanc_closed_fold">Replier les onglets fermés récemment</string>
+    <string name="blanc_closed_unfold">Déplier les onglets fermés récemment</string>
+    <string name="blanc_closed_clear">Tout effacer</string>
+    <string name="blanc_closed_clear_all">Oublier tous les onglets fermés</string>
+    <string name="blanc_closed_forget">Oublier l’onglet fermé</string>
+    <string name="blanc_shared_spaces_closed_on">Fermé sur %1$s</string>
     <string name="blanc_sync_error_off">La synchronisation est désactivée.</string>
     <string name="blanc_sync_error_credentials_save">Impossible d’enregistrer les identifiants de synchronisation protégés.</string>
     <string name="blanc_sync_error_account_gone">Cette synchronisation n’existe plus. Désactivez-la ici, puis ajoutez de nouveau ce téléphone depuis votre ordinateur.</string>

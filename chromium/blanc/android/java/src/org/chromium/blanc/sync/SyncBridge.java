@@ -122,6 +122,7 @@ public final class SyncBridge {
 
     /** Starts the runner for a phone that syncs. A phone that doesn't never starts it. */
     public static void startIfOn() {
+        SyncedClosed.start();
         if (!sWatching) {
             sWatching = true;
             ApplicationStatus.registerApplicationStateListener(state -> {
@@ -136,6 +137,7 @@ public final class SyncBridge {
         call("sync.setForeground", "[true]", result -> {});
         sProfile.reconcile();
         OtherDevices.refresh();
+        SyncedClosed.refresh();
     }
 
     /** This phone's tabs for other devices, once its tab model has them. */
@@ -180,6 +182,10 @@ public final class SyncBridge {
             OtherDevices.refresh();
             return;
         }
+        if ("closed".equals(event)) {
+            SyncedClosed.refresh();
+            return;
+        }
         if (!"clipboard".equals(event)) {
             if ("account".equals(event)) {
                 if (sTabs != null) setTabs(sTabs);
@@ -191,6 +197,7 @@ public final class SyncBridge {
             }
             sProfile.reconcile();
             OtherDevices.refresh();
+            SyncedClosed.refresh();
             return;
         }
         Context context = ContextUtils.getApplicationContext();
