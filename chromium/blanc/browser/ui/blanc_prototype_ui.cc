@@ -59,6 +59,13 @@
 #include "ui/base/clipboard/scoped_clipboard_writer.h"
 #include "chrome/browser/sessions/session_restore.h"
 #include "chrome/browser/sessions/session_service_factory.h"
+#include "chrome/browser/sessions/exit_type_service.h"
+#include "chrome/browser/ui/views/session_crashed_bubble_view.h"
+#include "ui/views/bubble/bubble_dialog_delegate_view.h"
+#include "ui/views/controls/button/label_button.h"
+#include "ui/views/controls/button/md_text_button.h"
+#include "ui/events/event.h"
+#include "ui/events/base_event_utils.h"
 #include "blanc/browser/ui/blanc_prototype_ui.h"
 #include "blanc/browser/ui/blanc_webstore_promotion.h"
 #include "blanc/browser/ui/blanc_extensions_branding.h"
@@ -1370,6 +1377,25 @@ class IslandView : public views::WebView, public views::ViewTargeterDelegate {
     return gfx::Rect(0, 0, width(), HeaderHeight(const_cast<views::View*>(parent()))).Intersects(rect) ||
         (owner->vertical && gfx::Rect(0, 0, owner->rail_width, height()).Intersects(rect)) ||
         (owner->height > owner->strip_height && owner->interactive_bounds.Intersects(rect));
+  }
+  // Chromium anchors several bubbles (the crash-restore prompt among them) to
+  // the app menu control, which the fork routes here (ToolbarProvider, below).
+  // This view's own bounds grow well past the resting strip band — full
+  // window height with vertical tabs or a split, 10000px while the panel is
+  // open — so the default (the whole view) would place those bubbles off the
+  // strip or off the window. Anchor to the resting band instead: the floating
+  // pill's own frame when Auto-hide float is active, else the strip height,
+  // clamped to what's actually drawn here.
+  gfx::Rect GetAnchorBoundsInScreen() const override {
+    auto* owner = GetOwner(const_cast<IslandView*>(this)->GetWebContents());
+    if (!owner) return views::WebView::GetAnchorBoundsInScreen();
+    gfx::Rect band = IslandFloating(owner) && !owner->float_frame.IsEmpty()
+        ? owner->float_frame
+        : gfx::Rect(0, 0, width(), std::min(height(), owner->strip_height));
+    // A hidden (push Auto-hide) strip draws above the window, at a negative y.
+    if (y() < 0) band = gfx::Rect(band.x(), -y(), band.width(), std::max(0, band.bottom() + y()));
+    views::View::ConvertRectToScreen(this, &band);
+    return band;
   }
 };
 
@@ -4332,6 +4358,73 @@ class Handler : public content::WebUIMessageHandler, public extensions::Extensio
           }, weak_factory_.GetWeakPtr(), id));
       return;
     }
+    // Chromium's native post-crash "Restore pages?" bubble (owner, 2026-11-07:
+    // the fork keeps this prompt rather than restoring silently or porting
+    // shipping's card). Read-only state, a real button press (the same
+    // ClickButton recipe chrome/browser/sessions/exit_type_service_browsertest.cc
+    // uses: reset the input-protection timestamp, then a synthetic press and
+    // release), or closing it (the ignore/dismiss path).
+    if (message[1].GetString() == "crashBubble" && message[2].GetList().size() == 1 &&
+        message[2].GetList()[0].is_string()) {
+      const auto& action = message[2].GetList()[0].GetString();
+      auto* owner = GetOwner(web_ui()->GetWebContents());
+      auto* profile = owner ? owner->browser->GetProfile() : Profile::FromWebUI(web_ui());
+      auto* exit_type = ExitTypeService::GetInstanceForProfile(profile);
+      auto* delegate = SessionCrashedBubbleView::GetInstanceForTest();
+      auto* view = owner ? BrowserView::GetBrowserViewForBrowser(owner->browser) : nullptr;
+      const bool shown = delegate && delegate->GetWidget();
+      const bool visible = shown && delegate->GetWidget()->IsVisible();
+      const bool anchored_here = shown && view && delegate->anchor_widget() == view->GetWidget();
+      if (action == "state") {
+        base::DictValue result;
+        result.Set("shown", shown); result.Set("visible", visible); result.Set("anchoredHere", anchored_here);
+        if (shown) {
+          result.Set("title", base::UTF16ToUTF8(delegate->GetWindowTitle()));
+          result.Set("inWindow", view && view->GetWidget()->GetWindowBoundsInScreen().Contains(
+              delegate->GetWidget()->GetWindowBoundsInScreen()));
+          if (auto* ok = delegate->GetOkButton()) result.Set("okLabel", base::UTF16ToUTF8(ok->GetText()));
+          if (auto* cancel = delegate->GetCancelButton()) result.Set("cancelLabel", base::UTF16ToUTF8(cancel->GetText()));
+        }
+        result.Set("restoring", SessionRestore::IsRestoring(profile));
+        result.Set("awaitingAck", !!(exit_type && exit_type->waiting_for_user_to_ack_crash()));
+        result.Set("lastExitCrashed", ExitTypeService::GetLastSessionExitType(profile) == ExitType::kCrashed);
+        Reply(id, true, base::Value(std::move(result)));
+        return;
+      }
+      if (action == "restore" || action == "openStartupPages") {
+        if (!visible || !anchored_here) { Reply(id, true, base::Value(base::DictValue().Set("pressed", false))); return; }
+        auto* button = action == "restore" ? delegate->GetOkButton() : delegate->GetCancelButton();
+        if (!button) { Reply(id, true, base::Value(base::DictValue().Set("pressed", false))); return; }
+        delegate->ResetViewShownTimeStampForTesting();
+        const gfx::Point center(button->width() / 2, button->height() / 2);
+        const ui::MouseEvent event(ui::EventType::kMousePressed, center, center,
+            ui::EventTimeForNow(), ui::EF_LEFT_MOUSE_BUTTON, ui::EF_LEFT_MOUSE_BUTTON);
+        button->OnMousePressed(event);
+        button->OnMouseReleased(event);
+        Reply(id, true, base::Value(base::DictValue().Set("pressed", true)));
+        return;
+      }
+      if (action == "close") {
+        const bool had = shown;
+        if (shown) delegate->GetWidget()->Close();
+        Reply(id, true, base::Value(base::DictValue().Set("closed", had)));
+        return;
+      }
+      Reply(id, false, base::Value("Unknown crashBubble action."));
+      return;
+    }
+    // Lands the profile's pending pref writes (the crash exit-type mark among
+    // them) on disk now, instead of waiting for the usual ~10s delayed writer
+    // (base::ImportantFileWriter::kDefaultCommitInterval). Needed before a
+    // test SIGKILLs the process: otherwise an early kill can leave the crash
+    // mark unwritten, and the next launch looks like a clean exit.
+    if (message[1].GetString() == "flushExitType" && message[2].GetList().empty()) {
+      Profile::FromWebUI(web_ui())->GetOriginalProfile()->GetPrefs()->CommitPendingWrite(
+          base::BindOnce([](base::WeakPtr<Handler> handler, std::string id) {
+            if (handler) handler->Reply(id, true, base::Value(true));
+          }, weak_factory_.GetWeakPtr(), id));
+      return;
+    }
     // How many downloads this profile has started.
     if (message[1].GetString() == "downloadCount" && message[2].GetList().empty()) {
       content::DownloadManager::DownloadVector items;
@@ -5370,6 +5463,13 @@ class Handler : public content::WebUIMessageHandler, public extensions::Extensio
     }
     MaybeSaveInitialWindow(owner);
     if (profile->IsOffTheRecord() || owner->space_busy || SessionRestore::IsRestoring(profile) || owner->recovery_checked) return;
+    // While a crash isn't acknowledged, this window may still be the bare
+    // placeholder the crash-restore startup path opened, not what Restore
+    // (or Chromium's normal post-crash startup) ends up putting here. Wait:
+    // a switch-journal check against that placeholder would wrongly fail to
+    // match, run once, and never retry (recovery_checked below).
+    if (auto* exit_type = ExitTypeService::GetInstanceForProfile(profile))
+      if (exit_type->waiting_for_user_to_ack_crash()) return;
     auto before = CaptureNativeSpace(owner->browser);
     if (!before) return;
     owner->recovery_checked = true;

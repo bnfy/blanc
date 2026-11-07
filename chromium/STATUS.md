@@ -942,7 +942,7 @@ remain pending. D3 beta-only no-DRM exception accepted; EME notice/handoff requi
   flattens groups and splits. A notification click for a held page does
   nothing. Space records carry no sandbox stamp. Not run: the Dock, Window menu
   and reopen paths with only the hold open, which were read, not exercised.
-- **S3.10 Move to Space, candidate macos-4a066a63875aac81 (2026-11-07):** the tab
+- **S3.10 Move to Space, candidate macos-071c3fa883ea19ff (2026-11-07):** the tab
   menu's Move to Space ▸ lists every Space (this window's checked) and New
   Space…, and is shown once a Space exists, never for a private tab, and disabled
   for a window's only tab or a page that can't move (quiet, loading, playing
@@ -957,14 +957,57 @@ remain pending. D3 beta-only no-DRM exception accepted; EME notice/handoff requi
   never a loss. New Space… writes one record holding the tab, then its list
   entry; a move that fails after that leaves the saved Space with "Saved {name},
   but the tab couldn't move." Test seams: `spaceMoveFault` and `spaceSavedUrls`
-  (--blanc-test only). **Evidence:** 8 of the 11 Move to Space cases pass
-  (F41-40, 41, 42, 46, 47, 48, 49, 50; s3m-*, s3n-*). **Open:** F41-43, 44 and 45
-  pass every step before their crash, then stop because the fork restores
-  nothing after a crash: it opens one New Tab page, so the blocker never starts
-  and the harness waits for it. Shipping restores its session after a crash;
-  which way the fork should go is the owner's call (Chromium's Restore pages?
-  bubble, or restoring automatically). Not built: Open Link in Space (F41-51 to
-  57), several tabs (F41-58 to 74), Move Group to Space (F41-75 to 79).
+  (--blanc-test only). **Evidence:** all 11 of 11 Move to Space cases pass
+  (s3ce-*), including the three crash cases (F41-43, 44, 45) once the crash-
+  restore work below landed. Spaces as a whole: 37 of 38 runnable cases pass
+  (s3cf-spaces), the one failure being the known F41-6 (pinned tabs leave
+  groups). Not built: Open Link in Space (F41-51 to 57), several tabs (F41-58
+  to 74), Move Group to Space (F41-75 to 79).
+- **After a crash, Chromium's Restore pages? bubble (owner, 2026-11-07, candidate
+  macos-071c3fa883ea19ff):** shipping doesn't restore silently: it opens one
+  window with a "Pick up where you left off?" card (Restore tabs, Start fresh)
+  and loads no saved site until you choose. The fork keeps Chromium's own
+  ask-first prompt, the Restore pages? bubble, made visible in its window,
+  instead of porting the card or restoring automatically. (The owner first
+  chose "restore automatically" from a question that wrongly said shipping did
+  so; asked again with shipping described correctly, they chose the bubble, and
+  separately declined restyling it to look Blanc-branded for now.)
+  `IslandView::GetAnchorBoundsInScreen()` anchors the bubble (and every other
+  bubble Chromium anchors to the app menu) to the Island's resting band, not its
+  full view bounds, which can run the window's full height or grow to 10000px
+  while a panel is open; no upstream patch needed. Two `--blanc-test` ops
+  (`crashBubble`, `flushExitType`) read its state, press Restore with the exact
+  button-press recipe `exit_type_service_browsertest.cc` uses, and land the
+  crash exit-type mark on disk before a test's SIGKILL (it's set in memory at
+  launch but normally only committed on a ~10s delayed writer). One upstream
+  hunk, in the already-patched `session_restore.cc` (patch 0002, which already
+  renames this file's one include): a reused (not freshly created) browser
+  window during crash restore was never getting `RestoreWindowIdentity`,
+  silently breaking its Space/split identity on every future save; both paths
+  call it now. `MaybeRollback` also now waits for the crash to be acknowledged
+  before touching the Space-switch journal, so a window still showing only the
+  crash placeholder can't be mistaken for one with nothing to roll back to.
+  **Evidence:** a direct spike (native `crashBubble`/`flushExitType`) confirmed
+  the bubble shows, anchored to the window and inside it, with Chromium's own
+  title and button text, and that pressing it for real restores both original
+  tabs. F41-43, 44 and 45 (the three crash scenarios) now pass through the real
+  harness; `tests/world.mjs`'s crash relaunch presses the bubble and waits for
+  the restore to be acknowledged before continuing, and waits for the blocker
+  only when a restored tab is actually a web page (F41-45's successful move
+  leaves the source with nothing but a Start Page, which never starts it). Also
+  fixed in the harness: `adapters/tabs.mjs`'s `runtimes()` caches the primary
+  window's CDP target id across calls; a relaunch is a new process with new
+  target ids throughout, and the stale cache made it reinstall the test driver
+  a second time on the live post-relaunch page, resetting its id counter mid-
+  process and colliding with ids already on native's record — a pre-existing
+  gap in the harness (the plain, non-crash relaunch path never cleared it
+  either), only ever exercised once a crash scenario actually got this far.
+  **Open:** up to 2.5s of tab changes can be lost in a real crash (Chromium's
+  session-save debounce; shipping's is 250ms). No guard against a restore loop
+  if a restored page itself crashes. No "Start fresh" option, unlike shipping.
+  Whether a restored window keeps its Space and split wasn't traced further
+  than the identity fix above. Windows and Linux need their own crash-restore
+  verification; this was built and tested on macOS only.
 - **Mahjong goes last (owner, 2026-11-04):** the fork has no Mahjong yet
   (F35-3, F35-4, F35-9 fail at the footer launch). When it is built it is an
   Island page (shipping's files served as byte-identical copies, opened as an
@@ -1464,5 +1507,5 @@ Android's Bar A counts the shared scenarios bound in `chromium/tests/android/acc
 
 Legacy macOS stages come from the approved spec; they await verification on the canonical candidate. No legacy stage counts as Verified.
 
-Candidate identities: macOS: macos-4a066a63875aac81; Windows: none; Linux: none; Android: android-arm64-7bd35e94ef746069.
+Candidate identities: macOS: macos-071c3fa883ea19ff; Windows: none; Linux: none; Android: android-arm64-7bd35e94ef746069.
 <!-- END GENERATED PROGRESS -->

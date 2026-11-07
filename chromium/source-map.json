@@ -269,7 +269,7 @@
     "blanc/browser/ui/app_menus_mac.mm": "541e0d4b641fd409b7b659530e973b78657961b88132d612c30836f40503967f",
     "blanc/browser/ui/billboard_clock_settings.inc": "57ce0ed0160903e1b90c3d65fd5cd7cd33218d5774a3b2d8fdb448b0d49c9892",
     "blanc/browser/ui/blanc_extensions_branding.h": "17d77bbc267d13477a24bd971021f2291c505567a32383229505c13b53238a02",
-    "blanc/browser/ui/blanc_prototype_ui.cc": "d7255ec34ef888827bb6444ef5e38d36f672eee2c974501f14bddc1e0eb136f3",
+    "blanc/browser/ui/blanc_prototype_ui.cc": "4c6604859eb97e1bc863ccfdc2996cfd5f5817aeadc06701fd983b857daf4ec2",
     "blanc/browser/ui/blanc_prototype_ui.h": "7afeaada1078e4ed3c901a0d7c4e389f933d4ebb238b2c0b342c228aa39dff8f",
     "blanc/browser/ui/blanc_quiet_media.h": "8fb187c5b49e762de12f5db114149ac462b06c9ca16f16a78ef50363a80e061f",
     "blanc/browser/ui/blanc_quiet_probe.h": "47467fe0a2004e804cda235613a0aea6b88d494b84b3608bf6af991a6aa07dfd",
@@ -486,7 +486,7 @@
     "blanc/services/sync_runner/sync_runner_proxy.h": "8e8355ffd614fd31ade7cf4b2d5c2a98bb475b4bd3b2acb88a6d251ceee49b3f",
     "blanc/services/sync_runner/sync_runner_service.cc": "b1641e494cfbb2a00d5bc521c0287d556780a4230ffc1c15aa32636e976de00b",
     "blanc/services/sync_runner/sync_runner_service.h": "4886e062f246e5045fb32a44f4f9fa7d98988db96b630a2671237aed01c0d6b3",
-    "blanc/ui.gni": "3f332ca6bcd49731a62d1c1f7ceda5bc18fa8502c3a3fc080925055856eb2b56"
+    "blanc/ui.gni": "478dbdff4fe14beb4f7d70ca4af8ca027f2aa8f619c8ec9200de67912611d3fd"
   },
   "targetOwnership": "//blanc:ui routes to browser-boundary template target, respecting existing upstream visibility",
   "upstreamFiles": {
@@ -527,7 +527,7 @@
     "chrome/browser/resources/settings/search_page/search_page.html.ts": "930775470dc5036f9776f21fd30af0c00eb3db1088b61f9d093d5d765b9cced7",
     "chrome/browser/resources/settings/search_page/search_page.ts": "8012e7d8317459fe1e9682883bd7648db91de1837dfdf007323dd937175317f0",
     "chrome/browser/search/search.cc": "e639b6143d78eea0c8266dca980d83f1c1253cc64068ad4faf4ba22a930ec832",
-    "chrome/browser/sessions/session_restore.cc": "e307f3bbc5408eea54452f7b900c1a042024bc952d6017b97bb457b2d889e907",
+    "chrome/browser/sessions/session_restore.cc": "b5ea31aabb6732de228fca7a3fd27b786e1ee2b646578ff963624a8510c67128",
     "chrome/browser/sessions/session_service.cc": "9f076304bc69d0bc74c1a6eb38c3e03d35b260b8d4ae90161c5db77661b65d10",
     "chrome/browser/sessions/session_service_base.cc": "d335f284f2264faf5fcd7b6e20832d755f7f815f164801f6ba4d195df4f9e96f",
     "chrome/browser/sessions/session_service_base.h": "5cf8d680e2e129c3bc9d3833270cf1c6f087b1fe8f2b975d22f2cf06267531e7",
