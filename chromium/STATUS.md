@@ -1051,6 +1051,38 @@ remain pending. D3 beta-only no-DRM exception accepted; EME notice/handoff requi
   Full accounting, adapter-by-adapter notes and this round's evidence:
   `chromium/CODEX-NOTES-quiet-tabs.md`, branch
   `chromium/s3-quiet-tabs-codex2` (merged into `chromium/s3-quiet-tabs`).
+- **F46 Custom Tab Names, all 10 desktop scenarios now pass, candidate
+  macos-40a41ac818ea4e2f (2026-11-07):** found while sweeping for the next
+  quick win after F31 — the feature was already fully built natively
+  (`RenameTab`, `CustomTabName`, `RestoreCustomTabName`, wired into
+  `Snapshot()` and session persistence) with 10 acceptance scenarios already
+  written, 7 already passing; only the test harness had gaps, no fork
+  defects. Closed all of them:
+  - **The `isLoading` presentation seed** (F46-10, "a renamed tab keeps its
+    name in the command panel while it loads"): `setTabPresentation` now
+    drives a real, slow navigation to the tab's own address via shipping's
+    own `?hold=slow` fixture mechanism (2.5s before the body arrives), so
+    the tab genuinely starts loading rather than faking the flag. Built and
+    verified directly.
+  - **A real `sessionWindows` native test op** (F46-5 "a name survives
+    relaunch", F46-6 "a private tab's name never reaches session.json"):
+    `persistedSessionData()` previously threw, undefined, with no way to
+    read back what the fork actually persists (it uses Chromium's native
+    session restore, not a session.json file). Built on
+    `SessionService::MoveCurrentSessionToLastSession()` +
+    `GetLastSession()` — the exact production path Chrome's own session
+    restore uses — projected to `{windows:[{tabs:[{customTitle,url}]}]}`.
+    `customTitle` reads each persisted `SessionTab`'s
+    `extra_data["blanc.tab.name.v1"]`, the same key `RenameTab` already
+    writes via `AddTabExtraData`. Confirmed in passing: a private tab's
+    name was already correctly excluded natively (`RenameTab` skips the
+    write for an off-the-record profile) — this only added the ability to
+    verify that rather than assume it. Reviewed against the real Chromium
+    headers (`session_service.h`, `session_service_base.h`,
+    `session_types.h`) line by line before building; nothing fabricated.
+  All 10 `@F46` scenarios in `spec/acceptance/tabs-and-groups.feature` pass
+  on this candidate. Branches `chromium/f46-session-codex` (merged) and the
+  harness-only `isLoading` commit, both on `chromium/s3-quiet-tabs`.
 - **S3.10 Move to Space, candidate macos-071c3fa883ea19ff (2026-11-07):** the tab
   menu's Move to Space ▸ lists every Space (this window's checked) and New
   Space…, and is shown once a Space exists, never for a private tab, and disabled
@@ -1639,5 +1671,5 @@ Android's Bar A counts the shared scenarios bound in `chromium/tests/android/acc
 
 Legacy macOS stages come from the approved spec; they await verification on the canonical candidate. No legacy stage counts as Verified.
 
-Candidate identities: macOS: macos-53fb0155deee71ea; Windows: none; Linux: none; Android: android-arm64-7bd35e94ef746069.
+Candidate identities: macOS: macos-40a41ac818ea4e2f; Windows: none; Linux: none; Android: android-arm64-7bd35e94ef746069.
 <!-- END GENERATED PROGRESS -->
