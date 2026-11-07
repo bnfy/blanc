@@ -120,6 +120,8 @@
 #include "base/system/sys_info.h"
 #include "base/json/string_escape.h"
 #include "base/memory/ref_counted_memory.h"
+#include "third_party/skia/include/core/SkBitmap.h"
+#include "ui/gfx/codec/png_codec.h"
 #include "base/strings/string_number_conversions.h"
 #include "base/strings/string_util.h"
 #include "base/strings/utf_string_conversions.h"
@@ -4620,19 +4622,37 @@ class Handler : public content::WebUIMessageHandler, public extensions::Extensio
       auto* history = HistoryServiceFactory::GetForProfile(
           profile, ServiceAccessType::EXPLICIT_ACCESS);
       auto top_sites = TopSitesFactory::GetForProfile(profile);
-      if (!history || !top_sites) {
-        reject("History or Top Sites unavailable."); return;
+      auto* favicon_service = FaviconServiceFactory::GetForProfile(
+          profile, ServiceAccessType::EXPLICIT_ACCESS);
+      if (!history || !top_sites || !favicon_service) {
+        reject("History, Top Sites or Favicons unavailable."); return;
       }
-      static constexpr std::pair<const char*, int> kSeeds[] = {
-          {"youtube.com", 12}, {"cnet.com", 9}, {"wikipedia.org", 7},
-          {"github.com", 5}, {"nytimes.com", 3}, {"weather.com", 1}};
+      struct BillboardSeed { const char* host; const char* path; int visits; const char* title; };
+      // cnet.com's path is an article, not the bare domain: the pinned-page
+      // step (newtab-layouts.steps.js) asserts the site's last-visited URL
+      // matches ^https://cnet\.com/article/. Every title here is asserted
+      // verbatim by that same step file for youtube.com and cnet.com; the
+      // other four aren't checked by name but get a real title anyway.
+      static constexpr BillboardSeed kSeeds[] = {
+          {"youtube.com", "/", 12, "YouTube – videos worth watching"},
+          {"cnet.com", "/article/1", 9, "CNET – technology news and reviews"},
+          {"wikipedia.org", "/", 7, "Wikipedia – the free encyclopedia"},
+          {"github.com", "/", 5, "GitHub – build and ship software"},
+          {"nytimes.com", "/", 3, "The New York Times – breaking news"},
+          {"weather.com", "/", 1, "The Weather Channel – forecast"}};
+      SkBitmap bitmap;
+      bitmap.allocN32Pixels(16, 16);
+      bitmap.eraseColor(SK_ColorBLUE);
+      const std::optional<std::vector<uint8_t>> png =
+          gfx::PNGCodec::EncodeBGRASkBitmap(bitmap, /*discard_transparency=*/false);
+      const auto bitmap_data = base::MakeRefCounted<base::RefCountedBytes>(png.value());
       const base::Time now = base::Time::Now();
       int minutes_ago = 0;
       std::set<std::string> expected;
-      for (const auto& [host, visits] : kSeeds) {
-        expected.insert(host);
-        const GURL url(std::string("https://") + host + "/");
-        for (int i = 0; i < visits; ++i) {
+      for (const auto& seed : kSeeds) {
+        expected.insert(seed.host);
+        const GURL url(std::string("https://") + seed.host + seed.path);
+        for (int i = 0; i < seed.visits; ++i) {
           history->AddPage(url, now - base::Minutes(++minutes_ago),
               /*context_id=*/0, /*nav_entry_id=*/0, /*referrer=*/GURL(),
               history::RedirectList(), ui::PAGE_TRANSITION_TYPED,
@@ -4640,9 +4660,12 @@ class Handler : public content::WebUIMessageHandler, public extensions::Extensio
               history::VisitResponseCodeCategory::kNot404,
               /*did_replace_entry=*/false);
         }
+        history->SetPageTitle(url, base::UTF8ToUTF16(std::string(seed.title)));
+        favicon_service->MergeFavicon(url, GURL(url.spec() + "favicon.ico"),
+            favicon_base::IconType::kFavicon, bitmap_data, gfx::Size(16, 16));
       }
       history->FlushForTest(base::BindOnce(&Handler::SeedBillboardHistorySync,
-          weak_factory_.GetWeakPtr(), id, top_sites, std::move(expected), 0));
+          weak_factory_.GetWeakPtr(), id, history, top_sites, std::move(expected), 0));
       return;
     }
     if (quiet_method == "quietThreshold" && quiet_args.size() == 1 && quiet_args[0].is_int() &&
@@ -5238,13 +5261,15 @@ class Handler : public content::WebUIMessageHandler, public extensions::Extensio
   // can still answer from the pre-seed cache on the first calls after it.
   // Poll (bounded) until the ranked read-back actually contains every
   // seeded host, rather than trusting a single round-trip.
-  void SeedBillboardHistorySync(std::string id, scoped_refptr<history::TopSites> top_sites,
+  void SeedBillboardHistorySync(std::string id, history::HistoryService* history,
+                                scoped_refptr<history::TopSites> top_sites,
                                 std::set<std::string> expected, int attempt) {
     top_sites->SyncWithHistory();
     top_sites->GetMostVisitedURLs(base::BindOnce(&Handler::SeedBillboardHistoryCheck,
-        weak_factory_.GetWeakPtr(), id, top_sites, std::move(expected), attempt));
+        weak_factory_.GetWeakPtr(), id, history, top_sites, std::move(expected), attempt));
   }
-  void SeedBillboardHistoryCheck(std::string id, scoped_refptr<history::TopSites> top_sites,
+  void SeedBillboardHistoryCheck(std::string id, history::HistoryService* history,
+                                 scoped_refptr<history::TopSites> top_sites,
                                  std::set<std::string> expected, int attempt,
                                  const history::MostVisitedURLList& sites) {
     std::set<GURL> prepopulated;
@@ -5252,23 +5277,47 @@ class Handler : public content::WebUIMessageHandler, public extensions::Extensio
       prepopulated.insert(page.most_visited.url);
     base::ListValue items;
     std::set<std::string> seen;
+    // The acceptance fixture launches every case against its own local
+    // http://127.0.0.1:<port>/initial control page as a genuine
+    // command-line-URL navigation, so it is already real, segment-crediting
+    // history before this op ever runs. It (or any other IP-literal host)
+    // is fixture bootstrap noise, never a real site a user browsed to:
+    // delete it from history so a later production TopSites read doesn't
+    // show it either, then retry rather than filtering it only here.
+    std::vector<GURL> noise;
     for (const auto& site : sites) {
-      if (!site.url.SchemeIsHTTPOrHTTPS() || prepopulated.contains(site.url)) continue;
+      if (site.url.SchemeIsHTTPOrHTTPS() && site.url.HostIsIPAddress())
+        noise.push_back(site.url);
+    }
+    for (const auto& site : sites) {
+      if (!site.url.SchemeIsHTTPOrHTTPS() || prepopulated.contains(site.url) ||
+          site.url.HostIsIPAddress()) continue;
       std::string key(site.url.host());
       if (base::StartsWith(key, "www.")) key.erase(0, 4);
       seen.insert(key);
       items.Append(base::DictValue().Set("url", site.url.spec())
           .Set("key", key).Set("title", base::UTF16ToUTF8(site.title)));
     }
-    if (seen != expected) {
+    // Even once seen == expected, noise left in real history (confirmed, not
+    // just filtered from this reply) would still surface the next time
+    // something else reads real TopSites, e.g. the Start Page's own
+    // production topSites read later in the same acceptance scenario. Keep
+    // retrying until a fresh read confirms it's actually gone.
+    if (seen != expected || !noise.empty()) {
       if (attempt >= 40) {
+        std::vector<std::string> seen_list(seen.begin(), seen.end());
+        std::vector<std::string> expected_list(expected.begin(), expected.end());
         Reply(id, false, base::Value(
-            "Billboard history seeding did not reach the expected ranking."));
+            "Billboard history seeding did not reach the expected ranking. seen=[" +
+            base::JoinString(seen_list, ",") + "] expected=[" +
+            base::JoinString(expected_list, ",") + "] rawCount=" +
+            base::NumberToString(sites.size())));
         return;
       }
+      if (!noise.empty()) history->DeleteURLs(noise);
       base::SequencedTaskRunner::GetCurrentDefault()->PostDelayedTask(FROM_HERE,
           base::BindOnce(&Handler::SeedBillboardHistorySync, weak_factory_.GetWeakPtr(),
-                         std::move(id), top_sites, std::move(expected), attempt + 1),
+                         std::move(id), history, top_sites, std::move(expected), attempt + 1),
           base::Milliseconds(100));
       return;
     }

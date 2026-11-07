@@ -1117,6 +1117,74 @@ remain pending. D3 beta-only no-DRM exception accepted; EME notice/handoff requi
   entirely. Dropped `#patronCallout` from that list; both scenarios pass
   on the rebuilt candidate, no regressions. Branch
   `chromium/f35-start-settings-codex` (merged into `chromium/s3-quiet-tabs`).
+- **F35-5/F35-6 Billboard ranking (pinning, hidden-locally, outlasts
+  history), candidate macos-7a7adbe83d0dc7b0 (2026-11-07):** `seedBillboardHistory`
+  built (`seedBillboardOverflowHistory` stays blocked — see below). Codex's
+  own attempt stopped at research, correctly finding `history::TopSites`
+  caps `GetMostVisitedURLs` at `kTopSitesNumber` (10) and the native
+  `topSites` WebUI message takes no `{offset,limit}` the ported
+  `newtab.js` already expects; it never touched the adapters. Built
+  directly instead, since the 6-site case is within that 10-site cap.
+  Three issues surfaced only by building and running it for real, none
+  caught by research alone:
+  - `HistoryService::AddPage(url, time, VisitSource)` (the
+    `chrome.history.addUrl()` overload the original brief specified)
+    defaults to `PAGE_TRANSITION_LINK`, which
+    `HistoryBackend::CalculateSegmentID` never credits toward a "most
+    visited" segment — seeding with it would have left TopSites
+    permanently empty. Switched to the 10-arg overload with an explicit
+    `ui::PAGE_TRANSITION_TYPED`.
+  - `TopSitesImpl::SetTopSites` always pads real history shorter than 10
+    sites with Chromium's own prepopulated pages (desktop: the Chrome Web
+    Store) — a real, independent **production bug**: `NewTabHandler::
+    TopSitesReady` never filtered it, so any real user with fewer than 10
+    browsed sites would see a Chrome Web Store tile on a browser that ships
+    no extension store. Fixed by excluding every
+    `TopSites::GetPrepopulatedPages()` URL from the reply.
+  - The acceptance fixture launches every case against its own local
+    `http://127.0.0.1:<port>/initial` control page as a genuine
+    command-line-URL navigation, so it is real, segment-crediting history
+    in every fresh profile before the op ever runs — found by spiking the
+    live candidate directly (`debugProfiles`, `listHistory`, repeated
+    `start.data()` reads) after the first build showed it leaking into the
+    rendered Billboard. `GetMostVisitedURLs` alone answers from a fresh
+    profile's empty initial-load cache and misses it entirely even after a
+    5s delay; needs an explicit `SyncWithHistory()` first. Fixed by
+    detecting any IP-literal host in the synced read-back, deleting it via
+    `HistoryService::DeleteURLs`, and retrying the sync+poll until a fresh
+    read confirms it's actually gone — not just filtered from this op's own
+    reply, which would have left it for the next real `topSites` caller.
+  - `newtab-layouts.steps.js` (pinned, not touched) also asserts exact
+    titles for two of the six seeded sites (`'YouTube – videos worth
+    watching'`, `'CNET – technology news and reviews'`) and that cnet.com's
+    last-visited URL matches `^https://cnet\.com/article/`, plus
+    `hasIcon: true` on all six. Added `HistoryService::SetPageTitle` per
+    seed and a real `FaviconService::MergeFavicon` (a 16×16 PNG-encoded
+    `SkBitmap`) per seed; cnet.com's path changed from the bare domain to
+    `/article/1`.
+  F35-5/F35-6's three Billboard scenarios in `newtab-layouts.feature` (47,
+  58, 71) now pass; the file's other 4 failures (3 Mahjong, 1 checklist)
+  and 2 undefined (typography roles, the F35-15 overflow scenario below)
+  are unrelated, unchanged by this work. Unit tests 257/258 (the one
+  failure is the pre-existing `ui-language.test.mjs` Node-version issue,
+  unrelated). Branch `chromium/f35-billboard-history-codex` (merged into
+  `chromium/s3-quiet-tabs`).
+- **F35-15 Billboard overflow: blocked on a real native cap, flagged to the
+  owner, not decided unilaterally.** `seedBillboardOverflowHistory` (the
+  scenario "Billboard continues past its initial candidate page", 60 seeded
+  sites, 48 hidden, backfill to rank 49) cannot be built by seeding alone:
+  `history::TopSitesImpl::GetMostVisitedURLs` unconditionally truncates to
+  `kTopSitesNumber` (10; `top_sites_constants.h`, `top_sites_impl.cc`), and
+  the native `topSites` WebUI message takes no arguments at all, while the
+  ported `newtab.js` (`fillBillboardSites`) already calls
+  `window.bowserPages.start.topSites({offset, limit})` expecting page-2+
+  support the native handler has never implemented (shipping Electron's own
+  Billboard has no such cap — it's backed by JS history, not Chromium's real
+  TopSites). Needs an owner decision — patch `kTopSitesNumber`, add a
+  parallel non-TopSites query path for ranks beyond 10, or scope this one
+  scenario out — before further work; not something to decide alone per
+  standing direction to flag native Chromium option changes first. Full
+  writeup in `chromium/CODEX-NOTES-billboard-history.md`.
 - **S3.10 Move to Space, candidate macos-071c3fa883ea19ff (2026-11-07):** the tab
   menu's Move to Space ▸ lists every Space (this window's checked) and New
   Space…, and is shown once a Space exists, never for a private tab, and disabled
@@ -1705,5 +1773,5 @@ Android's Bar A counts the shared scenarios bound in `chromium/tests/android/acc
 
 Legacy macOS stages come from the approved spec; they await verification on the canonical candidate. No legacy stage counts as Verified.
 
-Candidate identities: macOS: macos-dea5366ef70d77b9; Windows: none; Linux: none; Android: android-arm64-7bd35e94ef746069.
+Candidate identities: macOS: macos-7a7adbe83d0dc7b0; Windows: none; Linux: none; Android: android-arm64-7bd35e94ef746069.
 <!-- END GENERATED PROGRESS -->
