@@ -14,6 +14,44 @@ D7, F0.7, cold builds, new machines, D2/D4–D6/D8/V2 and replacement D3
 remain pending. D3 beta-only no-DRM exception accepted; EME notice/handoff required.
 
 ## Current work
+- **2026-11-08 — Batch 2, two of four verified (candidate macos-e4317b7b0e5b22ae):**
+  Codex's own attempt was blocked before any build (sandboxed loopback,
+  process-inspection and Git-index denials); it recorded useful source
+  findings but made no commits. Continued directly from those findings.
+  (1) **split-view.feature:135 fixed and verified**: `keepGlanceAsSplit`
+  wasn't failing to move the reference into main's group — `previewGlancePair`
+  already does that silently when Glance opens, sharing the group-moving
+  block with `createSplit`. `keepGlanceAsSplit` now compares the reference's
+  current group against `glance_origin_group` (saved at open time) and
+  announces the move via the already-defined-but-unused `split.groupMoveInto`
+  copy key. (2) **glance.feature:538 fixed, empirically confirmed, but not
+  independently re-verified end-to-end locally**: `AdjustSplitLayout`'s
+  Glance branch was placing the card from an Island-relative origin instead
+  of the raw container origin, leaking the Island's current auto-hide
+  animation offset into the card's actual screen position — confirmed with
+  temporary diagnostic logging showing `raw_origin.y() + height` constant at
+  1140 across every frame of a real reveal, and the bug reproducing exactly
+  as derived. Fixed by placing the card from the raw origin and computing the
+  (already-correct) pageArea/band diagnostic from an explicit local
+  Island-relative value instead of a shared, mutated one. Local re-run after
+  the fix never hits the original invariance assertion — it's blocked by this
+  scenario's separate "did the Island visibly slide" check (a 16ms-tick timer
+  in `island_autohide_controller.inc`, a file this fix never touches) not
+  registering `sliding:true` in this environment even with an extended
+  sampling window, across multiple repeated runs. (3) F34-1 `glance.feature:98`
+  and F53-22 `split-view.feature:159` remain open — not reattempted this
+  round. `glance.feature:337`'s one-off failure
+  ("Timeout waiting for #glancePickerInput[aria-busy=\"true\"]") matches the
+  same Glance-picker wake-timing flake class already seen once this session
+  (did not reproduce there either); not investigated further as part of this
+  batch. Regression (this branch alone, without PR #1420's unmerged split
+  persistence/move-to-new-window/focus-hook fixes, which live on a separate
+  branch): `glance.feature` 36 pass/5 fail against a 37/4 baseline, the
+  difference being the `glance.feature:337` flake above (538 was already
+  counted in the 4); `split-view.feature` 25 pass/5 fail against a 24/6
+  baseline, the +1 pass being this round's F53-18 fix. `node --test
+  chromium/tests/*.test.mjs` 72/72; `check-patches.py` passed. See
+  `CODEX-NOTES-batch2.md`.
 - **Branch and PRs (owner, 2026-11-02):** the fork's integration branch is
   `chromium/migration` (renamed from `codex/f12-socket-speculation`), with
   [PR #1304](https://github.com/bnfy/blanc/pull/1304) as its integration PR
@@ -2022,5 +2060,5 @@ Android's Bar A counts the shared scenarios bound in `chromium/tests/android/acc
 
 Legacy macOS stages come from the approved spec; they await verification on the canonical candidate. No legacy stage counts as Verified.
 
-Candidate identities: macOS: macos-523df9b441bcbe4e; Windows: none; Linux: none; Android: android-arm64-7bd35e94ef746069.
+Candidate identities: macOS: macos-e4317b7b0e5b22ae; Windows: none; Linux: none; Android: android-arm64-7bd35e94ef746069.
 <!-- END GENERATED PROGRESS -->
