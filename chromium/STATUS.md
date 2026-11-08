@@ -1258,6 +1258,48 @@ remain pending. D3 beta-only no-DRM exception accepted; EME notice/handoff requi
   failure, "Collapsing a group tucks its tabs away in the panel", is
   unrelated and pre-existing). Branch: committed directly on
   `chromium/s3-quiet-tabs`.
+- **F32-2 fixed (owner decision, 2026-11-08): window ids now an ordinal by
+  SessionID order, candidate macos-cf277bb10ec10b0b.** Owner chose to
+  redesign rather than leave F32-2 blocked. Audited every caller of
+  `openNewWindow`/`windowRuntimes`/`closeWindowRuntime` first (15 step
+  files) before touching the shared scheme: no scenario ever holds a
+  captured window id past a point where a different, lower-ordinal window
+  closes, and `closeWindowRuntime` is never called on a non-last-opened
+  window while an earlier one stays open — so a *dynamic* ordinal
+  (recomputed fresh each query by sorting live windows by ascending
+  SessionID) is safe; no new persistent native state needed.
+  - **Native**: a new `windowOrdinals` test op lists every open window's
+    Island host DevTools target id, sorted by ascending `SessionID`.
+    `sessionWindows`'s `TestSessionWindowsRead` (F32-1, above) dropped its
+    live-window DevToolsAgentHost lookup entirely — it now labels each
+    persisted entry purely by its `window_id`'s position among the
+    *other persisted windows in that same read*, index 0 `"primary"`,
+    others `"window-N"`. The two ops use the same rule (ascending
+    SessionID order) independently, so they agree without either
+    depending on the other.
+  - **Test adapter** (`chromium/tests/adapters/tabs.mjs`, not shipping's
+    pinned step files): `runtimes()` now maps each CDP target to its
+    `windowOrdinals` position for the reported `id`, instead of the raw
+    target id; the CDP connection to actually drive a window is still
+    matched by its real target id, independent of that label.
+    `openNewWindow()` needed no change — it already just returns
+    whatever `runtimes()` assigns.
+  - Verified: `multi-window.feature` 2/2 (both F32-1 and F32-2, fresh
+    full-file run). `local-profiles.feature`'s own relaunch scenario
+    (flagged in the pre-redesign audit as sharing the identical need)
+    stays undefined — blocked by an unrelated missing adapter earlier in
+    its Given chain, never reaches the part this redesign would help.
+    Regression swept six more consumer files: `island-and-commands.feature`
+    63/3/525 (exact historical baseline, the three unrelated/pre-existing:
+    F1-13/F1-33/F1-39), `glance.feature` 37/5/549, `vertical-tabs.feature`
+    0/7/19 (matches this session's own F9-3-round baseline), `F41-named-
+    workspaces.feature` 52/2/537, `split-view.feature` 24/6/561 — every
+    failure's own message read individually; none mention a window-id
+    mismatch, all are pre-existing unrelated gaps (missing adapters,
+    split-session-persistence fields never built, focus/accessibility
+    timing). `mini-window.feature` and `link-routing.feature` stayed fully
+    undefined (unaffected either way). Branch: committed directly on
+    `chromium/s3-quiet-tabs`.
 - **S3.10 Move to Space, candidate macos-071c3fa883ea19ff (2026-11-07):** the tab
   menu's Move to Space ▸ lists every Space (this window's checked) and New
   Space…, and is shown once a Space exists, never for a private tab, and disabled
@@ -1846,5 +1888,5 @@ Android's Bar A counts the shared scenarios bound in `chromium/tests/android/acc
 
 Legacy macOS stages come from the approved spec; they await verification on the canonical candidate. No legacy stage counts as Verified.
 
-Candidate identities: macOS: macos-75cb3812b7ecf53d; Windows: none; Linux: none; Android: android-arm64-7bd35e94ef746069.
+Candidate identities: macOS: macos-cf277bb10ec10b0b; Windows: none; Linux: none; Android: android-arm64-7bd35e94ef746069.
 <!-- END GENERATED PROGRESS -->

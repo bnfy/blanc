@@ -4707,6 +4707,28 @@ class Handler : public content::WebUIMessageHandler, public extensions::Extensio
           }, weak_factory_.GetWeakPtr(), id));
       return;
     }
+    // F32: the live counterpart of sessionWindows's ordinal labels (see its
+    // comment there) -- every currently open window's Island host target
+    // id, ordered by ascending SessionID. windowRuntimes() maps each CDP
+    // target it already knows about to its position in this list
+    // ("primary" for index 0, "window-N" after) instead of reporting the
+    // target id directly, so a window's reported id stays meaningful
+    // across a relaunch, when every target id is freshly reassigned.
+    if (quiet_method == "windowOrdinals" && quiet_args.empty()) {
+      std::vector<std::pair<int32_t, std::string>> live;
+      for (auto* owner : Owner::Live()) {
+        if (owner->view) {
+          live.emplace_back(owner->browser->GetSessionID().id(),
+              content::DevToolsAgentHost::GetOrCreateFor(
+                  owner->view->GetWebContents())->GetId());
+        }
+      }
+      std::sort(live.begin(), live.end());
+      base::ListValue ordered;
+      for (const auto& [session_id, target_id] : live) ordered.Append(target_id);
+      Reply(id, true, base::Value(std::move(ordered)));
+      return;
+    }
     if (quiet_method == "quietThreshold" && quiet_args.size() == 1 && quiet_args[0].is_int() &&
         quiet_args[0].GetInt() >= 0) {
       test_quiet_delay_ = quiet_args[0].GetInt();
@@ -5274,17 +5296,29 @@ class Handler : public content::WebUIMessageHandler, public extensions::Extensio
       Reply(id, false, base::Value("Could not read persisted session windows."));
       return;
     }
-    // F32: SessionID is a single monotonic counter shared by windows, tabs
-    // and everything else that takes one, so it isn't sequential across
-    // just the windows here -- but whichever window was created first in
-    // this process still holds the lowest window_id of any window, which
-    // is exactly what windowRuntimes()'s own "first window is primary"
-    // convention needs.
-    std::optional<SessionID> primary_window_id;
-    for (const auto& window : windows) {
-      if (!primary_window_id || window->window_id.id() < primary_window_id->id())
-        primary_window_id = window->window_id;
-    }
+    // F32: label each window by its position in SessionID order, not a
+    // DevTools target id -- a relaunch destroys and recreates every
+    // WebContents (and with it every target id), but SessionService
+    // restores windows in the order they were saved, so the window
+    // created/restored first again gets the lowest window_id. SessionID
+    // is one monotonic counter shared by windows, tabs and everything
+    // else that takes one, so these values aren't sequential by
+    // themselves, but their relative order among just the windows here
+    // is what's stable across a relaunch. windowOrdinals (below) assigns
+    // the same labels to the live windows this read-back is checkpointed
+    // from, by the same rule, so a pre-relaunch id captured from either
+    // op still identifies the right entry after restore.
+    std::vector<SessionID> ordered_ids;
+    for (const auto& window : windows) ordered_ids.push_back(window->window_id);
+    std::sort(ordered_ids.begin(), ordered_ids.end(),
+        [](const SessionID& a, const SessionID& b) { return a.id() < b.id(); });
+    auto label_for = [&](const SessionID& wid) -> std::string {
+      for (size_t i = 0; i < ordered_ids.size(); ++i) {
+        if (ordered_ids[i] == wid)
+          return i == 0 ? "primary" : "window-" + base::NumberToString(i + 1);
+      }
+      return std::string();
+    };
     base::ListValue saved_windows;
     for (const auto& window : windows) {
       base::ListValue tabs;
@@ -5303,26 +5337,7 @@ class Handler : public content::WebUIMessageHandler, public extensions::Extensio
         urls.Append(url);
         tabs.Append(std::move(saved_tab));
       }
-      // The harness identifies a window by its Island host's DevTools
-      // target id (what Target.getTargets reports, and what tabTargets
-      // already exposes per tab above) for every window except the first,
-      // which keeps windowRuntimes()'s own literal "primary" -- find the
-      // still-open window, if any, this checkpointed entry corresponds to
-      // and report that id, so a multi-window scenario can tell which
-      // persisted entry is which.
-      base::Value window_id;
-      if (window->window_id == *primary_window_id) {
-        window_id = base::Value("primary");
-      } else {
-        for (auto* owner : Owner::Live()) {
-          if (owner->view && owner->browser->GetSessionID() == window->window_id) {
-            window_id = base::Value(content::DevToolsAgentHost::GetOrCreateFor(
-                owner->view->GetWebContents())->GetId());
-            break;
-          }
-        }
-      }
-      saved_windows.Append(base::DictValue().Set("id", std::move(window_id))
+      saved_windows.Append(base::DictValue().Set("id", label_for(window->window_id))
           .Set("tabs", std::move(tabs)).Set("urls", std::move(urls)));
     }
     Reply(id, true, base::Value(

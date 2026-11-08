@@ -54,14 +54,22 @@ export const MENU_KEYS={
 async function primaryTargetId(w){
  return w._primaryTarget??=(await w.fixture.host.send('Target.getTargetInfo')).targetInfo.targetId;
 }
+// A window's reported id is its position in SessionID order ('primary' for
+// the lowest, 'window-N' after), not its raw DevTools target id: a relaunch
+// reassigns every target id but restores windows in save order, so this
+// stays meaningful across one (native windowOrdinals; F32). The CDP
+// connection to actually drive a window is still matched by its real
+// target id, independent of that label.
 async function runtimes(w){
  const primary=await primaryTargetId(w);w._hosts??=new Map();
+ const ordered=await w.native('windowOrdinals');
  const hosts=(await w.fixture.targets()).filter(t=>t.url===HOST);
  const out=[];
  for(const t of hosts){
   let cdp=t.id===primary?w.fixture.host:w._hosts.get(t.id);
   if(!cdp){cdp=await w.fixture.connectTarget(t);await installDriver(cdp);w._hosts.set(t.id,cdp);}
-  out.push({id:t.id===primary?'primary':t.id,cdp});
+  const index=ordered.indexOf(t.id);
+  out.push({id:index===0?'primary':index>0?`window-${index+1}`:t.id,cdp});
  }
  // Shipping lists runtimes in creation order, primary first; DevTools lists
  // targets newest first.
@@ -132,7 +140,7 @@ export const tabs={
   return w.api('runSelectedTabsAction',[action,options]);
  },
  // Windows (F32). The primary window keeps shipping's id 'primary'; others
- // are named by their Island host target.
+ // are 'window-2', 'window-3' etc. by SessionID order (see runtimes()).
  async windowRuntimes(w){
   const out=[];for(const r of await runtimes(w))out.push(strict(runtimeRecord(r.id,await snap(r)),'windowRuntime'));
   return out;
