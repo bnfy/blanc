@@ -8736,8 +8736,25 @@ class Handler : public content::WebUIMessageHandler, public extensions::Extensio
       if (model->count() == 1 || !chrome::CanMoveTabsToNewWindow(browser, {index})) {
         reply(true, base::Value(false)); return;
       }
+      // A Glance pair is a real native split; Chromium moves a whole split
+      // together, so take it apart first when either side is leaving --
+      // EndGlance restores the tab staying behind to its pre-Glance spot
+      // and activates it, the same as any other way Glance ends.
+      const int moving_id = sessions::SessionTabHelper::IdForTab(tab).id();
+      if (owner->glance_main >= 0 && (moving_id == owner->glance_main || moving_id == owner->glance_reference)) {
+        const int other_id = moving_id == owner->glance_main ? owner->glance_reference : owner->glance_main;
+        content::WebContents* stays = nullptr;
+        for (int i = 0; i < model->count(); ++i)
+          if (sessions::SessionTabHelper::IdForTab(model->GetWebContentsAt(i)).id() == other_id)
+            stays = model->GetWebContentsAt(i);
+        EndGlance(owner, stays);
+      }
+      const int moving_index = model->GetIndexOfWebContents(tab);
+      if (moving_index == TabStripModel::kNoTab) {
+        reply(false, base::Value("The tab could not be moved to a new window.")); return;
+      }
       const auto moved = tab->GetWeakPtr();
-      chrome::MoveTabsToNewWindow(browser, {index});
+      chrome::MoveTabsToNewWindow(browser, {moving_index});
       auto* destination = moved ? GlobalBrowserCollection::GetInstance()->FindBrowserWithTab(moved.get()) : nullptr;
       if (!destination || destination == browser) {
         reply(false, base::Value("The tab could not be moved to a new window.")); return;
