@@ -1214,6 +1214,50 @@ remain pending. D3 beta-only no-DRM exception accepted; EME notice/handoff requi
   feature` (0/7/19 — unrelated: that feature is broadly unbuilt, no
   favicon-adjacent failures). Branch: committed directly on
   `chromium/s3-quiet-tabs`.
+- **F32-1 fixed; F32-2 blocked on a real test-harness design gap, flagged
+  to the owner, candidate macos-75cb3812b7ecf53d (2026-11-07):**
+  `multi-window.feature` ran 0/2 before this (both already-wired, both
+  failing real assertions — a genuine bug, unlike F31/F46/F9-3's
+  stub-adapter shape). `sessionWindows`'s `TestSessionWindowsRead` never
+  set a per-window `id` or a flat `urls` list (`blanc_prototype_ui.cc`,
+  F46-built, never exercised multi-window): every assertion comparing a
+  persisted-session entry's `id` against a live `windowRuntimes()` id, or
+  reading `entry.urls`, could never pass, no matter what the real session
+  content was.
+  - **F32-1** ("a secondary window owns and discards its own workspace")
+    needed two things: each entry's `id` set to its still-open window's
+    Island host DevTools target id (`Owner::Live()`, matched by
+    `BrowserWindowInterface::GetSessionID() == SessionWindow::window_id`,
+    the same `DevToolsAgentHost::GetOrCreateFor(...)->GetId()` pattern
+    `tabTargets` already uses for tabs), and the *first* window (lowest
+    `window_id` — `SessionID` is one monotonic counter shared by windows,
+    tabs and everything else that takes one, but whichever window was
+    created first still holds the lowest id of any window) labeled the
+    literal string `"primary"`, matching `windowRuntimes()`'s own
+    convention. Added `urls` (a flat array) alongside the existing `tabs`
+    non-destructively, so F46's own consumer of `sessionWindows` is
+    unaffected. Now passes.
+  - **F32-2** ("independent window workspaces restore separately") stays
+    blocked on something no native fix can close: it captures
+    `openNewWindow()`'s return value (a DevTools target id) *before* a
+    relaunch, then compares a *post*-relaunch window's `id` against that
+    same stale value — but a relaunch destroys and recreates every
+    WebContents, so no window can ever have that id again, by
+    construction. `openNewWindow()`/`windowRuntimes()`'s id scheme is
+    itself the fork's own test-adapter code (`chromium/tests/adapters/
+    tabs.mjs`, `world.mjs` — not shipping's pinned step files), so it's
+    editable, but it's used by ~15 other step files across glance,
+    mini-window, link-routing, local-profiles, named-workspaces,
+    move-to-space, spaces-redesign, workspace-recovery and more — none of
+    which cross a relaunch the way F32-2 does. Making window identity
+    survive a relaunch (e.g. an ordinal id by restore order instead of a
+    raw DevTools target id) is a real redesign of shared test
+    infrastructure, not a wiring fix, and risks regressing scenarios this
+    session hasn't audited. Flagged rather than decided unilaterally.
+  Regression-checked `tabs-and-groups.feature` (36/1/554 — the one
+  failure, "Collapsing a group tucks its tabs away in the panel", is
+  unrelated and pre-existing). Branch: committed directly on
+  `chromium/s3-quiet-tabs`.
 - **S3.10 Move to Space, candidate macos-071c3fa883ea19ff (2026-11-07):** the tab
   menu's Move to Space ▸ lists every Space (this window's checked) and New
   Space…, and is shown once a Space exists, never for a private tab, and disabled
@@ -1802,5 +1846,5 @@ Android's Bar A counts the shared scenarios bound in `chromium/tests/android/acc
 
 Legacy macOS stages come from the approved spec; they await verification on the canonical candidate. No legacy stage counts as Verified.
 
-Candidate identities: macOS: macos-c9349c0989f548b8; Windows: none; Linux: none; Android: android-arm64-7bd35e94ef746069.
+Candidate identities: macOS: macos-75cb3812b7ecf53d; Windows: none; Linux: none; Android: android-arm64-7bd35e94ef746069.
 <!-- END GENERATED PROGRESS -->

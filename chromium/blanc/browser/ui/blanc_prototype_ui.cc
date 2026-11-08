@@ -5274,9 +5274,21 @@ class Handler : public content::WebUIMessageHandler, public extensions::Extensio
       Reply(id, false, base::Value("Could not read persisted session windows."));
       return;
     }
+    // F32: SessionID is a single monotonic counter shared by windows, tabs
+    // and everything else that takes one, so it isn't sequential across
+    // just the windows here -- but whichever window was created first in
+    // this process still holds the lowest window_id of any window, which
+    // is exactly what windowRuntimes()'s own "first window is primary"
+    // convention needs.
+    std::optional<SessionID> primary_window_id;
+    for (const auto& window : windows) {
+      if (!primary_window_id || window->window_id.id() < primary_window_id->id())
+        primary_window_id = window->window_id;
+    }
     base::ListValue saved_windows;
     for (const auto& window : windows) {
       base::ListValue tabs;
+      base::ListValue urls;
       for (const auto& tab : window->tabs) {
         base::DictValue saved_tab;
         const auto name = tab->extra_data.find(kTabNameKey);
@@ -5288,9 +5300,30 @@ class Handler : public content::WebUIMessageHandler, public extensions::Extensio
                     .virtual_url().spec();
         }
         saved_tab.Set("url", url);
+        urls.Append(url);
         tabs.Append(std::move(saved_tab));
       }
-      saved_windows.Append(base::DictValue().Set("tabs", std::move(tabs)));
+      // The harness identifies a window by its Island host's DevTools
+      // target id (what Target.getTargets reports, and what tabTargets
+      // already exposes per tab above) for every window except the first,
+      // which keeps windowRuntimes()'s own literal "primary" -- find the
+      // still-open window, if any, this checkpointed entry corresponds to
+      // and report that id, so a multi-window scenario can tell which
+      // persisted entry is which.
+      base::Value window_id;
+      if (window->window_id == *primary_window_id) {
+        window_id = base::Value("primary");
+      } else {
+        for (auto* owner : Owner::Live()) {
+          if (owner->view && owner->browser->GetSessionID() == window->window_id) {
+            window_id = base::Value(content::DevToolsAgentHost::GetOrCreateFor(
+                owner->view->GetWebContents())->GetId());
+            break;
+          }
+        }
+      }
+      saved_windows.Append(base::DictValue().Set("id", std::move(window_id))
+          .Set("tabs", std::move(tabs)).Set("urls", std::move(urls)));
     }
     Reply(id, true, base::Value(
         base::DictValue().Set("windows", std::move(saved_windows))));
