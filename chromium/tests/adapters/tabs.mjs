@@ -266,11 +266,14 @@ export const tabs={
   (w.fixture.pageIdentities??=new Map()).set(identity,id);
   return identity;
  },
+ moveGroupToSpaceByName:(w,name,id)=>nativeCall(w.fixture.host,'moveGroupToSpaceByName',[String(name),String(id)]),
+ beginNewSpaceForGroupByName:(w,name)=>nativeCall(w.fixture.host,'beginNewSpaceForGroupByName',[String(name)]),
  // Spaces (F41), through the host's bridge as the menu calls it.
  async workspaceAction(w,action,...args){
   // Move to Space's test seams (shipping's arm-move-fault and saved-urls).
   if(action==='arm-move-fault')return {ok:await nativeCall(w.fixture.host,'spaceMoveFault',[String(args[0]),String(args[1]??'storage-failed')])};
   if(action==='saved-urls')return nativeCall(w.fixture.host,'spaceSavedUrls',[String(args[0])]);
+  if(action==='saved-groups')return nativeCall(w.fixture.host,'spaceSavedGroups',[String(args[0])]);
   const before=new Set((await runtimes(w)).map(r=>r.id));
   if(action==='open'||action==='create')w.app.releasePages();
   const result=await spaceAction((method,list)=>w.api(method,list),action,args);
@@ -288,7 +291,7 @@ export const tabs={
  },
  async residentSpaces(w){
   const state=await w.hostEval('window.BlancPrototypeHost.spaceHeldState()');
-  return state.held.map(id=>({id,name:state.meta.items[id]?.name,tabs:(state.heldTabs[id]||[]).map(t=>({...t,id:String(t.id)}))}));
+  return state.held.map(id=>({id,name:state.meta.items[id]?.name,groups:state.heldGroups[id]||[],tabs:(state.heldTabs[id]||[]).map(t=>({...t,id:String(t.id)}))}));
  },
  roomPass:async w=>{const pass=(await w.hostEval('window.BlancPrototypeHost.spaceHeldState()')).roomPass||'';return {outcome:pass.split(':')[0]};},
  spaceMarkState:w=>strip(w).evalExpression("(() => { const mark = document.getElementById('pillSpace'); if (!mark) return null; const rect = mark.getBoundingClientRect(); const parts = [document.getElementById('pillSpaceSymbol'), document.getElementById('pillSpaceName')]; return { hidden: mark.hidden, state: mark.dataset.state, name: parts[1].textContent, label: mark.getAttribute('aria-label'), expanded: mark.getAttribute('aria-expanded'), fill: mark.style.getPropertyValue('--space-fill'), on: mark.style.getPropertyValue('--space-on'), edge: mark.dataset.edge ?? null, markBackground: getComputedStyle(mark).backgroundColor, squareBackground: getComputedStyle(parts[0]).backgroundColor, symbolColor: getComputedStyle(parts[0]).color, nameColor: getComputedStyle(parts[1]).color, islandText: getComputedStyle(document.getElementById('islandPill')).color, square: (() => { const b = parts[0].getBoundingClientRect(); return { width: b.width, height: b.height, inset: b.left - rect.left }; })(), nameTruncated: parts[1].scrollWidth > parts[1].clientWidth, symbol: parts[0].dataset.symbol ?? null, left: rect.left, bottom: rect.bottom, islandBottom: document.getElementById('islandPill').getBoundingClientRect().bottom, animatedProperties: [...new Set(parts.flatMap((p) => p.getAnimations()).flatMap((a) => a.effect.getKeyframes().flatMap((k) => Object.keys(k))))], animations: parts.flatMap((p) => p.getAnimations()).map((a) => ({ kind: a.constructor.name, time: a.currentTime, duration: a.effect.getTiming().duration })), reducedMotion: window.matchMedia('(prefers-reduced-motion: reduce)').matches, }; })()"),

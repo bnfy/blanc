@@ -1342,8 +1342,67 @@ remain pending. D3 beta-only no-DRM exception accepted; EME notice/handoff requi
   as a whole: 52 of 53 runnable cases pass (s3ci-spaces-full), the one failure
   still the known F41-6. **Not built:** batch close/restore as one entry; the
   Space-move write path's own test seam doesn't yet cover several tabs beyond
-  what the scenarios above exercise. Open Link in Space (F41-51 to 57) and
-  Move Group to Space (F41-75 to 79) are also not built.
+  what the scenarios above exercise. Open Link in Space (F41-51 to 57) is also
+  not built. Move Group to Space (F41-75 to 79) is covered below (S3.12).
+- **S3.12 Move Group to Space (F41-75 to 79), candidate macos-b231d006b8f5d70e
+  (2026-11-08):** the tab group's menu gains **Move Group to Space ▸**,
+  continuing S3.10/S3.11's write-first machinery (built by Codex, gpt-6.1-sol,
+  from a written brief in a separate worktree; the owner's standing call to
+  delegate well-scoped native work and have Claude build/review/test/merge it).
+  Native `spaceMoveGroup(groupId, spaceId, create)` resolves the group's
+  members in strip order and dispatches into the existing `spaceMoveTabs`
+  write-first engine with a 4th, optional source-group argument; `SpaceGroupRows`
+  binds the move to the group's exact live membership and visuals across the
+  disk write (refusing if `BatchPages`' split expansion would carry along a
+  tab that isn't a member), and `SpaceRecordWithRows` now merges the arriving
+  rows into an existing same-name destination group (case-insensitive; its own
+  members keep leading the arrivals) or stamps a fresh group record with the
+  source's name and colour — reordering the written record's `tabs`/`splitIds`
+  so the group block stays contiguous, as Chromium's own grouping invariant
+  requires. `SpaceBatchWritten`'s live transfer places arriving pages into the
+  destination's matching group (`MoveGroupTo` ahead of `AddToExistingGroup`,
+  or a fresh `AddToNewGroup` with the source's visuals) for a holder window,
+  and the equivalent HeldSpace/record bookkeeping for a space set aside
+  nowhere; the existing `write`/`transfer`/`transfer-pane`/`rewrite` fault
+  seams (`arm-move-fault`) keep meaning exactly what they did before, since no
+  second rollback engine was written. `moveGroupToSpaceByName`/
+  `beginNewSpaceForGroupByName` (test-only, case-insensitive name resolution)
+  and `spaceSavedGroups` (parallel to the existing `spaceSavedUrls`) round out
+  the native side; `chromium/tests/adapters/tabs.mjs` gained the matching
+  adapters and a `workspaceAction('saved-groups', …)` branch.
+  **Not built: F41-78** ("New Space from the group menu takes the group
+  along"). The single-tab "New Space…" editor's purpose data is private to
+  `blanc/island/host.js`'s `show()` closure, with no production entry point
+  for a group's member ids and name; Codex's `beginNewSpaceForGroup` is an
+  explicit refusal stub rather than a guess at that wiring, and
+  `beginNewSpaceForGroupByName` inherits the same refusal. A future pass needs
+  a host bridge that binds the group's exact members, passes its name to the
+  editor, and submits through `spaceMoveGroup` with `create=true`.
+  Claude found and fixed two gaps Codex's own handoff flagged as unverified:
+  a `base::ListValue` chaining bug (`.Append(...).Append(...)` on a named
+  lvalue, which only the builder-pattern `&&`-qualified overloads support —
+  the call bound to the `void`-returning lvalue overload instead and failed
+  to compile), and a harness gap unrelated to Codex's diff: the fork's step
+  loader (`chromium/tests/lib/shipping-core.cjs`) had never added
+  `group-space.steps.js` to its audited `stepFiles` allowlist, so all five
+  scenarios read as "step definition missing" even with the native/adapter
+  work correctly built; added it (confirmed byte-identical between the
+  working tree and the pinned shipping reference commit before adding it).
+  **Evidence:** F41-75, F41-76, F41-77 and F41-79 pass for real on the native
+  candidate (verified individually by exact scenario line, including F41-76's
+  non-trivial "existing members keep leading the arrivals" ordering and
+  F41-79's real group-menu DOM, which needed no front-end change — the shared
+  Island assets already show/hide "Move Group to Space" correctly once the
+  underlying Spaces data is right). F41-78 fails exactly as predicted
+  (`false !== true` on the refusal stub), not from any other cause. A full
+  `F41-named-workspaces.feature` sweep: 57 of 59 decided cases pass (up from
+  52 of 54 before this work), the only failures F41-78 above and the long-
+  pre-existing F41-6 (Quiet Tabs/workspace-ownership interaction, unrelated,
+  unchanged). `tabs-and-groups.feature` matches its exact known baseline
+  (36/1, the one failure the pre-existing panel-collapse gap) and
+  `multi-window.feature` stays 2/2. Unit tests 257 of 258 pass (the one
+  failure the same pre-existing `ui-language.test.mjs` Node-version gap seen
+  all session); `check-patches.py` passes.
 - **After a crash, Chromium's Restore pages? bubble (owner, 2026-11-07, candidate
   macos-071c3fa883ea19ff):** shipping doesn't restore silently: it opens one
   window with a "Pick up where you left off?" card (Restore tabs, Start fresh)
@@ -1888,5 +1947,5 @@ Android's Bar A counts the shared scenarios bound in `chromium/tests/android/acc
 
 Legacy macOS stages come from the approved spec; they await verification on the canonical candidate. No legacy stage counts as Verified.
 
-Candidate identities: macOS: macos-cf277bb10ec10b0b; Windows: none; Linux: none; Android: android-arm64-7bd35e94ef746069.
+Candidate identities: macOS: macos-b231d006b8f5d70e; Windows: none; Linux: none; Android: android-arm64-7bd35e94ef746069.
 <!-- END GENERATED PROGRESS -->

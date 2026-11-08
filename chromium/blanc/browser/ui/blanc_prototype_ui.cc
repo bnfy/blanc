@@ -1739,7 +1739,7 @@ struct HeldTab {
   // page frozen until the Space returns.
   std::unique_ptr<tabs::ScopedTabModalUI> no_modal_ui;
 };
-struct HeldSpace { std::string name; std::vector<HeldTab> tabs; };
+struct HeldSpace { std::string name; std::vector<HeldTab> tabs; base::DictValue record; };
 // Set-aside Spaces (F41, owner 2026-11-06). Chromium's rule is that a tab has a
 // window: without one, a tab feature woken by anything a live page does, even
 // history.pushState, dereferences null. So the pages of a Space that isn't
@@ -2852,6 +2852,29 @@ std::optional<base::ListValue> SpaceBatchRows(TabStripModel* model, const base::
   }
   return rows;
 }
+// Bind a group move to its exact membership and visuals across the disk write.
+// BatchPages can expand splits; refuse if that would take a nonmember along.
+std::optional<base::ListValue> SpaceGroupRows(TabStripModel* model, const base::ListValue& ids,
+                                            const std::string& group_id) {
+  auto rows = SpaceBatchRows(model, ids);
+  if (!rows || group_id.empty()) return rows;
+  const auto group = FindGroup(model, group_id);
+  if (!group) return std::nullopt;
+  const auto* visual = GroupVisuals(model, *group);
+  base::ListValue actual;
+  for (int i = 0; i < model->count(); ++i)
+    if (model->GetTabGroupForTab(i) == group)
+      actual.Append(sessions::SessionTabHelper::IdForTab(model->GetWebContentsAt(i)).id());
+  if (actual != ids || !visual) return std::nullopt;
+  for (auto& value : *rows) {
+    for (const auto& member : *value.GetDict().FindList("members"))
+      if (!std::ranges::any_of(actual, [&](const auto& id) { return id.GetInt() == *member.GetDict().FindInt("id"); }))
+        return std::nullopt;
+    value.GetDict().Set("landingGroup", base::DictValue().Set("name", base::UTF16ToUTF8(visual->title()))
+        .Set("color", static_cast<int>(visual->color())).Set("collapsed", visual->is_collapsed()));
+  }
+  return rows;
+}
 std::optional<base::DictValue> SpaceRecordWithRows(const base::DictValue* prior, const base::ListValue& rows) {
   std::optional<base::DictValue> next;
   if (prior) next = prior->Clone();
@@ -2879,6 +2902,36 @@ std::optional<base::DictValue> SpaceRecordWithRows(const base::DictValue* prior,
       const int start = static_cast<int>(count - members.size());
       for (size_t i = count - members.size(); i < count; ++i) (*ids)[i] = base::Value(key);
       if (*next->FindInt("active") >= start) next->Set("active", start + *row.FindInt("focused"));
+    }
+  }
+  if (next && !rows.empty()) {
+    if (const auto* landing = rows.front().GetDict().FindDict("landingGroup")) {
+      auto* groups = next->FindList("groups");
+      int group = -1;
+      for (size_t i = 0; i < groups->size(); ++i)
+        if (base::i18n::ToLower(base::UTF8ToUTF16(*(*groups)[i].GetDict().FindString("name"))) ==
+            base::i18n::ToLower(base::UTF8ToUTF16(*landing->FindString("name")))) { group = static_cast<int>(i); break; }
+      if (group < 0) { group = static_cast<int>(groups->size()); groups->Append(landing->Clone()); }
+      auto* tabs = next->FindList("tabs");
+      size_t count = 0;
+      for (const auto& row : rows) count += row.GetDict().FindList("members")->size();
+      const size_t start = tabs->size() - count;
+      // Chromium groups are contiguous. Keep existing members in order, move
+      // that block last, then append arrivals. Reorder split columns together.
+      std::vector<size_t> order;
+      for (size_t i = 0; i < start; ++i) if (*(*tabs)[i].GetDict().FindInt("group") != group) order.push_back(i);
+      for (size_t i = 0; i < start; ++i) if (*(*tabs)[i].GetDict().FindInt("group") == group) order.push_back(i);
+      for (size_t i = start; i < tabs->size(); ++i) { (*tabs)[i].GetDict().Set("group", group); order.push_back(i); }
+      base::ListValue ordered, split_ids;
+      const auto* splits = next->FindList("splitIds");
+      const int active = *next->FindInt("active");
+      for (size_t i : order) {
+        if (static_cast<int>(i) == active) next->Set("active", static_cast<int>(ordered.size()));
+        ordered.Append((*tabs)[i].Clone());
+        if (splits) split_ids.Append((*splits)[i].Clone());
+      }
+      next->Set("tabs", std::move(ordered));
+      if (splits) next->Set("splitIds", std::move(split_ids));
     }
   }
   return next && ValidSpace(*next) ? std::move(next) : std::nullopt;
@@ -4678,6 +4731,28 @@ class Handler : public content::WebUIMessageHandler, public extensions::Extensio
     // backend sequence — flush before replying, or a reader racing ahead of
     // that write (BookmarkModel's first GetFavicon for this node, which can
     // cache a negative result) sees nothing there yet.
+    if ((quiet_method == "moveGroupToSpaceByName" && quiet_args.size() == 2 && quiet_args[1].is_string()) ||
+        (quiet_method == "beginNewSpaceForGroupByName" && quiet_args.size() == 1)) {
+      auto* owner = GetOwner(web_ui()->GetWebContents());
+      auto* model = owner ? owner->browser->GetTabStripModel() : nullptr;
+      std::optional<tab_groups::TabGroupId> group;
+      if (model && quiet_args[0].is_string()) for (const auto& candidate : GroupsInOrder(model))
+        if (base::i18n::ToLower(GroupVisuals(model, candidate)->title()) ==
+            base::i18n::ToLower(base::UTF8ToUTF16(quiet_args[0].GetString()))) { group = candidate; break; }
+      if (!group) {
+        if (quiet_args.size() == 2)
+          Reply(id, true, base::Value(base::DictValue().Set("ok", false).Set("error", "refused").Set("movedCount", 0)));
+        else Reply(id, true, base::Value(false));
+        return;
+      }
+      base::ListValue args;
+      args.Append(group->ToString());
+      if (quiet_args.size() == 2) { args.Append(quiet_args[1].Clone()); args.Append(false); }
+      Handle(base::ListValue().Append(id).Append(quiet_args.size() == 2 ? "spaceMoveGroup" : "beginNewSpaceForGroup")
+          .Append(std::move(args)));
+      return;
+    }
+
     if (quiet_method == "seedFavicon" && quiet_args.size() == 1 && quiet_args[0].is_string()) {
       auto* owner = GetOwner(web_ui()->GetWebContents());
       Profile* profile = owner ? owner->browser->GetProfile() : nullptr;
@@ -4814,20 +4889,30 @@ class Handler : public content::WebUIMessageHandler, public extensions::Extensio
       return;
     }
     // A Space's saved addresses, or null with no record (shipping's saved-urls).
-    if (message[1].GetString() == "spaceSavedUrls" && message[2].GetList().size() == 1 &&
+    if ((quiet_method == "spaceSavedUrls" || quiet_method == "spaceSavedGroups") && message[2].GetList().size() == 1 &&
         message[2].GetList()[0].is_string()) {
       auto* profile = Profile::FromWebUI(web_ui())->GetOriginalProfile();
       SpaceRunner()->PostTaskAndReplyWithResult(FROM_HERE,
           base::BindOnce(&SpaceDisk, profile->GetPath().AppendASCII("BlancPrototypeSpaces.json"),
               "spaceRecord", message[2].GetList()[0].GetString(), base::DictValue()),
-          base::BindOnce([](base::WeakPtr<Handler> handler, std::string id, base::DictValue result) {
+          base::BindOnce([](base::WeakPtr<Handler> handler, std::string id, bool groups_requested, base::DictValue result) {
             if (!handler) return;
             const auto* record = result.FindDict("record");
             if (!record) { handler->Reply(id, true, base::Value()); return; }
             base::ListValue urls;
             for (const auto& tab : *record->FindList("tabs")) urls.Append(*tab.GetDict().FindString("url"));
-            handler->Reply(id, true, base::Value(std::move(urls)));
-          }, weak_factory_.GetWeakPtr(), id));
+            if (!groups_requested) { handler->Reply(id, true, base::Value(std::move(urls))); return; }
+            base::ListValue groups, group_ids;
+            const auto* saved = record->FindList("groups");
+            for (size_t i = 0; i < saved->size(); ++i) {
+              const auto& g = (*saved)[i].GetDict();
+              groups.Append(base::DictValue().Set("id", static_cast<int>(i)).Set("name", *g.FindString("name"))
+                  .Set("color", GroupColor(static_cast<tab_groups::TabGroupColorId>(*g.FindInt("color")))));
+            }
+            for (const auto& tab : *record->FindList("tabs")) group_ids.Append(*tab.GetDict().FindInt("group"));
+            handler->Reply(id, true, base::Value(base::DictValue().Set("urls", std::move(urls))
+                .Set("groups", std::move(groups)).Set("groupIds", std::move(group_ids))));
+          }, weak_factory_.GetWeakPtr(), id, quiet_method == "spaceSavedGroups"));
       return;
     }
     // Chromium's native post-crash "Restore pages?" bubble (owner, 2026-11-07:
@@ -6210,11 +6295,12 @@ class Handler : public content::WebUIMessageHandler, public extensions::Extensio
       if (!hold->Find(name)) {
         // A Space open nowhere is set aside to receive the page; its saved
         // tabs keep their slots and load from the record when it opens.
-        HeldSpace space{name, {}};
+        HeldSpace space{name, {}, {}};
         space.tabs.resize(slots);
         hold->spaces().push_back(std::move(space));
       }
       hold->Find(name)->tabs.push_back(hold->Take(model, at, false));
+      hold->Find(name)->record = next.Clone();
       // Out of this window's session: a crash must not restore it here.
       if (auto* session = SessionServiceFactory::GetForProfile(profile))
         session->TabClosed(browser->GetSessionID(), SessionID::FromSerializedValue(hold->Find(name)->tabs.back().id));
@@ -6233,11 +6319,11 @@ class Handler : public content::WebUIMessageHandler, public extensions::Extensio
     if (error) result.Set("error", error);
     Reply(id, true, base::Value(std::move(result)));
   }
-  void SpaceBatchWrite(std::string id, base::ListValue ids, std::string name, bool create, base::DictValue found) {
+  void SpaceBatchWrite(std::string id, base::ListValue ids, std::string name, bool create, std::string group_id, base::DictValue found) {
     auto* owner = GetOwner(web_ui()->GetWebContents());
     if (!owner) return;
     if (found.FindString("error")) { SpaceBatchReply(id, "not-found", 0, false); return; }
-    const auto rows = SpaceBatchRows(owner->browser->GetTabStripModel(), ids);
+    const auto rows = SpaceGroupRows(owner->browser->GetTabStripModel(), ids, group_id);
     if (!rows) { SpaceBatchReply(id, "refused", 0, false); return; }
     const auto* base = create ? nullptr : found.FindDict("record");
     auto next = SpaceRecordWithRows(base, *rows);
@@ -6256,10 +6342,10 @@ class Handler : public content::WebUIMessageHandler, public extensions::Extensio
         base::BindOnce(&SpaceDisk, owner->browser->GetProfile()->GetPath().AppendASCII("BlancPrototypeSpaces.json"),
             "previewSpaceSave", name, std::move(copy)),
         base::BindOnce(&Handler::SpaceBatchWritten, weak_factory_.GetWeakPtr(), id, std::move(ids), name,
-            rows->Clone(), std::move(*next), std::move(prior), slots));
+            rows->Clone(), std::move(*next), std::move(prior), slots, group_id));
   }
   void SpaceBatchWritten(std::string id, base::ListValue ids, std::string name, base::ListValue rows,
-                         base::DictValue next, base::DictValue prior, size_t slots, base::DictValue written) {
+                         base::DictValue next, base::DictValue prior, size_t slots, std::string group_id, base::DictValue written) {
     auto* owner = GetOwner(web_ui()->GetWebContents());
     if (!owner) return;
     if (written.FindString("error")) { SpaceBatchReply(id, "storage-failed", 0, false); return; }
@@ -6269,7 +6355,7 @@ class Handler : public content::WebUIMessageHandler, public extensions::Extensio
     Owner* holder = nullptr;
     for (auto* other : Owner::Live())
       if (other != owner && other->browser->GetProfile() == profile && other->space_name == name) holder = other;
-    auto fresh = SpaceBatchRows(model, ids);
+    auto fresh = SpaceGroupRows(model, ids, group_id);
     bool failed = !fresh || *fresh != rows ||
         (holder && (holder->space_busy || holder->space_expected));
     if (holder && !failed) {
@@ -6298,7 +6384,7 @@ class Handler : public content::WebUIMessageHandler, public extensions::Extensio
     }
     if (!failed) {
       if (!holder && !hold->Find(name)) {
-        HeldSpace space{name, {}}; space.tabs.resize(slots);
+        HeldSpace space{name, {}, {}}; space.tabs.resize(slots);
         hold->spaces().push_back(std::move(space));
       }
       const auto pages = BatchPages(model, ids);
@@ -6311,6 +6397,8 @@ class Handler : public content::WebUIMessageHandler, public extensions::Extensio
         if (first < 0) { failed = true; break; }
         const bool pinned = model->IsTabPinned(first);
         const auto group = model->GetTabGroupForTab(first);
+        std::optional<tab_groups::TabGroupVisualData> group_visual;
+        if (group) group_visual = *GroupVisuals(model, *group);
         if (const auto split = model->GetSplitForTab(first)) model->RemoveSplit(*split);
         std::vector<content::WebContents*> transferred;
         for (const auto& member : members) {
@@ -6338,7 +6426,14 @@ class Handler : public content::WebUIMessageHandler, public extensions::Extensio
             }
             model->InsertWebContentsAt(first, std::move(returned), AddTabTypes::ADD_NONE);
             model->SetTabPinned(model->GetIndexOfWebContents(page), pinned);
-            if (group) model->AddToExistingGroup({model->GetIndexOfWebContents(page)}, *group);
+            if (group) {
+              auto restored = FindGroup(model, group->ToString());
+              if (restored) model->AddToExistingGroup({model->GetIndexOfWebContents(page)}, *restored);
+              else {
+                restored = model->AddToNewGroup({model->GetIndexOfWebContents(page)});
+                model->ChangeTabGroupVisuals(*restored, *group_visual);
+              }
+            }
             model->MoveWebContentsAt(model->GetIndexOfWebContents(page), first, false);
             RestoreBatchSplit(browser, row);
             failed = true; break;
@@ -6346,6 +6441,26 @@ class Handler : public content::WebUIMessageHandler, public extensions::Extensio
         }
         if (failed) break;
         if (holder) {
+          if (const auto* landing = row.FindDict("landingGroup")) {
+            auto* target = holder->browser->GetTabStripModel();
+            std::optional<tab_groups::TabGroupId> destination;
+            for (const auto& candidate : GroupsInOrder(target))
+              if (base::i18n::ToLower(GroupVisuals(target, candidate)->title()) ==
+                  base::i18n::ToLower(base::UTF8ToUTF16(*landing->FindString("name")))) { destination = candidate; break; }
+            if (destination) {
+              const auto range = target->group_model()->GetTabGroup(*destination)->ListTabs();
+              target->MoveGroupTo(*destination, target->count() - static_cast<int>(transferred.size()) - static_cast<int>(range.length()));
+            }
+            std::vector<int> indices;
+            for (auto* page : transferred) indices.push_back(target->GetIndexOfWebContents(page));
+            if (destination) target->AddToExistingGroup(indices, *destination);
+            else {
+              destination = target->AddToNewGroup(indices);
+              target->ChangeTabGroupVisuals(*destination, tab_groups::TabGroupVisualData(
+                  base::UTF8ToUTF16(*landing->FindString("name")),
+                  static_cast<tab_groups::TabGroupColorId>(*landing->FindInt("color")), *landing->FindBool("collapsed")));
+            }
+          }
           RestoreBatchSplit(holder->browser, row);
           if (target_blank) {
             auto* target = holder->browser->GetTabStripModel();
@@ -6361,6 +6476,30 @@ class Handler : public content::WebUIMessageHandler, public extensions::Extensio
         // The last row may already have arrived when an operation fails.
         if (TakeSpaceMoveFault("transfer")) { failed = true; break; }
       }
+    }
+    // The hidden strip carries pages; the checked Space record owns their
+    // group identity. Its slots follow exactly the same block reorder.
+    if (hold && hold->Find(name)) {
+      auto* space = hold->Find(name);
+      if (!arrived.empty() && arrived.front().GetDict().FindDict("landingGroup") && slots > 0) {
+        const auto* landing = arrived.front().GetDict().FindDict("landingGroup");
+        int group = -1;
+        const auto* groups = prior.FindList("groups");
+        for (size_t i = 0; i < groups->size(); ++i)
+          if (base::i18n::ToLower(base::UTF8ToUTF16(*(*groups)[i].GetDict().FindString("name"))) ==
+              base::i18n::ToLower(base::UTF8ToUTF16(*landing->FindString("name")))) { group = static_cast<int>(i); break; }
+        if (group >= 0) {
+          std::vector<HeldTab> ordered;
+          for (bool matching : {false, true})
+            for (size_t i = 0; i < slots; ++i)
+              if ((*(*prior.FindList("tabs"))[i].GetDict().FindInt("group") == group) == matching)
+                ordered.push_back(std::move(space->tabs[i]));
+          for (size_t i = slots; i < space->tabs.size(); ++i) ordered.push_back(std::move(space->tabs[i]));
+          space->tabs = std::move(ordered);
+        }
+      }
+      auto record = SpaceRecordWithRows(&prior, arrived);
+      if (record) space->record = std::move(*record);
     }
     const bool complete = arrived.size() == rows.size();
     if (!complete && floor && model->count() > 1)
@@ -6598,7 +6737,7 @@ class Handler : public content::WebUIMessageHandler, public extensions::Extensio
     const bool keep_old = method == "previewSpaceOpen" && !owner->space_name.empty() &&
         owner->space_name != "__scratch__";
     SpaceHold* hold = keep_old ? SpaceHold::Open(browser->GetProfile(), browser->GetWindow()->GetBounds()) : nullptr;
-    HeldSpace aside{owner->space_name, {}};
+    HeldSpace aside{owner->space_name, {}, before.Clone()};
     auto* session = SessionServiceFactory::GetForProfile(browser->GetProfile());
     for (auto* tab : old_tabs) {
       if (std::ranges::contains(added, tab)) continue;
@@ -6842,7 +6981,7 @@ class Handler : public content::WebUIMessageHandler, public extensions::Extensio
     // in the checked store below, under each Space's id.
     if (method == "spaceMeta" && args.empty()) {
       base::ListValue elsewhere, held;
-      base::DictValue held_tabs;
+      base::DictValue held_tabs, held_groups;
       for (auto* other : Owner::Live()) {
         if (other->browser->GetProfile()->GetOriginalProfile() != profile->GetOriginalProfile()) continue;
         if (other != owner && !other->space_name.empty()) elsewhere.Append(other->space_name);
@@ -6851,11 +6990,24 @@ class Handler : public content::WebUIMessageHandler, public extensions::Extensio
         for (const auto& space : hold->spaces()) {
           held.Append(space.name);
           base::ListValue rows;
+          base::ListValue groups;
+          if (const auto* saved = space.record.FindList("groups"))
+            for (size_t i = 0; i < saved->size(); ++i) {
+              const auto& g = (*saved)[i].GetDict();
+              groups.Append(base::DictValue().Set("id", static_cast<int>(i)).Set("name", *g.FindString("name"))
+                  .Set("color", GroupColor(static_cast<tab_groups::TabGroupColorId>(*g.FindInt("color")))));
+            }
+          held_groups.Set(space.name, std::move(groups));
+          size_t slot = 0;
           for (const auto& tab : space.tabs) {
             auto* page = hold->Contents(tab);
             const bool loaded = page && !page->WasDiscarded();
+            const auto* saved_tabs = space.record.FindList("tabs");
+            const int group = saved_tabs && slot < saved_tabs->size() ?
+                (*saved_tabs)[slot].GetDict().FindInt("group").value_or(-1) : -1;
+            ++slot;
             rows.Append(base::DictValue().Set("id", tab.id).Set("pinned", tab.pinned)
-                .Set("asleep", !loaded).Set("live", loaded));
+                .Set("groupId", group).Set("asleep", !loaded).Set("live", loaded));
           }
           held_tabs.Set(space.name, std::move(rows));
         }
@@ -6863,7 +7015,7 @@ class Handler : public content::WebUIMessageHandler, public extensions::Extensio
       reply(true, base::Value(base::DictValue()
           .Set("meta", profile->GetOriginalProfile()->GetPrefs()->GetDict(kSpacesMetaPref).Clone())
           .Set("elsewhere", std::move(elsewhere)).Set("held", std::move(held))
-          .Set("heldTabs", std::move(held_tabs)).Set("roomPass", LastRoomPass())));
+          .Set("heldTabs", std::move(held_tabs)).Set("heldGroups", std::move(held_groups)).Set("roomPass", LastRoomPass())));
       return;
     }
     if (method == "spaceMetaSave" && args.size() == 1 && args[0].is_dict()) {
@@ -6963,11 +7115,31 @@ class Handler : public content::WebUIMessageHandler, public extensions::Extensio
           base::BindOnce(&Handler::SpaceMoveWrite, weak_factory_.GetWeakPtr(), id, tab_id, name, false));
       return;
     }
-    if (method == "spaceMoveTabs" && args.size() == 3 && args[0].is_list() && args[1].is_string() &&
+    if (method == "beginNewSpaceForGroup" && args.size() == 1 && args[0].is_string()) {
+      // The existing editor purpose is private to host.js's show() closure.
+      // There is no native purpose-setting entry point. Refuse rather than
+      // open a tab editor that would silently drop the rest of the group.
+      // Follow-up must expose a production host bridge before enabling this.
+      reply(true, base::Value(false));
+      return;
+    }
+    if (method == "spaceMoveGroup" && args.size() == 3 && args[0].is_string() &&
+        args[1].is_string() && args[2].is_bool()) {
+      const auto group = FindGroup(model, args[0].GetString());
+      base::ListValue ids;
+      if (group) for (int i = 0; i < model->count(); ++i)
+        if (model->GetTabGroupForTab(i) == group)
+          ids.Append(sessions::SessionTabHelper::IdForTab(model->GetWebContentsAt(i)).id());
+      Handle(base::ListValue().Append(id).Append("spaceMoveTabs").Append(base::ListValue()
+          .Append(std::move(ids)).Append(args[1].Clone()).Append(args[2].Clone()).Append(args[0].Clone())));
+      return;
+    }
+    if (method == "spaceMoveTabs" && (args.size() == 3 || (args.size() == 4 && args[3].is_string())) && args[0].is_list() && args[1].is_string() &&
         !args[1].GetString().empty() && args[1].GetString().size() <= 120 && args[2].is_bool()) {
       const auto& name = args[1].GetString();
       const bool create = args[2].GetBool();
-      const auto rows = SpaceBatchRows(model, args[0].GetList());
+      const std::string group_id = args.size() == 4 ? args[3].GetString() : "";
+      const auto rows = SpaceGroupRows(model, args[0].GetList(), group_id);
       if (profile->IsOffTheRecord() || owner->space_busy || owner->space_expected ||
           (!create && owner->space_name == name) || !rows) {
         reply(true, base::Value(base::DictValue().Set("ok", false).Set("error", "refused").Set("movedCount", 0))); return;
@@ -6988,11 +7160,11 @@ class Handler : public content::WebUIMessageHandler, public extensions::Extensio
       if (holder) {
         auto capture = CaptureNativeSpace(holder->browser);
         if (!capture) { SpaceBatchReply(id, "busy", 0, false); return; }
-        SpaceBatchWrite(id, args[0].GetList().Clone(), name, create, base::DictValue().Set("record", std::move(*capture)));
-      } else if (create) SpaceBatchWrite(id, args[0].GetList().Clone(), name, true, base::DictValue());
+        SpaceBatchWrite(id, args[0].GetList().Clone(), name, create, group_id, base::DictValue().Set("record", std::move(*capture)));
+      } else if (create) SpaceBatchWrite(id, args[0].GetList().Clone(), name, true, group_id, base::DictValue());
       else SpaceRunner()->PostTaskAndReplyWithResult(FROM_HERE,
           base::BindOnce(&SpaceDisk, profile->GetPath().AppendASCII("BlancPrototypeSpaces.json"), "spaceRecord", name, base::DictValue()),
-          base::BindOnce(&Handler::SpaceBatchWrite, weak_factory_.GetWeakPtr(), id, args[0].GetList().Clone(), name, false));
+          base::BindOnce(&Handler::SpaceBatchWrite, weak_factory_.GetWeakPtr(), id, args[0].GetList().Clone(), name, false, group_id));
       return;
     }
     if (method == "spaceReveal" && args.size() == 1 && space_named) {
