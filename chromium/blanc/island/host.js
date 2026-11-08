@@ -500,7 +500,8 @@
     if (list.meta.order.length >= SPACE_LIMIT) return { ok: false, error: 'limit', ...(await spacesPayload()) };
     const id = crypto.randomUUID();
     const revision = selectionRevision, anchor = tabSelection.selectionAnchorId;
-    const result = await request('spaceMoveTabs', [ids.map(nativeId), id, true]);
+    const groupId = overlayMode === 'spaces' ? overlayPurpose?.newSpaceGroupId : null;
+    const result = await request('spaceMoveTabs', [ids.map(nativeId), id, true, ...(groupId ? [groupId] : [])]);
     await refresh();
     if (selectionRevision === revision) {
       if (result.ok) clearSelection(); else retainSelection(ids, anchor);
@@ -1943,6 +1944,14 @@
     lastSpaceMove: () => lastSpaceMove,
     createSpaceWithTab: (name, identity, tabId) => createSpaceWithTab(name, identity, tabId),
     createSpaceWithTabs: (name, identity, ids) => createSpaceWithTabs(name, identity, ids),
+    beginNewSpaceForGroup: groupId => {
+      const group = snapshot.groups.find(group => group.id === groupId);
+      if (!group) return false;
+      const ids = snapshot.tabs.filter(tab => tab.groupId === group.id).map(tab => String(tab.id));
+      if (!ids.length) return false;
+      show('', 'spaces', null, { newSpaceTabIds: ids, newSpaceGroupId: group.id, newSpaceGroupName: group.name });
+      return true;
+    },
     beginNewSpaceForTab: tabId => show('', 'spaces', null, { newSpaceTabId: String(tabId) }),
     openSpacesMenu: anchor => {
       if (overlayMode === 'spaces') { close(false); return; }

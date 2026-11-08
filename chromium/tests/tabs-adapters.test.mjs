@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {blockableHostname,closedSummary,runtimeRecord,MENU_KEYS,strict} from './adapters/tabs.mjs';
+import {tabs,blockableHostname,closedSummary,runtimeRecord,MENU_KEYS,strict} from './adapters/tabs.mjs';
 import {UndefinedNativeAdapterError} from './lib/adapters.mjs';
 test('exception hostnames follow shipping blockableHostname',()=>{
  assert.equal(blockableHostname('https://WWW.Example.com/x'),'example.com');
@@ -22,4 +22,14 @@ test('window runtimes project one native snapshot without guessed fields',()=>{
 });
 test('tab-menu ids map to i18n keys only',()=>{
  for(const keys of Object.values(MENU_KEYS))assert.ok(keys.every(k=>/^[a-zA-Z]+\.[a-zA-Z]+$/.test(k)));
+});
+
+test('New Space for a group resolves its native ID and enters the real host UI',async()=>{
+ const calls=[];
+ const w={snapshot:async()=>({groups:[{id:'native-group',name:'Research'}]}),
+  api:async(method,args)=>{calls.push([method,args]);return true;}};
+ assert.equal(await tabs.beginNewSpaceForGroupByName(w,'rEsEaRcH'),true);
+ assert.deepEqual(calls,[['beginNewSpaceForGroup',['native-group']]]);
+ assert.equal(await tabs.beginNewSpaceForGroupByName(w,'missing'),false);
+ assert.equal(calls.length,1);
 });

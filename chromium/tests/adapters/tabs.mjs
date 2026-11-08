@@ -267,7 +267,10 @@ export const tabs={
   return identity;
  },
  moveGroupToSpaceByName:(w,name,id)=>nativeCall(w.fixture.host,'moveGroupToSpaceByName',[String(name),String(id)]),
- beginNewSpaceForGroupByName:(w,name)=>nativeCall(w.fixture.host,'beginNewSpaceForGroupByName',[String(name)]),
+ async beginNewSpaceForGroupByName(w,name){
+  const group=(await w.snapshot()).groups.find(g=>same(g.name,name));
+  return group ? w.api('beginNewSpaceForGroup',[group.id]) : false;
+ },
  // Spaces (F41), through the host's bridge as the menu calls it.
  async workspaceAction(w,action,...args){
   // Move to Space's test seams (shipping's arm-move-fault and saved-urls).

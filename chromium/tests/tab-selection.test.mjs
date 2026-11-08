@@ -133,10 +133,25 @@ function newSpaceHost(result) {
  ctx.spacesPayload=async()=>({items:[]});
  ctx.writes=[];ctx.writeSpaces=async list=>ctx.writes.push(plain(list));
  ctx.spaceResult=async details=>({ok:true,...details});
+ // createSpaceWithTabs reads the real editor's remembered overlay purpose
+ // (F41-78); the extracted slice below needs them as free variables too.
+ ctx.overlayMode='spaces';ctx.overlayPurpose=null;
  const start=hostSource.indexOf('  async function createSpaceWithTabs(');
  vm.runInContext(hostSource.slice(start,hostSource.indexOf('  // Floating Glance',start)),ctx);
  return ctx;
 }
+test('New Space from the group menu threads the remembered group id (F41-78)',async()=>{
+ const ctx=newSpaceHost({ok:true,movedCount:2,saved:true,tabCount:2});
+ ctx.overlayPurpose={newSpaceTabIds:['a','b'],newSpaceGroupId:'native-group',newSpaceGroupName:'Research'};
+ await ctx.createSpaceWithTabs('Reading',{},['a','b']);
+ assert.deepEqual(plain(ctx.calls),[['spaceMoveTabs',[['a','b'],'new-space',true,'native-group']]]);
+});
+test('New Space from a plain tab/selection never sends a group id',async()=>{
+ const ctx=newSpaceHost({ok:true,movedCount:3,saved:true,tabCount:3});
+ ctx.overlayPurpose={newSpaceTabIds:['a','b','c']};
+ await ctx.createSpaceWithTabs('Reading',{},['a','b','c']);
+ assert.deepEqual(plain(ctx.calls),[['spaceMoveTabs',[['a','b','c'],'new-space',true]]]);
+});
 test('New Space writes the complete bound selection and adds its list entry',async()=>{
  const ctx=newSpaceHost({ok:true,movedCount:3,saved:true,tabCount:3});
  const result=await ctx.createSpaceWithTabs('Reading',{},['a','b','c']);

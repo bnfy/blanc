@@ -4731,8 +4731,7 @@ class Handler : public content::WebUIMessageHandler, public extensions::Extensio
     // backend sequence — flush before replying, or a reader racing ahead of
     // that write (BookmarkModel's first GetFavicon for this node, which can
     // cache a negative result) sees nothing there yet.
-    if ((quiet_method == "moveGroupToSpaceByName" && quiet_args.size() == 2 && quiet_args[1].is_string()) ||
-        (quiet_method == "beginNewSpaceForGroupByName" && quiet_args.size() == 1)) {
+    if (quiet_method == "moveGroupToSpaceByName" && quiet_args.size() == 2 && quiet_args[1].is_string()) {
       auto* owner = GetOwner(web_ui()->GetWebContents());
       auto* model = owner ? owner->browser->GetTabStripModel() : nullptr;
       std::optional<tab_groups::TabGroupId> group;
@@ -4740,15 +4739,13 @@ class Handler : public content::WebUIMessageHandler, public extensions::Extensio
         if (base::i18n::ToLower(GroupVisuals(model, candidate)->title()) ==
             base::i18n::ToLower(base::UTF8ToUTF16(quiet_args[0].GetString()))) { group = candidate; break; }
       if (!group) {
-        if (quiet_args.size() == 2)
-          Reply(id, true, base::Value(base::DictValue().Set("ok", false).Set("error", "refused").Set("movedCount", 0)));
-        else Reply(id, true, base::Value(false));
+        Reply(id, true, base::Value(base::DictValue().Set("ok", false).Set("error", "refused").Set("movedCount", 0)));
         return;
       }
       base::ListValue args;
       args.Append(group->ToString());
-      if (quiet_args.size() == 2) { args.Append(quiet_args[1].Clone()); args.Append(false); }
-      Handle(base::ListValue().Append(id).Append(quiet_args.size() == 2 ? "spaceMoveGroup" : "beginNewSpaceForGroup")
+      args.Append(quiet_args[1].Clone()); args.Append(false);
+      Handle(base::ListValue().Append(id).Append("spaceMoveGroup")
           .Append(std::move(args)));
       return;
     }
@@ -7113,14 +7110,6 @@ class Handler : public content::WebUIMessageHandler, public extensions::Extensio
           base::BindOnce(&SpaceDisk, profile->GetPath().AppendASCII("BlancPrototypeSpaces.json"),
               "spaceRecord", name, base::DictValue()),
           base::BindOnce(&Handler::SpaceMoveWrite, weak_factory_.GetWeakPtr(), id, tab_id, name, false));
-      return;
-    }
-    if (method == "beginNewSpaceForGroup" && args.size() == 1 && args[0].is_string()) {
-      // The existing editor purpose is private to host.js's show() closure.
-      // There is no native purpose-setting entry point. Refuse rather than
-      // open a tab editor that would silently drop the rest of the group.
-      // Follow-up must expose a production host bridge before enabling this.
-      reply(true, base::Value(false));
       return;
     }
     if (method == "spaceMoveGroup" && args.size() == 3 && args[0].is_string() &&

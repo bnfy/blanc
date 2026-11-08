@@ -1403,6 +1403,81 @@ remain pending. D3 beta-only no-DRM exception accepted; EME notice/handoff requi
   `multi-window.feature` stays 2/2. Unit tests 257 of 258 pass (the one
   failure the same pre-existing `ui-language.test.mjs` Node-version gap seen
   all session); `check-patches.py` passes.
+- **S3.13 F41-78 finished: New Space from the group menu, candidate
+  macos-523df9b441bcbe4e (2026-11-08):** closes the one scenario S3.12 left
+  as an explicit refusal stub. Built by Codex (gpt-6.1-sol) from a written
+  brief, reviewed and fixed by Claude. Opening the editor is purely client-
+  side, mirroring shipping exactly: `chromium/blanc/island/host.js` gained
+  `beginNewSpaceForGroup(groupId)`, resolving the group and its member ids
+  from the live snapshot and opening the real `#workspaceEditor` with
+  `{ newSpaceTabIds, newSpaceGroupId, newSpaceGroupName }` — no native call
+  at all, same as the existing single-tab/several-tab New Space entries.
+  `createSpaceWithTabs` now reads `overlayPurpose?.newSpaceGroupId` back
+  (only in Spaces mode) on submit and threads it as the 4th argument to the
+  already-built `spaceMoveTabs`, which has carried a source-group argument
+  since S3.12. **No native C++ change was needed beyond removing dead
+  code:** Codex's prior production `beginNewSpaceForGroup` stub and its
+  test-only dispatch branch were a wrong architectural shape (a server-side
+  method that can't open client UI) and are deleted; `moveGroupToSpaceByName`
+  keeps its own two-argument path unchanged. `chromium/tests/adapters/
+  tabs.mjs`'s `beginNewSpaceForGroupByName` now resolves the group by name
+  from a snapshot and calls `w.api('beginNewSpaceForGroup', [groupId])` —
+  the real Island document, not a native-direct shortcut, since this task
+  is fundamentally about opening real client UI. **Two regressions found and
+  fixed before merging, neither in Codex's diff's own logic:** (1)
+  `chromium/tests/tab-selection.test.mjs`'s `newSpaceHost` test helper
+  evaluates `createSpaceWithTabs`'s source text in an isolated VM context
+  via a textual slice of `host.js`, which doesn't carry the module-level
+  `overlayMode`/`overlayPurpose` free variables the new code reads — fixed
+  by seeding `ctx.overlayMode`/`ctx.overlayPurpose` in that helper, and
+  added two direct tests for the new 4th-argument threading (with and
+  without a group purpose). (2) `chromium/blanc/island-assets.json`'s
+  manifest pins `host.js`'s own hash, which editing it invalidated; updated
+  the one entry (never regenerate the whole file — a full JSON re-dump
+  reformats all 320 lines) and then re-ran `refresh-source-map.py`, since
+  `source-map.json` separately pins `island-assets.json`'s own hash too.
+  **Evidence:** F41-78 passes for real on the native candidate, exercising
+  the actual editor DOM exactly as the single/several-tab cases do. Full
+  `F41-named-workspaces.feature` sweep: 58 of 59 decided cases pass (up
+  from 57), the only remaining failure the long-pre-existing F41-6. Unit
+  tests 260 of 261 pass (the one failure the same pre-existing
+  `ui-language.test.mjs` gap); `check-patches.py` and `assets.mjs --check`
+  both pass.
+- **Batch close as one Recently-closed entry (F41-60) and Open Link in
+  Space (F41-51 to 57): investigated, not built — real design blockers,
+  not missed effort (2026-11-08).** Both were batched to Codex alongside
+  F41-78 above; for both, Codex traced the actual Chromium/fork source
+  rather than guess, found the task rests on a genuine open design question,
+  and stopped rather than invent an answer. Full investigation notes:
+  `chromium/CODEX-NOTES-f41-remainder.md` (Tasks 2 and 3).
+  - **Batch close:** the original assumption — that `TabStripModel::
+    CloseTabs`/`CloseSelectedTabs` would close an arbitrary selection as one
+    native call and get one restorable entry for free — is wrong.
+    `components/sessions/core/tab_restore_types.h` has only TAB, SPLIT,
+    GROUP and WINDOW entry types; a selection spanning a split plus an
+    unrelated ordinary tab produces a SPLIT entry and a separate TAB entry
+    from Chromium's own restore service, not one entry. `CloseSelectedTabs`
+    also routes through `ExecuteCloseTabsCommand`'s own group-aware
+    teardown, which a direct `CloseTabs` call would bypass. Making an
+    arbitrary selection restore as one unit needs a real persistence-format
+    decision (what a "selection batch" entry even is) before any native
+    code is worth writing — exactly the kind of native/Chromium-shape
+    choice this project flags to the owner rather than deciding
+    unilaterally, so it stays unbuilt pending that call.
+  - **Open Link in Space:** the write-first Space-move machinery (
+    `CaptureNativeSpace`, `SpaceHold`/`HeldSpace`, the `SpaceDisk`/
+    `previewSpaceSave` write) is reusable and the "visible destination gets
+    an awake background tab" case is straightforward. The blocker is
+    deeper and not link-specific: the fork's saved-record-opening path
+    (around the native lines that give a missing held slot to a new
+    window) creates that slot's page as a live, foreground load
+    immediately on Space open, before the saved active tab is restored —
+    there is no existing mechanism anywhere in the fork for a slot that
+    stays genuinely unrequested until the viewer picks it, which F41-52/53
+    require. This is a gap in a capability `spec/features.md` already
+    describes as shipped ("a Space open nowhere... loads from the record
+    when it opens"), not something invented for this feature, so it's
+    worth the owner's attention beyond just this scenario set.
 - **After a crash, Chromium's Restore pages? bubble (owner, 2026-11-07, candidate
   macos-071c3fa883ea19ff):** shipping doesn't restore silently: it opens one
   window with a "Pick up where you left off?" card (Restore tabs, Start fresh)
@@ -1947,5 +2022,5 @@ Android's Bar A counts the shared scenarios bound in `chromium/tests/android/acc
 
 Legacy macOS stages come from the approved spec; they await verification on the canonical candidate. No legacy stage counts as Verified.
 
-Candidate identities: macOS: macos-b231d006b8f5d70e; Windows: none; Linux: none; Android: android-arm64-7bd35e94ef746069.
+Candidate identities: macOS: macos-523df9b441bcbe4e; Windows: none; Linux: none; Android: android-arm64-7bd35e94ef746069.
 <!-- END GENERATED PROGRESS -->
