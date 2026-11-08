@@ -7330,6 +7330,15 @@ class Handler : public content::WebUIMessageHandler, public extensions::Extensio
           model->GetWebContentsAt(reference)->GetUserData(kPersistentSplitKey)) {
         reply(true, base::Value(false)); return;
       }
+      // previewGlancePair already moved the reference into main's group (if
+      // they differed) when Glance opened, silently. Report that move now,
+      // as the pair becomes a lasting split, rather than never.
+      const auto current_group = model->GetTabGroupForTab(reference);
+      std::string moved_into_group;
+      if (current_group && current_group != owner->glance_origin_group) {
+        if (const auto* visuals = GroupVisuals(model, *current_group))
+          moved_into_group = base::UTF16ToUTF8(visuals->title());
+      }
       // Match the shipping conversion: main first, equal widths, main focused.
       if (main > reference) model->ReverseTabsInSplit(*split);
       const int main_id = owner->glance_main;
@@ -7345,7 +7354,8 @@ class Handler : public content::WebUIMessageHandler, public extensions::Extensio
           model->ActivateTabAt(i); break;
         }
       }
-      reply(true, base::Value(true)); return;
+      reply(true, base::Value(base::DictValue().Set("ok", true).Set("movedIntoGroup", moved_into_group)));
+      return;
     }
     // Native split foundation only: UI exposure waits for Glance role/focus
     // parity. Never merge pin/group ownership as a side effect of a probe.

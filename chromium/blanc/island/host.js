@@ -1856,7 +1856,10 @@
       const result = await request('keepGlanceAsSplit');
       await refresh();
       glance.closing = false;
-      if (result) glanceSay('split.made', { first: main, second: reference });
+      if (result) {
+        glanceSay('split.made', { first: main, second: reference });
+        if (result.movedIntoGroup) glanceSay('split.groupMoveInto', { title: reference, group: result.movedIntoGroup });
+      }
       return result;
     },
     previewGlancePair: (main, reference) => request('previewGlancePair', [nativeId(main), nativeId(reference)]),
