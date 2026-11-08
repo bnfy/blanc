@@ -1117,6 +1117,189 @@ remain pending. D3 beta-only no-DRM exception accepted; EME notice/handoff requi
   entirely. Dropped `#patronCallout` from that list; both scenarios pass
   on the rebuilt candidate, no regressions. Branch
   `chromium/f35-start-settings-codex` (merged into `chromium/s3-quiet-tabs`).
+- **F35-5/F35-6 Billboard ranking (pinning, hidden-locally, outlasts
+  history), candidate macos-7a7adbe83d0dc7b0 (2026-11-07):** `seedBillboardHistory`
+  built (`seedBillboardOverflowHistory` stays blocked — see below). Codex's
+  own attempt stopped at research, correctly finding `history::TopSites`
+  caps `GetMostVisitedURLs` at `kTopSitesNumber` (10) and the native
+  `topSites` WebUI message takes no `{offset,limit}` the ported
+  `newtab.js` already expects; it never touched the adapters. Built
+  directly instead, since the 6-site case is within that 10-site cap.
+  Three issues surfaced only by building and running it for real, none
+  caught by research alone:
+  - `HistoryService::AddPage(url, time, VisitSource)` (the
+    `chrome.history.addUrl()` overload the original brief specified)
+    defaults to `PAGE_TRANSITION_LINK`, which
+    `HistoryBackend::CalculateSegmentID` never credits toward a "most
+    visited" segment — seeding with it would have left TopSites
+    permanently empty. Switched to the 10-arg overload with an explicit
+    `ui::PAGE_TRANSITION_TYPED`.
+  - `TopSitesImpl::SetTopSites` always pads real history shorter than 10
+    sites with Chromium's own prepopulated pages (desktop: the Chrome Web
+    Store) — a real, independent **production bug**: `NewTabHandler::
+    TopSitesReady` never filtered it, so any real user with fewer than 10
+    browsed sites would see a Chrome Web Store tile on a browser that ships
+    no extension store. Fixed by excluding every
+    `TopSites::GetPrepopulatedPages()` URL from the reply.
+  - The acceptance fixture launches every case against its own local
+    `http://127.0.0.1:<port>/initial` control page as a genuine
+    command-line-URL navigation, so it is real, segment-crediting history
+    in every fresh profile before the op ever runs — found by spiking the
+    live candidate directly (`debugProfiles`, `listHistory`, repeated
+    `start.data()` reads) after the first build showed it leaking into the
+    rendered Billboard. `GetMostVisitedURLs` alone answers from a fresh
+    profile's empty initial-load cache and misses it entirely even after a
+    5s delay; needs an explicit `SyncWithHistory()` first. Fixed by
+    detecting any IP-literal host in the synced read-back, deleting it via
+    `HistoryService::DeleteURLs`, and retrying the sync+poll until a fresh
+    read confirms it's actually gone — not just filtered from this op's own
+    reply, which would have left it for the next real `topSites` caller.
+  - `newtab-layouts.steps.js` (pinned, not touched) also asserts exact
+    titles for two of the six seeded sites (`'YouTube – videos worth
+    watching'`, `'CNET – technology news and reviews'`) and that cnet.com's
+    last-visited URL matches `^https://cnet\.com/article/`, plus
+    `hasIcon: true` on all six. Added `HistoryService::SetPageTitle` per
+    seed and a real `FaviconService::MergeFavicon` (a 16×16 PNG-encoded
+    `SkBitmap`) per seed; cnet.com's path changed from the bare domain to
+    `/article/1`.
+  F35-5/F35-6's three Billboard scenarios in `newtab-layouts.feature` (47,
+  58, 71) now pass; the file's other 4 failures (3 Mahjong, 1 checklist)
+  and 2 undefined (typography roles, the F35-15 overflow scenario below)
+  are unrelated, unchanged by this work. Unit tests 257/258 (the one
+  failure is the pre-existing `ui-language.test.mjs` Node-version issue,
+  unrelated). Branch `chromium/f35-billboard-history-codex` (merged into
+  `chromium/s3-quiet-tabs`).
+- **F35-15 Billboard overflow: scoped out (owner decision, 2026-11-07).**
+  `seedBillboardOverflowHistory` (the scenario "Billboard continues past its
+  initial candidate page", 60 seeded sites, 48 hidden, backfill to rank 49)
+  cannot be built by seeding alone: `history::TopSitesImpl::
+  GetMostVisitedURLs` unconditionally truncates to `kTopSitesNumber` (10;
+  `top_sites_constants.h`, `top_sites_impl.cc`), and the native `topSites`
+  WebUI message takes no arguments at all, while the ported `newtab.js`
+  (`fillBillboardSites`) already calls `window.bowserPages.start.topSites(
+  {offset, limit})` expecting page-2+ support the native handler has never
+  implemented (shipping Electron's own Billboard has no such cap — it's
+  backed by JS history, not Chromium's real TopSites). Flagged three paths —
+  patch `kTopSitesNumber`, add a parallel non-TopSites query path for ranks
+  beyond 10, or scope this one scenario out — per standing direction to
+  raise native Chromium option changes rather than decide alone; the owner
+  chose to scope it out. `seedBillboardOverflowHistory` keeps throwing
+  `UndefinedNativeAdapterError` citing the real cap (`pages.mjs`), which is
+  the fork harness's only backlog mechanism — it has no RUNNABLE/backlog tag
+  system like shipping's `test/desktop/cucumber.mjs`, so the scenario simply
+  reports `undefined` until this is revisited. No further action unless the
+  owner asks for it again. Full writeup in
+  `chromium/CODEX-NOTES-billboard-history.md`.
+- **F9-3 Favorites rows show a saved icon, candidate macos-c9349c0989f548b8
+  (2026-11-07):** `adapters/pages.mjs`'s `seedFavorite` carried its own
+  comment flagging the gap directly ("A seeded icon has no fork path"): the
+  seeded favorite's page never really loads in the offline fixture (every
+  proxied request is refused — `fixture.mjs`'s `this.proxy` destroys every
+  connection it sees), so it never earns a real favicon the way a real visit
+  does. Same shape as F35-5/F35-6 just above: added a `seedFavicon` native
+  test op (`FaviconService::MergeFavicon`, the same 16×16 PNG-encoded
+  `SkBitmap` pattern) and one call to it from `seedFavorite`, right after
+  bookmarking. `bookmarks::BookmarkModel::GetFavicon` reads from the same
+  favicon database, so no further wiring was needed. Passed clean on the
+  first build (7/7 in `find-favorites-history.feature`), but
+  `FaviconServiceImpl::MergeFavicon` just forwards to
+  `HistoryService::MergeFavicon`, which (like `AddPage`/`DeleteURLs`) only
+  posts to the backend sequence — found by spiking the op standalone
+  (seed, then poll the sheet's own row-icon query directly) outside the
+  Cucumber harness's extra per-step latency, where it never showed an image
+  even after 24s of polling; added the same `FlushForTest`-before-reply
+  fix as Billboard's seeding, closing a real race that happened not to
+  flake in-harness but would have eventually. Regression-checked
+  `newtab-layouts.feature` (still 19/4/2 — unchanged) and `vertical-tabs.
+  feature` (0/7/19 — unrelated: that feature is broadly unbuilt, no
+  favicon-adjacent failures). Branch: committed directly on
+  `chromium/s3-quiet-tabs`.
+- **F32-1 fixed; F32-2 blocked on a real test-harness design gap, flagged
+  to the owner, candidate macos-75cb3812b7ecf53d (2026-11-07):**
+  `multi-window.feature` ran 0/2 before this (both already-wired, both
+  failing real assertions — a genuine bug, unlike F31/F46/F9-3's
+  stub-adapter shape). `sessionWindows`'s `TestSessionWindowsRead` never
+  set a per-window `id` or a flat `urls` list (`blanc_prototype_ui.cc`,
+  F46-built, never exercised multi-window): every assertion comparing a
+  persisted-session entry's `id` against a live `windowRuntimes()` id, or
+  reading `entry.urls`, could never pass, no matter what the real session
+  content was.
+  - **F32-1** ("a secondary window owns and discards its own workspace")
+    needed two things: each entry's `id` set to its still-open window's
+    Island host DevTools target id (`Owner::Live()`, matched by
+    `BrowserWindowInterface::GetSessionID() == SessionWindow::window_id`,
+    the same `DevToolsAgentHost::GetOrCreateFor(...)->GetId()` pattern
+    `tabTargets` already uses for tabs), and the *first* window (lowest
+    `window_id` — `SessionID` is one monotonic counter shared by windows,
+    tabs and everything else that takes one, but whichever window was
+    created first still holds the lowest id of any window) labeled the
+    literal string `"primary"`, matching `windowRuntimes()`'s own
+    convention. Added `urls` (a flat array) alongside the existing `tabs`
+    non-destructively, so F46's own consumer of `sessionWindows` is
+    unaffected. Now passes.
+  - **F32-2** ("independent window workspaces restore separately") stays
+    blocked on something no native fix can close: it captures
+    `openNewWindow()`'s return value (a DevTools target id) *before* a
+    relaunch, then compares a *post*-relaunch window's `id` against that
+    same stale value — but a relaunch destroys and recreates every
+    WebContents, so no window can ever have that id again, by
+    construction. `openNewWindow()`/`windowRuntimes()`'s id scheme is
+    itself the fork's own test-adapter code (`chromium/tests/adapters/
+    tabs.mjs`, `world.mjs` — not shipping's pinned step files), so it's
+    editable, but it's used by ~15 other step files across glance,
+    mini-window, link-routing, local-profiles, named-workspaces,
+    move-to-space, spaces-redesign, workspace-recovery and more — none of
+    which cross a relaunch the way F32-2 does. Making window identity
+    survive a relaunch (e.g. an ordinal id by restore order instead of a
+    raw DevTools target id) is a real redesign of shared test
+    infrastructure, not a wiring fix, and risks regressing scenarios this
+    session hasn't audited. Flagged rather than decided unilaterally.
+  Regression-checked `tabs-and-groups.feature` (36/1/554 — the one
+  failure, "Collapsing a group tucks its tabs away in the panel", is
+  unrelated and pre-existing). Branch: committed directly on
+  `chromium/s3-quiet-tabs`.
+- **F32-2 fixed (owner decision, 2026-11-08): window ids now an ordinal by
+  SessionID order, candidate macos-cf277bb10ec10b0b.** Owner chose to
+  redesign rather than leave F32-2 blocked. Audited every caller of
+  `openNewWindow`/`windowRuntimes`/`closeWindowRuntime` first (15 step
+  files) before touching the shared scheme: no scenario ever holds a
+  captured window id past a point where a different, lower-ordinal window
+  closes, and `closeWindowRuntime` is never called on a non-last-opened
+  window while an earlier one stays open — so a *dynamic* ordinal
+  (recomputed fresh each query by sorting live windows by ascending
+  SessionID) is safe; no new persistent native state needed.
+  - **Native**: a new `windowOrdinals` test op lists every open window's
+    Island host DevTools target id, sorted by ascending `SessionID`.
+    `sessionWindows`'s `TestSessionWindowsRead` (F32-1, above) dropped its
+    live-window DevToolsAgentHost lookup entirely — it now labels each
+    persisted entry purely by its `window_id`'s position among the
+    *other persisted windows in that same read*, index 0 `"primary"`,
+    others `"window-N"`. The two ops use the same rule (ascending
+    SessionID order) independently, so they agree without either
+    depending on the other.
+  - **Test adapter** (`chromium/tests/adapters/tabs.mjs`, not shipping's
+    pinned step files): `runtimes()` now maps each CDP target to its
+    `windowOrdinals` position for the reported `id`, instead of the raw
+    target id; the CDP connection to actually drive a window is still
+    matched by its real target id, independent of that label.
+    `openNewWindow()` needed no change — it already just returns
+    whatever `runtimes()` assigns.
+  - Verified: `multi-window.feature` 2/2 (both F32-1 and F32-2, fresh
+    full-file run). `local-profiles.feature`'s own relaunch scenario
+    (flagged in the pre-redesign audit as sharing the identical need)
+    stays undefined — blocked by an unrelated missing adapter earlier in
+    its Given chain, never reaches the part this redesign would help.
+    Regression swept six more consumer files: `island-and-commands.feature`
+    63/3/525 (exact historical baseline, the three unrelated/pre-existing:
+    F1-13/F1-33/F1-39), `glance.feature` 37/5/549, `vertical-tabs.feature`
+    0/7/19 (matches this session's own F9-3-round baseline), `F41-named-
+    workspaces.feature` 52/2/537, `split-view.feature` 24/6/561 — every
+    failure's own message read individually; none mention a window-id
+    mismatch, all are pre-existing unrelated gaps (missing adapters,
+    split-session-persistence fields never built, focus/accessibility
+    timing). `mini-window.feature` and `link-routing.feature` stayed fully
+    undefined (unaffected either way). Branch: committed directly on
+    `chromium/s3-quiet-tabs`.
 - **S3.10 Move to Space, candidate macos-071c3fa883ea19ff (2026-11-07):** the tab
   menu's Move to Space ▸ lists every Space (this window's checked) and New
   Space…, and is shown once a Space exists, never for a private tab, and disabled
@@ -1159,8 +1342,142 @@ remain pending. D3 beta-only no-DRM exception accepted; EME notice/handoff requi
   as a whole: 52 of 53 runnable cases pass (s3ci-spaces-full), the one failure
   still the known F41-6. **Not built:** batch close/restore as one entry; the
   Space-move write path's own test seam doesn't yet cover several tabs beyond
-  what the scenarios above exercise. Open Link in Space (F41-51 to 57) and
-  Move Group to Space (F41-75 to 79) are also not built.
+  what the scenarios above exercise. Open Link in Space (F41-51 to 57) is also
+  not built. Move Group to Space (F41-75 to 79) is covered below (S3.12).
+- **S3.12 Move Group to Space (F41-75 to 79), candidate macos-b231d006b8f5d70e
+  (2026-11-08):** the tab group's menu gains **Move Group to Space ▸**,
+  continuing S3.10/S3.11's write-first machinery (built by Codex, gpt-6.1-sol,
+  from a written brief in a separate worktree; the owner's standing call to
+  delegate well-scoped native work and have Claude build/review/test/merge it).
+  Native `spaceMoveGroup(groupId, spaceId, create)` resolves the group's
+  members in strip order and dispatches into the existing `spaceMoveTabs`
+  write-first engine with a 4th, optional source-group argument; `SpaceGroupRows`
+  binds the move to the group's exact live membership and visuals across the
+  disk write (refusing if `BatchPages`' split expansion would carry along a
+  tab that isn't a member), and `SpaceRecordWithRows` now merges the arriving
+  rows into an existing same-name destination group (case-insensitive; its own
+  members keep leading the arrivals) or stamps a fresh group record with the
+  source's name and colour — reordering the written record's `tabs`/`splitIds`
+  so the group block stays contiguous, as Chromium's own grouping invariant
+  requires. `SpaceBatchWritten`'s live transfer places arriving pages into the
+  destination's matching group (`MoveGroupTo` ahead of `AddToExistingGroup`,
+  or a fresh `AddToNewGroup` with the source's visuals) for a holder window,
+  and the equivalent HeldSpace/record bookkeeping for a space set aside
+  nowhere; the existing `write`/`transfer`/`transfer-pane`/`rewrite` fault
+  seams (`arm-move-fault`) keep meaning exactly what they did before, since no
+  second rollback engine was written. `moveGroupToSpaceByName`/
+  `beginNewSpaceForGroupByName` (test-only, case-insensitive name resolution)
+  and `spaceSavedGroups` (parallel to the existing `spaceSavedUrls`) round out
+  the native side; `chromium/tests/adapters/tabs.mjs` gained the matching
+  adapters and a `workspaceAction('saved-groups', …)` branch.
+  **Not built: F41-78** ("New Space from the group menu takes the group
+  along"). The single-tab "New Space…" editor's purpose data is private to
+  `blanc/island/host.js`'s `show()` closure, with no production entry point
+  for a group's member ids and name; Codex's `beginNewSpaceForGroup` is an
+  explicit refusal stub rather than a guess at that wiring, and
+  `beginNewSpaceForGroupByName` inherits the same refusal. A future pass needs
+  a host bridge that binds the group's exact members, passes its name to the
+  editor, and submits through `spaceMoveGroup` with `create=true`.
+  Claude found and fixed two gaps Codex's own handoff flagged as unverified:
+  a `base::ListValue` chaining bug (`.Append(...).Append(...)` on a named
+  lvalue, which only the builder-pattern `&&`-qualified overloads support —
+  the call bound to the `void`-returning lvalue overload instead and failed
+  to compile), and a harness gap unrelated to Codex's diff: the fork's step
+  loader (`chromium/tests/lib/shipping-core.cjs`) had never added
+  `group-space.steps.js` to its audited `stepFiles` allowlist, so all five
+  scenarios read as "step definition missing" even with the native/adapter
+  work correctly built; added it (confirmed byte-identical between the
+  working tree and the pinned shipping reference commit before adding it).
+  **Evidence:** F41-75, F41-76, F41-77 and F41-79 pass for real on the native
+  candidate (verified individually by exact scenario line, including F41-76's
+  non-trivial "existing members keep leading the arrivals" ordering and
+  F41-79's real group-menu DOM, which needed no front-end change — the shared
+  Island assets already show/hide "Move Group to Space" correctly once the
+  underlying Spaces data is right). F41-78 fails exactly as predicted
+  (`false !== true` on the refusal stub), not from any other cause. A full
+  `F41-named-workspaces.feature` sweep: 57 of 59 decided cases pass (up from
+  52 of 54 before this work), the only failures F41-78 above and the long-
+  pre-existing F41-6 (Quiet Tabs/workspace-ownership interaction, unrelated,
+  unchanged). `tabs-and-groups.feature` matches its exact known baseline
+  (36/1, the one failure the pre-existing panel-collapse gap) and
+  `multi-window.feature` stays 2/2. Unit tests 257 of 258 pass (the one
+  failure the same pre-existing `ui-language.test.mjs` Node-version gap seen
+  all session); `check-patches.py` passes.
+- **S3.13 F41-78 finished: New Space from the group menu, candidate
+  macos-523df9b441bcbe4e (2026-11-08):** closes the one scenario S3.12 left
+  as an explicit refusal stub. Built by Codex (gpt-6.1-sol) from a written
+  brief, reviewed and fixed by Claude. Opening the editor is purely client-
+  side, mirroring shipping exactly: `chromium/blanc/island/host.js` gained
+  `beginNewSpaceForGroup(groupId)`, resolving the group and its member ids
+  from the live snapshot and opening the real `#workspaceEditor` with
+  `{ newSpaceTabIds, newSpaceGroupId, newSpaceGroupName }` — no native call
+  at all, same as the existing single-tab/several-tab New Space entries.
+  `createSpaceWithTabs` now reads `overlayPurpose?.newSpaceGroupId` back
+  (only in Spaces mode) on submit and threads it as the 4th argument to the
+  already-built `spaceMoveTabs`, which has carried a source-group argument
+  since S3.12. **No native C++ change was needed beyond removing dead
+  code:** Codex's prior production `beginNewSpaceForGroup` stub and its
+  test-only dispatch branch were a wrong architectural shape (a server-side
+  method that can't open client UI) and are deleted; `moveGroupToSpaceByName`
+  keeps its own two-argument path unchanged. `chromium/tests/adapters/
+  tabs.mjs`'s `beginNewSpaceForGroupByName` now resolves the group by name
+  from a snapshot and calls `w.api('beginNewSpaceForGroup', [groupId])` —
+  the real Island document, not a native-direct shortcut, since this task
+  is fundamentally about opening real client UI. **Two regressions found and
+  fixed before merging, neither in Codex's diff's own logic:** (1)
+  `chromium/tests/tab-selection.test.mjs`'s `newSpaceHost` test helper
+  evaluates `createSpaceWithTabs`'s source text in an isolated VM context
+  via a textual slice of `host.js`, which doesn't carry the module-level
+  `overlayMode`/`overlayPurpose` free variables the new code reads — fixed
+  by seeding `ctx.overlayMode`/`ctx.overlayPurpose` in that helper, and
+  added two direct tests for the new 4th-argument threading (with and
+  without a group purpose). (2) `chromium/blanc/island-assets.json`'s
+  manifest pins `host.js`'s own hash, which editing it invalidated; updated
+  the one entry (never regenerate the whole file — a full JSON re-dump
+  reformats all 320 lines) and then re-ran `refresh-source-map.py`, since
+  `source-map.json` separately pins `island-assets.json`'s own hash too.
+  **Evidence:** F41-78 passes for real on the native candidate, exercising
+  the actual editor DOM exactly as the single/several-tab cases do. Full
+  `F41-named-workspaces.feature` sweep: 58 of 59 decided cases pass (up
+  from 57), the only remaining failure the long-pre-existing F41-6. Unit
+  tests 260 of 261 pass (the one failure the same pre-existing
+  `ui-language.test.mjs` gap); `check-patches.py` and `assets.mjs --check`
+  both pass.
+- **Batch close as one Recently-closed entry (F41-60) and Open Link in
+  Space (F41-51 to 57): investigated, not built — real design blockers,
+  not missed effort (2026-11-08).** Both were batched to Codex alongside
+  F41-78 above; for both, Codex traced the actual Chromium/fork source
+  rather than guess, found the task rests on a genuine open design question,
+  and stopped rather than invent an answer. Full investigation notes:
+  `chromium/CODEX-NOTES-f41-remainder.md` (Tasks 2 and 3).
+  - **Batch close:** the original assumption — that `TabStripModel::
+    CloseTabs`/`CloseSelectedTabs` would close an arbitrary selection as one
+    native call and get one restorable entry for free — is wrong.
+    `components/sessions/core/tab_restore_types.h` has only TAB, SPLIT,
+    GROUP and WINDOW entry types; a selection spanning a split plus an
+    unrelated ordinary tab produces a SPLIT entry and a separate TAB entry
+    from Chromium's own restore service, not one entry. `CloseSelectedTabs`
+    also routes through `ExecuteCloseTabsCommand`'s own group-aware
+    teardown, which a direct `CloseTabs` call would bypass. Making an
+    arbitrary selection restore as one unit needs a real persistence-format
+    decision (what a "selection batch" entry even is) before any native
+    code is worth writing — exactly the kind of native/Chromium-shape
+    choice this project flags to the owner rather than deciding
+    unilaterally, so it stays unbuilt pending that call.
+  - **Open Link in Space:** the write-first Space-move machinery (
+    `CaptureNativeSpace`, `SpaceHold`/`HeldSpace`, the `SpaceDisk`/
+    `previewSpaceSave` write) is reusable and the "visible destination gets
+    an awake background tab" case is straightforward. The blocker is
+    deeper and not link-specific: the fork's saved-record-opening path
+    (around the native lines that give a missing held slot to a new
+    window) creates that slot's page as a live, foreground load
+    immediately on Space open, before the saved active tab is restored —
+    there is no existing mechanism anywhere in the fork for a slot that
+    stays genuinely unrequested until the viewer picks it, which F41-52/53
+    require. This is a gap in a capability `spec/features.md` already
+    describes as shipped ("a Space open nowhere... loads from the record
+    when it opens"), not something invented for this feature, so it's
+    worth the owner's attention beyond just this scenario set.
 - **After a crash, Chromium's Restore pages? bubble (owner, 2026-11-07, candidate
   macos-071c3fa883ea19ff):** shipping doesn't restore silently: it opens one
   window with a "Pick up where you left off?" card (Restore tabs, Start fresh)
@@ -1705,5 +2022,5 @@ Android's Bar A counts the shared scenarios bound in `chromium/tests/android/acc
 
 Legacy macOS stages come from the approved spec; they await verification on the canonical candidate. No legacy stage counts as Verified.
 
-Candidate identities: macOS: macos-dea5366ef70d77b9; Windows: none; Linux: none; Android: android-arm64-7bd35e94ef746069.
+Candidate identities: macOS: macos-523df9b441bcbe4e; Windows: none; Linux: none; Android: android-arm64-7bd35e94ef746069.
 <!-- END GENERATED PROGRESS -->

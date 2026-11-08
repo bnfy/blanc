@@ -120,6 +120,8 @@
 #include "base/system/sys_info.h"
 #include "base/json/string_escape.h"
 #include "base/memory/ref_counted_memory.h"
+#include "third_party/skia/include/core/SkBitmap.h"
+#include "ui/gfx/codec/png_codec.h"
 #include "base/strings/string_number_conversions.h"
 #include "base/strings/string_util.h"
 #include "base/strings/utf_string_conversions.h"
@@ -1737,7 +1739,7 @@ struct HeldTab {
   // page frozen until the Space returns.
   std::unique_ptr<tabs::ScopedTabModalUI> no_modal_ui;
 };
-struct HeldSpace { std::string name; std::vector<HeldTab> tabs; };
+struct HeldSpace { std::string name; std::vector<HeldTab> tabs; base::DictValue record; };
 // Set-aside Spaces (F41, owner 2026-11-06). Chromium's rule is that a tab has a
 // window: without one, a tab feature woken by anything a live page does, even
 // history.pushState, dereferences null. So the pages of a Space that isn't
@@ -2850,6 +2852,29 @@ std::optional<base::ListValue> SpaceBatchRows(TabStripModel* model, const base::
   }
   return rows;
 }
+// Bind a group move to its exact membership and visuals across the disk write.
+// BatchPages can expand splits; refuse if that would take a nonmember along.
+std::optional<base::ListValue> SpaceGroupRows(TabStripModel* model, const base::ListValue& ids,
+                                            const std::string& group_id) {
+  auto rows = SpaceBatchRows(model, ids);
+  if (!rows || group_id.empty()) return rows;
+  const auto group = FindGroup(model, group_id);
+  if (!group) return std::nullopt;
+  const auto* visual = GroupVisuals(model, *group);
+  base::ListValue actual;
+  for (int i = 0; i < model->count(); ++i)
+    if (model->GetTabGroupForTab(i) == group)
+      actual.Append(sessions::SessionTabHelper::IdForTab(model->GetWebContentsAt(i)).id());
+  if (actual != ids || !visual) return std::nullopt;
+  for (auto& value : *rows) {
+    for (const auto& member : *value.GetDict().FindList("members"))
+      if (!std::ranges::any_of(actual, [&](const auto& id) { return id.GetInt() == *member.GetDict().FindInt("id"); }))
+        return std::nullopt;
+    value.GetDict().Set("landingGroup", base::DictValue().Set("name", base::UTF16ToUTF8(visual->title()))
+        .Set("color", static_cast<int>(visual->color())).Set("collapsed", visual->is_collapsed()));
+  }
+  return rows;
+}
 std::optional<base::DictValue> SpaceRecordWithRows(const base::DictValue* prior, const base::ListValue& rows) {
   std::optional<base::DictValue> next;
   if (prior) next = prior->Clone();
@@ -2877,6 +2902,36 @@ std::optional<base::DictValue> SpaceRecordWithRows(const base::DictValue* prior,
       const int start = static_cast<int>(count - members.size());
       for (size_t i = count - members.size(); i < count; ++i) (*ids)[i] = base::Value(key);
       if (*next->FindInt("active") >= start) next->Set("active", start + *row.FindInt("focused"));
+    }
+  }
+  if (next && !rows.empty()) {
+    if (const auto* landing = rows.front().GetDict().FindDict("landingGroup")) {
+      auto* groups = next->FindList("groups");
+      int group = -1;
+      for (size_t i = 0; i < groups->size(); ++i)
+        if (base::i18n::ToLower(base::UTF8ToUTF16(*(*groups)[i].GetDict().FindString("name"))) ==
+            base::i18n::ToLower(base::UTF8ToUTF16(*landing->FindString("name")))) { group = static_cast<int>(i); break; }
+      if (group < 0) { group = static_cast<int>(groups->size()); groups->Append(landing->Clone()); }
+      auto* tabs = next->FindList("tabs");
+      size_t count = 0;
+      for (const auto& row : rows) count += row.GetDict().FindList("members")->size();
+      const size_t start = tabs->size() - count;
+      // Chromium groups are contiguous. Keep existing members in order, move
+      // that block last, then append arrivals. Reorder split columns together.
+      std::vector<size_t> order;
+      for (size_t i = 0; i < start; ++i) if (*(*tabs)[i].GetDict().FindInt("group") != group) order.push_back(i);
+      for (size_t i = 0; i < start; ++i) if (*(*tabs)[i].GetDict().FindInt("group") == group) order.push_back(i);
+      for (size_t i = start; i < tabs->size(); ++i) { (*tabs)[i].GetDict().Set("group", group); order.push_back(i); }
+      base::ListValue ordered, split_ids;
+      const auto* splits = next->FindList("splitIds");
+      const int active = *next->FindInt("active");
+      for (size_t i : order) {
+        if (static_cast<int>(i) == active) next->Set("active", static_cast<int>(ordered.size()));
+        ordered.Append((*tabs)[i].Clone());
+        if (splits) split_ids.Append((*splits)[i].Clone());
+      }
+      next->Set("tabs", std::move(ordered));
+      if (splits) next->Set("splitIds", std::move(split_ids));
     }
   }
   return next && ValidSpace(*next) ? std::move(next) : std::nullopt;
@@ -3794,9 +3849,17 @@ class NewTabHandler : public content::WebUIMessageHandler,
       RetryTopSites(std::move(id), retry);
       return;
     }
+    // Chromium's real TopSites pads a sparse history with its own
+    // prepopulated pages (desktop: the Chrome Web Store) up to
+    // history::kTopSitesNumber. Blanc ships no extension store, so that
+    // filler must never reach the Billboard as if it were a visited site.
+    std::set<GURL> prepopulated;
+    if (top_sites_)
+      for (const auto& page : top_sites_->GetPrepopulatedPages())
+        prepopulated.insert(page.most_visited.url);
     base::ListValue items;
     for (const auto& site : sites) {
-      if (!site.url.SchemeIsHTTPOrHTTPS()) continue;
+      if (!site.url.SchemeIsHTTPOrHTTPS() || prepopulated.contains(site.url)) continue;
       std::string key(site.url.host());
       if (base::StartsWith(key, "www.")) key.erase(0, 4);
       items.Append(base::DictValue().Set("url", site.url.spec())
@@ -4597,6 +4660,147 @@ class Handler : public content::WebUIMessageHandler, public extensions::Extensio
       state.asked.clear();
       Reply(id, true, base::Value(enabled)); return;
     }
+    // Seeds six real, ranked Billboard sites (F35 Billboard history-seeding
+    // test op). Each visit is a genuine ui::PAGE_TRANSITION_TYPED navigation,
+    // the only transition type HistoryBackend::CalculateSegmentID credits
+    // toward a "most visited" segment; chrome.history.addUrl()'s plain
+    // AddPage(url, time, source) overload defaults to PAGE_TRANSITION_LINK,
+    // which is never scored and would leave TopSites empty.
+    if (quiet_method == "seedBillboardHistory" && quiet_args.empty()) {
+      auto* owner = GetOwner(web_ui()->GetWebContents());
+      Profile* profile = owner ? owner->browser->GetProfile() : nullptr;
+      if (!profile || profile->IsOffTheRecord()) {
+        reject("Billboard history seeding requires a regular profile."); return;
+      }
+      auto* history = HistoryServiceFactory::GetForProfile(
+          profile, ServiceAccessType::EXPLICIT_ACCESS);
+      auto top_sites = TopSitesFactory::GetForProfile(profile);
+      auto* favicon_service = FaviconServiceFactory::GetForProfile(
+          profile, ServiceAccessType::EXPLICIT_ACCESS);
+      if (!history || !top_sites || !favicon_service) {
+        reject("History, Top Sites or Favicons unavailable."); return;
+      }
+      struct BillboardSeed { const char* host; const char* path; int visits; const char* title; };
+      // cnet.com's path is an article, not the bare domain: the pinned-page
+      // step (newtab-layouts.steps.js) asserts the site's last-visited URL
+      // matches ^https://cnet\.com/article/. Every title here is asserted
+      // verbatim by that same step file for youtube.com and cnet.com; the
+      // other four aren't checked by name but get a real title anyway.
+      static constexpr BillboardSeed kSeeds[] = {
+          {"youtube.com", "/", 12, "YouTube – videos worth watching"},
+          {"cnet.com", "/article/1", 9, "CNET – technology news and reviews"},
+          {"wikipedia.org", "/", 7, "Wikipedia – the free encyclopedia"},
+          {"github.com", "/", 5, "GitHub – build and ship software"},
+          {"nytimes.com", "/", 3, "The New York Times – breaking news"},
+          {"weather.com", "/", 1, "The Weather Channel – forecast"}};
+      SkBitmap bitmap;
+      bitmap.allocN32Pixels(16, 16);
+      bitmap.eraseColor(SK_ColorBLUE);
+      const std::optional<std::vector<uint8_t>> png =
+          gfx::PNGCodec::EncodeBGRASkBitmap(bitmap, /*discard_transparency=*/false);
+      const auto bitmap_data = base::MakeRefCounted<base::RefCountedBytes>(png.value());
+      const base::Time now = base::Time::Now();
+      int minutes_ago = 0;
+      std::set<std::string> expected;
+      for (const auto& seed : kSeeds) {
+        expected.insert(seed.host);
+        const GURL url(std::string("https://") + seed.host + seed.path);
+        for (int i = 0; i < seed.visits; ++i) {
+          history->AddPage(url, now - base::Minutes(++minutes_ago),
+              /*context_id=*/0, /*nav_entry_id=*/0, /*referrer=*/GURL(),
+              history::RedirectList(), ui::PAGE_TRANSITION_TYPED,
+              history::VisitSource::SOURCE_BROWSED,
+              history::VisitResponseCodeCategory::kNot404,
+              /*did_replace_entry=*/false);
+        }
+        history->SetPageTitle(url, base::UTF8ToUTF16(std::string(seed.title)));
+        favicon_service->MergeFavicon(url, GURL(url.spec() + "favicon.ico"),
+            favicon_base::IconType::kFavicon, bitmap_data, gfx::Size(16, 16));
+      }
+      history->FlushForTest(base::BindOnce(&Handler::SeedBillboardHistorySync,
+          weak_factory_.GetWeakPtr(), id, history, top_sites, std::move(expected), 0));
+      return;
+    }
+    // F9-3: a seeded favorite's own page never really loads in the offline
+    // fixture (every proxied request is refused), so it never earns a real
+    // favicon the way a production visit does. Seeds one directly via
+    // FaviconService, the same MergeFavicon pattern as Billboard above;
+    // bookmarks::BookmarkModel::GetFavicon reads from the same database.
+    // FaviconServiceImpl::MergeFavicon forwards to HistoryService::
+    // MergeFavicon, which (like AddPage/DeleteURLs) just posts to the
+    // backend sequence — flush before replying, or a reader racing ahead of
+    // that write (BookmarkModel's first GetFavicon for this node, which can
+    // cache a negative result) sees nothing there yet.
+    if (quiet_method == "moveGroupToSpaceByName" && quiet_args.size() == 2 && quiet_args[1].is_string()) {
+      auto* owner = GetOwner(web_ui()->GetWebContents());
+      auto* model = owner ? owner->browser->GetTabStripModel() : nullptr;
+      std::optional<tab_groups::TabGroupId> group;
+      if (model && quiet_args[0].is_string()) for (const auto& candidate : GroupsInOrder(model))
+        if (base::i18n::ToLower(GroupVisuals(model, candidate)->title()) ==
+            base::i18n::ToLower(base::UTF8ToUTF16(quiet_args[0].GetString()))) { group = candidate; break; }
+      if (!group) {
+        Reply(id, true, base::Value(base::DictValue().Set("ok", false).Set("error", "refused").Set("movedCount", 0)));
+        return;
+      }
+      base::ListValue args;
+      args.Append(group->ToString());
+      args.Append(quiet_args[1].Clone()); args.Append(false);
+      Handle(base::ListValue().Append(id).Append("spaceMoveGroup")
+          .Append(std::move(args)));
+      return;
+    }
+
+    if (quiet_method == "seedFavicon" && quiet_args.size() == 1 && quiet_args[0].is_string()) {
+      auto* owner = GetOwner(web_ui()->GetWebContents());
+      Profile* profile = owner ? owner->browser->GetProfile() : nullptr;
+      if (!profile || profile->IsOffTheRecord()) {
+        reject("Favicon seeding requires a regular profile."); return;
+      }
+      const GURL url(quiet_args[0].GetString());
+      if (!url.is_valid() || !url.SchemeIsHTTPOrHTTPS()) {
+        reject("Favicon seeding needs a valid http(s) URL."); return;
+      }
+      auto* history = HistoryServiceFactory::GetForProfile(
+          profile, ServiceAccessType::EXPLICIT_ACCESS);
+      auto* favicon_service = FaviconServiceFactory::GetForProfile(
+          profile, ServiceAccessType::EXPLICIT_ACCESS);
+      if (!history || !favicon_service) { reject("History or Favicons unavailable."); return; }
+      SkBitmap bitmap;
+      bitmap.allocN32Pixels(16, 16);
+      bitmap.eraseColor(SK_ColorBLUE);
+      const std::optional<std::vector<uint8_t>> png =
+          gfx::PNGCodec::EncodeBGRASkBitmap(bitmap, /*discard_transparency=*/false);
+      favicon_service->MergeFavicon(url, GURL(url.spec() + "favicon.ico"),
+          favicon_base::IconType::kFavicon,
+          base::MakeRefCounted<base::RefCountedBytes>(png.value()), gfx::Size(16, 16));
+      history->FlushForTest(base::BindOnce(
+          [](base::WeakPtr<Handler> self, std::string id) {
+            if (self) self->Reply(id, true, base::Value(true));
+          }, weak_factory_.GetWeakPtr(), id));
+      return;
+    }
+    // F32: the live counterpart of sessionWindows's ordinal labels (see its
+    // comment there) -- every currently open window's Island host target
+    // id, ordered by ascending SessionID. windowRuntimes() maps each CDP
+    // target it already knows about to its position in this list
+    // ("primary" for index 0, "window-N" after) instead of reporting the
+    // target id directly, so a window's reported id stays meaningful
+    // across a relaunch, when every target id is freshly reassigned.
+    if (quiet_method == "windowOrdinals" && quiet_args.empty()) {
+      std::vector<std::pair<int32_t, std::string>> live;
+      for (auto* owner : Owner::Live()) {
+        if (owner->view) {
+          live.emplace_back(owner->browser->GetSessionID().id(),
+              content::DevToolsAgentHost::GetOrCreateFor(
+                  owner->view->GetWebContents())->GetId());
+        }
+      }
+      std::sort(live.begin(), live.end());
+      base::ListValue ordered;
+      for (const auto& [session_id, target_id] : live) ordered.Append(target_id);
+      Reply(id, true, base::Value(std::move(ordered)));
+      return;
+    }
     if (quiet_method == "quietThreshold" && quiet_args.size() == 1 && quiet_args[0].is_int() &&
         quiet_args[0].GetInt() >= 0) {
       test_quiet_delay_ = quiet_args[0].GetInt();
@@ -4682,20 +4886,30 @@ class Handler : public content::WebUIMessageHandler, public extensions::Extensio
       return;
     }
     // A Space's saved addresses, or null with no record (shipping's saved-urls).
-    if (message[1].GetString() == "spaceSavedUrls" && message[2].GetList().size() == 1 &&
+    if ((quiet_method == "spaceSavedUrls" || quiet_method == "spaceSavedGroups") && message[2].GetList().size() == 1 &&
         message[2].GetList()[0].is_string()) {
       auto* profile = Profile::FromWebUI(web_ui())->GetOriginalProfile();
       SpaceRunner()->PostTaskAndReplyWithResult(FROM_HERE,
           base::BindOnce(&SpaceDisk, profile->GetPath().AppendASCII("BlancPrototypeSpaces.json"),
               "spaceRecord", message[2].GetList()[0].GetString(), base::DictValue()),
-          base::BindOnce([](base::WeakPtr<Handler> handler, std::string id, base::DictValue result) {
+          base::BindOnce([](base::WeakPtr<Handler> handler, std::string id, bool groups_requested, base::DictValue result) {
             if (!handler) return;
             const auto* record = result.FindDict("record");
             if (!record) { handler->Reply(id, true, base::Value()); return; }
             base::ListValue urls;
             for (const auto& tab : *record->FindList("tabs")) urls.Append(*tab.GetDict().FindString("url"));
-            handler->Reply(id, true, base::Value(std::move(urls)));
-          }, weak_factory_.GetWeakPtr(), id));
+            if (!groups_requested) { handler->Reply(id, true, base::Value(std::move(urls))); return; }
+            base::ListValue groups, group_ids;
+            const auto* saved = record->FindList("groups");
+            for (size_t i = 0; i < saved->size(); ++i) {
+              const auto& g = (*saved)[i].GetDict();
+              groups.Append(base::DictValue().Set("id", static_cast<int>(i)).Set("name", *g.FindString("name"))
+                  .Set("color", GroupColor(static_cast<tab_groups::TabGroupColorId>(*g.FindInt("color")))));
+            }
+            for (const auto& tab : *record->FindList("tabs")) group_ids.Append(*tab.GetDict().FindInt("group"));
+            handler->Reply(id, true, base::Value(base::DictValue().Set("urls", std::move(urls))
+                .Set("groups", std::move(groups)).Set("groupIds", std::move(group_ids))));
+          }, weak_factory_.GetWeakPtr(), id, quiet_method == "spaceSavedGroups"));
       return;
     }
     // Chromium's native post-crash "Restore pages?" bubble (owner, 2026-11-07:
@@ -5164,9 +5378,33 @@ class Handler : public content::WebUIMessageHandler, public extensions::Extensio
       Reply(id, false, base::Value("Could not read persisted session windows."));
       return;
     }
+    // F32: label each window by its position in SessionID order, not a
+    // DevTools target id -- a relaunch destroys and recreates every
+    // WebContents (and with it every target id), but SessionService
+    // restores windows in the order they were saved, so the window
+    // created/restored first again gets the lowest window_id. SessionID
+    // is one monotonic counter shared by windows, tabs and everything
+    // else that takes one, so these values aren't sequential by
+    // themselves, but their relative order among just the windows here
+    // is what's stable across a relaunch. windowOrdinals (below) assigns
+    // the same labels to the live windows this read-back is checkpointed
+    // from, by the same rule, so a pre-relaunch id captured from either
+    // op still identifies the right entry after restore.
+    std::vector<SessionID> ordered_ids;
+    for (const auto& window : windows) ordered_ids.push_back(window->window_id);
+    std::sort(ordered_ids.begin(), ordered_ids.end(),
+        [](const SessionID& a, const SessionID& b) { return a.id() < b.id(); });
+    auto label_for = [&](const SessionID& wid) -> std::string {
+      for (size_t i = 0; i < ordered_ids.size(); ++i) {
+        if (ordered_ids[i] == wid)
+          return i == 0 ? "primary" : "window-" + base::NumberToString(i + 1);
+      }
+      return std::string();
+    };
     base::ListValue saved_windows;
     for (const auto& window : windows) {
       base::ListValue tabs;
+      base::ListValue urls;
       for (const auto& tab : window->tabs) {
         base::DictValue saved_tab;
         const auto name = tab->extra_data.find(kTabNameKey);
@@ -5178,12 +5416,81 @@ class Handler : public content::WebUIMessageHandler, public extensions::Extensio
                     .virtual_url().spec();
         }
         saved_tab.Set("url", url);
+        urls.Append(url);
         tabs.Append(std::move(saved_tab));
       }
-      saved_windows.Append(base::DictValue().Set("tabs", std::move(tabs)));
+      saved_windows.Append(base::DictValue().Set("id", label_for(window->window_id))
+          .Set("tabs", std::move(tabs)).Set("urls", std::move(urls)));
     }
     Reply(id, true, base::Value(
         base::DictValue().Set("windows", std::move(saved_windows))));
+  }
+  // SyncWithHistory() is a no-op until TopSites has loaded, and even once
+  // loaded its query to HistoryBackend is asynchronous; GetMostVisitedURLs
+  // can still answer from the pre-seed cache on the first calls after it.
+  // Poll (bounded) until the ranked read-back actually contains every
+  // seeded host, rather than trusting a single round-trip.
+  void SeedBillboardHistorySync(std::string id, history::HistoryService* history,
+                                scoped_refptr<history::TopSites> top_sites,
+                                std::set<std::string> expected, int attempt) {
+    top_sites->SyncWithHistory();
+    top_sites->GetMostVisitedURLs(base::BindOnce(&Handler::SeedBillboardHistoryCheck,
+        weak_factory_.GetWeakPtr(), id, history, top_sites, std::move(expected), attempt));
+  }
+  void SeedBillboardHistoryCheck(std::string id, history::HistoryService* history,
+                                 scoped_refptr<history::TopSites> top_sites,
+                                 std::set<std::string> expected, int attempt,
+                                 const history::MostVisitedURLList& sites) {
+    std::set<GURL> prepopulated;
+    for (const auto& page : top_sites->GetPrepopulatedPages())
+      prepopulated.insert(page.most_visited.url);
+    base::ListValue items;
+    std::set<std::string> seen;
+    // The acceptance fixture launches every case against its own local
+    // http://127.0.0.1:<port>/initial control page as a genuine
+    // command-line-URL navigation, so it is already real, segment-crediting
+    // history before this op ever runs. It (or any other IP-literal host)
+    // is fixture bootstrap noise, never a real site a user browsed to:
+    // delete it from history so a later production TopSites read doesn't
+    // show it either, then retry rather than filtering it only here.
+    std::vector<GURL> noise;
+    for (const auto& site : sites) {
+      if (site.url.SchemeIsHTTPOrHTTPS() && site.url.HostIsIPAddress())
+        noise.push_back(site.url);
+    }
+    for (const auto& site : sites) {
+      if (!site.url.SchemeIsHTTPOrHTTPS() || prepopulated.contains(site.url) ||
+          site.url.HostIsIPAddress()) continue;
+      std::string key(site.url.host());
+      if (base::StartsWith(key, "www.")) key.erase(0, 4);
+      seen.insert(key);
+      items.Append(base::DictValue().Set("url", site.url.spec())
+          .Set("key", key).Set("title", base::UTF16ToUTF8(site.title)));
+    }
+    // Even once seen == expected, noise left in real history (confirmed, not
+    // just filtered from this reply) would still surface the next time
+    // something else reads real TopSites, e.g. the Start Page's own
+    // production topSites read later in the same acceptance scenario. Keep
+    // retrying until a fresh read confirms it's actually gone.
+    if (seen != expected || !noise.empty()) {
+      if (attempt >= 40) {
+        std::vector<std::string> seen_list(seen.begin(), seen.end());
+        std::vector<std::string> expected_list(expected.begin(), expected.end());
+        Reply(id, false, base::Value(
+            "Billboard history seeding did not reach the expected ranking. seen=[" +
+            base::JoinString(seen_list, ",") + "] expected=[" +
+            base::JoinString(expected_list, ",") + "] rawCount=" +
+            base::NumberToString(sites.size())));
+        return;
+      }
+      if (!noise.empty()) history->DeleteURLs(noise);
+      base::SequencedTaskRunner::GetCurrentDefault()->PostDelayedTask(FROM_HERE,
+          base::BindOnce(&Handler::SeedBillboardHistorySync, weak_factory_.GetWeakPtr(),
+                         std::move(id), history, top_sites, std::move(expected), attempt + 1),
+          base::Milliseconds(100));
+      return;
+    }
+    Reply(id, true, base::Value(std::move(items)));
   }
   std::optional<int64_t> test_quiet_delay_;
   void WaitForTestQuietSweep(const std::string& id) {
@@ -5985,11 +6292,12 @@ class Handler : public content::WebUIMessageHandler, public extensions::Extensio
       if (!hold->Find(name)) {
         // A Space open nowhere is set aside to receive the page; its saved
         // tabs keep their slots and load from the record when it opens.
-        HeldSpace space{name, {}};
+        HeldSpace space{name, {}, {}};
         space.tabs.resize(slots);
         hold->spaces().push_back(std::move(space));
       }
       hold->Find(name)->tabs.push_back(hold->Take(model, at, false));
+      hold->Find(name)->record = next.Clone();
       // Out of this window's session: a crash must not restore it here.
       if (auto* session = SessionServiceFactory::GetForProfile(profile))
         session->TabClosed(browser->GetSessionID(), SessionID::FromSerializedValue(hold->Find(name)->tabs.back().id));
@@ -6008,11 +6316,11 @@ class Handler : public content::WebUIMessageHandler, public extensions::Extensio
     if (error) result.Set("error", error);
     Reply(id, true, base::Value(std::move(result)));
   }
-  void SpaceBatchWrite(std::string id, base::ListValue ids, std::string name, bool create, base::DictValue found) {
+  void SpaceBatchWrite(std::string id, base::ListValue ids, std::string name, bool create, std::string group_id, base::DictValue found) {
     auto* owner = GetOwner(web_ui()->GetWebContents());
     if (!owner) return;
     if (found.FindString("error")) { SpaceBatchReply(id, "not-found", 0, false); return; }
-    const auto rows = SpaceBatchRows(owner->browser->GetTabStripModel(), ids);
+    const auto rows = SpaceGroupRows(owner->browser->GetTabStripModel(), ids, group_id);
     if (!rows) { SpaceBatchReply(id, "refused", 0, false); return; }
     const auto* base = create ? nullptr : found.FindDict("record");
     auto next = SpaceRecordWithRows(base, *rows);
@@ -6031,10 +6339,10 @@ class Handler : public content::WebUIMessageHandler, public extensions::Extensio
         base::BindOnce(&SpaceDisk, owner->browser->GetProfile()->GetPath().AppendASCII("BlancPrototypeSpaces.json"),
             "previewSpaceSave", name, std::move(copy)),
         base::BindOnce(&Handler::SpaceBatchWritten, weak_factory_.GetWeakPtr(), id, std::move(ids), name,
-            rows->Clone(), std::move(*next), std::move(prior), slots));
+            rows->Clone(), std::move(*next), std::move(prior), slots, group_id));
   }
   void SpaceBatchWritten(std::string id, base::ListValue ids, std::string name, base::ListValue rows,
-                         base::DictValue next, base::DictValue prior, size_t slots, base::DictValue written) {
+                         base::DictValue next, base::DictValue prior, size_t slots, std::string group_id, base::DictValue written) {
     auto* owner = GetOwner(web_ui()->GetWebContents());
     if (!owner) return;
     if (written.FindString("error")) { SpaceBatchReply(id, "storage-failed", 0, false); return; }
@@ -6044,7 +6352,7 @@ class Handler : public content::WebUIMessageHandler, public extensions::Extensio
     Owner* holder = nullptr;
     for (auto* other : Owner::Live())
       if (other != owner && other->browser->GetProfile() == profile && other->space_name == name) holder = other;
-    auto fresh = SpaceBatchRows(model, ids);
+    auto fresh = SpaceGroupRows(model, ids, group_id);
     bool failed = !fresh || *fresh != rows ||
         (holder && (holder->space_busy || holder->space_expected));
     if (holder && !failed) {
@@ -6073,7 +6381,7 @@ class Handler : public content::WebUIMessageHandler, public extensions::Extensio
     }
     if (!failed) {
       if (!holder && !hold->Find(name)) {
-        HeldSpace space{name, {}}; space.tabs.resize(slots);
+        HeldSpace space{name, {}, {}}; space.tabs.resize(slots);
         hold->spaces().push_back(std::move(space));
       }
       const auto pages = BatchPages(model, ids);
@@ -6086,6 +6394,8 @@ class Handler : public content::WebUIMessageHandler, public extensions::Extensio
         if (first < 0) { failed = true; break; }
         const bool pinned = model->IsTabPinned(first);
         const auto group = model->GetTabGroupForTab(first);
+        std::optional<tab_groups::TabGroupVisualData> group_visual;
+        if (group) group_visual = *GroupVisuals(model, *group);
         if (const auto split = model->GetSplitForTab(first)) model->RemoveSplit(*split);
         std::vector<content::WebContents*> transferred;
         for (const auto& member : members) {
@@ -6113,7 +6423,14 @@ class Handler : public content::WebUIMessageHandler, public extensions::Extensio
             }
             model->InsertWebContentsAt(first, std::move(returned), AddTabTypes::ADD_NONE);
             model->SetTabPinned(model->GetIndexOfWebContents(page), pinned);
-            if (group) model->AddToExistingGroup({model->GetIndexOfWebContents(page)}, *group);
+            if (group) {
+              auto restored = FindGroup(model, group->ToString());
+              if (restored) model->AddToExistingGroup({model->GetIndexOfWebContents(page)}, *restored);
+              else {
+                restored = model->AddToNewGroup({model->GetIndexOfWebContents(page)});
+                model->ChangeTabGroupVisuals(*restored, *group_visual);
+              }
+            }
             model->MoveWebContentsAt(model->GetIndexOfWebContents(page), first, false);
             RestoreBatchSplit(browser, row);
             failed = true; break;
@@ -6121,6 +6438,26 @@ class Handler : public content::WebUIMessageHandler, public extensions::Extensio
         }
         if (failed) break;
         if (holder) {
+          if (const auto* landing = row.FindDict("landingGroup")) {
+            auto* target = holder->browser->GetTabStripModel();
+            std::optional<tab_groups::TabGroupId> destination;
+            for (const auto& candidate : GroupsInOrder(target))
+              if (base::i18n::ToLower(GroupVisuals(target, candidate)->title()) ==
+                  base::i18n::ToLower(base::UTF8ToUTF16(*landing->FindString("name")))) { destination = candidate; break; }
+            if (destination) {
+              const auto range = target->group_model()->GetTabGroup(*destination)->ListTabs();
+              target->MoveGroupTo(*destination, target->count() - static_cast<int>(transferred.size()) - static_cast<int>(range.length()));
+            }
+            std::vector<int> indices;
+            for (auto* page : transferred) indices.push_back(target->GetIndexOfWebContents(page));
+            if (destination) target->AddToExistingGroup(indices, *destination);
+            else {
+              destination = target->AddToNewGroup(indices);
+              target->ChangeTabGroupVisuals(*destination, tab_groups::TabGroupVisualData(
+                  base::UTF8ToUTF16(*landing->FindString("name")),
+                  static_cast<tab_groups::TabGroupColorId>(*landing->FindInt("color")), *landing->FindBool("collapsed")));
+            }
+          }
           RestoreBatchSplit(holder->browser, row);
           if (target_blank) {
             auto* target = holder->browser->GetTabStripModel();
@@ -6136,6 +6473,30 @@ class Handler : public content::WebUIMessageHandler, public extensions::Extensio
         // The last row may already have arrived when an operation fails.
         if (TakeSpaceMoveFault("transfer")) { failed = true; break; }
       }
+    }
+    // The hidden strip carries pages; the checked Space record owns their
+    // group identity. Its slots follow exactly the same block reorder.
+    if (hold && hold->Find(name)) {
+      auto* space = hold->Find(name);
+      if (!arrived.empty() && arrived.front().GetDict().FindDict("landingGroup") && slots > 0) {
+        const auto* landing = arrived.front().GetDict().FindDict("landingGroup");
+        int group = -1;
+        const auto* groups = prior.FindList("groups");
+        for (size_t i = 0; i < groups->size(); ++i)
+          if (base::i18n::ToLower(base::UTF8ToUTF16(*(*groups)[i].GetDict().FindString("name"))) ==
+              base::i18n::ToLower(base::UTF8ToUTF16(*landing->FindString("name")))) { group = static_cast<int>(i); break; }
+        if (group >= 0) {
+          std::vector<HeldTab> ordered;
+          for (bool matching : {false, true})
+            for (size_t i = 0; i < slots; ++i)
+              if ((*(*prior.FindList("tabs"))[i].GetDict().FindInt("group") == group) == matching)
+                ordered.push_back(std::move(space->tabs[i]));
+          for (size_t i = slots; i < space->tabs.size(); ++i) ordered.push_back(std::move(space->tabs[i]));
+          space->tabs = std::move(ordered);
+        }
+      }
+      auto record = SpaceRecordWithRows(&prior, arrived);
+      if (record) space->record = std::move(*record);
     }
     const bool complete = arrived.size() == rows.size();
     if (!complete && floor && model->count() > 1)
@@ -6373,7 +6734,7 @@ class Handler : public content::WebUIMessageHandler, public extensions::Extensio
     const bool keep_old = method == "previewSpaceOpen" && !owner->space_name.empty() &&
         owner->space_name != "__scratch__";
     SpaceHold* hold = keep_old ? SpaceHold::Open(browser->GetProfile(), browser->GetWindow()->GetBounds()) : nullptr;
-    HeldSpace aside{owner->space_name, {}};
+    HeldSpace aside{owner->space_name, {}, before.Clone()};
     auto* session = SessionServiceFactory::GetForProfile(browser->GetProfile());
     for (auto* tab : old_tabs) {
       if (std::ranges::contains(added, tab)) continue;
@@ -6617,7 +6978,7 @@ class Handler : public content::WebUIMessageHandler, public extensions::Extensio
     // in the checked store below, under each Space's id.
     if (method == "spaceMeta" && args.empty()) {
       base::ListValue elsewhere, held;
-      base::DictValue held_tabs;
+      base::DictValue held_tabs, held_groups;
       for (auto* other : Owner::Live()) {
         if (other->browser->GetProfile()->GetOriginalProfile() != profile->GetOriginalProfile()) continue;
         if (other != owner && !other->space_name.empty()) elsewhere.Append(other->space_name);
@@ -6626,11 +6987,24 @@ class Handler : public content::WebUIMessageHandler, public extensions::Extensio
         for (const auto& space : hold->spaces()) {
           held.Append(space.name);
           base::ListValue rows;
+          base::ListValue groups;
+          if (const auto* saved = space.record.FindList("groups"))
+            for (size_t i = 0; i < saved->size(); ++i) {
+              const auto& g = (*saved)[i].GetDict();
+              groups.Append(base::DictValue().Set("id", static_cast<int>(i)).Set("name", *g.FindString("name"))
+                  .Set("color", GroupColor(static_cast<tab_groups::TabGroupColorId>(*g.FindInt("color")))));
+            }
+          held_groups.Set(space.name, std::move(groups));
+          size_t slot = 0;
           for (const auto& tab : space.tabs) {
             auto* page = hold->Contents(tab);
             const bool loaded = page && !page->WasDiscarded();
+            const auto* saved_tabs = space.record.FindList("tabs");
+            const int group = saved_tabs && slot < saved_tabs->size() ?
+                (*saved_tabs)[slot].GetDict().FindInt("group").value_or(-1) : -1;
+            ++slot;
             rows.Append(base::DictValue().Set("id", tab.id).Set("pinned", tab.pinned)
-                .Set("asleep", !loaded).Set("live", loaded));
+                .Set("groupId", group).Set("asleep", !loaded).Set("live", loaded));
           }
           held_tabs.Set(space.name, std::move(rows));
         }
@@ -6638,7 +7012,7 @@ class Handler : public content::WebUIMessageHandler, public extensions::Extensio
       reply(true, base::Value(base::DictValue()
           .Set("meta", profile->GetOriginalProfile()->GetPrefs()->GetDict(kSpacesMetaPref).Clone())
           .Set("elsewhere", std::move(elsewhere)).Set("held", std::move(held))
-          .Set("heldTabs", std::move(held_tabs)).Set("roomPass", LastRoomPass())));
+          .Set("heldTabs", std::move(held_tabs)).Set("heldGroups", std::move(held_groups)).Set("roomPass", LastRoomPass())));
       return;
     }
     if (method == "spaceMetaSave" && args.size() == 1 && args[0].is_dict()) {
@@ -6738,11 +7112,23 @@ class Handler : public content::WebUIMessageHandler, public extensions::Extensio
           base::BindOnce(&Handler::SpaceMoveWrite, weak_factory_.GetWeakPtr(), id, tab_id, name, false));
       return;
     }
-    if (method == "spaceMoveTabs" && args.size() == 3 && args[0].is_list() && args[1].is_string() &&
+    if (method == "spaceMoveGroup" && args.size() == 3 && args[0].is_string() &&
+        args[1].is_string() && args[2].is_bool()) {
+      const auto group = FindGroup(model, args[0].GetString());
+      base::ListValue ids;
+      if (group) for (int i = 0; i < model->count(); ++i)
+        if (model->GetTabGroupForTab(i) == group)
+          ids.Append(sessions::SessionTabHelper::IdForTab(model->GetWebContentsAt(i)).id());
+      Handle(base::ListValue().Append(id).Append("spaceMoveTabs").Append(base::ListValue()
+          .Append(std::move(ids)).Append(args[1].Clone()).Append(args[2].Clone()).Append(args[0].Clone())));
+      return;
+    }
+    if (method == "spaceMoveTabs" && (args.size() == 3 || (args.size() == 4 && args[3].is_string())) && args[0].is_list() && args[1].is_string() &&
         !args[1].GetString().empty() && args[1].GetString().size() <= 120 && args[2].is_bool()) {
       const auto& name = args[1].GetString();
       const bool create = args[2].GetBool();
-      const auto rows = SpaceBatchRows(model, args[0].GetList());
+      const std::string group_id = args.size() == 4 ? args[3].GetString() : "";
+      const auto rows = SpaceGroupRows(model, args[0].GetList(), group_id);
       if (profile->IsOffTheRecord() || owner->space_busy || owner->space_expected ||
           (!create && owner->space_name == name) || !rows) {
         reply(true, base::Value(base::DictValue().Set("ok", false).Set("error", "refused").Set("movedCount", 0))); return;
@@ -6763,11 +7149,11 @@ class Handler : public content::WebUIMessageHandler, public extensions::Extensio
       if (holder) {
         auto capture = CaptureNativeSpace(holder->browser);
         if (!capture) { SpaceBatchReply(id, "busy", 0, false); return; }
-        SpaceBatchWrite(id, args[0].GetList().Clone(), name, create, base::DictValue().Set("record", std::move(*capture)));
-      } else if (create) SpaceBatchWrite(id, args[0].GetList().Clone(), name, true, base::DictValue());
+        SpaceBatchWrite(id, args[0].GetList().Clone(), name, create, group_id, base::DictValue().Set("record", std::move(*capture)));
+      } else if (create) SpaceBatchWrite(id, args[0].GetList().Clone(), name, true, group_id, base::DictValue());
       else SpaceRunner()->PostTaskAndReplyWithResult(FROM_HERE,
           base::BindOnce(&SpaceDisk, profile->GetPath().AppendASCII("BlancPrototypeSpaces.json"), "spaceRecord", name, base::DictValue()),
-          base::BindOnce(&Handler::SpaceBatchWrite, weak_factory_.GetWeakPtr(), id, args[0].GetList().Clone(), name, false));
+          base::BindOnce(&Handler::SpaceBatchWrite, weak_factory_.GetWeakPtr(), id, args[0].GetList().Clone(), name, false, group_id));
       return;
     }
     if (method == "spaceReveal" && args.size() == 1 && space_named) {

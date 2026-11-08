@@ -54,14 +54,22 @@ export const MENU_KEYS={
 async function primaryTargetId(w){
  return w._primaryTarget??=(await w.fixture.host.send('Target.getTargetInfo')).targetInfo.targetId;
 }
+// A window's reported id is its position in SessionID order ('primary' for
+// the lowest, 'window-N' after), not its raw DevTools target id: a relaunch
+// reassigns every target id but restores windows in save order, so this
+// stays meaningful across one (native windowOrdinals; F32). The CDP
+// connection to actually drive a window is still matched by its real
+// target id, independent of that label.
 async function runtimes(w){
  const primary=await primaryTargetId(w);w._hosts??=new Map();
+ const ordered=await w.native('windowOrdinals');
  const hosts=(await w.fixture.targets()).filter(t=>t.url===HOST);
  const out=[];
  for(const t of hosts){
   let cdp=t.id===primary?w.fixture.host:w._hosts.get(t.id);
   if(!cdp){cdp=await w.fixture.connectTarget(t);await installDriver(cdp);w._hosts.set(t.id,cdp);}
-  out.push({id:t.id===primary?'primary':t.id,cdp});
+  const index=ordered.indexOf(t.id);
+  out.push({id:index===0?'primary':index>0?`window-${index+1}`:t.id,cdp});
  }
  // Shipping lists runtimes in creation order, primary first; DevTools lists
  // targets newest first.
@@ -132,7 +140,7 @@ export const tabs={
   return w.api('runSelectedTabsAction',[action,options]);
  },
  // Windows (F32). The primary window keeps shipping's id 'primary'; others
- // are named by their Island host target.
+ // are 'window-2', 'window-3' etc. by SessionID order (see runtimes()).
  async windowRuntimes(w){
   const out=[];for(const r of await runtimes(w))out.push(strict(runtimeRecord(r.id,await snap(r)),'windowRuntime'));
   return out;
@@ -258,11 +266,17 @@ export const tabs={
   (w.fixture.pageIdentities??=new Map()).set(identity,id);
   return identity;
  },
+ moveGroupToSpaceByName:(w,name,id)=>nativeCall(w.fixture.host,'moveGroupToSpaceByName',[String(name),String(id)]),
+ async beginNewSpaceForGroupByName(w,name){
+  const group=(await w.snapshot()).groups.find(g=>same(g.name,name));
+  return group ? w.api('beginNewSpaceForGroup',[group.id]) : false;
+ },
  // Spaces (F41), through the host's bridge as the menu calls it.
  async workspaceAction(w,action,...args){
   // Move to Space's test seams (shipping's arm-move-fault and saved-urls).
   if(action==='arm-move-fault')return {ok:await nativeCall(w.fixture.host,'spaceMoveFault',[String(args[0]),String(args[1]??'storage-failed')])};
   if(action==='saved-urls')return nativeCall(w.fixture.host,'spaceSavedUrls',[String(args[0])]);
+  if(action==='saved-groups')return nativeCall(w.fixture.host,'spaceSavedGroups',[String(args[0])]);
   const before=new Set((await runtimes(w)).map(r=>r.id));
   if(action==='open'||action==='create')w.app.releasePages();
   const result=await spaceAction((method,list)=>w.api(method,list),action,args);
@@ -280,7 +294,7 @@ export const tabs={
  },
  async residentSpaces(w){
   const state=await w.hostEval('window.BlancPrototypeHost.spaceHeldState()');
-  return state.held.map(id=>({id,name:state.meta.items[id]?.name,tabs:(state.heldTabs[id]||[]).map(t=>({...t,id:String(t.id)}))}));
+  return state.held.map(id=>({id,name:state.meta.items[id]?.name,groups:state.heldGroups[id]||[],tabs:(state.heldTabs[id]||[]).map(t=>({...t,id:String(t.id)}))}));
  },
  roomPass:async w=>{const pass=(await w.hostEval('window.BlancPrototypeHost.spaceHeldState()')).roomPass||'';return {outcome:pass.split(':')[0]};},
  spaceMarkState:w=>strip(w).evalExpression("(() => { const mark = document.getElementById('pillSpace'); if (!mark) return null; const rect = mark.getBoundingClientRect(); const parts = [document.getElementById('pillSpaceSymbol'), document.getElementById('pillSpaceName')]; return { hidden: mark.hidden, state: mark.dataset.state, name: parts[1].textContent, label: mark.getAttribute('aria-label'), expanded: mark.getAttribute('aria-expanded'), fill: mark.style.getPropertyValue('--space-fill'), on: mark.style.getPropertyValue('--space-on'), edge: mark.dataset.edge ?? null, markBackground: getComputedStyle(mark).backgroundColor, squareBackground: getComputedStyle(parts[0]).backgroundColor, symbolColor: getComputedStyle(parts[0]).color, nameColor: getComputedStyle(parts[1]).color, islandText: getComputedStyle(document.getElementById('islandPill')).color, square: (() => { const b = parts[0].getBoundingClientRect(); return { width: b.width, height: b.height, inset: b.left - rect.left }; })(), nameTruncated: parts[1].scrollWidth > parts[1].clientWidth, symbol: parts[0].dataset.symbol ?? null, left: rect.left, bottom: rect.bottom, islandBottom: document.getElementById('islandPill').getBoundingClientRect().bottom, animatedProperties: [...new Set(parts.flatMap((p) => p.getAnimations()).flatMap((a) => a.effect.getKeyframes().flatMap((k) => Object.keys(k))))], animations: parts.flatMap((p) => p.getAnimations()).map((a) => ({ kind: a.constructor.name, time: a.currentTime, duration: a.effect.getTiming().duration })), reducedMotion: window.matchMedia('(prefers-reduced-motion: reduce)').matches, }; })()"),
