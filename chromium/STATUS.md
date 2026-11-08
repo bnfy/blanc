@@ -14,6 +14,17 @@ D7, F0.7, cold builds, new machines, D2/D4–D6/D8/V2 and replacement D3
 remain pending. D3 beta-only no-DRM exception accepted; EME notice/handoff required.
 
 ## Current work
+- **2026-11-08 — F53/F34 batch 1, source changes only:** F53-12 and both
+  F53-27 examples now have persisted split diagnostics; F34-1
+  `glance.feature:52` has a single-tab move-to-new-window bridge. Internal-page
+  test navigation has a separate gated hook (F53-14), and F34-1 / F34 / D11
+  “A reference that already holds keyboard focus when Glance opens is the
+  focused pane” has a background-WebContents focus hook. No native verification
+  credit: apply rejected unrecognized cached source; the sandbox also prevents
+  writing the external source/build tree and worktree Git index. 69 runner unit
+  tests passed using sibling dependencies; patch reconstruction and hook-gate
+  preprocessing passed. Four separate commits and all targeted/full feature
+  runs remain pending. See `CODEX-NOTES-f53-f34-batch1.md`.
 - **Branch and PRs (owner, 2026-11-02):** the fork's integration branch is
   `chromium/migration` (renamed from `codex/f12-socket-speculation`), with
   [PR #1304](https://github.com/bnfy/blanc/pull/1304) as its integration PR
