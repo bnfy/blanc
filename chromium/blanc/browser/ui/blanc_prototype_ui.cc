@@ -9736,9 +9736,13 @@ void AdjustSplitLayout(const MultiContentsView* view, views::ProposedLayout* lay
       view->contents_container_views().size() == 2) {
     const auto& containers = view->contents_container_views();
     const int width = layout->host_size.width(), height = layout->host_size.height();
+    // origin is the container's position in browser_view coordinates: the
+    // card's actual screen position must stay fixed to that (plus the
+    // window's own, unchanging origin) regardless of where Auto-hide
+    // currently has the Island, so glance_page is placed from this raw
+    // value, never from an Island-relative one.
     gfx::Point origin;
     views::View::ConvertPointToTarget(view, browser_view, &origin);
-    if (auto* island = browser_view->GetViewByID(kIslandViewId)) origin.Offset(-island->x(), -island->y());
     gfx::Rect page = owner->glance_page;
     page.Offset(-origin.x(), -origin.y());
     for (auto& child : layout->child_layouts) {
@@ -9749,11 +9753,15 @@ void AdjustSplitLayout(const MultiContentsView* view, views::ProposedLayout* lay
     if (width <= 0 || width != view->width() || height != view->height()) return;
     owner->split_hit_regions = owner->glance_ring;
     // The page area is fixed to the window: below the Island's resting band,
-    // whatever Auto-hide is doing to the page.
+    // whatever Auto-hide is doing to the page. Reported Island-relative, as
+    // splitGeometry.islandY is, so the test harness's window-space
+    // conversion (adding islandY back) lands on the same fixed area on
+    // every sample regardless of where Auto-hide currently has the Island.
     auto* island = browser_view->GetViewByID(kIslandViewId);
-    const int band = island ? BaseHeaderHeight(island->parent()) - island->y() : origin.y();
+    const int island_relative_origin_y = island ? origin.y() - island->y() : origin.y();
+    const int band = island ? BaseHeaderHeight(island->parent()) - island->y() : island_relative_origin_y;
     owner->split_geometry = base::DictValue().Set("mode", "glance").Set("islandY", island ? island->y() : 0).Set("pageArea", base::DictValue()
-        .Set("x", origin.x()).Set("y", band).Set("width", width).Set("height", origin.y() + height - band));
+        .Set("x", origin.x()).Set("y", band).Set("width", width).Set("height", island_relative_origin_y + height - band));
     return;
   }
   if (model->active_index() < 0 || !model->GetSplitForTab(model->active_index()) ||
