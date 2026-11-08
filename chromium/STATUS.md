@@ -14,17 +14,32 @@ D7, F0.7, cold builds, new machines, D2/D4–D6/D8/V2 and replacement D3
 remain pending. D3 beta-only no-DRM exception accepted; EME notice/handoff required.
 
 ## Current work
-- **2026-11-08 — F53/F34 batch 1, source changes only:** F53-12 and both
-  F53-27 examples now have persisted split diagnostics; F34-1
-  `glance.feature:52` has a single-tab move-to-new-window bridge. Internal-page
-  test navigation has a separate gated hook (F53-14), and F34-1 / F34 / D11
-  “A reference that already holds keyboard focus when Glance opens is the
-  focused pane” has a background-WebContents focus hook. No native verification
-  credit: apply rejected unrecognized cached source; the sandbox also prevents
-  writing the external source/build tree and worktree Git index. 69 runner unit
-  tests passed using sibling dependencies; patch reconstruction and hook-gate
-  preprocessing passed. Four separate commits and all targeted/full feature
-  runs remain pending. See `CODEX-NOTES-f53-f34-batch1.md`.
+- **2026-11-08 — F53/F34 batch 1, verified (candidate macos-593cbf5c187af246):**
+  found by sweeping `glance.feature`/`split-view.feature` for the next batch of
+  gaps after F41-78 merged. Three of four scoped fixes landed and are confirmed
+  working with zero regressions: (1) `TestSessionWindowsRead`'s `sessionWindows`
+  test-hook never read the already-working `kPersistentSplitKey` persistence,
+  so its `splits` array was always empty — fixed, unblocking F53-12 and both
+  F53-27 examples (relaunch/Space-round-trip split persistence); (2) Glance's
+  "move the main page to a new window" had no host.js/native path at all
+  (`glance.feature:52`) — added `moveTabToNewWindow`, reusing Chromium's
+  `chrome::MoveTabsToNewWindow`; the first pass moved the whole native split
+  (Glance's main/reference pair) instead of just the requested tab, found and
+  fixed in review by dissolving the split via the existing `EndGlance()` helper
+  first; (3) `testFocusTabContents`, a gated (`BUILDFLAG(ENABLE_BLANC_TEST_HOOKS)`)
+  test-only hook, now lets a scenario simulate keyboard focus landing in a
+  background tab, fixing `glance.feature:144`. The fourth (F53-14,
+  `split-view.feature:110`) is NOT fixed: its `testNavigateTabAnyScheme` hook
+  is reachable and correct in isolation (confirmed via the working
+  `testFocusTabContents` sibling on the same `HandleTest` channel), but
+  navigating a tab that's part of an active native Chromium split to an
+  internal `blanc://` page silently never commits — no thrown error, no
+  pending navigation entry, just reverts to a no-op. That's a real product
+  question (can a split pane host an internal page at all?), not a test-hook
+  gap, and needs its own investigation before further attempts. Regression:
+  `glance.feature` 39 pass/2 fail (was 37/4), `split-view.feature` 27 pass/3
+  fail (was 24/6); `node --test chromium/tests/*.test.mjs` 72/72;
+  `check-patches.py` passed. See `CODEX-NOTES-f53-f34-batch1.md`.
 - **Branch and PRs (owner, 2026-11-02):** the fork's integration branch is
   `chromium/migration` (renamed from `codex/f12-socket-speculation`), with
   [PR #1304](https://github.com/bnfy/blanc/pull/1304) as its integration PR
@@ -2033,5 +2048,5 @@ Android's Bar A counts the shared scenarios bound in `chromium/tests/android/acc
 
 Legacy macOS stages come from the approved spec; they await verification on the canonical candidate. No legacy stage counts as Verified.
 
-Candidate identities: macOS: macos-523df9b441bcbe4e; Windows: none; Linux: none; Android: android-arm64-7bd35e94ef746069.
+Candidate identities: macOS: macos-593cbf5c187af246; Windows: none; Linux: none; Android: android-arm64-7bd35e94ef746069.
 <!-- END GENERATED PROGRESS -->

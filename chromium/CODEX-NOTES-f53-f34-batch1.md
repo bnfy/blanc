@@ -1,66 +1,119 @@
-# F53/F34 batch 1 — source changes, verification incomplete
+# F53/F34 batch 1 — verified, one item left genuinely open
 
-2026-11-08, branch `chromium/s3-f53-f34-batch1`, based on `913720f3`.
+2026-11-08, branch `chromium/s3-f53-f34-batch1`, rebased onto `chromium/s3-quiet-tabs`
+after PR #1419 (F41-78) merged. Candidate: macos-593cbf5c187af246.
 
-## Implemented
+Sourced by sweeping `glance.feature`/`split-view.feature` for the next batch
+of gaps. Drafted by Codex per a researched brief, reviewed, one real bug found
+and fixed in review, then independently applied/built/verified.
 
-1. `TestSessionWindowsRead` exposes tab SessionIDs as strings and always emits
-   `splits`, pairing adjacent complementary `1`/`2` extra-data values without
-   overlapping pairs. `focusedIndex` identifies the `2`. Persistence writers
-   and restore logic are unchanged. Covers F53-12 and both F53-27 examples.
-2. `host.js` forwards `moveTabToNewWindow` with a native tab ID. Native code
-   resolves that ID, checks count and `CanMoveTabsToNewWindow`, invokes the
-   actual two-argument `void` Chromium command, then finds the destination via
-   the moved WebContents and returns the same SessionID-ordered ordinal label
-   used by `windowRuntimes`. F34-1, glance.feature:52. Existing MainIndex clears
-   Glance identity when either member leaves; runtime promotion remains untested.
-3. `testNavigateTabAnyScheme` validates GURL and loads the explicit tab without
-   activating it. `quietNative.navigateTab` retains `navigate` for HTTP(S) and
-   uses the test hook otherwise, covering both split and shared-space callers.
-   The production HTTP(S) guard is unchanged.
-4. `testFocusTabContents` calls Focus on the explicitly identified WebContents.
-   The existing adapter uses it only for a background tab; active-tab rail and
-   open-Glance paths are unchanged. The existing scenario step already calls
-   that adapter. Tags: @F34-1 @F34 @D11. Scenario: “A reference that already holds
-   keyboard focus when Glance opens is the focused pane”. The Then compares the
-   recorded pane with the reported focus holder, but permits a null holder;
-   it is unchanged. Actual background focus must still be observed at runtime.
+## Fixed and verified
 
-Both new test operations live directly in HandleTest, behind
-ENABLE_BLANC_TEST_HOOKS and its existing --blanc-test requirement. They are
-absent in release-disabled preprocessing and cannot be called via production
-Handle dispatch. No production focus handling was changed.
+1. **Split persistence was never surfaced to the test diagnostic.** The
+   production write/restore path (`kPersistentSplitKey`/`PersistentSplitData`,
+   `AddTabExtraData`/`RestoreTabIdentity`) already worked. `TestSessionWindowsRead`
+   (the `sessionWindows` native handler behind `persistedSessionData`) just
+   never read it, so its `splits` array was always empty. Now it pairs
+   adjacent tabs whose extra-data is complementary `"1"`/`"2"` into a `splits`
+   entry with `tabIds`/`focusedIndex`, and stamps each `saved_tab` with its
+   SessionID as `id` so the test can correlate. Fixes F53-12 and both F53-27
+   examples. No change to the write/restore side.
 
-## Checks
+2. **Glance's "move the main page to a new window" had no implementation.**
+   `glance.feature:52` called `moveTabToNewWindow`, which host.js didn't
+   define, so it hit the generic "Prototype does not implement" refusal.
+   Added `host.js`'s `moveTabToNewWindow` plus a native handler that resolves
+   the tab, guards with `chrome::CanMoveTabsToNewWindow`, and replies with the
+   destination's SessionID-ordered runtime label (matching `windowRuntimes`'
+   own "primary"/"window-N" scheme, computed independently rather than shared
+   — a minor duplication, not a correctness issue for this scenario).
+   **Found in review and fixed:** the first version called
+   `chrome::MoveTabsToNewWindow` directly on the target tab without checking
+   whether it's part of a live Glance pairing. Glance's main/reference tabs
+   are joined by a *real* native Chromium split (`TabStripModel::AddToNewSplit`
+   / `GetSplitForTab` — confirmed by reading `sessions::SessionTab::split_id`'s
+   presence and Blanc's own split-based Glance implementation), and Chromium
+   moves a split's tabs together. So moving "main" actually moved both tabs,
+   leaving the original window empty and forcing in a blank fallback tab,
+   instead of promoting the reference. Fixed by calling the existing
+   `EndGlance(owner, stays)` helper (same one `switchTab`/group-close/etc.
+   already use) to dissolve the split and restore/activate whichever tab is
+   staying *before* resolving the moving tab's (possibly now-shifted) index
+   and handing it to `chrome::MoveTabsToNewWindow`. Generalized to handle
+   moving either side of the pair, not just main.
 
-- refresh-source-map.py: refreshed, 441 custom files.
-- check-patches.py: passed, 128 upstream / 441 custom files; reconstruction only.
-- check-hook-gates.py: all four preprocessing checks passed.
-- node --check chromium/blanc/island/host.js and git diff --check: passed.
-- node --test chromium/tests/*.test.mjs: initial invocation had 45 pass and
-  3 file-load failures because @cucumber/cucumber-expressions is absent here.
-  Rerun with NODE_PATH=/Users/anthonyjloria/Projects/BlancChromium158/repo/node_modules:
-  69 pass, 0 fail. Logs: /tmp/blanc-batch1-node-tests{,-deps}.log.
+3. **No way to simulate background-tab keyboard focus for a test.**
+   `glance.feature:144` needs a tab to hold keyboard focus *while in the
+   background*, which the existing `focusTabContents` adapter explicitly
+   refused unless the target was already the active tab. Added a gated
+   (`BUILDFLAG(ENABLE_BLANC_TEST_HOOKS)`) native `testFocusTabContents` that
+   calls `WebContents::Focus()` on the specific tab by id regardless of
+   active state; `island.mjs`'s adapter now falls back to it only when the
+   target isn't active. No production focus-handling code changed.
 
-## Blockers and follow-up
+Also added `testNavigateTabAnyScheme` (same gating) and taught
+`quietNative.navigateTab` to pick it for non-http(s) targets while keeping
+`navigate` (the real, intentionally HTTP(S)-only production test hook)
+unchanged for http(s) ones. This is correct in isolation — confirmed reachable
+and working via its sibling `testFocusTabContents` on the same `HandleTest`
+channel — but see below.
 
-No native build or acceptance scenario ran. apply.py --apply, using HEAD's
-source map as --previous-map, stopped before any mutation:
-`Unrecognized cached source; preserve and reconcile: blanc/browser/ui/blanc_prototype_ui.cc`.
-Do not overwrite that source: reconcile the shared checkout and its current
-owner/candidate first. This session's writable roots also exclude that source
-and build tree. chromium/CLAUDE.md is absent in this worktree.
+## Not fixed: F53-14, `split-view.feature:110`
 
-Git add/commit failed because the linked worktree index lives outside writable
-roots: `repo/.git/worktrees/s3-f53-f34-codex/index.lock: Operation not permitted`.
-No commits were made. Four sequential, separate patches are preserved at
-/tmp/blanc-batch1-fix1.patch through /tmp/blanc-batch1-fix4.patch, including each
-stage's source-map hashes, for recreating the requested readable commit history.
-They apply to the starting HEAD in order; the working tree already contains
-all four, so do not apply them again here. STATUS and this note are additional
-uncommitted documentation changes.
+"A pane's corner tab follows its page as it navigates" calls
+`navigateTab(splitB, 'blanc://mahjong/')`, which now correctly routes to
+`testNavigateTabAnyScheme`. The native handler runs (confirmed `HandleTest` is
+reachable via the passing `testFocusTabContents` case) and calls
+`target->GetController().LoadURL(url, ..., ui::PAGE_TRANSITION_TYPED, "")` —
+identical to the already-working `navigate` method's call shape for http(s).
+But the live snapshot after the call shows the pane's URL unchanged, not
+loading, no pending navigation entry: the navigation silently never commits.
 
-After reconciling source and filesystem access: apply, guarded incremental
-build, targeted F53-12/F53-27/F53-14 and glance.feature:52/:144 runs, then both
-full feature files. No candidate/tracker verification promotion was made.
-Open Link in Space, Batch Close and existing blocked work are untouched.
+This only reproduces when the target tab is an active member of a native
+split (`model->GetSplitForTab(index)` is set) — `testFocusTabContents`,
+exercised on a non-split background tab, works fine on the same dispatch
+path, which rules out a channel/gating problem. The only other caller of this
+adapter path, `shared-spaces.steps.js:102`'s identical `navigateTab(secondTab,
+'blanc://mahjong/')`, is on an *ordinary, non-split* tab, but that scenario
+isn't in the step-file allowlist (`shipping-core.cjs`'s `stepFiles`) yet, so
+it couldn't be run to confirm whether the restriction is split-specific or
+general. That allowlist gap is unrelated to this batch; not touched here.
+
+This reads as a genuine split-view/WebUI-navigation interaction, not a
+test-hook gap — whether a split pane can host an internal `blanc://` page at
+all is a real product question, and reverting the navigation with no visible
+error is itself worth separately investigating (silent failures are bad even
+if the restriction turns out to be intentional). Needs its own focused
+investigation (likely real native debugging/logging in the actual build, not
+more static reading) before another attempt. Do not re-delegate this specific
+scenario without that.
+
+## Verification
+
+- `node chromium/tools/build.mjs ~/Projects/BlancChromium158/src --build`:
+  succeeded, candidate macos-593cbf5c187af246, framework hash independently
+  verified against `tracker.json`.
+- `--only="glance.feature:52"`, `:144`: pass. `--only="split-view.feature:88"`
+  (F53-12): pass.
+- Full `glance.feature`: 39 pass / 2 fail (unchanged pre-existing: line 98
+  "Closing Glance takes the Change picker with it", line 538 "The card stays
+  put while a pushed Island slides in" — both untouched by this batch, were
+  already failing before it, candidates for the next batch). A third failure
+  seen in one run (line 127, a Glance-picker wake-cancellation timing
+  scenario, unrelated to anything here) did not reproduce on rerun — treated
+  as a pre-existing flake per project convention, not a regression.
+- Full `split-view.feature`: 27 pass / 3 fail (lines 110 as above, 135 "says
+  when a tab changes group", 159 "floating Island ... after a relaunch too"
+  — both untouched, pre-existing, next-batch candidates).
+- `node --test chromium/tests/*.test.mjs` (needs
+  `NODE_PATH=<main repo>/node_modules` in this worktree, which has no
+  `node_modules` of its own): 72/72 pass.
+- `python3 chromium/tools/check-patches.py`: passed.
+
+## Rebase note
+
+This branch was cut from `chromium/s3-quiet-tabs` at 913720f3, before PR #1419
+(F41-78) merged. Rebased onto the post-merge tip; `blanc_prototype_ui.cc` and
+`host.js` auto-merged cleanly (no overlapping lines with F41-78's changes),
+`source-map.json` (generated) was regenerated fresh via
+`refresh-source-map.py` rather than hand-merged.
