@@ -22,7 +22,8 @@ assertNodeRuntime();
 // --only runs a development subset (case ids containing the text); its
 // output is never a baseline.
 const only=flags.find(f=>f.startsWith('--only='))?.slice(7);
-const onlyPattern=only?{test:id=>id.includes(only)}:null;
+// Several texts, comma-separated, run every case matching any of them.
+const onlyPattern=only?{test:id=>only.split(',').some(text=>text&&id.includes(text))}:null;
 const config=JSON.parse(fs.readFileSync(configPath));
 const out=path.resolve(outputDirectory);
 if(fs.existsSync(out))throw Error('Refusing to overwrite prior baseline');

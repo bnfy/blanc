@@ -1233,6 +1233,12 @@
   const permissionFrame = document.getElementById('permission');
   const prompts = new Map();
   function placePermission() {
+    // Until native has grown the host from the strip to the window there is
+    // no room below the Island: shown then, the prompt would flash over the
+    // Island and take the pointer there. The resize places and shows it.
+    const room = innerHeight >= stripH() + 84;
+    permissionFrame.hidden = !room;
+    if (!room) return;
     const width = Math.min(560, Math.max(0, innerWidth - 24));
     Object.assign(permissionFrame.style, { left: `${Math.round((innerWidth - width) / 2)}px`,
       top: `${Math.max(0, innerHeight - 84)}px`, width: `${width}px`, height: '84px' });
@@ -1243,9 +1249,9 @@
     return request('height', prompts.size ? [10000, false] : [stripH()]);
   }
   async function syncPermission() {
-    permissionFrame.hidden = !prompts.size;
-    if (prompts.size) placePermission();
+    if (!prompts.size) permissionFrame.hidden = true;
     if (!opened && !extensionsOpened && !sheet.page && !paneMenu) await restHeight();
+    if (prompts.size) placePermission();
     reportGeometry();
   }
   function permissionPrompt(payload) {

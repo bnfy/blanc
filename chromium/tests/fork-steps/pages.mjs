@@ -124,6 +124,9 @@ export default function register(step){
   const id=await this.call('openTab',this.fixtureUrl('ledger-group'));
   await this.call('groupTabByName',id,'research');
   await this.waitForState(s=>s.groups.some(g=>g.name.toLowerCase()==='research'));
+  // The scenario is the Ledger's: favorites, groups and the footer count are
+  // its content, and a fresh profile now starts on Billboard.
+  assert.equal(await this.call('setNewtabLayout','ledger'),'ledger');
  });
  step("the new-tab page shows today's date",async function(){
   const dom=await until(this,()=>startDom(this,`({shown:document.getElementById('startDate')?.textContent??'',
