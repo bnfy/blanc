@@ -5875,6 +5875,7 @@ class Handler : public content::WebUIMessageHandler, public extensions::Extensio
     std::vector<std::unique_ptr<SplitCloseWatch>> watches;
     bool cancelled = false;
     bool single_tab = false;
+    int replacement_blank_id = -1;
   };
   std::map<std::string, PendingSplitClose> split_closes_;
   void SplitCloseCancelled(std::string id) {
@@ -5918,7 +5919,15 @@ class Handler : public content::WebUIMessageHandler, public extensions::Extensio
     const bool cancelled = it->second.cancelled;
     if (it->second.single_tab) {
       const bool without_history = it->second.watches.front()->without_history();
+      const int replacement = it->second.replacement_blank_id;
       split_closes_.erase(it);
+      // Closing the last tab creates a blank replacement. Once unload really
+      // completed, focus its address field just as Cmd+T does. A cancelled
+      // close or a later tab switch must not steal the user's keyboard.
+      auto* active = browser->GetTabStripModel()->GetActiveWebContents();
+      if (!cancelled && active && replacement >= 0 &&
+          sessions::SessionTabHelper::IdForTab(active).id() == replacement)
+        OpenIsland(browser, true);
       // A cancelled native unload is a normal outcome, not a storage failure.
       if (cancelled) Reply(id, true, base::Value(false));
       else SaveClosedHistory(id, browser->GetProfile(), without_history);
@@ -9041,10 +9050,13 @@ class Handler : public content::WebUIMessageHandler, public extensions::Extensio
           base::BindOnce(&Handler::CheckSplitClose, weak_factory_.GetWeakPtr(), id));
       return;
     } else if (method == "closeTab") {
+      int replacement = -1;
       if (model->count() == 1) {
         chrome::AddTabAt(browser, GURL("chrome://newtab/"), -1, true);
+        replacement = sessions::SessionTabHelper::IdForTab(model->GetActiveWebContents()).id();
       }
       auto& pending_close = split_closes_[id];
+      pending_close.replacement_blank_id = replacement;
       pending_close.browser = browser->GetWeakPtr();
       pending_close.single_tab = true;
       pending_close.tabs.push_back(sessions::SessionTabHelper::IdForTab(tab).id());
