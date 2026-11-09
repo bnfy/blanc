@@ -65,49 +65,20 @@ Built and ran `newtab-layouts.feature` against a real candidate (GN regenerated
 with unchanged args.gn — hash-verified identical before/after; framework hash
 independently re-verified at every step).
 
-- **`newtab-layouts.feature:35` (F35-4): PASS.** The footer-launch wiring
-  (`openMahjong` bridge + native `NewTabHandler` case + serving) works
-  end-to-end for the ordinary (non-private) case: all four layouts' footer
-  links open Mahjong in a new tab without disturbing the original Start
-  Page's layout.
-- **`newtab-layouts.feature:41` (F35-9, the private variant): STILL FAILS.**
-  Root cause not found despite six rounds of targeted `LOG(ERROR)` tracing
-  (all reverted; the committed source has none of this diagnostic code).
-  What the tracing actually showed, precisely:
-  - `IsStartPage()` correctly identifies the private Start Page throughout
-    (`primary_private=1`, exact committed-URL match, all OTR flags consistent).
-  - `Handle()`'s per-message dispatch log (added at the very top, right after
-    `method`/`args` are bound) fires exactly once with
-    `method=openMahjong argcount=1 dump=false is_bool=1 type=1
-    full_condition=1` — i.e. a side-channel re-evaluation of the EXACT guard
-    expression (`method == "openMahjong" && args.size() == 1 &&
-    args[0].is_bool()`) confirms it is TRUE for this call.
-  - Yet a `LOG(ERROR)` placed as the **unconditional, immediately preceding
-    statement** to the real `if (method == "openMahjong" ...)` check (350
-    lines later in the same `Handle()` body, no intervening reassignment of
-    `method`/`args`, both `const`) **never fires** — not even once, across
-    multiple repeated runs. Ruled out: process crash/restart (single PID
-    throughout, clean `browserExit.code: 0`), stale/wrong candidate (hash
-    independently re-verified at every round), a duplicate/shadowing
-    `"openMahjong"` check earlier in the dispatch chain (grepped — only one
-    occurrence), and a stale embedded JS resource (the `start.data()`-style
-    methods logged in between prove the same `Handle()` dispatch path is
-    very much alive and well for other methods in the same scenario run).
-  - This is genuinely unexplained from source reading or `LOG(ERROR)`-based
-    tracing. **Recommend attaching a real debugger (lldb breakpoint at the
-    `if (method == "openMahjong"...)` line) for the next attempt**, not more
-    print statements — this specific approach has been exhausted without
-    resolving it, and repeating it would just spend another round for no
-    new information.
-  - Pausing this one scenario here rather than continuing to spend rounds on
-    it, per the push toward a macOS beta (the owner's stated bar tolerates
-    known, non-blocking gaps; this is cosmetically narrow — only the private
-    variant of one footer link — not a crash or data-loss class issue).
+- **`newtab-layouts.feature:35` (F35-4): passed, but proved less than first
+  recorded.** The adapter's `.click()` fires on a hidden element, and
+  `newtab-prototype.css` still hid `#mahjongLink`, so people could not see it.
+- **`newtab-layouts.feature:41` (F35-9): failed.** An earlier version of this
+  note called the cause unexplained and asked for a debugger. That was wrong:
+  the private-profile allowlist in `NewTabHandler::Handle` returned before the
+  `openMahjong` branch, between the two log points, and that code had not been
+  read.
+- Both are fixed on candidate macos-d40bfa2514c288c3, along with reload, which
+  failed because Mahjong's `?game=<id>` was not an allowed query. Verified with
+  real mouse events; see STATUS.md.
 
-`F35-3`'s deep hooks remain explicitly unported (as scoped). `F35-10` was not
-investigated (confirmed unrelated to Mahjong — it's a pure layout/geometry
-scenario, already failing before this round and not mentioned in the
-"Mahjong goes last" note). `STATUS.md` and `tracker.json` are intentionally
+`F35-3`'s deep hooks remain explicitly unported (as scoped). `F35-10` is not a
+Mahjong bug: the footer's left group wraps at 1260px. `STATUS.md` and `tracker.json` are intentionally
 left untouched by this round; Claude records evidence there separately.
 
 ## Commit history

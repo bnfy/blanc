@@ -14,6 +14,94 @@ D7, F0.7, cold builds, new machines, D2/D4–D6/D8/V2 and replacement D3
 remain pending. D3 beta-only no-DRM exception accepted; EME notice/handoff required.
 
 ## Current work
+- **2026-11-09 — Settings polish pass (candidate macos-a7d83e2ea8141aff):**
+  owner asked for Settings to feel like shipping's Blanc, not stock Chromium
+  ("Logo + About + General", closer to the Electron styling). New patch 0037:
+  Chromium's logo (About, the toolbar, `chrome://version`) is the Sunrise mark
+  (`product_logo_32` at 1x and 2x); every Settings string, and the placeholder
+  profile name, says Blanc instead of Chromium (one hook in
+  `WebUIDataSourceImpl`, for the `settings` source only, leaving any string
+  that links to chromium.org or credits "The Chromium Authors" alone); About
+  drops Chromium's update-status row, since Blanc has its own channel; the
+  left navigation stays beside the page in the sheet (breakpoint 980 → 600px,
+  with the toolbar search field sized to fit) as text-only neutral pills;
+  section headings are larger; buttons, fields, the search box and the nav
+  take the Sunrise/Neutral palette tokens instead of Chromium's blue. Real
+  screenshots checked (General, About, Appearance, Privacy). Not changed:
+  Chromium's page order and section names (no General/Sync/Diagnostics
+  groups as in shipping), the blue profile avatar, and a few strings that
+  link to chromium.org stay "Chromium". Regression: internal-pages 9/1,
+  settings-and-theming 6/0, interface-language 5/0, supporter-and-session 2/0,
+  newtab-layouts 22/1 (also fixed `:35`, `:41`, `:161` earlier in the day),
+  sync unchanged (10 failing as in the morning baseline), tool tests 189/189
+  on Node 22 (`check-patches.test.mjs` pin now 136 upstream files).
+- **2026-11-09 — Open Island closes on a click outside it (candidate
+  macos-8a58ea5cd8ede2f6):** the fork's expanded Island stayed open when the
+  page, another window or another app was clicked; shipping's overlay `blur`
+  closes it. `host.js` now closes the panel/palette/shield/spaces/switcher
+  surfaces when the host and overlay frames lose focus, except for Find
+  (stays open between matches), the display-share dialog, a native context
+  menu in the overlay, and the first 400 ms after it opens (a new tab's page
+  can briefly take focus). Verified over CDP with real mouse input.
+  Regression on this candidate, against the morning baseline: F41, tabs and
+  groups, quiet tabs and split view identical; glance `:337` failed once in
+  the full run and passes 4 of 4 alone, with and without the fix;
+  `island-and-commands.feature:107` (a pending permission prompt blocks
+  hover-open) fails 4 of 4 now but fails identically with the pre-fix
+  `host.js` served from disk, so the fix is not the cause; its cause is
+  still unknown and it passed in the morning baseline.
+- **2026-11-09 — Preview disclosure moved to Settings → About (candidate macos-f15e19cfa024fb72):**
+  owner asked for the "Preview … · Version & security" footer badge to move.
+  Settings → About now has a "Version & security" row (new patch 0036, plus
+  `blancSettingsPreviewNotice` in the settings handler) that opens the Start
+  Page at `?preview=1`, which shows the same notice dialog unchanged (status,
+  build, support, rollback guidance). The footer button is gone; the Island's
+  own "Security & updates" link is untouched. The row's label is English-only
+  because the generated settings strings come from shipping's catalogs, which
+  have no key for this preview-only text. Real click verified. This also fixed
+  `newtab-layouts.feature:161` (the badge made the footer's left group wrap):
+  22 pass, 1 fail (`:21`, deep hooks); `internal-pages.feature` 9 / 1 (`:7`,
+  also failing this morning).
+- **2026-11-09 — Start Page's Patron pill (candidate macos-cd5dbbaafb7c657d):**
+  the pill's `blanc://settings/#group-patron` link went nowhere. It now opens
+  the Settings sheet at `chrome://settings/help`, where the `#patronCheckout`
+  row is, as shipping's link opens Settings at Patron. A real click was
+  verified; the row is on screen. `newtab-layouts.feature` 21 / 2 and
+  `internal-pages.feature` 9 / 1 fail only where they did before
+  (`:21`, `:161`; `internal-pages:7`); `supporter-and-session.feature` 2 / 0.
+- **2026-11-09 — Start Page footer fixes and corrections (candidate macos-d40bfa2514c288c3):**
+  owner dogfooding found what the Mahjong round 1 tests missed. `#mahjongLink`
+  was still in `newtab-prototype.css`'s hide-list, so the footer link merged
+  in #1425 was invisible; the F35-4 pass was a false positive because the
+  adapter's `.click()` fires on a hidden element. Removed. F35-9 was never
+  mysterious: `NewTabHandler::Handle`'s private-profile allowlist rejected
+  `openMahjong`; added it. Reloading a game hit Chromium's error page because
+  Mahjong writes `?game=<id>` and the request filter only aliased an exact
+  query; any `pages/mahjong.html?...` now serves that one page. Checked with
+  real CDP mouse events: link visible and hittable, regular and private games
+  open, reload keeps the game, Finish setup opens. `newtab-layouts.feature`
+  21 pass / 2 fail (`:21` F35-3 deep hooks unported; `:161` F35-10, the footer's
+  left group wraps at 1260px). `island-and-commands.feature` 63 / 3: `:295` and
+  `:359` also failed in the morning's full run; `:107` (permission prompt
+  blocks hover-open) passed that run and has failed 3 of 3 since, cause
+  unknown. Open: moving the preview disclosure to Settings → About.
+- **2026-11-09 — ⌘L panel's Private button, owner-reported (candidate macos-2126247dc249b5b7):**
+  the owner noticed the panel's footer had no Private button, unlike shipping.
+  It was already fully wired — `footerNewPrivate`'s click handler
+  (`overlay.js`) calls the exact same `window.browserAPI.createTab(null,
+  {private: true})` as the already-working `/private` command, and ⌘⇧N opens
+  an in-window private tab natively (`patches/0011-in-window-private-tabs.patch`)
+  — but `prototype.css`'s "not yet backed by a native bridge" hide-list
+  (written early in the prototype, listing controls like `#panelSiteInfo`
+  that genuinely weren't wired yet) still included `#footerNewPrivate`, stale
+  since private tabs were built. Removed it from that list; confirmed live
+  via CDP (button renders, `getComputedStyle().display` went from `none` to
+  `flex`, and clicking it creates a real private tab). Full regression:
+  `island-and-commands.feature` 62-63/77 executed across two runs — one
+  scenario flaked once then passed on retry, two failures were already in
+  the same-day full-suite baseline before this change, and the fourth
+  ("A pending permission prompt blocks hover-open") failed both runs; sibling
+  hover-open scenarios pass, but the cause is unknown (see the entry above). `node --test` 262/262; `check-patches.py` passed.
 - **2026-11-09 — Mahjong round 1, footer launch (candidate macos-aef74633b0b1595d):**
   the owner's named S1 close-out item. Ported shipping's 27 `mahjong*` files
   byte-identical (SHA-256-verified against `git show`), wired the footer link
@@ -24,14 +112,8 @@ remain pending. D3 beta-only no-DRM exception accepted; EME notice/handoff requi
   `shippingPageUrl()` test-only URL projection so acceptance scenarios see
   `blanc://mahjong/...` as shipping expects. `newtab-layouts.feature:35`
   (F35-4, ordinary footer launch) passes live. `:41` (F35-9, the private
-  variant) does not: six rounds of `LOG(ERROR)` tracing confirmed the
-  dispatch *should* reach the native handler (a side-channel re-check of the
-  exact guard condition evaluates true) but an unconditional log placed
-  immediately before the real check never fires — genuinely unexplained by
-  source reading or print-style tracing; next attempt needs a real debugger,
-  not more logging. Pausing that one scenario rather than spending further
-  rounds, consistent with the owner's "known gaps OK" bar for this beta;
-  not a crash or data-loss class issue. `:21` (F35-3, deep game correctness)
+  variant) did not; see the correction above, including that this F35-4 pass
+  did not prove the link was visible. `:21` (F35-3, deep game correctness)
   intentionally unattempted this round; `:161` (F35-10) is unrelated,
   pre-existing, and untouched. See `CODEX-NOTES-mahjong-round1.md`.
 - **2026-11-09 — Batch 1 + Batch 2 merged (candidate macos-507866b59af7ffc6):**
@@ -2122,5 +2204,5 @@ Android's Bar A counts the shared scenarios bound in `chromium/tests/android/acc
 
 Legacy macOS stages come from the approved spec; they await verification on the canonical candidate. No legacy stage counts as Verified.
 
-Candidate identities: macOS: macos-aef74633b0b1595d; Windows: none; Linux: none; Android: android-arm64-7bd35e94ef746069.
+Candidate identities: macOS: macos-a7d83e2ea8141aff; Windows: none; Linux: none; Android: android-arm64-7bd35e94ef746069.
 <!-- END GENERATED PROGRESS -->

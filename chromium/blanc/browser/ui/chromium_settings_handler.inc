@@ -203,10 +203,11 @@ class ChromiumSettingsHandler final : public settings::SettingsPageUIHandler {
   }
   // The tour opens as a real tab, and the sheet closes, as shipping's does.
   // A plain Settings tab has no sheet to close.
-  void HandleWelcomeTour(const base::ListValue& args) {
+  void HandleWelcomeTour(const base::ListValue& args) { OpenStartPageTab(args, GURL(kWelcomeTourUrl)); }
+  void HandlePreviewNotice(const base::ListValue& args) { OpenStartPageTab(args, GURL(kPreviewNoticeUrl)); }
+  void OpenStartPageTab(const base::ListValue& args, const GURL& url) {
     if (!Begin(args, 0)) return;
     ResolveJavascriptCallback(args[0], base::Value(true));
-    const GURL url(kWelcomeTourUrl);
     if (auto* owner = SettingsSheetOwner(web_ui()->GetWebContents())) {
       OpenFromSettingsSheet(owner, url);
       return;
@@ -267,6 +268,7 @@ void ChromiumSettingsHandler::RegisterMessages() {
   bind("blancSettingsSetUsagePing", &ChromiumSettingsHandler::HandleSetUsagePing);
   bind("blancSettingsResetInstallId", &ChromiumSettingsHandler::HandleResetInstallId);
   bind("blancSettingsWelcomeTour", &ChromiumSettingsHandler::HandleWelcomeTour);
+  bind("blancSettingsPreviewNotice", &ChromiumSettingsHandler::HandlePreviewNotice);
   bind("blancSettingsFont", &ChromiumSettingsHandler::HandleFont);
 }
 

@@ -293,13 +293,15 @@ namespace {
 constexpr char kSpacesMetaPref[] = "blanc.spaces.meta";
 // The remembered Glance card: device-wide, never synced (F34).
 constexpr char kGlanceFramePref[] = "blanc.glance.frame";
-// The Start Page a regular window commits: plain, or the welcome tour's
-// replay (F36). Never any other query.
+// The Start Page a regular window commits: plain, the welcome tour's replay
+// (F36), or the preview's Version & security notice. Never any other query.
 // The hold window's active tab: blank, and how tests tell it from a page.
 constexpr char kHoldAnchorUrl[] = "about:blank#blanc-hold";
 constexpr char kWelcomeTourUrl[] = "chrome://blanc-prototype/pages/newtab.html?tour=1";
+constexpr char kPreviewNoticeUrl[] = "chrome://blanc-prototype/pages/newtab.html?preview=1";
 bool IsRegularStartPage(const GURL& url) {
-  return url == GURL("chrome://blanc-prototype/pages/newtab.html") || url == GURL(kWelcomeTourUrl);
+  return url == GURL("chrome://blanc-prototype/pages/newtab.html") || url == GURL(kWelcomeTourUrl) ||
+         url == GURL(kPreviewNoticeUrl);
 }
 void TelemetryNotePage(content::WebContents* tab);
 // Every sandbox flag Chromium defines (bits 0-18).
@@ -2210,10 +2212,10 @@ std::optional<GURL> SettingsSheetURL(std::string_view section) {
 // sheet ends, as shipping's sheet links open real tabs.
 void OpenFromSettingsSheet(Owner* owner, const GURL& url) {
   if (!owner || !url.is_valid()) return;
-  // The tour replays in a regular window: a private Start Page has no
-  // walkthrough to show.
+  // The tour and preview notice open in a regular window: a private Start
+  // Page shows neither.
   Profile* profile = owner->browser->GetProfile();
-  NavigateParams params = url == GURL(kWelcomeTourUrl) && profile->IsOffTheRecord()
+  NavigateParams params = IsRegularStartPage(url) && profile->IsOffTheRecord()
       ? NavigateParams(profile->GetOriginalProfile(), url, ui::PAGE_TRANSITION_LINK)
       : NavigateParams(owner->browser.get(), url, ui::PAGE_TRANSITION_LINK);
   params.disposition = WindowOpenDisposition::kNewForegroundTab;
@@ -3732,7 +3734,7 @@ class NewTabHandler : public content::WebUIMessageHandler,
       }
       // Shipping shares only the explicit clock appearance setting; no
       // private visit or wallpaper data is written to the regular profile.
-      if (method != "openIsland" && method != "clockRead" && method != "clockWrite") {
+      if (method != "openIsland" && method != "openMahjong" && method != "clockRead" && method != "clockWrite") {
         Reply(id, false, base::Value("Unavailable in private browsing")); return;
       }
     }
@@ -9578,12 +9580,14 @@ UI::UI(content::WebUI* web_ui) : ui::MojoWebUIController(web_ui, /*enable_chrome
                   neutral ? blanc::island_resources::Find("pages/pages-neutral.css") : nullptr));
               return;
             }
-            // Only the exact private page and tour Start Page queries and the
+            // Only the exact private and tour Start Page queries and the
             // floating pill's surface query alias their shared static assets;
-            // arbitrary queries never become filesystem paths.
+            // arbitrary queries never become filesystem paths. Mahjong's own
+            // query (private, game id, shared deal) always serves its one page.
             const std::string asset_path =
-                path == "pages/newtab.html?private=1" || path == "pages/newtab.html?tour=1" ? "pages/newtab.html"
-                : path == "pages/mahjong.html?private=1" ? "pages/mahjong.html"
+                path == "pages/newtab.html?private=1" || path == "pages/newtab.html?tour=1" ||
+                path == "pages/newtab.html?preview=1" ? "pages/newtab.html"
+                : path.starts_with("pages/mahjong.html?") ? "pages/mahjong.html"
                 : path == "index.html?surface=float" || path == "index.html?surface=glance" ? "index.html" : path;
 #if BUILDFLAG(ENABLE_BLANC_DISK_ASSETS)
             // Build outputs such as the compiled bindings exist only embedded.
@@ -9649,7 +9653,9 @@ bool OpenExtensions(BrowserWindowInterface* browser) {
 #include "blanc/browser/ui/permission_prompt.inc"
 
 bool OpenUtilitySheet(BrowserWindowInterface* browser, std::string_view page) {
-  if (page != "history" && page != "downloads" && page != "bookmarks" && page != "settings") return false;
+  // The Start Page's Patron invitation opens Settings at its checkout row.
+  const bool patron = page == "patron";
+  if (page != "history" && page != "downloads" && page != "bookmarks" && page != "settings" && !patron) return false;
   // A private window keeps Chromium's pages; the sheet shows regular data.
   // Settings, like Chromium's, is the regular profile's in either window.
   if (!IsIslandWindow(browser) || (page != "settings" && browser->GetProfile()->IsOffTheRecord())) return false;
@@ -9660,7 +9666,9 @@ bool OpenUtilitySheet(BrowserWindowInterface* browser, std::string_view page) {
   if (contents->GetLastCommittedURL() != GURL("chrome://blanc-prototype/host.html") ||
       !contents->GetPrimaryMainFrame()->IsRenderFrameLive()) return false;
   contents->GetPrimaryMainFrame()->ExecuteJavaScript(
-      u"window.BlancPrototypeHost?.openSheet('" + base::ASCIIToUTF16(page) + u"')", base::NullCallback());
+      patron ? std::u16string(u"window.BlancPrototypeHost?.openSheet('settings','help')")
+             : u"window.BlancPrototypeHost?.openSheet('" + base::ASCIIToUTF16(page) + u"')",
+      base::NullCallback());
   return true;
 }
 

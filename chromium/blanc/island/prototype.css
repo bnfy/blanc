@@ -5,7 +5,6 @@
    (S1.6). Glance has no native counterpart yet. */
 #pillFillHint, #pillCapture, #pillDisplayShare,
 #panelSiteInfo,
-#footerNewPrivate,
 #footerSettings {
   display: none !important;
 }

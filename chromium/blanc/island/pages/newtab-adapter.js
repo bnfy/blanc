@@ -590,6 +590,10 @@
         request('openSheet', ['bookmarks']).catch((error) => console.warn(error.message));
       });
     }
+    document.querySelector('#patronCallout a')?.addEventListener('click', (event) => {
+      event.preventDefault();
+      request('openSheet', ['patron']).catch((error) => console.warn(error.message));
+    });
   });
 })();
 
@@ -608,10 +612,7 @@
         info.statusUrl !== statusUrl || info.supportUrl !== supportUrl ||
         !/^(?:[a-f0-9]{40}|development)$/.test(info.revision)) return;
     const dialog = document.getElementById('previewNotice');
-    const trigger = document.getElementById('previewNoticeButton');
-    if (trigger && dialog) {
-      trigger.textContent = `Preview ${info.version} · Version & security`;
-      trigger.hidden = false;
+    if (dialog) {
       for (const el of dialog.querySelectorAll('[data-preview-field]')) {
         const key = el.dataset.previewField;
         el.textContent = key === 'revision' ? info.revision.slice(0, 12) : String(info[key] ?? '');
@@ -623,9 +624,10 @@
       dialog.dataset.status = info.status;
       document.getElementById('previewLiveStatus').href = statusUrl;
       document.getElementById('previewSupport').href = supportUrl;
-      trigger.addEventListener('click', () => { dialog.setAttribute('aria-modal', 'true'); dialog.showModal(); });
       document.getElementById('previewNoticeClose').addEventListener('click', () => dialog.close());
-      dialog.addEventListener('close', () => { dialog.removeAttribute('aria-modal'); trigger.focus(); });
+      dialog.addEventListener('close', () => dialog.removeAttribute('aria-modal'));
+      // Settings → About opens the Start Page with this exact query.
+      if (location.search === '?preview=1') { dialog.setAttribute('aria-modal', 'true'); dialog.showModal(); }
     }
     const island = document.getElementById('previewStatusLink');
     if (island) {
