@@ -14,6 +14,31 @@ D7, F0.7, cold builds, new machines, D2/D4–D6/D8/V2 and replacement D3
 remain pending. D3 beta-only no-DRM exception accepted; EME notice/handoff required.
 
 ## Current work
+- **2026-11-09 — Settings redesign (candidate macos-80cf90e240933cec):** owner:
+  the Settings experience was "ugly and poorly executed", not all screens
+  scrolled, and it had to use Instrument Sans everywhere. New patch 0038, with
+  the sheet's header in `host.*`. **Font:** Chromium sets `system-ui` on
+  `body`, so Blanc's root font never reached any page; Instrument Sans is now
+  set on `body`. An audit of every text element on 19 screens finds only the
+  font-preview samples in Customize fonts on another face, which is their
+  job. **Scrolling:** the persistent nav (patch 0037) made a dead zone: the
+  sidebar's `overscroll-behavior: contain` swallowed the wheel; a wheel over
+  it now scrolls the page. A new section also starts at its top rather than
+  at the last section's scroll position. **Layout, per shipping:** the sheet
+  header holds Settings / Favorites / History / Downloads and Close over a
+  hairline; search sits atop a text-only sidebar with rounded-rectangle
+  selection; the page takes the rest of the width. **Controls:** fields are
+  outlined rounded rectangles the same height as their buttons, Blanc's own
+  lists lose Chromium's indent and the row line through their field (the
+  "notch"), selects share one chevron, radios and focus take the palette,
+  subpages are rounded cards as tall as their content, supporting text is a
+  step smaller, large headings are tracked tighter, and a profile with no
+  chosen picture shows the Sunrise. Reviewed in screenshots, light and dark.
+  Not changed: Chromium's page order and section names, and the native
+  pop-up list of a select. Regression against the morning baseline:
+  internal-pages 9/1 (`:7`, as before), settings-and-theming 6/0,
+  interface-language 5/0, supporter-and-session 2/0, local-profiles
+  unchanged. Tool tests pin 142 upstream files.
 - **2026-11-09 — Settings polish pass (candidate macos-a7d83e2ea8141aff):**
   owner asked for Settings to feel like shipping's Blanc, not stock Chromium
   ("Logo + About + General", closer to the Electron styling). New patch 0037:
@@ -2204,5 +2229,5 @@ Android's Bar A counts the shared scenarios bound in `chromium/tests/android/acc
 
 Legacy macOS stages come from the approved spec; they await verification on the canonical candidate. No legacy stage counts as Verified.
 
-Candidate identities: macOS: macos-a7d83e2ea8141aff; Windows: none; Linux: none; Android: android-arm64-7bd35e94ef746069.
+Candidate identities: macOS: macos-80cf90e240933cec; Windows: none; Linux: none; Android: android-arm64-7bd35e94ef746069.
 <!-- END GENERATED PROGRESS -->

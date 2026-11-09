@@ -33,7 +33,15 @@
        chrome://settings is a native view over the card's body. -->
   <section id="settingsSheet" hidden>
     <div class="settings-sheet-card" role="dialog" aria-modal="true" aria-label="Settings">
-      <div class="settings-sheet-head"><button id="settingsSheetClose" type="button" aria-label="Close">✕</button></div>
+      <div class="settings-sheet-head">
+        <nav id="settingsSheetTabs" class="settings-sheet-tabs">
+          <button type="button" class="current" aria-current="page" data-label="pagesNav.settings">Settings</button>
+          <button type="button" data-sheet="bookmarks" data-label="pagesNav.bookmarks">Favorites</button>
+          <button type="button" data-sheet="history" data-label="pagesNav.history">History</button>
+          <button type="button" data-sheet="downloads" data-label="pagesNav.downloads">Downloads</button>
+        </nav>
+        <button id="settingsSheetClose" type="button" aria-label="Close"><svg viewBox="0 0 12 12" width="12" height="12" aria-hidden="true"><path d="M2 2l8 8M10 2l-8 8" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg></button>
+      </div>
       <div id="settingsSheetBody"></div>
     </div>
   </section>
