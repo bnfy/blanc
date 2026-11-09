@@ -161,6 +161,7 @@ export class Page{
  getByRole(){throw new UndefinedNativeAdapterError('Page shim lacks getByRole');}
  fill(selector,value){return this.locator(selector).fill(value);}
  press(selector,key){return this.locator(selector).press(key);}
+ hover(selector){return this.locator(selector).hover();}
  click(selector,o){return this.locator(selector).click(o);}
  dblclick(selector,o){return this.locator(selector).dblclick(o);}
  waitForSelector(selector,o){return this.locator(selector).waitFor(o);}
@@ -186,6 +187,7 @@ export function shippingPageUrl(url){
  if(url==='chrome://newtab/'||url.startsWith('chrome://new-tab-page'))return 'blanc://newtab/';
  // The fork's chrome://newtab/ commits its Start Page document here.
  if(url.startsWith('chrome://blanc-prototype/pages/newtab.html'))return 'blanc://newtab/'+url.slice('chrome://blanc-prototype/pages/newtab.html'.length);
+ if(url.startsWith('chrome://blanc-prototype/pages/mahjong.html'))return 'blanc://mahjong/'+url.slice('chrome://blanc-prototype/pages/mahjong.html'.length);
  if(url.startsWith('chrome://settings/'))return 'blanc://settings/';
  return url;
 }

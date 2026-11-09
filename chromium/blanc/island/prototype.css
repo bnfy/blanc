@@ -4,9 +4,7 @@
    drag-to-reorder by TabStripModel; the warning badge by the host's siteInfo
    (S1.6). Glance has no native counterpart yet. */
 #pillFillHint, #pillCapture, #pillDisplayShare,
-#panelSiteInfo,
-#footerNewPrivate,
-#footerSettings {
+#panelSiteInfo {
   display: none !important;
 }
 /* Private windows have no Favorites (Electron: private tabs never populate

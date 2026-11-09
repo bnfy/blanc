@@ -1,0 +1,16 @@
+diff --git a/chrome/browser/app_controller_mac.mm b/chrome/browser/app_controller_mac.mm
+index 728d4d9f3af6edc3454a6db541dcdba758f58310..ec488b43bdf57566bc2c85bcdce0462a0e5806f4 100644
+--- a/chrome/browser/app_controller_mac.mm
++++ b/chrome/browser/app_controller_mac.mm
+@@ -2122,6 +2122,11 @@ - (IBAction)showPreferencesForProfile:(Profile*)profile {
+   }
+   // Re-use an existing browser, or create a new one.
+   if (BrowserWindowInterface* browser = ActivateBrowser(profile)) {
++    // An Island window opens Settings in Blanc's sheet, as its Island
++    // button and IDC_OPTIONS do, not in a tab.
++    if (blanc_prototype::OpenUtilitySheet(browser, "settings")) {
++      return;
++    }
+     chrome::ShowSettings(browser);
+   } else {
+     chrome::OpenOptionsWindow(profile);

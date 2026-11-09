@@ -59,6 +59,7 @@ class ChromiumSettingsHandler final : public settings::SettingsPageUIHandler {
     // Shipping's sheet look follows Surface style (S1.7).
     state.Set("surfaceStyle",
               prefs->GetString("blanc.appearance.surface_style") == "neutral" ? "neutral" : "sunrise");
+    state.Set("pageZoom", BlancPagesZoom(*prefs));
     state.Set("usagePing", g_browser_process->local_state()->GetBoolean(kUsagePingPref));
     state.Set("uiLanguage", g_browser_process->local_state()->GetString(std::string(blanc::ui_language::kPref)));
     state.Set("uiLanguages", std::move(languages));
@@ -203,10 +204,11 @@ class ChromiumSettingsHandler final : public settings::SettingsPageUIHandler {
   }
   // The tour opens as a real tab, and the sheet closes, as shipping's does.
   // A plain Settings tab has no sheet to close.
-  void HandleWelcomeTour(const base::ListValue& args) {
+  void HandleWelcomeTour(const base::ListValue& args) { OpenStartPageTab(args, GURL(kWelcomeTourUrl)); }
+  void HandlePreviewNotice(const base::ListValue& args) { OpenStartPageTab(args, GURL(kPreviewNoticeUrl)); }
+  void OpenStartPageTab(const base::ListValue& args, const GURL& url) {
     if (!Begin(args, 0)) return;
     ResolveJavascriptCallback(args[0], base::Value(true));
-    const GURL url(kWelcomeTourUrl);
     if (auto* owner = SettingsSheetOwner(web_ui()->GetWebContents())) {
       OpenFromSettingsSheet(owner, url);
       return;
@@ -267,13 +269,15 @@ void ChromiumSettingsHandler::RegisterMessages() {
   bind("blancSettingsSetUsagePing", &ChromiumSettingsHandler::HandleSetUsagePing);
   bind("blancSettingsResetInstallId", &ChromiumSettingsHandler::HandleResetInstallId);
   bind("blancSettingsWelcomeTour", &ChromiumSettingsHandler::HandleWelcomeTour);
+  bind("blancSettingsPreviewNotice", &ChromiumSettingsHandler::HandlePreviewNotice);
   bind("blancSettingsFont", &ChromiumSettingsHandler::HandleFont);
 }
 
 void ChromiumSettingsHandler::OnJavascriptAllowed() {
   prefs_.Init(profile_->GetPrefs());
   for (const char* pref : {blanc::browser_api::bangs::kCustomPref, "blanc.blocking.enabled",
-                           "blanc.blocking.exceptions", "blanc.appearance.surface_style"})
+                           "blanc.blocking.exceptions", "blanc.appearance.surface_style",
+                           kDefaultFontSizePref})
     prefs_.Add(pref, base::BindRepeating(&ChromiumSettingsHandler::Changed, base::Unretained(this)));
   local_.Init(g_browser_process->local_state());
   local_.Add(std::string(blanc::ui_language::kPref),

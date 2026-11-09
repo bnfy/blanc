@@ -10,11 +10,11 @@ const id=value=>value==null?null:String(value);
 export function shippingState(snapshot){
  const splitOf=new Map((snapshot.splits||[]).flatMap(s=>s.tabIds.map(t=>[String(t),String(s.id)])));
  const tabs=snapshot.tabs.map(t=>({
-  // Chromium gives each tab one WebContents, so its native id is the
-  // contents' id too.
+  // A native WebContents can exist without a live renderer after restore
+  // or discard. Shipping's view identity is null in that state.
   // Chromium's certificate warning is the fork's certificate page (V8), so a
   // tab showing it reads as shipping's blanc://error/?kind=certificate.
-  id:String(t.id),webContentsId:Number(t.id),url:shippingPageUrl(t.url),
+  id:String(t.id),webContentsId:t.rendererLive===false?null:Number(t.id),url:shippingPageUrl(t.url),
   loadedUrl:t.certificate?.state==='error'?`blanc://error/?kind=certificate&url=${encodeURIComponent(t.committedUrl)}`
    :t.committedUrl==null?null:shippingPageUrl(t.committedUrl),
   // A renamed tab's snapshot title is its name and pageTitle the page's

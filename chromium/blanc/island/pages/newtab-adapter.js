@@ -366,13 +366,16 @@
         const heights = Array.isArray(week?.barHeights) && week.barHeights.length === 7 ? week.barHeights : [0, 0, 0, 0, 0, 0, 0];
         // First run: the privacy gate and the walkthrough's saved values.
         const firstRun = isPrivatePage ? null : await request('firstRun').catch(error => { console.warn(error.message); return null; });
+        const patron = isPrivatePage ? null : await request('patronCallout').catch(() => null);
+        const launchSunrise = isPrivatePage ? false : await request('launchSunrise').catch(() => false);
         const migrationChecklist = isPrivatePage ? null : await request('checklist').catch(() => null);
         // What's New (F51): nothing until a release build reports a version.
         const release = isPrivatePage ? null : await request('whatsNew').catch(() => null);
         const whatsNew = release?.version
           ? window.BlancWhatsNew.whatsNewState(release.state, { version: release.version, now: Date.now() }) : null;
         return { ...preferences(), remoteDevices: [], privacy: firstRun?.privacy, onboarding: firstRun?.onboarding ?? null,
-          migrationChecklist, whatsNew,
+          migrationChecklist, whatsNew, patronActive: patron?.active === true,
+          patronCalloutSnoozedUntil: Number(patron?.snoozedUntil) || 0, launchSunrise: launchSunrise === true,
           blockedThisWeek: Number.isInteger(week?.blocked) ? week.blocked : 0,
           blockerStatisticsAvailable: Number.isInteger(week?.blocked),
           blockedByDay: days, blockedBarHeights: heights,
@@ -448,6 +451,7 @@
       setWallpaperFollowSpace: async () => { throw new Error('Spaces are not available in this prototype.'); },
       setDynamicWallpaper: async (enabled) => save({ dynamicWallpaperEnabled: enabled === true }).dynamicWallpaperEnabled,
       dismissMigrationChecklist: () => request('checklistDismiss'),
+      dismissPatronCallout: () => request('patronCalloutDismiss'),
       dismissWhatsNew: () => request('whatsNewDismiss'),
       // First run (F36). The walkthrough's guard wants all of these real.
       onboardingReady: true,
@@ -466,6 +470,7 @@
       onRemoteTabs: () => {},
       onUtilitySheetVisibility: () => {},
       openIsland: text => request('openIsland', [text]),
+      openMahjong: background => request('openMahjong', [background === true]),
     },
   };
   // The native handler reports bookmark-model changes (Island heart, /save,
@@ -585,6 +590,10 @@
         request('openSheet', ['bookmarks']).catch((error) => console.warn(error.message));
       });
     }
+    document.querySelector('#patronCallout a')?.addEventListener('click', (event) => {
+      event.preventDefault();
+      request('openSheet', ['patron']).catch((error) => console.warn(error.message));
+    });
   });
 })();
 
@@ -603,10 +612,7 @@
         info.statusUrl !== statusUrl || info.supportUrl !== supportUrl ||
         !/^(?:[a-f0-9]{40}|development)$/.test(info.revision)) return;
     const dialog = document.getElementById('previewNotice');
-    const trigger = document.getElementById('previewNoticeButton');
-    if (trigger && dialog) {
-      trigger.textContent = `Preview ${info.version} · Version & security`;
-      trigger.hidden = false;
+    if (dialog) {
       for (const el of dialog.querySelectorAll('[data-preview-field]')) {
         const key = el.dataset.previewField;
         el.textContent = key === 'revision' ? info.revision.slice(0, 12) : String(info[key] ?? '');
@@ -618,9 +624,10 @@
       dialog.dataset.status = info.status;
       document.getElementById('previewLiveStatus').href = statusUrl;
       document.getElementById('previewSupport').href = supportUrl;
-      trigger.addEventListener('click', () => { dialog.setAttribute('aria-modal', 'true'); dialog.showModal(); });
       document.getElementById('previewNoticeClose').addEventListener('click', () => dialog.close());
-      dialog.addEventListener('close', () => { dialog.removeAttribute('aria-modal'); trigger.focus(); });
+      dialog.addEventListener('close', () => dialog.removeAttribute('aria-modal'));
+      // Settings → About opens the Start Page with this exact query.
+      if (location.search === '?preview=1') { dialog.setAttribute('aria-modal', 'true'); dialog.showModal(); }
     }
     const island = document.getElementById('previewStatusLink');
     if (island) {

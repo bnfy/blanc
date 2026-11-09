@@ -25,6 +25,9 @@
   let pillRect = null;
   let opened = false;
   let overlayMode = null;
+  // When the open surface appeared, and whether its native context menu is up.
+  let overlayShownAt = 0;
+  let overlayMenuOpen = false;
   // What the open surface was shown for (shipping's overlayPurpose).
   let overlayPurpose = null;
   // The side list's group menu names its group as it closes, so that
@@ -500,7 +503,8 @@
     if (list.meta.order.length >= SPACE_LIMIT) return { ok: false, error: 'limit', ...(await spacesPayload()) };
     const id = crypto.randomUUID();
     const revision = selectionRevision, anchor = tabSelection.selectionAnchorId;
-    const result = await request('spaceMoveTabs', [ids.map(nativeId), id, true]);
+    const groupId = overlayMode === 'spaces' ? overlayPurpose?.newSpaceGroupId : null;
+    const result = await request('spaceMoveTabs', [ids.map(nativeId), id, true, ...(groupId ? [groupId] : [])]);
     await refresh();
     if (selectionRevision === revision) {
       if (result.ok) clearSelection(); else retainSelection(ids, anchor);
@@ -801,11 +805,38 @@
     return refreshQueue;
   }
 
+  // A page inside an extension goes by the extension's name in the Island,
+  // not the 32-letter id in its address.
+  const extensionNames = new Map();
+  let extensionNamesLoading = false;
+  const extensionIdOf = tab => /^chrome-extension:\/\/([^/]+)/.exec(tab.url ?? '')?.[1] ?? null;
+  function nameExtensionTabs(tabs) {
+    let unknown = false;
+    for (const tab of tabs) {
+      const id = extensionIdOf(tab);
+      if (!id) continue;
+      if (extensionNames.has(id)) tab.extensionName = extensionNames.get(id);
+      else unknown = true;
+    }
+    if (!unknown || extensionNamesLoading) return;
+    extensionNamesLoading = true;
+    request('extensions').then(({ items }) => {
+      for (const tab of snapshot?.tabs ?? []) {
+        const id = extensionIdOf(tab);
+        if (id && !extensionNames.has(id)) extensionNames.set(id, items.find(item => item.id === id)?.name ?? null);
+      }
+      if (!snapshot) return;
+      nameExtensionTabs(snapshot.tabs);
+      emit('onTabsUpdated', snapshot);
+    }).catch(() => {}).finally(() => { extensionNamesLoading = false; });
+  }
+
   async function refreshNow() {
     const attempt = ++snapshotRefreshAttempt;
     try {
       snapshot = await request('snapshot');
       // Shipping's tab records name their split; the panel draws one row from it.
+      nameExtensionTabs(snapshot.tabs);
       for (const tab of snapshot.tabs) tab.splitId = snapshot.splits?.find(split => split.tabIds.includes(tab.id))?.id ?? null;
       syncGlance();
       if ((snapshot.spaceName || '') !== spacesBound) {
@@ -1025,6 +1056,8 @@
     overlayPurpose = purpose ?? null;
     shieldTrigger = mode === 'shield' ? trigger : null;
     opened = true;
+    overlayShownAt = performance.now();
+    overlayMenuOpen = false;
     overlay.hidden = false;
     emit('onIslandState', { mode, trigger: shieldTrigger, restoreTrigger: null });
     requestAnimationFrame(() => {
@@ -1162,6 +1195,36 @@
   });
   setInterval(() => extensionsPanel.update(), 1000);
 
+  // Clicking the page, another window or another app closes the open Island,
+  // as shipping's overlay blur does. Find stays open between matches and the
+  // display-share dialog is its own decision. A new tab's page can briefly
+  // take focus as the panel opens, so the first moments never dismiss.
+  const dismissOnFocusLoss = () => {
+    setTimeout(() => {
+      if (!opened || !overlayMode || overlayMode === 'find' || overlayMode === 'display-share' ||
+          overlayMenuOpen || document.hasFocus() || performance.now() - overlayShownAt < 400) return;
+      close(false);
+    }, 0);
+  };
+  // Focus inside the overlay frame leaves the host window with nothing to
+  // blur, so the frame's own window reports the loss too.
+  const watchOverlay = () => {
+    const win = overlay.contentWindow;
+    win.addEventListener('blur', dismissOnFocusLoss);
+    // Focus coming back is the native menu closing.
+    win.addEventListener('focus', () => { overlayMenuOpen = false; });
+    win.document.addEventListener('contextmenu', () => { overlayMenuOpen = true; }, true);
+    for (const type of ['pointerdown', 'keydown']) {
+      win.document.addEventListener(type, event => {
+        if (type === 'pointerdown' && event.button === 2) return;
+        overlayMenuOpen = false;
+      }, true);
+    }
+  };
+  overlay.addEventListener('load', watchOverlay);
+  if (overlay.contentDocument?.readyState === 'complete') watchOverlay();
+  window.addEventListener('blur', dismissOnFocusLoss);
+
   // ---- Permission prompts (F13; shipping's permission view). Native
   // (permission_prompt.inc) sends each request shipping would ask about;
   // shipping's own permission.html shows them one at a time, bottom-centre
@@ -1170,6 +1233,12 @@
   const permissionFrame = document.getElementById('permission');
   const prompts = new Map();
   function placePermission() {
+    // Until native has grown the host from the strip to the window there is
+    // no room below the Island: shown then, the prompt would flash over the
+    // Island and take the pointer there. The resize places and shows it.
+    const room = innerHeight >= stripH() + 84;
+    permissionFrame.hidden = !room;
+    if (!room) return;
     const width = Math.min(560, Math.max(0, innerWidth - 24));
     Object.assign(permissionFrame.style, { left: `${Math.round((innerWidth - width) / 2)}px`,
       top: `${Math.max(0, innerHeight - 84)}px`, width: `${width}px`, height: '84px' });
@@ -1180,9 +1249,9 @@
     return request('height', prompts.size ? [10000, false] : [stripH()]);
   }
   async function syncPermission() {
-    permissionFrame.hidden = !prompts.size;
-    if (prompts.size) placePermission();
+    if (!prompts.size) permissionFrame.hidden = true;
     if (!opened && !extensionsOpened && !sheet.page && !paneMenu) await restHeight();
+    if (prompts.size) placePermission();
     reportGeometry();
   }
   function permissionPrompt(payload) {
@@ -1240,6 +1309,11 @@
   }
   settingsSheet.addEventListener('click', event => { if (event.target === settingsSheet) hideSheet(); });
   document.getElementById('settingsSheetClose').addEventListener('click', () => hideSheet());
+  // Shipping's header tabs: the other three pages swap in the sheet's place.
+  document.getElementById('settingsSheetTabs').addEventListener('click', event => {
+    const page = event.target.closest('[data-sheet]')?.dataset.sheet;
+    if (page) showSheet(page).catch(error => notice(error.message));
+  });
   window.addEventListener('resize', syncSettingsSheet);
   const grownViewport = () => new Promise(resolve => {
     if (settingsBody.getBoundingClientRect().height > 0) return resolve();
@@ -1263,6 +1337,7 @@
     if (label) {
       settingsSheet.querySelector('[role="dialog"]').setAttribute('aria-label', label('settings.page.heading'));
       document.getElementById('settingsSheetClose').setAttribute('aria-label', label('sheet.close'));
+      for (const tab of document.querySelectorAll('#settingsSheetTabs [data-label]')) tab.textContent = label(tab.dataset.label);
     }
     placeSettingsSheet();
     settingsSheet.hidden = false;
@@ -1731,6 +1806,11 @@
       await refresh();
       return moved === true;
     },
+    moveTabToNewWindow: async (id) => {
+      const runtime = await request('moveTabToNewWindow', [nativeId(id)]);
+      await refresh();
+      return runtime;
+    },
     ...Object.fromEntries(['focusGroup', 'toggleGroupCollapsed', 'closeGroup', 'newTabInGroup', 'ungroupGroup', 'moveGroupToNewWindow'].map((method) =>
       [method, async (groupId) => { await request(method, [String(groupId)]); await refresh(); }])),
     ...Object.fromEntries(['renameGroup', 'setGroupColor'].map(method =>
@@ -1855,7 +1935,10 @@
       const result = await request('keepGlanceAsSplit');
       await refresh();
       glance.closing = false;
-      if (result) glanceSay('split.made', { first: main, second: reference });
+      if (result) {
+        glanceSay('split.made', { first: main, second: reference });
+        if (result.movedIntoGroup) glanceSay('split.groupMoveInto', { title: reference, group: result.movedIntoGroup });
+      }
       return result;
     },
     previewGlancePair: (main, reference) => request('previewGlancePair', [nativeId(main), nativeId(reference)]),
@@ -1943,6 +2026,14 @@
     lastSpaceMove: () => lastSpaceMove,
     createSpaceWithTab: (name, identity, tabId) => createSpaceWithTab(name, identity, tabId),
     createSpaceWithTabs: (name, identity, ids) => createSpaceWithTabs(name, identity, ids),
+    beginNewSpaceForGroup: groupId => {
+      const group = snapshot.groups.find(group => group.id === groupId);
+      if (!group) return false;
+      const ids = snapshot.tabs.filter(tab => tab.groupId === group.id).map(tab => String(tab.id));
+      if (!ids.length) return false;
+      show('', 'spaces', null, { newSpaceTabIds: ids, newSpaceGroupId: group.id, newSpaceGroupName: group.name });
+      return true;
+    },
     beginNewSpaceForTab: tabId => show('', 'spaces', null, { newSpaceTabId: String(tabId) }),
     openSpacesMenu: anchor => {
       if (overlayMode === 'spaces') { close(false); return; }
@@ -2284,7 +2375,7 @@
     sheetBridge, sheetLink, sheetEscape,
     // Native's permission requests (permission_prompt.inc).
     permissionPrompt, permissionGone,
-    openSheet: (name) => showSheet(name),
+    openSheet: (name, section) => showSheet(name, section),
     closeSheet: () => hideSheet(),
     sheetState: () => ({ visible: sheet.page === 'settings' ? !settingsSheet.hidden
         : !!sheet.page && !!sheet.frame && !sheet.frame.hidden, ready: sheetReady(),

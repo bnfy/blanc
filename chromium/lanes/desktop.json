@@ -5,7 +5,7 @@
   "upstream": "681cd621e82e606d7536eae8ea2576afb3c7d65c",
   "upstreamDir": "upstream",
   "sourceMap": "source-map.json",
-  "fileCount": 127,
+  "fileCount": 142,
   "patches": [
     "patches/baseline/0001-foundation-baseline.patch",
     "patches/0002-canonical-layout.patch",
@@ -39,6 +39,11 @@
     "patches/0030-blanc-tour-telemetry.patch",
     "patches/0031-blanc-glance.patch",
     "patches/0032-blanc-link-glance.patch",
-    "patches/0034-blanc-space-hold.patch"
+    "patches/0034-blanc-space-hold.patch",
+    "patches/0035-blanc-start-prefs.patch",
+    "patches/0036-blanc-preview-about.patch",
+    "patches/0037-blanc-settings-polish.patch",
+    "patches/0038-blanc-settings-design.patch",
+    "patches/0039-blanc-menu-settings-sheet.patch"
   ]
 }

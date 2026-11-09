@@ -1824,7 +1824,26 @@ customWallpaperRemove.addEventListener('click', () => updateWallpaper(async () =
   showWallpaperError(null);
   applyWallpaper(await window.bowserPages.start.removeWallpaper());
 }));
+let launchSunriseDue = false;
+function playLaunchSunrise() {
+  const scene = document.getElementById('launchSunrise');
+  if (!scene || matchMedia('(prefers-reduced-motion: reduce)').matches) {
+    scene?.remove();
+    return;
+  }
+  const end = () => {
+    removeEventListener('keydown', end, true);
+    removeEventListener('pointerdown', end, true);
+    scene.remove();
+  };
+  addEventListener('keydown', end, true);
+  addEventListener('pointerdown', end, true);
+  scene.addEventListener('animationend', (event) => { if (event.target === scene) end(); });
+  scene.hidden = false;
+}
+
 function applyStartData(data) {
+  launchSunriseDue = data.launchSunrise === true;
   // An earlier initial request may resolve after a history deletion event.
   const currentTopSites = isPrivate || window.blancTopSitesSnapshotCurrent?.(data.__topSitesEpoch) === true;
   const validTopSites = isPrivate || (data.__topSitesAvailable === true && currentTopSites);
@@ -1883,7 +1902,11 @@ Promise.allSettled([favoritesReady, dataReady, pinsReady]).then((results) => {
   if (results[1].status === 'rejected') window.blancNewTabEvent('startData');
   if (results[2].status === 'rejected') window.blancNewTabEvent('pins');
   // Layout changes fade in from now on; the first paint never does.
-  requestAnimationFrame(() => document.body.classList.add('layout-ready'));
+  requestAnimationFrame(() => {
+    document.body.classList.add('layout-ready');
+    if (launchSunriseDue) playLaunchSunrise();
+    else document.getElementById('launchSunrise')?.remove();
+  });
 });
 
 window.bowserPages?.start.onVisibility((visible) => wallpaper.setVisible(visible));

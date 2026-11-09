@@ -93,7 +93,9 @@ export const pages={
  bookmarkRecords:async w=>(await favorites(w)).map(({url,title,folder})=>({url,title,folder})),
  // A user saves a Favorite by visiting the page and pressing the heart; the
  // seed does that in a scratch tab, giving the page the seeded title first
- // (as core's setTabPresentation does). A seeded icon has no fork path.
+ // (as core's setTabPresentation does). The page itself never really loads
+ // in the offline fixture, so it seeds a production-accepted PNG favicon
+ // too (F9-3) via the native seedFavicon op.
  async seedFavorite(w,url,title){
   if((await favorites(w)).some(f=>f.url===url))return;
   const before=String((await w.snapshot()).activeTabId);
@@ -106,6 +108,7 @@ export const pages={
    await w.waitFor(()=>w.snapshot(),s=>s.tabs.some(t=>String(t.id)===String(id)&&t.title===title),'seeded title');
   }
   await toggle(w,id);
+  await w.native('seedFavicon',[url]);
   await w.native('closeTab',[id]);
   if((await w.snapshot()).tabs.some(t=>String(t.id)===before))await w.native('switchTab',[nativeId(before)]);
   await w.waitFor(()=>favorites(w),l=>l.some(f=>f.url===url),'seeded favorite');
@@ -121,8 +124,12 @@ export const pages={
   await w.native('closeTab',[id]);
   if((await w.snapshot()).tabs.some(t=>String(t.id)===before))await w.native('switchTab',[nativeId(before)]);
  },
- seedBillboardHistory:()=>{throw new UndefinedNativeAdapterError('seedBillboardHistory: named public hosts and cached icons cannot be visited offline; needs a native history-seeding test op');},
- seedBillboardOverflowHistory:()=>{throw new UndefinedNativeAdapterError('seedBillboardOverflowHistory: sixty public hosts cannot be visited offline; needs a native history-seeding test op');},
+ seedBillboardHistory:w=>w.native('seedBillboardHistory',[]),
+ // Blocked on a real native cap, not a missing test op: history::TopSites
+ // hard-truncates GetMostVisitedURLs to kTopSitesNumber (10), so no amount
+ // of seeded history can make the real ranking service return 60 sites.
+ // See chromium/CODEX-NOTES-billboard-history.md.
+ seedBillboardOverflowHistory:()=>{throw new UndefinedNativeAdapterError('seedBillboardOverflowHistory: real history::TopSites caps GetMostVisitedURLs at 10 (kTopSitesNumber); needs an owner-approved native design decision, not a test op');},
  // ---- Start Page layout (native layoutRead/layoutWrite via the page) ----
  setNewtabLayout:async(w,layout)=>(await anyStartPage(w)).evalExpression(`window.bowserPages.start.setLayout(${jsLiteral(String(layout))})`),
  newtabLayout:async w=>(await anyStartPage(w)).evalExpression('window.bowserPages.start.data().then(d=>d.layout)'),
@@ -227,16 +234,14 @@ export const pages={
  clickPatronCalloutClose:onStart(false,`(()=>{const btn=document.getElementById('patronCalloutHide');if(!btn||btn.closest('[hidden]'))return false;btn.click();return document.getElementById('patronCallout').hidden;})()`),
  readLaunchSunrise:onStart(null,`(()=>{const scene=document.getElementById('launchSunrise');
   if(!scene)return {present:false,layoutReady:document.body.classList.contains('layout-ready')};const style=getComputedStyle(scene);
-  return {present:true,shown:!scene.hidden&&style.display!=='none',pointerEvents:style.pointerEvents,
-   animations:scene.getAnimations({subtree:true}).map(a=>a.animationName).sort(),layoutReady:document.body.classList.contains('layout-ready')};})()`),
+  return {present:true,shown:!scene.hidden,pointerEvents:style.pointerEvents,
+   animations:[scene,...scene.querySelectorAll('.launch-sunrise-sky,.launch-sunrise-horizon,.launch-sunrise-mark .launch-sunrise-disc,.launch-sunrise-rays,.launch-sunrise-reflect')].flatMap(el=>getComputedStyle(el).animationName.split(', ')),layoutReady:document.body.classList.contains('layout-ready')};})()`),
  readMahjongFooterLink:onStart(null,`(()=>({href:document.getElementById('mahjongLink')?.href??null,target:document.getElementById('mahjongLink')?.target??null,
   layout:document.body.dataset.layout,switcherCount:document.querySelectorAll('[data-layout-pick]').length,frameCount:document.querySelectorAll('iframe').length}))()`),
  clickMahjongFooterLink:onStart(false,`(()=>{const link=document.getElementById('mahjongLink');if(!link)return false;link.click();return true;})()`),
- // The fork ships no Mahjong page (no pages/mahjong.html asset).
+ // Deep game hooks are deferred until footer launch is verified live.
  ...Object.fromEntries(['readMahjongDom','readMahjongCompletionGeometry','rapidUndoMahjongMatch','auditMahjongCorrectness','readMahjongDealState',
-  'copyMahjongDealFromBoards','readMahjongRecordsGeometry'].map(h=>[h,()=>{throw Error(h+': the fork ships no Mahjong page');}])),
- // Durable first-run, checklist, Patron and launch-scene settings live in
- // Electron main; the fork's Start Page bridge carries none of them.
+  'copyMahjongDealFromBoards','readMahjongRecordsGeometry'].map(h=>[h,()=>{throw Error(h+': deep Mahjong hook is not ported');}])),
  // Patron and the app icon (F17). The preview has no license keys (owner,
  // 2026-11-05), so there is never a supporter to clear.
  clearSupporter:async()=>true,
@@ -317,9 +322,9 @@ export const pages={
   await w.native('resetChecklist');const page=await startPage(w);if(page)await page.evalExpression("window.blancNewTabEvent('checklist')");
   return {dismissed:false,syncComplete:false,tabsComplete:false,spaceComplete:false};
  },
- setPatronCalloutDismissedAt:noState('setPatronCalloutDismissedAt','Patron callout snooze clock'),
- patronCalloutDismissedAt:noState('patronCalloutDismissedAt','Patron callout snooze clock'),
- setLaunchSunrise:noState('setLaunchSunrise','launch Sunrise setting'),
+ setPatronCalloutDismissedAt:(w,ms)=>w.native('patronCalloutDismissedAt',[Number(ms)]),
+ patronCalloutDismissedAt:w=>w.native('patronCalloutDismissedAt',[]),
+ setLaunchSunrise:(w,enabled)=>w.native('setLaunchSunrise',[Boolean(enabled)]),
  // ---- utility pages: the facade's openPage is the production command ----
  openFavoritesSheet:w=>w.api('openPage',['bookmarks']),
  openHistorySheet:w=>w.api('openPage',['history']),

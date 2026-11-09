@@ -19,3 +19,12 @@ test('utility pages shown as tabs are fork pages, never web pages',()=>{
  assert.doesNotMatch('chrome://newtab/',UTILITY);
  assert.doesNotMatch('http://127.0.0.1/site/bookmarks',UTILITY);
 });
+
+test('standalone Mahjong URLs preserve private and deal parameters in the shipping projection',()=>{
+ const native='chrome://blanc-prototype/pages/mahjong.html';
+ assert.equal(shippingPageUrl(native),'blanc://mahjong/');
+ assert.equal(shippingPageUrl(native+'?private=1'),'blanc://mahjong/?private=1');
+ assert.equal(shippingPageUrl(native+'?private=1#deal=example'),'blanc://mahjong/?private=1#deal=example');
+ assert.equal(shippingPageUrl('https://example.com/mahjong.html'),'https://example.com/mahjong.html');
+ assert.doesNotMatch(native,UTILITY);
+});
