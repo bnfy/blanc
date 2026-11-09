@@ -14,6 +14,15 @@ D7, F0.7, cold builds, new machines, D2/D4–D6/D8/V2 and replacement D3
 remain pending. D3 beta-only no-DRM exception accepted; EME notice/handoff required.
 
 ## Current work
+- **2026-11-09 — Extensions icon follows Auto-hide (candidate macos-bf6e0c81960ab463):**
+  the icon is Chromium's native view over the pill, so it popped on and off
+  while the pill slid in CSS. It now runs the pill's slide natively (same
+  distance, durations and ease-out cubic), staying visible until it has left;
+  the push style keeps it through the page's slide too. Measured against the
+  pill frame by frame: within about a frame on hide, usually about 11px on
+  reveal with one 28px sample. `autoHideState` reports the view for tests.
+  Regression: glance and split-view match the morning baseline;
+  `island-and-commands` 68/3, the only difference being the known `:107`.
 - **2026-11-09 — Font size scales Blanc's pages (candidate macos-78ea0ebc8eca0ed5):**
   owner expected Appearance > Font size to show a change at once. It already
   changed web page text, but no Blanc page. Settings, the Start Page and
@@ -2255,5 +2264,5 @@ Android's Bar A counts the shared scenarios bound in `chromium/tests/android/acc
 
 Legacy macOS stages come from the approved spec; they await verification on the canonical candidate. No legacy stage counts as Verified.
 
-Candidate identities: macOS: macos-78ea0ebc8eca0ed5; Windows: none; Linux: none; Android: android-arm64-7bd35e94ef746069.
+Candidate identities: macOS: macos-bf6e0c81960ab463; Windows: none; Linux: none; Android: android-arm64-7bd35e94ef746069.
 <!-- END GENERATED PROGRESS -->

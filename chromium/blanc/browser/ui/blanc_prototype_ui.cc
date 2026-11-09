@@ -270,6 +270,7 @@
 #include "ui/views/controls/menu/menu_item_view.h"
 #include "ui/display/screen.h"
 #include "ui/gfx/animation/animation.h"
+#include "ui/gfx/geometry/transform.h"
 #include "blanc/browser/ui/island_autohide.h"
 #include "blanc/private/private_tabs.h"
 #include "build/build_config.h"
@@ -943,6 +944,19 @@ class Owner : public base::SupportsUserData::Data,
   // strip's band a floating Island claims.
   gfx::Rect float_frame;
   gfx::Rect float_bounds;
+  // Chromium's Extensions view rides over the floating pill, so it makes the
+  // pill's slide (SlideExtensionsWithPill).
+  struct ExtensionsPillSlide {
+    double from;
+    double to;
+    base::TimeTicks start;
+    base::TimeDelta duration;
+  };
+  std::optional<ExtensionsPillSlide> extensions_pill_slide;
+  base::RepeatingTimer extensions_pill_timer;
+  double extensions_pill_y = 0;
+  double extensions_pill_target = 0;
+  bool extensions_pill_had_frame = false;
   // The traffic lights' state last set by auto-hide (macOS).
   std::optional<bool> window_buttons_visible;
   base::DictValue split_geometry;
@@ -5272,7 +5286,18 @@ class Handler : public content::WebUIMessageHandler, public extensions::Extensio
     }
     if (message[1].GetString() == "autoHideState") {
       auto* owner = GetOwner(web_ui()->GetWebContents());
-      Reply(id, !!owner, owner ? base::Value(AutoHideState(owner)) : base::Value());
+      if (!owner) {
+        Reply(id, false, base::Value());
+        return;
+      }
+      auto state = AutoHideState(owner);
+      auto* browser_view = BrowserViewFor(owner);
+      if (auto* extensions = browser_view && browser_view->toolbar()
+              ? browser_view->toolbar()->extensions_container_for_testing() : nullptr) {
+        state.Set("extensionsVisible", extensions->GetVisible());
+        state.Set("extensionsPillY", owner->extensions_pill_y);
+      }
+      Reply(id, true, base::Value(std::move(state)));
       return;
     }
     // Shipping's testCursorPoint (window content coordinates here; the
@@ -9998,6 +10023,60 @@ void AdjustSplitLayout(const MultiContentsView* view, views::ProposedLayout* lay
       .Set("originX", origin.x() + 8).Set("usableWidth", std::max(1, card_width - 8));
 }
 
+void SetExtensionsPillOffset(views::View* extensions, double y) {
+  gfx::Transform transform;
+  transform.Translate(0, y);
+  extensions->SetTransform(transform);
+}
+
+void StepExtensionsPillSlide(Owner* owner) {
+  auto* browser_view = BrowserViewFor(owner);
+  auto* extensions = browser_view && browser_view->toolbar()
+      ? browser_view->toolbar()->extensions_container_for_testing() : nullptr;
+  auto& slide = owner->extensions_pill_slide;
+  if (!slide || !extensions) {
+    slide.reset();
+    owner->extensions_pill_timer.Stop();
+    return;
+  }
+  const double progress = std::max(0.0, (base::TimeTicks::Now() - slide->start) / slide->duration);
+  const bool done = progress >= 1;
+  owner->extensions_pill_y = done ? slide->to
+      : slide->from + (slide->to - slide->from) * autohide::EaseOutCubic(progress);
+  SetExtensionsPillOffset(extensions, owner->extensions_pill_y);
+  if (done) {
+    slide.reset();
+    owner->extensions_pill_timer.Stop();
+    Relayout(owner);  // A pill that has left takes the view with it.
+  }
+}
+
+// The floating pill slides in CSS (styles.css: translateY over its height,
+// ease-out cubic). The Extensions view drawn over it is native, so it runs the
+// same slide from wherever it is now, and stays visible until it has left.
+void SlideExtensionsWithPill(Owner* owner, views::View* extensions) {
+  const bool floating = IslandFloating(owner) && !owner->float_frame.IsEmpty();
+  const double target = floating && owner->float_bounds.IsEmpty() ? -owner->float_frame.height() : 0;
+  const bool had_frame = std::exchange(owner->extensions_pill_had_frame, floating);
+  if (target == owner->extensions_pill_target) return;
+  owner->extensions_pill_target = target;
+  owner->extensions_pill_timer.Stop();
+  owner->extensions_pill_slide.reset();
+  if (!floating || !had_frame || gfx::Animation::PrefersReducedMotion()) {
+    owner->extensions_pill_y = target;
+    SetExtensionsPillOffset(extensions, target);
+    return;
+  }
+  // Timed to the pill as measured: leaving, its CSS transition began just
+  // earlier than this layout; arriving, its frame takes a moment more to draw.
+  owner->extensions_pill_slide = Owner::ExtensionsPillSlide{
+      owner->extensions_pill_y, target, base::TimeTicks::Now() + base::Milliseconds(target == 0 ? 10 : -8),
+      base::Milliseconds(target == 0 ? autohide::kSlideInMs : autohide::kSlideOutMs)};
+  StepExtensionsPillSlide(owner);
+  owner->extensions_pill_timer.Start(FROM_HERE, base::Milliseconds(16),
+      base::BindRepeating(&StepExtensionsPillSlide, base::Unretained(owner)));
+}
+
 void LayoutIsland(views::View* parent, int top) {
   auto* view = static_cast<views::WebView*>(parent->GetViewByID(kIslandViewId));
   if (!view) return;
@@ -10031,14 +10110,19 @@ void LayoutIsland(views::View* parent, int top) {
   }
   auto bounds = owner->extension_bounds;
   bounds.Offset(0, top);
-  bounds.Intersect(parent->GetLocalBounds());
+  // Sliding, it may hang above the window; shrinking it would squash it.
+  if (!owner->autohide_slide) bounds.Intersect(parent->GetLocalBounds());
   const bool resized = extensions->width() != bounds.width();
   extensions->SetBoundsRect(bounds);
   if (resized) extensions->OnPinnedActionsChanged();
-  // A hidden strip has none showing; a floating Island shows them only while
-  // its pill does, where the pill copies the strip's place for them.
-  extensions->SetVisible(owner->height == owner->strip_height && !bounds.IsEmpty() && !StripHiddenFor(owner) &&
-                         !(IslandFloating(owner) && owner->float_bounds.IsEmpty()));
+  SlideExtensionsWithPill(owner, extensions);
+  // A hidden strip has none showing, once its slide has carried them off; a
+  // floating Island shows them only while its pill does, where the pill copies
+  // the strip's place for them.
+  extensions->SetVisible(owner->height == owner->strip_height && !bounds.IsEmpty() &&
+                         (IslandFloating(owner)
+                              ? !owner->float_bounds.IsEmpty() || owner->extensions_pill_slide.has_value()
+                              : !StripHiddenFor(owner) || owner->autohide_slide.has_value()));
 }
 std::unique_ptr<settings::SettingsPageUIHandler> CreateSettingsHandler(Profile* profile) {
   return std::make_unique<ChromiumSettingsHandler>(profile);
