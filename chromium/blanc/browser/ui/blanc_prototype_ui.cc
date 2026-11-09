@@ -3732,7 +3732,7 @@ class NewTabHandler : public content::WebUIMessageHandler,
       }
       // Shipping shares only the explicit clock appearance setting; no
       // private visit or wallpaper data is written to the regular profile.
-      if (method != "openIsland" && method != "clockRead" && method != "clockWrite") {
+      if (method != "openIsland" && method != "openMahjong" && method != "clockRead" && method != "clockWrite") {
         Reply(id, false, base::Value("Unavailable in private browsing")); return;
       }
     }
@@ -9578,12 +9578,13 @@ UI::UI(content::WebUI* web_ui) : ui::MojoWebUIController(web_ui, /*enable_chrome
                   neutral ? blanc::island_resources::Find("pages/pages-neutral.css") : nullptr));
               return;
             }
-            // Only the exact private page and tour Start Page queries and the
+            // Only the exact private and tour Start Page queries and the
             // floating pill's surface query alias their shared static assets;
-            // arbitrary queries never become filesystem paths.
+            // arbitrary queries never become filesystem paths. Mahjong's own
+            // query (private, game id, shared deal) always serves its one page.
             const std::string asset_path =
                 path == "pages/newtab.html?private=1" || path == "pages/newtab.html?tour=1" ? "pages/newtab.html"
-                : path == "pages/mahjong.html?private=1" ? "pages/mahjong.html"
+                : path.starts_with("pages/mahjong.html?") ? "pages/mahjong.html"
                 : path == "index.html?surface=float" || path == "index.html?surface=glance" ? "index.html" : path;
 #if BUILDFLAG(ENABLE_BLANC_DISK_ASSETS)
             // Build outputs such as the compiled bindings exist only embedded.

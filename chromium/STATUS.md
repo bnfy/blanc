@@ -14,6 +14,24 @@ D7, F0.7, cold builds, new machines, D2/D4–D6/D8/V2 and replacement D3
 remain pending. D3 beta-only no-DRM exception accepted; EME notice/handoff required.
 
 ## Current work
+- **2026-11-09 — Start Page footer fixes and corrections (candidate macos-d40bfa2514c288c3):**
+  owner dogfooding found what the Mahjong round 1 tests missed. `#mahjongLink`
+  was still in `newtab-prototype.css`'s hide-list, so the footer link merged
+  in #1425 was invisible; the F35-4 pass was a false positive because the
+  adapter's `.click()` fires on a hidden element. Removed. F35-9 was never
+  mysterious: `NewTabHandler::Handle`'s private-profile allowlist rejected
+  `openMahjong`; added it. Reloading a game hit Chromium's error page because
+  Mahjong writes `?game=<id>` and the request filter only aliased an exact
+  query; any `pages/mahjong.html?...` now serves that one page. Checked with
+  real CDP mouse events: link visible and hittable, regular and private games
+  open, reload keeps the game, Finish setup opens. `newtab-layouts.feature`
+  21 pass / 2 fail (`:21` F35-3 deep hooks unported; `:161` F35-10, the footer's
+  left group wraps at 1260px). `island-and-commands.feature` 63 / 3: `:295` and
+  `:359` also failed in the morning's full run; `:107` (permission prompt
+  blocks hover-open) passed that run and has failed 3 of 3 since, cause
+  unknown. Open: moving the preview disclosure to Settings → About, and the
+  Patron pill, whose `blanc://settings/#group-patron` link is dead although
+  Settings → About has a working `#patronCheckout`.
 - **2026-11-09 — ⌘L panel's Private button, owner-reported (candidate macos-2126247dc249b5b7):**
   the owner noticed the panel's footer had no Private button, unlike shipping.
   It was already fully wired — `footerNewPrivate`'s click handler
@@ -29,10 +47,8 @@ remain pending. D3 beta-only no-DRM exception accepted; EME notice/handoff requi
   `island-and-commands.feature` 62-63/77 executed across two runs — one
   scenario flaked once then passed on retry, two failures were already in
   the same-day full-suite baseline before this change, and the fourth
-  ("A pending permission prompt blocks hover-open") reproduced twice but
-  with sibling hover-open scenarios passing in the same runs, ruling out a
-  geometry regression from this change — a pre-existing timing flake, not
-  investigated further. `node --test` 262/262; `check-patches.py` passed.
+  ("A pending permission prompt blocks hover-open") failed both runs; sibling
+  hover-open scenarios pass, but the cause is unknown (see the entry above). `node --test` 262/262; `check-patches.py` passed.
 - **2026-11-09 — Mahjong round 1, footer launch (candidate macos-aef74633b0b1595d):**
   the owner's named S1 close-out item. Ported shipping's 27 `mahjong*` files
   byte-identical (SHA-256-verified against `git show`), wired the footer link
@@ -43,14 +59,8 @@ remain pending. D3 beta-only no-DRM exception accepted; EME notice/handoff requi
   `shippingPageUrl()` test-only URL projection so acceptance scenarios see
   `blanc://mahjong/...` as shipping expects. `newtab-layouts.feature:35`
   (F35-4, ordinary footer launch) passes live. `:41` (F35-9, the private
-  variant) does not: six rounds of `LOG(ERROR)` tracing confirmed the
-  dispatch *should* reach the native handler (a side-channel re-check of the
-  exact guard condition evaluates true) but an unconditional log placed
-  immediately before the real check never fires — genuinely unexplained by
-  source reading or print-style tracing; next attempt needs a real debugger,
-  not more logging. Pausing that one scenario rather than spending further
-  rounds, consistent with the owner's "known gaps OK" bar for this beta;
-  not a crash or data-loss class issue. `:21` (F35-3, deep game correctness)
+  variant) did not; see the correction above, including that this F35-4 pass
+  did not prove the link was visible. `:21` (F35-3, deep game correctness)
   intentionally unattempted this round; `:161` (F35-10) is unrelated,
   pre-existing, and untouched. See `CODEX-NOTES-mahjong-round1.md`.
 - **2026-11-09 — Batch 1 + Batch 2 merged (candidate macos-507866b59af7ffc6):**
@@ -2141,5 +2151,5 @@ Android's Bar A counts the shared scenarios bound in `chromium/tests/android/acc
 
 Legacy macOS stages come from the approved spec; they await verification on the canonical candidate. No legacy stage counts as Verified.
 
-Candidate identities: macOS: macos-2126247dc249b5b7; Windows: none; Linux: none; Android: android-arm64-7bd35e94ef746069.
+Candidate identities: macOS: macos-d40bfa2514c288c3; Windows: none; Linux: none; Android: android-arm64-7bd35e94ef746069.
 <!-- END GENERATED PROGRESS -->
