@@ -43,6 +43,13 @@ export const ANDROID_KEYS = [
   'newtab.startup.failed', 'newtab.startup.retry', 'shield.adBlocking', 'shield.count.globalOff', 'shield.count.none',
   'shield.count.siteOff', 'slash.allowAds.hint', 'slash.blockAds.hint',
   // Sync (A4), with the iPhone's copy.
+  'spaces.thisPhone', 'spaces.menuLabel', 'spaces.menuEdit', 'spaces.mark.current', 'ws.new', 'ws.editor.newTitle',
+  'ws.editor.editTitle', 'ws.editor.name', 'ws.editor.color', 'ws.editor.symbol', 'ws.editor.createButton', 'ws.delete.button',
+  'ws.undo.deleted', 'ws.error.limit', 'ws.error.duplicateName', 'ws.error.invalidName', 'ws.row.current', 'ws.recovery.restoreNamed',
+  'ws.recovery.restore', 'ws.row.edit', 'tabMenu.newSpace',
+  'spaces.symbol.briefcase', 'spaces.symbol.house', 'spaces.symbol.code', 'spaces.symbol.flask', 'spaces.symbol.book', 'spaces.symbol.music', 'spaces.symbol.camera', 'spaces.symbol.plane', 'spaces.symbol.heart', 'spaces.symbol.star', 'spaces.symbol.leaf', 'spaces.symbol.coffee', 'spaces.symbol.cap', 'spaces.symbol.gamepad', 'spaces.symbol.wallet', 'spaces.symbol.sun',
+  'settings.linkRoutes.moveUp', 'settings.linkRoutes.moveDown',
+  'slash.space.hint', 'tabMenu.moveToSpace',
   'sync.error.localKeyUnlock', 'footer.devices', 'sends.section', 'sends.from', 'sends.dismiss', 'sends.sent', 'sends.none', 'sends.noMatch',
   'sends.unavailable', 'sends.failed', 'slash.send.hint', 'ios.settings.shareTabs', 'ios.settings.shareTabsHelp',
   'tabMenu.sendToDevice',
@@ -57,10 +64,37 @@ export const ANDROID_KEYS = [
   'settings.sync.createOnComputer', 'settings.sync.pairing.instruction', 'shield.done', 'sync.error.badPassphrase',
   'sync.error.pairNotFound', 'sync.error.pairUnavailable', 'sync.error.pairInvalid', 'sync.error.rateLimited',
   'sync.error.offline', 'sync.error.server', 'sync.error.serverError', 'sync.error.syncOn',
+  'sharedSpaces.title', 'sharedSpaces.explanation', 'sharedSpaces.confirm', 'sharedSpaces.count', 'sharedSpaces.tabs',
+  'sharedSpaces.rejoin', 'sharedSpaces.copy', 'sharedSpaces.full', 'sharedSpaces.accountFull', 'sharedSpaces.unavailable',
+  'sharedSpaces.shared', 'sharedSpaces.unsyncedTab', 'sharedSpaces.waiting', 'sharedSpaces.notSynced', 'sharedSpaces.fullState',
+  'sharedSpaces.unavailableState', 'sharedSpaces.accountLine', 'sharedSpaces.offLine', 'sharedSpaces.tombstones',
+  'sharedSpaces.capacity', 'sharedSpaces.busy', 'sharedSpaces.recoveryNote', 'sharedSpaces.switch.android',
+  'sharedSpaces.switch.line.android', 'sharedSpaces.saveThisPhone', 'sharedSpaces.recoveryName.android',
+  'sharedSpaces.deletedEverywhere.android', 'bringSpace.action.android', 'bringSpace.copyNote', 'spaces.onDevice',
+  'closed.header', 'closed.fold', 'closed.unfold', 'closed.clear', 'closed.clearAll', 'closed.forget', 'sharedSpaces.closedOn',
   'sync.error.off', 'sync.error.credentialsSave', 'sync.error.accountGone', 'slash.sync.hint',
+  // Settings (A5a): the iPhone's Settings sheet keys, and Android's own.
+  'pagesNav.settings', 'slash.settings.hint',
+  'android.settings.islandPosition', 'android.settings.islandPosition.bottom', 'android.settings.islandPosition.top',
+  'android.settings.more', 'android.settings.openSourceLicenses', 'footer.settings', 'ios.settings.about',
+  'ios.settings.addSite', 'ios.settings.blocker', 'ios.settings.blockerHelp',
+  'ios.settings.duplicateSite', 'ios.settings.exceptions', 'ios.settings.exceptionsHelp', 'ios.settings.invalidSite',
+  'ios.settings.privacy', 'ios.settings.privacyPolicy', 'ios.settings.removeSite',
+  'ios.settings.site', 'ios.settings.support', 'ios.settings.version', 'ios.settings.website',
+  'settings.general.cards.appearance', 'settings.general.cards.browsing', 'settings.general.searchEngine.label',
+  'settings.general.theme.dark', 'settings.general.theme.label', 'settings.general.theme.light',
+  'settings.general.theme.system', 'settings.privacy.clearBrowsingData',
+  'settings.privacy.clearBrowsingData.confirm', 'settings.privacy.clearBrowsingData.done',
+  'settings.privacy.removesCookiesCacheAnd',
 ];
 // ICU plurals, as Android <plurals>: the Island's tab count for TalkBack.
-export const ANDROID_PLURALS = ['newtab.groups.count', 'shield.count.blocked', 'tabGroups.tucked', 'tabsMenu.header'];
+export const ANDROID_PLURALS = ['sharedSpaces.waitingCount', 'newtab.groups.count', 'shield.count.blocked', 'tabGroups.tucked', 'tabsMenu.header',
+  'ws.list.recentlyDeleted'];
+// Chromium's own strings that name Chrome, replaced by a resource overlay so no screen says it (A5a,
+// docs/android/a5a-settings-spike.md R3): copy key -> Chromium's resource name. Found by the wording
+// check in tests/android/settings.mjs.
+export const CHROMIUM_OVERRIDES = {'android.settings.autoRevokeSummary': 'safety_hub_autorevocation_toggle_summary'};
+const OVERRIDES = path.join(chromium, 'blanc/android/res');
 export const LOCALES = [['en', 'values'], ['de', 'values-de'], ['es', 'values-es'], ['fr', 'values-fr'],
   ['it', 'values-it'], ['pt-BR', 'values-pt-rBR']];
 
@@ -109,6 +143,16 @@ export function render(locale) {
   return `<?xml version="1.0" encoding="utf-8"?>\n<!-- Generated by chromium/tools/android-strings.mjs from copy/messages; do not edit. -->\n<resources>\n${lines.join('\n')}\n</resources>\n`;
 }
 
+export function renderOverrides(locale) {
+  const own = read(locale);
+  const lines = Object.entries(CHROMIUM_OVERRIDES).map(([key, name]) => {
+    const message = own[key]?.message;
+    if (!message) throw Error(`${locale} lacks ${key}`);
+    return `    <string name="${name}">${androidText(message, [])}</string>`;
+  });
+  return `<?xml version="1.0" encoding="utf-8"?>\n<!-- Generated by chromium/tools/android-strings.mjs from copy/messages; do not edit. -->\n<resources>\n${lines.join('\n')}\n</resources>\n`;
+}
+
 if (process.argv[1] === fileURLToPath(import.meta.url)) {
   const check = process.argv.includes('--check');
   const stale = [];
@@ -117,6 +161,14 @@ if (process.argv[1] === fileURLToPath(import.meta.url)) {
     const next = render(locale);
     const current = readIfPresent(file);
     if (current === next) continue;
+    if (check) { stale.push(path.relative(repo, file)); continue; }
+    fs.mkdirSync(path.dirname(file), {recursive: true});
+    fs.writeFileSync(file, next);
+  }
+  for (const [locale, dir] of LOCALES) {
+    const file = path.join(OVERRIDES, dir, 'blanc_chromium_strings.xml');
+    const next = renderOverrides(locale);
+    if (readIfPresent(file) === next) continue;
     if (check) { stale.push(path.relative(repo, file)); continue; }
     fs.mkdirSync(path.dirname(file), {recursive: true});
     fs.writeFileSync(file, next);

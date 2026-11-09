@@ -106,6 +106,29 @@ test('a call is saved before it answers', async () => {
   assert.deepEqual(saved.items.map(item => item.url), ['https://example.org/kept']);
 });
 
+test('Recently closed is only there with the Spaces switch on', async () => {
+  const worker = await createSyncFixture();
+  try {
+    const device = peer('Closes', worker.url);
+    assert.equal((await device.sync.startNew({handle: 'closer'})).ok, true);
+    const call = (method, args = []) => new Promise(done => device.context.__call(method, JSON.stringify(args), (ok, value) => done({ok, value: JSON.parse(value)})));
+    const item = {id: 'row-1', url: 'https://example.org/closed', title: 'Closed', closedAt: Date.now(), spaceId: null};
+    assert.equal((await call('closed.add', [item])).value, false);
+    assert.deepEqual((await call('closed.inbox')).value, []);
+    device.sync.setSyncSpaces(true);
+    assert.equal((await call('closed.add', [item])).value, true);
+    const own = device.module('synced-closed').rebind(device.sync.sharedContext().accountId).data.devices;
+    assert.deepEqual(Object.values(own).flatMap(entry => [...entry.items]).map(row => row.id), ['row-1']);
+    // Clear all needs only Sync on, as on the iPhone: this phone's entry empties with the switch off.
+    device.sync.setSyncSpaces(false);
+    await call('closed.clear');
+    const cleared = device.module('synced-closed').rebind(device.sync.sharedContext().accountId).data.devices;
+    assert.deepEqual(Object.values(cleared).flatMap(entry => [...entry.items]), []);
+  } finally {
+    await worker.close();
+  }
+});
+
 test('a pairing code survives the save after its own call', async () => {
   const worker = await createSyncFixture();
   try {

@@ -129,8 +129,14 @@ public final class AddressInput {
         return "chrome://blanc/" + name + ".html" + (page.group(2) == null ? "" : page.group(2));
     }
 
+    /** The address for a query on DuckDuckGo, the default engine. */
     public static String searchUrl(String query) {
-        StringBuilder out = new StringBuilder(SEARCH_PREFIX);
+        return searchUrl(query, SEARCH_PREFIX + "%s");
+    }
+
+    /** The address for a query on the engine whose template has %s where the query goes. */
+    public static String searchUrl(String query, String template) {
+        StringBuilder out = new StringBuilder();
         for (byte b : query.getBytes(StandardCharsets.UTF_8)) {
             char c = (char) (b & 0xFF);
             if ((c >= 'A' && c <= 'Z') || (c >= 'a' && c <= 'z') || (c >= '0' && c <= '9')
@@ -140,7 +146,7 @@ public final class AddressInput {
                 out.append('%').append(String.format(Locale.ROOT, "%02X", b & 0xFF));
             }
         }
-        return out.toString();
+        return template.replace("%s", out);
     }
 
     private static Result search(String query) {

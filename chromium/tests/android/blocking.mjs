@@ -160,9 +160,11 @@ async function main(argv) {
       }
       clearFixtureRequests();
       adb('shell', 'am', 'start', '-a', 'android.intent.action.VIEW', '-d', "'https://stopped.example/ads'", '-p', PACKAGE);
-      sleep(6);
+      // The notice appears once the engine's last ending is counted; a loaded emulator can take well
+      // past six seconds, so wait for it instead of looking once.
+      const said = await d.waitFor(() => d.has({text: 'Blocking could not start.'}), 'the stopped notice', 30).then(() => true, () => false);
       const problems = fixtureRequests().some(r => isAd(r)) ? ['an ad loaded while the blocker was down'] : [];
-      if (!d.has({text: 'Blocking could not start.'})) problems.push('nothing on screen says why');
+      if (!said) problems.push('nothing on screen says why');
       d.tap({id: 'blanc_island_menu'});
       if (!d.has({text: 'Blocking could not start.'})) problems.push('the menu does not say blocking is down');
       d.tap({text: 'Retry'});

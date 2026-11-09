@@ -11,7 +11,7 @@ import {fileURLToPath} from 'node:url';
 const here = path.dirname(fileURLToPath(import.meta.url));
 const root = path.resolve(here, '../..');
 const runner = path.resolve(here, '../blanc/services/sync_runner');
-const SHIMS = ['crypto', 'fs', 'path', 'os', 'child_process', 'async_hooks', 'url', 'electron'];
+const SHIMS = ['crypto', 'fs', 'path', 'os', 'child_process', 'async_hooks', 'url', 'electron', 'spaces'];
 const EXTERNAL = {crypto: 'crypto', 'node:crypto': 'crypto', fs: 'fs', 'node:fs': 'fs', path: 'path', 'node:path': 'path',
   os: 'os', child_process: 'child_process', 'node:async_hooks': 'async_hooks', 'node:url': 'url', electron: 'electron'};
 
@@ -41,6 +41,10 @@ export function bundle(tag) {
     return id;
   };
   visit('src/main/sync.js');
+  // Shared Spaces' window and sharing rules, which desktop reaches from main.js.
+  visit('src/main/shared-spaces-service.js');
+  visit('src/main/shared-spaces-runtime.js');
+  visit('src/main/document-policy.js');
   const synced = /const SYNCED_KEYS = (\[[^\]]*\]);/.exec(modules.get('src/main/settings.js'));
   if (!synced) throw Error('SYNCED_KEYS not found in settings.js');
   // startPagePins rides in the settings payload but isn't one of settings.js's own keys.

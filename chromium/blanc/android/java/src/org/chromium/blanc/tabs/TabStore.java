@@ -61,6 +61,12 @@ public interface TabStore {
     /** Opens `url` (the Start Page when null) at `index` (the end when negative); returns its id. */
     String create(@Nullable String url, boolean privateTab, @Nullable String groupId, int index);
 
+    /** A tab at the end that shows `url` only when it's first selected; "" if refused. */
+    String createQuiet(String url, String title);
+
+    /** Takes a tab to `url`, unloaded if it is; returns its id, which an unloaded tab may change. */
+    String navigate(String id, String url, String title);
+
     /** Closes a tab; an undoable close stays pending until commitClose or cancelClose. */
     void close(String id, boolean undoable);
 

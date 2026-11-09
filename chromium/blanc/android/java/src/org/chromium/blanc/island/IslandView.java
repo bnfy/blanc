@@ -71,6 +71,7 @@ public class IslandView extends FrameLayout {
 
     private final LinearLayout mPill;
     private final ImageButton mMenu;
+    private final ImageButton mSpace;
     private final TextView mDomain;
     private final TextView mPrivate;
     private final ImageButton mReload;
@@ -84,6 +85,7 @@ public class IslandView extends FrameLayout {
 
     public IslandView(Context context) {
         super(context);
+        org.chromium.blanc.sync.SharedSpacesUi.install(context);
         LayoutInflater.from(context).inflate(R.layout.blanc_island, this, true);
         Resources res = getResources();
         mDensity = res.getDisplayMetrics().density;
@@ -94,6 +96,7 @@ public class IslandView extends FrameLayout {
         setClipToPadding(false);
         mPill = findViewById(R.id.blanc_island_pill);
         mMenu = findViewById(R.id.blanc_island_menu);
+        mSpace = findViewById(R.id.blanc_island_space);
         mDomain = findViewById(R.id.blanc_island_domain);
         mPrivate = findViewById(R.id.blanc_island_private);
         mReload = findViewById(R.id.blanc_island_reload);
@@ -107,6 +110,16 @@ public class IslandView extends FrameLayout {
         mNewTab.setContentDescription(res.getString(R.string.blanc_tab_new));
         mPrivate.setContentDescription(res.getString(R.string.blanc_pill_private_title));
         bind(new State());
+    }
+
+    /** The Spaces mark, which the coordinator shows once a Space exists. */
+    public ImageButton spaceButton() {
+        return mSpace;
+    }
+
+    /** The color the Island's text is drawn in. */
+    public int textColor() {
+        return mDomain.getCurrentTextColor();
     }
 
     public void bind(State state) {

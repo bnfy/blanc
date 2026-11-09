@@ -1,5 +1,6 @@
 #include "blanc/services/blocker/blocker_proxy.h"
 #include "blanc/services/blocker/blocker_available.h"
+#include "blanc/services/blocker/shield_page_count.h"
 #include "blanc/content/public/common/blanc_research_build.h"
 #include "build/build_config.h"
 #if !BUILDFLAG(IS_ANDROID)
@@ -13,6 +14,7 @@
 #endif
 #include "content/public/browser/navigation_throttle.h"
 #include "content/public/browser/navigation_throttle_registry.h"
+#include "content/public/browser/document_user_data.h"
 #include "content/public/browser/navigation_handle.h"
 #include "third_party/blink/public/mojom/loader/referrer.mojom.h"
 #include <algorithm>
@@ -543,6 +545,8 @@ struct Context {
   content::GlobalRenderFrameHostId frame;
   int factory_type;
   net::IsolationInfo isolation_info;
+  // The commit this factory was made for, for the shield count.
+  int64_t committing_navigation = blanc::ShieldPageCount::kShownPage;
 };
 #if BLANC_RESEARCH_HOOKS
 // Offline component prototype only. Cancel while unready; never queue a request
@@ -598,7 +602,8 @@ class Request : public network::mojom::URLLoader, public network::mojom::URLLoad
       mojo::PendingReceiver<network::mojom::URLLoader> receiver, int32_t id, uint32_t options,
       const network::ResourceRequest& request, mojo::PendingRemote<network::mojom::URLLoaderClient> client,
       const net::MutableNetworkTrafficAnnotationTag& annotation)
-      : context_(context), shield_count_(content::RenderFrameHost::FromID(context.frame)),
+      : context_(context),
+        shield_count_(content::RenderFrameHost::FromID(context.frame), context.committing_navigation),
         factory_(std::move(factory)), id_(id), options_(options), request_(request),
         annotation_(annotation), receiver_(this, std::move(receiver)), client_(std::move(client)), incoming_(this) {
     // Snapshot the actual originating frame before an asynchronous decision can
@@ -986,7 +991,7 @@ base::DictValue BlockedThisWeek(content::BrowserContext* context) {
 int ShieldBlockedCount(content::WebContents* contents) {
   if (!contents || !contents->GetPrimaryMainFrame()) return 0;
   const auto* count = ShieldTabCount::FromWebContents(contents);
-  return count ? count->value : 0;
+  return count ? count->count.value() : 0;
 }
 content::ContentBrowserClient::WebSocketFactory WrapWebSocketFactory(
     int process_id, int frame_routing_id, const url::Origin& initiator_origin,
@@ -1095,6 +1100,8 @@ void AddNavigationResponseGate(content::NavigationThrottleRegistry& registry) {
 #if BLANC_RESEARCH_HOOKS
   if (base::CommandLine::ForCurrentProcess()->HasSwitch("blanc-ubo-component-probe")) return;
 #endif
+  // Here, before any commit, so a tab's first page is seen.
+  ShieldTabCount::GetOrCreateForWebContents(registry.GetNavigationHandle().GetWebContents());
   registry.AddThrottle(std::make_unique<NavigationResponseGate>(registry));
 }
 bool MaybeProxy(content::BrowserContext* context, content::RenderFrameHost* frame,
@@ -1105,9 +1112,16 @@ bool MaybeProxy(content::BrowserContext* context, content::RenderFrameHost* fram
       && !UboProbe()
 #endif
       ) return false;
+  int64_t committing_navigation = blanc::ShieldPageCount::kShownPage;
+  if (frame) {
+    auto* tab = ShieldTabCount::GetOrCreateForWebContents(content::WebContents::FromRenderFrameHost(frame));
+    using F = content::ContentBrowserClient::URLLoaderFactoryType;
+    if (static_cast<F>(factory_type) == F::kDocumentSubResource) committing_navigation = tab->CommittingNavigation(frame);
+  }
   auto [receiver, remote] = builder.Append();
   base::MakeSelfDeleting<Factory>(std::move(receiver), std::move(remote),
-      Context{context->GetWeakPtr(), base::UnguessableToken::Create().ToString(), context->IsOffTheRecord(), frame ? frame->GetGlobalId() : content::GlobalRenderFrameHostId(), factory_type, isolation_info});
+      Context{context->GetWeakPtr(), base::UnguessableToken::Create().ToString(), context->IsOffTheRecord(), frame ? frame->GetGlobalId() : content::GlobalRenderFrameHostId(), factory_type, isolation_info,
+              committing_navigation});
   return true;
 }
 }

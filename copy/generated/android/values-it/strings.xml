@@ -2566,6 +2566,7 @@ Puoi riprovare con «%2$s» o reinstallare Blanc da blanc.day.</string>
     <string name="settings_general_vertical_tabs_text_size_large">Grande</string>
     <string name="settings_general_vertical_tabs_text_size_extra_large">Molto grande</string>
     <string name="spaces_this_i_phone">Questo iPhone</string>
+    <string name="spaces_this_phone">Questo telefono</string>
     <string name="spaces_menu_label">Spaces</string>
     <string name="spaces_menu_edit">Modifica</string>
     <plurals name="tab_groups_tucked">
@@ -2642,4 +2643,16 @@ Puoi riprovare con «%2$s» o reinstallare Blanc da blanc.day.</string>
     <string name="settings_general_mini_window_shortcut_ctrl_alt_space_mac">⌃⌥Spazio</string>
     <string name="settings_general_mini_window_shortcut_ctrl_alt_space">Ctrl+Alt+Spazio</string>
     <string name="settings_general_mini_window_shortcut_ctrl_shift_space">Ctrl+Maiusc+Spazio</string>
+    <string name="shared_spaces_switch_android">Mantieni Spaces e gruppi sincronizzati su questo telefono</string>
+    <string name="shared_spaces_switch_line_android">Le schede dei tuoi Spaces condivisi vengono sincronizzate da questo telefono.</string>
+    <string name="shared_spaces_save_this_phone">Salva Questo telefono come Space</string>
+    <string name="shared_spaces_recovery_name_android">%1$s · conservato su questo telefono</string>
+    <string name="shared_spaces_deleted_everywhere_android">Eliminato ovunque. Annulla ne conserva una copia su questo telefono.</string>
+    <string name="bring_space_action_android">Porta su questo telefono</string>
+    <string name="android_settings_more">Altro</string>
+    <string name="android_settings_island_position">Posizione dell’Island</string>
+    <string name="android_settings_island_position_top">In alto</string>
+    <string name="android_settings_island_position_bottom">In basso</string>
+    <string name="android_settings_open_source_licenses">Licenze open source</string>
+    <string name="android_settings_auto_revoke_summary">Per proteggere i tuoi dati, consenti a Blanc di rimuovere le autorizzazioni dai siti che non visiti da un po’</string>
 </resources>

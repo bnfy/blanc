@@ -33,13 +33,25 @@ import android.widget.LinearLayout;
 import android.widget.ScrollView;
 import android.widget.TextView;
 
+import org.json.JSONObject;
+
+import org.chromium.base.ContextUtils;
 import org.chromium.blanc.address.AddressInput;
 import org.chromium.blanc.island.IslandStyle;
 import org.chromium.blanc.island.R;
+import org.chromium.blanc.settings.SettingsDestination;
+import org.chromium.blanc.settings.SettingsStore;
+import org.chromium.blanc.spaces.BlancSpaces;
+import org.chromium.blanc.spaces.SpacesCard;
+import org.chromium.blanc.spaces.SpacesController;
+import org.chromium.blanc.sync.BringSpaceSheet;
 import org.chromium.blanc.sync.OtherDevices;
+import org.chromium.blanc.sync.SyncedClosed;
+import org.chromium.blanc.sync.SyncedSpaces;
 import org.chromium.blanc.tabs.BlancTabs;
 import org.chromium.blanc.tabs.QuickSwitcher;
 import org.chromium.blanc.tabs.SlashCommands;
+import org.chromium.blanc.tabs.RecentlyClosed;
 import org.chromium.blanc.tabs.TabSections;
 import org.chromium.blanc.tabs.TabStore;
 import org.chromium.build.annotations.NullMarked;
@@ -62,6 +74,7 @@ import java.util.Set;
 public final class PaletteSheet extends Dialog {
     /** What the palette asks of the browser. */
     private final Set<String> mOpenDevices = new HashSet<>();
+    private boolean mClosedOpen;
 
     public interface Callbacks {
         /** Opens an address or search in the current tab. */
@@ -80,6 +93,9 @@ public final class PaletteSheet extends Dialog {
 
         /** /sync: the Sync sheet. */
         void sync();
+
+        /** /settings, the footer's Settings button and blanc://settings: Settings, at `destination`. */
+        void settings(SettingsDestination destination);
 
         /** What a send said, shown briefly. */
         void notice(String text);
@@ -139,6 +155,7 @@ public final class PaletteSheet extends Dialog {
     private final View mNewTab;
     private final ImageButton mFavorites;
     private final ImageButton mHistory;
+    private final ImageButton mSettings;
     private final List<Row> mRows = new ArrayList<>();
 
     private PaletteSheet(Activity activity, BlancTabs tabs, Callbacks callbacks) {
@@ -225,6 +242,11 @@ public final class PaletteSheet extends Dialog {
         mHistory = button(R.drawable.blanc_palette_history, R.string.blanc_pages_nav_history,
                 v -> openTab(PAGES + "history.html"));
         footer.addView(mHistory, new LinearLayout.LayoutParams(dp(44), dp(44)));
+        mSettings = button(R.drawable.blanc_palette_settings, R.string.blanc_pages_nav_settings, v -> {
+            dismiss();
+            mCallbacks.settings(SettingsDestination.ROOT);
+        });
+        footer.addView(mSettings, new LinearLayout.LayoutParams(dp(44), dp(44)));
         root.addView(footer);
 
         mField.addTextChangedListener(new TextWatcher() {
@@ -313,6 +335,10 @@ public final class PaletteSheet extends Dialog {
         return mHistory;
     }
 
+    public View settingsButton() {
+        return mSettings;
+    }
+
     public List<Row> rows() {
         return new ArrayList<>(mRows);
     }
@@ -364,8 +390,63 @@ public final class PaletteSheet extends Dialog {
             heading(mActivity.getString(R.string.blanc_pill_private_chip), privateTabs.size());
             for (TabStore.Entry tab : privateTabs) tabRow(tab);
         }
+        renderClosed();
         renderSent();
         renderDevices();
+    }
+
+    /** Folded each time the palette opens, as the iPhone's and desktop's bands are. */
+    private void renderClosed() {
+        List<RecentlyClosed.Row> rows = SyncedClosed.band();
+        if (rows.isEmpty()) return;
+        LinearLayout head = new LinearLayout(mActivity);
+        head.setGravity(Gravity.CENTER_VERTICAL);
+        TextView title = text(mActivity.getString(R.string.blanc_closed_header) + "  " + rows.size(), 11, secondary());
+        title.setTypeface(Typeface.DEFAULT_BOLD);
+        title.setPadding(dp(22), dp(8), dp(22), dp(8));
+        title.setMinHeight(dp(32));
+        title.setContentDescription(mActivity.getString(R.string.blanc_closed_header) + ", " + rows.size() + ", "
+                + mActivity.getString(mClosedOpen ? R.string.blanc_closed_fold : R.string.blanc_closed_unfold));
+        title.setOnClickListener(v -> {
+            mClosedOpen = !mClosedOpen;
+            render();
+        });
+        head.addView(title, new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1));
+        if (mClosedOpen) {
+            TextView clear = text(mActivity.getString(R.string.blanc_closed_clear), 11, secondary());
+            clear.setTypeface(Typeface.DEFAULT_BOLD);
+            clear.setPadding(dp(12), dp(8), dp(22), dp(8));
+            clear.setContentDescription(mActivity.getString(R.string.blanc_closed_clear_all));
+            clear.setOnClickListener(v -> {
+                SyncedClosed.clear();
+                render();
+            });
+            head.addView(clear);
+        }
+        mList.addView(head);
+        if (!mClosedOpen) return;
+        for (RecentlyClosed.Row item : rows) {
+            String label = item.title.isEmpty() ? item.url : item.title;
+            String subtitle = item.fromId != null
+                    ? mActivity.getString(R.string.blanc_shared_spaces_closed_on,
+                            item.fromName == null ? item.fromId : item.fromName)
+                    : host(item.url);
+            LinearLayout line = new LinearLayout(mActivity);
+            line.setGravity(Gravity.CENTER_VERTICAL);
+            View main = row(R.drawable.blanc_palette_history, label, subtitle, false, v -> {
+                SyncedClosed.forget(item);
+                mTabs.reopen(item.url);
+                dismiss();
+            });
+            mList.removeView(main);
+            line.addView(main, new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1));
+            ImageButton forget = button(R.drawable.blanc_palette_close, R.string.blanc_closed_forget, v -> {
+                SyncedClosed.forget(item);
+                render();
+            });
+            line.addView(forget, new LinearLayout.LayoutParams(dp(44), dp(48)));
+            mList.addView(line);
+        }
     }
 
     private void renderSent() {
@@ -374,8 +455,7 @@ public final class PaletteSheet extends Dialog {
         heading(mActivity.getString(R.string.blanc_sends_section), sent.size());
         for (OtherDevices.Sent item : sent) {
             CharSequence ago = DateUtils.getRelativeTimeSpanString(item.sentAt);
-            String subtitle = mActivity.getString(R.string.blanc_sends_from)
-                    .replace("{device}", item.from).replace("{time}", ago);
+            String subtitle = mActivity.getString(R.string.blanc_sends_from, item.from, ago);
             String title = item.title.isEmpty() ? item.url : item.title;
             LinearLayout line = new LinearLayout(mActivity);
             line.setGravity(Gravity.CENTER_VERTICAL);
@@ -445,9 +525,11 @@ public final class PaletteSheet extends Dialog {
             return;
         }
         for (QuickSwitcher.Result result : results) {
-            boolean group = result.id.startsWith("group:");
-            String subtitle = group
-                    ? mActivity.getResources().getQuantityString(R.plurals.blanc_newtab_groups_count, result.count, result.count)
+            boolean remote = result.id.startsWith("remoteSpace:");
+            boolean group = remote || result.id.startsWith("group:") || result.id.startsWith("set:");
+            String subtitle = remote
+                    ? mActivity.getString(R.string.blanc_spaces_on_device, result.subtitle)
+                    : group ? mActivity.getResources().getQuantityString(R.plurals.blanc_newtab_groups_count, result.count, result.count)
                     : result.subtitle;
             View view = row(group ? R.drawable.blanc_palette_chevron_right : R.drawable.blanc_palette_globe,
                     result.title, subtitle, false, v -> {
@@ -455,6 +537,21 @@ public final class PaletteSheet extends Dialog {
                         dismiss();
                     });
             mRows.add(new Row(RowKind.RESULT, result.title, subtitle, false, view, null));
+        }
+    }
+
+    /** /space: bare, the menu; a name, that set, This Phone too; a new name, the editor. */
+    private void space(String name) {
+        SpacesController spaces = SpacesController.current();
+        if (spaces == null) return;
+        if (name.isEmpty()) {
+            SpacesCard.open(mActivity);
+        } else if (name.equalsIgnoreCase(mActivity.getString(R.string.blanc_spaces_this_phone))) {
+            spaces.show(null);
+        } else {
+            BlancSpaces.Space space = spaces.library().named(name);
+            if (space != null) spaces.show(space.id);
+            else SpacesCard.create(mActivity, name, null);
         }
     }
 
@@ -469,7 +566,7 @@ public final class PaletteSheet extends Dialog {
             return;
         }
         if (target == null) {
-            mCallbacks.notice(mActivity.getString(R.string.blanc_sends_no_match).replace("{name}", name));
+            mCallbacks.notice(mActivity.getString(R.string.blanc_sends_no_match, name));
             return;
         }
         if (current == null || mTabs.privateSelected()) return;
@@ -479,7 +576,7 @@ public final class PaletteSheet extends Dialog {
 
     /** "Sent", never "delivered". */
     public static String sendResult(Activity activity, String status, String device) {
-        if ("sent".equals(status)) return activity.getString(R.string.blanc_sends_sent).replace("{device}", device);
+        if ("sent".equals(status)) return activity.getString(R.string.blanc_sends_sent, device);
         return activity.getString("unavailable".equals(status) ? R.string.blanc_sends_unavailable : R.string.blanc_sends_failed);
     }
 
@@ -497,7 +594,27 @@ public final class PaletteSheet extends Dialog {
         for (OtherDevices.Device device : OtherDevices.devices()) {
             for (OtherDevices.Page tab : device.tabs) pages.add(new QuickSwitcher.Page(tab.url, tab.title, tab.url));
         }
-        return QuickSwitcher.search(query, candidates, pages, List.of(), groups);
+        List<QuickSwitcher.RemoteSpace> remote = new ArrayList<>();
+        for (JSONObject row : SyncedSpaces.remoteSpaces()) {
+            remote.add(new QuickSwitcher.RemoteSpace(row.optString("id"), row.optString("name"), row.optString("device")));
+        }
+        return QuickSwitcher.search(query, candidates, pages, List.of(), groups, switcherSets(), remote);
+    }
+
+    /** Every Space but the shown one, and This Phone while a Space is shown. */
+    private List<QuickSwitcher.TabSet> switcherSets() {
+        List<QuickSwitcher.TabSet> sets = new ArrayList<>();
+        SpacesController spaces = SpacesController.current();
+        if (spaces == null) return sets;
+        String shown = spaces.library().shownId;
+        if (shown != null) {
+            sets.add(new QuickSwitcher.TabSet(
+                    "", mActivity.getString(R.string.blanc_spaces_this_phone), spaces.tabCount(null)));
+        }
+        for (BlancSpaces.Space space : spaces.library().spaces) {
+            if (!space.id.equals(shown)) sets.add(new QuickSwitcher.TabSet(space.id, space.name, spaces.tabCount(space.id)));
+        }
+        return sets;
     }
 
     private void heading(String title, int count) {
@@ -690,8 +807,13 @@ public final class PaletteSheet extends Dialog {
             open(target);
         } else {
             AddressInput.Result r = AddressInput.interpret(input);
+            SettingsDestination settings = SettingsDestination.resolve(r.value);
             if (r.kind == AddressInput.Kind.SEARCH) {
-                mCallbacks.load(AddressInput.searchUrl(r.value));
+                mCallbacks.load(AddressInput.searchUrl(
+                        r.value, new SettingsStore(ContextUtils.getAppSharedPreferences()).searchTemplate()));
+            } else if (settings != null) {
+                // blanc://settings is Settings itself, native as on the iPhone, not a served page.
+                mCallbacks.settings(settings);
             } else if (!AddressInput.isBlancPage(r.value)) {
                 mCallbacks.load(r.value);
             } else {
@@ -712,6 +834,15 @@ public final class PaletteSheet extends Dialog {
             }
         } else if (result.id.startsWith("local:")) {
             mTabs.select(result.id.substring("local:".length()));
+        } else if (result.id.startsWith("remoteSpace:")) {
+            String id = result.id.substring("remoteSpace:".length());
+            for (JSONObject row : SyncedSpaces.remoteSpaces()) {
+                if (id.equals(row.optString("id"))) new BringSpaceSheet(mActivity, row).show();
+            }
+        } else if (result.id.startsWith("set:")) {
+            SpacesController spaces = SpacesController.current();
+            String id = result.id.substring("set:".length());
+            if (spaces != null) spaces.show(id.isEmpty() ? null : id);
         } else if (result.url != null) {
             mCallbacks.openTab(result.url);
         }
@@ -733,6 +864,15 @@ public final class PaletteSheet extends Dialog {
         String active = mTabs.activeId();
         switch (kind) {
             case SYNC -> mCallbacks.sync();
+            case SETTINGS -> {
+                dismiss();
+                mCallbacks.settings(SettingsDestination.ROOT);
+            }
+            case SPACE -> {
+                space(argument);
+                dismiss();
+                return;
+            }
             case SEND -> {
                 if (argument.isEmpty()) {
                     mField.setText("/send ");
@@ -789,7 +929,9 @@ public final class PaletteSheet extends Dialog {
         return switch (kind) {
             case FAVORITES -> R.string.blanc_slash_favorites_hint;
             case SYNC -> R.string.blanc_slash_sync_hint;
+            case SETTINGS -> R.string.blanc_slash_settings_hint;
             case SEND -> R.string.blanc_slash_send_hint;
+            case SPACE -> R.string.blanc_slash_space_hint;
             case HISTORY -> R.string.blanc_slash_history_hint;
             case NEW -> R.string.blanc_slash_new_hint;
             case PRIVATE -> R.string.blanc_slash_private_hint;

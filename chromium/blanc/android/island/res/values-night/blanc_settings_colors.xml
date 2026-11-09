@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright 2026 Bananify Creative. MIT; see LICENSE. -->
+<!-- The Sunrise tokens (tokens/tokens.json, dark) Blanc's Settings is drawn with; android-settings-theme.test.mjs pins them. -->
+<resources>
+    <color name="blanc_sunrise_bg">#17130f</color>
+    <color name="blanc_sunrise_surface">#2d251d</color>
+    <color name="blanc_sunrise_surface_raised">#221d17</color>
+    <color name="blanc_sunrise_border">#4a3e31</color>
+    <color name="blanc_sunrise_text">#f7f0e5</color>
+    <color name="blanc_sunrise_text_dim">#b8aa98</color>
+    <color name="blanc_sunrise_accent">#d4ad66</color>
+    <!-- Not a token: the error text in the allowed-sites dialog. -->
+    <color name="blanc_settings_error">#F2B8B5</color>
+</resources>

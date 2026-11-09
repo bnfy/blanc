@@ -67,6 +67,14 @@ public final class SyncSheet {
         ERRORS.put("account-gone", R.string.blanc_sync_error_account_gone);
     }
 
+    private static final Map<String, Integer> SPACES_STATUS = new HashMap<>();
+
+    static {
+        SPACES_STATUS.put("capacity", R.string.blanc_shared_spaces_capacity);
+        SPACES_STATUS.put("tombstones", R.string.blanc_shared_spaces_tombstones);
+        SPACES_STATUS.put("busy", R.string.blanc_shared_spaces_busy);
+    }
+
     private final Activity mActivity;
     private final Runner mRunner;
     private final Scanner mScanner;
@@ -74,6 +82,7 @@ public final class SyncSheet {
     private final LinearLayout mList;
     private final SyncSheetModel.State mState = new SyncSheetModel.State();
     private JSONObject mStatus = new JSONObject();
+    private JSONObject mSpaces = new JSONObject();
     private String mCode = "";
     private String mHandle = "";
     private String mPassphrase = "";
@@ -144,7 +153,11 @@ public final class SyncSheet {
                     return;
                 }
             }
-            render();
+            mRunner.call("spaces.status", "[]", spaces -> {
+                JSONObject shared = value(spaces);
+                if (shared != null) mSpaces = shared;
+                render();
+            });
         });
     }
 
@@ -281,6 +294,7 @@ public final class SyncSheet {
                 mList.addView(share);
             }
             case SHARE_HELP -> line(text(R.string.blanc_ios_settings_share_tabs_help));
+            case SPACES -> spaces();
             case SYNC_NOW -> button(text(R.string.blanc_settings_sync_sync_now), v -> run("sync.syncNow", new Object[] {}, null));
             case PAIR_DEVICE -> button(text(R.string.blanc_settings_sync_add_another_device), v -> beginPairing());
             case COPY_RECOVERY -> button(text(R.string.blanc_settings_sync_recovery_copy), v -> confirmRecovery());
@@ -289,6 +303,49 @@ public final class SyncSheet {
                 render();
             });
             case DISCONNECT -> button(text(R.string.blanc_ios_settings_disconnect), v -> confirmDisconnect());
+        }
+    }
+
+    /** The Spaces switch: on asks which Spaces to share; off keeps dormant copies. */
+    private void spaces() {
+        boolean on = mSpaces.optBoolean("enabled");
+        android.widget.Switch keep = new android.widget.Switch(mActivity);
+        keep.setText(R.string.blanc_shared_spaces_switch_android);
+        keep.setChecked(on);
+        keep.setEnabled(!mBusy);
+        keep.setOnCheckedChangeListener((v, wanted) -> {
+            if (wanted) {
+                new SharedSpacesSheet(mActivity, this::refresh).show();
+                keep.setChecked(false);
+            } else if (on) {
+                run("spaces.apply", new Object[] {offArgument()}, null);
+            }
+        });
+        tagged(keep, "sync.spaces");
+        mList.addView(keep);
+        line(text(R.string.blanc_shared_spaces_switch_line_android));
+        if (on) button(text(R.string.blanc_shared_spaces_title), v -> new SharedSpacesSheet(mActivity, this::refresh).show());
+        if (!mSpaces.optBoolean("available", true)) {
+            tagged(line(text(R.string.blanc_shared_spaces_unavailable)), "sync.spaces.unavailable");
+        } else if (on) {
+            JSONArray keys = mSpaces.optJSONArray("keys");
+            for (int i = 0; keys != null && i < keys.length(); i++) {
+                Integer status = SPACES_STATUS.get(keys.optString(i));
+                if (status != null) line(text(status));
+            }
+            if (mSpaces.optBoolean("accountFull")) line(text(R.string.blanc_shared_spaces_account_full));
+        } else if (mSpaces.optInt("spaces") > 0) {
+            int count = mSpaces.optInt("spaces");
+            line(mActivity.getResources().getQuantityString(R.plurals.blanc_shared_spaces_waiting_count, count, count));
+        }
+        line(text(on ? R.string.blanc_shared_spaces_account_line : R.string.blanc_shared_spaces_off_line));
+    }
+
+    private static JSONObject offArgument() {
+        try {
+            return new JSONObject().put("enabled", false);
+        } catch (JSONException e) {
+            throw new IllegalStateException(e);
         }
     }
 

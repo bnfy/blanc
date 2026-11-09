@@ -2493,6 +2493,7 @@ Versuche es erneut mit „%2$s“ oder installiere Blanc neu von blanc.day.</str
     <string name="settings_general_vertical_tabs_text_size_large">Groß</string>
     <string name="settings_general_vertical_tabs_text_size_extra_large">Sehr groß</string>
     <string name="spaces_this_i_phone">Dieses iPhone</string>
+    <string name="spaces_this_phone">Dieses Telefon</string>
     <string name="spaces_menu_label">Spaces</string>
     <string name="spaces_menu_edit">Bearbeiten</string>
     <plurals name="tab_groups_tucked">
@@ -2567,4 +2568,16 @@ Versuche es erneut mit „%2$s“ oder installiere Blanc neu von blanc.day.</str
     <string name="settings_general_mini_window_shortcut_ctrl_alt_space_mac">⌃⌥Leertaste</string>
     <string name="settings_general_mini_window_shortcut_ctrl_alt_space">Strg+Alt+Leertaste</string>
     <string name="settings_general_mini_window_shortcut_ctrl_shift_space">Strg+Umschalt+Leertaste</string>
+    <string name="shared_spaces_switch_android">Spaces und Gruppen auf diesem Telefon synchron halten</string>
+    <string name="shared_spaces_switch_line_android">Tabs in deinen geteilten Spaces werden von diesem Telefon synchronisiert.</string>
+    <string name="shared_spaces_save_this_phone">Dieses Telefon als Space sichern</string>
+    <string name="shared_spaces_recovery_name_android">%1$s · auf diesem Telefon behalten</string>
+    <string name="shared_spaces_deleted_everywhere_android">Überall gelöscht. Rückgängig behält eine Kopie auf diesem Telefon.</string>
+    <string name="bring_space_action_android">Auf dieses Telefon holen</string>
+    <string name="android_settings_more">Mehr</string>
+    <string name="android_settings_island_position">Position der Island</string>
+    <string name="android_settings_island_position_top">Oben</string>
+    <string name="android_settings_island_position_bottom">Unten</string>
+    <string name="android_settings_open_source_licenses">Open-Source-Lizenzen</string>
+    <string name="android_settings_auto_revoke_summary">Zum Schutz deiner Daten kann Blanc Berechtigungen von Websites entfernen, die du länger nicht besucht hast</string>
 </resources>

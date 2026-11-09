@@ -25,8 +25,42 @@ android_library("island_java") {
 # Blanc's tab rules, ported from Blanc for iPhone (TabGroups, TabSections,
 # QuickSwitcher, SlashCommand) and checked against desktop's JavaScript
 # (A2 plan, Task 2): plain Java with no views.
+# Settings' own rules, with no Chromium dependency, so they run under Robolectric.
+android_library("settings_model_java") {
+  sources = [
+    "java/src/org/chromium/blanc/settings/AllowedSites.java",
+    "java/src/org/chromium/blanc/settings/SearchEngines.java",
+    "java/src/org/chromium/blanc/settings/SettingsDestination.java",
+    "java/src/org/chromium/blanc/settings/SettingsLayout.java",
+    "java/src/org/chromium/blanc/settings/SettingsStore.java",
+    "java/src/org/chromium/blanc/settings/SiteDataClearer.java",
+  ]
+  deps = [ "//build/android:build_java" ]
+}
+
+# Blanc's step over Chromium's Settings root (A5a). //chrome/android:chrome_java depends on this
+# (patch 0110), so it can't depend on chrome_java: it works on AndroidX preferences only.
+android_library("settings_java") {
+  resources_package = "org.chromium.blanc.island"
+  sources = [
+    "java/src/org/chromium/blanc/settings/AllowedSitesDialog.java",
+    "java/src/org/chromium/blanc/settings/BlancSettingsScreen.java",
+  ]
+  deps = [
+    ":island_view_resources",
+    ":settings_model_java",
+    "//build/android:build_java",
+    "//third_party/androidx:androidx_preference_preference_java",
+  ]
+}
+
 android_library("tabs_java") {
   sources = [
+    "java/src/org/chromium/blanc/spaces/BlancSpaces.java",
+    "java/src/org/chromium/blanc/spaces/SharedRows.java",
+    "java/src/org/chromium/blanc/spaces/SpaceRows.java",
+    "java/src/org/chromium/blanc/spaces/SpaceSwitcher.java",
+    "java/src/org/chromium/blanc/spaces/SpacesController.java",
     "java/src/org/chromium/blanc/tabs/BlancTabState.java",
     "java/src/org/chromium/blanc/blocking/BlancBlocking.java",
     "java/src/org/chromium/blanc/tabs/BlancTabs.java",
@@ -35,6 +69,7 @@ android_library("tabs_java") {
     "java/src/org/chromium/blanc/tabs/GroupNames.java",
     "java/src/org/chromium/blanc/tabs/QuickSwitcher.java",
     "java/src/org/chromium/blanc/tabs/QuietTabs.java",
+    "java/src/org/chromium/blanc/tabs/RecentlyClosed.java",
     "java/src/org/chromium/blanc/tabs/SlashCommands.java",
     "java/src/org/chromium/blanc/tabs/TabSections.java",
     "java/src/org/chromium/blanc/tabs/TabStore.java",
@@ -105,10 +140,13 @@ android_library("sync_java") {
     "java/src/org/chromium/blanc/sync/SyncSheetModel.java",
     "java/src/org/chromium/blanc/sync/SyncedFavorites.java",
     "java/src/org/chromium/blanc/sync/SyncedSettings.java",
+    "java/src/org/chromium/blanc/sync/SyncedClosed.java",
+    "java/src/org/chromium/blanc/sync/SyncedSpaces.java",
     "java/src/org/chromium/blanc/sync/SyncedTabs.java",
     blanc_sync_test_driver,
   ]
   deps = [
+    ":settings_model_java",
     ":tabs_java",
     ":zxing_java",
     "//base:base_java",
@@ -135,11 +173,40 @@ android_assets("sync_assets") {
   disable_compression = true
 }
 
+# Blanc's Settings, wired to Chromium (A5a). //chrome/android:chrome_java depends on this (patch 0110).
+android_library("settings_chromium_java") {
+  resources_package = "org.chromium.blanc.island"
+  sources = [
+    "java/src/org/chromium/blanc/settings/chromium/BlancSettingsHook.java",
+    "java/src/org/chromium/blanc/settings/chromium/ChromiumSettingsHost.java",
+  ]
+  deps = [
+    ":island_view_java",
+    ":island_view_resources",
+    ":settings_java",
+    ":settings_model_java",
+    ":sync_java",
+    ":tabs_ui_java",
+    "//base:base_java",
+    "//build/android:build_java",
+    "//chrome/browser/browsing_data/android:java",
+    "//chrome/browser/profiles/android:java",
+    "//chrome/browser/search_engines/android:java",
+    "//components/browsing_data/core:java",
+    "//components/search_engines/android:java",
+    "//third_party/androidx:androidx_fragment_fragment_java",
+    "//third_party/androidx:androidx_preference_preference_java",
+    "//third_party/androidx:androidx_recyclerview_recyclerview_java",
+    "//ui/android:ui_java",
+  ]
+}
+
 android_library("tabs_ui_java") {
   srcjar_deps = [ ":blocking_jni" ]
   sources = [
     "java/src/org/chromium/blanc/blocking/BlockerBridge.java",
     "java/src/org/chromium/blanc/tabs/chromium/BlancTabKeeper.java",
+    "java/src/org/chromium/blanc/tabs/chromium/ChromiumSpaces.java",
     "java/src/org/chromium/blanc/tabs/chromium/ChromiumBlocking.java",
     "java/src/org/chromium/blanc/tabs/chromium/ChromiumTabStore.java",
   ]
@@ -149,8 +216,11 @@ android_library("tabs_ui_java") {
     "//base:base_java",
     "//build/android:build_java",
     "//third_party/jni_zero:jni_zero_java",
+    "//chrome/browser/android/crypto:java",
+    "//chrome/browser/profiles/android:java",
     "//chrome/browser/tab:java",
     "//chrome/browser/tabmodel:java",
+    "//chrome/browser/tabpersistence:java",
     "//components/tab_groups:tab_groups_java",
     "//content/public/android:content_java",
     "//url:url_java",
@@ -162,6 +232,28 @@ android_library("tabs_ui_java") {
 # scripts/android-app-icons.js.
 android_resources("island_view_resources") {
   sources = [
+    "island/res/drawable/blanc_space_book.xml",
+    "island/res/drawable/blanc_space_briefcase.xml",
+    "island/res/drawable/blanc_space_camera.xml",
+    "island/res/drawable/blanc_space_cap.xml",
+    "island/res/drawable/blanc_space_code.xml",
+    "island/res/drawable/blanc_space_coffee.xml",
+    "island/res/drawable/blanc_space_flask.xml",
+    "island/res/drawable/blanc_space_gamepad.xml",
+    "island/res/drawable/blanc_space_heart.xml",
+    "island/res/drawable/blanc_space_house.xml",
+    "island/res/drawable/blanc_space_leaf.xml",
+    "island/res/drawable/blanc_space_music.xml",
+    "island/res/drawable/blanc_space_plane.xml",
+    "island/res/drawable/blanc_space_star.xml",
+    "island/res/drawable/blanc_space_sun.xml",
+    "island/res/drawable/blanc_space_wallet.xml",
+    "island/res/drawable/blanc_spaces_arrow_down.xml",
+    "island/res/drawable/blanc_spaces_arrow_up.xml",
+    "island/res/drawable/blanc_spaces_check.xml",
+    "island/res/drawable/blanc_spaces_glyph.xml",
+    "island/res/drawable/blanc_spaces_pencil.xml",
+    "island/res/drawable/blanc_spaces_phone.xml",
     "island/res/drawable-mdpi/blanc_island_mark.png",
     "island/res/drawable-hdpi/blanc_island_mark.png",
     "island/res/drawable-xhdpi/blanc_island_mark.png",
@@ -178,11 +270,17 @@ android_resources("island_view_resources") {
     "island/res/drawable/blanc_palette_globe.xml",
     "island/res/drawable/blanc_palette_history.xml",
     "island/res/drawable/blanc_palette_search.xml",
+    "island/res/drawable/blanc_palette_settings.xml",
     "island/res/drawable/blanc_island_reload.xml",
     "island/res/drawable/blanc_island_stop.xml",
     "island/res/layout/blanc_island.xml",
+    "island/res/layout/blanc_settings_header.xml",
     "island/res/values/blanc_grid_ids.xml",
     "island/res/values/blanc_island_dimens.xml",
+    "island/res/values/blanc_settings_colors.xml",
+    "island/res/values/blanc_settings_dimens.xml",
+    "island/res/values/blanc_settings_theme.xml",
+    "island/res/values-night/blanc_settings_colors.xml",
     "island/res/values/blanc_strings.xml",
     "island/res/values-de/blanc_strings.xml",
     "island/res/values-es/blanc_strings.xml",
@@ -190,6 +288,7 @@ android_resources("island_view_resources") {
     "island/res/values-it/blanc_strings.xml",
     "island/res/values-pt-rBR/blanc_strings.xml",
   ]
+  deps = [ "//third_party/android_deps:material_design_java" ]
 }
 
 # The blocker's engine bundle (Ghostery over the pinned lists), uncompressed so native code can read
@@ -210,7 +309,11 @@ android_library("island_view_java") {
     "java/src/org/chromium/blanc/grid/GroupNameDialog.java",
     "java/src/org/chromium/blanc/grid/TabGrid.java",
     "java/src/org/chromium/blanc/palette/PaletteSheet.java",
+    "java/src/org/chromium/blanc/spaces/SpacesCard.java",
+    "java/src/org/chromium/blanc/sync/BringSpaceSheet.java",
     "java/src/org/chromium/blanc/sync/PairScanner.java",
+    "java/src/org/chromium/blanc/sync/SharedSpacesSheet.java",
+    "java/src/org/chromium/blanc/sync/SharedSpacesUi.java",
     "java/src/org/chromium/blanc/sync/SyncSheet.java",
   ]
   deps = [
@@ -218,6 +321,7 @@ android_library("island_view_java") {
     ":sync_assets",
     ":sync_java",
     ":island_java",
+    ":settings_model_java",
     ":island_view_resources",
     ":tabs_java",
     "//base:base_java",
@@ -232,7 +336,9 @@ android_library("island_ui_java") {
   sources = [ "java/src/org/chromium/blanc/island/IslandCoordinator.java" ]
   deps = [
     ":island_java",
+    ":settings_model_java",
     ":island_view_java",
+    ":tabs_java",
     "//base:base_java",
     "//base:callback_java",
     "//base:supplier_java",
@@ -259,13 +365,18 @@ robolectric_binary("blanc_android_junit_tests") {
     "junit/src/org/chromium/blanc/island/FindCapsuleTest.java",
     "junit/src/org/chromium/blanc/island/IslandMenuPopupTest.java",
     "junit/src/org/chromium/blanc/island/IslandMenuTest.java",
+    "junit/src/org/chromium/blanc/spaces/BlancSpacesTest.java",
     "junit/src/org/chromium/blanc/sync/BlancKeyStoreTest.java",
     "junit/src/org/chromium/blanc/sync/OtherDevicesTest.java",
+    "junit/src/org/chromium/blanc/spaces/SharedRowsTest.java",
+    "junit/src/org/chromium/blanc/spaces/SpaceRowsTest.java",
+    "junit/src/org/chromium/blanc/sync/SyncedClosedTest.java",
     "junit/src/org/chromium/blanc/sync/PairScannerTest.java",
     "junit/src/org/chromium/blanc/sync/ProfileSyncTest.java",
     "junit/src/org/chromium/blanc/sync/SyncPairingTest.java",
     "junit/src/org/chromium/blanc/sync/SyncSheetTest.java",
     "junit/src/org/chromium/blanc/sync/SyncedFavoritesTest.java",
+    "junit/src/org/chromium/blanc/sync/SyncedSpacesTest.java",
     "junit/src/org/chromium/blanc/sync/SyncedSettingsTest.java",
     "junit/src/org/chromium/blanc/island/IslandPositionTest.java",
     "junit/src/org/chromium/blanc/island/IslandStyleTest.java",
@@ -285,6 +396,14 @@ robolectric_binary("blanc_android_junit_tests") {
     "junit/src/org/chromium/blanc/tabs/PaletteSheetTest.java",
     "junit/src/org/chromium/blanc/tabs/QuickSwitcherTest.java",
     "junit/src/org/chromium/blanc/tabs/QuietTabsTest.java",
+    "junit/src/org/chromium/blanc/tabs/RecentlyClosedTest.java",
+    "junit/src/org/chromium/blanc/settings/AllowedSitesDialogTest.java",
+    "junit/src/org/chromium/blanc/settings/AllowedSitesTest.java",
+    "junit/src/org/chromium/blanc/settings/BlancSettingsScreenTest.java",
+    "junit/src/org/chromium/blanc/settings/SearchEnginesTest.java",
+    "junit/src/org/chromium/blanc/settings/SettingsDestinationTest.java",
+    "junit/src/org/chromium/blanc/settings/SettingsStoreTest.java",
+    "junit/src/org/chromium/blanc/settings/SettingsLayoutTest.java",
     "junit/src/org/chromium/blanc/tabs/SlashCommandsTest.java",
     "junit/src/org/chromium/blanc/tabs/TabGridTest.java",
     "junit/src/org/chromium/blanc/tabs/TabSectionsFixtures.java",
@@ -293,12 +412,15 @@ robolectric_binary("blanc_android_junit_tests") {
   deps = [
     ":island_java",
     ":island_view_java",
+    ":settings_java",
+    ":settings_model_java",
     ":sync_java",
     ":tabs_java",
     ":zxing_java",
     "//base:base_java_test_support",
     "//base:base_junit_test_support",
     "//base:callback_java",
+    "//third_party/androidx:androidx_preference_preference_java",
     "//third_party/junit",
   ]
 }

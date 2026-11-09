@@ -10,12 +10,12 @@ import org.json.JSONObject;
 
 import org.chromium.base.Callback;
 import org.chromium.base.Log;
+import org.chromium.blanc.settings.SettingsStore;
 import org.chromium.blanc.sync.SyncedFavorites.Entry;
 import org.chromium.build.annotations.NullMarked;
 import org.chromium.build.annotations.Nullable;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -60,8 +60,7 @@ final class ProfileSync {
     static final String SEEN_FAVORITES = "blanc.sync.favorites.seen";
     private static final String SEEN_THEME = "blanc.sync.theme.seen";
     private static final String SEEN_BLOCKING = "blanc.sync.blocking.seen";
-    private static final String THEME_KEY = "ui_theme_setting";
-    private static final String[] THEMES = {"system", "light", "dark"};
+    private static final String SEEN_SEARCH_ENGINE = "blanc.sync.searchEngine.seen";
 
     private final Host mHost;
     private @Nullable Boolean mScheduled;
@@ -94,7 +93,7 @@ final class ProfileSync {
                 // The runner didn't answer. That says nothing about Sync being off.
                 finish();
             } else if (!status.optBoolean("enabled")) {
-                mHost.prefs().edit().remove(SEEN_FAVORITES).remove(SEEN_THEME).remove(SEEN_BLOCKING).apply();
+                mHost.prefs().edit().remove(SEEN_FAVORITES).remove(SEEN_THEME).remove(SEEN_BLOCKING).remove(SEEN_SEARCH_ENGINE).apply();
                 schedule(false);
                 finish();
             } else {
@@ -237,8 +236,9 @@ final class ProfileSync {
 
     private Map<String, String> local() {
         Map<String, String> out = new HashMap<>();
-        int theme = Math.max(0, Math.min(2, mHost.prefs().getInt(THEME_KEY, 0)));
-        out.put("theme", THEMES[theme]);
+        SettingsStore store = new SettingsStore(mHost.prefs());
+        out.put("theme", store.theme());
+        out.put("searchEngine", store.searchEngine());
         out.put("adblockEnabled", String.valueOf(mHost.blockingEnabled()));
         return out;
     }
@@ -254,7 +254,10 @@ final class ProfileSync {
             Map<String, String> theirs = new HashMap<>();
             theirs.put("theme", runner.optString("theme"));
             theirs.put("adblockEnabled", String.valueOf(runner.optBoolean("adblockEnabled", true)));
+            if (runner.has("searchEngine")) theirs.put("searchEngine", runner.optString("searchEngine"));
             Map<String, String> seen = new HashMap<>();
+            String engine = mHost.prefs().getString(SEEN_SEARCH_ENGINE, null);
+            if (engine != null) seen.put("searchEngine", engine);
             String theme = mHost.prefs().getString(SEEN_THEME, null);
             String blocking = mHost.prefs().getString(SEEN_BLOCKING, null);
             if (theme != null) seen.put("theme", theme);
@@ -262,8 +265,10 @@ final class ProfileSync {
             SyncedSettings.Plan plan = SyncedSettings.plan(local(), theirs, seen);
             String nextTheme = plan.apply.get("theme");
             if (nextTheme != null) {
-                mHost.prefs().edit().putInt(THEME_KEY, Arrays.asList(THEMES).indexOf(nextTheme)).apply();
+                new SettingsStore(mHost.prefs()).setTheme(nextTheme);
             }
+            String nextEngine = plan.apply.get("searchEngine");
+            if (nextEngine != null) new SettingsStore(mHost.prefs()).setSearchEngine(nextEngine);
             String nextBlocking = plan.apply.get("adblockEnabled");
             if (nextBlocking != null) mHost.setBlockingEnabled(Boolean.parseBoolean(nextBlocking));
             List<String[]> calls = new ArrayList<>();
@@ -278,7 +283,8 @@ final class ProfileSync {
                 if (confirmed) {
                     Map<String, String> now = local();
                     mHost.prefs().edit().putString(SEEN_THEME, now.get("theme"))
-                            .putString(SEEN_BLOCKING, now.get("adblockEnabled")).apply();
+                            .putString(SEEN_BLOCKING, now.get("adblockEnabled"))
+                            .putString(SEEN_SEARCH_ENGINE, now.get("searchEngine")).apply();
                 }
                 finish();
             });
@@ -291,6 +297,8 @@ final class ProfileSync {
         if (theme != null) patch.put("theme", theme);
         String blocking = plan.publish.get("adblockEnabled");
         if (blocking != null) patch.put("adblockEnabled", Boolean.parseBoolean(blocking));
+        String engine = plan.publish.get("searchEngine");
+        if (engine != null) patch.put("searchEngine", engine);
         return new JSONArray().put(patch);
     }
 }

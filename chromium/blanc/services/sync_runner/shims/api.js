@@ -1,6 +1,25 @@
 // The one door in: main calls __call(method, argsJson, done). `method` names a
 // module and an export, from this list only.
 const MODULES = {sync: 'sync', bookmarks: 'bookmarks', settings: 'settings'};
+// Recently closed takes the account's context, and is only there with the Spaces switch on, as on
+// desktop: the store it syncs through is one a person has to agree to.
+// Clear all needs only Sync, as on the iPhone: what this phone already shared must be able to go.
+const closed = (name, off, always) => (...args) => {
+  const sync = __require('src/main/sync.js');
+  if (!sync.status().enabled || !(always || sync.sharedStatus().enabled)) return off;
+  return __require('src/main/synced-closed.js')[name](sync.sharedContext(), ...args);
+};
+const spaces = name => (...args) => __require('shim:spaces')[name](...args);
+const PHONE = {
+  'spaces.push': spaces('push'), 'spaces.prepare': spaces('prepare'), 'spaces.hold': spaces('hold'), 'spaces.rowDone': spaces('rowDone'),
+  'spaces.preview': spaces('preview'), 'spaces.apply': spaces('apply'), 'spaces.metadata': spaces('metadata'),
+  'spaces.reorder': spaces('reorder'), 'spaces.status': spaces('status'), 'spaces.remote': spaces('remote'),
+  'spaces.previewSpace': spaces('previewSpace'),
+  'closed.add': closed('addOwnItem', false),
+  'closed.inbox': closed('inbox', []),
+  'closed.hide': closed('hide', null),
+  'closed.clear': closed('clear', null, true),
+};
 globalThis.__call = (method, argsJson, done) => {
   // Saves every store's pending change now, so what the phone writes down as agreed is on disk.
   if (method === 'runner.flush') {
@@ -21,7 +40,7 @@ globalThis.__call = (method, argsJson, done) => {
   const [mod, fn] = String(method).split('.');
   const file = MODULES[mod];
   Promise.resolve().then(() => {
-    const target = file && __require(`src/main/${file}.js`)[fn];
+    const target = PHONE[method] ?? (file && __require(`src/main/${file}.js`)[fn]);
     if (typeof target !== 'function') throw new Error(`no method ${method}`);
     return target(...JSON.parse(argsJson || '[]'));
   }).then(value => {
@@ -45,6 +64,10 @@ globalThis.__listen = () => {
   __require('src/main/tabicons.js').setSnapshotProvider(() => ({tabList: []}));
   tabsync.onRemoteChanged(() => __host.emit('remote', ''));
   sync.onSendsChanged(() => __host.emit('remote', ''));
+  __require('src/main/synced-closed.js').onChanged(() => __host.emit('closed', ''));
+  const phoneSpaces = __require('shim:spaces');
+  sync.setSharedVisibilityProvider(phoneSpaces.visible);
+  sync.onAccountChanged(phoneSpaces.accountChanged);
 };
 
 // A setting a newer device added stays in the blob, as on the iPhone. Shipping's settings module

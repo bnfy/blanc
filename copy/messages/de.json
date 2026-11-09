@@ -9065,6 +9065,10 @@
     "message": "Dieses iPhone",
     "source": "sha256:872a9b15efd10d5c23b321f11d4d2d26630ac2b462424389c61a940f04e7887c"
   },
+  "spaces.thisPhone": {
+    "message": "Dieses Telefon",
+    "source": "sha256:b026046d8dfbc3b8b3eade4d617aecce3c30cbd1b4aa8b741164583a8a88a4a9"
+  },
   "spaces.menuLabel": {
     "message": "Spaces",
     "source": "sha256:8e891bb692010b9fa0e4ac71d8f835de61caa035dce16f05c8933e0618b7924a"
@@ -9336,5 +9340,59 @@
   "settings.general.miniWindow.shortcut.ctrlShiftSpace": {
     "message": "Strg+Umschalt+Leertaste",
     "source": "sha256:5f579d29dff6300530617e41e4a883a52c075e51ffb3573d781ced720a7601a8"
+  },
+  "sharedSpaces.switch.android": {
+    "message": "Spaces und Gruppen auf diesem Telefon synchron halten",
+    "source": "sha256:3fd5725f20014ae99a8e54ec771f70bbd0aded56cb6824418f77a77cfc7bb6c1"
+  },
+  "sharedSpaces.switch.line.android": {
+    "message": "Tabs in deinen geteilten Spaces werden von diesem Telefon synchronisiert.",
+    "source": "sha256:dae75716c578c9f174cf391630377e6676fca184fd18647585425a86875711ab"
+  },
+  "sharedSpaces.saveThisPhone": {
+    "message": "Dieses Telefon als Space sichern",
+    "source": "sha256:3d504e97fd5a0cddac0a501fa8d33ca344ed24a3713465e62185521241253809"
+  },
+  "sharedSpaces.recoveryName.android": {
+    "message": "{name} · auf diesem Telefon behalten",
+    "source": "sha256:4ccdeab1c50b3fe66996ffa42c4a38124fde8c3f993668d7eb50aca7d00a2e57"
+  },
+  "sharedSpaces.deletedEverywhere.android": {
+    "message": "Überall gelöscht. Rückgängig behält eine Kopie auf diesem Telefon.",
+    "source": "sha256:0b22cfb62b4d2dc6a91b7a64abc4d4013cd2ac2c4ce370e256b185300f2e9dda"
+  },
+  "bringSpace.action.android": {
+    "message": "Auf dieses Telefon holen",
+    "source": "sha256:40fcc327dd131cea58c7905b3b43f52fa94da02544a82c79a46c5fea88ca8abf"
+  },
+  "android.settings.more": {
+    "message": "Mehr",
+    "note": "Android Settings: heading of the section holding Chromium’s own pages (Site settings, Accessibility, Notifications, Downloads).",
+    "source": "sha256:047283b6437421a2bd68afdf7cf3c7c1d0fcc4bd6e2b6e55449d8b014afbebdf"
+  },
+  "android.settings.islandPosition": {
+    "message": "Position der Island",
+    "note": "Android Settings → Appearance: row choosing whether the Island sits at the top or the bottom of the screen.",
+    "source": "sha256:7233ccf8203f09ca9a51bc8a0246b4ebfe922b0057cf7eb3624119a10ab7f703"
+  },
+  "android.settings.islandPosition.top": {
+    "message": "Oben",
+    "note": "Android Settings → Island position: the Island sits at the top of the screen.",
+    "source": "sha256:c223c393b804a6ac07e537be031b49aeb9a01f212380daf57e9095de6011cab3"
+  },
+  "android.settings.islandPosition.bottom": {
+    "message": "Unten",
+    "note": "Android Settings → Island position: the Island sits at the bottom of the screen.",
+    "source": "sha256:206e35c0a394e6a73d39040dd0cab63b48af03b1d6d0ed533d44b3af8f709528"
+  },
+  "android.settings.openSourceLicenses": {
+    "message": "Open-Source-Lizenzen",
+    "note": "Android Settings → About: row opening the list of open-source licenses.",
+    "source": "sha256:ee73136a612e3f11806cd153e9242381073980855674daf373395a55d4bee467"
+  },
+  "android.settings.autoRevokeSummary": {
+    "message": "Zum Schutz deiner Daten kann Blanc Berechtigungen von Websites entfernen, die du länger nicht besucht hast",
+    "note": "Android Settings → Site settings: summary under the unused-permissions switch (replaces Chromium’s text, which names Chrome).",
+    "source": "sha256:11f7585d6d6ab59263e345cb2858770fa61bbd956373179f8accfe4cf0afb3f8"
   }
 }

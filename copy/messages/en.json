@@ -9354,6 +9354,10 @@
     "message": "This iPhone",
     "note": "iPhone: the phone's own tabs that are in no Space, first row of the Spaces menu (M17)."
   },
+  "spaces.thisPhone": {
+    "message": "This phone",
+    "note": "Android: the phone's own tabs that are in no Space, first row of the Spaces menu."
+  },
   "spaces.menuLabel": {
     "message": "Spaces",
     "note": "iPhone: accessible name of the Island's Space mark and the Spaces menu it opens (M17)."
@@ -9627,5 +9631,53 @@
   "settings.general.miniWindow.shortcut.ctrlShiftSpace": {
     "message": "Ctrl+Shift+Spacebar",
     "note": "Settings → General → Mini window shortcut: option on Windows and Linux. Use the key names keyboards in your language print (for example Strg and Umschalt in German)."
+  },
+  "sharedSpaces.switch.android": {
+    "message": "Keep Spaces and groups in sync on this phone",
+    "note": "Blanc for Android: the iPhone string with \"this phone\"."
+  },
+  "sharedSpaces.switch.line.android": {
+    "message": "Tabs in your shared Spaces are synced from this phone.",
+    "note": "Blanc for Android: the iPhone string with \"this phone\"."
+  },
+  "sharedSpaces.saveThisPhone": {
+    "message": "Save This Phone as a Space",
+    "note": "Blanc for Android: the iPhone string with \"this phone\"."
+  },
+  "sharedSpaces.recoveryName.android": {
+    "message": "{name} · kept on this phone",
+    "note": "Blanc for Android: the iPhone string with \"this phone\"."
+  },
+  "sharedSpaces.deletedEverywhere.android": {
+    "message": "Deleted everywhere. Undo keeps a copy on this phone.",
+    "note": "Blanc for Android: the iPhone string with \"this phone\"."
+  },
+  "bringSpace.action.android": {
+    "message": "Bring to this phone",
+    "note": "Blanc for Android: the iPhone string with \"this phone\"."
+  },
+  "android.settings.more": {
+    "message": "More",
+    "note": "Android Settings: heading of the section holding Chromium’s own pages (Site settings, Accessibility, Notifications, Downloads)."
+  },
+  "android.settings.islandPosition": {
+    "message": "Island position",
+    "note": "Android Settings → Appearance: row choosing whether the Island sits at the top or the bottom of the screen."
+  },
+  "android.settings.islandPosition.top": {
+    "message": "Top",
+    "note": "Android Settings → Island position: the Island sits at the top of the screen."
+  },
+  "android.settings.islandPosition.bottom": {
+    "message": "Bottom",
+    "note": "Android Settings → Island position: the Island sits at the bottom of the screen."
+  },
+  "android.settings.openSourceLicenses": {
+    "message": "Open-source licenses",
+    "note": "Android Settings → About: row opening the list of open-source licenses."
+  },
+  "android.settings.autoRevokeSummary": {
+    "message": "To protect your data, let Blanc remove permissions from sites that you haven’t visited recently",
+    "note": "Android Settings → Site settings: summary under the unused-permissions switch (replaces Chromium’s text, which names Chrome)."
   }
 }

@@ -2493,6 +2493,7 @@ You can retry with “%2$s”, or reinstall from blanc.day.</string>
     <string name="settings_general_vertical_tabs_text_size_large">Large</string>
     <string name="settings_general_vertical_tabs_text_size_extra_large">Extra large</string>
     <string name="spaces_this_i_phone">This iPhone</string>
+    <string name="spaces_this_phone">This phone</string>
     <string name="spaces_menu_label">Spaces</string>
     <string name="spaces_menu_edit">Edit</string>
     <plurals name="tab_groups_tucked">
@@ -2567,4 +2568,16 @@ You can retry with “%2$s”, or reinstall from blanc.day.</string>
     <string name="settings_general_mini_window_shortcut_ctrl_alt_space_mac">⌃⌥Spacebar</string>
     <string name="settings_general_mini_window_shortcut_ctrl_alt_space">Ctrl+Alt+Spacebar</string>
     <string name="settings_general_mini_window_shortcut_ctrl_shift_space">Ctrl+Shift+Spacebar</string>
+    <string name="shared_spaces_switch_android">Keep Spaces and groups in sync on this phone</string>
+    <string name="shared_spaces_switch_line_android">Tabs in your shared Spaces are synced from this phone.</string>
+    <string name="shared_spaces_save_this_phone">Save This Phone as a Space</string>
+    <string name="shared_spaces_recovery_name_android">%1$s · kept on this phone</string>
+    <string name="shared_spaces_deleted_everywhere_android">Deleted everywhere. Undo keeps a copy on this phone.</string>
+    <string name="bring_space_action_android">Bring to this phone</string>
+    <string name="android_settings_more">More</string>
+    <string name="android_settings_island_position">Island position</string>
+    <string name="android_settings_island_position_top">Top</string>
+    <string name="android_settings_island_position_bottom">Bottom</string>
+    <string name="android_settings_open_source_licenses">Open-source licenses</string>
+    <string name="android_settings_auto_revoke_summary">To protect your data, let Blanc remove permissions from sites that you haven’t visited recently</string>
 </resources>

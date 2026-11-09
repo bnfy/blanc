@@ -8,12 +8,12 @@ const vm = require('node:vm');
 const BUNDLE = path.resolve(__dirname, '../../../blanc/services/sync_runner/generated/sync-bundle.js');
 const u8 = bytes => Uint8Array.from(Buffer.from(bytes));
 
-function peer(name, endpoint, {stores = {}, platform = 'linux'} = {}) {
+function peer(name, endpoint, {stores = {}, platform = 'linux', emit} = {}) {
   let context;
   const host = {
     platform, version: '1.0.0', testEndpoint: endpoint, deviceName: name, keyStore: true,
     env: {BLANC_TEST: '1', BLANC_TEST_SYNC_ENDPOINT: endpoint},
-    log() {}, emit() {}, monotonicNow: () => performance.now(),
+    log() {}, emit: (event, text) => emit?.(event, text), monotonicNow: () => performance.now(),
     protect: u8, unprotect: u8,
     setTimer(id, ms) { const timer = setTimeout(() => context.__fireTimer(id), ms); timer.unref?.(); },
     parseUrl(url, base) {

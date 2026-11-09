@@ -2233,6 +2233,119 @@ tests (the menu's count, rotation after a navigation mode change, refused UI
 dumps, the Worker's 30 reads a minute), now fixed in the tests. One `/allow-ads`
 timeout stays unexplained: it missed 15 seconds in two full runs and never alone.
 
+### A4c Spaces on this phone
+
+The Island mark, the Spaces card and editor, `/space`, Move to Space, Undo and
+Recently deleted, over Chromium's real tabs. A switch keeps each tab's Back and
+Forward, its group and its pin, leaves private tabs alone, and a killed app
+finishes it on the next launch. Spaces are found in the palette, and the grid
+names the Space on show. Shared Spaces and synced Recently closed are A4d.
+
+Chromium's tab group sync is off (patch 0109): it closes groups it doesn't know
+at launch, which is every group a switch brings back. Rulings are in
+`docs/android/a4-rulings.md`.
+
+- **Candidate** (x86_64, emulator): SHA-256
+  `11d4d348464113495caf292487b345696c7fa054e1c981672bd3ac7be5a22766`.
+
+| A4c gate | Result | Evidence (`~/blanc-evidence/android/a4c/`) |
+| --- | --- | --- |
+| Spaces: switches, restarts, moves, Undo, Recently deleted, the editor, the palette | 15 of 15 | `spaces/` |
+| Sync | 15 of 15 | `sync/` |
+| Blocking, acceptance | 14 of 14, 32 of 32 | `a3/` |
+| Robolectric | 468 | server log |
+| A1 and A2 checks | Pass | `a3/a2/` |
+| Owner hands-on, Pixel and desktop | **Pending A4's end** | — |
+
+The first full run failed one acceptance scenario, also seen in the A4b run: a
+page's only blocked request can miss the shield count, probably by racing the
+page's commit. The `/ads` fixture now makes a second blocked request after load,
+and A3 passed on the same APK.
+
+### A4d Shared Spaces and Recently closed
+
+The palette's Recently closed band, on or off Sync, and with the Spaces switch on,
+other devices' closed tabs. Shared Spaces through shipping's own sharing code in the
+runner: the switch and its sheet, a Space shared or joined, tabs added, moved and
+closed on either device, Bring a Space with the switch off, other devices' Spaces in
+palette search, and the Not synced mark. A tab nothing has loaded arrives quietly, the
+tab on screen is never closed from under the person, and a switch waits for the runner
+so a tab opened just before it isn't shared twice. Rulings are in
+`docs/android/a4-rulings.md`.
+
+| A4d gate | Result | Evidence (`~/blanc-evidence/android/a4d-gate/`) |
+| --- | --- | --- |
+| Sync, with the two band checks | Pass, 17 checks | `sync/` |
+| Shared Spaces on the emulator against a Node peer | Pass, 6 of 6 | `shared-spaces/` |
+| Spaces, shield race, blocking, acceptance, A1 and A2 | Pass: Spaces 15 checks, 0 of 40 counts lost, A2, A3 and A4 gates pass | `spaces/`, `a3/` |
+| Runner tests (`sync-spaces`, `sync-bundle`, `sync-iphone`) | 15, 10 and 1 pass | CI |
+| iPhone reads what Android writes (`AndroidWireTests`) | Pass, iOS 27.2 simulator | local |
+| Robolectric | 562 pass | server log |
+| APK | `572e310c…` | `apk.sha256` |
+| Owner hands-on, Pixel and desktop | **Pending A4's end** | — |
+
+### A5a Settings shell
+
+Blanc's Settings on Chromium's settings stack (spec `docs/superpowers/specs/2026-11-07-android-settings-design.md`,
+rulings `docs/android/a5a-settings-spike.md`). Chromium's `MainSettings` keeps its class; patch 0110 hides the
+Google and Chrome rows, adds a Sunrise header and the iPhone's sections (Browsing, Appearance, Privacy, Sync,
+More, About), and `ThemeOverlay.Blanc.Settings` paints it light and dark. Settings' own search is off, because
+it found the hidden pages. Rows: Search engine (syncs), Theme (syncs), Island position (moves the Island at
+once), the blocker switch, Allowed sites, Clear site data, the Sync row (opens the Sync sheet), and under More
+Chromium's Site settings, Notifications and Downloads. Ways in: `/settings`, the palette's Settings button,
+`blanc://settings` with `#sync` and `#privacy`. One Chrome-worded string (auto-revoke summary) is overridden in
+all six languages; Accessibility is left out of More because its page names Chrome.
+
+- **Not built (A5b, A5c):** Start page layout, wallpaper and clock, the default-browser row, Language, Measure
+  usage and onboarding.
+- **Known gaps:** Chromium's own default search engine follows Blanc's choice only after Settings has been
+  opened (a startup sync is a follow-up); Settings asks the sync runner for its status on every update; the
+  Open-source licenses row opens Chromium's legal page, which the wording scan doesn't cover.
+
+| A5a gate | Result | Evidence (`~/blanc-evidence/android/a5a-gate/`) |
+| --- | --- | --- |
+| Settings on the emulator (rows, order, wording, every row, every way in, no crash) | Pass, 15 checks | `settings/`, `settings.log` |
+| Patch reconstruction, android and desktop lanes | Pass | `patches-*.log` |
+| Robolectric | 676 pass | `robolectric.log` |
+| Runner and tool tests (`node --test chromium/tools/*.test.mjs`, on the Mac) | 216 pass | local |
+| A4 gate (A1 to A3, sync, Spaces, Shared Spaces, shield race) | Pass | `a4/` |
+| APK (x86_64, emulator) | `b57a4ca6…` | `apk.sha256` |
+| APK (arm64, for the Pixel) | `fed28dc1…` (`out/AndroidDebug/apks/ChromePublic.apk`, built; not yet installed) | — |
+| Owner hands-on, Pixel and desktop (Sync through Settings) | **Pending** | — |
+
+The first full run failed twice: the A3 check "quick endings stop pages, and Retry recovers" slept a fixed six
+seconds and looked once for its notice (it passed alone; it now waits up to 30 s), and the tools tests need iOS
+fixtures the server lacks (they run on the Mac). An earlier standalone Settings run had failed
+`blanc://settings#privacy` once; it passed in both gate runs, cause not found, so it stays watched.
+
+### Shield count across a page's commit
+
+The count is fixed in the blocker code desktop shares. A page's first request can
+reach the browser before the browser has processed the commit, so it was charged
+to the old page or wiped by the page change. Requests from a committing page now
+carry that navigation's id, and `shield_page_count.h` holds their blocks until the
+commit lands, then drops them if the navigation is abandoned. A page restored from
+the back-forward cache keeps its tag.
+
+| Check | Result |
+| --- | --- |
+| `shield-race.mjs`, attribution off (control) | 6 of 120 loads lost their count |
+| `shield-race.mjs`, this fix | 0 of 120, then 0 of 40 in the A4 gate |
+| Back-forward cache check | Passes, and fails with the document tag removed |
+| `tools/shield-page-count.test.mjs` | Passes |
+| Desktop | Patched candidate `macos-6301f30b369c7ed5` (`macos-8597d2d3b8936eee` plus this fix, relinked in a clone, not the live tree): all 9 `ad-blocking.feature` scenarios and the Island's blocked-count scenario pass on macOS |
+
+An iframe's first request can still miss the count, because only the main frame's
+factories are tagged. The A4 gate ran on APK
+`7874b3de499cb70a521852c7335b227775376aa5390456b8e54da896ef9ff33c`, evidence in
+`~/blanc-evidence/android/shield-race/`: sync, Spaces, the race check, blocking and
+A1 and A2 passed, and acceptance passed 32 of 32 after the search change below.
+
+The same gate failed the search scenario: DuckDuckGo now sends the build server's
+address to its own error page, which drops the search. Blanc had sent the right
+address. `duckduckgo.com` is now a fixture host, so the scenario no longer depends
+on that site, and a wrong search address still fails it.
+
 <!-- BEGIN GENERATED PROGRESS -->
 ### Bar A — executable shipping cases on the fork
 
@@ -2264,5 +2377,5 @@ Android's Bar A counts the shared scenarios bound in `chromium/tests/android/acc
 
 Legacy macOS stages come from the approved spec; they await verification on the canonical candidate. No legacy stage counts as Verified.
 
-Candidate identities: macOS: macos-bf6e0c81960ab463; Windows: none; Linux: none; Android: android-arm64-7bd35e94ef746069.
+Candidate identities: macOS: macos-eaf954f88cb18675; Windows: none; Linux: none; Android: android-arm64-7bd35e94ef746069.
 <!-- END GENERATED PROGRESS -->

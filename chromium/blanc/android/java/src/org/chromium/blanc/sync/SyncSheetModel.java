@@ -15,7 +15,7 @@ public final class SyncSheetModel {
         OFF_INTRO, PAIR_WITH_BLANC, OTHER_WAYS,
         CODE_HEADER, CODE_FIELD, CONNECT, TYPE_CODE_HINT, PAIRING_HELP,
         PASSPHRASE_HEADER, HANDLE_FIELD, PASSPHRASE_FIELD, SIGN_IN, DESKTOP_ACCOUNT, CANCEL_SWITCH,
-        DEVICE_NAME, SAVE_NAME, SHARE_TABS, SYNC_NOW, SHARE_HELP,
+        DEVICE_NAME, SAVE_NAME, SHARE_TABS, SYNC_NOW, SHARE_HELP, SPACES,
         PAIR_DEVICE, COPY_RECOVERY, SWITCH_ACCOUNT, DISCONNECT
     }
 
@@ -67,6 +67,7 @@ public final class SyncSheetModel {
             rows.add(Row.SHARE_TABS);
             rows.add(Row.SYNC_NOW);
             rows.add(Row.SHARE_HELP);
+            rows.add(Row.SPACES);
             rows.add(Row.PAIR_DEVICE);
             rows.add(Row.COPY_RECOVERY);
             rows.add(Row.SWITCH_ACCOUNT);

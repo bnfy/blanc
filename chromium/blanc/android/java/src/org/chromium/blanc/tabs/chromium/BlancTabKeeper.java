@@ -11,6 +11,7 @@ import org.json.JSONException;
 import org.chromium.base.ApplicationStatus;
 import org.chromium.base.ContextUtils;
 import org.chromium.blanc.blocking.BlockerBridge;
+import org.chromium.blanc.spaces.SpacesController;
 import org.chromium.blanc.sync.OtherDevices;
 import org.chromium.blanc.sync.SyncBridge;
 import org.chromium.blanc.sync.SyncTestDriver;
@@ -47,13 +48,17 @@ public final class BlancTabKeeper {
     private final TabModelSelector mSelector;
     private final ChromiumTabStore mStore;
     private final Predicate<Tab> mCapturing;
+    private final Runnable mSaveTabList;
     private final Handler mHandler = new Handler(Looper.getMainLooper());
     private final Runnable mSweep = this::sweep;
     /** Tabs this keeper quieted, with when each was last shown: quiet until it's shown again. */
     private final Map<Integer, Long> mQuieted = new HashMap<>();
     private boolean mDestroyed;
 
-    public BlancTabKeeper(TabModelSelector selector, ChromiumTabStore store, Predicate<Tab> capturing) {
+    /** {@code saveTabList} writes Chromium's tab list to disk at once. */
+    public BlancTabKeeper(
+            TabModelSelector selector, ChromiumTabStore store, Predicate<Tab> capturing, Runnable saveTabList) {
+        mSaveTabList = saveTabList;
         mSelector = selector;
         mStore = store;
         mCapturing = capturing;
@@ -88,9 +93,17 @@ public final class BlancTabKeeper {
         TabModelUtils.runOnTabStateInitialized(mSelector, selector -> {
             if (mDestroyed) return;
             BlancTabState.restore(mStore, prefs(), coldStart, opensLink);
+            startSpaces();
             publishTabs();
             mHandler.postDelayed(mSweep, QuietTabs.SWEEP_MILLIS);
         });
+    }
+
+    private void startSpaces() {
+        ChromiumSpaces tabs = new ChromiumSpaces(mStore, mSaveTabList);
+        SpacesController spaces = new SpacesController(tabs.load(), tabs);
+        SpacesController.setCurrent(spaces);
+        spaces.start(System.currentTimeMillis());
     }
 
     /** When the app goes to the background, which is before Android may end it. */
@@ -112,6 +125,7 @@ public final class BlancTabKeeper {
     public void destroy() {
         mDestroyed = true;
         OtherDevices.setOpener(null);
+        SpacesController.setCurrent(null);
         mHandler.removeCallbacks(mSweep);
     }
 
