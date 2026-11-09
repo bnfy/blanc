@@ -182,10 +182,10 @@ export const island={
  async sendMouseInput(w,id,input){const page=await tabPage(w,id);await page.evalExpression('1');return send(page.cdp,input);},
  async typeIntoActivePage(w,key){const page=await activePage(w);await page.evalExpression('1');
   for(const type of ['keyDown','char','keyUp'])await page.cdp.send('Input.dispatchKeyEvent',cdpKey({type,keyCode:key}));return true;},
- // The rail's activate-and-focus-page path; shipping focuses the active tab.
+ // Keep the rail path for active tabs; background focus uses the test hook.
  async focusTabContents(w,id){
   if((await w.snapshot()).glanceTabId!=null)return w.api('focusGlancePane',[String(id)]);
-  if(String((await w.snapshot()).activeTabId)!==String(id))throw Error('focusTabContents expects the active tab');
+  if(String((await w.snapshot()).activeTabId)!==String(id))return w.native('testFocusTabContents',[nativeId(id)]);
   await w.api('activateTabFromRail',[String(id)]);return true;
  },
  // ---- layout ----

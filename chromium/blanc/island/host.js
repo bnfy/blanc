@@ -1732,6 +1732,11 @@
       await refresh();
       return moved === true;
     },
+    moveTabToNewWindow: async (id) => {
+      const runtime = await request('moveTabToNewWindow', [nativeId(id)]);
+      await refresh();
+      return runtime;
+    },
     ...Object.fromEntries(['focusGroup', 'toggleGroupCollapsed', 'closeGroup', 'newTabInGroup', 'ungroupGroup', 'moveGroupToNewWindow'].map((method) =>
       [method, async (groupId) => { await request(method, [String(groupId)]); await refresh(); }])),
     ...Object.fromEntries(['renameGroup', 'setGroupColor'].map(method =>
