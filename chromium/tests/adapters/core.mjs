@@ -112,7 +112,7 @@ export const core={
   await w.hostEval(`new Promise(r=>{const end=Date.now()+2000;(function check(){
    if(document.getElementById('overlay').hidden||innerHeight>68||Date.now()>end)return r(true);
    requestAnimationFrame(check);})();})`);},
- openPalette:w=>openIsland(w,false),
+ openPalette:async w=>{await w.api('closeOverlay',[false]);return openIsland(w,false);},
  // The host owns the mode (main in shipping); the overlay document's own
  // body mode is what its renderer has applied.
  overlayMode:w=>w.hostEval(`(()=>{const f=document.querySelector('#overlay');return !f||f.hidden?null:f.dataset.mode||null})()`),
@@ -124,11 +124,15 @@ export const core={
  // A presentation seed: the title goes through the page itself so Chromium
  // reports it as a real title; seeds with no page path stay undefined.
  async setTabPresentation(w,id,patch={}){
-  const keys=Object.keys(patch).filter(k=>k!=='title'&&k!=='muted'&&k!=='isLoading');
+  const keys=Object.keys(patch).filter(k=>k!=='title'&&k!=='muted'&&k!=='isLoading'&&k!=='favicon');
   if(keys.length)throw new UndefinedNativeAdapterError('Tab presentation seed needs an adapter: '+keys);
   if(typeof patch.title==='string'){
    await (await tabPage(w,id)).evaluate(t=>{document.title=t;},patch.title);
    await w.waitForState(s=>s.tabs.some(t=>t.id===String(id)&&t.title===patch.title));
+  }
+  if(typeof patch.favicon==='string'){
+   await (await tabPage(w,id)).evaluate(url=>{let link=document.querySelector('link[rel=icon]');if(!link){link=document.createElement('link');link.rel='icon';document.head.append(link);}link.href=url;},patch.favicon);
+   await w.waitFor(()=>w.snapshot(),s=>!!s.tabs.find(t=>String(t.id)===String(id))?.favicon,'page favicon');
   }
   if(typeof patch.muted==='boolean'&&(await w.state()).tabs.find(t=>t.id===String(id)).muted!==patch.muted)await w.api('toggleTabMuted',[String(id)]);
   if(patch.isLoading===true){

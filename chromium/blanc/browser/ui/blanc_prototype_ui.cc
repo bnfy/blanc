@@ -1341,7 +1341,7 @@ class IslandView : public views::WebView, public views::ViewTargeterDelegate {
       if (gfx::Rect(0, 0, width(), owner->strip_height).Intersects(rect)) return true;
       for (const auto& region : owner->split_hit_regions)
         if (region.Intersects(rect)) return true;
-      return (owner->vertical && gfx::Rect(0, owner->strip_height, owner->rail_width, height()).Intersects(rect)) ||
+      return (owner->vertical && gfx::Rect(0, owner->strip_height, RailWidth(const_cast<views::View*>(parent())), height()).Intersects(rect)) ||
           (owner->height > owner->strip_height && owner->interactive_bounds.Intersects(rect));
     }
     // Below the strip the Island owns only what it draws there (the rail and
@@ -1351,7 +1351,7 @@ class IslandView : public views::WebView, public views::ViewTargeterDelegate {
     // hidden or floating strip claims no band (HeaderHeight is 0); the rail
     // keeps its whole column.
     return gfx::Rect(0, 0, width(), HeaderHeight(const_cast<views::View*>(parent()))).Intersects(rect) ||
-        (owner->vertical && gfx::Rect(0, 0, owner->rail_width, height()).Intersects(rect)) ||
+        (owner->vertical && gfx::Rect(0, 0, RailWidth(const_cast<views::View*>(parent())), height()).Intersects(rect)) ||
         (owner->height > owner->strip_height && owner->interactive_bounds.Intersects(rect));
   }
   // Chromium anchors several bubbles (the crash-restore prompt among them) to
@@ -3331,7 +3331,7 @@ base::DictValue Snapshot(BrowserWindowInterface* browser, Owner* owner) {
           .Set("windowHeight", BrowserViewFor(owner) ? BrowserViewFor(owner)->height() : 0)
           .Set("stripHidden", StripHiddenFor(owner))
           .Set("introducing", owner->autohide_intro.IsRunning()))
-      .Set("verticalTabsWidth", owner->rail_width)
+      .Set("verticalTabsWidth", owner->vertical && owner->view->parent() ? RailWidth(owner->view->parent()) : owner->rail_width)
       .Set("verticalTabsPreferredWidth", owner->rail_width)
       .Set("verticalTabsMinWidth", 200).Set("verticalTabsMaxWidth", 360)
       .Set("verticalTabsDefaultWidth", 248)
@@ -9899,7 +9899,7 @@ int RailWidth(views::View* parent) {
   if (!HasIsland(parent)) return 0;
   auto* view = static_cast<views::WebView*>(parent->GetViewByID(kIslandViewId));
   auto* owner = GetOwner(view->GetWebContents());
-  return owner && owner->vertical ? owner->rail_width : 0;
+  return owner && owner->vertical ? std::min(owner->rail_width, std::max(0, parent->width() - 392)) : 0;
 }
 
 bool IsCaption(views::View* parent, int x, int y) {

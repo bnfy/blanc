@@ -152,6 +152,7 @@ export class Page{
  async waitForFunction(fn,arg,{timeout=5000,polling=50}={}){const end=Date.now()+timeout;let last;
   for(;;){try{last=await this.evaluate(fn,arg);if(last)return last;}catch(e){last=e.message;}
    if(Date.now()>end)throw Error('waitForFunction timed out: '+JSON.stringify(last));await pause(typeof polling==='number'?polling:50);}}
+ emulateMedia(options={}){return this.cdp.send('Emulation.setEmulatedMedia',{features:Object.entries(options).map(([name,value])=>({name:({reducedMotion:'prefers-reduced-motion',colorScheme:'prefers-color-scheme'})[name]||name,value}))});}
  waitForTimeout(ms){return pause(ms);}
  async waitForLoadState(){await this.waitForFunction(()=>document.readyState!=='loading');}
  locator(selector,options){return new Locator(this,[step(selector,options)]);}

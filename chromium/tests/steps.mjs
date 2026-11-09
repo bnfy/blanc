@@ -4,12 +4,15 @@ const require=createRequire(import.meta.url);
 const {CucumberExpression,RegularExpression,ParameterTypeRegistry}=require('@cucumber/cucumber-expressions');
 const parameters=new ParameterTypeRegistry();
 const {loadShippingCore}=require('./lib/shipping-core.cjs');
+import {WINDOW_LAYOUT_STEPS} from './fork-steps/window-layout.mjs';
 import {DIVERGENCES} from './fork-steps/divergences.mjs';
 export const definitions=[];
 // These intent-level steps preserve the assertions in shipping v1.45.1
 // test/desktop/steps/runnable.steps.js; only the native transport changes.
 function register(expression,run,source,sourceSha256=null){
  // An owner-approved divergence replaces shipping's step and says so.
+ const transport=WINDOW_LAYOUT_STEPS.get(String(expression));
+ if(transport){run=transport;source=`chromium/tests/fork-steps/window-layout.mjs (shipping ${source})`;}
  const divergent=DIVERGENCES.get(String(expression));
  if(divergent){run=divergent.run;source=`chromium/tests/fork-steps/divergences.mjs (${divergent.divergence}; shipping ${source})`;}
  const matcher=expression instanceof RegExp?new RegularExpression(expression,parameters):typeof expression==='string'?new CucumberExpression(expression,parameters):null;

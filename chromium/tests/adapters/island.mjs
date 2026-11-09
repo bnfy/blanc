@@ -102,6 +102,11 @@ async function islandReport(w){
 // Shipping sets these through its Settings page; drive the fork's Settings
 // page the same way. A missing control is the product's own gap.
 export const island={
+ tabLayout:w=>strip(w).evaluate(()=>document.documentElement.dataset.tabLayout),
+ verticalTabsWidth:async w=>(await w.snapshot()).verticalTabsPreferredWidth,
+ verticalTabsMetrics:async w=>{const s=await w.snapshot();return Object.fromEntries(Object.entries(s).filter(([k])=>k.startsWith('verticalTabs')));},
+ utilityBounds:async w=>{const settings=await frameRect(w,'settingsSheet');return settings??frameRect(w,'sheet');},
+ overlayElementRect:(w,selector)=>w.waitFor(()=>overlay(w).locator(selector).boundingBox(),Boolean,'rendered overlay '+selector),
  // ---- window ----
  async windowContentBounds(w){
   const {bounds}=await windowOf(w);

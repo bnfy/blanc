@@ -75,6 +75,7 @@
     }
     return slot;
   }
+  const effectiveRailWidth = () => layout === 'vertical' ? (snapshot?.verticalTabsWidth ?? railWidth) : 0;
   async function applyRail(persist = false) {
     railWidth = await request('rail', [layout === 'vertical', Math.round(railWidth)]);
     strip.style.height = layout === 'vertical' ? '100%' : 'var(--strip-h, 68px)';
@@ -991,6 +992,11 @@
     if (opened && overlayMode === 'spaces') { positionSpaces(); return; }
     if (!opened || overlayMode !== 'shield') {
       for (const key of ['left', 'top', 'width', 'height', 'right', 'bottom']) overlay.style[key] = '';
+      if (layout === 'vertical') {
+        const left = effectiveRailWidth();
+        overlay.style.left = `${left}px`;
+        overlay.style.width = `${Math.max(0, innerWidth - left)}px`;
+      }
       return;
     }
     const trigger = strip.contentDocument?.getElementById(shieldTrigger === 'insecure' ? 'pillInsecure' : 'pillShield');
@@ -1298,7 +1304,7 @@
     return [Math.round(r.left), Math.round(r.top), Math.round(r.width), Math.round(r.height)];
   };
   function placeSettingsSheet() {
-    const top = layout === 'vertical' ? 0 : stripH(), left = layout === 'vertical' ? railWidth : 0;
+    const top = stripH(), left = effectiveRailWidth();
     Object.assign(settingsSheet.style, { top: `${top}px`, left: `${left}px`,
       width: `calc(100% - ${left}px)`, height: `calc(100% - ${top}px)` });
   }
@@ -1362,7 +1368,7 @@
   }
   // The page's place: below the strip, or beside the vertical rail.
   function placeSheet() {
-    const top = layout === 'vertical' ? 0 : stripH(), left = layout === 'vertical' ? railWidth : 0;
+    const top = stripH(), left = effectiveRailWidth();
     Object.assign(sheet.frame.style, { top: `${top}px`, left: `${left}px`,
       width: `calc(100% - ${left}px)`, height: `calc(100% - ${top}px)` });
   }
@@ -2307,7 +2313,7 @@
     const state = snapshot?.islandAutoHide;
     const root = document.documentElement;
     root.toggleAttribute('data-strip-covered', state?.floating === true || (layout === 'vertical' && state?.stripHidden === true));
-    root.style.setProperty('--rail-w', layout === 'vertical' ? `${railWidth}px` : '0px');
+    root.style.setProperty('--rail-w', layout === 'vertical' ? `${effectiveRailWidth()}px` : '0px');
     const wanted = AutoHide.floatViewsWanted({ autoHide: state?.enabled === true, style: state?.style, platform: floatPlatform }).pill;
     floatPill.dataset.wanted = String(wanted);
     if (!wanted) {
