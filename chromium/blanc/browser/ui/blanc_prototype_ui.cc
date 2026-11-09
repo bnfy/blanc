@@ -321,6 +321,13 @@ constexpr char kIslandSiteColorsPref[] = "blanc.island.site_colors";
 constexpr char kIslandTabIconsPref[] = "blanc.island.tab_icons";
 constexpr char kSearchPriorityResultsPref[] = "blanc.island.search_priority_results";
 constexpr char kSurfaceStylePref[] = "blanc.appearance.surface_style";
+constexpr char kDefaultFontSizePref[] = "webkit.webprefs.default_font_size";
+// Appearance > Font size also scales Blanc's own pages (owner, 2026-11-09), so
+// the change shows at once. Medium (16) is 100%; the ends are eased and held
+// to a range their layouts survive.
+double BlancPagesZoom(const PrefService& prefs) {
+  return std::clamp(1.0 + (prefs.GetInteger(kDefaultFontSizePref) - 16) / 16.0 * 0.6, 0.75, 1.3);
+}
 // Shipping's appIcon (F17; registered by patch 0029).
 constexpr char kAppIconPref[] = "blanc.app_icon";
 // Shipping's islandSize (#1292; registered by patch 0026): the strip a window
@@ -2314,11 +2321,52 @@ bool IsAsset(const std::string& path) {
 // pages.css under the chosen Surface style: Neutral appends
 // pages-neutral.css, and a marker tells the Start Page which palette its
 // wallpaper paint uses.
+// CSS zoom enlarges viewport units too, so a page's 100vh would overflow the
+// window. Each positive vh, dvh or vw divides back out the page's zoom.
+std::string UnzoomViewportUnits(const std::string& css) {
+  const auto is_word = [](char c) { return base::IsAsciiAlpha(c) || base::IsAsciiDigit(c) || c == '-' || c == '_' || c == '#'; };
+  std::string out;
+  out.reserve(css.size());
+  size_t i = 0;
+  while (i < css.size()) {
+    const bool starts_number = base::IsAsciiDigit(css[i]) && (i == 0 || (!is_word(css[i - 1]) && css[i - 1] != '.'));
+    if (!starts_number) {
+      out += css[i++];
+      continue;
+    }
+    size_t end = i;
+    while (end < css.size() && (base::IsAsciiDigit(css[end]) || css[end] == '.')) ++end;
+    size_t unit = 0;
+    for (const std::string_view candidate : {"dvh", "vh", "vw"}) {
+      if (css.compare(end, candidate.size(), candidate) == 0) {
+        unit = candidate.size();
+        break;
+      }
+    }
+    if (unit && (end + unit == css.size() || !is_word(css[end + unit]))) {
+      base::StrAppend(&out, {"calc(", std::string_view(css).substr(i, end + unit - i), " / var(--blanc-page-zoom, 1))"});
+      i = end + unit;
+    } else {
+      out.append(css, i, end - i);
+      i = end;
+    }
+  }
+  return out;
+}
+
 scoped_refptr<base::RefCountedMemory> SurfaceStylesheet(
     scoped_refptr<base::RefCountedMemory> css,
-    scoped_refptr<base::RefCountedMemory> neutral) {
+    scoped_refptr<base::RefCountedMemory> neutral,
+    double zoom) {
   if (!css) return nullptr;
   std::string text(reinterpret_cast<const char*>(css->front()), css->size());
+  if (zoom != 1.0) {
+    text = UnzoomViewportUnits(text);
+    // Mahjong's board is sized to the window and keeps its own scale.
+    text += base::StringPrintf(
+        "\n:root{zoom:%.3f;--blanc-page-zoom:%.3f}\n"
+        ":root:has(body.mahjong-body){zoom:1;--blanc-page-zoom:1}\n", zoom, zoom);
+  }
   if (neutral) {
     text += "\n";
     text.append(reinterpret_cast<const char*>(neutral->front()), neutral->size());
@@ -4393,6 +4441,9 @@ class Handler : public content::WebUIMessageHandler, public extensions::Extensio
     island_prefs_.Add(kIslandSizePref,
                       base::BindRepeating(&Handler::OnIslandSizeChanged, base::Unretained(this)));
     island_prefs_.Add(kSurfaceStylePref,
+                      base::BindRepeating(&Handler::OnSurfaceStyleChanged, base::Unretained(this)));
+    // Font size restyles open Blanc pages the same way.
+    island_prefs_.Add(kDefaultFontSizePref,
                       base::BindRepeating(&Handler::OnSurfaceStyleChanged, base::Unretained(this)));
   }
   // A new size moves the page at once; an Island at rest stays at rest.
@@ -9565,19 +9616,20 @@ UI::UI(content::WebUI* web_ui) : ui::MojoWebUIController(web_ui, /*enable_chrome
             if (path == "pages/pages.css" || path.starts_with("pages/pages.css?restyle=")) {
               const bool neutral = profile &&
                   profile->GetOriginalProfile()->GetPrefs()->GetString(kSurfaceStylePref) == "neutral";
+              const double zoom = profile ? BlancPagesZoom(*profile->GetOriginalProfile()->GetPrefs()) : 1.0;
 #if BUILDFLAG(ENABLE_BLANC_DISK_ASSETS)
               if (!root.empty()) {
                 base::ThreadPool::PostTaskAndReplyWithResult(
                     FROM_HERE, {base::MayBlock()},
-                    base::BindOnce([](base::FilePath root, bool neutral) {
+                    base::BindOnce([](base::FilePath root, bool neutral, double zoom) {
                       return SurfaceStylesheet(ReadAsset(root, "pages/pages.css"),
-                          neutral ? ReadAsset(root, "pages/pages-neutral.css") : nullptr);
-                    }, root, neutral), std::move(callback));
+                          neutral ? ReadAsset(root, "pages/pages-neutral.css") : nullptr, zoom);
+                    }, root, neutral, zoom), std::move(callback));
                 return;
               }
 #endif
               std::move(callback).Run(SurfaceStylesheet(blanc::island_resources::Find("pages/pages.css"),
-                  neutral ? blanc::island_resources::Find("pages/pages-neutral.css") : nullptr));
+                  neutral ? blanc::island_resources::Find("pages/pages-neutral.css") : nullptr, zoom));
               return;
             }
             // Only the exact private and tour Start Page queries and the

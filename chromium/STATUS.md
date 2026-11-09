@@ -14,6 +14,17 @@ D7, F0.7, cold builds, new machines, D2/D4–D6/D8/V2 and replacement D3
 remain pending. D3 beta-only no-DRM exception accepted; EME notice/handoff required.
 
 ## Current work
+- **2026-11-09 — Font size scales Blanc's pages (candidate macos-78ea0ebc8eca0ed5):**
+  owner expected Appearance > Font size to show a change at once. It already
+  changed web page text, but no Blanc page. Settings, the Start Page and
+  Favorites / History / Downloads now follow it live, from `zoom` on the
+  document: Medium is 100%, and the scale is eased and held to 75–130% so those
+  layouts survive (`BlancPagesZoom`). pages.css is served with its viewport
+  units divided back by the zoom, because CSS zoom enlarges `100vh` too and
+  overflowed the window. Mahjong keeps its scale; the Island is not affected.
+  Checked at every preset on Settings and the Start Page (no overflow), History
+  at the largest. Regression: internal-pages 9/1, settings-and-theming 6/0,
+  supporter-and-session 2/0, newtab-layouts 22/1.
 - **2026-11-09 — Extension pages, pin toggle, footer Settings (candidate
   macos-1916198683b42fbc):** the Island named an extension's page by its raw
   `chrome-extension://<id>` address; the pill and the address field now show
@@ -2244,5 +2255,5 @@ Android's Bar A counts the shared scenarios bound in `chromium/tests/android/acc
 
 Legacy macOS stages come from the approved spec; they await verification on the canonical candidate. No legacy stage counts as Verified.
 
-Candidate identities: macOS: macos-1916198683b42fbc; Windows: none; Linux: none; Android: android-arm64-7bd35e94ef746069.
+Candidate identities: macOS: macos-78ea0ebc8eca0ed5; Windows: none; Linux: none; Android: android-arm64-7bd35e94ef746069.
 <!-- END GENERATED PROGRESS -->
