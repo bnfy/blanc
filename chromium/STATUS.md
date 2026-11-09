@@ -14,6 +14,37 @@ D7, F0.7, cold builds, new machines, D2/D4–D6/D8/V2 and replacement D3
 remain pending. D3 beta-only no-DRM exception accepted; EME notice/handoff required.
 
 ## Current work
+- **2026-11-09 — Extensions icon follows Auto-hide (candidate macos-bf6e0c81960ab463):**
+  the icon is Chromium's native view over the pill, so it popped on and off
+  while the pill slid in CSS. It now runs the pill's slide natively (same
+  distance, durations and ease-out cubic), staying visible until it has left;
+  the push style keeps it through the page's slide too. Measured against the
+  pill frame by frame: within about a frame on hide, usually about 11px on
+  reveal with one 28px sample. `autoHideState` reports the view for tests.
+  Regression: glance and split-view match the morning baseline;
+  `island-and-commands` 68/3, the only difference being the known `:107`.
+- **2026-11-09 — Font size scales Blanc's pages (candidate macos-78ea0ebc8eca0ed5):**
+  owner expected Appearance > Font size to show a change at once. It already
+  changed web page text, but no Blanc page. Settings, the Start Page and
+  Favorites / History / Downloads now follow it live, from `zoom` on the
+  document: Medium is 100%, and the scale is eased and held to 75–130% so those
+  layouts survive (`BlancPagesZoom`). pages.css is served with its viewport
+  units divided back by the zoom, because CSS zoom enlarges `100vh` too and
+  overflowed the window. Mahjong keeps its scale; the Island is not affected.
+  Checked at every preset on Settings and the Start Page (no overflow), History
+  at the largest. Regression: internal-pages 9/1, settings-and-theming 6/0,
+  supporter-and-session 2/0, newtab-layouts 22/1.
+- **2026-11-09 — Extension pages, pin toggle, footer Settings (candidate
+  macos-1916198683b42fbc):** the Island named an extension's page by its raw
+  `chrome-extension://<id>` address; the pill and the address field now show
+  the extension's name (host.js fills `extensionName` from the installed
+  list), and Enter on the untouched name does not search for it. The
+  Extensions page no longer offers "Pin new extensions to Toolbar", since the
+  Island has no toolbar. `#footerSettings` came off the prototype hide-list, so
+  the open Island has shipping's Settings icon. Verified with a real unpacked
+  extension and a real click on the icon. `island-and-commands` 67/4:
+  `:295` and `:359` as in the morning, `:107` as before, and `:99` failed once in
+  the full run but passes 4 of 4 alone. `internal-pages` 9/1, settings-and-theming 6/0.
 - **2026-11-09 — Settings redesign (candidate macos-80cf90e240933cec):** owner:
   the Settings experience was "ugly and poorly executed", not all screens
   scrolled, and it had to use Instrument Sans everywhere. New patch 0038, with
@@ -2233,5 +2264,5 @@ Android's Bar A counts the shared scenarios bound in `chromium/tests/android/acc
 
 Legacy macOS stages come from the approved spec; they await verification on the canonical candidate. No legacy stage counts as Verified.
 
-Candidate identities: macOS: macos-80cf90e240933cec; Windows: none; Linux: none; Android: android-arm64-7bd35e94ef746069.
+Candidate identities: macOS: macos-bf6e0c81960ab463; Windows: none; Linux: none; Android: android-arm64-7bd35e94ef746069.
 <!-- END GENERATED PROGRESS -->

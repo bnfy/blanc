@@ -596,6 +596,7 @@ const __blancMarkup = trustedTypes.createPolicy("blanc-static-renderer", {create
    * internal ones, empty for a blank new tab. */
   function tabDomain(tab) {
     if (!tab?.url || tab.url.startsWith('blanc://newtab')) return '';
+    if (tab.extensionName) return tab.extensionName;
     try {
       const u = new URL(viewSourceTarget(tab.url) ?? tab.url);
       return u.protocol === 'blanc:' ? `blanc://${u.host}` : u.host;

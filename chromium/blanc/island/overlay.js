@@ -495,6 +495,8 @@ const __blancMarkup = trustedTypes.createPolicy("blanc-static-overlay", {createH
   function addressDisplayValue(tab) {
     if (!tab) return '';
     if (tab.url.startsWith('blanc://newtab') || tab.url.startsWith('file://')) return '';
+    // An extension's page shows the extension's name, not its 32-letter id.
+    if (tab.extensionName) return tab.extensionName;
     // The error page carries the failed URL in its query — show that, so
     // the user sees (and can edit/retry) the address they typed.
     if (tab.url.startsWith('blanc://error')) {
@@ -524,6 +526,7 @@ const __blancMarkup = trustedTypes.createPolicy("blanc-static-overlay", {createH
    * empty for a blank new tab. */
   function tabDomain(tab) {
     if (!tab?.url || tab.url.startsWith('blanc://newtab')) return '';
+    if (tab.extensionName) return tab.extensionName;
     try {
       const u = new URL(viewSourceTarget(tab.url) ?? tab.url);
       return u.protocol === 'blanc:' ? `blanc://${u.host}` : u.host.replace(/^www\./, '');
@@ -3964,7 +3967,8 @@ const __blancMarkup = trustedTypes.createPolicy("blanc-static-overlay", {createH
     } else if (inputTouched && addressInput.value.startsWith('/')) {
       // "no matching command" — do nothing rather than search for "/typo"
     } else if (state.activeTabId) {
-      const value = addressInput.value.trim();
+      // An untouched extension name is a label, not something to search for.
+      const value = !inputTouched && activeTab()?.extensionName ? '' : addressInput.value.trim();
       if (value) window.browserAPI.navigate(state.activeTabId, value);
       window.browserAPI.closeOverlay();
     }

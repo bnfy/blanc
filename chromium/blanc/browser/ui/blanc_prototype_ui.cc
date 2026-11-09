@@ -270,6 +270,7 @@
 #include "ui/views/controls/menu/menu_item_view.h"
 #include "ui/display/screen.h"
 #include "ui/gfx/animation/animation.h"
+#include "ui/gfx/geometry/transform.h"
 #include "blanc/browser/ui/island_autohide.h"
 #include "blanc/private/private_tabs.h"
 #include "build/build_config.h"
@@ -321,6 +322,13 @@ constexpr char kIslandSiteColorsPref[] = "blanc.island.site_colors";
 constexpr char kIslandTabIconsPref[] = "blanc.island.tab_icons";
 constexpr char kSearchPriorityResultsPref[] = "blanc.island.search_priority_results";
 constexpr char kSurfaceStylePref[] = "blanc.appearance.surface_style";
+constexpr char kDefaultFontSizePref[] = "webkit.webprefs.default_font_size";
+// Appearance > Font size also scales Blanc's own pages (owner, 2026-11-09), so
+// the change shows at once. Medium (16) is 100%; the ends are eased and held
+// to a range their layouts survive.
+double BlancPagesZoom(const PrefService& prefs) {
+  return std::clamp(1.0 + (prefs.GetInteger(kDefaultFontSizePref) - 16) / 16.0 * 0.6, 0.75, 1.3);
+}
 // Shipping's appIcon (F17; registered by patch 0029).
 constexpr char kAppIconPref[] = "blanc.app_icon";
 // Shipping's islandSize (#1292; registered by patch 0026): the strip a window
@@ -936,6 +944,19 @@ class Owner : public base::SupportsUserData::Data,
   // strip's band a floating Island claims.
   gfx::Rect float_frame;
   gfx::Rect float_bounds;
+  // Chromium's Extensions view rides over the floating pill, so it makes the
+  // pill's slide (SlideExtensionsWithPill).
+  struct ExtensionsPillSlide {
+    double from;
+    double to;
+    base::TimeTicks start;
+    base::TimeDelta duration;
+  };
+  std::optional<ExtensionsPillSlide> extensions_pill_slide;
+  base::RepeatingTimer extensions_pill_timer;
+  double extensions_pill_y = 0;
+  double extensions_pill_target = 0;
+  bool extensions_pill_had_frame = false;
   // The traffic lights' state last set by auto-hide (macOS).
   std::optional<bool> window_buttons_visible;
   base::DictValue split_geometry;
@@ -2314,11 +2335,52 @@ bool IsAsset(const std::string& path) {
 // pages.css under the chosen Surface style: Neutral appends
 // pages-neutral.css, and a marker tells the Start Page which palette its
 // wallpaper paint uses.
+// CSS zoom enlarges viewport units too, so a page's 100vh would overflow the
+// window. Each positive vh, dvh or vw divides back out the page's zoom.
+std::string UnzoomViewportUnits(const std::string& css) {
+  const auto is_word = [](char c) { return base::IsAsciiAlpha(c) || base::IsAsciiDigit(c) || c == '-' || c == '_' || c == '#'; };
+  std::string out;
+  out.reserve(css.size());
+  size_t i = 0;
+  while (i < css.size()) {
+    const bool starts_number = base::IsAsciiDigit(css[i]) && (i == 0 || (!is_word(css[i - 1]) && css[i - 1] != '.'));
+    if (!starts_number) {
+      out += css[i++];
+      continue;
+    }
+    size_t end = i;
+    while (end < css.size() && (base::IsAsciiDigit(css[end]) || css[end] == '.')) ++end;
+    size_t unit = 0;
+    for (const std::string_view candidate : {"dvh", "vh", "vw"}) {
+      if (css.compare(end, candidate.size(), candidate) == 0) {
+        unit = candidate.size();
+        break;
+      }
+    }
+    if (unit && (end + unit == css.size() || !is_word(css[end + unit]))) {
+      base::StrAppend(&out, {"calc(", std::string_view(css).substr(i, end + unit - i), " / var(--blanc-page-zoom, 1))"});
+      i = end + unit;
+    } else {
+      out.append(css, i, end - i);
+      i = end;
+    }
+  }
+  return out;
+}
+
 scoped_refptr<base::RefCountedMemory> SurfaceStylesheet(
     scoped_refptr<base::RefCountedMemory> css,
-    scoped_refptr<base::RefCountedMemory> neutral) {
+    scoped_refptr<base::RefCountedMemory> neutral,
+    double zoom) {
   if (!css) return nullptr;
   std::string text(reinterpret_cast<const char*>(css->front()), css->size());
+  if (zoom != 1.0) {
+    text = UnzoomViewportUnits(text);
+    // Mahjong's board is sized to the window and keeps its own scale.
+    text += base::StringPrintf(
+        "\n:root{zoom:%.3f;--blanc-page-zoom:%.3f}\n"
+        ":root:has(body.mahjong-body){zoom:1;--blanc-page-zoom:1}\n", zoom, zoom);
+  }
   if (neutral) {
     text += "\n";
     text.append(reinterpret_cast<const char*>(neutral->front()), neutral->size());
@@ -4394,6 +4456,9 @@ class Handler : public content::WebUIMessageHandler, public extensions::Extensio
                       base::BindRepeating(&Handler::OnIslandSizeChanged, base::Unretained(this)));
     island_prefs_.Add(kSurfaceStylePref,
                       base::BindRepeating(&Handler::OnSurfaceStyleChanged, base::Unretained(this)));
+    // Font size restyles open Blanc pages the same way.
+    island_prefs_.Add(kDefaultFontSizePref,
+                      base::BindRepeating(&Handler::OnSurfaceStyleChanged, base::Unretained(this)));
   }
   // A new size moves the page at once; an Island at rest stays at rest.
   void OnIslandSizeChanged() {
@@ -5221,7 +5286,18 @@ class Handler : public content::WebUIMessageHandler, public extensions::Extensio
     }
     if (message[1].GetString() == "autoHideState") {
       auto* owner = GetOwner(web_ui()->GetWebContents());
-      Reply(id, !!owner, owner ? base::Value(AutoHideState(owner)) : base::Value());
+      if (!owner) {
+        Reply(id, false, base::Value());
+        return;
+      }
+      auto state = AutoHideState(owner);
+      auto* browser_view = BrowserViewFor(owner);
+      if (auto* extensions = browser_view && browser_view->toolbar()
+              ? browser_view->toolbar()->extensions_container_for_testing() : nullptr) {
+        state.Set("extensionsVisible", extensions->GetVisible());
+        state.Set("extensionsPillY", owner->extensions_pill_y);
+      }
+      Reply(id, true, base::Value(std::move(state)));
       return;
     }
     // Shipping's testCursorPoint (window content coordinates here; the
@@ -9565,19 +9641,20 @@ UI::UI(content::WebUI* web_ui) : ui::MojoWebUIController(web_ui, /*enable_chrome
             if (path == "pages/pages.css" || path.starts_with("pages/pages.css?restyle=")) {
               const bool neutral = profile &&
                   profile->GetOriginalProfile()->GetPrefs()->GetString(kSurfaceStylePref) == "neutral";
+              const double zoom = profile ? BlancPagesZoom(*profile->GetOriginalProfile()->GetPrefs()) : 1.0;
 #if BUILDFLAG(ENABLE_BLANC_DISK_ASSETS)
               if (!root.empty()) {
                 base::ThreadPool::PostTaskAndReplyWithResult(
                     FROM_HERE, {base::MayBlock()},
-                    base::BindOnce([](base::FilePath root, bool neutral) {
+                    base::BindOnce([](base::FilePath root, bool neutral, double zoom) {
                       return SurfaceStylesheet(ReadAsset(root, "pages/pages.css"),
-                          neutral ? ReadAsset(root, "pages/pages-neutral.css") : nullptr);
-                    }, root, neutral), std::move(callback));
+                          neutral ? ReadAsset(root, "pages/pages-neutral.css") : nullptr, zoom);
+                    }, root, neutral, zoom), std::move(callback));
                 return;
               }
 #endif
               std::move(callback).Run(SurfaceStylesheet(blanc::island_resources::Find("pages/pages.css"),
-                  neutral ? blanc::island_resources::Find("pages/pages-neutral.css") : nullptr));
+                  neutral ? blanc::island_resources::Find("pages/pages-neutral.css") : nullptr, zoom));
               return;
             }
             // Only the exact private and tour Start Page queries and the
@@ -9946,6 +10023,60 @@ void AdjustSplitLayout(const MultiContentsView* view, views::ProposedLayout* lay
       .Set("originX", origin.x() + 8).Set("usableWidth", std::max(1, card_width - 8));
 }
 
+void SetExtensionsPillOffset(views::View* extensions, double y) {
+  gfx::Transform transform;
+  transform.Translate(0, y);
+  extensions->SetTransform(transform);
+}
+
+void StepExtensionsPillSlide(Owner* owner) {
+  auto* browser_view = BrowserViewFor(owner);
+  auto* extensions = browser_view && browser_view->toolbar()
+      ? browser_view->toolbar()->extensions_container_for_testing() : nullptr;
+  auto& slide = owner->extensions_pill_slide;
+  if (!slide || !extensions) {
+    slide.reset();
+    owner->extensions_pill_timer.Stop();
+    return;
+  }
+  const double progress = std::max(0.0, (base::TimeTicks::Now() - slide->start) / slide->duration);
+  const bool done = progress >= 1;
+  owner->extensions_pill_y = done ? slide->to
+      : slide->from + (slide->to - slide->from) * autohide::EaseOutCubic(progress);
+  SetExtensionsPillOffset(extensions, owner->extensions_pill_y);
+  if (done) {
+    slide.reset();
+    owner->extensions_pill_timer.Stop();
+    Relayout(owner);  // A pill that has left takes the view with it.
+  }
+}
+
+// The floating pill slides in CSS (styles.css: translateY over its height,
+// ease-out cubic). The Extensions view drawn over it is native, so it runs the
+// same slide from wherever it is now, and stays visible until it has left.
+void SlideExtensionsWithPill(Owner* owner, views::View* extensions) {
+  const bool floating = IslandFloating(owner) && !owner->float_frame.IsEmpty();
+  const double target = floating && owner->float_bounds.IsEmpty() ? -owner->float_frame.height() : 0;
+  const bool had_frame = std::exchange(owner->extensions_pill_had_frame, floating);
+  if (target == owner->extensions_pill_target) return;
+  owner->extensions_pill_target = target;
+  owner->extensions_pill_timer.Stop();
+  owner->extensions_pill_slide.reset();
+  if (!floating || !had_frame || gfx::Animation::PrefersReducedMotion()) {
+    owner->extensions_pill_y = target;
+    SetExtensionsPillOffset(extensions, target);
+    return;
+  }
+  // Timed to the pill as measured: leaving, its CSS transition began just
+  // earlier than this layout; arriving, its frame takes a moment more to draw.
+  owner->extensions_pill_slide = Owner::ExtensionsPillSlide{
+      owner->extensions_pill_y, target, base::TimeTicks::Now() + base::Milliseconds(target == 0 ? 10 : -8),
+      base::Milliseconds(target == 0 ? autohide::kSlideInMs : autohide::kSlideOutMs)};
+  StepExtensionsPillSlide(owner);
+  owner->extensions_pill_timer.Start(FROM_HERE, base::Milliseconds(16),
+      base::BindRepeating(&StepExtensionsPillSlide, base::Unretained(owner)));
+}
+
 void LayoutIsland(views::View* parent, int top) {
   auto* view = static_cast<views::WebView*>(parent->GetViewByID(kIslandViewId));
   if (!view) return;
@@ -9979,14 +10110,19 @@ void LayoutIsland(views::View* parent, int top) {
   }
   auto bounds = owner->extension_bounds;
   bounds.Offset(0, top);
-  bounds.Intersect(parent->GetLocalBounds());
+  // Sliding, it may hang above the window; shrinking it would squash it.
+  if (!owner->autohide_slide) bounds.Intersect(parent->GetLocalBounds());
   const bool resized = extensions->width() != bounds.width();
   extensions->SetBoundsRect(bounds);
   if (resized) extensions->OnPinnedActionsChanged();
-  // A hidden strip has none showing; a floating Island shows them only while
-  // its pill does, where the pill copies the strip's place for them.
-  extensions->SetVisible(owner->height == owner->strip_height && !bounds.IsEmpty() && !StripHiddenFor(owner) &&
-                         !(IslandFloating(owner) && owner->float_bounds.IsEmpty()));
+  SlideExtensionsWithPill(owner, extensions);
+  // A hidden strip has none showing, once its slide has carried them off; a
+  // floating Island shows them only while its pill does, where the pill copies
+  // the strip's place for them.
+  extensions->SetVisible(owner->height == owner->strip_height && !bounds.IsEmpty() &&
+                         (IslandFloating(owner)
+                              ? !owner->float_bounds.IsEmpty() || owner->extensions_pill_slide.has_value()
+                              : !StripHiddenFor(owner) || owner->autohide_slide.has_value()));
 }
 std::unique_ptr<settings::SettingsPageUIHandler> CreateSettingsHandler(Profile* profile) {
   return std::make_unique<ChromiumSettingsHandler>(profile);

@@ -26,6 +26,7 @@
     "chrome/browser/renderer_context_menu/render_view_context_menu.cc": "0344bd88b932d431a80b06d0ece5e1c545d7a10522ae8e861ecede0ffccbe398",
     "chrome/browser/renderer_preferences_util.cc": "11a762affd6386416dc68be52ced662c8432c10a69754a5e5b9cf65501a409e2",
     "chrome/browser/resource_coordinator/tab_lifecycle_unit.cc": "1f8e897703624324d0b31538d2f22954e7d9215d642c2f643db1fa8bcee30eb2",
+    "chrome/browser/resources/extensions/item_list.html.ts": "811662b4438887015065fd750925ea2757c968e315a27975479777f6d29bd8dd",
     "chrome/browser/resources/glic/glic_api_impl/generate_impl/BUILD.gn": "5041820bd71607d810909c275a5b36a9f67987dcdfb89711548c3596540b9dfc",
     "chrome/browser/resources/settings/BUILD.gn": "3dd8bd0b5d1fa4eda892bb3e95b2ee3477af410833524296db7e48acc5556153",
     "chrome/browser/resources/settings/about_page/about_page.html.ts": "5565e3a6a80db8690e4bb6a2a3612c39709df528173c3050ba45fc769feb594b",

@@ -1,16 +1,40 @@
+diff --git a/chrome/browser/resources/extensions/item_list.html.ts b/chrome/browser/resources/extensions/item_list.html.ts
+index 054f137ce302ae538fde716bd41f10c3eb6ac225..9dee4a7f8b6a54cd2330cb7a3645490d6dd0eb62 100644
+--- a/chrome/browser/resources/extensions/item_list.html.ts
++++ b/chrome/browser/resources/extensions/item_list.html.ts
+@@ -49,8 +49,8 @@ export function getHtml(this: ExtensionsItemListElement) {
+       <h2 class="section-header items-container">
+         <span class="section-header-contents">
+           <span>$i18n{extensionsSectionHeader}</span>
+-          <span id="pinned-toggle-container"
+-              ?hidden="${!this.showExtensionsPinnedByDefault_}">
++          <!-- Blanc (owner): the Island has no toolbar to pin extensions to. -->
++          <span id="pinned-toggle-container" hidden>
+             <span id="pinned-toggle-label">$i18n{pinNewExtensions}</span>
+             <cr-toggle id="pinned-toggle"
+                 ?checked="${this.extensionsPinnedByDefault}"
 diff --git a/chrome/browser/resources/settings/blanc_settings_proxy.ts b/chrome/browser/resources/settings/blanc_settings_proxy.ts
-index 5068e4206cf348009e07b33fd7df47a7ab66a6fc..886e991319dabc453bcf618dc523b1ed9391ddd8 100644
+index 5068e4206cf348009e07b33fd7df47a7ab66a6fc..832cf7f1d894fb2364c1dd0c9f24f23c5fe778a7 100644
 --- a/chrome/browser/resources/settings/blanc_settings_proxy.ts
 +++ b/chrome/browser/resources/settings/blanc_settings_proxy.ts
-@@ -207,6 +207,21 @@ function blancTokens(p: BlancPalette): Record<string, string> {
+@@ -30,6 +30,7 @@ export interface BlancSettingsState {
+   uiLanguages: BlancLanguage[];
+   launchUiLanguage: string|null;
+   surfaceStyle: string;
++  pageZoom: number;
+   usagePing: boolean;
+ }
+ 
+@@ -207,6 +208,22 @@ function blancTokens(p: BlancPalette): Record<string, string> {
      '--color-toolbar-search-field-foreground': p.text,
      '--color-toolbar-search-field-foreground-placeholder': p.dim,
      '--color-toolbar-search-field-icon': p.dim,
 +    // Roomier rows, one column as wide as the sheet allows.
 +    '--cr-section-min-height': '52px',
 +    '--cr-section-two-line-min-height': '68px',
-+    '--cr-centered-card-max-width': '720px',
++    '--cr-centered-card-max-width': '1000px',
 +    '--cr-centered-card-width-percentage': '1',
++    '--cr-centered-card-min-width': '0',
 +    '--color-radio-button-foreground-checked': p.accent,
 +    '--blanc-raised': p.raised,
 +    '--blanc-accent-ring': p.accentDim,
@@ -24,7 +48,7 @@ index 5068e4206cf348009e07b33fd7df47a7ab66a6fc..886e991319dabc453bcf618dc523b1ed
    };
  }
  
-@@ -226,6 +241,11 @@ function applyBlancTheme() {
+@@ -226,6 +243,11 @@ function applyBlancTheme() {
        '"Instrument Sans", "Inter", -apple-system, system-ui, sans-serif';
    root.style.setProperty('font-variation-settings', '"wdth" 98');
    root.style.letterSpacing = '0.01em';
@@ -36,6 +60,25 @@ index 5068e4206cf348009e07b33fd7df47a7ab66a6fc..886e991319dabc453bcf618dc523b1ed
  }
  
  async function loadBlancFont() {
+@@ -240,11 +262,18 @@ async function loadBlancFont() {
+ 
+ applyBlancTheme();
+ darkQuery.addEventListener('change', applyBlancTheme);
++// Appearance > Font size scales this page too, so a change shows at once.
++function applyBlancZoom(zoom: number) {
++  document.documentElement.style.setProperty('zoom', String(zoom));
++}
++
+ blancSettings.get().then(state => {
+   blancSurface = state.surfaceStyle;
+   applyBlancTheme();
++  applyBlancZoom(state.pageZoom);
+ });
+ blancSettings.listen(state => {
++  applyBlancZoom(state.pageZoom);
+   if (state.surfaceStyle !== blancSurface) {
+     blancSurface = state.surfaceStyle;
+     applyBlancTheme();
 diff --git a/chrome/browser/resources/settings/settings_menu/settings_menu.css b/chrome/browser/resources/settings/settings_menu/settings_menu.css
 index bf6b45a8058e8d6934d89214599f38f11437ff51..ca2778ce7798df35bdae19154408e2bb3d55c8de 100644
 --- a/chrome/browser/resources/settings/settings_menu/settings_menu.css
@@ -473,9 +516,18 @@ index 343742f00f79e01909b9af43f8cf33b7f73829e7..f53b64d72854148ba2abe67d6bb67671
    clip: rect(0,0,0,0);
    display: block;
 diff --git a/ui/webui/resources/cr_elements/cr_shared_style_lit.css b/ui/webui/resources/cr_elements/cr_shared_style_lit.css
-index db892c21a9e32c9f9bb998d5ef9fd80a1e407739..050d4ad8c45e83c06ef13a07a6aaecf282489070 100644
+index db892c21a9e32c9f9bb998d5ef9fd80a1e407739..cb03105a8be5f92e7acc04b03108d2e55308930e 100644
 --- a/ui/webui/resources/cr_elements/cr_shared_style_lit.css
 +++ b/ui/webui/resources/cr_elements/cr_shared_style_lit.css
+@@ -64,7 +64,7 @@
+   height: inherit;
+   margin: 0 auto;
+   max-width: var(--cr-centered-card-max-width);
+-  min-width: 550px;
++  min-width: var(--cr-centered-card-min-width, 550px);
+   position: relative;
+   width: calc(100% * var(--cr-centered-card-width-percentage));
+ }
 @@ -115,7 +115,10 @@ cr-tooltip::part(tooltip) {
  
  .cr-secondary-text {

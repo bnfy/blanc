@@ -59,6 +59,7 @@ class ChromiumSettingsHandler final : public settings::SettingsPageUIHandler {
     // Shipping's sheet look follows Surface style (S1.7).
     state.Set("surfaceStyle",
               prefs->GetString("blanc.appearance.surface_style") == "neutral" ? "neutral" : "sunrise");
+    state.Set("pageZoom", BlancPagesZoom(*prefs));
     state.Set("usagePing", g_browser_process->local_state()->GetBoolean(kUsagePingPref));
     state.Set("uiLanguage", g_browser_process->local_state()->GetString(std::string(blanc::ui_language::kPref)));
     state.Set("uiLanguages", std::move(languages));
@@ -275,7 +276,8 @@ void ChromiumSettingsHandler::RegisterMessages() {
 void ChromiumSettingsHandler::OnJavascriptAllowed() {
   prefs_.Init(profile_->GetPrefs());
   for (const char* pref : {blanc::browser_api::bangs::kCustomPref, "blanc.blocking.enabled",
-                           "blanc.blocking.exceptions", "blanc.appearance.surface_style"})
+                           "blanc.blocking.exceptions", "blanc.appearance.surface_style",
+                           kDefaultFontSizePref})
     prefs_.Add(pref, base::BindRepeating(&ChromiumSettingsHandler::Changed, base::Unretained(this)));
   local_.Init(g_browser_process->local_state());
   local_.Add(std::string(blanc::ui_language::kPref),
