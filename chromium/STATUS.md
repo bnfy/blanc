@@ -14,6 +14,42 @@ D7, F0.7, cold builds, new machines, D2/D4–D6/D8/V2 and replacement D3
 remain pending. D3 beta-only no-DRM exception accepted; EME notice/handoff required.
 
 ## Current work
+- **2026-11-09 — Settings polish pass (candidate macos-a7d83e2ea8141aff):**
+  owner asked for Settings to feel like shipping's Blanc, not stock Chromium
+  ("Logo + About + General", closer to the Electron styling). New patch 0037:
+  Chromium's logo (About, the toolbar, `chrome://version`) is the Sunrise mark
+  (`product_logo_32` at 1x and 2x); every Settings string, and the placeholder
+  profile name, says Blanc instead of Chromium (one hook in
+  `WebUIDataSourceImpl`, for the `settings` source only, leaving any string
+  that links to chromium.org or credits "The Chromium Authors" alone); About
+  drops Chromium's update-status row, since Blanc has its own channel; the
+  left navigation stays beside the page in the sheet (breakpoint 980 → 600px,
+  with the toolbar search field sized to fit) as text-only neutral pills;
+  section headings are larger; buttons, fields, the search box and the nav
+  take the Sunrise/Neutral palette tokens instead of Chromium's blue. Real
+  screenshots checked (General, About, Appearance, Privacy). Not changed:
+  Chromium's page order and section names (no General/Sync/Diagnostics
+  groups as in shipping), the blue profile avatar, and a few strings that
+  link to chromium.org stay "Chromium". Regression: internal-pages 9/1,
+  settings-and-theming 6/0, interface-language 5/0, supporter-and-session 2/0,
+  newtab-layouts 22/1 (also fixed `:35`, `:41`, `:161` earlier in the day),
+  sync unchanged (10 failing as in the morning baseline), tool tests 189/189
+  on Node 22 (`check-patches.test.mjs` pin now 136 upstream files).
+- **2026-11-09 — Open Island closes on a click outside it (candidate
+  macos-8a58ea5cd8ede2f6):** the fork's expanded Island stayed open when the
+  page, another window or another app was clicked; shipping's overlay `blur`
+  closes it. `host.js` now closes the panel/palette/shield/spaces/switcher
+  surfaces when the host and overlay frames lose focus, except for Find
+  (stays open between matches), the display-share dialog, a native context
+  menu in the overlay, and the first 400 ms after it opens (a new tab's page
+  can briefly take focus). Verified over CDP with real mouse input.
+  Regression on this candidate, against the morning baseline: F41, tabs and
+  groups, quiet tabs and split view identical; glance `:337` failed once in
+  the full run and passes 4 of 4 alone, with and without the fix;
+  `island-and-commands.feature:107` (a pending permission prompt blocks
+  hover-open) fails 4 of 4 now but fails identically with the pre-fix
+  `host.js` served from disk, so the fix is not the cause; its cause is
+  still unknown and it passed in the morning baseline.
 - **2026-11-09 — Preview disclosure moved to Settings → About (candidate macos-f15e19cfa024fb72):**
   owner asked for the "Preview … · Version & security" footer badge to move.
   Settings → About now has a "Version & security" row (new patch 0036, plus
@@ -2168,5 +2204,5 @@ Android's Bar A counts the shared scenarios bound in `chromium/tests/android/acc
 
 Legacy macOS stages come from the approved spec; they await verification on the canonical candidate. No legacy stage counts as Verified.
 
-Candidate identities: macOS: macos-f15e19cfa024fb72; Windows: none; Linux: none; Android: android-arm64-7bd35e94ef746069.
+Candidate identities: macOS: macos-a7d83e2ea8141aff; Windows: none; Linux: none; Android: android-arm64-7bd35e94ef746069.
 <!-- END GENERATED PROGRESS -->

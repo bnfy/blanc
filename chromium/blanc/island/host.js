@@ -25,6 +25,9 @@
   let pillRect = null;
   let opened = false;
   let overlayMode = null;
+  // When the open surface appeared, and whether its native context menu is up.
+  let overlayShownAt = 0;
+  let overlayMenuOpen = false;
   // What the open surface was shown for (shipping's overlayPurpose).
   let overlayPurpose = null;
   // The side list's group menu names its group as it closes, so that
@@ -1026,6 +1029,8 @@
     overlayPurpose = purpose ?? null;
     shieldTrigger = mode === 'shield' ? trigger : null;
     opened = true;
+    overlayShownAt = performance.now();
+    overlayMenuOpen = false;
     overlay.hidden = false;
     emit('onIslandState', { mode, trigger: shieldTrigger, restoreTrigger: null });
     requestAnimationFrame(() => {
@@ -1162,6 +1167,36 @@
     setTimeout(() => { if (extensionsOpened && !extensionsPanel.contextMenuOpen && !document.hasFocus()) close(); }, 0);
   });
   setInterval(() => extensionsPanel.update(), 1000);
+
+  // Clicking the page, another window or another app closes the open Island,
+  // as shipping's overlay blur does. Find stays open between matches and the
+  // display-share dialog is its own decision. A new tab's page can briefly
+  // take focus as the panel opens, so the first moments never dismiss.
+  const dismissOnFocusLoss = () => {
+    setTimeout(() => {
+      if (!opened || !overlayMode || overlayMode === 'find' || overlayMode === 'display-share' ||
+          overlayMenuOpen || document.hasFocus() || performance.now() - overlayShownAt < 400) return;
+      close(false);
+    }, 0);
+  };
+  // Focus inside the overlay frame leaves the host window with nothing to
+  // blur, so the frame's own window reports the loss too.
+  const watchOverlay = () => {
+    const win = overlay.contentWindow;
+    win.addEventListener('blur', dismissOnFocusLoss);
+    // Focus coming back is the native menu closing.
+    win.addEventListener('focus', () => { overlayMenuOpen = false; });
+    win.document.addEventListener('contextmenu', () => { overlayMenuOpen = true; }, true);
+    for (const type of ['pointerdown', 'keydown']) {
+      win.document.addEventListener(type, event => {
+        if (type === 'pointerdown' && event.button === 2) return;
+        overlayMenuOpen = false;
+      }, true);
+    }
+  };
+  overlay.addEventListener('load', watchOverlay);
+  if (overlay.contentDocument?.readyState === 'complete') watchOverlay();
+  window.addEventListener('blur', dismissOnFocusLoss);
 
   // ---- Permission prompts (F13; shipping's permission view). Native
   // (permission_prompt.inc) sends each request shipping would ask about;
