@@ -15,7 +15,7 @@ source_set("browser") {
   if (blanc_enable_test_hooks) {
     defines = [ "BLANC_SYNC_TEST_HOOKS" ]
   }
-  sources = [ "//blanc/services/sync_runner/bundle_hash.h", "//blanc/services/sync_runner/sync_runner_proxy.cc",
+  sources = [ "//blanc/services/sync_runner/sync_endpoint.h", "//blanc/services/sync_runner/bundle_hash.h", "//blanc/services/sync_runner/sync_runner_proxy.cc",
               "//blanc/services/sync_runner/sync_runner_proxy.h" ]
   deps = [ ":mojom", "//base", "//content/public/browser", "//crypto", "//mojo/public/cpp/bindings", "//net",
            "//services/network/public/cpp", "//services/network/public/mojom", "//url" ]
