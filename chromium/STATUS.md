@@ -14,6 +14,22 @@ D7, F0.7, cold builds, new machines, D2/D4–D6/D8/V2 and replacement D3
 remain pending. D3 beta-only no-DRM exception accepted; EME notice/handoff required.
 
 ## Current work
+- **2026-11-09 — Batch 1 + Batch 2 merged (candidate macos-507866b59af7ffc6):**
+  PR #1420 (batch 1) merged to `chromium/s3-quiet-tabs` first, which left PR
+  #1421 (batch 2) with real conflicts — both touched `blanc_prototype_ui.cc`,
+  `host.js`, and the generated `island-assets.json`/`source-map.json`/
+  `tracker.json`. `blanc_prototype_ui.cc` and `host.js` merged cleanly (the
+  two batches' changes don't overlap in either file); the generated files
+  were resolved by recomputing their real hashes and rebuilding, not by
+  hand-merging JSON. Rebuilt candidate independently verified. Full combined
+  regression: `glance.feature` 39 pass/2 fail (only the still-open
+  `glance.feature:98` and `:538`, both already documented below — `:538`'s
+  fix is proven by the batch 2 algebra/diagnostic-logging record even though
+  this scenario's separate Island-sliding assertion still doesn't trigger
+  locally); `split-view.feature` 28 pass/2 fail (only the still-open
+  `:110`/F53-14 and `:159`/F53-22). No regressions from either batch
+  individually. `node --test chromium/tests/*.test.mjs` 72/72;
+  `check-patches.py` passed.
 - **2026-11-08 — Batch 2, two of four verified (candidate macos-e4317b7b0e5b22ae):**
   Codex's own attempt was blocked before any build (sandboxed loopback,
   process-inspection and Git-index denials); it recorded useful source
@@ -52,6 +68,32 @@ remain pending. D3 beta-only no-DRM exception accepted; EME notice/handoff requi
   baseline, the +1 pass being this round's F53-18 fix. `node --test
   chromium/tests/*.test.mjs` 72/72; `check-patches.py` passed. See
   `CODEX-NOTES-batch2.md`.
+- **2026-11-08 — F53/F34 batch 1, verified (candidate macos-593cbf5c187af246):**
+  found by sweeping `glance.feature`/`split-view.feature` for the next batch of
+  gaps after F41-78 merged. Three of four scoped fixes landed and are confirmed
+  working with zero regressions: (1) `TestSessionWindowsRead`'s `sessionWindows`
+  test-hook never read the already-working `kPersistentSplitKey` persistence,
+  so its `splits` array was always empty — fixed, unblocking F53-12 and both
+  F53-27 examples (relaunch/Space-round-trip split persistence); (2) Glance's
+  "move the main page to a new window" had no host.js/native path at all
+  (`glance.feature:52`) — added `moveTabToNewWindow`, reusing Chromium's
+  `chrome::MoveTabsToNewWindow`; the first pass moved the whole native split
+  (Glance's main/reference pair) instead of just the requested tab, found and
+  fixed in review by dissolving the split via the existing `EndGlance()` helper
+  first; (3) `testFocusTabContents`, a gated (`BUILDFLAG(ENABLE_BLANC_TEST_HOOKS)`)
+  test-only hook, now lets a scenario simulate keyboard focus landing in a
+  background tab, fixing `glance.feature:144`. The fourth (F53-14,
+  `split-view.feature:110`) is NOT fixed: its `testNavigateTabAnyScheme` hook
+  is reachable and correct in isolation (confirmed via the working
+  `testFocusTabContents` sibling on the same `HandleTest` channel), but
+  navigating a tab that's part of an active native Chromium split to an
+  internal `blanc://` page silently never commits — no thrown error, no
+  pending navigation entry, just reverts to a no-op. That's a real product
+  question (can a split pane host an internal page at all?), not a test-hook
+  gap, and needs its own investigation before further attempts. Regression:
+  `glance.feature` 39 pass/2 fail (was 37/4), `split-view.feature` 27 pass/3
+  fail (was 24/6); `node --test chromium/tests/*.test.mjs` 72/72;
+  `check-patches.py` passed. See `CODEX-NOTES-f53-f34-batch1.md`.
 - **Branch and PRs (owner, 2026-11-02):** the fork's integration branch is
   `chromium/migration` (renamed from `codex/f12-socket-speculation`), with
   [PR #1304](https://github.com/bnfy/blanc/pull/1304) as its integration PR
@@ -2060,5 +2102,5 @@ Android's Bar A counts the shared scenarios bound in `chromium/tests/android/acc
 
 Legacy macOS stages come from the approved spec; they await verification on the canonical candidate. No legacy stage counts as Verified.
 
-Candidate identities: macOS: macos-e4317b7b0e5b22ae; Windows: none; Linux: none; Android: android-arm64-7bd35e94ef746069.
+Candidate identities: macOS: macos-507866b59af7ffc6; Windows: none; Linux: none; Android: android-arm64-7bd35e94ef746069.
 <!-- END GENERATED PROGRESS -->

@@ -4635,6 +4635,36 @@ class Handler : public content::WebUIMessageHandler, public extensions::Extensio
     }
     const auto& quiet_args = message[2].GetList();
     const auto& quiet_method = message[1].GetString();
+    // Test-only operations run behind both the build flag and --blanc-test.
+    if (quiet_method == "testFocusTabContents" || quiet_method == "testNavigateTabAnyScheme") {
+      auto* model = GetOwner(web_ui()->GetWebContents())->browser->GetTabStripModel();
+      auto reply = [&](bool success, base::Value value) { Reply(id, success, std::move(value)); };
+      if (quiet_method == "testFocusTabContents" && quiet_args.size() == 1 && quiet_args[0].is_int()) {
+        for (int i = 0; i < model->count(); ++i) {
+          auto* target = model->GetWebContentsAt(i);
+          if (sessions::SessionTabHelper::IdForTab(target).id() != quiet_args[0].GetInt()) continue;
+          target->Focus();
+          reply(true, base::Value(true)); return;
+        }
+        reply(false, base::Value("Tab unavailable.")); return;
+      }
+      if (quiet_method == "testNavigateTabAnyScheme" && quiet_args.size() == 2 &&
+          quiet_args[0].is_int() && quiet_args[1].is_string()) {
+        const GURL url(quiet_args[1].GetString());
+        if (!url.is_valid()) {
+          reply(false, base::Value("Navigation requires a valid URL.")); return;
+        }
+        for (int i = 0; i < model->count(); ++i) {
+          auto* target = model->GetWebContentsAt(i);
+          if (sessions::SessionTabHelper::IdForTab(target).id() != quiet_args[0].GetInt()) continue;
+          target->GetController().LoadURL(url, content::Referrer(),
+              ui::PAGE_TRANSITION_TYPED, std::string());
+          reply(true, base::Value()); return;
+        }
+        reply(false, base::Value("Tab unavailable.")); return;
+      }
+      reply(false, base::Value("Invalid test tab operation arguments.")); return;
+    }
     if (quiet_method == "patronCalloutDismissedAt") {
       auto* prefs = g_browser_process->local_state();
       if (quiet_args.size() == 1 && quiet_args[0].is_double()) {
@@ -5405,7 +5435,25 @@ class Handler : public content::WebUIMessageHandler, public extensions::Extensio
     for (const auto& window : windows) {
       base::ListValue tabs;
       base::ListValue urls;
-      for (const auto& tab : window->tabs) {
+      base::ListValue splits;
+      size_t next_split_index = 0;
+      for (size_t i = 0; i < window->tabs.size(); ++i) {
+        const auto& tab = window->tabs[i];
+        const auto split = tab->extra_data.find(kPersistentSplitKey);
+        if (i >= next_split_index && split != tab->extra_data.end() && i + 1 < window->tabs.size()) {
+          const auto& next = window->tabs[i + 1];
+          const auto other = next->extra_data.find(kPersistentSplitKey);
+          if (other != next->extra_data.end() &&
+              ((split->second == "1" && other->second == "2") ||
+               (split->second == "2" && other->second == "1"))) {
+            next_split_index = i + 2;
+            base::ListValue ids;
+            ids.Append(base::NumberToString(tab->tab_id.id()));
+            ids.Append(base::NumberToString(next->tab_id.id()));
+            splits.Append(base::DictValue().Set("tabIds", std::move(ids))
+                .Set("focusedIndex", split->second == "2" ? 0 : 1));
+          }
+        }
         base::DictValue saved_tab;
         const auto name = tab->extra_data.find(kTabNameKey);
         saved_tab.Set("customTitle", name == tab->extra_data.end()
@@ -5415,12 +5463,14 @@ class Handler : public content::WebUIMessageHandler, public extensions::Extensio
           url = tab->navigations[tab->normalized_navigation_index()]
                     .virtual_url().spec();
         }
+        saved_tab.Set("id", base::NumberToString(tab->tab_id.id()));
         saved_tab.Set("url", url);
         urls.Append(url);
         tabs.Append(std::move(saved_tab));
       }
       saved_windows.Append(base::DictValue().Set("id", label_for(window->window_id))
-          .Set("tabs", std::move(tabs)).Set("urls", std::move(urls)));
+          .Set("tabs", std::move(tabs)).Set("urls", std::move(urls))
+          .Set("splits", std::move(splits)));
     }
     Reply(id, true, base::Value(
         base::DictValue().Set("windows", std::move(saved_windows))));
@@ -8690,6 +8740,46 @@ class Handler : public content::WebUIMessageHandler, public extensions::Extensio
         else model->RemoveFromGroup(members);
       }
       reply(true, base::Value(true));
+      return;
+    }
+    if (method == "moveTabToNewWindow" && args.size() == 1) {
+      if (model->count() == 1 || !chrome::CanMoveTabsToNewWindow(browser, {index})) {
+        reply(true, base::Value(false)); return;
+      }
+      // A Glance pair is a real native split; Chromium moves a whole split
+      // together, so take it apart first when either side is leaving --
+      // EndGlance restores the tab staying behind to its pre-Glance spot
+      // and activates it, the same as any other way Glance ends.
+      const int moving_id = sessions::SessionTabHelper::IdForTab(tab).id();
+      if (owner->glance_main >= 0 && (moving_id == owner->glance_main || moving_id == owner->glance_reference)) {
+        const int other_id = moving_id == owner->glance_main ? owner->glance_reference : owner->glance_main;
+        content::WebContents* stays = nullptr;
+        for (int i = 0; i < model->count(); ++i)
+          if (sessions::SessionTabHelper::IdForTab(model->GetWebContentsAt(i)).id() == other_id)
+            stays = model->GetWebContentsAt(i);
+        EndGlance(owner, stays);
+      }
+      const int moving_index = model->GetIndexOfWebContents(tab);
+      if (moving_index == TabStripModel::kNoTab) {
+        reply(false, base::Value("The tab could not be moved to a new window.")); return;
+      }
+      const auto moved = tab->GetWeakPtr();
+      chrome::MoveTabsToNewWindow(browser, {moving_index});
+      auto* destination = moved ? GlobalBrowserCollection::GetInstance()->FindBrowserWithTab(moved.get()) : nullptr;
+      if (!destination || destination == browser) {
+        reply(false, base::Value("The tab could not be moved to a new window.")); return;
+      }
+      // Match windowRuntimes' SessionID-ordered runtime labels.
+      std::vector<int> windows;
+      for (auto* live : Owner::Live())
+        if (live->view) windows.push_back(live->browser->GetSessionID().id());
+      std::sort(windows.begin(), windows.end());
+      const auto found = std::find(windows.begin(), windows.end(), destination->GetSessionID().id());
+      if (found == windows.end()) {
+        reply(false, base::Value("The new window Island is unavailable.")); return;
+      }
+      const auto ordinal = std::distance(windows.begin(), found);
+      reply(true, base::Value(ordinal == 0 ? "primary" : "window-" + base::NumberToString(ordinal + 1)));
       return;
     }
     if (method == "moveTab" && args.size() == 3 &&
