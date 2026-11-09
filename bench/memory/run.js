@@ -406,10 +406,15 @@ function removeProfile(profileDir, rm = fs.rmSync) {
       rm(dir, { recursive: true, force: true, maxRetries: 5, retryDelay: 250 });
     } catch {
       removed = false;
+      leftoverProfiles.push(dir);
     }
   }
   return removed;
 }
+
+// Folders removeProfile could not delete, reported once at the end of the run so
+// a quiet failure cannot quietly fill the disk.
+const leftoverProfiles = [];
 
 // Every browser this process has launched and not yet reaped, so a Ctrl-C
 // cannot leave several gigabytes of browser running against a profile
@@ -943,6 +948,10 @@ async function main() {
   if (failures.length) log(`\n${failures.length} cell(s) failed — see the report's Failed cells section.`);
   log(`\nWrote ${jsonPath}`);
   log(`Wrote ${mdPath}`);
+  if (leftoverProfiles.length) {
+    log(`\n${leftoverProfiles.length} profile folder(s) could not be deleted and were left behind:`);
+    for (const dir of leftoverProfiles.slice(0, 5)) log(`  ${dir}`);
+  }
 
   if (silent.length) {
     throw new Error(

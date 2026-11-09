@@ -1,7 +1,7 @@
 # Windows port of the memory benchmark — design
 
 **Date:** 2026-11-09
-**Status:** Draft for review. Implemented; the port runs on a hosted `windows-latest` runner (see *Findings*). Nothing committed to the working branch yet.
+**Status:** Draft for review. Implemented; the port runs on a hosted `windows-latest` runner (see *Findings*). Committed on `claude/new-session-45fae7`; under review.
 **Scope:** Developer tooling only (`bench/memory/`, one new unit-test file). Nothing in `src/`.
 **Origin:** Support chat #527 asked how much RAM Blanc uses on Windows. Every published memory figure comes from one Apple Silicon Mac, and the site's own FAQ says those are not Windows results. `bench/memory/run.js:603` refuses to run anywhere but macOS.
 **Builds on:** `2026-08-09-browser-memory-benchmark-design.md`, which listed Windows and Linux as out of scope ("`phys_footprint` is a macOS concept; the other platforms need different metrics (PSS on Linux, working set on Windows)").
