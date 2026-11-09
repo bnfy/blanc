@@ -108,35 +108,56 @@ iframe { position: absolute; inset: 0; width: 100%; border: 0; }
   background: #fff;
   box-shadow: 0 30px 90px rgba(18, 16, 11, 0.22), 0 2px 10px rgba(18, 16, 11, 0.08);
 }
+.settings-sheet-card {
+  --sheet-ink: #12100b; --sheet-dim: #6b6257; --sheet-line: #e1d7c9;
+  --sheet-segment: rgba(18, 16, 11, 0.05); --sheet-raised: #fff;
+  --sheet-hover: rgba(18, 16, 11, 0.06); --sheet-press: rgba(18, 16, 11, 0.12);
+}
+/* Shipping's sheet header: the four pages, then Close, over a hairline. */
 .settings-sheet-head {
-  flex: 0 0 44px;
+  flex: 0 0 62px;
+  box-sizing: border-box;
   display: flex;
   align-items: center;
-  justify-content: flex-end;
-  padding: 0 10px;
+  justify-content: space-between;
+  margin: 0 20px;
+  border-bottom: 1px solid var(--sheet-line);
+  font-family: "Instrument Sans", "Inter", -apple-system, system-ui, sans-serif;
+  font-variation-settings: "wdth" 98;
+  letter-spacing: 0.01em;
 }
+.settings-sheet-tabs { display: inline-flex; gap: 2px; padding: 3px; border-radius: 999px; background: var(--sheet-segment); }
+.settings-sheet-tabs button {
+  height: 28px; padding: 0 13px; border: 0; border-radius: 999px; background: none;
+  color: var(--sheet-dim); font: inherit; font-size: 13.5px; font-weight: 500;
+  transition: color 120ms ease-out, background-color 120ms ease-out;
+}
+.settings-sheet-tabs button:hover { color: var(--sheet-ink); }
+.settings-sheet-tabs button:active { background: var(--sheet-hover); }
+.settings-sheet-tabs button.current { background: var(--sheet-raised); color: var(--sheet-ink); box-shadow: 0 1px 2px rgba(18, 16, 11, 0.14); }
 #settingsSheetClose {
+  display: grid; place-items: center;
   width: 32px;
   height: 32px;
   border: 0;
   border-radius: 999px;
-  background: rgba(18, 16, 11, 0.06);
-  color: rgba(18, 16, 11, 0.6);
-  font-size: 12px;
+  background: var(--sheet-hover);
+  color: var(--sheet-dim);
   cursor: pointer;
+  transition: background-color 120ms ease-out, color 120ms ease-out;
 }
-#settingsSheetClose:hover { background: rgba(18, 16, 11, 0.12); color: rgba(18, 16, 11, 0.9); }
+#settingsSheetClose:hover { background: var(--sheet-press); color: var(--sheet-ink); }
+#settingsSheetClose:active { background: var(--sheet-press); }
 #settingsSheetBody { flex: 1 1 auto; min-height: 0; }
 /* The card wears shipping's sheet canvas under Surface style, as the
    restyled chrome://settings inside it does (S1.7). */
 #settingsSheet[data-surface="sunrise"] .settings-sheet-card { background: #f8f2e8; border-color: #e1d7c9; }
-#settingsSheet[data-surface="neutral"] .settings-sheet-card { background: #fbfaf6; border-color: #e5e2da; }
+#settingsSheet[data-surface="neutral"] .settings-sheet-card { background: #fbfaf6; border-color: #e5e2da; --sheet-ink: #14130f; --sheet-dim: #6a665e; --sheet-line: #e5e2da; }
 @media (max-width: 700px), (max-height: 560px) { #settingsSheet { padding: 10px; } }
 @media (prefers-color-scheme: dark) {
   #settingsSheet { background: rgba(0, 0, 0, 0.35); }
   .settings-sheet-card { background: #202124; border-color: rgba(255, 255, 255, 0.1); }
-  #settingsSheetClose { background: rgba(255, 255, 255, 0.08); color: rgba(255, 255, 255, 0.7); }
-  #settingsSheetClose:hover { background: rgba(255, 255, 255, 0.16); color: #fff; }
+  .settings-sheet-card { --sheet-ink: #f7f0e5; --sheet-dim: #b8aa98; --sheet-line: #4a3e31; --sheet-segment: rgba(255, 255, 255, 0.07); --sheet-raised: rgba(255, 255, 255, 0.14); --sheet-hover: rgba(255, 255, 255, 0.08); --sheet-press: rgba(255, 255, 255, 0.16); }
   #settingsSheet[data-surface="sunrise"] .settings-sheet-card { background: #17130f; border-color: #4a3e31; }
-  #settingsSheet[data-surface="neutral"] .settings-sheet-card { background: #1b1b1b; border-color: #3a3a38; }
+  #settingsSheet[data-surface="neutral"] .settings-sheet-card { background: #1b1b1b; border-color: #3a3a38; --sheet-ink: #f3f1ec; --sheet-dim: #a9a69e; --sheet-line: #3a3a38; }
 }

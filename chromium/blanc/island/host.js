@@ -1276,6 +1276,11 @@
   }
   settingsSheet.addEventListener('click', event => { if (event.target === settingsSheet) hideSheet(); });
   document.getElementById('settingsSheetClose').addEventListener('click', () => hideSheet());
+  // Shipping's header tabs: the other three pages swap in the sheet's place.
+  document.getElementById('settingsSheetTabs').addEventListener('click', event => {
+    const page = event.target.closest('[data-sheet]')?.dataset.sheet;
+    if (page) showSheet(page).catch(error => notice(error.message));
+  });
   window.addEventListener('resize', syncSettingsSheet);
   const grownViewport = () => new Promise(resolve => {
     if (settingsBody.getBoundingClientRect().height > 0) return resolve();
@@ -1299,6 +1304,7 @@
     if (label) {
       settingsSheet.querySelector('[role="dialog"]').setAttribute('aria-label', label('settings.page.heading'));
       document.getElementById('settingsSheetClose').setAttribute('aria-label', label('sheet.close'));
+      for (const tab of document.querySelectorAll('#settingsSheetTabs [data-label]')) tab.textContent = label(tab.dataset.label);
     }
     placeSettingsSheet();
     settingsSheet.hidden = false;

@@ -47,9 +47,11 @@
     "chrome/browser/resources/settings/search_page/search_page.ts": "c056c24da56fcea0a083c0d3b5a302b6164e466c40f42aee68b17e360040c2f3",
     "chrome/browser/resources/settings/settings_menu/settings_menu.css": "a6c3e0ce0db314a41e3a75467040d84109b214215af32b1d024774101ee5a57c",
     "chrome/browser/resources/settings/settings_page/settings_section.css": "21aac123cf47cd3634feed6009015758490db0c6e6a1fb6973b5492cc321951f",
+    "chrome/browser/resources/settings/settings_page/settings_subpage.css": "ad10fb7dc58f5ebd221d3ef4c4a5f689f753fcdff596386a9a47be02d8b59339",
     "chrome/browser/resources/settings/settings_shared_lit.css": "4abec4a54b0f58e878f1a84bbd2c8ff083d282e2400ad2996952c15758224b98",
     "chrome/browser/resources/settings/settings_ui/settings_ui.css": "1f92ea442918d3e83c40ea6ad4b19055e48376f42210459641c750b01034af7a",
     "chrome/browser/resources/settings/settings_ui/settings_ui.html": "da38635c48d74040e99d03af1fe44e4b74754c9adf660735e654c1a37664607b",
+    "chrome/browser/resources/settings/settings_ui/settings_ui.ts": "7d51cb558eb2e85fffda57a23a3841c88ddb455f26a96c8b52857858f78ba108",
     "chrome/browser/search/search.cc": "727c0ad312552abc427a15fbbeb1a67d76cc91e1a66ea58b95177acc497176de",
     "chrome/browser/sessions/session_restore.cc": "387016e43ae322a00ad82ffbe0394a1e67b1fa233222bb8b92110eea2c7cb48f",
     "chrome/browser/sessions/session_service.cc": "665ff3bc25964dd3c1cf16cfa6632093be0afdc7fa4eaac26f85b0e9a458ef77",
@@ -135,6 +137,10 @@
     "ui/views/controls/native/native_view_host_mac.h": "644a799d223075c26be837b5403e1f509832b25d30bd68043417ead669d0dd80",
     "ui/views/controls/native/native_view_host_mac.mm": "1a611eaa267c4cafee27f239d5265eb6da62fbcf1bc64d2790163bf62e2178da",
     "ui/views/controls/native/native_view_host_mac_unittest.mm": "2a90d7f5f06c4a23cd6b8259b066bf75cc17b6a7fe8dad230bf3a9b0954dd7b4",
+    "ui/webui/resources/cr_elements/cr_link_row/cr_link_row.css": "0899c9447c7216593fc1a2d1f78c08e57786409ba31c2231f95705d281bcdacc",
+    "ui/webui/resources/cr_elements/cr_shared_style_lit.css": "bd6273f5257e2fa7052eb974ce97f2bae3e0f0eb0bd8982b330fc57768fcf786",
+    "ui/webui/resources/cr_elements/cr_toolbar/cr_toolbar.css": "dd5f15f7246369727ad1010d889e3d45097354f2858aea7fc988a5aa76ca4e92",
+    "ui/webui/resources/cr_elements/md_select_lit.css": "c5b27705bb36c45951d7cf97481655bb4190498d275ba89e37acef9f2896ff5a",
     "ui/webui/resources/tools/eslint/BUILD.gn": "f1247eac8f13d36209441f4b932233918faa317ec9bcab00c4d3779e0403c8c9"
   }
 }
