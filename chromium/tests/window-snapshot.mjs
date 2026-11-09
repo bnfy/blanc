@@ -88,6 +88,15 @@ const SCENES = {
     await pause(800);
   },
   settings: fixture => openSettings(fixture, ''),
+  // The Start Page with its Finish setup popover open.
+  checklist: async fixture => {
+    await openStartPage(fixture, null);
+    const target = await waitFor(async () => (await fixture.targets()).find(t => t.type === 'page' && /newtab/.test(t.url)), Boolean, 'Start Page');
+    const page = await fixture.connectTarget(target);
+    await page.eval(`document.getElementById('migrationChecklist').showPopover()`);
+    page.close();
+    await pause(600);
+  },
 };
 // settings-<section> opens that section in the same sheet (settings-privacy);
 // island-<size> picks that Island size in Settings and shows the window.

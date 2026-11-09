@@ -132,3 +132,57 @@ html[data-store-theme] .start-wallpaper-layer { display:none !important; }
 @media (prefers-reduced-motion: reduce) {
   .launch-sunrise { display: none; }
 }
+
+/* Finish setup, compact (owner, November 9, 2026): a small title with the
+   count beside it and plain rows. Shipping's ring and headline looked empty
+   with the one or two tasks this build offers. */
+.migration-checklist {
+  min-width: 232px;
+  padding: 12px 8px 8px;
+  border-radius: 12px;
+}
+.migration-checklist-heading {
+  justify-content: space-between;
+  gap: 16px;
+  padding: 0 8px;
+}
+.migration-checklist-heading h2 {
+  font: 600 13px/1.3 var(--font-text);
+  letter-spacing: 0.01em;
+}
+.migration-checklist-heading h2::first-letter { text-transform: uppercase; }
+.migration-progress-ring {
+  order: 1;
+  width: auto;
+  height: auto;
+  border: 0;
+  border-radius: 0;
+  color: var(--text-dim);
+  font: 500 11.5px/1 var(--font-ui);
+}
+.migration-checklist-tasks { gap: 0; margin: 8px 0 0; }
+.migration-task {
+  grid-template-columns: 16px minmax(0, 1fr);
+  gap: 10px;
+  padding: 7px 8px;
+  border-radius: 8px;
+  transition: background-color 120ms ease;
+}
+.migration-task:hover { background: color-mix(in srgb, var(--text) 7%, transparent); }
+.migration-task:active { background: color-mix(in srgb, var(--text) 11%, transparent); }
+.migration-task:focus-visible { outline-offset: -1px; }
+.migration-task-check {
+  width: 16px;
+  height: 16px;
+  border-color: var(--text-dim);
+  opacity: 1;
+}
+.migration-task-label { font-size: 13px; font-weight: 450; }
+.migration-checklist-tasks li.is-complete .migration-task-check { border-color: var(--accent); color: var(--accent); }
+.migration-checklist-tasks li.is-complete .migration-task-check::after {
+  left: 4.5px;
+  top: 1.5px;
+  width: 4px;
+  height: 8px;
+  border-width: 0 1.5px 1.5px 0;
+}
