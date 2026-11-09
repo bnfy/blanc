@@ -40,6 +40,7 @@
     "patches/0031-blanc-glance.patch",
     "patches/0032-blanc-link-glance.patch",
     "patches/0034-blanc-space-hold.patch",
-    "patches/0035-blanc-start-prefs.patch"
+    "patches/0035-blanc-start-prefs.patch",
+    "patches/0036-blanc-preview-about.patch"
   ]
 }

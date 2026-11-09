@@ -14,6 +14,18 @@ D7, F0.7, cold builds, new machines, D2/D4–D6/D8/V2 and replacement D3
 remain pending. D3 beta-only no-DRM exception accepted; EME notice/handoff required.
 
 ## Current work
+- **2026-11-09 — Preview disclosure moved to Settings → About (candidate macos-f15e19cfa024fb72):**
+  owner asked for the "Preview … · Version & security" footer badge to move.
+  Settings → About now has a "Version & security" row (new patch 0036, plus
+  `blancSettingsPreviewNotice` in the settings handler) that opens the Start
+  Page at `?preview=1`, which shows the same notice dialog unchanged (status,
+  build, support, rollback guidance). The footer button is gone; the Island's
+  own "Security & updates" link is untouched. The row's label is English-only
+  because the generated settings strings come from shipping's catalogs, which
+  have no key for this preview-only text. Real click verified. This also fixed
+  `newtab-layouts.feature:161` (the badge made the footer's left group wrap):
+  22 pass, 1 fail (`:21`, deep hooks); `internal-pages.feature` 9 / 1 (`:7`,
+  also failing this morning).
 - **2026-11-09 — Start Page's Patron pill (candidate macos-cd5dbbaafb7c657d):**
   the pill's `blanc://settings/#group-patron` link went nowhere. It now opens
   the Settings sheet at `chrome://settings/help`, where the `#patronCheckout`
@@ -2156,5 +2168,5 @@ Android's Bar A counts the shared scenarios bound in `chromium/tests/android/acc
 
 Legacy macOS stages come from the approved spec; they await verification on the canonical candidate. No legacy stage counts as Verified.
 
-Candidate identities: macOS: macos-cd5dbbaafb7c657d; Windows: none; Linux: none; Android: android-arm64-7bd35e94ef746069.
+Candidate identities: macOS: macos-f15e19cfa024fb72; Windows: none; Linux: none; Android: android-arm64-7bd35e94ef746069.
 <!-- END GENERATED PROGRESS -->
