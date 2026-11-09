@@ -805,11 +805,38 @@
     return refreshQueue;
   }
 
+  // A page inside an extension goes by the extension's name in the Island,
+  // not the 32-letter id in its address.
+  const extensionNames = new Map();
+  let extensionNamesLoading = false;
+  const extensionIdOf = tab => /^chrome-extension:\/\/([^/]+)/.exec(tab.url ?? '')?.[1] ?? null;
+  function nameExtensionTabs(tabs) {
+    let unknown = false;
+    for (const tab of tabs) {
+      const id = extensionIdOf(tab);
+      if (!id) continue;
+      if (extensionNames.has(id)) tab.extensionName = extensionNames.get(id);
+      else unknown = true;
+    }
+    if (!unknown || extensionNamesLoading) return;
+    extensionNamesLoading = true;
+    request('extensions').then(({ items }) => {
+      for (const tab of snapshot?.tabs ?? []) {
+        const id = extensionIdOf(tab);
+        if (id && !extensionNames.has(id)) extensionNames.set(id, items.find(item => item.id === id)?.name ?? null);
+      }
+      if (!snapshot) return;
+      nameExtensionTabs(snapshot.tabs);
+      emit('onTabsUpdated', snapshot);
+    }).catch(() => {}).finally(() => { extensionNamesLoading = false; });
+  }
+
   async function refreshNow() {
     const attempt = ++snapshotRefreshAttempt;
     try {
       snapshot = await request('snapshot');
       // Shipping's tab records name their split; the panel draws one row from it.
+      nameExtensionTabs(snapshot.tabs);
       for (const tab of snapshot.tabs) tab.splitId = snapshot.splits?.find(split => split.tabIds.includes(tab.id))?.id ?? null;
       syncGlance();
       if ((snapshot.spaceName || '') !== spacesBound) {

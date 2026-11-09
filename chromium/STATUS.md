@@ -14,6 +14,17 @@ D7, F0.7, cold builds, new machines, D2/D4–D6/D8/V2 and replacement D3
 remain pending. D3 beta-only no-DRM exception accepted; EME notice/handoff required.
 
 ## Current work
+- **2026-11-09 — Extension pages, pin toggle, footer Settings (candidate
+  macos-1916198683b42fbc):** the Island named an extension's page by its raw
+  `chrome-extension://<id>` address; the pill and the address field now show
+  the extension's name (host.js fills `extensionName` from the installed
+  list), and Enter on the untouched name does not search for it. The
+  Extensions page no longer offers "Pin new extensions to Toolbar", since the
+  Island has no toolbar. `#footerSettings` came off the prototype hide-list, so
+  the open Island has shipping's Settings icon. Verified with a real unpacked
+  extension and a real click on the icon. `island-and-commands` 67/4:
+  `:295` and `:359` as in the morning, `:107` as before, and `:99` failed once in
+  the full run but passes 4 of 4 alone. `internal-pages` 9/1, settings-and-theming 6/0.
 - **2026-11-09 — Settings redesign (candidate macos-80cf90e240933cec):** owner:
   the Settings experience was "ugly and poorly executed", not all screens
   scrolled, and it had to use Instrument Sans everywhere. New patch 0038, with
@@ -2233,5 +2244,5 @@ Android's Bar A counts the shared scenarios bound in `chromium/tests/android/acc
 
 Legacy macOS stages come from the approved spec; they await verification on the canonical candidate. No legacy stage counts as Verified.
 
-Candidate identities: macOS: macos-80cf90e240933cec; Windows: none; Linux: none; Android: android-arm64-7bd35e94ef746069.
+Candidate identities: macOS: macos-1916198683b42fbc; Windows: none; Linux: none; Android: android-arm64-7bd35e94ef746069.
 <!-- END GENERATED PROGRESS -->

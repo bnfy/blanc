@@ -1,3 +1,18 @@
+diff --git a/chrome/browser/resources/extensions/item_list.html.ts b/chrome/browser/resources/extensions/item_list.html.ts
+index 054f137ce302ae538fde716bd41f10c3eb6ac225..9dee4a7f8b6a54cd2330cb7a3645490d6dd0eb62 100644
+--- a/chrome/browser/resources/extensions/item_list.html.ts
++++ b/chrome/browser/resources/extensions/item_list.html.ts
+@@ -49,8 +49,8 @@ export function getHtml(this: ExtensionsItemListElement) {
+       <h2 class="section-header items-container">
+         <span class="section-header-contents">
+           <span>$i18n{extensionsSectionHeader}</span>
+-          <span id="pinned-toggle-container"
+-              ?hidden="${!this.showExtensionsPinnedByDefault_}">
++          <!-- Blanc (owner): the Island has no toolbar to pin extensions to. -->
++          <span id="pinned-toggle-container" hidden>
+             <span id="pinned-toggle-label">$i18n{pinNewExtensions}</span>
+             <cr-toggle id="pinned-toggle"
+                 ?checked="${this.extensionsPinnedByDefault}"
 diff --git a/chrome/browser/resources/settings/blanc_settings_proxy.ts b/chrome/browser/resources/settings/blanc_settings_proxy.ts
 index 5068e4206cf348009e07b33fd7df47a7ab66a6fc..886e991319dabc453bcf618dc523b1ed9391ddd8 100644
 --- a/chrome/browser/resources/settings/blanc_settings_proxy.ts
