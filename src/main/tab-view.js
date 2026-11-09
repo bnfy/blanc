@@ -591,13 +591,21 @@ function wireTabView(tab, view, { owner, adopted }) {
   // continue past (certificate spec §4.2) is allowed only on an exact
   // origin+fingerprint+error+validity match; everything else is rejected,
   // and subframe failures stay denied without replacing the visible page.
+  //
+  // Never call `callback` while this event is being emitted. Electron 45 emits
+  // it here and then on `app`, both reading a URL the request owns, and an
+  // answer frees the request before the second emit, which crashes the browser
+  // on a failing subframe (#1424). Electron denies by default once both emits
+  // finish, so a refusal leaves `callback` alone. An allow waits a macrotask:
+  // Node drains microtasks and nextTicks between the two emits.
   wc.on('certificate-error', boundToTab((event, failedUrl, error, certificate, callback, isMainFrame) => {
-    if (tab.sleeping || tab.view?.webContents !== wc) return callback(false);
+    if (tab.sleeping || tab.view?.webContents !== wc) return;
     const sanitized = sanitizeCertificate(certificate);
     if (certificateExceptions.matches(wc.session, { url: failedUrl, error, certificate: sanitized, now: Date.now() })) {
       if (isMainFrame) tab.pendingCertificateException = { url: failedUrl, certificate: sanitized };
       event.preventDefault();
-      return callback(true);
+      setImmediate(() => callback(true));
+      return;
     }
     if (isMainFrame) {
       tab.certificateError = {
@@ -606,7 +614,6 @@ function wireTabView(tab, view, { owner, adopted }) {
         certificate: sanitized,
       };
     }
-    callback(false);
   }));
   // A destroyed view's gate refusals can never fail late into another tab.
   const refusalContentsId = wc.id;

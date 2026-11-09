@@ -57,3 +57,9 @@ Feature: Certificate safety
     Then the lab tab still reports that I continued past a warning
     When I go forward in the lab tab
     Then the lab tab reports a secure connection
+
+  @desktop @F39-8
+  Scenario: A frame with an invalid certificate is refused without closing Blanc
+    Given a page embeds a frame with an untrusted certificate
+    Then the embedded frame is refused
+    And the page that embeds it stays open
