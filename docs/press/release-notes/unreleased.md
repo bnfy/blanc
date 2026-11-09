@@ -1,7 +1,13 @@
 # Unreleased notes
 
-v1.47.0 is the current public release ([notes](v1.47.0.md)). Changes merged
-since then are below as they're recorded.
+Changes merged since v1.47.0 are included in the prepared
+[v1.47.1 release notes](v1.47.1.md). No additional release changes are
+recorded here.
+
+## Still open from 1.47.1
+
+- **The certificate crash fix** (#1424) was checked on macOS. It hasn't been
+  run in Blanc on Linux or Windows.
 
 ## Still open from 1.47
 
