@@ -459,6 +459,15 @@ test('certificate-error allows only through the exception store and never by def
   const source = require('node:fs').readFileSync(require.resolve('../../src/main/tab-view.js'), 'utf8');
   const handler = source.slice(source.indexOf("wc.on('certificate-error'"), source.indexOf("wc.once('destroyed'"));
   assert.match(handler, /certificateExceptions\.matches\(wc\.session/);
-  assert.match(handler, /event\.preventDefault\(\);\s*return callback\(true\);/);
+  assert.match(handler, /event\.preventDefault\(\);\s*setImmediate\(\(\) => callback\(true\)\);/);
   assert.equal((handler.match(/callback\(true\)/g) ?? []).length, 1);
+});
+
+// Electron 45 emits certificate-error on the WebContents and then on app, both
+// reading a URL the request owns. Answering during the first emit frees it, and
+// the second emit crashes the browser (#1424).
+test('certificate-error never answers while Electron is still emitting the event', () => {
+  const source = require('node:fs').readFileSync(require.resolve('../../src/main/tab-view.js'), 'utf8');
+  const handler = source.slice(source.indexOf("wc.on('certificate-error'"), source.indexOf("wc.once('destroyed'"));
+  assert.equal(handler.replace(/setImmediate\(\(\) => callback\(true\)\);/, '').includes('callback('), false);
 });

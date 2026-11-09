@@ -1195,6 +1195,8 @@ From the desktop `DEFAULTS`:
 - A page loaded after continuing reports **Not secure** until that document is
   replaced, even if the choice is later withdrawn; **Stop allowing** withdraws
   it.
+- A frame with an invalid certificate is refused without replacing the page
+  around it.
 - This does not reproduce Chromium's HSTS refusal: platforms that cannot read
   the engine's HSTS state must not claim it.
 - **Acceptance:** [`acceptance/site-certificate-safety.feature`](./acceptance/site-certificate-safety.feature).

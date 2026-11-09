@@ -208,3 +208,39 @@ When('I go forward in the lab tab', async function () {
 Then('the lab tab still reports that I continued past a warning', async function () {
   await waitForSiteState(this, this.labTabId, 'certificate-exception');
 });
+
+Given('a page embeds a frame with an untrusted certificate', async function () {
+  this.untrustedFrameUrl = this.untrustedFixtureUrl('framed-bad-cert');
+  this.frameHostUrl = this.fixtureUrl('frame-host-untrusted');
+  this.frameHostTabId = await this.call('openTab', this.frameHostUrl);
+  await this.waitForState((state) => state.tabs.some((tab) =>
+    tab.id === this.frameHostTabId && tab.loadedUrl === this.frameHostUrl), { timeout: 10_000 });
+  const outcome = await this.call('executeTab', this.frameHostTabId, `new Promise((resolve) => {
+    const frame = document.createElement('iframe');
+    frame.onload = () => resolve('loaded');
+    frame.src = ${JSON.stringify(this.untrustedFrameUrl)};
+    document.body.append(frame);
+  })`);
+  assert.equal(outcome, 'loaded');
+});
+
+Then('the embedded frame is refused', async function () {
+  // Read in the main process, because a cross-origin frame can't be inspected
+  // from its page. Origins, not URLs: a refused frame's error page still
+  // reports the URL it tried.
+  const origins = await ctx.app.evaluate(({ webContents }, url) => {
+    const host = webContents.getAllWebContents().find((wc) => !wc.isDestroyed() && wc.getURL() === url);
+    return host ? host.mainFrame.framesInSubtree.map((frame) => frame.origin) : null;
+  }, this.frameHostUrl);
+  assert.ok(origins, 'the page that embeds the frame is gone');
+  assert.equal(origins.length, 2, `frames were ${JSON.stringify(origins)}`);
+  assert.ok(origins.includes(new URL(this.frameHostUrl).origin), `frames were ${JSON.stringify(origins)}`);
+  assert.equal(origins.includes(new URL(this.untrustedFrameUrl).origin), false, `frames were ${JSON.stringify(origins)}`);
+});
+
+Then('the page that embeds it stays open', async function () {
+  const state = await this.state();
+  assert.equal(state.tabs.find((tab) => tab.id === this.frameHostTabId)?.loadedUrl, this.frameHostUrl);
+  const payload = await this.call('serializedTabsPayload');
+  assert.notEqual(payload.find((entry) => entry.id === this.frameHostTabId)?.siteInfo?.state, 'certificate-error');
+});
