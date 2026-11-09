@@ -1,8 +1,9 @@
 // Native history, lazy restore, quiet lifecycle and the existing scheduler.
+import {forkUrl} from './core.mjs';
 import {nativeId} from '../lib/adapters.mjs';
 async function settled(w,id){return w.waitForState(s=>s.tabs.some(t=>t.id===String(id)&&!t.loading));}
 export const quietNative={
- async navigateTab(w,id,url){await w.native(/^https?:/i.test(url)?'navigate':'testNavigateTabAnyScheme',[nativeId(id),url]);await settled(w,id);return true;},
+ async navigateTab(w,id,url){await w.native(/^https?:/i.test(url)?'navigate':'testNavigateTabAnyScheme',[nativeId(id),forkUrl(url)]);await settled(w,id);return true;},
  tabNavigation:(w,id)=>w.native('quietNavigation',[nativeId(id)]),
  sleepState:(w,id)=>w.native('quietSleepState',[nativeId(id)]),
  async wakeTab(w,id,url){
