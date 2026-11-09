@@ -167,7 +167,12 @@ export default function register(step){
   await this.fixture.browser.send('Browser.setDownloadBehavior',{behavior:'allow',downloadPath:dir,eventsEnabled:true});
   this.downloadEvents=[];
   for(const m of ['Browser.downloadWillBegin','Browser.downloadProgress'])this.fixture.browser.on(m,e=>this.downloadEvents.push({m,...e}));
-  await this.call('openTab',`http://127.0.0.1:${this.downloadServer.address().port}/slow-download.bin`);
+  // A tab opened straight at a download URL never commits a document and
+  // closes itself almost immediately (confirmed live: it's present for one
+  // state tick, gone the next) — openTab()'s created() helper waits for that
+  // same tab id to finish loading, which never happens. Create it directly
+  // and track only the download, which is what this step actually asserts.
+  await this.native('createTab',[`http://127.0.0.1:${this.downloadServer.address().port}/slow-download.bin`]);
   await until(this,()=>this.downloadEvents,e=>e.some(x=>x.m==='Browser.downloadWillBegin'),'the download to begin');
  });
  // The Downloads sheet's row for the download, as shipping's page draws it.
