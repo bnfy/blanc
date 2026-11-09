@@ -590,6 +590,10 @@
         request('openSheet', ['bookmarks']).catch((error) => console.warn(error.message));
       });
     }
+    document.querySelector('#patronCallout a')?.addEventListener('click', (event) => {
+      event.preventDefault();
+      request('openSheet', ['patron']).catch((error) => console.warn(error.message));
+    });
   });
 })();
 

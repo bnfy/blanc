@@ -14,6 +14,13 @@ D7, F0.7, cold builds, new machines, D2/D4–D6/D8/V2 and replacement D3
 remain pending. D3 beta-only no-DRM exception accepted; EME notice/handoff required.
 
 ## Current work
+- **2026-11-09 — Start Page's Patron pill (candidate macos-cd5dbbaafb7c657d):**
+  the pill's `blanc://settings/#group-patron` link went nowhere. It now opens
+  the Settings sheet at `chrome://settings/help`, where the `#patronCheckout`
+  row is, as shipping's link opens Settings at Patron. A real click was
+  verified; the row is on screen. `newtab-layouts.feature` 21 / 2 and
+  `internal-pages.feature` 9 / 1 fail only where they did before
+  (`:21`, `:161`; `internal-pages:7`); `supporter-and-session.feature` 2 / 0.
 - **2026-11-09 — Start Page footer fixes and corrections (candidate macos-d40bfa2514c288c3):**
   owner dogfooding found what the Mahjong round 1 tests missed. `#mahjongLink`
   was still in `newtab-prototype.css`'s hide-list, so the footer link merged
@@ -29,9 +36,7 @@ remain pending. D3 beta-only no-DRM exception accepted; EME notice/handoff requi
   left group wraps at 1260px). `island-and-commands.feature` 63 / 3: `:295` and
   `:359` also failed in the morning's full run; `:107` (permission prompt
   blocks hover-open) passed that run and has failed 3 of 3 since, cause
-  unknown. Open: moving the preview disclosure to Settings → About, and the
-  Patron pill, whose `blanc://settings/#group-patron` link is dead although
-  Settings → About has a working `#patronCheckout`.
+  unknown. Open: moving the preview disclosure to Settings → About.
 - **2026-11-09 — ⌘L panel's Private button, owner-reported (candidate macos-2126247dc249b5b7):**
   the owner noticed the panel's footer had no Private button, unlike shipping.
   It was already fully wired — `footerNewPrivate`'s click handler
@@ -2151,5 +2156,5 @@ Android's Bar A counts the shared scenarios bound in `chromium/tests/android/acc
 
 Legacy macOS stages come from the approved spec; they await verification on the canonical candidate. No legacy stage counts as Verified.
 
-Candidate identities: macOS: macos-d40bfa2514c288c3; Windows: none; Linux: none; Android: android-arm64-7bd35e94ef746069.
+Candidate identities: macOS: macos-cd5dbbaafb7c657d; Windows: none; Linux: none; Android: android-arm64-7bd35e94ef746069.
 <!-- END GENERATED PROGRESS -->

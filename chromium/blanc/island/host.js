@@ -2301,7 +2301,7 @@
     sheetBridge, sheetLink, sheetEscape,
     // Native's permission requests (permission_prompt.inc).
     permissionPrompt, permissionGone,
-    openSheet: (name) => showSheet(name),
+    openSheet: (name, section) => showSheet(name, section),
     closeSheet: () => hideSheet(),
     sheetState: () => ({ visible: sheet.page === 'settings' ? !settingsSheet.hidden
         : !!sheet.page && !!sheet.frame && !sheet.frame.hidden, ready: sheetReady(),

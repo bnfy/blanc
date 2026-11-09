@@ -9650,7 +9650,9 @@ bool OpenExtensions(BrowserWindowInterface* browser) {
 #include "blanc/browser/ui/permission_prompt.inc"
 
 bool OpenUtilitySheet(BrowserWindowInterface* browser, std::string_view page) {
-  if (page != "history" && page != "downloads" && page != "bookmarks" && page != "settings") return false;
+  // The Start Page's Patron invitation opens Settings at its checkout row.
+  const bool patron = page == "patron";
+  if (page != "history" && page != "downloads" && page != "bookmarks" && page != "settings" && !patron) return false;
   // A private window keeps Chromium's pages; the sheet shows regular data.
   // Settings, like Chromium's, is the regular profile's in either window.
   if (!IsIslandWindow(browser) || (page != "settings" && browser->GetProfile()->IsOffTheRecord())) return false;
@@ -9661,7 +9663,9 @@ bool OpenUtilitySheet(BrowserWindowInterface* browser, std::string_view page) {
   if (contents->GetLastCommittedURL() != GURL("chrome://blanc-prototype/host.html") ||
       !contents->GetPrimaryMainFrame()->IsRenderFrameLive()) return false;
   contents->GetPrimaryMainFrame()->ExecuteJavaScript(
-      u"window.BlancPrototypeHost?.openSheet('" + base::ASCIIToUTF16(page) + u"')", base::NullCallback());
+      patron ? std::u16string(u"window.BlancPrototypeHost?.openSheet('settings','help')")
+             : u"window.BlancPrototypeHost?.openSheet('" + base::ASCIIToUTF16(page) + u"')",
+      base::NullCallback());
   return true;
 }
 
