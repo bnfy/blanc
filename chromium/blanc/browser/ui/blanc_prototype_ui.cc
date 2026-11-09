@@ -3805,6 +3805,26 @@ class NewTabHandler : public content::WebUIMessageHandler,
       Reply(id, opened, base::Value(opened ? "" : "Start page is not active"));
       return;
     }
+    if (method == "openMahjong" && args.size() == 1 && args[0].is_bool()) {
+      auto* browser = GlobalBrowserCollection::GetInstance()->FindBrowserWithTab(contents);
+      if (!browser || browser->GetTabStripModel()->GetActiveWebContents() != contents) {
+        Reply(id, false, base::Value("Start page is not active"));
+        return;
+      }
+      // A private Start Page keeps its OTR profile in this same window (D1).
+      auto* source_profile = Profile::FromWebUI(web_ui());
+      const GURL url(source_profile->IsOffTheRecord()
+          ? "chrome://blanc-prototype/pages/mahjong.html?private=1"
+          : "chrome://blanc-prototype/pages/mahjong.html");
+      NavigateParams params(source_profile, url, ui::PAGE_TRANSITION_LINK);
+      params.browser = browser;
+      params.disposition = args[0].GetBool() ? WindowOpenDisposition::kNewBackgroundTab
+                                            : WindowOpenDisposition::kNewForegroundTab;
+      Navigate(&params);
+      const bool opened = params.navigated_or_inserted_contents != nullptr;
+      Reply(id, opened, base::Value(opened));
+      return;
+    }
     Reply(id, false, base::Value("Unsupported start-page request"));
   }
   using PinIcon = std::pair<std::string, std::string>;
@@ -9558,11 +9578,12 @@ UI::UI(content::WebUI* web_ui) : ui::MojoWebUIController(web_ui, /*enable_chrome
                   neutral ? blanc::island_resources::Find("pages/pages-neutral.css") : nullptr));
               return;
             }
-            // Only the exact private and tour Start Page queries and the
+            // Only the exact private page and tour Start Page queries and the
             // floating pill's surface query alias their shared static assets;
             // arbitrary queries never become filesystem paths.
             const std::string asset_path =
                 path == "pages/newtab.html?private=1" || path == "pages/newtab.html?tour=1" ? "pages/newtab.html"
+                : path == "pages/mahjong.html?private=1" ? "pages/mahjong.html"
                 : path == "index.html?surface=float" || path == "index.html?surface=glance" ? "index.html" : path;
 #if BUILDFLAG(ENABLE_BLANC_DISK_ASSETS)
             // Build outputs such as the compiled bindings exist only embedded.

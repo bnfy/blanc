@@ -470,6 +470,7 @@
       onRemoteTabs: () => {},
       onUtilitySheetVisibility: () => {},
       openIsland: text => request('openIsland', [text]),
+      openMahjong: background => request('openMahjong', [background === true]),
     },
   };
   // The native handler reports bookmark-model changes (Island heart, /save,
