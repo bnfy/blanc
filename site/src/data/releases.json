@@ -1,5 +1,37 @@
 [
   {
+    "tag": "v1.47.1",
+    "version": "1.47.1",
+    "name": "1.47.1",
+    "publishedAt": "2026-11-09T19:47:15.000Z",
+    "humanDate": "November 9, 2026",
+    "machineDate": "2026-11-09",
+    "url": "https://github.com/bnfy/blanc/releases/tag/v1.47.1",
+    "anchor": "v1-47-1",
+    "compareUrl": null,
+    "sections": [
+      {
+        "heading": "Fixed",
+        "blocks": [
+          {
+            "type": "list",
+            "items": [
+              {
+                "spans": [
+                  {
+                    "type": "text",
+                    "value": "Blanc no longer crashes when a page contains a frame that fails its certificate check. The frame is refused and the rest of the page stays open."
+                  }
+                ],
+                "url": null
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
     "tag": "v1.47.0",
     "version": "1.47.0",
     "name": "1.47.0",

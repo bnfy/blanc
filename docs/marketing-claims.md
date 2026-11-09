@@ -587,6 +587,11 @@ original reports:
 - **Quitting with Shared Spaces:** Since v1.47.0 a Shared Space arriving from
   another device during a quit no longer overwrites the saved windows file.
   Don't claim more than that, and don't say any tabs were lost before.
+- **1.47.1 is fixes only:** Since v1.47.1 a frame that fails its certificate
+  check is refused without crashing Blanc. The crash came with v1.47.0's
+  Electron 45 runtime. The fix was run in Blanc on macOS only, so don't say it
+  was tested on Linux or Windows. It adds no feature: describe new capabilities
+  as since v1.47.0, never v1.47.1.
 - **Auto-hide the Island:** Since v1.39.0 an opt-in, device-local setting
   (Settings → General, the View menu, ⌘⌥B or Ctrl+Alt+B) hides the Island's
   strip so the page fills the window. Pointing at or just above the top edge,
