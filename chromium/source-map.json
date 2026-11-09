@@ -597,7 +597,7 @@
     "chrome/app/theme/chromium/mac/Assets.car": "78e0f110a403ff1f6febdf819d60e2ff7a01d224a6dba70b0629862b19efe42a",
     "chrome/app/theme/chromium/mac/app.icns": "d34201f7710f10d7943193f4afb3bda378acba1b96381468245f553d7234a8c1",
     "chrome/browser/BUILD.gn": "412d94ad714126072e266828e93be1b7d3e77515b9f6575b069c2aeed89492ff",
-    "chrome/browser/app_controller_mac.mm": "0c6a1ce092361e015c165320c03d3ccb9481ac53a9b057b8b789a0b165b386a3",
+    "chrome/browser/app_controller_mac.mm": "72e5168dc42362aeb53e0f66e0a7d965cd16eb15c2d0dc40fd45b257901b274c",
     "chrome/browser/chrome_browser_interface_binders_webui_parts_desktop.cc": "efea8008ca7279a6191e22dd8b3d380f59d733541e889346d12113c949026654",
     "chrome/browser/chrome_content_browser_client.cc": "ae8640c6aea618693d526cea43829cf9e2893ed3c14cbcd495963a9deedb5762",
     "chrome/browser/chrome_content_browser_client_receiver_bindings.cc": "1df2efd8ab7a39a60ac3e884d6efaf883b14e9f0859529a2bcdad85a563f2b28",
