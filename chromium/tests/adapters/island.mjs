@@ -66,7 +66,7 @@ async function floatViewState(w,role='pill'){
  const state=await w.hostEval('window.BlancPrototypeHost.floatViewState()');
  if(!state)return null;
  const b=state.bounds;
- const above=!!b&&state.shown&&await w.native('hitTarget',[Math.round(b.x+b.width/2),Math.round(b.y+Math.min(b.height-1,30))])==='island';
+ const above=!!b&&await w.native('islandAbovePages')&&(!state.shown||await w.native('hitTarget',[Math.round(b.x+b.width/2),Math.round(b.y+Math.min(b.height-1,30))])==='island');
  return {...state,aboveTabsAndSheet:above};
 }
 // Blink dispatches mouse moves with the next frame, after CDP has answered;
@@ -289,9 +289,11 @@ export const island={
  async floatWebContentsIds(w,runtimeId){
   const id=String(runtimeId);
   const {targetInfos:targets}=await w.fixture.browser.send('Target.getTargets');
-  const host=id==='primary'?null:targets.find(t=>t.targetId===id);
-  if(id!=='primary'&&!host)return [];
-  return [`${id}:floatPill`];
+  const ordered=await w.native('windowOrdinals');
+  const targetId=id==='primary'?ordered[0]:/^window-\d+$/.test(id)?ordered[Number(id.slice(7))-1]:id;
+  const host=targets.find(t=>t.targetId===targetId&&t.url==='chrome://blanc-prototype/host.html');
+  if(!host)return [];
+  return [`${targetId}:floatPill`];
  },
  floatPillWebContentsId:undef('The fork\'s floating pill is a frame of the Island host, not its own web contents'),
  async chromeSurfaceRegistered(w,surface){

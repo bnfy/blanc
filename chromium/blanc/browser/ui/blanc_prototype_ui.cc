@@ -1338,7 +1338,9 @@ class IslandView : public views::WebView, public views::ViewTargeterDelegate {
     if (!owner) return GetLocalBounds().Intersects(rect);
     if (owner->float_bounds.Intersects(rect)) return true;
     if (!owner->split_geometry.empty()) {
-      if (gfx::Rect(0, 0, width(), owner->strip_height).Intersects(rect)) return true;
+      const int band = owner->glance_main >= 0
+          ? HeaderHeight(const_cast<views::View*>(parent())) : owner->strip_height;
+      if (gfx::Rect(0, 0, width(), band).Intersects(rect)) return true;
       for (const auto& region : owner->split_hit_regions)
         if (region.Intersects(rect)) return true;
       return (owner->vertical && gfx::Rect(0, owner->strip_height, RailWidth(const_cast<views::View*>(parent())), height()).Intersects(rect)) ||
@@ -4400,6 +4402,10 @@ class Handler : public content::WebUIMessageHandler, public extensions::Extensio
 #endif
     auto_timer_.Start(FROM_HERE, base::Seconds(30),
         base::BindRepeating(&Handler::AutoTick, weak_factory_.GetWeakPtr()));
+    // Restored windows can become active before the Island's Owner subscribes
+    // to activation. Arm edge sampling for that already-active window too;
+    // otherwise a split's inset page never delivers a move at window y=0.
+    if (auto* owner = GetOwner(web_ui()->GetWebContents())) AutoHideActivated(owner);
     // The Island hears Island setting changes at once, so turning hover-open
     // off ends a dwell already under way.
     island_prefs_.Init(Profile::FromWebUI(web_ui())->GetOriginalProfile()->GetPrefs());
@@ -5379,6 +5385,20 @@ class Handler : public content::WebUIMessageHandler, public extensions::Extensio
     if (message[1].GetString() == "storedUiLanguage") {
       Reply(id, true, base::Value(g_browser_process->local_state()->GetString(
           std::string(blanc::ui_language::kPref))));
+      return;
+    }
+    // Stacking is independent of visibility: a hidden floating pill stays
+    // above the page containers so its next reveal needs no tab switch.
+    if (message[1].GetString() == "islandAbovePages" && message[2].GetList().empty()) {
+      auto* owner = GetOwner(web_ui()->GetWebContents());
+      auto* browser_view = owner ? BrowserViewFor(owner) : nullptr;
+      views::View* parent = owner && owner->view ? owner->view->parent() : nullptr;
+      views::View* page = browser_view ? browser_view->multi_contents_view() : nullptr;
+      if (!parent || !page) { reject("Window view tree unavailable."); return; }
+      while (page->parent() && page->parent() != parent) page = page->parent();
+      const auto page_index = parent->GetIndexOf(page);
+      const auto island_index = parent->GetIndexOf(owner->view);
+      Reply(id, true, base::Value(page_index && island_index && *page_index < *island_index));
       return;
     }
     // Read-only: whether a click at (x, y) in the Island document would reach
@@ -10110,7 +10130,11 @@ void LayoutIsland(views::View* parent, int top) {
   // Auto-hide's push style moves the Island with the page's top: above the
   // window while hidden, sliding in above the page as it moves down. The
   // rail keeps its column, and a floating Island stays at the top.
-  if (owner && !owner->vertical && !IslandFloating(owner)) top += HeaderHeight(parent) - BaseHeaderHeight(parent);
+  // Glance's card lives in this host too. Keep the host fixed to the
+  // window and animate only its strip, so neither the card nor its page
+  // inherits the pushed Island's changing origin.
+  if (owner && !owner->vertical && owner->glance_main < 0 && !IslandFloating(owner))
+    top += HeaderHeight(parent) - BaseHeaderHeight(parent);
   if (owner) SyncWindowButtons(owner);
   const int available = std::max(0, parent->height() - top);
   view->SetBounds(0, top, parent->width(),
@@ -10136,6 +10160,8 @@ void LayoutIsland(views::View* parent, int top) {
   }
   auto bounds = owner->extension_bounds;
   bounds.Offset(0, top);
+  if (owner->glance_main >= 0 && !owner->vertical && !IslandFloating(owner))
+    bounds.Offset(0, HeaderHeight(parent) - BaseHeaderHeight(parent));
   // Sliding, it may hang above the window; shrinking it would squash it.
   if (!owner->autohide_slide) bounds.Intersect(parent->GetLocalBounds());
   const bool resized = extensions->width() != bounds.width();

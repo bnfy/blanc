@@ -2250,6 +2250,13 @@
   let introTip = false;
   function syncAutoHide() {
     const state = snapshot?.islandAutoHide;
+    // The Glance host stays window-fixed. Slide only the strip; the card
+    // and its page must not inherit the strip's native push offset.
+    const pushedGlance = snapshot?.glanceTabId != null && layout !== 'vertical' && !state?.floating;
+    const duration = state?.stripHidden ? AutoHide.SLIDE_OUT_MS : AutoHide.SLIDE_IN_MS;
+    strip.style.transition = pushedGlance && !matchMedia('(prefers-reduced-motion: reduce)').matches
+      ? `transform ${duration}ms cubic-bezier(.33,1,.68,1)` : '';
+    strip.style.transform = pushedGlance && state?.stripHidden ? `translateY(-${stripH() + 30}px)` : '';
     // Shipping's stripCovered: hidden, or floating under its pill.
     const hidden = state?.stripHidden === true || state?.floating === true;
     if (hidden !== stripHiddenSent) { stripHiddenSent = hidden; emit('onStripHidden', hidden); }

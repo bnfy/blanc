@@ -325,7 +325,10 @@ export const tabs={
  async splitCornerTabs(w){
   const s=await w.snapshot();const split=(s.splits||[]).find(x=>x.tabIds.includes(s.activeTabId));if(!split)return [];
   const rows=await w.hostEval(`[...document.querySelectorAll('#splitHeaders .split-pane-header')].map(pane=>{const r=pane.getBoundingClientRect();const title=pane.querySelector('.split-pane-title');
-   return {bounds:{x:r.x,y:r.y,width:r.width,height:r.height},width:r.width,shown:r.width>0,site:title.hidden?'':title.textContent};})`);
+   const headers=document.getElementById('splitHeaders'),float=document.getElementById('floatPill');
+   const hz=Number(getComputedStyle(headers).zIndex)||0,fz=float?(Number(getComputedStyle(float).zIndex)||0):0;
+   const belowFloat=!!float&&(hz<fz||(hz===fz&&!!(headers.compareDocumentPosition(float)&Node.DOCUMENT_POSITION_FOLLOWING)));
+   return {belowFloat,bounds:{x:r.x,y:r.y,width:r.width,height:r.height},width:r.width,shown:r.width>0,site:title.hidden?'':title.textContent};})`);
   return split.tabIds.map((id,i)=>({tabId:String(id),focused:id===s.activeTabId,...rows[i]}));
  },
  async clickSplitCorner(w,tabId,part){
