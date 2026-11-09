@@ -14,6 +14,26 @@ D7, F0.7, cold builds, new machines, D2/D4–D6/D8/V2 and replacement D3
 remain pending. D3 beta-only no-DRM exception accepted; EME notice/handoff required.
 
 ## Current work
+- **2026-11-09 — Mahjong round 1, footer launch (candidate macos-aef74633b0b1595d):**
+  the owner's named S1 close-out item. Ported shipping's 27 `mahjong*` files
+  byte-identical (SHA-256-verified against `git show`), wired the footer link
+  that was already in `newtab.html`/`.js` but called a nonexistent
+  `window.bowserPages.start.openMahjong` (added the JS bridge and a native
+  `NewTabHandler` case opening a new tab at
+  `chrome://blanc-prototype/pages/mahjong.html`), and extended the existing
+  `shippingPageUrl()` test-only URL projection so acceptance scenarios see
+  `blanc://mahjong/...` as shipping expects. `newtab-layouts.feature:35`
+  (F35-4, ordinary footer launch) passes live. `:41` (F35-9, the private
+  variant) does not: six rounds of `LOG(ERROR)` tracing confirmed the
+  dispatch *should* reach the native handler (a side-channel re-check of the
+  exact guard condition evaluates true) but an unconditional log placed
+  immediately before the real check never fires — genuinely unexplained by
+  source reading or print-style tracing; next attempt needs a real debugger,
+  not more logging. Pausing that one scenario rather than spending further
+  rounds, consistent with the owner's "known gaps OK" bar for this beta;
+  not a crash or data-loss class issue. `:21` (F35-3, deep game correctness)
+  intentionally unattempted this round; `:161` (F35-10) is unrelated,
+  pre-existing, and untouched. See `CODEX-NOTES-mahjong-round1.md`.
 - **2026-11-09 — Batch 1 + Batch 2 merged (candidate macos-507866b59af7ffc6):**
   PR #1420 (batch 1) merged to `chromium/s3-quiet-tabs` first, which left PR
   #1421 (batch 2) with real conflicts — both touched `blanc_prototype_ui.cc`,
@@ -2102,5 +2122,5 @@ Android's Bar A counts the shared scenarios bound in `chromium/tests/android/acc
 
 Legacy macOS stages come from the approved spec; they await verification on the canonical candidate. No legacy stage counts as Verified.
 
-Candidate identities: macOS: macos-507866b59af7ffc6; Windows: none; Linux: none; Android: android-arm64-7bd35e94ef746069.
+Candidate identities: macOS: macos-aef74633b0b1595d; Windows: none; Linux: none; Android: android-arm64-7bd35e94ef746069.
 <!-- END GENERATED PROGRESS -->
