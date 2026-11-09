@@ -1,3 +1,5 @@
+#include "content/public/browser/host_zoom_map.h"
+#include "third_party/blink/public/common/page/page_zoom.h"
 #include "blanc/buildflags.h"
 #include "blanc/island_resources/island_resources.h"
 #include "blanc/browser/ui/browser_api/navigation.h"
@@ -2389,6 +2391,20 @@ scoped_refptr<base::RefCountedMemory> SurfaceStylesheet(
   return base::MakeRefCounted<base::RefCountedString>(std::move(text));
 }
 
+// Mahjong's files are shipping's, byte for byte, and its shared-deal links
+// name shipping's address (blanc://mahjong/?deal=...). The page here lives at
+// chrome://blanc-prototype/pages/mahjong.html, which shipping's parser refuses,
+// so the served state script reads this page's address as shipping's.
+scoped_refptr<base::RefCountedMemory> MahjongStateScript(scoped_refptr<base::RefCountedMemory> script) {
+  if (!script) return nullptr;
+  std::string text(reinterpret_cast<const char*>(script->front()), script->size());
+  text += "\n;(() => { const S = window.MahjongState; if (!S) return; const parse = S.parseShareDeal;\n"
+          "  const here = 'chrome://blanc-prototype/pages/mahjong.html';\n"
+          "  S.parseShareDeal = (input) => { const href = input instanceof URL ? input.href : String(input);\n"
+          "    return parse(href.startsWith(here) ? 'blanc://mahjong/' + href.slice(here.length) : href); }; })();\n";
+  return base::MakeRefCounted<base::RefCountedString>(std::move(text));
+}
+
 #if BUILDFLAG(ENABLE_BLANC_DISK_ASSETS)
 scoped_refptr<base::RefCountedMemory> ReadAsset(base::FilePath root,
                                                std::string path) {
@@ -4718,6 +4734,39 @@ class Handler : public content::WebUIMessageHandler, public extensions::Extensio
           ->browser->GetProfile()->IsOffTheRecord());
       result.Set("contract", "native-production-dispatch-v1");
       Reply(id, true, base::Value(std::move(result)));
+      return;
+    }
+    // Browser layout zoom, not CDP visual/pinch scale. Match shipping's
+    // internal-page-only test hooks; this dispatch is build/runtime gated.
+    if (message[1].GetString() == "activeTabZoomFactor" ||
+        message[1].GetString() == "setActiveTabZoomFactor") {
+      const auto& args = message[2].GetList();
+      const bool set = message[1].GetString() == "setActiveTabZoomFactor";
+      if ((!set && !args.empty()) ||
+          (set && (args.size() != 1 || (!args[0].is_double() && !args[0].is_int())))) {
+        Reply(id, false, base::Value("Invalid zoom arguments.")); return;
+      }
+      auto* tab = GetOwner(web_ui()->GetWebContents())->browser
+          ->GetTabStripModel()->GetActiveWebContents();
+      const GURL url = tab ? tab->GetLastCommittedURL() : GURL();
+      const bool allowed = url.SchemeIs("chrome") &&
+          ((url.host() == "blanc-prototype" &&
+            (url.path() == "/pages/newtab.html" || url.path() == "/pages/mahjong.html")) ||
+           url.host() == "newtab" || url.host() == "new-tab-page");
+      if (!allowed) { Reply(id, true, base::Value()); return; }
+      if (set) {
+        const double factor = args[0].GetDouble();
+        if (!std::isfinite(factor)) {
+          Reply(id, false, base::Value("Invalid zoom factor.")); return;
+        }
+        // This tab alone, and not kept: a host's level would also zoom the
+        // Island, which is served from the same host, and outlive the test.
+        content::HostZoomMap::GetForWebContents(tab)->SetTemporaryZoomLevel(
+            tab->GetPrimaryMainFrame()->GetGlobalId(),
+            blink::ZoomFactorToZoomLevel(std::clamp(factor, 0.5, 3.0)));
+      }
+      Reply(id, true, base::Value(blink::ZoomLevelToZoomFactor(
+          content::HostZoomMap::GetZoomLevel(tab))));
       return;
     }
     const auto& quiet_args = message[2].GetList();
@@ -8169,7 +8218,9 @@ class Handler : public content::WebUIMessageHandler, public extensions::Extensio
           url != GURL("chrome://settings/") &&
           url != GURL("chrome://downloads/") &&
           url != GURL("chrome://bookmarks/") &&
-          url != GURL("chrome://history/")) {
+          url != GURL("chrome://history/") &&
+          // Mahjong is an ordinary tab, with or without a deal in its query.
+          !(url.SchemeIs("chrome") && url.host() == "blanc-prototype" && url.path() == "/pages/mahjong.html")) {
         reply(false, base::Value("Unsupported prototype destination."));
         return;
       }
@@ -9133,7 +9184,11 @@ class Handler : public content::WebUIMessageHandler, public extensions::Extensio
       return;
     } else if (method == "navigate" && args.size() == 2 && args[1].is_string()) {
       const GURL url(args[1].GetString());
-      if (!url.SchemeIsHTTPOrHTTPS()) {
+      // A shared Mahjong deal is typed as blanc://mahjong/?deal=...; the host
+      // sends this page's address for it.
+      const bool mahjong = url.SchemeIs("chrome") && url.host() == "blanc-prototype" &&
+          url.path() == "/pages/mahjong.html";
+      if (!url.SchemeIsHTTPOrHTTPS() && !mahjong) {
         reply(false, base::Value("Navigation requires an HTTP or HTTPS URL."));
         return;
       }
@@ -9655,6 +9710,20 @@ UI::UI(content::WebUI* web_ui) : ui::MojoWebUIController(web_ui, /*enable_chrome
 #endif
               std::move(callback).Run(SurfaceStylesheet(blanc::island_resources::Find("pages/pages.css"),
                   neutral ? blanc::island_resources::Find("pages/pages-neutral.css") : nullptr, zoom));
+              return;
+            }
+            if (path == "pages/mahjong-state.js") {
+#if BUILDFLAG(ENABLE_BLANC_DISK_ASSETS)
+              if (!root.empty()) {
+                base::ThreadPool::PostTaskAndReplyWithResult(
+                    FROM_HERE, {base::MayBlock()},
+                    base::BindOnce([](base::FilePath root) {
+                      return MahjongStateScript(ReadAsset(root, "pages/mahjong-state.js"));
+                    }, root), std::move(callback));
+                return;
+              }
+#endif
+              std::move(callback).Run(MahjongStateScript(blanc::island_resources::Find("pages/mahjong-state.js")));
               return;
             }
             // Only the exact private and tour Start Page queries and the

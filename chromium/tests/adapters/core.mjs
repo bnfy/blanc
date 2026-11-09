@@ -41,6 +41,7 @@ async function created(w,reply){
 // Shipping's internal addresses, as the fork serves them: the Start Page and
 // the utility pages are chrome:// pages (the sheet takes the utility ones).
 const forkUrl=url=>{
+ if(String(url).startsWith('blanc://mahjong/'))return 'chrome://blanc-prototype/pages/mahjong.html'+String(url).slice('blanc://mahjong/'.length);
  const m=/^blanc:\/\/(newtab|settings|downloads|bookmarks|history)\/?(?:[?#].*)?$/i.exec(String(url));
  return m?`chrome://${m[1].toLowerCase()}/`:String(url);};
 export const core={

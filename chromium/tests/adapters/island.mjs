@@ -107,8 +107,12 @@ export const island={
   const {bounds}=await windowOf(w);
   // The Island window has no OS frame: the host and the page split its height,
   // or (auto-hide) the page takes all of it with the Island above it.
-  const [host,page]=await Promise.all([w.hostEval('({w:innerWidth,h:innerHeight})'),(await activePage(w)).evalExpression('innerHeight')]);
-  if(host.w!==bounds.width||([68,76,84].includes(host.h)&&host.h+page!==bounds.height&&page!==bounds.height))throw Error('Island window content does not fill its frame: '+JSON.stringify({bounds,host,page}));
+  // A zoomed page (Mahjong's records check) reports fewer CSS pixels; its
+  // height is compared in the host's, within the pixel that rounding costs.
+  const [host,inner]=await Promise.all([w.hostEval('({w:innerWidth,h:innerHeight,dpr:devicePixelRatio})'),(await activePage(w)).evalExpression('({h:innerHeight,dpr:devicePixelRatio})')]);
+  const zoomed=inner.dpr!==host.dpr,page=zoomed?Math.round(inner.h*inner.dpr/host.dpr):inner.h;
+  const fills=h=>zoomed?Math.abs(h-bounds.height)<=1:h===bounds.height;
+  if(host.w!==bounds.width||([68,76,84].includes(host.h)&&!fills(host.h+page)&&!fills(page)))throw Error('Island window content does not fill its frame: '+JSON.stringify({bounds,host,page}));
   return {x:bounds.left,y:bounds.top,width:bounds.width,height:bounds.height};
  },
  async setWindowContentSize(w,width,height){

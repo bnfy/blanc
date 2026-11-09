@@ -239,9 +239,6 @@ export const pages={
  readMahjongFooterLink:onStart(null,`(()=>({href:document.getElementById('mahjongLink')?.href??null,target:document.getElementById('mahjongLink')?.target??null,
   layout:document.body.dataset.layout,switcherCount:document.querySelectorAll('[data-layout-pick]').length,frameCount:document.querySelectorAll('iframe').length}))()`),
  clickMahjongFooterLink:onStart(false,`(()=>{const link=document.getElementById('mahjongLink');if(!link)return false;link.click();return true;})()`),
- // Deep game hooks are deferred until footer launch is verified live.
- ...Object.fromEntries(['readMahjongDom','readMahjongCompletionGeometry','rapidUndoMahjongMatch','auditMahjongCorrectness','readMahjongDealState',
-  'copyMahjongDealFromBoards','readMahjongRecordsGeometry'].map(h=>[h,()=>{throw Error(h+': deep Mahjong hook is not ported');}])),
  // Patron and the app icon (F17). The preview has no license keys (owner,
  // 2026-11-05), so there is never a supporter to clear.
  clearSupporter:async()=>true,

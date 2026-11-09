@@ -1625,6 +1625,13 @@
     navigate: async (id, value) => {
       const bang = openTypedBang(id, value);
       if (bang) return bang;
+      // A shared Mahjong deal (blanc://mahjong/?deal=...) opens the game.
+      const deal = /^blanc:\/\/mahjong\/(\?[^#\s]*)?$/i.exec(String(value).trim());
+      if (deal) {
+        const result = await typed('navigate', [String(nativeId(id)), `chrome://blanc-prototype/pages/mahjong.html${deal[1] ?? ''}`]);
+        await refresh();
+        return result;
+      }
       const meaning = window.BlancAddressInput.interpret(value);
       // A hand-off goes to the browser as typed; it classifies the text again
       // and opens the app itself (V9). Nothing loads in the tab.

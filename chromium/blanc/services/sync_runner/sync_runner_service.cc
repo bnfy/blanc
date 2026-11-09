@@ -209,8 +209,13 @@ void Emit(const Args& args) {
 }
 void CallDone(const Args& args) {
   auto* isolate = args.GetIsolate();
-  g_service->FinishCall(args.Data()->Int32Value(isolate->GetCurrentContext()).FromMaybe(0),
-                        args[0]->BooleanValue(isolate), ToString(isolate, args[1]));
+  // Desktop's V8 (158) deprecates Data() for DataV2(), which Android's (156)
+  // may not have; Data() is the one both lanes compile.
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wdeprecated-declarations"
+  const int id = args.Data()->Int32Value(isolate->GetCurrentContext()).FromMaybe(0);
+#pragma clang diagnostic pop
+  g_service->FinishCall(id, args[0]->BooleanValue(isolate), ToString(isolate, args[1]));
 }
 }  // namespace
 
