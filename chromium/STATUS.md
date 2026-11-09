@@ -14,6 +14,25 @@ D7, F0.7, cold builds, new machines, D2/D4–D6/D8/V2 and replacement D3
 remain pending. D3 beta-only no-DRM exception accepted; EME notice/handoff required.
 
 ## Current work
+- **2026-11-09 — ⌘L panel's Private button, owner-reported (candidate macos-2126247dc249b5b7):**
+  the owner noticed the panel's footer had no Private button, unlike shipping.
+  It was already fully wired — `footerNewPrivate`'s click handler
+  (`overlay.js`) calls the exact same `window.browserAPI.createTab(null,
+  {private: true})` as the already-working `/private` command, and ⌘⇧N opens
+  an in-window private tab natively (`patches/0011-in-window-private-tabs.patch`)
+  — but `prototype.css`'s "not yet backed by a native bridge" hide-list
+  (written early in the prototype, listing controls like `#panelSiteInfo`
+  that genuinely weren't wired yet) still included `#footerNewPrivate`, stale
+  since private tabs were built. Removed it from that list; confirmed live
+  via CDP (button renders, `getComputedStyle().display` went from `none` to
+  `flex`, and clicking it creates a real private tab). Full regression:
+  `island-and-commands.feature` 62-63/77 executed across two runs — one
+  scenario flaked once then passed on retry, two failures were already in
+  the same-day full-suite baseline before this change, and the fourth
+  ("A pending permission prompt blocks hover-open") reproduced twice but
+  with sibling hover-open scenarios passing in the same runs, ruling out a
+  geometry regression from this change — a pre-existing timing flake, not
+  investigated further. `node --test` 262/262; `check-patches.py` passed.
 - **2026-11-09 — Mahjong round 1, footer launch (candidate macos-aef74633b0b1595d):**
   the owner's named S1 close-out item. Ported shipping's 27 `mahjong*` files
   byte-identical (SHA-256-verified against `git show`), wired the footer link
@@ -2122,5 +2141,5 @@ Android's Bar A counts the shared scenarios bound in `chromium/tests/android/acc
 
 Legacy macOS stages come from the approved spec; they await verification on the canonical candidate. No legacy stage counts as Verified.
 
-Candidate identities: macOS: macos-aef74633b0b1595d; Windows: none; Linux: none; Android: android-arm64-7bd35e94ef746069.
+Candidate identities: macOS: macos-2126247dc249b5b7; Windows: none; Linux: none; Android: android-arm64-7bd35e94ef746069.
 <!-- END GENERATED PROGRESS -->
