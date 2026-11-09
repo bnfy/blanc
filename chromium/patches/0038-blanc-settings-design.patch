@@ -37,9 +37,18 @@ index 5068e4206cf348009e07b33fd7df47a7ab66a6fc..886e991319dabc453bcf618dc523b1ed
  
  async function loadBlancFont() {
 diff --git a/chrome/browser/resources/settings/settings_menu/settings_menu.css b/chrome/browser/resources/settings/settings_menu/settings_menu.css
-index bf6b45a8058e8d6934d89214599f38f11437ff51..da68e4ea045b6c101b25389b9c5eee9b889745be 100644
+index bf6b45a8058e8d6934d89214599f38f11437ff51..ca2778ce7798df35bdae19154408e2bb3d55c8de 100644
 --- a/chrome/browser/resources/settings/settings_menu/settings_menu.css
 +++ b/chrome/browser/resources/settings/settings_menu/settings_menu.css
+@@ -15,7 +15,7 @@
+ :host {
+   box-sizing: border-box;
+   display: block;
+-  padding-bottom: 5px; /* Prevents focus outlines from being cropped. */
++  padding-bottom: 16px; /* Prevents focus outlines from being cropped. */
+   padding-top: 8px;
+ }
+ 
 @@ -23,13 +23,29 @@
   * Chromium's refresh flag. */
  :host .cr-nav-menu-item {
@@ -77,10 +86,19 @@ index bf6b45a8058e8d6934d89214599f38f11437ff51..da68e4ea045b6c101b25389b9c5eee9b
  
  :host .cr-nav-menu-item cr-icon,
 diff --git a/chrome/browser/resources/settings/settings_page/settings_section.css b/chrome/browser/resources/settings/settings_page/settings_section.css
-index e8a01c8d77f104e5fc25785851d1ba4f72f3d52b..c212d6b2221da27b6fc90e9416e4ddb8eaa9a81e 100644
+index e8a01c8d77f104e5fc25785851d1ba4f72f3d52b..2a3239cb508d6115d232f0c1f666ead8412c74ae 100644
 --- a/chrome/browser/resources/settings/settings_page/settings_section.css
 +++ b/chrome/browser/resources/settings/settings_page/settings_section.css
-@@ -46,14 +46,14 @@
+@@ -10,6 +10,8 @@
+   display: flex;
+   flex-direction: column;
+   outline: none;
++  /* Blanc (S3, owner): room under the card at the end of the scroll. */
++  padding-bottom: 28px;
+   position: relative;
+ }
+ 
+@@ -46,14 +48,14 @@
  #header .title {
    color: var(--cr-primary-text-color);
    /* Blanc (S3, owner): shipping's section heading. */
@@ -102,7 +120,7 @@ index e8a01c8d77f104e5fc25785851d1ba4f72f3d52b..c212d6b2221da27b6fc90e9416e4ddb8
  
  #feedback {
 diff --git a/chrome/browser/resources/settings/settings_page/settings_subpage.css b/chrome/browser/resources/settings/settings_page/settings_subpage.css
-index ff9dd87d6b7568e6d56733266d8cb91eb613f083..b80fffa04e1e99800756937107fdbcb6d83ce720 100644
+index ff9dd87d6b7568e6d56733266d8cb91eb613f083..7307c8eb923f788ab35036278092df7fbf26068a 100644
 --- a/chrome/browser/resources/settings/settings_page/settings_subpage.css
 +++ b/chrome/browser/resources/settings/settings_page/settings_subpage.css
 @@ -15,12 +15,12 @@
@@ -122,15 +140,27 @@ index ff9dd87d6b7568e6d56733266d8cb91eb613f083..b80fffa04e1e99800756937107fdbcb6
  }
  
  :host-context([settings-refresh-2026]) {
-@@ -45,6 +45,7 @@
+@@ -43,8 +43,19 @@
+   }
+ }
  
++/* Blanc (S3, owner): the same room under a subpage, which is positioned out
++ * of flow, so only something past its bottom edge extends the scroll. */
++:host::after {
++  content: '';
++  height: 28px;
++  position: absolute;
++  top: 100%;
++  width: 1px;
++}
++
  :host(:not(.multi-card)) {
    background-color: var(--cr-card-background-color);
 +  border-radius: var(--cr-card-border-radius);
    box-shadow: var(--cr-card-shadow);
  }
  
-@@ -59,8 +60,8 @@
+@@ -59,8 +70,8 @@
  
  #headerLine {
    min-height: 40px;
@@ -141,7 +171,7 @@ index ff9dd87d6b7568e6d56733266d8cb91eb613f083..b80fffa04e1e99800756937107fdbcb6
  }
  
  #learnMore {
-@@ -100,7 +101,11 @@
+@@ -100,7 +111,11 @@
  }
  
  h1 {
@@ -268,7 +298,7 @@ index 9cfad28aaf611b4af13f34c7cc71723919d72757..a9c2ed7b9aef44c09f34bb75b4dd1944
 +  padding-block-end: 14px;
 +}
 diff --git a/chrome/browser/resources/settings/settings_ui/settings_ui.css b/chrome/browser/resources/settings/settings_ui/settings_ui.css
-index 10cd9d4f5278627489b174b05ff601a2d4a9388a..be25b8935dcbe481819c1b7426595a67c22d7227 100644
+index 10cd9d4f5278627489b174b05ff601a2d4a9388a..61bbaef7422959875d3928857d07c86a1b79537b 100644
 --- a/chrome/browser/resources/settings/settings_ui/settings_ui.css
 +++ b/chrome/browser/resources/settings/settings_ui/settings_ui.css
 @@ -16,7 +16,8 @@
@@ -317,7 +347,7 @@ index 10cd9d4f5278627489b174b05ff601a2d4a9388a..be25b8935dcbe481819c1b7426595a67
  }
  
  @media (prefers-color-scheme: light) {
-@@ -97,10 +103,35 @@ cr-toolbar:not([narrow]) {
+@@ -97,10 +103,61 @@ cr-toolbar:not([narrow]) {
    top: 0;
  }
  
@@ -342,7 +372,33 @@ index 10cd9d4f5278627489b174b05ff601a2d4a9388a..be25b8935dcbe481819c1b7426595a67
 +  box-sizing: border-box;
 +  flex: 1 1 0;
 +  min-width: 0;
-+  padding: 0 20px 32px 16px;
++  padding: 0 10px 0 16px;
++}
++
++/* Blanc (S3, owner): a scrollbar that shows whenever the pointer is over
++ * something scrollable, whatever macOS's overlay scrollers decide. */
++#container::-webkit-scrollbar,
++#left settings-menu::-webkit-scrollbar {
++  width: 10px;
++}
++
++#container::-webkit-scrollbar-thumb,
++#left settings-menu::-webkit-scrollbar-thumb {
++  background-clip: padding-box;
++  background-color: transparent;
++  border: 2px solid transparent;
++  border-radius: 5px;
++  min-height: 40px;
++}
++
++#container:hover::-webkit-scrollbar-thumb,
++#left settings-menu:hover::-webkit-scrollbar-thumb {
++  background-color: color-mix(in srgb, var(--cr-primary-text-color) 28%, transparent);
++}
++
++#container::-webkit-scrollbar-thumb:hover,
++#left settings-menu::-webkit-scrollbar-thumb:hover {
++  background-color: color-mix(in srgb, var(--cr-primary-text-color) 45%, transparent);
 +}
 +
  #left settings-menu {

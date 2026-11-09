@@ -33,7 +33,11 @@ remain pending. D3 beta-only no-DRM exception accepted; EME notice/handoff requi
   "notch"), selects share one chevron, radios and focus take the palette,
   subpages are rounded cards as tall as their content, supporting text is a
   step smaller, large headings are tracked tighter, and a profile with no
-  chosen picture shows the Sunrise. Reviewed in screenshots, light and dark.
+  chosen picture shows the Sunrise. Every page ends with room below its card, and
+  the sheet draws its own scrollbar while the pointer is over something
+  scrollable. Font size was reported as doing nothing: it does work on web
+  page text that uses the default size (checked at 24, 9 and 16px), but not on
+  sites that set their own sizes or on Blanc's own pages, Settings included. Reviewed in screenshots, light and dark.
   Not changed: Chromium's page order and section names, and the native
   pop-up list of a select. Regression against the morning baseline:
   internal-pages 9/1 (`:7`, as before), settings-and-theming 6/0,
