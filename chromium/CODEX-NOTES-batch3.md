@@ -130,3 +130,21 @@ Only this notes file changes, so no Island asset hash changes are required.
 Continue with confirmed evidence before writing one small fix commit per item.
 If two actual logging rounds leave an item ambiguous, record the remaining
 unknowns and next diagnostic rather than claiming a fix.
+
+## Paused 2026-11-09 — not a blocker for the beta push
+
+All three items here were already known, undefined gaps from S3.1's very
+first Split View landing (2026-11-05: "a corner tab after navigating to
+Mahjong" and "F53's floating-Island case can't read a float view yet",
+`STATUS.md` S3.1) and F34-1's picker/focus edge case. Two rounds of static
+reading (this week) and one round of Codex's own source reading (above) have
+not found a root cause for any of the three, and all three are narrow,
+low-severity edge cases within an already-landed feature (a corner-tab label
+not updating, an Island z-order glitch in one Auto-hide-float + split +
+relaunch combination, a keyboard-focus paper cut on closing Glance through
+an uncommon path) — not crashes, not data loss, not a blocked golden path.
+Given the owner's direction to prioritize finishing the macOS fork for beta
+over chasing these further, this diagnostic thread is paused here, not
+abandoned: the hypotheses and exact tracing requests above stand as the
+starting point whenever someone picks this back up. Do not spend further
+rounds on these three until the owner reprioritizes them.
