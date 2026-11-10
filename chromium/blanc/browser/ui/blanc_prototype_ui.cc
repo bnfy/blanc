@@ -365,6 +365,58 @@ constexpr size_t kFavoritesLimit = 1000;
 // Favicons are small by construction; anything larger is not a favicon.
 constexpr int kFaviconMaxSide = 64;
 
+// Chromium's pinned prefix cannot contain native groups. Blanc's grouped
+// pins remain in the native group and carry browser-owned metadata; the same
+// pin is used by Quiet Tabs, capture, Sync, menus and renderer snapshots.
+class GroupPinData : public base::SupportsUserData::Data {};
+bool TabPinned(TabStripModel* model, int index) {
+  return model->IsTabPinned(index) || GroupPinned(model->GetWebContentsAt(index));
+}
+int SetPinnedTab(TabStripModel* model, int index, bool pinned) {
+  auto* tab = model->GetWebContentsAt(index);
+  if (model->GetTabGroupForTab(index)) {
+    SetGroupPinned(tab, pinned);
+    return index;
+  }
+  SetGroupPinned(tab, false);
+  return model->SetTabPinned(index, pinned);
+}
+std::vector<content::WebContents*> PinnedMembers(TabStripModel* model,
+                                                const std::vector<int>& indices) {
+  std::vector<content::WebContents*> pins;
+  for (int index : indices) if (TabPinned(model, index)) pins.push_back(model->GetWebContentsAt(index));
+  return pins;
+}
+void AddToPinnedGroup(TabStripModel* model, const std::vector<int>& indices,
+                      const tab_groups::TabGroupId& group) {
+  const auto pins = PinnedMembers(model, indices);
+  auto ordered = indices;
+  std::sort(ordered.begin(), ordered.end());
+  model->AddToExistingGroup(ordered, group);
+  for (auto* tab : pins) SetGroupPinned(tab, true);
+}
+tab_groups::TabGroupId NewPinnedGroup(TabStripModel* model, const std::vector<int>& indices) {
+  const auto pins = PinnedMembers(model, indices);
+  auto ordered = indices;
+  std::sort(ordered.begin(), ordered.end());
+  const auto group = model->AddToNewGroup(ordered);
+  for (auto* tab : pins) SetGroupPinned(tab, true);
+  return group;
+}
+void RemovePinnedGroup(TabStripModel* model, const std::vector<int>& indices) {
+  const auto pins = PinnedMembers(model, indices);
+  auto ordered = indices;
+  std::sort(ordered.begin(), ordered.end());
+  model->RemoveFromGroup(ordered);
+  for (auto* tab : pins) {
+    const int index = model->GetIndexOfWebContents(tab);
+    // Keep a split intact. Its two metadata pins continue to represent the
+    // same user-visible pin until an explicit pin/unpin operation.
+    if (model->GetSplitForTab(index)) continue;
+    SetPinnedTab(model, index, true);
+  }
+}
+
 // Favorites and history are web pages only, as in Electron.
 bool IsFavoritable(const GURL& url) {
   return url.SchemeIsHTTPOrHTTPS();
@@ -1187,7 +1239,7 @@ class Owner : public base::SupportsUserData::Data,
                 auto* model = owner->browser->GetTabStripModel();
                 const int at = model->GetIndexOfWebContents(contents.get());
                 if (at == TabStripModel::kNoTab || !model->GetTabGroupForTab(at)) return;
-                model->RemoveFromGroup({at});
+                RemovePinnedGroup(model, {at});
                 const int now = model->GetIndexOfWebContents(contents.get());
                 if (now != TabStripModel::kNoTab) model->MoveWebContentsAt(now, model->count() - 1, false);
               }, GetWeakPtr(), inserted.contents->GetWeakPtr()));
@@ -1655,14 +1707,14 @@ void EndGlance(Owner* owner, content::WebContents* activate) {
   if (index == TabStripModel::kNoTab) return;
   if (const auto split = model->GetSplitForTab(index)) model->RemoveSplit(*split);
   if (owner->glance_origin_index >= 0) {
-    if (model->IsTabPinned(model->GetIndexOfWebContents(reference)) != owner->glance_origin_pinned)
-      model->SetTabPinned(model->GetIndexOfWebContents(reference), owner->glance_origin_pinned);
+    if (TabPinned(model, model->GetIndexOfWebContents(reference)) != owner->glance_origin_pinned)
+      SetPinnedTab(model, model->GetIndexOfWebContents(reference), owner->glance_origin_pinned);
     const int now = model->GetIndexOfWebContents(reference);
     if (model->GetTabGroupForTab(now) != owner->glance_origin_group) {
       if (owner->glance_origin_group && model->group_model()->ContainsTabGroup(*owner->glance_origin_group))
-        model->AddToExistingGroup({now}, *owner->glance_origin_group);
+        AddToPinnedGroup(model, {now}, *owner->glance_origin_group);
       else
-        model->RemoveFromGroup({now});
+        RemovePinnedGroup(model, {now});
     }
     model->MoveWebContentsAt(model->GetIndexOfWebContents(reference),
                              std::min(owner->glance_origin_index, model->count() - 1), false);
@@ -2168,7 +2220,7 @@ void ShowHeldPage(BrowserWindowInterface* browser, std::unique_ptr<content::WebC
   auto* contents = page.get();
   auto* model = browser->GetTabStripModel();
   const int at = model->InsertWebContentsAt(model->count(), std::move(page), add_types);
-  if (pinned) model->SetTabPinned(at, true);
+  if (pinned) SetPinnedTab(model, at, true);
   if (auto* service = SessionServiceFactory::GetForProfile(browser->GetProfile()))
     service->TabRestored(contents, pinned);
 }
@@ -2649,7 +2701,7 @@ std::optional<bool> RestorePartialSplit(BrowserWindowInterface* browser,
   auto* model = browser->GetTabStripModel();
   auto* survivor = survivors[retained];
   int index = model->GetIndexOfWebContents(survivor);
-  if (index < 0 || model->IsTabPinned(index) || model->GetSplitForTab(index)) return false;
+  if (index < 0 || TabPinned(model, index) || model->GetSplitForTab(index)) return false;
   const auto survivor_history_id = saved.tabs[retained]->id;
   const auto missing_history_id = saved.tabs[missing]->id;
   const auto visual = saved.visual_data;
@@ -2666,8 +2718,8 @@ std::optional<bool> RestorePartialSplit(BrowserWindowInterface* browser,
   int recovered_index = model->GetIndexOfWebContents(recovered);
   const auto group = model->GetTabGroupForTab(index);
   if (model->GetTabGroupForTab(recovered_index) != group) {
-    if (group) model->AddToExistingGroup({recovered_index}, *group);
-    else model->RemoveFromGroup({recovered_index});
+    if (group) AddToPinnedGroup(model, {recovered_index}, *group);
+    else RemovePinnedGroup(model, {recovered_index});
   }
   const int left = model->GetIndexOfWebContents(survivors[0]);
   const int right = model->GetIndexOfWebContents(survivors[1]);
@@ -2701,7 +2753,6 @@ bool ValidSpace(const base::DictValue& record) {
   if (!tabs || tabs->empty() || tabs->size() > 200 || !groups ||
       groups->size() > tabs->size() || !active || *active < 0 ||
       *active >= static_cast<int>(tabs->size())) return false;
-  bool loose = false;
   std::set<int> ended;
   int prior = -1;
   for (const auto& value : *tabs) {
@@ -2715,8 +2766,8 @@ bool ValidSpace(const base::DictValue& record) {
     const GURL parsed(*url);
     if (!parsed.is_valid() || parsed.has_username() || parsed.has_password() ||
         (!parsed.SchemeIsHTTPOrHTTPS() && parsed != GURL("chrome://newtab/"))) return false;
-    if (*pin && (loose || *group >= 0)) return false;
-    if (!*pin) loose = true;
+    // Blanc pins may belong to a named group; native pinned-prefix order is
+    // not a persistence invariant. Group contiguity is still required below.
     if (*group != prior) { if (prior >= 0) ended.insert(prior); if (ended.contains(*group)) return false; }
     prior = *group;
   }
@@ -2845,7 +2896,7 @@ std::optional<base::DictValue> CaptureNativeSpace(BrowserWindowInterface* browse
       if (it == order.end()) return std::nullopt;
       group_index = it - order.begin();
     }
-    tabs.Append(base::DictValue().Set("url", url.spec()).Set("pinned", model->IsTabPinned(i)).Set("group", group_index));
+    tabs.Append(base::DictValue().Set("url", url.spec()).Set("pinned", TabPinned(model, i)).Set("group", group_index));
     if (HasInheritedDocumentPolicy(tab)) tabs.back().GetDict().Set("inheritsDocumentPolicy", true);
   }
   // With only private tabs left the Space holds a Start Page, as shipping's
@@ -3150,7 +3201,12 @@ base::DictValue SpaceDisk(base::FilePath path, std::string method,
     capture.Remove("_source_window");
     if (!base::Uuid::ParseLowercase(window_id).is_valid()) return base::DictValue().Set("error", "Source window identity unavailable.");
     const auto* source = items->FindDict(source_name);
-    if (!source || *source != capture) return base::DictValue().Set("error", "Source space is not durably saved.");
+    // Shared Spaces adds its own durable metadata to even an unshared record.
+    // Compare every field of the native capture, which does not contain that
+    // metadata; keep the stored record and its shared bindings unchanged.
+    auto native_source = source ? source->Clone() : base::DictValue();
+    native_source.Remove("sharedCapture");
+    if (!source || native_source != capture) return base::DictValue().Set("error", "Source space is not durably saved.");
     const std::string transaction = base::Uuid::GenerateRandomV4().AsLowercaseString();
     auto intent = base::WriteJson(base::DictValue().Set("version", capture.contains("splits") || item->contains("splits") ? 4 : 3).Set("source_tabs", std::move(tab_ids)).Set("source_window", window_id).Set("id", transaction).Set("source_name", source_name).Set("source", capture.Clone()).Set("destination", item->Clone()));
     if (!intent || !base::ImportantFileWriter::WriteFileAtomically(journal, *intent)) return base::DictValue().Set("error", "Switch intent write failed; tabs unchanged.");
@@ -3274,7 +3330,7 @@ void PublishSyncTabs(Profile* profile) {
           .Set("favicon", NullableString(icon))
           .Set("title", base::UTF16ToUTF8(tab->GetTitle()))
           .Set("customTitle", CustomTabName(tab)).Set("private", false)
-          .Set("pinned", model->IsTabPinned(i))
+          .Set("pinned", TabPinned(model, i))
           .Set("groupId", group ? base::Value(group->ToString()) : base::Value()));
       if (group && group_ids.insert(group->ToString()).second) {
         const auto* visuals = GroupVisuals(model, *group);
@@ -3337,7 +3393,7 @@ base::DictValue Snapshot(BrowserWindowInterface* browser, Owner* owner) {
                         chrome::CanDuplicateTabAt(browser, index))
                     .Set("canGoBack", controller.CanGoBack())
                     .Set("canGoForward", controller.CanGoForward())
-                    .Set("pinned", model->IsTabPinned(index))
+                    .Set("pinned", TabPinned(model, index))
                     // Electron reads the same two signals from its WebContents.
                     .Set("muted", contents->IsAudioMuted())
                     .Set("siteMuted", AudioHost(contents).empty() ? base::Value() : base::Value(audio->SiteMuted()))
@@ -3479,7 +3535,8 @@ constexpr char kLaunchSunrisePref[] = "blanc.start.launch_sunrise";
 class NewTabHandler : public content::WebUIMessageHandler,
                       public bookmarks::BaseBookmarkModelObserver,
                       public history::HistoryServiceObserver,
-                      public history::TopSitesObserver {
+                      public history::TopSitesObserver,
+                      public blanc::DesktopSyncService::Observer {
  public:
   void RegisterMessages() override {
     web_ui()->RegisterMessageCallback("blancNewTab",
@@ -3488,6 +3545,7 @@ class NewTabHandler : public content::WebUIMessageHandler,
   void OnJavascriptDisallowed() override {
     weak_factory_.InvalidateWeakPtrs();
     bookmark_observation_.Reset();
+    sync_observation_.Reset();
     top_sites_observation_.Reset();
     favicon_subscription_ = {};
     history_observation_.Reset();
@@ -3505,6 +3563,9 @@ class NewTabHandler : public content::WebUIMessageHandler,
   }
 
  private:
+  void OnSyncEvent(const std::string& event, const std::string&) override {
+    if (event == "remote" || event == "account" || event == "status") Notify("remoteTabs");
+  }
   bool IsStartPage() {
     // WebContents returns the virtual chrome://newtab/ URL after rewriting.
     // Authorize against the actual committed top-level document instead.
@@ -3605,6 +3666,7 @@ class NewTabHandler : public content::WebUIMessageHandler,
     if (method == "remoteDevices" && args.empty()) {
       auto* service = blanc::DesktopSyncService::ForProfile(profile);
       if (!service) { Reply(id, true, base::Value(base::ListValue())); return; }
+      if (!sync_observation_.IsObserving()) sync_observation_.Observe(service);
       service->Call("sync.listRemoteDevices", "[]", base::BindOnce(
           [](base::WeakPtr<NewTabHandler> self, std::string id, bool ok, const std::string& json) {
             if (!self) return;
@@ -4189,6 +4251,8 @@ class NewTabHandler : public content::WebUIMessageHandler,
   scoped_refptr<history::TopSites> top_sites_;
   base::ScopedObservation<history::TopSites, history::TopSitesObserver>
       top_sites_observation_{this};
+  base::ScopedObservation<blanc::DesktopSyncService, blanc::DesktopSyncService::Observer>
+      sync_observation_{this};
   base::WeakPtrFactory<NewTabHandler> weak_factory_{this};
 };
 
@@ -6113,7 +6177,7 @@ class Handler : public content::WebUIMessageHandler, public extensions::Extensio
     auto* model = browser->GetTabStripModel();
     const int index = model->GetIndexOfWebContents(tab);
     if (index < 0 || index == model->active_index() || tab->IsLoading() ||
-        tab->GetController().GetPendingEntry() || model->IsTabPinned(index) ||
+        tab->GetController().GetPendingEntry() || TabPinned(model, index) ||
         tab->IsAudioMuted() || tab->IsCurrentlyAudible() || TabIsCapturing(tab) ||
         !tab->GetLastCommittedURL().SchemeIsHTTPOrHTTPS()) return false;
     // A page reached by POST would show Chromium's resubmit-confirmation
@@ -6302,7 +6366,7 @@ class Handler : public content::WebUIMessageHandler, public extensions::Extensio
         tab.Set("id", sessions::SessionTabHelper::IdForTab(contents).id());
         tab.Set("url", contents->GetLastCommittedURL().spec());
         tab.Set("loading", contents->IsLoading());
-        tab.Set("pinned", model->IsTabPinned(i));
+        tab.Set("pinned", TabPinned(model, i));
         // Layout changes can race the backend write without changing tab IDs,
         // URLs or selection. Rebuild again before acknowledging those changes.
         if (const auto split = model->GetSplitForTab(i)) {
@@ -6763,8 +6827,8 @@ class Handler : public content::WebUIMessageHandler, public extensions::Extensio
     auto* page = model->GetWebContentsAt(index);
     if (const auto split = model->GetSplitForTab(index)) model->RemoveSplit(*split);
     page->RemoveUserData(kPersistentSplitKey);
-    model->RemoveFromGroup({model->GetIndexOfWebContents(page)});
-    model->SetTabPinned(model->GetIndexOfWebContents(page), false);
+    RemovePinnedGroup(model, {model->GetIndexOfWebContents(page)});
+    SetPinnedTab(model, model->GetIndexOfWebContents(page), false);
     const int at = model->GetIndexOfWebContents(page);
     if (holder) {
       auto* target = holder->browser->GetTabStripModel();
@@ -6874,7 +6938,7 @@ class Handler : public content::WebUIMessageHandler, public extensions::Extensio
         const auto& members = *row.FindList("members");
         const int first = SpaceMoveIndex(*members.front().GetDict().FindInt("id"));
         if (first < 0) { failed = true; break; }
-        const bool pinned = model->IsTabPinned(first);
+        const bool pinned = TabPinned(model, first);
         const auto group = model->GetTabGroupForTab(first);
         std::optional<tab_groups::TabGroupVisualData> group_visual;
         if (group) group_visual = *GroupVisuals(model, *group);
@@ -6884,8 +6948,8 @@ class Handler : public content::WebUIMessageHandler, public extensions::Extensio
           const int at = SpaceMoveIndex(*member.GetDict().FindInt("id"));
           auto* page = model->GetWebContentsAt(at);
           MarkPersistentSplit(browser, page, false);
-          model->RemoveFromGroup({at});
-          model->SetTabPinned(model->GetIndexOfWebContents(page), false);
+          RemovePinnedGroup(model, {at});
+          SetPinnedTab(model, model->GetIndexOfWebContents(page), false);
           const int index = model->GetIndexOfWebContents(page);
           if (holder) {
             auto* target = holder->browser->GetTabStripModel();
@@ -6904,12 +6968,12 @@ class Handler : public content::WebUIMessageHandler, public extensions::Extensio
               returned = hold->Give(space->tabs.back()); space->tabs.pop_back();
             }
             model->InsertWebContentsAt(first, std::move(returned), AddTabTypes::ADD_NONE);
-            model->SetTabPinned(model->GetIndexOfWebContents(page), pinned);
+            SetPinnedTab(model, model->GetIndexOfWebContents(page), pinned);
             if (group) {
               auto restored = FindGroup(model, group->ToString());
-              if (restored) model->AddToExistingGroup({model->GetIndexOfWebContents(page)}, *restored);
+              if (restored) AddToPinnedGroup(model, {model->GetIndexOfWebContents(page)}, *restored);
               else {
-                restored = model->AddToNewGroup({model->GetIndexOfWebContents(page)});
+                restored = NewPinnedGroup(model, {model->GetIndexOfWebContents(page)});
                 model->ChangeTabGroupVisuals(*restored, *group_visual);
               }
             }
@@ -6932,9 +6996,9 @@ class Handler : public content::WebUIMessageHandler, public extensions::Extensio
             }
             std::vector<int> indices;
             for (auto* page : transferred) indices.push_back(target->GetIndexOfWebContents(page));
-            if (destination) target->AddToExistingGroup(indices, *destination);
+            if (destination) AddToPinnedGroup(target, indices, *destination);
             else {
-              destination = target->AddToNewGroup(indices);
+              destination = NewPinnedGroup(target, indices);
               target->ChangeTabGroupVisuals(*destination, tab_groups::TabGroupVisualData(
                   base::UTF8ToUTF16(*landing->FindString("name")),
                   static_cast<tab_groups::TabGroupColorId>(*landing->FindInt("color")), *landing->FindBool("collapsed")));
@@ -7219,8 +7283,8 @@ class Handler : public content::WebUIMessageHandler, public extensions::Extensio
     for (int index : regroup) if (auto split = model->GetSplitForTab(index)) old_splits.insert(*split);
     for (const auto& split : old_splits) model->RemoveSplit(split);
     owner->glance_main = owner->glance_reference = -1;
-    model->RemoveFromGroup(regroup);
-    for (auto* tab : added) model->SetTabPinned(model->GetIndexOfWebContents(tab), false);
+    RemovePinnedGroup(model, regroup);
+    for (auto* tab : added) SetPinnedTab(model, model->GetIndexOfWebContents(tab), false);
     // The Space being left keeps running, set aside, in saved order. Tabs in no
     // Space close as before. Groups and splits come back from the saved record.
     // Select the page the Space left off on first: otherwise removing the active
@@ -7240,10 +7304,10 @@ class Handler : public content::WebUIMessageHandler, public extensions::Extensio
       // so it closes without asking again.
       if (blanc::private_tabs::IsPrivateTab(tab)) { model->DetachAndDeleteWebContentsAt(index); continue; }
       if (!hold) { model->CloseWebContentsAt(index, TabCloseTypes::CLOSE_CREATE_HISTORICAL_TAB); continue; }
-      const bool pinned = model->IsTabPinned(index);
+      const bool pinned = TabPinned(model, index);
       if (const auto split = model->GetSplitForTab(index)) model->RemoveSplit(*split);
-      model->RemoveFromGroup({model->GetIndexOfWebContents(tab)});
-      model->SetTabPinned(model->GetIndexOfWebContents(tab), false);
+      RemovePinnedGroup(model, {model->GetIndexOfWebContents(tab)});
+      SetPinnedTab(model, model->GetIndexOfWebContents(tab), false);
       aside.tabs.push_back(hold->Take(model, model->GetIndexOfWebContents(tab), pinned));
       // Out of this window's session: a crash must not restore it beside the
       // Space now showing here.
@@ -7263,7 +7327,8 @@ class Handler : public content::WebUIMessageHandler, public extensions::Extensio
       model->MoveWebContentsAt(model->GetIndexOfWebContents(tab), model->count() - 1, false);
     const auto& tabs = *record->FindList("tabs");
     for (size_t i = 0; i < added.size(); ++i)
-      if (*tabs[i].GetDict().FindBool("pinned")) model->SetTabPinned(model->GetIndexOfWebContents(added[i]), true);
+      if (*tabs[i].GetDict().FindBool("pinned") && *tabs[i].GetDict().FindInt("group") < 0)
+        SetPinnedTab(model, model->GetIndexOfWebContents(added[i]), true);
     const auto& groups = *record->FindList("groups");
     std::map<size_t, tab_groups::TabGroupId> restored_groups;
     for (size_t i = 0; i < groups.size(); ++i) {
@@ -7271,13 +7336,18 @@ class Handler : public content::WebUIMessageHandler, public extensions::Extensio
       for (size_t j = 0; j < added.size(); ++j)
         if (tabs[j].GetDict().FindInt("group") == static_cast<int>(i)) indices.push_back(model->GetIndexOfWebContents(added[j]));
       if (indices.empty()) continue;
-      auto group = model->AddToNewGroup(indices);
+      auto group = NewPinnedGroup(model, indices);
       restored_groups.emplace(i, group);
       const auto& data = groups[i].GetDict();
       model->ChangeTabGroupVisuals(group, tab_groups::TabGroupVisualData(
           base::UTF8ToUTF16(*data.FindString("name")),
           static_cast<tab_groups::TabGroupColorId>(*data.FindInt("color")), *data.FindBool("collapsed")));
     }
+    // Grouped pins are metadata, applied after grouping so rebuilding a Space
+    // never moves them through the native prefix or changes saved row order.
+    for (size_t i = 0; i < added.size(); ++i)
+      if (*tabs[i].GetDict().FindBool("pinned") && *tabs[i].GetDict().FindInt("group") >= 0)
+        SetPinnedTab(model, model->GetIndexOfWebContents(added[i]), true);
     if (const auto* splits = record->FindList("splits"); splits && !splits->empty()) {
       const auto& ids = *record->FindList("splitIds");
       for (const auto& value : *splits) {
@@ -7864,7 +7934,7 @@ class Handler : public content::WebUIMessageHandler, public extensions::Extensio
           sessions::SessionTabHelper::IdForTab(model->GetWebContentsAt(main)).id() != owner->glance_main ||
           model->GetSplitForTab(reference) != split ||
           (model->active_index() != main && model->active_index() != reference) ||
-          model->IsTabPinned(main) || model->IsTabPinned(reference) ||
+          TabPinned(model, main) || TabPinned(model, reference) ||
           model->GetWebContentsAt(main)->GetUserData(kPersistentSplitKey) ||
           model->GetWebContentsAt(reference)->GetUserData(kPersistentSplitKey)) {
         reply(true, base::Value(false)); return;
@@ -7913,14 +7983,14 @@ class Handler : public content::WebUIMessageHandler, public extensions::Extensio
         if (tab_id == args[1].GetInt()) second = i;
       }
       if (first < 0 || second < 0 || first == second ||
-          (method == "previewSplitPair" && (model->IsTabPinned(first) || model->IsTabPinned(second) ||
+          (method == "previewSplitPair" && (TabPinned(model, first) || TabPinned(model, second) ||
                                             model->GetTabGroupForTab(first) || model->GetTabGroupForTab(second))) ||
           model->GetSplitForTab(first) || model->GetSplitForTab(second)) {
         reply(true, base::Value(false)); return;
       }
       if (method == "previewGlancePair") {
         owner->glance_origin_index = second;
-        owner->glance_origin_pinned = model->IsTabPinned(second);
+        owner->glance_origin_pinned = TabPinned(model, second);
         owner->glance_origin_group = model->GetTabGroupForTab(second);
       }
       if (method == "createSplit" || method == "previewGlancePair") {
@@ -7928,17 +7998,17 @@ class Handler : public content::WebUIMessageHandler, public extensions::Extensio
         auto* other = model->GetWebContentsAt(second);
         // Shipping Blanc pins the whole split when either member is pinned.
         // Pinning moves tabs, so preserve contents identity and re-read indices.
-        const bool pin_split = model->IsTabPinned(first) || model->IsTabPinned(second);
+        const bool pin_split = TabPinned(model, first) || TabPinned(model, second);
         if (pin_split) {
-          model->SetTabPinned(model->GetIndexOfWebContents(initiating), true);
-          model->SetTabPinned(model->GetIndexOfWebContents(other), true);
+          SetPinnedTab(model, model->GetIndexOfWebContents(initiating), true);
+          SetPinnedTab(model, model->GetIndexOfWebContents(other), true);
           first = model->GetIndexOfWebContents(initiating);
           second = model->GetIndexOfWebContents(other);
         }
         const auto group = model->GetTabGroupForTab(first);
         if (model->GetTabGroupForTab(second) != group) {
-          if (group) model->AddToExistingGroup({second}, *group);
-          else model->RemoveFromGroup({second});
+          if (group) AddToPinnedGroup(model, {second}, *group);
+          else RemovePinnedGroup(model, {second});
           first = model->GetIndexOfWebContents(initiating);
           second = model->GetIndexOfWebContents(other);
         }
@@ -8658,14 +8728,14 @@ class Handler : public content::WebUIMessageHandler, public extensions::Extensio
       }
       if (method == "newTabInGroup" && args.size() == 1) {
         chrome::AddTabAt(browser, GURL("chrome://newtab/"), static_cast<int>(range.end()), true);
-        model->AddToExistingGroup({model->active_index()}, *group);
+        AddToPinnedGroup(model, {model->active_index()}, *group);
         reply(true, base::Value(true));
         return;
       }
       if (method == "ungroupGroup" && args.size() == 1) {
         std::vector<int> indices;
         for (unsigned i = range.start(); i < range.end(); ++i) indices.push_back(static_cast<int>(i));
-        model->RemoveFromGroup(indices);
+        RemovePinnedGroup(model, indices);
         reply(true, base::Value(true));
         return;
       }
@@ -8737,7 +8807,7 @@ class Handler : public content::WebUIMessageHandler, public extensions::Extensio
       const bool can_move = can_mutate &&
           std::ranges::all_of(pages, [&](auto* page) { return CanPlaceBatchTab(model, model->GetIndexOfWebContents(page)); });
       const bool can_group = can_move && model->SupportsTabGroups() &&
-          std::ranges::none_of(pages, [&](auto* page) { return model->IsTabPinned(model->GetIndexOfWebContents(page)); });
+          std::ranges::none_of(pages, [&](auto* page) { return TabPinned(model, model->GetIndexOfWebContents(page)); });
       reply(true, base::Value(base::DictValue().Set("canPlace", can_place).Set("canGroup", can_group)
           .Set("canMutate", can_mutate).Set("canMove", can_move)
           .Set("canQuiet", std::ranges::any_of(pages, [&](auto* page) { return QuietAllowed(browser, page); }))
@@ -8766,7 +8836,7 @@ class Handler : public content::WebUIMessageHandler, public extensions::Extensio
           const int at = model->GetIndexOfWebContents(page);
           const int tab_id = sessions::SessionTabHelper::IdForTab(page).id();
           const auto group = model->GetTabGroupForTab(at);
-          membership.emplace(tab_id, group); pins.emplace(tab_id, model->IsTabPinned(at));
+          membership.emplace(tab_id, group); pins.emplace(tab_id, TabPinned(model, at));
           if (group) groups.emplace(*group, *GroupVisuals(model, *group));
         }
         // Allocate before detaching: an unavailable window changes nothing.
@@ -8778,19 +8848,19 @@ class Handler : public content::WebUIMessageHandler, public extensions::Extensio
         for (auto* page : pages) {
           const int at = model->GetIndexOfWebContents(page);
           if (auto split = model->GetSplitForTab(at)) model->RemoveSplit(*split);
-          model->RemoveFromGroup({model->GetIndexOfWebContents(page)});
-          model->SetTabPinned(model->GetIndexOfWebContents(page), false);
+          RemovePinnedGroup(model, {model->GetIndexOfWebContents(page)});
+          SetPinnedTab(model, model->GetIndexOfWebContents(page), false);
           target->InsertWebContentsAt(target->count(),
               model->DetachWebContentsAtForInsertion(model->GetIndexOfWebContents(page)), AddTabTypes::ADD_NONE);
         }
         for (auto* page : pages)
-          if (pins.at(sessions::SessionTabHelper::IdForTab(page).id())) target->SetTabPinned(target->GetIndexOfWebContents(page), true);
+          if (pins.at(sessions::SessionTabHelper::IdForTab(page).id())) SetPinnedTab(target, target->GetIndexOfWebContents(page), true);
         for (const auto& [group, visuals] : groups) {
           std::vector<int> indices;
           for (auto* page : pages)
             if (membership.at(sessions::SessionTabHelper::IdForTab(page).id()) == group)
               indices.push_back(target->GetIndexOfWebContents(page));
-          const auto added = target->AddToNewGroup(indices);
+          const auto added = NewPinnedGroup(target, indices);
           target->ChangeTabGroupVisuals(added, visuals);
         }
         target->ActivateTabAt(target->GetIndexOfWebContents(destination_active));
@@ -8811,7 +8881,7 @@ class Handler : public content::WebUIMessageHandler, public extensions::Extensio
       }
       if (action == "pin" || action == "mute") {
         const bool enable = !std::ranges::all_of(pages, [&](auto* page) {
-          return action == "pin" ? model->IsTabPinned(model->GetIndexOfWebContents(page)) : page->IsAudioMuted();
+          return action == "pin" ? TabPinned(model, model->GetIndexOfWebContents(page)) : page->IsAudioMuted();
         });
         if (action == "pin") for (auto* page : pages) {
           const int at = model->GetIndexOfWebContents(page);
@@ -8825,9 +8895,19 @@ class Handler : public content::WebUIMessageHandler, public extensions::Extensio
         for (auto* page : ordered) {
           if (action == "pin") {
             const int at = model->GetIndexOfWebContents(page);
-            if (model->IsTabPinned(at) == enable) continue;
-            if (model->GetSplitForTab(at)) model->ExecuteContextMenuCommand(at, TabStripModel::CommandTogglePinned);
-            else model->SetTabPinned(at, enable);
+            if (TabPinned(model, at) == enable) continue;
+            if (const auto split = model->GetSplitForTab(at)) {
+              const auto range = model->GetSplitData(*split)->GetIndexRange();
+              if (model->GetTabGroupForTab(at)) {
+                for (int i = range.start(); i < static_cast<int>(range.end()); ++i)
+                  SetGroupPinned(model->GetWebContentsAt(i), enable);
+              } else {
+                for (int i = range.start(); i < static_cast<int>(range.end()); ++i)
+                  SetGroupPinned(model->GetWebContentsAt(i), false);
+                if (model->IsTabPinned(at) != enable)
+                  model->ExecuteContextMenuCommand(at, TabStripModel::CommandTogglePinned);
+              }
+            } else SetPinnedTab(model, at, enable);
           } else if (page->IsAudioMuted() != enable) SiteMuteTab::Get(page)->ToggleTab();
         }
         if (action == "pin" && !enable) for (auto* page : pages) {
@@ -8858,17 +8938,12 @@ class Handler : public content::WebUIMessageHandler, public extensions::Extensio
           target = FindGroup(model, args[2].GetString());
           if (!target) { reply(true, base::Value(false)); return; }
         }
-        // Chromium cannot keep a pinned tab in a group. Refuse the whole
-        // mutation rather than silently unpinning part of a selection.
-        if (action != "group-none" && std::ranges::any_of(pages, [&](auto* page) {
-              return model->IsTabPinned(model->GetIndexOfWebContents(page));
-            })) { reply(true, base::Value(false)); return; }
         std::vector<int> indices;
         for (auto* page : pages) indices.push_back(model->GetIndexOfWebContents(page));
-        if (action == "group-none") model->RemoveFromGroup(indices);
-        else if (target) model->AddToExistingGroup(indices, *target);
+        if (action == "group-none") RemovePinnedGroup(model, indices);
+        else if (target) AddToPinnedGroup(model, indices, *target);
         else {
-          target = model->AddToNewGroup(indices);
+          target = NewPinnedGroup(model, indices);
           model->ChangeTabGroupVisuals(*target, tab_groups::TabGroupVisualData(name, kGroupColor, false));
         }
         reply(true, base::Value(true)); return;
@@ -8979,7 +9054,7 @@ class Handler : public content::WebUIMessageHandler, public extensions::Extensio
           .Set("active", index == model->active_index())
           .Set("visiblePane", index == model->active_index() || (split && split == active_split))
           .Set("loading", tab->IsLoading() || tab->GetController().GetPendingEntry())
-          .Set("pinned", model->IsTabPinned(index)).Set("muted", tab->IsAudioMuted())
+          .Set("pinned", TabPinned(model, index)).Set("muted", tab->IsAudioMuted())
           .Set("audible", tab->IsCurrentlyAudible()).Set("capturing", TabIsCapturing(tab))
           .Set("permissionPending", permission ? base::Value(permission->IsRequestInProgress()) : base::Value())
           .Set("liveOpenerFamily", family).Set("restorableHttpHistory", history)
@@ -9064,14 +9139,14 @@ class Handler : public content::WebUIMessageHandler, public extensions::Extensio
     if (method == "newTabBelow" && args.size() == 1) {
       const auto group = model->GetTabGroupForTab(index);
       chrome::AddTabAt(browser, GURL("chrome://newtab/"), index + 1, true);
-      if (group) model->AddToExistingGroup({model->active_index()}, *group);
+      if (group) AddToPinnedGroup(model, {model->active_index()}, *group);
       reply(true, base::Value(true));
       return;
     }
     if ((method == "closeAbove" || method == "closeBelow") && args.size() == 1) {
       // Preserve the named tab and pinned tabs, matching Electron's menu policy.
       for (int i = model->count() - 1; i >= 0; --i) {
-        if (!model->IsTabPinned(i) && (method == "closeAbove" ? i < index : i > index))
+        if (!TabPinned(model, i) && (method == "closeAbove" ? i < index : i > index))
           model->CloseWebContentsAt(i, TabCloseTypes::CLOSE_CREATE_HISTORICAL_TAB);
       }
       reply(true, base::Value(true));
@@ -9134,14 +9209,25 @@ class Handler : public content::WebUIMessageHandler, public extensions::Extensio
             }
           }
         }
-        model->ExecuteContextMenuCommand(index, TabStripModel::CommandTogglePinned);
+        if (model->GetTabGroupForTab(index)) {
+          const bool pinned = !TabPinned(model, index);
+          const auto range = model->GetSplitData(*split)->GetIndexRange();
+          for (int i = range.start(); i < static_cast<int>(range.end()); ++i)
+            SetGroupPinned(model->GetWebContentsAt(i), pinned);
+        } else {
+          const auto range = model->GetSplitData(*split)->GetIndexRange();
+          const bool logical_pin = GroupPinned(tab);
+          for (int i = range.start(); i < static_cast<int>(range.end()); ++i)
+            SetGroupPinned(model->GetWebContentsAt(i), false);
+          if (!logical_pin) model->ExecuteContextMenuCommand(index, TabStripModel::CommandTogglePinned);
+        }
       } else {
-        model->SetTabPinned(index, !model->IsTabPinned(index));
+        SetPinnedTab(model, index, !TabPinned(model, index));
       }
       const int moved_index = model->GetIndexOfWebContents(tab);
-      if (!split && !model->IsTabPinned(moved_index) && !model->GetTabGroupForTab(moved_index))
+      if (!split && !TabPinned(model, moved_index) && !model->GetTabGroupForTab(moved_index))
         model->MoveWebContentsAt(moved_index, model->count() - 1, false);
-      reply(true, base::Value(model->IsTabPinned(model->GetIndexOfWebContents(tab))));
+      reply(true, base::Value(TabPinned(model, model->GetIndexOfWebContents(tab))));
       return;
     }
     // Site controls' Stop allowing (shipping's forgetActiveCertificateException):
@@ -9207,8 +9293,8 @@ class Handler : public content::WebUIMessageHandler, public extensions::Extensio
           if (visuals && base::i18n::ToLower(visuals->title()) == base::i18n::ToLower(name)) target = group;
         }
         if (!target) {
-          // Chromium cannot group a pinned tab; AddToNewGroup unpins it.
-          target = model->AddToNewGroup(members);
+          // Preserve Blanc pin metadata while joining the native group.
+          target = NewPinnedGroup(model, members);
           model->ChangeTabGroupVisuals(*target,
               tab_groups::TabGroupVisualData(name, kGroupColor, /*is_collapsed=*/false));
           reply(true, base::Value(true));
@@ -9227,8 +9313,8 @@ class Handler : public content::WebUIMessageHandler, public extensions::Extensio
       if (sessions::SessionTabHelper::IdForTab(model->GetWebContentsAt(index)).id() == owner->glance_reference)
         owner->glance_origin_group = target;
       if (model->GetTabGroupForTab(index) != target) {
-        if (target) model->AddToExistingGroup(members, *target);
-        else model->RemoveFromGroup(members);
+        if (target) AddToPinnedGroup(model, members, *target);
+        else RemovePinnedGroup(model, members);
       }
       reply(true, base::Value(true));
       return;
@@ -9282,7 +9368,7 @@ class Handler : public content::WebUIMessageHandler, public extensions::Extensio
       // as its boundary, never an interior group tab. Unknown groups and
       // another window's tabs are rejected rather than coerced.
       // Chromium has no grouped pins, so a pinned tab moves only among pins.
-      const bool pinned = model->IsTabPinned(index);
+      const bool pinned = TabPinned(model, index);
       std::optional<tab_groups::TabGroupId> target;
       if (args[1].is_string()) {
         target = model->SupportsTabGroups() ? FindGroup(model, args[1].GetString())
@@ -9313,11 +9399,11 @@ class Handler : public content::WebUIMessageHandler, public extensions::Extensio
         if (before == tab && !pinned && !target && before_group &&
             model->group_model()->GetTabGroup(*before_group)->ListTabs().start() ==
                 static_cast<size_t>(b)) {
-          model->RemoveFromGroup({b});
+          RemovePinnedGroup(model, {b});
           reply(true, base::Value(!model->GetTabGroupForTab(model->GetIndexOfWebContents(tab))));
           return;
         }
-        if (!before || before == tab || model->IsTabPinned(b) != pinned ||
+        if (!before || before == tab || TabPinned(model, b) != pinned ||
             (before_group != target && !loose_group_boundary)) {
           reply(true, base::Value(before == tab));
           return;
@@ -9347,7 +9433,7 @@ class Handler : public content::WebUIMessageHandler, public extensions::Extensio
         model->MoveSplitTo(*moving_split, to, pinned, target);
         const int now = model->GetIndexOfWebContents(tab);
         reply(true, base::Value(model->GetSplitForTab(now) == moving_split &&
-            model->GetTabGroupForTab(now) == target && model->IsTabPinned(now) == pinned));
+            model->GetTabGroupForTab(now) == target && TabPinned(model, now) == pinned));
         return;
       }
       // A single-tab drop beside a split must target its leading boundary.
@@ -9362,8 +9448,8 @@ class Handler : public content::WebUIMessageHandler, public extensions::Extensio
       // Membership first (Chromium keeps groups contiguous and moves the tab
       // to the group's edge), then the position within the bucket.
       if (!pinned && group_of(index) != target) {
-        if (target) model->AddToExistingGroup({index}, *target);
-        else model->RemoveFromGroup({index});
+        if (target) AddToPinnedGroup(model, {index}, *target);
+        else RemovePinnedGroup(model, {index});
       }
       index = model->GetIndexOfWebContents(tab);
       int to;
@@ -9385,11 +9471,11 @@ class Handler : public content::WebUIMessageHandler, public extensions::Extensio
       // re-assert the requested bucket and report what actually happened.
       index = model->GetIndexOfWebContents(tab);
       if (!pinned && group_of(index) != target) {
-        if (target) model->AddToExistingGroup({index}, *target);
-        else model->RemoveFromGroup({index});
+        if (target) AddToPinnedGroup(model, {index}, *target);
+        else RemovePinnedGroup(model, {index});
         index = model->GetIndexOfWebContents(tab);
       }
-      reply(true, base::Value(model->IsTabPinned(index) == pinned &&
+      reply(true, base::Value(TabPinned(model, index) == pinned &&
                               (pinned || group_of(index) == target)));
       return;
     }
@@ -9429,7 +9515,7 @@ class Handler : public content::WebUIMessageHandler, public extensions::Extensio
         auto* closing_tab = model->GetWebContentsAt(i);
         pending_close.tabs.push_back(sessions::SessionTabHelper::IdForTab(closing_tab).id());
         pending_close.watches.push_back(std::make_unique<SplitCloseWatch>(closing_tab,
-            model->IsTabPinned(i),
+            TabPinned(model, i),
             base::BindRepeating(&Handler::SplitCloseCancelled, weak_factory_.GetWeakPtr(), id)));
       }
       model->SetSelectionFromModel(selection);
@@ -9449,7 +9535,7 @@ class Handler : public content::WebUIMessageHandler, public extensions::Extensio
       pending_close.single_tab = true;
       pending_close.tabs.push_back(sessions::SessionTabHelper::IdForTab(tab).id());
       pending_close.watches.push_back(std::make_unique<SplitCloseWatch>(tab,
-          model->IsTabPinned(index),
+          TabPinned(model, index),
           base::BindRepeating(&Handler::SplitCloseCancelled, weak_factory_.GetWeakPtr(), id)));
       model->CloseWebContentsAt(index, TabCloseTypes::CLOSE_CREATE_HISTORICAL_TAB);
       base::SequencedTaskRunner::GetCurrentDefault()->PostTask(FROM_HERE,
@@ -9687,12 +9773,26 @@ void RestoreInheritedSandbox(content::WebContents* tab, uint32_t flags) {
 void PreserveDiscardedTabState(content::WebContents* old_tab, content::WebContents* replacement) {
   if (!old_tab || !replacement || old_tab->GetBrowserContext() != replacement->GetBrowserContext()) return;
   RestoreInheritedSandbox(replacement, InheritedSandboxFlags(old_tab));
+  if (GroupPinned(old_tab)) replacement->SetUserData(kGroupPinKey, std::make_unique<GroupPinData>());
   if (auto* name = static_cast<TabNameData*>(old_tab->GetUserData(kTabNameKey)))
     replacement->SetUserData(kTabNameKey, std::make_unique<TabNameData>(name->name));
   if (auto* identity = static_cast<TabIdentityData*>(old_tab->GetUserData(kTabIdentityKey)))
     replacement->SetUserData(kTabIdentityKey, std::make_unique<TabIdentityData>(identity->id));
   if (auto* split = static_cast<PersistentSplitData*>(old_tab->GetUserData(kPersistentSplitKey)))
     replacement->SetUserData(kPersistentSplitKey, std::make_unique<PersistentSplitData>(split->focused));
+}
+bool GroupPinned(content::WebContents* tab) {
+  return tab && tab->GetUserData(kGroupPinKey);
+}
+void SetGroupPinned(content::WebContents* tab, bool pinned) {
+  if (!tab || GroupPinned(tab) == pinned) return;
+  if (pinned) tab->SetUserData(kGroupPinKey, std::make_unique<GroupPinData>());
+  else tab->RemoveUserData(kGroupPinKey);
+  auto* browser = GlobalBrowserCollection::GetInstance()->FindBrowserWithTab(tab);
+  if (!browser || tab->GetBrowserContext()->IsOffTheRecord()) return;
+  if (auto* service = SessionServiceFactory::GetForProfile(browser->GetProfile()))
+    service->AddTabExtraData(browser->GetSessionID(), sessions::SessionTabHelper::IdForTab(tab),
+        kGroupPinKey, pinned ? "1" : "0");
 }
 std::string CustomTabName(content::WebContents* tab) {
   if (!IsEnabled() || !tab) return "";
@@ -9702,6 +9802,10 @@ std::string CustomTabName(content::WebContents* tab) {
 void RestoreCustomTabName(content::WebContents* tab,
     const std::map<std::string, std::string>& extra_data) {
   if (!IsEnabled() || !tab || tab->GetBrowserContext()->IsOffTheRecord()) return;
+  const auto group_pin = extra_data.find(kGroupPinKey);
+  if (group_pin != extra_data.end() && group_pin->second == "1")
+    tab->SetUserData(kGroupPinKey, std::make_unique<GroupPinData>());
+  else tab->RemoveUserData(kGroupPinKey);
   const auto policy = extra_data.find(kInheritedDocumentPolicyKey);
   if (policy != extra_data.end() && policy->second != "0")
     blanc::quiet::MediaHistory::Get(tab)->MarkInheritedPolicy();
@@ -9805,7 +9909,7 @@ bool SelectIslandSlot(BrowserWindowInterface* browser, int slot) {
       if (group) {
         if (group != previous_group) slots.push_back(i);
         loose = false;
-      } else if (model->IsTabPinned(i)) {
+      } else if (TabPinned(model, i)) {
         if (!pins) slots.insert(slots.begin(), i);
         pins = true; loose = false;
       } else {

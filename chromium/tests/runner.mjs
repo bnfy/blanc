@@ -130,6 +130,9 @@ for(const scenario of inventory.scenarios){
  if(record.result==='excluded')record.exclusionReason=scenario.exclusionReason;
  baseline.scenarios.push(record);
  fs.writeFileSync(path.join(out,'progress.json'),JSON.stringify({declarationsRecorded:baseline.scenarios.length,total:inventory.scenarios.length,executedCases:executed})+'\n');
+ // Preserve completed evidence if a rendering/memory guard stops a long run.
+ // This checkpoint is explicitly incomplete and is never a baseline receipt.
+ fs.writeFileSync(path.join(out,'partial-baseline.json'),JSON.stringify({...baseline,incomplete:true},null,2)+'\n');
 }
 const summary=Object.fromEntries(['pass','fail','undefined','excluded'].map(s=>[s,baseline.scenarios.filter(x=>x.result===s).length]));
 baseline.summary=summary;baseline.caseCount=cases.length;baseline.executedCaseCount=executed;baseline.executableSummary=Object.fromEntries(['pass','fail','undefined','excluded'].map(s=>[s,cases.filter(c=>c.result===s).length]));

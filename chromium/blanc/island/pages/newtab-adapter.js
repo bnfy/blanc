@@ -490,6 +490,11 @@
   // visits, /clear). Bursts coalesce per kind into one re-fetch, which
   // re-renders through the copied page's own globals once it is ready.
   const refreshers = {
+    // Sync pushes must reach background Start Pages too. Their visible-page
+    // poll is only a fallback; no hidden page needs to poll to stay current.
+    remoteTabs: async () => {
+      if (!isPrivatePage && typeof renderRemote === 'function') renderRemote(await request('remoteDevices'));
+    },
     // The moving-in checklist (N11): a status push, as shipping's.
     checklist: async () => {
       if (isPrivatePage) return;

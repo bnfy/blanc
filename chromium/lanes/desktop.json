@@ -57,6 +57,7 @@
     "patches/0049-blanc-private-tab-web-app-metrics.patch",
     "patches/0050-blanc-beta-local-qualification.patch",
     "patches/0051-blanc-quiet-session-restore.patch",
-    "patches/0052-blanc-quiet-private-and-page-state.patch"
+    "patches/0052-blanc-quiet-private-and-page-state.patch",
+    "patches/0053-blanc-group-pin-persistence.patch"
   ]
 }

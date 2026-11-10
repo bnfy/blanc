@@ -6,19 +6,18 @@ Queue 3 in progress; local commits only. Absolute owner hold on `out/BlancBeta`.
 | --- | --- |
 | 1 lazy restore :99 | Done: patch 0051; unchanged scenario passes; full regression owed |
 | 2 protections/private/page state | Partly: private/state pass; Electron event assertion remains undefined |
-| 3 vertical :129 | Owed shipping v1.46.0 comparison |
+| 3 vertical :129 | Done: shipping agrees with step; fork fixed; lifecycle 5/5 |
 | 4 whole inventory | Owed once on final candidate; top ten owed |
 | 5 regression | Owed full desktop Sync then five features after product changes |
 
 Cause of :99: Chromium's Recently closed and startup restore paths schedule
 background loads after creating rendererless tabs. They become live without
 selection; this is a product defect, not a snapshot projection error.
-Current candidate: macos-4d112d6a0f5772b3; `q3-private-3-runtime-config.json`.
-Final candidate pending remaining items.
+Current candidate: macos-f0bd093f621c613f; `q3-group-pins-5-runtime-config.json`.
 Baseline five files: 142 pass / 3 fail / 4 undefined; desktop Sync 22/22.
 Lost passes: not yet measured. Final result tables and ranked gaps pending.
 Focused quiet suite: 27 pass / 0 fail / 1 undefined; native lifecycle 5/5.
-Unverified: final inventory/regression and remaining item 3.
+Unverified: final inventory/regression; Electron beforeunload event contract.
 No push, publication, signing, Apple, production services, 1Password or live tree.
 
 ## 1 — Lazy restore
@@ -97,3 +96,87 @@ on the final candidate after item 3. No Electron-only event pass is claimed.
 
 Item 2 precommit: `q3-private-precommit.tap` 291/291; focused adapter/observation
 unit checks `q3-quiet-adapters.tap` 8/8; reconstruction 159/573 passes.
+
+## 3 — Vertical rail :129 is valid against shipping v1.46.0
+
+Shipping `v1.46.0:src/main/main.js:9123-9154` says:
+
+```js
+function markPinned(tab) {
+  if (tab.pinned) return;
+  tab.pinned = true;
+  tab.pinnedHomeUrl = pinnedHomeFor(tab.url, { localFile: tab.localFile === true });
+}
+// toggleTabPinned:
+for (const member of members) {
+  if (pinned) markPinned(member);
+  else {
+    member.pinned = false;
+    member.pinnedHomeUrl = null;
+  }
+}
+if (!pinned && !tab.groupId) { /* move an ungrouped unpin */ }
+```
+
+The unchanged step (`test/desktop/steps/vertical-tabs.steps.js:891-895`):
+
+```js
+const members = state.tabs.filter((tab) => tab.groupId === work?.id);
+assert.ok(members.some((tab) => tab.pinned) && members.some((tab) => !tab.pinned));
+```
+
+There is **no disagreement between shipping and the step**: a pin retains its
+group. The fork disagreed: `togglePinned` called native `SetTabPinned`, whose
+`TabStripModel::SetTabPinnedImpl` calls
+`MoveTabToIndexImpl(index, final_index, std::nullopt, pinned, false)` — moving
+to the global pinned prefix and clearing the group. This is a fork defect,
+not a stale scenario. Shipping's `test-hook.js:792` directly calls
+`toggleTabPinned(id)`; the acceptance hook does not manufacture grouped pins.
+
+The fix keeps grouped pins in their native groups with browser-owned pin
+metadata. Shell policy, capture, Sync, menus and snapshots read that pin;
+normal ungrouped pins still use the native prefix. Grouping an existing pin
+preserves it, ungrouping a single pin moves it back to the native prefix,
+and session rebuild/Recently closed metadata retain it. Space validation
+accepts grouped pins without dropping group-contiguity checks. Native split
+collections remain intact; ungrouping a pinned split retains its metadata pin
+until explicit pin/unpin. No native extension-tab API parity is claimed by this
+shell fix; full final regression remains owed.
+
+`q3-vertical-focused` reaches and passes the ten setup/rail-order assertions,
+including mixed pins and group membership. It then fails the first previously
+unreached remote-Start-Page check: hidden Start Pages only polled Sync while
+visible. A native Sync observer now queues the real Start Page refresh after
+remote/account/status changes, including hidden pages; its visible poll stays
+a fallback. `pages/newtab-adapter.js` is fork-owned, not one of the generated
+Island renderer files. No shipping step or generated renderer was edited.
+The grouped-pin lifecycle check passed initial pin/protection/sync observations
+and exact restart order; its ungroup call was corrected to use the real host
+API (`setTabGroup` is not in the native test-dispatch allowlist).
+
+The runner now writes `partial-baseline.json` after each completed declaration,
+explicitly marked incomplete. A rendering/memory stop cannot turn it into a
+completed inventory, but cannot erase all earlier per-case evidence either.
+
+`q3-vertical-focused-2` passes the full unchanged :129 on
+macos-2f591e3d03583bba, including remote icons, Quick Switcher and collapse.
+`q3-grouped-pin-lifecycle-2` through `-5` pass pin policy/Sync, restart,
+Recently closed, grouping native pins and ungrouping. The Space follow-up
+exposed a pre-existing durability comparison defect: Shared Spaces stores
+`sharedCapture` even for unshared records, but native capture excludes it.
+Saved tabs/groups/active were identical; the extra metadata alone rejected
+the switch. Compare the complete native record with that separate metadata
+removed, without changing stored bindings or the exact layout comparison.
+Applying saved grouped pins after grouping also preserves saved member order.
+
+`q3-grouped-pin-lifecycle-7` passes all five checks on final candidate
+macos-f0bd093f621c613f (`q3-group-pins-5-runtime-config.json`), including
+Space capture/restore with a pinned member after an unpinned member. Run 6
+correctly refused a switch while its new Start Page was still loading; run 7
+waits for that loading state to finish. No shipping assertion changed.
+Final incremental build: 6 actions / 33.36s. Patch inventory: 120 unique
+upstream paths / 390 hunks across all patch files; reconstruction covers the
+full source-map selection, reported separately below.
+
+Item 3 precommit: `q3-group-pins-precommit.tap` 291/291;
+`q3-group-pins-patches.json` reconstruction 159 upstream / 573 canonical passes.
