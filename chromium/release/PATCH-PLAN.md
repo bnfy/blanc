@@ -1,16 +1,16 @@
-# Staged beta patches — NOT APPLIED
+# Beta patches — identity implemented, updater and release qualification pending
 
-2026-11-09, recounted 2026-11-10 on `chromium/migration` at `6875f564`; upstream
-`681cd621e82e606d7536eae8ea2576afb3c7d65c`. This document is a design artifact,
-not a patch series selected by `lanes/desktop.json`. No branding, build flags,
-Chromium source, updater or shipping release code is changed in phase 1.
-The binding owner beta decisions override the old same-ID replacement path.
+Updated 2026-11-10; upstream `681cd621e82e606d7536eae8ea2576afb3c7d65c`.
+Stage A is selected by desktop patch 0046 and gated by `blanc_channel="beta"`.
+Approved: Blanc Beta, me.bnfy.blanc.beta, blanc-beta, isolated profile,
+2.0.0-beta.N, macOS 13, beta 1 arm64 with the owner Intel waiver, no Widevine.
+The existing preview arguments and behavior remain the default. A beta/official
+build requires a separate reviewed configuration and is not run by this queue.
 
 ## Budget and ordering
 
-Current desktop lane: **38 patches, 139 distinct patched upstream paths,
-478 hunks**, counted across the selected patches (`+++ b/` paths and `@@`
-headers). The pristine manifest contains 142 files. These figures are
+Current desktop lane: **45 patches, 154 distinct patched upstream paths,
+546 hunks**. The pristine manifest contains 152 files. These figures are
 not a new budget cap or a request to raise it. Record fresh totals after each
 stage, keep estimates separate from measured counts, consolidate later where
 possible, and follow the owner's direction not to ask for patch-budget increases.
@@ -24,7 +24,7 @@ change these estimates; update this plan instead of quietly declaring a gate
 passed. Tests, vendored Sparkle notices and generated-source registrations
 are counted separately from upstream hunks.
 
-## Stage A — beta identity and packaging version (before any official build)
+## Stage A — beta identity and packaging version (implemented; beta build unverified)
 
 Add `chromium/blanc/branding/beta/BRANDING`, select it only for the new beta
 channel, and use the Sunrise assets. Name `Blanc Beta`, ID `me.bnfy.blanc.beta`,
@@ -35,7 +35,8 @@ source manifests must reproduce the new selection and pin any new upstream input
 
 | Upstream path | Intended change | Estimate |
 | --- | --- | --- |
-| `chrome/app/theme/chromium/BRANDING` | Beta selection produces all names/IDs/team consistently; use canonical beta branding, not a hand edit in a checkout | 1 hunk |
+| `build/config/chrome_build.gni` | Implemented: select canonical beta BRANDING without changing preview branding | 3 hunks |
+| `chrome/app/BUILD.gn` | Implemented: test-support dependency for the guarded identity header | 1 hunk |
 | `chrome/BUILD.gn` | Beta metadata/entitlement inputs; outer-only version postprocessing; later Sparkle packaging/link inputs | 5–8 shared hunks across A/B |
 | `chrome/app/app-Info.plist` | Beta data dir, release display version, feed/key/version substitutions; keep document/HTTP(S) registration | 3–5 shared hunks |
 | `build/apple/tweak_info_plist.py` | Explicit beta-only direct-launch scheme/outer version support, or delegate outer override to a fork packaging action without changing other targets | 2–3 hunks (can eliminate if fork action suffices) |
@@ -138,3 +139,13 @@ No production migration, Windows/Linux fork release, Widevine, general Electron
 extension runtime, toolchain switch or automatic rebuild is included. See the
 runbook for open owner decisions; this phase-1 commit can be reviewed entirely
 without a Chromium checkout or native build.
+
+
+Stage A actual scope: five upstream paths (`build/config/chrome_build.gni`,
+`chrome/BUILD.gn`, `chrome/app/BUILD.gn`, `chrome/app/chrome_main_delegate.cc`,
+`components/os_crypt/common/keychain_password_mac.mm`) and six new canonical
+files. The outer-only metadata action eliminates the proposed tweak_info_plist
+and app-Info template edits; the separate entitlement template eliminates an
+upstream entitlement change. Native pure path tests and metadata tests are
+available in `release/beta-identity.test.mjs`; actual beta launch, passkeys,
+Launch Services and signed isolation remain later qualification.

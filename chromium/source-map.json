@@ -46,7 +46,7 @@
     "content/public/common/blanc_research_build.h": "blanc/content/public/common/blanc_research_build.h"
   },
   "canonicalSha256": {
-    "blanc/BUILD.gn": "7fe9606b4d5423708b84c6d3e637eef34403c13877949cd02cc240b58c4b4a98",
+    "blanc/BUILD.gn": "d103ab09fced7fca6ab9e8841b887812f4864826e0fb4bd207c4b77e40004f63",
     "blanc/android/BUILD.gn": "40ca79a78eefe5d16e7b61b582a093ad8b65f9051f6bce15142dadce754e3682",
     "blanc/android/browser/blanc_pages_ui.cc": "816bcf1fa2ff4eecd090def10d7769810f3f3cc621964b5ee660331366930f83",
     "blanc/android/browser/blanc_pages_ui.h": "6969cac9a6e8b4b237a1809b8e81f04e07f75737247119f037d9614c06e01387",
@@ -334,7 +334,13 @@
     "blanc/android/res/values-fr/blanc_chromium_strings.xml": "aaf8df5ab3112c2fb4b047a082cbd7407376c2700ab912523b8b97134beacd5a",
     "blanc/android/res/values-it/blanc_chromium_strings.xml": "01fcfcb5764240587983db30b4cffa1e32c04cf560517be2bfb6f0a86e579b9e",
     "blanc/android/res/values-pt-rBR/blanc_chromium_strings.xml": "da424030dd449e9bf17fe443f6e6027f0dd6cad1946d53189e2ed7f43dac714d",
+    "blanc/branding/beta/BRANDING": "8f8adb18ca8bb7c70612df8446c72c0fdfd8809a40c85faaa977ab40929596ff",
+    "blanc/branding/beta/app-entitlements.plist": "ec232c705602364ac6d0a6dd74961d9e5422383d88673333e486326e415e3afb",
+    "blanc/branding/beta/metadata.py": "611b39d7a33073a8ea881d1831d049d04700603184b3e7350de7248983c0c55c",
     "blanc/branding/release/BRANDING": "70a9908532e2e6bc96606658d6cc6f69d4d17525e40a75b0c51b77165140cbcb",
+    "blanc/browser/mac/beta_identity.cc": "0275700f162b9fd880578e75208cb2531afb5087107eba966e4731f92745455d",
+    "blanc/browser/mac/beta_identity.h": "00b133dd4e5590c7efb6f6288cdcd3d05d2dbffaccdf9ae2559632e7700cf315",
+    "blanc/browser/mac/beta_profile_guard.h": "fec768ed79c6364b22e8e7141343d01ce00bdb14ac8d680616670adde225c03a",
     "blanc/browser/sync/BUILD.gn": "491e4bd9cffe9d073322a706e2809c533b516f25e3a508bf4ebb1af3e8dc30ac",
     "blanc/browser/sync/desktop_sync_platform.cc": "7622ff3292735a69366ef1e7b52200e9590b3c6e7b92463c62b84ee93f3e39ff",
     "blanc/browser/sync/desktop_sync_platform.h": "ccce0bc9c4a0b501a48752db7d877e2ae71e71e4c8666ff9fe555d2bef659a26",
@@ -410,7 +416,7 @@
     "blanc/common/island_mode.h": "e0bee373b84221917aaccbc8b465e6755797b6145ed5fe3e593360213e532503",
     "blanc/common/menu_strings.h": "8d0336a98bb01b0f989ae17e7c59d2728cbc2013dde6f8717b51d8d839401f46",
     "blanc/common/settings_strings.h": "374b7d80eac4ee093e27e7f05a13afa5392f2799b9b360c9f52c0492f35dbb7d",
-    "blanc/config.gni": "882d1925ee3e1dbd1b2a71ae1e3f95ed509d2a283a95673b1a11635a26a5bfcf",
+    "blanc/config.gni": "ed1ef9a90fc86a9b7e9f888afbd7bb6855dcc0c57b49236ad1afe6a0a1cc99b5",
     "blanc/content/browser/service_worker/blanc_update_identity.inc": "dd7242e1f78ce6a36b78cfedf6f3a7a3a504df28acca8acd49143e01461232e8",
     "blanc/content/public/browser/blanc_document_token.h": "7fba8c8ac526416683e43128737e4c5ce06e8228910fa4ccd952d1ac5d58de1c",
     "blanc/content/public/browser/blanc_url_loader_gate.h": "f7237607aa43df79e905a0e9fef918f196626b3c0de203c2353c79fdca010b48",
@@ -601,10 +607,10 @@
   },
   "targetOwnership": "//blanc:ui routes to browser-boundary template target, respecting existing upstream visibility",
   "upstreamFiles": {
-    "chrome/BUILD.gn": "acdf953adad31ff12a67fda756911a7069ad3028c4a6173dcca42e472fca3b5b",
+    "chrome/BUILD.gn": "a0493db10139b13f3cb229ad16c17fdc14a70ed51c5041b42292cfbe67fcaa79",
     "chrome/android/java/src/org/chromium/chrome/browser/common/ChromeIsolatedWorldIds.java": "4b4022b69ac8898c90651117193147079529b85e799f98ee97038cb8783fc367",
     "chrome/app/app-Info.plist": "973921ddfae2e46604e6fe124f7c2e6d0032ea525d752bb07624ba54ff77ff71",
-    "chrome/app/chrome_main_delegate.cc": "163f8628bdccfdec3bcbf194268fdc789c7f30db35cc023c4dcf9087f14244df",
+    "chrome/app/chrome_main_delegate.cc": "d2cc54d18b3b5758bf983a1c8367153c254a7f99d6d293ab2edd50bdb600ac0e",
     "chrome/app/theme/chromium/BRANDING": "f5f8523b018bad98267740d3942625a29f8a24b14599feafa93e5410c9926b8b",
     "chrome/app/theme/chromium/mac/Assets.car": "78e0f110a403ff1f6febdf819d60e2ff7a01d224a6dba70b0629862b19efe42a",
     "chrome/app/theme/chromium/mac/app.icns": "d34201f7710f10d7943193f4afb3bda378acba1b96381468245f553d7234a8c1",
@@ -675,7 +681,7 @@
     "chrome/utility/services.cc": "dfa02295abcee8fbea48d7b6f17ac114f9432b2cea1452d1e32e00d73dab6724",
     "components/content_settings/core/browser/website_settings_registry.cc": "7554cb3e2cd22de99da92d29e50462e30118705127cf75ea00953449fa839692",
     "components/os_crypt/common/BUILD.gn": "4593f7e0f9c249bc35eb0ea98c5449e52aab009cb240e305eb133ee3dd6c0861",
-    "components/os_crypt/common/keychain_password_mac.mm": "7a3ec94e583e6bd4e6f7f6c24b1eed9c3c2deceb3eca395a3334278593fa9d91",
+    "components/os_crypt/common/keychain_password_mac.mm": "70c17b91cc8cd69f18a24beaf6619f876176b803af2112dcae58373268313080",
     "components/remote_cocoa/app_shim/browser_native_widget_window_mac.mm": "4fd84b1dc64e5968c50bafb9841ee22bd06c6488b83d8201214acbf596baa3a7",
     "components/sessions/content/content_live_tab.cc": "e034de29ac87c88244bb57e5c005026664a860f110b3278c8964dd49d7fc9b3c",
     "components/sessions/content/content_serialized_navigation_builder.cc": "a9c8e70bbdb92dee4ba215d026e00d7fc769de80d6fdb3c4660a27cca940894c",
@@ -756,6 +762,8 @@
     "chrome/browser/resources/settings/settings_menu/settings_menu.html": "c9ade8f23661b7fe2b9ca7be8d784cad071c341e83173c4c19ad418a40c1e61b",
     "chrome/browser/resources/settings/blanc_sync_page/pairing_model.ts": "d2b61b6b273eecf9f9e9a0a25c89ea0aa5c3bc16abe8a20b1b5d1aad256aff56",
     "chrome/browser/resources/settings/blanc_sync_page/qr_code.ts": "72829fb9c034cbdab5910d91c3768d9864228103b7e5625ac69701a2051c98da",
-    "chrome/browser/global_keyboard_shortcuts_mac.mm": "8c392bc494832fe4770b5e01e9b35e2201bd56e93849b50a92b20dc78ac84972"
+    "chrome/browser/global_keyboard_shortcuts_mac.mm": "8c392bc494832fe4770b5e01e9b35e2201bd56e93849b50a92b20dc78ac84972",
+    "build/config/chrome_build.gni": "c8caa7b09213ca4db86722e5b88fc0220ce3957ed852dd45aaee870a4f07e948",
+    "chrome/app/BUILD.gn": "0a10376622ee3c792e8b507c19f2c651564ca08236e3b9a5ada2a92067b15e2e"
   }
 }

@@ -1,0 +1,138 @@
+--- a/build/config/chrome_build.gni
++++ b/build/config/chrome_build.gni
+@@ -2,6 +2,7 @@
+ # Use of this source code is governed by a BSD-style license that can be
+ # found in the LICENSE file.
+ 
++import("//blanc/config.gni")
+ import("//build/config/gclient_args.gni")
+ import("//build_overrides/build.gni")
+ 
+@@ -108,8 +109,16 @@
+ declare_args() {
+   # The path to the BRANDING file in chrome/app/theme.
+   branding_file_path = "//chrome/app/theme/$branding_path_component/BRANDING"
++  if (blanc_beta_channel) {
++    branding_file_path = "//blanc/branding/beta/BRANDING"
++  }
+ }
+ 
+ # Whether to enable built-in branding assets (logos & marketing snippets) for
+ # search providers in choice UIs.
+ enable_builtin_search_provider_assets = is_internal_chrome_branded
++
++if (blanc_beta_channel) {
++  assert(!is_chrome_branded && !is_chrome_for_testing)
++  assert(branding_file_path == "//blanc/branding/beta/BRANDING")
++}
+--- a/chrome/BUILD.gn
++++ b/chrome/BUILD.gn
+@@ -541,10 +541,27 @@
+     }
+   }
+ 
++  if (blanc_beta_channel) {
++    assert(!enable_widevine && !bundle_widevine_cdm && !enable_updater)
++    assert(mac_deployment_target == "13.0" && mac_min_system_version == "13.0")
++    action("blanc_beta_app_plist") {
++      script = "//blanc/branding/beta/metadata.py"
++      sources = get_target_outputs(":chrome_app_plist")
++      deps = [ ":chrome_app_plist" ]
++      outputs = [ "$target_gen_dir/blanc_beta_app.plist" ]
++      args = [ "--input", rebase_path(sources[0], root_build_dir),
++               "--output", rebase_path(outputs[0], root_build_dir),
++               "--version", blanc_beta_version, "--build", "$blanc_beta_build" ]
++    }
++  }
++
+   mac_app_bundle("chrome_app") {
+     output_name = chrome_product_full_name
+ 
+     info_plist_target = ":chrome_app_plist"
++    if (blanc_beta_channel) {
++      info_plist_target = ":blanc_beta_app_plist"
++    }
+     extra_substitutions = [
+       "CHROMIUM_BUNDLE_ID=$chrome_mac_bundle_id",
+       "BLANC_PRODUCT_DIR_NAME=$blanc_product_dir_name",
+@@ -778,6 +795,9 @@
+ 
+   compile_entitlements("entitlements") {
+     entitlements_templates = [ "app/app-entitlements.plist" ]
++    if (blanc_beta_channel) {
++      entitlements_templates += [ "//blanc/branding/beta/app-entitlements.plist" ]
++    }
+     if (is_chrome_branded && include_branded_entitlements) {
+       # These entitlements are bound to the official Google Chrome signing
+       # certificate and will not necessarily work in any other build.
+@@ -1341,6 +1361,7 @@
+ 
+     deps = [
+       ":dependencies",
++      "//blanc:beta_identity",
+       "//build:chromeos_buildflags",
+       "//chrome/app:command_ids",
+       "//chrome/browser:chrome_browser_application_mac",
+--- a/chrome/app/BUILD.gn
++++ b/chrome/app/BUILD.gn
+@@ -158,6 +158,7 @@
+ 
+   deps = [
+     "//base",
++    "//blanc:beta_identity",
+     "//chrome/browser",
+     "//chrome/browser:buildflags",
+     "//chrome/browser:chrome_content_browser_client",
+--- a/chrome/app/chrome_main_delegate.cc
++++ b/chrome/app/chrome_main_delegate.cc
+@@ -40,6 +40,12 @@
+ #include "base/time/time.h"
+ #include "base/timer/timer.h"
+ #include "build/build_config.h"
++#if BUILDFLAG(IS_MAC)
++#include "blanc/buildflags.h"
++#if BUILDFLAG(BLANC_BETA_CHANNEL)
++#include "blanc/browser/mac/beta_identity.h"
++#endif
++#endif
+ #include "chrome/common/buildflags.h"
+ #include "chrome/common/channel_info.h"
+ #include "chrome/common/chrome_constants.h"
+@@ -696,6 +702,12 @@
+ #endif  // BUILDFLAG(IS_LINUX) || BUILDFLAG(IS_CHROMEOS)
+ #if BUILDFLAG(IS_MAC)
+   policy::path_parser::CheckUserDataDirPolicy(&user_data_dir);
++#if BUILDFLAG(BLANC_BETA_CHANNEL)
++  if (!blanc::beta::ConfigureDataDirectory(command_line, &user_data_dir)) {
++    LOG(ERROR) << "Blanc Beta refused a non-isolated data directory.";
++    base::Process::TerminateCurrentProcessImmediately(EXIT_FAILURE);
++  }
++#endif
+ #endif  // BUILDFLAG(IS_MAC)
+ 
+   const bool specified_directory_was_invalid =
+@@ -1194,6 +1206,12 @@
+ }
+ 
+ std::optional<int> ChromeMainDelegate::BasicStartupComplete() {
++#if BUILDFLAG(IS_MAC)
++#if BUILDFLAG(BLANC_BETA_CHANNEL)
++  if (!blanc::beta::StartupAllowed(*base::CommandLine::ForCurrentProcess()))
++    return EXIT_FAILURE;
++#endif
++#endif
+   crash_reporter::InitializeCrashKeys();
+ 
+ #if BUILDFLAG(IS_CHROMEOS)
+--- a/components/os_crypt/common/keychain_password_mac.mm
++++ b/components/os_crypt/common/keychain_password_mac.mm
+@@ -35,6 +35,9 @@
+ #if BUILDFLAG(GOOGLE_CHROME_BRANDING)
+ const char kDefaultServiceName[] = "Chrome Safe Storage";
+ const char kDefaultAccountName[] = "Chrome";
++#elif BUILDFLAG(BLANC_BETA_CHANNEL)
++const char kDefaultServiceName[] = "Blanc Beta Safe Storage";
++const char kDefaultAccountName[] = "Blanc Beta";
+ #elif BUILDFLAG(BLANC_RELEASE_CHANNEL)
+ // Never shipping Electron's "Blanc Safe Storage" item or the preview's.
+ const char kDefaultServiceName[] = "Blanc Browser Safe Storage";

@@ -1,6 +1,6 @@
 # Blanc Chromium macOS beta release runbook
 
-**Phase 1 — design and offline tooling only, 2026-11-09. No build or publication is authorized by this document.** The shell entrypoint is deliberately incapable of executing a release. Finish the staged patches and qualification below before replacing that guard in a reviewed change. Existing Electron release scripts and `src/`, `spec/`, `test/desktop/` are unchanged.
+**Identity implementation and offline tooling, updated 2026-11-10. No official build or publication is authorized by this document.** The shell entrypoint is deliberately incapable of executing a release. Finish the staged patches and qualification below before replacing that guard in a reviewed change. Existing Electron release scripts and `src/`, `spec/`, `test/desktop/` are unchanged.
 
 This beta is a separate application alongside shipping Electron Blanc, updates with Sparkle starting at beta 1, uses GitHub **pre-releases in bnfy/blanc**, has **no Widevine**, and requires production Blanc Sync. These owner decisions supersede the older replacement spec's same-ID migration design for this beta. They are not open questions. No production Sync, GitHub release API, Apple or 1Password connection was made during setup.
 
@@ -12,33 +12,33 @@ Create a real `release.json` outside the repository from the *schema* in `chromi
 
 - Exact clean source commit, upstream revision, patch/canonical-source inventory digest (`node chromium/release/preflight.mjs --inventory`), architecture set, candidate ID **for each architecture**, reviewed GN file digests, profile digest and pinned Sparkle distribution digest/public key.
 - A version, tag and monotonically increasing build from an append-only beta release ledger. Check all local/remote tags and drafts, not just public releases. Reserve numbers before distributing any signed candidate; failed drafts retain their numbers. The ledger is `chromium/release/ledger.json` (`{build, version, tag?, date, note}` per consumed build, strictly increasing): append an entry in a reviewed commit whenever a build number is consumed, public or private. Preflight reads it, requires `previousBuild` to equal its highest build, and refuses a reused build, version or tag.
-- Both `arm64` and `x64`, or an explicit dated owner architecture waiver with its reason. There is no implicit Intel waiver because this Mac lacks a checkout.
+- Beta 1 is `arm64` only. Owner waiver, 2026-11-10: Intel is deferred until a separately qualified native build. Later releases require both architectures or a fresh explicit waiver. The fixture records this decision; the real release descriptor must carry it too.
 - `prerelease: true`, `makeLatest: false`, minimum macOS version (upstream currently 13.0), and acceptance evidence tied to final artifact digests.
 
-Proposed beta version mapping (owner naming/version sign-off still needed):
+Approved beta version mapping (owner decision, 2026-11-10):
 
 | Field | Beta 1 | Next distributed attempt |
 | --- | --- | --- |
-| Human release version | `1.0.0-beta.1` | `1.0.0-beta.2` |
-| Git tag | `chromium-beta-1.0.0-beta.1` | `chromium-beta-1.0.0-beta.2` |
-| Outer `CFBundleShortVersionString` and Sparkle `sparkle:shortVersionString` | `1.0.0-beta.1` | `1.0.0-beta.2` |
+| Human release version | `2.0.0-beta.1` | `2.0.0-beta.2` |
+| Git tag | `chromium-beta-2.0.0-beta.1` | `chromium-beta-2.0.0-beta.2` |
+| Outer `CFBundleShortVersionString` and Sparkle `sparkle:shortVersionString` | `2.0.0-beta.1` | `2.0.0-beta.2` |
 | Outer `CFBundleVersion` / Sparkle `sparkle:version` | `1` | `2` |
 | Chromium `chrome/VERSION` | `158.0.8127.2` | unchanged until a reviewed upstream update |
 | Chromium framework directory/version | `158.0.8127.2` | follows Chromium, not Sparkle |
 
-The policy accepts integer builds 1–9999 and fails at exhaustion; review an extension before then. Beta sequence and build are distinct: private qualification attempts also consume build numbers. Never reset the build at a Chromium milestone change. Chromium's [mac plist generator](https://chromium.googlesource.com/chromium/src/+/681cd621e82e606d7536eae8ea2576afb3c7d65c/build/apple/tweak_info_plist.py) normally makes the outer short version `158.0.8127.2` and bundle version `8127.2`. A beta-only packaging action must override **only the outer app's two keys before signing**, set the short version to the full beta version (`1.0.0-beta.N`, the owner's choice on November 10, 2026, so About and the update prompt name the same version the feed does), and preserve framework/dylib/helper versions. Apple documents `CFBundleShortVersionString` as three period-separated integers; a suffixed string is common outside the App Store, but confirm on the first real build that notarization, Gatekeeper and Sparkle accept it. Do not rewrite `chrome/VERSION` to a three-part Blanc semver: Chromium depends on its four integers. The signing sanity check in `signing/parts.py::_sanity_check_version_keys` skips the Keystone comparison when `KSVersion` is absent; do not introduce Keystone keys to solve this.
+The policy accepts integer builds 1–9999 and fails at exhaustion; review an extension before then. Beta sequence and build are distinct: private qualification attempts also consume build numbers. Never reset the build at a Chromium milestone change. Chromium's [mac plist generator](https://chromium.googlesource.com/chromium/src/+/681cd621e82e606d7536eae8ea2576afb3c7d65c/build/apple/tweak_info_plist.py) normally makes the outer short version `158.0.8127.2` and bundle version `8127.2`. A beta-only packaging action must override **only the outer app's two keys before signing**, set the short version to the full beta version (`2.0.0-beta.N`, the owner's choice on November 10, 2026, so About and the update prompt name the same version the feed does), and preserve framework/dylib/helper versions. Apple documents `CFBundleShortVersionString` as three period-separated integers; a suffixed string is common outside the App Store, but confirm on the first real build that notarization, Gatekeeper and Sparkle accept it. Do not rewrite `chrome/VERSION` to a three-part Blanc semver: Chromium depends on its four integers. The signing sanity check in `signing/parts.py::_sanity_check_version_keys` skips the Keystone comparison when `KSVersion` is absent; do not introduce Keystone keys to solve this.
 
 Candidate IDs from the preview tracker are not beta qualification. Bind `chromium/tools/build.mjs`'s actual resulting candidates and compiled-input/args hashes to each release architecture. Evidence from an older candidate becomes stale after a code, GN, resource, signing or packaging change. Keep unsigned and signed binary digests distinct.
 
 ## 2. Reviewed official-build GN change — scheduled rebuild, not applied
 
-`chromium/README.md`, `HANDOFF.md`, `STATUS.md` and the build wrapper document preservation of `out/BlancPrototype`, `out/BlancRelease`, SDK/compiler and GN arguments. **This branch contains no complete desktop prototype `args.gn` listing** (the committed `chromium/android/args/` files are Android). Only the preview/release channel predicates in `chromium/blanc/config.gni` can be read here. The exact prototype values and before-file hash are unverified; do not invent a literal diff or apply this table as a complete GN file.
+`chromium/README.md`, `HANDOFF.md`, `STATUS.md` and the build wrapper document preservation of `out/BlancPrototype`, `out/BlancRelease`, SDK/compiler and GN arguments. The preserved host `out/BlancPrototype/args.gn` was read on 2026-11-10: `is_debug=false`, `is_component_build=false`, `symbol_level=0`, `target_cpu="arm64"`, and no other explicit assignments. Its SHA-256 is `414e3baad6c84730b3c17f411ed82c5065561ba344fe2a202675654e1e18a057`. The file was not changed. Its implicit channel is preview and official-build is false. A beta/official output changes this configuration; the task queue explicitly stops that item at the patch rather than approving a cold or official build.
 
 The intended semantic diff for review on the build host is:
 
-| Setting | Observed prototype contract / before value | Proposed beta value |
+| Setting | Observed prototype contract / before value | Approved beta value |
 | --- | --- | --- |
-| `blanc_channel` | `preview` default; current alternative `release` reuses Electron's ID | `"beta"` after adding that channel |
+| `blanc_channel` | `preview` default; current alternative `release` reuses Electron's ID | `"beta"` (implemented) |
 | `is_official_build` | exact args unavailable | `true` |
 | `is_debug`, `is_component_build` | exact args unavailable | both `false` |
 | `target_os`, `target_cpu` | macOS candidate; exact args unavailable | `"mac"`, separately `"arm64"` / `"x64"` |
@@ -54,7 +54,7 @@ Schedule and approve this intentional rebuild, its machines, output directory an
 
 ## 3. Branding, profile and OS identity
 
-These are concrete proposed defaults, enforced by phase-one policy and requiring final owner sign-off before implementation:
+These identity decisions are approved by the owner (2026-11-10) and enforced by the beta build and release policy:
 
 | Surface | Beta value |
 | --- | --- |
@@ -93,7 +93,7 @@ Reviewed entitlement matrix, derived from pinned Chromium `chrome/app/*-entitlem
 | Renderer, GPU, Aperitif Renderer/GPU | `com.apple.security.cs.allow-jit=true` only; upstream restrict/kill/runtime signing flags. No WebAuthn group or blanket unsigned-memory/library-validation entitlement. |
 | Ordinary, Aperitif and Alerts helpers; crashpad, app_mode_loader, web_app_shortcut_copier | No entitlements; upstream hardened runtime/restrict/kill/library validation. |
 | Chromium framework and shipped dylibs | Pinned Developer ID; no entitlement additions. Runtime flags are not executable requirements for dylibs. |
-| Sparkle framework, Autoupdate, Updater, Installer.xpc, Downloader.xpc | Re-sign all with the same Developer ID; runtime on executables, no debug or App Sandbox entitlement for the proposed default distribution. Exact IDs are pinned in verifier. |
+| Sparkle framework, Autoupdate, Updater, Installer.xpc, Downloader.xpc | Re-sign all with the same Developer ID; runtime on executables, no debug or App Sandbox entitlement for the default distribution. Exact IDs are pinned in verifier. |
 
 The verifier checks the DMG signature/leaf/ticket as well as the contained app. The verifier compares **DER** entitlements, strict deep signatures, TeamIdentifier, Developer ID authority, timestamp and the extracted leaf fingerprint for every known code part; rejects unknown Mach-O payloads, unknown nested bundles, escaping symlinks, helper profiles and Widevine names. It checks nested plist IDs, Sparkle version, Chromium framework version, beta feed/build/name/default directory and all required notice files. Real DER layout and actual distribution contents still need qualification; do not loosen a failure without reviewing source and updating tests.
 
@@ -114,7 +114,7 @@ Require native foreground Terminal or explicitly approved unsandboxed agent PTY;
 Await Apple **Accepted**, staple/validate the application, then package the stapled app in an architecture-specific DMG with an Applications link, using Chromium's DMG pipeline. Sign/notarize/staple the DMG too as additional beta policy. The required app stapled ticket is independent of the container ticket. Preserve symlinks/permissions. Verify the final read-only mounted DMG's app and Gatekeeper before hashing/signing its exact bytes; never mutate it after Sparkle/manifest signing. Future command:
 
 ```sh
-node chromium/release/verify.mjs /private/release.json arm64 /private/Blanc-Beta-1.0.0-beta.1-mac-arm64.dmg
+node chromium/release/verify.mjs /private/release.json arm64 /private/Blanc-Beta-2.0.0-beta.1-mac-arm64.dmg
 # Separately, after service-contact authorization:
 spctl --assess --type execute --verbose /Volumes/Blanc-Beta/Blanc\ Beta.app
 ```
@@ -123,7 +123,7 @@ spctl --assess --type execute --verbose /Volumes/Blanc-Beta/Blanc\ Beta.app
 
 ## 5. Sparkle integration and custody
 
-Proposed source-reviewed baseline: **Sparkle 2.8.0** (framework build 2049), MIT core with additional BSD/MIT/zlib-style notices in its [full LICENSE](https://raw.githubusercontent.com/sparkle-project/Sparkle/2.8.0/LICENSE). Package the entire license, not an MIT-only summary. This is a reproducible design pin, **not a claim it is the newest or currently security-cleared release**. Before implementation, check first-party maintenance/security information, select and hash the exact distribution, and record its source/provenance/architectures. No distribution or GitHub release endpoint was contacted here. Any version change requires updating policy, source ledger, code-part IDs and tests.
+Approved implementation pin: **Sparkle 2.8.0** (framework build 2049), MIT core with additional BSD/MIT/zlib-style notices in its [full LICENSE](https://raw.githubusercontent.com/sparkle-project/Sparkle/2.8.0/LICENSE). Package the entire license, not an MIT-only summary. This is a reproducible design pin, **not a claim it is the newest or currently security-cleared release**. Before implementation, check first-party maintenance/security information, select and hash the exact distribution, and record its source/provenance/architectures. No distribution or GitHub release endpoint was contacted here. Any version change requires updating policy, source ledger, code-part IDs and tests.
 
 Implement a macOS browser-process owner under `chromium/blanc/browser/mac/` holding `SPUStandardUpdaterController`, created on the main thread at app startup, retained until shutdown. Wire app-controller lifecycle and a visible **Check for Updates…** action in the native app menu and Settings → About. The setting should explain checking/downloading/installing; automatic checks must function in beta 1 after the normal user choice. Use Sparkle's [programmatic API](https://sparkle-project.org/documentation/programmatic-setup/), with graceful browser close/session flush and relaunch handling. No page/renderer may set a feed URL, invoke privileged install, or substitute a trust key. Official builds must not honor test endpoint overrides.
 
@@ -133,7 +133,7 @@ Chromium's child-process sandbox is **not** the macOS App Sandbox. The browser p
 
 Key ceremony (future explicit operator action): use pinned Sparkle `bin/generate_keys` once under the operator's login Keychain. Public key goes into source/Info.plist and release policy. Back up/export the EdDSA private key into a dedicated **Dev / Blanc Chromium Beta Sparkle Signing** 1Password item with restricted access; do this in a private operator workflow, never captured tool output. Sparkle's documented export/import options use a file; if needed, use an owner-only temporary directory/file outside Git, import into 1Password, verify a recovery/import ceremony, then remove the plaintext. Never put a private key in arguments, environment dumps, CI artifacts, `release.json` or this repository. Normal `sign_update` should use the login Keychain; 1Password is recovery custody. Reusing Electron or another product's updater key is forbidden. No key generation or 1Password access occurred in phase 1.
 
-Proposed feeds are independent HTTPS resources:
+Approved beta feeds are independent HTTPS resources (not deployed):
 
 - `https://blanc.day/updates/chromium-beta/arm64.xml`
 - `https://blanc.day/updates/chromium-beta/x64.xml`
@@ -169,7 +169,7 @@ No preview aggregate establishes these passes. `chromium/STATUS.md` and the S4a 
 
 The complete two-architecture set has 11 assets:
 
-- Two `Blanc-Beta-1.0.0-beta.N-mac-<arm64|x64>.dmg` files and two `appcast-<arch>.xml` files.
+- Two `Blanc-Beta-2.0.0-beta.N-mac-<arm64|x64>.dmg` files and two `appcast-<arch>.xml` files.
 - `release.json`, `acceptance.json`, `Blanc-Beta.cdx.json`, `NOTICES.txt`.
 - `RELEASE-MANIFEST.json`, `SHA256SUMS`, `SHA256SUMS.sigstore.json`.
 
@@ -244,13 +244,13 @@ Future local-input file (kept private, paths never in public release.json). `pro
 }
 ```
 
-`node chromium/release/preflight.mjs RELEASE.json LOCAL-INPUTS.json` checks clean HEAD (no ignored files in the input directories either), local tag absence, the build ledger, applied beta branding (currently absent), input hashes/reconstruction, literal safety args, Sparkle/profile bytes, local signer and decoded profile. It does not contact GitHub/Apple/1Password or prove remote version uniqueness. Remote tag/draft checks, effective GN environment, trusted ledger, source review and acceptance remain separate hard gates in the future operator sequence. Successful preflight is not release authorization.
+`node chromium/release/preflight.mjs RELEASE.json LOCAL-INPUTS.json` checks clean HEAD (no ignored files in the input directories either), local tag absence, the build ledger, dedicated beta branding, input hashes/reconstruction, literal safety args, Sparkle/profile bytes, local signer and decoded profile. It does not contact GitHub/Apple/1Password or prove remote version uniqueness. Remote tag/draft checks, effective GN environment, trusted ledger, source review and acceptance remain separate hard gates in the future operator sequence. Successful preflight is not release authorization.
 
-Open owner decisions, before phase 2:
+Remaining owner work before a distributable beta:
 
-1. Confirm the proposed **Blanc Beta / me.bnfy.blanc.beta / blanc-beta**, version/build ledger, minimum OS and exact default-browser/first-run presentation.
-2. Approve feed hosting routes/promotion owner, Sparkle distribution/version after security review, updater check/install UX and dedicated 1Password custody/recovery ceremony. Public keys and archive digest are not yet real release inputs.
-3. Approve scheduled official-build GN/environment diff, output/cache arrangement, Apple Silicon/Intel machines and budget, or a specific Intel waiver. No build approval is implied here.
+1. Identity, `2.0.0-beta.N`, macOS 13 and the beta 1 Intel waiver are approved. Qualify the real beta first-run/default-browser consent and side-by-side OS registrations.
+2. Supply the dedicated EdDSA public key after the owner-only key ceremony; approve hosting/promotion operations, reviewed distribution provenance and updater UX. Sparkle 2.8.0 and the blanc.day beta-only routes are already approved; real key/distribution inputs and runtime qualification are still required.
+3. Approve the scheduled official-build GN/environment diff, separate output/cache arrangement and action budget. Beta 1 is Apple Silicon only under the recorded waiver. No cold or official build is implied here.
 4. (The beta provisioning profile is issued and committed.) Approve adapter/entitlement review and notarization service use; resolve any certificate rotation needed.
 5. Approve the beta acceptance scope after unresolved migration failures, exact-candidate harness work, real-device production Sync account/device and testing window, and final release notes/publication. Sync itself remains required.
 
@@ -263,4 +263,26 @@ Unverified / cannot be proven without the later work:
 - Exact-official-candidate acceptance, local Sync harness compatibility, production real-device Sync, packaged blocker/credits/full SBOM and outbound isolation.
 - Both N→N+1 private handoffs and the eventual public handoff, hosted smoke and post-publication stable/latest/changelog isolation.
 
-Source URLs and SHA-256 hashes for the public source reads, including all referenced signing/branding/version files, are in `chromium/release/sources.json`. Failed guessed entitlement/tweak paths were resolved to the actual pinned paths above; the archive/generated signing config and built distributions remain unread/unverified. No local Chromium checkout was assumed. See `chromium/release/PATCH-PLAN.md` for the staged, unapplied changes and cost estimate.
+Source URLs and SHA-256 hashes for the public source reads, including all referenced signing/branding/version files, are in `chromium/release/sources.json`. Failed guessed entitlement/tweak paths were resolved to the actual pinned paths above; the archive/generated signing config and built distributions remain unread/unverified. No local Chromium checkout was assumed. See `chromium/release/PATCH-PLAN.md` for implemented identity changes, later stages and current patch counts.
+
+
+## Implemented identity patch (2026-11-10)
+
+Patch 0046 selects dedicated beta BRANDING through `branding_file_path`, adds
+beta-only outer plist metadata and the main-only WebAuthn entitlement template,
+isolates Safe Storage, and validates both command-line and policy-resolved data
+roots before profile creation. Existing and missing paths are checked through
+resolved ancestors; aliases into stable/preview profiles, traversal, invalid
+profile directory components and unattended import switches are refused. The
+native pure path guard is compiled and exercised against temporary fixture
+folders, including symlinks, without opening the owner's Electron profile.
+This is not a hostile-same-user filesystem race boundary; OS user isolation
+remains responsible for an attacker who can replace directories during launch.
+
+`blanc_channel="beta"`, `blanc_beta_version="2.0.0-beta.N"` and the monotonic
+`blanc_beta_build` are explicit release inputs. Preview remains the default;
+its hooks and disk assets retain their original predicates. No Widevine or
+Chromium updater is permitted in beta. The existing Sunrise app assets are
+retained (the gold Sunrise ICNS was inspected). Helpers derive from beta's
+branding and keep Chromium framework/helper versions. Signing/profile embedding
+and OS/runtime isolation still require the separately approved beta artifact.

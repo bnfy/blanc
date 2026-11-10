@@ -1,7 +1,7 @@
 # Result
 
 Local work from `b4bd80c5`; no push or release action.
-Candidate: `macos-e7a071bb7948929b`; config: `finish-vertical-2-runtime-config.json`.
+Candidate: `macos-77c0cea3ecc01285`; config: `finish-beta-identity-dev-2-runtime-config.json`.
 
 | Queue item | State |
 | --- | --- |
@@ -9,7 +9,7 @@ Candidate: `macos-e7a071bb7948929b`; config: `finish-vertical-2-runtime-config.j
 | 2 S4d shared Spaces | Blocked: phone bridge lacks desktop window contract |
 | 3 Clean full gate and four files | Current candidate done; final rerun owed after queued fixes |
 | 4 Vertical/Island leftovers | Repairs done; V16 and Linux-only cases remain explicit |
-| 5 Beta identity | Pending; coordinating branch/version correction below |
+| 5 Beta identity | Patch and preview build done; separate beta build outside queue limits |
 | 6 Sparkle updater | Pending |
 | 7 Review 0041 | Pending |
 
@@ -24,7 +24,7 @@ Candidate: `macos-e7a071bb7948929b`; config: `finish-vertical-2-runtime-config.j
 
 Lost S4b passes in full comparison: **0 of 100**. Eight Sync cases gained.
 Item 4 focused evidence: 18 vertical passes across two builds; 2 fail remain.
-Current candidate tabs/Send gate: **3/3 pass**, including duplicate/restart exclusion.
+Item 4 candidate tabs/Send gate: **3/3 pass**, including duplicate/restart exclusion.
 Owner input: desktop Spaces bundle entry and native icon bridge need authorization.
 Unverified: final revised candidate, real Keychain/devices, signed beta/updater.
 
@@ -218,3 +218,37 @@ ephemeral generated test keys; these are now replaced by the public/signature
 parts of RFC 8032 TEST 2, with no private material or signing, to keep all
 subsequent checks within the no-key-generation boundary. No operational key
 was created or stored.
+
+
+## Queue 5 — identity result
+
+Merged setup at `7c27716d`; selected patch 0046 implements the approved beta
+identity through `blanc_channel="beta"`. Dedicated branding, outer-only version
+metadata, native profile/cache/import guards, isolated Safe Storage and main-only
+WebAuthn entitlements are present. Preview stays the default; beta hooks/disk
+assets stay disabled. Beta 1 is arm64 with the dated Intel waiver, minimum
+macOS 13, no Widevine. Policy/fixtures/runbook now use `2.0.0-beta.N` and its
+separate tag namespace. The existing gold Sunrise ICNS was visually inspected.
+
+The generated-header guard stopped before compilation. After reviewing the
+single header action and confirming it adds only `BLANC_BETA_CHANNEL=false`,
+that generator alone ran; the guarded wrapper then passed 14 incremental
+steps in 33.13s. Existing flags, args, compiler and SDK were preserved. Result:
+`macos-77c0cea3ecc01285`, `finish-beta-identity-dev-2-runtime-config.json`.
+`finish-beta-identity-syntax.txt` records the beta-only identity source passing
+syntax with the pinned Chromium compile command; this is not beta linkage.
+
+`finish-beta-identity-tools-2.tap` passes 269 tests, including compiled native
+path checks against temporary aliases/traversal/old-profile fixtures and
+outer plist preservation. Patch reconstruction: 158 outputs / 558 canonical
+files; 45 patches / 154 patched paths / 546 hunks / 152 pristine files.
+No actual owner profile was opened by the isolation tests. The first beta-only
+suite failure was an old x64 fixture assumption; missing-evidence verification
+now checks the selected arm64 fixture without changing the validator.
+
+Deliberate build boundary: actual beta selection changes the prototype args;
+an official beta additionally changes defaults/toolchain requirements. The
+queue forbids both a new cold output and prototype args changes, so item 5
+stops at the patch plus preview regression/syntax. Native beta launch, helper
+IDs in built payloads, OS registrations, real Keychain/passkeys, profile
+embedding and signed isolation remain unverified. Release execution stays disabled.

@@ -14,6 +14,11 @@ D7, F0.7, cold builds, new machines, D2/D4–D6/D8/V2 and replacement D3
 remain pending. D3 beta-only no-DRM exception accepted; EME notice/handoff required.
 
 ## Current work
+- **2026-11-10 — Beta identity patch (preview candidate macos-77c0cea3ecc01285):**
+  dedicated gated Blanc Beta identity, profile guards, version metadata and
+  release policy implemented. Preview incremental build passes; pure native
+  path tests and pinned-compiler identity syntax pass. Separate beta/official
+  build and signed OS/Keychain qualification remain outside this queue.
 - **2026-11-10 — Vertical-tab repairs (candidate macos-e7a071bb7948929b):**
   shortcut, focus/dismissal, group menus and 32px favicon conversion repaired.
   All seven former vertical adapter gaps now have passing execution; the
@@ -2408,5 +2413,5 @@ Android's Bar A counts the shared scenarios bound in `chromium/tests/android/acc
 
 Legacy macOS stages come from the approved spec; they await verification on the canonical candidate. No legacy stage counts as Verified.
 
-Candidate identities: macOS: macos-e7a071bb7948929b; Windows: none; Linux: none; Android: android-arm64-7bd35e94ef746069.
+Candidate identities: macOS: macos-77c0cea3ecc01285; Windows: none; Linux: none; Android: android-arm64-7bd35e94ef746069.
 <!-- END GENERATED PROGRESS -->

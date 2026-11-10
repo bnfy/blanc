@@ -150,6 +150,8 @@
     "chrome/browser/resources/settings/settings_main/settings_main.html": "49435f9a8dfe9daac47cbbb243b2a4b1de795c5d90d25471333634055ec4d400",
     "chrome/browser/resources/settings/settings_main/settings_main.ts": "8bc51aef13b160e6b68f0ff437adba7ce13b8c99f96245815a6d53fbc25364f0",
     "chrome/browser/resources/settings/settings_menu/settings_menu.html": "20253203b05f105d56bbab4a5c51c84df7532bf1ef2d3ad774f25ae8b7ed76da",
-    "chrome/browser/global_keyboard_shortcuts_mac.mm": "bc64058936d1809065cfe08eda58aa2df7abac6c55f9cb8eacab2c9d5f54c42f"
+    "chrome/browser/global_keyboard_shortcuts_mac.mm": "bc64058936d1809065cfe08eda58aa2df7abac6c55f9cb8eacab2c9d5f54c42f",
+    "build/config/chrome_build.gni": "09a98267376b69f27d8ec983c9a070ffb52c80660e39b68fd9c1853a3e38314d",
+    "chrome/app/BUILD.gn": "12ddef3ae21af91fe48621d7c61fd146c3fa652cef110c34a17529066e22a355"
   }
 }

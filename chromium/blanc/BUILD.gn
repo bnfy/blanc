@@ -9,6 +9,7 @@ buildflag_header("buildflags") {
     "ENABLE_BLANC_TEST_HOOKS=$blanc_enable_test_hooks",
     "ENABLE_BLANC_DISK_ASSETS=$blanc_disk_assets",
     "BLANC_RELEASE_CHANNEL=$blanc_release_channel",
+    "BLANC_BETA_CHANNEL=$blanc_beta_channel",
   ]
 }
 
@@ -17,4 +18,14 @@ group("blanc") {
 }
 group("ui") {
   deps = [ "//chrome/browser/ui/views/frame:blanc_ui" ]
+}
+
+# Header ownership stays available in preview; executable identity code is beta-only.
+source_set("beta_identity") {
+  sources = [ "browser/mac/beta_identity.h", "browser/mac/beta_profile_guard.h" ]
+  public_deps = [ ":buildflags" ]
+  if (blanc_beta_channel) {
+    sources += [ "browser/mac/beta_identity.cc" ]
+    deps = [ "//base" ]
+  }
 }
