@@ -1197,6 +1197,8 @@ From the desktop `DEFAULTS`:
   it.
 - A frame with an invalid certificate is refused without replacing the page
   around it.
+- A page loaded after continuing can open WebSockets to that same origin and
+  certificate; a WebSocket never offers or records a choice of its own.
 - This does not reproduce Chromium's HSTS refusal: platforms that cannot read
   the engine's HSTS state must not claim it.
 - **Acceptance:** [`acceptance/site-certificate-safety.feature`](./acceptance/site-certificate-safety.feature).

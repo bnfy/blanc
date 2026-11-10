@@ -63,3 +63,8 @@ Feature: Certificate safety
     Given a page embeds a frame with an untrusted certificate
     Then the embedded frame is refused
     And the page that embeds it stays open
+
+  @desktop @F39-9
+  Scenario: A page loaded past a warning can open a WebSocket to the same address
+    Given I continued past the warning on a local page that opens a WebSocket
+    Then the WebSocket to the local address opens
