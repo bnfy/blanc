@@ -58,9 +58,12 @@ test('reconciliation never removes either open Space, including a held window', 
 
 test('Undo detaches a deleted Space as a local copy without deleting the other window receipt', () => setup(async ({device}) => {
   assert.equal(await call(device, 'metadata', 'a', {deleted: true}), true);
-  const stale = await call(device, 'push', {revision: 0, rows: [], windows: []});
+  const stale = await call(device, 'push', {revision: 0, rows: [], windows: [], restoring: 'a'});
+  assert.equal(stale.stale, true);
+  assert.equal(stale.restored, undefined, 'a stale inventory must not acknowledge Undo');
   const answer = await call(device, 'push', {revision: stale.revision, rows: stale.rows,
     windows: [{id: 'window-b', workspaceId: 'b', holding: true}], restoring: 'a'});
+  assert.equal(answer.restored, 'a');
   assert.equal(answer.rows.find(row => row.id === 'a').sharedId, undefined);
   assert.deepEqual(answer.rows.find(row => row.id === 'a').urls, ['https://first.example/']);
   assert.ok(Object.keys(state(device).data.windows).some(key => key.startsWith('desktop:window-b:')));
@@ -70,4 +73,31 @@ test('a malformed window inventory is refused without changing the library', () 
   const stale = await call(device, 'push', {revision: 0, rows: [], windows: []});
   await assert.rejects(call(device, 'push', {revision: stale.revision, rows: stale.rows, windows: [windows[0], windows[0]]}), /invalid-desktop-inventory/);
   assert.equal((await call(device, 'preview', {local: true})).choices.length, 2);
+}));
+
+test('a held window resumes capture after the next complete inventory', () => setup(async ({device, windows}) => {
+  const stale = await call(device, 'push', {revision: 0, rows: [], windows: []});
+  const held = await call(device, 'push', {revision: stale.revision, rows: stale.rows,
+    windows: windows.map(win => ({...win, holding: true}))});
+  const saved = state(device).data.windows;
+  const captures = windows.map(win => {
+    const receipt = Object.entries(saved).find(([key]) => key.startsWith(`desktop:${win.id}:`))[1];
+    const id = Object.keys(receipt.displayed.tabs)[0];
+    return {...win, capture: {...win.capture, tabIds: [id]}};
+  });
+  captures[0].capture.meta[0].customTitle = 'After switch';
+  await call(device, 'push', {revision: held.revision, rows: held.rows, windows: captures});
+  const receipt = Object.entries(state(device).data.windows).find(([key]) => key.startsWith('desktop:window-a:'))[1];
+  assert.equal(Object.values(receipt.displayed.tabs)[0].name.v, 'After switch');
+}));
+
+test('a failed desktop disk checkpoint cannot return a durable push receipt', () => setup(async ({device, windows}) => {
+  const stale = await call(device, 'push', {revision: 0, rows: [], windows: []});
+  const captures = windows.map(win => {
+    const receipt = Object.entries(state(device).data.windows).find(([key]) => key.startsWith(`desktop:${win.id}:`))[1];
+    return {...win, capture: {...win.capture, tabIds: [Object.keys(receipt.displayed.tabs)[0]]}};
+  });
+  device.context.__host.persistDesktopStore = () => false;
+  const result = await call(device, 'push', {revision: stale.revision, rows: stale.rows, windows: captures});
+  assert.equal(result.durable, false);
 }));

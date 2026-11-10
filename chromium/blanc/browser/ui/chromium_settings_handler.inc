@@ -127,6 +127,21 @@ class ChromiumSettingsHandler final : public settings::SettingsPageUIHandler,
     if (method == "sync.status" || method == "sync.syncNow" ||
         method == "sync.disable" || method == "sync.beginPairing" ||
         method == "sync.cancelPairing" || method == "sync.pairingState") return args.empty();
+    if (method == "desktop.spaces.status" || method == "desktop.spaces.armPairing") return args.empty();
+    if (method == "desktop.spaces.acknowledge") return args.size() == 1 && args[0].is_string() && args[0].GetString().size() <= 128;
+    if (method == "desktop.spaces.preview") return args.empty();
+    if (method == "desktop.spaces.apply") {
+      if (args.size() != 1 || !args[0].is_dict()) return false;
+      const auto& value = args[0].GetDict();
+      const auto* selections = value.FindList("selections");
+      if (!value.FindBool("enabled") || !selections || selections->size() > 25 || value.size() != 2) return false;
+      for (const auto& choice : *selections) {
+        if (!choice.is_dict() || choice.GetDict().size() != 2) return false;
+        const auto* id = choice.GetDict().FindString("id"), *mode = choice.GetDict().FindString("mode");
+        if (!id || id->size() > 120 || !mode || (*mode != "copy" && *mode != "rejoin")) return false;
+      }
+      return true;
+    }
     if (method == "sync.setSyncTabs") return args.size() == 1 && args[0].is_bool();
     if (method == "sync.setPairingWatch") return args.size() == 1 && args[0].is_bool();
     if (method == "sync.joinWithCode")

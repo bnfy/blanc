@@ -3077,6 +3077,22 @@ base::DictValue SpaceDisk(base::FilePath path, std::string method,
     if (key.empty() || key.size() > 120 || !value.is_dict() || !ValidSpace(value.GetDict()))
       return base::DictValue().Set("error", "Space record invalid; unchanged.");
   }
+  if (method == "sharedRecords") return base::DictValue().Set("records", items->Clone());
+  if (method == "sharedSave") {
+    if (base::PathExists(journal)) return base::DictValue().Set("error", "Switch pending.");
+    for (auto [id, change] : capture) {
+      if (!change.is_dict()) return base::DictValue().Set("error", "Invalid shared write.");
+      const auto* before = change.GetDict().Find("before");
+      const auto* current = items->Find(id);
+      const auto* after = change.GetDict().FindDict("after");
+      if ((before && (!current || *current != *before)) || (!before && current) || !after || !ValidSpace(*after))
+        return base::DictValue().Set("error", "Space changed; retry required.");
+    }
+    for (auto [id, change] : capture) items->Set(id, change.GetDict().FindDict("after")->Clone());
+    auto bytes = base::WriteJson(store);
+    if (!bytes || !base::ImportantFileWriter::WriteFileAtomically(path, *bytes)) return base::DictValue().Set("error", "Shared Space save failed.");
+    return base::DictValue();
+  }
   // Move to Space reads the record it will add a tab to.
   if (method == "spaceRecord") {
     const auto* item = items->FindDict(name);
@@ -3098,6 +3114,10 @@ base::DictValue SpaceDisk(base::FilePath path, std::string method,
     auto previous = base::WriteJson(store);
     if (!previous || !base::ImportantFileWriter::WriteFileAtomically(path.AddExtensionASCII("backup"), *previous))
       return base::DictValue().Set("error", "Previous space checkpoint write failed.");
+    if (!capture.contains("sharedCapture")) {
+      if (const auto* prior = items->FindDict(name))
+        if (const auto* shared = prior->FindDict("sharedCapture")) capture.Set("sharedCapture", shared->Clone());
+    }
     if (capture.contains("splits")) store.Set("version", 2);
     items->Set(name, std::move(capture));
     auto json = base::WriteJson(store);
@@ -3140,6 +3160,8 @@ base::DictValue SpaceDisk(base::FilePath path, std::string method,
   for (const auto [key, value] : *items) names.Append(key);
   return base::DictValue().Set("names", std::move(names));
 }
+
+#include "blanc/browser/ui/desktop_shared_spaces.inc"
 
 // Read Chromium's installed theme; private windows retain their private appearance.
 // Image bytes come from the validated native theme pack, never a renderer path.
@@ -3258,6 +3280,7 @@ void PublishSyncTabs(Profile* profile) {
 
 base::DictValue Snapshot(BrowserWindowInterface* browser, Owner* owner) {
   PublishSyncTabs(browser->GetProfile());
+  if (auto* shared = DesktopSpaces::Get(browser->GetProfile())) shared->Refresh();
   owner->SyncActive();
   auto* model = browser->GetTabStripModel();
   auto* favorites = LoadedBookmarkModel(browser->GetProfile());
@@ -7146,6 +7169,15 @@ class Handler : public content::WebUIMessageHandler, public extensions::Extensio
         }
         added.push_back(created);
       }
+      if (const auto* shared = record->FindDict("sharedCapture")) {
+        const auto* locals = shared->FindList("localIds");
+        if (!retained && locals && source_index < locals->size() && (*locals)[source_index].is_string() &&
+            base::Uuid::ParseLowercase((*locals)[source_index].GetString()).is_valid())
+          RestoreTabIdentity(added.back(), {{kTabIdentityKey, (*locals)[source_index].GetString()}});
+        const auto* metadata = shared->FindList("meta");
+        if (metadata && source_index < metadata->size() && (*metadata)[source_index].is_dict())
+          if (const auto* title = (*metadata)[source_index].GetDict().FindString("customTitle")) RenameTab(browser, added.back(), *title);
+      }
       if (item.GetDict().FindBool("inheritsDocumentPolicy").value_or(false)) {
         blanc::quiet::MediaHistory::Get(added.back())->MarkInheritedPolicy();
         SaveInheritedSandbox(added.back());
@@ -7497,6 +7529,7 @@ class Handler : public content::WebUIMessageHandler, public extensions::Extensio
       return;
     }
     if (method == "spaceMetaSave" && args.size() == 1 && args[0].is_dict()) {
+      if (auto* shared = DesktopSpaces::Get(profile)) shared->Metadata(args[0].GetDict());
       profile->GetOriginalProfile()->GetPrefs()->SetDict(kSpacesMetaPref, args[0].GetDict().Clone());
       // Every window's mark and menu show the same list.
       for (auto* other : Owner::Live())

@@ -7,7 +7,7 @@ const model = () => __require('src/main/shared-spaces-model.js');
 const ids = () => __require('shim:crypto').randomUUID().replace(/-/g, '');
 const emit = (event, value) => __host.emit(`desktop-spaces-${event}`, JSON.stringify(value));
 const FILE = '/sync/desktop-spaces-visible.json';
-let rows = null, revision = 0, nextToken = 0, applying = 0;
+let rows = null, revision = 0, nextToken = 0, applying = 0, persistenceFailed = false;
 const windows = new Map(), waiting = new Map();
 let runtime, sharing, work = Promise.resolve();
 const visible = () => rows === null ? (() => {try {return JSON.parse(fs.readFileSync(FILE, 'utf8'));} catch {return [];}})()
@@ -88,7 +88,9 @@ function start() {
       const current = context(win); if (!current) return false;
       // Never discard another window's receipt, even for the same Space.
       current.store.update(data => {data.windows[receiptKey(win, saved.spaceId)] = saved;});
-      return current.store.flush();
+      const savedToDisk = current.store.flush() && fs.__persistDesktop('shared-spaces.json');
+      if (!savedToDisk) persistenceFailed = true;
+      return savedToDisk;
     },
     writeLocal(win, blob, edits, diff) {
       const current = context(win); if (!current) return;
@@ -120,7 +122,7 @@ function start() {
         store.update(data => {data.windows[receiptKey(win, item.spaceId)] = {
           spaceId: item.spaceId, displayed: item.blob, accepted: [], groupBindings: item.groupBindings ?? {}};});
       }
-      if (!store.flush()) throw Error('save-failed');
+      if (!store.flush() || !fs.__persistDesktop('shared-spaces.json')) throw Error('save-failed');
     },
     recoveryName: name => `${name} · kept on this device`,
   });
@@ -150,13 +152,14 @@ module.exports = {
     // Validate the complete inventory before changing any state.
     if (!Array.isArray(next) || !Array.isArray(snapshots) || new Set(snapshots.map(w => w.id)).size !== snapshots.length ||
         snapshots.some(w => typeof w.id !== 'string' || !w.id || (w.workspaceId && !next.some(row => row.id === w.workspaceId)))) throw Error('invalid-desktop-inventory');
+    persistenceFailed = false;
     rows = structuredClone(next);
     const live = new Set(snapshots.map(w => w.id));
     for (const [id] of windows) if (!live.has(id)) windows.delete(id);
     for (const snap of snapshots) {
       let win = windows.get(snap.id);
       if (!win) {win = {id: snap.id}; windows.set(snap.id, win);}
-      Object.assign(win, structuredClone(snap));
+      Object.assign(win, {holding: false, capture: null, protectedIds: []}, structuredClone(snap));
     }
     if (restoring) {
       sharing.restored(restoring);
@@ -168,7 +171,7 @@ module.exports = {
     }
     fs.writeFileSync(FILE, JSON.stringify(visible()));
     await settle(); await sharing.autoShare();
-    return {revision, rows};
+    return {revision, rows, restored: restoring ?? null, durable: !persistenceFailed};
   },
   hold(windowId) {const win = windows.get(windowId); if (win) win.holding = true;},
   rowDone(windowId, workspaceId, token, ok, capture) {

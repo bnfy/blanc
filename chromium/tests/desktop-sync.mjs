@@ -18,15 +18,16 @@ const require=createRequire(import.meta.url);
 const {createSyncFixture}=require('../../test/desktop/support/sync-fixture.js');
 const {peer}=require('./android/support/sync-peer.cjs');
 const [configFile,evidence,mode]=process.argv.slice(2);
-if(mode && !['--recovery-only','--profiles-only','--tabs-only','--consent-only'].includes(mode))throw Error('Unknown gate mode');
-const tabsOnly=mode==='--tabs-only';
+if(mode && !['--recovery-only','--profiles-only','--tabs-only','--consent-only','--spaces-only'].includes(mode))throw Error('Unknown gate mode');
+const spacesOnly=mode==='--spaces-only';
+const tabsOnly=mode==='--tabs-only'||spacesOnly;
 const profilesOnly=mode==='--profiles-only';
 const recoveryOnly=mode==='--recovery-only';
 const consentOnly=mode==='--consent-only';
 if(!configFile||!evidence)throw Error('Usage: desktop-sync.mjs CONFIG EVIDENCE');
 const config=JSON.parse(fs.readFileSync(configFile));
 fs.mkdirSync(evidence,{recursive:true,mode:0o700});
-const output={candidate:config.candidate,checks:[],mockKeychain:true,mode:consentOnly?'consent-only':tabsOnly?'tabs-only':profilesOnly?'profiles-only':recoveryOnly?'recovery-only':'full'};
+const output={candidate:config.candidate,checks:[],mockKeychain:true,mode:spacesOnly?'spaces-only':consentOnly?'consent-only':tabsOnly?'tabs-only':profilesOnly?'profiles-only':recoveryOnly?'recovery-only':'full'};
 const sleep=ms=>new Promise(r=>setTimeout(r,ms));
 async function until(read,predicate,label,timeout=180000){
  const end=Date.now()+timeout;let value;
@@ -45,11 +46,11 @@ const peerFavorites=()=>device.module('bookmarks').listBookmarks();
 // Leave room below the real Worker's 30 account GETs/minute for background
 // reconciliation. Resetting the runner's test window does not reset the Worker.
 // Pace requests, rather than removing quotas or treating a 429 as convergence.
-async function requestRoom(){
+async function requestRoom(reserve=12){
  const deadline=Date.now()+125000;
  for(;;){
   const recent=worker.requests.filter(r=>r.method==='GET'&&Date.now()-r.at<61000);
-  if(recent.length<18)return;
+  if(recent.length<30-reserve)return;
   if(Date.now()>deadline)throw Error(`Worker request budget did not free: ${recent.length} recent GETs`);
   await sleep(Math.max(300,61000-(Date.now()-recent[0].at)));
  }
@@ -115,7 +116,61 @@ try{
   assert.equal(progress.syncComplete,true,'real Sync completes checklist');
   assert.equal(progress.iphoneComplete,true,'real iPhone presence completes checklist');
  });
- if(!recoveryOnly&&!consentOnly){
+ if(!mode || spacesOnly){
+ await check('two native windows share Spaces, merge peer edits, and preserve delete with Undo',async()=>{
+  const leftUrl=fixture.base+'/shared-left',rightUrl=fixture.base+'/shared-right';
+  await w.call('openTab',leftUrl,{});
+  const left=await w.api('saveWorkspaceAs',['Left shared Space']);
+  assert.equal(left.ok,true,'first native Space saved');
+  const right=await w.api('createBlankWorkspace',['Right shared Space',{newWindow:true}]);
+  assert.equal(right.ok,true,'second native window opened');
+  const other=await until(()=>fixture.targets(),rows=>rows.filter(t=>t.type==='page'&&t.url==='chrome://blanc-prototype/host.html').length===2,'two native windows');
+  const target=other.find(t=>t.type==='page'&&t.url==='chrome://blanc-prototype/host.html'&&t.id!==fixture.hostTargetId);
+  const second=await fixture.connectTarget(target);
+  const otherApi=(method,args=[])=>second.eval(`window.BlancPrototypeHost.api[${JSON.stringify(method)}](...${JSON.stringify(args)})`);
+  await otherApi('createTab',[rightUrl]);
+  await sleep(1500);
+  await openSync();await act('spaces-choose');
+  await until(()=>w.hostEval(`1`),Boolean,'native host remains live');
+  await until(()=>w.call('settingsSyncPairingAct','spaces-share'),Boolean,'share choices accepted');
+  device.sync.setSyncSpaces(true);
+  const sharedState=()=>device.module('shared-spaces').snapshot(device.sync.sharedContext());
+  const spacesPass=async()=>{await requestRoom(7);device.sync.resetRequestWindowForTest();await device.sync.syncNow(['spaces',...Object.keys(sharedState().index.spaces).map(id=>'space-'+id)]);await sleep(1500);};
+  const remote=await until(async()=>{await spacesPass();return sharedState();},v=>Object.values(v.index.spaces).filter(x=>!x.deleted.v).length===2,'both native Spaces on peer');
+  const entries=Object.entries(remote.index.spaces);
+  const leftId=entries.find(([,r])=>r.name.v==='Left shared Space')?.[0];
+  const rightId=entries.find(([,r])=>r.name.v==='Right shared Space')?.[0];
+  assert.ok(leftId&&rightId,'independent shared Space identities');
+  console.log('spaces: peer received both index entries');
+  await until(async()=>{await spacesPass();return sharedState();},v=>v.blobs[leftId]?.blob&&v.blobs[rightId]?.blob,'both encrypted captures received');
+  const peerUrls=id=>Object.values(sharedState().blobs[id].blob.tabs).filter(tab=>!tab.deleted.v).map(tab=>tab.nav.v.url);
+  assert.ok(peerUrls(leftId).includes(leftUrl),'left native capture delivered');
+  assert.ok(peerUrls(rightId).includes(rightUrl),'right native capture delivered');
+  console.log('spaces: peer received both native captures');
+  const model=device.module('shared-spaces-model');
+  const blob=sharedState().blobs[leftId].blob;
+  const existing=Object.entries(blob.tabs).find(([,tab])=>tab.nav.v.url===leftUrl);
+  const next=JSON.parse(JSON.stringify(blob));
+  next.tabs[existing[0]].name=model.field('Peer edited tab',Date.now()+1000,device.sync.sharedContext().deviceId);
+  device.module('shared-spaces').noteLocalSpace(leftId,next,{tabs:{[existing[0]]:{name:next.tabs[existing[0]].name}}},device.sync.sharedContext());
+  await until(async()=>{await spacesPass();return w.snapshot();},v=>v.tabs.some(t=>t.title==='Peer edited tab'),'peer edit on native tab');
+  const leftBefore=(await w.snapshot()).tabs.map(t=>t.url);
+  const rightBefore=(await otherApi('getAllTabs')).tabs.map(t=>t.url);
+  assert.equal((await w.api('removeWorkspace',[left.workspaceId])).ok,true,'delete shared Space');
+  assert.equal((await w.api('undoRemoveWorkspace',[left.workspaceId])).ok,true,'Undo keeps local copy');
+  await spacesPass();
+  assert.ok((await w.snapshot()).tabs.some(t=>t.url===leftUrl),'Undo keeps native left page');
+  assert.deepEqual((await w.snapshot()).tabs.map(t=>t.url),leftBefore,'no left-window tab lost or duplicated');
+  assert.deepEqual((await otherApi('getAllTabs')).tabs.map(t=>t.url),rightBefore,'other native window remains intact');
+  assert.ok(peerUrls(rightId).includes(rightUrl),'other window survives delete and Undo');
+  const list=await w.api('listWorkspaces');
+  assert.ok(list.items.some(row=>row.id===left.workspaceId),'local Undo Space retained');
+  assert.ok(list.items.some(row=>row.id===right.workspaceId),'second Space retained');
+  await otherApi('previewPageCommand',['closeWindow']);
+  second.close();
+ });
+ }
+ if(!recoveryOnly&&!consentOnly&&!spacesOnly){
  await check('open tabs default off, both directions, private exclusion, Send and retraction',async()=>{
   assert.equal((await w.call('settingsSyncPairingDom')).shareTabs,false,'sharing defaults off');
   const macUrl=fixture.base+'/sync-mac-tab',privateUrl=fixture.base+'/sync-private-tab';

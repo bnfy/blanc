@@ -168,6 +168,17 @@ class Runner : public mojom::SyncHost {
         LOG(ERROR) << "sync: could not write " << path.BaseName();
     }, g_platform->StoreDir().AppendASCII(name), data));
   }
+  void PersistDesktopStore(const std::string& name, const std::vector<uint8_t>& data,
+                           PersistDesktopStoreCallback callback) override {
+    if ((name != "shared-spaces.json" && name != "desktop-spaces-visible.json") || data.size() > kMaxBody) {
+      std::move(callback).Run(false); return;
+    }
+    writer_->PostTaskAndReplyWithResult(FROM_HERE,
+        base::BindOnce([](base::FilePath path, std::vector<uint8_t> data) {
+          return base::CreateDirectory(path.DirName()) && base::ImportantFileWriter::WriteFileAtomically(
+              path, std::string(data.begin(), data.end()));
+        }, g_platform->StoreDir().AppendASCII(name), data), std::move(callback));
+  }
   void Protect(const std::vector<uint8_t>& data, ProtectCallback callback) override {
     // Keystore goes through binder: never on the thread that draws the app.
     base::ThreadPool::PostTaskAndReplyWithResult(FROM_HERE, {base::MayBlock()},

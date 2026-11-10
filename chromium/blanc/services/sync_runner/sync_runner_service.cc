@@ -126,6 +126,11 @@ void LoadStores(const Args& args) {
 void WriteStore(const Args& args) {
   g_service->host()->WriteStore(ToString(args.GetIsolate(), args[0]), Bytes(args[1]));
 }
+void PersistDesktopStore(const Args& args) {
+  bool saved = false;
+  g_service->host()->PersistDesktopStore(ToString(args.GetIsolate(), args[0]), Bytes(args[1]), &saved);
+  args.GetReturnValue().Set(saved);
+}
 void RandomBytes(const Args& args) {
   std::vector<uint8_t> out(static_cast<size_t>(Int(args, 0)));
   crypto::RandBytes(out);
@@ -296,6 +301,7 @@ void SyncRunnerService::Start(const std::string& script,
   add("parseUrl", ParseUrl);
   add("loadStores", LoadStores);
   add("writeStore", blanc::WriteStore);
+  add("persistDesktopStore", blanc::PersistDesktopStore);
   add("randomBytes", RandomBytes);
   add("digest", Digest);
   add("scrypt", Scrypt);

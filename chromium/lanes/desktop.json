@@ -52,6 +52,7 @@
     "patches/0044-blanc-sync-tabs.patch",
     "patches/0045-blanc-rail-actions.patch",
     "patches/0046-blanc-beta-identity.patch",
-    "patches/0047-blanc-beta-sparkle.patch"
+    "patches/0047-blanc-beta-sparkle.patch",
+    "patches/0048-blanc-shared-spaces-desktop.patch"
   ]
 }

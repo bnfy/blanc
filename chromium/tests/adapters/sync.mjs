@@ -62,6 +62,9 @@ export const sync = {
    connectIphoneVisible:visible('syncConnectIphone'),
    pairNotice:el('syncPairingNotice')?.textContent.trim(),
    joinedTitle:visible('syncPairingJoined')?el('syncPairingJoined').textContent.trim():'',
+   spacesQuestion:visible('syncSpacesQuestion'),
+   spacesQuestionText:visible('syncSpacesQuestion')?el('syncSpacesQuestion').textContent.trim():'',
+   pairDone:visible('syncPairingCancel')&&el('syncPairingCancel').textContent.trim()==='Done',
    pathOrder:[...root.querySelectorAll('#syncPaths cr-button')].map(e=>e.id).filter(id=>id.startsWith('syncPath')),
    firstPath:visible('syncTurnOn')?'syncTurnOn':null,
    otherWays:[...el('syncOtherWays').querySelectorAll('cr-button')].map(e=>e.id),
@@ -82,6 +85,7 @@ export const sync = {
    'turn-on':'syncTurnOn','connect-code':'syncCodeConnect','sync-now':'syncNow',
    'add-device':'syncAddDevice','connect-iphone':'syncConnectIphone',
    'continue':'syncPairingContinue','add-this-first':'syncPairingAddThisFirst','pair-cancel':'syncPairingCancel',
+   'spaces-not-now':'syncSpacesNotNow','spaces-choose':'syncSpacesChoose','spaces-share':'syncSpacesShare',
    'turn-off':'syncDisable','upload-continue':'syncFirstUploadContinue','upload-not-now':'syncFirstUploadNotNow'};
   if(a.action==='share-tabs-on'||a.action==='share-tabs-off'){
    const field=root.getElementById('syncTabsShare');

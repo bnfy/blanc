@@ -137,6 +137,16 @@ export default function register(step){
  step('the sheet says {string}',async function(text){
   await card(this,v=>v.joinedTitle===text,'joined device named',30000);
  });
+ step('the sheet asks to keep Spaces and groups in sync',async function(){
+  const view=await card(this,v=>v.spacesQuestion,'Spaces question',30000);
+  assert.match(view.spacesQuestionText,/Keep Spaces and groups in sync/);
+ });
+ step('I choose Not now in the sheet',async function(){
+  assert.equal(await this.call('settingsSyncPairingAct','spaces-not-now'),true);
+ });
+ step('the sheet no longer asks and offers Done',async function(){
+  await card(this,v=>!v.spacesQuestion&&v.pairDone,'Spaces answer retained and Done offered');
+ });
  step('the window asks to be left out of screen capture',async function(){
   await this.waitFor(()=>this.call('windowsContentProtected'),n=>n===1,'one protected window');
  });
