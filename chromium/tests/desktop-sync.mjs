@@ -18,14 +18,15 @@ const require=createRequire(import.meta.url);
 const {createSyncFixture}=require('../../test/desktop/support/sync-fixture.js');
 const {peer}=require('./android/support/sync-peer.cjs');
 const [configFile,evidence,mode]=process.argv.slice(2);
-if(mode && !['--recovery-only','--profiles-only','--tabs-only'].includes(mode))throw Error('Unknown gate mode');
+if(mode && !['--recovery-only','--profiles-only','--tabs-only','--consent-only'].includes(mode))throw Error('Unknown gate mode');
 const tabsOnly=mode==='--tabs-only';
 const profilesOnly=mode==='--profiles-only';
 const recoveryOnly=mode==='--recovery-only';
+const consentOnly=mode==='--consent-only';
 if(!configFile||!evidence)throw Error('Usage: desktop-sync.mjs CONFIG EVIDENCE');
 const config=JSON.parse(fs.readFileSync(configFile));
 fs.mkdirSync(evidence,{recursive:true,mode:0o700});
-const output={candidate:config.candidate,checks:[],mockKeychain:true,mode:tabsOnly?'tabs-only':profilesOnly?'profiles-only':recoveryOnly?'recovery-only':'full'};
+const output={candidate:config.candidate,checks:[],mockKeychain:true,mode:consentOnly?'consent-only':tabsOnly?'tabs-only':profilesOnly?'profiles-only':recoveryOnly?'recovery-only':'full'};
 const sleep=ms=>new Promise(r=>setTimeout(r,ms));
 async function until(read,predicate,label,timeout=180000){
  const end=Date.now()+timeout;let value;
@@ -38,7 +39,7 @@ const check=async(name,fn)=>{
  catch(error){output.checks.push({name,result:'fail',error:error.message});throw error;}
 };
 let fixture,worker,w,device;
-const rpc=async method=>{try{return await nativeCall(fixture.host,'desktopSyncCall',[method],null,120000);}catch(error){throw Error(`${method}: ${error.message}`);}};
+const rpc=async method=>{try{return await nativeCall(fixture.host,'desktopSyncCall',[method],null,270000);}catch(error){throw Error(`${method}: ${error.message}`);}};
 const nativeFavorites=()=>w.api('listFavorites');
 const peerFavorites=()=>device.module('bookmarks').listBookmarks();
 // Leave room below the real Worker's 30 account GETs/minute for background
@@ -114,7 +115,7 @@ try{
   assert.equal(progress.syncComplete,true,'real Sync completes checklist');
   assert.equal(progress.iphoneComplete,true,'real iPhone presence completes checklist');
  });
- if(!recoveryOnly){
+ if(!recoveryOnly&&!consentOnly){
  await check('open tabs default off, both directions, private exclusion, Send and retraction',async()=>{
   assert.equal((await w.call('settingsSyncPairingDom')).shareTabs,false,'sharing defaults off');
   const macUrl=fixture.base+'/sync-mac-tab',privateUrl=fixture.base+'/sync-private-tab';
@@ -181,7 +182,7 @@ try{
   device.module('bookmarks').saveFavorite(remote,'Added on peer');await peerPass();
   await until(async()=>{await pump();return {mac:await nativeFavorites(),peer:peerFavorites()};},v=>v.mac.some(x=>x.url===remote)&&v.peer.some(x=>x.url===later),'both additions');
  });
- if(!recoveryOnly){
+ if(!recoveryOnly&&!consentOnly){
  await check('native title edit, folder move and folder rename from Mac merge on peer',async()=>{
   const row=(await nativeFavorites()).find(x=>x.url===later);
   await w.native('desktopSyncRenameFavorite',[later,'Mac renamed title']);
@@ -224,6 +225,7 @@ try{
  });
  }
  await openSync();
+ if(!consentOnly){
  await check('stalled runner preserves enabled state and Favorites without removals',async()=>{
   const before=(await nativeFavorites()).map(x=>x.url).sort();
   const tombstones=JSON.stringify(device.module('bookmarks').exportForSync().tombstones);
@@ -280,6 +282,7 @@ try{
   await until(()=>rpc('sync.status'),s=>s.enabled===true,'runner recovered');
   await pump();assert.ok((await nativeFavorites()).some(x=>x.url===first));assert.ok(peerFavorites().some(x=>x.url===first));
  });
+ }
  await openSync();
  await check('turning Sync off retains local Favorites',async()=>{
   await act('turn-off');await until(()=>w.call('settingsSyncPairingDom'),s=>s?.turnOnVisible&&!s.syncOn,'Sync off');
@@ -321,9 +324,23 @@ try{
   await act('upload-not-now');await pump();await pump();
   assert.ok((await nativeFavorites()).some(x=>x.url===excluded));assert.ok((await nativeFavorites()).some(x=>x.url===remote));
   assert.ok(!(await rpc('bookmarks.exportForSync')).items.some(x=>x.url===excluded));assert.ok(!peerFavorites().some(x=>x.url===excluded));
-  await fixture.stop();await fixture.start(fixture.base+'/initial');
+  await fixture.stop();
+  // A real persisted one-minute request budget, not a stalled utility. On
+  // restart shipping conservatively charges recent timestamps for a whole
+  // window. Keep its limit intact and prove the native RPC tolerates that wait.
+  const budgetFile=path.join(fixture.profile,'Default','BlancSync','shared-spaces.json');
+  const budget=JSON.parse(fs.readFileSync(budgetFile));
+  budget.requestLog=Array(10).fill(Date.now());budget.windowLimit=10;budget.backoffUntil=null;
+  fs.writeFileSync(budgetFile,JSON.stringify(budget),{mode:0o600});
+  await fixture.start(fixture.base+'/initial');
   await assertRendering(e=>fixture.host.eval(e));
-  await installDriver(fixture.host);w=createWorld(fixture);await w.app.refresh();await pump();assert.ok((await nativeFavorites()).some(x=>x.url===excluded));assert.ok(!peerFavorites().some(x=>x.url===excluded));
+  await installDriver(fixture.host);w=createWorld(fixture);await w.app.refresh();
+  const started=Date.now();await rpc('sync.syncNow');
+  const waited=Date.now()-started;
+  assert.ok(waited>=30000,'persisted quota outlasts the old runner deadline');
+  output.restartBudgetWaitMs=waited;console.log('restart: healthy budget wait completed');
+  assert.equal((await rpc('sync.status')).enabled,true,'responsive budget-waiting runner stays enabled');
+  assert.ok((await nativeFavorites()).some(x=>x.url===excluded));assert.ok(!peerFavorites().some(x=>x.url===excluded));
  });
  await close('declined');
  await device.sync.disable();

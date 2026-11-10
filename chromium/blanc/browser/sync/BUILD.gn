@@ -30,6 +30,7 @@ source_set("sync") {
     "desktop_sync_platform.h",
     "desktop_sync_service.cc",
     "desktop_sync_service.h",
+    "runner_wait.h",
     "desktop_sync_settings.cc",
     "desktop_sync_settings.h",
   ]

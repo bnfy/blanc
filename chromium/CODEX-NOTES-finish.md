@@ -1,13 +1,13 @@
 # Result
 
 Local work from `b4bd80c5`; no push or release action.
-Candidate: `macos-54b6c5b00de32333`; config: `finish-final-runtime-config.json`.
+Candidate: `macos-0164d77693281b9c`; config: `finish-sync-budget-2-runtime-config.json`.
 
 | Queue item | State |
 | --- | --- |
 | 1 S4c tabs, Other devices, Send | Requested cases done; native icon upload blocked by frozen bridge |
 | 2 S4d shared Spaces | Blocked: phone bridge lacks desktop window contract |
-| 3 Clean full gate and four files | Current candidate done; final rerun owed after queued fixes |
+| 3 Clean full gate and four files | Final attempt hit restart timeout; fix and fresh full runs in progress |
 | 4 Vertical/Island leftovers | Repairs done; V16 and Linux-only cases remain explicit |
 | 5 Beta identity | Patch and preview build done; separate beta build outside queue limits |
 | 6 Sparkle updater | Patch/pure tests done; native beta handoff and security decision blocked |
@@ -262,7 +262,8 @@ checks, retained main-thread ownership, graceful termination delegation,
 immutable native feed selection, build-argument public key metadata and before-
 extraction verification. Full archives only; root hosts, noncanonical URLs,
 wrong architecture and non-increasing builds are rejected. Preview loads no
-Sparkle code or framework. No private key is generated/stored by this work.
+Sparkle code or framework. This integration generates/stores no private key;
+the inherited test-key exception and its removal are recorded under item 5.
 
 The offline archive stager validates the exact reviewed digest, full license,
 framework version/build, safe paths/symlinks, executable components and complete
@@ -362,3 +363,53 @@ Final beta branch syntax receipts: `finish-beta-syntax-app_controller_mac.txt`,
 `finish-beta-syntax-blanc_prototype_ui.txt`, and
 `finish-sparkle-native-syntax-final.txt` all exit 0. Precommit tools 273/273
 (`finish-beta-followup-tools.tap`); patch reconstruction 158/564; diff check pass.
+
+
+## Final gate attempt 1 — restart budget timeout, repair in progress
+
+`finish-final-sync-gate/result.json` stopped after 18 passes on candidate
+`macos-54b6c5b00de32333`: Not now's post-restart `sync.syncNow` hit native
+`runner-timeout`. No 429 or server error was recorded (only expected 404s).
+This is not clean-gate credit. Private/secondary checks were not reached.
+
+Diagnosis: the native wrapper unconditionally expired every call at 30 s.
+Shipping's frozen scheduler can legitimately hold a pass on a persisted 60 s
+request budget, especially after restart (recent timestamps are charged for a
+whole monotonic window). The repair keeps the 30 s stall check, but for network
+calls probes the runner's existing read-only sharedStatus independently of the
+serialized mutation queue. Only a responsive runner reporting waiting work,
+no running request and a finite next-window time within one minute receives a
+bounded extension. The probe has a 5 s failure deadline; the call has a 120 s
+monotonic hard deadline. No bundle/shim or Worker quota changes.
+
+Added a compiled pure-policy test for bounds, malformed values and active vs
+waiting work. The same Not now gate now seeds a full request log only in its
+stopped disposable fixture and checks that a real post-restart pass remains
+healthy beyond the former 30 s deadline. Its caller timeout is 150 s so the
+native 120 s bound, not the test transport, owns failure. `--consent-only`
+provides focused diagnosis without changing the full gate's checks/assertions.
+Guarded build and focused run follow; a new whole clean run is still owed.
+
+
+The first focused consent run (`finish-sync-budget-consent`) passed seven checks
+but reached the initial 120 s total cap during the seeded full-window restart.
+It survived the 30 s deadline via responsive, validated queue probes; there
+were no Worker 429s. A full pass plus startup/check reservations can span more
+than two one-minute windows. The cap is now four minutes, still conditional on
+responsive read-only probes and a finite <=60 s next-window timestamp; stopped
+or malformed runners do not receive that duration. Test transport is 270 s to
+leave the native cap authoritative. Focused validation is repeated before any
+claim of a clean final gate. No shipping assertion or quota is relaxed.
+
+Revised guarded build: 6 actions, 21.18 s; candidate
+`macos-0164d77693281b9c`, `finish-sync-budget-2-runtime-config.json`.
+Focused consent/restart run `finish-sync-budget-consent-2` passed 10/10.
+
+The deterministic post-restart pass completed in 120,033 ms, beyond the old
+30 s deadline and just beyond the first 120 s cap. Declined local Favorites
+remained local, downloaded Favorites survived, and both private/secondary
+profiles refused Sync with no runner or Worker traffic. The whole gate still
+must revalidate stopped-runner failure alongside this healthy queue wait.
+Precommit: `finish-sync-budget-tools.tap` 274/274 pass;
+`finish-sync-budget-patches.txt` reconstructs 158 outputs / 565 canonical files;
+`git diff --check` passes. Full final runs follow on this exact candidate.

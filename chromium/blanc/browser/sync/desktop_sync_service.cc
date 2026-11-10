@@ -20,6 +20,7 @@
 #include "blanc/browser/sync/desktop_sync_settings.h"
 #include "blanc/browser/sync/favorite_helpers.h"
 #include "blanc/browser/sync/sync_merge.h"
+#include "blanc/browser/sync/runner_wait.h"
 #include "chrome/browser/bookmarks/bookmark_model_factory.h"
 #include "chrome/browser/browser_process.h"
 #include "chrome/browser/profiles/profile.h"
@@ -250,6 +251,12 @@ void DesktopSyncService::Run(std::string method, std::string args, SyncCallback 
   auto reply = std::make_shared<SyncCallback>(std::move(callback));
   active_reply_ = reply;
   const auto epoch = account_epoch_;
+  const bool may_wait_for_budget = method == "sync.syncNow" ||
+      method == "sync.enable" || method == "sync.joinWithCode";
+  // A full pass can span several 60 s windows (including a full persisted
+  // startup window and the requests reserved for foreground change checks).
+  // This ceiling is never granted without a fresh responsive queue probe.
+  const auto deadline = base::TimeTicks::Now() + base::Minutes(4);
   SyncCall(std::move(method), std::move(args), base::BindOnce(
       [](base::WeakPtr<DesktopSyncService> self, uint64_t epoch, bool guard_account,
          std::shared_ptr<SyncCallback> reply, bool ok, const std::string& value) {
@@ -257,16 +264,54 @@ void DesktopSyncService::Run(std::string method, std::string args, SyncCallback 
         if (!*reply) { self->timed_out_ = false; self->Reconcile(); return; }
         std::move(*reply).Run(ok && (!guard_account || epoch == self->account_epoch_), value);
       }, weak_factory_.GetWeakPtr(), epoch, guard_account, reply));
-  base::SingleThreadTaskRunner::GetCurrentDefault()->PostDelayedTask(FROM_HERE, base::BindOnce(
-      [](base::WeakPtr<DesktopSyncService> self, std::shared_ptr<SyncCallback> reply) {
-        if (!self || !*reply) return;
-        self->timed_out_ = true;
-        self->Notify("desktop-error", "\"runner-timeout\"");
-        std::move(*reply).Run(false, "runner-timeout");
-        auto waiting = std::move(self->requests_);
-        for (auto& request : waiting) std::move(request.callback).Run(false, "runner-timeout");
-      }, weak_factory_.GetWeakPtr(), reply), base::Seconds(30));
+  base::SingleThreadTaskRunner::GetCurrentDefault()->PostDelayedTask(FROM_HERE,
+      base::BindOnce(&DesktopSyncService::CheckRunTimeout, weak_factory_.GetWeakPtr(),
+          reply, deadline, may_wait_for_budget), base::Seconds(30));
 }
+void DesktopSyncService::ExpireRun(std::shared_ptr<SyncCallback> reply) {
+  if (!*reply) return;
+  timed_out_ = true;
+  Notify("desktop-error", "\"runner-timeout\"");
+  std::move(*reply).Run(false, "runner-timeout");
+  auto waiting = std::move(requests_);
+  for (auto& request : waiting) std::move(request.callback).Run(false, "runner-timeout");
+}
+void DesktopSyncService::CheckRunTimeout(std::shared_ptr<SyncCallback> reply,
+    base::TimeTicks deadline, bool may_wait_for_budget) {
+  if (!*reply) return;
+  if (!may_wait_for_budget || base::TimeTicks::Now() >= deadline) {
+    ExpireRun(reply); return;
+  }
+  // Bypass this service's serialized mutation queue only for the runner's
+  // synchronous, read-only scheduler status. A stopped runner still fails in
+  // five seconds; a healthy one can legitimately wait for its persisted quota.
+  auto answered = std::make_shared<bool>(false);
+  SyncCall("sync.sharedStatus", "[]", base::BindOnce(
+      [](base::WeakPtr<DesktopSyncService> self, std::shared_ptr<SyncCallback> reply,
+         base::TimeTicks deadline, std::shared_ptr<bool> answered,
+         bool ok, const std::string& json) {
+        if (!self || !*reply || *answered) return;
+        *answered = true;
+        auto state = ok ? base::JSONReader::ReadDict(json, base::JSON_PARSE_RFC) : std::nullopt;
+        const double delay = state ? sync_merge::RunnerQueueWaitMs(
+            state->FindInt("waiting").value_or(0), state->FindInt("running").value_or(-1),
+            state->FindDouble("windowFreesAt").value_or(0),
+            base::Time::Now().InMillisecondsFSinceUnixEpoch(),
+            (deadline - base::TimeTicks::Now()).InMillisecondsF()) : 0;
+        if (delay <= 0) { self->ExpireRun(reply); return; }
+        base::SingleThreadTaskRunner::GetCurrentDefault()->PostDelayedTask(FROM_HERE,
+            base::BindOnce(&DesktopSyncService::CheckRunTimeout, self, reply, deadline, true),
+            base::Milliseconds(static_cast<int64_t>(std::ceil(delay))));
+      }, weak_factory_.GetWeakPtr(), reply, deadline, answered));
+  base::SingleThreadTaskRunner::GetCurrentDefault()->PostDelayedTask(FROM_HERE,
+      base::BindOnce([](base::WeakPtr<DesktopSyncService> self,
+          std::shared_ptr<SyncCallback> reply, std::shared_ptr<bool> answered) {
+        if (!self || *answered || !*reply) return;
+        *answered = true;
+        self->ExpireRun(reply);
+      }, weak_factory_.GetWeakPtr(), reply, answered), base::Seconds(5));
+}
+
 void DesktopSyncService::AddObserver(Observer* observer) { observers_.AddObserver(observer); }
 void DesktopSyncService::RemoveObserver(Observer* observer) { observers_.RemoveObserver(observer); }
 size_t DesktopSyncService::PendingFirstUploadCount() const { return pending_uploads_.size(); }

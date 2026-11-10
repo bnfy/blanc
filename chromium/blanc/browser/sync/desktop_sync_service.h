@@ -61,6 +61,8 @@ class DesktopSyncService final : public ProfileObserver,
   void InitializePlatform(std::string name, scoped_refptr<os_crypt_async::Encryptor> encryptor);
   void Pump();
   void Run(std::string method, std::string args, SyncCallback callback, bool guard_account = true);
+  void CheckRunTimeout(std::shared_ptr<SyncCallback> reply, base::TimeTicks deadline, bool may_wait_for_budget);
+  void ExpireRun(std::shared_ptr<SyncCallback> reply);
   void Status(bool ok, const std::string& json);
   void Favorites();
   void PlanFavorites(bool ok, const std::string& json);
