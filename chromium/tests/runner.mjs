@@ -58,6 +58,9 @@ async function runCase(matches,steps,tags=[]){
   await installDriver(fixture.host);const caps=await nativeCall(fixture.host,'capabilities');if(!caps.testHooks)throw Error('Native test hook unavailable');
   await assertRendering(e=>fixture.host.eval(e));
   await world.reset();
+  // Shipping's acceptance palette is pinned to light. Select the real profile
+  // theme before the scenario so an evening OS appearance cannot change it.
+  await world.call('setAppearance','light');
   world.bindShippingContext();
   entry.executed=true;entry.steps=[];
   for(const hook of beforeHooks)if(hook.tags.split(' or ').some(tag=>tags.includes(tag)))await hook.run.call(world);

@@ -102,7 +102,12 @@ async function islandReport(w){
 // Shipping sets these through its Settings page; drive the fork's Settings
 // page the same way. A missing control is the product's own gap.
 export const island={
- tabLayout:w=>strip(w).evaluate(()=>document.documentElement.dataset.tabLayout),
+ tabLayout:async w=>{
+  const layout=(await w.snapshot()).tabLayout;
+  // A restored native tab model can precede the strip iframe's first render.
+  // Observe its actual layout after it catches up with the persisted model.
+  return w.waitFor(()=>strip(w).evaluate(()=>document.documentElement.dataset.tabLayout),v=>v===layout,'rendered tab layout');
+ },
  verticalTabsWidth:async w=>(await w.snapshot()).verticalTabsPreferredWidth,
  verticalTabsMetrics:async w=>{const s=await w.snapshot();return Object.fromEntries(Object.entries(s).filter(([k])=>k.startsWith('verticalTabs')));},
  utilityBounds:async w=>{const settings=await frameRect(w,'settingsSheet');return settings??frameRect(w,'sheet');},

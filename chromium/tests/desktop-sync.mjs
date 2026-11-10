@@ -21,17 +21,34 @@ const config=JSON.parse(fs.readFileSync(configFile));
 fs.mkdirSync(evidence,{recursive:true,mode:0o700});
 const output={candidate:config.candidate,checks:[],mockKeychain:true};
 const sleep=ms=>new Promise(r=>setTimeout(r,ms));
-async function until(read,predicate,label,timeout=60000){
+async function until(read,predicate,label,timeout=180000){
  const end=Date.now()+timeout;let value;
  do{value=await read();if(predicate(value))return value;await sleep(300);}while(Date.now()<end);
  throw Error(`${label}: ${JSON.stringify(value)}`);
 }
-const check=async(name,fn)=>{await fn();output.checks.push({name,result:'pass'});console.log('pass '+name);};
+const check=async(name,fn)=>{
+ console.log('start '+name);
+ try{await fn();output.checks.push({name,result:'pass'});console.log('pass '+name);}
+ catch(error){output.checks.push({name,result:'fail',error:error.message});throw error;}
+};
 let fixture,worker,w,device;
 const rpc=method=>nativeCall(fixture.host,'desktopSyncCall',[method],null,120000);
 const nativeFavorites=()=>w.api('listFavorites');
 const peerFavorites=()=>device.module('bookmarks').listBookmarks();
-const pump=async()=>{await rpc('sync.resetRequestWindowForTest');await rpc('sync.syncNow');await device.pass();};
+// Leave room below the real Worker's 30 account GETs/minute for background
+// reconciliation. Resetting the runner's test window does not reset the Worker.
+// Pace requests, rather than removing quotas or treating a 429 as convergence.
+async function requestRoom(){
+ const deadline=Date.now()+125000;
+ for(;;){
+  const recent=worker.requests.filter(r=>r.method==='GET'&&Date.now()-r.at<61000);
+  if(recent.length<18)return;
+  if(Date.now()>deadline)throw Error(`Worker request budget did not free: ${recent.length} recent GETs`);
+  await sleep(Math.max(300,61000-(Date.now()-recent[0].at)));
+ }
+}
+const peerPass=async()=>{await requestRoom();await device.sync.resetRequestWindowForTest();await device.sync.syncNow(['bookmarks','settings']);};
+const pump=async()=>{await requestRoom();await rpc('sync.resetRequestWindowForTest');await rpc('sync.syncNow');await peerPass();};
 const openSync=async()=>{await w.api('openPage',['settings','sync']);await until(()=>w.call('settingsSyncPairingDom'),Boolean,'Sync page');};
 const act=async action=>assert.equal(await w.call('settingsSyncPairingAct',action),true,action);
 const peerEdit=(url,title,folder)=>{
@@ -72,7 +89,7 @@ try{
  });
  await check('Favorites added on either device reach the other',async()=>{
   await w.call('seedFavorite',later,'Added on Mac');
-  device.module('bookmarks').saveFavorite(remote,'Added on peer');await device.pass();
+  device.module('bookmarks').saveFavorite(remote,'Added on peer');await peerPass();
   await until(async()=>{await pump();return {mac:await nativeFavorites(),peer:peerFavorites()};},v=>v.mac.some(x=>x.url===remote)&&v.peer.some(x=>x.url===later),'both additions');
  });
  await check('native title edit, folder move and folder rename from Mac merge on peer',async()=>{
@@ -85,7 +102,7 @@ try{
   await until(async()=>{await pump();return peerFavorites();},l=>l.some(x=>x.url===later&&x.folder==='Mac renamed'&&x.title==='Mac renamed title'),'Mac folder edit');
  });
  await check('peer title rename and folder move merge on Mac',async()=>{
-  peerEdit(remote,'Peer renamed','Peer folder');await device.pass();
+  peerEdit(remote,'Peer renamed','Peer folder');await peerPass();
   await until(async()=>{await pump();return nativeFavorites();},l=>l.some(x=>x.url===remote&&x.title==='Peer renamed'&&x.folder==='Peer folder'),'peer edits');
  });
  await check('theme and blocking switch sync from Mac to peer',async()=>{
@@ -94,7 +111,7 @@ try{
   await until(async()=>{await pump();return device.module('settings').exportForSync().values;},v=>v.theme==='dark'&&v.adblockEnabled===false,'Mac settings on peer');
  });
  await check('theme and blocking switch sync from peer to Mac',async()=>{
-  device.module('settings').setSettings({theme:'light',adblockEnabled:true});await device.pass();
+  device.module('settings').setSettings({theme:'light',adblockEnabled:true});await peerPass();
   await until(async()=>{await pump();return {blocking:(await w.snapshot()).adblockEnabled,theme:await inSettings(w,'appearance',(_a,d)=>({value:d.find('#colorSchemeModeSelect').value}))};},v=>v.blocking===true&&v.theme==='1','peer settings on Mac');
  });
  await check('a killed runner recovers without losing enabled state or Favorites',async()=>{
@@ -115,14 +132,29 @@ try{
  // remote downloads must not remove its preexisting local Favorite.
  await launch();const excluded=fixture.base+'/not-now';
  await w.call('seedFavorite',excluded,'Only this Mac');
- await openSync();device.sync.resetRequestWindowForTest();const join=await device.sync.beginPairing();
+ await openSync();await requestRoom();device.sync.resetRequestWindowForTest();const join=await device.sync.beginPairing();
+ const beforeLocal=(await nativeFavorites()).map(x=>x.url);
+ const beforeRemote=peerFavorites().map(x=>x.url);
+ const beforeTombstones=JSON.stringify(device.module('bookmarks').exportForSync().tombstones);
+ const reconcileRequestStart=worker.requests.length;
  await act('choose-code');assert.equal(await w.call('settingsSyncPairingAct','type-code',join.code),true);await act('connect-code');
+ await check('first reconcile deletes nothing on either side',async()=>{
+  await until(()=>w.call('settingsSyncPairingDom'),s=>s?.pendingFirstUpload?.includes('1'),'initial consent');
+  await until(async()=>{await pump();return nativeFavorites();},rows=>beforeRemote.every(url=>rows.some(x=>x.url===url)),'all account Favorites downloaded');
+  const local=await nativeFavorites();
+  assert.ok(beforeLocal.every(url=>local.some(x=>x.url===url)),'all prior local Favorites retained');
+  assert.ok(beforeRemote.every(url=>peerFavorites().some(x=>x.url===url)),'all prior remote Favorites retained');
+  assert.equal(JSON.stringify(device.module('bookmarks').exportForSync().tombstones),beforeTombstones,'no remote tombstones');
+  assert.equal((await rpc('bookmarks.exportForSync')).tombstones.length,0,'no native runner tombstones');
+  assert.ok(!worker.requests.slice(reconcileRequestStart).some(r=>r.method==='DELETE'),'no Worker DELETE');
+ });
  await check('Not now keeps existing Favorites local while account Favorites download',async()=>{
   await until(()=>w.call('settingsSyncPairingDom'),s=>s?.pendingFirstUpload?.includes('1'),'decline consent');
   await act('upload-not-now');await pump();await pump();
   assert.ok((await nativeFavorites()).some(x=>x.url===excluded));assert.ok((await nativeFavorites()).some(x=>x.url===remote));
   assert.ok(!(await rpc('bookmarks.exportForSync')).items.some(x=>x.url===excluded));assert.ok(!peerFavorites().some(x=>x.url===excluded));
   await fixture.stop();await fixture.start(fixture.base+'/initial');
+  await assertRendering(e=>fixture.host.eval(e));
   await installDriver(fixture.host);w=createWorld(fixture);await w.app.refresh();await pump();assert.ok((await nativeFavorites()).some(x=>x.url===excluded));assert.ok(!peerFavorites().some(x=>x.url===excluded));
  });
  await close('declined');
@@ -131,5 +163,6 @@ try{
 }catch(error){output.result='fail';output.error=error.stack;console.error(error.stack);process.exitCode=1;}
 finally{
  if(fixture)await close('failure').catch(e=>console.error(e));
+ output.requests=worker?.requests.map(({method,status,store})=>({method,status,store}));
  await worker?.close();fs.writeFileSync(path.join(evidence,'result.json'),JSON.stringify(output,null,2)+'\n');
 }

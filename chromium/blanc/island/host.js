@@ -1380,7 +1380,10 @@
     // A document the bridge didn't open (a page setting its own address)
     // ends the sheet, as shipping's will-navigate refuses it.
     frame.addEventListener('load', () => {
-      if (sheet.frame === frame && sheet.page &&
+      // Switching to native Settings blanks this iframe. Its ensuing load
+      // is not navigation of the separate Settings WebContents and must not
+      // dismiss the sheet we just opened.
+      if (sheet.frame === frame && sheet.page && sheet.page !== 'settings' &&
           frame.contentWindow.location.pathname !== `/pages/${sheet.page}.html`) hideSheet();
     });
     // Under the floating pill and the overlay, as shipping stacks its views.

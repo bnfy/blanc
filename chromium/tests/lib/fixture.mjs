@@ -122,7 +122,8 @@ export class NativeFixture {
     this.targets=()=>fetch(`http://127.0.0.1:${this.port}/json/list`).then(r=>r.json());
     this.browser=await connect(await fetch(`http://127.0.0.1:${this.port}/json/version`).then(r=>r.json()));this.connections.push(this.browser);
     const targets=await waitFor(this.targets,ts=>ts.some(t=>t.url.includes('/host.html'))&&(!url||ts.some(t=>t.url===url)),'Island');
-    this.host=await connect(targets.find(t=>t.url.includes('/host.html')));this.connections.push(this.host);
+    const hostTarget=targets.find(t=>t.url.includes('/host.html'));this.hostTargetId=hostTarget.id;
+    this.host=await connect(hostTarget);this.connections.push(this.host);
     this.snapshot=()=>this.host.eval('window.BlancPrototypeHost.api.getAllTabs()');
     if(waitBlocker)await waitFor(this.snapshot,s=>s.blockerHealth==='ready','blocker');
   }

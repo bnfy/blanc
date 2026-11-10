@@ -221,7 +221,21 @@ export function createAppShim(fixture){
   reset(){for(const page of pages.values())page.closed=true;pages.clear();},
   async refresh(){
    for(const [url,frame] of Object.entries(ISLAND_FRAMES))if(!pages.has(frame)){const page=new Page({cdp:fixture.host,url,frame,host:fixture.host});page.app=app;pages.set(frame,page);}
-   const targets=(await fixture.targets()).filter(t=>t.type==='page'&&!t.url.startsWith('chrome://blanc-prototype/host.html')&&t.url!==HOLD_ANCHOR);
+   const allTargets=await fixture.targets();
+   // Each native window owns an Island host. Expose its real iframe pages,
+   // too, so shipping's two-window assertions inspect both renderers.
+   const hosts=allTargets.filter(t=>t.type==='page'&&t.url==='chrome://blanc-prototype/host.html');
+   const liveHosts=new Set(hosts.map(t=>t.id));
+   for(const [key,page] of pages)if(page.hostTargetId&&!liveHosts.has(page.hostTargetId)){page.closed=true;pages.delete(key);}
+   for(const target of hosts){
+    if(target.id===fixture.hostTargetId||pages.has('island:'+target.id+':strip'))continue;
+    const host=await fixture.connectTarget(target);
+    for(const [url,frame] of Object.entries(ISLAND_FRAMES)){
+     const page=new Page({cdp:host,url,frame,host});page.app=app;page.hostTargetId=target.id;
+     pages.set('island:'+target.id+':'+frame,page);
+    }
+   }
+   const targets=allTargets.filter(t=>t.type==='page'&&!t.url.startsWith('chrome://blanc-prototype/host.html')&&t.url!==HOLD_ANCHOR);
    const live=new Set(targets.map(t=>t.id));
    for(const [key,page] of pages)if(page.targetId&&!live.has(page.targetId)){page.closed=true;pages.delete(key);}
    // A tab keeps its target as it navigates.

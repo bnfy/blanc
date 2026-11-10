@@ -298,7 +298,7 @@ export const commands={
    return {text:t.subLabel,whole:!el||el.scrollHeight<=el.clientHeight+1};})),
  settingsHintState(){throw new UndefinedNativeAdapterError('V13: chrome://settings shows explanations in full');},
  toggleFirstFoldedHint(){throw new UndefinedNativeAdapterError('V13: chrome://settings shows explanations in full');},
- settingsSyncValues:async w=>(await w.native('desktopSyncCall',['settings.exportForSync'])).values,
+ settingsSyncValues:w=>w.native('desktopSyncSettings'),
  // The macOS pasteboard is the owner's, shared with every app: under
  // --blanc-test Blanc's own clipboard actions use an in-memory board instead
  // (Copy Clean Link, Paste and Go, /copy, /invite), which these read and set.

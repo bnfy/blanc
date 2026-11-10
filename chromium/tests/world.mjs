@@ -64,7 +64,12 @@ export function createWorld(fixture){
    // colliding with ids the native side already has on record for it.
    delete this._primaryTarget;this._hosts=new Map();
    if(!crash){
-    await fixture.stop({crash});await fixture.start();
+    await fixture.stop({crash});await fixture.start(null,{waitBlocker:false});
+    // Like crash restore below, an internal-page-only session has made no
+    // network request and legitimately has not started the blocker yet.
+    const restored=await waitFor(fixture.snapshot,s=>s?.tabs?.length>0,'restored tab model');
+    if(restored.tabs.some(t=>/^https?:\/\//.test(t.url)))
+     await waitFor(fixture.snapshot,s=>s.blockerHealth==='ready','blocker',45000);
     await installDriver(fixture.host);app.reset();await app.refresh();
     return;
    }

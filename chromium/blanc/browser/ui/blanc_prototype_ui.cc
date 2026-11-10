@@ -266,6 +266,7 @@
 #include "blanc/common/menu_strings.h"
 #include "blanc/common/settings_strings.h"
 #include "blanc/browser/sync/desktop_sync_service.h"
+#include "blanc/browser/sync/desktop_sync_settings.h"
 #include "content/public/browser/context_menu_params.h"
 #include "third_party/blink/public/common/context_menu_data/edit_flags.h"
 #include "ui/base/accelerators/accelerator.h"
@@ -4709,6 +4710,18 @@ class Handler : public content::WebUIMessageHandler, public extensions::Extensio
       model->SetTitle(nodes.front().get(), base::UTF8ToUTF16(args[1].GetString()),
                       bookmarks::metrics::BookmarkEditSource::kUser);
       Reply(id, true, base::Value(true)); return;
+    }
+    // Read the native export even while Sync is off: the runner's last
+    // downloaded cache is not the current profile's settings. Use precisely
+    // the exporter reconciliation uses, including its device-local exclusions.
+    if (message[1].GetString() == "desktopSyncSettings") {
+      auto* profile = GetOwner(web_ui()->GetWebContents())->browser->GetProfile();
+      if (!message[2].GetList().empty() ||
+          !blanc::DesktopSyncService::ForProfile(profile)) {
+        Reply(id, false, base::Value("Sync settings unavailable.")); return;
+      }
+      Reply(id, true, base::Value(blanc::ReadDesktopSyncSettings(profile)));
+      return;
     }
     // Preview-only observation/control of the real service. Mutating test
     // operations require an explicit loopback Worker; no production test RPC.
