@@ -39,7 +39,7 @@ PHASE 1 ONLY — future ordered release stages, all disabled:
    Gatekeeper, native launch and final signed-candidate acceptance per architecture.
    Sign final DMG bytes with Sparkle sign_update; verify EdDSA locally; generate
    each appcast with appcast.mjs. Produce full dependency SBOM and acceptance.json.
-8. PUBLISH REQUIRED / DISABLED: immutable chromium-beta-1.0.0-beta.N source tag,
+8. PUBLISH REQUIRED / DISABLED: immutable chromium-beta-2.0.0-beta.N source tag,
    draft in bnfy/blanc with --prerelease --latest=false. Upload exact beta assets.
    Download draft afresh; compare against local bytes; manifest.mjs build;
    shasum -a 256 -c SHA256SUMS; Safari/IPv4 fresh cosign authorization:
