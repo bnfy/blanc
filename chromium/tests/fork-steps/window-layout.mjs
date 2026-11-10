@@ -1,3 +1,5 @@
+import assert from 'node:assert/strict';
+import {inSettings} from '../adapters/commands.mjs';
 // Shipping's chrome is a full-window WebContents. The fork's strip is only
 // 68px high in Island mode; in vertical mode it fills the window for the rail.
 // Keep the resize and rendered-size assertions, addressing the actual views.
@@ -12,6 +14,18 @@ async function resize(width, height) {
  }
 }
 export const WINDOW_LAYOUT_STEPS = new Map([
+ ['I choose {string} vertical tab text in Settings', async function(size) {
+  assert.equal(await this.call('tabLayout'),'vertical');
+  const value=await inSettings(this,'appearance',async(size,d)=>{
+   const control=d.find('#blancVerticalTabsTextSize');
+   if(!control)return {missing:'vertical tab text size'};
+   const select=control.shadowRoot.querySelector('select');
+   select.value=size;select.dispatchEvent(new Event('change',{bubbles:true}));
+   await new Promise(r=>setTimeout(r,300));
+   return {value:control.pref.value};
+  },size);
+  assert.equal(value,size);
+ }],
  ['I resize the desktop window to {int} by {int}', resize],
  ['a {int} by {int} desktop window with the vertical tab layout', async function(width, height) {
   await this.call('setTabLayout', 'vertical');

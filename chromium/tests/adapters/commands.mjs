@@ -116,6 +116,11 @@ const DEEP=`const find=(sel,root=document)=>{const e=root.querySelector(sel);if(
  for(const el of root.querySelectorAll('*'))if(el.shadowRoot){const x=find(sel,el.shadowRoot);if(x)return x;}return null;};
  const all=(sel,root=document,out=[])=>{out.push(...root.querySelectorAll(sel));for(const el of root.querySelectorAll('*'))if(el.shadowRoot)all(sel,el.shadowRoot,out);return out;};`;
 const inPage=(page,fn,arg)=>page.evaluate(`(()=>{${DEEP}return (${fn})(${JSON.stringify(arg??null)},{find,all});})()`);
+// Read an already-open native Settings target without opening or navigating
+// it. Sync assertions must fail when /sync routed to the wrong section.
+export async function readSettings(w,fn,arg){
+ const page=await settingsPage(w);return page?inPage(page,fn,arg):null;
+}
 // A person reaches a section through Settings' own menu; the sheet keeps the
 // navigation (its delegate), so the same page moves there.
 // (Its page address shows as shipping's blanc://settings/, so ask the document.)
@@ -293,7 +298,7 @@ export const commands={
    return {text:t.subLabel,whole:!el||el.scrollHeight<=el.clientHeight+1};})),
  settingsHintState(){throw new UndefinedNativeAdapterError('V13: chrome://settings shows explanations in full');},
  toggleFirstFoldedHint(){throw new UndefinedNativeAdapterError('V13: chrome://settings shows explanations in full');},
- settingsSyncValues(){throw new UndefinedNativeAdapterError('The fork has no Profile Sync export to read synced settings from');},
+ settingsSyncValues:async w=>(await w.native('desktopSyncCall',['settings.exportForSync'])).values,
  // The macOS pasteboard is the owner's, shared with every app: under
  // --blanc-test Blanc's own clipboard actions use an in-memory board instead
  // (Copy Clean Link, Paste and Go, /copy, /invite), which these read and set.

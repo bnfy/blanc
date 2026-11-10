@@ -144,6 +144,11 @@
     "ui/webui/resources/cr_elements/md_select_lit.css": "c5b27705bb36c45951d7cf97481655bb4190498d275ba89e37acef9f2896ff5a",
     "ui/webui/resources/tools/eslint/BUILD.gn": "f1247eac8f13d36209441f4b932233918faa317ec9bcab00c4d3779e0403c8c9",
     "chrome/browser/performance_manager/policies/transient_keep_alive_policy.h": "7bdcda1da7ab48582ccc26f2a89df4dbee047b894ba74b1a0923bd3caf79b33e",
-    "chrome/browser/performance_manager/policies/transient_keep_alive_policy.cc": "02618ba88ccee43b5581b488f90f728be794cbc8e72a46474fb8600ccf59d34a"
+    "chrome/browser/performance_manager/policies/transient_keep_alive_policy.cc": "02618ba88ccee43b5581b488f90f728be794cbc8e72a46474fb8600ccf59d34a",
+    "chrome/browser/resources/settings/route.ts": "5ea93bd5c4a0eb9fc405c388306cd4f0f9fc44bbe03d391f79038dc28b307335",
+    "chrome/browser/resources/settings/router.ts": "ca1171a8591010b35a23c7c6ab221642892564a23257556eb0a1ae03902443d9",
+    "chrome/browser/resources/settings/settings_main/settings_main.html": "49435f9a8dfe9daac47cbbb243b2a4b1de795c5d90d25471333634055ec4d400",
+    "chrome/browser/resources/settings/settings_main/settings_main.ts": "8bc51aef13b160e6b68f0ff437adba7ce13b8c99f96245815a6d53fbc25364f0",
+    "chrome/browser/resources/settings/settings_menu/settings_menu.html": "20253203b05f105d56bbab4a5c51c84df7532bf1ef2d3ad774f25ae8b7ed76da"
   }
 }

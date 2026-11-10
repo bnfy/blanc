@@ -9,6 +9,7 @@ import {waitFor} from './lib/cdp.mjs';
 import {installDriver,nativeCall} from './lib/test-driver.mjs';
 import {assertRendering,assertNodeRuntime} from './lib/render-guard.mjs';
 import {matchStep,beforeHooks} from './steps.mjs';
+import {prepareSyncFixture} from './fork-steps/sync.mjs';
 import {aggregateCases} from './results.mjs';
 import {awaitMemory} from './lib/memory-guard.mjs';
 import {createWorld,missingAdapters} from './world.mjs';
@@ -52,6 +53,7 @@ async function runCase(matches,steps,tags=[]){
   // Profiles live in local temp storage, never in the synced evidence folder;
   // the browser log and any error are kept with the results.
   const name='case-'+String(++executed).padStart(4,'0');entry.fixture=name;
+  if(tags.includes('@sync-server'))await prepareSyncFixture(world);
   await fixture.launch(config,path.join(scratch,name),{testHooks:true,pages:await fixturePages.start(),diskAssets:config.diskAssets!==false});
   await installDriver(fixture.host);const caps=await nativeCall(fixture.host,'capabilities');if(!caps.testHooks)throw Error('Native test hook unavailable');
   await assertRendering(e=>fixture.host.eval(e));
@@ -77,7 +79,9 @@ async function runCase(matches,steps,tags=[]){
   // case doesn't need. A Before hook's server still has to close, or Node
   // never exits.
   await world.lifecycleFixture?.close().catch(()=>{});
-  entry.browserExit=await fixture.close();if(fixture.reapedHelpers)entry.reapedHelpers=fixture.reapedHelpers;
+  try{entry.browserExit=await fixture.close();}
+  finally{await world.syncServer?.close();}
+  if(fixture.reapedHelpers)entry.reapedHelpers=fixture.reapedHelpers;
   if(fixture.directory&&fs.existsSync(fixture.directory)){const keep=path.join(out,'fixtures',entry.fixture);fs.mkdirSync(keep,{recursive:true});
    for(const f of ['browser.log','error.txt'])if(fs.existsSync(path.join(fixture.directory,f)))fs.copyFileSync(path.join(fixture.directory,f),path.join(keep,f));
    fs.rmSync(fixture.directory,{recursive:true,force:true});}if(entry.result==='pass'&&entry.browserExit?.code!==0){entry.result='fail';entry.error='Native fixture did not exit cleanly';}}

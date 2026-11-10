@@ -46,6 +46,8 @@
 
 #if BUILDFLAG(IS_ANDROID)
 #include "base/android/apk_assets.h"
+#else
+#include "blanc/services/sync_runner/sync_resources.h"
 #endif
 
 namespace blanc {
@@ -86,8 +88,15 @@ std::string ReadBundle() {
   if (base::CommandLine::ForCurrentProcess()->HasSwitch("blanc-sync-test-bad-bundle")) script.back() ^= 1;
 #endif
 #else
-  auto path = base::CommandLine::ForCurrentProcess()->GetSwitchValuePath("blanc-sync-assets").AppendASCII("sync-bundle.js");
-  if (!base::ReadFileToStringWithMaxSize(path, &script, 16 * 1024 * 1024)) return std::string();
+  const auto* command = base::CommandLine::ForCurrentProcess();
+  if (command->HasSwitch("blanc-sync-assets")) {
+    auto path = command->GetSwitchValuePath("blanc-sync-assets").AppendASCII("sync-bundle.js");
+    if (!base::ReadFileToStringWithMaxSize(path, &script, 16 * 1024 * 1024)) return std::string();
+  } else {
+    auto resource = sync_resources::Find("sync-bundle.js");
+    if (!resource) return std::string();
+    script.assign(reinterpret_cast<const char*>(resource->data()), resource->size());
+  }
 #endif
   if (base::ToLowerASCII(base::HexEncode(crypto::hash::Sha256(script))) != kBlancSyncBundleSha256) return std::string();
   return script;

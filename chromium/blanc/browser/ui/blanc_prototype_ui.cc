@@ -265,6 +265,7 @@
 #include "content/public/common/url_constants.h"
 #include "blanc/common/menu_strings.h"
 #include "blanc/common/settings_strings.h"
+#include "blanc/browser/sync/desktop_sync_service.h"
 #include "content/public/browser/context_menu_params.h"
 #include "third_party/blink/public/common/context_menu_data/edit_flags.h"
 #include "ui/base/accelerators/accelerator.h"
@@ -337,6 +338,7 @@ constexpr char kAppIconPref[] = "blanc.app_icon";
 // Shipping's islandSize (#1292; registered by patch 0026): the strip a window
 // draws, as island-size.js's stripHeightFor. styles.css and host.js draw the
 // same table; the split header band stays 30px below it.
+constexpr char kVerticalTabsTextSizePref[] = "blanc.vertical_tabs.text_size";
 constexpr char kIslandSizePref[] = "blanc.island.size";
 int IslandStripHeight(Profile* profile) {
   const std::string& size = profile->GetOriginalProfile()->GetPrefs()->GetString(kIslandSizePref);
@@ -2167,7 +2169,7 @@ bool InSettingsSheet(const GURL& url) {
 std::optional<GURL> SettingsSheetURL(std::string_view section) {
   if (section.empty() || section == "general") return GURL("chrome://settings/");
   static constexpr std::pair<std::string_view, std::string_view> kSections[] = {
-      {"blocking", "privacy"}, {"search", "search"},
+      {"blocking", "privacy"}, {"search", "search"}, {"sync", "sync"},
       {"appearance", "appearance"}, {"privacy", "privacy"}, {"security", "security"},
       {"content", "content"}, {"clearBrowserData", "clearBrowserData"},
       {"downloads", "downloads"}, {"languages", "languages"},
@@ -3312,6 +3314,7 @@ base::DictValue Snapshot(BrowserWindowInterface* browser, Owner* owner) {
       .Set("closed", ClosedEntries(browser->GetProfile()))
       .Set("glanceTabId", owner->glance_reference >= 0 ? base::Value(owner->glance_reference) : base::Value())
       .Set("focusedTabId", focused ? base::Value(sessions::SessionTabHelper::IdForTab(focused).id()) : base::Value())
+      .Set("verticalTabsTextSize", owner->browser->GetProfile()->GetOriginalProfile()->GetPrefs()->GetString(kVerticalTabsTextSizePref))
       .Set("tabLayout", owner->vertical ? "vertical" : "island")
       // Hover-open (F1) asks for both: the setting, and whether this window
       // is the one in front, as shipping's islandHoverEligible does.
@@ -4415,7 +4418,7 @@ class Handler : public content::WebUIMessageHandler, public extensions::Extensio
                       base::BindRepeating(&Handler::OnIslandAutoHideChanged, base::Unretained(this)));
     island_prefs_.Add(std::string(blanc::island_autohide::kStylePref),
                       base::BindRepeating(&Handler::OnIslandAutoHideStyleChanged, base::Unretained(this)));
-    for (const char* pref : {kIslandTabIconsPref, kSearchPriorityResultsPref, kAppIconPref})
+    for (const char* pref : {kVerticalTabsTextSizePref, kIslandTabIconsPref, kSearchPriorityResultsPref, kAppIconPref})
       island_prefs_.Add(pref, base::BindRepeating(&Handler::OnIslandSettingChanged, base::Unretained(this)));
     island_prefs_.Add(kIslandSiteColorsPref,
                       base::BindRepeating(&Handler::OnSiteColorsChanged, base::Unretained(this)));
@@ -4685,6 +4688,53 @@ class Handler : public content::WebUIMessageHandler, public extensions::Extensio
           ->browser->GetProfile()->IsOffTheRecord());
       result.Set("contract", "native-production-dispatch-v1");
       Reply(id, true, base::Value(std::move(result)));
+      return;
+    }
+    // Exercise a native BookmarkModel title edit, like Chromium's bookmark
+    // editor. It never writes the runner's cache or reconciliation metadata.
+    if (message[1].GetString() == "desktopSyncRenameFavorite") {
+      const auto& args = message[2].GetList();
+      const GURL endpoint(base::CommandLine::ForCurrentProcess()->GetSwitchValueASCII("blanc-sync-endpoint"));
+      auto* profile = GetOwner(web_ui()->GetWebContents())->browser->GetProfile();
+      auto* model = LoadedBookmarkModel(profile);
+      if (!endpoint.SchemeIs("http") || endpoint.host() != "127.0.0.1" ||
+          !model || !CanEditFavorites(profile) || args.size() != 2 ||
+          !args[0].is_string() || !args[1].is_string()) {
+        Reply(id, false, base::Value("Favorite edit refused.")); return;
+      }
+      const auto nodes = model->GetNodesByURL(GURL(args[0].GetString()));
+      if (nodes.size() != 1 || model->client()->IsNodeManaged(nodes.front().get())) {
+        Reply(id, false, base::Value("Favorite is not uniquely editable.")); return;
+      }
+      model->SetTitle(nodes.front().get(), base::UTF8ToUTF16(args[1].GetString()),
+                      bookmarks::metrics::BookmarkEditSource::kUser);
+      Reply(id, true, base::Value(true)); return;
+    }
+    // Preview-only observation/control of the real service. Mutating test
+    // operations require an explicit loopback Worker; no production test RPC.
+    if (message[1].GetString() == "desktopSyncCall") {
+      const auto& args = message[2].GetList();
+      if (args.size() != 1 || !args[0].is_string()) {
+        Reply(id, false, base::Value("Invalid Sync arguments.")); return;
+      }
+      const std::string method = args[0].GetString();
+      const GURL endpoint(base::CommandLine::ForCurrentProcess()->GetSwitchValueASCII("blanc-sync-endpoint"));
+      const bool read = method == "settings.exportForSync";
+      const bool local = endpoint.SchemeIs("http") && endpoint.host() == "127.0.0.1";
+      if (!read && (!local || (method != "sync.status" && method != "sync.beginPairing" &&
+          method != "sync.resetRequestWindowForTest" && method != "sync.syncNow" &&
+          method != "bookmarks.exportForSync"))) {
+        Reply(id, false, base::Value("Sync test method refused.")); return;
+      }
+      auto* service = blanc::DesktopSyncService::ForProfile(
+          GetOwner(web_ui()->GetWebContents())->browser->GetProfile());
+      if (!service) { Reply(id, false, base::Value("Sync unavailable.")); return; }
+      service->Call(method, "[]", base::BindOnce(
+          [](base::WeakPtr<Handler> self, std::string id, bool ok, const std::string& json) {
+            if (!self) return;
+            auto value = ok ? base::JSONReader::Read(json, base::JSON_PARSE_RFC) : std::nullopt;
+            self->Reply(id, value.has_value(), value ? std::move(*value) : base::Value(json));
+          }, weak_factory_.GetWeakPtr(), id));
       return;
     }
     // Browser layout zoom, not CDP visual/pinch scale. Match shipping's
@@ -9746,6 +9796,10 @@ ToolbarButtonProvider* ToolbarProvider(BrowserWindowInterface* browser,
 std::unique_ptr<views::WebView> CreateIsland(
     BrowserWindowInterface* browser) {
   blanc::browser_api::EnsureBlancDefaultSearch(browser->GetProfile()->GetOriginalProfile());
+  // Start persisted desktop Sync with the first eligible window, even if
+  // Settings is never opened. ForProfile is idempotent and rejects OTR,
+  // guest and secondary profiles; never substitute GetOriginalProfile().
+  blanc::DesktopSyncService::ForProfile(browser->GetProfile());
   LaunchUiLanguage();  // Frozen with the first window.
   auto view = std::make_unique<IslandView>(browser->GetProfile());
   view->SetID(kIslandViewId);

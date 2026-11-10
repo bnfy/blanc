@@ -3,7 +3,7 @@
 // bridge (window.bowserPages), the Island facade and native dispatch.
 import {UndefinedNativeAdapterError,nativeId} from '../lib/adapters.mjs';
 import {jsLiteral} from '../lib/js-literal.mjs';
-import {inSettings} from './commands.mjs';
+import {inSettings,readSettings} from './commands.mjs';
 export const NEWTAB=/^chrome:\/\/(newtab\/|new-tab-page\/|blanc-prototype\/pages\/newtab\.html)/;
 // Fork utility pages shown as tabs: Chromium's managers and Settings, when
 // opened other than through the Island, whose sheet shows them otherwise.
@@ -329,6 +329,16 @@ export const pages={
  // Where a utility page shows: the sheet when it is open, else the active
  // tab when it is a utility page (Settings, until S1.7); `kind` says which.
  async utilitySurface(w){
+  const native=await w.native('settingsSheetState',[]);
+  if(native.attached){
+   const page=await readSettings(w,(_a,d)=>({path:location.pathname,
+    ready:document.readyState==='complete' && (location.pathname!=='/sync' ||
+     !!d.find('settings-blanc-sync-page[blanc-ready]'))}));
+   // Shipping's logical section URL, derived from the native target's actual
+   // location. The product still uses chrome://settings/sync (S4a decision).
+   return {visible:native.visible===true,ready:!!page?.ready,
+    url:page?.path==='/sync'?'blanc://settings/#group-sync':'blanc://settings/',kind:'sheet'};
+  }
   const sheet=await sheetState(w);
   if(sheet.visible)return {visible:true,ready:sheet.ready,url:sheet.url,kind:'sheet'};
   const tab=await activeTab(w);const url=tab?.committedUrl||tab?.url||'';
