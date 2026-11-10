@@ -7,7 +7,7 @@ S4c native gate and all eight requested scenarios pass on this candidate.
 | Queue item | State |
 | --- | --- |
 | 1 S4c tabs, Other devices, Send | Done for requested cases; native icon upload blocked by frozen bridge |
-| 2 S4d shared Spaces | Pending |
+| 2 S4d shared Spaces | Blocked: frozen phone bridge lacks desktop window contract |
 | 3 Final full gate and scenarios | Pending |
 | 4 Vertical/Island leftovers | Pending |
 | 5 Beta identity | Pending |
@@ -25,7 +25,8 @@ S4c native gate and all eight requested scenarios pass on this candidate.
 | S4b vertical-tabs.feature | 9 | 4 | 7 |
 
 Lost passes: not yet measured on a new candidate.
-Owner input: none currently. Final-build and signed updater qualification remain unverified.
+Owner input: authorize a desktop Spaces bundle entry and native icon bridge.
+Full regression and signed updater qualification remain unverified.
 
 ## Initial handoff
 
@@ -94,3 +95,29 @@ its state. No shipping step or assertion was weakened.
 
 S4c precommit checks: 244/244 tool tests and patch reconstruction (155 upstream
 outputs / 552 canonical files) pass; `git diff --check` passes.
+
+## S4d bridge audit (deliberate frozen-bundle blocker)
+
+The frozen `services/sync_runner/shims/api.js` exposes only sync, bookmarks,
+settings and the phone Spaces facade. There is no desktop runtime registration
+entry. `shims/spaces.js` owns a single `shownId`, `captured`, `protectedIds` and
+`window = {id: 'phone'}`. Its `isOpen` accepts only `shownId`; `captureLocal` is
+a no-op; saving a receipt deletes every existing window receipt for that Space
+and writes `phone:<spaceId>`. Events carry no native window identity.
+Shipping `shared-spaces-service.js` reconciliation replaces captures or removes
+deleted Spaces whenever `isOpen` is false (lines 113-116). Therefore cycling
+multiple live desktop Spaces through this singleton is not safe: an open Space
+would be reconciled as closed, and its independent window receipt discarded.
+The exported `sync.sharedContext`, `setSyncSpaces`, status and index preview
+functions do not provide capture/apply hooks or per-window receipts.
+
+Needed bundle contract: register a desktop library and all open window captures;
+retain independent receipts; route row/binding/layout events and acknowledgements
+by window; hold snapshots during restore/switch; preserve desktop metadata and
+protected tab IDs. That needs a reviewed new entry point in the forbidden
+bundle/shim files. They have not been changed. S4d remains blocked under the
+owner's explicit instruction to document missing bundle entry points and move
+on. The pairing Spaces question (:162) is not represented as working by a
+nonfunctional checkbox. Shared-Spaces gate coverage is still owed.
+
+S4d precommit: 244/244 tool tests and patch reconstruction pass.
