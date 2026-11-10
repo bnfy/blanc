@@ -12,8 +12,8 @@ Queue 2 in progress; local commits only. No live-tree or production access.
 | A shared Spaces | Implemented: two-window native gate 3/3; full regression owed |
 | B native icons | Implemented; peer icon/privacy pass; clean full gate owed in D |
 | C Android safety | Partly: available checks pass; Linux 156 compile/device gates owed |
-| D regression | In progress: full gate 22/22; final group/Undo focused gate 3/3 |
-| E Sparkle | Owed; existing 2.8.0 pin is not security-cleared |
+| D regression | Partly: earlier full 22/22; final rerun interrupted by screen lock |
+| E Sparkle | In progress: 2.10.1 reviewed and staged; preview/checks owed |
 | F dedicated beta | Owed; initial disk check 1.1 TiB available |
 | G local beta proof | Owed |
 | H operator handoff | Owed |
@@ -23,10 +23,10 @@ Beta candidate/app: not built.
 Gate: beta-regression-sync-1 22/22; updated bridge unit tests 8/8.
 Scenario: sync.feature:162 passes on candidate 8 (beta-spaces-pairing-8).
 Latest precommit tools: 284/284; patches: 159 desktop / 35 Android / 568 canonical.
-Lost native passes: not measured yet.
+Lost native passes: comparison owed; five-feature run did not start.
 Android: 284/284 tools; changed bundle current; 35-file lane reconstruction; 38 syntax checks.
 156 compile and device/emulator execution owed: no tree/output; Darwin arm64 host.
-Owner next: no input needed at this checkpoint.
+Owner next: unlock the display for owed native runs; non-display work continues.
 Unverified: final group/Undo candidate, Android, scenario regressions, beta build,
 Sparkle linkage/handoff, signed distribution, production real-device Sync.
 
@@ -211,3 +211,25 @@ Group/Undo checkpoint precommit: `beta-layout-tools-1.tap` 284/284; desktop
 159/568 and Android 35/568 reconstruction pass. Bundle regeneration check passes
 for `6e6f26c5872abe7053b0fbee46c0d1c737c27b925ec96b9cfa1986b6b4b45467`.
 Android native compile/device qualification remains owed as listed in C.
+
+### Locked-display interruption
+
+`beta-regression-sync-2` on `macos-9b7aa261f5018db7` passed setup, pairing and
+shared Spaces, then reported a non-clickable Open Tabs checkbox. Diagnosis:
+`IOConsoleUsers.CGSSessionScreenIsLocked=true`, locked at 2026-11-10 20:23:13 UTC;
+the browser's compositor reported no progress for about 122 seconds. This is
+an environment-invalid native run, not evidence of a product regression or a
+clean full pass. Its raw failure report is retained. The chained five-feature
+run never started. The initial background caffeinate process had exited; a
+new supervised 12-hour process is running, without unlocking the screen.
+
+The gate now checks rendering before/after each check and before Settings
+navigation/actions, and classifies a mid-check rendering stop as
+`blocked-environment`. It neither bypasses the guard nor retries a failed
+assertion as a pass. Owed after unlock: one clean full desktop Sync gate and
+all five requested feature files, then compare against `finish-final-features-2`
+and list any lost pass. The final group/Undo focused 3/3 pass remains valid;
+the earlier 22/22 full run is tied only to its older candidate.
+
+Environment-stop checkpoint: `beta-regression-tools-1.tap` 284/284 and desktop
+159/568 patch reconstruction pass. No additional native run started while locked.

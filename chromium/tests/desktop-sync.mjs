@@ -37,8 +37,20 @@ async function until(read,predicate,label,timeout=180000){
 }
 const check=async(name,fn)=>{
  console.log('start '+name);
- try{await fn();output.checks.push({name,result:'pass'});console.log('pass '+name);}
- catch(error){output.checks.push({name,result:'fail',error:error.message});throw error;}
+ try{
+  if(fixture?.host)await assertRendering(e=>fixture.host.eval(e));
+  await fn();
+  if(fixture?.host)await assertRendering(e=>fixture.host.eval(e));
+  output.checks.push({name,result:'pass'});console.log('pass '+name);
+ }catch(error){
+  // A display can lock during a long quota wait. Preserve an environment stop
+  // instead of reporting a disabled/undrawn control as a product regression.
+  if(error.code!=='BLANC_ENVIRONMENT_STOP'&&fixture?.host){
+   try{await assertRendering(e=>fixture.host.eval(e));}
+   catch(probe){if(probe.code==='BLANC_ENVIRONMENT_STOP')error=probe;}
+  }
+  output.checks.push({name,result:error.code==='BLANC_ENVIRONMENT_STOP'?'blocked-environment':'fail',error:error.message});throw error;
+ }
 };
 let fixture,worker,w,device;
 const rpc=async method=>{try{return await nativeCall(fixture.host,'desktopSyncCall',[method],null,270000);}catch(error){throw Error(`${method}: ${error.message}`);}};
@@ -59,11 +71,12 @@ async function requestRoom(reserve=12){
 const peerPass=async()=>{await requestRoom();await device.sync.resetRequestWindowForTest();await device.sync.syncNow(['bookmarks','settings']);};
 const pump=async()=>{await requestRoom();await rpc('sync.resetRequestWindowForTest');await rpc('sync.syncNow');await peerPass();};
 const openSync=async()=>{
+ await assertRendering(e=>fixture.host.eval(e));
  if(!(await w.native('settingsSheetState',[]))?.attached)await w.api('openPage',['settings','sync']);
  await inSettings(w,'sync',()=>({value:true}));
  await until(()=>w.call('settingsSyncPairingDom'),Boolean,'Sync page');
 };
-const act=async action=>assert.equal(await w.call('settingsSyncPairingAct',action),true,action);
+const act=async action=>{await assertRendering(e=>fixture.host.eval(e));assert.equal(await w.call('settingsSyncPairingAct',action),true,action);};
 const peerEdit=(url,title,folder)=>{
  const item=device.module('bookmarks').exportForSync().items.find(x=>x.url===url);assert.ok(item);
  device.module('bookmarks').mergeFromSync({items:[{...item,title,folder,updatedAt:Date.now()}],tombstones:[]});
@@ -449,7 +462,7 @@ try{
  }
  output.requests=worker.requests.map(({method,status})=>({method,status}));
  output.result='pass';
-}catch(error){output.result='fail';output.error=error.stack;console.error(error.stack);process.exitCode=1;}
+}catch(error){output.result=error.code==='BLANC_ENVIRONMENT_STOP'?'blocked-environment':'fail';output.error=error.stack;console.error(error.stack);process.exitCode=1;}
 finally{
  if(fixture)await close('failure').catch(e=>console.error(e));
  output.requests=worker?.requests.map(({method,status,store})=>({method,status,store}));
