@@ -296,7 +296,7 @@ Everything else is incremental within the D7 envelope. Keep the existing guard (
 | Private-tab model (D1) forces deep `TabStripModel`/profile patches | Decide D1 first; keep the patch isolated in `chromium/blanc/private/` |
 | Windows/Linux reveal large platform gaps late | Bring-up starts right after F0.2, before S1 completes |
 | No DRM at replacement (D3) breaks streaming for users | Keep Electron available; per-site notice; or wait for VMP per D3 |
-| Patch set grows with each feature | `chromium/patches` budget report in CI; prefer `//blanc` code plus delegates over edits |
+| Patch set grows with each feature | `chromium/patches` budget report in CI; prefer `//blanc` code plus delegates over edits. Desktop accounting refreshed 2026-11-09: 40 patches, 487 hunks, 141 patched paths, 145 reconstructed upstream outputs and 551 custom files. Quiet-discard patch 0041 adds two upstream files / six hunks; [repair evidence and remaining work](../../chromium/CODEX-NOTES-17-failures.md). Continue consolidation as slices settle; no build-environment or release gate changed. |
 | Chromium release cadence outpaces one maintainer | D6 channel choice; R.5 runbook; suspend rule |
 | Migration loses data | Read-only source, fixtures for every version, real-profile check with backup |
 | Scenario port gaps hide missing behavior | Excluded scenarios listed with reasons; spec §5.2 rows reviewed each release |

@@ -14,6 +14,16 @@ D7, F0.7, cold builds, new machines, D2/D4–D6/D8/V2 and replacement D3
 remain pending. D3 beta-only no-DRM exception accepted; EME notice/handoff required.
 
 ## Current work
+- **2026-11-09 — Requested non-Sync acceptance repairs (candidate macos-c50cd71293d37d45):**
+  all 18 supplied case IDs were reproduced and rerun together: 13 pass,
+  4 fail and 1 undefined. Rail geometry, replacement-tab focus, oversized quiet
+  recovery, renderer release, Glance positioning and floating/split controls
+  are repaired. Two stale shipping scenarios remain; grouped pins and the
+  excluded Settings/Sync work remain open. The eight affected files total
+  275 pass / 10 fail / 72 undefined; the sole lost morning pass is a confirmed
+  System/Dark versus assumed Light theme setup in F41:182. This is scoped
+  acceptance evidence, not beta qualification. Exact output, commits and
+  remaining causes: [repair report](CODEX-NOTES-17-failures.md).
 - **2026-11-09 — Extensions icon follows Auto-hide (candidate macos-bf6e0c81960ab463):**
   the icon is Chromium's native view over the pill, so it popped on and off
   while the pill slid in CSS. It now runs the pill's slide natively (same
