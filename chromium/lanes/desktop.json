@@ -5,7 +5,7 @@
   "upstream": "681cd621e82e606d7536eae8ea2576afb3c7d65c",
   "upstreamDir": "upstream",
   "sourceMap": "source-map.json",
-  "fileCount": 152,
+  "fileCount": 153,
   "patches": [
     "patches/baseline/0001-foundation-baseline.patch",
     "patches/0002-canonical-layout.patch",
@@ -53,6 +53,7 @@
     "patches/0045-blanc-rail-actions.patch",
     "patches/0046-blanc-beta-identity.patch",
     "patches/0047-blanc-beta-sparkle.patch",
-    "patches/0048-blanc-shared-spaces-desktop.patch"
+    "patches/0048-blanc-shared-spaces-desktop.patch",
+    "patches/0049-blanc-private-tab-web-app-metrics.patch"
   ]
 }

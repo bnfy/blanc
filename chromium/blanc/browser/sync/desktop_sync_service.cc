@@ -214,14 +214,14 @@ void DesktopSyncService::InitializePlatform(std::string name, scoped_refptr<os_c
   ready_ = true;
   Call("sync.setForeground", "[true]", base::BindOnce([](bool, const std::string&) {}));
 }
-// The frozen runner calls this phone.setTabs on every platform. The snapshot
-// is browser-owned; renderer input must never reach this entry point.
+// The desktop-only entry accepts browser-owned tabs and bounded native PNGs.
+// Renderer input must never reach this entry point; Android keeps phone.setTabs.
 void DesktopSyncService::SetTabs(base::ListValue tabs, base::ListValue groups) {
   if (!ready_ || !profile_ || failed_ || timed_out_ || tabs_pending_) return;
   auto args = base::WriteJson(base::ListValue().Append(std::move(tabs)).Append(std::move(groups))).value_or("[]");
   if (args == tabs_sent_ && base::TimeTicks::Now() - tabs_sent_at_ < base::Seconds(30)) return;
   tabs_pending_ = true;
-  Call("phone.setTabs", args, base::BindOnce(
+  Call("desktop.setTabs", args, base::BindOnce(
       [](base::WeakPtr<DesktopSyncService> self, std::string args, bool ok, const std::string&) {
         if (!self) return;
         self->tabs_pending_ = false;

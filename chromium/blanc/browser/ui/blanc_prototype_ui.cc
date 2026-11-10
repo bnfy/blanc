@@ -3251,6 +3251,7 @@ void PublishSyncTabs(Profile* profile) {
   if (!service || SessionRestore::IsRestoring(profile)) return;
   base::ListValue tabs, groups;
   std::set<std::string> group_ids;
+  size_t icon_count = 0;
   for (auto* owner : Owner::Live()) {
     if (owner->browser->GetProfile() != profile) continue;
     if (owner->space_busy || owner->space_expected) return;
@@ -3263,7 +3264,14 @@ void PublishSyncTabs(Profile* profile) {
       const GURL& url = tab->GetLastCommittedURL();
       if (!url.SchemeIsHTTPOrHTTPS() || url.has_username() || url.has_password()) continue;
       auto group = model->SupportsTabGroups() ? model->GetTabGroupForTab(i) : std::nullopt;
-      tabs.Append(base::DictValue().Set("url", url.spec())
+      std::string icon;
+      if (icon_count < 256) {
+        icon = owner->TabFavicon(sessions::SessionTabHelper::IdForTab(tab).id(), tab);
+        if (icon.size() > 8192) icon.clear();
+        if (!icon.empty()) ++icon_count;
+      }
+      tabs.Append(base::DictValue().Set("url", url.spec()).Set("id", TabIdentity(tab))
+          .Set("favicon", NullableString(icon))
           .Set("title", base::UTF16ToUTF8(tab->GetTitle()))
           .Set("customTitle", CustomTabName(tab)).Set("private", false)
           .Set("pinned", model->IsTabPinned(i))

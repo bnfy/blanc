@@ -11,7 +11,7 @@ import {fileURLToPath} from 'node:url';
 const here = path.dirname(fileURLToPath(import.meta.url));
 const root = path.resolve(here, '../..');
 const runner = path.resolve(here, '../blanc/services/sync_runner');
-const SHIMS = ['crypto', 'fs', 'path', 'os', 'child_process', 'async_hooks', 'url', 'electron', 'spaces', 'desktop-spaces'];
+const SHIMS = ['crypto', 'fs', 'path', 'os', 'child_process', 'async_hooks', 'url', 'electron', 'spaces', 'desktop-spaces', 'desktop-tabs'];
 const EXTERNAL = {crypto: 'crypto', 'node:crypto': 'crypto', fs: 'fs', 'node:fs': 'fs', path: 'path', 'node:path': 'path',
   os: 'os', child_process: 'child_process', 'node:async_hooks': 'async_hooks', 'node:url': 'url', electron: 'electron'};
 

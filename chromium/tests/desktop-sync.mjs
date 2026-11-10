@@ -2,6 +2,7 @@
 // local Worker and independent bundle peer. No production endpoint or real device.
 // /usr/local/bin/node chromium/tests/desktop-sync.mjs CONFIG EVIDENCE
 import fs from 'node:fs';
+import {iconPng} from './lib/icon-fixture.mjs';
 import os from 'node:os';
 import path from 'node:path';
 import assert from 'node:assert/strict';
@@ -72,6 +73,11 @@ async function launch({privateMode=false,secondary=false}={}){
  const directory=path.join(fs.mkdtempSync(path.join(os.tmpdir(),'blanc-s4a-')),'browser');
  await fixture.launch(config,directory,{testHooks:true,diskAssets:false,privateMode});
  await assertRendering(e=>fixture.host.eval(e));
+  fixture.server.removeAllListeners('request');
+  fixture.server.on('request',(q,r)=>{
+    if(q.url==='/favicon.png'){r.writeHead(200,{'content-type':'image/png'});r.end(iconPng);}
+    else {r.writeHead(200,{'content-type':'text/html'});r.end('<title>Native test fixture</title><link rel="icon" href="/favicon.png"><p>Local synthetic page</p>');}
+  });
  await installDriver(fixture.host);w=createWorld(fixture);await w.reset();
 }
 function runnerPid(){
@@ -191,12 +197,20 @@ try{
   const peerUrl='https://peer.example/open-tab';
   await new Promise((resolve,reject)=>device.context.__call('phone.setTabs',JSON.stringify([[{url:peerUrl,title:'Peer open tab',private:false}],[]]),(ok,value)=>ok?resolve(value):reject(Error('peer snapshot refused'))));
   device.sync.setSyncTabs(true);
-  const tabPump=async()=>{await requestRoom();await device.sync.resetRequestWindowForTest();await device.sync.syncNow(['session','settings','sends']);await requestRoom();await rpc('sync.resetRequestWindowForTest');await rpc('sync.syncNow');};
+  const tabPump=async()=>{await requestRoom();await device.sync.resetRequestWindowForTest();await device.sync.syncNow(['session','icons','settings','sends']);await requestRoom();await rpc('sync.resetRequestWindowForTest');await rpc('sync.syncNow');};
   await tabPump();console.log('tabs: peer published; checking consent-off');
   assert.equal(device.sync.listRemoteDevices().length,0,'Mac published no tabs before consent');
   await openSync();await act('share-tabs-on');console.log('tabs: sharing requested');
   await until(async()=>{await tabPump();return {peer:device.sync.listRemoteDevices(),mac:await w.api('listRemoteTabs')};},v=>v.peer.some(d=>d.tabs.some(t=>t.url===macUrl))&&v.mac.some(d=>d.tabs.some(t=>t.url===peerUrl)),'tabs both ways');
   console.log('tabs: both inventories converged');
+  await until(async()=>{await tabPump();return device.sync.listRemoteDevices();},rows=>rows.some(d=>d.tabs.some(t=>t.url===macUrl&&device.module('tabicons-model').validIconData(t.favicon))),'real native icon on peer');
+  const received=device.sync.listRemoteDevices().flatMap(d=>d.tabs).find(t=>t.url===macUrl).favicon;
+  const iconBytes=Buffer.from(received.slice('data:image/png;base64,'.length),'base64');
+  assert.equal(iconBytes.readUInt32BE(16),32,'native source raster is 32px');
+  assert.ok(received.length<=8192,'shipping icon budget');
+  const remoteIcons=Object.values(device.module('tabicons').getRemoteIcons(device.sync.sharedContext())).flat();
+  assert.ok(!remoteIcons.some(icon=>[privateUrl,inheritedUrl].includes(icon.url)),'protected icons excluded');
+  console.log('tabs: real native 32px icon received');
   const remote=device.sync.listRemoteDevices();
   assert.ok(!remote.some(d=>d.tabs.some(t=>t.url===privateUrl)),'private tab excluded');
   assert.ok(!remote.some(d=>d.tabs.some(t=>t.url===inheritedUrl)),'inherited-policy tab excluded');
@@ -389,6 +403,11 @@ try{
   fs.writeFileSync(budgetFile,JSON.stringify(budget),{mode:0o600});
   await fixture.start(fixture.base+'/initial');
   await assertRendering(e=>fixture.host.eval(e));
+  fixture.server.removeAllListeners('request');
+  fixture.server.on('request',(q,r)=>{
+    if(q.url==='/favicon.png'){r.writeHead(200,{'content-type':'image/png'});r.end(iconPng);}
+    else {r.writeHead(200,{'content-type':'text/html'});r.end('<title>Native test fixture</title><link rel="icon" href="/favicon.png"><p>Local synthetic page</p>');}
+  });
   await installDriver(fixture.host);w=createWorld(fixture);await w.app.refresh();
   const started=Date.now();await rpc('sync.syncNow');
   const waited=Date.now()-started;

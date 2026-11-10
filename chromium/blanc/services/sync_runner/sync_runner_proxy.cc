@@ -177,14 +177,25 @@ class Runner : public mojom::SyncHost {
         base::BindOnce([](base::FilePath path, std::vector<uint8_t> data) {
           return base::CreateDirectory(path.DirName()) && base::ImportantFileWriter::WriteFileAtomically(
               path, std::string(data.begin(), data.end()));
-        }, g_platform->StoreDir().AppendASCII(name), data), std::move(callback));
+        }, g_platform->StoreDir().AppendASCII(name), data),
+        mojo::WrapCallbackWithDefaultInvokeIfNotRun(std::move(callback), false));
   }
   void Protect(const std::vector<uint8_t>& data, ProtectCallback callback) override {
+#if !BUILDFLAG(IS_ANDROID)
+    // Desktop can quit while ThreadPool drops a pending crypto reply. Resolve
+    // the open Mojo response as unavailable; never leave a live responder.
+    callback = mojo::WrapCallbackWithDefaultInvokeIfNotRun(
+        std::move(callback), std::optional<std::vector<uint8_t>>());
+#endif
     // Keystore goes through binder: never on the thread that draws the app.
     base::ThreadPool::PostTaskAndReplyWithResult(FROM_HERE, {base::MayBlock()},
         base::BindOnce(&SyncPlatform::Protect, base::Unretained(g_platform), data), std::move(callback));
   }
   void Unprotect(const std::vector<uint8_t>& data, UnprotectCallback callback) override {
+#if !BUILDFLAG(IS_ANDROID)
+    callback = mojo::WrapCallbackWithDefaultInvokeIfNotRun(
+        std::move(callback), std::optional<std::vector<uint8_t>>());
+#endif
     base::ThreadPool::PostTaskAndReplyWithResult(FROM_HERE, {base::MayBlock()},
         base::BindOnce(&SyncPlatform::Unprotect, base::Unretained(g_platform), data), std::move(callback));
   }

@@ -41,7 +41,7 @@ globalThis.__call = (method, argsJson, done) => {
   const [mod, fn] = String(method).split('.');
   const file = MODULES[mod];
   Promise.resolve().then(() => {
-    const target = DESKTOP[method] ?? PHONE[method] ?? (file && __require(`src/main/${file}.js`)[fn]);
+    const target = (method === 'desktop.setTabs' ? __require('shim:desktop-tabs') : null) ?? DESKTOP[method] ?? PHONE[method] ?? (file && __require(`src/main/${file}.js`)[fn]);
     if (typeof target !== 'function') throw new Error(`no method ${method}`);
     return target(...JSON.parse(argsJson || '[]'));
   }).then(value => {
