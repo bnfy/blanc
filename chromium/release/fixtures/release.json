@@ -1,0 +1,33 @@
+{
+  "schema": 1,
+  "bundleId": "me.bnfy.blanc.beta",
+  "product": "Blanc Beta",
+  "userDataDir": "Blanc Beta",
+  "keychainGroup": "XYGUCY4498.me.bnfy.blanc.beta.webauthn",
+  "certificateSHA1": "55283A84D3706D5A22386D5F002A0CD4845ECFD4",
+  "teamId": "XYGUCY4498",
+  "upstream": "681cd621e82e606d7536eae8ea2576afb3c7d65c",
+  "chromiumVersion": "158.0.8127.2",
+  "version": "1.0.0-beta.1",
+  "tag": "chromium-beta-1.0.0-beta.1",
+  "shortVersion": "1.0.0",
+  "build": 1,
+  "previousBuild": 0,
+  "prerelease": true,
+  "makeLatest": false,
+  "sourceCommit": "0000000000000000000000000000000000000000",
+  "inputDigest": "0000000000000000000000000000000000000000000000000000000000000000",
+  "arches": ["arm64", "x64"],
+  "candidates": {"arm64": "macos-0000000000000000", "x64": "macos-1111111111111111"},
+  "gnArgsSHA256": {
+    "arm64": "0000000000000000000000000000000000000000000000000000000000000000",
+    "x64": "1111111111111111111111111111111111111111111111111111111111111111"
+  },
+  "sparkle": {
+    "version": "2.8.0",
+    "publicKey": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=",
+    "archiveSHA256": "0000000000000000000000000000000000000000000000000000000000000000"
+  },
+  "minimumSystemVersion": "13.0",
+  "profileSHA256": "0000000000000000000000000000000000000000000000000000000000000000"
+}
