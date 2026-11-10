@@ -2388,7 +2388,7 @@ on that site, and a wrong search address still fails it.
 
 | Platform | Current-candidate baseline |
 | --- | --- |
-| macOS | Not run for current candidate (previous baseline is stale) |
+| macOS | 443/640 executable cases pass; 8 failed; 187 undefined/not run; 2 excluded — [baseline](scenarios/baseline-macos-f0bd093f621c613f.json)<br>S1 rows: 230/254 pass; 1 failed; 23 undefined; 0 excluded |
 | Windows | Not run (640 cases) |
 | Linux | Not run (640 cases) |
 

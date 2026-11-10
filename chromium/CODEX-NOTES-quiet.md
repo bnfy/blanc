@@ -1,25 +1,42 @@
 # Result
 
-Queue 3 inventory pending; local commits only. Absolute owner hold on `out/BlancBeta`.
+Final prototype: **macos-f0bd093f621c613f**; `q3-group-pins-5-runtime-config.json`.
 
 | Item | State |
 | --- | --- |
-| 1 lazy restore :99 | Done: patch 0051; unchanged scenario passes in final regression |
-| 2 protections/private/page state | Partly: private/state pass; Electron event assertion remains undefined |
-| 3 vertical :129 | Done: shipping agrees with step; fork fixed; lifecycle 5/5 |
-| 4 whole inventory | Owed once on final candidate; top ten owed |
-| 5 regression | Done: desktop Sync 22/22; five files 146/1/2; zero lost passes |
+| 1 quiet :99 | Done: real background restore loading fixed; unchanged case passes |
+| 2 quiet :28/:106/:113 | Partly: private/state pass; native beforeunload refusal passes; Electron event assertion blocked |
+| 3 vertical :129 | Done: shipping v1.46.0 agrees with step; fork fixed; original case passes |
+| 4 inventory | Done: complete run once; 640 cases / 35 files; every undefined classified below/in appendix |
+| 5 regression | Done: full desktop Sync then five files; zero lost passes |
 
-Cause of :99: Chromium's Recently closed and startup restore paths schedule
-background loads after creating rendererless tabs. They become live without
-selection; this is a product defect, not a snapshot projection error.
-Current candidate: macos-f0bd093f621c613f; `q3-group-pins-5-runtime-config.json`.
-Baseline five files: 142 pass / 3 fail / 4 undefined; desktop Sync 22/22.
-Lost passes: none of the 142 baseline passes lost; four new passes.
-Five-file results: 146 pass / 1 fail / 2 undefined; full inventory/top ten pending.
-Focused quiet suite: 27 pass / 0 fail / 1 undefined; native lifecycle 5/5.
-Unverified: whole inventory; Electron beforeunload event contract; non-macOS cases.
-No push, publication, signing, Apple, production services, 1Password or live tree.
+Cause of :99: Chromium's Recently closed and startup restore paths scheduled background loads after creating rendererless tabs.
+Those tabs became live without selection; this was a product bug, not an adapter projection error.
+
+| Run | Pass | Fail | Undefined | Excluded |
+| --- | ---: | ---: | ---: | ---: |
+| q2 five-file baseline | 142 | 3 | 4 | 0 |
+| q3 final desktop Sync | 22 | 0 | 0 | 0 |
+| q3 final five files | 146 | 1 | 2 | 0 |
+| q3 complete inventory | 443 | 8 | 187 | 2 |
+
+Lost passes: **none**, in either q3 run; four gained (:99, :106, :113, vertical :129).
+Undefined: 110 adapter gaps / 75 missing-feature cases / 2 macOS-inapplicable; full per-file table in §4.
+Top ten for a first macOS beta (ranked; no inventory features implemented):
+1. Private lifecycle acceptance — four undefined cases leave history, child-tab and passkey isolation unqualified.
+2. Telemetry consent — both choice-commit cases time out, leaving opt-in/decline persistence unqualified.
+3. Shared Spaces and Send fault coverage — 33 + 8 undefined cases exceed the happy-path/recovery coverage of the 22-check gate.
+4. In-app updater — absent F22 path leaves safe ongoing beta updates unqualified; dedicated beta build remains on hold.
+5. Certificate recovery/eviction — reopened-page observation is undefined and the bounded eviction path is absent.
+6. Granted microphone capture — missing steps leave the user-visible capture/permission contract unqualified.
+7. Quiet Space ownership — :34 cannot quiet its grouped pinned fixture, blocking its inactive-ownership assertion.
+8. Glance cancellation and focus — :88/:98 fail around waking/cancelled references and removed controls.
+9. Pinned homes — seven F48 cases need absent home state/navigation, including restart and private behavior.
+10. Open-tab/Arc migration — 15 + 7 applicable missing-feature cases block preserving a new user's existing work.
+
+Unverified: Electron beforeunload event contract (read-only shipping step), inventory gaps/failures, native extension API parity for grouped pins, physical input/accessibility, Windows/Linux, and signed/release/update qualification.
+Supplemental quiet lifecycle 5/5 is on q3-private-3; grouped-pin lifecycle 5/5 is on the final candidate. Final quiet acceptance is 27/0/1.
+No push, publication, signing, Apple/1Password/production contact, live-tree change, beta build, toolchain install or cold build. Local commits only.
 
 ## 1 — Lazy restore
 
@@ -220,3 +237,114 @@ manufactured pass. The baseline excludes 491 unselected cases from these totals.
 
 Regression precommit: required tools/release tests plus divergence binding test
 292/292; patch reconstruction 159 upstream / 573 canonical passes.
+
+## 4 — Complete final inventory
+
+Ran `chromium/tests/runner.mjs` **once without a filter** after the mandatory
+final regression, on the same final prototype. No rendering/memory guard was
+bypassed. Evidence: `../evidence/foundation/q3-whole-inventory/baseline.json`
+and `junit.xml`; raw baseline is also committed at
+`chromium/scenarios/baseline-macos-f0bd093f621c613f.json` and selected in the
+tracker. Bar A now reports actual current-candidate inventory results; this
+is not release qualification or a blanket feature-verification promotion.
+
+The runner recorded 591 declarations and 640 executable cases (533 native
+fixture attempts, including the runner's normal failed-case retries). Its
+403/8/178/2 declaration summary is distinct from the executable totals below.
+The two exclusions are explicitly mobile-only. All 35 feature files appear.
+
+Adapter / Feature / macOS N/A partition the Undefined column. “Missing
+adapter” identifies the observed test gap, not a claim that the feature passes.
+“Missing feature” is supported by the source or explicit fork decision and
+may coexist with missing steps. The F38 SDK cases are deliberate omissions:
+the chosen fork path is the Chrome Web Store extension, not the shipping SDK.
+Reader Mode has a separate Chromium command but its shipping API contract is
+unported. Shared Spaces and Send are implemented and exercised by the native
+gate; their full shipping acceptance definitions are still missing here.
+
+| Feature file | Pass | Fail | Undefined | Adapter | Feature | macOS N/A | Excluded |
+| --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
+| F41-named-workspaces.feature | 59 | 2 | 23 | 23 | 0 | 0 | 0 |
+| ad-blocking.feature | 9 | 0 | 0 | 0 | 0 | 0 | 0 |
+| arc-spaces-import.feature | 0 | 0 | 8 | 0 | 7 | 1 | 0 |
+| blank-tab-affordance.feature | 4 | 0 | 0 | 0 | 0 | 0 | 0 |
+| browser-migration.feature | 5 | 0 | 0 | 0 | 0 | 0 | 0 |
+| downloads.feature | 1 | 0 | 1 | 1 | 0 | 0 | 0 |
+| find-favorites-history.feature | 7 | 0 | 0 | 0 | 0 | 0 | 0 |
+| glance.feature | 41 | 2 | 26 | 24 | 2 | 0 | 0 |
+| interface-language.feature | 5 | 0 | 0 | 0 | 0 | 0 | 0 |
+| internal-pages.feature | 10 | 0 | 0 | 0 | 0 | 0 | 0 |
+| island-and-commands.feature | 72 | 0 | 1 | 0 | 0 | 1 | 0 |
+| link-routing.feature | 0 | 0 | 7 | 0 | 7 | 0 | 0 |
+| local-profiles.feature | 0 | 0 | 3 | 3 | 0 | 0 | 0 |
+| mini-window.feature | 0 | 0 | 5 | 0 | 5 | 0 | 0 |
+| multi-window.feature | 2 | 0 | 0 | 0 | 0 | 0 | 0 |
+| navigation-and-context-menu.feature | 13 | 0 | 5 | 5 | 0 | 0 | 0 |
+| newtab-layouts.feature | 23 | 0 | 2 | 1 | 1 | 0 | 0 |
+| onboarding.feature | 8 | 0 | 0 | 0 | 0 | 0 | 0 |
+| permissions-and-auth.feature | 5 | 0 | 1 | 1 | 0 | 0 | 0 |
+| platform-services.feature | 1 | 2 | 8 | 0 | 8 | 0 | 2 |
+| private-tabs.feature | 2 | 0 | 4 | 4 | 0 | 0 | 0 |
+| quiet-tabs.feature | 27 | 0 | 1 | 1 | 0 | 0 | 0 |
+| reader-mode.feature | 0 | 0 | 3 | 0 | 3 | 0 | 0 |
+| send-to-device.feature | 0 | 0 | 8 | 8 | 0 | 0 | 0 |
+| settings-and-theming.feature | 7 | 0 | 4 | 0 | 4 | 0 | 0 |
+| shared-spaces.feature | 0 | 0 | 33 | 33 | 0 | 0 | 0 |
+| site-certificate-safety.feature | 6 | 0 | 1 | 1 | 0 | 0 | 0 |
+| split-view.feature | 31 | 0 | 1 | 1 | 0 | 0 | 0 |
+| supporter-and-session.feature | 2 | 0 | 2 | 2 | 0 | 0 | 0 |
+| sync.feature | 18 | 0 | 0 | 0 | 0 | 0 | 0 |
+| tab-archive.feature | 0 | 0 | 16 | 0 | 16 | 0 | 0 |
+| tab-drag.feature | 28 | 0 | 1 | 1 | 0 | 0 | 0 |
+| tab-migration.feature | 0 | 0 | 15 | 0 | 15 | 0 | 0 |
+| tabs-and-groups.feature | 38 | 1 | 8 | 1 | 7 | 0 | 0 |
+| vertical-tabs.feature | 19 | 1 | 0 | 0 | 0 | 0 | 0 |
+| **Total** | 443 | 8 | 187 | 110 | 75 | 2 | 2 |
+
+Every undefined case is listed with its classification and evidence in
+[CODEX-quiet-inventory.md](CODEX-quiet-inventory.md), with machine-readable
+counts, failures and all 187 classifications in
+[CODEX-quiet-inventory.json](CODEX-quiet-inventory.json).
+
+### Eight raw failures
+
+| Case | Observation | Classification / next investigation |
+| --- | --- | --- |
+| F41-named-workspaces:34 | Grouped pinned fixture never becomes quiet | Product policy/fixture mismatch: quiet ownership remains unqualified; no eligibility guard weakened |
+| F41-named-workspaces:613 | Group-to-Space color is empty instead of #426c4c | Identity/color propagation mismatch |
+| glance:88 | Picker never observed aria-busy while waking | Wake/cancel timing or observation gap; not yet localized |
+| glance:98 | Focus field undefined instead of null | Removed-control focus observation/contract mismatch; not yet localized |
+| platform-services:7 | CDP Runtime.evaluate timeout committing enabled usage choice | Local capture fixture; no-before-consent assertion passed; commit/after-consent result unqualified |
+| platform-services:17 | CDP Runtime.evaluate timeout committing disabled usage choice | Decline persistence and absence of install id remain unqualified |
+| tabs-and-groups:112 | No “3 tabs tucked away” row | Ordinary unpinned-group collapse; earlier STATUS already lists F3-3 as failing |
+| vertical-tabs:239 | Main-menu rail button absent | Explicit Windows/Linux scenario, tagged @test-platform-linux; not applicable to macOS |
+
+All eight failures persisted after the runner's normal retry. No failure was
+converted into a pass or excluded after the run. No missing inventory feature
+was implemented. The top-ten ranking is in Result; lower-priority feature
+gaps (Archive, Dark websites, mini windows, Reader Mode, and Billboard overflow)
+remain visible in the table and appendix.
+
+The full inventory's results for every case in the five-file run are
+identical. Comparing the full inventory directly to q2 also loses **zero** of
+q2's 142 passes. There is no previous complete baseline on this candidate
+from which to claim zero regressions across the other feature files.
+
+### Remaining owner decision and limits
+
+The unchanged quiet :28 beforeunload example specifically requires Electron
+WebContents listener counts and `will-prevent-unload`. The fork refuses to
+quiet before dispatching a close event. A native behavioral check passes,
+but inventing those events/counts would misrepresent the implementation.
+Completing that acceptance case needs an owner decision on a native-equivalent
+contract; `test/desktop/` remains untouched under this queue's read-only rule.
+
+No native run or build remains owed for this queue. Beta build/release,
+signing, physical shortcuts/accessibility, current-candidate Web Store
+install/update behavior and Windows/Linux were not qualified here. The
+absolute beta-build hold remains in effect.
+
+Final precommit: `q3-inventory-precommit.tap` 291/291 and
+`q3-inventory-patches.json` 159 upstream / 573 canonical reconstruction passed;
+`progress.mjs --check` and `git diff --check` passed. Local implementation
+commits: a3cb8ccf, 8b27f3c5, bace549a; regression/contract record: dc7eea9d.

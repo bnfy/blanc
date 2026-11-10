@@ -2463,7 +2463,7 @@
       "frameworkSha256": "f0bd093f621c613f5931c185794fe9078438dccaa102d2febc3c39b5afc92ca6",
       "executableSha256": "cca20d7ed00bbdecf8db310c6802fbed003b4e63c6bc3b1f71dabc9dbff2ff01",
       "version": "158.0.8127.2",
-      "qualification": "compiled candidate; runtime acceptance pending"
+      "qualification": "full macOS inventory: 443 pass, 8 fail, 187 undefined, 2 mobile exclusions; local desktop Sync 22/22; prototype only"
     },
     "android": {
       "id": "android-arm64-7bd35e94ef746069",
@@ -2475,7 +2475,7 @@
     }
   },
   "baselines": {
-    "macos": "scenarios/baseline-macos-3f969a35b9f9f7ad.json"
+    "macos": "scenarios/baseline-macos-f0bd093f621c613f.json"
   },
   "scenarioIds": [
     "spec/acceptance/F41-named-workspaces.feature:4",
