@@ -287,6 +287,24 @@ test('release data is deterministic and RSS is capped at twenty newest releases'
   assert.match(rss, /<lastBuildDate>Fri, 23 Jan 2026 00:00:00 GMT<\/lastBuildDate>/);
 });
 
+test('Chromium fork beta tags never reach the changelog, whatever their flags', () => {
+  const release = (tag, prerelease) => ({
+    html_url: `https://github.com/bnfy/blanc/releases/tag/${tag}`,
+    tag_name: tag, name: tag, draft: false, prerelease,
+    published_at: '2026-11-10T00:00:00Z',
+    body: '* fix: something',
+  });
+  const releases = changelog.normalizeReleases([
+    release('chromium-beta-1.0.0-beta.1', true),
+    // Published without the pre-release flag by mistake: still refused.
+    release('chromium-beta-1.0.0-beta.2', false),
+    release(' Chromium-Beta-1.0.0-beta.3', false),
+    release('v1.47.1', false),
+  ]);
+  assert.deepEqual(releases.map((entry) => entry.tag), ['v1.47.1']);
+  assert.ok(!changelog.renderReleasesJson(releases).includes('chromium-beta'));
+});
+
 test('normalized releases carry pre-rendered New-York dates', () => {
   const releases = changelog.normalizeReleases([{
     html_url: 'https://github.com/bnfy/blanc/releases/tag/v1.0.0',

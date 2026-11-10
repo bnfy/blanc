@@ -259,10 +259,17 @@ function parseGeneratedNotes(body = '') {
   return { compareUrl, sections: sections.filter((section) => section.blocks.length > 0) };
 }
 
+// Chromium fork betas are published in this repository as pre-releases tagged
+// chromium-beta-*. The pre-release flag already keeps them out, but one wrong
+// flag must not put a fork build into the Electron app's changelog, so the tag
+// itself is refused too.
+const FORK_BETA_TAG = /^chromium-beta-/i;
+
 function normalizeReleases(raw) {
   const flattened = Array.isArray(raw) ? raw.flatMap((item) => Array.isArray(item) ? item : [item]) : [];
   return flattened
     .filter((release) => release && !release.draft && !release.prerelease && release.published_at)
+    .filter((release) => !FORK_BETA_TAG.test(String(release.tag_name || '').trim()))
     .map((release) => {
       const tag = String(release.tag_name || '').trim();
       if (!tag) return null;
