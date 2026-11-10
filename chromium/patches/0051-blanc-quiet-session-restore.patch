@@ -1,0 +1,34 @@
+diff --git a/chrome/browser/ui/browser_live_tab_context.cc b/chrome/browser/ui/browser_live_tab_context.cc
+--- a/chrome/browser/ui/browser_live_tab_context.cc
++++ b/chrome/browser/ui/browser_live_tab_context.cc
+@@ -477,6 +477,12 @@
+   CHECK(web_contents);
+   blanc_prototype::RestoreCustomTabName(web_contents, tab.extra_data);
+ 
++  // Blanc restores background rows without starting their renderers. Selecting
++  // the tab later lets the ordinary visibility path load its controller.
++  if (blanc_prototype::IsIslandWindow(browser) && !select) {
++    return sessions::ContentLiveTab::GetOrCreateForWebContents(web_contents);
++  }
++
+   if (performance_manager::policies::CanScheduleLoadForRestoredTabs()) {
+     performance_manager::policies::ScheduleLoadForRestoredTabs({web_contents});
+   } else {
+diff --git a/chrome/browser/sessions/session_restore.cc b/chrome/browser/sessions/session_restore.cc
+--- a/chrome/browser/sessions/session_restore.cc
++++ b/chrome/browser/sessions/session_restore.cc
+@@ -639,6 +639,14 @@
+                   [](RestoredTab& tab) { return tab.contents() == nullptr; });
+ 
+     if (succeeded) {
++      // Blanc's saved background tabs are born quiet, including pinned tabs.
++      // Do not submit them to the background loader: activation loads them via
++      // WebContents visibility. App windows keep Chromium's restore policy.
++      if (blanc_prototype::IsEnabled()) {
++        std::erase_if(restored_tabs, [](const RestoredTab& tab) {
++          return !tab.is_active() && !tab.is_app();
++        });
++      }
+       // Sort the tabs in the order they should be restored, and start loading
+       // them.
+       std::stable_sort(restored_tabs.begin(), restored_tabs.end());

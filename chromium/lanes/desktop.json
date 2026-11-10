@@ -55,6 +55,7 @@
     "patches/0047-blanc-beta-sparkle.patch",
     "patches/0048-blanc-shared-spaces-desktop.patch",
     "patches/0049-blanc-private-tab-web-app-metrics.patch",
-    "patches/0050-blanc-beta-local-qualification.patch"
+    "patches/0050-blanc-beta-local-qualification.patch",
+    "patches/0051-blanc-quiet-session-restore.patch"
   ]
 }
