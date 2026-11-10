@@ -10,6 +10,7 @@ const closed = (name, off, always) => (...args) => {
   return __require('src/main/synced-closed.js')[name](sync.sharedContext(), ...args);
 };
 const spaces = name => (...args) => __require('shim:spaces')[name](...args);
+const DESKTOP = Object.fromEntries(['push', 'hold', 'rowDone', 'preview', 'apply', 'metadata', 'reorder', 'armPairing', 'acknowledge', 'status'].map(name => [`desktop.spaces.${name}`, (...args) => __require('shim:desktop-spaces')[name](...args)]));
 const PHONE = {
   'spaces.push': spaces('push'), 'spaces.prepare': spaces('prepare'), 'spaces.hold': spaces('hold'), 'spaces.rowDone': spaces('rowDone'),
   'spaces.preview': spaces('preview'), 'spaces.apply': spaces('apply'), 'spaces.metadata': spaces('metadata'),
@@ -40,7 +41,7 @@ globalThis.__call = (method, argsJson, done) => {
   const [mod, fn] = String(method).split('.');
   const file = MODULES[mod];
   Promise.resolve().then(() => {
-    const target = PHONE[method] ?? (file && __require(`src/main/${file}.js`)[fn]);
+    const target = DESKTOP[method] ?? PHONE[method] ?? (file && __require(`src/main/${file}.js`)[fn]);
     if (typeof target !== 'function') throw new Error(`no method ${method}`);
     return target(...JSON.parse(argsJson || '[]'));
   }).then(value => {
