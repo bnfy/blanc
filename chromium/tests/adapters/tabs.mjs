@@ -190,7 +190,13 @@ export const tabs={
   return String(after.activeTabId)!==before?String(after.activeTabId):null;
  },
  moveTabToNewWindow:(w,id)=>w.api('moveTabToNewWindow',[String(id)]),
- persistedSessionData:w=>w.native('sessionWindows'),
+ async persistedSessionData(w){
+  const data=await w.native('sessionWindows');
+  for(const window of data.windows)for(const tab of window.tabs)for(const entry of tab.navigations){
+   if(entry.pageStateBytes!==0)throw Error('Persisted navigation contains recovery page state: '+entry.pageStateBytes+' bytes');
+  }
+  return data;
+ },
  // Closed entries (F2).
  async closedEntriesSummary(w){return (await w.snapshot()).closed.map(e=>strict(closedSummary(e),'closedEntry'));},
  // The tab payload the Island renders from: the host's processed snapshot.
@@ -306,8 +312,6 @@ export const tabs={
   return (await w.native('previewPageCommand',[native]))!==false;},
  sleepBackgroundTabsNow:w=>{w.app.releasePages();return w.api('sleepBackgroundTabs');},
  sleepTab:async(w,id)=>{
-  if((await w.snapshot()).tabs.find(t=>String(t.id)===String(id))?.private)
-   throw new UndefinedNativeAdapterError('F31-8 remains undefined pending private discard context preservation');
   w.app.releasePages();return w.api('quietTab',[id]);
  },
  keepGlanceAsSplit:w=>w.api('keepGlanceAsSplit'),

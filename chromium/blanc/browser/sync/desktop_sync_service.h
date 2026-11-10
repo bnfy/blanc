@@ -11,6 +11,7 @@
 #include <set>
 #include <string>
 
+#include "blanc/buildflags.h"
 #include "base/files/file_path.h"
 #include "base/memory/raw_ptr.h"
 #include "base/memory/weak_ptr.h"
@@ -51,6 +52,9 @@ class DesktopSyncService final : public ProfileObserver,
   void RemoveObserver(Observer* observer);
   void Reconcile();
   void SetTabs(base::ListValue tabs, base::ListValue groups);
+#if BUILDFLAG(ENABLE_BLANC_TEST_HOOKS)
+  const std::string& AcceptedTabsForTesting() const { return tabs_sent_; }
+#endif
   size_t PendingFirstUploadCount() const;
   void ConfirmFirstUpload(bool accept);
 

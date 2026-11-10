@@ -5187,6 +5187,14 @@ class Handler : public content::WebUIMessageHandler, public extensions::Extensio
       Reply(id, true, base::Value(std::move(ordered)));
       return;
     }
+    if (quiet_method == "quietSyncSnapshot" && quiet_args.empty()) {
+      auto* profile = GetOwner(web_ui()->GetWebContents())->browser->GetProfile();
+      PublishSyncTabs(profile);
+      auto* service = blanc::DesktopSyncService::ForProfile(profile);
+      auto accepted = service ? base::JSONReader::Read(
+          service->AcceptedTabsForTesting(), base::JSON_PARSE_RFC) : std::nullopt;
+      Reply(id, true, accepted ? std::move(*accepted) : base::Value()); return;
+    }
     if (quiet_method == "quietThreshold" && quiet_args.size() == 1 && quiet_args[0].is_int() &&
         quiet_args[0].GetInt() >= 0) {
       test_quiet_delay_ = quiet_args[0].GetInt();
@@ -5871,6 +5879,15 @@ class Handler : public content::WebUIMessageHandler, public extensions::Extensio
         }
         saved_tab.Set("id", base::NumberToString(tab->tab_id.id()));
         saved_tab.Set("url", url);
+        // Inspect the actual replayed session records, not a URL projection
+        // that could hide serialized recovery state. No state bytes cross IPC.
+        base::ListValue navigation_state;
+        for (const auto& navigation : tab->navigations) {
+          navigation_state.Append(base::DictValue()
+              .Set("url", navigation.virtual_url().spec())
+              .Set("pageStateBytes", static_cast<int>(navigation.encoded_page_state().size())));
+        }
+        saved_tab.Set("navigations", std::move(navigation_state));
         urls.Append(url);
         tabs.Append(std::move(saved_tab));
       }
