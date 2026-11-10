@@ -19,8 +19,8 @@ test('fork beta is excluded from the real releases.json normalization and change
   const normalized=normalizeReleases(raw);
   assert.deepEqual(normalized.map(r=>r.tag),[`v${pkg.version}`]);
   assert.ok(!renderReleasesJson(normalized).includes(beta.tag));
-  // Record the real boundary: tag spelling alone is NOT a site filter.
-  assert.equal(normalizeReleases([release(beta.tag,false)]).length,1);
+  // The site refuses the tag form itself, so one wrong pre-release flag cannot publish a beta there.
+  assert.equal(normalizeReleases([release(beta.tag,false)]).length,0);
   assert.throws(()=>validateRelease({...beta,prerelease:false}));
   assert.ok(!payloadNames(beta).some(n=>/^(latest|beta).*\.ya?ml$/.test(n)));
   for(const file of ['changelog.astro','changelog.xml.js'])assert.match(fs.readFileSync(new URL(`../../site/src/pages/${file}`,import.meta.url),'utf8'),/releases\.json/);

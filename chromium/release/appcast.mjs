@@ -3,7 +3,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { pathToFileURL } from 'node:url';
 import { createPublicKey, verify } from 'node:crypto';
-import { check, validateRelease, base64, assetName, assetURL, feedURL } from './policy.mjs';
+import { check, reason, validateRelease, base64, assetName, assetURL, feedURL } from './policy.mjs';
 const escape = text => String(text).replaceAll('&', '&amp;').replaceAll('<', '&lt;').replaceAll('>', '&gt;').replaceAll('"', '&quot;').replaceAll("'", '&apos;');
 export function verifyEdDSA(bytes, signature, publicKey) {
   check(base64(signature, 64) && base64(publicKey, 32), 'canonical Ed25519 signature and public key required');
@@ -45,5 +45,5 @@ if (process.argv[1] && import.meta.url === pathToFileURL(path.resolve(process.ar
     if (mode === 'generate') fs.writeFileSync(output, generateAppcast(r, arch, bytes, signature), {flag: 'wx'});
     else validateAppcast(fs.readFileSync(output, 'utf8'), r, arch, bytes, signature);
     console.log(`appcast ${mode}: verified`);
-  } catch { console.error('Appcast operation failed; no feed published.'); process.exitCode = 1; }
+  } catch (error) { console.error(`Appcast operation failed: ${reason(error)}. No feed published.`); process.exitCode = 1; }
 }

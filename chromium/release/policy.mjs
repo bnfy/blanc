@@ -1,5 +1,5 @@
 // Phase-one policy. These are proposed beta defaults, not a release authorization.
-import assert from 'node:assert/strict';
+import { isDeepStrictEqual } from 'node:util';
 import { createHash, X509Certificate } from 'node:crypto';
 export const ROOT_ID = 'me.bnfy.blanc.beta';
 export const PRODUCT = 'Blanc Beta';
@@ -13,8 +13,15 @@ export const sha256 = bytes => createHash('sha256').update(bytes).digest('hex');
 // The certificate's standard SHA-1 thumbprint: the identifier Keychain, codesign and the
 // pinned identity all use. An identifier for matching the pin, not a security digest.
 export const fingerprint = der => new X509Certificate(der).fingerprint.replaceAll(':', '');
-export const check = (condition, message) => { if (!condition) throw new Error(message); };
-export const equal = (actual, expected, message) => assert.deepEqual(actual, expected, message);
+// Every policy failure is a ReleaseCheckError whose message is fixed text plus, at most, a
+// public name (a GN key, a gate). Messages never carry paths, argv, output or compared values,
+// so the command-line tools can print them.
+export class ReleaseCheckError extends Error {}
+export const check = (condition, message) => { if (!condition) throw new ReleaseCheckError(message); };
+export const equal = (actual, expected, message) => check(isDeepStrictEqual(actual, expected), message);
+export const reason = error => error instanceof ReleaseCheckError ? error.message : 'unexpected error (details withheld)';
+// GN arguments beyond the required ones, each added here only after review.
+export const GN_REVIEWED_EXTRA = [];
 export function base64(value, bytes) {
   return typeof value === 'string' && /^[A-Za-z0-9+/]+={0,2}$/.test(value) &&
     Buffer.from(value, 'base64').length === bytes && Buffer.from(value, 'base64').toString('base64') === value;
@@ -61,8 +68,26 @@ export function validateGN(text, arch) {
     check(match && !Object.hasOwn(values, match[1]), 'GN input must use unique literal assignments; review expressions separately');
     values[match[1]] = JSON.parse(match[2]);
   }
-  for (const [key, value] of Object.entries({target_os:'mac', target_cpu:arch, is_official_build:true, is_debug:false, is_component_build:false, is_chrome_branded:false, blanc_channel:'beta', enable_widevine:false, bundle_widevine_cdm:false, enable_updater:false})) equal(values[key], value, `official beta GN ${key}`);
+  const required = {target_os:'mac', target_cpu:arch, is_official_build:true, is_debug:false, is_component_build:false, is_chrome_branded:false, blanc_channel:'beta', enable_widevine:false, bundle_widevine_cdm:false, enable_updater:false};
+  for (const [key, value] of Object.entries(required)) equal(values[key], value, `official beta GN ${key}`);
+  // Fail closed on anything else (sanitizers, dcheck_always_on, ...) until it is reviewed.
+  const unreviewed = Object.keys(values).filter(key => !Object.hasOwn(required, key) && !GN_REVIEWED_EXTRA.includes(key));
+  check(unreviewed.length === 0, `unreviewed GN argument: ${unreviewed[0]}`);
   return values;
+}
+// chromium/release/ledger.json lists every beta build number already consumed, public or
+// private. The next build must exceed them all, and previousBuild is read from it, not trusted.
+export function validateLedger(ledger, r) {
+  check(ledger?.schema === 1 && Array.isArray(ledger.builds), 'beta build ledger schema');
+  let highest = 0;
+  for (const entry of ledger.builds) {
+    check(Number.isInteger(entry?.build) && entry.build > highest, 'ledger builds must be strictly increasing integers');
+    check(typeof entry.version === 'string' && entry.version.length > 0, 'ledger entry version');
+    check(entry.version !== r.version && entry.tag !== r.tag, 'version or tag already consumed in the ledger');
+    highest = entry.build;
+  }
+  equal(r.previousBuild, highest, 'previousBuild must equal the highest build in the ledger');
+  check(r.build > highest, 'build must exceed every build in the ledger');
 }
 export function validateProfile(p, certificates, r, now = Date.now()) {
   check(p.ProvisionsAllDevices === true && !('ProvisionedDevices' in p), 'all-devices Developer ID profile required');

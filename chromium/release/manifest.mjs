@@ -2,7 +2,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { pathToFileURL } from 'node:url';
-import { validateRelease, payloadNames, assetName, sha256, check, equal } from './policy.mjs';
+import { validateRelease, payloadNames, assetName, sha256, check, equal, reason } from './policy.mjs';
 import { validateAppcast } from './appcast.mjs';
 export const GATES = ['acceptance', 'desktop-sync', 'production-sync-real-device', 'notices-and-credits', 'blocker-payload', 'outbound-isolation', 'profile-coexistence', 'webauthn', 'no-drm-handoff', 'official-hooks-absent', 'sparkle-N-to-N+1', 'native-signature', 'gatekeeper'];
 export function validateAcceptance(evidence, r, payloads) {
@@ -14,6 +14,15 @@ export function validateAcceptance(evidence, r, payloads) {
     equal(e.dmgSHA256, sha256(payloads[assetName(r, arch)]), 'acceptance must bind final DMG bytes');
     equal(e.gnArgsSHA256, r.gnArgsSHA256[arch], 'acceptance build arguments');
     for (const gate of GATES) check(e.gates?.[gate]?.status === 'pass' && /^[a-f0-9]{64}$/.test(e.gates[gate].evidenceSHA256), `missing candidate gate: ${gate}`);
+  }
+}
+// acceptance.json is an index of attestations. At manifest build the operator must hand over the
+// evidence bundles themselves: EVIDENCE_DIR/<arch>/<gate>.evidence, each matching its recorded digest.
+export function verifyEvidenceFiles(evidence, r, dir) {
+  for (const arch of r.arches) for (const gate of GATES) {
+    const file = path.join(dir, arch, `${gate}.evidence`);
+    check(fs.existsSync(file) && fs.lstatSync(file).isFile() && fs.statSync(file).size > 0, `missing evidence bundle: ${arch}/${gate}`);
+    equal(sha256(fs.readFileSync(file)), evidence.arches?.[arch]?.gates?.[gate]?.evidenceSHA256, `evidence bundle digest mismatch: ${arch}/${gate}`);
   }
 }
 export function makeManifest(r, payloads) {
@@ -31,7 +40,7 @@ export function makeManifest(r, payloads) {
     validateAppcast(xml, r, arch, payloads[assetName(r, arch)], signature);
   }
   const manifest = {schema: 1, tag: r.tag, build: r.build, sourceCommit: r.sourceCommit, inputDigest: r.inputDigest,
-    artifacts: Object.entries(payloads).sort(([a],[b]) => a.localeCompare(b, 'en')).map(([name, bytes]) => ({name, size: bytes.length, sha256: sha256(bytes)}))};
+    artifacts: Object.keys(payloads).sort().map(name => [name, payloads[name]]).map(([name, bytes]) => ({name, size: bytes.length, sha256: sha256(bytes)}))};
   const json = JSON.stringify(manifest, null, 2) + '\n';
   const all = {...payloads, 'RELEASE-MANIFEST.json': Buffer.from(json)};
   const checksums = Object.keys(all).sort().map(name => `${sha256(all[name])}  ${name}\n`).join('');
@@ -49,18 +58,19 @@ export function verifyManifest(dir, r) {
   equal(fs.readFileSync(path.join(dir,'SHA256SUMS'),'utf8'), expected.checksums, 'checksum mismatch');
   const sigstore = JSON.parse(fs.readFileSync(path.join(dir,'SHA256SUMS.sigstore.json')));
   check(sigstore && Object.keys(sigstore).length > 0, 'missing Sigstore bundle');
-  return {status: 'contents-verified', sigstoreAuthentication: 'REQUIRES cosign verify-blob with pinned identity/issuer'};
+  return {status: 'contents-verified', sigstoreAuthentication: 'REQUIRES cosign verify-blob with pinned identity/issuer', gateEvidence: 'NOT VERIFIED HERE (acceptance.json is an attestation index; evidence bundles are checked at manifest build)'};
 }
 if (process.argv[1] && import.meta.url === pathToFileURL(path.resolve(process.argv[1])).href) {
   try {
-    const [mode, releaseFile, dir] = process.argv.slice(2);
-    check(process.argv.length === 5 && ['build','verify'].includes(mode), 'usage: manifest.mjs build|verify RELEASE.json ASSET_DIR');
+    const [mode, releaseFile, dir, evidenceDir] = process.argv.slice(2);
+    check((mode === 'build' && process.argv.length === 6) || (mode === 'verify' && process.argv.length === 5), 'usage: manifest.mjs build RELEASE.json ASSET_DIR EVIDENCE_DIR | verify RELEASE.json ASSET_DIR');
     const r = JSON.parse(fs.readFileSync(releaseFile)); validateRelease(r);
     if (mode === 'build') {
-      const result = makeManifest(r, readPayloads(dir,r));
+      const payloads = readPayloads(dir,r), result = makeManifest(r, payloads);
+      verifyEvidenceFiles(JSON.parse(payloads['acceptance.json']), r, evidenceDir);
       fs.writeFileSync(path.join(dir,'RELEASE-MANIFEST.json'),result.json,{flag:'wx'});
       fs.writeFileSync(path.join(dir,'SHA256SUMS'),result.checksums,{flag:'wx'});
       console.log('Manifest created; Sigstore authentication still required.');
     } else console.log(JSON.stringify(verifyManifest(dir,r)));
-  } catch { console.error('Beta manifest operation failed; no release published.'); process.exitCode = 1; }
+  } catch (error) { console.error(`Beta manifest operation failed: ${reason(error)}. No release published.`); process.exitCode = 1; }
 }
