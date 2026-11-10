@@ -1,7 +1,7 @@
 # Result
 
 Local work from `b4bd80c5`; no push or release action.
-Candidate: `macos-77c0cea3ecc01285`; config: `finish-beta-identity-dev-2-runtime-config.json`.
+Candidate: `macos-39bb50fa9ae849f3`; config: `finish-sparkle-dev-2-runtime-config.json`.
 
 | Queue item | State |
 | --- | --- |
@@ -10,7 +10,7 @@ Candidate: `macos-77c0cea3ecc01285`; config: `finish-beta-identity-dev-2-runtime
 | 3 Clean full gate and four files | Current candidate done; final rerun owed after queued fixes |
 | 4 Vertical/Island leftovers | Repairs done; V16 and Linux-only cases remain explicit |
 | 5 Beta identity | Patch and preview build done; separate beta build outside queue limits |
-| 6 Sparkle updater | Pending |
+| 6 Sparkle updater | Patch/pure tests done; native beta handoff and security decision blocked |
 | 7 Review 0041 | Pending |
 
 | Full-run evidence on S4c candidate (before item 4) | Pass | Fail | Undefined |
@@ -26,6 +26,7 @@ Lost S4b passes in full comparison: **0 of 100**. Eight Sync cases gained.
 Item 4 focused evidence: 18 vertical passes across two builds; 2 fail remain.
 Item 4 candidate tabs/Send gate: **3/3 pass**, including duplicate/restart exclusion.
 Owner input: desktop Spaces bundle entry and native icon bridge need authorization.
+Owner input also: Sparkle version/backport decision and dedicated beta build/key inputs.
 Unverified: final revised candidate, real Keychain/devices, signed beta/updater.
 
 ## Addendum from the coordinating session (2026-11-10), binding for items 5 and 6
@@ -252,3 +253,54 @@ queue forbids both a new cold output and prototype args changes, so item 5
 stops at the patch plus preview regression/syntax. Native beta launch, helper
 IDs in built payloads, OS registrations, real Keychain/passkeys, profile
 embedding and signed isolation remain unverified. Release execution stays disabled.
+
+
+## Item 6 — beta-only Sparkle patch (partial at the required build boundary)
+
+Patch 0047 and canonical beta sources implement native menu/Settings About
+checks, retained main-thread ownership, graceful termination delegation,
+immutable native feed selection, build-argument public key metadata and before-
+extraction verification. Full archives only; root hosts, noncanonical URLs,
+wrong architecture and non-increasing builds are rejected. Preview loads no
+Sparkle code or framework. No private key is generated/stored by this work.
+
+The offline archive stager validates the exact reviewed digest, full license,
+framework version/build, safe paths/symlinks, executable components and complete
+file tree. GN verifies the immutable receipt before linking/copying. Neither a
+Sparkle release endpoint nor a real distribution was contacted/downloaded.
+Public headers and full license came from the pinned 2.8.0 source; URL/digest
+receipts are in sources.json and finish-sparkle-source/ outside Git.
+
+The first preview build stopped on two Settings lint errors (event-handler
+name and lifecycle method order). Both were corrected in patch 0047. The
+second guarded preview build passed 23 steps in 36.17 s, producing candidate
+`macos-39bb50fa9ae849f3`. The updater source also passed the pinned Chromium
+compiler's Objective-C++ syntax check against the actual pinned Sparkle headers
+(`finish-sparkle-native-syntax.txt`); explicit property synthesis fixed its
+initial warning-as-error. Syntax does not prove framework linkage or execution.
+
+`finish-sparkle-tools-2.tap`: 273/273 pass. This includes the compiled native
+update selection policy and a real loopback HTTP appcast fetch, increasing N
+selection, Ed25519 verification and tamper/replay rejection. That harness uses
+only a published RFC 8032 public vector and its one-byte message/signature; it
+is not a native Sparkle handoff or an installable archive. No private test key
+is generated. Final precommit checks supersede this receipt below.
+
+Actual beta build/link/runtime needs changed arguments and a separate output;
+per the queue's explicit boundary, stop this item at the patch. Native feed
+check, signed N-to-N+1 install/relaunch, helper signatures/rpaths, updater prompts,
+Sync/session flush, Keychain/passkey continuity and Gatekeeper remain owed.
+The prototype args, caches/toolchain and existing output were preserved.
+
+First-party security review found post-2.8.0 fixes, including an authenticated
+installer download-move symlink race (upstream discussion 2838 and security
+page, linked in the runbook). Refusing deltas/root is not a demonstrated fix
+for that installer race. Keep the requested pin, but do not security-clear it
+for release: owner version/backport decision required. Continue item 7 and
+final default-preview gates; no production/release action was performed.
+Current budget: 46 patches, 154 patched upstream paths, 560 hunks, 152 pristine
+files; source map reconstructs 158 outputs and 564 canonical files.
+
+Item 6 precommit: `finish-sparkle-tools-final.tap` 273/273 pass;
+`finish-sparkle-patches-final.txt` reconstructs 158 outputs / 564 canonical
+files; `git diff --check` passes. Final-candidate runtime follows item 7.

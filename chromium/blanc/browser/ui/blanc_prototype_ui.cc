@@ -1,7 +1,13 @@
+#include "build/build_config.h"
 #include "content/public/browser/host_zoom_map.h"
 #include "third_party/blink/public/common/page/page_zoom.h"
 #include "blanc/browser/sync/favorite_helpers.h"
 #include "blanc/buildflags.h"
+#if BUILDFLAG(IS_MAC)
+#if BUILDFLAG(BLANC_BETA_CHANNEL)
+#include "blanc/browser/mac/beta_updater.h"
+#endif
+#endif
 #include "blanc/island_resources/island_resources.h"
 #include "blanc/browser/ui/browser_api/navigation.h"
 #include "blanc/browser/ui/browser_api/bang_icons.h"
@@ -9888,6 +9894,7 @@ base::OnceClosure ShowSessionRecovery() {
 
 // The Island's assets are compiled in, so it never depends on a disk folder.
 bool IsEnabled() { return true; }
+bool IsBetaBuild() { return BUILDFLAG(BLANC_BETA_CHANNEL); }
 
 // The typed Island interface. Groups still on the untyped dispatcher refuse to
 // bind (BrowserApiFactoryBase); migrated groups bind their handler here.

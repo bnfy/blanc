@@ -19,6 +19,22 @@ class ChromiumSettingsHandler final : public settings::SettingsPageUIHandler,
   void OnJavascriptDisallowed() override;
 
  private:
+#if BUILDFLAG(IS_MAC)
+#if BUILDFLAG(BLANC_BETA_CHANNEL)
+  void HandleBetaUpdate(const base::ListValue& args) {
+    if (!Begin(args, 0) || !web_ui()->GetRenderFrameHost()->GetLastCommittedURL().SchemeIs(content::kChromeUIScheme)) return;
+    const bool started = blanc::beta::CheckForUpdates();
+    ResolveJavascriptCallback(args[0], base::Value(started));
+  }
+  void HandleBetaUpdateState(const base::ListValue& args) {
+    if (!Begin(args, 0) || !web_ui()->GetRenderFrameHost()->GetLastCommittedURL().SchemeIs(content::kChromeUIScheme)) return;
+    const auto state = blanc::beta::GetUpdaterState();
+    ResolveJavascriptCallback(args[0], base::Value(base::DictValue()
+        .Set("available", state.available).Set("canCheck", state.can_check)
+        .Set("inProgress", state.in_progress).Set("version", state.version)));
+  }
+#endif
+#endif
   bool Allowed() {
     auto* frame = web_ui()->GetRenderFrameHost();
     return frame && frame == web_ui()->GetWebContents()->GetPrimaryMainFrame() &&
@@ -412,6 +428,12 @@ void ChromiumSettingsHandler::RegisterMessages() {
   const auto bind = [this](const char* name, void (ChromiumSettingsHandler::*method)(const base::ListValue&)) {
     web_ui()->RegisterMessageCallback(name, base::BindRepeating(method, base::Unretained(this)));
   };
+#if BUILDFLAG(IS_MAC)
+#if BUILDFLAG(BLANC_BETA_CHANNEL)
+  bind("blancBetaCheckForUpdates", &ChromiumSettingsHandler::HandleBetaUpdate);
+  bind("blancBetaUpdaterState", &ChromiumSettingsHandler::HandleBetaUpdateState);
+#endif
+#endif
   bind("blancSyncCapture", &ChromiumSettingsHandler::HandleSyncCapture);
   bind("blancSyncState", &ChromiumSettingsHandler::HandleSyncState);
   bind("blancSyncCall", &ChromiumSettingsHandler::HandleSyncCall);

@@ -105,6 +105,7 @@ void OpenLinkInGlance(content::WebContents* source, const GURL& url);
 // Returns a dismissal closure; no browser/profile/session state is created.
 base::OnceClosure ShowSessionRecovery();
 bool IsEnabled();
+bool IsBetaBuild();
 bool IsIslandWindow(const BrowserWindowInterface* browser);
 // The never-shown window a profile's set-aside Space pages live in (F41).
 bool IsHoldWindow(BrowserWindowInterface* browser);

@@ -123,9 +123,9 @@ spctl --assess --type execute --verbose /Volumes/Blanc-Beta/Blanc\ Beta.app
 
 ## 5. Sparkle integration and custody
 
-Approved implementation pin: **Sparkle 2.8.0** (framework build 2049), MIT core with additional BSD/MIT/zlib-style notices in its [full LICENSE](https://raw.githubusercontent.com/sparkle-project/Sparkle/2.8.0/LICENSE). Package the entire license, not an MIT-only summary. This is a reproducible design pin, **not a claim it is the newest or currently security-cleared release**. Before implementation, check first-party maintenance/security information, select and hash the exact distribution, and record its source/provenance/architectures. No distribution or GitHub release endpoint was contacted here. Any version change requires updating policy, source ledger, code-part IDs and tests.
+Approved implementation pin: **Sparkle 2.8.0** (framework build 2049), MIT core with additional BSD/MIT/zlib-style notices in its [full LICENSE](https://raw.githubusercontent.com/sparkle-project/Sparkle/2.8.0/LICENSE). Package the entire license, not an MIT-only summary. This is a reproducible design pin, **not a claim it is the newest or currently security-cleared release**. The first-party security review found post-2.8.0 installer fixes; 2.8.0 is not security-cleared for distribution. Resolve the version/backport decision, then select and hash the exact distribution and record its source/provenance/architectures. No distribution or GitHub release endpoint was contacted here. Any version change requires updating policy, source ledger, code-part IDs and tests.
 
-Implement a macOS browser-process owner under `chromium/blanc/browser/mac/` holding `SPUStandardUpdaterController`, created on the main thread at app startup, retained until shutdown. Wire app-controller lifecycle and a visible **Check for Updates…** action in the native app menu and Settings → About. The setting should explain checking/downloading/installing; automatic checks must function in beta 1 after the normal user choice. Use Sparkle's [programmatic API](https://sparkle-project.org/documentation/programmatic-setup/), with graceful browser close/session flush and relaunch handling. No page/renderer may set a feed URL, invoke privileged install, or substitute a trust key. Official builds must not honor test endpoint overrides.
+Patch 0047 implements a macOS browser-process owner under `chromium/blanc/browser/mac/` holding `SPUStandardUpdaterController`, created on the main thread at app startup, retained until shutdown. Wire app-controller lifecycle and a visible **Check for Updates…** action in the native app menu and Settings → About. The setting should explain checking/downloading/installing; automatic checks must function in beta 1 after the normal user choice. Use Sparkle's [programmatic API](https://sparkle-project.org/documentation/programmatic-setup/), with graceful browser close/session flush and relaunch handling. No page/renderer may set a feed URL, invoke privileged install, or substitute a trust key. Official builds must not honor test endpoint overrides.
 
 Copy `Sparkle.framework` into the outer `Contents/Frameworks`, preserve its `Versions/B` symlinks, link the browser code with the correct loader rpath from Chromium's versioned framework, and verify `otool -L` on the built result. Embed an architecture-specific `SUFeedURL` and `SUPublicEDKey` before signing, set `SUVerifyUpdateBeforeExtraction=true`, and avoid deltas for beta 1. Keep automatic check preference and updater state in the beta defaults domain. No Google Keystone/updater service is enabled.
 
@@ -286,3 +286,44 @@ Chromium updater is permitted in beta. The existing Sunrise app assets are
 retained (the gold Sunrise ICNS was inspected). Helpers derive from beta's
 branding and keep Chromium framework/helper versions. Signing/profile embedding
 and OS/runtime isolation still require the separately approved beta artifact.
+
+
+## Implemented updater patch and remaining qualification (2026-11-10)
+
+Patch 0047 and `blanc/browser/mac/beta_updater.mm` supply the beta-only native
+menu and Settings About actions, main-thread ownership and termination hook.
+The preview channel has no updater owner, framework, feed or key. The feed is
+fixed by native code; the bridge accepts no feed/key/install command. Full
+archives only, increasing build numbers and exact beta artifact URLs are
+required. Root-host execution and release-notes downloads are refused.
+
+Stage an independently reviewed local archive with:
+
+```
+python3 chromium/release/stage-sparkle.py --help
+```
+
+The staging tool performs no download or signing, refuses reuse of its
+hash-named directory, validates safe symlinks and the complete file inventory,
+and records the source archive hash. Set `blanc_sparkle_stage` to that immutable
+absolute directory, `blanc_sparkle_archive_sha256` to its reviewed archive hash,
+and `blanc_sparkle_public_key` to the owner-supplied public key. These are beta
+build arguments; leave preview's args.gn alone. The public key is passed to the
+metadata generator in a generated JSON input, not command-line output. No
+private key is generated, stored or passed by this integration.
+
+The loopback appcast test proves HTTP discovery, monotonic version selection,
+Ed25519 verification and rejection of changed bytes using a published RFC 8032
+public test vector. Its one-byte artifact is not a DMG, and it is not a native
+Sparkle N-to-N+1 handoff. Real framework linking, rpaths, native discovery and
+validation, user consent, session/Sync flush, signed install/relaunch,
+Gatekeeper, profile/passkey continuity and both helper signatures remain owed.
+An actual beta output requires a separate reviewed build configuration; this
+queue explicitly stops at the patch when that would require a cold/official
+build or changing prototype arguments.
+
+Upstream's [security record](https://github.com/sparkle-project/Sparkle/discussions/2838)
+documents fixes after 2.8.0, including an authenticated installer download-move
+symlink race. Refusing deltas/root and omitting remote notes does not establish
+protection against that race. An owner version/backport decision is required
+before release; the requested pin was not silently upgraded or waived.

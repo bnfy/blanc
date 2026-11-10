@@ -29,3 +29,48 @@ source_set("beta_identity") {
     deps = [ "//base" ]
   }
 }
+
+source_set("beta_updater") {
+  sources = [ "browser/mac/beta_updater.h", "browser/mac/beta_update_policy.h" ]
+  public_deps = [ ":buildflags" ]
+  if (blanc_beta_channel) {
+    sources += [ "browser/mac/beta_updater.mm" ]
+    deps = [ "//base", ":verify_sparkle" ]
+    configs += [ "//build/config/compiler:enable_arc", ":sparkle_link" ]
+    all_dependent_configs = [ ":sparkle_link" ]
+  }
+}
+if (blanc_beta_channel) {
+  assert(blanc_sparkle_stage != "" && blanc_sparkle_public_key != "" &&
+         blanc_sparkle_archive_sha256 != "", "Reviewed Sparkle staging and owner public key required")
+  config("sparkle_link") {
+    framework_dirs = [ blanc_sparkle_stage ]
+    frameworks = [ "Cocoa.framework", "Sparkle.framework" ]
+    # Chromium's dylib lives at Framework.framework/Versions/<Chrome version>.
+    ldflags = [ "-Wl,-rpath,@loader_path/../../.." ]
+  }
+  _sparkle_verify_args = [ "--stage", blanc_sparkle_stage,
+                          "--archive-sha256", blanc_sparkle_archive_sha256 ]
+  _sparkle_inputs = [ "$blanc_sparkle_stage/inputs.json" ]
+  foreach(file, read_file("$blanc_sparkle_stage/inputs.json", "json")) {
+    _sparkle_inputs += [ "$blanc_sparkle_stage/$file" ]
+  }
+  action("verify_sparkle") {
+    script = "third_party/sparkle/verify.py"
+    inputs = _sparkle_inputs
+    outputs = [ "$target_gen_dir/sparkle-verified.stamp" ]
+    args = _sparkle_verify_args + [ "--stamp", rebase_path(outputs[0], root_build_dir) ]
+  }
+  bundle_data("sparkle_framework_bundle") {
+    sources = [ "$blanc_sparkle_stage/Sparkle.framework" ]
+    outputs = [ "{{bundle_contents_dir}}/Frameworks/{{source_file_part}}" ]
+    public_deps = [ ":verify_sparkle" ]
+  }
+  bundle_data("sparkle_license_bundle") {
+    sources = [ "third_party/sparkle/LICENSE" ]
+    outputs = [ "{{bundle_resources_dir}}/Sparkle-LICENSE.txt" ]
+  }
+  group("sparkle_bundle") {
+    public_deps = [ ":sparkle_framework_bundle", ":sparkle_license_bundle" ]
+  }
+}

@@ -19,7 +19,7 @@ const keyFixture = () => {
   r.sparkle.publicKey=Buffer.from(v.publicKeyHex,'hex').toString('base64');
   return {r,bytes:Buffer.from(v.messageHex,'hex'),signature:Buffer.from(v.signatureHex,'hex').toString('base64')};
 };
-const gn = arch => `target_os = "mac"\ntarget_cpu = "${arch}"\nis_official_build = true\nis_debug = false\nis_component_build = false\nis_chrome_branded = false\nblanc_channel = "beta"\nenable_widevine = false\nbundle_widevine_cdm = false\nenable_updater = false\nblanc_beta_version = "2.0.0-beta.1"\nblanc_beta_build = 1\n`;
+const gn = (arch, archiveSHA256=sha256('sparkle')) => `target_os = "mac"\ntarget_cpu = "${arch}"\nis_official_build = true\nis_debug = false\nis_component_build = false\nis_chrome_branded = false\nblanc_channel = "beta"\nenable_widevine = false\nbundle_widevine_cdm = false\nenable_updater = false\nblanc_beta_version = "2.0.0-beta.1"\nblanc_beta_build = 1\nblanc_sparkle_stage = "/fixture/sparkle"\nblanc_sparkle_public_key = "${fixture().sparkle.publicKey}"\nblanc_sparkle_archive_sha256 = "${archiveSHA256}"\n`;
 test('preflight pins actual GN, profile and Sparkle bytes; refuses preview/DRM/expressions',()=>temp(dir=>{
   const r=fixture(),inputs={profile:path.join(dir,'profile'),sparkleArchive:path.join(dir,'sparkle'),gnArgs:{}};
   fs.writeFileSync(inputs.profile,'profile');r.profileSHA256=sha256('profile');fs.writeFileSync(inputs.sparkleArchive,'sparkle');r.sparkle.archiveSHA256=sha256('sparkle');

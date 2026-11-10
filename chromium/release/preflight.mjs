@@ -43,6 +43,8 @@ export function validateLocalInputs(r, inputs) {
     const gn=validateGN(bytes.toString('utf8'), arch);
     equal(gn.blanc_beta_version, r.version, 'GN beta version differs from release');
     equal(gn.blanc_beta_build, r.build, 'GN beta build differs from release');
+    equal(gn.blanc_sparkle_public_key, r.sparkle.publicKey, 'GN updater key differs from release');
+    equal(gn.blanc_sparkle_archive_sha256, r.sparkle.archiveSHA256, 'GN Sparkle archive differs from release');
   }
   equal(sha256(fs.readFileSync(inputs.profile)), r.profileSHA256, 'profile bytes changed');
 }
@@ -62,6 +64,11 @@ export function preflight(r, {root = ROOT, inputs, now = Date.now()} = {}) {
   validateBetaBranding(fs.readFileSync(path.join(root, 'chromium/blanc/branding/beta/BRANDING'), 'utf8'));
   run(PYTHON, [path.join(root, 'chromium/tools/check-patches.py'), '--lane', 'desktop']);
   validateLocalInputs(r, inputs);
+  for (const arch of r.arches) {
+    const gn=validateGN(fs.readFileSync(inputs.gnArgs[arch],'utf8'),arch);
+    run(PYTHON,[path.join(root,'chromium/blanc/third_party/sparkle/verify.py'),
+      '--stage',gn.blanc_sparkle_stage,'--archive-sha256',r.sparkle.archiveSHA256]);
+  }
   const inspected = profileAt(inputs.profile);
   validateProfile(inspected.data, inspected.certificates, r, now);
   validateIdentityList(run('/usr/bin/security', ['find-identity', '-v', '-p', 'codesigning']), r);

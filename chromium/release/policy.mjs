@@ -21,7 +21,7 @@ export const check = (condition, message) => { if (!condition) throw new Release
 export const equal = (actual, expected, message) => check(isDeepStrictEqual(actual, expected), message);
 export const reason = error => error instanceof ReleaseCheckError ? error.message : 'unexpected error (details withheld)';
 // GN arguments beyond the required ones, each added here only after review.
-export const GN_REVIEWED_EXTRA = ['blanc_beta_version', 'blanc_beta_build'];
+export const GN_REVIEWED_EXTRA = ['blanc_beta_version', 'blanc_beta_build', 'blanc_sparkle_stage', 'blanc_sparkle_public_key', 'blanc_sparkle_archive_sha256'];
 export function base64(value, bytes) {
   return typeof value === 'string' && /^[A-Za-z0-9+/]+={0,2}$/.test(value) &&
     Buffer.from(value, 'base64').length === bytes && Buffer.from(value, 'base64').toString('base64') === value;
@@ -78,6 +78,9 @@ export function validateGN(text, arch) {
   check(unreviewed.length === 0, `unreviewed GN argument: ${unreviewed[0]}`);
   check(/^2\.0\.0-beta\.[1-9]\d*$/.test(values.blanc_beta_version), 'explicit beta version GN argument');
   check(Number.isInteger(values.blanc_beta_build) && values.blanc_beta_build > 0 && values.blanc_beta_build <= 9999, 'explicit beta build GN argument');
+  check(typeof values.blanc_sparkle_stage === 'string' && values.blanc_sparkle_stage.startsWith('/'), 'absolute immutable Sparkle stage required');
+  check(base64(values.blanc_sparkle_public_key, 32), 'Sparkle GN public key required');
+  check(/^[a-f0-9]{64}$/.test(values.blanc_sparkle_archive_sha256), 'Sparkle GN archive digest required');
   return values;
 }
 // chromium/release/ledger.json lists every beta build number already consumed, public or

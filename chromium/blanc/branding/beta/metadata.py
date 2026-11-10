@@ -1,6 +1,8 @@
 #!/usr/bin/env python3
 """Beta-only outer Info.plist action. No framework/helper version rewriting."""
 import argparse
+import base64
+import json
 import plistlib
 import re
 
@@ -28,14 +30,32 @@ def metadata(info, version, build):
     result['CFBundleURLTypes'] = urls
     return result
 
+def updater_metadata(info, public_key, arch):
+    try:
+        key = base64.b64decode(public_key, validate=True)
+    except Exception:
+        raise ValueError('invalid updater public key') from None
+    if len(key) != 32 or not any(key) or base64.b64encode(key).decode() != public_key:
+        raise ValueError('invalid updater public key')
+    if arch not in ('arm64', 'x64'):
+        raise ValueError('invalid updater architecture')
+    result = dict(info)
+    result.update(SUFeedURL='https://blanc.day/updates/chromium-beta/' + arch + '.xml',
+                  SUPublicEDKey=public_key, SUVerifyUpdateBeforeExtraction=True,
+                  SUShowReleaseNotes=False, SUAutomaticallyUpdate=False)
+    return result
+
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('--input', required=True)
     parser.add_argument('--output', required=True)
     parser.add_argument('--version', required=True)
     parser.add_argument('--build', required=True, type=int)
+    parser.add_argument('--config', required=True)
     args = parser.parse_args()
+    with open(args.config) as stream:
+        config = json.load(stream)
     with open(args.input, 'rb') as stream:
-        result = metadata(plistlib.load(stream), args.version, args.build)
+        result = updater_metadata(metadata(plistlib.load(stream), args.version, args.build), config['public_key'], config['arch'])
     with open(args.output, 'wb') as stream:
         plistlib.dump(result, stream)

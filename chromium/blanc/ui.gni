@@ -1,5 +1,6 @@
 # Custom source is canonical under //blanc; target ownership stays at the
 # browser boundary to respect upstream dependency visibility.
+import("//blanc/config.gni")
 import("//build/config/features.gni")
 import("//build/config/ozone.gni")
 import("//build/config/ui.gni")
@@ -301,6 +302,7 @@ source_set(target_name) {
     ]
   }
   if (is_mac) {
+    deps += [ "//blanc:beta_updater" ]
     sources += [ "//blanc/browser/ui/window_buttons_mac.h", "//blanc/browser/ui/window_buttons_mac.mm",
                  "//blanc/browser/ui/app_menus_mac.h", "//blanc/browser/ui/app_menus_mac.mm" ]
     frameworks = [ "AppKit.framework" ]

@@ -240,6 +240,41 @@
       "path": "Sparkle.xcodeproj/project.pbxproj",
       "url": "https://raw.githubusercontent.com/sparkle-project/Sparkle/2.8.0/Sparkle.xcodeproj/project.pbxproj",
       "sha256": "3658bfc1024b6de21eaacfc58a90ee3e412268c38bbd227b84794f16dd3a09e2"
+    },
+    {
+      "path": "Sparkle/SPUUpdateCheck.h",
+      "url": "https://raw.githubusercontent.com/sparkle-project/Sparkle/2.8.0/Sparkle/SPUUpdateCheck.h",
+      "sha256": "1f7d05da2e466263aefe3e09130e56b2e65b8862579e07b9829c9bf5ed921c03"
+    },
+    {
+      "path": "Sparkle/SPUUpdater.h",
+      "url": "https://raw.githubusercontent.com/sparkle-project/Sparkle/2.8.0/Sparkle/SPUUpdater.h",
+      "sha256": "6945e8ced3c5f3595732715bfcdef2019c1506a1421737fcdc9dc59ef1e9c546"
+    },
+    {
+      "path": "Sparkle/SPUUpdaterDelegate.h",
+      "url": "https://raw.githubusercontent.com/sparkle-project/Sparkle/2.8.0/Sparkle/SPUUpdaterDelegate.h",
+      "sha256": "6d43fc879bb9bcc6c353af1c2ab9e8d98db67d1413ace269e48a63dab1d349b7"
+    },
+    {
+      "path": "Sparkle/SPUUserDriver.h",
+      "url": "https://raw.githubusercontent.com/sparkle-project/Sparkle/2.8.0/Sparkle/SPUUserDriver.h",
+      "sha256": "23ef98fad94654f60e19fdbc77aa2e80db3729002084849efee649edec8538b7"
+    },
+    {
+      "path": "Sparkle/SPUUserUpdateState.h",
+      "url": "https://raw.githubusercontent.com/sparkle-project/Sparkle/2.8.0/Sparkle/SPUUserUpdateState.h",
+      "sha256": "67850a25c5cc17f6d499290888cf83f234e24bc8b9c7508baa8a38b86e1a42f8"
+    },
+    {
+      "path": "Sparkle/SUAppcastItem.h",
+      "url": "https://raw.githubusercontent.com/sparkle-project/Sparkle/2.8.0/Sparkle/SUAppcastItem.h",
+      "sha256": "bf3f056733267beef8c9d67613bbfc52520ad570f02804eb2feb447d517df40d"
+    },
+    {
+      "path": "Sparkle/SUExport.h",
+      "url": "https://raw.githubusercontent.com/sparkle-project/Sparkle/2.8.0/Sparkle/SUExport.h",
+      "sha256": "5cef024266c54e12db620f78f4d106860de0fa2a2e230dffdfe04208bb447451"
     }
   ],
   "unverified": [
@@ -247,5 +282,14 @@
     "Sparkle distribution archive bytes/digest, signed binaries and current maintenance/security suitability; no GitHub releases contacted.",
     "Local Developer ID certificate/private-key availability and expiry, beta Developer ID provisioning profile existence/authorization; no keychain, Apple or 1Password contacted.",
     "All compile, native signing, notarization, sandbox, entitlement, updater and runtime acceptance behavior."
-  ]
+  ],
+  "securityReview": {
+    "checked": "2026-11-10",
+    "pin": "2.8.0",
+    "status": "not cleared for release; later upstream security fixes need owner version/backport decision",
+    "sources": [
+      "https://sparkle-project.org/documentation/security-and-reliability/",
+      "https://github.com/sparkle-project/Sparkle/discussions/2838"
+    ]
+  }
 }

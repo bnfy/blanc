@@ -1,4 +1,4 @@
-# Beta patches — identity implemented, updater and release qualification pending
+# Beta patches — identity and updater implemented; release qualification pending
 
 Updated 2026-11-10; upstream `681cd621e82e606d7536eae8ea2576afb3c7d65c`.
 Stage A is selected by desktop patch 0046 and gated by `blanc_channel="beta"`.
@@ -9,8 +9,8 @@ build requires a separate reviewed configuration and is not run by this queue.
 
 ## Budget and ordering
 
-Current desktop lane: **45 patches, 154 distinct patched upstream paths,
-546 hunks**. The pristine manifest contains 152 files. These figures are
+Current desktop lane: **46 patches, 154 distinct patched upstream paths,
+560 hunks**. The pristine manifest contains 152 files. These figures are
 not a new budget cap or a request to raise it. Record fresh totals after each
 stage, keep estimates separate from measured counts, consolidate later where
 possible, and follow the owner's direction not to ask for patch-budget increases.
@@ -65,7 +65,7 @@ Safe Storage/passkeys, Launch Services, default-browser consent and explicit
 DRM page handoff without reading/writing stable's profile. No migration from
 shipping Electron is part of this beta.
 
-## Stage B — Sparkle browser owner, native actions and signing inventory
+## Stage B — Sparkle browser owner and actions implemented; signing pending
 
 Add fork-owned `blanc/browser/mac/beta_updater.{h,mm}` and a GN target. Use a
 pinned Sparkle 2.8.0 distribution only after provenance/security/architecture
@@ -149,3 +149,14 @@ and app-Info template edits; the separate entitlement template eliminates an
 upstream entitlement change. Native pure path tests and metadata tests are
 available in `release/beta-identity.test.mjs`; actual beta launch, passkeys,
 Launch Services and signed isolation remain later qualification.
+
+
+Stage B actual scope: patch 0047 touches six existing upstream paths: outer
+chrome BUILD, browser BUILD, AppController, settings_ui and the two About-page
+TS/template files. Fork-owned sources hold the native owner/policy, offline
+stager/tree verifier, pinned license and metadata generator. No distribution
+binary or signing key is committed. Preview remains default-off. The native
+framework build and N-to-N+1 handoff require a separate approved beta output;
+loopback public-vector tests are not credit for those gates. Sparkle 2.8.0
+also needs an owner version/backport decision for documented later installer
+security fixes before it is release-cleared. Stage C/D remain unimplemented.
