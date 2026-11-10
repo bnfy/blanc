@@ -349,9 +349,9 @@
     "blanc/browser/ui/app_menus_mac.mm": "541e0d4b641fd409b7b659530e973b78657961b88132d612c30836f40503967f",
     "blanc/browser/ui/billboard_clock_settings.inc": "57ce0ed0160903e1b90c3d65fd5cd7cd33218d5774a3b2d8fdb448b0d49c9892",
     "blanc/browser/ui/blanc_extensions_branding.h": "17d77bbc267d13477a24bd971021f2291c505567a32383229505c13b53238a02",
-    "blanc/browser/ui/blanc_prototype_ui.cc": "86e8eae025dc2c848290c065c392784560b9439b8c6be40879ee5fdd55e395e8",
+    "blanc/browser/ui/blanc_prototype_ui.cc": "dec5f16f78737f411a264346289924253ba713e98e15cb5231aacd93d84d1c2b",
     "blanc/browser/ui/blanc_prototype_ui.h": "7afeaada1078e4ed3c901a0d7c4e389f933d4ebb238b2c0b342c228aa39dff8f",
-    "blanc/browser/ui/blanc_quiet_media.h": "8fb187c5b49e762de12f5db114149ac462b06c9ca16f16a78ef50363a80e061f",
+    "blanc/browser/ui/blanc_quiet_media.h": "eb383372faad04027e99b850556fd0a6e6a8389d87d884baf03ab999f7b64fca",
     "blanc/browser/ui/blanc_quiet_probe.h": "47467fe0a2004e804cda235613a0aea6b88d494b84b3608bf6af991a6aa07dfd",
     "blanc/browser/ui/blanc_quiet_schedule.h": "f5e3c6919a752eb63393cd7c1d4e54436746ce79179fb3d16fbd2df7c0c3fcc4",
     "blanc/browser/ui/blanc_quiet_strings.h": "3daaf170f6545b9de664dc49a35eb31e463a860cc456d38d1f8524c61089d446",
@@ -742,6 +742,8 @@
     "ui/webui/resources/cr_elements/cr_shared_style_lit.css": "c9e7dda3ecd7a772cc74d375e1edebde799a5ed25421a7beb8af530b81472060",
     "ui/webui/resources/cr_elements/md_select_lit.css": "c927751d374ed867b6c4f3cd7efc599ce21c47226e006ab42df2f20cb2b9b218",
     "chrome/browser/resources/settings/settings_page/settings_subpage.css": "1ad1f3d9efb9986e8f5e62082c930f6bbc11fac75aac372d3b239087522a5bea",
-    "chrome/browser/resources/extensions/item_list.html.ts": "920841eb8b1ea914ce293f42f6e414d4b38c3be1cbbb697c43b74a58f077fdaf"
+    "chrome/browser/resources/extensions/item_list.html.ts": "920841eb8b1ea914ce293f42f6e414d4b38c3be1cbbb697c43b74a58f077fdaf",
+    "chrome/browser/performance_manager/policies/transient_keep_alive_policy.h": "bedc76730a0df37041bae3e0d14be3e9de8ac49a8f23a1f168e8bf824eda237e",
+    "chrome/browser/performance_manager/policies/transient_keep_alive_policy.cc": "26a7417bb6ab98d131fda32d78873b0c51507c888a396346af5cfe235ecca67b"
   }
 }

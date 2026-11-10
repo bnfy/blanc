@@ -4970,7 +4970,8 @@ class Handler : public content::WebUIMessageHandler, public extensions::Extensio
             (!live && controller.NeedsReload());
         Reply(id, true, base::Value(base::DictValue().Set("asleep", asleep)
             .Set("hasSnapshot", asleep && controller.GetEntryCount() > 0)
-            .Set("entryCount", controller.GetEntryCount()).Set("droppedPageState", false)
+            .Set("entryCount", controller.GetEntryCount())
+            .Set("droppedPageState", blanc::quiet::MediaHistory::Get(tab)->dropped_page_state())
             .Set("rendererPid", live ? static_cast<int>(tab->GetPrimaryMainFrame()->GetProcess()->GetProcess().Pid()) : 0)));
       } else if (quiet_method == "quietNavigation") {
         base::ListValue entries;

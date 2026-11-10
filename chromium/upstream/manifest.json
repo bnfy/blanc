@@ -142,6 +142,8 @@
     "ui/webui/resources/cr_elements/cr_shared_style_lit.css": "bd6273f5257e2fa7052eb974ce97f2bae3e0f0eb0bd8982b330fc57768fcf786",
     "ui/webui/resources/cr_elements/cr_toolbar/cr_toolbar.css": "dd5f15f7246369727ad1010d889e3d45097354f2858aea7fc988a5aa76ca4e92",
     "ui/webui/resources/cr_elements/md_select_lit.css": "c5b27705bb36c45951d7cf97481655bb4190498d275ba89e37acef9f2896ff5a",
-    "ui/webui/resources/tools/eslint/BUILD.gn": "f1247eac8f13d36209441f4b932233918faa317ec9bcab00c4d3779e0403c8c9"
+    "ui/webui/resources/tools/eslint/BUILD.gn": "f1247eac8f13d36209441f4b932233918faa317ec9bcab00c4d3779e0403c8c9",
+    "chrome/browser/performance_manager/policies/transient_keep_alive_policy.h": "7bdcda1da7ab48582ccc26f2a89df4dbee047b894ba74b1a0923bd3caf79b33e",
+    "chrome/browser/performance_manager/policies/transient_keep_alive_policy.cc": "02618ba88ccee43b5581b488f90f728be794cbc8e72a46474fb8600ccf59d34a"
   }
 }
