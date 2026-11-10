@@ -1,7 +1,7 @@
 # Result
 
 Local work from `b4bd80c5`; no push or release action.
-Candidate: `macos-39bb50fa9ae849f3`; config: `finish-sparkle-dev-2-runtime-config.json`.
+Candidate: `macos-54b6c5b00de32333`; config: `finish-0041-runtime-config.json`.
 
 | Queue item | State |
 | --- | --- |
@@ -11,7 +11,7 @@ Candidate: `macos-39bb50fa9ae849f3`; config: `finish-sparkle-dev-2-runtime-confi
 | 4 Vertical/Island leftovers | Repairs done; V16 and Linux-only cases remain explicit |
 | 5 Beta identity | Patch and preview build done; separate beta build outside queue limits |
 | 6 Sparkle updater | Patch/pure tests done; native beta handoff and security decision blocked |
-| 7 Review 0041 | Pending |
+| 7 Review 0041 | Done: nullable host dereference fixed; renderer release/wake passes |
 
 | Full-run evidence on S4c candidate (before item 4) | Pass | Fail | Undefined |
 | --- | ---: | ---: | ---: |
@@ -304,3 +304,39 @@ files; source map reconstructs 158 outputs and 564 canonical files.
 Item 6 precommit: `finish-sparkle-tools-final.tap` 273/273 pass;
 `finish-sparkle-patches-final.txt` reconstructs 158 outputs / 564 canonical
 files; `git diff --check` passes. Final-candidate runtime follows item 7.
+
+
+## Item 7 — review of patch 0041
+
+Reviewed both policy files and the upstream graph/proxy contracts for
+correctness, ownership and lifetime. Found a nullable proxy dereference in the
+new discard callback: `Get()->GetID()` assumes the RenderProcessHost still
+exists. Replaced it with the proxy's `child_process_id()`. The posted callback
+already resolves that ID on the UI thread and checks absent/deleting hosts and
+disabled refcounts. No raw process-host pointer now crosses that deferred work.
+
+The policy releases only its own pending-reuse reference, once per tracked
+process. Processes shared with another page are retained; multiple main frames
+in one process cannot cause a second decrement because the tracked entry is
+erased first. Frame removal after discard safely sees an untracked process.
+The posted decrement avoids re-entering graph mutation; new-frame reuse balances
+its own increment and the old release. Existing worker, unload and other native
+keepalive references are not changed. A cancelled discard loses a caching
+optimization, not ownership of a live frame. Observer registration/unregistration
+is balanced and the callback retains neither the PageNode nor policy object.
+No additional correctness or security defect found in this patch's scope.
+Native rebuild and renderer release/wake checks follow before final full gates.
+
+
+Item 7 build: 7 guarded incremental actions, 32.79 s; candidate
+`macos-54b6c5b00de32333`, `finish-0041-runtime-config.json`.
+The first focused run passed quiet-tabs:118 (real renderer release/wake), but
+:8 attempted its second discard before restoration finished. A temporary
+read-only diagnostic recorded loading=true and native refusal; retry passed.
+The diagnostic was removed. The activation adapter now waits for a previously
+quiet tab's real loading/asleep state to settle before completing the wake.
+No native eligibility rule, shipping step or assertion changed.
+`finish-0041-quiet-final` passes both :8 and :118 on their first attempts.
+
+Item 7 precommit: `finish-0041-tools.tap` 273/273 pass;
+`finish-0041-patches.txt` 158 outputs / 564 canonical files; diff check passes.

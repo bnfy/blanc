@@ -72,7 +72,7 @@ diff --git a/chrome/browser/performance_manager/policies/transient_keep_alive_po
 +    // Defer to avoid graph re-entrancy, as ReleaseKeepAlive does.
 +    content::GetUIThreadTaskRunner({})->PostTask(
 +        FROM_HERE, base::BindOnce(&DecrementPendingReuseRefCountById,
-+            process->GetRenderProcessHostProxy().Get()->GetID()));
++            process->GetRenderProcessHostProxy().child_process_id()));
 +  }
  }
  

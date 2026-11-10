@@ -77,7 +77,14 @@ export const core={
    await page.cdp.send('Page.enable');}
   return w.native('closeTab',[nativeId(id)]);
  },
- activateTab:(w,id)=>w.native('switchTab',[nativeId(id)]),
+ async activateTab(w,id){
+  const wasQuiet=(await w.snapshot()).tabs.find(t=>String(t.id)===String(id))?.asleep;
+  const result=await w.native('switchTab',[nativeId(id)]);
+  // Activation starts Chromium's asynchronous restore. Match the completed
+  // wake before the next shipping action can ask to discard this tab again.
+  if(wasQuiet)await w.waitForState(s=>s.tabs.some(t=>String(t.id)===String(id)&&!t.asleep&&!t.loading));
+  return result;
+ },
  duplicateActive:async w=>w.native('duplicateTab',[(await w.snapshot()).activeTabId]),
  pinTab:(w,id)=>w.native('togglePinned',[nativeId(id)]),
  muteTab:(w,id)=>w.api('toggleTabMuted',[String(id)]),

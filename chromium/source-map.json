@@ -757,7 +757,7 @@
     "chrome/browser/resources/settings/settings_page/settings_subpage.css": "1ad1f3d9efb9986e8f5e62082c930f6bbc11fac75aac372d3b239087522a5bea",
     "chrome/browser/resources/extensions/item_list.html.ts": "920841eb8b1ea914ce293f42f6e414d4b38c3be1cbbb697c43b74a58f077fdaf",
     "chrome/browser/performance_manager/policies/transient_keep_alive_policy.h": "bedc76730a0df37041bae3e0d14be3e9de8ac49a8f23a1f168e8bf824eda237e",
-    "chrome/browser/performance_manager/policies/transient_keep_alive_policy.cc": "26a7417bb6ab98d131fda32d78873b0c51507c888a396346af5cfe235ecca67b",
+    "chrome/browser/performance_manager/policies/transient_keep_alive_policy.cc": "e841b36a823c570ca51c1a2f5413c8bef9a8ba04bcdd17c6189a5689fe43c8b2",
     "chrome/browser/resources/settings/blanc_sync_page/blanc_sync_page.css": "c792994e460e680bd24b0307a8ce9704d82ea45b0031e214e2d34e75f591e76f",
     "chrome/browser/resources/settings/blanc_sync_page/blanc_sync_page.html": "cff3eef5308f1e2541d4fcd502ceb4cc7f59bd5e6a6cbc4f49274281c7d4d838",
     "chrome/browser/resources/settings/blanc_sync_page/blanc_sync_page.ts": "0024a4a5599e8443c185f66ebbcdb510a0e1a6163e0acf0d2d4793d4b5abf2fc",
