@@ -1,6 +1,6 @@
 // Phase-one policy. These are proposed beta defaults, not a release authorization.
 import assert from 'node:assert/strict';
-import { createHash } from 'node:crypto';
+import { createHash, X509Certificate } from 'node:crypto';
 export const ROOT_ID = 'me.bnfy.blanc.beta';
 export const PRODUCT = 'Blanc Beta';
 export const TEAM = 'XYGUCY4498';
@@ -10,7 +10,9 @@ export const UPSTREAM = '681cd621e82e606d7536eae8ea2576afb3c7d65c';
 export const CHROME_VERSION = '158.0.8127.2';
 export const SPARKLE = '2.8.0';
 export const sha256 = bytes => createHash('sha256').update(bytes).digest('hex');
-export const fingerprint = bytes => createHash('sha1').update(bytes).digest('hex').toUpperCase();
+// The certificate's standard SHA-1 thumbprint: the identifier Keychain, codesign and the
+// pinned identity all use. An identifier for matching the pin, not a security digest.
+export const fingerprint = der => new X509Certificate(der).fingerprint.replaceAll(':', '');
 export const check = (condition, message) => { if (!condition) throw new Error(message); };
 export const equal = (actual, expected, message) => assert.deepEqual(actual, expected, message);
 export function base64(value, bytes) {
