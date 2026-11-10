@@ -37,7 +37,7 @@ def verify(stage, archive_sha):
         raise ValueError('reviewed archive digest required')
     stage = Path(stage)
     receipt = json.loads((stage / 'receipt.json').read_text())
-    if receipt.get('schema') != 1 or receipt.get('version') != '2.8.0' or receipt.get('archiveSHA256') != archive_sha:
+    if receipt.get('schema') != 1 or receipt.get('version') != '2.10.1' or receipt.get('archiveSHA256') != archive_sha:
         raise ValueError('staging receipt mismatch')
     if digest(stage / 'LICENSE') != LICENSE_SHA:
         raise ValueError('Sparkle license mismatch')
@@ -46,7 +46,7 @@ def verify(stage, archive_sha):
         raise ValueError('staged framework changed')
     with (framework / 'Versions/B/Resources/Info.plist').open('rb') as stream:
         info = plistlib.load(stream)
-    if info.get('CFBundleShortVersionString') != '2.8.0' or str(info.get('CFBundleVersion')) != '2049':
+    if info.get('CFBundleShortVersionString') != '2.10.1' or str(info.get('CFBundleVersion')) != '2065':
         raise ValueError('Sparkle version mismatch')
     for name in ['Sparkle', 'Autoupdate', 'Updater.app/Contents/MacOS/Updater',
                  'XPCServices/Installer.xpc/Contents/MacOS/Installer',
@@ -70,6 +70,6 @@ if __name__ == '__main__':
         if args.inputs:
             print(json.dumps(inputs))
         if args.stamp:
-            Path(args.stamp).write_text('Verified Sparkle 2.8.0 staged inputs\n')
+            Path(args.stamp).write_text('Verified Sparkle 2.10.1 staged inputs\n')
     except Exception:
         raise SystemExit('Sparkle staging verification failed; no paths or inputs disclosed') from None

@@ -13,13 +13,13 @@ Queue 2 in progress; local commits only. No live-tree or production access.
 | B native icons | Implemented; peer icon/privacy pass; clean full gate owed in D |
 | C Android safety | Partly: available checks pass; Linux 156 compile/device gates owed |
 | D regression | Partly: earlier full 22/22; final rerun interrupted by screen lock |
-| E Sparkle | In progress: 2.10.1 reviewed and staged; preview/checks owed |
+| E Sparkle | Done: 2.10.1 reviewed/staged; preview unchanged; offline checks pass |
 | F dedicated beta | Owed; initial disk check 1.1 TiB available |
 | G local beta proof | Owed |
 | H operator handoff | Owed |
 
 Prototype: macos-9b7aa261f5018db7, beta-spaces-layout-1-runtime-config.json.
-Beta candidate/app: not built.
+Beta candidate/app: not built. Sparkle: 2.10.1, newest stable; fixes five later advisories.
 Gate: beta-regression-sync-1 22/22; updated bridge unit tests 8/8.
 Scenario: sync.feature:162 passes on candidate 8 (beta-spaces-pairing-8).
 Latest precommit tools: 284/284; patches: 159 desktop / 35 Android / 568 canonical.
@@ -233,3 +233,37 @@ the earlier 22/22 full run is tied only to its older candidate.
 
 Environment-stop checkpoint: `beta-regression-tools-1.tap` 284/284 and desktop
 159/568 patch reconstruction pass. No additional native run started while locked.
+
+## E — Sparkle 2.10.1
+
+Selected the newest stable 2.x under the explicit owner approval. First-party
+release, archive digest, all 19 existing source-ledger files, full license and
+five post-2.8.0 advisories are recorded in
+`chromium/release/sparkle-review-2026-11-10.md` and `sources.json`.
+Archive SHA-256: `1a856d2a9edb8e628de88121d7be04cf0e2167f8641650b78fca00b14244cf27`.
+Framework build 2065 requires macOS 12; the app minimum remains approved 13.
+The full license is unchanged. No binary or key is committed.
+
+The actual archive's ./ prefixes exposed an offline stager selection bug;
+normalization now precedes selection and duplicate/link validation. Both archive
+layouts and duplicate aliases are checked. Staging succeeds outside Git at
+`evidence/foundation/sparkle-staged/sparkle-2.10.1-<archive SHA>/`.
+All five native components contain arm64/x86_64 and pass local strict integrity
+verification of upstream ad-hoc signatures. These are staged-input observations,
+not Developer ID or native installation qualification.
+
+`beta-sparkle-2-10-1` guarded preview rebuild: zero scheduled actions, candidate
+unchanged at `macos-9b7aa261f5018db7`; Sparkle links only in the dedicated beta.
+
+Installation constraint found during first-party source review:
+`Autoupdate/SUPlainInstaller.m` invokes `/usr/bin/gktool scan` on the normal atomic
+app-update path. The local tool offers no offline flag. That assessment can
+contact Apple, which this queue expressly forbids. Do not alter/disable Sparkle's
+security behavior to force a local install pass. Discovery and invalid-archive
+refusal can still be prepared locally; actual install needs an approved offline
+setup or owner authorization for Apple contact, in addition to an unlocked display.
+
+E precommit: `beta-sparkle-tools-1.tap` 284/284 after the preview rebuild,
+including offline archive/metadata/HTTP/EdDSA/native-policy updater tests;
+159/568 desktop patch reconstruction and whitespace checks pass. No native
+Sparkle handoff or Apple-contacting assessment was run.

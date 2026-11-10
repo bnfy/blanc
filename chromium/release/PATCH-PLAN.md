@@ -68,8 +68,8 @@ shipping Electron is part of this beta.
 ## Stage B — Sparkle browser owner and actions implemented; signing pending
 
 Add fork-owned `blanc/browser/mac/beta_updater.{h,mm}` and a GN target. Use a
-pinned Sparkle 2.8.0 distribution only after provenance/security/architecture
-review; vendor via a hash-verified staging input, not a floating URL or build
+pinned Sparkle 2.10.1 distribution after the dated provenance/security review
+and native architecture qualification; vendor via a hash-verified staging input, not a floating URL or build
 hook. Record complete licence and component metadata. Re-sign default helpers
 rather than trying to inherit ad-hoc distribution signatures.
 
@@ -157,6 +157,6 @@ TS/template files. Fork-owned sources hold the native owner/policy, offline
 stager/tree verifier, pinned license and metadata generator. No distribution
 binary or signing key is committed. Preview remains default-off. The native
 framework build and N-to-N+1 handoff require a separate approved beta output;
-loopback public-vector tests are not credit for those gates. Sparkle 2.8.0
-also needs an owner version/backport decision for documented later installer
-security fixes before it is release-cleared. Stage C/D remain unimplemented.
+loopback public-vector tests are not credit for those gates. The owner-approved Sparkle 2.10.1 upgrade includes the reviewed later installer
+security fixes; see `sparkle-review-2026-11-10.md`. Native linkage and updater
+installation remain separate gates. Stage C/D remain unimplemented.

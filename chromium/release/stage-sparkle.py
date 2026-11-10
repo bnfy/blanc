@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
-"""Stage a reviewed local 2.8.0 archive. No network, keys, signing or build."""
+"""Stage a reviewed local 2.10.1 archive. No network, keys, signing or build."""
 import argparse
+import copy
 import json
 import os
 from pathlib import Path, PurePosixPath
@@ -16,14 +17,25 @@ def stage(archive, expected, parent):
     archive, parent = Path(archive), Path(parent)
     if api['digest'](archive) != expected:
         raise ValueError('archive digest mismatch')
-    destination = parent / ('sparkle-2.8.0-' + expected)
+    destination = parent / ('sparkle-2.10.1-' + expected)
     if destination.exists() or destination.is_symlink():
         raise ValueError('staging destination already exists')
     parent.mkdir(parents=True, exist_ok=True)
     temporary = Path(tempfile.mkdtemp(prefix='.sparkle-stage-', dir=parent))
     try:
         with tarfile.open(archive) as bundle:
-            members = [m for m in bundle.getmembers() if m.name == 'LICENSE' or m.name.startswith('Sparkle.framework/') or m.name == 'Sparkle.framework']
+            members = []
+            for original in bundle.getmembers():
+                # Upstream's distribution uses ./ prefixes. Normalize before
+                # selection and duplicate/link checks, never before checking .. .
+                name = PurePosixPath(original.name)
+                normalized = str(name)
+                if normalized == 'LICENSE' or normalized == 'Sparkle.framework' or normalized.startswith('Sparkle.framework/'):
+                    if name.is_absolute() or '..' in name.parts:
+                        raise ValueError('unsafe archive entry')
+                    member = copy.copy(original)
+                    member.name = normalized
+                    members.append(member)
             if len(members) > 10000 or sum(m.size for m in members) > 2 * 1024**3:
                 raise ValueError('archive exceeds staging bounds')
             names = set()
@@ -48,7 +60,7 @@ def stage(archive, expected, parent):
             for member in members:
                 if member.issym(): (temporary / member.name).symlink_to(member.linkname)
         files = api['tree'](temporary / 'Sparkle.framework')
-        (temporary / 'receipt.json').write_text(json.dumps({'schema':1,'version':'2.8.0','archiveSHA256':expected,'files':files},indent=2)+'\n')
+        (temporary / 'receipt.json').write_text(json.dumps({'schema':1,'version':'2.10.1','archiveSHA256':expected,'files':files},indent=2)+'\n')
         (temporary / 'inputs.json').write_text(json.dumps(['receipt.json', 'LICENSE'] + ['Sparkle.framework/' + p for p in files]) + '\n')
         api['verify'](temporary, expected)
         # Publish only a fully verified immutable tree. No replacement/overwrite.
@@ -65,6 +77,6 @@ if __name__ == '__main__':
     args = parser.parse_args()
     try:
         stage(args.archive, args.sha256, args.parent)
-        print('Sparkle 2.8.0 staged and hash-verified; binary signatures/architecture still require qualification.')
+        print('Sparkle 2.10.1 staged and hash-verified; binary signatures/architecture still require qualification.')
     except Exception:
         raise SystemExit('Sparkle staging failed; no release operation performed') from None

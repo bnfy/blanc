@@ -123,7 +123,7 @@ spctl --assess --type execute --verbose /Volumes/Blanc-Beta/Blanc\ Beta.app
 
 ## 5. Sparkle integration and custody
 
-Approved implementation pin: **Sparkle 2.8.0** (framework build 2049), MIT core with additional BSD/MIT/zlib-style notices in its [full LICENSE](https://raw.githubusercontent.com/sparkle-project/Sparkle/2.8.0/LICENSE). Package the entire license, not an MIT-only summary. This is a reproducible design pin, **not a claim it is the newest or currently security-cleared release**. The first-party security review found post-2.8.0 installer fixes; 2.8.0 is not security-cleared for distribution. Resolve the version/backport decision, then select and hash the exact distribution and record its source/provenance/architectures. No distribution or GitHub release endpoint was contacted here. Any version change requires updating policy, source ledger, code-part IDs and tests.
+Approved implementation pin: **Sparkle 2.10.1** (framework build 2065), the newest stable 2.x in the first-party release data checked November 10, 2026. The owner approved replacing 2.8.0. The [release](https://github.com/sparkle-project/Sparkle/releases/tag/2.10.1) requires macOS 12; Blanc Beta retains macOS 13. The downloaded 16,346,336-byte archive matches the published SHA-256 `1a856d2a9edb8e628de88121d7be04cf0e2167f8641650b78fca00b14244cf27`. Its [full LICENSE](https://github.com/sparkle-project/Sparkle/blob/2.10.1/LICENSE), including third-party terms, is byte-identical to the committed full notice. Package all of it. [The dated review](../chromium/release/sparkle-review-2026-11-10.md) covers all five published post-2.8.0 advisories, their fixed versions, source hashes and remaining native qualification. This source/security review does not qualify an actual updater installation. Upstream Sparkle release access was authorized; no Blanc GitHub release, Apple or production Sync contact occurred.
 
 Patch 0047 implements a macOS browser-process owner under `chromium/blanc/browser/mac/` holding `SPUStandardUpdaterController`, created on the main thread at app startup, retained until shutdown. Wire app-controller lifecycle and a visible **Check for Updates…** action in the native app menu and Settings → About. The setting should explain checking/downloading/installing; automatic checks must function in beta 1 after the normal user choice. Use Sparkle's [programmatic API](https://sparkle-project.org/documentation/programmatic-setup/), with graceful browser close/session flush and relaunch handling. No page/renderer may set a feed URL, invoke privileged install, or substitute a trust key. Official builds must not honor test endpoint overrides.
 
@@ -147,7 +147,7 @@ node chromium/release/appcast.mjs generate /private/release.json arm64 /private/
 node chromium/release/appcast.mjs validate /private/release.json arm64 /private/assets /private/signature.txt /private/assets/appcast-arm64.xml
 ```
 
-Sparkle validates the archive against the embedded EdDSA key before extraction; native code signatures and Gatekeeper provide a separate platform identity check. HTTPS protects transport. An archive signature does not authenticate feed prose or prevent replay of an older valid feed; builds must not downgrade. Sparkle 2.8.0 does not have the newer 2.9 signed-feed option, so do not claim the XML itself is cryptographically signed. Keep the feed minimal with no externally supplied notes HTML. The immutable published appcast is also covered by the Sigstore-authenticated release manifest for independent verification.
+Sparkle validates the archive against the embedded EdDSA key before extraction; native code signatures and Gatekeeper provide a separate platform identity check. HTTPS protects transport. An archive signature does not authenticate feed prose or prevent replay of an older valid feed; builds must not downgrade. Sparkle 2.10.1 supports signed feeds, but this integration does not configure that option: do not claim the XML itself is cryptographically signed. Keep the feed minimal with no externally supplied notes HTML. The immutable published appcast is also covered by the Sigstore-authenticated release manifest for independent verification.
 
 Before beta 1 is public, stage two real signed/notarized beta-identity builds **N and N+1** on a private qualification feed, consuming unique build numbers. Start inside installed N, discover N+1, download the public-format signed archive, click the updater's install/relaunch action, and prove replacement/relaunch/profile continuity, Sync credentials and passkeys survive. Also reject wrong key, tampered bytes, wrong bundle ID, older/equal build and wrong architecture; test offline/error/retry and read-only-DMG behavior. A direct installer launch is not an updater handoff. Record N/N+1, source/DMG hashes and both architecture results. The first public beta contains that verified updater, and its eventual public N→N+1 transition remains a separate post-publication gate. Do not reuse a private sequence number for different public bytes.
 
@@ -239,7 +239,7 @@ Future local-input file (kept private, paths never in public release.json). `pro
 ```json
 {
   "profile": "/absolute/path/to/checkout/chromium/release/blanc-beta.provisionprofile",
-  "sparkleArchive": "/private/beta/Sparkle-2.8.0.tar.xz",
+  "sparkleArchive": "/private/beta/Sparkle-2.10.1.tar.xz",
   "gnArgs": {"arm64": "/private/beta/arm64-args.gn", "x64": "/private/beta/x64-args.gn"}
 }
 ```
@@ -249,7 +249,7 @@ Future local-input file (kept private, paths never in public release.json). `pro
 Remaining owner work before a distributable beta:
 
 1. Identity, `2.0.0-beta.N`, macOS 13 and the beta 1 Intel waiver are approved. Qualify the real beta first-run/default-browser consent and side-by-side OS registrations.
-2. Supply the dedicated EdDSA public key after the owner-only key ceremony; approve hosting/promotion operations, reviewed distribution provenance and updater UX. Sparkle 2.8.0 and the blanc.day beta-only routes are already approved; real key/distribution inputs and runtime qualification are still required.
+2. Supply the dedicated EdDSA public key after the owner-only key ceremony; approve hosting/promotion operations, reviewed distribution provenance and updater UX. Sparkle 2.10.1 and the blanc.day beta-only routes are approved; production key inputs and runtime qualification are still required.
 3. Approve the scheduled official-build GN/environment diff, separate output/cache arrangement and action budget. Beta 1 is Apple Silicon only under the recorded waiver. No cold or official build is implied here.
 4. (The beta provisioning profile is issued and committed.) Approve adapter/entitlement review and notarization service use; resolve any certificate rotation needed.
 5. Approve the beta acceptance scope after unresolved migration failures, exact-candidate harness work, real-device production Sync account/device and testing window, and final release notes/publication. Sync itself remains required.
@@ -257,7 +257,7 @@ Remaining owner work before a distributable beta:
 Unverified / cannot be proven without the later work:
 
 - Full literal prototype/release GN files and effective defaults, compiler/SDK/PGO availability, official rebuild cost, both machine outputs and candidate hashes.
-- Current Sparkle binary provenance/security suitability, actual framework/ID/rpath inventory, EdDSA key custody/recovery, real feed serving/caching and updater callbacks/sandbox behavior.
+- Native Sparkle framework/ID/rpath inventory after packaging, EdDSA key custody/recovery, real feed serving/caching and updater callbacks/sandbox behavior.
 - Certificate/private-key access and expiry, AMFI/WebAuthn/TCC behavior, real DER parsing/code signature/notarization/stapling/Gatekeeper and native DMG launch.
 - Runtime profile/keychain/OS registration isolation, explicit override rejection, actual no-CDM payload, no protected playback, no hook/disk-asset release bypass.
 - Exact-official-candidate acceptance, local Sync harness compatibility, production real-device Sync, packaged blocker/credits/full SBOM and outbound isolation.
@@ -322,8 +322,9 @@ An actual beta output requires a separate reviewed build configuration; this
 queue explicitly stops at the patch when that would require a cold/official
 build or changing prototype arguments.
 
-Upstream's [security record](https://github.com/sparkle-project/Sparkle/discussions/2838)
-documents fixes after 2.8.0, including an authenticated installer download-move
-symlink race. Refusing deltas/root and omitting remote notes does not establish
-protection against that race. An owner version/backport decision is required
-before release; the requested pin was not silently upgraded or waived.
+The owner approved upgrading the old 2.8.0 pin to the newest stable 2.x.
+The selected 2.10.1 archive and all published post-2.8.0 advisories are reviewed
+in [the dated security record](../chromium/release/sparkle-review-2026-11-10.md).
+Disabling deltas alone did not address the later installer races; their upstream
+fixes are included in this pin. Native installation and distribution still need
+the separate artifact-bound gates above.

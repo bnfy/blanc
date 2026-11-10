@@ -37,7 +37,7 @@ with tempfile.TemporaryDirectory() as t:
  d=pathlib.Path(t);source=d/'source';framework=source/'Sparkle.framework';b=framework/'Versions/B'
  for n in ['Sparkle','Autoupdate','Updater.app/Contents/MacOS/Updater','XPCServices/Installer.xpc/Contents/MacOS/Installer','XPCServices/Downloader.xpc/Contents/MacOS/Downloader']:
   p=b/n;p.parent.mkdir(parents=True,exist_ok=True);p.write_bytes(b'not a native binary: staging fixture only');p.chmod(0o755)
- (b/'Resources').mkdir();(b/'Resources/Info.plist').write_bytes(plistlib.dumps({'CFBundleShortVersionString':'2.8.0','CFBundleVersion':'2049'}))
+ (b/'Resources').mkdir();(b/'Resources/Info.plist').write_bytes(plistlib.dumps({'CFBundleShortVersionString':'2.10.1','CFBundleVersion':'2065'}))
  (framework/'Versions/Current').symlink_to('B');(framework/'Sparkle').symlink_to('Versions/Current/Sparkle')
  shutil.copyfile(root/'blanc/third_party/sparkle/LICENSE',source/'LICENSE')
  archive=d/'fixture.tar.xz'
@@ -50,6 +50,14 @@ with tempfile.TemporaryDirectory() as t:
   raise AssertionError('unsafe stage accepted')
  refused(lambda:m['stage'](archive,'0'*64,d/'out'))
  staged=m['stage'](archive,sha,d/'out');v['verify'](staged,sha)
+ prefixed=d/'prefixed.tar.xz'
+ with tarfile.open(prefixed,'w:xz') as tar:
+  tar.add(framework,arcname='./Sparkle.framework');tar.add(source/'LICENSE',arcname='./LICENSE')
+ v['verify'](m['stage'](prefixed,v['digest'](prefixed),d/'prefixed-out'),v['digest'](prefixed))
+ duplicate=d/'duplicate.tar.xz'
+ with tarfile.open(duplicate,'w:xz') as tar:
+  tar.add(framework,arcname='./Sparkle.framework');tar.add(source/'LICENSE',arcname='./LICENSE');tar.add(source/'LICENSE',arcname='LICENSE')
+ refused(lambda:m['stage'](duplicate,v['digest'](duplicate),d/'duplicate-out'))
  refused(lambda:m['stage'](archive,sha,d/'out'))
  (staged/'Sparkle.framework/Versions/B/Sparkle').write_bytes(b'changed')
  refused(lambda:v['verify'](staged,sha))

@@ -57,7 +57,7 @@ static __weak BlancBetaUpdater* g_beta_updater;
       !blanc::beta::UpdateVersion(Text([app objectForInfoDictionaryKey:@"CFBundleShortVersionString"])) ||
       !blanc::beta::UpdateBuild(Text([app objectForInfoDictionaryKey:@"CFBundleVersion"])) || decoded.length != 32 ||
       ![[decoded base64EncodedStringWithOptions:0] isEqualToString:key] ||
-      ![[[NSBundle bundleForClass:SPUUpdater.class] objectForInfoDictionaryKey:@"CFBundleShortVersionString"] isEqualToString:@"2.8.0"])
+      ![[[NSBundle bundleForClass:SPUUpdater.class] objectForInfoDictionaryKey:@"CFBundleShortVersionString"] isEqualToString:@"2.10.1"])
     return;
   self.controller = [[SPUStandardUpdaterController alloc] initWithStartingUpdater:NO
       updaterDelegate:self userDriverDelegate:nil];

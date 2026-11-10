@@ -8,7 +8,7 @@ export const CERT = '55283A84D3706D5A22386D5F002A0CD4845ECFD4';
 export const FEED_ROOT = 'https://blanc.day/updates/chromium-beta/';
 export const UPSTREAM = '681cd621e82e606d7536eae8ea2576afb3c7d65c';
 export const CHROME_VERSION = '158.0.8127.2';
-export const SPARKLE = '2.8.0';
+export const SPARKLE = '2.10.1';
 export const sha256 = bytes => createHash('sha256').update(bytes).digest('hex');
 // The certificate's standard SHA-1 thumbprint: the identifier Keychain, codesign and the
 // pinned identity all use. An identifier for matching the pin, not a security digest.

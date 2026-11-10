@@ -1,23 +1,24 @@
 # Sparkle integration input
 
-Pin: Sparkle 2.8.0, upstream https://github.com/sparkle-project/Sparkle/tree/2.8.0.
-The full pinned LICENSE is retained. Framework binaries are not committed.
-Use the offline `chromium/release/stage-sparkle.py` with an owner-reviewed
-archive and SHA-256. It refuses an existing destination, validates the entire
-framework tree and writes a receipt. The GN build validates that immutable
-receipt and tree before linking/copying the framework. Do not download inside
-GN, use a floating version, or create a signing key as part of staging.
+Pin: [Sparkle 2.10.1](https://github.com/sparkle-project/Sparkle/releases/tag/2.10.1),
+framework build 2065, selected under the owner's November 10, 2026 approval to
+use the newest stable 2.x release. Its macOS 12 minimum fits Blanc Beta's 13.0.
+The complete upstream LICENSE remains byte-identical and is retained here;
+framework binaries are staged outside Git.
 
-The queue forbids GitHub release contacts and a cold/official beta build.
-No actual distribution has been staged or linked here. Actual framework
-architecture, helper signatures and runtime behavior remain unverified.
+Archive SHA-256:
+`1a856d2a9edb8e628de88121d7be04cf0e2167f8641650b78fca00b14244cf27`.
+The downloaded archive matches the first-party release asset digest. Source
+hashes, provenance and license digest are in `chromium/release/sources.json`;
+the advisory review is in `chromium/release/sparkle-review-2026-11-10.md`.
 
-Security review, 2026-11-10: upstream documents fixes after the approved 2.8.0
-pin in https://sparkle-project.org/documentation/security-and-reliability/
-and https://github.com/sparkle-project/Sparkle/discussions/2838 . These include
-delta symlink attacks, a local appcast-information race, an authenticated
-installer download-move symlink race and root-host cache handling. The wrapper
-refuses deltas and root-host operation and does not consume delayed appcast
-metadata, but this does not establish protection against the installer race.
-2.8.0 is not security-cleared for release. Resolve the version/backport decision
-before distributing a signed beta. No version upgrade or waiver is inferred.
+Use the offline `chromium/release/stage-sparkle.py` with that archive and digest.
+It refuses an existing destination, validates the full framework tree and
+writes a receipt. GN validates the immutable receipt and tree before linking
+or copying it. Staging does not download, sign, create keys or qualify native
+runtime behavior. Upstream archive `./` prefixes are normalized before safety
+and duplicate checks. Do not use a floating version or download inside GN.
+
+The post-2.8.0 installer and symlink advisories are fixed by this pin. That
+review does not substitute for the separate native updater, signed-artifact
+and N-to-N+1 installation gates. Deltas and root-host operation remain refused.
