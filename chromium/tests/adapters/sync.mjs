@@ -85,7 +85,7 @@ export const sync = {
    'turn-on':'syncTurnOn','connect-code':'syncCodeConnect','sync-now':'syncNow',
    'add-device':'syncAddDevice','connect-iphone':'syncConnectIphone',
    'continue':'syncPairingContinue','add-this-first':'syncPairingAddThisFirst','pair-cancel':'syncPairingCancel',
-   'spaces-not-now':'syncSpacesNotNow','spaces-choose':'syncSpacesChoose','spaces-share':'syncSpacesShare',
+   'spaces-not-now':'syncSpacesNotNow','spaces-choose':'syncSpacesChoose','spaces-share':'syncSpacesShare','spaces-off':'syncSpacesOff',
    'turn-off':'syncDisable','upload-continue':'syncFirstUploadContinue','upload-not-now':'syncFirstUploadNotNow'};
   if(a.action==='share-tabs-on'||a.action==='share-tabs-off'){
    const field=root.getElementById('syncTabsShare');

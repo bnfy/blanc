@@ -125,7 +125,8 @@ try{
  if(!mode || spacesOnly){
  await check('two native windows share Spaces, merge peer edits, and preserve delete with Undo',async()=>{
   const leftUrl=fixture.base+'/shared-left',rightUrl=fixture.base+'/shared-right';
-  await w.call('openTab',leftUrl,{});
+  const leftTab=await w.call('openTab',leftUrl,{});
+  await w.api('groupTabByName',[String(leftTab),'left local']);
   const left=await w.api('saveWorkspaceAs',['Left shared Space']);
   assert.equal(left.ok,true,'first native Space saved');
   const right=await w.api('createBlankWorkspace',['Right shared Space',{newWindow:true}]);
@@ -135,6 +136,8 @@ try{
   const second=await fixture.connectTarget(target);
   const otherApi=(method,args=[])=>second.eval(`window.BlancPrototypeHost.api[${JSON.stringify(method)}](...${JSON.stringify(args)})`);
   await otherApi('createTab',[rightUrl]);
+  const rightTabs=await until(()=>otherApi('getAllTabs'),v=>v.tabs.some(t=>t.url===rightUrl),'right native tab');
+  await otherApi('groupTabByName',[String(rightTabs.tabs.find(t=>t.url===rightUrl).id),'right local']);
   await sleep(1500);
   await openSync();await act('spaces-choose');
   await until(()=>w.hostEval(`1`),Boolean,'native host remains live');
@@ -158,8 +161,14 @@ try{
   const existing=Object.entries(blob.tabs).find(([,tab])=>tab.nav.v.url===leftUrl);
   const next=JSON.parse(JSON.stringify(blob));
   next.tabs[existing[0]].name=model.field('Peer edited tab',Date.now()+1000,device.sync.sharedContext().deviceId);
-  device.module('shared-spaces').noteLocalSpace(leftId,next,{tabs:{[existing[0]]:{name:next.tabs[existing[0]].name}}},device.sync.sharedContext());
-  await until(async()=>{await spacesPass();return w.snapshot();},v=>v.tabs.some(t=>t.title==='Peer edited tab'),'peer edit on native tab');
+  const groupId=Object.entries(blob.groups).find(([,group])=>group.name.v==='left local')?.[0];
+  assert.ok(groupId,'native group reached the peer');
+  next.groups[groupId].name=model.field('peer edited group',Date.now()+1000,device.sync.sharedContext().deviceId);
+  device.module('shared-spaces').noteLocalSpace(leftId,next,{tabs:{[existing[0]]:{name:next.tabs[existing[0]].name}},groups:{[groupId]:{name:next.groups[groupId].name}}},device.sync.sharedContext());
+  await until(async()=>{await spacesPass();return w.snapshot();},v=>v.tabs.some(t=>t.title==='Peer edited tab')&&v.groups.some(g=>g.name==='peer edited group'),'peer tab and group edits on native window');
+  assert.deepEqual((await otherApi('getAllTabs')).groups.map(g=>g.name),['right local'],'other window has no foreign group descriptor');
+  await spacesPass();
+  assert.deepEqual(Object.values(sharedState().blobs[rightId].blob.groups).filter(g=>!g.deleted.v).map(g=>g.name.v),['right local'],'other peer Space has no foreign group');
   const leftBefore=(await w.snapshot()).tabs.map(t=>t.url);
   const rightBefore=(await otherApi('getAllTabs')).tabs.map(t=>t.url);
   assert.equal((await w.api('removeWorkspace',[left.workspaceId])).ok,true,'delete shared Space');
@@ -172,6 +181,8 @@ try{
   const list=await w.api('listWorkspaces');
   assert.ok(list.items.some(row=>row.id===left.workspaceId),'local Undo Space retained');
   assert.ok(list.items.some(row=>row.id===right.workspaceId),'second Space retained');
+  // Restore this check's opt-in before the independent tabs/Favorites gates.
+  await openSync();await act('spaces-off');device.sync.setSyncSpaces(false);
   await otherApi('previewPageCommand',['closeWindow']);
   second.close();
  });

@@ -700,7 +700,21 @@ function start() {
       return new Promise(done => {
         const timer = setTimeout(() => {waiting.delete(token); done(false);}, 15000);
         waiting.set(token, {windowId: win.id, workspaceId, done: ok => {clearTimeout(timer); done(ok);}});
-        emit('row', {windowId: win.id, workspaceId, token, row});
+        const affectsLayout = row.kind === 'groups' || row.op === 'create' || ['groupId', 'pos', 'pinned'].includes(row.field);
+        let layout;
+        if (affectsLayout) {
+          const shown = context(win)?.window?.displayed;
+          const blob = shown ? structuredClone(shown) : null;
+          if (blob) {
+            if (row.field) {
+              blob[row.kind][row.id] ??= {};
+              blob[row.kind][row.id][row.field] = model().mergeField(blob[row.kind][row.id][row.field], row.value, row.field);
+            } else blob[row.kind][row.id] = structuredClone(row.record);
+            layout = {blob, order: model().orderOf(blob.tabs).filter(id => !blob.tabs[id].deleted.v),
+              groups: model().orderOf(blob.groups).filter(id => !blob.groups[id].deleted.v)};
+          }
+        }
+        emit('row', {windowId: win.id, workspaceId, token, row, layout, layoutRequired: affectsLayout});
       });
     },
     layout(win, blob) {
@@ -759,9 +773,10 @@ module.exports = {
       if (!win) {win = {id: snap.id}; windows.set(snap.id, win);}
       Object.assign(win, {holding: false, capture: null, protectedIds: []}, structuredClone(snap));
     }
-    if (restoring) {
-      sharing.restored(restoring);
-      const row = rows.find(row => row.id === restoring);
+    const restored = Array.isArray(restoring) ? restoring : restoring ? [restoring] : [];
+    for (const id of restored) {
+      sharing.restored(id);
+      const row = rows.find(row => row.id === id);
       if (row?.sharedLink === 'dormant') {
         delete row.sharedId; delete row.sharedLink;
         row.tabIds = row.urls.map(() => null); report();
@@ -769,7 +784,7 @@ module.exports = {
     }
     fs.writeFileSync(FILE, JSON.stringify(visible()));
     await settle(); await sharing.autoShare();
-    return {revision, rows, restored: restoring ?? null, durable: !persistenceFailed};
+    return {revision, rows, restored, durable: !persistenceFailed};
   },
   hold(windowId) {const win = windows.get(windowId); if (win) win.holding = true;},
   rowDone(windowId, workspaceId, token, ok, capture) {

@@ -63,7 +63,7 @@ test('Undo detaches a deleted Space as a local copy without deleting the other w
   assert.equal(stale.restored, undefined, 'a stale inventory must not acknowledge Undo');
   const answer = await call(device, 'push', {revision: stale.revision, rows: stale.rows,
     windows: [{id: 'window-b', workspaceId: 'b', holding: true}], restoring: 'a'});
-  assert.equal(answer.restored, 'a');
+  assert.deepEqual(answer.restored, ['a']);
   assert.equal(answer.rows.find(row => row.id === 'a').sharedId, undefined);
   assert.deepEqual(answer.rows.find(row => row.id === 'a').urls, ['https://first.example/']);
   assert.ok(Object.keys(state(device).data.windows).some(key => key.startsWith('desktop:window-b:')));
@@ -100,4 +100,49 @@ test('a failed desktop disk checkpoint cannot return a durable push receipt', ()
   device.context.__host.persistDesktopStore = () => false;
   const result = await call(device, 'push', {revision: stale.revision, rows: stale.rows, windows: captures});
   assert.equal(result.durable, false);
+}));
+
+test('desktop row delivery includes the accepted group layout before the native checkpoint', () => setup(async ({device, windows}) => {
+  const store = state(device);
+  const receipt = Object.entries(store.data.windows).find(([key]) => key.startsWith('desktop:window-a:'))[1];
+  const groupId = 'e'.repeat(32), model = device.module('shared-spaces-model');
+  const stamp = value => model.field(value, Date.now() + 1000, 'independent-peer');
+  const group = {name: stamp('Peer group'), color: stamp(null), collapsed: stamp(false),
+    pos: stamp(model.keyFor('', '', groupId)), deleted: stamp(false)};
+  store.update(data => {data.blobs[receipt.spaceId].blob.groups[groupId] = group;});
+  const delivered = [];
+  device.context.__host.emit = (event, json) => {
+    if (event !== 'desktop-spaces-row') return;
+    const payload = JSON.parse(json); delivered.push(payload);
+    const win = windows.find(w => w.id === payload.windowId);
+    const captureNow = {...win.capture, tabIds: Object.keys(receipt.displayed.tabs),
+      groups: [{id: groupId, name: 'Peer group', color: null, collapsed: false}]};
+    device.context.__call('desktop.spaces.rowDone', JSON.stringify([payload.windowId,
+      payload.workspaceId, payload.token, true, captureNow]), () => {});
+  };
+  const stale = await call(device, 'push', {revision: 0, rows: [], windows: []});
+  const captures = windows.map(win => {
+    const saved = Object.entries(store.data.windows).find(([key]) => key.startsWith(`desktop:${win.id}:`))[1];
+    return {...win, capture: {...win.capture, tabIds: Object.keys(saved.displayed.tabs)}};
+  });
+  await call(device, 'push', {revision: stale.revision, rows: stale.rows, windows: captures});
+  const row = delivered.find(p => p.row.kind === 'groups');
+  assert.ok(row);
+  assert.equal(row.windowId, 'window-a');
+  assert.deepEqual(row.layout.groups, [groupId]);
+  assert.equal(row.layout.blob.groups[groupId].name.v, 'Peer group');
+  assert.ok(!delivered.some(p => p.windowId === 'window-b'), 'other Space receives no group row');
+}));
+
+
+test('two pending Undo operations survive one inventory acknowledgement', () => setup(async ({device, windows}) => {
+  await call(device, 'metadata', 'a', {deleted: true});
+  await call(device, 'metadata', 'b', {deleted: true});
+  const stale = await call(device, 'push', {revision: 0, rows: [], windows: [], restoring: ['a', 'b']});
+  assert.equal(stale.restored, undefined);
+  const answer = await call(device, 'push', {revision: stale.revision, rows: stale.rows,
+    windows: windows.map(win => ({...win, holding: true})), restoring: ['a', 'b']});
+  assert.deepEqual(answer.restored, ['a', 'b']);
+  assert.ok(answer.rows.every(row => !row.sharedId));
+  assert.deepEqual(answer.rows.map(row => row.urls), [['https://first.example/'], ['https://second.example/']]);
 }));

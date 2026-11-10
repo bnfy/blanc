@@ -1,5 +1,10 @@
 # Result
 
+> **OWNER HOLD (2026-11-10, binding, overrides the brief):** do NOT start item F
+> (the dedicated beta build) or item G (which depends on it). The owner will say
+> when. Finish A to E and H, record F and G as "held by owner", and stop. Keep
+> this notice when you rewrite the file.
+
 Queue 2 in progress; local commits only. No live-tree or production access.
 
 | Item | State |
@@ -7,22 +12,22 @@ Queue 2 in progress; local commits only. No live-tree or production access.
 | A shared Spaces | Implemented: two-window native gate 3/3; full regression owed |
 | B native icons | Implemented; peer icon/privacy pass; clean full gate owed in D |
 | C Android safety | Partly: available checks pass; Linux 156 compile/device gates owed |
-| D regression | Owed; comparison baseline finish-final-features-2 |
+| D regression | In progress: full gate 22/22; final group/Undo focused gate 3/3 |
 | E Sparkle | Owed; existing 2.8.0 pin is not security-cleared |
 | F dedicated beta | Owed; initial disk check 1.1 TiB available |
 | G local beta proof | Owed |
 | H operator handoff | Owed |
 
-Prototype: macos-01fd557468d72dd0, beta-icons-native-4-runtime-config.json.
+Prototype: macos-9b7aa261f5018db7, beta-spaces-layout-1-runtime-config.json.
 Beta candidate/app: not built.
-Gate: beta-spaces-native-8-gate 3/3; bridge unit tests 6/6.
+Gate: beta-regression-sync-1 22/22; updated bridge unit tests 8/8.
 Scenario: sync.feature:162 passes on candidate 8 (beta-spaces-pairing-8).
-Latest precommit tools: 282/282; patches: 159 desktop / 35 Android / 568 canonical.
+Latest precommit tools: 284/284; patches: 159 desktop / 35 Android / 568 canonical.
 Lost native passes: not measured yet.
-Android: 282/282 tools; bundle current; 35-file lane reconstruction; 38 syntax checks.
+Android: 284/284 tools; changed bundle current; 35-file lane reconstruction; 38 syntax checks.
 156 compile and device/emulator execution owed: no tree/output; Darwin arm64 host.
 Owner next: no input needed at this checkpoint.
-Unverified: wider Spaces regression, final shutdown fix, Android, regressions, beta build,
+Unverified: final group/Undo candidate, Android, scenario regressions, beta build,
 Sparkle linkage/handoff, signed distribution, production real-device Sync.
 
 ## A — desktop bridge checkpoint
@@ -167,3 +172,42 @@ BLANC_TREE="$HOME/blanc" BLANC_EVIDENCE="$HOME/blanc-evidence/android/beta-sync-
 Do not bypass a changed environment/large-plan guard. The arm64 Pixel output's
 corresponding owed compile uses `--out=AndroidDebug`, with that output's existing
 saved environment and APK/device gates; neither output has been qualified here.
+
+## D — regression in progress
+
+`beta-regression-sync-1` runs on `macos-01fd557468d72dd0`. The Spaces check now
+turns its own opt-in off through Settings before the independent tabs/Favorites
+checks, keeping their initial conditions separate without changing Worker
+quotas or weakening assertions. Full five-feature comparison is still owed.
+
+Source review during this run found two additional native group gaps: staged
+descriptors were profile-wide rather than window/Space-specific, and a layout
+row's checkpoint could precede its layout. Pending changes scope descriptors
+to the exact window and Space, apply the accepted layout before acknowledging
+and checkpointing, preserve empty groups, and defer layout around a local split
+before any mutation. A new two-window peer group-edit assertion and bridge
+layout test are staged. They are not included in the running binary; regeneration,
+build and a fresh final regression are required before claiming qualification.
+
+Patch accounting at the last built candidate: 48 ordered patches, 570 hunks,
+155 paths in patch outputs, 153 pristine inputs, 159 reconstructed upstream
+outputs and 568 canonical files. No patch-budget increase was requested.
+
+`beta-regression-sync-1` completes 22/22 on `macos-01fd557468d72dd0`,
+including clean shutdown, the persisted quota wait (120033 ms), private and
+secondary profile refusal. This validates the B teardown fix. It predates the
+new group/Undo changes and is not final D evidence for that next candidate.
+Regenerated bundle: `6e6f26c5872abe7053b0fbee46c0d1c737c27b925ec96b9cfa1986b6b4b45467`;
+`beta-layout-unit-1.tap` passes 8/8 desktop bridge tests, including two pending
+Undo restores and layout-before-checkpoint delivery.
+
+Final group/Undo candidate `macos-9b7aa261f5018db7` built in 32.90s / 9 guarded
+actions. `beta-spaces-layout-1-gate` passes 3/3 with real groups in both windows,
+peer tab and group renames in the first, no foreign group in the second native
+window or peer Space, exact tab preservation through delete/Undo, and clean exit.
+The full Sync gate and five-feature comparison on this candidate remain owed.
+
+Group/Undo checkpoint precommit: `beta-layout-tools-1.tap` 284/284; desktop
+159/568 and Android 35/568 reconstruction pass. Bundle regeneration check passes
+for `6e6f26c5872abe7053b0fbee46c0d1c737c27b925ec96b9cfa1986b6b4b45467`.
+Android native compile/device qualification remains owed as listed in C.

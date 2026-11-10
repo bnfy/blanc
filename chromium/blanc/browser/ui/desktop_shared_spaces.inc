@@ -71,8 +71,8 @@ class DesktopSpaces final : public base::SupportsUserData::Data,
       }
       const bool removed = deleted && std::ranges::any_of(*deleted, [&](const auto& v) {return v.is_string() && v.GetString() == id;});
       const bool was_removed = old_deleted && std::ranges::any_of(*old_deleted, [&](const auto& v) {return v.is_string() && v.GetString() == id;});
-      if (removed && !was_removed) patch.Set("deleted", true);
-      if (!removed && was_removed) restoring_ = std::string(id);
+      if (removed && !was_removed) {restoring_.erase(std::string(id)); patch.Set("deleted", true);}
+      if (!removed && was_removed) restoring_.insert(std::string(id));
       if (!patch.empty()) Call("metadata", base::WriteJson(base::ListValue().Append(std::string(id)).Append(std::move(patch))).value(), base::DoNothing());
     }
     refreshed_ = base::TimeTicks();
@@ -121,7 +121,8 @@ class DesktopSpaces final : public base::SupportsUserData::Data,
       if (id && (!members || !std::ranges::any_of(*members, [&](const auto& v) {return v.is_string() && v.GetString() == *id;})))
         append_empty(*id, value.GetDict(), false);
     }
-    for (auto [id, value] : group_records_) if (value.is_dict()) append_empty(std::string(id), value.GetDict(), true);
+    if (owner) for (auto [id, value] : group_records_[WindowIdentity(owner->browser) + ":" + owner->space_name])
+      if (value.is_dict()) append_empty(std::string(id), value.GetDict(), true);
     std::vector<content::WebContents*> pages;
     if (model) for (int i = 0; i < model->count(); ++i)
       if (!blanc::private_tabs::IsPrivateTab(model->GetWebContentsAt(i))) pages.push_back(model->GetWebContentsAt(i));
@@ -164,6 +165,11 @@ class DesktopSpaces final : public base::SupportsUserData::Data,
     const auto* records = result.FindDict("records");
     if (!records) {pending_ = false; return;}
     disk_ = records->Clone();
+    std::erase_if(group_records_, [&](const auto& entry) {
+      for (auto* owner : Owner::Live()) if (owner->browser->GetProfile() == profile_ &&
+          entry.first == WindowIdentity(owner->browser) + ":" + owner->space_name) return false;
+      return true;
+    });
     const auto& metadata = profile_->GetPrefs()->GetDict(kSpacesMetaPref);
     const auto* items = metadata.FindDict("items");
     const auto* order = metadata.FindList("order");
@@ -208,7 +214,11 @@ class DesktopSpaces final : public base::SupportsUserData::Data,
       rows.Append(std::move(row));
     }
     auto payload = base::DictValue().Set("revision", revision_).Set("rows", std::move(rows)).Set("windows", std::move(windows));
-    if (!restoring_.empty()) payload.Set("restoring", restoring_);
+    if (!restoring_.empty()) {
+      base::ListValue restoring;
+      for (const auto& id : restoring_) restoring.Append(id);
+      payload.Set("restoring", std::move(restoring));
+    }
     Call("push", base::WriteJson(base::ListValue().Append(std::move(payload))).value(),
         base::BindOnce(&DesktopSpaces::Pushed, weak_.GetWeakPtr()));
   }
@@ -231,7 +241,7 @@ class DesktopSpaces final : public base::SupportsUserData::Data,
       if (!value_row.is_dict()) return;
       const auto& row = value_row.GetDict();
       const auto* id = row.FindString("id");
-      if (!id || id->empty() || id->size() > 120) return;
+      if (!id || id->empty() || id->size() > 120 || !row.FindList("urls")) return;
       bool open = false;
       for (auto* owner : Owner::Live()) if (owner->browser->GetProfile() == profile_ && owner->space_name == *id) open = true;
       if (auto* hold = SpaceHold::Get(profile_); hold && hold->Find(*id)) open = true;
@@ -262,7 +272,7 @@ class DesktopSpaces final : public base::SupportsUserData::Data,
       bool open = false;
       for (auto* owner : Owner::Live()) if (owner->browser->GetProfile() == profile_ && owner->space_name == id.GetString()) open = true;
       if (auto* hold = SpaceHold::Get(profile_); hold && hold->Find(id.GetString())) open = true;
-      if (!present && !open && id.GetString() != restoring_ && shared && shared->FindString("sharedId")) {
+      if (!present && !open && !restoring_.contains(id.GetString()) && shared && shared->FindString("sharedId")) {
         if (!std::ranges::any_of(*meta.FindList("deleted"), [&](const auto& d) {return d == id;})) meta.FindList("deleted")->Append(id.Clone());
       } else retained_order.Append(id.Clone());
     }
@@ -270,15 +280,15 @@ class DesktopSpaces final : public base::SupportsUserData::Data,
     const int revision = value.FindInt("revision").value_or(revision_);
     SpaceRunner()->PostTaskAndReplyWithResult(FROM_HERE,
         base::BindOnce(&SpaceDisk, Path(), "sharedSave", "", std::move(replacements)),
-        base::BindOnce([](base::WeakPtr<DesktopSpaces> self, base::DictValue expected_meta, base::DictValue meta, int revision, std::string restored, base::DictValue result) {
+        base::BindOnce([](base::WeakPtr<DesktopSpaces> self, base::DictValue expected_meta, base::DictValue meta, int revision, base::ListValue restored, base::DictValue result) {
           if (!self || result.contains("error")) return;
           if (self->profile_->GetPrefs()->GetDict(kSpacesMetaPref) != expected_meta) return;
           self->profile_->GetPrefs()->SetDict(kSpacesMetaPref, std::move(meta));
           self->revision_ = revision;
-          if (restored == self->restoring_) self->restoring_.clear();
+          for (const auto& id : restored) if (id.is_string()) self->restoring_.erase(id.GetString());
           for (auto* owner : Owner::Live()) if (owner->browser->GetProfile() == self->profile_ && owner->view)
             owner->view->GetWebContents()->GetPrimaryMainFrame()->ExecuteJavaScript(u"window.BlancPrototypeHost?.spacesChanged()", base::NullCallback());
-        }, weak_.GetWeakPtr(), profile_->GetPrefs()->GetDict(kSpacesMetaPref).Clone(), std::move(meta), revision, value.FindString("restored") ? *value.FindString("restored") : ""));
+        }, weak_.GetWeakPtr(), profile_->GetPrefs()->GetDict(kSpacesMetaPref).Clone(), std::move(meta), revision, value.FindList("restored") ? value.FindList("restored")->Clone() : base::ListValue()));
   }
   static base::DictValue ToRecord(const base::DictValue& row) {
     base::ListValue tabs, groups;
@@ -355,10 +365,11 @@ class DesktopSpaces final : public base::SupportsUserData::Data,
               .Append(token).Append(ok).Append(std::move(capture))).value(), base::DoNothing());
         }, weak_.GetWeakPtr(), window, space, token, std::move(*record), std::move(capture)));
   }
-  void Layout(Owner* owner, const base::DictValue& value) {
+  bool Layout(Owner* owner, const base::DictValue& value) {
     const auto* blob = value.FindDict("blob"), *records = blob ? blob->FindDict("tabs") : nullptr;
     const auto* order = value.FindList("order"), *groups = value.FindList("groups");
-    if (!records || !order || !groups) return;
+    const auto* blob_groups = blob ? blob->FindDict("groups") : nullptr;
+    if (!records || !order || !groups || !blob_groups) return false;
     auto* model = owner->browser->GetTabStripModel();
     std::map<std::string, content::WebContents*> pages;
     for (int i = 0; i < model->count(); ++i) {
@@ -367,25 +378,25 @@ class DesktopSpaces final : public base::SupportsUserData::Data,
       if (bindings_.contains(local)) pages[bindings_.at(local)] = tab;
     }
     // Never dismantle a local split to satisfy an incoming group/order edit.
-    for (const auto& [id, tab] : pages) if (model->GetSplitForTab(model->GetIndexOfWebContents(tab))) return;
+    for (const auto& [id, tab] : pages) if (model->GetSplitForTab(model->GetIndexOfWebContents(tab))) return false;
     for (const auto& group_value : *groups) {
       if (!group_value.is_string()) continue;
       const auto& id = group_value.GetString();
-      const auto* group = blob->FindDict("groups")->FindDict(id);
+      const auto* group = blob_groups->FindDict(id);
       if (!group) continue;
       std::vector<int> indices;
       for (const auto& [tab_id, page] : pages)
         if (const auto* record = records->FindDict(tab_id); record && record->FindStringByDottedPath("groupId.v") &&
             *record->FindStringByDottedPath("groupId.v") == id && !record->FindBoolByDottedPath("deleted.v").value_or(false) &&
             !model->IsTabPinned(model->GetIndexOfWebContents(page))) indices.push_back(model->GetIndexOfWebContents(page));
-      if (indices.empty()) continue;
+      if (indices.empty()) {group_records_[WindowIdentity(owner->browser) + ":" + owner->space_name].Set(id, group->Clone()); continue;}
       std::sort(indices.begin(), indices.end());
       std::optional<tab_groups::TabGroupId> native;
       for (const auto& local : GroupsInOrder(model))
         if (group_bindings_.contains(local.ToString()) && group_bindings_.at(local.ToString()) == id) native = local;
       if (native) model->AddToExistingGroup(indices, *native); else native = model->AddToNewGroup(indices);
       group_bindings_[native->ToString()] = id;
-      group_records_.Remove(id);
+      group_records_[WindowIdentity(owner->browser) + ":" + owner->space_name].Remove(id);
       const auto* name = group->FindStringByDottedPath("name.v"), *color = group->FindStringByDottedPath("color.v");
       tab_groups::TabGroupColorId shade = kGroupColor;
       for (int i = 0; i <= 8; ++i) if (color && *color == GroupColor(static_cast<tab_groups::TabGroupColorId>(i))) shade = static_cast<tab_groups::TabGroupColorId>(i);
@@ -404,21 +415,26 @@ class DesktopSpaces final : public base::SupportsUserData::Data,
     }
     for (const auto& [id, tab] : pages) {
       const auto* record = records->FindDict(id);
-      if (record && !record->FindStringByDottedPath("groupId.v") && model->GetTabGroupForTab(model->GetIndexOfWebContents(tab)))
+      const auto* group_id = record ? record->FindStringByDottedPath("groupId.v") : nullptr;
+      const auto* group = group_id ? blob_groups->FindDict(*group_id) : nullptr;
+      if (record && (!group || group->FindBoolByDottedPath("deleted.v").value_or(false)) &&
+          model->GetTabGroupForTab(model->GetIndexOfWebContents(tab)))
         model->RemoveFromGroup({model->GetIndexOfWebContents(tab)});
     }
+    return true;
   }
   void OnSyncEvent(const std::string& event, const std::string& json) override;
   bool ApplyRow(Owner* owner, const base::DictValue& row) {
     const auto* kind = row.FindString("kind"), *id = row.FindString("id"), *op = row.FindString("op");
     if (!kind || !id || !op) return false;
     if (*kind == "groups") {
+      auto& group_records = group_records_[WindowIdentity(owner->browser) + ":" + owner->space_name];
       // A native group is materialized with its member tabs by Layout. Keep
       // its descriptor until then, including an empty group from another device.
-      if (const auto* record = row.FindDict("record")) group_records_.Set(*id, record->Clone());
+      if (const auto* record = row.FindDict("record")) group_records.Set(*id, record->Clone());
       else if (const auto* field = row.FindString("field")) {
-        if (!group_records_.FindDict(*id)) group_records_.Set(*id, base::DictValue());
-        if (const auto* value = row.Find("value")) group_records_.FindDict(*id)->Set(*field, value->Clone());
+        if (!group_records.FindDict(*id)) group_records.Set(*id, base::DictValue());
+        if (const auto* value = row.Find("value")) group_records.FindDict(*id)->Set(*field, value->Clone());
       }
       return true;
     }
@@ -469,12 +485,13 @@ class DesktopSpaces final : public base::SupportsUserData::Data,
   }
   raw_ptr<Profile> profile_;
   raw_ptr<blanc::DesktopSyncService> service_;
-  base::DictValue disk_, group_records_;
+  base::DictValue disk_;
+  std::map<std::string, base::DictValue> group_records_;
   std::map<int, std::unique_ptr<SharedNavigation>> navigations_;
   std::map<std::string, std::string> bindings_, group_bindings_;
   int revision_ = 0;
   bool pending_ = false;
-  std::string restoring_;
+  std::set<std::string> restoring_;
   base::TimeTicks refreshed_;
   base::WeakPtrFactory<DesktopSpaces> weak_{this};
 };
@@ -493,7 +510,7 @@ void DesktopSpaces::OnSyncEvent(const std::string& event, const std::string& jso
     if (!owner) return;
     if (event == "desktop-spaces-layout") {Layout(owner, *value); return;}
     if (event == "desktop-spaces-deleted") {
-      if (*space == restoring_) return;
+      if (restoring_.contains(*space)) return;
       // Explicit remote deletion detaches the window, preserving every page
       // and its saved record for Undo. Reconciliation itself never removes it.
       auto meta = profile_->GetPrefs()->GetDict(kSpacesMetaPref).Clone();
@@ -515,6 +532,17 @@ void DesktopSpaces::OnSyncEvent(const std::string& event, const std::string& jso
       const auto* row = value->FindDict("row");
       const int token = value->FindInt("token").value_or(0);
       if (row && row->FindString("op") && *row->FindString("op") == "nav") Navigate(owner, *window, *space, token, *row);
-      else Acknowledge(*window, *space, token, row && ApplyRow(owner, *row));
+      else {
+        const auto* layout = value->FindDict("layout");
+        auto* model = owner->browser->GetTabStripModel();
+        bool can_layout = !value->FindBool("layoutRequired").value_or(false) || layout;
+        if (layout) for (int i = 0; i < model->count(); ++i)
+          if (model->GetSplitForTab(i)) can_layout = false;
+        // Defer layout edits around a local split before changing any tab or
+        // group descriptor. A successful receipt follows layout and disk save.
+        bool ok = can_layout && row && ApplyRow(owner, *row);
+        if (ok && layout) ok = Layout(owner, *layout);
+        Acknowledge(*window, *space, token, ok);
+      }
     }
   }
