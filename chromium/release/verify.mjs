@@ -5,7 +5,7 @@ import os from 'node:os';
 import path from 'node:path';
 import { pathToFileURL } from 'node:url';
 import { X509Certificate } from 'node:crypto';
-import { ROOT_ID, PRODUCT, TEAM, check, equal, validateRelease, validateProfile, sha256, fingerprint, feedURL, assetName } from './policy.mjs';
+import { ROOT_ID, PRODUCT, TEAM, check, equal, reason, validateRelease, validateProfile, sha256, fingerprint, feedURL, assetName } from './policy.mjs';
 import { run, profileAt, readPlist, derEntitlements } from './native.mjs';
 const media = Object.fromEntries(['device.audio-input', 'device.bluetooth', 'device.camera', 'device.print', 'device.usb', 'personal-information.location', 'personal-information.photos-library'].map(k => [`com.apple.security.${k}`, true]));
 export function entitlements(role, r) {
@@ -73,7 +73,7 @@ export function inspectTree(app) {
         if (/\.(app|xpc|framework)$/.test(e.name)) bundles.push(full);
         walk(full);
       } else if (e.isFile()) files.push(full);
-      else throw new Error('unexpected bundle entry type');
+      else check(false, 'unexpected bundle entry type');
     }
   }
   walk(root); return {root, files, bundles};
@@ -85,7 +85,7 @@ function macho(file) {
 }
 function signatureDescription(file) {
   // codesign writes display data to stderr, not stdout. Capture, never log it.
-  return run('python3', ['-c', 'import subprocess,sys\nr=subprocess.run(sys.argv[1:],capture_output=True);sys.stdout.buffer.write(r.stderr);sys.exit(r.returncode)', '/usr/bin/codesign', '--display', '--verbose=4', file]);
+  return run('/usr/bin/codesign', ['--display', '--verbose=4', file], undefined, {stream: 'stderr'});
 }
 function signatureFields(description, certificate) {
   return {identifier: description.match(/^Identifier=(.+)$/m)?.[1], team: description.match(/^TeamIdentifier=(.+)$/m)?.[1], authority: description.match(/^Authority=(.+)$/m)?.[1] || '', timestamp: /^Timestamp=.+$/m.test(description), runtime: /flags=.*\bruntime\b/.test(description), fingerprint: fingerprint(certificate)};
@@ -113,7 +113,7 @@ export function verifyApp(app, r, arch, scratch) {
   // Notices presence alone is not license completeness; the candidate's compliance gate audits contents.
   const coveredExecutables = new Set(); let serial = 0;
   function inspect(file, expectedPart) {
-    run('/usr/bin/codesign', ['--verify', '--deep', '--strict', '--verbose=4', file]);
+    run('/usr/bin/codesign', ['--verify', '--strict', file]);
     const prefix = path.join(scratch, `cert-${serial}`), der = path.join(scratch, `entitlements-${serial++}.der`);
     run('/usr/bin/codesign', ['--display', `--extract-certificates=${prefix}`, file]);
     const cert = new X509Certificate(fs.readFileSync(prefix + '0'));
@@ -128,6 +128,8 @@ export function verifyApp(app, r, arch, scratch) {
     const archs = run('/usr/bin/lipo', ['-archs', executable]).trim().split(/\s+/);
     check(archs.includes(arch === 'x64' ? 'x86_64' : 'arm64'), 'binary architecture mismatch');
   }
+  // One deep pass over the whole app; each part below is then verified and inspected on its own.
+  run('/usr/bin/codesign', ['--verify', '--deep', '--strict', app]);
   for (const part of expected) inspect(path.join(app, part.path), part);
   for (const file of tree.files.filter(macho)) {
     if (coveredExecutables.has(fs.realpathSync(file))) continue;
@@ -169,5 +171,5 @@ if (process.argv[1] && import.meta.url === pathToFileURL(path.resolve(process.ar
   try {
     check(process.argv.length === 5, 'usage: verify.mjs RELEASE.json ARCH APP_OR_DMG');
     console.log(JSON.stringify(verifyArtifact(path.resolve(process.argv[4]), JSON.parse(fs.readFileSync(process.argv[2])), process.argv[3])));
-  } catch { console.error('Beta artifact verification failed. Nothing signed, launched or published.'); process.exitCode = 1; }
+  } catch (error) { console.error(`Beta artifact verification failed: ${reason(error)}. Nothing signed, launched or published.`); process.exitCode = 1; }
 }

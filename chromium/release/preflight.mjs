@@ -2,8 +2,8 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { pathToFileURL } from 'node:url';
-import { validateRelease, validateProfile, validateIdentityList, validateGN, ROOT_ID, PRODUCT, TEAM, sha256, check, equal } from './policy.mjs';
-import { profileAt, run } from './native.mjs';
+import { validateRelease, validateProfile, validateIdentityList, validateGN, validateLedger, ROOT_ID, PRODUCT, TEAM, sha256, check, equal, reason } from './policy.mjs';
+import { profileAt, run, GIT, PYTHON } from './native.mjs';
 export const ROOT = path.resolve(import.meta.dirname, '../..');
 export function validateBetaBranding(text) {
   const branding = Object.fromEntries(text.split(/\r?\n/).filter(l => l.includes('=')).map(l => {
@@ -14,16 +14,18 @@ export function validateBetaBranding(text) {
   equal(branding.PRODUCT_FULLNAME, PRODUCT, 'beta branding full name');
   equal(branding.PRODUCT_SHORTNAME, PRODUCT, 'beta branding short name');
 }
-export function inputInventory(root = ROOT) {
+// Only files git tracks are release inputs: an ignored file (.DS_Store, an editor backup) must
+// not change the digest while the tree still looks clean.
+export function trackedFiles(root, dir) {
+  return run(GIT, ['-C', root, 'ls-files', '-z', '--', dir]).split('\0').filter(Boolean);
+}
+export const INPUT_DIRS = ['chromium/blanc', 'chromium/patches', 'chromium/lanes', 'chromium/upstream'];
+export function inputInventory(root = ROOT, list = dir => trackedFiles(root, dir)) {
   const lane = JSON.parse(fs.readFileSync(path.join(root, 'chromium/lanes/desktop.json')));
   const upstream = JSON.parse(fs.readFileSync(path.join(root, 'chromium/upstream/manifest.json')));
   equal(lane.upstream, upstream.upstream, 'lane/upstream agreement');
-  const names = ['chromium/lanes/desktop.json', 'chromium/upstream/manifest.json', 'chromium/source-map.json', ...lane.patches.map(p => `chromium/${p}`)];
-  const walk = dir => { for (const entry of fs.readdirSync(path.join(root, dir), { withFileTypes: true })) {
-    check(!entry.isSymbolicLink(), 'source symlinks require review');
-    if (entry.isDirectory()) walk(`${dir}/${entry.name}`); else names.push(`${dir}/${entry.name}`);
-  } };
-  walk('chromium/blanc');
+  const names = ['chromium/lanes/desktop.json', 'chromium/upstream/manifest.json', 'chromium/source-map.json', ...lane.patches.map(p => `chromium/${p}`), ...list('chromium/blanc')];
+  for (const name of names) check(!fs.lstatSync(path.join(root, name)).isSymbolicLink(), 'source symlinks require review');
   const files = names.sort().map(name => ({ path: name, sha256: sha256(fs.readFileSync(path.join(root, name))) }));
   for (const [name, digest] of Object.entries(upstream.files)) {
     equal(sha256(fs.readFileSync(path.join(root, 'chromium/upstream', name))), digest, 'pristine upstream digest');
@@ -46,15 +48,18 @@ export function preflight(r, {root = ROOT, inputs, now = Date.now()} = {}) {
   validateRelease(r);
   check(process.platform === 'darwin', 'native preflight requires macOS');
   check(!process.env.CSC_LINK && !process.env.CSC_NAME && !process.env.CSC_IDENTITY_AUTO_DISCOVERY, 'alternate signer environment refused');
-  equal(run('git', ['-C', root, 'status', '--porcelain']).trim(), '', 'clean tree required including untracked files');
-  equal(run('git', ['-C', root, 'rev-parse', 'HEAD']).trim(), r.sourceCommit, 'source HEAD');
-  check(!run('git', ['-C', root, 'tag', '--list', r.tag]).trim(), 'immutable local tag already exists');
+  equal(run(GIT, ['-C', root, 'status', '--porcelain']).trim(), '', 'clean tree required including untracked files');
+  // A build reads these directories from disk, so ignored files in them are refused too.
+  equal(run(GIT, ['-C', root, 'status', '--porcelain', '--ignored', '--', ...INPUT_DIRS]).trim(), '', 'ignored or untracked files in release input directories');
+  equal(run(GIT, ['-C', root, 'rev-parse', 'HEAD']).trim(), r.sourceCommit, 'source HEAD');
+  check(!run(GIT, ['-C', root, 'tag', '--list', r.tag]).trim(), 'immutable local tag already exists');
+  validateLedger(JSON.parse(fs.readFileSync(path.join(root, 'chromium/release/ledger.json'))), r);
   const inventory = inputInventory(root);
   equal(inventory.upstream, r.upstream, 'upstream input'); equal(inventory.digest, r.inputDigest, 'source inputs changed');
   // The phase-one tree intentionally lacks this: current release branding is
   // Electron's ID. A plausible descriptor must never make that source releasable.
   validateBetaBranding(fs.readFileSync(path.join(root, 'chromium/blanc/branding/beta/BRANDING'), 'utf8'));
-  run('python3', [path.join(root, 'chromium/tools/check-patches.py'), '--lane', 'desktop']);
+  run(PYTHON, [path.join(root, 'chromium/tools/check-patches.py'), '--lane', 'desktop']);
   validateLocalInputs(r, inputs);
   const inspected = profileAt(inputs.profile);
   validateProfile(inspected.data, inspected.certificates, r, now);
@@ -68,5 +73,5 @@ if (process.argv[1] && import.meta.url === pathToFileURL(path.resolve(process.ar
       check(process.argv.length === 4, 'usage: preflight.mjs RELEASE.json LOCAL-INPUTS.json (or --inventory)');
       console.log(JSON.stringify(preflight(JSON.parse(fs.readFileSync(process.argv[2])), {inputs: JSON.parse(fs.readFileSync(process.argv[3]))})));
     }
-  } catch { console.error('Beta preflight failed; inspect local inputs privately. Nothing was built or published.'); process.exitCode = 1; }
+  } catch (error) { console.error(`Beta preflight failed: ${reason(error)}. Nothing was built or published.`); process.exitCode = 1; }
 }

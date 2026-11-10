@@ -3,15 +3,17 @@ import { spawnSync } from 'node:child_process';
 import { X509Certificate } from 'node:crypto';
 import { readFileSync } from 'node:fs';
 import { check, fingerprint } from './policy.mjs';
-export function run(command, args, input) {
+export const GIT = '/usr/bin/git', PYTHON = '/usr/bin/python3';
+// stream: 'stdout' (default) or 'stderr' (codesign --display writes there).
+export function run(command, args, input, { stream = 'stdout' } = {}) {
   const result = spawnSync(command, args, { input, encoding: 'utf8', maxBuffer: 32 * 1024 * 1024 });
   // Never include arguments, stdout, stderr, environment or exception text in errors.
   check(result.status === 0 && !result.error, `local inspection failed: ${command}`);
-  return result.stdout;
+  return result[stream];
 }
 export function plist(data) {
   // Python plistlib preserves dates and data; plutil JSON cannot represent data.
-  return JSON.parse(run('python3', ['-c', `import sys,plistlib,json,datetime,base64
+  return JSON.parse(run(PYTHON, ['-c', `import sys,plistlib,json,datetime,base64
 print(json.dumps(plistlib.loads(sys.stdin.buffer.read()),default=lambda x:base64.b64encode(x).decode() if isinstance(x,bytes) else x.isoformat()+'Z'))`], data));
 }
 export function profileAt(file) {
@@ -44,7 +46,7 @@ export function derEntitlements(listing) {
         const entry = lines[++i].match(/prim: UTF8STRING\s+:(.*)$/)?.[1];
         check(entry !== undefined, 'unsupported DER array'); result[key].push(entry);
       }
-    } else throw new Error('unsupported DER value');
+    } else check(false, 'unsupported DER value');
   }
   check(Object.keys(result).length > 0 || !/UTF8STRING/.test(listing), 'unparsed DER entitlements');
   return result;
