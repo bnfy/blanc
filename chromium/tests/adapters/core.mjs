@@ -124,8 +124,15 @@ export const core={
  // body mode is what its renderer has applied.
  overlayMode:w=>w.hostEval(`(()=>{const f=document.querySelector('#overlay');return !f||f.hidden?null:f.dataset.mode||null})()`),
  overlayRendererMode:w=>w.hostEval(`(()=>{const f=document.querySelector('#overlay');return !f||f.hidden?null:f.contentDocument?.body?.dataset.mode||null})()`),
- // Fronts the Island window and reports whether its document has focus.
- async focusWindow(w){await w.fixture.host.send('Page.bringToFront');return w.hostEval('document.hasFocus()');},
+ // Shipping reports BrowserWindow.isFocused(), not the host document's
+ // focus: the page or an Island iframe can own keyboard focus in that window.
+ async focusWindow(w){
+  await w.fixture.host.send('Page.bringToFront');
+  let state=await w.snapshot();
+  // The host delegate has no ActivateContents; the real tab delegate does.
+  if(!state.windowActive){await (await tabPage(w,state.activeTabId)).bringToFront();state=await w.snapshot();}
+  return state.windowActive===true;
+ },
  executeTab:async(w,id,source)=>(await tabPage(w,id)).evalExpression(String(source)),
  setTabLayout:(w,layout)=>w.api('setTabLayout',[layout]),
  // A presentation seed: the title goes through the page itself so Chromium

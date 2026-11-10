@@ -174,10 +174,14 @@ export const island={
  // The overlay iframe is the fork's overlay view: shown is attached.
  overlayViewAttached:async w=>!!(await frameRect(w,'overlay')),
  overlayViewBounds:w=>frameRect(w,'overlay'),
- // The Spaces menu is drawn inside the overlay iframe, which fills the window;
- // shipping's view is the menu plus its shadow room (chrome-layout.js).
- async overlayBounds(w){const frame=await frameRect(w,'overlay');
-  if(!frame||await w.call('overlayRendererMode')!=='spaces')return frame;
+ // Shipping attaches its positioned Spaces view before reporting its bounds.
+ // The fork publishes the host mode before the next-frame renderer handoff;
+ // wait for that handoff before reading the menu and its actual shadow room.
+ async overlayBounds(w){
+  const spaces=await w.call('overlayMode')==='spaces';
+  if(spaces)await w.waitFor(()=>w.call('overlayRendererMode'),mode=>mode==='spaces','rendered Spaces overlay');
+  const frame=await frameRect(w,'overlay');
+  if(!frame||!spaces)return frame;
   const menu=await overlay(w).locator('#workspaceSwitcher').boundingBox();if(!menu)return frame;
   return {x:frame.x+menu.x-SPACES_MENU_SIDE,y:frame.y+menu.y-SPACES_MENU_PAD,width:menu.width+SPACES_MENU_SIDE*2,height:menu.height+SPACES_MENU_PAD*2};},
  sendOverlayInput:(w,input)=>frameInput(w,'overlay',input),

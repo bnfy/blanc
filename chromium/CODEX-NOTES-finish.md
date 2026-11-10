@@ -7,27 +7,28 @@ Candidate: `macos-0164d77693281b9c`; config: `finish-sync-budget-2-runtime-confi
 | --- | --- |
 | 1 S4c tabs, Other devices, Send | Requested cases done; native icon upload blocked by frozen bridge |
 | 2 S4d shared Spaces | Blocked: phone bridge lacks desktop window contract |
-| 3 Clean full gate and four files | Final attempt hit restart timeout; fix and fresh full runs in progress |
-| 4 Vertical/Island leftovers | Repairs done; V16 and Linux-only cases remain explicit |
+| 3 Clean full gate and four files | Done on final build; zero lost S4b passes |
+| 4 Vertical/Island leftovers | Repairs done; stale V16 and Linux-only cases remain explicit |
 | 5 Beta identity | Patch and preview build done; separate beta build outside queue limits |
 | 6 Sparkle updater | Patch/pure tests done; native beta handoff and security decision blocked |
 | 7 Review 0041 | Done: nullable host dereference fixed; renderer release/wake passes |
 
-| Full-run evidence on S4c candidate (before item 4) | Pass | Fail | Undefined |
+| Final candidate evidence | Pass | Fail | Undefined |
 | --- | ---: | ---: | ---: |
 | Whole desktop-sync gate, one run | 21 | 0 | 0 |
 | sync.feature | 17 | 0 | 1 |
 | internal-pages.feature | 10 | 0 | 0 |
 | island-and-commands.feature | 72 | 0 | 1 |
-| vertical-tabs.feature | 9 | 4 | 7 |
+| vertical-tabs.feature | 18 | 2 | 0 |
 | S4b four-file baseline (comparison) | 100 | 4 | 17 |
 
-Lost S4b passes in full comparison: **0 of 100**. Eight Sync cases gained.
-Item 4 focused evidence: 18 vertical passes across two builds; 2 fail remain.
-Item 4 candidate tabs/Send gate: **3/3 pass**, including duplicate/restart exclusion.
+Four files: **117 pass / 2 fail / 2 undefined; 0 of 100 S4b passes lost; 17 gained**.
+Quiet-tabs :8/:118: **2/2 pass** on the final candidate.
+Full-run evidence: `finish-final-sync-gate-2`, `finish-final-features-2`.
+Whole Island/vertical follow-up: all 90 passing cases pass first attempt; same remaining cases.
 Owner input: desktop Spaces bundle entry and native icon bridge need authorization.
 Owner input also: Sparkle version/backport decision and dedicated beta build/key inputs.
-Unverified: final revised candidate, real Keychain/devices, signed beta/updater.
+Unverified: real beta linkage/identity/Keychain/devices, signed beta/updater and release gates.
 
 ## Addendum from the coordinating session (2026-11-10), binding for items 5 and 6
 
@@ -413,3 +414,64 @@ must revalidate stopped-runner failure alongside this healthy queue wait.
 Precommit: `finish-sync-budget-tools.tap` 274/274 pass;
 `finish-sync-budget-patches.txt` reconstructs 158 outputs / 565 canonical files;
 `git diff --check` passes. Full final runs follow on this exact candidate.
+
+
+## Final clean gate on the repaired candidate
+
+`finish-final-sync-gate-2/result.json`: **21/21 pass in one full run** on
+`macos-0164d77693281b9c`, with `finish-sync-budget-2-runtime-config.json`.
+Both the stopped-runner failure/recovery and deliberately full persisted-budget
+restart pass; the latter completed in 60038 ms. Private and secondary profiles
+refuse Sync without a runner or Worker traffic. The earlier failed full and
+focused attempts remain recorded above; they are not clean-run credit.
+The four whole requested feature files and quiet-tabs:8/:118 completed on this
+same candidate in `finish-final-features-2`. Four files: 117 pass, 2 fail,
+2 undefined; quiet :8/:118 both pass. `finish-final-compare-2.json` records zero
+lost passes out of the 100 S4b passes and 17 gained passes (8 Sync, 9 vertical).
+The retained failures are vertical :129 (stale grouped-pin assertion versus
+approved V16) and :239 (Linux main-menu control). Undefined cases are sync :162
+(frozen desktop Spaces contract) and Island :320 (Linux window-control geometry).
+
+Two passing cases needed retries: Island :241 read host document focus instead
+of native window focus; vertical :249 read the old overlay rectangle before the
+next-frame Spaces renderer handoff. The adapters now front the real native tab
+when necessary and report windowActive, and await actual renderer mode before
+reading Spaces geometry. They do not alter shipping steps, expected rectangles,
+or product state. These two adapters are not used by the desktop-sync gate.
+The executable and assets are unchanged; the clean 21/21 native gate remains
+candidate-valid. A complete Island/vertical follow-up runs in
+`finish-adapter-final`; its raw results are recorded independently below.
+
+## Final adapter follow-up and completion
+
+`finish-adapter-final/baseline.json`: whole Island 72 pass / 0 fail / 1 undefined;
+whole vertical 18 pass / 2 fail / 0 undefined. All 90 passing cases passed on
+the first attempt, including Island :241 and vertical :249. Only the two
+intentionally retained failures retried. The scoped comparison
+`finish-adapter-compare.json` retains all 81 S4b passes in these two files and
+adds nine vertical passes. Together with the preceding whole four-file run,
+the final candidate retains all 100 S4b passes and gains 17. No raw baseline
+was rewritten or combined to manufacture a single run.
+
+Final native candidate remains `macos-0164d77693281b9c`; runtime config remains
+`finish-sync-budget-2-runtime-config.json`. No executable or asset changed in
+the adapter follow-up. The full clean Sync gate remains 21/21 on that build.
+The exact remaining acceptance cases are sync :162, Island :320, vertical
+:129 and :239, with their frozen-contract/stale-spec/platform reasons above.
+
+No further permitted queue work remains: shared Spaces/native icon uploads
+require frozen bridge changes; the actual beta/updater requires a separate
+build configuration/output, public key and reviewed framework distribution.
+Sparkle's post-2.8.0 security fixes require an owner version/backport decision.
+Native beta linkage, real OS/Keychain/device checks, signed update installation,
+and the runbook's release qualification gates have not been claimed as passed.
+No push, publication, release signing or live-profile access occurred. Shipping
+sources/specs/desktop steps and frozen Sync/generated Island files are unchanged.
+
+
+Final precommit: `finish-final-tools.tap` **274/274 pass**;
+`finish-final-patches.txt` reconstructs **158 upstream outputs / 565 canonical
+files**; `git diff --check` passes. Native patch budget remains 46 patches,
+154 patched paths, 560 hunks and 152 pristine inputs. No build or test is
+active at completion. The requested eight-hour caffeinate assertion is retained.
+All queue commits are local; nothing was pushed.
