@@ -47,6 +47,7 @@
     "patches/0039-blanc-menu-settings-sheet.patch",
     "patches/0040-blanc-sync-runner-service.patch",
     "patches/0041-quiet-discard-process-retention.patch",
-    "patches/0042-blanc-sync-settings.patch"
+    "patches/0042-blanc-sync-settings.patch",
+    "patches/0043-blanc-sync-pairing.patch"
   ]
 }

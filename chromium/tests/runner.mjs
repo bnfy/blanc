@@ -83,7 +83,7 @@ async function runCase(matches,steps,tags=[]){
   // never exits.
   await world.lifecycleFixture?.close().catch(()=>{});
   try{entry.browserExit=await fixture.close();}
-  finally{await world.syncServer?.close();}
+  finally{try{await world.syncPeer?.sync.disable();}finally{await world.syncServer?.close();}}
   if(fixture.reapedHelpers)entry.reapedHelpers=fixture.reapedHelpers;
   if(fixture.directory&&fs.existsSync(fixture.directory)){const keep=path.join(out,'fixtures',entry.fixture);fs.mkdirSync(keep,{recursive:true});
    for(const f of ['browser.log','error.txt'])if(fs.existsSync(path.join(fixture.directory,f)))fs.copyFileSync(path.join(fixture.directory,f),path.join(keep,f));

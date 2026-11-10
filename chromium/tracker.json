@@ -2459,8 +2459,8 @@
   ],
   "currentCandidates": {
     "macos": {
-      "id": "macos-4cc571768c5ed8bb",
-      "frameworkSha256": "4cc571768c5ed8bb556c06d8961b8b4c8750e12ebdde5201d7faafbd1cc81231",
+      "id": "macos-9d75c2778b9b408a",
+      "frameworkSha256": "9d75c2778b9b408aed3dfab3acb7f5f3cab1537d647f1d7bf8e2dfa3dfbe6e1d",
       "executableSha256": "cca20d7ed00bbdecf8db310c6802fbed003b4e63c6bc3b1f71dabc9dbff2ff01",
       "version": "158.0.8127.2",
       "qualification": "compiled candidate; runtime acceptance pending"
@@ -4893,5 +4893,6 @@
     "spec/acceptance/vertical-tabs.feature:249": [
       "spec/acceptance/vertical-tabs.feature:249:plain"
     ]
-  }
+  },
+  "currentSlice": "S4B"
 }

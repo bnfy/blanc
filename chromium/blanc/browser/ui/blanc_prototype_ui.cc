@@ -147,6 +147,7 @@
 #include "chrome/common/webui_url_constants.h"
 #include "chrome/browser/platform_util.h"
 #include "chrome/browser/profiles/profile.h"
+#include "chrome/browser/profiles/profile_manager.h"
 #include "chrome/browser/shell_integration.h"
 #include "chrome/browser/sessions/tab_restore_service_factory.h"
 #include "blanc/common/held_page.h"
@@ -868,6 +869,7 @@ class Owner : public base::SupportsUserData::Data,
   // Settings in the sheet (S1.7): Chromium's chrome://settings, a sibling
   // of the Island view placed over the card's body.
   views::ViewTracker settings_sheet;
+  bool sync_capture_requested = false;
   // Session IDs never outlive their tabs; validate the native split each read.
   int MainIndex() {
     auto* model = browser->GetTabStripModel();
@@ -2168,6 +2170,7 @@ bool InSettingsSheet(const GURL& url) {
 }
 // Sections shipping's Settings opens, and Chromium's own pages, by name.
 std::optional<GURL> SettingsSheetURL(std::string_view section) {
+  if (section == "sync-pair") return GURL("chrome://settings/sync#pair");
   if (section.empty() || section == "general") return GURL("chrome://settings/");
   static constexpr std::pair<std::string_view, std::string_view> kSections[] = {
       {"blocking", "privacy"}, {"search", "search"}, {"sync", "sync"},
@@ -2245,6 +2248,13 @@ void PlaceSettingsSheet(Owner* owner, const gfx::Rect& in_island) {
   // The card's bottom corners; its top band (the close button) is the host's.
   view->holder()->SetNativeViewCornerRadii(gfx::RoundedCornersF(0, 0, 19, 19));
 }
+void NotifyStartSheet(Owner* owner, bool visible) {
+  auto* tab = owner->browser->GetTabStripModel()->GetActiveWebContents();
+  if (!tab || tab->GetLastCommittedURL().host() != "blanc-prototype" ||
+      tab->GetLastCommittedURL().path() != "/pages/newtab.html") return;
+  tab->GetPrimaryMainFrame()->ExecuteJavaScript(
+      visible ? u"window.blancUtilitySheetVisibility?.(true)" : u"window.blancUtilitySheetVisibility?.(false)", base::NullCallback());
+}
 void ShowSettingsSheet(Owner* owner, const GURL& url, const gfx::Rect& in_island) {
   auto* parent = owner && owner->view ? owner->view->parent() : nullptr;
   if (!parent) return;
@@ -2271,12 +2281,16 @@ void ShowSettingsSheet(Owner* owner, const GURL& url, const gfx::Rect& in_island
   PlaceSettingsSheet(owner, in_island);
   view->RequestFocus();
   view->GetWebContents()->Focus();
+  NotifyStartSheet(owner, true);
 }
 void HideSettingsSheet(Owner* owner) {
   auto* view = SettingsSheetView(owner);
   if (!view) return;
+  owner->sync_capture_requested = false;
+  if (auto* widget = owner->view->GetWidget()) widget->SetAllowScreenshots(true);
   owner->settings_sheet.SetView(nullptr);
   view->parent()->RemoveChildViewT(view);
+  NotifyStartSheet(owner, false);
 }
 
 // served.txt is the single allowlist for both serving modes.
@@ -3720,6 +3734,12 @@ class NewTabHandler : public content::WebUIMessageHandler,
         return;
       }
       if (method == "checklist" && args.empty()) {
+        if (!checklist_observing_) {
+          checklist_observer_.Init(g_browser_process->local_state());
+          for (const char* pref : {kChecklistProgressPref, kChecklistDismissedPref})
+            checklist_observer_.Add(pref, base::BindRepeating(&NewTabHandler::ChecklistChanged, base::Unretained(this)));
+          checklist_observing_ = true;
+        }
         base::MakeRefCounted<shell_integration::DefaultBrowserWorker>()->StartCheckIsDefault(
             base::BindOnce(&NewTabHandler::AnswerChecklist, weak_factory_.GetWeakPtr(), id));
         return;
@@ -3817,6 +3837,18 @@ class NewTabHandler : public content::WebUIMessageHandler,
           weak_factory_.GetWeakPtr(), id, 0, top_sites_generation_));
       return;
     }
+    if (method == "openSettings" && args.size() == 1 && args[0].is_string() &&
+        (args[0].GetString() == "sync" || args[0].GetString() == "sync-pair")) {
+      auto* browser = GlobalBrowserCollection::GetInstance()->FindBrowserWithTab(contents);
+      Owner* owner = nullptr;
+      for (auto* candidate : Owner::Live()) if (candidate->browser.get() == browser) owner = candidate;
+      if (!owner || browser->GetTabStripModel()->GetActiveWebContents() != contents) {
+        Reply(id, false, base::Value("Start page is not active")); return;
+      }
+      owner->view->GetWebContents()->GetPrimaryMainFrame()->ExecuteJavaScript(
+          base::UTF8ToUTF16("window.BlancPrototypeHost.api.openPage('settings','" + args[0].GetString() + "')"), base::NullCallback());
+      Reply(id, true, base::Value(true)); return;
+    }
     if (method == "openIsland" && args.size() == 1 && args[0].is_string() &&
         !args[0].GetString().empty() && args[0].GetString().size() <= 8) {
       auto* browser = GlobalBrowserCollection::GetInstance()->FindBrowserWithTab(contents);
@@ -3882,6 +3914,9 @@ class NewTabHandler : public content::WebUIMessageHandler,
   uint64_t pin_icon_generation_ = 0;
   uint64_t pin_icon_floor_ = 0;
   void PinsChanged() { InvalidatePinIcons(); Notify("pins"); }
+  void ChecklistChanged() { Notify("checklist"); }
+  PrefChangeRegistrar checklist_observer_;
+  bool checklist_observing_ = false;
   PrefChangeRegistrar pins_pref_observer_;
   bool pins_observing_ = false;
   void LayoutChanged() { Notify("layout"); }
@@ -4714,6 +4749,20 @@ class Handler : public content::WebUIMessageHandler, public extensions::Extensio
     // Read the native export even while Sync is off: the runner's last
     // downloaded cache is not the current profile's settings. Use precisely
     // the exporter reconciliation uses, including its device-local exclusions.
+    if (message[1].GetString() == "desktopSyncApplySettings") {
+      const auto& args = message[2].GetList();
+      auto* profile = GetOwner(web_ui()->GetWebContents())->browser->GetProfile();
+      const GURL endpoint(base::CommandLine::ForCurrentProcess()->GetSwitchValueASCII("blanc-sync-endpoint"));
+      if (!endpoint.SchemeIs("http") || endpoint.host() != "127.0.0.1" ||
+          !blanc::DesktopSyncService::ForProfile(profile) || args.size() != 1 || !args[0].is_dict()) {
+        reject("Sync settings unavailable"); return;
+      }
+      for (auto [key, value] : args[0].GetDict()) {
+        if (!blanc::SupportedDesktopSyncSetting(key, value)) { reject("Invalid setting"); return; }
+      }
+      blanc::ApplyDesktopSyncSettings(profile, args[0].GetDict());
+      Reply(id, true, base::Value(blanc::ReadDesktopSyncSettings(profile))); return;
+    }
     if (message[1].GetString() == "desktopSyncSettings") {
       auto* profile = GetOwner(web_ui()->GetWebContents())->browser->GetProfile();
       if (!message[2].GetList().empty() ||
@@ -5421,7 +5470,31 @@ class Handler : public content::WebUIMessageHandler, public extensions::Extensio
       Reply(id, true, base::Value(true));
       return;
     }
+    if (message[1].GetString() == "windowsContentProtected") {
+      int count = 0;
+      for (auto* owner : Owner::Live())
+        if (auto* widget = owner->view->GetWidget(); widget && !widget->AreScreenshotsAllowed()) ++count;
+      Reply(id, true, base::Value(count)); return;
+    }
+    if (message[1].GetString() == "checklistProgress") {
+      const auto& args = message[2].GetList();
+      if (!args.empty()) {
+        if (args.size() < 3 || args.size() > 4 ||
+            !std::ranges::all_of(args, [](const auto& v) { return v.is_bool(); })) {
+          reject("Invalid checklist progress"); return;
+        }
+        auto progress = g_browser_process->local_state()->GetDict(kChecklistProgressPref).Clone();
+        size_t i = 0;
+        for (const char* name : {"sync", "tabs", "space", "iphone"}) {
+          if (i < args.size()) progress.Set(name, args[i].GetBool());
+          ++i;
+        }
+        g_browser_process->local_state()->SetDict(kChecklistProgressPref, std::move(progress));
+      }
+      Reply(id, true, MigrationChecklist(Profile::FromWebUI(web_ui()))); return;
+    }
     if (message[1].GetString() == "resetChecklist") {
+      g_browser_process->local_state()->SetDict(kChecklistProgressPref, base::DictValue());
       g_browser_process->local_state()->SetBoolean(kChecklistDismissedPref, false);
       g_browser_process->local_state()->SetBoolean(kChecklistDefaultPref, false);
       Reply(id, true, base::Value(true));
@@ -6826,6 +6899,7 @@ class Handler : public content::WebUIMessageHandler, public extensions::Extensio
       }
     }
     if (method == "previewSpaceSave") {
+      NoteChecklistTask(browser->GetProfile(), "space");
       owner->space_error.clear();
       owner->space_name = name;
       owner->unbound_space.clear();

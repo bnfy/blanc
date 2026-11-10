@@ -77,28 +77,47 @@ base::Value DefaultBrowserStatus(shell_integration::DefaultWebClientState state)
       .Set("canSet", shell_integration::CanSetAsDefaultBrowser()));
 }
 
-// The moving-in checklist (N11): shipping's migration-checklist.js. A task is
-// listed only where it works, so Sync (F27), Bring your tabs (F40), the first
-// space (F41) and the iPhone join as those features land. Device-wide, and
-// never in a private tab or a named profile (migrationChecklistForTab).
+// Shipping's durable moving-in checklist; only the default regular profile.
 constexpr char kChecklistDismissedPref[] = "blanc.checklist.dismissed";
 constexpr char kChecklistDefaultPref[] = "blanc.checklist.default_done";
+constexpr char kChecklistProgressPref[] = "blanc.checklist.progress";
+void NoteChecklistTask(Profile* profile, std::string_view task) {
+  if (!profile || profile->IsOffTheRecord() ||
+      profile->GetPath() != g_browser_process->profile_manager()->user_data_dir().Append(ProfileManager::GetInitialProfileDir())) return;
+  auto* local = g_browser_process->local_state();
+  auto progress = local->GetDict(kChecklistProgressPref).Clone();
+  if (progress.FindBool(task).value_or(false)) return;
+  progress.Set(task, true);
+  local->SetDict(kChecklistProgressPref, std::move(progress));
+}
 base::Value MigrationChecklist(Profile* profile) {
   if (profile->IsOffTheRecord() || profile->GetBaseName().value() != FILE_PATH_LITERAL("Default"))
     return base::Value();
   PrefService* local = g_browser_process->local_state();
+  // Like shipping's unpackaged development build, preview doesn't offer
+  // changing the system default from this checklist.
+#if defined(OFFICIAL_BUILD)
   const bool default_shown = shell_integration::CanSetAsDefaultBrowser();
+#else
+  const bool default_shown = false;
+#endif
   const bool default_done = default_shown && local->GetBoolean(kChecklistDefaultPref);
-  const int tasks = default_shown ? 1 : 0;
-  const int completed = default_done ? 1 : 0;
+  const auto& progress = local->GetDict(kChecklistProgressPref);
+  const bool sync = progress.FindBool("sync").value_or(false);
+  const bool tabs = progress.FindBool("tabs").value_or(false);
+  const bool space = progress.FindBool("space").value_or(false);
+  const bool iphone = progress.FindBool("iphone").value_or(false);
+  const int tasks = 4 + int(default_shown);
+  const int completed = int(default_done) + int(sync) + int(tabs) + int(space) + int(iphone);
   return base::Value(base::DictValue()
       .Set("visible", !FirstRunPending() && !local->GetBoolean(kChecklistDismissedPref) && completed < tasks)
+      .Set("dismissed", local->GetBoolean(kChecklistDismissedPref))
       .Set("completedCount", completed).Set("taskCount", tasks)
       .Set("defaultAvailable", default_shown).Set("defaultComplete", default_done)
-      .Set("syncAvailable", false).Set("syncComplete", false)
-      .Set("tabsAvailable", false).Set("tabsComplete", false)
-      .Set("spaceAvailable", false).Set("spaceComplete", false)
-      .Set("iphoneAvailable", false).Set("iphoneComplete", false));
+      .Set("syncAvailable", true).Set("syncComplete", sync)
+      .Set("tabsAvailable", true).Set("tabsComplete", tabs)
+      .Set("spaceAvailable", true).Set("spaceComplete", space)
+      .Set("iphoneAvailable", true).Set("iphoneComplete", iphone));
 }
 // Noted whenever the OS is asked, as shipping notes it on launch and focus.
 void NoteDefaultBrowser(shell_integration::DefaultWebClientState state) {

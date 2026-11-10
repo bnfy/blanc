@@ -1,6 +1,7 @@
 // Shipping Sync setup assertions over the native Settings controls.
 import assert from 'node:assert/strict';
 import {createRequire} from 'node:module';
+import {nativeCall} from '../lib/test-driver.mjs';
 const require=createRequire(import.meta.url);
 
 // Start the actual local Worker before the fresh case browser launches. No
@@ -69,4 +70,61 @@ export default function register(step){
  step('the recovery-code prompt is shown',async function(){
   await card(this,v=>v.recoveryPromptVisible,'the recovery-code reminder');
  });
+ step('I choose Add device',async function(){
+  assert.equal(await this.call('settingsSyncPairingAct','add-device'),true);
+ });
+ step('the sheet shows a pairing code',async function(){
+  await card(this,v=>v.sheetCodeValid&&v.sheetOpen,'a pairing code displayed',30000);
+ });
+ step('a new device named {string} joins the sync',async function(name){
+  assert.ok(this.syncServer,'Pairing requires the local Worker');
+  const {peer}=require('../android/support/sync-peer.cjs');
+  this.syncPeer=peer(name,this.syncServer.url);
+  const code=await this.call('settingsSyncPairingCode');
+  assert.equal((await this.syncPeer.sync.joinWithCode(code)).ok,true,'independent peer joined');
+  await this.syncPeer.pass();
+  // Shipping's fixture injects an already-received session entry. Deliver
+  // this real peer's entry through the Worker before the unchanged UI step.
+  // Keep the Worker's quota; only reset the runner's test request window.
+  const deadline=Date.now()+125000;
+  while(this.syncServer.requests.filter(r=>r.method==='GET'&&Date.now()-r.at<61000).length>=18){
+   assert.ok(Date.now()<deadline,'Worker read budget available');
+   await new Promise(resolve=>setTimeout(resolve,500));
+  }
+  await nativeCall(this.fixture.host,'desktopSyncCall',['sync.resetRequestWindowForTest'],null,120000);
+  await nativeCall(this.fixture.host,'desktopSyncCall',['sync.syncNow'],null,120000);
+ });
+ step('the sheet says {string}',async function(text){
+  await card(this,v=>v.joinedTitle===text,'joined device named',30000);
+ });
+ step('the window asks to be left out of screen capture',async function(){
+  await this.waitFor(()=>this.call('windowsContentProtected'),n=>n===1,'one protected window');
+ });
+ step('no window asks to be left out of screen capture',async function(){
+  await this.waitFor(()=>this.call('windowsContentProtected'),n=>n===0,'no protected window');
+ });
+ step('I choose Connect your iPhone',async function(){
+  await card(this,v=>v.connectIphoneVisible,'Connect your iPhone');
+  assert.equal(await this.call('settingsSyncPairingAct','connect-iphone'),true);
+ });
+ step('the sheet offers to turn on Sync for this computer',async function(){
+  const view=await card(this,v=>v.startShown,'iPhone setup confirmation',30000);
+  assert.equal(view.sheetTitle,'Connect your iPhone');
+  assert.equal(view.sheetVisible,true);
+  assert.equal(view.syncOn,false);
+ });
+ step('I choose to add this computer with a code first',async function(){
+  assert.equal(await this.call('settingsSyncPairingAct','add-this-first'),true);
+ });
+ step('Sync is still off',async function(){
+  await card(this,v=>!v.syncOn&&!v.sheetOpen,'Sync remains off');
+ });
+ step('I choose Continue in the sheet',async function(){
+  assert.ok(this.syncServer,'Continue requires the local Worker');
+  assert.equal(await this.call('settingsSyncPairingAct','continue'),true);
+ });
+ step("the sheet's QR encodes the pair link for that code",async function(){
+  assert.equal(await this.call('settingsSyncQrMatches'),true,'QR matches shipping pair-link encoding');
+ });
+
 }

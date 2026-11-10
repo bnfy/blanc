@@ -272,6 +272,8 @@ const migrationSyncTask = document.getElementById('migrationSyncTask');
 const migrationTabsTask = document.getElementById('migrationTabsTask');
 const migrationSyncAction = document.getElementById('migrationSyncAction');
 const migrationTabsAction = document.getElementById('migrationTabsAction');
+const migrationIphoneTask = document.getElementById('migrationIphoneTask');
+const migrationIphoneAction = document.getElementById('migrationIphoneAction');
 const migrationSpaceTask = document.getElementById('migrationSpaceTask');
 const migrationSpaceAction = document.getElementById('migrationSpaceAction');
 const migrationChecklistHide = document.getElementById('migrationChecklistHide');
@@ -304,10 +306,8 @@ function paintMigrationChecklist(checklist, { completing = false } = {}) {
   setMigrationTask(migrationSyncTask, migrationSyncAction, checklist.syncComplete, t('newtab.checklist.sync'));
   setMigrationTask(migrationTabsTask, migrationTabsAction, checklist.tabsComplete, t('newtab.checklist.tabs'));
   setMigrationTask(migrationSpaceTask, migrationSpaceAction, checklist.spaceComplete, t('newtab.checklist.space'));
-  // The fork lists a task only where it works (first_run.inc).
-  migrationSyncTask.hidden = checklist.syncAvailable === false;
-  migrationTabsTask.hidden = checklist.tabsAvailable === false;
-  migrationSpaceTask.hidden = checklist.spaceAvailable === false;
+  migrationIphoneTask.hidden = checklist.iphoneAvailable !== true;
+  setMigrationTask(migrationIphoneTask, migrationIphoneAction, checklist.iphoneComplete === true, t('newtab.checklist.iphone'));
 }
 
 function hideMigrationChecklist() {
@@ -398,6 +398,11 @@ migrationSyncAction.addEventListener('click', () => {
   window.bowserPages?.start.openSettings('sync').catch(() => {});
 });
 migrationTabsAction.addEventListener('click', closeMigrationChecklistPopover);
+// Settings → Sync with the pairing sheet open (design 2026-10-28 §6.1).
+migrationIphoneAction.addEventListener('click', () => {
+  closeMigrationChecklistPopover();
+  window.bowserPages?.start.openSettings('sync-pair').catch(() => {});
+});
 migrationSpaceAction.addEventListener('click', () => {
   closeMigrationChecklistPopover();
   window.bowserPages?.start.openSpaces().catch(() => {});

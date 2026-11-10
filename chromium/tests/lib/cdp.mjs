@@ -28,16 +28,16 @@ export async function connect(target) {
       listeners.get(method).add(listener);
       return () => listeners.get(method).delete(listener);
     },
-    send(method, params = {}) {
+    send(method, params = {}, timeout = 15000) {
       return new Promise((resolve, reject) => {
         if (socket.readyState !== WebSocket.OPEN) { reject(closedError()); return; }
         const id = ++next;
-        const timer = setTimeout(() => { pending.delete(id); reject(Error('CDP timeout: ' + method)); }, 15000);
+        const timer = setTimeout(() => { pending.delete(id); reject(Error('CDP timeout: ' + method)); }, timeout);
         pending.set(id, { resolve, reject, timer }); socket.send(JSON.stringify({id, method, params}));
       });
     },
-    async eval(expression, contextId) {
-      const reply = await this.send('Runtime.evaluate', {expression, returnByValue:true, awaitPromise:true, userGesture:true, ...(contextId ? {contextId} : {})});
+    async eval(expression, contextId, timeout = 15000) {
+      const reply = await this.send('Runtime.evaluate', {expression, returnByValue:true, awaitPromise:true, userGesture:true, ...(contextId ? {contextId} : {})}, timeout);
       if (reply.exceptionDetails) throw Error(JSON.stringify(reply.exceptionDetails));
       return reply.result.value;
     },

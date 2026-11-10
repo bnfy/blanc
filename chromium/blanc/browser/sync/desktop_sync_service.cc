@@ -275,7 +275,19 @@ void DesktopSyncService::Reconcile() {
 void DesktopSyncService::Status(bool ok, const std::string& json) {
   auto status = ok ? base::JSONReader::ReadDict(json, base::JSON_PARSE_RFC) : std::nullopt;
   if (!status || !status->FindBool("enabled").has_value()) { Finish(); return; }
-  if (last_status_json_ != json) { last_status_json_ = json; Notify("status", json); }
+  if (*status->FindBool("enabled")) {
+    auto* local = g_browser_process->local_state();
+    auto progress = local->GetDict("blanc.checklist.progress").Clone();
+    if (!progress.FindBool("sync").value_or(false)) {
+      progress.Set("sync", true);
+      local->SetDict("blanc.checklist.progress", std::move(progress));
+    }
+  }
+  if (last_status_json_ != json) {
+    const bool first_status = last_status_json_.empty();
+    last_status_json_ = json; Notify("status", json);
+    if (first_status && *status->FindBool("enabled")) NoteDevicesForChecklist();
+  }
   if (!*status->FindBool("enabled")) {
     if (!pending_uploads_.empty()) Notify("first-upload", "{\"count\":0}");
     pending_uploads_.clear(); confirmation_.reset();
@@ -699,8 +711,27 @@ void DesktopSyncService::Finish(bool retry) {
 void DesktopSyncService::Notify(const std::string& event, const std::string& json) {
   for (auto& observer : observers_) observer.OnSyncEvent(event, json);
 }
+void DesktopSyncService::NoteDevicesForChecklist() {
+  if (!profile_ || g_browser_process->local_state()->GetDict("blanc.checklist.progress").FindBool("iphone").value_or(false)) return;
+  Call("sync.listDevices", "[]", base::BindOnce([](base::WeakPtr<DesktopSyncService> self, bool ok, const std::string& json) {
+    if (!self || !self->profile_ || !ok) return;
+    auto value = base::JSONReader::ReadDict(json, base::JSON_PARSE_RFC);
+    const auto* devices = value ? value->FindList("devices") : nullptr;
+    if (!devices) return;
+    for (const auto& device : *devices) {
+      const auto* platform = device.is_dict() ? device.GetDict().FindString("platform") : nullptr;
+      if (!platform || *platform != "ios") continue;
+      auto* local = g_browser_process->local_state();
+      auto progress = local->GetDict("blanc.checklist.progress").Clone();
+      progress.Set("iphone", true);
+      local->SetDict("blanc.checklist.progress", std::move(progress));
+      break;
+    }
+  }, weak_factory_.GetWeakPtr()));
+}
 void DesktopSyncService::OnEvent(const std::string& event, const std::string& json) {
   if (event == "account") ++account_epoch_;
+  if (event == "remote") NoteDevicesForChecklist();
   Notify(event, json);
   if (event == "favorites" || event == "settings" || event == "account") Reconcile();
 }

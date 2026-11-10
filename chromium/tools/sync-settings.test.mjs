@@ -32,13 +32,17 @@ function harness(){
  const state={available:true,status:off,pendingFirstUpload:0};
  const api={
   state:async()=>state,
+  capture:async()=>{},
   call:async(method,args=[])=>{calls.push({method,args:structuredClone(args)});return {ok:true};},
   confirmFirstUpload:async accept=>{calls.push({confirm:accept});},
   listen:()=>({}),stopListening:()=>{},
  };
  let Element;
  class Lit {
-  constructor(){this.isConnected=true;this.hasUpdated=true;this.updateComplete=Promise.resolve();}
+  constructor(){this.isConnected=true;this.hasUpdated=true;this.updateComplete=Promise.resolve();
+   const dialog={open:false,showModal(){this.open=true;},close(){this.open=false;}};
+   this.shadowRoot={querySelector:()=>dialog};
+  }
   connectedCallback(){} disconnectedCallback(){} toggleAttribute(){}
  }
  const text=(name,values={})=>{
@@ -46,9 +50,12 @@ function harness(){
   return strings.get(name).replace(/\{(\w+)\}/g,(_,k)=>values[k]??'');
  };
  const code=ts.transpileModule(ui,{compilerOptions:{target:ts.ScriptTarget.ES2022,module:ts.ModuleKind.CommonJS}}).outputText;
- const context={exports:{},customElements:{define:(_name,ctor)=>{Element=ctor;}},
+ const context={exports:{},document:{visibilityState:'visible',removeEventListener(){}},
+  window:{clearInterval(){}},customElements:{define:(_name,ctor)=>{Element=ctor;}},
   require:id=>id.includes('lit.rollup')?{CrLitElement:Lit}:
    id.endsWith('blanc_settings_proxy.js')?{blancSync:api,blancString:text}:
+   id.endsWith('/pairing_model.js')?{pairing_model:require('../../src/renderer/pages/settings-sync-pairing-model.js')}:
+   id.endsWith('/qr_code.js')?{qr_code:require('../../src/renderer/pages/qr-code.js')}:
    {getCss:()=>'',getHtml:()=>''},
  };
  vm.runInNewContext(code,context);
@@ -61,9 +68,10 @@ const settle=async el=>{for(let n=0;n<100&&el.busy_;n++)await new Promise(resolv
 test('native bridge rejects arbitrary runner exports and malformed argument shapes',()=>{
  const validator=native.slice(native.indexOf('static bool ValidSyncCall'),native.indexOf('void HandleSyncCall'));
  const methods=[...new Set([...validator.matchAll(/method [!=]= "([^"]+)"/g)].map(m=>m[1]))].sort();
- assert.deepEqual(methods,['sync.disable','sync.enable','sync.joinWithCode','sync.preflight','sync.startNew','sync.status','sync.syncNow']);
+ assert.deepEqual(methods,['sync.beginPairing','sync.cancelPairing','sync.disable','sync.enable','sync.joinWithCode','sync.pairingState','sync.preflight','sync.setPairingWatch','sync.startNew','sync.status','sync.syncNow']);
  assert.match(validator,/value\.size\(\) == 2/);
- assert.match(validator,/sync\.disable"\) return args\.empty\(\)/);
+ assert.match(validator,/sync\.disable"[\s\S]*?sync\.pairingState"\) return args\.empty\(\)/);
+ assert.match(validator,/sync\.setPairingWatch"\) return args\.size\(\) == 1 && args\[0\]\.is_bool\(\)/);
  assert.match(native,/args\[1\]\.is_bool\(\)/);
  assert.ok(native.includes('DesktopSyncService::ForProfile(SyncProfile())'));
  assert.ok(native.includes('return owner->browser->GetProfile();'));
@@ -119,7 +127,7 @@ test('found passphrase sign-in enables; closing Settings during preflight preven
   if(close){el.isConnected=false;el.disconnectedCallback();}
   finish({ok:true,outcome:'found'});
   if(close)await new Promise(resolve=>setImmediate(resolve));else await settle(el);
-  assert.deepEqual(calls,close?['sync.preflight']:['sync.preflight','sync.enable']);
+  assert.deepEqual(calls,close?['sync.preflight','sync.setPairingWatch']:['sync.preflight','sync.enable']);
  }
 });
 
@@ -139,7 +147,7 @@ test('all target Gherkin steps resolve without launching the runner',async()=>{
  const {matchStep}=await import('../tests/steps.mjs');
  const {missingAdapters}=await import('../tests/world.mjs');
  const inventory=JSON.parse(read(path.join(root,'chromium/scenarios/inventory.json')));
- for(const line of [49,73,150]){
+ for(const line of [26,38,49,56,73,150,181,199,210]){
   const scenario=inventory.scenarios.find(s=>s.id===`spec/acceptance/sync.feature:${line}`);
   assert.ok(scenario);
   for(const c of scenario.cases)for(const step of c.steps){

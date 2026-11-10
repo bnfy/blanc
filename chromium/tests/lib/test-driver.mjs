@@ -21,5 +21,5 @@ export async function installDriver(host){
   await host.eval('('+bootstrap.toString()+')()');
 }
 export function nativeCall(host,method,args=[],id=null,timeout=15000){
-  return host.eval(`window.__blancNativeCall(${jsLiteral(method)},${jsLiteral(args)},${id?JSON.stringify(String(id)):'undefined'},${timeout})`);
+  return host.eval(`window.__blancNativeCall(${jsLiteral(method)},${jsLiteral(args)},${id?JSON.stringify(String(id)):'undefined'},${timeout})`,undefined,timeout+1000);
 }

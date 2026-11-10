@@ -14,6 +14,13 @@ D7, F0.7, cold builds, new machines, D2/D4–D6/D8/V2 and replacement D3
 remain pending. D3 beta-only no-DRM exception accepted; EME notice/handoff required.
 
 ## Current work
+- **2026-11-09 — Desktop Sync S4b (candidate macos-9d75c2778b9b408a):**
+  native Settings now offers iPhone/add-device pairing with shipping's code,
+  QR, expiry/cancel states and capture request. The Start Page checklist opens
+  Sync and reflects actual enabled/iOS-device state. The loopback-only gate
+  extends S4a with all seven setting mappings, stalled-runner/write-fault
+  preservation and private/secondary-profile refusal. Scoped results and
+  remaining S4c/S4d work: [S4b report](CODEX-NOTES-s4b-sync.md).
 - **2026-11-09 — Requested non-Sync acceptance repairs (candidate macos-c50cd71293d37d45):**
   all 18 supplied case IDs were reproduced and rerun together: 13 pass,
   4 fail and 1 undefined. Rail geometry, replacement-tab focus, oversized quiet
@@ -2387,5 +2394,5 @@ Android's Bar A counts the shared scenarios bound in `chromium/tests/android/acc
 
 Legacy macOS stages come from the approved spec; they await verification on the canonical candidate. No legacy stage counts as Verified.
 
-Candidate identities: macOS: macos-4cc571768c5ed8bb; Windows: none; Linux: none; Android: android-arm64-7bd35e94ef746069.
+Candidate identities: macOS: macos-9d75c2778b9b408a; Windows: none; Linux: none; Android: android-arm64-7bd35e94ef746069.
 <!-- END GENERATED PROGRESS -->

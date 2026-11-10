@@ -52,8 +52,24 @@ class ChromiumSettingsHandler final : public settings::SettingsPageUIHandler,
     return true;
   }
   void StopSyncObservation() {
-    if (sync_) sync_->RemoveObserver(this);
+    SetPairCapture(false);
+    if (sync_) {
+      sync_->Call("sync.setPairingWatch", "[false]", base::BindOnce([](bool, const std::string&) {}));
+      sync_->RemoveObserver(this);
+    }
     sync_ = nullptr;
+  }
+  void SetPairCapture(bool active) {
+    auto* owner = SettingsSheetOwner(web_ui()->GetWebContents());
+    if (!owner) return;
+    owner->sync_capture_requested = active;
+    if (auto* widget = owner->view->GetWidget()) widget->SetAllowScreenshots(!active);
+  }
+  void HandleSyncCapture(const base::ListValue& args) {
+    if (!BeginSync(args, 1) || !args[1].is_bool()) return;
+    if (!sync_) { SyncFailure(args[0], "unavailable"); return; }
+    SetPairCapture(args[1].GetBool());
+    ResolveJavascriptCallback(args[0], base::Value(true));
   }
   void SyncFailure(const base::Value& callback, std::string error) {
     ResolveJavascriptCallback(callback, base::Value(base::DictValue()
@@ -79,6 +95,7 @@ class ChromiumSettingsHandler final : public settings::SettingsPageUIHandler,
     state.Set("available", true);
     state.Set("pendingFirstUpload", static_cast<double>(sync_->PendingFirstUploadCount()));
     if (value && value->is_dict()) {
+      if (value->GetDict().FindBool("enabled").value_or(false)) NoteChecklistTask(SyncProfile(), "sync");
       state.Set("status", std::move(*value));
     } else {
       // A failed status read is unknown, never an invented enabled:false.
@@ -88,10 +105,12 @@ class ChromiumSettingsHandler final : public settings::SettingsPageUIHandler,
     ResolveJavascriptCallback(callback, base::Value(std::move(state)));
   }
   static bool ValidSyncCall(std::string_view method, const base::ListValue& args) {
-    // No general runner gateway: no sharedContext, stores, keys, pairing,
+    // No general runner gateway: no sharedContext, stores, or keys;
     // remote wipe, account switching, tabs or Spaces cross this boundary.
     if (method == "sync.status" || method == "sync.syncNow" ||
-        method == "sync.disable") return args.empty();
+        method == "sync.disable" || method == "sync.beginPairing" ||
+        method == "sync.cancelPairing" || method == "sync.pairingState") return args.empty();
+    if (method == "sync.setPairingWatch") return args.size() == 1 && args[0].is_bool();
     if (method == "sync.joinWithCode")
       return args.size() == 1 && args[0].is_string() &&
              args[0].GetString().size() <= 8192;
@@ -148,6 +167,11 @@ class ChromiumSettingsHandler final : public settings::SettingsPageUIHandler,
     auto value = ok ? base::JSONReader::Read(json, base::JSON_PARSE_RFC)
                     : std::nullopt;
     if (!value) { SyncFailure(callback, ok ? "invalid-result" : json); return; }
+    if (value->is_dict()) {
+      const auto* joined = value->GetDict().FindDict("joined");
+      if (joined && joined->FindString("platform") && *joined->FindString("platform") == "ios")
+        NoteChecklistTask(SyncProfile(), "iphone");
+    }
     ResolveJavascriptCallback(callback, base::Value(base::DictValue()
         .Set("ok", true).Set("value", std::move(*value))));
   }
@@ -386,6 +410,7 @@ void ChromiumSettingsHandler::RegisterMessages() {
   const auto bind = [this](const char* name, void (ChromiumSettingsHandler::*method)(const base::ListValue&)) {
     web_ui()->RegisterMessageCallback(name, base::BindRepeating(method, base::Unretained(this)));
   };
+  bind("blancSyncCapture", &ChromiumSettingsHandler::HandleSyncCapture);
   bind("blancSyncState", &ChromiumSettingsHandler::HandleSyncState);
   bind("blancSyncCall", &ChromiumSettingsHandler::HandleSyncCall);
   bind("blancSyncConfirmFirstUpload", &ChromiumSettingsHandler::HandleSyncConfirm);

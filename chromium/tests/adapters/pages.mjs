@@ -226,7 +226,7 @@ export const pages={
    customizeBounds:bounds(document.getElementById('customizeButton')),hideBounds:bounds(document.getElementById('migrationChecklistHide')),
    pillInFooterLeft:!!shell?.closest('#layoutFooter .footer-left'),viewportWidth:innerWidth};})()`),
  clickMigrationChecklist:onStart(false,action=>{const id={sync:'migrationSyncAction',tabs:'migrationTabsAction',space:'migrationSpaceAction',iphone:'migrationIphoneAction',hide:'migrationChecklistHide',compact:'migrationChecklistCompact'}[action];
-  const inPopover=['sync','tabs','space'].includes(action);
+  const inPopover=['sync','tabs','space','iphone'].includes(action);
   return `(()=>{const btn=${id?`document.getElementById('${id}')`:'null'};if(!btn)return false;
    if(${inPopover}){const popover=document.getElementById('migrationChecklist');if(!popover.matches(':popover-open'))document.getElementById('migrationChecklistCompact').click();
     if(!popover.matches(':popover-open'))return false;const box=btn.getBoundingClientRect();if(!box.width||!box.height)return false;}
@@ -314,6 +314,8 @@ export const pages={
  selectBrowserSource:(w,label)=>onSheet(w,`((label)=>{const select=document.getElementById('browserSource');const option=[...(select?.options??[])].find(o=>o.textContent===label&&!o.disabled);
   if(!option)return false;select.value=option.value;select.dispatchEvent(new Event('change',{bubbles:true}));return true;})(${jsLiteral(String(label))})`),
  clickBrowserImport:w=>onSheet(w,`(()=>{const button=document.getElementById('browserImportBtn');if(!button||button.hidden)return false;button.click();return true;})()`),
+ migrationChecklistSettings:w=>w.native('checklistProgress',[]),
+ async setMigrationChecklistProgress(w,...args){await w.native('checklistProgress',args);return true;},
  // Shipping's reset; the fork keeps only the default-browser task's state.
  async resetMigrationChecklist(w){
   await w.native('resetChecklist');const page=await startPage(w);if(page)await page.evalExpression("window.blancNewTabEvent('checklist')");

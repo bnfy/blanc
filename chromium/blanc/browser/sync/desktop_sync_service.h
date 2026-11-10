@@ -70,6 +70,7 @@ class DesktopSyncService final : public ProfileObserver,
   void Commit(base::DictValue next, base::OnceClosure done);
   void VerifyRunnerFile(std::string name, base::DictValue expected, base::OnceClosure done);
   void OnEvent(const std::string& event, const std::string& json);
+  void NoteDevicesForChecklist();
   void Notify(const std::string& event, const std::string& json);
   void Fail(const std::string& error);
   base::DictValue LocalFavorites(std::set<std::string>* blocked) const;

@@ -1,4 +1,4 @@
-// Desktop S4a gate: the actual native default profile, embedded runner bundle,
+// Desktop S4a/S4b gate: the actual native default profile, embedded runner bundle,
 // local Worker and independent bundle peer. No production endpoint or real device.
 // /usr/local/bin/node chromium/tests/desktop-sync.mjs CONFIG EVIDENCE
 import fs from 'node:fs';
@@ -15,16 +15,19 @@ import {inSettings} from './adapters/commands.mjs';
 const require=createRequire(import.meta.url);
 const {createSyncFixture}=require('../../test/desktop/support/sync-fixture.js');
 const {peer}=require('./android/support/sync-peer.cjs');
-const [configFile,evidence]=process.argv.slice(2);
+const [configFile,evidence,mode]=process.argv.slice(2);
+if(mode && !['--recovery-only','--profiles-only'].includes(mode))throw Error('Unknown gate mode');
+const profilesOnly=mode==='--profiles-only';
+const recoveryOnly=mode==='--recovery-only';
 if(!configFile||!evidence)throw Error('Usage: desktop-sync.mjs CONFIG EVIDENCE');
 const config=JSON.parse(fs.readFileSync(configFile));
 fs.mkdirSync(evidence,{recursive:true,mode:0o700});
-const output={candidate:config.candidate,checks:[],mockKeychain:true};
+const output={candidate:config.candidate,checks:[],mockKeychain:true,mode:profilesOnly?'profiles-only':recoveryOnly?'recovery-only':'full'};
 const sleep=ms=>new Promise(r=>setTimeout(r,ms));
 async function until(read,predicate,label,timeout=180000){
  const end=Date.now()+timeout;let value;
  do{value=await read();if(predicate(value))return value;await sleep(300);}while(Date.now()<end);
- throw Error(`${label}: ${JSON.stringify(value)}`);
+ throw Error(`${label}: condition did not converge`);
 }
 const check=async(name,fn)=>{
  console.log('start '+name);
@@ -32,7 +35,7 @@ const check=async(name,fn)=>{
  catch(error){output.checks.push({name,result:'fail',error:error.message});throw error;}
 };
 let fixture,worker,w,device;
-const rpc=method=>nativeCall(fixture.host,'desktopSyncCall',[method],null,120000);
+const rpc=async method=>{try{return await nativeCall(fixture.host,'desktopSyncCall',[method],null,120000);}catch(error){throw Error(`${method}: ${error.message}`);}};
 const nativeFavorites=()=>w.api('listFavorites');
 const peerFavorites=()=>device.module('bookmarks').listBookmarks();
 // Leave room below the real Worker's 30 account GETs/minute for background
@@ -49,18 +52,27 @@ async function requestRoom(){
 }
 const peerPass=async()=>{await requestRoom();await device.sync.resetRequestWindowForTest();await device.sync.syncNow(['bookmarks','settings']);};
 const pump=async()=>{await requestRoom();await rpc('sync.resetRequestWindowForTest');await rpc('sync.syncNow');await peerPass();};
-const openSync=async()=>{await w.api('openPage',['settings','sync']);await until(()=>w.call('settingsSyncPairingDom'),Boolean,'Sync page');};
+const openSync=async()=>{
+ if(!(await w.native('settingsSheetState',[]))?.attached)await w.api('openPage',['settings','sync']);
+ await inSettings(w,'sync',()=>({value:true}));
+ await until(()=>w.call('settingsSyncPairingDom'),Boolean,'Sync page');
+};
 const act=async action=>assert.equal(await w.call('settingsSyncPairingAct',action),true,action);
 const peerEdit=(url,title,folder)=>{
  const item=device.module('bookmarks').exportForSync().items.find(x=>x.url===url);assert.ok(item);
  device.module('bookmarks').mergeFromSync({items:[{...item,title,folder,updatedAt:Date.now()}],tombstones:[]});
 };
-async function launch(){
- fixture=new NativeFixture();fixture.extraArgs=[`--blanc-sync-endpoint=${worker.url}`];
+async function launch({privateMode=false,secondary=false}={}){
+ fixture=new NativeFixture();fixture.extraArgs=[`--blanc-sync-endpoint=${worker.url}`,...(secondary?['--profile-directory=Profile 1']:[])];
  const directory=path.join(fs.mkdtempSync(path.join(os.tmpdir(),'blanc-s4a-')),'browser');
- await fixture.launch(config,directory,{testHooks:true,diskAssets:false});
+ await fixture.launch(config,directory,{testHooks:true,diskAssets:false,privateMode});
  await assertRendering(e=>fixture.host.eval(e));
  await installDriver(fixture.host);w=createWorld(fixture);await w.reset();
+}
+function runnerPid(){
+ const rows=execFileSync('/bin/ps',['-axo','pid=,ppid=,command='],{encoding:'utf8'}).split('\n');
+ const match=rows.map(l=>l.trim().match(/^(\d+)\s+(\d+)\s+(.*)$/)).find(m=>m&&Number(m[2])===fixture.process.pid&&m[3].includes('--utility-sub-type=blanc.mojom.SyncRunner'));
+ assert.ok(match,'runner PID owned by this fixture');return Number(match[1]);
 }
 async function close(label){
  const exit=await fixture.close();
@@ -70,6 +82,7 @@ async function close(label){
 }
 try{
  worker=await createSyncFixture();assert.equal(new URL(worker.url).hostname,'127.0.0.1');
+ if(!profilesOnly){
  await launch();
  const first=fixture.base+'/existing',later=fixture.base+'/from-mac',remote='https://peer.example/first';
  await w.call('seedFavorite',first,'Existing Mac Favorite');
@@ -77,9 +90,27 @@ try{
  await check('turn on Sync through Settings using the embedded bundle',async()=>{
   await act('turn-on');await until(()=>w.call('settingsSyncPairingDom'),s=>s?.syncOn&&s.handle==='My Blanc','Sync enabled');
  });
- device=peer('S4a independent peer',worker.url);
- await rpc('sync.resetRequestWindowForTest');const pairing=await rpc('sync.beginPairing');
- assert.equal((await device.sync.joinWithCode(pairing.code)).ok,true,'peer joined');
+ device=peer('S4b independent iPhone peer',worker.url,{platform:'ios'});
+ await check('Mac pairing sheet QR, cancel and independent iPhone peer join',async()=>{
+  await rpc('sync.resetRequestWindowForTest');await act('add-device');
+  await until(()=>w.call('settingsSyncPairingDom'),s=>s?.sheetCodeValid,'pairing display');
+  assert.equal(await w.call('settingsSyncQrMatches'),true,'QR equals shipping encoding');
+  assert.equal(await w.call('windowsContentProtected'),1,'one window protected');
+  const cancelled=await w.call('settingsSyncPairingCode');
+  await act('pair-cancel');await until(()=>w.call('windowsContentProtected'),n=>n===0,'capture released');
+  const bad=await device.sync.joinWithCode(cancelled);
+  assert.equal(bad.ok,false,'cancelled code refused');assert.equal(bad.error,'pair-not-found');
+  await act('add-device');await until(()=>w.call('settingsSyncPairingDom'),s=>s?.sheetCodeValid,'new pairing code');
+  const code=await w.call('settingsSyncPairingCode');
+  assert.equal((await device.sync.joinWithCode(code)).ok,true,'independent peer joined');
+  await device.pass();
+  await until(()=>w.call('settingsSyncPairingDom'),s=>s?.joinedTitle==='S4b independent iPhone peer joined.','joined device named',90000);
+  await until(()=>w.call('windowsContentProtected'),n=>n===0,'joined releases capture');
+  await act('pair-cancel');
+  const progress=await w.call('migrationChecklistSettings');
+  assert.equal(progress.syncComplete,true,'real Sync completes checklist');
+  assert.equal(progress.iphoneComplete,true,'real iPhone presence completes checklist');
+ });
  await check('first upload holds existing Favorites until Continue',async()=>{
   await until(()=>w.call('settingsSyncPairingDom'),s=>s?.pendingFirstUpload?.includes('1'),'one Favorite consent');
   await pump();assert.ok(!(await rpc('bookmarks.exportForSync')).items.some(x=>x.url===first));
@@ -92,6 +123,7 @@ try{
   device.module('bookmarks').saveFavorite(remote,'Added on peer');await peerPass();
   await until(async()=>{await pump();return {mac:await nativeFavorites(),peer:peerFavorites()};},v=>v.mac.some(x=>x.url===remote)&&v.peer.some(x=>x.url===later),'both additions');
  });
+ if(!recoveryOnly){
  await check('native title edit, folder move and folder rename from Mac merge on peer',async()=>{
   const row=(await nativeFavorites()).find(x=>x.url===later);
   await w.native('desktopSyncRenameFavorite',[later,'Mac renamed title']);
@@ -114,11 +146,79 @@ try{
   device.module('settings').setSettings({theme:'light',adblockEnabled:true});await peerPass();
   await until(async()=>{await pump();return {blocking:(await w.snapshot()).adblockEnabled,theme:await inSettings(w,'appearance',(_a,d)=>({value:d.find('#colorSchemeModeSelect').value}))};},v=>v.blocking===true&&v.theme==='1','peer settings on Mac');
  });
+ const macSettings={theme:'dark',adblockEnabled:false,adblockExceptions:['mac-setting.example'],searchEngine:'custom',searchEngineTemplate:'https://mac-search.example/?q=%s',bangsEnabled:false,customBangs:[{code:'macbang',name:'Mac bang',template:'https://mac-bang.example/?q=%s'}]};
+ const remoteSettings={theme:'light',adblockEnabled:true,adblockExceptions:['peer-setting.example'],searchEngine:'custom',searchEngineTemplate:'https://peer-search.example/?q=%s',bangsEnabled:true,customBangs:[{code:'peerbang',name:'Peer bang',template:'https://peer-bang.example/?q=%s'}]};
+ const matches=(actual,expected)=>Object.keys(expected).every(k=>JSON.stringify(actual[k])===JSON.stringify(expected[k]));
+ await check('all seven native settings map from Mac to peer',async()=>{
+  await w.native('desktopSyncApplySettings',[macSettings]);
+  await until(()=>w.native('desktopSyncSettings'),v=>matches(v,macSettings),'native mapping readback');
+  await until(async()=>{await pump();return device.module('settings').exportForSync().values;},v=>matches(v,macSettings),'all Mac settings on peer');
+ });
+ await check('all seven settings map from peer to native Mac',async()=>{
+  device.module('settings').setSettings(remoteSettings);await peerPass();
+  await until(async()=>{await pump();return w.native('desktopSyncSettings');},v=>matches(v,remoteSettings),'all peer settings on Mac');
+ });
+ await check('clearing custom search and switching to a stock engine in both directions',async()=>{
+  await w.native('desktopSyncApplySettings',[{searchEngine:'google',searchEngineTemplate:''}]);
+  await until(async()=>{await pump();return device.module('settings').exportForSync().values;},v=>v.searchEngine==='google'&&v.searchEngineTemplate==='','native custom search cleared');
+  device.module('settings').setSettings({searchEngine:'bing',searchEngineTemplate:''});await peerPass();
+  await until(async()=>{await pump();return w.native('desktopSyncSettings');},v=>v.searchEngine==='bing'&&v.searchEngineTemplate==='','peer stock search applied');
+ });
+ }
+ await openSync();
+ await check('stalled runner preserves enabled state and Favorites without removals',async()=>{
+  const before=(await nativeFavorites()).map(x=>x.url).sort();
+  const tombstones=JSON.stringify(device.module('bookmarks').exportForSync().tombstones);
+  const pid=runnerPid();process.kill(pid,'SIGSTOP');
+  try {
+   let refused=false;
+   try { await rpc('sync.status'); } catch { refused=true; }
+   assert.equal(refused,true,'stalled RPC reports failure');
+   const dom=await w.call('settingsSyncPairingDom');
+   assert.equal(dom.syncOn,true,'failure never shows Sync off');
+   assert.equal(dom.turnOnVisible,false,'no false turn-on offer');
+   assert.deepEqual((await nativeFavorites()).map(x=>x.url).sort(),before);
+  } finally {process.kill(pid,'SIGCONT');}
+  await until(()=>rpc('sync.status').catch(()=>null),s=>s?.enabled,'late runner response recovers');
+  await pump();assert.equal(JSON.stringify(device.module('bookmarks').exportForSync().tombstones),tombstones);
+ });
+ await check('refused desktop state write preserves Favorites and Sync enabled',async()=>{
+  // Reopen the sheet to clear the previous timeout notice without starting
+  // another network pass. Observe the exact native disk error, not any notice.
+  await w.call('closeUtilitySurface');await openSync();
+  await until(()=>rpc('sync.status').catch(()=>null),s=>s?.enabled,'runner ready before disk fault');
+  await inSettings(w,'sync',async()=>{
+   const {addWebUiListener}=await import('chrome://resources/js/cr.js');
+   window.__diskFaultObserved=false;
+   addWebUiListener('blanc-sync-changed',event=>{
+    if(event.event==='desktop-error'&&event.value==='desktop-state-write-failed')window.__diskFaultObserved=true;
+   });
+   return {value:true};
+  });
+  const directory=path.join(fixture.profile,'Default','BlancSyncDesktop');
+  const stateFile=path.join(directory,'state.json');
+  const saved=fs.readFileSync(stateFile);
+  const before=(await nativeFavorites()).map(x=>x.url).sort();
+  const tombstones=JSON.stringify(device.module('bookmarks').exportForSync().tombstones);
+  fs.chmodSync(directory,0o500);
+  try {
+   assert.throws(()=>fs.writeFileSync(path.join(directory,'fault-probe'),'test'),{code:'EACCES'},'the OS refuses new files');
+   await w.native('desktopSyncRenameFavorite',[first,'Retained through write fault']);
+   await until(()=>inSettings(w,'sync',()=>({value:window.__diskFaultObserved===true})),Boolean,'native disk-write error',90000);
+   assert.ok((await w.call('settingsSyncPairingDom')).error,'write error visible');
+   assert.equal((await w.call('settingsSyncPairingDom')).syncOn,true);
+   assert.equal((await rpc('sync.status')).enabled,true);
+   assert.equal(fs.readFileSync(stateFile).equals(saved),true,'last durable baseline unchanged');
+   const rows=await nativeFavorites();assert.ok(before.every(url=>rows.some(x=>x.url===url)));
+   assert.equal(JSON.stringify(device.module('bookmarks').exportForSync().tombstones),tombstones);
+  } finally {fs.chmodSync(directory,0o700);}
+  await until(async()=>{await pump();return peerFavorites();},rows=>rows.some(x=>x.url===first&&x.title==='Retained through write fault'),'write recovers without removal');
+  assert.equal(JSON.stringify(device.module('bookmarks').exportForSync().tombstones),tombstones,'no tombstones after recovery');
+  const recovered=await nativeFavorites();assert.ok(before.every(url=>recovered.some(x=>x.url===url)),'all Favorites survive recovery');
+ });
  await check('a killed runner recovers without losing enabled state or Favorites',async()=>{
   // Match this isolated browser's direct child and the exact utility subtype.
-  const rows=execFileSync('/bin/ps',['-axo','pid=,ppid=,command='],{encoding:'utf8'}).split('\n');
-  const match=rows.map(l=>l.trim().match(/^(\d+)\s+(\d+)\s+(.*)$/)).find(m=>m&&Number(m[2])===fixture.process.pid&&m[3].includes('--utility-sub-type=blanc.mojom.SyncRunner'));
-  assert.ok(match,'runner PID owned by this fixture');process.kill(Number(match[1]),'SIGKILL');await sleep(500);
+  process.kill(runnerPid(),'SIGKILL');await sleep(500);
   await until(()=>rpc('sync.status'),s=>s.enabled===true,'runner recovered');
   await pump();assert.ok((await nativeFavorites()).some(x=>x.url===first));assert.ok(peerFavorites().some(x=>x.url===first));
  });
@@ -132,12 +232,18 @@ try{
  // remote downloads must not remove its preexisting local Favorite.
  await launch();const excluded=fixture.base+'/not-now';
  await w.call('seedFavorite',excluded,'Only this Mac');
- await openSync();await requestRoom();device.sync.resetRequestWindowForTest();const join=await device.sync.beginPairing();
+ await openSync();
+ await check('a missing pairing code reports the shipping error and leaves Sync off',async()=>{
+  await act('choose-code');await w.call('settingsSyncPairingAct','type-code','K7MR-4PX2');await act('connect-code');
+  await until(()=>w.call('settingsSyncPairingDom'),s=>s?.error==='That code isn’t valid any more. Make a new one on your other device.','missing code error');
+  assert.equal((await rpc('sync.status')).enabled,false);
+ });
+ await requestRoom();device.sync.resetRequestWindowForTest();const join=await device.sync.beginPairing();
  const beforeLocal=(await nativeFavorites()).map(x=>x.url);
  const beforeRemote=peerFavorites().map(x=>x.url);
  const beforeTombstones=JSON.stringify(device.module('bookmarks').exportForSync().tombstones);
  const reconcileRequestStart=worker.requests.length;
- await act('choose-code');assert.equal(await w.call('settingsSyncPairingAct','type-code',join.code),true);await act('connect-code');
+ assert.equal(await w.call('settingsSyncPairingAct','type-code',join.code),true);await act('connect-code');
  await check('first reconcile deletes nothing on either side',async()=>{
   await until(()=>w.call('settingsSyncPairingDom'),s=>s?.pendingFirstUpload?.includes('1'),'initial consent');
   await until(async()=>{await pump();return nativeFavorites();},rows=>beforeRemote.every(url=>rows.some(x=>x.url===url)),'all account Favorites downloaded');
@@ -146,7 +252,11 @@ try{
   assert.ok(beforeRemote.every(url=>peerFavorites().some(x=>x.url===url)),'all prior remote Favorites retained');
   assert.equal(JSON.stringify(device.module('bookmarks').exportForSync().tombstones),beforeTombstones,'no remote tombstones');
   assert.equal((await rpc('bookmarks.exportForSync')).tombstones.length,0,'no native runner tombstones');
-  assert.ok(!worker.requests.slice(reconcileRequestStart).some(r=>r.method==='DELETE'),'no Worker DELETE');
+  // Shipping retires a consumed pairing code with DELETE. That operation
+  // must not be mistaken for removal of an account or encrypted data store.
+  const deletes=worker.requests.slice(reconcileRequestStart).filter(r=>r.method==='DELETE');
+  assert.ok(deletes.every(r=>/^\/v1\/pair\/[^/]+$/.test(new URL(r.url).pathname)&&r.status===204),
+   'no Worker account/store DELETE; only successful pairing cleanup');
  });
  await check('Not now keeps existing Favorites local while account Favorites download',async()=>{
   await until(()=>w.call('settingsSyncPairingDom'),s=>s?.pendingFirstUpload?.includes('1'),'decline consent');
@@ -158,6 +268,24 @@ try{
   await installDriver(fixture.host);w=createWorld(fixture);await w.app.refresh();await pump();assert.ok((await nativeFavorites()).some(x=>x.url===excluded));assert.ok(!peerFavorites().some(x=>x.url===excluded));
  });
  await close('declined');
+ await device.sync.disable();
+ }
+ for(const mode of ['private','secondary']){
+  await check(`${mode} profile refuses Sync without a runner or Worker traffic`,async()=>{
+   const requestCount=worker.requests.length;
+   await launch({privateMode:mode==='private',secondary:mode==='secondary'});
+   await w.api('openPage',['settings']);
+   const state=await inSettings(w,'',async()=>{
+    const {sendWithPromise}=await import('chrome://resources/js/cr.js');
+    return {value:await sendWithPromise('blancSyncState')};
+   });
+   assert.equal(state.available,false);assert.equal(state.status,null);
+   let refused=false;try{await rpc('sync.status');}catch{refused=true;}assert.equal(refused,true);
+   assert.throws(()=>runnerPid(),'no Sync runner in ineligible profile');
+   assert.equal(worker.requests.length,requestCount,'no Worker traffic');
+   await close(mode);
+  });
+ }
  output.requests=worker.requests.map(({method,status})=>({method,status}));
  output.result='pass';
 }catch(error){output.result='fail';output.error=error.stack;console.error(error.stack);process.exitCode=1;}

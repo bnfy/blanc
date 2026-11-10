@@ -319,6 +319,8 @@
   window.blancPinIconsAvailable = () => pinIconsStatus(false);
   window.blancTopSitesSnapshotCurrent = epoch => epoch === topSitesEpoch;
   window.blancTopSitesUnavailable = suppressRankedSites;
+  const utilityListeners = new Set();
+  window.blancUtilitySheetVisibility = visible => { for (const fn of utilityListeners) fn(visible); };
   window.bowserPages = {
     appVersion: async () => 'Chromium prototype',
     pins: {
@@ -450,6 +452,8 @@
       },
       setWallpaperFollowSpace: async () => { throw new Error('Spaces are not available in this prototype.'); },
       setDynamicWallpaper: async (enabled) => save({ dynamicWallpaperEnabled: enabled === true }).dynamicWallpaperEnabled,
+      openSettings: section => request('openSettings', [section]),
+      openSpaces: () => request('openIsland', ['/space ']),
       dismissMigrationChecklist: () => request('checklistDismiss'),
       dismissPatronCallout: () => request('patronCalloutDismiss'),
       dismissWhatsNew: () => request('whatsNewDismiss'),
@@ -468,7 +472,7 @@
         return () => document.removeEventListener('visibilitychange', update);
       },
       onRemoteTabs: () => {},
-      onUtilitySheetVisibility: () => {},
+      onUtilitySheetVisibility: fn => { utilityListeners.add(fn); return () => utilityListeners.delete(fn); },
       openIsland: text => request('openIsland', [text]),
       openMahjong: background => request('openMahjong', [background === true]),
     },
