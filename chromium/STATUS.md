@@ -14,6 +14,14 @@ D7, F0.7, cold builds, new machines, D2/D4–D6/D8/V2 and replacement D3
 remain pending. D3 beta-only no-DRM exception accepted; EME notice/handoff required.
 
 ## Current work
+- **2026-11-10 — Desktop Sync S4c (candidate macos-9320a60d81bec2f7):**
+  open-tab sharing defaults off; Other devices, Rename Device and Send use the
+  native default-profile service. Private and policy-marked tabs are excluded.
+  One clean full local gate passes 21 checks. The four requested files record
+  108 pass / 4 fail / 9 undefined, preserving all 100 prior S4b passes and gaining
+  eight Sync cases. Shared Spaces needs a desktop entry in the frozen bundle;
+  remaining repairs and final-candidate qualification are still in progress.
+  [Queue report](CODEX-NOTES-finish.md).
 - **2026-11-09 — Desktop Sync S4b (candidate macos-9d75c2778b9b408a):**
   native Settings now offers iPhone/add-device pairing with shipping's code,
   QR, expiry/cancel states and capture request. The Start Page checklist opens

@@ -1,32 +1,48 @@
 # Result
 
-Work in progress from `b4bd80c5`; local only, no push.
-Current candidate: `macos-9320a60d81bec2f7`; config `s4c-tabs-4-runtime-config.json`.
-S4c native gate and all eight requested scenarios pass on this candidate.
+Local work from `b4bd80c5`; no push or release action.
+Candidate: `macos-9320a60d81bec2f7`; config: `s4c-tabs-4-runtime-config.json`.
 
 | Queue item | State |
 | --- | --- |
-| 1 S4c tabs, Other devices, Send | Done for requested cases; native icon upload blocked by frozen bridge |
-| 2 S4d shared Spaces | Blocked: frozen phone bridge lacks desktop window contract |
-| 3 Final full gate and scenarios | Pending |
-| 4 Vertical/Island leftovers | Pending |
-| 5 Beta identity | Pending |
+| 1 S4c tabs, Other devices, Send | Requested cases done; native icon upload blocked by frozen bridge |
+| 2 S4d shared Spaces | Blocked: phone bridge lacks desktop window contract |
+| 3 Clean full gate and four files | Current candidate done; final rerun owed after queued fixes |
+| 4 Vertical/Island leftovers | In progress; approved V16 and Linux-only boundaries retained |
+| 5 Beta identity | Pending; coordinating branch/version correction below |
 | 6 Sparkle updater | Pending |
 | 7 Review 0041 | Pending |
 
-| Baseline evidence | Pass | Fail | Undefined |
+| Current-candidate evidence | Pass | Fail | Undefined |
 | --- | ---: | ---: | ---: |
-| S4c focused native gate | 3 | 0 | 0 |
-| S4c requested sync scenarios | 8 | 0 | 0 |
-| S4b clean gate, completed before this work | 20 | 0 | 0 |
-| S4b sync.feature | 9 | 0 | 9 |
-| S4b internal-pages.feature | 10 | 0 | 0 |
-| S4b island-and-commands.feature | 72 | 0 | 1 |
-| S4b vertical-tabs.feature | 9 | 4 | 7 |
+| Whole desktop-sync gate, one run | 21 | 0 | 0 |
+| sync.feature | 17 | 0 | 1 |
+| internal-pages.feature | 10 | 0 | 0 |
+| island-and-commands.feature | 72 | 0 | 1 |
+| vertical-tabs.feature | 9 | 4 | 7 |
+| S4b four-file baseline (comparison) | 100 | 4 | 17 |
 
-Lost passes: not yet measured on a new candidate.
-Owner input: authorize a desktop Spaces bundle entry and native icon bridge.
-Full regression and signed updater qualification remain unverified.
+Lost S4b passes: **0 of 100**. Eight requested S4c cases gained passes.
+Owner input: desktop Spaces bundle entry and native icon bridge need authorization.
+Unverified: final revised candidate, real Keychain/devices, signed beta/updater.
+
+## Addendum from the coordinating session (2026-11-10), binding for items 5 and 6
+
+- `origin/chromium/beta-release-setup` no longer exists: it was merged (PRs #1438,
+  #1440) into `origin/chromium/migration`, which is 3 commits ahead of this branch.
+  For item 5, merge `origin/chromium/migration` instead.
+- OWNER DECISION (2026-11-10, final): the beta version is `2.0.0-beta.N`, as the
+  brief says. The merged tooling still pins `1.0.0-beta.N`; as part of item 5,
+  change `chromium/release/policy.mjs`, its tests, fixtures, the runbook and any
+  other reference to `2.0.0-beta.N` and the tag form `chromium-beta-2.0.0-beta.N`.
+  Keep the rule that `CFBundleShortVersionString` and the Sparkle short version
+  both show the full beta version. Otherwise the merged tooling is the authority
+  where it differs from the brief.
+- Still as briefed: name Blanc Beta, bundle ID `me.bnfy.blanc.beta`, scheme
+  `blanc-beta`, minimum macOS 13, Apple Silicon only with a recorded Intel waiver,
+  feed on blanc.day, no Widevine, the committed
+  `chromium/release/blanc-beta.provisionprofile`.
+- Keep this section when you rewrite the file.
 
 ## Initial handoff
 
@@ -121,3 +137,29 @@ on. The pairing Spaces question (:162) is not represented as working by a
 nonfunctional checkbox. Shared-Spaces gate coverage is still owed.
 
 S4d precommit: 244/244 tool tests and patch reconstruction pass.
+
+## Queue 3: clean current-candidate regression
+
+`finish-full-sync-1/result.json` records one clean full run: 21/21 pass on
+`macos-9320a60d81bec2f7`. It includes the new tabs/Send/retraction/policy-restore
+check plus all 20 S4b checks. The local Worker kept its real quotas.
+
+`finish-full-features-1/baseline.json` records the four complete requested
+files: 108 pass, 4 fail, 9 undefined. `finish-compare-s4b-1.json` compares
+every prior case: zero lost passes out of 100, eight gained S4c passes.
+Shared Spaces :162 remains undefined for the documented frozen-bridge blocker.
+The unchanged remaining vertical/Island cases proceed to queue item 4.
+
+Read-only review during these runs found that approved V16 (replacement spec,
+November 4) intentionally removes a pinned tab from its group; :129 retains
+its shipping assertion and remains failing. Linux-only controls cannot be
+qualified by fabricating macOS geometry. Planned repairs include real group
+menu actions, the shortcut, rail focus/dismissal, and missing adapters.
+S4c also broadened Duplicate refusal beyond approved V4; correct that by
+allowing unsandboxed native duplication and carrying Sync exclusion onto its
+copy. These changes require a new candidate and final regression evidence.
+
+Patch budget at this boundary: 43 patch files, 151 touched upstream paths,
+531 hunks; reconstruction covers 155 upstream outputs and 552 canonical files.
+
+Queue 3 precommit: 244/244 tool tests, patch reconstruction and whitespace checks pass.
