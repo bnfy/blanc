@@ -918,8 +918,9 @@ remain pending. D3 beta-only no-DRM exception accepted; EME notice/handoff requi
   (F2-9); a group's first tab dragged out lands above its group (F3-23); the
   weekly blocked counter (pref `blanc.blocking.week_stats`, shipping's
   adblock-stats.js week) shows on Ledger, Shelf and Tally (F35-16, F35-17);
-  Kagi under V12 (F5-2). Decided (owner): V16, a pinned tab leaves its
-  group (F3-5 checks it; F3-34 has no case), and V17, Close Tabs Below
+  Kagi under V12 (F5-2). Historical V16 made a pinned tab leave its
+  group; queue 3 restores shipping grouped pins and retires those overrides
+  (see CODEX-NOTES-quiet.md). V17, Close Tabs Below
   reopens one tab at a time (F2-10 checks it). Final reruns: tab-drag 15/0,
   ad-blocking 9/0, tabs-and-groups 32/1 (F3-3), internal-pages 9/1 (F16-1),
   island-and-commands 63/3 (F1-13, F1-33, F1-39), newtab-layouts with

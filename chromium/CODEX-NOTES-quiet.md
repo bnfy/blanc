@@ -1,23 +1,24 @@
 # Result
 
-Queue 3 in progress; local commits only. Absolute owner hold on `out/BlancBeta`.
+Queue 3 inventory pending; local commits only. Absolute owner hold on `out/BlancBeta`.
 
 | Item | State |
 | --- | --- |
-| 1 lazy restore :99 | Done: patch 0051; unchanged scenario passes; full regression owed |
+| 1 lazy restore :99 | Done: patch 0051; unchanged scenario passes in final regression |
 | 2 protections/private/page state | Partly: private/state pass; Electron event assertion remains undefined |
 | 3 vertical :129 | Done: shipping agrees with step; fork fixed; lifecycle 5/5 |
 | 4 whole inventory | Owed once on final candidate; top ten owed |
-| 5 regression | Owed full desktop Sync then five features after product changes |
+| 5 regression | Done: desktop Sync 22/22; five files 146/1/2; zero lost passes |
 
 Cause of :99: Chromium's Recently closed and startup restore paths schedule
 background loads after creating rendererless tabs. They become live without
 selection; this is a product defect, not a snapshot projection error.
 Current candidate: macos-f0bd093f621c613f; `q3-group-pins-5-runtime-config.json`.
 Baseline five files: 142 pass / 3 fail / 4 undefined; desktop Sync 22/22.
-Lost passes: not yet measured. Final result tables and ranked gaps pending.
+Lost passes: none of the 142 baseline passes lost; four new passes.
+Five-file results: 146 pass / 1 fail / 2 undefined; full inventory/top ten pending.
 Focused quiet suite: 27 pass / 0 fail / 1 undefined; native lifecycle 5/5.
-Unverified: final inventory/regression; Electron beforeunload event contract.
+Unverified: whole inventory; Electron beforeunload event contract; non-macOS cases.
 No push, publication, signing, Apple, production services, 1Password or live tree.
 
 ## 1 — Lazy restore
@@ -180,3 +181,42 @@ full source-map selection, reported separately below.
 
 Item 3 precommit: `q3-group-pins-precommit.tap` 291/291;
 `q3-group-pins-patches.json` reconstruction 159 upstream / 573 canonical passes.
+
+Queue 3's shipping comparison supersedes the earlier V16 grouped-pin choice
+recorded in the prior handoff. Removed both V16 step replacements; the original
+shipping group membership and pinned-group setup assertions now execute. This
+strengthens coverage and does not edit shipping steps. Earlier dated notes
+remain historical. Candidate bytes are unchanged by this adapter correction.
+
+## 5 — Final regression
+
+`q3-final-gate/result.json`: full mode, 22/22 pass on
+macos-f0bd093f621c613f, with embedded assets, mock keychain, the local Worker
+and an independent peer. Persisted request-budget restart waited 120,036 ms
+and passed; no production endpoint was used. The five feature files run next,
+then the whole inventory once, so that inventory represents the final candidate
+rather than a candidate that still owes the mandatory Sync gate.
+
+`q3-final-features/baseline.json`: 146 pass / 1 fail / 2 undefined. Exact
+case-ID comparison with `q2-final-features` loses **zero** of its 142 passes;
+gains are quiet :99, :106, :113 and vertical :129. Comparison is recorded in
+`q3-regression-comparison.json` beside the baseline evidence.
+
+| Feature | Pass | Fail | Undefined |
+| --- | ---: | ---: | ---: |
+| internal-pages | 10 | 0 | 0 |
+| island-and-commands | 72 | 0 | 1 |
+| quiet-tabs | 27 | 0 | 1 |
+| sync | 18 | 0 | 0 |
+| vertical-tabs | 19 | 1 | 0 |
+| Total | 146 | 1 | 2 |
+
+Remaining fail: vertical :239, explicitly tagged `@test-platform-linux` and
+named “The main-menu button moves into the rail on Windows and Linux.”
+Remaining undefined: Island :320, also `@test-platform-linux`, and quiet
+:28 example-45 (the Electron listener/event contract discussed above). Raw
+runner results are retained; macOS inapplicability is classification, not a
+manufactured pass. The baseline excludes 491 unselected cases from these totals.
+
+Regression precommit: required tools/release tests plus divergence binding test
+292/292; patch reconstruction 159 upstream / 573 canonical passes.
