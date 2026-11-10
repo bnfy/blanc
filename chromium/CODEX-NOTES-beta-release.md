@@ -1,7 +1,8 @@
 ## Result
 
 Phase 1 is implemented on `chromium/beta-release-setup`, based on migration tip
-`ed162e364389f322a68908a7b930a7394bae3d45`. Local commit only; no push or build.
+`ed162e364389f322a68908a7b930a7394bae3d45`, since rebased onto `chromium/migration`
+(PR #1438). No build. The beta provisioning profile is now issued and committed.
 
 - Runbook: `docs/chromium-beta-release.md`; staged, unapplied upstream work and
   patch-cost estimates: `chromium/release/PATCH-PLAN.md`.

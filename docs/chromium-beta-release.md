@@ -6,7 +6,7 @@ This beta is a separate application alongside shipping Electron Blanc, updates w
 
 ## 1. Inputs and immutable version ledger
 
-Start from `chromium/lanes/desktop.json`, `chromium/upstream/manifest.json` and `chromium/source-map.json`. At the setup branch base `ed162e364389f322a68908a7b930a7394bae3d45`, the desktop lane has 41 ordered patches and 149 pristine upstream files. The pinned upstream is **681cd621e82e606d7536eae8ea2576afb3c7d65c**, version **158.0.8127.2**. Preserve the order, the reconstructed hashes, canonical `chromium/blanc/` source and asset manifest. `python3 chromium/tools/check-patches.py --lane desktop` reconstructs those inputs without a Chromium checkout.
+Start from `chromium/lanes/desktop.json`, `chromium/upstream/manifest.json` and `chromium/source-map.json`. On `chromium/migration` at `6875f564` (this tooling was first written against `ed162e36` on the S3 branch and rebased), the desktop lane has 38 ordered patches and 142 pristine upstream files. Recount before relying on these figures. The pinned upstream is **681cd621e82e606d7536eae8ea2576afb3c7d65c**, version **158.0.8127.2**. Preserve the order, the reconstructed hashes, canonical `chromium/blanc/` source and asset manifest. `python3 chromium/tools/check-patches.py --lane desktop` reconstructs those inputs without a Chromium checkout.
 
 Create a real `release.json` outside the repository from the *schema* in `chromium/release/fixtures/release.json`; its zero digests, keys and candidate IDs are test data, never release inputs. It must include:
 
@@ -81,7 +81,7 @@ The WebAuthn suffix matters: [ChromeWebAuthenticationDelegate::TouchIdAuthentica
 
 Read `CLAUDE.md` Commands/provisioning/release protocols and `docs/release-verification.md` again immediately before any real release. The reference Electron scripts are read-only. The current public certificate pin in `package.json` is **55283A84D3706D5A22386D5F002A0CD4845ECFD4**, team **XYGUCY4498**. Its presence/private-key access and expiry were not queried. Existing documentation records a 2027-02-01 certificate expiry; plan certificate and profile rotation together before then. Never fall back to a name match or another available Developer ID.
 
-Obtain a **new Developer ID, all-devices macOS provisioning profile** for the beta ID and exact WebAuthn group, containing the precise leaf certificate. Require `ProvisionsAllDevices=true`, no `ProvisionedDevices`, `Platform` containing OSX, unexpired dates, matching team/app entitlements, no debugging grant, and the pinned leaf. Place it in private operator storage; commit its digest and public authorization evidence, not secrets. It belongs only at the outer app's `Contents/embedded.provisionprofile`, before signing. Helpers must not carry the group or a profile. Preflight decodes via local `security cms -D`; verification rechecks actual embedded bytes and actual signer.
+The beta's **Developer ID, all-devices macOS provisioning profile** was issued on November 10, 2026 ("Blanc Beta Developer ID", App ID `XYGUCY4498.me.bnfy.blanc.beta`) and is committed at `chromium/release/blanc-beta.provisionprofile`, the same way the stable app's profile is committed at `build/embedded.provisionprofile`; a profile holds no secret. It embeds exactly the pinned leaf certificate (serial `6B295A744C69F0C8`) and expires in 2044, but is unusable once that certificate expires on 2027-02-01. Apple issues Developer ID profiles with the team-wildcard keychain group `XYGUCY4498.*`, not the exact WebAuthn group, so policy requires the profile to cover the beta group within the beta team and enforces the exact group on the signed app's entitlements. `release.test.mjs` pins the file's SHA-256 and checks its decoded contents. A replacement must meet the same rules: `ProvisionsAllDevices=true`, no `ProvisionedDevices`, `Platform` containing OSX, unexpired dates, matching team/app entitlements, no debugging grant, and the pinned leaf. It belongs only at the outer app's `Contents/embedded.provisionprofile`, before signing. Helpers must not carry the group or a profile. Preflight decodes via local `security cms -D`; verification rechecks actual embedded bytes and actual signer.
 
 Use pinned Chromium's [sign_chrome.py](https://chromium.googlesource.com/chromium/src/+/681cd621e82e606d7536eae8ea2576afb3c7d65c/chrome/installer/mac/sign_chrome.py) → `signing/driver.py`, `config_factory.py`, `parts.py`, `pipeline.py`. `--identity` accepts a SHA-1 fingerprint. `ChromiumCodeSignConfig.provisioning_profile_basename` is currently `None`; stage a beta config selected explicitly by the factory, with the beta profile basename and DMG distribution. Do not use `--development`, disable verification, or assume a `--config` flag exists. The generated `Blanc Beta Packaging` folder must contain the pinned signing modules, generated build properties, entitlements, profile and DMG tools. Include Sparkle's nested parts in the inner-to-outer signing order **before** sealing the app. Never sign with `--deep`; use it for verification.
 
@@ -206,7 +206,7 @@ Pin identity/issuer independently to `docs/release-verification.md`, not values 
 
 Why stable stays unaffected, with actual boundaries:
 
-- `src/main/updater-policy.js::production()` sets `allowPrerelease:false`; shipping `package.json` has stable `1.45.1`. `src/main/updater.js::setupAutoUpdater()` only overrides that property for an explicit staging feed. Lockfile-installed `electron-updater/out/AppUpdater.js` initializes it from the running app semver (false for the shipping version).
+- `src/main/updater-policy.js::production()` sets `allowPrerelease:false`; `package.json` on this branch has stable `1.45.1` (the public Electron release is newer; any stable semver behaves the same). `src/main/updater.js::setupAutoUpdater()` only overrides that property for an explicit staging feed. Lockfile-installed `electron-updater/out/AppUpdater.js` initializes it from the running app semver (false for the shipping version).
 - `electron-updater/out/providers/GitHubProvider.js::getLatestVersion()` uses `getLatestTagName()` → GitHub `/releases/latest` when prereleases are disabled, then fetches that tag's `latest-mac.yml`. GitHub's prerelease/non-latest flags keep the beta out of that stable endpoint. The beta tag is also not a valid stable semver; that is defense in depth, **not** the stable provider's principal filter.
 - `scripts/generate-site-changelog.mjs::normalizeReleases()` filters `!draft && !prerelease && published_at`, writes `site/src/data/releases.json`, and `site/src/pages/changelog.astro` / `changelog.xml.js` consume it. **Tag spelling alone does not protect the site.** Publishing the beta as an ordinary release would be a bug; policy rejects that input.
 - `chromium/release/isolation.test.mjs` runs the actual lockfile-installed provider against an in-memory Atom feed with beta first and mocked GitHub `/latest`, asserts only stable metadata is requested, and runs the real site normalizer. It also tests the negative site boundary when the flag is wrong. This proves source behavior under GitHub's API contract, not an observed production endpoint; verify the real flags and `/latest` after publication.
@@ -234,11 +234,11 @@ bash scripts/release-chromium-beta.sh --plan
 
 `npm ci` runs the existing pinned blocker preparation hook; no native compilation is requested. The lint script covers existing first-party desktop/Worker JavaScript; new release `.mjs` logic is exercised by the explicit Node suite. The draft exits 78 for **every invocation except exactly `--plan`**, independent of environment, so it cannot contact services or build accidentally.
 
-Future local-input file (kept private, paths never in public release.json):
+Future local-input file (kept private, paths never in public release.json). `profile` is the absolute path of the committed `chromium/release/blanc-beta.provisionprofile` in the release checkout, and `profileSHA256` in release.json is that file's digest:
 
 ```json
 {
-  "profile": "/private/beta/embedded.provisionprofile",
+  "profile": "/absolute/path/to/checkout/chromium/release/blanc-beta.provisionprofile",
   "sparkleArchive": "/private/beta/Sparkle-2.8.0.tar.xz",
   "gnArgs": {"arm64": "/private/beta/arm64-args.gn", "x64": "/private/beta/x64-args.gn"}
 }
@@ -251,14 +251,14 @@ Open owner decisions, before phase 2:
 1. Confirm the proposed **Blanc Beta / me.bnfy.blanc.beta / blanc-beta**, version/build ledger, minimum OS and exact default-browser/first-run presentation.
 2. Approve feed hosting routes/promotion owner, Sparkle distribution/version after security review, updater check/install UX and dedicated 1Password custody/recovery ceremony. Public keys and archive digest are not yet real release inputs.
 3. Approve scheduled official-build GN/environment diff, output/cache arrangement, Apple Silicon/Intel machines and budget, or a specific Intel waiver. No build approval is implied here.
-4. Issue/approve beta provisioning and signing profile; approve adapter/entitlement review and notarization service use; resolve any certificate rotation needed.
+4. (The beta provisioning profile is issued and committed.) Approve adapter/entitlement review and notarization service use; resolve any certificate rotation needed.
 5. Approve the beta acceptance scope after unresolved migration failures, exact-candidate harness work, real-device production Sync account/device and testing window, and final release notes/publication. Sync itself remains required.
 
 Unverified / cannot be proven without the later work:
 
 - Full literal prototype/release GN files and effective defaults, compiler/SDK/PGO availability, official rebuild cost, both machine outputs and candidate hashes.
 - Current Sparkle binary provenance/security suitability, actual framework/ID/rpath inventory, EdDSA key custody/recovery, real feed serving/caching and updater callbacks/sandbox behavior.
-- Beta profile existence, certificate/private-key access and expiry, AMFI/WebAuthn/TCC behavior, real DER parsing/code signature/notarization/stapling/Gatekeeper and native DMG launch.
+- Certificate/private-key access and expiry, AMFI/WebAuthn/TCC behavior, real DER parsing/code signature/notarization/stapling/Gatekeeper and native DMG launch.
 - Runtime profile/keychain/OS registration isolation, explicit override rejection, actual no-CDM payload, no protected playback, no hook/disk-asset release bypass.
 - Exact-official-candidate acceptance, local Sync harness compatibility, production real-device Sync, packaged blocker/credits/full SBOM and outbound isolation.
 - Both N→N+1 private handoffs and the eventual public handoff, hosted smoke and post-publication stable/latest/changelog isolation.

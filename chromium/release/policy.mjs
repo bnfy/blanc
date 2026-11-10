@@ -70,7 +70,11 @@ export function validateProfile(p, certificates, r, now = Date.now()) {
   equal(p.Entitlements?.['com.apple.application-identifier'], `${TEAM}.${ROOT_ID}`, 'profile app identifier');
   equal(p.Entitlements?.['com.apple.developer.team-identifier'], TEAM, 'profile entitlement team');
   check(p.Entitlements?.['get-task-allow'] !== true && p.Entitlements?.['com.apple.security.get-task-allow'] !== true, 'development profile refused');
-  equal(p.Entitlements?.['keychain-access-groups'], [r.keychainGroup], 'profile must authorize only the beta keychain group');
+  // Apple issues Developer ID profiles with the team wildcard (TEAM.*), never the
+  // exact WebAuthn group. The profile must cover the beta group and name no other
+  // team; the exact group is enforced on the signed app's entitlements (verify.mjs).
+  const groups = p.Entitlements?.['keychain-access-groups'];
+  check(Array.isArray(groups) && groups.length > 0 && groups.every(g => g === r.keychainGroup || g === `${TEAM}.*`), 'profile must authorize the beta keychain group within the beta team only');
   check(certificates.some(c => c.fingerprint === r.certificateSHA1 && Date.parse(c.validTo) > now && Date.parse(c.validFrom) <= now && c.subject.includes('Developer ID Application:') && c.subject.includes(`OU=${TEAM}`)), 'profile lacks valid pinned Developer ID certificate');
 }
 export function validateIdentityList(text, r) {

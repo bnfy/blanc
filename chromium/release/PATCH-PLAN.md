@@ -1,6 +1,6 @@
 # Staged beta patches — NOT APPLIED
 
-2026-11-09; base `ed162e364389f322a68908a7b930a7394bae3d45`, upstream
+2026-11-09, recounted 2026-11-10 on `chromium/migration` at `6875f564`; upstream
 `681cd621e82e606d7536eae8ea2576afb3c7d65c`. This document is a design artifact,
 not a patch series selected by `lanes/desktop.json`. No branding, build flags,
 Chromium source, updater or shipping release code is changed in phase 1.
@@ -8,17 +8,17 @@ The binding owner beta decisions override the old same-ID replacement path.
 
 ## Budget and ordering
 
-Current desktop lane: **41 patches, 149 distinct patched upstream paths,
-506 hunks**, counted across the selected patches (`+++ b/` paths and `@@`
-headers). The pristine manifest also contains 149 files. These figures are
+Current desktop lane: **38 patches, 139 distinct patched upstream paths,
+478 hunks**, counted across the selected patches (`+++ b/` paths and `@@`
+headers). The pristine manifest contains 142 files. These figures are
 not a new budget cap or a request to raise it. Record fresh totals after each
 stage, keep estimates separate from measured counts, consolidate later where
 possible, and follow the owner's direction not to ask for patch-budget increases.
 
 Estimated beta implementation: **13 distinct touched upstream paths**, about
 **32–50 additional hunks / 500–850 changed lines**, plus approximately 12–18
-new or modified fork-owned source/tool/test files. Several of the 13 paths
-already belong to the 149, so this is not 149+13 unique patched paths.
+new or modified fork-owned source/tool/test files. Eight of the 13 paths are
+already among the 139, so the beta adds five newly patched paths (139 → 144).
 The table below makes the overlap explicit. Native code/API adaptation can
 change these estimates; update this plan instead of quietly declaring a gate
 passed. Tests, vendored Sparkle notices and generated-source registrations

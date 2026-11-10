@@ -8,7 +8,8 @@ import { spawnSync } from 'node:child_process';
 import { validateRelease, validateProfile, validateIdentityList, validateGN, ROOT_ID, TEAM, CERT, sha256, assetName, feedURL } from './policy.mjs';
 import { generateAppcast, validateAppcast } from './appcast.mjs';
 import { validatePart, validateAppInfo, entitlements, inspectTree, parts } from './verify.mjs';
-import { derEntitlements } from './native.mjs';
+import { fileURLToPath } from 'node:url';
+import { derEntitlements, profileAt } from './native.mjs';
 import { inputInventory, validateLocalInputs, validateBetaBranding } from './preflight.mjs';
 import { makeManifest, verifyManifest, readPayloads, GATES } from './manifest.mjs';
 const fixture = () => JSON.parse(fs.readFileSync(new URL('./fixtures/release.json', import.meta.url)));
@@ -39,13 +40,32 @@ const profileFixture = () => ({ProvisionsAllDevices:true, Platform:['OSX'], Expi
 const certs = [{fingerprint:CERT, validFrom:'2025-01-01',validTo:'2027-02-01',subject:`CN=Developer ID Application: Fixture (${TEAM})\nOU=${TEAM}`}];
 test('profile rejects expiry, development devices, wrong cert/team/group and wildcards',()=>{
   const r=fixture(),now=Date.parse('2026-11-09');validateProfile(profileFixture(),certs,r,now);
-  for(const change of [p=>p.ProvisionsAllDevices=false,p=>p.ProvisionedDevices=[],p=>p.Platform=['iOS'],p=>p.ExpirationDate='invalid',p=>p.ExpirationDate='2020-01-01',p=>p.TeamIdentifier=['OTHER'],p=>p.Entitlements['get-task-allow']=true,p=>p.Entitlements['keychain-access-groups']=[`${TEAM}.*`],p=>p.Entitlements['com.apple.application-identifier']=`${TEAM}.me.bnfy.bowser`]){
+  for(const change of [p=>p.ProvisionsAllDevices=false,p=>p.ProvisionedDevices=[],p=>p.Platform=['iOS'],p=>p.ExpirationDate='invalid',p=>p.ExpirationDate='2020-01-01',p=>p.TeamIdentifier=['OTHER'],p=>p.Entitlements['get-task-allow']=true,p=>p.Entitlements['keychain-access-groups']=['OTHERTEAM01.*'],p=>p.Entitlements['keychain-access-groups']=[`${TEAM}.*`,`${TEAM}.me.bnfy.bowser`],p=>p.Entitlements['keychain-access-groups']=[],p=>delete p.Entitlements['keychain-access-groups'],p=>p.Entitlements['com.apple.application-identifier']=`${TEAM}.me.bnfy.bowser`]){
     const p=profileFixture();change(p);assert.throws(()=>validateProfile(p,certs,r,now));
   }
   assert.throws(()=>validateProfile(profileFixture(),[],r,now));
   assert.throws(()=>validateProfile(profileFixture(),certs,r,Date.parse('2028-01-01')));
   validateIdentityList(`  1) ${CERT} "Developer ID Application: Fixture (${TEAM})"`,r);
   assert.throws(()=>validateIdentityList(`  1) ${CERT} "Apple Development: Fixture (${TEAM})"`,r));
+});
+// The committed beta profile: its bytes are pinned, and the policy must accept the
+// shape Apple actually issues (team-wildcard keychain group, one pinned certificate).
+const PROFILE = new URL('./blanc-beta.provisionprofile', import.meta.url);
+const PROFILE_SHA256 = 'c4d6ef484cb449f4c3bd730aeccc5561b1a536223b7f36e0ac26d50b698b581c';
+test('committed beta profile is pinned and its observed contents pass policy',()=>{
+  assert.equal(sha256(fs.readFileSync(PROFILE)),PROFILE_SHA256);
+  const observed=JSON.parse(fs.readFileSync(new URL('./fixtures/blanc-beta.profile.json',import.meta.url))),now=Date.parse('2026-11-10');
+  assert.deepEqual(observed.data.Entitlements['keychain-access-groups'],[`${TEAM}.*`]);
+  assert.deepEqual(observed.certificates.map(c=>c.fingerprint),[CERT]);
+  validateProfile(observed.data,observed.certificates,fixture(),now);
+  // The pinned certificate expires 2027-02-01; the profile is unusable after that.
+  assert.throws(()=>validateProfile(observed.data,observed.certificates,fixture(),Date.parse('2027-02-02')));
+});
+test('committed beta profile decodes to the recorded observation',{skip:process.platform!=='darwin'&&'security cms is macOS-only'},()=>{
+  const observed=JSON.parse(fs.readFileSync(new URL('./fixtures/blanc-beta.profile.json',import.meta.url))),decoded=profileAt(fileURLToPath(PROFILE));
+  const {DeveloperCertificates,'DER-Encoded-Profile':der,...data}=decoded.data;
+  assert.deepEqual(data,observed.data);assert.deepEqual(decoded.certificates,observed.certificates);
+  validateProfile(decoded.data,decoded.certificates,fixture(),Date.parse('2026-11-10'));
 });
 test('per-helper policy catches excessive entitlements, stable IDs and missing hardened runtime',()=>{
   const r=fixture();
