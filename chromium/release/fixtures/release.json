@@ -10,7 +10,7 @@
   "chromiumVersion": "158.0.8127.2",
   "version": "1.0.0-beta.1",
   "tag": "chromium-beta-1.0.0-beta.1",
-  "shortVersion": "1.0.0",
+  "shortVersion": "1.0.0-beta.1",
   "build": 1,
   "previousBuild": 0,
   "prerelease": true,

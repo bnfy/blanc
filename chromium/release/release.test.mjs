@@ -26,7 +26,7 @@ test('preflight pins actual GN, profile and Sparkle bytes; refuses preview/DRM/e
 }));
 test('release policy accepts isolated beta and requires immutable monotonic versions', () => {
   assert.equal(validateRelease(fixture()).build,1);
-  for (const change of [r=>r.bundleId='me.bnfy.bowser',r=>r.userDataDir='Blanc',r=>r.product='Blanc',r=>r.keychainGroup=`${TEAM}.me.bnfy.bowser`,r=>r.tag='v1.0.0-beta.1',r=>r.prerelease=false,r=>r.makeLatest=true,r=>r.previousBuild=1,r=>r.build=1.1,r=>r.build=10000,r=>r.upstream='a'.repeat(40),r=>r.certificateSHA1='a'.repeat(40),r=>r.sparkle.publicKey='bad',r=>r.sparkle.version='latest',r=>r.candidates={},r=>r.gnArgsSHA256={}]) {
+  for (const change of [r=>r.bundleId='me.bnfy.bowser',r=>r.userDataDir='Blanc',r=>r.product='Blanc',r=>r.keychainGroup=`${TEAM}.me.bnfy.bowser`,r=>r.tag='v1.0.0-beta.1',r=>r.shortVersion='1.0.0',r=>r.prerelease=false,r=>r.makeLatest=true,r=>r.previousBuild=1,r=>r.build=1.1,r=>r.build=10000,r=>r.upstream='a'.repeat(40),r=>r.certificateSHA1='a'.repeat(40),r=>r.sparkle.publicKey='bad',r=>r.sparkle.version='latest',r=>r.candidates={},r=>r.gnArgsSHA256={}]) {
     const r=fixture();change(r);assert.throws(()=>validateRelease(r));
   }
   const single=fixture();single.arches=['arm64'];delete single.candidates.x64;
@@ -79,9 +79,9 @@ test('per-helper policy catches excessive entitlements, stable IDs and missing h
   }
 });
 test('Info.plist binds feed, profile, build, name and direct-launch scheme',()=>{
-  const r=fixture(),p={CFBundleIdentifier:ROOT_ID,CFBundleName:r.product,CFBundleDisplayName:r.product,CFBundleExecutable:r.product,CrProductDirName:r.product,CFBundleVersion:'1',CFBundleShortVersionString:'1.0.0',SUFeedURL:feedURL('arm64'),SUPublicEDKey:r.sparkle.publicKey,SUVerifyUpdateBeforeExtraction:true,LSMinimumSystemVersion:r.minimumSystemVersion,CFBundleURLTypes:[{CFBundleURLSchemes:['http','https','file','blanc-beta']}]};
+  const r=fixture(),p={CFBundleIdentifier:ROOT_ID,CFBundleName:r.product,CFBundleDisplayName:r.product,CFBundleExecutable:r.product,CrProductDirName:r.product,CFBundleVersion:'1',CFBundleShortVersionString:r.version,SUFeedURL:feedURL('arm64'),SUPublicEDKey:r.sparkle.publicKey,SUVerifyUpdateBeforeExtraction:true,LSMinimumSystemVersion:r.minimumSystemVersion,CFBundleURLTypes:[{CFBundleURLSchemes:['http','https','file','blanc-beta']}]};
   validateAppInfo(p,r,'arm64');
-  for(const change of [v=>v.CFBundleIdentifier='me.bnfy.bowser',v=>v.CrProductDirName='Blanc',v=>v.SUFeedURL=feedURL('x64'),v=>v.SUVerifyUpdateBeforeExtraction=false,v=>v.CFBundleVersion='158.0.8127.2',v=>v.CFBundleURLTypes[0].CFBundleURLSchemes.push('blanc'),v=>v.SUEnableInstallerLauncherService=true]){const v=structuredClone(p);change(v);assert.throws(()=>validateAppInfo(v,r,'arm64'));}
+  for(const change of [v=>v.CFBundleIdentifier='me.bnfy.bowser',v=>v.CrProductDirName='Blanc',v=>v.SUFeedURL=feedURL('x64'),v=>v.SUVerifyUpdateBeforeExtraction=false,v=>v.CFBundleVersion='158.0.8127.2',v=>v.CFBundleShortVersionString='1.0.0',v=>v.CFBundleURLTypes[0].CFBundleURLSchemes.push('blanc'),v=>v.SUEnableInstallerLauncherService=true]){const v=structuredClone(p);change(v);assert.throws(()=>validateAppInfo(v,r,'arm64'));}
 });
 test('DER parsing distinguishes typed booleans, arrays and rejects unknown values',()=>{
   const listing='0:d=0 cons: SEQUENCE\n1:d=3 prim: UTF8STRING :com.apple.security.cs.allow-jit\n2:d=3 prim: BOOLEAN :255\n3:d=3 prim: UTF8STRING :keychain-access-groups\n4:d=3 cons: SEQUENCE\n5:d=4 prim: UTF8STRING :beta.group';

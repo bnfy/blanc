@@ -38,7 +38,8 @@ export function validateRelease(r) {
   equal(r.chromiumVersion, CHROME_VERSION, 'chrome/VERSION stays upstream');
   check(/^1\.0\.0-beta\.[1-9]\d*$/.test(r.version), 'version must be 1.0.0-beta.N');
   equal(r.tag, `chromium-beta-${r.version}`, 'tag must be outside stable semver tags');
-  equal(r.shortVersion, '1.0.0', 'CFBundleShortVersionString');
+  // Owner decision (2026-11-10): the app and the update feed both show the full beta version.
+  equal(r.shortVersion, r.version, 'CFBundleShortVersionString must be the beta version shown in the feed');
   check(Number.isInteger(r.build) && r.build > 0 && r.build <= 9999, 'build must be integer 1..9999');
   check(Number.isInteger(r.previousBuild) && r.previousBuild >= 0 && r.build > r.previousBuild, 'build must increase');
   check(r.prerelease === true && r.makeLatest === false, 'GitHub pre-release and latest=false required');
