@@ -6,7 +6,7 @@ Queue 2 in progress; local commits only. No live-tree or production access.
 | --- | --- |
 | A shared Spaces | Implemented: two-window native gate 3/3; full regression owed |
 | B native icons | Implemented; peer icon/privacy pass; clean full gate owed in D |
-| C Android safety | Owed |
+| C Android safety | Partly: available checks pass; Linux 156 compile/device gates owed |
 | D regression | Owed; comparison baseline finish-final-features-2 |
 | E Sparkle | Owed; existing 2.8.0 pin is not security-cleared |
 | F dedicated beta | Owed; initial disk check 1.1 TiB available |
@@ -17,9 +17,10 @@ Prototype: macos-01fd557468d72dd0, beta-icons-native-4-runtime-config.json.
 Beta candidate/app: not built.
 Gate: beta-spaces-native-8-gate 3/3; bridge unit tests 6/6.
 Scenario: sync.feature:162 passes on candidate 8 (beta-spaces-pairing-8).
-Precommit tools: 280/280; patch reconstruction: 158 upstream / 567 canonical.
+Latest precommit tools: 282/282; patches: 159 desktop / 35 Android / 568 canonical.
 Lost native passes: not measured yet.
-Android checks: not run yet; 156 compile availability not established.
+Android: 282/282 tools; bundle current; 35-file lane reconstruction; 38 syntax checks.
+156 compile and device/emulator execution owed: no tree/output; Darwin arm64 host.
 Owner next: no input needed at this checkpoint.
 Unverified: wider Spaces regression, final shutdown fix, Android, regressions, beta build,
 Sparkle linkage/handoff, signed distribution, production real-device Sync.
@@ -123,3 +124,46 @@ Final B build: `macos-01fd557468d72dd0`, 21.10s / 6 guarded actions.
 B precommit: `beta-icons-tools-2.tap` 282/282; desktop patch reconstruction
 159 upstream / 568 canonical passes. The first tools run only failed the
 old 158-file count assertion; it now records the added private-tab crash patch.
+
+## C — Android safety
+
+Against bundle `ef49491f64d20084bb67e2f589fc1569dc24affc87a3a4fc4cd73b2177ec7c02`:
+
+| Check | Result / evidence |
+| --- | --- |
+| All tools/release tests, including Android-lane and phone bundle tests | 282/282, beta-android-tools.tap |
+| Lane bundle regeneration check | Current; v1.46.0 shipping module pin unchanged |
+| Android patch reconstruction | 35 upstream / 568 canonical; beta-android-patches.log |
+| Desktop patch reconstruction | 159 upstream / 568 canonical; beta-android-desktop-patches.log |
+| Android JS/CJS/MJS and shell support syntax | 38 files; beta-android-support-syntax.json |
+| Chromium 156 Android compile | Not run; beta-android-host.json |
+| APK/emulator/device/native Android gates | Not run; no adb, checkout or output here |
+
+The inspected machine is Darwin arm64; the build wrapper deliberately requires
+Linux x86-64. The expected `~/chromium-android/src` and
+`~/Projects/BlancChromium156/src` do not exist. Existing 157/158 trees report their
+respective milestones and contain no AndroidDebug/AndroidDebugX64 args files.
+No remote build host was contacted and no toolchain, checkout or emulator was
+installed. These source/bundle checks are not Android compile or runtime credit.
+
+Owed compile on the existing Linux Android lane host, after guarded application
+of this commit's Android lane and canonical source (including the bundle/hash)
+against its saved last-applied map, preserving the existing args and caches:
+
+```sh
+cd "$HOME/blanc"
+ANDROID_SRC="$HOME/chromium-android/src"
+ANDROID_NODE="$ANDROID_SRC/third_party/node/linux/node-linux-x64/bin/node"
+"$ANDROID_NODE" chromium/tools/build-sync-bundle.mjs --check
+python3 chromium/tools/check-patches.py --lane android
+"$ANDROID_NODE" chromium/tools/build.mjs "$ANDROID_SRC" --lane=android --out=AndroidDebugX64 --check
+"$ANDROID_NODE" chromium/tools/build.mjs "$ANDROID_SRC" --lane=android --out=AndroidDebugX64 --build
+# On the configured emulator, after the compile:
+cd "$ANDROID_SRC"
+BLANC_TREE="$HOME/blanc" BLANC_EVIDENCE="$HOME/blanc-evidence/android/beta-sync-bridge" \
+  bash "$HOME/blanc/chromium/tests/android/a4-gate.sh"
+```
+
+Do not bypass a changed environment/large-plan guard. The arm64 Pixel output's
+corresponding owed compile uses `--out=AndroidDebug`, with that output's existing
+saved environment and APK/device gates; neither output has been qualified here.
