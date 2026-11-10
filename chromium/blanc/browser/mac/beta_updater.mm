@@ -80,7 +80,8 @@ static __weak BlancBetaUpdater* g_beta_updater;
   NSString* display = item.displayVersionString;
   NSString* current = [NSBundle.mainBundle objectForInfoDictionaryKey:@"CFBundleVersion"];
   return blanc::beta::AllowUpdate(Text(current), Text(item.versionString),
-      Text(display), Text(item.fileURL.absoluteString), Text(Arch()), item.isDeltaUpdate)
+      Text(display), Text(item.fileURL.absoluteString), Text(Arch()),
+      item.isDeltaUpdate || item.deltaUpdates.count != 0)
       ? YES : Refuse(error);
 }
 - (BOOL)updater:(SPUUpdater*)updater shouldDownloadReleaseNotesForUpdate:(SUAppcastItem*)item {

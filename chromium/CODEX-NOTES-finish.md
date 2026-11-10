@@ -1,7 +1,7 @@
 # Result
 
 Local work from `b4bd80c5`; no push or release action.
-Candidate: `macos-54b6c5b00de32333`; config: `finish-0041-runtime-config.json`.
+Candidate: `macos-54b6c5b00de32333`; config: `finish-final-runtime-config.json`.
 
 | Queue item | State |
 | --- | --- |
@@ -340,3 +340,25 @@ No native eligibility rule, shipping step or assertion changed.
 
 Item 7 precommit: `finish-0041-tools.tap` 273/273 pass;
 `finish-0041-patches.txt` 158 outputs / 564 canonical files; diff check passes.
+
+
+## Beta branch follow-up before the final gates
+
+The native updater now rejects both delta items and full items advertising
+delta alternatives; Sparkle may otherwise select an advertised alternative.
+Pinned public headers document that selection. No appcast format was relaxed.
+
+Syntax-only checks explicitly selected beta branches and disabled preview hooks
+using a temporary forced-include copy of buildflags.h. They did not edit the
+prototype's generated header/args, build or launch a beta, or bypass a rendering
+or build guard. The AppController branch passed. The Settings/browser UI unit
+exposed an unused test-only AutoHideState function with hooks disabled; it now
+uses the existing test-hook compile guard. That is a real beta compile repair.
+The final guarded preview rebuild passed 6 actions in 32.94 s and kept the
+same executable/framework candidate `macos-54b6c5b00de32333`; final config is
+`finish-final-runtime-config.json`. Beta framework linkage/runtime remains owed.
+
+Final beta branch syntax receipts: `finish-beta-syntax-app_controller_mac.txt`,
+`finish-beta-syntax-blanc_prototype_ui.txt`, and
+`finish-sparkle-native-syntax-final.txt` all exit 0. Precommit tools 273/273
+(`finish-beta-followup-tools.tap`); patch reconstruction 158/564; diff check pass.
