@@ -1,4 +1,4 @@
-// Desktop S4a/S4b gate: the actual native default profile, embedded runner bundle,
+// Desktop S4a–S4c gate: the actual native default profile, embedded runner bundle,
 // local Worker and independent bundle peer. No production endpoint or real device.
 // /usr/local/bin/node chromium/tests/desktop-sync.mjs CONFIG EVIDENCE
 import fs from 'node:fs';
@@ -12,6 +12,7 @@ import {NativeFixture} from './lib/fixture.mjs';
 import {installDriver,nativeCall} from './lib/test-driver.mjs';
 import {createWorld} from './world.mjs';
 import {tabPage} from './adapters/core.mjs';
+import {openTabMenu} from './adapters/tabs.mjs';
 import {inSettings} from './adapters/commands.mjs';
 const require=createRequire(import.meta.url);
 const {createSyncFixture}=require('../../test/desktop/support/sync-fixture.js');
@@ -118,7 +119,7 @@ try{
   assert.equal((await w.call('settingsSyncPairingDom')).shareTabs,false,'sharing defaults off');
   const macUrl=fixture.base+'/sync-mac-tab',privateUrl=fixture.base+'/sync-private-tab';
   const macId=await w.call('openTab',macUrl,{});
-  await w.call('openTab',privateUrl,{private:true});
+  const privateId=await w.call('openTab',privateUrl,{private:true});
   await until(()=>w.snapshot(),v=>v.tabs.some(t=>t.url===macUrl)&&v.tabs.some(t=>t.url===privateUrl&&t.private),'native tab inventory');
   const inheritedUrl=fixture.base+'/sync-inherited-tab';
   const opener=await tabPage(w,macId);await opener.evalExpression("1");await opener.bringToFront();
@@ -126,6 +127,11 @@ try{
   const child=await until(()=>w.snapshot(),v=>v.tabs.some(t=>t.url===inheritedUrl),'page-opened tab');
   const childId=child.tabs.find(t=>t.url===inheritedUrl).id;
   assert.equal((await w.native('quietState',[childId])).inheritedPolicy,true,'native sticky policy mark');
+  const beforeCopy=new Set((await w.snapshot()).tabs.map(t=>String(t.id)));
+  assert.equal(await w.api('duplicateTab',[String(childId)]),true,'V4 permits unsandboxed native duplication');
+  const copied=await until(()=>w.snapshot(),v=>v.tabs.some(t=>t.url===inheritedUrl&&!beforeCopy.has(String(t.id))),'native duplicate');
+  const copyId=copied.tabs.find(t=>t.url===inheritedUrl&&!beforeCopy.has(String(t.id))).id;
+  assert.equal((await w.native('quietState',[copyId])).inheritedPolicy,true,'copy retains Sync exclusion');
   const peerUrl='https://peer.example/open-tab';
   await new Promise((resolve,reject)=>device.context.__call('phone.setTabs',JSON.stringify([[{url:peerUrl,title:'Peer open tab',private:false}],[]]),(ok,value)=>ok?resolve(value):reject(Error('peer snapshot refused'))));
   device.sync.setSyncTabs(true);
@@ -140,7 +146,11 @@ try{
   assert.ok(!remote.some(d=>d.tabs.some(t=>t.url===inheritedUrl)),'inherited-policy tab excluded');
   const target=(await w.api('listSendTargets')).find(d=>d.name==='S4b independent iPhone peer');assert.ok(target);
   await requestRoom();await rpc('sync.resetRequestWindowForTest');
-  assert.equal((await w.api('sendTabToDevice',[String(macId),target.id])).status,'sent');
+  for(const id of [privateId,childId,copyId])
+   assert.equal((await w.api('sendTabToDevice',[String(id),target.id])).status,'invalid','protected tab cannot Send');
+  const menu=await openTabMenu(w,macId);
+  await menu.locator('.prototype-tab-menu button').filter({hasText:'Send to Device'}).click();
+  await menu.locator('.prototype-tab-menu button').filter({hasText:target.name}).click();
   await until(async()=>{await tabPump();return device.sync.listSentToThisDevice();},rows=>rows.some(t=>t.url===macUrl),'Mac Send received by peer');
   console.log('tabs: Mac Send received');
   const back=device.sync.listSendTargets()[0];assert.ok(back);
@@ -151,9 +161,9 @@ try{
   await openSync();await act('share-tabs-off');
   await until(async()=>{await tabPump();return device.sync.listRemoteDevices();},rows=>!rows.some(d=>d.tabs.some(t=>t.url===macUrl)),'share-off retracts Mac tabs');
   await w.relaunch();
-  const restored=await until(()=>w.snapshot(),v=>v.tabs.some(t=>t.url===inheritedUrl),'restored policy-marked tab');
-  const restoredId=restored.tabs.find(t=>t.url===inheritedUrl).id;
-  assert.equal((await w.native('quietState',[restoredId])).inheritedPolicy,true,'policy mark survives native session restore');
+  const restored=await until(()=>w.snapshot(),v=>v.tabs.filter(t=>t.url===inheritedUrl).length===2,'restored policy-marked tabs');
+  for(const tab of restored.tabs.filter(t=>t.url===inheritedUrl))
+   assert.equal((await w.native('quietState',[tab.id])).inheritedPolicy,true,'policy mark survives native session restore');
   await openSync();
  });
  }

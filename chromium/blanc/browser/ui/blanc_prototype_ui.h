@@ -83,6 +83,8 @@ void RestoreTabIdentity(content::WebContents* tab,
 // under the same sandbox; Duplicate and Quiet refuse it.
 inline constexpr char kInheritedDocumentPolicyKey[] = "blanc.tab.inherited-policy.v1";
 bool HasInheritedDocumentPolicy(content::WebContents* tab);
+// A native duplicate remains usable but keeps its source's Sync exclusion.
+void CopySyncExclusion(content::WebContents* source, content::WebContents* copy);
 inline constexpr char kInheritedSandboxKey[] = "blanc.tab.inherited-sandbox.v1";
 void NoteInheritedSandbox(content::WebContents* tab);
 uint32_t InheritedSandboxFlags(content::WebContents* tab);
@@ -128,6 +130,7 @@ bool OpenFindIsland(BrowserWindowInterface* browser, int direction = 0);
 // opening Chromium's star bubble. Returns true when the window is an Island
 // window, whether or not the page could be saved.
 bool ToggleFavoriteFromIsland(BrowserWindowInterface* browser);
+bool ToggleTabLayout(BrowserWindowInterface* browser);
 bool OpenIsland(BrowserWindowInterface* browser, bool new_tab = false,
                 const std::string& initial_text = std::string());
 std::unique_ptr<views::WebView> CreateIsland(BrowserWindowInterface* browser);

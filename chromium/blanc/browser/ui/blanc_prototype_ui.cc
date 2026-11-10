@@ -124,6 +124,8 @@
 #include "base/json/string_escape.h"
 #include "base/memory/ref_counted_memory.h"
 #include "third_party/skia/include/core/SkBitmap.h"
+#include "third_party/skia/include/core/SkCanvas.h"
+#include "skia/ext/image_operations.h"
 #include "ui/gfx/codec/png_codec.h"
 #include "base/strings/string_number_conversions.h"
 #include "base/strings/string_util.h"
@@ -382,12 +384,27 @@ bookmarks::BookmarkModel* LoadedBookmarkModel(Profile* profile) {
 // No network fetch happens here: the image is whatever Chromium already has.
 std::string FaviconDataUrl(const gfx::Image& image) {
   if (image.IsEmpty()) return std::string();
-  const SkBitmap bitmap = image.AsBitmap();
+  const SkBitmap bitmap = image.AsImageSkia().GetRepresentation(2.0f).GetBitmap();
   if (bitmap.drawsNothing() || bitmap.width() > kFaviconMaxSide ||
       bitmap.height() > kFaviconMaxSide) {
     return std::string();
   }
-  return webui::GetBitmapDataUrl(bitmap);
+  // Match shipping icon-square: 32px, aspect-preserving and transparent padded.
+  constexpr int kIconSide = 32;
+  const double scale = static_cast<double>(kIconSide) /
+      std::max(bitmap.width(), bitmap.height());
+  const int width = std::max(1, static_cast<int>(std::round(bitmap.width() * scale)));
+  const int height = std::max(1, static_cast<int>(std::round(bitmap.height() * scale)));
+  const SkBitmap fitted = skia::ImageOperations::Resize(
+      bitmap, skia::ImageOperations::RESIZE_BEST, width, height);
+  SkBitmap square;
+  if (fitted.drawsNothing() || !square.tryAllocN32Pixels(kIconSide, kIconSide))
+    return std::string();
+  square.eraseColor(SK_ColorTRANSPARENT);
+  SkCanvas canvas(square);
+  canvas.drawImage(fitted.asImage(), (kIconSide - width) / 2,
+                   (kIconSide - height) / 2);
+  return webui::GetBitmapDataUrl(square);
 }
 
 base::Value NullableString(const std::string& value) {
@@ -4713,6 +4730,17 @@ class Handler : public content::WebUIMessageHandler, public extensions::Extensio
         GURL("chrome://blanc-prototype/host.html");
   }
 #if BUILDFLAG(ENABLE_BLANC_TEST_HOOKS)
+  class FocusObservation final : public content::WebContentsObserver {
+   public:
+    explicit FocusObservation(content::WebContents* contents)
+        : content::WebContentsObserver(contents) {}
+    void OnWebContentsFocused(content::RenderWidgetHost*) override { ++focused; }
+    void OnWebContentsLostFocus(content::RenderWidgetHost*) override { ++blurred; }
+    int focused = 0;
+    int blurred = 0;
+  };
+  std::unique_ptr<FocusObservation> observed_tab_focus_;
+  std::unique_ptr<FocusObservation> observed_chrome_focus_;
   struct TestCall {
     std::string request;
     bool complete = false;
@@ -4848,6 +4876,39 @@ class Handler : public content::WebUIMessageHandler, public extensions::Extensio
             self->Reply(id, value.has_value(), value ? std::move(*value) : base::Value(json));
           }, weak_factory_.GetWeakPtr(), id));
       return;
+    }
+    if (message[1].GetString() == "beginTabFocusObservation") {
+      const auto& args = message[2].GetList();
+      if (args.size() != 1 || !args[0].is_int()) { reject("Invalid focus observation"); return; }
+      auto* model = GetOwner(web_ui()->GetWebContents())->browser->GetTabStripModel();
+      content::WebContents* tab = nullptr;
+      for (int i = 0; i < model->count(); ++i)
+        if (sessions::SessionTabHelper::IdForTab(model->GetWebContentsAt(i)).id() == args[0].GetInt()) tab = model->GetWebContentsAt(i);
+      if (!tab) { reject("Unknown observed tab"); return; }
+      observed_tab_focus_ = std::make_unique<FocusObservation>(tab);
+      observed_chrome_focus_ = std::make_unique<FocusObservation>(web_ui()->GetWebContents());
+      Reply(id, true, base::Value(true)); return;
+    }
+    if (message[1].GetString() == "tabFocusObservation" && message[2].GetList().empty()) {
+      if (!observed_tab_focus_ || !observed_chrome_focus_) { reject("Focus observation not started"); return; }
+      Reply(id, true, base::Value(base::DictValue()
+          .Set("tabFocusCount", observed_tab_focus_->focused)
+          .Set("tabBlurCount", observed_tab_focus_->blurred)
+          .Set("chromeFocusCount", observed_chrome_focus_->focused))); return;
+    }
+    if (message[1].GetString() == "desktopSyncReceiveLayout") {
+      const auto& args = message[2].GetList();
+      auto* owner = GetOwner(web_ui()->GetWebContents());
+      auto* profile = owner->browser->GetProfile();
+      const GURL endpoint(base::CommandLine::ForCurrentProcess()->GetSwitchValueASCII("blanc-sync-endpoint"));
+      if (!endpoint.SchemeIs("http") || endpoint.host() != "127.0.0.1" ||
+          !blanc::DesktopSyncService::ForProfile(profile) || args.size() != 1 ||
+          !args[0].is_string() || (args[0].GetString() != "island" && args[0].GetString() != "vertical")) {
+        reject("Invalid remote layout fixture"); return;
+      }
+      // Exercise the production receiver's exclusion, not an adapter no-op.
+      blanc::ApplyDesktopSyncSettings(profile, base::DictValue().Set("tabLayout", args[0].Clone()));
+      Reply(id, true, base::Value(owner->vertical ? "vertical" : "island")); return;
     }
     if (message[1].GetString() == "setIslandZoomFactor") {
       const auto& args = message[2].GetList();
@@ -9536,6 +9597,12 @@ uint32_t InheritedSandboxFlags(content::WebContents* tab) {
 bool HasInheritedDocumentPolicy(content::WebContents* tab) {
   return tab && (HasInheritedSandbox(tab) || blanc::quiet::MediaHistory::Get(tab)->inherited_policy());
 }
+void CopySyncExclusion(content::WebContents* source, content::WebContents* copy) {
+  if (!IsEnabled() || !source || !copy ||
+      source->GetBrowserContext() != copy->GetBrowserContext()) return;
+  if (HasInheritedDocumentPolicy(source))
+    blanc::quiet::MediaHistory::Get(copy)->MarkInheritedPolicy();
+}
 bool HasInheritedSandbox(content::WebContents* tab) { return InheritedSandboxFlags(tab) != 0; }
 std::string InheritedSandboxState(content::WebContents* tab) {
   const uint32_t flags = InheritedSandboxFlags(tab);
@@ -10091,6 +10158,19 @@ bool OpenFindIsland(BrowserWindowInterface* browser, int direction) {
       direction == 0 ? u"window.BlancPrototypeHost?.api.openFindBar()"
       : direction > 0 ? u"window.BlancPrototypeHost?.findStep(true)"
                       : u"window.BlancPrototypeHost?.findStep(false)", base::NullCallback());
+  return true;
+}
+
+bool ToggleTabLayout(BrowserWindowInterface* browser) {
+  if (!IsIslandWindow(browser)) return false;
+  auto* parent = BrowserView::GetBrowserViewForBrowser(browser);
+  auto* view = parent ? static_cast<views::WebView*>(parent->GetViewByID(kIslandViewId)) : nullptr;
+  if (!view) return false;
+  auto* contents = view->GetWebContents();
+  if (contents->GetLastCommittedURL() != GURL("chrome://blanc-prototype/host.html") ||
+      !contents->GetPrimaryMainFrame()->IsRenderFrameLive()) return false;
+  contents->GetPrimaryMainFrame()->ExecuteJavaScript(
+      u"window.BlancPrototypeHost?.toggleTabLayout()", base::NullCallback());
   return true;
 }
 

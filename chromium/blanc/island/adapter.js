@@ -4,6 +4,12 @@ if (location.origin === 'chrome://blanc-prototype' && parent !== window) {
   // The prototype's auxiliary WebView does not receive macOS's native
   // selectAll: edit command. Handle it only for this trusted UI's text fields.
   window.addEventListener('keydown', (event) => {
+    // Auxiliary WebViews do not always forward Cocoa menu accelerators.
+    if (event.metaKey && event.altKey && !event.ctrlKey && !event.shiftKey && event.code === 'KeyV') {
+      event.preventDefault();
+      parent.BlancPrototypeHost.toggleTabLayout();
+      return;
+    }
     if ((event.metaKey || event.ctrlKey) && !event.altKey && !event.shiftKey
         && event.key.toLowerCase() === 'a'
         && (event.target instanceof HTMLInputElement || event.target instanceof HTMLTextAreaElement)) {
@@ -175,6 +181,11 @@ if (location.origin === 'chrome://blanc-prototype' && parent !== window) {
       [localized('menu.closeTab', 'Close Tab'), () => window.browserAPI.closeTab(id)],
     ];
     if (typeof tab.siteMuted === 'boolean') actions.splice(3, 0, [localized(tab.siteMuted ? 'tabMenu.unmuteSite' : 'tabMenu.muteSite', tab.siteMuted ? 'Unmute Site' : 'Mute Site'), () => window.browserAPI.toggleSiteMute(id)]);
+    const groupRules = await window.browserAPI.selectedTabsMenuState([id]);
+    if (requestEpoch !== menuEpoch || !menu) return;
+    actions.push(
+      [localized('tabMenu.newGroup', 'New Group…'), () => window.browserAPI.beginNewGroupForTab(id), !groupRules.canGroup],
+      [localized('menu.ungroupTab', 'Ungroup Tab'), () => window.browserAPI.setTabGroup(id, null), !tab.groupId || !groupRules.canMove]);
     if (tab.canSend === true) {
       const targets = await window.browserAPI.listSendTargets().catch(() => []);
       if (requestEpoch !== menuEpoch || !menu) return;

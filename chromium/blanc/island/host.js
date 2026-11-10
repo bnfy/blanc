@@ -1569,6 +1569,7 @@
     });
   }
 
+  let railActivationSerial = 0;
   const implemented = {
     platform: 'darwin',
     startPinMenuState: id => request('startPinMenuState', [nativeId(id)]),
@@ -1604,7 +1605,11 @@
     setTabLayout: async value => { layout = value === 'vertical' ? 'vertical' : 'island'; await applyRail(true); return layout; },
     setVerticalTabsWidth: async width => { railWidth = Number(width) || 248; return applyRail(true); },
     previewVerticalTabsWidth: async width => { railWidth = Number(width) || 248; return applyRail(); },
-    activateTabFromRail: async id => { clearSelection(); await request('switchTab', [nativeId(id)]); await request('focusPage'); await refresh(); },
+    activateTabFromRail: async id => {
+      railActivationSerial++; clearSelection();
+      await close(false); await hideSheet(false);
+      await request('switchTab', [nativeId(id)]); await request('focusPage'); await refresh();
+    },
     toggleSiteMute: async id => { const result = await request('toggleSiteMute', [nativeId(id)]); await refresh(); return result; },
     moveClosedSection: async before => { closedBefore = before == null ? '' : String(before); closedBelow = null; localStorage.setItem('blanc.prototype.closedBefore', closedBefore); await refresh(); return true; },
     showTooltip: ({ text, anchor, privateTheme }) => {
@@ -1750,6 +1755,10 @@
     beginRenameGroup: async (groupId) => {
       const group = snapshot?.groups?.find(item => item.id === groupId);
       if (group) await show(group.name, 'panel', null, { renameGroupId: group.id });
+    },
+    beginNewGroupForTab: async id => {
+      if (!snapshot?.tabs.some(tab => String(tab.id) === String(id))) return;
+      await show('/group ', 'panel', null, { beginGroupTabId: String(id) });
     },
     beginNewGroup: async () => {
       const ids = [...tabSelection.selectedTabIds];
@@ -2384,6 +2393,8 @@
     glanceState: () => ({ layout: glancePayload(), shown: !glanceCardFrame.hidden, generation: glance.generation }),
     apiForDocument,
     refreshSyncSurfaces,
+    railActivationSerial: () => railActivationSerial,
+    toggleTabLayout: () => implemented.setTabLayout(layout === 'vertical' ? 'island' : 'vertical'),
     hoverState: () => ({ ...hover.state }),
     // Whether the how-to tip is on screen (shipping's introTipShown).
     autoHideIntroShown: () => introTip && !tooltip.hidden,
@@ -2463,6 +2474,12 @@
 
   window.addEventListener('unhandledrejection', (event) => {
     notice(event.reason?.message ?? String(event.reason));
+  });
+  window.addEventListener('keydown', event => {
+    if (event.metaKey && event.altKey && !event.ctrlKey && !event.shiftKey && event.code === 'KeyV') {
+      event.preventDefault();
+      window.BlancPrototypeHost.toggleTabLayout();
+    }
   });
   window.addEventListener('resize', reportGeometry);
   window.addEventListener('resize', () => syncFloat());

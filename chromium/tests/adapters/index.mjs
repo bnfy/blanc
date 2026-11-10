@@ -9,7 +9,8 @@ import {quietProtections} from './quiet-protections.mjs';
 import {quietProcess} from './quiet-process.mjs';
 import {tabs} from './tabs.mjs';
 import {sync} from './sync.mjs';
-const modules=[sync,mahjong,core,island,commands,pages,tabs,quietNative,quietChrome,quietProtections,quietProcess];
+import {vertical} from './vertical.mjs';
+const modules=[vertical,sync,mahjong,core,island,commands,pages,tabs,quietNative,quietChrome,quietProtections,quietProcess];
 export const adapters={};
 for(const m of modules)for(const [name,fn] of Object.entries(m)){
  if(adapters[name])throw Error('Duplicate adapter: '+name);adapters[name]=fn;

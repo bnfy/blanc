@@ -1,19 +1,19 @@
 # Result
 
 Local work from `b4bd80c5`; no push or release action.
-Candidate: `macos-9320a60d81bec2f7`; config: `s4c-tabs-4-runtime-config.json`.
+Candidate: `macos-e7a071bb7948929b`; config: `finish-vertical-2-runtime-config.json`.
 
 | Queue item | State |
 | --- | --- |
 | 1 S4c tabs, Other devices, Send | Requested cases done; native icon upload blocked by frozen bridge |
 | 2 S4d shared Spaces | Blocked: phone bridge lacks desktop window contract |
 | 3 Clean full gate and four files | Current candidate done; final rerun owed after queued fixes |
-| 4 Vertical/Island leftovers | In progress; approved V16 and Linux-only boundaries retained |
+| 4 Vertical/Island leftovers | Repairs done; V16 and Linux-only cases remain explicit |
 | 5 Beta identity | Pending; coordinating branch/version correction below |
 | 6 Sparkle updater | Pending |
 | 7 Review 0041 | Pending |
 
-| Current-candidate evidence | Pass | Fail | Undefined |
+| Full-run evidence on S4c candidate (before item 4) | Pass | Fail | Undefined |
 | --- | ---: | ---: | ---: |
 | Whole desktop-sync gate, one run | 21 | 0 | 0 |
 | sync.feature | 17 | 0 | 1 |
@@ -22,7 +22,9 @@ Candidate: `macos-9320a60d81bec2f7`; config: `s4c-tabs-4-runtime-config.json`.
 | vertical-tabs.feature | 9 | 4 | 7 |
 | S4b four-file baseline (comparison) | 100 | 4 | 17 |
 
-Lost S4b passes: **0 of 100**. Eight requested S4c cases gained passes.
+Lost S4b passes in full comparison: **0 of 100**. Eight Sync cases gained.
+Item 4 focused evidence: 18 vertical passes across two builds; 2 fail remain.
+Current candidate tabs/Send gate: **3/3 pass**, including duplicate/restart exclusion.
 Owner input: desktop Spaces bundle entry and native icon bridge need authorization.
 Unverified: final revised candidate, real Keychain/devices, signed beta/updater.
 
@@ -163,3 +165,44 @@ Patch budget at this boundary: 43 patch files, 151 touched upstream paths,
 531 hunks; reconstruction covers 155 upstream outputs and 552 canonical files.
 
 Queue 3 precommit: 244/244 tool tests, patch reconstruction and whitespace checks pass.
+
+## Queue 4 — vertical-tab repairs
+
+`finish-vertical-1-cases` on `macos-9010889292fae0f7` exercised every vertical
+scenario and Island :320. Six formerly undefined vertical cases and :249
+passed. The new shortcut adapter exposed the auxiliary WebView key path;
+:146 exposed native 16px favicon conversion versus shipping's 32px square.
+Both product paths were repaired, and `finish-vertical-2-cases` passes :34
+and :146 on `macos-e7a071bb7948929b` (`finish-vertical-2-runtime-config.json`).
+The second guarded incremental build took 33.63 seconds / 8 actions.
+
+The native shortcut command and trusted Island document handling now toggle
+layout. Rail activation dismisses transient surfaces and focuses real content;
+focus evidence uses WebContents observers, not synthetic counters. Group menu
+entries use native eligibility. Remaining adapters observe the actual DOM,
+real input, page state and a held loopback response. No shipping step changed.
+All seven previously undefined vertical scenarios now have passing execution
+across these two candidates; full final-candidate credit still needs the rerun.
+
+Retained boundaries: vertical :129 fails the mixed grouped-pin assertion,
+which contradicts the Nov 4 approved V16 native pinning decision. Vertical
+:239 fails and Island :320 remains undefined because they require Linux
+window controls; the fork's macOS native controls are not an equivalent Linux
+fixture. No platform or grouped-pin result was manufactured.
+
+S4c's duplication restriction was corrected to respect approved V4: ordinary
+unsandboxed page children may duplicate. Their sticky Sync exclusion copies
+to the clone before insertion and persists through native session restore.
+The tabs gate now checks both copies, rejects protected Send requests and
+sends the normal tab through the real context-menu recipient submenu.
+
+`finish-vertical-2-tabs-gate/result.json`: 3/3 checks pass, including the
+expanded context-menu and duplicate/restart checks. No production endpoint or
+real Keychain was used. Final clean full gate and four-file run remain owed
+after the remaining native patch work.
+
+Precommit: `finish-vertical-tools-2.tap` 244/244; patch reconstruction
+156 outputs / 552 canonical files; whitespace clean. The initial tool run
+found only the stale 155-output count assertion after adding the pinned Mac
+shortcut source; its expected count now records 156. Desktop patch inventory:
+44 selected patches, 152 distinct patched paths, 536 hunks, 150 pristine files.

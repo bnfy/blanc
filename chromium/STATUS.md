@@ -14,6 +14,12 @@ D7, F0.7, cold builds, new machines, D2/D4–D6/D8/V2 and replacement D3
 remain pending. D3 beta-only no-DRM exception accepted; EME notice/handoff required.
 
 ## Current work
+- **2026-11-10 — Vertical-tab repairs (candidate macos-e7a071bb7948929b):**
+  shortcut, focus/dismissal, group menus and 32px favicon conversion repaired.
+  All seven former vertical adapter gaps now have passing execution; the
+  approved grouped-pin divergence and Linux-only controls remain explicit.
+  Expanded tabs/Send local gate passes 3/3, including cloned policy exclusions
+  and restart. Full final-candidate regression remains owed; see queue report.
 - **2026-11-10 — Desktop Sync S4c (candidate macos-9320a60d81bec2f7):**
   open-tab sharing defaults off; Other devices, Rename Device and Send use the
   native default-profile service. Private and policy-marked tabs are excluded.
@@ -2402,5 +2408,5 @@ Android's Bar A counts the shared scenarios bound in `chromium/tests/android/acc
 
 Legacy macOS stages come from the approved spec; they await verification on the canonical candidate. No legacy stage counts as Verified.
 
-Candidate identities: macOS: macos-9320a60d81bec2f7; Windows: none; Linux: none; Android: android-arm64-7bd35e94ef746069.
+Candidate identities: macOS: macos-e7a071bb7948929b; Windows: none; Linux: none; Android: android-arm64-7bd35e94ef746069.
 <!-- END GENERATED PROGRESS -->

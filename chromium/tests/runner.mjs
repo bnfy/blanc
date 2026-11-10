@@ -53,7 +53,7 @@ async function runCase(matches,steps,tags=[]){
   // Profiles live in local temp storage, never in the synced evidence folder;
   // the browser log and any error are kept with the results.
   const name='case-'+String(++executed).padStart(4,'0');entry.fixture=name;
-  if(tags.includes('@sync-server')||tags.includes('@sync')||matches.some(m=>/injectRemoteDevices/.test(m.definition.run.toString())))await prepareSyncFixture(world);
+  if(tags.includes('@sync-server')||tags.includes('@sync')||matches.some(m=>/injectRemoteDevices|mergeRemoteTabLayout/.test(m.definition.run.toString())))await prepareSyncFixture(world);
   await fixture.launch(config,path.join(scratch,name),{testHooks:true,pages:await fixturePages.start(),diskAssets:config.diskAssets!==false});
   await installDriver(fixture.host);const caps=await nativeCall(fixture.host,'capabilities');if(!caps.testHooks)throw Error('Native test hook unavailable');
   await assertRendering(e=>fixture.host.eval(e));
@@ -81,6 +81,7 @@ async function runCase(matches,steps,tags=[]){
   // Shipping's After hooks restore its shared app, which a fresh browser per
   // case doesn't need. A Before hook's server still has to close, or Node
   // never exits.
+  for(const page of world.heldLoadingPages??[])await page.cdp?.send('Fetch.disable').catch(()=>{});
   await world.lifecycleFixture?.close().catch(()=>{});
   try{entry.browserExit=await fixture.close();}
   finally{try{await world.syncPeer?.sync.disable();}finally{await world.syncServer?.close();}}

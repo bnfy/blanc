@@ -125,6 +125,7 @@ export class Locator{
   await this.one((e,v)=>{e.value=v;e.dispatchEvent(new InputEvent('input',{bubbles:true,inputType:'insertText',data:v}));return true;},value);}
  async press(key){await this.focus();await this.page.keyboard.press(key);}
  async type(text){await this.focus();await this.page.keyboard.type(text);}
+ async pressSequentially(text,{delay=0}={}){await this.focus();for(const ch of String(text)){await this.page.keyboard.type(ch);if(delay)await pause(delay);}}
  screenshot(){throw new UndefinedNativeAdapterError('Locator shim lacks screenshot');}
  page(){return this.page;}
 }
@@ -251,7 +252,7 @@ export function createAppShim(fixture){
     const page=new Page({cdp:null,url:shippingPageUrl(t.url),closed:()=>page.closed===true});page.targetId=t.id;page.app=app;
     // Connect lazily; most steps never touch tab documents.
     const connectFor=async()=>{if(!page.cdp){page.cdp=await fixture.connectTarget(t);page.keyboard=new Keyboard(page.cdp);page.mouse=new Mouse(page.cdp,()=>page.offset(),()=>page.keyboard.modifiers);}return page.cdp;};
-    for(const m of ['evalExpression','offset'])page[m]=(orig=>async(...a)=>{await connectFor();return orig.apply(page,a);})(Page.prototype[m]);
+    for(const m of ['evalExpression','offset','bringToFront'])page[m]=(orig=>async(...a)=>{await connectFor();return orig.apply(page,a);})(Page.prototype[m]);
     pages.set(t.id,page);
    }
   },

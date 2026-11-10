@@ -124,27 +124,34 @@ export const core={
  // A presentation seed: the title goes through the page itself so Chromium
  // reports it as a real title; seeds with no page path stay undefined.
  async setTabPresentation(w,id,patch={}){
-  const keys=Object.keys(patch).filter(k=>k!=='title'&&k!=='muted'&&k!=='isLoading'&&k!=='favicon');
+  const keys=Object.keys(patch).filter(k=>k!=='title'&&k!=='muted'&&k!=='isLoading'&&k!=='favicon'&&k!=='audible');
   if(keys.length)throw new UndefinedNativeAdapterError('Tab presentation seed needs an adapter: '+keys);
   if(typeof patch.title==='string'){
    await (await tabPage(w,id)).evaluate(t=>{document.title=t;},patch.title);
    await w.waitForState(s=>s.tabs.some(t=>t.id===String(id)&&t.title===patch.title));
   }
-  if(typeof patch.favicon==='string'){
+  // Private icons are deliberately absent from the native projection.
+  if(typeof patch.favicon==='string'&&!(await w.state()).tabs.find(t=>t.id===String(id))?.private){
    await (await tabPage(w,id)).evaluate(url=>{let link=document.querySelector('link[rel=icon]');if(!link){link=document.createElement('link');link.rel='icon';document.head.append(link);}link.href=url;},patch.favicon);
    await w.waitFor(()=>w.snapshot(),s=>!!s.tabs.find(t=>String(t.id)===String(id))?.favicon,'page favicon');
   }
+  if(patch.audible===true)await w.call('setQuietProtection',id,'audible');
+  if(patch.audible===false)await (await tabPage(w,id)).evaluate(()=>window.__quietAudio?.pause());
   if(typeof patch.muted==='boolean'&&(await w.state()).tabs.find(t=>t.id===String(id)).muted!==patch.muted)await w.api('toggleTabMuted',[String(id)]);
   if(patch.isLoading===true){
-   // A real, slow navigation to the tab's own address: headers arrive at
-   // once (the tab genuinely starts loading) and the body 2.5s later, via
-   // shipping's own ?hold=slow fixture mechanism. Not awaited to settle:
-   // the caller observes the loading state itself.
+   // Hold a real loopback response until the row assertions finish. A fixed
+   // delay expires while the other identity rows are still being created.
    const tab=(await w.snapshot()).tabs.find(t=>String(t.id)===String(id));
    if(!tab)throw Error('Unknown native tab '+id);
-   const holdUrl=new URL(tab.committedUrl||tab.url);
-   holdUrl.searchParams.set('hold','slow');
-   w.native('navigate',[nativeId(id),holdUrl.toString()]);
+   const url=new URL(tab.committedUrl||tab.url);url.searchParams.set('hold','slow');
+   if(url.hostname!=='127.0.0.1')throw Error('Loading fixture requires loopback');
+   const page=await tabPage(w,id);await page.evalExpression('1');let paused=false;
+   page.cdp.on('Fetch.requestPaused',()=>{paused=true;});
+   await page.cdp.send('Fetch.enable',{patterns:[{urlPattern:url.href,requestStage:'Response'}]});
+   (w.heldLoadingPages??=[]).push(page);
+   w.native('navigate',[nativeId(id),url.href]).catch(()=>{});
+   await w.waitFor(()=>paused,Boolean,'held fixture response');
+   await w.waitFor(()=>w.snapshot(),s=>s.tabs.find(t=>String(t.id)===String(id))?.isLoading,'native loading state');
   }
   return true;
  },

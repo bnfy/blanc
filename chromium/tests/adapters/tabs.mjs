@@ -90,7 +90,7 @@ const exceptionRows=async w=>(await w.native('blockingExceptions',[])).map(Strin
 async function activeTab(w){const s=await w.snapshot();return s.tabs.find(t=>String(t.id)===String(s.activeTabId))??null;}
 // The fork's Island tab menu: a real right-click on the tab's row in the
 // ⌘L panel, read back as rendered buttons.
-async function openTabMenu(w,tabId){
+export async function openTabMenu(w,tabId){
  if(!await overlayShown(w))await w.hostEval('window.BlancPrototypeHost.open(false)');
  const page=overlay(w);
  // A split is one row; its tabs are listed under its disclosure.
