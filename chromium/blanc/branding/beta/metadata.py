@@ -30,7 +30,7 @@ def metadata(info, version, build):
     result['CFBundleURLTypes'] = urls
     return result
 
-def updater_metadata(info, public_key, arch):
+def updater_metadata(info, public_key, arch, local_qualification=False):
     try:
         key = base64.b64decode(public_key, validate=True)
     except Exception:
@@ -43,6 +43,14 @@ def updater_metadata(info, public_key, arch):
     result.update(SUFeedURL='https://blanc.day/updates/chromium-beta/' + arch + '.xml',
                   SUPublicEDKey=public_key, SUVerifyUpdateBeforeExtraction=True,
                   SUShowReleaseNotes=False, SUAutomaticallyUpdate=False)
+    if not isinstance(local_qualification, bool):
+        raise ValueError('invalid local qualification flag')
+    if local_qualification:
+        if arch != 'arm64':
+            raise ValueError('local qualification is Apple Silicon only')
+        result.update(SUFeedURL='http://127.0.0.1:49262/arm64.xml',
+                      BlancLocalQualification=True,
+                      NSAppTransportSecurity={'NSAllowsLocalNetworking': True})
     return result
 
 if __name__ == '__main__':
@@ -56,6 +64,6 @@ if __name__ == '__main__':
     with open(args.config) as stream:
         config = json.load(stream)
     with open(args.input, 'rb') as stream:
-        result = updater_metadata(metadata(plistlib.load(stream), args.version, args.build), config['public_key'], config['arch'])
+        result = updater_metadata(metadata(plistlib.load(stream), args.version, args.build), config['public_key'], config['arch'], config.get('local_qualification', False))
     with open(args.output, 'wb') as stream:
         plistlib.dump(result, stream)

@@ -14,7 +14,7 @@ Queue 2 in progress; local commits only. No live-tree or production access.
 | C Android safety | Partly: available checks pass; Linux 156 compile/device gates owed |
 | D regression | Partly: earlier full 22/22; final rerun interrupted by screen lock |
 | E Sparkle | Done: 2.10.1 reviewed/staged; preview unchanged; offline checks pass |
-| F dedicated beta | Owed; initial disk check 1.1 TiB available |
+| F dedicated beta | In progress: dedicated args and GN generated; cold build next |
 | G local beta proof | Owed |
 | H operator handoff | Owed |
 
@@ -267,3 +267,46 @@ E precommit: `beta-sparkle-tools-1.tap` 284/284 after the preview rebuild,
 including offline archive/metadata/HTTP/EdDSA/native-policy updater tests;
 159/568 desktop patch reconstruction and whitespace checks pass. No native
 Sparkle handoff or Apple-contacting assessment was run.
+
+## F — dedicated beta build preparation
+
+Disk check: 1,230,791,700 KiB free; 128 GiB RAM / 18 logical CPUs. New output
+`/Users/anthonyjloria/Projects/BlancChromium158/src/out/BlancBeta`, arm64 only,
+`2.0.0-beta.1` / build 1, Blanc Beta / me.bnfy.blanc.beta / blanc-beta / macOS 13,
+no Widevine. Intel waiver is the owner's November 10 direction. Prototype args
+remain SHA-256 `414e3baad6c84730b3c17f411ed82c5065561ba344fe2a202675654e1e18a057`.
+PGO profiles are absent, so the reviewed fallback is explicit phase 0 and
+symbol level 0; official optimization and ThinLTO remain enabled. No hooks,
+sync, toolchain fetch or clean. The first GN attempt exposed duplicate ARC in
+the previously uncompiled beta target; inherited Chromium ARC is now used.
+Second GN generation succeeds (37216 targets / 5069 files); no compile yet.
+
+The local qualification build uses fixed loopback Sync/appcast endpoints and a
+throwaway EdDSA key held only in a mode-0700 temporary directory (seed file 0600).
+No key bytes are logged, placed in evidence or committed. The metadata marker
+and local GN configuration are refused by production validation; the production
+feed/endpoint are unchanged and official production ignores preview overrides.
+Added packaged notices and full generated Chromium credits, plus Sparkle metadata
+for Chromium's license generator. Added explicit local structural verification;
+it does not run Developer ID, Apple, Gatekeeper or native acceptance.
+
+Patch 0050 adds the compile-time qualification choice to the existing beta
+metadata action. Before cold compilation, the new environment and action plan
+must be reviewed and the build-number/Intel-waiver entry committed.
+
+Cold plan review: 58,015 scheduled actions, `beta-1-build-check.log`; the
+`--check --allow-large-build` dry run completed without compiling. The new
+recorded environment differs from the prototype only in `argsSha256`:
+Xcode 27.2/27B52, SDK 27.2/26B118, LLVM 24 e063be79adf1 remain unchanged.
+Effective official/ThinLTO/full-credits/13.0/no-Widevine flags are recorded in
+`beta-1-effective-gn.json`. The plan contains no temporary public key and no
+explicit signing, notarization or checkout command. The authorized cold build
+will use `--allow-large-build --max-actions=58015`, once, with no concurrent test.
+Build 1 and its Apple Silicon waiver are reserved in `chromium/release/ledger.json`.
+
+F preparation precommit: `beta-build-prep-tools-3.tap` 289/289; desktop 159/573
+and Android 35/573 reconstruction pass. The preceding tools run exposed only
+an obsolete assertion that the real ledger was empty; it now proves reserved
+private beta 1 is refused and the next unused version/build is accepted.
+Current patch totals: 49 ordered patches, 571 hunks, 155 output paths,
+153 pristine inputs, 159 reconstructed files, 573 canonical files.

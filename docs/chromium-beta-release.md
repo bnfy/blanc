@@ -1,6 +1,6 @@
 # Blanc Chromium macOS beta release runbook
 
-**Identity implementation and offline tooling, updated 2026-11-10. No official build or publication is authorized by this document.** The shell entrypoint is deliberately incapable of executing a release. Finish the staged patches and qualification below before replacing that guard in a reviewed change. Existing Electron release scripts and `src/`, `spec/`, `test/desktop/` are unchanged.
+**Updated 2026-11-10. The owner approved one dedicated local beta build and an incremental N+1 qualification build. Publication, Developer ID signing, Apple, 1Password and production Sync remain separate owner operations.** The shell entrypoint is deliberately incapable of executing a release. Finish the staged patches and qualification below before replacing that guard in a reviewed change. Existing Electron release scripts and `src/`, `spec/`, `test/desktop/` are unchanged.
 
 This beta is a separate application alongside shipping Electron Blanc, updates with Sparkle starting at beta 1, uses GitHub **pre-releases in bnfy/blanc**, has **no Widevine**, and requires production Blanc Sync. These owner decisions supersede the older replacement spec's same-ID migration design for this beta. They are not open questions. No production Sync, GitHub release API, Apple or 1Password connection was made during setup.
 
@@ -30,18 +30,18 @@ The policy accepts integer builds 1–9999 and fails at exhaustion; review an ex
 
 Candidate IDs from the preview tracker are not beta qualification. Bind `chromium/tools/build.mjs`'s actual resulting candidates and compiled-input/args hashes to each release architecture. Evidence from an older candidate becomes stale after a code, GN, resource, signing or packaging change. Keep unsigned and signed binary digests distinct.
 
-## 2. Reviewed official-build GN change — scheduled rebuild, not applied
+## 2. Approved dedicated beta output and reviewed GN configuration
 
-`chromium/README.md`, `HANDOFF.md`, `STATUS.md` and the build wrapper document preservation of `out/BlancPrototype`, `out/BlancRelease`, SDK/compiler and GN arguments. The preserved host `out/BlancPrototype/args.gn` was read on 2026-11-10: `is_debug=false`, `is_component_build=false`, `symbol_level=0`, `target_cpu="arm64"`, and no other explicit assignments. Its SHA-256 is `414e3baad6c84730b3c17f411ed82c5065561ba344fe2a202675654e1e18a057`. The file was not changed. Its implicit channel is preview and official-build is false. A beta/official output changes this configuration; the task queue explicitly stops that item at the patch rather than approving a cold or official build.
+`chromium/README.md`, `HANDOFF.md`, `STATUS.md` and the build wrapper document preservation of `out/BlancPrototype`, `out/BlancRelease`, SDK/compiler and GN arguments. The preserved host `out/BlancPrototype/args.gn` was read on 2026-11-10: `is_debug=false`, `is_component_build=false`, `symbol_level=0`, `target_cpu="arm64"`, and no other explicit assignments. Its SHA-256 is `414e3baad6c84730b3c17f411ed82c5065561ba344fe2a202675654e1e18a057`. The file was not changed. Its implicit channel is preview and official-build is false. The November 10 task queue explicitly approves a separate cold `out/BlancBeta` output and an incremental beta.2 rebuild. It does not authorize changing prototype arguments, caches or toolchains.
 
 The intended semantic diff for review on the build host is:
 
 | Setting | Observed prototype contract / before value | Approved beta value |
 | --- | --- | --- |
 | `blanc_channel` | `preview` default; current alternative `release` reuses Electron's ID | `"beta"` (implemented) |
-| `is_official_build` | exact args unavailable | `true` |
-| `is_debug`, `is_component_build` | exact args unavailable | both `false` |
-| `target_os`, `target_cpu` | macOS candidate; exact args unavailable | `"mac"`, separately `"arm64"` / `"x64"` |
+| `is_official_build` | implicit `false` | `true` |
+| `is_debug`, `is_component_build` | both explicitly `false` | both `false` |
+| `target_os`, `target_cpu` | host macOS, explicit `"arm64"` | `"mac"`, `"arm64"` for this approved build |
 | `is_chrome_branded` | Chromium branding source selected | `false` (never Google Chrome branding) |
 | `enable_updater` | effective GN value unverified | `false` (this is Chromium/Google updater, not Sparkle) |
 | `enable_widevine`, `bundle_widevine_cdm` | exact args unavailable | both explicitly `false` |
@@ -50,7 +50,45 @@ The intended semantic diff for review on the build host is:
 
 On the authorized build machine, save both args files, `gn args --list` effective values, toolchain/SDK hashes and the literal diff. Official defaults may change optimization, PGO inputs, symbol generation and SDK requirements: they are not a small packaging-only toggle. [mac_sdk.gni at the pin](https://chromium.googlesource.com/chromium/src/+/681cd621e82e606d7536eae8ea2576afb3c7d65c/build/config/mac/mac_sdk.gni) selects macOS 13.0 minimum, official SDK 27.0/26A425 (and the Intel-host universal alternative 26.5/25F70). Confirm the effective host path; do not silently select an SDK, fetch PGO data, run hooks, clean, or bypass the guard.
 
-Schedule and approve this intentional rebuild, its machines, output directory and action budget. Extend `chromium/tools/build.mjs` for a separate beta output; it currently accepts only BlancPrototype/BlancRelease for desktop. Preserve both existing outputs and Siso caches. Inspect competing build **process names**; obtain a reviewed dry-run plan, then use the guarded wrapper with the approved action limit. A cold beta output is a separately authorized cold build, not disguised as incremental. After integration, preflight insists on explicit literal GN assignments, exact file hashes and the listed safety values, and refuses any other argument until it is added to `GN_REVIEWED_EXTRA` in `policy.mjs` in a reviewed change; it does not run GN or prove effective toolchain selection.
+The intentional rebuild is approved for this machine and the new `out/BlancBeta` directory. `chromium/tools/build.mjs` now allowlists that output beside BlancPrototype/BlancRelease. Preserve both existing outputs and Siso caches. Inspect competing build **process names**; obtain a reviewed dry-run plan, then use the guarded wrapper with the approved action limit. A cold beta output is a separately authorized cold build, not disguised as incremental. After integration, preflight insists on explicit literal GN assignments, exact file hashes and the listed safety values, and refuses any other argument until it is added to `GN_REVIEWED_EXTRA` in `policy.mjs` in a reviewed change; it does not run GN or prove effective toolchain selection.
+
+### Local qualification configuration
+
+The initial free-space check found 1,230,791,700 KiB available (about 1.15 TiB),
+128 GiB RAM and 18 logical CPUs. `out/BlancBeta` was absent. The local build
+requires at least 200 GiB free before starting; actual disk use is monitored.
+No `gclient sync`, hooks, clean or toolchain download is part of this run.
+
+The official defaults request PGO profiles that are absent from
+`chrome/build/pgo_profiles`. Reviewed fallback: explicitly `chrome_pgo_phase=0`
+and retain `symbol_level=0`, with `is_official_build=true`, non-component release
+optimization and the existing LLVM/Xcode/SDK. ThinLTO remains the official
+default. Both macOS deployment/minimum arguments are explicitly `"13.0"`.
+`validateGN` accepts only these reviewed fallback values; it still refuses
+arbitrary additional arguments, debug/component mode, Widevine or Google updater.
+
+To perform the owner's local updater/Sync exercise without contacting production,
+this private build sets `blanc_beta_local_qualification=true`. That compile-time
+choice fixes Sync to `http://127.0.0.1:49261` and the appcast to
+`http://127.0.0.1:49262/arm64.xml`, with only the matching loopback beta DMG name
+accepted. It uses a throwaway EdDSA key in an owner-only temporary directory.
+No runtime argument, renderer message or edited plist selects these endpoints.
+A relaunch therefore cannot fall back to production Sync. Normal official builds
+ignore the preview Sync endpoint switch and retain the immutable production feed.
+
+The private app is marked `BlancLocalQualification=true` in its metadata.
+Production release validation, GN preflight and artifact verification refuse
+that marker/configuration. `verify.mjs --local RELEASE.json arm64 APP` performs
+layout, nested-ID, no-Widevine, notices, linkage and architecture checks without
+Developer ID, a ticket, Gatekeeper or a launch. It cannot establish release
+acceptance. Production requires a fresh unused build/version, production key,
+`blanc_beta_local_qualification=false` and the normal verifier.
+
+The beta bundles the repository's full grants/identity carve-outs and generated
+compliance notices, Sparkle's entire license and Chromium's actual generated
+credits. The broad repository notice file is a source notice collection, not an
+attestation that every listed Electron component ships in this fork; a complete
+artifact-bound SBOM/compliance audit remains a publication gate.
 
 ## 3. Branding, profile and OS identity
 
@@ -318,9 +356,8 @@ public test vector. Its one-byte artifact is not a DMG, and it is not a native
 Sparkle N-to-N+1 handoff. Real framework linking, rpaths, native discovery and
 validation, user consent, session/Sync flush, signed install/relaunch,
 Gatekeeper, profile/passkey continuity and both helper signatures remain owed.
-An actual beta output requires a separate reviewed build configuration; this
-queue explicitly stops at the patch when that would require a cold/official
-build or changing prototype arguments.
+The owner-approved dedicated beta output uses the reviewed configuration in
+section 2. Prototype arguments remain untouched.
 
 The owner approved upgrading the old 2.8.0 pin to the newest stable 2.x.
 The selected 2.10.1 archive and all published post-2.8.0 advisories are reviewed

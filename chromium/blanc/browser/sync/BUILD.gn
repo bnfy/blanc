@@ -45,6 +45,7 @@ source_set("sync") {
   ]
   deps = [
     ":logic",
+    "//blanc:buildflags",
     ":search_validation",
     "//chrome/browser:browser_process",
     "//chrome/browser/bookmarks",

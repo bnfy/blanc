@@ -1,0 +1,106 @@
+BLANC THIRD-PARTY NOTICES
+
+Generated from package-lock.json and compliance/policy.json. Do not edit by hand.
+Blanc itself is released under the MIT License; LICENSE.blanc.txt is copied beside this notice.
+The notices below cover third-party material distributed with Blanc.
+
+RUNTIME NPM COMPONENTS
+
+- @1password/sdk-core 0.5.0 — MIT — https://registry.npmjs.org/@1password/sdk-core/-/sdk-core-0.5.0.tgz
+- @1password/sdk 0.5.0 — MIT — https://registry.npmjs.org/@1password/sdk/-/sdk-0.5.0.tgz
+- @ghostery/adblocker-content 2.20.1 — MPL-2.0 — https://registry.npmjs.org/@ghostery/adblocker-content/-/adblocker-content-2.20.1.tgz
+- @ghostery/adblocker-electron-preload 2.20.1 — MPL-2.0 — https://registry.npmjs.org/@ghostery/adblocker-electron-preload/-/adblocker-electron-preload-2.20.1.tgz
+- @ghostery/adblocker-electron 2.20.1 — MPL-2.0 — https://registry.npmjs.org/@ghostery/adblocker-electron/-/adblocker-electron-2.20.1.tgz
+- @ghostery/adblocker-extended-selectors 2.20.1 — MPL-2.0 — https://registry.npmjs.org/@ghostery/adblocker-extended-selectors/-/adblocker-extended-selectors-2.20.1.tgz
+- @ghostery/adblocker 2.20.1 — MPL-2.0 — https://registry.npmjs.org/@ghostery/adblocker/-/adblocker-2.20.1.tgz
+- @ghostery/url-parser 1.3.1 — MPL-2.0 — https://registry.npmjs.org/@ghostery/url-parser/-/url-parser-1.3.1.tgz
+- @mozilla/readability 0.6.0 — Apache-2.0 — https://registry.npmjs.org/@mozilla/readability/-/readability-0.6.0.tgz
+- @remusao/guess-url-type 2.1.0 — MPL-2.0 — https://registry.npmjs.org/@remusao/guess-url-type/-/guess-url-type-2.1.0.tgz
+- @remusao/small 2.1.0 — MPL-2.0 — https://registry.npmjs.org/@remusao/small/-/small-2.1.0.tgz
+- @remusao/smaz-compress 2.2.0 — MPL-2.0 — https://registry.npmjs.org/@remusao/smaz-compress/-/smaz-compress-2.2.0.tgz
+- @remusao/smaz-decompress 2.2.0 — MPL-2.0 — https://registry.npmjs.org/@remusao/smaz-decompress/-/smaz-decompress-2.2.0.tgz
+- @remusao/smaz 2.2.0 — MPL-2.0 — https://registry.npmjs.org/@remusao/smaz/-/smaz-2.2.0.tgz
+- @remusao/trie 2.1.0 — MPL-2.0 — https://registry.npmjs.org/@remusao/trie/-/trie-2.1.0.tgz
+- @types/trusted-types 2.0.7 — MIT — https://registry.npmjs.org/@types/trusted-types/-/trusted-types-2.0.7.tgz
+- argparse 2.0.1 — Python-2.0 — https://registry.npmjs.org/argparse/-/argparse-2.0.1.tgz
+- builder-util-runtime 9.7.0 — MIT — https://registry.npmjs.org/builder-util-runtime/-/builder-util-runtime-9.7.0.tgz
+- debug 4.4.3 — MIT — https://registry.npmjs.org/debug/-/debug-4.4.3.tgz
+- dompurify 3.4.17 — (MPL-2.0 OR Apache-2.0) — https://registry.npmjs.org/dompurify/-/dompurify-3.4.17.tgz
+- electron-updater 6.8.9 — MIT — https://registry.npmjs.org/electron-updater/-/electron-updater-6.8.9.tgz
+- fs-extra 10.1.0 — MIT — https://registry.npmjs.org/fs-extra/-/fs-extra-10.1.0.tgz
+- graceful-fs 4.2.11 — ISC — https://registry.npmjs.org/graceful-fs/-/graceful-fs-4.2.11.tgz
+- js-yaml 4.3.2 — MIT — https://registry.npmjs.org/js-yaml/-/js-yaml-4.3.2.tgz
+- jsonfile 6.2.1 — MIT — https://registry.npmjs.org/jsonfile/-/jsonfile-6.2.1.tgz
+- lazy-val 1.0.5 — MIT — https://registry.npmjs.org/lazy-val/-/lazy-val-1.0.5.tgz
+- lodash.escaperegexp 4.1.2 — MIT — https://registry.npmjs.org/lodash.escaperegexp/-/lodash.escaperegexp-4.1.2.tgz
+- lodash.isequal 4.5.0 — MIT — https://registry.npmjs.org/lodash.isequal/-/lodash.isequal-4.5.0.tgz
+- ms 2.1.3 — MIT — https://registry.npmjs.org/ms/-/ms-2.1.3.tgz
+- sax 1.6.0 — BlueOak-1.0.0 — https://registry.npmjs.org/sax/-/sax-1.6.0.tgz
+- semver 7.7.4 — ISC — https://registry.npmjs.org/semver/-/semver-7.7.4.tgz
+- tiny-typed-emitter 2.1.0 — MIT — https://registry.npmjs.org/tiny-typed-emitter/-/tiny-typed-emitter-2.1.0.tgz
+- tldts-core 7.4.10 — MIT — https://registry.npmjs.org/tldts-core/-/tldts-core-7.4.10.tgz
+- tldts-experimental 7.4.10 — MIT — https://registry.npmjs.org/tldts-experimental/-/tldts-experimental-7.4.10.tgz
+- universalify 2.0.1 — MIT — https://registry.npmjs.org/universalify/-/universalify-2.0.1.tgz
+
+EMBEDDED FRAMEWORK
+
+- Electron 44.9.3 — MIT — https://github.com/electron/electron
+  Electron embeds Chromium, Node.js, V8, and other upstream work. LICENSE.electron.txt and
+  LICENSES.chromium.html are copied beside this notice in every packaged application.
+
+BUNDLED ASSETS AND DATA
+
+- uBlock Origin managed extension (distribution clearance pending) 1.75.0 — GPL-3.0-or-later
+  Attribution: Raymond Hill and contributors; individual upstream notices remain in ublock/upstream/; adapted Swatinem diff code declares LGPLv3 (Arpad Borsos), with full license text separately included
+  Source: https://github.com/gorhill/uBlock
+  Full text: ThirdPartyLicenses/LICENSE.txt
+  Full text: ThirdPartyLicenses/LGPL-3.0.txt
+- Inter Latin webfont — OFL-1.1
+  Source: https://github.com/rsms/inter
+  Full text: ThirdPartyLicenses/inter-OFL.txt
+- JetBrains Mono Latin webfont — OFL-1.1
+  Source: https://github.com/JetBrains/JetBrainsMono
+  Full text: ThirdPartyLicenses/jetbrains-mono-OFL.txt
+- Caveat Latin webfont — OFL-1.1
+  Source: https://github.com/googlefonts/caveat
+  Full text: ThirdPartyLicenses/caveat-OFL.txt
+- Instrument Sans Latin variable webfont 5.3.0 — OFL-1.1
+  Source: https://github.com/Instrument/instrument-sans
+  Full text: ThirdPartyLicenses/instrument-sans-OFL.txt
+- Roboto Flex clock subset (variable webfont) 5.3.0 — OFL-1.1
+  Source: https://github.com/googlefonts/roboto-flex
+  Full text: ThirdPartyLicenses/roboto-flex-OFL.txt
+- EasyList 202607091627 — CC-BY-SA-3.0-or-later
+  Attribution: The EasyList authors (https://easylist.to/)
+  Source: https://easylist.to/
+  License: https://easylist.to/pages/licence.html
+- EasyPrivacy 202607091627 — CC-BY-SA-3.0-or-later
+  Attribution: The EasyList authors (https://easylist.to/)
+  Source: https://easylist.to/
+  License: https://easylist.to/pages/licence.html
+- Ghostery adblocker resources c18718adc33e82a086d996d0b0f75deb3d01745a — MPL-2.0
+  Source: https://github.com/ghostery/adblocker
+- Blanc compiled blocker seed b2873ed6ff04941e — MPL-2.0 AND CC-BY-SA-3.0-or-later
+- Lucide uBO popup icons 0.468.0 — ISC
+  Attribution: Lucide Contributors 2022; portions by Cole Bemis 2013–2022 (Feather, MIT)
+  Source: https://github.com/lucide-icons/lucide/tree/0.468.0
+  Full text: ThirdPartyLicenses/lucide-LICENSE.txt
+- Dark Reader engine (Dark websites) 4.9.133 — MIT
+  Attribution: Dark Reader Ltd. and contributors; the unmodified npm API build is embedded in src/main/dark-websites-preload.js
+  Source: https://github.com/darkreader/darkreader
+  Full text: ThirdPartyLicenses/darkreader-LICENSE.txt
+- Kagi bangs 449cf7a18c66 — MIT
+  Attribution: Kagi Search and contributors; compiled into src/renderer/pages/bangs-catalog.js by bangs/build.mjs
+  Source: https://github.com/kagisearch/bangs
+  Full text: ThirdPartyLicenses/kagi-bangs-LICENSE.txt
+- Source Serif 4 Regular 4.005 — OFL-1.1
+  Attribution: Adobe; Frank Grießhammer and contributors
+  Source: https://github.com/adobe-fonts/source-serif
+  Full text: ThirdPartyLicenses/source-serif-4-OFL.txt
+
+MPL SOURCE AVAILABILITY
+
+Blanc uses unmodified npm releases from the Ghostery adblocker project under MPL-2.0.
+The corresponding source is linked above and Blanc source is available at https://github.com/bnfy/blanc.
+
+Full license texts shipped by runtime npm packages are copied into ThirdPartyLicenses/.

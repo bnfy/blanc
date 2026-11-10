@@ -80,8 +80,8 @@ export function maximumActions(options) {
 export function outputName(options) {
   const values = options.filter(option => option.startsWith('--out='));
   if (!values.length) return 'BlancPrototype';
-  if (values.length !== 1 || !['--out=BlancPrototype', '--out=BlancRelease'].includes(values[0]))
-    throw new Error('Use one --out=BlancPrototype or --out=BlancRelease.');
+  if (values.length !== 1 || !['--out=BlancPrototype', '--out=BlancRelease', '--out=BlancBeta'].includes(values[0]))
+    throw new Error('Use one --out=BlancPrototype, --out=BlancRelease or --out=BlancBeta.');
   return values[0].slice('--out='.length);
 }
 // The lane decides the output, the target and the machine. Desktop keeps its
@@ -189,7 +189,7 @@ function main() {
   const [source, ...options] = process.argv.slice(2);
   const allowed = new Set(['--check', '--build', '--record-environment', '--allow-large-build', '--reject-buildflags']);
   if (!source || options.some(option => !allowed.has(option) && !option.startsWith('--local-jobs=') && !option.startsWith('--out=') && !option.startsWith('--lane=') && !option.startsWith('--sdk-root=') && !option.startsWith('--max-actions='))) {
-    throw new Error('Usage: node build.mjs CHROMIUM_SRC [--check | --build | --record-environment] [--allow-large-build] [--reject-buildflags] [--max-actions=N] [--local-jobs=N] [--lane=desktop|android] [--out=BlancPrototype|BlancRelease|AndroidDebug|AndroidDebugX64] [--sdk-root=ABSOLUTE_PATH]');
+    throw new Error('Usage: node build.mjs CHROMIUM_SRC [--check | --build | --record-environment] [--allow-large-build] [--reject-buildflags] [--max-actions=N] [--local-jobs=N] [--lane=desktop|android] [--out=BlancPrototype|BlancRelease|BlancBeta|AndroidDebug|AndroidDebugX64] [--sdk-root=ABSOLUTE_PATH]');
   }
   const workerArgs = localJobs(options);
   const maxActions = maximumActions(options);

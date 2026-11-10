@@ -94,6 +94,7 @@ test('local worker limit is bounded and cannot inject or duplicate flags', () =>
 test('output is the preview candidate or the release channel, nothing else', () => {
   assert.equal(outputName(['--build']), 'BlancPrototype');
   assert.equal(outputName(['--out=BlancRelease']), 'BlancRelease');
+  assert.equal(outputName(['--out=BlancBeta']), 'BlancBeta');
   for (const value of ['', 'Default', '../BlancRelease', 'BlancRelease2'])
     assert.throws(() => outputName(['--out=' + value]));
   assert.throws(() => outputName(['--out=BlancRelease', '--out=BlancPrototype']));

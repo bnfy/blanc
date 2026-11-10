@@ -97,3 +97,37 @@ test('the compiled native update policy refuses downgrade, wrong identity/host/a
     for(const [index,value] of [[0,'2'],[0,'3'],[0,'0'],[1,'02'],[1,'10000'],[1,'2evil'],[2,'1.0.0-beta.2'],[2,'2.0.0'],[2,'2.0.0-beta.0'],[3,url.replace('https:','http:')],[3,url.replace('github.com','attacker.example')],[3,url+'?mirror=1'],[4,'x64'],[4,'other'],[5,'delta']]){const args=[...base];args[index]=value;check(args,'refuse');}
   }finally{fs.rmSync(dir,{recursive:true,force:true});}
 });
+
+test('local qualification metadata fixes loopback and never broadens production metadata',()=>{
+  python(`import json,runpy
+m=runpy.run_path(${JSON.stringify(path.join(root,'blanc/branding/beta/metadata.py'))})
+key=json.load(__import__('sys').stdin)
+p=m['updater_metadata']({},key,'arm64',True)
+assert p['BlancLocalQualification'] is True and p['SUFeedURL']=='http://127.0.0.1:49262/arm64.xml'
+assert p['NSAppTransportSecurity']=={'NSAllowsLocalNetworking':True}
+assert 'BlancLocalQualification' not in m['updater_metadata']({},key,'arm64')
+for arch,flag in [('x64',True),('arm64','true')]:
+ try: m['updater_metadata']({},key,arch,flag)
+ except ValueError: pass
+ else: raise AssertionError('invalid qualification accepted')
+`,publicKey);
+});
+test('native local update policy accepts only its compiled loopback origin',{skip:process.platform!=='darwin'},()=>{
+ const dir=fs.mkdtempSync(path.join(os.tmpdir(),'blanc-local-policy-'));
+ try{
+  const source=path.join(dir,'policy.cc'),binary=path.join(dir,'policy');
+  fs.writeFileSync(source,`#include "blanc/browser/mac/beta_update_policy.h"
+#include <cassert>
+int main(){using namespace blanc::beta;
+ const std::string u="http://127.0.0.1:49262/Blanc-Beta-2.0.0-beta.2-mac-arm64.dmg";
+ assert(AllowLocalUpdate("1","2","2.0.0-beta.2",u,"arm64",false));
+ assert(!AllowUpdate("1","2","2.0.0-beta.2",u,"arm64",false));
+ for(auto url:{u+"?x=1",std::string("http://localhost:49262/Blanc-Beta-2.0.0-beta.2-mac-arm64.dmg"),std::string("https://attacker.example/update.dmg")})assert(!AllowLocalUpdate("1","2","2.0.0-beta.2",url,"arm64",false));
+ assert(!AllowLocalUpdate("2","2","2.0.0-beta.2",u,"arm64",false));
+ assert(!AllowLocalUpdate("1","2","2.0.0-beta.2",u,"x64",false));
+ assert(!AllowLocalUpdate("1","2","2.0.0-beta.2",u,"arm64",true));
+}`);
+  const built=spawnSync('/usr/bin/clang++',['-std=c++20','-Wall','-Wextra','-Werror','-I',root,source,'-o',binary],{encoding:'utf8'});assert.equal(built.status,0,built.stderr);
+  assert.equal(spawnSync(binary,[],{encoding:'utf8'}).status,0);
+ }finally{fs.rmSync(dir,{recursive:true,force:true});}
+});

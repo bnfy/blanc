@@ -4,6 +4,7 @@
 #include <utility>
 
 #include "base/command_line.h"
+#include "blanc/buildflags.h"
 #include "base/json/json_writer.h"
 #include "base/values.h"
 #include "blanc/services/sync_runner/sync_endpoint.h"
@@ -24,8 +25,14 @@ DesktopSyncPlatform::DesktopSyncPlatform(
 DesktopSyncPlatform::~DesktopSyncPlatform() = default;
 base::FilePath DesktopSyncPlatform::StoreDir() { return store_dir_; }
 std::string DesktopSyncPlatform::Endpoint() {
+#if BUILDFLAG(BLANC_BETA_LOCAL_QUALIFICATION)
+  return "http://127.0.0.1:49261";
+#elif BUILDFLAG(ENABLE_BLANC_TEST_HOOKS)
   const auto test = base::CommandLine::ForCurrentProcess()->GetSwitchValueASCII("blanc-sync-endpoint");
   return test.empty() ? kSyncEndpoint : test;
+#else
+  return kSyncEndpoint;
+#endif
 }
 std::string DesktopSyncPlatform::ConfigJson() {
   base::DictValue config;
@@ -39,11 +46,13 @@ std::string DesktopSyncPlatform::ConfigJson() {
   config.Set("version", std::string(version_info::GetVersionNumber()));
   config.Set("deviceName", device_name_);
   config.Set("keyStore", true);
-  const auto test = base::CommandLine::ForCurrentProcess()->GetSwitchValueASCII("blanc-sync-endpoint");
-  if (!test.empty()) {
+#if BUILDFLAG(BLANC_BETA_LOCAL_QUALIFICATION) || BUILDFLAG(ENABLE_BLANC_TEST_HOOKS)
+  const auto test = Endpoint();
+  if (test != kSyncEndpoint) {
     config.Set("testEndpoint", test);
     config.Set("env", base::DictValue().Set("BLANC_TEST", "1").Set("BLANC_TEST_SYNC_ENDPOINT", test));
   }
+#endif
   return base::WriteJson(config).value_or("{}");
 }
 scoped_refptr<network::SharedURLLoaderFactory> DesktopSyncPlatform::UrlLoaderFactory() { return factory_; }

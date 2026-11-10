@@ -21,12 +21,13 @@ export const check = (condition, message) => { if (!condition) throw new Release
 export const equal = (actual, expected, message) => check(isDeepStrictEqual(actual, expected), message);
 export const reason = error => error instanceof ReleaseCheckError ? error.message : 'unexpected error (details withheld)';
 // GN arguments beyond the required ones, each added here only after review.
-export const GN_REVIEWED_EXTRA = ['blanc_beta_version', 'blanc_beta_build', 'blanc_sparkle_stage', 'blanc_sparkle_public_key', 'blanc_sparkle_archive_sha256'];
+export const GN_REVIEWED_EXTRA = ['blanc_beta_version', 'blanc_beta_build', 'blanc_sparkle_stage', 'blanc_sparkle_public_key', 'blanc_sparkle_archive_sha256', 'blanc_beta_local_qualification', 'chrome_pgo_phase', 'symbol_level', 'mac_deployment_target', 'mac_min_system_version'];
 export function base64(value, bytes) {
   return typeof value === 'string' && /^[A-Za-z0-9+/]+={0,2}$/.test(value) &&
     Buffer.from(value, 'base64').length === bytes && Buffer.from(value, 'base64').toString('base64') === value;
 }
-export function validateRelease(r) {
+export function validateRelease(r, {allowLocalQualification = false} = {}) {
+  check(r?.localQualification !== true || allowLocalQualification, 'local qualification is not a distributable release');
   check(r?.schema === 1, 'release schema must be 1');
   equal(r.bundleId, ROOT_ID, 'beta identity must not be the shipping identity');
   equal(r.product, PRODUCT, 'beta product');
@@ -62,7 +63,7 @@ export function validateRelease(r) {
   check(/^[a-f0-9]{64}$/.test(r.profileSHA256), 'profile digest required');
   return r;
 }
-export function validateGN(text, arch) {
+export function validateGN(text, arch, {allowLocalQualification = false} = {}) {
   const values = {};
   for (const line of text.split(/\r?\n/)) {
     const cleaned = line.replace(/#.*$/, '').trim();
@@ -81,6 +82,13 @@ export function validateGN(text, arch) {
   check(typeof values.blanc_sparkle_stage === 'string' && values.blanc_sparkle_stage.startsWith('/'), 'absolute immutable Sparkle stage required');
   check(base64(values.blanc_sparkle_public_key, 32), 'Sparkle GN public key required');
   check(/^[a-f0-9]{64}$/.test(values.blanc_sparkle_archive_sha256), 'Sparkle GN archive digest required');
+  for (const [key, expected] of Object.entries({chrome_pgo_phase:0, symbol_level:0,
+    mac_deployment_target:'13.0', mac_min_system_version:'13.0'}))
+    if (Object.hasOwn(values,key)) equal(values[key],expected,`reviewed GN fallback ${key}`);
+  if (Object.hasOwn(values,'blanc_beta_local_qualification')) {
+    check(typeof values.blanc_beta_local_qualification === 'boolean', 'qualification GN must be boolean');
+    check(!values.blanc_beta_local_qualification || (allowLocalQualification && arch === 'arm64'), 'local qualification GN is not distributable');
+  }
   return values;
 }
 // chromium/release/ledger.json lists every beta build number already consumed, public or

@@ -7,10 +7,13 @@
 #import <Sparkle/SUAppcastItem.h>
 #include <unistd.h>
 #include "base/check.h"
+#include "blanc/buildflags.h"
 
 namespace {
 NSString* Feed() {
-#if defined(__arm64__)
+#if BUILDFLAG(BLANC_BETA_LOCAL_QUALIFICATION)
+  return @"http://127.0.0.1:49262/arm64.xml";
+#elif defined(__arm64__)
   return @"https://blanc.day/updates/chromium-beta/arm64.xml";
 #else
   return @"https://blanc.day/updates/chromium-beta/x64.xml";
@@ -50,6 +53,8 @@ static __weak BlancBetaUpdater* g_beta_updater;
   NSString* key = [app objectForInfoDictionaryKey:@"SUPublicEDKey"];
   NSData* decoded = [key isKindOfClass:NSString.class]
       ? [[NSData alloc] initWithBase64EncodedString:key options:0] : nil;
+  if ([[app objectForInfoDictionaryKey:@"BlancLocalQualification"] boolValue] !=
+          BUILDFLAG(BLANC_BETA_LOCAL_QUALIFICATION)) return;
   if (![app.bundleIdentifier isEqualToString:@"me.bnfy.blanc.beta"] ||
       ![[app objectForInfoDictionaryKey:@"CrProductDirName"] isEqualToString:@"Blanc Beta"] ||
       ![[app objectForInfoDictionaryKey:@"SUFeedURL"] isEqualToString:Feed()] ||
@@ -79,7 +84,11 @@ static __weak BlancBetaUpdater* g_beta_updater;
    updateCheck:(SPUUpdateCheck)check error:(NSError* __autoreleasing*)error {
   NSString* display = item.displayVersionString;
   NSString* current = [NSBundle.mainBundle objectForInfoDictionaryKey:@"CFBundleVersion"];
+#if BUILDFLAG(BLANC_BETA_LOCAL_QUALIFICATION)
+  return blanc::beta::AllowLocalUpdate(Text(current), Text(item.versionString),
+#else
   return blanc::beta::AllowUpdate(Text(current), Text(item.versionString),
+#endif
       Text(display), Text(item.fileURL.absoluteString), Text(Arch()),
       item.isDeltaUpdate || item.deltaUpdates.count != 0)
       ? YES : Refuse(error);

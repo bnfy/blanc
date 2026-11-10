@@ -1,4 +1,16 @@
 {
   "schema": 1,
-  "builds": []
+  "builds": [
+    {
+      "build": 1,
+      "version": "2.0.0-beta.1",
+      "date": "2026-11-10",
+      "arches": [
+        "arm64"
+      ],
+      "archWaiver": "Owner approval 2026-11-10: Apple Silicon only; Intel deferred until a separately qualified native build.",
+      "localQualification": true,
+      "note": "Reserved for the authorized private dedicated out/BlancBeta build and local updater exercise; no tag created, no distribution. Throwaway EdDSA trust and fixed loopback endpoints; never publish these bytes or reuse this version for production."
+    }
+  ]
 }

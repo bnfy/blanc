@@ -152,7 +152,12 @@ test('build ledger decides previousBuild and refuses reused builds, versions and
   assert.throws(()=>validateLedger({schema:1,builds:used},{...next,previousBuild:1}));
   assert.throws(()=>validateLedger({schema:1,builds:used},{...next,version:'2.0.0-beta.2'}));
   assert.throws(()=>validateLedger({schema:1,builds:[used[1],used[0]]},next));
-  validateLedger(JSON.parse(fs.readFileSync(new URL('./ledger.json',import.meta.url))),r);
+  const ledger=JSON.parse(fs.readFileSync(new URL('./ledger.json',import.meta.url)));
+  assert.throws(()=>validateLedger(ledger,r),/consumed/, 'private beta 1 cannot be reused');
+  const highest=ledger.builds.at(-1).build;
+  const sequence=Math.max(...ledger.builds.map(e=>Number(e.version.split('.').at(-1))))+1;
+  validateLedger(ledger,{...r,build:highest+1,previousBuild:highest,
+    version:`2.0.0-beta.${sequence}`,tag:`chromium-beta-2.0.0-beta.${sequence}`});
 });
 test('failures name the check without leaking compared values or unexpected errors',()=>{
   const r=fixture();r.bundleId='me.bnfy.bowser';
@@ -170,4 +175,29 @@ test('draft has no execution escape hatch or service contact, even with release 
   const script=path.resolve(import.meta.dirname,'../../scripts/release-chromium-beta.sh');
   for(const args of [[],['--execute'],['--plan','extra']]){const result=spawnSync('/bin/bash',[script,...args],{encoding:'utf8',env:{PATH:'/usr/bin:/bin',BLANC_RELEASE_MODE:'stable',BLANC_CHROMIUM_BETA_EXECUTE:'1'}});assert.equal(result.status,78);}
   const plan=spawnSync('/bin/bash',[script,'--plan'],{encoding:'utf8',env:{PATH:'/usr/bin:/bin'}});assert.equal(plan.status,0);assert.match(plan.stdout,/all disabled/);
+});
+
+test('reviewed beta fallback stays official and local qualification is refused by production preflight',()=>{
+  const base=gn('arm64')+'chrome_pgo_phase = 0\nsymbol_level = 0\nmac_deployment_target = "13.0"\nmac_min_system_version = "13.0"\n';
+  validateGN(base,'arm64');
+  for(const changed of [base.replace('chrome_pgo_phase = 0','chrome_pgo_phase = 1'),base.replace('symbol_level = 0','symbol_level = 2'),base.replace('mac_deployment_target = "13.0"','mac_deployment_target = "12.0"')])assert.throws(()=>validateGN(changed,'arm64'));
+  const local=base+'blanc_beta_local_qualification = true\n';
+  assert.throws(()=>validateGN(local,'arm64'),/not distributable/);
+  validateGN(local,'arm64',{allowLocalQualification:true});
+  const r={...fixture(),localQualification:true};
+  assert.throws(()=>validateRelease(r),/not a distributable/);
+  validateRelease(r,{allowLocalQualification:true});
+});
+test('local artifact marker and loopback feed cannot pass production metadata verification',()=>{
+  const r={...fixture(),localQualification:true},p={CFBundleIdentifier:ROOT_ID,CFBundleName:r.product,CFBundleDisplayName:r.product,CFBundleExecutable:r.product,CrProductDirName:r.product,CFBundleVersion:'1',CFBundleShortVersionString:r.version,SUFeedURL:'http://127.0.0.1:49262/arm64.xml',SUPublicEDKey:r.sparkle.publicKey,SUVerifyUpdateBeforeExtraction:true,LSMinimumSystemVersion:r.minimumSystemVersion,BlancLocalQualification:true,CFBundleURLTypes:[{CFBundleURLSchemes:['http','https','file','blanc-beta']}]};
+  assert.throws(()=>validateAppInfo(p,r,'arm64'));
+  assert.throws(()=>validateAppInfo(p,fixture(),'arm64'));
+  validateAppInfo(p,r,'arm64',{allowLocalQualification:true});
+  assert.throws(()=>validateAppInfo({...p,BlancLocalQualification:false},r,'arm64',{allowLocalQualification:true}));
+  assert.throws(()=>validateAppInfo({...p,SUFeedURL:'http://localhost:49262/arm64.xml'},r,'arm64',{allowLocalQualification:true}));
+});
+test('beta notice source copies preserve the repository grants and complete third-party terms',()=>{
+  const root=fileURLToPath(new URL('../../',import.meta.url));
+  for(const name of ['LICENSE','ASSET-LICENSE.md','THIRD-PARTY-NOTICES.md'])assert.deepEqual(fs.readFileSync(path.join(root,'chromium/blanc/notices',name)),fs.readFileSync(path.join(root,name)));
+  assert.deepEqual(fs.readFileSync(path.join(root,'chromium/blanc/notices/THIRD_PARTY_NOTICES.txt')),fs.readFileSync(path.join(root,'compliance/THIRD_PARTY_NOTICES.txt')));
 });

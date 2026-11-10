@@ -1,0 +1,19 @@
+Name: Sparkle
+Short Name: Sparkle
+URL: https://github.com/sparkle-project/Sparkle
+Version: 2.10.1
+Update Mechanism: Manual (chromium/release/sources.json)
+Security Critical: yes
+Shipped: yes
+License: MIT, BSD-2-Clause, Zlib
+License File: LICENSE
+
+Description:
+macOS updater framework. The full upstream license includes its bundled
+third-party terms. The reviewed binary archive is staged outside the checkout;
+its SHA-256 is 1a856d2a9edb8e628de88121d7be04cf0e2167f8641650b78fca00b14244cf27.
+Only the dedicated beta channel embeds the framework.
+
+Local Modifications:
+None to the upstream binary archive or license. Blanc's native owner and policy
+are separate canonical sources under blanc/browser/mac/.
