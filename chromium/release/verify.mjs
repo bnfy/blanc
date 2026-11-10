@@ -81,7 +81,7 @@ export function inspectTree(app) {
   }
   walk(root); return {root, files, bundles};
 }
-function macho(file) {
+export function macho(file) {
   const fd = fs.openSync(file, 'r'), bytes = Buffer.alloc(4);
   try { fs.readSync(fd, bytes, 0, 4, 0); } finally { fs.closeSync(fd); }
   return ['feedface','feedfacf','cefaedfe','cffaedfe','cafebabe','bebafeca','cafebabf','bfbafeca'].includes(bytes.toString('hex'));
@@ -93,7 +93,7 @@ function signatureDescription(file) {
 function signatureFields(description, certificate) {
   return {identifier: description.match(/^Identifier=(.+)$/m)?.[1], team: description.match(/^TeamIdentifier=(.+)$/m)?.[1], authority: description.match(/^Authority=(.+)$/m)?.[1] || '', timestamp: /^Timestamp=.+$/m.test(description), runtime: /flags=.*\bruntime\b/.test(description), fingerprint: fingerprint(certificate)};
 }
-function validateLayout(app, r, tree) {
+export function validateLayout(app, r, tree) {
   const expected = parts(r), realParts = new Set(expected.map(p => fs.realpathSync(path.join(app, p.path))));
   for (const bundle of tree.bundles) check(realParts.has(fs.realpathSync(bundle)), 'unreviewed nested bundle');
   for (const part of expected.filter(p => /\.(app|xpc|framework)$/.test(p.path))) {

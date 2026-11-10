@@ -10,7 +10,7 @@
       ],
       "archWaiver": "Owner approval 2026-11-10: Apple Silicon only; Intel deferred until a separately qualified native build.",
       "localQualification": true,
-      "note": "Reserved for the authorized private dedicated out/BlancBeta build and local updater exercise; no tag created, no distribution. Throwaway EdDSA trust and fixed loopback endpoints; never publish these bytes or reuse this version for production."
+      "note": "Reserved private build; owner hold was overlooked before the cold attempt. Build failed after 6.42 seconds on absent optional Metal Toolchain; no app or distribution. Hold now enforced, temporary private key deleted. Never publish these bytes or reuse the reserved version for production."
     }
   ]
 }

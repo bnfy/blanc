@@ -1,6 +1,6 @@
 # Blanc Chromium macOS beta release runbook
 
-**Updated 2026-11-10. The owner approved one dedicated local beta build and an incremental N+1 qualification build. Publication, Developer ID signing, Apple, 1Password and production Sync remain separate owner operations.** The shell entrypoint is deliberately incapable of executing a release. Finish the staged patches and qualification below before replacing that guard in a reviewed change. Existing Electron release scripts and `src/`, `spec/`, `test/desktop/` are unchanged.
+**Updated 2026-11-10. Identity and build decisions are approved, but the later owner hold in `chromium/CODEX-NOTES-beta-build.md` defers F and G until the owner resumes them. Publication, Developer ID signing, Apple, 1Password and production Sync remain separate owner operations.** The shell entrypoint is deliberately incapable of executing a release. Finish the staged patches and qualification below before replacing that guard in a reviewed change. Existing Electron release scripts and `src/`, `spec/`, `test/desktop/` are unchanged.
 
 This beta is a separate application alongside shipping Electron Blanc, updates with Sparkle starting at beta 1, uses GitHub **pre-releases in bnfy/blanc**, has **no Widevine**, and requires production Blanc Sync. These owner decisions supersede the older replacement spec's same-ID migration design for this beta. They are not open questions. No production Sync, GitHub release API, Apple or 1Password connection was made during setup.
 
@@ -50,7 +50,7 @@ The intended semantic diff for review on the build host is:
 
 On the authorized build machine, save both args files, `gn args --list` effective values, toolchain/SDK hashes and the literal diff. Official defaults may change optimization, PGO inputs, symbol generation and SDK requirements: they are not a small packaging-only toggle. [mac_sdk.gni at the pin](https://chromium.googlesource.com/chromium/src/+/681cd621e82e606d7536eae8ea2576afb3c7d65c/build/config/mac/mac_sdk.gni) selects macOS 13.0 minimum, official SDK 27.0/26A425 (and the Intel-host universal alternative 26.5/25F70). Confirm the effective host path; do not silently select an SDK, fetch PGO data, run hooks, clean, or bypass the guard.
 
-The intentional rebuild is approved for this machine and the new `out/BlancBeta` directory. `chromium/tools/build.mjs` now allowlists that output beside BlancPrototype/BlancRelease. Preserve both existing outputs and Siso caches. Inspect competing build **process names**; obtain a reviewed dry-run plan, then use the guarded wrapper with the approved action limit. A cold beta output is a separately authorized cold build, not disguised as incremental. After integration, preflight insists on explicit literal GN assignments, exact file hashes and the listed safety values, and refuses any other argument until it is added to `GN_REVIEWED_EXTRA` in `policy.mjs` in a reviewed change; it does not run GN or prove effective toolchain selection.
+The dedicated configuration is approved for this machine and the new `out/BlancBeta` directory; execution is now held by the subsequent owner notice. `chromium/tools/build.mjs` now allowlists that output beside BlancPrototype/BlancRelease. Preserve both existing outputs and Siso caches. Inspect competing build **process names**; obtain a reviewed dry-run plan, then use the guarded wrapper with the approved action limit. A cold beta output is a separately authorized cold build, not disguised as incremental. After integration, preflight insists on explicit literal GN assignments, exact file hashes and the listed safety values, and refuses any other argument until it is added to `GN_REVIEWED_EXTRA` in `policy.mjs` in a reviewed change; it does not run GN or prove effective toolchain selection.
 
 ### Local qualification configuration
 
@@ -121,7 +121,16 @@ Read `CLAUDE.md` Commands/provisioning/release protocols and `docs/release-verif
 
 The beta's **Developer ID, all-devices macOS provisioning profile** was issued on November 10, 2026 ("Blanc Beta Developer ID", App ID `XYGUCY4498.me.bnfy.blanc.beta`) and is committed at `chromium/release/blanc-beta.provisionprofile`, the same way the stable app's profile is committed at `build/embedded.provisionprofile`; a profile holds no secret. It embeds exactly the pinned leaf certificate (serial `6B295A744C69F0C8`) and expires in 2044, but is unusable once that certificate expires on 2027-02-01. Apple issues Developer ID profiles with the team-wildcard keychain group `XYGUCY4498.*`, not the exact WebAuthn group, so policy requires the profile to cover the beta group within the beta team and enforces the exact group on the signed app's entitlements. `release.test.mjs` pins the file's SHA-256 and checks its decoded contents. A replacement must meet the same rules: `ProvisionsAllDevices=true`, no `ProvisionedDevices`, `Platform` containing OSX, unexpired dates, matching team/app entitlements, no debugging grant, and the pinned leaf. It belongs only at the outer app's `Contents/embedded.provisionprofile`, before signing. Helpers must not carry the group or a profile. Preflight decodes via local `security cms -D`; verification rechecks actual embedded bytes and actual signer.
 
-Use pinned Chromium's [sign_chrome.py](https://chromium.googlesource.com/chromium/src/+/681cd621e82e606d7536eae8ea2576afb3c7d65c/chrome/installer/mac/sign_chrome.py) → `signing/driver.py`, `config_factory.py`, `parts.py`, `pipeline.py`. `--identity` accepts a SHA-1 fingerprint. `ChromiumCodeSignConfig.provisioning_profile_basename` is currently `None`; stage a beta config selected explicitly by the factory, with the beta profile basename and DMG distribution. Do not use `--development`, disable verification, or assume a `--config` flag exists. The generated `Blanc Beta Packaging` folder must contain the pinned signing modules, generated build properties, entitlements, profile and DMG tools. Include Sparkle's nested parts in the inner-to-outer signing order **before** sealing the app. Never sign with `--deep`; use it for verification.
+The operator command is `chromium/release/operator.mjs`, with a concrete sequence
+in §10. It uses the pinned Chromium code-part/entitlement inventory shared with
+`verify.mjs`, including Sparkle's inner code, and signs a new copy in child-before-
+container order. This replaces the nonexistent private signing adapter. It does
+not change the upstream driver or stable release scripts. Unknown native code,
+bundles, paths, local-qualification metadata and profile mismatches fail before
+key access. Every signature uses the pinned fingerprint and a secure timestamp;
+there is no development mode, automatic identity selection or `codesign --deep`
+signing. Offline tests cover order, library refusal and notarization credential
+redaction; actual signing and notarization remain unverified and unauthorized.
 
 Reviewed entitlement matrix, derived from pinned Chromium `chrome/app/*-entitlements.plist` and `signing/parts.py`, not Electron entitlements:
 
@@ -135,17 +144,13 @@ Reviewed entitlement matrix, derived from pinned Chromium `chrome/app/*-entitlem
 
 The verifier checks the DMG signature/leaf/ticket as well as the contained app. The verifier compares **DER** entitlements, strict deep signatures, TeamIdentifier, Developer ID authority, timestamp and the extracted leaf fingerprint for every known code part; rejects unknown Mach-O payloads, unknown nested bundles, escaping symlinks, helper profiles and Widevine names. It checks nested plist IDs, Sparkle version, Chromium framework version, beta feed/build/name/default directory and all required notice files. Real DER layout and actual distribution contents still need qualification; do not loosen a failure without reviewing source and updating tests.
 
-Authentication and wrapping must match stable's pattern:
-
-```sh
-# FUTURE OPERATOR SESSION ONLY; disabled in the phase-one draft.
-OP_BIOMETRIC_UNLOCK_ENABLED=true op signin
-OP_BIOMETRIC_UNLOCK_ENABLED=true \
-  op run --env-file=.env.1password --no-masking -- \
-  python3 /private/reviewed-beta-signing-adapter.py
-```
-
-The adapter does not exist yet. It will invoke the pinned generated signing driver with `--identity <pin> --input <unsigned-dir> --output <new-signed-dir> --notarize staple`, using beta config/invoker and `package_as_dmg=true`. It must consume `APPLE_ID`, `APPLE_APP_SPECIFIC_PASSWORD`, `APPLE_TEAM_ID` from that `op run` environment (the existing Dev / Apple Notarization item), without printing them. Chromium's `commands.py` logs complete argv and its `notarize.py` accepts `--notary-arg`; **do not pass credentials through that path**. Implement a beta notarizer invoker with redacted subprocess handling and tests that inject fake secrets and assert none reach stdout/stderr/exceptions. It may pass credentials to `notarytool` in its private child argv as the stable library does, but never logs those arguments. Monitor only `ps ... comm`, never full args. No shell tracing, environment dumps or raw failed-notary output in shared evidence.
+Authentication and wrapping follow stable's existing `OP_BIOMETRIC_UNLOCK_ENABLED=true
+op signin` and `op run --env-file=.env.1password --no-masking` pattern. The exact
+future commands are in §10. The operator tool captures child output and returns
+only fixed errors or a validated Accepted receipt; it never prints credentials,
+child arguments, environment or raw notarization diagnostics. Notary credentials
+exist in the private child argv, as in the stable library; monitor process names
+only (`ps ... comm`), never full arguments. No shell tracing or environment dumps.
 
 Require native foreground Terminal or explicitly approved unsandboxed agent PTY; don't spoof `TERM_PROGRAM`. After one agent-mode policy rejection, follow the existing Terminal handoff protocol, not repeated bypass attempts. Cancel manual 1Password account setup. The future script must require `op` before any build and fail closed on authentication/notarization failure.
 
@@ -284,13 +289,12 @@ Future local-input file (kept private, paths never in public release.json). `pro
 
 `node chromium/release/preflight.mjs RELEASE.json LOCAL-INPUTS.json` checks clean HEAD (no ignored files in the input directories either), local tag absence, the build ledger, dedicated beta branding, input hashes/reconstruction, literal safety args, Sparkle/profile bytes, local signer and decoded profile. It does not contact GitHub/Apple/1Password or prove remote version uniqueness. Remote tag/draft checks, effective GN environment, trusted ledger, source review and acceptance remain separate hard gates in the future operator sequence. Successful preflight is not release authorization.
 
-Remaining owner work before a distributable beta:
-
-1. Identity, `2.0.0-beta.N`, macOS 13 and the beta 1 Intel waiver are approved. Qualify the real beta first-run/default-browser consent and side-by-side OS registrations.
-2. Supply the dedicated EdDSA public key after the owner-only key ceremony; approve hosting/promotion operations, reviewed distribution provenance and updater UX. Sparkle 2.10.1 and the blanc.day beta-only routes are approved; production key inputs and runtime qualification are still required.
-3. Approve the scheduled official-build GN/environment diff, separate output/cache arrangement and action budget. Beta 1 is Apple Silicon only under the recorded waiver. No cold or official build is implied here.
-4. (The beta provisioning profile is issued and committed.) Approve adapter/entitlement review and notarization service use; resolve any certificate rotation needed.
-5. Approve the beta acceptance scope after unresolved migration failures, exact-candidate harness work, real-device production Sync account/device and testing window, and final release notes/publication. Sync itself remains required.
+Remaining owner operations, in exact order, are in §10. The current stop is the
+explicit F/G hold, plus the locked display for final desktop regressions. Identity,
+version format, macOS 13, blanc.day feeds, Sparkle 2.10.1 and Apple Silicon scope
+are approved decisions. No new identity decision is requested. Production key
+custody, signing/service access and finished-release publication still need the
+owner's separate authorization.
 
 Unverified / cannot be proven without the later work:
 
@@ -365,3 +369,223 @@ in [the dated security record](../chromium/release/sparkle-review-2026-11-10.md)
 Disabling deltas alone did not address the later installer races; their upstream
 fixes are included in this pin. Native installation and distribution still need
 the separate artifact-bound gates above.
+
+
+## 10. Operator handoff — ordered commands, none executed here
+
+**Start only after the owner lifts the F/G hold.** First unlock the display and
+finish D's owed runs on the prototype. Preserve `out/BlancPrototype`, its args,
+cache and toolchain. Build 1 is reserved in `ledger.json`; the premature beta.1
+cold attempt failed at ANGLE's missing optional Metal Toolchain after 6.42 seconds,
+781 actions. No app exists. Its private EdDSA seed was deleted after the hold was
+noticed. Do not resume that output using a nonexistent key or publish its local
+configuration. Review the missing Metal input before another build; downloading
+Apple's component is not authorized. ANGLE has a runtime source-shader path but
+no stock GN argument to select it on this host; no fallback patch was applied.
+The partial output and failure evidence remain available.
+
+Use a fresh unused beta sequence/build for each distinct candidate, including
+private N and N+1; `2.0.0-beta.1` is not available for new public bytes. Every
+release descriptor must use real hashes and candidate IDs, never the fixture.
+Apple Silicon only is approved; keep the explicit Intel waiver in the ledger,
+release descriptor and evidence. Production builds set
+`blanc_beta_local_qualification=false`; local qualification images are refused
+by production preflight, signing and verification.
+
+The following commands are future operator instructions, not authorization to
+run them now. Run in a visible native Terminal from the release checkout. Set
+`BETA_WORK` to a new private directory, `BETA_SPARKLE` to the verified extracted
+2.10.1 archive (including its `bin/` tools), and `BETA_UNSIGNED` to the qualified
+production-configured app. These are paths, not secrets. Put the final reviewed
+`release.json` and `local-inputs.json` there before step 3. Keep temporary files
+outside Git and shared evidence. Shell variables below are task-specific.
+
+### 1. Dedicated production EdDSA key and recovery custody
+
+After explicit key/1Password authorization, use the pinned Sparkle tool's
+separate account, never the default account or Electron's updater identity:
+
+```sh
+set -eu
+umask 077
+BETA_WORK=$(mktemp -d /private/tmp/blanc-beta-operator.XXXXXX)
+# Set BETA_SPARKLE to the reviewed extracted Sparkle 2.10.1 directory.
+OP_BIOMETRIC_UNLOCK_ENABLED=true op signin
+"$BETA_SPARKLE/bin/generate_keys" --account me.bnfy.blanc.beta > "$BETA_WORK/key-ceremony.txt" 2>&1
+"$BETA_SPARKLE/bin/generate_keys" --account me.bnfy.blanc.beta -p > "$BETA_WORK/public-key.txt"
+"$BETA_SPARKLE/bin/generate_keys" --account me.bnfy.blanc.beta -x "$BETA_WORK/private-seed.txt" > "$BETA_WORK/key-export.txt" 2>&1
+op document create "$BETA_WORK/private-seed.txt" --vault Dev \
+  --title 'Blanc Chromium Beta Sparkle Signing' > "$BETA_WORK/key-document.json"
+op document get 'Blanc Chromium Beta Sparkle Signing' --vault Dev \
+  --output "$BETA_WORK/recovered-seed.txt"
+cmp "$BETA_WORK/private-seed.txt" "$BETA_WORK/recovered-seed.txt"
+rm "$BETA_WORK/private-seed.txt" "$BETA_WORK/recovered-seed.txt"
+```
+
+If the dedicated Keychain account or 1Password title already exists, inspect and
+recover it privately instead of generating a replacement or creating duplicates.
+Cancel any manual account-setup prompt. Record custody/recovery success only;
+do not capture key bytes or ceremony files. Populate the production GN/public
+trust pin from the public-key file through a private structured input workflow.
+Rebuild under the guarded procedure after the hold is lifted. Public key bytes
+are trust metadata, but neither key file nor private ceremony output belongs in
+this queue's evidence. Production private material stays in Keychain and the
+restricted Dev recovery item. This task did not perform this ceremony.
+
+### 2. Build and qualify the real production configuration
+
+Complete F/G after explicit resumption, resolve the Metal prerequisite without
+silently changing toolchains, review fresh effective GN/environment and the dry
+plan, reserve unused N/N+1 numbers, and use only `chromium/tools/build.mjs`.
+The already approved identity is Blanc Beta / `me.bnfy.blanc.beta` /
+`blanc-beta`, macOS 13, `2.0.0-beta.N`, no Widevine, arm64. Retain phase-0 PGO
+fallback only with its recorded review. Run exact-candidate acceptance and local
+Sync proof with no production contact; G's local loopback image is separate from
+the eventual production-configured signing input. All §6 gates need actual
+artifact-bound evidence, including credits/SBOM and compiled-out test hooks.
+No command that fabricates fixture IDs or pass records is provided.
+
+### 3. Preflight and Developer ID signing of a new copy
+
+After separate signing authorization and review of the operator tool:
+
+```sh
+/usr/local/bin/node chromium/release/preflight.mjs \
+  "$BETA_WORK/release.json" "$BETA_WORK/local-inputs.json"
+/usr/local/bin/node chromium/release/operator.mjs sign-app \
+  "$BETA_WORK/release.json" arm64 "$BETA_UNSIGNED" \
+  "$BETA_WORK/signed/Blanc Beta.app" chromium/release/blanc-beta.provisionprofile
+```
+
+This uses **55283A84D3706D5A22386D5F002A0CD4845ECFD4**, team **XYGUCY4498**, for
+all native parts and explicitly assigns Sparkle Autoupdate its reviewed identity.
+Never substitute a certificate or relax a profile/entitlement failure. Rotate
+certificate and profile together before the certificate's 2027-02-01 expiry.
+The tool copies the committed profile into the outer app only. Its success
+means signed-copy creation, not notarization or release qualification.
+
+### 4. Notarize the app through op run, then staple
+
+After explicit Apple/notarization authorization, retain the same Terminal:
+
+```sh
+/usr/bin/ditto -c -k --keepParent "$BETA_WORK/signed/Blanc Beta.app" "$BETA_WORK/Blanc-Beta-notary.zip"
+OP_BIOMETRIC_UNLOCK_ENABLED=true op run --env-file=.env.1password --no-masking -- \
+  /usr/local/bin/node chromium/release/operator.mjs notarize "$BETA_WORK/Blanc-Beta-notary.zip"
+/usr/bin/xcrun stapler staple "$BETA_WORK/signed/Blanc Beta.app"
+/usr/bin/xcrun stapler validate "$BETA_WORK/signed/Blanc Beta.app"
+```
+
+The helper waits for **Accepted** and fails closed. Do not continue after a
+failed submission, dump raw diagnostics to shared logs, or rerun signing over
+the same output. Investigate privately and preserve the receipt and candidate.
+
+### 5. Package, sign/notarize/staple the DMG, verify the real artifact
+
+```sh
+BETA_VERSION=$(/usr/local/bin/node -p 'JSON.parse(require("fs").readFileSync(process.argv[1])).version' "$BETA_WORK/release.json")
+BETA_DMG="$BETA_WORK/Blanc-Beta-$BETA_VERSION-mac-arm64.dmg"
+mkdir "$BETA_WORK/dmg-root"
+/usr/bin/ditto "$BETA_WORK/signed/Blanc Beta.app" "$BETA_WORK/dmg-root/Blanc Beta.app"
+ln -s /Applications "$BETA_WORK/dmg-root/Applications"
+/usr/bin/hdiutil create -fs HFS+ -format UDZO -volname 'Blanc Beta' \
+  -srcfolder "$BETA_WORK/dmg-root" "$BETA_DMG"
+/usr/local/bin/node chromium/release/operator.mjs sign-dmg "$BETA_WORK/release.json" arm64 "$BETA_DMG"
+OP_BIOMETRIC_UNLOCK_ENABLED=true op run --env-file=.env.1password --no-masking -- \
+  /usr/local/bin/node chromium/release/operator.mjs notarize "$BETA_DMG"
+/usr/bin/xcrun stapler staple "$BETA_DMG"
+/usr/bin/xcrun stapler validate "$BETA_DMG"
+/usr/local/bin/node chromium/release/verify.mjs "$BETA_WORK/release.json" arm64 "$BETA_DMG"
+/usr/sbin/spctl --assess --type execute --verbose "$BETA_WORK/signed/Blanc Beta.app"
+```
+
+Also assess the app from a fresh read-only mount/download as §8 requires. Audit
+visual DMG layout and native launch. `verify.mjs` checks every reviewed native
+part and both tickets; it does not prove acceptance or Gatekeeper. Hash and sign
+only the final stapled DMG, and never mutate those bytes afterward.
+
+### 6. Signed N → N+1 updater qualification
+
+Repeat steps 2–5 for the next reserved build, retaining N and its isolated Beta
+profile. Use the dedicated Keychain account to sign the final N+1 archive:
+
+```sh
+"$BETA_SPARKLE/bin/sign_update" --account me.bnfy.blanc.beta -p "$BETA_DMG" > "$BETA_WORK/ed-signature.txt"
+```
+
+The pinned tool's `-p` writes only the archive signature. Stage the archive and
+generate/validate the canonical production feed. Keep `assets/` free of private
+inputs:
+
+```sh
+mkdir -p "$BETA_WORK/assets"
+cp -n "$BETA_DMG" "$BETA_WORK/assets/"
+/usr/local/bin/node chromium/release/appcast.mjs generate "$BETA_WORK/release.json" arm64 \
+  "$BETA_WORK/assets" "$BETA_WORK/ed-signature.txt" "$BETA_WORK/assets/appcast-arm64.xml"
+/usr/local/bin/node chromium/release/appcast.mjs validate "$BETA_WORK/release.json" arm64 \
+  "$BETA_WORK/assets" "$BETA_WORK/ed-signature.txt" "$BETA_WORK/assets/appcast-arm64.xml"
+open -a '/Applications/Blanc Beta.app'
+```
+
+Staging the signed DMG/feed requires separately approved hosting operations.
+Production binaries accept only the pinned blanc.day feed and canonical GitHub
+asset URLs; do not add a runtime override to make a private test convenient.
+Start **inside installed N**, choose Check for Updates, discover N+1, download,
+install and relaunch through Sparkle. Record exact N/N+1 hashes, application
+replacement, build advancement, profile/Sync/passkey continuity and rejection
+of wrong-key/tampered/older/wrong-identity/wrong-architecture updates. Test failure,
+offline/retry and read-only-DMG paths. Do not substitute a direct installer
+launch. Sparkle's normal installer can invoke Apple assessment; that is another
+reason the held local attempt cannot proceed under this queue's no-Apple rule.
+
+### 7. Production Sync with the owner's real iPhone
+
+After explicit service/account/device approval, launch the final production-
+configured Beta using the command above. Turn on Sync in Settings, pair the real
+iPhone through the normal UI, and perform §6's consent, bidirectional edits,
+Shared Spaces, relaunch, offline merge, disconnect and private-data exclusions.
+No CLI can substitute for this device interaction. Keep pairing codes, tokens,
+keys, URLs and profile contents out of screenshots/logs; record sanitized gate
+results bound to the signed candidate. Local Worker results do not pass this gate.
+
+### 8. Publish only after final owner approval and all gates
+
+Complete and review the actual SBOM, notices, release notes, evidence and asset
+set (§7); the arm64 waiver yields **nine** assets. Check remote tag/draft absence
+with authenticated network access, treating all network/auth failures as blockers.
+The following irreversible commands are future owner-authorized operations only:
+
+```sh
+BETA_TAG=$(/usr/local/bin/node -p 'JSON.parse(require("fs").readFileSync(process.argv[1])).tag' "$BETA_WORK/release.json")
+BETA_COMMIT=$(/usr/local/bin/node -p 'JSON.parse(require("fs").readFileSync(process.argv[1])).sourceCommit' "$BETA_WORK/release.json")
+git ls-remote --tags origin "refs/tags/$BETA_TAG"
+gh release view "$BETA_TAG" --repo bnfy/blanc
+# Continue only after positively establishing absence; an auth/network error is not absence.
+/usr/local/bin/node chromium/release/manifest.mjs build "$BETA_WORK/release.json" "$BETA_WORK/assets" "$BETA_WORK/evidence"
+git tag "$BETA_TAG" "$BETA_COMMIT"
+git push origin "refs/tags/$BETA_TAG"
+gh release create "$BETA_TAG" --repo bnfy/blanc --verify-tag --draft --prerelease --latest=false \
+  --title "Blanc Beta $BETA_VERSION" --notes-file "$BETA_WORK/release-notes.md" "$BETA_WORK/assets/"*
+```
+
+Complete §7's fresh Safari Sigstore flow, validate the draft download against
+local bytes and upload only the previously absent signature asset (no clobber):
+
+```sh
+gh release upload "$BETA_TAG" "$BETA_WORK/assets/SHA256SUMS.sigstore.json" --repo bnfy/blanc
+/usr/local/bin/node chromium/release/manifest.mjs verify "$BETA_WORK/release.json" "$BETA_WORK/assets"
+gh release edit "$BETA_TAG" --repo bnfy/blanc --draft=false --prerelease --latest=false
+```
+
+Then perform independent logged-out download/digest/manifest/Sigstore/native
+verification and the fork-specific hosted smoke before promoting feed bytes.
+Deliver the approved `site/public/updates/chromium-beta/arm64.xml` and reviewed
+RSS/cache headers through a normal website PR; after merge, use
+`npm run site:deploy` from that exact clean main commit, verify Cloudflare's
+Production SHA and canonical feed bytes. Do not publish a route with unreviewed
+headers or call the undeployed route a working feed. Leave Intel absent under
+the waiver. Verify stable latest/feed/changelog remain Electron, preserve all
+immutable assets, and record the future public N→N+1 handoff separately.
+
+The guarded `scripts/release-chromium-beta.sh` remains plan-only. The commands
+above deliberately do not turn it into an unqualified automated release path.

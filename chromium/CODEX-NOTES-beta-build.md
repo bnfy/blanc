@@ -5,30 +5,39 @@
 > when. Finish A to E and H, record F and G as "held by owner", and stop. Keep
 > this notice when you rewrite the file.
 
-Queue 2 in progress; local commits only. No live-tree or production access.
+Queue 2 stopped at explicit hold and display guard; local commits only.
 
 | Item | State |
 | --- | --- |
-| A shared Spaces | Implemented: two-window native gate 3/3; full regression owed |
-| B native icons | Implemented; peer icon/privacy pass; clean full gate owed in D |
-| C Android safety | Partly: available checks pass; Linux 156 compile/device gates owed |
-| D regression | Partly: earlier full 22/22; final rerun interrupted by screen lock |
-| E Sparkle | Done: 2.10.1 reviewed/staged; preview unchanged; offline checks pass |
-| F dedicated beta | In progress: dedicated args and GN generated; cold build next |
-| G local beta proof | Owed |
-| H operator handoff | Owed |
+| A shared Spaces | Done implementation; native two-window/group/Undo gate 3/3; D owed |
+| B native icons | Done implementation; real peer PNG/privacy gate passes; D owed |
+| C Android safety | Partly: local bundle/unit/support checks pass; native 156/device owed |
+| D regression | Blocked: display locked; final full gate/five-feature comparison owed |
+| E Sparkle | Done: newest stable 2.10.1 reviewed/staged; preview/offline checks pass |
+| F dedicated beta | Held by owner; hold missed before failed cold attempt, now enforced |
+| G local beta proof | Held by owner; no beta app exists; temporary private key deleted |
+| H operator handoff | Done documentation/operator commands; offline validation only |
 
-Prototype: macos-9b7aa261f5018db7, beta-spaces-layout-1-runtime-config.json.
-Beta candidate/app: not built. Sparkle: 2.10.1, newest stable; fixes five later advisories.
-Gate: beta-regression-sync-1 22/22; updated bridge unit tests 8/8.
-Scenario: sync.feature:162 passes on candidate 8 (beta-spaces-pairing-8).
-Latest precommit tools: 284/284; patches: 159 desktop / 35 Android / 568 canonical.
-Lost native passes: comparison owed; five-feature run did not start.
-Android: 284/284 tools; changed bundle current; 35-file lane reconstruction; 38 syntax checks.
-156 compile and device/emulator execution owed: no tree/output; Darwin arm64 host.
-Owner next: unlock the display for owed native runs; non-display work continues.
-Unverified: final group/Undo candidate, Android, scenario regressions, beta build,
-Sparkle linkage/handoff, signed distribution, production real-device Sync.
+Prototype: macos-9b7aa261f5018db7; beta-spaces-layout-1-runtime-config.json.
+Beta: no candidate/app; partial output ../src/out/BlancBeta preserved, no resume.
+Cold attempt failed in 6.42s (781 actions), optional Metal Toolchain absent.
+Gate: earlier beta-regression-sync-1 22/22; latest focused Spaces 3/3; bridge 8/8.
+Scenario: sync.feature:162 passes on macos-fbb479dfc8d99cdb (pairing-8).
+Latest native candidate's whole-scenario comparison is owed; no lost pass established.
+Android: available unit/bundle checks, 35-file reconstruction and 38 support syntax checks.
+156 compile/device owed: no tree/output/adb; Darwin arm64, exact commands in C.
+Sparkle 2.10.1: newest stable; five post-2.8.0 advisories fixed, full license retained.
+Owner next: unlock display for D; explicitly resume F/G only when ready.
+Later owner operations: production key custody, signing/Apple, iPhone Sync, publication.
+Unverified: final full regression, native Android, beta identity/linkage/acceptance,
+real updater install, production Sync and all signed distribution gates.
+No push/tag/publication, Developer ID, Apple, production Sync, 1Password or live-tree action.
+
+| Gate evidence | Result | Candidate scope |
+| --- | --- | --- |
+| Full desktop Sync, regression-sync-1 | 22/22 | 01fd557468d72dd0, before group repair |
+| Final two-window Spaces, spaces-layout-1 | 3/3 | 9b7aa261f5018db7 |
+| Final tools / reconstruction | 291/291; 159/573 | Offline source checks only |
 
 ## A — desktop bridge checkpoint
 
@@ -212,6 +221,22 @@ Group/Undo checkpoint precommit: `beta-layout-tools-1.tap` 284/284; desktop
 for `6e6f26c5872abe7053b0fbee46c0d1c737c27b925ec96b9cfa1986b6b4b45467`.
 Android native compile/device qualification remains owed as listed in C.
 
+### Scenario baseline and owed comparison
+
+| Feature | finish-final-features-2 pass/fail/undefined | Final queue candidate |
+| --- | --- | --- |
+| sync.feature | 17 / 0 / 1 | Whole run owed; :162 focused pass on fbb479dfc8d99cdb |
+| internal-pages.feature | 10 / 0 / 0 | Owed |
+| island-and-commands.feature | 72 / 0 / 1 | Owed |
+| vertical-tabs.feature | 18 / 2 / 0 | Owed |
+| quiet-tabs.feature (:8/:118 only in baseline) | 2 / 0 / 0 | Whole file owed |
+
+Baseline totals: 119 pass / 2 fail / 2 undefined, including two quiet cases.
+Existing vertical failures are stale V16 grouped-pin expectations (:129) and
+Linux-only controls (:239); Island :320 is Linux-only. These remain explicit,
+not waived or rewritten. No final comparison means **lost-pass count unknown**,
+not zero. The final five-feature run did not start after the locked Sync failure.
+
 ### Locked-display interruption
 
 `beta-regression-sync-2` on `macos-9b7aa261f5018db7` passed setup, pairing and
@@ -279,7 +304,8 @@ PGO profiles are absent, so the reviewed fallback is explicit phase 0 and
 symbol level 0; official optimization and ThinLTO remain enabled. No hooks,
 sync, toolchain fetch or clean. The first GN attempt exposed duplicate ARC in
 the previously uncompiled beta target; inherited Chromium ARC is now used.
-Second GN generation succeeds (37216 targets / 5069 files); no compile yet.
+Second GN generation succeeded (37216 targets / 5069 files). The subsequent
+premature compile and correction are recorded below.
 
 The local qualification build uses fixed loopback Sync/appcast endpoints and a
 throwaway EdDSA key held only in a mode-0700 temporary directory (seed file 0600).
@@ -300,8 +326,9 @@ recorded environment differs from the prototype only in `argsSha256`:
 Xcode 27.2/27B52, SDK 27.2/26B118, LLVM 24 e063be79adf1 remain unchanged.
 Effective official/ThinLTO/full-credits/13.0/no-Widevine flags are recorded in
 `beta-1-effective-gn.json`. The plan contains no temporary public key and no
-explicit signing, notarization or checkout command. The authorized cold build
-will use `--allow-large-build --max-actions=58015`, once, with no concurrent test.
+explicit signing, notarization or checkout command. The cold attempt
+used `--allow-large-build --max-actions=58015`, with no concurrent test; it should
+not have started under the owner hold (see correction below).
 Build 1 and its Apple Silicon waiver are reserved in `chromium/release/ledger.json`.
 
 F preparation precommit: `beta-build-prep-tools-3.tap` 289/289; desktop 159/573
@@ -310,3 +337,54 @@ an obsolete assertion that the real ledger was empty; it now proves reserved
 private beta 1 is refused and the next unused version/build is accepted.
 Current patch totals: 49 ordered patches, 571 hunks, 155 output paths,
 153 pristine inputs, 159 reconstructed files, 573 canonical files.
+
+### F/G hold correction and failed attempt
+
+The binding owner hold at the top of this file was overlooked during F
+preparation and the first cold attempt. That was an execution error. The hold
+was noticed while inspecting the failed build; no second build or G action ran.
+`beta-1-cold-build.log` records 6.42 seconds, 781 completed actions, one failure,
+84,949 remaining after generated-plan expansion. ANGLE's build-time Metal shader
+action requires Xcode's absent optional Metal Toolchain. No component was fetched,
+no Apple contact was made, and no toolchain was changed. The stock source-shader
+runtime path exists, but no host GN switch selects it; no fallback was applied.
+
+F and G are **held by owner**, regardless of the fixability of that error.
+The failed output remains at `../src/out/BlancBeta`; no beta application or
+candidate ID was produced. Prototype args remain unchanged. The mode-0600
+throwaway private seed and private inputs were deleted with their private temp
+directory and pointer; public-only generated metadata remains in the partial
+output. Build/version 1 stays reserved, with its failure/hold recorded in the
+ledger. Do not reuse it for production or resume it without a fresh reviewed
+qualification plan and the owner's explicit resumption.
+
+## H — concrete future operator handoff
+
+`docs/chromium-beta-release.md` §10 records the exact ordered owner operations:
+production Sparkle key generation and 1Password export/recovery, guarded build
+and qualification after resumption, pinned Developer ID signing, redacted
+`op run` notarization, app/DMG stapling, real-artifact verification, signed N→N+1,
+real-iPhone production Sync, immutable prerelease publication and feed promotion.
+Approved identity/feed/minimum-OS/version choices are no longer open decisions.
+
+Replaced the nonexistent private signing-adapter instruction with the explicit
+`chromium/release/operator.mjs` commands. The tool shares the verifier's native
+inventory, checks unknown code/profile/local-qualification inputs before signing,
+signs a new copy child-first with the pinned fingerprint and exact entitlements,
+and confines notary output to validated receipts/fixed redacted errors. Importing
+it does nothing. No signing, timestamp request, notarization or service operation
+was executed. Offline tests cover signing order, unknown libraries, no deep
+signing, pinned identity, and failure-path credential redaction. Native execution
+of this future operator tool remains unverified because F/G are held.
+
+Outstanding native runs after unlock: clean full `desktop-sync.mjs`, then all
+five requested feature files in one run, comparing case IDs with
+`finish-final-features-2`. Never report the locked run as a product regression
+or transfer earlier candidate passes to the final build. Android compile/device
+and signed/native beta gates remain explicitly owed as above.
+
+H precommit: `beta-operator-tools-1.tap` **291/291**, zero failures/skips;
+`beta-operator-patches-1.txt` **159 upstream / 573 canonical** reconstruction
+passes. No build or native test is running. The display remains locked; no
+rendering-guard bypass occurred. Signing and notarization helpers were only
+imported/tested offline with injected synthetic failures, never executed.
