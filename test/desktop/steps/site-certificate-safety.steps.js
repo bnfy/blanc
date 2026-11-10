@@ -244,3 +244,18 @@ Then('the page that embeds it stays open', async function () {
   const payload = await this.call('serializedTabsPayload');
   assert.notEqual(payload.find((entry) => entry.id === this.frameHostTabId)?.siteInfo?.state, 'certificate-error');
 });
+
+Given('I continued past the warning on a local page that opens a WebSocket', async function () {
+  this.localTabId = await this.call('openTab', this.localFixtureUrl('local-socket', '?socket=1'));
+  await continueLocal(this, this.localTabId);
+});
+
+Then('the WebSocket to the local address opens', async function () {
+  const deadline = Date.now() + 10_000;
+  for (;;) {
+    const state = await this.call('executeTab', this.localTabId, 'window.__socketState');
+    if (state === 'open') return;
+    if (state === 'error' || Date.now() > deadline) throw new Error(`the WebSocket was ${state}, expected open`);
+    await new Promise((r) => setTimeout(r, 100));
+  }
+});

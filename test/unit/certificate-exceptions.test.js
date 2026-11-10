@@ -57,6 +57,42 @@ test('matches requires origin, fingerprint, error, session and unchanged validit
   assert.equal(store.get(s2, URL_A), null);
 });
 
+// A page loaded past a warning opens its WebSockets on the same TLS endpoint,
+// and Chromium reports that certificate failure with a wss: address (found during #1437).
+test('a WebSocket to a continued origin matches under the same conditions', () => {
+  const store = createCertificateExceptions();
+  const s1 = {}; const s2 = {};
+  store.allow(s1, { url: URL_A, error: ERR, certificate: cert(), now: NOW });
+  const req = { url: 'wss://NAS.home.arpa:8006/api/socket', error: ERR, certificate: cert(), now: NOW };
+  assert.equal(store.matches(s1, req), true);
+  assert.equal(store.matches(s2, req), false, 'other session (private/profile)');
+  assert.equal(store.matches(s1, { ...req, url: 'wss://nas.home.arpa:8007/' }), false, 'port');
+  assert.equal(store.matches(s1, { ...req, url: 'wss://nas.home.arpa/' }), false, 'default port is 443');
+  assert.equal(store.matches(s1, { ...req, url: 'wss://other.home.arpa:8006/' }), false, 'host');
+  assert.equal(store.matches(s1, { ...req, certificate: cert({ fingerprint: 'sha256/BBB' }) }), false, 'fingerprint');
+  assert.equal(store.matches(s1, { ...req, error: 'net::ERR_CERT_COMMON_NAME_INVALID' }), false, 'error');
+  assert.equal(store.matches(s1, { ...req, now: NOW + 2 * DAY }), false, 'validity');
+  for (const url of ['ws://nas.home.arpa:8006/', 'http://nas.home.arpa:8006/', 'ftp://nas.home.arpa:8006/']) {
+    assert.equal(store.matches(s1, { ...req, url }), false, url);
+  }
+  store.allow(s1, { url: 'https://10.0.0.2/', error: ERR, certificate: cert(), now: NOW });
+  assert.equal(store.matches(s1, { ...req, url: 'wss://10.0.0.2/live' }), true, 'both default to 443');
+});
+
+test('a WebSocket address can match a choice but never make, read or remove one', () => {
+  const store = createCertificateExceptions();
+  const s = {};
+  const wss = 'wss://nas.home.arpa:8006/';
+  assert.equal(originKey(wss), null);
+  assert.equal(store.isEligible({ ...eligible, url: wss }), false);
+  assert.equal(store.allow(s, { url: wss, error: ERR, certificate: cert(), now: NOW }), false);
+  assert.equal(store.matches(s, { url: wss, error: ERR, certificate: cert(), now: NOW }), false);
+  store.allow(s, { url: URL_A, error: ERR, certificate: cert(), now: NOW });
+  assert.equal(store.get(s, wss), null);
+  assert.equal(store.forget(s, wss), false);
+  assert.ok(store.get(s, URL_A));
+});
+
 test('crossing validTo ends the match even though the error string is unchanged', () => {
   const store = createCertificateExceptions();
   const s = {};
