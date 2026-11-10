@@ -206,3 +206,15 @@ Precommit: `finish-vertical-tools-2.tap` 244/244; patch reconstruction
 found only the stale 155-output count assertion after adding the pinned Mac
 shortcut source; its expected count now records 156. Desktop patch inventory:
 44 selected patches, 152 distinct patched paths, 536 hunks, 150 pristine files.
+
+## Queue 5 — merge preparation
+
+Remote refs confirm the old setup branch is absent. Merging migration at
+`4a24b47d` encountered the earlier S3 squash: conflicts were older copies of
+the current native/Sync files. Their current contents are preserved; a byte
+comparison proves the merge imports exactly the 21 later beta-tooling paths.
+The initial mandatory merged suite passed 265/265. Its inherited tests used
+ephemeral generated test keys; these are now replaced by the public/signature
+parts of RFC 8032 TEST 2, with no private material or signing, to keep all
+subsequent checks within the no-key-generation boundary. No operational key
+was created or stored.

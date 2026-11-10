@@ -43,7 +43,7 @@ jobs:
       - name: Check the typed Island interface matches browser-api/contract.json
         run: node chromium/tools/browser-api-mojom.mjs --check
       - name: Run tool and runner unit tests
-        run: node --test chromium/tools/*.test.mjs chromium/tests/*.test.mjs
+        run: node --test chromium/tools/*.test.mjs chromium/tests/*.test.mjs chromium/release/*.test.mjs
       - name: Check scenario inventory freshness
         run: |
           node chromium/tools/scenario-inventory.cjs --check
