@@ -50,6 +50,7 @@ class DesktopSyncService final : public ProfileObserver,
   void AddObserver(Observer* observer);
   void RemoveObserver(Observer* observer);
   void Reconcile();
+  void SetTabs(base::ListValue tabs, base::ListValue groups);
   size_t PendingFirstUploadCount() const;
   void ConfirmFirstUpload(bool accept);
 
@@ -104,6 +105,9 @@ class DesktopSyncService final : public ProfileObserver,
   std::set<std::string> confirmed_urls_;
   std::map<std::string, double> local_changes_;
   base::DictValue last_local_;
+  std::string tabs_sent_;
+  base::TimeTicks tabs_sent_at_;
+  bool tabs_pending_ = false;
   bool ready_ = false;
   bool running_ = false;
   bool again_ = false;

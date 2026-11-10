@@ -58,6 +58,13 @@ export class Locator{
   if(Object.keys(rest).length||hasText==null||typeof last!=='string')throw new UndefinedNativeAdapterError('Locator shim filters by hasText on a plain selector only');
   return new Locator(this.page,[...this.selectors.slice(0,-1),step(last,{hasText})],this.index);
  }
+ and(other){
+  if(other.page!==this.page||other.selectors.length!==1||typeof other.selectors[0]!=='string'||other.index!==null)
+   throw new UndefinedNativeAdapterError('Locator intersection requires one plain selector in the same frame');
+  const selectors=[...this.selectors],last=selectors.pop(),suffix=':is('+other.selectors[0]+')';
+  selectors.push(typeof last==='string'?last+suffix:{...last,css:last.css+suffix});
+  return new Locator(this.page,selectors,this.index);
+ }
  first(){return new Locator(this.page,this.selectors,0);}
  last(){return new Locator(this.page,this.selectors,-1);}
  nth(i){return new Locator(this.page,this.selectors,i);}

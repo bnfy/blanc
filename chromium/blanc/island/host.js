@@ -1038,6 +1038,7 @@
   }
 
   async function show(prefill, mode = 'panel', trigger = null, purpose = undefined) {
+    if (mode === 'panel' || mode === 'palette') request('syncSurface', ['refreshSession', []]).catch(() => {});
     // Every open ends a hover dwell, as shipping's showOverlay does.
     hoverStepWith({ type: 'ineligible' });
     await hideSheet(false);
@@ -1810,8 +1811,7 @@
       const message = window.BlancInviteFriend.inviteMessage(t);
       return request('inviteFriend', [window.BlancInviteFriend.inviteMailto(message), `${message.subject}\n\n${message.body}`]);
     },
-    // Sending a tab needs Blanc Sync, not in the fork yet: shipping's answer.
-    sendTabToDevice: async () => ({ status: 'unavailable' }),
+    sendTabToDevice: (id, to) => request('sendTabToDevice', [nativeId(id), String(to)]),
     setTabGroup: async (id, groupId) => {
       await request('setTabGroup', [nativeId(id), typeof groupId === 'string' ? groupId : null]);
       await refresh();
@@ -1843,7 +1843,16 @@
       const limit = Number.isInteger(options?.limit) ? options.limit : 300;
       return request('listHistory', [Math.min(300, Math.max(1, limit))]);
     },
-    listRemoteTabs: async () => [],
+    listRemoteTabs: () => request('syncSurface', ['listRemoteDevices', []]),
+    beginRenameDevice: async id => {
+      const devices = await request('syncSurface', ['listRemoteDevices', []]);
+      const device = devices.find(d => d.deviceId === id);
+      if (device) await show(device.name, 'panel', null, {renameDeviceId: id});
+    },
+    renameDevice: async (id, name) => {
+      const result = await request('syncSurface', ['renameRemoteDevice', [String(id), String(name ?? '')]]);
+      await refreshSyncSurfaces(); return result;
+    },
     // Internal migration probes; no user-facing Glance acceptance yet.
     createSplit: async (first, second) => {
       const result = await request('createSplit', [nativeId(first), nativeId(second)]);
@@ -2056,13 +2065,22 @@
       if (anchor?.closing === true) return;
       show('', 'spaces');
     },
-    // Tab Archive (F52) and sending tabs (Profile Sync) are not ported yet:
-    // the overlay reads them with favorites and history at startup, so they
-    // answer as shipping does with nothing archived, sent or paired.
+    // Tab Archive remains outside this slice. Sync reads use the default
+    // profile service and the shipping bundle's account-bound projections.
     archiveList: async () => [],
     archiveNotice: async () => null,
-    listSentToThisDevice: async () => [],
-    listSendTargets: async () => [],
+    listSentToThisDevice: () => request('syncSurface', ['listSentToThisDevice', []]),
+    listSendTargets: () => request('syncSurface', ['listSendTargets', []]),
+    dismissSentItem: async id => {
+      const item = await request('syncSurface', ['hideSentItem', [String(id)]]);
+      await refreshSyncSurfaces(); return !!item;
+    },
+    openSentItem: async id => {
+      const item = await request('syncSurface', ['hideSentItem', [String(id)]]);
+      if (!item || !/^https?:\/\//i.test(item.url)) return false;
+      await request('createTab', [item.url]); await close(); await refresh();
+      await refreshSyncSurfaces(); return true;
+    },
     searchSuggestions: query => typed('searchSuggestions', [String(query)]),
     cycleTheme: theme => typed('cycleTheme', [typeof theme === 'string' ? theme : null]),
     routeActiveSite: mode => typed('routeActiveSite', [String(mode)]),
@@ -2365,6 +2383,7 @@
     },
     glanceState: () => ({ layout: glancePayload(), shown: !glanceCardFrame.hidden, generation: glance.generation }),
     apiForDocument,
+    refreshSyncSurfaces,
     hoverState: () => ({ ...hover.state }),
     // Whether the how-to tip is on screen (shipping's introTipShown).
     autoHideIntroShown: () => introTip && !tooltip.hidden,
@@ -2489,6 +2508,19 @@
     if (!result.ok) await request('previewPageCommand', ['closeWindow']);
   }
   openPendingSpace().catch(error => notice(error.message));
+  let syncReading = false;
+  async function refreshSyncSurfaces() {
+    if (syncReading) return;
+    syncReading = true;
+    try {
+      const devices = await request('syncSurface', ['listRemoteDevices', []]);
+      const sent = await request('syncSurface', ['listSentToThisDevice', []]);
+      emit('onRemoteTabsUpdated', devices);
+      emit('onSentToThisDeviceUpdated', sent);
+    } catch { /* A runner failure is not an empty remote inventory. */ }
+    finally { syncReading = false; }
+  }
+  setInterval(refreshSyncSurfaces, 5000);
   setInterval(refresh, 300);
   applyRail().catch(error => notice(error.message));
 })();

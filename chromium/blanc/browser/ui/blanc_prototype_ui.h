@@ -81,6 +81,8 @@ void RestoreTabIdentity(content::WebContents* tab,
 // from session, Space or Recently closed is created with them
 // (WebContents::CreateParams::starting_sandbox_flags), so its page loads
 // under the same sandbox; Duplicate and Quiet refuse it.
+inline constexpr char kInheritedDocumentPolicyKey[] = "blanc.tab.inherited-policy.v1";
+bool HasInheritedDocumentPolicy(content::WebContents* tab);
 inline constexpr char kInheritedSandboxKey[] = "blanc.tab.inherited-sandbox.v1";
 void NoteInheritedSandbox(content::WebContents* tab);
 uint32_t InheritedSandboxFlags(content::WebContents* tab);

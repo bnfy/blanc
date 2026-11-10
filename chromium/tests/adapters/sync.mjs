@@ -3,9 +3,36 @@
 import {createRequire} from 'node:module';
 const require=createRequire(import.meta.url);
 const QrCode=require('../../../src/renderer/pages/qr-code.js');
+import {seedRemoteDevices} from '../lib/sync-fixture.mjs';
+import {tabPage} from './core.mjs';
 import {readSettings} from './commands.mjs';
 
 export const sync = {
+ async injectRemoteDevices(w,count=1){
+  const mode=await w.call('overlayRendererMode');
+  await seedRemoteDevices(w,count);
+  if(mode&&await w.call('overlayRendererMode')!==mode)await w.call(mode==='palette'?'openPalette':'openPanel');
+  const devices=await w.api('listRemoteTabs');
+  await w.hostEval(`window.BlancPrototypeHost.refreshSyncSurfaces()`);
+  return devices;
+ },
+ async clearRemoteDevices(w){
+  if(w.syncPeer)await seedRemoteDevices(w,0);
+  await w.hostEval(`window.BlancPrototypeHost.refreshSyncSurfaces()`);
+ },
+ async beginRenameDeviceByName(w,name){
+  const devices=await w.api('listRemoteTabs');const device=devices.find(d=>d.name===name);if(!device)return false;
+  await w.api('beginRenameDevice',[device.deviceId]);return true;
+ },
+ async remoteStartPageRows(w){
+  const state=await w.snapshot();const tab=state.tabs.find(t=>t.url.startsWith('blanc://newtab')||t.url.startsWith('chrome://blanc-prototype/pages/newtab'));
+  if(!tab)return [];
+  return (await tabPage(w,tab.id)).evaluate(async()=>Promise.all([...document.querySelectorAll('#remoteList .fav')].map(async e=>{
+   const tile=e.querySelector('.tile'),bg=tile?.style.backgroundImage??'',url=bg.match(/^url\(["']?(.*?)["']?\)$/)?.[1];
+   let decoded=null;if(url?.startsWith('data:image/png;base64,')){const img=new Image();img.src=url;try{await img.decode();decoded=img.naturalWidth+'x'+img.naturalHeight;}catch{}}
+   return {title:e.querySelector('.name')?.textContent,host:e.querySelector('.host')?.textContent,faviconHasIcon:tile?.classList.contains('has-icon')??false,faviconDecoded:decoded};
+  })));
+ },
  windowsContentProtected:w=>w.native('windowsContentProtected',[]),
  // The transient display code stays in memory; never return it in a DOM
  // summary, assertion error, result receipt or browser log.
@@ -26,6 +53,7 @@ export const sync = {
   const visible=id=>{const e=el(id);return !!e&&!e.hidden&&e.getBoundingClientRect().width>0&&e.getBoundingClientRect().height>0;};
   return {
    available:host.state_?.available,
+   shareTabs:el('syncTabsShare')?.checked === true,
    sheetOpen:el('syncPairingDialog')?.open===true,
    sheetVisible:visible('syncPairingDialog'),
    sheetTitle:el('syncPairingTitle')?.textContent.trim(),
@@ -55,6 +83,11 @@ export const sync = {
    'add-device':'syncAddDevice','connect-iphone':'syncConnectIphone',
    'continue':'syncPairingContinue','add-this-first':'syncPairingAddThisFirst','pair-cancel':'syncPairingCancel',
    'turn-off':'syncDisable','upload-continue':'syncFirstUploadContinue','upload-not-now':'syncFirstUploadNotNow'};
+  if(a.action==='share-tabs-on'||a.action==='share-tabs-off'){
+   const field=root.getElementById('syncTabsShare');
+   if(!field||field.disabled||!field.getBoundingClientRect().width)return false;
+   if(field.checked!==(a.action==='share-tabs-on'))field.click();return true;
+  }
   if(a.action==='type-code'){
    const field=root.getElementById('syncCode');
    if(field.disabled||!field.getBoundingClientRect().width)return false;

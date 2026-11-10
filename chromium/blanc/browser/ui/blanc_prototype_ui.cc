@@ -752,6 +752,7 @@ class IslandToolbarProvider final : public ToolbarButtonProvider,
 
 scoped_refptr<base::SequencedTaskRunner> SpaceRunner();
 std::optional<base::DictValue> CaptureNativeSpace(BrowserWindowInterface* browser);
+void SaveInheritedSandbox(content::WebContents* tab);
 void NoteSpaceTabCount(Profile* profile, const std::string& name, size_t tabs);
 bool ValidSpace(const base::DictValue& record);
 bool MainDocumentLoading(content::WebContents* tab);
@@ -2822,6 +2823,7 @@ std::optional<base::DictValue> CaptureNativeSpace(BrowserWindowInterface* browse
       group_index = it - order.begin();
     }
     tabs.Append(base::DictValue().Set("url", url.spec()).Set("pinned", model->IsTabPinned(i)).Set("group", group_index));
+    if (HasInheritedDocumentPolicy(tab)) tabs.back().GetDict().Set("inheritsDocumentPolicy", true);
   }
   // With only private tabs left the Space holds a Start Page, as shipping's
   // does: the pages closed from it must not come back from an older record.
@@ -3197,7 +3199,42 @@ base::Value IslandRelativeBounds(BrowserWindowInterface* browser, content::WebCo
       .Set("width", bounds.width()).Set("height", bounds.height()));
 }
 
+// Aggregate all default-profile windows before handing a snapshot to Sync.
+// A restoring/switching window is not an empty inventory. Wait for it.
+void PublishSyncTabs(Profile* profile) {
+  auto* service = blanc::DesktopSyncService::ForProfile(profile);
+  if (!service || SessionRestore::IsRestoring(profile)) return;
+  base::ListValue tabs, groups;
+  std::set<std::string> group_ids;
+  for (auto* owner : Owner::Live()) {
+    if (owner->browser->GetProfile() != profile) continue;
+    if (owner->space_busy || owner->space_expected) return;
+    auto* model = owner->browser->GetTabStripModel();
+    for (int i = 0; i < model->count(); ++i) {
+      auto* tab = model->GetWebContentsAt(i);
+      if (tab->GetBrowserContext()->IsOffTheRecord() || HasInheritedSandbox(tab) ||
+          HasInheritedDocumentPolicy(tab) ||
+          tab->GetPrimaryMainFrame()->IsSandboxed(network::mojom::WebSandboxFlags::kAll)) continue;
+      const GURL& url = tab->GetLastCommittedURL();
+      if (!url.SchemeIsHTTPOrHTTPS() || url.has_username() || url.has_password()) continue;
+      auto group = model->SupportsTabGroups() ? model->GetTabGroupForTab(i) : std::nullopt;
+      tabs.Append(base::DictValue().Set("url", url.spec())
+          .Set("title", base::UTF16ToUTF8(tab->GetTitle()))
+          .Set("customTitle", CustomTabName(tab)).Set("private", false)
+          .Set("pinned", model->IsTabPinned(i))
+          .Set("groupId", group ? base::Value(group->ToString()) : base::Value()));
+      if (group && group_ids.insert(group->ToString()).second) {
+        const auto* visuals = GroupVisuals(model, *group);
+        groups.Append(base::DictValue().Set("id", group->ToString())
+            .Set("name", visuals ? base::UTF16ToUTF8(visuals->title()) : ""));
+      }
+    }
+  }
+  service->SetTabs(std::move(tabs), std::move(groups));
+}
+
 base::DictValue Snapshot(BrowserWindowInterface* browser, Owner* owner) {
+  PublishSyncTabs(browser->GetProfile());
   owner->SyncActive();
   auto* model = browser->GetTabStripModel();
   auto* favorites = LoadedBookmarkModel(browser->GetProfile());
@@ -3239,6 +3276,8 @@ base::DictValue Snapshot(BrowserWindowInterface* browser, Owner* owner) {
                     .Set("pageBg", contents == model->GetActiveWebContents()
                         ? owner->page_tint : "")
                     .Set("isLoading", contents->IsLoading())
+                    .Set("canSend", !contents->GetBrowserContext()->IsOffTheRecord() &&
+                        !HasInheritedDocumentPolicy(contents) && committed.SchemeIsHTTPOrHTTPS())
                     .Set("canDuplicate", !controller.GetPendingEntry() &&
                         !contents->GetPrimaryMainFrame()->IsSandboxed(network::mojom::WebSandboxFlags::kAll) &&
                         chrome::CanDuplicateTabAt(browser, index))
@@ -3509,6 +3548,17 @@ class NewTabHandler : public content::WebUIMessageHandler,
     const auto& args = message[2].GetList();
     auto* contents = web_ui()->GetWebContents();
     auto* profile = Profile::FromWebUI(web_ui());
+    if (method == "remoteDevices" && args.empty()) {
+      auto* service = blanc::DesktopSyncService::ForProfile(profile);
+      if (!service) { Reply(id, true, base::Value(base::ListValue())); return; }
+      service->Call("sync.listRemoteDevices", "[]", base::BindOnce(
+          [](base::WeakPtr<NewTabHandler> self, std::string id, bool ok, const std::string& json) {
+            if (!self) return;
+            auto value = ok ? base::JSONReader::Read(json, base::JSON_PARSE_RFC) : std::nullopt;
+            self->Reply(id, value.has_value(), value ? std::move(*value) : base::Value("Sync unavailable"));
+          }, weak_factory_.GetWeakPtr(), id));
+      return;
+    }
     // Resolve only the requesting Start Page's own browser and profile.
     if ((method == "groupsRead" && args.empty()) ||
         (method == "focusGroup" && args.size() == 1 && args[0].is_string())) {
@@ -4798,6 +4848,15 @@ class Handler : public content::WebUIMessageHandler, public extensions::Extensio
             self->Reply(id, value.has_value(), value ? std::move(*value) : base::Value(json));
           }, weak_factory_.GetWeakPtr(), id));
       return;
+    }
+    if (message[1].GetString() == "setIslandZoomFactor") {
+      const auto& args = message[2].GetList();
+      if (args.size() != 1 || (!args[0].is_double() && !args[0].is_int()) || !std::isfinite(args[0].GetDouble()) ||
+          args[0].GetDouble() < 0.5 || args[0].GetDouble() > 3) { reject("Invalid Island zoom"); return; }
+      auto* host = web_ui()->GetWebContents();
+      content::HostZoomMap::GetForWebContents(host)->SetTemporaryZoomLevel(
+          host->GetPrimaryMainFrame()->GetGlobalId(), blink::ZoomFactorToZoomLevel(args[0].GetDouble()));
+      Reply(id, true, base::Value(true)); return;
     }
     // Browser layout zoom, not CDP visual/pinch scale. Match shipping's
     // internal-page-only test hooks; this dispatch is build/runtime gated.
@@ -7020,6 +7079,10 @@ class Handler : public content::WebUIMessageHandler, public extensions::Extensio
         }
         added.push_back(created);
       }
+      if (item.GetDict().FindBool("inheritsDocumentPolicy").value_or(false)) {
+        blanc::quiet::MediaHistory::Get(added.back())->MarkInheritedPolicy();
+        SaveInheritedSandbox(added.back());
+      }
       ++source_index;
     }
     // More live pages than the record knows stay, at the end, for the next save.
@@ -7157,6 +7220,48 @@ class Handler : public content::WebUIMessageHandler, public extensions::Extensio
       return;
     }
 #endif
+    if (method == "syncSurface" && args.size() == 2 && args[0].is_string() && args[1].is_list()) {
+      const auto& operation = args[0].GetString();
+      const auto& values = args[1].GetList();
+      const bool read = values.empty() && (operation == "listRemoteDevices" ||
+          operation == "listSendTargets" || operation == "listSentToThisDevice" || operation == "refreshSession");
+      const bool rename = operation == "renameRemoteDevice" && values.size() == 2 &&
+          values[0].is_string() && values[1].is_string() && values[1].GetString().size() <= 256;
+      const bool hide = operation == "hideSentItem" && values.size() == 1 && values[0].is_string();
+      auto* service = blanc::DesktopSyncService::ForProfile(profile);
+      if (!service || !(read || rename || hide)) {
+        reply(true, read ? base::Value(base::ListValue()) : base::Value(false)); return;
+      }
+      service->Call("sync." + operation, base::WriteJson(values).value_or("[]"), base::BindOnce(
+          [](base::WeakPtr<Handler> self, std::string id, bool ok, const std::string& json) {
+            if (!self) return;
+            auto value = ok ? base::JSONReader::Read(json, base::JSON_PARSE_RFC) : std::nullopt;
+            self->Reply(id, value.has_value(), value ? std::move(*value) : base::Value("Sync unavailable"));
+          }, weak_factory_.GetWeakPtr(), id));
+      return;
+    }
+    if (method == "sendTabToDevice" && args.size() == 2 && args[0].is_int() && args[1].is_string()) {
+      content::WebContents* tab = nullptr;
+      for (int i = 0; i < model->count(); ++i)
+        if (sessions::SessionTabHelper::IdForTab(model->GetWebContentsAt(i)).id() == args[0].GetInt()) tab = model->GetWebContentsAt(i);
+      auto* service = blanc::DesktopSyncService::ForProfile(profile);
+      if (!service || !tab || tab->GetBrowserContext()->IsOffTheRecord() || HasInheritedSandbox(tab) ||
+          HasInheritedDocumentPolicy(tab) ||
+          tab->GetPrimaryMainFrame()->IsSandboxed(network::mojom::WebSandboxFlags::kAll) ||
+          !tab->GetLastCommittedURL().SchemeIsHTTPOrHTTPS()) {
+        reply(true, base::Value(base::DictValue().Set("status", "invalid"))); return;
+      }
+      auto payload = base::ListValue().Append(base::DictValue().Set("url", tab->GetLastCommittedURL().spec())
+          .Set("title", CustomTabName(tab).empty() ? base::UTF16ToUTF8(tab->GetTitle()) : CustomTabName(tab))
+          .Set("to", args[1].GetString()));
+      service->Call("sync.sendTab", base::WriteJson(payload).value_or("[]"), base::BindOnce(
+          [](base::WeakPtr<Handler> self, std::string id, bool ok, const std::string& json) {
+            if (!self) return;
+            auto value = ok ? base::JSONReader::ReadDict(json, base::JSON_PARSE_RFC) : std::nullopt;
+            self->Reply(id, true, base::Value(value ? std::move(*value) : base::DictValue().Set("status", "failed")));
+          }, weak_factory_.GetWeakPtr(), id));
+      return;
+    }
     if (method == "storeIcon" && args.size() == 1 && args[0].is_string()) {
       const GURL url(args[0].GetString());
       if (!url.is_valid() || !url.SchemeIs("https") || url.host() != "lh3.googleusercontent.com" ||
@@ -9380,12 +9485,16 @@ class TabIdentityData : public base::SupportsUserData::Data {
 };
 void SaveInheritedSandbox(content::WebContents* tab) {
   const std::string state = InheritedSandboxState(tab);
-  if (state.empty() || tab->GetBrowserContext()->IsOffTheRecord()) return;
+  const bool policy = HasInheritedDocumentPolicy(tab);
+  if ((state.empty() && !policy) || tab->GetBrowserContext()->IsOffTheRecord()) return;
   GlobalBrowserCollection::GetInstance()->ForEach([&](BrowserWindowInterface* browser) {
     if (browser->GetTabStripModel()->GetIndexOfWebContents(tab) == TabStripModel::kNoTab) return true;
-    if (auto* service = SessionServiceFactory::GetForProfile(browser->GetProfile()))
-      service->AddTabExtraData(browser->GetSessionID(),
+    if (auto* service = SessionServiceFactory::GetForProfile(browser->GetProfile())) {
+      if (!state.empty()) service->AddTabExtraData(browser->GetSessionID(),
           sessions::SessionTabHelper::IdForTab(tab), kInheritedSandboxKey, state);
+      if (policy) service->AddTabExtraData(browser->GetSessionID(),
+          sessions::SessionTabHelper::IdForTab(tab), kInheritedDocumentPolicyKey, "1");
+    }
     return false;
   });
 }
@@ -9424,6 +9533,9 @@ uint32_t InheritedSandboxFlags(content::WebContents* tab) {
   auto* data = tab ? static_cast<InheritedSandboxData*>(tab->GetUserData(kInheritedSandboxKey)) : nullptr;
   return data ? data->flags : 0;
 }
+bool HasInheritedDocumentPolicy(content::WebContents* tab) {
+  return tab && (HasInheritedSandbox(tab) || blanc::quiet::MediaHistory::Get(tab)->inherited_policy());
+}
 bool HasInheritedSandbox(content::WebContents* tab) { return InheritedSandboxFlags(tab) != 0; }
 std::string InheritedSandboxState(content::WebContents* tab) {
   const uint32_t flags = InheritedSandboxFlags(tab);
@@ -9459,6 +9571,9 @@ std::string CustomTabName(content::WebContents* tab) {
 void RestoreCustomTabName(content::WebContents* tab,
     const std::map<std::string, std::string>& extra_data) {
   if (!IsEnabled() || !tab || tab->GetBrowserContext()->IsOffTheRecord()) return;
+  const auto policy = extra_data.find(kInheritedDocumentPolicyKey);
+  if (policy != extra_data.end() && policy->second != "0")
+    blanc::quiet::MediaHistory::Get(tab)->MarkInheritedPolicy();
   const auto name = extra_data.find(kTabNameKey);
   const auto normalized = name == extra_data.end() ? std::nullopt
       : tab_names::Normalize(base::UTF8ToUTF16(name->second));

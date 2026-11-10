@@ -11,18 +11,20 @@ import {assertRendering} from './lib/render-guard.mjs';
 import {NativeFixture} from './lib/fixture.mjs';
 import {installDriver,nativeCall} from './lib/test-driver.mjs';
 import {createWorld} from './world.mjs';
+import {tabPage} from './adapters/core.mjs';
 import {inSettings} from './adapters/commands.mjs';
 const require=createRequire(import.meta.url);
 const {createSyncFixture}=require('../../test/desktop/support/sync-fixture.js');
 const {peer}=require('./android/support/sync-peer.cjs');
 const [configFile,evidence,mode]=process.argv.slice(2);
-if(mode && !['--recovery-only','--profiles-only'].includes(mode))throw Error('Unknown gate mode');
+if(mode && !['--recovery-only','--profiles-only','--tabs-only'].includes(mode))throw Error('Unknown gate mode');
+const tabsOnly=mode==='--tabs-only';
 const profilesOnly=mode==='--profiles-only';
 const recoveryOnly=mode==='--recovery-only';
 if(!configFile||!evidence)throw Error('Usage: desktop-sync.mjs CONFIG EVIDENCE');
 const config=JSON.parse(fs.readFileSync(configFile));
 fs.mkdirSync(evidence,{recursive:true,mode:0o700});
-const output={candidate:config.candidate,checks:[],mockKeychain:true,mode:profilesOnly?'profiles-only':recoveryOnly?'recovery-only':'full'};
+const output={candidate:config.candidate,checks:[],mockKeychain:true,mode:tabsOnly?'tabs-only':profilesOnly?'profiles-only':recoveryOnly?'recovery-only':'full'};
 const sleep=ms=>new Promise(r=>setTimeout(r,ms));
 async function until(read,predicate,label,timeout=180000){
  const end=Date.now()+timeout;let value;
@@ -111,6 +113,52 @@ try{
   assert.equal(progress.syncComplete,true,'real Sync completes checklist');
   assert.equal(progress.iphoneComplete,true,'real iPhone presence completes checklist');
  });
+ if(!recoveryOnly){
+ await check('open tabs default off, both directions, private exclusion, Send and retraction',async()=>{
+  assert.equal((await w.call('settingsSyncPairingDom')).shareTabs,false,'sharing defaults off');
+  const macUrl=fixture.base+'/sync-mac-tab',privateUrl=fixture.base+'/sync-private-tab';
+  const macId=await w.call('openTab',macUrl,{});
+  await w.call('openTab',privateUrl,{private:true});
+  await until(()=>w.snapshot(),v=>v.tabs.some(t=>t.url===macUrl)&&v.tabs.some(t=>t.url===privateUrl&&t.private),'native tab inventory');
+  const inheritedUrl=fixture.base+'/sync-inherited-tab';
+  const opener=await tabPage(w,macId);await opener.evalExpression("1");await opener.bringToFront();
+  await opener.cdp.send('Runtime.evaluate',{expression:`window.open(${JSON.stringify(inheritedUrl)},'_blank')`,userGesture:true});
+  const child=await until(()=>w.snapshot(),v=>v.tabs.some(t=>t.url===inheritedUrl),'page-opened tab');
+  const childId=child.tabs.find(t=>t.url===inheritedUrl).id;
+  assert.equal((await w.native('quietState',[childId])).inheritedPolicy,true,'native sticky policy mark');
+  const peerUrl='https://peer.example/open-tab';
+  await new Promise((resolve,reject)=>device.context.__call('phone.setTabs',JSON.stringify([[{url:peerUrl,title:'Peer open tab',private:false}],[]]),(ok,value)=>ok?resolve(value):reject(Error('peer snapshot refused'))));
+  device.sync.setSyncTabs(true);
+  const tabPump=async()=>{await requestRoom();await device.sync.resetRequestWindowForTest();await device.sync.syncNow(['session','settings','sends']);await requestRoom();await rpc('sync.resetRequestWindowForTest');await rpc('sync.syncNow');};
+  await tabPump();console.log('tabs: peer published; checking consent-off');
+  assert.equal(device.sync.listRemoteDevices().length,0,'Mac published no tabs before consent');
+  await openSync();await act('share-tabs-on');console.log('tabs: sharing requested');
+  await until(async()=>{await tabPump();return {peer:device.sync.listRemoteDevices(),mac:await w.api('listRemoteTabs')};},v=>v.peer.some(d=>d.tabs.some(t=>t.url===macUrl))&&v.mac.some(d=>d.tabs.some(t=>t.url===peerUrl)),'tabs both ways');
+  console.log('tabs: both inventories converged');
+  const remote=device.sync.listRemoteDevices();
+  assert.ok(!remote.some(d=>d.tabs.some(t=>t.url===privateUrl)),'private tab excluded');
+  assert.ok(!remote.some(d=>d.tabs.some(t=>t.url===inheritedUrl)),'inherited-policy tab excluded');
+  const target=(await w.api('listSendTargets')).find(d=>d.name==='S4b independent iPhone peer');assert.ok(target);
+  await requestRoom();await rpc('sync.resetRequestWindowForTest');
+  assert.equal((await w.api('sendTabToDevice',[String(macId),target.id])).status,'sent');
+  await until(async()=>{await tabPump();return device.sync.listSentToThisDevice();},rows=>rows.some(t=>t.url===macUrl),'Mac Send received by peer');
+  console.log('tabs: Mac Send received');
+  const back=device.sync.listSendTargets()[0];assert.ok(back);
+  await requestRoom();device.sync.resetRequestWindowForTest();
+  assert.equal((await device.sync.sendTab({url:peerUrl,title:'Sent from peer',to:back.id})).status,'sent');
+  await until(async()=>{await tabPump();return w.api('listSentToThisDevice');},rows=>rows.some(t=>t.url===peerUrl),'peer Send received by Mac');
+  console.log('tabs: peer Send received');
+  await openSync();await act('share-tabs-off');
+  await until(async()=>{await tabPump();return device.sync.listRemoteDevices();},rows=>!rows.some(d=>d.tabs.some(t=>t.url===macUrl)),'share-off retracts Mac tabs');
+  await w.relaunch();
+  const restored=await until(()=>w.snapshot(),v=>v.tabs.some(t=>t.url===inheritedUrl),'restored policy-marked tab');
+  const restoredId=restored.tabs.find(t=>t.url===inheritedUrl).id;
+  assert.equal((await w.native('quietState',[restoredId])).inheritedPolicy,true,'policy mark survives native session restore');
+  await openSync();
+ });
+ }
+ if(tabsOnly){await close('tabs');await device.sync.disable();}
+ else {
  await check('first upload holds existing Favorites until Continue',async()=>{
   await until(()=>w.call('settingsSyncPairingDom'),s=>s?.pendingFirstUpload?.includes('1'),'one Favorite consent');
   await pump();assert.ok(!(await rpc('bookmarks.exportForSync')).items.some(x=>x.url===first));
@@ -270,7 +318,8 @@ try{
  await close('declined');
  await device.sync.disable();
  }
- for(const mode of ['private','secondary']){
+ }
+ for(const mode of (tabsOnly?[]:['private','secondary'])){
   await check(`${mode} profile refuses Sync without a runner or Worker traffic`,async()=>{
    const requestCount=worker.requests.length;
    await launch({privateMode:mode==='private',secondary:mode==='secondary'});

@@ -14,6 +14,19 @@ async function resize(width, height) {
  }
 }
 export const WINDOW_LAYOUT_STEPS = new Map([
+ ['the window is 640 by 480 with the Island at 125%', async function(){await resize.call(this,640,480);}],
+ ['the tab list keeps at least two rows and the footer stays in the window', async function(){
+  const page=this.frame('overlay');await this.native('setIslandZoomFactor',[1.25]);
+  try {
+   await page.locator('#islandDrawer').waitFor({state:'visible'});
+   const measure=()=>page.evaluate(()=>({listHeight:document.getElementById('islandList').getBoundingClientRect().height,
+    drawerHeight:document.getElementById('islandDrawer').getBoundingClientRect().height,
+    footerBottom:document.getElementById('islandFooter').getBoundingClientRect().bottom,height:innerHeight}));
+   const settled=await this.waitFor(measure,m=>Math.abs(m.height-480/1.25)<=2,'125% Island viewport');
+   assert.ok(settled.listHeight>=64,JSON.stringify(settled));
+   assert.ok(settled.footerBottom<=settled.height+1,JSON.stringify(settled));
+  } finally {await this.native('setIslandZoomFactor',[1]);await resize.call(this,1280,800);}
+ }],
  ['I choose {string} vertical tab text in Settings', async function(size) {
   assert.equal(await this.call('tabLayout'),'vertical');
   const value=await inSettings(this,'appearance',async(size,d)=>{

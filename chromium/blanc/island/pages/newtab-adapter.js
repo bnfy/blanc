@@ -375,7 +375,7 @@
         const release = isPrivatePage ? null : await request('whatsNew').catch(() => null);
         const whatsNew = release?.version
           ? window.BlancWhatsNew.whatsNewState(release.state, { version: release.version, now: Date.now() }) : null;
-        return { ...preferences(), remoteDevices: [], privacy: firstRun?.privacy, onboarding: firstRun?.onboarding ?? null,
+        return { ...preferences(), remoteDevices: isPrivatePage ? [] : await request('remoteDevices').catch(() => []), privacy: firstRun?.privacy, onboarding: firstRun?.onboarding ?? null,
           migrationChecklist, whatsNew, patronActive: patron?.active === true,
           patronCalloutSnoozedUntil: Number(patron?.snoozedUntil) || 0, launchSunrise: launchSunrise === true,
           blockedThisWeek: Number.isInteger(week?.blocked) ? week.blocked : 0,
@@ -471,7 +471,15 @@
         document.addEventListener('visibilitychange', update);
         return () => document.removeEventListener('visibilitychange', update);
       },
-      onRemoteTabs: () => {},
+      onRemoteTabs: listener => {
+        let reading = false;
+        const timer = setInterval(async () => {
+          if (reading || isPrivatePage || document.hidden) return;
+          reading = true;
+          try { listener(await request('remoteDevices')); } catch {} finally { reading = false; }
+        }, 5000);
+        window.addEventListener('pagehide', () => clearInterval(timer), {once: true});
+      },
       onUtilitySheetVisibility: fn => { utilityListeners.add(fn); return () => utilityListeners.delete(fn); },
       openIsland: text => request('openIsland', [text]),
       openMahjong: background => request('openMahjong', [background === true]),

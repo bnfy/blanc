@@ -33,6 +33,7 @@ class MediaHistory : public base::SupportsUserData::Data,
   bool used() const { return used_; }
   bool policy_known() const { return provenance_known_ || inherited_policy_; }
   bool inherited_policy() const { return inherited_policy_; }
+  void MarkInheritedPolicy() { inherited_policy_ = true; provenance_known_ = true; }
   bool dropped_page_state() const { return dropped_page_state_; }
   void MediaStartedPlaying(const MediaPlayerInfo&, const content::MediaPlayerId&) override;
   void DidFinishNavigation(content::NavigationHandle* navigation) override;

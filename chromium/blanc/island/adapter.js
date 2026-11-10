@@ -110,6 +110,16 @@ if (location.origin === 'chrome://blanc-prototype' && parent !== window) {
     appendActions(actions); placeMenu(event);
   }
   document.addEventListener('contextmenu', async event => {
+    const deviceRow = event.target.closest('#islandDrawer [data-device-id]');
+    if (deviceRow) {
+      event.preventDefault();
+      dismissMenu(); menuOrigin = document.activeElement;
+      menu = document.createElement('div'); menu.className = 'prototype-tab-menu';
+      menu.setAttribute('role', 'menu');
+      appendActions([[localized('deviceMenu.rename', 'Rename Device…'),
+        () => window.browserAPI.beginRenameDevice(deviceRow.dataset.deviceId)]]);
+      placeMenu(event); return;
+    }
     const row = event.target.closest('[data-tab-id]');
     if (!row && !event.target.closest('#islandPill')) return;
     if (event.target.closest('input,textarea')) return;
@@ -165,6 +175,20 @@ if (location.origin === 'chrome://blanc-prototype' && parent !== window) {
       [localized('menu.closeTab', 'Close Tab'), () => window.browserAPI.closeTab(id)],
     ];
     if (typeof tab.siteMuted === 'boolean') actions.splice(3, 0, [localized(tab.siteMuted ? 'tabMenu.unmuteSite' : 'tabMenu.muteSite', tab.siteMuted ? 'Unmute Site' : 'Mute Site'), () => window.browserAPI.toggleSiteMute(id)]);
+    if (tab.canSend === true) {
+      const targets = await window.browserAPI.listSendTargets().catch(() => []);
+      if (requestEpoch !== menuEpoch || !menu) return;
+      actions.push([localized('tabMenu.sendToDevice', 'Send to Device'), () => {
+        menu.replaceChildren();
+        appendActions(targets.length ? targets.map(target => [target.name, async () => {
+          const result = await window.browserAPI.sendTabToDevice(id, target.id);
+          parent.BlancPrototypeHost.notice(result.status === 'sent'
+            ? localized('sends.sent', `Sent to ${target.name}`, {device: target.name})
+            : localized(result.status === 'unavailable' ? 'sends.unavailable' : 'sends.failed', 'Could not send this tab.'));
+        }]) : [[localized('sends.none', 'No other devices available'), () => {}, true]]);
+        placeMenu(event);
+      }, false, true]);
+    }
     // Query native state for the targeted tab, not the currently active tab.
     // The native action rechecks the committed URL so a navigated row cannot
     // apply the stale menu to a different page.

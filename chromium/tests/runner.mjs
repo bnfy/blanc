@@ -53,7 +53,7 @@ async function runCase(matches,steps,tags=[]){
   // Profiles live in local temp storage, never in the synced evidence folder;
   // the browser log and any error are kept with the results.
   const name='case-'+String(++executed).padStart(4,'0');entry.fixture=name;
-  if(tags.includes('@sync-server'))await prepareSyncFixture(world);
+  if(tags.includes('@sync-server')||tags.includes('@sync')||matches.some(m=>/injectRemoteDevices/.test(m.definition.run.toString())))await prepareSyncFixture(world);
   await fixture.launch(config,path.join(scratch,name),{testHooks:true,pages:await fixturePages.start(),diskAssets:config.diskAssets!==false});
   await installDriver(fixture.host);const caps=await nativeCall(fixture.host,'capabilities');if(!caps.testHooks)throw Error('Native test hook unavailable');
   await assertRendering(e=>fixture.host.eval(e));

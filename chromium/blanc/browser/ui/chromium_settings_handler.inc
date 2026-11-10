@@ -106,10 +106,12 @@ class ChromiumSettingsHandler final : public settings::SettingsPageUIHandler,
   }
   static bool ValidSyncCall(std::string_view method, const base::ListValue& args) {
     // No general runner gateway: no sharedContext, stores, or keys;
-    // remote wipe, account switching, tabs or Spaces cross this boundary.
+    // remote wipe, account switching or raw tab/Space snapshots. The sharing
+    // switch accepts only a boolean; native code supplies the tab inventory.
     if (method == "sync.status" || method == "sync.syncNow" ||
         method == "sync.disable" || method == "sync.beginPairing" ||
         method == "sync.cancelPairing" || method == "sync.pairingState") return args.empty();
+    if (method == "sync.setSyncTabs") return args.size() == 1 && args[0].is_bool();
     if (method == "sync.setPairingWatch") return args.size() == 1 && args[0].is_bool();
     if (method == "sync.joinWithCode")
       return args.size() == 1 && args[0].is_string() &&

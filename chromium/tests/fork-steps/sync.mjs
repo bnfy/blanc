@@ -1,6 +1,8 @@
 // Shipping Sync setup assertions over the native Settings controls.
 import assert from 'node:assert/strict';
 import {createRequire} from 'node:module';
+import {ensureSyncPeer,seedRemoteDevices,syncPump} from '../lib/sync-fixture.mjs';
+import {inSettings} from '../adapters/commands.mjs';
 import {nativeCall} from '../lib/test-driver.mjs';
 const require=createRequire(import.meta.url);
 
@@ -18,6 +20,44 @@ export async function prepareSyncFixture(world){
 const card=(w,predicate,label,timeout=8000)=>w.waitFor(
  ()=>w.call('settingsSyncPairingDom'),v=>!!v&&predicate(v),label,timeout);
 export default function register(step){
+ step('sync is enabled on this device',async function(){await ensureSyncPeer(this);});
+ step('the "share this device\'s open tabs" setting is off',async function(){
+  await this.api('openPage',['settings','sync']);await inSettings(this,'sync',()=>({value:true}));
+  assert.equal((await card(this,v=>v.syncOn,'Sync on')).shareTabs,false);
+ });
+ step('no tab snapshot for this device is published',async function(){
+  await syncPump(this);assert.equal(this.syncPeer.sync.listRemoteDevices().length,0);
+ });
+ step('a synced device {string} with {int} shared tabs',async function(name,count){
+  await seedRemoteDevices(this,1,name,count);this.remoteName=name;
+ });
+ step('I open the palette, open Other devices and unfold {string}',async function(name){
+  await this.call('openPanel');const page=this.frame('overlay');
+  await page.locator('#footerDevices').click();
+  await page.locator('#islandDrawer [data-device-id]').filter({hasText:name}).click();
+ });
+ step('I choose its first remote tab',async function(){
+  this.beforeRemoteOpen=(await this.snapshot()).tabs.map(t=>t.id);
+  this.chosenRemote=(await this.api('listRemoteTabs'))[0].tabs[0].url;
+  await this.frame('overlay').locator('#islandDrawer .island-row').first().click();
+ });
+ step('it opens as a new ungrouped local tab',async function(){
+  const state=await this.waitFor(()=>this.snapshot(),v=>v.tabs.some(t=>!this.beforeRemoteOpen.includes(t.id)&&t.url===this.chosenRemote),'new remote tab');
+  const tab=state.tabs.find(t=>!this.beforeRemoteOpen.includes(t.id)&&t.url===this.chosenRemote);
+  assert.equal(tab.groupId,null);assert.equal(tab.private,false);
+ });
+ step('sharing open tabs is on and synced',async function(){
+  await ensureSyncPeer(this);this.sharedTabUrl=this.fixtureUrl('shared-tab');await this.call('openTab',this.sharedTabUrl,{});
+  await this.api('openPage',['settings','sync']);await inSettings(this,'sync',()=>({value:true}));
+  await this.waitFor(()=>this.call('settingsSyncPairingAct','share-tabs-on'),v=>v===true,'sharing control ready');
+  await card(this,v=>v.shareTabs,'sharing switched on');
+  await this.waitFor(async()=>{await syncPump(this);return this.syncPeer.sync.listRemoteDevices();},v=>v.some(d=>d.tabs.some(t=>t.url===this.sharedTabUrl)),'shared tab uploaded',180000);
+ });
+ step('I turn sharing off',async function(){assert.equal(await this.call('settingsSyncPairingAct','share-tabs-off'),true);});
+ step('other devices no longer list this device',async function(){
+  await this.waitFor(async()=>{await syncPump(this);return this.syncPeer.sync.listRemoteDevices();},v=>!v.some(d=>d.tabs.some(t=>t.url===this.sharedTabUrl)),'snapshot retracted',180000);
+ });
+
  step('the Sync card offers Add this device to my sync before Start syncing from this device',async function(){
   const dom=await card(this,v=>v.turnOnVisible,'Sync setup choices');
   assert.equal(dom.pathOrder[0],'syncPathCode');
