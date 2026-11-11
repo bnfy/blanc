@@ -254,7 +254,11 @@ export function nativeSpacesArt({ styles, overlay, overlayScript, workspaceUi, i
   const start = overlay.indexOf('<div id="islandPanel">');
   const end = overlay.indexOf('<div id="workspaceFeedback"', start);
   if (start < 0 || end < start) throw new Error('Missing native Island panel markup');
-  let panel = stripInterfaceKeys(overlay.slice(start, end)).replace(/<!--[\s\S]*?-->/g, '');
+  // The markup's own comments (the Spaces planet's note) don't ship. Strip
+  // until nothing is left, so a removal can never join a new `<!--`.
+  let panel = stripInterfaceKeys(overlay.slice(start, end));
+  for (let before = ''; before !== panel;) { before = panel; panel = panel.replace(/<!--[\s\S]*?-->/g, ''); }
+  if (panel.includes('<!--')) throw new Error('Missing native Island panel markup: unclosed comment');
   const set = (from, to) => {
     if (!panel.includes(from)) throw new Error(`Missing native Island panel markup: ${from}`);
     panel = panel.replace(from, to);
