@@ -132,8 +132,10 @@ struct PaletteSheet: View {
             }
             .accessibilityLabel(SyncCopy.text("ios.island.collapse"))
         }
-        .padding(.leading, 16)
-        .padding(.trailing, 4)
+        // Its icons line up with the list's: the search glass over the rows'
+        // icons, the collapse caret over Copy Link and Settings.
+        .padding(.leading, 22)
+        .padding(.trailing, 12)
         .padding(.vertical, 8)
     }
 
@@ -376,7 +378,7 @@ struct PaletteSheet: View {
                                 close()
                             }
                         } label: {
-                            row(icon: "arrow.down.left", title: item.title.isEmpty ? item.url : item.title,
+                            row(icon: "arrow.up.right", title: item.title.isEmpty ? item.url : item.title,
                                 subtitle: SyncCopy.text("sends.from", [
                                     "device": item.fromName,
                                     "time": sentAgo.localizedString(for: Date(timeIntervalSince1970: Double(item.sentAt) / 1000), relativeTo: Date()),
@@ -422,6 +424,9 @@ struct PaletteSheet: View {
                         .font(BrowserStyle.font(13))
                         .listRowSeparator(.hidden)
                         .listRowBackground(Color.clear)
+                        // The cloud in the rows' icon column, the disclosure
+                        // arrow under the caret and Copy Link.
+                        .listRowInsets(EdgeInsets(top: 2, leading: 22, bottom: 2, trailing: 30))
                     }
                 } header: { groupHeading(SyncCopy.text("footer.devices")) }
             }
