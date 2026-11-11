@@ -188,8 +188,7 @@ struct PaletteSheet: View {
             } label: {
                 row(icon: tab.currentURL.scheme == "blanc" ? "sun.horizon" : "globe",
                     title: TabTitle.display(tab),
-                    subtitle: tab.currentURL.scheme == "blanc" ? "Blanc" : tab.currentURL.host ?? tab.currentURL.absoluteString,
-                    selected: tab.id == manager.activeTabId)
+                    subtitle: tab.currentURL.scheme == "blanc" ? "Blanc" : tab.currentURL.host ?? tab.currentURL.absoluteString)
                     .padding(.trailing, 10)
             }
             .accessibilityAddTraits(tab.id == manager.activeTabId ? .isSelected : [])
@@ -239,7 +238,9 @@ struct PaletteSheet: View {
         .padding(.top, 8)
     }
 
-    private func row(icon: String, title: String, subtitle: String, selected: Bool = false) -> some View {
+    /// The current tab is shown by its row's highlight (and VoiceOver's
+    /// Selected), not a trailing dot, which said the same thing twice.
+    private func row(icon: String, title: String, subtitle: String) -> some View {
         HStack(spacing: 10) {
             Image(systemName: icon).font(.system(size: 16, weight: .regular))
                 .foregroundStyle(style.secondary).frame(width: 24)
@@ -248,7 +249,6 @@ struct PaletteSheet: View {
                 Text(subtitle).font(BrowserStyle.font(11)).foregroundStyle(style.secondary).lineLimit(1)
             }
             Spacer(minLength: 4)
-            if selected { Circle().fill(style.text).frame(width: 5, height: 5) }
         }
         .frame(maxWidth: .infinity, minHeight: 48, alignment: .leading)
         .contentShape(Rectangle())
