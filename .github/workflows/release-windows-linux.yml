@@ -1182,6 +1182,20 @@ jobs:
       - run: npm ci
       - name: Install disposable desktop test environment
         run: |
+          # Inline like the release steps (#1449, #1452): this job can run on an older ref.
+          if [ -f /etc/apt/apt-mirrors.txt ]; then
+            printf '%s\n' http://mirrors.edge.kernel.org/ubuntu/ | sudo tee /etc/apt/apt-mirrors.txt >/dev/null
+          fi
+          for file in /etc/apt/sources.list /etc/apt/sources.list.d/*.list /etc/apt/sources.list.d/*.sources; do
+            if [ -f "$file" ]; then
+              sudo sed -E -i 's#https?://azure\.archive\.ubuntu\.com/ubuntu/?#http://mirrors.edge.kernel.org/ubuntu/#g' "$file"
+            fi
+          done
+          if grep -rqs 'azure\.archive\.ubuntu\.com' /etc/apt/apt-mirrors.txt /etc/apt/sources.list /etc/apt/sources.list.d; then
+            echo "azure.archive.ubuntu.com is still configured" >&2
+            exit 1
+          fi
+          echo 'Acquire::Retries "5";' | sudo tee /etc/apt/apt.conf.d/80-blanc-retries >/dev/null
           sudo apt-get update
           sudo apt-get install --yes dbus-x11 desktop-file-utils xdg-utils xvfb libgtk-3-bin
       - name: Build private AppImage without publishing
@@ -1318,6 +1332,20 @@ jobs:
         run: |
           BLANC_ECS_BUILD_RESULT="$GITHUB_WORKSPACE/output/ecs-next-build.json" node scripts/build-next-ecs-candidate.cjs "$GITHUB_WORKSPACE/output/ecs-build.json"
           BLANC_ECS_BUILD_RESULT="$GITHUB_WORKSPACE/output/ecs-third-build.json" node scripts/build-next-ecs-candidate.cjs "$GITHUB_WORKSPACE/output/ecs-build.json" 3
+          # Inline like the release steps (#1449, #1452): this job can run on an older ref.
+          if [ -f /etc/apt/apt-mirrors.txt ]; then
+            printf '%s\n' http://mirrors.edge.kernel.org/ubuntu/ | sudo tee /etc/apt/apt-mirrors.txt >/dev/null
+          fi
+          for file in /etc/apt/sources.list /etc/apt/sources.list.d/*.list /etc/apt/sources.list.d/*.sources; do
+            if [ -f "$file" ]; then
+              sudo sed -E -i 's#https?://azure\.archive\.ubuntu\.com/ubuntu/?#http://mirrors.edge.kernel.org/ubuntu/#g' "$file"
+            fi
+          done
+          if grep -rqs 'azure\.archive\.ubuntu\.com' /etc/apt/apt-mirrors.txt /etc/apt/sources.list /etc/apt/sources.list.d; then
+            echo "azure.archive.ubuntu.com is still configured" >&2
+            exit 1
+          fi
+          echo 'Acquire::Retries "5";' | sudo tee /etc/apt/apt.conf.d/80-blanc-retries >/dev/null
           sudo apt-get update
           sudo apt-get install --yes xdotool
       - name: Linux real staged Restart Now handoff

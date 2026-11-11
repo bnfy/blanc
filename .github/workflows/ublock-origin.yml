@@ -265,7 +265,7 @@ jobs:
       - run: npm ci --no-audit --no-fund
       - name: Prepare official native debugger
         run: |
-          command -v gdb || { sudo apt-get update; sudo apt-get install -y gdb; }
+          command -v gdb || { bash scripts/ci-apt-mirror.sh && sudo apt-get update && sudo apt-get install -y gdb; }
           chmod +x test/desktop/support/electron-native-debug.sh
       - name: Capture isolated browser-process native stacks
         shell: bash
