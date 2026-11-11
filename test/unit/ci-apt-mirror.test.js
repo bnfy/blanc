@@ -28,7 +28,7 @@ test('the mirror script leaves azure.archive.ubuntu.com and refuses to run off a
   const script = read('scripts', 'ci-apt-mirror.sh');
   assert.match(script, /^set -euo pipefail$/m);
   assert.match(script, /GITHUB_ACTIONS:-\} != true \|\| \$\{RUNNER_OS:-\} != Linux/);
-  assert.match(script, /http:\/\/mirrors\.edge\.kernel\.org\/ubuntu\//);
+  assert.ok(script.includes("printf '%s\\n' http://mirrors.edge.kernel.org/ubuntu/"), 'the kernel.org mirror comes first');
   assert.match(script, /azure\.archive\.ubuntu\.com is still configured/);
   assert.doesNotMatch(script, /apt-get/, 'the step itself runs apt, after the script');
 });
