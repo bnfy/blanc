@@ -6,9 +6,8 @@ release commit are below as they're recorded.
 
 ## Before 1.48.0 publishes
 
-- **What's New:** `https://blanc.day/whats-new/1.48` must be live, with the
-  owner's sign-off on its text and media, or the owner approves a `noPage`
-  entry for 1.48.
+- **What's New:** none. The owner chose a `noPage` entry for 1.48 on
+  November 11, 2026, so no tab opens after the update.
 - **Glance over a split hands-on checks** (#1444) in a packaged build on
   macOS, Windows and Linux: the card drawing above both panes and their
   corner tabs (Linux especially), clicking between panes, and closing a pane
