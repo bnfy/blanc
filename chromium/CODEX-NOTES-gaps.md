@@ -21,7 +21,7 @@
 > Report it in a "Runner timing" section. Keep this notice when you rewrite the file.
 
 Queue 4 is **in progress**. Dedicated beta build/updater remains on absolute owner hold.
-Current prototype: **macos-ee619ff9ece15ce0**; `q4-glance-1-runtime-config.json`.
+Current prototype: **macos-adb1daee018d8289**; `q4-pinned-1-runtime-config.json`.
 
 | Item | State |
 | --- | --- |
@@ -33,14 +33,15 @@ Current prototype: **macos-ee619ff9ece15ce0**; `q4-glance-1-runtime-config.json`
 | 6 Microphone indicator | Done: real permission, synthetic input, window-wide chip and native Stop pass |
 | 7 Quiet Space ownership | Done: ownership case and five quiet-protection controls pass |
 | 8 Glance / other failures | Done: seven original failures now pass; Linux-only menu case is not applicable on macOS |
-| 9 Pinned homes | Pending |
+| 9 Pinned homes | Partly: six web scenarios pass; isolated local HTML home remains blocked by missing N15 preview |
 | 10 Open-tab / Arc import | Pending |
 | 11 Remaining adapters | Pending |
 
 | Evidence | Sync pass/fail | Inventory pass/fail/undefined/excluded |
 | --- | --- | --- |
 | Owner baseline | 22/0 | 443/8/187/2 |
-| Item 3 candidate: q4-resume-full-sync | 22/0 | Final inventory owed; earlier run stopped per owner change |
+| Item 3: q4-resume-full-sync | 22/0 | Final inventory owed |
+| Item 9: q4-pinned-full-sync | 22/0 | Final inventory owed |
 
 Lost passes: partial run found F41:558 group creation; fixed and targeted check passes. Final comparison owed.
 Owner input: actual device-bound passkey acceptance requires a signed, entitled build and Touch ID ceremony, outside this queue.
@@ -570,3 +571,36 @@ Patch budget remains 123 paths / 417 incremental hunks (162/573 reconstruction).
 spoofed platform. The same rule applies to the Linux-only floating-window
 controls case in island-and-commands:320. Required precommit
 `q4-glance-precommit.tap`: 304/304 pass; reconstruction, progress and whitespace pass.
+
+## 9 — Pinned homes
+
+The native tab owns its home independently of its current navigation. Explicit
+pinning captures it, unpinning clears it, and Set Current Page as Home and Return
+to Home use the shipping menu labels. Native session extra data, Recently closed,
+duplicates, window moves, discarded-tab replacement and Space records preserve
+it. A clean startup replaces a pinned tab's navigation with a fresh home entry;
+crash recovery keeps its current navigation. Private homes stay in memory and
+never enter the regular session store. Clearing history does not touch homes.
+
+`q4-pinned-cases` passes tabs/groups :240, :256, :270, :278 and :284 on their
+first attempts. `q4-pinned-slow-cache` passes :249 on its first attempt after
+correcting the fixture: Chromium's cached response defeated the deliberately
+slow home. The adapter clears the real HTTP cache after initially loading and
+pinning that page; the original loading/title assertions are unchanged.
+The transfer adapter accounts for Chromium's retained WebContents retaining its
+immutable ID on reopening, while preserving every home/transfer assertion.
+
+:292 remains undefined: the fork has no N15 isolated local HTML preview. A raw
+file navigation would bypass the required access policy, so the adapter refuses
+it explicitly. That is a missing product capability, not platform inapplicability.
+File homes and physical input/accessibility remain unverified.
+
+Candidate `macos-adb1daee018d8289`, `q4-pinned-1-runtime-config.json`.
+Guarded incremental build: 35 actions / 38.54 seconds. Patch 0059 touches three
+already-pinned upstream files; no new upstream paths. Full Sync gate
+`q4-pinned-full-sync`: **22/22 pass**, including persisted quota wait and
+private/secondary-profile refusal. Patch budget: 123 upstream paths / 420
+incremental hunks; full reconstruction remains 162 upstream / 573 canonical files.
+
+Required precommit `q4-pinned-precommit.tap`: 304/304 pass; patch
+reconstruction, progress freshness and whitespace pass. Item 10 is next.

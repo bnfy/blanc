@@ -1802,6 +1802,8 @@
     },
     // Duplicate (F2): native copies the tab and its history, and refuses a
     // page-opened tab whose opener's sandbox a copy could not carry.
+    setPinnedHome: id => request('setPinnedHome', [nativeId(id)]),
+    returnPinnedHome: id => request('returnPinnedHome', [nativeId(id)]),
     duplicateTab: async (id) => {
       const copied = await request('duplicateTab', [nativeId(id)]);
       await refresh();

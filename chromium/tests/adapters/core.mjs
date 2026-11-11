@@ -47,6 +47,7 @@ export const forkUrl=url=>{
 export const core={
  state:w=>w.state(),
  async openTab(w,url,opts){
+  if(opts?.allowLocalFile)throw new UndefinedNativeAdapterError('N15 isolated local HTML session is not implemented; a raw file navigation would bypass its access policy');
   if(opts&&Object.keys(opts).some(k=>k!=='private'))throw new UndefinedNativeAdapterError('Tab creation options need an adapter: '+Object.keys(opts));
   // A private tab opens in this window on the private profile (D1). Its
   // shipping address is the private Start Page, blanc://newtab/?private=1:
@@ -86,6 +87,7 @@ export const core={
   return result;
  },
  duplicateActive:async w=>w.native('duplicateTab',[(await w.snapshot()).activeTabId]),
+ goBack:(w,id)=>w.api('goBack',[String(id)]),
  pinTab:(w,id)=>w.native('togglePinned',[nativeId(id)]),
  muteTab:(w,id)=>w.api('toggleTabMuted',[String(id)]),
  toggleSiteMute:(w,id)=>w.api('toggleSiteMute',[String(id)]),

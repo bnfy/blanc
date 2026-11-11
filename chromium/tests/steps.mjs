@@ -4,6 +4,7 @@ const require=createRequire(import.meta.url);
 const {CucumberExpression,RegularExpression,ParameterTypeRegistry}=require('@cucumber/cucumber-expressions');
 const parameters=new ParameterTypeRegistry();
 const {loadShippingCore}=require('./lib/shipping-core.cjs');
+import {PINNED_HOME_STEPS} from './fork-steps/pinned-home.mjs';
 import {GLANCE_STEPS} from './fork-steps/glance.mjs';
 import {CERTIFICATE_RECOVERY_STEPS} from './fork-steps/certificate-recovery.mjs';
 import {WINDOW_LAYOUT_STEPS} from './fork-steps/window-layout.mjs';
@@ -19,6 +20,8 @@ function register(expression,run,source,sourceSha256=null){
  if(recovery){run=recovery;source=`chromium/tests/fork-steps/certificate-recovery.mjs (shipping ${source})`;}
  const glance=GLANCE_STEPS.get(String(expression));
  if(glance){run=glance;source=`chromium/tests/fork-steps/glance.mjs (shipping ${source})`;}
+ const pinned=PINNED_HOME_STEPS.get(String(expression));
+ if(pinned){run=pinned;source=`chromium/tests/fork-steps/pinned-home.mjs (shipping ${source})`;}
  const divergent=DIVERGENCES.get(String(expression));
  if(divergent){run=divergent.run;source=`chromium/tests/fork-steps/divergences.mjs (${divergent.divergence}; shipping ${source})`;}
  const matcher=expression instanceof RegExp?new RegularExpression(expression,parameters):typeof expression==='string'?new CucumberExpression(expression,parameters):null;

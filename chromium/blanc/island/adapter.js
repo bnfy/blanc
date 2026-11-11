@@ -174,6 +174,10 @@ if (location.origin === 'chrome://blanc-prototype' && parent !== window) {
       [localized('tabMenu.rename', 'Rename Tab…'), () => window.browserAPI.beginRenameTab(id)],
       ...(tab.pageTitle != null ? [[localized('tabMenu.resetTitle', 'Reset Tab Title'), () => window.browserAPI.renameTab(id, '')]] : []),
       [localized(split ? (tab.pinned ? 'tabMenu.unpinSplit' : 'tabMenu.pinSplit') : (tab.pinned ? 'tabMenu.unpin' : 'tabMenu.pin'), split ? (tab.pinned ? 'Unpin Split' : 'Pin Split') : (tab.pinned ? 'Unpin Tab' : 'Pin Tab')), () => window.browserAPI.toggleTabPinned(id)],
+      ...(tab.pinned ? [
+        [localized('tabMenu.returnPinnedHome', 'Back to Pinned Page'), () => window.browserAPI.returnPinnedHome(id), !tab.pinnedHome?.canReturn],
+        [localized('tabMenu.setPinnedHome', 'Use Current Page as Pinned Home'), () => window.browserAPI.setPinnedHome(id), !tab.pinnedHome?.canSet],
+      ] : []),
       [localized(tab.muted ? 'tabMenu.unmute' : 'tabMenu.mute', tab.muted ? 'Unmute Tab' : 'Mute Tab'), () => window.browserAPI.toggleTabMuted(id)],
       [localized('tabMenu.newTabBelow', 'New Tab Below'), () => window.browserAPI.newTabBelow(id)],
       [localized('tabMenu.closeAbove', 'Close Tabs Above'), () => window.browserAPI.closeAbove(id), !canCloseAbove],

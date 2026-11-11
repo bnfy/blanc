@@ -63,6 +63,7 @@
     "patches/0055-blanc-shared-spaces-sheet.patch",
     "patches/0056-blanc-shared-closed-identity.patch",
     "patches/0057-blanc-shared-cold-restore.patch",
-    "patches/0058-blanc-certificate-bound.patch"
+    "patches/0058-blanc-certificate-bound.patch",
+    "patches/0059-blanc-pinned-homes.patch"
   ]
 }

@@ -40,6 +40,7 @@ export function runtimeRecord(id,snapshot){
 // (adapter.js) and shipping's model both label them with.
 export const MENU_KEYS={
  'toggle-start-pin':['tabMenu.pinStartPage','tabMenu.unpinStartPage'],
+ 'return-pinned-home':['tabMenu.returnPinnedHome'],'set-pinned-home':['tabMenu.setPinnedHome'],
  'toggle-pin':['tabMenu.pin','tabMenu.unpin','tabMenu.pinSplit','tabMenu.unpinSplit'],
  'toggle-mute':['tabMenu.mute','tabMenu.unmute'],'toggle-site-mute':['tabMenu.muteSite','tabMenu.unmuteSite'],
  'toggle-favorite':['tabMenu.saveFavorite','tabMenu.removeFavorite'],'reload':['menu.reload'],
@@ -190,6 +191,15 @@ export const tabs={
   return String(after.activeTabId)!==before?String(after.activeTabId):null;
  },
  moveTabToNewWindow:(w,id)=>w.api('moveTabToNewWindow',[String(id)]),
+ async pinnedHome(w,id){
+  for(const host of await runtimes(w)) {
+   const tab=(await snap(host)).tabs.find(t=>String(t.id)===String(id));
+   if(tab)return tab.pinnedHomeUrl??null;
+  }
+  throw Error('Missing native tab '+id);
+ },
+ setPinnedHome:(w,id)=>w.api('setPinnedHome',[String(id)]),
+ returnPinnedHome:(w,id)=>w.api('returnPinnedHome',[String(id)]),
  async persistedSessionData(w){
   const data=await w.native('sessionWindows');
   for(const window of data.windows)for(const tab of window.tabs)for(const entry of tab.navigations){

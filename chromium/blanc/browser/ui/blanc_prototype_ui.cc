@@ -67,6 +67,7 @@
 #include "ui/base/theme_provider.h"
 #include "ui/base/clipboard/scoped_clipboard_writer.h"
 #include "chrome/browser/sessions/session_restore.h"
+#include "chrome/browser/sessions/exit_type_service.h"
 #include "chrome/browser/sessions/session_service_factory.h"
 #include "chrome/browser/sessions/session_service.h"
 #include "components/sessions/core/session_types.h"
@@ -606,6 +607,16 @@ std::optional<bool> SaveFavorite(bookmarks::BookmarkModel* model, const GURL& ur
 // Blanc groups have names, not colours (lowercase labels, at most 40 UTF-16
 // units, like Electron's groupTabByName). Chromium's TabGroupId::ToString()
 // is the opaque GroupId the Island sees; colour is fixed and never shown.
+bool ValidPinnedHome(const GURL& url) {
+  if (!url.is_valid() || url.spec().size() > 8192 || url.has_username() || url.has_password()) return false;
+  if (url.SchemeIsHTTPOrHTTPS()) return true;
+  if (url == GURL("chrome://newtab/") ||
+      url == GURL("chrome://blanc-prototype/pages/newtab.html") ||
+      url == GURL("chrome://blanc-prototype/pages/mahjong.html")) return true;
+  return url.SchemeIsFile() && url.host().empty() &&
+      (base::EndsWith(url.path(), ".html", base::CompareCase::INSENSITIVE_ASCII) ||
+       base::EndsWith(url.path(), ".htm", base::CompareCase::INSENSITIVE_ASCII));
+}
 constexpr size_t kGroupNameMaxLength = 40;
 constexpr tab_groups::TabGroupColorId kGroupColor = tab_groups::TabGroupColorId::kGrey;
 
@@ -2827,6 +2838,8 @@ bool ValidSpace(const base::DictValue& record) {
     if (const auto* shared = tab.Find("sharedId"); shared &&
         (!shared->is_string() || shared->GetString().size() != 32 ||
          !std::ranges::all_of(shared->GetString(), [](char c) {return base::IsHexDigit(c);}))) return false;
+    if (const auto* home = tab.Find("pinnedHomeUrl"); home &&
+        (!home->is_string() || !ValidPinnedHome(GURL(home->GetString())))) return false;
     const auto* url = tab.FindString("url");
     const auto pin = tab.FindBool("pinned");
     const auto group = tab.FindInt("group");
@@ -2975,6 +2988,8 @@ std::optional<base::DictValue> CaptureNativeSpace(BrowserWindowInterface* browse
       group_index = it - order.begin();
     }
     auto saved_tab = base::DictValue().Set("url", url.spec()).Set("pinned", TabPinned(model, i)).Set("group", group_index);
+    const auto home = PinnedHome(tab);
+    if (TabPinned(model, i) && !home.empty()) saved_tab.Set("pinnedHomeUrl", home);
     const auto shared_id = SharedTabId(tab);
     if (!shared_id.empty()) saved_tab.Set("sharedId", shared_id);
     const auto replay = SharedColdNavigationToken(tab);
@@ -3495,6 +3510,12 @@ base::DictValue Snapshot(BrowserWindowInterface* browser, Owner* owner) {
                     .Set("canGoBack", controller.CanGoBack())
                     .Set("canGoForward", controller.CanGoForward())
                     .Set("pinned", TabPinned(model, index))
+                    .Set("pinnedHomeUrl", NullableString(PinnedHome(contents)))
+                    .Set("pinnedHome", base::DictValue()
+                        .Set("canReturn", TabPinned(model, index) && !PinnedHome(contents).empty() &&
+                            !GURL(PinnedHome(contents)).SchemeIsFile() && PinnedHome(contents) != contents->GetVisibleURL().spec())
+                        .Set("canSet", TabPinned(model, index) && ValidPinnedHome(contents->GetVisibleURL()) &&
+                            !controller.GetPendingEntry() && PinnedHome(contents) != contents->GetVisibleURL().spec()))
                     // Electron reads the same two signals from its WebContents.
                     .Set("muted", contents->IsAudioMuted())
                     .Set("siteMuted", AudioHost(contents).empty() ? base::Value() : base::Value(audio->SiteMuted()))
@@ -6107,6 +6128,8 @@ class Handler : public content::WebUIMessageHandler, public extensions::Extensio
           }
         }
         base::DictValue saved_tab;
+        const auto home = tab->extra_data.find(kPinnedHomeKey);
+        saved_tab.Set("pinnedHomeUrl", home == tab->extra_data.end() ? base::Value() : base::Value(home->second));
         const auto name = tab->extra_data.find(kTabNameKey);
         saved_tab.Set("customTitle", name == tab->extra_data.end()
             ? base::Value() : base::Value(name->second));
@@ -7480,6 +7503,7 @@ class Handler : public content::WebUIMessageHandler, public extensions::Extensio
         if (metadata && source_index < metadata->size() && (*metadata)[source_index].is_dict())
           if (const auto* title = (*metadata)[source_index].GetDict().FindString("customTitle")) RenameTab(browser, added.back(), *title);
       }
+      if (!retained) if (const auto* home = item.GetDict().FindString("pinnedHomeUrl")) SetPinnedHome(added.back(), *home);
       if (!retained || SharedTabId(added.back()).empty()) {
         const auto* shared_id = item.GetDict().FindString("sharedId");
         if (shared_id) SetSharedTabId(browser, added.back(), *shared_id);
@@ -9128,6 +9152,9 @@ class Handler : public content::WebUIMessageHandler, public extensions::Extensio
           for (int selected : model->selection_model().GetListSelectionModel().selected_indices())
             if (model->GetSplitForTab(selected) != split) { reply(true, base::Value(false)); return; }
         }
+        if (action == "pin") for (auto* page : pages)
+          if (TabPinned(model, model->GetIndexOfWebContents(page)) != enable)
+            SetPinnedHome(page, enable ? page->GetVisibleURL().spec() : "");
         auto ordered = pages;
         if (action == "pin" && !enable) std::ranges::reverse(ordered);
         for (auto* page : ordered) {
@@ -9440,7 +9467,33 @@ class Handler : public content::WebUIMessageHandler, public extensions::Extensio
       reply(false, base::Value("Expected a tab ID and a folder name."));
       return;
     }
+    if ((method == "setPinnedHome" || method == "returnPinnedHome") && args.size() == 1) {
+      if (!TabPinned(model, index)) { reply(true, base::Value(false)); return; }
+      if (method == "setPinnedHome") {
+        const GURL url = tab->GetVisibleURL();
+        if (tab->GetController().GetPendingEntry() || !ValidPinnedHome(url) || PinnedHome(tab) == url.spec()) {
+          reply(true, base::Value(false)); return;
+        }
+        SetPinnedHome(tab, url.spec());
+      } else {
+        const GURL home(PinnedHome(tab));
+        // A remembered path is not a fresh file-access grant.
+        if (!ValidPinnedHome(home) || home.SchemeIsFile() || home == tab->GetVisibleURL()) {
+          reply(true, base::Value(false)); return;
+        }
+        content::NavigationController::LoadURLParams params(home);
+        params.transition_type = ui::PAGE_TRANSITION_TYPED;
+        tab->GetController().LoadURLWithParams(params);
+      }
+      reply(true, base::Value(true)); return;
+    }
     if (method == "togglePinned" && args.size() == 1) {
+      const bool pinning = !TabPinned(model, index);
+      std::vector<content::WebContents*> pin_members{tab};
+      if (const auto pair = model->GetSplitForTab(index)) {
+        pin_members.clear(); const auto range = model->GetSplitData(*pair)->GetIndexRange();
+        for (int i = range.start(); i < static_cast<int>(range.end()); ++i) pin_members.push_back(model->GetWebContentsAt(i));
+      }
       // TabStripModel moves the tab to the pinned boundary itself, so re-read
       // its state at the new index.
       const auto split = model->GetSplitForTab(index);
@@ -9470,6 +9523,8 @@ class Handler : public content::WebUIMessageHandler, public extensions::Extensio
       } else {
         SetPinnedTab(model, index, !TabPinned(model, index));
       }
+      for (auto* member : pin_members)
+        SetPinnedHome(member, pinning ? member->GetVisibleURL().spec() : "");
       const int moved_index = model->GetIndexOfWebContents(tab);
       if (!split && !TabPinned(model, moved_index) && !model->GetTabGroupForTab(moved_index))
         model->MoveWebContentsAt(moved_index, model->count() - 1, false);
@@ -9999,6 +10054,8 @@ bool HasInheritedDocumentPolicy(content::WebContents* tab) {
 void CopySyncExclusion(content::WebContents* source, content::WebContents* copy) {
   if (!IsEnabled() || !source || !copy ||
       source->GetBrowserContext() != copy->GetBrowserContext()) return;
+  SetPinnedHome(copy, PinnedHome(source));
+  if (GroupPinned(source)) copy->SetUserData(kGroupPinKey, std::make_unique<GroupPinData>());
   if (HasInheritedDocumentPolicy(source))
     blanc::quiet::MediaHistory::Get(copy)->MarkInheritedPolicy();
 }
@@ -10022,6 +10079,7 @@ void RestoreInheritedSandbox(content::WebContents* tab, uint32_t flags) {
 void PreserveDiscardedTabState(content::WebContents* old_tab, content::WebContents* replacement) {
   if (!old_tab || !replacement || old_tab->GetBrowserContext() != replacement->GetBrowserContext()) return;
   RestoreInheritedSandbox(replacement, InheritedSandboxFlags(old_tab));
+  SetPinnedHome(replacement, PinnedHome(old_tab));
   if (GroupPinned(old_tab)) replacement->SetUserData(kGroupPinKey, std::make_unique<GroupPinData>());
   if (auto* name = static_cast<TabNameData*>(old_tab->GetUserData(kTabNameKey)))
     replacement->SetUserData(kTabNameKey, std::make_unique<TabNameData>(name->name));
@@ -10033,6 +10091,37 @@ void PreserveDiscardedTabState(content::WebContents* old_tab, content::WebConten
     replacement->SetUserData(kTabIdentityKey, std::make_unique<TabIdentityData>(identity->id));
   if (auto* split = static_cast<PersistentSplitData*>(old_tab->GetUserData(kPersistentSplitKey)))
     replacement->SetUserData(kPersistentSplitKey, std::make_unique<PersistentSplitData>(split->focused));
+}
+std::string PinnedHome(content::WebContents* tab) {
+  auto* home = tab ? static_cast<TabNameData*>(tab->GetUserData(kPinnedHomeKey)) : nullptr;
+  return home && ValidPinnedHome(GURL(home->name)) ? home->name : "";
+}
+void SetPinnedHome(content::WebContents* tab, const std::string& url) {
+  if (!tab) return;
+  const std::string home = ValidPinnedHome(GURL(url)) ? GURL(url).spec() : "";
+  if (home.empty()) tab->RemoveUserData(kPinnedHomeKey);
+  else tab->SetUserData(kPinnedHomeKey, std::make_unique<TabNameData>(home));
+  if (tab->GetBrowserContext()->IsOffTheRecord()) return;
+  if (auto* browser = GlobalBrowserCollection::GetInstance()->FindBrowserWithTab(tab))
+    if (auto* service = SessionServiceFactory::GetForProfile(browser->GetProfile()))
+      service->AddTabExtraData(browser->GetSessionID(), sessions::SessionTabHelper::IdForTab(tab), kPinnedHomeKey, home);
+}
+void ApplyPinnedHomesOnStartup(Profile* profile,
+    std::vector<std::unique_ptr<sessions::SessionWindow>>* windows) {
+  if (!IsEnabled() || profile->IsOffTheRecord() || ExitTypeService::GetLastSessionExitType(profile) != ExitType::kClean) return;
+  for (auto& window : *windows) for (auto& tab : window->tabs) {
+    const auto home = tab->extra_data.find(kPinnedHomeKey);
+    const auto group_pin = tab->extra_data.find(kGroupPinKey);
+    if ((!tab->pinned && (group_pin == tab->extra_data.end() || group_pin->second != "1")) ||
+        home == tab->extra_data.end() || !ValidPinnedHome(GURL(home->second)) || tab->navigations.empty()) continue;
+    // Fresh navigation, with the saved title for its loading placeholder.
+    // Never replay the departed page's POST, referrer, form or page state at home.
+    sessions::SerializedNavigationEntry nav;
+    nav.set_index(0); nav.set_virtual_url(GURL(home->second));
+    nav.set_title(tab->navigations[tab->normalized_navigation_index()].title());
+    tab->navigations.clear(); tab->navigations.push_back(std::move(nav));
+    tab->current_navigation_index = 0;
+  }
 }
 bool GroupPinned(content::WebContents* tab) {
   return tab && tab->GetUserData(kGroupPinKey);
@@ -10081,6 +10170,8 @@ void SetSharedTabId(BrowserWindowInterface* browser, content::WebContents* tab,
 void RestoreCustomTabName(content::WebContents* tab,
     const std::map<std::string, std::string>& extra_data) {
   if (!IsEnabled() || !tab || tab->GetBrowserContext()->IsOffTheRecord()) return;
+  const auto home = extra_data.find(kPinnedHomeKey);
+  SetPinnedHome(tab, home == extra_data.end() ? "" : home->second);
   const auto shared = extra_data.find(kSharedTabIdKey);
   if (shared != extra_data.end() && !shared->second.empty())
     tab->SetUserData(kSharedTabIdKey, std::make_unique<TabNameData>(shared->second));

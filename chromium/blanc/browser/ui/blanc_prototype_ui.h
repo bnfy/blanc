@@ -84,6 +84,11 @@ bool HasSplitPresentation(content::WebContents* tab);
 inline constexpr char kGroupPinKey[] = "blanc.tab.group-pin.v1";
 bool GroupPinned(content::WebContents* tab);
 void SetGroupPinned(content::WebContents* tab, bool pinned);
+inline constexpr char kPinnedHomeKey[] = "blanc.tab.pinned-home.v1";
+std::string PinnedHome(content::WebContents* tab);
+void SetPinnedHome(content::WebContents* tab, const std::string& url);
+void ApplyPinnedHomesOnStartup(Profile* profile,
+    std::vector<std::unique_ptr<sessions::SessionWindow>>* windows);
 inline constexpr char kTabNameKey[] = "blanc.tab.name.v1";
 inline constexpr char kSharedTabIdKey[] = "blanc.tab.shared-id.v1";
 std::string SharedTabId(content::WebContents* tab);
