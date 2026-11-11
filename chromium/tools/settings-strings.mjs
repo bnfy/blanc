@@ -14,6 +14,14 @@ const header = path.join(root, 'blanc/common/settings_strings.h');
 const {ref, commit} = JSON.parse(fs.readFileSync(path.join(root, 'blanc/island-renderer.json'), 'utf8'));
 // loadTimeData name, shipping message key.
 export const STRINGS = [
+  ['blancMiniLabel', 'settings.general.miniWindow.label'],
+  ['blancMiniHint', 'settings.general.miniWindow.hint'],
+  ['blancMiniUnavailable', 'settings.general.miniWindow.unavailable'],
+  ['blancMiniOff', 'settings.general.miniWindow.off'],
+  ['blancMiniAltCmdN', 'settings.general.miniWindow.shortcut.altCmdN'],
+  ['blancMiniCtrlAltSpaceMac', 'settings.general.miniWindow.shortcut.ctrlAltSpaceMac'],
+  ['blancMiniCtrlAltSpace', 'settings.general.miniWindow.shortcut.ctrlAltSpace'],
+  ['blancMiniCtrlShiftSpace', 'settings.general.miniWindow.shortcut.ctrlShiftSpace'],
   ["blancLinkRouteTitle", "settings.linkRoutes.title"],
   ["blancLinkRouteHint", "settings.linkRoutes.hint"],
   ["blancLinkRouteInAppLabel", "settings.linkRoutes.inApp.label"],

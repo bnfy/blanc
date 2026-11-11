@@ -4,8 +4,35 @@
 #import <AppKit/AppKit.h>
 
 #include "base/strings/sys_string_conversions.h"
+#include "blanc/browser/ui/blanc_prototype_ui.h"
+#include "blanc/common/menu_strings.h"
+#include "chrome/app/chrome_command_ids.h"
+#include "chrome/browser/browser_process.h"
+
+@interface BlancMiniWindowMenuTarget : NSObject
+- (void)openMiniWindow:(id)sender;
+@end
+@implementation BlancMiniWindowMenuTarget
+- (void)openMiniWindow:(id)sender {
+  [NSApp activateIgnoringOtherApps:YES];
+  blanc_prototype::OpenMiniWindow();
+}
+@end
 
 namespace blanc {
+
+void InstallMiniWindowMenu() {
+  NSMenu* file = [NSApp.mainMenu itemWithTag:IDC_FILE_MENU].submenu;
+  if (!file || [file itemWithTag:65040]) return;
+  static BlancMiniWindowMenuTarget* target = [[BlancMiniWindowMenuTarget alloc] init];
+  NSMenuItem* item = [[NSMenuItem alloc] initWithTitle:base::SysUTF16ToNSString(
+      menu::ForLocale(g_browser_process->GetApplicationLocale()).new_mini_window)
+      action:@selector(openMiniWindow:) keyEquivalent:@""];
+  item.target = target; item.tag = 65040;
+  const NSInteger at = [file indexOfItemWithTag:IDC_NEW_WINDOW];
+  [file insertItem:item atIndex:at == -1 ? 0 : at + 1];
+}
+
 
 namespace {
 // The menu AppController builds each time the Dock asks for one.

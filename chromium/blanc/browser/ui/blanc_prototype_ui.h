@@ -34,6 +34,8 @@ class WebView;
 namespace blanc_prototype {
 base::OnceClosure ShowBlockerRecovery();
 bool OpenExternalLink(const GURL& url);
+bool IsMiniWindow(BrowserWindowInterface* browser);
+void OpenMiniWindow();
 void ConfirmLinkRouteActivation(content::WebContents* created);
 bool RouteNewTabLink(NavigateParams* params);
 void RememberLinkRouteSource(content::WebContents* source, content::RenderFrameHost* frame,

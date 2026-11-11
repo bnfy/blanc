@@ -1143,7 +1143,7 @@ const __blancMarkup = trustedTypes.createPolicy("blanc-static-renderer", {create
   // alone. vertical-tabs.js calls placed() whenever it moves the mark.
   function placeSpaceMarkState() {
     const state = pillSpace.dataset.state || 'none';
-    pillSpace.hidden = state === 'none' && spaceMarkOnIsland();
+    pillSpace.hidden = document.documentElement.hasAttribute('data-mini-window') || state === 'none' && spaceMarkOnIsland();
     islandPill.classList.toggle('has-space', state === 'space' && spaceMarkOnIsland());
   }
   window.blancSpaceMark = Object.freeze({ placed: placeSpaceMarkState });

@@ -12,7 +12,7 @@ const SHIPPING = '6479ed3a314e4fd6219b8de1598bacffa78b4d7c';
 const steps = file => execFileSync('git', ['show', `${SHIPPING}:test/desktop/steps/${file}`], {cwd: root, encoding: 'utf8'});
 
 test('every port answers a shipping evaluation', () => {
-  const shipped = new Set(['link-routing.steps.js', 'http-auth.steps.js', 'glance.steps.js', 'named-workspaces.steps.js', 'workspace-lifecycle.steps.js'].flatMap(file => shippingEvaluations(steps(file))).map(sourceKey));
+  const shipped = new Set(['mini-window.steps.js', 'link-routing.steps.js', 'http-auth.steps.js', 'glance.steps.js', 'named-workspaces.steps.js', 'workspace-lifecycle.steps.js'].flatMap(file => shippingEvaluations(steps(file))).map(sourceKey));
   for (const key of Object.keys(PORTS)) assert.ok(shipped.has(key), key);
 });
 

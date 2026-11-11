@@ -9,6 +9,7 @@
 namespace blanc::menu {
 
 struct Labels {
+  std::u16string_view new_mini_window;
   std::u16string_view new_private_tab;
   std::u16string_view new_private_window;
   std::u16string_view undo;
@@ -21,12 +22,12 @@ struct Labels {
   std::u16string_view delete_text;
   std::u16string_view select_all;
 };
-inline constexpr Labels kLabels_en = {u"New Private Tab", u"New Private Window", u"Undo", u"Redo", u"Cut", u"Copy", u"Copy Clean Link", u"Paste", u"Paste and Go", u"Delete", u"Select All"};
-inline constexpr Labels kLabels_de = {u"Neuer privater Tab", u"Neues privates Fenster", u"Rückgängig", u"Wiederholen", u"Ausschneiden", u"Kopieren", u"Bereinigten Link kopieren", u"Einfügen", u"Einfügen und öffnen", u"Löschen", u"Alles auswählen"};
-inline constexpr Labels kLabels_es = {u"Nueva pestaña privada", u"Nueva ventana privada", u"Deshacer", u"Rehacer", u"Cortar", u"Copiar", u"Copiar enlace limpio", u"Pegar", u"Pegar e ir", u"Eliminar", u"Seleccionar todo"};
-inline constexpr Labels kLabels_fr = {u"Nouvel onglet privé", u"Nouvelle fenêtre privée", u"Annuler", u"Rétablir", u"Couper", u"Copier", u"Copier le lien épuré", u"Coller", u"Coller et accéder", u"Supprimer", u"Tout sélectionner"};
-inline constexpr Labels kLabels_it = {u"Nuova scheda privata", u"Nuova finestra privata", u"Annulla", u"Ripeti", u"Taglia", u"Copia", u"Copia link pulito", u"Incolla", u"Incolla e vai", u"Elimina", u"Seleziona tutto"};
-inline constexpr Labels kLabels_pt_BR = {u"Nova aba privada", u"Nova janela privada", u"Desfazer", u"Refazer", u"Recortar", u"Copiar", u"Copiar link limpo", u"Colar", u"Colar e acessar", u"Excluir", u"Selecionar tudo"};
+inline constexpr Labels kLabels_en = {u"New Mini Window", u"New Private Tab", u"New Private Window", u"Undo", u"Redo", u"Cut", u"Copy", u"Copy Clean Link", u"Paste", u"Paste and Go", u"Delete", u"Select All"};
+inline constexpr Labels kLabels_de = {u"Neues Mini-Fenster", u"Neuer privater Tab", u"Neues privates Fenster", u"Rückgängig", u"Wiederholen", u"Ausschneiden", u"Kopieren", u"Bereinigten Link kopieren", u"Einfügen", u"Einfügen und öffnen", u"Löschen", u"Alles auswählen"};
+inline constexpr Labels kLabels_es = {u"Nueva miniventana", u"Nueva pestaña privada", u"Nueva ventana privada", u"Deshacer", u"Rehacer", u"Cortar", u"Copiar", u"Copiar enlace limpio", u"Pegar", u"Pegar e ir", u"Eliminar", u"Seleccionar todo"};
+inline constexpr Labels kLabels_fr = {u"Nouvelle mini-fenêtre", u"Nouvel onglet privé", u"Nouvelle fenêtre privée", u"Annuler", u"Rétablir", u"Couper", u"Copier", u"Copier le lien épuré", u"Coller", u"Coller et accéder", u"Supprimer", u"Tout sélectionner"};
+inline constexpr Labels kLabels_it = {u"Nuova minifinestra", u"Nuova scheda privata", u"Nuova finestra privata", u"Annulla", u"Ripeti", u"Taglia", u"Copia", u"Copia link pulito", u"Incolla", u"Incolla e vai", u"Elimina", u"Seleziona tutto"};
+inline constexpr Labels kLabels_pt_BR = {u"Nova minijanela", u"Nova aba privada", u"Nova janela privada", u"Desfazer", u"Refazer", u"Recortar", u"Copiar", u"Copiar link limpo", u"Colar", u"Colar e acessar", u"Excluir", u"Selecionar tudo"};
 
 // Chromium's application locale chooses, as for the menus around these
 // items; a region falls back to its language (de-AT -> de, pt-PT -> pt-BR)

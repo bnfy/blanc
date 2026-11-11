@@ -74,6 +74,7 @@
     "chrome/browser/ui/BUILD.gn": "21853530be27f8a5198138a9b6f371c7d2748b67ba8c2a597a69b3f043835c91",
     "chrome/browser/ui/browser_command_controller.cc": "2ec6f710e9caf3e02945fa0ae2fc1460ce9023bac73f5cb9762f6c4416870f1b",
     "chrome/browser/ui/browser_commands.cc": "57236cc8c06434105b5264c32b170449bd36b1cbde379e0b8acb209b0930de05",
+    "chrome/browser/ui/browser_init_state.h": "2de3096b2010dfc19aa2f1ee48da90b846305a78642f24913c7ed250916d8731",
     "chrome/browser/ui/browser_live_tab_context.cc": "f8dbefcfb22795ddbe96ffe8abcde0f562a4a321626fb011b7c12c850a40b9e1",
     "chrome/browser/ui/browser_tab_restorer.cc": "d8fbda22aa7322bab0d104cd5d02b92d74c7b1110e296ac011fc03ad6cc1e2ba",
     "chrome/browser/ui/browser_tabrestore.cc": "34bb08ac87ddea783dc0004c65739efced46d3c8669906ce55d2fa69791e1161",

@@ -9,6 +9,7 @@
 #include "base/containers/span.h"
 
 namespace blanc {
+void InstallMiniWindowMenu();
 
 // The app's menus as the test hooks read them (patch 0013 titles the
 // private-browsing items): an item's title in a main-menu submenu or in the

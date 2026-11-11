@@ -5,15 +5,15 @@ Queue 5 is in progress. The rendering guard is clear again; focused native runs 
 | Classification | Cases | Newly passing |
 | --- | ---: | ---: |
 | a: missing adapter | 31 | 31 |
-| b: missing fork capability / blocked acceptance | 49 | 39 |
+| b: missing fork capability / blocked acceptance | 49 | 44 |
 | c: inapplicable by platform or approved construction | 22 | 0 |
 
-Current tested candidate: `macos-7e83080eba95fa4f`, `q5-link-routing-6-runtime-config.json`.
-Sync gate: 22/22 on macos-10748f4570723aef (`q5-space-links-sync-1`); Sync code unchanged since.
+Current tested candidate: `macos-ba88c99ae00d1453`, `q5-mini-window-3-runtime-config.json`.
+Sync gate: 22/22 on macos-5c8b4b1dd486a8a4 (`q5-mini-window-sync-1`); Sync code unchanged since.
 Inventory baseline: 533 pass / 3 fail (subsequently repaired) / 102 undefined / 2 excluded.
 Final inventory: owed, once after implementation. Lost passes: not yet measured.
 Owner needs: beta/updater hold; signed physical Touch ID acceptance.
-Unverified: 10 capability cases and final full inventory.
+Unverified: five capability cases and final full inventory.
 No push, release, signing, production/Apple/1Password contact, live-tree changes or toolchain installation authorized.
 
 ## Classification of all 102 starting gaps
@@ -512,3 +512,42 @@ Required precommit q5-link-routing-precommit.tap passes 314/314; patch
 reconstruction q5-link-routing-patches.json passes 172/583. Scoped adapter/hash/
 page-shim tests q5-link-routing-adapters.tap pass 10/10. Progress freshness and
 whitespace checks pass; read-only shipping sources are unchanged.
+
+## 15 — Mini windows (five new passes)
+
+Native transient windows now have File/Dock commands, same-window promotion,
+protected one-hour idle expiry and opt-in registered global shortcuts in Settings.
+Expiry preserves focus, audible/capturing/loading/quiet pages, child windows and
+unsaved form work; native beforeunload remains the final close guard. Promotion
+persists the existing window and tabs. Mini windows keep no Space/session/normal
+window placement; external URLs select or create an ordinary window. The shared
+native Space-capture exclusion changed, so the full Sync gate is required.
+
+q5-mini-window-cases-1 passes all five shipping cases (:10/:18/:24/:30/:36), no
+retry, on macos-5c8b4b1dd486a8a4 / q5-mini-window-2-runtime-config.json.
+q5-mini-window-boundaries-1 passes four additional native checks: dirty forms
+protect expiry until cleared; Mini Space binding/save is refused; restart keeps
+promoted and ordinary windows but omits transient Minis; external URLs create
+an ordinary window when only a Mini remains.
+
+The first guarded plan required GN regeneration for the global-accelerator
+library dependency. Existing GN arguments were checked against the preserved
+build-environment receipt, then the existing GN/toolchain regenerated that same
+output (37,274 targets, 5,076 files, 2.73s). No arguments, build mode, output or
+toolchain changed. Compilation then caught two inline virtual-method style
+errors; moving their bodies out of line fixed them. Final build: 10 incremental
+actions, 36.64s. Patch 0067 adds seven paths, one new pinned upstream input.
+Budget: 135 incremental upstream paths / 483 hunks. Phone Sync is unchanged.
+q5-mini-window-sync-1 passes the full 22/22 on this candidate, including the
+120,036ms persisted restart-quota wait and private/secondary-profile refusals.
+Review caught one shortcut retry mismatch: reselecting an unavailable shortcut
+must retry native registration. The corrected build passed six incremental
+actions in 35.46s: macos-ba88c99ae00d1453 / q5-mini-window-3-runtime-config.json.
+q5-mini-window-final-1 passes all five cases again without retry. Sync code is
+unchanged since the 22/22 gate; the four lifecycle boundaries above are unchanged.
+Required precommit q5-mini-window-precommit-2.tap passes 314/314. The first
+run found two positional menu-catalog test assumptions; the tests now select
+fields by name and also verify the new Mini label across all locales, retaining
+the original private/address assertions. Patch reconstruction passes 173/584
+(q5-mini-window-patches.json). Progress and whitespace checks pass; shipping
+sources remain untouched.

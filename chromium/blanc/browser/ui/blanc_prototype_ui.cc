@@ -1,4 +1,6 @@
 #include "blanc/services/sync_runner/sync_runner.mojom.h"
+#include "chrome/browser/ui/browser_init_state.h"
+#include "ui/base/accelerators/global_accelerator_listener/global_accelerator_listener.h"
 #include "blanc/services/sync_runner/sync_resources.h"
 #include "blanc/services/sync_runner/import_bundle_hash.h"
 #include "content/public/browser/service_process_host.h"
@@ -1018,6 +1020,10 @@ ClosedSessionRepair* SessionRepair(Profile* profile) {
   return static_cast<ClosedSessionRepair*>(profile->GetUserData(key));
 }
 
+void InitializeMiniShortcut();
+void ForgetMiniWindow(BrowserWindowInterface* browser);
+void MiniWindowFocusChanged(BrowserWindowInterface* browser);
+
 class Owner;
 // Auto-hide (island_autohide_controller.inc).
 void AutoHidePageMove(Owner* owner, const blink::WebInputEvent& event);
@@ -1034,7 +1040,7 @@ class Owner : public base::SupportsUserData::Data,
     static base::NoDestructor<std::set<Owner*>> owners;
     return *owners;
   }
-  ~Owner() override { Live().erase(this); }
+  ~Owner() override { ForgetMiniWindow(browser); Live().erase(this); }
   std::set<std::string> ratio_recovery_checked;
   int pending_ratio_writes = 0;
   base::WeakPtr<Owner> GetWeakPtr() { return weak_factory_.GetWeakPtr(); }
@@ -1062,13 +1068,19 @@ class Owner : public base::SupportsUserData::Data,
   std::optional<base::DictValue> space_expected;
   explicit Owner(BrowserWindowInterface* value) : browser(value) {
     ObserveLinkRouteProfiles();
+    InitializeMiniShortcut();
+#if BUILDFLAG(IS_MAC)
+    blanc::InstallMiniWindowMenu();
+#endif
     Live().insert(this);
     height = strip_height = IslandStripHeight(browser->GetProfile());
     browser->GetTabStripModel()->AddObserver(this);
     for (int i = 0; i < browser->GetTabStripModel()->count(); ++i)
       blanc::quiet::MediaHistory::Get(browser->GetTabStripModel()->GetWebContentsAt(i));
     became_active_ = browser->RegisterDidBecomeActive(base::BindRepeating(
-        [](Owner* owner, BrowserWindowInterface*) { AutoHideActivated(owner); }, base::Unretained(this)));
+        [](Owner* owner, BrowserWindowInterface*) { AutoHideActivated(owner); MiniWindowFocusChanged(owner->browser); }, base::Unretained(this)));
+    became_inactive_ = browser->RegisterDidBecomeInactive(base::BindRepeating(
+        [](Owner* owner, BrowserWindowInterface*) { MiniWindowFocusChanged(owner->browser); }, base::Unretained(this)));
   }
   raw_ptr<BrowserWindowInterface> browser;
   raw_ptr<views::WebView> view = nullptr;
@@ -1567,7 +1579,7 @@ class Owner : public base::SupportsUserData::Data,
       content::RenderWidgetHost::InputEventObserver> input_observation_{this};
   base::ScopedObservation<content::RenderWidgetHost,
       content::RenderWidgetHostObserver> widget_observation_{this};
-  base::CallbackListSubscription became_active_;
+  base::CallbackListSubscription became_active_, became_inactive_;
   base::WeakPtrFactory<Owner> weak_factory_{this};
 };
 
@@ -2903,7 +2915,7 @@ void MarkPersistentSplit(BrowserWindowInterface* browser, content::WebContents* 
 }
 // Ratio intents contain only durable UUIDs and a scalar, never browsing data.
 std::string RatioIdentity(BrowserWindowInterface* browser, int first, int second) {
-  if (browser->GetProfile()->IsOffTheRecord()) return "";
+  if (IsMiniWindow(browser) || browser->GetProfile()->IsOffTheRecord()) return "";
   const auto window = WindowIdentity(browser);
   const auto left = TabIdentity(browser->GetTabStripModel()->GetWebContentsAt(first));
   const auto right = TabIdentity(browser->GetTabStripModel()->GetWebContentsAt(second));
@@ -3182,7 +3194,7 @@ bool MainDocumentLoading(content::WebContents* tab) {
 
 std::optional<base::DictValue> CaptureNativeSpace(BrowserWindowInterface* browser,
                                                    bool before_close_all) {
-  if (browser->GetProfile()->IsOffTheRecord()) return std::nullopt;
+  if (IsMiniWindow(browser) || browser->GetProfile()->IsOffTheRecord()) return std::nullopt;
   auto* model = browser->GetTabStripModel();
   // Window teardown is not a set of user tab removals. Keep the last complete
   // Space/Sync capture while close-all drains the model, or its last tab exits.
@@ -3917,6 +3929,9 @@ base::DictValue Snapshot(BrowserWindowInterface* browser, Owner* owner) {
       .Set("islandTabIcons", browser->GetProfile()->GetOriginalProfile()->GetPrefs()->GetBoolean(kIslandTabIconsPref))
       .Set("searchPriorityResults", browser->GetProfile()->GetOriginalProfile()->GetPrefs()->GetBoolean(kSearchPriorityResultsPref))
       .Set("surfaceStyle", browser->GetProfile()->GetOriginalProfile()->GetPrefs()->GetString(kSurfaceStylePref) == "neutral" ? "neutral" : "sunrise")
+      .Set("miniWindow", IsMiniWindow(browser))
+      .Set("nativeWindowId", browser->GetSessionID().id())
+      .Set("windowBounds", [&] {const auto b=browser->GetWindow()->GetBounds();return base::DictValue().Set("x",b.x()).Set("y",b.y()).Set("width",b.width()).Set("height",b.height());}())
       .Set("windowActive", browser->GetWindow() && browser->GetWindow()->IsActive())
       // Auto-hide (F1): the strip draws its covered state and the how-to tip.
       .Set("islandAutoHide", base::DictValue()
@@ -5157,13 +5172,15 @@ std::map<std::string, PendingLinkRoute>& PendingLinkRoutes() {
 BrowserWindowInterface* RouteWindow(Profile* profile = nullptr, const std::string& space = "") {
   BrowserWindowInterface* found = nullptr;
   GlobalBrowserCollection::GetInstance()->ForEach([&](BrowserWindowInterface* browser) {
-    if (!IsIslandWindow(browser) || IsHoldWindow(browser) || browser->IsDeleteScheduled() ||
+    if (!IsIslandWindow(browser) || IsHoldWindow(browser) || IsMiniWindow(browser) || browser->IsDeleteScheduled() ||
         browser->GetProfile()->IsOffTheRecord() || (profile && browser->GetProfile() != profile)) return true;
     if (!space.empty() && WindowSpace(browser) != space) return true;
     found = browser; return false;
   }, BrowserCollection::Order::kActivation);
   return found;
 }
+#include "blanc/browser/ui/mini_window_controller.inc"
+
 BrowserWindowInterface* EnsureRouteWindow() {
   if (auto* browser = RouteWindow()) return browser;
   // A destination can disappear while its existing profile loads. Preserve
@@ -6204,6 +6221,20 @@ class Handler : public content::WebUIMessageHandler, public extensions::Extensio
         return !found;
       });
       Reply(id, true, base::Value(found)); return;
+    }
+    if (quiet_method == "openMiniWindow" && quiet_args.empty()) {
+#if BUILDFLAG(IS_MAC)
+      Reply(id, true, base::Value(blanc::ClickDockMenuItem(65040)));
+#else
+      Reply(id, true, base::Value(CreateMiniWindow() != nullptr));
+#endif
+      return;
+    }
+    if (quiet_method == "expireMiniWindow" && quiet_args.size() == 1 && quiet_args[0].is_int()) {
+      BrowserWindowInterface* mini = nullptr;
+      for (const auto& [browser, state] : MiniWindows())
+        if (state->browser && browser->GetSessionID().id() == quiet_args[0].GetInt()) mini = browser;
+      Reply(id, true, base::Value(mini ? ExpireMiniWindow(mini, true) : "closed")); return;
     }
     if (quiet_method == "linkRoutes" && quiet_args.empty()) { Reply(id, true, base::Value(ReadLinkRoutes())); return; }
     if (quiet_method == "setLinkRoutes" && quiet_args.size() == 1 && quiet_args[0].is_list()) {
@@ -7949,11 +7980,11 @@ class Handler : public content::WebUIMessageHandler, public extensions::Extensio
     // Persist their restored identities in the same flush, otherwise a new
     // window can become durable while its restored neighbours lose ownership.
     for (auto* live : Owner::Live()) {
-      if (live->browser->GetProfile() != browser->GetProfile()) continue;
+      if (live->browser->GetProfile() != browser->GetProfile() || IsMiniWindow(live->browser)) continue;
       if (WindowIdentity(live->browser).empty()) return;
     }
     for (auto* live : Owner::Live()) {
-      if (live->browser->GetProfile() != browser->GetProfile()) continue;
+      if (live->browser->GetProfile() != browser->GetProfile() || IsMiniWindow(live->browser)) continue;
       service->AddWindowExtraData(live->browser->GetSessionID(), kWindowIdentityKey,
                                   WindowIdentity(live->browser));
       auto* tabs = live->browser->GetTabStripModel();
@@ -8016,6 +8047,7 @@ class Handler : public content::WebUIMessageHandler, public extensions::Extensio
     }
   }
   void MaybeRollback(Owner* owner) {
+    if (IsMiniWindow(owner->browser)) return;
     auto* profile = owner->browser->GetProfile();
     if (!owner->identity_registered && !profile->IsOffTheRecord()) {
       const auto identity = WindowIdentity(owner->browser);
@@ -8045,6 +8077,7 @@ class Handler : public content::WebUIMessageHandler, public extensions::Extensio
     SpaceRunner()->PostTaskAndReplyWithResult(FROM_HERE, base::BindOnce(&SpaceDisk, profile->GetPath().AppendASCII("BlancPrototypeSpaces.json"), "spaceRollback", WindowSpace(owner->browser), base::DictValue()), base::BindOnce(&Handler::SpaceReady, weak_factory_.GetWeakPtr(), "", "spaceRollback", "", std::move(*before)));
   }
   void MaybeAutosave(Owner* owner) {
+    if (IsMiniWindow(owner->browser)) return;
     auto* profile = owner->browser->GetProfile();
     if (owner->space_expected) {
       if (owner->space_busy || !owner->space_error.empty()) return;
@@ -9040,6 +9073,7 @@ class Handler : public content::WebUIMessageHandler, public extensions::Extensio
 
     // Spaces' list data (F41): names, colors and order, per profile. Tabs stay
     // in the checked store below, under each Space's id.
+    if (method == "keepMiniWindow" && args.empty()) { reply(true, base::Value(KeepMiniWindow(browser))); return; }
     if (method == "spaceMeta" && args.empty()) {
       base::ListValue elsewhere, held;
       base::DictValue held_tabs, held_groups;
@@ -11168,6 +11202,14 @@ class Handler : public content::WebUIMessageHandler, public extensions::Extensio
           base::BindOnce(&Handler::CheckSplitClose, weak_factory_.GetWeakPtr(), id));
       return;
     } else if (method == "closeTab") {
+      if (IsMiniWindow(browser) && model->count() == 1) {
+        reply(true, base::Value(true));
+        base::SequencedTaskRunner::GetCurrentDefault()->PostTask(FROM_HERE,
+            base::BindOnce([](base::WeakPtr<BrowserWindowInterface> browser) {
+              if (browser && IsMiniWindow(browser.get())) browser->GetWindow()->Close();
+            }, browser->GetWeakPtr()));
+        return;
+      }
       int replacement = -1;
       if (model->count() == 1) {
         chrome::AddTabAt(browser, GURL("chrome://newtab/"), -1, true);
@@ -11653,10 +11695,14 @@ bool RouteNewTabLink(NavigateParams* params) {
   const auto rule = MatchingLinkRoute(params->url);
   return rule && BeginLinkRoute(params->url, *rule, owner->browser.get(), params->disposition == WindowOpenDisposition::kNewBackgroundTab);
 }
+bool IsMiniWindow(BrowserWindowInterface* browser) { return MiniState(browser) != nullptr; }
+void OpenMiniWindow() { CreateMiniWindow(); }
+
 bool OpenExternalLink(const GURL& url) {
   if (!g_browser_process || !g_browser_process->local_state() || !g_browser_process->profile_manager() || !url.SchemeIsHTTPOrHTTPS()) return false;
   if (const auto rule = MatchingLinkRoute(url); rule && BeginLinkRoute(url, *rule, nullptr, false)) return true;
   auto* browser = RouteWindow();
+  if (!browser && !MiniWindows().empty()) browser = EnsureRouteWindow();
   if (!browser) return false; // Native startup retains ownership if no ordinary window exists yet.
   OpenRoutedURL(browser, url, false, false);
   return true;
@@ -11856,7 +11902,7 @@ std::string WindowSpace(BrowserWindowInterface* browser) {
   return found == states.end() ? "" : found->second.space;
 }
 void SetWindowSpace(BrowserWindowInterface* browser, const std::string& name) {
-  if (WindowIdentity(browser).empty() || name.size() > 120) return;
+  if (IsMiniWindow(browser) || WindowIdentity(browser).empty() || name.size() > 120) return;
   auto& state = WindowIdentities().at(browser);
   if (state.space == name) return;
   state.space = name;

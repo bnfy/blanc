@@ -25,6 +25,7 @@
   let serialized = '';
   let pillRect = null;
   let opened = false;
+  let miniSearchOpened = false;
   let overlayMode = null;
   let overlayDragging = false;
   let overlayClosing = null;
@@ -264,6 +265,7 @@
   const SPACE_LIMIT = 25;
   let spacesBound = '';
   const spaceList = async () => {
+    if (snapshot?.miniWindow) return {meta:{order:[],items:{},deleted:[]},elsewhere:new Set(),held:new Set()};
     const { meta, elsewhere, held } = await request('spaceMeta');
     return { meta: { order: [], items: {}, deleted: [], ...meta }, elsewhere: new Set(elsewhere), held: new Set(held) };
   };
@@ -301,6 +303,7 @@
     await announceSpaces();
   }
   async function saveSpaceAs(rawName, identity) {
+    if (snapshot?.miniWindow) return {ok:false,error:'busy'};
     const list = await spaceList();
     const checked = checkSpaceName(list, rawName);
     if (checked.error) return { ok: false, error: checked.error };
@@ -314,6 +317,7 @@
     return spaceResult({ workspaceId: id, action: 'swap' });
   }
   async function swapToSpace(id) {
+    if (snapshot?.miniWindow) return {ok:false,error:'busy'};
     const current = snapshot?.spaceName || SPACE_SCRATCH;
     try {
       await request('previewSpaceSave', [current]);
@@ -880,6 +884,10 @@
     const attempt = ++snapshotRefreshAttempt;
     try {
       snapshot = await request('snapshot');
+      if (snapshot.miniWindow && !miniSearchOpened) {
+        miniSearchOpened = true;
+        setTimeout(() => window.BlancPrototypeHost.open(true), 50);
+      }
       const activityKey = JSON.stringify(snapshot.downloadsActivity);
       if (activityKey !== downloadsActivityKey) {
         downloadsActivityKey = activityKey;
@@ -1762,6 +1770,7 @@
     bangs: loadBangs,
     bangIcons: hosts => typed('bangIcons', [Array.isArray(hosts) ? hosts.map(String) : []]),
     getAllTabs: async () => snapshot ?? request('snapshot'),
+    keepMiniWindow: async () => {const kept = await request('keepMiniWindow'); await refresh(); await announceSpaces(); return kept;},
     createTab: async (url, options) => {
       // As in shipping, the address is loaded as given (the browser refuses
       // what a tab may not open); typed text goes through navigate instead.

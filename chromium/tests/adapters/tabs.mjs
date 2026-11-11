@@ -32,7 +32,7 @@ export const closedSummary=e=>({id:String(e.id),url:e.url||null,tabCount:e.tabCo
 // closed list is profile-wide) and Spaces residency have no per-window source.
 export function runtimeRecord(id,snapshot,profile=null){
  const tabs=snapshot.tabs.map(t=>({id:String(t.id),url:shippingPageUrl(t.url),private:!!t.private}));
- return {id,tabOrder:tabs.map(t=>t.id),activeTabId:snapshot.activeTabId==null?null:String(snapshot.activeTabId),
+ return {id,...(typeof snapshot.miniWindow==='boolean'?{mini:snapshot.miniWindow}:{}),tabOrder:tabs.map(t=>t.id),activeTabId:snapshot.activeTabId==null?null:String(snapshot.activeTabId),
   ...(profile?{profileId:profile.directory==='Default'?'default':profile.directory}:{}),
   title:snapshot.tabs.find(t=>String(t.id)===String(snapshot.activeTabId))?.title??'',
   glanceTabId:snapshot.glanceTabId==null?null:String(snapshot.glanceTabId),workspaceId:snapshot.spaceName||null,tabs,
@@ -183,7 +183,7 @@ export const tabs={
   const r=await runtime(w,runtimeId);
   if(!(await snap(r)).tabs.some(t=>String(t.id)===String(tabId)))return false;
   await nativeCall(r.cdp,'closeTab',[Number(tabId)]);
-  await waitFor(()=>snap(r),s=>!s.tabs.some(t=>String(t.id)===String(tabId)),'tab close in window');
+  await waitFor(async()=>{const live=(await runtimes(w)).find(x=>x.id===r.id);return !live||!(await snap(live)).tabs.some(t=>String(t.id)===String(tabId));},Boolean,'tab or its window closed');
   return true;
  },
  async reopenClosedInWindow(w,runtimeId){

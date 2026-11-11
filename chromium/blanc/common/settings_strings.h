@@ -14,7 +14,15 @@ struct String {
   std::string_view name;
   std::u16string_view value;
 };
-inline constexpr std::array<String, 124> kStrings_en = {{
+inline constexpr std::array<String, 132> kStrings_en = {{
+    {"blancMiniLabel", u"Mini window shortcut"},
+    {"blancMiniHint", u"Opens a small Blanc window over the app you're in, while Blanc is running. A mini window isn't saved, and closes after an hour unused. Open in Blanc keeps it."},
+    {"blancMiniUnavailable", u"Another app is using this shortcut, or your desktop doesn't allow it. Choose another."},
+    {"blancMiniOff", u"Off"},
+    {"blancMiniAltCmdN", u"⌥⌘N"},
+    {"blancMiniCtrlAltSpaceMac", u"⌃⌥Spacebar"},
+    {"blancMiniCtrlAltSpace", u"Ctrl+Alt+Spacebar"},
+    {"blancMiniCtrlShiftSpace", u"Ctrl+Shift+Spacebar"},
     {"blancLinkRouteTitle", u"Open links from other apps"},
     {"blancLinkRouteHint", u"When another app opens a link in Blanc, the first rule that matches decides the profile, and optionally the Space, it opens in. Rules stay on this device."},
     {"blancLinkRouteInAppLabel", u"Also for links I open in a new tab"},
@@ -140,7 +148,15 @@ inline constexpr std::array<String, 124> kStrings_en = {{
     {"blancLanguageSystem", u"System ({language})"},
     {"blancLanguageRelaunch", u"Relaunch to apply"},
 }};
-inline constexpr std::array<String, 124> kStrings_de = {{
+inline constexpr std::array<String, 132> kStrings_de = {{
+    {"blancMiniLabel", u"Kurzbefehl für Mini-Fenster"},
+    {"blancMiniHint", u"Öffnet ein kleines Blanc-Fenster über der App, in der du gerade bist, solange Blanc läuft. Ein Mini-Fenster wird nicht gespeichert und schließt sich nach einer Stunde ohne Nutzung. „In Blanc öffnen“ behält es."},
+    {"blancMiniUnavailable", u"Eine andere App verwendet diesen Kurzbefehl, oder dein Desktop erlaubt ihn nicht. Wähle einen anderen."},
+    {"blancMiniOff", u"Aus"},
+    {"blancMiniAltCmdN", u"⌥⌘N"},
+    {"blancMiniCtrlAltSpaceMac", u"⌃⌥Leertaste"},
+    {"blancMiniCtrlAltSpace", u"Strg+Alt+Leertaste"},
+    {"blancMiniCtrlShiftSpace", u"Strg+Umschalt+Leertaste"},
     {"blancLinkRouteTitle", u"Links aus anderen Apps öffnen"},
     {"blancLinkRouteHint", u"Wenn eine andere App einen Link in Blanc öffnet, bestimmt die erste passende Regel das Profil und optional den Space, in dem er geöffnet wird. Regeln bleiben auf diesem Gerät."},
     {"blancLinkRouteInAppLabel", u"Auch für Links, die ich in einem neuen Tab öffne"},
@@ -266,7 +282,15 @@ inline constexpr std::array<String, 124> kStrings_de = {{
     {"blancLanguageSystem", u"System ({language})"},
     {"blancLanguageRelaunch", u"Zum Übernehmen neu starten"},
 }};
-inline constexpr std::array<String, 124> kStrings_es = {{
+inline constexpr std::array<String, 132> kStrings_es = {{
+    {"blancMiniLabel", u"Atajo de la miniventana"},
+    {"blancMiniHint", u"Abre una pequeña ventana de Blanc sobre la app en la que estás, mientras Blanc está abierto. Una miniventana no se guarda y se cierra tras una hora sin usarla. Abrir en Blanc la conserva."},
+    {"blancMiniUnavailable", u"Otra app usa este atajo o tu escritorio no lo permite. Elige otro."},
+    {"blancMiniOff", u"Desactivado"},
+    {"blancMiniAltCmdN", u"⌥⌘N"},
+    {"blancMiniCtrlAltSpaceMac", u"⌃⌥Espacio"},
+    {"blancMiniCtrlAltSpace", u"Ctrl+Alt+Espacio"},
+    {"blancMiniCtrlShiftSpace", u"Ctrl+Mayús+Espacio"},
     {"blancLinkRouteTitle", u"Abrir enlaces de otras apps"},
     {"blancLinkRouteHint", u"Cuando otra app abre un enlace en Blanc, la primera regla que coincide decide el perfil, y opcionalmente el Space, en el que se abre. Las reglas se quedan en este dispositivo."},
     {"blancLinkRouteInAppLabel", u"También para los enlaces que abro en una pestaña nueva"},
@@ -392,7 +416,15 @@ inline constexpr std::array<String, 124> kStrings_es = {{
     {"blancLanguageSystem", u"Sistema ({language})"},
     {"blancLanguageRelaunch", u"Reiniciar para aplicar"},
 }};
-inline constexpr std::array<String, 124> kStrings_fr = {{
+inline constexpr std::array<String, 132> kStrings_fr = {{
+    {"blancMiniLabel", u"Raccourci de la mini-fenêtre"},
+    {"blancMiniHint", u"Ouvre une petite fenêtre Blanc par-dessus l’app où vous êtes, tant que Blanc est ouvert. Une mini-fenêtre n’est pas enregistrée et se ferme après une heure sans utilisation. Ouvrir dans Blanc la garde."},
+    {"blancMiniUnavailable", u"Une autre app utilise ce raccourci, ou votre bureau ne l’autorise pas. Choisissez-en un autre."},
+    {"blancMiniOff", u"Désactivé"},
+    {"blancMiniAltCmdN", u"⌥⌘N"},
+    {"blancMiniCtrlAltSpaceMac", u"⌃⌥Espace"},
+    {"blancMiniCtrlAltSpace", u"Ctrl+Alt+Espace"},
+    {"blancMiniCtrlShiftSpace", u"Ctrl+Maj+Espace"},
     {"blancLinkRouteTitle", u"Ouvrir les liens d’autres apps"},
     {"blancLinkRouteHint", u"Quand une autre app ouvre un lien dans Blanc, la première règle qui correspond choisit le profil, et éventuellement le Space, où il s’ouvre. Les règles restent sur cet appareil."},
     {"blancLinkRouteInAppLabel", u"Aussi pour les liens que j’ouvre dans un nouvel onglet"},
@@ -518,7 +550,15 @@ inline constexpr std::array<String, 124> kStrings_fr = {{
     {"blancLanguageSystem", u"Système ({language})"},
     {"blancLanguageRelaunch", u"Redémarrer pour appliquer"},
 }};
-inline constexpr std::array<String, 124> kStrings_it = {{
+inline constexpr std::array<String, 132> kStrings_it = {{
+    {"blancMiniLabel", u"Scorciatoia della minifinestra"},
+    {"blancMiniHint", u"Apre una piccola finestra di Blanc sopra l’app in cui ti trovi, mentre Blanc è aperto. Una minifinestra non viene salvata e si chiude dopo un’ora di inutilizzo. Apri in Blanc la tiene."},
+    {"blancMiniUnavailable", u"Un’altra app usa questa scorciatoia, oppure il tuo desktop non la consente. Scegline un’altra."},
+    {"blancMiniOff", u"Disattivata"},
+    {"blancMiniAltCmdN", u"⌥⌘N"},
+    {"blancMiniCtrlAltSpaceMac", u"⌃⌥Spazio"},
+    {"blancMiniCtrlAltSpace", u"Ctrl+Alt+Spazio"},
+    {"blancMiniCtrlShiftSpace", u"Ctrl+Maiusc+Spazio"},
     {"blancLinkRouteTitle", u"Apri i link da altre app"},
     {"blancLinkRouteHint", u"Quando un’altra app apre un link in Blanc, la prima regola che corrisponde decide il profilo, ed eventualmente lo Space, in cui si apre. Le regole restano su questo dispositivo."},
     {"blancLinkRouteInAppLabel", u"Anche per i link che apro in una nuova scheda"},
@@ -644,7 +684,15 @@ inline constexpr std::array<String, 124> kStrings_it = {{
     {"blancLanguageSystem", u"Sistema ({language})"},
     {"blancLanguageRelaunch", u"Riavvia per applicare"},
 }};
-inline constexpr std::array<String, 124> kStrings_pt_BR = {{
+inline constexpr std::array<String, 132> kStrings_pt_BR = {{
+    {"blancMiniLabel", u"Atalho da minijanela"},
+    {"blancMiniHint", u"Abre uma pequena janela do Blanc sobre o app em que você está, enquanto o Blanc está aberto. Uma minijanela não é salva e fecha após uma hora sem uso. Abrir no Blanc a mantém."},
+    {"blancMiniUnavailable", u"Outro app está usando este atalho, ou sua área de trabalho não permite. Escolha outro."},
+    {"blancMiniOff", u"Desativado"},
+    {"blancMiniAltCmdN", u"⌥⌘N"},
+    {"blancMiniCtrlAltSpaceMac", u"⌃⌥Espaço"},
+    {"blancMiniCtrlAltSpace", u"Ctrl+Alt+Espaço"},
+    {"blancMiniCtrlShiftSpace", u"Ctrl+Shift+Espaço"},
     {"blancLinkRouteTitle", u"Abrir links de outros apps"},
     {"blancLinkRouteHint", u"Quando outro app abre um link no Blanc, a primeira regra que corresponder decide o perfil, e opcionalmente o Space, em que ele abre. As regras ficam neste dispositivo."},
     {"blancLinkRouteInAppLabel", u"Também para links que abro em uma nova aba"},
