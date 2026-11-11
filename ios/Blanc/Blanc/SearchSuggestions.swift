@@ -14,7 +14,6 @@ nonisolated enum SearchSuggestions {
     /// Desktop's `isSuggestionEligible`, pattern for pattern. Each one keeps
     /// a kind of text on the phone; Go still works for all of them.
     private static let localPatterns: [String] = [
-        #"[\r\n]"#,
         // Any scheme: an address, `mailto:`, a `javascript:` snippet.
         #"(?i)^[a-z][a-z0-9+.\-]*:"#,
         // Paths.
@@ -41,7 +40,10 @@ nonisolated enum SearchSuggestions {
     }
 
     static func isEligible(_ input: String) -> Bool {
-        guard let query = normalize(input), !query.hasPrefix("/") else { return false }
+        // More than one line stays local. Checked by scalar, not by pattern:
+        // `[\r\n]` as a String regular expression misses a lone "\n".
+        guard let query = normalize(input), !query.hasPrefix("/"),
+              !query.unicodeScalars.contains(where: { $0 == "\n" || $0 == "\r" }) else { return false }
         return !localPatterns.contains { query.range(of: $0, options: .regularExpression) != nil }
     }
 
@@ -85,8 +87,9 @@ nonisolated enum SearchSuggestions {
             return nil
         }
         // URLComponents leaves "+" as it is, and a provider reads it as a space.
-        parts?.percentEncodedQuery = parts?.percentEncodedQuery?.replacingOccurrences(of: "+", with: "%2B")
-        return parts?.url
+        guard var components = parts else { return nil }
+        components.percentEncodedQuery = components.percentEncodedQuery?.replacingOccurrences(of: "+", with: "%2B")
+        return components.url
     }
 
     /// The suggestions in a provider's answer, which every provider gives in
