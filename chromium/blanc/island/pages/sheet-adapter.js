@@ -7,7 +7,7 @@
 // frame never navigates itself.
 (() => {
   const host = window.parent !== window ? window.parent.BlancPrototypeHost : null;
-  const page = /^\/pages\/([a-z]+)\.html$/.exec(location.pathname)?.[1];
+  const page = /^\/pages\/([a-z-]+)\.html$/.exec(location.pathname)?.[1];
   const bridge = page && host?.sheetBridge ? host.sheetBridge(window, page) : null;
   if (!bridge) return;
   window.bowserPages = bridge;
@@ -27,8 +27,9 @@
     host.sheetEscape(window);
   }, true);
 })();
-// Bring Your Tabs (F40) arrives with S3; its page isn't in the fork yet.
-document.addEventListener('DOMContentLoaded', () => {
-  const bringTabs = document.getElementById('bringTabsBtn');
-  if (bringTabs) bringTabs.style.display = 'none';
-});
+// Shipping's button changes location; keep the existing sheet in this host.
+document.addEventListener('click', event => {
+  if (!event.target.closest?.('#bringTabsBtn')) return;
+  event.preventDefault(); event.stopImmediatePropagation();
+  window.parent.BlancPrototypeHost.openSheet('tab-import');
+}, true);

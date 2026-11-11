@@ -24,6 +24,8 @@ source_set(target_name) {
               "//blanc/browser/ui/browser_api/theme_choice.h" ]
   public_deps = [ "//chrome/browser/ui/views/frame:browser_view_header" ]
   deps = [
+    "//blanc/services/sync_runner:mojom",
+    "//blanc/services/sync_runner:resources",
     "//blanc/browser/sync:search_validation",
     "//blanc/browser/sync:favorite_helpers",
     "//blanc/browser/sync",
@@ -70,6 +72,7 @@ source_set(target_name) {
     "//base",
     "//base:i18n",
     "//ui/gfx/codec",
+    "//ui/shell_dialogs",
     "//skia",
     "//services/data_decoder/public/cpp",
     "//chrome/app:branded_strings",

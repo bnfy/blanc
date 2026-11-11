@@ -347,6 +347,7 @@
       return picked.entries ? request('importEntries', [picked.entries], 60000) : picked;
     } },
     start: {
+      openTabImport: () => request('openSheet', ['tab-import']),
       data: async () => {
         const epoch = topSitesEpoch;
         const results = await Promise.allSettled([refreshClock({ propagateError: true }), refreshLayout({ propagateError: true }), refreshImage().catch(() => {})]);
@@ -610,10 +611,10 @@
     document.getElementById('retryPinnedSites')?.addEventListener('click', () => window.blancNewTabEvent('pins'));
     // The Favorites heading opens the utility sheet, as shipping's
     // blanc://bookmarks/ link does; the page itself never navigates there.
-    for (const link of document.querySelectorAll('a[href="blanc://bookmarks/"]')) {
+    for (const link of document.querySelectorAll('a[href="blanc://bookmarks/"], a[href="blanc://tab-import/"]')) {
       link.addEventListener('click', (event) => {
         event.preventDefault();
-        request('openSheet', ['bookmarks']).catch((error) => console.warn(error.message));
+        request('openSheet', [link.getAttribute('href').includes('tab-import') ? 'tab-import' : 'bookmarks']).catch((error) => console.warn(error.message));
       });
     }
     document.querySelector('#patronCallout a')?.addEventListener('click', (event) => {

@@ -129,3 +129,6 @@ tab-selection.js
 vertical-tabs.js
 whats-new.js
 workspace-ui.js
+pages/tab-import.html
+pages/tab-import-open-tabs.js
+pages/tab-import-arc.js

@@ -169,7 +169,7 @@
   function request(method, args = []) {
     return new Promise((resolve, reject) => {
       const id = String(++nextId);
-      const timeout = ['extensionContextMenu', 'closeSplit', 'closeTab', 'spaceOpenNewWindow'].includes(method) ? null : setTimeout(() => {
+      const timeout = ['extensionContextMenu', 'closeSplit', 'closeTab', 'spaceOpenNewWindow', 'importArcRead'].includes(method) ? null : setTimeout(() => {
         pending.delete(id);
         const error = new Error(`Native bridge timed out: ${method}`);
         if (method === 'snapshot') error[snapshotTimeoutMarker] = true;
@@ -1308,7 +1308,7 @@
   // over the page, never as tabs. The frame claims the window as the palette
   // does, its page draws its own scrim and card, and the host answers its
   // window.bowserPages (pages/sheet-adapter.js) from Chromium's models.
-  const SHEET_PAGES = ['bookmarks', 'history', 'downloads'];
+  const SHEET_PAGES = ['bookmarks', 'history', 'downloads', 'tab-import'];
   const sheet = { frame: null, page: null, contents: 0, epoch: 0, tabs: null,
     escapeArmed: false, escapeListeners: new Set() };
   const sheetCurrent = (win, page) => !!sheet.frame && sheet.frame.contentWindow === win && sheet.page === page;
@@ -1446,8 +1446,10 @@
   }
   async function hideSheet(focus = true) {
     if (!sheet.page) return;
+    const importing = sheet.page === 'tab-import';
     const epoch = ++sheet.epoch;
     sheet.page = null;
+    if (importing) await request('importDiscard').catch(() => {});
     sheet.tabs = null;
     sheet.escapeArmed = false;
     sheet.escapeListeners.clear();
@@ -1506,6 +1508,27 @@
         return () => sheet.escapeListeners.delete(callback);
       },
     };
+    if (page === 'tab-import') return { surface, tabImport: {
+      sources: () => call('importSources'),
+      openSource: (id, options = {}) => call('importOpenSource', [String(id), options]),
+      project: id => call('importProject', [String(id)]),
+      setSelection: (id, selection) => call('importSelection', [String(id), selection]),
+      suggestSourceGroups: id => call('importSuggest', [String(id)]),
+      cancel: id => call('importCancel', [String(id)]),
+      apply: async (id, request) => {
+        const result = await call('importApply', [String(id), request]);
+        if (result?.ok) { await hideSheet(false); await refresh(); }
+        return result;
+      },
+      arcDetect: () => call('importArcDetect'),
+      arcRead: source => call('importArcRead', [String(source)]),
+      arcApply: async (id, request) => {
+        const result = await call('importArcApply', [String(id), request]);
+        if (result?.ok) await announceSpaces();
+        return result;
+      },
+      arcCancel: id => call('importArcCancel', [String(id)]),
+    }};
     if (page === 'bookmarks') return { surface,
       bookmarks: {
         capabilities: async () => ({ editable: true, import: true }),

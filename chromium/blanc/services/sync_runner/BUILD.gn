@@ -30,12 +30,13 @@ source_set("browser") {
 if (!is_android) {
   action("embed_bundle") {
     script = "//blanc/island_resources/embed.py"
-    inputs = [ "generated/sync-bundle.js" ]
+    inputs = [ "generated/sync-bundle.js", "generated/import-bundle.js" ]
     outputs = [ "$target_gen_dir/sync_resources.cc" ]
     args = [
       "--root", rebase_path("generated", root_build_dir),
       "--output", rebase_path(outputs[0], root_build_dir),
       "--generated", "sync-bundle.js=" + rebase_path(inputs[0], root_build_dir),
+      "--generated", "import-bundle.js=" + rebase_path(inputs[1], root_build_dir),
       "--include", "blanc/services/sync_runner/sync_resources.h",
       "--namespace", "blanc::sync_resources",
     ]

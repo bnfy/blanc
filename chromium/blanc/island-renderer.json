@@ -15,6 +15,7 @@
     "hover-panel-leave.js",
     "permission.html",
     "permission.js",
+    "pages/onboarding.js",
     "pages/sheet.js",
     "pages/row-icon.js",
     "pages/history-groups.js",
@@ -24,7 +25,10 @@
     "pages/history.html",
     "pages/history.js",
     "pages/downloads.html",
-    "pages/downloads.js"
+    "pages/downloads.js",
+    "pages/tab-import.html",
+    "pages/tab-import-open-tabs.js",
+    "pages/tab-import-arc.js"
   ],
   "mainFiles": [
     "island-hover-open.js",

@@ -1,27 +1,13 @@
 # Result
 
-> **OWNER CHANGE (2026-11-11, binding, overrides the brief):** stop running the
-> complete inventory and the full five-file regression after every two items.
-> Until principal development is done, run only the scenarios for the item in
-> hand plus the full `desktop-sync.mjs` gate when Sync code changed. Run the
-> complete inventory ONCE, at the very end of this queue, and fix lost passes
-> then. Keep this notice when you rewrite the file.
+> **OWNER BUG REPORT (2026-11-11, binding, do next after the item in hand): Sync section layout in the Settings dialog.** In the live build with Sync on, the checkbox rows are broken: each checkbox sits in the middle of the row and its label is pushed to the far right and wraps onto the next line ("Open tabs — From this / device", "Keep Spaces and groups / in sync on this device", "Also delete synced data"). Fix so each checkbox sits at the left with its label beside it on one line, matching shipping's Settings → Sync (`src/renderer/pages/settings.html` / `pages.css`, read-only reference) in order, spacing, grouping and copy. Also check against shipping: the device name row ("My Blanc"), the "This device stops syncing…" text placement relative to Turn off, and whether "Add this Mac's favorites to your sync?" should still show once Sync is on and the choice was made. Verify in light and dark, at the dialog's narrow and wide widths, and save before/after screenshots to the evidence folder. Keep this notice when you rewrite the file.
 
-> **OWNER ADDITION (2026-11-11, binding): runner timing baseline.** Before the
-> single end-of-queue inventory, add per-phase timing to `chromium/tests/runner.mjs`
-> (browser launch, blocker readiness, reset between cases, appearance setup, step
-> execution, waits that ran to timeout, retries, teardown), written to the run's
-> evidence as a JSON summary with totals and the 20 slowest cases. Record a
-> baseline over a 60-case sample across at least six feature files. Then remove
-> the obvious waste (for example fixed sleeps, re-doing setup that is already in
-> the wanted state, relaunching when a reset is enough) WITHOUT weakening any
-> assertion, the rendering guard, or isolation between cases; rerun the same
-> sample and report before/after per phase. Shipping's Electron harness
-> (`test/desktop/`, read-only) is the comparison for what a case should cost.
-> Report it in a "Runner timing" section. Keep this notice when you rewrite the file.
+> **OWNER CHANGE (2026-11-11, binding, overrides the brief):** stop running the complete inventory and the full five-file regression after every two items. Until principal development is done, run only the scenarios for the item in hand plus the full `desktop-sync.mjs` gate when Sync code changed. Run the complete inventory ONCE, at the very end of this queue, and fix lost passes then. Keep this notice when you rewrite the file.
+
+> **OWNER ADDITION (2026-11-11, binding): runner timing baseline.** Before the single end-of-queue inventory, add per-phase timing to `chromium/tests/runner.mjs` (browser launch, blocker readiness, reset between cases, appearance setup, step execution, waits that ran to timeout, retries, teardown), written to the run's evidence as a JSON summary with totals and the 20 slowest cases. Record a baseline over a 60-case sample across at least six feature files. Then remove the obvious waste (for example fixed sleeps, re-doing setup that is already in the wanted state, relaunching when a reset is enough) WITHOUT weakening any assertion, the rendering guard, or isolation between cases; rerun the same sample and report before/after per phase. Shipping's Electron harness (`test/desktop/`, read-only) is the comparison for what a case should cost. Report it in a "Runner timing" section. Keep this notice when you rewrite the file.
 
 Queue 4 is **in progress**. Dedicated beta build/updater remains on absolute owner hold.
-Current prototype: **macos-adb1daee018d8289**; `q4-pinned-1-runtime-config.json`.
+Current prototype: **macos-8f6629dd83705e04**; `q4-import-5-runtime-config.json`.
 
 | Item | State |
 | --- | --- |
@@ -34,7 +20,8 @@ Current prototype: **macos-adb1daee018d8289**; `q4-pinned-1-runtime-config.json`
 | 7 Quiet Space ownership | Done: ownership case and five quiet-protection controls pass |
 | 8 Glance / other failures | Done: seven original failures now pass; Linux-only menu case is not applicable on macOS |
 | 9 Pinned homes | Partly: six web scenarios pass; isolated local HTML home remains blocked by missing N15 preview |
-| 10 Open-tab / Arc import | Pending |
+| 10 Open-tab / Arc import | Done: all 22 macOS cases, two secondary-profile checks and full Sync 22/22 pass |
+| Owner Sync dialog report | Next after import: layout/copy and four before/after captures |
 | 11 Remaining adapters | Pending |
 
 | Evidence | Sync pass/fail | Inventory pass/fail/undefined/excluded |
@@ -42,6 +29,7 @@ Current prototype: **macos-adb1daee018d8289**; `q4-pinned-1-runtime-config.json`
 | Owner baseline | 22/0 | 443/8/187/2 |
 | Item 3: q4-resume-full-sync | 22/0 | Final inventory owed |
 | Item 9: q4-pinned-full-sync | 22/0 | Final inventory owed |
+| Item 10: q4-import-local-full-sync | 22/0 | Final inventory owed |
 
 Lost passes: partial run found F41:558 group creation; fixed and targeted check passes. Final comparison owed.
 Owner input: actual device-bound passkey acceptance requires a signed, entitled build and Touch ID ceremony, outside this queue.
@@ -604,3 +592,53 @@ incremental hunks; full reconstruction remains 162 upstream / 573 canonical file
 
 Required precommit `q4-pinned-precommit.tap`: 304/304 pass; patch
 reconstruction, progress freshness and whitespace pass. Item 10 is next.
+
+## 10 — Open-tab and Arc import
+
+Native discovery reads labels before selection; selected session/Arc files are
+bounded and read twice with identity/mtime checks. Chromium snapshots use the
+newest session without post-quit fallback; no source browser is modified or
+force-quit. The shipping parsers and organizer run on the pinned v1.46.0 code,
+and the shipping Bring Your Tabs page is served through the native utility
+sheet and Start Page/onboarding links. Opaque window-owned projections omit
+raw URLs and paths. Native apply creates one quiet batch, retains duplicates,
+source order, pins and names, and rolls back a partial failure without adding
+Recently closed entries. Arc creates saved Spaces without switching windows;
+the name and content share one atomic disk record, with recoverable metadata.
+Favorites merge into Arc, preserving existing duplicates.
+
+`q4-import-cases`, `q4-import-targeted-2` and `q4-import-space-diagnose` cover all
+15 open-tab cases. Corrected adapter labels and driver reuse; a Space-save
+fixture now waits for the first imported page to finish loading before saving.
+`q4-import-final-targets` passes all seven macOS Arc cases and the 500-tab
+batch case on macos-c3d8bc57965cd402. Linux Arc :53 is explicitly inapplicable
+to native macOS. The build took 9 guarded actions / 34.07 seconds.
+
+`q4-import-full-sync` passed **22/22** on the candidate above. Review then
+found that local imports depended on Personal's Sync service. The follow-up
+is now applied: a separate sandboxed import parser per window, with no Sync
+service/account dependency and a host denying network, store and credential
+I/O. The Sync bundle, API, prelude and service are byte-identical to the item 9
+commit. The four isolated parser/ownership/no-I/O unit checks pass.
+`q4-import-5` built in 6 guarded actions / 34.06 seconds with unchanged GN
+arguments, candidate macos-8f6629dd83705e04. `q4-import-local-cases` is
+22 pass / 0 fail / 1 Linux-only undefined. `q4-import-local-profiles` passes
+both secondary-profile import and restart checks, with no Sync store created.
+Precommit tests 308/308 and reconstruction 162 upstream / 583 canonical pass.
+Incremental patch budget remains 123 upstream paths / 420 hunks.
+`q4-import-local-full-sync` passed **22/22** on this exact candidate, including
+the persisted quota restart and private/secondary-profile refusal. Item 10 is
+complete. Next is the owner-reported Sync dialog layout, before item 11. Do not rerun the applied
+`/tmp/q4-import-local-stage/integrate.py`.
+
+Remaining-adapter work is staged separately in `/tmp/q4-adapters-stage/`;
+apply only after the import commit. Its `timing-sample.json` selects 60 prior
+passes across six files. **Do not apply `optimize-timing.py` until the baseline
+sample has finished.** Both timing runs and the single final inventory remain
+owed. No external stop has occurred; this is a live recovery checkpoint.
+
+The next owner-requested Sync layout capture script is staged at
+`/tmp/q4-sync-layout-stage/sync-layout.mjs`; run its `--before` mode after the
+import commit, before changing the Sync UI. Checkbox widths incorrectly inherit
+the generic text-input rule. The fork also lacks shipping's separate device-name
+input; My Blanc is the account name. No Sync UI fix has been applied yet.

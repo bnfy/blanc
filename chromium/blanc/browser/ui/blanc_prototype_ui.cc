@@ -1,3 +1,8 @@
+#include "blanc/services/sync_runner/sync_runner.mojom.h"
+#include "blanc/services/sync_runner/sync_resources.h"
+#include "blanc/services/sync_runner/import_bundle_hash.h"
+#include "content/public/browser/service_process_host.h"
+#include "mojo/public/cpp/bindings/remote.h"
 #include "build/build_config.h"
 #include "content/public/browser/host_zoom_map.h"
 #include "third_party/blink/public/common/page/page_zoom.h"
@@ -101,6 +106,9 @@
 #include <string>
 #include <utility>
 #include "base/base64.h"
+#include "ui/shell_dialogs/select_file_dialog.h"
+#include "ui/shell_dialogs/select_file_policy.h"
+#include "ui/shell_dialogs/selected_file_info.h"
 #include "base/base64url.h"
 #include "base/base_paths.h"
 #include "base/files/file.h"
@@ -2095,7 +2103,7 @@ std::optional<base::DictValue> SpaceRecordWithTab(const base::DictValue* base, c
     return ValidSpace(record) ? std::optional(std::move(record)) : std::nullopt;
   }
   auto record = base->Clone();
-  if (tabs->size() >= 200) return std::nullopt;
+  if (tabs->size() >= 500) return std::nullopt;
   record.FindList("tabs")->Append(std::move(entry));
   if (auto* ids = record.FindList("splitIds")) ids->Append(base::Value());
   return ValidSpace(record) ? std::optional(std::move(record)) : std::nullopt;
@@ -2827,7 +2835,7 @@ bool ValidSpace(const base::DictValue& record) {
   const auto* tabs = record.FindList("tabs");
   const auto* groups = record.FindList("groups");
   auto active = record.FindInt("active");
-  if (!tabs || tabs->empty() || tabs->size() > 200 || !groups ||
+  if (!tabs || tabs->empty() || tabs->size() > 500 || !groups ||
       groups->size() > tabs->size() || !active || *active < 0 ||
       *active >= static_cast<int>(tabs->size())) return false;
   std::set<int> ended;
@@ -3236,6 +3244,22 @@ base::DictValue SpaceDisk(base::FilePath path, std::string method,
                 : base::DictValue().Set("none", true);
   }
   if (method == "sharedRecords") return base::DictValue().Set("records", items->Clone());
+  if (method == "importSpaces") {
+    if (base::PathExists(journal)) return base::DictValue().Set("error", "space-busy");
+    if (items->size() + capture.size() > 25) return base::DictValue().Set("error", "no-room").Set("remainingSlots", std::max(0, 25 - static_cast<int>(items->size())));
+    std::set<std::u16string> names;
+    for (auto [id, value] : *items) if (const auto* imported_name = value.GetDict().FindString("importName")) names.insert(base::i18n::ToLower(base::UTF8ToUTF16(*imported_name)));
+    for (auto [id, value] : capture) {
+      if (!base::Uuid::ParseLowercase(id).is_valid() || items->contains(id) || !value.is_dict() || !ValidSpace(value.GetDict())) return base::DictValue().Set("error", "invalid-plan");
+      const auto* imported_name = value.GetDict().FindString("importName");
+      if (!imported_name || imported_name->empty() || imported_name->size() > 512 || !names.insert(base::i18n::ToLower(base::UTF8ToUTF16(*imported_name))).second) return base::DictValue().Set("error", "space-changed");
+    }
+    if (capture.empty()) return base::DictValue();
+    for (auto [id, value] : capture) items->Set(id, value.Clone());
+    auto bytes = base::WriteJson(store);
+    if (!bytes || bytes->size() > 4 * 1024 * 1024 || !base::ImportantFileWriter::WriteFileAtomically(path, *bytes)) return base::DictValue().Set("error", "write-failed");
+    return base::DictValue();
+  }
   if (method == "sharedSave") {
     if (base::PathExists(journal)) return base::DictValue().Set("error", "Switch pending.");
     for (auto [id, change] : capture) {
@@ -3642,6 +3666,9 @@ base::DictValue Snapshot(BrowserWindowInterface* browser, Owner* owner) {
 #include "blanc/browser/ui/start_page_pins.inc"
 #include "blanc/browser/ui/start_page_pin_menu.inc"
 #include "blanc/browser/ui/first_run.inc"
+#include "blanc/browser/ui/tab_import.inc"
+#include "blanc/browser/ui/tab_import_runner.inc"
+#include "blanc/browser/ui/tab_import_controller.inc"
 #include "blanc/browser/ui/telemetry.inc"
 
 // Process-wide launch window, shared by every Start Page WebContents.
@@ -6059,7 +6086,7 @@ class Handler : public content::WebUIMessageHandler, public extensions::Extensio
     static constexpr std::string_view methods[] = {
         "snapshot", "createTab", "closeTab", "switchTab", "navigate",
         "togglePinned", "reopenClosedTab", "previewPageCommand", "duplicateTab",
-        "quietDelay", "quietState", "sessionWindows"};
+        "quietDelay", "quietState", "sessionWindows", "importDebug", "importSources", "importOpenSource", "importProject", "importSelection", "importSuggest", "importApply", "importCancel", "importDiscard", "importArcRead", "importArcApply", "importArcCancel"};
     if (!std::ranges::contains(methods, method)) {
       Reply(id, false, base::Value("Unsupported fork test operation: " + method));
       return;
@@ -7664,6 +7691,12 @@ class Handler : public content::WebUIMessageHandler, public extensions::Extensio
       return;
     }
 #endif
+    if (base::StartsWith(method, "import")) {
+      if (!tab_importer_) tab_importer_ = std::make_unique<TabImporter>(browser);
+      tab_importer_->Handle(method, args, base::BindOnce([](base::WeakPtr<Handler> self, std::string id, base::Value result) {
+        if (self) self->Reply(id, true, std::move(result));
+      }, weak_factory_.GetWeakPtr(), id)); return;
+    }
     if (method == "syncSurface" && args.size() == 2 && args[0].is_string() && args[1].is_list()) {
       const auto& operation = args[0].GetString();
       const auto& values = args[1].GetList();
@@ -7873,10 +7906,17 @@ class Handler : public content::WebUIMessageHandler, public extensions::Extensio
           held_tabs.Set(space.name, std::move(rows));
         }
       }
-      reply(true, base::Value(base::DictValue()
-          .Set("meta", profile->GetOriginalProfile()->GetPrefs()->GetDict(kSpacesMetaPref).Clone())
-          .Set("elsewhere", std::move(elsewhere)).Set("held", std::move(held))
-          .Set("heldTabs", std::move(held_tabs)).Set("heldGroups", std::move(held_groups)).Set("roomPass", LastRoomPass())));
+      auto result = base::DictValue().Set("elsewhere", std::move(elsewhere)).Set("held", std::move(held))
+          .Set("heldTabs", std::move(held_tabs)).Set("heldGroups", std::move(held_groups)).Set("roomPass", LastRoomPass());
+      auto* regular = profile->GetOriginalProfile();
+      SpaceRunner()->PostTaskAndReplyWithResult(FROM_HERE,
+          base::BindOnce(&SpaceDisk, regular->GetPath().AppendASCII("BlancPrototypeSpaces.json"), "sharedRecords", "", base::DictValue()),
+          base::BindOnce([](base::WeakPtr<Handler> self, base::WeakPtr<Profile> profile, std::string id, base::DictValue result, base::DictValue read) {
+            if (!self || !profile) return;
+            if (const auto* records = read.FindDict("records")) RecoverImportedSpaceNames(profile.get(), *records);
+            result.Set("meta", profile->GetPrefs()->GetDict(kSpacesMetaPref).Clone());
+            self->Reply(id, true, base::Value(std::move(result)));
+          }, weak_factory_.GetWeakPtr(), regular->GetWeakPtr(), id, std::move(result)));
       return;
     }
     if (method == "spaceMetaSave" && args.size() == 1 && args[0].is_dict()) {
@@ -9972,6 +10012,7 @@ class Handler : public content::WebUIMessageHandler, public extensions::Extensio
   std::unique_ptr<views::MenuModelAdapter> extension_menu_adapter_;
   std::unique_ptr<views::MenuRunner> extension_menu_runner_;
   base::CancelableTaskTracker tracker_;
+  std::unique_ptr<TabImporter> tab_importer_;
   base::WeakPtrFactory<Handler> weak_factory_{this};
 };
 struct WindowIdentityState {
@@ -10828,7 +10869,7 @@ bool OpenExtensions(BrowserWindowInterface* browser) {
 bool OpenUtilitySheet(BrowserWindowInterface* browser, std::string_view page) {
   // The Start Page's Patron invitation opens Settings at its checkout row.
   const bool patron = page == "patron";
-  if (page != "history" && page != "downloads" && page != "bookmarks" && page != "settings" && !patron) return false;
+  if (page != "history" && page != "downloads" && page != "bookmarks" && page != "settings" && page != "tab-import" && !patron) return false;
   // A private window keeps Chromium's pages; the sheet shows regular data.
   // Settings, like Chromium's, is the regular profile's in either window.
   if (!IsIslandWindow(browser) || (page != "settings" && browser->GetProfile()->IsOffTheRecord())) return false;
