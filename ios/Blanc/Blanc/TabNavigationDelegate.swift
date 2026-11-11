@@ -28,9 +28,23 @@ final class TabNavigationDelegate: NSObject, WKNavigationDelegate {
     /// switch puts the tab's blocking rules on or off for that site first).
     var onWillLoadMainFrame: ((URL) -> Void)?
 
+    /// A load that failed while the tab's page stays on screen (a tapped link,
+    /// a reload with no connection): the page is left as it was and the
+    /// window says why nothing happened.
+    var onLoadFailure: ((LoadFailure) -> Void)?
+
     func load(_ url: URL, in webView: WKWebView) {
         guard url != lastRequested else { return }
         lastRequested = url
+        webView.load(URLRequest(url: url))
+    }
+
+    /// Loads `url` again after it failed. `load` skips an address it was just
+    /// asked for, and a web view with no page has nothing to reload, except a
+    /// woken tab's restored list, which keeps its Back and Forward this way.
+    func retry(_ url: URL, in webView: WKWebView) {
+        lastRequested = url
+        if webView.backForwardList.currentItem?.url == url, webView.reload() != nil { return }
         webView.load(URLRequest(url: url))
     }
 
@@ -53,6 +67,7 @@ final class TabNavigationDelegate: NSObject, WKNavigationDelegate {
         tab?.exitReader()
         tab?.readerAvailable = false
         tab?.isLoading = true
+        tab?.loadFailure = nil
     }
 
     func webView(_ webView: WKWebView, didCommit navigation: WKNavigation!) {
@@ -60,6 +75,7 @@ final class TabNavigationDelegate: NSObject, WKNavigationDelegate {
         // before it commits leaves the page, so the clock stays too.
         tab?.nativeClock.hide()
         tab?.hasCommitted = true
+        tab?.loadFailure = nil
         tab?.showIsland()
         committed(navigation, url: webView.url, title: webView.title ?? "")
     }
@@ -103,9 +119,25 @@ final class TabNavigationDelegate: NSObject, WKNavigationDelegate {
     func webView(_ webView: WKWebView,
                  didFailProvisionalNavigation navigation: WKNavigation!,
                  withError error: Error) {
-        tab?.hasCommitted = true
+        failedBeforeCommit(error)
         sync(webView)
         settled(navigation)
+    }
+
+    /// A tab with no page yet shows the failure in the page's place, with Try
+    /// again; behind it the web view stays covered, as before its first page.
+    /// A tab that has a page keeps it, and the window says what went wrong.
+    func failedBeforeCommit(_ error: Error) {
+        guard let tab else { return }
+        guard let failure = LoadFailure.from(error, requested: lastRequested) else {
+            tab.hasCommitted = true
+            return
+        }
+        if !tab.hasCommitted {
+            tab.loadFailure = failure
+        } else if !failure.isUnsupportedAddress {
+            onLoadFailure?(failure)
+        }
     }
 
     func webView(_ webView: WKWebView,

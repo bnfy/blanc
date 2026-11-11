@@ -14,6 +14,12 @@ final class TabModel: Identifiable {
     /// Whether the web view has committed a page yet. Until then it would show
     /// WebKit's blank white, so the page area keeps the theme's background.
     var hasCommitted = false
+    /// What went wrong with a load that left this tab with no page at all.
+    /// The tab shows it, with Try again, where the page would be.
+    var loadFailure: LoadFailure?
+    /// A tab a page opened (`window.open`, a link with a target), which that
+    /// page may also close.
+    @ObservationIgnored var openedByPage = false
     var pageTitle = ""
     /// Never saved, synced or recorded in History; its web data lives only in
     /// memory (`TabsManager.privateDataStore`).
@@ -185,6 +191,8 @@ final class TabModel: Identifiable {
     /// Never mount or load background tabs just to produce a thumbnail.
     @MainActor
     func captureThumbnail(allowCovered: Bool = false, afterScreenUpdates: Bool = true) {
+        // A load that failed left the web view empty: its card names the site.
+        guard loadFailure == nil else { return forgetPictures() }
         guard let webView = storage, let window = webView.window, allowCovered || window.rootViewController?.presentedViewController == nil,
               webView.bounds.width > 0, webView.bounds.height > 0 else { return }
         let side: CGFloat = 320
@@ -210,6 +218,7 @@ final class TabModel: Identifiable {
     @MainActor
     func capturePreparedThumbnail() async {
         let url = currentURL
+        guard loadFailure == nil else { return forgetPictures() }
         guard let webView = storage else { return }
         if url.scheme == "blanc" {
             captureThumbnail(allowCovered: true)
@@ -232,6 +241,11 @@ final class TabModel: Identifiable {
         thumbnail = UIGraphicsImageRenderer(size: CGSize(width: side, height: side), format: format).image { _ in
             full.draw(in: CGRect(x: (side - size.width) / 2, y: 0, width: size.width, height: size.height))
         }
+    }
+
+    private func forgetPictures() {
+        if thumbnail != nil { thumbnail = nil }
+        pagePicture = nil
     }
 
     /// The Start Page keeps its Island: it's the page's own address bar.
@@ -259,7 +273,14 @@ final class TabModel: Identifiable {
 
     func goBack() { storage?.goBack() }
     func goForward() { storage?.goForward() }
-    func reload() { storage?.reload() }
+    /// With no page to reload, a failed load's address is tried once more.
+    func reload() {
+        if loadFailure != nil { retryFailedLoad() } else { storage?.reload() }
+    }
+    func retryFailedLoad() {
+        guard let failure = loadFailure else { return }
+        navigationDelegate.retry(failure.url ?? currentURL, in: webView)
+    }
     func stop() {
         storage?.stopLoading()
         endPullToRefresh()

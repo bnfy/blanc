@@ -551,6 +551,7 @@ final class TabsManager {
             url: url ?? URL(string: "about:blank")!, configuration: configuration,
             isPrivate: opener.isPrivate, load: false)
         tab.readerAllowed = false // A page-opened child may inherit sandbox policy.
+        tab.openedByPage = true
         add(tab)
         return tab.webView
     }
@@ -568,6 +569,17 @@ final class TabsManager {
             contentBlocker.attach(to: tab.webView)
         }
         tab.onPagePinch = { [weak self] in self?.onPagePinch?($0) }
+        // Wired here, so a tab moved to another window closes in that one.
+        if tab.openedByPage {
+            tab.uiDelegate.onClose = { [weak self, weak tab] in
+                if let self, let tab { self.closeTab(tab.id) }
+            }
+        }
+        // The page still showing is on screen: say why its link or reload did
+        // nothing. A background tab's page simply stays as it was.
+        tab.navigationDelegate.onLoadFailure = { [weak self, weak tab] failure in
+            if let self, tab?.existingWebView?.window != nil { self.showSendNotice(failure.reason) }
+        }
         tab.uiDelegate.canGlance = { [weak self] in self?.canOpenGlance ?? false }
         tab.uiDelegate.onGlance = { [weak self] url in self?.openInGlance(url) }
         tab.navigationDelegate.onSettingsNavigation = { [weak self] url in self?.routeSettings(url) ?? false }
@@ -623,7 +635,8 @@ final class TabsManager {
     }
 
     /// What the last send said, shown over the Island for five seconds; the
-    /// Sunrise menu's Send and `/send` share it.
+    /// Sunrise menu's Send and `/send` share it, and so does a load that
+    /// failed behind a page that stays on screen.
     private(set) var sendNotice: String?
 
     /// Sends `tab`'s page to `target` and shows the result.

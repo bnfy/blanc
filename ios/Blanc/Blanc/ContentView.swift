@@ -439,8 +439,14 @@ struct ContentView: View {
                     cornerRadius: radius, islandInset: split == nil ? islandBand : 0, islandEdge: islandEdge)
                 .overlay {
                     // Until its first page commits, a web view is WebKit's
-                    // blank white: keep the theme's background instead.
-                    if !tab.hasCommitted { style.background.allowsHitTesting(false) }
+                    // blank white: keep the theme's background instead, or
+                    // say why no page came.
+                    if let failure = tab.loadFailure {
+                        LoadFailureView(tab: tab, failure: failure,
+                                        style: BrowserStyle(scheme: tab.isPrivate ? .dark : colorScheme))
+                    } else if !tab.hasCommitted {
+                        style.background.allowsHitTesting(false)
+                    }
                 }
                 // Unseen, it takes no touches. `allowsHitTesting` here would
                 // cut it off from the safe area and move the page.
