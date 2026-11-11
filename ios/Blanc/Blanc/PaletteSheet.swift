@@ -387,7 +387,7 @@ struct PaletteSheet: View {
             if !manager.syncEngine.remoteDevices.isEmpty {
                 Section {
                     ForEach(manager.syncEngine.remoteDevices) { device in
-                        DisclosureGroup("\(device.name) (\(device.tabs.count))") {
+                        DisclosureGroup {
                             ForEach(Array(device.tabs.enumerated()), id: \.offset) { _, tab in
                                 Button {
                                     if let url = URL(string: tab.url) { manager.createTab(url: url); close() }
@@ -400,6 +400,14 @@ struct PaletteSheet: View {
                                 .listRowSeparator(.hidden)
                                 .listRowBackground(Color.clear)
                                 .listRowInsets(EdgeInsets(top: 2, leading: 22, bottom: 2, trailing: 22))
+                            }
+                        } label: {
+                            // A cloud marks a device's tabs as synced, not open here.
+                            HStack(spacing: 10) {
+                                Image(systemName: "cloud").font(.system(size: 16, weight: .regular))
+                                    .foregroundStyle(style.secondary).frame(width: 24)
+                                    .accessibilityHidden(true)
+                                Text("\(device.name) (\(device.tabs.count))")
                             }
                         }
                         .font(BrowserStyle.font(13))
