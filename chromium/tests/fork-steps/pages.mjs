@@ -2,6 +2,8 @@
 // defined. Each follows its Gherkin text and spec row; no shipping source.
 import assert from 'node:assert/strict';
 import http from 'node:http';
+import fs from 'node:fs';
+import path from 'node:path';
 import {jsLiteral} from '../lib/js-literal.mjs';
 // Cucumber Expressions treat `/` as alternation and `(...)` as optional text.
 const until=(world,read,ok,label,timeout=8000)=>world.waitFor(read,ok,label,timeout);
@@ -23,11 +25,19 @@ export default function register(step){
   await world.call('openTab','blanc://newtab/');
   const saved=await startDom(world,`window.bowserPages.start.completePrivacy({searchSuggestions:false,usagePing:${usagePing}})`);
   assert.equal(saved?.completed,true);
+  world.committedUsagePing=usagePing;
+  const state=JSON.parse(fs.readFileSync(path.join(world.fixture.profile,'Local State')));
+  const profile=JSON.parse(fs.readFileSync(path.join(world.fixture.profile,'Default','Preferences')));
+  assert.equal(state.blanc.telemetry.usage_ping,usagePing);
+  assert.ok(state.blanc.first_run.completed_at>0);
+  assert.equal(profile.search.suggest_enabled,false);
  };
  step('this is a packaged build with a fresh profile',async function(){
-  const events=this.telemetry=[];
+  const world=this,events=this.telemetry=[];
   const server=http.createServer((request,response)=>{let body='';request.on('data',chunk=>{body+=chunk;});
-   request.on('end',()=>{events.push({path:request.url,body:JSON.parse(body||'{}')});response.writeHead(204);response.end();});});
+   request.on('end',()=>{const disk=JSON.parse(fs.readFileSync(path.join(world.fixture.profile,'Local State')));
+    events.push({path:request.url,body:JSON.parse(body||'{}'),consent:disk.blanc?.telemetry?.usage_ping,completed:disk.blanc?.first_run?.completed_at});response.writeHead(204);response.end();});});
+  this.telemetryServer=server;
   await new Promise(resolve=>server.listen(0,'127.0.0.1',resolve));server.unref();
   // The blocker starts with the first web request, and the fixture's relaunch
   // waits for it, so a web page has to come back with the session.
@@ -36,7 +46,9 @@ export default function register(step){
   await this.relaunch();
  });
  step('the app launches',async function(){await this.relaunch();});
- step('the app launches again',async function(){await this.relaunch();});
+ step('the app launches again',async function(){await this.relaunch();
+  const state=await this.native('firstRunState');assert.equal(state.complete,true);assert.equal(state.usagePing,this.committedUsagePing);
+ });
  step('no usage ping is sent',async function(){
   await new Promise(resolve=>setTimeout(resolve,1500));
   assert.deepEqual(sent(this,'/ping'),[]);
@@ -47,6 +59,7 @@ export default function register(step){
   await until(this,()=>sent(this,'/ping').length,count=>count>0,'the launch ping');
   await new Promise(resolve=>setTimeout(resolve,1000));
   assert.equal(sent(this,'/ping').length,1);
+  for(const event of this.telemetry){assert.equal(event.consent,true);assert.ok(event.completed>0,'consent persisted before every event');}
  });
  step('it contains only an install id, session id, version, platform, architecture, and coarse operating-system version',async function(){
   const {body}=sent(this,'/ping')[0];

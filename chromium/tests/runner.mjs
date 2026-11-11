@@ -83,6 +83,7 @@ async function runCase(matches,steps,tags=[]){
   // never exits.
   for(const page of world.heldLoadingPages??[])await page.cdp?.send('Fetch.disable').catch(()=>{});
   await world.lifecycleFixture?.close().catch(()=>{});
+  world.telemetryServer?.closeAllConnections();world.telemetryServer?.close();
   try{entry.browserExit=await fixture.close();}
   finally{try{await world.syncPeer?.sync.disable();}finally{await world.syncServer?.close();}}
   if(fixture.reapedHelpers)entry.reapedHelpers=fixture.reapedHelpers;

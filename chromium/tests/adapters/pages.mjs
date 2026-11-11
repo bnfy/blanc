@@ -1,6 +1,7 @@
 // Start Page, Favorites/History/Downloads, Glance and first run: shipping
 // test-hook names over the fork's Start Page document, its native newtab
 // bridge (window.bowserPages), the Island facade and native dispatch.
+import {tabPage} from './core.mjs';
 import {UndefinedNativeAdapterError,nativeId} from '../lib/adapters.mjs';
 import {jsLiteral} from '../lib/js-literal.mjs';
 import {inSettings,readSettings} from './commands.mjs';
@@ -29,8 +30,10 @@ async function activeTab(w){const s=await w.snapshot();return s.tabs.find(t=>Str
 // The active tab's Start Page document, or null when it isn't a Start Page.
 async function startPage(w){
  const tab=await activeTab(w);if(!tab||!NEWTAB.test(tab.committedUrl||tab.url))return null;
- const targets=(await w.fixture.targets()).filter(t=>t.type==='page'&&NEWTAB.test(t.url));
- return visiblePage(w,targets);
+ // A restored quiet Start Page may expose a target without a renderer.
+ // Evaluating visibility on it times out (or wakes unrelated work). The
+ // native tab-target mapping identifies exactly the selected document.
+ return tabPage(w,tab.id);
 }
 // Any Start Page document: profile-wide reads and writes need one renderer.
 async function anyStartPage(w){

@@ -35,7 +35,18 @@ std::string TelemetryTestHost() {
 // settings.js and telemetry.js's gates together: a release build, first run
 // finished, and the person's choice left on.
 bool TelemetryAllowed() {
+  // A test can only send to an explicitly selected loopback collector.
+  // Missing or malformed overrides must never fall back to production, even
+  // if a future build supplies a release version.
+  if (base::CommandLine::ForCurrentProcess()->HasSwitch("blanc-test")) {
+    const GURL host(TelemetryTestHost());
+    if (!host.is_valid() || !host.SchemeIs("http") ||
+        (host.host() != "127.0.0.1" && host.host() != "[::1]") ||
+        host.has_username() || host.has_password() || host.has_query() ||
+        host.has_ref() || host.path() != "/") return false;
+  }
   return !BlancReleaseVersion().empty() && !FirstRunPending() &&
+         g_privacy_writes_pending == 0 && !g_privacy_commit_failed &&
          g_browser_process->local_state()->GetBoolean(kUsagePingPref);
 }
 
@@ -194,4 +205,29 @@ bool TelemetryResetInstall() {
   local->ClearPref(kTelemetryInstallPref);
   local->CommitPendingWrite();
   return true;
+}
+
+// Settings can change consent after onboarding too. Keep the same durable
+// gate, without marking first run complete or changing the other choice.
+void PersistUsagePing(bool enabled, base::OnceCallback<void(bool)> done) {
+  ++g_privacy_writes_pending;
+  auto* local = g_browser_process->local_state();
+  local->SetBoolean(kUsagePingPref, enabled);
+  local->CommitPendingWrite(base::BindOnce(
+      [](base::FilePath file, bool enabled, base::OnceCallback<void(bool)> done) {
+        base::ThreadPool::PostTaskAndReplyWithResult(
+            FROM_HERE, {base::MayBlock(), base::TaskPriority::USER_VISIBLE},
+            base::BindOnce([](base::FilePath file, bool enabled) {
+              std::string bytes;
+              if (!base::ReadFileToString(file, &bytes)) return false;
+              const auto saved = base::JSONReader::ReadDict(bytes, base::JSON_PARSE_RFC);
+              return saved && saved->FindBoolByDottedPath(kUsagePingPref) == enabled;
+            }, file, enabled),
+            base::BindOnce([](base::OnceCallback<void(bool)> done, bool saved) {
+              --g_privacy_writes_pending;
+              g_privacy_commit_failed = !saved;
+              std::move(done).Run(saved);
+            }, std::move(done)));
+      }, g_browser_process->profile_manager()->user_data_dir().AppendASCII("Local State"),
+      enabled, std::move(done)));
 }

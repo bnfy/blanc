@@ -14,7 +14,10 @@ constexpr char kTabArchivePref[] = "blanc.tabs.archive";
 // asks for the walkthrough; the fork's test profiles do the same, unless a
 // test asks for the real saved state (--blanc-test-first-run).
 bool g_first_run_pending_for_test = false;
+int g_privacy_writes_pending = 0;
+bool g_privacy_commit_failed = false;
 bool FirstRunPending() {
+  if (g_privacy_commit_failed || g_privacy_writes_pending > 0) return true;
   const auto* command_line = base::CommandLine::ForCurrentProcess();
   if (command_line->HasSwitch("blanc-test") && !command_line->HasSwitch("blanc-test-first-run"))
     return g_first_run_pending_for_test;
@@ -53,20 +56,57 @@ void ApplyOnboardingSet(Profile* profile, const base::DictValue& partial) {
       profile->GetOriginalProfile()->GetPrefs()->SetString(kTabArchivePref, *archive);
   }
 }
+// CommitPendingWrite callbacks signal completion, including failed writes.
+// Read the durable values before acknowledging consent or opening telemetry.
+// Only the two choices and completion marker are inspected; no browsing data.
+bool PrivacyChoicesOnDisk(const base::FilePath& profile_path,
+                          const base::FilePath& local_path,
+                          bool suggestions, bool ping) {
+  std::string profile_bytes, local_bytes;
+  if (!base::ReadFileToString(profile_path, &profile_bytes) ||
+      !base::ReadFileToString(local_path, &local_bytes)) return false;
+  const auto profile = base::JSONReader::ReadDict(profile_bytes, base::JSON_PARSE_RFC);
+  const auto local = base::JSONReader::ReadDict(local_bytes, base::JSON_PARSE_RFC);
+  return profile && local &&
+      profile->FindBoolByDottedPath("search.suggest_enabled") == suggestions &&
+      local->FindBoolByDottedPath(kUsagePingPref) == ping &&
+      local->FindDoubleByDottedPath(kFirstRunCompletedPref).value_or(0) > 0;
+}
+
 // settings.js's completeFirstRunPrivacyChoices: both choices or nothing, and
 // the walkthrough closes only once they are saved.
-bool CompleteFirstRunPrivacy(Profile* profile, const base::DictValue& choices) {
+void CompleteFirstRunPrivacy(Profile* profile, const base::DictValue& choices,
+                             base::OnceCallback<void(bool)> done) {
   const auto suggestions = choices.FindBool("searchSuggestions");
   const auto ping = choices.FindBool("usagePing");
-  if (!suggestions || !ping) return false;
+  if (!suggestions || !ping) { std::move(done).Run(false); return; }
+  ++g_privacy_writes_pending;
   profile->GetOriginalProfile()->GetPrefs()->SetBoolean(prefs::kSearchSuggestEnabled, *suggestions);
   PrefService* local = g_browser_process->local_state();
   local->SetBoolean(kUsagePingPref, *ping);
   if (local->GetDouble(kFirstRunCompletedPref) <= 0)
     local->SetDouble(kFirstRunCompletedPref, base::Time::Now().InMillisecondsFSinceUnixEpoch());
-  local->CommitPendingWrite();
-  g_first_run_pending_for_test = false;
-  return true;
+  // Count overlapping submissions so an earlier completion cannot open the
+  // telemetry gate while a later choice is still being committed/verified.
+  auto verify = base::BindOnce(
+      [](base::FilePath profile_path, base::FilePath local_path,
+         bool suggestions, bool ping, base::OnceCallback<void(bool)> done) {
+        base::ThreadPool::PostTaskAndReplyWithResult(
+            FROM_HERE, {base::MayBlock(), base::TaskPriority::USER_VISIBLE},
+            base::BindOnce(&PrivacyChoicesOnDisk, profile_path, local_path, suggestions, ping),
+            base::BindOnce([](base::OnceCallback<void(bool)> done, bool saved) {
+              --g_privacy_writes_pending;
+              g_privacy_commit_failed = !saved;
+              if (saved) g_first_run_pending_for_test = false;
+              std::move(done).Run(saved);
+            }, std::move(done)));
+      }, profile->GetOriginalProfile()->GetPath().AppendASCII("Preferences"),
+      g_browser_process->profile_manager()->user_data_dir().AppendASCII("Local State"),
+      *suggestions, *ping, std::move(done));
+  profile->GetOriginalProfile()->GetPrefs()->CommitPendingWrite(base::BindOnce(
+      [](base::OnceClosure verify) {
+        g_browser_process->local_state()->CommitPendingWrite(std::move(verify));
+      }, std::move(verify)));
 }
 
 // Shipping's default-browser status for the walkthrough's first step (V20:

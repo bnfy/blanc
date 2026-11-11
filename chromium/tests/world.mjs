@@ -67,8 +67,9 @@ export function createWorld(fixture){
     await fixture.stop({crash});await fixture.start(null,{waitBlocker:false});
     // Like crash restore below, an internal-page-only session has made no
     // network request and legitimately has not started the blocker yet.
+    // Restored quiet web tabs also make no request until activated.
     const restored=await waitFor(fixture.snapshot,s=>s?.tabs?.length>0,'restored tab model');
-    if(restored.tabs.some(t=>/^https?:\/\//.test(t.url)))
+    if(restored.tabs.some(t=>!t.asleep&&/^https?:\/\//.test(t.url)))
      await waitFor(fixture.snapshot,s=>s.blockerHealth==='ready','blocker',45000);
     await installDriver(fixture.host);app.reset();await app.refresh();
     return;
@@ -98,7 +99,7 @@ export function createWorld(fixture){
    // hold nothing but chrome://newtab/ (e.g. a successful move leaves the
    // source with no page of its own), and would never reach "ready" then.
    const restored=await fixture.snapshot();
-   if(restored.tabs.some(t=>/^https?:\/\//.test(t.url)))
+   if(restored.tabs.some(t=>!t.asleep&&/^https?:\/\//.test(t.url)))
     await waitFor(fixture.snapshot,s=>s.blockerHealth==='ready','blocker',45000);
    await app.refresh();
   },

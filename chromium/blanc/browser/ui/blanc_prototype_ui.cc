@@ -3840,9 +3840,11 @@ class NewTabHandler : public content::WebUIMessageHandler,
         return;
       }
       if (method == "completePrivacy" && args.size() == 1 && args[0].is_dict()) {
-        const bool completed = CompleteFirstRunPrivacy(profile, args[0].GetDict());
-        if (completed) TelemetryLaunch();
-        Reply(id, true, base::Value(base::DictValue().Set("completed", completed)));
+        CompleteFirstRunPrivacy(profile, args[0].GetDict(), base::BindOnce(
+            [](base::WeakPtr<NewTabHandler> self, std::string id, bool completed) {
+              if (completed) TelemetryLaunch();
+              if (self) self->Reply(id, true, base::Value(base::DictValue().Set("completed", completed)));
+            }, weak_factory_.GetWeakPtr(), id));
         return;
       }
       // Each layout that really rendered, once per session (F21). Private
@@ -5762,8 +5764,11 @@ class Handler : public content::WebUIMessageHandler, public extensions::Extensio
     }
     if (message[1].GetString() == "setUsagePing" && message[2].GetList().size() == 1 &&
         message[2].GetList()[0].is_bool()) {
-      g_browser_process->local_state()->SetBoolean(kUsagePingPref, message[2].GetList()[0].GetBool());
-      Reply(id, true, base::Value(message[2].GetList()[0].GetBool()));
+      const bool enabled = message[2].GetList()[0].GetBool();
+      PersistUsagePing(enabled, base::BindOnce(
+          [](base::WeakPtr<Handler> self, std::string id, bool enabled, bool saved) {
+            if (self) self->Reply(id, saved, saved ? base::Value(enabled) : base::Value("Privacy write failed"));
+          }, weak_factory_.GetWeakPtr(), id, enabled));
       return;
     }
     if (message[1].GetString() == "storedUiLanguage") {

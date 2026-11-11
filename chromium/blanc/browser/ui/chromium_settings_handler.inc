@@ -376,10 +376,12 @@ class ChromiumSettingsHandler final : public settings::SettingsPageUIHandler,
   // Device-wide choices, so they live outside this profile's prefs (F21).
   void HandleSetUsagePing(const base::ListValue& args) {
     if (!Begin(args, 1)) return;
-    PrefService* local = g_browser_process->local_state();
-    local->SetBoolean(kUsagePingPref, args[1].GetString() == "on");
-    local->CommitPendingWrite();
-    Resolve(args, base::DictValue());
+    PersistUsagePing(args[1].GetString() == "on", base::BindOnce(
+        [](base::WeakPtr<ChromiumSettingsHandler> self, base::Value callback, bool saved) {
+          if (!self || !self->IsJavascriptAllowed()) return;
+          if (!saved) { self->RejectJavascriptCallback(callback, base::Value("Could not save privacy choice")); return; }
+          self->ResolveJavascriptCallback(callback, base::Value(base::DictValue().Set("state", self->State())));
+        }, weak_factory_.GetWeakPtr(), args[0].Clone()));
   }
   void HandleResetInstallId(const base::ListValue& args) {
     if (!Begin(args, 0)) return;
