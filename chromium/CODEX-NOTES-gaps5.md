@@ -4,12 +4,12 @@ Queue 5 is in progress; no acceptance claims yet.
 
 | Classification | Cases | Newly passing |
 | --- | ---: | ---: |
-| a: missing adapter | 40 | 0 |
+| a: missing adapter | 40 | 4 |
 | b: missing fork capability / blocked acceptance | 42 | 0 |
 | c: inapplicable by platform or approved construction | 20 | 0 |
 
-Starting candidate: `macos-16b70f7e53699ab5`, `q4-final-repair-1-runtime-config.json`.
-Inherited Sync gate: 22/22 on those bytes; not rerun yet.
+Current candidate: `macos-ebc590b319d6a8cc`, `q5-spaces-1-runtime-config.json`.
+Inherited Sync gate: 22/22 on starting bytes; Sync code unchanged; not rerun.
 Inventory baseline: 533 pass / 3 fail (subsequently repaired) / 102 undefined / 2 excluded.
 Final inventory: owed, once after implementation. Lost passes: not yet measured.
 Owner needs: beta/updater hold; signed physical Touch ID acceptance; Billboard TopSites design decision if still required.
@@ -124,3 +124,21 @@ Initial classification follows the raw inventory and current native source. Upda
 | `tab-drag.feature:136:plain` | b | Escape mid-drag keeps the island open | The fork host discards setOverlayDragState; no overlay drag flag exists to read |
 | `tabs-and-groups.feature:292:plain` | b | A local-file home follows the normal file-access policy | N15 isolated local HTML session is not implemented; a raw file navigation would bypass its access policy |
 | `vertical-tabs.feature:239:plain` | c | The main-menu button moves into the rail on Windows and Linux | Windows/Linux-only UI or Linux import; not applicable on macOS. |
+
+## 1 — Spaces keyboard and closing animation (four adapter-cohort cases)
+
+F41 :153/:189/:196/:204 pass on first attempts in `q5-spaces-controls-2`
+on macos-ebc590b319d6a8cc. `q5-spaces-controls-1` preserves all four failures
+and retries on the original candidate. The adapter sends actual CDP keys to
+the focused overlay iframe and reads computed closing-menu styles.
+The cases exposed missing host behavior: Escape did not return focus to the
+Spaces mark; immediate iframe removal prevented the shipping closing fade.
+The host now releases input and logical state immediately, retains the drawing
+for shipping's 200 ms interval, preserves its position and restores focus.
+The existing surface epoch prevents an old close from removing a new open.
+Both Reduce Motion and reopen-during-close pass unchanged shipping assertions.
+
+Guarded prototype build: 7 steps / 22.24 s. No Sync change.
+Patch budget unchanged: 123 incremental upstream paths / 430 hunks;
+reconstruction 162 upstream / 583 canonical files. Required precommit and
+progress checks are recorded in `q5-spaces-precommit.tap` and this commit.

@@ -26,6 +26,7 @@
   let pillRect = null;
   let opened = false;
   let overlayMode = null;
+  let overlayClosing = null;
   // When the open surface appeared, and whether its native context menu is up.
   let overlayShownAt = 0;
   let overlayMenuOpen = false;
@@ -1003,6 +1004,7 @@
   // Shipping chrome-layout.js: 404px view, 380px card, centered on the
   // measured trigger and clamped inside the window. CSS paints the card.
   function positionShield() {
+    if (overlayClosing === 'spaces') return;
     if (opened && overlayMode === 'spaces') { positionSpaces(); return; }
     if (!opened || !['shield', 'capture'].includes(overlayMode)) {
       for (const key of ['left', 'top', 'width', 'height', 'right', 'bottom']) overlay.style[key] = '';
@@ -1058,6 +1060,8 @@
     await hideSheet(false);
     invalidateFindShow(mode === 'shield');
     const epoch = findShowEpoch;
+    overlayClosing = null;
+    overlay.style.pointerEvents = '';
     if (overlayMode === 'find') emit('onOverlayHide', {});
     findTabId = null;
     overlay.dataset.mode = mode;
@@ -1153,23 +1157,35 @@
     setTimeout(() => deliverFindShow(epoch), 250);
   }
 
-  async function close(focus = true) {
+  async function close(focus = true, restoreTrigger = null) {
     invalidateFindShow();
     const epoch = findShowEpoch;
     await dismissPaneMenu();
     if (epoch !== findShowEpoch) return;
+    const leaving = overlayMode;
+    overlayClosing = leaving === 'spaces' || leaving === 'glance' ? leaving : null;
     tooltip.hidden = true;
     extensionsOpened = false;
     extensionsPanel.hide();
     strip.style.visibility = '';
     emit('onOverlayHide', {});
-    emit('onIslandState', { mode: null, trigger: groupMenuClosed(), restoreTrigger: null });
+    if (restoreTrigger) strip.contentWindow.focus();
+    emit('onIslandState', { mode: null, trigger: groupMenuClosed(), restoreTrigger });
     opened = false;
     overlayMode = null;
     overlayPurpose = null;
     shieldTrigger = null;
     findTabId = null;
     overlay.dataset.mode = '';
+    // Keep the closing pixels at their original position, but release input
+    // and logical state immediately. A later open owns the view and cancels
+    // this epoch's delayed detach.
+    overlay.style.pointerEvents = 'none';
+    if (!overlayClosing) overlay.hidden = true;
+    if (focus && !restoreTrigger) await request('focusPage');
+    if (overlayClosing) await new Promise(resolve => setTimeout(resolve, 200));
+    if (epoch !== findShowEpoch) return;
+    overlayClosing = null;
     overlay.hidden = true;
     // An open sheet keeps the window's height; hideSheet gives it back.
     if (!sheet.page) await restHeight();
@@ -1177,7 +1193,7 @@
     // Escape and outside clicks return focus to the page (Electron's
     // hideOverlay does the same); extension activation passes false so the
     // native popup takes focus instead.
-    if (focus) await request('focusPage');
+    if (restoreTrigger) strip.contentWindow.focus();
     if (epoch !== findShowEpoch) return;
     reportGeometry();
     // The resting pointer is sampled where it is now, as shipping's
@@ -2161,6 +2177,8 @@
     openIslandCommands: () => show('/'),
     // Cancelling the Change picker hands focus back to its control on the card.
     closeOverlay: async reason => {
+      if (overlayMode === 'spaces' && (reason === 'escape' || reason === 'cancel'))
+        return close(false, 'spaces');
       if (overlayMode === 'glance' && reason !== 'selected') {
         glance.requestEpoch += 1;
         if (overlayPurpose === 'change' && snapshot?.glanceTabId != null) {

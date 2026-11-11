@@ -186,6 +186,19 @@ export const island={
   const menu=await overlay(w).locator('#workspaceSwitcher').boundingBox();if(!menu)return frame;
   return {x:frame.x+menu.x-SPACES_MENU_SIDE,y:frame.y+menu.y-SPACES_MENU_PAD,width:menu.width+SPACES_MENU_SIDE*2,height:menu.height+SPACES_MENU_PAD*2};},
  sendOverlayInput:(w,input)=>frameInput(w,'overlay',input),
+ async pressOverlayKey(w,key,modifiers=[]){
+  await overlay(w).evaluate(()=>window.focus());
+  await overlay(w).keyboard.press([...modifiers,key].join('+'));return true;
+ },
+ async spacesMenuExitState(w){
+  const view={mode:await w.call('overlayMode'),showing:!!(await frameRect(w,'overlay'))};
+  const menu=await overlay(w).evaluate(()=>{
+   const m=document.getElementById('workspaceSwitcher'),s=getComputedStyle(m);
+   return {hidden:m.hidden,closing:document.body.dataset.closing??'',display:s.display,
+    top:s.top,left:s.left,transform:s.transform,opacity:Number(s.opacity)};
+  });
+  return {...view,...menu};
+ },
  // Counts the host's own onOverlayShow broadcasts to the current overlay
  // document, from the reset onward.
  resetOverlayShowCount:w=>w.hostEval(`(()=>{const d=document.getElementById('overlay').contentDocument;
