@@ -13,6 +13,8 @@ test('closed summaries keep only what TabRestoreService reports',()=>{
  assert.deepEqual({...s},{id:'4',url:null,tabCount:3});
  assert.throws(()=>s.held,UndefinedNativeAdapterError);
  assert.throws(()=>s.kind,UndefinedNativeAdapterError);
+ assert.equal(closedSummary({id:4,held:true}).held,true);
+ assert.equal(closedSummary({id:4,held:false}).held,false);
 });
 test('window runtimes project one native snapshot without guessed fields',()=>{
  const r=strict(runtimeRecord('primary',{tabs:[{id:1,url:'chrome://newtab/',private:false}],activeTabId:1,glanceTabId:null,groups:[{id:'g',name:'Work',collapsed:false,color:''}]}),'windowRuntime');

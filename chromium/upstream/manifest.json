@@ -154,6 +154,8 @@
     "build/config/chrome_build.gni": "09a98267376b69f27d8ec983c9a070ffb52c80660e39b68fd9c1853a3e38314d",
     "chrome/app/BUILD.gn": "12ddef3ae21af91fe48621d7c61fd146c3fa652cef110c34a17529066e22a355",
     "chrome/browser/web_applications/sampling_metrics_provider.cc": "9173ee2a4afd2f14d75949885ef36f57b27baecb4d57fe1a99d194b4657c4bff",
-    "chrome/browser/webauthn/chrome_web_authentication_delegate.cc": "acfca55a1b8ef65fd8ef8d4f70a88f6867353894dc9ee7ddcbcd6d532c307226"
+    "chrome/browser/webauthn/chrome_web_authentication_delegate.cc": "acfca55a1b8ef65fd8ef8d4f70a88f6867353894dc9ee7ddcbcd6d532c307226",
+    "components/security_interstitials/content/stateful_ssl_host_state_delegate.h": "107060b6e2a1ff341c5aa65e7237729c15c6ced6d28b18be628a2b2c15c1af5a",
+    "components/security_interstitials/content/stateful_ssl_host_state_delegate.cc": "f4bae9397fd7b0d682ccac4c2b8fff2b5553f434fe5558d9d3108b422ee8a74f"
   }
 }

@@ -25,8 +25,8 @@ export function blockableHostname(url){
 }
 // A shipping closed-entry summary from the native TabRestoreService row
 // (oldest first, like Electron's per-window list). The fork exposes no entry
-// kind or live-view tier, so `kind` and `held` stay absent.
-export const closedSummary=e=>({id:String(e.id),url:e.url||null,tabCount:e.tabCount});
+// kind; the live-view flag comes from the native parked-page holder.
+export const closedSummary=e=>({id:String(e.id),url:e.url||null,tabCount:e.tabCount,...(typeof e.held==='boolean'?{held:e.held}:{})});
 // A window runtime as shipping's windowRuntimeSnapshots() shapes it, from
 // that window's own native snapshot. Profile, title, closed count (the fork's
 // closed list is profile-wide) and Spaces residency have no per-window source.
@@ -399,7 +399,7 @@ export const tabs={
  },
  forgetCertificateExceptionInTab:async(w,id)=>(await w.api('forgetCertificateExceptionInTab',[String(id),true]))===true,
  forgetCertificateExceptionOnly:async(w,id)=>(await w.api('forgetCertificateExceptionInTab',[String(id),false]))===true,
- setCertificateExceptionCap(){throw new UndefinedNativeAdapterError('Chromium keeps certificate decisions without Blanc\'s bounded cap; no fork path sets one');},
+ setCertificateExceptionCap:(w,n)=>w.native('setCertificateExceptionCap',[Number(n)]),
  // Shipping's chrome document is blanc-chrome://index/, the fork's strip.
  attemptChromeNavigation:(w,url)=>strip(w).evalExpression(`location.href=${jsLiteral(String(url))}`),
  async chromeUrl(w){

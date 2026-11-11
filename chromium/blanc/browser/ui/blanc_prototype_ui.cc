@@ -5818,6 +5818,16 @@ class Handler : public content::WebUIMessageHandler, public extensions::Extensio
           ->GetList("blanc.blocking.exceptions").Clone()));
       return;
     }
+    if (message[1].GetString() == "setCertificateExceptionCap" &&
+        message[2].GetList().size() == 1 && message[2].GetList()[0].is_int()) {
+      const int cap = message[2].GetList()[0].GetInt();
+      auto* owner = GetOwner(web_ui()->GetWebContents());
+      auto* tab = owner ? owner->browser->GetTabStripModel()->GetActiveWebContents() : nullptr;
+      auto* delegate = tab ? StatefulSSLHostStateDelegateFactory::GetForProfile(TabProfile(tab)) : nullptr;
+      if (!delegate || cap < 0 || cap > 64) {reject("Invalid certificate bound"); return;}
+      delegate->SetCertificateExceptionCapForTesting(cap);
+      Reply(id, true, base::Value(true)); return;
+    }
     if (message[1].GetString() == "closedHeld") {
       auto* hold = SpaceHold::Get(Profile::FromWebUI(web_ui())->GetOriginalProfile());
       Reply(id, true, base::Value(hold ? hold->ClosedRows() : base::ListValue()));

@@ -21,7 +21,7 @@
 > Report it in a "Runner timing" section. Keep this notice when you rewrite the file.
 
 Queue 4 is **in progress**. Dedicated beta build/updater remains on absolute owner hold.
-Current prototype: **macos-bff3b22505e178a1**; `q4-shared-10-runtime-config.json`.
+Current prototype: **macos-910948e87a931d20**; `q4-cert-3-runtime-config.json`.
 
 | Item | State |
 | --- | --- |
@@ -29,7 +29,7 @@ Current prototype: **macos-bff3b22505e178a1**; `q4-shared-10-runtime-config.json
 | 2 Telemetry consent | Done: both original cases and three failed-write/recovery checks pass; consent verified on disk before any event |
 | 3 Shared Spaces / Send | Done: all 41 cases have passing development evidence; resume targets 4/4 and full Sync 22/22 on current candidate |
 | 4 Updater | Deliberately excluded: absolute beta-build hold |
-| 5 Certificate recovery / eviction | Pending |
+| 5 Certificate recovery / eviction | Done: seven scenarios and three native eviction/isolation checks pass |
 | 6 Microphone indicator | Pending |
 | 7 Quiet Space ownership | Pending |
 | 8 Glance / other failures | Pending |
@@ -40,7 +40,7 @@ Current prototype: **macos-bff3b22505e178a1**; `q4-shared-10-runtime-config.json
 | Evidence | Sync pass/fail | Inventory pass/fail/undefined/excluded |
 | --- | --- | --- |
 | Owner baseline | 22/0 | 443/8/187/2 |
-| Current candidate: q4-resume-full-sync | 22/0 | Final inventory owed; earlier run stopped per owner change |
+| Item 3 candidate: q4-resume-full-sync | 22/0 | Final inventory owed; earlier run stopped per owner change |
 
 Lost passes: partial run found F41:558 group creation; fixed and targeted check passes. Final comparison owed.
 Owner input: actual device-bound passkey acceptance requires a signed, entitled build and Touch ID ceremony, outside this queue.
@@ -467,3 +467,36 @@ Progress freshness and whitespace pass. Desktop incremental patch budget:
 121 unique upstream paths / 407 hunks, excluding the foundation baseline.
 Item 3 is complete; item 5 certificate recovery and bounded eviction is next.
 The final inventory and runner timing sample remain owed.
+
+## 5 — Certificate recovery and bounded eviction
+
+`q4-cert-scenarios`: 7/7 pass on first attempts on
+`macos-910948e87a931d20` (`q4-cert-3-runtime-config.json`).
+`q4-cert-bound`: 3/3 native checks pass: a one-decision test bound evicts the
+oldest allowance and warns on a fresh load while committed pages remain marked
+not secure; private eviction leaves regular allowances intact; the preview
+transport refuses any cap above the production bound of 64.
+
+Patch 0058 bounds actual Chromium certificate/error decisions per profile,
+including nondefault storage partitions. Existing persisted decisions are
+loaded oldest host modification first; each new allowance becomes newest.
+Eviction removes the real decision and flushes idle connections in loaded
+partitions. Committed NavigationEntry SSL state is unchanged. V8's Chromium
+warning UI, certificate matching and persisted proceed policy remain in place;
+the private content-setting isolation already established by patch 0016 remains.
+
+The missing `held` adapter now reads the actual native holder. The first run
+(`q4-cert-before-2`) proved the page returns but shipping's locator waits for a
+new Electron tab-record id. Chromium keeps a WebContents' immutable session id.
+The fork transport proves disappearance, native parking and return of that id;
+the unchanged subsequent assertions compare the real CDP WebContents target and
+certificate state. No page reload can satisfy the identity assertion.
+
+Builds: initial 24 actions / 34.51 s; follow-up caught a FunctionRef generic-lambda
+signature mismatch, corrected to an explicit StoragePartition pointer; final
+7 actions / 20.96 s. No guard bypass. Patch budget 123 upstream paths /
+417 incremental hunks; reconstruction 162 upstream / 573 canonical files.
+No Sync code changed, so the full Sync gate is not repeated for this item.
+Precommit: `q4-cert-precommit.tap` 309/309 pass (304 required plus five adapter
+checks); `q4-cert-precommit-patches.json` reconstruction passes. Progress
+freshness and whitespace pass. Item 6 microphone capture is next.
