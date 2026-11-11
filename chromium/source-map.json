@@ -359,7 +359,7 @@
     "blanc/browser/ui/app_menus_mac.mm": "541e0d4b641fd409b7b659530e973b78657961b88132d612c30836f40503967f",
     "blanc/browser/ui/billboard_clock_settings.inc": "57ce0ed0160903e1b90c3d65fd5cd7cd33218d5774a3b2d8fdb448b0d49c9892",
     "blanc/browser/ui/blanc_extensions_branding.h": "17d77bbc267d13477a24bd971021f2291c505567a32383229505c13b53238a02",
-    "blanc/browser/ui/blanc_prototype_ui.cc": "cad58f1e9fe66a8fe8c2fa9b2f6b93b04f5b379a132e658f1e4064875b595187",
+    "blanc/browser/ui/blanc_prototype_ui.cc": "e853d84110a25c8bc93b2eca849b25edcdb2bedc3a6d8dd704df2977a52052fd",
     "blanc/browser/ui/blanc_prototype_ui.h": "31fa3fab2768cf232c1bafaf26f1f2020ab9534ef2e4bac02076af997ddb277e",
     "blanc/browser/ui/blanc_quiet_media.h": "f7fadb778aef96b28c8fb80dda2104897789b510ad2a34abc5adf9cde8761c5f",
     "blanc/browser/ui/blanc_quiet_probe.h": "47467fe0a2004e804cda235613a0aea6b88d494b84b3608bf6af991a6aa07dfd",
@@ -780,6 +780,7 @@
     "ui/webui/resources/cr_elements/cr_shared_style_lit.css": "c9e7dda3ecd7a772cc74d375e1edebde799a5ed25421a7beb8af530b81472060",
     "ui/webui/resources/cr_elements/cr_toolbar/cr_toolbar.css": "fef86e1444c669929effcd901b2c4e889ab6ba740df8f7c51f29baa73de68ffc",
     "ui/webui/resources/cr_elements/md_select_lit.css": "c927751d374ed867b6c4f3cd7efc599ce21c47226e006ab42df2f20cb2b9b218",
-    "ui/webui/resources/tools/eslint/BUILD.gn": "ed3f1b6301d3c33ade0df432eaadfe7d899e91a41d67a35d3164c87ef24eb3de"
+    "ui/webui/resources/tools/eslint/BUILD.gn": "ed3f1b6301d3c33ade0df432eaadfe7d899e91a41d67a35d3164c87ef24eb3de",
+    "chrome/browser/webauthn/chrome_web_authentication_delegate.cc": "b164738fd7c7431e75cc2bf29122021a3d13fb3f0f6157326ea3025d13cdc756"
   }
 }

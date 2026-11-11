@@ -153,6 +153,7 @@
     "chrome/browser/global_keyboard_shortcuts_mac.mm": "bc64058936d1809065cfe08eda58aa2df7abac6c55f9cb8eacab2c9d5f54c42f",
     "build/config/chrome_build.gni": "09a98267376b69f27d8ec983c9a070ffb52c80660e39b68fd9c1853a3e38314d",
     "chrome/app/BUILD.gn": "12ddef3ae21af91fe48621d7c61fd146c3fa652cef110c34a17529066e22a355",
-    "chrome/browser/web_applications/sampling_metrics_provider.cc": "9173ee2a4afd2f14d75949885ef36f57b27baecb4d57fe1a99d194b4657c4bff"
+    "chrome/browser/web_applications/sampling_metrics_provider.cc": "9173ee2a4afd2f14d75949885ef36f57b27baecb4d57fe1a99d194b4657c4bff",
+    "chrome/browser/webauthn/chrome_web_authentication_delegate.cc": "acfca55a1b8ef65fd8ef8d4f70a88f6867353894dc9ee7ddcbcd6d532c307226"
   }
 }

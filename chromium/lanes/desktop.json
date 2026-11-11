@@ -5,7 +5,7 @@
   "upstream": "681cd621e82e606d7536eae8ea2576afb3c7d65c",
   "upstreamDir": "upstream",
   "sourceMap": "source-map.json",
-  "fileCount": 153,
+  "fileCount": 154,
   "patches": [
     "patches/baseline/0001-foundation-baseline.patch",
     "patches/0002-canonical-layout.patch",
@@ -58,6 +58,7 @@
     "patches/0050-blanc-beta-local-qualification.patch",
     "patches/0051-blanc-quiet-session-restore.patch",
     "patches/0052-blanc-quiet-private-and-page-state.patch",
-    "patches/0053-blanc-group-pin-persistence.patch"
+    "patches/0053-blanc-group-pin-persistence.patch",
+    "patches/0054-blanc-private-passkey-secret.patch"
   ]
 }

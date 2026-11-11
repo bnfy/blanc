@@ -2388,7 +2388,7 @@ on that site, and a wrong search address still fails it.
 
 | Platform | Current-candidate baseline |
 | --- | --- |
-| macOS | 443/640 executable cases pass; 8 failed; 187 undefined/not run; 2 excluded — [baseline](scenarios/baseline-macos-f0bd093f621c613f.json)<br>S1 rows: 230/254 pass; 1 failed; 23 undefined; 0 excluded |
+| macOS | Not run for current candidate (previous baseline is stale) |
 | Windows | Not run (640 cases) |
 | Linux | Not run (640 cases) |
 
@@ -2414,5 +2414,5 @@ Android's Bar A counts the shared scenarios bound in `chromium/tests/android/acc
 
 Legacy macOS stages come from the approved spec; they await verification on the canonical candidate. No legacy stage counts as Verified.
 
-Candidate identities: macOS: macos-f0bd093f621c613f; Windows: none; Linux: none; Android: android-arm64-7bd35e94ef746069.
+Candidate identities: macOS: macos-a1bd86341c373179; Windows: none; Linux: none; Android: android-arm64-7bd35e94ef746069.
 <!-- END GENERATED PROGRESS -->

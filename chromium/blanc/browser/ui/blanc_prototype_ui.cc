@@ -287,6 +287,9 @@
 #include "ui/gfx/geometry/transform.h"
 #include "blanc/browser/ui/island_autohide.h"
 #include "blanc/private/private_tabs.h"
+#if BUILDFLAG(IS_MAC)
+#include "chrome/browser/webauthn/chrome_web_authentication_delegate.h"
+#endif
 #include "build/build_config.h"
 #if BUILDFLAG(IS_MAC)
 #include "blanc/browser/ui/app_menus_mac.h"
@@ -5737,6 +5740,21 @@ class Handler : public content::WebUIMessageHandler, public extensions::Extensio
           .Set("tabArchive", profile->GetOriginalProfile()->GetPrefs()->GetString(kTabArchivePref))));
       return;
     }
+#if BUILDFLAG(IS_MAC)
+    if (message[1].GetString() == "privatePasskeySecrets") {
+      auto* regular = Profile::FromWebUI(web_ui())->GetOriginalProfile();
+      auto* private_profile = regular->GetPrimaryOTRProfile(true);
+      const auto regular_config = ChromeWebAuthenticationDelegate::TouchIdAuthenticatorConfigForProfile(regular);
+      const auto private_config = ChromeWebAuthenticationDelegate::TouchIdAuthenticatorConfigForProfile(private_profile);
+      const auto again = ChromeWebAuthenticationDelegate::TouchIdAuthenticatorConfigForProfile(private_profile);
+      Reply(id, true, base::Value(base::DictValue()
+          .Set("regular", base::HexEncode(crypto::hash::Sha256(regular_config.metadata_secret)))
+          .Set("private", base::HexEncode(crypto::hash::Sha256(private_config.metadata_secret)))
+          .Set("stable", again.metadata_secret == private_config.metadata_secret)
+          .Set("isolated", regular_config.metadata_secret != private_config.metadata_secret)));
+      return;
+    }
+#endif
     if (message[1].GetString() == "telemetryState") {
       Reply(id, true, base::Value(base::DictValue().Set("installId",
           g_browser_process->local_state()->GetDict(kTelemetryInstallPref).FindString("id") != nullptr)));

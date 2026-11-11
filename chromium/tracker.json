@@ -2459,11 +2459,11 @@
   ],
   "currentCandidates": {
     "macos": {
-      "id": "macos-f0bd093f621c613f",
-      "frameworkSha256": "f0bd093f621c613f5931c185794fe9078438dccaa102d2febc3c39b5afc92ca6",
+      "id": "macos-a1bd86341c373179",
+      "frameworkSha256": "a1bd86341c373179574b9747d8970a100529966fb74279a30afa00064e3aa778",
       "executableSha256": "cca20d7ed00bbdecf8db310c6802fbed003b4e63c6bc3b1f71dabc9dbff2ff01",
       "version": "158.0.8127.2",
-      "qualification": "full macOS inventory: 443 pass, 8 fail, 187 undefined, 2 mobile exclusions; local desktop Sync 22/22; prototype only"
+      "qualification": "compiled candidate; runtime acceptance pending"
     },
     "android": {
       "id": "android-arm64-7bd35e94ef746069",
