@@ -2357,10 +2357,10 @@ dialog over the page, so it needs the grid moved behind the page and a spike on 
 The Island's layout follows the iPhone's #1463 (opened November 11, not merged at the time of the port): after the
 Sunrise mark and the left-aligned address come Stop while a page loads, Back, Forward and New tab. Reload moved into
 the Sunrise menu, before Share, where it reads Stop while a page loads, and Settings is the menu's last entry. Opening
-the menu gives a light haptic tap. On the Start Page the address reads "Search or type a URL", dimmed, while TalkBack
-still hears "Start Page". If #1463 changes in review, this follows it. One Android difference, owner's call
-(November 11): Back and Forward are 40dp wide rather than the iPhone's 44, and the address's end padding is 2dp, so
-"Search or type a URL" fits whole on a 411dp phone; narrower phones still cut it at its end.
+the menu gives a light haptic tap. On the Start Page the address reads "Search or type URL", dimmed, while TalkBack
+still hears "Start Page"; the owner shortened the shared string on November 11 (#1464 on main, the same edit here) so
+it fits a 411dp phone beside Back, Forward and New Tab at the iPhone's 44dp. If #1463 changes in review, this follows
+it.
 
 ### Shield count across a page's commit
 

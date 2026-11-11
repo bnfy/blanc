@@ -92,7 +92,7 @@ public class IslandViewTest {
         s.startPage = true;
         mView.bind(s);
         TextView domain = mView.findViewById(R.id.blanc_island_domain);
-        assertEquals("Search or type a URL", domain.getText().toString());
+        assertEquals("Search or type URL", domain.getText().toString());
         assertTrue(domain.getAlpha() < 1f);
         assertTrue(domain.getContentDescription().toString().startsWith("Search or switch tabs, Start Page"));
         mView.bind(state("example.com", false, 1, false));

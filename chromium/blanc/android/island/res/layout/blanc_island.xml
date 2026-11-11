@@ -36,7 +36,7 @@
             android:gravity="center_vertical"
             android:minHeight="48dp"
             android:paddingStart="10dp"
-            android:paddingEnd="2dp"
+            android:paddingEnd="6dp"
             android:singleLine="true"
             android:textSize="15sp" />
 
@@ -65,7 +65,7 @@
 
         <ImageButton
             android:id="@+id/blanc_island_back"
-            android:layout_width="@dimen/blanc_island_history_width"
+            android:layout_width="44dp"
             android:layout_height="48dp"
             android:background="@null"
             android:contentDescription="@string/blanc_pill_back"
@@ -74,7 +74,7 @@
 
         <ImageButton
             android:id="@+id/blanc_island_forward"
-            android:layout_width="@dimen/blanc_island_history_width"
+            android:layout_width="44dp"
             android:layout_height="48dp"
             android:background="@null"
             android:contentDescription="@string/blanc_pill_forward"

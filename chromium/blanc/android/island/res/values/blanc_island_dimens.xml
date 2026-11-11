@@ -10,7 +10,4 @@
     <dimen name="blanc_island_shadow_radius">10dp</dimen>
     <dimen name="blanc_island_shadow_y">4dp</dimen>
     <dimen name="blanc_island_chip_stroke">1dp</dimen>
-    <!-- Back and Forward, narrower than the iPhone's 44 so the Start Page's "Search or type a URL"
-         fits on a 411dp phone; still a 48dp-tall target. -->
-    <dimen name="blanc_island_history_width">40dp</dimen>
 </resources>
