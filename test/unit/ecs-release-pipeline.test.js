@@ -88,6 +88,9 @@ test('the Windows job uses EVS only for ECS, after binding the source and before
   assert.match(workflow.jobs['linux-sandbox'].if, /inputs\.runtime != 'ecs'/);
   // The Linux release upload waits for the exact AppImage to launch on
   // Ubuntu 22.04 (linux-legacy-launch); the build job only hands it over.
+  // The release build stays on the image every public AppImage was built on,
+  // not a moving ubuntu-latest (26.04 broke apt on November 11, 2026).
+  assert.equal(linux['runs-on'], 'ubuntu-24.04');
   const legacy = workflow.jobs['linux-legacy-launch'];
   assert.deepEqual(legacy.needs, ['validate-inputs', 'linux']);
   assert.equal(legacy['runs-on'], 'ubuntu-22.04');
