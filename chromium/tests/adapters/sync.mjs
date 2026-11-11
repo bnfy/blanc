@@ -29,6 +29,7 @@ export const sync = {
   const button=a.action==='cancel'?[...dialog.querySelectorAll('cr-button')].find(e=>e.textContent.trim()==='Cancel'):
    a.action==='untick'?[...dialog.querySelectorAll('label')].find(e=>e.textContent.includes(a.name))?.querySelector('input'):
    root.getElementById(({choose:'syncSpacesChoose','turn-on':'syncSpacesToggle',wipe:'syncWipe',disable:'syncDisable',retry:'syncEraseRetry'})[a.action]??'syncSpacesShare');
+  const more=button?.closest('details');if(more&&!more.open)more.querySelector('summary').click();
   if(!button||button.disabled||!button.getBoundingClientRect().width)return false;
   button.click();return true;
  },{action,name}),
@@ -122,6 +123,7 @@ export const sync = {
    field.value=a.text;field.dispatchEvent(new Event('input',{bubbles:true,composed:true}));return true;
   }
   const button=root.getElementById(ids[a.action]);
+  const more=button?.closest('details');if(more&&!more.open)more.querySelector('summary').click();
   if(!button||button.disabled||!button.getBoundingClientRect().width)return false;
   button.focus();button.click();return true;
  },{action,text}),

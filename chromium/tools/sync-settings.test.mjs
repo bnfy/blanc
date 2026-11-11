@@ -68,7 +68,7 @@ const settle=async el=>{for(let n=0;n<100&&el.busy_;n++)await new Promise(resolv
 test('native bridge rejects arbitrary runner exports and malformed argument shapes',()=>{
  const validator=native.slice(native.indexOf('static bool ValidSyncCall'),native.indexOf('void HandleSyncCall'));
  const methods=[...new Set([...validator.matchAll(/method [!=]= "([^"]+)"/g)].map(m=>m[1]))].sort();
- assert.deepEqual(methods,['desktop.spaces.acknowledge','desktop.spaces.apply','desktop.spaces.armPairing','desktop.spaces.preview','desktop.spaces.status','sync.beginPairing','sync.cancelPairing','sync.disable','sync.enable','sync.joinWithCode','sync.pairingState','sync.preflight','sync.setPairingWatch','sync.setSyncTabs','sync.startNew','sync.status','sync.syncNow']);
+ assert.deepEqual(methods,['desktop.spaces.acknowledge','desktop.spaces.apply','desktop.spaces.armPairing','desktop.spaces.preview','desktop.spaces.status','sync.beginPairing','sync.cancelPairing','sync.disable','sync.enable','sync.joinWithCode','sync.pairingState','sync.preflight','sync.setPairingWatch','sync.setSyncTabs','sync.setThisDeviceName','sync.startNew','sync.status','sync.syncNow']);
  assert.match(validator,/value\.size\(\) == 2/);
  assert.match(validator,/selections->size\(\) > 25/);
  assert.match(validator,/\*mode != "copy" && \*mode != "rejoin"/);
@@ -79,6 +79,8 @@ test('native bridge rejects arbitrary runner exports and malformed argument shap
  assert.match(validator,/FindBool\(key\)\.has_value\(\)/);
  assert.match(validator,/sync\.setSyncTabs"\) return args\.size\(\) == 1 && args\[0\]\.is_bool\(\)/);
  assert.match(validator,/sync\.setPairingWatch"\) return args\.size\(\) == 1 && args\[0\]\.is_bool\(\)/);
+ assert.match(validator,/sync\.setThisDeviceName"\) return args\.size\(\) == 1 && args\[0\]\.is_string\(\)/);
+ assert.match(validator,/UTF8ToUTF16\(args\[0\]\.GetString\(\)\)\.size\(\) <= 80/);
  assert.match(native,/args\[1\]\.is_bool\(\)/);
  assert.ok(native.includes('DesktopSyncService::ForProfile(SyncProfile())'));
  assert.ok(native.includes('return owner->browser->GetProfile();'));

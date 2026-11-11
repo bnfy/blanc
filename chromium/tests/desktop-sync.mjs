@@ -439,6 +439,7 @@ try{
  await check('Not now keeps existing Favorites local while account Favorites download',async()=>{
   await until(()=>w.call('settingsSyncPairingDom'),s=>s?.pendingFirstUpload?.includes('1'),'decline consent');
   await act('upload-not-now');await pump();await pump();
+  await until(()=>w.call('settingsSyncPairingDom'),s=>s?.syncOn&&!s.pendingFirstUpload,'declined upload prompt hidden');
   assert.ok((await nativeFavorites()).some(x=>x.url===excluded));assert.ok((await nativeFavorites()).some(x=>x.url===remote));
   assert.ok(!(await rpc('bookmarks.exportForSync')).items.some(x=>x.url===excluded));assert.ok(!peerFavorites().some(x=>x.url===excluded));
   await fixture.stop();
@@ -470,6 +471,8 @@ try{
   assert.ok(waited>=30000,'persisted quota outlasts the old runner deadline');
   output.restartBudgetWaitMs=waited;console.log('restart: healthy budget wait completed');
   assert.equal((await rpc('sync.status')).enabled,true,'responsive budget-waiting runner stays enabled');
+  await openSync();
+  await until(()=>w.call('settingsSyncPairingDom'),s=>s?.syncOn&&!s.pendingFirstUpload,'declined upload prompt stays hidden after restart');
   assert.ok((await nativeFavorites()).some(x=>x.url===excluded));assert.ok(!peerFavorites().some(x=>x.url===excluded));
  });
  await close('declined');

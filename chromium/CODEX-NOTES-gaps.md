@@ -7,7 +7,7 @@
 > **OWNER ADDITION (2026-11-11, binding): runner timing baseline.** Before the single end-of-queue inventory, add per-phase timing to `chromium/tests/runner.mjs` (browser launch, blocker readiness, reset between cases, appearance setup, step execution, waits that ran to timeout, retries, teardown), written to the run's evidence as a JSON summary with totals and the 20 slowest cases. Record a baseline over a 60-case sample across at least six feature files. Then remove the obvious waste (for example fixed sleeps, re-doing setup that is already in the wanted state, relaunching when a reset is enough) WITHOUT weakening any assertion, the rendering guard, or isolation between cases; rerun the same sample and report before/after per phase. Shipping's Electron harness (`test/desktop/`, read-only) is the comparison for what a case should cost. Report it in a "Runner timing" section. Keep this notice when you rewrite the file.
 
 Queue 4 is **in progress**. Dedicated beta build/updater remains on absolute owner hold.
-Current prototype: **macos-8f6629dd83705e04**; `q4-import-5-runtime-config.json`.
+Current prototype: **macos-9987cc7166c3c921**; `q4-sync-layout-3-runtime-config.json`.
 
 | Item | State |
 | --- | --- |
@@ -21,7 +21,7 @@ Current prototype: **macos-8f6629dd83705e04**; `q4-import-5-runtime-config.json`
 | 8 Glance / other failures | Done: seven original failures now pass; Linux-only menu case is not applicable on macOS |
 | 9 Pinned homes | Partly: six web scenarios pass; isolated local HTML home remains blocked by missing N15 preview |
 | 10 Open-tab / Arc import | Done: all 22 macOS cases, two secondary-profile checks and full Sync 22/22 pass |
-| Owner Sync dialog report | Next after import: layout/copy and four before/after captures |
+| Owner Sync dialog report | Done: four layout states, device/prompt persistence, three journal checks, erasure and full Sync 22/22 pass |
 | 11 Remaining adapters | Pending |
 
 | Evidence | Sync pass/fail | Inventory pass/fail/undefined/excluded |
@@ -30,6 +30,7 @@ Current prototype: **macos-8f6629dd83705e04**; `q4-import-5-runtime-config.json`
 | Item 3: q4-resume-full-sync | 22/0 | Final inventory owed |
 | Item 9: q4-pinned-full-sync | 22/0 | Final inventory owed |
 | Item 10: q4-import-local-full-sync | 22/0 | Final inventory owed |
+| Owner report: q4-sync-layout-full-sync | 22/0 | Final inventory owed |
 
 Lost passes: partial run found F41:558 group creation; fixed and targeted check passes. Final comparison owed.
 Owner input: actual device-bound passkey acceptance requires a signed, entitled build and Touch ID ceremony, outside this queue.
@@ -138,7 +139,7 @@ a hash of the test harness. Nested phase time is reported separately from
 exclusive time; timeout/retry costs are annotations, not added twice. The required 60-case, six-file baseline
 and unchanged-sample comparison remain owed before the final inventory.
 
-## 3 — Shared Spaces and Send (in progress)
+## 3 — Shared Spaces and Send
 
 All 33 Shared Spaces and 8 Send cases now resolve to adapters; resolution alone
 is not a pass. `q4-shared-smoke-2` verifies Shared Spaces :4 selection/cancel,
@@ -625,7 +626,7 @@ arguments, candidate macos-8f6629dd83705e04. `q4-import-local-cases` is
 22 pass / 0 fail / 1 Linux-only undefined. `q4-import-local-profiles` passes
 both secondary-profile import and restart checks, with no Sync store created.
 Precommit tests 308/308 and reconstruction 162 upstream / 583 canonical pass.
-Incremental patch budget remains 123 upstream paths / 420 hunks.
+Incremental patch budget at item 10 remains 123 upstream paths / 420 hunks.
 `q4-import-local-full-sync` passed **22/22** on this exact candidate, including
 the persisted quota restart and private/secondary-profile refusal. Item 10 is
 complete. Next is the owner-reported Sync dialog layout, before item 11. Do not rerun the applied
@@ -642,3 +643,49 @@ The next owner-requested Sync layout capture script is staged at
 import commit, before changing the Sync UI. Checkbox widths incorrectly inherit
 the generic text-input rule. The fork also lacks shipping's separate device-name
 input; My Blanc is the account name. No Sync UI fix has been applied yet.
+
+
+## Owner report — Settings Sync layout
+
+Patch 0060 fixes generic text-input width applying to checkboxes. The native
+Sync page now follows shipping's account / What syncs / Devices / recovery /
+More options order, with adjacent one-line checkbox labels. Device name is a
+separate editable field from the My Blanc account link; the native command
+bounds the name to shipping's 80 UTF-16 units. Turn-off explanation stays with
+that action. Accepted and declined first-upload choices stay dismissed after
+reopen and restart. The phone bundle and shipping sources are unchanged.
+
+Before evidence: `q4-sync-layout-before-2` saves eight images across narrow /
+wide and light / dark, top and turn-off. Its dark palette uses media emulation
+solely for the before captures. Final after evidence:
+`q4-sync-layout-after-5` passes seven checks and saves eight inspected images;
+all four states use the real native profile theme with no media emulation.
+Geometry checks require all three checkbox labels on one line, and the lower
+capture includes the delete checkbox, label and turn-off button. Device name
+persists on reopen and restart. After-4 also passed but its lower wide crop
+missed the checkbox; after-5 corrects that evidence limitation.
+
+Validation exposed a real settings race: an earlier local light publish could
+be mistaken for a remote change and overwrite a newer native dark choice.
+`q4-sync-layout-after-3` records light -> dark -> light within 227 ms while
+settingsSeen still held system. An isolated no-Sync profile changed correctly.
+The native service now persists settingsOutgoing before publishing, verifies
+and acknowledges its own echo before comparing later local edits, and retains
+the existing conflict policy for genuinely different remote values. Settings
+also observes the explicit profile theme. `q4-sync-settings-journal` passes
+rapid-change, refused-write and persisted post-publish/pre-ack restart-fixture
+checks (3/3); the restart fixture is not a power-loss experiment.
+
+`q4-sync-layout-3` built in 6 actions / 20.52 seconds:
+macos-9987cc7166c3c921, `q4-sync-layout-3-runtime-config.json`.
+The earlier layout-1 build stopped at CSS formatting lint; layout-2 passed
+layout checks but exposed the settings race. Those diagnostics are preserved.
+`q4-sync-layout-erasure` passes shared-spaces :103 without retry.
+`q4-sync-layout-full-sync` passes 22/22, including both consent choices and
+private/secondary refusal; persisted restart quota waited 120034 ms while the
+local inbox remained readable. Precommit-3 passes 308/308; patch reconstruction,
+progress freshness and whitespace pass. Patch budget: 123 incremental upstream
+paths / 430 hunks; full reconstruction 162 upstream / 583 canonical files.
+
+Next: item 11 adapters, the same 60-case timing baseline/optimization/comparison,
+then the complete inventory ONCE. No external stop occurred.

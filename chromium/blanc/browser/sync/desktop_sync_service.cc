@@ -104,6 +104,11 @@ bool ValidStateRecords(const base::DictValue& state) {
     if (!before || !after || !SupportedDesktopSyncSetting(key, *before) ||
         !SupportedDesktopSyncSetting(key, *after)) return false;
   }
+  if (const auto* outgoing = state.Find("settingsOutgoing")) {
+    if (!outgoing->is_dict() || outgoing->GetDict().empty()) return false;
+    for (auto [key, value] : outgoing->GetDict())
+      if (!SupportedDesktopSyncSetting(key, value)) return false;
+  }
   const auto* pending = state.Find("outgoing");
   if (!pending) return true;
   if (!pending->is_dict()) return false;
@@ -667,6 +672,31 @@ void DesktopSyncService::PlanSettings(bool ok, const std::string& json) {
   auto snapshot = ok ? base::JSONReader::ReadDict(json, base::JSON_PARSE_RFC) : std::nullopt;
   const auto* remote = snapshot ? snapshot->FindDict("values") : nullptr;
   if (!remote) { Finish(); return; }
+  // A proposal may reach the runner before its asynchronous disk writer and
+  // our acknowledgement finish. It is our own echo, not a new remote edit.
+  // Journal it before publishing, and acknowledge it before comparing later
+  // native edits. Otherwise rapid light -> dark clicks can reinstall light.
+  // The journal survives restart and refused writes; no native value is
+  // changed while resolving it. A genuinely different remote value retains
+  // the normal remote-wins conflict policy on the following reconciliation.
+  if (const auto* outgoing = state_.FindDict("settingsOutgoing")) {
+    auto next = state_.Clone();
+    base::DictValue durable;
+    for (auto [key, proposed] : *outgoing) {
+      if (Equal(remote->Find(key), &proposed)) {
+        durable.Set(key, proposed.Clone());
+        next.FindDict("settingsSeen")->Set(key, proposed.Clone());
+        next.FindDict("settingsIncoming")->Remove(key);
+      }
+    }
+    next.Remove("settingsOutgoing");
+    auto acknowledged = base::BindOnce([](base::WeakPtr<DesktopSyncService> self, base::DictValue next) {
+      if (self) self->Commit(std::move(next), base::BindOnce(&DesktopSyncService::Finish, self, true));
+    }, weak_factory_.GetWeakPtr(), std::move(next));
+    if (durable.empty()) std::move(acknowledged).Run();
+    else VerifyRunnerFile("settings.json", std::move(durable), std::move(acknowledged));
+    return;
+  }
   const auto local = ReadDesktopSyncSettings(profile_);
   auto next = state_.Clone();
   base::DictValue apply, publish, disk;
@@ -747,25 +777,22 @@ void DesktopSyncService::PlanSettings(bool ok, const std::string& json) {
     return;
   }
   if (!publish.empty()) {
-    Run("settings.setSettings", Args(base::Value(publish.Clone())), base::BindOnce(
-        [](base::WeakPtr<DesktopSyncService> self, base::DictValue patch, bool ok, const std::string&) {
+    // Persist ownership of the proposal before it can emit a settings event.
+    // File verification and its baseline commit happen in PlanSettings above.
+    auto journal = state_.Clone();
+    journal.Set("settingsOutgoing", publish.Clone());
+    Commit(std::move(journal), base::BindOnce(
+        [](base::WeakPtr<DesktopSyncService> self, base::DictValue patch) {
           if (!self) return;
-          if (!ok) { self->Finish(); return; }
-          self->Run("runner.flush", "[]", base::BindOnce(
-              [](base::WeakPtr<DesktopSyncService> self, base::DictValue patch, bool ok, const std::string&) {
+          self->Run("settings.setSettings", Args(base::Value(std::move(patch))), base::BindOnce(
+              [](base::WeakPtr<DesktopSyncService> self, bool ok, const std::string&) {
                 if (!self) return;
                 if (!ok) { self->Finish(); return; }
-                self->VerifyRunnerFile("settings.json", patch.Clone(), base::BindOnce(
-                    [](base::WeakPtr<DesktopSyncService> self, base::DictValue patch) {
-                      if (!self) return;
-                      auto next = self->state_.Clone();
-                      for (auto [key, value] : patch) {
-                        next.FindDict("settingsSeen")->Set(key, value.Clone());
-                        next.FindDict("settingsIncoming")->Remove(key);
-                      }
-                      self->Commit(std::move(next), base::BindOnce(&DesktopSyncService::Finish, self, true));
-                    }, self, std::move(patch)));
-              }, self, std::move(patch)));
+                self->Run("runner.flush", "[]", base::BindOnce(
+                    [](base::WeakPtr<DesktopSyncService> self, bool ok, const std::string&) {
+                      if (self) self->Finish(ok);
+                    }, self));
+              }, self));
         }, weak_factory_.GetWeakPtr(), std::move(publish)));
     return;
   }
