@@ -27,9 +27,6 @@ struct ContentView: View {
     /// Goes up as the grid opens or closes, so a delayed step can tell it's stale.
     @State private var gridPass = 0
     @State private var pageFrame = CGRect.zero
-    /// The Island's controls either side of the address, to center it between them.
-    @State private var islandLeadingWidth: CGFloat = 0
-    @State private var islandTrailingWidth: CGFloat = 0
     /// M11: how far the page has followed a sideways swipe on the Island.
     @State private var swipeOffset: CGFloat = 0
     @State private var isSwiping = false
@@ -826,38 +823,32 @@ struct ContentView: View {
     }
 
     private var islandButtons: IslandLayout.Buttons {
-        layout.buttons(historySetting: manager.settingsStore.islandHistoryButtons,
-                       isLoading: manager.activeTab?.isLoading == true)
+        layout.buttons(isLoading: manager.activeTab?.isLoading == true)
     }
 
     private var addressPill: some View {
         let buttons = islandButtons
-        let insets = IslandLayout.addressInsets(leading: islandLeadingWidth, trailing: islandTrailingWidth)
         return HStack(spacing: 0) {
             HStack(spacing: 0) {
                 islandMark
                 Rectangle().fill(islandDivider).frame(width: 1, height: 18)
-                if buttons.centersAddress {
-                    // Stop takes the room here so the address never moves as a page loads.
-                    if buttons.reload { reloadButton.padding(.leading, 4) }
-                } else if buttons.history {
-                    historyButtons.padding(.leading, 4)
-                }
+                if !buttons.historyTrails { historyButtons.padding(.leading, 4) }
             }
-            .onGeometryChange(for: CGFloat.self) { $0.size.width } action: { islandLeadingWidth = $0 }
 
             // A tap rather than a Button: a Button also fires when a sideways
             // swipe on the Island lifts inside it, a tap fails once the finger moves.
             HStack(spacing: 10) {
-                Text(displayDomain)
+                // The Start Page has no site to show, so it invites a search,
+                // dimmed like a placeholder. VoiceOver still hears "Start Page".
+                Text(onStartPage ? SyncCopy.text("pill.placeholder") : displayDomain)
                     .font(BrowserStyle.font(15))
                     .tracking(0.15)
                     .lineLimit(1)
                     .truncationMode(.middle)
-                if !buttons.centersAddress { Spacer(minLength: 0) }
+                    .opacity(onStartPage ? 0.55 : 1)
+                Spacer(minLength: 0)
             }
-            .padding(.leading, buttons.centersAddress ? 8 + insets.leading : 12)
-            .padding(.trailing, buttons.centersAddress ? 8 + insets.trailing : 0)
+            .padding(.leading, 12)
             .frame(maxWidth: .infinity, minHeight: 48)
             .pointerHighlight()
             .contentShape(Rectangle())
@@ -887,20 +878,17 @@ struct ContentView: View {
                 }
 
 
-                if buttons.reload && !buttons.centersAddress { reloadButton }
+                if buttons.reload { reloadButton }
 
-                if buttons.newTab {
-                    Rectangle().fill(islandDivider).frame(width: 1, height: 18)
-                    Button { manager.createTab() } label: {
-                        Image(systemName: "plus").frame(width: 44, height: 48)
-                            .pointerHighlight()
-                    }
-                    .accessibilityLabel(SyncCopy.text("tab.new"))
+                if buttons.historyTrails { historyButtons }
+
+                Rectangle().fill(islandDivider).frame(width: 1, height: 18)
+                Button { manager.createTab() } label: {
+                    Image(systemName: "plus").frame(width: 44, height: 48)
+                        .pointerHighlight()
                 }
-
-                if buttons.centersAddress { historyButtons.padding(.trailing, 4) }
+                .accessibilityLabel(SyncCopy.text("tab.new"))
             }
-            .onGeometryChange(for: CGFloat.self) { $0.size.width } action: { islandTrailingWidth = $0 }
         }
         .font(.system(size: 15, weight: .medium))
         // Not .plain: over Liquid Glass on iOS 26, plain buttons took no taps
@@ -1016,6 +1004,9 @@ struct ContentView: View {
             case .copyLink:
                 guard let tab else { return nil }
                 return action("tabMenu.copyLink", "link") { manager.copyLink(tab) }
+            case .reload:
+                guard let tab else { return nil }
+                return action("menu.reload", "arrow.clockwise") { tab.reload() }
             case .find:
                 return action("menu.findInPage", "magnifyingglass") { manager.presentFind() }
             case .pageZoom:
@@ -1061,6 +1052,11 @@ struct ContentView: View {
     private static let sunriseMark: UIImage? = Bundle.main
         .path(forResource: "sunrise-mark", ofType: "png", inDirectory: "pages")
         .flatMap(UIImage.init(contentsOfFile:))
+
+    private var onStartPage: Bool {
+        guard let url = manager.activeTab?.currentURL else { return true }
+        return url.scheme == "blanc" && url.host == "newtab"
+    }
 
     private var displayDomain: String {
         let startPage = SyncCopy.text("ios.tabs.startPage")

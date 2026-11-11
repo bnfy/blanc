@@ -18,31 +18,25 @@ final class PillButtonsUITests: XCTestCase {
     XCTAssertEqual(XCTWaiter().wait(for: [startPage], timeout: 5), .completed, "+ opened a new tab")
   }
 
-  func testBackAndForwardSettingSwapsTheIslandsButtons() {
+  /// Back, Forward and New Tab after the address on every iPhone Island;
+  /// Reload lives in the Sunrise menu and pull to refresh.
+  func testTheIslandHasBackForwardAndNewTab() {
     continueAfterFailure = false
     let app = XCUIApplication()
     app.launchArguments = ["-BlancUITestSettings", "-BlancUITestSettingsReset", "-AppleLanguages", "(en)", "-AppleLocale", "en_US"]
     app.launch()
     let pill = app.buttons["pill.palette"]
     XCTAssertTrue(pill.waitForExistence(timeout: 15))
-    XCTAssertFalse(app.buttons["pill.back"].exists, "off by default")
-    XCTAssertTrue(app.buttons["New tab"].exists)
-    pill.tap()
-    let input = app.textFields["island.address"]
-    XCTAssertTrue(input.waitForExistence(timeout: 5))
-    input.tap(); input.typeText("/settings\n")
-    let row = app.descendants(matching: .any).matching(identifier: "settings.islandHistoryButtons").firstMatch
-    XCTAssertTrue(app.reveal(row, timeout: 15))
-    row.coordinate(withNormalizedOffset: CGVector(dx: 0.95, dy: 0.5)).tap()
-    app.buttons["settings.done"].tap()
-    XCTAssertTrue(app.buttons["pill.back"].waitForExistence(timeout: 5))
-    XCTAssertTrue(app.buttons["pill.forward"].exists)
-    XCTAssertFalse(app.buttons["pill.back"].isEnabled, "a new tab has nowhere to go back to")
-    // Back then Forward at the far end, after the address.
-    XCTAssertGreaterThan(app.buttons["pill.back"].frame.midX, pill.frame.maxX)
-    XCTAssertGreaterThan(app.buttons["pill.forward"].frame.midX, app.buttons["pill.back"].frame.midX)
+    let back = app.buttons["pill.back"], forward = app.buttons["pill.forward"], plus = app.buttons["New tab"]
+    XCTAssertTrue(back.waitForExistence(timeout: 5))
+    XCTAssertTrue(forward.exists)
+    XCTAssertTrue(plus.exists)
+    XCTAssertFalse(back.isEnabled, "a new tab has nowhere to go back to")
+    // The address, then Back, Forward and New Tab at the far end.
+    XCTAssertGreaterThan(back.frame.midX, pill.frame.maxX)
+    XCTAssertGreaterThan(forward.frame.midX, back.frame.midX)
+    XCTAssertGreaterThan(plus.frame.midX, forward.frame.midX)
     XCTAssertFalse(app.buttons["pill.tabs"].exists, "the Island has no tab count")
-    XCTAssertFalse(app.buttons["New tab"].exists)
     XCTAssertFalse(app.buttons["Reload page"].exists)
   }
 

@@ -9450,14 +9450,6 @@
     "message": "Hide the Island while scrolling",
     "note": "iOS Settings → Appearance: switch for the Island tucking away while a page scrolls down. On by default."
   },
-  "ios.settings.islandHistoryButtons": {
-    "message": "Back and Forward buttons",
-    "note": "iOS Settings → Island: switch that puts Back and Forward on the iPhone Island. Off by default."
-  },
-  "ios.settings.islandHistoryButtonsHelp": {
-    "message": "When the Island is narrow, they take the place of Reload and New Tab. Pull down on a page to reload it.",
-    "note": "iOS Settings → Island: footer under the Back and Forward switch. 'Narrow' is the iPhone Island; the wider Island keeps every button."
-  },
   "ios.settings.islandPosition": {
     "message": "Position",
     "note": "iOS Settings → Island: picker for where the Island sits on the screen, under the Island header."

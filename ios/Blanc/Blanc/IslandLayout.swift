@@ -15,21 +15,14 @@ enum IslandPosition: String, CaseIterable {
 struct IslandLayout: Equatable {
     enum Palette { case sheet, panel }
 
-    /// The Island's buttons around the address.
+    /// The Island's buttons around the address. Back, Forward and New Tab are
+    /// always on it.
     struct Buttons: Equatable {
-        let history: Bool
         /// Reload, which is Stop while a page loads.
         let reload: Bool
-        let newTab: Bool
-        /// Back and Forward at the far end and the address in the Island's center,
-        /// rather than the two before a leading address.
-        var centersAddress = false
-    }
-
-    /// What the address adds to each side so it sits in the Island's center
-    /// with unequal controls either side of it.
-    static func addressInsets(leading: CGFloat, trailing: CGFloat) -> (leading: CGFloat, trailing: CGFloat) {
-        (max(0, trailing - leading), max(0, leading - trailing))
+        /// Back and Forward at the Island's far end, before New Tab, rather
+        /// than before the address. The address stays leading either way.
+        var historyTrails = false
     }
 
     /// Back and Forward on the Island.
@@ -47,12 +40,12 @@ struct IslandLayout: Equatable {
         showsSplitView = unfolded
     }
 
-    /// The iPhone Island has no room for everything, so the Back and Forward
-    /// setting swaps out Reload and New Tab. Stop still shows while a page
-    /// loads, since nothing else can stop one.
-    func buttons(historySetting: Bool, isLoading: Bool) -> Buttons {
-        if showsHistoryButtons { return Buttons(history: true, reload: true, newTab: true) }
-        if historySetting { return Buttons(history: true, reload: isLoading, newTab: false, centersAddress: true) }
-        return Buttons(history: false, reload: true, newTab: true)
+    /// The iPhone Island has room for Back, Forward and New Tab after the
+    /// address, but not Reload as well: pull to refresh and the Sunrise menu
+    /// reload a page. Stop still shows while a page loads, since nothing else
+    /// can stop one.
+    func buttons(isLoading: Bool) -> Buttons {
+        if showsHistoryButtons { return Buttons(reload: true) }
+        return Buttons(reload: isLoading, historyTrails: true)
     }
 }

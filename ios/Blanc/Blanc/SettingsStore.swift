@@ -33,7 +33,6 @@ final class SettingsStore {
     /// Whether the Island tucks away while a page scrolls down; off keeps it
     /// always on screen. iPhone-only and device-local, never synced (D11).
     private(set) var islandTucksOnScroll = true
-    private(set) var islandHistoryButtons = false
     /// The Island along the bottom of the screen (the default) or the top.
     /// iPhone-only and device-local, never synced (D11).
     private(set) var islandPosition: IslandPosition = .bottom
@@ -86,7 +85,6 @@ final class SettingsStore {
                 usagePing: Bool? = nil,
                 walkthroughCompletedVersion: Int? = nil,
                 islandTucksOnScroll: Bool? = nil,
-                islandHistoryButtons: Bool? = nil,
                 islandPosition: IslandPosition? = nil,
                 searchSuggestions: Bool? = nil) {
         if let theme { self.theme = theme }
@@ -100,7 +98,6 @@ final class SettingsStore {
         if let usagePing { self.usagePing = usagePing }
         if let walkthroughCompletedVersion { self.walkthroughCompletedVersion = walkthroughCompletedVersion }
         if let islandTucksOnScroll { self.islandTucksOnScroll = islandTucksOnScroll }
-        if let islandHistoryButtons { self.islandHistoryButtons = islandHistoryButtons }
         if let islandPosition { self.islandPosition = islandPosition }
         if let searchSuggestions { self.searchSuggestions = searchSuggestions }
         scheduleSave()
@@ -141,13 +138,14 @@ final class SettingsStore {
         if let v = dict["usagePing"] as? Bool { usagePing = v }
         if let v = dict["walkthroughCompletedVersion"] as? Int { walkthroughCompletedVersion = v }
         if let v = dict["islandTucksOnScroll"] as? Bool { islandTucksOnScroll = v }
-        if let v = dict["islandHistoryButtons"] as? Bool { islandHistoryButtons = v }
         if let raw = dict["islandPosition"] as? String, let v = IslandPosition(rawValue: raw) { islandPosition = v }
         if let v = dict["searchSuggestions"] as? Bool { searchSuggestions = v }
 
+        // `islandHistoryButtons` is retired (Back and Forward are always on the
+        // Island now); listing it here drops it at the next save.
         let knownKeys: Set<String> = ["theme", "searchEngine", "adblockEnabled", "adblockExceptions", "newtabLayout",
-                                      "usagePing", "walkthroughCompletedVersion", "islandTucksOnScroll", "islandHistoryButtons",
-                                      "islandPosition", "searchSuggestions"]
+                                      "usagePing", "walkthroughCompletedVersion", "islandTucksOnScroll", "islandPosition",
+                                      "searchSuggestions", "islandHistoryButtons"]
         for (key, value) in dict where !knownKeys.contains(key) {
             unknownKeys[key] = value
         }
@@ -170,7 +168,6 @@ final class SettingsStore {
         if let usagePing { dict["usagePing"] = usagePing }
         dict["walkthroughCompletedVersion"] = walkthroughCompletedVersion
         dict["islandTucksOnScroll"] = islandTucksOnScroll
-        dict["islandHistoryButtons"] = islandHistoryButtons
         dict["islandPosition"] = islandPosition.rawValue
         if let searchSuggestions { dict["searchSuggestions"] = searchSuggestions }
 

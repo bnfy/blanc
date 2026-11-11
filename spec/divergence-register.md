@@ -272,10 +272,15 @@ mobile is a single full-screen surface with system insets.
   strip, its own always-on-top overlay view, and traffic-lights / window controls.
 - **Mobile:** a single surface; the island adapts to safe-area insets; no window
   controls; multi-window is a tablet/foldable consideration, not a phone one.
-- **iOS (2026-11-05, owner request):** Settings → Island → Back and Forward
-  buttons (off by default, device-local `islandHistoryButtons`, never synced)
-  puts them on the iPhone Island in place of Reload and New Tab, after a
-  visitor asked where Back was. The Island has no tab count on any layout:
+- **iOS (2026-11-05, owner request; revised 2026-11-11):** the iPhone Island
+  shows Back, Forward and New Tab after the address, for everyone, after a
+  visitor asked where Back was. It began as a Settings → Island switch
+  (`islandHistoryButtons`, off by default) that swapped them for Reload and
+  New Tab with the address centered; on 2026-11-11 the owner made them
+  standard and removed the switch, and its saved value is dropped. The address
+  stays leading, after the Sunrise mark. Reload is in the Sunrise menu, and
+  pull to refresh still reloads. On the Start Page the Island reads Search or type a
+  URL, dimmed, as the desktop pill does on a blank tab (owner, 2026-11-11). The Island has no tab count on any layout:
   a pinch in on a fully zoomed-out page, as in Safari, or a swipe up from the
   Island opens the tab grid. The page shrinks into its card as Safari's does. Stop still shows while a page loads. Pull to
   refresh and the tab grid and palette's New Tab stay. The unfolded Island

@@ -65,6 +65,18 @@ struct IslandMarkButton: UIViewRepresentable {
             configuration: UIContextMenuConfiguration,
             dismissalPreviewForItemWithIdentifier identifier: any NSCopying
         ) -> UITargetedPreview? { markPreview() }
+
+        /// A light tap as the menu opens, like the system's own menu buttons.
+        /// A tap-opened menu gets none by itself; it does nothing where the
+        /// device has no haptics or the person turned them off.
+        override func contextMenuInteraction(
+            _ interaction: UIContextMenuInteraction,
+            willDisplayMenuFor configuration: UIContextMenuConfiguration,
+            animator: (any UIContextMenuInteractionAnimating)?
+        ) {
+            super.contextMenuInteraction(interaction, willDisplayMenuFor: configuration, animator: animator)
+            UIImpactFeedbackGenerator(style: .light, view: self).impactOccurred()
+        }
     }
 
     final class Coordinator {

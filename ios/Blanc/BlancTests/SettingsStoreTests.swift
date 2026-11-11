@@ -52,15 +52,18 @@ final class SettingsStoreTests: XCTestCase {
         XCTAssertFalse(SettingsStore(directory: dir).islandTucksOnScroll)
     }
 
-    /// Back and Forward stay off the iPhone Island until the person asks; the
-    /// choice survives a relaunch.
-    func testIslandHistoryButtonsAreOffByDefaultAndPersistWhenOn() {
+    /// Back and Forward are always on the Island now, so the old switch's saved
+    /// value goes at the next save, while keys from a newer build still stay.
+    func testTheRetiredBackAndForwardSwitchIsDroppedOnSave() throws {
         let dir = tmpDir()
+        writeJSON(["islandHistoryButtons": true, "aNewerKey": 1], to: dir)
         let store = SettingsStore(directory: dir)
-        XCTAssertFalse(store.islandHistoryButtons)
-        store.update(islandHistoryButtons: true)
+        store.update(islandTucksOnScroll: false)
         store.flush()
-        XCTAssertTrue(SettingsStore(directory: dir).islandHistoryButtons)
+        let data = try Data(contentsOf: dir.appendingPathComponent("settings.json"))
+        let saved = try XCTUnwrap(JSONSerialization.jsonObject(with: data) as? [String: Any])
+        XCTAssertNil(saved["islandHistoryButtons"])
+        XCTAssertEqual(saved["aNewerKey"] as? Int, 1)
     }
 
     /// The Island sits along the bottom unless the person moves it to the top;

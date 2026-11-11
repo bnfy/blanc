@@ -2523,8 +2523,6 @@ Versuche es erneut mit „%2$s“ oder installiere Blanc neu von blanc.day.</str
     <string name="ios_island_show_all_tabs">Alle Tabs anzeigen</string>
     <string name="ios_island_reload">Seite neu laden</string>
     <string name="ios_settings_island_tuck">Island beim Scrollen ausblenden</string>
-    <string name="ios_settings_island_history_buttons">Tasten „Zurück“ und „Vorwärts“</string>
-    <string name="ios_settings_island_history_buttons_help">Ist die Island schmal, ersetzen sie „Neu laden“ und „Neuer Tab“. Ziehe eine Seite nach unten, um sie neu zu laden.</string>
     <string name="ios_settings_island_position">Position</string>
     <string name="ios_settings_island_position_bottom">Unten</string>
     <string name="ios_settings_island_position_top">Oben</string>

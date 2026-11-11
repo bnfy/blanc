@@ -144,11 +144,7 @@ struct SettingsSheet: View {
                     get: { manager.settingsStore.islandTucksOnScroll },
                     set: { manager.settingsStore.update(islandTucksOnScroll: $0) }))
                     .accessibilityIdentifier("settings.islandTuck")
-                Toggle(SettingsCopy.text("islandHistoryButtons"), isOn: Binding(
-                    get: { manager.settingsStore.islandHistoryButtons },
-                    set: { manager.settingsStore.update(islandHistoryButtons: $0) }))
-                    .accessibilityIdentifier("settings.islandHistoryButtons")
-            } header: { Text(SettingsCopy.text("island")) } footer: { Text(SettingsCopy.text("islandHistoryButtonsHelp")) }
+            } header: { Text(SettingsCopy.text("island")) }
             Section(SettingsCopy.text("appearance")) {
                 Picker(SettingsCopy.text("theme"), selection: Binding(get: { manager.settingsStore.theme }, set: { manager.applySettingsPatch(["theme": $0.rawValue]) })) {
                     ForEach(BlancThemePreference.allCases, id: \.self) { Text(SettingsCopy.text($0.rawValue)).tag($0) }

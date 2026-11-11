@@ -2598,8 +2598,6 @@ Vous pouvez réessayer avec « %2$s » ou réinstaller depuis blanc.day.</stri
     <string name="ios_island_show_all_tabs">Afficher tous les onglets</string>
     <string name="ios_island_reload">Actualiser la page</string>
     <string name="ios_settings_island_tuck">Masquer l’Island pendant le défilement</string>
-    <string name="ios_settings_island_history_buttons">Boutons Précédent et Suivant</string>
-    <string name="ios_settings_island_history_buttons_help">Quand l’Island est étroite, ils remplacent Actualiser et Nouvel onglet. Tirez une page vers le bas pour l’actualiser.</string>
     <string name="ios_settings_island_position">Position</string>
     <string name="ios_settings_island_position_bottom">En bas</string>
     <string name="ios_settings_island_position_top">En haut</string>

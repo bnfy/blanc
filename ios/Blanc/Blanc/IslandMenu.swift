@@ -11,6 +11,8 @@ enum IslandMenuItem: Equatable {
     case favorite(saved: Bool)
     /// Send to Device ▸, when sync has somewhere to send the page.
     case send
+    /// The iPhone Island has no Reload button; pull to refresh also reloads.
+    case reload
     case share
     /// The page's whole address, which the Island shows only the site of.
     case copyLink
@@ -26,7 +28,7 @@ enum IslandMenuItem: Equatable {
     case newPrivateTab
 }
 
-/// The Island keeps the site, reload and New tab; everything else about the
+/// The Island keeps the site, Back, Forward and New tab; everything else about the
 /// page lives behind the Sunrise mark. Entries that don't apply to the page
 /// (Blanc's own pages, a private tab) are left out rather than disabled.
 enum IslandMenu {
@@ -41,7 +43,7 @@ enum IslandMenu {
                 items.append(.favorite(saved: manager.isFavorite(tab)))
             }
             if manager.canSend(tab), !manager.syncEngine.sendTargets.isEmpty { items.append(.send) }
-            items.append(contentsOf: [.share, .copyLink, .find, .pageZoom, .desktopSite(on: tab.wantsDesktopSite)])
+            items.append(contentsOf: [.reload, .share, .copyLink, .find, .pageZoom, .desktopSite(on: tab.wantsDesktopSite)])
         }
         if manager.glanceTab != nil { items.append(.closeGlance) }
         else if manager.canOpenGlance, !manager.glanceCandidates.isEmpty { items.append(.glance) }
