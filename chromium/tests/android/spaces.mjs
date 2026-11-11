@@ -39,6 +39,8 @@ async function main(argv) {
     sleep(2);
   };
   const show = name => { d.runInPalette(`/space ${name}`); sleep(3); };
+  // Back would first hide the keyboard, or leave the page when there is none; the palette's own button doesn't.
+  const closePalette = () => { d.tap({desc: /^Collapse Island$/}); sleep(1); };
   try {
     await check('a new Space opens empty and This phone comes back whole', async () => {
       await d.view(url('one'));
@@ -164,8 +166,7 @@ async function main(argv) {
       sleep(3);
       d.openPalette();
       const marked = d.has({desc: /^Space: Work$/});
-      d.back();
-      d.back();
+      closePalette();
       if (!marked) return ['no Work mark in the open Island after the restart'];
       const work = titles(d.grid());
       if (!work.includes('work.example')) return [`after restart: ${work}`];
@@ -275,8 +276,7 @@ async function main(argv) {
       const anyMark = {desc: /^(Spaces|Space: .+)$/};
       d.openPalette();
       if (d.has(anyMark)) problems.push('a mark before any Space');
-      d.back();
-      d.back();
+      closePalette();
       create('Work');
       if (d.has(anyMark)) problems.push('a mark on the closed Island');
       d.openPalette();

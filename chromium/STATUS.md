@@ -2323,13 +2323,15 @@ after pairing until Settings was opened again (it asked only when Settings was b
 Sync sheet closes); Settings' **?** button opened Google's Chrome help (Chromium hides it only when Settings is
 shown in a tab; patch 0110 now hides it on every Settings screen); and a launch after four days away crashed on
 Chromium's check that the new tab page it opens after four hours away has Chrome's address, not Blanc's Start
-Page (`ReturnToChromeUtil`; patch 0105 turns that return time off, so Blanc reopens the last tab as the iPhone
-does). The palette's Settings button, `blanc://settings` and the theme switch weren't tried on the Pixel; they pass
+Page (`ReturnToChromeUtil`; patch 0105 makes `shouldShowTabSwitcher` always say no, so Blanc reopens the last tab as
+the iPhone does; a first try changed the return-time param's default instead, which review found Chrome caches from
+the launch before, so an updated install would still have crashed once). The palette's Settings button, `blanc://settings` and the theme switch weren't tried on the Pixel; they pass
 on the emulator.
 
 The fixed build (`1f2faf38…`, arm64, installed over wireless debugging) was checked on the Pixel on November 11:
 no help button on Settings, Site settings or Downloads, and a launch from the home screen with Blanc's last-seen
-time set five hours back reopened the last tab with no crash. The Sync row's update when the sheet closes wasn't
+time set five hours back reopened the last tab with no crash (that build carried the param fix; the emulator check now
+also plants the old cached four hours). The Sync row's update when the sheet closes wasn't
 tried on the Pixel, since that means turning Sync off and pairing again; Robolectric covers the sheet's signal. The
 Settings check script's wording scan read Site settings while the root was still on screen and so never opened its
 pages; it now waits for the root to go.

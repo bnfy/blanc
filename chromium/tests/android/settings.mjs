@@ -340,8 +340,13 @@ function main(argv) {
   adb('shell', 'am', 'force-stop', PACKAGE);
   const prefs = `/data/data/${PACKAGE}/shared_prefs/${PACKAGE}_preferences.xml`;
   const away = String(Date.now() - 5 * 3600 * 1000);
-  const xml = adb('shell', 'cat', prefs).replace(/<long name="(Chrome\.StartSurface\.LastVisibleTimeMs|ChromeTabbedActivity\.BackgroundTimeMs)" value="\d+" \/>\n?/g, '')
-    .replace('</map>', `    <long name="Chrome.StartSurface.LastVisibleTimeMs" value="${away}" />\n    <long name="ChromeTabbedActivity.BackgroundTimeMs" value="${away}" />\n</map>`);
+  // Chrome caches its return time from the launch before; an update from an older build still holds
+  // its four hours (14400 s), so the check plants that too.
+  const returnTime = 'Chrome.Flags.FeatureParamCached.StartSurfaceReturnTime:start_surface_return_time_on_tablet_seconds';
+  const xml = adb('shell', 'cat', prefs)
+    .replace(/\s*<long name="(Chrome\.StartSurface\.LastVisibleTimeMs|ChromeTabbedActivity\.BackgroundTimeMs)" value="-?\d+" \/>/g, '')
+    .replace(new RegExp(`\\s*<int name="${returnTime.replace(/[.]/g, '\\.')}" value="-?\\d+" />`), '')
+    .replace('</map>', `    <long name="Chrome.StartSurface.LastVisibleTimeMs" value="${away}" />\n    <long name="ChromeTabbedActivity.BackgroundTimeMs" value="${away}" />\n    <int name="${returnTime}" value="14400" />\n</map>`);
   const local = path.join(evidence, 'prefs-away.xml');
   fs.writeFileSync(local, xml);
   const owner = adb('shell', 'stat', '-c', '%u:%g', prefs).trim();
@@ -355,7 +360,7 @@ function main(argv) {
   sleep(8);
   if (fatal() > crashesBefore) problems.push('Blanc crashed at launch');
   const shown = texts(dump());
-  if (!shown.some(t => /example\.com/.test(t))) problems.push(`the last tab isn't shown: ${JSON.stringify(shown.slice(0, 8))}`);
+  if (!shown.includes('example.com')) problems.push(`the last tab isn't shown: ${JSON.stringify(shown.slice(0, 8))}`);
   shot('back-after-hours');
   check('coming back after hours away reopens the last tab', problems);
 

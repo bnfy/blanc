@@ -13,6 +13,7 @@
     "chrome/android/java/src/org/chromium/chrome/browser/settings/SettingsActivity.java": "c8577c14878af6a71aafb2c6d663baac3ef8e7487114f60620fec5f7af9bec3a",
     "chrome/android/java/src/org/chromium/chrome/browser/settings/SettingsMenuHelper.java": "b33f35f860f7dfc66ddac1817456228d325fb69542e511c8e37604f1a47b5df1",
     "chrome/android/java/src/org/chromium/chrome/browser/tabbed_mode/TabbedRootUiCoordinator.java": "b8d53ba766d70c9fb08ecb9375218fdaf8625a0cb9e80a380442bf83ba43f760",
+    "chrome/android/java/src/org/chromium/chrome/browser/tasks/ReturnToChromeUtil.java": "9640ad2d8bfeff3dff9b2b1f766c162ff6e5f89f3d92b51c5c6cb68929e22a5e",
     "chrome/android/java/src/org/chromium/chrome/browser/undo_tab_close_snackbar/TabUndoBarController.java": "b28f7833b5884f2fd5582c8561b2d9c5e8350d0fb08a4847f9251ff3a774759d",
     "chrome/browser/BUILD.gn": "3e9b2665405f5482dc04c3cc70d2ea6c12061334334b4d6a5ad2c51f80cd5096",
     "chrome/browser/chrome_content_browser_client.cc": "b17feacbe58f8d000c40c8eb3b1d6ac8b98a2dd734466e9eee091de951f98522",
