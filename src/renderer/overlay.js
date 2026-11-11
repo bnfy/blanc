@@ -263,8 +263,9 @@
     placement: () => (mode === 'spaces' ? 'view' : 'anchored'),
     onOpenChange(open) {
       workspaceSwitcherOpen = open; window.browserAPI.setWorkspaceSwitcherOpen(open);
-      // Opened from the Island's space mark the menu is the whole overlay, so
-      // closing it closes the overlay and focus returns to the mark.
+      // Opened as its own overlay (the rail's space mark, or a command) the
+      // menu is the whole overlay, so closing it closes the overlay and focus
+      // returns to the mark, or the Island when the mark is hidden.
       if (!open && mode === 'spaces') window.browserAPI.closeOverlay('cancel');
     },
   });
