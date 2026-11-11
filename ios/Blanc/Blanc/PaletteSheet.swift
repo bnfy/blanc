@@ -390,6 +390,12 @@ struct PaletteSheet: View {
                                 } label: {
                                     row(icon: "globe", title: tab.title.isEmpty ? tab.url : tab.title, subtitle: tab.url)
                                 }
+                                // A disclosure group's rows take the list's
+                                // roomy defaults unless set here, row by row;
+                                // these match the open tabs above.
+                                .listRowSeparator(.hidden)
+                                .listRowBackground(Color.clear)
+                                .listRowInsets(EdgeInsets(top: 2, leading: 22, bottom: 2, trailing: 22))
                             }
                         }
                         .font(BrowserStyle.font(13))
