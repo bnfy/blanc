@@ -142,6 +142,7 @@ async function main(argv) {
       device.sync.resetRequestWindowForTest();
       const fresh = peer('Fresh', worker.url);
       const pairing = await device.sync.beginPairing();
+      if (!pairing.code) return [`the peer could not show a second code: ${JSON.stringify(pairing)}`];
       const joined = await fresh.sync.joinWithCode(pairing.code);
       const passed = await fresh.pass();
       const kept = urls(fresh.module('bookmarks').listBookmarks());
