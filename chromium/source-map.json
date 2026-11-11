@@ -194,7 +194,7 @@
     "blanc/android/junit/src/org/chromium/blanc/island/IslandSwipeTest.java": "9aa74887a352ad69aeb9c95d10ba5fab2f6a58f8d9f7cf13d627d79e890c8e00",
     "blanc/android/junit/src/org/chromium/blanc/island/IslandTitleTest.java": "4612b7633a0f3548ed729592d6f4e95882aada9d2167ae2fa73121b2e0109dd4",
     "blanc/android/junit/src/org/chromium/blanc/island/IslandTuckTest.java": "566e1b6b0d428543ddd539f57db5719d095f5f0947f8c0ca758a6e2f0d99e739",
-    "blanc/android/junit/src/org/chromium/blanc/island/IslandViewTest.java": "acb15dfd8a0ab1e0dbbb46b6e56718bfe0e2c67d331ccfd74eec20a560a077d1",
+    "blanc/android/junit/src/org/chromium/blanc/island/IslandViewTest.java": "b1c33eff0c74d4d7f3f1279f2e482c1fc5b9b05809572b4aadefcfb93d0c0069",
     "blanc/android/junit/src/org/chromium/blanc/island/IslandVisibilityTest.java": "164513a1bc12cc16badc62b90f183ec0e99c1cae8e4c05ec9fcaf7352734657a",
     "blanc/android/junit/src/org/chromium/blanc/island/PagePinchTest.java": "15ecce24c7b71e1a18a243af9c656d1d0bb85f4221001acde9a43b08167d3d13",
     "blanc/android/junit/src/org/chromium/blanc/settings/AllowedSitesDialogTest.java": "af7f9c074c2f4ac913c38257dec080def75f99ea1b7b16af3cd3bff762482820",

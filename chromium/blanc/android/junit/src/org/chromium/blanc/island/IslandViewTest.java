@@ -45,7 +45,7 @@ public class IslandViewTest {
         mView.bind(state("example.com", false, 3, false));
         TextView domain = mView.findViewById(R.id.blanc_island_domain);
         assertEquals("example.com", domain.getText().toString());
-        assertEquals("Search or switch tabs, example.com", domain.getContentDescription().toString());
+        assertEquals("Search or switch tabs, example.com, 3 tabs", heard(domain));
     }
 
     // #1463: the Island has no Reload (the Sunrise menu and pull to refresh reload); Stop shows only
