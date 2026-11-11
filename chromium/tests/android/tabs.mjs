@@ -21,6 +21,11 @@ export function tabCount(xml) {
   return m ? Number(m[1]) : null;
 }
 
+// The Island on a Start Page shows "Search or type URL" (#1463); TalkBack still hears the page's name.
+export function onStartPage(xml) {
+  return /<node[^>]*resource-id="[^"]*:id\/blanc_island_domain"[^>]*content-desc="[^"]*Start Page/.test(xml);
+}
+
 function main(argv) {
   const option = name => { const i = argv.indexOf(name); return i >= 0 ? argv[i + 1] : undefined; };
   const apk = option('--apk'), evidence = option('--evidence');
@@ -58,7 +63,7 @@ function main(argv) {
   shot('1-new-tab');
   const after = count();
   check('New Tab adds a Start Page tab', !tapped ? ['no New Tab button'] : before === null || after !== before + 1
-    ? [`count went from ${before} to ${after}`] : nodeBounds(xml, {text: 'Start Page'}) ? [] : ['the new tab is not the Start Page']);
+    ? [`count went from ${before} to ${after}`] : onStartPage(xml) ? [] : ['the new tab is not the Start Page']);
 
   tap({id: 'blanc_island_menu'});
   const opened = tap({text: 'New Private Tab'});
