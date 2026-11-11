@@ -128,11 +128,7 @@ export const pages={
   if((await w.snapshot()).tabs.some(t=>String(t.id)===before))await w.native('switchTab',[nativeId(before)]);
  },
  seedBillboardHistory:w=>w.native('seedBillboardHistory',[]),
- // Blocked on a real native cap, not a missing test op: history::TopSites
- // hard-truncates GetMostVisitedURLs to kTopSitesNumber (10), so no amount
- // of seeded history can make the real ranking service return 60 sites.
- // See chromium/CODEX-NOTES-billboard-history.md.
- seedBillboardOverflowHistory:()=>{throw new UndefinedNativeAdapterError('seedBillboardOverflowHistory: real history::TopSites caps GetMostVisitedURLs at 10 (kTopSitesNumber); needs an owner-approved native design decision, not a test op');},
+ seedBillboardOverflowHistory:w=>w.native('seedBillboardOverflowHistory',[]),
  // ---- Start Page layout (native layoutRead/layoutWrite via the page) ----
  setNewtabLayout:async(w,layout)=>(await anyStartPage(w)).evalExpression(`window.bowserPages.start.setLayout(${jsLiteral(String(layout))})`),
  newtabLayout:async w=>(await anyStartPage(w)).evalExpression('window.bowserPages.start.data().then(d=>d.layout)'),

@@ -3896,6 +3896,7 @@ class NewTabHandler : public content::WebUIMessageHandler,
                            : !profile->IsOffTheRecord() && IsRegularStartPage(committed);
   }
   void Reply(const std::string& id, bool success, base::Value value) {
+    top_sites_pages_.erase(id);
     if (!IsStartPage() || !IsJavascriptAllowed()) return;
     web_ui()->CallJavascriptFunctionUnsafe("blancNewTabReply", base::Value(id),
                                           base::Value(success), value);
@@ -3931,6 +3932,7 @@ class NewTabHandler : public content::WebUIMessageHandler,
     ++top_sites_generation_;
     InvalidatePinIcons();
     Notify("pins");
+    Notify("topSites");
   }
   void OnHistoryDeletions(history::HistoryService*, const history::DeletionInfo&) override {
     ++top_sites_generation_;
@@ -4282,7 +4284,7 @@ class NewTabHandler : public content::WebUIMessageHandler,
       return;
     }
     if (profile->IsOffTheRecord()) {
-      if (method == "topSites" && args.empty()) {
+      if (method == "topSites") {
         Reply(id, true, base::Value(base::ListValue())); return;
       }
       if (method == "bookmarks" && args.empty()) {
@@ -4331,7 +4333,16 @@ class NewTabHandler : public content::WebUIMessageHandler,
       Reply(id, true, base::Value(ListFavorites(model)));
       return;
     }
-    if (method == "topSites" && args.empty()) {
+    if (method == "topSites") {
+      int offset = 0, limit = 48;
+      if (!args.empty()) {
+        if (args.size() != 2 || !args[0].is_int() || !args[1].is_int() ||
+            args[0].GetInt() < 0 || args[0].GetInt() > 5000 || args[1].GetInt() < 1 || args[1].GetInt() > 48) {
+          Reply(id, false, base::Value("Invalid Top Sites page")); return;
+        }
+        offset = args[0].GetInt(); limit = args[1].GetInt();
+      }
+      top_sites_pages_[id] = {offset, limit};
       auto sites = TopSitesFactory::GetForProfile(profile);
       if (!sites) { Reply(id, false, base::Value("Top Sites unavailable")); return; }
       if (!top_sites_observation_.IsObserving()) {
@@ -4344,8 +4355,7 @@ class NewTabHandler : public content::WebUIMessageHandler,
         favicon_subscription_ = history->AddFaviconsChangedCallback(base::BindRepeating(
             &NewTabHandler::TopSiteFaviconChanged, weak_factory_.GetWeakPtr()));
       }
-      sites->GetMostVisitedURLs(base::BindOnce(&NewTabHandler::TopSitesReady,
-          weak_factory_.GetWeakPtr(), id, 0, top_sites_generation_));
+      QueryRankedSites(id, 0);
       return;
     }
     if (method == "openSettings" && args.size() == 1 && args[0].is_string() &&
@@ -4439,29 +4449,28 @@ class NewTabHandler : public content::WebUIMessageHandler,
   // Enrich ranked sites only from the local favicon database. Never fetch a
   // remote image, and never query regular history from an off-the-record page.
   void TopSitesReady(std::string id, int retry, uint64_t generation,
-                     const history::MostVisitedURLList& sites) {
+                     history::MostVisitedURLList sites) {
     auto* profile = Profile::FromWebUI(web_ui());
     if (!profile || profile->IsOffTheRecord()) return;
     if (generation != top_sites_generation_) {
       RetryTopSites(std::move(id), retry);
       return;
     }
-    // Chromium's real TopSites pads a sparse history with its own
-    // prepopulated pages (desktop: the Chrome Web Store) up to
-    // history::kTopSitesNumber. Blanc ships no extension store, so that
-    // filler must never reach the Billboard as if it were a visited site.
-    std::set<GURL> prepopulated;
-    if (top_sites_)
-      for (const auto& page : top_sites_->GetPrepopulatedPages())
-        prepopulated.insert(page.most_visited.url);
+    // Query native History rankings beyond the ten-entry TopSites cache.
+    // De-duplicate hosts before pagination, as Billboard renders sites.
+    const auto [offset, limit] = top_sites_pages_.at(id);
+    std::set<std::string> seen;
     base::ListValue items;
+    int rank = 0;
     for (const auto& site : sites) {
-      if (!site.url.SchemeIsHTTPOrHTTPS() || prepopulated.contains(site.url)) continue;
+      if (!site.url.SchemeIsHTTPOrHTTPS() || site.url.has_username() || site.url.has_password()) continue;
       std::string key(site.url.host());
       if (base::StartsWith(key, "www.")) key.erase(0, 4);
+      if (!seen.insert(key).second) continue;
+      if (rank++ < offset) continue;
       items.Append(base::DictValue().Set("url", site.url.spec())
           .Set("key", key).Set("title", base::UTF16ToUTF8(site.title)));
-      if (items.size() >= 48) break;
+      if (items.size() >= static_cast<size_t>(limit)) break;
     }
     auto* history = HistoryServiceFactory::GetForProfile(
         profile, ServiceAccessType::EXPLICIT_ACCESS);
@@ -4555,16 +4564,24 @@ class NewTabHandler : public content::WebUIMessageHandler,
       if (task == base::CancelableTaskTracker::kBadTaskId) done.Run({url, {}});
     }
   }
-  void RetryTopSites(std::string id, int retry) {
-    if (!top_sites_) { Reply(id, false, base::Value("Top Sites unavailable")); return; }
-    if (retry) {
-      // Do not return an unvalidated cache snapshot under sustained churn.
-      Reply(id, false, base::Value("Top Sites changed; retry"));
-      return;
-    }
-    top_sites_->GetMostVisitedURLs(base::BindOnce(&NewTabHandler::TopSitesReady,
-        weak_factory_.GetWeakPtr(), std::move(id), 1, top_sites_generation_));
+  void QueryRankedSites(std::string id, int retry) {
+    auto* profile = Profile::FromWebUI(web_ui());
+    auto* history = profile && !profile->IsOffTheRecord()
+        ? HistoryServiceFactory::GetForProfile(profile, ServiceAccessType::EXPLICIT_ACCESS) : nullptr;
+    if (!history) { Reply(id, false, base::Value("History unavailable")); return; }
+    // Bound the local query like the History sheet; only one page's rows and
+    // local icons are validated. No remote icon or history request is made.
+    const auto task = history->QueryMostVisitedURLs(5000,
+        base::BindOnce(&NewTabHandler::TopSitesReady, weak_factory_.GetWeakPtr(),
+            id, retry, top_sites_generation_), &top_sites_history_tracker_);
+    if (task == base::CancelableTaskTracker::kBadTaskId)
+      Reply(id, false, base::Value("History unavailable"));
   }
+  void RetryTopSites(std::string id, int retry) {
+    if (retry) { Reply(id, false, base::Value("Top Sites changed; retry")); return; }
+    QueryRankedSites(std::move(id), 1);
+  }
+  std::map<std::string, std::pair<int, int>> top_sites_pages_;
   void TopSiteFaviconChanged(const std::set<GURL>&, const GURL&) {
     ++top_sites_generation_;
     InvalidatePinIcons();
@@ -5539,6 +5556,38 @@ class Handler : public content::WebUIMessageHandler, public extensions::Extensio
       }
       history->FlushForTest(base::BindOnce(&Handler::SeedBillboardHistorySync,
           weak_factory_.GetWeakPtr(), id, history, top_sites, std::move(expected), 0));
+      return;
+    }
+    if (quiet_method == "seedBillboardOverflowHistory" && quiet_args.empty()) {
+      auto* profile = Profile::FromWebUI(web_ui());
+      auto* history = profile->IsOffTheRecord() ? nullptr : HistoryServiceFactory::GetForProfile(profile, ServiceAccessType::EXPLICIT_ACCESS);
+      if (!history) { reject("History unavailable"); return; }
+      const auto now = base::Time::Now();
+      for (int rank = 0; rank < 60; ++rank) {
+        const auto host = "site-" + base::NumberToString(rank) + ".example";
+        const GURL url("https://" + host + "/");
+        for (int visit = 0; visit < 2 * (60 - rank); ++visit)
+          history->AddPage(url, now - base::Seconds(visit + 1), 0, 0, GURL(), history::RedirectList(),
+              ui::PAGE_TRANSITION_TYPED, history::VisitSource::SOURCE_BROWSED,
+              history::VisitResponseCodeCategory::kNot404, false);
+        history->SetPageTitle(url, base::UTF8ToUTF16(host));
+      }
+      history->FlushForTest(base::BindOnce([](base::WeakPtr<Handler> self, std::string id, history::HistoryService* history) {
+        if (!self) return;
+        history->QueryMostVisitedURLs(5000, base::BindOnce([](base::WeakPtr<Handler> self, std::string id, history::MostVisitedURLList sites) {
+          if (!self) return;
+          base::ListValue hidden;
+          int rank = 0;
+          for (const auto& site : sites) {
+            if (!base::EndsWith(site.url.host(), ".example")) continue;
+            if (site.url.host() != "site-" + base::NumberToString(rank++) + ".example") {
+              self->Reply(id, false, base::Value("Native history ranking mismatch")); return;
+            }
+            if (hidden.size() < 48) hidden.Append(site.url.host());
+          }
+          self->Reply(id, rank == 60, rank == 60 ? base::Value(std::move(hidden)) : base::Value("Incomplete native ranking"));
+        }, self, id), &self->billboard_seed_tracker_);
+      }, weak_factory_.GetWeakPtr(), id, history));
       return;
     }
     // F9-3: a seeded favorite's own page never really loads in the offline
@@ -6588,6 +6637,7 @@ class Handler : public content::WebUIMessageHandler, public extensions::Extensio
     }
     Reply(id, true, base::Value(std::move(items)));
   }
+  base::CancelableTaskTracker billboard_seed_tracker_;
   std::unique_ptr<RenderViewContextMenuBase> test_link_menu_;
   std::optional<int64_t> test_quiet_delay_;
   std::map<int, int64_t> test_quiet_ages_;

@@ -5,15 +5,15 @@ Queue 5 is in progress. The rendering guard is clear again; focused native runs 
 | Classification | Cases | Newly passing |
 | --- | ---: | ---: |
 | a: missing adapter | 31 | 31 |
-| b: missing fork capability / blocked acceptance | 49 | 23 |
+| b: missing fork capability / blocked acceptance | 49 | 24 |
 | c: inapplicable by platform or approved construction | 22 | 0 |
 
-Current tested candidate: `macos-2d8b5ca74111ec33`, `q5-space-commit-1-runtime-config.json`.
+Current tested candidate: `macos-fd93b9c53eb61713`, `q5-billboard-2-runtime-config.json`.
 Inherited Sync gate: 22/22 on starting bytes; Sync code unchanged; not rerun.
 Inventory baseline: 533 pass / 3 fail (subsequently repaired) / 102 undefined / 2 excluded.
 Final inventory: owed, once after implementation. Lost passes: not yet measured.
-Owner needs: beta/updater hold; signed physical Touch ID acceptance; Billboard TopSites design decision if still required.
-Unverified: 26 capability cases; final full inventory.
+Owner needs: beta/updater hold; signed physical Touch ID acceptance.
+Unverified: 25 capability cases; final full inventory.
 No push, release, signing, production/Apple/1Password contact, live-tree changes or toolchain installation authorized.
 
 ## Classification of all 102 starting gaps
@@ -84,7 +84,7 @@ The first classification was 40 a / 42 b / 20 c. Source and focused runs moved s
 | `navigation-and-context-menu.feature:83:plain` | c | A custom address can't send searches over the internet unencrypted | V12 explicitly uses Chromium validation; it accepts HTTP custom engine URLs, unlike this shipping-only HTTPS policy. |
 | `navigation-and-context-menu.feature:91:plain` | a | A custom search engine gets no live suggestions and searches its own address | V12: a custom search address is added under chrome://settings → Manage search engines |
 | `navigation-and-context-menu.feature:100:plain` | a | Open link in a background tab opens it ungrouped | step definition missing |
-| `newtab-layouts.feature:126:plain` | b | Billboard continues past its initial candidate page | seedBillboardOverflowHistory: real history::TopSites caps GetMostVisitedURLs at 10 (kTopSitesNumber); needs an owner-approved native design decision, not a test op |
+| `newtab-layouts.feature:126:plain` | b | Billboard continues past its initial candidate page | Completed in item 11: paged native History rankings beyond the ten-entry TopSites cache |
 | `platform-services.feature:25:plain` | b | Desktop updates through the in-app updater | ABSOLUTE OWNER HOLD: dedicated beta build and in-app updater; no work or runs. |
 | `platform-services.feature:50:plain` | c | Blanc fills only a matching 1Password login after an explicit ask | Owner decision 2026-11-02: no 1Password SDK/fill capsule; use the Web Store extension. |
 | `platform-services.feature:64:plain` | c | The island offers Fill only for a visible, uncontradicted login form | Owner decision 2026-11-02: no 1Password SDK/fill capsule; use the Web Store extension. |
@@ -397,3 +397,22 @@ the source remains active, and its actual page identity and dirty draft survive.
 Build: 8 steps / 35.90 s. Required precommit tests: q5-space-commit-precommit.tap;
 patch reconstruction 164/583. Budget unchanged at 125 upstream paths / 439 hunks.
 Sync code unchanged.
+
+## 11 — Billboard history beyond the initial page
+
+Queue 5 includes this previously scoped-out capability. The native History
+service already exposes QueryMostVisitedURLs; Billboard now uses that local
+ranking, bounded at 5,000 candidates, deduplicated by host and paged in sets
+of at most 48. This avoids changing Chromium's TopSites cache constant.
+Every returned page still validates current history rows and obtains icons
+only from the local favicon database. Private pages return no regular history.
+Deletion/favicons/history changes invalidate generations; errors remain visible.
+The shipping page's existing pager now requests real subsequent pages.
+
+`q5-billboard-cases-1`: :126 passes, plus existing ranking :47 and pinned-site
+history-clear :71 pass. The overflow adapter writes real typed visits for 60
+hosts and verifies native rank order before returning the first 48 hidden keys.
+There is no fabricated ranking or website/icon request in the seed.
+Candidate macos-fd93b9c53eb61713, q5-billboard-2-runtime-config.json;
+6 steps / 35.01 s. Required precommit tests: q5-billboard-precommit.tap;
+patch reconstruction 164/583. Budget remains 125 paths / 439 hunks. Sync unchanged.

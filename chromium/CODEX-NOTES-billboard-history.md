@@ -1,3 +1,11 @@
+# Queue 5 update — November 11, 2026
+
+The current queue explicitly includes the remaining capability gaps. The
+previously scoped-out overflow case now passes with native History ranking
+pages; the TopSites constant is unchanged. See item 11 of
+[CODEX-NOTES-gaps5.md](CODEX-NOTES-gaps5.md) for the final design and receipts.
+The earlier research and owner decision below remain historical.
+
 # Billboard history seeding
 
 ## seedBillboardHistory: built

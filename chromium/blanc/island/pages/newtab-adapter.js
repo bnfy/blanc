@@ -400,7 +400,13 @@
         if (epoch === clockEpoch) { clockValue = value; document.dispatchEvent(new Event('blancClockReadSuccess')); publish(); }
         return value;
       },
-      topSites: async () => [], // Chromium supplies its complete TopSites list above.
+      topSites: async ({offset = 0, limit = 48} = {}) => {
+        if (isPrivatePage) return [];
+        const epoch = topSitesEpoch;
+        const items = await request('topSites', [offset, limit]);
+        if (!Array.isArray(items) || epoch !== topSitesEpoch) throw new Error('Top Sites unavailable or changed');
+        return items;
+      },
       setLayout: async (layout) => {
         if (!layouts.includes(layout)) throw new Error('Unknown start-page layout');
         ++layoutEpoch;
@@ -522,8 +528,8 @@
       renderLedgerFavorites(items);
     },
     topSites: async () => {
-      // The page's own pager is already exhausted (start.topSites returns
-      // nothing more), so the full native list simply replaces the state.
+      // Replace the first page and let the existing Billboard pager fill
+      // past locally hidden sites when the refreshed layout needs more.
       const epoch = topSitesEpoch;
       let items;
       try {
@@ -534,7 +540,7 @@
       state.topSites = items;
       topSitesReady = true;
       topSitesOffset = items.length;
-      topSitesExhausted = true;
+      topSitesExhausted = isPrivatePage || items.length < TOP_SITES_PAGE_SIZE;
     },
   };
   // One ordered queue prevents an older response from overwriting a newer
