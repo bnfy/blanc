@@ -75,7 +75,7 @@ struct WalkthroughSheet: View {
         case .pair: .large
         case .arrived: .height(430)
         case .shareBack: .height(490)
-        case .privacy: .height(520)
+        case .privacy: .height(480)
         case .defaultBrowser: .height(340)
         case .welcome, nil: .height(360)
         }
