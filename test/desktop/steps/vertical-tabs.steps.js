@@ -1899,8 +1899,10 @@ Then('both selected tabs are in a group named {string}', async function (name) {
   }, `both tabs grouped as ${name}`);
 });
 
-Then('the Space mark is back on the Island', async function () {
+// It goes back to its place in the Island's markup, where the resting Island
+// never shows it (Spaces open from the ⌘L panel's footer there).
+Then('the Space mark leaves the rail and the resting Island does not show it', async function () {
   const state = await waitForValue(async () => spaceMarkState(await chromePage()),
-    (value) => value.inIsland && !value.inRail, 'the Space mark back on the Island');
-  assert.equal(state.inRail, false);
+    (value) => value.inIsland && !value.inRail, 'the Space mark out of the rail');
+  assert.equal(state.shown, false, 'the resting Island does not show the Space mark');
 });

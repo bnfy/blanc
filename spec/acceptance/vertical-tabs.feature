@@ -263,4 +263,4 @@ Feature: Desktop vertical tabs
     When I name the new group "Pair" in the command panel
     Then both selected tabs are in a group named "Pair"
     When I set the tab layout to "island"
-    Then the Space mark is back on the Island
+    Then the Space mark leaves the rail and the resting Island does not show it

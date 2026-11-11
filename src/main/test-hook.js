@@ -2832,6 +2832,8 @@ function install(refs) {
           const parts = [document.getElementById('pillSpaceSymbol'), document.getElementById('pillSpaceName')];
           return {
             hidden: mark.hidden,
+            inIsland: !!mark.closest('#islandPill'),
+            inRail: !!mark.closest('.vertical-tabs-toolbar'),
             state: mark.dataset.state,
             name: parts[1].textContent,
             label: mark.getAttribute('aria-label'),

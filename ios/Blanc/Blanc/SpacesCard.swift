@@ -235,34 +235,36 @@ struct SpacesCard: View {
     }
 }
 
-/// The Island's leading mark: the shown Space's tile, the quiet Spaces glyph
-/// on This iPhone once a Space exists, nothing before the first Space or on
-/// a private tab.
-struct SpaceMarkButton: View {
+/// The open Island's Spaces button, in the palette's footer as desktop's is
+/// in its ⌘L footer: the shown Space's tile, the quiet Spaces glyph on This
+/// iPhone once a Space exists, nothing before the first Space or on a private
+/// tab. The resting Island carries no Space mark, so it keeps its room (owner,
+/// November 11, 2026). It closes the palette and opens the Spaces card, as `/space`.
+struct SpacesButton: View {
     let manager: TabsManager
     let style: BrowserStyle
 
     var body: some View {
-        if manager.showsSpaceMark {
+        if manager.offersSpacesButton {
             Button {
-                withAnimation(.snappy) { manager.isSpacesMenuPresented.toggle() }
+                manager.runSpaceCommand("")
             } label: {
                 Group {
                     if let space = manager.shownSpace {
-                        SpaceTile(color: space.color, symbol: space.symbol, size: 28)
+                        SpaceTile(color: space.color, symbol: space.symbol, size: 24)
                     } else {
                         SpacesGlyph()
                             .stroke(style.secondary, style: StrokeStyle(lineWidth: 1.6, lineCap: .round))
-                            .frame(width: 20, height: 20)
+                            .frame(width: 18, height: 18)
                     }
                 }
-                .frame(width: 44, height: 48)
+                .frame(width: 44, height: 44)
                 .contentShape(Rectangle())
                 .pointerHighlight()
             }
             .accessibilityLabel(manager.shownSpace.map { SyncCopy.text("spaces.mark.current", ["name": $0.name]) }
                                 ?? SyncCopy.text("spaces.menuLabel"))
-            .accessibilityIdentifier("island.space")
+            .accessibilityIdentifier("palette.spaces")
         }
     }
 }
