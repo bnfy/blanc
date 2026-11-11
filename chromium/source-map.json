@@ -127,7 +127,7 @@
     "blanc/android/java/src/org/chromium/blanc/island/IslandTuck.java": "2a3b4f88ca6ab7be08200489f12239e5e0c5ab8b5e042c5405afa4eea65d799e",
     "blanc/android/java/src/org/chromium/blanc/island/IslandView.java": "d5741650d2c33c55f4cb57d686682426ce2621b035a756a0ef3e310cb2a46868",
     "blanc/android/java/src/org/chromium/blanc/island/IslandVisibility.java": "42444ca447a34ca83e82640208a8af506171fbbf33e57fa253d7c32f5a9a4fda",
-    "blanc/android/java/src/org/chromium/blanc/island/PagePinch.java": "0504309281733ae0b8a8b585584e139bc68ddbf53ea594a860272278613fab14",
+    "blanc/android/java/src/org/chromium/blanc/island/PagePinch.java": "76a50b6e2bd2ea2e3693bbcbc0f2556b6421ff12569b29e70285cebdef99a484",
     "blanc/android/java/src/org/chromium/blanc/island/PagePinchBridge.java": "5451e1848d6bcc3b98c32845fb9652f39dca8e604d48f65e4c756cf9322cd638",
     "blanc/android/java/src/org/chromium/blanc/palette/PaletteSheet.java": "ccb306edf4e16cd27f55cef49880787939929f3b9cd7080f92c2f7bf1744ccb3",
     "blanc/android/java/src/org/chromium/blanc/settings/AllowedSites.java": "dc205bfaea2f89783d21c27af2d8e9c1d5fd762a6df71a9b584f58fedc1ae7b5",

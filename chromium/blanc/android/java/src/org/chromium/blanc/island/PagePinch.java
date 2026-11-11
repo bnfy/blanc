@@ -56,7 +56,7 @@ public final class PagePinch {
     public void update(float factor, long nowMs) {
         if (!(factor > 0f) || Float.isInfinite(factor)) return;
         mScale *= factor;
-        float at = nowMs - mStartMs;
+        float at = (float) (nowMs - mStartMs);
         mRecent.add(new float[] {at, mScale});
         while (mRecent.size() > 2 && at - mRecent.peekFirst()[0] > SPEED_WINDOW_MS) mRecent.removeFirst();
         if (!mTracking && mStartedZoomedOut && mScale < STARTS_BELOW_SCALE) mTracking = true;
@@ -64,7 +64,7 @@ public final class PagePinch {
 
     /** The fingers lifted: whether the tab grid opens. */
     public boolean end(long nowMs) {
-        boolean opens = mTracking && opens(mScale, velocity(nowMs - mStartMs));
+        boolean opens = mTracking && opens(mScale, velocity((float) (nowMs - mStartMs)));
         mTracking = false;
         mStartedZoomedOut = false;
         mRecent.clear();
