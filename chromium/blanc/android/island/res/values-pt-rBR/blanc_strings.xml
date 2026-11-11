@@ -10,6 +10,7 @@
     <string name="blanc_ios_tabs_start_page">Página inicial</string>
     <string name="blanc_pages_nav_bookmarks">Favoritos</string>
     <string name="blanc_pages_nav_history">Histórico</string>
+    <string name="blanc_pill_back">Voltar</string>
     <string name="blanc_pill_private_chip">Privada</string>
     <string name="blanc_pill_private_title">Sair do modo privado — fecha esta aba</string>
     <string name="blanc_tab_new">Nova aba</string>

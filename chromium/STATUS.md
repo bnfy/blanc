@@ -2341,6 +2341,15 @@ sits in the open Island's footer, before Favorites, under the same rule (once a 
 tab), and opens the Spaces menu. The iPhone is making the same change in its own session, so this isn't a
 divergence. The Spaces emulator check now requires the closed Island to have no mark.
 
+The Sync screen was redesigned on November 11 at the owner's request ("visually overwhelming"; they picked a grouped
+list from three mock-ups). It opens as a full page with a back arrow instead of a dialog with a stack of eight
+buttons and Done: the iPhone's Form groups as Sunrise cards (status, account and last sync; Device name, Share open
+tabs and Sync now; the Spaces switch and Choose Spaces to sync; Add another device, Copy recovery code, Switch
+account and Disconnect in red), with each group's help under its card. Device name is a row that opens a rename box,
+so Save name is gone. The not-connected screens follow the same style. Layouts, colors and sizes are Android
+resources. Robolectric covers the groups, the rows (no buttons), the rename box and Back; the owner looked at it on
+the Pixel (`bc6fdebd…`) and approved it. The not-connected screens weren't seen on the phone.
+
 ### Shield count across a page's commit
 
 The count is fixed in the blocker code desktop shares. A page's first request can

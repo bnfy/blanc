@@ -18,7 +18,7 @@ const RES = path.join(chromium, 'blanc/android/island/res');
 // The iPhone Island's keys (ContentView.swift), shared so Android needs no new translations.
 export const ANDROID_KEYS = [
   'ios.island.pageActions', 'ios.island.reload', 'ios.island.searchOrSwitch', 'ios.island.showAllTabs',
-  'ios.island.stop', 'ios.palette.placeholder', 'ios.tabs.startPage', 'pagesNav.bookmarks', 'pagesNav.history', 'pill.private.chip',
+  'ios.island.stop', 'ios.palette.placeholder', 'ios.tabs.startPage', 'pagesNav.bookmarks', 'pagesNav.history', 'pill.back', 'pill.private.chip',
   'pill.private.title', 'tab.new',
   // The Sunrise menu (A1 Task 7), with the iPhone's labels.
   'menu.newPrivateTab', 'share.picker.share', 'tabMenu.removeFavorite', 'tabMenu.saveFavorite',

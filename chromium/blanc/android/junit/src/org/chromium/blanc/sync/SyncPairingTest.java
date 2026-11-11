@@ -117,4 +117,45 @@ public class SyncPairingTest {
         assertFalse(rows.contains(Row.HANDLE_FIELD));
         assertFalse(rows.contains(Row.DISCONNECT));
     }
+
+    @Test
+    public void onGroupsStatusThisPhoneSpacesThenTheAccount() {
+        SyncSheetModel.State s = state();
+        s.enabled = true;
+        s.hasLastSynced = true;
+        assertEquals(List.of(
+                List.of(Row.STATUS, Row.ACCOUNT, Row.LAST_SYNCED, Row.HELP),
+                List.of(Row.DEVICE_NAME, Row.SHARE_TABS, Row.SYNC_NOW, Row.SHARE_HELP),
+                List.of(Row.SPACES),
+                List.of(Row.PAIR_DEVICE, Row.COPY_RECOVERY, Row.SWITCH_ACCOUNT, Row.DISCONNECT)),
+                SyncSheetModel.groups(s));
+    }
+
+    @Test
+    public void offGroupsStatusThenPairingThenTheOtherWays() {
+        SyncSheetModel.State s = state();
+        assertEquals(List.of(
+                List.of(Row.STATUS, Row.HELP),
+                List.of(Row.OFF_INTRO, Row.PAIR_WITH_BLANC, Row.OTHER_WAYS)),
+                SyncSheetModel.groups(s));
+        s.otherWays = true;
+        s.typeCodeHint = true;
+        assertEquals(List.of(
+                List.of(Row.STATUS, Row.HELP),
+                List.of(Row.OFF_INTRO, Row.PAIR_WITH_BLANC, Row.OTHER_WAYS),
+                List.of(Row.CODE_HEADER, Row.CODE_FIELD, Row.CONNECT, Row.TYPE_CODE_HINT, Row.PAIRING_HELP),
+                List.of(Row.PASSPHRASE_HEADER, Row.HANDLE_FIELD, Row.PASSPHRASE_FIELD, Row.SIGN_IN,
+                        Row.DESKTOP_ACCOUNT)),
+                SyncSheetModel.groups(s));
+    }
+
+    @Test
+    public void rowsAreTheGroupsInOrder() {
+        SyncSheetModel.State s = state();
+        s.enabled = true;
+        s.switching = true;
+        List<Row> flat = new java.util.ArrayList<>();
+        for (List<Row> group : SyncSheetModel.groups(s)) flat.addAll(group);
+        assertEquals(flat, SyncSheetModel.rows(s));
+    }
 }
