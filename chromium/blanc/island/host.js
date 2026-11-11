@@ -968,7 +968,7 @@
         adblockEnabled: enabled, connection: shieldTab.connection, t,
       }) : null;
       snapshot.shieldPopover = shippingShield ? {
-        ...shippingShield,
+        ...shippingShield, route: snapshot.linkRoute,
         // Keep the shipping site/global distinction; unhealthy protection, or
         // a navigation still on its way to another page, has recovery
         // semantics rather than an apparently active site switch. A page
@@ -2239,7 +2239,11 @@
     },
     searchSuggestions: query => typed('searchSuggestions', [String(query)]),
     cycleTheme: theme => typed('cycleTheme', [typeof theme === 'string' ? theme : null]),
-    routeActiveSite: mode => typed('routeActiveSite', [String(mode)]),
+    routeActiveSite: async mode => {
+      const result = await typed('routeActiveSite', [String(mode)]);
+      emit('onPillNotice', result.ok ? (result.on ? 'route-on' : 'route-off') : result.error === 'limit' ? 'route-limit' : 'route-unavailable');
+      await refresh(); return result;
+    },
     openFindBar,
     findInPage: (id, query, options = {}) => request('find',
       [nativeId(id), String(query), options.forward !== false, options.findNext !== false]),
@@ -2555,9 +2559,17 @@
     claimFloat();
   }
 
+  const routedTokens = new Set();
   window.BlancPrototypeHost = {
     api,
     offerSpaceLink,
+    routeExternalLink: async (token, id) => {
+      if (routedTokens.has(token)) return;
+      routedTokens.add(token);
+      if (routedTokens.size > 100) routedTokens.delete(routedTokens.values().next().value);
+      let result; try { result = await swapToSpace(id); } catch { result = {ok:false}; }
+      await request('linkRouteDone', [token, !!result.ok]);
+    },
     spaceLinkResult: () => lastSpaceLinkResult,
     toggleGlance: () => (snapshot?.glanceTabId != null ? api.closeGlance() : api.openGlancePicker()),
     focusGlanceCard,

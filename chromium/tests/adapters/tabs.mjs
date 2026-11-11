@@ -30,9 +30,11 @@ export const closedSummary=e=>({id:String(e.id),url:e.url||null,tabCount:e.tabCo
 // A window runtime as shipping's windowRuntimeSnapshots() shapes it, from
 // that window's own native snapshot. Profile, title, closed count (the fork's
 // closed list is profile-wide) and Spaces residency have no per-window source.
-export function runtimeRecord(id,snapshot){
+export function runtimeRecord(id,snapshot,profile=null){
  const tabs=snapshot.tabs.map(t=>({id:String(t.id),url:shippingPageUrl(t.url),private:!!t.private}));
  return {id,tabOrder:tabs.map(t=>t.id),activeTabId:snapshot.activeTabId==null?null:String(snapshot.activeTabId),
+  ...(profile?{profileId:profile.directory==='Default'?'default':profile.directory}:{}),
+  title:snapshot.tabs.find(t=>String(t.id)===String(snapshot.activeTabId))?.title??'',
   glanceTabId:snapshot.glanceTabId==null?null:String(snapshot.glanceTabId),workspaceId:snapshot.spaceName||null,tabs,
   groups:(snapshot.groups||[]).map(g=>({id:String(g.id),name:g.name,collapsed:!!g.collapsed,color:g.color||null})),attached:true};
 }
@@ -143,7 +145,7 @@ export const tabs={
  // Windows (F32). The primary window keeps shipping's id 'primary'; others
  // are 'window-2', 'window-3' etc. by SessionID order (see runtimes()).
  async windowRuntimes(w){
-  const out=[];for(const r of await runtimes(w))out.push(strict(runtimeRecord(r.id,await snap(r)),'windowRuntime'));
+  const out=[];for(const r of await runtimes(w))out.push(strict(runtimeRecord(r.id,await snap(r),await nativeCall(r.cdp,'profileInfo')),'windowRuntime'));
   return out;
  },
  // Chromium's own new-window path (Cmd+N is an accelerator CDP cannot press).

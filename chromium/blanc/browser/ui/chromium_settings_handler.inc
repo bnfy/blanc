@@ -35,6 +35,41 @@ class ChromiumSettingsHandler final : public settings::SettingsPageUIHandler,
   }
 #endif
 #endif
+  void HandleLinkRouteState(const base::ListValue& args) {
+    if (!Begin(args, 0)) return;
+    ResolveJavascriptCallback(args[0], base::Value(LinkRouteSettings(profile_)));
+  }
+  void HandleLinkRouteValidate(const base::ListValue& args) {
+    if (!Begin(args, 1)) return;
+    auto raw = base::JSONReader::Read(args[1].GetString(), base::JSON_PARSE_RFC);
+    base::ListValue one; if (raw) one.Append(std::move(*raw));
+    auto valid = raw ? ValidateLinkRoutes(one) : std::nullopt;
+    ResolveJavascriptCallback(args[0], base::Value(base::DictValue().Set("ok", valid.has_value())
+        .Set("value", valid && !valid->empty() ? valid->front().Clone() : base::Value())));
+  }
+  void HandleLinkRouteSet(const base::ListValue& args) {
+    if (!Begin(args, 1)) return;
+    auto raw = base::JSONReader::Read(args[1].GetString(), base::JSON_PARSE_RFC);
+    const bool ok = raw && raw->is_list() && WriteLinkRoutes(raw->GetList());
+    ResolveJavascriptCallback(args[0], base::Value(base::DictValue().Set("ok", ok).Set("state", LinkRouteSettings(profile_))));
+  }
+  void HandleLinkRouteInApp(const base::ListValue& args) {
+    if (!Begin(args, 1)) return;
+    if (args[1].GetString() != "on" && args[1].GetString() != "off") { ResolveJavascriptCallback(args[0], base::Value(false)); return; }
+    auto* prefs = g_browser_process->local_state();
+    prefs->SetBoolean(kLinkRoutesInAppPref, args[1].GetString() == "on"); prefs->CommitPendingWrite();
+    ResolveJavascriptCallback(args[0], base::Value(true));
+  }
+  void HandleLinkRouteLoad(const base::ListValue& args) {
+    if (!Begin(args, 1)) return;
+    auto* entry = RouteProfile(args[1].GetString());
+    if (!entry) {ResolveJavascriptCallback(args[0], base::Value(false)); return;}
+    const bool loading = g_browser_process->profile_manager()->LoadProfile(entry->GetPath().BaseName(), false,
+        base::BindOnce([](base::WeakPtr<ChromiumSettingsHandler> self, base::Value callback, Profile* loaded) {
+          if (self && self->IsJavascriptAllowed()) self->ResolveJavascriptCallback(callback, base::Value(loaded != nullptr));
+        }, weak_factory_.GetWeakPtr(), args[0].Clone()));
+    if (!loading) ResolveJavascriptCallback(args[0], base::Value(false));
+  }
   bool Allowed() {
     auto* frame = web_ui()->GetRenderFrameHost();
     return frame && frame == web_ui()->GetWebContents()->GetPrimaryMainFrame() &&
@@ -465,6 +500,11 @@ void ChromiumSettingsHandler::RegisterMessages() {
   bind("blancSyncCall", &ChromiumSettingsHandler::HandleSyncCall);
   bind("blancSyncConfirmFirstUpload", &ChromiumSettingsHandler::HandleSyncConfirm);
   bind("blancSettingsGet", &ChromiumSettingsHandler::HandleGet);
+  bind("blancLinkRouteState", &ChromiumSettingsHandler::HandleLinkRouteState);
+  bind("blancLinkRouteValidate", &ChromiumSettingsHandler::HandleLinkRouteValidate);
+  bind("blancLinkRouteSet", &ChromiumSettingsHandler::HandleLinkRouteSet);
+  bind("blancLinkRouteInApp", &ChromiumSettingsHandler::HandleLinkRouteInApp);
+  bind("blancLinkRouteLoad", &ChromiumSettingsHandler::HandleLinkRouteLoad);
   bind("blancSettingsAddBang", &ChromiumSettingsHandler::HandleAddBang);
   bind("blancSettingsRemoveBang", &ChromiumSettingsHandler::HandleRemoveBang);
   bind("blancSettingsAddException", &ChromiumSettingsHandler::HandleAddException);

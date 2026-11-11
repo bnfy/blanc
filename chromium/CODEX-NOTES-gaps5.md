@@ -5,15 +5,15 @@ Queue 5 is in progress. The rendering guard is clear again; focused native runs 
 | Classification | Cases | Newly passing |
 | --- | ---: | ---: |
 | a: missing adapter | 31 | 31 |
-| b: missing fork capability / blocked acceptance | 49 | 32 |
+| b: missing fork capability / blocked acceptance | 49 | 39 |
 | c: inapplicable by platform or approved construction | 22 | 0 |
 
-Current tested candidate: `macos-f87b55206f63cfaa`, `q5-batch-close-2-runtime-config.json`.
+Current tested candidate: `macos-7e83080eba95fa4f`, `q5-link-routing-6-runtime-config.json`.
 Sync gate: 22/22 on macos-10748f4570723aef (`q5-space-links-sync-1`); Sync code unchanged since.
 Inventory baseline: 533 pass / 3 fail (subsequently repaired) / 102 undefined / 2 excluded.
 Final inventory: owed, once after implementation. Lost passes: not yet measured.
 Owner needs: beta/updater hold; signed physical Touch ID acceptance.
-Unverified: 17 capability cases and final full inventory.
+Unverified: 10 capability cases and final full inventory.
 No push, release, signing, production/Apple/1Password contact, live-tree changes or toolchain installation authorized.
 
 ## Classification of all 102 starting gaps
@@ -476,3 +476,39 @@ reconstruction q5-batch-close-patches.json passes; progress/whitespace pass.
 Scoped selection tests exposed a stale C++-to-JS unpin-loop translation; its
 native syntax/helpers are now translated with the original order assertions
 intact. q5-batch-selection-unit-2.tap passes 28/28.
+
+## 14 — Link routing (seven new passes)
+
+Device-local native rules and Profiles settings now cover domain/contains,
+ordered targets, optional Space/private destination and the opt-in in-app switch.
+macOS openURLs and native new-tab navigation use the same dispatcher. The shield
+and /route use the same validated store. Native profile removal prunes rules;
+Settings follows external changes while preserving invalid drafts. A native-held
+URL and one-use token bind a Space handoff to its actual profile/window/Space.
+Deleted destinations fall through; a disappearing window does not discard the link.
+
+Native acceptance exposed that Chromium's transient user-activation flag also
+covers a later script-created window. Blink now supplies a trusted-anchor marker,
+separate from window.open feature strings; routing also checks the initiating
+native document, top-level frame, sandbox, inherited policy and private context.
+Script-created tabs and sandboxed children stay in their source profile. Two
+adapters had reinstalled the driver in one document, resetting its request IDs;
+installation is now idempotent without weakening native replay checks. The
+sandboxed-frame step gained a CDP frame locator: it inspects the real child frame
+and delivers pointer input without changing page script or sandbox policy.
+
+q5-link-routing-final-1 passed six cases; :62 reached the missing frame locator.
+q5-link-routing-frame-1 passes :62 without retry on the same candidate. All seven
+now pass on macos-7e83080eba95fa4f, q5-link-routing-6-runtime-config.json.
+q5-link-routing-boundaries-1 additionally passes six native checks: closed Space
+reopening, genuine private destination, deleted-Space fallthrough, script-triggered
+anchor isolation, invalid-rule atomicity and durable ordered Local State rules.
+The provenance build passed 1,447 incremental actions in 6m58.74s after a guarded
+454-action dry run; final UI/fallback changes passed 16 actions in 36.95s.
+Budget: 134 incremental upstream paths / 470 hunks; reconstruction 172/583.
+Sync code and phone path unchanged. Final inventory remains owed.
+
+Required precommit q5-link-routing-precommit.tap passes 314/314; patch
+reconstruction q5-link-routing-patches.json passes 172/583. Scoped adapter/hash/
+page-shim tests q5-link-routing-adapters.tap pass 10/10. Progress freshness and
+whitespace checks pass; read-only shipping sources are unchanged.

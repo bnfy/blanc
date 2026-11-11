@@ -50,6 +50,15 @@ export async function nativeNavigationHistory(fixture,identity){
  finally{page.close();}
 }
 export const PORTS = {
+ // F60: exact shipping main-process functions reach the real native local
+ // preferences and the same URL dispatcher used by macOS openURLs.
+ '4f20693a4f06287542d9ab8cf190387a9f73d56f421e5a4063352915b5c7da7d':f=>nativeCall(f.host,'linkRoutes'),
+ '23a55419967a253f935a732e4b23b5cb28dea3387408386e262d3117bcfcd04f':(f,_s,url)=>nativeCall(f.host,'externalLink',[url]),
+ '47df83fe691701c48024552f15bbd806c30ae2e3b885fc7510b95b5fa8e82e42':(f,_s,{profileId,host})=>nativeCall(f.host,'setLinkRoutes',[[{id:'routed',match:{kind:'domain',value:host},destination:{profileId}}]]),
+ '2aa7da05a7640c5e6fa7c45a22374b6534018bc14b846ab3f2e33b3d2f28ab8a':(f,_s,{profileId,value})=>nativeCall(f.host,'setLinkRoutes',[[{id:'in-app',match:{kind:'contains',value},destination:{profileId}}]]),
+ '7c162279255d28ba3f0d17547cd42c0ceef30a0f2b4141b703856753d94a52f9':f=>nativeCall(f.host,'setLinkRoutesInApp',[true]),
+ '60dc20a93d2d0b92f8f124081b9b89080d0eb299034c28c0ddecf7cc66f9acd4':f=>nativeCall(f.host,'focusedWindowTitle'),
+ '968888fd8427ad4c9f66a4a802d2f5ae8904769485ac25111f7abc37b59975ba':f=>f.host.send('Page.bringToFront'),
  // The shipping UI event seam, through the native snapshot delivery channel.
  'ddda45a20481d7d0c4a7d3dcdc3274ee9431344ddb08d186360b530943ac2858': (fixture,state,activity)=>nativeCall(fixture.host,'seedDownloadsActivity',[activity]),
  '4a2133a8440f0601dcbde090523f8bde7306fe72248c83117c18dbc54a7c1c32':(fixture,state,identity)=>nativeNavigationHistory(fixture,identity),

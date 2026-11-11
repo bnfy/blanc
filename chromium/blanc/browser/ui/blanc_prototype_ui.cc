@@ -330,6 +330,8 @@ namespace blanc_prototype {
 // The Island's own header height, before auto-hide moves the page over it.
 int BaseHeaderHeight(views::View* parent);
 namespace {
+base::Value SiteLinkRoute(BrowserWindowInterface* browser, content::WebContents* page);
+void ObserveLinkRouteProfiles();
 constexpr char kSpacesMetaPref[] = "blanc.spaces.meta";
 // The remembered Glance card: device-wide, never synced (F34).
 constexpr char kGlanceFramePref[] = "blanc.glance.frame";
@@ -1059,6 +1061,7 @@ class Owner : public base::SupportsUserData::Data,
   std::string space_transaction;
   std::optional<base::DictValue> space_expected;
   explicit Owner(BrowserWindowInterface* value) : browser(value) {
+    ObserveLinkRouteProfiles();
     Live().insert(this);
     height = strip_height = IslandStripHeight(browser->GetProfile());
     browser->GetTabStripModel()->AddObserver(this);
@@ -3888,6 +3891,7 @@ base::DictValue Snapshot(BrowserWindowInterface* browser, Owner* owner) {
       .Set("glanceFrame", g_browser_process->local_state()->GetDict(kGlanceFramePref).empty()
           ? base::Value() : base::Value(g_browser_process->local_state()->GetDict(kGlanceFramePref).Clone()))
       .Set("spaceName", owner->space_name)
+      .Set("linkRoute", SiteLinkRoute(browser, model->GetActiveWebContents()))
       .Set("spaceAutosaveError", owner->space_error)
       .Set("spaceBusy", owner->space_busy)
       .Set("spaceWindowIdentity", WindowIdentity(browser))
@@ -4966,6 +4970,317 @@ const std::optional<std::string>& LaunchUiLanguage() {
   return *pin;
 }
 
+// Device-local link routing (F60). All writes pass the same native validator;
+// neither sync records nor website messages can install rules.
+constexpr char kLinkRoutesPref[] = "blanc.links.routes";
+constexpr char kLinkRoutesInAppPref[] = "blanc.links.in_app";
+std::string RouteProfileId(Profile* profile) {
+  const auto name = profile->GetOriginalProfile()->GetPath().BaseName().AsUTF8Unsafe();
+  return name == "Default" ? "default" : name;
+}
+ProfileAttributesEntry* RouteProfile(const std::string& id) {
+  auto* manager = g_browser_process->profile_manager();
+  if (!manager) return nullptr;
+  for (auto* entry : manager->GetProfileAttributesStorage().GetAllProfilesAttributes()) {
+    const auto dir = entry->GetPath().BaseName().AsUTF8Unsafe();
+    if ((id == "default" ? dir == "Default" : dir == id) && !entry->IsOmitted() && !entry->IsSigninRequired()) return entry;
+  }
+  return nullptr;
+}
+std::string RouteHost(const GURL& url) {
+  if (!url.SchemeIsHTTPOrHTTPS() || !url.has_host()) return "";
+  std::string host(url.host());
+  if (host.ends_with('.')) host.pop_back();
+  return host;
+}
+std::string NormalizeRouteDomain(std::string value) {
+  base::TrimWhitespaceASCII(value, base::TRIM_ALL, &value);
+  if (value.empty() || value.size() > 200) return "";
+  const bool full = value.find("://") != std::string::npos;
+  if (!full && value.find_first_of(" \t\r\n/\\:@?#*%[]") != std::string::npos) return "";
+  const GURL parsed(full ? value : "http://" + value + "/");
+  auto host = RouteHost(parsed);
+  if (host.empty() || host.starts_with('.') || host.find("..") != std::string::npos) return "";
+  if (!parsed.HostIsIPAddress() && host.starts_with("www.") && host.substr(4).find('.') != std::string::npos) host.erase(0, 4);
+  return host.size() <= 200 ? host : "";
+}
+std::optional<base::ListValue> ValidateLinkRoutes(const base::ListValue& input) {
+  if (input.size() > 50) return std::nullopt;
+  base::ListValue output;
+  std::set<std::string> seen;
+  for (const auto& raw : input) {
+    if (!raw.is_dict()) return std::nullopt;
+    const auto& row = raw.GetDict();
+    const auto* id = row.FindString("id");
+    const auto* match = row.FindDict("match");
+    const auto* destination = row.FindDict("destination");
+    const auto* kind = match ? match->FindString("kind") : nullptr;
+    const auto* text = match ? match->FindString("value") : nullptr;
+    const auto* profile = destination ? destination->FindString("profileId") : nullptr;
+    if (!id || id->empty() || id->size() > 64 || !std::ranges::all_of(*id, [](char c) {
+          return base::IsAsciiAlphaNumeric(c) || c == '_' || c == '-';
+        }) || !seen.insert(*id).second || !kind || !text || !profile || !RouteProfile(*profile)) return std::nullopt;
+    std::string value;
+    if (*kind == "domain") value = NormalizeRouteDomain(*text);
+    else if (*kind == "contains") {
+      base::TrimWhitespaceASCII(*text, base::TRIM_ALL, &value);
+      if (std::ranges::any_of(value, [](unsigned char c) {return c < 32 || c == 127;})) return std::nullopt;
+    } else return std::nullopt;
+    if (value.empty() || value.size() > 200) return std::nullopt;
+    const auto* space = destination->Find("spaceId");
+    if (space && !space->is_none() && (!space->is_string() || !base::Uuid::ParseLowercase(space->GetString()).is_valid())) return std::nullopt;
+    const auto* private_value = destination->Find("private");
+    if (private_value && !private_value->is_bool()) return std::nullopt;
+    output.Append(base::DictValue().Set("id", *id)
+        .Set("match", base::DictValue().Set("kind", *kind).Set("value", value))
+        .Set("destination", base::DictValue().Set("profileId", *profile)
+            .Set("spaceId", space ? space->Clone() : base::Value())
+            .Set("private", destination->FindBool("private").value_or(false))));
+  }
+  return output;
+}
+void ObserveLinkRouteProfiles();
+base::ListValue ReadLinkRoutes() {
+  ObserveLinkRouteProfiles();
+  auto* prefs = g_browser_process->local_state();
+  base::ListValue output;
+  std::set<std::string> ids;
+  for (const auto& raw : prefs->GetList(kLinkRoutesPref)) {
+    base::ListValue single; single.Append(raw.Clone());
+    auto valid = ValidateLinkRoutes(single);
+    if (valid && !valid->empty() && ids.insert(*valid->front().GetDict().FindString("id")).second)
+      output.Append(std::move(valid->front()));
+    if (output.size() == 50) break;
+  }
+  return output;
+}
+bool WriteLinkRoutes(const base::ListValue& input) {
+  auto valid = ValidateLinkRoutes(input);
+  if (!valid) return false;
+  auto* prefs = g_browser_process->local_state();
+  prefs->SetList(kLinkRoutesPref, std::move(*valid));
+  prefs->CommitPendingWrite();
+  return true;
+}
+std::optional<base::DictValue> MatchingLinkRoute(const GURL& url, const std::set<std::string>& skipped = {}) {
+  const auto host = RouteHost(url);
+  if (host.empty() || url.has_username() || url.has_password() || url.spec().size() > 8192) return std::nullopt;
+  for (const auto& value : ReadLinkRoutes()) {
+    const auto& row = value.GetDict();
+    if (skipped.contains(*row.FindString("id"))) continue;
+    const auto& match = *row.FindDict("match");
+    const auto& rule = *match.FindString("value");
+    bool matches = *match.FindString("kind") == "contains"
+        ? base::ToLowerASCII(url.spec()).find(base::ToLowerASCII(rule)) != std::string::npos
+        : host == rule || (!url.HostIsIPAddress() && !GURL("http://" + rule).HostIsIPAddress() && host.ends_with("." + rule));
+    if (matches) return row.Clone();
+  }
+  return std::nullopt;
+}
+std::string RouteProfileName(ProfileAttributesEntry* entry) {
+  if (entry->GetPath().BaseName().AsUTF8Unsafe() == "Default" && entry->IsUsingDefaultName()) return "Personal";
+  return base::UTF16ToUTF8(entry->GetLocalProfileName());
+}
+base::DictValue LinkRouteSettings(Profile* profile) {
+  auto* manager = g_browser_process->profile_manager();
+  base::ListValue profiles;
+  bool any_spaces = false;
+  for (auto* entry : manager->GetProfileAttributesStorage().GetAllProfilesAttributesSortedForDisplay()) {
+    if (entry->IsOmitted() || entry->IsSigninRequired()) continue;
+    const auto dir = entry->GetPath().BaseName().AsUTF8Unsafe();
+    base::ListValue spaces;
+    if (auto* loaded = manager->GetProfileByPath(entry->GetPath())) {
+      const auto& meta = loaded->GetPrefs()->GetDict(kSpacesMetaPref);
+      const auto* items = meta.FindDict("items"); const auto* order = meta.FindList("order");
+      if (items && order) for (const auto& id : *order) {
+        if (!id.is_string()) continue;
+        const auto* item = items->FindDict(id.GetString()); const auto* name = item ? item->FindString("name") : nullptr;
+        if (name) spaces.Append(base::DictValue().Set("id", id.GetString()).Set("name", *name));
+      }
+    }
+    any_spaces |= !spaces.empty();
+    profiles.Append(base::DictValue().Set("id", dir == "Default" ? "default" : dir)
+        .Set("name", RouteProfileName(entry)).Set("spaces", std::move(spaces)));
+  }
+  const bool shown = profiles.size() > 1 || any_spaces;
+  return base::DictValue().Set("ready", true).Set("shown", shown).Set("profiles", std::move(profiles))
+      .Set("profileId", RouteProfileId(profile)).Set("routes", ReadLinkRoutes())
+      .Set("inApp", g_browser_process->local_state()->GetBoolean(kLinkRoutesInAppPref));
+}
+base::Value SiteLinkRoute(BrowserWindowInterface* browser, content::WebContents* page) {
+  if (!page || page->GetBrowserContext()->IsOffTheRecord() || HasInheritedDocumentPolicy(page) ||
+      page->GetPrimaryMainFrame()->IsSandboxed(network::mojom::WebSandboxFlags::kAll)) return base::Value();
+  if (g_browser_process->profile_manager()->GetProfileAttributesStorage().GetNumberOfProfiles() < 2) return base::Value();
+  const auto host = NormalizeRouteDomain(page->GetLastCommittedURL().spec());
+  if (host.empty()) return base::Value();
+  const auto profile = RouteProfileId(browser->GetProfile()), space = WindowSpace(browser);
+  bool on = false; std::string elsewhere;
+  for (const auto& raw : ReadLinkRoutes()) {
+    const auto& row = raw.GetDict(); const auto& match = *row.FindDict("match");
+    if (*match.FindString("kind") != "domain" || *match.FindString("value") != host) continue;
+    const auto& target = *row.FindDict("destination"); const auto* saved_space = target.FindString("spaceId");
+    const bool here = *target.FindString("profileId") == profile && (saved_space ? *saved_space : "") == space &&
+        !target.FindBool("private").value_or(false);
+    on = here;
+    if (!here) if (auto* entry = RouteProfile(*target.FindString("profileId"))) elsewhere = RouteProfileName(entry);
+    break;
+  }
+  return base::Value(base::DictValue().Set("scope", space.empty() ? "profile" : "space").Set("on", on).Set("elsewhere", elsewhere));
+}
+class LinkRouteProfileObserver final : public ProfileAttributesStorage::Observer {
+ public:
+  LinkRouteProfileObserver() { g_browser_process->profile_manager()->GetProfileAttributesStorage().AddObserver(this); }
+  void OnProfileWasRemoved(const base::FilePath&, const std::u16string&) override {
+    if (auto* prefs = g_browser_process->local_state()) {
+      prefs->SetList(kLinkRoutesPref, ReadLinkRoutes()); prefs->CommitPendingWrite();
+    }
+  }
+};
+void ObserveLinkRouteProfiles() {
+  static base::NoDestructor<LinkRouteProfileObserver> observer;
+}
+
+// The native URL remains here while the destination profile / Space opens.
+// The host sees only an unguessable one-use token and a stable Space ID.
+bool BeginLinkRoute(const GURL& url, const base::DictValue& rule, BrowserWindowInterface* source, bool background, std::set<std::string> attempted = {});
+struct PendingLinkRoute {
+  GURL url;
+  std::string profile, space;
+  std::set<std::string> attempted;
+  bool private_tab = false, background = false;
+  base::WeakPtr<BrowserWindowInterface> destination, source;
+};
+std::map<std::string, PendingLinkRoute>& PendingLinkRoutes() {
+  static base::NoDestructor<std::map<std::string, PendingLinkRoute>> value;
+  return *value;
+}
+BrowserWindowInterface* RouteWindow(Profile* profile = nullptr, const std::string& space = "") {
+  BrowserWindowInterface* found = nullptr;
+  GlobalBrowserCollection::GetInstance()->ForEach([&](BrowserWindowInterface* browser) {
+    if (!IsIslandWindow(browser) || IsHoldWindow(browser) || browser->IsDeleteScheduled() ||
+        browser->GetProfile()->IsOffTheRecord() || (profile && browser->GetProfile() != profile)) return true;
+    if (!space.empty() && WindowSpace(browser) != space) return true;
+    found = browser; return false;
+  }, BrowserCollection::Order::kActivation);
+  return found;
+}
+BrowserWindowInterface* EnsureRouteWindow() {
+  if (auto* browser = RouteWindow()) return browser;
+  // A destination can disappear while its existing profile loads. Preserve
+  // the accepted link by making an ordinary window in the last usable profile.
+  auto* profile = ProfileManager::GetLastUsedProfileAllowedByPolicy();
+  if (!profile || profile->IsOffTheRecord() ||
+      GetBrowserWindowCreationStatusForProfile(*profile) != BrowserWindowInterface::CreationStatus::kOk) return nullptr;
+  BrowserWindowCreateParams params(profile, true);
+  params.should_trigger_session_restore = false;
+  return CreateBrowserWindow(std::move(params));
+}
+void OpenRoutedURL(BrowserWindowInterface* browser, const GURL& url, bool private_tab, bool background) {
+  if (!browser || browser->IsDeleteScheduled()) return;
+  NavigateParams params(browser, url, ui::PAGE_TRANSITION_LINK);
+  if (private_tab) params.initiating_profile = browser->GetProfile()->GetPrimaryOTRProfile(true);
+  params.disposition = background ? WindowOpenDisposition::kNewBackgroundTab : WindowOpenDisposition::kNewForegroundTab;
+  params.window_action = background ? NavigateParams::WindowAction::kShowWindowInactive : NavigateParams::WindowAction::kShowWindow;
+  // A fresh browser-side navigation intentionally carries no opener, source
+  // origin, sandbox privileges, POST body or renderer-provided URL loader.
+  Navigate(&params);
+}
+void FinishLinkRoute(const std::string& token, bool accepted) {
+  auto it = PendingLinkRoutes().find(token);
+  if (it == PendingLinkRoutes().end()) return;
+  auto pending = std::move(it->second); PendingLinkRoutes().erase(it);
+  auto* target = pending.destination.get();
+  const bool same_profile = target && RouteProfile(pending.profile) && RouteProfileId(target->GetProfile()) == pending.profile;
+  if (same_profile && (!accepted || (!pending.space.empty() && WindowSpace(target) != pending.space))) {
+    // A refused Space switch still opens in the rule's profile, in a new
+    // ordinary window, matching shipping's resolveRoutedRuntime fallback.
+    auto* profile = target->GetProfile();
+    if (GetBrowserWindowCreationStatusForProfile(*profile) == BrowserWindowInterface::CreationStatus::kOk) {
+      BrowserWindowCreateParams params(profile, true); params.should_trigger_session_restore = false;
+      target = CreateBrowserWindow(std::move(params));
+    } else target = nullptr;
+  } else if (!same_profile) target = nullptr;
+  if (!target) {target = pending.source ? pending.source.get() : EnsureRouteWindow(); pending.private_tab = false;}
+  OpenRoutedURL(target, pending.url, pending.private_tab, pending.background);
+}
+void RetryLinkRoute(const std::string& token) {
+  auto it = PendingLinkRoutes().find(token);
+  if (it == PendingLinkRoutes().end()) return;
+  auto pending = std::move(it->second); PendingLinkRoutes().erase(it);
+  auto rule = MatchingLinkRoute(pending.url, pending.attempted);
+  if (rule && BeginLinkRoute(pending.url, *rule, pending.source.get(), pending.background, std::move(pending.attempted))) return;
+  OpenRoutedURL(pending.source ? pending.source.get() : EnsureRouteWindow(), pending.url, false, pending.background);
+}
+
+void OfferLinkRoute(const std::string& token, int attempts) {
+  auto it = PendingLinkRoutes().find(token);
+  if (it == PendingLinkRoutes().end()) return;
+  auto* browser = it->second.destination.get();
+  if (!browser || attempts <= 0) {FinishLinkRoute(token, false); return;}
+  if (it->second.space.empty() || WindowSpace(browser) == it->second.space) {FinishLinkRoute(token, true); return;}
+  Owner* owner = nullptr;
+  for (auto* candidate : Owner::Live()) if (candidate->browser.get() == browser) owner = candidate;
+  if (owner && owner->view && owner->view->GetWebContents()->GetLastCommittedURL() == GURL("chrome://blanc-prototype/host.html")) {
+    owner->view->GetWebContents()->GetPrimaryMainFrame()->ExecuteJavaScript(
+      u"window.BlancPrototypeHost?.routeExternalLink(" + base::UTF8ToUTF16(base::GetQuotedJSONString(token)) + u"," +
+      base::UTF8ToUTF16(base::GetQuotedJSONString(it->second.space)) + u")", base::NullCallback());
+  }
+  base::SequencedTaskRunner::GetCurrentDefault()->PostDelayedTask(FROM_HERE,
+      base::BindOnce(&OfferLinkRoute, token, attempts - 1), base::Milliseconds(200));
+}
+void LoadedRouteProfile(std::string token, Profile* profile) {
+  auto it = PendingLinkRoutes().find(token);
+  if (it == PendingLinkRoutes().end()) return;
+  if (!profile || profile->IsOffTheRecord() || profile->ShutdownStarted() || !RouteProfile(it->second.profile)) {RetryLinkRoute(token); return;}
+  auto& pending = it->second;
+  if (!pending.space.empty()) {
+    const auto* items = profile->GetPrefs()->GetDict(kSpacesMetaPref).FindDict("items");
+    if (!items || !items->FindDict(pending.space)) {RetryLinkRoute(token); return;}
+  }
+  auto* browser = RouteWindow(profile, pending.space);
+  if (!browser && pending.space.empty()) browser = RouteWindow(profile);
+  if (!browser) {
+    if (GetBrowserWindowCreationStatusForProfile(*profile) != BrowserWindowInterface::CreationStatus::kOk) {FinishLinkRoute(token, false); return;}
+    BrowserWindowCreateParams params(profile, true);
+    params.should_trigger_session_restore = false;
+    browser = CreateBrowserWindow(std::move(params));
+    if (!browser) {FinishLinkRoute(token, false); return;}
+    chrome::AddTabAt(browser, GURL("chrome://newtab/"), -1, false);
+    if (pending.background) browser->GetWindow()->ShowInactive(); else browser->GetWindow()->Show();
+  }
+  pending.destination = browser->GetWeakPtr();
+  OfferLinkRoute(token, 50);
+}
+bool BeginLinkRoute(const GURL& url, const base::DictValue& rule, BrowserWindowInterface* source, bool background, std::set<std::string> attempted) {
+  const auto& destination = *rule.FindDict("destination");
+  const auto profile_id = *destination.FindString("profileId");
+  auto* entry = RouteProfile(profile_id);
+  if (!entry || PendingLinkRoutes().size() >= 50) return false;
+  const auto* space = destination.FindString("spaceId");
+  if (source && RouteProfileId(source->GetProfile()) == profile_id &&
+      (!space || WindowSpace(source) == *space) && !destination.FindBool("private").value_or(false)) return false;
+  const auto token = base::Uuid::GenerateRandomV4().AsLowercaseString();
+  PendingLinkRoute pending;
+  pending.url = url; pending.profile = profile_id; pending.space = space ? *space : "";
+  pending.attempted = std::move(attempted); pending.attempted.insert(*rule.FindString("id"));
+  pending.private_tab = destination.FindBool("private").value_or(false); pending.background = background;
+  if (source) pending.source = source->GetWeakPtr();
+  PendingLinkRoutes().emplace(token, std::move(pending));
+  if (!g_browser_process->profile_manager()->LoadProfile(entry->GetPath().BaseName(), false,
+      base::BindOnce(&LoadedRouteProfile, token))) {PendingLinkRoutes().erase(token); return false;}
+  return true;
+}
+class LinkRouteSource final : public base::SupportsUserData::Data {
+ public:
+  LinkRouteSource(content::WebContents* source, content::RenderFrameHost* frame, const GURL& url)
+      : source(source->GetWeakPtr()), document(frame->GetWeakDocumentPtr()), url(url) {}
+  base::WeakPtr<content::WebContents> source;
+  content::WeakDocumentPtr document;
+  GURL url;
+};
+constexpr char kLinkRouteSource[] = "blanc.link-route.source";
+constexpr char kLinkRouteActivation[] = "blanc.link-route.activation";
+
 #include "blanc/browser/ui/chromium_settings_handler.inc"
 #include "blanc/browser/ui/utility_sheet_ops.inc"
 
@@ -5889,6 +6204,22 @@ class Handler : public content::WebUIMessageHandler, public extensions::Extensio
         return !found;
       });
       Reply(id, true, base::Value(found)); return;
+    }
+    if (quiet_method == "linkRoutes" && quiet_args.empty()) { Reply(id, true, base::Value(ReadLinkRoutes())); return; }
+    if (quiet_method == "setLinkRoutes" && quiet_args.size() == 1 && quiet_args[0].is_list()) {
+      Reply(id, true, base::Value(base::DictValue().Set("ok", WriteLinkRoutes(quiet_args[0].GetList())))); return;
+    }
+    if (quiet_method == "setLinkRoutesInApp" && quiet_args.size() == 1 && quiet_args[0].is_bool()) {
+      g_browser_process->local_state()->SetBoolean(kLinkRoutesInAppPref, quiet_args[0].GetBool());
+      Reply(id, true, quiet_args[0].Clone()); return;
+    }
+    if (quiet_method == "externalLink" && quiet_args.size() == 1 && quiet_args[0].is_string()) {
+      Reply(id, true, base::Value(OpenExternalLink(GURL(quiet_args[0].GetString())))); return;
+    }
+    if (quiet_method == "focusedWindowTitle" && quiet_args.empty()) {
+      auto* browser = GlobalBrowserCollection::GetInstance()->GetActiveBrowser();
+      auto* page = browser ? browser->GetTabStripModel()->GetActiveWebContents() : nullptr;
+      Reply(id, true, page ? base::Value(base::UTF16ToUTF8(page->GetTitle())) : base::Value()); return;
     }
     if (quiet_method == "profileInfo" && quiet_args.empty()) {
       auto* owner = GetOwner(web_ui()->GetWebContents());
@@ -8822,6 +9153,11 @@ class Handler : public content::WebUIMessageHandler, public extensions::Extensio
     // tab move. A failed write moves nothing. `create` makes a new Space's
     // record with just this tab (New Space…). The Space shown in another
     // window takes the tab there; any other is set aside, holding it live.
+    if (method == "linkRouteDone" && args.size() == 2 && args[0].is_string() && args[1].is_bool()) {
+      const auto found = PendingLinkRoutes().find(args[0].GetString());
+      if (found == PendingLinkRoutes().end() || found->second.destination.get() != browser) {reply(true, base::Value(false)); return;}
+      FinishLinkRoute(args[0].GetString(), args[1].GetBool()); reply(true, base::Value(true)); return;
+    }
     if (method == "spaceLinkOpen" && args.size() == 3 && args[0].is_string() && args[1].is_string() && args[2].is_bool()) {
       const auto token = args[0].GetString(), name = args[1].GetString();
       const bool create = args[2].GetBool();
@@ -11286,6 +11622,81 @@ Owner* OwnerOfTab(content::WebContents* source) {
   return nullptr;
 }
 }  // namespace
+void RememberLinkRouteSource(content::WebContents* source, content::RenderFrameHost* frame,
+                             content::WebContents* created, const GURL& url) {
+  if (!source || !frame || !created || frame != source->GetPrimaryMainFrame() ||
+      source->GetBrowserContext()->IsOffTheRecord() || HasInheritedDocumentPolicy(source) ||
+      frame->IsSandboxed(network::mojom::WebSandboxFlags::kAll)) return;
+  created->SetUserData(kLinkRouteSource, std::make_unique<LinkRouteSource>(source, frame, url));
+}
+void ConfirmLinkRouteActivation(content::WebContents* created) {
+  if (created) created->SetUserData(kLinkRouteActivation, std::make_unique<base::SupportsUserData::Data>());
+}
+bool RouteNewTabLink(NavigateParams* params) {
+  if (!g_browser_process || !g_browser_process->local_state() ||
+      !g_browser_process->local_state()->GetBoolean(kLinkRoutesInAppPref) ||
+      !params || !params->source_contents || !params->original_user_gesture || params->post_data ||
+      (params->disposition != WindowOpenDisposition::kNewForegroundTab && params->disposition != WindowOpenDisposition::kNewBackgroundTab)) return false;
+  auto* source = params->source_contents.get();
+  auto* owner = OwnerOfTab(source);
+  if (!owner || owner->space_busy || source->GetBrowserContext()->IsOffTheRecord() || HasInheritedDocumentPolicy(source)) return false;
+  content::RenderFrameHost* frame = nullptr;
+  if (params->contents_to_insert) {
+    auto* proof = static_cast<LinkRouteSource*>(params->contents_to_insert->GetUserData(kLinkRouteSource));
+    if (!proof || !params->contents_to_insert->GetUserData(kLinkRouteActivation) ||
+        proof->source.get() != source || proof->url != params->url) return false;
+    frame = proof->document.AsRenderFrameHostIfValid();
+  } else if (params->initiator_frame_token) {
+    frame = content::RenderFrameHost::FromFrameToken(content::GlobalRenderFrameHostToken(params->initiator_process_id, *params->initiator_frame_token));
+  } else if (params->started_from_context_menu) frame = source->GetPrimaryMainFrame();
+  if (!frame || frame != source->GetPrimaryMainFrame() || frame->IsSandboxed(network::mojom::WebSandboxFlags::kAll)) return false;
+  const auto rule = MatchingLinkRoute(params->url);
+  return rule && BeginLinkRoute(params->url, *rule, owner->browser.get(), params->disposition == WindowOpenDisposition::kNewBackgroundTab);
+}
+bool OpenExternalLink(const GURL& url) {
+  if (!g_browser_process || !g_browser_process->local_state() || !g_browser_process->profile_manager() || !url.SchemeIsHTTPOrHTTPS()) return false;
+  if (const auto rule = MatchingLinkRoute(url); rule && BeginLinkRoute(url, *rule, nullptr, false)) return true;
+  auto* browser = RouteWindow();
+  if (!browser) return false; // Native startup retains ownership if no ordinary window exists yet.
+  OpenRoutedURL(browser, url, false, false);
+  return true;
+}
+base::DictValue RouteActiveSite(BrowserWindowInterface* browser, const std::string& mode) {
+  if (!browser || (mode != "on" && mode != "off" && mode != "toggle")) return base::DictValue().Set("ok", false).Set("error", "unavailable");
+  auto* page = browser->GetTabStripModel()->GetActiveWebContents();
+  if (!page || page->GetBrowserContext()->IsOffTheRecord() || HasInheritedDocumentPolicy(page) ||
+      page->GetPrimaryMainFrame()->IsSandboxed(network::mojom::WebSandboxFlags::kAll)) return base::DictValue().Set("ok", false).Set("error", "unavailable");
+  const auto host = NormalizeRouteDomain(page->GetLastCommittedURL().spec());
+  if (host.empty()) return base::DictValue().Set("ok", false).Set("error", "unavailable");
+  auto rows = ReadLinkRoutes();
+  const auto matches = [&](const auto& value) {
+    const auto& match = *value.GetDict().FindDict("match");
+    return *match.FindString("kind") == "domain" && *match.FindString("value") == host;
+  };
+  auto first = std::ranges::find_if(rows, matches);
+  const auto profile = RouteProfileId(browser->GetProfile()), space = WindowSpace(browser);
+  bool here = false;
+  if (first != rows.end()) {
+    const auto& target = *first->GetDict().FindDict("destination"); const auto* prior_space = target.FindString("spaceId");
+    here = *target.FindString("profileId") == profile && (prior_space ? *prior_space : "") == space && !target.FindBool("private").value_or(false);
+  }
+  const bool on = mode == "on" || (mode == "toggle" && !here);
+  if (!on) rows.EraseIf(matches);
+  else {
+    auto destination = base::DictValue().Set("profileId", profile).Set("spaceId", space.empty() ? base::Value() : base::Value(space)).Set("private", false);
+    if (first != rows.end()) first->GetDict().Set("destination", std::move(destination));
+    else {
+      if (rows.size() >= 50) return base::DictValue().Set("ok", false).Set("error", "limit");
+      base::ListValue next;
+      next.Append(base::DictValue().Set("id", base::Uuid::GenerateRandomV4().AsLowercaseString())
+          .Set("match", base::DictValue().Set("kind", "domain").Set("value", host)).Set("destination", std::move(destination)));
+      for (auto& row : rows) next.Append(std::move(row));
+      rows = std::move(next);
+    }
+  }
+  return base::DictValue().Set("ok", WriteLinkRoutes(rows)).Set("host", host).Set("on", on);
+}
+
 std::u16string LinkSpaceLabel(bool fresh) {
   const std::string_view key = fresh ? "blancLinkNewSpace" : "blancOpenLinkInSpace";
   for (const auto& text : blanc::settings::ForLocale(g_browser_process->GetApplicationLocale()))
@@ -11696,7 +12107,8 @@ class BrowserApiHost : public blanc::browser_api::BrowserApiFactoryBase {
       mojo::PendingRemote<blanc::browser_api::mojom::AppearanceClient> client) override {
     if (!contents_) return;
     appearance_ = std::make_unique<blanc::browser_api::Appearance>(
-        Profile::FromBrowserContext(contents_->GetBrowserContext()), std::move(receiver),
+        Profile::FromBrowserContext(contents_->GetBrowserContext()),
+        base::BindRepeating(&BrowserApiHost::Browser, base::Unretained(this)), std::move(receiver),
         std::move(client));
   }
 

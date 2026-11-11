@@ -3,6 +3,7 @@
 #define CHROME_BROWSER_UI_BLANC_PROTOTYPE_UI_H_
 
 #include "base/functional/callback.h"
+#include "base/values.h"
 #include <cstdint>
 #include <map>
 #include <memory>
@@ -15,6 +16,7 @@
 #include "ui/webui/mojo_web_ui_controller.h"
 
 class GURL;
+struct NavigateParams;
 namespace sessions { struct SessionWindow; }
 namespace content { class WebContents; class RenderFrameHost; }
 namespace blanc::browser_api::mojom { class BrowserApiFactory; }
@@ -31,6 +33,12 @@ class WebView;
 
 namespace blanc_prototype {
 base::OnceClosure ShowBlockerRecovery();
+bool OpenExternalLink(const GURL& url);
+void ConfirmLinkRouteActivation(content::WebContents* created);
+bool RouteNewTabLink(NavigateParams* params);
+void RememberLinkRouteSource(content::WebContents* source, content::RenderFrameHost* frame,
+                             content::WebContents* created, const GURL& url);
+base::DictValue RouteActiveSite(BrowserWindowInterface* browser, const std::string& mode);
 // Reconcile durable accepted closes before SessionRestore creates any views.
 void ReadSharedSessionPlan(Profile* profile,
     base::OnceCallback<void(std::string)> ready);

@@ -6,6 +6,10 @@ export async function installDriver(host){
   const url=await host.eval('location.href');
   if(url!=='chrome://blanc-prototype/host.html')throw Error('Test driver requires the native Island');
   const bootstrap=function(){
+    // Multiple adapters may connect to one native Island document. Its
+    // request counter and in-flight replies belong to that document, so a
+    // second CDP connection must reuse them instead of replaying old ids.
+    if(typeof window.__blancNativeCall==='function'&&typeof window.blancTestReply==='function')return;
     let next=0;const pending=new Map();
     window.blancTestReply=(id,success,value)=>{
       const call=pending.get(id);if(!call)return;

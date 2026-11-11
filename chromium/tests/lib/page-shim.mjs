@@ -184,6 +184,7 @@ export class Page{
  waitForTimeout(ms){return pause(ms);}
  async waitForLoadState(){await this.waitForFunction(()=>document.readyState!=='loading');}
  locator(selector,options){return new Locator(this,[step(selector,options)]);}
+ frameLocator(selector){return new ChildFramePage(this,selector);}
  // Playwright's page.$: the first match, or null when nothing matches.
  async $(selector){const found=this.locator(selector);return await found.count()?found.first():null;}
  $$eval(selector,fn,arg){return this.locator(selector).all(fn,arg);}
@@ -211,6 +212,36 @@ export class Page{
  context(){if(!this.app)throw new UndefinedNativeAdapterError('Page shim lacks context');return this.app.context();}
  bringToFront(){return this.cdp.send('Page.bringToFront');}
 }
+// Resolve the actual frame owner and inspect its own document through CDP.
+// An isolated automation world does not enable page scripts or change sandbox
+// flags. Pointer input still enters the top-level widget at the frame's bounds.
+class ChildFramePage extends Page {
+ constructor(parent,selector){
+  const input={send:async(method,args)=>{await parent.evaluate(()=>true);return parent.cdp.send(method,args);}};
+  super({cdp:input,url:'',closed:()=>parent.isClosed()});
+  this.parent=parent;this.selector=selector;this.app=parent.app;
+ }
+ frameLocator(){throw new UndefinedNativeAdapterError('Nested child-frame locators need a native adapter');}
+ async offset(){
+  const parent=await this.parent.offset();
+  const box=await this.parent.locator(this.selector).evaluate(e=>{const r=e.getBoundingClientRect();return {x:r.x+e.clientLeft,y:r.y+e.clientTop};});
+  return {x:parent.x+box.x,y:parent.y+box.y};
+ }
+ async evalExpression(expression){
+  await this.parent.evaluate(()=>true);
+  const cdp=this.parent.cdp;
+  const {result,exceptionDetails}=await cdp.send('Runtime.evaluate',{
+   expression:`document.querySelector(${jsLiteral(this.selector)})`,contextId:await this.parent.contextId(),returnByValue:false});
+  if(exceptionDetails||!result.objectId)throw Error('Frame owner is missing: '+this.selector);
+  let frameId;
+  try{frameId=(await cdp.send('DOM.describeNode',{objectId:result.objectId})).node.frameId;}
+  finally{await cdp.send('Runtime.releaseObject',{objectId:result.objectId});}
+  if(!frameId)throw Error('Selected element is not a loaded frame: '+this.selector);
+  const frameCdp=this.app?await this.app.frameConnection(frameId,cdp):cdp;
+  const {executionContextId}=await frameCdp.send('Page.createIsolatedWorld',{frameId,worldName:'blanc-native-test-locator'});
+  return frameCdp.eval(expression,executionContextId);
+ }
+}
 // Shipping URLs for the Island's documents and its internal pages.
 export const ISLAND_FRAMES={'blanc-chrome://overlay/':'overlay','blanc-chrome://index/':'strip','blanc-chrome://float/':'floatPill','blanc-chrome://permission/':'permission','blanc-chrome://glance/':'glanceCardFrame'};
 export function shippingPageUrl(url){
@@ -229,12 +260,19 @@ const HOLD_ANCHOR='about:blank#blanc-hold';
 export function createAppShim(fixture){
  const pages=new Map();
  const ported={};
+ const frameConnections=new Map();
  const app={
   windows(){return [...pages.values()];},
   evaluate(fn,arg){
    const port=PORTS[sourceKey(fn)];
    if(!port)throw new UndefinedNativeAdapterError('Shipping main-process evaluate needs a native adapter');
    return port(fixture,ported,arg);
+  },
+  async frameConnection(frameId,parent){
+   const target=(await fixture.targets()).find(t=>t.id===frameId&&t.type==='iframe');
+   if(!target)return parent;
+   if(!frameConnections.has(frameId))frameConnections.set(frameId,await fixture.connectTarget(target));
+   return frameConnections.get(frameId);
   },
   firstWindow(){return pages.get('strip');},
   // Playwright's BrowserContext. pages() is synchronous, so a poll sees a
@@ -247,7 +285,7 @@ export function createAppShim(fixture){
   // and Playwright's hold on shipping's pages doesn't count as that.
   releasePages(){for(const page of pages.values())if(page.targetId&&page.cdp){page.cdp.close();page.cdp=null;}},
   // A relaunch replaces every connection; pages are rebuilt on refresh.
-  reset(){for(const page of pages.values())page.closed=true;pages.clear();},
+  reset(){for(const page of pages.values())page.closed=true;pages.clear();for(const cdp of frameConnections.values())cdp.close();frameConnections.clear();},
   async refresh(){
    for(const [url,frame] of Object.entries(ISLAND_FRAMES))if(!pages.has(frame)){const page=new Page({cdp:fixture.host,url,frame,host:fixture.host});page.app=app;pages.set(frame,page);}
    const allTargets=await fixture.targets();

@@ -4,6 +4,7 @@
 #include <utility>
 
 #include "blanc/browser/ui/browser_api/theme_choice.h"
+#include "blanc/browser/ui/blanc_prototype_ui.h"
 #include "chrome/browser/profiles/profile.h"
 #include "chrome/browser/themes/theme_service.h"
 #include "chrome/browser/themes/theme_service_factory.h"
@@ -45,9 +46,10 @@ bool SetTheme(Profile* profile, const std::string& theme) {
   return true;
 }
 
-Appearance::Appearance(Profile* profile, mojo::PendingReceiver<mojom::Appearance> receiver,
+Appearance::Appearance(Profile* profile, base::RepeatingCallback<BrowserWindowInterface*()> browser,
+                       mojo::PendingReceiver<mojom::Appearance> receiver,
                        mojo::PendingRemote<mojom::AppearanceClient> client)
-    : profile_(profile), receiver_(this, std::move(receiver)), client_(std::move(client)) {
+    : profile_(profile), browser_(std::move(browser)), receiver_(this, std::move(receiver)), client_(std::move(client)) {
   if (auto* themes = Themes(profile_)) {
     theme_observation_.Observe(themes);
   }
@@ -62,8 +64,11 @@ void Appearance::ToggleDarkSiteOnActiveSite(ToggleDarkSiteOnActiveSiteCallback c
 
 void Appearance::RouteActiveSite(const std::string& mode, RouteActiveSiteCallback callback) {
   auto result = mojom::RouteResult::New();
-  result->ok = false;
-  result->error = "unavailable";
+  const auto value = blanc_prototype::RouteActiveSite(browser_.Run(), mode);
+  result->ok = value.FindBool("ok").value_or(false);
+  if (const auto* host = value.FindString("host")) result->host = *host;
+  result->on = value.FindBool("on");
+  if (const auto* error = value.FindString("error")) result->error = *error;
   std::move(callback).Run(std::move(result));
 }
 

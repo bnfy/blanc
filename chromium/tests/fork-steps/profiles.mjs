@@ -148,3 +148,15 @@ export async function verifyNativeProfileRemoval(w){
  await w.waitFor(()=>profileHosts(w),hosts=>!hosts.some(h=>h.directory===work.directory),'deleted profile windows gone');
  return {directory:work.directory,checks:['created through picker','renamed in picker and native profile','Cancel preserves profile','Remove closes profile windows'],typedNameConfirmation:false};
 }
+
+// V18's native confirmation: choose the actual registered profile card and
+// press Remove. The shipping routing case does not assert a typed challenge.
+export async function removeProfile(w,directory){
+ const pick=await picker(w);
+ const prefix=`const cards=[...find('profile-picker-main-view').shadowRoot.querySelectorAll('profile-card')];const card=cards.find(c=>c.profileState.profilePath.endsWith('/'+${jsLiteral(directory)}));if(!card)throw Error('Native profile card missing');`;
+ await evaluate(pick,prefix+`const menu=find('profile-card-menu',card.shadowRoot);find('#moreActionsButton',menu.shadowRoot).click();find('#actionMenu',menu.shadowRoot).querySelectorAll('button')[1].click();return true;`);
+ await w.waitFor(()=>evaluate(pick,prefix+`return find('#removeConfirmationDialog',card.shadowRoot).open;`),Boolean,'native profile remove confirmation');
+ await evaluate(pick,prefix+`find('#removeConfirmationButton',card.shadowRoot).click();return true;`);
+ await w.waitFor(()=>profileHosts(w),hosts=>!hosts.some(h=>h.directory===directory),'deleted profile windows gone');
+ return {ok:true};
+}
