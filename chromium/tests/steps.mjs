@@ -4,6 +4,7 @@ const require=createRequire(import.meta.url);
 const {CucumberExpression,RegularExpression,ParameterTypeRegistry}=require('@cucumber/cucumber-expressions');
 const parameters=new ParameterTypeRegistry();
 const {loadShippingCore}=require('./lib/shipping-core.cjs');
+import {GLANCE_STEPS} from './fork-steps/glance.mjs';
 import {CERTIFICATE_RECOVERY_STEPS} from './fork-steps/certificate-recovery.mjs';
 import {WINDOW_LAYOUT_STEPS} from './fork-steps/window-layout.mjs';
 import {DIVERGENCES} from './fork-steps/divergences.mjs';
@@ -16,6 +17,8 @@ function register(expression,run,source,sourceSha256=null){
  if(transport){run=transport;source=`chromium/tests/fork-steps/window-layout.mjs (shipping ${source})`;}
  const recovery=CERTIFICATE_RECOVERY_STEPS.get(String(expression));
  if(recovery){run=recovery;source=`chromium/tests/fork-steps/certificate-recovery.mjs (shipping ${source})`;}
+ const glance=GLANCE_STEPS.get(String(expression));
+ if(glance){run=glance;source=`chromium/tests/fork-steps/glance.mjs (shipping ${source})`;}
  const divergent=DIVERGENCES.get(String(expression));
  if(divergent){run=divergent.run;source=`chromium/tests/fork-steps/divergences.mjs (${divergent.divergence}; shipping ${source})`;}
  const matcher=expression instanceof RegExp?new RegularExpression(expression,parameters):typeof expression==='string'?new CucumberExpression(expression,parameters):null;

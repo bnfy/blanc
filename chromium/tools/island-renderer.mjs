@@ -81,6 +81,10 @@ export const EDITS = {
       "  const glanceSurface = window.location.hostname === 'glance' || window.location.search === '?surface=glance';\n"],
   ],
   'overlay.js': [
+    // F3-3: a collapsed group's membership stays explicit in the panel.
+    // Use shipping's translated plural string and existing empty-row style.
+    ["          // Collapsed: header alone. Open: indent membership under the group.\n          if (!group.collapsed) bandNodes.push(...tabRowsFor(gtabs, { inGroup: true }));",
+     "          if (group.collapsed) bandNodes.push(emptyRow(blancI18n.t('tabGroups.tucked', { count: gtabs.length })));\n          else bandNodes.push(...tabRowsFor(gtabs, { inGroup: true }));"],
     // The inbox heading has no SVG. Build its static spans as DOM nodes;
     // it is not an SVG skeleton accepted by the narrow Trusted Types policy.
     ['    row.innerHTML = \'<span class="ghead-name"></span><span class="ghead-n"></span>\';',

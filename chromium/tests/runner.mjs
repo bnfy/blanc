@@ -119,6 +119,7 @@ for(const scenario of inventory.scenarios){
   const entry={id:test.id,name:test.name,result:'not-run',executed:false};
   if((selected&&!selected.has(test.id))||(onlyPattern&&!onlyPattern.test(test.id))){entry.result='not-run';}
   else if(scenario.desktopApplicability==='excluded'){entry.result='excluded';entry.exclusionReason=scenario.exclusionReason;}
+  else if(scenario.tags.includes('@test-platform-linux')&&process.platform!=='linux'){entry.result='undefined';entry.nonApplicableReason='Linux platform behavior cannot execute on the native macOS fork; Electron platform spoofing is not a native platform test.';}
   else{
    const matches=test.steps.map(s=>s.argument?null:matchStep(s.text));
    const gaps=test.steps.map((s,i)=>{

@@ -21,7 +21,7 @@
 > Report it in a "Runner timing" section. Keep this notice when you rewrite the file.
 
 Queue 4 is **in progress**. Dedicated beta build/updater remains on absolute owner hold.
-Current prototype: **macos-4f3865e190257d03**; `q4-quiet-owner-1-runtime-config.json`.
+Current prototype: **macos-ee619ff9ece15ce0**; `q4-glance-1-runtime-config.json`.
 
 | Item | State |
 | --- | --- |
@@ -32,7 +32,7 @@ Current prototype: **macos-4f3865e190257d03**; `q4-quiet-owner-1-runtime-config.
 | 5 Certificate recovery / eviction | Done: seven scenarios and three native eviction/isolation checks pass |
 | 6 Microphone indicator | Done: real permission, synthetic input, window-wide chip and native Stop pass |
 | 7 Quiet Space ownership | Done: ownership case and five quiet-protection controls pass |
-| 8 Glance / other failures | Pending |
+| 8 Glance / other failures | Done: seven original failures now pass; Linux-only menu case is not applicable on macOS |
 | 9 Pinned homes | Pending |
 | 10 Open-tab / Arc import | Pending |
 | 11 Remaining adapters | Pending |
@@ -546,3 +546,27 @@ No Sync code changed. Patch budget remains 123 upstream paths / 417 incremental
 hunks; full reconstruction 162 upstream / 573 canonical files.
 Required precommit `q4-quiet-owner-precommit.tap`: 304/304 pass; patch
 reconstruction, progress freshness and whitespace pass.
+
+## 8 — Glance and original inventory failures
+
+`q4-other-failures-after`: Glance :88 and :98 and tabs/groups :112 pass on
+first attempts on `macos-ee619ff9ece15ce0` (`q4-glance-1-runtime-config.json`).
+The cancellation adapter sends real Escape through CDP after observing busy;
+the following unchanged steps prove no delayed attachment and successful retry.
+The focus adapter reads the probe from its owning Glance iframe, then also
+checks native main-page focus and the page's actual `document.hasFocus()`.
+The product now shows the translated tucked-tabs count under collapsed group
+headers, generated exclusively through `island-renderer.mjs` EDITS.
+
+`q4-other-failures-before` additionally passes F41:613 group color through
+Space transfer and crash recovery on the item 7 candidate. Item 7 fixed F41:34;
+item 2 fixed both consent failures. The eighth original failure, vertical-tabs
+:239, explicitly requires Linux (`@test-platform-linux`); it remains undefined
+on native macOS, with a by-construction reason, rather than pretending that
+Electron's platform-spoof test qualifies another native platform.
+Guarded build: 7 actions / 20.98 seconds. No Sync code changed.
+Patch budget remains 123 paths / 417 incremental hunks (162/573 reconstruction).
+`q4-linux-inapplicable` confirms :239 stays undefined without launching a
+spoofed platform. The same rule applies to the Linux-only floating-window
+controls case in island-and-commands:320. Required precommit
+`q4-glance-precommit.tap`: 304/304 pass; reconstruction, progress and whitespace pass.

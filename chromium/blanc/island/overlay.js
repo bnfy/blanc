@@ -2688,8 +2688,8 @@ const __blancMarkup = trustedTypes.createPolicy("blanc-static-overlay", {createH
         if (due()) placeClosed();
         if (group) {
           const bandNodes = [groupHeaderRow(group, gtabs.length, clusterIndex + shortcutOffset)];
-          // Collapsed: header alone. Open: indent membership under the group.
-          if (!group.collapsed) bandNodes.push(...tabRowsFor(gtabs, { inGroup: true }));
+          if (group.collapsed) bandNodes.push(emptyRow(blancI18n.t('tabGroups.tucked', { count: gtabs.length })));
+          else bandNodes.push(...tabRowsFor(gtabs, { inGroup: true }));
           rows.push(groupBand(group, bandNodes, gtabs[0].id));
           itemIndex += 1;
         } else {
