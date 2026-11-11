@@ -22,7 +22,7 @@ Current prototype: **macos-9987cc7166c3c921**; `q4-sync-layout-3-runtime-config.
 | 9 Pinned homes | Partly: six web scenarios pass; isolated local HTML home remains blocked by missing N15 preview |
 | 10 Open-tab / Arc import | Done: all 22 macOS cases, two secondary-profile checks and full Sync 22/22 pass |
 | Owner Sync dialog report | Done: four layout states, device/prompt persistence, three journal checks, erasure and full Sync 22/22 pass |
-| 11 Remaining adapters | Pending |
+| 11 Remaining adapters | Partly: ten further cases pass; remaining capability/platform gaps stay explicit |
 
 | Evidence | Sync pass/fail | Inventory pass/fail/undefined/excluded |
 | --- | --- | --- |
@@ -689,3 +689,25 @@ paths / 430 hunks; full reconstruction 162 upstream / 583 canonical files.
 
 Next: item 11 adapters, the same 60-case timing baseline/optimization/comparison,
 then the complete inventory ONCE. No external stop occurred.
+
+## 11 — Further user-visible adapters
+
+`q4-adapters-1` passes ten targets on macos-9987cc7166c3c921:
+F41 :16/:22/:103/:162/:254/:262, Glance :221/:459, newtab-layouts :134,
+and tabs-and-groups :392. The adapters supply accessible button-name selection,
+page visibility, canonical modifier keys, real CDP wheel input, native audio
+mute state, real Reduce Motion media emulation, and the existing global Quiet
+Tabs preference command. Start Page font/layout audits are copied from the
+v1.46.0 hook and read the actual native tab document. Shipping assertions are
+unchanged. F41 :16 and newtab :134 each used the existing one retry: first
+attempts respectively timed out opening the editor and observed a native-frame /
+renderer-size mismatch. Both failures remain in the evidence.
+
+The focused accessible-name unit check covers labels, hidden controls and exact
+versus substring/regex matching. Precommit: 309/309; native product unchanged,
+so no additional build or full Sync run is needed. The full gate on this exact
+candidate remains q4-sync-layout-full-sync, 22/22. Complete inventory is still
+owed after the required timing sample. Remaining undefined adapters are not
+passes: overlay lifecycle/focus, local HTML preview, profile/search management,
+physical passkeys and unavailable platform/Electron operations need separate
+coverage or product work.

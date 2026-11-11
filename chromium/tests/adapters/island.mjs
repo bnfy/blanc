@@ -30,7 +30,8 @@ export function cdpKey(input){
  throw new UndefinedNativeAdapterError('Key input shim lacks '+input?.type);
 }
 async function send(cdp,input,offset){
- if(MOUSE[input?.type])await cdp.send('Input.dispatchMouseEvent',cdpMouse(input,offset));
+ if(input?.type==='mouseWheel')await cdp.send('Input.dispatchMouseEvent',{type:'mouseWheel',x:Number(input.x)+(offset?.x??0),y:Number(input.y)+(offset?.y??0),deltaX:Number(input.deltaX)||0,deltaY:Number(input.deltaY)||0});
+ else if(MOUSE[input?.type])await cdp.send('Input.dispatchMouseEvent',cdpMouse(input,offset));
  else await cdp.send('Input.dispatchKeyEvent',cdpKey(input));
  return true;
 }

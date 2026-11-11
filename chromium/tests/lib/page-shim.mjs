@@ -11,6 +11,7 @@ import {PORTS,sourceKey} from './main-ports.mjs';
 const KEYS={Enter:[13,'\r'],Escape:[27],Tab:[9],Backspace:[8],Delete:[46],ArrowDown:[40],ArrowUp:[38],ArrowLeft:[37],ArrowRight:[39],
  Home:[36],End:[35],PageDown:[34],PageUp:[33],Space:[32,' '],' ':[32,' '],Meta:[91],Control:[17],Shift:[16],Alt:[18],F6:[117]};
 const MODIFIER_BITS={Alt:1,Control:2,Meta:4,Shift:8};
+const canonicalKey=key=>({meta:'Meta',control:'Control',shift:'Shift',alt:'Alt',Down:'ArrowDown',Up:'ArrowUp'})[key]??key;
 function keyEvent(key){
  if(KEYS[key])return {key:key==='Space'?' ':key,code:key==='Space'||key===' '?'Space':key,windowsVirtualKeyCode:KEYS[key][0],text:KEYS[key][1]};
  if(key.length===1){const upper=key.toUpperCase();const code=/[a-z]/i.test(key)?'Key'+upper:/\d/.test(key)?'Digit'+key:undefined;
@@ -19,11 +20,11 @@ function keyEvent(key){
 }
 export class Keyboard{
  constructor(cdp){this.cdp=cdp;this.modifiers=0;}
- async down(key){const e=keyEvent(key);if(MODIFIER_BITS[key])this.modifiers|=MODIFIER_BITS[key];
+ async down(key){key=canonicalKey(key);const e=keyEvent(key);if(MODIFIER_BITS[key])this.modifiers|=MODIFIER_BITS[key];
   const text=this.modifiers&~MODIFIER_BITS.Shift?undefined:e.text;
   await this.cdp.send('Input.dispatchKeyEvent',{type:text?'keyDown':'rawKeyDown',modifiers:this.modifiers,...e,text,unmodifiedText:text,
    ...(this.modifiers&MODIFIER_BITS.Meta&&key.length===1?{commands:[]}:{})});}
- async up(key){const e=keyEvent(key);if(MODIFIER_BITS[key])this.modifiers&=~MODIFIER_BITS[key];
+ async up(key){key=canonicalKey(key);const e=keyEvent(key);if(MODIFIER_BITS[key])this.modifiers&=~MODIFIER_BITS[key];
   await this.cdp.send('Input.dispatchKeyEvent',{type:'keyUp',modifiers:this.modifiers,...e,text:undefined});}
  async press(combo){const keys=combo.split('+').map(k=>k==='ControlOrMeta'?'Meta':k);
   for(const k of keys)await this.down(k);for(const k of [...keys].reverse())await this.up(k);}
@@ -50,6 +51,13 @@ function step(css,{hasText}={}){
  if(hasText==null)return css;
  return {css,text:hasText instanceof RegExp?{source:hasText.source,flags:hasText.flags}:String(hasText)};
 }
+// The supported role is a button, with the accessible name precedence used
+// by these shipping steps: labelledby, aria-label, then its visible text.
+function roleStep(role,{name,exact=false,includeHidden=false,...rest}={}){
+ if(role!=='button'||Object.keys(rest).length)throw new UndefinedNativeAdapterError('Unsupported role selector: '+role);
+ return {css:'button,[role="button"],input[type="button"],input[type="submit"]',role,
+  name:name instanceof RegExp?{source:name.source,flags:name.flags}:name,exact,includeHidden};
+}
 export class Locator{
  constructor(page,selectors,index=null){this.page=page;this.selectors=selectors;this.index=index;}
  locator(selector,options){return new Locator(this.page,[...this.selectors,...(this.index===null?[]:[{index:this.index}]),step(selector,options)]);}
@@ -70,12 +78,20 @@ export class Locator{
  first(){return new Locator(this.page,this.selectors,0);}
  last(){return new Locator(this.page,this.selectors,-1);}
  nth(i){return new Locator(this.page,this.selectors,i);}
- getByRole(){throw new UndefinedNativeAdapterError('Locator shim lacks getByRole');}
+ getByRole(role,options){return new Locator(this.page,[...this.selectors,...(this.index===null?[]:[{index:this.index}]),roleStep(role,options)]);}
  // Resolve inside the page: each selector narrows the previous matches.
  query(body,arg){return `(()=>{let els=[document];const norm=t=>t.replace(/\\s+/g,' ').trim();
   for(const s of ${jsLiteral(this.selectors)}){if(typeof s==='object'&&'index' in s){els=[...new Set(els)];els=s.index<0?els.slice(s.index):els.slice(s.index,s.index+1);continue;}
    els=els.flatMap(e=>[...e.querySelectorAll(typeof s==='string'?s:s.css)]);
-   if(typeof s!=='string')els=els.filter(e=>typeof s.text==='string'?norm(e.textContent).toLowerCase().includes(norm(s.text).toLowerCase()):new RegExp(s.text.source,s.text.flags).test(norm(e.textContent)));}
+   if(typeof s!=='string'&&s.role)els=els.filter(e=>{
+    if(!s.includeHidden&&(e.closest('[aria-hidden="true"], [hidden]')||!e.getClientRects().length||getComputedStyle(e).visibility==='hidden'))return false;
+    const refs=e.getAttribute('aria-labelledby')?.split(/\\s+/).map(id=>document.getElementById(id)).filter(Boolean);
+    const name=norm(refs?.length?refs.map(el=>el.textContent).join(' '):e.getAttribute('aria-label')??(e.tagName==='INPUT'?e.value:e.textContent));
+    if(s.name==null)return true;
+    if(typeof s.name==='string')return s.exact?name===norm(s.name):name.toLowerCase().includes(norm(s.name).toLowerCase());
+    return new RegExp(s.name.source,s.name.flags).test(name);
+   });
+   else if(typeof s!=='string')els=els.filter(e=>typeof s.text==='string'?norm(e.textContent).toLowerCase().includes(norm(s.text).toLowerCase()):new RegExp(s.text.source,s.text.flags).test(norm(e.textContent)));}
   els=[...new Set(els)];const index=${jsLiteral(this.index)};
   if(index!==null)els=index<0?els.slice(index):els.slice(index,index+1);return (${body})(els,${jsLiteral(arg)});})()`;}
  async all(fn,arg){return this.page.evalExpression(this.query(`(els,arg)=>(${fn.toString()})(els,arg)`,arg));}
@@ -170,7 +186,8 @@ export class Page{
  // Playwright's page.$: the first match, or null when nothing matches.
  async $(selector){const found=this.locator(selector);return await found.count()?found.first():null;}
  $$eval(selector,fn,arg){return this.locator(selector).all(fn,arg);}
- getByRole(){throw new UndefinedNativeAdapterError('Page shim lacks getByRole');}
+ getByRole(role,options){return new Locator(this,[roleStep(role,options)]);}
+ isVisible(selector){return this.locator(selector).isVisible();}
  fill(selector,value){return this.locator(selector).fill(value);}
  press(selector,key){return this.locator(selector).press(key);}
  hover(selector){return this.locator(selector).hover();}
