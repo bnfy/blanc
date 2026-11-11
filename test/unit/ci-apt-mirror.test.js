@@ -28,8 +28,9 @@ test('the mirror script leaves azure.archive.ubuntu.com and refuses to run off a
   const script = read('scripts', 'ci-apt-mirror.sh');
   assert.match(script, /^set -euo pipefail$/m);
   assert.match(script, /GITHUB_ACTIONS:-\} != true \|\| \$\{RUNNER_OS:-\} != Linux/);
-  assert.ok(script.includes("printf '%s\\n' http://mirrors.edge.kernel.org/ubuntu/"), 'the kernel.org mirror comes first');
+  // The whole line, so kernel.org is the only mirror: a fallback such as
+  // archive.ubuntu.com was tried first on every index and timed out.
+  assert.match(script, /^\s*printf '%s\\n' http:\/\/mirrors\.edge\.kernel\.org\/ubuntu\/ \| sudo tee \/etc\/apt\/apt-mirrors\.txt >\/dev\/null$/m);
   assert.match(script, /azure\.archive\.ubuntu\.com is still configured/);
-  assert.ok(!script.includes('http://archive.ubuntu.com/'), 'no fallback that times out on every index');
   assert.doesNotMatch(script, /apt-get/, 'the step itself runs apt, after the script');
 });
