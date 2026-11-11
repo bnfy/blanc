@@ -2362,6 +2362,15 @@ still hears "Start Page"; the owner shortened the shared string on November 11 (
 it fits a 411dp phone beside Back, Forward and New Tab at the iPhone's 44dp. If #1463 changes in review, this follows
 it.
 
+The Start Page's Billboard clock defaults to the iPhone's first-run clock (#1331): Roboto Flex at its tallest (300),
+weight 450, in glass. `blanc_pages_ui.cc` puts these under the Start Page's appearance settings; Android has no
+appearance store yet (A5b), and these are never saved, so a later default reaches everyone who never changed the
+clock. Android has no Liquid Glass, so the page draws the glass itself with `clock-art.js`, as desktop does; it looks
+close to the iPhone's but is not the system material. The pinned page copies moved from v1.46.0 to v1.47.1, which
+brings the iPhone's larger phone clock (30vw, capped at 120px) and its glass-clock fixes. `pages-phone.mjs` checks
+the fresh install's clock (it failed on the old build: Instrument Sans, solid). Not wired yet: the Start Page's
+layout for the Island along the top (`mobileIslandPosition`, which v1.47.1's phone script reads).
+
 ### Shield count across a page's commit
 
 The count is fixed in the blocker code desktop shares. A page's first request can

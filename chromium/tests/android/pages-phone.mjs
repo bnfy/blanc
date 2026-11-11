@@ -6,8 +6,9 @@
 //   - be in that language (<html lang>);
 //   - not scroll sideways (scrollWidth ≤ innerWidth);
 //   - throw no uncaught script errors.
-// Screenshots go to the evidence folder. Fails closed: a page that can't be
-// reached fails.
+// A fresh install's Start Page must also show the iPhone's first-run clock
+// (tall Roboto Flex in glass). Screenshots go to the evidence folder. Fails
+// closed: a page that can't be reached fails.
 //
 //   node chromium/tests/android/pages-phone.mjs --apk <ChromePublic.apk> --evidence <dir>
 import fs from 'node:fs';
@@ -32,6 +33,19 @@ export function pageProblems(page, locale, report) {
   if (report.lang !== locale) problems.push(`in ${report.lang || 'no language'}, not ${locale}`);
   if (report.scrollWidth > report.innerWidth) problems.push(`scrolls sideways (${report.scrollWidth} > ${report.innerWidth})`);
   for (const error of report.errors) problems.push(`script error: ${error}`);
+  return problems;
+}
+
+// The iPhone's first-run Billboard clock (#1331), which a fresh install must show: Roboto Flex at its
+// tallest, weight 450, in glass, with the page's glass drawn (Android has no Liquid Glass, so the
+// page draws it, as desktop does).
+export function clockProblems(report) {
+  if (!report || !report.clock) return ['no clock data'];
+  const {clock, glassDrawn} = report;
+  const want = {font: 'flex', style: 'glass', height: 300, weight: 450};
+  const problems = Object.entries(want).filter(([key, value]) => clock[key] !== value)
+    .map(([key, value]) => `${key} is ${JSON.stringify(clock[key])}, not ${JSON.stringify(value)}`);
+  if (!glassDrawn) problems.push('the glass is not drawn');
   return problems;
 }
 
@@ -76,6 +90,17 @@ async function main(argv) {
     const first = await devtools();
     first.close();
     results.push({case: 'fresh install', problems: first.url === 'chrome://blanc/newtab.html' ? [] : [`opened ${first.url}`]});
+    {
+      const tools = await devtools();
+      sleep(2);
+      const {result} = await tools.send('Runtime.evaluate', {returnByValue: true, awaitPromise: true, expression: `
+        window.bowserPages.start.data().then(data => ({
+          clock: data.clock, glassDrawn: !document.getElementById('bbClockArt').hidden }))`});
+      fs.writeFileSync(path.join(evidence, 'clock.png'), execFileSync('adb', ['exec-out', 'screencap', '-p'], {maxBuffer: 64 * 1024 * 1024}));
+      const report = result?.result?.value ?? null;
+      results.push({case: 'the first-run clock is the iPhone\'s', report, problems: clockProblems(report)});
+      tools.close();
+    }
     for (const locale of LOCALES) {
       adb('shell', 'am', 'force-stop', PACKAGE);
       adb('shell', 'cmd', 'locale', 'set-app-locales', PACKAGE, '--locales', locale);
