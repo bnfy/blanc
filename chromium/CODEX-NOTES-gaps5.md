@@ -8,7 +8,7 @@ Queue 5 is in progress. Display-dependent runs are blocked by the rendering guar
 | b: missing fork capability / blocked acceptance | 49 | 0 |
 | c: inapplicable by platform or approved construction | 22 | 0 |
 
-Current candidate: `macos-47a95ccb40bcdd87`, `q5-profile-restore-4-runtime-config.json`.
+Current candidate: `macos-e048ca40f4679ff0`, `q5-audio-1-runtime-config.json`.
 Inherited Sync gate: 22/22 on starting bytes; Sync code unchanged; not rerun.
 Inventory baseline: 533 pass / 3 fail (subsequently repaired) / 102 undefined / 2 excluded.
 Final inventory: owed, once after implementation. Lost passes: not yet measured.
@@ -297,3 +297,17 @@ restart, focused capability runs, and the one final complete inventory.
 
 Precommit: 312/312 required tests pass (`q5-profiles-precommit.tap`); patch
 reconstruction passes at 164 upstream / 583 canonical files. Sync unchanged.
+
+## 6 — Background audio guard (implemented; native acceptance blocked by display)
+
+SiteMuteTab now observes real native media-start notifications and guards the
+first start in a hidden tab. Native TabInterface visibility covers both Glance
+and Split View panes without confusing window occlusion with a hidden tab.
+Becoming visible releases only the temporary guard; user/site mute survives,
+and media already started while visible is not muted when the tab is hidden.
+The native snapshot separates displayed mute, effective mute and guard state.
+The shipping media-event seam calls the same production transition; no guessed
+state is supplied by the adapter. Build q5-audio-1 passes (6 steps / 34.47 s).
+Owed: Glance :38 and :45 on this or a later final candidate after the rendering
+guard is clear; neither is counted as a pass. Sync untouched; patch budget
+unchanged at 125 upstream paths / 434 hunks.

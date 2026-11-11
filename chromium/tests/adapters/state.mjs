@@ -21,7 +21,7 @@ export function shippingState(snapshot){
   // own; shipping's state keeps them as title and customTitle.
   loading:!!t.isLoading,isLoading:!!t.isLoading,title:(t.pageTitle??t.title)||'',customTitle:t.pageTitle!=null?t.title:null,favicon:t.favicon||null,
   bounds:t.viewBounds??null,groupId:id(t.groupId),splitId:splitOf.get(String(t.id))??null,pinned:!!t.pinned,
-  muted:!!(t.muted||t.siteMuted),audioMuted:!!t.muted,audible:!!t.audible,canGoBack:!!t.canGoBack,canGoForward:!!t.canGoForward,
+  muted:!!(t.muted||t.siteMuted),audioMuted:t.audioMuted??!!t.muted,...(typeof t.audioGuarded==='boolean'?{audioGuarded:t.audioGuarded}:{}),audible:!!t.audible,canGoBack:!!t.canGoBack,canGoForward:!!t.canGoForward,
   // A private tab's contents live in the off-the-record profile (D1), the
   // fork's private session, which never persists.
   private:!!t.private,sessionKind:t.private?'private':'default',sessionPersistent:!t.private,asleep:!!t.asleep,

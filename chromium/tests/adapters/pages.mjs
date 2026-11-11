@@ -483,6 +483,6 @@ export const pages={
  })()`),
  zoomLevel:async(w,id)=>Math.log(await (await tabPage(w,id)).evaluate(()=>devicePixelRatio)/
   await w.hostEval('devicePixelRatio'))/Math.log(1.2),
- simulateMediaStarted:(w,id)=>w.call('setQuietProtection',id,'audible'),
+ simulateMediaStarted:(w,id)=>w.native('simulateMediaStarted',[nativeId(id)]),
  findTabId:w=>w.hostEval('window.BlancPrototypeHost.findState().tabId'),
 };

@@ -53,6 +53,7 @@
 #include "ui/views/accessibility/view_accessibility.h"
 #include "net/base/network_change_notifier.h"
 #include "components/permissions/permission_request_manager.h"
+#include "components/tabs/public/tab_interface.h"
 #include "components/performance_manager/public/performance_manager.h"
 #include "chrome/browser/performance_manager/policies/discard_eligibility_policy.h"
 #include "chrome/browser/performance_manager/policies/cannot_discard_reason.h"
@@ -699,7 +700,12 @@ class SiteMuteTab : public base::SupportsUserData::Data,
                     public content::WebContentsObserver {
  public:
   explicit SiteMuteTab(content::WebContents* contents)
-      : content::WebContentsObserver(contents), manual_(contents->IsAudioMuted()) { Apply(); }
+      : content::WebContentsObserver(contents), manual_(contents->IsAudioMuted()) {
+    if (auto* tab = tabs::TabInterface::MaybeGetFromContents(contents))
+      visible_subscription_ = tab->RegisterDidBecomeVisible(base::BindRepeating(
+          [](SiteMuteTab* self, tabs::TabInterface*) { self->Reveal(); }, base::Unretained(this)));
+    Apply();
+  }
   static SiteMuteTab* Get(content::WebContents* contents) {
     static constexpr char key[] = "blanc-site-mute-tab";
     if (!contents->GetUserData(key)) contents->SetUserData(key, std::make_unique<SiteMuteTab>(contents));
@@ -712,15 +718,39 @@ class SiteMuteTab : public base::SupportsUserData::Data,
     const auto host = AudioHost(web_contents());
     if (reset || host != host_) exempt_ = false;
     host_ = host;
-    web_contents()->SetAudioMuted(manual_ || (SiteMuted() && !exempt_));
+    web_contents()->SetAudioMuted(ShownMuted() || background_guard_);
   }
   void ToggleTab() {
-    if (web_contents()->IsAudioMuted()) { manual_ = false; exempt_ = SiteMuted(); }
+    if (ShownMuted()) { manual_ = false; exempt_ = SiteMuted(); }
     else manual_ = true;
     Apply();
   }
+  bool ShownMuted() const { return manual_ || (SiteMuted() && !exempt_); }
+  bool Guarded() const { return background_guard_; }
+  // TabInterface visibility includes both panes of a native split/Glance and
+  // is independent of window occlusion. Detached held-Space pages are hidden.
+  bool Visible() const {
+    const auto* tab = tabs::TabInterface::MaybeGetFromContents(web_contents());
+    return tab && tab->IsVisible();
+  }
+  void NoteMediaStarted() {
+    if (!used_media_ && !Visible() && !manual_) background_guard_ = true;
+    used_media_ = true;
+    Apply();
+  }
+  void Reveal() {
+    if (!background_guard_) return;
+    background_guard_ = false;
+    Apply();
+  }
+  void MediaStartedPlaying(const MediaPlayerInfo&, const content::MediaPlayerId&) override {
+    NoteMediaStarted();
+  }
   void PrimaryPageChanged(content::Page&) override { Apply(); }
  private:
+  base::CallbackListSubscription visible_subscription_;
+  bool used_media_ = false;
+  bool background_guard_ = false;
   bool manual_ = false;
   bool exempt_ = false;
   std::string host_;
@@ -3570,7 +3600,9 @@ base::DictValue Snapshot(BrowserWindowInterface* browser, Owner* owner) {
                         .Set("canSet", TabPinned(model, index) && ValidPinnedHome(contents->GetVisibleURL()) &&
                             !controller.GetPendingEntry() && PinnedHome(contents) != contents->GetVisibleURL().spec()))
                     // Electron reads the same two signals from its WebContents.
-                    .Set("muted", contents->IsAudioMuted())
+                    .Set("muted", audio->ShownMuted())
+                    .Set("audioMuted", contents->IsAudioMuted())
+                    .Set("audioGuarded", audio->Guarded())
                     .Set("siteMuted", AudioHost(contents).empty() ? base::Value() : base::Value(audio->SiteMuted()))
                     .Set("audible", contents->IsCurrentlyAudible())
                     .Set("capture", base::DictValue().Set("audio", capturing_audio).Set("video", capturing_video))
@@ -5512,6 +5544,16 @@ class Handler : public content::WebUIMessageHandler, public extensions::Extensio
       HeldQuietPause().armed = false;
       if (HeldQuietPause().continuation) std::move(HeldQuietPause().continuation).Run();
       Reply(id, true, base::Value(LastRoomPass())); return;
+    }
+    if (quiet_method == "simulateMediaStarted" && quiet_args.size() == 1 && quiet_args[0].is_int()) {
+      auto* model = GetOwner(web_ui()->GetWebContents())->browser->GetTabStripModel();
+      for (int i = 0; i < model->count(); ++i) {
+        auto* tab = model->GetWebContentsAt(i);
+        if (sessions::SessionTabHelper::IdForTab(tab).id() != quiet_args[0].GetInt()) continue;
+        SiteMuteTab::Get(tab)->NoteMediaStarted();
+        Reply(id, true, base::Value(true)); return;
+      }
+      Reply(id, true, base::Value(false)); return;
     }
     if (quiet_method == "profileInfo" && quiet_args.empty()) {
       auto* owner = GetOwner(web_ui()->GetWebContents());
