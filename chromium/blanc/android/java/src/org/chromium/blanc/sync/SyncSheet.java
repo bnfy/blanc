@@ -5,16 +5,17 @@ package org.chromium.blanc.sync;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.Dialog;
-import android.content.res.Resources;
 import android.text.InputType;
 import android.text.format.DateUtils;
 import android.util.TypedValue;
+import android.view.LayoutInflater;
 import android.view.View;
+import android.view.Window;
 import android.view.WindowManager;
-import android.widget.Button;
 import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.ScrollView;
+import android.widget.Switch;
 import android.widget.TextView;
 
 import org.json.JSONArray;
@@ -27,7 +28,9 @@ import org.chromium.blanc.sync.SyncSheetModel.Row;
 import org.chromium.build.annotations.NullMarked;
 import org.chromium.build.annotations.Nullable;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -92,20 +95,21 @@ public final class SyncSheet {
     private boolean mBusy;
     private @Nullable String mPairingCode;
     private @Nullable Runnable mOnClosed;
+    private @Nullable LinearLayout mCard;
+    private final List<View> mNotes = new ArrayList<>();
+    private boolean mScrollToPairing;
 
     public SyncSheet(Activity activity, Runner runner, Scanner scanner) {
         mActivity = activity;
         mRunner = runner;
         mScanner = scanner;
         mDialog = new Dialog(activity, android.R.style.Theme_DeviceDefault_DayNight);
-        mList = new LinearLayout(activity);
-        mList.setOrientation(LinearLayout.VERTICAL);
-        int pad = dp(20);
-        mList.setPadding(pad, pad, pad, pad);
-        ScrollView scroll = new ScrollView(activity);
-        scroll.setFitsSystemWindows(true);
-        scroll.addView(mList);
-        mDialog.setContentView(scroll);
+        // The screen draws its own bar with Back; the theme's empty action bar would sit above it.
+        mDialog.requestWindowFeature(Window.FEATURE_NO_TITLE);
+        View screen = LayoutInflater.from(activity).inflate(R.layout.blanc_sync_screen, null);
+        mList = screen.findViewById(R.id.blanc_sync_list);
+        screen.findViewById(R.id.blanc_sync_back).setOnClickListener(v -> mDialog.dismiss());
+        mDialog.setContentView(screen);
         // The code and the passphrase aren't for screenshots or the app switcher.
         if (mDialog.getWindow() != null) {
             mDialog.getWindow().addFlags(WindowManager.LayoutParams.FLAG_SECURE);
@@ -253,107 +257,126 @@ public final class SyncSheet {
         mState.hasLastSynced = mStatus.optLong("lastSyncedAt") > 0;
         mState.hasError = !mStatus.isNull("lastError") && !mStatus.optString("lastError").isEmpty();
         mList.removeAllViews();
-        title(text(R.string.blanc_settings_nav_sync));
-        for (Row row : SyncSheetModel.rows(mState)) add(row);
+        for (List<Row> group : SyncSheetModel.groups(mState)) {
+            mCard = null;
+            for (Row row : group) add(row);
+            flushNotes();
+        }
+        mCard = null;
         if (mPairingCode != null) pairing();
-        if (mBusy) line(text(R.string.blanc_ios_settings_working));
-        if (mError != null) tagged(line(mError), "sync.error");
-        if (mNotice != null) tagged(line(mNotice), "sync.notice");
-        Button done = button(text(R.string.blanc_shield_done), v -> mDialog.dismiss());
-        done.setEnabled(true);
+        if (mBusy) note(text(R.string.blanc_ios_settings_working));
+        if (mError != null) tagged(danger(note(mError)), "sync.error");
+        if (mNotice != null) tagged(note(mNotice), "sync.notice");
+        flushNotes();
+    }
+
+    /** Puts the help gathered for the current card under it. */
+    private void flushNotes() {
+        for (View note : mNotes) mList.addView(note);
+        mNotes.clear();
     }
 
     private void add(Row row) {
         switch (row) {
-            case STATUS -> pair(text(R.string.blanc_ios_settings_status),
+            case STATUS -> value(text(R.string.blanc_ios_settings_status),
                     text(mState.enabled ? R.string.blanc_ios_settings_connected : R.string.blanc_ios_settings_not_connected));
-            case ACCOUNT -> pair(text(R.string.blanc_ios_settings_account), mStatus.optString("handle"));
-            case LAST_SYNCED -> pair(text(R.string.blanc_ios_settings_last_synced),
+            case ACCOUNT -> value(text(R.string.blanc_ios_settings_account), mStatus.optString("handle"));
+            case LAST_SYNCED -> value(text(R.string.blanc_ios_settings_last_synced),
                     DateUtils.formatDateTime(mActivity, mStatus.optLong("lastSyncedAt"),
                             DateUtils.FORMAT_SHOW_DATE | DateUtils.FORMAT_SHOW_TIME));
-            case ERROR -> line(errorText(mStatus.optString("lastError")));
-            case HELP -> line(text(R.string.blanc_ios_settings_sync_help));
+            case ERROR -> danger(row(errorText(mStatus.optString("lastError")), null, null));
+            case HELP -> note(text(R.string.blanc_ios_settings_sync_help));
             case OFF_INTRO -> {
-                header(text(R.string.blanc_ios_settings_sync_off_title));
-                line(text(R.string.blanc_ios_settings_sync_off_body));
+                heading(text(R.string.blanc_ios_settings_sync_off_title));
+                note(text(R.string.blanc_ios_settings_sync_off_body));
             }
-            case PAIR_WITH_BLANC -> button(text(R.string.blanc_ios_settings_pair_with_blanc), v -> scan());
-            case OTHER_WAYS -> button(text(R.string.blanc_ios_settings_other_ways), v -> {
+            case PAIR_WITH_BLANC -> accent(action(text(R.string.blanc_ios_settings_pair_with_blanc), v -> scan()));
+            case OTHER_WAYS -> action(text(R.string.blanc_ios_settings_other_ways), v -> {
                 mState.otherWays = !mState.otherWays;
                 render();
             });
-            case CODE_HEADER -> header(text(mState.switching ? R.string.blanc_ios_settings_switch_account : R.string.blanc_ios_settings_enter_code));
+            case CODE_HEADER -> heading(text(mState.switching ? R.string.blanc_ios_settings_switch_account : R.string.blanc_ios_settings_enter_code));
             case CODE_FIELD -> field(text(R.string.blanc_ios_settings_pairing_code), mCode, false, value -> mCode = value);
-            case CONNECT -> button(text(mState.switching ? R.string.blanc_ios_settings_switch_account : R.string.blanc_settings_sync_switch_connect), v -> join(mCode));
-            case TYPE_CODE_HINT -> line(text(R.string.blanc_ios_settings_type_code_shown));
-            case PAIRING_HELP -> line(text(R.string.blanc_ios_settings_pairing_help));
-            case PASSPHRASE_HEADER -> header(text(R.string.blanc_ios_settings_use_passphrase));
+            case CONNECT -> accent(action(text(mState.switching ? R.string.blanc_ios_settings_switch_account : R.string.blanc_settings_sync_switch_connect), v -> join(mCode)));
+            case TYPE_CODE_HINT -> note(text(R.string.blanc_ios_settings_type_code_shown));
+            case PAIRING_HELP -> note(text(R.string.blanc_ios_settings_pairing_help));
+            case PASSPHRASE_HEADER -> heading(text(R.string.blanc_ios_settings_use_passphrase));
             case HANDLE_FIELD -> field(text(R.string.blanc_settings_sync_sync_name), mHandle, false, value -> mHandle = value);
             case PASSPHRASE_FIELD -> field(text(R.string.blanc_ios_settings_passphrase), mPassphrase, true, value -> mPassphrase = value);
-            case SIGN_IN -> button(text(R.string.blanc_ios_settings_sign_in), v -> signIn());
-            case DESKTOP_ACCOUNT -> line(text(R.string.blanc_settings_sync_create_on_computer));
-            case CANCEL_SWITCH -> button(text(R.string.blanc_fill_setup_enable_cancel_label), v -> {
+            case SIGN_IN -> accent(action(text(R.string.blanc_ios_settings_sign_in), v -> signIn()));
+            case DESKTOP_ACCOUNT -> note(text(R.string.blanc_settings_sync_create_on_computer));
+            case CANCEL_SWITCH -> action(text(R.string.blanc_fill_setup_enable_cancel_label), v -> {
                 mState.switching = false;
                 mCode = "";
                 render();
             });
-            case DEVICE_NAME -> field(text(R.string.blanc_ios_settings_device_name), mDeviceName, false, value -> mDeviceName = value);
-            case SAVE_NAME -> button(text(R.string.blanc_ios_settings_save_name),
-                    v -> run("sync.setThisDeviceName", new Object[] {mDeviceName}, text(R.string.blanc_ios_settings_saved)));
-            case SHARE_TABS -> {
-                android.widget.Switch share = new android.widget.Switch(mActivity);
-                share.setText(R.string.blanc_ios_settings_share_tabs);
-                share.setChecked(mStatus.optBoolean("syncTabs"));
-                share.setEnabled(!mBusy);
-                share.setOnCheckedChangeListener((v, on) -> run("sync.setSyncTabs", new Object[] {on}, null));
-                mList.addView(share);
+            case DEVICE_NAME -> {
+                View name = row(text(R.string.blanc_ios_settings_device_name), mDeviceName, v -> rename());
+                name.findViewById(R.id.blanc_sync_row_chevron).setVisibility(View.VISIBLE);
             }
-            case SHARE_HELP -> line(text(R.string.blanc_ios_settings_share_tabs_help));
+            case SHARE_TABS -> toggle(text(R.string.blanc_ios_settings_share_tabs), mStatus.optBoolean("syncTabs"),
+                    on -> run("sync.setSyncTabs", new Object[] {on}, null));
+            case SHARE_HELP -> note(text(R.string.blanc_ios_settings_share_tabs_help));
             case SPACES -> spaces();
-            case SYNC_NOW -> button(text(R.string.blanc_settings_sync_sync_now), v -> run("sync.syncNow", new Object[] {}, null));
-            case PAIR_DEVICE -> button(text(R.string.blanc_settings_sync_add_another_device), v -> beginPairing());
-            case COPY_RECOVERY -> button(text(R.string.blanc_settings_sync_recovery_copy), v -> confirmRecovery());
-            case SWITCH_ACCOUNT -> button(text(R.string.blanc_ios_settings_switch_account), v -> {
+            case SYNC_NOW -> action(text(R.string.blanc_settings_sync_sync_now), v -> run("sync.syncNow", new Object[] {}, null));
+            case PAIR_DEVICE -> action(text(R.string.blanc_settings_sync_add_another_device), v -> beginPairing());
+            case COPY_RECOVERY -> action(text(R.string.blanc_settings_sync_recovery_copy), v -> confirmRecovery());
+            case SWITCH_ACCOUNT -> action(text(R.string.blanc_ios_settings_switch_account), v -> {
                 mState.switching = true;
                 render();
             });
-            case DISCONNECT -> button(text(R.string.blanc_ios_settings_disconnect), v -> confirmDisconnect());
+            case DISCONNECT -> danger(action(text(R.string.blanc_ios_settings_disconnect), v -> confirmDisconnect()));
         }
+    }
+
+    /** This phone's name, in a dialog with Save name, as the iPhone's field and button. */
+    private void rename() {
+        View box = LayoutInflater.from(mActivity).inflate(R.layout.blanc_sync_rename, null);
+        EditText name = box.findViewById(R.id.blanc_sync_rename_field);
+        name.setText(mDeviceName);
+        name.setSelection(mDeviceName.length());
+        new AlertDialog.Builder(mActivity)
+                .setTitle(R.string.blanc_ios_settings_device_name)
+                .setView(box)
+                // The row shows the name the runner reports once the save is done, not the typed one.
+                .setPositiveButton(R.string.blanc_ios_settings_save_name, (d, w) -> run("sync.setThisDeviceName",
+                        new Object[] {name.getText().toString()}, text(R.string.blanc_ios_settings_saved)))
+                .setNegativeButton(R.string.blanc_fill_setup_enable_cancel_label, null)
+                .show();
     }
 
     /** The Spaces switch: on asks which Spaces to share; off keeps dormant copies. */
     private void spaces() {
         boolean on = mSpaces.optBoolean("enabled");
-        android.widget.Switch keep = new android.widget.Switch(mActivity);
-        keep.setText(R.string.blanc_shared_spaces_switch_android);
-        keep.setChecked(on);
-        keep.setEnabled(!mBusy);
-        keep.setOnCheckedChangeListener((v, wanted) -> {
+        View keepRow = toggle(text(R.string.blanc_shared_spaces_switch_android), on, wanted -> {
             if (wanted) {
                 new SharedSpacesSheet(mActivity, this::refresh).show();
-                keep.setChecked(false);
+                render();
             } else if (on) {
                 run("spaces.apply", new Object[] {offArgument()}, null);
             }
         });
-        tagged(keep, "sync.spaces");
-        mList.addView(keep);
-        line(text(R.string.blanc_shared_spaces_switch_line_android));
-        if (on) button(text(R.string.blanc_shared_spaces_title), v -> new SharedSpacesSheet(mActivity, this::refresh).show());
+        tagged(keepRow.findViewById(R.id.blanc_sync_row_switch), "sync.spaces");
+        note(text(R.string.blanc_shared_spaces_switch_line_android));
+        if (on) {
+            View choose = action(text(R.string.blanc_shared_spaces_title),
+                    v -> new SharedSpacesSheet(mActivity, this::refresh).show());
+            choose.findViewById(R.id.blanc_sync_row_chevron).setVisibility(View.VISIBLE);
+        }
         if (!mSpaces.optBoolean("available", true)) {
-            tagged(line(text(R.string.blanc_shared_spaces_unavailable)), "sync.spaces.unavailable");
+            tagged(note(text(R.string.blanc_shared_spaces_unavailable)), "sync.spaces.unavailable");
         } else if (on) {
             JSONArray keys = mSpaces.optJSONArray("keys");
             for (int i = 0; keys != null && i < keys.length(); i++) {
                 Integer status = SPACES_STATUS.get(keys.optString(i));
-                if (status != null) line(text(status));
+                if (status != null) note(text(status));
             }
-            if (mSpaces.optBoolean("accountFull")) line(text(R.string.blanc_shared_spaces_account_full));
+            if (mSpaces.optBoolean("accountFull")) note(text(R.string.blanc_shared_spaces_account_full));
         } else if (mSpaces.optInt("spaces") > 0) {
             int count = mSpaces.optInt("spaces");
-            line(mActivity.getResources().getQuantityString(R.plurals.blanc_shared_spaces_waiting_count, count, count));
+            note(mActivity.getResources().getQuantityString(R.plurals.blanc_shared_spaces_waiting_count, count, count));
         }
-        line(text(on ? R.string.blanc_shared_spaces_account_line : R.string.blanc_shared_spaces_off_line));
+        note(text(on ? R.string.blanc_shared_spaces_account_line : R.string.blanc_shared_spaces_off_line));
     }
 
     private static JSONObject offArgument() {
@@ -391,6 +414,7 @@ public final class SyncSheet {
             JSONObject value = value(reply);
             if (value != null && value.optBoolean("ok")) {
                 mPairingCode = value.optString("code");
+                mScrollToPairing = true;
             } else if (value != null) {
                 mError = errorText(value.optString("error"));
             }
@@ -401,11 +425,18 @@ public final class SyncSheet {
     private void pairing() {
         String code = mPairingCode;
         if (code == null) return;
-        header(text(R.string.blanc_settings_sync_add_another_device));
-        TextView shown = line(SyncCode.format(code));
-        shown.setTextSize(TypedValue.COMPLEX_UNIT_SP, 32);
-        tagged(shown, "sync.pairingCode");
-        line(text(R.string.blanc_settings_sync_pairing_instruction));
+        heading(text(R.string.blanc_settings_sync_add_another_device));
+        View shown = row(SyncCode.format(code), null, null);
+        TextView digits = shown.findViewById(R.id.blanc_sync_row_title);
+        digits.setTextSize(TypedValue.COMPLEX_UNIT_PX,
+                mActivity.getResources().getDimension(R.dimen.blanc_sync_code_size));
+        tagged(digits, "sync.pairingCode");
+        note(text(R.string.blanc_settings_sync_pairing_instruction));
+        // It's drawn under the last card; brings it on screen once, when it first appears.
+        if (mScrollToPairing && mList.getParent() instanceof ScrollView scroll) {
+            mScrollToPairing = false;
+            scroll.post(() -> scroll.fullScroll(View.FOCUS_DOWN));
+        }
     }
 
     private void confirmRecovery() {
@@ -426,48 +457,90 @@ public final class SyncSheet {
                 .show();
     }
 
-    private int dp(int value) {
-        return Math.round(value * mActivity.getResources().getDisplayMetrics().density);
-    }
-
-    private void title(String value) {
-        TextView view = line(value);
-        view.setTextSize(TypedValue.COMPLEX_UNIT_SP, 24);
-    }
-
-    private void header(String value) {
-        TextView view = line(value);
-        view.setTextSize(TypedValue.COMPLEX_UNIT_SP, 18);
-        view.setPadding(0, dp(16), 0, dp(4));
-    }
-
-    private TextView line(String value) {
-        TextView view = new TextView(mActivity);
+    /** Help under the current card; added once the card is. */
+    private TextView note(String value) {
+        TextView view = (TextView) LayoutInflater.from(mActivity).inflate(R.layout.blanc_sync_note, mList, false);
         view.setText(value);
-        view.setPadding(0, dp(4), 0, dp(4));
-        mList.addView(view);
+        mNotes.add(view);
         return view;
     }
 
-    private void pair(String label, String value) {
-        line(label + ": " + value);
+    /** A heading above the next card. */
+    private void heading(String value) {
+        TextView view = (TextView) LayoutInflater.from(mActivity).inflate(R.layout.blanc_sync_heading, mList, false);
+        view.setText(value);
+        mList.addView(view);
     }
 
-    private Button button(String label, View.OnClickListener click) {
-        Button view = new Button(mActivity);
-        view.setText(label);
-        view.setAllCaps(false);
-        view.setEnabled(!mBusy);
-        view.setOnClickListener(click);
-        mList.addView(view);
+    private LinearLayout card() {
+        LinearLayout card = mCard;
+        if (card == null) {
+            card = (LinearLayout) LayoutInflater.from(mActivity).inflate(R.layout.blanc_sync_card, mList, false);
+            mList.addView(card);
+            mCard = card;
+        }
+        return card;
+    }
+
+    /** A row in the current card: a title, an optional value under it, and an optional tap. */
+    private View row(String title, @Nullable String value, View.@Nullable OnClickListener click) {
+        View row = LayoutInflater.from(mActivity).inflate(R.layout.blanc_sync_row, card(), false);
+        ((TextView) row.findViewById(R.id.blanc_sync_row_title)).setText(title);
+        if (value != null && !value.isEmpty()) {
+            TextView shown = row.findViewById(R.id.blanc_sync_row_value);
+            shown.setText(value);
+            shown.setVisibility(View.VISIBLE);
+        }
+        if (click != null) {
+            row.setOnClickListener(click);
+            row.setEnabled(!mBusy);
+        } else {
+            row.setBackground(null);
+        }
+        card().addView(row);
+        return row;
+    }
+
+    private void value(String label, String value) {
+        row(label, value, null);
+    }
+
+    private View action(String label, View.OnClickListener click) {
+        return row(label, null, click);
+    }
+
+    /** A row with a switch; tapping the row flips it. */
+    private View toggle(String label, boolean on, Callback<Boolean> changed) {
+        // The row keeps its press feedback and, like the switch, does nothing while a request runs.
+        View row = row(label, null, v -> {});
+        Switch control = row.findViewById(R.id.blanc_sync_row_switch);
+        control.setVisibility(View.VISIBLE);
+        control.setContentDescription(label);
+        control.setChecked(on);
+        control.setEnabled(!mBusy);
+        control.setOnCheckedChangeListener((v, wanted) -> changed.onResult(wanted));
+        row.setOnClickListener(v -> {
+            if (control.isEnabled()) control.toggle();
+        });
+        return row;
+    }
+
+    private View accent(View row) {
+        ((TextView) row.findViewById(R.id.blanc_sync_row_title))
+                .setTextColor(mActivity.getColor(R.color.blanc_sunrise_accent));
+        return row;
+    }
+
+    private <T extends View> T danger(T view) {
+        TextView label = view instanceof TextView t ? t : view.findViewById(R.id.blanc_sync_row_title);
+        label.setTextColor(mActivity.getColor(R.color.blanc_settings_error));
         return view;
     }
 
     private void field(String hint, String value, boolean secret, Callback<String> changed) {
-        EditText view = new EditText(mActivity);
+        EditText view = (EditText) LayoutInflater.from(mActivity).inflate(R.layout.blanc_sync_field, card(), false);
         view.setHint(hint);
         view.setText(value);
-        view.setSingleLine(true);
         view.setInputType(InputType.TYPE_CLASS_TEXT
                 | (secret ? InputType.TYPE_TEXT_VARIATION_PASSWORD : InputType.TYPE_TEXT_FLAG_NO_SUGGESTIONS));
         view.addTextChangedListener(new android.text.TextWatcher() {
@@ -477,7 +550,7 @@ public final class SyncSheet {
                 changed.onResult(s.toString());
             }
         });
-        mList.addView(view);
+        card().addView(view);
     }
 
     private static void tagged(View view, String tag) {
