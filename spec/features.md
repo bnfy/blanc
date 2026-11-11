@@ -697,9 +697,9 @@ From the desktop `DEFAULTS`:
   supported 640×480 minimum, the pane is 392px wide and the visible find
   capsule fits within 368px of it without touching the rail. The expanded
   Island footer has an accessible two-way vertical-tabs toggle, while the
-  rail's top bar holds the current Space's mark (moved there from the Island,
-  opening the Spaces menu below it; with no Spaces yet it shows the Spaces
-  glyph) and, at its far end, an accessible sidebar icon that turns vertical
+  rail's top bar holds the current Space's mark (the only place it shows; the
+  resting Island never does), opening the Spaces menu below it; with no Spaces
+  yet it shows the Spaces glyph) and, at its far end, an accessible sidebar icon that turns vertical
   tabs off. On Windows and Linux the main-menu button leads the row. The rail's
   footer has **New tab** and, beside it, **New group**, which starts a group
   from the current tab (or every selected tab) like the tab menu's Move to
@@ -1254,13 +1254,13 @@ existing certificate-safety scenario; historical PR evidence retains its old IDs
   and symbol in list order, written once on load. The drawn ink is derived so
   the symbol and name reach 4.5:1 against every surface they sit on and their
   own wash, in light, dark and private; the stored hex is never changed.
-- The Island shows the current space as a **mark** at its leading edge
-  (symbol and name on its colour); a window in no space shows a quiet grey
-  mark once any space exists; before the first space nothing is shown. The
-  mark opens the **Spaces menu**, lined up under it and hanging just below the
-  Island; the ⌘L footer's icon-only Spaces button opens the same menu below
-  the Island (neither ever covers it), and the Quick Switcher matches space
-  names.
+- The resting Island shows no space mark, so the closed Island stays short
+  (owner decision, November 11, 2026); the ⌘L footer's icon-only Spaces
+  button opens the **Spaces menu** below the Island (never covering it), and
+  the Quick Switcher matches space names. With vertical tabs, the rail's top
+  bar shows the current space as a **mark** (symbol and name on its colour; a
+  window in no space shows the quiet grey Spaces glyph), which opens the same
+  menu, lined up under it and hanging just below the mark and the Island.
 - The menu edits in place (name validated as you type, preset and custom
   colours, symbols; changes apply live), deletes immediately with **Undo**
   (which also puts the window back in the space), reorders by drag or

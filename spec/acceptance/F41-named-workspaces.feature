@@ -105,19 +105,25 @@ Feature: Named workspace preservation and recovery
     When I save this window as a space named "Free for all" from the switcher
     Then a space named "Free for all" is saved and this window is in it
 
+  # The resting Island carries no space mark, so the closed Island stays short;
+  # Spaces open from the ⌘L panel's footer. The mark lives only in the side
+  # list's first row, so the scenarios about the mark itself run there.
   @F41-16
-  Scenario: The Island shows no space mark before the first space
+  Scenario: The resting Island never shows a space mark, even in a space
+    Given a space named "Work" in this window, colored "#426c4c" with the symbol "briefcase"
     Then the Island shows no space mark
 
   @F41-17
   Scenario: A window that is in no space shows the quiet Spaces mark
-    Given a space named "Elsewhere" saved from another window
-    Then the Island shows the quiet Spaces mark
+    Given the tabs are in the side list
+    And a space named "Elsewhere" saved from another window
+    Then the side list shows the quiet Spaces mark
 
   @F41-18
   Scenario: The space mark names the current space and opens its menu
-    Given a space named "Work" in this window, colored "#426c4c" with the symbol "briefcase"
-    Then the Island's space mark reads "Work" in "#426c4c" with the symbol "briefcase"
+    Given the tabs are in the side list
+    And a space named "Work" in this window, colored "#426c4c" with the symbol "briefcase"
+    Then the space mark reads "Work" in "#426c4c" with the symbol "briefcase"
     When I open the Spaces menu from the space mark
     Then the Spaces menu opens directly below the mark
     When I open the Spaces menu from the space mark
@@ -125,33 +131,37 @@ Feature: Named workspace preservation and recovery
 
   @F41-19
   Scenario: Editing a space changes the mark as you edit
-    Given a space named "Work" in this window, colored "#426c4c" with the symbol "briefcase"
+    Given the tabs are in the side list
+    And a space named "Work" in this window, colored "#426c4c" with the symbol "briefcase"
     When I open the Spaces menu from the space mark
     And I edit "Work" to the color "sky" and the symbol "star"
-    Then the Island's space mark reads "Work" in "#376694" with the symbol "star"
+    Then the space mark reads "Work" in "#376694" with the symbol "star"
 
   @F41-20
   Scenario: A custom color is kept and drawn exactly
-    Given a space named "Work" in this window, colored "#426c4c" with the symbol "briefcase"
+    Given the tabs are in the side list
+    And a space named "Work" in this window, colored "#426c4c" with the symbol "briefcase"
     When I open the Spaces menu from the space mark
     And I give "Work" the custom color "#F5E663"
     Then the space "Work" is saved with the color "#f5e663"
-    And the Island's space mark reads "Work" in "#f5e663" with the symbol "briefcase"
+    And the space mark reads "Work" in "#f5e663" with the symbol "briefcase"
     And the mark's symbol is "#000000" on its color
     And the editor shows no readability note
 
   @F41-21
   Scenario: Undo after deleting this window's space puts the window back in it
-    Given a space named "Work" in this window, colored "#426c4c" with the symbol "briefcase"
+    Given the tabs are in the side list
+    And a space named "Work" in this window, colored "#426c4c" with the symbol "briefcase"
     When I open the Spaces menu from the space mark
     And I delete "Work" from its editor
-    Then the Island shows no space mark
+    Then the space mark names no space
     When I undo the delete
     Then this window is in the space "Work" again
 
   @F41-22
   Scenario: The Spaces menu works from the keyboard
-    Given spaces named "Work" and "Reading", with this window in "Work"
+    Given the tabs are in the side list
+    And spaces named "Work" and "Reading", with this window in "Work"
     When I open the Spaces menu from the space mark
     And I move "Work" down with Option or Alt and the down arrow
     Then the spaces are listed as "Reading" then "Work"
@@ -160,41 +170,47 @@ Feature: Named workspace preservation and recovery
 
   @F41-23
   Scenario: With Reduce Motion a switch only cross-fades
-    Given spaces named "Work" and "Reading", with this window in "Work"
+    Given the tabs are in the side list
+    And spaces named "Work" and "Reading", with this window in "Work"
     And Reduce Motion is on
     When I switch to "Reading" from the Spaces menu
     Then the space mark changes to "Reading" without sliding
 
   @F41-24
   Scenario: Typing a space's name in the panel switches to it
-    Given spaces named "Work" and "Reading", with this window in "Work"
+    Given the tabs are in the side list
+    And spaces named "Work" and "Reading", with this window in "Work"
     When I type "Read" into the panel and pick the space result
-    Then the Island's space mark reads "Reading"
+    Then the space mark reads "Reading"
 
   @F41-25
   Scenario: Switching from unsaved tabs leads with saving them
-    Given a page open in a window that is in no space, and a saved space named "Target"
+    Given the tabs are in the side list
+    And a page open in a window that is in no space, and a saved space named "Target"
     When I open the Spaces menu from the space mark
     And I pick "Target" in the Spaces menu
     Then the switch prompt offers save, new window, close, then cancel
 
   @F41-26
   Scenario: Switching to a private tab redraws the space mark for the private theme
-    Given a space named "Work" in this window, colored "#426c4c" with the symbol "briefcase"
+    Given the tabs are in the side list
+    And a space named "Work" in this window, colored "#426c4c" with the symbol "briefcase"
     And a private tab beside an ordinary tab, with the ordinary tab selected
     When I select the private tab
-    Then the Island's space mark is drawn for the private theme
+    Then the space mark is drawn for the private theme
 
   @F41-27
   Scenario: Closing the Spaces menu fades it out where it was
-    Given a space named "Work" in this window, colored "#426c4c" with the symbol "briefcase"
+    Given the tabs are in the side list
+    And a space named "Work" in this window, colored "#426c4c" with the symbol "briefcase"
     When I open the Spaces menu from the space mark
     And I press Escape in the Spaces menu
     Then the Spaces menu fades out below the mark before it is removed
 
   @F41-28
   Scenario: With Reduce Motion the closing Spaces menu only fades
-    Given a space named "Work" in this window, colored "#426c4c" with the symbol "briefcase"
+    Given the tabs are in the side list
+    And a space named "Work" in this window, colored "#426c4c" with the symbol "briefcase"
     And Reduce Motion is on
     When I open the Spaces menu from the space mark
     And I press Escape in the Spaces menu
@@ -202,27 +218,30 @@ Feature: Named workspace preservation and recovery
 
   @F41-29
   Scenario: Clicking the mark while the Spaces menu fades opens it again
-    Given a space named "Work" in this window, colored "#426c4c" with the symbol "briefcase"
+    Given the tabs are in the side list
+    And a space named "Work" in this window, colored "#426c4c" with the symbol "briefcase"
     When I open the Spaces menu from the space mark
     And I close the Spaces menu and click the mark again before it has faded
     Then the Spaces menu stays open below the mark
 
   @F41-30
   Scenario: Clicking the mark while its menu is open closes it without reopening
-    Given a space named "Work" in this window, colored "#426c4c" with the symbol "briefcase"
+    Given the tabs are in the side list
+    And a space named "Work" in this window, colored "#426c4c" with the symbol "briefcase"
     When I open the Spaces menu from the space mark
     And I press the space mark with the pointer, which takes focus from the menu
     Then the Spaces menu is closed and stays closed
 
   @F41-31
   Scenario: No colour shows a readability note, preset or custom
-    Given a space named "Work" in this window, colored "#974f2a" with the symbol "plane"
+    Given the tabs are in the side list
+    And a space named "Work" in this window, colored "#974f2a" with the symbol "plane"
     When I open the Spaces menu from the space mark
     And I open the color picker for "Work"
     Then the editor shows no readability note
     When I type the custom color "#FFFFFF" into the picker
     Then the editor shows no readability note
-    And the Island's space mark reads "Work" in "#ffffff" with the symbol "plane"
+    And the space mark reads "Work" in "#ffffff" with the symbol "plane"
 
   @F41-35
   Scenario: Switching between spaces never stops for a limit
@@ -268,7 +287,8 @@ Feature: Named workspace preservation and recovery
 
   @F41-34
   Scenario: Recently deleted spaces keep their colour, their full name and when they went
-    Given a space named "Work" in this window, colored "#426c4c" with the symbol "briefcase"
+    Given the tabs are in the side list
+    And a space named "Work" in this window, colored "#426c4c" with the symbol "briefcase"
     And a space named "Reading list for the weekend", colored "#9b4761" with the symbol "book", deleted today
     When I open the Spaces menu from the space mark
     And I open Recently Deleted
@@ -277,13 +297,15 @@ Feature: Named workspace preservation and recovery
 
   @F41-33
   Scenario: A long space name never squeezes the mark's colour square
-    Given a space named "Work" in this window, colored "#f5c84c" with the symbol "music"
+    Given the tabs are in the side list
+    And a space named "Work" in this window, colored "#f5c84c" with the symbol "music"
     When I rename "Work" to a 60-character name
     Then the mark's colour square keeps its size and place, and the name is cut short
 
   @F41-32
   Scenario: Space names are drawn whole, descenders included
-    Given spaces named "Typing gym" and "Reading", with this window in "Typing gym"
+    Given the tabs are in the side list
+    And spaces named "Typing gym" and "Reading", with this window in "Typing gym"
     When I open the Spaces menu from the space mark
     Then every space name in the menu and on the mark is drawn whole
 
