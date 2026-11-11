@@ -294,7 +294,9 @@ jobs:
       fail-fast: false
       matrix:
         shard: [1, 2, 3]
-    runs-on: ubuntu-latest
+    # Not ubuntu-latest: Ubuntu 26.04 runners can't resolve Ubuntu's apt mirrors
+    # (November 11, 2026; the release workflow's Linux job moved for the same reason in #1447).
+    runs-on: ubuntu-24.04
     timeout-minutes: 25
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -413,7 +415,10 @@ jobs:
         # self-hosted Mac would let every job drive that machine's keyboard and
         # mouse. docs/ci-self-hosted-macos-runner.md
         os: ${{ fromJSON((github.event_name == 'schedule' || github.event_name == 'workflow_dispatch') && '["ubuntu-latest", "windows-latest", "macos-latest"]' || '["ubuntu-latest", "windows-latest"]') }}
-    runs-on: ${{ matrix.os }}
+    # The Linux leg keeps its ubuntu-latest name (a required check) but runs on
+    # ubuntu-24.04: Ubuntu 26.04 runners can't resolve Ubuntu's apt mirrors
+    # (November 11, 2026; the release workflow's Linux job moved for the same reason in #1447).
+    runs-on: ${{ matrix.os == 'ubuntu-latest' && 'ubuntu-24.04' || matrix.os }}
     timeout-minutes: 10
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1

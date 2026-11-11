@@ -45,7 +45,9 @@ concurrency:
 jobs:
   ecs-production-rehearse:
     if: ${{ github.event_name == 'workflow_dispatch' && inputs.ecs_production && github.ref == 'refs/heads/codex/ecs-production-integration' }}
-    runs-on: ubuntu-latest
+    # Not ubuntu-latest: Ubuntu 26.04 runners can't resolve Ubuntu's apt mirrors
+    # (November 11, 2026; the release workflow's Linux job moved for the same reason in #1447).
+    runs-on: ubuntu-24.04
     timeout-minutes: 30
     permissions:
       contents: read
@@ -128,7 +130,9 @@ jobs:
 
   rehearse:
     if: ${{ !inputs.ecs_production }}
-    runs-on: ubuntu-latest
+    # Not ubuntu-latest: Ubuntu 26.04 runners can't resolve Ubuntu's apt mirrors
+    # (November 11, 2026; the release workflow's Linux job moved for the same reason in #1447).
+    runs-on: ubuntu-24.04
     timeout-minutes: 45
     steps:
       - name: Validate inputs before use
