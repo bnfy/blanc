@@ -282,8 +282,8 @@ mobile is a single full-screen surface with system insets.
   pull to refresh still reloads. On the Start Page the Island reads Search or type a
   URL, dimmed, as the desktop pill does on a blank tab (owner, 2026-11-11). The Island has no tab count on any layout:
   a pinch in on a fully zoomed-out page, as in Safari, or a swipe up from the
-  Island opens the tab grid. The page shrinks into its card as Safari's does. Stop still shows while a page loads. Pull to
-  refresh and the tab grid and palette's New Tab stay. The unfolded Island
+  Island opens the tab grid. The page shrinks into its card as Safari's does. Stop still shows while a page loads,
+  on the Island and in the Sunrise menu. The unfolded Island
   always shows every button. Back and Forward also survive a relaunch: each
   tab's `interactionState` is saved on this device only (never synced, never
   backed up, never a private tab), found through `SavedTab.historyId` and kept

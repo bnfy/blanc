@@ -844,7 +844,7 @@ struct ContentView: View {
                     .font(BrowserStyle.font(15))
                     .tracking(0.15)
                     .lineLimit(1)
-                    .truncationMode(.middle)
+                    .truncationMode(onStartPage ? .tail : .middle)
                     .opacity(onStartPage ? 0.55 : 1)
                 Spacer(minLength: 0)
             }
@@ -1005,8 +1005,11 @@ struct ContentView: View {
                 guard let tab else { return nil }
                 return action("tabMenu.copyLink", "link") { manager.copyLink(tab) }
             case .reload:
+                // Stop while the page loads, as the Island's own button does.
                 guard let tab else { return nil }
-                return action("menu.reload", "arrow.clockwise") { tab.reload() }
+                return tab.isLoading
+                    ? action("ios.island.stop", "xmark") { tab.stop() }
+                    : action("menu.reload", "arrow.clockwise") { tab.reload() }
             case .find:
                 return action("menu.findInPage", "magnifyingglass") { manager.presentFind() }
             case .pageZoom:
