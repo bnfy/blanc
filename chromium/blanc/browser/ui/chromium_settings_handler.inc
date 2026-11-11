@@ -122,14 +122,20 @@ class ChromiumSettingsHandler final : public settings::SettingsPageUIHandler,
   }
   static bool ValidSyncCall(std::string_view method, const base::ListValue& args) {
     // No general runner gateway: no sharedContext, stores, or keys;
-    // remote wipe, account switching or raw tab/Space snapshots. The sharing
+    // account switching or raw tab/Space snapshots. Explicit server erasure
+    // accepts only a boolean alongside the normal disable operation. The sharing
     // switch accepts only a boolean; native code supplies the tab inventory.
     if (method == "sync.status" || method == "sync.syncNow" ||
-        method == "sync.disable" || method == "sync.beginPairing" ||
+        method == "sync.beginPairing" ||
         method == "sync.cancelPairing" || method == "sync.pairingState") return args.empty();
     if (method == "desktop.spaces.status" || method == "desktop.spaces.armPairing") return args.empty();
     if (method == "desktop.spaces.acknowledge") return args.size() == 1 && args[0].is_string() && args[0].GetString().size() <= 128;
-    if (method == "desktop.spaces.preview") return args.empty();
+    if (method == "sync.disable" || method == "desktop.spaces.preview") {
+      if (args.empty()) return true;
+      const char* key = method == "sync.disable" ? "wipeRemote" : "local";
+      return args.size() == 1 && args[0].is_dict() && args[0].GetDict().size() == 1 &&
+          args[0].GetDict().FindBool(key).has_value();
+    }
     if (method == "desktop.spaces.apply") {
       if (args.size() != 1 || !args[0].is_dict()) return false;
       const auto& value = args[0].GetDict();

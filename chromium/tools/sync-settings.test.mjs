@@ -73,7 +73,10 @@ test('native bridge rejects arbitrary runner exports and malformed argument shap
  assert.match(validator,/selections->size\(\) > 25/);
  assert.match(validator,/\*mode != "copy" && \*mode != "rejoin"/);
  assert.ok(!methods.some(method=>/push|rowDone|hold|sharedContext/.test(method)));
- assert.match(validator,/sync\.disable"[\s\S]*?sync\.pairingState"\) return args\.empty\(\)/);
+ assert.match(validator,/sync\.pairingState"\) return args\.empty\(\)/);
+ assert.match(validator,/method == "sync\.disable" \? "wipeRemote" : "local"/);
+ assert.match(validator,/args\.size\(\) == 1 && args\[0\]\.is_dict\(\) && args\[0\]\.GetDict\(\)\.size\(\) == 1/);
+ assert.match(validator,/FindBool\(key\)\.has_value\(\)/);
  assert.match(validator,/sync\.setSyncTabs"\) return args\.size\(\) == 1 && args\[0\]\.is_bool\(\)/);
  assert.match(validator,/sync\.setPairingWatch"\) return args\.size\(\) == 1 && args\[0\]\.is_bool\(\)/);
  assert.match(native,/args\[1\]\.is_bool\(\)/);
@@ -178,4 +181,45 @@ test('explicit passphrase start enables while join still requires a found prefli
  api.call=async(method)=>{calls.push(method);return {ok:true};};
  el.onSetupSubmit_({preventDefault(){}});await settle(el);
  assert.deepEqual(calls,['sync.enable']);
+});
+
+test('Shared Spaces opens local choices while checking and Cancel does not consent', {skip:!ts}, async()=>{
+ const {el,api,calls}=harness();let answer;
+ const choice={id:'work',name:'Work',checked:true,shared:false,mode:'copy',tabCount:2};
+ api.call=async(method,args=[])=>{
+  calls.push({method,args});
+  if(method==='desktop.spaces.preview')return args[0]?.local?{ok:true,choices:[choice]}:new Promise(resolve=>{answer=resolve;});
+  return {ok:true};
+ };
+ await el.onSpacesChooseClick_();
+ assert.equal(el.spacesOpen_,true);assert.equal(el.spacesChecking_,true);assert.equal(el.choices_[0].checked,true);
+ el.onSpacesCancelClick_();answer({ok:true,choices:[choice]});await el.spacesCheck_;
+ assert.equal(el.spacesOpen_,false);assert.equal(calls.some(c=>c.method==='desktop.spaces.apply'),false);
+});
+test('cancelling a requested Shared Spaces save dismisses UI while the save continues', {skip:!ts}, async()=>{
+ const {el,api,calls}=harness();let answer;
+ const choice={id:'work',name:'Work',checked:true,shared:false,mode:'copy',tabCount:2};
+ api.call=async(method,args=[])=>{
+  calls.push({method,args});
+  if(method==='desktop.spaces.preview')return args[0]?.local?{ok:true,choices:[choice]}:new Promise(resolve=>{answer=resolve;});
+  if(method==='desktop.spaces.status')return {enabled:true};
+  return {ok:true};
+ };
+ await el.onSpacesChooseClick_();const saving=el.onSpacesShareClick_();el.onSpacesCancelClick_();
+ assert.equal(el.spacesOpen_,false);assert.match(el.notice_,/Uploading/);
+ answer({ok:true,choices:[choice]});await saving;
+ const apply=calls.filter(c=>c.method==='desktop.spaces.apply');assert.equal(apply.length,1);
+ assert.equal(apply[0].args[0].selections[0].id,'work');assert.equal(el.spacesSaving_,false);
+});
+test('a changed remote choice requires renewed consent before a Shared Spaces save', {skip:!ts}, async()=>{
+ const {el,api,calls}=harness();let answer;
+ const choice={id:'work',name:'Work',checked:true,shared:false,mode:'copy',tabCount:2};
+ api.call=async(method,args=[])=>{
+  calls.push({method,args});
+  if(method==='desktop.spaces.preview')return args[0]?.local?{ok:true,choices:[choice]}:new Promise(resolve=>{answer=resolve;});
+  return {ok:true};
+ };
+ await el.onSpacesChooseClick_();const saving=el.onSpacesShareClick_();
+ answer({ok:true,choices:[{...choice,mode:'rejoin'}]});await saving;
+ assert.match(el.spacesError_,/confirm again/);assert.equal(calls.some(c=>c.method==='desktop.spaces.apply'),false);
 });

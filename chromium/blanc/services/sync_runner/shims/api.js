@@ -10,7 +10,9 @@ const closed = (name, off, always) => (...args) => {
   return __require('src/main/synced-closed.js')[name](sync.sharedContext(), ...args);
 };
 const spaces = name => (...args) => __require('shim:spaces')[name](...args);
-const DESKTOP = Object.fromEntries(['push', 'hold', 'rowDone', 'preview', 'apply', 'metadata', 'reorder', 'armPairing', 'acknowledge', 'status'].map(name => [`desktop.spaces.${name}`, (...args) => __require('shim:desktop-spaces')[name](...args)]));
+const DESKTOP = Object.fromEntries(['push', 'hold', 'rowDone', 'preview', 'apply', 'metadata', 'reorder', 'armPairing', 'acknowledge', 'status', 'snapshotForTest'].map(name => [`desktop.spaces.${name}`, (...args) => __require('shim:desktop-spaces')[name](...args)]));
+Object.assign(DESKTOP, {'desktop.closed.inbox': closed('inbox', []),
+  'desktop.closed.hide': closed('hide', null), 'desktop.closed.clear': closed('clear', null, true)});
 const PHONE = {
   'spaces.push': spaces('push'), 'spaces.prepare': spaces('prepare'), 'spaces.hold': spaces('hold'), 'spaces.rowDone': spaces('rowDone'),
   'spaces.preview': spaces('preview'), 'spaces.apply': spaces('apply'), 'spaces.metadata': spaces('metadata'),

@@ -69,6 +69,10 @@ inline constexpr char kGroupPinKey[] = "blanc.tab.group-pin.v1";
 bool GroupPinned(content::WebContents* tab);
 void SetGroupPinned(content::WebContents* tab, bool pinned);
 inline constexpr char kTabNameKey[] = "blanc.tab.name.v1";
+inline constexpr char kSharedTabIdKey[] = "blanc.tab.shared-id.v1";
+std::string SharedTabId(content::WebContents* tab);
+void SetSharedTabId(BrowserWindowInterface* browser, content::WebContents* tab,
+                    const std::string& id);
 std::string CustomTabName(content::WebContents* tab);
 std::string PersistentTabName(content::WebContents* tab);
 void RestoreCustomTabName(content::WebContents* tab,
@@ -97,6 +101,7 @@ std::string InheritedSandboxState(content::WebContents* tab);
 uint32_t RestoredSandboxFlags(const std::map<std::string, std::string>& extra_data);
 void RestoreInheritedSandbox(content::WebContents* tab, uint32_t flags);
 bool RestoreClosedSplitFromCommand(BrowserWindowInterface* browser);
+bool ParkClosedTab(BrowserWindowInterface* browser, content::WebContents* tab);
 bool SelectIslandSlot(BrowserWindowInterface* browser, int slot);
 bool ToggleGlance(BrowserWindowInterface* browser);
 // Open Link in Glance, in the page context menu (F34). Above every id

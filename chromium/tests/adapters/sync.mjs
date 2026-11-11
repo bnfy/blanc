@@ -8,6 +8,30 @@ import {tabPage} from './core.mjs';
 import {readSettings} from './commands.mjs';
 
 export const sync = {
+ sharedSpacesView:w=>readSettings(w,(_a,d)=>{
+  const root=d.find('settings-blanc-sync-page')?.shadowRoot;if(!root)return null;
+  const dialog=root.getElementById('syncSpacesDialog');
+  return {open:dialog?.open===true,checking:!!root.getElementById('syncSpacesChecking')&&!root.getElementById('syncSpacesChecking').hidden,
+   syncEnabled:d.find('settings-blanc-sync-page').state_?.status?.enabled,
+   chooseEnabled:!!root.getElementById('syncSpacesChoose')?.getBoundingClientRect().width&&!root.getElementById('syncSpacesChoose').disabled,
+   eraseRetryVisible:!!root.getElementById('syncEraseRetry')?.getBoundingClientRect().width,
+   disableVisible:!!root.getElementById('syncDisable')?.getBoundingClientRect().width,
+   wipeEnabled:!!root.getElementById('syncWipe')&&!root.getElementById('syncWipe').disabled,
+   choices:[...dialog.querySelectorAll('label')].map(label=>({text:label.textContent,checked:label.querySelector('input')?.checked,disabled:label.querySelector('input')?.disabled})),
+   toggle:root.getElementById('syncSpacesToggle')?.checked,checkingText:root.getElementById('syncSpacesChecking')?.textContent,
+   confirmText:root.getElementById('syncSpacesShare')?.textContent,
+   confirmDisabled:root.getElementById('syncSpacesShare')?.disabled,
+   notice:root.getElementById('syncError')?.textContent??'',text:root.textContent};
+ }),
+ sharedSpacesAct:(w,action,name)=>readSettings(w,(a,d)=>{
+  const root=d.find('settings-blanc-sync-page')?.shadowRoot;if(!root)return false;
+  const dialog=root.getElementById('syncSpacesDialog');
+  const button=a.action==='cancel'?[...dialog.querySelectorAll('cr-button')].find(e=>e.textContent.trim()==='Cancel'):
+   a.action==='untick'?[...dialog.querySelectorAll('label')].find(e=>e.textContent.includes(a.name))?.querySelector('input'):
+   root.getElementById(({choose:'syncSpacesChoose','turn-on':'syncSpacesToggle',wipe:'syncWipe',disable:'syncDisable',retry:'syncEraseRetry'})[a.action]??'syncSpacesShare');
+  if(!button||button.disabled||!button.getBoundingClientRect().width)return false;
+  button.click();return true;
+ },{action,name}),
  async injectRemoteDevices(w,count=1){
   const mode=await w.call('overlayRendererMode');
   await seedRemoteDevices(w,count);

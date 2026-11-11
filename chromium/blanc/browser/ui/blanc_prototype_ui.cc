@@ -238,6 +238,7 @@
 #include "ui/views/view_targeter_delegate.h"
 #include "ui/gfx/range/range.h"
 #include "components/sessions/content/session_tab_helper.h"
+#include "components/sessions/content/content_live_tab.h"
 #include "components/viz/common/frame_sinks/copy_output_result.h"
 #include "content/public/browser/navigation_controller.h"
 #include "content/public/browser/navigation_handle.h"
@@ -1796,6 +1797,7 @@ struct HeldTab {
   std::unique_ptr<tabs::ScopedTabModalUI> no_modal_ui;
 };
 struct HeldSpace { std::string name; std::vector<HeldTab> tabs; base::DictValue record; };
+struct HeldClosedTab { int window_id; HeldTab tab; };
 // Set-aside Spaces (F41, owner 2026-11-06). Chromium's rule is that a tab has a
 // window: without one, a tab feature woken by anything a live page does, even
 // history.pushState, dereferences null. So the pages of a Space that isn't
@@ -1887,6 +1889,46 @@ class SpaceHold : public base::SupportsUserData::Data, public TabStripModelObser
         if (auto* page = Contents(tab)) strip()->DetachAndDeleteWebContentsAt(strip()->GetIndexOfWebContents(page));
     Drop(name);
   }
+  bool HasClosed(int entry_id) {
+    auto found = closed_.find(entry_id);
+    return found != closed_.end() && Contents(found->second.tab);
+  }
+  void ForgetClosed(int entry_id) {
+    auto found = closed_.find(entry_id);
+    if (found == closed_.end()) return;
+    found->second.tab.no_modal_ui.reset();
+    if (auto* page = Contents(found->second.tab))
+      strip()->DetachAndDeleteWebContentsAt(strip()->GetIndexOfWebContents(page));
+    closed_.erase(entry_id);
+  }
+  void ClearClosed() {
+    while (!closed_.empty()) ForgetClosed(closed_.begin()->first);
+  }
+  void TakeClosed(int entry_id, int window_id, TabStripModel* model, int index) {
+    // Shipping's live recovery tier: one held page per window, 30 seconds.
+    std::vector<int> previous;
+    for (const auto& [id, held] : closed_) if (held.window_id == window_id) previous.push_back(id);
+    for (int id : previous) ForgetClosed(id);
+    auto held = Take(model, index, TabPinned(model, index));
+    if (auto* page = Contents(held)) {page->WasHidden(); page->SetPageFrozen(true);}
+    closed_.emplace(entry_id, HeldClosedTab{window_id, std::move(held)});
+    base::SingleThreadTaskRunner::GetCurrentDefault()->PostDelayedTask(FROM_HERE,
+        base::BindOnce(&SpaceHold::ForgetClosed, weak_.GetWeakPtr(), entry_id), base::Seconds(30));
+  }
+  std::unique_ptr<content::WebContents> GiveClosed(int entry_id, bool* pinned) {
+    auto found = closed_.find(entry_id);
+    if (found == closed_.end()) return nullptr;
+    *pinned = found->second.tab.pinned;
+    auto page = Give(found->second.tab);
+    closed_.erase(entry_id);
+    return page;
+  }
+  base::ListValue ClosedRows() {
+    base::ListValue rows;
+    for (const auto& [id, held] : closed_) if (auto* page = Contents(held.tab))
+      rows.Append(base::DictValue().Set("entryId", id).Set("sharedTabId", SharedTabId(page)).Set("held", true));
+    return rows;
+  }
   bool RemoveBlankSlot(std::string_view name) {
     auto* space = Find(name);
     if (!space || space->tabs.empty()) return true;
@@ -1909,6 +1951,8 @@ class SpaceHold : public base::SupportsUserData::Data, public TabStripModelObser
         for (auto& space : spaces_)
           for (auto& tab : space.tabs)
             if (tab.handle.Get() == removed.tab) tab.no_modal_ui.reset();
+        for (auto& [id, held] : closed_)
+          if (held.tab.handle.Get() == removed.tab) held.tab.no_modal_ui.reset();
       }
     }
   }
@@ -1916,6 +1960,7 @@ class SpaceHold : public base::SupportsUserData::Data, public TabStripModelObser
     window_ = nullptr;
     delegate_.reset();
     spaces_.clear();
+    closed_.clear();
   }
 
  private:
@@ -1927,6 +1972,8 @@ class SpaceHold : public base::SupportsUserData::Data, public TabStripModelObser
   raw_ptr<BrowserWindowInterface> window_ = nullptr;
   std::unique_ptr<HeldTabDelegate> delegate_;
   std::vector<HeldSpace> spaces_;
+  std::map<int, HeldClosedTab> closed_;
+  base::WeakPtrFactory<SpaceHold> weak_{this};
 };
 // Spaces waiting for their new window's Island, by window session id: the
 // Space, and how to tell the window that asked.
@@ -2467,6 +2514,16 @@ sessions::TabRestoreService* ClosedService(Profile* profile) {
   if (service) service->LoadTabsFromLastSession();
   return service;
 }
+bool RestoreHeldClosed(BrowserWindowInterface* browser, sessions::TabRestoreService* service, SessionID id) {
+  auto* hold = SpaceHold::Get(browser->GetProfile());
+  if (!hold || !hold->HasClosed(id.id())) return false;
+  bool pinned = false;
+  auto page = hold->GiveClosed(id.id(), &pinned);
+  if (!page) return false;
+  service->RemoveEntryById(id);
+  ShowHeldPage(browser, std::move(page), AddTabTypes::ADD_ACTIVE, pinned);
+  return true;
+}
 
 // Foreground activation can expand a restored group. Reapply only the saved
 // collapsed flag to groups identified by returned tabs or their saved identity.
@@ -2547,6 +2604,7 @@ base::ListValue ClosedEntries(Profile* profile) {
     const auto& entry = **it;
     std::string title;
     std::string url;
+    std::string shared_tab_id;
     int count = 1;
     using namespace sessions::tab_restore;
     if (entry.type == TAB) {
@@ -2554,6 +2612,8 @@ base::ListValue ClosedEntries(Profile* profile) {
       if (tab.navigations.empty()) continue;
       const auto& nav = tab.navigations[tab.normalized_navigation_index()];
       title = ClosedTabTitle(tab);
+      if (auto saved = tab.extra_data.find(kSharedTabIdKey); saved != tab.extra_data.end())
+        shared_tab_id = saved->second;
       url = nav.virtual_url().spec();
       if (title.empty()) title = url;
     } else if (entry.type == GROUP) {
@@ -2573,7 +2633,9 @@ base::ListValue ClosedEntries(Profile* profile) {
       }
     }
     result.Append(base::DictValue().Set("id", base::NumberToString(entry.id.id()))
-        .Set("title", title).Set("url", url).Set("tabCount", count));
+        .Set("title", title).Set("url", url).Set("tabCount", count).Set("sharedTabId", shared_tab_id)
+        .Set("closedAt", entry.timestamp.InMillisecondsFSinceUnixEpoch())
+        .Set("held", SpaceHold::Get(profile) && SpaceHold::Get(profile)->HasClosed(entry.id.id())));
   }
   return result;
 }
@@ -4960,7 +5022,8 @@ class Handler : public content::WebUIMessageHandler, public extensions::Extensio
     // operations require an explicit loopback Worker; no production test RPC.
     if (message[1].GetString() == "desktopSyncCall") {
       const auto& args = message[2].GetList();
-      if (args.size() != 1 || !args[0].is_string()) {
+      if (args.empty() || args.size() > 2 || !args[0].is_string() ||
+          (args.size() == 2 && !args[1].is_list())) {
         Reply(id, false, base::Value("Invalid Sync arguments.")); return;
       }
       const std::string method = args[0].GetString();
@@ -4969,13 +5032,14 @@ class Handler : public content::WebUIMessageHandler, public extensions::Extensio
       const bool local = endpoint.SchemeIs("http") && endpoint.host() == "127.0.0.1";
       if (!read && (!local || (method != "sync.status" && method != "sync.beginPairing" &&
           method != "sync.resetRequestWindowForTest" && method != "sync.syncNow" &&
-          method != "bookmarks.exportForSync"))) {
+          method != "bookmarks.exportForSync" && method != "sync.enable" && method != "sync.disable" &&
+          method != "desktop.spaces.apply" && method != "desktop.spaces.snapshotForTest"))) {
         Reply(id, false, base::Value("Sync test method refused.")); return;
       }
       auto* service = blanc::DesktopSyncService::ForProfile(
           GetOwner(web_ui()->GetWebContents())->browser->GetProfile());
       if (!service) { Reply(id, false, base::Value("Sync unavailable.")); return; }
-      service->Call(method, "[]", base::BindOnce(
+      service->Call(method, args.size() == 2 ? base::WriteJson(args[1].GetList()).value_or("[]") : "[]", base::BindOnce(
           [](base::WeakPtr<Handler> self, std::string id, bool ok, const std::string& json) {
             if (!self) return;
             auto value = ok ? base::JSONReader::Read(json, base::JSON_PARSE_RFC) : std::nullopt;
@@ -5694,6 +5758,11 @@ class Handler : public content::WebUIMessageHandler, public extensions::Extensio
     if (message[1].GetString() == "blockingExceptions") {
       Reply(id, true, base::Value(Profile::FromWebUI(web_ui())->GetOriginalProfile()->GetPrefs()
           ->GetList("blanc.blocking.exceptions").Clone()));
+      return;
+    }
+    if (message[1].GetString() == "closedHeld") {
+      auto* hold = SpaceHold::Get(Profile::FromWebUI(web_ui())->GetOriginalProfile());
+      Reply(id, true, base::Value(hold ? hold->ClosedRows() : base::ListValue()));
       return;
     }
     // First run (F36): shipping's acceptance profile finishes it at launch,
@@ -7441,15 +7510,21 @@ class Handler : public content::WebUIMessageHandler, public extensions::Extensio
       const auto& operation = args[0].GetString();
       const auto& values = args[1].GetList();
       const bool read = values.empty() && (operation == "listRemoteDevices" ||
-          operation == "listSendTargets" || operation == "listSentToThisDevice" || operation == "refreshSession");
+          operation == "listSendTargets" || operation == "listSentToThisDevice" || operation == "refreshSession" ||
+          operation == "listClosedFromSync");
       const bool rename = operation == "renameRemoteDevice" && values.size() == 2 &&
           values[0].is_string() && values[1].is_string() && values[1].GetString().size() <= 256;
-      const bool hide = operation == "hideSentItem" && values.size() == 1 && values[0].is_string();
+      const bool hide = (operation == "hideSentItem" || operation == "hideClosedFromSync") &&
+          values.size() == 1 && values[0].is_string() && values[0].GetString().size() <= 128;
+      const bool clear = operation == "clearClosedFromSync" && values.empty();
       auto* service = blanc::DesktopSyncService::ForProfile(profile);
-      if (!service || !(read || rename || hide)) {
+      if (!service || !(read || rename || hide || clear)) {
         reply(true, read ? base::Value(base::ListValue()) : base::Value(false)); return;
       }
-      service->Call("sync." + operation, base::WriteJson(values).value_or("[]"), base::BindOnce(
+      const std::string target = operation == "listClosedFromSync" ? "desktop.closed.inbox" :
+          operation == "hideClosedFromSync" ? "desktop.closed.hide" :
+          operation == "clearClosedFromSync" ? "desktop.closed.clear" : "sync." + operation;
+      service->Call(target, base::WriteJson(values).value_or("[]"), base::BindOnce(
           [](base::WeakPtr<Handler> self, std::string id, bool ok, const std::string& json) {
             if (!self) return;
             auto value = ok ? base::JSONReader::Read(json, base::JSON_PARSE_RFC) : std::nullopt;
@@ -8210,10 +8285,14 @@ class Handler : public content::WebUIMessageHandler, public extensions::Extensio
       auto* service = ClosedService(profile);
       if (!service) { reply(true, base::Value(false)); return; }
       if (method == "clearClosedEntries" && args.empty()) {
+        if (auto* hold = SpaceHold::Get(profile)) hold->ClearClosed();
         service->ClearEntries(); reply(true, base::Value(true)); return;
       }
       auto* context = BrowserLiveTabContext::From(browser);
       if (method == "reopenClosedTab" && args.empty()) {
+        if (!service->entries().empty() && RestoreHeldClosed(browser, service, service->entries().front()->id)) {
+          reply(true, base::Value(true)); return;
+        }
         if (!service->entries().empty()) {
           auto partial = RestorePartialSplit(browser, service, *service->entries().front());
           if (partial) { reply(true, base::Value(*partial)); return; }
@@ -8246,9 +8325,11 @@ class Handler : public content::WebUIMessageHandler, public extensions::Extensio
         if (entry->id.id() != entry_id) continue;
         const auto id_to_restore = entry->id;
         if (method == "forgetClosedEntry") {
+          if (auto* hold = SpaceHold::Get(profile)) hold->ForgetClosed(entry_id);
           service->RemoveEntryById(id_to_restore);
           reply(true, base::Value(true));
         } else {
+          if (RestoreHeldClosed(browser, service, id_to_restore)) { reply(true, base::Value(true)); return; }
           auto partial = RestorePartialSplit(browser, service, *entry);
           if (partial) { reply(true, base::Value(*partial)); return; }
           const auto collapsed = ClosedGroupCollapsed(*entry);
@@ -9560,7 +9641,8 @@ class Handler : public content::WebUIMessageHandler, public extensions::Extensio
       pending_close.watches.push_back(std::make_unique<SplitCloseWatch>(tab,
           TabPinned(model, index),
           base::BindRepeating(&Handler::SplitCloseCancelled, weak_factory_.GetWeakPtr(), id)));
-      model->CloseWebContentsAt(index, TabCloseTypes::CLOSE_CREATE_HISTORICAL_TAB);
+      if (!ParkClosedTab(browser, tab))
+        model->CloseWebContentsAt(index, TabCloseTypes::CLOSE_CREATE_HISTORICAL_TAB);
       base::SequencedTaskRunner::GetCurrentDefault()->PostTask(FROM_HERE,
           base::BindOnce(&Handler::CheckSplitClose, weak_factory_.GetWeakPtr(), id));
       return;
@@ -9799,6 +9881,8 @@ void PreserveDiscardedTabState(content::WebContents* old_tab, content::WebConten
   if (GroupPinned(old_tab)) replacement->SetUserData(kGroupPinKey, std::make_unique<GroupPinData>());
   if (auto* name = static_cast<TabNameData*>(old_tab->GetUserData(kTabNameKey)))
     replacement->SetUserData(kTabNameKey, std::make_unique<TabNameData>(name->name));
+  if (auto* shared = static_cast<TabNameData*>(old_tab->GetUserData(kSharedTabIdKey)))
+    replacement->SetUserData(kSharedTabIdKey, std::make_unique<TabNameData>(shared->name));
   if (auto* identity = static_cast<TabIdentityData*>(old_tab->GetUserData(kTabIdentityKey)))
     replacement->SetUserData(kTabIdentityKey, std::make_unique<TabIdentityData>(identity->id));
   if (auto* split = static_cast<PersistentSplitData*>(old_tab->GetUserData(kPersistentSplitKey)))
@@ -9822,9 +9906,26 @@ std::string CustomTabName(content::WebContents* tab) {
   auto* data = static_cast<TabNameData*>(tab->GetUserData(kTabNameKey));
   return data ? data->name : "";
 }
+std::string SharedTabId(content::WebContents* tab) {
+  if (!tab || tab->GetBrowserContext()->IsOffTheRecord()) return "";
+  auto* data = static_cast<TabNameData*>(tab->GetUserData(kSharedTabIdKey));
+  return data ? data->name : "";
+}
+void SetSharedTabId(BrowserWindowInterface* browser, content::WebContents* tab,
+                    const std::string& id) {
+  if (!tab || !browser || tab->GetBrowserContext()->IsOffTheRecord() || SharedTabId(tab) == id) return;
+  if (id.empty()) tab->RemoveUserData(kSharedTabIdKey);
+  else tab->SetUserData(kSharedTabIdKey, std::make_unique<TabNameData>(id));
+  if (auto* service = SessionServiceFactory::GetForProfile(browser->GetProfile()))
+    service->AddTabExtraData(browser->GetSessionID(), sessions::SessionTabHelper::IdForTab(tab), kSharedTabIdKey, id);
+}
 void RestoreCustomTabName(content::WebContents* tab,
     const std::map<std::string, std::string>& extra_data) {
   if (!IsEnabled() || !tab || tab->GetBrowserContext()->IsOffTheRecord()) return;
+  const auto shared = extra_data.find(kSharedTabIdKey);
+  if (shared != extra_data.end() && !shared->second.empty())
+    tab->SetUserData(kSharedTabIdKey, std::make_unique<TabNameData>(shared->second));
+  else tab->RemoveUserData(kSharedTabIdKey);
   const auto group_pin = extra_data.find(kGroupPinKey);
   if (group_pin != extra_data.end() && group_pin->second == "1")
     tab->SetUserData(kGroupPinKey, std::make_unique<GroupPinData>());
@@ -9872,6 +9973,7 @@ bool RestoreClosedSplitFromCommand(BrowserWindowInterface* browser) {
   if (!IsIslandWindow(browser) || browser->GetProfile()->IsOffTheRecord()) return false;
   auto* service = ClosedService(browser->GetProfile());
   if (!service || !service->IsLoaded() || service->entries().empty()) return false;
+  if (RestoreHeldClosed(browser, service, service->entries().front()->id)) return true;
   if (RestorePartialSplit(browser, service, *service->entries().front()).has_value()) return true;
   const auto focus = ClosedSplitFocus(*service->entries().front());
   if (!focus) return false;
@@ -9880,6 +9982,27 @@ bool RestoreClosedSplitFromCommand(BrowserWindowInterface* browser) {
   const auto restored = service->RestoreEntryById(context, service->entries().front()->id,
       WindowOpenDisposition::kNewForegroundTab);
   if (restored) RestoreClosedSplitMetadata(browser, focus, *restored);
+  return true;
+}
+bool ParkClosedTab(BrowserWindowInterface* browser, content::WebContents* tab) {
+  if (!IsIslandWindow(browser) || !tab || blanc::private_tabs::IsPrivateTab(tab) ||
+      tab->IsLoading() || !tab->GetPrimaryMainFrame()->IsRenderFrameLive() ||
+      !tab->GetLastCommittedURL().SchemeIsHTTPOrHTTPS() || TabIsCapturing(tab) ||
+      tab->NeedToFireBeforeUnloadOrUnloadEvents() || HasInheritedSandbox(tab) ||
+      HasInheritedDocumentPolicy(tab) || tab->GetOpener() || OpenedAnotherPage(tab) ||
+      HasSplitPresentation(tab)) return false;
+  auto* model = browser->GetTabStripModel();
+  const int at = model->GetIndexOfWebContents(tab);
+  if (at < 0 || model->count() <= 1 || model->GetTabGroupForTab(at)) return false;
+  auto* permissions = permissions::PermissionRequestManager::FromWebContents(tab);
+  if (permissions && permissions->IsRequestInProgress()) return false;
+  auto* service = ClosedService(browser->GetProfile());
+  if (!service || !service->IsLoaded()) return false;
+  auto* hold = SpaceHold::Open(browser->GetProfile(), browser->GetWindow()->GetBounds());
+  if (!hold) return false;
+  const auto entry = service->CreateHistoricalTab(sessions::ContentLiveTab::GetOrCreateForWebContents(tab), at);
+  if (!entry) return false;
+  hold->TakeClosed(entry->id(), browser->GetSessionID().id(), model, at);
   return true;
 }
 

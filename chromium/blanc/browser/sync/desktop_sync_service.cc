@@ -231,6 +231,32 @@ void DesktopSyncService::SetTabs(base::ListValue tabs, base::ListValue groups) {
 void DesktopSyncService::Call(std::string method, std::string args_json, SyncCallback callback) {
   DCHECK_CURRENTLY_ON(content::BrowserThread::UI);
   if (!profile_ || failed_ || timed_out_) { std::move(callback).Run(false, "desktop-sync-unavailable"); return; }
+  // Local views must remain available while a network operation waits for
+  // its request window. These calls read the runner's current state; they do
+  // not start network requests or change the account. The local preview may
+  // capture current tab edits, as shipping does while a pass is on the wire.
+  // Account changes and network passes stay on the serialized queue.
+  bool local_preview = false;
+  if (method == "desktop.spaces.preview") {
+    auto args = base::JSONReader::ReadList(args_json, base::JSON_PARSE_RFC);
+    local_preview = args && args->size() == 1 && (*args)[0].is_dict() &&
+        (*args)[0].GetDict().size() == 1 && (*args)[0].GetDict().FindBool("local").value_or(false);
+  }
+  const bool observation = args_json == "[]" && (method == "sync.status" ||
+      method == "desktop.spaces.status" || method == "desktop.spaces.snapshotForTest");
+  if (ready_ && (observation || local_preview)) {
+    SetSyncPlatform(platform_.get());
+    auto reply = std::make_shared<SyncCallback>(std::move(callback));
+    SyncCall(std::move(method), std::move(args_json), base::BindOnce(
+        [](std::shared_ptr<SyncCallback> reply, bool ok, const std::string& value) {
+          if (*reply) std::move(*reply).Run(ok, value);
+        }, reply));
+    base::SingleThreadTaskRunner::GetCurrentDefault()->PostDelayedTask(FROM_HERE,
+        base::BindOnce([](std::shared_ptr<SyncCallback> reply) {
+          if (*reply) std::move(*reply).Run(false, "runner-timeout");
+        }, reply), base::Seconds(5));
+    return;
+  }
   requests_.push_back({std::move(method), std::move(args_json), std::move(callback)});
   Pump();
 }
@@ -252,7 +278,8 @@ void DesktopSyncService::Run(std::string method, std::string args, SyncCallback 
   active_reply_ = reply;
   const auto epoch = account_epoch_;
   const bool may_wait_for_budget = method == "sync.syncNow" ||
-      method == "sync.enable" || method == "sync.joinWithCode";
+      method == "sync.enable" || method == "sync.joinWithCode" ||
+      method == "desktop.spaces.preview" || method == "desktop.spaces.apply";
   // A full pass can span several 60 s windows (including a full persisted
   // startup window and the requests reserved for foreground change checks).
   // This ceiling is never granted without a fresh responsive queue probe.

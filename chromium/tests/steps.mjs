@@ -45,7 +45,7 @@ step('the page content is enlarged',async function(){await this.waitFor(()=>acti
 step('I reset the zoom',async function(){assert.equal(await this.call('zoomReset'),true);},'spec/acceptance/platform-services.feature');
 step("the page returns to its default scale",async function(){await this.waitFor(()=>activeScale(this),n=>Math.abs(n-this.zoomBefore)<1e-6,'page reset');},'spec/acceptance/platform-services.feature');
 // Steps shipping never defined, written for the fork from their Gherkin.
-for(const area of ['island','commands','pages','tabs','sync','private']){
+for(const area of ['island','commands','pages','tabs','sync','private','shared-spaces']){
  const {default:registerArea}=await import(`./fork-steps/${area}.mjs`);
  registerArea((expression,run)=>step(expression,run,`chromium/tests/fork-steps/${area}.mjs`));
 }

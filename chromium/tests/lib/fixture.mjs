@@ -1,4 +1,5 @@
 import fs from 'node:fs';
+import {phase} from './timing.mjs';
 import os from 'node:os';
 import path from 'node:path';
 import http from 'node:http';
@@ -112,6 +113,7 @@ export class NativeFixture {
   // window may hold nothing but Chromium's native "Restore pages?" bubble,
   // which starts no web page and so never starts the blocker.
   async start(url=null,{waitBlocker=true}={}){
+    return phase('browserLaunch',async()=>{
     this.exit=null;this.launchError=null;fs.rmSync(path.join(this.profile,'DevToolsActivePort'),{force:true});
     const fd=fs.openSync(path.join(this.directory,'browser.log'),'a');
     const child=this.process=spawn(this.config.executable,[...this.flags,...(this.extraArgs||[]),...(url?[url]:[])],{stdio:['ignore',fd,fd]});
@@ -125,7 +127,8 @@ export class NativeFixture {
     const hostTarget=targets.find(t=>t.url.includes('/host.html'));this.hostTargetId=hostTarget.id;
     this.host=await connect(hostTarget);this.connections.push(this.host);
     this.snapshot=()=>this.host.eval('window.BlancPrototypeHost.api.getAllTabs()');
-    if(waitBlocker)await waitFor(this.snapshot,s=>s.blockerHealth==='ready','blocker');
+    if(waitBlocker)await phase('blockerReadiness',()=>waitFor(this.snapshot,s=>s.blockerHealth==='ready','blocker'));
+    });
   }
   // Quit (Browser.close, which must exit cleanly) or crash (SIGKILL), keeping
   // the profile and fixture servers for the next start.

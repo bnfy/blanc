@@ -1,0 +1,12 @@
+diff --git a/chrome/browser/ui/browser_live_tab_context.cc b/chrome/browser/ui/browser_live_tab_context.cc
+--- a/chrome/browser/ui/browser_live_tab_context.cc
++++ b/chrome/browser/ui/browser_live_tab_context.cc
+@@ -208,6 +208,8 @@
+ 
+   if (blanc_prototype::GroupPinned(tab_strip_model_->GetWebContentsAt(index)))
+     extra_data[blanc_prototype::kGroupPinKey] = "1";
++  const auto shared = blanc_prototype::SharedTabId(tab_strip_model_->GetWebContentsAt(index));
++  if (!shared.empty()) extra_data[blanc_prototype::kSharedTabIdKey] = shared;
+   const auto name = blanc_prototype::PersistentTabName(tab_strip_model_->GetWebContentsAt(index));
+   if (!name.empty()) extra_data[blanc_prototype::kTabNameKey] = name;
+   if (blanc_prototype::HasInheritedDocumentPolicy(tab_strip_model_->GetWebContentsAt(index)))

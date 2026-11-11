@@ -1344,7 +1344,11 @@ const __blancMarkup = trustedTypes.createPolicy("blanc-static-overlay", {createH
   function sentHeaderRow(count) {
     const row = document.createElement('div');
     row.className = 'island-ghead static sent-head';
-    row.innerHTML = __blancMarkup.createHTML('<span class="ghead-name"></span><span class="ghead-n"></span>');
+    for (const name of ["ghead-name", "ghead-n"]) {
+      const span = document.createElement("span");
+      span.className = name;
+      row.append(span);
+    }
     row.querySelector('.ghead-name').textContent = blancI18n.t('sends.section');
     row.querySelector('.ghead-n').textContent = String(count);
     return row;

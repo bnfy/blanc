@@ -81,6 +81,10 @@ export const EDITS = {
       "  const glanceSurface = window.location.hostname === 'glance' || window.location.search === '?surface=glance';\n"],
   ],
   'overlay.js': [
+    // The inbox heading has no SVG. Build its static spans as DOM nodes;
+    // it is not an SVG skeleton accepted by the narrow Trusted Types policy.
+    ['    row.innerHTML = \'<span class="ghead-name"></span><span class="ghead-n"></span>\';',
+     '    for (const name of ["ghead-name", "ghead-n"]) {\n      const span = document.createElement("span");\n      span.className = name;\n      row.append(span);\n    }'],
     // An extension's page goes by the extension's name, not its 32-letter id.
     ["function tabDomain(tab) {\n    if (!tab?.url || tab.url.startsWith('blanc://newtab')) return '';\n",
      "function tabDomain(tab) {\n    if (!tab?.url || tab.url.startsWith('blanc://newtab')) return '';\n    if (tab.extensionName) return tab.extensionName;\n"],

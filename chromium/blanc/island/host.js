@@ -2,6 +2,7 @@
 (() => {
   let nextId = 0;
   let snapshot = null;
+  let syncedClosed = [];
   let tabSelection = BlancTabSelection.emptySelection();
   let selectionRevision = 0;
   const selectionTabs = () => snapshot?.tabs ?? [];
@@ -937,6 +938,17 @@
       snapshot.selectedTabIds = [...tabSelection.selectedTabIds];
       snapshot.contextMenuSelection = !!tabSelection.contextMenu;
       const items = strip.contentWindow?.TabSections?.itemsOf(snapshot.tabs) ?? [];
+      const localClosed = snapshot.closed ?? [];
+      const remoteById = new Map(syncedClosed.map(row => [row.id, row]));
+      snapshot.closed = localClosed.map(row => {
+        const remote = remoteById.get(row.sharedTabId);
+        if (!remote) return row;
+        remoteById.delete(row.sharedTabId);
+        return {...row, fromName: remote.fromName, syncId: remote.id};
+      });
+      for (const remote of remoteById.values()) snapshot.closed.push({...remote,
+        id: `sync:${remote.id}`, sharedTabId: remote.id, syncId: remote.id, tabCount: 1});
+      snapshot.closed.sort((a, b) => (a.closedAt ?? 0) - (b.closedAt ?? 0));
       snapshot.closedSlot = closedSlotFor(items.map(item => item.id));
       strip.contentDocument?.documentElement?.toggleAttribute('data-extensions-page',
         snapshot.tabs.find(t => t.id === snapshot.activeTabId)?.url === 'chrome://extensions/');
@@ -1067,8 +1079,11 @@
     overlayMenuOpen = false;
     overlay.hidden = false;
     emit('onIslandState', { mode, trigger: shieldTrigger, restoreTrigger: null });
-    requestAnimationFrame(() => {
-      if (epoch !== findShowEpoch || !opened || overlayMode !== mode) return;
+    // Opening resolves only after the renderer has received its purpose and
+    // prefill. Otherwise the next action can type into the visible input and
+    // have that text overwritten by this deferred initialization.
+    await new Promise(resolve => requestAnimationFrame(() => {
+      if (epoch !== findShowEpoch || !opened || overlayMode !== mode) { resolve(); return; }
       // Search priority results (S1.7) is read where the panel opens, as
       // shipping's overlay:show carries it.
       emit('onOverlayShow', { mode, prefill, pillRect, ...(purpose ? { purpose } : {}),
@@ -1080,7 +1095,8 @@
         input.dispatchEvent(new overlay.contentWindow.Event('input', { bubbles: true }));
       }
       overlay.contentWindow.focus();
-    });
+      resolve();
+    }));
   }
 
   // A backgrounded host can stop receiving animation frames. The timer also
@@ -2143,7 +2159,20 @@
 
   for (const method of ['reopenClosedTab', 'reopenClosedEntry', 'forgetClosedEntry', 'clearClosedEntries']) {
     implemented[method] = async (...args) => {
-      const result = await request(method, args.map(String));
+      const entry = method === 'reopenClosedTab' ? snapshot?.closed?.at(-1)
+        : snapshot?.closed?.find(row => row.id === String(args[0]));
+      let result;
+      if (entry?.id.startsWith('sync:') && method !== 'clearClosedEntries') {
+        const item = await request('syncSurface', ['hideClosedFromSync', [entry.syncId]]);
+        result = !!item;
+        if (item && method !== 'forgetClosedEntry' && /^https?:\/\//i.test(item.url))
+          await request('createTab', [item.url]);
+      } else {
+        result = await request(method, args.map(String));
+        if (result && entry?.syncId) await request('syncSurface', ['hideClosedFromSync', [entry.syncId]]);
+      }
+      if (method === 'clearClosedEntries') await request('syncSurface', ['clearClosedFromSync', []]);
+      if (entry?.syncId || method === 'clearClosedEntries') await refreshSyncSurfaces();
       await refresh();
       return result;
     };
@@ -2532,6 +2561,7 @@
     try {
       const devices = await request('syncSurface', ['listRemoteDevices', []]);
       const sent = await request('syncSurface', ['listSentToThisDevice', []]);
+      syncedClosed = await request('syncSurface', ['listClosedFromSync', []]);
       emit('onRemoteTabsUpdated', devices);
       emit('onSentToThisDeviceUpdated', sent);
     } catch { /* A runner failure is not an empty remote inventory. */ }

@@ -4,6 +4,8 @@
 // host, so frame pages offset input by the iframe's position.
 import {UndefinedNativeAdapterError} from './adapters.mjs';
 import {pause} from './cdp.mjs';
+import {timedOut} from './timing.mjs';
+const timeoutError=(text,elapsed)=>{timedOut('page',text,elapsed);return Error(text);};
 import {jsLiteral} from './js-literal.mjs';
 import {PORTS,sourceKey} from './main-ports.mjs';
 const KEYS={Enter:[13,'\r'],Escape:[27],Tab:[9],Backspace:[8],Delete:[46],ArrowDown:[40],ArrowUp:[38],ArrowLeft:[37],ArrowRight:[39],
@@ -50,7 +52,7 @@ function step(css,{hasText}={}){
 }
 export class Locator{
  constructor(page,selectors,index=null){this.page=page;this.selectors=selectors;this.index=index;}
- locator(selector,options){return new Locator(this.page,[...this.selectors,step(selector,options)],this.index===null?null:this.index);}
+ locator(selector,options){return new Locator(this.page,[...this.selectors,...(this.index===null?[]:[{index:this.index}]),step(selector,options)]);}
  // Playwright's filter({hasText}): the last selector keeps only matches
  // whose text contains it, as locator(css,{hasText}) does.
  filter({hasText,...rest}={}){
@@ -71,7 +73,8 @@ export class Locator{
  getByRole(){throw new UndefinedNativeAdapterError('Locator shim lacks getByRole');}
  // Resolve inside the page: each selector narrows the previous matches.
  query(body,arg){return `(()=>{let els=[document];const norm=t=>t.replace(/\\s+/g,' ').trim();
-  for(const s of ${jsLiteral(this.selectors)}){els=els.flatMap(e=>[...e.querySelectorAll(typeof s==='string'?s:s.css)]);
+  for(const s of ${jsLiteral(this.selectors)}){if(typeof s==='object'&&'index' in s){els=[...new Set(els)];els=s.index<0?els.slice(s.index):els.slice(s.index,s.index+1);continue;}
+   els=els.flatMap(e=>[...e.querySelectorAll(typeof s==='string'?s:s.css)]);
    if(typeof s!=='string')els=els.filter(e=>typeof s.text==='string'?norm(e.textContent).toLowerCase().includes(norm(s.text).toLowerCase()):new RegExp(s.text.source,s.text.flags).test(norm(e.textContent)));}
   els=[...new Set(els)];const index=${jsLiteral(this.index)};
   if(index!==null)els=index<0?els.slice(index):els.slice(index,index+1);return (${body})(els,${jsLiteral(arg)});})()`;}
@@ -79,7 +82,7 @@ export class Locator{
  async one(fn,arg,{timeout=5000}={}){const end=Date.now()+timeout;
   for(;;){const r=await this.page.evalExpression(this.query(`(els,arg)=>els.length===0?{missing:true}:els.length>1&&${this.index===null}?{strict:els.length}:{value:(${fn.toString()})(els[0],arg)}`,arg));
    if(r.strict)throw Error(`strict mode violation: ${this.selectors.map(s=>typeof s==='string'?s:s.css+':has-text('+JSON.stringify(s.text)+')').join(' ')} resolved to ${r.strict} elements`);
-   if(!r.missing)return r.value;if(Date.now()>end)throw Error('Timeout waiting for '+this.selectors.map(s=>typeof s==='string'?s:s.css+':has-text('+JSON.stringify(s.text)+')').join(' '));await pause(50);}}
+   if(!r.missing)return r.value;if(Date.now()>end)throw timeoutError('Timeout waiting for '+this.selectors.map(s=>typeof s==='string'?s:s.css+':has-text('+JSON.stringify(s.text)+')').join(' '),Date.now()-(end-timeout));await pause(50);}}
  count(){return this.all(els=>els.length);}
  allTextContents(){return this.all(els=>els.map(e=>e.textContent));}
  allInnerTexts(){return this.all(els=>els.map(e=>e.innerText));}
@@ -96,7 +99,7 @@ export class Locator{
  async waitFor({state='visible',timeout=5000}={}){const end=Date.now()+timeout;
   for(;;){const [count,visible]=await Promise.all([this.count(),this.isVisible()]);
    if(state==='attached'&&count||state==='detached'&&!count||state==='visible'&&visible||state==='hidden'&&!visible)return;
-   if(Date.now()>end)throw Error(`Timeout waiting for ${this.selectors.map(s=>typeof s==='string'?s:s.css+':has-text('+JSON.stringify(s.text)+')').join(' ')} to be ${state}`);await pause(50);}}
+   if(Date.now()>end)throw timeoutError(`Timeout waiting for ${this.selectors.map(s=>typeof s==='string'?s:s.css+':has-text('+JSON.stringify(s.text)+')').join(' ')} to be ${state}`,Date.now()-(end-timeout));await pause(50);}}
  boundingBox(){return this.all(els=>{const e=els[0];if(!e)return null;const r=e.getBoundingClientRect();
   return r.width||r.height?{x:r.x,y:r.y,width:r.width,height:r.height}:null;});}
  scrollIntoViewIfNeeded(){return this.one(e=>{e.scrollIntoView({block:'nearest',inline:'nearest'});return true;});}
@@ -112,7 +115,7 @@ export class Locator{
     done({x:b.x,y:b.y,width:b.width,height:b.height,hit:e.contains(document.elementFromPoint(x,y))});};
     requestAnimationFrame(()=>requestAnimationFrame(read));setTimeout(read,100);}));
    if(r.width&&r.hit&&last&&['x','y','width','height'].every(k=>r[k]===last[k]))return {x:r.x+r.width/2,y:r.y+r.height/2};
-   if(Date.now()>end)throw Error(`Timeout waiting for ${this.selectors.map(s=>typeof s==='string'?s:s.css+':has-text('+JSON.stringify(s.text)+')').join(' ')} to be stable and receive pointer events`);last=r;}}
+   if(Date.now()>end)throw timeoutError(`Timeout waiting for ${this.selectors.map(s=>typeof s==='string'?s:s.css+':has-text('+JSON.stringify(s.text)+')').join(' ')} to be stable and receive pointer events`,Date.now()-(end-timeout));last=r;}}
  async click({button='left',clickCount=1,modifiers=[],position}={}){
   const b=position?await this.boundingBox():null;const p=position?{x:b.x+position.x,y:b.y+position.y}:await this.center();
   for(const m of modifiers)await this.page.keyboard.down(m==='ControlOrMeta'?'Meta':m);
@@ -159,7 +162,7 @@ export class Page{
  evaluate(fn,arg){return this.evalExpression(call(fn,arg));}
  async waitForFunction(fn,arg,{timeout=5000,polling=50}={}){const end=Date.now()+timeout;let last;
   for(;;){try{last=await this.evaluate(fn,arg);if(last)return last;}catch(e){last=e.message;}
-   if(Date.now()>end)throw Error('waitForFunction timed out: '+JSON.stringify(last));await pause(typeof polling==='number'?polling:50);}}
+   if(Date.now()>end)throw timeoutError('waitForFunction timed out: '+JSON.stringify(last),Date.now()-(end-timeout));await pause(typeof polling==='number'?polling:50);}}
  emulateMedia(options={}){return this.cdp.send('Emulation.setEmulatedMedia',{features:Object.entries(options).map(([name,value])=>({name:({reducedMotion:'prefers-reduced-motion',colorScheme:'prefers-color-scheme'})[name]||name,value}))});}
  waitForTimeout(ms){return pause(ms);}
  async waitForLoadState(){await this.waitForFunction(()=>document.readyState!=='loading');}
@@ -186,7 +189,7 @@ export class Page{
   if(name!=='close'||!this.app)throw new UndefinedNativeAdapterError('Page shim waits only for a tab closing');
   const end=Date.now()+timeout;
   for(;;){await this.app.refresh();if(this.isClosed())return;
-   if(Date.now()>end)throw Error('Timeout waiting for the page to close');await pause(50);}}
+   if(Date.now()>end)throw timeoutError('Timeout waiting for the page to close',Date.now()-(end-timeout));await pause(50);}}
  context(){if(!this.app)throw new UndefinedNativeAdapterError('Page shim lacks context');return this.app.context();}
  bringToFront(){return this.cdp.send('Page.bringToFront');}
 }

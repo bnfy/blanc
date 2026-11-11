@@ -1,3 +1,4 @@
+import {timedOut} from './timing.mjs';
 import {jsLiteral} from './js-literal.mjs';
 export const pause = ms => new Promise(resolve => setTimeout(resolve, ms));
 // Playwright's wording: shipping's steps recognise a page that closed under a
@@ -32,7 +33,7 @@ export async function connect(target) {
       return new Promise((resolve, reject) => {
         if (socket.readyState !== WebSocket.OPEN) { reject(closedError()); return; }
         const id = ++next;
-        const timer = setTimeout(() => { pending.delete(id); reject(Error('CDP timeout: ' + method)); }, timeout);
+        const timer = setTimeout(() => { pending.delete(id); timedOut('cdp',method,timeout); reject(Error('CDP timeout: ' + method)); }, timeout);
         pending.set(id, { resolve, reject, timer }); socket.send(JSON.stringify({id, method, params}));
       });
     },
@@ -50,5 +51,6 @@ export async function waitFor(read, accepts, label, timeout = 20000) {
     try { last = await read(); if (accepts(last)) return last; } catch (e) { if (e.code === 'BLANC_ADAPTER_UNDEFINED') throw e; last = e.message; }
     await pause(100);
   }
+  timedOut('poll',label,Date.now()-(end-timeout));
   throw Error(`Timeout waiting for ${label}: ${jsLiteral(last)}`);
 }

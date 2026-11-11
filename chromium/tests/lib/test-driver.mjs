@@ -1,3 +1,5 @@
+import {performance} from 'node:perf_hooks';
+import {timedOut} from './timing.mjs';
 import {jsLiteral} from './js-literal.mjs';
 // Installed only into the exact native Island of an isolated fixture.
 export async function installDriver(host){
@@ -20,6 +22,8 @@ export async function installDriver(host){
   };
   await host.eval('('+bootstrap.toString()+')()');
 }
-export function nativeCall(host,method,args=[],id=null,timeout=15000){
-  return host.eval(`window.__blancNativeCall(${jsLiteral(method)},${jsLiteral(args)},${id?JSON.stringify(String(id)):'undefined'},${timeout})`,undefined,timeout+1000);
+export async function nativeCall(host,method,args=[],id=null,timeout=15000){
+  const start=performance.now();
+  try{return await host.eval(`window.__blancNativeCall(${jsLiteral(method)},${jsLiteral(args)},${id?JSON.stringify(String(id)):'undefined'},${timeout})`,undefined,timeout+1000);}
+  catch(error){if(error.message.includes('Native test operation timed out:'))timedOut('native',method,performance.now()-start);throw error;}
 }

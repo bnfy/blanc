@@ -142,6 +142,7 @@ class DesktopSpaces final : public base::SupportsUserData::Data,
         if (!page) if (const auto* v = At(*old, "tabIds", i); v && v->is_string()) shared = v->GetString();
       }
       if (!local.empty() && !shared.empty()) bindings_[local] = shared;
+      if (page && owner) SetSharedTabId(owner->browser, page, shared);
       urls.Append(*tab.FindString("url")); local_ids.Append(local);
       tab_ids.Append(shared.empty() ? base::Value() : base::Value(shared));
       base::DictValue metadata;
@@ -473,7 +474,10 @@ class DesktopSpaces final : public base::SupportsUserData::Data,
     if (blanc::private_tabs::IsPrivateTab(tab) || HasInheritedDocumentPolicy(tab)) return false;
     if (*op == "close") {
       if (at == model->active_index() || tab->GetVisibility() == content::Visibility::VISIBLE || TabIsCapturing(tab) || tab->NeedToFireBeforeUnloadOrUnloadEvents()) return false;
-      model->CloseWebContentsAt(at, TabCloseTypes::CLOSE_CREATE_HISTORICAL_TAB); return true;
+      SetSharedTabId(owner->browser, tab, *id);
+      if (!ParkClosedTab(owner->browser, tab))
+        model->CloseWebContentsAt(at, TabCloseTypes::CLOSE_CREATE_HISTORICAL_TAB);
+      return true;
     }
     if (!field || !value) return false;
     if (*field == "name") return RenameTab(owner->browser, tab, value->FindString("v") ? *value->FindString("v") : "");

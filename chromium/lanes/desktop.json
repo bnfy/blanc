@@ -59,6 +59,8 @@
     "patches/0051-blanc-quiet-session-restore.patch",
     "patches/0052-blanc-quiet-private-and-page-state.patch",
     "patches/0053-blanc-group-pin-persistence.patch",
-    "patches/0054-blanc-private-passkey-secret.patch"
+    "patches/0054-blanc-private-passkey-secret.patch",
+    "patches/0055-blanc-shared-spaces-sheet.patch",
+    "patches/0056-blanc-shared-closed-identity.patch"
   ]
 }

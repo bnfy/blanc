@@ -692,6 +692,15 @@ function start() {
     },
     writeLocal(win, blob, edits, diff) {
       const current = context(win); if (!current) return;
+      // Only locally captured closes enter this device's Recently closed
+      // feed. Applying a remote close uses the runtime receipt, not this path.
+      for (const [id, edit] of Object.entries(edits.tabs ?? {})) {
+        const previous = current.blob.tabs[id];
+        if (state().isEnabled(current.ctx) && !state().isDormant(current.spaceId, current.ctx) &&
+            edit.deleted?.v === true && previous && !previous.deleted.v)
+          __require('src/main/synced-closed.js').addOwnItem(current.ctx, {id,
+            ...previous.nav.v, closedAt: Date.now(), spaceId: current.spaceId});
+      }
       state().noteLocalSpace(current.spaceId, blob, edits, current.ctx);
       bindings(win, diff);
     },
@@ -757,6 +766,14 @@ async function settle() {
 }
 module.exports = {
   start, visible,
+  snapshotForTest() {
+    if (__host.env?.BLANC_TEST !== '1' || !/^http:\/\/127\.0\.0\.1:\d+\/?$/.test(__host.testEndpoint ?? '')) throw Error('test-snapshot-refused');
+    start();
+    const ctx = sync().sharedContext();
+    return {shared: state().snapshot(ctx), rows, windows: [...windows.values()],
+      closed: __require('src/main/synced-closed.js').inbox(ctx),
+      context: {accountId: ctx.accountId, deviceId: ctx.deviceId}};
+  },
   async push({revision: seen, rows: next, windows: snapshots, restoring}) {
     start();
     if (seen < revision) return {stale: true, revision, rows};
@@ -12761,7 +12778,9 @@ const closed = (name, off, always) => (...args) => {
   return __require('src/main/synced-closed.js')[name](sync.sharedContext(), ...args);
 };
 const spaces = name => (...args) => __require('shim:spaces')[name](...args);
-const DESKTOP = Object.fromEntries(['push', 'hold', 'rowDone', 'preview', 'apply', 'metadata', 'reorder', 'armPairing', 'acknowledge', 'status'].map(name => [`desktop.spaces.${name}`, (...args) => __require('shim:desktop-spaces')[name](...args)]));
+const DESKTOP = Object.fromEntries(['push', 'hold', 'rowDone', 'preview', 'apply', 'metadata', 'reorder', 'armPairing', 'acknowledge', 'status', 'snapshotForTest'].map(name => [`desktop.spaces.${name}`, (...args) => __require('shim:desktop-spaces')[name](...args)]));
+Object.assign(DESKTOP, {'desktop.closed.inbox': closed('inbox', []),
+  'desktop.closed.hide': closed('hide', null), 'desktop.closed.clear': closed('clear', null, true)});
 const PHONE = {
   'spaces.push': spaces('push'), 'spaces.prepare': spaces('prepare'), 'spaces.hold': spaces('hold'), 'spaces.rowDone': spaces('rowDone'),
   'spaces.preview': spaces('preview'), 'spaces.apply': spaces('apply'), 'spaces.metadata': spaces('metadata'),

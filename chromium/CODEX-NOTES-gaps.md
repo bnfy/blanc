@@ -7,14 +7,27 @@
 > complete inventory ONCE, at the very end of this queue, and fix lost passes
 > then. Keep this notice when you rewrite the file.
 
+> **OWNER ADDITION (2026-11-11, binding): runner timing baseline.** Before the
+> single end-of-queue inventory, add per-phase timing to `chromium/tests/runner.mjs`
+> (browser launch, blocker readiness, reset between cases, appearance setup, step
+> execution, waits that ran to timeout, retries, teardown), written to the run's
+> evidence as a JSON summary with totals and the 20 slowest cases. Record a
+> baseline over a 60-case sample across at least six feature files. Then remove
+> the obvious waste (for example fixed sleeps, re-doing setup that is already in
+> the wanted state, relaunching when a reset is enough) WITHOUT weakening any
+> assertion, the rendering guard, or isolation between cases; rerun the same
+> sample and report before/after per phase. Shipping's Electron harness
+> (`test/desktop/`, read-only) is the comparison for what a case should cost.
+> Report it in a "Runner timing" section. Keep this notice when you rewrite the file.
+
 Queue 4 is **in progress**. Dedicated beta build/updater remains on absolute owner hold.
-Current prototype: **macos-ee81ff839a8a3712**; `q4-consent-final-runtime-config.json`.
+Current prototype: **macos-87c5b01575afd817**; `q4-shared-4-runtime-config.json`.
 
 | Item | State |
 | --- | --- |
 | 1 Private lifecycle | Partly: five scenarios pass; native secret isolation fixed; actual Touch ID ceremony blocked by signing/Apple restriction |
 | 2 Telemetry consent | Done: both original cases and three failed-write/recovery checks pass; consent verified on disk before any event |
-| 3 Shared Spaces / Send | Pending |
+| 3 Shared Spaces / Send | Partly: nine fault checks, selection/cancel, parked remote close and Send inbox pass; remaining scenarios owed |
 | 4 Updater | Deliberately excluded: absolute beta-build hold |
 | 5 Certificate recovery / eviction | Pending |
 | 6 Microphone indicator | Pending |
@@ -27,9 +40,9 @@ Current prototype: **macos-ee81ff839a8a3712**; `q4-consent-final-runtime-config.
 | Evidence | Sync pass/fail | Inventory pass/fail/undefined/excluded |
 | --- | --- | --- |
 | Owner baseline | 22/0 | 443/8/187/2 |
-| Queue 4 | Owed after item 2 | Owed after item 2 |
+| Queue 4 current prototype | 22/0 | Final inventory owed; earlier run stopped per owner change |
 
-Lost passes: no complete comparison yet. Final gate and complete inventory remain owed.
+Lost passes: partial run found F41:558 group creation; fixed and targeted check passes. Final comparison owed.
 Owner input: actual device-bound passkey acceptance requires a signed, entitled build and Touch ID ceremony, outside this queue.
 Unverified: final-candidate regression, passkey ceremony, physical input/accessibility, other platforms and release qualification.
 No push, publication, signing, production/Apple/1Password contact, live-tree change, beta build or toolchain installation.
@@ -114,3 +127,71 @@ Final build: 6 actions / 33.34 seconds. Patch budget unchanged at 121 paths /
 392 hunks (desktop incremental patches); reconstruction 160/573 passes.
 Required precommit plus telemetry gate: `q4-consent-precommit.tap`.
 The mandatory after-two full Sync gate and complete inventory are next.
+
+## Development regression after item 2
+
+`q4-after-two-sync` passes 22/22 on `macos-ee81ff839a8a3712`.
+The earlier inventory was stopped to follow the owner change above: its
+`partial-baseline.json` contains 442 declarations / 477 cases (329 pass, 4 fail,
+142 undefined, 2 excluded). This is explicitly incomplete, not a baseline.
+Among those completed cases, F41:558 lost its prior pass. The Island show call
+returned before its animation-frame initialization, allowing the next typed
+group name to be overwritten. The fix waits for that initialization; F41:558
+passes on its first attempt in `q4-shared-smoke-1` on
+`macos-e1ae65ff41692064`; final-candidate inventory verification is still owed.
+
+## Runner timing
+
+Phase recording now covers launch, blocker readiness (including relaunch), reset,
+appearance, steps, timeouts, retries and teardown. Each run writes totals, all
+attempts and its 20 slowest cases to `timing.json`, bound to the candidate and
+a hash of the test harness. Nested phase time is reported separately from
+exclusive time; timeout/retry costs are annotations, not added twice. The required 60-case, six-file baseline
+and unchanged-sample comparison remain owed before the final inventory.
+
+## 3 — Shared Spaces and Send (in progress)
+
+All 33 Shared Spaces and 8 Send cases now resolve to adapters; resolution alone
+is not a pass. `q4-shared-smoke-2` verifies Shared Spaces :4 selection/cancel,
+:17 parked remote-close recovery and Send :7 inbox order on the current native
+candidate. `q4-shared-faults-1` passes all nine original fault/retention assertions
+on their first attempts against the fork's generated bundle and local Worker.
+The separate desktop peer host adds virtual time and durable fixture stores;
+the existing phone peer and phone entry-point code remain byte-unchanged.
+The earlier fault run's loader error used an unexported reference; it is retained
+as failed development evidence, superseded by the clean nine-case run.
+
+Product changes include local-first selection while a remote check waits,
+explicit consent when choices change, cancellable sheet presentation during an
+already-requested save, and erasure retry controls. Three logic checks verify
+consent/cancellation behavior. Native local closes publish their Shared tab ID;
+Recently closed merges native and remote occurrences by that ID. Remote closes
+retain one eligible live page per window for 30 seconds, using the protected
+hidden-page host, with private/capture/unload/opener/split exclusions.
+The native recovery assertion observes the actual parked page, not a projected
+boolean. Other recovery routes and certificate eviction remain owed in item 5.
+
+The Send inbox heading used a literal HTML skeleton outside the strict Trusted
+Types allowlist. An anchored `EDITS` replacement now creates its spans as DOM
+elements. The shipping assertion also exposed a locator composition defect:
+`first().locator(...)` now searches inside the first row, rather than selecting
+the first matching child from any row. Its contract has a focused unit check.
+
+Build `q4-shared-4`: seven guarded actions / 21.28 s, prototype only. The wrapper
+initially swallowed source application failure; it now stops on any pipeline
+failure. Reconstruction hashes were regenerated from pristine inputs plus the
+patch series before the successful build. Patch budget: 121 desktop incremental
+upstream paths / 401 hunks; reconstruction 160 upstream / 573 canonical files.
+`q4-shared-static-2`: 296/296 required tool/release tests, before the additional
+timing-comparison checks. Fresh precommit checks and the full Sync gate are recorded below.
+Remaining native Shared Spaces/Send scenarios, including two complete clients,
+remain owed; no complete inventory credit is claimed.
+
+`q4-shared-full-sync-1/result.json`: **22/22 pass**, full mode on
+`macos-87c5b01575afd817`. The persisted request-budget restart waited 120,035 ms
+and stayed enabled. No lost Sync-gate passes against the 22/22 owner baseline.
+The only Worker was local; private and secondary profiles made no Worker requests.
+
+Checkpoint precommit: `q4-shared-precommit.tap` **298/298 pass**;
+`q4-shared-precommit-patches.json` reconstructs **160 upstream / 573 canonical**
+files successfully. Progress freshness and whitespace checks pass.
