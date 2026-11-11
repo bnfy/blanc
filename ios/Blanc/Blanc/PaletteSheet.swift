@@ -321,7 +321,11 @@ struct PaletteSheet: View {
                 ForEach(manager.displaySections, id: \.id) { section in
                     if let group = section.group {
                         Button {
-                            withAnimation { manager.setGroupCollapsed(group.id, !group.collapsed) }
+                            // Instant, not animated: the list keeps the header's
+                            // folded background and spacing until the rows have
+                            // animated in, which showed a white strip between
+                            // the header and the first row for about a second.
+                            manager.setGroupCollapsed(group.id, !group.collapsed)
                         } label: {
                             HStack(spacing: 8) {
                                 // The dot sits in the tabs' icon column and the chevron in
