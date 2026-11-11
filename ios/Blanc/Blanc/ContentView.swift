@@ -835,7 +835,6 @@ struct ContentView: View {
         let insets = IslandLayout.addressInsets(leading: islandLeadingWidth, trailing: islandTrailingWidth)
         return HStack(spacing: 0) {
             HStack(spacing: 0) {
-                SpaceMarkButton(manager: manager, style: islandStyle)
                 islandMark
                 Rectangle().fill(islandDivider).frame(width: 1, height: 18)
                 if buttons.centersAddress {

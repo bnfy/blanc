@@ -310,11 +310,14 @@ test('the rail\'s first row holds the Space mark and its footer starts a new gro
   // that sets the layout, ahead of the layout toggle; it goes back where it was.
   assert.match(rail, /function placeSpaceMark\(layout\) \{[\s\S]*?const moved = layout === 'vertical'\s*\? moveKeepingFocus\(spaceMark, useIslandButton\.parentElement, useIslandButton\)\s*: moveKeepingFocus\(spaceMark, spaceMarkHome\.parent,[\s\S]*?if \(moved\) window\.blancSpaceMark\?\.placed\(\);/);
   assert.equal(rail.match(/placeSpaceMark\((?:'island'|layout)\);/g)?.length, 2);
-  // Hidden with no Spaces, and the Island's has-space look, apply only on the Island.
-  assert.match(renderer, /pillSpace\.hidden = state === 'none' && spaceMarkOnIsland\(\);\s*islandPill\.classList\.toggle\('has-space', state === 'space' && spaceMarkOnIsland\(\)\);/);
-  assert.match(renderer, /if \(spaceMarkOnIsland\(\)\) \{[\s\S]*?pillDots/);
-  // The Spaces menu hangs below both the mark and the Island, never over it.
-  assert.match(renderer, /const bottom = Math\.max\(stageRect\(pillSpace\)\.bottom, stageRect\(islandPill\)\.bottom\);/);
+  // The resting Island never shows the mark (it keeps the Island short, and
+  // Spaces open from the ⌘L footer there); only the rail's first row does.
+  assert.match(renderer, /function placeSpaceMarkState\(\) \{\s*pillSpace\.hidden = spaceMarkOnIsland\(\);\s*\}/);
+  assert.doesNotMatch(renderer, /has-space/);
+  assert.doesNotMatch(styles, /has-space/);
+  // The Spaces menu hangs below both the mark and the Island, never over it;
+  // with the mark hidden it lines up with the Island.
+  assert.match(renderer, /const anchor = pillSpace\.hidden \? islandPill : pillSpace;\s*const bottom = Math\.max\(stageRect\(anchor\)\.bottom, stageRect\(islandPill\)\.bottom\);/);
   // With no Spaces yet the rail shows the Spaces glyph, like the neutral mark,
   // and a right-click on the rail's mark opens its menu.
   assert.match(styles, /\.space-mark:is\(\[data-state="neutral"\], \.vertical-tabs-toolbar \[data-state="none"\]\) \{/);

@@ -80,7 +80,7 @@ final class AppStorePreviewUITests: XCTestCase {
     pause(1.8)
 
     mark("spaces")
-    app.buttons["island.space"].tap()
+    app.openSpacesCard()
     let trip = app.buttons["spaces.row.Trip"]
     XCTAssertTrue(trip.waitForExistence(timeout: 5))
     pause(1.6)
@@ -88,7 +88,7 @@ final class AppStorePreviewUITests: XCTestCase {
     pause(2.4)
 
     mark("devices")
-    app.buttons["island.space"].tap()
+    app.openSpacesCard()
     let iphone = app.buttons["spaces.iphone"]
     XCTAssertTrue(iphone.waitForExistence(timeout: 5))
     iphone.tap()

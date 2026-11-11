@@ -1369,8 +1369,9 @@ final class TabsManager {
     var shownSpace: SpaceRecord? { spaces.first { $0.id == shownSetId } }
     /// The Spaces menu over the Island (M17).
     var isSpacesMenuPresented = false
-    /// The Island shows a Space mark once a Space exists, never on a private tab.
-    var showsSpaceMark: Bool { activeTab?.isPrivate != true && !spaces.isEmpty }
+    /// The palette's footer offers the Spaces card once a Space exists, never
+    /// on a private tab (the resting Island carries no Space mark).
+    var offersSpacesButton: Bool { activeTab?.isPrivate != true && !spaces.isEmpty }
     /// Tabs in a set, for the Spaces menu's counts.
     func tabCount(_ id: String) -> Int {
         id == shownSetId ? tabs.filter { !$0.isPrivate }.count : (savedSet(id)?.tabs.count ?? 0)

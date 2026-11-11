@@ -305,6 +305,7 @@ jobs:
       - run: npm ci
       - name: Shared Spaces window and consent acceptance
         run: |
+          bash scripts/ci-apt-mirror.sh
           sudo apt-get update
           sudo apt-get install -y --no-install-recommends gnome-keyring dbus-x11 libsecret-1-0
           bash scripts/ci-enable-linux-sandbox.sh
@@ -426,7 +427,7 @@ jobs:
       # the Control release arrives (docs/superpowers/specs/2026-10-24-mru-tab-switcher-design.md §8).
       - name: Install xdotool (Linux)
         if: runner.os == 'Linux'
-        run: sudo apt-get update -q && sudo apt-get install -y -q xdotool
+        run: bash scripts/ci-apt-mirror.sh && sudo apt-get update -q && sudo apt-get install -y -q xdotool
       - name: Browser commands and Settings (Linux)
         if: runner.os == 'Linux'
         run: |
