@@ -966,6 +966,8 @@
         emit('onTabsUpdated', snapshot);
         emit('onSplitLayout', currentSplitLayout());
       }
+      if (opened && overlayMode === 'capture' && !snapshot.capturePopover?.rows.length)
+        await close(false);
       // A newer fully processed snapshot can retire only its own older timeout.
       // Preserve any later unrelated notice and wait while any snapshot is pending.
       const status = document.getElementById('status');
@@ -1002,7 +1004,7 @@
   // measured trigger and clamped inside the window. CSS paints the card.
   function positionShield() {
     if (opened && overlayMode === 'spaces') { positionSpaces(); return; }
-    if (!opened || overlayMode !== 'shield') {
+    if (!opened || !['shield', 'capture'].includes(overlayMode)) {
       for (const key of ['left', 'top', 'width', 'height', 'right', 'bottom']) overlay.style[key] = '';
       if (layout === 'vertical') {
         const left = effectiveRailWidth();
@@ -1011,7 +1013,7 @@
       }
       return;
     }
-    const trigger = strip.contentDocument?.getElementById(shieldTrigger === 'insecure' ? 'pillInsecure' : 'pillShield');
+    const trigger = strip.contentDocument?.getElementById(overlayMode === 'capture' ? 'pillCapture' : shieldTrigger === 'insecure' ? 'pillInsecure' : 'pillShield');
     const rect = trigger?.getBoundingClientRect();
     const stripRect = strip.getBoundingClientRect();
     const width = Math.min(404, Math.max(0, innerWidth - 24));
@@ -1028,7 +1030,7 @@
     const slot = strip.contentDocument?.getElementById('nativeExtensions');
     const panel = paneMenu ?? (extensionsOpened ? document.getElementById('extensionsPanel')
       : !opened && !sheet.page && prompts.size ? permissionFrame
-      : opened ? overlay.contentDocument?.getElementById(overlayMode === 'find' ? 'findBar' : overlayMode === 'shield' ? 'shieldPop'
+      : opened ? overlay.contentDocument?.getElementById(overlayMode === 'find' ? 'findBar' : overlayMode === 'shield' ? 'shieldPop' : overlayMode === 'capture' ? 'capturePop'
         : overlayMode === 'group-menu' ? 'groupMenu' : overlayMode === 'spaces' ? 'workspaceSwitcher' : 'islandPanel')
       : strip.contentDocument?.getElementById('islandPill'));
     if (!slot || !panel) return;
@@ -1592,6 +1594,18 @@
     toggleStartPin: (id, expectedUrl) => request('toggleStartPin', [nativeId(id), expectedUrl]),
     toggleAdblock: async () => { const tab = snapshot?.tabs.find(t => t.id === snapshot.activeTabId); const value = await request('toggleAdblock', [tab?.committedUrl ?? '']); await refresh(); return value; },
     allowAdsOnActiveSite: async () => { const tab = snapshot?.tabs.find(t => t.id === snapshot.activeTabId); const value = await request('allowAdsOnActiveSite', [tab?.committedUrl ?? '']); await refresh(); return value; },
+    openCapturePopover: async () => {
+      if (opened && overlayMode === 'capture') return close(false);
+      await refresh();
+      if (!snapshot?.capturePopover?.rows.length) return false;
+      await show(undefined, 'capture', 'capture');
+      return true;
+    },
+    captureStop: async id => { await request('captureStop', [nativeId(id)]); await refresh(); },
+    captureFocus: async id => {
+      await request('switchTab', [nativeId(id)]); await close(false);
+      await request('focusPage'); await refresh();
+    },
     openShieldPopover: async anchor => {
       const trigger = anchor?.trigger === 'insecure' ? 'insecure' : 'shield';
       if (pendingShieldOpen) {

@@ -3440,13 +3440,22 @@ base::DictValue Snapshot(BrowserWindowInterface* browser, Owner* owner) {
   auto* model = browser->GetTabStripModel();
   auto* favorites = LoadedBookmarkModel(browser->GetProfile());
   std::set<int> live_tab_ids;
-  base::ListValue tabs;
+  base::ListValue tabs, capture_rows;
+  bool capture_audio = false, capture_video = false;
+  auto capture_indicator = MediaCaptureDevicesDispatcher::GetInstance()->GetMediaStreamCaptureIndicator();
   for (int index = 0; index < model->count(); ++index) {
     auto* contents = model->GetWebContentsAt(index);
     auto* audio = SiteMuteTab::Get(contents);
     auto& controller = contents->GetController();
     const int tab_id = sessions::SessionTabHelper::IdForTab(contents).id();
     live_tab_ids.insert(tab_id);
+    const bool capturing_audio = capture_indicator->IsCapturingAudio(contents);
+    const bool capturing_video = capture_indicator->IsCapturingVideo(contents);
+    capture_audio |= capturing_audio; capture_video |= capturing_video;
+    if (capturing_audio || capturing_video)
+      capture_rows.Append(base::DictValue().Set("surfaceId", base::NumberToString(tab_id))
+          .Set("host", contents->GetLastCommittedURL().GetHost()).Set("kind", "tab")
+          .Set("audio", capturing_audio).Set("video", capturing_video));
     // Favorite state follows the committed document, never the virtual or
     // pending URL, so a typed address is not reported as saved before it lands.
     const GURL& committed = contents->GetPrimaryMainFrame()->GetLastCommittedURL();
@@ -3489,6 +3498,8 @@ base::DictValue Snapshot(BrowserWindowInterface* browser, Owner* owner) {
                     .Set("muted", contents->IsAudioMuted())
                     .Set("siteMuted", AudioHost(contents).empty() ? base::Value() : base::Value(audio->SiteMuted()))
                     .Set("audible", contents->IsCurrentlyAudible())
+                    .Set("capture", base::DictValue().Set("audio", capturing_audio).Set("video", capturing_video))
+                    .Set("capturing", capturing_audio || capturing_video)
                     // A private tab may sit in an ordinary window (D1).
                     .Set("private", contents->GetBrowserContext()->IsOffTheRecord())
                     .Set("groupId", group ? base::Value(group->ToString()) : base::Value()));
@@ -3596,6 +3607,8 @@ base::DictValue Snapshot(BrowserWindowInterface* browser, Owner* owner) {
       .Set("verticalTabsMinWidth", 200).Set("verticalTabsMaxWidth", 360)
       .Set("verticalTabsDefaultWidth", 248)
       .Set("adblockEnabled", base::CommandLine::ForCurrentProcess()->HasSwitch("blanc-blocker-assets") && blanc::BlockingEnabled(browser->GetProfile()))
+      .Set("captureChip", base::DictValue().Set("audio", capture_audio).Set("video", capture_video))
+      .Set("capturePopover", base::DictValue().Set("rows", std::move(capture_rows)))
       .Set("displayShares", base::ListValue());
 }
 
@@ -9178,6 +9191,13 @@ class Handler : public content::WebUIMessageHandler, public extensions::Extensio
       return;
     }
     auto* tab = model->GetWebContentsAt(index);
+    if (method == "captureStop" && args.size() == 1) {
+      // Resolve only a current tab in this native window. Stop the real
+      // browser-owned stream; the chip remains lit until its indicator clears.
+      MediaCaptureDevicesDispatcher::GetInstance()->GetMediaStreamCaptureIndicator()
+          ->StopMediaCapturing(tab, MediaStreamCaptureIndicator::kUserMedia);
+      reply(true, base::Value(true)); return;
+    }
     if (method == "showQuietSettings" && args.size() == 1) {
       ShowQuietSettings(browser); reply(true, base::Value(true)); return;
     }

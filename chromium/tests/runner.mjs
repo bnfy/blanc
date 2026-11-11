@@ -61,6 +61,9 @@ async function runCase(matches,steps,tags=[]){
  const entry={executed:false};
  const fixture=new NativeFixture();
  const world=createWorld(fixture);
+ // A synthetic input device still uses getUserMedia and the real permission
+ // prompt/indicator. Never request the owner's physical microphone in tests.
+ if(tags.includes('@F13-2'))fixture.extraArgs=['--use-fake-device-for-media-stream'];
  world.scenarioTags=tags;
  try{
   // Profiles live in local temp storage, never in the synced evidence folder;

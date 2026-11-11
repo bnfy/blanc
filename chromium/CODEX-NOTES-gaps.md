@@ -21,7 +21,7 @@
 > Report it in a "Runner timing" section. Keep this notice when you rewrite the file.
 
 Queue 4 is **in progress**. Dedicated beta build/updater remains on absolute owner hold.
-Current prototype: **macos-910948e87a931d20**; `q4-cert-3-runtime-config.json`.
+Current prototype: **macos-cb12b4f301793b46**; `q4-mic-2-runtime-config.json`.
 
 | Item | State |
 | --- | --- |
@@ -30,7 +30,7 @@ Current prototype: **macos-910948e87a931d20**; `q4-cert-3-runtime-config.json`.
 | 3 Shared Spaces / Send | Done: all 41 cases have passing development evidence; resume targets 4/4 and full Sync 22/22 on current candidate |
 | 4 Updater | Deliberately excluded: absolute beta-build hold |
 | 5 Certificate recovery / eviction | Done: seven scenarios and three native eviction/isolation checks pass |
-| 6 Microphone indicator | Pending |
+| 6 Microphone indicator | Done: real permission, synthetic input, window-wide chip and native Stop pass |
 | 7 Quiet Space ownership | Pending |
 | 8 Glance / other failures | Pending |
 | 9 Pinned homes | Pending |
@@ -500,3 +500,29 @@ No Sync code changed, so the full Sync gate is not repeated for this item.
 Precommit: `q4-cert-precommit.tap` 309/309 pass (304 required plus five adapter
 checks); `q4-cert-precommit-patches.json` reconstruction passes. Progress
 freshness and whitespace pass. Item 6 microphone capture is next.
+
+## 6 — Granted microphone capture indicator
+
+The native snapshot now derives each tab's audio/video capture and the window
+union from MediaStreamCaptureIndicator. The copied shipping renderer displays
+its existing chip and popover; native Stop calls StopMediaCapturing for a tab
+resolved inside that exact window. No optimistic chip-clearing or page script
+pretends a stream stopped. The empty popover closes after native truth clears.
+Prototype CSS had explicitly hidden the capture chip; that obsolete hide is removed.
+
+`q4-mic-cases` passes geolocation and first exposes the CSS hide during real
+microphone capture. `q4-mic-after` passes microphone :13 on its first attempt
+on `macos-cb12b4f301793b46` (`q4-mic-2-runtime-config.json`). The case grants
+through the real permission prompt, observes an actual live getUserMedia track,
+stops the initial grant stream, starts another, checks the visible microphone
+chip, switches to a new tab to verify window-wide indication, clicks native Stop
+through the popover and observes both track termination and the cleared chip.
+Only this case enables Chromium's synthetic media device; the owner's microphone
+is never requested. The permission UI is not auto-granted or mocked.
+
+Builds: 8 actions / 34.33 s and 7 actions / 20.97 s, guarded incremental.
+Patch budget unchanged: 123 paths / 417 hunks; reconstruction 162/573.
+No Sync code changed. Camera, popup and physical-device capture are unverified.
+Precommit: `q4-mic-precommit.tap` 304/304 pass;
+`q4-mic-precommit-patches.json` reconstruction passes. Progress freshness and
+whitespace pass. Item 7 Quiet Space ownership is next.
