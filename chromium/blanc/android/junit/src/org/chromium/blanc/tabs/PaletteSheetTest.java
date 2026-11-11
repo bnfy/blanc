@@ -7,6 +7,7 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
 import android.app.Activity;
+import android.view.View;
 import android.view.inputmethod.EditorInfo;
 
 import org.junit.Before;
@@ -19,7 +20,11 @@ import org.chromium.base.ContextUtils;
 import org.chromium.blanc.settings.SettingsDestination;
 import org.chromium.base.test.BaseRobolectricTestRunner;
 import org.chromium.blanc.palette.PaletteSheet;
+import org.chromium.blanc.spaces.BlancSpaces;
+import org.chromium.blanc.spaces.SpaceSwitcher;
+import org.chromium.blanc.spaces.SpacesController;
 
+import java.lang.reflect.Proxy;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -326,6 +331,42 @@ public class PaletteSheetTest {
         sheet.settingsButton().performClick();
         assertEquals(List.of(SettingsDestination.ROOT), mSettings);
         assertFalse(sheet.isShowing());
+    }
+
+    private static void withSpace(Runnable body) {
+        BlancSpaces library = new BlancSpaces();
+        assertEquals(BlancSpaces.Result.OK, library.create("Work", BlancSpaces.COLORS[0], "briefcase"));
+        SpaceSwitcher.Tabs unused = (SpaceSwitcher.Tabs) Proxy.newProxyInstance(
+                SpaceSwitcher.Tabs.class.getClassLoader(), new Class<?>[] {SpaceSwitcher.Tabs.class}, (o, m, args) -> null);
+        SpacesController.setCurrent(new SpacesController(library, unused));
+        try {
+            body.run();
+        } finally {
+            SpacesController.setCurrent(null);
+        }
+    }
+
+    @Test
+    public void theFooterHasNoSpaceMarkBeforeAnySpaceExists() {
+        assertEquals(View.GONE, show().spaceButton().getVisibility());
+    }
+
+    // The closed Island has no room for it, so the open Island carries the mark.
+    @Test
+    public void theFooterShowsTheSpaceMarkOnceASpaceExists() {
+        withSpace(() -> {
+            PaletteSheet sheet = show();
+            assertEquals(View.VISIBLE, sheet.spaceButton().getVisibility());
+            assertEquals("Spaces", sheet.spaceButton().getContentDescription().toString());
+        });
+    }
+
+    @Test
+    public void aPrivateTabsFooterHasNoSpaceMark() {
+        withSpace(() -> {
+            mStore.select(mStore.create("https://private.example/", true, null, -1));
+            assertEquals(View.GONE, show().spaceButton().getVisibility());
+        });
     }
 
     @Test

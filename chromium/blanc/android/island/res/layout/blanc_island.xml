@@ -20,16 +20,6 @@
             android:scaleType="center"
             android:src="@drawable/blanc_island_mark" />
 
-        <ImageButton
-            android:id="@+id/blanc_island_space"
-            android:layout_width="36dp"
-            android:layout_height="36dp"
-            android:layout_gravity="center_vertical"
-            android:background="@null"
-            android:scaleType="center"
-            android:src="@drawable/blanc_spaces_glyph"
-            android:visibility="gone" />
-
         <View
             android:id="@+id/blanc_island_divider_start"
             android:layout_width="1dp"

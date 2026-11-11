@@ -2334,6 +2334,11 @@ tried on the Pixel, since that means turning Sync off and pairing again; Robolec
 Settings check script's wording scan read Site settings while the root was still on screen and so never opened its
 pages; it now waits for the root to go.
 
+The Space mark moved off the closed Island on November 11 at the owner's request, to save room on the bar: it now
+sits in the open Island's footer, before Favorites, under the same rule (once a Space exists, never on a private
+tab), and opens the Spaces menu. The iPhone is making the same change in its own session, so this isn't a
+divergence. The Spaces emulator check now requires the closed Island to have no mark.
+
 ### Shield count across a page's commit
 
 The count is fixed in the blocker code desktop shares. A page's first request can
