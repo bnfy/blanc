@@ -243,7 +243,7 @@
   },
   "pill.placeholder": {
     "message": "Cerca o digita un URL",
-    "source": "sha256:bfb7fc1ffdda26caba571d7d53628c12dd8f0625bc7cdddd87f920e9ce8914e9"
+    "source": "sha256:8d94349d68e65bad7b02e39aa7e4eafbf42f58c875dec41fe663ba8005f16a77"
   },
   "pill.notice.cleanLinkCopied": {
     "message": "Link pulito copiato",
@@ -9163,11 +9163,11 @@
   },
   "ios.settings.islandHistoryButtons": {
     "message": "Pulsanti Indietro e Avanti",
-    "source": "sha256:ccd97fe52519a0df2ab752832a4c38641d4253ecd0260874332cbaddf25292a9"
+    "source": "sha256:7ec1dc0623cd5f25a9dcfa770869e362aafdc346e914ccc97f40dea0f71903bc"
   },
   "ios.settings.islandHistoryButtonsHelp": {
-    "message": "Quando sono disattivati, la Island mostra Ricarica al loro posto. Puoi anche trascinare una pagina verso il basso per ricaricarla.",
-    "source": "sha256:34a85f6f0a1e92243716097edada33a3ed7effec29922af5aeffab66848ae480"
+    "message": "Quando la Island è stretta, sostituiscono Ricarica e Nuova scheda. Trascina una pagina verso il basso per ricaricarla.",
+    "source": "sha256:9b44c7b2c85805ae6a76e80aab9923e805e4820cfe9a1b0f457ca7be60456265"
   },
   "ios.settings.islandPosition": {
     "message": "Posizione",

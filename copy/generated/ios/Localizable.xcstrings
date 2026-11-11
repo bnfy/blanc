@@ -2486,7 +2486,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Search or type a URL"
+            "value": "Search or type URL"
           }
         },
         "de": {
@@ -103172,7 +103172,7 @@
       }
     },
     "ios.settings.islandHistoryButtons": {
-      "comment": "iOS Settings → Island: switch for Back and Forward on the iPhone Island. On by default.",
+      "comment": "iOS Settings → Island: switch that puts Back and Forward on the iPhone Island. Off by default.",
       "extractionState": "manual",
       "localizations": {
         "en": {
@@ -103214,43 +103214,43 @@
       }
     },
     "ios.settings.islandHistoryButtonsHelp": {
-      "comment": "iOS Settings → Island: footer under the Back and Forward switch. Off puts Reload (and New Tab) on the iPhone Island instead; the wider Island keeps every button.",
+      "comment": "iOS Settings → Island: footer under the Back and Forward switch. 'Narrow' is the iPhone Island; the wider Island keeps every button.",
       "extractionState": "manual",
       "localizations": {
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "When they're off, the Island shows Reload in their place. You can also pull down on a page to reload it."
+            "value": "When the Island is narrow, they take the place of Reload and New Tab. Pull down on a page to reload it."
           }
         },
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Sind sie aus, zeigt die Island stattdessen „Neu laden“. Du kannst eine Seite auch nach unten ziehen, um sie neu zu laden."
+            "value": "Ist die Island schmal, ersetzen sie „Neu laden“ und „Neuer Tab“. Ziehe eine Seite nach unten, um sie neu zu laden."
           }
         },
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "Si están desactivados, la Island muestra Recargar en su lugar. También puedes deslizar una página hacia abajo para recargarla."
+            "value": "Cuando la Island es estrecha, sustituyen a Recargar y Nueva pestaña. Desliza una página hacia abajo para recargarla."
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Lorsqu’ils sont désactivés, l’Island affiche Actualiser à leur place. Vous pouvez aussi tirer une page vers le bas pour l’actualiser."
+            "value": "Quand l’Island est étroite, ils remplacent Actualiser et Nouvel onglet. Tirez une page vers le bas pour l’actualiser."
           }
         },
         "it": {
           "stringUnit": {
             "state": "translated",
-            "value": "Quando sono disattivati, la Island mostra Ricarica al loro posto. Puoi anche trascinare una pagina verso il basso per ricaricarla."
+            "value": "Quando la Island è stretta, sostituiscono Ricarica e Nuova scheda. Trascina una pagina verso il basso per ricaricarla."
           }
         },
         "pt-BR": {
           "stringUnit": {
             "state": "translated",
-            "value": "Quando estão desativados, a Island mostra Recarregar no lugar deles. Você também pode puxar uma página para baixo para recarregá-la."
+            "value": "Quando a Island está estreita, eles substituem Recarregar e Nova aba. Puxe uma página para baixo para recarregá-la."
           }
         }
       }

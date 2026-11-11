@@ -243,7 +243,7 @@
     "maxLength": 14
   },
   "pill.placeholder": {
-    "message": "Search or type a URL",
+    "message": "Search or type URL",
     "note": "Pill label on a blank new tab, inviting the user to open the command bar. Also the iPhone Island's dimmed label on the Start Page, where it must fit a narrow Island.",
     "maxLength": 28
   },
@@ -9452,11 +9452,11 @@
   },
   "ios.settings.islandHistoryButtons": {
     "message": "Back and Forward buttons",
-    "note": "iOS Settings → Island: switch for Back and Forward on the iPhone Island. On by default."
+    "note": "iOS Settings → Island: switch that puts Back and Forward on the iPhone Island. Off by default."
   },
   "ios.settings.islandHistoryButtonsHelp": {
-    "message": "When they're off, the Island shows Reload in their place. You can also pull down on a page to reload it.",
-    "note": "iOS Settings → Island: footer under the Back and Forward switch. Off puts Reload (and New Tab) on the iPhone Island instead; the wider Island keeps every button."
+    "message": "When the Island is narrow, they take the place of Reload and New Tab. Pull down on a page to reload it.",
+    "note": "iOS Settings → Island: footer under the Back and Forward switch. 'Narrow' is the iPhone Island; the wider Island keeps every button."
   },
   "ios.settings.islandPosition": {
     "message": "Position",

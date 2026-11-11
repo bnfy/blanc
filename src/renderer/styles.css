@@ -4353,10 +4353,6 @@ body:is([data-mode="spaces"], [data-closing="spaces"]) #workspaceSwitcher.ws-swi
 .space-mark:is([data-state="neutral"], .vertical-tabs-toolbar [data-state="none"]) { width: 24px; padding: 0; justify-content: center; color: var(--text-dim); background: color-mix(in srgb, var(--text) 6%, transparent); }
 .space-mark:is([data-state="neutral"], .vertical-tabs-toolbar [data-state="none"]) .space-mark-name { display: none; }
 .space-mark:is([data-state="neutral"], .vertical-tabs-toolbar [data-state="none"]) .space-mark-symbol svg { width: 16px; height: 16px; stroke-width: 2; } /* the Spaces planet, as the ⌘L footer's */
-/* Never matches in the app any more (the mark is hidden on the Island). The
-   website's Spaces demo (site/src/lib/native-island-art.mjs) still draws the
-   released Island from it; drop both when the site shows the new Island. */
-#islandPill:has(> .space-mark:not([hidden])) { padding-left: 7px; }
 .island-row .row-space-tile { width: 20px; height: 20px; border-radius: 6px; }
 .island-row .row-space-tile .ws-symbol { width: 12px; height: 12px; }
 
