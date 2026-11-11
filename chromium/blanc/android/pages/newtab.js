@@ -1476,6 +1476,9 @@ function applyLayout(name) {
     button.setAttribute('aria-pressed', String(isActive));
   }
   stopClock();
+  // The layout's CSS hides the page's own clock, not the native glass clock
+  // iOS draws over the page: the next draw takes that one down.
+  if (name !== 'billboard') scheduleClockArt();
   if (name !== 'billboard' && clockPopover.matches(':popover-open')) clockPopover.hidePopover();
   if (!rendered.has(name)) {
     if (name === 'billboard') renderBillboard();

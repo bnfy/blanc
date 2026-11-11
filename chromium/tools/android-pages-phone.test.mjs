@@ -2,7 +2,7 @@
 // each way a page can be wrong on the phone.
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {pageProblems} from '../tests/android/pages-phone.mjs';
+import {clockProblems, pageProblems} from '../tests/android/pages-phone.mjs';
 
 const good = {url: 'chrome://blanc/history.html', bridge: true, platform: 'ios', lang: 'de', scrollWidth: 412, innerWidth: 412, errors: []};
 
@@ -26,4 +26,13 @@ test('a page\'s own query doesn\'t count against it', () => {
 
 test('the error and Mahjong pages have no phone stylesheet to check', () => {
   assert.deepEqual(pageProblems('mahjong', 'de', {...good, url: 'chrome://blanc/mahjong.html', platform: null}), []);
+});
+
+test('a fresh install\'s clock is the iPhone\'s first-run clock, drawn in glass', () => {
+  const iphone = {clock: {font: 'flex', style: 'glass', height: 300, weight: 450, color: 'auto'}, glassDrawn: true};
+  assert.deepEqual(clockProblems(iphone), []);
+  assert.deepEqual(clockProblems({...iphone, clock: {...iphone.clock, font: 'instrument', style: 'solid'}}),
+    ['font is "instrument", not "flex"', 'style is "solid", not "glass"']);
+  assert.deepEqual(clockProblems({...iphone, glassDrawn: false}), ['the glass is not drawn']);
+  assert.deepEqual(clockProblems(null), ['no clock data']);
 });

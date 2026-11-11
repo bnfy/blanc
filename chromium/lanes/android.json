@@ -17,6 +17,7 @@
     "patches/android/0107-android-sync.patch",
     "patches/android/0108-android-background-sync.patch",
     "patches/android/0109-android-tab-group-sync.patch",
-    "patches/android/0110-android-settings.patch"
+    "patches/android/0110-android-settings.patch",
+    "patches/android/0111-android-page-pinch.patch"
   ]
 }

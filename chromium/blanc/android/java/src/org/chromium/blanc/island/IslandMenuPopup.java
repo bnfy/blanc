@@ -3,6 +3,7 @@
 package org.chromium.blanc.island;
 
 import android.content.res.Resources;
+import android.view.HapticFeedbackConstants;
 import android.view.Menu;
 import android.view.View;
 import android.widget.PopupMenu;
@@ -37,12 +38,17 @@ public final class IslandMenuPopup {
         void send();
 
         void newPrivateTab();
+
+        /** Reload, or Stop while the page loads. */
+        void reload();
+
+        void openSettings();
     }
 
     static final Set<IslandMenu.Kind> BUILT =
             EnumSet.of(IslandMenu.Kind.BLOCKING, IslandMenu.Kind.BLOCKING_SETTINGS, IslandMenu.Kind.BLOCKING_UNAVAILABLE,
                     IslandMenu.Kind.FAVORITE, IslandMenu.Kind.SEND, IslandMenu.Kind.SHARE, IslandMenu.Kind.FIND,
-                    IslandMenu.Kind.NEW_PRIVATE_TAB);
+                    IslandMenu.Kind.NEW_PRIVATE_TAB, IslandMenu.Kind.RELOAD, IslandMenu.Kind.SETTINGS);
 
     private IslandMenuPopup() {}
 
@@ -77,6 +83,14 @@ public final class IslandMenuPopup {
                     title = R.string.blanc_menu_find_in_page;
                     run = actions::find;
                     break;
+                case RELOAD:
+                    title = context.loading ? R.string.blanc_ios_island_stop : R.string.blanc_menu_reload;
+                    run = actions::reload;
+                    break;
+                case SETTINGS:
+                    title = R.string.blanc_menu_settings;
+                    run = actions::openSettings;
+                    break;
                 default:
                     title = R.string.blanc_menu_new_private_tab;
                     run = actions::newPrivateTab;
@@ -90,6 +104,9 @@ public final class IslandMenuPopup {
                             });
             order++;
         }
+        // A light tap as the menu opens, as on the iPhone (#1463); the system skips it where haptics
+        // are off.
+        anchor.performHapticFeedback(HapticFeedbackConstants.CONTEXT_CLICK);
         popup.show();
         return popup;
     }

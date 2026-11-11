@@ -11,7 +11,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import {execFileSync} from 'node:child_process';
 import {fileURLToPath} from 'node:url';
-import {nodeBounds} from './island-menu.mjs';
+import {gridSwipe, nodeBounds} from './island-menu.mjs';
 import {matching} from './palette.mjs';
 
 const PACKAGE = 'me.bnfy.blanc.dev';
@@ -54,6 +54,8 @@ async function main(argv) {
   const dump = () => { adb('shell', 'uiautomator', 'dump', '/sdcard/blanc-ui.xml'); return adb('shell', 'cat', '/sdcard/blanc-ui.xml'); };
   const center = b => [Math.round((b.left + b.right) / 2), Math.round((b.top + b.bottom) / 2)].map(String);
   const tap = query => { const b = nodeBounds(dump(), query); if (b) { adb('shell', 'input', 'tap', ...center(b)); sleep(1.5); } return !!b; };
+  // The tab grid opens with a swipe from the Island into the page; the closed Island has no tab count.
+  const openGrid = () => { const swipe = gridSwipe(dump()); if (swipe) { adb('shell', 'input', 'swipe', ...swipe, '250'); sleep(2); } return !!swipe; };
   const launch = () => { adb('shell', 'monkey', '-p', PACKAGE, '-c', 'android.intent.category.LAUNCHER', '1'); sleep(7); };
   const view = url => { adb('shell', 'am', 'start', '-a', 'android.intent.action.VIEW', '-d', url, '-p', PACKAGE); sleep(6); };
   const pull = () => { adb('shell', 'input', 'swipe', '540', '500', '540', '1500', '600'); sleep(4); };
@@ -82,7 +84,7 @@ async function main(argv) {
     check('background tabs go quiet and the active one stays', before >= 4 && before - after >= 2 && /numbers/.test(showing || '')
       ? [] : [`${before} renderers then ${after}; showing ${showing}`]);
 
-    tap({id: 'blanc_island_tabs'});
+    openGrid();
     const card = matching(dump(), /^Switch to About us$/, 'content-desc');
     if (card) { adb('shell', 'input', 'tap', ...center(card)); sleep(6); }
     const woke = await devtools('location.href');
