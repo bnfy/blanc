@@ -30,5 +30,6 @@ test('the mirror script leaves azure.archive.ubuntu.com and refuses to run off a
   assert.match(script, /GITHUB_ACTIONS:-\} != true \|\| \$\{RUNNER_OS:-\} != Linux/);
   assert.ok(script.includes("printf '%s\\n' http://mirrors.edge.kernel.org/ubuntu/"), 'the kernel.org mirror comes first');
   assert.match(script, /azure\.archive\.ubuntu\.com is still configured/);
+  assert.ok(!script.includes('http://archive.ubuntu.com/'), 'no fallback that times out on every index');
   assert.doesNotMatch(script, /apt-get/, 'the step itself runs apt, after the script');
 });

@@ -10,7 +10,9 @@ if [[ ${GITHUB_ACTIONS:-} != true || ${RUNNER_OS:-} != Linux ]]; then
   exit 1
 fi
 if [ -f /etc/apt/apt-mirrors.txt ]; then
-  printf '%s\n' http://mirrors.edge.kernel.org/ubuntu/ http://archive.ubuntu.com/ubuntu/ | sudo tee /etc/apt/apt-mirrors.txt >/dev/null
+  # kernel.org alone: apt tried a failing archive.ubuntu.com before it on
+  # every index, and the DNS timeouts used up browser-shortcuts' 10 minutes.
+  printf '%s\n' http://mirrors.edge.kernel.org/ubuntu/ | sudo tee /etc/apt/apt-mirrors.txt >/dev/null
 fi
 for file in /etc/apt/sources.list /etc/apt/sources.list.d/*.list /etc/apt/sources.list.d/*.sources; do
   if [ -f "$file" ]; then
