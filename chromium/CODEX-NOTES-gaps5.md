@@ -1,24 +1,24 @@
 # Result
 
-Queue 5 is in progress; no acceptance claims yet.
+Queue 5 is in progress; focused acceptance is recorded below.
 
 | Classification | Cases | Newly passing |
 | --- | ---: | ---: |
-| a: missing adapter | 40 | 18 |
-| b: missing fork capability / blocked acceptance | 42 | 0 |
-| c: inapplicable by platform or approved construction | 20 | 0 |
+| a: missing adapter | 32 | 22 |
+| b: missing fork capability / blocked acceptance | 49 | 0 |
+| c: inapplicable by platform or approved construction | 21 | 0 |
 
 Current candidate: `macos-e11aaf59419ae9e2`, `q5-glance-3-runtime-config.json`.
 Inherited Sync gate: 22/22 on starting bytes; Sync code unchanged; not rerun.
 Inventory baseline: 533 pass / 3 fail (subsequently repaired) / 102 undefined / 2 excluded.
 Final inventory: owed, once after implementation. Lost passes: not yet measured.
 Owner needs: beta/updater hold; signed physical Touch ID acceptance; Billboard TopSites design decision if still required.
-Unverified: all new work until candidate-bound focused runs; final full inventory.
+Unverified: the remaining 10 adapter cases and 49 capability cases; final full inventory.
 No push, release, signing, production/Apple/1Password contact, live-tree changes or toolchain installation authorized.
 
 ## Classification of all 102 starting gaps
 
-Initial classification follows the raw inventory and current native source. Update if implementation reveals a missing product capability. Category c is not a pass; approved divergences remain explicit. V12 search and V18 profiles retain useful native acceptance work in category a rather than discarding their user intent.
+The first classification was 40 a / 42 b / 20 c. Source and focused runs moved seven missing capabilities to b and the V12 HTTP-validation case to c; the table below is current. Category c is not a pass; approved divergences remain explicit. V12 search and V18 profiles retain useful native acceptance work in category a rather than discarding their user intent.
 
 | Case | Class | Scenario | Reason / work needed |
 | --- | :---: | --- | --- |
@@ -43,17 +43,17 @@ Initial classification follows the raw inventory and current native source. Upda
 | `downloads.feature:13:plain` | a | A completed download is retrievable | step definition missing |
 | `glance.feature:24:plain` | a | A visible Glance reference is never quieted | setTabIdleSince |
 | `glance.feature:31:plain` | a | Cancelling a Change picker after its reference closed leaves focus on the page | Shipping main-process evaluate needs a native adapter |
-| `glance.feature:38:plain` | a | Media started in the reference pane is audible | simulateMediaStarted |
-| `glance.feature:45:plain` | a | A tab muted as a background tab is unmuted when it opens in Glance | simulateMediaStarted |
+| `glance.feature:38:plain` | b | Media started in the reference pane is audible | Missing native background-started-audio guard and its ownership state. |
+| `glance.feature:45:plain` | b | A tab muted as a background tab is unmuted when it opens in Glance | Missing native background-started-audio guard and release when the tab becomes visible. |
 | `glance.feature:178:plain` | a | Zoom and Back follow focus into the reference | zoomLevel |
 | `glance.feature:187:plain` | c | The 1Password fill and its hint follow the focused pane | Owner decision 2026-11-02: no 1Password SDK/fill capsule; use the Web Store extension. |
 | `glance.feature:197:plain` | c | A reference navigation leaves a 1Password question about the main page alone | Owner decision 2026-11-02: no 1Password SDK/fill capsule; use the Web Store extension. |
-| `glance.feature:207:plain` | a | A mouse gesture in the reference acts on the reference | setMouseGestures |
+| `glance.feature:207:plain` | b | A mouse gesture in the reference acts on the reference | No native mouse-gesture controller is implemented. |
 | `glance.feature:234:plain` | a | The Glance header goes back and reloads the reference | zoomLevel |
 | `glance.feature:253:plain` | a | Find pressed in the other pane starts a fresh search there | Browser command needs an adapter: find |
-| `glance.feature:264:plain` | a | The Island makes room for a new chip and grows back when it goes | Shipping main-process evaluate needs a native adapter |
-| `glance.feature:273:plain` | a | A growing blocked count leaves the Island's dots alone | Shipping main-process evaluate needs a native adapter |
-| `glance.feature:280:plain` | a | The Island re-fits when the interface font finishes loading | Shipping main-process evaluate needs a native adapter |
+| `glance.feature:264:plain` | b | The Island makes room for a new chip and grows back when it goes | The native Downloads model is not connected to the Island downloads activity event. |
+| `glance.feature:273:plain` | b | A growing blocked count leaves the Island's dots alone | Shared setup needs the missing native-to-Island downloads activity feed; blocked-count observation also needs a seed. |
+| `glance.feature:280:plain` | b | The Island re-fits when the interface font finishes loading | Shared setup needs the missing native-to-Island downloads activity feed. |
 | `glance.feature:287:plain` | a | Close Tab from the find bar on the reference hands focus to the main page | Browser command needs an adapter: find |
 | `glance.feature:296:plain` | a | A new tab opened with focus in the reference makes the main page the focused pane | Browser command needs an adapter: new-tab |
 | `glance.feature:345:plain` | a | A private reference shows the private chip in the header | glanceHeaderMotion needs an adapter |
@@ -81,7 +81,7 @@ Initial classification follows the raw inventory and current native source. Upda
 | `mini-window.feature:36:plain` | b | the mini window shortcut is off until chosen | step definition missing |
 | `navigation-and-context-menu.feature:12:example-23` | a | Typing a query searches with the selected engine | V12: Kagi is added under chrome://settings → Manage search engines |
 | `navigation-and-context-menu.feature:77:plain` | a | A custom search address is used for searches | V12: a custom search address is added under chrome://settings → Manage search engines |
-| `navigation-and-context-menu.feature:83:plain` | a | A custom address can't send searches over the internet unencrypted | V12: a custom search address is added under chrome://settings → Manage search engines |
+| `navigation-and-context-menu.feature:83:plain` | c | A custom address can't send searches over the internet unencrypted | V12 explicitly uses Chromium validation; it accepts HTTP custom engine URLs, unlike this shipping-only HTTPS policy. |
 | `navigation-and-context-menu.feature:91:plain` | a | A custom search engine gets no live suggestions and searches its own address | V12: a custom search address is added under chrome://settings → Manage search engines |
 | `navigation-and-context-menu.feature:100:plain` | a | Open link in a background tab opens it ungrouped | step definition missing |
 | `newtab-layouts.feature:126:plain` | b | Billboard continues past its initial candidate page | seedBillboardOverflowHistory: real history::TopSites caps GetMostVisitedURLs at 10 (kTopSitesNumber); needs an owner-approved native design decision, not a test op |
@@ -103,7 +103,7 @@ Initial classification follows the raw inventory and current native source. Upda
 | `settings-and-theming.feature:65:plain` | c | /dark-site keeps one site in its own colors | Owner decision 2026-11-02: no built-in Dark Reader; use the Web Store extension. |
 | `settings-and-theming.feature:74:plain` | c | A private tab's /dark-site choice is not saved | Owner decision 2026-11-02: no built-in Dark Reader; use the Web Store extension. |
 | `split-view.feature:201:plain` | a | A pane view raised above the floating Island goes back under it at the next layout | raiseTabView |
-| `supporter-and-session.feature:12:plain` | a | A retired icon cannot be restored by an active Patron | setSupporterActive |
+| `supporter-and-session.feature:12:plain` | b | A retired icon cannot be restored by an active Patron | No native active Patron state/import exists; icon allowlisting itself is unconditional. |
 | `supporter-and-session.feature:26:plain` | a | Relaunch restores groups but not private tabs | step definition missing |
 | `tab-archive.feature:8:plain` | b | An idle loose tab is archived | step definition missing |
 | `tab-archive.feature:15:plain` | b | Pinned and grouped tabs are never archived | step definition missing |
@@ -199,3 +199,23 @@ Discovered capability gaps retained for category-b work: Glance audio guard
 (:207; no native gesture controller), and the download chip's host event
 feed (:264/:273/:280 share the missing feed in setup). These initial a-cohort
 rows are not passes; classification will be revised with their implementation.
+
+## 3 — Native search, session restore and explicit exclusions
+
+Session :26 passes in `q5-session-search-1`: both named groups retain their
+exact tab URLs after relaunch; private tabs and their sentinel URL do not return.
+Navigation :12 example 23 (Kagi), :77 and :91 pass in `q5-search-4`, first
+attempts on q5-glance-3. The adapter adds engines through Chromium Settings,
+uses its validation and Make default command, then verifies the selected
+engine on Search settings. The engines list virtualizes rows; a default row
+need not remain in its DOM. Earlier adapter errors remain in search-1/2/3.
+The custom engine sends no live suggestions and resolves the exact search URL.
+
+The runner now records all 21 category-c cases as explicit macOS exclusions
+with their individual reasons. None is counted as passing. A guard requires
+each exclusion to have been undefined in the starting inventory and to match
+the category-c notes, so this cannot hide a previous pass or failure. With the
+two existing exclusions, the final inventory should report 23 exclusions.
+Source inspection moved seven missing native features from a to b; V12's
+Chromium HTTP search validation moved :83 to c. This is a construction
+difference, not a claimed security-policy pass. No native or Sync bytes changed.

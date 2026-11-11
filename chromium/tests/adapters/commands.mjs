@@ -147,7 +147,7 @@ async function settingsReady(page,section){
 // when Settings was not already open.
 export async function inSettings(w,section,fn,arg,{full=false}={}){
  const had=await settingsPage(w);
- if(!had)await w.api('openPage',['settings',section]);
+ if(!had)await w.api('openPage',['settings',section==='searchEngines'?'search':section]);
  let page=had??await w.waitFor(()=>settingsPage(w),Boolean,'the settings sheet',8000);
  page=await moveTo(w,page,section);
  await settingsReady(page,section);
@@ -169,6 +169,31 @@ const readSwitch=(w,section,id)=>inSettings(w,section,(a,d)=>{const el=d.find('#
 // Shipping's engine ids by the names Chromium's Change dialog shows.
 const ENGINES={duckduckgo:'DuckDuckGo',google:'Google',bing:'Microsoft Bing',brave:'Brave',kagi:'Kagi'};
 const engineOf=name=>Object.keys(ENGINES).find(id=>ENGINES[id]===name)??(name?'custom':'');
+// V12: add the engine through Chromium's own dialog and select its own
+// Make default action. Validation stays in the native settings handler.
+async function addNativeEngine(w,name,template){
+ const result=await inSettings(w,'searchEngines',async(a,d)=>{
+  const wait=async(read,accept,label)=>{const end=Date.now()+8000;for(;;){const value=read();if(accept(value))return value;
+   if(Date.now()>end)throw Error('Search settings did not show '+label);await new Promise(r=>setTimeout(r,50));}};
+  const add=await wait(()=>d.find('#addSearchEngine'),Boolean,'Add');add.click();
+  const dialog=await wait(()=>d.find('settings-search-engine-edit-dialog'),Boolean,'engine dialog');
+  const root=dialog.shadowRoot;
+  for(const [id,value] of [['searchEngine',a.name],['keyword','q5-'+a.name.toLowerCase().replace(/[^a-z0-9]+/g,'-')],['queryUrl',a.template]]){
+   const input=d.find('#'+id,root);input.value=value;
+   input.dispatchEvent(new CustomEvent('value-changed',{detail:{value},bubbles:true,composed:true}));
+   input.dispatchEvent(new Event('input',{bubbles:true,composed:true}));
+  }
+  const submit=d.find('#actionButton',root);
+  await wait(()=>submit.disabled,disabled=>!disabled,'valid engine inputs');submit.click();
+  const entry=await wait(()=>d.all('settings-search-engine-entry').find(e=>e.engine?.displayName===a.name),Boolean,'added engine');
+  d.find('.icon-more-vert',entry.shadowRoot).click();
+  const makeDefault=await wait(()=>d.find('#makeDefault',entry.shadowRoot),Boolean,'Make default');
+  if(makeDefault.disabled)throw Error('Native engine cannot be made default');makeDefault.click();
+  return {value:true};
+ },{name,template},{full:true});
+ if(result.value!==true)throw Error('Native search engine was not selected');
+ return w.waitFor(()=>w.call('searchEngine'),engine=>engine===engineOf(name),'selected native search engine',8000);
+}
 // Chromium's Appearance → Mode: Device, Light, Dark.
 const MODES={system:'0',light:'1',dark:'2'};
 // Inside an already open Settings, as shipping reads its sheet: null when
@@ -223,7 +248,7 @@ export const commands={
  async handoffDecision(w,url){return typedHandoff(w,url);},
  // Chromium's Change dialog: an engine it doesn't offer can't be chosen, so
  // the default stays.
- setSearchEngine:(w,engine)=>inSettings(w,'search',async(a,d)=>{
+ setSearchEngine:(w,engine)=>engine==='kagi'?addNativeEngine(w,'Kagi','https://kagi.com/search?q=%s'):inSettings(w,'search',async(a,d)=>{
   const wait=ms=>new Promise(r=>setTimeout(r,ms));
   d.find('#openDialogButton').click();
   let dialog=null;for(let i=0;i<50&&!dialog;i++){await wait(100);dialog=d.find('settings-search-engine-list-dialog');}
@@ -242,7 +267,7 @@ export const commands={
  searchEngine:w=>inSettings(w,'search',(a,d)=>({value:d.find('.search-engine-name')?.textContent.trim()??''})).then(engineOf),
  // V12 (owner, 2026-11-04): a custom address is added under Chromium's Manage
  // search engines and made the default there.
- setCustomSearchEngine(){throw new UndefinedNativeAdapterError('V12: a custom search address is added under chrome://settings → Manage search engines');},
+ setCustomSearchEngine:(w,template)=>addNativeEngine(w,'Queue 5 custom search',String(template)),
  setSearchSuggestions:(w,on)=>setSwitch(w,'search','blancSearchSuggestions',on),
  searchSuggestions:w=>readSwitch(w,'search','blancSearchSuggestions'),
  setAppearance:(w,theme)=>inSettings(w,'appearance',async(a,d)=>{const select=d.find('#colorSchemeModeSelect');

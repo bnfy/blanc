@@ -13,6 +13,7 @@ import {assertRendering,assertNodeRuntime} from './lib/render-guard.mjs';
 import {matchStep,beforeHooks} from './steps.mjs';
 import {prepareSyncFixture} from './fork-steps/sync.mjs';
 import {aggregateCases} from './results.mjs';
+import {macosForkExclusions} from './macos-fork-exclusions.mjs';
 import {awaitMemory} from './lib/memory-guard.mjs';
 import {createWorld,missingAdapters} from './world.mjs';
 const root=fileURLToPath(new URL('../',import.meta.url));
@@ -126,6 +127,7 @@ for(const scenario of inventory.scenarios){
   const entry={id:test.id,name:test.name,result:'not-run',executed:false};
   if((selected&&!selected.has(test.id))||(onlyPattern&&!onlyPattern.test(test.id))){entry.result='not-run';}
   else if(scenario.desktopApplicability==='excluded'){entry.result='excluded';entry.exclusionReason=scenario.exclusionReason;}
+  else if(process.platform==='darwin'&&macosForkExclusions[test.id]){entry.result='excluded';entry.exclusionReason=macosForkExclusions[test.id];}
   else if((scenario.tags.includes('@test-platform-linux')||scenario.tags.includes('@F45-7'))&&process.platform!=='linux'){entry.result='undefined';entry.nonApplicableReason='Linux platform behavior cannot execute on the native macOS fork; Electron platform spoofing is not a native platform test.';}
   else{
    const matches=test.steps.map(s=>s.argument?null:matchStep(s.text));
@@ -160,7 +162,7 @@ for(const scenario of inventory.scenarios){
   record.cases.push(entry);cases.push(entry);
  }
  record.result=aggregateCases(record.cases);
- if(record.result==='excluded')record.exclusionReason=scenario.exclusionReason;
+ if(record.result==='excluded')record.exclusionReason=scenario.exclusionReason??[...new Set(record.cases.map(c=>c.exclusionReason))].join(' ');
  baseline.scenarios.push(record);
  fs.writeFileSync(path.join(out,'progress.json'),JSON.stringify({declarationsRecorded:baseline.scenarios.length,total:inventory.scenarios.length,executedCases:executed})+'\n');
  // Preserve completed evidence if a rendering/memory guard stops a long run.
