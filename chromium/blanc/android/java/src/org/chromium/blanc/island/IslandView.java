@@ -9,6 +9,7 @@ import android.content.res.Resources;
 import android.graphics.drawable.GradientDrawable;
 import android.os.Build;
 import android.os.Bundle;
+import android.text.TextUtils;
 import android.view.LayoutInflater;
 import android.view.MotionEvent;
 import android.view.VelocityTracker;
@@ -24,18 +25,31 @@ import org.chromium.build.annotations.Nullable;
 
 /**
  * Blanc for iPhone's Island pill as an Android view (ContentView.addressPill): the Sunrise mark,
- * the site, the private chip, Reload or Stop and New tab, on the theme's raised
+ * the site, the private chip, Stop while loading, Back, Forward and New tab, on the theme's raised
  * surface with a hairline and soft shadow, at most 600 wide inside 16 of padding. It only draws
  * {@link State}; IslandCoordinator wires it to the browser.
  */
 @NullMarked
 public class IslandView extends FrameLayout {
+    /** The iPhone's placeholder opacity on the Start Page, and its dimmed Back and Forward (#1463). */
+    private static final float PLACEHOLDER_ALPHA = 0.55f;
+
+    private static final float DISABLED_ALPHA = 0.35f;
+
     /** What the pill shows. */
     public static final class State {
         public String title = "";
         public boolean loading;
         public int tabCount;
         public boolean privateTab;
+
+        /** The Start Page: the address shows the dimmed placeholder instead of `title`. */
+        public boolean startPage;
+
+        /** The page's history, for Back and Forward. */
+        public boolean canGoBack;
+
+        public boolean canGoForward;
 
         /** Tabs on either side of this one, for the swipe (left goes to the next). */
         public boolean hasPrevious;
@@ -75,7 +89,9 @@ public class IslandView extends FrameLayout {
     private final ImageButton mMenu;
     private final TextView mDomain;
     private final TextView mPrivate;
-    private final ImageButton mReload;
+    private final ImageButton mStop;
+    private final ImageButton mBack;
+    private final ImageButton mForward;
     private final ImageButton mNewTab;
     private final View mDividerStart;
     private final View mDividerEnd;
@@ -97,7 +113,9 @@ public class IslandView extends FrameLayout {
         mMenu = findViewById(R.id.blanc_island_menu);
         mDomain = findViewById(R.id.blanc_island_domain);
         mPrivate = findViewById(R.id.blanc_island_private);
-        mReload = findViewById(R.id.blanc_island_reload);
+        mStop = findViewById(R.id.blanc_island_stop);
+        mBack = findViewById(R.id.blanc_island_back);
+        mForward = findViewById(R.id.blanc_island_forward);
         mNewTab = findViewById(R.id.blanc_island_new_tab);
         mDividerStart = findViewById(R.id.blanc_island_divider_start);
         mDividerEnd = findViewById(R.id.blanc_island_divider_end);
@@ -131,15 +149,18 @@ public class IslandView extends FrameLayout {
         mHasPrevious = state.hasPrevious;
         mHasNext = state.hasNext;
         Resources res = getResources();
-        mDomain.setText(state.title);
-
-        mReload.setImageResource(
-                state.loading ? R.drawable.blanc_island_stop : R.drawable.blanc_island_reload);
-        mReload.setContentDescription(
-                res.getString(
-                        state.loading
-                                ? R.string.blanc_ios_island_stop
-                                : R.string.blanc_ios_island_reload));
+        // #1463: the Start Page invites a search, dimmed like a placeholder and cut at its end;
+        // TalkBack still hears the page's name below.
+        mDomain.setText(state.startPage ? res.getString(R.string.blanc_pill_placeholder) : state.title);
+        mDomain.setEllipsize(state.startPage ? TextUtils.TruncateAt.END : TextUtils.TruncateAt.MIDDLE);
+        mDomain.setAlpha(state.startPage ? PLACEHOLDER_ALPHA : 1f);
+        // No Reload on the Island (#1463): the Sunrise menu and pull to refresh reload. Stop shows
+        // while a page loads, since nothing else can stop one.
+        mStop.setVisibility(state.loading ? View.VISIBLE : View.GONE);
+        mBack.setEnabled(state.canGoBack);
+        mBack.setAlpha(state.canGoBack ? 1f : DISABLED_ALPHA);
+        mForward.setEnabled(state.canGoForward);
+        mForward.setAlpha(state.canGoForward ? 1f : DISABLED_ALPHA);
         // No tab count on the Island, as on the iPhone since November 5 (#1372): the address carries
         // the count as its accessibility value, so TalkBack hears "Search or switch tabs, example.com,
         // 3 tabs", and a Show all tabs action opens the grid as the swipe into the page does.
@@ -175,7 +196,9 @@ public class IslandView extends FrameLayout {
         mPill.setOutlineSpotShadowColor(shadow);
         ColorStateList ink = ColorStateList.valueOf(style.text);
         mMenu.setImageTintList(ink);
-        mReload.setImageTintList(ink);
+        mStop.setImageTintList(ink);
+        mBack.setImageTintList(ink);
+        mForward.setImageTintList(ink);
         mNewTab.setImageTintList(ink);
         mDomain.setTextColor(style.text);
         mPrivate.setTextColor(style.text);
@@ -319,8 +342,16 @@ public class IslandView extends FrameLayout {
         return mPrivate;
     }
 
-    public View reloadButton() {
-        return mReload;
+    public View stopButton() {
+        return mStop;
+    }
+
+    public View backButton() {
+        return mBack;
+    }
+
+    public View forwardButton() {
+        return mForward;
     }
 
     public View newTabButton() {

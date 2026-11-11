@@ -3,6 +3,7 @@
 package org.chromium.blanc.island;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
 import android.app.Activity;
@@ -47,13 +48,56 @@ public class IslandViewTest {
         assertEquals("Search or switch tabs, example.com", domain.getContentDescription().toString());
     }
 
+    // #1463: the Island has no Reload (the Sunrise menu and pull to refresh reload); Stop shows only
+    // while a page loads, just before Back and Forward.
     @Test
-    public void reloadBecomesStopWhileLoading() {
-        View reload = mView.findViewById(R.id.blanc_island_reload);
+    public void stopShowsOnlyWhileLoading() {
+        View stop = mView.findViewById(R.id.blanc_island_stop);
         mView.bind(state("example.com", false, 1, false));
-        assertEquals("Reload page", reload.getContentDescription().toString());
+        assertEquals(View.GONE, stop.getVisibility());
         mView.bind(state("example.com", true, 1, false));
-        assertEquals("Stop loading", reload.getContentDescription().toString());
+        assertEquals(View.VISIBLE, stop.getVisibility());
+        assertEquals("Stop loading", stop.getContentDescription().toString());
+    }
+
+    @Test
+    public void backForwardAndNewTabFollowTheAddressInThatOrder() {
+        mView.bind(state("example.com", true, 1, false));
+        int[] order = {R.id.blanc_island_menu, R.id.blanc_island_domain, R.id.blanc_island_stop,
+            R.id.blanc_island_back, R.id.blanc_island_forward, R.id.blanc_island_new_tab};
+        android.view.ViewGroup pill = mView.findViewById(R.id.blanc_island_pill);
+        int last = -1;
+        for (int id : order) {
+            int at = pill.indexOfChild(mView.findViewById(id));
+            assertTrue("out of order: " + mActivity.getResources().getResourceEntryName(id), at > last);
+            last = at;
+        }
+        assertEquals("Back", mView.findViewById(R.id.blanc_island_back).getContentDescription().toString());
+        assertEquals("Forward", mView.findViewById(R.id.blanc_island_forward).getContentDescription().toString());
+    }
+
+    @Test
+    public void backAndForwardAreOffWhenThereIsNowhereToGo() {
+        IslandView.State s = state("example.com", false, 1, false);
+        s.canGoBack = true;
+        mView.bind(s);
+        assertTrue(mView.findViewById(R.id.blanc_island_back).isEnabled());
+        assertFalse(mView.findViewById(R.id.blanc_island_forward).isEnabled());
+    }
+
+    // #1463: the Start Page invites a search, dimmed like a placeholder; TalkBack still hears the page.
+    @Test
+    public void theStartPageShowsADimmedPlaceholder() {
+        IslandView.State s = state("Start Page", false, 1, false);
+        s.startPage = true;
+        mView.bind(s);
+        TextView domain = mView.findViewById(R.id.blanc_island_domain);
+        assertEquals("Search or type a URL", domain.getText().toString());
+        assertTrue(domain.getAlpha() < 1f);
+        assertTrue(domain.getContentDescription().toString().startsWith("Search or switch tabs, Start Page"));
+        mView.bind(state("example.com", false, 1, false));
+        assertEquals("example.com", domain.getText().toString());
+        assertEquals(1f, domain.getAlpha(), 0f);
     }
 
     // The iPhone dropped the tab count on November 5 (#1372): the grid opens by swiping from the Island

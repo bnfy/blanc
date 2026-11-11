@@ -40,7 +40,7 @@ import org.chromium.url.GURL;
 
 /**
  * Puts Blanc for iPhone's Island over the page and keeps it in step with the browser: the active
- * tab's site, loading state and privacy, the tab count for TalkBack, the iPhone's tuck rules on the person's
+ * tab's site, loading state, history and privacy, the tab count for TalkBack, the iPhone's tuck rules on the person's
  * scrolling, its position setting, and the window's insets (system bars, cutout and keyboard,
  * which the Island rides above, as on the iPhone). Actions that need the activity go to
  * {@link Callbacks}. Spike: docs/android/a1-island-spike.md.
@@ -126,6 +126,19 @@ public final class IslandCoordinator {
                     refresh();
                 }
 
+                // Back and Forward follow the page's history, including pages that change it with
+                // pushState.
+                @Override
+                public void onNavigationEntriesDeleted(Tab tab) {
+                    refresh();
+                }
+
+                @Override
+                public void onDidFinishNavigationInPrimaryMainFrame(
+                        Tab tab, org.chromium.content_public.browser.NavigationHandle navigation) {
+                    refresh();
+                }
+
                 @Override
                 public void onContentChanged(Tab tab) {
                     attachGestures(tab.getWebContents());
@@ -202,16 +215,24 @@ public final class IslandCoordinator {
                             Tab tab = mTab;
                             if (tab != null && tab.isIncognito()) mCallbacks.onClosePrivateTab(tab);
                         });
-        mView.reloadButton()
+        // #1463: Stop while a page loads, then Back and Forward; Reload is in the Sunrise menu.
+        mView.stopButton()
                 .setOnClickListener(
                         v -> {
                             Tab tab = mTab;
-                            if (tab == null) return;
-                            if (tab.isLoading()) {
-                                tab.stopLoading();
-                            } else {
-                                tab.reload();
-                            }
+                            if (tab != null) tab.stopLoading();
+                        });
+        mView.backButton()
+                .setOnClickListener(
+                        v -> {
+                            Tab tab = mTab;
+                            if (tab != null && tab.canGoBack()) tab.goBack();
+                        });
+        mView.forwardButton()
+                .setOnClickListener(
+                        v -> {
+                            Tab tab = mTab;
+                            if (tab != null && tab.canGoForward()) tab.goForward();
                         });
         ViewGroup content = activity.findViewById(android.R.id.content);
         content.addView(
@@ -356,6 +377,9 @@ public final class IslandCoordinator {
         state.title = title(tab);
         state.loading = tab != null && tab.isLoading();
         state.privateTab = tab != null && tab.isIncognito();
+        state.startPage = onStartPage();
+        state.canGoBack = tab != null && tab.canGoBack();
+        state.canGoForward = tab != null && tab.canGoForward();
         state.tabCount = mSelector.getTotalTabCount();
         TabModel model = mSelector.getCurrentModel();
         state.hasPrevious = model.index() > 0;
@@ -440,7 +464,7 @@ public final class IslandCoordinator {
     private void setButtonsEnabled(boolean enabled) {
         View[] buttons = {
             mView.menuButton(), mView.domainView(), mView.privateChip(),
-            mView.reloadButton(), mView.newTabButton()
+            mView.stopButton(), mView.backButton(), mView.forwardButton(), mView.newTabButton()
         };
         for (View button : buttons) button.setEnabled(enabled);
     }

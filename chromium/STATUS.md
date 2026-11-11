@@ -2354,6 +2354,12 @@ browser's views (InputOnViz), so the Island hears the gesture events through a n
 2, the page shrinking into its card under the fingers with the grid behind it, is not built: Android's grid is a
 dialog over the page, so it needs the grid moved behind the page and a spike on scaling the page surface.
 
+The Island's layout follows the iPhone's #1463 (opened November 11, not merged at the time of the port): after the
+Sunrise mark and the left-aligned address come Stop while a page loads, Back, Forward and New tab. Reload moved into
+the Sunrise menu, before Share, where it reads Stop while a page loads, and Settings is the menu's last entry. Opening
+the menu gives a light haptic tap. On the Start Page the address reads "Search or type a URL", dimmed, while TalkBack
+still hears "Start Page". If #1463 changes in review, this follows it.
+
 ### Shield count across a page's commit
 
 The count is fixed in the blocker code desktop shares. A page's first request can
