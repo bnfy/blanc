@@ -110,7 +110,7 @@ source_set("page_pinch_bridge") {
     ":page_pinch_jni",
     "//base",
     "//content/public/browser",
-    "//third_party/blink/public/common:headers",
+    "//third_party/blink/public/common",
   ]
 }
 

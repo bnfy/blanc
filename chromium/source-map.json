@@ -47,7 +47,7 @@
   },
   "canonicalSha256": {
     "blanc/BUILD.gn": "7fe9606b4d5423708b84c6d3e637eef34403c13877949cd02cc240b58c4b4a98",
-    "blanc/android/BUILD.gn": "5272d8b2fd0159159b94776c96ea143c67fcfec2ab6147b8538089382595a83b",
+    "blanc/android/BUILD.gn": "c20b1c656769cf96254d84d9ac808eb1bc7d042ac9fcb5698e05d1ae95da945a",
     "blanc/android/browser/blanc_pages_ui.cc": "816bcf1fa2ff4eecd090def10d7769810f3f3cc621964b5ee660331366930f83",
     "blanc/android/browser/blanc_pages_ui.h": "6969cac9a6e8b4b237a1809b8e81f04e07f75737247119f037d9614c06e01387",
     "blanc/android/browser/blocker_bridge.cc": "b02dce564745871a884cb98a4ae5a5c5c0181f495da7e374301c091f5ea28b03",
