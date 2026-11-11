@@ -281,7 +281,10 @@ mobile is a single full-screen surface with system insets.
   default, device-local, never synced; off shows Reload and New Tab, as
   before). The old key is dropped rather than carried over. The address
   stays leading, after the Sunrise mark. Reload is in the Sunrise menu, and
-  pull to refresh still reloads. The Sunrise menu ends with Settings. On the Start Page the Island reads Search or type a
+  pull to refresh still reloads. The Sunrise menu ends with Settings. In the
+  palette's list a tab row has no ×, which was easy to miss for the row:
+  a swipe to the left closes it (a full swipe without a tap), its hold menu
+  has Close Tab, and VoiceOver has Close Tab as an action (owner, 2026-11-11). On the Start Page the Island reads Search or type a
   URL, dimmed, as the desktop pill does on a blank tab (owner, 2026-11-11). The Island has no tab count on any layout:
   a pinch in on a fully zoomed-out page, as in Safari, or a swipe up from the
   Island opens the tab grid. The page shrinks into its card as Safari's does. Stop still shows while a page loads,

@@ -54,6 +54,28 @@ final class PillButtonsUITests: XCTestCase {
     XCTAssertTrue(plus.exists)
   }
 
+  /// The palette's tab rows have no × to miss: a swipe to the left closes one.
+  func testSwipingAPaletteRowClosesItsTab() {
+    continueAfterFailure = false
+    let app = XCUIApplication()
+    app.launchArguments = ["-BlancUITestTwoTabs"]
+    app.launch()
+    let pill = app.buttons["pill.palette"]
+    XCTAssertTrue(pill.waitForExistence(timeout: 15))
+    pill.tap()
+    let rows = app.buttons.matching(identifier: "palette.tab")
+    XCTAssertTrue(rows.element(boundBy: 1).waitForExistence(timeout: 5))
+    XCTAssertEqual(rows.count, 2)
+    XCTAssertFalse(app.buttons.matching(NSPredicate(format: "label BEGINSWITH 'Close '")).firstMatch.exists,
+                   "no close button beside the rows")
+    rows.element(boundBy: 0).swipeLeft()
+    let close = app.buttons["palette.tab.close"]
+    XCTAssertTrue(close.waitForExistence(timeout: 3), "the swipe shows Close Tab")
+    close.tap()
+    let one = XCTNSPredicateExpectation(predicate: NSPredicate(format: "count == 1"), object: rows)
+    XCTAssertEqual(XCTWaiter().wait(for: [one], timeout: 5), .completed, "the swipe closed one tab")
+  }
+
   /// As in Safari: a pinch in on the page opens the open tabs.
   func testPinchingInOnThePageOpensTheTabGrid() {
     continueAfterFailure = false
