@@ -5,15 +5,15 @@ Queue 5 is in progress. The rendering guard is clear again; focused native runs 
 | Classification | Cases | Newly passing |
 | --- | ---: | ---: |
 | a: missing adapter | 31 | 31 |
-| b: missing fork capability / blocked acceptance | 49 | 31 |
+| b: missing fork capability / blocked acceptance | 49 | 32 |
 | c: inapplicable by platform or approved construction | 22 | 0 |
 
-Current tested candidate: `macos-10748f4570723aef`, `q5-space-links-6-runtime-config.json`.
-Full Sync gate on current candidate: 22/22 (`q5-space-links-sync-1`).
+Current tested candidate: `macos-f87b55206f63cfaa`, `q5-batch-close-2-runtime-config.json`.
+Sync gate: 22/22 on macos-10748f4570723aef (`q5-space-links-sync-1`); Sync code unchanged since.
 Inventory baseline: 533 pass / 3 fail (subsequently repaired) / 102 undefined / 2 excluded.
 Final inventory: owed, once after implementation. Lost passes: not yet measured.
 Owner needs: beta/updater hold; signed physical Touch ID acceptance.
-Unverified: 18 capability cases and final full inventory.
+Unverified: 17 capability cases and final full inventory.
 No push, release, signing, production/Apple/1Password contact, live-tree changes or toolchain installation authorized.
 
 ## Classification of all 102 starting gaps
@@ -450,3 +450,29 @@ Budget: 126 incremental upstream paths / 443 hunks; reconstruction 165/583.
 Required precommit: q5-space-links-precommit.tap, 314/314 pass;
 q5-space-links-patches.json reconstructs 165 upstream / 583 canonical files.
 Progress freshness and whitespace checks pass. No final inventory yet.
+
+## 13 — Close a selected batch (one new pass)
+
+Native selection closure now expands persistent splits, marks the actual selected
+pages as one history batch, respects native beforeunload, and acknowledges only
+after history and the surviving session are durable. Reopen restores all members,
+order and selected page; retained live pages are reused. Cancelled survivors and
+reopened pages lose the old batch marker. Forget removes the entire batch and its
+retained pages. The native 25-item history limit counts a selection batch once,
+including persistence/reload, so a large selection is retained or evicted whole.
+Patch 0065 and the adapter are verified by the focused split case and a native
+30-page restart/retention check recorded below.
+
+q5-batch-close-case-1 passes F41 :480 without retry. q5-batch-retention-1
+passes all three native checks: 30 members close into one item; all survive a
+native restart with order/selection intact; 25 newer items evict that batch whole.
+Candidate macos-f87b55206f63cfaa, q5-batch-close-2-runtime-config.json;
+7 guarded steps / 35.70 s after qualifying a colliding C++ Tab type name.
+Budget: 129 incremental upstream paths / 452 hunks; reconstruction 167/583.
+Sync code and phone path unchanged. Final inventory remains owed.
+
+Required precommit q5-batch-close-precommit.tap passes 314/314; patch
+reconstruction q5-batch-close-patches.json passes; progress/whitespace pass.
+Scoped selection tests exposed a stale C++-to-JS unpin-loop translation; its
+native syntax/helpers are now translated with the original order assertions
+intact. q5-batch-selection-unit-2.tap passes 28/28.

@@ -2094,9 +2094,11 @@
         glanceSay(action === 'batch-quiet' ? 'tabsSelection.quieted' : 'tabsSelection.reloaded', { count: done.length, total: ids.length });
         return done.length === ids.length;
       }
-      const nativeAction = { 'batch-new-window': 'new-window', 'batch-copy': 'copy', 'batch-pin': 'pin', 'batch-mute': 'mute', 'batch-group-move': 'group-move', 'batch-group-none': 'group-none' }[action];
+      const nativeAction = { 'batch-close': 'close', 'batch-new-window': 'new-window', 'batch-copy': 'copy', 'batch-pin': 'pin', 'batch-mute': 'mute', 'batch-group-move': 'group-move', 'batch-group-none': 'group-none' }[action];
       if (!nativeAction) throw new Error(`Batch action is not implemented: ${action}`);
-      const result = await request('batchTabsAction', [ids.map(nativeId), nativeAction, options.groupId ?? null]);
+      const nativeResult = await request('batchTabsAction', [ids.map(nativeId), nativeAction, options.groupId ?? null]);
+      // Close acknowledges durable history with a void success; failures reject.
+      const result = nativeAction === 'close' ? nativeResult !== false : nativeResult;
       if (result && selectionRevision === revision) clearSelection(false);
       if (!result) glanceSay('tabsSelection.failed');
       await refresh();

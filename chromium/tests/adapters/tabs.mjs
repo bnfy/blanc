@@ -136,7 +136,7 @@ export const tabs={
  selectTabRows:(w,id,mode)=>w.api('selectTab',[id==null?null:String(id),mode]),
  selectedTabIds:async w=>(await w.api('getAllTabs')).selectedTabIds,
  runSelectedTabsAction:(w,action,options={})=>{
-  if(!['batch-pin','batch-mute','batch-group-new','batch-group-move','batch-group-none','batch-quiet','batch-reload','batch-copy','batch-space-new','batch-space-move','batch-new-window'].includes(action))
+  if(!['batch-close','batch-pin','batch-mute','batch-group-new','batch-group-move','batch-group-none','batch-quiet','batch-reload','batch-copy','batch-space-new','batch-space-move','batch-new-window'].includes(action))
    throw new UndefinedNativeAdapterError('Batch operation is not built: '+action);
   return w.api('runSelectedTabsAction',[action,options]);
  },

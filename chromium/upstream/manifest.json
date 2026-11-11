@@ -123,6 +123,8 @@
     "components/sessions/core/command_storage_manager.cc": "b2b1539c8ba14f14444ccf23b1ad60f2b5a9b3475ef5c35d7815ff1a20edd792",
     "components/sessions/core/command_storage_manager.h": "94427519135a74a3c1bb5a1832298f3af4c1e8ff108718d881e23cc283df1ba9",
     "components/sessions/core/tab_restore_service.h": "efd2a6b87717d77160649c44fca9c66dd7e53c85e99e762ed68a8a6816bd1a36",
+    "components/sessions/core/tab_restore_service_helper.cc": "d1be6171793f582f8d922dacf9b7617610ee245df85fd4dde105a104fd948441",
+    "components/sessions/core/tab_restore_service_helper.h": "0f8992d80c9a838ef121ef441c7ec3fbc2a6b2609ffcb1501e3b9be36bf0f47a",
     "components/sessions/core/tab_restore_service_impl.cc": "c1b5747e5431aaf54d5ff9a54276cee533e02d6f7bc2fd2620be1648ec6b0736",
     "components/sessions/core/tab_restore_service_impl.h": "49de2766f7f152d8612d5bb3d2a7387ced9f48992ee43a8b19f229bfb4261927",
     "content/app_shim_remote_cocoa/web_contents_view_cocoa.mm": "d125f632828cd13bc86795c4e26c721e26f3347005246eec73080936d9631fe9",

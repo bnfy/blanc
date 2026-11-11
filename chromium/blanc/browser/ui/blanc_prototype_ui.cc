@@ -393,6 +393,15 @@ constexpr int kFaviconMaxSide = 64;
 // Chromium's pinned prefix cannot contain native groups. Blanc's grouped
 // pins remain in the native group and carry browser-owned metadata; the same
 // pin is used by Quiet Tabs, capture, Sync, menus and renderer snapshots.
+class ClosedBatchData : public base::SupportsUserData::Data {
+ public:
+  ClosedBatchData(std::string id, int order, bool active) : id(std::move(id)), order(order), active(active) {}
+  std::string id;
+  int order;
+  bool active;
+};
+constexpr char kClosedBatchOrderKey[] = "blanc.closed.batch-order.v1";
+constexpr char kClosedBatchActiveKey[] = "blanc.closed.batch-active.v1";
 class GroupPinData : public base::SupportsUserData::Data {};
 bool TabPinned(TabStripModel* model, int index) {
   return model->IsTabPinned(index) || GroupPinned(model->GetWebContentsAt(index));
@@ -2700,6 +2709,7 @@ bool RestoreHeldClosed(BrowserWindowInterface* browser, sessions::TabRestoreServ
   auto page = hold->GiveClosed(id.id(), &pinned);
   if (!page) return false;
   service->RemoveEntryById(id);
+  page->RemoveUserData(kClosedBatchKey);
   ShowHeldPage(browser, std::move(page), AddTabTypes::ADD_ACTIVE, pinned);
   return true;
 }
@@ -2774,10 +2784,49 @@ std::string ClosedTabTitle(const sessions::tab_restore::Tab& tab) {
   return nav.title().empty() ? nav.virtual_url().spec() : base::UTF16ToUTF8(nav.title());
 }
 
+std::vector<const sessions::tab_restore::Tab*> ClosedEntryTabs(const sessions::tab_restore::Entry& entry) {
+  using namespace sessions::tab_restore;
+  if (entry.type == TAB) return {static_cast<const sessions::tab_restore::Tab*>(&entry)};
+  std::vector<const sessions::tab_restore::Tab*> tabs;
+  if (entry.type == SPLIT) for (const auto& tab : static_cast<const Split&>(entry).tabs) tabs.push_back(tab.get());
+  if (entry.type == GROUP) for (const auto& tab : static_cast<const Group&>(entry).tabs) tabs.push_back(tab.get());
+  return tabs;
+}
+std::string ClosedBatchId(const sessions::tab_restore::Entry& entry) {
+  const auto tabs = ClosedEntryTabs(entry);
+  std::string result;
+  for (const auto* tab : tabs) {
+    const auto found = tab->extra_data.find(kClosedBatchKey);
+    if (found == tab->extra_data.end() || !base::Uuid::ParseLowercase(found->second).is_valid()) return "";
+    if (!result.empty() && result != found->second) return "";
+    result = found->second;
+  }
+  return result;
+}
+std::vector<SessionID> ClosedBatchEntries(sessions::TabRestoreService* service, const std::string& batch) {
+  std::vector<std::pair<int, SessionID>> ordered;
+  if (batch.empty()) return {};
+  for (const auto& entry : service->entries()) {
+    if (ClosedBatchId(*entry) != batch) continue;
+    int first = 1000000;
+    for (const auto* tab : ClosedEntryTabs(*entry)) {
+      const auto found = tab->extra_data.find(kClosedBatchOrderKey); int order = 0;
+      if (found == tab->extra_data.end() || !base::StringToInt(found->second, &order) || order < 0) return {};
+      first = std::min(first, order);
+    }
+    ordered.emplace_back(first, entry->id);
+  }
+  std::ranges::sort(ordered, {}, &std::pair<int, SessionID>::first);
+  std::vector<SessionID> result;
+  for (const auto& [order, id] : ordered) result.push_back(id);
+  return result;
+}
+
 base::ListValue ClosedEntries(Profile* profile) {
   base::ListValue result;
   auto* service = ClosedService(profile);
   if (!service) return result;
+  std::map<std::string, size_t> batches;
   // The renderer expects oldest first; Chromium stores newest first.
   for (auto it = service->entries().rbegin(); it != service->entries().rend(); ++it) {
     const auto& entry = **it;
@@ -2810,6 +2859,17 @@ base::ListValue ClosedEntries(Profile* profile) {
         if (i) title += " + ";
         title += ClosedTabTitle(*split.tabs[i]);
       }
+    }
+    const auto batch = ClosedBatchId(entry);
+    if (!batch.empty()) {
+      const auto found = batches.find(batch);
+      if (found != batches.end()) {
+        auto& row = result[found->second].GetDict();
+        row.Set("tabCount", row.FindInt("tabCount").value_or(0) + count);
+        row.Set("held", false);
+        continue;
+      }
+      batches.emplace(batch, result.size());
     }
     result.Append(base::DictValue().Set("id", base::NumberToString(entry.id.id()))
         .Set("title", title).Set("url", url).Set("tabCount", count).Set("sharedTabId", shared_tab_id)
@@ -2990,6 +3050,39 @@ void UpdatePersistentSplitFocus(BrowserWindowInterface* browser) {
     if (data && data->focused != (i == active)) MarkPersistentSplit(browser, tab, true, i == active);
   }
 }
+std::optional<bool> RestoreClosedBatch(BrowserWindowInterface* browser,
+    sessions::TabRestoreService* service, const sessions::tab_restore::Entry& selected) {
+  const auto batch = ClosedBatchId(selected);
+  if (batch.empty()) return std::nullopt;
+  const auto ids = ClosedBatchEntries(service, batch);
+  auto* context = BrowserLiveTabContext::From(browser);
+  if (ids.empty() || !context) return false;
+  bool success = true;
+  std::string active_identity;
+  for (const auto id : ids) {
+    const sessions::tab_restore::Entry* entry = nullptr;
+    for (const auto& candidate : service->entries()) if (candidate->id == id) entry = candidate.get();
+    if (!entry) {success = false; continue;}
+    for (const auto* tab : ClosedEntryTabs(*entry)) {
+      const auto active = tab->extra_data.find(kClosedBatchActiveKey), identity = tab->extra_data.find(kTabIdentityKey);
+      if (active != tab->extra_data.end() && active->second == "1" && identity != tab->extra_data.end()) active_identity = identity->second;
+    }
+    if (RestoreHeldClosed(browser, service, id)) continue;
+    if (auto partial = RestorePartialSplit(browser, service, *entry)) {success &= *partial; continue;}
+    const auto focus = ClosedSplitFocus(*entry);
+    const auto collapsed = ClosedGroupCollapsed(*entry);
+    const auto group = ClosedSavedGroup(*entry);
+    const auto restored = service->RestoreEntryById(context, id, WindowOpenDisposition::kNewForegroundTab);
+    if (!restored) {success = false; continue;}
+    RestoreClosedSplitMetadata(browser, focus, *restored);
+    RestoreClosedGroupCollapsed(browser, collapsed, group, *restored);
+  }
+  auto* model = browser->GetTabStripModel();
+  for (int i = 0; i < model->count(); ++i)
+    if (!active_identity.empty() && TabIdentity(model->GetWebContentsAt(i)) == active_identity) {model->ActivateTabAt(i); break;}
+  return success;
+}
+
 bool ValidSpace(const base::DictValue& record) {
   const auto* tabs = record.FindList("tabs");
   const auto* groups = record.FindList("groups");
@@ -7201,6 +7294,11 @@ class Handler : public content::WebUIMessageHandler, public extensions::Extensio
       return;
     }
     const bool cancelled = it->second.cancelled;
+    // A page that answered Stay must not join a later, unrelated close.
+    for (int i = 0; i < model->count(); ++i)
+      if (std::ranges::contains(it->second.tabs, sessions::SessionTabHelper::IdForTab(model->GetWebContentsAt(i)).id()))
+        model->GetWebContentsAt(i)->RemoveUserData(kClosedBatchKey);
+
     if (it->second.single_tab) {
       const bool without_history = it->second.watches.front()->without_history();
       const int replacement = it->second.replacement_blank_id;
@@ -9276,6 +9374,9 @@ class Handler : public content::WebUIMessageHandler, public extensions::Extensio
       }
       auto* context = BrowserLiveTabContext::From(browser);
       if (method == "reopenClosedTab" && args.empty()) {
+        if (!service->entries().empty())
+          if (auto batch = RestoreClosedBatch(browser, service, *service->entries().front())) {reply(true, base::Value(*batch)); return;}
+
         if (!service->entries().empty() && RestoreHeldClosed(browser, service, service->entries().front()->id)) {
           reply(true, base::Value(true)); return;
         }
@@ -9311,10 +9412,19 @@ class Handler : public content::WebUIMessageHandler, public extensions::Extensio
         if (entry->id.id() != entry_id) continue;
         const auto id_to_restore = entry->id;
         if (method == "forgetClosedEntry") {
+          const auto batch_ids = ClosedBatchEntries(service, ClosedBatchId(*entry));
+          if (!batch_ids.empty()) {
+            for (const auto batch_id : batch_ids) {
+              if (auto* hold = SpaceHold::Get(profile)) hold->ForgetClosed(batch_id.id());
+              service->RemoveEntryById(batch_id);
+            }
+            reply(true, base::Value(true)); return;
+          }
           if (auto* hold = SpaceHold::Get(profile)) hold->ForgetClosed(entry_id);
           service->RemoveEntryById(id_to_restore);
           reply(true, base::Value(true));
         } else {
+          if (auto batch = RestoreClosedBatch(browser, service, *entry)) {reply(true, base::Value(*batch)); return;}
           if (RestoreHeldClosed(browser, service, id_to_restore)) { reply(true, base::Value(true)); return; }
           auto partial = RestorePartialSplit(browser, service, *entry);
           if (partial) { reply(true, base::Value(*partial)); return; }
@@ -9955,6 +10065,32 @@ class Handler : public content::WebUIMessageHandler, public extensions::Extensio
       auto pages = BatchPages(model, args[0].GetList());
       if (pages.empty() || owner->space_busy || owner->space_expected) { reply(true, base::Value(false)); return; }
       const auto& action = args[1].GetString();
+      if (action == "close") {
+        if (!split_closes_.empty()) {reply(true, base::Value(false)); return;}
+        const auto batch = base::Uuid::GenerateRandomV4().AsLowercaseString();
+        auto* active = model->GetActiveWebContents();
+        if (pages.size() == static_cast<size_t>(model->count())) chrome::AddTabAt(browser, GURL("chrome://newtab/"), -1, false);
+        ui::ListSelectionModel selection;
+        auto& pending = split_closes_[id];
+        pending.browser = browser->GetWeakPtr();
+        for (size_t order = 0; order < pages.size(); ++order) {
+          auto* page = pages[order]; const int at = model->GetIndexOfWebContents(page);
+          if (!blanc::private_tabs::IsPrivateTab(page))
+            page->SetUserData(kClosedBatchKey, std::make_unique<ClosedBatchData>(batch, order, page == active));
+          pending.tabs.push_back(sessions::SessionTabHelper::IdForTab(page).id());
+          pending.watches.push_back(std::make_unique<SplitCloseWatch>(page, TabPinned(model, at),
+              base::BindRepeating(&Handler::SplitCloseCancelled, weak_factory_.GetWeakPtr(), id)));
+          selection.AddIndexToSelection(at);
+        }
+        selection.set_active(model->GetIndexOfWebContents(std::ranges::contains(pages, active) ? active : pages.front()));
+        selection.set_anchor(selection.active());
+        model->SetSelectionFromModel(selection);
+        model->CloseSelectedTabs();
+        base::SequencedTaskRunner::GetCurrentDefault()->PostTask(FROM_HERE,
+            base::BindOnce(&Handler::CheckSplitClose, weak_factory_.GetWeakPtr(), id));
+        return;
+      }
+
       if (action == "new-window") {
         const auto rows = SpaceBatchRows(model, args[0].GetList(), true);
         if (!rows || GetBrowserWindowCreationStatusForProfile(*profile) != BrowserWindowInterface::CreationStatus::kOk ||
@@ -11099,10 +11235,17 @@ std::string PersistentSplitState(content::WebContents* tab) {
 // PR993: numbered shortcuts select clusters when groups exist; otherwise a
 // persistent split counts once, at its first pane. Cyclic next/previous still
 // visits individual panes, matching the Electron reference.
+std::map<std::string, std::string> ClosedBatchExtraData(content::WebContents* tab) {
+  auto* data = static_cast<ClosedBatchData*>(tab->GetUserData(kClosedBatchKey));
+  if (!data) return {};
+  return {{kClosedBatchKey, data->id}, {kClosedBatchOrderKey, base::NumberToString(data->order)},
+      {kClosedBatchActiveKey, data->active ? "1" : "0"}};
+}
 bool RestoreClosedSplitFromCommand(BrowserWindowInterface* browser) {
   if (!IsIslandWindow(browser) || browser->GetProfile()->IsOffTheRecord()) return false;
   auto* service = ClosedService(browser->GetProfile());
   if (!service || !service->IsLoaded() || service->entries().empty()) return false;
+  if (auto batch = RestoreClosedBatch(browser, service, *service->entries().front())) return true;
   if (RestoreHeldClosed(browser, service, service->entries().front()->id)) return true;
   if (RestorePartialSplit(browser, service, *service->entries().front()).has_value()) return true;
   const auto focus = ClosedSplitFocus(*service->entries().front());

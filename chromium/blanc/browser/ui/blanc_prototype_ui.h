@@ -77,6 +77,8 @@ void SetWindowSharedGroup(BrowserWindowInterface* browser, const std::string& lo
 void RemapWindowSharedGroup(BrowserWindowInterface* browser, const std::string& previous, const std::string& current);
 void RestoreWindowIdentity(BrowserWindowInterface* browser,
     const std::map<std::string, std::string>& extra_data);
+inline constexpr char kClosedBatchKey[] = "blanc.closed.batch.v1";
+std::map<std::string, std::string> ClosedBatchExtraData(content::WebContents* tab);
 inline constexpr char kPersistentSplitKey[] = "blanc.split.persistent.v1";
 std::string PersistentSplitState(content::WebContents* tab);
 bool IsPersistentSplitTab(content::WebContents* tab);

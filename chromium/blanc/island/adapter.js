@@ -112,7 +112,7 @@ if (location.origin === 'chrome://blanc-prototype' && parent !== window) {
       item('reload', 'tabsMenu.reload', 'Reload Tabs', rules.canReload),
       item('quiet', 'tabsMenu.quiet', 'Quiet Tabs', rules.canQuiet),
       item('copy', 'tabsMenu.copy', 'Copy Links', rules.canCopy),
-      item('close', 'tabsMenu.close', 'Close Tabs', false));
+      item('close', 'tabsMenu.close', 'Close Tabs', rules.canMutate));
     appendActions(actions); placeMenu(event);
   }
   document.addEventListener('contextmenu', async event => {

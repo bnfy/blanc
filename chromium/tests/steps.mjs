@@ -4,6 +4,7 @@ const require=createRequire(import.meta.url);
 const {CucumberExpression,RegularExpression,ParameterTypeRegistry}=require('@cucumber/cucumber-expressions');
 const parameters=new ParameterTypeRegistry();
 const {loadShippingCore}=require('./lib/shipping-core.cjs');
+import {BATCH_CLOSE_STEPS} from './fork-steps/batch-close.mjs';
 import {LINK_SPACE_STEPS} from './fork-steps/link-space.mjs';
 import {ARCHIVE_STEPS} from './fork-steps/archive.mjs';
 import {PINNED_HOME_STEPS} from './fork-steps/pinned-home.mjs';
@@ -16,6 +17,8 @@ export const definitions=[];
 // These intent-level steps preserve the assertions in shipping v1.45.1
 // test/desktop/steps/runnable.steps.js; only the native transport changes.
 function register(expression,run,source,sourceSha256=null){
+ const batchClose=BATCH_CLOSE_STEPS.get(String(expression));
+ if(batchClose){run=batchClose;source=`chromium/tests/fork-steps/batch-close.mjs (shipping ${source})`;}
  const linkSpace=LINK_SPACE_STEPS.get(String(expression));
  if(linkSpace){run=linkSpace;source=`chromium/tests/fork-steps/link-space.mjs (shipping ${source})`;}
  const archive=ARCHIVE_STEPS.get(String(expression));
