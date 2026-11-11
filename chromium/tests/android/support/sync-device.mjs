@@ -4,10 +4,13 @@ import {Worker} from 'node:worker_threads';
 import {adb, PACKAGE, setSwitches} from '../acceptance/support/device.mjs';
 
 let nextCall = 1;
+// What each call asked for, so a call with no answer names its method.
+const methods = new Map();
 const pause = ms => new Promise(done => setTimeout(done, ms));
 
 export function callNoWait(method, args = []) {
   const id = String(nextCall++);
+  methods.set(id, method);
   adb('shell', 'am', 'broadcast', '-p', PACKAGE, '-a', 'me.bnfy.blanc.SYNC_TEST', '--es', 'id', id,
     '--es', 'method', method, '--es', 'args', `'${JSON.stringify(args).replace(/'/g, `'\\''`)}'`);
   return id;
@@ -20,7 +23,7 @@ export async function answer(id, seconds = 90) {
     if (match) return JSON.parse(match[1]);
     await pause(250);
   }
-  throw Error(`no answer to call ${id}`);
+  throw Error(`no answer to call ${id} (${methods.get(id) ?? 'unknown'}) in ${seconds} s`);
 }
 
 export const call = async (method, args = [], seconds) => answer(callNoWait(method, args), seconds);
