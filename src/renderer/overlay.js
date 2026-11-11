@@ -269,6 +269,7 @@
       if (!open && mode === 'spaces') window.browserAPI.closeOverlay('cancel');
     },
   });
+  window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => workspaceUI.repaintTrigger());
 
   // --- Drag to reorder (tab-drag.js; spec 2026-10-07) ---
   const dragApi = window.blancTabDrag;
@@ -2765,6 +2766,8 @@
     // The private theme scope follows the active tab.
     if (activeTab()?.private) document.documentElement.dataset.theme = 'private';
     else delete document.documentElement.dataset.theme;
+    // The footer's Spaces button draws the space's tile for that theme.
+    workspaceUI.repaintTrigger();
     renderPanelChrome();
     renderList();
   }

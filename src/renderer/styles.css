@@ -3428,11 +3428,15 @@ body.split-tab-surface.focused { --split-tab-border: var(--split-pane-focused-bo
 }
 
 /* The Spaces button is icon-only like the other footer acts; the space's name
-   is in its tooltip. A --surface fill marks a window that is in a space. */
+   is in its tooltip. A --surface fill marks a window that is in a space, and
+   the space's own tile (workspace-ui.js) stands in for the planet there: the
+   resting Island carries no Space mark, so this says which space it is. */
 .footer-act.ws.bound {
   background: var(--surface);
   color: var(--text);
 }
+#footerWorkspace .ws-trigger-tile { width: 18px; height: 18px; border-radius: 5px; }
+#footerWorkspace .ws-trigger-tile svg { width: 11px; height: 11px; stroke-width: 1.7; }
 .footer-act.ws.bound:focus-visible {
   outline: none;
   background: var(--accent-dim);
