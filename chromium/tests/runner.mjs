@@ -76,7 +76,13 @@ async function runCase(matches,steps,tags=[]){
   await phase('reset',()=>world.reset());
   // Shipping's acceptance palette is pinned to light. Select the real profile
   // theme before the scenario so an evening OS appearance cannot change it.
-  await phase('appearance',()=>world.call('setAppearance','light'));
+  await phase('appearance',async()=>{
+   // Fixture setup follows shipping's direct setting hook. Exercise the
+   // production typed theme command and observe its rendered media state;
+   // scenario steps that test Settings still drive that real Settings UI.
+   if(await world.api('cycleTheme',['light'])!=='light')throw Error('Could not select the fixture light theme');
+   await waitFor(()=>fixture.host.eval("matchMedia('(prefers-color-scheme: light)').matches"),Boolean,'fixture light theme to render');
+  });
   world.bindShippingContext();
   entry.executed=true;entry.steps=[];
   for(const hook of beforeHooks)if(hook.tags.split(' or ').some(tag=>tags.includes(tag)))await phase('stepSetup',()=>hook.run.call(world));

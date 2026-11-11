@@ -132,12 +132,44 @@ passes on its first attempt in `q4-shared-smoke-1` on
 
 ## Runner timing
 
-Phase recording now covers launch, blocker readiness (including relaunch), reset,
-appearance, steps, timeouts, retries and teardown. Each run writes totals, all
-attempts and its 20 slowest cases to `timing.json`, bound to the candidate and
-a hash of the test harness. Nested phase time is reported separately from
-exclusive time; timeout/retry costs are annotations, not added twice. The required 60-case, six-file baseline
-and unchanged-sample comparison remain owed before the final inventory.
+The same 60 cases across six feature files in `chromium/tests/timing-sample.json`
+ran on macos-9987cc7166c3c921 before and after setup optimization. Selection is
+the first ten original baseline passes in tabs/groups, navigation, newtab,
+vertical tabs, Quiet Tabs and Glance; it was fixed before either run.
+`q4-timing-before` and `q4-timing-after` each finish 60/60 pass, no lost passes.
+`q4-timing-comparison.json` binds their candidate, case IDs and harness hashes.
+Both timing.json files contain all attempts, totals and the 20 slowest cases.
+
+| Phase (exclusive seconds) | Before | After | Change |
+| --- | ---: | ---: | ---: |
+| blockerReadiness | 93.943 | 95.293 | +1.350 |
+| browserLaunch | 26.953 | 28.034 | +1.080 |
+| fixturePreparation | 23.049 | 14.051 | -8.999 |
+| renderingGuard | 0.340 | 0.358 | +0.018 |
+| reset | 12.344 | 12.524 | +0.180 |
+| appearance | 32.931 | 0.339 | -32.591 |
+| steps | 48.532 | 56.377 | +7.845 |
+| teardown | 27.293 | 27.179 | -0.114 |
+| Recorded case time | 265.559 | 234.341 | -31.218 |
+
+Overall reduction: 11.8%, including the after run's one existing retry.
+Before: zero retries/timeouts. After: vertical-tabs :58 initially timed out
+waiting for the rendered width (248 rather than 360); its unchanged assertion
+passed on the one retry. Timeout phase upper bound: 7.056 s; retry attempt:
+4.371 s. These annotate the totals, not extra time added to them.
+
+Shipping `test/desktop/support/hooks.js` mints TLS certificates in BeforeAll.
+The fork now likewise caches only immutable certificate material for one runner
+process, keeping five distinct keys and returning copied buffers. Every case
+still has a fresh browser profile, servers, TLS contexts, response state and
+certificate-exception decisions. Temporary minting files are removed immediately.
+Fixture theme setup now calls the production typed light-theme command and
+waits for the host's rendered light media state instead of opening/closing
+Settings. Scenario steps that exercise Settings still use its real UI.
+No assertions, rendering guards, isolation, quotas or candidate hashing weakened;
+no browser reuse added. Setup savings total 41.590 s, partly offset by normal
+step variation and the timeout/retry above. Precommit: 309/309; reconstruction
+162 upstream / 583 canonical, progress freshness and whitespace pass.
 
 ## 3 — Shared Spaces and Send
 
@@ -687,8 +719,8 @@ local inbox remained readable. Precommit-3 passes 308/308; patch reconstruction,
 progress freshness and whitespace pass. Patch budget: 123 incremental upstream
 paths / 430 hunks; full reconstruction 162 upstream / 583 canonical files.
 
-Next: item 11 adapters, the same 60-case timing baseline/optimization/comparison,
-then the complete inventory ONCE. No external stop occurred.
+Item 11 adapter targets and the timing comparison are now complete.
+The complete inventory remains owed, ONCE. No external stop occurred.
 
 ## 11 — Further user-visible adapters
 
@@ -711,3 +743,9 @@ owed after the required timing sample. Remaining undefined adapters are not
 passes: overlay lifecycle/focus, local HTML preview, profile/search management,
 physical passkeys and unavailable platform/Electron operations need separate
 coverage or product work.
+
+Final inventory start: principal scoped development and both timing samples are
+complete. Next run is `q4-final-inventory` on q4-sync-layout-3, the only complete
+inventory of this queue. Compare to q3-whole-inventory and fix lost passes with
+targeted runs, preserving raw full-inventory evidence. No native build/test is active
+at this note's preparation; the inventory starts after this step is committed.
