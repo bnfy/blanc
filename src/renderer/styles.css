@@ -379,6 +379,7 @@ html { --stage-w: 100vw; }
   color: var(--text-dim);
 }
 .glance-action { gap: 5px; padding: 0 8px; font-size: 11.5px; }
+.glance-header button[hidden] { display: none; }
 .glance-action svg,
 .glance-move svg { width: 14px; height: 14px; flex: 0 0 auto; fill: none; stroke: currentColor; stroke-width: 1.3; stroke-linecap: round; stroke-linejoin: round; }
 .glance-close { width: 30px; padding: 0; }
@@ -2858,13 +2859,6 @@ body[data-glance-purpose="change"] .glance-picker[hidden] { transform: scale(.92
 .row-glance.on { opacity: 1; }
 .row-glance:hover { background: var(--border); color: var(--text); }
 .row-glance.on { color: var(--accent); background: var(--accent-dim); }
-/* A split is showing (F53): the button stays visible and keeps its tooltip,
-   which says why it does nothing, but reads as unavailable (#1441). */
-.row-glance.unavailable { cursor: default; }
-.island-row:hover .row-glance.unavailable,
-.island-row:focus-within .row-glance.unavailable,
-.row-glance.unavailable:focus-visible { opacity: 0.4; }
-.row-glance.unavailable:hover { background: transparent; color: var(--text-dim); }
 
 /* The overlay's own tooltip for the Island's buttons (overlay.js
    islandTip): native title tooltips came late or never here because the

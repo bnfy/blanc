@@ -888,7 +888,8 @@ From the desktop `DEFAULTS`:
   1,100 px or 80% of the page area wide), drawn like a Split View pane:
   rounded corners, a 1 px border (darker while it has focus) and a soft shadow.
   The page behind stays visible and usable: clicking or scrolling it never
-  closes the card. (Design: `docs/superpowers/specs/2026-10-20-floating-glance-design.md`.)
+  closes the card. Over a visible Split View (F53) the card floats over every
+  pane. (Design: `docs/superpowers/specs/2026-10-20-floating-glance-design.md`.)
 - A person chooses the exact tab from a dedicated local-tab picker that excludes
   search, history, Favorites, commands, and remote tabs. The native View menu
   exposes **Open Glance… / Close Glance** with `Cmd/Ctrl+Shift+G`, so the
@@ -1663,7 +1664,11 @@ step: **Keep as split** in its header turns the current Glance into a split.
   Private tabs are never saved; a split with fewer than two saved tabs is
   written as plain tabs (D2).
 - **Other features.** Visible panes never go quiet; split tabs are never
-  archived (F52); Glance is unavailable while a split shows.
+  archived (F52). A Glance floats over the whole split (F34): focus moving
+  between the panes keeps it, a pane closing or leaving hands the window to
+  the remaining pane under it, and its Keep as split is hidden while a split
+  shows. Glance on a pane of a two-pane split takes that pane out of the
+  split instead.
 - **Portability.** `src/main/split-model.js` and `src/main/split-layout.js`
   hold every decision without an Electron dependency. A desktop window-model
   capability (D11); phones are N/A.

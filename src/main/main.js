@@ -5029,10 +5029,13 @@ function removeTabFromSplit(tabId) {
   withWindowRuntime(runtime, () => {
     // The removed tab, if it was showing, steps out of view: the rest of the
     // split (or the survivor, full-window) takes the window.
+    // A Glance floating over the split stays over what remains of it.
     if (runtime.activeTabId === tabId) {
       const next = rest ? rest.tabIds[rest.focusedIndex] : dissolved[0];
-      if (next) setActiveTab(next);
-    } else if (visibleSplitOf(runtime) || dissolved.includes(runtime.activeTabId)) {
+      if (next) setActiveTab(next, { keepGlance: true });
+    } else if ((visibleSplitOf(runtime) || dissolved.includes(runtime.activeTabId))
+      && tabId !== runtime.glanceTabId) {
+      // Never the Glance page: it can come from a split that isn't showing.
       if (liveContents(tab)) detachTabView(tab, { retainManagedRoot: true });
       resizeActiveView();
     }
@@ -7294,21 +7297,22 @@ function resizeActiveView() {
     });
   } else {
     roundSplitPane(tab, false);
-    // The floating Glance card: the main page keeps the whole page area; the
-    // card's chrome view and the Glance page inside it float over it.
+    // The main page keeps the whole page area.
     if (liveContents(tab)) presentationView(tab).setBounds(place(layout.pageBounds));
-    const cardDrawn = rt().glanceCardDrawn === true;
-    // The card is fixed to the window: a pushed Island sliding in moves the
-    // main page beneath it, never the card or the page inside it.
-    if (liveContents(glanceTab) && card) {
-      presentationView(glanceTab).setBounds(card.page);
-      roundGlancePage(glanceTab, true);
-      if (presentationView(glanceTab).getVisible?.() !== cardDrawn) setTabViewVisible(glanceTab, cardDrawn);
-    }
-    if (cardView) {
-      if (card) cardView.setBounds(card.chrome);
-      cardView.setVisible(!!card && cardDrawn);
-    }
+  }
+  // The floating Glance card: its chrome view and the Glance page inside it
+  // float over the main page, or over every pane of a split (#1441).
+  const cardDrawn = rt().glanceCardDrawn === true;
+  // The card is fixed to the window: a pushed Island sliding in moves the
+  // pages beneath it, never the card or the page inside it.
+  if (liveContents(glanceTab) && card) {
+    presentationView(glanceTab).setBounds(card.page);
+    roundGlancePage(glanceTab, true);
+    if (presentationView(glanceTab).getVisible?.() !== cardDrawn) setTabViewVisible(glanceTab, cardDrawn);
+  }
+  if (cardView) {
+    if (card) cardView.setBounds(card.chrome);
+    cardView.setVisible(!!card && cardDrawn);
   }
   syncSplitCornerTabs(split, place);
   keepIslandFloatOnTop();
@@ -9817,6 +9821,7 @@ function setActiveTab(id, {
   focusAddress = false,
   dismissUtilitySheet = true,
   keepSpacesEditor = false,
+  keepGlance = false,
 } = {}) {
   const next = tabs.get(id);
   if (!next || next.sleeping || windowRuntimes.runtimeForTab(id) !== rt()) return;
@@ -9874,7 +9879,13 @@ function setActiveTab(id, {
   // tab ends it, and choosing the Glance tab itself (an Island dot, ⌘1–9, the
   // ⌘L list) opens that page as the tab, like Open as tab. Interacting inside
   // the Glance page never reaches here: its focus handler doesn't activate.
-  if (rt().glanceTabId) closeGlance({ focusContent: false });
+  // Over a split (#1441) it floats over every pane, so focus moving between
+  // the panes of the split it was opened over keeps it, as does the split's
+  // own survivor taking over when a pane closes or leaves (keepGlance).
+  const withinShownSplit = shownBefore.has(prevId) && shownBefore.has(id);
+  if (rt().glanceTabId && !((keepGlance || withinShownSplit) && id !== rt().glanceTabId)) {
+    closeGlance({ focusContent: false });
+  }
   if (prev) {
     // Quiet Tabs: the tab is leaving the foreground — this is the ONLY moment
     // that defines "idle since" (spec §4.3). Stamp before a potential detach
@@ -9955,17 +9966,18 @@ function setActiveTab(id, {
   }
 }
 
-/** A two-pane split can release either pane into a floating Glance. Serves
- * the tab menu's Glance and the ⌘L row's Glance button; with no split showing
- * it is setGlanceTab. */
+/** Glance from the tab menu or the ⌘L row's button. Any other tab floats
+ * over the visible split (#1441); a pane of a two-pane split instead leaves
+ * the split and floats over the remaining tab. With no split showing it is
+ * setGlanceTab. */
 async function openTabMenuGlance(id) {
   const runtime = rt();
   const split = visibleSplitOf(runtime);
-  if (split) {
+  if (split?.tabIds.includes(id)) {
     const tab = tabs.get(id);
-    // Validate before changing the split. Other rows (and larger splits)
-    // cannot float over a split that would still be visible afterward.
-    if (split.tabIds.length !== 2 || !split.tabIds.includes(id)
+    // Validate before changing the split. A larger split would still be
+    // showing with this pane in it, so its panes can't go to Glance.
+    if (split.tabIds.length !== 2
       || !tab || tab.sleeping || tab.asleep || !liveContents(tab)
       || windowRuntimes.runtimeForTab(id) !== runtime) return false;
     // Removing the active pane must hand the window to its survivor. Do not
@@ -9980,19 +9992,15 @@ async function openTabMenuGlance(id) {
 }
 
 async function setGlanceTab(id) {
-  if (visibleSplitOf()) {
-    // Glance and a visible split never share a window (F53).
-    if (hasLiveWindow()) stripSurfaces(rt()).send('chrome:glance-status', mainI18n.t('split.glanceUnavailable'));
-    return false;
-  }
   let tab = tabs.get(id);
   // A tab mid-sleep-teardown (`sleeping`) still reads back live contents, but
   // its renderer is already being discarded — attaching it would paint a dead
   // pane. Refuse; the picker reports the failure and a retry finds it asleep
-  // and takes the wake path.
+  // and takes the wake path. Glance floats over the main page or over the
+  // whole visible split (#1441), so it never shows a page already on screen.
   if (
     !hasLiveWindow() || !tab || id === rt().activeTabId || tab.sleeping ||
-    windowRuntimes.runtimeForTab(id) !== rt()
+    visibleSplitTabIds().includes(id) || windowRuntimes.runtimeForTab(id) !== rt()
   ) return false;
 
   const requestEpoch = rt().glanceRequestEpoch ?? 0;
@@ -10013,7 +10021,7 @@ async function setGlanceTab(id) {
   tab = tabs.get(id);
   if (
     !hasLiveWindow() || !tab || id === rt().activeTabId || tab.sleeping ||
-    windowRuntimes.runtimeForTab(id) !== rt()
+    visibleSplitTabIds().includes(id) || windowRuntimes.runtimeForTab(id) !== rt()
   ) return false;
   if (!liveContents(tab) || !tab.view) return false;
 
@@ -10120,10 +10128,6 @@ function openLinkInGlance(opener, url) {
 
 function openGlancePicker(query = '') {
   if (!hasLiveWindow()) return false;
-  if (visibleSplitOf()) {
-    stripSurfaces(rt()).send('chrome:glance-status', mainI18n.t('split.glanceUnavailable'));
-    return false;
-  }
   rt().window.focus();
   // With a Glance open, the Change picker hangs from the card header's Change
   // control. With a single tab the picker still opens, to say what to do.
@@ -10473,6 +10477,18 @@ function closeTab(id) {
     const survivingGlanceId = rt().glanceTabId && tabs.has(rt().glanceTabId)
       ? rt().glanceTabId
       : null;
+    const splitSurvivor = splitSurvivors.find((other) => tabs.has(other));
+    if (splitSurvivor) {
+      // The split's other pane takes the window. A Glance floating over the
+      // split (#1441) stays, over what remains of it.
+      rt().activeTabId = null;
+      pruneSplits(rt());
+      setActiveTab(splitSurvivor, { keepGlance: true });
+      if (!splitForTab(rt().splits, splitSurvivor) && hasLiveWindow()) {
+        announceSplit(mainI18n.t('split.dissolved', { title: displayTitle(tabs.get(splitSurvivor)) || mainI18n.t('tab.untitledShort') }));
+      }
+      return;
+    }
     if (survivingGlanceId) {
       // Closing the main page leaves the visible reference as the sole page.
       // Promote it and collapse Glance rather than silently choosing a third
@@ -10485,16 +10501,6 @@ function closeTab(id) {
         stripSurfaces(rt()).send('chrome:glance-status', mainI18n.t('glance.status.mainClosed', {
           title: displayTitle(promoted) || mainI18n.t('tab.untitledShort'),
         }));
-      }
-      return;
-    }
-    const splitSurvivor = splitSurvivors.find((other) => tabs.has(other));
-    if (splitSurvivor) {
-      rt().activeTabId = null;
-      pruneSplits(rt());
-      setActiveTab(splitSurvivor);
-      if (!splitForTab(rt().splits, splitSurvivor) && hasLiveWindow()) {
-        announceSplit(mainI18n.t('split.dissolved', { title: displayTitle(tabs.get(splitSurvivor)) || mainI18n.t('tab.untitledShort') }));
       }
       return;
     }
@@ -12949,8 +12955,9 @@ function tabContextData(tab, owner) {
     groups: owner.groups.map((g) => ({ id: g.id, name: g.name })),
     activeTabId: owner.activeTabId,
     glanceTabId: owner.glanceTabId ?? null,
-    canGlance: !visibleSplit || (visibleSplit.tabIds.length === 2
-      && visibleSplit.tabIds.includes(tab.id)),
+    // Any other tab floats over a visible split (#1441); a pane of a
+    // two-pane split leaves it for Glance (openTabMenuGlance).
+    canGlance: !visibleSplit?.tabIds.includes(tab.id) || visibleSplit.tabIds.length === 2,
     canCloseOthers: closableTabIds({ tabOrder: owner.tabOrder, tabsById: tabs, keepId: tab.id }).length > 0,
     canMoveToNewWindow: owner.tabOrder.length > 1,
     // A page-opened tab can't be copied into a fresh view (document-policy.js).
@@ -16209,7 +16216,12 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
           viewBounds: glanceView?.getBounds() ?? null,
           cardViewBounds: cardView?.getBounds() ?? null,
           cardViewVisible: cardView?.getVisible?.() ?? false,
-          stackIndex: { main: children.indexOf(mainView), card: children.indexOf(cardView), glance: children.indexOf(glanceView) },
+          stackIndex: {
+            main: children.indexOf(mainView), card: children.indexOf(cardView), glance: children.indexOf(glanceView),
+            // A Glance over a split (#1441): every pane and corner tab.
+            panes: visibleSplitTabIds().map((id) => children.indexOf(presentationView(tabs.get(id)))),
+            corners: [...rt().splitCornerViews.values()].map((entry) => children.indexOf(entry.view)),
+          },
         };
       },
       runLinkSpaceMenuItem: (tabId, url, text, itemId) => {

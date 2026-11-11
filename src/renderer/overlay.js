@@ -561,8 +561,13 @@
   // --- Dedicated Glance tab picker ---------------------------------------
 
   function eligibleGlanceTabs() {
+    // Pages already on screen can't be chosen: the main page, the current
+    // Glance, and the panes of a visible split, which Glance floats over
+    // (#1441). Taking a pane out of its split stays a tab-menu choice.
+    const shownSplit = (state.splits ?? []).find((s) => s.tabIds.includes(state.activeTabId));
     return state.tabs.filter((tab) =>
       tab.id !== state.activeTabId && tab.id !== state.glanceTabId
+      && !shownSplit?.tabIds.includes(tab.id)
     );
   }
 
@@ -882,30 +887,22 @@
       row.append(mute);
     }
 
-    if (tab.id !== state.activeTabId) {
+    // Glance floats over the page or over a whole visible split (#1441). A
+    // pane of a two-pane split leaves it for Glance (main's openTabMenuGlance,
+    // like the tab menu); a larger split's panes can't, so they get no button.
+    const shownSplit = (state.splits ?? []).find((s) => s.tabIds.includes(state.activeTabId));
+    if (tab.id !== state.activeTabId && !(shownSplit?.tabIds.includes(tab.id) && shownSplit.tabIds.length !== 2)) {
       const glance = document.createElement('button');
       const isGlance = tab.id === state.glanceTabId;
-      // Glance never floats over a visible split (F53); only the other pane
-      // of a two-pane split can leave it for Glance. Same rule as the tab
-      // menu's canGlance in main, so the button never offers what main
-      // refuses (#1441).
-      const shownSplit = (state.splits ?? []).find((s) => s.tabIds.includes(state.activeTabId));
-      const unavailable = !isGlance && !!shownSplit
-        && !(shownSplit.tabIds.length === 2 && shownSplit.tabIds.includes(tab.id));
-      glance.className = 'row-glance' + (isGlance ? ' on' : '') + (unavailable ? ' unavailable' : '');
+      glance.className = 'row-glance' + (isGlance ? ' on' : '');
       glance.dataset.noDrag = '';
       glance.innerHTML = ICONS.glance;
-      glance.dataset.tooltip = isGlance ? blancI18n.t('glance.close')
-        : unavailable ? blancI18n.t('split.glanceUnavailable') : blancI18n.t('row.glanceOpen');
+      glance.dataset.tooltip = isGlance ? blancI18n.t('glance.close') : blancI18n.t('row.glanceOpen');
       glance.setAttribute('aria-label', blancI18n.t('row.actionLabel', { action: glance.dataset.tooltip, title: label }));
       if (tab.title) glance.dataset.i18nIgnore = 'aria-label'; // carries the page title
       glance.setAttribute('aria-pressed', String(isGlance));
-      // aria-disabled, not disabled: the button keeps focus and hover, so its
-      // tooltip can say why it does nothing.
-      if (unavailable) glance.setAttribute('aria-disabled', 'true');
       glance.addEventListener('click', async (e) => {
         e.stopPropagation();
-        if (unavailable) return;
         const changed = isGlance
           ? await window.browserAPI.closeGlance()
           : await window.browserAPI.setGlanceTab(tab.id);

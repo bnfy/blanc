@@ -2999,10 +2999,6 @@
     "message": "Glance geschlossen",
     "source": "sha256:1008c10836b5872a9ac50e128369c885836df91e8e756948e2b3abf4aed4a15e"
   },
-  "split.glanceUnavailable": {
-    "message": "Glance ist nicht verfügbar, solange eine geteilte Ansicht angezeigt wird",
-    "source": "sha256:f2310b15f7e0b49d589da7dfe191a1033dd0c654dc19f4c4e1b15b87d5c8256f"
-  },
   "glance.status.openedAsTab": {
     "message": "{title} ist jetzt der aktuelle Tab",
     "source": "sha256:da42c4ef628bd55efb34be6c34eb1c7f61768d8ae0199d75c7d10f9fdced9eb7"

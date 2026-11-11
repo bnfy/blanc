@@ -92,31 +92,25 @@ test('the Glance action is an icon, not a word', () => {
   assert.equal(glance.dataset.tooltip, 'Open this tab in Glance');
 });
 
-// #1441: Glance can't float over a visible split, so the button there must
-// say so instead of looking available and doing nothing.
+// #1441: Glance floats over a visible split, so rows keep their Glance
+// button while one shows.
 const glanceOf = (row) => row.children.find((child) => child.className.split(' ')[0] === 'row-glance');
 
-test('with a split showing, an unrelated row\'s Glance reads as unavailable', () => {
-  const splits = [{ id: 'split', tabIds: ['active', 'other'] }];
-  const glance = glanceOf(buildRow({ ...TAB, private: false }, { splits }));
-  assert.ok(glance.className.split(' ').includes('unavailable'));
-  assert.equal(glance.attrs['aria-disabled'], 'true');
-  assert.equal(glance.dataset.tooltip, "Glance isn't available while a split is showing");
-  assert.equal(glance.attrs['aria-label'], "Glance isn't available while a split is showing: Docs");
-});
-
-test('the other pane of a two-pane split, and a hidden split, keep Glance available', () => {
+test('with a split showing, other rows and the two-pane split\'s other pane offer Glance', () => {
   for (const splits of [
+    [{ id: 'split', tabIds: ['active', 'other'] }],
     [{ id: 'split', tabIds: ['active', 'background'] }],
     [{ id: 'split', tabIds: ['elsewhere', 'other'] }],
   ]) {
     const glance = glanceOf(buildRow({ ...TAB, private: false }, { splits }));
-    assert.ok(!glance.className.split(' ').includes('unavailable'), JSON.stringify(splits));
-    assert.equal(glance.attrs['aria-disabled'], undefined);
+    assert.ok(glance, JSON.stringify(splits));
     assert.equal(glance.dataset.tooltip, 'Open this tab in Glance');
   }
-  const larger = [{ id: 'split', tabIds: ['active', 'background', 'third'] }];
-  assert.equal(glanceOf(buildRow({ ...TAB, private: false }, { splits: larger })).attrs['aria-disabled'], 'true');
+});
+
+test('a pane of a larger visible split has no Glance button', () => {
+  const splits = [{ id: 'split', tabIds: ['active', 'background', 'third'] }];
+  assert.equal(glanceOf(buildRow({ ...TAB, private: false }, { splits })), undefined);
 });
 
 test('the row button and the tab menu share main\'s split-aware Glance path', () => {
