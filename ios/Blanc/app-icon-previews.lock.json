@@ -1,6 +1,16 @@
 {
   "icons": {
     "AppIcon": {
+      "package": "6c4d9f4bfb1c604c289108b846221ff8015ec77ac10ab86b4c2fd5c7d0b2d1bd",
+      "light": "b67e79451349c1a359f32ebea662a790773a31291af0e2ee1fafc372f00b27b9",
+      "dark": "8a3c4fd5a0b762b7364ca6402dbdb2572b3a7bb69ec7ff5ef8744e4302ae0d0d"
+    },
+    "SunriseBronze": {
+      "package": "eb7e8211d825e66865c908602ba1f7687aeda3c6f2f02d14115e37f7e40dd6fc",
+      "light": "7ceffd4864af061cd232909e62a6208fd6de6c153b4c653d7f14116ebc79a291",
+      "dark": "b69c3d80d106e075684b043d4865d0a18851c215fbd866303efc61a93f573ee0"
+    },
+    "SunriseGold": {
       "package": "49f81d6235571b25bf20e18be4e6ff500ddab83defeb557ad97453bcccafce24",
       "light": "9e36012a3aa57e4459ab474cf4b79eb8a4742a2561ea31e67ba5ba23b7230325",
       "dark": "4cef523e4698bcca306b51c5aba160877f9ab778940a5e8de65f88c52c868539"
@@ -9,11 +19,6 @@
       "package": "120ad91bc98bea2a871a1b36d0f44444002bd85d44827932b5439c60d2219e12",
       "light": "058647b4b4fe0ce45c4bf54d596ed1f82d1689a7453b550db80018cc33118994",
       "dark": "99cd1e3a02afcf6bce4221389ed22daf72dde32faf4316107ea8291535de6717"
-    },
-    "Sunrise": {
-      "package": "6c4d9f4bfb1c604c289108b846221ff8015ec77ac10ab86b4c2fd5c7d0b2d1bd",
-      "light": "b67e79451349c1a359f32ebea662a790773a31291af0e2ee1fafc372f00b27b9",
-      "dark": "8a3c4fd5a0b762b7364ca6402dbdb2572b3a7bb69ec7ff5ef8744e4302ae0d0d"
     },
     "SunriseDark": {
       "package": "799ecc3384faed5d2ef23f5f561a38019d5e4e7cb58250d46d03de40cce7c1ed",

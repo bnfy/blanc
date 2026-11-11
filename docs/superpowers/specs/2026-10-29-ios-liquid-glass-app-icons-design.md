@@ -2,6 +2,13 @@
 
 Date: 2026-10-29. Status: approved 2026-10-29; standard icon changed to Sunrise Gold the same day. iPhone only.
 
+## Amendment, 2026-11-11: Sunrise standard, Sunrise Bronze added
+
+- **Sunrise is the standard icon** (owner): the primary `AppIcon.icon` is now the Mac's Sunrise package, unchanged, and Sunrise Gold becomes the alternate `SunriseGold`. A phone on the old standard icon shows Sunrise after the update. A phone that had chosen Sunrise as an alternate (`Sunrise`) also shows Sunrise: iOS reports a name this build doesn't know, which reads as the primary. Choosing Sunrise clears that name. A phone that had chosen another alternate keeps it.
+- **Sunrise Bronze** (`sunrise-bronze`, native `SunriseBronze`, iPhone only): Sunrise turned inside out. It has a cream glass mark (sun, rays and water as separate glass pieces, cut from the native Sunrise layer like Gold's) on a vertical bronze tile (`#C68E4C` → `#8F5A26` → `#4E3012`), with Gold's warm glow behind the sun and its reflection in the water. In Dark the tile is a deep bronze-brown (`#3A2616` → `#160F09`) and the mark stays cream. The owner picked option C, "Glass + glow", from three ictool-rendered drafts: A was a flat cream mark on a smooth gradient, and B a brushed-bronze tile with a glass mark.
+- **Picker order:** Sunrise, Sunrise Bronze, Sunrise Gold, Sunrise Dawn, Sunrise Dark, Sunrise Spectrum, Sunrise Amber. Bronze and Dawn stay out of the shared settings schema; their labels live in `AppIconChoice.swift` and `scripts/ios-app-icons.js`.
+- The rest of this document describes the 1.0 catalog as approved on 2026-10-29.
+
 ## Intent
 
 Give Blanc for iPhone real Liquid Glass app icons and let people choose among them. **Sunrise Gold** becomes the standard icon: the Sunrise in cream glass on a gold tile, layered in three glass pieces with a glow under the water lines. A new iPhone-only icon, **Sunrise Dawn**, puts the Sunrise in white glass over a dawn sky, with the sun's reflection glowing through the glass water lines. In Settings → Appearance → App icon, people can switch to Sunrise Dawn, Sunrise, Sunrise Dark, Sunrise Spectrum or Sunrise Amber. Each one is an Icon Composer `.icon`, so iOS 26 and later draw it with the system's glass and its Light, Dark, Clear and Tinted styles.
