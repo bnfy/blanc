@@ -1,6 +1,15 @@
 import SwiftUI
 
 struct PaletteSheet: View {
+    /// On iOS 26 the sheet floats clear of the screen's edges, and the
+    /// system rounds its corners to follow the screen's own; a fixed radius
+    /// there left the bottom corners looking cut off. Earlier systems pin the
+    /// sheet to the bottom, where 22 pt matches the Island's other surfaces.
+    static var sheetCornerRadius: CGFloat? {
+        if #available(iOS 26, *) { return nil }
+        return 22
+    }
+
     let manager: TabsManager
     /// A bottom sheet on iPhone; at regular width, a panel growing up from
     /// the Island in its place (Duo-1).
@@ -58,7 +67,7 @@ struct PaletteSheet: View {
         .buttonStyle(.plain)
         .background(style.raised)
         .presentationBackground(style.raised)
-        .presentationCornerRadius(22)
+        .presentationCornerRadius(Self.sheetCornerRadius)
         .presentationDragIndicator(.hidden)
         .presentationDetents([.height(420), .large])
         .onAppear { inputFocused = true }
@@ -123,8 +132,10 @@ struct PaletteSheet: View {
             }
             .accessibilityLabel(SyncCopy.text("ios.island.collapse"))
         }
-        .padding(.leading, 16)
-        .padding(.trailing, 4)
+        // Its icons line up with the list's: the search glass over the rows'
+        // icons, the collapse caret over Copy Link and Settings.
+        .padding(.leading, 22)
+        .padding(.trailing, 12)
         .padding(.vertical, 8)
     }
 
@@ -367,7 +378,7 @@ struct PaletteSheet: View {
                                 close()
                             }
                         } label: {
-                            row(icon: "arrow.down.left", title: item.title.isEmpty ? item.url : item.title,
+                            row(icon: "arrow.up.right", title: item.title.isEmpty ? item.url : item.title,
                                 subtitle: SyncCopy.text("sends.from", [
                                     "device": item.fromName,
                                     "time": sentAgo.localizedString(for: Date(timeIntervalSince1970: Double(item.sentAt) / 1000), relativeTo: Date()),
@@ -413,6 +424,9 @@ struct PaletteSheet: View {
                         .font(BrowserStyle.font(13))
                         .listRowSeparator(.hidden)
                         .listRowBackground(Color.clear)
+                        // The cloud in the rows' icon column, the disclosure
+                        // arrow under the caret and Copy Link.
+                        .listRowInsets(EdgeInsets(top: 2, leading: 22, bottom: 2, trailing: 30))
                     }
                 } header: { groupHeading(SyncCopy.text("footer.devices")) }
             }

@@ -2,7 +2,7 @@ import XCTest
 
 /// M11: in the tab grid, swiping a card sideways closes its tab, with Undo.
 final class TabGridSwipeUITests: XCTestCase {
-  /// The Island's upward swipe opens the grid; XCUI's swipeUp on a 48 pt
+  /// The Island's upward swipe opens the grid; XCUI's swipeUp on a 52 pt
   /// element travels less than the 40 pt it needs, so drag explicitly.
   private func openGrid(_ site: XCUIElement) {
     let start = site.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.5))
