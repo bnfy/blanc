@@ -885,15 +885,27 @@
     if (tab.id !== state.activeTabId) {
       const glance = document.createElement('button');
       const isGlance = tab.id === state.glanceTabId;
-      glance.className = 'row-glance' + (isGlance ? ' on' : '');
+      // Glance never floats over a visible split (F53); only the other pane
+      // of a two-pane split can leave it for Glance. Same rule as the tab
+      // menu's canGlance in main, so the button never offers what main
+      // refuses (#1441).
+      const shownSplit = (state.splits ?? []).find((s) => s.tabIds.includes(state.activeTabId));
+      const unavailable = !isGlance && !!shownSplit
+        && !(shownSplit.tabIds.length === 2 && shownSplit.tabIds.includes(tab.id));
+      glance.className = 'row-glance' + (isGlance ? ' on' : '') + (unavailable ? ' unavailable' : '');
       glance.dataset.noDrag = '';
       glance.innerHTML = ICONS.glance;
-      glance.dataset.tooltip = isGlance ? blancI18n.t('glance.close') : blancI18n.t('row.glanceOpen');
+      glance.dataset.tooltip = isGlance ? blancI18n.t('glance.close')
+        : unavailable ? blancI18n.t('split.glanceUnavailable') : blancI18n.t('row.glanceOpen');
       glance.setAttribute('aria-label', blancI18n.t('row.actionLabel', { action: glance.dataset.tooltip, title: label }));
       if (tab.title) glance.dataset.i18nIgnore = 'aria-label'; // carries the page title
       glance.setAttribute('aria-pressed', String(isGlance));
+      // aria-disabled, not disabled: the button keeps focus and hover, so its
+      // tooltip can say why it does nothing.
+      if (unavailable) glance.setAttribute('aria-disabled', 'true');
       glance.addEventListener('click', async (e) => {
         e.stopPropagation();
+        if (unavailable) return;
         const changed = isGlance
           ? await window.browserAPI.closeGlance()
           : await window.browserAPI.setGlanceTab(tab.id);

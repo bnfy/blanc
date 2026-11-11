@@ -38,10 +38,10 @@ const englishT = (() => {
   return createTranslator({ locale: 'en', messages: strings.messages });
 })();
 
-function buildRow(tab, { activeTabId = 'active' } = {}) {
+function buildRow(tab, { activeTabId = 'active', splits = [] } = {}) {
   const sandbox = {
     document: { createElement: fakeElement },
-    state: { activeTabId, glanceTabId: null },
+    state: { activeTabId, glanceTabId: null, splits },
     ICONS: { pin: '', mute: '', close: '', glance: '<svg data-glyph="glance"></svg>' },
     setFavicon() {},
     tabDomain: () => 'example.com',
@@ -90,4 +90,36 @@ test('the Glance action is an icon, not a word', () => {
   assert.equal(glance.textContent, '');
   assert.match(glance.innerHTML, /<svg/);
   assert.equal(glance.dataset.tooltip, 'Open this tab in Glance');
+});
+
+// #1441: Glance can't float over a visible split, so the button there must
+// say so instead of looking available and doing nothing.
+const glanceOf = (row) => row.children.find((child) => child.className.split(' ')[0] === 'row-glance');
+
+test('with a split showing, an unrelated row\'s Glance reads as unavailable', () => {
+  const splits = [{ id: 'split', tabIds: ['active', 'other'] }];
+  const glance = glanceOf(buildRow({ ...TAB, private: false }, { splits }));
+  assert.ok(glance.className.split(' ').includes('unavailable'));
+  assert.equal(glance.attrs['aria-disabled'], 'true');
+  assert.equal(glance.dataset.tooltip, "Glance isn't available while a split is showing");
+  assert.equal(glance.attrs['aria-label'], "Glance isn't available while a split is showing: Docs");
+});
+
+test('the other pane of a two-pane split, and a hidden split, keep Glance available', () => {
+  for (const splits of [
+    [{ id: 'split', tabIds: ['active', 'background'] }],
+    [{ id: 'split', tabIds: ['elsewhere', 'other'] }],
+  ]) {
+    const glance = glanceOf(buildRow({ ...TAB, private: false }, { splits }));
+    assert.ok(!glance.className.split(' ').includes('unavailable'), JSON.stringify(splits));
+    assert.equal(glance.attrs['aria-disabled'], undefined);
+    assert.equal(glance.dataset.tooltip, 'Open this tab in Glance');
+  }
+  const larger = [{ id: 'split', tabIds: ['active', 'background', 'third'] }];
+  assert.equal(glanceOf(buildRow({ ...TAB, private: false }, { splits: larger })).attrs['aria-disabled'], 'true');
+});
+
+test('the row button and the tab menu share main\'s split-aware Glance path', () => {
+  const main = fs.readFileSync(path.join(ROOT, 'src/main/main.js'), 'utf8');
+  assert.match(main, /chromeHandle\('tabs:set-glance', \(_e, id\) => openTabMenuGlance\(id\)\);/);
 });

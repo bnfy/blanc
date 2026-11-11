@@ -9955,7 +9955,9 @@ function setActiveTab(id, {
   }
 }
 
-/** A two-pane split can release either pane into a floating Glance. */
+/** A two-pane split can release either pane into a floating Glance. Serves
+ * the tab menu's Glance and the ⌘L row's Glance button; with no split showing
+ * it is setGlanceTab. */
 async function openTabMenuGlance(id) {
   const runtime = rt();
   const split = visibleSplitOf(runtime);
@@ -11745,7 +11747,8 @@ function registerIpcHandlers() {
   chromeHandle('tabs:select', (_e, id, mode) => selectTabRows(id, mode));
   chromeHandle('tabs:switch', (_e, id) => { clearTabSelection(); return setActiveTab(id); });
   chromeHandle('tabs:activate-from-rail', (_e, id) => { clearTabSelection(); return activateTabFromRail(id); });
-  chromeHandle('tabs:set-glance', (_e, id) => setGlanceTab(id));
+  // The ⌘L row's Glance button: same split rule as the tab menu (#1441).
+  chromeHandle('tabs:set-glance', (_e, id) => openTabMenuGlance(id));
   chromeHandle('tabs:open-glance-picker', (_e, query) => openGlancePicker(typeof query === 'string' ? query.slice(0, 200) : ''));
   chromeHandle('tabs:close-glance', () => closeGlance());
   chromeHandle('tabs:open-glance-as-tab', () => openGlanceAsTab());
