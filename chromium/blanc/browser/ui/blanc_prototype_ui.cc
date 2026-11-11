@@ -5842,7 +5842,7 @@ class Handler : public content::WebUIMessageHandler, public extensions::Extensio
     if (message[1].GetString() == "spaceMoveFault" && message[2].GetList().size() == 2 &&
         message[2].GetList()[0].is_string() && message[2].GetList()[1].is_string()) {
       const auto& step = message[2].GetList()[0].GetString();
-      const bool known = step == "write" || step == "transfer" || step == "rewrite" || step == "transfer-pane";
+      const bool known = step == "write" || step == "transfer" || step == "rewrite" || step == "transfer-pane" || step == "session-commit";
       if (known) SpaceMoveFaults()[step] = message[2].GetList()[1].GetString();
       Reply(id, true, base::Value(known));
       return;
@@ -7317,6 +7317,9 @@ class Handler : public content::WebUIMessageHandler, public extensions::Extensio
       base::WeakPtr<BrowserWindowInterface> expected_browser,
       std::string identity, uint64_t generation, bool success) {
     if (!space_save_pending_ || generation != space_save_generation_) return;
+#if BUILDFLAG(ENABLE_BLANC_TEST_HOOKS)
+    if (TakeSpaceMoveFault("session-commit")) success = false;
+#endif
     if (!success || !expected_browser) {
       SpaceProfileAcknowledged(id, name, std::move(captured),
           std::move(disk_capture), expected_browser, identity, generation, false);

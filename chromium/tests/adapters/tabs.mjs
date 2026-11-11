@@ -300,6 +300,10 @@ export const tabs={
   }finally{await w.native('heldQuietRaceResume');}
  },
  async workspaceAction(w,action,...args){
+  if(action==='fail-session-commit'){
+   if(!await w.native('spaceMoveFault',['session-commit','storage-failed']))throw Error('Session failure seam unavailable');
+   return w.api('createBlankWorkspace',[args[0],{}]);
+  }
   if(action==='metrics'){
    const [processes,spaces]=await Promise.all([
     w.fixture.browser.send('SystemInfo.getProcessInfo'),w.hostEval('window.BlancPrototypeHost.spaceHeldState()')]);

@@ -5,15 +5,15 @@ Queue 5 is in progress. The rendering guard is clear again; focused native runs 
 | Classification | Cases | Newly passing |
 | --- | ---: | ---: |
 | a: missing adapter | 31 | 31 |
-| b: missing fork capability / blocked acceptance | 49 | 22 |
+| b: missing fork capability / blocked acceptance | 49 | 23 |
 | c: inapplicable by platform or approved construction | 22 | 0 |
 
-Current tested candidate: `macos-ac7b80521d4e3490`, `q5-download-activity-3-runtime-config.json`.
+Current tested candidate: `macos-2d8b5ca74111ec33`, `q5-space-commit-1-runtime-config.json`.
 Inherited Sync gate: 22/22 on starting bytes; Sync code unchanged; not rerun.
 Inventory baseline: 533 pass / 3 fail (subsequently repaired) / 102 undefined / 2 excluded.
 Final inventory: owed, once after implementation. Lost passes: not yet measured.
 Owner needs: beta/updater hold; signed physical Touch ID acceptance; Billboard TopSites design decision if still required.
-Unverified: 27 capability cases; final full inventory.
+Unverified: 26 capability cases; final full inventory.
 No push, release, signing, production/Apple/1Password contact, live-tree changes or toolchain installation authorized.
 
 ## Classification of all 102 starting gaps
@@ -384,3 +384,16 @@ the existing environment guard passed and arguments/toolchains stayed unchanged.
 Patch budget remains 125 upstream paths / 439 hunks, reconstruction 164/583.
 Required precommit checks: q5-download-precommit.tap and patch reconstruction.
 No Sync change. No beta build/configuration.
+
+## 10 — Partial Space save remains discoverable
+
+F41 :57 passes in q5-space-commit-cases-1 on macos-2d8b5ca74111ec33.
+The new one-shot test seam supplies a failed native SessionService flush
+acknowledgment to the existing production refusal path. It is compiled only
+with preview test hooks. The host now maps session-storage refusals to the
+shipping storage-failed cause, retaining the saved-not-opened Space identity.
+The unchanged shipping assertion verifies that the destination stays listed,
+the source remains active, and its actual page identity and dirty draft survive.
+Build: 8 steps / 35.90 s. Required precommit tests: q5-space-commit-precommit.tap;
+patch reconstruction 164/583. Budget unchanged at 125 upstream paths / 439 hunks.
+Sync code unchanged.

@@ -318,7 +318,7 @@
     try {
       await request('previewSpaceSave', [current]);
       await request('previewSpaceOpen', [id]);
-    } catch (e) { return { ok: false, error: 'activation-failed', detail: e.message }; }
+    } catch (e) { return { ok: false, error: /^Session metadata save (?:failed|unavailable|acknowledgement timed out)/.test(e.message) ? 'storage-failed' : 'activation-failed', detail: e.message }; }
     clearSelection();
     const leftCount = savedTabCount();
     await close(false);
