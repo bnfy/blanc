@@ -91,6 +91,7 @@ public final class SyncSheet {
     private @Nullable String mNotice;
     private boolean mBusy;
     private @Nullable String mPairingCode;
+    private @Nullable Runnable mOnClosed;
 
     public SyncSheet(Activity activity, Runner runner, Scanner scanner) {
         mActivity = activity;
@@ -113,11 +114,23 @@ public final class SyncSheet {
             if (mPairingCode != null) mRunner.call("sync.cancelPairing", "[]", r -> {});
             mCode = "";
             mPassphrase = "";
+            if (mOnClosed != null) mOnClosed.run();
         });
+    }
+
+    /** Runs once the sheet closes, so whoever opened it can show Sync's new status. */
+    public void setOnClosed(Runnable onClosed) {
+        mOnClosed = onClosed;
     }
 
     /** Opens the sheet on the real runner. */
     public static void open(Activity activity, PairScanner.Permissions permissions) {
+        open(activity, permissions, null);
+    }
+
+    /** Opens the sheet on the real runner; {@code onClosed} runs when it closes. */
+    public static void open(
+            Activity activity, PairScanner.Permissions permissions, @Nullable Runnable onClosed) {
         Runner runner = new Runner() {
             @Override
             public void call(String method, String argsJson, Callback<String> done) {
@@ -129,7 +142,9 @@ public final class SyncSheet {
                 return SyncBridge.keyLost();
             }
         };
-        new SyncSheet(activity, runner, new PairScanner(activity, permissions)).show();
+        SyncSheet sheet = new SyncSheet(activity, runner, new PairScanner(activity, permissions));
+        if (onClosed != null) sheet.setOnClosed(onClosed);
+        sheet.show();
     }
 
     public void show() {

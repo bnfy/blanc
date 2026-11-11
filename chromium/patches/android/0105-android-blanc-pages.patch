@@ -23,6 +23,18 @@ diff -ruN a/chrome/browser/flags/android/java/src/org/chromium/chrome/browser/fl
      public static final CachedFlag sClampAutomotiveScaling =
              newCachedFlag(CLAMP_AUTOMOTIVE_SCALING, true);
      public static final CachedFlag sClankMiniOmnibox = newCachedFlag(CLANK_MINI_OMNIBOX, false);
+@@ -2361,7 +2361,10 @@
+             newIntCachedFeatureParam(
+                     START_SURFACE_RETURN_TIME,
+                     "start_surface_return_time_on_tablet_seconds",
+-                    14400); // 4 hours
++                    // Blanc (patch 0105): coming back reopens the last tab, as on the iPhone. Chrome
++                    // opened its new tab page after four hours away and failed its own check on
++                    // Blanc's Start Page address.
++                    -1);
+ 
+     public static final StringCachedFeatureParam sTabStorageSqlitePrototypePhase =
+             newStringCachedFeatureParam(TAB_STORAGE_SQLITE_PROTOTYPE, "phase", "");
 diff -ruN a/chrome/browser/ui/webui/BUILD.gn b/chrome/browser/ui/webui/BUILD.gn
 --- a/chrome/browser/ui/webui/BUILD.gn
 +++ b/chrome/browser/ui/webui/BUILD.gn

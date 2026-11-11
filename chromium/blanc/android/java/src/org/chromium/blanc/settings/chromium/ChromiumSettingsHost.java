@@ -48,13 +48,16 @@ final class ChromiumSettingsHost implements BlancSettingsScreen.Host {
     private final Supplier<@Nullable WindowAndroid> mWindow;
     private final Runnable mLicenses;
     private final boolean mSyncConnected;
+    private final Runnable mOnSyncClosed;
     private final SettingsStore mStore = new SettingsStore(ContextUtils.getAppSharedPreferences());
 
-    ChromiumSettingsHost(Activity activity, Supplier<@Nullable WindowAndroid> window, Runnable licenses, boolean syncConnected) {
+    ChromiumSettingsHost(Activity activity, Supplier<@Nullable WindowAndroid> window, Runnable licenses,
+            boolean syncConnected, Runnable onSyncClosed) {
         mActivity = activity;
         mWindow = window;
         mLicenses = licenses;
         mSyncConnected = syncConnected;
+        mOnSyncClosed = onSyncClosed;
     }
 
     @Override
@@ -157,7 +160,7 @@ final class ChromiumSettingsHost implements BlancSettingsScreen.Host {
             window.requestPermissions(new String[] {permission},
                     (permissions, results) -> done.onResult(results.length > 0
                             && results[0] == PackageManager.PERMISSION_GRANTED));
-        });
+        }, mOnSyncClosed);
     }
 
     @Override
