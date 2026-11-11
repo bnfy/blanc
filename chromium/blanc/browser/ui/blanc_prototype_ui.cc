@@ -1,3 +1,4 @@
+#include "third_party/blink/public/common/input/web_mouse_event.h"
 #include "blanc/services/sync_runner/sync_runner.mojom.h"
 #include "chrome/browser/ui/browser_init_state.h"
 #include "ui/base/accelerators/global_accelerator_listener/global_accelerator_listener.h"
@@ -774,6 +775,8 @@ class SiteMuteTab : public base::SupportsUserData::Data,
   std::string host_;
 };
 
+#include "blanc/browser/ui/mouse_gesture_controller.inc"
+
 // F52 keeps a wall-clock idle stamp, separate from Quiet Tabs' monotonic clock.
 constexpr char kArchiveViewedKey[] = "blanc.tab.last-viewed.v1";
 constexpr char kArchiveEntriesPref[] = "blanc.tabs.archive_entries";
@@ -1432,6 +1435,7 @@ class Owner : public base::SupportsUserData::Data,
     for (int i = 0; i < browser->GetTabStripModel()->count(); ++i) {
       auto* tab = browser->GetTabStripModel()->GetWebContentsAt(i);
       SiteMuteTab::Get(tab);
+      MouseGestureTab::Install(tab);
       ArchiveViewed::Get(tab)->Save();
     }
     if (!selection.active_tab_changed()) return;
@@ -1590,6 +1594,39 @@ bool IsPageFullscreen(BrowserWindowInterface* browser) {
 
 Owner* GetOwner(content::WebContents* contents) {
   return static_cast<Owner*>(contents->GetUserData(kOwnerKey));
+}
+
+void DispatchMouseGesture(base::WeakPtr<content::WebContents> page,
+    content::WeakDocumentPtr document, std::string action) {
+  if (!page || document.AsRenderFrameHostIfValid() != page->GetPrimaryMainFrame()) return;
+  auto* tab = tabs::TabInterface::MaybeGetFromContents(page.get());
+  auto* browser = tab ? tab->GetBrowserWindowInterface() : nullptr;
+  if (!tab || !tab->IsVisible() || !browser || browser->IsDeleteScheduled()) return;
+  auto& controller = page->GetController();
+  if (action == "back") { if (controller.CanGoBack()) controller.GoBack(); return; }
+  if (action == "forward") { if (controller.CanGoForward()) controller.GoForward(); return; }
+  if (action == "reload") { controller.Reload(content::ReloadType::NORMAL, true); return; }
+  if (action == "newTab") {
+    if (blanc::private_tabs::IsPrivateTab(page.get()) && !browser->GetProfile()->IsOffTheRecord()) NewPrivateTab(browser, GURL());
+    else chrome::AddTabAt(browser, GURL("chrome://newtab/"), -1, true);
+    OpenIsland(browser, true); return;
+  }
+  if (action == "previousTab" || action == "nextTab") {
+    chrome::ExecuteCommand(browser, action == "previousTab" ? IDC_SELECT_PREVIOUS_TAB : IDC_SELECT_NEXT_TAB); return;
+  }
+  if (action == "island") { OpenIsland(browser); return; }
+  // Reuse the Island's native close/restore pipeline, including held pages,
+  // beforeunload, batch restore and the surviving blank on last ordinary tab.
+  for (auto* owner : Owner::Live()) {
+    if (owner->browser != browser || !owner->view) continue;
+    auto* host = owner->view->GetWebContents();
+    if (!host || host->GetLastCommittedURL() != GURL("chrome://blanc-prototype/host.html") || !host->GetPrimaryMainFrame()->IsRenderFrameLive()) return;
+    const std::string js = action == "closeTab" ?
+        "window.BlancPrototypeHost?.api.closeTab('" + base::NumberToString(sessions::SessionTabHelper::IdForTab(page.get()).id()) + "')" :
+        "window.BlancPrototypeHost?.api.reopenClosedTab()";
+    if (action == "closeTab" || action == "reopenTab") host->GetPrimaryMainFrame()->ExecuteJavaScript(base::UTF8ToUTF16(js), base::NullCallback());
+    return;
+  }
 }
 
 #include "blanc/browser/ui/island_autohide_controller.inc"
@@ -3773,6 +3810,7 @@ base::DictValue Snapshot(BrowserWindowInterface* browser, Owner* owner) {
   auto capture_indicator = MediaCaptureDevicesDispatcher::GetInstance()->GetMediaStreamCaptureIndicator();
   for (int index = 0; index < model->count(); ++index) {
     auto* contents = model->GetWebContentsAt(index);
+    MouseGestureTab::Install(contents);
     auto* audio = SiteMuteTab::Get(contents);
     auto& controller = contents->GetController();
     const int tab_id = sessions::SessionTabHelper::IdForTab(contents).id();
@@ -6650,6 +6688,15 @@ class Handler : public content::WebUIMessageHandler, public extensions::Extensio
       return;
     }
 #endif
+    if (message[1].GetString() == "setMouseGestures") {
+      const auto& args = message[2].GetList();
+      auto* profile = Profile::FromWebUI(web_ui());
+      auto before = GestureSettings(profile);
+      if (args.size() < 1 || args.size() > 2 || !args[0].is_bool() || (args.size() == 2 && !args[1].is_dict())) {Reply(id, false, base::Value());return;}
+      auto next = before.Clone();next.Set("enabled", args[0].GetBool());
+      if (args.size() == 2) next.Set("mapping", args[1].GetDict().Clone());
+      const bool ok = SaveGestureSettings(profile, next);Reply(id, ok, base::Value(std::move(before)));return;
+    }
     // Shipping's setIslandHoverOpen hook: the preference Settings writes.
     if (message[1].GetString() == "setIslandHoverOpen" && message[2].GetList().size() == 1 &&
         message[2].GetList()[0].is_bool()) {

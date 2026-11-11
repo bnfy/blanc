@@ -19,6 +19,12 @@ class ChromiumSettingsHandler final : public settings::SettingsPageUIHandler,
   void OnJavascriptDisallowed() override;
 
  private:
+  void HandleMouseGestures(const base::ListValue& args) {
+    if (!Begin(args, 1)) return;
+    const auto raw = args[1].GetString();bool ok = true;
+    if (!raw.empty()) {auto parsed = base::JSONReader::Read(raw, base::JSON_PARSE_RFC);ok = parsed && parsed->is_dict() && SaveGestureSettings(profile_, parsed->GetDict());}
+    ResolveJavascriptCallback(args[0], base::Value(base::DictValue().Set("ok", ok).Set("state", GestureSettings(profile_))));
+  }
   void HandleMiniWindowShortcut(const base::ListValue& args) {
     if (!Begin(args, 1)) return;
     ResolveJavascriptCallback(args[0], base::Value(MiniKeys().Apply(
@@ -505,6 +511,7 @@ void ChromiumSettingsHandler::RegisterMessages() {
   bind("blancSyncCall", &ChromiumSettingsHandler::HandleSyncCall);
   bind("blancSyncConfirmFirstUpload", &ChromiumSettingsHandler::HandleSyncConfirm);
   bind("blancSettingsGet", &ChromiumSettingsHandler::HandleGet);
+  bind("blancMouseGestures", &ChromiumSettingsHandler::HandleMouseGestures);
   bind("blancMiniWindowShortcut", &ChromiumSettingsHandler::HandleMiniWindowShortcut);
   bind("blancLinkRouteState", &ChromiumSettingsHandler::HandleLinkRouteState);
   bind("blancLinkRouteValidate", &ChromiumSettingsHandler::HandleLinkRouteValidate);

@@ -217,6 +217,7 @@ export const island={
  },
  overlayDragging:w=>w.hostEval('window.BlancPrototypeHost.overlayDragging()'),
  // ---- tab documents ----
+ setMouseGestures:(w,enabled,mapping)=>w.native("setMouseGestures",mapping===undefined?[!!enabled]:[!!enabled,mapping]),
  async sendMouseInput(w,id,input){const page=await tabPage(w,id);await page.evalExpression('1');return send(page.cdp,input);},
  async typeIntoActivePage(w,key){const page=await activePage(w);await page.evalExpression('1');
   for(const type of ['keyDown','char','keyUp'])await page.cdp.send('Input.dispatchKeyEvent',cdpKey({type,keyCode:key}));return true;},

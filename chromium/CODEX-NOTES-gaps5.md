@@ -5,15 +5,15 @@ Queue 5 is in progress. The rendering guard is clear again; focused native runs 
 | Classification | Cases | Newly passing |
 | --- | ---: | ---: |
 | a: missing adapter | 31 | 31 |
-| b: missing fork capability / blocked acceptance | 49 | 44 |
+| b: missing fork capability / blocked acceptance | 49 | 45 |
 | c: inapplicable by platform or approved construction | 22 | 0 |
 
-Current tested candidate: `macos-ba88c99ae00d1453`, `q5-mini-window-3-runtime-config.json`.
+Current tested candidate: `macos-2d1c18bccd76f2d3`, `q5-mouse-gestures-2-runtime-config.json`.
 Sync gate: 22/22 on macos-5c8b4b1dd486a8a4 (`q5-mini-window-sync-1`); Sync code unchanged since.
 Inventory baseline: 533 pass / 3 fail (subsequently repaired) / 102 undefined / 2 excluded.
 Final inventory: owed, once after implementation. Lost passes: not yet measured.
 Owner needs: beta/updater hold; signed physical Touch ID acceptance.
-Unverified: five capability cases and final full inventory.
+Unverified: four capability/held-acceptance cases and final full inventory.
 No push, release, signing, production/Apple/1Password contact, live-tree changes or toolchain installation authorized.
 
 ## Classification of all 102 starting gaps
@@ -551,3 +551,32 @@ fields by name and also verify the new Mini label across all locales, retaining
 the original private/address assertions. Patch reconstruction passes 173/584
 (q5-mini-window-patches.json). Progress and whitespace checks pass; shipping
 sources remain untouched.
+
+## 16 — Mouse gestures (one new pass)
+
+Native renderer-widget input callbacks recognize shipping's right-drag and
+Option-left-drag patterns before the page receives the press. A short click
+replays its original press/release to the same widget; gestures retain their
+source tab/pane, cancel across navigation/focus/visibility changes, and reject
+invalid mappings atomically. Only visible current-page widgets participate;
+native tab-modal dialogs, hidden/held pages and stale documents cannot run a gesture.
+Settings offers shipping's enable switch, action assignments, drawing pad,
+removal and defaults. The adapter changes the real native preference and
+delivers real CDP pointer events; no action or reload result is synthesized.
+
+q5-mouse-gesture-case-1 passes Glance :207 without retry on
+macos-2d1c18bccd76f2d3 / q5-mouse-gestures-2-runtime-config.json.
+q5-mouse-gestures-boundaries-1 passes eight native checks: Settings defaults off
+and edits R to Reload; right-drag reload; Option-drag reload without selection;
+short right/Option clicks replay exactly once; disabled input passes through;
+navigation cancels a held gesture; invalid repeated directions are rejected
+atomically; settings/mapping survive restart.
+
+The first build caught WebUI inline-handler/naming lint errors. Named handlers
+and data attributes resolved them; no lint rule was waived. The final guarded
+build passed 18 incremental actions in 37.16s. Patch 0068 modifies four existing
+upstream paths; budget 135 paths / 490 incremental hunks. Sync code and the phone
+path are unchanged. Required q5-mouse-gestures-precommit.tap passes 314/314;
+patch reconstruction q5-mouse-gestures-patches.json passes 173/585. Progress
+and whitespace checks pass. Other mapped actions reuse native/Island commands;
+these runs directly exercise the Reload gesture and the input boundaries.

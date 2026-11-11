@@ -72,6 +72,7 @@
     "patches/0064-blanc-link-spaces.patch",
     "patches/0065-blanc-closed-tab-batches.patch",
     "patches/0066-blanc-link-routing.patch",
-    "patches/0067-blanc-mini-windows.patch"
+    "patches/0067-blanc-mini-windows.patch",
+    "patches/0068-blanc-mouse-gestures.patch"
   ]
 }
