@@ -459,6 +459,35 @@
   // holding the tab, then moves the page; a failed write moves nothing. The
   // window stays in its own Space.
   let lastSpaceMove = null;
+  let pendingSpaceLink = null, lastSpaceLinkResult = null;
+  async function offerSpaceLink(token, title, destination) {
+    pendingSpaceLink = {token, title}; lastSpaceLinkResult = null;
+    let result;
+    if (destination === 'new') {
+      await show('', 'spaces', null, {newSpaceLinkTitle:title}); result = true;
+    } else {
+      const list = await spaceList();
+      result = await request('spaceLinkOpen', [token, destination, false]);
+      await announceSpaces();
+      if (result.ok) pendingSpaceLink = null;
+      else await show('', 'spaces', null, {spaceLinkError:{name:list.meta.items[destination]?.name ?? '',error:result.error}});
+    }
+    lastSpaceLinkResult = {token, result}; return result;
+  }
+  async function createSpaceWithLink(rawName, identity) {
+    const link = pendingSpaceLink;
+    if (!link || overlayMode !== 'spaces' || overlayPurpose?.newSpaceLinkTitle == null)
+      return {ok:false,error:'not-found',...(await spacesPayload())};
+    const list = await spaceList(), checked = checkSpaceName(list, rawName);
+    if (checked.error) return {ok:false,error:checked.error,...(await spacesPayload())};
+    if (list.meta.order.length >= SPACE_LIMIT) return {ok:false,error:'limit',...(await spacesPayload())};
+    const id = crypto.randomUUID();
+    const result = await request('spaceLinkOpen',[link.token,id,true]);
+    if (!result.ok) return {...result,...(await spacesPayload())};
+    list.meta.items[id] = {name:checked.name,...spaceIdentity(list,identity),tabCount:1}; list.meta.order.push(id);
+    await writeSpaces(list); pendingSpaceLink = null;
+    return spaceResult({workspaceId:id});
+  }
   async function moveTabToSpace(tabId, id) {
     const list = await spaceList();
     if (!list.meta.items[id] || list.meta.deleted.includes(id)) return { ok: false, error: 'not-found', moved: false };
@@ -2167,6 +2196,7 @@
     moveTabToSpace: (tabId, id) => (lastSpaceMove = moveTabToSpace(tabId, id)),
     // The last menu move's result, for the harness (shipping returns it from the click).
     lastSpaceMove: () => lastSpaceMove,
+    createSpaceWithLink,
     createSpaceWithTab: (name, identity, tabId) => createSpaceWithTab(name, identity, tabId),
     createSpaceWithTabs: (name, identity, ids) => createSpaceWithTabs(name, identity, ids),
     beginNewSpaceForGroup: groupId => {
@@ -2525,6 +2555,8 @@
 
   window.BlancPrototypeHost = {
     api,
+    offerSpaceLink,
+    spaceLinkResult: () => lastSpaceLinkResult,
     toggleGlance: () => (snapshot?.glanceTabId != null ? api.closeGlance() : api.openGlancePicker()),
     focusGlanceCard,
     spaceHeldState: () => request('spaceMeta'),

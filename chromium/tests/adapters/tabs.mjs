@@ -33,7 +33,7 @@ export const closedSummary=e=>({id:String(e.id),url:e.url||null,tabCount:e.tabCo
 export function runtimeRecord(id,snapshot){
  const tabs=snapshot.tabs.map(t=>({id:String(t.id),url:shippingPageUrl(t.url),private:!!t.private}));
  return {id,tabOrder:tabs.map(t=>t.id),activeTabId:snapshot.activeTabId==null?null:String(snapshot.activeTabId),
-  glanceTabId:snapshot.glanceTabId==null?null:String(snapshot.glanceTabId),tabs,
+  glanceTabId:snapshot.glanceTabId==null?null:String(snapshot.glanceTabId),workspaceId:snapshot.spaceName||null,tabs,
   groups:(snapshot.groups||[]).map(g=>({id:String(g.id),name:g.name,collapsed:!!g.collapsed,color:g.color||null})),attached:true};
 }
 // Shipping tab-menu item ids, by the i18n keys the fork's Island menu
@@ -288,6 +288,13 @@ export const tabs={
   return group ? w.api('beginNewSpaceForGroup',[group.id]) : false;
  },
  // Spaces (F41), through the host's bridge as the menu calls it.
+ async runLinkSpaceMenuItem(w,id,url,title,item){
+  const destination=item==='link-space-new'?'new':item.startsWith('link-space:')?item.slice(11):null;
+  if(!destination)throw Error('Unknown link Space command');
+  const token=await w.native('contextSpaceLink',[nativeId(id),url,title,destination]);
+  const completed=await w.waitFor(()=>w.hostEval('window.BlancPrototypeHost.spaceLinkResult()'),row=>row?.token===token,'native link Space menu action');
+  return completed.result;
+ },
  async raceSwitchBackDuringQuiet(w,id){
   w.app.releasePages();
   const tabId=String(await w.native('heldQuietRaceStart',[String(id)]));

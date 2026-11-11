@@ -261,7 +261,7 @@ class DesktopSpaces final : public base::SupportsUserData::Data,
       bool open = false;
       for (auto* owner : Owner::Live()) if (owner->browser->GetProfile() == profile_ && (owner->space_name == *id || WindowSpace(owner->browser) == *id)) open = true;
       if (auto* hold = SpaceHold::Get(profile_); hold && hold->Find(*id)) open = true;
-      auto record = open && disk_.FindDict(*id) ? disk_.FindDict(*id)->Clone() : ToRecord(row);
+      auto record = open && disk_.FindDict(*id) ? disk_.FindDict(*id)->Clone() : ToRecord(row, disk_.FindDict(*id));
       if (!ValidSpace(record)) return;
       record.Set("sharedCapture", row.Clone());
       auto replacement = base::DictValue().Set("after", std::move(record));
@@ -306,7 +306,7 @@ class DesktopSpaces final : public base::SupportsUserData::Data,
             owner->view->GetWebContents()->GetPrimaryMainFrame()->ExecuteJavaScript(u"window.BlancPrototypeHost?.spacesChanged()", base::NullCallback());
         }, weak_.GetWeakPtr(), profile_->GetPrefs()->GetDict(kSpacesMetaPref).Clone(), std::move(meta), revision, value.FindList("restored") ? value.FindList("restored")->Clone() : base::ListValue()));
   }
-  static base::DictValue ToRecord(const base::DictValue& row) {
+  static base::DictValue ToRecord(const base::DictValue& row, const base::DictValue* prior) {
     base::ListValue tabs, groups;
     const auto* urls = row.FindList("urls");
     if (!urls) return {};
@@ -335,6 +335,27 @@ class DesktopSpaces final : public base::SupportsUserData::Data,
       if (const auto* shared = At(row, "tabIds", i); shared && shared->is_string() &&
           shared->GetString().size() == 32 && std::ranges::all_of(shared->GetString(), [](char c) {return base::IsHexDigit(c);}))
         tab.Set("sharedId", shared->Clone());
+      // This device's unopened links stay deferred through reconciliation.
+      // Never accept that lifecycle flag from a remote row. Match a durable
+      // local/shared identity and unchanged URL, or the exact unchanged URL
+      // sequence of an unshared Space that has no assigned identities yet.
+      const auto* old_tabs = prior ? prior->FindList("tabs") : nullptr;
+      const auto* old_capture = prior ? prior->FindDict("sharedCapture") : nullptr;
+      bool same_unshared = old_tabs && old_tabs->size() == urls->size() && !row.FindString("sharedId");
+      if (same_unshared) for (size_t j = 0; j < urls->size(); ++j)
+        same_unshared &= (*urls)[j].is_string() && (*old_tabs)[j].GetDict().FindString("url") &&
+            *(*old_tabs)[j].GetDict().FindString("url") == (*urls)[j].GetString();
+      for (size_t j = 0; old_tabs && j < old_tabs->size(); ++j) {
+        const auto& old_tab = (*old_tabs)[j].GetDict();
+        if (!old_tab.FindBool("deferredLink").value_or(false) ||
+            !old_tab.FindString("url") || *old_tab.FindString("url") != (*urls)[i].GetString()) continue;
+        bool identity = same_unshared && i == j;
+        if (old_capture) for (const char* key : {"localIds", "tabIds"}) {
+          const auto* current = At(row, key, i), *old = At(*old_capture, key, j);
+          identity |= current && old && current->is_string() && !current->GetString().empty() && *current == *old;
+        }
+        if (identity) tab.Set("deferredLink", true);
+      }
       tabs.Append(std::move(tab));
     }
     if (tabs.empty()) tabs.Append(base::DictValue().Set("url", "chrome://newtab/").Set("pinned", false).Set("group", -1));

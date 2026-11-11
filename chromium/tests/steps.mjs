@@ -4,6 +4,7 @@ const require=createRequire(import.meta.url);
 const {CucumberExpression,RegularExpression,ParameterTypeRegistry}=require('@cucumber/cucumber-expressions');
 const parameters=new ParameterTypeRegistry();
 const {loadShippingCore}=require('./lib/shipping-core.cjs');
+import {LINK_SPACE_STEPS} from './fork-steps/link-space.mjs';
 import {ARCHIVE_STEPS} from './fork-steps/archive.mjs';
 import {PINNED_HOME_STEPS} from './fork-steps/pinned-home.mjs';
 import {WORKSPACE_LIFECYCLE_STEPS} from './fork-steps/workspace-lifecycle.mjs';
@@ -15,6 +16,8 @@ export const definitions=[];
 // These intent-level steps preserve the assertions in shipping v1.45.1
 // test/desktop/steps/runnable.steps.js; only the native transport changes.
 function register(expression,run,source,sourceSha256=null){
+ const linkSpace=LINK_SPACE_STEPS.get(String(expression));
+ if(linkSpace){run=linkSpace;source=`chromium/tests/fork-steps/link-space.mjs (shipping ${source})`;}
  const archive=ARCHIVE_STEPS.get(String(expression));
  if(archive){run=archive;source=`chromium/tests/fork-steps/archive.mjs (shipping ${source})`;}
  // An owner-approved divergence replaces shipping's step and says so.

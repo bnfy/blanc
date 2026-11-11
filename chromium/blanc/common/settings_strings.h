@@ -14,7 +14,7 @@ struct String {
   std::string_view name;
   std::u16string_view value;
 };
-inline constexpr std::array<String, 81> kStrings_en = {{
+inline constexpr std::array<String, 83> kStrings_en = {{
     {"blancTabArchive", u"Archive inactive tabs"},
     {"blancTabArchiveHint", u"Blanc closes loose tabs you haven't opened in a while and keeps them in your Archive for 30 days. Pinned tabs and tab groups are never archived."},
     {"blancTabArchiveOff", u"Off"},
@@ -42,6 +42,8 @@ inline constexpr std::array<String, 81> kStrings_en = {{
     {"blancProfiles", u"Profiles"},
     {"blancPatron", u"Blanc Patron"},
     {"blancPatronCheckout", u"Become a Patron — $4/month or $30/year"},
+    {"blancOpenLinkInSpace", u"Open Link in Space"},
+    {"blancLinkNewSpace", u"New Space…"},
     {"blancOpenLinkInGlance", u"Open Link in Glance"},
     {"blancWelcomeTour", u"Welcome tour"},
     {"blancWelcomeTourHint", u"Replay the first-run walkthrough; saved choices stay put"},
@@ -97,7 +99,7 @@ inline constexpr std::array<String, 81> kStrings_en = {{
     {"blancLanguageSystem", u"System ({language})"},
     {"blancLanguageRelaunch", u"Relaunch to apply"},
 }};
-inline constexpr std::array<String, 81> kStrings_de = {{
+inline constexpr std::array<String, 83> kStrings_de = {{
     {"blancTabArchive", u"Inaktive Tabs archivieren"},
     {"blancTabArchiveHint", u"Blanc schließt lose Tabs, die du länger nicht geöffnet hast, und bewahrt sie 30 Tage in deinem Archiv auf. Angeheftete Tabs und Tabgruppen werden nie archiviert."},
     {"blancTabArchiveOff", u"Aus"},
@@ -125,6 +127,8 @@ inline constexpr std::array<String, 81> kStrings_de = {{
     {"blancProfiles", u"Profile"},
     {"blancPatron", u"Blanc Patron"},
     {"blancPatronCheckout", u"Patron werden – $4/Monat oder $30/Jahr"},
+    {"blancOpenLinkInSpace", u"Link in Space öffnen"},
+    {"blancLinkNewSpace", u"Neuer Space…"},
     {"blancOpenLinkInGlance", u"Link in Glance öffnen"},
     {"blancWelcomeTour", u"Willkommenstour"},
     {"blancWelcomeTourHint", u"Die Einführung beim ersten Start erneut abspielen; gespeicherte Einstellungen bleiben erhalten"},
@@ -180,7 +184,7 @@ inline constexpr std::array<String, 81> kStrings_de = {{
     {"blancLanguageSystem", u"System ({language})"},
     {"blancLanguageRelaunch", u"Zum Übernehmen neu starten"},
 }};
-inline constexpr std::array<String, 81> kStrings_es = {{
+inline constexpr std::array<String, 83> kStrings_es = {{
     {"blancTabArchive", u"Archivar las pestañas inactivas"},
     {"blancTabArchiveHint", u"Blanc cierra las pestañas sueltas que no abres desde hace tiempo y las guarda en tu Archivo durante 30 días. Las pestañas fijadas y los grupos de pestañas nunca se archivan."},
     {"blancTabArchiveOff", u"Desactivado"},
@@ -208,6 +212,8 @@ inline constexpr std::array<String, 81> kStrings_es = {{
     {"blancProfiles", u"Perfiles"},
     {"blancPatron", u"Blanc Patron"},
     {"blancPatronCheckout", u"Hazte Patron — $4/mes o $30/año"},
+    {"blancOpenLinkInSpace", u"Abrir enlace en Space"},
+    {"blancLinkNewSpace", u"Nuevo Space…"},
     {"blancOpenLinkInGlance", u"Abrir enlace en Glance"},
     {"blancWelcomeTour", u"Visita de bienvenida"},
     {"blancWelcomeTourHint", u"Repite la guía del primer inicio; tus elecciones guardadas no cambian"},
@@ -263,7 +269,7 @@ inline constexpr std::array<String, 81> kStrings_es = {{
     {"blancLanguageSystem", u"Sistema ({language})"},
     {"blancLanguageRelaunch", u"Reiniciar para aplicar"},
 }};
-inline constexpr std::array<String, 81> kStrings_fr = {{
+inline constexpr std::array<String, 83> kStrings_fr = {{
     {"blancTabArchive", u"Archiver les onglets inactifs"},
     {"blancTabArchiveHint", u"Blanc ferme les onglets isolés que vous n’avez pas ouverts depuis un moment et les garde 30 jours dans vos Archives. Les onglets épinglés et les groupes d’onglets ne sont jamais archivés."},
     {"blancTabArchiveOff", u"Désactivé"},
@@ -291,6 +297,8 @@ inline constexpr std::array<String, 81> kStrings_fr = {{
     {"blancProfiles", u"Profils"},
     {"blancPatron", u"Blanc Patron"},
     {"blancPatronCheckout", u"Devenir Patron — $4/mois ou $30/an"},
+    {"blancOpenLinkInSpace", u"Ouvrir le lien dans un Space"},
+    {"blancLinkNewSpace", u"Nouveau Space…"},
     {"blancOpenLinkInGlance", u"Ouvrir le lien dans Glance"},
     {"blancWelcomeTour", u"Visite de bienvenue"},
     {"blancWelcomeTourHint", u"Revoir la présentation du premier lancement ; vos choix enregistrés restent inchangés"},
@@ -346,7 +354,7 @@ inline constexpr std::array<String, 81> kStrings_fr = {{
     {"blancLanguageSystem", u"Système ({language})"},
     {"blancLanguageRelaunch", u"Redémarrer pour appliquer"},
 }};
-inline constexpr std::array<String, 81> kStrings_it = {{
+inline constexpr std::array<String, 83> kStrings_it = {{
     {"blancTabArchive", u"Archivia le schede inattive"},
     {"blancTabArchiveHint", u"Blanc chiude le schede sparse che non apri da un po’ e le conserva nel tuo Archivio per 30 giorni. Le schede fissate e i gruppi di schede non vengono mai archiviati."},
     {"blancTabArchiveOff", u"Disattivato"},
@@ -374,6 +382,8 @@ inline constexpr std::array<String, 81> kStrings_it = {{
     {"blancProfiles", u"Profili"},
     {"blancPatron", u"Blanc Patron"},
     {"blancPatronCheckout", u"Diventa Patron — $4/mese o $30/anno"},
+    {"blancOpenLinkInSpace", u"Apri link in Space"},
+    {"blancLinkNewSpace", u"Nuovo Space…"},
     {"blancOpenLinkInGlance", u"Apri link in Glance"},
     {"blancWelcomeTour", u"Tour di benvenuto"},
     {"blancWelcomeTourHint", u"Rivedi la guida del primo avvio; le scelte salvate restano invariate"},
@@ -429,7 +439,7 @@ inline constexpr std::array<String, 81> kStrings_it = {{
     {"blancLanguageSystem", u"Sistema ({language})"},
     {"blancLanguageRelaunch", u"Riavvia per applicare"},
 }};
-inline constexpr std::array<String, 81> kStrings_pt_BR = {{
+inline constexpr std::array<String, 83> kStrings_pt_BR = {{
     {"blancTabArchive", u"Arquivar abas inativas"},
     {"blancTabArchiveHint", u"O Blanc fecha as abas soltas que você não abre há algum tempo e as guarda no seu Arquivo por 30 dias. Abas fixadas e grupos de abas nunca são arquivados."},
     {"blancTabArchiveOff", u"Desativado"},
@@ -457,6 +467,8 @@ inline constexpr std::array<String, 81> kStrings_pt_BR = {{
     {"blancProfiles", u"Perfis"},
     {"blancPatron", u"Blanc Patron"},
     {"blancPatronCheckout", u"Torne-se Patron — $4/mês ou $30/ano"},
+    {"blancOpenLinkInSpace", u"Abrir link em Space"},
+    {"blancLinkNewSpace", u"Novo Space…"},
     {"blancOpenLinkInGlance", u"Abrir link no Glance"},
     {"blancWelcomeTour", u"Tour de boas-vindas"},
     {"blancWelcomeTourHint", u"Rever o guia da primeira execução; suas escolhas salvas continuam iguais"},

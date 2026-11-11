@@ -183,6 +183,7 @@
 #include "chrome/browser/media/webrtc/media_capture_devices_dispatcher.h"
 #include "chrome/browser/media/webrtc/media_stream_capture_indicator.h"
 #include "chrome/browser/ui/browser_live_tab_context.h"
+#include "chrome/browser/ui/browser_tabrestore.h"
 #include "chrome/browser/ui/browser_window/public/create_browser_window.h"
 #include "components/web_modal/web_contents_modal_dialog_manager.h"
 #include "content/public/browser/download_manager.h"
@@ -1037,6 +1038,10 @@ class Owner : public base::SupportsUserData::Data,
   base::ScopedClosureRunner blocker_recovery_dialog;
   bool space_busy = false;
   std::string space_name;
+  std::string space_link_token, space_link_title;
+  GURL space_link_url;
+  base::WeakPtr<content::WebContents> space_link_source;
+  content::WeakDocumentPtr space_link_document;
   std::vector<int> space_pending_ids;
   std::optional<base::DictValue> space_saved;
   std::optional<base::DictValue> space_candidate;
@@ -1988,6 +1993,7 @@ class SpaceHold : public base::SupportsUserData::Data, public TabStripModelObser
   }
   bool IsWindow(const BrowserWindowInterface* window) const { return window_ && window_ == window; }
   TabStripModel* strip() { return window_->GetTabStripModel(); }
+  BrowserWindowInterface* window() { return window_; }
   // Oldest first.
   std::vector<HeldSpace>& spaces() { return spaces_; }
   HeldSpace* Find(std::string_view name) {
@@ -3145,6 +3151,8 @@ std::optional<base::DictValue> CaptureNativeSpace(BrowserWindowInterface* browse
       split_ids.Append(captured_splits.at(*id));
     } else split_ids.Append(base::Value());
     GURL url = tab->GetLastCommittedURL();
+    if (!tab->GetPrimaryMainFrame()->IsRenderFrameLive() && tab->GetController().NeedsReload())
+      url = tab->GetVisibleURL();
     if (tab->GetVisibleURL() == GURL("chrome://newtab/") || IsRegularStartPage(url)) url = GURL("chrome://newtab/");
     int group_index = -1;
     if (const auto group = model->GetTabGroupForTab(i)) {
@@ -3159,6 +3167,8 @@ std::optional<base::DictValue> CaptureNativeSpace(BrowserWindowInterface* browse
     if (!shared_id.empty()) saved_tab.Set("sharedId", shared_id);
     const auto replay = SharedColdNavigationToken(tab);
     if (!replay.empty()) saved_tab.Set("sharedColdNavigation", replay);
+    if (!tab->GetPrimaryMainFrame()->IsRenderFrameLive() && tab->GetController().NeedsReload())
+      saved_tab.Set("deferredLink", true);
     tabs.Append(std::move(saved_tab));
     if (HasInheritedDocumentPolicy(tab)) tabs.back().GetDict().Set("inheritsDocumentPolicy", true);
   }
@@ -3197,6 +3207,19 @@ std::optional<base::DictValue> CaptureNativeSpace(BrowserWindowInterface* browse
   return record;
 }
 // A batch plan is grouped into drawn rows so a split can roll back whole.
+content::WebContents* AddDeferredSpaceLink(BrowserWindowInterface* browser, const GURL& url, const std::string& title) {
+  sessions::tab_restore::Tab saved;
+  sessions::SerializedNavigationEntry navigation;
+  navigation.set_index(0); navigation.set_virtual_url(url); navigation.set_title(base::UTF8ToUTF16(title));
+  saved.navigations.push_back(std::move(navigation)); saved.current_navigation_index = 0;
+  // The lower-level native restore creates an inactive controller without
+  // enrolling a hidden hold-window tab in Chromium's background load queue.
+  return chrome::AddRestoredTab(browser, saved.navigations,
+      browser->GetTabStripModel()->count(), 0, "", std::nullopt, false, false,
+      base::TimeTicks(), base::Time(), nullptr, saved.user_agent_override,
+      saved.extra_data, false, false);
+}
+
 std::optional<base::ListValue> SpaceBatchRows(TabStripModel* model, const base::ListValue& ids, bool memory_only = false) {
   const auto eligible = [&](int at) { return memory_only ? CanPlaceBatchTab(model, at) : CanMoveTabToSpace(model, at, true); };
   const auto pages = BatchPages(model, ids);
@@ -3683,6 +3706,7 @@ base::DictValue Snapshot(BrowserWindowInterface* browser, Owner* owner) {
                     .Set("pageBg", contents == model->GetActiveWebContents()
                         ? owner->page_tint : "")
                     .Set("isLoading", contents->IsLoading())
+                    .Set("waking", contents->WasDiscarded() && contents->IsLoading())
                     .Set("canSend", !contents->GetBrowserContext()->IsOffTheRecord() &&
                         !HasInheritedDocumentPolicy(contents) && committed.SchemeIsHTTPOrHTTPS())
                     .Set("canDuplicate", !controller.GetPendingEntry() &&
@@ -5782,6 +5806,31 @@ class Handler : public content::WebUIMessageHandler, public extensions::Extensio
           .Set("directory", profile->GetPath().BaseName().AsUTF8Unsafe())
           .Set("name", entry ? base::UTF16ToUTF8(entry->GetLocalProfileName()) : std::string()))); return;
     }
+    if (quiet_method == "contextSpaceLink" && quiet_args.size() == 4 && quiet_args[0].is_int() && quiet_args[1].is_string() && quiet_args[2].is_string() && quiet_args[3].is_string()) {
+      auto* owner = GetOwner(web_ui()->GetWebContents()); auto* model = owner->browser->GetTabStripModel();
+      content::WebContents* source = nullptr;
+      for (int i = 0; i < model->count(); ++i)
+        if (sessions::SessionTabHelper::IdForTab(model->GetWebContentsAt(i)).id() == quiet_args[0].GetInt()) source = model->GetWebContentsAt(i);
+      if (!source) { reject("Unknown source tab"); return; }
+      const GURL url(quiet_args[1].GetString()); const auto destination = quiet_args[3].GetString();
+      const auto choices = LinkSpaceTargets(source, source->GetPrimaryMainFrame(), url);
+      const auto choice = std::ranges::find(choices, destination, &std::pair<std::string, std::u16string>::first);
+      if (choice == choices.end()) { reject("Space link menu item unavailable"); return; }
+      auto* delegate = ContextMenuDelegate::FromWebContents(source);
+      if (!delegate) { reject("Native context menu unavailable"); return; }
+      content::ContextMenuParams params; params.page_url = source->GetLastCommittedURL();
+      params.link_url = params.unfiltered_link_url = url; params.link_text = base::UTF8ToUTF16(quiet_args[2].GetString());
+      test_link_menu_ = delegate->BuildMenu(*source->GetPrimaryMainFrame(), params);
+      const int command = kLinkSpaceFirstCommand + std::distance(choices.begin(), choice);
+      const auto menu_index = test_link_menu_->menu_model().GetIndexOfCommandId(kLinkSpaceMenuCommand);
+      auto* submenu = menu_index ? test_link_menu_->menu_model().GetSubmenuModelAt(*menu_index) : nullptr;
+      std::optional<size_t> item;
+      if (submenu) for (size_t i = 0; i < submenu->GetItemCount(); ++i)
+        if (submenu->GetCommandIdAt(i) == command) item = i;
+      if (!item || !submenu->IsEnabledAt(*item)) { reject("Native Space submenu is missing"); return; }
+      test_link_menu_->ExecuteCommand(command, 0); test_link_menu_.reset();
+      Reply(id, true, base::Value(owner->space_link_token)); return;
+    }
     if (quiet_method == "contextLinkMenu" && quiet_args.size() == 2 && quiet_args[0].is_int() && quiet_args[1].is_string()) {
       auto* model = GetOwner(web_ui()->GetWebContents())->browser->GetTabStripModel();
       auto* tab = model->GetActiveWebContents();
@@ -7596,6 +7645,88 @@ class Handler : public content::WebUIMessageHandler, public extensions::Extensio
             "previewSpaceSave", owner->space_name, capture->Clone()),
         base::BindOnce(&Handler::AutosaveReady, weak_factory_.GetWeakPtr(), std::move(*capture)));
   }
+  bool SpaceLinkSource(Owner* owner, const std::string& token) {
+    auto* page = owner->space_link_source.get();
+    auto* frame = owner->space_link_document.AsRenderFrameHostIfValid();
+    return page && frame && content::WebContents::FromRenderFrameHost(frame) == page &&
+        !token.empty() && token == owner->space_link_token &&
+        page->GetBrowserContext() == owner->browser->GetProfile() &&
+        owner->browser->GetTabStripModel()->GetIndexOfWebContents(page) >= 0 &&
+        !HasInheritedDocumentPolicy(page) && !frame->IsSandboxed(network::mojom::WebSandboxFlags::kAll) &&
+        owner->space_link_url.SchemeIsHTTPOrHTTPS() && !owner->space_link_url.has_username() && !owner->space_link_url.has_password();
+  }
+  void SpaceLinkReply(const std::string& id, const char* error = nullptr) {
+    if (auto* owner = GetOwner(web_ui()->GetWebContents())) {
+      owner->space_busy = false;
+      if (!error) { owner->space_link_token.clear(); owner->space_link_source.reset(); }
+    }
+    Reply(id, true, base::Value(base::DictValue().Set("ok", !error).Set("error", error ? base::Value(error) : base::Value())));
+  }
+  void SpaceLinkWrite(std::string id, std::string token, std::string name, bool create, base::DictValue found) {
+    auto* owner = GetOwner(web_ui()->GetWebContents()); if (!owner) return;
+    const auto* prior = found.FindDict("record");
+    if (!SpaceLinkSource(owner, token) || (!create && (!prior || !ValidSpace(*prior)))) { SpaceLinkReply(id, "refused"); return; }
+    base::DictValue next;
+    if (prior) next = prior->Clone();
+    else { next.Set("tabs", base::ListValue()); next.Set("groups", base::ListValue()); next.Set("active", 0); }
+    auto* rows = next.FindList("tabs");
+    if (rows->size() >= 500) { SpaceLinkReply(id, "limit"); return; }
+    rows->Append(base::DictValue().Set("url", owner->space_link_url.spec()).Set("pinned", false).Set("group", -1).Set("deferredLink", true));
+    if (auto* ids = next.FindList("splitIds")) ids->Append(base::Value());
+    if (!ValidSpace(next)) { SpaceLinkReply(id, "refused"); return; }
+    if (TakeSpaceMoveFault("write")) { SpaceLinkReply(id, "storage-failed"); return; }
+    auto capture = next.Clone();
+    SpaceRunner()->PostTaskAndReplyWithResult(FROM_HERE,
+        base::BindOnce(&SpaceDisk, owner->browser->GetProfile()->GetPath().AppendASCII("BlancPrototypeSpaces.json"),
+            "previewSpaceSave", name, std::move(capture)),
+        base::BindOnce(&Handler::SpaceLinkWritten, weak_factory_.GetWeakPtr(), id, token, name,
+            std::move(next), prior ? prior->Clone() : base::DictValue()));
+  }
+  void SpaceLinkWritten(std::string id, std::string token, std::string name,
+                        base::DictValue next, base::DictValue prior, base::DictValue written) {
+    auto* owner = GetOwner(web_ui()->GetWebContents()); if (!owner) return;
+    if (written.FindString("error")) { SpaceLinkReply(id, "storage-failed"); return; }
+    auto* profile = owner->browser->GetProfile();
+    Owner* holder = nullptr;
+    for (auto* other : Owner::Live())
+      if (other != owner && other->browser->GetProfile() == profile && other->space_name == name) holder = other;
+    auto* hold = SpaceHold::Get(profile);
+    auto* resident = hold ? hold->Find(name) : nullptr;
+    bool valid = SpaceLinkSource(owner, token);
+    if (holder) {
+      auto current = CaptureNativeSpace(holder->browser);
+      if (!current || *current != prior || holder->space_busy || holder->space_expected) {
+        valid = false; if (current) prior = std::move(*current);
+      }
+    }
+    content::WebContents* created = nullptr;
+    BrowserWindowInterface* target = nullptr;
+    if (valid && (holder || resident)) {
+      target = holder ? holder->browser.get() : hold->window();
+      created = AddDeferredSpaceLink(target, owner->space_link_url, owner->space_link_title);
+      valid = created && !TakeSpaceMoveFault("transfer");
+    }
+    if (!valid) {
+      if (created && target) target->GetTabStripModel()->DetachAndDeleteWebContentsAt(target->GetTabStripModel()->GetIndexOfWebContents(created));
+      SpaceRunner()->PostTaskAndReplyWithResult(FROM_HERE,
+          base::BindOnce(&SpaceDisk, profile->GetPath().AppendASCII("BlancPrototypeSpaces.json"),
+              prior.empty() ? "spaceForget" : "previewSpaceSave", name, std::move(prior)),
+          base::BindOnce([](base::WeakPtr<Handler> self, std::string id, base::DictValue result) {
+            if (self) self->SpaceLinkReply(id, result.FindString("error") ? "storage-failed" : "move-failed");
+          }, weak_factory_.GetWeakPtr(), id)); return;
+    }
+    if (holder) {
+      // Keep the existing selection and window activation. The new native
+      // tab alone starts loading, without an opener or inherited authority.
+      holder->space_saved = next.Clone();
+      created->GetController().LoadIfNecessary();
+    } else if (resident) {
+      resident->tabs.push_back(hold->Take(hold->strip(), hold->strip()->GetIndexOfWebContents(created), false));
+      resident->record = next.Clone();
+    }
+    NoteSpaceTabCount(profile, name, next.FindList("tabs")->size());
+    SpaceLinkReply(id);
+  }
   // Move to Space, the source window's side. Each step finds the tab again by
   // its id: the page may have closed while the disk worked.
   int SpaceMoveIndex(int tab_id) {
@@ -8116,8 +8247,9 @@ class Handler : public content::WebUIMessageHandler, public extensions::Extensio
       }
       if (retained) added.push_back(retained);
       else {
-        auto* created = chrome::AddAndReturnTabAt(
-            browser, GURL(*item.GetDict().FindString("url")), -1, true);
+        auto* created = item.GetDict().FindBool("deferredLink").value_or(false)
+            ? AddDeferredSpaceLink(browser, GURL(*item.GetDict().FindString("url")), "")
+            : chrome::AddAndReturnTabAt(browser, GURL(*item.GetDict().FindString("url")), -1, true);
         if (!created) {
           for (auto& page : held_target)
             if (page) ShowHeldPage(browser, std::move(page), AddTabTypes::ADD_NONE, false);
@@ -8501,12 +8633,13 @@ class Handler : public content::WebUIMessageHandler, public extensions::Extensio
           size_t slot = 0;
           for (const auto& tab : space.tabs) {
             auto* page = hold->Contents(tab);
-            const bool loaded = page && !page->WasDiscarded();
+            const bool loaded = page && page->GetPrimaryMainFrame()->IsRenderFrameLive();
             const auto* saved_tabs = space.record.FindList("tabs");
             const int group = saved_tabs && slot < saved_tabs->size() ?
                 (*saved_tabs)[slot].GetDict().FindInt("group").value_or(-1) : -1;
             ++slot;
             rows.Append(base::DictValue().Set("id", tab.id).Set("pinned", tab.pinned)
+                .Set("url", page ? page->GetVisibleURL().spec() : std::string())
                 .Set("groupId", group).Set("asleep", !loaded).Set("live", loaded).Set("present", page != nullptr));
           }
           held_tabs.Set(space.name, std::move(rows));
@@ -8591,6 +8724,36 @@ class Handler : public content::WebUIMessageHandler, public extensions::Extensio
     // tab move. A failed write moves nothing. `create` makes a new Space's
     // record with just this tab (New Space…). The Space shown in another
     // window takes the tab there; any other is set aside, holding it live.
+    if (method == "spaceLinkOpen" && args.size() == 3 && args[0].is_string() && args[1].is_string() && args[2].is_bool()) {
+      const auto token = args[0].GetString(), name = args[1].GetString();
+      const bool create = args[2].GetBool();
+      if (profile->IsOffTheRecord() || owner->space_busy || owner->space_expected ||
+          !base::Uuid::ParseLowercase(name).is_valid() || !SpaceLinkSource(owner, token) || name == owner->space_name) {
+        reply(true, base::Value(base::DictValue().Set("ok", false).Set("error", "refused"))); return;
+      }
+      const auto& meta = profile->GetPrefs()->GetDict(kSpacesMetaPref);
+      const auto* items = meta.FindDict("items"); const auto* order = meta.FindList("order");
+      if (!items || !order || (create ? items->contains(name) || order->size() >= 25 :
+          !items->contains(name) || !std::ranges::any_of(*order, [&](const auto& v) {return v.is_string() && v.GetString() == name;}))) {
+        reply(true, base::Value(base::DictValue().Set("ok", false).Set("error", "not-found"))); return;
+      }
+      Owner* holder = nullptr;
+      for (auto* other : Owner::Live()) {
+        if (other->browser->GetProfile() != profile) continue;
+        if (other->space_busy || other->space_expected) { reply(true, base::Value(base::DictValue().Set("ok", false).Set("error", "busy"))); return; }
+        if (other != owner && other->space_name == name) holder = other;
+      }
+      owner->space_busy = true;
+      if (holder) {
+        auto record = CaptureNativeSpace(holder->browser);
+        if (!record) { SpaceLinkReply(id, "busy"); return; }
+        SpaceLinkWrite(id, token, name, false, base::DictValue().Set("record", std::move(*record)));
+      } else if (create) SpaceLinkWrite(id, token, name, true, base::DictValue());
+      else SpaceRunner()->PostTaskAndReplyWithResult(FROM_HERE,
+          base::BindOnce(&SpaceDisk, profile->GetPath().AppendASCII("BlancPrototypeSpaces.json"), "spaceRecord", name, base::DictValue()),
+          base::BindOnce(&Handler::SpaceLinkWrite, weak_factory_.GetWeakPtr(), id, token, name, false));
+      return;
+    }
     if (method == "spaceMoveTab" && args.size() == 3 && args[0].is_int() && args[1].is_string() &&
         !args[1].GetString().empty() && args[1].GetString().size() <= 120 && args[2].is_bool()) {
       const int tab_id = args[0].GetInt();
@@ -10980,6 +11143,46 @@ Owner* OwnerOfTab(content::WebContents* source) {
   return nullptr;
 }
 }  // namespace
+std::u16string LinkSpaceLabel(bool fresh) {
+  const std::string_view key = fresh ? "blancLinkNewSpace" : "blancOpenLinkInSpace";
+  for (const auto& text : blanc::settings::ForLocale(g_browser_process->GetApplicationLocale()))
+    if (text.name == key) return std::u16string(text.value);
+  return fresh ? u"New Space…" : u"Open Link in Space";
+}
+std::vector<std::pair<std::string, std::u16string>> LinkSpaceTargets(content::WebContents* source,
+    content::RenderFrameHost* frame, const GURL& url) {
+  auto* owner = OwnerOfTab(source);
+  if (!owner || !frame || content::WebContents::FromRenderFrameHost(frame) != source ||
+      owner->space_busy || owner->space_expected || source->GetBrowserContext()->IsOffTheRecord() ||
+      !url.SchemeIsHTTPOrHTTPS() || url.has_username() || url.has_password() || url.spec().size() > 8192 ||
+      HasInheritedDocumentPolicy(source) || frame->IsSandboxed(network::mojom::WebSandboxFlags::kAll)) return {};
+  const auto& meta = owner->browser->GetProfile()->GetPrefs()->GetDict(kSpacesMetaPref);
+  const auto* order = meta.FindList("order"); const auto* items = meta.FindDict("items");
+  if (!order || order->empty() || !items) return {};
+  std::vector<std::pair<std::string, std::u16string>> result;
+  for (const auto& id : *order) {
+    if (!id.is_string() || id.GetString() == owner->space_name) continue;
+    const auto* item = items->FindDict(id.GetString()); const auto* name = item ? item->FindString("name") : nullptr;
+    if (name && result.size() < 25) result.emplace_back(id.GetString(), base::UTF8ToUTF16(*name));
+  }
+  if (order->size() < 25) result.emplace_back("new", LinkSpaceLabel(true));
+  return result;
+}
+void OpenLinkInSpace(content::WebContents* source, content::RenderFrameHost* frame,
+                     const GURL& url, const std::u16string& title, const std::string& destination) {
+  const auto choices = LinkSpaceTargets(source, frame, url);
+  if (!std::ranges::any_of(choices, [&](const auto& choice) {return choice.first == destination;})) return;
+  auto* owner = OwnerOfTab(source);
+  owner->space_link_token = base::Uuid::GenerateRandomV4().AsLowercaseString();
+  owner->space_link_url = url; owner->space_link_title = base::UTF16ToUTF8(title.substr(0, 512));
+  if (owner->space_link_title.empty()) owner->space_link_title = url.spec();
+  owner->space_link_source = source->GetWeakPtr(); owner->space_link_document = frame->GetWeakDocumentPtr();
+  owner->view->GetWebContents()->GetPrimaryMainFrame()->ExecuteJavaScript(
+      u"window.BlancPrototypeHost?.offerSpaceLink(" + base::UTF8ToUTF16(base::GetQuotedJSONString(owner->space_link_token)) + u"," +
+      base::UTF8ToUTF16(base::GetQuotedJSONString(owner->space_link_title)) + u"," +
+      base::UTF8ToUTF16(base::GetQuotedJSONString(destination)) + u")", base::NullCallback());
+}
+
 bool CanOpenLinkInGlance(content::WebContents* source, const GURL& url) {
   return IsEnabled() && source && url.SchemeIsHTTPOrHTTPS() && OwnerOfTab(source);
 }

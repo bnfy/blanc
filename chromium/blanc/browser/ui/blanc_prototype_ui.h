@@ -16,7 +16,7 @@
 
 class GURL;
 namespace sessions { struct SessionWindow; }
-namespace content { class WebContents; }
+namespace content { class WebContents; class RenderFrameHost; }
 namespace blanc::browser_api::mojom { class BrowserApiFactory; }
 class BrowserWindowInterface;
 class MultiContentsView;
@@ -128,6 +128,11 @@ bool RestoreClosedSplitFromCommand(BrowserWindowInterface* browser);
 bool ParkClosedTab(BrowserWindowInterface* browser, content::WebContents* tab);
 bool SelectIslandSlot(BrowserWindowInterface* browser, int slot);
 bool ToggleGlance(BrowserWindowInterface* browser);
+inline constexpr int kLinkSpaceMenuCommand = 59900;
+inline constexpr int kLinkSpaceFirstCommand = 59901;
+std::u16string LinkSpaceLabel(bool fresh);
+std::vector<std::pair<std::string, std::u16string>> LinkSpaceTargets(content::WebContents*, content::RenderFrameHost*, const GURL&);
+void OpenLinkInSpace(content::WebContents*, content::RenderFrameHost*, const GURL&, const std::u16string&, const std::string&);
 // Open Link in Glance, in the page context menu (F34). Above every id
 // Chromium's menus use, so no generated command header has to change.
 inline constexpr int kOpenLinkInGlanceCommand = 59990;

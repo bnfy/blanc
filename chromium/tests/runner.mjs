@@ -110,6 +110,7 @@ async function runCase(matches,steps,tags=[]){
   for(const page of world.heldLoadingPages??[])await page.cdp?.send('Fetch.disable').catch(()=>{});
   await world.lifecycleFixture?.close().catch(()=>{});
   if(world.pinnedLocalDir)fs.rmSync(world.pinnedLocalDir,{recursive:true,force:true});
+  world.linkServer?.closeAllConnections();world.linkServer?.close();
   world.telemetryServer?.closeAllConnections();world.telemetryServer?.close();
   try{entry.browserExit=await fixture.close();}
   finally{try{await world.syncPeer?.sync.disable();}finally{await world.syncServer?.close();}}

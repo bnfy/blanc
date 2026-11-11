@@ -30,6 +30,7 @@
     "chrome/browser/prefs/session_startup_pref.cc": "7b0dca1623466f2fa39fafaec6fd7f6cc0d3b7b46d6843298a377d27d0fc229c",
     "chrome/browser/profiles/profile_manager.cc": "2abc11124fb1f81b5258ea20019926221748a12b60189295f28bf4da7765b73f",
     "chrome/browser/renderer_context_menu/render_view_context_menu.cc": "0344bd88b932d431a80b06d0ece5e1c545d7a10522ae8e861ecede0ffccbe398",
+    "chrome/browser/renderer_context_menu/render_view_context_menu.h": "d264335568c98c1356093d856e74d73be051403587231bf9dee7accdccd985ed",
     "chrome/browser/renderer_preferences_util.cc": "11a762affd6386416dc68be52ced662c8432c10a69754a5e5b9cf65501a409e2",
     "chrome/browser/resource_coordinator/tab_lifecycle_unit.cc": "1f8e897703624324d0b31538d2f22954e7d9215d642c2f643db1fa8bcee30eb2",
     "chrome/browser/resources/extensions/item_list.html.ts": "811662b4438887015065fd750925ea2757c968e315a27975479777f6d29bd8dd",

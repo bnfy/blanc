@@ -5,15 +5,15 @@ Queue 5 is in progress. The rendering guard is clear again; focused native runs 
 | Classification | Cases | Newly passing |
 | --- | ---: | ---: |
 | a: missing adapter | 31 | 31 |
-| b: missing fork capability / blocked acceptance | 49 | 24 |
+| b: missing fork capability / blocked acceptance | 49 | 31 |
 | c: inapplicable by platform or approved construction | 22 | 0 |
 
-Current tested candidate: `macos-fd93b9c53eb61713`, `q5-billboard-2-runtime-config.json`.
-Inherited Sync gate: 22/22 on starting bytes; Sync code unchanged; not rerun.
+Current tested candidate: `macos-10748f4570723aef`, `q5-space-links-6-runtime-config.json`.
+Full Sync gate on current candidate: 22/22 (`q5-space-links-sync-1`).
 Inventory baseline: 533 pass / 3 fail (subsequently repaired) / 102 undefined / 2 excluded.
 Final inventory: owed, once after implementation. Lost passes: not yet measured.
 Owner needs: beta/updater hold; signed physical Touch ID acceptance.
-Unverified: 25 capability cases; final full inventory.
+Unverified: 18 capability cases and final full inventory.
 No push, release, signing, production/Apple/1Password contact, live-tree changes or toolchain installation authorized.
 
 ## Classification of all 102 starting gaps
@@ -416,3 +416,37 @@ There is no fabricated ranking or website/icon request in the seed.
 Candidate macos-fd93b9c53eb61713, q5-billboard-2-runtime-config.json;
 6 steps / 35.01 s. Required precommit tests: q5-billboard-precommit.tap;
 patch reconstruction 164/583. Budget remains 125 paths / 439 hunks. Sync unchanged.
+
+
+## 12 — Open Link in Space (seven new passes)
+
+Patch 0064 adds the native page context submenu, capturing stable Space IDs.
+The native process retains the chosen HTTP(S) URL and source document under a
+one-use capability; the Island receives only the title and token. Private,
+sandboxed, inherited-policy and stale-document requests are refused. Existing
+Space limits and storage errors stay visible, including the New Space draft.
+The destination record is saved before creating a native tab; failed creation
+rolls back the record and removes only the staged tab. Visible destinations
+load the link in the background without changing either window's selection.
+Held and closed destinations retain an unloaded native navigation controller;
+closed destinations gain no runtime until opened. The held record is updated
+along with its tab slot.
+
+The first run passed five cases and found missing URL/waking observations.
+After those adapters landed, :403 passed and :413 exposed desktop Space
+reconciliation dropping the local deferred-load marker after restart. Native
+reconciliation now retains that marker only from the prior local record,
+matched by unchanged URL and stable identity (or an unchanged complete URL
+sequence for an unshared Space without identities). It does not accept a
+remote lifecycle flag. Native capture also preserves an unloaded controller's
+visible URL. The lower-level native restore avoids background scheduling in
+the hidden hold window. The phone Sync path is byte-unchanged.
+
+q5-space-links-repairs-2 passes :403/:413 on macos-0120414652f541ed.
+Final candidate macos-10748f4570723aef, q5-space-links-6-runtime-config.json;
+6 guarded steps / 35.19 s. q5-space-links-final-1 passes all seven cases with no retry. Full Sync gate q5-space-links-sync-1 passes 22/22 on these exact bytes, including the persisted quota wait, private/secondary exclusion and recovery.
+Budget: 126 incremental upstream paths / 443 hunks; reconstruction 165/583.
+
+Required precommit: q5-space-links-precommit.tap, 314/314 pass;
+q5-space-links-patches.json reconstructs 165 upstream / 583 canonical files.
+Progress freshness and whitespace checks pass. No final inventory yet.
