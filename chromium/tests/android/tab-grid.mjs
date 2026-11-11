@@ -11,7 +11,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import {execFileSync} from 'node:child_process';
 import {fileURLToPath} from 'node:url';
-import {nodeBounds} from './island-menu.mjs';
+import {gridSwipe, nodeBounds} from './island-menu.mjs';
 import {matching} from './palette.mjs';
 
 const PACKAGE = 'me.bnfy.blanc.dev';
@@ -35,6 +35,8 @@ function main(argv) {
   const center = b => [Math.round((b.left + b.right) / 2), Math.round((b.top + b.bottom) / 2)];
   const tapAt = b => { adb('shell', 'input', 'tap', ...center(b).map(String)); sleep(1.5); };
   const tap = query => { const b = nodeBounds(dump(), query); if (b) tapAt(b); return !!b; };
+  // The tab grid opens with a swipe from the Island into the page; the closed Island has no tab count.
+  const openGrid = () => { const swipe = gridSwipe(dump()); if (swipe) { adb('shell', 'input', 'swipe', ...swipe, '250'); sleep(2); } return !!swipe; };
   const shot = name => fs.writeFileSync(path.join(evidence, `${name}.png`), execFileSync('adb', ['exec-out', 'screencap', '-p'], {maxBuffer: 64 * 1024 * 1024}));
   const back = () => { adb('shell', 'input', 'keyevent', 'KEYCODE_BACK'); sleep(1); };
   const setPosition = value => {
@@ -56,7 +58,7 @@ function main(argv) {
     setPosition(position);
     for (const [size, density] of SCREENS) {
       adb('shell', 'wm', 'size', size); adb('shell', 'wm', 'density', density); sleep(3);
-      const opened = tap({id: 'blanc_island_tabs'});
+      const opened = openGrid();
       const xml = dump();
       shot(`grid-${position}-${size}`);
       const cards = cardLabels(xml);
@@ -94,7 +96,7 @@ function main(argv) {
   // A group to rename and color: /group from the palette.
   tap({id: 'blanc_island_domain'});
   adb('shell', 'input', 'text', '/group%sResearch'); adb('shell', 'input', 'keyevent', 'KEYCODE_ENTER'); sleep(3);
-  tap({id: 'blanc_island_tabs'});
+  openGrid();
   const options = matching(dump(), /^Group options$/, 'content-desc');
   if (options) tapAt(options);
   tap({text: 'Rename…'});

@@ -2341,6 +2341,11 @@ sits in the open Island's footer, before Favorites, under the same rule (once a 
 tab), and opens the Spaces menu. The iPhone is making the same change in its own session, so this isn't a
 divergence. The Spaces emulator check now requires the closed Island to have no mark.
 
+The tab count left the closed Island on November 11 too, as on the iPhone since November 5 (#1372). The tab grid
+opens with the swipe from the Island into the page; TalkBack hears the count on the address ("Search or switch
+tabs, example.com, 3 tabs") and gets a Show all tabs action there. The emulator scripts open the grid with that
+swipe and read the count from the grid's header. The iPhone's pinch into the grid isn't ported yet.
+
 ### Shield count across a page's commit
 
 The count is fixed in the blocker code desktop shares. A page's first request can

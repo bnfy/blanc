@@ -8,10 +8,12 @@ import android.content.res.Configuration;
 import android.content.res.Resources;
 import android.graphics.drawable.GradientDrawable;
 import android.os.Build;
+import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.MotionEvent;
 import android.view.VelocityTracker;
 import android.view.View;
+import android.view.accessibility.AccessibilityNodeInfo;
 import android.widget.FrameLayout;
 import android.widget.ImageButton;
 import android.widget.LinearLayout;
@@ -22,7 +24,7 @@ import org.chromium.build.annotations.Nullable;
 
 /**
  * Blanc for iPhone's Island pill as an Android view (ContentView.addressPill): the Sunrise mark,
- * the site, the private chip, Reload or Stop, the tab count and New tab, on the theme's raised
+ * the site, the private chip, Reload or Stop and New tab, on the theme's raised
  * surface with a hairline and soft shadow, at most 600 wide inside 16 of padding. It only draws
  * {@link State}; IslandCoordinator wires it to the browser.
  */
@@ -74,8 +76,6 @@ public class IslandView extends FrameLayout {
     private final TextView mDomain;
     private final TextView mPrivate;
     private final ImageButton mReload;
-    private final View mTabs;
-    private final TextView mTabCount;
     private final ImageButton mNewTab;
     private final View mDividerStart;
     private final View mDividerEnd;
@@ -98,15 +98,32 @@ public class IslandView extends FrameLayout {
         mDomain = findViewById(R.id.blanc_island_domain);
         mPrivate = findViewById(R.id.blanc_island_private);
         mReload = findViewById(R.id.blanc_island_reload);
-        mTabs = findViewById(R.id.blanc_island_tabs);
-        mTabCount = findViewById(R.id.blanc_island_tab_count);
         mNewTab = findViewById(R.id.blanc_island_new_tab);
         mDividerStart = findViewById(R.id.blanc_island_divider_start);
         mDividerEnd = findViewById(R.id.blanc_island_divider_end);
         mMenu.setContentDescription(res.getString(R.string.blanc_ios_island_page_actions));
-        mTabs.setContentDescription(res.getString(R.string.blanc_ios_island_show_all_tabs));
         mNewTab.setContentDescription(res.getString(R.string.blanc_tab_new));
         mPrivate.setContentDescription(res.getString(R.string.blanc_pill_private_title));
+        // Sighted people swipe from the Island into the page for the tab grid; TalkBack gets the same
+        // as an action on the address, where the iPhone has it.
+        String showAllTabs = res.getString(R.string.blanc_ios_island_show_all_tabs);
+        mDomain.setAccessibilityDelegate(new View.AccessibilityDelegate() {
+            @Override
+            public void onInitializeAccessibilityNodeInfo(View host, AccessibilityNodeInfo info) {
+                super.onInitializeAccessibilityNodeInfo(host, info);
+                info.addAction(new AccessibilityNodeInfo.AccessibilityAction(
+                        R.id.blanc_island_show_all_tabs_action, showAllTabs));
+            }
+
+            @Override
+            public boolean performAccessibilityAction(View host, int action, @Nullable Bundle args) {
+                if (action != R.id.blanc_island_show_all_tabs_action) {
+                    return super.performAccessibilityAction(host, action, args);
+                }
+                if (mSwipeListener != null) mSwipeListener.onSwipeIntoPage();
+                return true;
+            }
+        });
         bind(new State());
     }
 
@@ -115,8 +132,7 @@ public class IslandView extends FrameLayout {
         mHasNext = state.hasNext;
         Resources res = getResources();
         mDomain.setText(state.title);
-        mDomain.setContentDescription(
-                res.getString(R.string.blanc_ios_island_search_or_switch, state.title));
+
         mReload.setImageResource(
                 state.loading ? R.drawable.blanc_island_stop : R.drawable.blanc_island_reload);
         mReload.setContentDescription(
@@ -124,15 +140,17 @@ public class IslandView extends FrameLayout {
                         state.loading
                                 ? R.string.blanc_ios_island_stop
                                 : R.string.blanc_ios_island_reload));
-        mTabCount.setText(String.valueOf(state.tabCount));
-        // The iPhone's accessibility value: TalkBack hears "Show all tabs, 3 tabs".
+        // No tab count on the Island, as on the iPhone since November 5 (#1372): the address carries
+        // the count as its accessibility value, so TalkBack hears "Search or switch tabs, example.com,
+        // 3 tabs", and a Show all tabs action opens the grid as the swipe into the page does.
+        String search = res.getString(R.string.blanc_ios_island_search_or_switch, state.title);
         String count =
                 res.getQuantityString(R.plurals.blanc_tabs_menu_header, state.tabCount, state.tabCount);
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
-            mTabs.setStateDescription(count);
+            mDomain.setContentDescription(search);
+            mDomain.setStateDescription(count);
         } else {
-            mTabs.setContentDescription(
-                    res.getString(R.string.blanc_ios_island_show_all_tabs) + ", " + count);
+            mDomain.setContentDescription(search + ", " + count);
         }
         mPrivate.setVisibility(state.privateTab ? View.VISIBLE : View.GONE);
         boolean systemDark =
@@ -160,14 +178,7 @@ public class IslandView extends FrameLayout {
         mReload.setImageTintList(ink);
         mNewTab.setImageTintList(ink);
         mDomain.setTextColor(style.text);
-        mTabCount.setTextColor(style.text);
         mPrivate.setTextColor(style.text);
-        GradientDrawable box = new GradientDrawable();
-        box.setCornerRadius(getResources().getDimension(R.dimen.blanc_island_tab_box_radius));
-        box.setStroke(
-                getResources().getDimensionPixelSize(R.dimen.blanc_island_tab_box_stroke),
-                style.text);
-        mTabCount.setBackground(box);
         GradientDrawable chip = new GradientDrawable();
         chip.setCornerRadius(100 * mDensity);
         chip.setStroke(
@@ -310,10 +321,6 @@ public class IslandView extends FrameLayout {
 
     public View reloadButton() {
         return mReload;
-    }
-
-    public View tabsButton() {
-        return mTabs;
     }
 
     public View newTabButton() {

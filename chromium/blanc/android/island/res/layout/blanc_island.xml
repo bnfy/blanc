@@ -60,30 +60,6 @@
             android:scaleType="center"
             android:src="@drawable/blanc_island_reload" />
 
-        <FrameLayout
-            android:id="@+id/blanc_island_tabs"
-            android:layout_width="44dp"
-            android:layout_height="48dp"
-            android:clickable="true"
-            android:focusable="true">
-
-            <TextView
-                android:id="@+id/blanc_island_tab_count"
-                android:layout_width="21dp"
-                android:layout_height="21dp"
-                android:layout_gravity="center"
-                android:autoSizeMaxTextSize="12sp"
-                android:autoSizeMinTextSize="7sp"
-                android:autoSizeTextType="uniform"
-                android:fontFamily="sans-serif-medium"
-                android:fontFeatureSettings="tnum"
-                android:gravity="center"
-                android:importantForAccessibility="no"
-                android:maxLines="1"
-                android:textSize="12sp"
-                android:textStyle="bold" />
-        </FrameLayout>
-
         <View
             android:id="@+id/blanc_island_divider_end"
             android:layout_width="1dp"

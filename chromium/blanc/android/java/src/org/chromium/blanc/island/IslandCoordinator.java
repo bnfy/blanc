@@ -39,7 +39,7 @@ import org.chromium.url.GURL;
 
 /**
  * Puts Blanc for iPhone's Island over the page and keeps it in step with the browser: the active
- * tab's site, loading state and privacy, the tab count, the iPhone's tuck rules on the person's
+ * tab's site, loading state and privacy, the tab count for TalkBack, the iPhone's tuck rules on the person's
  * scrolling, its position setting, and the window's insets (system bars, cutout and keyboard,
  * which the Island rides above, as on the iPhone). Actions that need the activity go to
  * {@link Callbacks}. Spike: docs/android/a1-island-spike.md.
@@ -192,7 +192,6 @@ public final class IslandCoordinator {
                         mCallbacks.onTabs();
                     }
                 });
-        mView.tabsButton().setOnClickListener(v -> mCallbacks.onTabs());
         mView.newTabButton().setOnClickListener(v -> mCallbacks.onNewTab());
         mView.privateChip()
                 .setOnClickListener(
@@ -418,7 +417,7 @@ public final class IslandCoordinator {
     private void setButtonsEnabled(boolean enabled) {
         View[] buttons = {
             mView.menuButton(), mView.domainView(), mView.privateChip(),
-            mView.reloadButton(), mView.tabsButton(), mView.newTabButton()
+            mView.reloadButton(), mView.newTabButton()
         };
         for (View button : buttons) button.setEnabled(enabled);
     }
