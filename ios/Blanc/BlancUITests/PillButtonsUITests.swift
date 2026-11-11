@@ -38,6 +38,20 @@ final class PillButtonsUITests: XCTestCase {
     XCTAssertGreaterThan(plus.frame.midX, forward.frame.midX)
     XCTAssertFalse(app.buttons["pill.tabs"].exists, "the Island has no tab count")
     XCTAssertFalse(app.buttons["Reload page"].exists)
+
+    // Settings → Island → Back and Forward off puts Reload in their place.
+    pill.tap()
+    let input = app.textFields["island.address"]
+    XCTAssertTrue(input.waitForExistence(timeout: 5))
+    input.tap(); input.typeText("/settings\n")
+    let row = app.descendants(matching: .any).matching(identifier: "settings.islandHistoryButtons").firstMatch
+    XCTAssertTrue(app.reveal(row, timeout: 15))
+    row.coordinate(withNormalizedOffset: CGVector(dx: 0.95, dy: 0.5)).tap()
+    app.buttons["settings.done"].tap()
+    XCTAssertTrue(app.buttons["Reload page"].waitForExistence(timeout: 5))
+    XCTAssertFalse(back.exists)
+    XCTAssertFalse(forward.exists)
+    XCTAssertTrue(plus.exists)
   }
 
   /// As in Safari: a pinch in on the page opens the open tabs.

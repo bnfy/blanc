@@ -2598,6 +2598,8 @@ Puoi riprovare con «%2$s» o reinstallare Blanc da blanc.day.</string>
     <string name="ios_island_show_all_tabs">Mostra tutte le schede</string>
     <string name="ios_island_reload">Ricarica la pagina</string>
     <string name="ios_settings_island_tuck">Nascondi l’Island durante lo scorrimento</string>
+    <string name="ios_settings_island_history_buttons">Pulsanti Indietro e Avanti</string>
+    <string name="ios_settings_island_history_buttons_help">Quando sono disattivati, la Island mostra Ricarica al loro posto. Puoi anche trascinare una pagina verso il basso per ricaricarla.</string>
     <string name="ios_settings_island_position">Posizione</string>
     <string name="ios_settings_island_position_bottom">In basso</string>
     <string name="ios_settings_island_position_top">In alto</string>

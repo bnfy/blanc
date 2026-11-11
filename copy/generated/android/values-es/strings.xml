@@ -2598,6 +2598,8 @@ Puedes reintentarlo con «%2$s» o reinstalar desde blanc.day.</string>
     <string name="ios_island_show_all_tabs">Mostrar todas las pestañas</string>
     <string name="ios_island_reload">Recargar la página</string>
     <string name="ios_settings_island_tuck">Ocultar la Island al desplazarte</string>
+    <string name="ios_settings_island_history_buttons">Botones Atrás y Adelante</string>
+    <string name="ios_settings_island_history_buttons_help">Si están desactivados, la Island muestra Recargar en su lugar. También puedes deslizar una página hacia abajo para recargarla.</string>
     <string name="ios_settings_island_position">Posición</string>
     <string name="ios_settings_island_position_bottom">Abajo</string>
     <string name="ios_settings_island_position_top">Arriba</string>

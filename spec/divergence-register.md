@@ -276,8 +276,10 @@ mobile is a single full-screen surface with system insets.
   shows Back, Forward and New Tab after the address, for everyone, after a
   visitor asked where Back was. It began as a Settings → Island switch
   (`islandHistoryButtons`, off by default) that swapped them for Reload and
-  New Tab with the address centered; on 2026-11-11 the owner made them
-  standard and removed the switch, and its saved value is dropped. The address
+  New Tab with the address centered; on 2026-11-11 the owner made them the
+  default with the switch kept to turn them off (`islandBackForward`, on by
+  default, device-local, never synced; off shows Reload and New Tab, as
+  before). The old key is dropped rather than carried over. The address
   stays leading, after the Sunrise mark. Reload is in the Sunrise menu, and
   pull to refresh still reloads. The Sunrise menu ends with Settings. On the Start Page the Island reads Search or type a
   URL, dimmed, as the desktop pill does on a blank tab (owner, 2026-11-11). The Island has no tab count on any layout:

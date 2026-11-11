@@ -9161,6 +9161,14 @@
     "message": "Ocultar a Island ao rolar",
     "source": "sha256:b2880c6b19c41edf58338069bb2a673ca49e360df2a3827a331bf3f9186d5f7e"
   },
+  "ios.settings.islandHistoryButtons": {
+    "message": "Botões Voltar e Avançar",
+    "source": "sha256:ccd97fe52519a0df2ab752832a4c38641d4253ecd0260874332cbaddf25292a9"
+  },
+  "ios.settings.islandHistoryButtonsHelp": {
+    "message": "Quando estão desativados, a Island mostra Recarregar no lugar deles. Você também pode puxar uma página para baixo para recarregá-la.",
+    "source": "sha256:34a85f6f0a1e92243716097edada33a3ed7effec29922af5aeffab66848ae480"
+  },
   "ios.settings.islandPosition": {
     "message": "Posição",
     "source": "sha256:5e36b380b1a6313a28b506c3f362800c429010f9dbeac405fd02c10c94119fbf"

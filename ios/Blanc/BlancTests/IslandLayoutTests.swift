@@ -11,20 +11,26 @@ final class IslandLayoutTests: XCTestCase {
     }
 
     func testTheIPhoneIslandHasBackForwardAndNewTabButNoReload() {
-        let buttons = IslandLayout(.compact, .regular).buttons(isLoading: false)
-        XCTAssertEqual(buttons, .init(reload: false, historyTrails: true))
+        let buttons = IslandLayout(.compact, .regular).buttons(backForward: true, isLoading: false)
+        XCTAssertEqual(buttons, .init(history: .afterAddress, reload: false))
     }
 
     func testStopStillShowsWhileAPageLoads() {
-        let buttons = IslandLayout(.compact, .regular).buttons(isLoading: true)
-        XCTAssertEqual(buttons, .init(reload: true, historyTrails: true))
+        let buttons = IslandLayout(.compact, .regular).buttons(backForward: true, isLoading: true)
+        XCTAssertEqual(buttons, .init(history: .afterAddress, reload: true))
     }
 
-    func testTheUnfoldedIslandShowsEveryButton() {
-        let all = IslandLayout.Buttons(reload: true)
+    func testWithBackAndForwardOffReloadTakesTheirPlace() {
+        let layout = IslandLayout(.compact, .regular)
+        XCTAssertEqual(layout.buttons(backForward: false, isLoading: false), .init(history: .hidden, reload: true))
+        XCTAssertEqual(layout.buttons(backForward: false, isLoading: true), .init(history: .hidden, reload: true))
+    }
+
+    func testTheUnfoldedIslandShowsEveryButtonWhateverTheSetting() {
+        let all = IslandLayout.Buttons(history: .beforeAddress, reload: true)
         let layout = IslandLayout(.regular, .regular)
-        XCTAssertEqual(layout.buttons(isLoading: false), all)
-        XCTAssertEqual(layout.buttons(isLoading: true), all)
+        XCTAssertEqual(layout.buttons(backForward: true, isLoading: false), all)
+        XCTAssertEqual(layout.buttons(backForward: false, isLoading: true), all)
     }
 
     func testAnUnknownSizeClassIsTheIPhoneLayout() {

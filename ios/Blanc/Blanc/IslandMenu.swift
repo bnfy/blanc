@@ -11,7 +11,8 @@ enum IslandMenuItem: Equatable {
     case favorite(saved: Bool)
     /// Send to Device ▸, when sync has somewhere to send the page.
     case send
-    /// The iPhone Island has no Reload button; pull to refresh also reloads.
+    /// The iPhone Island shows Reload only with Back and Forward off; pull to
+    /// refresh also reloads.
     case reload
     case share
     /// The page's whole address, which the Island shows only the site of.

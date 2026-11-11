@@ -823,7 +823,8 @@ struct ContentView: View {
     }
 
     private var islandButtons: IslandLayout.Buttons {
-        layout.buttons(isLoading: manager.activeTab?.isLoading == true)
+        layout.buttons(backForward: manager.settingsStore.islandBackForward,
+                       isLoading: manager.activeTab?.isLoading == true)
     }
 
     private var addressPill: some View {
@@ -832,7 +833,7 @@ struct ContentView: View {
             HStack(spacing: 0) {
                 islandMark
                 Rectangle().fill(islandDivider).frame(width: 1, height: 18)
-                if !buttons.historyTrails { historyButtons.padding(.leading, 4) }
+                if buttons.history == .beforeAddress { historyButtons.padding(.leading, 4) }
             }
 
             // A tap rather than a Button: a Button also fires when a sideways
@@ -880,7 +881,7 @@ struct ContentView: View {
 
                 if buttons.reload { reloadButton }
 
-                if buttons.historyTrails { historyButtons }
+                if buttons.history == .afterAddress { historyButtons }
 
                 Rectangle().fill(islandDivider).frame(width: 1, height: 18)
                 Button { manager.createTab() } label: {
