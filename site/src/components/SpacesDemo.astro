@@ -1,7 +1,7 @@
 ---
 // Blanc Spaces on the homepage: the open Island in a space, with its Spaces
-// menu open below the footer's Spaces button (the resting Island carries no
-// Space mark), drawn from the app's own markup, CSS, palette and symbols
+// menu open below the footer's Spaces button, which shows the current space's
+// tile (the resting Island carries no Space mark), drawn from the app's own markup, CSS, palette and symbols
 // (site/src/lib/native-island-art.mjs), with four sample spaces.
 // spaces-demo.js switches between them: the panel lists the chosen space's tabs.
 import styles from '../../../src/renderer/styles.css?raw';
@@ -43,6 +43,7 @@ const identity = loadSpaceIdentity(identitySource);
 const art = nativeSpacesArt({
   styles, overlay, overlayScript, workspaceUi, identity, spaces,
   newSpaceLabel: messages['ws.new'].message,
+  triggerLabel: messages['ws.trigger.current'].message,
 });
 // The panel keeps room for the longest space's tabs, so switching never moves
 // the menu. The menu hangs below the panel, lined up as the app lines it up
@@ -68,7 +69,7 @@ const raw = `<div class="native-stage"><div class="native-panel-row" aria-hidden
 const { html, css } = namespaceNativeArt({ html: raw, css: art.css + presentation }, 'spaces-demo-');
 ---
 <style is:inline set:html={`@font-face {font-family:Inter;src:url('${nativeFont}') format('woff2');font-style:normal;font-weight:100 900;font-display:swap;}@font-face {font-family:"Instrument Sans";src:url('${nativeTextFont}') format('woff2');font-style:normal;font-weight:400 700;font-stretch:75% 100%;font-display:swap;}`} />
-<blanc-spaces-demo class="spaces-native-demo" data-appearance="light">
+<blanc-spaces-demo class="spaces-native-demo" data-appearance="light" data-trigger-label={messages['ws.trigger.current'].message}>
   <template shadowrootmode="open">
     <style is:inline set:html={css} />
     <Fragment set:html={html} />

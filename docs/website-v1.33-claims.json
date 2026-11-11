@@ -91,16 +91,6 @@
       "verdict": "verified"
     },
     {
-      "id": "site-133-workspaces-05",
-      "source": "site/src/pages/features/workspaces.astro",
-      "exactWording": "Give each space a colour and a symbol. The current space shows at the start of the Island; click it to switch, edit, reorder or delete a space, with Undo.",
-      "subject": "Blanc",
-      "evidenceGroups": [
-        "spacesRedesign"
-      ],
-      "verdict": "verified"
-    },
-    {
       "id": "site-133-workspaces-06",
       "source": "site/src/pages/features/workspaces.astro",
       "exactWording": "Free, on every desktop platform.",
@@ -171,16 +161,6 @@
         "freeSpaces"
       ],
       "verdict": "qualified"
-    },
-    {
-      "id": "site-133-guide-workspaces-03",
-      "source": "site/src/components/guides/workspaces.astro",
-      "exactWording": "Give each space a colour and a symbol. The current space shows at the start of the Island; click it to switch, edit, reorder or delete a space, with Undo.",
-      "subject": "Blanc",
-      "evidenceGroups": [
-        "spacesRedesign"
-      ],
-      "verdict": "verified"
     },
     {
       "id": "site-133-guide-workspaces-04",

@@ -1,7 +1,8 @@
 // The Blanc Spaces demo on the homepage (SpacesDemo.astro): the open Island
-// with its Spaces menu. Choosing a sample space moves the menu's checkmark and
-// lists that space's tabs in the panel, as switching does in the app (the
-// window's tabs swap in place). Once mostly visible it walks through every
+// with its Spaces menu. Choosing a sample space moves the menu's checkmark,
+// lists that space's tabs in the panel and puts its tile on the footer's
+// Spaces button, as switching does in the app (the window's tabs swap in
+// place; workspace-ui.js syncIdentity names and paints the button). Once mostly visible it walks through every
 // space and back in under five seconds, then waits; any interaction stops the
 // walk, and Reduced Motion skips it and only cross-fades.
 
@@ -36,6 +37,10 @@ export function initSpacesDemo(host, { view = window } = {}) {
   const list = root?.querySelector('[id$="islandList"]');
   const address = root?.querySelector('[id$="addressInput"]');
   if (!rows.length || !list || !address) return;
+  // The footer's Spaces button: the current space's tile and its name.
+  const trigger = root.querySelector('[id$="footerWorkspace"]');
+  const triggerTile = trigger?.querySelector('.ws-trigger-tile');
+  const triggerLabel = host.dataset.triggerLabel;
   const motion = view.matchMedia('(prefers-reduced-motion: reduce)');
   let current = 0; // nativeSpacesArt draws the first space as current
   let stopped = false, walked = false, timer = 0;
@@ -45,7 +50,20 @@ export function initSpacesDemo(host, { view = window } = {}) {
   const paintEdges = () => {
     const key = host.dataset.appearance === 'dark' ? 'edgeDark' : 'edgeLight';
     for (const row of rows) row.querySelector('.ws-tile').dataset.edge = row.dataset[key];
+    if (triggerTile) triggerTile.dataset.edge = rows[current].dataset[key];
   };
+
+  function showTrigger(row) {
+    if (!triggerTile) return;
+    const tile = row.querySelector('.ws-tile');
+    triggerTile.setAttribute('style', tile.getAttribute('style'));
+    triggerTile.innerHTML = tile.innerHTML;
+    triggerTile.dataset.edge = tile.dataset.edge;
+    if (!triggerLabel) return;
+    const named = triggerLabel.replace('{name}', row.querySelector('.ws-row-name').textContent);
+    trigger.dataset.tooltip = named;
+    trigger.setAttribute('aria-label', named);
+  }
 
   // The rows overlay.js draws for tabs at rest: favicon and title, the
   // current tab's in bold.
@@ -78,6 +96,7 @@ export function initSpacesDemo(host, { view = window } = {}) {
       other.setAttribute('aria-pressed', String(i === index));
     });
     current = index;
+    showTrigger(row);
     const pages = JSON.parse(row.dataset.pages);
     list.replaceChildren(...pages.map((page, i) => tabRow(page, i === 0)));
     address.value = pages[0].url;

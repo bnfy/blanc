@@ -1,0 +1,79 @@
+{
+  "publicRelease": null,
+  "sourceSha": null,
+  "releaseEvidence": null,
+  "requiredCommits": {
+    "64dbf2d256f751c9914e91f8c940943b9b9b93a3": "Keep the Space mark off the resting Island (#1450)",
+    "b9e9d78573ab8c1806a75e9683b063b0369c0711": "Show the current Space's tile on the ⌘L footer's Spaces button (#1454)"
+  },
+  "pending": "Prepared on November 11, 2026 and held: no public release contained #1450 or #1454 yet (v1.48.0 was published at 16:14 UTC, before #1450 merged at 16:21). Before merging, set publicRelease to the first public tag that contains both requiredCommits, sourceSha to that tag's commit and releaseEvidence to its release incident, and check the qualification against that release. Also retake (with npm run capture:spaces:installed on that release) or retire the two /features/workspaces captures, workspaces-v1.36.0 and workspaces-edit-v1.36.0, which show the Spaces menu below the old Space mark. Don't run site:deploy before that release is public.",
+  "scope": "Site copy for the Spaces button: since #1450 the resting Island carries no Space mark, and since #1454 the command panel's footer Spaces button shows the current space's tile. /features/workspaces and its Support guide say where the current space shows; the homepage Spaces demo (SpacesDemo.astro) draws that tile.",
+  "prohibitedClaims": [
+    "The current space shows at the start of the Island"
+  ],
+  "evidenceGroups": {
+    "spacesButton": {
+      "evidence": [
+        "src/renderer/index.html",
+        "src/renderer/renderer.js",
+        "src/renderer/overlay.html",
+        "src/renderer/overlay.js",
+        "src/renderer/workspace-ui.js",
+        "src/renderer/styles.css",
+        "copy/messages/en.json",
+        "spec/acceptance/F41-named-workspaces.feature",
+        "test/desktop/steps/spaces-redesign.steps.js",
+        "test/unit/spaces-menu.test.js"
+      ],
+      "qualification": "In a space, the resting Island shows no Space mark; the command panel's footer Spaces button (overlay.html #footerWorkspace) draws the current space's tile, its symbol on its color, in place of the planet, with the space's name in its tooltip (workspace-ui.js syncIdentity, ws.trigger.current). Clicking it opens the Spaces menu to switch, edit, reorder or delete a space, with Undo. To verify at publicRelease."
+    }
+  },
+  "claims": [
+    {
+      "id": "spaces-button-01",
+      "source": "site/src/pages/features/workspaces.astro",
+      "exactWording": "Give each space a color and a symbol. The Spaces button in the command panel shows the current space; click it to switch, edit, reorder or delete a space, with Undo.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "spacesButton"
+      ],
+      "verdict": "verified",
+      "replaces": "site-133-workspaces-05"
+    },
+    {
+      "id": "spaces-button-02",
+      "source": "site/src/components/guides/workspaces.astro",
+      "exactWording": "Give each space a color and a symbol. The Spaces button in the command panel shows the current space; click it to switch, edit, reorder or delete a space, with Undo.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "spacesButton"
+      ],
+      "verdict": "verified",
+      "replaces": "site-133-guide-workspaces-03"
+    }
+  ],
+  "supersededClaims": [
+    {
+      "id": "site-133-workspaces-05",
+      "source": "site/src/pages/features/workspaces.astro",
+      "exactWording": "Give each space a colour and a symbol. The current space shows at the start of the Island; click it to switch, edit, reorder or delete a space, with Undo.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "spacesRedesign"
+      ],
+      "verdict": "verified",
+      "reason": "#1450 took the Space mark off the resting Island; the space now shows on the command panel's Spaces button (#1454)."
+    },
+    {
+      "id": "site-133-guide-workspaces-03",
+      "source": "site/src/components/guides/workspaces.astro",
+      "exactWording": "Give each space a colour and a symbol. The current space shows at the start of the Island; click it to switch, edit, reorder or delete a space, with Undo.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "spacesRedesign"
+      ],
+      "verdict": "verified",
+      "reason": "#1450 took the Space mark off the resting Island; the space now shows on the command panel's Spaces button (#1454)."
+    }
+  ]
+}

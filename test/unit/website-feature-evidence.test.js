@@ -22,6 +22,7 @@ const v145Ledger = JSON.parse(read('docs/website-v1.45-claims.json'));
 const arcWelcomeLedger = JSON.parse(read('docs/website-arc-welcome-claims.json'));
 const compareLedger = JSON.parse(read('docs/website-compare-claims-v1.47.0.json'));
 const iphoneLedger = JSON.parse(read('docs/website-iphone-1.0-claims.json'));
+const spacesButtonLedger = JSON.parse(read('docs/website-spaces-button-claims.json'));
 const entities = { rsquo: '’', lsquo: '‘', amp: '&', ldquo: '“', rdquo: '”' };
 // Compare source text only; consume incomplete tags and decode entities once.
 const normalize = text => text.replace(/<br\s*\/?>/gi, ' ').replace(/<[^>]*(?:>|$)/g, '').replace(/&(rsquo|lsquo|amp|ldquo|rdquo);/g, (_, name) => entities[name]).replace(/\s+/g, ' ').trim();
@@ -63,7 +64,7 @@ test('the v1.15 claim ledger remains paired with its immutable release evidence'
 test('new guide benefit and qualification paragraphs remain covered by the exact-wording ledger', () => {
   for (const slug of ['start-page', 'glance', 'workspaces', 'profiles', 'reopen-closed-tabs', '1password']) {
     const file = `site/src/components/guides/${slug}.astro`;
-    const claims = new Set([...ledger.claims, ...v132Ledger.claims, ...v133Ledger.claims, ...v140Ledger.claims, ...v145Ledger.claims].filter(claim => claim.source === file).map(claim => claim.exactWording));
+    const claims = new Set([...ledger.claims, ...v132Ledger.claims, ...v133Ledger.claims, ...v140Ledger.claims, ...v145Ledger.claims, ...spacesButtonLedger.claims].filter(claim => claim.source === file).map(claim => claim.exactWording));
     for (const match of read(file).matchAll(/<(h[123]|p|figcaption)\b[^>]*>([\s\S]*?)<\/\1>/g)) {
       const wording = normalize(match[2]);
       if (wording.length > 20) assert.ok(claims.has(wording), `${slug}: unrecorded wording: ${wording}`);
@@ -687,6 +688,35 @@ test('v1.45.0 Shared Spaces and Sync copy resolves to verified public v1.45.0 ev
   assert.match(notes, /\*\*Shared Spaces\.\*\*/);
   assert.match(notes, /\*\*Turn on Sync without a passphrase\.\*\*/);
   assert.match(notes, /\*\*Connect your iPhone\.\*\*/);
+});
+
+// The Spaces button (#1450, #1454): the resting Island carries no Space mark,
+// and the command panel's Spaces button shows the current space. The copy is
+// held until a public release ships both: publicRelease stays null, and this
+// test fails, until it names that release.
+test('the Spaces button copy resolves to the public release that ships #1450 and #1454', () => {
+  const record = spacesButtonLedger;
+  assert.ok(record.publicRelease, `held: ${record.pending}`);
+  assert.equal(execFileSync('git', ['rev-parse', `${record.publicRelease}^{commit}`], { cwd: root, encoding: 'utf8' }).trim(), record.sourceSha);
+  for (const commit of Object.keys(record.requiredCommits)) {
+    execFileSync('git', ['merge-base', '--is-ancestor', commit, record.publicRelease], { cwd: root });
+  }
+  assert.ok(read(record.releaseEvidence).includes(record.sourceSha));
+  const retired = new Map(record.supersededClaims.map(claim => [claim.id, claim]));
+  for (const claim of record.claims) {
+    assert.ok(['verified', 'qualified'].includes(claim.verdict), claim.id);
+    assert.ok(normalize(read(claim.source)).includes(claim.exactWording), `${claim.id}: exact wording drifted`);
+    assert.equal(retired.get(claim.replaces)?.source, claim.source, `${claim.id}: records the wording it replaces`);
+    for (const key of claim.evidenceGroups) {
+      const group = record.evidenceGroups[key];
+      assert.ok(group?.qualification && group.evidence.length, `${claim.id}: evidence and qualification`);
+      for (const evidence of group.evidence) execFileSync('git', ['cat-file', '-e', `${record.publicRelease}:${evidence}`], { cwd: root });
+    }
+  }
+  for (const file of new Set(record.claims.map(claim => claim.source))) {
+    const text = normalize(read(file));
+    for (const retiredWording of record.prohibitedClaims) assert.ok(!text.includes(retiredWording), `${file}: still says “${retiredWording}”`);
+  }
 });
 
 // Blanc for iPhone 1.0 on the App Store, recorded once the owner released it.

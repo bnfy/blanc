@@ -13277,6 +13277,16 @@
             "after": "<p>Sync is off by default. Favorites, eligible settings, optional <a href=\"/features/sync\">open-tab snapshots</a> and, since Blanc 1.45, Spaces you choose to share are encrypted on your device."
           }
         ]
+      },
+      {
+        "source": "site/src/pages/features/workspaces.astro",
+        "reason": "Prepared November 11, 2026 for the first public release that ships #1450 (no Space mark on the resting Island) and #1454 (the command panel's Spaces button shows the current space's tile). The sentence that put the current space at the start of the Island now names the Spaces button. The new wording is recorded in docs/website-spaces-button-claims.json, which holds this change until that release is named.",
+        "replacements": [
+          {
+            "before": "<p>Give each space a colour and a symbol. The current space shows at the start of the Island; click it to switch, edit, reorder or delete a space, with Undo.</p>",
+            "after": "<p>Give each space a color and a symbol. The Spaces button in the command panel shows the current space; click it to switch, edit, reorder or delete a space, with Undo.</p>"
+          }
+        ]
       }
     ]
   },
