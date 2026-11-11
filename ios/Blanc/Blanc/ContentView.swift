@@ -1038,6 +1038,10 @@ struct ContentView: View {
                 return UIMenu(options: .displayInline, children: [
                     action("menu.newPrivateTab", "eye.slash") { manager.createTab(isPrivate: true) },
                 ])
+            case .settings:
+                return UIMenu(options: .displayInline, children: [
+                    action("menu.settings", "gearshape") { manager.showSettings() },
+                ])
             }
         }
     }

@@ -47,6 +47,14 @@ final class SettingsUITests: XCTestCase {
         tap("settings.done")
         XCTAssertEqual(pill.label, initialLabel)
     }
+    /// The Sunrise menu's last entry opens Settings.
+    func testSunriseMenuOpensSettings() {
+        app.openIslandMenu()
+        let item = app.buttons["Settings"]
+        XCTAssertTrue(item.waitForExistence(timeout: 5))
+        item.tap()
+        XCTAssertTrue(app.navigationBars["Settings"].waitForExistence(timeout: 5))
+    }
     func testSearchAndThemePersist() {
         open()
         tap("settings.searchEngine"); app.buttons["Kagi"].tap()

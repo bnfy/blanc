@@ -26,6 +26,8 @@ enum IslandMenuItem: Equatable {
     case glance
     case closeGlance
     case newPrivateTab
+    /// Blanc's Settings, always last.
+    case settings
 }
 
 /// The Island keeps the site, Back, Forward and New tab; everything else about the
@@ -47,7 +49,7 @@ enum IslandMenu {
         }
         if manager.glanceTab != nil { items.append(.closeGlance) }
         else if manager.canOpenGlance, !manager.glanceCandidates.isEmpty { items.append(.glance) }
-        items.append(.newPrivateTab)
+        items.append(contentsOf: [.newPrivateTab, .settings])
         return items
     }
 }

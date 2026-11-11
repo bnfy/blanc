@@ -279,7 +279,7 @@ mobile is a single full-screen surface with system insets.
   New Tab with the address centered; on 2026-11-11 the owner made them
   standard and removed the switch, and its saved value is dropped. The address
   stays leading, after the Sunrise mark. Reload is in the Sunrise menu, and
-  pull to refresh still reloads. On the Start Page the Island reads Search or type a
+  pull to refresh still reloads. The Sunrise menu ends with Settings. On the Start Page the Island reads Search or type a
   URL, dimmed, as the desktop pill does on a blank tab (owner, 2026-11-11). The Island has no tab count on any layout:
   a pinch in on a fully zoomed-out page, as in Safari, or a swipe up from the
   Island opens the tab grid. The page shrinks into its card as Safari's does. Stop still shows while a page loads,
