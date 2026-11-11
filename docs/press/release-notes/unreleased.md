@@ -1,7 +1,19 @@
 # Unreleased notes
 
-v1.47.1 is the current public release ([notes](v1.47.1.md)). Changes merged
-since then are below as they're recorded.
+v1.47.1 is the current public release ([notes](v1.47.1.md)). The next release
+is 1.48.0, a feature release ([notes](v1.48.0.md)). Changes merged after its
+release commit are below as they're recorded.
+
+## Before 1.48.0 publishes
+
+- **What's New:** none. The owner chose a `noPage` entry for 1.48 on
+  November 11, 2026, so no tab opens after the update.
+- **Glance over a split hands-on checks** (#1444) in a packaged build on
+  macOS, Windows and Linux: the card drawing above both panes and their
+  corner tabs (Linux especially), clicking between panes, and closing a pane
+  under the card. It has only run in the acceptance suite on Linux.
+- **The WebSocket certificate fix** (#1442) against a real local console,
+  such as Proxmox's, after **Continue**.
 
 ## Still open from 1.47.1
 

@@ -3067,10 +3067,6 @@
     "message": "Glance closed",
     "note": "Screen reader announcement."
   },
-  "split.glanceUnavailable": {
-    "message": "Glance isn't available while a split is showing",
-    "note": "Screen reader announcement and status when Glance is asked to open while a Split View (F53) is showing."
-  },
   "glance.status.openedAsTab": {
     "message": "{title} is now the current tab",
     "note": "Screen reader announcement after Open as tab on the floating Glance card: the Glance page ({title}) became the current tab, full window, and the Glance ended."

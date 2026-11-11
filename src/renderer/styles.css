@@ -379,6 +379,7 @@ html { --stage-w: 100vw; }
   color: var(--text-dim);
 }
 .glance-action { gap: 5px; padding: 0 8px; font-size: 11.5px; }
+.glance-header button[hidden] { display: none; }
 .glance-action svg,
 .glance-move svg { width: 14px; height: 14px; flex: 0 0 auto; fill: none; stroke: currentColor; stroke-width: 1.3; stroke-linecap: round; stroke-linejoin: round; }
 .glance-close { width: 30px; padding: 0; }
