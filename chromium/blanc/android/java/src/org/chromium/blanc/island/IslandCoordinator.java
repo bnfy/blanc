@@ -4,6 +4,7 @@ package org.chromium.blanc.island;
 
 import android.app.Activity;
 import android.content.SharedPreferences;
+import android.os.SystemClock;
 import android.provider.Settings;
 import android.view.Gravity;
 import android.view.View;
@@ -73,6 +74,7 @@ public final class IslandCoordinator {
     private static final long SETTLE_MS = 350;
 
     private final Activity mActivity;
+    private final PagePinch mPinch = new PagePinch();
     private final NullableObservableSupplier<Tab> mActiveTab;
     private final TabModelSelector mSelector;
     private final @Nullable InsetObserver mInsets;
@@ -166,6 +168,7 @@ public final class IslandCoordinator {
             @Nullable InsetObserver insets,
             Callbacks callbacks) {
         mActivity = activity;
+        PagePinchBridge.setListener(this::onPagePinch);
         mActiveTab = activeTab;
         mSelector = selector;
         mInsets = insets;
@@ -253,6 +256,7 @@ public final class IslandCoordinator {
     }
 
     public void destroy() {
+        PagePinchBridge.setListener(null);
         ContextUtils.getAppSharedPreferences().unregisterOnSharedPreferenceChangeListener(mPositionChanged);
         setTab(null);
         mActiveTab.removeObserver(mTabChanged);
@@ -272,6 +276,24 @@ public final class IslandCoordinator {
         refresh();
     }
 
+    /**
+     * The iPhone's pinch into the tab grid: a pinch in on the page on show, fully zoomed out, opens
+     * the grid once the fingers have closed far or fast enough (PagePinch).
+     */
+    private void onPagePinch(WebContents contents, int phase, float scale) {
+        if (contents != mWebContents) return;
+        long now = SystemClock.uptimeMillis();
+        if (phase == PagePinchBridge.BEGAN) {
+            RenderCoordinates page = RenderCoordinates.fromWebContents(contents);
+            mPinch.begin(
+                    PagePinch.zoomedOut(page.getPageScaleFactor(), page.getMinPageScaleFactor()), now);
+        } else if (phase == PagePinchBridge.CHANGED) {
+            mPinch.update(scale, now);
+        } else if (mPinch.end(now)) {
+            mCallbacks.onTabs();
+        }
+    }
+
     private void attachGestures(@Nullable WebContents webContents) {
         if (mWebContents == webContents) return;
         GestureListenerManager old =
@@ -286,6 +308,7 @@ public final class IslandCoordinator {
         if (manager != null) {
             manager.addListener(mGestures, RootScrollOffsetUpdateFrequency.ALL_UPDATES);
         }
+        if (webContents != null) PagePinchBridge.watch(webContents);
     }
 
     /** Switches to the neighbor (left goes to the next), sliding the page in from that side. */

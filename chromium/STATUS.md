@@ -2344,7 +2344,15 @@ divergence. The Spaces emulator check now requires the closed Island to have no 
 The tab count left the closed Island on November 11 too, as on the iPhone since November 5 (#1372). The tab grid
 opens with the swipe from the Island into the page; TalkBack hears the count on the address ("Search or switch
 tabs, example.com, 3 tabs") and gets a Show all tabs action there. The emulator scripts open the grid with that
-swipe and read the count from the grid's header. The iPhone's pinch into the grid isn't ported yet.
+swipe and read the count from the grid's header.
+
+The iPhone's pinch into the tab grid is ported in two parts (owner, November 11: "pinch first, motion next"). Part 1,
+the gesture: a pinch in on a fully zoomed-out page opens the grid once the fingers close past 0.8 or close quickly
+(`PagePinch`, the iPhone's numbers); a zoomed-in page zooms out first. Chromium handles page touches outside the
+browser's views (InputOnViz), so the Island hears the gesture events through a native input observer
+(`page_pinch_bridge.cc`, patch 0111), alongside the page's own zoom. The grid opens with its present animation. Part
+2, the page shrinking into its card under the fingers with the grid behind it, is not built: Android's grid is a
+dialog over the page, so it needs the grid moved behind the page and a spike on scaling the page surface.
 
 ### Shield count across a page's commit
 

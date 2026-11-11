@@ -1,0 +1,11 @@
+diff -ruN a/chrome/browser/BUILD.gn b/chrome/browser/BUILD.gn
+--- a/chrome/browser/BUILD.gn
++++ b/chrome/browser/BUILD.gn
+@@ -923,6 +923,7 @@
+     ":unexpire_flags",
+     ":universal_web_contents_observers",
+     "//blanc/android:blocker_bridge",
++    "//blanc/android:page_pinch_bridge",
+     "//blanc/android:sync_bridge",
+     "//blanc/services/blocker:browser",
+     "//base/allocator:buildflags",
