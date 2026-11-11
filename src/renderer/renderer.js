@@ -1682,7 +1682,8 @@
     // focus() here lands in a focused document and paints the ring.
     if (restoreTrigger === 'shield') pillShield.focus();
     else if (restoreTrigger === 'insecure') pillInsecure.focus();
-    if (restoreTrigger === 'spaces') pillSpace.focus();
+    // The resting Island hides the mark, so focus goes back to the Island.
+    if (restoreTrigger === 'spaces') (pillSpace.hidden ? islandPill : pillSpace).focus();
     // The side list's group menu closed: its header row forgets the open
     // state, and Escape hands focus back to that header's ⋮.
     if (mode === null && typeof trigger === 'string' && trigger.startsWith('group-menu:')) {

@@ -668,8 +668,8 @@ html { --stage-w: 100vw; }
 }
 .vertical-tabs-toolbar .vertical-tabs-layout-button { margin-left: auto; }
 
-/* The Island's Space mark, moved into this row while tabs are vertical
-   (vertical-tabs.js placeSpaceMark). It names the Space and opens the Spaces
+/* The Space mark, moved into this row while tabs are vertical
+   (vertical-tabs.js placeSpaceMark); the resting Island never shows it. It names the Space and opens the Spaces
    menu. It takes the room the row has and shrinks before anything else, its
    name ending in an ellipsis, so the layout toggle always stays in the rail.
    With no Spaces yet it shows the neutral Spaces glyph (renderer.js keeps it
