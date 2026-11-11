@@ -19,7 +19,22 @@ final class TabsManager {
     /// The palette's text. It lives here rather than in the palette's view so
     /// folding or unfolding, which swaps the sheet and the panel, keeps it
     /// (Duo-1); every close clears it.
-    var paletteDraft = ""
+    var paletteDraft = "" {
+        didSet {
+            if paletteDraft.isEmpty {
+                paletteTyped = true
+            } else if !SearchSuggestions.isTypedEdit(from: oldValue, to: paletteDraft) {
+                paletteTyped = false
+            }
+        }
+    }
+    /// False once the palette's text arrived more than a character at a time:
+    /// pasted, dictated, or put there by Blanc (the page's address to edit).
+    /// Such text is never sent for search suggestions (F5); emptying the
+    /// field starts over.
+    private(set) var paletteTyped = true
+    /// Downloads this window's pages start (F11).
+    @ObservationIgnored let downloads = PageDownloads()
     private final class WeakPreview {
         weak var tab: TabModel?
         let layout: BlancStartPageLayout?
@@ -462,10 +477,13 @@ final class TabsManager {
         }
     }
 
-    /// Closes the card by any path: the privacy choice is saved with the value
-    /// on screen if it wasn't already (§3.2), and this version counts as seen.
-    func closeWalkthrough(usagePingShown: Bool) {
-        if walkthrough.close() { settingsStore.update(usagePing: usagePingShown) }
+    /// Closes the card by any path: the privacy choices are saved with the
+    /// values on screen if they weren't already (§3.2), and this version
+    /// counts as seen.
+    func closeWalkthrough(usagePingShown: Bool, searchSuggestionsShown: Bool) {
+        if walkthrough.close() {
+            settingsStore.update(usagePing: usagePingShown, searchSuggestions: searchSuggestionsShown)
+        }
         settingsStore.update(walkthroughCompletedVersion: WalkthroughFlow.version)
         settingsStore.flush()
     }
@@ -551,6 +569,7 @@ final class TabsManager {
             url: url ?? URL(string: "about:blank")!, configuration: configuration,
             isPrivate: opener.isPrivate, load: false)
         tab.readerAllowed = false // A page-opened child may inherit sandbox policy.
+        tab.openedByPage = true
         add(tab)
         return tab.webView
     }
@@ -568,6 +587,26 @@ final class TabsManager {
             contentBlocker.attach(to: tab.webView)
         }
         tab.onPagePinch = { [weak self] in self?.onPagePinch?($0) }
+        // Wired here, so a tab moved to another window closes in that one.
+        if tab.openedByPage {
+            tab.uiDelegate.onClose = { [weak self, weak tab] in
+                if let self, let tab { self.closeTab(tab.id) }
+            }
+        }
+        // The page still showing is on screen: say why its link or reload did
+        // nothing. A background tab's page simply stays as it was.
+        tab.navigationDelegate.onLoadFailure = { [weak self, weak tab] failure in
+            if let self, tab?.existingWebView?.window != nil { self.showNotice(failure.reason) }
+        }
+        tab.navigationDelegate.onDownload = { [weak self] download in
+            guard let self else { return }
+            self.downloads.onNotice = { [weak self] in self?.showNotice($0) }
+            self.downloads.begin(download)
+        }
+        tab.navigationDelegate.onAppLink = { [weak self, weak tab] url in
+            guard let self, let view = tab?.existingWebView else { return }
+            AppLinks.ask(url, from: view) { [weak self] in self?.showNotice($0) }
+        }
         tab.uiDelegate.canGlance = { [weak self] in self?.canOpenGlance ?? false }
         tab.uiDelegate.onGlance = { [weak self] url in self?.openInGlance(url) }
         tab.navigationDelegate.onSettingsNavigation = { [weak self] url in self?.routeSettings(url) ?? false }
@@ -623,7 +662,8 @@ final class TabsManager {
     }
 
     /// What the last send said, shown over the Island for five seconds; the
-    /// Sunrise menu's Send and `/send` share it.
+    /// Sunrise menu's Send and `/send` share it, and so does a load that
+    /// failed behind a page that stays on screen.
     private(set) var sendNotice: String?
 
     /// Sends `tab`'s page to `target` and shows the result.
@@ -631,7 +671,7 @@ final class TabsManager {
         let url = tab.currentURL.absoluteString, title = tab.pageTitle
         Task {
             let result = await syncEngine.send(url: url, title: title, to: target.id)
-            showSendNotice(SyncCopy.sendResult(result, device: target.name))
+            showNotice(SyncCopy.sendResult(result, device: target.name))
         }
     }
 
@@ -640,21 +680,42 @@ final class TabsManager {
     func sendActiveTab(toDeviceNamed name: String) {
         guard let tab = activeTab, !tab.isPrivate else { return }
         let targets = syncEngine.sendTargets
-        guard !targets.isEmpty else { return showSendNotice(SyncCopy.text("sends.none")) }
+        guard !targets.isEmpty else { return showNotice(SyncCopy.text("sends.none")) }
         guard let target = SlashCommand.sendTarget(named: name, in: targets) else {
-            return showSendNotice(SyncCopy.text("sends.noMatch", ["name": name]))
+            return showNotice(SyncCopy.text("sends.noMatch", ["name": name]))
         }
-        guard canSend(tab) else { return showSendNotice(SyncCopy.text("sends.unavailable")) }
+        guard canSend(tab) else { return showNotice(SyncCopy.text("sends.unavailable")) }
         send(tab, to: target)
     }
 
-    private func showSendNotice(_ message: String) {
+    func showNotice(_ message: String) {
         sendNotice = message
         UIAccessibility.post(notification: .announcement, argument: message)
         Task { [weak self] in
             try? await Task.sleep(for: .seconds(5))
             if self?.sendNotice == message { self?.sendNotice = nil }
         }
+    }
+
+    /// Copy Link in the Sunrise menu and the palette: the page's whole address.
+    func copyLink(_ tab: TabModel) {
+        UIPasteboard.general.string = tab.currentURL.absoluteString
+        showNotice(SyncCopy.text("error.inert.copied"))
+    }
+
+    /// Search suggestions for the palette's text, or none: only with the
+    /// setting on, for text typed by hand, and never from a private tab.
+    func searchSuggestions(for text: String) async -> [String] {
+        guard settingsStore.searchSuggestionsOn, paletteTyped, activeTab?.isPrivate != true else { return [] }
+        return await SearchSuggestions.fetch(engine: settingsStore.searchEngine, query: text)
+    }
+
+    /// The palette's "Search for …" row and a tapped suggestion: always a
+    /// search, whatever the text looks like.
+    func search(for query: String) {
+        guard let tab = activeTab else { return }
+        tab.addressText = normalizer.searchURL(for: query).absoluteString
+        submitActiveTabAddress()
     }
 
     /// `/find` asks for Find in page; the page shows it once the palette has

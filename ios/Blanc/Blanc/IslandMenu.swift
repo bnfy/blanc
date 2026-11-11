@@ -12,7 +12,13 @@ enum IslandMenuItem: Equatable {
     /// Send to Device ▸, when sync has somewhere to send the page.
     case send
     case share
+    /// The page's whole address, which the Island shows only the site of.
+    case copyLink
     case find
+    /// Page Zoom ▸: Zoom In, Zoom Out and Actual Size.
+    case pageZoom
+    /// Request Desktop Website, or Request Mobile Website once it was asked for.
+    case desktopSite(on: Bool)
     /// Glance (F34), in the wide layout: Open in Glance ▸ lists the other
     /// open tabs; Close Glance while a card is open.
     case glance
@@ -35,7 +41,7 @@ enum IslandMenu {
                 items.append(.favorite(saved: manager.isFavorite(tab)))
             }
             if manager.canSend(tab), !manager.syncEngine.sendTargets.isEmpty { items.append(.send) }
-            items.append(contentsOf: [.share, .find])
+            items.append(contentsOf: [.share, .copyLink, .find, .pageZoom, .desktopSite(on: tab.wantsDesktopSite)])
         }
         if manager.glanceTab != nil { items.append(.closeGlance) }
         else if manager.canOpenGlance, !manager.glanceCandidates.isEmpty { items.append(.glance) }

@@ -270,7 +270,8 @@ struct ContentView: View {
         Binding(get: { manager.walkthrough.current != nil },
                 set: { presented in
                     if !presented, manager.walkthrough.current != nil {
-                        manager.closeWalkthrough(usagePingShown: manager.settingsStore.usagePingShown)
+                        manager.closeWalkthrough(usagePingShown: manager.settingsStore.usagePingShown,
+                                                 searchSuggestionsShown: manager.settingsStore.searchSuggestionsShown)
                     }
                 })
     }
@@ -439,8 +440,14 @@ struct ContentView: View {
                     cornerRadius: radius, islandInset: split == nil ? islandBand : 0, islandEdge: islandEdge)
                 .overlay {
                     // Until its first page commits, a web view is WebKit's
-                    // blank white: keep the theme's background instead.
-                    if !tab.hasCommitted { style.background.allowsHitTesting(false) }
+                    // blank white: keep the theme's background instead, or
+                    // say why no page came.
+                    if let failure = tab.loadFailure {
+                        LoadFailureView(tab: tab, failure: failure,
+                                        style: BrowserStyle(scheme: tab.isPrivate ? .dark : colorScheme))
+                    } else if !tab.hasCommitted {
+                        style.background.allowsHitTesting(false)
+                    }
                 }
                 // Unseen, it takes no touches. `allowsHitTesting` here would
                 // cut it off from the safe area and move the page.
@@ -902,6 +909,13 @@ struct ContentView: View {
         // (CI and an iOS 26.5 simulator, 2026-11-03).
         .buttonStyle(.borderless)
         .foregroundStyle(islandStyle.text)
+        .overlay {
+            if let tab = manager.activeTab {
+                IslandProgress(tab: tab, tint: islandStyle.text.opacity(0.55))
+                    .frame(maxHeight: .infinity, alignment: islandAtTop ? .top : .bottom)
+                    .clipShape(RoundedRectangle(cornerRadius: 17))
+            }
+        }
         .islandSurface(islandStyle, in: RoundedRectangle(cornerRadius: 17))
         // A tab dragged from another window's grid or palette moves here.
         .tabDrop(into: manager)
@@ -999,8 +1013,26 @@ struct ContentView: View {
             case .share:
                 guard let tab else { return nil }
                 return action("share.picker.share", "square.and.arrow.up") { share(tab.currentURL) }
+            case .copyLink:
+                guard let tab else { return nil }
+                return action("tabMenu.copyLink", "link") { manager.copyLink(tab) }
             case .find:
                 return action("menu.findInPage", "magnifyingglass") { manager.presentFind() }
+            case .pageZoom:
+                // The menu stays open, so a size can be stepped to.
+                func zoom(_ key: String, _ symbol: String, _ step: Int) -> UIAction {
+                    UIAction(title: SyncCopy.text(key), image: UIImage(systemName: symbol),
+                             attributes: .keepsMenuPresented) { _ in manager.zoomActive(step: step) }
+                }
+                return UIMenu(title: SyncCopy.text("ios.island.pageZoom"), image: UIImage(systemName: "textformat.size"),
+                              children: [zoom("menu.zoomIn", "plus.magnifyingglass", 1),
+                                         zoom("menu.zoomOut", "minus.magnifyingglass", -1),
+                                         zoom("menu.actualSize", "1.magnifyingglass", 0)])
+            case .desktopSite(let on):
+                guard let tab else { return nil }
+                return action(on ? "ios.island.mobileSite" : "ios.island.desktopSite", on ? "iphone" : "desktopcomputer") {
+                    tab.setDesktopSite(!on)
+                }
             case .glance:
                 return UIMenu(title: SyncCopy.text("tabMenu.glance"), image: UIImage(systemName: "rectangle.on.rectangle"),
                               children: manager.glanceCandidates.map { other in
@@ -1048,6 +1080,26 @@ struct ContentView: View {
 }
 
 #Preview { ContentView(manager: TabsManager()) }
+
+/// A hairline along the Island's outer edge that fills as the page loads,
+/// then fades. Its own view, so a load's progress redraws only this.
+struct IslandProgress: View {
+    let tab: TabModel
+    let tint: Color
+
+    var body: some View {
+        GeometryReader { geo in
+            Rectangle().fill(tint)
+                .frame(width: geo.size.width * max(0.06, min(tab.loadProgress, 1)))
+                .animation(.easeOut(duration: 0.2), value: tab.loadProgress)
+        }
+        .frame(height: 2)
+        .opacity(tab.isLoading ? 1 : 0)
+        .animation(.easeOut(duration: 0.25), value: tab.isLoading)
+        .allowsHitTesting(false)
+        .accessibilityHidden(true)
+    }
+}
 
 /// Split View (F53): one subview fills the area; two sit side by side,
 /// inset, with a gap between them that the divider sits in.

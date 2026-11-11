@@ -9506,6 +9506,30 @@
     "message": "No matches. Press Return to open it as an address or search.",
     "note": "iOS palette: shown when typed text matches no tab, Favorite or history entry; Return is the keyboard's return key."
   },
+  "ios.palette.editAddress": {
+    "message": "Edit address",
+    "note": "iOS palette: accessible name of the row that shows the current page's full address; tapping it puts the address in the field to edit."
+  },
+  "ios.island.pageZoom": {
+    "message": "Page Zoom",
+    "note": "iOS Sunrise menu: submenu holding Zoom In, Zoom Out and Actual Size for the current page."
+  },
+  "ios.island.desktopSite": {
+    "message": "Request Desktop Website",
+    "note": "iOS Sunrise menu: reloads the page asking the site for its desktop version."
+  },
+  "ios.island.mobileSite": {
+    "message": "Request Mobile Website",
+    "note": "iOS Sunrise menu: shown in place of Request Desktop Website once the desktop version was asked for; reloads the page as a phone again."
+  },
+  "ios.appLink.message": {
+    "message": "This page wants to open another app.",
+    "note": "iOS: message of the alert shown when a tapped link belongs to another app (an App Store or maps link). The alert's title is the site; its buttons are Cancel and Open."
+  },
+  "ios.downloads.failed": {
+    "message": "Couldn’t download {file}",
+    "note": "iOS: notice over the Island when a download fails; {file} is the file name."
+  },
   "ios.tabs.openTabs": {
     "message": "Open tabs",
     "note": "iOS palette and tab grid: heading over the open tabs."
@@ -9597,6 +9621,10 @@
   "ios.welcome.measureUsageHelp": {
     "message": "Each time you open Blanc, it sends one anonymous count: a random ID for this install, the app version and the iOS version. Never what you browse. See blanc.day/privacy.",
     "note": "iOS walkthrough: under the Measure usage switch; says exactly what the launch ping carries."
+  },
+  "ios.welcome.suggestionsHelp": {
+    "message": "While you type a search, the text goes to your search provider, which sends back suggestions. Never from a private tab, and never an address, pasted text or anything that looks like a password or key.",
+    "note": "iOS walkthrough: under the Search suggestions switch on the privacy card; says what is sent to the chosen search engine and what never is."
   },
   "ios.welcome.showAgain": {
     "message": "Show the welcome again",

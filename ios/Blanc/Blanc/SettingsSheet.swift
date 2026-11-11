@@ -281,6 +281,14 @@ struct PrivacySettingsView: View {
                         .accessibilityIdentifier("settings.clearSiteData.done")
                 }
             } footer: { Text(SettingsCopy.text("clearSiteDataHelp")) }
+            // The walkthrough's privacy step asks first (F5); until that
+            // choice is saved, this reads off.
+            Section {
+                Toggle(SyncCopy.text("settings.general.searchSuggestions.label"), isOn: Binding(
+                    get: { manager.settingsStore.searchSuggestionsOn },
+                    set: { manager.settingsStore.update(searchSuggestions: $0) }))
+                    .accessibilityIdentifier("settings.searchSuggestions")
+            } footer: { Text(SyncCopy.text("settings.general.searchSuggestions.hint")) }
             // The launch ping's consent (F21, M18 §7.1); off stops it at once.
             Section {
                 Toggle(SyncCopy.text("ios.welcome.measureUsage"), isOn: Binding(

@@ -28,9 +28,29 @@ final class TabNavigationDelegate: NSObject, WKNavigationDelegate {
     /// switch puts the tab's blocking rules on or off for that site first).
     var onWillLoadMainFrame: ((URL) -> Void)?
 
+    /// A load that failed while the tab's page stays on screen (a tapped link,
+    /// a reload with no connection): the page is left as it was and the
+    /// window says why nothing happened.
+    var onLoadFailure: ((LoadFailure) -> Void)?
+
+    /// A link the person tapped that belongs to another app (`AppLinks`).
+    var onAppLink: ((URL) -> Void)?
+    /// A navigation that turned into a download (`PageDownloads`). Left
+    /// unset, WebKit cancels the download.
+    var onDownload: ((WKDownload) -> Void)?
+
     func load(_ url: URL, in webView: WKWebView) {
         guard url != lastRequested else { return }
         lastRequested = url
+        webView.load(URLRequest(url: url))
+    }
+
+    /// Loads `url` again after it failed. `load` skips an address it was just
+    /// asked for, and a web view with no page has nothing to reload, except a
+    /// woken tab's restored list, which keeps its Back and Forward this way.
+    func retry(_ url: URL, in webView: WKWebView) {
+        lastRequested = url
+        if webView.backForwardList.currentItem?.url == url, webView.reload() != nil { return }
         webView.load(URLRequest(url: url))
     }
 
@@ -53,6 +73,7 @@ final class TabNavigationDelegate: NSObject, WKNavigationDelegate {
         tab?.exitReader()
         tab?.readerAvailable = false
         tab?.isLoading = true
+        tab?.loadFailure = nil
     }
 
     func webView(_ webView: WKWebView, didCommit navigation: WKNavigation!) {
@@ -60,6 +81,7 @@ final class TabNavigationDelegate: NSObject, WKNavigationDelegate {
         // before it commits leaves the page, so the clock stays too.
         tab?.nativeClock.hide()
         tab?.hasCommitted = true
+        tab?.loadFailure = nil
         tab?.showIsland()
         committed(navigation, url: webView.url, title: webView.title ?? "")
     }
@@ -103,39 +125,90 @@ final class TabNavigationDelegate: NSObject, WKNavigationDelegate {
     func webView(_ webView: WKWebView,
                  didFailProvisionalNavigation navigation: WKNavigation!,
                  withError error: Error) {
-        tab?.hasCommitted = true
-        sync(webView)
+        failedBeforeCommit(error, showing: webView.url)
+        // The failure view keeps the address that failed, not the Start Page's.
+        sync(webView, keepsAddress: tab?.loadFailure != nil)
         settled(navigation)
+    }
+
+    /// A tab with no page yet, or only the Start Page, shows the failure in
+    /// the page's place, with Try again; behind it the web view stays covered.
+    /// A tab that has a page keeps it, and the window says what went wrong.
+    func failedBeforeCommit(_ error: Error, showing shown: URL? = nil) {
+        guard let tab else { return }
+        guard let failure = LoadFailure.from(error, requested: lastRequested) else {
+            tab.hasCommitted = true
+            return
+        }
+        let onStartPage = shown?.scheme == "blanc" && shown?.host == "newtab"
+        if !tab.hasCommitted || onStartPage {
+            tab.loadFailure = failure
+        } else if !failure.isUnsupportedAddress {
+            onLoadFailure?(failure)
+        }
     }
 
     func webView(_ webView: WKWebView,
                  decidePolicyFor navigationAction: WKNavigationAction,
-                 decisionHandler: @escaping (WKNavigationActionPolicy) -> Void) {
+                 preferences: WKWebpagePreferences,
+                 decisionHandler: @escaping (WKNavigationActionPolicy, WKWebpagePreferences) -> Void) {
+        // Request Desktop Website: the site is asked for what it gives a Mac.
+        preferences.preferredContentMode = tab?.wantsDesktopSite == true ? .desktop : .recommended
         if let url = navigationAction.request.url,
            let scheme = url.scheme?.lowercased(),
            OSHandoff.schemes.contains(scheme) {
             UIApplication.shared.open(url)
-            decisionHandler(.cancel)
+            decisionHandler(.cancel, preferences)
             return
         }
-        if navigationAction.targetFrame?.isMainFrame != false, let url = navigationAction.request.url {
+        let mainFrame = navigationAction.targetFrame?.isMainFrame != false
+        if mainFrame, navigationAction.navigationType == .linkActivated,
+           let url = navigationAction.request.url, AppLinks.isAppLink(url) {
+            onAppLink?(url)
+            decisionHandler(.cancel, preferences)
+            return
+        }
+        // A link with the `download` attribute.
+        if navigationAction.shouldPerformDownload {
+            decisionHandler(.download, preferences)
+            return
+        }
+        if mainFrame, let url = navigationAction.request.url {
             // Existing/restored Settings tabs may reload or traverse their history.
             // New links into Settings open the native sheet instead.
             if (navigationAction.navigationType == .linkActivated || tab?.currentURL.host != "settings"),
                onSettingsNavigation?(url) == true {
-                decisionHandler(.cancel)
+                decisionHandler(.cancel, preferences)
                 return
             }
             onWillLoadMainFrame?(url)
         }
-        decisionHandler(.allow)
+        decisionHandler(.allow, preferences)
     }
 
-    private func sync(_ webView: WKWebView, finished: Bool = false) {
+    func webView(_ webView: WKWebView,
+                 decidePolicyFor navigationResponse: WKNavigationResponse,
+                 decisionHandler: @escaping (WKNavigationResponsePolicy) -> Void) {
+        let disposition = (navigationResponse.response as? HTTPURLResponse)?.value(forHTTPHeaderField: "Content-Disposition")
+        let saves = PageDownloads.isDownload(showable: navigationResponse.canShowMIMEType,
+                                             mainFrame: navigationResponse.isForMainFrame, disposition: disposition)
+        decisionHandler(saves ? .download : .allow)
+    }
+
+    func webView(_ webView: WKWebView, navigationAction: WKNavigationAction, didBecome download: WKDownload) {
+        onDownload?(download)
+    }
+
+    func webView(_ webView: WKWebView, navigationResponse: WKNavigationResponse, didBecome download: WKDownload) {
+        onDownload?(download)
+    }
+
+    private func sync(_ webView: WKWebView, finished: Bool = false, keepsAddress: Bool = false) {
         guard let tab else { return }
         tab.isLoading = webView.isLoading
         // A load the reload replaced also fails; the spinner waits for its own.
         if !webView.isLoading { tab.endPullToRefresh() }
+        if keepsAddress { return apply(url: nil, title: "", finished: finished) }
         apply(url: webView.url, title: webView.title ?? "", finished: finished)
     }
 

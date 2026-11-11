@@ -9217,6 +9217,30 @@
     "message": "No hay coincidencias. Pulsa Intro para abrirlo como dirección o búsqueda.",
     "source": "sha256:46db92f26b57de707da442b42408e8bf0086343fd07da52e5967f9e4912de2cf"
   },
+  "ios.palette.editAddress": {
+    "message": "Editar dirección",
+    "source": "sha256:dfbb61b6b19e7cb18c745888e725052c4c00764e10af5bffdf6d678594f96330"
+  },
+  "ios.island.pageZoom": {
+    "message": "Zoom de página",
+    "source": "sha256:20d98a6a2b92cc042344220be60fe3b39d67547c2b978597bf622d53fc1780dd"
+  },
+  "ios.island.desktopSite": {
+    "message": "Solicitar sitio web de escritorio",
+    "source": "sha256:26fce8e023bb66144767cd3297b77ecf89bd966f2a482e07e330c2d4ef10ac8f"
+  },
+  "ios.island.mobileSite": {
+    "message": "Solicitar sitio web móvil",
+    "source": "sha256:d85602f2c34cb0dc8c6fe1d7b89d47ae3d3b28ca4226a91a70c44d20b02a3b0c"
+  },
+  "ios.appLink.message": {
+    "message": "Esta página quiere abrir otra aplicación.",
+    "source": "sha256:0ec329b3a709623bad526c6473165ac3c8e2cb0bd289e2140f75e975a26bacba"
+  },
+  "ios.downloads.failed": {
+    "message": "No se pudo descargar {file}",
+    "source": "sha256:528a807eb1ee9254b624cc9abbaae34a1bf5d4cddd78d1349911e1e8b2bd43b5"
+  },
   "ios.tabs.openTabs": {
     "message": "Pestañas abiertas",
     "source": "sha256:89493dd0e4a5f4bb1e277a1821982fe52cd694db0d06e69eecdddbbb74ed1fce"
@@ -9308,6 +9332,10 @@
   "ios.welcome.measureUsageHelp": {
     "message": "Cada vez que abres Blanc, envía un recuento anónimo: un ID aleatorio para esta instalación, la versión de la app y la versión de iOS. Nunca lo que navegas. Consulta blanc.day/privacy.",
     "source": "sha256:918daf894fa3d224ceb4594a9ca31bb335ea73f40215009a0e188c3b261689bc"
+  },
+  "ios.welcome.suggestionsHelp": {
+    "message": "Mientras escribes una búsqueda, el texto se envía a tu buscador, que devuelve sugerencias. Nunca desde una pestaña privada, y nunca una dirección, texto pegado ni nada que parezca una contraseña o una clave.",
+    "source": "sha256:54fe76e488a4dfe5362d990df43edc375a3c92743a380cefe519fda8cfe1f6dd"
   },
   "ios.welcome.showAgain": {
     "message": "Volver a mostrar la bienvenida",
