@@ -282,6 +282,7 @@ android_resources("island_view_resources") {
     "island/res/layout/blanc_sync_field.xml",
     "island/res/layout/blanc_sync_heading.xml",
     "island/res/layout/blanc_sync_note.xml",
+    "island/res/layout/blanc_sync_rename.xml",
     "island/res/layout/blanc_sync_row.xml",
     "island/res/layout/blanc_sync_screen.xml",
     "island/res/values/blanc_grid_ids.xml",

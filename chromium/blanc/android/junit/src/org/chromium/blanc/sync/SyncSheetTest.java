@@ -279,6 +279,21 @@ public class SyncSheetTest {
         // AlertDialog runs a button's handler from a message on the main loop.
         shadowOf(Looper.getMainLooper()).idle();
         assertTrue(mCalls.toString(), mCalls.contains("sync.setThisDeviceName [\"Pixel\"]"));
+        // The row shows what the runner reports, so a save that didn't take shows the old name.
+        assertTrue(showsText("Android"));
+        assertFalse(showsText("Pixel"));
+    }
+
+    @Test
+    public void theSwitchesCarryTheirLabels() {
+        connected();
+        open();
+        String share = mActivity.getString(R.string.blanc_ios_settings_share_tabs);
+        boolean labelled = false;
+        for (View view : views()) {
+            if (view instanceof CompoundButton c && share.contentEquals(c.getContentDescription())) labelled = true;
+        }
+        assertTrue("Share open tabs' switch has no label for TalkBack", labelled);
     }
 
     @Test

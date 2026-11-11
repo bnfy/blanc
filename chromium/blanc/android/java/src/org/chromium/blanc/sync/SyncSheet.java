@@ -14,6 +14,7 @@ import android.view.Window;
 import android.view.WindowManager;
 import android.widget.EditText;
 import android.widget.LinearLayout;
+import android.widget.ScrollView;
 import android.widget.Switch;
 import android.widget.TextView;
 
@@ -96,6 +97,7 @@ public final class SyncSheet {
     private @Nullable Runnable mOnClosed;
     private @Nullable LinearLayout mCard;
     private final List<View> mNotes = new ArrayList<>();
+    private boolean mScrollToPairing;
 
     public SyncSheet(Activity activity, Runner runner, Scanner scanner) {
         mActivity = activity;
@@ -329,17 +331,16 @@ public final class SyncSheet {
 
     /** This phone's name, in a dialog with Save name, as the iPhone's field and button. */
     private void rename() {
-        EditText name = (EditText) LayoutInflater.from(mActivity).inflate(R.layout.blanc_sync_field, null);
+        View box = LayoutInflater.from(mActivity).inflate(R.layout.blanc_sync_rename, null);
+        EditText name = box.findViewById(R.id.blanc_sync_rename_field);
         name.setText(mDeviceName);
         name.setSelection(mDeviceName.length());
-        name.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_FLAG_NO_SUGGESTIONS);
         new AlertDialog.Builder(mActivity)
                 .setTitle(R.string.blanc_ios_settings_device_name)
-                .setView(name)
-                .setPositiveButton(R.string.blanc_ios_settings_save_name, (d, w) -> {
-                    mDeviceName = name.getText().toString();
-                    run("sync.setThisDeviceName", new Object[] {mDeviceName}, text(R.string.blanc_ios_settings_saved));
-                })
+                .setView(box)
+                // The row shows the name the runner reports once the save is done, not the typed one.
+                .setPositiveButton(R.string.blanc_ios_settings_save_name, (d, w) -> run("sync.setThisDeviceName",
+                        new Object[] {name.getText().toString()}, text(R.string.blanc_ios_settings_saved)))
                 .setNegativeButton(R.string.blanc_fill_setup_enable_cancel_label, null)
                 .show();
     }
@@ -413,6 +414,7 @@ public final class SyncSheet {
             JSONObject value = value(reply);
             if (value != null && value.optBoolean("ok")) {
                 mPairingCode = value.optString("code");
+                mScrollToPairing = true;
             } else if (value != null) {
                 mError = errorText(value.optString("error"));
             }
@@ -430,6 +432,11 @@ public final class SyncSheet {
                 mActivity.getResources().getDimension(R.dimen.blanc_sync_code_size));
         tagged(digits, "sync.pairingCode");
         note(text(R.string.blanc_settings_sync_pairing_instruction));
+        // It's drawn under the last card; brings it on screen once, when it first appears.
+        if (mScrollToPairing && mList.getParent() instanceof ScrollView scroll) {
+            mScrollToPairing = false;
+            scroll.post(() -> scroll.fullScroll(View.FOCUS_DOWN));
+        }
     }
 
     private void confirmRecovery() {
@@ -504,13 +511,17 @@ public final class SyncSheet {
 
     /** A row with a switch; tapping the row flips it. */
     private View toggle(String label, boolean on, Callback<Boolean> changed) {
-        View row = row(label, null, null);
+        // The row keeps its press feedback and, like the switch, does nothing while a request runs.
+        View row = row(label, null, v -> {});
         Switch control = row.findViewById(R.id.blanc_sync_row_switch);
         control.setVisibility(View.VISIBLE);
+        control.setContentDescription(label);
         control.setChecked(on);
         control.setEnabled(!mBusy);
         control.setOnCheckedChangeListener((v, wanted) -> changed.onResult(wanted));
-        row.setOnClickListener(v -> control.toggle());
+        row.setOnClickListener(v -> {
+            if (control.isEnabled()) control.toggle();
+        });
         return row;
     }
 
