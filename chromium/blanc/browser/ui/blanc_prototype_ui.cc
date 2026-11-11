@@ -375,6 +375,17 @@ double BlancPagesZoom(const PrefService& prefs) {
 }
 // Shipping's appIcon (F17; registered by patch 0029).
 constexpr char kAppIconPref[] = "blanc.app_icon";
+// The catalog is independent of Patron. Retired or corrupt saved identifiers
+// fall back before Settings and the Dock read them, as shipping settings does.
+void NormalizeAppIcon(Profile* profile) {
+  auto* prefs = profile->GetOriginalProfile()->GetPrefs();
+  const auto& icon = prefs->GetString(kAppIconPref);
+  if (icon != "sunrise" && icon != "sunrise-dark" && icon != "sunrise-gold" &&
+      icon != "sunrise-spectrum" && icon != "sunrise-amber") {
+    prefs->SetString(kAppIconPref, "sunrise"); prefs->CommitPendingWrite();
+  }
+}
+
 // Shipping's islandSize (#1292; registered by patch 0026): the strip a window
 // draws, as island-size.js's stripHeightFor. styles.css and host.js draw the
 // same table; the split header band stays 30px below it.
@@ -5477,6 +5488,7 @@ class Handler : public content::WebUIMessageHandler, public extensions::Extensio
     if (auto* owner = GetOwner(web_ui()->GetWebContents())) AutoHideActivated(owner);
     // The Island hears Island setting changes at once, so turning hover-open
     // off ends a dwell already under way.
+    NormalizeAppIcon(Profile::FromWebUI(web_ui()));
     island_prefs_.Init(Profile::FromWebUI(web_ui())->GetOriginalProfile()->GetPrefs());
     island_prefs_.Add(kTabArchivePref, base::BindRepeating(&Handler::ResetArchiveGrace, base::Unretained(this)));
     island_prefs_.Add(kIslandHoverOpenPref, base::BindRepeating(&Handler::OnIslandSettingChanged,
@@ -5550,6 +5562,7 @@ class Handler : public content::WebUIMessageHandler, public extensions::Extensio
     OnIslandSettingChanged();
   }
   void OnIslandSettingChanged() {
+    NormalizeAppIcon(Profile::FromWebUI(web_ui()));
     if (IsJavascriptAllowed())
       web_ui()->CallJavascriptFunctionUnsafe("blancPrototypeEvent", base::Value("settings"));
   }

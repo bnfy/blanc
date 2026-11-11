@@ -8,11 +8,11 @@ Queue 5 is in progress. The rendering guard is clear again; focused native runs 
 | b: missing fork capability / blocked acceptance | 49 | 45 |
 | c: inapplicable by platform or approved construction | 22 | 0 |
 
-Current tested candidate: `macos-2d1c18bccd76f2d3`, `q5-mouse-gestures-2-runtime-config.json`.
+Current tested candidate: `macos-343a9dfa66dcb9d3`, `q5-icon-catalog-1-runtime-config.json`.
 Sync gate: 22/22 on macos-5c8b4b1dd486a8a4 (`q5-mini-window-sync-1`); Sync code unchanged since.
 Inventory baseline: 533 pass / 3 fail (subsequently repaired) / 102 undefined / 2 excluded.
 Final inventory: owed, once after implementation. Lost passes: not yet measured.
-Owner needs: beta/updater hold; signed physical Touch ID acceptance.
+Owner needs: beta/updater hold and release-only Patron activation; signed physical Touch ID acceptance.
 Unverified: four capability/held-acceptance cases and final full inventory.
 No push, release, signing, production/Apple/1Password contact, live-tree changes or toolchain installation authorized.
 
@@ -103,7 +103,7 @@ The first classification was 40 a / 42 b / 20 c. Source and focused runs moved s
 | `settings-and-theming.feature:65:plain` | c | /dark-site keeps one site in its own colors | Owner decision 2026-11-02: no built-in Dark Reader; use the Web Store extension. |
 | `settings-and-theming.feature:74:plain` | c | A private tab's /dark-site choice is not saved | Owner decision 2026-11-02: no built-in Dark Reader; use the Web Store extension. |
 | `split-view.feature:201:plain` | a | A pane view raised above the floating Island goes back under it at the next layout | raiseTabView |
-| `supporter-and-session.feature:12:plain` | b | A retired icon cannot be restored by an active Patron | No native active Patron state/import exists; icon allowlisting itself is unconditional. |
+| `supporter-and-session.feature:12:plain` | b | A retired icon cannot be restored by an active Patron | Owner S2.5 decision keeps preview activation out until a release channel; no fake active license. Independent retired-icon handling is checked in item 17. |
 | `supporter-and-session.feature:26:plain` | a | Relaunch restores groups but not private tabs | step definition missing |
 | `tab-archive.feature:8:plain` | b | An idle loose tab is archived | step definition missing |
 | `tab-archive.feature:15:plain` | b | Pinned and grouped tabs are never archived | step definition missing |
@@ -580,3 +580,29 @@ path are unchanged. Required q5-mouse-gestures-precommit.tap passes 314/314;
 patch reconstruction q5-mouse-gestures-patches.json passes 173/585. Progress
 and whitespace checks pass. Other mapped actions reuse native/Island commands;
 these runs directly exercise the Reload gesture and the input boundaries.
+
+## 17 — Patron boundary and retired icon catalog
+
+The current S2.5 owner decision in STATUS.md (November 5) explicitly limits the
+preview to the Patron row/checkout link, with no license-key activation until a
+release channel. The queue's absolute beta hold remains. F17-2's active-Patron
+precondition therefore stays undefined; no synthetic active entitlement or
+production license request is substituted. No key or benefit was changed.
+
+Current icons are independent of Patron. Inspection found that an invalid saved
+native icon value could remain in Settings even though the Dock fell back.
+Native normalization now uses Sunrise for retired/corrupt values at startup and
+on changes. q5-icon-catalog-boundaries-2 passes all five selectable current icons,
+retired-value normalization in the real native preference/snapshot, and restart
+persistence. The first probe counted Chromium's disabled Custom sentinel as an
+icon; it now correctly checks selectable options. The physical Dock image is
+not asserted by this probe. q5-icon-catalog-case-1 passes shipping F17-1 without
+retry. Neither receipt is presented as an active-Patron acceptance pass.
+
+Candidate macos-343a9dfa66dcb9d3 / q5-icon-catalog-1-runtime-config.json built
+six incremental actions in 35.76s. q5-icon-catalog-precommit.tap passes 314/314;
+q5-icon-catalog-patches.json passes 173/585. Progress and whitespace checks pass.
+Patch budget remains 135 upstream paths / 490 incremental hunks. Sync code and
+the phone path are unchanged. Remaining b cases: beta updater, physical Touch ID,
+release-only Patron activation, and the non-self-contained N15 preview surface
+specified above. The one final complete inventory is next.
