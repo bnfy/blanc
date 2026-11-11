@@ -163,17 +163,26 @@ final class MobileStartPageTests: XCTestCase {
             try await Task.sleep(nanoseconds: 50_000_000)
         }
         XCTAssertTrue(manager.activeTab?.nativeClock.isVisible == true, "Returning to Billboard must bring the glass clock back")
-        // A load that fails before it commits leaves the Start Page showing,
-        // so its glass clock must stay too (the page's own copy is hidden).
+        // A load that fails before it commits leaves the Start Page in the web
+        // view, with its glass clock (the page's own copy is hidden), and the
+        // failure view over both, naming the address that failed.
         // Not port 9: it's on WebKit's blocked list, and iOS 26 answers that
         // by committing an empty page in place of the Start Page.
-        webView.load(URLRequest(url: URL(string: "http://127.0.0.1:\(try closedPort())/")!))
+        let failing = URL(string: "http://127.0.0.1:\(try closedPort())/")!
+        webView.load(URLRequest(url: failing))
         try await Task.sleep(nanoseconds: 200_000_000)
         for _ in 0..<100 where webView.isLoading {
             try await Task.sleep(nanoseconds: 50_000_000)
         }
         XCTAssertEqual(webView.url?.host, "newtab")
         XCTAssertTrue(manager.activeTab?.nativeClock.isVisible == true, "A failed load must not take the glass clock off the Start Page")
+        XCTAssertEqual(manager.activeTab?.loadFailure?.url, failing, "the failure shows over the Start Page")
+        // Back to the Start Page itself for the rest.
+        webView.load(URLRequest(url: TabsManager.newTabURL))
+        for _ in 0..<100 where manager.activeTab?.loadFailure != nil || webView.isLoading || manager.activeTab?.nativeClock.isVisible != true {
+            try await Task.sleep(nanoseconds: 50_000_000)
+        }
+        XCTAssertEqual(manager.activeTab?.currentURL, TabsManager.newTabURL)
 
         _ = try await webView.callAsyncJavaScript("return await window.bowserPages.start.setClock({font:'flex',height:150,style:'solid'});", arguments: [:], in: nil, contentWorld: .page)
         for _ in 0..<20 where manager.activeTab?.nativeClock.isVisible == true {

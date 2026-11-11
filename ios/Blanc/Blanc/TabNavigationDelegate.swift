@@ -125,21 +125,23 @@ final class TabNavigationDelegate: NSObject, WKNavigationDelegate {
     func webView(_ webView: WKWebView,
                  didFailProvisionalNavigation navigation: WKNavigation!,
                  withError error: Error) {
-        failedBeforeCommit(error)
-        sync(webView)
+        failedBeforeCommit(error, showing: webView.url)
+        // The failure view keeps the address that failed, not the Start Page's.
+        sync(webView, keepsAddress: tab?.loadFailure != nil)
         settled(navigation)
     }
 
-    /// A tab with no page yet shows the failure in the page's place, with Try
-    /// again; behind it the web view stays covered, as before its first page.
+    /// A tab with no page yet, or only the Start Page, shows the failure in
+    /// the page's place, with Try again; behind it the web view stays covered.
     /// A tab that has a page keeps it, and the window says what went wrong.
-    func failedBeforeCommit(_ error: Error) {
+    func failedBeforeCommit(_ error: Error, showing shown: URL? = nil) {
         guard let tab else { return }
         guard let failure = LoadFailure.from(error, requested: lastRequested) else {
             tab.hasCommitted = true
             return
         }
-        if !tab.hasCommitted {
+        let onStartPage = shown?.scheme == "blanc" && shown?.host == "newtab"
+        if !tab.hasCommitted || onStartPage {
             tab.loadFailure = failure
         } else if !failure.isUnsupportedAddress {
             onLoadFailure?(failure)
@@ -201,11 +203,12 @@ final class TabNavigationDelegate: NSObject, WKNavigationDelegate {
         onDownload?(download)
     }
 
-    private func sync(_ webView: WKWebView, finished: Bool = false) {
+    private func sync(_ webView: WKWebView, finished: Bool = false, keepsAddress: Bool = false) {
         guard let tab else { return }
         tab.isLoading = webView.isLoading
         // A load the reload replaced also fails; the spinner waits for its own.
         if !webView.isLoading { tab.endPullToRefresh() }
+        if keepsAddress { return apply(url: nil, title: "", finished: finished) }
         apply(url: webView.url, title: webView.title ?? "", finished: finished)
     }
 

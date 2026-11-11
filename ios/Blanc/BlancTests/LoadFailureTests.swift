@@ -52,6 +52,17 @@ import WebKit
         XCTAssertEqual(told.map(\.reason), ["It didn’t load."])
     }
 
+    func testAnAddressTypedOnTheStartPageShowsTheFailure() {
+        let tab = blankTab()
+        tab.hasCommitted = true
+        var told: [LoadFailure] = []
+        tab.navigationDelegate.onLoadFailure = { told.append($0) }
+        tab.navigationDelegate.failedBeforeCommit(error(NSURLErrorNotConnectedToInternet, names: address),
+                                                  showing: URL(string: "blanc://newtab/")!)
+        XCTAssertEqual(tab.loadFailure?.url, address, "the Start Page is no page to keep")
+        XCTAssertTrue(told.isEmpty)
+    }
+
     func testAnAppLinkBehindAPageSaysNothing() {
         let tab = blankTab()
         tab.hasCommitted = true

@@ -132,7 +132,9 @@ final class TabModel: Identifiable {
         // from WebKit's actual document URL as well as delegate callbacks.
         readerURLObservation = webView.observe(\.url, options: [.new]) { [weak self] webView, _ in
             Task { @MainActor [weak self, weak webView] in
-                guard let self, let url = webView?.url else { return }
+                // A failed load from the Start Page puts its address back;
+                // the tab keeps the one that failed (`LoadFailureView`).
+                guard let self, let url = webView?.url, self.loadFailure == nil else { return }
                 self.navigationDelegate.applyURL(url, to: self)
             }
         }
