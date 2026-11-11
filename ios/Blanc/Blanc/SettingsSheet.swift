@@ -145,8 +145,8 @@ struct SettingsSheet: View {
                     set: { manager.settingsStore.update(islandTucksOnScroll: $0) }))
                     .accessibilityIdentifier("settings.islandTuck")
                 Toggle(SettingsCopy.text("islandHistoryButtons"), isOn: Binding(
-                    get: { manager.settingsStore.islandHistoryButtons },
-                    set: { manager.settingsStore.update(islandHistoryButtons: $0) }))
+                    get: { manager.settingsStore.islandBackForward },
+                    set: { manager.settingsStore.update(islandBackForward: $0) }))
                     .accessibilityIdentifier("settings.islandHistoryButtons")
             } header: { Text(SettingsCopy.text("island")) } footer: { Text(SettingsCopy.text("islandHistoryButtonsHelp")) }
             Section(SettingsCopy.text("appearance")) {

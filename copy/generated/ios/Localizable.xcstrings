@@ -2480,7 +2480,7 @@
       }
     },
     "pill.placeholder": {
-      "comment": "Pill label on a blank new tab, inviting the user to open the command bar.",
+      "comment": "Pill label on a blank new tab, inviting the user to open the command bar. Also the iPhone Island's dimmed label on the Start Page, where it must fit a narrow Island.",
       "extractionState": "manual",
       "localizations": {
         "en": {

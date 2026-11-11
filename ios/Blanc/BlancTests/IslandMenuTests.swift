@@ -13,14 +13,14 @@ import XCTest
         let m = manager()
         m.activeTab!.currentURL = URL(string: "https://nintendo.com/")!
         XCTAssertEqual(IslandMenu.items(for: m.activeTab, manager: m),
-                       [.blocking(on: true), .favorite(saved: false), .share, .copyLink, .find, .pageZoom,
-                        .desktopSite(on: false), .newPrivateTab])
+                       [.blocking(on: true), .favorite(saved: false), .reload, .share, .copyLink, .find, .pageZoom,
+                        .desktopSite(on: false), .newPrivateTab, .settings])
     }
 
     func testStartPageOffersCustomizeAndAPrivateTab() {
         let m = manager()
         m.activeTab!.currentURL = TabsManager.newTabURL
-        XCTAssertEqual(IslandMenu.items(for: m.activeTab, manager: m), [.customizeStartPage, .newPrivateTab])
+        XCTAssertEqual(IslandMenu.items(for: m.activeTab, manager: m), [.customizeStartPage, .newPrivateTab, .settings])
     }
 
     func testHoldingTheStartPageOpensItsSettings() {
@@ -46,7 +46,8 @@ import XCTest
         let id = m.createTab(url: URL(string: "https://secret.example/")!, isPrivate: true)
         let tab = m.tabs.first { $0.id == id }
         XCTAssertEqual(IslandMenu.items(for: tab, manager: m),
-                       [.blocking(on: true), .share, .copyLink, .find, .pageZoom, .desktopSite(on: false), .newPrivateTab])
+                       [.blocking(on: true), .reload, .share, .copyLink, .find, .pageZoom, .desktopSite(on: false),
+                        .newPrivateTab, .settings])
     }
 
     func testStatesFollowTheSiteAndTheFavorite() {

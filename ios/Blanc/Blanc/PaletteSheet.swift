@@ -174,31 +174,29 @@ struct PaletteSheet: View {
     }
 
     /// A tab's row; in a group, `last` closes the group's block under it.
+    /// A swipe to the left closes the tab (no × to miss and open it instead);
+    /// VoiceOver has Close Tab as an action on the row.
     private func tabRow(_ tab: TabModel, in group: TabGroup? = nil, last: Bool = false) -> some View {
-        HStack(spacing: 0) {
-            Button {
-                manager.setActive(tab.id)
-                close()
-            } label: {
-                row(icon: tab.currentURL.scheme == "blanc" ? "sun.horizon" : "globe",
-                    title: TabTitle.display(tab),
-                    subtitle: tab.currentURL.scheme == "blanc" ? "Blanc" : tab.currentURL.host ?? tab.currentURL.absoluteString,
-                    selected: tab.id == manager.activeTabId)
-            }
-            .accessibilityAddTraits(tab.id == manager.activeTabId ? .isSelected : [])
-            .accessibilityIdentifier("palette.tab")
-            Button { manager.closeTab(tab.id) } label: {
-                Image(systemName: "xmark").font(.system(size: 12)).foregroundStyle(style.secondary)
-                    .frame(width: 44, height: 48)
-                    .pointerHighlight()
-            }
-            .accessibilityLabel(SyncCopy.text("ios.tabs.close", ["title": TabTitle.display(tab)]))
+        Button {
+            manager.setActive(tab.id)
+            close()
+        } label: {
+            row(icon: tab.currentURL.scheme == "blanc" ? "sun.horizon" : "globe",
+                title: TabTitle.display(tab),
+                subtitle: tab.currentURL.scheme == "blanc" ? "Blanc" : tab.currentURL.host ?? tab.currentURL.absoluteString,
+                selected: tab.id == manager.activeTabId)
+                .padding(.trailing, 10)
         }
+        .accessibilityAddTraits(tab.id == manager.activeTabId ? .isSelected : [])
+        .accessibilityIdentifier("palette.tab")
+        .accessibilityAction(named: SyncCopy.text("menu.closeTab")) { manager.closeTab(tab.id) }
         .padding(.leading, 10)
         .background(tab.id == manager.activeTabId ? style.selection : .clear, in: RoundedRectangle(cornerRadius: 10))
         .contentShape(.contextMenuPreview, RoundedRectangle(cornerRadius: 10))
         .contextMenu {
             TabMoveMenu(manager: manager, tab: tab, newGroup: { newGroupTab = NewGroupTab(id: tab.id) }, newSpace: { newSpaceTab = tab.id })
+            Divider()
+            Button(SyncCopy.text("menu.closeTab"), systemImage: "xmark", role: .destructive) { manager.closeTab(tab.id) }
         }
         .tabDrag(tab)
         .listRowSeparator(.hidden)
@@ -206,7 +204,18 @@ struct PaletteSheet: View {
             if let group { groupBlock(group, top: false, bottom: last) } else { Color.clear }
         })
         .listRowInsets(EdgeInsets(top: 2, leading: group == nil ? 12 : 16, bottom: last ? 6 : 2, trailing: group == nil ? 12 : 16))
-        .swipeActions { Button(role: .destructive) { manager.closeTab(tab.id) } label: { Image(systemName: "xmark") } }
+        .swipeActions(edge: .trailing, allowsFullSwipe: true) {
+            // Under the sheet's .plain style the action never appeared and a
+            // swipe fell through to the row's tap; the system style brings it
+            // back. A trash on neutral gray, not red (owner); a full swipe closes.
+            Button(role: .destructive) { manager.closeTab(tab.id) } label: {
+                Image(systemName: "trash")
+            }
+            .buttonStyle(.automatic)
+            .tint(.gray)
+            .accessibilityLabel(SyncCopy.text("menu.closeTab"))
+            .accessibilityIdentifier("palette.tab.close")
+        }
     }
 
     /// A group's header and tabs share one shaded block, as desktop's ⌘L
