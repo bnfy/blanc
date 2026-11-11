@@ -84,11 +84,12 @@ struct IslandMarkButton: UIViewRepresentable {
         init(menu: @escaping () -> [UIMenuElement]) { self.menu = menu }
     }
 
-    /// The mark at 22 pt, drawn in the tint through its alpha.
+    /// The mark at 22 pt in its own gold, as the Start Page shows it, rather
+    /// than in the Island's ink (owner, 2026-11-11).
     private static func sized(_ image: UIImage) -> UIImage {
         let side: CGFloat = 22
         return UIGraphicsImageRenderer(size: CGSize(width: side, height: side)).image { _ in
             image.draw(in: CGRect(x: 0, y: 0, width: side, height: side))
-        }.withRenderingMode(.alwaysTemplate)
+        }.withRenderingMode(.alwaysOriginal)
     }
 }
