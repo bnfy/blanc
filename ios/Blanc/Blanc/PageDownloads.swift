@@ -52,7 +52,7 @@ final class PageDownloads: NSObject, WKDownloadDelegate {
     }
 
     func download(_ download: WKDownload, decideDestinationUsing response: URLResponse,
-                  suggestedFilename: String) async -> URL? {
+                  suggestedFilename: String, completionHandler: @escaping (URL?) -> Void) {
         let name = Self.fileName(suggestedFilename)
         let folder = FileManager.default.temporaryDirectory
             .appendingPathComponent("downloads", isDirectory: true)
@@ -60,13 +60,15 @@ final class PageDownloads: NSObject, WKDownloadDelegate {
         do {
             try FileManager.default.createDirectory(at: folder, withIntermediateDirectories: true)
         } catch {
+            // No destination cancels the download.
             finished(download)
-            return nil
+            completionHandler(nil)
+            return
         }
         let file = folder.appendingPathComponent(name)
         files[ObjectIdentifier(download)] = file
         onNotice?(SyncCopy.text("downloads.progressLabel", ["file": name]))
-        return file
+        completionHandler(file)
     }
 
     func downloadDidFinish(_ download: WKDownload) {

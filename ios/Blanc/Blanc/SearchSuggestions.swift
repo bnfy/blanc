@@ -133,8 +133,12 @@ nonisolated enum SearchSuggestions {
     }()
 
     /// A provider that redirects gets no second request (desktop's `redirect: 'error'`).
+    /// The completion-handler form: the `async` one crashes Swift 6.3's
+    /// compiler while it emits the method's Objective-C entry point.
     private final class NoRedirects: NSObject, URLSessionTaskDelegate, Sendable {
         func urlSession(_ session: URLSession, task: URLSessionTask, willPerformHTTPRedirection response: HTTPURLResponse,
-                        newRequest request: URLRequest) async -> URLRequest? { nil }
+                        newRequest request: URLRequest, completionHandler: @escaping (URLRequest?) -> Void) {
+            completionHandler(nil)
+        }
     }
 }
