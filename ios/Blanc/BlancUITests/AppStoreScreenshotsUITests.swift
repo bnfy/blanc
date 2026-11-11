@@ -114,9 +114,7 @@ final class AppStoreScreenshotsUITests: XCTestCase {
 
   func test3Spaces() throws {
     launch()
-    let mark = app.buttons["island.space"]
-    XCTAssertTrue(mark.waitForExistence(timeout: 5))
-    mark.tap()
+    app.openSpacesCard()
     XCTAssertTrue(app.buttons["spaces.row.Trip"].waitForExistence(timeout: 5))
     try shoot("3-spaces", settle: 4)
   }

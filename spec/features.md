@@ -1323,8 +1323,10 @@ existing certificate-safety scenario; historical PR evidence retains its old IDs
 - **Several-tab selection (desktop):** ⌘/Ctrl-click toggles rows, Shift-click selects a visible range, and Shift-arrow extends from a focused row in the panel or side list. Splits are selected whole. The current row joins a new selection; plain activation, Escape and a space switch clear it. Selection is owned by main and never saved or synced. The separate menu moves, groups, pins, mutes, reloads, quiets, copies or closes selected tabs. Space moves write the full capture first and retain unmoved tabs after partial failure; other placement edits apply in one pass. Close Tabs records one batch, including split layouts. A drag still moves only its starting row.
 
 - **iOS (M17, unreleased):** the phone's tabs outside any Space are **This
-  iPhone**; local Spaces, the Space mark and the Spaces card, Move to Space,
-  delete with Undo and Recently deleted (7 days) follow desktop. A shared
+  iPhone**; local Spaces, the Spaces card, Move to Space, delete with Undo
+  and Recently deleted (7 days) follow desktop. As on desktop, the resting
+  Island shows no Space mark: the palette's footer has a Spaces button (the
+  shown Space's tile, or the quiet Spaces glyph) once a Space exists. A shared
   Space deleted on the phone is deleted everywhere at once; Undo keeps a copy
   on the phone.
 
