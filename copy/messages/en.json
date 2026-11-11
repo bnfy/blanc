@@ -243,7 +243,7 @@
     "maxLength": 14
   },
   "pill.placeholder": {
-    "message": "Search or type a URL",
+    "message": "Search or type URL",
     "note": "Pill label on a blank new tab, inviting the user to open the command bar.",
     "maxLength": 28
   },

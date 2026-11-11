@@ -243,7 +243,7 @@
   },
   "pill.placeholder": {
     "message": "Pesquise ou digite uma URL",
-    "source": "sha256:cfb8ca4be5f793f910258121250c991cd9bc736ccfd07285de5dacff603913cc"
+    "source": "sha256:2e08dd16f185dce91d05c05daf014358e0e4a3288b77548b35d7036a441d2379"
   },
   "pill.notice.cleanLinkCopied": {
     "message": "Link limpo copiado",
