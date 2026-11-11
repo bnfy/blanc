@@ -6,35 +6,35 @@
 
 > **OWNER ADDITION (2026-11-11, binding): runner timing baseline.** Before the single end-of-queue inventory, add per-phase timing to `chromium/tests/runner.mjs` (browser launch, blocker readiness, reset between cases, appearance setup, step execution, waits that ran to timeout, retries, teardown), written to the run's evidence as a JSON summary with totals and the 20 slowest cases. Record a baseline over a 60-case sample across at least six feature files. Then remove the obvious waste (for example fixed sleeps, re-doing setup that is already in the wanted state, relaunching when a reset is enough) WITHOUT weakening any assertion, the rendering guard, or isolation between cases; rerun the same sample and report before/after per phase. Shipping's Electron harness (`test/desktop/`, read-only) is the comparison for what a case should cost. Report it in a "Runner timing" section. Keep this notice when you rewrite the file.
 
-Queue 4 is **in progress**. Dedicated beta build/updater remains on absolute owner hold.
-Current prototype: **macos-9987cc7166c3c921**; `q4-sync-layout-3-runtime-config.json`.
+Queue 4 verification is complete for this pass; items 1, 9 and 11 retain the explicit gaps below.
+Final prototype: **macos-16b70f7e53699ab5**; `q4-final-repair-1-runtime-config.json`.
 
 | Item | State |
 | --- | --- |
-| 1 Private lifecycle | Partly: five scenarios pass; native secret isolation fixed; actual Touch ID ceremony blocked by signing/Apple restriction |
-| 2 Telemetry consent | Done: both original cases and three failed-write/recovery checks pass; consent verified on disk before any event |
-| 3 Shared Spaces / Send | Done: all 41 cases have passing development evidence; resume targets 4/4 and full Sync 22/22 on item 3 candidate |
-| 4 Updater | Deliberately excluded: absolute beta-build hold |
+| 1 Private lifecycle | Partly: five scenarios and native secret isolation pass; actual Touch ID ceremony needs signed entitlements and owner interaction |
+| 2 Telemetry consent | Done: both original cases and failed-write/recovery checks pass; consent saved before events; tests stay local |
+| 3 Shared Spaces / Send | Done: all 33 + 8 cases pass in the full inventory; affected restart controls and full Sync pass on final build |
+| 4 Updater | Excluded: absolute owner hold on beta build remains |
 | 5 Certificate recovery / eviction | Done: seven scenarios and three native eviction/isolation checks pass |
-| 6 Microphone indicator | Done: real permission, synthetic input, window-wide chip and native Stop pass |
-| 7 Quiet Space ownership | Done: ownership case and five quiet-protection controls pass |
-| 8 Glance / other failures | Done: seven original failures now pass; Linux-only menu case is not applicable on macOS |
-| 9 Pinned homes | Partly: six web scenarios pass; isolated local HTML home remains blocked by missing N15 preview |
-| 10 Open-tab / Arc import | Done: all 22 macOS cases, two secondary-profile checks and full Sync 22/22 pass |
-| Owner Sync dialog report | Done: four layout states, device/prompt persistence, three journal checks, erasure and full Sync 22/22 pass |
-| 11 Remaining adapters | Partly: ten further cases pass; remaining capability/platform gaps stay explicit |
+| 6 Microphone indicator | Done: real permission, synthetic input, window-wide chip and Stop pass |
+| 7 Quiet Space ownership | Done: ownership and five protection controls pass |
+| 8 Glance / original failures | Done: seven original macOS failures pass; original Linux-only failure is explicitly inapplicable |
+| 9 Pinned homes | Partly: six web cases pass; local HTML home needs missing N15 isolated preview |
+| 10 Open-tab / Arc import | Done: 22 macOS cases, two secondary-profile checks and full Sync pass |
+| Owner Sync dialog | Done: four visual states, device name, consent persistence, settings-journal faults and erasure retry pass |
+| 11 Remaining adapters | Partly: ten further targets pass; 102 undefined cases retain explicit adapter/product/platform gaps |
 
-| Evidence | Sync pass/fail | Inventory pass/fail/undefined/excluded |
+| Evidence | Sync pass/fail | Full inventory pass/fail/undefined/excluded |
 | --- | --- | --- |
 | Owner baseline | 22/0 | 443/8/187/2 |
-| Item 3: q4-resume-full-sync | 22/0 | Final inventory owed |
-| Item 9: q4-pinned-full-sync | 22/0 | Final inventory owed |
-| Item 10: q4-import-local-full-sync | 22/0 | Final inventory owed |
-| Owner report: q4-sync-layout-full-sync | 22/0 | Final inventory owed |
+| Single inventory: macos-9987cc7166c3c921 | 22/0 | 533/3/102/2 |
+| Final repair: macos-16b70f7e53699ab5 | 22/0 | Not repeated; 12/12 targeted checks pass |
 
-Lost passes: partial run found F41:558 group creation; fixed and targeted check passes. Final comparison owed.
-Owner input: actual device-bound passkey acceptance requires a signed, entitled build and Touch ID ceremony, outside this queue.
-Unverified: final-candidate regression, passkey ceremony, physical input/accessibility, other platforms and release qualification.
+Lost passes: F41 :51, Sync :210 and tabs/groups :347 all repaired and passing without retry on final build; none outstanding.
+The raw inventory gained 93 passes; its three failures remain preserved, not relabeled as a new full run.
+Runner sample: same 60 cases / six files, 60/60 both runs; 265.559s → 234.341s (11.8% less), no lost passes.
+Owner needs: signed/entitled Touch ID acceptance; beta/updater hold remains. No input needed for the completed repairs.
+Unverified: full inventory on repaired bytes, 102 remaining gaps, real microphone hardware, physical shortcuts/accessibility, other platforms and release qualification.
 No push, publication, signing, production/Apple/1Password contact, live-tree change, beta build or toolchain installation.
 
 ## 1 — Private lifecycle
@@ -720,7 +720,7 @@ progress freshness and whitespace pass. Patch budget: 123 incremental upstream
 paths / 430 hunks; full reconstruction 162 upstream / 583 canonical files.
 
 Item 11 adapter targets and the timing comparison are now complete.
-The complete inventory remains owed, ONCE. No external stop occurred.
+The single complete inventory and its repairs are recorded below. No external stop occurred.
 
 ## 11 — Further user-visible adapters
 
@@ -738,14 +738,76 @@ renderer-size mismatch. Both failures remain in the evidence.
 The focused accessible-name unit check covers labels, hidden controls and exact
 versus substring/regex matching. Precommit: 309/309; native product unchanged,
 so no additional build or full Sync run is needed. The full gate on this exact
-candidate remains q4-sync-layout-full-sync, 22/22. Complete inventory is still
-owed after the required timing sample. Remaining undefined adapters are not
+candidate remains q4-sync-layout-full-sync, 22/22. The final inventory and targeted repair results are recorded below. Remaining undefined adapters are not
 passes: overlay lifecycle/focus, local HTML preview, profile/search management,
 physical passkeys and unavailable platform/Electron operations need separate
 coverage or product work.
 
-Final inventory start: principal scoped development and both timing samples are
-complete. Next run is `q4-final-inventory` on q4-sync-layout-3, the only complete
-inventory of this queue. Compare to q3-whole-inventory and fix lost passes with
-targeted runs, preserving raw full-inventory evidence. No native build/test is active
-at this note's preparation; the inventory starts after this step is committed.
+## Final inventory and targeted repairs
+
+The only complete inventory is `q4-final-inventory`, launched from 3f6cfa13
+on macos-9987cc7166c3c921 / q4-sync-layout-3-runtime-config.json. It completed
+640 cases: 533 pass / 3 fail / 102 undefined / 2 excluded, with 93 newly passing
+cases relative to q3-whole-inventory and three lost passes. The raw receipt is
+committed at `chromium/scenarios/baseline-macos-9987cc7166c3c921.json` and the
+comparison is `q4-final-comparison.json`. It is never relabeled for the repaired
+candidate. Tracker Bar A correctly treats it as stale for the final binary.
+Recorded case time: 6557.0 seconds. Five cases used the existing one retry:
+three remained failed; newtab-layouts :171 and permissions-and-auth :13 passed
+on retry. One wait reached timeout (capture popover, about five seconds).
+All 33 Shared Spaces and all eight Send cases passed in this full run; the
+two-native-client exchange/deferral/rejoin/budget case passed in 496.9 seconds.
+
+The three lost passes were diagnosed and repaired:
+
+- F41 :51: item 3's closing_all capture guard also suppressed WillCloseAllTabs'
+  final intact-model snapshot. A recent ordinary-tab removal therefore left an
+  older Space record on disk. Only that pre-teardown callback now opts into
+  capture; periodic snapshots still reject draining and empty models. The
+  private-only Space now reopens with one Start Page, not removed ordinary tabs.
+- Sync :210: the checklist click could precede its asynchronous Start Page
+  projection. The diagnostic passed once the row was painted. The adapter now
+  waits for the real available task before opening the popover and retains
+  the exact visible-button/popover assertions. No action is injected into a
+  hidden task and the shipping step is unchanged.
+- Tabs/groups :347: the explicit-position Locator click skipped actionability.
+  The diagnostic recorded a zero-height #islandList and pointerdown on the
+  backdrop. Position clicks now require visibility, stability and a hit on the
+  requested point, like center clicks. The unchanged shipping step catches
+  the unavailable-list click, then observes that the panel remains open.
+  Tests verify no input is dispatched for zero height and that a visible
+  target gets the requested coordinate, not its center.
+
+`q4-final-diagnostic` preserves DOM/event evidence. `q4-final-ui-repairs`
+passes both UI cases on the pre-repair binary without diagnostic preloads.
+Guarded `q4-final-repair-1`: 6 actions / 34.32 seconds; final native candidate
+macos-16b70f7e53699ab5. `q4-final-repair-targeted` passes 11/11 on first attempts:
+F41 :22/:51; Shared Spaces :73/:94/:111; Sync :26/:38/:56/:210; tabs/groups :347;
+and vertical tabs :43. `q4-final-repair-empty-space` separately passes F41 :28
+(the first batch's :26 selector matched no case); total 12/12, no retry.
+`q4-final-repair-full-sync` passes 22/22; persisted restart quota waited
+120034 ms with the local inbox readable. No second full inventory ran.
+Required `q4-final-repair-precommit.tap`: 311/311 pass. Patch reconstruction:
+162 upstream / 583 canonical files. Incremental patch budget remains 123
+upstream paths / 430 hunks. Progress freshness and whitespace pass. Read-only
+shipping paths and the phone Sync implementation remain unchanged.
+No native build or test is left running at completion. No external stop occurred.
+
+Remaining undefined cases are explicit future work, not inferred product passes:
+
+| Feature area | Undefined cases |
+| --- | ---: |
+| Glance | 22 |
+| Spaces | 17 |
+| Tab archive | 16 |
+| Platform services | 8 |
+| Link routing | 7 |
+| Other files | 32 |
+
+Three cases are explicitly Linux-only (Arc import :53, Island :320, vertical
+tabs :239). The other cases retain their individual missing-hook, unsupported
+Electron operation or missing-capability reason in the raw baseline. This
+includes actual device-bound passkeys and the N15 local-document preview;
+a raw file navigation or virtual authenticator is not claimed as acceptance.
+The timing comparison above is a same-candidate harness benchmark and source
+comparison with shipping's setup, not an Electron benchmark or release claim.

@@ -228,12 +228,21 @@ export const pages={
    popoverBounds:popover?.matches(':popover-open')?bounds(popover):null,footerBounds:bounds(document.getElementById('layoutFooter')),
    customizeBounds:bounds(document.getElementById('customizeButton')),hideBounds:bounds(document.getElementById('migrationChecklistHide')),
    pillInFooterLeft:!!shell?.closest('#layoutFooter .footer-left'),viewportWidth:innerWidth};})()`),
- clickMigrationChecklist:onStart(false,action=>{const id={sync:'migrationSyncAction',tabs:'migrationTabsAction',space:'migrationSpaceAction',iphone:'migrationIphoneAction',hide:'migrationChecklistHide',compact:'migrationChecklistCompact'}[action];
+ async clickMigrationChecklist(w,action){const page=await startPage(w);if(!page)return false;const id={sync:'migrationSyncAction',tabs:'migrationTabsAction',space:'migrationSpaceAction',iphone:'migrationIphoneAction',hide:'migrationChecklistHide',compact:'migrationChecklistCompact'}[action];
   const inPopover=['sync','tabs','space','iphone'].includes(action);
-  return `(()=>{const btn=${id?`document.getElementById('${id}')`:'null'};if(!btn)return false;
+  if(!id)return false;
+  // The navigation can finish before asynchronous Start Page data paints the
+  // checklist. Wait for the actual available task, then retain the popover
+  // and visible button checks below. No hidden task is treated as actionable.
+  await w.waitFor(()=>page.evaluate(id=>{
+   const shell=document.getElementById('migrationChecklistShell'),button=document.getElementById(id);
+   if(!shell||!button||shell.hidden||button.closest('[hidden]'))return false;
+   const box=shell.getBoundingClientRect();return box.width>0&&box.height>0;
+  },id),Boolean,'rendered moving-in checklist task '+action);
+  return page.evalExpression(`(()=>{const btn=${id?`document.getElementById('${id}')`:'null'};if(!btn)return false;
    if(${inPopover}){const popover=document.getElementById('migrationChecklist');if(!popover.matches(':popover-open'))document.getElementById('migrationChecklistCompact').click();
     if(!popover.matches(':popover-open'))return false;const box=btn.getBoundingClientRect();if(!box.width||!box.height)return false;}
-   btn.focus();btn.click();return true;})()`;}),
+   btn.focus();btn.click();return true;})()`);},
  clickPatronCalloutClose:onStart(false,`(()=>{const btn=document.getElementById('patronCalloutHide');if(!btn||btn.closest('[hidden]'))return false;btn.click();return document.getElementById('patronCallout').hidden;})()`),
  readLaunchSunrise:onStart(null,`(()=>{const scene=document.getElementById('launchSunrise');
   if(!scene)return {present:false,layoutReady:document.body.classList.contains('layout-ready')};const style=getComputedStyle(scene);

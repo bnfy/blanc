@@ -124,16 +124,17 @@ export class Locator{
  dispatchEvent(type,init={}){return this.one((e,a)=>{e.dispatchEvent(new (a.type.startsWith('pointer')?PointerEvent:a.type.startsWith('mouse')||a.type==='click'||a.type==='contextmenu'?MouseEvent:a.type.startsWith('key')?KeyboardEvent:Event)(a.type,{bubbles:true,cancelable:true,composed:true,...a.init}));return true;},{type,init});}
  selectOption(value){return this.one((e,v)=>{e.value=v;e.dispatchEvent(new Event('input',{bubbles:true}));e.dispatchEvent(new Event('change',{bubbles:true}));return [e.value];},value);}
  // Playwright's actionability: visible, stable across animation frames, and
- // the hit target at its centre (an opening morph must not eat the click).
- async center({timeout=5000}={}){await this.waitFor({timeout});await this.scrollIntoViewIfNeeded();const end=Date.now()+timeout;
+ // the hit target at the requested point (center by default). Explicit
+ // positions need the same checks; a zero-height list must not hit its backdrop.
+ async center({timeout=5000,position}={}){await this.waitFor({timeout});await this.scrollIntoViewIfNeeded();const end=Date.now()+timeout;
   for(let last=null;;){// A throttled (background) document may never paint; a timer bounds the wait.
-   const r=await this.evaluate(e=>new Promise(done=>{const read=()=>{const b=e.getBoundingClientRect(),x=b.x+b.width/2,y=b.y+b.height/2;
-    done({x:b.x,y:b.y,width:b.width,height:b.height,hit:e.contains(document.elementFromPoint(x,y))});};
-    requestAnimationFrame(()=>requestAnimationFrame(read));setTimeout(read,100);}));
-   if(r.width&&r.hit&&last&&['x','y','width','height'].every(k=>r[k]===last[k]))return {x:r.x+r.width/2,y:r.y+r.height/2};
+   const r=await this.evaluate((e,position)=>new Promise(done=>{const read=()=>{const b=e.getBoundingClientRect(),x=b.x+(position?.x??b.width/2),y=b.y+(position?.y??b.height/2);
+    done({x:b.x,y:b.y,width:b.width,height:b.height,pointX:x,pointY:y,hit:e.contains(document.elementFromPoint(x,y))});};
+    requestAnimationFrame(()=>requestAnimationFrame(read));setTimeout(read,100);}),position);
+   if(r.width&&r.height&&r.hit&&last&&['x','y','width','height'].every(k=>r[k]===last[k]))return {x:r.pointX,y:r.pointY};
    if(Date.now()>end)throw timeoutError(`Timeout waiting for ${this.selectors.map(s=>typeof s==='string'?s:s.css+':has-text('+JSON.stringify(s.text)+')').join(' ')} to be stable and receive pointer events`,Date.now()-(end-timeout));last=r;}}
- async click({button='left',clickCount=1,modifiers=[],position}={}){
-  const b=position?await this.boundingBox():null;const p=position?{x:b.x+position.x,y:b.y+position.y}:await this.center();
+ async click({button='left',clickCount=1,modifiers=[],position,timeout=5000}={}){
+  const p=await this.center({position,timeout});
   for(const m of modifiers)await this.page.keyboard.down(m==='ControlOrMeta'?'Meta':m);
   await this.page.mouse.move(p.x,p.y);
   for(let i=1;i<=clickCount;i++){await this.page.mouse.down({button,clickCount:i});await this.page.mouse.up({button,clickCount:i});}

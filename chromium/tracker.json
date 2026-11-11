@@ -2459,8 +2459,8 @@
   ],
   "currentCandidates": {
     "macos": {
-      "id": "macos-9987cc7166c3c921",
-      "frameworkSha256": "9987cc7166c3c921ec194b6f7aefccbd82739c5c506af1c078c413b63409da96",
+      "id": "macos-16b70f7e53699ab5",
+      "frameworkSha256": "16b70f7e53699ab54c23bd46771b3a7202eaed4e0b0430f5edf6ce4cb16a0105",
       "executableSha256": "cca20d7ed00bbdecf8db310c6802fbed003b4e63c6bc3b1f71dabc9dbff2ff01",
       "version": "158.0.8127.2",
       "qualification": "compiled candidate; runtime acceptance pending"
@@ -2475,7 +2475,7 @@
     }
   },
   "baselines": {
-    "macos": "scenarios/baseline-macos-f0bd093f621c613f.json"
+    "macos": "scenarios/baseline-macos-9987cc7166c3c921.json"
   },
   "scenarioIds": [
     "spec/acceptance/F41-named-workspaces.feature:4",

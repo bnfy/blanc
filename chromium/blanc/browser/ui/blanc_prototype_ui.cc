@@ -849,7 +849,8 @@ class IslandToolbarProvider final : public ToolbarButtonProvider,
 };
 
 scoped_refptr<base::SequencedTaskRunner> SpaceRunner();
-std::optional<base::DictValue> CaptureNativeSpace(BrowserWindowInterface* browser);
+std::optional<base::DictValue> CaptureNativeSpace(BrowserWindowInterface* browser,
+                                                   bool before_close_all = false);
 void SaveInheritedSandbox(content::WebContents* tab);
 void NoteSpaceTabCount(Profile* profile, const std::string& name, size_t tabs);
 bool ValidSpace(const base::DictValue& record);
@@ -1289,7 +1290,7 @@ class Owner : public base::SupportsUserData::Data,
     // and debounce. The existing BLOCK_SHUTDOWN sequence orders this after any
     // in-flight autosave; the task owns values, never this closing window.
     if (space_name.empty() || !space_error.empty()) return;
-    auto capture = CaptureNativeSpace(browser);
+    auto capture = CaptureNativeSpace(browser, true);
     if (!capture) return;
     NoteSpaceTabCount(browser->GetProfile(), space_name, capture->FindList("tabs")->size());
     SpaceRunner()->PostTask(FROM_HERE, base::BindOnce(
@@ -2925,12 +2926,16 @@ bool MainDocumentLoading(content::WebContents* tab) {
       tab->GetController().GetPendingEntry());
 }
 
-std::optional<base::DictValue> CaptureNativeSpace(BrowserWindowInterface* browser) {
+std::optional<base::DictValue> CaptureNativeSpace(BrowserWindowInterface* browser,
+                                                   bool before_close_all) {
   if (browser->GetProfile()->IsOffTheRecord()) return std::nullopt;
   auto* model = browser->GetTabStripModel();
   // Window teardown is not a set of user tab removals. Keep the last complete
   // Space/Sync capture while close-all drains the model, or its last tab exits.
-  if (model->closing_all() || model->empty()) return std::nullopt;
+  // WillCloseAllTabs observes the intact model before teardown and must
+  // flush recent user removals, including a now private-only Space. Only
+  // that callback opts in; periodic captures still refuse a draining model.
+  if ((model->closing_all() && !before_close_all) || model->empty()) return std::nullopt;
   // Temporary Glance is never serialized as persistent Split View.
   for (auto* owner : Owner::Live()) if (owner->browser == browser && owner->glance_main >= 0) return std::nullopt;
   base::ListValue tabs, groups, splits, split_ids;
