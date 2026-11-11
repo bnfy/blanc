@@ -215,7 +215,7 @@ export const island={
   if(n==null)throw Error('Overlay show counter was not reset on the current overlay document');
   return n;
  },
- overlayDragging:undef('The fork host discards setOverlayDragState; no overlay drag flag exists to read'),
+ overlayDragging:w=>w.hostEval('window.BlancPrototypeHost.overlayDragging()'),
  // ---- tab documents ----
  async sendMouseInput(w,id,input){const page=await tabPage(w,id);await page.evalExpression('1');return send(page.cdp,input);},
  async typeIntoActivePage(w,key){const page=await activePage(w);await page.evalExpression('1');

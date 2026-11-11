@@ -8,7 +8,7 @@ Queue 5 is in progress. Display-dependent runs are blocked by the rendering guar
 | b: missing fork capability / blocked acceptance | 49 | 0 |
 | c: inapplicable by platform or approved construction | 22 | 0 |
 
-Current candidate: `macos-e048ca40f4679ff0`, `q5-audio-1-runtime-config.json`.
+Current candidate: `macos-c974361243232cd7`, `q5-drag-1-runtime-config.json`.
 Inherited Sync gate: 22/22 on starting bytes; Sync code unchanged; not rerun.
 Inventory baseline: 533 pass / 3 fail (subsequently repaired) / 102 undefined / 2 excluded.
 Final inventory: owed, once after implementation. Lost passes: not yet measured.
@@ -311,3 +311,15 @@ state is supplied by the adapter. Build q5-audio-1 passes (6 steps / 34.47 s).
 Owed: Glance :38 and :45 on this or a later final candidate after the rendering
 guard is clear; neither is counted as a pass. Sync untouched; patch budget
 unchanged at 125 upstream paths / 434 hunks.
+
+## 7 — Island Escape during a drag (implemented; native acceptance owed)
+
+The host now accepts a boolean drag flag only from its current overlay
+document, and only starts one in an open panel/palette. Stale iframe documents,
+the strip and other callers cannot set or clear it. Focus loss does not dismiss
+a drag; Escape remains with the renderer's existing cancel handler. Closing,
+replacing or reloading the overlay clears the flag. The adapter reads that
+production state. Build q5-drag-1 passes (7 steps / 21.22 s); tab-drag :136
+is owed after display unlock. No native pass is credited. Patch budget and
+Sync remain unchanged. Headless tests exercise current/stale document identity,
+allowed surfaces, closed state and non-boolean input.

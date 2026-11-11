@@ -26,6 +26,7 @@
   let pillRect = null;
   let opened = false;
   let overlayMode = null;
+  let overlayDragging = false;
   let overlayClosing = null;
   // When the open surface appeared, and whether its native context menu is up.
   let overlayShownAt = 0;
@@ -1070,6 +1071,7 @@
   }
 
   async function show(prefill, mode = 'panel', trigger = null, purpose = undefined) {
+    overlayDragging = false;
     if (mode === 'panel' || mode === 'palette') request('syncSurface', ['refreshSession', []]).catch(() => {});
     // Every open ends a hover dwell, as shipping's showOverlay does.
     hoverStepWith({ type: 'ineligible' });
@@ -1176,6 +1178,7 @@
   }
 
   async function close(focus = true, restoreTrigger = null) {
+    overlayDragging = false;
     invalidateFindShow();
     const epoch = findShowEpoch;
     await dismissPaneMenu();
@@ -1261,13 +1264,14 @@
   const dismissOnFocusLoss = () => {
     setTimeout(() => {
       if (!opened || !overlayMode || overlayMode === 'find' || overlayMode === 'display-share' ||
-          overlayMenuOpen || document.hasFocus() || performance.now() - overlayShownAt < 400) return;
+          overlayDragging || overlayMenuOpen || document.hasFocus() || performance.now() - overlayShownAt < 400) return;
       close(false);
     }, 0);
   };
   // Focus inside the overlay frame leaves the host window with nothing to
   // blur, so the frame's own window reports the loss too.
   const watchOverlay = () => {
+    overlayDragging = false;
     const win = overlay.contentWindow;
     win.addEventListener('blur', dismissOnFocusLoss);
     // Focus coming back is the native menu closing.
@@ -2194,6 +2198,7 @@
     openIslandCommands: () => show('/'),
     // Cancelling the Change picker hands focus back to its control on the card.
     closeOverlay: async reason => {
+      if (reason === 'escape' && overlayDragging) return false;
       if (overlayMode === 'spaces' && (reason === 'escape' || reason === 'cancel'))
         return close(false, 'spaces');
       if (overlayMode === 'glance' && reason !== 'selected') {
@@ -2214,7 +2219,8 @@
     // Shared panel cleanup runs even though this prototype has no workspace actions.
     cancelWorkspaceAction: () => { spacesDecision = null; },
     setWorkspaceSwitcherOpen: () => {},
-    setOverlayDragState: () => {},
+    // Only apiForDocument grants this to the current overlay document.
+    setOverlayDragState: () => false,
     acknowledgeDownloads: () => {},
     respondPermission,
     // Site controls' Stop allowing on a page loaded past a certificate warning.
@@ -2285,9 +2291,16 @@
 
   // Capture the iframe Document when its adapter starts. A callback from an
   // obsolete realm must not register itself as the new overlay document.
+  function acceptOverlayDragState(ownerDocument, value) {
+    if (typeof value !== 'boolean' || ownerDocument !== overlay.contentDocument) return false;
+    if (value && (!opened || (overlayMode !== 'panel' && overlayMode !== 'palette'))) return false;
+    overlayDragging = value;
+    return true;
+  }
   function apiForDocument(ownerDocument) {
     return new Proxy(api, {
       get(target, property) {
+        if (property === 'setOverlayDragState') return value => acceptOverlayDragState(ownerDocument, value);
         if (property === 'showTooltip') return payload => {
           const frame = ownerDocument.defaultView?.frameElement;
           const rect = frame?.getBoundingClientRect();
@@ -2510,6 +2523,7 @@
     glanceState: () => ({ layout: glancePayload(), shown: !glanceCardFrame.hidden, generation: glance.generation }),
     findState: () => ({ tabId: findTabId }),
     apiForDocument,
+    overlayDragging: () => overlayDragging,
     refreshSyncSurfaces,
     railActivationSerial: () => railActivationSerial,
     toggleTabLayout: () => implemented.setTabLayout(layout === 'vertical' ? 'island' : 'vertical'),
@@ -2540,7 +2554,7 @@
       await close();
       return true;
     },
-    escape: () => opened || extensionsOpened ? close() : undefined,
+    escape: () => !overlayDragging && (opened || extensionsOpened) ? close() : undefined,
     // The utility sheet: its pages' bridge and links (pages/sheet-adapter.js),
     // native commands (History, Downloads, Favorites) and its state.
     sheetBridge, sheetLink, sheetEscape,
