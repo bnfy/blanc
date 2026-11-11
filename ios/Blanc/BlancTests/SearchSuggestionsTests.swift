@@ -131,12 +131,24 @@ import XCTest
         XCTAssertEqual(m.settingsStore.searchSuggestions, false)
     }
 
-    func testAWalkthroughAlreadySeenLeavesSuggestionsUnasked() {
+    func testWithNoCardShowingNothingIsSaved() {
         let m = manager()
         m.walkthrough = WalkthroughFlow(paired: true, completedVersion: WalkthroughFlow.version, isDefaultBrowser: nil)
         m.closeWalkthrough(usagePingShown: true, searchSuggestionsShown: true)
         XCTAssertNil(m.settingsStore.searchSuggestions)
         XCTAssertFalse(m.settingsStore.searchSuggestionsOn)
+    }
+
+    func testAPhoneFromTheEarlierWalkthroughIsAskedAndItsAnswerSaved() {
+        let m = manager()
+        m.settingsStore.update(usagePing: false, walkthroughCompletedVersion: 1)
+        m.walkthrough = WalkthroughFlow(paired: true, completedVersion: 1, isDefaultBrowser: nil)
+        XCTAssertEqual(m.walkthrough.current, .privacy)
+        XCTAssertFalse(m.settingsStore.searchSuggestionsOn, "nothing is sent while the card waits")
+        m.closeWalkthrough(usagePingShown: false, searchSuggestionsShown: true)
+        XCTAssertEqual(m.settingsStore.searchSuggestions, true)
+        XCTAssertEqual(m.settingsStore.usagePing, false, "the earlier choice is kept")
+        XCTAssertEqual(m.settingsStore.walkthroughCompletedVersion, WalkthroughFlow.version)
     }
 
     func testTheSearchRowSearchesWhateverTheTextLooksLike() {

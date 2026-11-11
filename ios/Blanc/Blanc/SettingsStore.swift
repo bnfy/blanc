@@ -41,9 +41,10 @@ final class SettingsStore {
     /// Search suggestions in the palette (F5), device-local and never synced.
     /// Like `usagePing`, `nil` until the person saves or skips the
     /// walkthrough's privacy step or sets it in Settings → Privacy, and an
-    /// unsaved choice sends nothing: a phone that finished the walkthrough
-    /// before it asked stays off. The walkthrough's switch shows the schema
-    /// default.
+    /// unsaved choice sends nothing. A phone that finished the walkthrough
+    /// before it asked is shown the privacy step once more
+    /// (`WalkthroughFlow.version` 2). The walkthrough's switch shows the
+    /// schema default.
     private(set) var searchSuggestions: Bool?
     var searchSuggestionsShown: Bool { searchSuggestions ?? BlancSettingsDefaults.searchSuggestions }
     /// Whether typed text may go to the search provider at all.
