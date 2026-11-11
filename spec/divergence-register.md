@@ -872,25 +872,33 @@ public v1.43.1. Revisit when a mobile Blanc has profiles.
 
 **Why:** The owner asked for a layered, reflective iPhone icon in the
 standard Light style (2026-10-29). They chose the iPhone's Sunrise Gold as
-its standard icon and added Sunrise Dawn, which is kept off the Mac for now. iOS 26 and later draw Icon
+its standard icon and added Sunrise Dawn, which is kept off the Mac for now.
+On 2026-11-11 they made Sunrise the iPhone's standard icon, as on the Mac,
+and added Sunrise Bronze, also iPhone only. iOS 26 and later draw Icon
 Composer packages in Liquid Glass and store the chosen alternate icon
 themselves.
 
 - **Desktop (macOS):** five icons, `sunrise` standard, chosen in Settings →
   General → App icon and stored as the device-local `appIcon` setting.
-- **iOS:** six icons, the Mac's five plus `sunrise-dawn` (Sunrise Dawn).
-  `sunrise-gold` is the primary icon. They're chosen in Settings → Appearance → App icon and
-  switched with `setAlternateIconName`. iOS remembers the choice, so there's
-  no `appIcon` value in iPhone settings. The iPhone's Sunrise Gold is drawn for
-  the phone: the same cream glass Sunrise on gold, plus a reflection under
-  the water and separate glass pieces.
+- **iOS:** seven icons, the Mac's five plus `sunrise-bronze` (Sunrise Bronze)
+  and `sunrise-dawn` (Sunrise Dawn). `sunrise` is the primary icon (it was
+  `sunrise-gold` until 2026-11-11; a phone that had chosen Sunrise as an
+  alternate still reads as Sunrise). They're chosen in Settings → Appearance →
+  App icon and switched with `setAlternateIconName`. iOS remembers the choice,
+  so there's no `appIcon` value in iPhone settings. The iPhone's Sunrise Gold
+  is drawn for the phone: the same cream glass Sunrise on gold, plus a
+  reflection under the water and separate glass pieces. Sunrise Bronze is
+  Sunrise turned inside out: a cream glass mark on a bronze tile, with a warm
+  glow behind the sun and its reflection in the water.
 - **Android:** not built.
 
 **Parity contract:** shared ids keep the same names and labels, no platform
-reuses a retired id, and every icon is free. `sunrise-dawn` stays out of the
-shared settings schema until the Mac offers it.
+reuses a retired id, and every icon is free. `sunrise-dawn` and
+`sunrise-bronze` stay out of the shared settings schema until the Mac offers
+them.
 
-**Status:** iPhone implemented, unreleased. Spec:
+**Status:** iPhone 1.0 shipped with Sunrise Gold standard; Sunrise standard
+and Sunrise Bronze are implemented for 1.0.2, unreleased. Spec:
 `docs/superpowers/specs/2026-10-29-ios-liquid-glass-app-icons-design.md`.
 
 ---

@@ -443,8 +443,9 @@ From the desktop `DEFAULTS`:
   lines in coral over blue) and `sunrise-amber` (the same in gold and bronze); the last two sit
   on a light tile (Arc's graded gray for Spectrum, cream for Amber) that darkens in Dark. Older ids, including the monogram `gold`, are
   retired; any stale or hand-set retired id falls back to `sunrise`.
-- iPhone Settings → Appearance → App icon offers those five plus `sunrise-dawn`
-  (Sunrise Dawn, iPhone only); Sunrise Gold is the iPhone's standard icon. All six are
+- iPhone Settings → Appearance → App icon offers those five plus
+  `sunrise-bronze` (Sunrise Bronze) and `sunrise-dawn` (Sunrise Dawn), both
+  iPhone only; Sunrise is the standard icon, as on the Mac. All seven are
   Icon Composer packages, and iOS itself remembers the choice (D33).
 - Patron is optional support and unlocks nothing: Blanc Spaces (F41) is free
   for everyone, and icon variants were never a Patron benefit. Renderers only
