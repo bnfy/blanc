@@ -38,10 +38,16 @@ final class SettingsStore {
     /// iPhone-only and device-local, never synced (D11).
     private(set) var islandPosition: IslandPosition = .bottom
 
-    /// Search suggestions in the palette (F5). Off on the phone until the
-    /// person turns it on in Settings → Privacy: nothing typed goes to a
-    /// search provider before they've been asked. Device-local, never synced.
-    private(set) var searchSuggestions = false
+    /// Search suggestions in the palette (F5), device-local and never synced.
+    /// Like `usagePing`, `nil` until the person saves or skips the
+    /// walkthrough's privacy step or sets it in Settings → Privacy, and an
+    /// unsaved choice sends nothing: a phone that finished the walkthrough
+    /// before it asked stays off. The walkthrough's switch shows the schema
+    /// default.
+    private(set) var searchSuggestions: Bool?
+    var searchSuggestionsShown: Bool { searchSuggestions ?? BlancSettingsDefaults.searchSuggestions }
+    /// Whether typed text may go to the search provider at all.
+    var searchSuggestionsOn: Bool { searchSuggestions == true }
 
     @ObservationIgnored private let fileURL: URL
     @ObservationIgnored private var unknownKeys: [String: Any] = [:]
@@ -165,7 +171,7 @@ final class SettingsStore {
         dict["islandTucksOnScroll"] = islandTucksOnScroll
         dict["islandHistoryButtons"] = islandHistoryButtons
         dict["islandPosition"] = islandPosition.rawValue
-        dict["searchSuggestions"] = searchSuggestions
+        if let searchSuggestions { dict["searchSuggestions"] = searchSuggestions }
 
         guard let data = try? JSONSerialization.data(withJSONObject: dict, options: [.sortedKeys]) else { return }
         // `.atomic` writes to a sibling temp file and renames it into place —

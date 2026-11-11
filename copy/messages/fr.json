@@ -9337,6 +9337,10 @@
     "message": "À chaque ouverture, Blanc envoie un comptage anonyme : un identifiant aléatoire pour cette installation, la version de l’app et celle d’iOS. Jamais ce que vous consultez. Voir blanc.day/privacy.",
     "source": "sha256:918daf894fa3d224ceb4594a9ca31bb335ea73f40215009a0e188c3b261689bc"
   },
+  "ios.welcome.suggestionsHelp": {
+    "message": "Pendant que vous saisissez une recherche, le texte est envoyé à votre moteur de recherche, qui renvoie des suggestions. Jamais depuis un onglet privé, et jamais une adresse, un texte collé ou quoi que ce soit qui ressemble à un mot de passe ou à une clé.",
+    "source": "sha256:54fe76e488a4dfe5362d990df43edc375a3c92743a380cefe519fda8cfe1f6dd"
+  },
   "ios.welcome.showAgain": {
     "message": "Revoir l’accueil",
     "source": "sha256:5193b208da3381efbc3013b02fcea8b4ff3963097364e92b45a4d10b75d2252c"

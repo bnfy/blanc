@@ -9626,6 +9626,10 @@
     "message": "Each time you open Blanc, it sends one anonymous count: a random ID for this install, the app version and the iOS version. Never what you browse. See blanc.day/privacy.",
     "note": "iOS walkthrough: under the Measure usage switch; says exactly what the launch ping carries."
   },
+  "ios.welcome.suggestionsHelp": {
+    "message": "While you type a search, the text goes to your search provider, which sends back suggestions. Never from a private tab, and never an address, pasted text or anything that looks like a password or key.",
+    "note": "iOS walkthrough: under the Search suggestions switch on the privacy card; says what is sent to the chosen search engine and what never is."
+  },
   "ios.welcome.showAgain": {
     "message": "Show the welcome again",
     "note": "iOS Settings → About: replays the first-minute walkthrough."

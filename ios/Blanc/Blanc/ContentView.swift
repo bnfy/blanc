@@ -270,7 +270,8 @@ struct ContentView: View {
         Binding(get: { manager.walkthrough.current != nil },
                 set: { presented in
                     if !presented, manager.walkthrough.current != nil {
-                        manager.closeWalkthrough(usagePingShown: manager.settingsStore.usagePingShown)
+                        manager.closeWalkthrough(usagePingShown: manager.settingsStore.usagePingShown,
+                                                 searchSuggestionsShown: manager.settingsStore.searchSuggestionsShown)
                     }
                 })
     }

@@ -2642,6 +2642,7 @@ Puoi riprovare con «%2$s» o reinstallare Blanc da blanc.day.</string>
     <string name="ios_welcome_privacy_title">La tua privacy</string>
     <string name="ios_welcome_measure_usage">Misura l’utilizzo</string>
     <string name="ios_welcome_measure_usage_help">Ogni volta che apri Blanc, invia un conteggio anonimo: un ID casuale per questa installazione, la versione dell’app e la versione di iOS. Mai ciò che navighi. Vedi blanc.day/privacy.</string>
+    <string name="ios_welcome_suggestions_help">Mentre scrivi una ricerca, il testo viene inviato al tuo motore di ricerca, che restituisce suggerimenti. Mai da una scheda privata, e mai un indirizzo, testo incollato o qualcosa che sembri una password o una chiave.</string>
     <string name="ios_welcome_show_again">Mostra di nuovo il benvenuto</string>
     <string name="ios_default_browser_title">Apri i link in Blanc</string>
     <string name="ios_default_browser_body">Rendi Blanc il tuo browser predefinito, così i link da Messaggi, Mail e altre app si aprono qui.</string>

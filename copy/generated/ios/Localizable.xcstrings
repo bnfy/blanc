@@ -105019,6 +105019,48 @@
         }
       }
     },
+    "ios.welcome.suggestionsHelp": {
+      "comment": "iOS walkthrough: under the Search suggestions switch on the privacy card; says what is sent to the chosen search engine and what never is.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "While you type a search, the text goes to your search provider, which sends back suggestions. Never from a private tab, and never an address, pasted text or anything that looks like a password or key."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Während du eine Suche eintippst, geht der Text an deinen Suchanbieter, der Vorschläge zurückschickt. Nie aus einem privaten Tab und nie eine Adresse, eingefügter Text oder etwas, das wie ein Passwort oder Schlüssel aussieht."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mientras escribes una búsqueda, el texto se envía a tu buscador, que devuelve sugerencias. Nunca desde una pestaña privada, y nunca una dirección, texto pegado ni nada que parezca una contraseña o una clave."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pendant que vous saisissez une recherche, le texte est envoyé à votre moteur de recherche, qui renvoie des suggestions. Jamais depuis un onglet privé, et jamais une adresse, un texte collé ou quoi que ce soit qui ressemble à un mot de passe ou à une clé."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mentre scrivi una ricerca, il testo viene inviato al tuo motore di ricerca, che restituisce suggerimenti. Mai da una scheda privata, e mai un indirizzo, testo incollato o qualcosa che sembri una password o una chiave."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Enquanto você digita uma pesquisa, o texto vai para o seu provedor de pesquisa, que devolve sugestões. Nunca de uma aba privada, e nunca um endereço, texto colado ou qualquer coisa que pareça uma senha ou chave."
+          }
+        }
+      }
+    },
     "ios.welcome.showAgain": {
       "comment": "iOS Settings → About: replays the first-minute walkthrough.",
       "extractionState": "manual",

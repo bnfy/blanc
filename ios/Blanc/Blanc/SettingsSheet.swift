@@ -281,10 +281,11 @@ struct PrivacySettingsView: View {
                         .accessibilityIdentifier("settings.clearSiteData.done")
                 }
             } footer: { Text(SettingsCopy.text("clearSiteDataHelp")) }
-            // Off until turned on here (F5): the switch is the asking.
+            // The walkthrough's privacy step asks first (F5); a phone that
+            // finished it before it asked starts off.
             Section {
                 Toggle(SyncCopy.text("settings.general.searchSuggestions.label"), isOn: Binding(
-                    get: { manager.settingsStore.searchSuggestions },
+                    get: { manager.settingsStore.searchSuggestionsOn },
                     set: { manager.settingsStore.update(searchSuggestions: $0) }))
                     .accessibilityIdentifier("settings.searchSuggestions")
             } footer: { Text(SyncCopy.text("settings.general.searchSuggestions.hint")) }

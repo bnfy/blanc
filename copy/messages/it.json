@@ -9337,6 +9337,10 @@
     "message": "Ogni volta che apri Blanc, invia un conteggio anonimo: un ID casuale per questa installazione, la versione dell’app e la versione di iOS. Mai ciò che navighi. Vedi blanc.day/privacy.",
     "source": "sha256:918daf894fa3d224ceb4594a9ca31bb335ea73f40215009a0e188c3b261689bc"
   },
+  "ios.welcome.suggestionsHelp": {
+    "message": "Mentre scrivi una ricerca, il testo viene inviato al tuo motore di ricerca, che restituisce suggerimenti. Mai da una scheda privata, e mai un indirizzo, testo incollato o qualcosa che sembri una password o una chiave.",
+    "source": "sha256:54fe76e488a4dfe5362d990df43edc375a3c92743a380cefe519fda8cfe1f6dd"
+  },
   "ios.welcome.showAgain": {
     "message": "Mostra di nuovo il benvenuto",
     "source": "sha256:5193b208da3381efbc3013b02fcea8b4ff3963097364e92b45a4d10b75d2252c"

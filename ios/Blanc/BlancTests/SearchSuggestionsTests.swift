@@ -83,9 +83,11 @@ import XCTest
         XCTAssertTrue(m.paletteTyped)
     }
 
-    func testSuggestionsAreOffUntilTurnedOn() async {
+    func testSuggestionsAreOffUntilTheChoiceIsSaved() async {
         let m = manager()
-        XCTAssertFalse(m.settingsStore.searchSuggestions)
+        XCTAssertNil(m.settingsStore.searchSuggestions)
+        XCTAssertFalse(m.settingsStore.searchSuggestionsOn, "an unsaved choice sends nothing")
+        XCTAssertTrue(m.settingsStore.searchSuggestionsShown, "the walkthrough's switch shows the schema default")
         m.paletteDraft = "b"
         m.paletteDraft = "bl"
         // Off: nothing is asked of any provider, so the answer is immediate.
@@ -107,13 +109,34 @@ import XCTest
         XCTAssertEqual(fromPrivate, [])
     }
 
-    func testTheSettingIsSavedAndStartsOff() {
+    func testTheChoiceIsSavedOnlyOnceMade() throws {
         let directory = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
         let store = SettingsStore(directory: directory)
-        XCTAssertFalse(store.searchSuggestions)
-        store.update(searchSuggestions: true)
+        store.update(theme: .dark)
         store.flush()
-        XCTAssertTrue(SettingsStore(directory: directory).searchSuggestions)
+        let saved = try JSONSerialization.jsonObject(with: Data(contentsOf: directory.appendingPathComponent("settings.json"))) as? [String: Any]
+        XCTAssertNil(saved?["searchSuggestions"], "another setting's save doesn't make the choice")
+        store.update(searchSuggestions: false)
+        store.flush()
+        let reloaded = SettingsStore(directory: directory)
+        XCTAssertEqual(reloaded.searchSuggestions, false)
+        XCTAssertFalse(reloaded.searchSuggestionsShown, "a saved off stays off when the welcome is shown again")
+    }
+
+    func testClosingTheWalkthroughSavesBothPrivacyChoices() {
+        let m = manager()
+        m.walkthrough = WalkthroughFlow(paired: false, completedVersion: 0, isDefaultBrowser: nil)
+        m.closeWalkthrough(usagePingShown: true, searchSuggestionsShown: false)
+        XCTAssertEqual(m.settingsStore.usagePing, true)
+        XCTAssertEqual(m.settingsStore.searchSuggestions, false)
+    }
+
+    func testAWalkthroughAlreadySeenLeavesSuggestionsUnasked() {
+        let m = manager()
+        m.walkthrough = WalkthroughFlow(paired: true, completedVersion: WalkthroughFlow.version, isDefaultBrowser: nil)
+        m.closeWalkthrough(usagePingShown: true, searchSuggestionsShown: true)
+        XCTAssertNil(m.settingsStore.searchSuggestions)
+        XCTAssertFalse(m.settingsStore.searchSuggestionsOn)
     }
 
     func testTheSearchRowSearchesWhateverTheTextLooksLike() {

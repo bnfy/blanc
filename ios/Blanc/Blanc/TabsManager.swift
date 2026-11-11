@@ -477,10 +477,13 @@ final class TabsManager {
         }
     }
 
-    /// Closes the card by any path: the privacy choice is saved with the value
-    /// on screen if it wasn't already (§3.2), and this version counts as seen.
-    func closeWalkthrough(usagePingShown: Bool) {
-        if walkthrough.close() { settingsStore.update(usagePing: usagePingShown) }
+    /// Closes the card by any path: the privacy choices are saved with the
+    /// values on screen if they weren't already (§3.2), and this version
+    /// counts as seen.
+    func closeWalkthrough(usagePingShown: Bool, searchSuggestionsShown: Bool) {
+        if walkthrough.close() {
+            settingsStore.update(usagePing: usagePingShown, searchSuggestions: searchSuggestionsShown)
+        }
         settingsStore.update(walkthroughCompletedVersion: WalkthroughFlow.version)
         settingsStore.flush()
     }
@@ -703,7 +706,7 @@ final class TabsManager {
     /// Search suggestions for the palette's text, or none: only with the
     /// setting on, for text typed by hand, and never from a private tab.
     func searchSuggestions(for text: String) async -> [String] {
-        guard settingsStore.searchSuggestions, paletteTyped, activeTab?.isPrivate != true else { return [] }
+        guard settingsStore.searchSuggestionsOn, paletteTyped, activeTab?.isPrivate != true else { return [] }
         return await SearchSuggestions.fetch(engine: settingsStore.searchEngine, query: text)
     }
 

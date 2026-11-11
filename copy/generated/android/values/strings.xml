@@ -2567,6 +2567,7 @@ You can retry with “%2$s”, or reinstall from blanc.day.</string>
     <string name="ios_welcome_privacy_title">Your privacy</string>
     <string name="ios_welcome_measure_usage">Measure usage</string>
     <string name="ios_welcome_measure_usage_help">Each time you open Blanc, it sends one anonymous count: a random ID for this install, the app version and the iOS version. Never what you browse. See blanc.day/privacy.</string>
+    <string name="ios_welcome_suggestions_help">While you type a search, the text goes to your search provider, which sends back suggestions. Never from a private tab, and never an address, pasted text or anything that looks like a password or key.</string>
     <string name="ios_welcome_show_again">Show the welcome again</string>
     <string name="ios_default_browser_title">Open links in Blanc</string>
     <string name="ios_default_browser_body">Make Blanc your default browser so links from Messages, Mail and other apps open here.</string>

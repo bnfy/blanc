@@ -16,6 +16,7 @@ final class WalkthroughUITests: XCTestCase {
     XCTAssertTrue(app.staticTexts["Your Blanc, in your pocket."].waitForExistence(timeout: 10))
     app.buttons["welcome.browse"].tap()
     XCTAssertTrue(app.switches["welcome.measureUsage"].waitForExistence(timeout: 5))
+    XCTAssertTrue(app.switches["welcome.searchSuggestions"].exists)
     app.buttons["welcome.continue"].tap()
     XCTAssertTrue(app.buttons["welcome.openDefaultApps"].waitForExistence(timeout: 5))
     app.buttons["welcome.notNow"].tap()
