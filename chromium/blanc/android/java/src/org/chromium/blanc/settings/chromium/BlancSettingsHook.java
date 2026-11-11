@@ -52,8 +52,8 @@ public final class BlancSettingsHook {
 
     public static void apply(PreferenceFragmentCompat fragment, Supplier<@Nullable WindowAndroid> window, Runnable openLicenses) {
         if (fragment.getPreferenceScreen() == null || fragment.getActivity() == null) return;
-        ChromiumSettingsHost host =
-                new ChromiumSettingsHost(fragment.requireActivity(), window, openLicenses, sSyncConnected);
+        ChromiumSettingsHost host = new ChromiumSettingsHost(fragment.requireActivity(), window,
+                openLicenses, sSyncConnected, () -> refreshSync(fragment, window, openLicenses));
         BlancSettingsScreen.apply(fragment.getPreferenceScreen(), host);
         host.syncChromiumEngine();
         // The first apply runs while the root is being created, before it has a list to scroll; the
@@ -69,13 +69,23 @@ public final class BlancSettingsHook {
             RecyclerView list = fragment.getListView();
             list.post(() -> scrollToTop(list, section));
         }
+        refreshSync(fragment, window, openLicenses);
+    }
+
+    /**
+     * Asks the runner whether Sync is on and, when that changed, applies the screen again. Runs on
+     * every apply and when the Sync sheet closes, since pairing happens there with Settings open.
+     */
+    private static void refreshSync(PreferenceFragmentCompat fragment,
+            Supplier<@Nullable WindowAndroid> window, Runnable openLicenses) {
         SyncBridge.call("sync.status", "[]", reply -> {
             boolean connected = connected(reply);
             if (connected == sSyncConnected) return;
             sSyncConnected = connected;
             if (fragment.isAdded() && fragment.getPreferenceScreen() != null && fragment.getActivity() != null) {
                 BlancSettingsScreen.apply(fragment.getPreferenceScreen(),
-                        new ChromiumSettingsHost(fragment.requireActivity(), window, openLicenses, connected));
+                        new ChromiumSettingsHost(fragment.requireActivity(), window, openLicenses, connected,
+                                () -> refreshSync(fragment, window, openLicenses)));
             }
         });
     }

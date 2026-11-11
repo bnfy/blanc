@@ -39,6 +39,8 @@ async function main(argv) {
     sleep(2);
   };
   const show = name => { d.runInPalette(`/space ${name}`); sleep(3); };
+  // Back would first hide the keyboard, or leave the page when there is none; the palette's own button doesn't.
+  const closePalette = () => { d.tap({desc: /^Collapse Island$/}); sleep(1); };
   try {
     await check('a new Space opens empty and This phone comes back whole', async () => {
       await d.view(url('one'));
@@ -162,7 +164,10 @@ async function main(argv) {
       adb('shell', 'am', 'force-stop', PACKAGE);
       await d.launch();
       sleep(3);
-      if (!d.has({id: 'blanc_island_space'})) return ['no mark after the restart'];
+      d.openPalette();
+      const marked = d.has({desc: /^Space: Work$/});
+      closePalette();
+      if (!marked) return ['no Work mark in the open Island after the restart'];
       const work = titles(d.grid());
       if (!work.includes('work.example')) return [`after restart: ${work}`];
       show('This phone');
@@ -265,10 +270,24 @@ async function main(argv) {
       return top('Playful') < top('Work') ? [] : ['Move down did nothing'];
     });
 
-    await check('the Island shows the mark once a Space exists', async () => {
-      if (d.has({id: 'blanc_island_space'})) return ['a mark before any Space'];
+    // The closed Island has no room for the mark; the open Island (the palette) carries it.
+    await check('the open Island shows the mark once a Space exists, and the closed Island never does', async () => {
+      const problems = [];
+      const anyMark = {desc: /^(Spaces|Space: .+)$/};
+      d.openPalette();
+      if (d.has(anyMark)) problems.push('a mark before any Space');
+      closePalette();
       create('Work');
-      return d.has({id: 'blanc_island_space'}) ? [] : ['no mark'];
+      if (d.has(anyMark)) problems.push('a mark on the closed Island');
+      d.openPalette();
+      if (!d.has({desc: /^Space: Work$/})) problems.push('no Work mark in the open Island');
+      else {
+        d.tap({desc: /^Space: Work$/});
+        sleep(1.5);
+        if (!d.has({text: 'This phone'})) problems.push('the mark did not open the Spaces menu');
+        d.back();
+      }
+      return problems;
     });
   } finally {
     stop();

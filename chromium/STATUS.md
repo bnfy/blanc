@@ -2310,13 +2310,36 @@ all six languages; Accessibility is left out of More because its page names Chro
 | Runner and tool tests (`node --test chromium/tools/*.test.mjs`, on the Mac) | 216 pass | local |
 | A4 gate (A1 to A3, sync, Spaces, Shared Spaces, shield race) | Pass | `a4/` |
 | APK (x86_64, emulator) | `b57a4ca6…` | `apk.sha256` |
-| APK (arm64, for the Pixel) | `fed28dc1…` (`out/AndroidDebug/apks/ChromePublic.apk`, built; not yet installed) | — |
-| Owner hands-on, Pixel and desktop (Sync through Settings) | **Pending** | — |
+| APK (arm64, for the Pixel) | `fed28dc1…` (`out/AndroidDebug/apks/ChromePublic.apk`), installed on the owner's Pixel 10 Pro | — |
+| Owner hands-on, Pixel and desktop (Sync through Settings) | Pass, November 11, 2026: Settings opened from `/settings` with every section; the Sync row opened the Sync sheet; the owner paired with their desktop and the desktop's Spaces arrived. Three bugs found (below). | owner |
 
 The first full run failed twice: the A3 check "quick endings stop pages, and Retry recovers" slept a fixed six
 seconds and looked once for its notice (it passed alone; it now waits up to 30 s), and the tools tests need iOS
 fixtures the server lacks (they run on the Mac). An earlier standalone Settings run had failed
 `blanc://settings#privacy` once; it passed in both gate runs, cause not found, so it stays watched.
+
+On the Pixel (November 11) three bugs showed, fixed in the A5a follow-up: the Sync row kept saying Not connected
+after pairing until Settings was opened again (it asked only when Settings was built; it now asks again when the
+Sync sheet closes); Settings' **?** button opened Google's Chrome help (Chromium hides it only when Settings is
+shown in a tab; patch 0110 now hides it on every Settings screen); and a launch after four days away crashed on
+Chromium's check that the new tab page it opens after four hours away has Chrome's address, not Blanc's Start
+Page (`ReturnToChromeUtil`; patch 0105 makes `shouldShowTabSwitcher` always say no, so Blanc reopens the last tab as
+the iPhone does; a first try changed the return-time param's default instead, which review found Chrome caches from
+the launch before, so an updated install would still have crashed once). The palette's Settings button, `blanc://settings` and the theme switch weren't tried on the Pixel; they pass
+on the emulator.
+
+The fixed build (`1f2faf38…`, arm64, installed over wireless debugging) was checked on the Pixel on November 11:
+no help button on Settings, Site settings or Downloads, and a launch from the home screen with Blanc's last-seen
+time set five hours back reopened the last tab with no crash (that build carried the param fix; the emulator check now
+also plants the old cached four hours). The Sync row's update when the sheet closes wasn't
+tried on the Pixel, since that means turning Sync off and pairing again; Robolectric covers the sheet's signal. The
+Settings check script's wording scan read Site settings while the root was still on screen and so never opened its
+pages; it now waits for the root to go.
+
+The Space mark moved off the closed Island on November 11 at the owner's request, to save room on the bar: it now
+sits in the open Island's footer, before Favorites, under the same rule (once a Space exists, never on a private
+tab), and opens the Spaces menu. The iPhone is making the same change in its own session, so this isn't a
+divergence. The Spaces emulator check now requires the closed Island to have no mark.
 
 ### Shield count across a page's commit
 

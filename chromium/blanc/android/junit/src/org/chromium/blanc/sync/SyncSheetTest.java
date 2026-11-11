@@ -6,9 +6,11 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
+import static org.robolectric.Shadows.shadowOf;
 
 import android.app.Activity;
 import android.app.Dialog;
+import android.os.Looper;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
@@ -107,6 +109,20 @@ public class SyncSheetTest {
             if (view instanceof EditText e && label.contentEquals(e.getHint())) return e;
         }
         return null;
+    }
+
+    @Test
+    public void closingTheSheetTellsWhoOpenedIt() {
+        // Settings' Sync row reads the status again when the sheet closes, so a pairing made in
+        // the sheet shows as Connected without leaving Settings.
+        int[] closed = {0};
+        SyncSheet sheet = new SyncSheet(mActivity, mRunner, done -> done.onResult(mScanned));
+        sheet.setOnClosed(() -> closed[0]++);
+        sheet.show();
+        assertEquals(0, closed[0]);
+        button(R.string.blanc_shield_done).performClick();
+        shadowOf(Looper.getMainLooper()).idle();
+        assertEquals(1, closed[0]);
     }
 
     @Test

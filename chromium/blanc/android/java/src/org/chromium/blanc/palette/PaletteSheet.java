@@ -156,6 +156,7 @@ public final class PaletteSheet extends Dialog {
     private final ImageButton mFavorites;
     private final ImageButton mHistory;
     private final ImageButton mSettings;
+    private final ImageButton mSpace;
     private final List<Row> mRows = new ArrayList<>();
 
     private PaletteSheet(Activity activity, BlancTabs tabs, Callbacks callbacks) {
@@ -236,6 +237,9 @@ public final class PaletteSheet extends Dialog {
         mNewTab = newTab;
         footer.addView(newTab, new LinearLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, dp(36)));
         footer.addView(new View(activity), new LinearLayout.LayoutParams(0, 1, 1));
+        // The current Space's mark. The closed Island has no room for it, so it lives here.
+        mSpace = button(R.drawable.blanc_spaces_glyph, R.string.blanc_spaces_menu_label, v -> {});
+        footer.addView(mSpace, new LinearLayout.LayoutParams(dp(44), dp(44)));
         mFavorites = button(R.drawable.blanc_palette_bookmark, R.string.blanc_pages_nav_bookmarks,
                 v -> openTab(PAGES + "bookmarks.html"));
         footer.addView(mFavorites, new LinearLayout.LayoutParams(dp(44), dp(44)));
@@ -302,6 +306,7 @@ public final class PaletteSheet extends Dialog {
                     | WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_VISIBLE);
         }
         render();
+        bindSpaceMark();
     }
 
     public static PaletteSheet show(Activity activity, BlancTabs tabs, Callbacks callbacks) {
@@ -337,6 +342,25 @@ public final class PaletteSheet extends Dialog {
 
     public View settingsButton() {
         return mSettings;
+    }
+
+    public View spaceButton() {
+        return mSpace;
+    }
+
+    /** Once a Space exists and never on a private tab, as the iPhone's mark. Tapping it opens the Spaces menu. */
+    private void bindSpaceMark() {
+        SpacesController spaces = SpacesController.current();
+        if (spaces == null || spaces.library().spaces.isEmpty() || mTabs.privateSelected()) {
+            mSpace.setVisibility(View.GONE);
+            return;
+        }
+        mSpace.setVisibility(View.VISIBLE);
+        SpacesCard.bindMark(mActivity, mSpace, spaces.mark(), mStyle.text);
+        mSpace.setOnClickListener(v -> {
+            dismiss();
+            SpacesCard.open(mActivity);
+        });
     }
 
     public List<Row> rows() {

@@ -11,7 +11,6 @@ import android.view.ViewGroup;
 import android.view.accessibility.AccessibilityManager;
 import android.view.animation.DecelerateInterpolator;
 import android.widget.FrameLayout;
-import android.widget.ImageButton;
 
 import androidx.core.graphics.Insets;
 import androidx.core.view.WindowInsetsCompat;
@@ -20,8 +19,6 @@ import org.chromium.base.Callback;
 import org.chromium.base.ContextUtils;
 import org.chromium.base.supplier.NullableObservableSupplier;
 import org.chromium.blanc.settings.SettingsStore;
-import org.chromium.blanc.spaces.SpacesCard;
-import org.chromium.blanc.spaces.SpacesController;
 import org.chromium.build.annotations.NullMarked;
 import org.chromium.build.annotations.Nullable;
 import org.chromium.cc.mojom.RootScrollOffsetUpdateFrequency;
@@ -76,7 +73,6 @@ public final class IslandCoordinator {
     private static final long SETTLE_MS = 350;
 
     private final Activity mActivity;
-    private @Nullable SpacesController mWatchedSpaces;
     private final NullableObservableSupplier<Tab> mActiveTab;
     private final TabModelSelector mSelector;
     private final @Nullable InsetObserver mInsets;
@@ -170,7 +166,6 @@ public final class IslandCoordinator {
             @Nullable InsetObserver insets,
             Callbacks callbacks) {
         mActivity = activity;
-        SpacesController.setCurrentListener(this::refresh);
         mActiveTab = activeTab;
         mSelector = selector;
         mInsets = insets;
@@ -259,7 +254,6 @@ public final class IslandCoordinator {
     }
 
     public void destroy() {
-        SpacesController.setCurrentListener(null);
         ContextUtils.getAppSharedPreferences().unregisterOnSharedPreferenceChangeListener(mPositionChanged);
         setTab(null);
         mActiveTab.removeObserver(mTabChanged);
@@ -346,7 +340,6 @@ public final class IslandCoordinator {
         state.hasNext = model.index() < model.getCount() - 1;
         mView.setAtTop(position() == IslandPosition.TOP);
         mView.bind(state);
-        bindSpaceMark(tab);
         updateTuck();
     }
 
@@ -381,22 +374,6 @@ public final class IslandCoordinator {
         return ("chrome".equals(url.getScheme()) && "blanc".equals(url.getHost())
                         && "/newtab.html".equals(url.getPath()))
                 || "chrome-native".equals(url.getScheme());
-    }
-
-    // Never on a private tab, and only once a Space exists, as on the iPhone.
-    private void bindSpaceMark(@Nullable Tab tab) {
-        SpacesController spaces = SpacesController.current();
-        if (spaces != mWatchedSpaces) {
-            mWatchedSpaces = spaces;
-            if (spaces != null) spaces.addListener(this::refresh);
-        }
-        ImageButton mark = mView.spaceButton();
-        if (spaces == null || spaces.library().spaces.isEmpty() || (tab != null && tab.isIncognito())) {
-            mark.setVisibility(View.GONE);
-            return;
-        }
-        mark.setVisibility(View.VISIBLE);
-        SpacesCard.bindMark(mActivity, mark, spaces.mark(), (mView.textColor() & 0x00FFFFFF) | 0x99000000);
     }
 
     private void updateTuck() {
