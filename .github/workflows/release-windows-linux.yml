@@ -831,6 +831,24 @@ jobs:
 
       - name: Install AppImage smoke runtime
         run: |
+          # Release runs check out the tag, so this lives inline, not in scripts/.
+          # azure.archive.ubuntu.com (the hosted runners' default mirror)
+          # intermittently failed to resolve on November 11, 2026 and stopped
+          # every v1.48.0 Linux attempt here. apt still checks every package
+          # against Ubuntu's archive keys; only the download host changes.
+          if [ -f /etc/apt/apt-mirrors.txt ]; then
+            printf '%s\n' http://mirrors.edge.kernel.org/ubuntu/ http://archive.ubuntu.com/ubuntu/ | sudo tee /etc/apt/apt-mirrors.txt >/dev/null
+          fi
+          for file in /etc/apt/sources.list /etc/apt/sources.list.d/*.list /etc/apt/sources.list.d/*.sources; do
+            if [ -f "$file" ]; then
+              sudo sed -E -i 's#https?://azure\.archive\.ubuntu\.com/ubuntu/?#http://mirrors.edge.kernel.org/ubuntu/#g' "$file"
+            fi
+          done
+          if grep -rqs 'azure\.archive\.ubuntu\.com' /etc/apt/apt-mirrors.txt /etc/apt/sources.list /etc/apt/sources.list.d; then
+            echo "azure.archive.ubuntu.com is still configured" >&2
+            exit 1
+          fi
+          echo 'Acquire::Retries "5";' | sudo tee /etc/apt/apt.conf.d/80-blanc-retries >/dev/null
           sudo apt-get update
           sudo apt-get install --yes dbus-x11 desktop-file-utils xdg-utils xvfb
           TOOLSET=$(node -p "require('./package.json').build.toolsets?.appimage || '0.0.0'")
@@ -1085,6 +1103,24 @@ jobs:
 
       - name: Install AppImage runtime
         run: |
+          # Release runs check out the tag, so this lives inline, not in scripts/.
+          # azure.archive.ubuntu.com (the hosted runners' default mirror)
+          # intermittently failed to resolve on November 11, 2026 and stopped
+          # every v1.48.0 Linux attempt here. apt still checks every package
+          # against Ubuntu's archive keys; only the download host changes.
+          if [ -f /etc/apt/apt-mirrors.txt ]; then
+            printf '%s\n' http://mirrors.edge.kernel.org/ubuntu/ http://archive.ubuntu.com/ubuntu/ | sudo tee /etc/apt/apt-mirrors.txt >/dev/null
+          fi
+          for file in /etc/apt/sources.list /etc/apt/sources.list.d/*.list /etc/apt/sources.list.d/*.sources; do
+            if [ -f "$file" ]; then
+              sudo sed -E -i 's#https?://azure\.archive\.ubuntu\.com/ubuntu/?#http://mirrors.edge.kernel.org/ubuntu/#g' "$file"
+            fi
+          done
+          if grep -rqs 'azure\.archive\.ubuntu\.com' /etc/apt/apt-mirrors.txt /etc/apt/sources.list /etc/apt/sources.list.d; then
+            echo "azure.archive.ubuntu.com is still configured" >&2
+            exit 1
+          fi
+          echo 'Acquire::Retries "5";' | sudo tee /etc/apt/apt.conf.d/80-blanc-retries >/dev/null
           sudo apt-get update
           sudo apt-get install --yes libfuse2 xvfb
 
