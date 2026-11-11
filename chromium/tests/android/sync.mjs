@@ -142,10 +142,12 @@ async function main(argv) {
       device.sync.resetRequestWindowForTest();
       const fresh = peer('Fresh', worker.url);
       const pairing = await device.sync.beginPairing();
-      await fresh.sync.joinWithCode(pairing.code);
-      await fresh.pass();
+      const joined = await fresh.sync.joinWithCode(pairing.code);
+      const passed = await fresh.pass();
       const kept = urls(fresh.module('bookmarks').listBookmarks());
-      return status.enabled === false && new Set(kept).has(FIRST) ? [] : [JSON.stringify(status), kept.join()];
+      if (status.enabled !== false) return [`still on: ${JSON.stringify(status)}`];
+      return new Set(kept).has(FIRST) ? []
+        : [`the account lost its Favorite: join ${JSON.stringify(joined)}, pass ${JSON.stringify(passed)}, kept [${kept}]`];
     });
 
     await check('a peer\'s Favorite and theme arrive, and a Favorite saved here reaches it', async () => {

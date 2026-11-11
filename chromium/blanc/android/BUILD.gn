@@ -18,6 +18,7 @@ android_library("island_java") {
     "java/src/org/chromium/blanc/island/IslandTitle.java",
     "java/src/org/chromium/blanc/island/IslandTuck.java",
     "java/src/org/chromium/blanc/island/IslandVisibility.java",
+    "java/src/org/chromium/blanc/island/PagePinch.java",
   ]
   deps = [ "//build/android:build_java" ]
 }
@@ -94,6 +95,22 @@ source_set("blocker_bridge") {
     "//blanc/services/blocker:browser",
     "//content/public/browser",
     "//url",
+  ]
+}
+
+generate_jni("page_pinch_jni") {
+  sources = [ "java/src/org/chromium/blanc/island/PagePinchBridge.java" ]
+}
+
+# A page's pinch gestures for the Island's pinch into the tab grid. //chrome/browser depends on
+# this (patch 0111).
+source_set("page_pinch_bridge") {
+  sources = [ "browser/page_pinch_bridge.cc" ]
+  deps = [
+    ":page_pinch_jni",
+    "//base",
+    "//content/public/browser",
+    "//third_party/blink/public/common",
   ]
 }
 
@@ -271,15 +288,27 @@ android_resources("island_view_resources") {
     "island/res/drawable/blanc_palette_history.xml",
     "island/res/drawable/blanc_palette_search.xml",
     "island/res/drawable/blanc_palette_settings.xml",
-    "island/res/drawable/blanc_island_reload.xml",
+    "island/res/drawable/blanc_island_chevron_left.xml",
+    "island/res/drawable/blanc_island_chevron_right.xml",
     "island/res/drawable/blanc_island_stop.xml",
+    "island/res/drawable/blanc_sync_back.xml",
+    "island/res/drawable/blanc_sync_card.xml",
+    "island/res/drawable/blanc_sync_divider.xml",
     "island/res/layout/blanc_island.xml",
     "island/res/layout/blanc_settings_header.xml",
+    "island/res/layout/blanc_sync_card.xml",
+    "island/res/layout/blanc_sync_field.xml",
+    "island/res/layout/blanc_sync_heading.xml",
+    "island/res/layout/blanc_sync_note.xml",
+    "island/res/layout/blanc_sync_rename.xml",
+    "island/res/layout/blanc_sync_row.xml",
+    "island/res/layout/blanc_sync_screen.xml",
     "island/res/values/blanc_grid_ids.xml",
     "island/res/values/blanc_island_dimens.xml",
     "island/res/values/blanc_settings_colors.xml",
     "island/res/values/blanc_settings_dimens.xml",
     "island/res/values/blanc_settings_theme.xml",
+    "island/res/values/blanc_sync_dimens.xml",
     "island/res/values-night/blanc_settings_colors.xml",
     "island/res/values/blanc_strings.xml",
     "island/res/values-de/blanc_strings.xml",
@@ -333,7 +362,11 @@ android_library("island_view_java") {
 # insets. chrome_java depends on it (patch 0104), so it uses Chromium's smaller
 # targets, never chrome_java itself.
 android_library("island_ui_java") {
-  sources = [ "java/src/org/chromium/blanc/island/IslandCoordinator.java" ]
+  srcjar_deps = [ ":page_pinch_jni" ]
+  sources = [
+    "java/src/org/chromium/blanc/island/IslandCoordinator.java",
+    "java/src/org/chromium/blanc/island/PagePinchBridge.java",
+  ]
   deps = [
     ":island_java",
     ":settings_model_java",
@@ -349,6 +382,7 @@ android_library("island_ui_java") {
     "//components/url_formatter/android:url_formatter_java",
     "//content/public/android:content_java",
     "//third_party/androidx:androidx_core_core_java",
+    "//third_party/jni_zero:jni_zero_java",
     "//ui/android:ui_no_recycler_view_java",
     "//url:gurl_java",
   ]
@@ -382,6 +416,7 @@ robolectric_binary("blanc_android_junit_tests") {
     "junit/src/org/chromium/blanc/island/IslandStyleTest.java",
     "junit/src/org/chromium/blanc/island/IslandSwipeGestureTest.java",
     "junit/src/org/chromium/blanc/island/IslandSwipeTest.java",
+    "junit/src/org/chromium/blanc/island/PagePinchTest.java",
     "junit/src/org/chromium/blanc/island/IslandTitleTest.java",
     "junit/src/org/chromium/blanc/island/IslandTuckTest.java",
     "junit/src/org/chromium/blanc/island/IslandViewTest.java",

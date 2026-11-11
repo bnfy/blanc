@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright 2026 Bananify Creative. MIT; see LICENSE. -->
+<!-- A text field row in a card. -->
+<EditText xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:background="@null"
+    android:minHeight="@dimen/blanc_sync_row_min_height"
+    android:paddingStart="@dimen/blanc_sync_row_padding_horizontal"
+    android:paddingEnd="@dimen/blanc_sync_row_padding_horizontal"
+    android:singleLine="true"
+    android:textColor="@color/blanc_sunrise_text"
+    android:textColorHint="@color/blanc_sunrise_text_dim"
+    android:textSize="@dimen/blanc_sync_row_title_size" />

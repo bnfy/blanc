@@ -6,7 +6,7 @@ import os from 'node:os';
 import path from 'node:path';
 import {execFileSync} from 'node:child_process';
 import {Worker} from 'node:worker_threads';
-import {nodeBounds} from '../../island-menu.mjs';
+import {gridSwipe, nodeBounds} from '../../island-menu.mjs';
 import {matching, paletteField} from '../../palette.mjs';
 import {findCount} from '../../find.mjs';
 import {renderers} from '../../quiet-tabs.mjs';
@@ -238,8 +238,12 @@ export class Device {
   openGrid() {
     const xml = this.dump();
     if (nodeBounds(xml, {text: 'Open tabs'})) return;
-    if (!nodeBounds(xml, {id: 'blanc_island_tabs'})) this.back();
-    this.tap({id: 'blanc_island_tabs'});
+    // The swipe from the Island into the page; the closed Island has no tab count to tap.
+    let swipe = gridSwipe(xml);
+    if (!swipe) { this.back(); swipe = gridSwipe(this.dump()); }
+    if (!swipe) throw Error('The Island is not on screen to open the tab grid from');
+    adb('shell', 'input', 'swipe', ...swipe, '250');
+    sleep(2);
   }
   closeGrid() { if (this.has({text: 'Open tabs'})) this.tap({text: 'Done'}); }
   // What the grid shows, leaving it open if it was.

@@ -23,9 +23,13 @@ public final class IslandMenu {
         BLOCKING_UNAVAILABLE,
         FAVORITE,
         SEND,
+        /** The Island has no Reload (#1463); Stop while the page loads. */
+        RELOAD,
         SHARE,
         FIND,
-        NEW_PRIVATE_TAB
+        NEW_PRIVATE_TAB,
+        /** Blanc's Settings, always last (#1463). */
+        SETTINGS
     }
 
     /** One entry; BLOCKING and FAVORITE carry their state. */
@@ -85,6 +89,9 @@ public final class IslandMenu {
         public boolean favorite;
         public boolean canSend;
         public boolean hasSendTargets;
+
+        /** The page is loading, so Reload reads Stop. */
+        public boolean loading;
     }
 
     private IslandMenu() {}
@@ -100,10 +107,12 @@ public final class IslandMenu {
             }
             if (!c.privateTab && c.canFavorite) items.add(Item.favorite(c.favorite));
             if (c.canSend && c.hasSendTargets) items.add(Item.of(Kind.SEND));
+            items.add(Item.of(Kind.RELOAD));
             items.add(Item.of(Kind.SHARE));
             items.add(Item.of(Kind.FIND));
         }
         items.add(Item.of(Kind.NEW_PRIVATE_TAB));
+        items.add(Item.of(Kind.SETTINGS));
         return items;
     }
 }

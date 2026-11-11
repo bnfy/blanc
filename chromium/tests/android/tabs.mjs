@@ -9,16 +9,21 @@ import fs from 'node:fs';
 import path from 'node:path';
 import {execFileSync} from 'node:child_process';
 import {fileURLToPath} from 'node:url';
-import {nodeBounds} from './island-menu.mjs';
+import {gridSwipe, nodeBounds} from './island-menu.mjs';
 
 const PACKAGE = 'me.bnfy.blanc.dev';
 const PAGE = 'https://www.iana.org/domains';
 
-// The Island's tab count, read from its text, or null.
+// The number of open tabs, read beside "Open tabs" in the open tab grid, or null when the grid isn't
+// open. The closed Island has no tab count.
 export function tabCount(xml) {
-  const m = /<node[^>]*text="(\d+)"[^>]*resource-id="[^"]*:id\/blanc_island_tab_count"/.exec(xml)
-    || /<node[^>]*resource-id="[^"]*:id\/blanc_island_tab_count"[^>]*text="(\d+)"/.exec(xml);
+  const m = /<node[^>]*text="Open tabs"[\s\S]*?<node[^>]*text="(\d+)"/.exec(xml);
   return m ? Number(m[1]) : null;
+}
+
+// The Island on a Start Page shows "Search or type URL" (#1463); TalkBack still hears the page's name.
+export function onStartPage(xml) {
+  return /<node[^>]*resource-id="[^"]*:id\/blanc_island_domain"[^>]*content-desc="[^"]*Start Page/.test(xml);
 }
 
 function main(argv) {
@@ -31,6 +36,16 @@ function main(argv) {
   const dump = () => { adb('shell', 'uiautomator', 'dump', '/sdcard/blanc-ui.xml'); return adb('shell', 'cat', '/sdcard/blanc-ui.xml'); };
   const center = b => [Math.round((b.left + b.right) / 2), Math.round((b.top + b.bottom) / 2)].map(String);
   const tap = query => { const b = nodeBounds(dump(), query); if (b) { adb('shell', 'input', 'tap', ...center(b)); sleep(2); } return !!b; };
+  // Opens the grid with the swipe from the Island, reads its count, and closes it.
+  const count = () => {
+    const swipe = gridSwipe(dump());
+    if (!swipe) return null;
+    adb('shell', 'input', 'swipe', ...swipe, '250'); sleep(2);
+    const open = dump();
+    const n = tabCount(open);
+    if (nodeBounds(open, {text: 'Done'})) tap({text: 'Done'});
+    return n;
+  };
   const shot = name => fs.writeFileSync(path.join(evidence, `${name}.png`), execFileSync('adb', ['exec-out', 'screencap', '-p'], {maxBuffer: 64 * 1024 * 1024}));
   const results = [];
   const check = (name, problems) => results.push({case: name, problems});
@@ -41,27 +56,28 @@ function main(argv) {
   sleep(7);
   adb('shell', 'am', 'start', '-a', 'android.intent.action.VIEW', '-d', PAGE, '-p', PACKAGE);
   sleep(6);
-  const before = tabCount(dump());
+  const before = count();
   const tapped = tap({id: 'blanc_island_new_tab'});
   sleep(2);
   const xml = dump();
   shot('1-new-tab');
-  const after = tabCount(xml);
+  const after = count();
   check('New Tab adds a Start Page tab', !tapped ? ['no New Tab button'] : before === null || after !== before + 1
-    ? [`count went from ${before} to ${after}`] : nodeBounds(xml, {text: 'Start Page'}) ? [] : ['the new tab is not the Start Page']);
+    ? [`count went from ${before} to ${after}`] : onStartPage(xml) ? [] : ['the new tab is not the Start Page']);
 
   tap({id: 'blanc_island_menu'});
   const opened = tap({text: 'New Private Tab'});
   sleep(2);
   const privateXml = dump();
   const chip = nodeBounds(privateXml, {id: 'blanc_island_private'});
-  const withPrivate = tabCount(privateXml);
+  const withPrivate = count();
   if (chip) { adb('shell', 'input', 'tap', ...center(chip)); sleep(3); }
   const back = dump();
+  const withoutPrivate = count();
   shot('2-private-closed');
   check('The private chip closes the private tab', !opened || !chip ? ['no private tab or chip']
     : nodeBounds(back, {id: 'blanc_island_private'}) ? ['still private']
-      : tabCount(back) !== withPrivate - 1 ? [`count ${withPrivate} then ${tabCount(back)}`] : []);
+      : withoutPrivate !== withPrivate - 1 ? [`count ${withPrivate} then ${withoutPrivate}`] : []);
 
   fs.writeFileSync(path.join(evidence, 'tabs.json'), JSON.stringify({results, checkedAt: new Date().toISOString()}, null, 2) + '\n');
   for (const r of results) console.log(`${r.problems.length ? 'FAIL' : 'pass'} ${r.case}${r.problems.length ? ': ' + r.problems.join('; ') : ''}`);

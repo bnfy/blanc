@@ -7,7 +7,7 @@ import org.chromium.build.annotations.NullMarked;
 import java.util.ArrayList;
 import java.util.List;
 
-/** The Sync sheet's rows in order, Blanc for iPhone's SyncSettingsView. */
+/** The Sync screen's rows in order and in groups, Blanc for iPhone's SyncSettingsView. */
 @NullMarked
 public final class SyncSheetModel {
     public enum Row {
@@ -15,7 +15,7 @@ public final class SyncSheetModel {
         OFF_INTRO, PAIR_WITH_BLANC, OTHER_WAYS,
         CODE_HEADER, CODE_FIELD, CONNECT, TYPE_CODE_HINT, PAIRING_HELP,
         PASSPHRASE_HEADER, HANDLE_FIELD, PASSPHRASE_FIELD, SIGN_IN, DESKTOP_ACCOUNT, CANCEL_SWITCH,
-        DEVICE_NAME, SAVE_NAME, SHARE_TABS, SYNC_NOW, SHARE_HELP, SPACES,
+        DEVICE_NAME, SHARE_TABS, SYNC_NOW, SHARE_HELP, SPACES,
         PAIR_DEVICE, COPY_RECOVERY, SWITCH_ACCOUNT, DISCONNECT
     }
 
@@ -31,48 +31,45 @@ public final class SyncSheetModel {
 
     private SyncSheetModel() {}
 
+    /** Every row, top to bottom. */
     public static List<Row> rows(State s) {
         List<Row> rows = new ArrayList<>();
-        rows.add(Row.STATUS);
+        for (List<Row> group : groups(s)) rows.addAll(group);
+        return rows;
+    }
+
+    /**
+     * The rows in groups, as the iPhone's Form sections: each group is one card, with any heading
+     * row above it and any help row below it.
+     */
+    public static List<List<Row>> groups(State s) {
+        List<List<Row>> groups = new ArrayList<>();
+        List<Row> status = new ArrayList<>(List.of(Row.STATUS));
         if (s.enabled) {
-            rows.add(Row.ACCOUNT);
-            if (s.hasLastSynced) rows.add(Row.LAST_SYNCED);
-            if (s.hasError) rows.add(Row.ERROR);
+            status.add(Row.ACCOUNT);
+            if (s.hasLastSynced) status.add(Row.LAST_SYNCED);
+            if (s.hasError) status.add(Row.ERROR);
         }
-        rows.add(Row.HELP);
+        status.add(Row.HELP);
+        groups.add(status);
         if (!s.enabled && !s.switching) {
-            rows.add(Row.OFF_INTRO);
-            rows.add(Row.PAIR_WITH_BLANC);
-            rows.add(Row.OTHER_WAYS);
+            groups.add(List.of(Row.OFF_INTRO, Row.PAIR_WITH_BLANC, Row.OTHER_WAYS));
         }
         if ((!s.enabled && s.otherWays) || s.switching) {
-            rows.add(Row.CODE_HEADER);
-            rows.add(Row.CODE_FIELD);
-            rows.add(Row.CONNECT);
-            if (s.typeCodeHint && !s.switching) rows.add(Row.TYPE_CODE_HINT);
-            rows.add(Row.PAIRING_HELP);
-            if (s.switching) {
-                rows.add(Row.CANCEL_SWITCH);
-            } else {
-                rows.add(Row.PASSPHRASE_HEADER);
-                rows.add(Row.HANDLE_FIELD);
-                rows.add(Row.PASSPHRASE_FIELD);
-                rows.add(Row.SIGN_IN);
-                rows.add(Row.DESKTOP_ACCOUNT);
-            }
+            List<Row> code = new ArrayList<>(List.of(Row.CODE_HEADER, Row.CODE_FIELD, Row.CONNECT));
+            if (s.typeCodeHint && !s.switching) code.add(Row.TYPE_CODE_HINT);
+            code.add(Row.PAIRING_HELP);
+            groups.add(code);
+            groups.add(s.switching
+                    ? List.of(Row.CANCEL_SWITCH)
+                    : List.of(Row.PASSPHRASE_HEADER, Row.HANDLE_FIELD, Row.PASSPHRASE_FIELD, Row.SIGN_IN,
+                            Row.DESKTOP_ACCOUNT));
         }
         if (s.enabled && !s.switching) {
-            rows.add(Row.DEVICE_NAME);
-            rows.add(Row.SAVE_NAME);
-            rows.add(Row.SHARE_TABS);
-            rows.add(Row.SYNC_NOW);
-            rows.add(Row.SHARE_HELP);
-            rows.add(Row.SPACES);
-            rows.add(Row.PAIR_DEVICE);
-            rows.add(Row.COPY_RECOVERY);
-            rows.add(Row.SWITCH_ACCOUNT);
-            rows.add(Row.DISCONNECT);
+            groups.add(List.of(Row.DEVICE_NAME, Row.SHARE_TABS, Row.SYNC_NOW, Row.SHARE_HELP));
+            groups.add(List.of(Row.SPACES));
+            groups.add(List.of(Row.PAIR_DEVICE, Row.COPY_RECOVERY, Row.SWITCH_ACCOUNT, Row.DISCONNECT));
         }
-        return rows;
+        return groups;
     }
 }

@@ -69,6 +69,16 @@ public class IslandMenuPopupTest {
                 public void newPrivateTab() {
                     mRan.add("private");
                 }
+
+                @Override
+                public void reload() {
+                    mRan.add("reload");
+                }
+
+                @Override
+                public void openSettings() {
+                    mRan.add("settings");
+                }
             };
 
     @Before
@@ -103,13 +113,13 @@ public class IslandMenuPopupTest {
         IslandMenu.Context start = new IslandMenu.Context();
         start.startPage = true;
         // Customize Start Page waits for Settings (A5), so it's left out, as unbuilt entries are.
-        assertEquals(List.of("New Private Tab"), titles(IslandMenuPopup.show(mAnchor, start, mActions)));
+        assertEquals(List.of("New Private Tab", "Settings"), titles(IslandMenuPopup.show(mAnchor, start, mActions)));
     }
 
     @Test
     public void aWebPageShowsTheIphonesOrderWithA1sEntries() {
         assertEquals(
-                List.of("Ad & tracker blocking", "Nothing blocked on this page yet", "Save to Favorites", "Send to Device", "Share", "Find in Page", "New Private Tab"),
+                List.of("Ad & tracker blocking", "Nothing blocked on this page yet", "Save to Favorites", "Send to Device", "Reload", "Share", "Find in Page", "New Private Tab", "Settings"),
                 titles(IslandMenuPopup.show(mAnchor, page(false, false), mActions)));
     }
 
@@ -121,7 +131,7 @@ public class IslandMenuPopupTest {
     @Test
     public void aPrivateTabHasNoFavorite() {
         assertEquals(
-                List.of("Ad & tracker blocking", "Nothing blocked on this page yet", "Share", "Find in Page", "New Private Tab"),
+                List.of("Ad & tracker blocking", "Nothing blocked on this page yet", "Reload", "Share", "Find in Page", "New Private Tab", "Settings"),
                 titles(IslandMenuPopup.show(mAnchor, page(true, false), mActions)));
     }
 
@@ -133,7 +143,7 @@ public class IslandMenuPopupTest {
             assertNotNull(menu.getItem(i));
             menu.performIdentifierAction(menu.getItem(i).getItemId(), 0);
         }
-        assertEquals(List.of("protect:false", "favorite", "send", "share", "find", "private"), mRan);
+        assertEquals(List.of("protect:false", "favorite", "send", "reload", "share", "find", "private", "settings"), mRan);
     }
 
     private IslandMenu.Context blockable() {
@@ -149,7 +159,7 @@ public class IslandMenuPopupTest {
         IslandMenu.Context c = blockable();
         c.blockedCount = 3;
         PopupMenu popup = IslandMenuPopup.show(mAnchor, c, mActions);
-        assertEquals(List.of("Ad & tracker blocking", "3 ads & trackers blocked on this page", "Share", "Find in Page", "New Private Tab"), titles(popup));
+        assertEquals(List.of("Ad & tracker blocking", "3 ads & trackers blocked on this page", "Reload", "Share", "Find in Page", "New Private Tab", "Settings"), titles(popup));
         assertTrue(popup.getMenu().getItem(0).isChecked());
         assertFalse(popup.getMenu().getItem(1).isEnabled());
     }
@@ -188,5 +198,13 @@ public class IslandMenuPopupTest {
         assertEquals(List.of("Blocking could not start.", "Retry"), titles(popup).subList(0, 2));
         popup.getMenu().performIdentifierAction(popup.getMenu().getItem(1).getItemId(), 0);
         assertEquals(List.of("retry"), mRan);
+    }
+
+    @Test
+    public void reloadIsStopWhileThePageLoads() {
+        IslandMenu.Context c = page(false, false);
+        c.loading = true;
+        assertTrue(titles(IslandMenuPopup.show(mAnchor, c, mActions)).contains("Stop loading"));
+        assertFalse(titles(IslandMenuPopup.show(mAnchor, c, mActions)).contains("Reload"));
     }
 }
