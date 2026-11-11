@@ -103,6 +103,7 @@ test('the Windows job uses EVS only for ECS, after binding the source and before
     const mirror = step.run.indexOf('mirrors.edge.kernel.org/ubuntu/');
     assert(mirror >= 0 && mirror < update, `${step.name} switches mirrors before apt-get update`);
     assert.match(step.run, /azure\.archive\.ubuntu\.com is still configured/);
+    assert.ok(!step.run.includes('http://archive.ubuntu.com/'), `${step.name} has no fallback that times out on every index`);
     assert.doesNotMatch(step.run, /scripts\/ci-apt/);
   }
   assert.deepEqual(legacy.needs, ['validate-inputs', 'linux']);
