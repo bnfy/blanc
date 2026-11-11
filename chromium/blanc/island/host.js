@@ -574,6 +574,11 @@
   }
   function syncGlance() {
     const id = snapshot?.glanceTabId ?? null;
+    // The native pair precedes its layout. Keep the current card while a
+    // replacement gets its page area; publishing null here erases the old
+    // identity and turns Change into a hide/show instead of a cross-fade.
+    // For a first open the card remains hidden until this same layout arrives.
+    if (id != null && !glanceArea()) { setTimeout(refresh, 50); return; }
     if (id !== glance.tabId) {
       // Shipping's announcements for a Glance that ended with its tab.
       const open = tabId => snapshot.tabs.find(tab => tab.id === tabId);
@@ -1006,6 +1011,14 @@
   function positionShield() {
     if (overlayClosing === 'spaces') return;
     if (opened && overlayMode === 'spaces') { positionSpaces(); return; }
+    if (opened && overlayMode === 'find' && findTabId === snapshot?.glanceTabId) {
+      const page = glancePayload()?.card.page;
+      if (page) {
+        Object.assign(overlay.style, {left: page.x + 'px', top: page.y + 'px',
+          width: page.width + 'px', height: Math.min(160, page.height) + 'px', right: 'auto', bottom: 'auto'});
+        return;
+      }
+    }
     if (!opened || !['shield', 'capture'].includes(overlayMode)) {
       for (const key of ['left', 'top', 'width', 'height', 'right', 'bottom']) overlay.style[key] = '';
       if (layout === 'vertical') {
@@ -1130,6 +1143,8 @@
   async function openFindBar() {
     await hideSheet(false);
     invalidateFindShow();
+    overlayClosing = null;
+    overlay.style.pointerEvents = '';
     const epoch = findShowEpoch;
     await refresh();
     if (epoch !== findShowEpoch || !snapshot?.activeTabId) return;
@@ -1688,7 +1703,7 @@
       tooltip.dataset.private = String(privateTheme === true);
       const width = tooltip.getBoundingClientRect().width;
       tooltip.style.left = `${Math.max(4, Math.min(innerWidth - width - 4, anchor.x + anchor.width / 2 - width / 2))}px`;
-      tooltip.style.top = `${Math.max(0, Math.min(44, anchor.y + anchor.height + 4))}px`;
+      tooltip.style.top = `${Math.max(0, Math.min(innerHeight - tooltip.offsetHeight, anchor.y + anchor.height + 4))}px`;
     },
     hideTooltip: () => { tooltip.hidden = true; },
     bangs: loadBangs,
@@ -2065,7 +2080,6 @@
           return false;
         }
       }
-      if (snapshot?.glanceTabId != null) { glance.closing = true; await request('closeGlance'); glance.closing = false; await refresh(); }
       const opened = await request('previewGlancePair', [nativeId(snapshot.activeTabId), nativeId(id)]);
       await close(); await refresh();
       if (opened === true) glanceSay('glance.status.opened', { title: glanceTitle(String(id)) });
@@ -2271,6 +2285,15 @@
   function apiForDocument(ownerDocument) {
     return new Proxy(api, {
       get(target, property) {
+        if (property === 'showTooltip') return payload => {
+          const frame = ownerDocument.defaultView?.frameElement;
+          const rect = frame?.getBoundingClientRect();
+          const stage = ownerDocument.getElementById('chrome')?.getBoundingClientRect();
+          if (!rect || !payload?.anchor) return;
+          return target.showTooltip({...payload, anchor: {...payload.anchor,
+            x: payload.anchor.x + rect.x + (stage?.x ?? 0),
+            y: payload.anchor.y + rect.y + (stage?.y ?? 0)}});
+        };
         if (property === 'onOverlayShow')
           return callback => subscribe(property, callback, ownerDocument);
         return target[property];
@@ -2477,6 +2500,7 @@
       await announceSpaces();
     },
     glanceState: () => ({ layout: glancePayload(), shown: !glanceCardFrame.hidden, generation: glance.generation }),
+    findState: () => ({ tabId: findTabId }),
     apiForDocument,
     refreshSyncSurfaces,
     railActivationSerial: () => railActivationSerial,

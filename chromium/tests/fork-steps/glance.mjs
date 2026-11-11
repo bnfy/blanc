@@ -4,6 +4,19 @@ import {tabPage} from '../adapters/core.mjs';
 // same key through CDP into the real overlay iframe. Keep busy/cancel/wake
 // assertions; no mocked picker state or direct close action.
 export const GLANCE_STEPS = new Map([
+ ['I press the close-tab command in the find bar',async function(){
+  await this.waitFor(()=>this.call('overlayMode'),mode=>mode==='find','find capsule');
+  await this.frame('overlay').locator('#findInput').waitFor();
+  assert.equal(await this.native('previewPageCommand',['close']),true);
+ }],
+ ['I dismiss the orphaned Change picker with Escape',async function(){
+  await this.frame('glanceCardFrame').evaluate(()=>{
+   window.__glanceRestoreTriggerProbe='unset';
+   window.browserAPI.onIslandState(({restoreTrigger})=>{window.__glanceRestoreTriggerProbe=restoreTrigger;});
+  });
+  await this.call('pressOverlayKey','Escape');
+  await this.waitFor(()=>this.call('overlayMode'),mode=>mode===null,'dismissed orphaned picker');
+ }],
  ['I choose the slow quiet tab and cancel with Escape before it wakes', async function(){
   const page=this.frame('overlay');
   await page.fill('#glancePickerInput','reference');

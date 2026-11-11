@@ -8205,7 +8205,7 @@ class Handler : public content::WebUIMessageHandler, public extensions::Extensio
         {"restore", IDC_RESTORE_TAB}, {"slot1", IDC_SELECT_TAB_0}, {"slot2", IDC_SELECT_TAB_1}, {"slot3", IDC_SELECT_TAB_2},
         {"slot4", IDC_SELECT_TAB_3}, {"slot5", IDC_SELECT_TAB_4}, {"slot6", IDC_SELECT_TAB_5},
         {"slot7", IDC_SELECT_TAB_6}, {"slot8", IDC_SELECT_TAB_7}, {"slot9", IDC_SELECT_LAST_TAB},
-        {"closeWindow", IDC_CLOSE_WINDOW},
+        {"closeWindow", IDC_CLOSE_WINDOW}, {"find", IDC_FIND}, {"newTab", IDC_NEW_TAB},
         {"nextTab", IDC_SELECT_NEXT_TAB}, {"previousTab", IDC_SELECT_PREVIOUS_TAB},
         {"hardReload", IDC_RELOAD_BYPASSING_CACHE}, {"close", IDC_CLOSE_TAB},
         {"zoomIn", IDC_ZOOM_PLUS}, {"zoomOut", IDC_ZOOM_MINUS},
@@ -8271,6 +8271,21 @@ class Handler : public content::WebUIMessageHandler, public extensions::Extensio
     // parity. Never merge pin/group ownership as a side effect of a probe.
     if ((method == "previewGlancePair" || method == "previewSplitPair" || method == "createSplit") && args.size() == 2 &&
         args[0].is_int() && args[1].is_int()) {
+      // Change a temporary reference in one native operation. Publishing an
+      // empty intermediate pair would reset the header's identity cross-fade.
+      if (method == "previewGlancePair" && owner->glance_main >= 0) {
+        if (args[0].GetInt() != owner->glance_main) { reply(true, base::Value(false)); return; }
+        if (args[1].GetInt() == owner->glance_reference) { reply(true, base::Value(true)); return; }
+        content::WebContents* main = nullptr;
+        content::WebContents* replacement = nullptr;
+        for (int i = 0; i < model->count(); ++i) {
+          const int tab_id = sessions::SessionTabHelper::IdForTab(model->GetWebContentsAt(i)).id();
+          if (tab_id == owner->glance_main) main = model->GetWebContentsAt(i);
+          if (tab_id == args[1].GetInt() && !model->GetSplitForTab(i)) replacement = model->GetWebContentsAt(i);
+        }
+        if (!main || !replacement || main == replacement) { reply(true, base::Value(false)); return; }
+        EndGlance(owner, main);
+      }
       // PR993: a visible split owns both panes. Even a request naming two
       // loose tabs must not replace that presentation with temporary Glance.
       if (method == "previewGlancePair" && model->active_index() >= 0 &&

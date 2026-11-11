@@ -426,5 +426,49 @@ export const pages={
   return {chrome:win(c.chrome),frame:win(c.frame),header:win(c.header),page:win(c.page),cardViewBounds:win(c.chrome),cardViewVisible:g.shown,pageArea:area,pageBounds:area,generation:g.layout.generation,focusedPane:g.layout.focusedPane,
    viewBounds:view(s.glanceTabId),mainViewBounds:view(s.activeTabId),savedFrame:s.glanceFrame??null};
  },
- glanceHeaderMotion:()=>{throw new UndefinedNativeAdapterError('glanceHeaderMotion needs an adapter');},
+ async glanceHeaderMotion(w){
+  const page=w.frame('glanceCardFrame');
+  const result=await page.evaluate(()=>{
+   const element=document.querySelector('#glanceHeader');
+   const style=getComputedStyle(element),identity=element.querySelector('.glance-tab-identity');
+   return {header:{transition:style.transition,transform:style.transform,opacity:style.opacity,
+    transformOrigin:style.transformOrigin,width:element.getBoundingClientRect().width},
+    identity:identity?{transition:getComputedStyle(identity).transition,swapping:identity.classList.contains('swapping')}:null};
+  });
+  result.picker=await w.call('overlayMode')==='glance'?await w.frame('overlay').evaluate(()=>{
+   const element=document.querySelector('#glancePicker'),style=getComputedStyle(element);
+   return {transition:style.transition,transform:style.transform,opacity:style.opacity,
+    transformOrigin:style.transformOrigin,width:element.getBoundingClientRect().width};
+  }):null;return result;
+ },
+ glanceCardMotion:w=>w.frame('glanceCardFrame').evaluate(()=>{
+  const card=document.getElementById('glanceCard');if(!card)return null;
+  const style=getComputedStyle(card);
+  return {transition:style.transition,transform:style.transform,opacity:style.opacity,hidden:card.hidden};
+ }),
+ closeGlanceAndReadCard:w=>w.hostEval(`(async()=>{
+  const wasOpen=(await window.BlancPrototypeHost.api.getAllTabs()).glanceTabId!=null;
+  await window.BlancPrototypeHost.api.closeGlance();
+  const closed=wasOpen&&(await window.BlancPrototypeHost.api.getAllTabs()).glanceTabId==null;
+  return {closed,cardViewVisible:!document.getElementById('glanceCardFrame').hidden};
+ })()`),
+ tooltipViewState:w=>w.hostEval(`(()=>{
+  const tip=document.getElementById('prototypeTooltip'),r=tip.getBoundingClientRect();
+  return {attached:!tip.hidden,bounds:tip.hidden?null:{x:r.x,y:r.y,width:r.width,height:r.height}};
+ })()`),
+ closeTabAndReadGlance:(w,id)=>w.hostEval(`(async()=>{
+  const started=performance.now();
+  const area=(await window.BlancPrototypeHost.api.getAllTabs()).splitGeometry.pageArea;
+  await window.BlancPrototypeHost.api.closeTab(${jsLiteral(String(id))});
+  await window.BlancPrototypeHost.refresh();
+  const state=await window.BlancPrototypeHost.api.getAllTabs();
+  if(performance.now()-started>=250)throw Error('Close observation exceeded the save debounce');
+  return {glanceTabId:state.glanceTabId??null,
+   cardViewVisible:!document.getElementById('glanceCardFrame').hidden,
+   savedFrame:state.glanceFrame?window.BlancGlanceCard.fractionsToFrame(state.glanceFrame,area):null};
+ })()`),
+ zoomLevel:async(w,id)=>Math.log(await (await tabPage(w,id)).evaluate(()=>devicePixelRatio)/
+  await w.hostEval('devicePixelRatio'))/Math.log(1.2),
+ simulateMediaStarted:(w,id)=>w.call('setQuietProtection',id,'audible'),
+ findTabId:w=>w.hostEval('window.BlancPrototypeHost.findState().tabId'),
 };

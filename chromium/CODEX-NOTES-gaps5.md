@@ -4,11 +4,11 @@ Queue 5 is in progress; no acceptance claims yet.
 
 | Classification | Cases | Newly passing |
 | --- | ---: | ---: |
-| a: missing adapter | 40 | 4 |
+| a: missing adapter | 40 | 18 |
 | b: missing fork capability / blocked acceptance | 42 | 0 |
 | c: inapplicable by platform or approved construction | 20 | 0 |
 
-Current candidate: `macos-ebc590b319d6a8cc`, `q5-spaces-1-runtime-config.json`.
+Current candidate: `macos-e11aaf59419ae9e2`, `q5-glance-3-runtime-config.json`.
 Inherited Sync gate: 22/22 on starting bytes; Sync code unchanged; not rerun.
 Inventory baseline: 533 pass / 3 fail (subsequently repaired) / 102 undefined / 2 excluded.
 Final inventory: owed, once after implementation. Lost passes: not yet measured.
@@ -142,3 +142,60 @@ Guarded prototype build: 7 steps / 22.24 s. No Sync change.
 Patch budget unchanged: 123 incremental upstream paths / 430 hunks;
 reconstruction 162 upstream / 583 canonical files. Required precommit and
 progress checks are recorded in `q5-spaces-precommit.tap` and this commit.
+
+## N15 — local HTML pinned home assessment
+
+`tabs-and-groups.feature:292` remains a product gap, not an exclusion.
+Shipping's `src/main/local-html-preview.js` grants one bounded (8 MiB),
+regular-file snapshot to a random URL, with no general URL-to-file resolver.
+It uses a dedicated ephemeral session, disables JavaScript and denies all
+network/file/subframe resources independently of its restrictive sandbox CSP;
+permissions, downloads, popups, redirects and non-document navigation are
+refused. Closing disposes the snapshot, storage, cache and connections.
+The fork has none of this document-capability loader or per-preview context
+lifecycle. Its pinned-home path supports normal web homes only. Adding a raw
+`file:` navigation, data URL, shared incognito tab, or privileged WebUI document
+would not provide those boundaries. N15 also needs selected-file/open-file
+routing, preview ownership/cleanup, and refusal tests for script, form,
+redirect, popup, sibling-file and network attempts. This is a separate native
+security surface, not a self-contained missing pinned-home action; no unsafe
+substitute was implemented. Exact acceptance remains owed with that surface.
+
+## 2 — Glance controls and further Spaces observations
+
+Fourteen further starting gaps now pass: F41 :4/:46; Glance :31/:178/:234/
+:253/:287/:296/:345/:471/:489/:498 and both :506 examples.
+`q5-glance-controls-2` passes the ten cases other than F41 :46, Glance :345
+and :506; `q5-glance-controls-3` passes those four cases on first attempts.
+The final candidate is macos-e11aaf59419ae9e2 / q5-glance-3-runtime-config.json.
+Earlier failures, retries and partial progress remain in controls-1/2 and the
+separate diagnostic run; diagnostic preload runs are not acceptance receipts.
+
+Adapters use native Find/New Tab/Close commands, real page zoom/media,
+DOM motion and tooltip observations, real window size and layout zoom,
+and actual native process/resident-Space metrics. The retained shipping
+assertions exposed and now verify these product repairs:
+- A tooltip is translated from its owning iframe into window coordinates.
+- Find for the Glance reference is placed inside that card's page region.
+- Reference replacement is one native operation; the host keeps the current
+  card while the replacement's layout arrives, preserving identity cross-fade.
+- Find reopening restores pointer input released by a previous close.
+
+The diagnostic event trace records the unwanted null layout between the new
+reference identity and its later native geometry. Its evidence is
+`q5-glance-crossfade-events.json`. The 25-Space check uses native pixel bounds
+against the real 125% layout zoom; no CSS emulation or assertions changed.
+Closing either tab now observes the stored frame through a fresh native
+snapshot before the 250 ms save debounce, converts stored fractions to window
+coordinates as shipping does, and verifies the card is already absent.
+
+Builds: glance-1 8 steps / 35.69 s; glance-2 8 / 35.35 s;
+glance-3 7 / 20.89 s. Sync code unchanged. Native patch budget unchanged:
+123 incremental upstream paths / 430 hunks; reconstruction 162 / 583.
+Required precommit: `q5-glance-precommit.tap`; progress/whitespace also checked.
+
+Discovered capability gaps retained for category-b work: Glance audio guard
+(:38/:45; no native background-started-audio guard/state), mouse gestures
+(:207; no native gesture controller), and the download chip's host event
+feed (:264/:273/:280 share the missing feed in setup). These initial a-cohort
+rows are not passes; classification will be revised with their implementation.

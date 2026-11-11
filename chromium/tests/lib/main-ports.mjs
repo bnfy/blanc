@@ -32,8 +32,23 @@ export function shippingEvaluations(text) {
 // Island windows open in this browser (one host document each).
 const windows = async fixture => (await fixture.targets())
   .filter(t => t.type === 'page' && t.url === 'chrome://blanc-prototype/host.html').length;
+async function resizeWindow(fixture,width,height){
+  const snapshot=await nativeCall(fixture.host,'snapshot');
+  const targets=await nativeCall(fixture.host,'tabTargets');
+  const {windowId}=await fixture.browser.send('Browser.getWindowForTarget',{targetId:targets[String(snapshot.activeTabId)]});
+  await fixture.browser.send('Browser.setWindowBounds',{windowId,bounds:{width,height}});
+}
 
 export const PORTS = {
+  // Resize and zoom the real native Island window, including its overlay.
+  '295d076520c1b8725f1d47c40a614568ce66335910de65bb8f0747e0bddb118e': async fixture => {
+    await resizeWindow(fixture,640,480);
+  },
+  '830cba0d06e796ed6394eba654fa390ada9b50b367ffe8074245437f2b43248b': fixture => nativeCall(fixture.host,'setIslandZoomFactor',[1.25]),
+  '51e40719c2075b4775a63ed25283e307ff4490a185ba3abb51bd14e9cacd53df': async fixture => {
+    await nativeCall(fixture.host,'setIslandZoomFactor',[1]);
+    await resizeWindow(fixture,1280,800);
+  },
   // Whether a set-aside page's download was stopped: shipping's will-download,
   // as the count of downloads started, from a page's own download link.
   '270cc54fc97d5ae90d03ddf003f93e0e4039021fc2b627e44432ee24a29f7d99': async (fixture, state, identity) => {

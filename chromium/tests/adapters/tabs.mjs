@@ -289,6 +289,11 @@ export const tabs={
  },
  // Spaces (F41), through the host's bridge as the menu calls it.
  async workspaceAction(w,action,...args){
+  if(action==='metrics'){
+   const [processes,spaces]=await Promise.all([
+    w.fixture.browser.send('SystemInfo.getProcessInfo'),w.hostEval('window.BlancPrototypeHost.spaceHeldState()')]);
+   return {processes:processes.processInfo,residentSpaces:spaces.held.length};
+  }
   // Move to Space's test seams (shipping's arm-move-fault and saved-urls).
   if(action==='arm-move-fault')return {ok:await nativeCall(w.fixture.host,'spaceMoveFault',[String(args[0]),String(args[1]??'storage-failed')])};
   if(action==='saved-urls')return nativeCall(w.fixture.host,'spaceSavedUrls',[String(args[0])]);
@@ -317,7 +322,8 @@ export const tabs={
  async clickPillSpace(w){await strip(w).locator('#pillSpace').click();},
  pressBrowserCommand:async(w,id,command)=>{
   if(command==='reload'){await w.api('reload',[id]);return true;}
-  const native={'close-tab':'close','zoom-in':'zoomIn','zoom-out':'zoomOut','zoom-reset':'zoomReset'}[command];
+  if(command==='back'){await w.api('goBack',[id]);return true;}
+  const native={'close-tab':'close','zoom-in':'zoomIn','zoom-out':'zoomOut','zoom-reset':'zoomReset','find':'find','new-tab':'newTab'}[command];
   if(!native)throw new UndefinedNativeAdapterError('Browser command needs an adapter: '+command);
   return (await w.native('previewPageCommand',[native]))!==false;},
  sleepBackgroundTabsNow:w=>{w.app.releasePages();return w.api('sleepBackgroundTabs');},

@@ -182,9 +182,15 @@ export const island={
   const spaces=await w.call('overlayMode')==='spaces';
   if(spaces)await w.waitFor(()=>w.call('overlayRendererMode'),mode=>mode==='spaces','rendered Spaces overlay');
   const frame=await frameRect(w,'overlay');
-  if(!frame||!spaces)return frame;
+  if(!frame)return frame;
+  // Shipping reports native view bounds, before its WebContents zoom. Frame
+  // DOM bounds are zoomed CSS pixels; recover the host's native window scale.
+  const {bounds}=await windowOf(w);
+  const scale=bounds.width/await w.hostEval('innerWidth');
+  const native=r=>Object.fromEntries(Object.entries(r).map(([key,value])=>[key,value*scale]));
+  if(!spaces)return native(frame);
   const menu=await overlay(w).locator('#workspaceSwitcher').boundingBox();if(!menu)return frame;
-  return {x:frame.x+menu.x-SPACES_MENU_SIDE,y:frame.y+menu.y-SPACES_MENU_PAD,width:menu.width+SPACES_MENU_SIDE*2,height:menu.height+SPACES_MENU_PAD*2};},
+  return native({x:frame.x+menu.x-SPACES_MENU_SIDE,y:frame.y+menu.y-SPACES_MENU_PAD,width:menu.width+SPACES_MENU_SIDE*2,height:menu.height+SPACES_MENU_PAD*2});},
  sendOverlayInput:(w,input)=>frameInput(w,'overlay',input),
  async pressOverlayKey(w,key,modifiers=[]){
   await overlay(w).evaluate(()=>window.focus());
