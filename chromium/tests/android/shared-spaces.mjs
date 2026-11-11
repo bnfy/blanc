@@ -66,7 +66,12 @@ async function main(argv) {
   // Through the Sync sheet: the switch, then the sheet's Turn on with Work ticked.
   const turnOn = async () => {
     d.runInPalette('/sync');
-    await d.waitFor(async () => d.dump().includes('Keep Spaces and groups in sync on this phone'), 'the switch', 15);
+    // The grouped list puts the switch below the fold on a phone, so scroll until it shows.
+    await d.waitFor(async () => {
+      if (d.dump().includes('Keep Spaces and groups in sync on this phone')) return true;
+      d.swipe(540, 1500, 540, 700, 300, 1);
+      return false;
+    }, 'the switch', 15);
     d.tap({text: 'Keep Spaces and groups in sync on this phone'});
     await d.waitFor(async () => d.dump().includes('Choose Spaces to sync'), 'the sheet', 15);
     d.tap({text: 'Turn on'});

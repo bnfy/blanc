@@ -61,7 +61,15 @@ function main(argv) {
   };
   const shot = name => fs.writeFileSync(path.join(evidence, `${name}.png`), execFileSync('adb', ['exec-out', 'screencap', '-p'], {maxBuffer: 64 * 1024 * 1024}));
   const results = [];
-  const check = (name, problems) => results.push({case: name, problems});
+  // Each check also fails on a crash logged since the last one, so a crash names its step.
+  const fatalCount = () => (adb('logcat', '-d', '-b', 'crash').match(/FATAL EXCEPTION/g) || []).length;
+  let crashesSeen = 0;
+  const check = (name, problems) => {
+    const now = fatalCount();
+    if (now > crashesSeen) problems = [...problems, 'Blanc crashed during this check'];
+    crashesSeen = now;
+    results.push({case: name, problems});
+  };
   const size = adb('shell', 'wm', 'size').match(/(\d+)x(\d+)/);
   const [width, height] = [+size[1], +size[2]];
   const scroll = (down = true) => { adb('shell', 'input', 'swipe', String(width / 2), String(height * (down ? 0.75 : 0.3)), String(width / 2), String(height * (down ? 0.3 : 0.75)), '300'); sleep(0.8); };
@@ -82,6 +90,8 @@ function main(argv) {
 
   adb('install', '-r', apk);
   adb('shell', 'pm', 'clear', PACKAGE);
+  // Only this run's crashes count.
+  adb('logcat', '-b', 'crash', '-c');
   adb('root');
   adb('shell', 'cmd', 'uimode', 'night', 'no');
   open();
@@ -337,6 +347,9 @@ function main(argv) {
   adb('shell', 'am', 'force-stop', PACKAGE);
   adb('shell', 'am', 'start', '-a', 'android.intent.action.VIEW', '-d', "'https://example.com/'", '-p', PACKAGE);
   sleep(6);
+  // Home first: Chromium saves which tab is active when it stops, and a bare force-stop skips that.
+  adb('shell', 'input', 'keyevent', 'KEYCODE_HOME');
+  sleep(3);
   adb('shell', 'am', 'force-stop', PACKAGE);
   const prefs = `/data/data/${PACKAGE}/shared_prefs/${PACKAGE}_preferences.xml`;
   const away = String(Date.now() - 5 * 3600 * 1000);
@@ -368,7 +381,9 @@ function main(argv) {
   check('coming back after hours away reopens the last tab', problems);
 
   const crashes = adb('logcat', '-d', '-b', 'crash');
-  check('no crash during the run', /FATAL EXCEPTION/.test(crashes) ? ['a crash was logged'] : []);
+  // Later stages clear the buffer, so a crash keeps its log here.
+  if (/FATAL EXCEPTION/.test(crashes)) fs.writeFileSync(path.join(evidence, 'crash.txt'), crashes);
+  check('no crash during the run', /FATAL EXCEPTION/.test(crashes) ? ['a crash was logged (crash.txt)'] : []);
 
   fs.writeFileSync(path.join(evidence, 'settings.json'), JSON.stringify(results, null, 2));
   let failed = 0;

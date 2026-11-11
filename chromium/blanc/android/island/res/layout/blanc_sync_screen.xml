@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright 2026 Bananify Creative. MIT; see LICENSE. -->
+<!-- The Sync screen: a bar with Back and the title, then the grouped list. -->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/blanc_sunrise_bg"
+    android:fitsSystemWindows="true"
+    android:orientation="vertical">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="@dimen/blanc_sync_bar_height"
+        android:gravity="center_vertical"
+        android:orientation="horizontal">
+
+        <ImageButton
+            android:id="@+id/blanc_sync_back"
+            android:layout_width="@dimen/blanc_sync_bar_height"
+            android:layout_height="@dimen/blanc_sync_bar_height"
+            android:background="?android:attr/selectableItemBackgroundBorderless"
+            android:contentDescription="@string/blanc_pill_back"
+            android:src="@drawable/blanc_sync_back"
+            android:tint="@color/blanc_sunrise_text" />
+
+        <TextView
+            android:id="@+id/blanc_sync_title"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="@string/blanc_settings_nav_sync"
+            android:textColor="@color/blanc_sunrise_text"
+            android:textSize="@dimen/blanc_sync_bar_title_size" />
+    </LinearLayout>
+
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1">
+
+        <LinearLayout
+            android:id="@+id/blanc_sync_list"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:padding="@dimen/blanc_sync_page_padding" />
+    </ScrollView>
+</LinearLayout>

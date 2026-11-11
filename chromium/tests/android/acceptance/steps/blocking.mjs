@@ -81,7 +81,8 @@ Then('{string} is in the ad-block exceptions', async function (_name) {
 });
 
 When('I reload {string}', async function (_name) {
-  this.device.tap({id: 'blanc_island_reload'});
+  // The Island has no Reload (#1463); the Sunrise menu does it.
+  this.device.menu('Reload');
   await settled(this.device);
 });
 

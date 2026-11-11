@@ -26,6 +26,18 @@ export function nodeBounds(xml, {id, text}) {
   return m ? {left: +m[1], top: +m[2], right: +m[3], bottom: +m[4]} : null;
 }
 
+// The swipe that opens the tab grid: from the Island's address into the page, a quarter of the screen
+// (up when the Island is at the bottom, down when it's at the top). The closed Island has no tab count
+// to tap. Returns `adb shell input swipe` coordinates, or null when the Island isn't on screen.
+export function gridSwipe(xml) {
+  const island = nodeBounds(xml, {id: 'blanc_island_domain'});
+  const screen = /bounds="\[0,0\]\[(\d+),(\d+)\]"/.exec(xml);
+  if (!island || !screen) return null;
+  const x = Math.round((island.left + island.right) / 2), y = Math.round((island.top + island.bottom) / 2);
+  const height = Number(screen[2]);
+  return [x, y, x, y + (y > height / 2 ? -1 : 1) * Math.round(height / 4)].map(String);
+}
+
 // The menu's entries on screen, top to bottom.
 export function menuEntries(xml) {
   return ENTRIES.map(text => ({text, bounds: nodeBounds(xml, {text})}))

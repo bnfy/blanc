@@ -11,7 +11,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import {execFileSync} from 'node:child_process';
 import {fileURLToPath} from 'node:url';
-import {nodeBounds} from './island-menu.mjs';
+import {gridSwipe, nodeBounds} from './island-menu.mjs';
 import {matching} from './palette.mjs';
 import {cardLabels} from './tab-grid.mjs';
 import {tabCount} from './tabs.mjs';
@@ -54,6 +54,8 @@ function main(argv) {
   const center = b => [Math.round((b.left + b.right) / 2), Math.round((b.top + b.bottom) / 2)].map(String);
   const tapAt = b => { adb('shell', 'input', 'tap', ...center(b)); sleep(1.5); };
   const tap = query => { const b = nodeBounds(dump(), query); if (b) tapAt(b); return !!b; };
+  // The tab grid opens with a swipe from the Island into the page; the closed Island has no tab count.
+  const openGrid = () => { const swipe = gridSwipe(dump()); if (swipe) { adb('shell', 'input', 'swipe', ...swipe, '250'); sleep(2); } return !!swipe; };
   const tapDesc = pattern => { const b = matching(dump(), pattern, 'content-desc'); if (b) tapAt(b); return !!b; };
   const longPressDesc = pattern => {
     const b = matching(dump(), pattern, 'content-desc');
@@ -80,7 +82,7 @@ function main(argv) {
   for (const page of PAGES) { adb('shell', 'am', 'start', '-a', 'android.intent.action.VIEW', '-d', page, '-p', PACKAGE); sleep(5); }
 
   // Each step opens the grid afresh, so no step races the last one's popup closing.
-  const grid = () => { if (!nodeBounds(dump(), {text: 'Open tabs'})) tap({id: 'blanc_island_tabs'}); };
+  const grid = () => { if (!nodeBounds(dump(), {text: 'Open tabs'})) openGrid(); };
   const closeGrid = () => { if (nodeBounds(dump(), {text: 'Open tabs'})) tap({text: 'Done'}); };
   // Group the Protocols tab (active now) as Research, colored Sky.
   palette('/group Research');
@@ -106,20 +108,21 @@ function main(argv) {
   tapDesc(/^Switch to About us$/);
   shot('0-before');
   if (argv.includes('--setup-only')) {
-    tap({id: 'blanc_island_tabs'});
+    openGrid();
+    const count = tabCount(dump());
     const grid = wholeGrid();
     shot('0-before-grid');
     longPressDesc(/^Switch to New Tab$/);
     const pinned = !!nodeBounds(dump(), {text: 'Unpin Tab'});
     back();
-    console.log(JSON.stringify({count: tabCount(dump()), pinned, cards: uniqueCards(grid), active: activeCard(grid), research: !!matching(grid, /^Research$/), private: !!matching(grid, /^Private$/)}));
+    console.log(JSON.stringify({count, pinned, cards: uniqueCards(grid), active: activeCard(grid), research: !!matching(grid, /^Research$/), private: !!matching(grid, /^Private$/)}));
     return;
   }
 
   const read = name => {
     launch();
+    openGrid();
     const count = tabCount(dump());
-    tap({id: 'blanc_island_tabs'});
     shot(name);
     const grid = wholeGrid();
     const prefs = adb('shell', 'run-as', PACKAGE, 'cat', PREFS);

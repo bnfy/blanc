@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright 2026 Bananify Creative. MIT; see LICENSE. -->
+<!-- The rename box for This phone's sync name: a plain field with the platform's underline. -->
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:paddingStart="@dimen/blanc_settings_dialog_padding"
+    android:paddingEnd="@dimen/blanc_settings_dialog_padding">
+
+    <EditText
+        android:id="@+id/blanc_sync_rename_field"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:importantForAutofill="no"
+        android:inputType="text|textNoSuggestions"
+        android:singleLine="true" />
+</FrameLayout>

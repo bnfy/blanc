@@ -2341,6 +2341,45 @@ sits in the open Island's footer, before Favorites, under the same rule (once a 
 tab), and opens the Spaces menu. The iPhone is making the same change in its own session, so this isn't a
 divergence. The Spaces emulator check now requires the closed Island to have no mark.
 
+The Sync screen was redesigned on November 11 at the owner's request ("visually overwhelming"; they picked a grouped
+list from three mock-ups). It opens as a full page with a back arrow instead of a dialog with a stack of eight
+buttons and Done: the iPhone's Form groups as Sunrise cards (status, account and last sync; Device name, Share open
+tabs and Sync now; the Spaces switch and Choose Spaces to sync; Add another device, Copy recovery code, Switch
+account and Disconnect in red), with each group's help under its card. Device name is a row that opens a rename box,
+so Save name is gone. The not-connected screens follow the same style. Layouts, colors and sizes are Android
+resources. Robolectric covers the groups, the rows (no buttons), the rename box and Back; the owner looked at it on
+the Pixel (`bc6fdebd…`) and approved it. The not-connected screens weren't seen on the phone.
+
+The tab count left the closed Island on November 11 too, as on the iPhone since November 5 (#1372). The tab grid
+opens with the swipe from the Island into the page; TalkBack hears the count on the address ("Search or switch
+tabs, example.com, 3 tabs") and gets a Show all tabs action there. The emulator scripts open the grid with that
+swipe and read the count from the grid's header.
+
+The iPhone's pinch into the tab grid is ported in two parts (owner, November 11: "pinch first, motion next"). Part 1,
+the gesture: a pinch in on a fully zoomed-out page opens the grid once the fingers close past 0.8 or close quickly
+(`PagePinch`, the iPhone's numbers); a zoomed-in page zooms out first. Chromium handles page touches outside the
+browser's views (InputOnViz), so the Island hears the gesture events through a native input observer
+(`page_pinch_bridge.cc`, patch 0111), alongside the page's own zoom. The grid opens with its present animation. Part
+2, the page shrinking into its card under the fingers with the grid behind it, is not built: Android's grid is a
+dialog over the page, so it needs the grid moved behind the page and a spike on scaling the page surface.
+
+The Island's layout follows the iPhone's #1463 (opened November 11, not merged at the time of the port): after the
+Sunrise mark and the left-aligned address come Stop while a page loads, Back, Forward and New tab. Reload moved into
+the Sunrise menu, before Share, where it reads Stop while a page loads, and Settings is the menu's last entry. Opening
+the menu gives a light haptic tap. On the Start Page the address reads "Search or type URL", dimmed, while TalkBack
+still hears "Start Page"; the owner shortened the shared string on November 11 (#1464 on main, the same edit here) so
+it fits a 411dp phone beside Back, Forward and New Tab at the iPhone's 44dp. If #1463 changes in review, this follows
+it.
+
+The Start Page's Billboard clock defaults to the iPhone's first-run clock (#1331): Roboto Flex at its tallest (300),
+weight 450, in glass. `blanc_pages_ui.cc` puts these under the Start Page's appearance settings; Android has no
+appearance store yet (A5b), and these are never saved, so a later default reaches everyone who never changed the
+clock. Android has no Liquid Glass, so the page draws the glass itself with `clock-art.js`, as desktop does; it looks
+close to the iPhone's but is not the system material. The pinned page copies moved from v1.46.0 to v1.47.1, which
+brings the iPhone's larger phone clock (30vw, capped at 120px) and its glass-clock fixes. `pages-phone.mjs` checks
+the fresh install's clock (it failed on the old build: Instrument Sans, solid). Not wired yet: the Start Page's
+layout for the Island along the top (`mobileIslandPosition`, which v1.47.1's phone script reads).
+
 ### Shield count across a page's commit
 
 The count is fixed in the blocker code desktop shares. A page's first request can

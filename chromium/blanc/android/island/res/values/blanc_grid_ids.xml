@@ -2,4 +2,6 @@
 <resources>
     <!-- The tab grid's TalkBack action that closes a card. -->
     <item name="blanc_grid_close_action" type="id" />
+    <!-- The Island address's TalkBack action that opens the tab grid. -->
+    <item name="blanc_island_show_all_tabs_action" type="id" />
 </resources>

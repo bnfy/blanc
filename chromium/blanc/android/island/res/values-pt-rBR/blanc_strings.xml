@@ -11,6 +11,11 @@
     <string name="blanc_pages_nav_bookmarks">Favoritos</string>
     <string name="blanc_pages_nav_history">Histórico</string>
     <string name="blanc_pill_private_chip">Privada</string>
+    <string name="blanc_menu_reload">Recarregar</string>
+    <string name="blanc_menu_settings">Configurações</string>
+    <string name="blanc_pill_back">Voltar</string>
+    <string name="blanc_pill_forward">Avançar</string>
+    <string name="blanc_pill_placeholder">Pesquise ou digite uma URL</string>
     <string name="blanc_pill_private_title">Sair do modo privado — fecha esta aba</string>
     <string name="blanc_tab_new">Nova aba</string>
     <string name="blanc_menu_new_private_tab">Nova aba privada</string>

@@ -9,11 +9,14 @@ import static org.junit.Assert.assertTrue;
 import static org.robolectric.Shadows.shadowOf;
 
 import android.app.Activity;
+import android.app.AlertDialog;
 import android.app.Dialog;
 import android.os.Looper;
+import android.text.TextUtils;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
+import android.widget.CompoundButton;
 import android.widget.EditText;
 import android.widget.TextView;
 
@@ -87,12 +90,27 @@ public class SyncSheetTest {
         return out;
     }
 
-    private Button button(int id) {
+    /** The row (or field's action) titled `id`: the clickable view around that text. */
+    private View action(int id) {
         String label = mActivity.getString(id);
         for (View view : views()) {
-            if (view instanceof Button b && label.contentEquals(b.getText())) return b;
+            if (view instanceof TextView t && !(view instanceof EditText) && label.contentEquals(t.getText())) {
+                View at = view;
+                while (at != null && !at.isClickable()) {
+                    at = at.getParent() instanceof View parent ? parent : null;
+                }
+                // A heading can share an action's words; only a clickable row counts.
+                if (at != null) return at;
+            }
         }
         return null;
+    }
+
+    private boolean showsText(String value) {
+        for (View view : views()) {
+            if (view instanceof TextView t && value.contentEquals(t.getText())) return true;
+        }
+        return false;
     }
 
     private boolean shows(int id) {
@@ -120,7 +138,7 @@ public class SyncSheetTest {
         sheet.setOnClosed(() -> closed[0]++);
         sheet.show();
         assertEquals(0, closed[0]);
-        button(R.string.blanc_shield_done).performClick();
+        backArrow().performClick();
         shadowOf(Looper.getMainLooper()).idle();
         assertEquals(1, closed[0]);
     }
@@ -129,17 +147,17 @@ public class SyncSheetTest {
     public void offOffersPairingFirst() {
         open();
         
-        assertNotNull(button(R.string.blanc_ios_settings_pair_with_blanc));
-        assertNotNull(button(R.string.blanc_ios_settings_other_ways));
+        assertNotNull(action(R.string.blanc_ios_settings_pair_with_blanc));
+        assertNotNull(action(R.string.blanc_ios_settings_other_ways));
         assertEquals(null, field(R.string.blanc_ios_settings_pairing_code));
     }
 
     @Test
     public void aTypedCodeJoinsWithWhatWasTyped() {
         open();
-        button(R.string.blanc_ios_settings_other_ways).performClick();
+        action(R.string.blanc_ios_settings_other_ways).performClick();
         field(R.string.blanc_ios_settings_pairing_code).setText("k7mr-4px2");
-        button(R.string.blanc_settings_sync_switch_connect).performClick();
+        action(R.string.blanc_settings_sync_switch_connect).performClick();
         assertTrue(mCalls.toString(), mCalls.contains("sync.joinWithCode [\"k7mr-4px2\"]"));
     }
 
@@ -147,9 +165,9 @@ public class SyncSheetTest {
     public void aRefusedCodeSaysWhyAndKeepsTheField() {
         reply("sync.joinWithCode", "{\"ok\":false,\"error\":\"pair-not-found\"}");
         open();
-        button(R.string.blanc_ios_settings_other_ways).performClick();
+        action(R.string.blanc_ios_settings_other_ways).performClick();
         field(R.string.blanc_ios_settings_pairing_code).setText("K7MR4PX2");
-        button(R.string.blanc_settings_sync_switch_connect).performClick();
+        action(R.string.blanc_settings_sync_switch_connect).performClick();
         assertTrue(shows(R.string.blanc_sync_error_pair_not_found));
         assertEquals("K7MR4PX2", field(R.string.blanc_ios_settings_pairing_code).getText().toString());
     }
@@ -158,12 +176,12 @@ public class SyncSheetTest {
     public void aScannedCodeJoinsAndNoScanShowsTheField() {
         mScanned = "K7MR4PX2";
         open();
-        button(R.string.blanc_ios_settings_pair_with_blanc).performClick();
+        action(R.string.blanc_ios_settings_pair_with_blanc).performClick();
         assertTrue(mCalls.contains("sync.joinWithCode [\"K7MR4PX2\"]"));
         mCalls.clear();
         mScanned = null;
         open();
-        button(R.string.blanc_ios_settings_pair_with_blanc).performClick();
+        action(R.string.blanc_ios_settings_pair_with_blanc).performClick();
         assertNotNull(field(R.string.blanc_ios_settings_pairing_code));
         assertTrue(shows(R.string.blanc_ios_settings_type_code_shown));
         assertFalse(mCalls.toString().contains("joinWithCode"));
@@ -173,11 +191,11 @@ public class SyncSheetTest {
     public void onShowsTheAccountAndSwitchingUsesSwitchWithCode() {
         reply("sync.status", "{\"enabled\":true,\"handle\":\"tester\",\"lastSyncedAt\":1793909442722,\"deviceNamePublished\":\"Android\"}");
         open();
-        assertNotNull(button(R.string.blanc_ios_settings_disconnect));
-        assertEquals("Android", field(R.string.blanc_ios_settings_device_name).getText().toString());
-        button(R.string.blanc_ios_settings_switch_account).performClick();
+        assertNotNull(action(R.string.blanc_ios_settings_disconnect));
+        assertTrue(showsText("Android"));
+        action(R.string.blanc_ios_settings_switch_account).performClick();
         field(R.string.blanc_ios_settings_pairing_code).setText("K7MR4PX2");
-        button(R.string.blanc_ios_settings_switch_account).performClick();
+        action(R.string.blanc_ios_settings_switch_account).performClick();
         assertTrue(mCalls.toString(), mCalls.contains("sync.switchWithCode [\"K7MR4PX2\"]"));
     }
 
@@ -217,5 +235,84 @@ public class SyncSheetTest {
         open();
         assertFalse(mCalls.toString().contains("sync.disable"));
         assertTrue(shows(R.string.blanc_sync_error_offline));
+    }
+
+    private View backArrow() {
+        String back = mActivity.getString(R.string.blanc_pill_back);
+        for (View view : views()) {
+            if (view.getContentDescription() != null && back.contentEquals(view.getContentDescription())) return view;
+        }
+        return null;
+    }
+
+    private void connected() {
+        reply("sync.status", "{\"enabled\":true,\"handle\":\"tester\",\"lastSyncedAt\":1793909442722,\"deviceNamePublished\":\"Android\"}");
+    }
+
+    // A grouped list, as the iPhone's: rows in cards, no stack of buttons.
+    @Test
+    public void onDrawsRowsInCardsAndNoButtons() {
+        connected();
+        open();
+        for (View view : views()) {
+            if (view instanceof Button && !(view instanceof CompoundButton)) {
+                throw new AssertionError("a button: " + ((Button) view).getText());
+            }
+        }
+        assertNotNull(action(R.string.blanc_settings_sync_sync_now));
+        assertNotNull(action(R.string.blanc_ios_settings_disconnect));
+        assertEquals(null, field(R.string.blanc_ios_settings_device_name));
+    }
+
+    @Test
+    public void theDeviceNameRowRenamesThroughADialog() {
+        connected();
+        open();
+        Dialog sheet = ShadowDialog.getLatestDialog();
+        action(R.string.blanc_ios_settings_device_name).performClick();
+        AlertDialog rename = (AlertDialog) ShadowDialog.getLatestDialog();
+        EditText name = null;
+        List<View> inside = new ArrayList<>();
+        collect(rename.getWindow().getDecorView(), inside);
+        for (View view : inside) if (view instanceof EditText e) name = e;
+        assertEquals("Android", name.getText().toString());
+        name.setText("Pixel");
+        rename.getButton(AlertDialog.BUTTON_POSITIVE).performClick();
+        // AlertDialog runs a button's handler from a message on the main loop.
+        shadowOf(Looper.getMainLooper()).idle();
+        assertTrue(mCalls.toString(), mCalls.contains("sync.setThisDeviceName [\"Pixel\"]"));
+        // The row shows what the runner reports, so a save that didn't take shows the old name.
+        List<String> shown = new ArrayList<>();
+        List<View> onSheet = new ArrayList<>();
+        collect(sheet.getWindow().getDecorView(), onSheet);
+        for (View view : onSheet) if (view instanceof TextView t) shown.add(t.getText().toString());
+        assertTrue(shown.toString(), shown.contains("Android"));
+        assertFalse(shown.toString(), shown.contains("Pixel"));
+    }
+
+    @Test
+    public void theSwitchesCarryTheirLabels() {
+        connected();
+        open();
+        List<CharSequence> labels = new ArrayList<>();
+        for (View view : views()) {
+            // Rows without a switch keep a hidden, unlabeled one; only the shown switches count.
+            if (view instanceof CompoundButton c && c.getVisibility() == View.VISIBLE) {
+                labels.add(c.getContentDescription());
+            }
+        }
+        for (int label : new int[] {R.string.blanc_ios_settings_share_tabs, R.string.blanc_shared_spaces_switch_android}) {
+            String text = mActivity.getString(label);
+            assertTrue(text + " has no switch labeled for TalkBack: " + labels,
+                    labels.stream().anyMatch(l -> TextUtils.equals(text, l)));
+        }
+    }
+
+    @Test
+    public void theBackArrowClosesTheScreen() {
+        open();
+        Dialog sheet = ShadowDialog.getLatestDialog();
+        backArrow().performClick();
+        assertFalse(sheet.isShowing());
     }
 }
