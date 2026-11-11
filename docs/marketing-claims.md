@@ -208,7 +208,11 @@ original reports:
   menu offers Open Link in Glance, and `/glance` opens the picker. Glance
   holds one reference at a time; do not describe more panes, tiling of
   several tabs, or automatic pairing of related pages. Material about v1.39.0
-  or earlier describes the side-by-side Glance of those releases.
+  or earlier describes the side-by-side Glance of those releases. Since
+  v1.48.0 Glance also opens over a Split View, as one card over both panes;
+  clicking between the panes keeps it open, and Keep as split is hidden while
+  a split shows. It has run only in the Linux acceptance suite, not by hand in
+  a packaged build, so don't describe how it looks on a given platform.
 - **Split View:** Since v1.40.0 two tabs can show side by side in one window,
   made from a tab's Split with menu or Glance's Keep as split. The divider
   resizes the panes, the pane you click is the current tab, and a split stays
@@ -592,6 +596,12 @@ original reports:
   Electron 45 runtime. The fix was run in Blanc on macOS only, so don't say it
   was tested on Linux or Windows. It adds no feature: describe new capabilities
   as since v1.47.0, never v1.47.1.
+- **1.48.0:** Glance over a split (see Glance) is its one new feature. It also
+  fixes live connections (WebSockets) after **Continue** on a certificate
+  warning for a local or private-network address, for that same address and
+  certificate only. Neither was hand-checked against a packaged build before
+  release; don't claim a specific console such as Proxmox works until someone
+  has tried it.
 - **Auto-hide the Island:** Since v1.39.0 an opt-in, device-local setting
   (Settings → General, the View menu, ⌘⌥B or Ctrl+Alt+B) hides the Island's
   strip so the page fills the window. Pointing at or just above the top edge,

@@ -1,5 +1,84 @@
 [
   {
+    "tag": "v1.48.0",
+    "version": "1.48.0",
+    "name": "1.48.0",
+    "publishedAt": "2026-11-11T16:14:11.000Z",
+    "humanDate": "November 11, 2026",
+    "machineDate": "2026-11-11",
+    "url": "https://github.com/bnfy/blanc/releases/tag/v1.48.0",
+    "anchor": "v1-48-0",
+    "compareUrl": null,
+    "sections": [
+      {
+        "heading": "Added",
+        "blocks": [
+          {
+            "type": "list",
+            "items": [
+              {
+                "spans": [
+                  {
+                    "type": "strong",
+                    "value": "Glance over a split."
+                  },
+                  {
+                    "type": "text",
+                    "value": " With Split View showing, Glance now opens as a floating card over both panes, from a tab's Glance button in the ⌘L panel, a tab's menu, the View menu (⌘⇧G on a Mac, Ctrl+Shift+G on Windows and Linux) or "
+                  },
+                  {
+                    "type": "code",
+                    "value": "/glance"
+                  },
+                  {
+                    "type": "text",
+                    "value": ". Clicking between the two panes keeps the Glance open, and if you close one pane, the other fills the window with the Glance still over it. Before, the Glance button looked available over a split but did nothing. Choosing Glance for one of the split's own two tabs still takes that tab out of the split and floats it over the other, and the card's "
+                  },
+                  {
+                    "type": "strong",
+                    "value": "Keep as split"
+                  },
+                  {
+                    "type": "text",
+                    "value": " is hidden while a split is showing."
+                  }
+                ],
+                "url": null
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "heading": "Fixed",
+        "blocks": [
+          {
+            "type": "list",
+            "items": [
+              {
+                "spans": [
+                  {
+                    "type": "text",
+                    "value": "After choosing "
+                  },
+                  {
+                    "type": "strong",
+                    "value": "Continue"
+                  },
+                  {
+                    "type": "text",
+                    "value": " past a certificate warning on a local or private-network address, the page couldn't open live connections (WebSockets) back to the same address, so consoles and live views such as Proxmox's couldn't connect. They now use the same choice, for that same address and certificate only."
+                  }
+                ],
+                "url": null
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
     "tag": "v1.47.1",
     "version": "1.47.1",
     "name": "1.47.1",
