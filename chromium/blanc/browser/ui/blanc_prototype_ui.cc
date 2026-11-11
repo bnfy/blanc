@@ -5453,6 +5453,18 @@ class Handler : public content::WebUIMessageHandler, public extensions::Extensio
           service->AcceptedTabsForTesting(), base::JSON_PARSE_RFC) : std::nullopt;
       Reply(id, true, accepted ? std::move(*accepted) : base::Value()); return;
     }
+    // Test-only clock input. Production eligibility and final guards still run.
+    if (quiet_method == "quietIdleAge" && quiet_args.size() == 2 &&
+        quiet_args[0].is_int() && quiet_args[1].is_int() && quiet_args[1].GetInt() >= 0) {
+      auto* model = GetOwner(web_ui()->GetWebContents())->browser->GetTabStripModel();
+      for (int i = 0; i < model->count(); ++i) {
+        auto* tab = model->GetWebContentsAt(i);
+        if (sessions::SessionTabHelper::IdForTab(tab).id() != quiet_args[0].GetInt()) continue;
+        test_quiet_ages_[quiet_args[0].GetInt()] = quiet_args[1].GetInt();
+        Reply(id, true, base::Value(true)); return;
+      }
+      reject("Unknown quiet clock tab."); return;
+    }
     if (quiet_method == "quietThreshold" && quiet_args.size() == 1 && quiet_args[0].is_int() &&
         quiet_args[0].GetInt() >= 0) {
       test_quiet_delay_ = quiet_args[0].GetInt();
@@ -5522,6 +5534,13 @@ class Handler : public content::WebUIMessageHandler, public extensions::Extensio
     }
     // Read-only: typed hand-offs the navigation group recorded instead of
     // launching (navigation.h).
+    if (quiet_method == "downloadOpenState" && quiet_args.size() == 1 && quiet_args[0].is_string()) {
+      auto* profile = GetOwner(web_ui()->GetWebContents())->browser->GetProfile();
+      auto* item = utility_sheet::FindDownload(profile, quiet_args[0].GetString());
+      if (!item) { reject("Unknown download."); return; }
+      Reply(id, true, base::Value(base::DictValue().Set("opened", item->GetOpened())
+          .Set("path", item->GetTargetFilePath().AsUTF8Unsafe()))); return;
+    }
     if (message[1].GetString() == "handoffs") {
       base::ListValue list;
       for (const auto& [url, prompt] : blanc::browser_api::TestHandoffs())
@@ -5980,6 +5999,27 @@ class Handler : public content::WebUIMessageHandler, public extensions::Extensio
           std::string(blanc::ui_language::kPref))));
       return;
     }
+    // Inject a stray attach order at the native page ancestor. Both split
+    // panes share that ancestor; do not reparent a WebView out of its owner.
+    if (message[1].GetString() == "raiseTabView" && message[2].GetList().size() == 1 &&
+        message[2].GetList()[0].is_int()) {
+      auto* owner = GetOwner(web_ui()->GetWebContents());
+      auto* bv = owner ? BrowserViewFor(owner) : nullptr;
+      views::View* parent = owner && owner->view ? owner->view->parent() : nullptr;
+      views::View* page = bv ? bv->multi_contents_view() : nullptr;
+      if (!parent || !page) { reject("Window view tree unavailable."); return; }
+      auto* model = owner->browser->GetTabStripModel();
+      bool found = false;
+      for (int i = 0; i < model->count(); ++i)
+        found |= sessions::SessionTabHelper::IdForTab(model->GetWebContentsAt(i)).id() == message[2].GetList()[0].GetInt();
+      if (!found) { reject("Unknown pane."); return; }
+      while (page->parent() && page->parent() != parent) page = page->parent();
+      parent->ReorderChildView(page, parent->children().size());
+      Reply(id, true, base::Value(base::DictValue()
+          .Set("paneIndex", static_cast<int>(parent->GetIndexOf(page).value()))
+          .Set("pillIndex", static_cast<int>(parent->GetIndexOf(owner->view).value()))));
+      return;
+    }
     // Stacking is independent of visibility: a hidden floating pill stays
     // above the page containers so its next reveal needs no tab switch.
     if (message[1].GetString() == "islandAbovePages" && message[2].GetList().empty()) {
@@ -6259,9 +6299,11 @@ class Handler : public content::WebUIMessageHandler, public extensions::Extensio
     Reply(id, true, base::Value(std::move(items)));
   }
   std::optional<int64_t> test_quiet_delay_;
+  std::map<int, int64_t> test_quiet_ages_;
   void WaitForTestQuietSweep(const std::string& id) {
     if (!auto_running_) {
       test_quiet_delay_.reset();
+      test_quiet_ages_.clear();
       Reply(id, true, base::Value(true)); return;
     }
     base::SequencedTaskRunner::GetCurrentDefault()->PostDelayedTask(FROM_HERE,
@@ -6356,6 +6398,12 @@ class Handler : public content::WebUIMessageHandler, public extensions::Extensio
         !net::NetworkChangeNotifier::IsOffline();
   }
   bool AutoDue(content::WebContents* tab) {
+#if BUILDFLAG(ENABLE_BLANC_TEST_HOOKS)
+    if (tab) {
+      const auto age = test_quiet_ages_.find(sessions::SessionTabHelper::IdForTab(tab).id());
+      if (age != test_quiet_ages_.end()) return blanc::quiet::IdleDue(age->second, AutoDelay());
+    }
+#endif
     return tab && blanc::quiet::IdleDue((base::TimeTicks::Now() -
         std::max(tab->GetLastActiveTimeTicks(), auto_grace_)).InMilliseconds(), AutoDelay());
   }
@@ -11251,6 +11299,17 @@ void LayoutIsland(views::View* parent, int top) {
   auto* view = static_cast<views::WebView*>(parent->GetViewByID(kIslandViewId));
   if (!view) return;
   auto* owner = GetOwner(view->GetWebContents());
+  // An attach/reorder can raise the native page ancestor above the Island.
+  // Repair only that relationship, preserving settings and extension layers.
+  auto* bv = static_cast<BrowserView*>(parent);
+  views::View* page = bv->multi_contents_view();
+  if (page) {
+    while (page->parent() && page->parent() != parent) page = page->parent();
+    const auto page_index = parent->GetIndexOf(page);
+    const auto island_index = parent->GetIndexOf(view);
+    if (page_index && island_index && *page_index > *island_index)
+      parent->ReorderChildView(page, *island_index);
+  }
   // Auto-hide's push style moves the Island with the page's top: above the
   // window while hidden, sliding in above the page as it moves down. The
   // rail keeps its column, and a floating Island stays at the top.

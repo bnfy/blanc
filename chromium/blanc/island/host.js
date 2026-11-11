@@ -525,7 +525,7 @@
   // card's generation, so a message from a card that has gone is refused. The
   // save is debounced and a close flushes it.
   const GlanceCard = window.BlancGlanceCard;
-  const glance = { tabId: null, generation: 0, pending: undefined, timer: null, key: '', requestEpoch: 0 };
+  const glance = { ready: false, loadEpoch: 0, tabId: null, generation: 0, pending: undefined, timer: null, key: '', requestEpoch: 0 };
   const glanceArea = () => snapshot?.splitGeometry?.mode === 'glance' ? snapshot.splitGeometry.pageArea : null;
   const glanceFractions = () => (glance.pending !== undefined ? glance.pending : snapshot?.glanceFrame ?? null);
   const glanceCardFrameNow = () => GlanceCard.fractionsToFrame(glanceFractions(), glanceArea());
@@ -550,6 +550,9 @@
     glanceCardFrame.contentWindow.focus();
   }
   function publishGlance() {
+    // A newly-created card document must paint before its page is exposed.
+    // Keep the native page rectangle empty until both can appear together.
+    if (!glance.ready) { glanceCardFrame.hidden = true; return; }
     const payload = glancePayload();
     const key = JSON.stringify(payload);
     if (key === glance.key) return;
@@ -2499,6 +2502,11 @@
       }
       await announceSpaces();
     },
+    reloadGlanceCard: () => {
+      glance.ready = false; glance.loadEpoch += 1; glance.key = '';
+      glanceCardFrame.hidden = true;
+      glanceCardFrame.src = glanceCardFrame.dataset.src;
+    },
     glanceState: () => ({ layout: glancePayload(), shown: !glanceCardFrame.hidden, generation: glance.generation }),
     findState: () => ({ tabId: findTabId }),
     apiForDocument,
@@ -2575,6 +2583,11 @@
   glanceCardFrame.src = glanceCardFrame.dataset.src;
   // Escape closes a Glance only from the card's own chrome (F34).
   glanceCardFrame.addEventListener('load', () => {
+    const epoch = glance.loadEpoch;
+    requestAnimationFrame(() => requestAnimationFrame(() => {
+      if (epoch !== glance.loadEpoch) return;
+      glance.ready = true; glance.key = ''; publishGlance();
+    }));
     glanceCardFrame.contentDocument.addEventListener('keydown', event => {
       if (event.key === 'Escape' && snapshot?.glanceTabId != null) window.BlancPrototypeHost.api.closeGlance();
     });

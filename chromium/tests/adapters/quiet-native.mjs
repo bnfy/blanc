@@ -3,6 +3,7 @@ import {forkUrl} from './core.mjs';
 import {nativeId} from '../lib/adapters.mjs';
 async function settled(w,id){return w.waitForState(s=>s.tabs.some(t=>t.id===String(id)&&!t.loading));}
 export const quietNative={
+ setTabIdleSince:(w,id,ms)=>w.native('quietIdleAge',[nativeId(id),ms]),
  async sessionSyncSnapshot(w){
   const tab=(await w.snapshot()).tabs.find(t=>String(t.id)===String(w.quietCandidateId));
   if(!tab)throw Error('Quiet candidate missing from native tab model');

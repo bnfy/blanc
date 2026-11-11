@@ -339,6 +339,7 @@ export const tabs={
   return (s.splits||[]).filter(x=>x.tabIds.some(id=>!open.has(String(id)))).map(x=>String(x.id));},
  windowChildViewCount:async w=>({tabViews:(await w.snapshot()).tabs.filter(t=>t.viewBounds).length}),
  tabBounds:async(w,id)=>(await w.snapshot()).tabs.find(t=>String(t.id)===String(id))?.viewBounds??null,
+ raiseTabView:(w,id)=>w.native('raiseTabView',[Number(id)]),
  attachedTabViewIds:async w=>(await w.snapshot()).tabs.filter(t=>t.viewBounds).map(t=>String(t.id)),
  focusPane:async(w,tabId)=>{await w.native('switchTab',[nativeId(tabId)]);return true;},
  focusedWebContentsId:async w=>(await w.snapshot()).focusedTabId??null,

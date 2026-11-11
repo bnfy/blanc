@@ -168,13 +168,14 @@ export default function register(step){
   assert.equal(count,0);
  });
  // ---- F11-1: downloads (spec row F11: the Downloads sheet) ----
- step('I start a download',async function(){
+ const startDownload=async function(){
+  this.downloadFilename??='slow-download.bin';
   // A file streamed over about four seconds, so its row is seen in flight.
   // It lands inside the isolated fixture, never the user's Downloads.
   const chunks=8,size=32*1024;
   this.downloadServer=http.createServer((q,r)=>{
    r.writeHead(200,{'content-type':'application/octet-stream','content-length':String(chunks*size),
-    'content-disposition':'attachment; filename="slow-download.bin"'});
+    'content-disposition':`attachment; filename="${this.downloadFilename}"`});
    let sent=0;const timer=setInterval(()=>{r.write(Buffer.alloc(size,65));if(++sent===chunks){clearInterval(timer);r.end();}},500);
    r.on('close',()=>clearInterval(timer));});
   this.downloadServer.unref();
@@ -188,9 +189,10 @@ export default function register(step){
   // state tick, gone the next) — openTab()'s created() helper waits for that
   // same tab id to finish loading, which never happens. Create it directly
   // and track only the download, which is what this step actually asserts.
-  await this.native('createTab',[`http://127.0.0.1:${this.downloadServer.address().port}/slow-download.bin`]);
+  await this.native('createTab',[`http://127.0.0.1:${this.downloadServer.address().port}/${this.downloadFilename}`]);
   await until(this,()=>this.downloadEvents,e=>e.some(x=>x.m==='Browser.downloadWillBegin'),'the download to begin');
- });
+ };
+ step('I start a download',startDownload);
  // The Downloads sheet's row for the download, as shipping's page draws it.
  const downloadRow=async world=>{
   const surf=await world.call('utilitySurface');
@@ -200,7 +202,7 @@ export default function register(step){
    assert.equal(shown.url,'blanc://downloads/','downloads should show in the Blanc downloads sheet');
   }
   return world.hostEval(`(()=>{const row=[...(document.getElementById('sheet')?.contentDocument?.querySelectorAll('#list .row')??[])]
-   .find(r=>r.querySelector('.file-name')?.title==='slow-download.bin');
+   .find(r=>r.querySelector('.file-name')?.title===${jsLiteral(world.downloadFilename??'slow-download.bin')});
    return row?{state:row.dataset.state,progress:row.querySelector('[role=progressbar]')?.getAttribute('aria-valuenow')??null,
     meta:row.querySelector('.meta')?.textContent??''}:null;})()`);
  };
@@ -212,4 +214,25 @@ export default function register(step){
   await until(this,()=>downloadRow(this),r=>r?.state==='completed','the download row to complete',15000);
   this.downloadServer?.close();
  });
+ step('a completed download',async function(){
+  this.downloadFilename='retrievable-download.txt';
+  await startDownload.call(this);
+  await until(this,()=>downloadRow(this),r=>r?.state==='completed','download completed',15000);
+  this.downloadGuid=this.downloadEvents.find(e=>e.m==='Browser.downloadWillBegin').guid;
+  const file=path.join(this.fixture.directory,'downloads',this.downloadFilename);
+  assert.equal(fs.readFileSync(file).length,8*32*1024);
+  this.downloadServer.close();
+ });
+ step('I open the completed download',async function(){
+  const clicked=await this.hostEval(`(()=>{const row=[...document.getElementById('sheet').contentDocument.querySelectorAll('#list .row')]
+   .find(r=>r.querySelector('.file-name')?.title===${jsLiteral(this.downloadFilename)});
+   const open=row?.querySelector('[data-action-key$=":open"]');if(!open)return false;open.click();return true;})()`);
+  assert.equal(clicked,true,'completed row offers Open');
+ });
+ step("the file opens through the platform's normal file mechanism",async function(){
+  const value=await until(this,()=>this.native('downloadOpenState',[this.downloadGuid]),s=>s?.opened,'native DownloadItem open acknowledgement');
+  assert.equal(value.path,path.join(this.fixture.directory,'downloads',this.downloadFilename));
+  assert.equal(fs.readFileSync(value.path).length,8*32*1024);
+ });
+
 }

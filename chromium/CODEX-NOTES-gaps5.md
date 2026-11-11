@@ -4,16 +4,16 @@ Queue 5 is in progress; focused acceptance is recorded below.
 
 | Classification | Cases | Newly passing |
 | --- | ---: | ---: |
-| a: missing adapter | 32 | 22 |
+| a: missing adapter | 32 | 27 |
 | b: missing fork capability / blocked acceptance | 49 | 0 |
 | c: inapplicable by platform or approved construction | 21 | 0 |
 
-Current candidate: `macos-e11aaf59419ae9e2`, `q5-glance-3-runtime-config.json`.
+Current candidate: `macos-bf9081377bd14dc4`, `q5-lifecycle-3-runtime-config.json`.
 Inherited Sync gate: 22/22 on starting bytes; Sync code unchanged; not rerun.
 Inventory baseline: 533 pass / 3 fail (subsequently repaired) / 102 undefined / 2 excluded.
 Final inventory: owed, once after implementation. Lost passes: not yet measured.
 Owner needs: beta/updater hold; signed physical Touch ID acceptance; Billboard TopSites design decision if still required.
-Unverified: the remaining 10 adapter cases and 49 capability cases; final full inventory.
+Unverified: the remaining 5 adapter cases and 49 capability cases; final full inventory.
 No push, release, signing, production/Apple/1Password contact, live-tree changes or toolchain installation authorized.
 
 ## Classification of all 102 starting gaps
@@ -219,3 +219,36 @@ two existing exclusions, the final inventory should report 23 exclusions.
 Source inspection moved seven missing native features from a to b; V12's
 Chromium HTTP search validation moved :83 to c. This is a construction
 difference, not a claimed security-policy pass. No native or Sync bytes changed.
+
+## 4 — Native lifecycle, first Glance paint and download opening
+
+Five more initial gaps pass. Glance :24 passes in `q5-lifecycle-cases-1` on
+macos-eedf9aa09f5c871d: a test-only age input enters the real quiet sweep and
+a direct discard still refuses the visible reference. Split :201 passes in
+`q5-lifecycle-cases-2` on macos-2630ed68fcfaba6d after fixing native layout to
+restore the page ancestor below the Island without disturbing other layers.
+The injected bad order and repaired order are read from the native view tree.
+
+Downloads :13 and Glance :519 pass in `q5-lifecycle-cases-3` on that candidate.
+Downloads uses a real loopback attachment, its sheet's Open button and the
+native DownloadItem's opened acknowledgement for the exact downloaded path.
+Glance reloads its actual card document while the driver delays paint callbacks;
+no card or page is exposed before readiness, and both appear after release.
+The host now waits for the loaded card's first paint interval before supplying
+the native page rectangle. The failed Fetch experiment and selector mistake
+remain in cases-2; neither was counted as product evidence.
+
+F41 :69 passes in `q5-post-checkpoint-1` on macos-bf9081377bd14dc4. The adapter
+preserves exact document identity, edits, session storage, navigation history
+and one POST / zero GET request counts. It checkpoints and replays the real
+native session, checks zero recovery-state bytes and searches actual session
+and Spaces files for the four sentinels in UTF-8 and UTF-16. The earlier
+cases-1 pass lacked that explicit checkpoint and is superseded. The stronger
+check exposed native POST sanitization re-encoding an empty page state into
+324 synthetic bytes; patch 0061 keeps absent state absent, including referrer
+stripping. No sensitive sentinel was observed on disk.
+
+Builds: lifecycle-1 6 steps / 34.35 s; lifecycle-2 8 / 35.17 s; lifecycle-3
+7 / 20.05 s. Sync source unchanged; gate inherited. Patch budget now 124
+incremental upstream paths / 432 hunks; reconstruction 163 upstream / 583
+canonical files. Previous failures and retries remain in cases-1/2/3.

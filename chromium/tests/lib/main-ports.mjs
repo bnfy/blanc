@@ -39,7 +39,18 @@ async function resizeWindow(fixture,width,height){
   await fixture.browser.send('Browser.setWindowBounds',{windowId,bounds:{width,height}});
 }
 
+export async function nativeNavigationHistory(fixture,identity){
+ const id=fixture.pageIdentities?.get(identity);
+ if(id==null)throw Error('Unknown page identity');
+ const targetId=(await nativeCall(fixture.host,'tabTargets'))[String(id)];
+ const target=(await fixture.targets()).find(t=>t.id===targetId);
+ if(!target)throw Error('Native page is no longer live');
+ const page=await fixture.connectTarget(target);
+ try{return (await page.send('Page.getNavigationHistory')).entries.map(entry=>entry.url);}
+ finally{page.close();}
+}
 export const PORTS = {
+ '4a2133a8440f0601dcbde090523f8bde7306fe72248c83117c18dbc54a7c1c32':(fixture,state,identity)=>nativeNavigationHistory(fixture,identity),
   // Resize and zoom the real native Island window, including its overlay.
   '295d076520c1b8725f1d47c40a614568ce66335910de65bb8f0747e0bddb118e': async fixture => {
     await resizeWindow(fixture,640,480);

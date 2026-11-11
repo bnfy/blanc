@@ -407,6 +407,20 @@ export const pages={
  sendGlanceCardInput:async(w,input)=>{const fr=w.frame('glanceCardFrame');if(!fr)return false;
   if(input.type==='keyDown'){await w.hostEval('window.BlancPrototypeHost.focusGlanceCard()');await fr.keyboard.press(input.keyCode);return true;}
   throw new UndefinedNativeAdapterError('Card pointer input needs an adapter: '+input.type);},
+ async openFirstGlanceAndRead(w,id){
+  // Delay actual paint callbacks while a fresh card document loads. Fetch
+  // interception cannot pause chrome:// documents. No visibility is mocked.
+  await w.hostEval(`(()=>{const real=requestAnimationFrame,queued=[];
+   window.requestAnimationFrame=callback=>{queued.push(callback);return -queued.length;};
+   window.__releaseFirstGlancePaint=()=>{window.requestAnimationFrame=real;for(const callback of queued)real(callback);delete window.__releaseFirstGlancePaint;};
+   window.BlancPrototypeHost.reloadGlanceCard();})()`);
+  try{
+   const opened=await w.api('setGlanceTab',[String(id)]);
+   const state=await w.snapshot(),card=await w.hostEval('window.BlancPrototypeHost.glanceState()');
+   const bounds=state.tabs.find(t=>t.id===String(id))?.viewBounds;
+   return {opened,cardViewVisible:card.shown,glancePageVisible:!!bounds&&bounds.width>0&&bounds.height>0};
+  }finally{await w.hostEval('window.__releaseFirstGlancePaint()');}
+ },
  glancePageViewVisible:async w=>{const s=await w.snapshot();return !!s.tabs.find(t=>t.id===s.glanceTabId)?.viewBounds;},
  glanceCardFocused:async w=>{const fr=w.frame('glanceCardFrame');return fr?fr.evaluate(()=>document.hasFocus()):false;},
  async closeGlance(w){const s=await w.snapshot();if(s.glanceTabId==null)return false;await w.api('closeGlance');return true;},
