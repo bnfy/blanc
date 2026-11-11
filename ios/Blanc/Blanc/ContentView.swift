@@ -72,6 +72,8 @@ struct ContentView: View {
     /// The Island's own band (the Island and its padding, without the banners
     /// over it), which websites leave room for at their end.
     @State private var islandBand: CGFloat = 0
+    /// The screen's safe area, for the band a website is told the Island covers.
+    @State private var safeArea = EdgeInsets()
     @Environment(\.accessibilityVoiceOverEnabled) private var voiceOverEnabled
 
     /// Out of the way while the page scrolls down, unless the person keeps it
@@ -162,6 +164,7 @@ struct ContentView: View {
             .animation(.easeOut(duration: 0.18), value: showsGlance)
         }
         .onGeometryChange(for: CGFloat.self) { $0.size.width } action: { pageWidth = $0 }
+        .onGeometryChange(for: EdgeInsets.self) { $0.safeAreaInsets } action: { safeArea = $0 }
         .overlay(alignment: islandAtTop ? .top : .bottom) {
             // Floats over every page. Tucked, it slides past the screen's edge
             // (or only fades, with Reduce Motion) and takes no touches.
@@ -434,7 +437,8 @@ struct ContentView: View {
         let radius = split == nil ? 0 : Self.paneRadius
         return ZStack {
             WebView(tab: tab, onTouchDown: split != nil && !focused ? { manager.setActive(tab.id) } : nil,
-                    cornerRadius: radius, islandInset: split == nil ? islandBand : 0, islandEdge: islandEdge)
+                    cornerRadius: radius, islandInset: split == nil ? islandBand : 0, islandEdge: islandEdge,
+                    islandCover: split == nil ? islandBand + (islandAtTop ? safeArea.top : safeArea.bottom) : 0)
                 .overlay {
                     // Until its first page commits, a web view is WebKit's
                     // blank white: keep the theme's background instead, or
@@ -827,6 +831,10 @@ struct ContentView: View {
                        isLoading: manager.activeTab?.isLoading == true)
     }
 
+    /// The closed Island's height: a capsule, like the system's own floating
+    /// bars, a little taller than the 44 pt touch minimum (owner, 2026-11-11).
+    static let islandHeight: CGFloat = 52
+
     private var addressPill: some View {
         let buttons = islandButtons
         return HStack(spacing: 0) {
@@ -841,8 +849,10 @@ struct ContentView: View {
             HStack(spacing: 10) {
                 // The Start Page has no site to show, so it invites a search,
                 // dimmed like a placeholder. VoiceOver still hears "Start Page".
+                // The site in SemiBold, as Safari draws its address, so it holds
+                // up over busy pages; the placeholder stays regular.
                 Text(onStartPage ? SyncCopy.text("pill.placeholder") : displayDomain)
-                    .font(BrowserStyle.font(15))
+                    .font(BrowserStyle.font(15, semibold: !onStartPage))
                     .tracking(0.15)
                     .lineLimit(1)
                     .truncationMode(onStartPage ? .tail : .middle)
@@ -850,7 +860,7 @@ struct ContentView: View {
                 Spacer(minLength: 0)
             }
             .padding(.leading, 12)
-            .frame(maxWidth: .infinity, minHeight: 48)
+            .frame(maxWidth: .infinity, minHeight: Self.islandHeight)
             .pointerHighlight()
             .contentShape(Rectangle())
             .onTapGesture { manager.isPalettePresented = true }
@@ -870,7 +880,7 @@ struct ContentView: View {
                             .padding(.horizontal, 8)
                             .padding(.vertical, 3)
                             .overlay(Capsule().stroke(islandStyle.text.opacity(0.4)))
-                            .frame(minHeight: 48)
+                            .frame(minHeight: Self.islandHeight)
                             .contentShape(Rectangle())
                             .pointerHighlight()
                     }
@@ -885,13 +895,15 @@ struct ContentView: View {
 
                 Rectangle().fill(islandDivider).frame(width: 1, height: 18)
                 Button { manager.createTab() } label: {
-                    Image(systemName: "plus").frame(width: 44, height: 48)
+                    Image(systemName: "plus").frame(width: 44, height: Self.islandHeight)
                         .pointerHighlight()
                 }
                 .accessibilityLabel(SyncCopy.text("tab.new"))
             }
         }
-        .font(.system(size: 15, weight: .medium))
+        // Room inside the capsule's round ends for the mark and New Tab.
+        .padding(.horizontal, 4)
+        .font(.system(size: 15, weight: .semibold))
         // Not .plain: over Liquid Glass on iOS 26, plain buttons took no taps
         // at all, while the site's tap still
         // worked; borderless ones do, and draw in the row's ink all the same
@@ -902,10 +914,10 @@ struct ContentView: View {
             if let tab = manager.activeTab {
                 IslandProgress(tab: tab, tint: islandStyle.text.opacity(0.55))
                     .frame(maxHeight: .infinity, alignment: islandAtTop ? .top : .bottom)
-                    .clipShape(RoundedRectangle(cornerRadius: 17))
+                    .clipShape(Capsule())
             }
         }
-        .islandSurface(islandStyle, in: RoundedRectangle(cornerRadius: 17))
+        .islandSurface(islandStyle, in: Capsule())
         // A tab dragged from another window's grid or palette moves here.
         .tabDrop(into: manager)
         .frame(maxWidth: 600)
@@ -935,7 +947,7 @@ struct ContentView: View {
             }
         } label: {
             Image(systemName: manager.activeTab?.isLoading == true ? "xmark" : "arrow.clockwise")
-                .frame(width: 44, height: 48)
+                .frame(width: 44, height: Self.islandHeight)
                 .pointerHighlight()
         }
         .accessibilityLabel(SyncCopy.text(manager.activeTab?.isLoading == true ? "ios.island.stop" : "ios.island.reload"))
@@ -944,7 +956,7 @@ struct ContentView: View {
     private var backButton: some View {
         let tab = manager.activeTab
         return Button { tab?.goBack() } label: {
-            Image(systemName: "chevron.left").frame(width: 44, height: 48)
+            Image(systemName: "chevron.left").frame(width: 44, height: Self.islandHeight)
                 .opacity(tab?.canGoBack == true ? 1 : 0.35)
                 .pointerHighlight()
         }
@@ -956,7 +968,7 @@ struct ContentView: View {
     private var forwardButton: some View {
         let tab = manager.activeTab
         return Button { tab?.goForward() } label: {
-            Image(systemName: "chevron.right").frame(width: 44, height: 48)
+            Image(systemName: "chevron.right").frame(width: 44, height: Self.islandHeight)
                 .opacity(tab?.canGoForward == true ? 1 : 0.35)
                 .pointerHighlight()
         }
@@ -970,7 +982,7 @@ struct ContentView: View {
     /// mark's alpha, as the interface always draws it.
     private var islandMark: some View {
         IslandMarkButton(image: Self.sunriseMark, tint: islandStyle.text, menu: islandMenuElements)
-            .frame(width: 48, height: 48)
+            .frame(width: 48, height: Self.islandHeight)
     }
 
     /// The Sunrise menu's entries for the current page (`IslandMenu`).

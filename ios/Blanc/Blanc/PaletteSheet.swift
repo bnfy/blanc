@@ -1,6 +1,15 @@
 import SwiftUI
 
 struct PaletteSheet: View {
+    /// On iOS 26 the sheet floats clear of the screen's edges, and the
+    /// system rounds its corners to follow the screen's own; a fixed radius
+    /// there left the bottom corners looking cut off. Earlier systems pin the
+    /// sheet to the bottom, where 22 pt matches the Island's other surfaces.
+    static var sheetCornerRadius: CGFloat? {
+        if #available(iOS 26, *) { return nil }
+        return 22
+    }
+
     let manager: TabsManager
     /// A bottom sheet on iPhone; at regular width, a panel growing up from
     /// the Island in its place (Duo-1).
@@ -58,7 +67,7 @@ struct PaletteSheet: View {
         .buttonStyle(.plain)
         .background(style.raised)
         .presentationBackground(style.raised)
-        .presentationCornerRadius(22)
+        .presentationCornerRadius(Self.sheetCornerRadius)
         .presentationDragIndicator(.hidden)
         .presentationDetents([.height(420), .large])
         .onAppear { inputFocused = true }
