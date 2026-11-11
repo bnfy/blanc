@@ -18,6 +18,10 @@ struct PaletteSheet: View {
     @State private var newSpaceTab: UUID?
 
     private struct NewGroupTab: Identifiable { let id: UUID }
+    /// What the search provider suggests for the typed text (F5), and the
+    /// request that is fetching it.
+    @State private var suggestions: [String] = []
+    @State private var suggestionTask: Task<Void, Never>?
 
     private enum Mode {
         case tabs, slash, switcher
@@ -56,6 +60,8 @@ struct PaletteSheet: View {
         .presentationDragIndicator(.hidden)
         .presentationDetents([.height(420), .large])
         .onAppear { inputFocused = true }
+        .onChange(of: manager.paletteDraft) { _, text in refreshSuggestions(for: text) }
+        .onDisappear { suggestionTask?.cancel() }
         .sheet(item: $newGroupTab) { tab in
             GroupNameSheet(title: SyncCopy.text("tabMenu.newGroup"), confirm: SyncCopy.text("tabGroups.create"),
                            initial: "") { name in
@@ -263,8 +269,50 @@ struct PaletteSheet: View {
         return formatter
     }
 
+    /// The current page's whole address, which the Island shows only the site
+    /// of: a tap puts it in the field to edit, and the button copies it.
+    @ViewBuilder private var currentAddress: some View {
+        if let tab = manager.activeTab, ["http", "https"].contains(tab.currentURL.scheme?.lowercased() ?? "") {
+            let address = tab.currentURL.absoluteString
+            HStack(spacing: 0) {
+                Button {
+                    input = address
+                    inputFocused = true
+                } label: {
+                    HStack(spacing: 10) {
+                        Image(systemName: "link").font(.system(size: 14)).foregroundStyle(style.secondary).frame(width: 24)
+                        Text(address).font(BrowserStyle.font(13)).foregroundStyle(style.secondary)
+                            .lineLimit(1).truncationMode(.middle)
+                        Spacer(minLength: 4)
+                    }
+                    .frame(maxWidth: .infinity, minHeight: 44, alignment: .leading)
+                    .contentShape(Rectangle())
+                    .pointerHighlight()
+                }
+                .accessibilityLabel(SyncCopy.text("ios.palette.editAddress"))
+                .accessibilityValue(address)
+                .accessibilityIdentifier("palette.address")
+                Button {
+                    manager.copyLink(tab)
+                    close()
+                } label: {
+                    Image(systemName: "doc.on.doc").font(.system(size: 13)).foregroundStyle(style.secondary)
+                        .frame(width: 44, height: 44)
+                        .pointerHighlight()
+                }
+                .accessibilityLabel(SyncCopy.text("tabMenu.copyLink"))
+                .accessibilityIdentifier("palette.copyLink")
+            }
+            .padding(.leading, 10)
+            .listRowSeparator(.hidden)
+            .listRowBackground(Color.clear)
+            .listRowInsets(EdgeInsets(top: 0, leading: 12, bottom: 0, trailing: 12))
+        }
+    }
+
     private var tabList: some View {
         List {
+            currentAddress
             Section {
                 ForEach(manager.displaySections, id: \.id) { section in
                     if let group = section.group {
@@ -371,27 +419,70 @@ struct PaletteSheet: View {
     }
 
     private var switcherList: some View {
+        let query = input.trimmingCharacters(in: .whitespacesAndNewlines)
         let results = QuickSwitcher.search(
-            query: input.trimmingCharacters(in: .whitespacesAndNewlines),
+            query: query,
             tabs: manager.tabs, remote: manager.syncEngine.remoteDevices, favorites: manager.syncEngine.favorites,
             history: manager.historyStore.entries, groups: manager.groups, sets: switcherSets,
             remoteSpaces: switcherRemoteSpaces
         )
+        // The first row is always what Go does: a strong match, or the search.
+        let goesToMatch = QuickSwitcher.goTarget(query: query, results: results) != nil
+        let isSearch = !query.isEmpty && !AddressNormalizer.looksLikeAddress(query)
         return List {
-            if results.isEmpty {
-                Text(SyncCopy.text("ios.palette.noMatches"))
-                    .foregroundStyle(style.secondary)
-            } else {
-                ForEach(results) { result in
-                    Button {
-                        open(result)
-                        close()
-                    } label: {
-                        row(icon: result.groupId != nil ? "rectangle.stack" : result.setId != nil ? "square.on.square" : result.localTabID == nil ? "magnifyingglass" : "globe",
-                            title: result.title, subtitle: result.subtitle)
-                    }
+            if goesToMatch { switcherRows(results) }
+            if isSearch {
+                searchRow(SyncCopy.text("contextMenu.searchFor", ["query": query]), query: query, id: "palette.search")
+                ForEach(suggestions, id: \.self) { suggestion in
+                    searchRow(suggestion, query: suggestion, id: "palette.suggestion")
                 }
             }
+            if !goesToMatch { switcherRows(results) }
+            if results.isEmpty, !isSearch {
+                Text(SyncCopy.text("ios.palette.noMatches"))
+                    .foregroundStyle(style.secondary)
+            }
+        }
+    }
+
+    private func switcherRows(_ results: [SyncedSwitcherResult]) -> some View {
+        ForEach(results) { result in
+            Button {
+                open(result)
+                close()
+            } label: {
+                row(icon: result.groupId != nil ? "rectangle.stack" : result.setId != nil ? "square.on.square" : result.localTabID == nil ? "magnifyingglass" : "globe",
+                    title: result.title, subtitle: result.subtitle)
+            }
+        }
+    }
+
+    /// A search with the chosen engine: the typed text, or a suggestion.
+    private func searchRow(_ title: String, query: String, id: String) -> some View {
+        Button {
+            manager.search(for: query)
+            close()
+        } label: {
+            row(icon: "magnifyingglass", title: title, subtitle: manager.settingsStore.searchEngine.label)
+        }
+        .accessibilityIdentifier(id)
+    }
+
+    /// Asks for suggestions a moment after the typing pauses. The manager
+    /// decides whether this text may be sent at all.
+    private func refreshSuggestions(for text: String) {
+        suggestionTask?.cancel()
+        let query = text.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard SearchSuggestions.isEligible(query) else {
+            suggestions = []
+            return
+        }
+        suggestionTask = Task {
+            try? await Task.sleep(for: .milliseconds(250))
+            guard !Task.isCancelled else { return }
+            let found = await manager.searchSuggestions(for: query)
+            guard !Task.isCancelled, manager.paletteDraft.trimmingCharacters(in: .whitespacesAndNewlines) == query else { return }
+            suggestions = found
         }
     }
 

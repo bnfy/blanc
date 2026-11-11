@@ -20,6 +20,12 @@ final class TabModel: Identifiable {
     /// A tab a page opened (`window.open`, a link with a target), which that
     /// page may also close.
     @ObservationIgnored var openedByPage = false
+    /// Request Desktop Website: this tab asks sites for what they give a Mac,
+    /// until it's closed or asked for the phone's again.
+    @ObservationIgnored var wantsDesktopSite = false
+    /// How far the page's load has got, 0 to 1, for the Island's hairline.
+    var loadProgress: Double = 0
+    @ObservationIgnored private var progressObservation: NSKeyValueObservation?
     var pageTitle = ""
     /// Never saved, synced or recorded in History; its web data lives only in
     /// memory (`TabsManager.privateDataStore`).
@@ -151,6 +157,11 @@ final class TabModel: Identifiable {
                 }
             },
         ]
+        progressObservation = webView.observe(\.estimatedProgress, options: [.new]) { [weak self] webView, _ in
+            Task { @MainActor [weak self, weak webView] in
+                if let webView { self?.loadProgress = webView.estimatedProgress }
+            }
+        }
         // The pull's spinner and the Island take the style that shows against
         // the page.
         pageColorObservation = webView.observe(\.underPageBackgroundColor, options: [.new]) { [weak self] _, _ in
@@ -276,6 +287,11 @@ final class TabModel: Identifiable {
     /// With no page to reload, a failed load's address is tried once more.
     func reload() {
         if loadFailure != nil { retryFailedLoad() } else { storage?.reload() }
+    }
+    /// Asks the site for its desktop or phone version and loads the page again.
+    func setDesktopSite(_ desktop: Bool) {
+        wantsDesktopSite = desktop
+        reload()
     }
     func retryFailedLoad() {
         guard let failure = loadFailure else { return }

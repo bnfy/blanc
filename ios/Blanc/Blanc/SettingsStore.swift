@@ -38,6 +38,11 @@ final class SettingsStore {
     /// iPhone-only and device-local, never synced (D11).
     private(set) var islandPosition: IslandPosition = .bottom
 
+    /// Search suggestions in the palette (F5). Off on the phone until the
+    /// person turns it on in Settings → Privacy: nothing typed goes to a
+    /// search provider before they've been asked. Device-local, never synced.
+    private(set) var searchSuggestions = false
+
     @ObservationIgnored private let fileURL: URL
     @ObservationIgnored private var unknownKeys: [String: Any] = [:]
     @ObservationIgnored private var saveWork: DispatchWorkItem?
@@ -75,7 +80,8 @@ final class SettingsStore {
                 walkthroughCompletedVersion: Int? = nil,
                 islandTucksOnScroll: Bool? = nil,
                 islandHistoryButtons: Bool? = nil,
-                islandPosition: IslandPosition? = nil) {
+                islandPosition: IslandPosition? = nil,
+                searchSuggestions: Bool? = nil) {
         if let theme { self.theme = theme }
         if let searchEngine { self.searchEngine = searchEngine }
         if let adblockEnabled { self.adblockEnabled = adblockEnabled }
@@ -89,6 +95,7 @@ final class SettingsStore {
         if let islandTucksOnScroll { self.islandTucksOnScroll = islandTucksOnScroll }
         if let islandHistoryButtons { self.islandHistoryButtons = islandHistoryButtons }
         if let islandPosition { self.islandPosition = islandPosition }
+        if let searchSuggestions { self.searchSuggestions = searchSuggestions }
         scheduleSave()
     }
 
@@ -129,10 +136,11 @@ final class SettingsStore {
         if let v = dict["islandTucksOnScroll"] as? Bool { islandTucksOnScroll = v }
         if let v = dict["islandHistoryButtons"] as? Bool { islandHistoryButtons = v }
         if let raw = dict["islandPosition"] as? String, let v = IslandPosition(rawValue: raw) { islandPosition = v }
+        if let v = dict["searchSuggestions"] as? Bool { searchSuggestions = v }
 
         let knownKeys: Set<String> = ["theme", "searchEngine", "adblockEnabled", "adblockExceptions", "newtabLayout",
                                       "usagePing", "walkthroughCompletedVersion", "islandTucksOnScroll", "islandHistoryButtons",
-                                      "islandPosition"]
+                                      "islandPosition", "searchSuggestions"]
         for (key, value) in dict where !knownKeys.contains(key) {
             unknownKeys[key] = value
         }
@@ -157,6 +165,7 @@ final class SettingsStore {
         dict["islandTucksOnScroll"] = islandTucksOnScroll
         dict["islandHistoryButtons"] = islandHistoryButtons
         dict["islandPosition"] = islandPosition.rawValue
+        dict["searchSuggestions"] = searchSuggestions
 
         guard let data = try? JSONSerialization.data(withJSONObject: dict, options: [.sortedKeys]) else { return }
         // `.atomic` writes to a sibling temp file and renames it into place —

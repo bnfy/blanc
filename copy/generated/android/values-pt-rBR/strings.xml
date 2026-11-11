@@ -2613,6 +2613,12 @@ Você pode tentar de novo com “%2$s” ou reinstalar a partir de blanc.day.</s
     <string name="ios_palette_clear">Limpar a pesquisa</string>
     <string name="ios_palette_no_command">Nenhum comando corresponde</string>
     <string name="ios_palette_no_matches">Nenhum resultado. Toque em Retorno para abrir como endereço ou pesquisa.</string>
+    <string name="ios_palette_edit_address">Editar endereço</string>
+    <string name="ios_island_page_zoom">Zoom da página</string>
+    <string name="ios_island_desktop_site">Solicitar site para computador</string>
+    <string name="ios_island_mobile_site">Solicitar site para celular</string>
+    <string name="ios_app_link_message">Esta página quer abrir outro aplicativo.</string>
+    <string name="ios_downloads_failed">Não foi possível baixar %1$s</string>
     <string name="ios_tabs_open_tabs">Abas abertas</string>
     <string name="ios_tabs_switch_to">Mudar para %1$s</string>
     <string name="ios_tabs_close">Fechar %1$s</string>

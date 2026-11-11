@@ -2613,6 +2613,12 @@ Vous pouvez réessayer avec « %2$s » ou réinstaller depuis blanc.day.</stri
     <string name="ios_palette_clear">Effacer la recherche</string>
     <string name="ios_palette_no_command">Aucune commande correspondante</string>
     <string name="ios_palette_no_matches">Aucun résultat. Appuyez sur Retour pour l’ouvrir comme adresse ou recherche.</string>
+    <string name="ios_palette_edit_address">Modifier l’adresse</string>
+    <string name="ios_island_page_zoom">Zoom de page</string>
+    <string name="ios_island_desktop_site">Demander le site web pour ordinateur</string>
+    <string name="ios_island_mobile_site">Demander le site web mobile</string>
+    <string name="ios_app_link_message">Cette page souhaite ouvrir une autre application.</string>
+    <string name="ios_downloads_failed">Impossible de télécharger %1$s</string>
     <string name="ios_tabs_open_tabs">Onglets ouverts</string>
     <string name="ios_tabs_switch_to">Passer à %1$s</string>
     <string name="ios_tabs_close">Fermer %1$s</string>

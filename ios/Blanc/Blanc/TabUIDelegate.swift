@@ -45,6 +45,18 @@ final class TabUIDelegate: NSObject, WKUIDelegate {
 
     func webViewDidClose(_ webView: WKWebView) { onClose?() }
 
+    // MARK: Camera and microphone
+
+    /// Websites get neither. Blanc asks iOS for the camera only to scan a
+    /// pairing code, and iOS's prompt says so; until Blanc has its own
+    /// permission prompts (F13), a page's request is refused rather than
+    /// shown under that sentence.
+    func webView(_ webView: WKWebView, requestMediaCapturePermissionFor origin: WKSecurityOrigin,
+                 initiatedByFrame frame: WKFrameInfo, type: WKMediaCaptureType,
+                 decisionHandler: @escaping (WKPermissionDecision) -> Void) {
+        decisionHandler(.deny)
+    }
+
     // MARK: JavaScript dialogs
 
     // Without these WebKit answers for the person: `alert` shows nothing,

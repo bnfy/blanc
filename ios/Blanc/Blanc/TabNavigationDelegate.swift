@@ -33,6 +33,12 @@ final class TabNavigationDelegate: NSObject, WKNavigationDelegate {
     /// window says why nothing happened.
     var onLoadFailure: ((LoadFailure) -> Void)?
 
+    /// A link the person tapped that belongs to another app (`AppLinks`).
+    var onAppLink: ((URL) -> Void)?
+    /// A navigation that turned into a download (`PageDownloads`). Left
+    /// unset, WebKit cancels the download.
+    var onDownload: ((WKDownload) -> Void)?
+
     func load(_ url: URL, in webView: WKWebView) {
         guard url != lastRequested else { return }
         lastRequested = url
@@ -142,25 +148,57 @@ final class TabNavigationDelegate: NSObject, WKNavigationDelegate {
 
     func webView(_ webView: WKWebView,
                  decidePolicyFor navigationAction: WKNavigationAction,
-                 decisionHandler: @escaping (WKNavigationActionPolicy) -> Void) {
+                 preferences: WKWebpagePreferences,
+                 decisionHandler: @escaping (WKNavigationActionPolicy, WKWebpagePreferences) -> Void) {
+        // Request Desktop Website: the site is asked for what it gives a Mac.
+        preferences.preferredContentMode = tab?.wantsDesktopSite == true ? .desktop : .recommended
         if let url = navigationAction.request.url,
            let scheme = url.scheme?.lowercased(),
            OSHandoff.schemes.contains(scheme) {
             UIApplication.shared.open(url)
-            decisionHandler(.cancel)
+            decisionHandler(.cancel, preferences)
             return
         }
-        if navigationAction.targetFrame?.isMainFrame != false, let url = navigationAction.request.url {
+        let mainFrame = navigationAction.targetFrame?.isMainFrame != false
+        if mainFrame, navigationAction.navigationType == .linkActivated,
+           let url = navigationAction.request.url, AppLinks.isAppLink(url) {
+            onAppLink?(url)
+            decisionHandler(.cancel, preferences)
+            return
+        }
+        // A link with the `download` attribute.
+        if navigationAction.shouldPerformDownload {
+            decisionHandler(.download, preferences)
+            return
+        }
+        if mainFrame, let url = navigationAction.request.url {
             // Existing/restored Settings tabs may reload or traverse their history.
             // New links into Settings open the native sheet instead.
             if (navigationAction.navigationType == .linkActivated || tab?.currentURL.host != "settings"),
                onSettingsNavigation?(url) == true {
-                decisionHandler(.cancel)
+                decisionHandler(.cancel, preferences)
                 return
             }
             onWillLoadMainFrame?(url)
         }
-        decisionHandler(.allow)
+        decisionHandler(.allow, preferences)
+    }
+
+    func webView(_ webView: WKWebView,
+                 decidePolicyFor navigationResponse: WKNavigationResponse,
+                 decisionHandler: @escaping (WKNavigationResponsePolicy) -> Void) {
+        let disposition = (navigationResponse.response as? HTTPURLResponse)?.value(forHTTPHeaderField: "Content-Disposition")
+        let saves = PageDownloads.isDownload(showable: navigationResponse.canShowMIMEType,
+                                             mainFrame: navigationResponse.isForMainFrame, disposition: disposition)
+        decisionHandler(saves ? .download : .allow)
+    }
+
+    func webView(_ webView: WKWebView, navigationAction: WKNavigationAction, didBecome download: WKDownload) {
+        onDownload?(download)
+    }
+
+    func webView(_ webView: WKWebView, navigationResponse: WKNavigationResponse, didBecome download: WKDownload) {
+        onDownload?(download)
     }
 
     private func sync(_ webView: WKWebView, finished: Bool = false) {

@@ -281,6 +281,13 @@ struct PrivacySettingsView: View {
                         .accessibilityIdentifier("settings.clearSiteData.done")
                 }
             } footer: { Text(SettingsCopy.text("clearSiteDataHelp")) }
+            // Off until turned on here (F5): the switch is the asking.
+            Section {
+                Toggle(SyncCopy.text("settings.general.searchSuggestions.label"), isOn: Binding(
+                    get: { manager.settingsStore.searchSuggestions },
+                    set: { manager.settingsStore.update(searchSuggestions: $0) }))
+                    .accessibilityIdentifier("settings.searchSuggestions")
+            } footer: { Text(SyncCopy.text("settings.general.searchSuggestions.hint")) }
             // The launch ping's consent (F21, M18 §7.1); off stops it at once.
             Section {
                 Toggle(SyncCopy.text("ios.welcome.measureUsage"), isOn: Binding(

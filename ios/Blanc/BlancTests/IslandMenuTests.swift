@@ -13,7 +13,8 @@ import XCTest
         let m = manager()
         m.activeTab!.currentURL = URL(string: "https://nintendo.com/")!
         XCTAssertEqual(IslandMenu.items(for: m.activeTab, manager: m),
-                       [.blocking(on: true), .favorite(saved: false), .share, .find, .newPrivateTab])
+                       [.blocking(on: true), .favorite(saved: false), .share, .copyLink, .find, .pageZoom,
+                        .desktopSite(on: false), .newPrivateTab])
     }
 
     func testStartPageOffersCustomizeAndAPrivateTab() {
@@ -44,7 +45,8 @@ import XCTest
         let m = manager()
         let id = m.createTab(url: URL(string: "https://secret.example/")!, isPrivate: true)
         let tab = m.tabs.first { $0.id == id }
-        XCTAssertEqual(IslandMenu.items(for: tab, manager: m), [.blocking(on: true), .share, .find, .newPrivateTab])
+        XCTAssertEqual(IslandMenu.items(for: tab, manager: m),
+                       [.blocking(on: true), .share, .copyLink, .find, .pageZoom, .desktopSite(on: false), .newPrivateTab])
     }
 
     func testStatesFollowTheSiteAndTheFavorite() {
@@ -54,6 +56,14 @@ import XCTest
         m.setSiteProtection(tab, on: false)
         m.toggleFavorite(tab)
         XCTAssertEqual(Array(IslandMenu.items(for: tab, manager: m).prefix(2)), [.blocking(on: false), .favorite(saved: true)])
+    }
+
+    func testDesktopSiteReadsAsMobileOnceAsked() {
+        let m = manager()
+        let tab = m.activeTab!
+        tab.currentURL = URL(string: "https://nintendo.com/")!
+        tab.wantsDesktopSite = true
+        XCTAssertTrue(IslandMenu.items(for: tab, manager: m).contains(.desktopSite(on: true)))
     }
 
     func testBlockingOffEverywhereOffersSettings() {
