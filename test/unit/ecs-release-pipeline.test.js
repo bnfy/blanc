@@ -92,6 +92,19 @@ test('the Windows job uses EVS only for ECS, after binding the source and before
   // not a moving ubuntu-latest (26.04 broke apt on November 11, 2026).
   assert.equal(linux['runs-on'], 'ubuntu-24.04');
   const legacy = workflow.jobs['linux-legacy-launch'];
+  // Both release apt steps leave azure.archive.ubuntu.com before apt runs
+  // (it failed to resolve on November 11, 2026). Inline, because release runs
+  // check out the tag, which predates any helper script.
+  for (const step of [
+    linux.steps.find(s => s.name === 'Install AppImage smoke runtime'),
+    workflow.jobs['linux-legacy-launch'].steps.find(s => s.name === 'Install AppImage runtime'),
+  ]) {
+    const update = step.run.indexOf('sudo apt-get update');
+    const mirror = step.run.indexOf('mirrors.edge.kernel.org/ubuntu/');
+    assert(mirror >= 0 && mirror < update, `${step.name} switches mirrors before apt-get update`);
+    assert.match(step.run, /azure\.archive\.ubuntu\.com is still configured/);
+    assert.doesNotMatch(step.run, /scripts\/ci-apt/);
+  }
   assert.deepEqual(legacy.needs, ['validate-inputs', 'linux']);
   assert.equal(legacy['runs-on'], 'ubuntu-22.04');
   assert.equal(legacy.if, linux.if);
