@@ -710,7 +710,11 @@ jobs:
   linux:
     needs: validate-inputs
     if: ${{ !inputs.ecs_candidate && !inputs.ecs_production && (inputs.mode == 'release' || inputs.mode == 'validation') && (inputs.platform == 'all' || inputs.platform == 'linux') }}
-    runs-on: ubuntu-latest
+    # Pinned: ubuntu-latest became Ubuntu 26.04 after v1.47.1, and on
+    # November 11, 2026 its runners could not resolve Ubuntu's apt mirrors, so
+    # the v1.48.0 build failed twice at "Install AppImage smoke runtime".
+    # Every public AppImage through v1.47.1 was built and smoke-tested on 24.04.
+    runs-on: ubuntu-24.04
     env:
       RELEASE_RUNTIME: ${{ inputs.runtime == 'ecs' && 'ecs' || 'official' }}
       # Read by the workspace smoke: an ECS package reports its pinned ECS
