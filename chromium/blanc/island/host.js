@@ -1452,7 +1452,7 @@
     if (!SHEET_PAGES.includes(name)) throw new Error(`No utility sheet page named ${name}.`);
     // Re-invoking the shown page closes it; while it loads, a repeat is the
     // same request (shipping's showUtilityPage toggle).
-    if (sheet.page === name && sheet.frame) {
+    if (sheet.page === name && sheet.frame && (name !== 'history' || (section === 'archived') === (new URLSearchParams(sheet.frame.contentWindow.location.search).get('view') === 'archived'))) {
       if (sheetReady()) return hideSheet();
       sheet.frame.contentWindow.focus();
       return;
@@ -1471,7 +1471,7 @@
       await request('settingsSheet', ['hide']).catch(() => {});
     }
     placeSheet();
-    sheet.frame.src = `pages/${name}.html`;
+    sheet.frame.src = `pages/${name}.html${name === 'history' && section === 'archived' ? '?view=archived' : ''}`;
     sheet.frame.hidden = false;
     await request('height', [10000]);
     if (epoch !== sheet.epoch) return;
@@ -1607,8 +1607,16 @@
         remove: (url, visitedAt) => call('sheetHistoryRemove', [String(url), Number(visitedAt)]),
         clear: () => call('clearHistory'),
       },
-      // Tab Archive (F52) is not in the fork yet, so nothing is archived.
-      archive: { list: async () => [], restore: async () => false, forget: async () => false, clear: async () => {} },
+      archive: {
+        list: async (options = {}) => {
+          const query = String(options?.query ?? '').trim().toLowerCase();
+          const rows = await call('archiveList');
+          return query ? rows.filter(row => row.title.toLowerCase().includes(query) || row.url.toLowerCase().includes(query)) : rows;
+        },
+        restore: async id => { const result = await call('archiveRestore', [String(id)]); await refresh(); return result; },
+        forget: id => call('archiveForget', [String(id)]),
+        clear: () => call('archiveClear'),
+      },
     };
     if (page === 'downloads') return { surface,
       downloads: {
@@ -1762,7 +1770,7 @@
       if (name === 'settings') return showSheet('settings', section);
       // Electron names Favorites `bookmarks` internally. Utility pages open
       // in the sheet; Extensions is Chromium's own page.
-      if (SHEET_PAGES.includes(name)) return showSheet(name);
+      if (SHEET_PAGES.includes(name)) return showSheet(name, section);
       if (name !== 'extensions') throw new Error('Use Chromium’s native controls for this page in the prototype.');
       await request('createTab', ['chrome://extensions/']);
     },
@@ -2166,10 +2174,16 @@
       if (anchor?.closing === true) return;
       show('', 'spaces');
     },
-    // Tab Archive remains outside this slice. Sync reads use the default
-    // profile service and the shipping bundle's account-bound projections.
-    archiveList: async () => [],
-    archiveNotice: async () => null,
+    archiveList: () => request('archiveList'),
+    archiveNotice: () => request('archiveNotice'),
+    archiveRestore: async id => { const result = await request('archiveRestore', [String(id)]); await close(); await refresh(); return result; },
+    archiveForget: id => request('archiveForget', [String(id)]),
+    archiveClear: () => request('archiveClear'),
+    archiveNoticeDone: async action => {
+      const result = await request('archiveNoticeDone');
+      if (action === 'view') await showSheet('history', 'archived');
+      return result;
+    },
     listSentToThisDevice: () => request('syncSurface', ['listSentToThisDevice', []]),
     listSendTargets: () => request('syncSurface', ['listSendTargets', []]),
     dismissSentItem: async id => {

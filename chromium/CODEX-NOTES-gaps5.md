@@ -1,19 +1,19 @@
 # Result
 
-Queue 5 is in progress. Display-dependent runs are blocked by the rendering guard; headless work continues.
+Queue 5 is in progress. The rendering guard is clear again; focused native runs have resumed.
 
 | Classification | Cases | Newly passing |
 | --- | ---: | ---: |
 | a: missing adapter | 31 | 31 |
-| b: missing fork capability / blocked acceptance | 49 | 0 |
+| b: missing fork capability / blocked acceptance | 49 | 19 |
 | c: inapplicable by platform or approved construction | 22 | 0 |
 
-Current candidate: `macos-c974361243232cd7`, `q5-drag-1-runtime-config.json`.
+Current tested candidate: `macos-7a51a7441df62e2d`, `q5-archive-3-runtime-config.json`.
 Inherited Sync gate: 22/22 on starting bytes; Sync code unchanged; not rerun.
 Inventory baseline: 533 pass / 3 fail (subsequently repaired) / 102 undefined / 2 excluded.
 Final inventory: owed, once after implementation. Lost passes: not yet measured.
 Owner needs: beta/updater hold; signed physical Touch ID acceptance; Billboard TopSites design decision if still required.
-Unverified: native profile deletion after restart; the 49 capability cases; final full inventory.
+Unverified: 30 capability cases; final full inventory.
 No push, release, signing, production/Apple/1Password contact, live-tree changes or toolchain installation authorized.
 
 ## Classification of all 102 starting gaps
@@ -298,7 +298,7 @@ restart, focused capability runs, and the one final complete inventory.
 Precommit: 312/312 required tests pass (`q5-profiles-precommit.tap`); patch
 reconstruction passes at 164 upstream / 583 canonical files. Sync unchanged.
 
-## 6 — Background audio guard (implemented; native acceptance blocked by display)
+## 6 — Background audio guard
 
 SiteMuteTab now observes real native media-start notifications and guards the
 first start in a hidden tab. Native TabInterface visibility covers both Glance
@@ -312,7 +312,7 @@ Owed: Glance :38 and :45 on this or a later final candidate after the rendering
 guard is clear; neither is counted as a pass. Sync untouched; patch budget
 unchanged at 125 upstream paths / 434 hunks.
 
-## 7 — Island Escape during a drag (implemented; native acceptance owed)
+## 7 — Island Escape during a drag
 
 The host now accepts a boolean drag flag only from its current overlay
 document, and only starts one in an open panel/palette. Stale iframe documents,
@@ -323,3 +323,41 @@ production state. Build q5-drag-1 passes (7 steps / 21.22 s); tab-drag :136
 is owed after display unlock. No native pass is credited. Patch budget and
 Sync remain unchanged. Headless tests exercise current/stale document identity,
 allowed surfaces, closed state and non-boolean input.
+
+Display recovery: native profile removal counterpart passes on macos-a383214d4c7c5b9e
+in `q5-native-profile-removal-3`: registry removed before restart, directory and
+saved Spaces gone after native restart. The earlier guarded run remains uncounted.
+`q5-audio-drag-cases-1` passes all three focused cases on that same candidate:
+Glance :38/:45 and tab-drag :136. Required precommit checks for the earlier
+audio and drag commits passed 312/312 and 314/314 respectively; reconstruction
+passed both times. The console was unlocked; the no-longer-running requested
+caffeinate was restarted as a persistent process. No rendering guard bypass.
+
+## 8 — Tab Archive (16 focused cases pass)
+
+The native sweep, per-profile preference store, once-only notice, History
+sheet actions, Quick Switcher actions and native Settings dropdown are wired.
+Shipping's translated copy is generated through settings-strings.mjs. The
+wall-clock stamp is saved with native tab metadata and reset when a held
+Space returns. Pins, groups, splits, private/visible/loading/quiet/media/capture/
+permission tabs and unsaved work remain protected. Native document-policy
+restrictions are conservatively protected rather than restored unrestricted.
+The sweep saves only allow-listed metadata, reads back the committed pref
+before closing, then repeats the dirty and eligibility checks. Pending rows
+are hidden from restore. Close uses CLOSE_NONE to avoid Recently closed.
+Profile sweeps serialize; expiry is 30 days, cap 500, per-sweep cap 20. Grace
+is 10 minutes after launch, setting change, native resume or a clock jump.
+History deletion clears the store. First build q5-archive-1 passes (21 steps /
+36.71 s); a follow-up protects held-tab metadata and preserves pending rows
+when another Archive entry is restored or forgotten. Patch budget: 125 upstream paths / 439 hunks, 164/583 reconstruction.
+
+`q5-archive-cases-1` passed 11/16 on macos-25d3c258e8c049d2.
+`q5-archive-repairs-1` passed the five repaired cases (:56/:64/:94/:104/:122)
+on macos-7a51a7441df62e2d / q5-archive-3-runtime-config.json (6 steps / 35.04 s).
+Repairs: exact Archived History resource alias; held-tab assertion reads the
+actual live native hold window; blank WebUI close waits for native removal
+instead of mistaking asynchronous close for refusal. The store prunes expired
+rows even when archiving is off and strips unapproved metadata on read.
+Earlier failures and diagnostic receipts are retained; no shipping step changed.
+Precommit required tests and patch reconstruction passed (q5-archive-precommit.tap).
+Sync code unchanged. All Archive cases will be checked on the final inventory.

@@ -13,9 +13,9 @@ test('the committed header is the generated one', () => {
 });
 
 test('every name the settings patch reads is generated', () => {
-  const patch = ['0021-blanc-settings-controls', '0022-blanc-settings-lists', '0023-blanc-settings-remaining', '0024-blanc-call-audio']
+  const patch = ['0021-blanc-settings-controls', '0022-blanc-settings-lists', '0023-blanc-settings-remaining', '0024-blanc-call-audio', '0063-blanc-tab-archive']
     .map(name => fs.readFileSync(path.join(root, `patches/${name}.patch`), 'utf8')).join('\n');
-  const used = new Set([...patch.matchAll(/^\+.*?(?:\$i18n\{|getString\('|blancString\(\s*')(blanc[A-Za-z]+)/gm)].map(m => m[1]));
+  const used = new Set([...patch.matchAll(/^\+.*?(?:\$i18n\{|getString\('|blancString\(\s*')(blanc[A-Za-z0-9]+)/gm)].map(m => m[1]));
   const names = new Set(STRINGS.map(([name]) => name));
   for (const name of used) assert.ok(names.has(name), name);
   assert.ok(used.size >= 25);

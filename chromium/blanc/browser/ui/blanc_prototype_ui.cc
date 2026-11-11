@@ -47,6 +47,8 @@
 #include "chrome/browser/net/stub_resolver_config_reader.h"
 #include "chrome/browser/net/system_network_context_manager.h"
 #include "base/timer/timer.h"
+#include "base/power_monitor/power_monitor.h"
+#include "base/power_monitor/power_observer.h"
 #include "ui/base/models/simple_combobox_model.h"
 #include "ui/views/controls/combobox/combobox.h"
 #include "ui/views/layout/box_layout.h"
@@ -159,6 +161,8 @@
 #include "base/task/bind_post_task.h"
 #include "base/time/time.h"
 #include "base/timer/timer.h"
+#include "base/power_monitor/power_monitor.h"
+#include "base/power_monitor/power_observer.h"
 #include "base/scoped_observation.h"
 #include "ui/views/view_observer.h"
 #include "base/strings/stringprintf.h"
@@ -756,6 +760,96 @@ class SiteMuteTab : public base::SupportsUserData::Data,
   std::string host_;
 };
 
+// F52 keeps a wall-clock idle stamp, separate from Quiet Tabs' monotonic clock.
+constexpr char kArchiveViewedKey[] = "blanc.tab.last-viewed.v1";
+constexpr char kArchiveEntriesPref[] = "blanc.tabs.archive_entries";
+constexpr char kArchiveNoticePref[] = "blanc.tabs.archive_notice";
+class ArchiveViewed : public base::SupportsUserData::Data {
+ public:
+  explicit ArchiveViewed(content::WebContents* page) : at(page->GetLastActiveTime()), page_(page) {
+    if (auto* tab = tabs::TabInterface::MaybeGetFromContents(page))
+      visible_ = tab->RegisterDidBecomeVisible(base::BindRepeating(
+          [](ArchiveViewed* self, tabs::TabInterface*) { self->Set(base::Time::Now()); }, base::Unretained(this)));
+  }
+  static ArchiveViewed* Get(content::WebContents* page) {
+    if (!page->GetUserData(kArchiveViewedKey)) page->SetUserData(kArchiveViewedKey, std::make_unique<ArchiveViewed>(page));
+    return static_cast<ArchiveViewed*>(page->GetUserData(kArchiveViewedKey));
+  }
+  void Set(base::Time value) { at = value; Save(); }
+  void Save() {
+    if (page_->GetBrowserContext()->IsOffTheRecord() || page_->GetUserData(blanc::kHeldPageKey) || at.is_null()) return;
+    auto* tab = tabs::TabInterface::MaybeGetFromContents(page_);
+    auto* browser = tab ? tab->GetBrowserWindowInterface() : nullptr;
+    if (browser) if (auto* session = SessionServiceFactory::GetForProfile(browser->GetProfile()))
+      session->AddTabExtraData(browser->GetSessionID(), sessions::SessionTabHelper::IdForTab(page_),
+          kArchiveViewedKey, base::NumberToString(at.InMillisecondsSinceUnixEpoch()));
+  }
+  base::Time at;
+ private:
+  raw_ptr<content::WebContents> page_;
+  base::CallbackListSubscription visible_;
+};
+std::optional<base::TimeDelta> ArchiveDelay(Profile* profile) {
+  const auto& value = profile->GetPrefs()->GetString("blanc.tabs.archive");
+  if (value == "12h") return base::Hours(12);
+  if (value == "1d") return base::Days(1);
+  if (value == "7d") return base::Days(7);
+  if (value == "30d") return base::Days(30);
+  return std::nullopt;
+}
+// Per-profile transient coordination; entries and the once-only notice use
+// non-syncable native preferences. Nothing contains PageState or back stacks.
+class ArchiveRuntime : public base::SupportsUserData::Data {
+ public:
+  static ArchiveRuntime* Get(Profile* profile) {
+    static constexpr char key[] = "blanc.archive.runtime";
+    if (!profile->GetUserData(key)) profile->SetUserData(key, std::make_unique<ArchiveRuntime>());
+    return static_cast<ArchiveRuntime*>(profile->GetUserData(key));
+  }
+  base::Time grace = base::Time::Now() + base::Minutes(10);
+  base::Time last_tick;
+  bool busy = false;
+  std::set<std::string> pending;
+};
+base::ListValue ArchiveEntries(Profile* profile) {
+  base::ListValue result, retained;
+  const auto now = base::Time::Now().InMillisecondsFSinceUnixEpoch();
+  const auto& stored = profile->GetPrefs()->GetList(kArchiveEntriesPref);
+  for (const auto& item : stored) {
+    if (!item.is_dict()) continue;
+    const auto& row = item.GetDict();
+    const auto* id = row.FindString("id"); const auto* url = row.FindString("url");
+    const auto when = row.FindDouble("archivedAt");
+    if (!id || id->empty() || id->size() > 128 || !url || url->size() > 65536 ||
+        !GURL(*url).SchemeIsHTTPOrHTTPS() || !when || !std::isfinite(*when) ||
+        now - *when > base::Days(30).InMillisecondsF()) continue;
+    const auto bounded = [&](const char* key, size_t limit) {
+      const auto* text = row.FindString(key);
+      return text ? base::UTF16ToUTF8(base::UTF8ToUTF16(*text).substr(0, limit)) : std::string();
+    };
+    const auto viewed = row.FindDouble("lastViewedAt");
+    auto clean = base::DictValue().Set("id", *id).Set("url", *url)
+        .Set("title", bounded("title", 4096)).Set("customTitle", bounded("customTitle", 128))
+        .Set("favicon", base::Value()).Set("archivedAt", *when)
+        .Set("lastViewedAt", viewed && std::isfinite(*viewed) ? *viewed : *when)
+        .Set("spaceName", bounded("spaceName", 128));
+    if (!ArchiveRuntime::Get(profile)->pending.contains(*id)) result.Append(clean.Clone());
+    retained.Append(std::move(clean));
+    if (retained.size() == 500) break;
+  }
+  if (retained != stored) {
+    profile->GetPrefs()->SetList(kArchiveEntriesPref, std::move(retained));
+    profile->GetPrefs()->CommitPendingWrite();
+  }
+  return result;
+}
+base::Value ArchiveNotice(Profile* profile) {
+  const auto& notice = profile->GetPrefs()->GetDict(kArchiveNoticePref);
+  const auto* state = notice.FindString("state");
+  return state && *state == "pending" && notice.FindInt("count").value_or(0) > 0
+      ? base::Value(base::DictValue().Set("count", *notice.FindInt("count"))) : base::Value();
+}
+
 // Like Electron's faux header, use the mode of the rendered top two rows.
 // Only the active, visible page is sampled. Pixels never leave this process.
 // Preserve native controls while giving hidden-menu bubbles a real Island view
@@ -1306,8 +1400,11 @@ class Owner : public base::SupportsUserData::Data,
         }
       }
     }
-    for (int i = 0; i < browser->GetTabStripModel()->count(); ++i)
-      SiteMuteTab::Get(browser->GetTabStripModel()->GetWebContentsAt(i));
+    for (int i = 0; i < browser->GetTabStripModel()->count(); ++i) {
+      auto* tab = browser->GetTabStripModel()->GetWebContentsAt(i);
+      SiteMuteTab::Get(tab);
+      ArchiveViewed::Get(tab)->Save();
+    }
     if (!selection.active_tab_changed()) return;
     ++search_selection_epoch;
     UpdatePersistentSplitFocus(browser);
@@ -1920,6 +2017,7 @@ class SpaceHold : public base::SupportsUserData::Data, public TabStripModelObser
     auto* page = Contents(tab);
     if (!page) return nullptr;
     tab.no_modal_ui.reset();
+    ArchiveViewed::Get(page)->Set(base::Time::Now());
     page->RemoveUserData(blanc::kHeldPageKey);
     return strip()->DetachWebContentsAtForInsertion(strip()->GetIndexOfWebContents(page));
   }
@@ -4843,9 +4941,22 @@ class CreatedSearchTabCapture : public TabStripModelObserver {
   bool invalid_ = false;
 };
 
-class Handler : public content::WebUIMessageHandler, public extensions::ExtensionUninstallDialog::Delegate {
+class Handler : public content::WebUIMessageHandler, public extensions::ExtensionUninstallDialog::Delegate,
+                public base::PowerSuspendObserver, public history::HistoryServiceObserver {
  public:
+  ~Handler() override { if (archive_power_observing_) base::PowerMonitor::GetInstance()->RemovePowerSuspendObserver(this); }
+  void OnResume() override { ResetArchiveGrace(); auto_grace_ = base::TimeTicks::Now(); }
+  void OnHistoryDeletions(history::HistoryService*, const history::DeletionInfo& info) override {
+    if (!info.IsAllHistory()) return;
+    ResetArchiveGrace();
+    auto* prefs = Profile::FromWebUI(web_ui())->GetOriginalProfile()->GetPrefs();
+    prefs->ClearPref(kArchiveEntriesPref); prefs->CommitPendingWrite();
+  }
+  void HistoryServiceBeingDeleted(history::HistoryService*) override { archive_history_.Reset(); }
   void RegisterMessages() override {
+    base::PowerMonitor::GetInstance()->AddPowerSuspendObserver(this); archive_power_observing_ = true;
+    auto* profile = Profile::FromWebUI(web_ui())->GetOriginalProfile();
+    if (auto* history = HistoryServiceFactory::GetForProfile(profile, ServiceAccessType::EXPLICIT_ACCESS)) archive_history_.Observe(history);
     web_ui()->RegisterMessageCallback(
         "blancPrototype",
         base::BindRepeating(&Handler::Handle, base::Unretained(this)));
@@ -4863,6 +4974,7 @@ class Handler : public content::WebUIMessageHandler, public extensions::Extensio
     // The Island hears Island setting changes at once, so turning hover-open
     // off ends a dwell already under way.
     island_prefs_.Init(Profile::FromWebUI(web_ui())->GetOriginalProfile()->GetPrefs());
+    island_prefs_.Add(kTabArchivePref, base::BindRepeating(&Handler::ResetArchiveGrace, base::Unretained(this)));
     island_prefs_.Add(kIslandHoverOpenPref, base::BindRepeating(&Handler::OnIslandSettingChanged,
                                                                 base::Unretained(this)));
     island_prefs_.Add(std::string(blanc::island_autohide::kPref),
@@ -4939,6 +5051,14 @@ class Handler : public content::WebUIMessageHandler, public extensions::Extensio
   }
   void OnJavascriptDisallowed() override {
     auto_timer_.Stop();
+    archive_history_.Reset();
+    if (archive_power_observing_) { base::PowerMonitor::GetInstance()->RemovePowerSuspendObserver(this); archive_power_observing_ = false; }
+    if (archive_running_) {
+      auto* runtime = ArchiveRuntime::Get(Profile::FromWebUI(web_ui())->GetOriginalProfile());
+      const auto pending = runtime->pending;
+      for (const auto& id : pending) ArchiveRollback(id);
+      runtime->busy = false; archive_running_ = false;
+    }
     if (quiet_settings_) quiet_settings_->Close();
     // A navigated or torn-down host must not receive a late history reply.
     weak_factory_.InvalidateWeakPtrs();
@@ -5554,6 +5674,42 @@ class Handler : public content::WebUIMessageHandler, public extensions::Extensio
         Reply(id, true, base::Value(true)); return;
       }
       Reply(id, true, base::Value(false)); return;
+    }
+    if (quiet_method == "archiveSetting" && quiet_args.size() == 1 && quiet_args[0].is_string()) {
+      const auto& value = quiet_args[0].GetString();
+      if (value != "off" && value != "12h" && value != "1d" && value != "7d" && value != "30d") { reject("Invalid archive setting"); return; }
+      Profile::FromWebUI(web_ui())->GetOriginalProfile()->GetPrefs()->SetString(kTabArchivePref, value);
+      Reply(id, true, base::Value(true)); return;
+    }
+    if (quiet_method == "archiveSweep" && quiet_args.empty()) {
+      RunArchiveSweep(base::BindOnce([](base::WeakPtr<Handler> self, std::string id, base::DictValue result) {
+        if (self) self->Reply(id, true, base::Value(std::move(result)));
+      }, weak_factory_.GetWeakPtr(), id)); return;
+    }
+    if (quiet_method == "archiveGrace" && quiet_args.size() == 1 && (quiet_args[0].is_int() || quiet_args[0].is_double()) && std::isfinite(quiet_args[0].GetDouble())) {
+      auto* runtime = ArchiveRuntime::Get(Profile::FromWebUI(web_ui())->GetOriginalProfile());
+      runtime->grace = base::Time::FromMillisecondsSinceUnixEpoch(quiet_args[0].GetDouble());
+      runtime->last_tick = base::Time::Now(); Reply(id, true, base::Value(true)); return;
+    }
+    if (quiet_method == "archiveResume" && quiet_args.empty()) { OnResume(); Reply(id, true, base::Value(true)); return; }
+    if (quiet_method == "archiveActivateAfterProbe" && quiet_args.size() == 1 && quiet_args[0].is_int()) {
+      archive_activate_after_probe_ = quiet_args[0].GetInt(); Reply(id, true, base::Value(true)); return;
+    }
+    if (quiet_method == "archiveViewedAge" && quiet_args.size() == 2 && quiet_args[0].is_int() && (quiet_args[1].is_int() || quiet_args[1].is_double()) &&
+        std::isfinite(quiet_args[1].GetDouble()) && quiet_args[1].GetDouble() >= 0) {
+      bool found = false;
+      GlobalBrowserCollection::GetInstance()->ForEach([&](BrowserWindowInterface* browser) {
+        if (browser->GetProfile()->GetOriginalProfile() != Profile::FromWebUI(web_ui())->GetOriginalProfile()) return true;
+        auto* model = browser->GetTabStripModel();
+        for (int i = 0; i < model->count(); ++i) {
+          auto* tab = model->GetWebContentsAt(i);
+          if (sessions::SessionTabHelper::IdForTab(tab).id() == quiet_args[0].GetInt()) {
+            ArchiveViewed::Get(tab)->Set(base::Time::Now() - base::Milliseconds(quiet_args[1].GetDouble())); found = true;
+          }
+        }
+        return !found;
+      });
+      Reply(id, true, base::Value(found)); return;
     }
     if (quiet_method == "profileInfo" && quiet_args.empty()) {
       auto* owner = GetOwner(web_ui()->GetWebContents());
@@ -6495,6 +6651,214 @@ class Handler : public content::WebUIMessageHandler, public extensions::Extensio
         browser->GetWindow()->GetNativeWindow(), gfx::NativeView())->GetWeakPtr();
     quiet_settings_->Show();
   }
+  using ArchiveDone = base::OnceCallback<void(base::DictValue)>;
+  struct ArchivePass {
+    base::WeakPtr<BrowserWindowInterface> browser;
+    std::vector<base::WeakPtr<content::WebContents>> candidates;
+    base::ListValue archived, closed;
+    size_t next = 0;
+    bool close_pending = false;
+    ArchiveDone done;
+  };
+  bool archive_running_ = false;
+  bool archive_power_observing_ = false;
+  base::ScopedObservation<history::HistoryService, history::HistoryServiceObserver> archive_history_{this};
+#if BUILDFLAG(ENABLE_BLANC_TEST_HOOKS)
+  int archive_activate_after_probe_ = -1;
+#endif
+  void ResetArchiveGrace() {
+    ArchiveRuntime::Get(Profile::FromWebUI(web_ui())->GetOriginalProfile())->grace = base::Time::Now() + base::Minutes(10);
+  }
+  static base::DictValue ArchiveSkipped(const char* reason) {
+    return base::DictValue().Set("archived", base::ListValue()).Set("closed", base::ListValue()).Set("skippedReason", reason);
+  }
+  bool ArchiveAllowed(BrowserWindowInterface* browser, content::WebContents* tab) {
+    if (!browser || !tab || browser->GetProfile()->IsOffTheRecord() ||
+        tab->GetBrowserContext()->IsOffTheRecord() || tab->GetUserData(blanc::kHeldPageKey)) return false;
+    const auto delay = ArchiveDelay(browser->GetProfile());
+    if (!delay || base::Time::Now() < ArchiveRuntime::Get(browser->GetProfile())->grace) return false;
+    auto* owner = GetOwner(web_ui()->GetWebContents());
+    if (!owner || owner->space_busy || owner->space_expected || owner->initial_window_save_failed) return false;
+    auto* model = browser->GetTabStripModel(); const int at = model->GetIndexOfWebContents(tab);
+    const auto now = base::Time::Now(), viewed = ArchiveViewed::Get(tab)->at;
+    if (at < 0 || at == model->active_index() || TabPinned(model, at) || model->GetTabGroupForTab(at) ||
+        model->GetSplitForTab(at) || tabs::TabInterface::GetFromContents(tab)->IsVisible() ||
+        tab->IsLoading() || tab->GetController().GetPendingEntry() || viewed.is_null() ||
+        viewed > now || now - viewed < *delay || tab->IsCurrentlyAudible() || TabIsCapturing(tab) ||
+        HasBeforeUnloadHandler(tab)) return false;
+    auto* lifecycle = resource_coordinator::TabLifecycleUnitExternal::FromWebContents(tab);
+    if (lifecycle && lifecycle->GetTabState() == ::mojom::LifecycleUnitState::DISCARDED) return false;
+    auto* permissions = permissions::PermissionRequestManager::FromWebContents(tab);
+    if (!permissions || permissions->IsRequestInProgress()) return false;
+    const auto url = tab->GetLastCommittedURL();
+    const bool blank = IsRegularStartPage(url) || tab->GetVisibleURL() == GURL("chrome://newtab/");
+    if (!blank && !url.SchemeIsHTTPOrHTTPS()) return false;
+    auto* media = blanc::quiet::MediaHistory::Get(tab);
+    // Fail closed on an unknown/inherited document policy; never turn a
+    // sandboxed page into an unrestricted archive navigation.
+    if (!blank && (!media->known() || media->used() || !media->policy_known() ||
+        HasInheritedDocumentPolicy(tab) ||
+        tab->GetPrimaryMainFrame()->IsSandboxed(network::mojom::WebSandboxFlags::kAll))) return false;
+    bool children = false;
+    GlobalBrowserCollection::GetInstance()->ForEach([&](BrowserWindowInterface* other) {
+      auto* strip = other->GetTabStripModel();
+      for (int i = 0; i < strip->count(); ++i) {
+        auto* child = strip->GetWebContentsAt(i);
+        if (child != tab && ((child->GetOpener() && content::WebContents::FromRenderFrameHost(child->GetOpener()) == tab) ||
+            child->GetFirstWebContentsInLiveOriginalOpenerChain() == tab)) children = true;
+      }
+      return !children;
+    });
+    return !children;
+  }
+  void ArchiveNext(std::shared_ptr<ArchivePass> pass) {
+    if (!pass->browser || pass->next >= pass->candidates.size()) {
+      archive_running_ = false;
+      auto* profile = Profile::FromWebUI(web_ui())->GetOriginalProfile();
+      ArchiveRuntime::Get(profile)->busy = false;
+      if (!pass->archived.empty()) {
+        auto notice = profile->GetPrefs()->GetDict(kArchiveNoticePref).Clone();
+        if (!notice.FindString("state") || *notice.FindString("state") != "done") {
+          notice.Set("state", "pending"); notice.Set("count", notice.FindInt("count").value_or(0) + static_cast<int>(pass->archived.size()));
+          profile->GetPrefs()->SetDict(kArchiveNoticePref, std::move(notice));
+          profile->GetPrefs()->CommitPendingWrite();
+        }
+      }
+      std::move(pass->done).Run(base::DictValue().Set("archived", std::move(pass->archived))
+          .Set("closed", std::move(pass->closed)).Set("skippedReason", pass->close_pending ? base::Value("close-pending") : base::Value()));
+      return;
+    }
+    auto tab = pass->candidates[pass->next++];
+    if (!tab || !ArchiveAllowed(pass->browser.get(), tab.get())) { ArchiveNext(pass); return; }
+    const auto document = tab->GetPrimaryMainFrame()->GetWeakDocumentPtr();
+    blanc::quiet::DirtyProbe::Run(tab.get(), base::BindOnce(
+        [](base::WeakPtr<Handler> self, std::shared_ptr<ArchivePass> pass,
+           base::WeakPtr<content::WebContents> tab, content::WeakDocumentPtr document, blanc::quiet::DirtyResult probe) {
+          if (!self) return;
+#if BUILDFLAG(ENABLE_BLANC_TEST_HOOKS)
+          if (tab && pass->browser && self->archive_activate_after_probe_ == sessions::SessionTabHelper::IdForTab(tab.get()).id()) {
+            self->archive_activate_after_probe_ = -1;
+            auto* model = pass->browser->GetTabStripModel(); const int at = model->GetIndexOfWebContents(tab.get());
+            if (at >= 0) model->ActivateTabAt(at);
+          }
+#endif
+          if (!probe.complete || probe.dirty || !tab || !document.AsRenderFrameHostIfValid() ||
+              document.AsRenderFrameHostIfValid() != tab->GetPrimaryMainFrame() ||
+              !self->ArchiveAllowed(pass->browser.get(), tab.get())) { self->ArchiveNext(pass); return; }
+          self->ArchiveSave(pass, tab, document);
+        }, weak_factory_.GetWeakPtr(), pass, tab, document));
+  }
+  void ArchiveSave(std::shared_ptr<ArchivePass> pass, base::WeakPtr<content::WebContents> tab,
+                   content::WeakDocumentPtr document) {
+    auto* profile = pass->browser->GetProfile();
+    const auto url = tab->GetLastCommittedURL();
+    if (!url.SchemeIsHTTPOrHTTPS()) {
+      ArchiveClose(pass, tab, ""); return;
+    }
+    const std::string entry_id = base::Uuid::GenerateRandomV4().AsLowercaseString();
+    const auto* owner = GetOwner(web_ui()->GetWebContents());
+    const auto* items = profile->GetPrefs()->GetDict("blanc.spaces.meta").FindDict("items");
+    const auto* space = items && owner ? items->FindDict(owner->space_name) : nullptr;
+    const auto* space_name = space ? space->FindString("name") : nullptr;
+    auto entry = base::DictValue().Set("id", entry_id).Set("url", url.spec())
+        .Set("title", base::UTF16ToUTF8(tab->GetTitle().substr(0, 4096))).Set("customTitle", CustomTabName(tab.get()))
+        .Set("favicon", base::Value()).Set("archivedAt", base::Time::Now().InMillisecondsFSinceUnixEpoch())
+        .Set("lastViewedAt", ArchiveViewed::Get(tab.get())->at.InMillisecondsFSinceUnixEpoch())
+        .Set("spaceName", space_name ? *space_name : "");
+    auto entries = ArchiveEntries(profile); entries.Insert(entries.begin(), base::Value(std::move(entry)));
+    if (entries.size() > 500) entries.EraseValue(entries.back());
+    profile->GetPrefs()->SetList(kArchiveEntriesPref, std::move(entries));
+    ArchiveRuntime::Get(profile)->pending.insert(entry_id);
+    // Commit and read back the metadata before closing a live page. A failed
+    // write retains the page. While awaiting disk, the row cannot be restored.
+    profile->GetPrefs()->CommitPendingWrite(base::BindOnce(
+      [](base::WeakPtr<Handler> self, std::shared_ptr<ArchivePass> pass, base::WeakPtr<content::WebContents> tab,
+         content::WeakDocumentPtr document, std::string entry_id, base::FilePath prefs_path) {
+        base::ThreadPool::PostTaskAndReplyWithResult(FROM_HERE, {base::MayBlock()},
+          base::BindOnce([](base::FilePath path, std::string id) {
+            std::string bytes; if (!base::ReadFileToString(path, &bytes)) return false;
+            auto prefs = base::JSONReader::ReadDict(bytes, base::JSON_PARSE_RFC);
+            const auto* rows = prefs ? prefs->FindListByDottedPath(kArchiveEntriesPref) : nullptr;
+            return rows && std::ranges::any_of(*rows, [&](const auto& row) {
+              return row.is_dict() && row.GetDict().FindString("id") && *row.GetDict().FindString("id") == id;
+            });
+          }, prefs_path, entry_id),
+          base::BindOnce([](base::WeakPtr<Handler> self, std::shared_ptr<ArchivePass> pass,
+              base::WeakPtr<content::WebContents> tab, content::WeakDocumentPtr document, std::string id, bool saved) {
+            if (!self) return;
+            if (!saved || !tab || !document.AsRenderFrameHostIfValid() || document.AsRenderFrameHostIfValid() != tab->GetPrimaryMainFrame() ||
+                !self->ArchiveAllowed(pass->browser.get(), tab.get())) { self->ArchiveRollback(id); self->ArchiveNext(pass); return; }
+            // The user could have typed while the metadata was being flushed.
+            blanc::quiet::DirtyProbe::Run(tab.get(), base::BindOnce([](base::WeakPtr<Handler> self,
+                std::shared_ptr<ArchivePass> pass, base::WeakPtr<content::WebContents> tab,
+                content::WeakDocumentPtr document, std::string id, blanc::quiet::DirtyResult result) {
+              if (!self) return;
+              if (!result.complete || result.dirty || !tab || !document.AsRenderFrameHostIfValid() ||
+                  document.AsRenderFrameHostIfValid() != tab->GetPrimaryMainFrame() || !self->ArchiveAllowed(pass->browser.get(), tab.get())) {
+                self->ArchiveRollback(id); self->ArchiveNext(pass); return;
+              }
+              self->ArchiveClose(pass, tab, id);
+            }, self, pass, tab, document, id));
+          }, self, pass, tab, document, entry_id));
+      }, weak_factory_.GetWeakPtr(), pass, tab, document, entry_id, profile->GetPath().AppendASCII("Preferences")));
+  }
+  void ArchiveRollback(const std::string& id) {
+    auto* profile = Profile::FromWebUI(web_ui())->GetOriginalProfile();
+    auto rows = profile->GetPrefs()->GetList(kArchiveEntriesPref).Clone();
+    rows.EraseIf([&](const auto& row) { return row.is_dict() && row.GetDict().FindString("id") && *row.GetDict().FindString("id") == id; });
+    profile->GetPrefs()->SetList(kArchiveEntriesPref, std::move(rows)); profile->GetPrefs()->CommitPendingWrite();
+    ArchiveRuntime::Get(profile)->pending.erase(id);
+  }
+  void ArchiveClosed(std::shared_ptr<ArchivePass> pass, base::WeakPtr<content::WebContents> tab,
+                     std::string tab_id, std::string entry_id, base::TimeTicks deadline) {
+    if (pass->browser && tab && pass->browser->GetTabStripModel()->GetIndexOfWebContents(tab.get()) >= 0) {
+      if (base::TimeTicks::Now() < deadline) {
+        base::SingleThreadTaskRunner::GetCurrentDefault()->PostDelayedTask(FROM_HERE,
+            base::BindOnce(&Handler::ArchiveClosed, weak_factory_.GetWeakPtr(), pass, tab, tab_id, entry_id, deadline),
+            base::Milliseconds(20));
+        return;
+      }
+      // Native unload can outlive a close request. Keep the durable recovery
+      // row if it is still pending; never report an open page as closed.
+      ArchiveViewed::Get(tab.get())->Set(base::Time::Now());
+      ArchiveRuntime::Get(Profile::FromWebUI(web_ui())->GetOriginalProfile())->pending.erase(entry_id);
+      pass->close_pending = true; ArchiveNext(pass); return;
+    }
+    if (!entry_id.empty()) {
+      ArchiveRuntime::Get(Profile::FromWebUI(web_ui())->GetOriginalProfile())->pending.erase(entry_id);
+      pass->archived.Append(tab_id);
+    }
+    pass->closed.Append(tab_id); ArchiveNext(pass);
+  }
+  void ArchiveClose(std::shared_ptr<ArchivePass> pass, base::WeakPtr<content::WebContents> tab, const std::string& entry_id) {
+    const auto tab_id = base::NumberToString(sessions::SessionTabHelper::IdForTab(tab.get()).id());
+    auto* model = pass->browser->GetTabStripModel();
+    model->CloseWebContentsAt(model->GetIndexOfWebContents(tab.get()), TabCloseTypes::CLOSE_NONE);
+    ArchiveClosed(pass, tab, tab_id, entry_id, base::TimeTicks::Now() + base::Seconds(5));
+  }
+  void RunArchiveSweep(ArchiveDone done) {
+    auto* owner = GetOwner(web_ui()->GetWebContents());
+    if (!owner || owner->browser->GetProfile()->IsOffTheRecord()) { std::move(done).Run(ArchiveSkipped("private")); return; }
+    auto* profile = owner->browser->GetProfile(); auto* runtime = ArchiveRuntime::Get(profile);
+    if (archive_running_ || runtime->busy || !runtime->pending.empty()) { std::move(done).Run(ArchiveSkipped("busy")); return; }
+    ArchiveEntries(profile);  // Expire disk metadata even with archiving off.
+    if (!ArchiveDelay(profile)) { std::move(done).Run(ArchiveSkipped("off")); return; }
+    const auto now = base::Time::Now();
+    if (!runtime->last_tick.is_null() && (now < runtime->last_tick || now - runtime->last_tick > base::Minutes(1))) ResetArchiveGrace();
+    runtime->last_tick = now;
+    if (now < runtime->grace) { std::move(done).Run(ArchiveSkipped("grace")); return; }
+    if (FirstRunPending() || owner->space_busy || owner->space_expected || auto_running_) { std::move(done).Run(ArchiveSkipped("busy")); return; }
+    auto pass = std::make_shared<ArchivePass>(); pass->browser = owner->browser->GetWeakPtr(); pass->done = std::move(done);
+    auto* model = owner->browser->GetTabStripModel();
+    for (int i = 0; i < model->count(); ++i) {
+      auto* tab = model->GetWebContentsAt(i);
+      if (ArchiveAllowed(owner->browser, tab)) pass->candidates.push_back(tab->GetWeakPtr());
+    }
+    std::ranges::stable_sort(pass->candidates, [](const auto& a, const auto& b) { return ArchiveViewed::Get(a.get())->at < ArchiveViewed::Get(b.get())->at; });
+    if (pass->candidates.size() > 20) pass->candidates.resize(20);
+    archive_running_ = true; runtime->busy = true; ArchiveNext(pass);
+  }
+
   static constexpr char kQuietDelay[] = "blanc.prototype.quiet_delay";
   base::RepeatingTimer auto_timer_;
   PrefChangeRegistrar island_prefs_;
@@ -6554,6 +6918,7 @@ class Handler : public content::WebUIMessageHandler, public extensions::Extensio
     auto_running_ = false;
   }
   void AutoTick() {
+    RunArchiveSweep(base::DoNothing());
     const int64_t wall = base::Time::Now().InMillisecondsSinceUnixEpoch();
     if (blanc::quiet::SweepClockJump(last_auto_wall_, wall)) {
       last_auto_wall_ = wall; auto_grace_ = base::TimeTicks::Now(); return;
@@ -8076,7 +8441,7 @@ class Handler : public content::WebUIMessageHandler, public extensions::Extensio
                 (*saved_tabs)[slot].GetDict().FindInt("group").value_or(-1) : -1;
             ++slot;
             rows.Append(base::DictValue().Set("id", tab.id).Set("pinned", tab.pinned)
-                .Set("groupId", group).Set("asleep", !loaded).Set("live", loaded));
+                .Set("groupId", group).Set("asleep", !loaded).Set("live", loaded).Set("present", page != nullptr));
           }
           held_tabs.Set(space.name, std::move(rows));
         }
@@ -8856,6 +9221,47 @@ class Handler : public content::WebUIMessageHandler, public extensions::Extensio
       reply(true, base::Value(true));
       return;
     }
+    if (method == "archiveList" && args.empty()) {
+      auto rows = ArchiveEntries(profile->GetOriginalProfile());
+      for (auto& value : rows) {
+        auto& row = value.GetDict();
+        if (const auto* title = row.FindString("customTitle"); title && !title->empty()) row.Set("title", *title);
+        row.Remove("customTitle"); row.Remove("lastViewedAt");
+      }
+      reply(true, base::Value(std::move(rows))); return;
+    }
+    if (method == "archiveNotice" && args.empty()) {
+      reply(true, ArchiveNotice(profile->GetOriginalProfile())); return;
+    }
+    if (method == "archiveNoticeDone" && args.empty()) {
+      profile->GetOriginalProfile()->GetPrefs()->SetDict(kArchiveNoticePref, base::DictValue().Set("state", "done"));
+      profile->GetOriginalProfile()->GetPrefs()->CommitPendingWrite();
+      reply(true, base::Value(true)); return;
+    }
+    if (method == "archiveClear" && args.empty()) {
+      ResetArchiveGrace(); profile->GetOriginalProfile()->GetPrefs()->ClearPref(kArchiveEntriesPref);
+      profile->GetOriginalProfile()->GetPrefs()->CommitPendingWrite(); reply(true, base::Value(true)); return;
+    }
+    if ((method == "archiveRestore" || method == "archiveForget") && args.size() == 1 && args[0].is_string()) {
+      if (profile->IsOffTheRecord()) { reply(true, base::Value(false)); return; }
+      auto rows = ArchiveEntries(profile); const auto& entry_id = args[0].GetString();
+      auto found = std::ranges::find_if(rows, [&](const auto& item) { return *item.GetDict().FindString("id") == entry_id; });
+      if (found == rows.end()) { reply(true, base::Value(false)); return; }
+      const auto row = found->GetDict().Clone();
+      if (method == "archiveRestore") {
+        const GURL url(*row.FindString("url"));
+        if (!url.SchemeIsHTTPOrHTTPS()) { reply(true, base::Value(false)); return; }
+        auto* restored = chrome::AddAndReturnTabAt(browser, url, model->count(), true);
+        if (!restored) { reply(true, base::Value(false)); return; }
+        if (const auto* name = row.FindString("customTitle"); name && !name->empty()) RenameTab(browser, restored, *name);
+      }
+      // Keep another sweep's hidden, pending row intact while consuming this
+      // visible entry. Removing one row must not replace an in-flight save.
+      auto stored = profile->GetPrefs()->GetList(kArchiveEntriesPref).Clone();
+      stored.EraseIf([&](const auto& item) { return item.is_dict() && item.GetDict().FindString("id") && *item.GetDict().FindString("id") == entry_id; });
+      profile->GetPrefs()->SetList(kArchiveEntriesPref, std::move(stored)); profile->GetPrefs()->CommitPendingWrite();
+      reply(true, base::Value(true)); return;
+    }
     if (method == "clearHistory" && args.empty()) {
       // Electron's /clear empties the history list and nothing else, so this
       // expires every local visit through HistoryService rather than running
@@ -8871,6 +9277,8 @@ class Handler : public content::WebUIMessageHandler, public extensions::Extensio
       }
       // Clearing history also forgets which bangs were used, as shipping's
       // /clear does.
+      ResetArchiveGrace(); profile->GetPrefs()->ClearPref(kArchiveEntriesPref);
+      profile->GetPrefs()->CommitPendingWrite();
       blanc::browser_api::bangs::ClearRecent(*profile->GetPrefs());
       blanc::browser_api::bang_icons::Service::ForProfile(profile)->Clear();
       service->ExpireHistoryBetween(
@@ -10418,6 +10826,10 @@ void RestoreCustomTabName(content::WebContents* tab,
   const auto policy = extra_data.find(kInheritedDocumentPolicyKey);
   if (policy != extra_data.end() && policy->second != "0")
     blanc::quiet::MediaHistory::Get(tab)->MarkInheritedPolicy();
+  const auto viewed = extra_data.find(kArchiveViewedKey);
+  int64_t viewed_ms = 0;
+  if (viewed != extra_data.end() && base::StringToInt64(viewed->second, &viewed_ms) && viewed_ms > 0)
+    ArchiveViewed::Get(tab)->at = base::Time::FromMillisecondsSinceUnixEpoch(viewed_ms);
   const auto name = extra_data.find(kTabNameKey);
   const auto normalized = name == extra_data.end() ? std::nullopt
       : tab_names::Normalize(base::UTF8ToUTF16(name->second));
@@ -10987,6 +11399,7 @@ UI::UI(content::WebUI* web_ui) : ui::MojoWebUIController(web_ui, /*enable_chrome
             const std::string asset_path =
                 path == "pages/newtab.html?private=1" || path == "pages/newtab.html?tour=1" ||
                 path == "pages/newtab.html?preview=1" ? "pages/newtab.html"
+                : path == "pages/history.html?view=archived" ? "pages/history.html"
                 : path.starts_with("pages/mahjong.html?") ? "pages/mahjong.html"
                 : path == "index.html?surface=float" || path == "index.html?surface=glance" ? "index.html" : path;
 #if BUILDFLAG(ENABLE_BLANC_DISK_ASSETS)

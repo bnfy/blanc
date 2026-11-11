@@ -14,7 +14,14 @@ struct String {
   std::string_view name;
   std::u16string_view value;
 };
-inline constexpr std::array<String, 74> kStrings_en = {{
+inline constexpr std::array<String, 81> kStrings_en = {{
+    {"blancTabArchive", u"Archive inactive tabs"},
+    {"blancTabArchiveHint", u"Blanc closes loose tabs you haven't opened in a while and keeps them in your Archive for 30 days. Pinned tabs and tab groups are never archived."},
+    {"blancTabArchiveOff", u"Off"},
+    {"blancTabArchive12h", u"After 12 hours"},
+    {"blancTabArchive1d", u"After 1 day"},
+    {"blancTabArchive7d", u"After 7 days"},
+    {"blancTabArchive30d", u"After 30 days"},
     {"blancIslandHoverOpen", u"Open the Island on hover"},
     {"blancIslandHoverOpenHint", u"Rest the pointer on the Island’s address to open it without clicking."},
     {"blancIslandAutoHide", u"Auto-hide the Island"},
@@ -90,7 +97,14 @@ inline constexpr std::array<String, 74> kStrings_en = {{
     {"blancLanguageSystem", u"System ({language})"},
     {"blancLanguageRelaunch", u"Relaunch to apply"},
 }};
-inline constexpr std::array<String, 74> kStrings_de = {{
+inline constexpr std::array<String, 81> kStrings_de = {{
+    {"blancTabArchive", u"Inaktive Tabs archivieren"},
+    {"blancTabArchiveHint", u"Blanc schließt lose Tabs, die du länger nicht geöffnet hast, und bewahrt sie 30 Tage in deinem Archiv auf. Angeheftete Tabs und Tabgruppen werden nie archiviert."},
+    {"blancTabArchiveOff", u"Aus"},
+    {"blancTabArchive12h", u"Nach 12 Stunden"},
+    {"blancTabArchive1d", u"Nach 1 Tag"},
+    {"blancTabArchive7d", u"Nach 7 Tagen"},
+    {"blancTabArchive30d", u"Nach 30 Tagen"},
     {"blancIslandHoverOpen", u"Island beim Darüberfahren öffnen"},
     {"blancIslandHoverOpenHint", u"Lass den Zeiger auf der Adresse in der Island ruhen, um sie ohne Klick zu öffnen."},
     {"blancIslandAutoHide", u"Island automatisch ausblenden"},
@@ -166,7 +180,14 @@ inline constexpr std::array<String, 74> kStrings_de = {{
     {"blancLanguageSystem", u"System ({language})"},
     {"blancLanguageRelaunch", u"Zum Übernehmen neu starten"},
 }};
-inline constexpr std::array<String, 74> kStrings_es = {{
+inline constexpr std::array<String, 81> kStrings_es = {{
+    {"blancTabArchive", u"Archivar las pestañas inactivas"},
+    {"blancTabArchiveHint", u"Blanc cierra las pestañas sueltas que no abres desde hace tiempo y las guarda en tu Archivo durante 30 días. Las pestañas fijadas y los grupos de pestañas nunca se archivan."},
+    {"blancTabArchiveOff", u"Desactivado"},
+    {"blancTabArchive12h", u"Después de 12 horas"},
+    {"blancTabArchive1d", u"Después de 1 día"},
+    {"blancTabArchive7d", u"Después de 7 días"},
+    {"blancTabArchive30d", u"Después de 30 días"},
     {"blancIslandHoverOpen", u"Abrir la Island al pasar el cursor"},
     {"blancIslandHoverOpenHint", u"Deja el puntero sobre la dirección de la Island para abrirla sin hacer clic."},
     {"blancIslandAutoHide", u"Ocultar la Island automáticamente"},
@@ -242,7 +263,14 @@ inline constexpr std::array<String, 74> kStrings_es = {{
     {"blancLanguageSystem", u"Sistema ({language})"},
     {"blancLanguageRelaunch", u"Reiniciar para aplicar"},
 }};
-inline constexpr std::array<String, 74> kStrings_fr = {{
+inline constexpr std::array<String, 81> kStrings_fr = {{
+    {"blancTabArchive", u"Archiver les onglets inactifs"},
+    {"blancTabArchiveHint", u"Blanc ferme les onglets isolés que vous n’avez pas ouverts depuis un moment et les garde 30 jours dans vos Archives. Les onglets épinglés et les groupes d’onglets ne sont jamais archivés."},
+    {"blancTabArchiveOff", u"Désactivé"},
+    {"blancTabArchive12h", u"Après 12 heures"},
+    {"blancTabArchive1d", u"Après 1 jour"},
+    {"blancTabArchive7d", u"Après 7 jours"},
+    {"blancTabArchive30d", u"Après 30 jours"},
     {"blancIslandHoverOpen", u"Ouvrir l’Island au survol"},
     {"blancIslandHoverOpenHint", u"Laissez le pointeur sur l’adresse de l’Island pour l’ouvrir sans cliquer."},
     {"blancIslandAutoHide", u"Masquer automatiquement l’Island"},
@@ -318,7 +346,14 @@ inline constexpr std::array<String, 74> kStrings_fr = {{
     {"blancLanguageSystem", u"Système ({language})"},
     {"blancLanguageRelaunch", u"Redémarrer pour appliquer"},
 }};
-inline constexpr std::array<String, 74> kStrings_it = {{
+inline constexpr std::array<String, 81> kStrings_it = {{
+    {"blancTabArchive", u"Archivia le schede inattive"},
+    {"blancTabArchiveHint", u"Blanc chiude le schede sparse che non apri da un po’ e le conserva nel tuo Archivio per 30 giorni. Le schede fissate e i gruppi di schede non vengono mai archiviati."},
+    {"blancTabArchiveOff", u"Disattivato"},
+    {"blancTabArchive12h", u"Dopo 12 ore"},
+    {"blancTabArchive1d", u"Dopo 1 giorno"},
+    {"blancTabArchive7d", u"Dopo 7 giorni"},
+    {"blancTabArchive30d", u"Dopo 30 giorni"},
     {"blancIslandHoverOpen", u"Apri l’Island al passaggio del puntatore"},
     {"blancIslandHoverOpenHint", u"Lascia il puntatore sull’indirizzo dell’Island per aprirla senza fare clic."},
     {"blancIslandAutoHide", u"Nascondi automaticamente l’Island"},
@@ -394,7 +429,14 @@ inline constexpr std::array<String, 74> kStrings_it = {{
     {"blancLanguageSystem", u"Sistema ({language})"},
     {"blancLanguageRelaunch", u"Riavvia per applicare"},
 }};
-inline constexpr std::array<String, 74> kStrings_pt_BR = {{
+inline constexpr std::array<String, 81> kStrings_pt_BR = {{
+    {"blancTabArchive", u"Arquivar abas inativas"},
+    {"blancTabArchiveHint", u"O Blanc fecha as abas soltas que você não abre há algum tempo e as guarda no seu Arquivo por 30 dias. Abas fixadas e grupos de abas nunca são arquivados."},
+    {"blancTabArchiveOff", u"Desativado"},
+    {"blancTabArchive12h", u"Depois de 12 horas"},
+    {"blancTabArchive1d", u"Depois de 1 dia"},
+    {"blancTabArchive7d", u"Depois de 7 dias"},
+    {"blancTabArchive30d", u"Depois de 30 dias"},
     {"blancIslandHoverOpen", u"Abrir a Island ao passar o cursor"},
     {"blancIslandHoverOpenHint", u"Deixe o ponteiro sobre o endereço da Island para abri-la sem clicar."},
     {"blancIslandAutoHide", u"Ocultar a Island automaticamente"},

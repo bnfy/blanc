@@ -67,6 +67,7 @@
     "patches/0059-blanc-pinned-homes.patch",
     "patches/0060-blanc-sync-layout.patch",
     "patches/0061-blanc-empty-session-page-state.patch",
-    "patches/0062-blanc-local-profile-restore.patch"
+    "patches/0062-blanc-local-profile-restore.patch",
+    "patches/0063-blanc-tab-archive.patch"
   ]
 }

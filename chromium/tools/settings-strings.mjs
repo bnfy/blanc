@@ -14,6 +14,14 @@ const header = path.join(root, 'blanc/common/settings_strings.h');
 const {ref, commit} = JSON.parse(fs.readFileSync(path.join(root, 'blanc/island-renderer.json'), 'utf8'));
 // loadTimeData name, shipping message key.
 export const STRINGS = [
+  ['blancTabArchive', 'settings.general.tabArchive.label'],
+  ['blancTabArchiveHint', 'settings.general.tabArchive.hint'],
+  ['blancTabArchiveOff', 'settings.general.tabArchive.off'],
+  ['blancTabArchive12h', 'settings.general.tabArchive.12h'],
+  ['blancTabArchive1d', 'settings.general.tabArchive.1d'],
+  ['blancTabArchive7d', 'settings.general.tabArchive.7d'],
+  ['blancTabArchive30d', 'settings.general.tabArchive.30d'],
+
   ['blancIslandHoverOpen', 'settings.general.islandHoverOpen.label'],
   ['blancIslandHoverOpenHint', 'settings.general.islandHoverOpen.hint'],
   ['blancIslandAutoHide', 'settings.general.islandAutoHide.label'],

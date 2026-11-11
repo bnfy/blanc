@@ -61,7 +61,7 @@ async function primaryTargetId(w){
 // stays meaningful across one (native windowOrdinals; F32). The CDP
 // connection to actually drive a window is still matched by its real
 // target id, independent of that label.
-async function runtimes(w){
+export async function runtimes(w){
  const primary=await primaryTargetId(w);w._hosts??=new Map();
  const ordered=await w.native('windowOrdinals');
  const hosts=(await w.fixture.targets()).filter(t=>t.url===HOST);
