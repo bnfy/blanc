@@ -16,6 +16,8 @@ struct PaletteSheet: View {
     /// The tab a row's New Group… or New Space… is for.
     @State private var newGroupTab: NewGroupTab?
     @State private var newSpaceTab: UUID?
+    /// The tab row whose trash button a swipe has left showing.
+    @State private var swipedTab: UUID?
 
     private struct NewGroupTab: Identifiable { let id: UUID }
     /// What the search provider suggests for the typed text (F5), and the
@@ -174,24 +176,27 @@ struct PaletteSheet: View {
     }
 
     /// A tab's row; in a group, `last` closes the group's block under it.
-    /// A swipe to the left closes the tab (no × to miss and open it instead);
-    /// VoiceOver has Close Tab as an action on the row.
+    /// A swipe to the left shows a trash button and a full swipe closes the
+    /// tab (no × to miss and open it instead); Blanc draws the swipe so a
+    /// group's tint stays under it. VoiceOver has Close Tab as an action.
     private func tabRow(_ tab: TabModel, in group: TabGroup? = nil, last: Bool = false) -> some View {
-        Button {
-            manager.setActive(tab.id)
-            close()
-        } label: {
-            row(icon: tab.currentURL.scheme == "blanc" ? "sun.horizon" : "globe",
-                title: TabTitle.display(tab),
-                subtitle: tab.currentURL.scheme == "blanc" ? "Blanc" : tab.currentURL.host ?? tab.currentURL.absoluteString,
-                selected: tab.id == manager.activeTabId)
-                .padding(.trailing, 10)
+        SwipeToCloseRow(openRow: $swipedTab, id: tab.id, accessibilityLabel: SyncCopy.text("menu.closeTab"),
+                     onClose: { manager.closeTab(tab.id) }) {
+            Button {
+                manager.setActive(tab.id)
+                close()
+            } label: {
+                row(icon: tab.currentURL.scheme == "blanc" ? "sun.horizon" : "globe",
+                    title: TabTitle.display(tab),
+                    subtitle: tab.currentURL.scheme == "blanc" ? "Blanc" : tab.currentURL.host ?? tab.currentURL.absoluteString)
+                    .padding(.trailing, 10)
+            }
+            .accessibilityAddTraits(tab.id == manager.activeTabId ? .isSelected : [])
+            .accessibilityIdentifier("palette.tab")
+            .accessibilityAction(named: SyncCopy.text("menu.closeTab")) { manager.closeTab(tab.id) }
+            .padding(.leading, 10)
+            .background(tab.id == manager.activeTabId ? style.selection : .clear, in: RoundedRectangle(cornerRadius: 10))
         }
-        .accessibilityAddTraits(tab.id == manager.activeTabId ? .isSelected : [])
-        .accessibilityIdentifier("palette.tab")
-        .accessibilityAction(named: SyncCopy.text("menu.closeTab")) { manager.closeTab(tab.id) }
-        .padding(.leading, 10)
-        .background(tab.id == manager.activeTabId ? style.selection : .clear, in: RoundedRectangle(cornerRadius: 10))
         .contentShape(.contextMenuPreview, RoundedRectangle(cornerRadius: 10))
         .contextMenu {
             TabMoveMenu(manager: manager, tab: tab, newGroup: { newGroupTab = NewGroupTab(id: tab.id) }, newSpace: { newSpaceTab = tab.id })
@@ -204,18 +209,6 @@ struct PaletteSheet: View {
             if let group { groupBlock(group, top: false, bottom: last) } else { Color.clear }
         })
         .listRowInsets(EdgeInsets(top: 2, leading: group == nil ? 12 : 16, bottom: last ? 6 : 2, trailing: group == nil ? 12 : 16))
-        .swipeActions(edge: .trailing, allowsFullSwipe: true) {
-            // Under the sheet's .plain style the action never appeared and a
-            // swipe fell through to the row's tap; the system style brings it
-            // back. A trash on neutral gray, not red (owner); a full swipe closes.
-            Button(role: .destructive) { manager.closeTab(tab.id) } label: {
-                Image(systemName: "trash")
-            }
-            .buttonStyle(.automatic)
-            .tint(.gray)
-            .accessibilityLabel(SyncCopy.text("menu.closeTab"))
-            .accessibilityIdentifier("palette.tab.close")
-        }
     }
 
     /// A group's header and tabs share one shaded block, as desktop's ⌘L
@@ -245,7 +238,9 @@ struct PaletteSheet: View {
         .padding(.top, 8)
     }
 
-    private func row(icon: String, title: String, subtitle: String, selected: Bool = false) -> some View {
+    /// The current tab is shown by its row's highlight (and VoiceOver's
+    /// Selected), not a trailing dot, which said the same thing twice.
+    private func row(icon: String, title: String, subtitle: String) -> some View {
         HStack(spacing: 10) {
             Image(systemName: icon).font(.system(size: 16, weight: .regular))
                 .foregroundStyle(style.secondary).frame(width: 24)
@@ -254,7 +249,6 @@ struct PaletteSheet: View {
                 Text(subtitle).font(BrowserStyle.font(11)).foregroundStyle(style.secondary).lineLimit(1)
             }
             Spacer(minLength: 4)
-            if selected { Circle().fill(style.text).frame(width: 5, height: 5) }
         }
         .frame(maxWidth: .infinity, minHeight: 48, alignment: .leading)
         .contentShape(Rectangle())
