@@ -606,8 +606,8 @@ const ids = () => __require('shim:crypto').randomUUID().replace(/-/g, '');
 const emit = (event, value) => __host.emit(`desktop-spaces-${event}`, JSON.stringify(value));
 const FILE = '/sync/desktop-spaces-visible.json';
 let rows = null, revision = 0, nextToken = 0, applying = 0, persistenceFailed = false;
-const windows = new Map(), waiting = new Map();
-let runtime, sharing, work = Promise.resolve();
+const windows = new Map(), waiting = new Map(), coldPlans = new Map(), missingFetches = new Map();
+let runtime, sharing;
 const visible = () => rows === null ? (() => {try {return JSON.parse(fs.readFileSync(FILE, 'utf8'));} catch {return [];}})()
   : rows.filter(row => row.sharedId && row.sharedLink === 'active').map(row => row.sharedId);
 function report() {
@@ -661,21 +661,131 @@ function context(win) {
 }
 function bindings(win, diff) {
   win.capture.tabIds = [...diff.tabIds];
+  // Adopt fresh shared group identities in this capture immediately. Native
+  // applies the same binding before any following row/layout event.
+  for (const group of win.capture.groups ?? []) group.id = diff.groupBindings[group.id] ?? group.id;
+  win.capture.groupIds = (win.capture.groupIds ?? []).map(id => diff.groupBindings[id] ?? id);
+  if (win.capture.nativeGroupBindings) for (const [local, shared] of Object.entries(win.capture.nativeGroupBindings))
+    win.capture.nativeGroupBindings[local] = diff.groupBindings[shared] ?? shared;
   emit('bindings', {windowId: win.id, workspaceId: win.workspaceId, localIds: win.capture.localIds,
     tabIds: diff.tabIds, groupBindings: diff.groupBindings});
+}
+// Cold restoration runs before native views exist. Intent was persisted by
+// runtime.apply before accepting the close. Retain tombstones in the displayed
+// receipt so replay is idempotent even if Chromium's session checkpoint lagged
+// the receipt checkpoint when the process died.
+function coldRestore() {
+  start();
+  const canonical = __require('src/main/tabsync-model.js').canonical;
+  const webUrl = value => {
+    if (typeof value !== 'string' || value.length > 2048) return false;
+    try {return ['http:', 'https:'].includes(new URL(value).protocol);} catch {return false;}
+  };
+  const ctx = sync().sharedContext(), store = state().rebind(ctx.accountId);
+  const result = [];
+  for (const [key, saved] of Object.entries(store.data.windows)) {
+    const suffix = `:${saved.spaceId}`;
+    if (!key.startsWith('desktop:') || !key.endsWith(suffix)) continue;
+    const windowId = key.slice(8, -suffix.length), blob = store.data.blobs[saved.spaceId]?.blob;
+    if (!blob) continue;
+    const closes = {}, navigations = {};
+    for (const [id, shown] of Object.entries(saved.displayed?.tabs ?? {})) {
+      const accepted = saved.accepted?.find(row => row.kind === 'tabs' && row.id === id && row.field === 'deleted');
+      const wanted = model().mergeField(blob.tabs[id]?.deleted, accepted?.value, 'deleted');
+      if (wanted?.v === true && (shown.deleted?.v === true || accepted?.value?.v === true)) closes[id] = wanted;
+    }
+    for (const [id, shown] of Object.entries(saved.displayed?.tabs ?? {})) {
+      if (closes[id] || blob.tabs[id]?.deleted?.v) continue;
+      const accepted = saved.accepted?.find(row => row.kind === 'tabs' && row.id === id && row.field === 'nav');
+      const journal = saved.desktopColdNavigation?.[id];
+      const wanted = model().mergeField(blob.tabs[id]?.nav, accepted?.value, 'nav');
+      const replay = accepted ? {from: shown.nav?.v?.url, value: wanted} : journal;
+      if (!replay || !wanted || canonical(wanted) !== canonical(replay.value) ||
+          !webUrl(replay.from) ||
+          !webUrl(replay.value?.v?.url)) continue;
+      navigations[id] = replay;
+    }
+    const groupBindings = Object.fromEntries(Object.entries({...saved.groupBindings, ...saved.desktopNativeGroups})
+      .filter(([local, shared]) => /^[a-f0-9]{32}$/i.test(local) && typeof shared === 'string' && /^[a-f0-9]{32}$/i.test(shared)));
+    if (!Object.keys(closes).length && !Object.keys(navigations).length && !Object.keys(groupBindings).length) continue;
+    // Keep the previous address and a stable field identity until a later
+    // accepted navigation replaces it. Chromium stores that identity with its
+    // session tab, so an intentional later Back/navigation is never replayed.
+    if (Object.keys(navigations).length) store.update(data => {
+      data.windows[key].desktopColdNavigation = structuredClone(navigations);
+    });
+    if (Object.keys(closes).length || Object.keys(navigations).length)
+      coldPlans.set(key, {accountId: ctx.accountId, closes, navigations});
+    result.push({windowId, spaceId: saved.spaceId, tabIds: Object.keys(closes),
+      ...(Object.keys(groupBindings).length ? {groupBindings} : {}),
+      navigations: Object.entries(navigations).map(([id, entry]) => ({id, from: entry.from,
+        url: entry.value.v.url, title: entry.value.v.title,
+        token: JSON.stringify([id, entry.value.c, entry.value.by, entry.value.v.url])}))});
+  }
+  if (result.some(plan => plan.navigations.length) &&
+      (!store.flush() || !fs.__persistDesktop('shared-spaces.json'))) throw Error('cold-restore-save-failed');
+  return result;
+}
+function acknowledgeCold(win) {
+  const current = context(win); if (!current) return;
+  const key = receiptKey(win, current.spaceId), pending = coldPlans.get(key);
+  if (!pending || pending.accountId !== current.accountId) return;
+  const absent = Object.keys(pending.closes).filter(id => !win.capture.tabIds.includes(id));
+  const navigated = Object.keys(pending.navigations).filter(id => {
+    const at = win.capture.tabIds.indexOf(id);
+    return at >= 0 && win.capture.urls[at] === pending.navigations[id].value.v.url;
+  });
+  if (!absent.length && !navigated.length) return;
+  current.store.update(data => {
+    const saved = data.windows[key]; if (!saved) return;
+    for (const id of absent) if (saved.displayed.tabs[id])
+      saved.displayed.tabs[id].deleted = model().mergeField(saved.displayed.tabs[id].deleted, pending.closes[id], 'deleted');
+    for (const id of navigated) if (saved.displayed.tabs[id])
+      saved.displayed.tabs[id].nav = model().mergeField(saved.displayed.tabs[id].nav, pending.navigations[id].value, 'nav');
+    saved.accepted = saved.accepted.filter(row => !(row.kind === 'tabs' &&
+      ((row.field === 'deleted' && absent.includes(row.id)) || (row.field === 'nav' && navigated.includes(row.id) &&
+        model().acknowledged(pending.navigations[row.id].value, row.value, 'nav')))));
+  });
+  if (!current.store.flush() || !fs.__persistDesktop('shared-spaces.json')) persistenceFailed = true;
+  else {
+    for (const id of absent) delete pending.closes[id];
+    for (const id of navigated) delete pending.navigations[id];
+    if (!Object.keys(pending.closes).length && !Object.keys(pending.navigations).length) coldPlans.delete(key);
+  }
 }
 function captureLocal() {
   for (const win of windows.values()) {
     if (win.holding || !win.capture) continue;
+    acknowledgeCold(win);
     if (context(win)?.window) runtime.local(win);
     const row = rows.find(row => row.id === win.workspaceId);
     if (row) Object.assign(row, structuredClone(win.capture));
   }
 }
+// A fallback full pass can spend its remaining GET budget on unrelated stores
+// before its tail notices a newly downloaded index. Fetch that index's missing
+// Space blobs immediately through the same quota-aware queue. This is desktop
+// discovery only; the phone facade and frozen sync implementation are unchanged.
+function discoverMissing() {
+  if (!rows || !sync().status().enabled || !sync().sharedStatus().enabled) return;
+  const ctx = sync().sharedContext(), data = state().rebind(ctx.accountId).data;
+  const active = new Set(state().spaceIds(ctx)), stores = [];
+  for (const id of missingFetches.keys()) if (!active.has(id)) missingFetches.delete(id);
+  for (const id of active) {
+    if (data.blobs[id] || !data.index.spaces[id]) continue;
+    const revision = data.index.spaces[id].rev ?? null;
+    if (missingFetches.has(id) && missingFetches.get(id) === revision) continue;
+    missingFetches.set(id, revision); stores.push('space-' + id);
+  }
+  // One request per missing revision; ordinary Sync owns failures and retries.
+  // ahead changes ordering, never the persisted rolling limit or backoff.
+  if (stores.length) sync().syncNow(stores, {ahead: true}).catch(() => {});
+}
 function start() {
   if (runtime) return;
   sync().setSharedVisibilityProvider(visible);
   sync().onAccountChanged(() => {
+    coldPlans.clear(); missingFetches.clear();
     for (const row of rows ?? []) {delete row.sharedId; delete row.sharedLink; delete row.tabIds;}
     for (const win of windows.values()) if (win.capture) win.capture.tabIds = win.capture.urls.map(() => null);
     if (rows) report();
@@ -685,7 +795,12 @@ function start() {
     saveWindow(win, saved) {
       const current = context(win); if (!current) return false;
       // Never discard another window's receipt, even for the same Space.
-      current.store.update(data => {data.windows[receiptKey(win, saved.spaceId)] = saved;});
+      current.store.update(data => {
+        const key = receiptKey(win, saved.spaceId);
+        const journal = data.windows[key]?.desktopColdNavigation;
+        data.windows[key] = {...saved, ...(journal ? {desktopColdNavigation: journal} : {}),
+          ...(win.capture.nativeGroupBindings ? {desktopNativeGroups: structuredClone(win.capture.nativeGroupBindings)} : {})};
+      });
       const savedToDisk = current.store.flush() && fs.__persistDesktop('shared-spaces.json');
       if (!savedToDisk) persistenceFailed = true;
       return savedToDisk;
@@ -723,13 +838,13 @@ function start() {
               groups: model().orderOf(blob.groups).filter(id => !blob.groups[id].deleted.v)};
           }
         }
-        emit('row', {windowId: win.id, workspaceId, token, row, layout, layoutRequired: affectsLayout});
+        emit('row', {windowId: win.id, workspaceId, token, row, layout, layoutRequired: affectsLayout, expected: win.capture});
       });
     },
     layout(win, blob) {
       if (blob) emit('layout', {windowId: win.id, workspaceId: win.workspaceId, blob,
         order: model().orderOf(blob.tabs).filter(id => !blob.tabs[id].deleted.v),
-        groups: model().orderOf(blob.groups).filter(id => !blob.groups[id].deleted.v)});
+        groups: model().orderOf(blob.groups).filter(id => !blob.groups[id].deleted.v), expected: win.capture});
     },
   });
   sharing = __require('src/main/shared-spaces-service.js').createSharingService({
@@ -741,16 +856,20 @@ function start() {
       for (const win of windows.values()) if (win.workspaceId === item.workspaceId && !win.holding && win.capture) {
         bindings(win, item);
         store.update(data => {data.windows[receiptKey(win, item.spaceId)] = {
-          spaceId: item.spaceId, displayed: item.blob, accepted: [], groupBindings: item.groupBindings ?? {}};});
+          spaceId: item.spaceId, displayed: item.blob, accepted: [], groupBindings: item.groupBindings ?? {},
+          ...(win.capture.nativeGroupBindings ? {desktopNativeGroups: structuredClone(win.capture.nativeGroupBindings)} : {})};});
       }
       if (!store.flush() || !fs.__persistDesktop('shared-spaces.json')) throw Error('save-failed');
     },
     recoveryName: name => `${name} · kept on this device`,
   });
-  state().onRemoteChanged(() => {work = work.then(settle).catch(() => {});});
+  // A remote event cannot capture native edits synchronously. Ask native for
+  // a fresh inventory instead of reconciling its previous one over live edits.
+  state().onRemoteChanged(() => {discoverMissing(); emit('refresh', {});});
 }
 async function settle() {
   if (!rows) return;
+  discoverMissing();
   captureLocal();
   await sharing.reconcile();
   for (const win of windows.values()) {
@@ -765,7 +884,7 @@ async function settle() {
   }
 }
 module.exports = {
-  start, visible,
+  start, visible, coldRestore,
   snapshotForTest() {
     if (__host.env?.BLANC_TEST !== '1' || !/^http:\/\/127\.0\.0\.1:\d+\/?$/.test(__host.testEndpoint ?? '')) throw Error('test-snapshot-refused');
     start();
@@ -12778,7 +12897,7 @@ const closed = (name, off, always) => (...args) => {
   return __require('src/main/synced-closed.js')[name](sync.sharedContext(), ...args);
 };
 const spaces = name => (...args) => __require('shim:spaces')[name](...args);
-const DESKTOP = Object.fromEntries(['push', 'hold', 'rowDone', 'preview', 'apply', 'metadata', 'reorder', 'armPairing', 'acknowledge', 'status', 'snapshotForTest'].map(name => [`desktop.spaces.${name}`, (...args) => __require('shim:desktop-spaces')[name](...args)]));
+const DESKTOP = Object.fromEntries(['push', 'hold', 'rowDone', 'preview', 'apply', 'metadata', 'reorder', 'armPairing', 'acknowledge', 'status', 'snapshotForTest', 'coldRestore'].map(name => [`desktop.spaces.${name}`, (...args) => __require('shim:desktop-spaces')[name](...args)]));
 Object.assign(DESKTOP, {'desktop.closed.inbox': closed('inbox', []),
   'desktop.closed.hide': closed('hide', null), 'desktop.closed.clear': closed('clear', null, true)});
 const PHONE = {

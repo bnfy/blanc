@@ -235,16 +235,37 @@ void DesktopSyncService::Call(std::string method, std::string args_json, SyncCal
   // its request window. These calls read the runner's current state; they do
   // not start network requests or change the account. The local preview may
   // capture current tab edits, as shipping does while a pass is on the wire.
-  // Account changes and network passes stay on the serialized queue.
+  // Cold restore also checkpoints its local replay journal before views are
+  // created; hiding a received Send is also an immediate local-store mutation.
+  // Neither waits on network I/O. Account changes and network
+  // passes stay on the serialized queue. Native inventory must also reach
+  // the runner while that queue waits, or a capture can become minutes stale;
+  // row acknowledgements and account checks remain in the desktop adapter.
   bool local_preview = false;
   if (method == "desktop.spaces.preview") {
     auto args = base::JSONReader::ReadList(args_json, base::JSON_PARSE_RFC);
     local_preview = args && args->size() == 1 && (*args)[0].is_dict() &&
         (*args)[0].GetDict().size() == 1 && (*args)[0].GetDict().FindBool("local").value_or(false);
   }
+  bool native_inventory = false;
+  if (method == "desktop.spaces.push") {
+    auto args = base::JSONReader::ReadList(args_json, base::JSON_PARSE_RFC);
+    native_inventory = args && args->size() == 1 && (*args)[0].is_dict() &&
+        (*args)[0].GetDict().FindInt("revision").has_value() &&
+        (*args)[0].GetDict().FindList("rows") && (*args)[0].GetDict().FindList("windows");
+  }
+  bool local_hide = false;
+  if (method == "sync.hideSentItem") {
+    auto args = base::JSONReader::ReadList(args_json, base::JSON_PARSE_RFC);
+    local_hide = args && args->size() == 1 && (*args)[0].is_string() &&
+        !(*args)[0].GetString().empty() && (*args)[0].GetString().size() <= 128;
+  }
   const bool observation = args_json == "[]" && (method == "sync.status" ||
-      method == "desktop.spaces.status" || method == "desktop.spaces.snapshotForTest");
-  if (ready_ && (observation || local_preview)) {
+      method == "sync.cadenceForTest" || method == "desktop.spaces.status" || method == "desktop.spaces.snapshotForTest" ||
+      method == "desktop.spaces.coldRestore" ||
+      method == "sync.listRemoteDevices" || method == "sync.listSendTargets" ||
+      method == "sync.listSentToThisDevice" || method == "desktop.closed.inbox");
+  if (ready_ && (observation || local_preview || local_hide || native_inventory)) {
     SetSyncPlatform(platform_.get());
     auto reply = std::make_shared<SyncCallback>(std::move(callback));
     SyncCall(std::move(method), std::move(args_json), base::BindOnce(
@@ -254,7 +275,7 @@ void DesktopSyncService::Call(std::string method, std::string args_json, SyncCal
     base::SingleThreadTaskRunner::GetCurrentDefault()->PostDelayedTask(FROM_HERE,
         base::BindOnce([](std::shared_ptr<SyncCallback> reply) {
           if (*reply) std::move(*reply).Run(false, "runner-timeout");
-        }, reply), base::Seconds(5));
+        }, reply), native_inventory ? base::Seconds(30) : base::Seconds(5));
     return;
   }
   requests_.push_back({std::move(method), std::move(args_json), std::move(callback)});

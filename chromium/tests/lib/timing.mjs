@@ -4,8 +4,17 @@ const context=new AsyncLocalStorage();
 export const measuredAttempt=(record,run)=>context.run({record,frame:null},run);
 export async function phase(name,run){
  const parent=context.getStore();if(!parent)return run();
- const frame={children:0},start=performance.now();
+ const frame={children:0},start=performance.now(),timeoutsBefore=parent.record.timeouts.length;
  try{return await context.run({...parent,frame},run);}
+ catch(error){
+  // Frozen shipping helpers keep their own polling loop. Record its failed
+  // enclosing phase without editing that loop or extending its deadline.
+  // Nested instrumented polls already recorded their more precise duration.
+  if(parent.record.timeouts.length===timeoutsBefore&&/\b(?:timeout|timed out)\b/i.test(error.message??''))
+   parent.record.timeouts.push({kind:'phase-timeout',label:error.message,phase:name,
+    elapsedMs:performance.now()-start,durationScope:'enclosing phase; upper bound on wait'});
+  throw error;
+ }
  finally{
   const elapsed=performance.now()-start;
   const total=parent.record.phases[name]??={count:0,totalMs:0,exclusiveMs:0};

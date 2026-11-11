@@ -1,0 +1,97 @@
+diff --git a/chrome/browser/sessions/session_restore.cc b/chrome/browser/sessions/session_restore.cc
+--- a/chrome/browser/sessions/session_restore.cc
++++ b/chrome/browser/sessions/session_restore.cc
+@@ -760,6 +760,14 @@
+       return;
+     }
+ 
++    if (blanc_prototype::IsEnabled() && !shared_close_plan_ready_) {
++      if (!shared_close_plan_pending_) {
++        shared_close_plan_pending_ = true;
++        blanc_prototype::ReadSharedSessionPlan(profile_, base::BindOnce(
++            &SessionRestoreImpl::OnSharedClosePlan, weak_factory_.GetWeakPtr()));
++      }
++      return;
++    }
+     SortWindowsByWindowId();
+ 
+     if (synchronous_) {
+@@ -772,6 +780,17 @@
+ 
+     ProcessSessionWindowsAndNotify(&windows_, active_window_id_);
+   }
++
++  void OnSharedClosePlan(std::string plan) {
++    // The weak callback owns no raw pointer into a destroyed restore job.
++    // No restored view exists yet, including the selected page.
++    blanc_prototype::ApplySharedSessionPlan(&windows_, plan);
++    shared_close_plan_ready_ = true;
++    ProcessSessionWindowsIfReady();
++  }
++
++  bool shared_close_plan_pending_ = false;
++  bool shared_close_plan_ready_ = false;
+ 
+   // This helper, based on the restore_apps_ state tells us if we're ready to
+   // begin restoring windows. There's two ways we are ready to process:
+@@ -1253,6 +1272,11 @@
+       new_group = it->second;
+     }
+ 
++    // Native restore remaps group tokens; retain the corresponding shared
++    // identity before the first live capture can interpret it as a new group.
++    if (tab.group && new_group)
++      blanc_prototype::RemapWindowSharedGroup(browser, tab.group->ToString(), new_group->ToString());
++
+     // Apply the stored group.
+     WebContents* web_contents = chrome::AddRestoredTab(
+         browser, tab.navigations, tab_index, selected_index,
+diff --git a/chrome/browser/sessions/session_service_base.cc b/chrome/browser/sessions/session_service_base.cc
+--- a/chrome/browser/sessions/session_service_base.cc
++++ b/chrome/browser/sessions/session_service_base.cc
+@@ -630,6 +630,12 @@
+   if (blanc_prototype::GroupPinned(tab))
+     command_storage_manager()->AppendRebuildCommand(sessions::CreateAddTabExtraDataCommand(
+         session_id, blanc_prototype::kGroupPinKey, "1"));
++  const auto shared_id = blanc_prototype::SharedTabId(tab);
++  if (!shared_id.empty()) command_storage_manager()->AppendRebuildCommand(
++      sessions::CreateAddTabExtraDataCommand(session_id, blanc_prototype::kSharedTabIdKey, shared_id));
++  const auto replay = blanc_prototype::SharedColdNavigationToken(tab);
++  if (!replay.empty()) command_storage_manager()->AppendRebuildCommand(
++      sessions::CreateAddTabExtraDataCommand(session_id, blanc_prototype::kSharedColdNavigationKey, replay));
+   const auto custom_name = blanc_prototype::PersistentTabName(tab);
+   if (!custom_name.empty()) command_storage_manager()->AppendRebuildCommand(
+       sessions::CreateAddTabExtraDataCommand(session_id,
+@@ -743,6 +749,20 @@
+             blanc_prototype::kWindowIdentityKey, identity));
+   }
+ 
++  const auto space = blanc_prototype::WindowSpace(browser);
++  if (!space.empty()) {
++    command_storage_manager()->AppendRebuildCommand(
++        sessions::CreateAddWindowExtraDataCommand(browser->GetSessionID(),
++            blanc_prototype::kWindowSpaceKey, space));
++  }
++
++  const auto shared_groups = blanc_prototype::WindowSharedGroups(browser);
++  if (!shared_groups.empty() && shared_groups != "{}") {
++    command_storage_manager()->AppendRebuildCommand(
++        sessions::CreateAddWindowExtraDataCommand(browser->GetSessionID(),
++            blanc_prototype::kWindowSharedGroupsKey, shared_groups));
++  }
++
+   command_storage_manager()->AppendRebuildCommand(
+       sessions::CreateSetWindowBoundsCommand(
+           browser->GetSessionID(), browser->GetWindow()->GetRestoredBounds(),
+diff --git a/chrome/browser/ui/browser_live_tab_context.cc b/chrome/browser/ui/browser_live_tab_context.cc
+--- a/chrome/browser/ui/browser_live_tab_context.cc
++++ b/chrome/browser/ui/browser_live_tab_context.cc
+@@ -208,6 +208,8 @@
+ 
+   if (blanc_prototype::GroupPinned(tab_strip_model_->GetWebContentsAt(index)))
+     extra_data[blanc_prototype::kGroupPinKey] = "1";
++  const auto replay = blanc_prototype::SharedColdNavigationToken(tab_strip_model_->GetWebContentsAt(index));
++  if (!replay.empty()) extra_data[blanc_prototype::kSharedColdNavigationKey] = replay;
+   const auto shared = blanc_prototype::SharedTabId(tab_strip_model_->GetWebContentsAt(index));
+   if (!shared.empty()) extra_data[blanc_prototype::kSharedTabIdKey] = shared;
+   const auto name = blanc_prototype::PersistentTabName(tab_strip_model_->GetWebContentsAt(index));

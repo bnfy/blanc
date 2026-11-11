@@ -35,11 +35,35 @@ async function setup(w,shared,beforeSave){
  w.expectedSharedTabCount=(await w.call('workspaceAction','saved-urls',w.workId)).filter(u=>/^https?:/.test(u)).length;
  if(shared){
   assert.equal((await rpc(w,'desktop.spaces.apply',[{enabled:true,selections:[{id:w.workId,mode:'copy'}]}])).ok,true);
-  if(w.scenarioTags?.includes('@two-clients'))await rpc(w,'sync.syncNow');
-  else await pull(w);
+  if(w.scenarioTags?.includes('@two-clients')) {
+   // apply starts the real upload. Observe the local Worker's stored index;
+   // an extra all-store pass here competes with that upload for three minutes.
+   await w.waitFor(()=>{
+    const stored=w.syncServer.blobs.get(`blob:${w.sharedKey.accountId}:spaces`);
+    if(!stored)return false;
+    const index=JSON.parse(decrypt(w.sharedKey.key,JSON.parse(stored).blob));
+    return Object.values(index.spaces).some(space=>space.name.v==='Work'&&!space.deleted.v);
+   },Boolean,'first native client published Work',300000);
+  } else await pull(w);
  }
 }
 async function sharedCopy(w){
+ // Shipping explicitly captures the live window before this pull. Wait for
+ // the same native capture boundary; reading yesterday's runner inventory is
+ // not an equivalent transport for that hook. Freeze the expected live layout
+ // first, so a stale remote layout that removes the edit still fails.
+ const live=await w.snapshot();
+ const url=u=>/^blanc:\/\/newtab\//.test(u)?'chrome://newtab/':u;
+ const group=g=>g?{name:g.name,color:g.color||null,collapsed:!!g.collapsed}:null;
+ const expected=live.tabs.filter(t=>!t.private).map(t=>({url:url(t.url),pinned:!!t.pinned,
+  group:group(live.groups.find(g=>g.id===t.groupId))}));
+ await w.waitFor(()=>state(w),s=>{
+  const capture=s.windows.find(win=>win.workspaceId===w.workId&&!win.holding)?.capture;
+  if(!capture)return false;
+  const actual=capture.urls.map((u,i)=>({url:url(u),pinned:!!capture.pinned[i],
+   group:group(capture.groups.find(g=>g.id===capture.groupIds[i]))}));
+  return JSON.stringify(actual)===JSON.stringify(expected);
+ },'current native Shared Space capture before pull',10000);
  const current=await state(w);w.sid??=Object.keys(current.shared.blobs)[0];
  await pull(w,['space-'+w.sid]);await syncRoom(w);
  const response=await fetch(`${w.syncServer.url}/v1/blob/${w.sharedKey.accountId}/space-${w.sid}`);assert.equal(response.status,200);
@@ -106,6 +130,9 @@ export default function register(step){
   assert.ok(Object.values(saved.windows).some(w=>w.spaceId===this.sid&&w.accepted.some(r=>r.op==='nav'&&r.id===this.navigated)));
  });
  step('the relaunched client applies the held navigation and keeps every Work tab',async function(){
+  // A normal-quit session creates a restored browser, which deliberately skips
+  // the new-window initial-save gate. Its native Space capture is still required.
+  await ready(this, false);
   const remote=this.fixtureUrl('remote-navigation');
   const local=await this.waitForState(s=>s.tabs.some(t=>t.url===remote),{timeout:30000});
   const first=local.tabs.filter(t=>t.url===this.fixtureUrl('shared-first'));assert.equal(first.length,1);assert.ok(first[0].groupId);
@@ -138,9 +165,21 @@ export default function register(step){
   assert.fail('peer index write did not converge');
  });
  step('the {string} Space appears here within {int} seconds',async function(name,seconds){
-  await this.waitFor(async()=>{
-   await this.fixture.host.send('Page.bringToFront');return (await this.call('workspaceAction','list')).items;
+  const samples=[];let sampled=0;
+  try {await this.waitFor(async()=>{
+   await this.fixture.host.send('Page.bringToFront');
+   if(Date.now()-sampled>=5000){sampled=Date.now();
+    samples.push({at:sampled,cadence:await rpc(this,'sync.cadenceForTest'),
+     shared:(await state(this)).shared});
+   }
+   return (await this.call('workspaceAction','list')).items;
   },rows=>rows.some(row=>row.name===name),name+' arrives through automatic change checks',seconds*1000);
+  } finally {
+   // Synthetic account only. Keep scheduling evidence without URLs, keys or blobs.
+   fs.writeFileSync(path.join(this.fixture.directory,'sync-discovery.json'),JSON.stringify({
+    samples:samples.map(({at,cadence,shared})=>({at,cadence,requestLog:shared.requestLog,
+     backoffUntil:shared.backoffUntil})),requests:this.syncServer.requests.map(({method,store,status,at,client})=>({method,store,status,at,client}))},null,2));
+  }
  });
  step('the account storage is full and I delete Work',async function(){
   const current=await state(this);this.sid=Object.keys(current.shared.blobs)[0];
@@ -155,9 +194,12 @@ export default function register(step){
   const compact=JSON.parse(decrypt(this.sharedKey.key,JSON.parse(saved).blob));assert.deepEqual(compact.tabs,{});assert.deepEqual(compact.groups,{});
   assert.equal((await this.quotaProbe()).status,200);assert.equal((await state(this)).shared.index.spaces[this.sid].deleted.v,true);
  });
- const ready=async w=>{
-  await w.waitFor(async()=>({snapshot:await w.snapshot(),restore:await w.native('crashBubble',['state'])}),
-   s=>!s.restore.restoring&&!s.restore.awaitingAck&&!s.snapshot.spaceBusy&&!s.snapshot.spaceAutosaveError&&!s.snapshot.initialWindowSaveFailed,
+ const ready=async (w, newWindow=true)=>{
+  await w.waitFor(async()=>({snapshot:await w.snapshot(),restore:await w.native('crashBubble',['state']),inventory:await state(w)}),
+   s=>!s.restore.restoring&&!s.restore.awaitingAck&&!s.snapshot.spaceBusy&&!s.snapshot.spaceAutosaveError&&
+    !s.snapshot.initialWindowSaveFailed&&(!newWindow||s.snapshot.initialWindowSaved)&&
+    s.inventory.windows.some(win=>win.id===s.snapshot.spaceWindowIdentity&&win.workspaceId===w.workId&&!win.holding&&
+     JSON.stringify(win.capture?.urls)===JSON.stringify(s.snapshot.tabs.filter(t=>!t.private).map(t=>/^blanc:\/\/newtab\//.test(t.url)?'chrome://newtab/':t.url))),
    'native restoration and Space persistence ready',30000);
  };
  step('device B closes the active Work tab',async function(){
@@ -320,6 +362,10 @@ export default function register(step){
    observer.observe(root,{subtree:true,childList:true,characterData:true});
    setTimeout(()=>{observer.disconnect();resolve(false);},5000);
   }));
+  // Only the explicit busy-copy scenario awaits this observer. Other sheet
+  // cases can finish before it does; mark rejection handled during teardown
+  // while preserving the original promise/error for the asserting case.
+  this.busySeen.catch(()=>{});
   this.turnedOnAt=Date.now();assert.equal(await this.call('sharedSpacesAct','turn-on'),true);
  });
  step('the selection sheet is open within a second and is checking other devices',async function(){

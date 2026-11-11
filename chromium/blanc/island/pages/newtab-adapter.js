@@ -320,6 +320,7 @@
   window.blancTopSitesSnapshotCurrent = epoch => epoch === topSitesEpoch;
   window.blancTopSitesUnavailable = suppressRankedSites;
   const utilityListeners = new Set();
+  const sentListeners = new Set();
   window.blancUtilitySheetVisibility = visible => { for (const fn of utilityListeners) fn(visible); };
   window.bowserPages = {
     appVersion: async () => 'Chromium prototype',
@@ -375,7 +376,8 @@
         const release = isPrivatePage ? null : await request('whatsNew').catch(() => null);
         const whatsNew = release?.version
           ? window.BlancWhatsNew.whatsNewState(release.state, { version: release.version, now: Date.now() }) : null;
-        return { ...preferences(), remoteDevices: isPrivatePage ? [] : await request('remoteDevices').catch(() => []), privacy: firstRun?.privacy, onboarding: firstRun?.onboarding ?? null,
+        return { ...preferences(), sentItems: isPrivatePage ? [] : await request('sentItems').catch(() => []),
+          remoteDevices: isPrivatePage ? [] : await request('remoteDevices').catch(() => []), privacy: firstRun?.privacy, onboarding: firstRun?.onboarding ?? null,
           migrationChecklist, whatsNew, patronActive: patron?.active === true,
           patronCalloutSnoozedUntil: Number(patron?.snoozedUntil) || 0, launchSunrise: launchSunrise === true,
           blockedThisWeek: Number.isInteger(week?.blocked) ? week.blocked : 0,
@@ -480,6 +482,9 @@
         }, 5000);
         window.addEventListener('pagehide', () => clearInterval(timer), {once: true});
       },
+      onSentItems: listener => { sentListeners.add(listener); return () => sentListeners.delete(listener); },
+      openSent: id => isPrivatePage ? Promise.resolve(false) : request('openSent', [String(id)]),
+      dismissSent: id => isPrivatePage ? Promise.resolve(false) : request('dismissSent', [String(id)]),
       onUtilitySheetVisibility: fn => { utilityListeners.add(fn); return () => utilityListeners.delete(fn); },
       openIsland: text => request('openIsland', [text]),
       openMahjong: background => request('openMahjong', [background === true]),
@@ -494,6 +499,10 @@
     // poll is only a fallback; no hidden page needs to poll to stay current.
     remoteTabs: async () => {
       if (!isPrivatePage && typeof renderRemote === 'function') renderRemote(await request('remoteDevices'));
+    },
+    sentItems: async () => {
+      const items = isPrivatePage ? [] : await request('sentItems');
+      for (const listener of sentListeners) listener(items);
     },
     // The moving-in checklist (N11): a status push, as shipping's.
     checklist: async () => {

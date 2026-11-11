@@ -61,6 +61,7 @@
     "patches/0053-blanc-group-pin-persistence.patch",
     "patches/0054-blanc-private-passkey-secret.patch",
     "patches/0055-blanc-shared-spaces-sheet.patch",
-    "patches/0056-blanc-shared-closed-identity.patch"
+    "patches/0056-blanc-shared-closed-identity.patch",
+    "patches/0057-blanc-shared-cold-restore.patch"
   ]
 }

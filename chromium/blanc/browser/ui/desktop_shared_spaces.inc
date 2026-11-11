@@ -90,6 +90,7 @@ class DesktopSpaces final : public base::SupportsUserData::Data,
   }
   base::DictValue Capture(Owner* owner, const base::DictValue& record) {
     base::ListValue urls, local_ids, tab_ids, meta, pins, group_ids, groups, policies, files;
+    base::DictValue native_bindings;
     auto* model = owner ? owner->browser->GetTabStripModel() : nullptr;
     const auto* old = record.FindDict("sharedCapture");
     const auto* native_groups = record.FindList("groups");
@@ -97,9 +98,20 @@ class DesktopSpaces final : public base::SupportsUserData::Data,
     for (size_t i = 0; native_groups && i < native_groups->size(); ++i) {
       const auto& g = (*native_groups)[i].GetDict();
       std::string local = i < native_order.size() ? native_order[i].ToString() : "saved-group-" + base::NumberToString(i);
+      if (owner && !group_bindings_.contains(local)) {
+        const auto restored = WindowSharedGroup(owner->browser, local);
+        if (!restored.empty()) group_bindings_[local] = restored;
+      }
       std::string id = group_bindings_.contains(local) ? group_bindings_.at(local) : local;
-      if (!model && old) if (const auto* previous = At(*old, "groups", i); previous && previous->is_dict())
-        if (const auto* saved = previous->GetDict().FindString("id")) id = *saved;
+      if (owner) {
+        native_bindings.Set(local, id);
+        if (id != local) SetWindowSharedGroup(owner->browser, local, id);
+      }
+      if (!model) {
+        if (const auto* saved = g.FindString("sharedId")) id = *saved;
+        else if (old) if (const auto* previous = At(*old, "groups", i); previous && previous->is_dict())
+          if (const auto* prior_id = previous->GetDict().FindString("id")) id = *prior_id;
+      }
       groups.Append(base::DictValue().Set("id", id).Set("name", *g.FindString("name"))
           .Set("color", GroupColor(static_cast<tab_groups::TabGroupColorId>(g.FindInt("color").value_or(0))))
           .Set("collapsed", g.FindBool("collapsed").value_or(false)));
@@ -134,6 +146,8 @@ class DesktopSpaces final : public base::SupportsUserData::Data,
       if (local.empty() && old) if (const auto* v = At(*old, "localIds", i); v && v->is_string()) local = v->GetString();
       std::string shared;
       if (!local.empty() && bindings_.contains(local)) shared = bindings_.at(local);
+      if (shared.empty() && page) shared = SharedTabId(page);
+      if (shared.empty() && !page) if (const auto* id = tab.FindString("sharedId")) shared = *id;
       if (shared.empty() && old) {
         const auto* locals = old->FindList("localIds");
         for (size_t j = 0; locals && j < locals->size(); ++j)
@@ -159,6 +173,7 @@ class DesktopSpaces final : public base::SupportsUserData::Data,
         .Set("groups", std::move(groups)).Set("groupIds", std::move(group_ids))
         .Set("activeIndex", record.FindInt("active").value_or(0)).Set("documentPolicy", 1)
         .Set("inheritsDocumentPolicy", std::move(policies)).Set("localFiles", std::move(files));
+    if (owner) out.Set("nativeGroupBindings", std::move(native_bindings));
     for (const char* key : {"splits", "splitIds"}) if (const auto* value = record.Find(key)) out.Set(key, value->Clone());
     return out;
   }
@@ -244,7 +259,7 @@ class DesktopSpaces final : public base::SupportsUserData::Data,
       const auto* id = row.FindString("id");
       if (!id || id->empty() || id->size() > 120 || !row.FindList("urls")) return;
       bool open = false;
-      for (auto* owner : Owner::Live()) if (owner->browser->GetProfile() == profile_ && owner->space_name == *id) open = true;
+      for (auto* owner : Owner::Live()) if (owner->browser->GetProfile() == profile_ && (owner->space_name == *id || WindowSpace(owner->browser) == *id)) open = true;
       if (auto* hold = SpaceHold::Get(profile_); hold && hold->Find(*id)) open = true;
       auto record = open && disk_.FindDict(*id) ? disk_.FindDict(*id)->Clone() : ToRecord(row);
       if (!ValidSpace(record)) return;
@@ -271,7 +286,7 @@ class DesktopSpaces final : public base::SupportsUserData::Data,
       const auto* shared = record ? record->FindDict("sharedCapture") : nullptr;
       const bool present = std::ranges::any_of(*rows, [&](const auto& r) {return r.is_dict() && r.GetDict().FindString("id") && *r.GetDict().FindString("id") == id.GetString();});
       bool open = false;
-      for (auto* owner : Owner::Live()) if (owner->browser->GetProfile() == profile_ && owner->space_name == id.GetString()) open = true;
+      for (auto* owner : Owner::Live()) if (owner->browser->GetProfile() == profile_ && (owner->space_name == id.GetString() || WindowSpace(owner->browser) == id.GetString())) open = true;
       if (auto* hold = SpaceHold::Get(profile_); hold && hold->Find(id.GetString())) open = true;
       if (!present && !open && !restoring_.contains(id.GetString()) && shared && shared->FindString("sharedId")) {
         if (!std::ranges::any_of(*meta.FindList("deleted"), [&](const auto& d) {return d == id;})) meta.FindList("deleted")->Append(id.Clone());
@@ -300,8 +315,16 @@ class DesktopSpaces final : public base::SupportsUserData::Data,
     if (source_groups) for (const auto& v : *source_groups) {
       if (!v.is_dict() || !v.GetDict().FindString("id")) continue;
       group_index[*v.GetDict().FindString("id")] = static_cast<int>(groups.size());
-      groups.Append(base::DictValue().Set("name", v.GetDict().FindString("name") ? *v.GetDict().FindString("name") : "")
-          .Set("color", 0).Set("collapsed", v.GetDict().FindBool("collapsed").value_or(false)));
+      tab_groups::TabGroupColorId shade = kGroupColor;
+      const auto* color = v.GetDict().FindString("color");
+      for (int i = 0; i <= 8; ++i)
+        if (color && *color == GroupColor(static_cast<tab_groups::TabGroupColorId>(i)))
+          shade = static_cast<tab_groups::TabGroupColorId>(i);
+      auto group = base::DictValue().Set("name", v.GetDict().FindString("name") ? *v.GetDict().FindString("name") : "")
+          .Set("color", static_cast<int>(shade)).Set("collapsed", v.GetDict().FindBool("collapsed").value_or(false));
+      const auto& id = *v.GetDict().FindString("id");
+      if (id.size() == 32 && std::ranges::all_of(id, [](char c) {return base::IsHexDigit(c);})) group.Set("sharedId", id);
+      groups.Append(std::move(group));
     }
     for (size_t i = 0; i < urls->size(); ++i) {
       if (!(*urls)[i].is_string()) return {};
@@ -309,6 +332,9 @@ class DesktopSpaces final : public base::SupportsUserData::Data,
       auto tab = base::DictValue().Set("url", (*urls)[i].Clone()).Set("pinned", pin && pin->is_bool() && pin->GetBool())
           .Set("group", group && group->is_string() && group_index.contains(group->GetString()) ? group_index.at(group->GetString()) : -1);
       if (policy && policy->is_bool() && policy->GetBool()) tab.Set("inheritsDocumentPolicy", true);
+      if (const auto* shared = At(row, "tabIds", i); shared && shared->is_string() &&
+          shared->GetString().size() == 32 && std::ranges::all_of(shared->GetString(), [](char c) {return base::IsHexDigit(c);}))
+        tab.Set("sharedId", shared->Clone());
       tabs.Append(std::move(tab));
     }
     if (tabs.empty()) tabs.Append(base::DictValue().Set("url", "chrome://newtab/").Set("pinned", false).Set("group", -1));
@@ -317,7 +343,8 @@ class DesktopSpaces final : public base::SupportsUserData::Data,
     for (const char* key : {"splits", "splitIds"}) if (const auto* value = row.Find(key)) record.Set(key, value->Clone());
     return record;
   }
-  void Navigate(Owner* owner, const std::string& window, const std::string& space, int token, const base::DictValue& row) {
+  void Navigate(Owner* owner, const std::string& window, const std::string& space, int token,
+                const base::DictValue& row, bool dirty_checked = false) {
     const auto* id = row.FindString("id"), *url = row.FindStringByDottedPath("value.v.url");
     auto* model = owner->browser->GetTabStripModel();
     content::WebContents* tab = nullptr;
@@ -328,8 +355,32 @@ class DesktopSpaces final : public base::SupportsUserData::Data,
     if (!tab || !url || !GURL(*url).SchemeIsHTTPOrHTTPS() || GURL(*url).has_username() || GURL(*url).has_password() ||
         blanc::private_tabs::IsPrivateTab(tab) || HasInheritedDocumentPolicy(tab) || tab == model->GetActiveWebContents() ||
         tab->GetVisibility() == content::Visibility::VISIBLE || TabIsCapturing(tab) || tab->NeedToFireBeforeUnloadOrUnloadEvents() ||
-        MainDocumentLoading(tab) || navigations_.size() >= 16) {Acknowledge(window, space, token, false); return;}
+        MainDocumentLoading(tab) || navigations_.size() + probing_navigations_.size() >= 16) {Acknowledge(window, space, token, false); return;}
     if (tab->GetLastCommittedURL() == GURL(*url)) {Acknowledge(window, space, token, true); return;}
+    if (!dirty_checked && tab->GetPrimaryMainFrame()->IsRenderFrameLive()) {
+      // A background page can contain unsaved input without beforeunload.
+      // Inspect every live frame in Chromium's isolated world; a timeout or
+      // changed document defers the remote edit instead of losing that input.
+      probing_navigations_.insert(token);
+      blanc::quiet::DirtyProbe::Run(tab, base::BindOnce(
+          [](base::WeakPtr<DesktopSpaces> self, std::string window, std::string space,
+             int token, base::DictValue row, base::WeakPtr<content::WebContents> tab,
+             content::WeakDocumentPtr document, blanc::quiet::DirtyResult result) {
+            if (!self) return;
+            self->probing_navigations_.erase(token);
+            auto* owner = self->Window(window, space);
+            if (!owner || !tab || !result.complete || result.dirty ||
+                document.AsRenderFrameHostIfValid() != tab->GetPrimaryMainFrame() ||
+                owner->browser->GetTabStripModel()->GetIndexOfWebContents(tab.get()) < 0) {
+              self->Acknowledge(window, space, token, false); return;
+            }
+            // Re-resolve the accepted row and recheck foreground, capture,
+            // loading and window/Space ownership after the asynchronous probe.
+            self->Navigate(owner, window, space, token, row, true);
+          }, weak_.GetWeakPtr(), window, space, token, row.Clone(), tab->GetWeakPtr(),
+          tab->GetPrimaryMainFrame()->GetWeakDocumentPtr()));
+      return;
+    }
     navigations_[token] = std::make_unique<SharedNavigation>(tab, GURL(*url), base::BindOnce(
         [](base::WeakPtr<DesktopSpaces> self, std::string window, std::string space, int token, bool ok) {
           if (!self) return;
@@ -388,15 +439,16 @@ class DesktopSpaces final : public base::SupportsUserData::Data,
       std::vector<int> indices;
       for (const auto& [tab_id, page] : pages)
         if (const auto* record = records->FindDict(tab_id); record && record->FindStringByDottedPath("groupId.v") &&
-            *record->FindStringByDottedPath("groupId.v") == id && !record->FindBoolByDottedPath("deleted.v").value_or(false) &&
-            !model->IsTabPinned(model->GetIndexOfWebContents(page))) indices.push_back(model->GetIndexOfWebContents(page));
+            *record->FindStringByDottedPath("groupId.v") == id && !record->FindBoolByDottedPath("deleted.v").value_or(false))
+          indices.push_back(model->GetIndexOfWebContents(page));
       if (indices.empty()) {group_records_[WindowIdentity(owner->browser) + ":" + owner->space_name].Set(id, group->Clone()); continue;}
       std::sort(indices.begin(), indices.end());
       std::optional<tab_groups::TabGroupId> native;
       for (const auto& local : GroupsInOrder(model))
         if (group_bindings_.contains(local.ToString()) && group_bindings_.at(local.ToString()) == id) native = local;
-      if (native) model->AddToExistingGroup(indices, *native); else native = model->AddToNewGroup(indices);
+      if (native) AddToPinnedGroup(model, indices, *native); else native = NewPinnedGroup(model, indices);
       group_bindings_[native->ToString()] = id;
+      SetWindowSharedGroup(owner->browser, native->ToString(), id);
       group_records_[WindowIdentity(owner->browser) + ":" + owner->space_name].Remove(id);
       const auto* name = group->FindStringByDottedPath("name.v"), *color = group->FindStringByDottedPath("color.v");
       tab_groups::TabGroupColorId shade = kGroupColor;
@@ -420,7 +472,22 @@ class DesktopSpaces final : public base::SupportsUserData::Data,
       const auto* group = group_id ? blob_groups->FindDict(*group_id) : nullptr;
       if (record && (!group || group->FindBoolByDottedPath("deleted.v").value_or(false)) &&
           model->GetTabGroupForTab(model->GetIndexOfWebContents(tab)))
-        model->RemoveFromGroup({model->GetIndexOfWebContents(tab)});
+        RemovePinnedGroup(model, {model->GetIndexOfWebContents(tab)});
+    }
+    return true;
+  }
+  bool MatchesCapture(Owner* owner, const base::DictValue* expected) {
+    if (!expected) return false;
+    auto record = CaptureNativeSpace(owner->browser);
+    if (!record) return false;
+    if (const auto* old = disk_.FindDict(owner->space_name))
+      if (const auto* saved = old->FindDict("sharedCapture")) record->Set("sharedCapture", saved->Clone());
+    auto current = Capture(owner, *record);
+    // Selection/capture/loading receive their own live guards. Everything
+    // represented in a remote layout must still be the captured local state.
+    for (const char* key : {"urls", "localIds", "tabIds", "meta", "pinned", "groupIds", "groups"}) {
+      const auto* before = expected->Find(key), *now = current.Find(key);
+      if (!before || !now || *before != *now) return false;
     }
     return true;
   }
@@ -466,7 +533,7 @@ class DesktopSpaces final : public base::SupportsUserData::Data,
       if (!tab) return false;
       bindings_[TabIdentity(tab)] = *id;
       if (const auto* name = record->FindStringByDottedPath("name.v")) RenameTab(owner->browser, tab, *name);
-      model->SetTabPinned(model->GetIndexOfWebContents(tab), record->FindBoolByDottedPath("pinned.v").value_or(false));
+      SetPinnedTab(model, model->GetIndexOfWebContents(tab), record->FindBoolByDottedPath("pinned.v").value_or(false));
       return true;
     }
     if (!tab) return *op == "close";
@@ -481,7 +548,7 @@ class DesktopSpaces final : public base::SupportsUserData::Data,
     }
     if (!field || !value) return false;
     if (*field == "name") return RenameTab(owner->browser, tab, value->FindString("v") ? *value->FindString("v") : "");
-    if (*field == "pinned" && value->FindBool("v")) {model->SetTabPinned(at, *value->FindBool("v")); return true;}
+    if (*field == "pinned" && value->FindBool("v")) {SetPinnedTab(model, at, *value->FindBool("v")); return true;}
     if (*field == "groupId" || *field == "pos") return true;  // Layout applies the accepted record.
     // A navigation must be confirmed after it commits; never acknowledge a
     // load request or replace a protected page. Retain it for later replay.
@@ -492,6 +559,7 @@ class DesktopSpaces final : public base::SupportsUserData::Data,
   base::DictValue disk_;
   std::map<std::string, base::DictValue> group_records_;
   std::map<int, std::unique_ptr<SharedNavigation>> navigations_;
+  std::set<int> probing_navigations_;
   std::map<std::string, std::string> bindings_, group_bindings_;
   int revision_ = 0;
   bool pending_ = false;
@@ -508,11 +576,15 @@ void DesktopSpaces::OnSyncEvent(const std::string& event, const std::string& jso
     auto value = base::JSONReader::ReadDict(json, base::JSON_PARSE_RFC);
     if (!value) return;
     if (event == "desktop-spaces-library") {Library(*value); return;}
+    if (event == "desktop-spaces-refresh") {refreshed_ = base::TimeTicks(); Refresh(); return;}
     const auto* window = value->FindString("windowId"), *space = value->FindString("workspaceId");
     if (!window || !space) return;
     auto* owner = Window(*window, *space);
     if (!owner) return;
-    if (event == "desktop-spaces-layout") {Layout(owner, *value); return;}
+    if (event == "desktop-spaces-layout") {
+      if (MatchesCapture(owner, value->FindDict("expected"))) Layout(owner, *value);
+      return;
+    }
     if (event == "desktop-spaces-deleted") {
       if (restoring_.contains(*space)) return;
       // Explicit remote deletion detaches the window, preserving every page
@@ -522,19 +594,33 @@ void DesktopSpaces::OnSyncEvent(const std::string& event, const std::string& jso
       if (!meta.FindList("deleted")) meta.Set("deleted", base::ListValue());
       if (!std::ranges::any_of(*meta.FindList("deleted"), [&](const auto& v) {return v.is_string() && v.GetString() == *space;})) meta.FindList("deleted")->Append(*space);
       profile_->GetPrefs()->SetDict(kSpacesMetaPref, std::move(meta));
-      owner->unbound_space = *space; owner->space_name.clear(); owner->space_saved.reset();
+      owner->unbound_space = *space; owner->space_name.clear(); SetWindowSpace(owner->browser, ""); owner->space_saved.reset();
       return;
     }
     if (event == "desktop-spaces-bindings") {
       const auto* locals = value->FindList("localIds"), *shared = value->FindList("tabIds");
       if (locals && shared && locals->size() == shared->size()) for (size_t i = 0; i < locals->size(); ++i)
         if ((*locals)[i].is_string() && (*shared)[i].is_string()) bindings_[(*locals)[i].GetString()] = (*shared)[i].GetString();
-      if (const auto* groups = value->FindDict("groupBindings")) for (auto [local, id] : *groups)
-        if (id.is_string()) group_bindings_[std::string(local)] = id.GetString();
+      if (const auto* groups = value->FindDict("groupBindings")) {
+        for (auto [local, id] : *groups) if (id.is_string()) {
+          // Rejoining a kept local copy can bind its previous shared identity
+          // to a fresh one. Carry that through the actual native group key.
+          for (const auto& native : GroupsInOrder(owner->browser->GetTabStripModel()))
+            if (auto bound = group_bindings_.find(native.ToString());
+                bound != group_bindings_.end() && bound->second == local) bound->second = id.GetString();
+          group_bindings_[std::string(local)] = id.GetString();
+        }
+        for (const auto& native : GroupsInOrder(owner->browser->GetTabStripModel()))
+          if (auto bound = group_bindings_.find(native.ToString()); bound != group_bindings_.end())
+            SetWindowSharedGroup(owner->browser, bound->first, bound->second);
+      }
     }
     if (event == "desktop-spaces-row") {
       const auto* row = value->FindDict("row");
       const int token = value->FindInt("token").value_or(0);
+      if (!MatchesCapture(owner, value->FindDict("expected"))) {
+        Acknowledge(*window, *space, token, false); return;
+      }
       if (row && row->FindString("op") && *row->FindString("op") == "nav") Navigate(owner, *window, *space, token, *row);
       else {
         const auto* layout = value->FindDict("layout");

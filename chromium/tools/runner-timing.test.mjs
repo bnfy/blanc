@@ -21,3 +21,11 @@ test('failed and retried attempts retain nested phase costs and timeout evidence
  timedOut('poll','outside an attempt',7);
  assert.equal(isolated.timeouts.length,0);
 });
+test('a frozen shipping timeout is annotated once without changing the error',async()=>{
+ const row={phases:{},timeouts:[]},error=Error('timed out waiting for the sent page');
+ await assert.rejects(measuredAttempt(row,()=>phase('steps',()=>phase('shipping poll',()=>{throw error;}))),e=>e===error);
+ assert.equal(row.timeouts.length,1);
+ assert.equal(row.timeouts[0].kind,'phase-timeout');
+ assert.equal(row.timeouts[0].phase,'shipping poll');
+ assert.match(row.timeouts[0].durationScope,/upper bound/);
+});

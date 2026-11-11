@@ -146,3 +146,128 @@ test('two pending Undo operations survive one inventory acknowledgement', () => 
   assert.ok(answer.rows.every(row => !row.sharedId));
   assert.deepEqual(answer.rows.map(row => row.urls), [['https://first.example/'], ['https://second.example/']]);
 }));
+
+test('cold closes replay durable intent before capture without echoing a local close', () => setup(async ({device, windows}) => {
+  const store = state(device), [key, saved] = Object.entries(store.data.windows).find(([key]) => key.startsWith('desktop:window-a:'));
+  const id = Object.keys(saved.displayed.tabs)[0], model = device.module('shared-spaces-model');
+  const deleted = model.field(true, Date.now() + 1000, 'independent-peer');
+  store.update(data => {
+    data.blobs[saved.spaceId].blob.tabs[id].deleted = deleted;
+    data.windows[key].accepted = [{op: 'close', kind: 'tabs', id, field: 'deleted', value: deleted}];
+  });
+  store.flush();
+  assert.deepEqual(await call(device, 'coldRestore'), [{windowId: 'window-a', spaceId: saved.spaceId, tabIds: [id], navigations: []}]);
+  assert.equal(store.data.windows[key].displayed.tabs[id].deleted.v, false, 'planning never acknowledges a close');
+  const stale = await call(device, 'push', {revision: 0, rows: [], windows: []});
+  const captures = windows.map(win => {
+    const receipt = Object.entries(store.data.windows).find(([key]) => key.startsWith(`desktop:${win.id}:`))[1];
+    return {...win, capture: {...win.capture, tabIds: Object.keys(receipt.displayed.tabs)}};
+  });
+  // A failed native removal must leave both intent and the displayed receipt.
+  captures[0].protectedIds = [id];
+  const retained = await call(device, 'push', {revision: stale.revision, rows: stale.rows, windows: captures});
+  assert.equal(store.data.windows[key].displayed.tabs[id].deleted.v, false);
+  assert.ok(store.data.windows[key].accepted.some(row => row.id === id && row.op === 'close'));
+  captures[0].capture = capture(['chrome://newtab/']);
+  await call(device, 'push', {revision: retained.revision, rows: retained.rows, windows: captures});
+  assert.deepEqual(store.data.windows[key].displayed.tabs[id].deleted, deleted);
+  assert.deepEqual(store.data.blobs[saved.spaceId].blob.tabs[id].deleted, deleted, 'no newer local deletion is invented');
+  assert.equal(store.data.windows[key].accepted.some(row => row.id === id && row.op === 'close'), false);
+  // Chromium may have died before its session commands reached disk. A second
+  // restore of that older session receives the same tombstone, not a new tab.
+  assert.deepEqual(await call(device, 'coldRestore'), [{windowId: 'window-a', spaceId: saved.spaceId, tabIds: [id], navigations: []}]);
+}));
+
+test('cold navigation is journaled before replay and acknowledged without a local navigation echo', () => setup(async ({device, windows}) => {
+  const store = state(device), [key, saved] = Object.entries(store.data.windows).find(([key]) => key.startsWith('desktop:window-a:'));
+  const id = Object.keys(saved.displayed.tabs)[0], model = device.module('shared-spaces-model');
+  const value = model.field({url: 'https://remote.example/', title: 'Remote'}, Date.now() + 1000, 'independent-peer');
+  store.update(data => {
+    data.blobs[saved.spaceId].blob.tabs[id].nav = value;
+    data.windows[key].accepted = [{op: 'nav', kind: 'tabs', id, field: 'nav', value}];
+  });
+  store.flush();
+  const plan = await call(device, 'coldRestore');
+  assert.equal(plan.length, 1); assert.deepEqual(plan[0].tabIds, []);
+  assert.deepEqual(plan[0].navigations[0], {id, from: 'https://first.example/', ...value.v,
+    token: JSON.stringify([id, value.c, value.by, value.v.url])});
+  assert.equal(store.data.windows[key].displayed.tabs[id].nav.v.url, 'https://first.example/');
+  assert.deepEqual(JSON.parse(JSON.stringify(store.data.windows[key].desktopColdNavigation[id])),
+    JSON.parse(JSON.stringify({from: 'https://first.example/', value})));
+  const stale = await call(device, 'push', {revision: 0, rows: [], windows: []});
+  const captures = windows.map(win => {
+    const receipt = Object.entries(store.data.windows).find(([key]) => key.startsWith(`desktop:${win.id}:`))[1];
+    return {...win, capture: {...win.capture, tabIds: Object.keys(receipt.displayed.tabs)}};
+  });
+  captures[0].capture.urls[0] = value.v.url;
+  captures[0].capture.meta[0].title = value.v.title;
+  await call(device, 'push', {revision: stale.revision, rows: stale.rows, windows: captures});
+  assert.deepEqual(store.data.windows[key].displayed.tabs[id].nav, value);
+  assert.deepEqual(store.data.blobs[saved.spaceId].blob.tabs[id].nav, value);
+  assert.equal(store.data.windows[key].accepted.some(row => row.id === id && row.op === 'nav'), false);
+  assert.deepEqual(await call(device, 'coldRestore'), plan, 'same field identity repairs an older native checkpoint');
+}));
+
+test('remote changes request a fresh native capture before applying any layout', () => setup(async ({device}) => {
+  const events = [];
+  device.context.__host.emit = name => events.push(name);
+  const store = state(device), index = structuredClone(store.data.index);
+  const id = Object.keys(index.spaces)[0];
+  index.spaces[id].name = device.module('shared-spaces-model').field('Remote title', Date.now() + 1000, 'independent-peer');
+  device.module('shared-spaces').mergeIndex(index, device.sync.sharedContext());
+  await new Promise(resolve => setImmediate(resolve));
+  assert.ok(events.includes('desktop-spaces-refresh'));
+  assert.equal(events.some(event => ['desktop-spaces-layout', 'desktop-spaces-row'].includes(event)), false,
+    'a cached capture cannot overwrite a native edit that has not been captured yet');
+}));
+
+test('cold recovery retains native group identity after later shared-id captures', () => setup(async ({device, windows}) => {
+  const native = 'ABCDEF0123456789ABCDEF0123456789';
+  const store = state(device);
+  const stale = await call(device, 'push', {revision: 0, rows: [], windows: []});
+  const captures = windows.map(win => {
+    const receipt = Object.entries(store.data.windows).find(([key]) => key.startsWith(`desktop:${win.id}:`))[1];
+    return {...win, capture: {...win.capture, tabIds: Object.keys(receipt.displayed.tabs)}};
+  });
+  captures[0].capture.groups = [{id: native, name: 'Research', color: null, collapsed: false}];
+  captures[0].capture.groupIds = [native];
+  captures[0].capture.nativeGroupBindings = {[native]: native};
+  const answer = await call(device, 'push', {revision: stale.revision, rows: stale.rows, windows: captures});
+  const [key, saved] = Object.entries(store.data.windows).find(([key]) => key.startsWith('desktop:window-a:'));
+  const shared = saved.desktopNativeGroups[native];
+  assert.ok(shared && shared !== native);
+  assert.equal(saved.displayed.groups[shared].deleted.v, false);
+  captures[0].capture.groups[0].id = shared;
+  captures[0].capture.groupIds = [shared];
+  captures[0].capture.nativeGroupBindings[native] = shared;
+  await call(device, 'push', {revision: answer.revision, rows: answer.rows, windows: captures});
+  assert.equal(store.data.windows[key].groupBindings[shared], shared, 'later diff uses shared identity');
+  assert.equal(store.data.windows[key].desktopNativeGroups[native], shared, 'native identity is still durable');
+  const plan = (await call(device, 'coldRestore')).find(plan => plan.windowId === 'window-a');
+  assert.equal(plan.groupBindings[native], shared);
+  assert.deepEqual(plan.tabIds, []); assert.deepEqual(plan.navigations, []);
+}));
+
+
+test('a new index queues missing desktop Space blobs before an unrelated full pass finishes', () => setup(async ({device}) => {
+  const spaces = device.module('shared-spaces'), ctx = device.sync.sharedContext();
+  const store = state(device), index = structuredClone(store.data.index);
+  const template = structuredClone(Object.values(index.spaces)[0]);
+  const missing = '1'.repeat(32), dormant = '2'.repeat(32), removed = '3'.repeat(32);
+  const stamp = value => device.module('shared-spaces-model').field(value, Date.now() + 1000, 'independent-peer');
+  for (const id of [missing, dormant, removed]) index.spaces[id] = {...structuredClone(template), name: stamp(id), rev: 'new-revision'};
+  index.spaces[removed].deleted = stamp(true);
+  spaces.setDormant([dormant], ctx);
+  const original = device.sync.syncNow, calls = [];
+  let finish;
+  device.sync.syncNow = (names, options) => {calls.push({names: [...names], options: {...options}}); return new Promise(resolve => {finish = resolve;});};
+  try {
+    spaces.mergeIndex(index, ctx);
+    assert.deepEqual(calls, [{names: ['space-' + missing], options: {ahead: true}}],
+      'discovery does not wait for the full-pass drain or fetch dormant/deleted Spaces');
+    index.spaces[missing].name = stamp('Renamed before download');
+    spaces.mergeIndex(index, ctx);
+    assert.equal(calls.length, 1, 'the same missing revision cannot create a request storm');
+    assert.equal(!!store.data.blobs[missing], false, 'no invented blob or visible Space');
+  } finally {finish?.({ok: false}); device.sync.syncNow = original;}
+}));

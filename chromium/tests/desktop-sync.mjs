@@ -174,11 +174,13 @@ try{
   const existing=Object.entries(blob.tabs).find(([,tab])=>tab.nav.v.url===leftUrl);
   const next=JSON.parse(JSON.stringify(blob));
   next.tabs[existing[0]].name=model.field('Peer edited tab',Date.now()+1000,device.sync.sharedContext().deviceId);
+  next.tabs[existing[0]].pinned=model.field(true,Date.now()+1000,device.sync.sharedContext().deviceId);
   const groupId=Object.entries(blob.groups).find(([,group])=>group.name.v==='left local')?.[0];
   assert.ok(groupId,'native group reached the peer');
   next.groups[groupId].name=model.field('peer edited group',Date.now()+1000,device.sync.sharedContext().deviceId);
-  device.module('shared-spaces').noteLocalSpace(leftId,next,{tabs:{[existing[0]]:{name:next.tabs[existing[0]].name}},groups:{[groupId]:{name:next.groups[groupId].name}}},device.sync.sharedContext());
-  await until(async()=>{await spacesPass();return w.snapshot();},v=>v.tabs.some(t=>t.title==='Peer edited tab')&&v.groups.some(g=>g.name==='peer edited group'),'peer tab and group edits on native window');
+  next.groups[groupId].color=model.field('#6757a3',Date.now()+1000,device.sync.sharedContext().deviceId);
+  device.module('shared-spaces').noteLocalSpace(leftId,next,{tabs:{[existing[0]]:{name:next.tabs[existing[0]].name,pinned:next.tabs[existing[0]].pinned}},groups:{[groupId]:{name:next.groups[groupId].name,color:next.groups[groupId].color}}},device.sync.sharedContext());
+  await until(async()=>{await spacesPass();return w.snapshot();},v=>v.tabs.some(t=>t.title==='Peer edited tab'&&t.pinned&&t.groupId)&&v.groups.some(g=>g.name==='peer edited group'&&g.color==='#6757a3'),'peer tab and group edits on native window');
   assert.deepEqual((await otherApi('getAllTabs')).groups.map(g=>g.name),['right local'],'other window has no foreign group descriptor');
   await spacesPass();
   assert.deepEqual(Object.values(sharedState().blobs[rightId].blob.groups).filter(g=>!g.deleted.v).map(g=>g.name.v),['right local'],'other peer Space has no foreign group');
@@ -252,12 +254,34 @@ try{
   assert.equal((await device.sync.sendTab({url:peerUrl,title:'Sent from peer',to:back.id})).status,'sent');
   await until(async()=>{await tabPump();return w.api('listSentToThisDevice');},rows=>rows.some(t=>t.url===peerUrl),'peer Send received by Mac');
   console.log('tabs: peer Send received');
+  const pendingSend=(await w.api('listSentToThisDevice')).find(row=>row.url===peerUrl);assert.ok(pendingSend);
+  if((await w.native('settingsSheetState',[]))?.attached)await w.api('openPage',['settings','sync']);
+  const privateStart=await w.call('openTab','blanc://newtab/',{private:true});
+  const privatePage=await tabPage(w,privateStart);
+  const privateData=await privatePage.evaluate(()=>window.bowserPages.start.data());
+  assert.deepEqual(privateData.sentItems,[]);assert.deepEqual(privateData.remoteDevices,[]);
+  assert.equal(await privatePage.evaluate(id=>window.bowserPages.start.openSent(id),pendingSend.id),false);
+  assert.equal(await privatePage.evaluate(id=>window.bowserPages.start.dismissSent(id),pendingSend.id),false);
+  await w.call('closeTab',privateStart);
+  const startId=await w.call('newTab'),startPage=await tabPage(w,startId);
+  await startPage.evaluate(()=>window.bowserPages.start.setLayout('ledger'));
+  const sentRow=startPage.locator('#sentList .sent-item').filter({hasText:'Sent from peer'});
+  await sentRow.waitFor({state:'visible'});
+  const beforeOpen=new Set((await w.snapshot()).tabs.map(tab=>String(tab.id)));
+  await sentRow.locator('a.fav').click();
+  await until(()=>w.snapshot(),snapshot=>snapshot.tabs.some(tab=>tab.url===peerUrl&&
+   !beforeOpen.has(String(tab.id))&&String(tab.id)===String(snapshot.activeTabId)), 'Ledger opens Send in a new tab');
+  await until(()=>startPage.evaluate(()=>document.querySelectorAll('#sentList .sent-item').length),
+   count=>count===0,'background Ledger removes opened Send');
+  assert.equal((await w.api('listSentToThisDevice')).some(row=>row.id===pendingSend.id),false);
+  console.log('tabs: Ledger opened received page; private inbox remained empty');
   await openSync();await act('share-tabs-off');
   await until(async()=>{await tabPump();return device.sync.listRemoteDevices();},rows=>!rows.some(d=>d.tabs.some(t=>t.url===macUrl)),'share-off retracts Mac tabs');
   await w.relaunch();
   const restored=await until(()=>w.snapshot(),v=>v.tabs.filter(t=>t.url===inheritedUrl).length===2,'restored policy-marked tabs');
   for(const tab of restored.tabs.filter(t=>t.url===inheritedUrl))
    assert.equal((await w.native('quietState',[tab.id])).inheritedPolicy,true,'policy mark survives native session restore');
+  if(!mode)assert.equal(restored.groups.find(group=>group.name==='peer edited group')?.color,'#6757a3','received group color survives native restart');
   await openSync();
  });
  }
@@ -433,7 +457,15 @@ try{
     else {r.writeHead(200,{'content-type':'text/html'});r.end('<title>Native test fixture</title><link rel="icon" href="/favicon.png"><p>Local synthetic page</p>');}
   });
   await installDriver(fixture.host);w=createWorld(fixture);await w.app.refresh();
-  const started=Date.now();await rpc('sync.syncNow');
+  const started=Date.now();let finished=false;
+  const budgetPass=rpc('sync.syncNow').then(value=>{finished=true;return value;});
+  budgetPass.catch(()=>{}); // Cleanup may reject it after a failed local-read assertion.
+  // The real inbox is local state and must remain readable while a healthy
+  // network pass waits for its persisted quota. No quota reset or extra GET.
+  const localInbox=await nativeCall(fixture.host,'desktopSyncCall',['sync.listSentToThisDevice'],null,5000);
+  assert.ok(Array.isArray(localInbox));assert.equal(finished,false,'network pass still waits for quota');
+  output.restartBudgetLocalInboxReadable=true;
+  await budgetPass;
   const waited=Date.now()-started;
   assert.ok(waited>=30000,'persisted quota outlasts the old runner deadline');
   output.restartBudgetWaitMs=waited;console.log('restart: healthy budget wait completed');

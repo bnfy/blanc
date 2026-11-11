@@ -7,7 +7,14 @@ import os from 'node:os';
 import {NativeFixture} from '../lib/fixture.mjs';
 import {installDriver} from '../lib/test-driver.mjs';
 import {assertRendering} from '../lib/render-guard.mjs';
+import {tabPage} from '../adapters/core.mjs';
 
+async function originalTabsRemainUnique(world) {
+ const tabs=(await world.state()).tabs;
+ for(const name of ['shared-first','shared-second'])
+  assert.equal(tabs.filter(tab=>tab.url===world.fixtureUrl(name)).length,1,
+   'opening and syncing Work must retain one original '+name+' tab');
+}
 export function registerSharedClients(step,{rpc,state,handle,passphrase}){
  step('a second complete desktop client sharing Work',async function(){
   const fixture=new NativeFixture();fixture.extraArgs=[`--blanc-sync-endpoint=${await this.syncServer.clientEndpoint('B')}`];
@@ -26,16 +33,17 @@ export function registerSharedClients(step,{rpc,state,handle,passphrase}){
   // qualify each one even when the other window takes focus.
   const screen=await fixture.host.eval('({x:screen.availLeft,y:screen.availTop,width:screen.availWidth,height:screen.availHeight})');
   const width=Math.floor(screen.width/2);
-  for(const [at,host] of [this.fixture.host,fixture.host].entries()){
-   const {windowId}=await host.send('Browser.getWindowForTarget');
-   await host.send('Browser.setWindowBounds',{windowId,bounds:{windowState:'normal'}});
-   await host.send('Browser.setWindowBounds',{windowId,bounds:{left:screen.x+at*width,top:screen.y,width,height:screen.height}});
-   await assertRendering(e=>host.eval(e));
+  for(const [at,world] of [this,this.peerWorld].entries()){
+   // The embedded Island WebContents is not a tab-strip CDP window target.
+   const page=await tabPage(world,(await world.snapshot()).activeTabId);
+   const {windowId}=await world.fixture.browser.send('Browser.getWindowForTarget',{targetId:page.targetId});
+   await world.fixture.browser.send('Browser.setWindowBounds',{windowId,bounds:{windowState:'normal'}});
+   await world.fixture.browser.send('Browser.setWindowBounds',{windowId,bounds:{left:screen.x+at*width,top:screen.y,width,height:screen.height}});
+   await assertRendering(e=>world.fixture.host.eval(e));
   }
   assert.equal((await rpc(this.peerWorld,'sync.enable',[{handle,passphrase}])).ok,true);
   assert.equal((await rpc(this.peerWorld,'desktop.spaces.apply',[{enabled:true,selections:[]}])).ok,true);
-  await rpc(this.peerWorld,'sync.syncNow');
-  const current=await this.waitFor(()=>state(this.peerWorld),s=>s.rows.some(r=>r.name==='Work'),'second native Work import',15000);
+  const current=await this.waitFor(()=>state(this.peerWorld),s=>s.rows.some(r=>r.name==='Work'),'second native Work import through scheduled Sync',300000);
   assert.equal((await this.peerWorld.call('workspaceAction','open',current.rows.find(r=>r.name==='Work').id)).ok,true);
   this.sid=Object.keys(current.shared.blobs)[0];
  });
@@ -47,6 +55,7 @@ export function registerSharedClients(step,{rpc,state,handle,passphrase}){
   this.newB=await this.peerWorld.call('openTab',this.fromB);
   received=await this.waitFor(()=>this.state(),s=>s.tabs.some(t=>t.url===this.fromB),'automatic B tab on A',300000);
   assert.equal(received.tabs.find(t=>t.url===this.fromB).asleep,true);
+  for(const world of [this,this.peerWorld])await originalTabsRemainUnique(world);
  });
  step('a complete client defers active navigation until its tab changes',async function(){
   const b=await this.peerWorld.state();this.peerActive=b.activeTabId;
@@ -93,6 +102,6 @@ export function registerSharedClients(step,{rpc,state,handle,passphrase}){
   const minutes=new Map();for(const row of gets){const m=Math.floor(row.at/60000);minutes.set(m,(minutes.get(m)??0)+1);}
   for(const count of minutes.values())assert.ok(count<=20);
   assert.equal(this.syncServer.requests.some(r=>r.status===429),false);
-  for(const w of [this,this.peerWorld])await assertRendering(e=>w.fixture.host.eval(e));
+  for(const w of [this,this.peerWorld]){await originalTabsRemainUnique(w);await assertRendering(e=>w.fixture.host.eval(e));}
  });
 }

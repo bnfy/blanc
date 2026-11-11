@@ -39,13 +39,22 @@ export const sends={
   }));
  },
  async sentStartPageRows(w){
-  return (await startPage(w)).evaluate(()=>[...document.querySelectorAll('#sentList .sent-item')].map(row=>({
-   title:row.querySelector('.name')?.textContent,from:row.querySelector('.host')?.textContent,
-   visible:row.getBoundingClientRect().width>0&&row.getBoundingClientRect().height>0,
-  })));
+  // Shipping observes every open Start Page, including background pages.
+  // A rendererless quiet tab has no DOM to read, as a viewless shipping tab.
+  const rows=[];
+  for(const tab of (await w.snapshot()).tabs){
+   if(tab.rendererLive===false||! /^(?:blanc:\/\/newtab\/|chrome:\/\/(?:newtab\/|blanc-prototype\/pages\/newtab\.html))/.test(tab.url))continue;
+   const page=await tabPage(w,String(tab.id));
+   rows.push(...await page.evaluate(()=>[...document.querySelectorAll('#sentList .sent-item')].map(row=>({
+    title:row.querySelector('.name')?.textContent??'',from:row.querySelector('.host')?.textContent??'',
+    visible:!document.getElementById('sentSection').hidden,
+   }))));
+  }
+  return rows;
  },
  async clickSentStartPageRow(w,title,action){
   assert.equal(action,'dismiss');const page=await startPage(w);
-  await page.locator('#sentList .sent-item').filter({hasText:title}).locator('.sent-dismiss').click();return true;
+  const row=page.locator('#sentList .sent-item').filter({hasText:title});
+  await row.hover();await row.locator('.sent-dismiss').click();return true;
  },
 };

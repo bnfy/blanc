@@ -104,7 +104,7 @@ async function runCase(matches,steps,tags=[]){
   finally{try{await world.syncPeer?.sync.disable();}finally{await world.syncServer?.close();}}
   if(fixture.reapedHelpers)entry.reapedHelpers=fixture.reapedHelpers;
   if(fixture.directory&&fs.existsSync(fixture.directory)){const keep=path.join(out,'fixtures',entry.fixture);fs.mkdirSync(keep,{recursive:true});
-   for(const f of ['browser.log','peer-browser.log','error.txt'])if(fs.existsSync(path.join(fixture.directory,f)))fs.copyFileSync(path.join(fixture.directory,f),path.join(keep,f));
+   for(const f of ['browser.log','peer-browser.log','error.txt','sync-discovery.json'])if(fs.existsSync(path.join(fixture.directory,f)))fs.copyFileSync(path.join(fixture.directory,f),path.join(keep,f));
    fs.rmSync(fixture.directory,{recursive:true,force:true});}if(entry.result==='pass'&&entry.browserExit?.code!==0){entry.result='fail';entry.error='Native fixture did not exit cleanly';}
   });}
  if(entry.stop)throw entry.stop;

@@ -8,12 +8,14 @@
 #include <memory>
 #include <string>
 #include <string_view>
+#include <vector>
 #include "content/public/browser/web_ui_controller.h"
 #include "content/public/browser/webui_config.h"
 #include "mojo/public/cpp/bindings/pending_receiver.h"
 #include "ui/webui/mojo_web_ui_controller.h"
 
 class GURL;
+namespace sessions { struct SessionWindow; }
 namespace content { class WebContents; }
 namespace blanc::browser_api::mojom { class BrowserApiFactory; }
 class BrowserWindowInterface;
@@ -29,6 +31,12 @@ class WebView;
 
 namespace blanc_prototype {
 base::OnceClosure ShowBlockerRecovery();
+// Reconcile durable accepted closes before SessionRestore creates any views.
+void ReadSharedSessionPlan(Profile* profile,
+    base::OnceCallback<void(std::string)> ready);
+void ApplySharedSessionPlan(
+    std::vector<std::unique_ptr<sessions::SessionWindow>>* windows,
+    std::string_view plan);
 inline constexpr char kAssetsSwitch[] = "blanc-prototype-assets";
 inline constexpr char kHost[] = "blanc-prototype";
 
@@ -59,6 +67,14 @@ ToolbarButtonProvider* ToolbarProvider(BrowserWindowInterface* browser,
                                       ToolbarButtonProvider* delegate);
 inline constexpr char kWindowIdentityKey[] = "blanc.window.identity.v1";
 std::string WindowIdentity(BrowserWindowInterface* browser);
+inline constexpr char kWindowSpaceKey[] = "blanc.window.space.v1";
+std::string WindowSpace(BrowserWindowInterface* browser);
+void SetWindowSpace(BrowserWindowInterface* browser, const std::string& name);
+inline constexpr char kWindowSharedGroupsKey[] = "blanc.window.shared-groups.v1";
+std::string WindowSharedGroups(BrowserWindowInterface* browser);
+std::string WindowSharedGroup(BrowserWindowInterface* browser, const std::string& local);
+void SetWindowSharedGroup(BrowserWindowInterface* browser, const std::string& local, const std::string& shared);
+void RemapWindowSharedGroup(BrowserWindowInterface* browser, const std::string& previous, const std::string& current);
 void RestoreWindowIdentity(BrowserWindowInterface* browser,
     const std::map<std::string, std::string>& extra_data);
 inline constexpr char kPersistentSplitKey[] = "blanc.split.persistent.v1";
@@ -71,6 +87,9 @@ void SetGroupPinned(content::WebContents* tab, bool pinned);
 inline constexpr char kTabNameKey[] = "blanc.tab.name.v1";
 inline constexpr char kSharedTabIdKey[] = "blanc.tab.shared-id.v1";
 std::string SharedTabId(content::WebContents* tab);
+inline constexpr char kSharedColdNavigationKey[] = "blanc.tab.shared-cold-navigation.v1";
+std::string SharedColdNavigationToken(content::WebContents* tab);
+void SetSharedColdNavigationToken(content::WebContents* tab, const std::string& token);
 void SetSharedTabId(BrowserWindowInterface* browser, content::WebContents* tab,
                     const std::string& id);
 std::string CustomTabName(content::WebContents* tab);
