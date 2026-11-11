@@ -1256,7 +1256,8 @@ existing certificate-safety scenario; historical PR evidence retains its old IDs
   own wash, in light, dark and private; the stored hex is never changed.
 - The resting Island shows no space mark, so the closed Island stays short
   (owner decision, November 11, 2026); the ⌘L footer's icon-only Spaces
-  button opens the **Spaces menu** below the Island (never covering it), and
+  button (the current space's tile, or the planet in no space) opens the
+  **Spaces menu** below the Island (never covering it), and
   the Quick Switcher matches space names. With vertical tabs, the rail's top
   bar shows the current space as a **mark** (symbol and name on its colour; a
   window in no space shows the quiet grey Spaces glyph), which opens the same
