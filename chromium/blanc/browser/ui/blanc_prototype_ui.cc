@@ -8,6 +8,10 @@
 #include "third_party/blink/public/common/page/page_zoom.h"
 #include "blanc/browser/sync/favorite_helpers.h"
 #include "blanc/buildflags.h"
+#if BUILDFLAG(ENABLE_BLANC_TEST_HOOKS)
+#include "components/renderer_context_menu/context_menu_delegate.h"
+#include "components/renderer_context_menu/render_view_context_menu_base.h"
+#endif
 #if BUILDFLAG(IS_MAC)
 #if BUILDFLAG(BLANC_BETA_CHANNEL)
 #include "blanc/browser/mac/beta_updater.h"
@@ -165,6 +169,8 @@
 #include "chrome/browser/platform_util.h"
 #include "chrome/browser/profiles/profile.h"
 #include "chrome/browser/profiles/profile_manager.h"
+#include "chrome/browser/profiles/profile_attributes_entry.h"
+#include "chrome/browser/profiles/profile_attributes_storage.h"
 #include "chrome/browser/shell_integration.h"
 #include "chrome/browser/sessions/tab_restore_service_factory.h"
 #include "blanc/common/held_page.h"
@@ -2134,6 +2140,22 @@ void ProbeHeldTabs(std::vector<base::WeakPtr<content::WebContents>> tabs, size_t
         ProbeHeldTabs(std::move(tabs), next + 1, !result.complete || result.dirty, std::move(done));
       }, std::move(tabs), next, std::move(done)));
 }
+#if BUILDFLAG(ENABLE_BLANC_TEST_HOOKS)
+struct HeldQuietTestPause { bool armed = false; base::OnceClosure continuation; };
+HeldQuietTestPause& HeldQuietPause() {
+  static base::NoDestructor<HeldQuietTestPause> state;
+  return *state;
+}
+#endif
+void QuietHeldTabs(std::vector<base::WeakPtr<content::WebContents>> plan, size_t next, int quieted);
+void CompleteHeldQuiet(std::vector<base::WeakPtr<content::WebContents>> plan, size_t next, int quieted,
+                       blanc::quiet::DirtyResult result) {
+  auto* tab = plan[next].get();
+  // The Space may have come back while the probe ran.
+  if (tab && tab->GetUserData(blanc::kHeldPageKey) && result.complete && !result.dirty &&
+      !result.deep_scrolled && HeldTabCanQuiet(tab) && DiscardPage(tab)) ++quieted;
+  QuietHeldTabs(std::move(plan), next + 1, quieted);
+}
 void QuietHeldTabs(std::vector<base::WeakPtr<content::WebContents>> plan, size_t next, int quieted) {
   while (next < plan.size() && !plan[next]) ++next;
   if (next >= plan.size()) { LastRoomPass() = "done:" + base::NumberToString(quieted); return; }
@@ -2141,11 +2163,13 @@ void QuietHeldTabs(std::vector<base::WeakPtr<content::WebContents>> plan, size_t
   blanc::quiet::DirtyProbe::Run(tab, base::BindOnce(
       [](std::vector<base::WeakPtr<content::WebContents>> plan, size_t next, int quieted,
          blanc::quiet::DirtyResult result) {
-        auto* tab = plan[next].get();
-        // The Space may have come back while the probe ran.
-        if (tab && tab->GetUserData(blanc::kHeldPageKey) && result.complete && !result.dirty &&
-            !result.deep_scrolled && HeldTabCanQuiet(tab) && DiscardPage(tab)) ++quieted;
-        QuietHeldTabs(std::move(plan), next + 1, quieted);
+        auto complete = base::BindOnce(&CompleteHeldQuiet, std::move(plan), next, quieted, result);
+#if BUILDFLAG(ENABLE_BLANC_TEST_HOOKS)
+        if (std::exchange(HeldQuietPause().armed, false)) {
+          HeldQuietPause().continuation = std::move(complete); return;
+        }
+#endif
+        std::move(complete).Run();
       }, std::move(plan), next, quieted));
 }
 void QuietOverBudget(SpaceHold* hold) {
@@ -5465,6 +5489,61 @@ class Handler : public content::WebUIMessageHandler, public extensions::Extensio
       }
       reject("Unknown quiet clock tab."); return;
     }
+    if (quiet_method == "heldQuietRaceStart" && quiet_args.size() == 1 && quiet_args[0].is_string()) {
+      auto* owner = GetOwner(web_ui()->GetWebContents());
+      auto* hold = SpaceHold::Get(owner->browser->GetProfile());
+      auto* space = hold ? hold->Find(quiet_args[0].GetString()) : nullptr;
+      const int active = space ? space->record.FindInt("active").value_or(-1) : -1;
+      if (!space || active < 0 || static_cast<size_t>(active) >= space->tabs.size() ||
+          HeldQuietPause().armed || HeldQuietPause().continuation) {
+        reject("No idle held-space quiet race available."); return;
+      }
+      auto* tab = hold->Contents(space->tabs[active]);
+      if (!tab || !HeldTabCanQuiet(tab)) { reject("Held page is protected."); return; }
+      const int tab_id = sessions::SessionTabHelper::IdForTab(tab).id();
+      HeldQuietPause().armed = true; LastRoomPass() = "probe-in-flight";
+      QuietHeldTabs({tab->GetWeakPtr()}, 0, 0);
+      Reply(id, true, base::Value(tab_id)); return;
+    }
+    if (quiet_method == "heldQuietRaceReady" && quiet_args.empty()) {
+      Reply(id, true, base::Value(!HeldQuietPause().continuation.is_null())); return;
+    }
+    if (quiet_method == "heldQuietRaceResume" && quiet_args.empty()) {
+      HeldQuietPause().armed = false;
+      if (HeldQuietPause().continuation) std::move(HeldQuietPause().continuation).Run();
+      Reply(id, true, base::Value(LastRoomPass())); return;
+    }
+    if (quiet_method == "profileInfo" && quiet_args.empty()) {
+      auto* owner = GetOwner(web_ui()->GetWebContents());
+      auto* profile = owner->browser->GetProfile()->GetOriginalProfile();
+      auto* entry = g_browser_process->profile_manager()->GetProfileAttributesStorage()
+          .GetProfileAttributesWithPath(profile->GetPath());
+      Reply(id, true, base::Value(base::DictValue()
+          .Set("directory", profile->GetPath().BaseName().AsUTF8Unsafe())
+          .Set("name", entry ? base::UTF16ToUTF8(entry->GetLocalProfileName()) : std::string()))); return;
+    }
+    if (quiet_method == "contextLinkMenu" && quiet_args.size() == 2 && quiet_args[0].is_int() && quiet_args[1].is_string()) {
+      auto* model = GetOwner(web_ui()->GetWebContents())->browser->GetTabStripModel();
+      auto* tab = model->GetActiveWebContents();
+      const GURL url(quiet_args[1].GetString());
+      if (!tab || sessions::SessionTabHelper::IdForTab(tab).id() != quiet_args[0].GetInt() ||
+          !url.SchemeIsHTTPOrHTTPS()) { reject("Invalid context-link fixture."); return; }
+      auto* delegate = ContextMenuDelegate::FromWebContents(tab);
+      if (!delegate) { reject("No native menu delegate."); return; }
+      content::ContextMenuParams params;
+      params.page_url = tab->GetLastCommittedURL(); params.link_url = url; params.unfiltered_link_url = url;
+      test_link_menu_ = delegate->BuildMenu(*tab->GetPrimaryMainFrame(), params);
+      const auto index = test_link_menu_->menu_model().GetIndexOfCommandId(IDC_CONTENT_CONTEXT_OPENLINKNEWTAB);
+      Reply(id, true, base::Value(index && test_link_menu_->menu_model().IsEnabledAt(*index))); return;
+    }
+    if (quiet_method == "contextLinkOpen" && quiet_args.empty()) {
+      const auto index = test_link_menu_ ? test_link_menu_->menu_model().GetIndexOfCommandId(IDC_CONTENT_CONTEXT_OPENLINKNEWTAB) : std::nullopt;
+      if (!index || !test_link_menu_->menu_model().IsEnabledAt(*index)) {
+        reject("Native background-link item unavailable."); return;
+      }
+      test_link_menu_->ExecuteCommand(IDC_CONTENT_CONTEXT_OPENLINKNEWTAB, 0);
+      test_link_menu_.reset(); Reply(id, true, base::Value(true)); return;
+    }
     if (quiet_method == "quietThreshold" && quiet_args.size() == 1 && quiet_args[0].is_int() &&
         quiet_args[0].GetInt() >= 0) {
       test_quiet_delay_ = quiet_args[0].GetInt();
@@ -6298,6 +6377,7 @@ class Handler : public content::WebUIMessageHandler, public extensions::Extensio
     }
     Reply(id, true, base::Value(std::move(items)));
   }
+  std::unique_ptr<RenderViewContextMenuBase> test_link_menu_;
   std::optional<int64_t> test_quiet_delay_;
   std::map<int, int64_t> test_quiet_ages_;
   void WaitForTestQuietSweep(const std::string& id) {

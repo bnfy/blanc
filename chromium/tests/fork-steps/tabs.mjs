@@ -22,6 +22,21 @@ async function groupId(world,name){
  assert.ok(g,`group ${name} should exist`);return String(g.id);
 }
 export default function register(step){
+ step('I open the context menu on a link',async function(){
+  const state=await this.state();this.linkSource=state.activeTabId;this.linkBefore=state.tabs.map(t=>t.id);
+  this.contextLink=this.fixtureUrl('background-link-destination');
+  const href=await this.call('executeTab',this.linkSource,`(()=>{const a=document.createElement('a');a.href=${jsLiteral(this.contextLink)};a.textContent='Background link';document.body.append(a);return a.href;})()`);
+  assert.equal(await this.native('contextLinkMenu',[Number(this.linkSource),href]),true,'native background-link command is enabled');
+ });
+ step('I choose {string}',async function(label){
+  assert.equal(label,'Open link in background tab');
+  assert.equal(await this.native('contextLinkOpen'),true);
+ });
+ step('a new tab opens on that link without switching to it',async function(){
+  const state=await this.waitForState(s=>s.tabs.some(t=>t.url===this.contextLink&&!this.linkBefore.includes(t.id)));
+  assert.equal(state.activeTabId,this.linkSource);
+  this.shippingContext.lastNewTabId=state.tabs.find(t=>t.url===this.contextLink&&!this.linkBefore.includes(t.id)).id;
+ });
  step('one private tab open',async function(){
   this.sessionPrivateUrl=this.fixtureUrl('private-session-sentinel');
   await this.call('openTab',this.sessionPrivateUrl,{private:true});

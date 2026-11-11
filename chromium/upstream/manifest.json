@@ -28,6 +28,7 @@
     "chrome/browser/performance_manager/policies/transient_keep_alive_policy.h": "7bdcda1da7ab48582ccc26f2a89df4dbee047b894ba74b1a0923bd3caf79b33e",
     "chrome/browser/prefs/browser_prefs.cc": "380ab7f07fe47c5743f9799d5e864a1f487254cc8cefaac74642fbcb71181306",
     "chrome/browser/prefs/session_startup_pref.cc": "7b0dca1623466f2fa39fafaec6fd7f6cc0d3b7b46d6843298a377d27d0fc229c",
+    "chrome/browser/profiles/profile_manager.cc": "2abc11124fb1f81b5258ea20019926221748a12b60189295f28bf4da7765b73f",
     "chrome/browser/renderer_context_menu/render_view_context_menu.cc": "0344bd88b932d431a80b06d0ece5e1c545d7a10522ae8e861ecede0ffccbe398",
     "chrome/browser/renderer_preferences_util.cc": "11a762affd6386416dc68be52ced662c8432c10a69754a5e5b9cf65501a409e2",
     "chrome/browser/resource_coordinator/tab_lifecycle_unit.cc": "1f8e897703624324d0b31538d2f22954e7d9215d642c2f643db1fa8bcee30eb2",

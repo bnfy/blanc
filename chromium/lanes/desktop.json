@@ -5,7 +5,7 @@
   "upstream": "681cd621e82e606d7536eae8ea2576afb3c7d65c",
   "upstreamDir": "upstream",
   "sourceMap": "source-map.json",
-  "fileCount": 157,
+  "fileCount": 158,
   "patches": [
     "patches/baseline/0001-foundation-baseline.patch",
     "patches/0002-canonical-layout.patch",
@@ -66,6 +66,7 @@
     "patches/0058-blanc-certificate-bound.patch",
     "patches/0059-blanc-pinned-homes.patch",
     "patches/0060-blanc-sync-layout.patch",
-    "patches/0061-blanc-empty-session-page-state.patch"
+    "patches/0061-blanc-empty-session-page-state.patch",
+    "patches/0062-blanc-local-profile-restore.patch"
   ]
 }

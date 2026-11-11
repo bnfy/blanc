@@ -1,24 +1,24 @@
 # Result
 
-Queue 5 is in progress; focused acceptance is recorded below.
+Queue 5 is in progress. Display-dependent runs are blocked by the rendering guard; headless work continues.
 
 | Classification | Cases | Newly passing |
 | --- | ---: | ---: |
-| a: missing adapter | 32 | 27 |
+| a: missing adapter | 31 | 31 |
 | b: missing fork capability / blocked acceptance | 49 | 0 |
-| c: inapplicable by platform or approved construction | 21 | 0 |
+| c: inapplicable by platform or approved construction | 22 | 0 |
 
-Current candidate: `macos-bf9081377bd14dc4`, `q5-lifecycle-3-runtime-config.json`.
+Current candidate: `macos-47a95ccb40bcdd87`, `q5-profile-restore-4-runtime-config.json`.
 Inherited Sync gate: 22/22 on starting bytes; Sync code unchanged; not rerun.
 Inventory baseline: 533 pass / 3 fail (subsequently repaired) / 102 undefined / 2 excluded.
 Final inventory: owed, once after implementation. Lost passes: not yet measured.
 Owner needs: beta/updater hold; signed physical Touch ID acceptance; Billboard TopSites design decision if still required.
-Unverified: the remaining 5 adapter cases and 49 capability cases; final full inventory.
+Unverified: native profile deletion after restart; the 49 capability cases; final full inventory.
 No push, release, signing, production/Apple/1Password contact, live-tree changes or toolchain installation authorized.
 
 ## Classification of all 102 starting gaps
 
-The first classification was 40 a / 42 b / 20 c. Source and focused runs moved seven missing capabilities to b and the V12 HTTP-validation case to c; the table below is current. Category c is not a pass; approved divergences remain explicit. V12 search and V18 profiles retain useful native acceptance work in category a rather than discarding their user intent.
+The first classification was 40 a / 42 b / 20 c. Source and focused runs moved seven missing capabilities to b and the V12 HTTP-validation and V18 typed-confirmation cases to c; the table below is current. Category c is not a pass; approved divergences remain explicit. V12 search and V18 profiles retain useful native acceptance work in category a rather than discarding their user intent.
 
 | Case | Class | Scenario | Reason / work needed |
 | --- | :---: | --- | --- |
@@ -72,7 +72,7 @@ The first classification was 40 a / 42 b / 20 c. Source and focused runs moved s
 | `link-routing.feature:62:plain` | b | with the switch on, a link opened in a new tab follows a rule to another profile | step definition missing |
 | `link-routing.feature:79:plain` | b | a link opened in the background into a new window leaves the current window in front | step definition missing |
 | `local-profiles.feature:7:plain` | a | Settings creates a profile with isolated records and sessions | step definition missing |
-| `local-profiles.feature:17:plain` | a | Settings renames and permanently deletes a named profile | step definition missing |
+| `local-profiles.feature:17:plain` | c | Settings renames and permanently deletes a named profile | V18 native management uses Cancel/Remove, not shipping typed-name confirmation or profile-name window titles; native counterpart tracked separately. |
 | `local-profiles.feature:27:plain` | a | a named profile workspace restores into the same isolated session | step definition missing |
 | `mini-window.feature:10:plain` | b | a mini window opens small, isn't saved, and closes after an hour unused | step definition missing |
 | `mini-window.feature:18:plain` | b | Open in Blanc keeps a mini window as an ordinary window | step definition missing |
@@ -252,3 +252,48 @@ Builds: lifecycle-1 6 steps / 34.35 s; lifecycle-2 8 / 35.17 s; lifecycle-3
 7 / 20.05 s. Sync source unchanged; gate inherited. Patch budget now 124
 incremental upstream paths / 432 hunks; reconstruction 163 upstream / 583
 canonical files. Previous failures and retries remain in cases-1/2/3.
+
+## 5 — Profile isolation, native link menu and the held-Space quiet race
+
+F41 :246 passes in `q5-profiles-race-cases-2` on macos-0b5ded798a52e8d1.
+The test pauses the actual held-page dirty-probe continuation before the final
+quiet guard, switches the Space back, then resumes it: no page is discarded.
+Chromium's discard operation itself is synchronous; the exercised native race
+is its asynchronous probe/final-guard boundary. No teardown state is invented.
+Navigation :100 passes in cases-3 on macos-447c78f29f3aedd6. The adapter builds
+the production context menu through the source page's native delegate and
+executes its enabled background-link command. The new tab stays background
+and ungrouped. Earlier errors queried the native custom-command observer
+instead of the complete menu model; no product command was substituted.
+
+Profiles :7 passes in `q5-profiles-cases-5` on macos-4341728154a61efa. It creates
+Work from Settings through the native picker/customization UI and verifies
+distinct windows and profile directories, isolated Favorites, and distinct
+cookies/local storage in Personal, Work and Work-private tabs. The native
+profile observer now reads ProfileAttributesStorage, the actual displayed
+name registry. Relaunch :27 and V18's deletion counterpart are still owed.
+All initial adapter failures and retries are preserved in cases-1 through -4.
+
+Profiles :27 passes in `q5-profiles-restore-8` on macos-47a95ccb40bcdd87.
+The adapter uses the native picker option to disable its startup prompt, then
+checks both profiles in the real shutdown list and their restored identities,
+URLs and distinct saved Spaces. Runs -6/-7 exposed Work missing from that
+list: its window opened while the new profile was ephemeral, so the native
+manager never tracked it after Done finalized creation. Patch 0062 tracks
+those windows in Island mode; SaveActiveProfiles still filters ephemeral
+profiles, so unfinished creation cannot become a persisted startup profile.
+Build restore-4: 6 steps / 23.95 s. Patch budget: 125 incremental upstream
+paths / 434 hunks; reconstruction 164 upstream / 583 canonical files.
+
+V18 excludes the shipping :17 typed-name challenge, not profile deletion.
+The native counterpart exercises real picker rename, Cancel and Remove.
+The first run confirmed windows close but incorrectly expected the complete
+directory to disappear before native shutdown; Chromium deliberately finishes
+that disk cleanup at shutdown/startup, after immediate registration/data removal.
+The follow-up `q5-native-profile-removal-2` was stopped by the rendering
+guard before setup: display asleep/locked (no frame in 2 s). No acceptance
+result is counted. Owed after display returns: native deletion cleanup after
+restart, focused capability runs, and the one final complete inventory.
+
+Precommit: 312/312 required tests pass (`q5-profiles-precommit.tap`); patch
+reconstruction passes at 164 upstream / 583 canonical files. Sync unchanged.

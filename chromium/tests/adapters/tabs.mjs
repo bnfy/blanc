@@ -288,6 +288,17 @@ export const tabs={
   return group ? w.api('beginNewSpaceForGroup',[group.id]) : false;
  },
  // Spaces (F41), through the host's bridge as the menu calls it.
+ async raceSwitchBackDuringQuiet(w,id){
+  w.app.releasePages();
+  const tabId=String(await w.native('heldQuietRaceStart',[String(id)]));
+  try{
+   const sleepingAtSwitch=await w.waitFor(()=>w.native('heldQuietRaceReady'),Boolean,'native held quiet probe in flight');
+   const result=await w.call('workspaceAction','open',id);
+   const outcome=await w.native('heldQuietRaceResume');
+   if(outcome!=='done:0')throw Error('Restored page was quieted: '+outcome);
+   return {tabId,result,sleepingAtSwitch};
+  }finally{await w.native('heldQuietRaceResume');}
+ },
  async workspaceAction(w,action,...args){
   if(action==='metrics'){
    const [processes,spaces]=await Promise.all([

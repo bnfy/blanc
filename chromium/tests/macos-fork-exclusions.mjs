@@ -1,6 +1,7 @@
 // Explicit platform/construction exclusions, approved in the replacement spec
 // and STATUS.md Native-versus-port decisions. Never use this for missing features.
 export const macosForkExclusions = Object.freeze({
+  "spec/acceptance/local-profiles.feature:17:plain": "V18 approves Chromium profile management: its native deletion dialog has Cancel/Remove, not shipping typed-name confirmation or profile-name window titles.",
   "spec/acceptance/arc-spaces-import.feature:53:plain": "Windows/Linux-only UI or Linux import; not applicable on macOS.",
   "spec/acceptance/glance.feature:187:plain": "Owner decision 2026-11-02: no 1Password SDK/fill capsule; use the Web Store extension.",
   "spec/acceptance/glance.feature:197:plain": "Owner decision 2026-11-02: no 1Password SDK/fill capsule; use the Web Store extension.",

@@ -16,7 +16,7 @@ export function missingAdapters(definition){
 }
 export function createWorld(fixture){
  const app=createAppShim(fixture);
- const world={fixture,app,named:new Map(),waitFor,
+ const world={fixture,app,shippingContext:shippingCore.context,named:new Map(),waitFor,
   fixtureUrl:n=>fixture.base+'/site/'+encodeURIComponent(n),
   // Shipping hooks.js host mapping: the resolver sends these names to the
   // loopback fixture servers (lib/fixture.mjs).
