@@ -2,8 +2,9 @@
 
 // GitHub-hosted runners' default apt mirror, azure.archive.ubuntu.com, failed
 // to resolve on November 11, 2026, so every parity-guards job that installs
-// packages points apt elsewhere first (scripts/ci-apt-mirror.sh). The release
-// workflow does the same inline; ecs-release-pipeline.test.js guards that.
+// packages points apt elsewhere first (scripts/ci-apt-mirror.sh), and so does
+// the Site workflow's Playwright install. The release workflow does the same
+// inline; ecs-release-pipeline.test.js guards that.
 
 const test = require('node:test');
 const assert = require('node:assert/strict');
@@ -22,6 +23,17 @@ test('every apt-get update in parity-guards runs after the mirror switch, in the
     const mirror = step.indexOf('bash scripts/ci-apt-mirror.sh');
     assert.ok(mirror >= 0 && mirror < step.indexOf('apt-get update'), `mirror first in:\n${step}`);
   }
+});
+
+test('the Site workflow switches the mirror before Playwright installs its apt packages', () => {
+  const workflow = read('.github', 'workflows', 'site.yml');
+  const steps = workflow.split(/\n(?=\s+- (?:name|uses|run):)/);
+  const deps = steps.filter(step => step.includes('--with-deps'));
+  assert.equal(deps.length, 1, 'one Playwright install with system packages');
+  const [step] = deps;
+  const mirror = step.indexOf('bash scripts/ci-apt-mirror.sh');
+  assert.ok(mirror >= 0 && mirror < step.indexOf('playwright install'), `mirror first in:\n${step}`);
+  assert.match(step, /bash scripts\/ci-apt-mirror\.sh && npx playwright install --with-deps chromium/, 'a failed switch stops the step');
 });
 
 test('the mirror script leaves azure.archive.ubuntu.com and refuses to run off a CI runner', () => {
