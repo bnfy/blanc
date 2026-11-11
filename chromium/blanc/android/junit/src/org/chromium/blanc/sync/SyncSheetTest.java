@@ -12,6 +12,7 @@ import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.Dialog;
 import android.os.Looper;
+import android.text.TextUtils;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
@@ -293,12 +294,18 @@ public class SyncSheetTest {
     public void theSwitchesCarryTheirLabels() {
         connected();
         open();
-        String share = mActivity.getString(R.string.blanc_ios_settings_share_tabs);
-        boolean labelled = false;
+        List<CharSequence> labels = new ArrayList<>();
         for (View view : views()) {
-            if (view instanceof CompoundButton c && share.contentEquals(c.getContentDescription())) labelled = true;
+            // Rows without a switch keep a hidden, unlabeled one; only the shown switches count.
+            if (view instanceof CompoundButton c && c.getVisibility() == View.VISIBLE) {
+                labels.add(c.getContentDescription());
+            }
         }
-        assertTrue("Share open tabs' switch has no label for TalkBack", labelled);
+        for (int label : new int[] {R.string.blanc_ios_settings_share_tabs, R.string.blanc_shared_spaces_switch_android}) {
+            String text = mActivity.getString(label);
+            assertTrue(text + " has no switch labeled for TalkBack: " + labels,
+                    labels.stream().anyMatch(l -> TextUtils.equals(text, l)));
+        }
     }
 
     @Test

@@ -356,7 +356,8 @@ public final class SyncSheet {
                 run("spaces.apply", new Object[] {offArgument()}, null);
             }
         });
-        tagged(keepRow.findViewById(R.id.blanc_sync_row_switch), "sync.spaces");
+        // Tagged, but unlike a note it keeps its label: TalkBack reads it from the switch.
+        keepRow.findViewById(R.id.blanc_sync_row_switch).setTag("sync.spaces");
         note(text(R.string.blanc_shared_spaces_switch_line_android));
         if (on) {
             View choose = action(text(R.string.blanc_shared_spaces_title),
