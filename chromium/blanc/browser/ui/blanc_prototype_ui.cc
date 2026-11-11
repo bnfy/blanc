@@ -1752,12 +1752,13 @@ bool HasBeforeUnloadHandler(content::WebContents* tab) {
   });
   return found;
 }
-bool DiscardPage(content::WebContents* tab) {
+bool DiscardPage(content::WebContents* tab, bool explicit_quiet = false) {
   auto page = performance_manager::PerformanceManager::GetPrimaryPageNodeForWebContents(tab);
   auto* helper = performance_manager::policies::PageDiscardingHelper::GetFromGraph(
       performance_manager::PerformanceManager::GetGraph());
   return page && helper && helper->ImmediatelyDiscardMultiplePages({page.get()},
-      performance_manager::policies::DiscardEligibilityPolicy::DiscardReason::PROACTIVE, true);
+      explicit_quiet ? performance_manager::policies::DiscardEligibilityPolicy::DiscardReason::EXTERNAL :
+          performance_manager::policies::DiscardEligibilityPolicy::DiscardReason::PROACTIVE, true);
 }
 // A set-aside page has no one to show anything to, so it may not open a window
 // or start a download. Dialogs and permission prompts fall to the defaults,
@@ -6345,12 +6346,13 @@ class Handler : public content::WebUIMessageHandler, public extensions::Extensio
     auto_running_ = true;
     AutoNext(owner->browser->GetWeakPtr(), candidates, 0);
   }
-  bool QuietAllowed(BrowserWindowInterface* browser, content::WebContents* tab) {
+  bool QuietAllowed(BrowserWindowInterface* browser, content::WebContents* tab,
+                    bool explicit_quiet = false) {
     if (!browser || !tab) return false;
     auto* model = browser->GetTabStripModel();
     const int index = model->GetIndexOfWebContents(tab);
     if (index < 0 || index == model->active_index() || tab->IsLoading() ||
-        tab->GetController().GetPendingEntry() || TabPinned(model, index) ||
+        tab->GetController().GetPendingEntry() || (!explicit_quiet && TabPinned(model, index)) ||
         tab->IsAudioMuted() || tab->IsCurrentlyAudible() || TabIsCapturing(tab) ||
         !tab->GetLastCommittedURL().SchemeIsHTTPOrHTTPS()) return false;
     // A page reached by POST would show Chromium's resubmit-confirmation
@@ -6389,26 +6391,38 @@ class Handler : public content::WebUIMessageHandler, public extensions::Extensio
     auto page = performance_manager::PerformanceManager::GetPrimaryPageNodeForWebContents(tab);
     auto* policy = performance_manager::policies::DiscardEligibilityPolicy::GetFromGraph(
         performance_manager::PerformanceManager::GetGraph());
-    return page && policy && policy->CanDiscard(page.get(),
-        performance_manager::policies::DiscardEligibilityPolicy::DiscardReason::PROACTIVE, true) ==
-        performance_manager::policies::CanDiscardResult::kEligible;
+    if (!page || !policy) return false;
+    std::vector<performance_manager::policies::CannotDiscardReason> reasons;
+    const auto eligibility = policy->CanDiscard(page.get(),
+        performance_manager::policies::DiscardEligibilityPolicy::DiscardReason::PROACTIVE, true, &reasons);
+    if (eligibility == performance_manager::policies::CanDiscardResult::kEligible) return true;
+    // An explicit Quiet command may quiet a pin, as shipping's sleepTab does.
+    // All other Chromium protections still apply; never treat an arbitrary
+    // protected/disallowed result as permission to discard.
+    return explicit_quiet &&
+        eligibility == performance_manager::policies::CanDiscardResult::kProtected &&
+        !reasons.empty() && std::ranges::all_of(reasons, [](auto reason) {
+          return reason == performance_manager::policies::CannotDiscardReason::kPinnedTab;
+        });
   }
   bool CompleteQuiet( base::WeakPtr<BrowserWindowInterface> browser,
                    base::WeakPtr<content::WebContents> tab, content::WeakDocumentPtr document,
-                   blanc::quiet::DirtyResult result, bool discard) {
+                   blanc::quiet::DirtyResult result, bool discard, bool explicit_quiet = false) {
     if (!result.complete || result.dirty || result.deep_scrolled ||
         !tab || !document.AsRenderFrameHostIfValid() ||
         document.AsRenderFrameHostIfValid() != tab->GetPrimaryMainFrame() ||
-        !QuietAllowed(browser.get(), tab.get())) {
+        !QuietAllowed(browser.get(), tab.get(), explicit_quiet)) {
       return false;
     }
     if (!discard) return true;
-    return DiscardPage(tab.get());
+    // The eligibility and dirty checks above just ran synchronously. EXTERNAL
+    // avoids only the redundant pin veto in the discard helper.
+    return DiscardPage(tab.get(), explicit_quiet);
   }
-  void QuietProbed(std::string id, bool discard, base::WeakPtr<BrowserWindowInterface> browser,
+  void QuietProbed(std::string id, bool discard, bool explicit_quiet, base::WeakPtr<BrowserWindowInterface> browser,
                    base::WeakPtr<content::WebContents> tab, content::WeakDocumentPtr document,
                    blanc::quiet::DirtyResult result) {
-    Reply(id, true, base::Value(CompleteQuiet(browser, tab, document, result, discard)));
+    Reply(id, true, base::Value(CompleteQuiet(browser, tab, document, result, discard, explicit_quiet)));
   }
   class SplitCloseWatch : public content::WebContentsObserver {
    public:
@@ -9213,11 +9227,12 @@ class Handler : public content::WebUIMessageHandler, public extensions::Extensio
       }
       reply(true, base::Value(prefs->GetString(kQuietDelay))); return;
     }
-    if ((method == "quietTab" || method == "quietEligible") && args.size() == 1) {
-      if (!QuietAllowed(browser, tab)) { reply(true, base::Value(false)); return; }
+    if ((method == "quietTab" || method == "quietCandidate" || method == "quietEligible") && args.size() == 1) {
+      const bool explicit_quiet = method == "quietTab";
+      if (!QuietAllowed(browser, tab, explicit_quiet)) { reply(true, base::Value(false)); return; }
       auto document = tab->GetPrimaryMainFrame()->GetWeakDocumentPtr();
       blanc::quiet::DirtyProbe::Run(tab, base::BindOnce(&Handler::QuietProbed,
-          weak_factory_.GetWeakPtr(), id, method == "quietTab", browser->GetWeakPtr(), tab->GetWeakPtr(), document));
+          weak_factory_.GetWeakPtr(), id, method != "quietEligible", explicit_quiet, browser->GetWeakPtr(), tab->GetWeakPtr(), document));
       return;
     }
     // A quiet tab chosen for Glance loads before the card opens, as shipping's.

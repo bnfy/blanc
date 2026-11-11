@@ -1823,7 +1823,7 @@
       const quieted = [];
       for (const tab of snapshot?.tabs ?? []) {
         if (visible.has(String(tab.id)) || tab.asleep) continue;
-        if (await request('quietTab', [nativeId(tab.id)]).catch(() => false) === true) quieted.push(tab.id);
+        if (await request('quietCandidate', [nativeId(tab.id)]).catch(() => false) === true) quieted.push(tab.id);
       }
       if (quieted.length) await refresh();
       return quieted;
@@ -1971,7 +1971,7 @@
         for (const id of ids) {
           try {
             if (action === 'batch-quiet') {
-              if (await request('quietTab', [nativeId(id)]) === true) done.push(id);
+              if (await request('quietCandidate', [nativeId(id)]) === true) done.push(id);
             } else {
               const tab = snapshot.tabs.find(tab => tab.id === id);
               if (!tab) continue;

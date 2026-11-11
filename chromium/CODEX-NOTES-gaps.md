@@ -21,17 +21,17 @@
 > Report it in a "Runner timing" section. Keep this notice when you rewrite the file.
 
 Queue 4 is **in progress**. Dedicated beta build/updater remains on absolute owner hold.
-Current prototype: **macos-cb12b4f301793b46**; `q4-mic-2-runtime-config.json`.
+Current prototype: **macos-4f3865e190257d03**; `q4-quiet-owner-1-runtime-config.json`.
 
 | Item | State |
 | --- | --- |
 | 1 Private lifecycle | Partly: five scenarios pass; native secret isolation fixed; actual Touch ID ceremony blocked by signing/Apple restriction |
 | 2 Telemetry consent | Done: both original cases and three failed-write/recovery checks pass; consent verified on disk before any event |
-| 3 Shared Spaces / Send | Done: all 41 cases have passing development evidence; resume targets 4/4 and full Sync 22/22 on current candidate |
+| 3 Shared Spaces / Send | Done: all 41 cases have passing development evidence; resume targets 4/4 and full Sync 22/22 on item 3 candidate |
 | 4 Updater | Deliberately excluded: absolute beta-build hold |
 | 5 Certificate recovery / eviction | Done: seven scenarios and three native eviction/isolation checks pass |
 | 6 Microphone indicator | Done: real permission, synthetic input, window-wide chip and native Stop pass |
-| 7 Quiet Space ownership | Pending |
+| 7 Quiet Space ownership | Done: ownership case and five quiet-protection controls pass |
 | 8 Glance / other failures | Pending |
 | 9 Pinned homes | Pending |
 | 10 Open-tab / Arc import | Pending |
@@ -526,3 +526,23 @@ No Sync code changed. Camera, popup and physical-device capture are unverified.
 Precommit: `q4-mic-precommit.tap` 304/304 pass;
 `q4-mic-precommit-patches.json` reconstruction passes. Progress freshness and
 whitespace pass. Item 7 Quiet Space ownership is next.
+
+## 7 — Quiet Space ownership
+
+`q4-quiet-owner-cases` passes F41:34 on its first attempt. Direct Quiet now
+allows a pin, matching shipping's direct `sleepTab`; automatic and batch Quiet
+still exclude it. The direct path retains every other Chromium eligibility
+reason and the existing dirty-document, visibility, media, permission, opener,
+POST and renderer guards, rechecked after the asynchronous dirty probe.
+The native discard uses the explicit reason only after those checks succeed.
+
+`q4-quiet-owner-protections` passes all five first-attempt controls: active tab,
+batch pin, dirty text, opener family and the manual sleep command. The ownership
+case verifies the grouped pin stays quiet through a Space switch, inactive
+navigation/auth/download refusal, and restoration of the original live draft.
+No shipping assertion or source changed. Candidate `macos-4f3865e190257d03`,
+`q4-quiet-owner-1-runtime-config.json`; guarded build 8 actions / 34.48 seconds.
+No Sync code changed. Patch budget remains 123 upstream paths / 417 incremental
+hunks; full reconstruction 162 upstream / 573 canonical files.
+Required precommit `q4-quiet-owner-precommit.tap`: 304/304 pass; patch
+reconstruction, progress freshness and whitespace pass.
