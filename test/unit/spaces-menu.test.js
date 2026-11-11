@@ -383,6 +383,25 @@ test('the footer button never shows a space name: it lives in the tooltip and ac
   assert.equal(h.trigger.classList.contains('bound'), true, 'the fill still shows the window is in a space');
 });
 
+test('in a space the footer button shows that space\'s tile, repainted for the theme; in none, its planet', () => {
+  const Identity = require('../../src/renderer/space-identity.js');
+  let theme = 'light';
+  const h = harness({}, {}, { theme: () => theme });
+  const [tile] = h.trigger.children;
+  assert.equal(h.trigger.children.length, 1);
+  assert.equal(tile.className, 'ws-tile ws-trigger-tile');
+  assert.equal(tile.props['--space-fill'], Identity.paint('#426c4c', 'light').fill);
+  assert.equal(tile.children.length, 1, 'the space\'s symbol');
+  assert.equal(h.trigger.textContent, '', 'the name stays in the tooltip');
+  // A private tab draws the tile for the private surface.
+  theme = 'private'; h.ui.repaintTrigger();
+  assert.equal(h.trigger.children[0].dataset.edge, String(Identity.paint('#426c4c', 'private').edge));
+  // Out of a space the button goes back to its own glyph.
+  h.ui.apply({ items: [{ id: 'a', name: 'First', active: false, tabCount: 1, color: '#426c4c', symbol: 'briefcase' }], deleted: [], status: 'saved', windowTabCount: 3 });
+  assert.equal(h.trigger.querySelector('.ws-trigger-tile'), null);
+  assert.equal(h.trigger.classList.contains('bound'), false);
+});
+
 test('inside the Island the menu hangs from the Island\'s bottom edge, not over its last row', () => {
   const h = harness();
   // The footer button sits above the panel's hint row; the panel ends at 172.
