@@ -219,6 +219,11 @@ export default function register(step){
   await startDownload.call(this);
   await until(this,()=>downloadRow(this),r=>r?.state==='completed','download completed',15000);
   this.downloadGuid=this.downloadEvents.find(e=>e.m==='Browser.downloadWillBegin').guid;
+  const activity=await until(this,()=>this.snapshot(),s=>s.downloadsActivity?.hasRecent,'native download activity');
+  assert.equal(activity.downloadsActivity.active,0);
+  assert.ok(activity.downloadsActivity.lastCompletedAt>0);
+  await this.api('acknowledgeDownloads');
+  assert.equal((await this.snapshot()).downloadsActivity.hasRecent,false);
   const file=path.join(this.fixture.directory,'downloads',this.downloadFilename);
   assert.equal(fs.readFileSync(file).length,8*32*1024);
   this.downloadServer.close();

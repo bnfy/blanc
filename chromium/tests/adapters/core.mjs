@@ -140,7 +140,7 @@ export const core={
  // A presentation seed: the title goes through the page itself so Chromium
  // reports it as a real title; seeds with no page path stay undefined.
  async setTabPresentation(w,id,patch={}){
-  const keys=Object.keys(patch).filter(k=>k!=='title'&&k!=='muted'&&k!=='isLoading'&&k!=='favicon'&&k!=='audible');
+  const keys=Object.keys(patch).filter(k=>k!=='title'&&k!=='muted'&&k!=='isLoading'&&k!=='favicon'&&k!=='audible'&&k!=='blockedCount');
   if(keys.length)throw new UndefinedNativeAdapterError('Tab presentation seed needs an adapter: '+keys);
   if(typeof patch.title==='string'){
    await (await tabPage(w,id)).evaluate(t=>{document.title=t;},patch.title);
@@ -151,6 +151,7 @@ export const core={
    await (await tabPage(w,id)).evaluate(url=>{let link=document.querySelector('link[rel=icon]');if(!link){link=document.createElement('link');link.rel='icon';document.head.append(link);}link.href=url;},patch.favicon);
    await w.waitFor(()=>w.snapshot(),s=>!!s.tabs.find(t=>String(t.id)===String(id))?.favicon,'page favicon');
   }
+  if(Number.isInteger(patch.blockedCount)&&!await w.native('seedBlockedCount',[nativeId(id),patch.blockedCount]))throw Error('Native shield count seed refused');
   if(patch.audible===true)await w.call('setQuietProtection',id,'audible');
   if(patch.audible===false)await (await tabPage(w,id)).evaluate(()=>window.__quietAudio?.pause());
   if(typeof patch.muted==='boolean'&&(await w.state()).tabs.find(t=>t.id===String(id)).muted!==patch.muted)await w.api('toggleTabMuted',[String(id)]);

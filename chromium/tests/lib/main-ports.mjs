@@ -50,6 +50,8 @@ export async function nativeNavigationHistory(fixture,identity){
  finally{page.close();}
 }
 export const PORTS = {
+ // The shipping UI event seam, through the native snapshot delivery channel.
+ 'ddda45a20481d7d0c4a7d3dcdc3274ee9431344ddb08d186360b530943ac2858': (fixture,state,activity)=>nativeCall(fixture.host,'seedDownloadsActivity',[activity]),
  '4a2133a8440f0601dcbde090523f8bde7306fe72248c83117c18dbc54a7c1c32':(fixture,state,identity)=>nativeNavigationHistory(fixture,identity),
   // Resize and zoom the real native Island window, including its overlay.
   '295d076520c1b8725f1d47c40a614568ce66335910de65bb8f0747e0bddb118e': async fixture => {

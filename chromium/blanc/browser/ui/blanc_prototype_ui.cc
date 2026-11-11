@@ -5665,6 +5665,19 @@ class Handler : public content::WebUIMessageHandler, public extensions::Extensio
       if (HeldQuietPause().continuation) std::move(HeldQuietPause().continuation).Run();
       Reply(id, true, base::Value(LastRoomPass())); return;
     }
+    if (quiet_method == "seedDownloadsActivity" && quiet_args.size() == 1 && quiet_args[0].is_dict()) {
+      utility_sheet::DownloadActivity::Get(Profile::FromWebUI(web_ui()))->test_activity = quiet_args[0].GetDict().Clone();
+      Reply(id, true, base::Value(true)); return;
+    }
+    if (quiet_method == "seedBlockedCount" && quiet_args.size() == 2 && quiet_args[0].is_int() && quiet_args[1].is_int()) {
+      auto* model = GetOwner(web_ui()->GetWebContents())->browser->GetTabStripModel();
+      for (int i = 0; i < model->count(); ++i) {
+        auto* tab = model->GetWebContentsAt(i);
+        if (sessions::SessionTabHelper::IdForTab(tab).id() != quiet_args[0].GetInt()) continue;
+        Reply(id, true, base::Value(blanc::SeedShieldBlockedCountForTesting(tab, quiet_args[1].GetInt()))); return;
+      }
+      Reply(id, true, base::Value(false)); return;
+    }
     if (quiet_method == "simulateMediaStarted" && quiet_args.size() == 1 && quiet_args[0].is_int()) {
       auto* model = GetOwner(web_ui()->GetWebContents())->browser->GetTabStripModel();
       for (int i = 0; i < model->count(); ++i) {
@@ -9026,11 +9039,15 @@ class Handler : public content::WebUIMessageHandler, public extensions::Extensio
       owner->blocker_recovery_dialog.ReplaceClosure(ShowBlockerRecovery());
       reply(true, base::Value(true)); return;
     }
+    if (method == "acknowledgeDownloads" && args.empty()) {
+      utility_sheet::DownloadActivity::Get(profile)->Acknowledge(profile);
+      reply(true, base::Value(true)); return;
+    }
     if (method == "snapshot") {
       RecoverRatios(owner);
       MaybeRollback(owner);
       MaybeAutosave(owner);
-      reply(true, base::Value(Snapshot(browser, owner)));
+      reply(true, base::Value(Snapshot(browser, owner).Set("downloadsActivity", utility_sheet::DownloadActivity::Get(profile)->Read(profile))));
       return;
     }
     if (method == "reopenClosedTab" || method == "reopenClosedEntry" ||

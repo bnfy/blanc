@@ -5,15 +5,15 @@ Queue 5 is in progress. The rendering guard is clear again; focused native runs 
 | Classification | Cases | Newly passing |
 | --- | ---: | ---: |
 | a: missing adapter | 31 | 31 |
-| b: missing fork capability / blocked acceptance | 49 | 19 |
+| b: missing fork capability / blocked acceptance | 49 | 22 |
 | c: inapplicable by platform or approved construction | 22 | 0 |
 
-Current tested candidate: `macos-7a51a7441df62e2d`, `q5-archive-3-runtime-config.json`.
+Current tested candidate: `macos-ac7b80521d4e3490`, `q5-download-activity-3-runtime-config.json`.
 Inherited Sync gate: 22/22 on starting bytes; Sync code unchanged; not rerun.
 Inventory baseline: 533 pass / 3 fail (subsequently repaired) / 102 undefined / 2 excluded.
 Final inventory: owed, once after implementation. Lost passes: not yet measured.
 Owner needs: beta/updater hold; signed physical Touch ID acceptance; Billboard TopSites design decision if still required.
-Unverified: 30 capability cases; final full inventory.
+Unverified: 27 capability cases; final full inventory.
 No push, release, signing, production/Apple/1Password contact, live-tree changes or toolchain installation authorized.
 
 ## Classification of all 102 starting gaps
@@ -361,3 +361,26 @@ rows even when archiving is off and strips unapproved metadata on read.
 Earlier failures and diagnostic receipts are retained; no shipping step changed.
 Precommit required tests and patch reconstruction passed (q5-archive-precommit.tap).
 Sync code unchanged. All Archive cases will be checked on the final inventory.
+
+## 9 — Downloads activity and Island fitting (three new passes)
+
+The normal native snapshot now projects per-profile download activity into
+onDownloadsActivity. It tracks native starts/completions, aggregate active
+bytes and acknowledgment in memory, including the profile's private downloads.
+Existing history initializes the baseline without inventing new activity.
+Late-loading Island frames receive the current activity; unchanged activity
+emits no redundant event. The acknowledgment action now reaches the model.
+Shipping's event seam seeds the same native delivery channel. Its blocked-count
+seam updates the actual native counter and requires the preview test build plus
+--blanc-test; the adapter refuses if that operation fails.
+
+`q5-download-activity-cases-1` passes Glance :264/:280 and downloads :13,
+which additionally checks real DownloadItem completion, recent state and
+acknowledgment. :273 first failed because the seed used the retired spike's
+flag; `q5-download-count-repair-1` passes it with ENABLE_BLANC_TEST_HOOKS.
+Final guarded build: 6 steps / 23.10 s, macos-ac7b80521d4e3490.
+The one added build-flag dependency required GN regeneration in BlancPrototype;
+the existing environment guard passed and arguments/toolchains stayed unchanged.
+Patch budget remains 125 upstream paths / 439 hunks, reconstruction 164/583.
+Required precommit checks: q5-download-precommit.tap and patch reconstruction.
+No Sync change. No beta build/configuration.

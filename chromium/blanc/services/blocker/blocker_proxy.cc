@@ -1,4 +1,5 @@
 #include "blanc/services/blocker/blocker_proxy.h"
+#include "blanc/buildflags.h"
 #include "blanc/services/blocker/blocker_available.h"
 #include "blanc/services/blocker/shield_page_count.h"
 #include "blanc/content/public/common/blanc_research_build.h"
@@ -987,6 +988,17 @@ base::DictValue BlockedThisWeek(content::BrowserContext* context) {
     heights.Append(busiest ? static_cast<int>(std::lround(day.GetInt() * 100.0 / busiest)) : 0);
   week.Set("barHeights", std::move(heights));
   return week;
+}
+bool SeedShieldBlockedCountForTesting(content::WebContents* contents, int value) {
+#if BUILDFLAG(ENABLE_BLANC_TEST_HOOKS)
+  if (!contents || !base::CommandLine::ForCurrentProcess()->HasSwitch("blanc-test") || value < 0 || value > 100000) return false;
+  auto* tab = ShieldTabCount::GetOrCreateForWebContents(contents);
+  tab->count.Reset();
+  for (int i = 0; i < value; ++i) tab->count.Record(ShieldPageCount::kShownPage);
+  return true;
+#else
+  return false;
+#endif
 }
 int ShieldBlockedCount(content::WebContents* contents) {
   if (!contents || !contents->GetPrimaryMainFrame()) return 0;

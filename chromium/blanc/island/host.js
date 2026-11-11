@@ -137,6 +137,9 @@
       const epoch = pendingFindShow.epoch;
       queueMicrotask(() => deliverFindShow(epoch));
     }
+    if (event === 'onDownloadsActivity') queueMicrotask(() => {
+      if (snapshot?.downloadsActivity && subscribers.get(event)?.has(callback)) callback(snapshot.downloadsActivity);
+    });
     if (event === 'onPermissionPrompt') queueMicrotask(() => {
       for (const payload of prompts.values())
         if (subscribers.get(event)?.has(callback)) callback(payload);
@@ -843,10 +846,16 @@
     }).catch(() => {}).finally(() => { extensionNamesLoading = false; });
   }
 
+  let downloadsActivityKey = null;
   async function refreshNow() {
     const attempt = ++snapshotRefreshAttempt;
     try {
       snapshot = await request('snapshot');
+      const activityKey = JSON.stringify(snapshot.downloadsActivity);
+      if (activityKey !== downloadsActivityKey) {
+        downloadsActivityKey = activityKey;
+        emit('onDownloadsActivity', snapshot.downloadsActivity);
+      }
       // Shipping's tab records name their split; the panel draws one row from it.
       nameExtensionTabs(snapshot.tabs);
       for (const tab of snapshot.tabs) tab.splitId = snapshot.splits?.find(split => split.tabIds.includes(tab.id))?.id ?? null;
@@ -2235,7 +2244,7 @@
     setWorkspaceSwitcherOpen: () => {},
     // Only apiForDocument grants this to the current overlay document.
     setOverlayDragState: () => false,
-    acknowledgeDownloads: () => {},
+    acknowledgeDownloads: () => request('acknowledgeDownloads').then(refresh),
     respondPermission,
     // Site controls' Stop allowing on a page loaded past a certificate warning.
     siteInfoForgetCertificateException: async () => {
