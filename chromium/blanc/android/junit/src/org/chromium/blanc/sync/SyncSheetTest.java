@@ -267,6 +267,7 @@ public class SyncSheetTest {
     public void theDeviceNameRowRenamesThroughADialog() {
         connected();
         open();
+        Dialog sheet = ShadowDialog.getLatestDialog();
         action(R.string.blanc_ios_settings_device_name).performClick();
         AlertDialog rename = (AlertDialog) ShadowDialog.getLatestDialog();
         EditText name = null;
@@ -280,8 +281,12 @@ public class SyncSheetTest {
         shadowOf(Looper.getMainLooper()).idle();
         assertTrue(mCalls.toString(), mCalls.contains("sync.setThisDeviceName [\"Pixel\"]"));
         // The row shows what the runner reports, so a save that didn't take shows the old name.
-        assertTrue(showsText("Android"));
-        assertFalse(showsText("Pixel"));
+        List<String> shown = new ArrayList<>();
+        List<View> onSheet = new ArrayList<>();
+        collect(sheet.getWindow().getDecorView(), onSheet);
+        for (View view : onSheet) if (view instanceof TextView t) shown.add(t.getText().toString());
+        assertTrue(shown.toString(), shown.contains("Android"));
+        assertFalse(shown.toString(), shown.contains("Pixel"));
     }
 
     @Test

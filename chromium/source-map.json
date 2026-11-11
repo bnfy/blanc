@@ -218,7 +218,7 @@
     "blanc/android/junit/src/org/chromium/blanc/sync/PairScannerTest.java": "39adb1bf50cecc27a91854ee103405386fb9be009e05db61323c8f4bc4316c0b",
     "blanc/android/junit/src/org/chromium/blanc/sync/ProfileSyncTest.java": "6fa74c87b8267fdf82312de7da81233fe5d18758fd7cd551370caf887189139a",
     "blanc/android/junit/src/org/chromium/blanc/sync/SyncPairingTest.java": "413abdc51b100241f545390550eea28ec6ef23808cb46a196851e2ccb6978b1c",
-    "blanc/android/junit/src/org/chromium/blanc/sync/SyncSheetTest.java": "f02d799fe0bd2b5173666ff8eecdbb17d173d51d81167b59b8906a291fa8aae9",
+    "blanc/android/junit/src/org/chromium/blanc/sync/SyncSheetTest.java": "6ed93915739a2bf71412013b4c106594b3e64e2ab54451abbda30da39682015c",
     "blanc/android/junit/src/org/chromium/blanc/sync/SyncedClosedTest.java": "65eb2071ee83c54395c759c4c213161dbc4f7734a8ea633f7c7def226420b062",
     "blanc/android/junit/src/org/chromium/blanc/sync/SyncedFavoritesTest.java": "58f5ec9f24aeea0bd4494e17d7322d1b81571bfa98c00ed3baf3c00e1af96960",
     "blanc/android/junit/src/org/chromium/blanc/sync/SyncedSettingsTest.java": "334413e1b175ff3002625df19286da43008509df91c680fabbfd8ec180250e63",
