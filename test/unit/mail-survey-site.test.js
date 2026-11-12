@@ -94,3 +94,12 @@ test('the site flag decides between the form and the closed message', () => {
   assert.match(page, /survey\.open \?/);
   assert.match(page, /This survey has closed\. Thank you to everyone who answered\./);
 });
+
+test('the privacy page describes the survey contract', () => {
+  const privacy = read('site/src/pages/privacy.astro');
+  assert.match(privacy, /<h3 id="mail-survey">Blanc Mail survey \(optional, anonymous\)<\/h3>/);
+  assert.match(privacy, /no email address, IP address or browser details/);
+  assert.match(privacy, /keeps no request logs/);
+  assert.match(privacy, /only to decide what goes into Blanc Mail 1\.0/);
+  assert.match(privacy, /<li>[^<]*Blanc Mail survey[^<]*deleted when that decision is made[^<]*<\/li>/);
+});

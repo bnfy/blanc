@@ -200,6 +200,16 @@ Mail launch announcement (runbook in the Worker README). The form copy, the
 Worker contract and the privacy page's `#mail-waitlist` section must change
 together.
 
+**Blanc Mail survey:** `pages/mail/survey.astro` and
+`components/MailSurveyForm.astro` post anonymous answers to the separate
+`blanc-mail-survey` Worker (`cloudflare/mail-survey-worker/`), which keeps no
+request logs and stores only the answers and the day. Its ids live in the
+Worker's `src/survey.js`; the page, the Worker contract and the privacy page's
+`#mail-survey` section change together. `src/data/mail-survey.json` (`open`)
+shows the form or a closed message; the page is noindex and unlisted, and
+closing (summary, purge, flag, privacy update) follows the Worker README.
+Spec: `docs/superpowers/specs/2026-11-12-mail-feature-survey-design.md`.
+
 **Ambassador applications:** `src/pages/ambassadors.astro` posts the compact
 application form to `/ambassador-apply` on the same Worker. It sends name,
 email, one HTTPS creator-profile URL, a short introduction, and the hidden
