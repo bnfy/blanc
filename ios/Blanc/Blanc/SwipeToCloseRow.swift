@@ -33,8 +33,6 @@ struct SwipeToCloseRow<Content: View>: View {
 
     var body: some View {
         ZStack(alignment: .trailing) {
-            // Only while a swipe shows it, so it is never a stray button.
-            if offset < -1 { trash }
             content
                 // A tap on an open row only closes the trash, as in Mail.
                 // Before the offset, so it slides with the row and leaves
@@ -46,6 +44,12 @@ struct SwipeToCloseRow<Content: View>: View {
                     }
                 }
                 .offset(x: offset)
+            // Only while a swipe shows it, so it is never a stray button.
+            // In front of the row: it only ever fills the strip the row has
+            // slid away from, so it looks the same, and it takes the tap. On
+            // iOS 26 the row's button still takes touches where it was before
+            // the swipe, over the trash, when the trash sits behind it.
+            if offset < -1 { trash }
         }
         .clipped()
         .onGeometryChange(for: CGFloat.self) { $0.size.width } action: { width = $0 }
