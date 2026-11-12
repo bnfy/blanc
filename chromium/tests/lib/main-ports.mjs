@@ -97,6 +97,35 @@ export const PORTS = {
     state.authProbe = {windows: await windows(fixture)};
   },
   // readProbe: the challenges since installProbe, as shipping's login events.
+  // F39-8: the origins of every frame in the page that embeds the refused
+  // frame, from Chromium's own frame tree (a cross-origin frame, refused or
+  // not, is still listed there with the origin it committed).
+  'f500c640c47afab99e1a88b0dd33209bba00cb1e392f26e9c1413809d82f3419': async (fixture, state, url) => {
+    const target = (await fixture.targets()).find(t => t.type === 'page' && t.url === url);
+    if (!target) return null;
+    const page = await fixture.connectTarget(target);
+    const {frameTree} = await page.send('Page.getFrameTree');
+    const origins = [];
+    const walk = node => {
+      origins.push(node.frame.securityOrigin || (() => { try { return new URL(node.frame.url).origin; } catch { return 'null'; } })());
+      for (const child of node.childFrames || []) walk(child);
+    };
+    walk(frameTree);
+    // A frame in another process (site isolation; a refused frame's error
+    // page) is its own iframe target whose parent frame is in this tree.
+    const ids = new Set();
+    const collect = node => { ids.add(node.frame.id); for (const child of node.childFrames || []) collect(child); };
+    collect(frameTree);
+    for (const info of await fixture.targets()) {
+      if (info.type !== 'iframe' || (info.parentId && info.parentId !== target.id && !ids.has(info.parentId))) continue;
+      // Its committed origin, not the address it tried: an error page keeps
+      // the refused URL but commits an opaque origin.
+      const frame = await fixture.connectTarget(info);
+      const own = (await frame.send('Page.getFrameTree')).frameTree.frame;
+      origins.push(own.securityOrigin || 'null');
+    }
+    return origins;
+  },
   'bd1f99ce463c197760613b7d483716fb162610d2533187ca3367d11f9a77558f': async (fixture, state) => state.authProbe ? {
     logins: await nativeCall(fixture.host, 'authChallenges'),
     windowsCreated: Math.max(0, await windows(fixture) - state.authProbe.windows),
