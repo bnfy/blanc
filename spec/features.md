@@ -1201,6 +1201,10 @@ From the desktop `DEFAULTS`:
   around it.
 - A page loaded after continuing can open WebSockets to that same origin and
   certificate; a WebSocket never offers or records a choice of its own.
+- A pop-up window a page opens (such as a separate console window) uses the
+  choice made in its tab for that origin and certificate, for its page and its
+  WebSockets. A pop-up never offers or records a choice of its own, so any
+  other certificate failure in it is refused.
 - This does not reproduce Chromium's HSTS refusal: platforms that cannot read
   the engine's HSTS state must not claim it.
 - **Acceptance:** [`acceptance/site-certificate-safety.feature`](./acceptance/site-certificate-safety.feature).

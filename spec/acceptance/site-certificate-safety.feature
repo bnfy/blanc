@@ -68,3 +68,17 @@ Feature: Certificate safety
   Scenario: A page loaded past a warning can open a WebSocket to the same address
     Given I continued past the warning on a local page that opens a WebSocket
     Then the WebSocket to the local address opens
+
+  @desktop @F39-10
+  Scenario: A pop-up window a local page opens uses the choice made in its tab
+    Given I continued past the warning on a local page that opens a WebSocket
+    When the local page opens a console in a pop-up window
+    Then the pop-up window's page loads
+    And the pop-up window's WebSocket to the local address opens
+
+  @desktop @F39-11
+  Scenario: A pop-up window refuses a certificate its tab never accepted
+    Given I continued past the warning on a local page that opens a WebSocket
+    When the local address starts presenting a different certificate
+    And the local page opens a console in a pop-up window
+    Then the pop-up window's page is refused
