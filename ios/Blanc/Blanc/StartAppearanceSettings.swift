@@ -138,8 +138,11 @@ private func colorPicker(_ key: String, selection: Binding<String>, automatic: B
 struct StartSettingsPreviewRow: View {
     let manager: TabsManager
     var layout: BlancStartPageLayout? = nil
+    @Environment(\.horizontalSizeClass) private var sizeClass
     var body: some View {
-        StartSettingsPreview(manager: manager, layout: layout).frame(height: 250).listRowInsets(EdgeInsets())
+        // Taller in a wide window, where the page is shown at its real size.
+        StartSettingsPreview(manager: manager, layout: layout).frame(height: sizeClass == .regular ? 380 : 250)
+            .listRowInsets(EdgeInsets())
             .accessibilityLabel(SettingsCopy.text("preview"))
     }
 }

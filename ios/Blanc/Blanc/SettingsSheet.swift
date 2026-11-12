@@ -331,9 +331,7 @@ struct StartSettingsView: View {
     var body: some View {
         Form {
             Section {
-                StartSettingsPreview(manager: manager).frame(height: 250)
-                    .accessibilityLabel(SettingsCopy.text("preview"))
-                    .listRowInsets(EdgeInsets())
+                StartSettingsPreviewRow(manager: manager)
                 Picker(SettingsCopy.text("layout"), selection: Binding(get: { manager.settingsStore.newtabLayout }, set: { manager.setStartLayout($0) })) {
                     ForEach(BlancStartPageLayout.allCases, id: \.self) { Text(SettingsCopy.text($0.rawValue)).tag($0) }
                 }.accessibilityIdentifier("settings.layout")
@@ -360,6 +358,9 @@ struct StartSettingsPreview: UIViewRepresentable {
     func makeCoordinator() -> Coordinator { Coordinator() }
     final class Coordinator { var tab: TabModel? }
     final class PreviewContainer: UIView {
+        /// The shortest page the preview row shows, in page points: what the
+        /// widest iPhone row gives it, so no iPhone preview changes.
+        static let minimumPageHeight: CGFloat = 250
         let webView: WKWebView
         private let spinner = UIActivityIndicatorView(style: .medium)
         private var loadingObservation: NSKeyValueObservation?
@@ -383,9 +384,14 @@ struct StartSettingsPreview: UIViewRepresentable {
         override func layoutSubviews() {
             super.layoutSubviews()
             guard bounds.width > 0, bounds.height > 0 else { return }
-            let scale = bounds.width / 390
+            // A phone's width scaled to the row, but never a page shorter than
+            // a phone's row gives it, and never larger than life. On an iPad's
+            // wide row the width alone left the page about 135 pt tall and
+            // drew the Billboard clock over the date; there the page takes the
+            // row's own size.
+            let scale = min(bounds.width / 390, bounds.height / Self.minimumPageHeight, 1)
             webView.transform = .identity
-            webView.bounds = CGRect(x: 0, y: 0, width: 390, height: bounds.height / scale)
+            webView.bounds = CGRect(x: 0, y: 0, width: bounds.width / scale, height: bounds.height / scale)
             webView.center = CGPoint(x: bounds.midX, y: bounds.midY)
             webView.transform = CGAffineTransform(scaleX: scale, y: scale)
             spinner.center = CGPoint(x: bounds.midX, y: bounds.midY)

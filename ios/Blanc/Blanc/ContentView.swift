@@ -39,6 +39,8 @@ struct ContentView: View {
     @State private var pageWidth: CGFloat = 0
     /// The Island's height with its padding, so the Spaces card rises from it.
     @State private var islandHeight: CGFloat = 0
+    /// Where the Sunrise mark is in the window, for the share popover on iPad.
+    @State private var sunriseFrame: CGRect = .zero
     @Environment(\.accessibilityReduceMotion) private var systemReduceMotion
     private var reduceMotion: Bool {
         #if DEBUG
@@ -983,6 +985,7 @@ struct ContentView: View {
     private var islandMark: some View {
         IslandMarkButton(image: Self.sunriseMark, tint: islandStyle.text, menu: islandMenuElements)
             .frame(width: 48, height: Self.islandHeight)
+            .onGeometryChange(for: CGRect.self) { $0.frame(in: .global) } action: { sunriseFrame = $0 }
     }
 
     /// The Sunrise menu's entries for the current page (`IslandMenu`).
@@ -1066,10 +1069,18 @@ struct ContentView: View {
     private func share(_ url: URL) {
         guard let scene = UIApplication.shared.connectedScenes.compactMap({ $0 as? UIWindowScene })
                 .first(where: { $0.activationState == .foregroundActive }),
-              var presenter = scene.windows.first(where: \.isKeyWindow)?.rootViewController else { return }
+              let window = scene.windows.first(where: \.isKeyWindow),
+              var presenter = window.rootViewController else { return }
         while let presented = presenter.presentedViewController { presenter = presented }
         let sheet = UIActivityViewController(activityItems: [url], applicationActivities: nil)
-        sheet.popoverPresentationController?.sourceView = presenter.view
+        // An iPad shows it as a popover pointing at the Sunrise mark the menu
+        // opened from; without a rect it pointed at the window's corner.
+        if let popover = sheet.popoverPresentationController {
+            popover.sourceView = window
+            popover.sourceRect = sunriseFrame == .zero
+                ? CGRect(x: window.bounds.midX, y: window.bounds.midY, width: 0, height: 0) : sunriseFrame
+            if sunriseFrame == .zero { popover.permittedArrowDirections = [] }
+        }
         presenter.present(sheet, animated: true)
     }
 
