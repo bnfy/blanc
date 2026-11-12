@@ -20,7 +20,8 @@ enum LaunchPing {
         #endif
     }
 
-    static func body(installId: UUID, sessionId: Int32, version: String, osMajor: Int) -> [String: Any] {
+    static func body(installId: UUID, sessionId: Int32, version: String, osMajor: Int,
+                     device: String = ThisDevice.isPad ? "ipad" : "iphone") -> [String: Any] {
         [
             "installId": installId.uuidString.lowercased(),
             "sessionId": sessionId,
@@ -28,6 +29,7 @@ enum LaunchPing {
             "platform": "ios",
             "arch": "arm64",
             "osVersion": String(osMajor),
+            "device": device,
         ]
     }
 

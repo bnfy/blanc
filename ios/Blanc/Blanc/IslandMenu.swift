@@ -18,6 +18,9 @@ enum IslandMenuItem: Equatable {
     /// The page's whole address, which the Island shows only the site of.
     case copyLink
     case find
+    /// iPad only: Request Mobile Website, or Request Desktop Website on a
+    /// site already asked for its phone layout.
+    case requestSite(mobile: Bool)
     /// Page Zoom ▸: Zoom In, Zoom Out and Actual Size.
     case pageZoom
     /// Request Desktop Website, or Request Mobile Website once it was asked for.
@@ -35,7 +38,8 @@ enum IslandMenuItem: Equatable {
 /// page lives behind the Sunrise mark. Entries that don't apply to the page
 /// (Blanc's own pages, a private tab) are left out rather than disabled.
 enum IslandMenu {
-    @MainActor static func items(for tab: TabModel?, manager: TabsManager) -> [IslandMenuItem] {
+    @MainActor static func items(for tab: TabModel?, manager: TabsManager,
+                                 onPad: Bool = ThisDevice.isPad) -> [IslandMenuItem] {
         var items: [IslandMenuItem] = []
         if let tab, tab.currentURL.scheme == "blanc", tab.currentURL.host == "newtab" {
             items.append(.customizeStartPage)
@@ -46,7 +50,9 @@ enum IslandMenu {
                 items.append(.favorite(saved: manager.isFavorite(tab)))
             }
             if manager.canSend(tab), !manager.syncEngine.sendTargets.isEmpty { items.append(.send) }
-            items.append(contentsOf: [.reload, .share, .copyLink, .find, .pageZoom, .desktopSite(on: tab.wantsDesktopSite)])
+            items.append(contentsOf: [.reload, .share, .copyLink, .find, .pageZoom])
+            if onPad { items.append(.requestSite(mobile: !manager.wantsMobileSite(tab.currentURL, isPrivate: tab.isPrivate))) }
+            else { items.append(.desktopSite(on: tab.wantsDesktopSite)) }
         }
         if manager.glanceTab != nil { items.append(.closeGlance) }
         else if manager.canOpenGlance, !manager.glanceCandidates.isEmpty { items.append(.glance) }

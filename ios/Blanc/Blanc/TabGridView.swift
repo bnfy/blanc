@@ -21,8 +21,13 @@ struct TabGridView: View {
         }
     }
 
+    /// Two on a phone. Wider, as many as fit, so a big iPad's cards don't grow
+    /// to fill it: three on the Duo or a phone in landscape, up to five on a 13" iPad.
     private var columns: [GridItem] {
-        Array(repeating: GridItem(.flexible(), spacing: 16, alignment: .top), count: sizeClass == .regular ? 3 : 2)
+        guard sizeClass == .regular else {
+            return Array(repeating: GridItem(.flexible(), spacing: 16, alignment: .top), count: 2)
+        }
+        return [GridItem(.adaptive(minimum: 230), spacing: 16, alignment: .top)]
     }
 
     var body: some View {
@@ -151,7 +156,7 @@ struct TabGridView: View {
             .pointerLift(cornerRadius: 18)
             .onTapGesture { select(tab) }
             .contextMenu {
-                TabMoveMenu(manager: manager, tab: tab, newGroup: { naming = .newGroup(tab.id) }, newSpace: { newSpaceTab = tab.id })
+                TabMoveMenu(manager: manager, tab: tab, newGroup: { naming = .newGroup(tab.id) }, newSpace: { newSpaceTab = tab.id }, close: close)
             }
             .tabDrag(tab)
             .accessibilityElement(children: .ignore)

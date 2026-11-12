@@ -21,6 +21,12 @@ final class DuoUITests: XCTestCase {
     let back = app.buttons["pill.back"], forward = app.buttons["pill.forward"]
     XCTAssertTrue(back.waitForExistence(timeout: 5))
     XCTAssertFalse(forward.isEnabled, "nowhere to go forward yet")
+    // The iPhone's Island (#1463): the address, then Back, Forward and New Tab, no Reload.
+    let plus = app.buttons["New tab"]
+    XCTAssertGreaterThan(back.frame.midX, site.frame.maxX)
+    XCTAssertGreaterThan(forward.frame.midX, back.frame.midX)
+    XCTAssertGreaterThan(plus.frame.midX, forward.frame.midX)
+    XCTAssertFalse(app.buttons["Reload page"].exists)
 
     site.tap()
     let input = app.textFields["island.address"]
@@ -40,9 +46,8 @@ final class DuoUITests: XCTestCase {
   func testThePaletteGrowsFromTheIsland() throws {
     let app = try launch()
     let site = app.buttons["pill.palette"]
-    // The Island ends with its 44 pt New tab button, which reports only its icon.
+    // The Island ends with its New tab button, then the capsule's end padding (#1472).
     let newTab = app.buttons["New tab"].firstMatch.frame
-    let islandEnd = newTab.midX + 22
     site.tap()
 
     let panel = app.otherElements["palette.panel"]
@@ -50,7 +55,8 @@ final class DuoUITests: XCTestCase {
     let input = app.textFields["island.address"]
     XCTAssertTrue(input.waitForExistence(timeout: 5))
     XCTAssertTrue(input.frame.minY > panel.frame.midY, "the address row is at the panel's bottom")
-    XCTAssertLessThan(abs(panel.frame.maxX - islandEnd), 1, "in the Island's place: panel \(panel.frame), New tab \(newTab), window \(app.windows.firstMatch.frame)")
+    let past = panel.frame.maxX - newTab.maxX
+    XCTAssertTrue(past >= 0 && past < 12, "in the Island's place: panel \(panel.frame), New tab \(newTab), window \(app.windows.firstMatch.frame)")
     XCTAssertLessThanOrEqual(panel.frame.width, 600)
     attach(app, "palette panel")
 
