@@ -145,6 +145,17 @@ export default function register(step){
  step('Blanc is in front',async function(){
   await this.fixture.host.send('Page.bringToFront');await rpc(this,'sync.resetRequestWindowForTest');
  });
+ // F57-24 (shipping v1.48.0): the device past its launch pass, as one that
+ // has run a while. Shipping's settleRequestsForTest is in v1.48.0's sync.js;
+ // the bundle shared with Android stays on v1.46.0, so the same state is made
+ // from what it has: a fresh window, the pending full pass run now, the
+ // window freed again, and the local Worker's minute freed.
+ step('Blanc is in front and has finished its launch pass',async function(){
+  await this.fixture.host.send('Page.bringToFront');
+  await syncRoom(this);await rpc(this,'sync.resetRequestWindowForTest');
+  await rpc(this,'sync.syncNow');
+  await syncRoom(this);await rpc(this,'sync.resetRequestWindowForTest');
+ });
  step("the sync Worker can't answer change checks",function(){this.syncServer.setVersions(false);});
  step('another device shares a new Space {string}',async function(name){
   await syncRoom(this);const {accountId,key}=this.sharedKey,base=`${this.syncServer.url}/v1/blob/${accountId}/`;
