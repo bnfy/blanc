@@ -159,6 +159,25 @@ Logpush off so "no IP or browser details are kept" is true end to end. It has:
   closing deploy flips; the Worker's own flag refuses posts regardless, so a
   stale page can never store an answer.
 
+### Invitation card on the Mail page (owner decisions, 2026-11-12)
+
+The owner found the survey link too easy to miss and chose a corner card
+(option C of three mockups) that appears as soon as `blanc.day/mail` opens:
+
+- Black-and-gold card, bottom right ("Help shape Blanc Mail"), asking the
+  survey's first question, "Which accounts would you use?", with the four
+  account choices as chips and a close button. On phones it spans the bottom
+  edge. Only on `/mail`, and only while the survey is open.
+- A chip opens `/mail/survey?account=<id>` with that answer preselected; the
+  link carries only that id. Nothing is sent until the survey is submitted.
+- Closing it hides it for 7 days (owner). *Claude's calls:* tapping a chip
+  also hides it for 7 days; submitting the survey hides it for good.
+- The memory is one `localStorage` entry in the visitor's browser
+  (`blanc-mail-survey-invite-v1`), like the newsletter card's, disclosed in the
+  privacy page's survey section; storage failures just show the card.
+- It is a non-modal dialog that never takes focus, doesn't overlap the
+  privacy-choices card, and appears without motion under Reduce Motion.
+
 ### Announcing Proton (owner decision, 2026-11-12)
 
 The account question is the first public mention of Proton Mail on blanc.day,

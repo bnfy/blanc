@@ -174,6 +174,23 @@
 
 - [ ] **Step 5: Commit** `git add site/src/pages/mail.astro site/src/components/MailWaitlistForm.astro docs/website-mail-claims-2026-11-12.md test/unit/mail-survey-site.test.js && git commit -m "Announce Proton support and invite visitors to the Mail survey"`
 
+### Task 7: Invitation card on the Mail page
+
+**Files:**
+- Create: `site/src/scripts/mail-survey-invite.mjs`, `site/src/components/MailSurveyInvite.astro`
+- Modify: `site/src/pages/mail.astro`, `site/src/components/MailSurveyForm.astro`, `site/src/pages/privacy.astro`, `site/src/styles/mail.css`, `docs/website-mail-claims-2026-11-12.md`
+- Test: `test/unit/mail-survey-invite.test.js`, `test/unit/mail-survey-site.test.js`
+
+**Interfaces:**
+- Produces (`mail-survey-invite.mjs`): `INVITE_KEY = 'blanc-mail-survey-invite-v1'`, `SNOOZE_MS = 7 * 24 * 60 * 60 * 1000`, `shouldShow(state, now): boolean`, `snooze(now): {snoozedUntil}`, `ANSWERED = {answered: true}`, `readState(storage): object` and `writeState(storage, state): void` (both swallow storage errors), `accountFromQuery(search): 'gmail'|'proton'|'both'|'other'|null`.
+- Consumes: `CHOICES.account` ids (Task 1) and the site flag (Task 3).
+
+- [ ] **Step 1: Failing tests:** `shouldShow` true for `{}`, false while `snoozedUntil > now`, true after, false for `answered`; `snooze(now).snoozedUntil === now + SNOOZE_MS`; `readState` returns `{}` for missing, invalid JSON or a throwing storage; `writeState` never throws; `accountFromQuery('?account=proton') === 'proton'`, unknown or missing → `null`. Site checks: `mail.astro` renders `<MailSurveyInvite />` only under `survey.open`; the card has `role="dialog"`, no `aria-modal`, four chips linking `/mail/survey?account=<id>` for exactly the account ids, a close button, no `data-track`; the survey form preselects from `accountFromQuery` and writes `ANSWERED` on success; the privacy section names `blanc-mail-survey-invite-v1`.
+- [ ] **Step 2: Run** `node --test test/unit/mail-survey-invite.test.js test/unit/mail-survey-site.test.js` — expect FAIL.
+- [ ] **Step 3: Implement** the module, the card (hidden until its script decides, so a closed or snoozed card never flashes), the survey preselection and answered note, the privacy sentence and the ledger rows.
+- [ ] **Step 4: Run** the tests and `npm run site:build` — expect PASS; check the card in a browser with the flag temporarily open.
+- [ ] **Step 5: Commit.**
+
 ### Task 6: Review, PR and handoff (no deploys)
 
 - [ ] **Step 1:** Run `npm run test:unit` and `npm run lint`; expect PASS.
