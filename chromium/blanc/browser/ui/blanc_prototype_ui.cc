@@ -8,6 +8,9 @@
 #include "mojo/public/cpp/bindings/remote.h"
 #include "build/build_config.h"
 #include "content/public/browser/host_zoom_map.h"
+#include "chrome/browser/ui/zoom/chrome_zoom_level_prefs.h"
+#include "components/zoom/zoom_controller.h"
+#include "content/public/common/result_codes.h"
 #include "third_party/blink/public/common/page/page_zoom.h"
 #include "blanc/browser/sync/favorite_helpers.h"
 #include "blanc/buildflags.h"
@@ -5955,6 +5958,65 @@ class Handler : public content::WebUIMessageHandler, public extensions::Extensio
     const auto& quiet_args = message[2].GetList();
     const auto& quiet_method = message[1].GetString();
     // Test-only operations run behind both the build flag and --blanc-test.
+    // F62 page zoom, read and set as shipping's test hook does: the profile's
+    // default (percent), its saved sites, the hosts in its Preferences, and
+    // one tab's zoom, zoom mode and drawn width. "crash" ends a tab's renderer.
+    if (quiet_method == "pageZoomTest" && !quiet_args.empty() && quiet_args[0].is_string()) {
+      const std::string& op = quiet_args[0].GetString();
+      auto* profile = Profile::FromWebUI(web_ui())->GetOriginalProfile();
+      auto* zoom_map = content::HostZoomMap::GetDefaultForBrowserContext(profile);
+      const auto percent = [](double level) {
+        return static_cast<int>(std::lround(100 * blink::ZoomLevelToZoomFactor(level)));
+      };
+      if (op == "default") {
+        if (quiet_args.size() == 2 && quiet_args[1].is_int())
+          profile->GetZoomLevelPrefs()->SetDefaultZoomLevelPref(
+              blink::ZoomFactorToZoomLevel(quiet_args[1].GetInt() / 100.0));
+        Reply(id, true, base::Value(percent(profile->GetZoomLevelPrefs()->GetDefaultZoomLevelPref()))); return;
+      }
+      if (op == "sites" || op == "clear") {
+        base::DictValue sites;
+        for (const auto& change : zoom_map->GetAllZoomLevels()) {
+          if (change.mode != content::HostZoomMap::ZOOM_CHANGED_FOR_HOST) continue;
+          if (op == "clear") zoom_map->SetZoomLevelForHost(change.host, zoom_map->GetDefaultZoomLevel());
+          else sites.Set(change.host, percent(change.zoom_level));
+        }
+        Reply(id, true, base::Value(std::move(sites))); return;
+      }
+      if (op == "prefsHosts") {
+        base::ListValue hosts;
+        for (const auto [partition, levels] : profile->GetPrefs()->GetDict(prefs::kPartitionPerHostZoomLevels))
+          if (levels.is_dict()) for (const auto [host, level] : levels.GetDict()) hosts.Append(host);
+        Reply(id, true, base::Value(std::move(hosts))); return;
+      }
+      if ((op == "tab" || op == "crash") && quiet_args.size() == 2 && quiet_args[1].is_int()) {
+        content::WebContents* found = nullptr;
+        GlobalBrowserCollection::GetInstance()->ForEach([&](BrowserWindowInterface* browser) {
+          auto* tabs = browser->GetTabStripModel();
+          for (int i = 0; i < tabs->count() && !found; ++i)
+            if (sessions::SessionTabHelper::IdForTab(tabs->GetWebContentsAt(i)).id() == quiet_args[1].GetInt())
+              found = tabs->GetWebContentsAt(i);
+          return !found;
+        });
+        if (!found) { Reply(id, true, base::Value()); return; }
+        if (op == "crash") {
+          auto* process = found->GetPrimaryMainFrame()->GetProcess();
+          Reply(id, true, base::Value(process && process->IsInitializedAndNotDead() &&
+              process->Shutdown(content::RESULT_CODE_KILLED))); return;
+        }
+        auto* controller = zoom::ZoomController::FromWebContents(found);
+        const auto mode = controller ? controller->zoom_mode() : zoom::ZoomController::ZOOM_MODE_DEFAULT;
+        Reply(id, true, base::Value(base::DictValue()
+            .Set("percent", percent(content::HostZoomMap::GetZoomLevel(found)))
+            .Set("mode", mode == zoom::ZoomController::ZOOM_MODE_MANUAL ? "manual"
+                : mode == zoom::ZoomController::ZOOM_MODE_ISOLATED ? "isolated"
+                : mode == zoom::ZoomController::ZOOM_MODE_DISABLED ? "disabled" : "default")
+            .Set("width", found->GetContainerBounds().width())
+            .Set("url", found->GetVisibleURL().spec())
+            .Set("crashed", found->IsCrashed()))); return;
+      }
+      Reply(id, false, base::Value("Invalid page zoom test operation.")); return;
+    }
     // The operating system's open-file path, exactly as AppController hands
     // it over (application:openURLs: -> OpenExternalLink).
     if (quiet_method == "testOpenLocalFile" && quiet_args.size() == 1 && quiet_args[0].is_string()) {

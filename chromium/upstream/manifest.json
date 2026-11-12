@@ -131,6 +131,7 @@
     "components/sessions/core/tab_restore_service_impl.h": "49de2766f7f152d8612d5bb3d2a7387ced9f48992ee43a8b19f229bfb4261927",
     "content/app_shim_remote_cocoa/web_contents_view_cocoa.mm": "d125f632828cd13bc86795c4e26c721e26f3347005246eec73080936d9631fe9",
     "content/browser/devtools/devtools_url_loader_interceptor.cc": "4d1349c51e23931a455b0306a134cae236b3336b38bbfd3c7217232248ab3dc0",
+    "content/browser/host_zoom_map_impl.cc": "977679cef075161882a51e657d9bd6bfe0fc8ec1309fb837b13da98072aeeff4",
     "content/browser/loader/navigation_url_loader_impl.cc": "752d7549b64af826e1f6750407c8a87edf4d0737a244ddcfb7da267e05941927",
     "content/browser/loader/url_loader_factory_utils.cc": "eb842a491f332820fb44ca91f0871c7d710c9719c24cb9daad4ad41b953766db",
     "content/browser/loader/url_loader_factory_utils.h": "e08addcc15e67325ad76d564431f3f41a42f4458ac8ea38fef07e65128d5ebef",

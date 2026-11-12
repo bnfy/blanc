@@ -1644,8 +1644,8 @@
       "canonicalState": "not-started",
       "platformProgress": {
         "macos": {
-          "stage": "not-started",
-          "basis": "new in shipping v1.47.0; Chromium's own default and per-site zoom to be adapted"
+          "stage": "implemented",
+          "basis": "all 11 page-zoom.feature scenarios pass on macos-62c03a037c249ee0 (v148-zoom-cases-3): Chromium's own default and per-site zoom, Chrome's zoom steps (patch 0071), web-only default (patch 0070); Settings uses Chromium's Page zoom menu and Zoom levels list"
         },
         "windows": {
           "stage": "not-started",
@@ -2492,8 +2492,8 @@
   ],
   "currentCandidates": {
     "macos": {
-      "id": "macos-78b464a2d5b3e4a9",
-      "frameworkSha256": "78b464a2d5b3e4a9e385b91ea4e631a102655b94bbaeba4ca9560ae03a3179df",
+      "id": "macos-62c03a037c249ee0",
+      "frameworkSha256": "62c03a037c249ee00ffc5da06689d4fe6ea3a778b062277cf55b01de99535837",
       "executableSha256": "cca20d7ed00bbdecf8db310c6802fbed003b4e63c6bc3b1f71dabc9dbff2ff01",
       "version": "158.0.8127.2",
       "qualification": "compiled candidate; runtime acceptance pending"

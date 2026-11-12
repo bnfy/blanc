@@ -849,6 +849,20 @@ remain pending. D3 beta-only no-DRM exception accepted; EME notice/handoff requi
   those gone; settings-and-theming, island-and-commands and internal-pages
   match their last runs. Chromium's own name still shows in a few strings
   ("About Chromium", Default browser); that is branding, not this slice.
+- **F62 default page zoom on Chromium's zoom (2026-11-12):** all 11
+  page-zoom.feature scenarios pass on macos-62c03a037c249ee0
+  (`v148-zoom-cases-3`). Chromium already keeps a profile's default and
+  per-site zoom (private tabs in memory only, profiles apart, ⌘0 back to the
+  default, no entry for a site at the default). Patch 0070 gives only web
+  content the default, so the Island, the Start Page, Settings and extension
+  pages stay at 100% until zoomed themselves (shipping's usesDefaultZoom);
+  patch 0071 returns ⌘+/⌘− to Chrome's step ladder, replacing the baseline's
+  Electron ±0.5-level steps, as shipping did in v1.47.0. Settings uses
+  Chromium's own Page zoom menu (Appearance) and Zoom levels list (Site
+  settings). Proposed divergences, for the owner: the default is per profile,
+  not per device; saved sites live in the profile's Preferences, not a
+  separate file; the saved-site list is under Site settings, not beneath the
+  default. Glance zoom, the Start Page layouts and page scaling still pass.
 - **Shipping target moved to v1.48.0 (2026-11-12, owner):** shipping v1.48.0
   went public on 2026-11-11, so the fork's reference moves from v1.46.0. The
   Island renderer (every fork edit still applies; island-autohide.js,
@@ -2414,10 +2428,10 @@ Android's Bar A counts the shared scenarios bound in `chromium/tests/android/acc
 
 | State | macOS | Windows | Linux | Android |
 | --- | ---: | ---: | ---: | ---: |
-| Not started / unassessed | 25 | 81 | 81 | 69 |
+| Not started / unassessed | 24 | 81 | 81 | 69 |
 | Research only | 1 | 0 | 0 | 0 |
 | Drafted | 5 | 0 | 0 | 0 |
-| Implemented | 5 | 0 | 0 | 12 |
+| Implemented | 6 | 0 | 0 | 12 |
 | Built, isolated (legacy) | 4 | 0 | 0 | 0 |
 | Integrated, partial (legacy) | 3 | 0 | 0 | 0 |
 | Integrated | 38 | 0 | 0 | 0 |
@@ -2428,5 +2442,5 @@ Android's Bar A counts the shared scenarios bound in `chromium/tests/android/acc
 
 Legacy macOS stages come from the approved spec; they await verification on the canonical candidate. No legacy stage counts as Verified.
 
-Candidate identities: macOS: macos-78b464a2d5b3e4a9; Windows: none; Linux: none; Android: android-arm64-7bd35e94ef746069.
+Candidate identities: macOS: macos-62c03a037c249ee0; Windows: none; Linux: none; Android: android-arm64-7bd35e94ef746069.
 <!-- END GENERATED PROGRESS -->

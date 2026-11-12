@@ -610,8 +610,8 @@
    "slice": "S2",
    "store": "Chromium's default zoom level (partition.default_zoom_level); each site's zoom in HostZoomMap",
    "page": "Blanc Settings sheet, Appearance",
-   "status": "to-build",
-   "note": "New in v1.47.0 (#1401): default page zoom, 100% by default, device-local in shipping"
+   "status": "built",
+   "note": "New in v1.47.0 (#1401): default page zoom, 100% by default. Shipping keeps it device-local; Chromium keeps it per profile (proposed divergence, not yet approved)"
   }
  ]
 }

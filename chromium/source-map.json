@@ -359,7 +359,7 @@
     "blanc/browser/ui/app_menus_mac.mm": "ed5c616c7bb03400bb701413a005e43c750c87878ddf0cc83f2939b8e6ccb72f",
     "blanc/browser/ui/billboard_clock_settings.inc": "57ce0ed0160903e1b90c3d65fd5cd7cd33218d5774a3b2d8fdb448b0d49c9892",
     "blanc/browser/ui/blanc_extensions_branding.h": "17d77bbc267d13477a24bd971021f2291c505567a32383229505c13b53238a02",
-    "blanc/browser/ui/blanc_prototype_ui.cc": "e0de0f48e33b3d6c429ebe31223a8d848bc60250febeff8aec0b015e7eac432b",
+    "blanc/browser/ui/blanc_prototype_ui.cc": "21d9b7d55a1a056d6a708d78692b448c6a3135ad2bab57f77931c7ca97ea0c19",
     "blanc/browser/ui/blanc_prototype_ui.h": "8fbb595795ee086cfbe5a4848f1ca82abbb4298483c216d981aa6fc98c8f3860",
     "blanc/browser/ui/blanc_quiet_media.h": "f7fadb778aef96b28c8fb80dda2104897789b510ad2a34abc5adf9cde8761c5f",
     "blanc/browser/ui/blanc_quiet_probe.h": "47467fe0a2004e804cda235613a0aea6b88d494b84b3608bf6af991a6aa07dfd",
@@ -631,7 +631,7 @@
     "blanc/third_party/sparkle/README.chromium": "2003e66319a8bad6aef7ad30665fdb380aaeceaf481464de186b3cc4a121800a",
     "blanc/third_party/sparkle/README.md": "417d8855bc37c6eeebedb80601968937f7fb44ba1e89200c28642654c166cd29",
     "blanc/third_party/sparkle/verify.py": "146fc2e1053deb0f3b1aad1d3719edc4d87d7b2fb6936fff717d5ea953a2312d",
-    "blanc/ui.gni": "86b16c2aef37239055486d0c5238987e298b753598ea73476e651345da2045f2"
+    "blanc/ui.gni": "68d7c8601a8c558be0fc271d403ccdba9af025d32907b05159f6621b7dd27da1"
   },
   "targetOwnership": "//blanc:ui routes to browser-boundary template target, respecting existing upstream visibility",
   "upstreamFiles": {
@@ -713,7 +713,7 @@
     "chrome/browser/signin/identity_manager_factory.cc": "5b94fe0b08ff5480e06985cf7d2a0feb0e45f71d30c5f5c68f27982954629659",
     "chrome/browser/ui/BUILD.gn": "b7788518af671e78cb3fd40fb05c4cb2ecb14d508347286dcee8bde437b69712",
     "chrome/browser/ui/browser_command_controller.cc": "a0c5a3952f46244d7e6852e510abeea073ca80ba33d2e908799db02d3333a51d",
-    "chrome/browser/ui/browser_commands.cc": "2d1c7e88b5bc1d88ba941e3ef0d44ea11fe5283dbb91277bc0fd087342c823a2",
+    "chrome/browser/ui/browser_commands.cc": "a8047fdaf19c823f1b254899d6d984dcddf2c2c5b5030e127d08a50c40c468ec",
     "chrome/browser/ui/browser_init_state.h": "632d9d0387f73363f7f0e17745e780184cd6ecf1b495c3f4fdb3c196d99ccbb2",
     "chrome/browser/ui/browser_live_tab_context.cc": "865838ae8059ce8ba2b503b578ecbafd22f2f8c9b9efcc7669aaacd0b2937639",
     "chrome/browser/ui/browser_tab_restorer.cc": "172a397ca47e44493eaa0786053c70f088604924e583d2c9dfc0095a014a36b0",
@@ -771,6 +771,7 @@
     "components/sessions/core/tab_restore_service_impl.h": "0ed35e674a00d329ac0c0dfece0eb1ed8685373beae73090c697a4935ea5460b",
     "content/app_shim_remote_cocoa/web_contents_view_cocoa.mm": "8c89435c1e843c6b9238f089e500514cbdccfa678dee597b51354c80d6c78251",
     "content/browser/devtools/devtools_url_loader_interceptor.cc": "73dca4c2c65aa0be79f7ed6dbd5b4281a2d39cde01395d7eb86205bdb3f9d121",
+    "content/browser/host_zoom_map_impl.cc": "a36ccc655676ae3cc1b0c00eedf773f7ba0672b41831dd41d43e008bb8ba633d",
     "content/browser/loader/navigation_url_loader_impl.cc": "f35177093a2c4e261f0d4b4a65bc5fc7c7c03404b5becd142bcae39648d12e92",
     "content/browser/loader/url_loader_factory_utils.cc": "cb682958cf769b1f1c34d50dc1d5b386c21ce74b3f48f41edf17d37cf63897af",
     "content/browser/loader/url_loader_factory_utils.h": "2f2f129a281de976e9e07c695b8d76e3ef6bad973da9f5d81dbed63926530845",
