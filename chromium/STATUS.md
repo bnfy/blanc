@@ -2401,10 +2401,10 @@ Android's Bar A counts the shared scenarios bound in `chromium/tests/android/acc
 
 | State | macOS | Windows | Linux | Android |
 | --- | ---: | ---: | ---: | ---: |
-| Not started / unassessed | 25 | 80 | 80 | 68 |
+| Not started / unassessed | 24 | 80 | 80 | 68 |
 | Research only | 1 | 0 | 0 | 0 |
 | Drafted | 5 | 0 | 0 | 0 |
-| Implemented | 4 | 0 | 0 | 12 |
+| Implemented | 5 | 0 | 0 | 12 |
 | Built, isolated (legacy) | 4 | 0 | 0 | 0 |
 | Integrated, partial (legacy) | 3 | 0 | 0 | 0 |
 | Integrated | 38 | 0 | 0 | 0 |
@@ -2415,5 +2415,5 @@ Android's Bar A counts the shared scenarios bound in `chromium/tests/android/acc
 
 Legacy macOS stages come from the approved spec; they await verification on the canonical candidate. No legacy stage counts as Verified.
 
-Candidate identities: macOS: macos-d502a709c87e5d11; Windows: none; Linux: none; Android: android-arm64-7bd35e94ef746069.
+Candidate identities: macOS: macos-dae7f4583f5966a0; Windows: none; Linux: none; Android: android-arm64-7bd35e94ef746069.
 <!-- END GENERATED PROGRESS -->

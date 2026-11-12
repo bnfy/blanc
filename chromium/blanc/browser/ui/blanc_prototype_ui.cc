@@ -182,6 +182,7 @@
 #include "chrome/browser/shell_integration.h"
 #include "chrome/browser/sessions/tab_restore_service_factory.h"
 #include "blanc/common/held_page.h"
+#include "blanc/common/local_file_gate.h"
 #include "net/base/network_change_notifier.h"
 #include "chrome/browser/media/webrtc/media_capture_devices_dispatcher.h"
 #include "chrome/browser/media/webrtc/media_stream_capture_indicator.h"
@@ -658,9 +659,8 @@ bool ValidPinnedHome(const GURL& url) {
   if (url == GURL("chrome://newtab/") ||
       url == GURL("chrome://blanc-prototype/pages/newtab.html") ||
       url == GURL("chrome://blanc-prototype/pages/mahjong.html")) return true;
-  return url.SchemeIsFile() && url.host().empty() &&
-      (base::EndsWith(url.path(), ".html", base::CompareCase::INSENSITIVE_ASCII) ||
-       base::EndsWith(url.path(), ".htm", base::CompareCase::INSENSITIVE_ASCII));
+  // A local HTML document a tab was granted (N15); never a return target.
+  return blanc::SupportedLocalHtmlUrl(url);
 }
 constexpr size_t kGroupNameMaxLength = 40;
 constexpr tab_groups::TabGroupColorId kGroupColor = tab_groups::TabGroupColorId::kGrey;
@@ -5943,6 +5943,11 @@ class Handler : public content::WebUIMessageHandler, public extensions::Extensio
     const auto& quiet_args = message[2].GetList();
     const auto& quiet_method = message[1].GetString();
     // Test-only operations run behind both the build flag and --blanc-test.
+    // The operating system's open-file path, exactly as AppController hands
+    // it over (application:openURLs: -> OpenExternalLink).
+    if (quiet_method == "testOpenLocalFile" && quiet_args.size() == 1 && quiet_args[0].is_string()) {
+      Reply(id, true, base::Value(OpenExternalLink(GURL(quiet_args[0].GetString())))); return;
+    }
     if (quiet_method == "testFocusTabContents" || quiet_method == "testNavigateTabAnyScheme") {
       auto* model = GetOwner(web_ui()->GetWebContents())->browser->GetTabStripModel();
       auto reply = [&](bool success, base::Value value) { Reply(id, success, std::move(value)); };
@@ -11509,10 +11514,12 @@ uint32_t InheritedSandboxFlags(content::WebContents* tab) {
 bool HasInheritedDocumentPolicy(content::WebContents* tab) {
   return tab && (HasInheritedSandbox(tab) || blanc::quiet::MediaHistory::Get(tab)->inherited_policy());
 }
+void CopyLocalFileGrant(content::WebContents* source, content::WebContents* copy);
 void CopySyncExclusion(content::WebContents* source, content::WebContents* copy) {
   if (!IsEnabled() || !source || !copy ||
       source->GetBrowserContext() != copy->GetBrowserContext()) return;
   SetPinnedHome(copy, PinnedHome(source));
+  CopyLocalFileGrant(source, copy);
   if (GroupPinned(source)) copy->SetUserData(kGroupPinKey, std::make_unique<GroupPinData>());
   if (HasInheritedDocumentPolicy(source))
     blanc::quiet::MediaHistory::Get(copy)->MarkInheritedPolicy();
@@ -11538,6 +11545,7 @@ void PreserveDiscardedTabState(content::WebContents* old_tab, content::WebConten
   if (!old_tab || !replacement || old_tab->GetBrowserContext() != replacement->GetBrowserContext()) return;
   RestoreInheritedSandbox(replacement, InheritedSandboxFlags(old_tab));
   SetPinnedHome(replacement, PinnedHome(old_tab));
+  CopyLocalFileGrant(old_tab, replacement);
   if (GroupPinned(old_tab)) replacement->SetUserData(kGroupPinKey, std::make_unique<GroupPinData>());
   if (auto* name = static_cast<TabNameData*>(old_tab->GetUserData(kTabNameKey)))
     replacement->SetUserData(kTabNameKey, std::make_unique<TabNameData>(name->name));
@@ -11549,6 +11557,52 @@ void PreserveDiscardedTabState(content::WebContents* old_tab, content::WebConten
     replacement->SetUserData(kTabIdentityKey, std::make_unique<TabIdentityData>(identity->id));
   if (auto* split = static_cast<PersistentSplitData*>(old_tab->GetUserData(kPersistentSplitKey)))
     replacement->SetUserData(kPersistentSplitKey, std::make_unique<PersistentSplitData>(split->focused));
+}
+// Local HTML files (N15). A tab's grant is saved with its session, so a
+// restored or reopened tab may load that one file again (the gate in
+// blanc/common/local_file_gate.h checks it on disk before every load).
+static_assert(std::string_view(kLocalFileGrantKey) == blanc::kLocalFileGrantKey);
+std::string LocalFileGrant(content::WebContents* tab) {
+  return tab && !tab->GetBrowserContext()->IsOffTheRecord() ? blanc::LocalFileGrantOf(tab) : std::string();
+}
+void SaveLocalFileGrant(content::WebContents* tab) {
+  const auto grant = blanc::LocalFileGrantOf(tab);
+  if (!tab || grant.empty() || tab->GetBrowserContext()->IsOffTheRecord()) return;
+  if (auto* browser = GlobalBrowserCollection::GetInstance()->FindBrowserWithTab(tab))
+    if (auto* service = SessionServiceFactory::GetForProfile(browser->GetProfile()))
+      service->AddTabExtraData(browser->GetSessionID(), sessions::SessionTabHelper::IdForTab(tab), blanc::kLocalFileGrantKey, grant);
+}
+void CopyLocalFileGrant(content::WebContents* source, content::WebContents* copy) {
+  if (const auto grant = blanc::LocalFileGrantOf(source); !grant.empty()) {
+    blanc::SetLocalFileGrant(copy, GURL(grant), false);
+    SaveLocalFileGrant(copy);
+  }
+}
+void OpenGrantedLocalHtml(int tries, const GURL& canonical) {
+  if (!canonical.is_valid() || !g_browser_process || g_browser_process->IsShuttingDown()) return;
+  auto* browser = RouteWindow();
+  // Opened while Blanc starts: wait for its first ordinary window, then make one.
+  if (!browser && tries > 0) {
+    base::SequencedTaskRunner::GetCurrentDefault()->PostDelayedTask(FROM_HERE,
+        base::BindOnce(&OpenGrantedLocalHtml, tries - 1, canonical), base::Milliseconds(250));
+    return;
+  }
+  if (!browser) browser = EnsureRouteWindow();
+  if (!browser) return;
+  blanc::AddPendingLocalFileGrant(canonical);
+  OpenRoutedURL(browser, canonical, false, false);
+}
+// The operating system's open-file path (Finder, Open With, a dropped Dock
+// file): shipping's openLocalHtmlFiles. Only an existing, regular local HTML
+// document opens, at its canonical address, in an ordinary tab that holds the
+// grant for that one file. Anything else is refused.
+void OpenLocalHtmlFile(const GURL& url) {
+  if (!blanc::SupportedLocalHtmlUrl(url)) return;
+  if (!blanc::LocalFileGrantSaver()) blanc::LocalFileGrantSaver() = base::BindRepeating(&SaveLocalFileGrant);
+  base::ThreadPool::PostTaskAndReplyWithResult(FROM_HERE,
+      {base::MayBlock(), base::TaskPriority::USER_VISIBLE},
+      base::BindOnce(&blanc::CanonicalLocalHtmlUrl, url),
+      base::BindOnce(&OpenGrantedLocalHtml, 40));
 }
 std::string PinnedHome(content::WebContents* tab) {
   auto* home = tab ? static_cast<TabNameData*>(tab->GetUserData(kPinnedHomeKey)) : nullptr;
@@ -11630,6 +11684,11 @@ void RestoreCustomTabName(content::WebContents* tab,
   if (!IsEnabled() || !tab || tab->GetBrowserContext()->IsOffTheRecord()) return;
   const auto home = extra_data.find(kPinnedHomeKey);
   SetPinnedHome(tab, home == extra_data.end() ? "" : home->second);
+  if (const auto local = extra_data.find(blanc::kLocalFileGrantKey);
+      local != extra_data.end() && blanc::SupportedLocalHtmlUrl(GURL(local->second))) {
+    blanc::SetLocalFileGrant(tab, GURL(local->second), false);
+    SaveLocalFileGrant(tab);
+  }
   const auto shared = extra_data.find(kSharedTabIdKey);
   if (shared != extra_data.end() && !shared->second.empty())
     tab->SetUserData(kSharedTabIdKey, std::make_unique<TabNameData>(shared->second));
@@ -11686,10 +11745,15 @@ std::string PersistentSplitState(content::WebContents* tab) {
 // persistent split counts once, at its first pane. Cyclic next/previous still
 // visits individual panes, matching the Electron reference.
 std::map<std::string, std::string> ClosedBatchExtraData(content::WebContents* tab) {
+  // A closed local HTML tab (N15) reopens with its grant, checked again on disk.
+  std::map<std::string, std::string> extra;
+  if (const auto grant = blanc::LocalFileGrantOf(tab); !grant.empty() && !tab->GetBrowserContext()->IsOffTheRecord())
+    extra[blanc::kLocalFileGrantKey] = grant;
   auto* data = static_cast<ClosedBatchData*>(tab->GetUserData(kClosedBatchKey));
-  if (!data) return {};
-  return {{kClosedBatchKey, data->id}, {kClosedBatchOrderKey, base::NumberToString(data->order)},
-      {kClosedBatchActiveKey, data->active ? "1" : "0"}};
+  if (!data) return extra;
+  extra.insert({{kClosedBatchKey, data->id}, {kClosedBatchOrderKey, base::NumberToString(data->order)},
+      {kClosedBatchActiveKey, data->active ? "1" : "0"}});
+  return extra;
 }
 bool RestoreClosedSplitFromCommand(BrowserWindowInterface* browser) {
   if (!IsIslandWindow(browser) || browser->GetProfile()->IsOffTheRecord()) return false;
@@ -11771,6 +11835,9 @@ bool IsMiniWindow(BrowserWindowInterface* browser) { return MiniState(browser) !
 void OpenMiniWindow() { CreateMiniWindow(); }
 
 bool OpenExternalLink(const GURL& url) {
+  // A local file never reaches Chromium's own startup tabs: Blanc opens a
+  // supported HTML document itself and drops everything else (N15).
+  if (url.SchemeIsFile() && IsEnabled()) { OpenLocalHtmlFile(url); return true; }
   if (!g_browser_process || !g_browser_process->local_state() || !g_browser_process->profile_manager() || !url.SchemeIsHTTPOrHTTPS()) return false;
   if (const auto rule = MatchingLinkRoute(url); rule && BeginLinkRoute(url, *rule, nullptr, false)) return true;
   auto* browser = RouteWindow();

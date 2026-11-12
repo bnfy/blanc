@@ -5,6 +5,9 @@
 #include "blanc/content/public/common/blanc_research_build.h"
 #include "build/build_config.h"
 #if !BUILDFLAG(IS_ANDROID)
+#include "blanc/common/local_file_gate.h"
+#endif
+#if !BUILDFLAG(IS_ANDROID)
 #include "chrome/browser/profiles/nuke_profile_directory_utils.h"
 #endif
 #if BUILDFLAG(IS_ANDROID)
@@ -1107,7 +1110,52 @@ std::unique_ptr<content::CommitDeferringCondition> MaybeCreateActivationGate(
 #endif
   return std::make_unique<ActivationGate>(navigation);
 }
+#if !BUILDFLAG(IS_ANDROID)
+namespace {
+class LocalFileGate : public content::NavigationThrottle {
+ public:
+  explicit LocalFileGate(content::NavigationThrottleRegistry& registry)
+      : content::NavigationThrottle(registry) {}
+  const char* GetNameForLogging() override { return "BlancLocalFileGate"; }
+  ThrottleCheckResult WillStartRequest() override { return Check(); }
+  ThrottleCheckResult WillRedirectRequest() override { return Check(); }
+
+ private:
+  ThrottleCheckResult Check() {
+    const GURL& url = navigation_handle()->GetURL();
+    if (!url.SchemeIsFile()) return PROCEED;
+    if (!SupportedLocalHtmlUrl(url)) return CANCEL_AND_IGNORE;
+    // Decided after the disk check, so a grant its opener sets in the same
+    // turn (a restored or duplicated tab) is seen.
+    base::ThreadPool::PostTaskAndReplyWithResult(FROM_HERE,
+        {base::MayBlock(), base::TaskPriority::USER_VISIBLE},
+        base::BindOnce(&LocalHtmlFileStillValid, url),
+        base::BindOnce(&LocalFileGate::Decide, weak_.GetWeakPtr(), LocalFileWithoutRef(url)));
+    return DEFER;
+  }
+  void Decide(const GURL& url, bool valid) {
+    auto* tab = navigation_handle()->GetWebContents();
+    if (valid && TakePendingLocalFileGrant(url)) SetLocalFileGrant(tab, url, true);
+    if (valid && LocalFileGrantOf(tab) == url.spec()) Resume();
+    else CancelDeferredNavigation(CANCEL_AND_IGNORE);
+  }
+  base::WeakPtrFactory<LocalFileGate> weak_{this};
+};
+
+// A main-frame `file:` navigation is this gate's to decide. Frames inside a
+// granted document keep Chromium's own local-file rules.
+void AddLocalFileGate(content::NavigationThrottleRegistry& registry) {
+  auto& navigation = registry.GetNavigationHandle();
+  if (navigation.IsInMainFrame() && navigation.GetURL().SchemeIsFile())
+    registry.AddThrottle(std::make_unique<LocalFileGate>(registry));
+}
+}  // namespace
+#endif
 void AddNavigationResponseGate(content::NavigationThrottleRegistry& registry) {
+#if !BUILDFLAG(IS_ANDROID)
+  // Local HTML files (N15) are gated whether or not the blocker is running.
+  AddLocalFileGate(registry);
+#endif
   if (!BlockerAvailable()) return;
 #if BLANC_RESEARCH_HOOKS
   if (base::CommandLine::ForCurrentProcess()->HasSwitch("blanc-ubo-component-probe")) return;

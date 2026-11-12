@@ -47,7 +47,15 @@ export const forkUrl=url=>{
 export const core={
  state:w=>w.state(),
  async openTab(w,url,opts){
-  if(opts?.allowLocalFile)throw new UndefinedNativeAdapterError('N15 isolated local HTML session is not implemented; a raw file navigation would bypass its access policy');
+  // A local HTML file arrives through the operating system's open-file path
+  // (N15): the fork opens it in a new tab that holds the grant for that file.
+  if(opts?.allowLocalFile){
+   if(Object.keys(opts).some(k=>k!=='allowLocalFile'))throw new UndefinedNativeAdapterError('Tab creation options need an adapter: '+Object.keys(opts));
+   const before=new Set((await w.snapshot()).tabs.map(t=>t.id)),file=String(url);
+   if(await w.native('testOpenLocalFile',[file])!==true)throw Error('The native open-file path did not take the local file');
+   const opened=s=>s.tabs.find(t=>!before.has(t.id)&&t.url===file&&!t.loading);
+   return (await w.waitForState(s=>Boolean(opened(s)))).tabs.find(t=>!before.has(t.id)&&t.url===file).id;
+  }
   if(opts&&Object.keys(opts).some(k=>k!=='private'))throw new UndefinedNativeAdapterError('Tab creation options need an adapter: '+Object.keys(opts));
   // A private tab opens in this window on the private profile (D1). Its
   // shipping address is the private Start Page, blanc://newtab/?private=1:

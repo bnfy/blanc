@@ -97,6 +97,9 @@ inline constexpr char kGroupPinKey[] = "blanc.tab.group-pin.v1";
 bool GroupPinned(content::WebContents* tab);
 void SetGroupPinned(content::WebContents* tab, bool pinned);
 inline constexpr char kPinnedHomeKey[] = "blanc.tab.pinned-home.v1";
+// The one local HTML file a tab was granted (N15), saved with its session.
+inline constexpr char kLocalFileGrantKey[] = "blanc.tab.local-file.v1";
+std::string LocalFileGrant(content::WebContents* tab);
 std::string PinnedHome(content::WebContents* tab);
 void SetPinnedHome(content::WebContents* tab, const std::string& url);
 void ApplyPinnedHomesOnStartup(Profile* profile,
