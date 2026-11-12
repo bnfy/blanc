@@ -10,6 +10,7 @@ export const GLANCE_STEPS = new Map([
   assert.equal(await this.native('previewPageCommand',['close']),true);
  }],
  ['I dismiss the orphaned Change picker with Escape',async function(){
+  assert.equal(await this.call('focusWindow'),true,'the keyboard target window is active');
   await this.frame('glanceCardFrame').evaluate(()=>{
    window.__glanceRestoreTriggerProbe='unset';
    window.browserAPI.onIslandState(({restoreTrigger})=>{window.__glanceRestoreTriggerProbe=restoreTrigger;});
@@ -35,6 +36,7 @@ export const GLANCE_STEPS = new Map([
   assert.equal(trigger,null,'cancel restored focus toward a control that no longer exists');
   await this.waitFor(()=>this.snapshot(),s=>String(s.focusedTabId)===String(this.glanceMainId),'main page native focus');
   const main=await tabPage(this,this.glanceMainId);
+  await this.waitFor(()=>main.evaluate(()=>document.hasFocus()),Boolean,'main page document keyboard focus');
   assert.equal(await main.evaluate(()=>document.hasFocus()),true,'main page owns keyboard focus');
  }],
 ]);

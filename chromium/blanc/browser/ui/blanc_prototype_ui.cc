@@ -10260,6 +10260,18 @@ class Handler : public content::WebUIMessageHandler, public extensions::Extensio
       owner->view->GetWebContents()->Focus();
       reply(true, base::Value()); return;
     }
+    if (method == "sampleIslandCursor" && args.empty()) {
+      const auto geometry = RevealGeometryFor(owner);
+      const auto point = SampledCursor(owner, geometry);
+      if (!point) { reply(true, base::Value()); return; }
+      const auto host_bounds = owner->view->GetBoundsInScreen();
+      const double zoom = blink::ZoomLevelToZoomFactor(
+          content::HostZoomMap::GetZoomLevel(owner->view->GetWebContents()));
+      reply(true, base::Value(base::DictValue()
+          .Set("x", (point->x + geometry.content.x() - host_bounds.x()) / zoom)
+          .Set("y", (point->y + geometry.content.y() - host_bounds.y()) / zoom)));
+      return;
+    }
     if (method == "focusPage" && args.empty()) {
       // Escape and outside clicks hand focus back to the page, as Electron's
       // hideOverlay does, instead of parking it in the hidden overlay.

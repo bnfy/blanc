@@ -1,6 +1,6 @@
 # Result
 
-Queue 5 is in progress. The rendering guard is clear again; focused native runs have resumed.
+Queue 5's authorized implementation and verification are complete; four explicit gaps remain.
 
 | Classification | Cases | Newly passing |
 | --- | ---: | ---: |
@@ -8,13 +8,18 @@ Queue 5 is in progress. The rendering guard is clear again; focused native runs 
 | b: missing fork capability / blocked acceptance | 49 | 45 |
 | c: inapplicable by platform or approved construction | 22 | 0 |
 
-Current tested candidate: `macos-343a9dfa66dcb9d3`, `q5-icon-catalog-1-runtime-config.json`.
+Final candidate: `macos-d502a709c87e5d11`, `q5-final-repair-2-runtime-config.json`.
 Sync gate: 22/22 on macos-5c8b4b1dd486a8a4 (`q5-mini-window-sync-1`); Sync code unchanged since.
-Inventory baseline: 533 pass / 3 fail (subsequently repaired) / 102 undefined / 2 excluded.
-Final inventory: owed, once after implementation. Lost passes: not yet measured.
-Owner needs: beta/updater hold and release-only Patron activation; signed physical Touch ID acceptance.
-Unverified: four capability/held-acceptance cases and final full inventory.
-No push, release, signing, production/Apple/1Password contact, live-tree changes or toolchain installation authorized.
+Inventory baseline: 533 pass / 3 fail / 102 undefined / 2 excluded.
+One full inventory on macos-343a9dfa66dcb9d3: 607 pass / 5 fail / 4 undefined / 24 excluded.
+Final candidate: all five failed cases pass without retry in q5-final-repaired-cases-2.
+Combined evidence: 612 pass / 0 fail / 4 undefined / 24 excluded; this is not a repeated full inventory.
+Lost passes: three found, all three repaired; none outstanding. Starting gaps now passing: 76/102.
+Owner boundaries: beta/updater hold; release-only Patron activation; signed physical Touch ID acceptance.
+N15 local HTML preview remains a separate missing native isolation surface, detailed below.
+Unverified: those four cases; full inventory on the repaired binary was deliberately not repeated.
+Supplemental limits: physical Dock artwork/global-shortcut invocation and non-Reload gestures were not individually asserted.
+No push, publishing, signing, production/Apple/1Password contact, live-tree changes or toolchain installation.
 
 ## Classification of all 102 starting gaps
 
@@ -606,3 +611,66 @@ Patch budget remains 135 upstream paths / 490 incremental hunks. Sync code and
 the phone path are unchanged. Remaining b cases: beta updater, physical Touch ID,
 release-only Patron activation, and the non-self-contained N15 preview surface
 specified above. The one final complete inventory is next.
+
+## 18 — Single final inventory and repairs
+
+q5-final-inventory completed all 640 cases on macos-343a9dfa66dcb9d3,
+q5-icon-catalog-1-runtime-config.json, fork commit d63aeb4c. The immutable raw
+receipt is baseline-macos-343a9dfa66dcb9d3.json; q5-final-comparison.json
+records 607 pass / 5 fail / 4 undefined / 24 excluded against 533/3/102/2.
+There are 77 new passes (74 starting undefined cases and all three prior
+failures), and three lost passes. All eight Send and 33 Shared Spaces cases pass.
+
+The five failures all repeated on the runner's existing retry:
+Find :7, Glance :31/:81/:207, and Island/commands :61. Find :7, Glance :81
+and Island :61 were previous passes. Those failures were carried into guarded repair builds and
+only the failed scenarios were rerun; the complete inventory was not repeated.
+The raw receipt retains its actual candidate, even if the repair build changes.
+
+First repair candidate macos-eefc9365b6cabe92 / q5-final-repair-1 built eight
+incremental actions in 36.77s. q5-final-repaired-cases-1 passes all five, but
+Glance :31 needed a retry. Diagnostic-1's extra tracing delay hid the race;
+diagnostic-2 reproduced it twice and recorded native Glance null while the
+host/hidden Glance card still owned focus. The Change picker used a cached
+pair to restore a control that no longer existed. Cancellation now refreshes
+native ownership and checks its epoch before choosing the focus target. Six
+focused lifecycle tests pass, including cancellation superseded by a new view.
+The second guarded repair build and the same five cases are recorded below.
+
+The final repair build is macos-d502a709c87e5d11,
+q5-final-repair-2-runtime-config.json: seven incremental actions, 21.11s.
+q5-final-repaired-cases-2 passes all five repaired scenarios on first attempts.
+q5-final-repair-comparison.json verifies the exact five-failure replacement,
+all 533 former passes accounted for, 76/102 starting gaps passing, and the
+qualified combined total 612/0/4/24. The complete inventory was not repeated;
+the tracker retains its original 343a9dfa66dcb9d3 receipt and correctly marks
+Bar A stale for the final binary.
+
+Repairs preserve the shipping assertions:
+- Find opening waits until its current renderer receives initialization;
+  cancellation settles the pending handoff and stale callbacks cannot reset it.
+- Glance records native ownership before first layout, preserving close
+  announcements without hiding an old card during replacement.
+- Picker dismissal restores focus after teardown and reads current native
+  Glance ownership before returning to Change. A newer surface supersedes it.
+  The adapter activates the keyboard target window and waits for actual
+  document focus, retaining both native-focus and document-focus assertions.
+- Mouse input carries the held-button bitmask, waits for the native page view,
+  and flushes the real mouse-move frame before release; no reload is synthesized.
+- Island dismissal samples the native cursor through the existing auto-hide
+  policy, including the test cursor and host zoom, rather than a mouseleave-
+  invalidated last event.
+
+Full inventory timing: 6,829.0 recorded case seconds. Seven cases used the
+existing retry: the five failures plus F41 :189 and link-routing :37, which
+passed on retry. Eight timeout observations remain in timing.json, including
+a recovered Glance :234 poll. Earlier failures and diagnostic runs are retained.
+Sync code and the phone path are unchanged by these repairs; the full 22/22
+Sync gate remains applicable to that unchanged code. Patch budget remains
+135 incremental upstream paths / 490 hunks; canonical reconstruction is 173/585.
+
+Final precommit: q5-final-precommit.tap passes 320/320;
+q5-final-patches.json passes reconstruction of 173 upstream / 585 canonical
+files. Progress and whitespace checks pass. Read-only src/, spec/, and
+test/desktop/ remain byte-unchanged from 2014e2fa; no phone Sync path changed.
+All changes are local commits only. No build or test is left running.

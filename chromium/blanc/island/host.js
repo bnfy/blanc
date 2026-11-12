@@ -562,7 +562,7 @@
   // card's generation, so a message from a card that has gone is refused. The
   // save is debounced and a close flushes it.
   const GlanceCard = window.BlancGlanceCard;
-  const glance = { ready: false, loadEpoch: 0, tabId: null, generation: 0, pending: undefined, timer: null, key: '', requestEpoch: 0 };
+  const glance = { ready: false, loadEpoch: 0, tabId: null, nativeTabId: null, nativeMainId: null, generation: 0, pending: undefined, timer: null, key: '', requestEpoch: 0 };
   const glanceArea = () => snapshot?.splitGeometry?.mode === 'glance' ? snapshot.splitGeometry.pageArea : null;
   const glanceFractions = () => (glance.pending !== undefined ? glance.pending : snapshot?.glanceFrame ?? null);
   const glanceCardFrameNow = () => GlanceCard.fractionsToFrame(glanceFractions(), glanceArea());
@@ -614,24 +614,26 @@
   }
   function syncGlance() {
     const id = snapshot?.glanceTabId ?? null;
-    // The native pair precedes its layout. Keep the current card while a
-    // replacement gets its page area; publishing null here erases the old
-    // identity and turns Change into a hide/show instead of a cross-fade.
-    // For a first open the card remains hidden until this same layout arrives.
+    // Native ownership can change before the first card layout. Remember it
+    // independently of the visual identity so an immediate close still
+    // announces which page survived.
+    if (id !== glance.nativeTabId) {
+      const open = tabId => snapshot.tabs.some(tab => String(tab.id) === String(tabId));
+      if (id == null && glance.nativeTabId != null && !glance.closing) {
+        if (!open(glance.nativeTabId)) glanceSay('glance.status.tabClosed');
+        else if (!open(glance.nativeMainId)) glanceSay('glance.status.mainClosed', { title: glanceTitle(glance.nativeTabId) });
+      }
+      glance.nativeTabId = id;
+    }
+    if (id != null) glance.nativeMainId = snapshot.activeTabId;
+    // A replacement keeps the old card while its page area is pending; the
+    // first card stays hidden until native layout and the renderer are ready.
     if (id != null && !glanceArea()) { setTimeout(refresh, 50); return; }
     if (id !== glance.tabId) {
-      // Shipping's announcements for a Glance that ended with its tab.
-      const open = tabId => snapshot.tabs.find(tab => tab.id === tabId);
-      if (id == null && glance.tabId != null && !glance.closing) {
-        if (!open(glance.tabId)) glanceSay('glance.status.tabClosed');
-        else if (!open(glance.mainId)) glanceSay('glance.status.mainClosed', { title: glanceTitle(glance.tabId) });
-      }
       flushGlanceSave(); glance.tabId = id; glance.generation += 1;
     }
     if (id != null) glance.mainId = snapshot.activeTabId;
     publishGlance();
-    // Native reports the page area after its next layout.
-    if (id != null && !glanceArea()) setTimeout(refresh, 50);
   }
   function changeGlanceCard(input, next) {
     if (snapshot?.glanceTabId == null || Number(input?.generation) !== glance.generation) return null;
@@ -1175,6 +1177,7 @@
   function invalidateFindShow(preserveShield = false) {
     if (!preserveShield) pendingShieldOpen = null;
     ++findShowEpoch;
+    pendingFindShow?.resolve();
     pendingFindShow = null;
   }
 
@@ -1184,11 +1187,15 @@
         !opened || overlayMode !== 'find' || findTabId !== pending.tabId ||
         !pruneOverlayShowSubscribers()?.size) return;
     pendingFindShow = null;
-    emit('onOverlayShow', { mode: 'find', purpose: { findTabId: pending.tabId } });
-    // A callback may synchronously close or replace the overlay.
-    if (epoch !== findShowEpoch || !opened || overlayMode !== 'find') return;
-    overlay.contentWindow.focus();
-    reportGeometry();
+    try {
+      emit('onOverlayShow', { mode: 'find', purpose: { findTabId: pending.tabId } });
+      // A callback may synchronously close or replace the overlay.
+      if (epoch !== findShowEpoch || !opened || overlayMode !== 'find') return;
+      overlay.contentWindow.focus();
+      reportGeometry();
+    } finally {
+      pending.resolve();
+    }
   }
 
   async function openFindBar() {
@@ -1218,9 +1225,13 @@
     opened = true;
     overlay.hidden = false;
     emit('onIslandState', { mode: 'find' });
-    pendingFindShow = { epoch, tabId: findTabId };
-    requestAnimationFrame(() => deliverFindShow(epoch));
-    setTimeout(() => deliverFindShow(epoch), 250);
+    // A caller may type as soon as opening resolves. Wait until the current
+    // renderer has received the initialization that clears its previous query.
+    await new Promise(resolve => {
+      pendingFindShow = { epoch, tabId: findTabId, resolve };
+      requestAnimationFrame(() => deliverFindShow(epoch));
+      setTimeout(() => deliverFindShow(epoch), 250);
+    });
   }
 
   async function close(focus = true, restoreTrigger = null) {
@@ -1261,12 +1272,18 @@
     // hideOverlay does the same); extension activation passes false so the
     // native popup takes focus instead.
     if (restoreTrigger) strip.contentWindow.focus();
+    else if (focus) await request('focusPage');
     if (epoch !== findShowEpoch) return;
     reportGeometry();
     // The resting pointer is sampled where it is now, as shipping's
     // hideOverlay does: still over the address it disarms hover-open instead
     // of reopening, and anywhere off the Island (no point) it re-arms it.
-    updateHover(hover.lastPoint, { sampled: true });
+    const cursor = await request('sampleIslandCursor');
+    if (epoch !== findShowEpoch) return;
+    const stripBounds = strip.getBoundingClientRect();
+    const point = cursor && { x: cursor.x - stripBounds.x, y: cursor.y - stripBounds.y };
+    hover.lastPoint = point;
+    updateHover(point, { sampled: true });
   }
 
   const extensionsPanel = new window.BlancExtensions({
@@ -2271,6 +2288,11 @@
         return close(false, 'spaces');
       if (overlayMode === 'glance' && reason !== 'selected') {
         glance.requestEpoch += 1;
+        const epoch = findShowEpoch;
+        // The reference can close behind this picker before the next poll.
+        // Only a current native pair can own the Change control's focus.
+        await refresh();
+        if (epoch !== findShowEpoch || overlayMode !== 'glance') return;
         if (overlayPurpose === 'change' && snapshot?.glanceTabId != null) {
           await close(false);
           emit('onIslandState', { mode: null, trigger: null, restoreTrigger: 'glance-change' });

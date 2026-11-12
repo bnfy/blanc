@@ -14,7 +14,7 @@ export function cdpMouse(input,offset={x:0,y:0}){
  const type=MOUSE[input?.type];
  if(!type)throw new UndefinedNativeAdapterError('Mouse input shim lacks '+input?.type);
  const button=type==='mouseMoved'?(input.button?String(input.button):'none'):String(input.button||'left');
- return {type,x:Number(input.x)+offset.x,y:Number(input.y)+offset.y,button,clickCount:Number(input.clickCount)||(type==='mouseMoved'?0:1)};
+ return {type,x:Number(input.x)+offset.x,y:Number(input.y)+offset.y,button,buttons:type==='mouseReleased'?0:({left:1,right:2,middle:4}[button]??0),clickCount:Number(input.clickCount)||(type==='mouseMoved'?0:1)};
 }
 // Electron keyDown/char/keyUp with a one-character keyCode -> CDP key events.
 export function cdpKey(input){
@@ -218,7 +218,21 @@ export const island={
  overlayDragging:w=>w.hostEval('window.BlancPrototypeHost.overlayDragging()'),
  // ---- tab documents ----
  setMouseGestures:(w,enabled,mapping)=>w.native("setMouseGestures",mapping===undefined?[!!enabled]:[!!enabled,mapping]),
- async sendMouseInput(w,id,input){const page=await tabPage(w,id);await page.evalExpression('1');return send(page.cdp,input);},
+ async sendMouseInput(w,id,input){
+  const page=await tabPage(w,id);await page.evalExpression('1');
+  if(input?.type==='mouseDown'){
+   await w.waitFor(async()=>{
+    const s=await w.snapshot(),bounds=s.tabs.find(t=>String(t.id)===String(id))?.viewBounds;
+    const shown=String(s.glanceTabId)!==String(id)||(await w.hostEval('window.BlancPrototypeHost.glanceState()')).shown;
+    return !!bounds&&bounds.width>0&&bounds.height>0&&shown&&await page.evalExpression('document.visibilityState === "visible"');
+   },Boolean,'visible native input target');
+  }
+  const sent=await send(page.cdp,input);
+  // A CDP mouse-move acknowledgement can precede its frame dispatch. Flush
+  // it before the next release, as Electron sendInputEvent's native path does.
+  if(input?.type==='mouseMove')await page.evalExpression(nextFrames);
+  return sent;
+ },
  async typeIntoActivePage(w,key){const page=await activePage(w);await page.evalExpression('1');
   for(const type of ['keyDown','char','keyUp'])await page.cdp.send('Input.dispatchKeyEvent',cdpKey({type,keyCode:key}));return true;},
  // Keep the rail path for active tabs; background focus uses the test hook.
