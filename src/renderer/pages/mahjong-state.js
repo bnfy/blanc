@@ -499,8 +499,8 @@
   }
 
   // The last chosen table (layout, mode, deal source). Device-local like the
-  // sound and free-highlight preferences; a fresh tab starts from it instead
-  // of always dealing Daily Burst.
+  // sound preference; a fresh tab starts from it instead of always dealing
+  // Daily Burst.
   function createPrefsStore({ storage = defaultStorage() } = {}) {
     function read() {
       let raw = safeGet(storage, PREFS_KEY);

@@ -7327,6 +7327,10 @@
     "message": "tablero",
     "source": "sha256:3427faa722440de430c983369e0e58b06701bc2990a647d782ad0a1d8df17d67"
   },
+  "mahjong.setup.dailyLayoutHint": {
+    "message": "La partida diaria usa el diseño de hoy. Cambia a «Aleatoria» para elegir otro.",
+    "source": "sha256:24ae317b8e6bafdaa017aa28bd5de16c9cad98e1a4d978c34fa769e01922ce47"
+  },
   "mahjong.layout.turtleDetail": {
     "message": "144 fichas · tranquilo",
     "source": "sha256:64841fe57365e0fe1eb676f73cf291e3841e56b119084ecade3e5b655713add4"
@@ -7423,17 +7427,17 @@
     "message": "<0>Partida Zen</0> Oculta el tiempo y los puntos, y deja esta partida fuera de los récords.",
     "source": "sha256:e8fdf7aee42c0d71edd6664a8ab56c4d058ce69c39845175dd18db5af5c0741e"
   },
-  "mahjong.setup.freeHighlight": {
-    "message": "<0>Resaltado más fuerte de fichas libres</0> Añade un anillo fijo de alto contraste a cada ficha que se puede jugar.",
-    "source": "sha256:650c89c61e8a6a0d5510c12d722e090728f1a1e6de5fa1721488b217fc687810"
-  },
   "mahjong.setup.replaces": {
     "message": "Al empezar se sustituye el tablero que hay en esta mesa.",
     "source": "sha256:9aed92ef1a9909b68f6232fec4819c25a5b95b6775c1f6fdb98b9644760bb5d8"
   },
   "mahjong.setup.copyDeal": {
-    "message": "copiar la partida actual",
-    "source": "sha256:5eb79d2bca875e7438c52b53e1c3c598bc6f59db0360798c907f722367071ef9"
+    "message": "copiar enlace",
+    "source": "sha256:e72d235453e7a7f28c0215905385db9ae7471632a9f936085b2f480577cb469c"
+  },
+  "mahjong.setup.linkCopied": {
+    "message": "enlace copiado",
+    "source": "sha256:1feca2c795efb3afdcb911a8b712f3fb9b5b5227b343581ceb84830dab95a946"
   },
   "mahjong.setup.start": {
     "message": "empezar",
@@ -7842,6 +7846,42 @@
   "mahjong.win.quietTitle": {
     "message": "Un final tranquilo.",
     "source": "sha256:02044e13ec6e158bac2a971fc2e2f0ea9a63389de0f00fd67ced1158658b03fa"
+  },
+  "mahjong.win.titleRecord": {
+    "message": "Un nuevo récord personal.",
+    "source": "sha256:296fcbb0bf58ad579037f2e45e127d049b3b1c26f693421cb9020637fa75b48b"
+  },
+  "mahjong.win.titleFirst": {
+    "message": "Primera vez que completas {layout}.",
+    "source": "sha256:492d6aee3583db3f28e2578a9b2531ca85caaee02f5a62e02a9991440f275bc7"
+  },
+  "mahjong.win.titleStreak": {
+    "message": "{run} seguidas. Ahora, fichas nuevas.",
+    "source": "sha256:642b6f59f40afb5e5161033f33ce4c7700840ed95dc8a4661e5df6bc0990aca3"
+  },
+  "mahjong.win.titleDaily": {
+    "message": "La diaria de hoy, completada.",
+    "source": "sha256:5c4ba8ca52573baefdc2b9f533cea468af0bf4041862d8d153c58c1d0616bcf5"
+  },
+  "mahjong.win.titleSweep": {
+    "message": "Mesa limpia.",
+    "source": "sha256:ba94fd22d040b82da4dd12d0b04a8cea340475f79ff03ba35c9914619c54242c"
+  },
+  "mahjong.win.titleHome": {
+    "message": "Cada ficha en su sitio.",
+    "source": "sha256:097b24e605ab4fa2f4bd27482d89d76b863ca4429ca966a29adb6b65dc854586"
+  },
+  "mahjong.win.titleLastPair": {
+    "message": "Era la última pareja.",
+    "source": "sha256:32c4a8460e463ac717226fee92ed5ebfe95a18bff9fe55598d0f1e5004b347e0"
+  },
+  "mahjong.win.titleTidy": {
+    "message": "Una mesa ordenada.",
+    "source": "sha256:a1d6b160c314c1638f860cba6143d4fca81dc29319754587e71336c6f0d7895f"
+  },
+  "mahjong.win.titleWellPlayed": {
+    "message": "Bien jugado.",
+    "source": "sha256:100e0ace2b71fb0d9ae9c39be6d84ea1dbd06f5240d3cf33845a984f12350b47"
   },
   "mahjong.win.rules": {
     "message": "{mode} · {rules}",

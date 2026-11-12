@@ -123,7 +123,14 @@ test('Instrument Sans sets page text and the clock, and Inter keeps figures and 
   assert.doesNotMatch(chrome, /Blubird|--font-display|Newsreader/);
   assert.doesNotMatch(mahjong, /Blubird|--font-display/);
   const mahjongBody = mahjong.match(/\.mahjong-body \{([^}]*)\}/)[1];
-  assert.doesNotMatch(mahjongBody, /--font-text\s*:|--text-tracking\s*:/, 'Mahjong uses the shared Instrument Sans text face (owner choice, October 17)');
+  assert.doesNotMatch(mahjongBody, /--text-tracking\s*:/);
+  // Mahjong may restate the text stack only to drop the Inter fallback
+  // (owner choice, November 12, 2026); it still leads with Instrument Sans.
+  const mahjongStack = mahjongBody.match(/--font-text\s*:\s*([^;]+);/);
+  if (mahjongStack) {
+    assert.match(mahjongStack[1], /^"Instrument Sans",/, 'Mahjong uses the shared Instrument Sans text face');
+    assert.doesNotMatch(mahjongStack[1], /Inter/, 'Mahjong never falls back to Inter');
+  }
 });
 
 test('Instrument Sans ships in the repository with its OFL license', () => {

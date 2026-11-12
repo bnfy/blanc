@@ -271,7 +271,11 @@ function scoreElements() {
 
 function setDisplayedScore(value) {
   const label = Number(value || 0).toLocaleString(blancI18n.formatLocale());
-  for (const element of scoreElements()) element.textContent = label;
+  for (const element of scoreElements()) {
+    element.textContent = label;
+    // The side rack sizes its score from this, so long scores fit its width.
+    element.style.setProperty('--mj-score-chars', String(label.length));
+  }
 }
 
 function animateDisplayedScore(from, to, duration = 360) {
@@ -492,6 +496,9 @@ function activeModal() {
 
 function syncModalBackground() {
   const covered = Boolean(activeModal());
+  // A dialog's scrim covers the page's top edge, so the Island resamples its
+  // color when one opens or closes (the page watcher sees body changes).
+  document.body.classList.toggle('mj-dialog-open', covered);
   for (const element of modalBackground()) {
     element.inert = covered || tileAnimationBusy;
     element.toggleAttribute('aria-hidden', covered);
@@ -544,9 +551,11 @@ function setDialogVisible(element, visible) {
   }
   syncModalBackground();
   if (visible) {
-    requestAnimationFrame(() => element.querySelector(
+    // A dialog can name its main action with data-autofocus; otherwise the
+    // first control takes focus.
+    requestAnimationFrame(() => (element.querySelector('[data-autofocus]:not([disabled])') || element.querySelector(
       'button:not([disabled]):not([tabindex="-1"]), input:not([disabled])'
-    )?.focus({ preventScroll: true }));
+    ))?.focus({ preventScroll: true }));
   }
 }
 
@@ -1420,6 +1429,37 @@ function playCelebration(tier, style, done) {
   };
 }
 
+// Board-cleared titles: a notable moment gets its own line, otherwise one of
+// a few rotates, never the same one twice in a row. A board keeps the title
+// it was given while its card is shown again (undo, refit).
+const WIN_TITLES = [
+  t('mahjong.win.title'), t('mahjong.win.titleSweep'), t('mahjong.win.titleHome'),
+  t('mahjong.win.titleLastPair'), t('mahjong.win.titleTidy'), t('mahjong.win.titleWellPlayed'),
+];
+const LAST_WIN_TITLE_KEY = 'mahjong.win-title.last';
+
+function winTitle() {
+  if (game.zen) return t('mahjong.win.quietTitle');
+  if (game._outcome === 'record') return t('mahjong.win.titleRecord');
+  if (game._outcome === 'first') return t('mahjong.win.titleFirst', { layout: layoutName(game.layoutId) });
+  const streak = game._clearStreak ?? 0;
+  if (streak > 0 && streak % S.CLEARS_PER_TILE_THEME === 0) {
+    // "Three in a row": the tile names' number words, digits above nine.
+    const word = NUM_WORDS[streak - 1];
+    const run = word ? word.charAt(0).toLocaleUpperCase(blancI18n.formatLocale()) + word.slice(1) : numberFormat.format(streak);
+    return t('mahjong.win.titleStreak', { run });
+  }
+  if (game.dailyKey && game.dailyKey === S.dailyDeal(new Date()).dailyKey) return t('mahjong.win.titleDaily');
+  if (!Number.isInteger(game._winTitleIndex)) {
+    let last = -1;
+    try { last = Number(localStorage.getItem(LAST_WIN_TITLE_KEY) ?? -1); } catch { /* per-session */ }
+    const choices = WIN_TITLES.map((_, index) => index).filter((index) => index !== last);
+    game._winTitleIndex = choices[Math.floor(Math.random() * choices.length)];
+    try { localStorage.setItem(LAST_WIN_TITLE_KEY, String(game._winTitleIndex)); } catch { /* per-session */ }
+  }
+  return WIN_TITLES[game._winTitleIndex];
+}
+
 function showWin({ celebrate = false } = {}) {
   const best = bestForGame();
   const win = document.getElementById('mjWin');
@@ -1432,7 +1472,7 @@ function showWin({ celebrate = false } = {}) {
     : isBurst ? t('mahjong.live.wonBurst', { count: game.score, time }) : t('mahjong.live.wonClassic', { time });
   win.dataset.mode = isBurst ? 'burst' : 'classic';
   win.dataset.zen = String(isZen);
-  document.getElementById('mjWinTitle').textContent = isZen ? t('mahjong.win.quietTitle') : t('mahjong.win.title');
+  document.getElementById('mjWinTitle').textContent = winTitle();
   document.getElementById('mjWinRules').textContent = t('mahjong.win.rules', {
     mode: modeName(game.mode), rules: rulesName(game.mode, game.burstRules, isZen),
   });
@@ -1480,7 +1520,6 @@ function showWin({ celebrate = false } = {}) {
 
 // --- lifecycle ------------------------------------------------------------
 
-const FREE_HIGHLIGHT_KEY = 'mahjong.free-highlight';
 let gameId = null;
 let gameStore = null;
 let recordStore = null;
@@ -1601,6 +1640,17 @@ function startPreferredGame({ soundCue = false } = {}) {
   }, { soundCue });
 }
 
+// The copy button reads "link copied" for a moment; both labels share one
+// grid cell, so the button keeps its width.
+let copiedTimer = null;
+function showCopied() {
+  const button = document.getElementById('mjCopyDeal');
+  if (!button) return;
+  window.clearTimeout(copiedTimer);
+  button.classList.add('is-copied');
+  copiedTimer = window.setTimeout(() => button.classList.remove('is-copied'), 1600);
+}
+
 async function copyCurrentDeal() {
   if (!game) return false;
   let link;
@@ -1611,6 +1661,7 @@ async function copyCurrentDeal() {
   try {
     await navigator.clipboard.writeText(link);
     announce(t('mahjong.live.copied'));
+    showCopied();
     return true;
   } catch {
     announce(t('mahjong.live.linkCopyFailed'));
@@ -1700,6 +1751,8 @@ function paintSetupChoices() {
     button.setAttribute('aria-pressed', String(selected));
     button.disabled = setupChoice.source === 'daily';
   }
+  const layoutHint = document.getElementById('mjLayoutHint');
+  if (layoutHint) layoutHint.hidden = setupChoice.source !== 'daily';
   for (const button of document.querySelectorAll('#mjSetupSheet button[data-mode]')) {
     const selected = button.dataset.mode === setupChoice.mode;
     button.classList.toggle('selected', selected);
@@ -1763,6 +1816,8 @@ function openSetup() {
 
 function closeSetup() {
   setDialogVisible(document.getElementById('mjSetupSheet'), false);
+  window.clearTimeout(copiedTimer);
+  document.getElementById('mjCopyDeal')?.classList.remove('is-copied');
   if (setupReturnToWin && E.isWon(game)) {
     setupReturnToWin = false;
     setDialogVisible(document.getElementById('mjWin'), true);
@@ -1930,22 +1985,6 @@ document.getElementById('mjRescueRestart')?.addEventListener('click', () => {
   if (started) requestAnimationFrame(() => tileButtons[focusIndex]?.focus({ preventScroll: true }));
 });
 
-const freeHighlight = document.getElementById('mjFreeHighlight');
-function setFreeHighlight(enabled) {
-  document.body.dataset.freeHighlight = enabled ? 'strong' : 'standard';
-  const shell = document.querySelector('.mj');
-  if (shell) shell.dataset.freeHighlight = enabled ? 'strong' : 'standard';
-  if (freeHighlight) {
-    freeHighlight.checked = enabled;
-    freeHighlight.defaultChecked = enabled;
-  }
-  try { localStorage.setItem(FREE_HIGHLIGHT_KEY, enabled ? 'on' : 'off'); } catch { /* per-session */ }
-}
-let strongFree = false;
-try { strongFree = localStorage.getItem(FREE_HIGHLIGHT_KEY) === 'on'; } catch { /* default restrained */ }
-setFreeHighlight(strongFree);
-freeHighlight?.addEventListener('change', () => setFreeHighlight(freeHighlight.checked));
-
 function installDuplicateGuard() {
   if (duplicateGuard || typeof BroadcastChannel !== 'function') return;
   duplicateChannel = new BroadcastChannel('blanc-mahjong-v3-live');
@@ -1994,6 +2033,8 @@ function bootstrap() {
   gameStore = S.createGameStore({ storage: localStorage, engine: E });
   recordStore = S.createRecordStore({ storage: localStorage });
   prefsStore = S.createPrefsStore({ storage: localStorage });
+  // The stronger free-tile highlight was removed; drop its saved choice.
+  try { localStorage.removeItem('mahjong.free-highlight'); } catch { /* per-session */ }
   progressStore = S.createProgressStore({ storage: localStorage });
   recordStore.migrateLegacy();
 

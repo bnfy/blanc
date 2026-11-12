@@ -195,6 +195,40 @@ try {
     counts: [1, 2, 3], theme: 'carved', afterUntouched: 3, afterAbandon: 0, themeAfterAbandon: 'porcelain',
   }, 'clear streak across deals in one tab');
 
+  // The board-cleared title names a notable moment, else rotates without
+  // repeating itself.
+  const titles = await mahjongJs(`(() => {
+    const saved = { ...game };
+    const pick = (fields) => {
+      Object.assign(game, { zen: false, _outcome: 'none', _clearStreak: 1, dailyKey: null, _winTitleIndex: undefined }, fields);
+      return winTitle();
+    };
+    const today = S.dailyDeal(new Date()).dailyKey;
+    const result = {
+      record: pick({ _outcome: 'record', _clearStreak: 3 }),
+      first: pick({ _outcome: 'first', layoutId: 'arch' }),
+      streak: pick({ _clearStreak: 3, dailyKey: today }),
+      streakNine: pick({ _clearStreak: 9 }),
+      daily: pick({ dailyKey: today }),
+      zen: pick({ zen: true, _outcome: 'record' }),
+    };
+    const rotations = Array.from({ length: 12 }, () => pick({}));
+    result.repeats = rotations.some((title, i) => i > 0 && title === rotations[i - 1]);
+    result.rotating = new Set(rotations).size > 1 && rotations.every((title) => WIN_TITLES.includes(title));
+    Object.assign(game, saved);
+    return result;
+  })()`);
+  assert.deepEqual(titles, {
+    record: 'A new personal best.',
+    first: 'First time clearing Arch.',
+    streak: 'Three in a row. New tiles next.',
+    streakNine: 'Nine in a row. New tiles next.',
+    daily: 'Today\u2019s Daily, done.',
+    zen: 'A quiet finish.',
+    repeats: false,
+    rotating: true,
+  }, 'board-cleared titles');
+
   const savedGameUrl = (await app.evaluate(() => globalThis.__blanc.state()))
     .tabs.find((tab) => tab.id === launched.activeTabId)?.loadedUrl;
   assert.ok(savedGameUrl?.startsWith('blanc://mahjong/'));

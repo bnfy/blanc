@@ -506,7 +506,7 @@
     },
     {
       "file": "src/main/page-tint-policy.js",
-      "sha256": "482979bdc155e8f7782c130fe07dc8b108628e9f193331219df9b8bb701eb487",
+      "sha256": "b3287b2472ab57b642a3a20fd0c3e7b91ff4c78edaadf24df82d359ca88f3235",
       "literalChannels": [],
       "role": "foreground/main-frame eligibility policy"
     },
@@ -983,7 +983,7 @@
     },
     {
       "file": "src/main/tab-preload.js",
-      "sha256": "77c36a7b0ef913b38a90983ec9534f594ff7beba05c40440a7d68ef4a738f38d",
+      "sha256": "2382ad567d5996a9c4834acbbf4be4db3a71f5ca066f6b367e8112a83b2055fa",
       "literalChannels": [
         "page-tint:changed",
         "pages:app-version",

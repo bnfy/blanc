@@ -7575,6 +7575,10 @@
     "message": "layout",
     "note": "Mahjong → Boards (choose your game): text (legend)."
   },
+  "mahjong.setup.dailyLayoutHint": {
+    "message": "Daily plays today’s layout. Switch to Random to pick another.",
+    "note": "Mahjong → Boards (choose your game): shown beside the layout heading while the Daily deal is selected, when the other layouts are dimmed. “Random” is the deal button’s name."
+  },
   "mahjong.layout.turtleDetail": {
     "message": "144 tiles · unhurried",
     "note": "Mahjong → Boards (choose your game): tile count and pace under a board name on a narrow card; keep it short."
@@ -7674,17 +7678,18 @@
     "message": "<0>Zen game</0> Hide time and score, and keep this game out of Records.",
     "note": "Mahjong → Boards (choose your game): text (span)."
   },
-  "mahjong.setup.freeHighlight": {
-    "message": "<0>Stronger free-tile highlight</0> Adds a persistent high-contrast ring to every tile available to play.",
-    "note": "Mahjong → Boards (choose your game): text (span)."
-  },
   "mahjong.setup.replaces": {
     "message": "Starting replaces the board currently on this table.",
     "note": "Mahjong → Boards (choose your game): text (p)."
   },
   "mahjong.setup.copyDeal": {
-    "message": "copy current deal",
-    "note": "Mahjong → Boards (choose your game): button.",
+    "message": "copy board link",
+    "note": "Mahjong → Boards (choose your game): button that copies a link to the board on the table, so someone else can play the same deal.",
+    "maxLength": 24
+  },
+  "mahjong.setup.linkCopied": {
+    "message": "link copied",
+    "note": "Mahjong → Boards: the copy button reads this for a moment after the link is copied.",
     "maxLength": 24
   },
   "mahjong.setup.start": {
@@ -8102,6 +8107,42 @@
   "mahjong.win.quietTitle": {
     "message": "A quiet finish.",
     "note": "Mahjong → board-cleared card: heading after a Zen game."
+  },
+  "mahjong.win.titleRecord": {
+    "message": "A new personal best.",
+    "note": "Mahjong: board-cleared card title when this clear set a new record."
+  },
+  "mahjong.win.titleFirst": {
+    "message": "First time clearing {layout}.",
+    "note": "Mahjong: board-cleared card title for the first clear of a layout; {layout} is its name, such as Arch."
+  },
+  "mahjong.win.titleStreak": {
+    "message": "{run} in a row. New tiles next.",
+    "note": "Mahjong: board-cleared card title on every third board cleared in a row, when the next deal switches to a new tile set. {run} starts the sentence: a capitalized number word (Three, Six, Nine) or digits above nine."
+  },
+  "mahjong.win.titleDaily": {
+    "message": "Today’s Daily, done.",
+    "note": "Mahjong: board-cleared card title after finishing today’s Daily."
+  },
+  "mahjong.win.titleSweep": {
+    "message": "Clean sweep.",
+    "note": "Mahjong: one of the rotating board-cleared card titles."
+  },
+  "mahjong.win.titleHome": {
+    "message": "Every tile, home.",
+    "note": "Mahjong: one of the rotating board-cleared card titles (every tile has found its pair)."
+  },
+  "mahjong.win.titleLastPair": {
+    "message": "That’s the last pair.",
+    "note": "Mahjong: one of the rotating board-cleared card titles."
+  },
+  "mahjong.win.titleTidy": {
+    "message": "A tidy table.",
+    "note": "Mahjong: one of the rotating board-cleared card titles."
+  },
+  "mahjong.win.titleWellPlayed": {
+    "message": "Well played.",
+    "note": "Mahjong: one of the rotating board-cleared card titles."
   },
   "mahjong.win.rules": {
     "message": "{mode} · {rules}",

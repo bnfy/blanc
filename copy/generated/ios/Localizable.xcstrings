@@ -82399,6 +82399,48 @@
         }
       }
     },
+    "mahjong.setup.dailyLayoutHint": {
+      "comment": "Mahjong → Boards (choose your game): shown beside the layout heading while the Daily deal is selected, when the other layouts are dimmed. “Random” is the deal button’s name.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Daily plays today’s layout. Switch to Random to pick another."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Die Tagespartie spielt das heutige Layout. Wechsle zu „Zufällig“, um ein anderes zu wählen."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "La partida diaria usa el diseño de hoy. Cambia a «Aleatoria» para elegir otro."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "La donne du jour utilise la disposition du jour. Passez à « Aléatoire » pour en choisir une autre."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "La partita del giorno usa la disposizione di oggi. Passa a «Casuale» per sceglierne un’altra."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "A partida do dia usa o layout de hoje. Mude para “Aleatória” para escolher outro."
+          }
+        }
+      }
+    },
     "mahjong.layout.turtleDetail": {
       "comment": "Mahjong → Boards (choose your game): tile count and pace under a board name on a narrow card; keep it short.",
       "extractionState": "manual",
@@ -83407,48 +83449,6 @@
         }
       }
     },
-    "mahjong.setup.freeHighlight": {
-      "comment": "Mahjong → Boards (choose your game): text (span).",
-      "extractionState": "manual",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "<0>Stronger free-tile highlight</0> Adds a persistent high-contrast ring to every tile available to play."
-          }
-        },
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "<0>Stärkere Hervorhebung freier Steine</0> Fügt jedem spielbaren Stein einen dauerhaften, kontrastreichen Ring hinzu."
-          }
-        },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "<0>Resaltado más fuerte de fichas libres</0> Añade un anillo fijo de alto contraste a cada ficha que se puede jugar."
-          }
-        },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "<0>Surlignage renforcé des tuiles libres</0> Ajoute un anneau permanent à fort contraste autour de chaque tuile jouable."
-          }
-        },
-        "it": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "<0>Evidenziazione più marcata delle tessere libere</0> Aggiunge un anello fisso ad alto contrasto a ogni tessera giocabile."
-          }
-        },
-        "pt-BR": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "<0>Destaque mais forte das peças livres</0> Adiciona um anel fixo de alto contraste a cada peça que pode ser jogada."
-          }
-        }
-      }
-    },
     "mahjong.setup.replaces": {
       "comment": "Mahjong → Boards (choose your game): text (p).",
       "extractionState": "manual",
@@ -83492,43 +83492,85 @@
       }
     },
     "mahjong.setup.copyDeal": {
-      "comment": "Mahjong → Boards (choose your game): button.",
+      "comment": "Mahjong → Boards (choose your game): button that copies a link to the board on the table, so someone else can play the same deal.",
       "extractionState": "manual",
       "localizations": {
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "copy current deal"
+            "value": "copy board link"
           }
         },
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Partie kopieren"
+            "value": "Partie-Link kopieren"
           }
         },
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "copiar la partida actual"
+            "value": "copiar enlace"
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "copier la donne actuelle"
+            "value": "copier le lien"
           }
         },
         "it": {
           "stringUnit": {
             "state": "translated",
-            "value": "copia partita attuale"
+            "value": "copia link"
           }
         },
         "pt-BR": {
           "stringUnit": {
             "state": "translated",
-            "value": "copiar a partida atual"
+            "value": "copiar link"
+          }
+        }
+      }
+    },
+    "mahjong.setup.linkCopied": {
+      "comment": "Mahjong → Boards: the copy button reads this for a moment after the link is copied.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "link copied"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Link kopiert"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "enlace copiado"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "lien copié"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "link copiato"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "link copiado"
           }
         }
       }
@@ -88485,6 +88527,384 @@
           "stringUnit": {
             "state": "translated",
             "value": "Um final tranquilo."
+          }
+        }
+      }
+    },
+    "mahjong.win.titleRecord": {
+      "comment": "Mahjong: board-cleared card title when this clear set a new record.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "A new personal best."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Neue persönliche Bestleistung."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Un nuevo récord personal."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Un nouveau record personnel."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Un nuovo record personale."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Um novo recorde pessoal."
+          }
+        }
+      }
+    },
+    "mahjong.win.titleFirst": {
+      "comment": "Mahjong: board-cleared card title for the first clear of a layout; {layout} is its name, such as Arch.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "First time clearing %1$@."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zum ersten Mal %1$@ abgeräumt."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Primera vez que completas %1$@."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Première fois que vous terminez %1$@."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Prima volta che completi %1$@."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Primeira vez que você completa %1$@."
+          }
+        }
+      }
+    },
+    "mahjong.win.titleStreak": {
+      "comment": "Mahjong: board-cleared card title on every third board cleared in a row, when the next deal switches to a new tile set. {run} starts the sentence: a capitalized number word (Three, Six, Nine) or digits above nine.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ in a row. New tiles next."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ in Folge. Als Nächstes neue Steine."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ seguidas. Ahora, fichas nuevas."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ d’affilée. De nouvelles tuiles ensuite."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ di fila. Ora tessere nuove."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ seguidas. Agora, peças novas."
+          }
+        }
+      }
+    },
+    "mahjong.win.titleDaily": {
+      "comment": "Mahjong: board-cleared card title after finishing today’s Daily.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Today’s Daily, done."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Das heutige Tagesspiel ist geschafft."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "La diaria de hoy, completada."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Le défi du jour est réussi."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "La quotidiana di oggi è completata."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "A diária de hoje está concluída."
+          }
+        }
+      }
+    },
+    "mahjong.win.titleSweep": {
+      "comment": "Mahjong: one of the rotating board-cleared card titles.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Clean sweep."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Alles abgeräumt."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mesa limpia."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Table rase."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tavolo pulito."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mesa limpa."
+          }
+        }
+      }
+    },
+    "mahjong.win.titleHome": {
+      "comment": "Mahjong: one of the rotating board-cleared card titles (every tile has found its pair).",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Every tile, home."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Jeder Stein an seinem Platz."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cada ficha en su sitio."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Chaque tuile à sa place."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ogni tessera al suo posto."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cada peça em seu lugar."
+          }
+        }
+      }
+    },
+    "mahjong.win.titleLastPair": {
+      "comment": "Mahjong: one of the rotating board-cleared card titles.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "That’s the last pair."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Das war das letzte Paar."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Era la última pareja."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "C’était la dernière paire."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Era l’ultima coppia."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Era o último par."
+          }
+        }
+      }
+    },
+    "mahjong.win.titleTidy": {
+      "comment": "Mahjong: one of the rotating board-cleared card titles.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "A tidy table."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ein aufgeräumter Tisch."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Una mesa ordenada."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Une table bien rangée."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Un tavolo in ordine."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Uma mesa arrumada."
+          }
+        }
+      }
+    },
+    "mahjong.win.titleWellPlayed": {
+      "comment": "Mahjong: one of the rotating board-cleared card titles.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Well played."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Gut gespielt."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bien jugado."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bien joué."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ben giocato."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bem jogado."
           }
         }
       }

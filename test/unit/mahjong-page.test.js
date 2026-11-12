@@ -273,7 +273,7 @@ test('v3 exposes setup, Tray rescue, local restoration, and keyboard affordances
   assert.match(controller, /game\?\.mode === 'tray'[\s\S]*!document\.hidden[\s\S]*!tileAnimationBusy[\s\S]*comboAnimationPauseCount === 0[\s\S]*!activeModal\(\)/);
   assert.match(controller, /document\.getElementById\('mjHint'\)\.addEventListener[\s\S]*game\.assists\.hint \+= 1[\s\S]*saveAfterMutation\(\)/);
   assert.doesNotMatch(controller, /getElementById\('mjHint'\)[\s\S]{0,600}resetCombo/);
-  assert.match(controller, /freeHighlight\.checked = enabled;\s*freeHighlight\.defaultChecked = enabled;/);
+  assert.doesNotMatch(controller + html, /freeHighlight|mjFreeHighlight/, 'the stronger free-tile highlight option is gone');
 });
 
 test('only automatic-clear motion locks input while ordinary tile feedback stays responsive', () => {
@@ -499,7 +499,7 @@ test('best records are scoped to the active layout revision', () => {
 });
 
 test('the completion card stays centered without an entrance drift', () => {
-  const rule = styles.match(/\.mj-win\s*\{([^}]*)\}/)?.[1] || '';
+  const rule = styles.match(/^\.mj-win \{([^}]*)\}/m)?.[1] || '';
   assert.ok(html.indexOf('id="mjWin"') > html.indexOf('id="mjTrayRail"'));
   assert.match(rule, /position:\s*fixed;/);
   assert.match(rule, /transform:\s*translate\(-50%,\s*-50%\);/);
@@ -521,10 +521,15 @@ test('completion results promote the score and separate time from Burst performa
   assert.match(controller, /getElementById\('mjWinTime'\)\.textContent = time/);
   assert.match(controller, /record\.classList\.toggle\('is-record', game\._outcome === 'record' \|\| game\._outcome === 'first'\)/);
   assert.match(styles, /\.mj-win-result\s*\{[^}]*width:\s*100%;[^}]*padding:\s*0;/);
-  assert.match(styles, /\.mj-win-score\s*\{[^}]*clamp\(64px, 8vw, 88px\)[^}]*text-shadow:/);
+  assert.match(styles, /\.mj-win-score\s*\{[^}]*clamp\(48px, 6vw, 64px\)[^}]*text-shadow:/);
   assert.match(styles, /\.mj-win-score-separator\s*\{[^}]*-webkit-text-fill-color:\s*var\(--mj-text-muted\);[^}]*text-shadow:\s*none/);
   assert.match(styles, /\.mj-win-stats\s*\{[^}]*grid-template-columns:\s*repeat\(3, minmax\(0, 1fr\)\)/);
-  assert.match(styles, /\.mj-win-landscape\s*\{[^}]*opacity:\s*0\.4;[^}]*mask-image:/);
+  assert.match(styles, /\.mj-win-landscape\s*\{[^}]*opacity:\s*var\(--mj-win-landscape, 0\.14\);[^}]*mask-image:/);
+  // The compact sheet fits its content: no fixed height, the main action on
+  // the right and focused when the card opens.
+  assert.doesNotMatch(styles.match(/^\.mj-win \{([^}]*)\}/m)[1], /min-height/);
+  assert.match(html, /id="mjWinBoards"[^>]*>[^<]*<\/button>\s*<button id="mjWinNew"[^>]*data-autofocus/);
+  assert.match(controller, /element\.querySelector\('\[data-autofocus\]:not\(\[disabled\]\)'\)/);
   assert.doesNotMatch(styles, /\.mj-win-result\s*\{[^}]*border-radius:/);
   assert.doesNotMatch(styles, /\.mj-win-result\s*\{[^}]*box-shadow:/);
 });
@@ -571,6 +576,10 @@ test('the dead-end notice offers shuffle alongside undo and a new deal', () => {
 
 test('daily layout choices read as disabled and the sheet explains the rotation', () => {
   assert.match(mahjongStyles, /\.mj-layout-choice:disabled\s*\{[^}]*opacity/);
+  assert.match(controller, /button\.disabled = setupChoice\.source === 'daily'/);
+  // A hint beside LAYOUT says why the other layouts are dimmed while Daily is on.
+  assert.match(controller, /layoutHint\.hidden = setupChoice\.source !== 'daily'/);
+  assert.equal(english('mahjong.setup.dailyLayoutHint'), 'Daily plays today\u2019s layout. Switch to Random to pick another.');
   assert.match(controller, /t\('mahjong\.setup\.dailyRotates'\)/);
   assert.equal(english('mahjong.setup.dailyRotates'), 'layout rotates daily');
 });
@@ -616,7 +625,7 @@ test('Records stacks separately labeled Auto and Manual Burst results', () => {
 });
 
 test('Boards share action uses the sanitized Clipboard API without adding finish or dock controls', () => {
-  assert.match(html, /id="mjCopyDeal"[^>]*>copy current deal<\/button>/);
+  assert.match(html, /id="mjCopyDeal"[^>]*><span class="mj-copy-label">copy board link<\/span><span class="mj-copy-done" aria-hidden="true">link copied<\/span><\/button>/);
   assert.doesNotMatch(html, /id="mjWinCopyDeal"/);
   assert.match(controller, /S\.buildShareDealUrl\(game\)/);
   assert.match(controller, /await navigator\.clipboard\.writeText\(link\)/);
@@ -728,6 +737,13 @@ test('tile numerals are raster artwork while the game UI uses Instrument Sans', 
   }
   const interUiRules = [...mahjongStyles.matchAll(/font(?:-family)?:\s*[^;]*var\(--font-ui\)/g)];
   assert.equal(interUiRules.length, 0, 'Mahjong UI never bypasses Instrument Sans');
+  // The game's own text stack leaves Inter out, so a missing glyph or a slow
+  // font load never shows Inter either.
+  const gameStack = mahjongStyles.match(/\.mahjong-body\s*\{[^}]*--font-text:\s*([^;]+);/);
+  assert.ok(gameStack, 'Mahjong sets its own text stack');
+  assert.match(gameStack[1], /^"Instrument Sans",/);
+  assert.doesNotMatch(gameStack[1], /Inter/);
+  assert.doesNotMatch(mahjongStyles.replace(/\/\*[\s\S]*?\*\//g, ''), /["']Inter["']/);
   // JetBrains Mono stays bundled for now; its @font-face keeps the full range.
   assert.match(styles, /font-family:\s*"JetBrains Mono";\s*src:\s*url\("jetbrains-mono-latin\.woff2"\)[^}]*font-weight:\s*400 800;/);
   assert.doesNotMatch(mahjongStyles, /--font-mono/);
@@ -790,7 +806,23 @@ test('consecutive clears drive the tile collection and celebration artwork', () 
   assert.match(controller, /game\._celebrationStyle = S\.celebrationStyleForStreak\(progress\.clearStreak\)/);
   // Only a board the player touched ends the streak when it is replaced.
   assert.match(controller, /if \(game && !E\.isWon\(game\) && wasTouched\(game\)\) progressStore\?\.reset\(\)/);
-  assert.match(mahjongStyles, /\.mj-win-score\s*\{[^}]*letter-spacing:\s*0\.025em;/);
+  // The win card's time or score: Instrument Sans Regular, tight.
+  assert.match(mahjongStyles, /\.mj-win-score\s*\{[^}]*font:\s*400 [^;]*var\(--font-text\);[^}]*font-variant-numeric:\s*proportional-nums;[^}]*letter-spacing:\s*-0\.02em;/);
+});
+
+test('the board-cleared card goes dark with the page in dark mode and private tabs', () => {
+  // Its warm light colors apply only in light mode outside private tabs, so
+  // dark mode and private tabs inherit the page's dark surfaces.
+  assert.match(mahjongStyles, /@media \(prefers-color-scheme: light\) \{\s*:root:not\(\[data-theme="private"\]\) \.mj-win \{[^}]*--mj-surface: rgba\(255, 253, 248, 0\.985\);/);
+  assert.doesNotMatch(mahjongStyles.match(/^\.mj-win \{([^}]*)\}/m)[1], /--mj-(text|surface|accent):/);
+  // Labels on the light gold accent use dark ink everywhere in dark mode.
+  assert.match(mahjongStyles, /@media \(prefers-color-scheme: dark\) \{\s*\.mahjong-body \{[^}]*--mj-on-accent: #12100b;/);
+});
+
+test('a long Burst score shrinks to fit the side rack without moving it', () => {
+  assert.match(controller, /element\.style\.setProperty\('--mj-score-chars', String\(label\.length\)\)/);
+  assert.match(mahjongStyles, /\.mj-burst-score\s*\{[^}]*min-height:\s*calc\(var\(--mj-score-size\) \* 0\.88 \+ var\(--mj-score-pad\)\);[^}]*container-type:\s*inline-size;/);
+  assert.match(mahjongStyles, /\.mj-burst-score strong\s*\{\s*font-size:\s*min\(var\(--mj-score-size\), calc\(100cqi \/ \(var\(--mj-score-chars, 1\) \* 0\.62\)\)\);/);
 });
 
 test('match trail is placed by custom properties on a fixed layer', () => {

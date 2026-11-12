@@ -2017,6 +2017,7 @@ You can retry with “%2$s”, or reinstall from blanc.day.</string>
     <string name="mahjong_setup_title">Choose your game</string>
     <string name="mahjong_setup_close">Close board setup</string>
     <string name="mahjong_setup_layout_legend">layout</string>
+    <string name="mahjong_setup_daily_layout_hint">Daily plays today’s layout. Switch to Random to pick another.</string>
     <string name="mahjong_layout_turtle_detail">144 tiles · unhurried</string>
     <string name="mahjong_layout_arch">Arch</string>
     <string name="mahjong_layout_arch_detail">96 tiles · balanced</string>
@@ -2041,9 +2042,9 @@ You can retry with “%2$s”, or reinstall from blanc.day.</string>
     <string name="mahjong_setup_random_description">A fresh, guaranteed-solvable board.</string>
     <string name="mahjong_setup_auto_clears">&lt;0&gt;Auto clears&lt;/0&gt; Every fifth combo clears another available pair automatically.</string>
     <string name="mahjong_setup_zen">&lt;0&gt;Zen game&lt;/0&gt; Hide time and score, and keep this game out of Records.</string>
-    <string name="mahjong_setup_free_highlight">&lt;0&gt;Stronger free-tile highlight&lt;/0&gt; Adds a persistent high-contrast ring to every tile available to play.</string>
     <string name="mahjong_setup_replaces">Starting replaces the board currently on this table.</string>
-    <string name="mahjong_setup_copy_deal">copy current deal</string>
+    <string name="mahjong_setup_copy_deal">copy board link</string>
+    <string name="mahjong_setup_link_copied">link copied</string>
     <string name="mahjong_setup_start">start game</string>
     <string name="mahjong_records_kicker">your table</string>
     <string name="mahjong_records_title">Records</string>
@@ -2167,6 +2168,15 @@ You can retry with “%2$s”, or reinstall from blanc.day.</string>
     <string name="mahjong_best_time">Best %1$s</string>
     <string name="mahjong_best_score">Best %1$s · %2$s</string>
     <string name="mahjong_win_quiet_title">A quiet finish.</string>
+    <string name="mahjong_win_title_record">A new personal best.</string>
+    <string name="mahjong_win_title_first">First time clearing %1$s.</string>
+    <string name="mahjong_win_title_streak">%1$s in a row. New tiles next.</string>
+    <string name="mahjong_win_title_daily">Today’s Daily, done.</string>
+    <string name="mahjong_win_title_sweep">Clean sweep.</string>
+    <string name="mahjong_win_title_home">Every tile, home.</string>
+    <string name="mahjong_win_title_last_pair">That’s the last pair.</string>
+    <string name="mahjong_win_title_tidy">A tidy table.</string>
+    <string name="mahjong_win_title_well_played">Well played.</string>
     <string name="mahjong_win_rules">%1$s · %2$s</string>
     <string name="mahjong_win_clear_time">clear time</string>
     <string name="mahjong_win_new_record">new record</string>
