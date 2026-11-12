@@ -871,10 +871,13 @@ remain pending. D3 beta-only no-DRM exception accepted; EME notice/handoff requi
   patch 0071 returns ⌘+/⌘− to Chrome's step ladder, replacing the baseline's
   Electron ±0.5-level steps, as shipping did in v1.47.0. Settings uses
   Chromium's own Page zoom menu (Appearance) and Zoom levels list (Site
-  settings). Proposed divergences, for the owner: the default is per profile,
-  not per device; saved sites live in the profile's Preferences, not a
-  separate file; the saved-site list is under Site settings, not beneath the
-  default. Glance zoom, the Start Page layouts and page scaling still pass.
+  settings). Owner decisions (2026-11-12): the default page zoom is
+  device-wide as in shipping (`blanc.page_zoom` in Local State; every
+  profile's default follows it, patch 0073), an exception to V18; saved sites
+  stay in each profile's Chromium preferences and are listed under Site
+  settings → Zoom levels, reached from a link beneath Page zoom (V23,
+  approved). Glance zoom, the Start Page layouts and page scaling still pass;
+  native-device-zoom.mjs checks the device-wide default and the link.
 - **Shipping target moved to v1.48.0 (2026-11-12, owner):** shipping v1.48.0
   went public on 2026-11-11, so the fork's reference moves from v1.46.0. The
   Island renderer (every fork edit still applies; island-autohide.js,
@@ -2454,5 +2457,5 @@ Android's Bar A counts the shared scenarios bound in `chromium/tests/android/acc
 
 Legacy macOS stages come from the approved spec; they await verification on the canonical candidate. No legacy stage counts as Verified.
 
-Candidate identities: macOS: macos-c2c2bcc050e0af2d; Windows: none; Linux: none; Android: android-arm64-7bd35e94ef746069.
+Candidate identities: macOS: macos-44f4cf4009613336; Windows: none; Linux: none; Android: android-arm64-7bd35e94ef746069.
 <!-- END GENERATED PROGRESS -->

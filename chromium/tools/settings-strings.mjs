@@ -123,6 +123,7 @@ export const STRINGS = [
   ['blancOpenLinkInSpace', 'contextMenu.openLinkInSpace'],
   ['blancLinkNewSpace', 'tabMenu.newSpace'],
   ['blancOpenLinkInGlance', 'contextMenu.openLinkInGlance'],
+  ['blancSiteZoomHint', 'settings.general.siteZoom.hint'],
   ['blancWelcomeTour', 'settings.general.showWelcomeTour.label'],
   ['blancWelcomeTourHint', 'settings.general.showWelcomeTour.hint'],
   ['blancUsagePing', 'settings.privacy.usagePing.label'],

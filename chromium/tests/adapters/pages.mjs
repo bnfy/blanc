@@ -434,21 +434,8 @@ export const pages={
   const view=id=>win(s.tabs.find(t=>t.id===id)?.viewBounds??null);
   const rawArea=s.glanceArea??s.splitGeometry.pageArea;
   const area=win(rawArea&&{x:rawArea.x,y:rawArea.y,width:rawArea.width,height:rawArea.height});const c=g.layout.card;
-  // Stacking for a Glance over a split, as shipping reads it from its views.
-  // The fork's card frame and corner tabs are drawn by the Island view above
-  // the pages, and the Glance page is a native view between the pages and
-  // the Island that shows through the card's hole; corner tabs under the
-  // card are cut away. So on screen: panes < corner tabs < card frame <
-  // Glance page, when the native order puts the Glance page above the panes
-  // and below the Island, and no corner tab shows inside the card.
-  let stackIndex;
-  if(s.glanceStack){const n=s.glanceStack;
-   const cornersUnder=await w.hostEval(`(()=>{const c=${JSON.stringify(c.chrome)};return [...document.querySelectorAll('#splitHeaders .split-corner-tab')].some(e=>{const r=e.getBoundingClientRect();
-    const inside=r.left<c.x+c.width&&r.right>c.x&&r.top<c.y+c.height&&r.bottom>c.y;return inside&&getComputedStyle(document.getElementById('splitHeaders')).clipPath==='none';});})()`);
-   const between=n.panes>=0&&n.glance>n.panes&&n.island>n.glance;
-   stackIndex={panes:[n.panes,n.panes],corners:[n.panes+0.25],card:between&&!cornersUnder?n.panes+0.5:-1,glance:between?n.panes+0.75:-1};}
   return {chrome:win(c.chrome),frame:win(c.frame),header:win(c.header),page:win(c.page),cardViewBounds:win(c.chrome),cardViewVisible:g.shown,pageArea:area,pageBounds:area,generation:g.layout.generation,focusedPane:g.layout.focusedPane,
-   viewBounds:view(s.glanceTabId),mainViewBounds:view(s.activeTabId),savedFrame:s.glanceFrame??null,stackIndex};
+   viewBounds:view(s.glanceTabId),mainViewBounds:view(s.activeTabId),savedFrame:s.glanceFrame??null};
  },
  async glanceHeaderMotion(w){
   const page=w.frame('glanceCardFrame');

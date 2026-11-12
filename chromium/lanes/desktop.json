@@ -77,6 +77,7 @@
     "patches/0069-blanc-local-file-grant.patch",
     "patches/0070-blanc-web-default-zoom.patch",
     "patches/0071-blanc-chrome-zoom-steps.patch",
-    "patches/0072-blanc-glance-over-split.patch"
+    "patches/0072-blanc-glance-over-split.patch",
+    "patches/0073-blanc-device-page-zoom.patch"
   ]
 }

@@ -6,6 +6,33 @@ import assert from 'node:assert/strict';
 const tabDom = (world, id, expression) => world.call('executeTab', id, expression);
 
 export const DIVERGENCES = new Map([
+  // V22 (owner, 2026-11-05), over a split too (F53-29, 2026-11-12): the card's
+  // frame and the split's corner tabs are the Island's, above the pages, and
+  // the Glance page is a view between the split's pages and the Island, so
+  // shipping's view stacking has nothing to read. Same picture: the split is
+  // unchanged and laid out, the Glance page shows inside the card above both
+  // panes, and the Island cuts its split drawing away under the card.
+  ['the ordinary tab floats in Glance over both split panes', {divergence: 'V22', async run() {
+    const state = await this.state();
+    assert.equal(state.activeTabId, this.splitA);
+    assert.deepEqual(state.splits.map((s) => s.tabIds), [[this.splitA, this.splitB]], 'the split is unchanged');
+    const layout = await this.waitFor(() => this.call('splitLayout'), (l) => l?.panes?.length === 2, 'the split to stay laid out', 5000);
+    assert.deepEqual(layout.panes.map((p) => p.tabId), [this.splitA, this.splitB]);
+    await this.waitFor(() => this.call('glancePageViewVisible'), Boolean, 'the Glance page to be visible', 5000);
+    const card = await this.waitFor(() => this.call('getGlanceCard'), (c) => c?.cardViewVisible === true, 'the Glance card to show', 5000);
+    const attached = await this.call('attachedTabViewIds');
+    for (const id of [this.splitA, this.splitB, this.ordinaryId]) assert.ok(attached.includes(id), `${id} attached: ${attached}`);
+    const stack = (await this.snapshot()).glanceStack;
+    assert.ok(stack && stack.panes >= 0 && stack.panes < stack.glance && stack.glance < stack.island,
+      `split pages < Glance page < Island: ${JSON.stringify(stack)}`);
+    const cut = await this.hostEval(`(() => { const c = window.BlancPrototypeHost.glanceState().layout?.card.chrome;
+      const clip = document.getElementById('splitHeaders').style.clipPath;
+      // The browser writes the path back in its own form; compare its numbers.
+      const n = (clip.match(/-?\\d+(\\.\\d+)?/g) ?? []).map(Number);
+      return !!c && /path\\(/.test(clip) && [c.x, c.y, c.width, c.height].every((v) => n.includes(v)); })()`);
+    assert.equal(cut, true, 'the split drawing is cut away under the card');
+    assert.deepEqual(card.viewBounds, card.page, 'the Glance page fills the card');
+  }}],
   // V22 (owner, 2026-11-05): the Island is above the page views here, so the card's
   // chrome sits above the Glance page with a hole for it, not below it. Same
   // picture; shipping's view stacking has nothing to read.

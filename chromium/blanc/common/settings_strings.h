@@ -14,7 +14,7 @@ struct String {
   std::string_view name;
   std::u16string_view value;
 };
-inline constexpr std::array<String, 159> kStrings_en = {{
+inline constexpr std::array<String, 160> kStrings_en = {{
     {"blancGestureEmpty", u"No gestures assigned."},
     {"blancGestureLabel", u"Mouse gestures"},
     {"blancGestureHint", u"With a mouse, hold the right button and drag, then release. On a trackpad, hold Alt/Option (⌥), click and hold with one finger, then drag."},
@@ -121,6 +121,7 @@ inline constexpr std::array<String, 159> kStrings_en = {{
     {"blancOpenLinkInSpace", u"Open Link in Space"},
     {"blancLinkNewSpace", u"New Space…"},
     {"blancOpenLinkInGlance", u"Open Link in Glance"},
+    {"blancSiteZoomHint", u"These sites have their own zoom. Remove one to go back to the default."},
     {"blancWelcomeTour", u"Welcome tour"},
     {"blancWelcomeTourHint", u"Replay the first-run walkthrough; saved choices stay put"},
     {"blancUsagePing", u"Help improve Blanc"},
@@ -175,7 +176,7 @@ inline constexpr std::array<String, 159> kStrings_en = {{
     {"blancLanguageSystem", u"System ({language})"},
     {"blancLanguageRelaunch", u"Relaunch to apply"},
 }};
-inline constexpr std::array<String, 159> kStrings_de = {{
+inline constexpr std::array<String, 160> kStrings_de = {{
     {"blancGestureEmpty", u"Keine Gesten zugewiesen."},
     {"blancGestureLabel", u"Mausgesten"},
     {"blancGestureHint", u"Mit einer Maus: rechte Taste gedrückt halten, ziehen und loslassen. Auf einem Trackpad: Alt/Wahltaste (⌥) halten, mit einem Finger klicken und halten, dann ziehen."},
@@ -282,6 +283,7 @@ inline constexpr std::array<String, 159> kStrings_de = {{
     {"blancOpenLinkInSpace", u"Link in Space öffnen"},
     {"blancLinkNewSpace", u"Neuer Space…"},
     {"blancOpenLinkInGlance", u"Link in Glance öffnen"},
+    {"blancSiteZoomHint", u"Diese Websites haben einen eigenen Zoom. Entferne eine, um zum Standard zurückzukehren."},
     {"blancWelcomeTour", u"Willkommenstour"},
     {"blancWelcomeTourHint", u"Die Einführung beim ersten Start erneut abspielen; gespeicherte Einstellungen bleiben erhalten"},
     {"blancUsagePing", u"Blanc verbessern helfen"},
@@ -336,7 +338,7 @@ inline constexpr std::array<String, 159> kStrings_de = {{
     {"blancLanguageSystem", u"System ({language})"},
     {"blancLanguageRelaunch", u"Zum Übernehmen neu starten"},
 }};
-inline constexpr std::array<String, 159> kStrings_es = {{
+inline constexpr std::array<String, 160> kStrings_es = {{
     {"blancGestureEmpty", u"No hay gestos asignados."},
     {"blancGestureLabel", u"Gestos del ratón"},
     {"blancGestureHint", u"Con un ratón, mantén pulsado el botón derecho y arrastra; luego suelta. En un trackpad, mantén pulsada Alt/Opción (⌥), haz clic y mantén pulsado con un dedo y arrastra."},
@@ -443,6 +445,7 @@ inline constexpr std::array<String, 159> kStrings_es = {{
     {"blancOpenLinkInSpace", u"Abrir enlace en Space"},
     {"blancLinkNewSpace", u"Nuevo Space…"},
     {"blancOpenLinkInGlance", u"Abrir enlace en Glance"},
+    {"blancSiteZoomHint", u"Estos sitios tienen su propio zoom. Quita uno para volver al predeterminado."},
     {"blancWelcomeTour", u"Visita de bienvenida"},
     {"blancWelcomeTourHint", u"Repite la guía del primer inicio; tus elecciones guardadas no cambian"},
     {"blancUsagePing", u"Ayudar a mejorar Blanc"},
@@ -497,7 +500,7 @@ inline constexpr std::array<String, 159> kStrings_es = {{
     {"blancLanguageSystem", u"Sistema ({language})"},
     {"blancLanguageRelaunch", u"Reiniciar para aplicar"},
 }};
-inline constexpr std::array<String, 159> kStrings_fr = {{
+inline constexpr std::array<String, 160> kStrings_fr = {{
     {"blancGestureEmpty", u"Aucun geste attribué."},
     {"blancGestureLabel", u"Gestes de la souris"},
     {"blancGestureHint", u"Avec une souris, maintenez le bouton droit enfoncé et faites glisser, puis relâchez. Sur un trackpad, maintenez Alt/Option (⌥), cliquez en maintenant un doigt, puis faites glisser."},
@@ -604,6 +607,7 @@ inline constexpr std::array<String, 159> kStrings_fr = {{
     {"blancOpenLinkInSpace", u"Ouvrir le lien dans un Space"},
     {"blancLinkNewSpace", u"Nouveau Space…"},
     {"blancOpenLinkInGlance", u"Ouvrir le lien dans Glance"},
+    {"blancSiteZoomHint", u"Ces sites ont leur propre zoom. Retirez-en un pour revenir au zoom par défaut."},
     {"blancWelcomeTour", u"Visite de bienvenue"},
     {"blancWelcomeTourHint", u"Revoir la présentation du premier lancement ; vos choix enregistrés restent inchangés"},
     {"blancUsagePing", u"Aider à améliorer Blanc"},
@@ -658,7 +662,7 @@ inline constexpr std::array<String, 159> kStrings_fr = {{
     {"blancLanguageSystem", u"Système ({language})"},
     {"blancLanguageRelaunch", u"Redémarrer pour appliquer"},
 }};
-inline constexpr std::array<String, 159> kStrings_it = {{
+inline constexpr std::array<String, 160> kStrings_it = {{
     {"blancGestureEmpty", u"Nessun gesto assegnato."},
     {"blancGestureLabel", u"Gesti del mouse"},
     {"blancGestureHint", u"Con un mouse, tieni premuto il tasto destro e trascina, poi rilascia. Su un trackpad, tieni premuto Alt/Opzione (⌥), fai clic e tieni premuto con un dito, poi trascina."},
@@ -765,6 +769,7 @@ inline constexpr std::array<String, 159> kStrings_it = {{
     {"blancOpenLinkInSpace", u"Apri link in Space"},
     {"blancLinkNewSpace", u"Nuovo Space…"},
     {"blancOpenLinkInGlance", u"Apri link in Glance"},
+    {"blancSiteZoomHint", u"Questi siti hanno uno zoom proprio. Rimuovine uno per tornare a quello predefinito."},
     {"blancWelcomeTour", u"Tour di benvenuto"},
     {"blancWelcomeTourHint", u"Rivedi la guida del primo avvio; le scelte salvate restano invariate"},
     {"blancUsagePing", u"Aiuta a migliorare Blanc"},
@@ -819,7 +824,7 @@ inline constexpr std::array<String, 159> kStrings_it = {{
     {"blancLanguageSystem", u"Sistema ({language})"},
     {"blancLanguageRelaunch", u"Riavvia per applicare"},
 }};
-inline constexpr std::array<String, 159> kStrings_pt_BR = {{
+inline constexpr std::array<String, 160> kStrings_pt_BR = {{
     {"blancGestureEmpty", u"Nenhum gesto atribuído."},
     {"blancGestureLabel", u"Gestos do mouse"},
     {"blancGestureHint", u"Com um mouse, segure o botão direito e arraste; depois solte. Num trackpad, segure Alt/Option (⌥), clique e segure com um dedo e arraste."},
@@ -926,6 +931,7 @@ inline constexpr std::array<String, 159> kStrings_pt_BR = {{
     {"blancOpenLinkInSpace", u"Abrir link em Space"},
     {"blancLinkNewSpace", u"Novo Space…"},
     {"blancOpenLinkInGlance", u"Abrir link no Glance"},
+    {"blancSiteZoomHint", u"Estes sites têm zoom próprio. Remova um para voltar ao padrão."},
     {"blancWelcomeTour", u"Tour de boas-vindas"},
     {"blancWelcomeTourHint", u"Rever o guia da primeira execução; suas escolhas salvas continuam iguais"},
     {"blancUsagePing", u"Ajudar a melhorar o Blanc"},

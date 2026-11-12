@@ -381,6 +381,49 @@ double BlancPagesZoom(const PrefService& prefs) {
 constexpr char kAppIconPref[] = "blanc.app_icon";
 // The catalog is independent of Patron. Retired or corrupt saved identifiers
 // fall back before Settings and the Dock read them, as shipping settings does.
+// F62: the default page zoom is device-wide (blanc.page_zoom, a percent),
+// as shipping keeps it. Every profile's Chromium default follows it (private
+// profiles follow their parent's), and a change made in any profile's
+// Settings becomes the device's.
+constexpr char kDevicePageZoomPref[] = "blanc.page_zoom";
+constexpr char kDeviceZoomFollowerKey[] = "blanc.page-zoom.follower";
+struct DeviceZoomFollower : base::SupportsUserData::Data {
+  base::CallbackListSubscription subscription;
+};
+int ZoomLevelPercent(double level) {
+  return static_cast<int>(std::lround(100 * blink::ZoomLevelToZoomFactor(level)));
+}
+void ApplyDevicePageZoom(Profile* profile) {
+  auto* zoom = profile ? profile->GetZoomLevelPrefs() : nullptr;
+  if (!zoom || !g_browser_process->local_state()) return;
+  const int percent = g_browser_process->local_state()->GetInteger(kDevicePageZoomPref);
+  if (percent < 25 || percent > 500 || ZoomLevelPercent(zoom->GetDefaultZoomLevelPref()) == percent) return;
+  zoom->SetDefaultZoomLevelPref(blink::ZoomFactorToZoomLevel(percent / 100.0));
+}
+void OnProfileDefaultZoomChanged(Profile* profile) {
+  auto* local = g_browser_process->local_state();
+  if (!local || !profile->GetZoomLevelPrefs()) return;
+  const int percent = ZoomLevelPercent(profile->GetZoomLevelPrefs()->GetDefaultZoomLevelPref());
+  if (local->GetInteger(kDevicePageZoomPref) == percent) return;
+  local->SetInteger(kDevicePageZoomPref, percent);
+  if (auto* manager = g_browser_process->profile_manager())
+    for (auto* other : manager->GetLoadedProfiles())
+      if (other != profile && !other->IsOffTheRecord()) ApplyDevicePageZoom(other);
+}
+void FollowDevicePageZoom(Profile* profile) {
+  profile = profile ? profile->GetOriginalProfile() : nullptr;
+  auto* local = g_browser_process->local_state();
+  if (!profile || !local || !profile->GetZoomLevelPrefs() || profile->GetUserData(kDeviceZoomFollowerKey)) return;
+  // A default chosen before the setting was device-wide becomes the device's.
+  const int own = ZoomLevelPercent(profile->GetZoomLevelPrefs()->GetDefaultZoomLevelPref());
+  if (local->FindPreference(kDevicePageZoomPref)->IsDefaultValue() && own != 100)
+    local->SetInteger(kDevicePageZoomPref, own);
+  else ApplyDevicePageZoom(profile);
+  auto follower = std::make_unique<DeviceZoomFollower>();
+  follower->subscription = profile->GetZoomLevelPrefs()->RegisterDefaultZoomLevelCallback(
+      base::BindRepeating(&OnProfileDefaultZoomChanged, base::Unretained(profile)));
+  profile->SetUserData(kDeviceZoomFollowerKey, std::move(follower));
+}
 void NormalizeAppIcon(Profile* profile) {
   auto* prefs = profile->GetOriginalProfile()->GetPrefs();
   const auto& icon = prefs->GetString(kAppIconPref);
@@ -1091,6 +1134,7 @@ class Owner : public base::SupportsUserData::Data,
     blanc::InstallMiniWindowMenu();
 #endif
     Live().insert(this);
+    FollowDevicePageZoom(browser->GetProfile());
     height = strip_height = IslandStripHeight(browser->GetProfile());
     browser->GetTabStripModel()->AddObserver(this);
     for (int i = 0; i < browser->GetTabStripModel()->count(); ++i)
