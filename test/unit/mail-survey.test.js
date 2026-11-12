@@ -242,7 +242,7 @@ test('unknown routes are not found', async () => {
   assert.equal((await worker.fetch(admin('GET', '/'), surveyEnv())).status, 404);
 });
 
-test('the survey Worker keeps request logging off and matches the site origins', () => {
+test('the survey Worker keeps request logging off and accepts only the site origins', () => {
   const toml = readFileSync(WRANGLER_PATH, 'utf8');
   assert.match(toml, /\[observability\]\s*\nenabled = false/);
   assert.doesNotMatch(toml, /logpush\s*=\s*true/);
@@ -252,5 +252,6 @@ test('the survey Worker keeps request logging off and matches the site origins',
     assert.ok(block, file);
     return [...block[1].matchAll(/'([^']+)'/g)].map((match) => match[1]).sort();
   };
-  assert.deepEqual(origins(WORKER_PATH), origins(NEWSLETTER_PATH));
+  const newsletter = origins(NEWSLETTER_PATH).filter((origin) => origin !== 'https://blancbrowser.com');
+  assert.deepEqual(origins(WORKER_PATH), newsletter);
 });

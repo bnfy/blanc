@@ -7,11 +7,12 @@
 
 import { parseAnswer, summarize } from './survey.js';
 
-// The same origins the newsletter Worker accepts (test/unit/mail-survey.test.js
-// keeps the two lists equal).
+// The site's origins: the newsletter Worker's list minus the former domain,
+// which that Worker keeps only for pages opened before the move to blanc.day.
+// The survey page has only ever been served from blanc.day
+// (test/unit/mail-survey.test.js).
 const ALLOWED_ORIGINS = new Set([
   'https://blanc.day',
-  'https://blancbrowser.com',
   'http://localhost:4321',
   'http://localhost:4322',
   'http://127.0.0.1:4321',
