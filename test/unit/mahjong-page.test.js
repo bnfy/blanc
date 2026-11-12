@@ -4,6 +4,7 @@ const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const path = require('node:path');
 const test = require('node:test');
+const sharp = require('sharp');
 const { withoutInterfaceKeys } = require('../support/without-interface-keys');
 
 const styles = ['pages.css', 'mahjong.css'].map((name) => fs.readFileSync(
@@ -91,9 +92,7 @@ test('mahjong provides static hint feedback and suppresses shake for reduced mot
 
 test('bonus families keep their full-scale artwork and hints clear stale emphasis', () => {
   assert.doesNotMatch(controller, /BLANC_GLYPHS/);
-  assert.match(controller, /function bonusFace\(family\)/);
-  assert.match(controller, /return sheetCrop\(THEME_CROPS\[activeTileTheme\]\[family\], \{/);
-  assert.match(controller, /className: `mj-sheet-face mj-bonus-art mj-bonus-\$\{family\}`/);
+  assert.match(controller, /family === 'flower' \|\| family === 'season'\) \{[\s\S]*?svg\.append\(tileImage\(family\)\)/);
   assert.match(controller, /if \(family === 'flower'\) return t\('mahjong\.tile\.flower'\);/);
   assert.equal(english('mahjong.tile.flower'), 'flower bonus');
   assert.doesNotMatch(controller, /FLOWER_PETAL_PATH/);
@@ -108,26 +107,26 @@ test('bonus families keep their full-scale artwork and hints clear stale emphasi
 });
 
 test('the dot suit uses the reference ring pip in centered Mahjong arrangements', () => {
-  assert.match(controller, /if \(crops\.dot\[count\]\) return sheetCrop\(crops\.dot\[count\]/);
+  assert.match(controller, /if \(\[1, 5, 9\]\.includes\(count\)\) return tileImage\(`dot\$\{count\}`\)/);
   assert.match(controller, /2:\s*\[\[22, 18\], \[22, 42\]\]/);
   assert.match(controller, /3:\s*\[\[22, 12\], \[22, 30\], \[22, 48\]\]/);
   assert.match(controller, /7:\s*\[\[11, 13\], \[22, 13\], \[33, 13\], \[22, 30\], \[11, 47\], \[22, 47\], \[33, 47\]\]/);
   assert.match(controller, /const DOT_PIP_SIZES = Object\.freeze\(\{[\s\S]*1:\s*32,[\s\S]*2:\s*18,[\s\S]*9:\s*11\.25,/);
   assert.match(controller, /function dotFace\(count\)/);
   assert.match(controller, /DOT_SPOTS\[count\]/);
-  assert.match(controller, /sheetCrop\(crops\.pip, \{[\s\S]*className: 'mj-dot-source'/);
+  assert.match(controller, /function dotFace\(count\) \{[\s\S]*?group\.append\(tileImage\('blank'\)\);[\s\S]*?faceImage\(themeAsset\('pip'\), x, y, size, size\)/);
+  assert.match(controller, /preserveAspectRatio: 'xMidYMid meet'/);
   assert.match(controller, /svg\.append\(dotFace\(Number\(id\)\)\)/);
   assert.doesNotMatch(controller, /family === 'dot'[\s\S]{0,180}el\('circle'/);
-  assert.match(styles, /\.mj-dot-source\s*\{[^}]*image-rendering:\s*auto;/);
 
 });
 
 test('winds and dragons use the exact approved concept-sheet crops', () => {
-  assert.match(controller, /const THEME_SHEETS = Object\.freeze\(\{[\s\S]*porcelain: 'mahjong-theme-porcelain-sheet\.png',[\s\S]*carved: 'mahjong-theme-carved-sheet\.png',[\s\S]*inlay: 'mahjong-theme-inlay-sheet\.png'/);
-  assert.match(controller, /function sheetCrop\(crop/);
-  assert.match(controller, /href: THEME_SHEETS\[activeTileTheme\]/);
-  assert.match(controller, /function windFace\(id, variant = 'motif'\) \{[\s\S]*THEME_CROPS\[activeTileTheme\]\.wind\[id\]/);
-  assert.match(controller, /function dragonFace\(id, variant = 'motif'\) \{[\s\S]*THEME_CROPS\[activeTileTheme\]\.drg\[id\]/);
+  assert.match(controller, /const themeAsset = \(name\) => `mahjong-exact-\$\{activeTileTheme\}-\$\{name\}\.png`/);
+  assert.match(controller, /function windFace\(id, variant = 'motif'\) \{\s*if \(variant !== 'seal'\) return tileImage\(`wind\$\{id\.toUpperCase\(\)\}`\)/);
+  assert.match(controller, /function dragonFace\(id, variant = 'motif'\) \{[\s\S]*?if \(variant !== 'seal'\) return tileImage\(name\);/);
+  assert.match(controller, /const DRAGON_SEAL_ART = Object\.freeze\(\{[\s\S]*p: 'mahjong-dragon-white-seal\.png'/);
+  assert.doesNotMatch(controller, /THEME_SHEETS|THEME_CROPS|sheetCrop/);
   assert.match(controller, /svg\.append\(windFace\(id, variant\)\)/);
   assert.match(controller, /svg\.append\(dragonFace\(id, variant\)\)/);
   assert.doesNotMatch(controller, /family === 'drg'[\s\S]{0,240}id\.toUpperCase\(\)/);
@@ -144,28 +143,21 @@ test('winds and dragons use the exact approved concept-sheet crops', () => {
 
 });
 
-test('character tiles preserve approved samples and use Inter Bold for interpolated ranks', () => {
-  assert.match(controller, /const sample = count <= 3 \? 1 : count <= 7 \? 5 : 9;/);
-  assert.match(controller, /group\.append\(sheetCrop\(crops\.chr\[sample\]\)\);/);
-  assert.match(controller, /if \(count === sample\) return group;/);
-  assert.match(controller, /number\.classList\.add\('mj-character-number'\)/);
-  assert.match(controller, /group\.append\(sheetCrop\(crops\.chrMotif, \{/);
-  assert.match(controller, /'text-anchor': 'middle',[\s\S]{0,80}'dominant-baseline': 'central'/);
-  assert.match(controller, /class: 'mj-character-number-patch'/);
+test('character tiles use complete raster faces without runtime numeral or ornament overlays', () => {
+  assert.match(controller, /family === 'chr'\) \{\s*svg\.append\(tileImage\(`chr\$\{id\}`\)\)/);
+  assert.doesNotMatch(controller, /characterNumberAsset|mj-character-motif/);
   assert.match(styles, /\.mj-tile\[data-suit="chr"\]\s*\{\s*color:\s*var\(--mj-tile-ink\);\s*\}/);
-  assert.match(styles, /\.mj-face text\.mj-character-number\s*\{[^}]*font-family:\s*var\(--mj-face-font\);[^}]*font-weight:\s*700;[^}]*fill:\s*#aa2e20;/);
 });
 
 test('the bamboo suit uses exact approved samples and source-sheet sticks', () => {
   assert.match(controller, /function bambooFace\(count\)/);
-  assert.match(controller, /if \(crops\.bam\[count\]\) return sheetCrop\(crops\.bam\[count\]/);
+  assert.match(controller, /if \(\[1, 5, 9\]\.includes\(count\)\) return tileImage\(`bam\$\{count\}`\)/);
   assert.match(controller, /2:\s*\[\[14, 30\], \[30, 30\]\]/);
   assert.match(controller, /6:\s*\[\[11, 17\], \[22, 17\], \[33, 17\], \[11, 43\], \[22, 43\], \[33, 43\]\]/);
   assert.match(controller, /BAM_SPOTS\[count\]\.forEach\(\(\[x, y\]\) =>/);
-  assert.match(controller, /sheetCrop\(crops\.bamboo, \{[\s\S]*className: 'mj-bamboo-source mj-bamboo-source-stick'/);
+  assert.match(controller, /function bambooFace\(count\) \{[\s\S]*?group\.append\(tileImage\('blank'\)\);[\s\S]*?faceImage\(themeAsset\('bamboo'\), x, y, width, height\)/);
   assert.match(controller, /svg\.append\(bambooFace\(Number\(id\)\)\)/);
-  assert.match(controller, /8:\s*\[\[13, 7\.5\], \[31, 7\.5\], \[11, 22\.5\], \[33, 22\.5\], \[13, 37\.5\], \[31, 37\.5\], \[11, 52\.5\], \[33, 52\.5\]\]/);
-  assert.match(styles, /\.mj-bamboo-source\s*\{[^}]*image-rendering:\s*auto;[^}]*filter:\s*none;/);
+  assert.match(controller, /8:\s*\[\[13, 9\], \[31, 9\], \[11, 23\], \[33, 23\], \[13, 37\], \[31, 37\], \[11, 51\], \[33, 51\]\]/);
 
 });
 
@@ -320,7 +312,7 @@ test('combo feedback restores animated tiles and removes immediately for reduced
   assert.doesNotMatch(styles, /\.mj-burst-score::(?:before|after)/);
   assert.match(styles, /\.mj-burst-score strong\s*\{[^}]*background:\s*none;[^}]*-webkit-text-fill-color:\s*currentColor;[^}]*text-shadow:\s*none;/);
   assert.match(styles, /@keyframes mj-score-flight/);
-  assert.match(styles, /\.mj-tray-slot\.filled\s*\{[^}]*color:\s*var\(--mj-tile-ink\)/);
+  assert.match(styles, /\.mj-tray-slot\.filled\s*\{[^}]*background:\s*transparent;/);
   assert.match(styles, /\.mj-tray-slot\.is-receiving/);
   assert.match(styles, /\.mj-tile\.shake::before/);
   assert.match(controller, /callout\.replaceChildren\(\)[\s\S]*label\.textContent = result\.milestone \? tier\.label : t\('mahjong\.combo\.combo'\)[\s\S]*multiplier\.textContent = `×\$\{result\.comboCount\}`/);
@@ -417,13 +409,13 @@ test('no lacquer-era token or hard-coded dark surface survives', () => {
   assert.match(mahjongStyles, /\.mj-tile:focus-visible\s*\{[^}]*outline:\s*2px solid var\(--mj-accent\)/);
 });
 
-test('blocked tiles soften instead of turning gray on the light sky', () => {
+test('blocked tiles preserve the exact approved face colours', () => {
   const rule = mahjongStyles.match(/\.mj-tile\[data-blocked\]\s*\{([^}]*)\}/)[1];
-  const brightness = Number(rule.match(/brightness\(([\d.]+)\)/)[1]);
-  assert.ok(brightness >= 0.88, `blocked brightness ${brightness} reads as gray`);
-  assert.doesNotMatch(rule, /opacity/, 'stacked tiles must not show through');
+  assert.match(rule, /filter:\s*none/, 'blocked tiles preserve the approved face palette');
+  assert.doesNotMatch(rule, /saturate\(/, 'blocked tiles do not shift the approved reds');
+  assert.match(rule, /opacity:\s*1/, 'disabled buttons keep the same ink strength as free tiles');
   assert.doesNotMatch(rule, /contrast\(0\.[0-8]/, 'low contrast pulls the cream face to gray');
-  assert.match(mahjongStyles, /\.mj-tile\[data-blocked\]::after\s*\{[^}]*background:\s*color-mix\(in srgb, var\(--mj-surface-line\)/, 'blocked tiles take a quiet surface wash');
+  assert.doesNotMatch(mahjongStyles, /\.mj-tile(?:\[data-blocked\])?::after/, 'tile faces have no painted overlay');
 });
 
 test('a daily deal still shows which board it picked', () => {
@@ -459,7 +451,7 @@ test('compact and zoomed layouts retain status with a scroll recovery path', () 
   assert.doesNotMatch(compact, /\.mj-chain-meter[^}]*display:\s*none/);
 });
 
-test('desktop Mahjong overlays its left rail inside a centered full-width table', () => {
+test('desktop Mahjong uses an overlaid left dock and a vertical Burst rack beside the board', () => {
   const desktop = mediaBlocks('(min-width: 1000px) and (min-height: 611px)')[0];
   assert.ok(desktop, 'missing desktop rail rules');
   assert.match(desktop, /--mj-shell-block:\s*clamp\(10px,\s*1\.4vh,\s*16px\)/);
@@ -467,19 +459,26 @@ test('desktop Mahjong overlays its left rail inside a centered full-width table'
   assert.match(desktop, /\.mj-head\s*\{[^}]*grid-column:\s*1;/);
   assert.match(desktop, /\.mj-game\s*\{[^}]*grid-column:\s*1;/);
   assert.match(desktop, /\.mj-board-frame\s*\{\s*anchor-name:\s*--mj-board;\s*\}/);
-  assert.match(desktop, /\.mj-board-wrap\s*\{\s*--mj-board-safe-side:\s*88px;\s*\}/);
+  assert.match(desktop, /\.mj-board-wrap\s*\{[^}]*--mj-board-safe-left:\s*120px;[^}]*--mj-board-safe-right:\s*0px;/);
   assert.match(desktop, /\.mj-feedback\s*\{[^}]*position:\s*absolute;/);
-  assert.match(desktop, /\.mj-dock\s*\{[^}]*position:\s*absolute;[^}]*position-anchor:\s*--mj-board;[^}]*left:\s*calc\(anchor\(left\) \+ 16px\);[^}]*top:\s*anchor\(center\);[^}]*transform:\s*translateY\(-50%\);[^}]*grid-template-columns:\s*1fr;/);
+  assert.match(desktop, /\.mj-dock\s*\{[^}]*position:\s*absolute;[^}]*position-anchor:\s*--mj-board;[^}]*left:\s*calc\(anchor\(left\) \+ 32px\);[^}]*top:\s*anchor\(center\);[^}]*transform:\s*translateY\(-50%\);[^}]*grid-template-columns:\s*1fr;/);
   assert.match(desktop, /\.mj-dock\s*\{[^}]*width:\s*64px;[^}]*grid-template-rows:\s*repeat\(6,\s*64px\);[^}]*gap:\s*16px;[^}]*padding:\s*0;[^}]*border:\s*0;[^}]*background:\s*none;[^}]*box-shadow:\s*none;/);
   assert.match(desktop, /\.mj-dock > button\s*\{[^}]*box-sizing:\s*border-box;[^}]*width:\s*64px;[^}]*height:\s*64px;[^}]*aspect-ratio:\s*1;[^}]*border-radius:\s*50%;/);
   assert.match(desktop, /\.mj-dock > button\s*\{[^}]*background:\s*var\(--mj-pill\);[^}]*box-shadow:\s*0 2px 8px var\(--mj-pill-shadow\);/);
   assert.doesNotMatch(desktop, /rgba\(21,\s*78,\s*63/);
   assert.match(desktop, /\.mj-dock > button:active\s*\{[^}]*translate:\s*0 1px;[^}]*inset 0 2px 6px/);
   assert.match(desktop, /\.mj-dock-icon\s*\{[^}]*width:\s*34px;[^}]*height:\s*34px;[^}]*flex-basis:\s*34px;/);
-  assert.match(controller, /getPropertyValue\('--mj-board-safe-side'\)/);
-  assert.match(controller, /wrap\.clientWidth - 36 - \(safeSide \* 2\)/);
-  assert.match(desktop, /\.mj\[data-mode="classic"\] \.mj-game\s*\{[^}]*gap:\s*0;/);
-  assert.match(desktop, /\.mj-tray-slot\s*\{[^}]*width:\s*64px;[^}]*height:\s*74px;/);
+  assert.match(controller, /getPropertyValue\('--mj-board-safe-left'\)/);
+  assert.match(controller, /getPropertyValue\('--mj-board-safe-right'\)/);
+  assert.match(controller, /wrap\.clientWidth - 36 - safeLeft - safeRight/);
+  assert.match(controller, /const centerOffset = \(safeLeft - safeRight\) \/ 2;/);
+  assert.match(controller, /const visualOffsetY = boardContentOffsetY \* scale;/);
+  assert.match(controller, /translate\(\$\{visualOffsetX\}px, \$\{visualOffsetY\}px\) scale\(\$\{scale\}\)/);
+  assert.match(desktop, /\.mj-game\s*\{[^}]*grid-template-columns:\s*minmax\(0,\s*1fr\) clamp\(126px,\s*10vw,\s*148px\);/);
+  assert.match(desktop, /\.mj\[data-mode="classic"\] \.mj-game\s*\{[^}]*grid-template-columns:\s*minmax\(0,\s*1fr\);/);
+  assert.match(desktop, /\.mj-tray-rail\s*\{[^}]*grid-column:\s*2;[^}]*height:\s*100%;[^}]*grid-template-columns:\s*minmax\(0,\s*1fr\);/);
+  assert.match(desktop, /\.mj-tray\s*\{[^}]*grid-template-columns:\s*minmax\(0,\s*1fr\);[^}]*grid-template-rows:\s*repeat\(4,\s*auto\);/);
+  assert.match(desktop, /\.mj-tray-slot\s*\{[^}]*width:\s*clamp\(66px,\s*6\.2vw,\s*82px\);[^}]*height:\s*clamp\(76px,\s*7\.1vw,\s*94px\);/);
 });
 
 test('starting another board clears a stale recovery notice', () => {
@@ -713,11 +712,9 @@ test('the Records sheet opens from the dock and R, paints from the pure summary,
   assert.match(english('mahjong.records.clearedCount'), /other \{cleared # of the last 28 dailies\}/);
 });
 
-test('tile numerals are Inter Bold while the game UI uses Instrument Sans', () => {
-  // Owner choice, October 17, 2026: Inter Bold numerals replace JetBrains Mono,
-  // and every non-tile game label, count and score uses Instrument Sans.
-  assert.match(mahjongStyles, /\.mahjong-body\s*\{[^}]*--mj-face-font:\s*"Inter"/);
-  assert.match(mahjongStyles, /text\.mj-character-number\s*\{[^}]*font-weight:\s*700;[^}]*letter-spacing:\s*-0\.02em;/);
+test('tile numerals are raster artwork while the game UI uses Instrument Sans', () => {
+  assert.doesNotMatch(mahjongStyles, /text\.mj-character-number/);
+  assert.ok(fs.existsSync(path.join(__dirname, '../../src/renderer/pages/mahjong-character-numerals-master.png')));
   assert.doesNotMatch(mahjongStyles, /--font-text:\s*var\(--font-ui\)/);
   assert.doesNotMatch(mahjongStyles, /JetBrains Mono/);
   assert.match(mahjongStyles, /\.mahjong-body\s*\{[^}]*font-family:\s*var\(--font-text\);/);
@@ -731,15 +728,51 @@ test('tile numerals are Inter Bold while the game UI uses Instrument Sans', () =
   assert.doesNotMatch(mahjongStyles, /--font-mono/);
 });
 
-test('all three rotating tile themes ship the approved source sheets intact', () => {
+test('all three rotating tile themes ship source sheets, complete tiles and isolated components', () => {
   const themes = ['porcelain', 'carved', 'inlay'];
+  const assets = [
+    'bam1', 'bam5', 'bam9', 'bamboo', 'blank',
+    ...Array.from({ length: 9 }, (_, i) => `chr${i + 1}`),
+    'dot1', 'dot5', 'dot9', 'dragonGreen', 'dragonRed', 'dragonWhite',
+    'flower', 'pip', 'season',
+    'windE', 'windN', 'windS', 'windW',
+  ];
   for (const theme of themes) {
     const data = fs.readFileSync(path.join(__dirname, `../../src/renderer/pages/mahjong-theme-${theme}-sheet.png`));
     assert.equal(data.subarray(1, 4).toString(), 'PNG', `${theme} concept sheet is a PNG`);
     assert.ok(data.length > 1_000_000, `${theme} concept sheet is the full-resolution approved source`);
+    for (const asset of assets) {
+      const face = fs.readFileSync(path.join(__dirname, `../../src/renderer/pages/mahjong-exact-${theme}-${asset}.png`));
+      assert.equal(face.subarray(1, 4).toString(), 'PNG', `${theme} ${asset} face is a PNG`);
+    }
   }
-  assert.match(controller, /Literal face crops from the approved concept sheets/);
-  assert.match(controller, /Rendering the source\s*\/\/ sheets as sprites keeps their exact linework, texture, color and ornaments/);
+  const extractor = fs.readFileSync(path.join(__dirname, '../../scripts/extract-mahjong-theme-assets.mjs'), 'utf8');
+  assert.match(extractor, /for \(const rank of \[2, 3, 4, 6, 7, 8\]\)/, '1, 5 and 9 keep the original art');
+  assert.match(controller, /function tileImage\(name\) \{/);
+  assert.match(controller, /preserveAspectRatio: 'xMidYMid meet'/);
+});
+
+test('source tile artwork retains its pixels and pip crops have transparent edges', async () => {
+  const pages = path.join(__dirname, '../../src/renderer/pages');
+  for (const [theme, left, top] of [['porcelain', 1061, 382], ['carved', 1061, 392], ['inlay', 1058, 374]]) {
+    const wind = sharp(path.join(pages, `mahjong-exact-${theme}-windS.png`));
+    const region = { left: 34, top: 65, width: 110, height: 158 };
+    const actual = await wind.clone().extract(region).removeAlpha().raw().toBuffer();
+    const expected = await sharp(path.join(pages, `mahjong-theme-${theme}-sheet.png`))
+      .extract({ ...region, left: region.left + left, top: region.top + top })
+      .removeAlpha().raw().toBuffer();
+    assert.ok(actual.equals(expected), `${theme} wind art retains original RGB values`);
+    const corner = await wind.extract({ left: 0, top: 0, width: 1, height: 1 }).raw().toBuffer();
+    assert.equal(corner[3], 0, `${theme} wind corner excludes the sheet backdrop`);
+
+    const { data, info } = await sharp(path.join(pages, `mahjong-exact-${theme}-pip.png`))
+      .raw().toBuffer({ resolveWithObject: true });
+    for (let x = 0; x < info.width; x++) {
+      assert.equal(data[x * 4 + 3], 0, `${theme} pip has no rectangular top edge`);
+    }
+    assert.equal(data[(Math.floor(info.height / 4) * info.width + Math.floor(info.width / 2)) * 4 + 3], 255,
+      `${theme} pip keeps its pigment`);
+  }
 });
 
 test('consecutive clears drive the tile collection and celebration artwork', () => {

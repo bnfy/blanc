@@ -45,7 +45,7 @@ test('celebration tiers', () => {
 });
 
 test('timings', () => {
-  assert.deepEqual(CELEBRATION_MS, { none: 0, still: 0, quiet: 700, standard: 1200, grand: 1500 });
+  assert.deepEqual(CELEBRATION_MS, { none: 0, still: 0, quiet: 1000, standard: 2000, grand: 2600 });
   assert.ok(Object.isFrozen(CELEBRATION_MS));
   assert.equal(TRAIL_MS, 320);
   assert.equal(AUTO_TRAIL_DELAY_MS, 180);

@@ -29,6 +29,8 @@ const board = document.getElementById('mjBoard');
 let positions = E.TURTLE_LAYOUT;
 let boardWidth = 0;
 let boardHeight = 0;
+let boardContentOffsetX = 0;
+let boardContentOffsetY = 0;
 let extentY = 0;
 
 function setLayoutGeometry(layoutId) {
@@ -38,15 +40,23 @@ function setLayoutGeometry(layoutId) {
   extentY = Math.max(...positions.map((p) => p.y)) + 2;
   boardWidth = extentX * HU_X + (maxLayer + 1) * LAYER_SHIFT;
   boardHeight = extentY * HU_Y + (maxLayer + 1) * LAYER_SHIFT;
+  const tileLeft = (p) => p.x * HU_X + p.z * LAYER_SHIFT;
+  const tileTop = (p) => (extentY - 2 - p.y) * HU_Y - p.z * LAYER_SHIFT +
+    (maxLayer + 1) * LAYER_SHIFT;
+  const contentLeft = Math.min(...positions.map(tileLeft));
+  const contentRight = Math.max(...positions.map((p) => tileLeft(p) + (2 * HU_X)));
+  const contentTop = Math.min(...positions.map(tileTop));
+  const contentBottom = Math.max(...positions.map((p) => tileTop(p) + (2 * HU_Y)));
+  boardContentOffsetX = (boardWidth - contentLeft - contentRight) / 2;
+  boardContentOffsetY = (boardHeight - contentTop - contentBottom) / 2;
   board.style.width = `${boardWidth}px`;
   board.style.height = `${boardHeight}px`;
   board.style.setProperty('--mj-layout-layers', String(maxLayer + 1));
 }
 
 // --- tile faces -----------------------------------------------------------
-// Tile-face artwork: themed dots/bamboo pictorials, Inter Bold character
-// numerals, compass winds, emblematic dragons, and botanical bonus-family art.
-// All art stays local to the flat-served internal pages directory.
+// Complete source tiles include their ivory texture and bevel. Ranks missing
+// from the source use the same tile body with isolated source pips or sticks.
 
 // Traditional arrangements. Dot tiles use centered ring compositions rather
 // than domino diagonals; bamboo overrides the counts where sticks stack
@@ -65,43 +75,13 @@ const DOT_SPOTS = {
   9: NINE_GRID.ys.flatMap((y) => NINE_GRID.xs.map((x) => [x, y])),
 };
 let activeTileTheme = 'porcelain';
-const THEME_SHEETS = Object.freeze({
-  porcelain: 'mahjong-theme-porcelain-sheet.png',
-  carved: 'mahjong-theme-carved-sheet.png',
-  inlay: 'mahjong-theme-inlay-sheet.png',
-});
-const SHEET_SIZE = Object.freeze({ width: 1487, height: 1058 });
-// Literal face crops from the approved concept sheets. Rendering the source
-// sheets as sprites keeps their exact linework, texture, color and ornaments.
-const THEME_CROPS = Object.freeze({
-  porcelain: Object.freeze({
-    chr: Object.freeze({ 1: [52, 54, 190, 270], 5: [288, 54, 190, 270], 9: [527, 54, 190, 270] }),
-    dot: Object.freeze({ 1: [766, 54, 190, 270], 5: [1005, 54, 190, 270], 9: [1243, 54, 190, 270] }),
-    bam: Object.freeze({ 1: [52, 392, 180, 265], 5: [280, 392, 180, 265], 9: [478, 392, 180, 265] }),
-    wind: Object.freeze({ n: [674, 392, 182, 266], e: [851, 392, 182, 266], s: [1028, 392, 182, 266], w: [1218, 392, 182, 266] }),
-    drg: Object.freeze({ c: [53, 708, 225, 280], f: [330, 708, 225, 280], p: [610, 708, 225, 280] }),
-    flower: [888, 708, 225, 280], season: [1170, 708, 235, 280],
-    pip: [1017, 106, 62, 62], bamboo: [324, 398, 48, 105],
-  }),
-  carved: Object.freeze({
-    chr: Object.freeze({ 1: [58, 54, 190, 270], 5: [289, 54, 190, 270], 9: [522, 54, 190, 270] }),
-    dot: Object.freeze({ 1: [770, 54, 190, 270], 5: [1000, 54, 190, 270], 9: [1234, 54, 190, 270] }),
-    bam: Object.freeze({ 1: [55, 403, 180, 255], 5: [291, 403, 180, 255], 9: [504, 403, 180, 255] }),
-    wind: Object.freeze({ n: [704, 403, 180, 255], e: [880, 403, 180, 255], s: [1065, 403, 180, 255], w: [1252, 403, 180, 255] }),
-    drg: Object.freeze({ c: [82, 720, 220, 280], f: [326, 720, 220, 280], p: [651, 720, 205, 280] }),
-    flower: [896, 720, 210, 280], season: [1190, 720, 215, 280],
-    pip: [1012, 185, 62, 62], bamboo: [338, 413, 48, 105],
-  }),
-  inlay: Object.freeze({
-    chr: Object.freeze({ 1: [68, 54, 190, 270], 5: [295, 54, 190, 270], 9: [520, 54, 190, 270] }),
-    dot: Object.freeze({ 1: [780, 54, 190, 270], 5: [1007, 54, 190, 270], 9: [1230, 54, 190, 270] }),
-    bam: Object.freeze({ 1: [48, 384, 190, 267], 5: [277, 384, 185, 267], 9: [486, 384, 185, 267] }),
-    wind: Object.freeze({ n: [706, 384, 180, 267], e: [884, 384, 180, 267], s: [1066, 384, 180, 267], w: [1257, 384, 180, 267] }),
-    drg: Object.freeze({ c: [82, 707, 220, 280], f: [337, 707, 220, 280], p: [667, 707, 205, 280] }),
-    flower: [920, 707, 205, 280], season: [1175, 707, 225, 280],
-    chrMotif: [320, 225, 150, 95],
-    pip: [1010, 95, 62, 62], bamboo: [329, 395, 48, 105],
-  }),
+const themeAsset = (name) => `mahjong-exact-${activeTileTheme}-${name}.png`;
+const WIND_SEAL_ART = 'mahjong-wind-compass.png';
+const WIND_SEAL_ROTATION = Object.freeze({ n: 0, e: 90, s: 180, w: 270 });
+const DRAGON_SEAL_ART = Object.freeze({
+  c: 'mahjong-dragon-red-seal.png',
+  f: 'mahjong-dragon-green-seal.png',
+  p: 'mahjong-dragon-white-seal.png',
 });
 const DOT_PIP_SIZES = Object.freeze({
   1: 32,
@@ -117,25 +97,25 @@ const DOT_PIP_SIZES = Object.freeze({
 const BAM_SPOTS = {
   1: [[22, 30]],
   2: [[14, 30], [30, 30]],
-  3: [[22, 14], [11, 44], [33, 44]],
-  4: [[11, 13], [33, 13], [11, 47], [33, 47]],
+  3: [[22, 15], [11, 43], [33, 43]],
+  4: [[11, 15], [33, 15], [11, 45], [33, 45]],
   5: [[11, 13], [33, 13], [22, 30], [11, 47], [33, 47]],
   6: [[11, 17], [22, 17], [33, 17], [11, 43], [22, 43], [33, 43]],
-  7: [[22, 9], [11, 30], [22, 30], [33, 30], [11, 51], [22, 51], [33, 51]],
+  7: [[22, 10], [11, 30], [22, 30], [33, 30], [11, 50], [22, 50], [33, 50]],
   // Stagger the four pairs so eight bamboo reads as individual sticks instead
   // of two uninterrupted rails.
-  8: [[13, 7.5], [31, 7.5], [11, 22.5], [33, 22.5], [13, 37.5], [31, 37.5], [11, 52.5], [33, 52.5]],
+  8: [[13, 9], [31, 9], [11, 23], [33, 23], [13, 37], [31, 37], [11, 51], [33, 51]],
   9: NINE_GRID.ys.flatMap((y) => NINE_GRID.xs.map((x) => [x, y])),
 };
 
 const BAMBOO_STICK_SIZES = Object.freeze({
   2: [17, 42],
-  3: [15.5, 29],
-  4: [14.5, 26],
+  3: [15.5, 24],
+  4: [14.5, 21],
   5: [13.5, 24],
   6: [12.75, 22],
-  7: [12, 20.5],
-  8: [11.5, 19],
+  7: [12, 14.5],
+  8: [11.5, 13.5],
   9: [11, 18],
 });
 
@@ -145,126 +125,60 @@ function el(tag, attrs) {
   return node;
 }
 
-function sheetCrop(crop, {
-  x = 0, y = 0, width = 44, height = 60, className = 'mj-sheet-face',
-} = {}) {
-  const nested = el('svg', {
-    x, y, width, height,
-    viewBox: crop.join(' '),
-    preserveAspectRatio: 'none',
-    class: className,
-    overflow: 'hidden',
+function faceImage(href, x, y, width, height) {
+  return el('image', {
+    href,
+    x: x - width / 2,
+    y: y - height / 2,
+    width,
+    height,
+    preserveAspectRatio: 'xMidYMid meet',
   });
-  nested.append(el('image', {
-    href: THEME_SHEETS[activeTileTheme],
-    x: 0,
-    y: 0,
-    width: SHEET_SIZE.width,
-    height: SHEET_SIZE.height,
-    preserveAspectRatio: 'none',
-  }));
-  return nested;
+}
+
+function tileImage(name) {
+  return el('image', { href: themeAsset(name), width: 44, height: 60, preserveAspectRatio: 'none' });
 }
 
 function dotFace(count) {
-  const crops = THEME_CROPS[activeTileTheme];
-  if (crops.dot[count]) return sheetCrop(crops.dot[count], { className: `mj-sheet-face mj-dot-art-${count}` });
-  const group = el('g', { class: `mj-dot-art mj-dot-art-${count}` });
+  if ([1, 5, 9].includes(count)) return tileImage(`dot${count}`);
+  const group = el('g', {});
+  group.append(tileImage('blank'));
   const size = DOT_PIP_SIZES[count];
   DOT_SPOTS[count].forEach(([x, y]) => {
-    group.append(sheetCrop(crops.pip, {
-      x: x - size / 2,
-      y: y - size / 2,
-      width: size,
-      height: size,
-      className: 'mj-dot-source',
-    }));
+    group.append(faceImage(themeAsset('pip'), x, y, size, size));
   });
-  return group;
-}
-
-function characterFace(count) {
-  const crops = THEME_CROPS[activeTileTheme];
-  const sample = count <= 3 ? 1 : count <= 7 ? 5 : 9;
-  const group = el('g', { class: `mj-character-art mj-character-art-${activeTileTheme}` });
-  group.append(sheetCrop(crops.chr[sample]));
-  if (count === sample) return group;
-
-  const carved = activeTileTheme === 'carved';
-  group.append(el('rect', {
-    x: carved ? 1.5 : 5,
-    y: 1.5,
-    width: carved ? 23 : 34,
-    height: carved ? 34 : activeTileTheme === 'inlay' ? 40 : 28,
-    rx: 2,
-    class: 'mj-character-number-patch',
-  }));
-  if (activeTileTheme === 'inlay') {
-    // The inlay numeral reaches into the sunrise in the approved 5 tile. Paint
-    // that exact lower-sheet ornament back after masking the source numeral.
-    group.append(sheetCrop(crops.chrMotif, {
-      x: 5.8, y: 38, width: 34.7, height: 21.1,
-      className: 'mj-character-motif',
-    }));
-  }
-  const number = textEl(carved ? 11.5 : 22, carved ? 13.5 : 14, carved ? 19 : 21, count);
-  number.classList.add('mj-character-number');
-  group.append(number);
   return group;
 }
 
 function windFace(id, variant = 'motif') {
-  return sheetCrop(THEME_CROPS[activeTileTheme].wind[id], {
-    className: `mj-sheet-face mj-wind-art mj-wind-art-${id} mj-wind-art-${variant}`,
-  });
+  if (variant !== 'seal') return tileImage(`wind${id.toUpperCase()}`);
+  const group = el('g', {});
+  const image = faceImage(WIND_SEAL_ART, 22, 29, 36, 36);
+  image.setAttribute('transform', `rotate(${WIND_SEAL_ROTATION[id]} 22 29)`);
+  group.append(tileImage('blank'), image);
+  return group;
 }
 
 function dragonFace(id, variant = 'motif') {
-  return sheetCrop(THEME_CROPS[activeTileTheme].drg[id], {
-    className: `mj-sheet-face mj-dragon-art mj-dragon-art-${id} mj-dragon-art-${variant}`,
-  });
+  const name = id === 'c' ? 'dragonRed' : id === 'f' ? 'dragonGreen' : 'dragonWhite';
+  if (variant !== 'seal') return tileImage(name);
+  const group = el('g', {});
+  group.append(tileImage('blank'), faceImage(DRAGON_SEAL_ART[id], 22, 29, 36, 36));
+  return group;
 }
 
 // One bamboo keeps its special emblem. The numbered suit uses bold, segmented
 // sticks with restrained gold accents for at-a-glance clarity.
 function bambooFace(count) {
-  const crops = THEME_CROPS[activeTileTheme];
-  if (crops.bam[count]) return sheetCrop(crops.bam[count], { className: `mj-sheet-face mj-bamboo-art-${count}` });
-  const group = el('g', { class: `mj-bamboo-art mj-bamboo-art-${count}` });
+  if ([1, 5, 9].includes(count)) return tileImage(`bam${count}`);
+  const group = el('g', {});
+  group.append(tileImage('blank'));
   const [width, height] = BAMBOO_STICK_SIZES[count];
   BAM_SPOTS[count].forEach(([x, y]) => {
-    group.append(sheetCrop(crops.bamboo, {
-      x: x - width / 2,
-      y: y - height / 2,
-      width,
-      height,
-      className: 'mj-bamboo-source mj-bamboo-source-stick',
-    }));
+    group.append(faceImage(themeAsset('bamboo'), x, y, width, height));
   });
   return group;
-}
-
-function textEl(x, y, size, content) {
-  const t = el('text', {
-    x, y,
-    'font-size': size,
-    'text-anchor': 'middle',
-    'dominant-baseline': 'central',
-    fill: 'currentColor',
-  });
-  t.textContent = content;
-  return t;
-}
-
-// Bonus tiles match by family in classic Mahjong solitaire: every flower can
-// pair with every flower, and every season can pair with every season. Their
-// artwork therefore uses one polished, unmistakable motif per family. This
-// avoids the false promise of exact matching created by unrelated UI glyphs
-// and corner numerals while keeping the underlying four-tile sets intact.
-function bonusFace(family) {
-  return sheetCrop(THEME_CROPS[activeTileTheme][family], {
-    className: `mj-sheet-face mj-bonus-art mj-bonus-${family}`,
-  });
 }
 
 // Accessible tile names. Numbers are words ("three dot"), so each language
@@ -327,13 +241,14 @@ function faceSVG(kind) {
   } else if (family === 'bam') {
     svg.append(bambooFace(Number(id)));
   } else if (family === 'chr') {
-    svg.append(characterFace(Number(id)));
+    svg.append(tileImage(`chr${id}`));
   } else if (family === 'wind') {
     svg.append(windFace(id, variant));
   } else if (family === 'drg') {
     svg.append(dragonFace(id, variant));
   } else if (family === 'flower' || family === 'season') {
-    svg.append(bonusFace(family));
+    // Bonus tiles match by family, so each family shares one face.
+    svg.append(tileImage(family));
   }
   return svg;
 }
@@ -523,18 +438,26 @@ function refreshTiles({ recoverFocus = false, keepHint = false } = {}) {
 
 function fitBoard() {
   const wrap = document.getElementById('mjBoardWrap');
-  const safeSide = Math.max(
+  const wrapStyles = getComputedStyle(wrap);
+  const safeLeft = Math.max(
     0,
-    Number.parseFloat(getComputedStyle(wrap).getPropertyValue('--mj-board-safe-side')) || 0
+    Number.parseFloat(wrapStyles.getPropertyValue('--mj-board-safe-left')) || 0
+  );
+  const safeRight = Math.max(
+    0,
+    Number.parseFloat(wrapStyles.getPropertyValue('--mj-board-safe-right')) || 0
   );
   // The small floor guards the moment before the view has settled its size;
   // supported browser zoom can legitimately need a scale below 0.2.
   const scale = Math.max(0.05, Math.min(
     1.35,
-    (wrap.clientWidth - 36 - (safeSide * 2)) / boardWidth,
+    (wrap.clientWidth - 36 - safeLeft - safeRight) / boardWidth,
     (wrap.clientHeight - 36) / boardHeight
   ));
-  board.style.transform = `scale(${scale})`;
+  const centerOffset = (safeLeft - safeRight) / 2;
+  const visualOffsetX = centerOffset + (boardContentOffsetX * scale);
+  const visualOffsetY = boardContentOffsetY * scale;
+  board.style.transform = `translate(${visualOffsetX}px, ${visualOffsetY}px) scale(${scale})`;
   board.style.setProperty('--mj-board-scale', String(scale));
 }
 window.addEventListener('resize', fitBoard);

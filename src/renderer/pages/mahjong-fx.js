@@ -6,7 +6,7 @@
 
   const TRAIL_MS = 320;
   const AUTO_TRAIL_DELAY_MS = 180;
-  const CELEBRATION_MS = Object.freeze({ none: 0, still: 0, quiet: 700, standard: 1200, grand: 1500 });
+  const CELEBRATION_MS = Object.freeze({ none: 0, still: 0, quiet: 1000, standard: 2000, grand: 2600 });
 
   const centre = (rect) => [rect.left + rect.width / 2, rect.top + rect.height / 2];
 
