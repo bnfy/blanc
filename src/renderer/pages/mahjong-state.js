@@ -44,7 +44,7 @@
   const SOURCES = Object.freeze(['random', 'daily']);
   const BURST_RULES = Object.freeze(['auto', 'manual']);
   const DEFAULT_PREFS = Object.freeze({ layoutId: 'turtle', mode: 'tray', source: 'daily', burstRules: 'auto' });
-  const DEFAULT_PROGRESS = Object.freeze({ clearStreak: 0, lastCompletedGameId: null });
+  const DEFAULT_PROGRESS = Object.freeze({ clearStreak: 0, lastClearedDealId: null });
   const TILE_THEMES = Object.freeze(['porcelain', 'carved', 'inlay']);
   const CLEARS_PER_TILE_THEME = 3;
   const TRAY_SCORING_REVISION = 2;
@@ -527,15 +527,17 @@
     const source = isObject(value) ? value : {};
     return {
       clearStreak: finiteInteger(source.clearStreak) ? source.clearStreak : DEFAULT_PROGRESS.clearStreak,
-      lastCompletedGameId: source.lastCompletedGameId === null || isValidGameId(source.lastCompletedGameId)
-        ? source.lastCompletedGameId
-        : DEFAULT_PROGRESS.lastCompletedGameId,
+      lastClearedDealId: source.lastClearedDealId === null || isValidGameId(source.lastClearedDealId)
+        ? source.lastClearedDealId
+        : DEFAULT_PROGRESS.lastClearedDealId,
     };
   }
 
   // Consecutive clears are intentionally separate from records and table
-  // preferences: they drive visual variety, not competitive results. The
-  // completed game id makes the increment idempotent across reloads.
+  // preferences: they drive visual variety, not competitive results. Clears
+  // are keyed by deal, not by game id: a tab keeps one game id across every
+  // board it deals. The deal id makes the increment idempotent across
+  // reloads and duplicated tabs of the same board.
   function createProgressStore({ storage = defaultStorage() } = {}) {
     function read() {
       const raw = safeGet(storage, PROGRESS_KEY);
@@ -546,10 +548,10 @@
       const clean = normalizeProgress(progress);
       return safeSet(storage, PROGRESS_KEY, JSON.stringify({ version: 1, ...clean }));
     }
-    function recordClear(gameId) {
+    function recordClear(dealId) {
       const current = read();
-      if (!isValidGameId(gameId) || current.lastCompletedGameId === gameId.toLowerCase()) return current;
-      const next = { clearStreak: current.clearStreak + 1, lastCompletedGameId: gameId.toLowerCase() };
+      if (!isValidGameId(dealId) || current.lastClearedDealId === dealId.toLowerCase()) return current;
+      const next = { clearStreak: current.clearStreak + 1, lastClearedDealId: dealId.toLowerCase() };
       return write(next) ? next : current;
     }
     function reset() {

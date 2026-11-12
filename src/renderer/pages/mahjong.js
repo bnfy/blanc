@@ -188,31 +188,27 @@ const NUM_WORDS = [
   t('mahjong.number.4'), t('mahjong.number.5'), t('mahjong.number.6'),
   t('mahjong.number.7'), t('mahjong.number.8'), t('mahjong.number.9'),
 ];
-const WIND_MOTIFS = {
-  e: t('mahjong.tile.motif.sunrise'), s: t('mahjong.tile.motif.sun'),
-  w: t('mahjong.tile.motif.moonAndWave'), n: t('mahjong.tile.motif.mountain'),
-};
-const DRAGON_MOTIFS = {
-  c: t('mahjong.tile.motif.flame'), f: t('mahjong.tile.motif.flourish'), p: t('mahjong.tile.motif.blancMark'),
-};
+// The standard art shows the wind or dragon itself, which differs by tile
+// set (a character, a letter, a dragon), so only the white dragon's Blanc
+// mark is named. The alternative seal faces keep their picture in the name.
 function tileName(kind) {
   const [family, id, rawVariant] = kind.split('-');
-  const variant = rawVariant || 'motif';
+  const seal = rawVariant === 'seal';
   if (family === 'dot') return t('mahjong.tile.dot', { number: NUM_WORDS[id - 1] });
   if (family === 'bam') return t('mahjong.tile.bamboo', { number: NUM_WORDS[id - 1] });
   if (family === 'chr') return t('mahjong.tile.character', { number: NUM_WORDS[id - 1] });
   if (family === 'wind') {
-    const motif = variant === 'seal' ? t('mahjong.tile.motif.compass') : WIND_MOTIFS[id];
-    if (id === 'e') return t('mahjong.tile.windEast', { motif });
-    if (id === 's') return t('mahjong.tile.windSouth', { motif });
-    if (id === 'w') return t('mahjong.tile.windWest', { motif });
-    return t('mahjong.tile.windNorth', { motif });
+    const motif = t('mahjong.tile.motif.compass');
+    if (id === 'e') return seal ? t('mahjong.tile.windEast', { motif }) : t('mahjong.tile.windEastPlain');
+    if (id === 's') return seal ? t('mahjong.tile.windSouth', { motif }) : t('mahjong.tile.windSouthPlain');
+    if (id === 'w') return seal ? t('mahjong.tile.windWest', { motif }) : t('mahjong.tile.windWestPlain');
+    return seal ? t('mahjong.tile.windNorth', { motif }) : t('mahjong.tile.windNorthPlain');
   }
   if (family === 'drg') {
-    const motif = variant === 'seal' ? t('mahjong.tile.motif.seal') : DRAGON_MOTIFS[id];
-    if (id === 'c') return t('mahjong.tile.dragonRed', { motif });
-    if (id === 'f') return t('mahjong.tile.dragonGreen', { motif });
-    return t('mahjong.tile.dragonWhite', { motif });
+    const motif = t('mahjong.tile.motif.seal');
+    if (id === 'c') return seal ? t('mahjong.tile.dragonRed', { motif }) : t('mahjong.tile.dragonRedPlain');
+    if (id === 'f') return seal ? t('mahjong.tile.dragonGreen', { motif }) : t('mahjong.tile.dragonGreenPlain');
+    return t('mahjong.tile.dragonWhite', { motif: seal ? motif : t('mahjong.tile.motif.blancMark') });
   }
   if (family === 'flower') return t('mahjong.tile.flower');
   return t('mahjong.tile.season');
@@ -1299,15 +1295,21 @@ function paintBest() {
   }
 }
 
+// Counts this board toward the clear streak once per deal. Saves from before
+// deal ids existed fall back to the tab's game id.
+function noteClear() {
+  const progress = progressStore?.recordClear(game.dealId || gameId) || { clearStreak: 0 };
+  game._clearStreak = progress.clearStreak;
+  game._celebrationStyle = S.celebrationStyleForStreak(progress.clearStreak);
+}
+
 function recordCompletion() {
   if (!game || game.completionRecorded) return true;
   pauseTimer();
   if (game.zen) {
     game.completionRecorded = true;
     game._outcome = 'zen';
-    const progress = progressStore?.recordClear(gameId) || { clearStreak: 0 };
-    game._clearStreak = progress.clearStreak;
-    game._celebrationStyle = S.celebrationStyleForStreak(progress.clearStreak);
+    noteClear();
     saveAfterMutation();
     return true;
   }
@@ -1330,9 +1332,7 @@ function recordCompletion() {
   game.completionRecorded = Boolean(updated);
   const after = bestForGame();
   game._outcome = S.completionOutcome({ mode: game.mode, before, after });
-  const progress = progressStore?.recordClear(gameId) || { clearStreak: 0 };
-  game._clearStreak = progress.clearStreak;
-  game._celebrationStyle = S.celebrationStyleForStreak(progress.clearStreak);
+  noteClear();
   saveAfterMutation();
   return Boolean(updated);
 }
@@ -1358,7 +1358,15 @@ function renderWinScore(target, { isBurst, score, time }) {
 }
 
 let celebration = null;
+let stillGlowTimer = null;
+function clearStillGlow() {
+  window.clearTimeout(stillGlowTimer);
+  stillGlowTimer = null;
+  document.body.classList.remove('is-celebrating-still');
+}
+
 function cancelCelebration() {
+  clearStillGlow();
   if (!celebration) return;
   window.clearTimeout(celebration.timer);
   celebration.detach();
@@ -1380,7 +1388,7 @@ function playCelebration(tier, style, done) {
   cancelCelebration();
   if (tier === 'still') {
     document.body.classList.add('is-celebrating-still');
-    window.setTimeout(() => document.body.classList.remove('is-celebrating-still'), 400);
+    stillGlowTimer = window.setTimeout(clearStillGlow, 400);
   }
   const layer = document.getElementById('mjCelebrate');
   if (!FX.CELEBRATION_MS[tier] || !layer) {
@@ -1499,20 +1507,29 @@ function saveAfterMutation() {
   return gameStore.save(gameId, game);
 }
 
+// True once the player has done anything with a board: a move, a selection,
+// a parked tile or running time.
+function wasTouched(state) {
+  return state.elapsedMs > 0 || state.history.length > 0 ||
+    state.tray.length > 0 || state.selected !== null;
+}
+
 function configureGame(nextGame) {
   invalidateTileAnimations();
   resetHintCycle();
   game = nextGame;
   game.gameId = gameId;
   game.assists ||= { undo: 0, hint: 0, shuffle: 0 };
-  activeTileTheme = S.tileThemeForStreak(progressStore?.read().clearStreak ?? 0);
+  // A board keeps the tile set it was dealt in; only saves from before tile
+  // sets were pinned take it from the current streak.
+  if (!S.TILE_THEMES.includes(game.tileTheme)) {
+    game.tileTheme = S.tileThemeForStreak(progressStore?.read().clearStreak ?? 0);
+  }
+  activeTileTheme = game.tileTheme;
   document.body.dataset.tileTheme = activeTileTheme;
   focusIndex = nearestVisibleIndex(0);
-  hasStarted = game.elapsedMs > 0 || game.history.length > 0 ||
-    game.tray.length > 0 || game.selected !== null;
   resetTimer();
-  hasStarted = game.elapsedMs > 0 || game.history.length > 0 ||
-    game.tray.length > 0 || game.selected !== null;
+  hasStarted = wasTouched(game);
   document.getElementById('mjNotice').hidden = true;
   document.getElementById('mjError').hidden = true;
   document.getElementById('mjRecoveryNotice').hidden = true;
@@ -1537,13 +1554,19 @@ function startGame({
   zen = false,
 }, { soundCue = true, rememberPreferences = true, shared = false } = {}) {
   pauseTimer();
-  if (game && !E.isWon(game)) progressStore?.reset();
+  // Walking away from a board in play ends the streak; replacing a deal
+  // nobody has touched yet (a new tab's own deal, a setup change) does not.
+  if (game && !E.isWon(game) && wasTouched(game)) progressStore?.reset();
   // Remember the table so the next fresh tab deals the same kind of game.
   if (rememberPreferences) {
     prefsStore?.write({ layoutId, mode, source: dailyKey ? 'daily' : 'random', burstRules });
   }
   try {
-    const next = E.createGame({ seed, layoutId, mode, gameId, dailyKey, burstRules, zen });
+    const next = E.createGame({
+      seed, layoutId, mode, gameId, dailyKey, burstRules, zen,
+      dealId: S.mintGameId(),
+      tileTheme: S.tileThemeForStreak(progressStore?.read().clearStreak ?? 0),
+    });
     next.gameId = gameId;
     next.dailyKey = dailyKey;
     activeSharedChallenge = shared;

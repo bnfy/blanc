@@ -132,14 +132,19 @@ test('winds and dragons use the exact approved concept-sheet crops', () => {
   assert.doesNotMatch(controller, /family === 'drg'[\s\S]{0,240}id\.toUpperCase\(\)/);
   assert.doesNotMatch(controller, /const BLANC_MARK_PATHS/);
   assert.doesNotMatch(controller, /for \(const d of BLANC_MARK_PATHS\)/);
-  assert.match(controller, /const WIND_MOTIFS = \{\s*e: t\('mahjong\.tile\.motif\.sunrise'\), s: t\('mahjong\.tile\.motif\.sun'\),\s*w: t\('mahjong\.tile\.motif\.moonAndWave'\), n: t\('mahjong\.tile\.motif\.mountain'\),/);
-  assert.deepEqual(['sunrise', 'sun', 'moonAndWave', 'mountain'].map((motif) => english(`mahjong.tile.motif.${motif}`)),
-    ['sunrise', 'sun', 'moon and wave', 'mountain']);
-  assert.match(controller, /const motif = variant === 'seal' \? t\('mahjong\.tile\.motif\.compass'\) : WIND_MOTIFS\[id\];/);
+  // Standard faces differ by tile set (character, letter, dragon), so their
+  // names carry no picture; only the white dragon's Blanc mark is named.
+  assert.doesNotMatch(controller, /WIND_MOTIFS|DRAGON_MOTIFS/);
+  for (const motif of ['sunrise', 'sun', 'moonAndWave', 'mountain', 'flame', 'flourish']) {
+    assert.equal(catalog[`mahjong.tile.motif.${motif}`], undefined, `${motif} no longer describes any art`);
+  }
+  assert.deepEqual(['windEast', 'windSouth', 'windWest', 'windNorth', 'dragonRed', 'dragonGreen']
+    .map((name) => english(`mahjong.tile.${name}Plain`)),
+  ['east wind', 'south wind', 'west wind', 'north wind', 'red dragon', 'green dragon']);
+  assert.match(controller, /if \(id === 'e'\) return seal \? t\('mahjong\.tile\.windEast', \{ motif \}\) : t\('mahjong\.tile\.windEastPlain'\);/);
   assert.equal(english('mahjong.tile.windEast'), 'east wind, {motif}');
-  assert.match(controller, /const DRAGON_MOTIFS = \{\s*c: t\('mahjong\.tile\.motif\.flame'\), f: t\('mahjong\.tile\.motif\.flourish'\), p: t\('mahjong\.tile\.motif\.blancMark'\),/);
   assert.equal(english('mahjong.tile.motif.blancMark'), 'Blanc mark');
-  assert.match(controller, /const motif = variant === 'seal' \? t\('mahjong\.tile\.motif\.seal'\) : DRAGON_MOTIFS\[id\];/);
+  assert.match(controller, /return t\('mahjong\.tile\.dragonWhite', \{ motif: seal \? motif : t\('mahjong\.tile\.motif\.blancMark'\) \}\);/);
 
 });
 
@@ -714,7 +719,7 @@ test('the Records sheet opens from the dock and R, paints from the pure summary,
 
 test('tile numerals are raster artwork while the game UI uses Instrument Sans', () => {
   assert.doesNotMatch(mahjongStyles, /text\.mj-character-number/);
-  assert.ok(fs.existsSync(path.join(__dirname, '../../src/renderer/pages/mahjong-character-numerals-master.png')));
+  assert.ok(fs.existsSync(path.join(__dirname, '../../assets/mahjong/mahjong-character-numerals-master.png')));
   assert.doesNotMatch(mahjongStyles, /--font-text:\s*var\(--font-ui\)/);
   assert.doesNotMatch(mahjongStyles, /JetBrains Mono/);
   assert.match(mahjongStyles, /\.mahjong-body\s*\{[^}]*font-family:\s*var\(--font-text\);/);
@@ -738,7 +743,7 @@ test('all three rotating tile themes ship source sheets, complete tiles and isol
     'windE', 'windN', 'windS', 'windW',
   ];
   for (const theme of themes) {
-    const data = fs.readFileSync(path.join(__dirname, `../../src/renderer/pages/mahjong-theme-${theme}-sheet.png`));
+    const data = fs.readFileSync(path.join(__dirname, `../../assets/mahjong/mahjong-theme-${theme}-sheet.png`));
     assert.equal(data.subarray(1, 4).toString(), 'PNG', `${theme} concept sheet is a PNG`);
     assert.ok(data.length > 1_000_000, `${theme} concept sheet is the full-resolution approved source`);
     for (const asset of assets) {
@@ -758,7 +763,7 @@ test('source tile artwork retains its pixels and pip crops have transparent edge
     const wind = sharp(path.join(pages, `mahjong-exact-${theme}-windS.png`));
     const region = { left: 34, top: 65, width: 110, height: 158 };
     const actual = await wind.clone().extract(region).removeAlpha().raw().toBuffer();
-    const expected = await sharp(path.join(pages, `mahjong-theme-${theme}-sheet.png`))
+    const expected = await sharp(path.join(__dirname, `../../assets/mahjong/mahjong-theme-${theme}-sheet.png`))
       .extract({ ...region, left: region.left + left, top: region.top + top })
       .removeAlpha().raw().toBuffer();
     assert.ok(actual.equals(expected), `${theme} wind art retains original RGB values`);
@@ -777,11 +782,14 @@ test('source tile artwork retains its pixels and pip crops have transparent edge
 
 test('consecutive clears drive the tile collection and celebration artwork', () => {
   assert.match(controller, /progressStore = S\.createProgressStore\(\{ storage: localStorage \}\)/);
-  assert.match(controller, /activeTileTheme = S\.tileThemeForStreak\(progressStore\?\.read\(\)\.clearStreak \?\? 0\)/);
+  // Each board keeps the tile set it was dealt in, keyed to its own deal id.
+  assert.match(controller, /dealId: S\.mintGameId\(\),\s*tileTheme: S\.tileThemeForStreak\(progressStore\?\.read\(\)\.clearStreak \?\? 0\)/);
+  assert.match(controller, /activeTileTheme = game\.tileTheme;/);
   assert.match(controller, /document\.body\.dataset\.tileTheme = activeTileTheme/);
-  assert.match(controller, /progressStore\?\.recordClear\(gameId\)/);
+  assert.match(controller, /progressStore\?\.recordClear\(game\.dealId \|\| gameId\)/);
   assert.match(controller, /game\._celebrationStyle = S\.celebrationStyleForStreak\(progress\.clearStreak\)/);
-  assert.match(controller, /if \(game && !E\.isWon\(game\)\) progressStore\?\.reset\(\)/);
+  // Only a board the player touched ends the streak when it is replaced.
+  assert.match(controller, /if \(game && !E\.isWon\(game\) && wasTouched\(game\)\) progressStore\?\.reset\(\)/);
   assert.match(mahjongStyles, /\.mj-win-score\s*\{[^}]*letter-spacing:\s*0\.025em;/);
 });
 

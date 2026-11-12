@@ -913,15 +913,15 @@ test('table preferences persist Burst rules with safe v2 defaults and never pers
 test('consecutive clears rotate all three tile themes in three-board chapters', () => {
   const storage = new MemoryStorage();
   const progress = S.createProgressStore({ storage });
-  assert.deepEqual(progress.read(), { clearStreak: 0, lastCompletedGameId: null });
+  assert.deepEqual(progress.read(), { clearStreak: 0, lastClearedDealId: null });
   assert.deepEqual([0, 2, 3, 5, 6, 8, 9].map(S.tileThemeForStreak),
     ['porcelain', 'porcelain', 'carved', 'carved', 'inlay', 'inlay', 'porcelain']);
 
-  assert.deepEqual(progress.recordClear(uuid(1)), { clearStreak: 1, lastCompletedGameId: uuid(1) });
-  assert.deepEqual(progress.recordClear(uuid(1)), { clearStreak: 1, lastCompletedGameId: uuid(1) });
-  assert.deepEqual(progress.recordClear(uuid(2)), { clearStreak: 2, lastCompletedGameId: uuid(2) });
-  assert.deepEqual(S.createProgressStore({ storage }).read(), { clearStreak: 2, lastCompletedGameId: uuid(2) });
-  assert.deepEqual(progress.reset(), { clearStreak: 0, lastCompletedGameId: null });
+  assert.deepEqual(progress.recordClear(uuid(1)), { clearStreak: 1, lastClearedDealId: uuid(1) });
+  assert.deepEqual(progress.recordClear(uuid(1)), { clearStreak: 1, lastClearedDealId: uuid(1) });
+  assert.deepEqual(progress.recordClear(uuid(2)), { clearStreak: 2, lastClearedDealId: uuid(2) });
+  assert.deepEqual(S.createProgressStore({ storage }).read(), { clearStreak: 2, lastClearedDealId: uuid(2) });
+  assert.deepEqual(progress.reset(), { clearStreak: 0, lastClearedDealId: null });
 });
 
 test('clear milestones cycle through every selected celebration direction', () => {

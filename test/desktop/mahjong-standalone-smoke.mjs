@@ -147,6 +147,53 @@ try {
       leftover: document.body.classList.contains('is-celebrating') };
   })()`), { celebrating: false, card: false, leftover: false }, 'undo mid-celebration leaves no card or overlay');
 
+  // Boards cleared one after another in the same tab each count toward the
+  // streak (the tab keeps one game id across deals), the fourth deal moves to
+  // the next tile set, replacing an untouched deal keeps the streak, and
+  // walking away from a touched board ends it.
+  const streak = await mahjongJs(`(async () => {
+    const wait = (ms) => new Promise((r) => setTimeout(r, ms));
+    const clearStreak = () => S.createProgressStore({ storage: localStorage }).read().clearStreak;
+    const deal = () => startGame({ layoutId: 'peaks', mode: 'classic', seed: 7 }, { soundCue: false, rememberPreferences: false });
+    const counts = [];
+    for (let board = 0; board < 3; board++) {
+      deal();
+      await wait(300);
+      while (game.removed.filter((r) => !r).length > 2) {
+        const [a, b] = E.availableMoves(game)[0];
+        E.selectTile(game, a);
+        E.selectTile(game, b);
+      }
+      refreshTiles();
+      const [a, b] = E.availableMoves(game)[0];
+      activateTile(a);
+      activateTile(b);
+      const layer = document.getElementById('mjCelebrate');
+      for (let i = 0; i < 80 && layer.hidden && document.getElementById('mjWin').hidden; i++) await wait(25);
+      window.dispatchEvent(new KeyboardEvent('keydown', { key: 'Shift' }));
+      await wait(400);
+      counts.push(clearStreak());
+    }
+    deal();
+    const theme = document.body.dataset.tileTheme;
+    deal();
+    const afterUntouched = clearStreak();
+    await wait(400);
+    activateTile(E.availableMoves(game)[0][0]);
+    deal();
+    const result = { counts, theme, afterUntouched, afterAbandon: clearStreak(), themeAfterAbandon: document.body.dataset.tileTheme };
+    // Leave a started, unfinished board for the Continue prompt below.
+    await wait(400);
+    const [a, b] = E.availableMoves(game)[0];
+    activateTile(a);
+    activateTile(b);
+    await wait(800);
+    return result;
+  })()`);
+  assert.deepEqual(streak, {
+    counts: [1, 2, 3], theme: 'carved', afterUntouched: 3, afterAbandon: 0, themeAfterAbandon: 'porcelain',
+  }, 'clear streak across deals in one tab');
+
   const savedGameUrl = (await app.evaluate(() => globalThis.__blanc.state()))
     .tabs.find((tab) => tab.id === launched.activeTabId)?.loadedUrl;
   assert.ok(savedGameUrl?.startsWith('blanc://mahjong/'));

@@ -6,6 +6,8 @@ import sharp from 'sharp';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const pages = path.join(root, 'src', 'renderer', 'pages');
+// Source sheets stay outside src/ so they are never packaged into the app.
+const sources = path.join(root, 'assets', 'mahjong');
 
 // Bounds trace the complete tiles in the supplied crops, expressed in the
 // matching original sheets so that cut-off edges can be recovered. Order is
@@ -195,13 +197,13 @@ async function normalizeNumeralPalette(input, target) {
 
 // The sheets show 1, 5, and 9. Use the existing raster numeral master only
 // for the six ranks absent from the sheets.
-const numeralMaster = path.join(pages, 'mahjong-character-numerals-master.png');
+const numeralMaster = path.join(sources, 'mahjong-character-numerals-master.png');
 const numeralMetadata = await sharp(numeralMaster).metadata();
 const numeralCellWidth = Math.floor(numeralMetadata.width / 3);
 const numeralCellHeight = Math.floor(numeralMetadata.height / 3);
 
 for (const [theme, design] of Object.entries(themes)) {
-  const source = path.join(pages, `mahjong-theme-${theme}-sheet.png`);
+  const source = path.join(sources, `mahjong-theme-${theme}-sheet.png`);
   const write = (name, buffer) => sharp(buffer).png({ compressionLevel: 9 })
     .toFile(path.join(pages, `mahjong-exact-${theme}-${name}.png`));
   for (const [name, bounds] of Object.entries(design.tiles)) {
