@@ -144,8 +144,15 @@ test('a link to a section lands with its heading below the bars', async () => {
   for (const id of ['pricing', 'support', 'download']) {
     const { page, context } = await openPage(`/mail#${id}`);
     try {
-      await page.waitForTimeout(300);
-      const gap = await page.evaluate(id => document.getElementById(id).getBoundingClientRect().top - document.querySelector('.mail-bar').getBoundingClientRect().bottom, id);
+      // Images and fonts above the section can still be settling at a fixed
+      // delay, leaving the jump to the fragment briefly off on a slow runner;
+      // wait for it to land instead (it fails if it never does).
+      const measure = id => document.getElementById(id).getBoundingClientRect().top - document.querySelector('.mail-bar').getBoundingClientRect().bottom;
+      await page.waitForFunction(id => {
+        const gap = document.getElementById(id).getBoundingClientRect().top - document.querySelector('.mail-bar').getBoundingClientRect().bottom;
+        return gap >= 0 && gap <= 60;
+      }, id, { timeout: 5000 }).catch(() => {});
+      const gap = await page.evaluate(measure, id);
       assert.ok(gap >= 0 && gap <= 60, `#${id} starts ${gap}px below the bar`);
     } finally { await context.close(); }
   }
