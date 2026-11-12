@@ -62,6 +62,17 @@ test('parseAnswer refuses non-objects', () => {
   for (const body of [null, [], 'a', 3, undefined]) assert.equal(survey.parseAnswer(body).ok, false, String(body));
 });
 
+test('isoWeek follows ISO 8601, including across year ends', () => {
+  const week = (iso) => survey.isoWeek(new Date(`${iso}T12:00:00Z`));
+  assert.equal(week('2026-11-12'), '2026-W46');
+  assert.equal(week('2026-11-09'), '2026-W46', 'Monday starts the week');
+  assert.equal(week('2026-11-15'), '2026-W46', 'Sunday ends it');
+  assert.equal(week('2027-01-01'), '2026-W53');
+  assert.equal(week('2024-12-30'), '2025-W01');
+  assert.equal(week('2021-01-03'), '2020-W53');
+  assert.equal(week('2026-01-05'), '2026-W02');
+});
+
 test('the choices and limits match the spec', () => {
   assert.deepEqual(survey.CHOICES.account, ['gmail', 'proton', 'both', 'other']);
   assert.deepEqual(survey.CHOICES.speed, ['instant', 'minute', 'few-minutes', 'whenever']);
@@ -75,9 +86,9 @@ test('the choices and limits match the spec', () => {
 
 test('summarize counts every id, splits speed by account and keeps notes', () => {
   const records = [
-    { day: '2026-11-14', account: 'gmail', speed: 'instant', features: ['sets'], note: 'later' },
-    { day: '2026-11-13', account: 'proton', speed: 'whenever', features: ['sets', 'proton-drafts'], note: 'earlier' },
-    { day: '2026-11-15', account: 'gmail', speed: 'minute', features: [], note: null },
+    { week: '2026-W47', account: 'gmail', speed: 'instant', features: ['sets'], note: 'later' },
+    { week: '2026-W46', account: 'proton', speed: 'whenever', features: ['sets', 'proton-drafts'], note: 'earlier' },
+    { week: '2026-W47', account: 'gmail', speed: 'minute', features: [], note: null },
   ];
   const summary = survey.summarize(records, true);
   assert.equal(summary.open, true);
@@ -91,7 +102,7 @@ test('summarize counts every id, splits speed by account and keeps notes', () =>
   assert.equal(summary.features.sets, 2);
   assert.equal(summary.features['proton-drafts'], 1);
   assert.equal(summary.features['saved-search'], 0);
-  assert.deepEqual(summary.notes, [{ day: '2026-11-13', text: 'earlier' }, { day: '2026-11-14', text: 'later' }]);
+  assert.deepEqual(summary.notes, [{ week: '2026-W46', text: 'earlier' }, { week: '2026-W47', text: 'later' }]);
   assert.equal(survey.summarize([], false).total, 0);
 });
 
@@ -191,8 +202,10 @@ test('posting from blanc.day stores one anonymous answer', async () => {
     assert.ok(!key.includes(secret) && !value.includes(secret), `stored record leaks ${secret}`);
   }
   const record = JSON.parse(value);
-  assert.match(record.day, /^\d{4}-\d{2}-\d{2}$/);
-  assert.deepEqual(Object.keys(record).sort(), ['account', 'day', 'features', 'note', 'speed']);
+  // Owner decision (2026-11-12): the ISO week, not the day, so an answer can't
+  // be matched to the one waitlist sign-up of that day.
+  assert.match(record.week, /^\d{4}-W\d{2}$/);
+  assert.deepEqual(Object.keys(record).sort(), ['account', 'features', 'note', 'speed', 'week']);
 });
 
 test('the preflight answers only allowed origins', async () => {
@@ -239,7 +252,7 @@ test('the fifth post in a minute is rate limited, and a missing limiter fails cl
 
 async function seed(env, n) {
   for (let i = 0; i < n; i += 1) {
-    env.SURVEY.values.set(`answer:${String(i).padStart(5, '0')}`, JSON.stringify({ day: '2026-11-13', account: 'gmail', speed: 'instant', features: [], note: null }));
+    env.SURVEY.values.set(`answer:${String(i).padStart(5, '0')}`, JSON.stringify({ week: '2026-W46', account: 'gmail', speed: 'instant', features: [], note: null }));
   }
 }
 

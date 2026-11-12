@@ -125,8 +125,10 @@ Logpush off so "no IP or browser details are kept" is true end to end. It has:
   - A per-IP rate limit modeled on the newsletter Worker's. The IP is used
     only for the limit window and is never written with, or linkable to, an
     answer.
-- Each record holds only the answers and the day it was received (a date, not
-  a timestamp), under a random key.
+- Each record holds only the answers and the ISO week it was received (for
+  example `2026-W46`), under a random key. **Owner decision (2026-11-12):**
+  the week, not the day, because at about four waitlist sign-ups a week a day
+  could match an answer to one sign-up in the signup alerts.
 - `GET /mail-survey/summary` (admin token): counts per account choice, per
   speed choice, per feature, the speed breakdown split by account choice, and
   the free-text answers with their dates. No raw per-respondent export beyond
@@ -199,7 +201,7 @@ specific Proton features.
 ### Privacy and claims
 
 - Add a "Blanc Mail survey (optional, anonymous)" section to `privacy.astro`,
-  stating exactly what is stored (answers and the day), that no email, IP or
+  stating exactly what is stored (answers and the week), that no email, IP or
   browser details are kept (the survey Worker keeps no request logs), that a
   short-lived per-IP counter limits abuse,
   that answers are used only to decide what goes into Blanc Mail 1.0, and that

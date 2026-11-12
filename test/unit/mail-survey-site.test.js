@@ -212,3 +212,10 @@ test('closing the card stops its placement listeners', () => {
   assert.match(card, /removeEventListener\('scroll', queue\)/);
   assert.match(card, /removeEventListener\('resize', queue\)/);
 });
+
+test('the page and privacy text say the week, never the day', () => {
+  const text = read('site/src/pages/mail/survey.astro') + read('site/src/pages/privacy.astro') + read('cloudflare/mail-survey-worker/README.md');
+  assert.match(read('site/src/pages/mail/survey.astro'), /the week you sent them/);
+  assert.match(read('site/src/pages/privacy.astro'), /your answers and the week you sent them/);
+  assert.doesNotMatch(text, /the day you sent them|answers and the day/);
+});

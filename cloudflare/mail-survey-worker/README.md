@@ -8,7 +8,9 @@ on `blanc.day/mail/survey`, so the owner can decide what goes into Blanc Mail
 
 - Each answer is one KV record under a random `answer:` key holding the
   account choice, the speed choice, up to three feature ids, an optional note
-  of at most 500 characters, and the day (UTC date) it arrived.
+  of at most 500 characters, and the ISO week (for example `2026-W46`) it
+  arrived. Not the day: at about four waitlist sign-ups a week, a day could
+  match an answer to one sign-up in the signup alerts (owner, 2026-11-12).
 - No email address, IP address, user agent or other browser details are
   stored. The per-IP limit (4 answers a minute) uses Cloudflare's rate-limit
   binding, which keeps its own short-lived counters; the IP never reaches KV.
@@ -26,7 +28,7 @@ on `blanc.day/mail/survey`, so the owner can decide what goes into Blanc Mail
 | --- | --- | --- |
 | `OPTIONS /mail-survey` | the site | CORS preflight for the site's origins |
 | `POST /mail-survey` | the site | `200 {ok:true}`; `400` invalid (including a body over 4,096 characters); `403` other origin; `410 {closed:true}` when closed or full; `429` rate limited or no IP; `503` without the rate limiter or when storage fails |
-| `GET /mail-survey/summary` | admin | counts per account, speed, speed by account and feature, plus the notes with their days |
+| `GET /mail-survey/summary` | admin | counts per account, speed, speed by account and feature, plus the notes with their weeks |
 | `DELETE /mail-survey/answers?confirm=delete-all` | admin | deletes up to 900 answers, `{deleted:n, remaining:m}`; repeat until `remaining` is 0 |
 
 `SURVEY_OPEN` must be exactly `"true"` to accept answers; anything else is

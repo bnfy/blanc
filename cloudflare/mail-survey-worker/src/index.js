@@ -1,11 +1,11 @@
 // The anonymous Blanc Mail feature survey. Stores each answer with only the
-// day it arrived: no email address, IP address or browser details, and this
+// ISO week it arrived: no email address, IP address or browser details, and this
 // Worker keeps no request logs (wrangler.toml). The survey page, this Worker
 // and the privacy page's "Blanc Mail survey" section describe one contract;
 // change them together. Spec:
 // docs/superpowers/specs/2026-11-12-mail-feature-survey-design.md.
 
-import { parseAnswer, summarize } from './survey.js';
+import { isoWeek, parseAnswer, summarize } from './survey.js';
 
 // The site's origins: the newsletter Worker's list minus the former domain,
 // which that Worker keeps only for pages opened before the move to blanc.day.
@@ -100,8 +100,7 @@ async function handleAnswer(request, env, cors) {
   if (!parsed.ok) return json(400, { error: 'invalid' }, cors);
   try {
     if ((await answerKeys(env)).length >= MAX_ANSWERS) return json(410, { closed: true }, cors);
-    const day = new Date().toISOString().slice(0, 10);
-    await env.SURVEY.put(randomKey(), JSON.stringify({ day, ...parsed.answer }));
+    await env.SURVEY.put(randomKey(), JSON.stringify({ week: isoWeek(new Date()), ...parsed.answer }));
   } catch {
     return json(503, { error: 'unavailable' }, cors);
   }

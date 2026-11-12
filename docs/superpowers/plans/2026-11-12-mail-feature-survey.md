@@ -148,7 +148,7 @@
 
 - [ ] **Step 2: Run** the test — expect FAIL.
 
-- [ ] **Step 3: Write the section.** Two paragraphs: what is stored (your answers and the day you sent them, in a separate Bananify Worker that keeps no request logs; no email address, IP address or browser details), the short-lived per-IP counter that limits abuse and is never stored with an answer, the purpose (only to decide what goes into Blanc Mail 1.0), and deletion (every answer is deleted when that decision is made; the free-text box asks you not to include personal details). Add the retention bullet. Add the `site/CLAUDE.md` paragraph: page, component, Worker, privacy section change together; the site flag; the closing runbook lives in the Worker README.
+- [ ] **Step 3: Write the section.** Two paragraphs: what is stored (your answers and the week you sent them, in a separate Bananify Worker that keeps no request logs; no email address, IP address or browser details), the short-lived per-IP counter that limits abuse and is never stored with an answer, the purpose (only to decide what goes into Blanc Mail 1.0), and deletion (every answer is deleted when that decision is made; the free-text box asks you not to include personal details). Add the retention bullet. Add the `site/CLAUDE.md` paragraph: page, component, Worker, privacy section change together; the site flag; the closing runbook lives in the Worker README.
 
 - [ ] **Step 4: Run** `node --test test/unit/mail-survey-site.test.js test/unit/newsletter-worker.test.js` — expect PASS (the waitlist contract test must still pass).
 

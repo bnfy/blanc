@@ -203,7 +203,7 @@ together.
 **Blanc Mail survey:** `pages/mail/survey.astro` and
 `components/MailSurveyForm.astro` post anonymous answers to the separate
 `blanc-mail-survey` Worker (`cloudflare/mail-survey-worker/`), which keeps no
-request logs and stores only the answers and the day. Its ids live in the
+request logs and stores only the answers and the ISO week. Its ids live in the
 Worker's `src/survey.js`; the page, the Worker contract and the privacy page's
 `#mail-survey` section change together. `src/data/mail-survey.json` (`open`)
 shows the form or a closed message, and ships `false` until the go-live PR

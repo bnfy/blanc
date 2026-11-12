@@ -41,6 +41,6 @@ and never say which features are built. Its lines are recorded here as labels.
 | Which accounts would you use? | Same; its four chips (Gmail, Proton Mail, Both, Something else) open the survey with that answer preselected | Question |
 | Suggest something else | `MailSurveyInvite.astro`; opens the survey at its free-text question | Link |
 | What would you want? | `survey.astro` heading | Label |
-| Blanc Mail isn’t released yet. Tell us what matters to you, anonymously; it takes about a minute. We keep only your answers and the day you sent them, and delete them once we’ve decided what goes into Blanc Mail 1.0. | `survey.astro` intro | Privacy statement; matches the privacy page's `#mail-survey` section and `cloudflare/mail-survey-worker` in this repository |
+| Blanc Mail isn’t released yet. Tell us what matters to you, anonymously; it takes about a minute. We keep only your answers and the week you sent them, and delete them once we’ve decided what goes into Blanc Mail 1.0. | `survey.astro` intro | Privacy statement; matches the privacy page's `#mail-survey` section and `cloudflare/mail-survey-worker` in this repository |
 | This survey has closed. Thank you to everyone who answered. | `survey.astro` when closed; the form's 410 reply | Label |
 | The four questions, their options and "Please don’t include personal details." | `MailSurveyForm.astro` | Questions; ids match `cloudflare/mail-survey-worker/src/survey.js` |

@@ -22,6 +22,18 @@ export const CHOICES = Object.freeze({
 export const MAX_FEATURES = 3;
 export const MAX_NOTE = 500;
 
+// The ISO 8601 week of a date, such as "2026-W46". Answers keep only the week
+// (owner decision, 2026-11-12): a day could match the one waitlist sign-up
+// that day in the signup alerts.
+export function isoWeek(date) {
+  const day = new Date(Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate()));
+  const weekday = day.getUTCDay() || 7;
+  day.setUTCDate(day.getUTCDate() + 4 - weekday); // the Thursday of this week
+  const yearStart = Date.UTC(day.getUTCFullYear(), 0, 1);
+  const week = Math.ceil(((day - yearStart) / 86400000 + 1) / 7);
+  return `${day.getUTCFullYear()}-W${String(week).padStart(2, '0')}`;
+}
+
 // "website" is the honeypot the Worker checks before parsing.
 const ALLOWED_FIELDS = new Set(['account', 'speed', 'features', 'note', 'website']);
 
@@ -57,8 +69,8 @@ export function summarize(records, open) {
     if (record.speed in speed) speed[record.speed] += 1;
     if (record.account in speedByAccount && record.speed in speed) speedByAccount[record.account][record.speed] += 1;
     for (const id of record.features ?? []) if (id in features) features[id] += 1;
-    if (record.note) notes.push({ day: record.day, text: record.note });
+    if (record.note) notes.push({ week: record.week, text: record.note });
   }
-  notes.sort((a, b) => (a.day < b.day ? -1 : a.day > b.day ? 1 : 0));
+  notes.sort((a, b) => (a.week < b.week ? -1 : a.week > b.week ? 1 : 0));
   return { open, total: records.length, accounts, speed, speedByAccount, features, notes };
 }
