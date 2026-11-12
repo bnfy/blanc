@@ -199,8 +199,13 @@ test('the Spaces demo draws the open Island and its Spaces menu from the app’s
   const catalog = JSON.parse(read('copy/messages/en.json'));
   assert.match(read('src/renderer/workspace-ui.js'), /button\(t\('ws\.new'\), 'new'/);
   assert.match(component, /newSpaceLabel: messages\['ws\.new'\]\.message/);
+  // The footer button is named after the current space (workspace-ui.js syncIdentity).
+  assert.match(read('src/renderer/workspace-ui.js'), /t\('ws\.trigger\.current', \{ name: bound\.name \}\)/);
+  assert.match(component, /triggerLabel: messages\['ws\.trigger\.current'\]\.message/);
+  assert.match(component, /data-trigger-label=\{messages\['ws\.trigger\.current'\]\.message\}/);
   const sources = {styles: source.styles, overlay: read('src/renderer/overlay.html'), overlayScript: read('src/renderer/overlay.js'),
-    workspaceUi: read('src/renderer/workspace-ui.js'), identity, spaces, newSpaceLabel: catalog['ws.new'].message};
+    workspaceUi: read('src/renderer/workspace-ui.js'), identity, spaces, newSpaceLabel: catalog['ws.new'].message,
+    triggerLabel: catalog['ws.trigger.current'].message};
   const art = nativeSpacesArt(sources);
 
   // The open Island: overlay.html's panel, the current space's tabs listed,
@@ -211,6 +216,14 @@ test('the Spaces demo draws the open Island and its Spaces menu from the app’s
   assert.equal(art.panel.match(/class="island-row tab-row/g).length, work.pages.length);
   assert.match(art.panel, new RegExp(`class="island-row tab-row active"[^]*?<span class="row-title">${work.pages[0].title}</span>`));
   assert.match(art.panel, /id="footerWorkspace"\s+class="footer-act ws bound"[^>]*aria-expanded="true"/);
+  // In a space the button shows that space's tile instead of the planet,
+  // painted and named as workspace-ui.js does it (#1454).
+  assert.match(read('src/renderer/workspace-ui.js'), /tile\(bound, 'ws-tile ws-trigger-tile'\)/);
+  const workLit = Identity.paint(work.color, 'light');
+  const named = catalog['ws.trigger.current'].message.replace('{name}', work.name);
+  assert.match(art.panel, new RegExp(`id="footerWorkspace"[^>]*data-tooltip="${named}"[^>]*aria-label="${named}"`));
+  assert.match(art.panel, new RegExp(`id="footerWorkspace"[^>]*>\\s*<span class="ws-tile ws-trigger-tile" style="--space-fill:${workLit.fill};--space-on:${workLit.on}" data-edge="${workLit.edge}"><svg[^>]*class="ws-symbol">[^]*?</svg></span>\\s*</button>`));
+  assert.doesNotMatch(art.panel.match(/id="footerWorkspace"[^]*?<\/button>/)[0], /<circle/, 'the planet is gone in a space');
   assert.match(art.panel, /<span id="footerNewTabKbd" class="footer-kbd">⌘T<\/span>/);
   assert.ok(art.panel.includes(read('src/renderer/overlay.js').match(/\breload: '(<svg[^']+)'/)[1]), 'Reload is overlay.js’s own icon');
   assert.doesNotMatch(art.panel, /space-mark|pillSpace|<!--/);
@@ -227,6 +240,7 @@ test('the Spaces demo draws the open Island and its Spaces menu from the app’s
   assert.ok(art.menu.includes(`${catalog['ws.new'].message}</div>`));
   assert.match(art.menu, /<div class="ws-cmd" aria-hidden="true">/, 'New space… is shown, not offered');
   for (const rule of ['#islandPanel {', '.island-row .row-title {', '#islandFooter {', '.footer-act.ws.bound {', '#footerWorkspace svg {',
+    '#footerWorkspace .ws-trigger-tile {', '#footerWorkspace .ws-trigger-tile svg {',
     '#workspaceSwitcher.ws-switcher {', '.ws-tile {', '.ws-row-main.on::after {', '.ws-cmd {']) {
     assert.ok(art.css.includes(rule), `native rule travels with it: ${rule}`);
   }
@@ -239,6 +253,8 @@ test('the Spaces demo draws the open Island and its Spaces menu from the app’s
   assert.throws(() => nativeSpacesArt({...sources, overlay: sources.overlay.replace('class="footer-act ws"', 'class="footer-act"')}), /Missing native Island panel markup/);
   assert.throws(() => nativeSpacesArt({...sources, overlayScript: ''}), /Missing native Island icon: reload/);
   assert.throws(() => nativeSpacesArt({...sources, workspaceUi: ''}), /Missing native Spaces glyph: plus/);
+  assert.throws(() => nativeSpacesArt({...sources, triggerLabel: undefined}), /Spaces button label needs \{name\}/);
+  assert.throws(() => nativeSpacesArt({...sources, overlay: sources.overlay.replace(/(id="footerWorkspace"[^]*?)<svg[^]*?<\/svg>/, '$1')}), /the Spaces planet/);
   assert.throws(() => nativeSpacesArt({...sources, spaces: [{...work, symbol: 'rocket'}]}), /unknown symbol/);
   assert.throws(() => nativeSpacesArt({...sources, spaces: [{...work, pages: []}]}), /has no pages/);
   assert.throws(() => loadSpaceIdentity(''), /Missing native Spaces identity/);
@@ -269,7 +285,7 @@ test('the Spaces demo switches like the app, walks once in under five seconds an
   ];
   function fixture({reduced = false, width = 527} = {}) {
     const rows = samples.map(([name, pages], index) => {
-      const tile = fake();
+      const tile = fake({innerHTML: `<svg>${name}</svg>`, getAttribute: key => key === 'style' ? `--space-fill:${name}` : null});
       const row = fake({classes: index === 0 ? ['on'] : [], querySelector: selector => ({'.ws-tile': tile, '.ws-row-name': {textContent: name}})[selector]});
       Object.assign(row.dataset, {edgeLight: 'false', edgeDark: 'true', pages: JSON.stringify(pages.map(([title, url]) => ({title, url, favicon: `/favicons/${new URL(url).hostname}.ico`})))});
       return row;
@@ -277,7 +293,9 @@ test('the Spaces demo switches like the app, walks once in under five seconds an
     const list = fake(), address = fake({value: samples[0][1][0][1]});
     // The stage at 0.85×: the Spaces button's centre 460px into it, the 300px menu.
     const stage = fake({getBoundingClientRect: () => ({left: 100, width: 527})});
-    const button = fake({getBoundingClientRect: () => ({left: 100 + 0.85 * 450, width: 0.85 * 20})});
+    const triggerTile = fake({innerHTML: '<svg>Work</svg>'});
+    const button = fake({getBoundingClientRect: () => ({left: 100 + 0.85 * 450, width: 0.85 * 20}),
+      querySelector: selector => selector === '.ws-trigger-tile' ? triggerTile : null});
     const menu = fake({getBoundingClientRect: () => ({width: 0.85 * 300})});
     const shadowRoot = {
       querySelectorAll: selector => selector === '.ws-row-main' ? rows : [],
@@ -285,6 +303,7 @@ test('the Spaces demo switches like the app, walks once in under five seconds an
     };
     const host = fake({shadowRoot, clientWidth: width});
     host.dataset.appearance = 'light';
+    host.dataset.triggerLabel = 'Space · {name}';
     let timers = [], nextId = 0, elapsed = 0, intersect, intersectOptions, mutate;
     const view = {
       matchMedia: () => ({matches: reduced}),
@@ -298,7 +317,7 @@ test('the Spaces demo switches like the app, walks once in under five seconds an
     };
     initSpacesDemo(host, {view});
     const titles = () => list.children.map(row => row.children[0].children[1].textContent);
-    return {host, rows, list, address, stage, view, titles,
+    return {host, rows, list, address, stage, view, titles, button, triggerTile,
       enter: () => intersect([{isIntersecting: true}]), intersectOptions: () => intersectOptions, mutate: () => mutate(),
       pending: () => timers.length, elapsed: () => elapsed,
       tick() { const timer = timers.shift(); elapsed += timer.ms; timer.fn(); }};
@@ -320,6 +339,11 @@ test('the Spaces demo switches like the app, walks once in under five seconds an
   assert.equal(p.list.children[1].className, 'island-row tab-row');
   assert.equal(p.list.children[0].children[0].children[0].children[0].style.backgroundImage, 'url(/favicons/www.nytimes.com.ico)');
   assert.equal(p.address.value, 'https://www.nytimes.com/');
+  // The footer's Spaces button takes the chosen space's tile and name.
+  assert.equal(p.triggerTile.attrs.style, '--space-fill:Reading');
+  assert.equal(p.triggerTile.innerHTML, '<svg>Reading</svg>');
+  assert.equal(p.button.attrs['aria-label'], 'Space · Reading');
+  assert.equal(p.button.dataset.tooltip, 'Space · Reading');
   assert.match(JSON.stringify(p.list.animations[0].frames), /translateY\(7px\)/, 'moving down the list, content moves up');
   // A visitor's choice ends the walk before it starts.
   p.enter();
@@ -327,6 +351,7 @@ test('the Spaces demo switches like the app, walks once in under five seconds an
   // Appearance changes swap in the dark edges.
   p.host.dataset.appearance = 'dark'; p.mutate();
   assert.deepEqual(p.rows.map(row => row.querySelector('.ws-tile').dataset.edge), ['true', 'true', 'true', 'true']);
+  assert.equal(p.triggerTile.dataset.edge, 'true', 'the button’s tile takes the dark edge too');
 
   // Left alone, it walks through every space once, ending where it began.
   const walk = fixture();
