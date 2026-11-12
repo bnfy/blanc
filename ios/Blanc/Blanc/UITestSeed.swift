@@ -65,7 +65,10 @@ enum UITestSeed {
   /// `-BlancUITestAppStore`: the App Store screenshots' and preview's state
   /// (`scripts/ios-app-store-screenshots.sh`); built below, beside the
   /// Shared Spaces seeds it shares a fake Worker with.
-  static var appStore: Bool { ProcessInfo.processInfo.arguments.contains("-BlancUITestAppStore") }
+  static var appStore: Bool { appStoreIPad || ProcessInfo.processInfo.arguments.contains("-BlancUITestAppStore") }
+  /// `-BlancUITestAppStoreIPad`: the same, with three more paintings loose
+  /// before the group, so the iPad's wider tab grid fills a row.
+  static var appStoreIPad: Bool { ProcessInfo.processInfo.arguments.contains("-BlancUITestAppStoreIPad") }
 
   static func seedSends(into directory: URL) {
     let now = Int64(Date().timeIntervalSince1970 * 1000)
@@ -321,9 +324,15 @@ extension UITestSeed {
 
     static func appStoreState() -> SessionState {
         let museum = TabGroup(id: hex(0xe1), name: "Museum day", color: "#815c02")
+        let iPadOnly = appStoreIPad ? [
+            SavedTab(url: met(435809), title: "The Harvesters"),
+            SavedTab(url: met(438817), title: "The Dance Class"),
+            SavedTab(url: met(435868), title: "The Card Players"),
+        ] : []
         let iphone = SavedSet(tabs: [
             SavedTab(url: met(436535), title: "Wheat Field with Cypresses"),
             SavedTab(url: met(45434), title: "Under the Wave off Kanagawa"),
+        ] + iPadOnly + [
             SavedTab(url: met(437127), title: "Bridge over a Pond of Water Lilies", groupId: museum.id),
             SavedTab(url: met(436524), title: "Sunflowers", groupId: museum.id),
             SavedTab(url: met(437881), title: "Young Woman with a Water Pitcher", groupId: museum.id),
