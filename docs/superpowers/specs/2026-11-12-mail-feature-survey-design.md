@@ -166,8 +166,13 @@ The owner found the survey link too easy to miss and chose a corner card
 
 - Black-and-gold card, bottom right ("Help shape Blanc Mail"), asking the
   survey's first question, "Which accounts would you use?", with the four
-  account choices as chips and a close button. On phones it spans the bottom
-  edge. Only on `/mail`, and only while the survey is open.
+  account choices as chips and a close button. Only on `/mail`, and only
+  while the survey is open.
+- **Phones (owner's choice A of three mockups, 2026-11-12, replacing an
+  earlier pick of a compact bar):** the same card along the bottom edge, clear
+  of the chat button's corner. It never covers a waitlist form: while one is
+  behind it, the card waits out of sight, and it appears once the form scrolls
+  clear (usually after the first scroll). So on phones it is not instant.
 - A chip opens `/mail/survey?account=<id>` with that answer preselected; the
   link carries only that id. Nothing is sent until the survey is submitted.
 - Closing it hides it for 7 days (owner). *Claude's calls:* tapping a chip

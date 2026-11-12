@@ -141,3 +141,65 @@ test('every new Mail page sentence has a ledger row', () => {
   assert.ok(ledger.includes('What would you want?'));
   assert.ok(ledger.includes('This survey has closed. Thank you to everyone who answered.'));
 });
+
+test('the Mail page shows the invitation card only while the survey is open', () => {
+  const mail = read('site/src/pages/mail.astro');
+  assert.match(mail, /import MailSurveyInvite from '..\/components\/MailSurveyInvite\.astro'/);
+  assert.match(mail, /\{survey\.open && <MailSurveyInvite \/>\}/);
+  for (const page of ['site/src/pages/mail/privacy.astro', 'site/src/pages/mail/terms.astro', 'site/src/pages/mail/survey.astro']) {
+    assert.doesNotMatch(read(page), /MailSurveyInvite/, page);
+  }
+});
+
+test('the invitation card is a quiet dialog whose chips start the survey', () => {
+  const card = read('site/src/components/MailSurveyInvite.astro');
+  assert.match(card, /role="dialog"/);
+  assert.doesNotMatch(card, /aria-modal/);
+  assert.match(card, /aria-labelledby="mail-survey-invite-title"/);
+  assert.match(card, /id="mail-survey-invite-title">Help shape Blanc Mail</);
+  assert.match(card, /Which accounts would you use\?/);
+  const chips = [...card.matchAll(/href=\{`\/mail\/survey\?account=\$\{id\}`\}/g)];
+  assert.equal(chips.length, 1, 'one chip template');
+  assert.match(card, /\['gmail', 'Gmail'\][\s\S]*\['proton', 'Proton Mail'\][\s\S]*\['both', 'Both'\][\s\S]*\['other', 'Something else'\]/);
+  assert.match(card, /<button[^>]*class="mail-survey-invite-close"[^>]*aria-label="Close"/);
+  assert.match(card, /<aside[^>]*\bhidden\b/, 'hidden until its script decides, so a snoozed card never flashes');
+  assert.doesNotMatch(card, /data-track|\.focus\(/);
+  assert.match(card, /const storage = browserStorage\(\);/);
+  assert.match(card, /shouldShow\(readState\(storage\), Date\.now\(\)\)/);
+  assert.match(card, /writeState\(storage, snooze\(Date\.now\(\)\)\)/);
+});
+
+test('the survey preselects from the link and remembers an answered survey', () => {
+  const form = read('site/src/components/MailSurveyForm.astro');
+  assert.match(form, /accountFromQuery\(location\.search\)/);
+  assert.match(form, /writeState\(browserStorage\(\), ANSWERED\)/);
+});
+
+test('the privacy page discloses the invitation card note', () => {
+  const privacy = read('site/src/pages/privacy.astro');
+  assert.match(privacy, /blanc-mail-survey-invite-v1/);
+  assert.match(privacy, /never leaves your browser/);
+});
+
+test('the card waits while a waitlist form is behind it', () => {
+  const card = read('site/src/components/MailSurveyInvite.astro');
+  // Owner's choice A (2026-11-12): never cover a waitlist form, so on phones the
+  // card appears once the form has scrolled clear of it.
+  assert.match(card, /document\.querySelectorAll<HTMLFormElement>\('main form\[data-mail-waitlist\]'\)/);
+  assert.match(card, /overlaps\(/);
+  assert.match(card, /classList\.toggle\('is-waiting', /);
+  assert.match(card, /addEventListener\('scroll', [^)]*\{ passive: true \}\)/);
+  assert.match(card, /addEventListener\('resize', /);
+  const css = read('site/src/styles/mail.css');
+  assert.match(css, /\.mail-survey-invite\.is-waiting\{[^}]*visibility:hidden[^}]*\}/);
+  assert.doesNotMatch(card, /has-mail-survey-invite|mail-survey-invite-short/, 'the compact bar (C) is gone');
+});
+
+test('the card also offers a way to suggest something else', () => {
+  const card = read('site/src/components/MailSurveyInvite.astro');
+  assert.match(card, /<a class="mail-survey-invite-suggest" href="\/mail\/survey#suggest">Suggest something else<\/a>/);
+  assert.match(card, /querySelectorAll\('\.mail-survey-invite-chip, \.mail-survey-invite-suggest'\)/, 'opening the survey puts the card away');
+  const form = read('site/src/components/MailSurveyForm.astro');
+  assert.match(form, /<div class="mail-survey-question" id="suggest">[\s\S]*?name="note"/);
+  assert.ok(read('docs/website-mail-claims-2026-11-12.md').includes('| Suggest something else |'));
+});

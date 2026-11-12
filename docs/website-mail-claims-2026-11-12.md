@@ -37,6 +37,9 @@ and never say which features are built. Its lines are recorded here as labels.
 | Help shape Blanc Mail: tell us what you’d want, anonymously. | `mail.astro`, below the first waitlist form, while the survey is open | Link |
 | While you’re here, you can tell us what you’d want in Blanc Mail. | `MailWaitlistForm.astro`, shown after a successful sign-up while the survey is open | Invitation |
 | Take the one-minute survey | Same | Link |
+| Help shape Blanc Mail | `MailSurveyInvite.astro`, the corner card on `mail.astro` while the survey is open | Label |
+| Which accounts would you use? | Same; its four chips (Gmail, Proton Mail, Both, Something else) open the survey with that answer preselected | Question |
+| Suggest something else | `MailSurveyInvite.astro`; opens the survey at its free-text question | Link |
 | What would you want? | `survey.astro` heading | Label |
 | Blanc Mail isn’t released yet. Tell us what matters to you, anonymously; it takes about a minute. We keep only your answers and the day you sent them, and delete them once we’ve decided what goes into Blanc Mail 1.0. | `survey.astro` intro | Privacy statement; matches the privacy page's `#mail-survey` section and `cloudflare/mail-survey-worker` in this repository |
 | This survey has closed. Thank you to everyone who answered. | `survey.astro` when closed; the form's 410 reply | Label |

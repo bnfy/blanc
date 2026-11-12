@@ -49,7 +49,7 @@ const features = [
       <label class="mail-survey-choice"><input type="checkbox" name="features" value={value}><span class="mail-survey-option">{label}</span></label>
     ))}
   </fieldset>
-  <div class="mail-survey-question">
+  <div class="mail-survey-question" id="suggest">
     <label class="mail-survey-legend" for="mailSurveyNote">Anything else you’d want? <span class="mail-muted">(optional)</span></label>
     <textarea id="mailSurveyNote" name="note" rows="4" maxlength="500" aria-describedby="mailSurveyNoteHelp"></textarea>
     <p class="mail-survey-help" id="mailSurveyNoteHelp">Please don’t include personal details.</p>
@@ -60,6 +60,7 @@ const features = [
   <noscript><p class="mail-survey-help">Turn on JavaScript to answer the survey.</p></noscript>
 </form>
 <script>
+  import { accountFromQuery, ANSWERED, browserStorage, writeState } from '../scripts/mail-survey-invite.mjs';
   const SURVEY_ENDPOINT = 'https://blanc-mail-survey.bnfy-441.workers.dev/mail-survey';
   const MAX_FEATURES = 3;
   document.querySelectorAll<HTMLFormElement>('form[data-mail-survey]').forEach((form) => {
@@ -71,6 +72,12 @@ const features = [
       for (const box of boxes) box.disabled = full && !box.checked;
     };
     boxes.forEach((box) => box.addEventListener('change', syncLimit));
+    // A chip on the Mail page's invitation card preselects the first answer.
+    const preselected = accountFromQuery(location.search);
+    if (preselected) {
+      const radio = form.querySelector<HTMLInputElement>(`input[name="account"][value="${preselected}"]`);
+      if (radio) radio.checked = true;
+    }
     button.disabled = false;
     form.addEventListener('submit', async (event) => {
       event.preventDefault();
@@ -92,6 +99,8 @@ const features = [
         if (response.ok) {
           for (const child of [...form.children]) if (child !== status) (child as HTMLElement).hidden = true;
           status.textContent = 'Thank you. Your answers are in.';
+          // The invitation card on the Mail page stays away for good.
+          writeState(browserStorage(), ANSWERED);
         } else if (response.status === 410) {
           for (const child of [...form.children]) if (child !== status) (child as HTMLElement).hidden = true;
           status.textContent = 'This survey has closed. Thank you to everyone who answered.';

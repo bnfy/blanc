@@ -5,6 +5,7 @@ import MailBar from '../components/MailBar.astro';
 import MailShot from '../components/MailShot.astro';
 import MailWaitlistForm from '../components/MailWaitlistForm.astro';
 import survey from '../data/mail-survey.json';
+import MailSurveyInvite from '../components/MailSurveyInvite.astro';
 import { checkoutHrefFor, priceFor } from '../data/mail-commerce.mjs';
 import '../styles/mail.css';
 
@@ -218,6 +219,7 @@ const support = [
       <p><a href="/mail/privacy">Privacy</a> · <a href="/mail/terms">Terms</a></p>
     </div>
   </main>
+  {survey.open && <MailSurveyInvite />}
 </BaseLayout>
 <script>
   // The envelope catches the lamp: its sheen follows the pointer and it leans
