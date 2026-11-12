@@ -109,12 +109,15 @@ async function handleAnswer(request, env, cors) {
 }
 
 async function handleSummary(env) {
+  const keys = await answerKeys(env);
   const records = [];
-  for (const key of (await answerKeys(env)).slice(0, MAX_ANSWERS)) {
+  for (const key of keys.slice(0, MAX_ANSWERS)) {
     const record = await env.SURVEY.get(key, { type: 'json' });
     if (record) records.push(record);
   }
-  return json(200, summarize(records, isOpen(env)));
+  // A burst can slip a few answers past the cap (KV lists are eventually
+  // consistent); say so rather than report a short total as complete.
+  return json(200, { ...summarize(records, isOpen(env)), truncated: keys.length > MAX_ANSWERS });
 }
 
 async function handlePurge(env, url) {

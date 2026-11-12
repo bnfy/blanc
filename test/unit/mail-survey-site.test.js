@@ -88,8 +88,11 @@ test('the survey page has its own headers block without analytics or chat', () =
 
 test('the site flag decides between the form and the closed message', () => {
   const flag = JSON.parse(read('site/src/data/mail-survey.json'));
-  // Ships closed; the go-live PR opens it with the Worker (Worker README).
-  assert.equal(flag.open, false);
+  assert.equal(typeof flag.open, 'boolean');
+  // The site opens the survey only together with the Worker (Worker README,
+  // "Going live"): both flags change in the same PR.
+  const workerOpen = /SURVEY_OPEN = "true"/.test(read('cloudflare/mail-survey-worker/wrangler.toml'));
+  assert.equal(flag.open, workerOpen, 'site flag and SURVEY_OPEN must agree');
   const page = read('site/src/pages/mail/survey.astro');
   assert.match(page, /import survey from '..\/..\/data\/mail-survey\.json'/);
   assert.match(page, /survey\.open \?/);
@@ -202,4 +205,10 @@ test('the card also offers a way to suggest something else', () => {
   const form = read('site/src/components/MailSurveyForm.astro');
   assert.match(form, /<div class="mail-survey-question" id="suggest">[\s\S]*?name="note"/);
   assert.ok(read('docs/website-mail-claims-2026-11-12.md').includes('| Suggest something else |'));
+});
+
+test('closing the card stops its placement listeners', () => {
+  const card = read('site/src/components/MailSurveyInvite.astro');
+  assert.match(card, /removeEventListener\('scroll', queue\)/);
+  assert.match(card, /removeEventListener\('resize', queue\)/);
 });

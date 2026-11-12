@@ -53,6 +53,8 @@ const accounts = [
     card.querySelector('.mail-survey-invite-close')?.addEventListener('click', () => {
       putAway();
       card.hidden = true;
+      removeEventListener('scroll', queue);
+      removeEventListener('resize', queue);
     });
     card.querySelectorAll('.mail-survey-invite-chip, .mail-survey-invite-suggest').forEach((chip) => chip.addEventListener('click', putAway));
   }

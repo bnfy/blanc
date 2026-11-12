@@ -253,6 +253,7 @@ test('summary and purge need the admin token and stay within one request at the 
   env.SURVEY.resetCount();
   const summary = await (await worker.fetch(admin('GET', '/mail-survey/summary'), env)).json();
   assert.equal(summary.total, MAX_ANSWERS);
+  assert.equal(summary.truncated, false);
   assert.equal(summary.open, true);
   assert.equal((await worker.fetch(admin('DELETE', '/mail-survey/answers'), env)).status, 400);
   assert.equal((await worker.fetch(admin('DELETE', '/mail-survey/answers?confirm=delete-all', 'wrong'), env)).status, 401);
@@ -296,4 +297,12 @@ test('the survey Worker keeps request logging off and accepts only the site orig
   };
   const newsletter = origins(NEWSLETTER_PATH).filter((origin) => origin !== 'https://blancbrowser.com');
   assert.deepEqual(origins(WORKER_PATH), newsletter);
+});
+
+test('the summary says when answers past the cap were not counted', async () => {
+  const env = surveyEnv();
+  await seed(env, MAX_ANSWERS + 5);
+  const summary = await (await worker.fetch(admin('GET', '/mail-survey/summary'), env)).json();
+  assert.equal(summary.total, MAX_ANSWERS);
+  assert.equal(summary.truncated, true);
 });

@@ -32,7 +32,10 @@ on `blanc.day/mail/survey`, so the owner can decide what goes into Blanc Mail
 `SURVEY_OPEN` must be exactly `"true"` to accept answers; anything else is
 closed. The survey also stops at 900 stored answers (`MAX_ANSWERS`), far above
 the few dozen expected: that bounds what one abusive visitor can add, and keeps
-each summary or purge inside one request's 1,000 KV operations. A filled
+each summary or purge inside one request's 1,000 KV operations. Each answer
+costs one KV list (the cap check) and one write; on Workers' free plan both
+are limited to 1,000 a day, which is far above the expected volume. The
+summary reports `truncated: true` if a burst slipped answers past the cap. A filled
 `website` honeypot gets the normal success reply and stores nothing.
 
 ## Setup (once, with the owner's go-ahead)
@@ -56,9 +59,10 @@ invitation. To open it, in one window:
 
 1. Recheck the Proton lines in `docs/website-mail-claims-2026-11-12.md`
    against the signed Mail build.
-2. Merge a PR that sets `mail-survey.json` to `{ "open": true }`.
-3. Set `SURVEY_OPEN = "true"` and deploy the Worker; check a test answer
-   lands and then purge it.
+2. Merge one PR that sets `mail-survey.json` to `{ "open": true }` and
+   `SURVEY_OPEN = "true"` in `wrangler.toml` together
+   (`test/unit/mail-survey-site.test.js` fails if the two disagree).
+3. Deploy the Worker; check a test answer lands and then purge it.
 4. Deploy the site. The site deploy waits for the first public release
    containing #1450 and #1454 (`site/CLAUDE.md`).
 
