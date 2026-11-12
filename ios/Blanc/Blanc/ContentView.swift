@@ -810,7 +810,8 @@ struct ContentView: View {
             Color.clear.frame(width: 1, height: 1)
                 .accessibilityElement()
                 .accessibilityIdentifier("test.pageGeometry")
-                .accessibilityValue("\(Int(pageFrame.height)) \(Int(manager.activeTab?.existingWebView?.safeAreaInsets.top ?? -1))")
+                // Verbatim: a localized string groups an iPad's 1210 as "1,210".
+                .accessibilityValue(Text(verbatim: "\(Int(pageFrame.height)) \(Int(manager.activeTab?.existingWebView?.safeAreaInsets.top ?? -1))"))
         }
         .allowsHitTesting(false)
     }
