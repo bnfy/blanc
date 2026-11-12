@@ -174,6 +174,47 @@ No P3 visual follow-up is required for this release candidate.
 
 final result: passed
 
+## 2026-10-18 — Owner-reported alignment correction and clean-state verification
+
+This pass supersedes the earlier October 18 approval. The owner's close review
+correctly found that the nominally art-only files still carried opaque source
+paper. On the live tile shell those regions appeared as pasted rectangles,
+shifted the optical center of generated ranks, and made adjacent faces look
+inconsistent even though their outer canvases had matching dimensions.
+
+Source visual truth: `src/renderer/pages/mahjong-theme-porcelain-sheet.png`,
+`mahjong-theme-carved-sheet.png`, and `mahjong-theme-inlay-sheet.png` (each
+1487 × 1058 px). Implementation evidence:
+`output/playwright/mahjong-board-porcelain-final.png`,
+`mahjong-board-carved-final.png`, and `mahjong-board-inlay-final.png` (each
+1280 × 906 px board-region capture), combined in
+`output/playwright/mahjong-themes-final-comparison.png`. The full Electron view
+was 1280 × 732 CSS px at DPR 2; the celebration capture is
+`output/playwright/mahjong-celebration-final.png` at 2560 × 1464 px.
+
+P1 resolved: source-sheet paper is now removed during the reproducible Sharp
+extraction step before each face is centered on the common 220 × 270 transparent
+canvas. The live tile supplies one physical shell; the PNG supplies only source
+ink and ornament. The CSS blend workaround was removed. This eliminates the
+visible crop rectangles without stretching, hand-offsetting, or regenerating
+the approved artwork.
+
+Required fidelity surfaces: Instrument Sans/Inter typography is unchanged;
+spacing and optical alignment use the shared face canvas; Sunrise colors and
+tile-shell tokens are unchanged; source artwork remains sharp and
+proportion-preserving; game copy is unchanged. Focused regions were necessary
+and are represented by the three board captures because individual face
+alignment could not be judged from a full-window screenshot alone.
+
+Interaction verification used a fresh isolated profile. A real engine-provided
+pair changed score from 0 to 100 and removed two tiles, Undo responded, Tile
+Echo rendered at its visible midpoint, and the page was then reloaded. The
+final clean state had 144 tiles, 144 enabled tiles, the celebration hidden, and
+zero page or console errors. The 68 focused Mahjong unit tests passed, ESLint
+passed with zero warnings, and `git diff --check` passed.
+
+final result: passed
+
 ---
 
 # Bring Your Tabs design QA
@@ -2600,5 +2641,148 @@ Theme progression, celebration selection/cancel, Board Cleared rendering and
 action wiring were exercised. Score tracking computes to 2.2 px at the tested
 viewport. Final reload had zero console errors and zero failed requests. Focused
 Mahjong tests passed 114/114, lint passed, and `git diff --check` passed.
+
+final result: passed
+
+## 2026-10-18 — Mahjong tile crop and celebration visibility correction
+
+This section supersedes the October 17 statement that the approved sheets render
+as live sprite crops. The live crop viewports stretched full illustrated tiles
+inside the board's existing tile shell and left clipped borders on several faces.
+The source sheets remain committed intact, but a reproducible Sharp extraction
+step now produces 23 art-only, proportion-preserving PNGs for each of Porcelain,
+Carved and Inlay (69 assets total). Runtime SVG images use `xMidYMid meet`; there
+are no crop transforms, numeral-cover patches, or nested illustrated tile shells.
+
+Compared the three approved source sheets directly beside the corresponding
+1280 × 732 CSS-pixel Electron renders at DPR 2 in
+`output/playwright/mahjong-source-render-comparison.png`. Focused captures are
+`mahjong-porcelain-corrected.png`, `mahjong-carved-corrected.png`, and
+`mahjong-inlay-corrected.png`. All approved 1/5/9 faces, winds, dragons, flowers,
+seasons and Blanc marks retain their source linework, palette and proportions;
+generated ranks reuse extracted pips, bamboo and motifs with Inter Bold numerals.
+
+Celebration QA exercised Horizon Bloom, Tile Echo and Gilded Fan at their visible
+midpoints in `output/playwright/mahjong-celebrations-all.png`. Standard and grand
+celebrations now remain visible for 2.0 and 2.6 seconds, with artwork animation
+timings extended to match. Tile Echo was left visibly open in the dev instance
+with its normal click-to-skip behavior for owner review.
+
+P1 resolved: stretched/nested tile crops. P1 resolved: celebration was too brief
+to register in normal play. No remaining P0/P1/P2 issues across artwork, type,
+board shell, celebration, or completion surfaces. Focused Mahjong tests passed
+114/114, lint passed with zero warnings, and `git diff --check` passed.
+
+final result: passed
+
+## 2026-10-18 — Final Mahjong QA authority
+
+The owner-reported alignment correction documented earlier in this file
+supersedes every prior Mahjong pass. Final visual evidence is
+`output/playwright/mahjong-themes-final-comparison.png` and
+`output/playwright/mahjong-celebration-final.png`; the isolated game was reloaded
+after QA with 144 enabled tiles, the celebration hidden, and no console errors.
+
+final result: passed
+
+## 2026-10-18 — Reference-pixel tile correction (supersedes the transparency pass)
+
+The visual authority for this pass is the owner's porcelain mockup at
+`/Users/anthonyjloria/Downloads/ChatGPT Image Oct 18, 2026, 12_13_51 AM.png`
+(1487 × 1058). The implementation evidence is the live Electron capture at
+`output-mahjong-live.png` (3024 × 1776). The normalized full-view comparison is
+`output-mahjong-comparison.png` (2976 × 1058), with the source and live capture
+each fitted into a 1488 × 1058 field. The tested state is the light Porcelain
+theme in Turtle / Burst / Auto with the restored saved board, right-side rack,
+and left tool rail.
+
+This pass corrects the asset pipeline rather than approximating the mockup in
+CSS. The previous chroma-key step removed warm paper pixels that were also part
+of pale-gold highlights and antialiasing, creating dark halos, white flecks and
+muddy colour. Source crops now retain their exact pixels and native resolution;
+the extraction step no longer enlarges and requantizes them. The live tile shell
+uses the reference's warmer ivory, stronger gold edge and deeper contact shadow.
+
+P1 resolved: blocked tiles applied a desaturated translucent wash, so two copies
+of the same face rendered with visibly different reds. Blocked faces now remain
+at opacity 1 with no filter or overlay. P1 resolved: generated character ranks
+mixed numeral families and red values. Ranks 1–9 now come from one high-resolution
+3 × 3 master based on the mockup's 1, 5 and 9, and every cell is normalized to
+the red hue, saturation and lightness sampled from the approved 5 tile. Focused
+inspection covered the 2, 5 and 9 outputs at their native asset size.
+
+Required fidelity surfaces:
+
+- Artwork and image quality: original crop pixels, linework, texture and warm
+  paper are preserved; no destructive background removal or upscaling remains.
+- Typography: character ranks are raster artwork rather than a runtime font;
+  non-tile UI typography is unchanged.
+- Colour and material: numeral red is sampled from the approved porcelain sheet;
+  the shell now uses a warmer ivory face, gold rim and reference-weight shadow.
+- Spacing, layout and copy: intentionally unchanged in this pass; the existing
+  centered board, vertical rack, left rail and game copy remain the authority.
+
+Comparison history: iteration 1 was blocked by chroma-key halos and washed
+blocked faces. Iteration 2 unified the numeral family but retained per-cell red
+variance. Iteration 3 preserves source pixels, removes the state wash and applies
+one sampled red palette, passing the focused visual comparison. Chromium emitted
+compositor tile-memory warnings while taking the 3024 × 1776 native capture; the
+capture completed and the app remained responsive, with no corresponding unit,
+lint or diff-check failure.
+
+Focused Mahjong tests passed 68/68, lint passed with zero warnings, and
+`git diff --check` passed. No P0, P1 or P2 issue remains on the corrected tile
+surfaces.
+
+final result: passed
+
+## 2026-11-12 Mahjong full-tile source crops
+
+The October pass still displayed rectangular patches of opaque ivory and
+clipped parts of the supplied designs. The reported board crop is
+`/Users/anthonyjloria/Desktop/Screenshot 2026-11-12 at 2.31.54 PM.png`
+(1854 × 1206). The source is the owner's `mahjong-tile-crops` folder at
+`/Users/anthonyjloria/.codex/visualizations/2026/10/18/01a14d38-32dd-7131-a01c-48a55d1b19ef/mahjong-tile-crops`.
+All 54 supplied crops matched their corresponding rectangles in the bundled
+1487 × 1058 source sheets byte for byte after RGB decoding. The sheets also
+recover bevel edges cut off in some supplied rectangles.
+
+- P1 artwork and material. The old winds, bamboo, panda and dots showed
+  clipped decoration, visible patches or a doubled bevel. The revised faces
+  preserve the source texture, complete artwork and original tile edge. The
+  corner mask removes the sheet backdrop and the game renders a contact shadow.
+- P1 numerals and color. Ranks 1, 5 and 9 use the original numeral artwork
+  for each theme. The six absent ranks use the existing raster numeral set
+  tinted to the corresponding theme and composited into the source tile.
+  The derived numeral shapes are approximations, with the largest style
+  differences on Carved and Inlay.
+- P2 symbol edges. An initial live capture showed a speck from an adjacent
+  source mark next to the repeated green pip. The round isolation mask removed
+  it. Wider clear margins keep reconstructed bamboo away from the outer bevel.
+
+Verified in the native Blanc dev window on the saved Arch / Burst / Auto board
+with 46 pairs left and a two-dot tile in the rack. The live window was captured
+at 2560 × 1600 physical pixels, corresponding to 1280 × 800 at 2×. The before and
+after board crops are fitted to 1300 × 850 fields. The focused comparison fits
+five corresponding tiles to 145 × 188 cells, with the report screenshot above
+the original crops and the corrected live render below. The game uses uniform
+board cells, which changes the displayed proportions of narrower source winds
+and wider source dragons. The raster assets retain the source dimensions.
+Board spacing and layout, Instrument Sans UI typography, and game copy were
+checked in the live view. The three-theme contact sheet was reviewed at the
+game cell aspect ratio. Only Porcelain was inspected in the live user window.
+
+Evidence is saved under
+`/Users/anthonyjloria/.codex/visualizations/2026/10/18/01a14d38-32dd-7131-a01c-48a55d1b19ef/`.
+
+- `mahjong-2026-11-12-live.png`
+- `mahjong-2026-11-12-before-after.png`
+- `mahjong-2026-11-12-tile-details.png`
+- `mahjong-2026-11-12-theme-assets.png`
+
+All 160 Mahjong unit tests, the native standalone Mahjong smoke test, lint and
+`git diff --check` passed. The standalone test exercised a match, undo and
+completion feedback in an isolated profile. The corrected live board restored
+the same game and rack after refresh.
 
 final result: passed
