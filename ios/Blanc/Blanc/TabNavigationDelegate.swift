@@ -27,6 +27,8 @@ final class TabNavigationDelegate: NSObject, WKNavigationDelegate {
     /// A main-frame navigation is about to load `url` (Blanc Blocker's per-site
     /// switch puts the tab's blocking rules on or off for that site first).
     var onWillLoadMainFrame: ((URL) -> Void)?
+    /// Whether this page's site gets its phone layout on an iPad.
+    var wantsMobileSite: ((URL) -> Bool)?
 
     /// A load that failed while the tab's page stays on screen (a tapped link,
     /// a reload with no connection): the page is left as it was and the
@@ -41,6 +43,14 @@ final class TabNavigationDelegate: NSObject, WKNavigationDelegate {
 
     func load(_ url: URL, in webView: WKWebView) {
         guard url != lastRequested else { return }
+        lastRequested = url
+        webView.load(URLRequest(url: url))
+    }
+
+    /// Loads the page on screen afresh, which `load` would skip as the
+    /// address it was just asked for: Request Mobile or Desktop Website needs
+    /// a new load to ask the site for the other layout.
+    func loadAgain(_ url: URL, in webView: WKWebView) {
         lastRequested = url
         webView.load(URLRequest(url: url))
     }
@@ -182,6 +192,8 @@ final class TabNavigationDelegate: NSObject, WKNavigationDelegate {
                 return
             }
             onWillLoadMainFrame?(url)
+            // WebKit's own default otherwise: desktop sites on an iPad.
+            if wantsMobileSite?(url) == true { preferences.preferredContentMode = .mobile }
         }
         decisionHandler(.allow, preferences)
     }
