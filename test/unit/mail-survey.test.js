@@ -25,9 +25,19 @@ test('parseAnswer accepts a full answer', () => {
   });
 });
 
-test('parseAnswer requires account and speed', () => {
+test('parseAnswer requires account and speed unless a note is given', () => {
   assert.equal(survey.parseAnswer({ speed: 'minute' }).ok, false);
   assert.equal(survey.parseAnswer({ account: 'gmail' }).ok, false);
+  assert.equal(survey.parseAnswer({}).ok, false);
+  assert.equal(survey.parseAnswer({ note: '   ' }).ok, false, 'a blank note is no note');
+  // Owner decision (2026-11-12): someone who only wants to suggest something can.
+  assert.deepEqual(survey.parseAnswer({ note: 'Outlook support' }), {
+    ok: true,
+    answer: { account: null, speed: null, features: [], note: 'Outlook support' },
+  });
+  assert.deepEqual(survey.parseAnswer({ account: 'proton', note: 'x' }).answer, { account: 'proton', speed: null, features: [], note: 'x' });
+  assert.equal(survey.parseAnswer({ account: 'icloud', note: 'x' }).ok, false, 'a given answer must still be valid');
+  assert.equal(survey.parseAnswer({ speed: 'hourly', note: 'x' }).ok, false);
 });
 
 test('parseAnswer refuses unknown ids and extra fields', () => {
@@ -104,6 +114,11 @@ test('summarize counts every id, splits speed by account and keeps notes', () =>
   assert.equal(summary.features['saved-search'], 0);
   assert.deepEqual(summary.notes, [{ week: '2026-W46', text: 'earlier' }, { week: '2026-W47', text: 'later' }]);
   assert.equal(survey.summarize([], false).total, 0);
+  const withNoteOnly = survey.summarize([...records, { week: '2026-W47', account: null, speed: null, features: [], note: 'just this' }], true);
+  assert.equal(withNoteOnly.total, 4);
+  assert.equal(withNoteOnly.noteOnly, 1);
+  assert.deepEqual(withNoteOnly.accounts, { gmail: 2, proton: 1, both: 0, other: 0 });
+  assert.equal(summary.noteOnly, 0);
 });
 
 // --- The Worker (cloudflare/mail-survey-worker/src/index.js) ---
@@ -318,4 +333,14 @@ test('the summary says when answers past the cap were not counted', async () => 
   const summary = await (await worker.fetch(admin('GET', '/mail-survey/summary'), env)).json();
   assert.equal(summary.total, MAX_ANSWERS);
   assert.equal(summary.truncated, true);
+});
+
+test('a suggestion alone is stored without the two answers', async () => {
+  const env = surveyEnv();
+  const response = await worker.fetch(post({ features: [], note: 'Calendar in the sidebar' }), env);
+  assert.equal(response.status, 200);
+  const record = JSON.parse([...env.SURVEY.values.values()][0]);
+  assert.equal(record.account, null);
+  assert.equal(record.speed, null);
+  assert.equal(record.note, 'Calendar in the sidebar');
 });

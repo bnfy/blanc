@@ -100,6 +100,11 @@ Order and wording are the builder's to polish; the substance is fixed.
    provider testing); 6–9 are post-launch ideas (Mail `AGENTS.md`,
    Mimestream-informed sequence; Proton drafts are on this Mac only by the
    owner's 2026-11-11 decision). The page must not say which are built.
+**Owner decision (2026-11-12):** questions 1 and 2 are required unless a
+suggestion is written; someone can send a suggestion alone (stored with no
+account or speed, counted as `noteOnly` in the summary). An answer that is
+given must still be a valid choice.
+
 4. **Anything else you'd want?** Free text, optional, at most 500 characters,
    with a note under it: please don't include personal details.
 

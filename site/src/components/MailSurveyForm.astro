@@ -34,13 +34,13 @@ const features = [
   <fieldset class="mail-survey-question">
     <legend>Which accounts would you use with Blanc Mail?</legend>
     {accounts.map(([value, label]) => (
-      <label class="mail-survey-choice"><input type="radio" name="account" value={value} required><span class="mail-survey-option">{label}</span></label>
+      <label class="mail-survey-choice"><input type="radio" name="account" value={value}><span class="mail-survey-option">{label}</span></label>
     ))}
   </fieldset>
   <fieldset class="mail-survey-question">
     <legend>How quickly does new mail need to show up?</legend>
     {speeds.map(([value, label]) => (
-      <label class="mail-survey-choice"><input type="radio" name="speed" value={value} required><span class="mail-survey-option">{label}</span></label>
+      <label class="mail-survey-choice"><input type="radio" name="speed" value={value}><span class="mail-survey-option">{label}</span></label>
     ))}
   </fieldset>
   <fieldset class="mail-survey-question" data-mail-survey-features>
@@ -52,7 +52,7 @@ const features = [
   <div class="mail-survey-question" id="suggest">
     <label class="mail-survey-legend" for="mailSurveyNote">Anything else you’d want? <span class="mail-muted">(optional)</span></label>
     <textarea id="mailSurveyNote" name="note" rows="4" maxlength="500" aria-describedby="mailSurveyNoteHelp"></textarea>
-    <p class="mail-survey-help" id="mailSurveyNoteHelp">Please don’t include personal details.</p>
+    <p class="mail-survey-help" id="mailSurveyNoteHelp">Please don’t include personal details. Or skip the questions and just send a suggestion.</p>
   </div>
   <input class="mail-waitlist-hp" type="text" name="website" tabindex="-1" autocomplete="off" aria-hidden="true">
   <button type="submit" class="mail-survey-submit" disabled>Send my answers</button>
@@ -83,6 +83,12 @@ const features = [
       event.preventDefault();
       status.textContent = '';
       const data = new FormData(form);
+      // The first two questions are needed unless a suggestion is written.
+      const note = String(data.get('note') ?? '').trim();
+      if (!note && (!data.get('account') || !data.get('speed'))) {
+        status.textContent = 'Please answer the first two questions, or write a suggestion.';
+        return;
+      }
       button.disabled = true;
       try {
         const response = await fetch(SURVEY_ENDPOINT, {
@@ -105,7 +111,7 @@ const features = [
           for (const child of [...form.children]) if (child !== status) (child as HTMLElement).hidden = true;
           status.textContent = 'This survey has closed. Thank you to everyone who answered.';
         } else if (response.status === 400) {
-          status.textContent = 'Please answer the first two questions.';
+          status.textContent = 'Please answer the first two questions, or write a suggestion.';
         } else {
           status.textContent = 'We couldn’t save that just now. Please try again later.';
         }

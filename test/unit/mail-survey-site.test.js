@@ -222,3 +222,11 @@ test('the page and privacy text say the week, never the day', () => {
   assert.match(read('site/src/pages/privacy.astro'), /your answers and the week you sent them/);
   assert.doesNotMatch(text, /the day you sent them|answers and the day/);
 });
+
+test('the survey accepts a suggestion on its own', () => {
+  const form = read('site/src/components/MailSurveyForm.astro');
+  assert.doesNotMatch(form, /\brequired\b/, 'the browser must not block a note-only answer');
+  assert.match(form, /Or skip the questions and just send a suggestion\./);
+  assert.match(form, /Please answer the first two questions, or write a suggestion\./);
+  assert.ok(read('docs/website-mail-claims-2026-11-12.md').includes('Or skip the questions and just send a suggestion.'));
+});
