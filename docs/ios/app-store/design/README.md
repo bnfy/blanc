@@ -42,9 +42,8 @@ page with the id `cpp-<page>` belong to a custom product page and land in
 The `IPad*.dc.html` artboards (page `page-ipad-13`, 2752 × 2064) are Blanc
 for iPad's 13" set, in the layout the owner chose on November 12, 2026: the
 caption centered above a large landscape iPad, the skies again dawn to day.
-They were written here in the canvas's format and are not on the Claude
-Design canvas yet; until they are, the `/_blob/` ids of their captures are
-this repository's own (the MD5 of each capture's path), mapped in
+They are on the canvas's "iPad 13"" page (added November 12, 2026, canvas
+version 19), with the captures uploaded to its asset store and mapped in
 `assets.json` like the rest. `npm run ios:app-store-screenshots -- --ipad`
 captures `../captures/ipad-13/` and renders these artboards alone into
 `../ipad-13/` (`ios-app-store-compose.mjs --only ipad-13`), leaving every

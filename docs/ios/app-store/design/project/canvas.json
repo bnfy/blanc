@@ -425,6 +425,14 @@
       "w": 240,
       "x": 0,
       "y": -420
+    },
+    "ipad-13-howto": {
+      "page": "page-ipad-13",
+      "size": 40,
+      "w": 2752,
+      "x": 0,
+      "y": 2240,
+      "text": "Each artboard is one 13-inch iPad App Store screenshot (2752 × 2064), in order, approved by the owner on November 12, 2026 for iPhone/iPad 1.0.3. The iPad screens are real captures from Blanc for iPad, made by npm run ios:app-store-screenshots -- --ipad; never draw or edit them. Every caption must pass docs/marketing-claims.md before it goes to Apple."
     }
   },
   "order": [
