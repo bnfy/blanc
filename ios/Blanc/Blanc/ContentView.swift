@@ -843,7 +843,6 @@ struct ContentView: View {
             HStack(spacing: 0) {
                 islandMark
                 Rectangle().fill(islandDivider).frame(width: 1, height: 18)
-                if buttons.history == .beforeAddress { historyButtons.padding(.leading, 4) }
             }
 
             // A tap rather than a Button: a Button also fires when a sideways
