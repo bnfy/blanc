@@ -122,8 +122,11 @@ final class TabGridSwipeUITests: XCTestCase {
     let start = site.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.5))
     start.press(forDuration: 0.05, thenDragTo: start.withOffset(CGVector(dx: 0, dy: -24)), withVelocity: 40, thenHoldForDuration: 0.3)
     XCTAssertFalse(app.buttons.matching(identifier: "tab.card").firstMatch.waitForExistence(timeout: 2))
-    XCTAssertTrue(site.isHittable, "the Island is back and usable")
-    site.tap()
+    // Tapped by position, as a finger does: for a moment after a lift,
+    // iOS 26.5 reports New Tab's accessibility frame across the whole
+    // Island, so `isHittable` fails there although a real tap reaches the
+    // address (checked by hand on an iOS 26.5 simulator, 2026-11-11).
+    site.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.5)).tap()
     XCTAssertTrue(app.textFields["island.address"].waitForExistence(timeout: 5), "a tap right after isn't lost")
   }
 }
