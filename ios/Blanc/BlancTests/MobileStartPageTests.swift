@@ -253,21 +253,26 @@ final class MobileStartPageTests: XCTestCase {
     }
 }
 
-/// A loopback port nothing listens on: bound by the system, then let go.
+/// A loopback port nothing listens on. It comes from below the ephemeral range
+/// (49152 and up on Apple platforms), where every server that asks for port 0
+/// lands: on a shared CI runner, another test's server once took a port this
+/// picked there, and the "failing" load committed a real page. 20000–29999
+/// holds no port on WebKit's blocked list.
 private func closedPort() throws -> Int {
-    let fd = socket(AF_INET, SOCK_STREAM, 0)
-    guard fd >= 0 else { throw XCTSkip("no socket") }
-    defer { close(fd) }
-    var address = sockaddr_in()
-    address.sin_len = UInt8(MemoryLayout<sockaddr_in>.size)
-    address.sin_family = sa_family_t(AF_INET)
-    address.sin_addr.s_addr = inet_addr("127.0.0.1")
-    var length = socklen_t(MemoryLayout<sockaddr_in>.size)
-    let bound = withUnsafeMutablePointer(to: &address) {
-        $0.withMemoryRebound(to: sockaddr.self, capacity: 1) {
-            bind(fd, $0, length) == 0 && getsockname(fd, $0, &length) == 0
+    for _ in 0..<50 {
+        let port = UInt16.random(in: 20000..<30000)
+        let fd = socket(AF_INET, SOCK_STREAM, 0)
+        guard fd >= 0 else { throw XCTSkip("no socket") }
+        defer { close(fd) }
+        var address = sockaddr_in()
+        address.sin_len = UInt8(MemoryLayout<sockaddr_in>.size)
+        address.sin_family = sa_family_t(AF_INET)
+        address.sin_port = port.bigEndian
+        address.sin_addr.s_addr = inet_addr("127.0.0.1")
+        let free = withUnsafePointer(to: &address) {
+            $0.withMemoryRebound(to: sockaddr.self, capacity: 1) { bind(fd, $0, socklen_t(MemoryLayout<sockaddr_in>.size)) == 0 }
         }
+        if free { return Int(port) }
     }
-    guard bound else { throw XCTSkip("no loopback port") }
-    return Int(UInt16(bigEndian: address.sin_port))
+    throw XCTSkip("no free loopback port")
 }
