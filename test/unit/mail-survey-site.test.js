@@ -88,7 +88,8 @@ test('the survey page has its own headers block without analytics or chat', () =
 
 test('the site flag decides between the form and the closed message', () => {
   const flag = JSON.parse(read('site/src/data/mail-survey.json'));
-  assert.equal(typeof flag.open, 'boolean');
+  // Ships closed; the go-live PR opens it with the Worker (Worker README).
+  assert.equal(flag.open, false);
   const page = read('site/src/pages/mail/survey.astro');
   assert.match(page, /import survey from '..\/..\/data\/mail-survey\.json'/);
   assert.match(page, /survey\.open \?/);

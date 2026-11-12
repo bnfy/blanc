@@ -25,13 +25,15 @@ on `blanc.day/mail/survey`, so the owner can decide what goes into Blanc Mail
 | Route | Who | Result |
 | --- | --- | --- |
 | `OPTIONS /mail-survey` | the site | CORS preflight for the site's origins |
-| `POST /mail-survey` | the site | `200 {ok:true}`; `400` invalid; `403` other origin; `410 {closed:true}` when closed; `429` rate limited or no IP; `503` without the rate limiter |
+| `POST /mail-survey` | the site | `200 {ok:true}`; `400` invalid (including a body over 4,096 characters); `403` other origin; `410 {closed:true}` when closed or full; `429` rate limited or no IP; `503` without the rate limiter or when storage fails |
 | `GET /mail-survey/summary` | admin | counts per account, speed, speed by account and feature, plus the notes with their days |
-| `DELETE /mail-survey/answers?confirm=delete-all` | admin | deletes every answer, `{deleted:n}` |
+| `DELETE /mail-survey/answers?confirm=delete-all` | admin | deletes up to 900 answers, `{deleted:n, remaining:m}`; repeat until `remaining` is 0 |
 
 `SURVEY_OPEN` must be exactly `"true"` to accept answers; anything else is
-closed. A filled `website` honeypot gets the normal success reply and stores
-nothing.
+closed. The survey also stops at 900 stored answers (`MAX_ANSWERS`), far above
+the few dozen expected: that bounds what one abusive visitor can add, and keeps
+each summary or purge inside one request's 1,000 KV operations. A filled
+`website` honeypot gets the normal success reply and stores nothing.
 
 ## Setup (once, with the owner's go-ahead)
 
@@ -44,10 +46,21 @@ npx wrangler@4 deploy                        # deploys closed (SURVEY_OPEN = "fa
 ```
 
 Check it: a `POST /mail-survey` from `https://blanc.day` answers `410`, and
-the summary answers with the token. Set `SURVEY_OPEN = "true"` and redeploy
-only in the same window as the site deploy that publishes `/mail/survey`. The
-site deploy waits for the first public release containing #1450 and #1454
-(`site/CLAUDE.md`).
+the summary answers with the token.
+
+## Going live
+
+The site ships the survey closed: `site/src/data/mail-survey.json` is
+`{ "open": false }`, so `/mail` shows no survey link and the waitlist shows no
+invitation. To open it, in one window:
+
+1. Recheck the Proton lines in `docs/website-mail-claims-2026-11-12.md`
+   against the signed Mail build.
+2. Merge a PR that sets `mail-survey.json` to `{ "open": true }`.
+3. Set `SURVEY_OPEN = "true"` and deploy the Worker; check a test answer
+   lands and then purge it.
+4. Deploy the site. The site deploy waits for the first public release
+   containing #1450 and #1454 (`site/CLAUDE.md`).
 
 ## Reading the results
 
@@ -62,7 +75,8 @@ curl -s -H "$ADMIN" https://blanc-mail-survey.bnfy-441.workers.dev/mail-survey/s
 2. Take the summary one last time and record the result (counts only, plus a
    paraphrase of the themes in the notes) in the Blanc Mail repository with
    the 1.0 scope decision.
-3. Purge every answer and confirm none remain:
+3. Purge every answer, repeating until `remaining` is 0, and confirm none
+   remain:
    ```sh
    curl -s -X DELETE -H "$ADMIN" \
      "https://blanc-mail-survey.bnfy-441.workers.dev/mail-survey/answers?confirm=delete-all"

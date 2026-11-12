@@ -206,7 +206,8 @@ together.
 request logs and stores only the answers and the day. Its ids live in the
 Worker's `src/survey.js`; the page, the Worker contract and the privacy page's
 `#mail-survey` section change together. `src/data/mail-survey.json` (`open`)
-shows the form or a closed message; the page is noindex and unlisted, and
+shows the form or a closed message, and ships `false` until the go-live PR
+in the Worker README opens it with the Worker; the page is noindex and unlisted, and
 closing (summary, purge, flag, privacy update) follows the Worker README.
 Spec: `docs/superpowers/specs/2026-11-12-mail-feature-survey-design.md`.
 

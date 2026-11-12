@@ -20,7 +20,12 @@ const ALLOWED_ORIGINS = new Set([
 ]);
 
 const ANSWER_PREFIX = 'answer:';
-const MAX_BODY_BYTES = 4096;
+const MAX_BODY_LENGTH = 4096;
+// A hard ceiling on stored answers, far above the few dozen expected. It
+// bounds what one abusive visitor can add, and keeps a summary (one list plus
+// one read per answer) or a purge (one delete per answer) inside a single
+// request's 1,000 KV operations.
+export const MAX_ANSWERS = 900;
 
 function json(status, payload, headers = {}) {
   return new Response(JSON.stringify(payload), {
@@ -65,15 +70,10 @@ async function isAdmin(request, env) {
   return difference === 0;
 }
 
+// One list operation; the cap keeps every answer within its first page.
 async function answerKeys(env) {
-  const keys = [];
-  let cursor;
-  do {
-    const page = await env.SURVEY.list({ prefix: ANSWER_PREFIX, cursor });
-    keys.push(...page.keys.map((key) => key.name));
-    cursor = page.list_complete ? undefined : page.cursor;
-  } while (cursor);
-  return keys;
+  const page = await env.SURVEY.list({ prefix: ANSWER_PREFIX, limit: 1000 });
+  return page.keys.map((key) => key.name);
 }
 
 async function handleAnswer(request, env, cors) {
@@ -84,8 +84,9 @@ async function handleAnswer(request, env, cors) {
   if (!ip || !(await env.SURVEY_RATE_LIMITER.limit({ key: `survey:${ip}` })).success) {
     return json(429, { error: 'rate limited' }, cors);
   }
+  if (Number(request.headers.get('Content-Length') ?? 0) > MAX_BODY_LENGTH) return json(400, { error: 'invalid' }, cors);
   const text = await request.text();
-  if (text.length > MAX_BODY_BYTES) return json(400, { error: 'invalid' }, cors);
+  if (text.length > MAX_BODY_LENGTH) return json(400, { error: 'invalid' }, cors);
   let body;
   try {
     body = JSON.parse(text);
@@ -97,14 +98,19 @@ async function handleAnswer(request, env, cors) {
   }
   const parsed = parseAnswer(body);
   if (!parsed.ok) return json(400, { error: 'invalid' }, cors);
-  const day = new Date().toISOString().slice(0, 10);
-  await env.SURVEY.put(randomKey(), JSON.stringify({ day, ...parsed.answer }));
+  try {
+    if ((await answerKeys(env)).length >= MAX_ANSWERS) return json(410, { closed: true }, cors);
+    const day = new Date().toISOString().slice(0, 10);
+    await env.SURVEY.put(randomKey(), JSON.stringify({ day, ...parsed.answer }));
+  } catch {
+    return json(503, { error: 'unavailable' }, cors);
+  }
   return json(200, { ok: true }, cors);
 }
 
 async function handleSummary(env) {
   const records = [];
-  for (const key of await answerKeys(env)) {
+  for (const key of (await answerKeys(env)).slice(0, MAX_ANSWERS)) {
     const record = await env.SURVEY.get(key, { type: 'json' });
     if (record) records.push(record);
   }
@@ -113,9 +119,11 @@ async function handleSummary(env) {
 
 async function handlePurge(env, url) {
   if (url.searchParams.get('confirm') !== 'delete-all') return json(400, { error: 'confirm=delete-all required' });
-  const keys = await answerKeys(env);
+  // At most MAX_ANSWERS deletes a call; repeat until remaining is 0.
+  const keys = (await answerKeys(env)).slice(0, MAX_ANSWERS);
   for (const key of keys) await env.SURVEY.delete(key);
-  return json(200, { deleted: keys.length });
+  const remaining = (await answerKeys(env)).length;
+  return json(200, { deleted: keys.length, remaining });
 }
 
 export default {

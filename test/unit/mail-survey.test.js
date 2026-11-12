@@ -103,20 +103,39 @@ const WRANGLER_PATH = path.resolve(__dirname, '../../cloudflare/mail-survey-work
 const NEWSLETTER_PATH = path.resolve(__dirname, '../../cloudflare/newsletter-worker/src/index.js');
 
 let worker;
+let MAX_ANSWERS;
 test.before(async () => {
-  worker = (await import(pathToFileURL(WORKER_PATH))).default;
+  const module = await import(pathToFileURL(WORKER_PATH));
+  worker = module.default;
+  MAX_ANSWERS = module.MAX_ANSWERS;
+});
+
+test('the cap leaves room for one summary or purge in a single request', () => {
+  assert.equal(MAX_ANSWERS, 900);
 });
 
 // Same shapes as test/unit/newsletter-worker.test.js.
+// Like Workers KV, one request may make at most 1,000 KV operations.
 class FakeKV {
-  constructor() { this.values = new Map(); }
+  constructor() { this.values = new Map(); this.operations = 0; this.failPuts = false; }
+  count() {
+    this.operations += 1;
+    if (this.operations > 1000) throw new Error('Too many API requests by single Worker invocation');
+  }
+  resetCount() { this.operations = 0; }
   async get(key, options) {
+    this.count();
     const value = this.values.get(key) ?? null;
     return options?.type === 'json' && value !== null ? JSON.parse(value) : value;
   }
-  async put(key, value) { this.values.set(key, String(value)); }
-  async delete(key) { this.values.delete(key); }
+  async put(key, value) {
+    this.count();
+    if (this.failPuts) throw new Error('KV put() limit exceeded for the day');
+    this.values.set(key, String(value));
+  }
+  async delete(key) { this.count(); this.values.delete(key); }
   async list({ prefix = '', limit = 1000, cursor } = {}) {
+    this.count();
     const names = [...this.values.keys()].filter((name) => name.startsWith(prefix)).sort();
     const start = cursor ? Number(cursor) : 0;
     const page = names.slice(start, start + limit);
@@ -218,24 +237,47 @@ test('the fifth post in a minute is rate limited, and a missing limiter fails cl
   assert.equal(noIp.SURVEY.values.size, 0);
 });
 
-test('summary and purge need the admin token and handle many pages', async () => {
-  const env = surveyEnv();
-  for (let i = 0; i < 1005; i += 1) {
-    await env.SURVEY.put(`answer:${String(i).padStart(5, '0')}`, JSON.stringify({ day: '2026-11-13', account: 'gmail', speed: 'instant', features: [], note: null }));
+async function seed(env, n) {
+  for (let i = 0; i < n; i += 1) {
+    env.SURVEY.values.set(`answer:${String(i).padStart(5, '0')}`, JSON.stringify({ day: '2026-11-13', account: 'gmail', speed: 'instant', features: [], note: null }));
   }
+}
+
+test('summary and purge need the admin token and stay within one request at the cap', async () => {
+  const env = surveyEnv();
+  await seed(env, MAX_ANSWERS);
   for (const request of [admin('GET', '/mail-survey/summary', null), admin('GET', '/mail-survey/summary', 'wrong')]) {
     assert.equal((await worker.fetch(request, env)).status, 401);
   }
   assert.equal((await worker.fetch(admin('GET', '/mail-survey/summary'), { ...env, ADMIN_TOKEN: undefined })).status, 401);
+  env.SURVEY.resetCount();
   const summary = await (await worker.fetch(admin('GET', '/mail-survey/summary'), env)).json();
-  assert.equal(summary.total, 1005);
+  assert.equal(summary.total, MAX_ANSWERS);
   assert.equal(summary.open, true);
   assert.equal((await worker.fetch(admin('DELETE', '/mail-survey/answers'), env)).status, 400);
   assert.equal((await worker.fetch(admin('DELETE', '/mail-survey/answers?confirm=delete-all', 'wrong'), env)).status, 401);
-  assert.equal(env.SURVEY.values.size, 1005);
+  assert.equal(env.SURVEY.values.size, MAX_ANSWERS);
+  env.SURVEY.resetCount();
   const purged = await worker.fetch(admin('DELETE', '/mail-survey/answers?confirm=delete-all'), env);
-  assert.deepEqual(await purged.json(), { deleted: 1005 });
+  assert.deepEqual(await purged.json(), { deleted: MAX_ANSWERS, remaining: 0 });
   assert.equal(env.SURVEY.values.size, 0);
+});
+
+test('a full survey stores nothing more and answers as closed', async () => {
+  const env = surveyEnv();
+  await seed(env, MAX_ANSWERS);
+  const response = await worker.fetch(post({ account: 'gmail', speed: 'minute' }), env);
+  assert.equal(response.status, 410);
+  assert.deepEqual(await response.json(), { closed: true });
+  assert.equal(env.SURVEY.values.size, MAX_ANSWERS);
+});
+
+test('a storage failure is a 503 the page can show, not a crash', async () => {
+  const env = surveyEnv();
+  env.SURVEY.failPuts = true;
+  const response = await worker.fetch(post({ account: 'gmail', speed: 'minute' }), env);
+  assert.equal(response.status, 503);
+  assert.equal(response.headers.get('Access-Control-Allow-Origin'), 'https://blanc.day');
 });
 
 test('unknown routes are not found', async () => {
