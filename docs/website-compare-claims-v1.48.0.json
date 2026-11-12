@@ -17,7 +17,7 @@
     "site/src/pages/download.astro",
     "docs/ios/app-store-connect.md"
    ],
-   "qualification": "Desktop builds for macOS, Windows and Linux. Blanc for iPhone was a public TestFlight beta from October 28, 2026; version 1.0 (build 202611030537, iPhone only, iOS 18.4 or later) was approved by App Review and released on the App Store by the owner on November 6, 2026 (docs/ios/app-store-connect.md, item 21; site/src/data/ios-availability.json). The TestFlight beta stays open for early builds. There is no Android app."
+   "qualification": "Desktop builds for macOS, Windows and Linux. Blanc for iPhone was a public TestFlight beta from October 28, 2026; version 1.0 (build 202611030537, iPhone only, iOS 18.4 or later) was approved by App Review and released on the App Store by the owner on November 6, 2026 (docs/ios/app-store-connect.md, item 21; site/src/data/ios-availability.json). Version 1.0.3 (build 202611121714, from 44280ff1d) adds iPad to the same listing (iOS and iPadOS 18.4 or later); its wording here is held with docs/website-ipad-1.0.3-claims.json until App Review approves 1.0.3. The TestFlight beta stays open for early builds. There is no Android app."
   },
   "cost": {
    "evidence": [
@@ -391,13 +391,13 @@
   {
    "id": "compare-1451-015",
    "source": "site/src/pages/compare.astro",
-   "exactWording": "Phones. Blanc for iPhone is on the App Store, with a TestFlight beta for early builds; there is no Android app.",
+   "exactWording": "Phones and tablets. Blanc for iPhone and iPad is on the App Store, with a TestFlight beta for early builds; there is no Android app.",
    "subject": "Blanc",
    "evidenceGroups": [
     "platforms"
    ],
    "verdict": "verified",
-   "reason": "November 6, 2026: reworded from “a public beta on TestFlight” after Blanc for iPhone 1.0 was released on the App Store."
+   "reason": "November 6, 2026: reworded from “a public beta on TestFlight” after Blanc for iPhone 1.0 was released on the App Store. November 12, 2026: “Phones. Blanc for iPhone is on the App Store, …” became “Phones and tablets. Blanc for iPhone and iPad is on the App Store, …” for version 1.0.3, which adds iPad; held with docs/website-ipad-1.0.3-claims.json until App Review approves it."
   },
   {
    "id": "compare-1451-016",
@@ -547,13 +547,13 @@
    "source": "site/src/data/compare.json",
    "row": "platforms",
    "column": "blanc",
-   "exactWording": "macOS, Windows, Linux. iPhone on the App Store, with a TestFlight beta.",
+   "exactWording": "macOS, Windows, Linux. iPhone and iPad on the App Store, with a TestFlight beta.",
    "subject": "Blanc",
    "evidenceGroups": [
     "platforms"
    ],
    "verdict": "verified",
-   "reason": "November 6, 2026: reworded from “macOS, Windows, Linux. iPhone is a public TestFlight beta.” after Blanc for iPhone 1.0 was released on the App Store. The owner asked on November 6, 2026 for the TestFlight beta to stay named next to the App Store."
+   "reason": "November 6, 2026: reworded from “macOS, Windows, Linux. iPhone is a public TestFlight beta.” after Blanc for iPhone 1.0 was released on the App Store. The owner asked on November 6, 2026 for the TestFlight beta to stay named next to the App Store. November 12, 2026: “iPhone on the App Store” became “iPhone and iPad on the App Store” for version 1.0.3, which adds iPad; held with docs/website-ipad-1.0.3-claims.json until App Review approves it."
   },
   {
    "id": "compare-1451-031",

@@ -71,7 +71,7 @@
       "label": "Where it runs",
       "cells": {
         "blanc": {
-          "text": "macOS, Windows, Linux. iPhone on the App Store, with a TestFlight beta.",
+          "text": "macOS, Windows, Linux. iPhone and iPad on the App Store, with a TestFlight beta.",
           "sources": []
         },
         "crest": {
