@@ -2487,7 +2487,7 @@ final class TabsManager {
         }
         tab.exitReader()
         // Loaded afresh: a reload keeps the layout the page was asked for with.
-        tab.navigationDelegate.load(tab.currentURL, in: tab.webView)
+        tab.navigationDelegate.loadAgain(tab.currentURL, in: tab.webView)
     }
 
     /// Puts the tab's blocking rules on or off for the site it is about to show.

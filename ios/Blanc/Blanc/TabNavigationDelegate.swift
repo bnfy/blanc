@@ -47,6 +47,14 @@ final class TabNavigationDelegate: NSObject, WKNavigationDelegate {
         webView.load(URLRequest(url: url))
     }
 
+    /// Loads the page on screen afresh, which `load` would skip as the
+    /// address it was just asked for: Request Mobile or Desktop Website needs
+    /// a new load to ask the site for the other layout.
+    func loadAgain(_ url: URL, in webView: WKWebView) {
+        lastRequested = url
+        webView.load(URLRequest(url: url))
+    }
+
     /// Loads `url` again after it failed. `load` skips an address it was just
     /// asked for, and a web view with no page has nothing to reload, except a
     /// woken tab's restored list, which keeps its Back and Forward this way.
