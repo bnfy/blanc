@@ -442,7 +442,7 @@ struct ContentView: View {
             WebView(tab: tab, onTouchDown: split != nil && !focused ? { manager.setActive(tab.id) } : nil,
                     cornerRadius: radius, islandInset: split == nil ? islandBand : 0, islandEdge: islandEdge,
                     islandCover: split == nil ? islandBand + (islandAtTop ? safeArea.top : safeArea.bottom) : 0,
-                    farCover: split == nil ? (islandAtTop ? safeArea.bottom : safeArea.top) : 0)
+                    safeArea: split == nil ? safeArea : EdgeInsets())
                 .overlay {
                     // Until its first page commits, a web view is WebKit's
                     // blank white: keep the theme's background instead, or
