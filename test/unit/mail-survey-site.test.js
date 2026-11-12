@@ -19,9 +19,12 @@ test.before(async () => {
   ({ CHOICES } = await import(pathToFileURL(path.join(root, 'cloudflare/mail-survey-worker/src/survey.js'))));
 });
 
+// Escapes every regular-expression metacharacter, backslash included.
+const escapeRegExp = (text) => text.replace(/[\\^$.*+?()[\]{}|/]/g, '\\$&');
+
 function headerBlock(route) {
   const headers = read('site/public/_headers');
-  const match = headers.match(new RegExp(`^${route.replace(/[/.*]/g, '\\$&')}\\n((?:  .*\\n?)+)`, 'm'));
+  const match = headers.match(new RegExp(`^${escapeRegExp(route)}\\n((?:  .*\\n?)+)`, 'm'));
   assert.ok(match, `_headers has a ${route} block`);
   return match[1];
 }
@@ -78,7 +81,7 @@ test('the page carries the spec privacy wording and never says what is built', (
 test('the survey page has its own headers block without analytics or chat', () => {
   const block = headerBlock('/mail/survey');
   assert.match(block, /^  ! Content-Security-Policy$/m);
-  assert.match(block, new RegExp(`connect-src [^;]*${SURVEY_WORKER.replace(/[/.]/g, '\\$&')}`));
+  assert.match(block, new RegExp(`connect-src [^;]*${escapeRegExp(SURVEY_WORKER)}`));
   assert.doesNotMatch(block, /crisp|google|cloudflareinsights/i);
   // The footer's newsletter form and the Mail bar's waitlist form post to the
   // Blanc-owned newsletter Worker; nothing else leaves the page.
