@@ -300,12 +300,13 @@ remain pending. D3 beta-only no-DRM exception accepted; EME notice/handoff requi
   gets its own branch and small PR into `chromium/migration`.
 - **Release-candidate readiness tracker:**
   https://claude.ai/artifact/BKaBQpYoAMMeUmqBfVbBPA (private to the owner).
-  It shows each shipping acceptance case's latest macOS result (the full run
-  of 2026-11-01 overlaid by every targeted run since, so it mixes
-  candidates), the tracker rows' stages per platform and the gates outside
-  the code. Refresh it after each piece of work: `node chromium/tools/
-  rc-readiness.mjs --baseline <evidence>/s1-full-renderer-2/baseline.json
-  --runs <evidence> --out <dir>`, upload the three files to the dashboard
+  It shows each shipping acceptance case's latest macOS result (the newest
+  full run overlaid by every targeted run since, so it mixes candidates),
+  the tracker rows' stages per platform and the gates outside the code.
+  Refresh it after each piece of work: `node chromium/tools/
+  rc-readiness.mjs --baseline <evidence>/<newest full run>/baseline.json
+  --runs <evidence> --out <dir>` (since 2026-11-11 the newest full run is
+  `q5-final-inventory`, on macos-343a9dfa66dcb9d3), upload the three files to the dashboard
   and point its datasets at them. Gates live in that tool; edit them with
   this file.
 - F0.1/F0.2/F0.4/F0.8 as before.
