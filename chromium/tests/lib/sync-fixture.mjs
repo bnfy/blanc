@@ -16,7 +16,8 @@ const {peer}=require('../android/support/sync-peer.cjs');
 // a pass's own requests still count, injected 429 faults are separate rules,
 // and the Sync gate (desktop-sync.mjs) keeps the real per-minute waits.
 export function freeRequestRoom(server){
- for(const key of [...server.env.records.keys()])if(/^(rl|ip):/.test(key))server.env.records.delete(key);
+ const records=server?.env?.records;if(!records)return;
+ for(const key of [...records.keys()])if(/^(rl|ip):/.test(key))records.delete(key);
 }
 export async function syncRoom(w){freeRequestRoom(w.syncServer);}
 export async function syncPump(w){

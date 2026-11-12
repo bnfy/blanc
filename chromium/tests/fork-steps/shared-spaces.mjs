@@ -5,7 +5,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import {createRequire} from 'node:module';
 import {nativeCall} from '../lib/test-driver.mjs';
-import {syncRoom} from '../lib/sync-fixture.mjs';
+import {freeRequestRoom,syncRoom} from '../lib/sync-fixture.mjs';
 import {inSettings,readSettings} from '../adapters/commands.mjs';
 import {registerSharedClients} from './shared-two-clients.mjs';
 const require=createRequire(import.meta.url);
@@ -16,7 +16,21 @@ const presetHex=name=>{const preset=PRESETS.find(p=>p.id===name);assert.ok(prese
 const workTab=(w,which)=>({first:w.firstTab,second:w.secondTab})[which];
 const workUrl=(w,which)=>w.fixtureUrl({first:'shared-first',second:'shared-second'}[which]);
 const handle='Shared Spaces acceptance',passphrase='correct horse battery staple Shared Spaces';
-const rpc=(w,method,args=[])=>nativeCall(w.fixture.host,'desktopSyncCall',[method,args],null,180000);
+const rawRpc=(w,method,args=[])=>nativeCall(w.fixture.host,'desktopSyncCall',[method,args],null,180000);
+// A pass the harness starts (turning Sync on, a pull) runs with its request
+// window freed for as long as it runs, as shipping v1.48.0's
+// settleRequestsForTest does: a full pass with Shared Spaces needs more reads
+// than one minute's window, and otherwise waits out the minute.
+const PASSES=new Set(['sync.enable','sync.syncNow']);
+async function rpc(w,method,args=[]){
+ // The two-client scenario measures the clients' own request budgets, so its
+ // passes keep the real window.
+ if(!PASSES.has(method)||w.scenarioTags?.includes('@two-clients'))return rawRpc(w,method,args);
+ let done=false;const pass=rawRpc(w,method,args).finally(()=>{done=true;});
+ (async()=>{while(!done){try{freeRequestRoom(w.syncServer);await rawRpc(w,'sync.resetRequestWindowForTest');}catch{}
+  await new Promise(r=>setTimeout(r,100));}})();
+ return pass;
+}
 const state=w=>rpc(w,'desktop.spaces.snapshotForTest');
 async function pull(w,stores){
  await syncRoom(w);await rpc(w,'sync.resetRequestWindowForTest');
@@ -93,7 +107,7 @@ async function editPeer(w,edit){
  assert.equal(put.status,200);await pull(w,['space-'+sid]);
 }
 export default function register(step){
- registerSharedClients(step,{rpc,state,handle,passphrase});
+ registerSharedClients(step,{rpc:rawRpc,state,handle,passphrase});
  step('device B closes the background Work tab',async function(){
   await editPeer(this,blob=>{const id=Object.keys(blob.tabs).find(id=>blob.tabs[id].nav.v.url===this.fixtureUrl('shared-first'));
    assert.ok(id);this.closedRecord=id;blob.tabs[id].deleted=model.field(true,Date.now()+1,'device-b');});

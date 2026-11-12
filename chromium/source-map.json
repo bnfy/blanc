@@ -347,7 +347,7 @@
     "blanc/browser/sync/BUILD.gn": "919c43d0307555d314947d9641a524d35aa2aed57ea4dce9d790d17760c82fcc",
     "blanc/browser/sync/desktop_sync_platform.cc": "0b9b0b4ca4ab69e18234d4dbe13d32869bd637a40a69b96d6746b3c8437dc8ef",
     "blanc/browser/sync/desktop_sync_platform.h": "ccce0bc9c4a0b501a48752db7d877e2ae71e71e4c8666ff9fe555d2bef659a26",
-    "blanc/browser/sync/desktop_sync_service.cc": "902fadc4bb76f0a3afbc7b0a97e65c3292bf5608caa34ee620f181d5d905417e",
+    "blanc/browser/sync/desktop_sync_service.cc": "8a43372910a48f9521fc3b4fb2992691a14d52f47870fac3bb564750ef6b3626",
     "blanc/browser/sync/desktop_sync_service.h": "2a2f104d2288e7cdbe8befe9a92024cf93560cdb81c11a2a471e935f6946be67",
     "blanc/browser/sync/desktop_sync_settings.cc": "391b1c2a39997427e041c7ad67b825f94875ef00294c1d2517aed33953719bc9",
     "blanc/browser/sync/desktop_sync_settings.h": "1cc192a79eb0f3b581c27f170ba2186d31be91452b501b7e4161577b3bb124cb",
