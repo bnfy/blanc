@@ -168,8 +168,14 @@ final class SettingsStore {
         host == site || host.hasSuffix("." + site)
     }
 
+    /// One site taking in the other either way: a choice on example.com also
+    /// replaces one made on m.example.com, which its redirect would reach.
+    static func sameSite(_ a: String, _ b: String) -> Bool {
+        site(a, covers: b) || site(b, covers: a)
+    }
+
     func setMobileSite(_ host: String, mobile: Bool) {
-        mobileSites.removeAll { Self.site($0, covers: host) }
+        mobileSites.removeAll { Self.sameSite($0, host) }
         if mobile { mobileSites.append(host) }
         scheduleSave()
     }

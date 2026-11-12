@@ -64,7 +64,7 @@ import XCTest
         let tab = m.activeTab!
         tab.currentURL = URL(string: "https://nintendo.com/")!
         tab.wantsDesktopSite = true
-        XCTAssertTrue(IslandMenu.items(for: tab, manager: m).contains(.desktopSite(on: true)))
+        XCTAssertTrue(IslandMenu.items(for: tab, manager: m, onPad: false).contains(.desktopSite(on: true)))
     }
 
     func testBlockingOffEverywhereOffersSettings() {
@@ -98,6 +98,17 @@ import XCTest
         tab.currentURL = URL(string: "https://m.example.com/")!
         m.setMobileSite(tab, mobile: false)
         XCTAssertEqual(m.settingsStore.mobileSites, [], "Request Desktop Website works from the subdomain")
+    }
+
+    func testThePhoneLayoutChosenOnASubdomainClearsFromTheSite() {
+        let m = manager()
+        let tab = m.activeTab!
+        tab.currentURL = URL(string: "https://m.example.com/")!
+        m.setMobileSite(tab, mobile: true)
+        tab.currentURL = URL(string: "https://example.com/")!
+        m.setMobileSite(tab, mobile: false)
+        XCTAssertEqual(m.settingsStore.mobileSites, [], "the redirect to m.example.com would bring the phone layout back")
+        XCTAssertFalse(m.wantsMobileSite(URL(string: "https://m.example.com/")!, isPrivate: false))
     }
 
     func testAPrivateTabsLayoutChoiceIsNeverSaved() {

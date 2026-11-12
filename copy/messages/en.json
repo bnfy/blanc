@@ -9496,11 +9496,11 @@
   },
   "ios.settings.islandHistoryButtons": {
     "message": "Back and Forward buttons",
-    "note": "iOS Settings → Island: switch that puts Back and Forward on the iPhone Island. Off by default."
+    "note": "iOS Settings → Island: switch that puts Back and Forward on the Island (iPhone and iPad). On by default."
   },
   "ios.settings.islandHistoryButtonsHelp": {
-    "message": "When the Island is narrow, they take the place of Reload and New Tab. Pull down on a page to reload it.",
-    "note": "iOS Settings → Island: footer under the Back and Forward switch. 'Narrow' is the iPhone Island; the wider Island keeps every button."
+    "message": "Turn them off to show Reload in their place. You can also pull down on a page to reload it.",
+    "note": "iOS Settings → Island: footer under the Back and Forward switch. Applies to every Island, iPhone and iPad."
   },
   "ios.settings.islandPosition": {
     "message": "Position",

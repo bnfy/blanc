@@ -9207,11 +9207,11 @@
   },
   "ios.settings.islandHistoryButtons": {
     "message": "Boutons Précédent et Suivant",
-    "source": "sha256:7ec1dc0623cd5f25a9dcfa770869e362aafdc346e914ccc97f40dea0f71903bc"
+    "source": "sha256:24b5daf02568586be73f80ddd0aeb9272f802b6b953247fe9c0dc9df17cfa571"
   },
   "ios.settings.islandHistoryButtonsHelp": {
-    "message": "Quand l’Island est étroite, ils remplacent Actualiser et Nouvel onglet. Tirez une page vers le bas pour l’actualiser.",
-    "source": "sha256:9b44c7b2c85805ae6a76e80aab9923e805e4820cfe9a1b0f457ca7be60456265"
+    "message": "Désactivés, ils laissent la place à Actualiser. Vous pouvez aussi tirer une page vers le bas pour l’actualiser.",
+    "source": "sha256:4cc6e57fb31059f5f1acd09b2e8f9790272f49bdd10a4ce96eabcd702c3ec041"
   },
   "ios.settings.islandPosition": {
     "message": "Position",

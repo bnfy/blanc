@@ -108,6 +108,8 @@ struct PaletteSheet: View {
                 }
                 // The rows moved under it: a stale place would open another tab.
                 .onChange(of: tabRows.map(\.id)) { keyRow = nil }
+                // Suggestions arriving move the results under the chosen row too.
+                .onChange(of: suggestions) { keyRow = nil }
         }
     }
 
@@ -500,9 +502,15 @@ struct PaletteSheet: View {
         let sets = switcherSets, remoteSpaces = switcherRemoteSpaces
         let tabs = manager.tabs, remote = manager.syncEngine.remoteDevices, favorites = manager.syncEngine.favorites
         let history = manager.historyStore.entries, groups = manager.groups
-        // What can change under an open palette, as sync lands or a tab closes.
-        let key = [query] + [tabs.count, remote.count, favorites.count, history.count, groups.count,
-                             sets.count, remoteSpaces.count].map(String.init)
+        // What can change under an open palette, as sync lands, a tab closes
+        // or navigates, or a visit is recorded. Tabs by id, address and title,
+        // so one closing as another opens isn't read as no change.
+        let tabKeys: [String] = tabs.map { tab in "\(tab.id)\u{1}\(tab.currentURL)\u{1}\(tab.pageTitle)" }
+        let newestVisit: String = history.first.map { entry in "\(entry.url)\u{1}\(entry.visitedAt)" } ?? ""
+        let counts: [Int] = [remote.count, favorites.count, history.count, groups.count, sets.count, remoteSpaces.count]
+        var key: [String] = [query, newestVisit]
+        key += tabKeys
+        key += counts.map { String($0) }
         if key != search.key {
             search.key = key
             search.results = QuickSwitcher.search(query: query, tabs: tabs, remote: remote, favorites: favorites,
@@ -526,7 +534,7 @@ struct PaletteSheet: View {
         switch mode {
         case .tabs: tabRows.count
         case .slash: slashMatches.count
-        case .switcher: switcherResults.count
+        case .switcher: switcherRowItems.count
         }
     }
 
@@ -534,9 +542,11 @@ struct PaletteSheet: View {
     /// before it has built the row.
     private func keyRowId(_ row: Int) -> AnyHashable? {
         switch mode {
-        case .tabs: tabRows.indices.contains(row) ? AnyHashable(tabRows[row].id) : nil
-        case .slash: slashMatches.indices.contains(row) ? AnyHashable(slashMatches[row].id) : nil
-        case .switcher: switcherResults.indices.contains(row) ? AnyHashable(switcherResults[row].id) : nil
+        case .tabs: return tabRows.indices.contains(row) ? AnyHashable(tabRows[row].id) : nil
+        case .slash: return slashMatches.indices.contains(row) ? AnyHashable(slashMatches[row].id) : nil
+        case .switcher:
+            let rows = switcherRowItems
+            return rows.indices.contains(row) ? AnyHashable(rows[row].id) : nil
         }
     }
 
@@ -569,10 +579,9 @@ struct PaletteSheet: View {
             guard matches.indices.contains(keyRow) else { return false }
             run(matches[keyRow])
         case .switcher:
-            let results = switcherResults
-            guard results.indices.contains(keyRow) else { return false }
-            open(results[keyRow])
-            close()
+            let rows = switcherRowItems
+            guard rows.indices.contains(keyRow) else { return false }
+            choose(rows[keyRow])
         }
         return true
     }
@@ -582,13 +591,18 @@ struct PaletteSheet: View {
     private func submitInBackground() {
         let trimmed = input.trimmingCharacters(in: .whitespacesAndNewlines)
         if mode == .switcher {
-            let results = switcherResults
-            if let keyRow, results.indices.contains(keyRow) {
-                guard let url = results[keyRow].url, results[keyRow].localTabID == nil else {
-                    _ = openKeyRow()
-                    return
+            let rows = switcherRowItems
+            if let keyRow, rows.indices.contains(keyRow) {
+                switch rows[keyRow] {
+                case .result(let result):
+                    guard let url = result.url, result.localTabID == nil else {
+                        _ = openKeyRow()
+                        return
+                    }
+                    manager.openInBackground(url)
+                case .search(_, let query, _):
+                    manager.openInBackground(typed: query)
                 }
-                manager.openInBackground(url)
             } else {
                 manager.openInBackground(typed: trimmed)
             }
@@ -598,54 +612,74 @@ struct PaletteSheet: View {
         }
     }
 
-    private var switcherList: some View {
+    /// A row of the typed-text list: a result, or a search with the chosen
+    /// engine (the typed text, or a suggestion).
+    private enum SwitcherRow: Identifiable {
+        case result(SyncedSwitcherResult)
+        case search(title: String, query: String, identifier: String)
+
+        var id: String {
+            switch self {
+            case .result(let result): "result:" + result.id
+            case .search(_, let query, let identifier): identifier + ":" + query
+            }
+        }
+    }
+
+    /// The typed-text list in the order it's drawn, which is also the order
+    /// the arrow keys walk. The first row is always what Go does: a strong
+    /// match, or the search.
+    private var switcherRowItems: [SwitcherRow] {
         let query = input.trimmingCharacters(in: .whitespacesAndNewlines)
-        let results = QuickSwitcher.search(
-            query: query,
-            tabs: manager.tabs, remote: manager.syncEngine.remoteDevices, favorites: manager.syncEngine.favorites,
-            history: manager.historyStore.entries, groups: manager.groups, sets: switcherSets,
-            remoteSpaces: switcherRemoteSpaces
-        )
-        // The first row is always what Go does: a strong match, or the search.
+        let results = switcherResults
         let goesToMatch = QuickSwitcher.goTarget(query: query, results: results) != nil
         let isSearch = !query.isEmpty && !AddressNormalizer.looksLikeAddress(query)
+        var rows: [SwitcherRow] = []
+        if goesToMatch { rows += results.map(SwitcherRow.result) }
+        if isSearch {
+            rows.append(.search(title: SyncCopy.text("contextMenu.searchFor", ["query": query]), query: query,
+                                identifier: "palette.search"))
+            rows += suggestions.map { .search(title: $0, query: $0, identifier: "palette.suggestion") }
+        }
+        if !goesToMatch { rows += results.map(SwitcherRow.result) }
+        return rows
+    }
+
+    private var switcherList: some View {
+        let rows = switcherRowItems
         return List {
-            if goesToMatch { switcherRows(results) }
-            if isSearch {
-                searchRow(SyncCopy.text("contextMenu.searchFor", ["query": query]), query: query, id: "palette.search")
-                ForEach(suggestions, id: \.self) { suggestion in
-                    searchRow(suggestion, query: suggestion, id: "palette.suggestion")
-                }
-            }
-            if !goesToMatch { switcherRows(results) }
-            if results.isEmpty, !isSearch {
+            if rows.isEmpty {
                 Text(SyncCopy.text("ios.palette.noMatches"))
                     .foregroundStyle(style.secondary)
             }
-        }
-    }
-
-    private func switcherRows(_ results: [SyncedSwitcherResult]) -> some View {
-        ForEach(results) { result in
-            Button {
-                open(result)
-                close()
-            } label: {
-                row(icon: result.groupId != nil ? "rectangle.stack" : result.setId != nil ? "square.on.square" : result.localTabID == nil ? "magnifyingglass" : "globe",
-                    title: result.title, subtitle: result.subtitle)
+            ForEach(Array(rows.enumerated()), id: \.element.id) { index, item in
+                switcherRow(item)
+                    .overlay { keyHighlight(index).allowsHitTesting(false) }
             }
         }
     }
 
-    /// A search with the chosen engine: the typed text, or a suggestion.
-    private func searchRow(_ title: String, query: String, id: String) -> some View {
-        Button {
-            manager.search(for: query)
-            close()
-        } label: {
-            row(icon: "magnifyingglass", title: title, subtitle: manager.settingsStore.searchEngine.label)
+    @ViewBuilder private func switcherRow(_ item: SwitcherRow) -> some View {
+        switch item {
+        case .result(let result):
+            Button { choose(item) } label: {
+                row(icon: result.groupId != nil ? "rectangle.stack" : result.setId != nil ? "square.on.square" : result.localTabID == nil ? "magnifyingglass" : "globe",
+                    title: result.title, subtitle: result.subtitle)
+            }
+        case .search(let title, _, let identifier):
+            Button { choose(item) } label: {
+                row(icon: "magnifyingglass", title: title, subtitle: manager.settingsStore.searchEngine.label)
+            }
+            .accessibilityIdentifier(identifier)
         }
-        .accessibilityIdentifier(id)
+    }
+
+    private func choose(_ item: SwitcherRow) {
+        switch item {
+        case .result(let result): open(result)
+        case .search(_, let query, _): manager.search(for: query)
+        }
+        close()
     }
 
     /// Asks for suggestions a moment after the typing pauses. The manager

@@ -2535,7 +2535,7 @@ You can retry with “%2$s”, or reinstall from blanc.day.</string>
     <string name="ios_island_reload">Reload page</string>
     <string name="ios_settings_island_tuck">Hide the Island while scrolling</string>
     <string name="ios_settings_island_history_buttons">Back and Forward buttons</string>
-    <string name="ios_settings_island_history_buttons_help">When the Island is narrow, they take the place of Reload and New Tab. Pull down on a page to reload it.</string>
+    <string name="ios_settings_island_history_buttons_help">Turn them off to show Reload in their place. You can also pull down on a page to reload it.</string>
     <string name="ios_settings_island_position">Position</string>
     <string name="ios_settings_island_position_bottom">Bottom</string>
     <string name="ios_settings_island_position_top">Top</string>

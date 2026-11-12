@@ -68,4 +68,22 @@ final class KeyboardShortcutsUITests: XCTestCase {
     let org = XCTNSPredicateExpectation(predicate: NSPredicate(format: "label CONTAINS %@", "example.org"), object: site)
     XCTAssertEqual(XCTWaiter().wait(for: [org], timeout: 5), .completed, site.label)
   }
+
+  /// Typed text: the arrow keys walk the rows in the order they're drawn. "eog"
+  /// matches example.org only loosely (e…o…g), so the search comes first and
+  /// ↓ then Return runs it rather than opening that tab.
+  func testArrowKeysFollowTheDrawnOrderOfResults() throws {
+    let app = try launch()
+    app.typeKey("l", modifierFlags: .command)
+    let input = app.textFields["island.address"]
+    XCTAssertTrue(input.waitForExistence(timeout: 5))
+    input.typeText("eog")
+    XCTAssertTrue(app.buttons["palette.search"].waitForExistence(timeout: 5))
+    sleep(1)
+    app.typeKey(XCUIKeyboardKey.downArrow, modifierFlags: [])
+    input.typeText("\n")
+    let site = app.buttons["pill.palette"]
+    let searched = XCTNSPredicateExpectation(predicate: NSPredicate(format: "label CONTAINS %@", "duckduckgo"), object: site)
+    XCTAssertEqual(XCTWaiter().wait(for: [searched], timeout: 15), .completed, site.label)
+  }
 }

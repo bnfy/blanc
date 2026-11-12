@@ -2480,7 +2480,7 @@ final class TabsManager {
     func setMobileSite(_ tab: TabModel, mobile: Bool) {
         guard let host = AdblockExceptions.host(for: tab.currentURL) else { return }
         if tab.isPrivate {
-            privateMobileSites = privateMobileSites.filter { !SettingsStore.site($0.key, covers: host) }
+            privateMobileSites = privateMobileSites.filter { !SettingsStore.sameSite($0.key, host) }
             privateMobileSites[host] = mobile
         } else {
             settingsStore.setMobileSite(host, mobile: mobile)

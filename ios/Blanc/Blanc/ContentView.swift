@@ -770,7 +770,6 @@ struct ContentView: View {
 
     private func closeTabGrid() {
         guard showTabGrid else { return }
-        gridPass += 1
         isLifting = false
         if !reduceMotion {
             // Interrupted on its way down, a page carries on from where it is.

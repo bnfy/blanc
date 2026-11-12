@@ -2610,7 +2610,7 @@ Você pode tentar de novo com “%2$s” ou reinstalar a partir de blanc.day.</s
     <string name="ios_island_reload">Recarregar a página</string>
     <string name="ios_settings_island_tuck">Ocultar a Island ao rolar</string>
     <string name="ios_settings_island_history_buttons">Botões Voltar e Avançar</string>
-    <string name="ios_settings_island_history_buttons_help">Quando a Island está estreita, eles substituem Recarregar e Nova aba. Puxe uma página para baixo para recarregá-la.</string>
+    <string name="ios_settings_island_history_buttons_help">Se desativá-los, Recarregar aparece no lugar deles. Você também pode puxar uma página para baixo para recarregá-la.</string>
     <string name="ios_settings_island_position">Posição</string>
     <string name="ios_settings_island_position_bottom">Embaixo</string>
     <string name="ios_settings_island_position_top">Em cima</string>
