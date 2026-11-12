@@ -94,3 +94,163 @@ test('summarize counts every id, splits speed by account and keeps notes', () =>
   assert.deepEqual(summary.notes, [{ day: '2026-11-13', text: 'earlier' }, { day: '2026-11-14', text: 'later' }]);
   assert.equal(survey.summarize([], false).total, 0);
 });
+
+// --- The Worker (cloudflare/mail-survey-worker/src/index.js) ---
+
+const { readFileSync } = require('node:fs');
+const WORKER_PATH = path.resolve(__dirname, '../../cloudflare/mail-survey-worker/src/index.js');
+const WRANGLER_PATH = path.resolve(__dirname, '../../cloudflare/mail-survey-worker/wrangler.toml');
+const NEWSLETTER_PATH = path.resolve(__dirname, '../../cloudflare/newsletter-worker/src/index.js');
+
+let worker;
+test.before(async () => {
+  worker = (await import(pathToFileURL(WORKER_PATH))).default;
+});
+
+// Same shapes as test/unit/newsletter-worker.test.js.
+class FakeKV {
+  constructor() { this.values = new Map(); }
+  async get(key, options) {
+    const value = this.values.get(key) ?? null;
+    return options?.type === 'json' && value !== null ? JSON.parse(value) : value;
+  }
+  async put(key, value) { this.values.set(key, String(value)); }
+  async delete(key) { this.values.delete(key); }
+  async list({ prefix = '', limit = 1000, cursor } = {}) {
+    const names = [...this.values.keys()].filter((name) => name.startsWith(prefix)).sort();
+    const start = cursor ? Number(cursor) : 0;
+    const page = names.slice(start, start + limit);
+    const end = start + page.length;
+    return { keys: page.map((name) => ({ name })), list_complete: end >= names.length, cursor: end >= names.length ? undefined : String(end) };
+  }
+}
+
+class FakeRateLimiter {
+  constructor(limit = 4) { this.limitValue = limit; this.counts = new Map(); }
+  async limit({ key }) {
+    const count = (this.counts.get(key) ?? 0) + 1;
+    this.counts.set(key, count);
+    return { success: count <= this.limitValue };
+  }
+}
+
+const surveyEnv = (fields = {}) => ({
+  SURVEY: new FakeKV(),
+  SURVEY_RATE_LIMITER: new FakeRateLimiter(),
+  SURVEY_OPEN: 'true',
+  ADMIN_TOKEN: 'admin',
+  ...fields,
+});
+
+function post(body, headers = {}) {
+  return new Request('https://survey.test/mail-survey', {
+    method: 'POST',
+    headers: {
+      Origin: 'https://blanc.day',
+      'CF-Connecting-IP': '203.0.113.20',
+      'User-Agent': 'test-agent',
+      'Content-Type': 'application/json',
+      ...headers,
+    },
+    body: typeof body === 'string' ? body : JSON.stringify(body),
+  });
+}
+
+const admin = (method, url, token = 'admin') => new Request(`https://survey.test${url}`, {
+  method,
+  headers: token ? { Authorization: `Bearer ${token}` } : {},
+});
+
+test('posting from blanc.day stores one anonymous answer', async () => {
+  const env = surveyEnv();
+  const response = await worker.fetch(post({ account: 'gmail', speed: 'instant', features: ['sets'], note: 'hi' }), env);
+  assert.equal(response.status, 200);
+  assert.equal(response.headers.get('Access-Control-Allow-Origin'), 'https://blanc.day');
+  assert.equal(env.SURVEY.values.size, 1);
+  const [[key, value]] = [...env.SURVEY.values];
+  for (const secret of ['203.0.113.20', 'test-agent', '@']) {
+    assert.ok(!key.includes(secret) && !value.includes(secret), `stored record leaks ${secret}`);
+  }
+  const record = JSON.parse(value);
+  assert.match(record.day, /^\d{4}-\d{2}-\d{2}$/);
+  assert.deepEqual(Object.keys(record).sort(), ['account', 'day', 'features', 'note', 'speed']);
+});
+
+test('the preflight answers only allowed origins', async () => {
+  const preflight = (origin) => new Request('https://survey.test/mail-survey', { method: 'OPTIONS', headers: { Origin: origin } });
+  assert.equal((await worker.fetch(preflight('https://blanc.day'), surveyEnv())).status, 204);
+  assert.equal((await worker.fetch(preflight('https://evil.example'), surveyEnv())).status, 403);
+});
+
+test('other origins, closed survey and bad bodies store nothing', async () => {
+  const env = surveyEnv();
+  const valid = { account: 'proton', speed: 'whenever' };
+  assert.equal((await worker.fetch(post(valid, { Origin: 'https://evil.example' }), env)).status, 403);
+  for (const flag of [undefined, 'false', 'TRUE', '1']) {
+    const response = await worker.fetch(post(valid), { ...env, SURVEY_OPEN: flag });
+    assert.equal(response.status, 410, String(flag));
+    assert.deepEqual(await response.json(), { closed: true });
+  }
+  assert.equal((await worker.fetch(post('not json'), env)).status, 400);
+  assert.equal((await worker.fetch(post([valid]), env)).status, 400);
+  assert.equal((await worker.fetch(post({ account: 'gmail' }), env)).status, 400);
+  assert.equal(env.SURVEY.values.size, 0);
+});
+
+test('a filled honeypot looks accepted but stores nothing', async () => {
+  const env = surveyEnv();
+  const response = await worker.fetch(post({ account: 'gmail', speed: 'minute', website: 'x' }), env);
+  assert.equal(response.status, 200);
+  assert.equal(env.SURVEY.values.size, 0);
+});
+
+test('the fifth post in a minute is rate limited, and a missing limiter fails closed', async () => {
+  const env = surveyEnv();
+  const valid = { account: 'both', speed: 'few-minutes' };
+  for (let i = 0; i < 4; i += 1) assert.equal((await worker.fetch(post(valid), env)).status, 200);
+  assert.equal((await worker.fetch(post(valid), env)).status, 429);
+  assert.equal(env.SURVEY.values.size, 4);
+  const noLimiter = surveyEnv({ SURVEY_RATE_LIMITER: undefined });
+  assert.equal((await worker.fetch(post(valid), noLimiter)).status, 503);
+  assert.equal(noLimiter.SURVEY.values.size, 0);
+  const noIp = surveyEnv();
+  assert.equal((await worker.fetch(post(valid, { 'CF-Connecting-IP': '' }), noIp)).status, 429);
+  assert.equal(noIp.SURVEY.values.size, 0);
+});
+
+test('summary and purge need the admin token and handle many pages', async () => {
+  const env = surveyEnv();
+  for (let i = 0; i < 1005; i += 1) {
+    await env.SURVEY.put(`answer:${String(i).padStart(5, '0')}`, JSON.stringify({ day: '2026-11-13', account: 'gmail', speed: 'instant', features: [], note: null }));
+  }
+  for (const request of [admin('GET', '/mail-survey/summary', null), admin('GET', '/mail-survey/summary', 'wrong')]) {
+    assert.equal((await worker.fetch(request, env)).status, 401);
+  }
+  assert.equal((await worker.fetch(admin('GET', '/mail-survey/summary'), { ...env, ADMIN_TOKEN: undefined })).status, 401);
+  const summary = await (await worker.fetch(admin('GET', '/mail-survey/summary'), env)).json();
+  assert.equal(summary.total, 1005);
+  assert.equal(summary.open, true);
+  assert.equal((await worker.fetch(admin('DELETE', '/mail-survey/answers'), env)).status, 400);
+  assert.equal((await worker.fetch(admin('DELETE', '/mail-survey/answers?confirm=delete-all', 'wrong'), env)).status, 401);
+  assert.equal(env.SURVEY.values.size, 1005);
+  const purged = await worker.fetch(admin('DELETE', '/mail-survey/answers?confirm=delete-all'), env);
+  assert.deepEqual(await purged.json(), { deleted: 1005 });
+  assert.equal(env.SURVEY.values.size, 0);
+});
+
+test('unknown routes are not found', async () => {
+  assert.equal((await worker.fetch(admin('GET', '/'), surveyEnv())).status, 404);
+});
+
+test('the survey Worker keeps request logging off and matches the site origins', () => {
+  const toml = readFileSync(WRANGLER_PATH, 'utf8');
+  assert.match(toml, /\[observability\]\s*\nenabled = false/);
+  assert.doesNotMatch(toml, /logpush\s*=\s*true/);
+  assert.match(toml, /SURVEY_OPEN = "false"/, 'deploys closed until the page is live');
+  const origins = (file) => {
+    const block = readFileSync(file, 'utf8').match(/const ALLOWED_ORIGINS = new Set\(\[([\s\S]*?)\]\)/);
+    assert.ok(block, file);
+    return [...block[1].matchAll(/'([^']+)'/g)].map((match) => match[1]).sort();
+  };
+  assert.deepEqual(origins(WORKER_PATH), origins(NEWSLETTER_PATH));
+});
