@@ -23,7 +23,8 @@
         "documents": [
           "https://example.com/",
           "http://example.com/",
-          "blanc://newtab/"
+          "blanc://newtab/",
+          "blanc://mahjong/"
         ],
         "doc": "Isolated-world invalidation for the strip's page tint: no arguments, no API exposed to the page."
       }

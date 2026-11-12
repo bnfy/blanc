@@ -2076,6 +2076,7 @@ Você pode tentar de novo com “%2$s” ou reinstalar a partir de blanc.day.</s
     <string name="mahjong_setup_title">Escolha sua partida</string>
     <string name="mahjong_setup_close">Fechar a escolha de tabuleiro</string>
     <string name="mahjong_setup_layout_legend">tabuleiro</string>
+    <string name="mahjong_setup_daily_layout_hint">A partida do dia usa o layout de hoje. Mude para “Aleatória” para escolher outro.</string>
     <string name="mahjong_layout_turtle_detail">144 peças · tranquilo</string>
     <string name="mahjong_layout_arch">Arco</string>
     <string name="mahjong_layout_arch_detail">96 peças · equilibrado</string>
@@ -2100,9 +2101,9 @@ Você pode tentar de novo com “%2$s” ou reinstalar a partir de blanc.day.</s
     <string name="mahjong_setup_random_description">Um tabuleiro novo, com solução garantida.</string>
     <string name="mahjong_setup_auto_clears">&lt;0&gt;Limpezas automáticas&lt;/0&gt; A cada cinco combos, outro par disponível é retirado automaticamente.</string>
     <string name="mahjong_setup_zen">&lt;0&gt;Partida Zen&lt;/0&gt; Oculta o tempo e a pontuação, e deixa esta partida fora dos recordes.</string>
-    <string name="mahjong_setup_free_highlight">&lt;0&gt;Destaque mais forte das peças livres&lt;/0&gt; Adiciona um anel fixo de alto contraste a cada peça que pode ser jogada.</string>
     <string name="mahjong_setup_replaces">Começar substitui o tabuleiro que está nesta mesa.</string>
-    <string name="mahjong_setup_copy_deal">copiar a partida atual</string>
+    <string name="mahjong_setup_copy_deal">copiar link</string>
+    <string name="mahjong_setup_link_copied">link copiado</string>
     <string name="mahjong_setup_start">começar</string>
     <string name="mahjong_records_kicker">sua mesa</string>
     <string name="mahjong_records_title">Recordes</string>
@@ -2233,6 +2234,15 @@ Você pode tentar de novo com “%2$s” ou reinstalar a partir de blanc.day.</s
     <string name="mahjong_best_time">Recorde %1$s</string>
     <string name="mahjong_best_score">Recorde %1$s · %2$s</string>
     <string name="mahjong_win_quiet_title">Um final tranquilo.</string>
+    <string name="mahjong_win_title_record">Um novo recorde pessoal.</string>
+    <string name="mahjong_win_title_first">Primeira vez que você completa %1$s.</string>
+    <string name="mahjong_win_title_streak">%1$s seguidas. Agora, peças novas.</string>
+    <string name="mahjong_win_title_daily">A diária de hoje está concluída.</string>
+    <string name="mahjong_win_title_sweep">Mesa limpa.</string>
+    <string name="mahjong_win_title_home">Cada peça em seu lugar.</string>
+    <string name="mahjong_win_title_last_pair">Era o último par.</string>
+    <string name="mahjong_win_title_tidy">Uma mesa arrumada.</string>
+    <string name="mahjong_win_title_well_played">Bem jogado.</string>
     <string name="mahjong_win_rules">%1$s · %2$s</string>
     <string name="mahjong_win_clear_time">tempo</string>
     <string name="mahjong_win_new_record">novo recorde</string>
