@@ -3,6 +3,12 @@
 v1.48.0 is the current public release ([notes](v1.48.0.md)). Changes merged
 since then are below as they're recorded.
 
+## Fixed
+
+- After **Continue** on a certificate warning for a local or private-network
+  address, windows that page opens on its own, such as Proxmox's separate
+  console, now load and connect too, instead of staying black or white.
+
 ## Still open from 1.48
 
 - **Glance over a split hands-on checks** (#1444) in a packaged build on

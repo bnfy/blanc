@@ -179,6 +179,18 @@ function unwireTabView(wc) {
   wiredListeners.delete(wc);
 }
 
+/** Allow a certificate failure that matches a Continue made in a tab of this
+ * session (same origin, certificate and error). Never answers synchronously:
+ * Electron 45 emits certificate-error on the WebContents and then on `app`,
+ * and an answer between the two crashes the browser (#1424). Returns whether
+ * it allowed; a refusal leaves `callback` to Electron's default deny. */
+function allowContinuedCertificate(certificateExceptions, wc, event, { url, error, certificate }, callback) {
+  if (!certificateExceptions.matches(wc.session, { url, error, certificate, now: Date.now() })) return false;
+  event.preventDefault();
+  setImmediate(() => callback(true));
+  return true;
+}
+
 function wireTabView(tab, view, { owner, adopted }) {
   if (!deps) throw new Error('wireTabView called before initTabView');
   const {
@@ -601,10 +613,8 @@ function wireTabView(tab, view, { owner, adopted }) {
   wc.on('certificate-error', boundToTab((event, failedUrl, error, certificate, callback, isMainFrame) => {
     if (tab.sleeping || tab.view?.webContents !== wc) return;
     const sanitized = sanitizeCertificate(certificate);
-    if (certificateExceptions.matches(wc.session, { url: failedUrl, error, certificate: sanitized, now: Date.now() })) {
+    if (allowContinuedCertificate(certificateExceptions, wc, event, { url: failedUrl, error, certificate: sanitized }, callback)) {
       if (isMainFrame) tab.pendingCertificateException = { url: failedUrl, certificate: sanitized };
-      event.preventDefault();
-      setImmediate(() => callback(true));
       return;
     }
     if (isMainFrame) {
@@ -757,6 +767,15 @@ function wireTabView(tab, view, { owner, adopted }) {
         notePopupChild(tab.id, childWindow, targetWc.id, details?.url);
         const childWc = childWindow.webContents;
         const childWcId = childWc.id;
+        // A pop-up (Proxmox's console window, say) shares its opener's
+        // session, so it honors a Continue made in a tab for the same origin
+        // and certificate, for its page and its WebSockets. It has no warning
+        // page and never records a choice: anything else is left to
+        // Electron's default deny.
+        childWc.on('certificate-error', (event, failedUrl, error, certificate, callback) => {
+          allowContinuedCertificate(certificateExceptions, childWc, event,
+            { url: failedUrl, error, certificate: sanitizeCertificate(certificate) }, callback);
+        });
         windowRuntimes.registerAuxiliaryContent(getOwner(), childWcId);
         // Alongside — not via — auxiliaryOwner: popup capture state must
         // survive detachWindow on macOS close/reopen (spec §3.3).
