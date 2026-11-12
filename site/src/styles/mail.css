@@ -102,7 +102,7 @@ body .revamp-nav .site-nav-cta:hover{background:none;color:#000}
 @media(hover:hover){.mail-waitlist button:hover{background:#44361e}}
 .mail-waitlist button:focus-visible{outline:2px solid var(--mail-gold);outline-offset:2px}
 .mail-waitlist button:disabled{opacity:.6;cursor:progress;transform:none}
-.mail-waitlist .mail-waitlist-hp{position:absolute;left:-9999px;width:1px;height:1px;padding:0;opacity:0}
+:is(.mail-waitlist,.mail-survey) .mail-waitlist-hp{position:absolute;left:-9999px;width:1px;height:1px;padding:0;opacity:0}
 .mail-waitlist .mail-waitlist-note{margin:12px 0 0;color:var(--mail-muted);font-size:13px;line-height:1.5;letter-spacing:.005em}
 .mail-waitlist .mail-waitlist-status{margin:12px 0 0;font-size:16px;font-weight:600}
 .mail-waitlist .mail-waitlist-status:empty{display:none}
@@ -346,3 +346,19 @@ body .revamp-nav .site-nav-cta:hover{background:none;color:#000}
   .mail-feature,.mail-plan{box-shadow:inset 0 0 0 1px #f2ead899}
   .mail-soon .mail-waitlist-controls{border-color:#f2ead899}
 }
+
+/* The anonymous Blanc Mail survey (/mail/survey). */
+.mail-survey{max-width:680px;margin:32px 0 0;display:grid;gap:28px}
+.mail-survey-question{margin:0;padding:0;border:0;display:grid;gap:10px}
+.mail-survey-question legend,.mail-survey-legend{margin:0 0 4px;padding:0;color:var(--mail-ink);font-size:18px;font-weight:600}
+.mail-survey-choice{display:flex;align-items:flex-start;gap:10px;color:var(--mail-text);font-size:16px;line-height:1.45;cursor:pointer}
+.mail-survey-choice input{flex:none;margin:3px 0 0;accent-color:var(--mail-gold)}
+.mail-survey-choice:has(input:disabled){color:var(--mail-faint);cursor:default}
+.mail-survey textarea{width:100%;box-sizing:border-box;padding:12px 14px;border:1px solid var(--mail-line-strong);border-radius:12px;background:var(--mail-paper);color:var(--mail-ink);font:inherit;font-size:16px;resize:vertical}
+.mail-survey textarea:focus-visible{outline:2px solid var(--mail-gold);outline-offset:1px}
+.mail-survey-help{margin:0;color:var(--mail-muted);font-size:14px}
+.mail-survey-submit{justify-self:start;padding:11px 20px;border:0;border-radius:999px;background:var(--mail-ink);color:#f7f0e5;font:inherit;font-size:15px;font-weight:600;cursor:pointer}
+.mail-survey-submit:disabled{opacity:.6;cursor:default}
+.mail-survey-submit:focus-visible{outline:2px solid var(--mail-gold);outline-offset:2px}
+.mail-survey-status{margin:0;font-size:16px;font-weight:600;color:var(--mail-ink)}
+.mail-survey-status:empty{display:none}
