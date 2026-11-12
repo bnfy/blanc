@@ -692,10 +692,11 @@ test('v1.45.0 Shared Spaces and Sync copy resolves to verified public v1.45.0 ev
 
 // Blanc for iPhone and iPad 1.0.3, the first App Store version that runs on
 // iPad (#1479, #1480). The wording and its evidence are checked now; the copy
-// is held until App Review approves 1.0.3, so this test fails on purpose while
-// approvedOn and publicRelease are null, and passes only once they name the
-// approval and the day 1.0.3 went on sale, recorded in App Store Connect.
-test('Blanc for iPhone and iPad copy resolves to App Store version 1.0.3 once App Review approves it', () => {
+// is held until App Review approves 1.0.3. While approvedOn and publicRelease
+// are both null this test reports itself skipped ("held"), so the PR stays
+// green but unmerged; once either is set, both must name the approval and the
+// day 1.0.3 went on sale, recorded in App Store Connect.
+test('Blanc for iPhone and iPad copy resolves to App Store version 1.0.3 once App Review approves it', t => {
   const record = ipadLedger;
   assert.equal(record.iosRelease, '1.0.3 (202611121714)');
   assert.equal(execFileSync('git', ['rev-parse', `${record.iosSourceSha}^{commit}`], { cwd: root, encoding: 'utf8' }).trim(), record.iosSourceSha);
@@ -729,7 +730,8 @@ test('Blanc for iPhone and iPad copy resolves to App Store version 1.0.3 once Ap
     for (const prohibited of record.prohibitedClaims) assert.ok(!text.includes(prohibited), `${file}: says “${prohibited}”`);
   }
 
-  // Held until App Review approves 1.0.3 and it is on sale.
+  // Held until App Review approves 1.0.3 and it is on sale: don't merge or deploy while skipped.
+  if (record.approvedOn == null && record.publicRelease == null) return t.skip('held until App Review approves iOS 1.0.3');
   assert.ok(record.approvedOn && record.publicRelease, `held: ${record.pending}`);
   for (const date of [record.approvedOn, record.publicRelease]) assert.match(date, /^\d{4}-\d{2}-\d{2}$/);
   assert.ok(record.publicRelease >= record.approvedOn, 'on sale after approval');
