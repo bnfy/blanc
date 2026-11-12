@@ -62,7 +62,7 @@ test('the overview says what Mail is and that it is coming, with one labelled sc
     });
     assert.equal(soon.eyebrow, 'Blanc Mail · for Mac · Coming soon');
     assert.equal(soon.title, 'A little less inbox.');
-    assert.equal(soon.lead, 'Blanc Mail brings a careful, native Gmail experience to your Mac.');
+    assert.equal(soon.lead, 'Blanc Mail brings a careful, native experience for Gmail and Proton Mail to your Mac.');
     assert.equal(soon.envelopeHidden, 'true', 'the envelope is decoration');
     assert.deepEqual(soon.screenshots, [['/mail/screens/rule-editor.webp', 'Preview build']]);
     assert.equal(soon.browser, '/download');
@@ -88,7 +88,7 @@ test('the features and the careful row list what Mail does, each with a gilt gly
     // The Island figure lists the app's eight commands in its own order and words.
     assert.deepEqual(list.island, ['/snoozeSnooze…', '/set-asideSet Aside', '/labelLabels', '/moveMove To…', '/archiveArchive', '/trashTrash', '/composeNew Message', '/ruleNew Rule…']);
     assert.deepEqual(list.islandPoints, ['Jump anywhere', 'Commands with a slash', 'Actions at hand']);
-    assert.deepEqual(list.features, ['Every account together', 'Set Aside', 'A native window', 'Gmail first', 'A moment to change your mind', 'Later, on your terms', 'Ghost Mode', 'Replies you type often', 'Drafts that keep up']);
+    assert.deepEqual(list.features, ['Every account together', 'Set Aside', 'A native window', 'Gmail and Proton Mail', 'A moment to change your mind', 'Later, on your terms', 'Ghost Mode', 'Replies you type often', 'Drafts that keep up']);
     assert.deepEqual(list.careful, ['Safe to read', 'No accidental double sends', 'Nothing added to your mail', 'Privacy choices']);
     for (const stroke of list.glyphs) assert.match(stroke, /url\(.*#mail-gilt-stroke.*\)/);
   } finally { await context.close(); }
@@ -135,7 +135,7 @@ test('Support gives its address, then three topics; Download closes with the wai
     assert.deepEqual(end.topics, ['Accounts and data', 'Uninstalling', 'Updates and licensing']);
     assert.deepEqual(end.order, ['pricing', 'support', 'download']);
     assert.equal(end.form, 'closing-waitlist');
-    assert.match(end.requirements, /^macOS 14 or later on an Apple Silicon or Intel Mac, plus a Google account\./);
+    assert.match(end.requirements, /^macOS 14 or later on an Apple Silicon or Intel Mac, plus a Google account, or a Proton account with Proton Mail Bridge\./);
     assert.deepEqual(end.legal, ['/download', '/mail/privacy', '/mail/terms']);
   } finally { await context.close(); }
 });
