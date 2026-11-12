@@ -7599,33 +7599,33 @@
     "message": "Weißer Drache, {motif}",
     "source": "sha256:a6bf943e9af21299811463503ef949a13e36ab8d058bd3bd174add09e0456639"
   },
-  "mahjong.tile.motif.sunrise": {
-    "message": "Sonnenaufgang",
-    "source": "sha256:fd26826556dbf0a583900e526636c4d75e3d4aa0df5ad9be34b4dccddc0ff0b2"
+  "mahjong.tile.windEastPlain": {
+    "message": "Ostwind",
+    "source": "sha256:e7c8667b5055ce85371a5cf4e8bc3d8fce72126a14d5c82c088c58e425a94ff7"
   },
-  "mahjong.tile.motif.sun": {
-    "message": "Sonne",
-    "source": "sha256:cb8156bf23b6e637692cf64e1eaa490ed46dea42e0bb19b1cbf7979cb45cac19"
+  "mahjong.tile.windSouthPlain": {
+    "message": "Südwind",
+    "source": "sha256:de27fa7079e569c8aaf88b1ada511e1f53042b745939c7afc2adacf749cf5ccd"
   },
-  "mahjong.tile.motif.moonAndWave": {
-    "message": "Mond und Welle",
-    "source": "sha256:4dcf189c43f12523227b974b4810938b34d029aeed4d865eab5fa838e849f651"
+  "mahjong.tile.windWestPlain": {
+    "message": "Westwind",
+    "source": "sha256:ea00b1481a4e7963056ee52a50eb4bfcc9e8860c542d1ded6a8af1fc1eb2257f"
   },
-  "mahjong.tile.motif.mountain": {
-    "message": "Berg",
-    "source": "sha256:f72104660aba44adcb1053a54c857f6fd83179df9f701a81a61f860b4b2c701a"
+  "mahjong.tile.windNorthPlain": {
+    "message": "Nordwind",
+    "source": "sha256:7d96b46e40c442f15c489e552797bc2e14b8733372c45607c07a3aa2e361e4b8"
+  },
+  "mahjong.tile.dragonRedPlain": {
+    "message": "Roter Drache",
+    "source": "sha256:f91061d529f95302034707e06f46939fba314c681b9efd8f4887cede141b38f6"
+  },
+  "mahjong.tile.dragonGreenPlain": {
+    "message": "Grüner Drache",
+    "source": "sha256:1e9c9024c8352f016af6767d8647870992fb4d1e4c68ffd9432012dfa38144f3"
   },
   "mahjong.tile.motif.compass": {
     "message": "Kompass",
     "source": "sha256:2df6fdfece5cf4d3e8071d49fe04f6efc39d99bc9564c55cc25972cd9b8f06b9"
-  },
-  "mahjong.tile.motif.flame": {
-    "message": "Flamme",
-    "source": "sha256:72af75562afdb2f2ea0ad6d1edfa2ae4acdc5dcf4aa508cdf7f65f347512cd7b"
-  },
-  "mahjong.tile.motif.flourish": {
-    "message": "Ornament",
-    "source": "sha256:b68da143e73e6d42eddc3dd177b6b995873fd78e304927ce8135f45049797f44"
   },
   "mahjong.tile.motif.blancMark": {
     "message": "Blanc-Zeichen",

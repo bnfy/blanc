@@ -85255,170 +85255,254 @@
         }
       }
     },
-    "mahjong.tile.motif.sunrise": {
-      "comment": "Mahjong: accessible tile name: picture on the east wind tile.",
+    "mahjong.tile.windEastPlain": {
+      "comment": "Mahjong: accessible tile name for the standard tile art, which shows only the wind or dragon itself.",
       "extractionState": "manual",
       "localizations": {
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "sunrise"
+            "value": "east wind"
           }
         },
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Sonnenaufgang"
+            "value": "Ostwind"
           }
         },
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "amanecer"
+            "value": "viento del este"
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "lever de soleil"
+            "value": "vent d’est"
           }
         },
         "it": {
           "stringUnit": {
             "state": "translated",
-            "value": "alba"
+            "value": "vento dell’est"
           }
         },
         "pt-BR": {
           "stringUnit": {
             "state": "translated",
-            "value": "nascer do sol"
+            "value": "vento leste"
           }
         }
       }
     },
-    "mahjong.tile.motif.sun": {
-      "comment": "Mahjong: accessible tile name: picture on the south wind tile.",
+    "mahjong.tile.windSouthPlain": {
+      "comment": "Mahjong: accessible tile name for the standard tile art, which shows only the wind or dragon itself.",
       "extractionState": "manual",
       "localizations": {
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "sun"
+            "value": "south wind"
           }
         },
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Sonne"
+            "value": "Südwind"
           }
         },
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "sol"
+            "value": "viento del sur"
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "soleil"
+            "value": "vent du sud"
           }
         },
         "it": {
           "stringUnit": {
             "state": "translated",
-            "value": "sole"
+            "value": "vento del sud"
           }
         },
         "pt-BR": {
           "stringUnit": {
             "state": "translated",
-            "value": "sol"
+            "value": "vento sul"
           }
         }
       }
     },
-    "mahjong.tile.motif.moonAndWave": {
-      "comment": "Mahjong: accessible tile name: picture on the west wind tile.",
+    "mahjong.tile.windWestPlain": {
+      "comment": "Mahjong: accessible tile name for the standard tile art, which shows only the wind or dragon itself.",
       "extractionState": "manual",
       "localizations": {
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "moon and wave"
+            "value": "west wind"
           }
         },
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Mond und Welle"
+            "value": "Westwind"
           }
         },
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "luna y ola"
+            "value": "viento del oeste"
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "lune et vague"
+            "value": "vent d’ouest"
           }
         },
         "it": {
           "stringUnit": {
             "state": "translated",
-            "value": "luna e onda"
+            "value": "vento dell’ovest"
           }
         },
         "pt-BR": {
           "stringUnit": {
             "state": "translated",
-            "value": "lua e onda"
+            "value": "vento oeste"
           }
         }
       }
     },
-    "mahjong.tile.motif.mountain": {
-      "comment": "Mahjong: accessible tile name: picture on the north wind tile.",
+    "mahjong.tile.windNorthPlain": {
+      "comment": "Mahjong: accessible tile name for the standard tile art, which shows only the wind or dragon itself.",
       "extractionState": "manual",
       "localizations": {
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "mountain"
+            "value": "north wind"
           }
         },
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Berg"
+            "value": "Nordwind"
           }
         },
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "montaña"
+            "value": "viento del norte"
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "montagne"
+            "value": "vent du nord"
           }
         },
         "it": {
           "stringUnit": {
             "state": "translated",
-            "value": "montagna"
+            "value": "vento del nord"
           }
         },
         "pt-BR": {
           "stringUnit": {
             "state": "translated",
-            "value": "montanha"
+            "value": "vento norte"
+          }
+        }
+      }
+    },
+    "mahjong.tile.dragonRedPlain": {
+      "comment": "Mahjong: accessible tile name for the standard tile art, which shows only the wind or dragon itself.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "red dragon"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Roter Drache"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "dragón rojo"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "dragon rouge"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "drago rosso"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "dragão vermelho"
+          }
+        }
+      }
+    },
+    "mahjong.tile.dragonGreenPlain": {
+      "comment": "Mahjong: accessible tile name for the standard tile art, which shows only the wind or dragon itself.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "green dragon"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Grüner Drache"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "dragón verde"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "dragon vert"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "drago verde"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "dragão verde"
           }
         }
       }
@@ -85461,90 +85545,6 @@
           "stringUnit": {
             "state": "translated",
             "value": "bússola"
-          }
-        }
-      }
-    },
-    "mahjong.tile.motif.flame": {
-      "comment": "Mahjong: accessible tile name: picture on the red dragon tile.",
-      "extractionState": "manual",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "flame"
-          }
-        },
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Flamme"
-          }
-        },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "llama"
-          }
-        },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "flamme"
-          }
-        },
-        "it": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "fiamma"
-          }
-        },
-        "pt-BR": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "chama"
-          }
-        }
-      }
-    },
-    "mahjong.tile.motif.flourish": {
-      "comment": "Mahjong: accessible tile name: picture on the green dragon tile (an ornamental swirl).",
-      "extractionState": "manual",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "flourish"
-          }
-        },
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Ornament"
-          }
-        },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "floritura"
-          }
-        },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "arabesque"
-          }
-        },
-        "it": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "ghirigoro"
-          }
-        },
-        "pt-BR": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "arabesco"
           }
         }
       }

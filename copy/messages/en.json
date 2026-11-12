@@ -7859,33 +7859,33 @@
     "message": "white dragon, {motif}",
     "note": "Mahjong: accessible tile name; {motif} is the picture on it."
   },
-  "mahjong.tile.motif.sunrise": {
-    "message": "sunrise",
-    "note": "Mahjong: accessible tile name: picture on the east wind tile."
+  "mahjong.tile.windEastPlain": {
+    "message": "east wind",
+    "note": "Mahjong: accessible tile name for the standard tile art, which shows only the wind or dragon itself."
   },
-  "mahjong.tile.motif.sun": {
-    "message": "sun",
-    "note": "Mahjong: accessible tile name: picture on the south wind tile."
+  "mahjong.tile.windSouthPlain": {
+    "message": "south wind",
+    "note": "Mahjong: accessible tile name for the standard tile art, which shows only the wind or dragon itself."
   },
-  "mahjong.tile.motif.moonAndWave": {
-    "message": "moon and wave",
-    "note": "Mahjong: accessible tile name: picture on the west wind tile."
+  "mahjong.tile.windWestPlain": {
+    "message": "west wind",
+    "note": "Mahjong: accessible tile name for the standard tile art, which shows only the wind or dragon itself."
   },
-  "mahjong.tile.motif.mountain": {
-    "message": "mountain",
-    "note": "Mahjong: accessible tile name: picture on the north wind tile."
+  "mahjong.tile.windNorthPlain": {
+    "message": "north wind",
+    "note": "Mahjong: accessible tile name for the standard tile art, which shows only the wind or dragon itself."
+  },
+  "mahjong.tile.dragonRedPlain": {
+    "message": "red dragon",
+    "note": "Mahjong: accessible tile name for the standard tile art, which shows only the wind or dragon itself."
+  },
+  "mahjong.tile.dragonGreenPlain": {
+    "message": "green dragon",
+    "note": "Mahjong: accessible tile name for the standard tile art, which shows only the wind or dragon itself."
   },
   "mahjong.tile.motif.compass": {
     "message": "compass",
     "note": "Mahjong: accessible tile name: picture on the alternative wind tiles."
-  },
-  "mahjong.tile.motif.flame": {
-    "message": "flame",
-    "note": "Mahjong: accessible tile name: picture on the red dragon tile."
-  },
-  "mahjong.tile.motif.flourish": {
-    "message": "flourish",
-    "note": "Mahjong: accessible tile name: picture on the green dragon tile (an ornamental swirl)."
   },
   "mahjong.tile.motif.blancMark": {
     "message": "Blanc mark",

@@ -6,6 +6,7 @@ const { t } = blancI18n;
 const E = window.MahjongEngine;
 const S = window.MahjongState;
 const sound = window.MahjongSound;
+const FX = window.MahjongFx;
 const SVG_NS = 'http://www.w3.org/2000/svg';
 
 // Private tabs carry ?private=1 (same mechanism as newtab.js) — token
@@ -19,7 +20,7 @@ if (isPrivate) {
 
 // Geometry: half-unit -> px. Layout descriptors all use the same coordinate
 // system, while the virtual board is recalculated per layout and scaled once
-// into the available lacquer table.
+// into the available playfield.
 const HU_X = 26;
 const HU_Y = 34;
 const LAYER_SHIFT = 5;
@@ -28,6 +29,8 @@ const board = document.getElementById('mjBoard');
 let positions = E.TURTLE_LAYOUT;
 let boardWidth = 0;
 let boardHeight = 0;
+let boardContentOffsetX = 0;
+let boardContentOffsetY = 0;
 let extentY = 0;
 
 function setLayoutGeometry(layoutId) {
@@ -37,15 +40,23 @@ function setLayoutGeometry(layoutId) {
   extentY = Math.max(...positions.map((p) => p.y)) + 2;
   boardWidth = extentX * HU_X + (maxLayer + 1) * LAYER_SHIFT;
   boardHeight = extentY * HU_Y + (maxLayer + 1) * LAYER_SHIFT;
+  const tileLeft = (p) => p.x * HU_X + p.z * LAYER_SHIFT;
+  const tileTop = (p) => (extentY - 2 - p.y) * HU_Y - p.z * LAYER_SHIFT +
+    (maxLayer + 1) * LAYER_SHIFT;
+  const contentLeft = Math.min(...positions.map(tileLeft));
+  const contentRight = Math.max(...positions.map((p) => tileLeft(p) + (2 * HU_X)));
+  const contentTop = Math.min(...positions.map(tileTop));
+  const contentBottom = Math.max(...positions.map((p) => tileTop(p) + (2 * HU_Y)));
+  boardContentOffsetX = (boardWidth - contentLeft - contentRight) / 2;
+  boardContentOffsetY = (boardHeight - contentTop - contentBottom) / 2;
   board.style.width = `${boardWidth}px`;
   board.style.height = `${boardHeight}px`;
   board.style.setProperty('--mj-layout-layers', String(maxLayer + 1));
 }
 
 // --- tile faces -----------------------------------------------------------
-// Tile-face artwork: dots/bamboo pictorial, characters numeral + rule,
-// landscape winds, emblematic dragons, and distinct botanical bonus-family
-// engravings. All art stays local to the flat-served internal pages directory.
+// Complete source tiles include their ivory texture and bevel. Ranks missing
+// from the source use the same tile body with isolated source pips or sticks.
 
 // Traditional arrangements. Dot tiles use centered ring compositions rather
 // than domino diagonals; bamboo overrides the counts where sticks stack
@@ -63,69 +74,49 @@ const DOT_SPOTS = {
   8: [[12, 9], [32, 9], [12, 23], [32, 23], [12, 37], [32, 37], [12, 51], [32, 51]],
   9: NINE_GRID.ys.flatMap((y) => NINE_GRID.xs.map((x) => [x, y])),
 };
-const DOT_ART = 'mahjong-dot-pip.png';
-const WIND_ART = Object.freeze({
-  n: 'mahjong-wind-north.png',
-  e: 'mahjong-wind-east.png',
-  s: 'mahjong-wind-south.png',
-  w: 'mahjong-wind-west.png',
-});
+let activeTileTheme = 'porcelain';
+const themeAsset = (name) => `mahjong-exact-${activeTileTheme}-${name}.png`;
 const WIND_SEAL_ART = 'mahjong-wind-compass.png';
 const WIND_SEAL_ROTATION = Object.freeze({ n: 0, e: 90, s: 180, w: 270 });
-const WIND_DIRECTION_LABEL = Object.freeze({ n: 'N', e: 'E', s: 'S', w: 'W' });
-const DRAGON_ART = Object.freeze({
-  c: 'mahjong-dragon-red.png',
-  f: 'mahjong-dragon-green.png',
-  p: 'mahjong-dragon-white.png',
-});
 const DRAGON_SEAL_ART = Object.freeze({
   c: 'mahjong-dragon-red-seal.png',
   f: 'mahjong-dragon-green-seal.png',
   p: 'mahjong-dragon-white-seal.png',
 });
-const BONUS_ART = Object.freeze({
-  flower: 'mahjong-flower.png',
-  season: 'mahjong-season.png',
-});
 const DOT_PIP_SIZES = Object.freeze({
-  1: 26,
-  2: 15,
-  3: 13.5,
-  4: 12.5,
-  5: 11.75,
-  6: 10.5,
-  7: 9.75,
-  8: 9.5,
-  9: 9,
+  1: 32,
+  2: 18,
+  3: 16.5,
+  4: 15.5,
+  5: 14.5,
+  6: 13,
+  7: 12,
+  8: 11.75,
+  9: 11.25,
 });
 const BAM_SPOTS = {
   1: [[22, 30]],
   2: [[14, 30], [30, 30]],
-  3: [[22, 14], [11, 44], [33, 44]],
-  4: [[11, 13], [33, 13], [11, 47], [33, 47]],
+  3: [[22, 15], [11, 43], [33, 43]],
+  4: [[11, 15], [33, 15], [11, 45], [33, 45]],
   5: [[11, 13], [33, 13], [22, 30], [11, 47], [33, 47]],
   6: [[11, 17], [22, 17], [33, 17], [11, 43], [22, 43], [33, 43]],
-  7: [[22, 9], [11, 30], [22, 30], [33, 30], [11, 51], [22, 51], [33, 51]],
+  7: [[22, 10], [11, 30], [22, 30], [33, 30], [11, 50], [22, 50], [33, 50]],
   // Stagger the four pairs so eight bamboo reads as individual sticks instead
   // of two uninterrupted rails.
-  8: [[13, 7.5], [31, 7.5], [11, 22.5], [33, 22.5], [13, 37.5], [31, 37.5], [11, 52.5], [33, 52.5]],
+  8: [[13, 9], [31, 9], [11, 23], [33, 23], [13, 37], [31, 37], [11, 51], [33, 51]],
   9: NINE_GRID.ys.flatMap((y) => NINE_GRID.xs.map((x) => [x, y])),
 };
 
-const BAMBOO_ART = Object.freeze({
-  one: 'mahjong-bamboo-one.png',
-  jade: 'mahjong-bamboo-jade.png',
-  gold: 'mahjong-bamboo-gold.png',
-});
 const BAMBOO_STICK_SIZES = Object.freeze({
-  2: [13, 36],
-  3: [12, 24],
-  4: [11, 21],
-  5: [10.5, 19],
-  6: [10, 18],
-  7: [9.5, 17],
-  8: [9, 15.5],
-  9: [8.5, 14.5],
+  2: [17, 42],
+  3: [15.5, 24],
+  4: [14.5, 21],
+  5: [13.5, 24],
+  6: [12.75, 22],
+  7: [12, 14.5],
+  8: [11.5, 13.5],
+  9: [11, 18],
 });
 
 function el(tag, attrs) {
@@ -134,111 +125,59 @@ function el(tag, attrs) {
   return node;
 }
 
-function faceImage(href, x, y, width, height, className) {
+function faceImage(href, x, y, width, height) {
   return el('image', {
     href,
     x: x - width / 2,
     y: y - height / 2,
     width,
     height,
-    class: className,
     preserveAspectRatio: 'xMidYMid meet',
   });
 }
 
+function tileImage(name) {
+  return el('image', { href: themeAsset(name), width: 44, height: 60, preserveAspectRatio: 'none' });
+}
+
 function dotFace(count) {
-  const group = el('g', { class: `mj-dot-art mj-dot-art-${count}` });
+  if ([1, 5, 9].includes(count)) return tileImage(`dot${count}`);
+  const group = el('g', {});
+  group.append(tileImage('blank'));
   const size = DOT_PIP_SIZES[count];
-  for (const [x, y] of DOT_SPOTS[count]) {
-    group.append(faceImage(DOT_ART, x, y, size, size, 'mj-dot-source'));
-  }
+  DOT_SPOTS[count].forEach(([x, y]) => {
+    group.append(faceImage(themeAsset('pip'), x, y, size, size));
+  });
   return group;
 }
 
 function windFace(id, variant = 'motif') {
-  const group = el('g', { class: `mj-wind-art mj-wind-art-${id} mj-wind-art-${variant}` });
-  if (variant === 'seal') {
-    const compass = faceImage(WIND_SEAL_ART, 22, 30, 40, 40, 'mj-wind-source mj-wind-source-seal');
-    compass.setAttribute('transform', `rotate(${WIND_SEAL_ROTATION[id]} 22 30)`);
-    const badge = el('g', { class: `mj-wind-direction mj-wind-direction-${id}` });
-    badge.append(el('rect', { x: 15, y: 46, width: 14, height: 10, rx: 4 }));
-    const direction = textEl(22, 51, 7.5, WIND_DIRECTION_LABEL[id]);
-    direction.classList.add('mj-wind-direction-label');
-    badge.append(direction);
-    group.append(compass, badge);
-  } else {
-    group.append(faceImage(WIND_ART[id], 22, 30, 42, 48, 'mj-wind-source mj-wind-source-motif'));
-  }
+  if (variant !== 'seal') return tileImage(`wind${id.toUpperCase()}`);
+  const group = el('g', {});
+  const image = faceImage(WIND_SEAL_ART, 22, 29, 36, 36);
+  image.setAttribute('transform', `rotate(${WIND_SEAL_ROTATION[id]} 22 29)`);
+  group.append(tileImage('blank'), image);
   return group;
 }
 
 function dragonFace(id, variant = 'motif') {
-  const group = el('g', { class: `mj-dragon-art mj-dragon-art-${id} mj-dragon-art-${variant}` });
-  const source = variant === 'seal' ? DRAGON_SEAL_ART[id] : DRAGON_ART[id];
-  const [width, height] = variant === 'seal' ? [40, 40] : [42, 48];
-  group.append(faceImage(
-    source,
-    22,
-    30,
-    width,
-    height,
-    `mj-dragon-source mj-dragon-source-${variant}`
-  ));
+  const name = id === 'c' ? 'dragonRed' : id === 'f' ? 'dragonGreen' : 'dragonWhite';
+  if (variant !== 'seal') return tileImage(name);
+  const group = el('g', {});
+  group.append(tileImage('blank'), faceImage(DRAGON_SEAL_ART[id], 22, 29, 36, 36));
   return group;
 }
 
-function bambooStickAsset(count, index, x) {
-  const goldAccent =
-    (count === 3 && index === 0) ||
-    (count === 5 && index === 2) ||
-    (count === 7 && index === 0) ||
-    ((count === 6 || count === 9) && x === 22);
-  return goldAccent ? BAMBOO_ART.gold : BAMBOO_ART.jade;
-}
-
-// One bamboo keeps its special panda emblem. The numbered suit uses bold,
-// segmented lacquer sticks with restrained brass accents, borrowing Mahjong
-// Blast's at-a-glance clarity while keeping Blanc's engraved material finish.
+// One bamboo keeps its special emblem. The numbered suit uses bold, segmented
+// sticks with restrained gold accents for at-a-glance clarity.
 function bambooFace(count) {
-  const group = el('g', { class: `mj-bamboo-art mj-bamboo-art-${count}` });
-  if (count === 1) {
-    group.append(faceImage(BAMBOO_ART.one, 22, 30, 42, 48, 'mj-bamboo-source mj-bamboo-source-one'));
-  } else {
-    const [width, height] = BAMBOO_STICK_SIZES[count];
-    BAM_SPOTS[count].forEach(([x, y], index) => {
-      group.append(faceImage(
-        bambooStickAsset(count, index, x),
-        x,
-        y,
-        width,
-        height,
-        'mj-bamboo-source mj-bamboo-source-stick'
-      ));
-    });
-  }
-  return group;
-}
-
-function textEl(x, y, size, content) {
-  const t = el('text', {
-    x, y,
-    'font-size': size,
-    'text-anchor': 'middle',
-    'dominant-baseline': 'central',
-    fill: 'currentColor',
+  if ([1, 5, 9].includes(count)) return tileImage(`bam${count}`);
+  const group = el('g', {});
+  group.append(tileImage('blank'));
+  const [width, height] = BAMBOO_STICK_SIZES[count];
+  BAM_SPOTS[count].forEach(([x, y]) => {
+    group.append(faceImage(themeAsset('bamboo'), x, y, width, height));
   });
-  t.textContent = content;
-  return t;
-}
-
-// Bonus tiles match by family in classic Mahjong solitaire: every flower can
-// pair with every flower, and every season can pair with every season. Their
-// artwork therefore uses one polished, unmistakable motif per family. This
-// avoids the false promise of exact matching created by unrelated UI glyphs
-// and corner numerals while keeping the underlying four-tile sets intact.
-function bonusFace(family) {
-  const group = el('g', { class: `mj-bonus-art mj-bonus-${family}` });
-  group.append(faceImage(BONUS_ART[family], 22, 30, 42, 48, 'mj-bonus-source'));
   return group;
 }
 
@@ -249,31 +188,27 @@ const NUM_WORDS = [
   t('mahjong.number.4'), t('mahjong.number.5'), t('mahjong.number.6'),
   t('mahjong.number.7'), t('mahjong.number.8'), t('mahjong.number.9'),
 ];
-const WIND_MOTIFS = {
-  e: t('mahjong.tile.motif.sunrise'), s: t('mahjong.tile.motif.sun'),
-  w: t('mahjong.tile.motif.moonAndWave'), n: t('mahjong.tile.motif.mountain'),
-};
-const DRAGON_MOTIFS = {
-  c: t('mahjong.tile.motif.flame'), f: t('mahjong.tile.motif.flourish'), p: t('mahjong.tile.motif.blancMark'),
-};
+// The standard art shows the wind or dragon itself, which differs by tile
+// set (a character, a letter, a dragon), so only the white dragon's Blanc
+// mark is named. The alternative seal faces keep their picture in the name.
 function tileName(kind) {
   const [family, id, rawVariant] = kind.split('-');
-  const variant = rawVariant || 'motif';
+  const seal = rawVariant === 'seal';
   if (family === 'dot') return t('mahjong.tile.dot', { number: NUM_WORDS[id - 1] });
   if (family === 'bam') return t('mahjong.tile.bamboo', { number: NUM_WORDS[id - 1] });
   if (family === 'chr') return t('mahjong.tile.character', { number: NUM_WORDS[id - 1] });
   if (family === 'wind') {
-    const motif = variant === 'seal' ? t('mahjong.tile.motif.compass') : WIND_MOTIFS[id];
-    if (id === 'e') return t('mahjong.tile.windEast', { motif });
-    if (id === 's') return t('mahjong.tile.windSouth', { motif });
-    if (id === 'w') return t('mahjong.tile.windWest', { motif });
-    return t('mahjong.tile.windNorth', { motif });
+    const motif = t('mahjong.tile.motif.compass');
+    if (id === 'e') return seal ? t('mahjong.tile.windEast', { motif }) : t('mahjong.tile.windEastPlain');
+    if (id === 's') return seal ? t('mahjong.tile.windSouth', { motif }) : t('mahjong.tile.windSouthPlain');
+    if (id === 'w') return seal ? t('mahjong.tile.windWest', { motif }) : t('mahjong.tile.windWestPlain');
+    return seal ? t('mahjong.tile.windNorth', { motif }) : t('mahjong.tile.windNorthPlain');
   }
   if (family === 'drg') {
-    const motif = variant === 'seal' ? t('mahjong.tile.motif.seal') : DRAGON_MOTIFS[id];
-    if (id === 'c') return t('mahjong.tile.dragonRed', { motif });
-    if (id === 'f') return t('mahjong.tile.dragonGreen', { motif });
-    return t('mahjong.tile.dragonWhite', { motif });
+    const motif = t('mahjong.tile.motif.seal');
+    if (id === 'c') return seal ? t('mahjong.tile.dragonRed', { motif }) : t('mahjong.tile.dragonRedPlain');
+    if (id === 'f') return seal ? t('mahjong.tile.dragonGreen', { motif }) : t('mahjong.tile.dragonGreenPlain');
+    return t('mahjong.tile.dragonWhite', { motif: seal ? motif : t('mahjong.tile.motif.blancMark') });
   }
   if (family === 'flower') return t('mahjong.tile.flower');
   return t('mahjong.tile.season');
@@ -302,15 +237,14 @@ function faceSVG(kind) {
   } else if (family === 'bam') {
     svg.append(bambooFace(Number(id)));
   } else if (family === 'chr') {
-    const number = textEl(22, 30, 42, id);
-    number.classList.add('mj-character-number');
-    svg.append(number);
+    svg.append(tileImage(`chr${id}`));
   } else if (family === 'wind') {
     svg.append(windFace(id, variant));
   } else if (family === 'drg') {
     svg.append(dragonFace(id, variant));
   } else if (family === 'flower' || family === 'season') {
-    svg.append(bonusFace(family));
+    // Bonus tiles match by family, so each family shares one face.
+    svg.append(tileImage(family));
   }
   return svg;
 }
@@ -500,18 +434,26 @@ function refreshTiles({ recoverFocus = false, keepHint = false } = {}) {
 
 function fitBoard() {
   const wrap = document.getElementById('mjBoardWrap');
-  const safeSide = Math.max(
+  const wrapStyles = getComputedStyle(wrap);
+  const safeLeft = Math.max(
     0,
-    Number.parseFloat(getComputedStyle(wrap).getPropertyValue('--mj-board-safe-side')) || 0
+    Number.parseFloat(wrapStyles.getPropertyValue('--mj-board-safe-left')) || 0
+  );
+  const safeRight = Math.max(
+    0,
+    Number.parseFloat(wrapStyles.getPropertyValue('--mj-board-safe-right')) || 0
   );
   // The small floor guards the moment before the view has settled its size;
   // supported browser zoom can legitimately need a scale below 0.2.
   const scale = Math.max(0.05, Math.min(
     1.35,
-    (wrap.clientWidth - 36 - (safeSide * 2)) / boardWidth,
+    (wrap.clientWidth - 36 - safeLeft - safeRight) / boardWidth,
     (wrap.clientHeight - 36) / boardHeight
   ));
-  board.style.transform = `scale(${scale})`;
+  const centerOffset = (safeLeft - safeRight) / 2;
+  const visualOffsetX = centerOffset + (boardContentOffsetX * scale);
+  const visualOffsetY = boardContentOffsetY * scale;
+  board.style.transform = `translate(${visualOffsetX}px, ${visualOffsetY}px) scale(${scale})`;
   board.style.setProperty('--mj-board-scale', String(scale));
 }
 window.addEventListener('resize', fitBoard);
@@ -569,6 +511,7 @@ function invalidateTileAnimations() {
   scoreAnimationGeneration += 1;
   comboAnimationPauseCount = 0;
   clearTransientMotion();
+  cancelCelebration();
   if (comboFxTimer !== null) window.clearTimeout(comboFxTimer);
   comboFxTimer = null;
   const fx = document.getElementById('mjComboFx');
@@ -649,14 +592,16 @@ function spatialNeighbor(origin, key) {
   return winner;
 }
 
-function checkEndStates() {
+// `fresh` marks a win the player just made; restores, undo and refits of an
+// already-won board show the results card without celebrating again.
+function checkEndStates({ fresh = false } = {}) {
   const notice = document.getElementById('mjNotice');
   if (E.isWon(game)) {
     stopTimer();
     if (notice) notice.hidden = true;
     setDialogVisible(document.getElementById('mjRescue'), false);
     recordCompletion();
-    showWin();
+    showWin({ celebrate: fresh });
     return;
   }
   setDialogVisible(document.getElementById('mjWin'), false);
@@ -687,7 +632,7 @@ function finishTileResult(result, index, { unlockInput = false, endAnimationPaus
   if (unlockInput) setTileAnimationBusy(false);
   if (endAnimationPause) endComboAnimationPause();
   refreshTiles({ recoverFocus: ['pair', 'tray-pair', 'tray-park', 'rescue'].includes(result.type) });
-  checkEndStates();
+  checkEndStates({ fresh: true });
   // Several counts, so several sentences: a message holds at most one plural.
   if (result.type === 'tray-pair') {
     announce([
@@ -795,6 +740,61 @@ function launchTrayBurst() {
   trackTransient(burst, 560);
 }
 
+function visibleRect(element) {
+  const rect = element?.getBoundingClientRect();
+  return rect && rect.width > 0 && rect.height > 0 ? rect : null;
+}
+
+// Trails and marks sit on a fixed layer over the page: in Burst the trail
+// reaches a tray slot outside the board frame, which clips its contents.
+const VIEWPORT_ORIGIN = Object.freeze({ left: 0, top: 0 });
+
+function launchMatchTrail(fromEl, toEl, { tier } = {}) {
+  const from = visibleRect(fromEl);
+  const to = visibleRect(toEl);
+  if (!from || !to) return;
+  const geometry = FX.trailGeometry(from, to, VIEWPORT_ORIGIN);
+  const trail = document.createElement('div');
+  trail.className = tier ? `mj-trail mj-trail-${tier}` : 'mj-trail';
+  trail.setAttribute('aria-hidden', 'true');
+  trail.style.setProperty('--mj-trail-x', String(geometry.x));
+  trail.style.setProperty('--mj-trail-y', String(geometry.y));
+  trail.style.setProperty('--mj-trail-length', String(geometry.length));
+  trail.style.setProperty('--mj-trail-angle', String(geometry.angle));
+  trail.style.setProperty('--mj-trail-thickness', String(geometry.thickness));
+  document.body.append(trail);
+  trackTransient(trail, FX.TRAIL_MS);
+}
+
+// Reduced motion: a still glow where each matched tile was, nothing travels.
+function launchMatchMarks(elements) {
+  for (const element of elements) {
+    const rect = visibleRect(element);
+    if (!rect) continue;
+    const mark = document.createElement('div');
+    mark.className = 'mj-match-mark';
+    mark.setAttribute('aria-hidden', 'true');
+    mark.style.setProperty('--mj-mark-x', String(rect.left));
+    mark.style.setProperty('--mj-mark-y', String(rect.top));
+    mark.style.setProperty('--mj-mark-w', String(rect.width));
+    mark.style.setProperty('--mj-mark-h', String(rect.height));
+    document.body.append(mark);
+    trackTransient(mark, 400);
+  }
+}
+
+function launchPairTrail(fromEl, toEl, tier = null) {
+  if (window.matchMedia?.('(prefers-reduced-motion: reduce)').matches) launchMatchMarks([fromEl, toEl]);
+  else launchMatchTrail(fromEl, toEl, { tier });
+}
+
+// A tile parked a moment ago may still be flying in, so its slot is not
+// rendered yet; the slot receiving it stands in.
+function traySlotFor(tileIndex) {
+  return document.querySelector(`.mj-tray-slot[data-tile-index="${tileIndex}"]`)
+    || document.querySelector('.mj-tray-slot.is-receiving');
+}
+
 function launchScoreFlight(result, index) {
   if (result.type !== 'tray-pair') return;
   const reducedMotion = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
@@ -866,6 +866,19 @@ function animateTileResult(result, index) {
   const immediate = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
   beginComboAnimationPause();
   if (locksInput) setTileAnimationBusy(true);
+  const trailTier = result.comboCount >= 3 ? comboTier(result.comboCount).name : null;
+  if (result.type === 'pair') {
+    launchPairTrail(tileButtons[result.indices[0]], tileButtons[result.indices[1]], trailTier);
+  } else if (result.type === 'tray-pair') {
+    launchPairTrail(traySlotFor(result.indices[0]), tileButtons[index], trailTier);
+  }
+  if (result.autoClear?.indices?.length === 2) {
+    const [first, second] = result.autoClear.indices;
+    const firstEl = result.autoClear.source === 'tray' ? traySlotFor(first) : tileButtons[first];
+    window.setTimeout(() => {
+      if (generation === tileAnimationGeneration) launchPairTrail(firstEl, tileButtons[second]);
+    }, immediate ? 0 : FX.AUTO_TRAIL_DELAY_MS);
+  }
   const flightDuration = startTrayFlight(result, index);
   if (result.type === 'tray-pair') {
     const from = Math.max(0, result.score - result.userPoints - result.bonusPoints);
@@ -1282,12 +1295,21 @@ function paintBest() {
   }
 }
 
+// Counts this board toward the clear streak once per deal. Saves from before
+// deal ids existed fall back to the tab's game id.
+function noteClear() {
+  const progress = progressStore?.recordClear(game.dealId || gameId) || { clearStreak: 0 };
+  game._clearStreak = progress.clearStreak;
+  game._celebrationStyle = S.celebrationStyleForStreak(progress.clearStreak);
+}
+
 function recordCompletion() {
   if (!game || game.completionRecorded) return true;
   pauseTimer();
   if (game.zen) {
     game.completionRecorded = true;
     game._outcome = 'zen';
+    noteClear();
     saveAfterMutation();
     return true;
   }
@@ -1310,6 +1332,7 @@ function recordCompletion() {
   game.completionRecorded = Boolean(updated);
   const after = bestForGame();
   game._outcome = S.completionOutcome({ mode: game.mode, before, after });
+  noteClear();
   saveAfterMutation();
   return Boolean(updated);
 }
@@ -1334,7 +1357,70 @@ function renderWinScore(target, { isBurst, score, time }) {
   }
 }
 
-function showWin() {
+let celebration = null;
+let stillGlowTimer = null;
+function clearStillGlow() {
+  window.clearTimeout(stillGlowTimer);
+  stillGlowTimer = null;
+  document.body.classList.remove('is-celebrating-still');
+}
+
+function cancelCelebration() {
+  clearStillGlow();
+  if (!celebration) return;
+  window.clearTimeout(celebration.timer);
+  celebration.detach();
+  celebration = null;
+  const layer = document.getElementById('mjCelebrate');
+  if (layer) {
+    layer.hidden = true;
+    delete layer.dataset.tier;
+    delete layer.dataset.style;
+  }
+  document.body.classList.remove('is-celebrating');
+}
+
+// Plays the board-cleared moment, then calls `done` exactly once: after the
+// tier's duration, on any click or key, or when a hidden tab becomes visible.
+// Timers rather than animationend, because a hidden tab never runs the
+// animation and the card must still arrive.
+function playCelebration(tier, style, done) {
+  cancelCelebration();
+  if (tier === 'still') {
+    document.body.classList.add('is-celebrating-still');
+    stillGlowTimer = window.setTimeout(clearStillGlow, 400);
+  }
+  const layer = document.getElementById('mjCelebrate');
+  if (!FX.CELEBRATION_MS[tier] || !layer) {
+    done();
+    return;
+  }
+  layer.dataset.tier = tier;
+  layer.dataset.style = style;
+  for (const tile of layer.querySelectorAll('[data-celebrate-kind]')) {
+    tile.replaceChildren(faceSVG(tile.dataset.celebrateKind));
+  }
+  layer.hidden = false;
+  document.body.classList.add('is-celebrating');
+  const skip = () => {
+    if (document.hidden) return;
+    cancelCelebration();
+    done();
+  };
+  window.addEventListener('pointerdown', skip, true);
+  window.addEventListener('keydown', skip, true);
+  document.addEventListener('visibilitychange', skip);
+  celebration = {
+    timer: window.setTimeout(skip, FX.CELEBRATION_MS[tier]),
+    detach() {
+      window.removeEventListener('pointerdown', skip, true);
+      window.removeEventListener('keydown', skip, true);
+      document.removeEventListener('visibilitychange', skip);
+    },
+  };
+}
+
+function showWin({ celebrate = false } = {}) {
   const best = bestForGame();
   const win = document.getElementById('mjWin');
   const isBurst = game.mode === 'tray';
@@ -1382,8 +1468,14 @@ function showWin() {
   document.getElementById('mjWinAutoStat').hidden = isManual;
   document.getElementById('mjWinCombo').textContent = `×${game.maxCombo || 0}`;
   document.getElementById('mjWinAutoClears').textContent = String(game.autoClears || 0);
-  setDialogVisible(win, true);
   announce(announcement);
+  const reducedMotion = Boolean(window.matchMedia?.('(prefers-reduced-motion: reduce)').matches);
+  const tier = celebrate
+    ? FX.celebrationTier({ zen: isZen, outcome: game._outcome || null, reducedMotion, hidden: document.hidden })
+    : 'none';
+  const clearStreak = game._clearStreak ?? progressStore?.read().clearStreak ?? 0;
+  const celebrationStyle = game._celebrationStyle || S.celebrationStyleForStreak(clearStreak);
+  playCelebration(tier, celebrationStyle, () => setDialogVisible(win, true));
 }
 
 // --- lifecycle ------------------------------------------------------------
@@ -1393,6 +1485,7 @@ let gameId = null;
 let gameStore = null;
 let recordStore = null;
 let prefsStore = null;
+let progressStore = null;
 let resumeTarget = null;
 let duplicateGuard = null;
 let duplicateChannel = null;
@@ -1414,18 +1507,29 @@ function saveAfterMutation() {
   return gameStore.save(gameId, game);
 }
 
+// True once the player has done anything with a board: a move, a selection,
+// a parked tile or running time.
+function wasTouched(state) {
+  return state.elapsedMs > 0 || state.history.length > 0 ||
+    state.tray.length > 0 || state.selected !== null;
+}
+
 function configureGame(nextGame) {
   invalidateTileAnimations();
   resetHintCycle();
   game = nextGame;
   game.gameId = gameId;
   game.assists ||= { undo: 0, hint: 0, shuffle: 0 };
+  // A board keeps the tile set it was dealt in; only saves from before tile
+  // sets were pinned take it from the current streak.
+  if (!S.TILE_THEMES.includes(game.tileTheme)) {
+    game.tileTheme = S.tileThemeForStreak(progressStore?.read().clearStreak ?? 0);
+  }
+  activeTileTheme = game.tileTheme;
+  document.body.dataset.tileTheme = activeTileTheme;
   focusIndex = nearestVisibleIndex(0);
-  hasStarted = game.elapsedMs > 0 || game.history.length > 0 ||
-    game.tray.length > 0 || game.selected !== null;
   resetTimer();
-  hasStarted = game.elapsedMs > 0 || game.history.length > 0 ||
-    game.tray.length > 0 || game.selected !== null;
+  hasStarted = wasTouched(game);
   document.getElementById('mjNotice').hidden = true;
   document.getElementById('mjError').hidden = true;
   document.getElementById('mjRecoveryNotice').hidden = true;
@@ -1450,12 +1554,19 @@ function startGame({
   zen = false,
 }, { soundCue = true, rememberPreferences = true, shared = false } = {}) {
   pauseTimer();
+  // Walking away from a board in play ends the streak; replacing a deal
+  // nobody has touched yet (a new tab's own deal, a setup change) does not.
+  if (game && !E.isWon(game) && wasTouched(game)) progressStore?.reset();
   // Remember the table so the next fresh tab deals the same kind of game.
   if (rememberPreferences) {
     prefsStore?.write({ layoutId, mode, source: dailyKey ? 'daily' : 'random', burstRules });
   }
   try {
-    const next = E.createGame({ seed, layoutId, mode, gameId, dailyKey, burstRules, zen });
+    const next = E.createGame({
+      seed, layoutId, mode, gameId, dailyKey, burstRules, zen,
+      dealId: S.mintGameId(),
+      tileTheme: S.tileThemeForStreak(progressStore?.read().clearStreak ?? 0),
+    });
     next.gameId = gameId;
     next.dailyKey = dailyKey;
     activeSharedChallenge = shared;
@@ -1883,6 +1994,7 @@ function bootstrap() {
   gameStore = S.createGameStore({ storage: localStorage, engine: E });
   recordStore = S.createRecordStore({ storage: localStorage });
   prefsStore = S.createPrefsStore({ storage: localStorage });
+  progressStore = S.createProgressStore({ storage: localStorage });
   recordStore.migrateLegacy();
 
   let hadSave = false;
