@@ -305,8 +305,8 @@ remain pending. D3 beta-only no-DRM exception accepted; EME notice/handoff requi
   the tracker rows' stages per platform and the gates outside the code.
   Refresh it after each piece of work: `node chromium/tools/
   rc-readiness.mjs --baseline <evidence>/<newest full run>/baseline.json
-  --runs <evidence> --out <dir>` (since 2026-11-11 the newest full run is
-  `q5-final-inventory`, on macos-343a9dfa66dcb9d3), upload the three files to the dashboard
+  --runs <evidence> --out <dir>` (since 2026-11-12 the newest full run is
+  `v148-full-1`, against shipping v1.48.0 on macos-c2c2bcc050e0af2d), upload the three files to the dashboard
   and point its datasets at them. Gates live in that tool; edit them with
   this file.
 - F0.1/F0.2/F0.4/F0.8 as before.
