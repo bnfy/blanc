@@ -18,6 +18,11 @@ struct WebView: UIViewRepresentable {
     /// clear of it and fills the band with their color, as Safari does, so
     /// the Island never sits over a site's own text.
     var islandCover: CGFloat = 0
+    /// The safe area on the other edge (the status bar under a bottom Island,
+    /// the home indicator under a top one). Once `obscuredContentInsets` is
+    /// set, WebKit takes it instead of the safe area for where a page starts,
+    /// so leaving this edge at 0 started every page under the status bar.
+    var farCover: CGFloat = 0
 
     func makeCoordinator() -> Coordinator { Coordinator() }
 
@@ -52,9 +57,9 @@ struct WebView: UIViewRepresentable {
         webView.scrollView.contentInsetAdjustmentBehavior = startPage ? .never : .automatic
         WebView.reserveIsland(startPage ? 0 : islandInset, at: islandEdge, in: webView.scrollView)
         if #available(iOS 26, *) {
-            let cover = startPage ? 0 : islandCover
-            let insets = UIEdgeInsets(top: islandEdge == .top ? cover : 0, left: 0,
-                                      bottom: islandEdge == .bottom ? cover : 0, right: 0)
+            let cover = startPage ? 0 : islandCover, far = startPage ? 0 : farCover
+            let insets = UIEdgeInsets(top: islandEdge == .top ? cover : far, left: 0,
+                                      bottom: islandEdge == .bottom ? cover : far, right: 0)
             if webView.obscuredContentInsets != insets { webView.obscuredContentInsets = insets }
         }
     }
