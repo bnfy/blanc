@@ -88,7 +88,7 @@ inline constexpr char kBlancSyncBundleSha256[] = "${hash}";
 `;
 
 if (process.argv[1] === fileURLToPath(import.meta.url)) {
-  const tag = JSON.parse(fs.readFileSync(path.resolve(here, '../tracker.json'), 'utf8')).shippingTag;
+  const tag = (t => t.bundleTag ?? t.shippingTag)(JSON.parse(fs.readFileSync(path.resolve(here, '../tracker.json'), 'utf8')));
   const text = bundle(tag), header = hashHeader(sha256(text));
   const bundlePath = path.join(runner, 'generated/sync-bundle.js'), headerPath = path.join(runner, 'bundle_hash.h');
   if (process.argv.includes('--check')) {

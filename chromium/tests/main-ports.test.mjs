@@ -8,7 +8,7 @@ import {fileURLToPath} from 'node:url';
 import {PORTS, shippingEvaluations, sourceKey} from './lib/main-ports.mjs';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
-const SHIPPING = '6479ed3a314e4fd6219b8de1598bacffa78b4d7c';
+const SHIPPING = '2098dd703c99194a58e5a3e7ec0b39923d2db59b';
 const steps = file => execFileSync('git', ['show', `${SHIPPING}:test/desktop/steps/${file}`], {cwd: root, encoding: 'utf8'});
 
 test('every port answers a shipping evaluation', () => {

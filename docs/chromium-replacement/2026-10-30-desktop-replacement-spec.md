@@ -128,7 +128,7 @@ Columns:
 | F31 | Quiet Tabs | S3 | Adapt | Integrated in an isolated candidate; regular-profile timed test passed | `@F31-*` |
 | F32 | Independent windows | S1 | Adapt | Not assessed | `@F32-*` |
 | F33 | Local profiles | S2 | Adapt | Not assessed | `@F33-*` |
-| F34 | Glance floating card | S3 | Custom | Drafted (many unbuilt generations) | `@F34-*` |
+| F34 | Glance floating card (over a whole split since v1.47.0) | S3 | Custom | Drafted (many unbuilt generations) | `@F34-*` |
 | F35 | Start Page layouts, pins, Customize, blocked counts | S1 | Custom | Integrated (partial) | `@F35-*` |
 | F36 | First-run onboarding | S2 | Custom | Not assessed | `@F36-*` |
 | F37 | Blank tab shows where to type | S1 | Custom | Built (CSS fix unpromoted) | `@F37-*` incl. IME |
@@ -152,6 +152,7 @@ Columns:
 | F59 | Ctrl+Tab recent order (every desktop platform since v1.46.0) | S3 | Custom | Drafted | Real-key browser-shortcuts suite |
 | F60 | Link routing incl. background window keeps focus | S3 | Custom | Not assessed | `@F60-*` |
 | F61 | Mini Window (new in v1.46.0) | S3 | Custom | Not assessed | `@F61-*` |
+| F62 | Default page zoom, saved sites in Settings (new in v1.47.0) | S3 | Adapt (Chromium zoom) | Not assessed | `@F62-*` |
 | R1 | Launch Sunrise (opt-in) | S5 | Custom | Built in an isolated candidate | Scenario |
 | R2 | Sync without a passphrase + recovery code | S4 | Reuse JS | Drafted | Shipping sync suites |
 | R3 | Pair iPhone (QR) | S4 | Reuse JS | Not started | Two-device check |

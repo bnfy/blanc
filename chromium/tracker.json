@@ -1,7 +1,9 @@
 {
   "schemaVersion": 1,
   "qualification": "Initial platform inventory imported from approved spec; legacy macOS stages are not canonical verification.",
-  "shippingTag": "v1.46.0",
+  "shippingTag": "v1.48.0",
+  "bundleTag": "v1.46.0",
+  "bundleTagNote": "The sandboxed Sync and import bundles (shared with Android) stay on v1.46.0: shipping changed neither for users through v1.48.0 (sync.js gained only an acceptance-harness helper). Move them with an Android recheck.",
   "shippingCommit": "6479ed3a314e4fd6219b8de1598bacffa78b4d7c",
   "rows": [
     {
@@ -1613,6 +1615,37 @@
         "macos": {
           "stage": "not-started",
           "basis": "new in shipping v1.46.0; not yet in the fork"
+        },
+        "windows": {
+          "stage": "not-started",
+          "basis": "no fork build"
+        },
+        "linux": {
+          "stage": "not-started",
+          "basis": "no fork build"
+        },
+        "android": {
+          "stage": "not-started",
+          "basis": "no fork build"
+        }
+      }
+    },
+    {
+      "id": "F62",
+      "requirement": "Default page zoom, saved sites in Settings (new in v1.47.0)",
+      "slice": "S3",
+      "legacyMacState": "Not assessed",
+      "platformVerification": {
+        "macos": null,
+        "windows": null,
+        "linux": null,
+        "android": null
+      },
+      "canonicalState": "not-started",
+      "platformProgress": {
+        "macos": {
+          "stage": "not-started",
+          "basis": "new in shipping v1.47.0; Chromium's own default and per-site zoom to be adapted"
         },
         "windows": {
           "stage": "not-started",

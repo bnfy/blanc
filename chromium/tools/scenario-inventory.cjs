@@ -6,7 +6,7 @@ const { execFileSync } = require('node:child_process');
 const { generateMessages } = require('@cucumber/gherkin');
 const { IdGenerator, SourceMediaType } = require('@cucumber/messages');
 const root = path.resolve(__dirname, '../..');
-const shipping = '6479ed3a314e4fd6219b8de1598bacffa78b4d7c';
+const shipping = '2098dd703c99194a58e5a3e7ec0b39923d2db59b';
 const git = (...args) => execFileSync('git', args, { cwd: root, encoding: 'utf8', maxBuffer: 16 * 1024 * 1024 });
 const spec = fs.readFileSync(path.join(root, 'docs/chromium-replacement/2026-10-30-desktop-replacement-spec.md'), 'utf8');
 const rows = [...spec.matchAll(/^\| ((?:F|R|X|N)\d+) \| (.+)$/gm)].map(m => {
@@ -15,12 +15,13 @@ const rows = [...spec.matchAll(/^\| ((?:F|R|X|N)\d+) \| (.+)$/gm)].map(m => {
     legacyMacState: columns[3] || 'not assessed', canonicalState: 'not-started',
     platformVerification: { macos: null, windows: null, linux: null } };
 });
-if (rows.length !== 80 || new Set(rows.map(r => r.id)).size !== 80) throw Error('Spec must have 80 unique rows');
+if (rows.length !== 81 || new Set(rows.map(r => r.id)).size !== 81) throw Error("Spec must have 81 unique rows");
 const ids = new Set(rows.map(r => r.id));
 // Explicit aliases: shipping's existing tags predate the expanded matrix.
 const aliases = { F55: { row: 'N9', reason: 'Shipping send-to-device.feature maps to new Send to device row' },
   F39: { row: 'N5', reason: 'Shipping certificate-safety scenarios map to the certificate-error row' },
-  F24: { row: 'N7', reason: 'Mobile-only credentials/passkey scenario; excluded from desktop applicability, linked to platform authenticator row' } };
+  F24: { row: 'N7', reason: 'Mobile-only credentials/passkey scenario; excluded from desktop applicability, linked to platform authenticator row' },
+  F56: { row: 'N14', reason: 'Mobile-only phone tab gestures (v1.47.0); excluded from desktop applicability, linked to the gesture row' } };
 const scenarios = [];
 const files = git('ls-tree', '-r', '--name-only', shipping, 'spec/acceptance').trim().split('\n').filter(p => p.endsWith('.feature'));
 for (const file of files) {
@@ -59,16 +60,16 @@ for (const file of files) {
         featureRows, mappingReasons: roots.filter(id => aliases[id]).map(id => aliases[id].reason),
         desktopApplicability: mobileOnly ? 'excluded' : 'applicable',
         exclusionReason: mobileOnly ? 'Shipping scenario explicitly targets mobile only' : null,
-        result: 'not-run', shippingTag: 'v1.46.0', shippingCommit: shipping,
+        result: 'not-run', shippingTag: 'v1.48.0', shippingCommit: shipping,
         forkCommit: null, candidate: null, platform: null });
     }
   }
   walk(doc.feature.children, doc.feature.tags);
 }
-if (scenarios.length !== 591) throw Error(`Unexpected declaration count ${scenarios.length}`);
+if (scenarios.length !== 610) throw Error(`Unexpected declaration count ${scenarios.length}`);
 const unmapped = scenarios.filter(s => !s.featureRows.length);
 const output = { schemaVersion: 1, qualification: 'scenario declaration inventory only; no fork baseline run or pass credit',
-  shippingTag: 'v1.46.0', shippingCommit: shipping, declarationCount: scenarios.length,
+  shippingTag: 'v1.48.0', shippingCommit: shipping, declarationCount: scenarios.length,
   unmappedCount: unmapped.length, mappingAliases: aliases, scenarios };
 const inventoryFile = path.join(root, 'chromium/scenarios/inventory.json');
 const serialized = JSON.stringify(output, null, 2) + '\n';
@@ -86,7 +87,7 @@ if (process.argv.includes('--sync-mapping')) {
 
 if (!fs.existsSync(path.join(root, 'chromium/tracker.json'))) fs.writeFileSync(path.join(root, 'chromium/tracker.json'), JSON.stringify({ schemaVersion: 1,
   qualification: 'initial requirement inventory; canonical/platform states await verification',
-  shippingTag: 'v1.46.0', shippingCommit: shipping, rows }, null, 2) + '\n');
+  shippingTag: 'v1.48.0', shippingCommit: shipping, rows }, null, 2) + '\n');
 console.log(JSON.stringify({ declarations: scenarios.length, mapped: scenarios.length - unmapped.length,
   desktopApplicable: scenarios.filter(s => s.desktopApplicability === 'applicable').length, executableCases: scenarios.reduce((n,s) => n + s.cases.length, 0),
   rows: rows.length, forkBaselineRun: false, unmapped: unmapped.map(s => s.id) }));

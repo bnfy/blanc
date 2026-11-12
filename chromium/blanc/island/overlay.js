@@ -567,8 +567,13 @@ const __blancMarkup = trustedTypes.createPolicy("blanc-static-overlay", {createH
   // --- Dedicated Glance tab picker ---------------------------------------
 
   function eligibleGlanceTabs() {
+    // Pages already on screen can't be chosen: the main page, the current
+    // Glance, and the panes of a visible split, which Glance floats over
+    // (#1441). Taking a pane out of its split stays a tab-menu choice.
+    const shownSplit = (state.splits ?? []).find((s) => s.tabIds.includes(state.activeTabId));
     return state.tabs.filter((tab) =>
       tab.id !== state.activeTabId && tab.id !== state.glanceTabId
+      && !shownSplit?.tabIds.includes(tab.id)
     );
   }
 
@@ -888,7 +893,11 @@ const __blancMarkup = trustedTypes.createPolicy("blanc-static-overlay", {createH
       row.append(mute);
     }
 
-    if (tab.id !== state.activeTabId) {
+    // Glance floats over the page or over a whole visible split (#1441). A
+    // pane of a two-pane split leaves it for Glance (main's openTabMenuGlance,
+    // like the tab menu); a larger split's panes can't, so they get no button.
+    const shownSplit = (state.splits ?? []).find((s) => s.tabIds.includes(state.activeTabId));
+    if (tab.id !== state.activeTabId && !(shownSplit?.tabIds.includes(tab.id) && shownSplit.tabIds.length !== 2)) {
       const glance = document.createElement('button');
       const isGlance = tab.id === state.glanceTabId;
       glance.className = 'row-glance' + (isGlance ? ' on' : '');

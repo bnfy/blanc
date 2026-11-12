@@ -166,6 +166,17 @@ function stripHidden({ autoHide, revealed, pinned }) {
 
 /** The invisible band along the top of the page pane that drags the window. */
 const DRAG_BAND_PX = 6;
+/** Windows gets a taller band. Its top 5 rows are the window's resize border
+ * at any scale, and a drag there is dropped if the pointer's first move leaves
+ * the band, so 6px left one row that dragged, and never downward (#1369).
+ * Every band stays within REVEAL_EDGE_PX, so reaching for one reveals the
+ * Island. styles.css --drag-band-h draws these. */
+const WINDOWS_DRAG_BAND_PX = 10;
+
+function dragBandHeight(platform) {
+  return platform === 'win32' ? WINDOWS_DRAG_BAND_PX : DRAG_BAND_PX;
+}
+
 /** Room around the floating pill for its shadow, in px. */
 const FLOAT_SIDE_PX = 20;
 const FLOAT_BOTTOM_PX = 24;
@@ -230,6 +241,8 @@ function floatViewBounds(rect, { windowWidth, windowHeight, side, bottom }) {
 
 module.exports = {
   DRAG_BAND_PX,
+  WINDOWS_DRAG_BAND_PX,
+  dragBandHeight,
   FLOAT_SIDE_PX,
   FLOAT_BOTTOM_PX,
   FLOAT_CHROME_PAD_PX,

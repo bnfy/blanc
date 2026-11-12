@@ -13,7 +13,7 @@ import {execFileSync} from 'node:child_process';
 import {fileURLToPath} from 'node:url';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
-const SHIPPING = '6479ed3a314e4fd6219b8de1598bacffa78b4d7c';
+const SHIPPING = '2098dd703c99194a58e5a3e7ec0b39923d2db59b';
 const show = file => execFileSync('git', ['show', `${SHIPPING}:${file}`], {cwd: root, encoding: 'utf8', maxBuffer: 64 * 1024 * 1024});
 
 // Shipping's handler, run with its settings store replaced by `current`.

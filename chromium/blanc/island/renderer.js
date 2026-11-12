@@ -188,6 +188,7 @@ const __blancMarkup = trustedTypes.createPolicy("blanc-static-renderer", {create
   const glanceIdentity = document.querySelector('#glanceHeader .glance-tab-identity');
   let shownGlanceTabId = null;
   const glanceOpenAsTab = document.getElementById('glanceOpenAsTab');
+  const glanceKeepSplit = document.getElementById('glanceKeepSplit');
   const glanceChange = document.getElementById('glanceChange');
   const glanceClose = document.getElementById('glanceClose');
   const glanceBack = document.getElementById('glanceBack');
@@ -833,6 +834,9 @@ const __blancMarkup = trustedTypes.createPolicy("blanc-static-renderer", {create
     shownGlanceTabId = tab.id;
     setFavicon(glanceFavicon, tab);
     glancePrivate.hidden = !tab.private;
+    // Over a split (#1441) there's no split to make: splits hold two tabs,
+    // and the panes already are one.
+    glanceKeepSplit.hidden = (state.splits ?? []).some((split) => split.tabIds.includes(state.activeTabId));
     glanceBack.disabled = !tab.canGoBack;
     const glanceReloadMode = tab.isLoading ? 'stop' : 'reload';
     if (glanceReload.dataset.mode !== glanceReloadMode) {
@@ -860,7 +864,7 @@ const __blancMarkup = trustedTypes.createPolicy("blanc-static-renderer", {create
   const GLANCE_HOST_FLOOR = 64;
   let glanceHeaderFitKey = '';
   function fitGlanceHeader() {
-    const key = glanceHeader.hidden ? '' : [glanceTitle.textContent, glanceLayout?.card?.header.width ?? ''].join('|');
+    const key = glanceHeader.hidden ? '' : [glanceTitle.textContent, glanceLayout?.card?.header.width ?? '', glanceKeepSplit.hidden].join('|');
     if (key === glanceHeaderFitKey) return;
     glanceHeaderFitKey = key;
     glanceHeader.classList.remove(...GLANCE_HEADER_STEPS);
@@ -1413,7 +1417,7 @@ const __blancMarkup = trustedTypes.createPolicy("blanc-static-renderer", {create
     if (glanceReload.dataset.mode === 'stop') window.browserAPI.stop(state.glanceTabId);
     else window.browserAPI.reload(state.glanceTabId);
   });
-  document.getElementById('glanceKeepSplit').addEventListener('click', (event) => {
+  glanceKeepSplit.addEventListener('click', (event) => {
     event.stopPropagation();
     window.browserAPI.keepGlanceAsSplit();
   });

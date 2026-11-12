@@ -3,7 +3,7 @@ const path = require('node:path');
 const crypto = require('node:crypto');
 const Module = require('node:module');
 const {execFileSync} = require('node:child_process');
-const reference = '6479ed3a314e4fd6219b8de1598bacffa78b4d7c';
+const reference = '2098dd703c99194a58e5a3e7ec0b39923d2db59b';
 // Step files whose definitions S1-tagged scenarios resolve to at the reference.
 // Later slices add their files when their adapters start.
 const stepFiles = [

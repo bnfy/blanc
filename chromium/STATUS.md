@@ -849,6 +849,19 @@ remain pending. D3 beta-only no-DRM exception accepted; EME notice/handoff requi
   those gone; settings-and-theming, island-and-commands and internal-pages
   match their last runs. Chromium's own name still shows in a few strings
   ("About Chromium", Default browser); that is branding, not this slice.
+- **Shipping target moved to v1.48.0 (2026-11-12, owner):** shipping v1.48.0
+  went public on 2026-11-11, so the fork's reference moves from v1.46.0. The
+  Island renderer (every fork edit still applies; island-autohide.js,
+  overlay.js, renderer.js and styles.css changed), the interface, menu and
+  settings strings, the asset provenance, the parity tests and the scenario
+  inventory (610 declarations, 659 cases, from 591 and 640) follow v1.48.0.
+  New for the desktop: F62 default page zoom (11 scenarios, v1.47.0; the key
+  check gains `pageZoom`, to build on Chromium's own zoom), Glance over a whole
+  split (F53-29, F53-30), a refused bad-certificate frame and a WebSocket past
+  a continued warning (F39-8, F39-9). The phone-only tab gestures (F56) map to
+  N14 and are excluded. The sandboxed Sync and import bundles stay on v1.46.0
+  (`bundleTag`): through v1.48.0 shipping changed neither for users, and
+  moving them changes Android's runner. A new spec row is F62.
 - **Shipping target moved to v1.46.0, candidate macos-e225d28ca11f8f10 (2026-11-04, owner):**
   `tools/island-renderer.mjs` regenerated the Island from v1.46.0 (every
   fork edit still applies; index.html, overlay.js, renderer.js and
@@ -2401,7 +2414,7 @@ Android's Bar A counts the shared scenarios bound in `chromium/tests/android/acc
 
 | State | macOS | Windows | Linux | Android |
 | --- | ---: | ---: | ---: | ---: |
-| Not started / unassessed | 24 | 80 | 80 | 68 |
+| Not started / unassessed | 25 | 81 | 81 | 69 |
 | Research only | 1 | 0 | 0 | 0 |
 | Drafted | 5 | 0 | 0 | 0 |
 | Implemented | 5 | 0 | 0 | 12 |
@@ -2411,7 +2424,7 @@ Android's Bar A counts the shared scenarios bound in `chromium/tests/android/acc
 | Verification needs recheck | 0 | 0 | 0 | 0 |
 | Verified | 0 | 0 | 0 | 0 |
 | Release-ready | 0 | 0 | 0 | 0 |
-| Total | 80 | 80 | 80 | 80 |
+| Total | 81 | 81 | 81 | 81 |
 
 Legacy macOS stages come from the approved spec; they await verification on the canonical candidate. No legacy stage counts as Verified.
 
