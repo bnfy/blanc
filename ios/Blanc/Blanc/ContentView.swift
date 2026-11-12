@@ -39,6 +39,8 @@ struct ContentView: View {
     @State private var pageWidth: CGFloat = 0
     /// The Island's height with its padding, so the Spaces card rises from it.
     @State private var islandHeight: CGFloat = 0
+    /// Where the Sunrise mark is in the window, for the share popover on iPad.
+    @State private var sunriseFrame: CGRect = .zero
     @Environment(\.accessibilityReduceMotion) private var systemReduceMotion
     private var reduceMotion: Bool {
         #if DEBUG
@@ -305,6 +307,7 @@ struct ContentView: View {
             .padding(.horizontal, 16)
             .padding(.vertical, 10)
             .frame(maxWidth: .infinity)
+            .clearOfWindowControls(islandAtTop)
             .onGeometryChange(for: CGFloat.self) { $0.size.height } action: { islandHeight = $0 }
             .environment(\.colorScheme, islandScheme)
             .animation(.easeInOut(duration: 0.25), value: islandScheme)
@@ -438,7 +441,8 @@ struct ContentView: View {
         return ZStack {
             WebView(tab: tab, onTouchDown: split != nil && !focused ? { manager.setActive(tab.id) } : nil,
                     cornerRadius: radius, islandInset: split == nil ? islandBand : 0, islandEdge: islandEdge,
-                    islandCover: split == nil ? islandBand + (islandAtTop ? safeArea.top : safeArea.bottom) : 0)
+                    islandCover: split == nil ? islandBand + (islandAtTop ? safeArea.top : safeArea.bottom) : 0,
+                    farCover: split == nil ? (islandAtTop ? safeArea.bottom : safeArea.top) : 0)
                 .overlay {
                     // Until its first page commits, a web view is WebKit's
                     // blank white: keep the theme's background instead, or
@@ -806,7 +810,8 @@ struct ContentView: View {
             Color.clear.frame(width: 1, height: 1)
                 .accessibilityElement()
                 .accessibilityIdentifier("test.pageGeometry")
-                .accessibilityValue("\(Int(pageFrame.height)) \(Int(manager.activeTab?.existingWebView?.safeAreaInsets.top ?? -1))")
+                // Verbatim: a localized string groups an iPad's 1210 as "1,210".
+                .accessibilityValue(Text(verbatim: "\(Int(pageFrame.height)) \(Int(manager.activeTab?.existingWebView?.safeAreaInsets.top ?? -1))"))
         }
         .allowsHitTesting(false)
     }
@@ -841,7 +846,6 @@ struct ContentView: View {
             HStack(spacing: 0) {
                 islandMark
                 Rectangle().fill(islandDivider).frame(width: 1, height: 18)
-                if buttons.history == .beforeAddress { historyButtons.padding(.leading, 4) }
             }
 
             // A tap rather than a Button: a Button also fires when a sideways
@@ -983,6 +987,7 @@ struct ContentView: View {
     private var islandMark: some View {
         IslandMarkButton(image: Self.sunriseMark, tint: islandStyle.text, menu: islandMenuElements)
             .frame(width: 48, height: Self.islandHeight)
+            .onGeometryChange(for: CGRect.self) { $0.frame(in: .global) } action: { sunriseFrame = $0 }
     }
 
     /// The Sunrise menu's entries for the current page (`IslandMenu`).
@@ -1025,6 +1030,10 @@ struct ContentView: View {
                     : action("menu.reload", "arrow.clockwise") { tab.reload() }
             case .find:
                 return action("menu.findInPage", "magnifyingglass") { manager.presentFind() }
+            case .requestSite(let mobile):
+                guard let tab else { return nil }
+                return action(mobile ? "ios.menu.requestMobileSite" : "ios.menu.requestDesktopSite",
+                              mobile ? "iphone" : "desktopcomputer") { manager.setMobileSite(tab, mobile: mobile) }
             case .pageZoom:
                 // The menu stays open, so a size can be stepped to.
                 func zoom(_ key: String, _ symbol: String, _ step: Int) -> UIAction {
@@ -1062,10 +1071,18 @@ struct ContentView: View {
     private func share(_ url: URL) {
         guard let scene = UIApplication.shared.connectedScenes.compactMap({ $0 as? UIWindowScene })
                 .first(where: { $0.activationState == .foregroundActive }),
-              var presenter = scene.windows.first(where: \.isKeyWindow)?.rootViewController else { return }
+              let window = scene.windows.first(where: \.isKeyWindow),
+              var presenter = window.rootViewController else { return }
         while let presented = presenter.presentedViewController { presenter = presented }
         let sheet = UIActivityViewController(activityItems: [url], applicationActivities: nil)
-        sheet.popoverPresentationController?.sourceView = presenter.view
+        // An iPad shows it as a popover pointing at the Sunrise mark the menu
+        // opened from; without a rect it pointed at the window's corner.
+        if let popover = sheet.popoverPresentationController {
+            popover.sourceView = window
+            popover.sourceRect = sunriseFrame == .zero
+                ? CGRect(x: window.bounds.midX, y: window.bounds.midY, width: 0, height: 0) : sunriseFrame
+            if sunriseFrame == .zero { popover.permittedArrowDirections = [] }
+        }
         presenter.present(sheet, animated: true)
     }
 
@@ -1096,6 +1113,18 @@ struct ContentView: View {
 }
 
 #Preview { ContentView(manager: TabsManager()) }
+
+private extension View {
+    /// An iPad window's close and resize controls sit in its top corner: at
+    /// the top of a small window the Island starts after them.
+    @ViewBuilder func clearOfWindowControls(_ atTop: Bool) -> some View {
+        if #available(iOS 26, *), atTop {
+            containerCornerOffset(.leading, sizeToFit: true)
+        } else {
+            self
+        }
+    }
+}
 
 /// A hairline along the Island's outer edge that fills as the page loads,
 /// then fades. Its own view, so a load's progress redraws only this.

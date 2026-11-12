@@ -28,6 +28,17 @@ struct PaletteSheet: View {
     /// The tab row whose trash button a swipe has left showing.
     @State private var swipedTab: UUID?
 
+    /// The row the arrow keys are on, by its place in the list.
+    @State private var keyRow: Int?
+    @State private var search = SearchMemo()
+
+    /// The last search, kept apart from view state: a held arrow key asks for
+    /// the results several times a press, and each search reads all of History.
+    private final class SearchMemo {
+        var key: [String] = []
+        var results: [SyncedSwitcherResult] = []
+    }
+
     private struct NewGroupTab: Identifiable { let id: UUID }
     /// What the search provider suggests for the typed text (F5), and the
     /// request that is fetching it.
@@ -89,6 +100,20 @@ struct PaletteSheet: View {
     }
 
     private var list: some View {
+        ScrollViewReader { proxy in
+            styledList
+                .onChange(of: keyRow) { _, row in
+                    guard let row, let id = keyRowId(row) else { return }
+                    withAnimation(.snappy(duration: 0.15)) { proxy.scrollTo(id) }
+                }
+                // The rows moved under it: a stale place would open another tab.
+                .onChange(of: tabRows.map(\.id)) { keyRow = nil }
+                // Suggestions arriving move the results under the chosen row too.
+                .onChange(of: suggestions) { keyRow = nil }
+        }
+    }
+
+    private var styledList: some View {
         listContent
             .listStyle(.plain)
             .environment(\.defaultMinListRowHeight, 44)
@@ -117,6 +142,19 @@ struct PaletteSheet: View {
                 .submitLabel(.go)
                 .focused($inputFocused)
                 .onSubmit { handleSubmit() }
+                .onChange(of: input) { keyRow = nil }
+                .onKeyPress(keys: [.upArrow, .downArrow], phases: [.down, .repeat]) { press in
+                    moveKeyRow(press.key == .downArrow ? 1 : -1)
+                    return .handled
+                }
+                .onKeyPress(.return, phases: .down) { press in
+                    // Here, not only in onSubmit: an empty field doesn't submit.
+                    if press.modifiers.contains(.command) {
+                        submitInBackground()
+                        return .handled
+                    }
+                    return openKeyRow() ? .handled : .ignored
+                }
                 .accessibilityIdentifier("island.address")
             if !input.isEmpty {
                 Button { input = "" } label: {
@@ -190,7 +228,7 @@ struct PaletteSheet: View {
     /// A swipe to the left shows a trash button and a full swipe closes the
     /// tab (no × to miss and open it instead); Blanc draws the swipe so a
     /// group's tint stays under it. VoiceOver has Close Tab as an action.
-    private func tabRow(_ tab: TabModel, in group: TabGroup? = nil, last: Bool = false) -> some View {
+    private func tabRow(_ tab: TabModel, in group: TabGroup? = nil, last: Bool = false, keyIndex: Int?) -> some View {
         SwipeToCloseRow(openRow: $swipedTab, id: tab.id, accessibilityLabel: SyncCopy.text("menu.closeTab"),
                      onClose: { manager.closeTab(tab.id) }) {
             Button {
@@ -207,10 +245,11 @@ struct PaletteSheet: View {
             .accessibilityAction(named: SyncCopy.text("menu.closeTab")) { manager.closeTab(tab.id) }
             .padding(.leading, 10)
             .background(tab.id == manager.activeTabId ? style.selection : .clear, in: RoundedRectangle(cornerRadius: 10))
+            .overlay { keyHighlight(keyIndex).allowsHitTesting(false) }
         }
         .contentShape(.contextMenuPreview, RoundedRectangle(cornerRadius: 10))
         .contextMenu {
-            TabMoveMenu(manager: manager, tab: tab, newGroup: { newGroupTab = NewGroupTab(id: tab.id) }, newSpace: { newSpaceTab = tab.id })
+            TabMoveMenu(manager: manager, tab: tab, newGroup: { newGroupTab = NewGroupTab(id: tab.id) }, newSpace: { newSpaceTab = tab.id }, close: close)
             Divider()
             Button(SyncCopy.text("menu.closeTab"), systemImage: "xmark", role: .destructive) { manager.closeTab(tab.id) }
         }
@@ -247,6 +286,11 @@ struct PaletteSheet: View {
         .foregroundStyle(style.secondary)
         .textCase(nil)
         .padding(.top, 8)
+    }
+
+    /// The row under the arrow keys, drawn apart from the current tab's.
+    private func keyHighlight(_ index: Int?) -> some View {
+        RoundedRectangle(cornerRadius: 10).strokeBorder(style.text.opacity(index != nil && index == keyRow ? 0.4 : 0), lineWidth: 1)
     }
 
     /// The current tab is shown by its row's highlight (and VoiceOver's
@@ -326,7 +370,8 @@ struct PaletteSheet: View {
     }
 
     private var tabList: some View {
-        List {
+        let keyIndex = Dictionary(uniqueKeysWithValues: tabRows.enumerated().map { ($1.id, $0) })
+        return List {
             currentAddress
             Section {
                 ForEach(manager.displaySections, id: \.id) { section in
@@ -358,10 +403,12 @@ struct PaletteSheet: View {
                         .listRowBackground(groupBlock(group, top: true, bottom: group.collapsed || section.tabs.isEmpty))
                         .listRowInsets(EdgeInsets(top: 6, leading: 26, bottom: group.collapsed ? 4 : 0, trailing: 16))
                         if !group.collapsed {
-                            ForEach(section.tabs) { tab in tabRow(tab, in: group, last: tab.id == section.tabs.last?.id) }
+                            ForEach(section.tabs) { tab in
+                                tabRow(tab, in: group, last: tab.id == section.tabs.last?.id, keyIndex: keyIndex[tab.id])
+                            }
                         }
                     } else {
-                        ForEach(section.tabs) { tab in tabRow(tab) }
+                        ForEach(section.tabs) { tab in tabRow(tab, keyIndex: keyIndex[tab.id]) }
                     }
                 }
             } header: { groupHeading(SyncCopy.text("ios.tabs.openTabs"), count: manager.tabs.count) }
@@ -434,74 +481,205 @@ struct PaletteSheet: View {
     }
 
     private var slashList: some View {
-        let slashWord = String(input.trimmingCharacters(in: .whitespaces)
-            .split(separator: " ").first ?? Substring(input))
-        let matches = SlashCommand.filter(prefix: slashWord, in: manager)
+        let matches = slashMatches
         return List {
             if matches.isEmpty {
                 Text(SyncCopy.text("ios.palette.noCommand"))
                     .foregroundStyle(style.secondary)
             } else {
-                ForEach(matches) { cmd in
-                    Button {
-                        // A tapped row runs with what's typed after its name.
-                        finish(cmd.execute(manager, argument: SlashCommand.argument(from: input)))
-                    } label: {
+                ForEach(Array(matches.enumerated()), id: \.element.id) { index, cmd in
+                    Button { run(cmd) } label: {
                         row(icon: "command", title: cmd.command, subtitle: cmd.hint)
                     }
+                    .overlay { keyHighlight(index).allowsHitTesting(false) }
                 }
             }
         }
+    }
+
+    private var switcherResults: [SyncedSwitcherResult] {
+        let query = input.trimmingCharacters(in: .whitespacesAndNewlines)
+        let sets = switcherSets, remoteSpaces = switcherRemoteSpaces
+        let tabs = manager.tabs, remote = manager.syncEngine.remoteDevices, favorites = manager.syncEngine.favorites
+        let history = manager.historyStore.entries, groups = manager.groups
+        // What can change under an open palette, as sync lands, a tab closes
+        // or navigates, or a visit is recorded. Tabs by id, address and title,
+        // so one closing as another opens isn't read as no change.
+        let tabKeys: [String] = tabs.map { tab in "\(tab.id)\u{1}\(tab.currentURL)\u{1}\(tab.pageTitle)" }
+        let newestVisit: String = history.first.map { entry in "\(entry.url)\u{1}\(entry.visitedAt)" } ?? ""
+        let counts: [Int] = [remote.count, favorites.count, history.count, groups.count, sets.count, remoteSpaces.count]
+        var key: [String] = [query, newestVisit]
+        key += tabKeys
+        key += counts.map { String($0) }
+        if key != search.key {
+            search.key = key
+            search.results = QuickSwitcher.search(query: query, tabs: tabs, remote: remote, favorites: favorites,
+                                                  history: history, groups: groups, sets: sets, remoteSpaces: remoteSpaces)
+        }
+        return search.results
+    }
+
+    private var slashMatches: [SlashCommand] {
+        let slashWord = String(input.trimmingCharacters(in: .whitespaces)
+            .split(separator: " ").first ?? Substring(input))
+        return SlashCommand.filter(prefix: slashWord, in: manager)
+    }
+
+    /// The tabs a folded group doesn't hide, in the list's order.
+    private var tabRows: [TabModel] {
+        manager.displaySections.flatMap { $0.group?.collapsed == true ? [] : $0.tabs }
+    }
+
+    private var keyRowCount: Int {
+        switch mode {
+        case .tabs: tabRows.count
+        case .slash: slashMatches.count
+        case .switcher: switcherRowItems.count
+        }
+    }
+
+    /// The chosen row's id in its `ForEach`, which a list can scroll to
+    /// before it has built the row.
+    private func keyRowId(_ row: Int) -> AnyHashable? {
+        switch mode {
+        case .tabs: return tabRows.indices.contains(row) ? AnyHashable(tabRows[row].id) : nil
+        case .slash: return slashMatches.indices.contains(row) ? AnyHashable(slashMatches[row].id) : nil
+        case .switcher:
+            let rows = switcherRowItems
+            return rows.indices.contains(row) ? AnyHashable(rows[row].id) : nil
+        }
+    }
+
+    /// ↑ and ↓ in the palette (D7): the first press lands on an end of the list.
+    private func moveKeyRow(_ step: Int) {
+        let count = keyRowCount
+        guard count > 0 else { return }
+        guard let row = keyRow else {
+            keyRow = step > 0 ? 0 : count - 1
+            return
+        }
+        keyRow = min(max(row + step, 0), count - 1)
+    }
+
+    /// A tapped or chosen row runs with what's typed after its name.
+    private func run(_ command: SlashCommand) {
+        finish(command.execute(manager, argument: SlashCommand.argument(from: input)))
+    }
+
+    /// Return on the row the arrow keys chose. False with no row chosen.
+    private func openKeyRow() -> Bool {
+        guard let keyRow else { return false }
+        switch mode {
+        case .tabs:
+            guard tabRows.indices.contains(keyRow) else { return false }
+            manager.setActive(tabRows[keyRow].id)
+            close()
+        case .slash:
+            let matches = slashMatches
+            guard matches.indices.contains(keyRow) else { return false }
+            run(matches[keyRow])
+        case .switcher:
+            let rows = switcherRowItems
+            guard rows.indices.contains(keyRow) else { return false }
+            choose(rows[keyRow])
+        }
+        return true
+    }
+
+    /// ⌘Return: the chosen result, or what's typed, in a new tab behind this
+    /// one. A row that isn't a page opens as Return would.
+    private func submitInBackground() {
+        let trimmed = input.trimmingCharacters(in: .whitespacesAndNewlines)
+        if mode == .switcher {
+            let rows = switcherRowItems
+            if let keyRow, rows.indices.contains(keyRow) {
+                switch rows[keyRow] {
+                case .result(let result):
+                    guard let url = result.url, result.localTabID == nil else {
+                        _ = openKeyRow()
+                        return
+                    }
+                    manager.openInBackground(url)
+                case .search(_, let query, _):
+                    manager.openInBackground(typed: query)
+                }
+            } else {
+                manager.openInBackground(typed: trimmed)
+            }
+            close()
+        } else {
+            handleSubmit()
+        }
+    }
+
+    /// A row of the typed-text list: a result, or a search with the chosen
+    /// engine (the typed text, or a suggestion).
+    private enum SwitcherRow: Identifiable {
+        case result(SyncedSwitcherResult)
+        case search(title: String, query: String, identifier: String)
+
+        var id: String {
+            switch self {
+            case .result(let result): "result:" + result.id
+            case .search(_, let query, let identifier): identifier + ":" + query
+            }
+        }
+    }
+
+    /// The typed-text list in the order it's drawn, which is also the order
+    /// the arrow keys walk. The first row is always what Go does: a strong
+    /// match, or the search.
+    private var switcherRowItems: [SwitcherRow] {
+        let query = input.trimmingCharacters(in: .whitespacesAndNewlines)
+        let results = switcherResults
+        let goesToMatch = QuickSwitcher.goTarget(query: query, results: results) != nil
+        let isSearch = !query.isEmpty && !AddressNormalizer.looksLikeAddress(query)
+        var rows: [SwitcherRow] = []
+        if goesToMatch { rows += results.map(SwitcherRow.result) }
+        if isSearch {
+            rows.append(.search(title: SyncCopy.text("contextMenu.searchFor", ["query": query]), query: query,
+                                identifier: "palette.search"))
+            rows += suggestions.map { .search(title: $0, query: $0, identifier: "palette.suggestion") }
+        }
+        if !goesToMatch { rows += results.map(SwitcherRow.result) }
+        return rows
     }
 
     private var switcherList: some View {
-        let query = input.trimmingCharacters(in: .whitespacesAndNewlines)
-        let results = QuickSwitcher.search(
-            query: query,
-            tabs: manager.tabs, remote: manager.syncEngine.remoteDevices, favorites: manager.syncEngine.favorites,
-            history: manager.historyStore.entries, groups: manager.groups, sets: switcherSets,
-            remoteSpaces: switcherRemoteSpaces
-        )
-        // The first row is always what Go does: a strong match, or the search.
-        let goesToMatch = QuickSwitcher.goTarget(query: query, results: results) != nil
-        let isSearch = !query.isEmpty && !AddressNormalizer.looksLikeAddress(query)
+        let rows = switcherRowItems
         return List {
-            if goesToMatch { switcherRows(results) }
-            if isSearch {
-                searchRow(SyncCopy.text("contextMenu.searchFor", ["query": query]), query: query, id: "palette.search")
-                ForEach(suggestions, id: \.self) { suggestion in
-                    searchRow(suggestion, query: suggestion, id: "palette.suggestion")
-                }
-            }
-            if !goesToMatch { switcherRows(results) }
-            if results.isEmpty, !isSearch {
+            if rows.isEmpty {
                 Text(SyncCopy.text("ios.palette.noMatches"))
                     .foregroundStyle(style.secondary)
             }
-        }
-    }
-
-    private func switcherRows(_ results: [SyncedSwitcherResult]) -> some View {
-        ForEach(results) { result in
-            Button {
-                open(result)
-                close()
-            } label: {
-                row(icon: result.groupId != nil ? "rectangle.stack" : result.setId != nil ? "square.on.square" : result.localTabID == nil ? "magnifyingglass" : "globe",
-                    title: result.title, subtitle: result.subtitle)
+            ForEach(Array(rows.enumerated()), id: \.element.id) { index, item in
+                switcherRow(item)
+                    .overlay { keyHighlight(index).allowsHitTesting(false) }
             }
         }
     }
 
-    /// A search with the chosen engine: the typed text, or a suggestion.
-    private func searchRow(_ title: String, query: String, id: String) -> some View {
-        Button {
-            manager.search(for: query)
-            close()
-        } label: {
-            row(icon: "magnifyingglass", title: title, subtitle: manager.settingsStore.searchEngine.label)
+    @ViewBuilder private func switcherRow(_ item: SwitcherRow) -> some View {
+        switch item {
+        case .result(let result):
+            Button { choose(item) } label: {
+                row(icon: result.groupId != nil ? "rectangle.stack" : result.setId != nil ? "square.on.square" : result.localTabID == nil ? "magnifyingglass" : "globe",
+                    title: result.title, subtitle: result.subtitle)
+            }
+        case .search(let title, _, let identifier):
+            Button { choose(item) } label: {
+                row(icon: "magnifyingglass", title: title, subtitle: manager.settingsStore.searchEngine.label)
+            }
+            .accessibilityIdentifier(identifier)
         }
-        .accessibilityIdentifier(id)
+    }
+
+    private func choose(_ item: SwitcherRow) {
+        switch item {
+        case .result(let result): open(result)
+        case .search(_, let query, _): manager.search(for: query)
+        }
+        close()
     }
 
     /// Asks for suggestions a moment after the typing pauses. The manager
@@ -558,6 +736,7 @@ struct PaletteSheet: View {
     }
 
     private func handleSubmit() {
+        if openKeyRow() { return }
         let trimmed = input.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !trimmed.isEmpty else { return }
 

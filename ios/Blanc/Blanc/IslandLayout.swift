@@ -16,7 +16,7 @@ struct IslandLayout: Equatable {
     enum Palette { case sheet, panel }
 
     /// Where Back and Forward sit on the Island, if anywhere.
-    enum History: Equatable { case hidden, beforeAddress, afterAddress }
+    enum History: Equatable { case hidden, afterAddress }
 
     /// The Island's buttons around the address. New Tab is always on it, and
     /// the address always leads.
@@ -26,8 +26,6 @@ struct IslandLayout: Equatable {
         let reload: Bool
     }
 
-    /// Back and Forward on the Island.
-    let showsHistoryButtons: Bool
     /// A bottom sheet, or a panel growing up from the Island in its place.
     let palette: Palette
     /// Split View (F53): a split's panes side by side. Elsewhere its focused
@@ -36,18 +34,17 @@ struct IslandLayout: Equatable {
 
     init(_ horizontal: UserInterfaceSizeClass?, _ vertical: UserInterfaceSizeClass?) {
         let unfolded = horizontal == .regular && vertical == .regular
-        showsHistoryButtons = unfolded
         palette = unfolded ? .panel : .sheet
         showsSplitView = unfolded
     }
 
-    /// The iPhone Island has room for Back, Forward and New Tab after the
-    /// address, but not Reload as well: pull to refresh and the Sunrise menu
+    /// Every Island, iPhone or iPad, has Back, Forward and New Tab after the
+    /// address, but not Reload as well (owner, 2026-11-12: the iPad Island
+    /// matches the iPhone's): pull to refresh and the Sunrise menu
     /// reload a page, and Stop still shows while a page loads, since nothing
     /// else can stop one. With the Back and Forward setting off, Reload takes
     /// their place.
     func buttons(backForward: Bool, isLoading: Bool) -> Buttons {
-        if showsHistoryButtons { return Buttons(history: .beforeAddress, reload: true) }
         if backForward { return Buttons(history: .afterAddress, reload: isLoading) }
         return Buttons(history: .hidden, reload: true)
     }
