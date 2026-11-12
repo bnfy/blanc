@@ -10,6 +10,7 @@
 // submitted before the script is ready (implicit submission also stops at a
 // disabled default button). method="post" is a second guard that keeps an
 // address out of the page URL.
+import survey from '../data/mail-survey.json';
 const { id = 'waitlist' } = Astro.props;
 ---
 <form class="mail-waitlist" id={id} method="post" data-mail-waitlist>
@@ -21,6 +22,7 @@ const { id = 'waitlist' } = Astro.props;
   </span>
   <p class="mail-waitlist-note" id={`${id}Note`}>We’ll ask you to confirm by email. The waitlist is separate from the Blanc newsletter, and we delete it after the launch announcement. <a href="/privacy#mail-waitlist">How we handle it</a></p>
   <p class="mail-waitlist-status" role="status" aria-live="polite"></p>
+  {survey.open && <p class="mail-waitlist-survey" hidden>While you’re here, you can tell us what you’d want in Blanc Mail. <a href="/mail/survey">Take the one-minute survey</a></p>}
   <noscript><p class="mail-waitlist-note">Turn on JavaScript to join the waitlist, or email <!--email_off--><a href="mailto:support@blanc.day">support@blanc.day</a><!--/email_off-->.</p></noscript>
 </form>
 <script>
@@ -45,6 +47,8 @@ const { id = 'waitlist' } = Astro.props;
         if (response.ok) {
           form.querySelector<HTMLElement>('.mail-waitlist-controls')!.hidden = true;
           status.textContent = 'Check your inbox to confirm your place. The link expires in 24 hours.';
+          const invite = form.querySelector<HTMLElement>('.mail-waitlist-survey');
+          if (invite) invite.hidden = false;
         } else if (response.status === 400) {
           status.textContent = 'That address didn’t look right. Please check it and try again.';
         } else {

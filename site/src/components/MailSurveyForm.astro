@@ -1,0 +1,125 @@
+---
+// The anonymous Blanc Mail feature survey. Posts JSON to the separate
+// blanc-mail-survey Worker (cloudflare/mail-survey-worker/), which stores the
+// answers and the day only, keeps no request logs, and deletes everything
+// once the Blanc Mail 1.0 scope is decided. The values below are the Worker's
+// ids (src/survey.js); the privacy page's "Blanc Mail survey" section
+// describes the same contract. Change all three together. The button starts
+// disabled and the script enables it, like MailWaitlistForm.astro.
+const accounts = [
+  ['gmail', 'Gmail'],
+  ['proton', 'Proton Mail'],
+  ['both', 'Both'],
+  ['other', 'Something else'],
+];
+const speeds = [
+  ['instant', 'Instantly, within a few seconds'],
+  ['minute', 'Within a minute is fine'],
+  ['few-minutes', 'Within a few minutes is fine'],
+  ['whenever', 'I don’t mind; I check mail when I check it'],
+];
+const features = [
+  ['unsubscribe-mute', 'One-click unsubscribe, and muting a sender for a while'],
+  ['calendar-replies', 'Accepting or declining calendar invitations from the email'],
+  ['sets', 'Grouping conversations you’ve set aside into named piles'],
+  ['snooze-send-later-templates', 'Snooze, Send Later and reusable templates'],
+  ['rules-vacation', 'Rules that sort mail automatically, and a vacation auto-reply'],
+  ['saved-search', 'Saved searches and stronger search'],
+  ['trusted-images', 'Showing remote images only for senders you trust'],
+  ['print-pdf-windows', 'Printing or saving a conversation as a PDF, and opening a conversation in its own window'],
+  ['proton-drafts', 'Proton drafts that also appear in Proton’s own apps'],
+];
+---
+<form class="mail-survey" method="post" data-mail-survey>
+  <fieldset class="mail-survey-question">
+    <legend>Which accounts would you use with Blanc Mail?</legend>
+    {accounts.map(([value, label]) => (
+      <label class="mail-survey-choice"><input type="radio" name="account" value={value}><span class="mail-survey-option">{label}</span></label>
+    ))}
+  </fieldset>
+  <fieldset class="mail-survey-question">
+    <legend>How quickly does new mail need to show up?</legend>
+    {speeds.map(([value, label]) => (
+      <label class="mail-survey-choice"><input type="radio" name="speed" value={value}><span class="mail-survey-option">{label}</span></label>
+    ))}
+  </fieldset>
+  <fieldset class="mail-survey-question" data-mail-survey-features>
+    <legend>Which would matter most to you? Pick up to three.</legend>
+    {features.map(([value, label]) => (
+      <label class="mail-survey-choice"><input type="checkbox" name="features" value={value}><span class="mail-survey-option">{label}</span></label>
+    ))}
+  </fieldset>
+  <div class="mail-survey-question" id="suggest">
+    <label class="mail-survey-legend" for="mailSurveyNote">Anything else you’d want? <span class="mail-muted">(optional)</span></label>
+    <textarea id="mailSurveyNote" name="note" rows="4" maxlength="500" aria-describedby="mailSurveyNoteHelp"></textarea>
+    <p class="mail-survey-help" id="mailSurveyNoteHelp">Please don’t include personal details. Or skip the questions and just send a suggestion.</p>
+  </div>
+  <input class="mail-waitlist-hp" type="text" name="website" tabindex="-1" autocomplete="off" aria-hidden="true">
+  <button type="submit" class="mail-survey-submit" disabled>Send my answers</button>
+  <p class="mail-survey-status" role="status" aria-live="polite"></p>
+  <noscript><p class="mail-survey-help">Turn on JavaScript to answer the survey.</p></noscript>
+</form>
+<script>
+  import { accountFromQuery, ANSWERED, browserStorage, writeState } from '../scripts/mail-survey-invite.mjs';
+  const SURVEY_ENDPOINT = 'https://blanc-mail-survey.bnfy-441.workers.dev/mail-survey';
+  const MAX_FEATURES = 3;
+  document.querySelectorAll<HTMLFormElement>('form[data-mail-survey]').forEach((form) => {
+    const status = form.querySelector('.mail-survey-status')!;
+    const button = form.querySelector<HTMLButtonElement>('button[type=submit]')!;
+    const boxes = [...form.querySelectorAll<HTMLInputElement>('[data-mail-survey-features] input[type=checkbox]')];
+    const syncLimit = () => {
+      const full = boxes.filter((box) => box.checked).length >= MAX_FEATURES;
+      for (const box of boxes) box.disabled = full && !box.checked;
+    };
+    boxes.forEach((box) => box.addEventListener('change', syncLimit));
+    // A chip on the Mail page's invitation card preselects the first answer.
+    const preselected = accountFromQuery(location.search);
+    if (preselected) {
+      const radio = form.querySelector<HTMLInputElement>(`input[name="account"][value="${preselected}"]`);
+      if (radio) radio.checked = true;
+    }
+    button.disabled = false;
+    form.addEventListener('submit', async (event) => {
+      event.preventDefault();
+      status.textContent = '';
+      const data = new FormData(form);
+      // The first two questions are needed unless a suggestion is written.
+      const note = String(data.get('note') ?? '').trim();
+      if (!note && (!data.get('account') || !data.get('speed'))) {
+        status.textContent = 'Please answer the first two questions, or write a suggestion.';
+        return;
+      }
+      button.disabled = true;
+      try {
+        const response = await fetch(SURVEY_ENDPOINT, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            account: data.get('account'),
+            speed: data.get('speed'),
+            features: data.getAll('features'),
+            note: String(data.get('note') ?? ''),
+            website: String(data.get('website') ?? ''),
+          }),
+        });
+        if (response.ok) {
+          for (const child of [...form.children]) if (child !== status) (child as HTMLElement).hidden = true;
+          status.textContent = 'Thank you. Your answers are in.';
+          // The invitation card on the Mail page stays away for good.
+          writeState(browserStorage(), ANSWERED);
+        } else if (response.status === 410) {
+          for (const child of [...form.children]) if (child !== status) (child as HTMLElement).hidden = true;
+          status.textContent = 'This survey has closed. Thank you to everyone who answered.';
+        } else if (response.status === 400) {
+          status.textContent = 'Please answer the first two questions, or write a suggestion.';
+        } else {
+          status.textContent = 'We couldn’t save that just now. Please try again later.';
+        }
+      } catch {
+        status.textContent = 'We couldn’t save that just now. Please try again later.';
+      } finally {
+        button.disabled = false;
+      }
+    });
+  });
+</script>
