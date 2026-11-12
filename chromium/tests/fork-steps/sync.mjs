@@ -1,7 +1,7 @@
 // Shipping Sync setup assertions over the native Settings controls.
 import assert from 'node:assert/strict';
 import {createRequire} from 'node:module';
-import {ensureSyncPeer,seedRemoteDevices,syncPump} from '../lib/sync-fixture.mjs';
+import {ensureSyncPeer,freeRequestRoom,seedRemoteDevices,syncPump} from '../lib/sync-fixture.mjs';
 import {inSettings} from '../adapters/commands.mjs';
 import {nativeCall} from '../lib/test-driver.mjs';
 const require=createRequire(import.meta.url);
@@ -125,12 +125,7 @@ export default function register(step){
   await this.syncPeer.pass();
   // Shipping's fixture injects an already-received session entry. Deliver
   // this real peer's entry through the Worker before the unchanged UI step.
-  // Keep the Worker's quota; only reset the runner's test request window.
-  const deadline=Date.now()+125000;
-  while(this.syncServer.requests.filter(r=>r.method==='GET'&&Date.now()-r.at<61000).length>=18){
-   assert.ok(Date.now()<deadline,'Worker read budget available');
-   await new Promise(resolve=>setTimeout(resolve,500));
-  }
+  freeRequestRoom(this.syncServer);
   await nativeCall(this.fixture.host,'desktopSyncCall',['sync.resetRequestWindowForTest'],null,120000);
   await nativeCall(this.fixture.host,'desktopSyncCall',['sync.syncNow'],null,120000);
  });

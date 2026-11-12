@@ -8,12 +8,17 @@ import {nativeCall} from './test-driver.mjs';
 import {inSettings} from '../adapters/commands.mjs';
 const require=createRequire(import.meta.url);
 const {peer}=require('../android/support/sync-peer.cjs');
-export async function syncRoom(w){
- const end=Date.now()+125000;
- while(w.syncServer.requests.filter(r=>r.method==='GET'&&Date.now()-r.at<61000).length>=18){
-  assert.ok(Date.now()<end,'local Worker request room');await new Promise(r=>setTimeout(r,500));
- }
+// The local Worker counts reads per account and per address each minute, as
+// production does. The scenarios drive two devices' passes back to back, far
+// faster than any person, and waiting out each minute made every Shared Spaces
+// and Send case take about two minutes. Before each harness-driven pass the
+// counters are freed as if the minute had passed. The Worker code is unchanged,
+// a pass's own requests still count, injected 429 faults are separate rules,
+// and the Sync gate (desktop-sync.mjs) keeps the real per-minute waits.
+export function freeRequestRoom(server){
+ for(const key of [...server.env.records.keys()])if(/^(rl|ip):/.test(key))server.env.records.delete(key);
 }
+export async function syncRoom(w){freeRequestRoom(w.syncServer);}
 export async function syncPump(w){
  await syncRoom(w);await w.syncPeer.sync.resetRequestWindowForTest();await w.syncPeer.sync.syncNow(['session','icons','settings','sends']);
  await syncRoom(w);await nativeCall(w.fixture.host,'desktopSyncCall',['sync.resetRequestWindowForTest'],null,120000);
