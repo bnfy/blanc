@@ -20,7 +20,8 @@ const cinemaLedger = JSON.parse(read('docs/website-cinematic-homepage-claims-v1.
 const v140Ledger = JSON.parse(read('docs/website-v1.40-claims.json'));
 const v145Ledger = JSON.parse(read('docs/website-v1.45-claims.json'));
 const arcWelcomeLedger = JSON.parse(read('docs/website-arc-welcome-claims.json'));
-const compareLedger = JSON.parse(read('docs/website-compare-claims-v1.46.0.json'));
+const compareLedger = JSON.parse(read('docs/website-compare-claims-v1.48.0.json'));
+const iphoneLedger = JSON.parse(read('docs/website-iphone-1.0-claims.json'));
 const entities = { rsquo: '’', lsquo: '‘', amp: '&', ldquo: '“', rdquo: '”' };
 // Compare source text only; consume incomplete tags and decode entities once.
 const normalize = text => text.replace(/<br\s*\/?>/gi, ' ').replace(/<[^>]*(?:>|$)/g, '').replace(/&(rsquo|lsquo|amp|ldquo|rdquo);/g, (_, name) => entities[name]).replace(/\s+/g, ' ').trim();
@@ -90,9 +91,9 @@ test('search landing pages are fully covered by the exact-wording ledger and lin
   }
 });
 
-test('the compare chart resolves to public v1.46.0 and every other-browser answer to a page it links', () => {
+test('the compare chart resolves to public v1.48.0 and every other-browser answer to a page it links', () => {
   const record = compareLedger;
-  assert.equal(record.publicRelease, 'v1.46.0');
+  assert.equal(record.publicRelease, 'v1.48.0');
   assert.equal(execFileSync('git', ['rev-parse', `${record.publicRelease}^{commit}`], { cwd: root, encoding: 'utf8' }).trim(), record.sourceSha);
   assert.ok(read(record.releaseEvidence).includes(record.sourceSha));
   for (const group of Object.values(record.evidenceGroups)) {
@@ -338,7 +339,7 @@ test('every sentence on the homepage is recorded in a claims ledger or named as 
   const file = 'site/src/pages/index.astro';
   const source = read(file);
   const recorded = [cinemaLedger, ledger, v132Ledger, v133Ledger, v134Ledger, JSON.parse(read('docs/website-reorder-claims-v1.30.json')),
-    JSON.parse(read('docs/website-v1.36-claims.json')), JSON.parse(read('docs/website-v1.38-claims.json')), v140Ledger, JSON.parse(read('docs/website-v1.43-claims.json')), v145Ledger, JSON.parse(read('docs/website-homepage-measurement-claims.json'))]
+    JSON.parse(read('docs/website-v1.36-claims.json')), JSON.parse(read('docs/website-v1.38-claims.json')), v140Ledger, JSON.parse(read('docs/website-v1.43-claims.json')), v145Ledger, iphoneLedger, JSON.parse(read('docs/website-homepage-measurement-claims.json'))]
     .flatMap(item => [...item.claims, ...(item.externalClaims || [])])
     .filter(claim => claim.source === file)
     .map(claim => claim.exactWording)
@@ -686,6 +687,41 @@ test('v1.45.0 Shared Spaces and Sync copy resolves to verified public v1.45.0 ev
   assert.match(notes, /\*\*Shared Spaces\.\*\*/);
   assert.match(notes, /\*\*Turn on Sync without a passphrase\.\*\*/);
   assert.match(notes, /\*\*Connect your iPhone\.\*\*/);
+});
+
+// Blanc for iPhone 1.0 on the App Store, recorded once the owner released it.
+test('Blanc for iPhone App Store copy resolves to the released 1.0 build and its App Store Connect record', () => {
+  const record = iphoneLedger;
+  assert.equal(record.iosRelease, '1.0 (202611030537)');
+  assert.equal(execFileSync('git', ['rev-parse', `${record.iosSourceSha}^{commit}`], { cwd: root, encoding: 'utf8' }).trim(), record.iosSourceSha);
+  // The App Store Connect record names the released build and its source.
+  const connect = read(record.releaseEvidence);
+  assert.match(connect, /\| 21 \| Releasing 1\.0 \| released 2026-11-06 \|/);
+  assert.ok(connect.includes('202611030537') && connect.includes(record.iosSourceSha.slice(0, 9)));
+  const availability = JSON.parse(read('site/src/data/ios-availability.json'));
+  assert.equal(availability.channel, 'app-store');
+  assert.equal(availability.build, record.iosRelease);
+  assert.match(availability.storeUrl, /^https:\/\/apps\.apple\.com\/app\/id6828027794$/);
+  // The released build is iPhone only and needs iOS 18.4, as the copy says.
+  const project = execFileSync('git', ['show', `${record.iosSourceSha}:ios/Blanc/Blanc.xcodeproj/project.pbxproj`], { cwd: root, encoding: 'utf8' });
+  assert.match(project, /IPHONEOS_DEPLOYMENT_TARGET = 18\.4;/);
+  assert.match(project, /MARKETING_VERSION = 1\.0;/);
+  for (const claim of record.claims) {
+    assert.ok(['verified', 'qualified'].includes(claim.verdict), claim.id);
+    assert.ok(normalize(read(claim.source)).includes(claim.exactWording), `${claim.id}: exact wording drifted`);
+    assert.ok(claim.evidenceGroups.length, `${claim.id}: no release evidence`);
+    for (const key of claim.evidenceGroups) {
+      const group = record.evidenceGroups[key];
+      assert.ok(group?.qualification && group.evidence.length, `${claim.id}: evidence and qualification`);
+      for (const evidence of group.evidence) execFileSync('git', ['cat-file', '-e', `${group.ref}:${evidence}`], { cwd: root });
+      for (const file of group.records || []) assert.ok(fs.existsSync(path.join(root, file)), `${claim.id}: ${file}`);
+    }
+  }
+  const files = new Set([...record.claims.map(claim => claim.source), 'site/src/pages/compare.astro', 'site/src/data/compare.json', 'site/src/data/roadmap.json']);
+  for (const file of files) {
+    const text = normalize(read(file));
+    for (const retired of record.prohibitedClaims) assert.ok(!text.includes(retired), `${file}: still says “${retired}”`);
+  }
 });
 
 // The clock's Font & color (F54) and the hero gallery of customized Start

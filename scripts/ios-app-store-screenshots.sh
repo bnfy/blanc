@@ -47,7 +47,8 @@ shot_time="$(date -v+1M +%-I:%M)"
 xcrun simctl status_bar "$udid" override --time "$shot_time" --dataNetwork wifi --wifiBars 3 \
   --cellularMode active --cellularBars 4 --batteryState charged --batteryLevel 100
 
-rm -rf "$out" && mkdir -p "$out"
+# Only the phone captures; duo-closed/ and duo-open/ are taken separately.
+mkdir -p "$out" && rm -f "$out"/*.png
 TEST_RUNNER_BLANC_SHOTS_DIR="$out" TEST_RUNNER_BLANC_SHOT_TIME="$shot_time" xcodebuild test-without-building \
   -project Blanc.xcodeproj -scheme Blanc -destination "id=$udid" -derivedDataPath "$derived" \
   -only-testing:BlancUITests/AppStoreScreenshotsUITests \

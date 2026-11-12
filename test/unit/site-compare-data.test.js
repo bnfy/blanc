@@ -68,6 +68,8 @@ test('the chart is re-checked for each Blanc feature release', async () => {
   const { releaseMinor } = await load();
   assert.equal(releaseMinor('v1.45.1'), '1.45');
   assert.equal(releaseMinor('v1.46.0'), '1.46');
+  assert.equal(releaseMinor('v1.47.0'), '1.47');
+  assert.equal(releaseMinor('v1.48.0'), '1.48');
   assert.equal(releaseMinor(releases[0].tag), releaseMinor(data.checkedAgainst),
     `a newer Blanc feature release (${releases[0].tag}) shipped: re-check /compare and bump checkedAgainst`);
 });
@@ -84,8 +86,10 @@ test('Arc drops after its end date', async () => {
 
 test('the page shows the same check date and Blanc version as the data', () => {
   const page = fs.readFileSync(path.join(ROOT, 'site/src/pages/compare.astro'), 'utf8');
-  const day = new Date(`${data.checked}T00:00:00Z`).toLocaleDateString('en-US', { timeZone: 'UTC', month: 'long', day: 'numeric', year: 'numeric' });
-  assert.ok(page.includes(`Checked ${day} against Blanc ${data.checkedAgainst}.`), `the Checked line must read ${day} and ${data.checkedAgainst}`);
+  const long = (iso) => new Date(`${iso}T00:00:00Z`).toLocaleDateString('en-US', { timeZone: 'UTC', month: 'long', day: 'numeric', year: 'numeric' });
+  const day = long(data.checked);
+  const blancDay = long(data.checkedBlanc);
+  assert.ok(page.includes(`Checked ${blancDay} against Blanc ${data.checkedAgainst}.`), `the Checked line must read ${blancDay} and ${data.checkedAgainst}`);
   assert.ok(page.includes(`its ${data.checkedAgainst} release`) && page.includes(`read on ${day}.`), 'the Sources paragraph must name the same version and date');
 });
 

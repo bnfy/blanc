@@ -12,6 +12,13 @@ enum UITestSeed {
   static var sends: Bool { ProcessInfo.processInfo.arguments.contains("-BlancUITestSends") }
   static var favorites: Bool { ProcessInfo.processInfo.arguments.contains("-BlancUITestFavorites") }
   static var privateTab: Bool { ProcessInfo.processInfo.arguments.contains("-BlancUITestPrivate") }
+  /// `-BlancUITestReduceMotion`: as if Reduce Motion were on.
+  static var reduceMotion: Bool { ProcessInfo.processInfo.arguments.contains("-BlancUITestReduceMotion") }
+  /// `-BlancUITestPageGeometry`: reports the page's frame and safe area.
+  static var pageGeometry: Bool { ProcessInfo.processInfo.arguments.contains("-BlancUITestPageGeometry") }
+  /// `-BlancUITestTapPage`: sync off, one local page titled "tapped" once tapped.
+  static var tapPage: Bool { ProcessInfo.processInfo.arguments.contains("-BlancUITestTapPage") }
+  static let tapPageURL = URL(string: "data:text/html,%3Ctitle%3Eready%3C/title%3E%3Cbody%20style=%22height:100vh;margin:0%22%20onclick=%22document.title='tapped'%22%3E")!
   /// `-BlancUITestStartPage`: sync off, one tab on the Start Page.
   static var startPage: Bool { ProcessInfo.processInfo.arguments.contains("-BlancUITestStartPage") }
   /// `-BlancUITestTwoTabs`: sync off, example.com (current) and example.org.

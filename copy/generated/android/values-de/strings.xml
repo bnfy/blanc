@@ -822,7 +822,6 @@ Versuche es erneut mit „%2$s“ oder installiere Blanc neu von blanc.day.</str
     <string name="shortcuts_background_link">Link in Hintergrund-Tab öffnen</string>
     <string name="glance_status_opened">%1$s in Glance geöffnet</string>
     <string name="glance_status_closed">Glance geschlossen</string>
-    <string name="split_glance_unavailable">Glance ist nicht verfügbar, solange eine geteilte Ansicht angezeigt wird</string>
     <string name="glance_status_opened_as_tab">%1$s ist jetzt der aktuelle Tab</string>
     <string name="glance_status_tab_closed">Glance geschlossen, weil sein Tab geschlossen wurde</string>
     <string name="glance_status_main_closed">%1$s ist jetzt die Hauptseite. Glance geschlossen.</string>
@@ -2489,6 +2488,11 @@ Versuche es erneut mit „%2$s“ oder installiere Blanc neu von blanc.day.</str
     <string name="reader_mono">JetBrains Mono</string>
     <string name="settings_general_island_size_label">Größe der Island</string>
     <string name="settings_general_island_size_hint">Macht die Island und ihre Schaltflächen größer. Die Seite rückt nach unten, um Platz zu machen.</string>
+    <string name="settings_general_page_zoom_label">Standard-Seitenzoom</string>
+    <string name="settings_general_page_zoom_hint">Die Größe, in der Webseiten geöffnet werden. Wenn du eine Website vergrößerst oder verkleinerst, wird die Größe nur für diese Website gespeichert.</string>
+    <string name="settings_general_page_zoom_percent">%1$s %%</string>
+    <string name="settings_general_site_zoom_hint">Diese Websites haben einen eigenen Zoom. Entferne eine, um zum Standard zurückzukehren.</string>
+    <string name="settings_general_site_zoom_clear_all">Alle löschen</string>
     <string name="settings_general_island_size_default">Standard</string>
     <string name="settings_general_island_size_large">Groß</string>
     <string name="settings_general_island_size_extra_large">Sehr groß</string>
@@ -2544,6 +2548,12 @@ Versuche es erneut mit „%2$s“ oder installiere Blanc neu von blanc.day.</str
     <string name="ios_palette_clear">Suche löschen</string>
     <string name="ios_palette_no_command">Kein passender Befehl</string>
     <string name="ios_palette_no_matches">Keine Treffer. Drücke die Eingabetaste, um es als Adresse oder Suche zu öffnen.</string>
+    <string name="ios_palette_edit_address">Adresse bearbeiten</string>
+    <string name="ios_island_page_zoom">Seitenzoom</string>
+    <string name="ios_island_desktop_site">Desktop-Website anfordern</string>
+    <string name="ios_island_mobile_site">Mobile Website anfordern</string>
+    <string name="ios_app_link_message">Diese Seite möchte eine andere App öffnen.</string>
+    <string name="ios_downloads_failed">%1$s konnte nicht heruntergeladen werden</string>
     <string name="ios_tabs_open_tabs">Offene Tabs</string>
     <string name="ios_tabs_switch_to">Zu %1$s wechseln</string>
     <string name="ios_tabs_close">%1$s schließen</string>
@@ -2573,6 +2583,7 @@ Versuche es erneut mit „%2$s“ oder installiere Blanc neu von blanc.day.</str
     <string name="ios_welcome_privacy_title">Deine Privatsphäre</string>
     <string name="ios_welcome_measure_usage">Nutzung messen</string>
     <string name="ios_welcome_measure_usage_help">Bei jedem Öffnen sendet Blanc einen anonymen Zähler: eine zufällige ID für diese Installation, die App-Version und die iOS-Version. Nie, was du ansiehst. Siehe blanc.day/privacy.</string>
+    <string name="ios_welcome_suggestions_help">Während du eine Suche eintippst, geht der Text an deinen Suchanbieter, der Vorschläge zurückschickt. Nie aus einem privaten Tab und nie eine Adresse, eingefügter Text oder etwas, das wie ein Passwort oder Schlüssel aussieht.</string>
     <string name="ios_welcome_show_again">Willkommen erneut zeigen</string>
     <string name="ios_default_browser_title">Links in Blanc öffnen</string>
     <string name="ios_default_browser_body">Mach Blanc zu deinem Standardbrowser, damit Links aus Nachrichten, Mail und anderen Apps hier öffnen.</string>

@@ -32,36 +32,18 @@ struct TabGridView: View {
 
     var body: some View {
         VStack(spacing: 0) {
-            HStack {
-                if let space = manager.shownSpace {
-                    SpaceTile(color: space.color, symbol: space.symbol, size: 28)
-                    Text(space.name).font(BrowserStyle.font(24, semibold: true)).lineLimit(1)
-                } else {
-                    Text(SyncCopy.text("ios.tabs.openTabs")).font(BrowserStyle.font(24, semibold: true))
-                }
-                Text("\(manager.tabs.count)").font(.system(size: 14)).foregroundStyle(style.secondary)
-                Spacer()
-                Button(SettingsCopy.text("done")) { close() }
-                    .font(BrowserStyle.font(16, semibold: true))
-                    .frame(minWidth: 44, minHeight: 44)
-            }
-            .padding(.horizontal, 20)
-            .padding(.vertical, 12)
-
             ScrollViewReader { proxy in
                 ScrollView {
                     VStack(alignment: .leading, spacing: 20) {
+                        if let space = manager.shownSpace { spaceName(space) }
                         ForEach(manager.displaySections, id: \.id) { section in
                             if let group = section.group {
                                 VStack(alignment: .leading, spacing: 12) {
                                     GroupHeader(group: group, count: section.tabs.count, manager: manager, style: style) {
                                         naming = .rename(group)
                                     }
-                                    if group.collapsed {
-                                        tucked(group, count: section.tabs.count)
-                                    } else {
-                                        cards(section.tabs)
-                                    }
+                                    let shown = shownTabs(of: group, in: section.tabs)
+                                    if !shown.isEmpty { cards(shown) }
                                 }
                             } else {
                                 cards(section.tabs)
@@ -70,6 +52,7 @@ struct TabGridView: View {
                     }
                     .padding(20)
                 }
+                .clippedBeforeSoftEdge()
                 .onAppear {
                     if let id = manager.activeTabId { proxy.scrollTo(id, anchor: .center) }
                 }
@@ -95,6 +78,8 @@ struct TabGridView: View {
         .background(TabPreviewRenderer(tabs: manager.tabs).allowsHitTesting(false).accessibilityHidden(true))
         .buttonStyle(.plain)
         .accessibilityIdentifier("tabs.grid")
+        // There's no close button: a card leaves the grid, or VoiceOver's escape.
+        .accessibilityAction(.escape) { close() }
         .sheet(item: $naming) { current in
             switch current {
             case .rename(let group):
@@ -114,6 +99,23 @@ struct TabGridView: View {
         }
     }
 
+    /// Which Space this is, since the Island is away while the grid is open.
+    private func spaceName(_ space: SpaceRecord) -> some View {
+        HStack(spacing: 8) {
+            SpaceTile(color: space.color, symbol: space.symbol, size: 22)
+            Text(space.name).font(BrowserStyle.font(17, semibold: true)).lineLimit(1)
+        }
+        .accessibilityElement(children: .combine)
+        .accessibilityAddTraits(.isHeader)
+        .accessibilityIdentifier("tabs.spaceName")
+    }
+
+    /// A folded group keeps the current tab's card: it's the way back to that
+    /// page, and where the page lands.
+    private func shownTabs(of group: TabGroup, in tabs: [TabModel]) -> [TabModel] {
+        group.collapsed ? tabs.filter { $0.id == manager.activeTabId } : tabs
+    }
+
     private func cards(_ tabs: [TabModel]) -> some View {
         LazyVGrid(columns: columns, spacing: 24) {
             ForEach(tabs) { tab in
@@ -125,20 +127,6 @@ struct TabGridView: View {
                 .id(tab.id)
             }
         }
-    }
-
-    private func tucked(_ group: TabGroup, count: Int) -> some View {
-        Button { withAnimation { manager.setGroupCollapsed(group.id, false) } } label: {
-            Text(SyncCopy.plural("tabGroups.tucked", count: count))
-                .font(BrowserStyle.font(14))
-                .foregroundStyle(style.secondary)
-                .frame(maxWidth: .infinity, minHeight: 44, alignment: .leading)
-                .padding(.horizontal, 14)
-                .background(style.raised, in: RoundedRectangle(cornerRadius: 12))
-                .overlay(RoundedRectangle(cornerRadius: 12).strokeBorder(style.border))
-                .contentShape(Rectangle())
-        }
-        .accessibilityIdentifier("group.tucked")
     }
 
     private func card(_ tab: TabModel) -> some View {
@@ -162,9 +150,7 @@ struct TabGridView: View {
                 }
                 .aspectRatio(1, contentMode: .fit)
                 .clipShape(RoundedRectangle(cornerRadius: 18))
-                .overlay(RoundedRectangle(cornerRadius: 18).strokeBorder(
-                    manager.activeTabId == tab.id ? style.text : style.border,
-                    lineWidth: manager.activeTabId == tab.id ? 2 : 1))
+                .overlay(RoundedRectangle(cornerRadius: 18).strokeBorder(style.border, lineWidth: 1))
             }
             .contentShape(Rectangle())
             .pointerLift(cornerRadius: 18)
@@ -260,5 +246,12 @@ private struct SwipeToClose<Content: View>: View {
                         withAnimation(.spring(response: 0.35, dampingFraction: 0.85)) { dx = 0 }
                     }
                 })
+    }
+}
+
+private extension View {
+    /// Before iOS 26's soft scroll edge, cards would run sharply under the clock.
+    @ViewBuilder func clippedBeforeSoftEdge() -> some View {
+        if #available(iOS 26, *) { self } else { clipped() }
     }
 }

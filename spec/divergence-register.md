@@ -272,13 +272,23 @@ mobile is a single full-screen surface with system insets.
   strip, its own always-on-top overlay view, and traffic-lights / window controls.
 - **Mobile:** a single surface; the island adapts to safe-area insets; no window
   controls; multi-window is a tablet/foldable consideration, not a phone one.
-- **iOS (2026-11-05, owner request):** Settings → Island → Back and Forward
-  buttons (off by default, device-local `islandHistoryButtons`, never synced)
-  puts them on the iPhone Island in place of Reload and New Tab, after a
-  visitor asked where Back was. The Island has no tab count on any layout:
+- **iOS (2026-11-05, owner request; revised 2026-11-11):** the iPhone Island
+  shows Back, Forward and New Tab after the address, for everyone, after a
+  visitor asked where Back was. It began as a Settings → Island switch
+  (`islandHistoryButtons`, off by default) that swapped them for Reload and
+  New Tab with the address centered; on 2026-11-11 the owner made them the
+  default with the switch kept to turn them off (`islandBackForward`, on by
+  default, device-local, never synced; off shows Reload and New Tab, as
+  before). The old key is dropped rather than carried over. The address
+  stays leading, after the Sunrise mark. Reload is in the Sunrise menu, and
+  pull to refresh still reloads. The Sunrise menu ends with Settings. In the
+  palette's list a tab row has no ×, which was easy to miss for the row:
+  a swipe to the left closes it (a full swipe without a tap), its hold menu
+  has Close Tab, and VoiceOver has Close Tab as an action (owner, 2026-11-11). On the Start Page the Island reads Search or type a
+  URL, dimmed, as the desktop pill does on a blank tab (owner, 2026-11-11). The Island has no tab count on any layout:
   a pinch in on a fully zoomed-out page, as in Safari, or a swipe up from the
-  Island opens the tab grid. The page shrinks into its card as Safari's does. Stop still shows while a page loads. Pull to
-  refresh and the tab grid and palette's New Tab stay. The unfolded Island
+  Island opens the tab grid. The page shrinks into its card as Safari's does. Stop still shows while a page loads,
+  on the Island and in the Sunrise menu. The unfolded Island
   always shows every button. Back and Forward also survive a relaunch: each
   tab's `interactionState` is saved on this device only (never synced, never
   backed up, never a private tab), found through `SavedTab.historyId` and kept
@@ -740,9 +750,9 @@ pointer reaching the window's top edge, which touch input has no equivalent for.
   and the Island would land on it, and the floating Island hides as soon as
   the pointer moves below the strip. Glance always uses the push layout.
   Turning it on shows the Island for a few seconds with a tip on how to bring
-  it back. While hidden, a 6px band along the page pane's
-  top edge drags the window (both styles); below it the page's top band
-  belongs to the page. With vertical tabs the rail is never reveal territory;
+  it back. While hidden, a band along the page pane's top edge drags the
+  window (both styles): 6px, or 10px on Windows, whose top 5 rows are the
+  window's resize border. Below it the page's top band belongs to the page. With vertical tabs the rail is never reveal territory;
   only the page pane's top band is. On Linux under native Wayland, which gives
   apps no pointer position outside their windows, the Island is revealed from
   just inside the top edge only, not from the band above a floating window.
@@ -755,16 +765,26 @@ differs.
 
 **Status:** Accepted 2026-10-19; float style added 2026-10-20. Windows and
 Linux (X11 and native Wayland) hand checks ran 2026-10-20 (bnfy/blanc#994):
-on Windows the drag band drags but a double-click on it does not maximise, in
-either style (the same with a transparent drag view, so it is Windows' own
-hit test). On Linux the window document went `hidden` while the page
+the Windows record of that check, that the band drags but a double-click on
+it does not maximise, is corrected below. On Linux the window document went `hidden` while the page
 covered it whole and stopped tracking resizes, leaving the floating pill and
 window controls at stale positions after a maximise; on Linux a covered strip
 now keeps one row uncovered (bnfy/blanc#999). Windows does the same: its
 covered strip also went `hidden`, so a pill that grew while covered (more
 tabs, a longer domain) was drawn wider than its view and lost its ends
 (reported on v1.42.0; 2026-10-22 VM check), and a covered strip there keeps
-one row uncovered too (bnfy/blanc#1052).
+one row uncovered too (bnfy/blanc#1052). On Windows the top 5 rows are the
+window's resize border, not the band: the rows the 2026-10-20 check read as
+dragging were resizing the window's top edge, and a double-click there
+stretches it to full height, while the first row below them maximised. So a
+6px band left one row that dragged, and only sideways or up, because Windows
+drops the drag if the pointer's first move leaves the band (bnfy/blanc#1369).
+The band there is now 10px, measured 2026-11-06 with real mouse input on a
+GitHub-hosted Windows machine at 100% scale: in float, rows 5–9 drag sideways
+and up, and rows 5–8 down at a 1px step; in push the strip is revealed by the
+press, so rows 5–10 drag; rows 8–9 stop short of the window controls, which
+keep their clicks. The October VM logs put the same row 4/5 boundary at 200%
+scale; the 10px band has not been measured in the Windows VM.
 
 ---
 
@@ -852,25 +872,33 @@ public v1.43.1. Revisit when a mobile Blanc has profiles.
 
 **Why:** The owner asked for a layered, reflective iPhone icon in the
 standard Light style (2026-10-29). They chose the iPhone's Sunrise Gold as
-its standard icon and added Sunrise Dawn, which is kept off the Mac for now. iOS 26 and later draw Icon
+its standard icon and added Sunrise Dawn, which is kept off the Mac for now.
+On 2026-11-11 they made Sunrise the iPhone's standard icon, as on the Mac,
+and added Sunrise Bronze, also iPhone only. iOS 26 and later draw Icon
 Composer packages in Liquid Glass and store the chosen alternate icon
 themselves.
 
 - **Desktop (macOS):** five icons, `sunrise` standard, chosen in Settings →
   General → App icon and stored as the device-local `appIcon` setting.
-- **iOS:** six icons, the Mac's five plus `sunrise-dawn` (Sunrise Dawn).
-  `sunrise-gold` is the primary icon. They're chosen in Settings → Appearance → App icon and
-  switched with `setAlternateIconName`. iOS remembers the choice, so there's
-  no `appIcon` value in iPhone settings. The iPhone's Sunrise Gold is drawn for
-  the phone: the same cream glass Sunrise on gold, plus a reflection under
-  the water and separate glass pieces.
+- **iOS:** seven icons, the Mac's five plus `sunrise-bronze` (Sunrise Bronze)
+  and `sunrise-dawn` (Sunrise Dawn). `sunrise` is the primary icon (it was
+  `sunrise-gold` until 2026-11-11; a phone that had chosen Sunrise as an
+  alternate still reads as Sunrise). They're chosen in Settings → Appearance →
+  App icon and switched with `setAlternateIconName`. iOS remembers the choice,
+  so there's no `appIcon` value in iPhone settings. The iPhone's Sunrise Gold
+  is drawn for the phone: the same cream glass Sunrise on gold, plus a
+  reflection under the water and separate glass pieces. Sunrise Bronze is
+  Sunrise turned inside out: a cream glass mark on a bronze tile, with a warm
+  glow behind the sun and its reflection in the water.
 - **Android:** not built.
 
 **Parity contract:** shared ids keep the same names and labels, no platform
-reuses a retired id, and every icon is free. `sunrise-dawn` stays out of the
-shared settings schema until the Mac offers it.
+reuses a retired id, and every icon is free. `sunrise-dawn` and
+`sunrise-bronze` stay out of the shared settings schema until the Mac offers
+them.
 
-**Status:** iPhone implemented, unreleased. Spec:
+**Status:** iPhone 1.0 shipped with Sunrise Gold standard; Sunrise standard
+and Sunrise Bronze are implemented for 1.0.2, unreleased. Spec:
 `docs/superpowers/specs/2026-10-29-ios-liquid-glass-app-icons-design.md`.
 
 ---

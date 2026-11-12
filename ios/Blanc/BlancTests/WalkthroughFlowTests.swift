@@ -16,6 +16,27 @@ final class WalkthroughFlowTests: XCTestCase {
 
     func testSeenThisVersionShowsNothing() { XCTAssertNil(flow(completed: WalkthroughFlow.version).current) }
 
+    func testAnEarlierVersionIsShownOnlyThePrivacyStep() {
+        for paired in [false, true] {
+            var f = flow(paired: paired, completed: 1, isDefault: false)
+            let seen = walk(&f, [{ $0.next() }])
+            XCTAssertEqual(seen, [.privacy, nil], "no pairing, sharing or default-browser step a second time")
+            XCTAssertTrue(f.privacySaved)
+        }
+    }
+
+    func testClosingTheReturningCardSavesWhatItShows() {
+        var f = flow(completed: 1)
+        XCTAssertTrue(f.close())
+        XCTAssertNil(f.current)
+    }
+
+    func testPairingFromTheReturningCardGoesOnAsANewPhoneDoes() {
+        var f = flow(completed: 1, isDefault: false)
+        let seen = walk(&f, [{ $0.joined() }, { $0.next() }, { $0.next() }, { $0.next() }])
+        XCTAssertEqual(seen, [.privacy, .arrived, .shareBack, .privacy, .defaultBrowser])
+    }
+
     func testPairedPhoneStartsAtShareBack() { XCTAssertEqual(flow(paired: true).current, .shareBack) }
 
     func testPairPath() {

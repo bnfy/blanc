@@ -116,10 +116,20 @@ the real app in a plain dark frame. The canvas's files are copied in
 
 `npm run ios:app-store-screenshots` captures every phone screen from the real
 app (`AppStoreScreenshotsUITests`, from the `-BlancUITestAppStore` seed) on an
-iPhone 17 Pro Max simulator, iOS 26.5, light, English, then composes the set
-(`scripts/ios-app-store-compose.mjs`) at Apple's 6.9" size, 1320 × 2868, in
-`docs/ios/app-store/6.9/`, and the same design at 6.3", 1206 × 2622, in
-`docs/ios/app-store/6.3/`. The captures are in `docs/ios/app-store/captures/`.
+iPhone 17 Pro Max simulator, iOS 26.5 by default (27.2+ when that runtime
+isn't installed), light, English, then
+composes the set (`scripts/ios-app-store-compose.mjs`) at Apple's 6.9" size,
+1320 × 2868, in `docs/ios/app-store/6.9/`, and the same design at 6.3",
+1206 × 2622, in `docs/ios/app-store/6.3/`. The captures are in
+`docs/ios/app-store/captures/`; the script clears only that folder, never
+`captures/duo-closed/` or `captures/duo-open/`, which are captured and
+composed separately (see iPhone Duo screenshots below).
+
+Re-captured for **1.0.1** on 2026-11-07 against build 202611070455
+(`c4d9df3b7`, iOS 27.2, device AB83F495-4C93-4FCE-A5FA-EF8BE662B58F),
+after #1402 removed the grid header, Done button and card focus border
+(screenshot 5 and the app preview). The iPhone Duo set (below) still shows
+the old grid and needs a manual re-capture.
 
 | # | Headline | Subtitle | The capture |
 |---|---|---|---|
@@ -165,7 +175,10 @@ if it runs past 29 s, and sets the captions in
 `docs/ios/app-store/preview/captions.json` over it in Blubird. The tour: the
 Island on a Van Gogh, swiping it between tabs, pull to refresh, the tab
 grid, switching to the Trip Space, the MacBook Pro's tabs and sent pages, and
-the Start Page. Its poster frame is `blanc-preview-poster.png`.
+the Start Page. Its poster frame is `blanc-preview-poster.png`. Re-recorded
+for 1.0.1 on 2026-11-07, same build and device as the screenshots above;
+`previewFrameTimeCode` was kept at `00:00:05:01` for the App Store Connect
+thumbnail.
 
 ## iPhone Duo screenshots
 

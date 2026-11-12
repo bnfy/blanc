@@ -260,7 +260,7 @@
     },
     {
       "file": "src/main/main.js",
-      "sha256": "7a1e27d63026688a555036d46e0d6ccbabb1c0fa72aa9bf5ca4636301a4a697c",
+      "sha256": "b0a0ac58deb5dfc650888df4ab72c34c54cc580864fa8ba09a2c8f559c3c30e0",
       "literalChannels": [
         "activate",
         "bang-icons:changed",
@@ -268,6 +268,7 @@
         "before-input-event",
         "before-mouse-event",
         "before-quit",
+        "before-quit-for-update",
         "blur",
         "browser-window-blur",
         "browser-window-focus",
@@ -376,6 +377,7 @@
         "did-finish-load",
         "did-navigate",
         "display-capture:picker-resolve",
+        "error",
         "fill:reply",
         "focus",
         "groups:move-closed",
@@ -516,7 +518,7 @@
     },
     {
       "file": "src/main/pages.js",
-      "sha256": "3a942c4c62bbd671e83d1e90383f3c8c0dce8b51860bf5f3e1353007ecb3a2fd",
+      "sha256": "0b3e4a1d96ff351d4b432ef607e862f6ef49a144fd582ee524743f874ad10a16",
       "literalChannels": [
         "blanc",
         "pages:app-version",
@@ -652,7 +654,10 @@
         "pages:tab-import:submit-embeddings",
         "pages:tab-import:suggest-embed",
         "pages:tab-import:suggest-source-groups",
-        "pages:telemetry:reset-install-id"
+        "pages:telemetry:reset-install-id",
+        "pages:zoom:clear",
+        "pages:zoom:list",
+        "pages:zoom:remove"
       ],
       "role": "privileged implementation or service"
     },
@@ -964,7 +969,7 @@
     },
     {
       "file": "src/main/sync.js",
-      "sha256": "f26dcf6bb2adaf6e27869b3384bac189f9898a8d8d80f7cb625b2e525397949e",
+      "sha256": "0a7c5974677f186c08ab657512173eb20beaf3f5571e1373ceb5aa3cb701271f",
       "literalChannels": [
         "before-quit"
       ],
@@ -978,7 +983,7 @@
     },
     {
       "file": "src/main/tab-preload.js",
-      "sha256": "b1c9163a2e555eba26ed2b28967d4a458052b8a527d93d0827b49a5504f7b1c0",
+      "sha256": "77c36a7b0ef913b38a90983ec9534f594ff7beba05c40440a7d68ef4a738f38d",
       "literalChannels": [
         "page-tint:changed",
         "pages:app-version",
@@ -1123,7 +1128,10 @@
         "pages:tab-import:submit-embeddings",
         "pages:tab-import:suggest-embed",
         "pages:tab-import:suggest-source-groups",
-        "pages:telemetry:reset-install-id"
+        "pages:telemetry:reset-install-id",
+        "pages:zoom:clear",
+        "pages:zoom:list",
+        "pages:zoom:remove"
       ],
       "role": "preload"
     },
@@ -1135,7 +1143,7 @@
     },
     {
       "file": "src/main/tab-view.js",
-      "sha256": "83cf296d7abda8e716a350defc5521474ca5bb491bcd3dd9cd6a2f4524e3f441",
+      "sha256": "2a90edb5e62310785085402a74dab910adbd77f1da432f81487b84359713181e",
       "literalChannels": [
         "audio-state-changed",
         "before-input-event",

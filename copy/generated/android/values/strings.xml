@@ -60,7 +60,7 @@
     <string name="pill_insecure_fallback">Connection is not secure</string>
     <string name="pill_insecure_open">%1$s. Open site controls.</string>
     <string name="pill_domain_default">new tab</string>
-    <string name="pill_placeholder">Search or type a URL</string>
+    <string name="pill_placeholder">Search or type URL</string>
     <string name="pill_notice_clean_link_copied">Clean link copied</string>
     <string name="pill_notice_link_copied">Link copied</string>
     <string name="pill_notice_route_on">Links open here</string>
@@ -822,7 +822,6 @@ You can retry with “%2$s”, or reinstall from blanc.day.</string>
     <string name="shortcuts_background_link">Open link in background tab</string>
     <string name="glance_status_opened">%1$s opened in Glance</string>
     <string name="glance_status_closed">Glance closed</string>
-    <string name="split_glance_unavailable">Glance isn\'t available while a split is showing</string>
     <string name="glance_status_opened_as_tab">%1$s is now the current tab</string>
     <string name="glance_status_tab_closed">Glance closed because its tab was closed</string>
     <string name="glance_status_main_closed">%1$s is now the main page. Glance closed.</string>
@@ -2489,6 +2488,11 @@ You can retry with “%2$s”, or reinstall from blanc.day.</string>
     <string name="reader_mono">JetBrains Mono</string>
     <string name="settings_general_island_size_label">Island size</string>
     <string name="settings_general_island_size_hint">Make the Island and its buttons bigger. The page moves down to make room.</string>
+    <string name="settings_general_page_zoom_label">Default page zoom</string>
+    <string name="settings_general_page_zoom_hint">The size web pages open at. Zooming in or out on a site saves a size just for that site.</string>
+    <string name="settings_general_page_zoom_percent">%1$s%%</string>
+    <string name="settings_general_site_zoom_hint">These sites have their own zoom. Remove one to go back to the default.</string>
+    <string name="settings_general_site_zoom_clear_all">Clear all</string>
     <string name="settings_general_island_size_default">Default</string>
     <string name="settings_general_island_size_large">Large</string>
     <string name="settings_general_island_size_extra_large">Extra large</string>
@@ -2544,6 +2548,12 @@ You can retry with “%2$s”, or reinstall from blanc.day.</string>
     <string name="ios_palette_clear">Clear search</string>
     <string name="ios_palette_no_command">No matching command</string>
     <string name="ios_palette_no_matches">No matches. Press Return to open it as an address or search.</string>
+    <string name="ios_palette_edit_address">Edit address</string>
+    <string name="ios_island_page_zoom">Page Zoom</string>
+    <string name="ios_island_desktop_site">Request Desktop Website</string>
+    <string name="ios_island_mobile_site">Request Mobile Website</string>
+    <string name="ios_app_link_message">This page wants to open another app.</string>
+    <string name="ios_downloads_failed">Couldn’t download %1$s</string>
     <string name="ios_tabs_open_tabs">Open tabs</string>
     <string name="ios_tabs_switch_to">Switch to %1$s</string>
     <string name="ios_tabs_close">Close %1$s</string>
@@ -2573,6 +2583,7 @@ You can retry with “%2$s”, or reinstall from blanc.day.</string>
     <string name="ios_welcome_privacy_title">Your privacy</string>
     <string name="ios_welcome_measure_usage">Measure usage</string>
     <string name="ios_welcome_measure_usage_help">Each time you open Blanc, it sends one anonymous count: a random ID for this install, the app version and the iOS version. Never what you browse. See blanc.day/privacy.</string>
+    <string name="ios_welcome_suggestions_help">While you type a search, the text goes to your search provider, which sends back suggestions. Never from a private tab, and never an address, pasted text or anything that looks like a password or key.</string>
     <string name="ios_welcome_show_again">Show the welcome again</string>
     <string name="ios_default_browser_title">Open links in Blanc</string>
     <string name="ios_default_browser_body">Make Blanc your default browser so links from Messages, Mail and other apps open here.</string>

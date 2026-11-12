@@ -274,10 +274,13 @@ const localProfiles = require('./local-profiles');
 const profileDeletions = require('./profile-deletions');
 const {
   withLocalProfile,
+  activeLocalProfileId,
   setFocusedLocalProfile,
 } = require('./local-profile-context');
 const { filterRestoredSession, restoreTargetId, restoredLastViewedAt } = require('./session-restore');
-const { UTILITY_PAGES, isUtilityUrl } = require('./utility-pages');
+const { KNOWN_PAGES, UTILITY_PAGES, isUtilityUrl } = require('./utility-pages');
+const siteZoom = require('./site-zoom');
+const { createTabZoom } = require('./tab-zoom');
 const {
   MAX_TAB_IMPORT_ENVELOPE_BYTES,
   MAX_TAB_IMPORT_TABS,
@@ -3636,6 +3639,7 @@ function currentChromeLayout(content = rt().window.getContentBounds()) {
     islandHeight: islandStripHidden() ? 0 : rt().chromeHeight,
     tabLayout,
     verticalTabsWidth: verticalTabsPreferredWidth,
+    platform: chromePlatform(),
   });
 }
 
@@ -5025,10 +5029,13 @@ function removeTabFromSplit(tabId) {
   withWindowRuntime(runtime, () => {
     // The removed tab, if it was showing, steps out of view: the rest of the
     // split (or the survivor, full-window) takes the window.
+    // A Glance floating over the split stays over what remains of it.
     if (runtime.activeTabId === tabId) {
       const next = rest ? rest.tabIds[rest.focusedIndex] : dissolved[0];
-      if (next) setActiveTab(next);
-    } else if (visibleSplitOf(runtime) || dissolved.includes(runtime.activeTabId)) {
+      if (next) setActiveTab(next, { keepGlance: true });
+    } else if ((visibleSplitOf(runtime) || dissolved.includes(runtime.activeTabId))
+      && tabId !== runtime.glanceTabId) {
+      // Never the Glance page: it can come from a split that isn't showing.
       if (liveContents(tab)) detachTabView(tab, { retainManagedRoot: true });
       resizeActiveView();
     }
@@ -6775,7 +6782,10 @@ app.on('will-quit', () => {
   blockingProviders?.stop();
   onePasswordBroker?.stop();
 });
-app.on('before-quit', () => {
+// The start of every quit: the final Space captures, and the flag every
+// session writer checks. Runs again harmlessly when an update restart's own
+// before-quit follows.
+function beginQuit() {
   // Shared targets were persisted before materialization. Leave them for
   // restoration rather than starting or waiting on page loads during quit.
   glanceCards.flush(); // a card moved inside the save debounce keeps its place
@@ -6790,8 +6800,8 @@ app.on('before-quit', () => {
   for (const runtime of windowRuntimes.all()) {
     forgetTabImportForRuntime(runtime.id, 'cancel');
   }
-
-});
+}
+app.on('before-quit', beginQuit);
 
 /** Builds one window's persistable session entry — the exact shape
  * persistSession() writes into session.json's windows[] array. Pulled out
@@ -7287,21 +7297,22 @@ function resizeActiveView() {
     });
   } else {
     roundSplitPane(tab, false);
-    // The floating Glance card: the main page keeps the whole page area; the
-    // card's chrome view and the Glance page inside it float over it.
+    // The main page keeps the whole page area.
     if (liveContents(tab)) presentationView(tab).setBounds(place(layout.pageBounds));
-    const cardDrawn = rt().glanceCardDrawn === true;
-    // The card is fixed to the window: a pushed Island sliding in moves the
-    // main page beneath it, never the card or the page inside it.
-    if (liveContents(glanceTab) && card) {
-      presentationView(glanceTab).setBounds(card.page);
-      roundGlancePage(glanceTab, true);
-      if (presentationView(glanceTab).getVisible?.() !== cardDrawn) setTabViewVisible(glanceTab, cardDrawn);
-    }
-    if (cardView) {
-      if (card) cardView.setBounds(card.chrome);
-      cardView.setVisible(!!card && cardDrawn);
-    }
+  }
+  // The floating Glance card: its chrome view and the Glance page inside it
+  // float over the main page, or over every pane of a split (#1441).
+  const cardDrawn = rt().glanceCardDrawn === true;
+  // The card is fixed to the window: a pushed Island sliding in moves the
+  // pages beneath it, never the card or the page inside it.
+  if (liveContents(glanceTab) && card) {
+    presentationView(glanceTab).setBounds(card.page);
+    roundGlancePage(glanceTab, true);
+    if (presentationView(glanceTab).getVisible?.() !== cardDrawn) setTabViewVisible(glanceTab, cardDrawn);
+  }
+  if (cardView) {
+    if (card) cardView.setBounds(card.chrome);
+    cardView.setVisible(!!card && cardDrawn);
   }
   syncSplitCornerTabs(split, place);
   keepIslandFloatOnTop();
@@ -8296,8 +8307,17 @@ function adoptSharedGroupIds(runtime,bindings) {
   }
   return changed;
 }
+// Shared Space passes stop while Blanc quits, while the last Windows/Linux
+// window is held for its quit, and on a window that is closing (F57-15): that
+// is teardown, and its windows are saved already. A primary closed to the
+// Dock still takes changes, as its tabs stay saved for reopen.
+function sharedSpaceWorkHalted(runtime) {
+  return isQuitting||sessionHeldForQuit||(runtime.closing&&!runtime.dockClosed);
+}
 const sharedRuntimeSync=createRuntimeSync({
-  read:sharedSpaceRuntimeContext,
+  // Every step of a pass reads here first, so a pass already queued when the
+  // work halts stops at its next step instead of applying rows and saving.
+  read:runtime=>sharedSpaceWorkHalted(runtime)?null:sharedSpaceRuntimeContext(runtime),
   capture:runtime=>withWindowRuntime(runtime,()=>workspaceCapture(runtime)),
   checkpoint:runtime=>withWindowRuntime(runtime,()=>{
     if(!namedWorkspaces.saveCapture(runtime.workspaceId,workspaceCapture(runtime)).ok)return false;
@@ -8370,6 +8390,7 @@ function hasDeferredSharedChanges(runtime) {
   return !!sharedSpaceRuntimeContext(runtime)?.window?.accepted?.length;
 }
 function applySharedSpaceChanges(runtime, options={}) {
+  if(sharedSpaceWorkHalted(runtime))return Promise.resolve(false);
   const context=sharedSpaceRuntimeContext(runtime);
   if(!context||runtime.workspaceTransition||sharedSpaceState.isDormant(context.spaceId,context.ctx)||(!options.force&&!sharedSpaceState.isEnabled(context.ctx)))return Promise.resolve(false);
   if(context.store.data.index.spaces[context.spaceId]?.deleted?.v===true) {
@@ -8553,9 +8574,17 @@ function checkpointWorkspaceSession(runtime, { excludeRuntime = null } = {}) {
 
 function flushWorkspaceSession({ excludeRuntime = null } = {}) {
   if (sessionReadOnly) return { ok: false, error: 'future-format' };
+  // A quit, or the last Windows/Linux window held for one, has already saved
+  // every window. Each is marked closing by now, so a write here would save
+  // one empty entry over them, and persistSession, which refuses during a
+  // quit, could never repair it (F57-15).
+  if (isQuitting || sessionHeldForQuit) return { ok: false, error: 'busy' };
   const saved = ensureSessionStore().updateAndFlush((data) => {
     const previous = new Map(loadWorkspace(data).windows.map((entry) => [entry.id, entry]));
-    const windows = windowRuntimes.all().filter((r) => r !== excludeRuntime && !r.closing && savesSessionEntry(r))
+    // A closing window is leaving the session, except the macOS primary
+    // closed to the Dock: it keeps its tabs for reopen, and persistSession
+    // keeps saving it, so another window's save must not drop it.
+    const windows = windowRuntimes.all().filter((r) => r !== excludeRuntime && (!r.closing || r.dockClosed) && savesSessionEntry(r))
       .map((r) => captureWindowEntry(r, { previousActiveIndex: previous.get(r.id)?.activeIndex ?? 0 }));
     Object.assign(data, buildSaveShape(windows, data, { activeWindowId: focusedRuntime?.id ?? PRIMARY_WINDOW_ID }));
   });
@@ -9282,10 +9311,23 @@ function notePopupChild(openerTabId, childWindow, sourceContentsId, targetUrl) {
 }
 
 // tab-view.js owns every per-tab WebContentsView listener and setup call.
+const tabZoom = createTabZoom({
+  tabs,
+  liveContents,
+  defaultPercent: () => settings.getSettings().pageZoom,
+  siteZoom,
+  withLocalProfile,
+  activeProfileId: activeLocalProfileId,
+  readPreferences: (profileId) => fs.readFileSync(
+    path.join(profileSessionRegistry.normal(profileId).getStoragePath(), 'Preferences'), 'utf8'),
+  internalHosts: [...KNOWN_PAGES],
+});
+
 // Function declarations below are hoisted; every const this reads is already
 // initialized before this module-scope call.
 initTabView({
   t: mainI18n.t,
+  tabZoom,
   readerAction: tab => ({ active: readerMode.active(tab), click: () => toggleReaderMode(tab) }),
   readerInvalidated: tab => readerMode.invalidate(tab),
   readerLoaded: tab => readerMode.probe(tab),
@@ -9600,6 +9642,8 @@ function createTab(url = newTabUrl(), { private: isPrivate = false, groupId = nu
     wc.setAudioMuted(effectiveTabMuted(tab));
     view.setVisible(true);
     tab.url = wc.getURL() || tab.url;
+    // The default or this site's zoom may have changed while it was parked.
+    tabZoom.refresh(tab, wc);
     // An inert local-file record keeps its saved title, not the placeholder's.
     tab.title = recordTitle(tab, wc.getTitle() || tab.title);
     // Every other re-derivation of this flag hangs off a navigation event, and
@@ -9777,6 +9821,7 @@ function setActiveTab(id, {
   focusAddress = false,
   dismissUtilitySheet = true,
   keepSpacesEditor = false,
+  keepGlance = false,
 } = {}) {
   const next = tabs.get(id);
   if (!next || next.sleeping || windowRuntimes.runtimeForTab(id) !== rt()) return;
@@ -9834,7 +9879,13 @@ function setActiveTab(id, {
   // tab ends it, and choosing the Glance tab itself (an Island dot, ⌘1–9, the
   // ⌘L list) opens that page as the tab, like Open as tab. Interacting inside
   // the Glance page never reaches here: its focus handler doesn't activate.
-  if (rt().glanceTabId) closeGlance({ focusContent: false });
+  // Over a split (#1441) it floats over every pane, so focus moving between
+  // the panes of the split it was opened over keeps it, as does the split's
+  // own survivor taking over when a pane closes or leaves (keepGlance).
+  const withinShownSplit = shownBefore.has(prevId) && shownBefore.has(id);
+  if (rt().glanceTabId && !((keepGlance || withinShownSplit) && id !== rt().glanceTabId)) {
+    closeGlance({ focusContent: false });
+  }
   if (prev) {
     // Quiet Tabs: the tab is leaving the foreground — this is the ONLY moment
     // that defines "idle since" (spec §4.3). Stamp before a potential detach
@@ -9915,15 +9966,18 @@ function setActiveTab(id, {
   }
 }
 
-/** A two-pane split can release either pane into a floating Glance. */
+/** Glance from the tab menu or the ⌘L row's button. Any other tab floats
+ * over the visible split (#1441); a pane of a two-pane split instead leaves
+ * the split and floats over the remaining tab. With no split showing it is
+ * setGlanceTab. */
 async function openTabMenuGlance(id) {
   const runtime = rt();
   const split = visibleSplitOf(runtime);
-  if (split) {
+  if (split?.tabIds.includes(id)) {
     const tab = tabs.get(id);
-    // Validate before changing the split. Other rows (and larger splits)
-    // cannot float over a split that would still be visible afterward.
-    if (split.tabIds.length !== 2 || !split.tabIds.includes(id)
+    // Validate before changing the split. A larger split would still be
+    // showing with this pane in it, so its panes can't go to Glance.
+    if (split.tabIds.length !== 2
       || !tab || tab.sleeping || tab.asleep || !liveContents(tab)
       || windowRuntimes.runtimeForTab(id) !== runtime) return false;
     // Removing the active pane must hand the window to its survivor. Do not
@@ -9938,19 +9992,15 @@ async function openTabMenuGlance(id) {
 }
 
 async function setGlanceTab(id) {
-  if (visibleSplitOf()) {
-    // Glance and a visible split never share a window (F53).
-    if (hasLiveWindow()) stripSurfaces(rt()).send('chrome:glance-status', mainI18n.t('split.glanceUnavailable'));
-    return false;
-  }
   let tab = tabs.get(id);
   // A tab mid-sleep-teardown (`sleeping`) still reads back live contents, but
   // its renderer is already being discarded — attaching it would paint a dead
   // pane. Refuse; the picker reports the failure and a retry finds it asleep
-  // and takes the wake path.
+  // and takes the wake path. Glance floats over the main page or over the
+  // whole visible split (#1441), so it never shows a page already on screen.
   if (
     !hasLiveWindow() || !tab || id === rt().activeTabId || tab.sleeping ||
-    windowRuntimes.runtimeForTab(id) !== rt()
+    visibleSplitTabIds().includes(id) || windowRuntimes.runtimeForTab(id) !== rt()
   ) return false;
 
   const requestEpoch = rt().glanceRequestEpoch ?? 0;
@@ -9971,7 +10021,7 @@ async function setGlanceTab(id) {
   tab = tabs.get(id);
   if (
     !hasLiveWindow() || !tab || id === rt().activeTabId || tab.sleeping ||
-    windowRuntimes.runtimeForTab(id) !== rt()
+    visibleSplitTabIds().includes(id) || windowRuntimes.runtimeForTab(id) !== rt()
   ) return false;
   if (!liveContents(tab) || !tab.view) return false;
 
@@ -10078,10 +10128,6 @@ function openLinkInGlance(opener, url) {
 
 function openGlancePicker(query = '') {
   if (!hasLiveWindow()) return false;
-  if (visibleSplitOf()) {
-    stripSurfaces(rt()).send('chrome:glance-status', mainI18n.t('split.glanceUnavailable'));
-    return false;
-  }
   rt().window.focus();
   // With a Glance open, the Change picker hangs from the card header's Change
   // control. With a single tab the picker still opens, to say what to do.
@@ -10431,6 +10477,18 @@ function closeTab(id) {
     const survivingGlanceId = rt().glanceTabId && tabs.has(rt().glanceTabId)
       ? rt().glanceTabId
       : null;
+    const splitSurvivor = splitSurvivors.find((other) => tabs.has(other));
+    if (splitSurvivor) {
+      // The split's other pane takes the window. A Glance floating over the
+      // split (#1441) stays, over what remains of it.
+      rt().activeTabId = null;
+      pruneSplits(rt());
+      setActiveTab(splitSurvivor, { keepGlance: true });
+      if (!splitForTab(rt().splits, splitSurvivor) && hasLiveWindow()) {
+        announceSplit(mainI18n.t('split.dissolved', { title: displayTitle(tabs.get(splitSurvivor)) || mainI18n.t('tab.untitledShort') }));
+      }
+      return;
+    }
     if (survivingGlanceId) {
       // Closing the main page leaves the visible reference as the sole page.
       // Promote it and collapse Glance rather than silently choosing a third
@@ -10443,16 +10501,6 @@ function closeTab(id) {
         stripSurfaces(rt()).send('chrome:glance-status', mainI18n.t('glance.status.mainClosed', {
           title: displayTitle(promoted) || mainI18n.t('tab.untitledShort'),
         }));
-      }
-      return;
-    }
-    const splitSurvivor = splitSurvivors.find((other) => tabs.has(other));
-    if (splitSurvivor) {
-      rt().activeTabId = null;
-      pruneSplits(rt());
-      setActiveTab(splitSurvivor);
-      if (!splitForTab(rt().splits, splitSurvivor) && hasLiveWindow()) {
-        announceSplit(mainI18n.t('split.dissolved', { title: displayTitle(tabs.get(splitSurvivor)) || mainI18n.t('tab.untitledShort') }));
       }
       return;
     }
@@ -11167,10 +11215,6 @@ function refreshBookmarkFlags() {
   scheduleMenuRebuild();
 }
 
-const ZOOM_STEP = 0.5;
-const ZOOM_MIN = -8;
-const ZOOM_MAX = 8;
-
 /** Zoom acts on what the user is looking at: the sheet when open, else the
  * focused page pane (glance-focus.js). Menu clicks carry no sender. */
 function zoomTargetWebContents() {
@@ -11178,15 +11222,27 @@ function zoomTargetWebContents() {
   return presentationContents(browserCommandTab(rt()));
 }
 
-function zoomActiveTab(delta) {
+/** The tab the zoom target belongs to; null for the sheet and Reader, whose
+ * zoom stays on that one view. */
+function zoomTargetTab(wc) {
+  const tab = browserCommandTab(rt());
+  return !rt().utilitySheetUrl && tab && liveContents(tab) === wc ? tab : null;
+}
+
+function zoomActiveTab(direction) {
   const wc = zoomTargetWebContents();
   if (!wc) return;
-  const level = Math.max(ZOOM_MIN, Math.min(ZOOM_MAX, wc.getZoomLevel() + delta));
-  wc.setZoomLevel(level);
+  const tab = zoomTargetTab(wc);
+  if (tab) tabZoom.step(tab, wc, direction);
+  else tabZoom.stepDirect(wc, direction);
 }
 
 function resetZoomForActiveTab() {
-  zoomTargetWebContents()?.setZoomLevel(0);
+  const wc = zoomTargetWebContents();
+  if (!wc) return;
+  const tab = zoomTargetTab(wc);
+  if (tab) tabZoom.reset(tab, wc);
+  else wc.setZoomLevel(0);
 }
 
 /** The tab an open find capsule searches; null when none is open. */
@@ -11697,7 +11753,8 @@ function registerIpcHandlers() {
   chromeHandle('tabs:select', (_e, id, mode) => selectTabRows(id, mode));
   chromeHandle('tabs:switch', (_e, id) => { clearTabSelection(); return setActiveTab(id); });
   chromeHandle('tabs:activate-from-rail', (_e, id) => { clearTabSelection(); return activateTabFromRail(id); });
-  chromeHandle('tabs:set-glance', (_e, id) => setGlanceTab(id));
+  // The ⌘L row's Glance button: same split rule as the tab menu (#1441).
+  chromeHandle('tabs:set-glance', (_e, id) => openTabMenuGlance(id));
   chromeHandle('tabs:open-glance-picker', (_e, query) => openGlancePicker(typeof query === 'string' ? query.slice(0, 200) : ''));
   chromeHandle('tabs:close-glance', () => closeGlance());
   chromeHandle('tabs:open-glance-as-tab', () => openGlanceAsTab());
@@ -12707,10 +12764,10 @@ function buildMenuForRuntime(runtime) {
         command('forward'),
         command('reload'),
         command('hard-reload'),
-        { id: 'zoom-in', label: t('menu.zoomIn'), accelerator: 'CmdOrCtrl+Plus', click: bound(() => zoomActiveTab(ZOOM_STEP)) },
+        { id: 'zoom-in', label: t('menu.zoomIn'), accelerator: 'CmdOrCtrl+Plus', click: bound(() => zoomActiveTab(1)) },
         // Plus requires Shift on most keyboards; Cmd/Ctrl+= is the common alternate, bound silently to the same action.
-        { label: t('menu.zoomIn'), accelerator: 'CmdOrCtrl+=', visible: false, click: bound(() => zoomActiveTab(ZOOM_STEP)) },
-        { id: 'zoom-out', label: t('menu.zoomOut'), accelerator: 'CmdOrCtrl+-', click: bound(() => zoomActiveTab(-ZOOM_STEP)) },
+        { label: t('menu.zoomIn'), accelerator: 'CmdOrCtrl+=', visible: false, click: bound(() => zoomActiveTab(1)) },
+        { id: 'zoom-out', label: t('menu.zoomOut'), accelerator: 'CmdOrCtrl+-', click: bound(() => zoomActiveTab(-1)) },
         { id: 'zoom-reset', label: t('menu.actualSize'), accelerator: 'CmdOrCtrl+0', click: bound(resetZoomForActiveTab) },
         { type: 'separator' },
         {
@@ -12898,8 +12955,9 @@ function tabContextData(tab, owner) {
     groups: owner.groups.map((g) => ({ id: g.id, name: g.name })),
     activeTabId: owner.activeTabId,
     glanceTabId: owner.glanceTabId ?? null,
-    canGlance: !visibleSplit || (visibleSplit.tabIds.length === 2
-      && visibleSplit.tabIds.includes(tab.id)),
+    // Any other tab floats over a visible split (#1441); a pane of a
+    // two-pane split leaves it for Glance (openTabMenuGlance).
+    canGlance: !visibleSplit?.tabIds.includes(tab.id) || visibleSplit.tabIds.length === 2,
     canCloseOthers: closableTabIds({ tabOrder: owner.tabOrder, tabsById: tabs, keepId: tab.id }).length > 0,
     canMoveToNewWindow: owner.tabOrder.length > 1,
     // A page-opened tab can't be copied into a fresh view (document-policy.js).
@@ -13191,6 +13249,7 @@ function profileWindowTitle(profile) {
 function createMainWindowForRuntime(runtime, { ensureStartTab = false, inactive = false } = {}) {
   if (runtime.window && !runtime.window.isDestroyed()) return runtime;
   runtime.closing = false;
+  runtime.dockClosed = false;
   runtime.chromeReady = false;
   // The strip reports its height only once it has drawn at the saved Island
   // size (#1292), so pages start there rather than jumping down.
@@ -15665,11 +15724,18 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
   // A layout picked in Settings (or arriving from Profile Sync) must reach
   // every open start page, not just the one that made the change.
   settings.onSettingsChanged(() => broadcastStartPageStatus());
+  let appliedPageZoom = settings.getSettings().pageZoom;
+  settings.onSettingsChanged(({ pageZoom }) => {
+    if (pageZoom === appliedPageZoom) return;
+    appliedPageZoom = pageZoom;
+    tabZoom.applyAll();
+  });
   onSpacesChangedForStartPage = () => broadcastStartPageStatus();
   // pages.js's IPC surface derives runtime ownership from the sender before
   // any window-local hook runs. A background window's ledger/sheet can never
   // read or mutate the focused window's groups or overlay.
   const pagesRegistration = setupPages({
+    pageZoom: { list: tabZoom.list, remove: tabZoom.remove, clear: tabZoom.clear },
     syncPairing: {
       offered: () => isIphonePairingOffered(),
       // Finish setup asked for the sheet; the page opens it once.
@@ -16063,6 +16129,7 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
         if(action==='apply')return sharedSharing.apply(payload,{waitForUpload:true});
         if(action==='pull')return sync.syncNow(payload);
         if(action==='resetRequestWindow')return sync.resetRequestWindowForTest();
+        if(action==='settleRequests')return sync.settleRequestsForTest();
         if(action==='foreground'){sync.setForeground(payload!==false);return true;}
         if(action==='check'){try{return await sync.checkVersions();}catch(error){return {threw:error.message};}}
         if(action==='cadence')return sync.cadenceForTest();
@@ -16149,7 +16216,12 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
           viewBounds: glanceView?.getBounds() ?? null,
           cardViewBounds: cardView?.getBounds() ?? null,
           cardViewVisible: cardView?.getVisible?.() ?? false,
-          stackIndex: { main: children.indexOf(mainView), card: children.indexOf(cardView), glance: children.indexOf(glanceView) },
+          stackIndex: {
+            main: children.indexOf(mainView), card: children.indexOf(cardView), glance: children.indexOf(glanceView),
+            // A Glance over a split (#1441): every pane and corner tab.
+            panes: visibleSplitTabIds().map((id) => children.indexOf(presentationView(tabs.get(id)))),
+            corners: [...rt().splitCornerViews.values()].map((entry) => children.indexOf(entry.view)),
+          },
         };
       },
       runLinkSpaceMenuItem: (tabId, url, text, itemId) => {
@@ -16450,6 +16522,7 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
         };
       },
       getUtilitySheetWebContents: () => liveUtilitySheet()?.wc ?? null,
+      zoomActiveTab,
       getOverlayWebContents: () => rt().overlayView?.webContents ?? null,
       getChromeWebContents: () => rt().window?.webContents ?? null,
       setWindowContentSize: (width, height) => {
@@ -17334,6 +17407,30 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
   }
 
   setupAutoUpdater({ t: mainI18n.t });
+  // A macOS update restart closes every window before it emits before-quit
+  // (Electron's autoUpdater.quitAndInstall, which electron-updater's MacUpdater
+  // calls). Start the quit first, so those closes keep their windows saved as
+  // Quit does rather than each leaving the session, and no Shared Space pass
+  // saves the session over them in between. If the install fails instead, the
+  // app keeps running: end the quit that never came.
+  if (process.platform === 'darwin' && app.isPackaged) {
+    const { autoUpdater: nativeUpdater } = require('electron');
+    let updateQuitPending = false;
+    nativeUpdater.on('before-quit-for-update', () => { updateQuitPending = true; beginQuit(); });
+    // Not before-quit: the macOS visibility gate may only pause that one.
+    app.on('will-quit', () => { updateQuitPending = false; });
+    nativeUpdater.on('error', () => {
+      if (!updateQuitPending) return;
+      updateQuitPending = false;
+      isQuitting = false;
+      for (const runtime of windowRuntimes.all()) {
+        if (runtime.window && !runtime.window.isDestroyed()) runtime.closing = false;
+        // A window the update already closed kept its tabs, as on Quit: keep
+        // them saved, as a primary closed to the Dock is, until it reopens.
+        else if (runtime.closing && runtime.tabOrder.length) runtime.dockClosed = true;
+      }
+    });
+  }
 
   app.on('activate', () => {
     if (isQuitting) return;

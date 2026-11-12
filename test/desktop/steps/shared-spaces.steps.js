@@ -278,13 +278,17 @@ Given('a Shared Spaces fixture whose shared Work Space has a tab alone in a grou
 });
 // An unpackaged Blanc keeps its data in "<profile>-Dev".
 const sharedStoreOnDisk=profileDir=>JSON.parse(require('node:fs').readFileSync(require('node:path').join(profileDir+'-Dev','shared-spaces.json'),'utf8'));
+const sessionOnDisk=profileDir=>JSON.parse(require('node:fs').readFileSync(require('node:path').join(profileDir+'-Dev','session.json'),'utf8'));
 When('the Shared Spaces client quits normally and relaunches',{timeout:180000},async function(){
  const state=await this.call('sharedSpacesTest','state');
  assert.ok(Object.values(state.shared.windows).some(w=>w.accepted.some(row=>row.op==='nav'&&row.id===this.navigated)),'the active navigation is held before the quit');
  this.deviceId=state.context.deviceId;
- await ctx.quitAndRelaunch(profileDir=>{this.storeAtQuit=sharedStoreOnDisk(profileDir);});
+ await ctx.quitAndRelaunch(profileDir=>{this.storeAtQuit=sharedStoreOnDisk(profileDir);this.sessionAtQuit=sessionOnDisk(profileDir);});
 });
 Then('the quit saved no closed Work tab and kept the held navigation',function(){
+ // F57-15: a Space pass that landed during the quit wrote one empty window here.
+ const windows=this.sessionAtQuit.windows??[];
+ assert.ok(windows.some(w=>w.workspaceId&&w.urls?.length),`the quit kept the Work window in session.json: ${JSON.stringify(windows.map(w=>({workspaceId:w.workspaceId,urls:w.urls?.length})))}`);
  const saved=this.storeAtQuit,blob=saved.blobs[this.sid].blob;
  const closed=Object.values(blob.tabs).filter(r=>r.deleted.v===true).map(r=>`${r.nav.v.url} (by ${r.deleted.by===this.deviceId?'this device':r.deleted.by})`);
  assert.deepEqual(closed,[],'the quit must not close a Work tab');
@@ -481,8 +485,21 @@ Then('the selection sheet is closed and Settings says the Spaces are uploading',
 });
 // The change check (design 2026-11-02): another device's new Space reaches
 // this one on its next check, or on the minute pass without the check.
-// Setting up turns sync on and shares Work, which uses the request window;
-// the device is then put past that burst, as it is once it has run a while.
+// Setting up turns sync on and shares Work, which uses the request window,
+// and leaves a full pass scheduled that would spend it a second later.
+// F57-24 puts the device past that pass, as it is once it has run a while. (A
+// plain window reset ran before that pass, so a focus change during it, which
+// the app reports as a blur, left the check no room to fetch the new Space for
+// a minute.)
+Given('Blanc is in front and has finished its launch pass',async function(){
+ assert.equal(await this.call('sharedSpacesTest','foreground',true),true);
+ assert.equal(await this.call('sharedSpacesTest','settleRequests'),true,'the setup\'s requests settle');
+});
+// F57-25 (no change check) keeps the plain reset: its Space is found by the
+// pass the setup scheduled, whose second wave then waits out the window, and
+// that is the minute the scenario allows. Settling that pass first leaves the
+// minute pass to find the Space, and its second wave waits out a further window
+// (the Linux run showed the Space in the index after 70 s, its blob not fetched).
 Given('Blanc is in front',async function(){assert.equal(await this.call('sharedSpacesTest','foreground',true),true);await this.call('sharedSpacesTest','resetRequestWindow');});
 Given('the sync Worker can\'t answer change checks',function(){this.sharedFixture.setVersions(false);});
 When('another device shares a new Space {string}',{timeout:60000},async function(name){

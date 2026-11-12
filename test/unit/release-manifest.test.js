@@ -315,7 +315,7 @@ test('release authentication uses an explicit interactive operator, 1Password de
     assert.match(instructions, /gh auth status/);
     assert.match(instructions, /before asking the user to reauthenticate|Do not ask the user to run `gh auth login`/);
   }
-  assert.ok(releaseScript.includes('${BLANC_MIGRATION_BASE_VERSION:-1.46.0}'));
+  assert.ok(releaseScript.includes('${BLANC_MIGRATION_BASE_VERSION:-1.48.0}'));
   assert.ok(releaseScript.includes('${BLANC_COSIGN_REDIRECT_PORT:-49197}'));
   assert.ok(releaseScript.includes('http://127.0.0.1:$COSIGN_REDIRECT_PORT/auth/callback'));
   assert.match(releaseScript, /Sigstore callback port \$COSIGN_REDIRECT_PORT is already in use/);
@@ -388,6 +388,7 @@ test('the release runtime is chosen explicitly, ECS needs the EVS account and th
   assert.match(releaseScript, /BLANC_RELEASE_RUNTIME must be explicitly set to ecs or official\./);
   assert.match(releaseScript, /for var in BLANC_EVS_PYTHON EVS_CONFIG_FILE EVS_CACHE_FILE/);
   assert.match(releaseScript, /matrix\.ecsRuntime !== pin\.version/);
+  assert.match(releaseScript, /\/\^PENDING\/\.test\(evidence\) \|\| !evidence\.includes\(pin\.version\)/);
   assert.match(releaseScript, /BLANC_ECS_RELEASE_PIPELINE=1 node scripts\/build-ecs-production\.cjs --release --mac/);
   assert.match(releaseScript, /verify-ecs-production-package\.cjs --release "dist\/mac-arm64\/Blanc\.app"/);
   assert.match(releaseScript, /verify-ecs-production-package\.cjs --release "dist\/mac\/Blanc\.app"/);

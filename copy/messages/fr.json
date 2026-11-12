@@ -243,7 +243,7 @@
   },
   "pill.placeholder": {
     "message": "Rechercher ou saisir une URL",
-    "source": "sha256:cfb8ca4be5f793f910258121250c991cd9bc736ccfd07285de5dacff603913cc"
+    "source": "sha256:8d94349d68e65bad7b02e39aa7e4eafbf42f58c875dec41fe663ba8005f16a77"
   },
   "pill.notice.cleanLinkCopied": {
     "message": "Lien épuré copié",
@@ -3002,10 +3002,6 @@
   "glance.status.closed": {
     "message": "Glance fermé",
     "source": "sha256:1008c10836b5872a9ac50e128369c885836df91e8e756948e2b3abf4aed4a15e"
-  },
-  "split.glanceUnavailable": {
-    "message": "Glance n’est pas disponible pendant l’affichage d’une vue partagée",
-    "source": "sha256:f2310b15f7e0b49d589da7dfe191a1033dd0c654dc19f4c4e1b15b87d5c8256f"
   },
   "glance.status.openedAsTab": {
     "message": "{title} est maintenant l'onglet actuel",
@@ -9049,6 +9045,26 @@
     "message": "Agrandit l’Island et ses boutons. La page descend pour lui faire de la place.",
     "source": "sha256:48c1d3a1a214af35519502d499581a6d02de870bcacc9b805359bb539b21f58d"
   },
+  "settings.general.pageZoom.label": {
+    "message": "Zoom de page par défaut",
+    "source": "sha256:fe73fcb3567cd53127a2d319a777c0b71e678eb9519d48093ebbd771a3b15b83"
+  },
+  "settings.general.pageZoom.hint": {
+    "message": "La taille d’ouverture des pages web. Zoomer sur un site enregistre une taille pour ce site uniquement.",
+    "source": "sha256:92d47376c4e3ddeba8965ebdaaa4bb85838869de83f14c5daaf425ad7a96bf22"
+  },
+  "settings.general.pageZoom.percent": {
+    "message": "{percent} %",
+    "source": "sha256:5f1c7869f205f85c914f58cc7090021e03baf27faaaa382b41353ffc6312fb8b"
+  },
+  "settings.general.siteZoom.hint": {
+    "message": "Ces sites ont leur propre zoom. Retirez-en un pour revenir au zoom par défaut.",
+    "source": "sha256:b6b6948ccced487b221de55765e76c5eea4d539e0258878db9552d31a085eb5a"
+  },
+  "settings.general.siteZoom.clearAll": {
+    "message": "Tout effacer",
+    "source": "sha256:b39813f37a5cb176f968bbe93d8e610bd12021fa8ab48ac4c793ce29c346352b"
+  },
   "settings.general.islandSize.default": {
     "message": "Par défaut",
     "source": "sha256:ff21948bae12e207abf2eb10170dcc542a289349152b11bb45cf2bfecf684e53"
@@ -9245,6 +9261,30 @@
     "message": "Aucun résultat. Appuyez sur Retour pour l’ouvrir comme adresse ou recherche.",
     "source": "sha256:46db92f26b57de707da442b42408e8bf0086343fd07da52e5967f9e4912de2cf"
   },
+  "ios.palette.editAddress": {
+    "message": "Modifier l’adresse",
+    "source": "sha256:dfbb61b6b19e7cb18c745888e725052c4c00764e10af5bffdf6d678594f96330"
+  },
+  "ios.island.pageZoom": {
+    "message": "Zoom de page",
+    "source": "sha256:20d98a6a2b92cc042344220be60fe3b39d67547c2b978597bf622d53fc1780dd"
+  },
+  "ios.island.desktopSite": {
+    "message": "Demander le site web pour ordinateur",
+    "source": "sha256:26fce8e023bb66144767cd3297b77ecf89bd966f2a482e07e330c2d4ef10ac8f"
+  },
+  "ios.island.mobileSite": {
+    "message": "Demander le site web mobile",
+    "source": "sha256:d85602f2c34cb0dc8c6fe1d7b89d47ae3d3b28ca4226a91a70c44d20b02a3b0c"
+  },
+  "ios.appLink.message": {
+    "message": "Cette page souhaite ouvrir une autre application.",
+    "source": "sha256:0ec329b3a709623bad526c6473165ac3c8e2cb0bd289e2140f75e975a26bacba"
+  },
+  "ios.downloads.failed": {
+    "message": "Impossible de télécharger {file}",
+    "source": "sha256:528a807eb1ee9254b624cc9abbaae34a1bf5d4cddd78d1349911e1e8b2bd43b5"
+  },
   "ios.tabs.openTabs": {
     "message": "Onglets ouverts",
     "source": "sha256:89493dd0e4a5f4bb1e277a1821982fe52cd694db0d06e69eecdddbbb74ed1fce"
@@ -9360,6 +9400,10 @@
   "ios.welcome.measureUsageHelp": {
     "message": "À chaque ouverture, Blanc envoie un comptage anonyme : un identifiant aléatoire pour cette installation, la version de l’app et celle d’iOS. Jamais ce que vous consultez. Voir blanc.day/privacy.",
     "source": "sha256:918daf894fa3d224ceb4594a9ca31bb335ea73f40215009a0e188c3b261689bc"
+  },
+  "ios.welcome.suggestionsHelp": {
+    "message": "Pendant que vous saisissez une recherche, le texte est envoyé à votre moteur de recherche, qui renvoie des suggestions. Jamais depuis un onglet privé, et jamais une adresse, un texte collé ou quoi que ce soit qui ressemble à un mot de passe ou à une clé.",
+    "source": "sha256:54fe76e488a4dfe5362d990df43edc375a3c92743a380cefe519fda8cfe1f6dd"
   },
   "ios.welcome.showAgain": {
     "message": "Revoir l’accueil",

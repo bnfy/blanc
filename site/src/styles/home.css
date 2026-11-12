@@ -108,6 +108,18 @@
   background: #000;
   color: var(--paper);
 }
+.home-cinema .planned-action[hidden] {
+  display: none;
+}
+.home-cinema .planned-action.is-secondary {
+  background: transparent;
+  color: var(--ink);
+  box-shadow: inset 0 0 0 1px currentColor;
+}
+.home-cinema .planned-action.is-secondary:hover {
+  background: var(--ink);
+  color: var(--paper);
+}
 .home-cinema .planned-action.is-light {
   background: var(--night-text);
   color: var(--night);

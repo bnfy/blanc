@@ -21,7 +21,7 @@ TAG="v$VERSION"
 MODE="${BLANC_RELEASE_MODE:-}"
 PLATFORM_CSV="${BLANC_RELEASE_PLATFORMS:-}"
 MAC_ARCH_CSV="${BLANC_MAC_ARCHES:-}"
-MIGRATION_BASE_VERSION="${BLANC_MIGRATION_BASE_VERSION:-1.46.0}"
+MIGRATION_BASE_VERSION="${BLANC_MIGRATION_BASE_VERSION:-1.48.0}"
 COSIGN_REDIRECT_PORT="${BLANC_COSIGN_REDIRECT_PORT:-49197}"
 RELEASE_OPERATOR="${BLANC_RELEASE_OPERATOR:-terminal}"
 NOTES_FILE="docs/press/release-notes/$TAG.md"
@@ -170,9 +170,10 @@ case "$RELEASE_RUNTIME" in
     node -e '
       const matrix = require("./src/main/ublock-platforms.json");
       const pin = require("./build/ecs-runtime.json");
-      if (matrix.ecsRuntime !== pin.version) process.exit(1);
+      const evidence = String(matrix.ecsEvidence ?? "");
+      if (matrix.ecsRuntime !== pin.version || /^PENDING/.test(evidence) || !evidence.includes(pin.version)) process.exit(1);
     ' || {
-      echo "An ECS release requires the reviewed uBO runtime record for $(node -p 'require("./build/ecs-runtime.json").version')." >&2
+      echo "An ECS release requires the reviewed uBO runtime record, with passed evidence naming $(node -p 'require("./build/ecs-runtime.json").version'), in src/main/ublock-platforms.json." >&2
       exit 1
     }
     # Checked before any tag or draft exists: the native workflow must accept

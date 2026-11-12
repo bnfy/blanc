@@ -41,6 +41,11 @@ final class BrowserServices {
             appearance?.values["imageVersion"] as? String
         })
         settingsStore = SettingsStore(directory: settingsDirectory)
+        #if DEBUG
+        // The App Store images show the Island without Back and Forward
+        // (owner, 2026-11-11).
+        if UITestSeed.appStore { settingsStore.update(islandBackForward: false) }
+        #endif
         sessionStore = SessionStore(directory: sessionDirectory)
         tabHistory = TabHistoryStore(directory: sessionDirectory)
         historyStore = HistoryStore(directory: settingsDirectory)
@@ -76,7 +81,10 @@ final class BrowserServices {
     @MainActor func releaseThumbnails() {
         for window in windows {
             let shown = Set((window.activeSplit?.tabIds ?? []) + [window.activeTabId].compactMap { $0 })
-            for tab in window.tabs where !shown.contains(tab.id) { tab.thumbnail = nil }
+            for tab in window.tabs where !shown.contains(tab.id) {
+                tab.thumbnail = nil
+                tab.pagePicture = nil
+            }
         }
     }
 

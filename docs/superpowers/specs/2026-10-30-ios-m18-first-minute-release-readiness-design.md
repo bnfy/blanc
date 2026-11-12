@@ -127,6 +127,13 @@ all of it new catalog keys under `ios.welcome.*`.
    saves it. Closing the card at this step or any earlier one saves the value
    on screen (or the default if the step was never shown), as desktop F36
    does: the ping (§7) waits for a saved choice, never for the walkthrough.
+   *Amended 2026-11-11 (PR #1445, unreleased):* the phone gained search
+   suggestions, so the card has a second switch, **Search suggestions**,
+   presented on and saved by the same rules (`searchSuggestions`, unsaved
+   until then, and an unsaved choice sends nothing). The walkthrough's
+   version is 2 (owner, 2026-11-11): a phone that finished version 1 is shown
+   the card once more, at this step alone and with nothing after it, as §3.3
+   says a later version re-shows only what is new.
 6. **Default browser.** Shown only when `UIApplication.shared.isDefault(.webBrowser)`
    answers false or throws (§5). "Open links in Blanc" / "Make Blanc your
    default browser so links from Messages, Mail and other apps open here."

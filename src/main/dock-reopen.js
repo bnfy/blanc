@@ -82,6 +82,9 @@ function createDockReopenLifecycle({
         }
         closeEffect = effect;
       }
+      // Closed to the Dock, the window's runtime keeps its tabs and its place
+      // in the saved session; any other close takes the runtime out of it.
+      runtime.dockClosed = closeEffect === 'dock';
       runtime.closing = true;
       return preservePrimaryTabViews({
         platform,

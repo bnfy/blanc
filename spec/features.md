@@ -443,8 +443,9 @@ From the desktop `DEFAULTS`:
   lines in coral over blue) and `sunrise-amber` (the same in gold and bronze); the last two sit
   on a light tile (Arc's graded gray for Spectrum, cream for Amber) that darkens in Dark. Older ids, including the monogram `gold`, are
   retired; any stale or hand-set retired id falls back to `sunrise`.
-- iPhone Settings → Appearance → App icon offers those five plus `sunrise-dawn`
-  (Sunrise Dawn, iPhone only); Sunrise Gold is the iPhone's standard icon. All six are
+- iPhone Settings → Appearance → App icon offers those five plus
+  `sunrise-bronze` (Sunrise Bronze) and `sunrise-dawn` (Sunrise Dawn), both
+  iPhone only; Sunrise is the standard icon, as on the Mac. All seven are
   Icon Composer packages, and iOS itself remembers the choice (D33).
 - Patron is optional support and unlocks nothing: Blanc Spaces (F41) is free
   for everyone, and icon variants were never a Patron benefit. Renderers only
@@ -697,9 +698,9 @@ From the desktop `DEFAULTS`:
   supported 640×480 minimum, the pane is 392px wide and the visible find
   capsule fits within 368px of it without touching the rail. The expanded
   Island footer has an accessible two-way vertical-tabs toggle, while the
-  rail's top bar holds the current Space's mark (moved there from the Island,
-  opening the Spaces menu below it; with no Spaces yet it shows the Spaces
-  glyph) and, at its far end, an accessible sidebar icon that turns vertical
+  rail's top bar holds the current Space's mark (the only place it shows; the
+  resting Island never does), opening the Spaces menu below it; with no Spaces
+  yet it shows the Spaces glyph) and, at its far end, an accessible sidebar icon that turns vertical
   tabs off. On Windows and Linux the main-menu button leads the row. The rail's
   footer has **New tab** and, beside it, **New group**, which starts a group
   from the current tab (or every selected tab) like the tab menu's Move to
@@ -888,7 +889,8 @@ From the desktop `DEFAULTS`:
   1,100 px or 80% of the page area wide), drawn like a Split View pane:
   rounded corners, a 1 px border (darker while it has focus) and a soft shadow.
   The page behind stays visible and usable: clicking or scrolling it never
-  closes the card. (Design: `docs/superpowers/specs/2026-10-20-floating-glance-design.md`.)
+  closes the card. Over a visible Split View (F53) the card floats over every
+  pane. (Design: `docs/superpowers/specs/2026-10-20-floating-glance-design.md`.)
 - A person chooses the exact tab from a dedicated local-tab picker that excludes
   search, history, Favorites, commands, and remote tabs. The native View menu
   exposes **Open Glance… / Close Glance** with `Cmd/Ctrl+Shift+G`, so the
@@ -1195,6 +1197,14 @@ From the desktop `DEFAULTS`:
 - A page loaded after continuing reports **Not secure** until that document is
   replaced, even if the choice is later withdrawn; **Stop allowing** withdraws
   it.
+- A frame with an invalid certificate is refused without replacing the page
+  around it.
+- A page loaded after continuing can open WebSockets to that same origin and
+  certificate; a WebSocket never offers or records a choice of its own.
+- A pop-up window a page opens (such as a separate console window) uses the
+  choice made in its tab for that origin and certificate, for its page and its
+  WebSockets. A pop-up never offers or records a choice of its own, so any
+  other certificate failure in it is refused.
 - This does not reproduce Chromium's HSTS refusal: platforms that cannot read
   the engine's HSTS state must not claim it.
 - **Acceptance:** [`acceptance/site-certificate-safety.feature`](./acceptance/site-certificate-safety.feature).
@@ -1249,13 +1259,14 @@ existing certificate-safety scenario; historical PR evidence retains its old IDs
   and symbol in list order, written once on load. The drawn ink is derived so
   the symbol and name reach 4.5:1 against every surface they sit on and their
   own wash, in light, dark and private; the stored hex is never changed.
-- The Island shows the current space as a **mark** at its leading edge
-  (symbol and name on its colour); a window in no space shows a quiet grey
-  mark once any space exists; before the first space nothing is shown. The
-  mark opens the **Spaces menu**, lined up under it and hanging just below the
-  Island; the ⌘L footer's icon-only Spaces button opens the same menu below
-  the Island (neither ever covers it), and the Quick Switcher matches space
-  names.
+- The resting Island shows no space mark, so the closed Island stays short
+  (owner decision, November 11, 2026); the ⌘L footer's icon-only Spaces
+  button (the current space's tile, or the planet in no space) opens the
+  **Spaces menu** below the Island (never covering it), and
+  the Quick Switcher matches space names. With vertical tabs, the rail's top
+  bar shows the current space as a **mark** (symbol and name on its colour; a
+  window in no space shows the quiet grey Spaces glyph), which opens the same
+  menu, lined up under it and hanging just below the mark and the Island.
 - The menu edits in place (name validated as you type, preset and custom
   colours, symbols; changes apply live), deletes immediately with **Undo**
   (which also puts the window back in the space), reorders by drag or
@@ -1318,8 +1329,10 @@ existing certificate-safety scenario; historical PR evidence retains its old IDs
 - **Several-tab selection (desktop):** ⌘/Ctrl-click toggles rows, Shift-click selects a visible range, and Shift-arrow extends from a focused row in the panel or side list. Splits are selected whole. The current row joins a new selection; plain activation, Escape and a space switch clear it. Selection is owned by main and never saved or synced. The separate menu moves, groups, pins, mutes, reloads, quiets, copies or closes selected tabs. Space moves write the full capture first and retain unmoved tabs after partial failure; other placement edits apply in one pass. Close Tabs records one batch, including split layouts. A drag still moves only its starting row.
 
 - **iOS (M17, unreleased):** the phone's tabs outside any Space are **This
-  iPhone**; local Spaces, the Space mark and the Spaces card, Move to Space,
-  delete with Undo and Recently deleted (7 days) follow desktop. A shared
+  iPhone**; local Spaces, the Spaces card, Move to Space, delete with Undo
+  and Recently deleted (7 days) follow desktop. As on desktop, the resting
+  Island shows no Space mark: the palette's footer has a Spaces button (the
+  shown Space's tile, or the quiet Spaces glyph) once a Space exists. A shared
   Space deleted on the phone is deleted everywhere at once; Undo keeps a copy
   on the phone.
 
@@ -1659,7 +1672,11 @@ step: **Keep as split** in its header turns the current Glance into a split.
   Private tabs are never saved; a split with fewer than two saved tabs is
   written as plain tabs (D2).
 - **Other features.** Visible panes never go quiet; split tabs are never
-  archived (F52); Glance is unavailable while a split shows.
+  archived (F52). A Glance floats over the whole split (F34): focus moving
+  between the panes keeps it, a pane closing or leaving hands the window to
+  the remaining pane under it, and its Keep as split is hidden while a split
+  shows. Glance on a pane of a two-pane split takes that pane out of the
+  split instead.
 - **Portability.** `src/main/split-model.js` and `src/main/split-layout.js`
   hold every decision without an Electron dependency. A desktop window-model
   capability (D11); phones are N/A.
@@ -1754,8 +1771,8 @@ Two gestures Arc's iPhone users rely on, asked for on r/ArcBrowser
 - **Flick up to close.** The palette's resting switcher is a horizontal strip
   of page cards, groups as labeled runs; a card closes when flicked up, like
   the iOS app switcher, and reopens like a tab closed with `/close`.
-- **Pull to refresh.** Pulling a page down from its top reloads it, the
-  Island's Reload (desktop's ⌘R, D7), as Safari does. The system spinner, in
+- **Pull to refresh.** Pulling a page down from its top reloads it, as
+  the Sunrise menu's Reload does (desktop's ⌘R, D7), as Safari does. The system spinner, in
   its light or dark style, whichever shows against the page, stays until the
   reload finishes or fails, and Stop ends it. A page scrolled down scrolls back up first. Not on the Start
   Page, in Reader (its own view, the page beneath untouched), or on a quiet tab
@@ -1950,3 +1967,19 @@ candidate branch (PR 1); not in a public release.
 - **Open in Blanc.** The Island's leading button (and a File menu item) keeps
   it as an ordinary window: a new window's size, saved from then on.
 - **Mobile.** Not applicable.
+
+## F62 — Default page zoom (desktop)
+
+- **Default page zoom.** Settings → General → Appearance sets the size web pages
+  open at, from 50% to 200%. A change reaches open tabs at once. Blanc's own
+  pages stay at 100%; PDFs keep the viewer's zoom; sign-in popup windows are not
+  covered.
+- **Per-site zoom.** ⌘+ and ⌘− save a size for that site in the current profile,
+  and every tab on the site follows. ⌘0 forgets it and returns to the default. A
+  site can stay at 100% under another default. Steps follow Chrome's list, so
+  100% is always reachable. Settings lists saved sites with Remove and Clear all.
+- **Privacy.** Saved sites stay on the device, are never synced, and stay when
+  history is cleared. Private tabs read them and write nothing: their own zoom
+  lasts until quit. Browsing leaves no list of visited sites in Chromium's files.
+- **Mobile.** Not applicable: pages use native pinch-zoom and reflow (F23, D10).
+- **Acceptance:** `spec/acceptance/page-zoom.feature`.

@@ -1,5 +1,232 @@
 [
   {
+    "tag": "v1.48.0",
+    "version": "1.48.0",
+    "name": "1.48.0",
+    "publishedAt": "2026-11-11T16:14:11.000Z",
+    "humanDate": "November 11, 2026",
+    "machineDate": "2026-11-11",
+    "url": "https://github.com/bnfy/blanc/releases/tag/v1.48.0",
+    "anchor": "v1-48-0",
+    "compareUrl": null,
+    "sections": [
+      {
+        "heading": "Added",
+        "blocks": [
+          {
+            "type": "list",
+            "items": [
+              {
+                "spans": [
+                  {
+                    "type": "strong",
+                    "value": "Glance over a split."
+                  },
+                  {
+                    "type": "text",
+                    "value": " With Split View showing, Glance now opens as a floating card over both panes, from a tab's Glance button in the ⌘L panel, a tab's menu, the View menu (⌘⇧G on a Mac, Ctrl+Shift+G on Windows and Linux) or "
+                  },
+                  {
+                    "type": "code",
+                    "value": "/glance"
+                  },
+                  {
+                    "type": "text",
+                    "value": ". Clicking between the two panes keeps the Glance open, and if you close one pane, the other fills the window with the Glance still over it. Before, the Glance button looked available over a split but did nothing. Choosing Glance for one of the split's own two tabs still takes that tab out of the split and floats it over the other, and the card's "
+                  },
+                  {
+                    "type": "strong",
+                    "value": "Keep as split"
+                  },
+                  {
+                    "type": "text",
+                    "value": " is hidden while a split is showing."
+                  }
+                ],
+                "url": null
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "heading": "Fixed",
+        "blocks": [
+          {
+            "type": "list",
+            "items": [
+              {
+                "spans": [
+                  {
+                    "type": "text",
+                    "value": "After choosing "
+                  },
+                  {
+                    "type": "strong",
+                    "value": "Continue"
+                  },
+                  {
+                    "type": "text",
+                    "value": " past a certificate warning on a local or private-network address, the page couldn't open live connections (WebSockets) back to the same address, so consoles and live views such as Proxmox's couldn't connect. They now use the same choice, for that same address and certificate only."
+                  }
+                ],
+                "url": null
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "tag": "v1.47.1",
+    "version": "1.47.1",
+    "name": "1.47.1",
+    "publishedAt": "2026-11-09T19:47:15.000Z",
+    "humanDate": "November 9, 2026",
+    "machineDate": "2026-11-09",
+    "url": "https://github.com/bnfy/blanc/releases/tag/v1.47.1",
+    "anchor": "v1-47-1",
+    "compareUrl": null,
+    "sections": [
+      {
+        "heading": "Fixed",
+        "blocks": [
+          {
+            "type": "list",
+            "items": [
+              {
+                "spans": [
+                  {
+                    "type": "text",
+                    "value": "Blanc no longer crashes when a page contains a frame that fails its certificate check. The frame is refused and the rest of the page stays open."
+                  }
+                ],
+                "url": null
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "tag": "v1.47.0",
+    "version": "1.47.0",
+    "name": "1.47.0",
+    "publishedAt": "2026-11-07T17:18:21.000Z",
+    "humanDate": "November 7, 2026",
+    "machineDate": "2026-11-07",
+    "url": "https://github.com/bnfy/blanc/releases/tag/v1.47.0",
+    "anchor": "v1-47-0",
+    "compareUrl": null,
+    "sections": [
+      {
+        "heading": "Added",
+        "blocks": [
+          {
+            "type": "list",
+            "items": [
+              {
+                "spans": [
+                  {
+                    "type": "strong",
+                    "value": "Default page zoom."
+                  },
+                  {
+                    "type": "text",
+                    "value": " Settings → General → "
+                  },
+                  {
+                    "type": "strong",
+                    "value": "Default page zoom"
+                  },
+                  {
+                    "type": "text",
+                    "value": " sets the size web pages open at, from 50% to 200%, and open tabs change at once. Zooming in or out on a site (⌘+ and ⌘− on a Mac, Ctrl++ and Ctrl+− on Windows and Linux) saves a size just for that site in the current profile, and every tab on that site follows; ⌘0 or Ctrl+0 forgets it and returns to the default. Settings lists the sites with their own zoom, each with "
+                  },
+                  {
+                    "type": "strong",
+                    "value": "Remove"
+                  },
+                  {
+                    "type": "text",
+                    "value": ", plus "
+                  },
+                  {
+                    "type": "strong",
+                    "value": "Clear all"
+                  },
+                  {
+                    "type": "text",
+                    "value": ". Private tabs save nothing, and zoom you set in earlier versions carries over. Sign-in popup windows aren't covered yet: they stay at 100%."
+                  }
+                ],
+                "url": null
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "heading": "Changed",
+        "blocks": [
+          {
+            "type": "list",
+            "items": [
+              {
+                "spans": [
+                  {
+                    "type": "text",
+                    "value": "Zooming in and out now steps through the same sizes as Chrome (… 75%, 80%, 90%, 100%, 110%, 125% …), so zooming back always lands on 100%."
+                  }
+                ],
+                "url": null
+              },
+              {
+                "spans": [
+                  {
+                    "type": "text",
+                    "value": "On Windows, with Island auto-hide on, the band along the top of the page that drags the window is 10 pixels tall instead of 6, so it's easier to grab. The top few rows of the page under it no longer take clicks while the Island is tucked away. macOS and Linux keep 6 pixels."
+                  }
+                ],
+                "url": null
+              },
+              {
+                "spans": [
+                  {
+                    "type": "text",
+                    "value": "Blanc now runs on castLabs' Electron for Content Security 45.2.1, with Chromium 156.0.8078.75, instead of 44.9.3 with Chromium 152. The optional uBlock Origin blocker remains available on this version."
+                  }
+                ],
+                "url": null
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "heading": "Fixed",
+        "blocks": [
+          {
+            "type": "list",
+            "items": [
+              {
+                "spans": [
+                  {
+                    "type": "text",
+                    "value": "With sync on and a shared Space open or set aside, quitting Blanc while a shared Space was arriving from another device could overwrite the saved windows file with an empty one. Quitting now keeps it."
+                  }
+                ],
+                "url": null
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
     "tag": "v1.46.0",
     "version": "1.46.0",
     "name": "1.46.0",

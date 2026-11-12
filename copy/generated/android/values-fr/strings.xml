@@ -842,7 +842,6 @@ Vous pouvez réessayer avec « %2$s » ou réinstaller depuis blanc.day.</stri
     <string name="shortcuts_background_link">Ouvrir le lien dans un onglet en arrière-plan</string>
     <string name="glance_status_opened">%1$s ouvert dans Glance</string>
     <string name="glance_status_closed">Glance fermé</string>
-    <string name="split_glance_unavailable">Glance n’est pas disponible pendant l’affichage d’une vue partagée</string>
     <string name="glance_status_opened_as_tab">%1$s est maintenant l\'onglet actuel</string>
     <string name="glance_status_tab_closed">Glance s’est fermé car son onglet a été fermé</string>
     <string name="glance_status_main_closed">%1$s est maintenant la page principale. Glance fermé.</string>
@@ -2562,6 +2561,11 @@ Vous pouvez réessayer avec « %2$s » ou réinstaller depuis blanc.day.</stri
     <string name="reader_mono">JetBrains Mono</string>
     <string name="settings_general_island_size_label">Taille de l’Island</string>
     <string name="settings_general_island_size_hint">Agrandit l’Island et ses boutons. La page descend pour lui faire de la place.</string>
+    <string name="settings_general_page_zoom_label">Zoom de page par défaut</string>
+    <string name="settings_general_page_zoom_hint">La taille d’ouverture des pages web. Zoomer sur un site enregistre une taille pour ce site uniquement.</string>
+    <string name="settings_general_page_zoom_percent">%1$s %%</string>
+    <string name="settings_general_site_zoom_hint">Ces sites ont leur propre zoom. Retirez-en un pour revenir au zoom par défaut.</string>
+    <string name="settings_general_site_zoom_clear_all">Tout effacer</string>
     <string name="settings_general_island_size_default">Par défaut</string>
     <string name="settings_general_island_size_large">Grande</string>
     <string name="settings_general_island_size_extra_large">Très grande</string>
@@ -2619,6 +2623,12 @@ Vous pouvez réessayer avec « %2$s » ou réinstaller depuis blanc.day.</stri
     <string name="ios_palette_clear">Effacer la recherche</string>
     <string name="ios_palette_no_command">Aucune commande correspondante</string>
     <string name="ios_palette_no_matches">Aucun résultat. Appuyez sur Retour pour l’ouvrir comme adresse ou recherche.</string>
+    <string name="ios_palette_edit_address">Modifier l’adresse</string>
+    <string name="ios_island_page_zoom">Zoom de page</string>
+    <string name="ios_island_desktop_site">Demander le site web pour ordinateur</string>
+    <string name="ios_island_mobile_site">Demander le site web mobile</string>
+    <string name="ios_app_link_message">Cette page souhaite ouvrir une autre application.</string>
+    <string name="ios_downloads_failed">Impossible de télécharger %1$s</string>
     <string name="ios_tabs_open_tabs">Onglets ouverts</string>
     <string name="ios_tabs_switch_to">Passer à %1$s</string>
     <string name="ios_tabs_close">Fermer %1$s</string>
@@ -2648,6 +2658,7 @@ Vous pouvez réessayer avec « %2$s » ou réinstaller depuis blanc.day.</stri
     <string name="ios_welcome_privacy_title">Votre confidentialité</string>
     <string name="ios_welcome_measure_usage">Mesurer l’utilisation</string>
     <string name="ios_welcome_measure_usage_help">À chaque ouverture, Blanc envoie un comptage anonyme : un identifiant aléatoire pour cette installation, la version de l’app et celle d’iOS. Jamais ce que vous consultez. Voir blanc.day/privacy.</string>
+    <string name="ios_welcome_suggestions_help">Pendant que vous saisissez une recherche, le texte est envoyé à votre moteur de recherche, qui renvoie des suggestions. Jamais depuis un onglet privé, et jamais une adresse, un texte collé ou quoi que ce soit qui ressemble à un mot de passe ou à une clé.</string>
     <string name="ios_welcome_show_again">Revoir l’accueil</string>
     <string name="ios_default_browser_title">Ouvrir les liens dans Blanc</string>
     <string name="ios_default_browser_body">Faites de Blanc votre navigateur par défaut pour que les liens de Messages, Mail et d’autres apps s’ouvrent ici.</string>

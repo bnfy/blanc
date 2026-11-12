@@ -2480,13 +2480,13 @@
       }
     },
     "pill.placeholder": {
-      "comment": "Pill label on a blank new tab, inviting the user to open the command bar.",
+      "comment": "Pill label on a blank new tab, inviting the user to open the command bar. Also the iPhone Island's dimmed label on the Start Page, where it must fit a narrow Island.",
       "extractionState": "manual",
       "localizations": {
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Search or type a URL"
+            "value": "Search or type URL"
           }
         },
         "de": {
@@ -33375,48 +33375,6 @@
           "stringUnit": {
             "state": "translated",
             "value": "Glance fechado"
-          }
-        }
-      }
-    },
-    "split.glanceUnavailable": {
-      "comment": "Screen reader announcement and status when Glance is asked to open while a Split View (F53) is showing.",
-      "extractionState": "manual",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Glance isn't available while a split is showing"
-          }
-        },
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Glance ist nicht verfügbar, solange eine geteilte Ansicht angezeigt wird"
-          }
-        },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Glance no está disponible mientras se muestra una vista dividida"
-          }
-        },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Glance n’est pas disponible pendant l’affichage d’une vue partagée"
-          }
-        },
-        "it": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Glance non è disponibile mentre è visibile una vista divisa"
-          }
-        },
-        "pt-BR": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "O Glance não está disponível enquanto uma visualização dividida é exibida"
           }
         }
       }
@@ -101803,6 +101761,216 @@
         }
       }
     },
+    "settings.general.pageZoom.label": {
+      "comment": "Desktop Settings, General → Appearance: the setting's name.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Default page zoom"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Standard-Seitenzoom"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zoom de página predeterminado"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zoom de page par défaut"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zoom predefinito delle pagine"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zoom padrão da página"
+          }
+        }
+      }
+    },
+    "settings.general.pageZoom.hint": {
+      "comment": "Desktop Settings, General → Appearance: hint under Default page zoom.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The size web pages open at. Zooming in or out on a site saves a size just for that site."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Die Größe, in der Webseiten geöffnet werden. Wenn du eine Website vergrößerst oder verkleinerst, wird die Größe nur für diese Website gespeichert."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "El tamaño con el que se abren las páginas web. Al acercar o alejar un sitio, se guarda un tamaño solo para ese sitio."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "La taille d’ouverture des pages web. Zoomer sur un site enregistre une taille pour ce site uniquement."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Le dimensioni con cui si aprono le pagine web. Ingrandendo o riducendo un sito, le dimensioni vengono salvate solo per quel sito."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "O tamanho com que as páginas da web abrem. Ao aumentar ou reduzir o zoom em um site, o tamanho é salvo só para esse site."
+          }
+        }
+      }
+    },
+    "settings.general.pageZoom.percent": {
+      "comment": "Desktop Settings: a zoom size in the Default page zoom menu and the saved sites list; {percent} is a whole number from 25 to 500.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@%%"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ %%"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ %%"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ %%"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@%%"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@%%"
+          }
+        }
+      }
+    },
+    "settings.general.siteZoom.hint": {
+      "comment": "Desktop Settings, General → Appearance: above the list of sites with a saved zoom. Removing one returns it to the Default page zoom.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "These sites have their own zoom. Remove one to go back to the default."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Diese Websites haben einen eigenen Zoom. Entferne eine, um zum Standard zurückzukehren."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Estos sitios tienen su propio zoom. Quita uno para volver al predeterminado."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ces sites ont leur propre zoom. Retirez-en un pour revenir au zoom par défaut."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Questi siti hanno uno zoom proprio. Rimuovine uno per tornare a quello predefinito."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Estes sites têm zoom próprio. Remova um para voltar ao padrão."
+          }
+        }
+      }
+    },
+    "settings.general.siteZoom.clearAll": {
+      "comment": "Desktop Settings, General → Appearance: button that forgets every saved site zoom in this profile.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Clear all"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Alle löschen"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Borrar todo"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tout effacer"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cancella tutto"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Limpar tudo"
+          }
+        }
+      }
+    },
     "settings.general.islandSize.default": {
       "comment": "Desktop Settings, General → Island size option.",
       "extractionState": "manual",
@@ -104053,6 +104221,258 @@
         }
       }
     },
+    "ios.palette.editAddress": {
+      "comment": "iOS palette: accessible name of the row that shows the current page's full address; tapping it puts the address in the field to edit.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Edit address"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Adresse bearbeiten"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Editar dirección"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Modifier l’adresse"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Modifica indirizzo"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Editar endereço"
+          }
+        }
+      }
+    },
+    "ios.island.pageZoom": {
+      "comment": "iOS Sunrise menu: submenu holding Zoom In, Zoom Out and Actual Size for the current page.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Page Zoom"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Seitenzoom"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zoom de página"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zoom de page"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zoom della pagina"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zoom da página"
+          }
+        }
+      }
+    },
+    "ios.island.desktopSite": {
+      "comment": "iOS Sunrise menu: reloads the page asking the site for its desktop version.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Request Desktop Website"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Desktop-Website anfordern"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Solicitar sitio web de escritorio"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Demander le site web pour ordinateur"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Richiedi sito desktop"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Solicitar site para computador"
+          }
+        }
+      }
+    },
+    "ios.island.mobileSite": {
+      "comment": "iOS Sunrise menu: shown in place of Request Desktop Website once the desktop version was asked for; reloads the page as a phone again.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Request Mobile Website"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mobile Website anfordern"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Solicitar sitio web móvil"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Demander le site web mobile"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Richiedi sito mobile"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Solicitar site para celular"
+          }
+        }
+      }
+    },
+    "ios.appLink.message": {
+      "comment": "iOS: message of the alert shown when a tapped link belongs to another app (an App Store or maps link). The alert's title is the site; its buttons are Cancel and Open.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This page wants to open another app."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Diese Seite möchte eine andere App öffnen."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Esta página quiere abrir otra aplicación."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cette page souhaite ouvrir une autre application."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Questa pagina vuole aprire un’altra applicazione."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Esta página quer abrir outro aplicativo."
+          }
+        }
+      }
+    },
+    "ios.downloads.failed": {
+      "comment": "iOS: notice over the Island when a download fails; {file} is the file name.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Couldn’t download %1$@"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ konnte nicht heruntergeladen werden"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No se pudo descargar %1$@"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Impossible de télécharger %1$@"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Impossibile scaricare %1$@"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Não foi possível baixar %1$@"
+          }
+        }
+      }
+    },
     "ios.tabs.openTabs": {
       "comment": "iOS palette and tab grid: heading over the open tabs.",
       "extractionState": "manual",
@@ -105267,6 +105687,48 @@
           "stringUnit": {
             "state": "translated",
             "value": "Cada vez que você abre o Blanc, ele envia uma contagem anônima: um ID aleatório desta instalação, a versão do app e a versão do iOS. Nunca o que você navega. Veja blanc.day/privacy."
+          }
+        }
+      }
+    },
+    "ios.welcome.suggestionsHelp": {
+      "comment": "iOS walkthrough: under the Search suggestions switch on the privacy card; says what is sent to the chosen search engine and what never is.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "While you type a search, the text goes to your search provider, which sends back suggestions. Never from a private tab, and never an address, pasted text or anything that looks like a password or key."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Während du eine Suche eintippst, geht der Text an deinen Suchanbieter, der Vorschläge zurückschickt. Nie aus einem privaten Tab und nie eine Adresse, eingefügter Text oder etwas, das wie ein Passwort oder Schlüssel aussieht."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mientras escribes una búsqueda, el texto se envía a tu buscador, que devuelve sugerencias. Nunca desde una pestaña privada, y nunca una dirección, texto pegado ni nada que parezca una contraseña o una clave."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pendant que vous saisissez une recherche, le texte est envoyé à votre moteur de recherche, qui renvoie des suggestions. Jamais depuis un onglet privé, et jamais une adresse, un texte collé ou quoi que ce soit qui ressemble à un mot de passe ou à une clé."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mentre scrivi una ricerca, il testo viene inviato al tuo motore di ricerca, che restituisce suggerimenti. Mai da una scheda privata, e mai un indirizzo, testo incollato o qualcosa che sembri una password o una chiave."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Enquanto você digita uma pesquisa, o texto vai para o seu provedor de pesquisa, que devolve sugestões. Nunca de uma aba privada, e nunca um endereço, texto colado ou qualquer coisa que pareça uma senha ou chave."
           }
         }
       }

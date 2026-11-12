@@ -1,8 +1,8 @@
 {
- "publicRelease": "v1.46.0",
- "sourceSha": "6479ed3a314e4fd6219b8de1598bacffa78b4d7c",
- "releaseEvidence": "docs/release-incidents/2026-11-02-v1.46.0.md",
- "scope": "Owner-approved /compare chart and page copy (November 2, 2026; spec docs/superpowers/specs/2026-11-02-compare-page-design.md). Blanc answers rest on public v1.46.0; answers about Crest, Arc, Helium and Brave rest on their first-party pages read November 2, 2026. A cell reading Not stated records that the listed pages for that browser do not say, and cites them all. Re-check every cell before checkedAgainst moves to a new feature release.",
+ "publicRelease": "v1.48.0",
+ "sourceSha": "2098dd703c99194a58e5a3e7ec0b39923d2db59b",
+ "releaseEvidence": "docs/release-incidents/2026-11-11-v1.48.0.md",
+ "scope": "Owner-approved /compare chart and page copy (November 2, 2026; spec docs/superpowers/specs/2026-11-02-compare-page-design.md). Blanc answers rest on public v1.48.0; answers about Crest, Arc, Helium and Brave rest on their first-party pages read November 2, 2026. A cell reading Not stated records that the listed pages for that browser do not say, and cites them all. Re-check every cell before checkedAgainst moves to a new feature release. Re-checked for v1.48.0 on November 7, 2026: each of the eleven Blanc answers was read against the v1.48.0 release notes and none is affected (the release adds page zoom, a Windows drag band, a quit fix and the ECS 45.2.1 runtime); the other browsers' pages were not re-read, so their answers still date from November 2, 2026.",
  "evidenceGroups": {
   "page": {
    "evidence": [
@@ -14,9 +14,10 @@
    "evidence": [
     "package.json",
     "site/src/data/ios-availability.json",
-    "site/src/pages/download.astro"
+    "site/src/pages/download.astro",
+    "docs/ios/app-store-connect.md"
    ],
-   "qualification": "Desktop builds for macOS, Windows and Linux. Blanc for iPhone is a public TestFlight beta since October 28, 2026, not on the App Store."
+   "qualification": "Desktop builds for macOS, Windows and Linux. Blanc for iPhone was a public TestFlight beta from October 28, 2026; version 1.0 (build 202611030537, iPhone only, iOS 18.4 or later) was approved by App Review and released on the App Store by the owner on November 6, 2026 (docs/ios/app-store-connect.md, item 21; site/src/data/ios-availability.json). The TestFlight beta stays open for early builds. There is no Android app."
   },
   "cost": {
    "evidence": [
@@ -36,7 +37,7 @@
    "evidence": [
     "package.json"
    ],
-   "qualification": "v1.46.0 is the current public release, published November 2, 2026."
+   "qualification": "v1.48.0 is the current public release, published November 11, 2026."
   },
   "extensions": {
    "evidence": [
@@ -339,7 +340,7 @@
   {
    "id": "compare-1451-010",
    "source": "site/src/pages/compare.astro",
-   "exactWording": "Checked November 2, 2026 against Blanc v1.46.0.",
+   "exactWording": "Checked November 11, 2026 against Blanc v1.48.0.",
    "subject": "label",
    "evidenceGroups": [
     "status",
@@ -390,12 +391,13 @@
   {
    "id": "compare-1451-015",
    "source": "site/src/pages/compare.astro",
-   "exactWording": "Phones. Blanc for iPhone is a public beta on TestFlight; there is no Android app.",
+   "exactWording": "Phones. Blanc for iPhone is on the App Store, with a TestFlight beta for early builds; there is no Android app.",
    "subject": "Blanc",
    "evidenceGroups": [
     "platforms"
    ],
-   "verdict": "verified"
+   "verdict": "verified",
+   "reason": "November 6, 2026: reworded from “a public beta on TestFlight” after Blanc for iPhone 1.0 was released on the App Store."
   },
   {
    "id": "compare-1451-016",
@@ -420,7 +422,7 @@
   {
    "id": "compare-1451-018",
    "source": "site/src/pages/compare.astro",
-   "exactWording": "Blanc’s answers come from its v1.46.0 release and the release notes. Answers about other browsers come from these pages, read on November 2, 2026.",
+   "exactWording": "Blanc’s answers come from its v1.48.0 release and the release notes. Answers about other browsers come from these pages, read on November 2, 2026.",
    "subject": "label",
    "evidenceGroups": [
     "page"
@@ -545,12 +547,13 @@
    "source": "site/src/data/compare.json",
    "row": "platforms",
    "column": "blanc",
-   "exactWording": "macOS, Windows, Linux. iPhone is a public TestFlight beta.",
+   "exactWording": "macOS, Windows, Linux. iPhone on the App Store, with a TestFlight beta.",
    "subject": "Blanc",
    "evidenceGroups": [
     "platforms"
    ],
-   "verdict": "verified"
+   "verdict": "verified",
+   "reason": "November 6, 2026: reworded from “macOS, Windows, Linux. iPhone is a public TestFlight beta.” after Blanc for iPhone 1.0 was released on the App Store. The owner asked on November 6, 2026 for the TestFlight beta to stay named next to the App Store."
   },
   {
    "id": "compare-1451-031",
@@ -771,7 +774,7 @@
    "source": "site/src/data/compare.json",
    "row": "status",
    "column": "blanc",
-   "exactWording": "Public release v1.46.0, Nov 2, 2026.",
+   "exactWording": "Public release v1.48.0, Nov 11, 2026.",
    "subject": "Blanc",
    "evidenceGroups": [
     "status"

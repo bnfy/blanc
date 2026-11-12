@@ -243,8 +243,8 @@
     "maxLength": 14
   },
   "pill.placeholder": {
-    "message": "Search or type a URL",
-    "note": "Pill label on a blank new tab, inviting the user to open the command bar.",
+    "message": "Search or type URL",
+    "note": "Pill label on a blank new tab, inviting the user to open the command bar. Also the iPhone Island's dimmed label on the Start Page, where it must fit a narrow Island.",
     "maxLength": 28
   },
   "pill.notice.cleanLinkCopied": {
@@ -3070,10 +3070,6 @@
   "glance.status.closed": {
     "message": "Glance closed",
     "note": "Screen reader announcement."
-  },
-  "split.glanceUnavailable": {
-    "message": "Glance isn't available while a split is showing",
-    "note": "Screen reader announcement and status when Glance is asked to open while a Split View (F53) is showing."
   },
   "glance.status.openedAsTab": {
     "message": "{title} is now the current tab",
@@ -9338,6 +9334,26 @@
     "message": "Make the Island and its buttons bigger. The page moves down to make room.",
     "note": "Desktop Settings, General → Island: hint under Island size. The strip grows with the Island, so web pages start lower."
   },
+  "settings.general.pageZoom.label": {
+    "message": "Default page zoom",
+    "note": "Desktop Settings, General → Appearance: the setting's name."
+  },
+  "settings.general.pageZoom.hint": {
+    "message": "The size web pages open at. Zooming in or out on a site saves a size just for that site.",
+    "note": "Desktop Settings, General → Appearance: hint under Default page zoom."
+  },
+  "settings.general.pageZoom.percent": {
+    "message": "{percent}%",
+    "note": "Desktop Settings: a zoom size in the Default page zoom menu and the saved sites list; {percent} is a whole number from 25 to 500."
+  },
+  "settings.general.siteZoom.hint": {
+    "message": "These sites have their own zoom. Remove one to go back to the default.",
+    "note": "Desktop Settings, General → Appearance: above the list of sites with a saved zoom. Removing one returns it to the Default page zoom."
+  },
+  "settings.general.siteZoom.clearAll": {
+    "message": "Clear all",
+    "note": "Desktop Settings, General → Appearance: button that forgets every saved site zoom in this profile."
+  },
   "settings.general.islandSize.default": {
     "message": "Default",
     "note": "Desktop Settings, General → Island size option."
@@ -9534,6 +9550,30 @@
     "message": "No matches. Press Return to open it as an address or search.",
     "note": "iOS palette: shown when typed text matches no tab, Favorite or history entry; Return is the keyboard's return key."
   },
+  "ios.palette.editAddress": {
+    "message": "Edit address",
+    "note": "iOS palette: accessible name of the row that shows the current page's full address; tapping it puts the address in the field to edit."
+  },
+  "ios.island.pageZoom": {
+    "message": "Page Zoom",
+    "note": "iOS Sunrise menu: submenu holding Zoom In, Zoom Out and Actual Size for the current page."
+  },
+  "ios.island.desktopSite": {
+    "message": "Request Desktop Website",
+    "note": "iOS Sunrise menu: reloads the page asking the site for its desktop version."
+  },
+  "ios.island.mobileSite": {
+    "message": "Request Mobile Website",
+    "note": "iOS Sunrise menu: shown in place of Request Desktop Website once the desktop version was asked for; reloads the page as a phone again."
+  },
+  "ios.appLink.message": {
+    "message": "This page wants to open another app.",
+    "note": "iOS: message of the alert shown when a tapped link belongs to another app (an App Store or maps link). The alert's title is the site; its buttons are Cancel and Open."
+  },
+  "ios.downloads.failed": {
+    "message": "Couldn’t download {file}",
+    "note": "iOS: notice over the Island when a download fails; {file} is the file name."
+  },
   "ios.tabs.openTabs": {
     "message": "Open tabs",
     "note": "iOS palette and tab grid: heading over the open tabs."
@@ -9649,6 +9689,10 @@
   "ios.welcome.measureUsageHelp": {
     "message": "Each time you open Blanc, it sends one anonymous count: a random ID for this install, the app version and the iOS version. Never what you browse. See blanc.day/privacy.",
     "note": "iOS walkthrough: under the Measure usage switch; says exactly what the launch ping carries."
+  },
+  "ios.welcome.suggestionsHelp": {
+    "message": "While you type a search, the text goes to your search provider, which sends back suggestions. Never from a private tab, and never an address, pasted text or anything that looks like a password or key.",
+    "note": "iOS walkthrough: under the Search suggestions switch on the privacy card; says what is sent to the chosen search engine and what never is."
   },
   "ios.welcome.showAgain": {
     "message": "Show the welcome again",

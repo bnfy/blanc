@@ -18,16 +18,28 @@ final class PillButtonsUITests: XCTestCase {
     XCTAssertEqual(XCTWaiter().wait(for: [startPage], timeout: 5), .completed, "+ opened a new tab")
   }
 
-  func testBackAndForwardSettingSwapsTheIslandsButtons() throws {
+  /// Back, Forward and New Tab after the address on every iPhone Island;
+  /// Reload lives in the Sunrise menu and pull to refresh.
+  func testTheIslandHasBackForwardAndNewTab() {
     continueAfterFailure = false
     let app = XCUIApplication()
     app.launchArguments = ["-BlancUITestSettings", "-BlancUITestSettingsReset", "-AppleLanguages", "(en)", "-AppleLocale", "en_US"]
     app.launch()
     let pill = app.buttons["pill.palette"]
     XCTAssertTrue(pill.waitForExistence(timeout: 15))
-    try XCTSkipIf(app.buttons["pill.back"].exists, "the wide Island always has Back and Forward, so the setting changes nothing")
-    XCTAssertFalse(app.buttons["pill.back"].exists, "off by default")
-    XCTAssertTrue(app.buttons["New tab"].exists)
+    let back = app.buttons["pill.back"], forward = app.buttons["pill.forward"], plus = app.buttons["New tab"]
+    XCTAssertTrue(back.waitForExistence(timeout: 5))
+    XCTAssertTrue(forward.exists)
+    XCTAssertTrue(plus.exists)
+    XCTAssertFalse(back.isEnabled, "a new tab has nowhere to go back to")
+    // The address, then Back, Forward and New Tab at the far end.
+    XCTAssertGreaterThan(back.frame.midX, pill.frame.maxX)
+    XCTAssertGreaterThan(forward.frame.midX, back.frame.midX)
+    XCTAssertGreaterThan(plus.frame.midX, forward.frame.midX)
+    XCTAssertFalse(app.buttons["pill.tabs"].exists, "the Island has no tab count")
+    XCTAssertFalse(app.buttons["Reload page"].exists)
+
+    // Settings → Island → Back and Forward off puts Reload in their place.
     pill.tap()
     let input = app.textFields["island.address"]
     XCTAssertTrue(input.waitForExistence(timeout: 5))
@@ -36,15 +48,32 @@ final class PillButtonsUITests: XCTestCase {
     XCTAssertTrue(app.reveal(row, timeout: 15))
     row.coordinate(withNormalizedOffset: CGVector(dx: 0.95, dy: 0.5)).tap()
     app.buttons["settings.done"].tap()
-    XCTAssertTrue(app.buttons["pill.back"].waitForExistence(timeout: 5))
-    XCTAssertTrue(app.buttons["pill.forward"].exists)
-    XCTAssertFalse(app.buttons["pill.back"].isEnabled, "a new tab has nowhere to go back to")
-    // Back then Forward at the far end, after the address.
-    XCTAssertGreaterThan(app.buttons["pill.back"].frame.midX, pill.frame.maxX)
-    XCTAssertGreaterThan(app.buttons["pill.forward"].frame.midX, app.buttons["pill.back"].frame.midX)
-    XCTAssertFalse(app.buttons["pill.tabs"].exists, "the Island has no tab count")
-    XCTAssertFalse(app.buttons["New tab"].exists)
-    XCTAssertFalse(app.buttons["Reload page"].exists)
+    XCTAssertTrue(app.buttons["Reload page"].waitForExistence(timeout: 5))
+    XCTAssertFalse(back.exists)
+    XCTAssertFalse(forward.exists)
+    XCTAssertTrue(plus.exists)
+  }
+
+  /// The palette's tab rows have no × to miss: a swipe to the left closes one.
+  func testSwipingAPaletteRowClosesItsTab() {
+    continueAfterFailure = false
+    let app = XCUIApplication()
+    app.launchArguments = ["-BlancUITestTwoTabs"]
+    app.launch()
+    let pill = app.buttons["pill.palette"]
+    XCTAssertTrue(pill.waitForExistence(timeout: 15))
+    pill.tap()
+    let rows = app.buttons.matching(identifier: "palette.tab")
+    XCTAssertTrue(rows.element(boundBy: 1).waitForExistence(timeout: 5))
+    XCTAssertEqual(rows.count, 2)
+    XCTAssertFalse(app.buttons.matching(NSPredicate(format: "label BEGINSWITH 'Close '")).firstMatch.exists,
+                   "no close button beside the rows")
+    rows.element(boundBy: 0).swipeLeft()
+    let close = app.buttons["palette.tab.close"]
+    XCTAssertTrue(close.waitForExistence(timeout: 3), "the swipe shows Close Tab")
+    close.tap()
+    let one = XCTNSPredicateExpectation(predicate: NSPredicate(format: "count == 1"), object: rows)
+    XCTAssertEqual(XCTWaiter().wait(for: [one], timeout: 5), .completed, "the swipe closed one tab")
   }
 
   /// As in Safari: a pinch in on the page opens the open tabs.
@@ -57,8 +86,9 @@ final class PillButtonsUITests: XCTestCase {
     XCTAssertTrue(page.waitForExistence(timeout: 15))
     sleep(2)
     page.pinch(withScale: 0.4, velocity: -1)
-    XCTAssertTrue(app.buttons.matching(identifier: "tab.card").firstMatch.waitForExistence(timeout: 5))
-    app.buttons["Done"].tap()
+    let card = app.buttons.matching(identifier: "tab.card").firstMatch
+    XCTAssertTrue(card.waitForExistence(timeout: 5))
+    card.tap()
     XCTAssertTrue(app.buttons["pill.palette"].waitForExistence(timeout: 5))
     XCTAssertFalse(app.buttons.matching(identifier: "tab.card").firstMatch.waitForExistence(timeout: 1))
   }

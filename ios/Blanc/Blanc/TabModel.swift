@@ -14,11 +14,29 @@ final class TabModel: Identifiable {
     /// Whether the web view has committed a page yet. Until then it would show
     /// WebKit's blank white, so the page area keeps the theme's background.
     var hasCommitted = false
+    /// What went wrong with a load that left this tab with no page at all.
+    /// The tab shows it, with Try again, where the page would be.
+    var loadFailure: LoadFailure?
+    /// A tab a page opened (`window.open`, a link with a target), which that
+    /// page may also close.
+    @ObservationIgnored var openedByPage = false
+    /// Request Desktop Website: this tab asks sites for what they give a Mac,
+    /// until it's closed or asked for the phone's again.
+    @ObservationIgnored var wantsDesktopSite = false
+    /// How far the page's load has got, 0 to 1, for the Island's hairline.
+    var loadProgress: Double = 0
+    @ObservationIgnored private var progressObservation: NSKeyValueObservation?
     var pageTitle = ""
     /// Never saved, synced or recorded in History; its web data lives only in
     /// memory (`TabsManager.privateDataStore`).
     let isPrivate: Bool
     var thumbnail: UIImage?
+    /// The whole page, for growing out of its card. Kept apart from `thumbnail`
+    /// so a new picture never redraws the grid.
+    @ObservationIgnored var pagePicture: UIImage?
+    /// How far down the page's content began in that picture: off screen, a
+    /// web view has no safe area to clear.
+    @ObservationIgnored var pagePictureTop: CGFloat = 0
     /// The group this tab belongs to (M17), nil when ungrouped.
     var groupId: String?
     var pinned = false
@@ -114,7 +132,9 @@ final class TabModel: Identifiable {
         // from WebKit's actual document URL as well as delegate callbacks.
         readerURLObservation = webView.observe(\.url, options: [.new]) { [weak self] webView, _ in
             Task { @MainActor [weak self, weak webView] in
-                guard let self, let url = webView?.url else { return }
+                // A failed load from the Start Page puts its address back;
+                // the tab keeps the one that failed (`LoadFailureView`).
+                guard let self, let url = webView?.url, self.loadFailure == nil else { return }
                 self.navigationDelegate.applyURL(url, to: self)
             }
         }
@@ -139,6 +159,11 @@ final class TabModel: Identifiable {
                 }
             },
         ]
+        progressObservation = webView.observe(\.estimatedProgress, options: [.new]) { [weak self] webView, _ in
+            Task { @MainActor [weak self, weak webView] in
+                if let webView { self?.loadProgress = webView.estimatedProgress }
+            }
+        }
         // The pull's spinner and the Island take the style that shows against
         // the page.
         pageColorObservation = webView.observe(\.underPageBackgroundColor, options: [.new]) { [weak self] _, _ in
@@ -182,6 +207,8 @@ final class TabModel: Identifiable {
     /// Never mount or load background tabs just to produce a thumbnail.
     @MainActor
     func captureThumbnail(allowCovered: Bool = false, afterScreenUpdates: Bool = true) {
+        // A load that failed left the web view empty: its card names the site.
+        guard loadFailure == nil else { return forgetPictures() }
         guard let webView = storage, let window = webView.window, allowCovered || window.rootViewController?.presentedViewController == nil,
               webView.bounds.width > 0, webView.bounds.height > 0 else { return }
         let side = Self.thumbnailSide(webView.bounds.size)
@@ -197,6 +224,8 @@ final class TabModel: Identifiable {
             drawn = webView.drawHierarchy(in: webView.bounds, afterScreenUpdates: afterScreenUpdates)
         }
         guard drawn else { return }
+        pagePicture = full
+        pagePictureTop = webView.safeAreaInsets.top
         thumbnail = UIGraphicsImageRenderer(size: CGSize(width: side, height: side), format: format).image { _ in
             full.draw(in: rect)
         }
@@ -205,6 +234,7 @@ final class TabModel: Identifiable {
     @MainActor
     func capturePreparedThumbnail() async {
         let url = currentURL
+        guard loadFailure == nil else { return forgetPictures() }
         guard let webView = storage else { return }
         if url.scheme == "blanc" {
             captureThumbnail(allowCovered: true)
@@ -220,10 +250,18 @@ final class TabModel: Identifiable {
         let factor = side / min(full.size.width, full.size.height)
         let size = CGSize(width: full.size.width * factor, height: full.size.height * factor)
         let format = UIGraphicsImageRendererFormat()
+        format.scale = 2
+        pagePicture = UIGraphicsImageRenderer(size: full.size, format: format).image { _ in full.draw(at: .zero) }
+        pagePictureTop = webView.safeAreaInsets.top
         format.scale = 1
         thumbnail = UIGraphicsImageRenderer(size: CGSize(width: side, height: side), format: format).image { _ in
             full.draw(in: CGRect(x: (side - size.width) / 2, y: 0, width: size.width, height: size.height))
         }
+    }
+
+    private func forgetPictures() {
+        if thumbnail != nil { thumbnail = nil }
+        pagePicture = nil
     }
 
     /// The Start Page keeps its Island: it's the page's own address bar.
@@ -251,7 +289,19 @@ final class TabModel: Identifiable {
 
     func goBack() { storage?.goBack() }
     func goForward() { storage?.goForward() }
-    func reload() { storage?.reload() }
+    /// With no page to reload, a failed load's address is tried once more.
+    func reload() {
+        if loadFailure != nil { retryFailedLoad() } else { storage?.reload() }
+    }
+    /// Asks the site for its desktop or phone version and loads the page again.
+    func setDesktopSite(_ desktop: Bool) {
+        wantsDesktopSite = desktop
+        reload()
+    }
+    func retryFailedLoad() {
+        guard let failure = loadFailure else { return }
+        navigationDelegate.retry(failure.url ?? currentURL, in: webView)
+    }
     func stop() {
         storage?.stopLoading()
         endPullToRefresh()

@@ -1,6 +1,15 @@
 import SwiftUI
 
 struct PaletteSheet: View {
+    /// On iOS 26 the sheet floats clear of the screen's edges, and the
+    /// system rounds its corners to follow the screen's own; a fixed radius
+    /// there left the bottom corners looking cut off. Earlier systems pin the
+    /// sheet to the bottom, where 22 pt matches the Island's other surfaces.
+    static var sheetCornerRadius: CGFloat? {
+        if #available(iOS 26, *) { return nil }
+        return 22
+    }
+
     let manager: TabsManager
     /// A bottom sheet on iPhone; at regular width, a panel growing up from
     /// the Island in its place (Duo-1).
@@ -16,6 +25,8 @@ struct PaletteSheet: View {
     /// The tab a row's New Group… or New Space… is for.
     @State private var newGroupTab: NewGroupTab?
     @State private var newSpaceTab: UUID?
+    /// The tab row whose trash button a swipe has left showing.
+    @State private var swipedTab: UUID?
 
     /// The row the arrow keys are on, by its place in the list.
     @State private var keyRow: Int?
@@ -29,6 +40,10 @@ struct PaletteSheet: View {
     }
 
     private struct NewGroupTab: Identifiable { let id: UUID }
+    /// What the search provider suggests for the typed text (F5), and the
+    /// request that is fetching it.
+    @State private var suggestions: [String] = []
+    @State private var suggestionTask: Task<Void, Never>?
 
     private enum Mode {
         case tabs, slash, switcher
@@ -63,10 +78,12 @@ struct PaletteSheet: View {
         .buttonStyle(.plain)
         .background(style.raised)
         .presentationBackground(style.raised)
-        .presentationCornerRadius(22)
+        .presentationCornerRadius(Self.sheetCornerRadius)
         .presentationDragIndicator(.hidden)
         .presentationDetents([.height(420), .large])
         .onAppear { inputFocused = true }
+        .onChange(of: manager.paletteDraft) { _, text in refreshSuggestions(for: text) }
+        .onDisappear { suggestionTask?.cancel() }
         .sheet(item: $newGroupTab) { tab in
             GroupNameSheet(title: SyncCopy.text("tabMenu.newGroup"), confirm: SyncCopy.text("tabGroups.create"),
                            initial: "") { name in
@@ -151,8 +168,10 @@ struct PaletteSheet: View {
             }
             .accessibilityLabel(SyncCopy.text("ios.island.collapse"))
         }
-        .padding(.leading, 16)
-        .padding(.trailing, 4)
+        // Its icons line up with the list's: the search glass over the rows'
+        // icons, the collapse caret over Copy Link and Settings.
+        .padding(.leading, 22)
+        .padding(.trailing, 12)
         .padding(.vertical, 8)
     }
 
@@ -173,6 +192,7 @@ struct PaletteSheet: View {
                         .frame(minHeight: 44)
                 }
                 Spacer(minLength: 4)
+                SpacesButton(manager: manager, style: style)
                 if manager.activeTab?.readerAvailable == true || manager.activeTab?.reader != nil {
                     Button { close(); manager.toggleReaderMode() } label: {
                         Image(systemName: "doc.text").frame(width: 44, height: 44)
@@ -203,32 +223,33 @@ struct PaletteSheet: View {
     }
 
     /// A tab's row; in a group, `last` closes the group's block under it.
+    /// A swipe to the left shows a trash button and a full swipe closes the
+    /// tab (no × to miss and open it instead); Blanc draws the swipe so a
+    /// group's tint stays under it. VoiceOver has Close Tab as an action.
     private func tabRow(_ tab: TabModel, in group: TabGroup? = nil, last: Bool = false, keyIndex: Int?) -> some View {
-        HStack(spacing: 0) {
+        SwipeToCloseRow(openRow: $swipedTab, id: tab.id, accessibilityLabel: SyncCopy.text("menu.closeTab"),
+                     onClose: { manager.closeTab(tab.id) }) {
             Button {
                 manager.setActive(tab.id)
                 close()
             } label: {
                 row(icon: tab.currentURL.scheme == "blanc" ? "sun.horizon" : "globe",
                     title: TabTitle.display(tab),
-                    subtitle: tab.currentURL.scheme == "blanc" ? "Blanc" : tab.currentURL.host ?? tab.currentURL.absoluteString,
-                    selected: tab.id == manager.activeTabId)
+                    subtitle: tab.currentURL.scheme == "blanc" ? "Blanc" : tab.currentURL.host ?? tab.currentURL.absoluteString)
+                    .padding(.trailing, 10)
             }
             .accessibilityAddTraits(tab.id == manager.activeTabId ? .isSelected : [])
             .accessibilityIdentifier("palette.tab")
-            Button { manager.closeTab(tab.id) } label: {
-                Image(systemName: "xmark").font(.system(size: 12)).foregroundStyle(style.secondary)
-                    .frame(width: 44, height: 48)
-                    .pointerHighlight()
-            }
-            .accessibilityLabel(SyncCopy.text("ios.tabs.close", ["title": TabTitle.display(tab)]))
+            .accessibilityAction(named: SyncCopy.text("menu.closeTab")) { manager.closeTab(tab.id) }
+            .padding(.leading, 10)
+            .background(tab.id == manager.activeTabId ? style.selection : .clear, in: RoundedRectangle(cornerRadius: 10))
+            .overlay { keyHighlight(keyIndex).allowsHitTesting(false) }
         }
-        .padding(.leading, 10)
-        .background(tab.id == manager.activeTabId ? style.selection : .clear, in: RoundedRectangle(cornerRadius: 10))
-        .overlay { keyHighlight(keyIndex).allowsHitTesting(false) }
         .contentShape(.contextMenuPreview, RoundedRectangle(cornerRadius: 10))
         .contextMenu {
             TabMoveMenu(manager: manager, tab: tab, newGroup: { newGroupTab = NewGroupTab(id: tab.id) }, newSpace: { newSpaceTab = tab.id }, close: close)
+            Divider()
+            Button(SyncCopy.text("menu.closeTab"), systemImage: "xmark", role: .destructive) { manager.closeTab(tab.id) }
         }
         .tabDrag(tab)
         .listRowSeparator(.hidden)
@@ -236,7 +257,6 @@ struct PaletteSheet: View {
             if let group { groupBlock(group, top: false, bottom: last) } else { Color.clear }
         })
         .listRowInsets(EdgeInsets(top: 2, leading: group == nil ? 12 : 16, bottom: last ? 6 : 2, trailing: group == nil ? 12 : 16))
-        .swipeActions { Button(role: .destructive) { manager.closeTab(tab.id) } label: { Image(systemName: "xmark") } }
     }
 
     /// A group's header and tabs share one shaded block, as desktop's ⌘L
@@ -271,7 +291,9 @@ struct PaletteSheet: View {
         RoundedRectangle(cornerRadius: 10).strokeBorder(style.text.opacity(index != nil && index == keyRow ? 0.4 : 0), lineWidth: 1)
     }
 
-    private func row(icon: String, title: String, subtitle: String, selected: Bool = false) -> some View {
+    /// The current tab is shown by its row's highlight (and VoiceOver's
+    /// Selected), not a trailing dot, which said the same thing twice.
+    private func row(icon: String, title: String, subtitle: String) -> some View {
         HStack(spacing: 10) {
             Image(systemName: icon).font(.system(size: 16, weight: .regular))
                 .foregroundStyle(style.secondary).frame(width: 24)
@@ -280,7 +302,6 @@ struct PaletteSheet: View {
                 Text(subtitle).font(BrowserStyle.font(11)).foregroundStyle(style.secondary).lineLimit(1)
             }
             Spacer(minLength: 4)
-            if selected { Circle().fill(style.text).frame(width: 5, height: 5) }
         }
         .frame(maxWidth: .infinity, minHeight: 48, alignment: .leading)
         .contentShape(Rectangle())
@@ -305,14 +326,60 @@ struct PaletteSheet: View {
         return formatter
     }
 
+    /// The current page's whole address, which the Island shows only the site
+    /// of: a tap puts it in the field to edit, and the button copies it.
+    @ViewBuilder private var currentAddress: some View {
+        if let tab = manager.activeTab, ["http", "https"].contains(tab.currentURL.scheme?.lowercased() ?? "") {
+            let address = tab.currentURL.absoluteString
+            HStack(spacing: 0) {
+                Button {
+                    input = address
+                    inputFocused = true
+                } label: {
+                    HStack(spacing: 10) {
+                        Image(systemName: "link").font(.system(size: 14)).foregroundStyle(style.secondary).frame(width: 24)
+                        Text(address).font(BrowserStyle.font(13)).foregroundStyle(style.secondary)
+                            .lineLimit(1).truncationMode(.middle)
+                        Spacer(minLength: 4)
+                    }
+                    .frame(maxWidth: .infinity, minHeight: 44, alignment: .leading)
+                    .contentShape(Rectangle())
+                    .pointerHighlight()
+                }
+                .accessibilityLabel(SyncCopy.text("ios.palette.editAddress"))
+                .accessibilityValue(address)
+                .accessibilityIdentifier("palette.address")
+                Button {
+                    manager.copyLink(tab)
+                    close()
+                } label: {
+                    Image(systemName: "doc.on.doc").font(.system(size: 13)).foregroundStyle(style.secondary)
+                        .frame(width: 44, height: 44)
+                        .pointerHighlight()
+                }
+                .accessibilityLabel(SyncCopy.text("tabMenu.copyLink"))
+                .accessibilityIdentifier("palette.copyLink")
+            }
+            .padding(.leading, 10)
+            .listRowSeparator(.hidden)
+            .listRowBackground(Color.clear)
+            .listRowInsets(EdgeInsets(top: 0, leading: 12, bottom: 0, trailing: 12))
+        }
+    }
+
     private var tabList: some View {
         let keyIndex = Dictionary(uniqueKeysWithValues: tabRows.enumerated().map { ($1.id, $0) })
         return List {
+            currentAddress
             Section {
                 ForEach(manager.displaySections, id: \.id) { section in
                     if let group = section.group {
                         Button {
-                            withAnimation { manager.setGroupCollapsed(group.id, !group.collapsed) }
+                            // Instant, not animated: the list keeps the header's
+                            // folded background and spacing until the rows have
+                            // animated in, which showed a white strip between
+                            // the header and the first row for about a second.
+                            manager.setGroupCollapsed(group.id, !group.collapsed)
                         } label: {
                             HStack(spacing: 8) {
                                 // The dot sits in the tabs' icon column and the chevron in
@@ -356,7 +423,7 @@ struct PaletteSheet: View {
                                 close()
                             }
                         } label: {
-                            row(icon: "arrow.down.left", title: item.title.isEmpty ? item.url : item.title,
+                            row(icon: "arrow.up.right", title: item.title.isEmpty ? item.url : item.title,
                                 subtitle: SyncCopy.text("sends.from", [
                                     "device": item.fromName,
                                     "time": sentAgo.localizedString(for: Date(timeIntervalSince1970: Double(item.sentAt) / 1000), relativeTo: Date()),
@@ -376,18 +443,35 @@ struct PaletteSheet: View {
             if !manager.syncEngine.remoteDevices.isEmpty {
                 Section {
                     ForEach(manager.syncEngine.remoteDevices) { device in
-                        DisclosureGroup("\(device.name) (\(device.tabs.count))") {
+                        DisclosureGroup {
                             ForEach(Array(device.tabs.enumerated()), id: \.offset) { _, tab in
                                 Button {
                                     if let url = URL(string: tab.url) { manager.createTab(url: url); close() }
                                 } label: {
                                     row(icon: "globe", title: tab.title.isEmpty ? tab.url : tab.title, subtitle: tab.url)
                                 }
+                                // A disclosure group's rows take the list's
+                                // roomy defaults unless set here, row by row;
+                                // these match the open tabs above.
+                                .listRowSeparator(.hidden)
+                                .listRowBackground(Color.clear)
+                                .listRowInsets(EdgeInsets(top: 2, leading: 22, bottom: 2, trailing: 22))
+                            }
+                        } label: {
+                            // A cloud marks a device's tabs as synced, not open here.
+                            HStack(spacing: 10) {
+                                Image(systemName: "cloud").font(.system(size: 16, weight: .regular))
+                                    .foregroundStyle(style.secondary).frame(width: 24)
+                                    .accessibilityHidden(true)
+                                Text("\(device.name) (\(device.tabs.count))")
                             }
                         }
                         .font(BrowserStyle.font(13))
                         .listRowSeparator(.hidden)
                         .listRowBackground(Color.clear)
+                        // The cloud in the rows' icon column, the disclosure
+                        // arrow under the caret and Copy Link.
+                        .listRowInsets(EdgeInsets(top: 2, leading: 22, bottom: 2, trailing: 30))
                     }
                 } header: { groupHeading(SyncCopy.text("footer.devices")) }
             }
@@ -515,23 +599,70 @@ struct PaletteSheet: View {
     }
 
     private var switcherList: some View {
-        let results = switcherResults
+        let query = input.trimmingCharacters(in: .whitespacesAndNewlines)
+        let results = QuickSwitcher.search(
+            query: query,
+            tabs: manager.tabs, remote: manager.syncEngine.remoteDevices, favorites: manager.syncEngine.favorites,
+            history: manager.historyStore.entries, groups: manager.groups, sets: switcherSets,
+            remoteSpaces: switcherRemoteSpaces
+        )
+        // The first row is always what Go does: a strong match, or the search.
+        let goesToMatch = QuickSwitcher.goTarget(query: query, results: results) != nil
+        let isSearch = !query.isEmpty && !AddressNormalizer.looksLikeAddress(query)
         return List {
-            if results.isEmpty {
-                Text(SyncCopy.text("ios.palette.noMatches"))
-                    .foregroundStyle(style.secondary)
-            } else {
-                ForEach(Array(results.enumerated()), id: \.element.id) { index, result in
-                    Button {
-                        open(result)
-                        close()
-                    } label: {
-                        row(icon: result.groupId != nil ? "rectangle.stack" : result.setId != nil ? "square.on.square" : result.localTabID == nil ? "magnifyingglass" : "globe",
-                            title: result.title, subtitle: result.subtitle)
-                    }
-                    .overlay { keyHighlight(index).allowsHitTesting(false) }
+            if goesToMatch { switcherRows(results) }
+            if isSearch {
+                searchRow(SyncCopy.text("contextMenu.searchFor", ["query": query]), query: query, id: "palette.search")
+                ForEach(suggestions, id: \.self) { suggestion in
+                    searchRow(suggestion, query: suggestion, id: "palette.suggestion")
                 }
             }
+            if !goesToMatch { switcherRows(results) }
+            if results.isEmpty, !isSearch {
+                Text(SyncCopy.text("ios.palette.noMatches"))
+                    .foregroundStyle(style.secondary)
+            }
+        }
+    }
+
+    private func switcherRows(_ results: [SyncedSwitcherResult]) -> some View {
+        ForEach(results) { result in
+            Button {
+                open(result)
+                close()
+            } label: {
+                row(icon: result.groupId != nil ? "rectangle.stack" : result.setId != nil ? "square.on.square" : result.localTabID == nil ? "magnifyingglass" : "globe",
+                    title: result.title, subtitle: result.subtitle)
+            }
+        }
+    }
+
+    /// A search with the chosen engine: the typed text, or a suggestion.
+    private func searchRow(_ title: String, query: String, id: String) -> some View {
+        Button {
+            manager.search(for: query)
+            close()
+        } label: {
+            row(icon: "magnifyingglass", title: title, subtitle: manager.settingsStore.searchEngine.label)
+        }
+        .accessibilityIdentifier(id)
+    }
+
+    /// Asks for suggestions a moment after the typing pauses. The manager
+    /// decides whether this text may be sent at all.
+    private func refreshSuggestions(for text: String) {
+        suggestionTask?.cancel()
+        let query = text.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard SearchSuggestions.isEligible(query) else {
+            suggestions = []
+            return
+        }
+        suggestionTask = Task {
+            try? await Task.sleep(for: .milliseconds(250))
+            guard !Task.isCancelled else { return }
+            let found = await manager.searchSuggestions(for: query)
+            guard !Task.isCancelled, manager.paletteDraft.trimmingCharacters(in: .whitespacesAndNewlines) == query else { return }
+            suggestions = found
         }
     }
 

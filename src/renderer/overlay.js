@@ -263,11 +263,13 @@
     placement: () => (mode === 'spaces' ? 'view' : 'anchored'),
     onOpenChange(open) {
       workspaceSwitcherOpen = open; window.browserAPI.setWorkspaceSwitcherOpen(open);
-      // Opened from the Island's space mark the menu is the whole overlay, so
-      // closing it closes the overlay and focus returns to the mark.
+      // Opened as its own overlay (the rail's space mark, or a command) the
+      // menu is the whole overlay, so closing it closes the overlay and focus
+      // returns to the mark, or the Island when the mark is hidden.
       if (!open && mode === 'spaces') window.browserAPI.closeOverlay('cancel');
     },
   });
+  window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => workspaceUI.repaintTrigger());
 
   // --- Drag to reorder (tab-drag.js; spec 2026-10-07) ---
   const dragApi = window.blancTabDrag;
@@ -561,8 +563,13 @@
   // --- Dedicated Glance tab picker ---------------------------------------
 
   function eligibleGlanceTabs() {
+    // Pages already on screen can't be chosen: the main page, the current
+    // Glance, and the panes of a visible split, which Glance floats over
+    // (#1441). Taking a pane out of its split stays a tab-menu choice.
+    const shownSplit = (state.splits ?? []).find((s) => s.tabIds.includes(state.activeTabId));
     return state.tabs.filter((tab) =>
       tab.id !== state.activeTabId && tab.id !== state.glanceTabId
+      && !shownSplit?.tabIds.includes(tab.id)
     );
   }
 
@@ -882,7 +889,11 @@
       row.append(mute);
     }
 
-    if (tab.id !== state.activeTabId) {
+    // Glance floats over the page or over a whole visible split (#1441). A
+    // pane of a two-pane split leaves it for Glance (main's openTabMenuGlance,
+    // like the tab menu); a larger split's panes can't, so they get no button.
+    const shownSplit = (state.splits ?? []).find((s) => s.tabIds.includes(state.activeTabId));
+    if (tab.id !== state.activeTabId && !(shownSplit?.tabIds.includes(tab.id) && shownSplit.tabIds.length !== 2)) {
       const glance = document.createElement('button');
       const isGlance = tab.id === state.glanceTabId;
       glance.className = 'row-glance' + (isGlance ? ' on' : '');
@@ -2755,6 +2766,8 @@
     // The private theme scope follows the active tab.
     if (activeTab()?.private) document.documentElement.dataset.theme = 'private';
     else delete document.documentElement.dataset.theme;
+    // The footer's Spaces button draws the space's tile for that theme.
+    workspaceUI.repaintTrigger();
     renderPanelChrome();
     renderList();
   }

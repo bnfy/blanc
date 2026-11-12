@@ -61,10 +61,8 @@ final class GlanceUITests: XCTestCase {
     app.openTabGrid()
     let cards = app.descendants(matching: .any).matching(identifier: "tab.card")
     XCTAssertTrue(cards.element(boundBy: 1).waitForExistence(timeout: 5))
-    cards.element(boundBy: 1).press(forDuration: 1.2)
-    let item = app.buttons["Open in Glance"]
-    XCTAssertTrue(item.waitForExistence(timeout: 5))
-    item.tap()
+    app.holdForMenu(cards.element(boundBy: 1))
+    app.tapMenuItem("Open in Glance")
     XCTAssertTrue(app.otherElements["glance.card"].waitForExistence(timeout: 5), "the grid closes and the card shows")
     XCTAssertTrue(app.buttons["pill.palette"].label.contains("example.com"), "the current page stays")
   }

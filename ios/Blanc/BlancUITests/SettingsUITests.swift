@@ -47,6 +47,14 @@ final class SettingsUITests: XCTestCase {
         tap("settings.done")
         XCTAssertEqual(pill.label, initialLabel)
     }
+    /// The Sunrise menu's last entry opens Settings.
+    func testSunriseMenuOpensSettings() {
+        app.openIslandMenu()
+        let item = app.buttons["Settings"]
+        XCTAssertTrue(item.waitForExistence(timeout: 5))
+        item.tap()
+        XCTAssertTrue(app.navigationBars["Settings"].waitForExistence(timeout: 5))
+    }
     func testSearchAndThemePersist() {
         open()
         tap("settings.searchEngine"); app.buttons["Kagi"].tap()
@@ -126,6 +134,8 @@ final class SettingsUITests: XCTestCase {
     func testSyncPairingAndDisconnectConfirmation() {
         open("/sync")
         tap("settings.otherWays")
+        // The code field is built after "Other ways" opens; wait before asking what kind it is.
+        XCTAssertTrue(app.descendants(matching: .any)["settings.syncCode"].waitForExistence(timeout: 5))
         let code = app.textViews["settings.syncCode"]
         // TextField(axis: .vertical) is exposed as a text view on current iOS.
         let input = code.exists ? code : app.textFields["settings.syncCode"]
@@ -190,6 +200,8 @@ final class SettingsUITests: XCTestCase {
         app.terminate(); launch(reset: true, extra: ["-BlancUITestSettingsOffline"])
         open("/sync")
         tap("settings.otherWays")
+        // The code field is built after "Other ways" opens; wait before asking what kind it is.
+        XCTAssertTrue(app.descendants(matching: .any)["settings.syncCode"].waitForExistence(timeout: 5))
         let code = app.textViews["settings.syncCode"]
         let input = code.exists ? code : app.textFields["settings.syncCode"]
         input.tap(); input.typeText("K7MR-4PX2")
@@ -232,22 +244,23 @@ final class SettingsUITests: XCTestCase {
         XCTAssertGreaterThan(toggle.saturation(inRightFraction: 0.2), 0.12, "a switch that's on isn't white on white")
     }
     func testAppIconPicker() {
-        let ids = ["sunrise-gold", "sunrise-dawn", "sunrise", "sunrise-dark", "sunrise-spectrum", "sunrise-amber"]
+        let ids = ["sunrise", "sunrise-bronze", "sunrise-gold", "sunrise-dawn", "sunrise-dark", "sunrise-spectrum",
+                   "sunrise-amber"]
         open()
         tap("settings.appIcon")
         for id in ids { XCTAssertTrue(appIcon(id).waitForExistence(timeout: 5), id) }
-        XCTAssertEqual(ids.filter { appIcon($0).isSelected }, ["sunrise-gold"])
+        XCTAssertEqual(ids.filter { appIcon($0).isSelected }, ["sunrise"])
         capture("Native Settings — App icon")
-        appIcon("sunrise-dawn").tap()
-        dismissIconChangedNotice("sunrise-dawn")
-        XCTAssertTrue(appIcon("sunrise-dawn").waitForSelection(timeout: 15))
+        appIcon("sunrise-bronze").tap()
+        dismissIconChangedNotice("sunrise-bronze")
+        XCTAssertTrue(appIcon("sunrise-bronze").waitForSelection(timeout: 15))
         app.terminate(); launch(reset: false)
         open(); tap("settings.appIcon")
-        XCTAssertTrue(appIcon("sunrise-dawn").waitForSelection(), "the choice survives a relaunch")
-        appIcon("sunrise-gold").tap()
-        dismissIconChangedNotice("sunrise-gold")
-        XCTAssertTrue(appIcon("sunrise-gold").waitForSelection(timeout: 15))
-        XCTAssertFalse(appIcon("sunrise-dawn").isSelected)
+        XCTAssertTrue(appIcon("sunrise-bronze").waitForSelection(), "the choice survives a relaunch")
+        appIcon("sunrise").tap()
+        dismissIconChangedNotice("sunrise")
+        XCTAssertTrue(appIcon("sunrise").waitForSelection(timeout: 15))
+        XCTAssertFalse(appIcon("sunrise-bronze").isSelected)
     }
 }
 

@@ -842,7 +842,6 @@ Puoi riprovare con «%2$s» o reinstallare Blanc da blanc.day.</string>
     <string name="shortcuts_background_link">Apri il link in una scheda in background</string>
     <string name="glance_status_opened">Aperto in Glance: %1$s</string>
     <string name="glance_status_closed">Glance chiuso</string>
-    <string name="split_glance_unavailable">Glance non è disponibile mentre è visibile una vista divisa</string>
     <string name="glance_status_opened_as_tab">%1$s è ora la scheda attuale</string>
     <string name="glance_status_tab_closed">Glance chiuso perché la sua scheda è stata chiusa</string>
     <string name="glance_status_main_closed">%1$s è ora la pagina principale. Glance chiuso.</string>
@@ -2562,6 +2561,11 @@ Puoi riprovare con «%2$s» o reinstallare Blanc da blanc.day.</string>
     <string name="reader_mono">JetBrains Mono</string>
     <string name="settings_general_island_size_label">Dimensione dell’Island</string>
     <string name="settings_general_island_size_hint">Ingrandisce l’Island e i suoi pulsanti. La pagina scende per farle spazio.</string>
+    <string name="settings_general_page_zoom_label">Zoom predefinito delle pagine</string>
+    <string name="settings_general_page_zoom_hint">Le dimensioni con cui si aprono le pagine web. Ingrandendo o riducendo un sito, le dimensioni vengono salvate solo per quel sito.</string>
+    <string name="settings_general_page_zoom_percent">%1$s%%</string>
+    <string name="settings_general_site_zoom_hint">Questi siti hanno uno zoom proprio. Rimuovine uno per tornare a quello predefinito.</string>
+    <string name="settings_general_site_zoom_clear_all">Cancella tutto</string>
     <string name="settings_general_island_size_default">Predefinita</string>
     <string name="settings_general_island_size_large">Grande</string>
     <string name="settings_general_island_size_extra_large">Molto grande</string>
@@ -2619,6 +2623,12 @@ Puoi riprovare con «%2$s» o reinstallare Blanc da blanc.day.</string>
     <string name="ios_palette_clear">Cancella la ricerca</string>
     <string name="ios_palette_no_command">Nessun comando corrispondente</string>
     <string name="ios_palette_no_matches">Nessun risultato. Premi Invio per aprirlo come indirizzo o ricerca.</string>
+    <string name="ios_palette_edit_address">Modifica indirizzo</string>
+    <string name="ios_island_page_zoom">Zoom della pagina</string>
+    <string name="ios_island_desktop_site">Richiedi sito desktop</string>
+    <string name="ios_island_mobile_site">Richiedi sito mobile</string>
+    <string name="ios_app_link_message">Questa pagina vuole aprire un’altra applicazione.</string>
+    <string name="ios_downloads_failed">Impossibile scaricare %1$s</string>
     <string name="ios_tabs_open_tabs">Schede aperte</string>
     <string name="ios_tabs_switch_to">Passa a %1$s</string>
     <string name="ios_tabs_close">Chiudi %1$s</string>
@@ -2648,6 +2658,7 @@ Puoi riprovare con «%2$s» o reinstallare Blanc da blanc.day.</string>
     <string name="ios_welcome_privacy_title">La tua privacy</string>
     <string name="ios_welcome_measure_usage">Misura l’utilizzo</string>
     <string name="ios_welcome_measure_usage_help">Ogni volta che apri Blanc, invia un conteggio anonimo: un ID casuale per questa installazione, la versione dell’app e la versione di iOS. Mai ciò che navighi. Vedi blanc.day/privacy.</string>
+    <string name="ios_welcome_suggestions_help">Mentre scrivi una ricerca, il testo viene inviato al tuo motore di ricerca, che restituisce suggerimenti. Mai da una scheda privata, e mai un indirizzo, testo incollato o qualcosa che sembri una password o una chiave.</string>
     <string name="ios_welcome_show_again">Mostra di nuovo il benvenuto</string>
     <string name="ios_default_browser_title">Apri i link in Blanc</string>
     <string name="ios_default_browser_body">Rendi Blanc il tuo browser predefinito, così i link da Messaggi, Mail e altre app si aprono qui.</string>
