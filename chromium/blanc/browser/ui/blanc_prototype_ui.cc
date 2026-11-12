@@ -1046,6 +1046,7 @@ class Owner;
 void AutoHidePageMove(Owner* owner, const blink::WebInputEvent& event);
 void AutoHideActivated(Owner* owner);
 void EndGlanceSoon(Owner* owner, int next_reference);
+void EndOverlayGlance(Owner* owner, bool focus_active);
 
 class Owner : public base::SupportsUserData::Data,
               public content::WebContentsObserver,
@@ -1137,6 +1138,14 @@ class Owner : public base::SupportsUserData::Data,
   std::string unbound_space;
   gfx::Rect glance_page;
   std::vector<gfx::Rect> glance_ring;
+  // Glance over a split (F53-29/30, shipping v1.47.0): Chromium's split has
+  // two page slots, so a Glance opened over a visible split shows its tab in
+  // a view of its own, under the Island (which draws the card's frame) and
+  // over the split. The tab stays where it is in the tab strip. The panes it
+  // opened over keep it while focus moves between them or one of them closes.
+  int overlay_glance = -1;
+  std::set<int> overlay_panes;
+  views::ViewTracker overlay_view;
   // Where the reference tab came from. Chromium's split needs its two tabs
   // side by side and alike, so the tab goes back when the Glance ends.
   int glance_origin_index = -1;
@@ -1401,6 +1410,18 @@ class Owner : public base::SupportsUserData::Data,
       for (const auto& inserted : change.GetInsert()->contents)
         if (inserted.contents != selection.new_contents)
           background_opened.insert(sessions::SessionTabHelper::IdForTab(inserted.contents).id());
+    }
+    // A Glance over a split stays while focus moves between the panes it
+    // opened over or one of them closes; any other switch, or its own tab
+    // leaving the window, ends it.
+    if (overlay_glance >= 0) {
+      bool gone = false;
+      if (change.type() == TabStripModelChange::kRemoved)
+        for (const auto& removed : change.GetRemove()->contents)
+          gone |= sessions::SessionTabHelper::IdForTab(removed.contents).id() == overlay_glance;
+      if (gone || (selection.active_tab_changed() && selection.new_contents &&
+          !overlay_panes.contains(sessions::SessionTabHelper::IdForTab(selection.new_contents).id())))
+        EndOverlayGlance(this, false);
     }
     // A Glance belongs to the page it opened over: switching away ends it.
     if (selection.active_tab_changed() && glance_main >= 0 && selection.new_contents) {
@@ -1926,6 +1947,112 @@ Owner* SettingsSheetOwner(content::WebContents* contents) {
 void CloseSettingsSheet(Owner* owner) {
   if (owner && owner->view) owner->view->GetWebContents()->GetPrimaryMainFrame()->ExecuteJavaScript(
       u"window.BlancPrototypeHost?.closeSheet()", base::NullCallback());
+}
+views::WebView* OverlayGlanceView(Owner* owner) {
+  return owner ? static_cast<views::WebView*>(owner->overlay_view.view()) : nullptr;
+}
+bool IsOverlayGlanceTab(content::WebContents* tab) {
+  for (auto* owner : Owner::Live())
+    if (auto* view = OverlayGlanceView(owner); tab && view && view->web_contents() == tab) return true;
+  return false;
+}
+content::WebContents* TabById(TabStripModel* model, int id) {
+  for (int i = 0; i < model->count(); ++i)
+    if (sessions::SessionTabHelper::IdForTab(model->GetWebContentsAt(i)).id() == id) return model->GetWebContentsAt(i);
+  return nullptr;
+}
+// The Glance page sits where the host's card leaves its hole, with the
+// card's page corners; nothing shows until the host has placed the card.
+void PlaceOverlayGlance(Owner* owner) {
+  auto* view = OverlayGlanceView(owner);
+  if (!view || !owner->view) return;
+  gfx::Rect bounds = owner->glance_page;
+  bounds.Offset(owner->view->bounds().OffsetFromOrigin());
+  view->SetBoundsRect(bounds);
+  view->holder()->SetNativeViewCornerRadii(gfx::RoundedCornersF(8));
+  view->SetVisible(owner->overlay_glance >= 0 && !owner->glance_page.IsEmpty());
+}
+// The page area a Glance over a split floats in, as the Glance layout
+// reports it (Island-relative, below the Island's resting band).
+base::Value OverlayGlanceArea(Owner* owner) {
+  if (!owner || owner->overlay_glance < 0) return base::Value();
+  auto* browser_view = BrowserViewFor(owner);
+  auto* view = browser_view ? browser_view->multi_contents_view() : nullptr;
+  auto* island = browser_view ? browser_view->GetViewByID(kIslandViewId) : nullptr;
+  if (!view || !island) return base::Value();
+  gfx::Point origin;
+  views::View::ConvertPointToTarget(view, browser_view, &origin);
+  const int island_relative_origin_y = origin.y() - island->y();
+  const int band = BaseHeaderHeight(island->parent()) - island->y();
+  return base::Value(base::DictValue().Set("x", origin.x()).Set("y", band).Set("width", view->width())
+      .Set("height", island_relative_origin_y + view->height() - band).Set("islandY", island->y()));
+}
+// Where a Glance over a split sits among the views of the Island's parent:
+// the split's pages, the Glance page, and the Island (which draws the card's
+// frame and the corner tabs). For the acceptance adapter's stacking check.
+base::Value OverlayGlanceStack(Owner* owner) {
+  auto* overlay = OverlayGlanceView(owner);
+  auto* browser_view = BrowserViewFor(owner);
+  if (!overlay || !owner->view || !browser_view) return base::Value();
+  auto* parent = owner->view->parent();
+  auto index_in_parent = [&](views::View* view) {
+    while (view && view->parent() != parent) view = view->parent();
+    return view ? static_cast<int>(parent->GetIndexOf(view).value_or(-1)) : -1;
+  };
+  return base::Value(base::DictValue().Set("panes", index_in_parent(browser_view->multi_contents_view()))
+      .Set("glance", index_in_parent(overlay)).Set("island", index_in_parent(owner->view)));
+}
+void RefreshHostSoon(Owner* owner) {
+  if (!owner || !owner->view) return;
+  owner->view->GetWebContents()->GetPrimaryMainFrame()->ExecuteJavaScript(
+      u"window.BlancPrototypeHost?.refresh()", base::NullCallback());
+}
+// Ends a Glance over a split. Its tab goes back to being an ordinary
+// background tab; nothing moves in the tab strip.
+void EndOverlayGlance(Owner* owner, bool focus_active) {
+  if (!owner || owner->overlay_glance < 0) return;
+  owner->overlay_glance = -1;
+  owner->overlay_panes.clear();
+  owner->glance_page = gfx::Rect();
+  owner->glance_ring.clear();
+  if (auto* view = OverlayGlanceView(owner)) {
+    owner->overlay_view.SetView(nullptr);
+    view->SetWebContents(nullptr);
+    view->parent()->RemoveChildViewT(view);
+  }
+  auto* active = owner->browser->GetTabStripModel()->GetActiveWebContents();
+  if (focus_active && active) active->Focus();
+  if (auto* browser_view = BrowserViewFor(owner)) browser_view->multi_contents_view()->InvalidateLayout();
+  RefreshHostSoon(owner);
+}
+// Opens `tab` in Glance over the visible split, or changes the page an open
+// one shows. The tab must be an ordinary tab of this window, not on screen.
+bool OpenOverlayGlance(Owner* owner, content::WebContents* tab) {
+  auto* model = owner->browser->GetTabStripModel();
+  const int index = model->GetIndexOfWebContents(tab);
+  const int active = model->active_index();
+  if (index == TabStripModel::kNoTab || active < 0 || index == active || model->GetSplitForTab(index) ||
+      !model->GetSplitForTab(active) || tab->IsCrashed() || !owner->view) return false;
+  auto* view = OverlayGlanceView(owner);
+  if (!view) {
+    auto* parent = owner->view->parent();
+    auto created = std::make_unique<views::WebView>(owner->browser->GetProfile());
+    // Under the Island, which draws the card's frame around the page.
+    view = parent->AddChildViewAt(std::move(created), parent->GetIndexOf(owner->view).value_or(0));
+    owner->overlay_view.SetView(view);
+  }
+  if (owner->overlay_glance < 0) {
+    owner->overlay_panes.clear();
+    const auto split = model->GetSplitForTab(active);
+    for (int i = 0; i < model->count(); ++i)
+      if (model->GetSplitForTab(i) == split)
+        owner->overlay_panes.insert(sessions::SessionTabHelper::IdForTab(model->GetWebContentsAt(i)).id());
+  }
+  view->SetWebContents(tab);
+  owner->overlay_glance = sessions::SessionTabHelper::IdForTab(tab).id();
+  PlaceOverlayGlance(owner);
+  RefreshHostSoon(owner);
+  return true;
 }
 // Ends a Glance: the pair stops being a split, the reference tab goes back to
 // where it came from, and `activate` (if live) becomes the current tab.
@@ -3938,6 +4065,10 @@ base::DictValue Snapshot(BrowserWindowInterface* browser, Owner* owner) {
   const int main_index = owner->MainIndex();
   auto* active = main_index >= 0 ? model->GetWebContentsAt(main_index) : nullptr;
   auto* focused = model->GetActiveWebContents();
+  // Focus inside a Glance over a split is the Glance tab's.
+  if (auto* overlay = OverlayGlanceView(owner); overlay && overlay->web_contents() &&
+      overlay->web_contents()->GetRenderWidgetHostView() &&
+      overlay->web_contents()->GetRenderWidgetHostView()->HasFocus()) focused = overlay->web_contents();
   base::Value active_id =
       active ? base::Value(sessions::SessionTabHelper::IdForTab(active).id())
              : base::Value();
@@ -3968,7 +4099,10 @@ base::DictValue Snapshot(BrowserWindowInterface* browser, Owner* owner) {
       .Set("groups", std::move(groups))
       .Set("splits", std::move(persistent_splits))
       .Set("closed", ClosedEntries(browser->GetProfile()))
-      .Set("glanceTabId", owner->glance_reference >= 0 ? base::Value(owner->glance_reference) : base::Value())
+      .Set("glanceTabId", owner->glance_reference >= 0 ? base::Value(owner->glance_reference)
+          : owner->overlay_glance >= 0 ? base::Value(owner->overlay_glance) : base::Value())
+      .Set("glanceArea", OverlayGlanceArea(owner))
+      .Set("glanceStack", OverlayGlanceStack(owner))
       .Set("focusedTabId", focused ? base::Value(sessions::SessionTabHelper::IdForTab(focused).id()) : base::Value())
       .Set("verticalTabsTextSize", owner->browser->GetProfile()->GetOriginalProfile()->GetPrefs()->GetString(kVerticalTabsTextSizePref))
       .Set("tabLayout", owner->vertical ? "vertical" : "island")
@@ -7379,7 +7513,7 @@ class Handler : public content::WebUIMessageHandler, public extensions::Extensio
     return base::DictValue().Set("archived", base::ListValue()).Set("closed", base::ListValue()).Set("skippedReason", reason);
   }
   bool ArchiveAllowed(BrowserWindowInterface* browser, content::WebContents* tab) {
-    if (!browser || !tab || browser->GetProfile()->IsOffTheRecord() ||
+    if (!browser || !tab || browser->GetProfile()->IsOffTheRecord() || IsOverlayGlanceTab(tab) ||
         tab->GetBrowserContext()->IsOffTheRecord() || tab->GetUserData(blanc::kHeldPageKey)) return false;
     const auto delay = ArchiveDelay(browser->GetProfile());
     if (!delay || base::Time::Now() < ArchiveRuntime::Get(browser->GetProfile())->grace) return false;
@@ -7647,6 +7781,7 @@ class Handler : public content::WebUIMessageHandler, public extensions::Extensio
     if (!browser || !tab) return false;
     auto* model = browser->GetTabStripModel();
     const int index = model->GetIndexOfWebContents(tab);
+    if (IsOverlayGlanceTab(tab)) return false;
     if (index < 0 || index == model->active_index() || tab->IsLoading() ||
         tab->GetController().GetPendingEntry() || (!explicit_quiet && TabPinned(model, index)) ||
         tab->IsAudioMuted() || tab->IsCurrentlyAudible() || TabIsCapturing(tab) ||
@@ -9592,6 +9727,9 @@ class Handler : public content::WebUIMessageHandler, public extensions::Extensio
       reply(true, base::Value(chrome::ExecuteCommand(browser, command->second)));
       return;
     }
+    if (method == "keepGlanceAsSplit" && args.empty() && owner->overlay_glance >= 0) {
+      reply(true, base::Value(false)); return;
+    }
     if (method == "keepGlanceAsSplit" && args.empty()) {
       // Convert only this window's live, visible temporary pair. Never infer
       // ownership from caller-supplied tab IDs or a persistent split.
@@ -9659,9 +9797,14 @@ class Handler : public content::WebUIMessageHandler, public extensions::Extensio
       }
       // PR993: a visible split owns both panes. Even a request naming two
       // loose tabs must not replace that presentation with temporary Glance.
+      // Over a visible split, Glance floats over both panes in a view of its
+      // own (F53-29, shipping v1.47.0); the split is left as it is.
       if (method == "previewGlancePair" && model->active_index() >= 0 &&
           model->GetSplitForTab(model->active_index())) {
-        reply(true, base::Value(false)); return;
+        auto* target = TabById(model, args[1].GetInt());
+        const bool from_split = args[0].GetInt() == sessions::SessionTabHelper::IdForTab(model->GetActiveWebContents()).id() ||
+            owner->overlay_panes.contains(args[0].GetInt());
+        reply(true, base::Value(target && from_split && OpenOverlayGlance(owner, target))); return;
       }
       int first = -1, second = -1;
       for (int i = 0; i < model->count(); ++i) {
@@ -9762,7 +9905,7 @@ class Handler : public content::WebUIMessageHandler, public extensions::Extensio
     // The card's frame, from the host (F34): the page and the chrome around it.
     if (method == "glanceFrame" && args.size() == 8 &&
         std::all_of(args.begin(), args.end(), [](const base::Value& value) { return value.is_int(); })) {
-      if (owner->glance_main < 0) { reply(true, base::Value(false)); return; }
+      if (owner->glance_main < 0 && owner->overlay_glance < 0) { reply(true, base::Value(false)); return; }
       const gfx::Rect page(args[0].GetInt(), args[1].GetInt(), args[2].GetInt(), args[3].GetInt());
       const gfx::Rect chrome(args[4].GetInt(), args[5].GetInt(), args[6].GetInt(), args[7].GetInt());
       owner->glance_page = page;
@@ -9771,6 +9914,7 @@ class Handler : public content::WebUIMessageHandler, public extensions::Extensio
           gfx::Rect(chrome.x(), page.y(), page.x() - chrome.x(), page.height()),
           gfx::Rect(page.right(), page.y(), chrome.right() - page.right(), page.height()),
           gfx::Rect(chrome.x(), page.bottom(), chrome.width(), chrome.bottom() - page.bottom())};
+      PlaceOverlayGlance(owner);
       if (auto* view = BrowserView::GetBrowserViewForBrowser(browser)) view->multi_contents_view()->InvalidateLayout();
       reply(true, base::Value(true)); return;
     }
@@ -9783,6 +9927,15 @@ class Handler : public content::WebUIMessageHandler, public extensions::Extensio
     }
     // Keyboard focus moves between the two pages without ending the Glance.
     if (method == "focusGlancePane" && args.size() == 1 && args[0].is_int()) {
+      if (owner->overlay_glance >= 0) {
+        auto* target = TabById(model, args[0].GetInt());
+        if (target && args[0].GetInt() == owner->overlay_glance) { target->Focus(); reply(true, base::Value(true)); return; }
+        if (target && owner->overlay_panes.contains(args[0].GetInt())) {
+          model->ActivateTabAt(model->GetIndexOfWebContents(target)); target->Focus();
+          reply(true, base::Value(true)); return;
+        }
+        reply(true, base::Value(false)); return;
+      }
       for (int i = 0; i < model->count(); ++i) {
         if (sessions::SessionTabHelper::IdForTab(model->GetWebContentsAt(i)).id() != args[0].GetInt()) continue;
         if (args[0].GetInt() != owner->glance_main && args[0].GetInt() != owner->glance_reference) break;
@@ -9793,6 +9946,13 @@ class Handler : public content::WebUIMessageHandler, public extensions::Extensio
       reply(true, base::Value(false)); return;
     }
     if ((method == "openGlanceAsTab" || method == "closeGlance") && args.empty()) {
+      if (owner->overlay_glance >= 0) {
+        const int glance = owner->overlay_glance;
+        EndOverlayGlance(owner, method == "closeGlance");
+        if (method == "openGlanceAsTab")
+          if (auto* tab = TabById(model, glance)) model->ActivateTabAt(model->GetIndexOfWebContents(tab));
+        reply(true, base::Value(true)); return;
+      }
       if (owner->glance_main < 0) { reply(true, base::Value(false)); return; }
       content::WebContents* target = nullptr;
       const int wanted = method == "openGlanceAsTab" ? owner->glance_reference : owner->glance_main;
@@ -12067,6 +12227,14 @@ bool SelectIslandSlot(BrowserWindowInterface* browser, int slot) {
 bool IsPersistentSplitTab(content::WebContents* tab) {
   return IsEnabled() && !tab->GetBrowserContext()->IsOffTheRecord() && tab->GetUserData(kPersistentSplitKey);
 }
+// Chromium is about to show `contents` in one of its own content views: a
+// Glance over a split that holds it lets it go first (a page can be in one
+// view only), and ends.
+void ReleaseOverlayGlance(content::WebContents* contents) {
+  if (!contents) return;
+  for (auto* owner : std::set<Owner*>(Owner::Live()))
+    if (auto* view = OverlayGlanceView(owner); view && view->web_contents() == contents) EndOverlayGlance(owner, false);
+}
 bool HasSplitPresentation(content::WebContents* tab) {
   // Presentation markers also exist in private windows; this performs no I/O.
   if (!IsEnabled() || !tab) return false;
@@ -12802,7 +12970,10 @@ void AdjustSplitLayout(const MultiContentsView* view, views::ProposedLayout* lay
   }
   if (model->active_index() < 0 || !model->GetSplitForTab(model->active_index()) ||
       !model->GetActiveWebContents()->GetUserData(kPersistentSplitKey)) {
-    owner->split_geometry.clear(); owner->split_hit_regions.clear(); return;
+    owner->split_geometry.clear(); owner->split_hit_regions.clear();
+    // A Glance over what remains of a split: only its card takes input.
+    if (owner->overlay_glance >= 0) owner->split_hit_regions = owner->glance_ring;
+    return;
   }
   const auto& containers = view->contents_container_views();
   if (containers.size() != 2) return;
@@ -12857,6 +13028,14 @@ void AdjustSplitLayout(const MultiContentsView* view, views::ProposedLayout* lay
   if (columns) hit_regions.push_back(gutter);
   // Preferred-size probes cannot replace applied input regions or metadata.
   if (width <= 0 || width != view->width() || height != view->height()) return;
+  // A Glance over the split: its card takes input, and the corner tabs and
+  // divider under it don't.
+  if (owner->overlay_glance >= 0 && !owner->glance_ring.empty()) {
+    gfx::Rect card;
+    for (const auto& r : owner->glance_ring) card.Union(r);
+    std::erase_if(hit_regions, [&](const gfx::Rect& r) { return r.Intersects(card); });
+    hit_regions.insert(hit_regions.end(), owner->glance_ring.begin(), owner->glance_ring.end());
+  }
   owner->split_hit_regions = std::move(hit_regions);
   owner->split_geometry = base::DictValue().Set("mode", columns ? "columns" : rows ? "rows" : "focus")
       .Set("headers", std::move(headers)).Set("frames", std::move(frames)).Set("divider", encode(gutter))

@@ -216,8 +216,9 @@ if (location.origin === 'chrome://blanc-prototype' && parent !== window) {
       const changed = await window.browserAPI.toggleStartPin(id, startPin.url);
       if (!changed) parent.BlancPrototypeHost.notice('This page could not be changed on the Start Page.');
     }, !startPin?.enabled]);
-    // Open in Glance: any other tab of this window, while no split shows.
-    if (id !== state.activeTabId && !split && !state.splits?.some(s => s.tabIds.includes(state.activeTabId))) {
+    // Open in Glance: any other tab of this window, over the page or over a
+    // whole visible split (F53-29, shipping v1.47.0).
+    if (id !== state.activeTabId && !split) {
       actions.push([localized('tabMenu.glance', 'Open in Glance'), () => window.browserAPI.setGlanceTab(id), id === state.glanceTabId]);
     }
     // A split pane opens in Glance over the pane that stays.

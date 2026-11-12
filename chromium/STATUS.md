@@ -849,6 +849,18 @@ remain pending. D3 beta-only no-DRM exception accepted; EME notice/handoff requi
   those gone; settings-and-theming, island-and-commands and internal-pages
   match their last runs. Chromium's own name still shows in a few strings
   ("About Chromium", Default browser); that is branding, not this slice.
+- **Glance over a split (F53-29/30, shipping v1.47.0; 2026-11-12, owner):**
+  Chromium's split holds two pages, so a Glance opened over a visible split
+  shows its tab in a view of its own, between the split's pages and the
+  Island (which draws the card's frame); the tab stays where it is. It stays
+  while focus moves between the panes or one closes, and ends on any other
+  switch, on its own tab leaving, or when Chromium is about to show its page
+  (patch 0072 hooks both of Chromium's attach points). The Island cuts the
+  pane frames, corner tabs and divider away under the card; the tab menu
+  offers Glance while a split shows. Not built: keyboard commands follow
+  focus into this card (they act on the split pane). Both scenarios pass,
+  and glance.feature and split-view.feature pass 101 with 2 excluded on
+  macos-c2c2bcc050e0af2d.
 - **F62 default page zoom on Chromium's zoom (2026-11-12):** all 11
   page-zoom.feature scenarios pass on macos-62c03a037c249ee0
   (`v148-zoom-cases-3`). Chromium already keeps a profile's default and
@@ -2442,5 +2454,5 @@ Android's Bar A counts the shared scenarios bound in `chromium/tests/android/acc
 
 Legacy macOS stages come from the approved spec; they await verification on the canonical candidate. No legacy stage counts as Verified.
 
-Candidate identities: macOS: macos-45bee2f746260f90; Windows: none; Linux: none; Android: android-arm64-7bd35e94ef746069.
+Candidate identities: macOS: macos-c2c2bcc050e0af2d; Windows: none; Linux: none; Android: android-arm64-7bd35e94ef746069.
 <!-- END GENERATED PROGRESS -->

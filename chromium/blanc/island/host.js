@@ -563,7 +563,9 @@
   // save is debounced and a close flushes it.
   const GlanceCard = window.BlancGlanceCard;
   const glance = { ready: false, loadEpoch: 0, tabId: null, nativeTabId: null, nativeMainId: null, generation: 0, pending: undefined, timer: null, key: '', requestEpoch: 0 };
-  const glanceArea = () => snapshot?.splitGeometry?.mode === 'glance' ? snapshot.splitGeometry.pageArea : null;
+  // A Glance over a split (F53-29) reports its own page area; a Glance pair
+  // reports it as its split geometry.
+  const glanceArea = () => snapshot?.glanceArea ?? (snapshot?.splitGeometry?.mode === 'glance' ? snapshot.splitGeometry.pageArea : null);
   const glanceFractions = () => (glance.pending !== undefined ? glance.pending : snapshot?.glanceFrame ?? null);
   const glanceCardFrameNow = () => GlanceCard.fractionsToFrame(glanceFractions(), glanceArea());
   function glancePayload() {
@@ -611,6 +613,8 @@
       glanceCardFrame.hidden = true;
     }
     emit('onGlanceLayout', payload);
+    // The split's frames are cut where the card now is.
+    paintSplitHeaders();
   }
   function syncGlance() {
     const id = snapshot?.glanceTabId ?? null;
@@ -738,7 +742,13 @@
     const split = snapshot?.splits?.find(s => s.tabIds.includes(snapshot.activeTabId));
     const tabs = split?.tabIds.map(id => snapshot.tabs.find(t => t.id === id)) ?? [];
     const geometry = snapshot?.splitGeometry;
-    const key = JSON.stringify([split, tabs, snapshot?.activeTabId, layout, railWidth, geometry]);
+    // A Glance floating over the split (F53-29) covers what lies under its
+    // card: the pane frames, corner tabs and divider are drawn here, above
+    // the pages, so they are cut away where the card is.
+    const card = snapshot?.glanceArea ? glancePayload()?.card.chrome : null;
+    const key = JSON.stringify([split, tabs, snapshot?.activeTabId, layout, railWidth, geometry, card]);
+    const cut = card ? `path(evenodd, 'M-10000 -10000H20000V20000H-10000Z M${card.x} ${card.y}h${card.width}v${card.height}h${-card.width}Z')` : '';
+    box.style.clipPath = cut; divider.style.clipPath = cut;
     divider.hidden = !split || geometry?.mode !== 'columns';
     if (split && geometry?.divider) {
       const r = geometry.divider;
@@ -2160,6 +2170,15 @@
           if (snapshot?.glanceTabId !== String(id)) glanceSay('glance.status.cancelled');
           return false;
         }
+      }
+      // A pane of the shown two-pane split leaves it and floats over the other
+      // pane, as shipping's openTabMenuGlance does (F53); a larger split's
+      // panes can't.
+      const shown = snapshot?.splits?.find(s => s.tabIds.includes(snapshot.activeTabId));
+      if (shown?.tabIds.includes(String(id))) {
+        if (shown.tabIds.length !== 2) return false;
+        const other = shown.tabIds.find(tabId => tabId !== String(id));
+        await request('removeFromSplit', [nativeId(id)]); await request('switchTab', [nativeId(other)]); await refresh();
       }
       const opened = await request('previewGlancePair', [nativeId(snapshot.activeTabId), nativeId(id)]);
       await close(); await refresh();

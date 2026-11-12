@@ -76,6 +76,7 @@
     "patches/0068-blanc-mouse-gestures.patch",
     "patches/0069-blanc-local-file-grant.patch",
     "patches/0070-blanc-web-default-zoom.patch",
-    "patches/0071-blanc-chrome-zoom-steps.patch"
+    "patches/0071-blanc-chrome-zoom-steps.patch",
+    "patches/0072-blanc-glance-over-split.patch"
   ]
 }
