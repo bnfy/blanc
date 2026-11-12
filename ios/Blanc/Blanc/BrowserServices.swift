@@ -43,8 +43,12 @@ final class BrowserServices {
         settingsStore = SettingsStore(directory: settingsDirectory)
         #if DEBUG
         // The App Store images show the Island without Back and Forward
-        // (owner, 2026-11-11).
-        if UITestSeed.appStore { settingsStore.update(islandBackForward: false) }
+        // (owner, 2026-11-11), and the Start Page clock in solid color, which
+        // reads more strongly in a screenshot than Liquid Glass (2026-11-12).
+        if UITestSeed.appStore {
+            settingsStore.update(islandBackForward: false)
+            _ = try? appearance.change("setClock", value: ["style": "solid"])
+        }
         #endif
         sessionStore = SessionStore(directory: sessionDirectory)
         tabHistory = TabHistoryStore(directory: sessionDirectory)

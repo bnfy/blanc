@@ -200,6 +200,68 @@ the unfolded palette panel to the MacBook Pro's tabs.
 The App Store header and search-results art (`blanc-app-store-header-5244x2950.png`)
 was removed from the listing on November 3, 2026, at the owner's request.
 
+## iPad screenshots
+
+Seven 13" iPad screenshots (Apple's `APP_IPAD_PRO_3GEN_129` set, landscape
+2752 × 2064), for the first App Store version that supports iPad. App Store
+Connect accepts an iPad build for review only with these, and once a version
+supports iPad no later version can drop it. The owner chose the layout on
+November 12, 2026 (layout C of three mockups: landscape, the caption
+centered above a large iPad) and asked for the Start Page clock in solid
+color rather than Liquid Glass, which the App Store seed now sets. Same
+direction as the iPhone set: dawn to day across the seven, Blubird captions,
+the real app in a plain dark frame.
+
+`npm run ios:app-store-screenshots -- --ipad` captures every screen from the
+real app (`AppStoreIPadScreenshotsUITests`, from `-BlancUITestAppStoreIPad`:
+the iPhone seed plus three more paintings loose before the group, so the
+wider grid fills a row) on its own "Blanc App Store iPad 13" simulator (iPad
+Pro 13-inch (M5), iOS 27.2) set to Full Screen Apps, turned to landscape,
+light, English, then composes the canvas copy's iPad artboards
+(`docs/ios/app-store/design/project/IPad*.dc.html`) alone into
+`docs/ios/app-store/ipad-13/`; the iPhone and Duo sets are not touched. The
+captures are in `docs/ios/app-store/captures/ipad-13/`.
+
+| # | Headline | Subtitle | The capture |
+|---|---|---|---|
+| 1 | A little less browser. | Blanc for iPad keeps your address and tabs in one bar at the bottom of the screen: the Island. | The Start Page (the time in solid color over a sunrise) with the Island |
+| 2 | Two tabs, side by side | Split View shows two pages at once and keeps them together as one. | Split View: Wheat Field with Cypresses beside Under the Wave off Kanagawa |
+| 3 | Look without leaving the page | Glance opens another tab in a card over the one you’re on. | Sunflowers in a Glance card over Wheat Field with Cypresses |
+| 4 | Your computer’s tabs, on your iPad | Pair with Blanc on your Mac or PC to open its tabs here and get the pages it sends you. | The palette panel: this iPad's tabs and the MacBook Pro's open tabs |
+| 5 | Every tab, in named groups | See your tabs as cards, and keep the ones that belong together in a group, like Museum day. | The tab grid: eight paintings from The Met, three in a "Museum day" group |
+| 6 | A Space for each part of your day | Keep Work and Trip tabs apart, and share a Space to keep it the same on your computer. | The Spaces menu over a Van Gogh: This iPad, Work, and Trip shared |
+| 7 | Private tabs keep no history | And ads and trackers are blocked by default, in private tabs too. | A private tab, the Island's menu showing Ad & tracker blocking on |
+
+**Pages in the shots:** as for the iPhone set (The Met's public-domain
+paintings, blanc.day; never Wikipedia), plus The Harvesters, The Dance Class
+and The Card Players, each public domain in The Met's collection API on
+November 12, 2026. The private tab shows noddingoffapp.com, as on the
+iPhone.
+
+### iPad caption claims
+
+Captions 1 and 4 to 7 are the iPhone set's, with "iPad" for "iPhone"; their
+evidence and qualifications are in the iPhone table above. New for iPad,
+checked against Blanc for iPad (bnfy/blanc#1479, main at `65428e44a`), which
+1.0.3 ships:
+
+| Claim | Evidence | Qualification that travels | Verdict |
+|---|---|---|---|
+| Split View shows two pages at once and keeps them together as one | `SplitModel.swift` ("two tabs side by side, kept as one item"), `SplitViewUITests` | Wide layouts only (an iPad, the Duo's inner display); two panes | verified |
+| Glance opens another tab in a card over the current page | `GlanceCard.swift`, `GlanceUITests` | Wide layouts only | verified |
+| The Island holds the address and tabs at the bottom, on iPad | `IslandLayout.swift` (the iPad Island matches the iPhone's since #1479) | none | verified |
+| The palette shows a paired computer's tabs on iPad | `AppStoreIPadScreenshotsUITests.test4Palette` | As on iPhone: Blanc 1.45+ on the computer, its tab sharing on | qualified |
+
+None mentions the default browser, website passkeys, or an App Store release
+of Blanc for iPad.
+
+**Sign-off:** the owner approved this set of seven, as committed in
+`docs/ios/app-store/ipad-13/`, on November 12, 2026 ("Approve the set"), for
+iPhone/iPad 1.0.3, the first version with iPad support. Captured that day on
+iOS 27.2 (24B8117) from `claude/ios-ipad-support` at `4db9ce32e` (#1479's
+last commit) plus this set's seed changes; #1480, merged after it, changes
+only the left and right page insets, which are zero on iPad. Not uploaded to App Store Connect from here.
+
 ## Custom product pages
 
 Three custom product pages, each for a place that sends people to the App

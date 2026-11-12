@@ -6,12 +6,14 @@
 // fonts by the canvas's /_blob/<id> urls; design/assets.json maps
 // every id to a file in this repository, and Blubird to the licensed fonts
 // that `npm run site:fonts` installs (never committed). Writes Apple's 6.9"
-// set (1320 x 2868), 6.3" set (1206 x 2622) and the iPhone Duo's folded
-// (1398 x 2034) and unfolded (2853 x 2007) sets as opaque PNGs. Artboards on
+// set (1320 x 2868), 6.3" set (1206 x 2622), the iPhone Duo's folded
+// (1398 x 2034) and unfolded (2853 x 2007) sets and the 13" iPad set
+// (2752 x 2064) as opaque PNGs. Artboards on
 // a canvas page whose id is `cpp-<page>` are a custom product page's, and
 // land in custom-pages/<page>/ instead.
 //
-//   node scripts/ios-app-store-compose.mjs
+//   node scripts/ios-app-store-compose.mjs                 # every set
+//   node scripts/ios-app-store-compose.mjs --only ipad-13  # one set; the rest stay as they are
 import fs from 'node:fs';
 import path from 'node:path';
 import { execFileSync } from 'node:child_process';
@@ -55,15 +57,25 @@ const sets = {
   '1320x2868': ['6.9', '6.3'],
   '1398x2034': ['duo-closed'],
   '2853x2007': ['duo-open'],
+  '2752x2064': ['ipad-13'],
 };
+// --only <set> renders one set and leaves every other folder untouched (a
+// re-render of an unchanged design draws the same pixels, but ImageMagick
+// stamps each PNG with the time, so the bytes change).
+const onlyAt = process.argv.indexOf('--only');
+const only = onlyAt === -1 ? null : process.argv[onlyAt + 1];
+const setNames = Object.values(sets).map((dirs) => dirs[0]);
+if (onlyAt !== -1 && !setNames.includes(only)) throw new Error(`--only takes one of ${setNames.join(', ')}`);
 const browser = await chromium.launch();
 const scratch = fs.mkdtempSync(path.join(fs.realpathSync(process.env.TMPDIR || '/tmp'), 'blanc-store-'));
 const outOf = (board) => {
   const custom = /^cpp-(.+)$/.exec(canvas.boards[board].page || '');
   return custom ? path.join(out, 'custom-pages', custom[1]) : out;
 };
-const boards = canvas.order.filter((board) => sets[`${canvas.boards[board].w}x${canvas.boards[board].h}`]
-  && fs.existsSync(path.join(design, board)));
+const boards = canvas.order.filter((board) => {
+  const dirs = sets[`${canvas.boards[board].w}x${canvas.boards[board].h}`];
+  return dirs && (!only || dirs[0] === only) && fs.existsSync(path.join(design, board));
+});
 for (const board of boards) for (const dir of sets[`${canvas.boards[board].w}x${canvas.boards[board].h}`]) {
   fs.rmSync(path.join(outOf(board), dir), { recursive: true, force: true });
 }
@@ -83,7 +95,7 @@ for (const board of boards) {
     await document.fonts.ready;
     await Promise.all([...document.images].map((img) => img.decode()));
   });
-  const slug = (title || path.basename(board, '.dc.html')).replace(/^Duo (un)?folded · /, '')
+  const slug = (title || path.basename(board, '.dc.html')).replace(/^(Duo (un)?folded|iPad) · /, '')
     .toLowerCase().replace(/['’]/g, '').replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
   const name = `${index}-${slug}.png`;
   const big = path.join(folder, dirs[0], name);
