@@ -103,3 +103,40 @@ test('the privacy page describes the survey contract', () => {
   assert.match(privacy, /only to decide what goes into Blanc Mail 1\.0/);
   assert.match(privacy, /<li>[^<]*Blanc Mail survey[^<]*deleted when that decision is made[^<]*<\/li>/);
 });
+
+// Owner-approved Proton wording, 2026-11-12 (spec "Announcing Proton").
+const PROTON_LINES = [
+  'Gmail and Proton Mail',
+  'Connect a Google account directly, or a Proton account through Proton Mail Bridge on your Mac. Mail is stored locally for reading and draft recovery.',
+  'Blanc Mail is a native Gmail and Proton Mail app for macOS, coming soon from the makers of Blanc Browser.',
+  'Blanc Mail brings a careful, native experience for Gmail and Proton Mail to your Mac.',
+  'Native app for Gmail and Proton Mail',
+  'plus a Google account, or a Proton account with Proton Mail Bridge.',
+];
+const SURVEY_LINK = 'Help shape Blanc Mail: tell us what you’d want, anonymously.';
+const WAITLIST_INVITE = 'While you’re here, you can tell us what you’d want in Blanc Mail.';
+
+test('the Mail page names both providers and links the open survey', () => {
+  const mail = read('site/src/pages/mail.astro');
+  for (const line of PROTON_LINES) assert.ok(mail.includes(line), line);
+  assert.doesNotMatch(mail, /Gmail first'|Gmail-first native app|native Gmail client|native Gmail experience/);
+  assert.match(mail, /import survey from '..\/data\/mail-survey\.json'/);
+  assert.match(mail, /survey\.open && [\s\S]{0,200}href="\/mail\/survey"/);
+  assert.ok(mail.includes(SURVEY_LINK));
+});
+
+test('joining the waitlist offers the survey without tracking', () => {
+  const form = read('site/src/components/MailWaitlistForm.astro');
+  assert.match(form, /import survey from '..\/data\/mail-survey\.json'/);
+  assert.ok(form.includes(WAITLIST_INVITE));
+  assert.match(form, /survey\.open && [\s\S]{0,300}href="\/mail\/survey"/);
+  const invite = form.slice(form.indexOf('href="/mail/survey"') - 200, form.indexOf('href="/mail/survey"') + 200);
+  assert.doesNotMatch(invite, /data-track/);
+});
+
+test('every new Mail page sentence has a ledger row', () => {
+  const ledger = read('docs/website-mail-claims-2026-11-12.md');
+  for (const line of [...PROTON_LINES, SURVEY_LINK, WAITLIST_INVITE]) assert.ok(ledger.includes(line), line);
+  assert.ok(ledger.includes('What would you want?'));
+  assert.ok(ledger.includes('This survey has closed. Thank you to everyone who answered.'));
+});

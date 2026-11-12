@@ -362,3 +362,6 @@ body .revamp-nav .site-nav-cta:hover{background:none;color:#000}
 .mail-survey-submit:focus-visible{outline:2px solid var(--mail-gold);outline-offset:2px}
 .mail-survey-status{margin:0;font-size:16px;font-weight:600;color:var(--mail-ink)}
 .mail-survey-status:empty{display:none}
+.mail-survey-link{margin:14px 0 0;font-size:15px}
+.mail-survey-link a,.mail-waitlist-survey a{color:inherit;text-decoration:underline;text-underline-offset:3px}
+.mail-waitlist .mail-waitlist-survey{margin:8px 0 0;font-size:15px}
