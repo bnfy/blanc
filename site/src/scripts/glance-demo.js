@@ -1,124 +1,95 @@
 // The Glance demo (GlanceDemo.astro): an interactive website illustration of
-// the split, not recorded app footage. Drag or arrow-key the divider to
-// resize it. The full demo also swaps the pages, resets and closes the
-// reference; the compact homepage card has only the divider, so every other
-// control is optional.
+// the floating Glance card, not recorded app footage. Drag the card's header
+// to move it; the arrow keys move it 16 px (Shift: 64 px), and Enter or a
+// double-click puts it back, as in the app. The card stays wholly inside the
+// page area below the Island, as the app keeps it.
 
-const MIN = 50;
-const MAX = 78;
-const START = 62;
+// The window is drawn at 960 x 520; the page area is everything below the
+// 52 px Island band.
+const WIDTH = 960;
+const HEIGHT = 520;
+const BAND = 52;
+// The app's first-open frame: 80% of the page area's width (at most 1100),
+// centered, 16 px below the band, 32 px clear of the bottom.
+export const START = Object.freeze({ x: 96, y: BAND + 16, width: 768, height: HEIGHT - BAND - 16 - 32 });
+
+export function clampCard({ x, y, width, height }) {
+  return {
+    width,
+    height,
+    x: Math.min(WIDTH - width, Math.max(0, Math.round(x))),
+    y: Math.min(HEIGHT - height, Math.max(BAND, Math.round(y))),
+  };
+}
 
 export function initGlanceDemo(root, { view = window } = {}) {
-  const glanceWindow = root?.querySelector("#glance-window");
-  const divider = root?.querySelector("#glance-divider");
   const viewport = root?.querySelector("#glance-viewport");
-  if (!glanceWindow || !divider || !viewport) return;
-  const main = root.querySelector("#glance-main-document");
-  const reference = root.querySelector("#glance-reference-document");
-  const swap = root.querySelector("#glance-swap");
-  const reset = root.querySelector("#glance-reset");
-  const close = root.querySelector("#glance-close");
-  const reopen = root.querySelector("#glance-reopen");
-  const hint = root.querySelector("#glance-hint");
+  const glanceWindow = root?.querySelector("#glance-window");
+  const card = root?.querySelector("#glance-card");
+  const handle = root?.querySelector("#glance-handle");
+  if (!viewport || !glanceWindow || !card || !handle) return;
   const status = root.querySelector("#glance-status");
-  const motion = view.matchMedia("(prefers-reduced-motion: reduce)");
-  let split = START;
-  let closed = false;
-  let swapped = false;
-  let pointer = null;
+  let frame = { ...START };
+  let drag = null;
+  let scale = 1;
 
+  const place = (next) => {
+    frame = clampCard(next);
+    card.style.setProperty("--card-x", `${frame.x}px`);
+    card.style.setProperty("--card-y", `${frame.y}px`);
+    card.style.setProperty("--card-w", `${frame.width}px`);
+    card.style.setProperty("--card-h", `${frame.height}px`);
+  };
   const report = (message) => {
     if (status) status.textContent = message;
   };
-  const setSplit = (value) => {
-    split = Math.min(MAX, Math.max(MIN, Math.round(value)));
-    glanceWindow.style.setProperty("--split", `calc((100% - 12px) * ${split / 100})`);
-    divider.setAttribute("aria-valuenow", String(split));
-    divider.setAttribute("aria-valuetext", `Main page ${split} percent, reference ${100 - split} percent`);
+  const reset = () => {
+    place(START);
+    report("Glance card put back.");
   };
-  const setClosed = (value) => {
-    closed = value;
-    glanceWindow.classList.toggle("is-closed", value);
-    if (swap) swap.hidden = value;
-    if (reset) reset.hidden = value;
-    if (close) close.hidden = value;
-    if (reopen) reopen.hidden = !value;
-    if (hint) hint.textContent = value ? "Your main page stays open." : "Drag the divider to resize.";
-    report(value ? "Glance view closed." : "Glance view opened.");
-  };
-  const swapPages = () => {
-    const first = main.firstElementChild;
-    const second = reference.firstElementChild;
-    main.append(second);
-    reference.append(first);
-    swapped = !swapped;
-    root.querySelector(".reference-name").textContent = reference.firstElementChild.dataset.title;
-    glanceWindow.dataset.mainPage = main.firstElementChild.dataset.page;
-    if (!motion.matches) {
-      [main, reference].forEach((pane) => {
-        pane.getAnimations().forEach((animation) => animation.cancel());
-        pane.animate([{ opacity: 0.35 }, { opacity: 1 }], { duration: 220, easing: "ease-out" });
-      });
-    }
-    report("Main and reference pages swapped.");
-  };
-  const endDrag = () => {
-    pointer = null;
+  const end = () => {
+    if (!drag) return;
+    drag = null;
     glanceWindow.classList.remove("is-dragging");
   };
-  // The window is drawn at 960px and scaled to its column; 12px is the
-  // divider at that size.
-  const moveTo = (event) => {
-    const box = glanceWindow.getBoundingClientRect();
-    setSplit((100 * (event.clientX - box.left - (6 * box.width) / 960)) / (box.width - (12 * box.width) / 960));
-  };
 
-  divider.addEventListener("pointerdown", (event) => {
-    if (event.button !== 0 || closed) return;
+  handle.addEventListener("pointerdown", (event) => {
+    if (event.button !== 0) return;
     event.preventDefault();
-    pointer = event.pointerId;
-    divider.setPointerCapture(event.pointerId);
-    divider.focus({ preventScroll: true });
+    drag = { pointerId: event.pointerId, x: event.clientX, y: event.clientY, from: { ...frame } };
+    handle.setPointerCapture?.(event.pointerId);
+    handle.focus({ preventScroll: true });
     glanceWindow.classList.add("is-dragging");
-    moveTo(event);
   });
-  divider.addEventListener("pointermove", (event) => {
-    if (event.pointerId === pointer) moveTo(event);
+  handle.addEventListener("pointermove", (event) => {
+    if (!drag || event.pointerId !== drag.pointerId) return;
+    place({ ...drag.from, x: drag.from.x + (event.clientX - drag.x) / scale, y: drag.from.y + (event.clientY - drag.y) / scale });
   });
-  divider.addEventListener("pointerup", (event) => {
-    if (event.pointerId !== pointer) return;
-    divider.releasePointerCapture(event.pointerId);
-    endDrag();
+  handle.addEventListener("pointerup", (event) => {
+    if (!drag || event.pointerId !== drag.pointerId) return;
+    handle.releasePointerCapture?.(event.pointerId);
+    end();
   });
-  divider.addEventListener("pointercancel", endDrag);
-  divider.addEventListener("lostpointercapture", endDrag);
-  divider.addEventListener("keydown", (event) => {
-    const step = event.shiftKey ? 5 : 1;
-    let next = split;
-    if (event.key === "ArrowLeft" || event.key === "ArrowUp") next -= step;
-    else if (event.key === "ArrowRight" || event.key === "ArrowDown") next += step;
-    else if (event.key === "Home") next = MIN;
-    else if (event.key === "End") next = MAX;
-    else return;
+  handle.addEventListener("pointercancel", end);
+  handle.addEventListener("lostpointercapture", end);
+  handle.addEventListener("dblclick", reset);
+  handle.addEventListener("keydown", (event) => {
+    if (event.key === "Enter") {
+      event.preventDefault();
+      reset();
+      return;
+    }
+    const arrows = { ArrowLeft: [-1, 0], ArrowRight: [1, 0], ArrowUp: [0, -1], ArrowDown: [0, 1] };
+    const direction = arrows[event.key];
+    if (!direction) return;
     event.preventDefault();
-    setSplit(next);
-  });
-  swap?.addEventListener("click", swapPages);
-  reset?.addEventListener("click", () => {
-    if (swapped) swapPages();
-    setSplit(START);
-    report("Original pages and split restored.");
-  });
-  close?.addEventListener("click", () => {
-    setClosed(true);
-    reopen?.focus({ preventScroll: true });
-  });
-  reopen?.addEventListener("click", () => {
-    setClosed(false);
-    divider.focus({ preventScroll: true });
+    const step = event.shiftKey ? 64 : 16;
+    place({ ...frame, x: frame.x + direction[0] * step, y: frame.y + direction[1] * step });
+    report("Glance card moved.");
   });
   new view.ResizeObserver(() => {
-    viewport.style.setProperty("--glance-scale", String(viewport.getBoundingClientRect().width / 960));
+    scale = viewport.getBoundingClientRect().width / WIDTH || 1;
+    viewport.style.setProperty("--glance-scale", String(scale));
   }).observe(viewport);
-  setSplit(START);
+  place(START);
 }

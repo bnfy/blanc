@@ -70,6 +70,15 @@ if (window.location.protocol === 'blanc:') {
       return () => ipcRenderer.removeListener('pages:surface:escape', listener);
     },
   };
+  // Start Page pins, for the Start Page and the Favorites page alike.
+  const startPins = {
+    list: () => invoke('pages:pins:list'),
+    pin: (url, title) => invoke('pages:pins:pin', url, title),
+    unpin: (url) => invoke('pages:pins:unpin', url),
+    onChanged: (callback) => {
+      ipcRenderer.on('pages:pins:changed', () => callback());
+    },
+  };
   let api = null;
 
   if (host === 'newtab') {
@@ -82,6 +91,7 @@ if (window.location.protocol === 'blanc:') {
         importBrowser: (id) => invoke('pages:bookmarks:import-browser', id),
         import: () => invoke('pages:bookmarks:import'),
       },
+      pins: startPins,
       start: {
         data: () => invoke('pages:start:data'),
         topSites: (options) => invoke('pages:start:top-sites', options),
@@ -89,6 +99,16 @@ if (window.location.protocol === 'blanc:') {
         openSpaces: () => invoke('pages:start:open-spaces'),
         setLayout: (name) => invoke('pages:start:set-layout', name),
         setDynamicWallpaper: (enabled) => invoke('pages:start:set-dynamic-wallpaper', enabled),
+        wallpaper: () => invoke('pages:start:wallpaper'),
+        setWallpaper: (source) => invoke('pages:start:set-wallpaper', source),
+        setWallpaperWash: (wash) => invoke('pages:start:set-wallpaper-wash', wash),
+        setWallpaperStyle: (style) => invoke('pages:start:set-wallpaper-style', style),
+        setWallpaperColor: (preset) => invoke('pages:start:set-wallpaper-color', preset),
+        setWallpaperFill: (fill) => invoke('pages:start:set-wallpaper-fill', fill),
+        setWallpaperFollowSpace: (enabled) => invoke('pages:start:set-wallpaper-follow-space', enabled),
+        setClock: (partial) => invoke('pages:start:set-clock', partial),
+        chooseWallpaper: () => invoke('pages:start:choose-wallpaper'),
+        removeWallpaper: () => invoke('pages:start:remove-wallpaper'),
         openMahjong: (background = false) => invoke('pages:start:open-mahjong', !!background),
         layoutUsed: (name) => invoke('pages:start:layout-used', name),
         openIsland: (char) => invoke('pages:start:open-island', char),
@@ -96,6 +116,8 @@ if (window.location.protocol === 'blanc:') {
         continueWithoutBlocking: () => invoke('pages:start:startup-continue'),
         recoverSession: (choice) => invoke('pages:start:recover-session', choice),
         completePrivacy: (choices) => invoke('pages:start:privacy-complete', choices),
+        sharedQuestion: () => invoke('pages:start:shared-question'),
+        sharedQuestionAnswer: (id, on) => invoke('pages:start:shared-question-answer', id, on),
         openSettings: (section) => invoke('pages:start:open-settings', section),
         dismissMigrationChecklist: () => invoke('pages:start:migration-checklist-dismiss'),
         dismissPatronCallout: () => invoke('pages:start:patron-callout-dismiss'),
@@ -114,6 +136,11 @@ if (window.location.protocol === 'blanc:') {
         },
         onRemoteTabs: (callback) => {
           ipcRenderer.on('pages:start:remote-tabs', (_event, devices) => callback(devices));
+        },
+        openSent: (id) => invoke('pages:start:open-sent', id),
+        dismissSent: (id) => invoke('pages:start:dismiss-sent', id),
+        onSentItems: (callback) => {
+          ipcRenderer.on('pages:start:sent-items', (_event, items) => callback(items));
         },
       },
     };
@@ -140,6 +167,7 @@ if (window.location.protocol === 'blanc:') {
     api = {
       surface,
       bookmarks: {
+        capabilities: () => invoke('pages:bookmarks:capabilities'),
         list: () => invoke('pages:bookmarks:list'),
         remove: (id) => invoke('pages:bookmarks:remove', id),
         clearFavicon: (url) => invoke('pages:bookmarks:clear-favicon', url),
@@ -150,6 +178,7 @@ if (window.location.protocol === 'blanc:') {
         renameFolder: (oldName, newName) => invoke('pages:bookmarks:rename-folder', oldName, newName),
         removeFolder: (name) => invoke('pages:bookmarks:remove-folder', name),
       },
+      pins: startPins,
     };
   } else if (host === 'history') {
     api = {
@@ -158,6 +187,12 @@ if (window.location.protocol === 'blanc:') {
         list: (opts) => invoke('pages:history:list', opts),
         remove: (url, visitedAt) => invoke('pages:history:remove', url, visitedAt),
         clear: () => invoke('pages:history:clear'),
+      },
+      archive: {
+        list: (opts) => invoke('pages:archive:list', opts),
+        restore: (id) => invoke('pages:archive:restore', id),
+        forget: (id) => invoke('pages:archive:forget', id),
+        clear: () => invoke('pages:archive:clear'),
       },
     };
   } else if (host === 'downloads') {
@@ -213,12 +248,27 @@ if (window.location.protocol === 'blanc:') {
           ipcRenderer.on('pages:blocking:status', (_event, status) => callback(status));
         },
         checkForUpdates: () => invoke('pages:settings:check-for-updates'),
+        drmStatus: () => invoke('pages:settings:drm-status'),
+        drmRestart: () => invoke('pages:settings:drm-restart'),
         set: (partial) => invoke('pages:settings:set', partial),
+        wallpaper: () => invoke('pages:start:wallpaper'),
+        setWallpaper: (source) => invoke('pages:start:set-wallpaper', source),
+        setWallpaperWash: (wash) => invoke('pages:start:set-wallpaper-wash', wash),
+        setWallpaperStyle: (style) => invoke('pages:start:set-wallpaper-style', style),
+        chooseWallpaper: () => invoke('pages:start:choose-wallpaper'),
+        removeWallpaper: () => invoke('pages:start:remove-wallpaper'),
         language: (code, restart) => invoke('pages:settings:language', code, restart),
+        linkTargets: () => invoke('pages:settings:link-targets'),
+        setLinkRoutes: (routes) => invoke('pages:settings:link-routes:set', routes),
         onAppearance: (callback) => {
           ipcRenderer.on('pages:settings:appearance', (_event, status) => callback(status));
         },
         activateSupporter: (key) => invoke('pages:settings:supporter-activate', key),
+        sharedSpacesAcknowledge: (id) => invoke('pages:settings:shared-spaces-acknowledge', id),
+        sharedSpacesOpen: (id) => invoke('pages:settings:shared-spaces-open', id),
+        sharedSpacesStatus: () => invoke('pages:settings:shared-spaces-status'),
+        sharedSpacesPreview: (options) => invoke('pages:settings:shared-spaces-preview', options),
+        sharedSpacesApply: (payload) => invoke('pages:settings:shared-spaces-apply', payload),
         syncGet: () => invoke('pages:settings:sync-get'),
         syncEnable: (payload) => invoke('pages:settings:sync-enable', payload),
         syncPreflight: (payload) => invoke('pages:settings:sync-preflight', payload),
@@ -226,12 +276,19 @@ if (window.location.protocol === 'blanc:') {
         syncNow: () => invoke('pages:settings:sync-now'),
         syncTabsSet: (on) => invoke('pages:settings:sync-tabs-set', on),
         syncDeviceNameSet: (name) => invoke('pages:settings:sync-device-name-set', name),
+        syncDevices: () => invoke('pages:settings:sync-devices'),
         syncPairBegin: () => invoke('pages:settings:sync-pair-begin'),
         syncPairCancel: () => invoke('pages:settings:sync-pair-cancel'),
         syncPairState: () => invoke('pages:settings:sync-pair-state'),
         syncJoinCode: (code) => invoke('pages:settings:sync-join-code', code),
         syncSwitchCode: (payload) => invoke('pages:settings:sync-switch-code', payload),
         syncRecoveryCodeCopy: () => invoke('pages:settings:sync-recovery-code-copy'),
+        syncStartNew: () => invoke('pages:settings:sync-start-new'),
+        syncRecoveryPromptDismiss: () => invoke('pages:settings:sync-recovery-prompt-dismiss'),
+        syncPairWatch: (visible) => invoke('pages:settings:sync-pair-watch', visible),
+        onSyncPairJoined: (callback) => {
+          ipcRenderer.on('pages:settings:sync-pair-joined', (_event, device) => callback(device));
+        },
         welcomeTour: () => invoke('pages:settings:welcome-tour'),
         onePasswordStatus: () => invoke('pages:settings:onepassword-status'),
         onePasswordVerify: (account) => invoke('pages:settings:onepassword-verify', account),
@@ -249,6 +306,11 @@ if (window.location.protocol === 'blanc:') {
       permissions: {
         list: () => invoke('pages:permissions:list'),
         remove: (key) => invoke('pages:permissions:remove', key),
+      },
+      zoom: {
+        list: () => invoke('pages:zoom:list'),
+        remove: (site) => invoke('pages:zoom:remove', site),
+        clear: () => invoke('pages:zoom:clear'),
       },
       defaultBrowser: {
         get: () => invoke('pages:default-browser:get'),

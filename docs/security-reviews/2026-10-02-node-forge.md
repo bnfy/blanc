@@ -93,3 +93,7 @@ reviewed payload. The JSON-serialized `ublock/pinned.json` SHA-256 is now
 `71f33634e9cb016e1386b625b1c55b7d2d1a7713613d9437c40694b6ac9010ad`.
 The dependency VEX test retains its exact-digest guard; this is not an extension
 of the exception to arbitrary future archives or executed source-build scripts.
+
+## Update, October 31, 2026
+
+New high-severity advisories were published for node-forge 1.4.0 and failed the dependency audit on every pull request. The companion lockfile now overrides node-forge to `^1.4.2` (`extensions/blanc-tab-import/package.json`), which the audit accepts with no exception, so the `not_affected` statement for GHSA-86w9-cpqp-85rv was removed from `security/openvex.json`. This review stays as the record of why 1.4.0 was accepted until then.

@@ -170,7 +170,7 @@ Then('the workspace list scrolls while creation controls remain visible', async 
       const rects = [...document.querySelectorAll('#islandFooter button')].filter((button) => !button.hidden)
         .map((button) => ({ id: button.id, rect: button.getBoundingClientRect().toJSON() }));
       const spaces = document.getElementById('footerWorkspace');
-      return { viewport: { width: innerWidth, height: innerHeight }, footer: footer.toJSON(), rects, spacesText: spaces.textContent.trim(), spacesTitle: spaces.title };
+      return { viewport: { width: innerWidth, height: innerHeight }, footer: footer.toJSON(), rects, spacesText: spaces.textContent.trim(), spacesTitle: spaces.dataset.tooltip };
     });
     // The Spaces button is icon-only: a long name lives in its tooltip.
     assert.equal(geometry.spacesText, '', 'the footer shows no space name');
@@ -245,7 +245,7 @@ Then('the workspace list scrolls while creation controls remain visible', async 
   // Only New tab shows its shortcut inline; Private carries it in the tooltip.
   const privatePill = await page.evaluate(() => {
     const button = document.getElementById('footerNewPrivate');
-    return { kbd: button.querySelectorAll('.footer-kbd').length, title: button.title };
+    return { kbd: button.querySelectorAll('.footer-kbd').length, title: button.dataset.tooltip };
   });
   assert.equal(privatePill.kbd, 0, 'the Private pill shows no inline shortcut');
   assert.match(privatePill.title, /N\)$/, 'the Private pill names its shortcut in the tooltip');

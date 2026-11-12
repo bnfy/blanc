@@ -439,7 +439,7 @@ test('the Mail waitlist form, CSP and privacy disclosure describe the Worker con
   assert.match(form, /separate from the Blanc newsletter/);
   assert.match(form, /delete it after the launch announcement/);
   assert.match(form, /href="\/privacy#mail-waitlist"/);
-  for (const page of ['src/pages/mail.astro', 'src/pages/mail/download.astro']) {
+  for (const page of ['src/pages/mail.astro']) {
     assert.match(site(page), /<MailWaitlistForm/, page);
   }
   // Legal pages carry no social-sharing metadata, like /privacy and /terms.

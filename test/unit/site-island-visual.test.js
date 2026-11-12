@@ -54,7 +54,7 @@ test('the masthead is one sticky bar that stays put while the homepage scenes sc
   assert.doesNotMatch(styles + revamp, /is-tucked|is-scroll-hidden/);
   assert.doesNotMatch(styles, /\.site-header[^{}]*\{[^}]*inset: auto 0 0/s);
   assert.doesNotMatch(styles, /body\.has-consent \.site-header|--consent-h/);
-  assert.match(header, /import \{ directLinks(, pagePath)? \} from ['"]\.\.\/data\/navigation\.mjs['"]/);
+  assert.match(header, /import \{ (browserMenu, )?directLinks(, pagePath)? \} from ['"]\.\.\/data\/navigation\.mjs['"]/);
   // The homepage's sticky scenes sit just below the bar, so it never hides.
   assert.doesNotMatch(header, /is-scroll-hidden|travel >= 8|tuckDistance|is-tucked/);
   assert.doesNotMatch(header, /pointerenter|mouseenter|site-mega/);
@@ -74,9 +74,9 @@ test('homepage opens on the Sunrise mark above the headline, with no eyebrow', (
 
 test('optional measurement uses the selected upper-right toast and stays reopenable', () => {
   assert.match(consent, /Privacy choices/);
-  assert.match(consent, /stay off until you allow them/);
-  assert.match(consent, />Allow<\/button>/);
-  assert.match(consent, />No thanks<\/button>/);
+  assert.match(consent, /on by default/);
+  assert.match(consent, />Turn on<\/button>/);
+  assert.match(consent, />Turn off<\/button>/);
   assert.match(consent, /role="dialog"/);
 
   assert.match(styles, /\.consent \{[^}]*position: fixed;[^}]*inset: max\(12px, env\(safe-area-inset-top, 0px\)\) 16px auto auto;[^}]*width: min\(330px, calc\(100vw - 32px\)\)/s);
@@ -89,5 +89,5 @@ test('optional measurement uses the selected upper-right toast and stays reopena
   assert.match(layout, /\{analytics && <script src="\.\.\/scripts\/site\.js"><\/script>\}/);
   assert.match(siteScript, /querySelectorAll\('\[data-consent-open\]'\)/);
   assert.match(siteScript, /showChoice\(button\)/);
-  assert.match(siteScript, /analytics_storage: 'granted'/);
+  assert.match(siteScript, /if \(readChoice\(\) === 'granted'\)/);
 });

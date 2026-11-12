@@ -118,8 +118,13 @@ async function copyElectronLegalFiles(context, resources) {
 
 async function packageCompliance(context) {
   const includeUblock = context.packager.info?.metadata?.blancUblockBundled !== false;
+  const metadata = context.packager.info?.metadata || {};
+  const runtimeOverride = metadata.blancRuntime === 'ecs' ? {
+    version: metadata.blancEcsRuntime, target: metadata.blancEcsTarget,
+    archiveSha256: metadata.blancEcsArchiveSha256, frameworkSha256: metadata.blancEcsFrameworkSha256,
+  } : undefined;
   const baseline = createComplianceArtifacts();
-  const generated = createComplianceArtifacts({ includeUblock });
+  const generated = createComplianceArtifacts({ includeUblock, runtimeOverride });
   const noticeRelative = 'compliance/THIRD_PARTY_NOTICES.txt';
   const sbomRelative = 'compliance/runtime-sbom.cdx.json';
   const committedNotice = await fs.readFile(path.join(ROOT, noticeRelative), 'utf8');

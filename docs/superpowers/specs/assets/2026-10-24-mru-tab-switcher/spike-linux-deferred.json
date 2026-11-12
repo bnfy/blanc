@@ -1,0 +1,123 @@
+{
+  "platform": "linux",
+  "scenarios": [
+    {
+      "name": "CONTROL: page focused, Ctrl+A (not a Blanc shortcut)",
+      "focusBefore": "4:http://127.0.0.1:44753/one",
+      "focusAfter": "4:http://127.0.0.1:44753/one",
+      "activeBefore": 1,
+      "activeAfter": 1,
+      "overlayMode": null,
+      "commandsDelivered": 0,
+      "steps": 0,
+      "controlKeyUpSeen": true,
+      "inputEventCtrlUp": true,
+      "controlKeyUpOn": [
+        "4:window:one (focused 4:window:one)"
+      ],
+      "log": [
+        "keyDown Control @4:window:one focused=4:window:one",
+        "rawKeyDown Control @4:IE:window:one focused=null",
+        "keyUp Control @4:window:one focused=4:window:one",
+        "keyUp Control @4:IE:window:one focused=null"
+      ]
+    },
+    {
+      "name": "page focused, held Ctrl, Tab x2",
+      "focusBefore": "4:http://127.0.0.1:44753/one",
+      "focusAfter": "1:blanc-chrome://index/",
+      "activeBefore": 1,
+      "activeAfter": 1,
+      "overlayMode": null,
+      "commandsDelivered": 2,
+      "steps": 2,
+      "controlKeyUpSeen": false,
+      "inputEventCtrlUp": false,
+      "controlKeyUpOn": [],
+      "log": [
+        "keyDown Control @4:window:one focused=4:window:one",
+        "rawKeyDown Control @4:IE:window:one focused=null",
+        "keyDown Tab @4:window:one focused=4:window:one",
+        "keyUp Tab @1:chrome:index focused=1:chrome:index",
+        "keyUp Tab @1:IE:chrome:index focused=null",
+        "keyDown Tab @1:chrome:index focused=1:chrome:index"
+      ]
+    },
+    {
+      "name": "page focused, tap",
+      "focusBefore": "1:blanc-chrome://index/",
+      "focusAfter": "1:blanc-chrome://index/",
+      "activeBefore": 1,
+      "activeAfter": 1,
+      "overlayMode": null,
+      "commandsDelivered": 1,
+      "steps": 1,
+      "controlKeyUpSeen": false,
+      "inputEventCtrlUp": false,
+      "controlKeyUpOn": [],
+      "log": [
+        "keyDown Control @1:chrome:index focused=1:chrome:index",
+        "rawKeyDown Control @1:IE:chrome:index focused=null",
+        "keyDown Tab @1:chrome:index focused=1:chrome:index"
+      ]
+    },
+    {
+      "name": "blank new tab (address panel focused), held Ctrl, Tab x2",
+      "focusBefore": "2:blanc-chrome://overlay/",
+      "focusAfter": "1:blanc-chrome://index/",
+      "activeBefore": 4,
+      "activeAfter": 4,
+      "overlayMode": "panel",
+      "commandsDelivered": 2,
+      "steps": 2,
+      "controlKeyUpSeen": false,
+      "inputEventCtrlUp": false,
+      "controlKeyUpOn": [],
+      "log": [
+        "keyDown Control @2:chrome:overlay focused=2:chrome:overlay",
+        "rawKeyDown Control @2:IE:chrome:overlay focused=null",
+        "keyDown Tab @2:chrome:overlay focused=2:chrome:overlay",
+        "keyDown Tab @1:chrome:index focused=1:chrome:index"
+      ]
+    },
+    {
+      "name": "Settings sheet focused, held Ctrl, Tab x2",
+      "focusBefore": "8:blanc://settings/",
+      "focusAfter": "1:blanc-chrome://index/",
+      "activeBefore": 1,
+      "activeAfter": 1,
+      "overlayMode": null,
+      "commandsDelivered": 2,
+      "steps": 2,
+      "controlKeyUpSeen": false,
+      "inputEventCtrlUp": false,
+      "controlKeyUpOn": [],
+      "log": [
+        "keyDown Control @8:page:settings focused=8:page:settings",
+        "rawKeyDown Control @8:IE:page:settings focused=null",
+        "keyDown Tab @8:page:settings focused=8:page:settings",
+        "keyDown Tab @1:chrome:index focused=1:chrome:index"
+      ]
+    },
+    {
+      "name": "chrome strip focused, held Ctrl, Tab x2",
+      "focusBefore": "1:blanc-chrome://index/",
+      "focusAfter": "1:blanc-chrome://index/",
+      "activeBefore": 2,
+      "activeAfter": 2,
+      "overlayMode": null,
+      "commandsDelivered": 2,
+      "steps": 2,
+      "controlKeyUpSeen": false,
+      "inputEventCtrlUp": false,
+      "controlKeyUpOn": [],
+      "log": [
+        "keyDown Control @1:chrome:index focused=1:chrome:index",
+        "rawKeyDown Control @1:IE:chrome:index focused=null",
+        "keyDown Tab @1:chrome:index focused=1:chrome:index",
+        "keyDown Tab @1:chrome:index focused=1:chrome:index"
+      ]
+    }
+  ],
+  "xid": "2097155"
+}

@@ -11,13 +11,19 @@
 const settings = require('./settings');
 const sync = require('./sync');
 const history = require('./history');
+const archive = require('./archive');
 const bookmarks = require('./bookmarks');
+const startPagePins = require('./start-page-pins');
 const path = require('node:path');
-const { app, Menu, clipboard, nativeImage, webContents } = require('electron');
+const fs = require('node:fs');
+const { app, BrowserWindow, Menu, clipboard, nativeImage, powerMonitor, session, webContents } = require('electron');
+const siteZoom = require('./site-zoom');
+const { levelToPercent } = require('./page-zoom');
 // A 1×1 PNG the bang icon server stub answers with (stubBangIconServer).
 const TEST_BANG_ICON_PNG = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8DwHwAFBQIAX8jx0gAAAABJRU5ErkJggg==';
 const { buildAddressMenu } = require('./address-menu-model');
 const { sameGroupName } = require('./group-name-case');
+const { terminateRenderer } = require('./renderer-discard');
 const { resolveDeviceName } = require('./device-names');
 const { blockableHostname } = require('./adblock-exceptions');
 const { syncSnapshot } = require('./session-snapshot');
@@ -60,19 +66,46 @@ function install(refs) {
     // `(fn) => bindWindowRuntime(primaryRuntime, fn)`; every method below is
     // wrapped with it, once, mechanically, at the end of this function.
     bindRoot,
+    rearmLaunchSunrise,
+    miniWindowTest,
+    pairingProtectedWindow,
     bangIcons,
     clearRecentBangsAndIcons,
     tabs,
     liveContents,
     getTabOrder,
     getGroups,
+    getSplits,
     getActiveTabId,
     getIslandRect,
+    getIslandHoverRect,
     getIslandHoverState,
     setIslandHoverOpen,
+    setIslandAutoHide,
+    setIslandAutoHideStyle,
+    getFloatViewState,
+    getFloatWebContents,
+    getGlanceCardWebContents,
+    getGlanceCardViewVisible,
+    getSavedGlanceFrame,
+    getGlancePageViewVisible,
+    destroyGlanceCardViewForTest,
+    getTooltipViewState,
+    getFloatWebContentsIds,
+    isChromeSurfaceRegistered,
+    getChromeButtonRects,
+    getMainWindowState,
+    restoreMainWindow,
+    getMainMenuRequests,
+    holdIslandInWindow,
+    floatPillWebContentsId,
+    focusWindowRuntime,
+    floatPillDiagnostics,
+    getIslandAutoHideState,
     getOverlayShowCount,
     resetOverlayShowCount,
     setTestCursorPoint,
+    setTestCursorSamplingUnavailable,
     runBlockAdsCommand,
     runAllowAdsCommand,
     clusterSlots,
@@ -82,22 +115,28 @@ function install(refs) {
     duplicateTab,
     toggleTabPinned,
     toggleTabMuted,
+    goBack,
+    pinnedHomeActions,
+    chooseSessionRecovery,
+    getSessionRecoveryState,
     setGlanceTab,
     closeGlance: closeGlanceAction,
-    promoteGlance: promoteGlanceAction,
-    resizeGlanceAt,
-    resetGlanceRatio: resetGlanceRatioAction,
+    openGlanceAsTab: openGlanceAsTabAction,
+    resetGlanceCardFrame,
     getGlanceTabId,
     getFocusedPaneTabId,
-    getGlanceGeometry,
-    getGlanceMinimums,
-    openLinkInGlance,
+    getGlanceCard,
+    openLinkInGlance, runLinkSpaceMenuItem,
     groupTabByName,
     renameTab,
     beginRenameTab,
     beginRenameGroup,
     beginRenameDevice,
     ungroupGroup,
+    setGroupColor,
+    newTabBelow,
+    closeTabsBeside,
+    toggleSiteMute,
     closeGroup,
     toggleGroupCollapsed,
     moveTabTo,
@@ -149,6 +188,7 @@ function install(refs) {
     hideUtilitySheet,
     getUtilitySheetState,
     getUtilitySheetWebContents,
+    zoomActiveTab,
     getOverlayWebContents,
     getChromeWebContents,
     setWindowContentSize,
@@ -167,9 +207,31 @@ function install(refs) {
     persistedSessionData,
     serializedTabsPayload,
     sleepTab,
+    quietRefusal,
     wakeTab,
     runSleepSweep,
+    createSplitFromTabs,
+    keepGlanceAsSplit,
+    moveGroupToNewWindowForTest,
+    moveGroupToSpaceForTest,
+    beginNewSpaceForGroupForTest,
+    straySplitIds,
+    windowChildViewCount,
+    menuContextActionsForTest,
+    tabMenuItemsForTest,
+    selectTabRows, runTabsAction, getSelectedTabIds,
+    closedEntrySummaries,
+    splitLayoutForTest,
+    splitCornerTabsForTest,
+    clickSplitCornerForTest,
+    raiseTabViewForTest,
+    attachedTabViewIds,
     sleepBackgroundTabsNow,
+    runArchiveSweep,
+    restoreArchivedEntry,
+    setArchiveGraceUntil,
+    setArchiveProbeObserver,
+    runArchiveSweepInEveryWindow,
     getPermissionPrompts,
     showFillStatusForTest,
     onePasswordTargetForTest,
@@ -177,6 +239,7 @@ function install(refs) {
     readFillStatusDom,
     setSleepThresholdOverride,
     setRemoteDevicesSource,
+    setSendsSource,
     getSleepSnapshots,
     getClosedEntries,
     clearClosedEntries,
@@ -258,6 +321,29 @@ function install(refs) {
         tab.view?.webContents?.send('pages:start:remote-tabs', shown);
       }
     }
+  }
+
+  // Send to device (M7b): an in-memory stand-in for sync's sends store. The
+  // targets and inbox are what a scenario injects; sends are recorded and
+  // answered with the scenario's chosen status.
+  let injectedSends = null;
+  function injectSends({ targets = [], inbox = [], sendStatus = 'sent' } = {}) {
+    injectedSends = { targets: structuredClone(targets), inbox: structuredClone(inbox), hidden: new Set(), sent: [], sendStatus };
+    const state = injectedSends;
+    const source = {
+      targets: () => structuredClone(state.targets),
+      inbox: () => state.inbox.filter((item) => !state.hidden.has(item.id)).map((item) => ({ ...item })),
+      hide: (id) => {
+        const item = state.inbox.find((row) => row.id === id && !state.hidden.has(id));
+        if (!item) return null;
+        state.hidden.add(id);
+        // sync's store notifies the surfaces when a page is hidden; so does this.
+        queueMicrotask(() => { if (injectedSends === state) setSendsSource(source); });
+        return { id: item.id, url: item.url };
+      },
+      send: async (request) => { state.sent.push({ ...request }); return { status: state.sendStatus }; },
+    };
+    setSendsSource(source);
   }
 
   async function readTabImportDom() {
@@ -468,6 +554,8 @@ function install(refs) {
     // F45 Arc import: discovery platform, the stand-in for the file dialog,
     // the read count and saved space records.
     arcImport(action, ...args) { return refs.arcImportTest(action, args); },
+    // F49: the stand-in for the wallpaper file picker (null restores the dialog).
+    chooseWallpaperFile(file) { return refs.chooseWallpaperFileForTest(file); },
     /** Run a script in the Bring Your Tabs sheet; refuses any other page. */
     arcImportPage(script) {
       const wc = getUtilitySheetWebContents();
@@ -515,17 +603,126 @@ function install(refs) {
      * tests assert the morph/proximity anchor tracks the real pill (it went
      * stale across window resizes when only a pill ResizeObserver fed it). */
     islandRect() { const r = getIslandRect(); return r ? { ...r } : null; },
+    islandHoverRect() { const r = getIslandHoverRect(); return r ? { ...r } : null; },
     islandHoverState() { return getIslandHoverState(); },
     setIslandHoverOpen(on) { return setIslandHoverOpen(on); },
+    setIslandAutoHide(on) { return setIslandAutoHide(on === true); },
+    setIslandAutoHideStyle(style) { return setIslandAutoHideStyle(style); },
+    /** A floating Island view (auto-hide, float style): its native state, or
+     * null when the window has none for that role. */
+    floatViewState(role) { return getFloatViewState(String(role)); },
+    floatEval(role, script) {
+      const wc = getFloatWebContents(String(role));
+      if (!wc || wc.isDestroyed()) return null;
+      return wc.executeJavaScript(String(script));
+    },
+    sendFloatMouseInput(role, input) {
+      const wc = getFloatWebContents(String(role));
+      if (!wc || wc.isDestroyed()) return false;
+      wc.sendInputEvent(input);
+      return true;
+    },
+    tooltipViewState() { return getTooltipViewState(); },
+    glanceCardFocused() {
+      const wc = getGlanceCardWebContents();
+      return !!wc && !wc.isDestroyed() && wc.isFocused();
+    },
+    // Keys and pointer events to the floating Glance card's own document.
+    sendGlanceCardInput(input) {
+      const wc = getGlanceCardWebContents();
+      if (!wc || wc.isDestroyed()) return false;
+      wc.focus();
+      wc.sendInputEvent(input);
+      return true;
+    },
+    floatWebContentsIds(runtimeId) { return getFloatWebContentsIds(runtimeId == null ? null : String(runtimeId)); },
+    chromeSurfaceRegistered(webContentsId) { return isChromeSurfaceRegistered(Number(webContentsId)); },
+    /** The strip's own report of its Windows/Linux window buttons. */
+    chromeButtonRects() { return getChromeButtonRects(); },
+    /** The floating copies of the window controls and the menu button: each
+     * visible element's rect in window coordinates (x, y) and in its own
+     * view (viewX, viewY). */
+    async floatControlsState() {
+      const read = (role, script) => {
+        const wc = getFloatWebContents(role);
+        return wc && !wc.isDestroyed() ? wc.executeJavaScript(script) : null;
+      };
+      const measure = `(el) => {
+        const stage = document.getElementById('chrome').getBoundingClientRect();
+        const r = el.getBoundingClientRect();
+        return { x: r.left - stage.left, y: r.top - stage.top, viewX: r.left, viewY: r.top, width: r.width, height: r.height,
+          visible: getComputedStyle(el).visibility !== 'hidden' && r.width > 0 };
+      }`;
+      const [controls, menu] = await Promise.all([
+        read('controls', `(() => { const m = ${measure}; return [...document.querySelectorAll('#windowControls button')].map(m).filter((b) => b.visible); })()`),
+        read('menu', `(() => { const m = ${measure}; const b = document.getElementById('mainMenuButton'); return b && !b.hidden ? m(b) : null; })()`),
+      ]);
+      return { controls, menu };
+    },
+    mainWindowState() { return getMainWindowState(); },
+    restoreMainWindow() { return restoreMainWindow(); },
+    mainMenuRequests() { return getMainMenuRequests(); },
+    holdIslandInWindow(runtimeId, on) { return holdIslandInWindow(String(runtimeId), on === true); },
+    floatPillWebContentsId(runtimeId) { return floatPillWebContentsId(String(runtimeId)); },
+    focusWindowRuntime(runtimeId) { return focusWindowRuntime(String(runtimeId)); },
+    floatPillDiagnostics(runtimeId) { return floatPillDiagnostics(String(runtimeId)); },
+    chromeEval(script) {
+      const wc = getChromeWebContents();
+      if (!wc || wc.isDestroyed()) return null;
+      return wc.executeJavaScript(String(script));
+    },
+    /** Auto-hide state plus where the page view starts (0 = strip hidden). */
+    islandAutoHideState() { return getIslandAutoHideState(); },
     overlayShowCount() { return getOverlayShowCount(); },
     resetOverlayShowCount() { resetOverlayShowCount(); },
     setTestCursorPoint(point) { return setTestCursorPoint(point); },
+    // Act as native Wayland does: no global pointer position to sample.
+    setCursorSamplingUnavailable(on) { return setTestCursorSamplingUnavailable(on); },
     sendChromeMouseInput(input) {
       const wc = getChromeWebContents();
       if (!wc || wc.isDestroyed()) return false;
       wc.sendInputEvent(input);
       return true;
     },
+    sendOverlayInput(input) {
+      const wc = getOverlayWebContents();
+      if (!wc || wc.isDestroyed()) return false;
+      wc.sendInputEvent(input);
+      return true;
+    },
+    // The strip document's top drag band: 'none' while it is not drawn,
+    // else its computed app-region.
+    async dragBandAppRegion() {
+      const wc = getChromeWebContents();
+      if (!wc || wc.isDestroyed()) return null;
+      return wc.executeJavaScript(`(() => {
+        const band = document.getElementById('dragBand');
+        if (!band) return null;
+        const style = getComputedStyle(band);
+        if (style.display === 'none') return 'none';
+        return style.getPropertyValue('-webkit-app-region') || style.appRegion;
+      })()`);
+    },
+    // The strip's window-drag region: the computed app-region of #strip.
+    async stripAppRegion() {
+      const wc = getChromeWebContents();
+      if (!wc || wc.isDestroyed()) return null;
+      return wc.executeJavaScript(`getComputedStyle(document.getElementById('strip')).getPropertyValue('-webkit-app-region') || getComputedStyle(document.getElementById('strip')).appRegion`);
+    },
+    async overlayPanelRect() {
+      const wc = getOverlayWebContents();
+      if (!wc || wc.isDestroyed()) return null;
+      return wc.executeJavaScript(`(() => {
+        const r = document.getElementById('islandPanel')?.getBoundingClientRect();
+        return r && r.width > 0 ? { left: r.left, top: r.top, right: r.right, bottom: r.bottom } : null;
+      })()`);
+    },
+    pinnedHome(tabId) { return tabs.get(String(tabId))?.pinnedHomeUrl ?? null; },
+    chooseSessionRecovery(choice) { return chooseSessionRecovery(String(choice)); },
+    sessionRecoveryState() { return getSessionRecoveryState(); },
+    selectTabRows(id, mode) { return selectTabRows(id, mode); },
+    selectedTabIds() { return getSelectedTabIds(); },
+    runSelectedTabsAction(action, args = {}) { return runTabsAction(action, args); },
     state() {
       const list = [];
       for (const [id, t] of tabs) {
@@ -540,8 +737,12 @@ function install(refs) {
           customTitle: t.customTitle ?? null,
           favicon: t.favicon || null,
           groupId: t.groupId ?? null,
+          splitId: t.splitId ?? null,
           pinned: !!t.pinned,
-          muted: !!t.muted,
+          // What the tab shows as muted, a site mute included (tab-audio.js
+          // shownMuted), and what its page's audio really is.
+          muted: !!(t.muted || (t.siteMuted && !t.siteUnmuted)),
+          audioMuted: liveContents(t)?.isAudioMuted?.() ?? null,
           audible: !!t.audible,
           // Projection of the one-time hidden-start autoplay guard; a visible
           // pane must never carry it.
@@ -571,12 +772,12 @@ function install(refs) {
           groupId: slot.group?.id ?? null,
           tabIds: [...slot.tabIds],
         })),
-        groups: getGroups().map((g) => ({ id: g.id, name: g.name, collapsed: !!g.collapsed })),
+        groups: getGroups().map((g) => ({ id: g.id, name: g.name, collapsed: !!g.collapsed, color: g.color ?? null })),
+        splits: getSplits().map((sp) => ({ id: sp.id, tabIds: [...sp.tabIds], layout: sp.layout, focusedIndex: sp.focusedIndex })),
         activeTabId: getActiveTabId(),
         glanceTabId: getGlanceTabId(),
         focusedPaneTabId: getFocusedPaneTabId(),
-        glanceGeometry: getGlanceGeometry(),
-        glanceMinimums: getGlanceMinimums(),
+        glanceCard: getGlanceCard(),
       };
     },
 
@@ -593,14 +794,55 @@ function install(refs) {
     },
     duplicateActive() { duplicateTab(getActiveTabId()); },
     pinTab(id) { toggleTabPinned(id); },
+    returnPinnedHome(id) { return pinnedHomeActions().returnPinnedHome(String(id)); },
+    setPinnedHome(id) { return pinnedHomeActions().setPinnedHome(String(id)); },
+    goBack(id) { return goBack(String(id)); },
     muteTab(id) { toggleTabMuted(id); },
     closeTab(id) { closeTab(id); },
     reopenClosed() { reopenClosedTab(); },
     setGlance(id) { return setGlanceTab(id); },
+    // ---- Split View (F53) ----
+    makeSplit(initiatorId, otherIds) { return createSplitFromTabs(initiatorId, otherIds)?.id ?? null; },
+    splitLayout() { return splitLayoutForTest(); },
+    splitCornerTabs() { return splitCornerTabsForTest(); },
+    clickSplitCorner(tabId, part) { return clickSplitCornerForTest(tabId, part); },
+    raiseTabView(tabId) { return raiseTabViewForTest(tabId); },
+    keepGlanceAsSplit() { return keepGlanceAsSplit()?.id ?? null; },
+    /** A tab-menu item as a click runs it: the real dispatcher and actions. */
+    runTabMenuItem(tabId, itemId, extra = {}) {
+      const { runTabContextMenuItem } = require('./tab-context-menu');
+      return runTabContextMenuItem(itemId, { tab: { id: tabId, url: tabs.get(tabId)?.url }, ...extra, actions: menuContextActionsForTest() });
+    },
+    closedEntrySummaries() { return closedEntrySummaries(); },
+    /** One tab-menu item's label and state, as a right-click on its row shows it. */
+    tabMenuItem(tabId, itemId) {
+      const item = tabMenuItemsForTest(String(tabId))?.find((entry) => entry.id === itemId);
+      return item ? { label: item.label, enabled: item.enabled !== false } : null;
+    },
+    moveGroupToNewWindow(groupId) { return !!moveGroupToNewWindowForTest(groupId); },
+    // Move Group to Space ▸ (D8): the menu's actions, by group name.
+    moveGroupToSpaceByName(name, workspaceId) {
+      const group = getGroups().find((g) => sameGroupName(g.name, name));
+      return group ? moveGroupToSpaceForTest(group.id, workspaceId) : null;
+    },
+    beginNewSpaceForGroupByName(name) {
+      const group = getGroups().find((g) => sameGroupName(g.name, name));
+      return group ? beginNewSpaceForGroupForTest(group.id) : false;
+    },
+    straySplitIds() { return straySplitIds(); },
+    windowChildViewCount() { return windowChildViewCount(); },
+    attachedTabViewIds() { return attachedTabViewIds(); },
+    /** Give a pane keyboard focus, as a click into it does. */
+    focusPane(id) {
+      const wc = liveContents(tabs.get(id));
+      if (!wc) return false;
+      wc.focus();
+      return true;
+    },
     closeGlance() { return closeGlanceAction({ focusContent: false }); },
-    promoteGlance() { return promoteGlanceAction(); },
-    resizeGlance(point) { return resizeGlanceAt(point); },
-    resetGlanceRatio() { return resetGlanceRatioAction(); },
+    openGlanceAsTab() { return openGlanceAsTabAction(); },
+    resetGlanceCard() { return resetGlanceCardFrame(); },
+    getGlanceCard() { return getGlanceCard(); },
     setWindowGlance(runtimeId, tabId) {
       return setGlanceTabInWindow(String(runtimeId), String(tabId));
     },
@@ -612,7 +854,7 @@ function install(refs) {
       return refs.runInWindowRuntime(String(runtimeId), async () => {
         setWindowContentSize(Number(width), 800);
         await setGlanceTab(String(tabId));
-        return getGlanceGeometry();
+        return getGlanceCard();
       });
     },
     closeTabInWindow(runtimeId, tabId) {
@@ -632,6 +874,14 @@ function install(refs) {
       const group = getGroups().find((g) => sameGroupName(g.name, name));
       if (group) beginRenameGroup(group.id);
       return !!group;
+    },
+    // Tab menu additions (spec 2026-10-17-tab-menu-additions-design.md).
+    newTabBelow(id) { return newTabBelow(id); },
+    closeTabsBeside(id, direction) { closeTabsBeside(id, direction); return true; },
+    toggleSiteMute(id) { return toggleSiteMute(id); },
+    setGroupColorByName(name, color) {
+      const group = getGroups().find((g) => sameGroupName(g.name, name));
+      return group ? setGroupColor(group.id, color).ok : false;
     },
     ungroupGroupByName(name) {
       const group = getGroups().find((g) => sameGroupName(g.name, name));
@@ -658,8 +908,45 @@ function install(refs) {
       const tab = tabs.get(id);
       return tab?.view ? tab.view.getBounds() : null;
     },
-    focusedWebContentsId() { return webContents.getFocusedWebContents()?.id ?? null; },
+    // On macOS a tab view detached while it had focus (an inactive tab) can
+    // keep reporting isFocused(), and getFocusedWebContents() returns the
+    // first contents that does. Only contents on screen in the focused window
+    // can hold the keyboard, so those are asked first.
+    focusedWebContentsId() {
+      const window = BrowserWindow.getFocusedWindow();
+      const onScreen = window && !window.isDestroyed()
+        ? [window.webContents, ...window.contentView.children
+          .filter((view) => view.getVisible?.() !== false)
+          .map((view) => view.webContents)]
+        : [];
+      const focused = onScreen.find((contents) => contents && !contents.isDestroyed() && contents.isFocused());
+      return (focused ?? webContents.getFocusedWebContents())?.id ?? null;
+    },
     zoomLevel(tabId) { return liveContents(tabs.get(tabId))?.getZoomLevel() ?? null; },
+    zoomMode(tabId) { return liveContents(tabs.get(tabId))?.getZoomMode() ?? null; },
+    zoomPercent(tabId) {
+      const level = liveContents(tabs.get(tabId))?.getZoomLevel();
+      return typeof level === 'number' ? levelToPercent(level) : null;
+    },
+    /** What the page is really drawn at, not what Electron reports: in manual
+     * mode a level reads back without the page changing. */
+    async drawnZoomPercent(tabId) {
+      const tab = tabs.get(tabId);
+      const wc = liveContents(tab);
+      if (!wc) return null;
+      return Math.round(100 * tab.view.getBounds().width / await wc.executeJavaScript('innerWidth'));
+    },
+    tabUrl(tabId) { return liveContents(tabs.get(tabId))?.getURL() ?? null; },
+    pageZoom() { return settings.getSettings().pageZoom; },
+    setPageZoom(percent) { return settings.setSettings({ pageZoom: percent }).pageZoom; },
+    siteZoomSites() { return siteZoom.sites(); },
+    clearSiteZoom() { siteZoom.clearSites(); },
+    /** Hosts in Chromium's saved per-host zoom for the Personal session. */
+    chromiumZoomHosts() {
+      const file = path.join(session.defaultSession.getStoragePath(), 'Preferences');
+      const partitions = JSON.parse(fs.readFileSync(file, 'utf8')).partition?.per_host_zoom_levels ?? {};
+      return Object.values(partitions).flatMap((hosts) => Object.keys(hosts));
+    },
     // A real mouse click on an element of a tab's page, so the page's own
     // target=_blank / modifier handling decides the window-open disposition.
     async clickInTab(tabId, selector, modifiers = []) {
@@ -891,7 +1178,7 @@ function install(refs) {
       }
       return history.listTopSites({ limit: 48 }).map((site) => site.key);
     },
-    clearHistory() { history.clearHistory(); },
+    clearHistory() { history.clearHistory(); archive.clearArchive(); },
     historyCount() { return history.listHistory({ limit: 5000 }).length; },
 
     // ---- 1Password fill capsule + hint (macOS-only; null off-platform) ----
@@ -906,6 +1193,25 @@ function install(refs) {
 
     // ---- settings ----
     setAdblock(on) { settings.setSettings({ adblockEnabled: !!on }); },
+    setIslandTabIcons(on) { return settings.setSettings({ islandTabIcons: !!on }).islandTabIcons; },
+    // Mini Window (#1138).
+    openMiniWindow() { return miniWindowTest.open(); },
+    keepMiniWindow(id) { return miniWindowTest.keep(id); },
+    expireMiniWindow(id) { return miniWindowTest.expire(id); },
+    miniWindowState(id) { return miniWindowTest.state(id); },
+    miniWindowChip(id, options) { return miniWindowTest.chip(id, options); },
+    setMiniWindowShortcut(id) {
+      const saved = settings.setSettings({ miniWindowShortcut: id }).miniWindowShortcut;
+      return { saved, status: miniWindowTest.shortcutStatus() };
+    },
+    setIslandSize(size) { return settings.setSettings({ islandSize: size }).islandSize; },
+    // The launch Sunrise plays once per launch; acceptance rearms that launch.
+    setLaunchSunrise(on) {
+      const saved = settings.setSettings({ launchSunrise: !!on }).launchSunrise;
+      rearmLaunchSunrise();
+      return saved;
+    },
+    setTabSwitchOrder(order) { settings.setSettings({ tabSwitchOrder: order }); return settings.getSettings().tabSwitchOrder; },
     async probeOnePasswordUtilityProcess() {
       const result = await probeOnePasswordPackage();
       return {
@@ -986,6 +1292,25 @@ function install(refs) {
         visible: ['Ledger', 'Billboard', 'Shelf', 'Tally']
           .filter((name) => getComputedStyle(document.getElementById('layout' + name)).display !== 'none'),
       }))()`);
+    },
+    // The launch Sunrise on the active Start Page: absent once it has ended
+    // (or was never due), else whether it shows and how far it has got.
+    readLaunchSunrise() {
+      const tab = tabs.get(getActiveTabId());
+      const wc = tab && urlOf(tab).startsWith('blanc://newtab') ? liveContents(tab) : null;
+      if (!wc) return null;
+      return wc.executeJavaScript(`(() => {
+        const scene = document.getElementById('launchSunrise');
+        if (!scene) return { present: false, layoutReady: document.body.classList.contains('layout-ready') };
+        const style = getComputedStyle(scene);
+        return {
+          present: true,
+          shown: !scene.hidden && style.display !== 'none',
+          pointerEvents: style.pointerEvents,
+          animations: scene.getAnimations({ subtree: true }).map((animation) => animation.animationName).sort(),
+          layoutReady: document.body.classList.contains('layout-ready'),
+        };
+      })()`);
     },
     readMigrationChecklistDom() {
       const tab = tabs.get(getActiveTabId());
@@ -1186,6 +1511,7 @@ function install(refs) {
         sync: 'migrationSyncAction',
         tabs: 'migrationTabsAction',
         space: 'migrationSpaceAction',
+        iphone: 'migrationIphoneAction',
         hide: 'migrationChecklistHide',
         compact: 'migrationChecklistCompact',
       };
@@ -1217,6 +1543,7 @@ function install(refs) {
         syncMigrationCompleted: false,
         tabImportCompleted: false,
         spaceMigrationCompleted: false,
+        iphoneMigrationCompleted: false,
       });
       const current = settings.getSettings();
       return {
@@ -1242,8 +1569,12 @@ function install(refs) {
         return document.getElementById('patronCallout').hidden;
       })()`);
     },
-    setMigrationChecklistProgress(syncComplete, tabsComplete, spaceComplete = false) {
-      settings.setSettings({ syncMigrationCompleted: !!syncComplete, tabImportCompleted: !!tabsComplete, spaceMigrationCompleted: !!spaceComplete });
+    // iphoneComplete undefined keeps the stored value (design 2026-10-28 §6.1).
+    setMigrationChecklistProgress(syncComplete, tabsComplete, spaceComplete = false, iphoneComplete) {
+      settings.setSettings({
+        syncMigrationCompleted: !!syncComplete, tabImportCompleted: !!tabsComplete, spaceMigrationCompleted: !!spaceComplete,
+        ...(iphoneComplete === undefined ? {} : { iphoneMigrationCompleted: !!iphoneComplete }),
+      });
       return true;
     },
     migrationChecklistSettings() {
@@ -1255,6 +1586,7 @@ function install(refs) {
         spaceComplete: current.spaceMigrationCompleted === true,
       };
     },
+    sharedSpacesTest(action,payload) {return refs.sharedSpacesTest(action,payload);},
     syncEnabled() { return sync.status().enabled === true; },
     async readStartPageFontUsage() {
       const tab = tabs.get(getActiveTabId());
@@ -1382,6 +1714,8 @@ function install(refs) {
           label: item.querySelector('.label')?.textContent ?? null,
           hasIcon: item.querySelector('.tile')?.classList.contains('has-icon') ?? false,
           dismissLabel: item.querySelector('.bb-site-dismiss')?.getAttribute('aria-label') ?? null,
+          pinned: item.classList.contains('pinned'),
+          pinLabel: item.querySelector('.bb-site-pin')?.getAttribute('aria-label') ?? null,
           title: item.querySelector('.label')?.title ?? null,
           ariaLabel: item.querySelector('.bb-fav')?.getAttribute('aria-label') ?? null,
           top: Math.round(item.getBoundingClientRect().top),
@@ -1393,7 +1727,102 @@ function install(refs) {
           })(),
         })),
         hidden: JSON.parse(localStorage.getItem('blanc.billboard.hidden-top-sites.v1') || '[]'),
+        status: document.getElementById('bbTopSitesStatus')?.textContent ?? '',
+        focusedPinOf: document.activeElement?.classList.contains('bb-site-pin')
+          ? document.activeElement.closest('.bb-site')?.dataset.siteKey ?? null
+          : null,
       }))()`);
+    },
+    clearStartPagePins() {
+      for (const pin of startPagePins.listPins()) startPagePins.unpin(pin.url);
+      return startPagePins.listPins().length === 0;
+    },
+    startPagePins() { return startPagePins.listPins(); },
+    // The Favorites page's rows and their Start Page pins.
+    readFavoritesSheetPins() {
+      const wc = getUtilitySheetWebContents();
+      if (!wc || wc.isDestroyed()) return null;
+      return wc.executeJavaScript(`(() => {
+        if (location.host !== 'bookmarks') return null;
+        return [...document.querySelectorAll('#list .row[data-url]')].map((row) => ({
+          url: row.dataset.url,
+          title: row.querySelector('.title')?.textContent ?? '',
+          pinned: row.classList.contains('start-pinned'),
+          mark: row.querySelector('.row-pin-mark')?.getAttribute('aria-label') ?? null,
+          button: row.querySelector('.pin-toggle')?.textContent ?? null,
+          buttonLabel: row.querySelector('.pin-toggle')?.getAttribute('aria-label') ?? null,
+          focused: document.activeElement === row.querySelector('.pin-toggle'),
+        }));
+      })()`);
+    },
+    toggleFavoritesSheetPin(title) {
+      const wc = getUtilitySheetWebContents();
+      if (!wc || wc.isDestroyed()) return false;
+      return wc.executeJavaScript(`(() => {
+        const row = [...document.querySelectorAll('#list .row[data-url]')]
+          .find((candidate) => candidate.querySelector('.title')?.textContent === ${JSON.stringify(String(title))});
+        const button = row?.querySelector('.pin-toggle');
+        if (!button || button.disabled) return false;
+        button.focus();
+        button.click();
+        return true;
+      })()`);
+    },
+    // The favorites the showing favorites layout draws.
+    readStartFavorites() {
+      const tab = tabs.get(getActiveTabId());
+      if (!tab || !urlOf(tab).startsWith('blanc://newtab')) return null;
+      return tab.view.webContents.executeJavaScript(`(() => {
+        const layout = document.body.dataset.layout;
+        const list = { ledger: 'favoritesList', shelf: 'shFavorites', tally: 'tlFavorites' }[layout];
+        const items = list ? [...document.getElementById(list).querySelectorAll('[data-favorite-url]')] : [];
+        return {
+          layout,
+          favorites: items.map((item) => ({
+            url: item.dataset.favoriteUrl,
+            title: item.querySelector('.name')?.textContent ?? null,
+            pinned: item.classList.contains('pinned'),
+            pinLabel: item.querySelector('.fav-pin')?.getAttribute('aria-label') ?? null,
+            pinShown: (() => {
+              const pin = item.querySelector('.fav-pin');
+              return !!pin && getComputedStyle(pin).opacity === '1';
+            })(),
+          })),
+          status: document.getElementById('favoritesPinStatus')?.textContent ?? '',
+          focusedPinOf: document.activeElement?.classList.contains('fav-pin')
+            ? document.activeElement.closest('[data-favorite-url]')?.dataset.favoriteUrl ?? null
+            : null,
+        };
+      })()`);
+    },
+    // Clicks a favorite's pin in the showing favorites layout.
+    toggleFavoritePin(title) {
+      const tab = tabs.get(getActiveTabId());
+      if (!tab || !urlOf(tab).startsWith('blanc://newtab')) return false;
+      return tab.view.webContents.executeJavaScript(`(() => {
+        const list = { ledger: 'favoritesList', shelf: 'shFavorites', tally: 'tlFavorites' }[document.body.dataset.layout];
+        const item = list && [...document.getElementById(list).querySelectorAll('[data-favorite-url]')]
+          .find((candidate) => candidate.querySelector('.name')?.textContent === ${JSON.stringify(String(title))});
+        const button = item?.querySelector('.fav-pin');
+        if (!button) return false;
+        button.focus();
+        button.click();
+        return true;
+      })()`);
+    },
+    // Clicks a site's pin, which pins an unpinned site and unpins a pinned one.
+    toggleBillboardPin(key) {
+      const tab = tabs.get(getActiveTabId());
+      if (!tab || !urlOf(tab).startsWith('blanc://newtab')) return false;
+      return tab.view.webContents.executeJavaScript(`(() => {
+        const item = [...document.querySelectorAll('#bbFavorites .bb-site')]
+          .find((candidate) => candidate.dataset.siteKey === ${JSON.stringify(String(key))});
+        const button = item?.querySelector('.bb-site-pin');
+        if (!button) return false;
+        button.focus();
+        button.click();
+        return true;
+      })()`);
     },
     hideBillboardSite(key) {
       const tab = tabs.get(getActiveTabId());
@@ -1931,6 +2360,53 @@ function install(refs) {
         return true;
       })()`);
     },
+    /** Click Continue until the walkthrough shows `step`. */
+    advanceOnboardingTo(step) {
+      const tab = tabs.get(getActiveTabId());
+      if (!tab || !urlOf(tab).startsWith('blanc://newtab')) return false;
+      return tab.view.webContents.executeJavaScript(`(async () => {
+        const dialog = document.getElementById('onboardDialog');
+        if (!dialog || dialog.hidden) return false;
+        for (let i = 0; i < 200 && Number(dialog.dataset.step) < ${Number(step)}; i += 1) {
+          const next = document.getElementById('obNext');
+          if (!next.disabled) next.click();
+          await new Promise((resolve) => setTimeout(resolve, 25));
+        }
+        return dialog.dataset.step === '${Number(step)}';
+      })()`);
+    },
+    // F52 spec D5: the Tab Archive row in "Meet the island".
+    readOnboardingArchiveOffer() {
+      const tab = tabs.get(getActiveTabId());
+      if (!tab || !urlOf(tab).startsWith('blanc://newtab')) return null;
+      return tab.view.webContents.executeJavaScript(`(() => {
+        const row = document.getElementById('obArchiveRow');
+        const toggle = document.getElementById('obArchive');
+        return {
+          hidden: !row || row.hidden || row.closest('section')?.hidden === true,
+          checked: toggle?.getAttribute('aria-checked') === 'true',
+          label: row?.textContent.replace(/\\s+/g, ' ').trim() ?? '',
+        };
+      })()`);
+    },
+    clickOnboarding(selector) {
+      const tab = tabs.get(getActiveTabId());
+      if (!tab || !urlOf(tab).startsWith('blanc://newtab')) return false;
+      return tab.view.webContents.executeJavaScript(`(() => {
+        const el = document.querySelector(${JSON.stringify(String(selector))});
+        if (!el || el.disabled || document.getElementById('onboardDialog').hidden) return false;
+        el.click();
+        return true;
+      })()`);
+    },
+    /** The new tab page's own onboarding bridge, called directly. */
+    sendOnboardingSet(partial) {
+      const tab = tabs.get(getActiveTabId());
+      if (!tab || !urlOf(tab).startsWith('blanc://newtab')) return false;
+      return tab.view.webContents.executeJavaScript(
+        `window.bowserPages.start.onboardingSet(${JSON.stringify(partial ?? {})}).then(() => true)`);
+    },
+    tabArchiveSetting() { return settings.getSettings().tabArchive; },
     readOnboardingDom() {
       const tab = tabs.get(getActiveTabId());
       if (!tab || !urlOf(tab).startsWith('blanc://newtab')) return null;
@@ -2134,7 +2610,8 @@ function install(refs) {
         return {
           hidden: !!el.hidden,
           off: el.classList.contains('shield-off'),
-          title: el.title,
+          // The Island's own tooltip (#938) replaced the native title.
+          title: el.dataset.tooltip ?? el.title,
         };
       })()`);
     },
@@ -2146,10 +2623,45 @@ function install(refs) {
     // divider, and the overlay's picker when one is up.
     // The page context menu's Open Link in Glance, which Playwright cannot
     // click (a native menu): the same main-process action the item calls.
+    runLinkSpaceMenuItem(tabId, url, text, itemId) { return runLinkSpaceMenuItem(String(tabId), String(url), String(text ?? ""), itemId); },
     openLinkInGlance(tabId, url) { return openLinkInGlance(String(tabId), String(url)); },
+    // The floating Glance card's computed motion, read in its own document.
+    async glanceCardMotion() {
+      const wc = getGlanceCardWebContents();
+      if (!wc || wc.isDestroyed()) return null;
+      return wc.executeJavaScript(`(() => {
+        const card = document.getElementById('glanceCard');
+        if (!card) return null;
+        const style = getComputedStyle(card);
+        return { transition: style.transition, transform: style.transform, opacity: style.opacity, hidden: card.hidden };
+      })()`);
+    },
+    // Close the Glance and, in the same turn, read whether the card's view is
+    // still visible: a visible view would take the page's clicks.
+    closeGlanceAndReadCard() {
+      const closed = closeGlanceAction({ focusContent: false });
+      const wc = getGlanceCardWebContents();
+      return { closed, cardViewVisible: wc && !wc.isDestroyed() ? getGlanceCardViewVisible() : false };
+    },
+    // Close a tab and, in the same turn, read whether a Glance is still open,
+    // whether the card view is visible and the frame settings hold for it.
+    // A window's first Glance: the card view goes first, so this open makes
+    // it again (as a new window would), and in the same turn read what shows.
+    async openFirstGlanceAndRead(id) {
+      destroyGlanceCardViewForTest();
+      const opened = await setGlanceTab(String(id));
+      return { opened, cardViewVisible: getGlanceCardViewVisible(), glancePageVisible: getGlancePageViewVisible() };
+    },
+    glancePageViewVisible() { return getGlancePageViewVisible(); },
+    closeTabAndReadGlance(id) {
+      closeTab(String(id));
+      return { glanceTabId: getGlanceTabId(), cardViewVisible: getGlanceCardViewVisible(), savedFrame: getSavedGlanceFrame() };
+    },
+    // The Glance header's identity cross-fade (in the card's document) and
+    // the overlay's picker motion.
     async glanceHeaderMotion() {
-      const strip = getChromeWebContents();
-      if (!strip) return null;
+      const strip = getGlanceCardWebContents();
+      if (!strip || strip.isDestroyed()) return null;
       const read = (selector) => `(() => {
         const element = document.querySelector(${JSON.stringify(selector)});
         if (!element) return null;
@@ -2157,14 +2669,13 @@ function install(refs) {
         return { transition: style.transition, transform: style.transform, opacity: style.opacity, transformOrigin: style.transformOrigin, width: element.getBoundingClientRect().width };
       })()`;
       const header = await strip.executeJavaScript(read('#glanceHeader'));
-      const divider = await strip.executeJavaScript(read('#glanceDivider'));
       const identity = await strip.executeJavaScript(`(() => {
         const element = document.querySelector('#glanceHeader .glance-tab-identity');
         return element ? { transition: getComputedStyle(element).transition, swapping: element.classList.contains('swapping') } : null;
       })()`);
       const overlay = getOverlayWebContents();
       const picker = overlay && getOverlayMode() === 'glance' ? await overlay.executeJavaScript(read('#glancePicker')) : null;
-      return { header, divider, identity, picker };
+      return { header, identity, picker };
     },
     pillPlaceholderState() {
       const wc = getChromeWebContents();
@@ -2205,6 +2716,18 @@ function install(refs) {
       );
     },
     /**
+     * The id of the overlay element that holds keyboard focus, or null when
+     * the overlay document itself does not have focus — a focused input in
+     * an unfocused view would take no keystrokes.
+     */
+    overlayFocusedId() {
+      const wc = getOverlayWebContents();
+      if (!wc) return null;
+      return wc.executeJavaScript(
+        `document.hasFocus() ? (document.activeElement?.id ?? null) : null`,
+      );
+    },
+    /**
      * Dispatch a real keydown on the active tab's page, as a person typing
      * with the page focused would. Goes through the page's own listener and
      * the pages:start:open-island channel — not a shortcut into main.
@@ -2242,8 +2765,18 @@ function install(refs) {
           toggleShown: !document.getElementById('shieldPopToggle').hidden,
           connection: row && !row.hidden ? 'Connection · ' + document.getElementById('shieldPopConnectionValue').textContent : null,
           header: document.querySelector('.shield-pop-state')?.textContent.trim() ?? '',
+          route: document.getElementById('shieldPopRoute')?.hidden === false ? {
+            label: document.getElementById('shieldPopRouteLabel').textContent,
+            on: document.getElementById('shieldPopRouteToggle').getAttribute('aria-checked') === 'true',
+            note: document.getElementById('shieldPopRouteNote').textContent,
+          } : null,
         };
       })()`);
+    },
+    clickShieldRouteToggle() {
+      const wc = getOverlayWebContents();
+      if (!wc) throw new Error('overlay webContents unavailable');
+      return wc.executeJavaScript(`document.getElementById('shieldPopRouteToggle').click()`);
     },
     clickShieldPopoverToggle() {
       const wc = getOverlayWebContents();
@@ -2299,6 +2832,8 @@ function install(refs) {
           const parts = [document.getElementById('pillSpaceSymbol'), document.getElementById('pillSpaceName')];
           return {
             hidden: mark.hidden,
+            inIsland: !!mark.closest('#islandPill'),
+            inRail: !!mark.closest('.vertical-tabs-toolbar'),
             state: mark.dataset.state,
             name: parts[1].textContent,
             label: mark.getAttribute('aria-label'),
@@ -2411,6 +2946,28 @@ function install(refs) {
     handoffDecision(url) { return classifyExternalNavigation(url).action; },
     openDownloads() { openInternalPage('blanc://downloads/'); },
     openHistorySheet() { openInternalPage('blanc://history/'); },
+    // F52: the History sheet's Archived view, read and clicked through its own DOM.
+    async historySheetArchivedRows() {
+      const wc = getUtilitySheetWebContents();
+      if (!wc || !wc.getURL().startsWith('blanc://history/')) return null;
+      return wc.executeJavaScript(`(() => ({
+        view: document.getElementById('viewArchived')?.getAttribute('aria-pressed') === 'true' ? 'archived' : 'visits',
+        rows: [...document.querySelectorAll('#list .row')].map((row) => ({
+          title: row.querySelector('.title')?.textContent ?? '',
+          url: row.querySelector('.url')?.textContent ?? '',
+        })),
+      }))()`);
+    },
+    async historySheetClick(selector) {
+      const wc = getUtilitySheetWebContents();
+      if (!wc) return false;
+      return wc.executeJavaScript(`(() => {
+        const el = document.querySelector(${JSON.stringify(String(selector))});
+        if (!el || el.hidden) return false;
+        el.click();
+        return true;
+      })()`);
+    },
     openSettings() { openInternalPage('blanc://settings/'); },
     // F47: Settings → General → Your bangs, through the page's own controls.
     async settingsBangControls() {
@@ -2449,6 +3006,43 @@ function install(refs) {
         if (!row) return false;
         row.querySelector('.site-row-remove').click();
         return true;
+      })()`);
+    },
+    /** ⌘+ in one window, whichever window the OS has focused. */
+    zoomInWindow(id) { return refs.runInWindowRuntime(String(id), () => zoomActiveTab(1)); },
+    openSettingsInWindow(id) { return refs.runInWindowRuntime(String(id), () => openInternalPage('blanc://settings/')); },
+    async settingsSiteZoomRowsInWindow(id) {
+      return refs.runInWindowRuntime(String(id), () => getUtilitySheetWebContents()?.executeJavaScript(
+        `[...document.querySelectorAll('#siteZoomList .site-row-name')].map((name) => name.textContent)`) ?? []);
+    },
+    closeUtilitySurfaceInWindow(id) { return refs.runInWindowRuntime(String(id), () => hideUtilitySheet()); },
+    async settingsChoosePageZoom(percent) {
+      const wc = getUtilitySheetWebContents();
+      if (!wc) return false;
+      return wc.executeJavaScript(`(() => {
+        const select = document.getElementById('pageZoom');
+        if (!select?.options.length) return false;
+        select.value = ${JSON.stringify(String(percent))};
+        select.dispatchEvent(new Event('change', { bubbles: true }));
+        return true;
+      })()`);
+    },
+    async settingsSiteZoomRows() {
+      const wc = getUtilitySheetWebContents();
+      if (!wc) return [];
+      return wc.executeJavaScript(`[...document.querySelectorAll('#siteZoomList .site-row')].map((row) => ({
+        name: row.querySelector('.site-row-name')?.textContent ?? '',
+        detail: row.querySelector('.site-row-detail')?.textContent ?? '',
+      }))`);
+    },
+    async settingsRemoveSiteZoom(site) {
+      const wc = getUtilitySheetWebContents();
+      if (!wc) return false;
+      return wc.executeJavaScript(`(() => {
+        const row = [...document.querySelectorAll('#siteZoomList .site-row')]
+          .find((candidate) => candidate.querySelector('.site-row-name')?.textContent === ${JSON.stringify(String(site))});
+        row?.querySelector('.site-row-remove').click();
+        return !!row;
       })()`);
     },
     async settingsProfileRows() {
@@ -2509,6 +3103,56 @@ function install(refs) {
       const wc = getUtilitySheetWebContents();
       if (!wc) return false;
       return wc.executeJavaScript(`(() => { const b = document.querySelector('.hint-toggle'); b?.click(); return !!b; })()`);
+    },
+    /** Settings → Profiles → Open links from other apps (F60): read the
+     * group, or drive its controls the way a person does. */
+    async settingsLinkRoutes(action, ...args) {
+      const wc = getUtilitySheetWebContents();
+      if (!wc) return null;
+      return wc.executeJavaScript(`(() => {
+        const [action, ...args] = ${JSON.stringify([String(action), ...args])};
+        const card = document.getElementById('linkRoutesCard');
+        if (!card) return null;
+        const rows = () => [...document.querySelectorAll('#linkRoutesList .link-route-row')];
+        const fire = (element, ...events) => { for (const type of events) element.dispatchEvent(new Event(type, { bubbles: true })); };
+        if (action === 'state') {
+          return {
+            ready: card.dataset.ready === 'true',
+            shown: !card.hidden,
+            fallback: card.querySelector('.link-route-fallback')?.textContent ?? '',
+            rows: rows().map((row) => {
+              const [profile, space] = row.querySelectorAll('select');
+              const input = row.querySelector('input[type="text"]');
+              return {
+                label: row.getAttribute('aria-label'),
+                value: input.value,
+                invalid: input.getAttribute('aria-invalid') === 'true',
+                error: row.querySelector('.field-error')?.textContent ?? '',
+                note: row.querySelector('.link-route-note')?.textContent ?? '',
+                profileId: profile.value,
+                spaceId: space.value || null,
+                private: row.querySelector('input[type="checkbox"]').checked,
+              };
+            }),
+          };
+        }
+        if (action === 'add') { document.getElementById('linkRouteAdd').click(); return rows().length; }
+        const row = rows()[args[0]];
+        if (!row) return false;
+        if (action === 'fill') {
+          const input = row.querySelector('input[type="text"]');
+          input.value = args[1];
+          fire(input, 'input', 'change');
+          return true;
+        }
+        if (action === 'profile') {
+          const select = row.querySelectorAll('select')[0];
+          select.value = args[1];
+          fire(select, 'change');
+          return select.value === args[1];
+        }
+        return false;
+      })()`);
     },
     async settingsCreateProfile(name) {
       const wc = getUtilitySheetWebContents();
@@ -2737,7 +3381,8 @@ function install(refs) {
         const button = document.getElementById('footerTabLayout');
         if (!button) return null;
         return {
-          title: button.title,
+          // The Island's own tooltip (#938) replaced the native title.
+          title: button.dataset.tooltip ?? button.title,
           label: button.getAttribute('aria-label'),
           pressed: button.getAttribute('aria-pressed')
         };
@@ -2756,6 +3401,11 @@ function install(refs) {
             .map((dot) => dot.title),
           overflowText: overflow?.textContent ?? '',
           overflowLabel: overflow?.getAttribute('aria-label') ?? '',
+          // Site icons instead of dots (#1175): the row's mode and, per
+          // direct tab, whether it draws an icon at rest.
+          iconsMode: document.getElementById('pillDots')?.classList.contains('icons') === true,
+          iconCount: document.querySelectorAll('#pillDots .island-dot > .dot-icon').length,
+          peekCount: document.querySelectorAll('#pillDots .island-dot > .dot-peek').length,
         };
       })()`);
     },
@@ -2939,6 +3589,40 @@ function install(refs) {
       return structuredClone(devices);
     },
     clearRemoteDevices() { pushRemoteDevices([]); },
+    /** Send to device: `{targets, inbox, sendStatus}` replace sync's sends. */
+    injectSends(options) { injectSends(options); return true; },
+    clearSends() { injectedSends = null; setSendsSource(null); return true; },
+    sentRequests() { return structuredClone(injectedSends?.sent ?? []); },
+    setSendStatus(status) { if (injectedSends) injectedSends.sendStatus = status; return true; },
+    /** The Ledger's Sent to this device rows on every open start page. */
+    async sentStartPageRows() {
+      const rows = [];
+      for (const tab of tabs.values()) {
+        if (!urlOf(tab).startsWith('blanc://newtab')) continue;
+        try {
+          rows.push(...await tab.view.webContents.executeJavaScript(`[...document.querySelectorAll('#sentList .sent-item')].map((item) => ({
+            title: item.querySelector('.name')?.textContent ?? '',
+            from: item.querySelector('.host')?.textContent ?? '',
+            visible: !document.getElementById('sentSection').hidden,
+          }))`));
+        } catch { /* a start page mid-navigation has nothing to read */ }
+      }
+      return rows;
+    },
+    async clickSentStartPageRow(title, part) {
+      for (const tab of tabs.values()) {
+        if (!urlOf(tab).startsWith('blanc://newtab')) continue;
+        const clicked = await tab.view.webContents.executeJavaScript(`(() => {
+          const item = [...document.querySelectorAll('#sentList .sent-item')].find((el) => el.querySelector('.name')?.textContent === ${JSON.stringify(title)});
+          const target = item?.querySelector(${JSON.stringify(part === 'dismiss' ? '.sent-dismiss' : 'a.fav')});
+          if (!target) return false;
+          target.click();
+          return true;
+        })()`).catch(() => false);
+        if (clicked) return true;
+      }
+      return false;
+    },
     // Mirrors addressResultRows' favicon reporting so the start page and the
     // Quick Switcher are guarded to the same standard: the tile letter is
     // replaced by the icon only once the bytes actually decode.
@@ -3106,6 +3790,13 @@ function install(refs) {
     // Settings → Sync device pairing (design 2026-10-16): the off-state code
     // path as the person sees it, and the clicks/typing that drive it. Reads
     // DOM state only; the pairing code itself never appears in this record.
+    // Design 2026-10-28 §6.2: which windows ask to be left out of capture.
+    windowsContentProtected() {
+      // Blanc's own record of the window it protected: macOS 27 keeps
+      // isContentProtected() true after protection is lifted (see main.js).
+      const win = pairingProtectedWindow?.();
+      return win && !win.isDestroyed() ? 1 : 0;
+    },
     settingsSyncPairingDom() {
       const wc = getUtilitySheetWebContents();
       if (!wc || !wc.getURL().startsWith('blanc://settings')) return null;
@@ -3120,6 +3811,27 @@ function install(refs) {
           connectDisabled: !!byId('syncCodeSubmit')?.disabled,
           codeValue: byId('syncCode')?.value ?? '',
           status: byId('syncCodeStatus')?.textContent ?? '',
+          // Design 2026-10-28: Turn on Sync, Other ways, the on state and the sheet.
+          turnOnVisible: visible(byId('syncTurnOn')),
+          firstPath: document.querySelector('#syncPaths button')?.id ?? '',
+          otherWays: [...document.querySelectorAll('#syncOtherWays .sync-path')].map((b) => b.id),
+          syncOn: visible(byId('syncActive')),
+          handle: byId('syncStatusHandle')?.textContent ?? '',
+          recoveryPromptVisible: visible(byId('syncRecoveryPrompt')),
+          sheetOpen: !!byId('syncPairingDialog')?.open,
+          // Open is not enough: a modal inside a hidden ancestor opens at 0×0.
+          sheetVisible: !!byId('syncPairingDialog')?.open && byId('syncPairingDialog').getBoundingClientRect().width > 0,
+          sheetCode: byId('syncPairingDialog')?.open && !byId('syncPairing')?.hidden ? (byId('syncPairingCode')?.textContent ?? '') : '',
+          joinedTitle: byId('syncPairingDialog')?.open && !byId('syncPairingJoined')?.hidden ? (byId('syncPairingJoinedTitle')?.textContent ?? '') : '',
+          askingSpaces: !!byId('syncPairingDialog')?.open && !byId('syncPairingQuestion')?.hidden && !byId('syncPairingJoined')?.hidden,
+          doneVisible: !!byId('syncPairingDialog')?.open && !byId('syncPairingJoined')?.hidden,
+          // Connect your iPhone (design 2026-10-28 §6.1–§6.2).
+          connectIphoneVisible: visible(byId('syncConnectIphone')),
+          startShown: !!byId('syncPairingDialog')?.open && !byId('syncPairingStart')?.hidden,
+          sheetTitle: byId('syncPairingDialog')?.open ? (!byId('syncPairingStart')?.hidden ? byId('syncPairingStartTitle') : byId('syncPairingTitle'))?.textContent ?? '' : '',
+          // An <svg> has no .hidden property: judge the QR by what's drawn.
+          qrPath: byId('syncPairingQr')?.getBoundingClientRect().width > 0 ? (byId('syncPairingQr')?.firstElementChild?.getAttribute('d') ?? '') : '',
+          qrViewBox: byId('syncPairingQr')?.getAttribute('viewBox') ?? '',
         };
       })()`);
     },
@@ -3132,6 +3844,12 @@ function install(refs) {
         if (action === 'choose-code') { document.getElementById('syncPathCode').click(); return true; }
         if (action === 'use-passphrase') { document.getElementById('syncUsePassphrase').click(); return true; }
         if (action === 'back') { document.getElementById('syncCodeBack').click(); return true; }
+        if (action === 'turn-on') { document.getElementById('syncTurnOn').click(); return true; }
+        if (action === 'add-device') { document.getElementById('syncAddDevice').click(); return true; }
+        if (action === 'spaces-not-now') { document.getElementById('syncPairingSpacesNotNow').click(); return true; }
+        if (action === 'connect-iphone') { document.getElementById('syncConnectIphone').click(); return true; }
+        if (action === 'continue') { document.getElementById('syncPairingContinue').click(); return true; }
+        if (action === 'add-this-first') { document.getElementById('syncPairingAddThisFirst').click(); return true; }
         if (action === 'type-code') {
           const input = document.getElementById('syncCode');
           input.value = value;
@@ -3202,6 +3920,10 @@ function install(refs) {
     showTestFirstRunMigration() {
       const tab = tabs.get(getActiveTabId());
       if (!tab || !urlOf(tab).startsWith('blanc://newtab')) return false;
+      // The acceptance profile completes first run at launch; the synthetic
+      // status below stands for a fresh profile, so main's own first-run gate
+      // (the Tab Archive offer, spec D5) must agree with it.
+      refs.setFirstRunPendingForTest(true);
       tab.view.webContents.send('pages:start:status', {
         startup: { phase: 'skipped', attempt: 0, error: null },
         privacy: {
@@ -3343,6 +4065,12 @@ function install(refs) {
     // Every method drives the real main-process implementation; a mirror here
     // would keep the acceptance suite green if the shipping code regressed.
     async sleepTab(id) { return sleepTab(id); },
+    // quietTab refuses whenever anything is uncertain and records why; the
+    // desktop smokes read the reason so a refusal can't fail them silently.
+    async quietTabOutcome(id) {
+      const rested = await sleepTab(id);
+      return { rested, reason: rested ? null : (quietRefusal(id) ?? 'unknown') };
+    },
     async wakeTab(id, navigateTo = null) { return wakeTab(id, { navigateTo }); },
     async wakeTabAtIndex(id, atIndex) { return wakeTab(id, { atIndex }); },
     async sleepBackgroundTabsNow() { return sleepBackgroundTabsNow(); },
@@ -3375,6 +4103,21 @@ function install(refs) {
     },
     /** With an id: that tab's redacted state. Without: every tab in tab order.
      * NEVER returns entries: snapshots can contain POST bodies and form data. */
+    /** Kill a tab's renderer exactly as Blanc's renderer discard does: a
+     *  SIGKILL of the verified own renderer on Linux, where Electron's crash
+     *  request is only a request, and forcefullyCrashRenderer() elsewhere. */
+    crashTabRenderer(id) {
+      const wc = tabs.get(id)?.view?.webContents;
+      if (!wc || wc.isDestroyed()) return null;
+      return terminateRenderer(wc);
+    },
+    /** For the acceptance harness's self-test: an uncaught main-process
+     *  exception, which the BLANC_TEST handler logs before exiting. */
+    raiseMainProcessExceptionForTest() {
+      // Late enough that this call's reply reaches the harness first.
+      setTimeout(() => { throw new Error('acceptance harness: synthetic main-process exception'); }, 100);
+      return true;
+    },
     sleepState(id) {
       const snapshots = getSleepSnapshots();
       const one = (tabId, tab) => ({
@@ -3403,6 +4146,36 @@ function install(refs) {
       return true;
     },
     async runSleepSweep() { return runSleepSweep(); },
+    // ---- Tab Archive (F52) ----
+    setTabArchive(value) { return settings.setSettings({ tabArchive: value }).tabArchive; },
+    /** Backdate a tab's last-viewed clock so an archive sweep sees it as idle. */
+    setTabViewedSince(id, msAgo) {
+      const tab = tabs.get(id);
+      if (!tab) return false;
+      tab.lastViewedAt = Date.now() - Number(msAgo || 0);
+      return true;
+    },
+    setArchiveGraceUntil(ms) { setArchiveGraceUntil(ms); },
+    /** The real resume listeners, as when the machine wakes from sleep. */
+    emitPowerResume() { powerMonitor.emit('resume'); },
+    async runArchiveSweep() { return runArchiveSweep(); },
+    /** One-shot: once the sweep has probed `id`, make it the active tab, as a
+     *  person switching to it mid-sweep would. */
+    activateCandidateDuringArchiveProbe(id) {
+      setArchiveProbeObserver((probedId) => {
+        if (probedId !== id) return;
+        setArchiveProbeObserver(null);
+        setActiveTab(id, { focusContent: false });
+      });
+      return true;
+    },
+    async runArchiveSweepsConcurrently() { return Promise.all([runArchiveSweep(), runArchiveSweep()]); },
+    /** The 30-second timer's fan-out: one archive sweep per window runtime,
+     *  set-aside Spaces included. */
+    async runArchiveSweepInEveryWindow() { return runArchiveSweepInEveryWindow(); },
+    archiveEntries() { return archive.listArchive({ now: Date.now() }); },
+    archiveNoticePending() { return archive.pendingNotice(); },
+    restoreArchived(id) { return restoreArchivedEntry(id); },
     setSleepThresholdOverride(ms) { return setSleepThresholdOverride(ms); },
     /** Falsifiability hook: only an OS process count proves a discarded view
      * released its renderer rather than merely disappearing from the tab map. */
@@ -3414,6 +4187,8 @@ function install(refs) {
     async reset() {
       refs.workspaceTestAction('reset');
       clearFocusObservation();
+      injectedSends = null;
+      setSendsSource(null);
       activeTabImportFixtureName = null;
       // Keep the current deletion lifecycle authoritative: it settles native
       // visibility and closes profile windows before clearing their sessions.
@@ -3437,7 +4212,10 @@ function install(refs) {
       getSleepSnapshots().clear();
       getPermissionPrompts().clear();
       setTestCursorPoint(null);
+      setTestCursorSamplingUnavailable(false);
       beforeUnloadProbes.clear();
+      // Start Page pins outlive history by design; no scenario inherits them.
+      for (const pin of startPagePins.listPins()) startPagePins.unpin(pin.url);
       setSleepThresholdOverride(null);
       // No scenario inherits another's open surface.
       hideOverlay({ refocusContent: false });
@@ -3445,6 +4223,7 @@ function install(refs) {
       pushRemoteDevices([]);
       // A device a scenario renamed shows its published name again.
       for (const id of Object.keys(settings.getDeviceNames())) settings.setDeviceName(id, '');
+      settings.setLinkRoutes([]);
       setWindowContentSize(1280, 800);
       // A fresh tab first so closing the rest never empties the window.
       const keep = createTab(newTabUrl());
@@ -3459,6 +4238,10 @@ function install(refs) {
       clearClosedEntries();
       getGroups().length = 0;
       history.clearHistory();
+      archive.clearArchive();
+      archive.resetNoticeForTest();
+      setArchiveGraceUntil(0);
+      refs.setFirstRunPendingForTest(false);
       for (const b of bookmarks.listBookmarks()) bookmarks.removeBookmark(b.id);
       settings.setSettings({
         searchEngine: 'duckduckgo',
@@ -3470,6 +4253,9 @@ function install(refs) {
         tabLayout: 'island',
         newtabLayout: 'billboard',
         verticalTabsWidth: 248,
+        verticalTabsTextSize: 'default',
+        miniWindowShortcut: 'off',
+        islandSize: 'default',
         appIcon: 'sunrise',
         adblockExceptions: [],
         bangsEnabled: true,
@@ -3477,7 +4263,14 @@ function install(refs) {
         onePasswordEnabled: false,
         onePasswordAccount: '',
         tabSleep: '1h',
+        tabArchive: 'off',
         islandHoverOpen: false,
+        islandTabIcons: false,
+        launchSunrise: false,
+        linkRoutesInApp: false,
+        islandAutoHide: false,
+        islandAutoHideStyle: 'float',
+        surfaceStyle: 'sunrise',
         // The launch-time auto-complete records false; F36-2 seeds true and
         // relies on Skip to overwrite it — a failure before Skip must not
         // leak that seed into later scenarios.

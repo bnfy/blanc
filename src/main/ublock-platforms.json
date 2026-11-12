@@ -1,5 +1,7 @@
 {
-  "electron": "44.8.0",
+  "electron": "45.2.1",
+  "ecsRuntime": "45.2.1+wvcus",
+  "ecsEvidence": "castLabs ECS 45.2.1+wvcus (Chromium 156.0.8078.75) passed signed-package uBO acceptance on Apple Silicon (notarized 73992c725, local) and native Intel Mac (same notarized build, run 42379528773), Windows x64 (42378362544) and Linux x64 (42378364429). Applies only to the same four platform records; Rosetta stays excluded. Owner R2 waiver of November 7, 2026 (14:08 UTC) recorded in docs/ecs-runtime-security-review-2026-10-23.md",
   "manifestV2": "supported",
   "ublock": "1.75.0",
   "platforms": {

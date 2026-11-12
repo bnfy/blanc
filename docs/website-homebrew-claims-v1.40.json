@@ -1,0 +1,81 @@
+{
+  "publicRelease": "v1.40.0",
+  "sourceSha": "17ed22052bc0e1d0c0ce3920cbcb85c4792d306e",
+  "releaseEvidence": "docs/release-incidents/2026-10-20-v1.40.0.md",
+  "scope": "Draft Homebrew install copy for the Download page, pending owner approval. The cask lives in the separate bnfy/homebrew-tap repository and installs the published v1.40.0 DMGs; it adds no app capability.",
+  "evidenceGroups": {
+    "homebrewTap": {
+      "evidence": [
+        "https://github.com/bnfy/homebrew-tap/blob/52ffd12578f1dd7a3657b6918df87a3d38213abf/Casks/blanc.rb",
+        "https://github.com/bnfy/homebrew-tap/actions/runs/39650734843",
+        "https://github.com/bnfy/blanc/releases/tag/v1.40.0"
+      ],
+      "qualification": "macOS only, and Homebrew must already be installed. The cask downloads the same Blanc-1.40.0-arm64.dmg and Blanc-1.40.0.dmg published on GitHub Releases; its hashes match the release's Sigstore-verified SHA256SUMS. Run 39650734843 passed brew style, brew audit --online --strict, install, a Gatekeeper assessment and the architecture check on Apple Silicon (macos-15) and Intel (macos-15-intel), then uninstalled. The owner adopted an existing 1.40.0 install through the tap on October 21, 2026. The tap's hourly bump to a newer release has not yet run against a real release."
+    },
+    "selfUpdate": {
+      "evidence": [
+        "src/main/updater.js",
+        "https://github.com/bnfy/homebrew-tap/blob/52ffd12578f1dd7a3657b6918df87a3d38213abf/Casks/blanc.rb"
+      ],
+      "qualification": "Packaged builds update themselves from GitHub Releases. The cask declares auto_updates true, so a plain brew upgrade skips Blanc; brew upgrade --greedy would still replace it."
+    },
+    "profileOutsideApp": {
+      "evidence": [
+        "src/main/store.js",
+        "src/main/main.js",
+        "package.json"
+      ],
+      "qualification": "Tabs (session.json), Favorites (bookmarks.json) and settings (settings.json) live in the userData directory, ~/Library/Application Support/Blanc, derived from productName, not inside Blanc.app, so replacing the app keeps them. Private tabs are never saved in the first place."
+    }
+  },
+  "claims": [
+    {
+      "id": "homebrew-140-01",
+      "source": "site/src/pages/download.astro",
+      "exactWording": "Or install with Homebrew",
+      "subject": "Blanc",
+      "evidenceGroups": ["homebrewTap"],
+      "verdict": "verified"
+    },
+    {
+      "id": "homebrew-140-02",
+      "source": "site/src/pages/download.astro",
+      "exactWording": "On a Mac with Homebrew, one command installs the same signed and notarized build as the DMG.",
+      "subject": "Blanc",
+      "evidenceGroups": ["homebrewTap"],
+      "verdict": "qualified"
+    },
+    {
+      "id": "homebrew-140-03",
+      "source": "site/src/pages/download.astro",
+      "exactWording": "brew install --cask bnfy/tap/blanc",
+      "subject": "Blanc",
+      "evidenceGroups": ["homebrewTap"],
+      "verdict": "verified"
+    },
+    {
+      "id": "homebrew-140-04",
+      "source": "site/src/pages/download.astro",
+      "exactWording": "Blanc keeps updating itself, so brew upgrade leaves it alone.",
+      "subject": "Blanc",
+      "evidenceGroups": ["selfUpdate"],
+      "verdict": "qualified"
+    },
+    {
+      "id": "homebrew-140-05",
+      "source": "site/src/pages/download.astro",
+      "exactWording": "Already installed Blanc from this page? Quit it, move it to the Trash, then run the command. Your tabs, Favorites and settings stay.",
+      "subject": "Blanc",
+      "evidenceGroups": ["profileOutsideApp", "homebrewTap"],
+      "verdict": "qualified"
+    },
+    {
+      "id": "homebrew-140-06",
+      "source": "site/src/pages/download.astro",
+      "exactWording": "See the Homebrew tap",
+      "subject": "Blanc",
+      "evidenceGroups": ["homebrewTap"],
+      "verdict": "verified"
+    }
+  ]
+}

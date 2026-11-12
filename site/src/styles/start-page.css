@@ -1,0 +1,90 @@
+/* /features/start-page: a dark stage for the customized Start Pages, light
+   editorial sections between, and a second dark band for the clock. Every
+   sentence and its order is unchanged (docs/website-revamp-claims-v1.27.json);
+   only the staging is this page's own. */
+
+.start-page-showcase {
+  --stage-bg: #070707;
+  --stage-text: #fbf8f2;
+  --stage-dim: rgba(245, 242, 236, 0.64);
+  --stage-line: rgba(245, 242, 236, 0.14);
+  max-width: 1180px;
+  padding-bottom: 120px;
+}
+
+
+/* Full-bleed bands inside the centered column. 100vw includes a classic
+   scrollbar's width, so the page root clips what reaches past it. */
+html:has(.start-page-showcase) { overflow-x: clip; }
+.start-page-showcase .sp-stage,
+.start-page-showcase [aria-labelledby="start-page-clock-title"] {
+  overflow: hidden;
+  width: 100vw;
+  margin-inline: calc(50% - 50vw);
+  color: var(--stage-text);
+  background: var(--stage-bg);
+}
+
+/* ---- The stage ------------------------------------------------------- */
+.sp-stage { position: relative; padding: 28px 0 32px; text-align: center; isolation: isolate; }
+.sp-stage .breadcrumb { justify-content: center; margin: 0 0 40px; }
+.sp-stage .breadcrumb, .sp-stage .breadcrumb a { color: var(--stage-dim); }
+.sp-stage .breadcrumb a:hover { color: var(--stage-text); }
+.sp-stage-copy { position: relative; z-index: 2; width: min(1120px, calc(100% - 48px)); margin: 0 auto; }
+.sp-stage h1 { max-width: 20ch; margin: 0 auto; color: var(--stage-text); font-family: var(--site-font-display); font-weight: 400; letter-spacing: 0; font-size: clamp(38px, 4.8vw, 70px); line-height: 1.02; text-wrap: balance; }
+.sp-stage-copy p { max-width: 60ch; margin: 20px auto 0; color: var(--stage-dim); font-size: 17px; line-height: 1.6; text-wrap: pretty; }
+
+/* The fan on the stage: larger cards, a reflection under each, deep
+   shadows, and light behind the fan in the middle design's colour
+   (StartPageGallery sets --fan-tint as each design arrives). */
+@property --fan-tint { syntax: '<color>'; inherits: true; initial-value: #2f5f9e; }
+.sp-stage .design-fan { --card-w: clamp(260px, 36vw, 560px); margin: 8px 0 0; transition: --fan-tint 1.4s ease; }
+.sp-stage .design-fan-glow { position: absolute; inset: -45% -10% -5%; z-index: 0; background: radial-gradient(58% 52% at 50% 62%, color-mix(in srgb, var(--fan-tint) 48%, transparent), transparent 76%); pointer-events: none; }
+.sp-stage .design-fan-viewport { padding: 40px 0 92px; -webkit-mask-image: linear-gradient(to right, transparent, #000 10%, #000 90%, transparent); mask-image: linear-gradient(to right, transparent, #000 10%, #000 90%, transparent); }
+.sp-stage .design-fan-card a { -webkit-box-reflect: below 8px linear-gradient(transparent 68%, rgba(255, 255, 255, 0.12)); }
+.sp-stage .design-fan-card a:focus-visible { outline-color: var(--stage-text); }
+.sp-stage .design-fan-card img { box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.06), 0 30px 80px rgba(0, 0, 0, 0.6); }
+.sp-stage .design-fan-caption { position: relative; z-index: 2; color: var(--stage-dim); }
+
+/* ---- Editorial sections ---------------------------------------------- */
+.start-page-showcase .feature-copy-grid { grid-template-columns: 1fr; gap: 0; max-width: 1080px; padding: clamp(88px, 10vw, 140px) 0 0; }
+.start-page-showcase .feature-copy-grid h2,
+.start-page-showcase .truth-note h2 { max-width: 18ch; font-size: clamp(34px, 4.8vw, 62px); line-height: 1.02; }
+.start-page-showcase .feature-copy-list { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 40px 64px; margin-top: 52px; border-top: 0; }
+.start-page-showcase .feature-copy-list article { padding: 24px 0 0; border-top: 1px solid var(--site-border); border-bottom: 0; }
+.start-page-showcase .feature-copy-list h3 { font-size: 20px; font-weight: 400; letter-spacing: 0; }
+.start-page-showcase .feature-copy-list p { margin-top: 10px; font-size: 16px; line-height: 1.6; }
+
+.start-page-showcase .layout-gallery { gap: 32px; max-width: 1180px; margin: 64px auto 0; }
+.start-page-showcase .layout-gallery img { border: 0; border-radius: 16px; box-shadow: 0 1px 2px rgba(17, 17, 17, 0.06), 0 24px 60px rgba(17, 17, 17, 0.12); }
+.start-page-showcase .layout-gallery figcaption { padding-top: 16px; font-size: 15px; }
+
+/* ---- The clock band -------------------------------------------------- */
+.start-page-showcase [aria-labelledby="start-page-clock-title"] { max-width: none; margin-top: clamp(96px, 11vw, 150px); padding: clamp(88px, 10vw, 130px) max(24px, calc(50vw - 540px)) clamp(88px, 10vw, 130px); }
+.start-page-showcase [aria-labelledby="start-page-clock-title"] h2 { color: var(--stage-text); }
+.start-page-showcase [aria-labelledby="start-page-clock-title"] .feature-copy-list article { border-top-color: var(--stage-line); }
+.start-page-showcase [aria-labelledby="start-page-clock-title"] .feature-copy-list h3 { color: var(--stage-text); }
+.start-page-showcase [aria-labelledby="start-page-clock-title"] .feature-copy-list p { color: var(--stage-dim); }
+.sp-clock-shot { position: relative; margin: 72px 0 0; }
+.sp-clock-shot::before { content: ""; position: absolute; inset: 8% 6% -6%; z-index: 0; border-radius: 50%; background: radial-gradient(closest-side, rgba(217, 180, 106, 0.32), transparent); filter: blur(24px); pointer-events: none; }
+.sp-clock-shot a { position: relative; z-index: 1; display: block; border-radius: 16px; }
+.sp-clock-shot a:focus-visible { outline: 2px solid var(--stage-text); outline-offset: 5px; }
+.sp-clock-shot.released-capture img { display: block; width: 100%; height: auto; border: 0; border-radius: 16px; background: transparent; box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.06), 0 40px 100px rgba(0, 0, 0, 0.6); }
+
+/* ---- The note and the close ------------------------------------------ */
+.start-page-showcase .truth-note { max-width: 1080px; margin: clamp(96px, 11vw, 140px) auto 0; }
+.start-page-showcase .feature-close { position: relative; overflow: hidden; margin-top: clamp(96px, 11vw, 140px); padding: clamp(80px, 9vw, 120px) 24px; border: 0; border-radius: 28px; color: var(--stage-text); background: var(--stage-bg); isolation: isolate; }
+.start-page-showcase .feature-close::before { content: ""; position: absolute; left: 50%; bottom: -55%; z-index: -1; width: 80%; height: 110%; translate: -50% 0; border-radius: 50%; background: radial-gradient(closest-side, rgba(217, 160, 80, 0.38), transparent); pointer-events: none; }
+.start-page-showcase .feature-close h2 { max-width: 16ch; color: var(--stage-text); font-size: clamp(34px, 4.8vw, 62px); letter-spacing: 0; }
+.start-page-showcase .feature-close .cta { color: var(--stage-bg); background: var(--stage-text); }
+
+@media (max-width: 760px) {
+  .start-page-showcase .feature-copy-list { grid-template-columns: 1fr; gap: 28px; }
+  .sp-stage .breadcrumb { margin-bottom: 28px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .sp-stage .design-fan { transition: none; }
+}
+@media (prefers-reduced-transparency: reduce) {
+  .sp-stage .design-fan-card a { -webkit-box-reflect: none; }
+}

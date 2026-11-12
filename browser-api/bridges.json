@@ -100,6 +100,79 @@
         "doc": "The running app version string."
       },
       {
+        "name": "pins.list",
+        "kind": "invoke",
+        "channel": "pages:pins:list",
+        "hosts": [
+          "newtab",
+          "bookmarks"
+        ],
+        "params": [],
+        "returns": "unknown",
+        "doc": "List the profile's Start Page pins, each with a locally held icon."
+      },
+      {
+        "name": "pins.pin",
+        "kind": "invoke",
+        "channel": "pages:pins:pin",
+        "hosts": [
+          "newtab",
+          "bookmarks"
+        ],
+        "params": [
+          {
+            "name": "url",
+            "type": "unknown"
+          },
+          {
+            "name": "title",
+            "type": "unknown"
+          }
+        ],
+        "returns": "unknown",
+        "doc": "Pin an http(s) page to the Start Page; refused from private start pages and past the cap."
+      },
+      {
+        "name": "pins.unpin",
+        "kind": "invoke",
+        "channel": "pages:pins:unpin",
+        "hosts": [
+          "newtab",
+          "bookmarks"
+        ],
+        "params": [
+          {
+            "name": "url",
+            "type": "unknown"
+          }
+        ],
+        "returns": "unknown",
+        "doc": "Unpin a page from the Start Page; refused from private start pages."
+      },
+      {
+        "name": "pins.onChanged",
+        "kind": "event",
+        "channel": "pages:pins:changed",
+        "hosts": [
+          "newtab",
+          "bookmarks"
+        ],
+        "payload": null,
+        "doc": "The Start Page pins changed; read them again.",
+        "unsubscribe": false
+      },
+      {
+        "name": "bookmarks.capabilities",
+        "kind": "invoke",
+        "channel": "pages:bookmarks:capabilities",
+        "hosts": [
+          "bookmarks"
+        ],
+        "params": [],
+        "returns": "unknown",
+        "doc": "Whether this host permits editing Favorites."
+      },
+      {
         "name": "bookmarks.list",
         "kind": "invoke",
         "channel": "pages:bookmarks:list",
@@ -326,6 +399,151 @@
         ],
         "returns": "unknown",
         "doc": "Turn the dynamic Start Page wallpaper on or off."
+      },
+      {
+        "name": "start.wallpaper",
+        "kind": "invoke",
+        "channel": "pages:start:wallpaper",
+        "hosts": [
+          "newtab"
+        ],
+        "params": [],
+        "returns": "unknown",
+        "doc": "Read this page's Start Page wallpaper state: source, whether an image is stored, and its address."
+      },
+      {
+        "name": "start.setWallpaper",
+        "kind": "invoke",
+        "channel": "pages:start:set-wallpaper",
+        "hosts": [
+          "newtab"
+        ],
+        "params": [
+          {
+            "name": "source",
+            "type": "unknown"
+          }
+        ],
+        "returns": "unknown",
+        "doc": "Choose the Start Page wallpaper: sunrise, time-of-day or custom."
+      },
+      {
+        "name": "start.setWallpaperWash",
+        "kind": "invoke",
+        "channel": "pages:start:set-wallpaper-wash",
+        "hosts": [
+          "newtab"
+        ],
+        "params": [
+          {
+            "name": "wash",
+            "type": "unknown"
+          }
+        ],
+        "returns": "unknown",
+        "doc": "Set how strongly the theme wash covers the Start Page image (integer 0\u2013100)."
+      },
+      {
+        "name": "start.setWallpaperStyle",
+        "kind": "invoke",
+        "channel": "pages:start:set-wallpaper-style",
+        "hosts": [
+          "newtab"
+        ],
+        "params": [
+          {
+            "name": "style",
+            "type": "unknown"
+          }
+        ],
+        "returns": "unknown",
+        "doc": "Choose the wash over the Start Page image: auto, light, dark or spotlight."
+      },
+      {
+        "name": "start.setWallpaperColor",
+        "kind": "invoke",
+        "channel": "pages:start:set-wallpaper-color",
+        "hosts": [
+          "newtab"
+        ],
+        "params": [
+          {
+            "name": "preset",
+            "type": "unknown"
+          }
+        ],
+        "returns": "unknown",
+        "doc": "Choose the Color wallpaper's Spaces preset (sage, sky, iris, rose, clay, sand, slate or graphite)."
+      },
+      {
+        "name": "start.setWallpaperFill",
+        "kind": "invoke",
+        "channel": "pages:start:set-wallpaper-fill",
+        "hosts": [
+          "newtab"
+        ],
+        "params": [
+          {
+            "name": "fill",
+            "type": "unknown"
+          }
+        ],
+        "returns": "unknown",
+        "doc": "Choose how the Color wallpaper is drawn: soft, solid or gradient."
+      },
+      {
+        "name": "start.setWallpaperFollowSpace",
+        "kind": "invoke",
+        "channel": "pages:start:set-wallpaper-follow-space",
+        "hosts": [
+          "newtab"
+        ],
+        "params": [
+          {
+            "name": "enabled",
+            "type": "unknown"
+          }
+        ],
+        "returns": "unknown",
+        "doc": "Whether a window in a Space draws that Space's color as the Color wallpaper."
+      },
+      {
+        "name": "start.setClock",
+        "kind": "invoke",
+        "channel": "pages:start:set-clock",
+        "hosts": [
+          "newtab"
+        ],
+        "params": [
+          {
+            "name": "partial",
+            "type": "unknown"
+          }
+        ],
+        "returns": "unknown",
+        "doc": "Change the Billboard clock's Font & Color: any of font, weight, height, color, tone and style. Replies with the clock as now drawn."
+      },
+      {
+        "name": "start.chooseWallpaper",
+        "kind": "invoke",
+        "channel": "pages:start:choose-wallpaper",
+        "hosts": [
+          "newtab"
+        ],
+        "params": [],
+        "returns": "unknown",
+        "doc": "Pick an image file for the Start Page wallpaper and show it."
+      },
+      {
+        "name": "start.removeWallpaper",
+        "kind": "invoke",
+        "channel": "pages:start:remove-wallpaper",
+        "hosts": [
+          "newtab"
+        ],
+        "params": [],
+        "returns": "unknown",
+        "doc": "Delete the stored Start Page image and return to Sunrise."
       },
       {
         "name": "start.openMahjong",
@@ -567,6 +785,49 @@
         "unsubscribe": false
       },
       {
+        "name": "start.openSent",
+        "kind": "invoke",
+        "channel": "pages:start:open-sent",
+        "hosts": [
+          "newtab"
+        ],
+        "params": [
+          {
+            "name": "id",
+            "type": "string"
+          }
+        ],
+        "returns": "unknown",
+        "doc": "Open a page another device sent here in a new ordinary tab, and hide it on this device."
+      },
+      {
+        "name": "start.dismissSent",
+        "kind": "invoke",
+        "channel": "pages:start:dismiss-sent",
+        "hosts": [
+          "newtab"
+        ],
+        "params": [
+          {
+            "name": "id",
+            "type": "string"
+          }
+        ],
+        "returns": "unknown",
+        "doc": "Hide a page another device sent here without opening it."
+      },
+      {
+        "name": "start.onSentItems",
+        "kind": "event",
+        "channel": "pages:start:sent-items",
+        "hosts": [
+          "newtab"
+        ],
+        "payload": "unknown",
+        "doc": "Pages other devices sent here changed.",
+        "unsubscribe": false
+      },
+      {
         "name": "mahjong.played",
         "kind": "invoke",
         "channel": "pages:mahjong:played",
@@ -672,6 +933,65 @@
         "params": [],
         "returns": "unknown",
         "doc": "Clear all history."
+      },
+      {
+        "name": "archive.list",
+        "kind": "invoke",
+        "channel": "pages:archive:list",
+        "hosts": [
+          "history"
+        ],
+        "params": [
+          {
+            "name": "opts",
+            "type": "unknown"
+          }
+        ],
+        "returns": "unknown",
+        "doc": "List archived tabs (F52), optionally searched."
+      },
+      {
+        "name": "archive.restore",
+        "kind": "invoke",
+        "channel": "pages:archive:restore",
+        "hosts": [
+          "history"
+        ],
+        "params": [
+          {
+            "name": "id",
+            "type": "unknown"
+          }
+        ],
+        "returns": "unknown",
+        "doc": "Restore one archived tab into the requesting window."
+      },
+      {
+        "name": "archive.forget",
+        "kind": "invoke",
+        "channel": "pages:archive:forget",
+        "hosts": [
+          "history"
+        ],
+        "params": [
+          {
+            "name": "id",
+            "type": "unknown"
+          }
+        ],
+        "returns": "unknown",
+        "doc": "Remove one archived tab from the Archive."
+      },
+      {
+        "name": "archive.clear",
+        "kind": "invoke",
+        "channel": "pages:archive:clear",
+        "hosts": [
+          "history"
+        ],
+        "params": [],
+        "returns": "unknown",
+        "doc": "Empty the Archive."
       },
       {
         "name": "downloads.list",
@@ -1020,6 +1340,87 @@
         "doc": "Write a partial settings update."
       },
       {
+        "name": "settings.wallpaper",
+        "kind": "invoke",
+        "channel": "pages:start:wallpaper",
+        "hosts": [
+          "settings"
+        ],
+        "params": [],
+        "returns": "unknown",
+        "doc": "Read this page's Start Page wallpaper state: source, whether an image is stored, and its address."
+      },
+      {
+        "name": "settings.setWallpaper",
+        "kind": "invoke",
+        "channel": "pages:start:set-wallpaper",
+        "hosts": [
+          "settings"
+        ],
+        "params": [
+          {
+            "name": "source",
+            "type": "unknown"
+          }
+        ],
+        "returns": "unknown",
+        "doc": "Choose the Start Page wallpaper: sunrise, time-of-day or custom."
+      },
+      {
+        "name": "settings.setWallpaperWash",
+        "kind": "invoke",
+        "channel": "pages:start:set-wallpaper-wash",
+        "hosts": [
+          "settings"
+        ],
+        "params": [
+          {
+            "name": "wash",
+            "type": "unknown"
+          }
+        ],
+        "returns": "unknown",
+        "doc": "Set how strongly the theme wash covers the Start Page image (integer 0\u2013100)."
+      },
+      {
+        "name": "settings.setWallpaperStyle",
+        "kind": "invoke",
+        "channel": "pages:start:set-wallpaper-style",
+        "hosts": [
+          "settings"
+        ],
+        "params": [
+          {
+            "name": "style",
+            "type": "unknown"
+          }
+        ],
+        "returns": "unknown",
+        "doc": "Choose the wash over the Start Page image: auto, light, dark or spotlight."
+      },
+      {
+        "name": "settings.chooseWallpaper",
+        "kind": "invoke",
+        "channel": "pages:start:choose-wallpaper",
+        "hosts": [
+          "settings"
+        ],
+        "params": [],
+        "returns": "unknown",
+        "doc": "Pick an image file for the Start Page wallpaper and show it."
+      },
+      {
+        "name": "settings.removeWallpaper",
+        "kind": "invoke",
+        "channel": "pages:start:remove-wallpaper",
+        "hosts": [
+          "settings"
+        ],
+        "params": [],
+        "returns": "unknown",
+        "doc": "Delete the stored Start Page image and return to Sunrise."
+      },
+      {
         "name": "settings.language",
         "kind": "invoke",
         "channel": "pages:settings:language",
@@ -1038,6 +1439,33 @@
         ],
         "returns": "unknown",
         "doc": "Choose the interface language; optionally relaunch to apply it."
+      },
+      {
+        "name": "settings.linkTargets",
+        "kind": "invoke",
+        "channel": "pages:settings:link-targets",
+        "hosts": [
+          "settings"
+        ],
+        "params": [],
+        "returns": "unknown",
+        "doc": "Where link routing rules can point: live profiles and Spaces, ids and names only."
+      },
+      {
+        "name": "settings.setLinkRoutes",
+        "kind": "invoke",
+        "channel": "pages:settings:link-routes:set",
+        "hosts": [
+          "settings"
+        ],
+        "params": [
+          {
+            "name": "routes",
+            "type": "unknown"
+          }
+        ],
+        "returns": "unknown",
+        "doc": "Replace the link routing rules; main validates the whole list and stores all or nothing."
       },
       {
         "name": "settings.blockingStatus",
@@ -1087,6 +1515,28 @@
         "payload": "unknown",
         "doc": "Blocking provider status changed.",
         "unsubscribe": false
+      },
+      {
+        "name": "settings.drmStatus",
+        "kind": "invoke",
+        "channel": "pages:settings:drm-status",
+        "hosts": [
+          "settings"
+        ],
+        "params": [],
+        "returns": "unknown",
+        "doc": "Read sanitized ECS protected-media readiness."
+      },
+      {
+        "name": "settings.drmRestart",
+        "kind": "invoke",
+        "channel": "pages:settings:drm-restart",
+        "hosts": [
+          "settings"
+        ],
+        "params": [],
+        "returns": "boolean",
+        "doc": "Restart through the unsaved-work guard only when protected media requires it."
       },
       {
         "name": "settings.checkForUpdates",
@@ -1229,6 +1679,17 @@
         "doc": "Name this device as the user's other devices list it, then return the new status. An empty name restores the computer's name; main ignores a non-string."
       },
       {
+        "name": "settings.syncDevices",
+        "kind": "invoke",
+        "channel": "pages:settings:sync-devices",
+        "hosts": [
+          "settings"
+        ],
+        "params": [],
+        "returns": "unknown",
+        "doc": "This device's platform and the other devices this sync knows of (devices sharing their open tabs plus Send to Device presence), as names and platforms only. No device ids or keys cross."
+      },
+      {
         "name": "settings.syncPairBegin",
         "kind": "invoke",
         "channel": "pages:settings:sync-pair-begin",
@@ -1303,6 +1764,55 @@
         "params": [],
         "returns": "unknown",
         "doc": "Copy the recovery code to the clipboard from main behind a native dialog. The reply never carries the code."
+      },
+      {
+        "name": "settings.syncStartNew",
+        "kind": "invoke",
+        "channel": "pages:settings:sync-start-new",
+        "hosts": [
+          "settings"
+        ],
+        "params": [],
+        "returns": "unknown",
+        "doc": "Turn on Sync with a generated account, no name or passphrase; status-only reply with whether the first pass reached the server."
+      },
+      {
+        "name": "settings.syncRecoveryPromptDismiss",
+        "kind": "invoke",
+        "channel": "pages:settings:sync-recovery-prompt-dismiss",
+        "hosts": [
+          "settings"
+        ],
+        "params": [],
+        "returns": "unknown",
+        "doc": "Hide the recovery-code prompt on this device for good."
+      },
+      {
+        "name": "settings.syncPairWatch",
+        "kind": "invoke",
+        "channel": "pages:settings:sync-pair-watch",
+        "hosts": [
+          "settings"
+        ],
+        "params": [
+          {
+            "name": "visible",
+            "type": "unknown"
+          }
+        ],
+        "returns": "unknown",
+        "doc": "Report whether the sheet with a live pairing code is visible, so main watches for the device that takes it."
+      },
+      {
+        "name": "settings.onSyncPairJoined",
+        "kind": "event",
+        "channel": "pages:settings:sync-pair-joined",
+        "hosts": [
+          "settings"
+        ],
+        "payload": "unknown",
+        "doc": "The device that took the live pairing code arrived: its name and platform only.",
+        "unsubscribe": false
       },
       {
         "name": "settings.welcomeTour",
@@ -1464,6 +1974,44 @@
         "doc": "Delete a named profile; requires its exact name as confirmation."
       },
       {
+        "name": "zoom.list",
+        "kind": "invoke",
+        "channel": "pages:zoom:list",
+        "hosts": [
+          "settings"
+        ],
+        "params": [],
+        "returns": "unknown",
+        "doc": "The current profile's sites with a saved page zoom."
+      },
+      {
+        "name": "zoom.remove",
+        "kind": "invoke",
+        "channel": "pages:zoom:remove",
+        "hosts": [
+          "settings"
+        ],
+        "params": [
+          {
+            "name": "site",
+            "type": "unknown"
+          }
+        ],
+        "returns": "unknown",
+        "doc": "Forgets one site's saved page zoom."
+      },
+      {
+        "name": "zoom.clear",
+        "kind": "invoke",
+        "channel": "pages:zoom:clear",
+        "hosts": [
+          "settings"
+        ],
+        "params": [],
+        "returns": "unknown",
+        "doc": "Forgets every saved page zoom in the current profile."
+      },
+      {
         "name": "permissions.list",
         "kind": "invoke",
         "channel": "pages:permissions:list",
@@ -1566,6 +2114,112 @@
         "params": [],
         "returns": "unknown",
         "doc": "Clear local diagnostics."
+      },
+      {
+        "name": "settings.sharedSpacesPreview",
+        "kind": "invoke",
+        "channel": "pages:settings:shared-spaces-preview",
+        "hosts": [
+          "settings"
+        ],
+        "params": [
+          {
+            "name": "options",
+            "type": "unknown"
+          }
+        ],
+        "returns": "unknown",
+        "doc": "Shared Spaces selection sheet choices; {local: true} answers from this device's saved index without a network fetch."
+      },
+      {
+        "name": "settings.sharedSpacesApply",
+        "kind": "invoke",
+        "channel": "pages:settings:shared-spaces-apply",
+        "hosts": [
+          "settings"
+        ],
+        "params": [
+          {
+            "name": "payload",
+            "type": "unknown"
+          }
+        ],
+        "returns": "unknown",
+        "doc": "Development-only Shared Spaces consent and selection."
+      },
+      {
+        "name": "settings.sharedSpacesStatus",
+        "kind": "invoke",
+        "channel": "pages:settings:shared-spaces-status",
+        "hosts": [
+          "settings"
+        ],
+        "params": [],
+        "returns": "unknown",
+        "doc": "Development-only Shared Spaces consent and selection."
+      },
+      {
+        "name": "settings.sharedSpacesOpen",
+        "kind": "invoke",
+        "channel": "pages:settings:shared-spaces-open",
+        "hosts": [
+          "settings"
+        ],
+        "params": [
+          {
+            "name": "id",
+            "type": "string"
+          }
+        ],
+        "returns": "unknown",
+        "doc": "Development-only Shared Spaces consent and selection."
+      },
+      {
+        "name": "settings.sharedSpacesAcknowledge",
+        "kind": "invoke",
+        "channel": "pages:settings:shared-spaces-acknowledge",
+        "hosts": [
+          "settings"
+        ],
+        "params": [
+          {
+            "name": "id",
+            "type": "string"
+          }
+        ],
+        "returns": "unknown",
+        "doc": "Development-only Shared Spaces consent and selection."
+      },
+      {
+        "name": "start.sharedQuestion",
+        "kind": "invoke",
+        "channel": "pages:start:shared-question",
+        "hosts": [
+          "newtab"
+        ],
+        "params": [],
+        "returns": "unknown",
+        "doc": "Development-only Shared Spaces pairing notice."
+      },
+      {
+        "name": "start.sharedQuestionAnswer",
+        "kind": "invoke",
+        "channel": "pages:start:shared-question-answer",
+        "hosts": [
+          "newtab"
+        ],
+        "params": [
+          {
+            "name": "id",
+            "type": "string"
+          },
+          {
+            "name": "on",
+            "type": "boolean"
+          }
+        ],
+        "returns": "unknown",
+        "doc": "Development-only Shared Spaces pairing notice."
       }
     ]
   },

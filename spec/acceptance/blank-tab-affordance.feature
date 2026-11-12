@@ -26,3 +26,12 @@ Feature: A blank tab shows where to type
     And the island starts closed
     When I click the island commands chip
     Then the island opens with "/" already entered
+
+  # Closing the last tab leaves Blanc on a blank replacement tab. It should be
+  # as ready for typing as one opened with Cmd/Ctrl+T, not leave the keyboard
+  # on an empty page.
+  @F37-4 @all
+  Scenario: Closing the last tab leaves the address field ready for typing
+    Given a single ordinary page is the only open tab
+    When I close the only tab
+    Then a blank tab replaces it with the island address field focused

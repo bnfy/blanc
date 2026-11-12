@@ -134,7 +134,7 @@ Feature: Desktop vertical tabs
     Then ungrouped pinned rows appear first
     And each named group follows in canonical group order
     And pinned rows lead unpinned rows inside each group
-    And loose ungrouped rows follow the named groups
+    And each run of ungrouped rows keeps its place in tab order around the named groups
     And the new-tab action is last
     And remote-device tabs do not appear in the rail
     But remote-device tabs remain available in the Quick Switcher and start page
@@ -212,3 +212,55 @@ Feature: Desktop vertical tabs
     Then the close action has a visible focus indicator and an accessible label
     When I press Escape from the rail
     Then focus returns to the active tab content
+
+  @F28-18 @F28 @desktop @D19
+  Scenario: Larger vertical tab text applies immediately and survives relaunch
+    Given a 1000 by 700 desktop window with the vertical tab layout
+    And the local tab model contains ungrouped pins, named groups, and loose tabs
+    Then vertical tab titles use 12.5 pixel text without clipping
+    And vertical tab drag previews keep their text size and height
+    When I choose "large" vertical tab text in Settings
+    Then vertical tab titles use 15 pixel text without clipping
+    And vertical tab drag previews keep their text size and height
+    When I open another window for the vertical tab text check
+    And I choose "extra-large" vertical tab text in Settings
+    Then vertical tab titles use 18 pixel text without clipping
+    And vertical tab drag previews keep their text size and height
+    And both windows use 18 pixel vertical tab text
+    And Profile Sync excludes the vertical tab text size
+    When I relaunch Blanc
+    Then vertical tab titles use 18 pixel text without clipping
+    And vertical tab drag previews keep their text size and height
+    When I choose "default" vertical tab text in Settings
+    Then vertical tab titles use 12.5 pixel text without clipping
+    And vertical tab drag previews keep their text size and height
+
+  @F28-19 @F28 @desktop @D19 @test-platform-linux
+  Scenario: The main-menu button moves into the rail on Windows and Linux
+    Given a fresh desktop settings profile
+    When I set the tab layout to "vertical"
+    Then the main-menu button leads the rail's first row, uncovered
+    When I click the main-menu button
+    Then the main menu opens below the main-menu button
+    When I set the tab layout to "island"
+    Then the main-menu button is back in the strip's top-left corner
+
+  @F28-20 @F28 @desktop
+  Scenario: The rail's first row holds the Space mark and its footer starts a new group
+    Given a fresh desktop settings profile
+    When I set the tab layout to "vertical"
+    Then the Space mark sits in the rail's first row, not on the Island
+    When I click the Space mark in the rail
+    Then the Spaces menu opens below the rail's Space mark
+    When I click the rail's New group button
+    Then the command panel opens with "/group " for the current tab
+    When I name the new group "Reading" in the command panel
+    Then the current tab is in a group named "Reading"
+    When I select two new tabs in the rail
+    Then the rail's New group button reads "Put the selected tabs in a new group"
+    When I click the rail's New group button
+    Then the command panel opens with "/group " for the current tab
+    When I name the new group "Pair" in the command panel
+    Then both selected tabs are in a group named "Pair"
+    When I set the tab layout to "island"
+    Then the Space mark leaves the rail and the resting Island does not show it

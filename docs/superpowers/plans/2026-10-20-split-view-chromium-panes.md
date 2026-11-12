@@ -1,0 +1,10 @@
+# Split View: Chromium-style pane cards (D9) — plan
+
+Spec: `docs/superpowers/specs/2026-10-19-split-view-design.md` §3.3 and D9. Branch `claude/split-divider-hover`, which also carries the divider drag fix (F53-20).
+
+1. **Layout (`src/main/split-layout.js`).** Drop the header band: each pane is `{ frame, content }`, where `frame` is the card and `content` is the card inset by its 1 px border. The page region is inset 8 px on every edge, and the divider is the same 8 px gap. `paneMinHeight` stays 190. Focus only shows the focused card alone, and the other panes get no frame. Add `cornerTabBounds(frame, width)`. The payload's panes carry `frame` instead of `header` and drop `canGoBack`/`loading`. Unit tests first.
+2. **Chrome document.** Replace the pane headers with `.split-pane-frame` cards (darker border when focused) and give the divider a hover grab handle. Remove the header code, its markup test and the `chrome:split-pane-menu` IPC/preload member. Update the contract and run `browser-api:build`.
+3. **Page views.** Split panes get `setBorderRadius` to match their card, and a tab leaving a split goes back to square corners.
+4. **Corner tab view (`split-tab.html`).** It has no script and no preload, like `tooltip.html`, and gets its own `blanc-chrome://split-tab/` host. Each visible pane gets one view, stacked above its page and below the overlay. Main writes its markup (favicon, site and × when unfocused, × alone when focused), measures it and sets its bounds. Its `input-event` and `context-menu` events run remove-from-split, focus-the-pane and the tab menu. Main drops the view when its pane stops showing and destroys it with the window.
+5. **Tests.** Rewrite F53-11 and F53-14 to cover cards and corner tabs (through test-hook reads and `sendInputEvent` clicks on the corner view), and keep F53-20. Run the tab-view drawing check, then the full unit and acceptance suites, lint, substrate, contract, copy and the audit inventory.
+6. **Docs.** Update the Split View paragraph in CLAUDE.md and AGENTS.md (cards, corner tab views).

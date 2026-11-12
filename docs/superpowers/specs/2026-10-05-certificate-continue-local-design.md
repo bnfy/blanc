@@ -219,6 +219,13 @@ wc.on('certificate-error', boundToTab((event, failedUrl, error, certificate, cal
   certificate, main frame or subresource. This is required: a Proxmox page
   loads its scripts from the same origin, and with no Chromium-side memory
   (§2.3) each of those requests asks again.
+- A WebSocket to that origin is such a request (added November 2026, found
+  while investigating #1437).
+  Chromium reports its certificate failure with a `wss:` address, so `matches`
+  reads a `wss:` address under the `https:` key for the same host and port.
+  Before this, the Proxmox console and other live views failed after Continue.
+  `isEligible`, `allow`, `get` and `forget` still accept `https:` only: a
+  WebSocket never offers, records, shows or removes a choice.
 - A request to a **different** origin with its own bad certificate still
   fails silently, as today.
 - Popup and OAuth windows that are not Blanc tabs are untouched; Electron's

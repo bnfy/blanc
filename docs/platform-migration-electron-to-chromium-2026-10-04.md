@@ -4,6 +4,11 @@ Oct 4, 2026 · Evaluation for owner decision. This file is the canonical
 record; the "Blanc Platform Migration: Electron to Chromium" Claude Doc was the
 drafting copy and may lag behind it.
 
+**Superseded, October 26, 2026:** the owner has since reversed the decision
+below. A Chromium fork of Blanc is in active development, meant to eventually
+replace the ECS Electron build. See the Platform direction section of
+`CLAUDE.md`. The October 5 decision is kept here as history.
+
 **Owner decision, October 5, 2026: Decision 1 is no, not now. Blanc stays on
 Electron.** A Chromium fork needs a near-full rebuild for each platform with
 every four-weekly Chromium major, plus prompt security updates and a rebase of

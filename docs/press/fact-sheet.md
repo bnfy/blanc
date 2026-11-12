@@ -34,7 +34,7 @@ assistant or a general extension runtime.
 | Interface languages | English, German, Spanish, French, Italian, and Portuguese (Brazil), machine-translated; Blanc does not translate web pages |
 | 1Password | Optional login fill from the installed 1Password app on macOS, Windows, and Linux (not Windows on Arm); off by default, and it fills only when asked |
 | Blocking | Blanc Blocker by default: reviewed, hash-pinned EasyList + EasyPrivacy snapshots bundled into each release, with browser-level request blocking, cosmetic CSS, and isolated blocker scriptlets. It always protects private tabs. Regular profiles can switch to the bundled full uBlock Origin 1.75.0 on Apple Silicon and native Intel Macs, Windows x64, and Linux x64 |
-| Sync | Optional, passphrase-derived end-to-end encryption for Favorites and eligible settings (search engine, blocking state and exceptions, home page, theme, Start Page layout, and dynamic wallpaper); open-tab sharing is a separate per-device opt-in |
+| Sync | Optional end-to-end encryption for Favorites and eligible settings (search engine, blocking state and exceptions, home page, theme, Start Page layout, and dynamic wallpaper), with a key derived from a passphrase or, since 1.45.0, a random key with a recovery code; open-tab sharing is a separate per-device opt-in, and since 1.45.0 so is Shared Spaces (chosen Spaces kept the same on each computer, Personal profile only, up to 25) |
 | Publisher | Bananify |
 | Website | [blanc.day](https://blanc.day) |
 | Press/support/security contact | [support@blanc.day](mailto:support@blanc.day) |
@@ -71,7 +71,7 @@ assistant or a general extension runtime.
 
 ## Measured memory
 
-Measured 15 October 2026 on one Apple Silicon Mac with Blanc 1.34.0: six
+Measured 19 October 2026 on one Apple Silicon Mac with Blanc 1.38.0: six
 ad-dense sites (five news sites and Speedtest) open in each browser, fresh profile, no extensions, three runs each, median reported.
 The figure is `phys_footprint` summed across every process the browser starts —
 not resident set size, which double-counts the engine framework mapped into each
@@ -79,21 +79,23 @@ renderer and inflates whichever browser isolates more per site.
 
 | Browser | Memory |
 |---|---|
-| Brave | 1.5 GB |
-| Blanc | 1.7 GB |
-| Zen | 4.0 GB |
-| Chrome | 5.7 GB |
+| Blanc | 1.5 GB |
+| Brave | 1.7 GB |
+| Zen | 4.7 GB |
+| Chrome | 4.9 GB |
+| Edge | 7.4 GB |
 | Vivaldi | 7.4 GB |
 
 Two qualifications belong with any use of these figures. Brave also
-blocks by default, which makes it the fair peer rather than Chrome, and in this
-run it used a little less than Blanc. And the gap to Chrome is the blocking: with
-Blanc's own blocker switched off the same pages cost 5.4 GB, about the same as
-Chrome's 5.7.
+blocks by default, which makes it the fair peer rather than Chrome. In this run
+it used a little more than Blanc (1.7 GB against 1.5); in the previous run, on
+15 October with Blanc 1.34.0, it used a little less, so treat the two as close.
+And the gap to Chrome is the blocking: with Blanc's own blocker switched off the
+same pages cost 5.2 GB, about the same as Chrome's 4.9.
 
 Fresh, extension-free profiles make this a comparison of engines and defaults,
 not of anyone's real setup. Raw run:
-`bench/memory/results/memory-2026-10-15T06-03-46-052Z.md` (the earlier
+`bench/memory/results/memory-2026-10-19T03-13-32-296Z.md` (the earlier
 9 August 2026 run with Blanc 1.1.0 stays in the same folder); the harness that
 produced it is `bench/memory/` in the repository.
 
@@ -115,8 +117,9 @@ produced it is `bench/memory/` in the repository.
   activity and can be disabled in Settings.
 - Private tabs use a separate, non-persistent in-memory browser session and stay
   out of Blanc history, session restore, and reopen-closed.
-- Sync encrypts data on the device before upload. Open-tab sharing is
-  off by default on every device, and private tabs are never included.
+- Sync encrypts data on the device before upload. Open-tab sharing and Shared
+  Spaces are off by default on every device, and private tabs are never
+  included.
 - When open-tab sharing is enabled, bounded source-rasterized PNG favicons may
   be uploaded in a separately encrypted sidecar; receiving devices do not
   fetch remote icon URLs merely to draw them.

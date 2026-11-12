@@ -125,16 +125,17 @@ test('buildGroupEntry is one entry with per-member snapshots and no private memb
   assert.equal(entry.view, null);
 });
 
-test('closed tab, group, and batch entries retain sandbox restrictions only in main', () => {
-  const tab = baseTab({ openerSandboxFlags: 4294836015 });
+test('closed tab, group, and batch entries keep the document-policy mark only in main', () => {
+  const tab = baseTab({ inheritsDocumentPolicy: true });
   const entries = [
     buildTabEntry(tab, SNAP),
     buildGroupEntry({ id: 'g', name: 'Sandbox' }, [tab]),
     buildBatchEntry([tab]),
   ];
-  assert.equal(entries[0].openerSandboxFlags, tab.openerSandboxFlags);
-  assert.equal(entries[1].tabs[0].openerSandboxFlags, tab.openerSandboxFlags);
-  assert.equal(entries[2].tabs[0].openerSandboxFlags, tab.openerSandboxFlags);
+  assert.equal(entries[0].inheritsDocumentPolicy, true);
+  assert.equal(entries[1].tabs[0].inheritsDocumentPolicy, true);
+  assert.equal(entries[2].tabs[0].inheritsDocumentPolicy, true);
+  assert.equal(buildTabEntry(baseTab(), SNAP).inheritsDocumentPolicy, false);
   for (const projected of projectEntries(entries)) {
     assert.deepEqual(Object.keys(projected).sort(), ['favicon', 'id', 'tabCount', 'title']);
   }
@@ -230,4 +231,33 @@ test('closed entries keep a custom name and label themselves with it', () => {
   assert.equal(batch.tabs[0].customTitle, 'Budget');
   assert.equal(projectEntries([entry])[0].title, 'Budget');
   assert.equal(projectEntries([buildTabEntry(baseTab(), SNAP)])[0].title, 'A');
+});
+
+test('closed pinned tab, group, and batch entries keep the pinned home', () => {
+  const pinned = baseTab({
+    pinned: true,
+    url: 'https://b.example/',
+    pinnedHomeUrl: 'https://a.example/',
+  });
+  assert.equal(buildTabEntry(pinned, SNAP).pinnedHomeUrl, 'https://a.example/');
+  const group = buildGroupEntry({ id: 'g', name: 'work' }, [pinned]);
+  const batch = buildBatchEntry([pinned]);
+  assert.equal(group.tabs[0].pinnedHomeUrl, 'https://a.example/');
+  assert.equal(batch.tabs[0].pinnedHomeUrl, 'https://a.example/');
+});
+
+test('closed entries omit invalid, unpinned, and private pinned homes', () => {
+  for (const candidate of [
+    baseTab({ pinned: false, pinnedHomeUrl: 'https://a.example/' }),
+    baseTab({ pinned: true, private: true, pinnedHomeUrl: 'https://a.example/' }),
+    baseTab({ pinned: true, pinnedHomeUrl: 'blanc://settings/' }),
+  ]) {
+    assert.equal(Object.hasOwn(buildTabEntry(candidate, SNAP), 'pinnedHomeUrl'), false);
+  }
+});
+
+test('buildGroupEntry keeps the color', () => {
+  const local = { url: 'https://a.test/', title: 'A', pinned: false, muted: false, private: false, snapshot: null };
+  assert.equal(buildGroupEntry({ id: 'g', name: 'Work', color: '#376694', index: 0 }, [local], 0).group.color, '#376694');
+  assert.equal(buildGroupEntry({ id: 'g', name: 'Work', index: 0 }, [local], 0).group.color, null);
 });

@@ -34,6 +34,16 @@ export function buildDownloadConversionEvent({ target, oppref, timestampMs, even
   };
 }
 
+// Containment pins: a target listed here redirects to a fixed asset instead of
+// the latest release, for when a release must not reach new downloads on one
+// platform. Empty since 1.43.1 restored Linux (1.43.0's AppImage needed glibc
+// 2.38, so Linux was held at 1.42.1 from October 24, 2026 until 1.43.1).
+export const PINNED_DOWNLOADS = Object.freeze({});
+
+export function pinnedDownload(target) {
+  return Object.hasOwn(PINNED_DOWNLOADS, target) ? PINNED_DOWNLOADS[target] : null;
+}
+
 // Pick the artifact for a target from a release's assets
 // ([{name, browser_download_url}]). Returns null when the release has no such
 // artifact (e.g. releases that intentionally omit mac-x64) — callers must then

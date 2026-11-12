@@ -776,7 +776,6 @@ export function checkInvokeResults(contract, rawSources = mainSources()) {
 // reads from it must be in the type, following the value into a local
 // function or a module function listed in FORWARDED_PARAMS.
 const FORWARDED_PARAMS = [
-  { member: 'resizeGlance', file: 'glance-layout.js', fn: 'ratioForGlanceDivider', index: 1 },
   { member: 'openMainMenu', file: 'platform-main-menu.js', fn: 'popupPoint', index: 0 },
   { member: 'listHistory', file: 'history.js', fn: 'listHistory', index: 0 },
   { member: 'resolveDisplayPicker', file: 'display-capture-picker.js', fn: 'resolve', index: 1 },
@@ -1325,6 +1324,20 @@ export function payloadFixtures() {
     }
   }
 
+  // The real link routing switch (F60) over each rule and window shape.
+  const { siteRouteSwitchModel } = requireMain('./link-routes');
+  const routeRule = (profileId, spaceId = null) => [{ id: 'r1', match: { kind: 'domain', value: 'example.com' }, destination: { profileId, spaceId, private: false } }];
+  const siteRoutes = [];
+  for (const routes of [[], routeRule('work'), routeRule('work', 'space-1'), routeRule('default')]) {
+    for (const here of [{ profileId: 'work', spaceId: null }, { profileId: 'work', spaceId: 'space-1' }]) {
+      for (const liveProfileCount of [1, 2]) {
+        siteRoutes.push((url, privateTab) => siteRouteSwitchModel({
+          routes, url, here, privateTab, liveProfileCount, nameFor: ({ profileId }) => (profileId === 'default' ? 'Personal' : null),
+        }));
+      }
+    }
+  }
+
   const urls = ['https://example.com/a', 'http://example.com/', 'http://localhost:3000/', 'blanc://newtab/', 'file:///tmp/x.html', 'not a url', ''];
   const cert = sanitizeCertificate({ subjectName: 'example.com', issuerName: 'Example CA', validStart: 1700000000, validExpiry: 1800000000, fingerprint: 'sha256/abc' });
   const statuses = [
@@ -1347,8 +1360,12 @@ export function payloadFixtures() {
             for (const privateTab of [false, true]) {
               const model = shieldPopoverModel({ url, blockedCount, excepted, adblockEnabled, provider, readiness, connection: connectionFor({ url, isLoading: false }), t });
               if (model) {
-                for (const darkSite of darkSites) {
-                  add(`shieldPopover(${url}, ${provider}, ${readiness})`, 'ShieldPopover', { ...model, controls: shieldProviderModel(status, privateTab, t), darkSite: darkSite(url, privateTab) });
+                darkSites.forEach((darkSite, index) => {
+                  const route = siteRoutes[index % siteRoutes.length](url, privateTab);
+                  add(`shieldPopover(${url}, ${provider}, ${readiness})`, 'ShieldPopover', { ...model, controls: shieldProviderModel(status, privateTab, t), darkSite: darkSite(url, privateTab), route });
+                });
+                for (const siteRoute of siteRoutes) {
+                  add(`shieldPopover(${url}, ${provider}, ${readiness}, route)`, 'ShieldPopover', { ...model, controls: shieldProviderModel(status, privateTab, t), darkSite: darkSites[0](url, privateTab), route: siteRoute(url, privateTab) });
                 }
               }
             }
@@ -1378,16 +1395,27 @@ export function payloadFixtures() {
     { shareId: 'share-2', tabId: 't1' },
   ], { tabIds: ['t1'] }));
   add('capture projection', 'TabCapture', captureState.projection(captureState.createCaptureRecord()));
-  const { calculateGlanceLayout } = requireMain('./glance-layout');
-  for (const bounds of [{ x: 0, y: 68, width: 1400, height: 900 }, { x: 0, y: 68, width: 600, height: 900 }, { x: 0, y: 0, width: 0, height: 0 }, null]) {
-    for (const ratio of [0.5, 0.7, 2, undefined]) add(`calculateGlanceLayout(${JSON.stringify(bounds)}, ${ratio})`, 'GlanceLayout | null', calculateGlanceLayout(bounds, ratio));
-  }
+  const { cardGeometry, fractionsToFrame } = requireMain('./glance-card');
   const { glanceLayoutPayload } = requireMain('./glance-focus');
-  for (const pane of ['main', 'glance', 'unknown']) {
-    add(`glanceLayoutPayload(side by side, ${pane})`, 'GlanceLayout | null',
-      glanceLayoutPayload(calculateGlanceLayout({ x: 0, y: 68, width: 1400, height: 900 }), pane));
+  for (const area of [{ x: 0, y: 68, width: 1400, height: 900 }, { x: 248, y: 68, width: 600, height: 400 }, { x: 0, y: 68, width: 200, height: 100 }]) {
+    for (const pane of ['main', 'glance', 'unknown']) {
+      add(`glanceLayoutPayload(${JSON.stringify(area)}, ${pane})`, 'GlanceLayout | null',
+        glanceLayoutPayload(cardGeometry(fractionsToFrame(null, area)), pane, 3));
+    }
   }
-  add('glanceLayoutPayload(null)', 'GlanceLayout | null', glanceLayoutPayload(null, 'glance'));
+  add('glanceLayoutPayload(null)', 'GlanceLayout | null', glanceLayoutPayload(null, 'glance', 0));
+  const { computeSplitLayout, splitLayoutPayload, defaultSplitLayout } = requireMain('./split-layout');
+  const splitPanes = (n) => Array.from({ length: n }, (_, i) => ({
+    tabId: `t${i}`, title: `Tab ${i}`, favicon: i % 2 ? 'data:image/png;base64,AAAA' : 'https://example.com/x.png',
+    private: i === 1,
+  }));
+  for (const n of [2, 3, 4]) {
+    for (const bounds of [{ x: 0, y: 68, width: 1400, height: 900 }, { x: 0, y: 68, width: 500, height: 900 }, { x: 0, y: 68, width: 400, height: 200 }]) {
+      add(`splitLayoutPayload(${n} panes, ${bounds.width}x${bounds.height})`, 'SplitLayout | null',
+        splitLayoutPayload('split-1', computeSplitLayout(bounds, defaultSplitLayout(n), n, { focusedIndex: 1 }), splitPanes(n), 1));
+    }
+  }
+  add('splitLayoutPayload(null)', 'SplitLayout | null', splitLayoutPayload('split-1', null, [], 0));
   cases.push(...workspaceControllerFixtures(), ...listFixtures());
   return cases;
 }

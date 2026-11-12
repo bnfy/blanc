@@ -35,7 +35,7 @@ test('the Private pill keeps its shortcut in the tooltip, not inline', () => {
   const privateButton = html.match(/<button id="footerNewPrivate"[\s\S]*?<\/button>/)?.[0] ?? '';
   assert.ok(privateButton, 'footerNewPrivate exists');
   assert.doesNotMatch(privateButton, /footer-kbd/);
-  assert.match(overlay, /footerNewPrivate\.title = blancI18n\.t\('footer\.newPrivate\.title'/);
+  assert.match(overlay, /\[footerNewPrivate, blancI18n\.t\('footer\.newPrivate\.title'/);
   const pill = styles.match(/^\.footer-new \{([\s\S]*?)\}/m)?.[1] ?? '';
   assert.match(pill, /font-weight:\s*550;/);
   assert.match(pill, /font-size:\s*12\.5px;/);

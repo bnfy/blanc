@@ -113,6 +113,10 @@ relaxed on iOS accordingly.
 
 ## Android backend — `WebView` + `shouldInterceptRequest`
 
+> **Superseded (2026-11-05).** Android is built on the Chromium fork and uses the
+> fork's blocker, shared with desktop, not a `WebView` (D1, milestone A3). This
+> section and the table's Android column record the earlier design.
+
 **Model:** programmatic, and comparably powerful to desktop. A custom
 `WebViewClient.shouldInterceptRequest(view, request)` fires for **every** resource
 request (on a background thread) and returns either a blocking

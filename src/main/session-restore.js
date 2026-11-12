@@ -4,6 +4,8 @@
 // activeIndex, so dropping entries must be zipped or the metadata silently
 // misaligns onto the wrong tabs.
 
+const { DOCUMENT_POLICY_VERSION, restoredMarker } = require('./document-policy');
+
 /**
  * @param {{urls?: string[], groupIds?: (string|null)[], pinned?: boolean[],
  *          meta?: {title: string, favicon: string|null}[], localFiles?: boolean[], activeIndex?: number}} saved
@@ -25,8 +27,15 @@ function hostTitle(url) {
   }
 }
 
-function filterRestoredSession({ urls = [], groupIds = [], pinned = [], meta = [], localFiles, activeIndex = 0 } = {}, shouldDrop) {
+function filterRestoredSession({ urls = [], groupIds = [], pinned = [], meta = [], localFiles, splitIds, tabIds, documentPolicy, inheritsDocumentPolicy, activeIndex = 0 } = {}, shouldDrop) {
+  const hasTabIds=Array.isArray(tabIds)&&tabIds.length===urls.length;
   const hasLocalFiles = Array.isArray(localFiles) && localFiles.length === urls.length;
+  // Split View (F53): zipped like the others, so a dropped tab takes its id along.
+  const hasSplitIds = Array.isArray(splitIds) && splitIds.length === urls.length;
+  // Page-opened tabs' marks (document-policy.js), resolved per tab before the
+  // zip so a malformed value can't shift onto a neighbor. Legacy stays legacy.
+  const stamped = documentPolicy !== undefined;
+  const policyRecord = { documentPolicy, inheritsDocumentPolicy };
   const survivors = [];
   for (const [i, url] of urls.entries()) {
     const localFile = hasLocalFiles && localFiles[i] === true;
@@ -39,8 +48,11 @@ function filterRestoredSession({ urls = [], groupIds = [], pinned = [], meta = [
       groupId: groupIds[i] ?? null,
       pinned: !!pinned[i],
       localFile,
+      splitId: hasSplitIds ? splitIds[i] ?? null : null,
+      marked: restoredMarker(policyRecord, i),
       meta: saved.title ? saved : { ...saved, title: hostTitle(url) },
       originalIndex: i,
+      sharedTabId:hasTabIds?tabIds[i]:null,
     });
   }
   const clamped = Math.min(Math.max(0, activeIndex), Math.max(0, urls.length - 1));
@@ -55,6 +67,12 @@ function filterRestoredSession({ urls = [], groupIds = [], pinned = [], meta = [
     pinned: survivors.map((s) => s.pinned),
     meta: survivors.map((s) => s.meta),
     ...(hasLocalFiles ? { localFiles: survivors.map((s) => s.localFile) } : {}),
+    ...(hasSplitIds ? { splitIds: survivors.map((s) => s.splitId) } : {}),
+    ...(hasTabIds ? {tabIds:survivors.map(s=>s.sharedTabId)} : {}),
+    ...(stamped ? {
+      documentPolicy: DOCUMENT_POLICY_VERSION,
+      inheritsDocumentPolicy: survivors.map((s) => s.marked),
+    } : {}),
     activeIndex: next,
   };
 }
@@ -75,4 +93,12 @@ function restoreTargetId(restoredIds, activeIndex) {
   return null;
 }
 
-module.exports = { filterRestoredSession, restoreTargetId };
+/** A restored tab's Tab Archive clock (F52): the saved value when it is a
+ * real past time, else now, so an update or a clock that moved backwards never
+ * makes a tab look long idle. */
+function restoredLastViewedAt(meta, now) {
+  const saved = meta?.lastViewedAt;
+  return Number.isFinite(saved) && saved > 0 && saved <= now ? saved : now;
+}
+
+module.exports = { filterRestoredSession, restoreTargetId, restoredLastViewedAt };

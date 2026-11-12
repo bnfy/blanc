@@ -8,7 +8,7 @@ const { After, Given, When, Then } = require('@cucumber/cucumber');
 const { overlayPage } = require('../support/overlay');
 const { openOverlaySurface, waitForValue } = require('../support/poll');
 const SpaceIdentity = require('../../../src/renderer/space-identity');
-const { SPACES_MENU_PAD, SPACES_MENU_SIDE } = require('../../../src/main/chrome-layout');
+const { SPACES_MENU_GAP, SPACES_MENU_PAD, SPACES_MENU_SIDE } = require('../../../src/main/chrome-layout');
 const { chromePage } = require('../support/tab-drag');
 
 async function saveSpace(world, name, identity) {
@@ -142,6 +142,15 @@ After({ tags: '@F41-23 or @F41-28' }, async function () {
   await (await chromePage()).emulateMedia({ reducedMotion: 'no-preference' });
 });
 
+// The resting Island never shows the space mark; it lives only in the side
+// list's first row (vertical-tabs.js placeSpaceMark), so the scenarios about
+// the mark itself run with the tabs there. The per-scenario reset puts the
+// layout back to the Island.
+Given('the tabs are in the side list', async function () {
+  await this.call('setTabLayout', 'vertical');
+  await mark(this, (m) => m.inRail && !m.inIsland, 'the space mark in the side list');
+});
+
 When('I open the Spaces menu from the space mark', async function () {
   await this.call('clickPillSpace');
 });
@@ -273,18 +282,29 @@ When('I type {string} into the panel and pick the space result', async function 
   await row.click();
 });
 
+// The mark keeps its place in the Island's markup, hidden, while it shows
+// a space: the strip keeps painting it for the side list.
 Then('the Island shows no space mark', async function () {
-  await mark(this, (m) => m.hidden === true && m.state === 'none', 'no space mark');
+  const m = await mark(this, (s) => s.inIsland && s.state === 'space', 'the mark painted for the current space');
+  assert.equal(m.hidden, true, 'the resting Island does not show the mark');
+  const shown = await (await chromePage()).evaluate(() => {
+    const el = document.getElementById('pillSpace');
+    return getComputedStyle(el).display !== 'none' || el.getBoundingClientRect().width > 0;
+  });
+  assert.equal(shown, false, 'the mark takes no room on the Island');
 });
-Then('the Island shows the quiet Spaces mark', async function () {
-  const m = await mark(this, (s) => s.hidden === false && s.state === 'neutral', 'the neutral mark');
+Then('the space mark names no space', async function () {
+  await mark(this, (m) => m.state === 'none' && m.name === '', 'the mark naming no space');
+});
+Then('the side list shows the quiet Spaces mark', async function () {
+  const m = await mark(this, (s) => s.inRail && s.hidden === false && s.state === 'neutral', 'the neutral mark');
   assert.equal(m.name, '');
   assert.equal(m.label, 'Spaces');
 });
 const rgb = (hex) => `rgb(${[1, 3, 5].map((i) => parseInt(hex.slice(i, i + 2), 16)).join(', ')})`;
 // The quiet mark: the space's exact colour fills the square behind its
 // symbol; the mark itself stays clear and the name is the Island's own text.
-Then('the Island\'s space mark reads {string} in {string} with the symbol {string}', async function (name, color, symbol) {
+Then('the space mark reads {string} in {string} with the symbol {string}', async function (name, color, symbol) {
   // At rest the mark has no fill of its own; open, it takes the Island's
   // control highlight, never the space's colour. The hover and open
   // highlight fades over 350 ms (styles.css), so a mark just closed is still
@@ -300,7 +320,7 @@ Then('the mark\'s symbol is {string} on its color', async function (on) {
   const m = await mark(this, (s) => s.on === on && s.symbolColor === rgb(on), `the symbol in ${on}`);
   assert.equal(m.on, on);
 });
-Then('the Island\'s space mark reads {string}', async function (name) {
+Then('the space mark reads {string}', async function (name) {
   const m = await mark(this, (s) => s.state === 'space' && s.name === name, `the mark for ${name}`);
   assert.equal(m.label, `Space: ${name}`);
 });
@@ -314,10 +334,12 @@ Then('the Spaces menu opens directly below the mark', async function () {
     'the menu to line up under the mark',
   );
   assert.equal(m.expanded, 'true');
-  assert.ok(bounds.y < m.bottom + 6, 'the menu starts just below the mark');
-  // The overlay view starts 16px above the menu (room for its shadow), so the
-  // menu's top edge is bounds.y + 16: it must clear the Island (spec D18).
-  assert.ok(bounds.y + 16 > m.islandBottom, `the menu does not cover the Island: ${JSON.stringify({ bounds, islandBottom: m.islandBottom })}`);
+  // The overlay view starts SPACES_MENU_PAD above the menu (room for its
+  // shadow). The menu hangs a small gap below the mark or the Island,
+  // whichever ends lower, so it covers neither (spec D18).
+  const details = JSON.stringify({ bounds, bottom: m.bottom, islandBottom: m.islandBottom });
+  assert.ok(Math.abs(bounds.y + SPACES_MENU_PAD - Math.round(Math.max(m.bottom, m.islandBottom) + SPACES_MENU_GAP)) <= 1, `the menu starts just below the mark: ${details}`);
+  assert.ok(bounds.y + SPACES_MENU_PAD > m.islandBottom, `the menu does not cover the Island: ${details}`);
 });
 Then('the Spaces menu is closed', async function () {
   await waitForValue(() => this.call('overlayRendererMode'), (m) => m == null, 'the overlay to close');
@@ -418,7 +440,7 @@ const recoveryRow = (page, name) => page.evaluate((wanted) => {
     tile: getComputedStyle(row.querySelector('.ws-tile')).backgroundColor,
     title: nameEl.title, truncated: nameEl.scrollWidth > nameEl.clientWidth,
     when: row.querySelector('.ws-recovery-when')?.textContent ?? null,
-    bin: bin && { label: bin.getAttribute('aria-label'), title: bin.title, text: bin.textContent.trim() },
+    bin: bin && { label: bin.getAttribute('aria-label'), title: bin.dataset.tooltip, text: bin.textContent.trim() },
   };
 }, name);
 Then('{string} is listed in {string}, deleted today, with its full name as a tooltip', async function (name, color) {
@@ -523,7 +545,7 @@ Given('a private tab beside an ordinary tab, with the ordinary tab selected', as
 When('I select the private tab', async function () {
   await this.call('activateTab', this.privateTabId);
 });
-Then('the Island\'s space mark is drawn for the private theme', async function () {
+Then('the space mark is drawn for the private theme', async function () {
   // The colour is the same on every theme; against the private Island's
   // near-black surface Sage needs the edge.
   assert.equal(SpaceIdentity.paint('#426c4c', 'private').edge, true);

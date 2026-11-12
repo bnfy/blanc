@@ -8,6 +8,7 @@ import http from 'node:http';
 import { _electron } from 'playwright';
 import poll from './support/poll.js';
 import testCalls from './support/test-hook-call.js';
+import { inMainTurn } from './support/main-turn.js';
 const { waitForValue } = poll;
 const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'blanc-ubo-dashboard-'));
 fs.mkdirSync(dir + '-Dev');
@@ -57,7 +58,7 @@ async function launch({ settle = true } = {}) {
   await waitForValue(() => call('startupReady'), Boolean, 'browser restore ready', 20000);
   if (settle) await settleUpdater();
 }
-const inBackground = source => electron.evaluate(({ webContents }, code) => webContents.getAllWebContents()
+const inBackground = source => inMainTurn(electron, ({ webContents }, code) => webContents.getAllWebContents()
   .find(wc => wc.getType() === 'backgroundPage').executeJavaScript(code), source);
 // A fresh profile's bundled lists count as never updated, so uBO starts an
 // update cycle shortly after ready, and that cycle ends in its own

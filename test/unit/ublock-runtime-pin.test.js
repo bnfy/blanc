@@ -24,3 +24,11 @@ test('runtime capability is explicit and a retired runtime cannot advertise uBO 
   retired.platforms['darwin-arm64'].enabled = true;
   assert.throws(() => verifyRuntimePins({ metadata, lock, matrix: retired }), /retired Manifest V2 cannot enable/);
 });
+
+test('the ECS uBO runtime record names exactly the pinned ECS runtime and its evidence', () => {
+  const pin = require('../../build/ecs-runtime.json');
+  assert.equal(matrix.ecsRuntime, pin.version);
+  assert.ok(matrix.ecsEvidence.includes(pin.version));
+  assert.ok(matrix.ecsEvidence.includes(`Chromium ${pin.chromium}`));
+  assert.match(matrix.ecsEvidence, /Rosetta stays excluded/);
+});

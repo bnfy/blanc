@@ -200,7 +200,7 @@ test('plans a workspace: pinned lead, folders become groups that keep their name
     'https://news.example.com/',
   ]);
   assert.deepEqual(capture.pinned, [true, false, false, false]);
-  assert.deepEqual(capture.groups, [{ id: 'g1', name: 'Engineering', collapsed: false }]);
+  assert.deepEqual(capture.groups, [{ id: 'g1', name: 'Engineering', collapsed: false, color: null }]);
   assert.deepEqual(capture.groupIds, [null, 'g1', 'g1', null]);
   assert.equal(capture.meta.length, capture.urls.length);
   assert.deepEqual(capture.meta[0], { title: 'Inbox', favicon: null });

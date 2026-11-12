@@ -27,11 +27,13 @@ async function prepare(world, { enabled, layout = 'island' }) {
   await world.call('closeOverlay');
   await world.call('resetOverlayShowCount');
   await frontChromeWindow(world);
+  // Hover-open's target is the favicon + domain area, not the whole pill.
   const rect = await waitForValue(
-    () => world.call('islandRect'),
+    () => world.call('islandHoverRect'),
     (value) => value && value.width > 0 && value.height > 0,
-    'the resting Island rectangle',
+    'the Island URL area rectangle',
   );
+  world.islandPillRect = await world.call('islandRect');
   await sendMove(world, center(rect, 0, rect.height + 100), false);
   world.hoverIslandRect = rect;
   return rect;
@@ -196,6 +198,17 @@ Then('the Blanc permission prompt for geolocation is shown', async function () {
   await this.hoverPermissionPrompt.locator('#permBlockBtn').waitFor({ state: 'visible' });
 });
 
+When('I rest the pointer on the Island buttons beside the address for 400 milliseconds', async function () {
+  const pill = this.islandPillRect;
+  const area = this.hoverIslandRect;
+  assert.ok(pill, 'the resting Island rectangle');
+  // The trailing action cluster: on the pill, clear of the URL area.
+  const point = { x: Math.round(pill.x + pill.width - 8), y: Math.round(pill.y + pill.height / 2) };
+  assert.ok(point.x > area.x + area.width, 'the action cluster sits beyond the URL area');
+  await sendMove(this, point, false);
+  await sleep(400);
+});
+
 Then('the Island panel stays closed', async function () {
   await assertClosed(this);
 });
@@ -246,4 +259,48 @@ After({ tags: '@island-hover' }, async function () {
   await this.call('setTestCursorPoint', null).catch(() => {});
   const block = this.hoverPermissionPrompt?.locator('#permBlockBtn');
   if (block && await block.isVisible().catch(() => false)) await block.click();
+});
+
+// A hover-opened panel closes once the pointer leaves it (hover-panel-leave.js).
+// Moves over the open panel reach the overlay document, so they go there.
+Given('the Island panel has opened from hover', async function () {
+  await enter(this);
+  await waitForValue(() => this.call('overlayMode'), (mode) => mode === 'panel',
+    'the Island panel to open from hover');
+  this.hoverPanelRect = await waitForValue(() => this.call('overlayPanelRect'),
+    (rect) => rect && rect.right > rect.left, 'the open panel card');
+  // The pointer is on the card when the panel opens.
+  const card = this.hoverPanelRect;
+  assert.equal(await this.call('sendOverlayInput', {
+    type: 'mouseMove', x: Math.round((card.left + card.right) / 2), y: Math.round(card.top + 20),
+  }), true);
+});
+
+When('I move the pointer off the panel', async function () {
+  const card = this.hoverPanelRect;
+  assert.equal(await this.call('sendOverlayInput', {
+    type: 'mouseMove', x: Math.max(1, Math.round(card.left - 60)), y: Math.round(card.top + 20),
+  }), true);
+});
+
+When('I type in the panel', async function () {
+  assert.equal(await this.call('sendOverlayInput', { type: 'keyDown', keyCode: 'a' }), true);
+  assert.equal(await this.call('sendOverlayInput', { type: 'char', keyCode: 'a' }), true);
+  assert.equal(await this.call('sendOverlayInput', { type: 'keyUp', keyCode: 'a' }), true);
+});
+
+Then('the Island panel closes after its grace period', async function () {
+  await waitForValue(() => this.call('overlayMode'), (mode) => mode == null,
+    'the hover-opened panel to close', 2000);
+});
+
+// A leave close detaches the overlay view at once (no retract): the pointer
+// is heading for the strip beneath it.
+Then('the overlay is gone with the panel', async function () {
+  assert.equal(await this.call('overlayViewAttached'), false, 'the overlay view stayed attached after a hover-leave close');
+});
+
+Then('the Island panel stays open after {int} milliseconds', async function (ms) {
+  await sleep(ms);
+  assert.equal(await this.call('overlayMode'), 'panel');
 });

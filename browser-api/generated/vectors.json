@@ -5,7 +5,9 @@
     "trusted": [
       "blanc-chrome://index/",
       "blanc-chrome://overlay/",
-      "blanc-chrome://permission/"
+      "blanc-chrome://permission/",
+      "blanc-chrome://float/",
+      "blanc-chrome://glance/"
     ],
     "untrusted": [
       "blanc-chrome://fill-status/",
@@ -246,6 +248,123 @@
       "replies": [
         true,
         false
+      ]
+    },
+    "selectTab": {
+      "kind": "invoke",
+      "platforms": [
+        "darwin",
+        "win32",
+        "linux"
+      ],
+      "channel": "tabs:select",
+      "calls": [
+        {
+          "label": "typical",
+          "args": [
+            "tab-id-1",
+            "toggle"
+          ],
+          "sends": [
+            {
+              "kind": "invoke",
+              "channel": "tabs:select",
+              "args": [
+                "tab-id-1",
+                "toggle"
+              ]
+            }
+          ]
+        },
+        {
+          "label": "tabId = null",
+          "args": [
+            null,
+            "toggle"
+          ],
+          "sends": [
+            {
+              "kind": "invoke",
+              "channel": "tabs:select",
+              "args": [
+                null,
+                "toggle"
+              ]
+            }
+          ]
+        },
+        {
+          "label": "mode = \"range\"",
+          "args": [
+            "tab-id-1",
+            "range"
+          ],
+          "sends": [
+            {
+              "kind": "invoke",
+              "channel": "tabs:select",
+              "args": [
+                "tab-id-1",
+                "range"
+              ]
+            }
+          ]
+        },
+        {
+          "label": "mode = \"extend-up\"",
+          "args": [
+            "tab-id-1",
+            "extend-up"
+          ],
+          "sends": [
+            {
+              "kind": "invoke",
+              "channel": "tabs:select",
+              "args": [
+                "tab-id-1",
+                "extend-up"
+              ]
+            }
+          ]
+        },
+        {
+          "label": "mode = \"extend-down\"",
+          "args": [
+            "tab-id-1",
+            "extend-down"
+          ],
+          "sends": [
+            {
+              "kind": "invoke",
+              "channel": "tabs:select",
+              "args": [
+                "tab-id-1",
+                "extend-down"
+              ]
+            }
+          ]
+        },
+        {
+          "label": "mode = \"clear\"",
+          "args": [
+            "tab-id-1",
+            "clear"
+          ],
+          "sends": [
+            {
+              "kind": "invoke",
+              "channel": "tabs:select",
+              "args": [
+                "tab-id-1",
+                "clear"
+              ]
+            }
+          ]
+        }
+      ],
+      "replies": [
+        "tab-id-1",
+        null
       ]
     },
     "switchTab": {
@@ -576,6 +695,23 @@
           ]
         },
         {
+          "label": "beforeGroupId = \"tab-id-1\"",
+          "args": [
+            "group-id-1",
+            "tab-id-1"
+          ],
+          "sends": [
+            {
+              "kind": "invoke",
+              "channel": "groups:reorder",
+              "args": [
+                "group-id-1",
+                "tab-id-1"
+              ]
+            }
+          ]
+        },
+        {
           "label": "beforeGroupId = \"recently-closed\"",
           "args": [
             "group-id-1",
@@ -640,6 +776,21 @@
           ]
         },
         {
+          "label": "beforeGroupId = \"tab-id-1\"",
+          "args": [
+            "tab-id-1"
+          ],
+          "sends": [
+            {
+              "kind": "invoke",
+              "channel": "groups:move-closed",
+              "args": [
+                "tab-id-1"
+              ]
+            }
+          ]
+        },
+        {
           "label": "beforeGroupId = null",
           "args": [
             null
@@ -695,6 +846,154 @@
           "ok": true,
           "error": "duplicate"
         }
+      ]
+    },
+    "setGroupColor": {
+      "kind": "invoke",
+      "platforms": [
+        "darwin",
+        "win32",
+        "linux"
+      ],
+      "channel": "groups:set-color",
+      "calls": [
+        {
+          "label": "typical",
+          "args": [
+            "group-id-1",
+            "example"
+          ],
+          "sends": [
+            {
+              "kind": "invoke",
+              "channel": "groups:set-color",
+              "args": [
+                "group-id-1",
+                "example"
+              ]
+            }
+          ]
+        },
+        {
+          "label": "color = null",
+          "args": [
+            "group-id-1",
+            null
+          ],
+          "sends": [
+            {
+              "kind": "invoke",
+              "channel": "groups:set-color",
+              "args": [
+                "group-id-1",
+                null
+              ]
+            }
+          ]
+        }
+      ],
+      "replies": [
+        {
+          "ok": true
+        }
+      ]
+    },
+    "newTabInGroup": {
+      "kind": "invoke",
+      "platforms": [
+        "darwin",
+        "win32",
+        "linux"
+      ],
+      "channel": "groups:new-tab",
+      "calls": [
+        {
+          "label": "typical",
+          "args": [
+            "group-id-1"
+          ],
+          "sends": [
+            {
+              "kind": "invoke",
+              "channel": "groups:new-tab",
+              "args": [
+                "group-id-1"
+              ]
+            }
+          ]
+        }
+      ],
+      "replies": [
+        true,
+        false
+      ]
+    },
+    "moveGroupToNewWindow": {
+      "kind": "invoke",
+      "platforms": [
+        "darwin",
+        "win32",
+        "linux"
+      ],
+      "channel": "groups:move-to-new-window",
+      "calls": [
+        {
+          "label": "typical",
+          "args": [
+            "group-id-1"
+          ],
+          "sends": [
+            {
+              "kind": "invoke",
+              "channel": "groups:move-to-new-window",
+              "args": [
+                "group-id-1"
+              ]
+            }
+          ]
+        }
+      ],
+      "replies": [
+        true,
+        false
+      ]
+    },
+    "openGroupSpaceMenu": {
+      "kind": "invoke",
+      "platforms": [
+        "darwin",
+        "win32",
+        "linux"
+      ],
+      "channel": "groups:space-menu",
+      "calls": [
+        {
+          "label": "typical",
+          "args": [
+            "group-id-1",
+            {
+              "x": 1,
+              "y": 1
+            }
+          ],
+          "sends": [
+            {
+              "kind": "invoke",
+              "channel": "groups:space-menu",
+              "args": [
+                "group-id-1",
+                {
+                  "x": 1,
+                  "y": 1
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "replies": [
+        true,
+        false
       ]
     },
     "ungroupGroup": {
@@ -855,14 +1154,14 @@
         false
       ]
     },
-    "promoteGlance": {
+    "openGlanceAsTab": {
       "kind": "invoke",
       "platforms": [
         "darwin",
         "win32",
         "linux"
       ],
-      "channel": "tabs:promote-glance",
+      "channel": "tabs:open-glance-as-tab",
       "calls": [
         {
           "label": "typical",
@@ -870,7 +1169,7 @@
           "sends": [
             {
               "kind": "invoke",
-              "channel": "tabs:promote-glance",
+              "channel": "tabs:open-glance-as-tab",
               "args": []
             }
           ]
@@ -1311,17 +1610,24 @@
       "replies": [
         {
           "tabs": [],
+          "selectedTabIds": [],
+          "canStartGroup": true,
           "activeTabId": "tab-id-1",
           "glanceTabId": "tab-id-1",
           "groups": [],
           "closed": [],
           "closedSlot": 1,
           "tabLayout": "island",
+          "verticalTabsTextSize": "tabs-snapshot-1",
+          "islandTabIcons": true,
+          "miniWindow": true,
+          "islandSize": "tabs-snapshot-1",
           "verticalTabsWidth": 1,
           "verticalTabsPreferredWidth": 1,
           "verticalTabsMinWidth": 1,
           "verticalTabsMaxWidth": 1,
-          "verticalTabsDefaultWidth": 1
+          "verticalTabsDefaultWidth": 1,
+          "splits": []
         },
         {
           "tabs": [
@@ -1374,16 +1680,25 @@
                   "example"
                 ],
                 "error": "site-info-1"
-              }
+              },
+              "splitId": "tab-entry-1",
+              "syncNotSynced": true,
+              "readerAvailable": true,
+              "readerActive": true
             }
           ],
+          "selectedTabIds": [
+            "tab-id-1"
+          ],
+          "canStartGroup": true,
           "activeTabId": "tab-id-1",
           "glanceTabId": "tab-id-1",
           "groups": [
             {
               "id": "group-id-1",
               "name": "tab-group-1",
-              "collapsed": true
+              "collapsed": true,
+              "color": "tab-group-1"
             }
           ],
           "closed": [
@@ -1391,16 +1706,38 @@
               "id": "closed-entry-id-1",
               "title": "closed-entry-summary-1",
               "favicon": "closed-entry-summary-1",
-              "tabCount": 1
+              "tabCount": 1,
+              "fromName": "closed-entry-summary-1"
             }
           ],
           "closedSlot": 1,
           "tabLayout": "island",
+          "verticalTabsTextSize": "tabs-snapshot-1",
+          "islandTabIcons": true,
+          "miniWindow": true,
+          "islandSize": "tabs-snapshot-1",
           "verticalTabsWidth": 1,
           "verticalTabsPreferredWidth": 1,
           "verticalTabsMinWidth": 1,
           "verticalTabsMaxWidth": 1,
-          "verticalTabsDefaultWidth": 1
+          "verticalTabsDefaultWidth": 1,
+          "splits": [
+            {
+              "id": "split-info-1",
+              "tabIds": [
+                "split-info-1"
+              ],
+              "layout": {
+                "kind": "columns",
+                "widths": [
+                  1
+                ],
+                "column": 1,
+                "row": 1
+              },
+              "focusedIndex": 1
+            }
+          ]
         }
       ]
     },
@@ -1691,6 +2028,12 @@
               "width": 1,
               "height": 1,
               "hoverCapable": true,
+              "hoverRect": {
+                "x": 1,
+                "y": 1,
+                "width": 1,
+                "height": 1
+              },
               "shieldAnchor": {
                 "right": 1,
                 "center": 1,
@@ -1702,8 +2045,18 @@
                 "bottom": 1,
                 "closing": true
               },
-              "minPrimaryWidth": 1,
-              "minReferenceWidth": 1
+              "windowControlsRect": {
+                "x": 1,
+                "y": 1,
+                "width": 1,
+                "height": 1
+              },
+              "menuButtonRect": {
+                "x": 1,
+                "y": 1,
+                "width": 1,
+                "height": 1
+              }
             }
           ],
           "sends": [
@@ -1717,6 +2070,12 @@
                   "width": 1,
                   "height": 1,
                   "hoverCapable": true,
+                  "hoverRect": {
+                    "x": 1,
+                    "y": 1,
+                    "width": 1,
+                    "height": 1
+                  },
                   "shieldAnchor": {
                     "right": 1,
                     "center": 1,
@@ -1728,10 +2087,125 @@
                     "bottom": 1,
                     "closing": true
                   },
-                  "minPrimaryWidth": 1,
-                  "minReferenceWidth": 1
+                  "windowControlsRect": {
+                    "x": 1,
+                    "y": 1,
+                    "width": 1,
+                    "height": 1
+                  },
+                  "menuButtonRect": {
+                    "x": 1,
+                    "y": 1,
+                    "width": 1,
+                    "height": 1
+                  }
                 }
               ]
+            }
+          ]
+        }
+      ]
+    },
+    "showTooltip": {
+      "kind": "send",
+      "platforms": [
+        "darwin",
+        "win32",
+        "linux"
+      ],
+      "channel": "chrome:tooltip-show",
+      "calls": [
+        {
+          "label": "typical",
+          "args": [
+            {
+              "text": "tooltip-request-1",
+              "anchor": {
+                "x": 1,
+                "y": 1,
+                "width": 1,
+                "height": 1
+              },
+              "width": 1,
+              "height": 1
+            }
+          ],
+          "sends": [
+            {
+              "kind": "send",
+              "channel": "chrome:tooltip-show",
+              "args": [
+                {
+                  "text": "tooltip-request-1",
+                  "anchor": {
+                    "x": 1,
+                    "y": 1,
+                    "width": 1,
+                    "height": 1
+                  },
+                  "width": 1,
+                  "height": 1
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "label": "tip = {\"text\":\"tooltip-request-1\",\"anchor\":{\"x",
+          "args": [
+            {
+              "text": "tooltip-request-1",
+              "anchor": {
+                "x": 1,
+                "y": 1,
+                "width": 1,
+                "height": 1
+              },
+              "width": 1,
+              "height": 1,
+              "privateTheme": true
+            }
+          ],
+          "sends": [
+            {
+              "kind": "send",
+              "channel": "chrome:tooltip-show",
+              "args": [
+                {
+                  "text": "tooltip-request-1",
+                  "anchor": {
+                    "x": 1,
+                    "y": 1,
+                    "width": 1,
+                    "height": 1
+                  },
+                  "width": 1,
+                  "height": 1,
+                  "privateTheme": true
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "hideTooltip": {
+      "kind": "send",
+      "platforms": [
+        "darwin",
+        "win32",
+        "linux"
+      ],
+      "channel": "chrome:tooltip-hide",
+      "calls": [
+        {
+          "label": "typical",
+          "args": [],
+          "sends": [
+            {
+              "kind": "send",
+              "channel": "chrome:tooltip-hide",
+              "args": []
             }
           ]
         }
@@ -1918,64 +2392,6 @@
         }
       ]
     },
-    "resizeGlance": {
-      "kind": "send",
-      "platforms": [
-        "darwin",
-        "win32",
-        "linux"
-      ],
-      "channel": "chrome:resize-glance",
-      "calls": [
-        {
-          "label": "typical",
-          "args": [
-            {
-              "x": 1,
-              "y": 1
-            }
-          ],
-          "sends": [
-            {
-              "kind": "send",
-              "channel": "chrome:resize-glance",
-              "args": [
-                {
-                  "x": 1,
-                  "y": 1
-                }
-              ]
-            }
-          ]
-        }
-      ]
-    },
-    "resetGlance": {
-      "kind": "invoke",
-      "platforms": [
-        "darwin",
-        "win32",
-        "linux"
-      ],
-      "channel": "chrome:reset-glance",
-      "calls": [
-        {
-          "label": "typical",
-          "args": [],
-          "sends": [
-            {
-              "kind": "invoke",
-              "channel": "chrome:reset-glance",
-              "args": []
-            }
-          ]
-        }
-      ],
-      "replies": [
-        1,
-        null
-      ]
-    },
     "onGlanceLayout": {
       "kind": "event",
       "platforms": [
@@ -1988,91 +2404,416 @@
         {
           "emit": [
             {
-              "direction": "horizontal",
-              "ratio": 1,
-              "minRatio": 1,
-              "maxRatio": 1,
-              "page": {
-                "x": 1,
-                "y": 1,
-                "width": 1,
-                "height": 1
-              },
-              "primary": {
-                "x": 1,
-                "y": 1,
-                "width": 1,
-                "height": 1
-              },
-              "divider": {
-                "x": 1,
-                "y": 1,
-                "width": 1,
-                "height": 1
-              },
-              "glanceHeader": {
-                "x": 1,
-                "y": 1,
-                "width": 1,
-                "height": 1
-              },
-              "glanceContent": {
-                "x": 1,
-                "y": 1,
-                "width": 1,
-                "height": 1
-              },
-              "glance": {
-                "x": 1,
-                "y": 1,
-                "width": 1,
-                "height": 1
-              }
-            }
-          ],
-          "callbacks": [
-            [
-              {
-                "direction": "horizontal",
-                "ratio": 1,
-                "minRatio": 1,
-                "maxRatio": 1,
+              "card": {
+                "chrome": {
+                  "x": 1,
+                  "y": 1,
+                  "width": 1,
+                  "height": 1
+                },
+                "frame": {
+                  "x": 1,
+                  "y": 1,
+                  "width": 1,
+                  "height": 1
+                },
+                "header": {
+                  "x": 1,
+                  "y": 1,
+                  "width": 1,
+                  "height": 1
+                },
                 "page": {
                   "x": 1,
                   "y": 1,
                   "width": 1,
                   "height": 1
-                },
-                "primary": {
-                  "x": 1,
-                  "y": 1,
-                  "width": 1,
-                  "height": 1
-                },
-                "divider": {
-                  "x": 1,
-                  "y": 1,
-                  "width": 1,
-                  "height": 1
-                },
-                "glanceHeader": {
-                  "x": 1,
-                  "y": 1,
-                  "width": 1,
-                  "height": 1
-                },
-                "glanceContent": {
-                  "x": 1,
-                  "y": 1,
-                  "width": 1,
-                  "height": 1
-                },
-                "glance": {
-                  "x": 1,
-                  "y": 1,
-                  "width": 1,
-                  "height": 1
                 }
+              },
+              "focusedPane": "main",
+              "generation": 1
+            }
+          ],
+          "callbacks": [
+            [
+              {
+                "card": {
+                  "chrome": {
+                    "x": 1,
+                    "y": 1,
+                    "width": 1,
+                    "height": 1
+                  },
+                  "frame": {
+                    "x": 1,
+                    "y": 1,
+                    "width": 1,
+                    "height": 1
+                  },
+                  "header": {
+                    "x": 1,
+                    "y": 1,
+                    "width": 1,
+                    "height": 1
+                  },
+                  "page": {
+                    "x": 1,
+                    "y": 1,
+                    "width": 1,
+                    "height": 1
+                  }
+                },
+                "focusedPane": "main",
+                "generation": 1
+              }
+            ]
+          ]
+        },
+        {
+          "emit": [
+            null
+          ],
+          "callbacks": [
+            [
+              null
+            ]
+          ]
+        }
+      ]
+    },
+    "moveGlanceCard": {
+      "kind": "invoke",
+      "platforms": [
+        "darwin",
+        "win32",
+        "linux"
+      ],
+      "channel": "chrome:glance-card-move",
+      "calls": [
+        {
+          "label": "typical",
+          "args": [
+            {
+              "generation": 1,
+              "dx": 1,
+              "dy": 1
+            }
+          ],
+          "sends": [
+            {
+              "kind": "invoke",
+              "channel": "chrome:glance-card-move",
+              "args": [
+                {
+                  "generation": 1,
+                  "dx": 1,
+                  "dy": 1
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "replies": [
+        {
+          "x": 1,
+          "y": 1,
+          "width": 1,
+          "height": 1
+        },
+        null
+      ]
+    },
+    "resizeGlanceCard": {
+      "kind": "invoke",
+      "platforms": [
+        "darwin",
+        "win32",
+        "linux"
+      ],
+      "channel": "chrome:glance-card-resize",
+      "calls": [
+        {
+          "label": "typical",
+          "args": [
+            {
+              "generation": 1,
+              "edge": "n",
+              "dx": 1,
+              "dy": 1
+            }
+          ],
+          "sends": [
+            {
+              "kind": "invoke",
+              "channel": "chrome:glance-card-resize",
+              "args": [
+                {
+                  "generation": 1,
+                  "edge": "n",
+                  "dx": 1,
+                  "dy": 1
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "replies": [
+        {
+          "x": 1,
+          "y": 1,
+          "width": 1,
+          "height": 1
+        },
+        null
+      ]
+    },
+    "resetGlanceCard": {
+      "kind": "invoke",
+      "platforms": [
+        "darwin",
+        "win32",
+        "linux"
+      ],
+      "channel": "chrome:glance-card-reset",
+      "calls": [
+        {
+          "label": "typical",
+          "args": [
+            {
+              "generation": 1
+            }
+          ],
+          "sends": [
+            {
+              "kind": "invoke",
+              "channel": "chrome:glance-card-reset",
+              "args": [
+                {
+                  "generation": 1
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "replies": [
+        {
+          "x": 1,
+          "y": 1,
+          "width": 1,
+          "height": 1
+        },
+        null
+      ]
+    },
+    "keepGlanceAsSplit": {
+      "kind": "invoke",
+      "platforms": [
+        "darwin",
+        "win32",
+        "linux"
+      ],
+      "channel": "chrome:split-keep-glance",
+      "calls": [
+        {
+          "label": "typical",
+          "args": [],
+          "sends": [
+            {
+              "kind": "invoke",
+              "channel": "chrome:split-keep-glance",
+              "args": []
+            }
+          ]
+        }
+      ],
+      "replies": [
+        true,
+        false
+      ]
+    },
+    "removeFromSplit": {
+      "kind": "invoke",
+      "platforms": [
+        "darwin",
+        "win32",
+        "linux"
+      ],
+      "channel": "chrome:split-remove",
+      "calls": [
+        {
+          "label": "typical",
+          "args": [
+            "example"
+          ],
+          "sends": [
+            {
+              "kind": "invoke",
+              "channel": "chrome:split-remove",
+              "args": [
+                "example"
+              ]
+            }
+          ]
+        }
+      ],
+      "replies": [
+        true,
+        false
+      ]
+    },
+    "closeSplit": {
+      "kind": "invoke",
+      "platforms": [
+        "darwin",
+        "win32",
+        "linux"
+      ],
+      "channel": "chrome:split-close",
+      "calls": [
+        {
+          "label": "typical",
+          "args": [
+            "example"
+          ],
+          "sends": [
+            {
+              "kind": "invoke",
+              "channel": "chrome:split-close",
+              "args": [
+                "example"
+              ]
+            }
+          ]
+        }
+      ],
+      "replies": [
+        true,
+        false
+      ]
+    },
+    "resizeSplit": {
+      "kind": "send",
+      "platforms": [
+        "darwin",
+        "win32",
+        "linux"
+      ],
+      "channel": "chrome:resize-split",
+      "calls": [
+        {
+          "label": "typical",
+          "args": [
+            "example",
+            1,
+            "x",
+            {
+              "x": 1,
+              "y": 1
+            }
+          ],
+          "sends": [
+            {
+              "kind": "send",
+              "channel": "chrome:resize-split",
+              "args": [
+                "example",
+                1,
+                "x",
+                {
+                  "x": 1,
+                  "y": 1
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "label": "axis = \"y\"",
+          "args": [
+            "example",
+            1,
+            "y",
+            {
+              "x": 1,
+              "y": 1
+            }
+          ],
+          "sends": [
+            {
+              "kind": "send",
+              "channel": "chrome:resize-split",
+              "args": [
+                "example",
+                1,
+                "y",
+                {
+                  "x": 1,
+                  "y": 1
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "resetSplit": {
+      "kind": "invoke",
+      "platforms": [
+        "darwin",
+        "win32",
+        "linux"
+      ],
+      "channel": "chrome:reset-split",
+      "calls": [
+        {
+          "label": "typical",
+          "args": [
+            "example"
+          ],
+          "sends": [
+            {
+              "kind": "invoke",
+              "channel": "chrome:reset-split",
+              "args": [
+                "example"
+              ]
+            }
+          ]
+        }
+      ],
+      "replies": [
+        true,
+        false
+      ]
+    },
+    "onSplitLayout": {
+      "kind": "event",
+      "platforms": [
+        "darwin",
+        "win32",
+        "linux"
+      ],
+      "channel": "chrome:split-layout",
+      "deliveries": [
+        {
+          "emit": [
+            {
+              "splitId": "split-layout-1",
+              "mode": "columns",
+              "panes": [],
+              "dividers": []
+            }
+          ],
+          "callbacks": [
+            [
+              {
+                "splitId": "split-layout-1",
+                "mode": "columns",
+                "panes": [],
+                "dividers": []
               }
             ]
           ]
@@ -2080,93 +2821,83 @@
         {
           "emit": [
             {
-              "direction": "horizontal",
-              "ratio": 1,
-              "minRatio": 1,
-              "maxRatio": 1,
-              "page": {
-                "x": 1,
-                "y": 1,
-                "width": 1,
-                "height": 1
-              },
-              "primary": {
-                "x": 1,
-                "y": 1,
-                "width": 1,
-                "height": 1
-              },
-              "divider": {
-                "x": 1,
-                "y": 1,
-                "width": 1,
-                "height": 1
-              },
-              "glanceHeader": {
-                "x": 1,
-                "y": 1,
-                "width": 1,
-                "height": 1
-              },
-              "glanceContent": {
-                "x": 1,
-                "y": 1,
-                "width": 1,
-                "height": 1
-              },
-              "glance": {
-                "x": 1,
-                "y": 1,
-                "width": 1,
-                "height": 1
-              },
-              "focusedPane": "main"
+              "splitId": "split-layout-1",
+              "mode": "columns",
+              "panes": [
+                {
+                  "tabId": "split-pane-1",
+                  "frame": {
+                    "x": 1,
+                    "y": 1,
+                    "width": 1,
+                    "height": 1
+                  },
+                  "content": {
+                    "x": 1,
+                    "y": 1,
+                    "width": 1,
+                    "height": 1
+                  },
+                  "focused": true,
+                  "title": "split-pane-1",
+                  "favicon": "split-pane-1",
+                  "private": true
+                }
+              ],
+              "dividers": [
+                {
+                  "index": 1,
+                  "axis": "x",
+                  "rect": {
+                    "x": 1,
+                    "y": 1,
+                    "width": 1,
+                    "height": 1
+                  },
+                  "saved": true
+                }
+              ]
             }
           ],
           "callbacks": [
             [
               {
-                "direction": "horizontal",
-                "ratio": 1,
-                "minRatio": 1,
-                "maxRatio": 1,
-                "page": {
-                  "x": 1,
-                  "y": 1,
-                  "width": 1,
-                  "height": 1
-                },
-                "primary": {
-                  "x": 1,
-                  "y": 1,
-                  "width": 1,
-                  "height": 1
-                },
-                "divider": {
-                  "x": 1,
-                  "y": 1,
-                  "width": 1,
-                  "height": 1
-                },
-                "glanceHeader": {
-                  "x": 1,
-                  "y": 1,
-                  "width": 1,
-                  "height": 1
-                },
-                "glanceContent": {
-                  "x": 1,
-                  "y": 1,
-                  "width": 1,
-                  "height": 1
-                },
-                "glance": {
-                  "x": 1,
-                  "y": 1,
-                  "width": 1,
-                  "height": 1
-                },
-                "focusedPane": "main"
+                "splitId": "split-layout-1",
+                "mode": "columns",
+                "panes": [
+                  {
+                    "tabId": "split-pane-1",
+                    "frame": {
+                      "x": 1,
+                      "y": 1,
+                      "width": 1,
+                      "height": 1
+                    },
+                    "content": {
+                      "x": 1,
+                      "y": 1,
+                      "width": 1,
+                      "height": 1
+                    },
+                    "focused": true,
+                    "title": "split-pane-1",
+                    "favicon": "split-pane-1",
+                    "private": true
+                  }
+                ],
+                "dividers": [
+                  {
+                    "index": 1,
+                    "axis": "x",
+                    "rect": {
+                      "x": 1,
+                      "y": 1,
+                      "width": 1,
+                      "height": 1
+                    },
+                    "saved": true
+                  }
+                ]
               }
             ]
           ]
@@ -2199,6 +2930,77 @@
           "callbacks": [
             [
               "example"
+            ]
+          ]
+        }
+      ]
+    },
+    "onPillNotice": {
+      "kind": "event",
+      "platforms": [
+        "darwin",
+        "win32",
+        "linux"
+      ],
+      "channel": "chrome:pill-notice",
+      "deliveries": [
+        {
+          "emit": [
+            "link-copied"
+          ],
+          "callbacks": [
+            [
+              "link-copied"
+            ]
+          ]
+        },
+        {
+          "emit": [
+            "clean-link-copied"
+          ],
+          "callbacks": [
+            [
+              "clean-link-copied"
+            ]
+          ]
+        },
+        {
+          "emit": [
+            "route-on"
+          ],
+          "callbacks": [
+            [
+              "route-on"
+            ]
+          ]
+        },
+        {
+          "emit": [
+            "route-off"
+          ],
+          "callbacks": [
+            [
+              "route-off"
+            ]
+          ]
+        },
+        {
+          "emit": [
+            "route-limit"
+          ],
+          "callbacks": [
+            [
+              "route-limit"
+            ]
+          ]
+        },
+        {
+          "emit": [
+            "route-unavailable"
+          ],
+          "callbacks": [
+            [
+              "route-unavailable"
             ]
           ]
         }
@@ -2242,6 +3044,28 @@
             {
               "kind": "send",
               "channel": "chrome:open-island-commands",
+              "args": []
+            }
+          ]
+        }
+      ]
+    },
+    "beginNewGroup": {
+      "kind": "send",
+      "platforms": [
+        "darwin",
+        "win32",
+        "linux"
+      ],
+      "channel": "chrome:new-group",
+      "calls": [
+        {
+          "label": "typical",
+          "args": [],
+          "sends": [
+            {
+              "kind": "send",
+              "channel": "chrome:new-group",
               "args": []
             }
           ]
@@ -2508,6 +3332,42 @@
         }
       ]
     },
+    "openGroupMenu": {
+      "kind": "send",
+      "platforms": [
+        "darwin",
+        "win32",
+        "linux"
+      ],
+      "channel": "chrome:open-group-menu",
+      "calls": [
+        {
+          "label": "typical",
+          "args": [
+            "group-id-1",
+            {
+              "right": 1,
+              "top": 1,
+              "bottom": 1
+            }
+          ],
+          "sends": [
+            {
+              "kind": "send",
+              "channel": "chrome:open-group-menu",
+              "args": [
+                "group-id-1",
+                {
+                  "right": 1,
+                  "top": 1,
+                  "bottom": 1
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
     "captureStop": {
       "kind": "send",
       "platforms": [
@@ -2554,6 +3414,73 @@
               "channel": "chrome:capture-focus",
               "args": [
                 "capture-surface-id-1"
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "switcherPick": {
+      "kind": "send",
+      "platforms": [
+        "darwin",
+        "win32",
+        "linux"
+      ],
+      "channel": "chrome:switcher-pick",
+      "calls": [
+        {
+          "label": "typical",
+          "args": [
+            "tab-id-1"
+          ],
+          "sends": [
+            {
+              "kind": "send",
+              "channel": "chrome:switcher-pick",
+              "args": [
+                "tab-id-1"
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "copyActiveLink": {
+      "kind": "send",
+      "platforms": [
+        "darwin",
+        "win32",
+        "linux"
+      ],
+      "channel": "chrome:copy-link",
+      "calls": [
+        {
+          "label": "typical",
+          "args": [
+            true
+          ],
+          "sends": [
+            {
+              "kind": "send",
+              "channel": "chrome:copy-link",
+              "args": [
+                true
+              ]
+            }
+          ]
+        },
+        {
+          "label": "clean = false",
+          "args": [
+            false
+          ],
+          "sends": [
+            {
+              "kind": "send",
+              "channel": "chrome:copy-link",
+              "args": [
+                false
               ]
             }
           ]
@@ -2914,6 +3841,144 @@
         ]
       ]
     },
+    "archiveList": {
+      "kind": "invoke",
+      "platforms": [
+        "darwin",
+        "win32",
+        "linux"
+      ],
+      "channel": "chrome:archive-list",
+      "calls": [
+        {
+          "label": "typical",
+          "args": [],
+          "sends": [
+            {
+              "kind": "invoke",
+              "channel": "chrome:archive-list",
+              "args": []
+            }
+          ]
+        }
+      ],
+      "replies": [
+        [],
+        [
+          {
+            "id": "archived-tab-1",
+            "url": "archived-tab-1",
+            "title": "archived-tab-1",
+            "favicon": "archived-tab-1",
+            "archivedAt": 1,
+            "spaceName": "archived-tab-1"
+          }
+        ]
+      ]
+    },
+    "archiveRestore": {
+      "kind": "invoke",
+      "platforms": [
+        "darwin",
+        "win32",
+        "linux"
+      ],
+      "channel": "chrome:archive-restore",
+      "calls": [
+        {
+          "label": "typical",
+          "args": [
+            "example"
+          ],
+          "sends": [
+            {
+              "kind": "invoke",
+              "channel": "chrome:archive-restore",
+              "args": [
+                "example"
+              ]
+            }
+          ]
+        }
+      ],
+      "replies": [
+        true,
+        false
+      ]
+    },
+    "archiveNotice": {
+      "kind": "invoke",
+      "platforms": [
+        "darwin",
+        "win32",
+        "linux"
+      ],
+      "channel": "chrome:archive-notice",
+      "calls": [
+        {
+          "label": "typical",
+          "args": [],
+          "sends": [
+            {
+              "kind": "invoke",
+              "channel": "chrome:archive-notice",
+              "args": []
+            }
+          ]
+        }
+      ],
+      "replies": [
+        {
+          "count": 1
+        },
+        null
+      ]
+    },
+    "archiveNoticeDone": {
+      "kind": "invoke",
+      "platforms": [
+        "darwin",
+        "win32",
+        "linux"
+      ],
+      "channel": "chrome:archive-notice-done",
+      "calls": [
+        {
+          "label": "typical",
+          "args": [
+            "view"
+          ],
+          "sends": [
+            {
+              "kind": "invoke",
+              "channel": "chrome:archive-notice-done",
+              "args": [
+                "view"
+              ]
+            }
+          ]
+        },
+        {
+          "label": "action = \"dismiss\"",
+          "args": [
+            "dismiss"
+          ],
+          "sends": [
+            {
+              "kind": "invoke",
+              "channel": "chrome:archive-notice-done",
+              "args": [
+                "dismiss"
+              ]
+            }
+          ]
+        }
+      ],
+      "replies": [
+        true,
+        false
+      ]
+    },
     "listFavorites": {
       "kind": "invoke",
       "platforms": [
@@ -3047,6 +4112,165 @@
         false
       ]
     },
+    "listSendTargets": {
+      "kind": "invoke",
+      "platforms": [
+        "darwin",
+        "win32",
+        "linux"
+      ],
+      "channel": "chrome:send-targets",
+      "calls": [
+        {
+          "label": "typical",
+          "args": [],
+          "sends": [
+            {
+              "kind": "invoke",
+              "channel": "chrome:send-targets",
+              "args": []
+            }
+          ]
+        }
+      ],
+      "replies": [
+        [],
+        [
+          {
+            "id": "send-target-1",
+            "name": "send-target-1",
+            "platform": "send-target-1"
+          }
+        ]
+      ]
+    },
+    "sendTabToDevice": {
+      "kind": "invoke",
+      "platforms": [
+        "darwin",
+        "win32",
+        "linux"
+      ],
+      "channel": "chrome:send-tab",
+      "calls": [
+        {
+          "label": "typical",
+          "args": [
+            "tab-id-1",
+            "example"
+          ],
+          "sends": [
+            {
+              "kind": "invoke",
+              "channel": "chrome:send-tab",
+              "args": [
+                "tab-id-1",
+                "example"
+              ]
+            }
+          ]
+        }
+      ],
+      "replies": [
+        {
+          "status": "sent"
+        }
+      ]
+    },
+    "listSentToThisDevice": {
+      "kind": "invoke",
+      "platforms": [
+        "darwin",
+        "win32",
+        "linux"
+      ],
+      "channel": "chrome:sent-list",
+      "calls": [
+        {
+          "label": "typical",
+          "args": [],
+          "sends": [
+            {
+              "kind": "invoke",
+              "channel": "chrome:sent-list",
+              "args": []
+            }
+          ]
+        }
+      ],
+      "replies": [
+        [],
+        [
+          {
+            "id": "sent-item-1",
+            "url": "sent-item-1",
+            "title": "sent-item-1",
+            "sentAt": 1,
+            "fromName": "sent-item-1"
+          }
+        ]
+      ]
+    },
+    "openSentItem": {
+      "kind": "invoke",
+      "platforms": [
+        "darwin",
+        "win32",
+        "linux"
+      ],
+      "channel": "chrome:sent-open",
+      "calls": [
+        {
+          "label": "typical",
+          "args": [
+            "example"
+          ],
+          "sends": [
+            {
+              "kind": "invoke",
+              "channel": "chrome:sent-open",
+              "args": [
+                "example"
+              ]
+            }
+          ]
+        }
+      ],
+      "replies": [
+        true,
+        false
+      ]
+    },
+    "dismissSentItem": {
+      "kind": "invoke",
+      "platforms": [
+        "darwin",
+        "win32",
+        "linux"
+      ],
+      "channel": "chrome:sent-dismiss",
+      "calls": [
+        {
+          "label": "typical",
+          "args": [
+            "example"
+          ],
+          "sends": [
+            {
+              "kind": "invoke",
+              "channel": "chrome:sent-dismiss",
+              "args": [
+                "example"
+              ]
+            }
+          ]
+        }
+      ],
+      "replies": [
+        true,
+        false
+      ]
+    },
     "cancelWorkspaceAction": {
       "kind": "send",
       "platforms": [
@@ -3119,11 +4343,470 @@
               "revision": 1,
               "tabCount": 1,
               "color": "workspace-list-item-1",
-              "symbol": "workspace-list-item-1"
+              "symbol": "workspace-list-item-1",
+              "sharedSync": {
+                "unsyncedTabIds": [
+                  "shared-space-admission-1"
+                ],
+                "reason": "full",
+                "state": "shared",
+                "lastSyncedAt": 1,
+                "failed": true,
+                "pending": true
+              }
             }
           ],
           "windowTabCount": 1,
-          "tint": "mark"
+          "tint": "mark",
+          "sharedSync": {
+            "count": 1,
+            "limit": 1,
+            "canAdd": true,
+            "busy": true,
+            "slowed": true
+          },
+          "recoveryNotice": true
+        }
+      ]
+    },
+    "createSpaceWithLink": {
+      "kind": "invoke",
+      "platforms": [
+        "darwin",
+        "win32",
+        "linux"
+      ],
+      "channel": "chrome:workspaces-create-with-link",
+      "calls": [
+        {
+          "label": "typical",
+          "args": [
+            "example",
+            {}
+          ],
+          "sends": [
+            {
+              "kind": "invoke",
+              "channel": "chrome:workspaces-create-with-link",
+              "args": [
+                "example",
+                {}
+              ]
+            }
+          ]
+        },
+        {
+          "label": "identity = {\"color\":\"space-identity-input-1\",\"symbo",
+          "args": [
+            "example",
+            {
+              "color": "space-identity-input-1",
+              "symbol": "space-identity-input-1"
+            }
+          ],
+          "sends": [
+            {
+              "kind": "invoke",
+              "channel": "chrome:workspaces-create-with-link",
+              "args": [
+                "example",
+                {
+                  "color": "space-identity-input-1",
+                  "symbol": "space-identity-input-1"
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "replies": [
+        {
+          "ok": true
+        },
+        {
+          "movedCount": 1,
+          "ok": true,
+          "error": "activation-failed",
+          "cause": "activation-failed",
+          "reason": "permission-or-transition",
+          "blockingTabs": [
+            {
+              "id": "tab-id-1",
+              "title": "workspace-blocking-tab-1",
+              "reason": "loading"
+            }
+          ],
+          "tabCount": 1,
+          "privateCount": 1,
+          "decision": "workspace-action-result-1",
+          "action": "swap",
+          "windowId": "workspace-action-result-1",
+          "workspaceId": "workspace-id-1",
+          "status": "saved",
+          "deleted": [
+            {
+              "id": "workspace-id-1",
+              "name": "deleted-workspace-1",
+              "deletedAt": 1,
+              "color": "deleted-workspace-1",
+              "symbol": "deleted-workspace-1"
+            }
+          ],
+          "items": [
+            {
+              "id": "workspace-id-1",
+              "name": "workspace-list-item-1",
+              "active": true,
+              "openElsewhere": true,
+              "resident": true,
+              "revision": 1,
+              "tabCount": 1,
+              "color": "workspace-list-item-1",
+              "symbol": "workspace-list-item-1",
+              "sharedSync": {
+                "unsyncedTabIds": [
+                  "shared-space-admission-1"
+                ],
+                "reason": "full",
+                "state": "shared",
+                "lastSyncedAt": 1,
+                "failed": true,
+                "pending": true
+              }
+            }
+          ],
+          "windowTabCount": 1,
+          "tint": "mark",
+          "sharedSync": {
+            "count": 1,
+            "limit": 1,
+            "canAdd": true,
+            "busy": true,
+            "slowed": true
+          },
+          "recoveryNotice": true
+        }
+      ]
+    },
+    "createSpaceWithTabs": {
+      "kind": "invoke",
+      "platforms": [
+        "darwin",
+        "win32",
+        "linux"
+      ],
+      "channel": "chrome:workspaces-create-with-tabs",
+      "calls": [
+        {
+          "label": "typical",
+          "args": [
+            "example",
+            {},
+            []
+          ],
+          "sends": [
+            {
+              "kind": "invoke",
+              "channel": "chrome:workspaces-create-with-tabs",
+              "args": [
+                "example",
+                {},
+                []
+              ]
+            }
+          ]
+        },
+        {
+          "label": "identity = {\"color\":\"space-identity-input-1\",\"symbo",
+          "args": [
+            "example",
+            {
+              "color": "space-identity-input-1",
+              "symbol": "space-identity-input-1"
+            },
+            []
+          ],
+          "sends": [
+            {
+              "kind": "invoke",
+              "channel": "chrome:workspaces-create-with-tabs",
+              "args": [
+                "example",
+                {
+                  "color": "space-identity-input-1",
+                  "symbol": "space-identity-input-1"
+                },
+                []
+              ]
+            }
+          ]
+        },
+        {
+          "label": "tabIds = [\"tab-id-1\"]",
+          "args": [
+            "example",
+            {},
+            [
+              "tab-id-1"
+            ]
+          ],
+          "sends": [
+            {
+              "kind": "invoke",
+              "channel": "chrome:workspaces-create-with-tabs",
+              "args": [
+                "example",
+                {},
+                [
+                  "tab-id-1"
+                ]
+              ]
+            }
+          ]
+        }
+      ],
+      "replies": [
+        {
+          "ok": true
+        },
+        {
+          "movedCount": 1,
+          "ok": true,
+          "error": "activation-failed",
+          "cause": "activation-failed",
+          "reason": "permission-or-transition",
+          "blockingTabs": [
+            {
+              "id": "tab-id-1",
+              "title": "workspace-blocking-tab-1",
+              "reason": "loading"
+            }
+          ],
+          "tabCount": 1,
+          "privateCount": 1,
+          "decision": "workspace-action-result-1",
+          "action": "swap",
+          "windowId": "workspace-action-result-1",
+          "workspaceId": "workspace-id-1",
+          "status": "saved",
+          "deleted": [
+            {
+              "id": "workspace-id-1",
+              "name": "deleted-workspace-1",
+              "deletedAt": 1,
+              "color": "deleted-workspace-1",
+              "symbol": "deleted-workspace-1"
+            }
+          ],
+          "items": [
+            {
+              "id": "workspace-id-1",
+              "name": "workspace-list-item-1",
+              "active": true,
+              "openElsewhere": true,
+              "resident": true,
+              "revision": 1,
+              "tabCount": 1,
+              "color": "workspace-list-item-1",
+              "symbol": "workspace-list-item-1",
+              "sharedSync": {
+                "unsyncedTabIds": [
+                  "shared-space-admission-1"
+                ],
+                "reason": "full",
+                "state": "shared",
+                "lastSyncedAt": 1,
+                "failed": true,
+                "pending": true
+              }
+            }
+          ],
+          "windowTabCount": 1,
+          "tint": "mark",
+          "sharedSync": {
+            "count": 1,
+            "limit": 1,
+            "canAdd": true,
+            "busy": true,
+            "slowed": true
+          },
+          "recoveryNotice": true
+        }
+      ]
+    },
+    "groupTabsByName": {
+      "kind": "invoke",
+      "platforms": [
+        "darwin",
+        "win32",
+        "linux"
+      ],
+      "channel": "tabs:group-many-by-name",
+      "calls": [
+        {
+          "label": "typical",
+          "args": [
+            [],
+            "example"
+          ],
+          "sends": [
+            {
+              "kind": "invoke",
+              "channel": "tabs:group-many-by-name",
+              "args": [
+                [],
+                "example"
+              ]
+            }
+          ]
+        },
+        {
+          "label": "tabIds = [\"tab-id-1\"]",
+          "args": [
+            [
+              "tab-id-1"
+            ],
+            "example"
+          ],
+          "sends": [
+            {
+              "kind": "invoke",
+              "channel": "tabs:group-many-by-name",
+              "args": [
+                [
+                  "tab-id-1"
+                ],
+                "example"
+              ]
+            }
+          ]
+        }
+      ],
+      "replies": [
+        true,
+        false
+      ]
+    },
+    "createSpaceWithTab": {
+      "kind": "invoke",
+      "platforms": [
+        "darwin",
+        "win32",
+        "linux"
+      ],
+      "channel": "chrome:workspaces-create-with-tab",
+      "calls": [
+        {
+          "label": "typical",
+          "args": [
+            "example",
+            {},
+            "tab-id-1"
+          ],
+          "sends": [
+            {
+              "kind": "invoke",
+              "channel": "chrome:workspaces-create-with-tab",
+              "args": [
+                "example",
+                {},
+                "tab-id-1"
+              ]
+            }
+          ]
+        },
+        {
+          "label": "identity = {\"color\":\"space-identity-input-1\",\"symbo",
+          "args": [
+            "example",
+            {
+              "color": "space-identity-input-1",
+              "symbol": "space-identity-input-1"
+            },
+            "tab-id-1"
+          ],
+          "sends": [
+            {
+              "kind": "invoke",
+              "channel": "chrome:workspaces-create-with-tab",
+              "args": [
+                "example",
+                {
+                  "color": "space-identity-input-1",
+                  "symbol": "space-identity-input-1"
+                },
+                "tab-id-1"
+              ]
+            }
+          ]
+        }
+      ],
+      "replies": [
+        {
+          "ok": true
+        },
+        {
+          "movedCount": 1,
+          "ok": true,
+          "error": "activation-failed",
+          "cause": "activation-failed",
+          "reason": "permission-or-transition",
+          "blockingTabs": [
+            {
+              "id": "tab-id-1",
+              "title": "workspace-blocking-tab-1",
+              "reason": "loading"
+            }
+          ],
+          "tabCount": 1,
+          "privateCount": 1,
+          "decision": "workspace-action-result-1",
+          "action": "swap",
+          "windowId": "workspace-action-result-1",
+          "workspaceId": "workspace-id-1",
+          "status": "saved",
+          "deleted": [
+            {
+              "id": "workspace-id-1",
+              "name": "deleted-workspace-1",
+              "deletedAt": 1,
+              "color": "deleted-workspace-1",
+              "symbol": "deleted-workspace-1"
+            }
+          ],
+          "items": [
+            {
+              "id": "workspace-id-1",
+              "name": "workspace-list-item-1",
+              "active": true,
+              "openElsewhere": true,
+              "resident": true,
+              "revision": 1,
+              "tabCount": 1,
+              "color": "workspace-list-item-1",
+              "symbol": "workspace-list-item-1",
+              "sharedSync": {
+                "unsyncedTabIds": [
+                  "shared-space-admission-1"
+                ],
+                "reason": "full",
+                "state": "shared",
+                "lastSyncedAt": 1,
+                "failed": true,
+                "pending": true
+              }
+            }
+          ],
+          "windowTabCount": 1,
+          "tint": "mark",
+          "sharedSync": {
+            "count": 1,
+            "limit": 1,
+            "canAdd": true,
+            "busy": true,
+            "slowed": true
+          },
+          "recoveryNotice": true
         }
       ]
     },
@@ -3200,10 +4883,18 @@
           "ok": true
         },
         {
+          "movedCount": 1,
           "ok": true,
           "error": "activation-failed",
           "cause": "activation-failed",
           "reason": "permission-or-transition",
+          "blockingTabs": [
+            {
+              "id": "tab-id-1",
+              "title": "workspace-blocking-tab-1",
+              "reason": "loading"
+            }
+          ],
           "tabCount": 1,
           "privateCount": 1,
           "decision": "workspace-action-result-1",
@@ -3230,11 +4921,29 @@
               "revision": 1,
               "tabCount": 1,
               "color": "workspace-list-item-1",
-              "symbol": "workspace-list-item-1"
+              "symbol": "workspace-list-item-1",
+              "sharedSync": {
+                "unsyncedTabIds": [
+                  "shared-space-admission-1"
+                ],
+                "reason": "full",
+                "state": "shared",
+                "lastSyncedAt": 1,
+                "failed": true,
+                "pending": true
+              }
             }
           ],
           "windowTabCount": 1,
-          "tint": "mark"
+          "tint": "mark",
+          "sharedSync": {
+            "count": 1,
+            "limit": 1,
+            "canAdd": true,
+            "busy": true,
+            "slowed": true
+          },
+          "recoveryNotice": true
         }
       ]
     },
@@ -3315,10 +5024,18 @@
           "ok": true
         },
         {
+          "movedCount": 1,
           "ok": true,
           "error": "activation-failed",
           "cause": "activation-failed",
           "reason": "permission-or-transition",
+          "blockingTabs": [
+            {
+              "id": "tab-id-1",
+              "title": "workspace-blocking-tab-1",
+              "reason": "loading"
+            }
+          ],
           "tabCount": 1,
           "privateCount": 1,
           "decision": "workspace-action-result-1",
@@ -3345,11 +5062,29 @@
               "revision": 1,
               "tabCount": 1,
               "color": "workspace-list-item-1",
-              "symbol": "workspace-list-item-1"
+              "symbol": "workspace-list-item-1",
+              "sharedSync": {
+                "unsyncedTabIds": [
+                  "shared-space-admission-1"
+                ],
+                "reason": "full",
+                "state": "shared",
+                "lastSyncedAt": 1,
+                "failed": true,
+                "pending": true
+              }
             }
           ],
           "windowTabCount": 1,
-          "tint": "mark"
+          "tint": "mark",
+          "sharedSync": {
+            "count": 1,
+            "limit": 1,
+            "canAdd": true,
+            "busy": true,
+            "slowed": true
+          },
+          "recoveryNotice": true
         }
       ]
     },
@@ -3430,10 +5165,18 @@
           "ok": true
         },
         {
+          "movedCount": 1,
           "ok": true,
           "error": "activation-failed",
           "cause": "activation-failed",
           "reason": "permission-or-transition",
+          "blockingTabs": [
+            {
+              "id": "tab-id-1",
+              "title": "workspace-blocking-tab-1",
+              "reason": "loading"
+            }
+          ],
           "tabCount": 1,
           "privateCount": 1,
           "decision": "workspace-action-result-1",
@@ -3460,11 +5203,29 @@
               "revision": 1,
               "tabCount": 1,
               "color": "workspace-list-item-1",
-              "symbol": "workspace-list-item-1"
+              "symbol": "workspace-list-item-1",
+              "sharedSync": {
+                "unsyncedTabIds": [
+                  "shared-space-admission-1"
+                ],
+                "reason": "full",
+                "state": "shared",
+                "lastSyncedAt": 1,
+                "failed": true,
+                "pending": true
+              }
             }
           ],
           "windowTabCount": 1,
-          "tint": "mark"
+          "tint": "mark",
+          "sharedSync": {
+            "count": 1,
+            "limit": 1,
+            "canAdd": true,
+            "busy": true,
+            "slowed": true
+          },
+          "recoveryNotice": true
         }
       ]
     },
@@ -3498,10 +5259,18 @@
           "ok": true
         },
         {
+          "movedCount": 1,
           "ok": true,
           "error": "activation-failed",
           "cause": "activation-failed",
           "reason": "permission-or-transition",
+          "blockingTabs": [
+            {
+              "id": "tab-id-1",
+              "title": "workspace-blocking-tab-1",
+              "reason": "loading"
+            }
+          ],
           "tabCount": 1,
           "privateCount": 1,
           "decision": "workspace-action-result-1",
@@ -3528,11 +5297,29 @@
               "revision": 1,
               "tabCount": 1,
               "color": "workspace-list-item-1",
-              "symbol": "workspace-list-item-1"
+              "symbol": "workspace-list-item-1",
+              "sharedSync": {
+                "unsyncedTabIds": [
+                  "shared-space-admission-1"
+                ],
+                "reason": "full",
+                "state": "shared",
+                "lastSyncedAt": 1,
+                "failed": true,
+                "pending": true
+              }
             }
           ],
           "windowTabCount": 1,
-          "tint": "mark"
+          "tint": "mark",
+          "sharedSync": {
+            "count": 1,
+            "limit": 1,
+            "canAdd": true,
+            "busy": true,
+            "slowed": true
+          },
+          "recoveryNotice": true
         }
       ]
     },
@@ -3566,10 +5353,18 @@
           "ok": true
         },
         {
+          "movedCount": 1,
           "ok": true,
           "error": "activation-failed",
           "cause": "activation-failed",
           "reason": "permission-or-transition",
+          "blockingTabs": [
+            {
+              "id": "tab-id-1",
+              "title": "workspace-blocking-tab-1",
+              "reason": "loading"
+            }
+          ],
           "tabCount": 1,
           "privateCount": 1,
           "decision": "workspace-action-result-1",
@@ -3596,11 +5391,29 @@
               "revision": 1,
               "tabCount": 1,
               "color": "workspace-list-item-1",
-              "symbol": "workspace-list-item-1"
+              "symbol": "workspace-list-item-1",
+              "sharedSync": {
+                "unsyncedTabIds": [
+                  "shared-space-admission-1"
+                ],
+                "reason": "full",
+                "state": "shared",
+                "lastSyncedAt": 1,
+                "failed": true,
+                "pending": true
+              }
             }
           ],
           "windowTabCount": 1,
-          "tint": "mark"
+          "tint": "mark",
+          "sharedSync": {
+            "count": 1,
+            "limit": 1,
+            "canAdd": true,
+            "busy": true,
+            "slowed": true
+          },
+          "recoveryNotice": true
         }
       ]
     },
@@ -3634,10 +5447,18 @@
           "ok": true
         },
         {
+          "movedCount": 1,
           "ok": true,
           "error": "activation-failed",
           "cause": "activation-failed",
           "reason": "permission-or-transition",
+          "blockingTabs": [
+            {
+              "id": "tab-id-1",
+              "title": "workspace-blocking-tab-1",
+              "reason": "loading"
+            }
+          ],
           "tabCount": 1,
           "privateCount": 1,
           "decision": "workspace-action-result-1",
@@ -3664,11 +5485,29 @@
               "revision": 1,
               "tabCount": 1,
               "color": "workspace-list-item-1",
-              "symbol": "workspace-list-item-1"
+              "symbol": "workspace-list-item-1",
+              "sharedSync": {
+                "unsyncedTabIds": [
+                  "shared-space-admission-1"
+                ],
+                "reason": "full",
+                "state": "shared",
+                "lastSyncedAt": 1,
+                "failed": true,
+                "pending": true
+              }
             }
           ],
           "windowTabCount": 1,
-          "tint": "mark"
+          "tint": "mark",
+          "sharedSync": {
+            "count": 1,
+            "limit": 1,
+            "canAdd": true,
+            "busy": true,
+            "slowed": true
+          },
+          "recoveryNotice": true
         }
       ]
     },
@@ -3705,7 +5544,8 @@
             {
               "name": "workspace-patch-1",
               "color": "workspace-patch-1",
-              "symbol": "workspace-patch-1"
+              "symbol": "workspace-patch-1",
+              "ackRecovery": true
             }
           ],
           "sends": [
@@ -3717,7 +5557,8 @@
                 {
                   "name": "workspace-patch-1",
                   "color": "workspace-patch-1",
-                  "symbol": "workspace-patch-1"
+                  "symbol": "workspace-patch-1",
+                  "ackRecovery": true
                 }
               ]
             }
@@ -3729,10 +5570,18 @@
           "ok": true
         },
         {
+          "movedCount": 1,
           "ok": true,
           "error": "activation-failed",
           "cause": "activation-failed",
           "reason": "permission-or-transition",
+          "blockingTabs": [
+            {
+              "id": "tab-id-1",
+              "title": "workspace-blocking-tab-1",
+              "reason": "loading"
+            }
+          ],
           "tabCount": 1,
           "privateCount": 1,
           "decision": "workspace-action-result-1",
@@ -3759,11 +5608,29 @@
               "revision": 1,
               "tabCount": 1,
               "color": "workspace-list-item-1",
-              "symbol": "workspace-list-item-1"
+              "symbol": "workspace-list-item-1",
+              "sharedSync": {
+                "unsyncedTabIds": [
+                  "shared-space-admission-1"
+                ],
+                "reason": "full",
+                "state": "shared",
+                "lastSyncedAt": 1,
+                "failed": true,
+                "pending": true
+              }
             }
           ],
           "windowTabCount": 1,
-          "tint": "mark"
+          "tint": "mark",
+          "sharedSync": {
+            "count": 1,
+            "limit": 1,
+            "canAdd": true,
+            "busy": true,
+            "slowed": true
+          },
+          "recoveryNotice": true
         }
       ]
     },
@@ -3799,10 +5666,18 @@
           "ok": true
         },
         {
+          "movedCount": 1,
           "ok": true,
           "error": "activation-failed",
           "cause": "activation-failed",
           "reason": "permission-or-transition",
+          "blockingTabs": [
+            {
+              "id": "tab-id-1",
+              "title": "workspace-blocking-tab-1",
+              "reason": "loading"
+            }
+          ],
           "tabCount": 1,
           "privateCount": 1,
           "decision": "workspace-action-result-1",
@@ -3829,11 +5704,29 @@
               "revision": 1,
               "tabCount": 1,
               "color": "workspace-list-item-1",
-              "symbol": "workspace-list-item-1"
+              "symbol": "workspace-list-item-1",
+              "sharedSync": {
+                "unsyncedTabIds": [
+                  "shared-space-admission-1"
+                ],
+                "reason": "full",
+                "state": "shared",
+                "lastSyncedAt": 1,
+                "failed": true,
+                "pending": true
+              }
             }
           ],
           "windowTabCount": 1,
-          "tint": "mark"
+          "tint": "mark",
+          "sharedSync": {
+            "count": 1,
+            "limit": 1,
+            "canAdd": true,
+            "busy": true,
+            "slowed": true
+          },
+          "recoveryNotice": true
         }
       ]
     },
@@ -3867,10 +5760,18 @@
           "ok": true
         },
         {
+          "movedCount": 1,
           "ok": true,
           "error": "activation-failed",
           "cause": "activation-failed",
           "reason": "permission-or-transition",
+          "blockingTabs": [
+            {
+              "id": "tab-id-1",
+              "title": "workspace-blocking-tab-1",
+              "reason": "loading"
+            }
+          ],
           "tabCount": 1,
           "privateCount": 1,
           "decision": "workspace-action-result-1",
@@ -3897,11 +5798,29 @@
               "revision": 1,
               "tabCount": 1,
               "color": "workspace-list-item-1",
-              "symbol": "workspace-list-item-1"
+              "symbol": "workspace-list-item-1",
+              "sharedSync": {
+                "unsyncedTabIds": [
+                  "shared-space-admission-1"
+                ],
+                "reason": "full",
+                "state": "shared",
+                "lastSyncedAt": 1,
+                "failed": true,
+                "pending": true
+              }
             }
           ],
           "windowTabCount": 1,
-          "tint": "mark"
+          "tint": "mark",
+          "sharedSync": {
+            "count": 1,
+            "limit": 1,
+            "canAdd": true,
+            "busy": true,
+            "slowed": true
+          },
+          "recoveryNotice": true
         }
       ]
     },
@@ -4206,6 +6125,53 @@
         }
       ]
     },
+    "onSentToThisDeviceUpdated": {
+      "kind": "event",
+      "platforms": [
+        "darwin",
+        "win32",
+        "linux"
+      ],
+      "channel": "chrome:sent-updated",
+      "deliveries": [
+        {
+          "emit": [
+            []
+          ],
+          "callbacks": [
+            [
+              []
+            ]
+          ]
+        },
+        {
+          "emit": [
+            [
+              {
+                "id": "sent-item-1",
+                "url": "sent-item-1",
+                "title": "sent-item-1",
+                "sentAt": 1,
+                "fromName": "sent-item-1"
+              }
+            ]
+          ],
+          "callbacks": [
+            [
+              [
+                {
+                  "id": "sent-item-1",
+                  "url": "sent-item-1",
+                  "title": "sent-item-1",
+                  "sentAt": 1,
+                  "fromName": "sent-item-1"
+                }
+              ]
+            ]
+          ]
+        }
+      ]
+    },
     "onWorkspacesUpdated": {
       "kind": "event",
       "platforms": [
@@ -4260,11 +6226,29 @@
                   "revision": 1,
                   "tabCount": 1,
                   "color": "workspace-list-item-1",
-                  "symbol": "workspace-list-item-1"
+                  "symbol": "workspace-list-item-1",
+                  "sharedSync": {
+                    "unsyncedTabIds": [
+                      "shared-space-admission-1"
+                    ],
+                    "reason": "full",
+                    "state": "shared",
+                    "lastSyncedAt": 1,
+                    "failed": true,
+                    "pending": true
+                  }
                 }
               ],
               "windowTabCount": 1,
-              "tint": "mark"
+              "tint": "mark",
+              "sharedSync": {
+                "count": 1,
+                "limit": 1,
+                "canAdd": true,
+                "busy": true,
+                "slowed": true
+              },
+              "recoveryNotice": true
             }
           ],
           "callbacks": [
@@ -4290,11 +6274,29 @@
                     "revision": 1,
                     "tabCount": 1,
                     "color": "workspace-list-item-1",
-                    "symbol": "workspace-list-item-1"
+                    "symbol": "workspace-list-item-1",
+                    "sharedSync": {
+                      "unsyncedTabIds": [
+                        "shared-space-admission-1"
+                      ],
+                      "reason": "full",
+                      "state": "shared",
+                      "lastSyncedAt": 1,
+                      "failed": true,
+                      "pending": true
+                    }
                   }
                 ],
                 "windowTabCount": 1,
-                "tint": "mark"
+                "tint": "mark",
+                "sharedSync": {
+                  "count": 1,
+                  "limit": 1,
+                  "canAdd": true,
+                  "busy": true,
+                  "slowed": true
+                },
+                "recoveryNotice": true
               }
             ]
           ]
@@ -4450,6 +6452,73 @@
         null
       ]
     },
+    "routeActiveSite": {
+      "kind": "invoke",
+      "platforms": [
+        "darwin",
+        "win32",
+        "linux"
+      ],
+      "channel": "chrome:route-active",
+      "calls": [
+        {
+          "label": "typical",
+          "args": [
+            "toggle"
+          ],
+          "sends": [
+            {
+              "kind": "invoke",
+              "channel": "chrome:route-active",
+              "args": [
+                "toggle"
+              ]
+            }
+          ]
+        },
+        {
+          "label": "mode = \"on\"",
+          "args": [
+            "on"
+          ],
+          "sends": [
+            {
+              "kind": "invoke",
+              "channel": "chrome:route-active",
+              "args": [
+                "on"
+              ]
+            }
+          ]
+        },
+        {
+          "label": "mode = \"off\"",
+          "args": [
+            "off"
+          ],
+          "sends": [
+            {
+              "kind": "invoke",
+              "channel": "chrome:route-active",
+              "args": [
+                "off"
+              ]
+            }
+          ]
+        }
+      ],
+      "replies": [
+        {
+          "ok": true
+        },
+        {
+          "ok": true,
+          "host": "route-result-1",
+          "on": true,
+          "error": "unavailable"
+        }
+      ]
+    },
     "siteInfoForgetCertificateException": {
       "kind": "invoke",
       "platforms": [
@@ -4502,6 +6571,32 @@
         [
           "tab-id-1"
         ]
+      ]
+    },
+    "keepMiniWindow": {
+      "kind": "invoke",
+      "platforms": [
+        "darwin",
+        "win32",
+        "linux"
+      ],
+      "channel": "chrome:mini-keep",
+      "calls": [
+        {
+          "label": "typical",
+          "args": [],
+          "sends": [
+            {
+              "kind": "invoke",
+              "channel": "chrome:mini-keep",
+              "args": []
+            }
+          ]
+        }
+      ],
+      "replies": [
+        true,
+        false
       ]
     },
     "inviteFriend": {
@@ -4760,12 +6855,18 @@
           "emit": [
             {
               "tabs": [],
+              "selectedTabIds": [],
+              "canStartGroup": true,
               "activeTabId": "tab-id-1",
               "glanceTabId": "tab-id-1",
               "groups": [],
               "closed": [],
               "closedSlot": 1,
               "tabLayout": "island",
+              "verticalTabsTextSize": "tabs-updated-payload-1",
+              "islandTabIcons": true,
+              "miniWindow": true,
+              "islandSize": "tabs-updated-payload-1",
               "adblockEnabled": true,
               "shieldPopover": {
                 "variant": "site",
@@ -4790,6 +6891,11 @@
                 "darkSite": {
                   "on": true,
                   "appliesNow": true
+                },
+                "route": {
+                  "on": true,
+                  "scope": "profile",
+                  "elsewhere": "shield-route-1"
                 }
               },
               "captureChip": {
@@ -4804,19 +6910,26 @@
               "verticalTabsPreferredWidth": 1,
               "verticalTabsMinWidth": 1,
               "verticalTabsMaxWidth": 1,
-              "verticalTabsDefaultWidth": 1
+              "verticalTabsDefaultWidth": 1,
+              "splits": []
             }
           ],
           "callbacks": [
             [
               {
                 "tabs": [],
+                "selectedTabIds": [],
+                "canStartGroup": true,
                 "activeTabId": "tab-id-1",
                 "glanceTabId": "tab-id-1",
                 "groups": [],
                 "closed": [],
                 "closedSlot": 1,
                 "tabLayout": "island",
+                "verticalTabsTextSize": "tabs-updated-payload-1",
+                "islandTabIcons": true,
+                "miniWindow": true,
+                "islandSize": "tabs-updated-payload-1",
                 "adblockEnabled": true,
                 "shieldPopover": {
                   "variant": "site",
@@ -4841,6 +6954,11 @@
                   "darkSite": {
                     "on": true,
                     "appliesNow": true
+                  },
+                  "route": {
+                    "on": true,
+                    "scope": "profile",
+                    "elsewhere": "shield-route-1"
                   }
                 },
                 "captureChip": {
@@ -4855,7 +6973,8 @@
                 "verticalTabsPreferredWidth": 1,
                 "verticalTabsMinWidth": 1,
                 "verticalTabsMaxWidth": 1,
-                "verticalTabsDefaultWidth": 1
+                "verticalTabsDefaultWidth": 1,
+                "splits": []
               }
             ]
           ]
@@ -4913,16 +7032,25 @@
                       "example"
                     ],
                     "error": "site-info-1"
-                  }
+                  },
+                  "splitId": "tab-entry-1",
+                  "syncNotSynced": true,
+                  "readerAvailable": true,
+                  "readerActive": true
                 }
               ],
+              "selectedTabIds": [
+                "tab-id-1"
+              ],
+              "canStartGroup": true,
               "activeTabId": "tab-id-1",
               "glanceTabId": "tab-id-1",
               "groups": [
                 {
                   "id": "group-id-1",
                   "name": "tab-group-1",
-                  "collapsed": true
+                  "collapsed": true,
+                  "color": "tab-group-1"
                 }
               ],
               "closed": [
@@ -4930,11 +7058,16 @@
                   "id": "closed-entry-id-1",
                   "title": "closed-entry-summary-1",
                   "favicon": "closed-entry-summary-1",
-                  "tabCount": 1
+                  "tabCount": 1,
+                  "fromName": "closed-entry-summary-1"
                 }
               ],
               "closedSlot": 1,
               "tabLayout": "island",
+              "verticalTabsTextSize": "tabs-updated-payload-1",
+              "islandTabIcons": true,
+              "miniWindow": true,
+              "islandSize": "tabs-updated-payload-1",
               "adblockEnabled": true,
               "shieldPopover": {
                 "variant": "site",
@@ -4959,6 +7092,11 @@
                 "darkSite": {
                   "on": true,
                   "appliesNow": true
+                },
+                "route": {
+                  "on": true,
+                  "scope": "profile",
+                  "elsewhere": "shield-route-1"
                 }
               },
               "captureChip": {
@@ -4991,7 +7129,24 @@
               "verticalTabsPreferredWidth": 1,
               "verticalTabsMinWidth": 1,
               "verticalTabsMaxWidth": 1,
-              "verticalTabsDefaultWidth": 1
+              "verticalTabsDefaultWidth": 1,
+              "splits": [
+                {
+                  "id": "split-info-1",
+                  "tabIds": [
+                    "split-info-1"
+                  ],
+                  "layout": {
+                    "kind": "columns",
+                    "widths": [
+                      1
+                    ],
+                    "column": 1,
+                    "row": 1
+                  },
+                  "focusedIndex": 1
+                }
+              ]
             }
           ],
           "callbacks": [
@@ -5047,16 +7202,25 @@
                         "example"
                       ],
                       "error": "site-info-1"
-                    }
+                    },
+                    "splitId": "tab-entry-1",
+                    "syncNotSynced": true,
+                    "readerAvailable": true,
+                    "readerActive": true
                   }
                 ],
+                "selectedTabIds": [
+                  "tab-id-1"
+                ],
+                "canStartGroup": true,
                 "activeTabId": "tab-id-1",
                 "glanceTabId": "tab-id-1",
                 "groups": [
                   {
                     "id": "group-id-1",
                     "name": "tab-group-1",
-                    "collapsed": true
+                    "collapsed": true,
+                    "color": "tab-group-1"
                   }
                 ],
                 "closed": [
@@ -5064,11 +7228,16 @@
                     "id": "closed-entry-id-1",
                     "title": "closed-entry-summary-1",
                     "favicon": "closed-entry-summary-1",
-                    "tabCount": 1
+                    "tabCount": 1,
+                    "fromName": "closed-entry-summary-1"
                   }
                 ],
                 "closedSlot": 1,
                 "tabLayout": "island",
+                "verticalTabsTextSize": "tabs-updated-payload-1",
+                "islandTabIcons": true,
+                "miniWindow": true,
+                "islandSize": "tabs-updated-payload-1",
                 "adblockEnabled": true,
                 "shieldPopover": {
                   "variant": "site",
@@ -5093,6 +7262,11 @@
                   "darkSite": {
                     "on": true,
                     "appliesNow": true
+                  },
+                  "route": {
+                    "on": true,
+                    "scope": "profile",
+                    "elsewhere": "shield-route-1"
                   }
                 },
                 "captureChip": {
@@ -5125,7 +7299,24 @@
                 "verticalTabsPreferredWidth": 1,
                 "verticalTabsMinWidth": 1,
                 "verticalTabsMaxWidth": 1,
-                "verticalTabsDefaultWidth": 1
+                "verticalTabsDefaultWidth": 1,
+                "splits": [
+                  {
+                    "id": "split-info-1",
+                    "tabIds": [
+                      "split-info-1"
+                    ],
+                    "layout": {
+                      "kind": "columns",
+                      "widths": [
+                        1
+                      ],
+                      "column": 1,
+                      "row": 1
+                    },
+                    "focusedIndex": 1
+                  }
+                ]
               }
             ]
           ]
@@ -5228,7 +7419,8 @@
             {
               "mode": "panel",
               "prefill": "overlay-show-payload-1",
-              "purpose": "example"
+              "purpose": "example",
+              "searchPriorityResults": true
             }
           ],
           "callbacks": [
@@ -5236,7 +7428,8 @@
               {
                 "mode": "panel",
                 "prefill": "overlay-show-payload-1",
-                "purpose": "example"
+                "purpose": "example",
+                "searchPriorityResults": true
               }
             ]
           ]
@@ -5252,7 +7445,8 @@
                 "y": 1,
                 "width": 1,
                 "height": 1
-              }
+              },
+              "searchPriorityResults": true
             }
           ],
           "callbacks": [
@@ -5266,7 +7460,8 @@
                   "y": 1,
                   "width": 1,
                   "height": 1
-                }
+                },
+                "searchPriorityResults": true
               }
             ]
           ]
@@ -5377,6 +7572,103 @@
         }
       ]
     },
+    "onStripHidden": {
+      "kind": "event",
+      "platforms": [
+        "darwin",
+        "win32",
+        "linux"
+      ],
+      "channel": "chrome:strip-hidden",
+      "deliveries": [
+        {
+          "emit": [
+            true
+          ],
+          "callbacks": [
+            [
+              true
+            ]
+          ]
+        },
+        {
+          "emit": [
+            false
+          ],
+          "callbacks": [
+            [
+              false
+            ]
+          ]
+        }
+      ]
+    },
+    "onFloatFrame": {
+      "kind": "event",
+      "platforms": [
+        "darwin",
+        "win32",
+        "linux"
+      ],
+      "channel": "chrome:float-frame",
+      "deliveries": [
+        {
+          "emit": [
+            {
+              "role": "pill",
+              "x": 1,
+              "y": 1,
+              "width": 1,
+              "height": 1,
+              "stageWidth": 1
+            }
+          ],
+          "callbacks": [
+            [
+              {
+                "role": "pill",
+                "x": 1,
+                "y": 1,
+                "width": 1,
+                "height": 1,
+                "stageWidth": 1
+              }
+            ]
+          ]
+        }
+      ]
+    },
+    "onFloatShown": {
+      "kind": "event",
+      "platforms": [
+        "darwin",
+        "win32",
+        "linux"
+      ],
+      "channel": "chrome:float-shown",
+      "deliveries": [
+        {
+          "emit": [
+            true
+          ],
+          "callbacks": [
+            [
+              true
+            ]
+          ]
+        },
+        {
+          "emit": [
+            false
+          ],
+          "callbacks": [
+            [
+              false
+            ]
+          ]
+        }
+      ]
+    },
     "onFindResult": {
       "kind": "event",
       "platforms": [
@@ -5402,6 +7694,36 @@
             ]
           ]
         }
+      ]
+    },
+    "toggleReaderMode": {
+      "kind": "invoke",
+      "platforms": [
+        "darwin",
+        "win32",
+        "linux"
+      ],
+      "channel": "tabs:reader-toggle",
+      "calls": [
+        {
+          "label": "typical",
+          "args": [
+            "tab-id-1"
+          ],
+          "sends": [
+            {
+              "kind": "invoke",
+              "channel": "tabs:reader-toggle",
+              "args": [
+                "tab-id-1"
+              ]
+            }
+          ]
+        }
+      ],
+      "replies": [
+        true,
+        false
       ]
     }
   }

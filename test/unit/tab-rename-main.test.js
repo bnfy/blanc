@@ -92,7 +92,7 @@ test('a renamed tab projects its name, with the live page title alongside', () =
 test('every restore and reopen path hands the saved name back to createTab', () => {
   assert.match(mainSource, /customTitle: saved\.meta\?\.\[index\]\?\.customTitle \?\? null,/, 'launch restore');
   assert.match(mainSource, /customTitle: cleaned\.meta\?\.\[index\]\?\.customTitle \?\? null,/, 'opening a space');
-  assert.equal((mainSource.match(/asleep: true, title: member\.title, favicon: member\.favicon, customTitle: member\.customTitle,/g) || []).length, 2, 'group and batch reopen');
+  assert.equal((mainSource.match(/asleep: true, title: member\.title, favicon: member\.favicon, customTitle: member\.customTitle,/g) || []).length, 3, 'group, batch and split reopen');
   assert.match(mainSource, /pinned: entry\.pinned, muted: entry\.muted, groupId: resolvedGroupId, customTitle: entry\.customTitle,/, 'single-tab reopen, every tier');
   const member = mainSource.match(/function closedMemberRecord\(id\) \{[\s\S]*?\n\}/)?.[0];
   assert.match(member, /customTitle: tab\.customTitle \?\? null,/, 'group/batch close records the name');

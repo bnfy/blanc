@@ -376,3 +376,48 @@ test('entryFrom keeps a valid Recently closed slot and omits anything else', () 
   }
   assert.deepEqual(entryFrom({ ...ENTRY }), ENTRY);
 });
+
+test('entryFrom keeps the section order marker and a valid band item index', () => {
+  const kept = entryFrom({ ...ENTRY, sectionOrder: true, closedIndex: 3 });
+  assert.equal(kept.sectionOrder, true);
+  assert.equal(kept.closedIndex, 3);
+  for (const sectionOrder of [false, 'true', 1, null]) {
+    assert.equal('sectionOrder' in entryFrom({ ...ENTRY, sectionOrder }), false, String(sectionOrder));
+  }
+  for (const closedIndex of [-1, '2', 2.5, 0, null]) {
+    assert.equal('closedIndex' in entryFrom({ ...ENTRY, closedIndex }), false, String(closedIndex));
+  }
+});
+
+// Split View (F53): a window's splits and the splitIds column parallel to urls.
+const SPLIT_ENTRY = () => ({
+  urls: ['https://a.test/', 'https://b.test/', 'https://c.test/'],
+  activeIndex: 0,
+  splits: [{ id: 'split-1', layout: { kind: 'columns', widths: [0.6, 0.4] }, focusedIndex: 1 }],
+  splitIds: ['split-1', 'split-1', null],
+  sectionOrder: true,
+});
+
+test('entryFrom keeps splits and splitIds', () => {
+  const entry = entryFrom(SPLIT_ENTRY());
+  assert.deepEqual(entry.splits, SPLIT_ENTRY().splits);
+  assert.deepEqual(entry.splitIds, ['split-1', 'split-1', null]);
+});
+
+test('entryFrom drops a splitIds column that no longer lines up with urls', () => {
+  const entry = entryFrom({ ...SPLIT_ENTRY(), splitIds: ['split-1', 'split-1'] });
+  assert.equal('splits' in entry, false);
+  assert.equal('splitIds' in entry, false);
+});
+
+test('a v2 entry without splits restores with no splits', () => {
+  const entry = entryFrom({ urls: ['https://a.test/'], activeIndex: 0 });
+  assert.equal('splits' in entry, false);
+});
+
+test('the flat rollback mirror never carries splits', () => {
+  const shape = buildSaveShape([entryFrom(SPLIT_ENTRY())], {});
+  assert.equal('splits' in shape, false);
+  assert.equal('splitIds' in shape, false);
+  assert.deepEqual(shape.windows[0].splitIds, ['split-1', 'split-1', null]);
+});

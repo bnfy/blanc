@@ -18,18 +18,24 @@ const fnSource = mainSource.match(/function persistSession\(\) \{[\s\S]*?\n\}/)?
 // extraction, reused by Named Workspaces' capture path) — lift it too, so
 // the sandbox mirrors real module scope instead of one function's text.
 const captureSource = mainSource.match(/function captureWindowEntry\([\s\S]*?\n\}/)?.[0];
-// captureWindowEntry reconciles the Recently closed band's slot first.
-const syncSource = mainSource.match(/function syncClosedSlot\([\s\S]*?\n\}/)?.[0];
+// captureWindowEntry reconciles the tab order and the Recently closed band first.
+const syncSource = mainSource.match(/function syncTabLayout\([\s\S]*?\n\}/)?.[0];
+const pruneSplitsSource = mainSource.match(/function pruneSplits\([\s\S]*?\n\}/)?.[0];
+const savedWindowSplitsSource = mainSource.match(/function savedWindowSplits\([\s\S]*?\n\}/)?.[0];
+const layoutListSource = mainSource.match(/function tabLayoutList\([\s\S]*?\n\}/)?.[0];
 const closedSlotModel = require('../../src/main/closed-slot');
+const tabSections = require('../../src/renderer/tab-sections');
 
 test('persistSession is still liftable out of main.js', () => {
   assert.ok(fnSource, 'persistSession not found — update this test with it');
   assert.ok(captureSource, 'captureWindowEntry not found — update this test with it');
-  assert.ok(syncSource, 'syncClosedSlot not found — update this test with it');
+  assert.ok(syncSource, 'syncTabLayout not found — update this test with it');
+  assert.ok(layoutListSource, 'tabLayoutList not found — update this test with it');
 });
 
 function run(tabList, activeTabId, {
   sessionHeldForQuit = false, primaryWindow = {}, primaryTabs = null, others = [], groups = [], closedSlot = 0,
+  closedSlotIds = null, sharedGroupPersistence = false, sharedGroupIds = [],
 } = {}) {
   const data = {};
   const runtime = {
@@ -37,8 +43,9 @@ function run(tabList, activeTabId, {
     window: primaryWindow,
     tabOrder: primaryTabs ?? tabList.map((t) => t.id),
     groups,
+    sharedGroupPersistence, sharedGroupIds,
     closedSlot,
-    closedSlotIds: groups.map((group) => group.id),
+    closedSlotIds: closedSlotIds ?? groups.map((group) => group.id),
     activeTabId,
   };
   const sandbox = {
@@ -53,6 +60,7 @@ function run(tabList, activeTabId, {
     PRIMARY_WINDOW_ID,
     ensureSessionStore: () => ({ update: (fn) => fn(data) }),
     persistableEntries,
+    documentPolicy: require('../../src/main/document-policy'),
     savesSessionEntry,
     sessionTabMeta,
     loadWorkspace,
@@ -64,8 +72,10 @@ function run(tabList, activeTabId, {
     // runs without needing to know that store exists.
     autosaveWorkspaceBindings: () => {},
     ...closedSlotModel,
+    ...tabSections,
+    ...require('../../src/main/split-model'),
   };
-  vm.runInNewContext(`${syncSource}\n${captureSource}\n${fnSource}\nthis.__fn = persistSession;`, sandbox);
+  vm.runInNewContext(`${layoutListSource}\n${pruneSplitsSource}\n${savedWindowSplitsSource}\n${syncSource}\n${captureSource}\n${fnSource}\nthis.__fn = persistSession;`, sandbox);
   sandbox.__fn();
   return data;
 }
@@ -187,4 +197,34 @@ test('the Recently closed slot counts only groups that are written', () => {
   ];
   assert.equal(run(tabsList, 'w', { groups, closedSlot: 2 }).windows[0].closedSlot, 1);
   assert.equal('closedSlot' in run(tabsList, 'w', { groups, closedSlot: 1 }).windows[0], false);
+});
+
+test('a window entry marks its order as drawn and saves the band as an item index', () => {
+  const groups = [{ id: 'work', name: 'Work', collapsed: false }];
+  const tabsList = [
+    tab({ id: 'l1', url: 'https://l1/' }),
+    tab({ id: 'w', url: 'https://work/', groupId: 'work' }),
+    tab({ id: 'p', url: 'https://private/', private: true }),
+    tab({ id: 'l2', url: 'https://l2/' }),
+  ];
+  // Items: l1, work, p, l2. The band below p: three items above it, but the
+  // private tab is never written, so two persisted items and one group.
+  const items = ['l1', 'work', 'p', 'l2'];
+  const entry = run(tabsList, 'w', { groups, closedSlot: 3, closedSlotIds: items }).windows[0];
+  assert.equal(entry.sectionOrder, true);
+  assert.equal(entry.closedIndex, 2);
+  assert.equal(entry.closedSlot, 1, 'the rollback slot still counts groups');
+  const top = run(tabsList, 'w', { groups, closedSlot: 0, closedSlotIds: items }).windows[0];
+  assert.equal('closedIndex' in top, false);
+  assert.equal('closedSlot' in top, false);
+});
+
+test('shared receipts can durably represent a group before its first tab is materialized',()=>{
+ const result=run([tab({id:'anchor',url:'https://anchor.test/'})],'anchor',{groups:[{id:'empty',name:'Waiting',color:null,collapsed:false}],sharedGroupPersistence:true,sharedGroupIds:['empty']});
+ assert.equal(result.windows[0].groups[0].id,'empty');
+});
+
+test('unreferenced local groups do not gain the shared persistence exception',()=>{
+ const result=run([tab({id:'anchor'})],'anchor',{groups:[{id:'private-only',name:'Private'}],sharedGroupPersistence:true,sharedGroupIds:[]});
+ assert.equal(result.windows[0].groups.length,0);
 });

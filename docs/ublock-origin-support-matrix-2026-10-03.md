@@ -94,3 +94,72 @@ head `0646b46b`. That is hosted CI on unpackaged builds; the installed-candidate
 acceptance above was recorded for v1.27.0 on Electron 44.5.1 and was not
 repeated. The release record is
 [2026-10-16-v1.35.0.md](release-incidents/2026-10-16-v1.35.0.md).
+
+## Runtime update to Electron 44.9.3 (October 23, 2026, unreleased)
+
+At the owner's request (October 23, 2026), `main` moves from official Electron
+44.8.0 to **44.9.3** for GHSA-jr5w-w6x2-84p9: Electron 44.9.1 blocks the
+compromised eMudhra intermediate certificates in Chromium networking and in
+Node's `tls`/`https`/`fetch`. Chromium (152.0.7977.167) and Node (24.22.0) are
+the same as on 44.8.0. `src/main/ublock-platforms.json` moves its reviewed
+runtime to `44.9.3` with the dependency. uBO 1.75.0, its pinned upstream files
+and the four enabled combinations are unchanged. The four `desktop (…)` jobs
+on the PR head are the blocking and tools evidence the
+[runtime maintenance policy](ublock-origin-shipping-2026-10-03.md#runtime-maintenance-policy)
+requires. This section gets the run link before that PR merges; the release
+record will carry it forward.
+
+44.9.0 also removed Electron's internal `openerSandboxFlags` preference, so
+Blanc can no longer rebuild a page-opened tab with its opener's HTML/CSP
+sandbox. Blanc now marks those tabs and keeps them inert wherever a rebuild
+would be needed (`src/main/document-policy.js`). The same four jobs run
+`test:document-policy:desktop` and `test:modified-links:desktop` on the PR head.
+
+## Runtime update to ECS 44.10.1+wvcus (November 2026, unreleased)
+
+`src/main/ublock-platforms.json` moves `electron` to `44.10.1` and `ecsRuntime`
+to `44.10.1+wvcus` (Chromium 152.0.7977.169, Node 24.22.1). uBO 1.75.0 and its
+pinned upstream files are unchanged. Rosetta stays excluded.
+
+Signed-package uBO acceptance passed on source `c40477ab7` on November 7, 2026:
+
+| Target | Evidence | Package |
+| --- | --- | --- |
+| Apple Silicon | Local run on this Mac | Notarized, Gatekeeper and VMP verified |
+| Native Intel Mac | Run `42339778316` | The same notarized build, pinned by DMG, `app.asar` and executable hash |
+| Windows x64 | Run `42337900427` | Authenticode and VMP signed |
+| Linux x64 | Run `42334059332` | Public ECS AppImage |
+
+All four targets also passed protected playback. On Intel, the first run
+(`42339778316`) stalled with sound on, while muted playback advanced about 5
+seconds, with VMP verified and no media errors. With the owner-approved step that
+answers the runner's microphone dialog, the same notarized build passed strict
+unmuted playback in run `42340331632`, advancing 5.03 seconds, so this was
+October's runner audio stall (`docs/ecs-production-integration.md`). That run
+records one aborted `storage.googleapis.com` request, as October's did.
+
+## Runtime update to ECS 45.2.1+wvcus (November 2026, unreleased)
+
+`src/main/ublock-platforms.json` moves `electron` to `45.2.1` and `ecsRuntime`
+to `45.2.1+wvcus` (Chromium 156.0.8078.75, Node 24.22.1). uBO 1.75.0 and its
+pinned upstream files are unchanged. Rosetta stays excluded. Manifest V2 still
+loads in Chromium 156.
+
+Signed-package uBO acceptance passed on source `73992c725` on November 7, 2026:
+
+| Target | Evidence | Package |
+| --- | --- | --- |
+| Apple Silicon | Local run on this Mac | Notarized, stapled, Gatekeeper and VMP verified |
+| Native Intel Mac | Run `42379528773` | The same notarized build, pinned by DMG, `app.asar` and executable hash |
+| Windows x64 | Run `42378362544` | Authenticode and VMP signed |
+| Linux x64 | Run `42378364429` | Public ECS AppImage |
+
+Each target passed the installed uBO checks (provider restarts, filtering,
+popup and logger, private isolation, quiet tabs, Blanc restart, filters across
+restarts, global switch, and the platform's quit or last-window path), the
+scripting-policy probe, local-file isolation and unmuted protected playback.
+Widevine reported `PLATFORM_SOFTWARE_VERIFIED` on macOS and Windows; Linux has
+no VMP and reported `PLATFORM_UNVERIFIED`, with the CDM inside its own seccomp
+and namespace sandbox, so the repointed zygote patch works on this runtime.
+Intel playback advanced 4.47 seconds (others about 5), with no media errors,
+using the owner-approved step that answers the runner's microphone dialog.

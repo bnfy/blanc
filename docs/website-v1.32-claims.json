@@ -99,63 +99,12 @@
       "verdict": "qualified"
     },
     {
-      "id": "site-132-arc-alternative-02",
-      "source": "site/src/pages/arc-alternative.astro",
-      "exactWording": "Bring your Arc Spaces with you.",
-      "subject": "Blanc",
-      "evidenceGroups": [
-        "arcImport"
-      ],
-      "verdict": "qualified"
-    },
-    {
-      "id": "site-132-arc-alternative-03",
-      "source": "site/src/pages/arc-alternative.astro",
-      "exactWording": "Your Spaces, pinned tabs and folders.",
-      "subject": "Blanc",
-      "evidenceGroups": [
-        "arcImport"
-      ],
-      "verdict": "qualified"
-    },
-    {
-      "id": "site-132-arc-alternative-05",
-      "source": "site/src/pages/arc-alternative.astro",
-      "exactWording": "What stays in Arc.",
-      "subject": "Blanc",
-      "evidenceGroups": [
-        "arcImport"
-      ],
-      "verdict": "qualified"
-    },
-    {
-      "id": "site-132-arc-alternative-06",
-      "source": "site/src/pages/arc-alternative.astro",
-      "exactWording": "Blanc reads Arc’s sidebar file on your computer and never changes it. Arc’s top-row Favorites can go into a Favorites folder named Arc. Sign-ins, passwords, history, archived tabs, Notes and Easels stay in Arc. Arc never came to Linux, so there you choose a StorableSidebar.json copied from a Mac or PC.",
-      "subject": "Blanc",
-      "evidenceGroups": [
-        "arcImport"
-      ],
-      "verdict": "qualified"
-    },
-    {
       "id": "site-132-arc-alternative-07",
       "source": "site/src/pages/arc-alternative.astro",
       "exactWording": "Blanc can import bookmarks into Favorites from Chromium-based browsers installed on your computer, such as Chrome, Edge and Brave.",
       "subject": "Blanc",
       "evidenceGroups": [
         "importing"
-      ],
-      "verdict": "qualified"
-    },
-    {
-      "id": "site-132-arc-alternative-08",
-      "source": "site/src/pages/arc-alternative.astro",
-      "exactWording": "Blanc does not install extensions from the Chrome Web Store, bring over your Arc sign-ins, passwords or history, or include an AI assistant. If you rely on any of those, Blanc may not be the right fit today.",
-      "subject": "Blanc",
-      "evidenceGroups": [
-        "arcImport",
-        "foundations"
       ],
       "verdict": "qualified"
     },
@@ -293,6 +242,62 @@
     }
   ],
   "supersededClaims": [
+    {
+      "id": "site-132-arc-alternative-02",
+      "source": "site/src/pages/arc-alternative.astro",
+      "exactWording": "Bring your Arc Spaces with you.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "arcImport"
+      ],
+      "verdict": "qualified",
+      "reason": "Superseded by the owner-approved October 19 switching guide; replacement wording and current release evidence are in docs/website-arc-switching-claims-v1.38.json."
+    },
+    {
+      "id": "site-132-arc-alternative-03",
+      "source": "site/src/pages/arc-alternative.astro",
+      "exactWording": "Your Spaces, pinned tabs and folders.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "arcImport"
+      ],
+      "verdict": "qualified",
+      "reason": "Superseded by the owner-approved October 19 switching guide; replacement wording and current release evidence are in docs/website-arc-switching-claims-v1.38.json."
+    },
+    {
+      "id": "site-132-arc-alternative-05",
+      "source": "site/src/pages/arc-alternative.astro",
+      "exactWording": "What stays in Arc.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "arcImport"
+      ],
+      "verdict": "qualified",
+      "reason": "Superseded by the owner-approved October 19 switching guide; replacement wording and current release evidence are in docs/website-arc-switching-claims-v1.38.json."
+    },
+    {
+      "id": "site-132-arc-alternative-06",
+      "source": "site/src/pages/arc-alternative.astro",
+      "exactWording": "Blanc reads Arc’s sidebar file on your computer and never changes it. Arc’s top-row Favorites can go into a Favorites folder named Arc. Sign-ins, passwords, history, archived tabs, Notes and Easels stay in Arc. Arc never came to Linux, so there you choose a StorableSidebar.json copied from a Mac or PC.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "arcImport"
+      ],
+      "verdict": "qualified",
+      "reason": "Superseded by the owner-approved October 19 switching guide; replacement wording and current release evidence are in docs/website-arc-switching-claims-v1.38.json."
+    },
+    {
+      "id": "site-132-arc-alternative-08",
+      "source": "site/src/pages/arc-alternative.astro",
+      "exactWording": "Blanc does not install extensions from the Chrome Web Store, bring over your Arc sign-ins, passwords or history, or include an AI assistant. If you rely on any of those, Blanc may not be the right fit today.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "arcImport",
+        "foundations"
+      ],
+      "verdict": "qualified",
+      "reason": "Superseded by the owner-approved October 19 switching guide; replacement wording and current release evidence are in docs/website-arc-switching-claims-v1.38.json."
+    },
     {
       "id": "site-132-features-01",
       "source": "site/src/pages/features.astro",

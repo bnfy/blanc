@@ -1,0 +1,35 @@
+{
+  "purpose": "Isolated real-binary Mac lifecycle qualification; never packaged or selected for users",
+  "arm64": {
+    "previous": {
+      "version": "4.10.3050.0",
+      "source": "https://github.com/mozilla-firefox/firefox/blob/1a3f431ba3781951cec130646414e652fcd509eb/toolkit/content/gmp-sources/widevinecdm.json",
+      "url": "https://www.google.com/dl/release2/chrome_component/ad7g6ajom265ggbvq6rrx4nb22ra_4.10.3050.0/oimompecagnajdejgnnjijobebaeigek_4.10.3050.0_mac_arm64_ad6r3hn3iuwofjkdi4widjwuy3na.crx3",
+      "bytes": 20189918,
+      "sha512": "5ade9a40703c835026d26dc660cf5793a03e275229438f7ff7154116a33ce595d1ee99a79f6f0579231bdc9f51e72363d35c958f02ace911a7c47fb260402560"
+    },
+    "current": {
+      "version": "4.10.3112.0",
+      "source": "https://github.com/mozilla-firefox/firefox/blob/f268f9f0bac68a3e043a0ba9c2f166137fdf733b/toolkit/content/gmp-sources/widevinecdm.json",
+      "url": "https://www.google.com/dl/release2/chrome_component/ac7kldzznoqpelvhlm22cvg6iw7q_4.10.3112.0/oimompecagnajdejgnnjijobebaeigek_4.10.3112.0_mac_arm64_acwuvzzk4g3lgkvyjjsbyjwqnxoq.crx3",
+      "bytes": 20423379,
+      "sha512": "6f319883d2eeaabc8df1c0d682eb2b165f6bdadc22f8c5dbe5f4d5a6b22e35a4f7976eb94c4b31d2a0ab899fcb32123d15893b47138c0ddd33a395b04da05914"
+    }
+  },
+  "x64": {
+    "previous": {
+      "version": "4.10.3050.0",
+      "source": "https://github.com/mozilla-firefox/firefox/blob/1a3f431ba3781951cec130646414e652fcd509eb/toolkit/content/gmp-sources/widevinecdm.json",
+      "url": "https://www.google.com/dl/release2/chrome_component/ac46odufbnrvxcdn4wur6s2o4kjq_4.10.3050.0/oimompecagnajdejgnnjijobebaeigek_4.10.3050.0_mac64_acvag6gyzleiuk2y32voj4ebbeja.crx3",
+      "bytes": 22572251,
+      "sha512": "46811cd377e161a6720ac51687a170430651157b5d3b5296f09904f3d3420ac148c4beb59533f5ebde5a50a941f48b477b624fda6c67d0dc2264d7e4d6af3e47"
+    },
+    "current": {
+      "version": "4.10.3112.0",
+      "source": "https://github.com/mozilla-firefox/firefox/blob/f268f9f0bac68a3e043a0ba9c2f166137fdf733b/toolkit/content/gmp-sources/widevinecdm.json",
+      "url": "https://www.google.com/dl/release2/chrome_component/acvkbk6uzwaavliybbd7ayuuab5a_4.10.3112.0/oimompecagnajdejgnnjijobebaeigek_4.10.3112.0_mac64_adtfufbhdjipnvjmwyq2z6yuhyaa.crx3",
+      "bytes": 22867646,
+      "sha512": "b16a01aed3b19ab648efc477d1c712454a39a2b5226d09a1e166e8cba4def6d6eeed5107cd80c577a4f79dec43cce6b4cd45bcc48ce026cf0f82b14b3d32ecca"
+    }
+  }
+}

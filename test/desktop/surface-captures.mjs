@@ -9,6 +9,7 @@ import { execFileSync } from 'node:child_process';
 import { _electron } from 'playwright';
 import testHookCall from './support/test-hook-call.js';
 import poll from './support/poll.js';
+import { inMainTurn } from './support/main-turn.js';
 
 const { callTestHook } = testHookCall;
 const { waitForValue } = poll;
@@ -128,7 +129,7 @@ try {
       } catch { /* a view without a debugger target keeps its scheme */ }
     }
   }, scheme);
-  const inSheet = (script) => app.evaluate(async ({ webContents }, code) => {
+  const inSheet = (script) => inMainTurn(app, async ({ webContents }, code) => {
     const id = globalThis.__blanc.utilitySheetContentsId();
     return id ? webContents.fromId(id).executeJavaScript(code) : null;
   }, script);

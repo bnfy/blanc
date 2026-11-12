@@ -24,11 +24,24 @@ test('directoryRows derives the opened host and the engine tag', async () => {
 
 test('directoryRows sorts the whole list without stalling the page', async () => {
   // A collator per comparison took ~290 ms on a fast Mac; one shared takes ~15.
+  // Timing it flaked on slow CI runners (166–376 ms on hosted Intel Macs), so
+  // check the cause instead: sorting builds no collator and never falls back
+  // to String#localeCompare, which makes one per call.
   const { directoryRows } = await directory();
-  const started = performance.now();
-  directoryRows(data);
-  const took = performance.now() - started;
-  assert.ok(took < 150, `directoryRows took ${Math.round(took)} ms`);
+  const RealCollator = Intl.Collator;
+  const realLocaleCompare = String.prototype.localeCompare;
+  let collators = 0;
+  let localeCompares = 0;
+  Intl.Collator = function Collator(...args) { collators += 1; return new RealCollator(...args); };
+  String.prototype.localeCompare = function localeCompare(...args) { localeCompares += 1; return realLocaleCompare.apply(this, args); };
+  try {
+    directoryRows(data);
+  } finally {
+    Intl.Collator = RealCollator;
+    String.prototype.localeCompare = realLocaleCompare;
+  }
+  assert.equal(collators, 0, 'no collator per call');
+  assert.equal(localeCompares, 0, 'no localeCompare per comparison');
 });
 
 test('filterBangs finds a bang by site or by code, literally', async () => {

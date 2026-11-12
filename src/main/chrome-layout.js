@@ -2,6 +2,8 @@
 // outside main.js makes the 640px minimum-window edge case testable without
 // Electron and gives the renderer one authoritative rail-width constant.
 
+const { dragBandHeight } = require('./island-autohide');
+
 const VERTICAL_TABS_DEFAULT_WIDTH = 248;
 const VERTICAL_TABS_MIN_WIDTH = 200;
 const VERTICAL_TABS_MAX_WIDTH = 360;
@@ -47,20 +49,27 @@ function normalizeVerticalTabsWidth(value) {
  *   width: number,
  *   height: number,
  *   chromeHeight: number,
+ *   islandHeight?: number,
  *   tabLayout?: string,
  *   verticalTabsWidth?: number,
+ *   platform?: string,
  * }} input
  */
 function calculateChromeLayout({
   width,
   height,
   chromeHeight,
+  // Where the Island sits, when that differs from where the page starts: a
+  // floating Island is shown while the page keeps the top of the window.
+  islandHeight = chromeHeight,
   tabLayout = 'island',
   verticalTabsWidth = VERTICAL_TABS_DEFAULT_WIDTH,
+  platform,
 }) {
   const windowWidth = dimension(width);
   const windowHeight = dimension(height);
   const stripHeight = Math.min(dimension(chromeHeight), windowHeight);
+  const islandTop = Math.min(dimension(islandHeight), windowHeight);
   const layout = normalizeTabLayout(tabLayout);
   const preferredRailWidth = normalizeVerticalTabsWidth(verticalTabsWidth);
   // BrowserWindow enforces a 640px minimum width, so production can honor the
@@ -96,7 +105,7 @@ function calculateChromeLayout({
   const findWidth = Math.min(FIND_OVERLAY_MAX_WIDTH, pageWidth);
   const findBounds = {
     x: railWidth + Math.round((pageWidth - findWidth) / 2),
-    y: stripHeight,
+    y: islandTop,
     width: findWidth,
     height: Math.min(FIND_OVERLAY_HEIGHT, pageHeight),
   };
@@ -131,7 +140,15 @@ function calculateChromeLayout({
       x: railWidth,
       y: 0,
       width: pageWidth,
-      height: stripHeight,
+      height: islandTop,
+    },
+    // The invisible window-drag band across the top of the page pane, drawn
+    // by the strip document while the page covers the strip.
+    dragBand: {
+      x: railWidth,
+      y: 0,
+      width: pageWidth,
+      height: Math.min(dragBandHeight(platform), windowHeight),
     },
     findCapsuleMaxWidth: Math.max(
       0,

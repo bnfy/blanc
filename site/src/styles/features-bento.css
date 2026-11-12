@@ -204,6 +204,9 @@
 .ui-private-note { color: var(--bento-on-ink-dim); text-align: center; }
 
 /* Dense grid */
+/* The memory chart sits between the main tiles and the smaller details. */
+.bento-memory { width: var(--W); margin: calc(var(--bento-gap) * 8) 0 0; margin-inline: calc(50% - var(--W) / 2); }
+.bento-memory .memchart-section { padding-block: 0; }
 .bento-more { width: var(--W); margin: calc(var(--bento-gap) * 8) 0 0; margin-inline: calc(50% - var(--W) / 2); }
 .bento-more h2 { margin: 0 0 calc(var(--bento-gap) * 3); font-family: var(--site-font-display); font-size: clamp(30px, 3.4vw, 44px); font-weight: 400; letter-spacing: 0; line-height: 1.05; text-align: center; }
 .bento-grid { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: calc(var(--W) * .012); }

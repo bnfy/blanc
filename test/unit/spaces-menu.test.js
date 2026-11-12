@@ -28,6 +28,20 @@ test('rows show a painted symbol tile, the name, the count and the current space
   assert.equal(h.byKey('recently-deleted'), undefined, 'Recently deleted only appears when non-empty');
 });
 
+test('a shared Space shows its sync status on a line under its name, so the name keeps the row', () => {
+  const shared = { id: 'a', name: 'iPhone Air', active: false, openElsewhere: true, tabCount: 2, color: '#426c4c', symbol: 'briefcase',
+    sharedSync: { state: 'waiting', unsyncedTabIds: [], reason: null } };
+  const h = harness({}, { items: [shared, TWO.items[1]] }); h.ui.open();
+  const [row, local] = h.list.children.filter((n) => n.className.includes('ws-row'));
+  const main = row.children[0];
+  const text = main.children[1];
+  assert.equal(text.className, 'ws-row-text');
+  assert.deepEqual(text.children.map((n) => [n.className, n.textContent]), [['ws-row-name', 'iPhone Air'], ['ws-sync-mark', 'Waiting to upload']]);
+  assert.equal(text.children[1].attrs.role, 'status');
+  assert.deepEqual([main.children.length, main.children[2].className, main.children[2].textContent], [3, 'ws-row-count', 'Show window'], 'the count, or Show window, stays on the right');
+  assert.equal(local.children[0].children[1].className, 'ws-row-name', 'a local Space keeps its one line');
+});
+
 test('with no spaces the menu explains itself and offers the Arc import', () => {
   const h = harness({}, { items: [] }); h.ui.open();
   assert.match(h.text(), /Save a set of tabs and switch back to it any time\./);
@@ -197,7 +211,7 @@ test('Recently Deleted shows each space as it was, with when it went, Restore an
   const bin = h.byKey('forget:r');
   assert.equal(bin.textContent, '', 'a trash button, not the long label');
   assert.equal(bin.attrs['aria-label'], 'Delete Reading list for the weekend permanently…', 'named, so each row\'s button is distinct to a screen reader');
-  assert.equal(bin.title, 'Delete permanently…');
+  assert.equal(bin.dataset.tooltip, 'Delete permanently…');
   assert.equal(h.byKey('restore:r').attrs['aria-label'], 'Restore Reading list for the weekend');
   assert.ok(bin.querySelector('.ws-glyph'), 'drawn as a trash can');
   bin.click();
@@ -364,9 +378,28 @@ test('the footer button never shows a space name: it lives in the tooltip and ac
   assert.doesNotMatch(button, /<span/, 'no text-bearing child in the Spaces button');
   const h = harness();
   assert.equal(h.trigger.textContent, '');
-  assert.match(h.trigger.title, /First/);
-  assert.equal(h.trigger.getAttribute('aria-label'), h.trigger.title);
+  assert.match(h.trigger.dataset.tooltip, /First/);
+  assert.equal(h.trigger.getAttribute('aria-label'), h.trigger.dataset.tooltip);
   assert.equal(h.trigger.classList.contains('bound'), true, 'the fill still shows the window is in a space');
+});
+
+test('in a space the footer button shows that space\'s tile, repainted for the theme; in none, its planet', () => {
+  const Identity = require('../../src/renderer/space-identity.js');
+  let theme = 'light';
+  const h = harness({}, {}, { theme: () => theme });
+  const [tile] = h.trigger.children;
+  assert.equal(h.trigger.children.length, 1);
+  assert.equal(tile.className, 'ws-tile ws-trigger-tile');
+  assert.equal(tile.props['--space-fill'], Identity.paint('#426c4c', 'light').fill);
+  assert.equal(tile.children.length, 1, 'the space\'s symbol');
+  assert.equal(h.trigger.textContent, '', 'the name stays in the tooltip');
+  // A private tab draws the tile for the private surface.
+  theme = 'private'; h.ui.repaintTrigger();
+  assert.equal(h.trigger.children[0].dataset.edge, String(Identity.paint('#426c4c', 'private').edge));
+  // Out of a space the button goes back to its own glyph.
+  h.ui.apply({ items: [{ id: 'a', name: 'First', active: false, tabCount: 1, color: '#426c4c', symbol: 'briefcase' }], deleted: [], status: 'saved', windowTabCount: 3 });
+  assert.equal(h.trigger.querySelector('.ws-trigger-tile'), null);
+  assert.equal(h.trigger.classList.contains('bound'), false);
 });
 
 test('inside the Island the menu hangs from the Island\'s bottom edge, not over its last row', () => {

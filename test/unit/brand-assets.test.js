@@ -21,7 +21,10 @@ test('packaged UI excludes retired B app icons and keeps Sunrise and Mahjong til
   const icons = fs.readdirSync(pages).filter((name) => /^icon-.*\.png$/.test(name));
   for (const name of ['icon.svg', ...icons]) {
     const file = path.join(pages, name);
-    const current = ['icon-sunrise.png', 'icon-sunrise-dark.png'].includes(name);
+    const current = [
+      'icon-sunrise.png', 'icon-sunrise-dark.png', 'icon-sunrise-gold.png', 'icon-sunrise-gold-dark.png',
+      'icon-sunrise-spectrum.png', 'icon-sunrise-spectrum-dark.png', 'icon-sunrise-amber.png', 'icon-sunrise-amber-dark.png',
+    ].includes(name);
     assert.equal(filter(file, fs.statSync(file)), current, `${name}: shipped only for current Sunrise variants`);
   }
   for (const name of fs.readdirSync(pages).filter((name) => name.startsWith('mahjong-'))) {
@@ -107,12 +110,10 @@ test('current and archived icon artwork retain their canonical identity sources'
   const platformSource = fs.readFileSync(path.join(ROOT, 'assets/sunrise-app-icon.png'));
   const platformIcon = fs.readFileSync(path.join(ROOT, 'build/icon.png'));
   assert.deepEqual(platformIcon, platformSource);
-  assert.deepEqual(
-    fs.readFileSync(path.join(ROOT, 'ios/Blanc/Blanc/Assets.xcassets/AppIcon.appiconset/icon-sunrise.png')),
-    platformIcon,
-  );
-  const appIconCatalog = JSON.parse(source('ios/Blanc/Blanc/Assets.xcassets/AppIcon.appiconset/Contents.json'));
-  assert.equal(appIconCatalog.images[0].filename, 'icon-sunrise.png');
+  // The iPhone icon is the Icon Composer package (ios-app-icons.test.js); the
+  // flat asset-catalog icon it replaced must not come back beside it.
+  assert.equal(fs.existsSync(path.join(ROOT, 'ios/Blanc/Blanc/Assets.xcassets/AppIcon.appiconset')), false);
+  assert.equal(fs.existsSync(path.join(ROOT, 'ios/Blanc/Blanc/AppIcons/AppIcon.icon/icon.json')), true);
   assert.ok(fs.statSync(path.join(ROOT, 'build/windows-icons/icon-sunrise.ico')).size > 10_000);
 });
 
@@ -287,6 +288,12 @@ test('brand checks treat one-level platform rounding as current but catch real p
     'a two-level colour change is a real change');
   assert.equal(await pngsEquivalent(base, await png([247, 240, 229, 255, 14, 14, 14, 254])), true,
     'alpha rounding gets the same one-level allowance');
+  assert.equal(await pngsEquivalent(await png([255, 0, 0, 1, 14, 14, 14, 255]), await png([0, 0, 0, 1, 14, 14, 14, 255])), true,
+    'a nearly clear pixel whose stored colour swings with premultiplied rounding draws the same');
+  assert.equal(await pngsEquivalent(await png([255, 0, 0, 128, 14, 14, 14, 255]), await png([0, 0, 0, 128, 14, 14, 14, 255])), false,
+    'a visible translucent colour change is a real change');
+  assert.equal(await pngsEquivalent(base, await png([247, 240, 229, 128, 14, 14, 14, 255])), false,
+    'an opacity change is a real change');
   assert.equal(await pngsEquivalent(base, await png([247, 240, 229, 255], 1)), false,
     'different dimensions never match');
   assert.equal(await pngsEquivalent(Buffer.from('<svg/>'), Buffer.from('<svg/>')), false,

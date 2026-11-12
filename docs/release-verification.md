@@ -32,6 +32,45 @@ public release.
 
 ## Release-operator runbook
 
+### Electron ECS maintenance gate
+
+For every ECS release preparation, check the official
+[castLabs stable releases](https://github.com/castlabs/electron-releases/releases)
+and their security changes. Repeat before signing if a newer security release
+appears during preparation. Record the check date, exact ECS tag/publication
+date, per-platform download URLs and published/independently computed SHA-256
+hashes. Pin the same verified bytes in local and CI builds, and verify the
+packaged and executing Electron, Chromium and Node versions. Never substitute
+a floating download or silently downgrade to make another gate pass.
+
+Every ECS update reopens runtime-sensitive acceptance: local HTML, nested file
+frames, service workers and WebRTC; offline/online CDM startup; final-fuse EVS
+and platform signatures; protected Spotify/Netflix playback and Mac flicker;
+uBO, 1Password and passkeys; profile migration and real updater handoffs on
+every shipped architecture. Recheck the exact CDM service/sandbox tuple and
+ordinary-helper library validation if using the candidate dispatcher. Previous
+runtime approval and vendor correspondence do not replace these checks.
+
+For Linux, additionally require cold and cached offline startup, active-CDM
+selection through updates/rollbacks, and kernel CDM isolation after each
+transition. Synthetic cache metadata is not proof of a signed CDM binary
+upgrade or rollback. Test actual AppImage Restart Now replacement and repeated
+ECS updater continuity without a development launcher or a helper from an old
+unpacked build. The preload setup and native profile must survive a standalone
+relaunch. Qualify two consecutive real Restart Now handoffs with the old loose
+tree unavailable, encrypted playback and kernel isolation in each successor,
+and the local HTML/frames/workers/WebRTC checks on the final image. Verify the
+real fused Electron executable, not the native entrypoint wrapper. See
+[Linux production qualification](ecs-linux-production-qualification-2026-10-22.md)
+for the current evidence and open blockers.
+
+Keep production entitlement restrictions unchanged unless a separate change is
+explicitly reviewed and approved. Missing security/native evidence blocks
+release absent an explicit recorded owner waiver. A vendor email response is
+not itself a release prerequisite. See [ECS native qualification](ecs-native-qualification.md)
+for the isolated validation workflow, signing limitations and staging-only
+updater boundary; its successful tests do not authorize publication.
+
 When preparing `docs/press/release-notes/v<version>.md`, review the
 [unreleased notes](press/release-notes/unreleased.md) and include only changes
 present in the selected release commit. For the Linux setup-guide buttons,
@@ -57,6 +96,58 @@ must not be asked to copy, paste, or reconstruct the command. The release must
 remain visible and interactive; this is not permission for a background
 wrapper.
 
+### Run the press gate ahead of time, and resume it
+
+The press gate (`npm run release:verify:press`, which `release.sh` runs after
+its own `npm ci`) keeps a ledger in the release worktree at
+`output/release-gate/<commit>/`. A stage or acceptance scenario that passed
+there is not run again while all of these still match: the commit (with a
+clean tree), Node and npm, the installed dependency trees
+(`node_modules/.package-lock.json` and the site's), the Electron binary, and
+any `BLANC_*`/`ELECTRON_*`/`NODE_OPTIONS` test override. A pass also has to
+be under 48 hours old, and its log or Cucumber message file has to match the
+SHA-256 recorded with it. `release:security` always reruns, because it
+checks today's advisory database. Spec:
+`docs/superpowers/specs/2026-11-02-press-gate-ledger-design.md`.
+
+Run it ahead of the release, after the prep PR and any What's New PR have
+merged, in the private release worktree detached at `origin/main` that
+`release.sh` will run in:
+
+```sh
+npm run release:prepare
+```
+
+It installs exactly as `release.sh` does (`ublock:distribution`, `npm ci`,
+`npm ci --prefix site`), keeps the Mac awake, and runs every stage, carrying
+on past a failure so one run collects every pass it can. It needs no
+1Password, Sigstore, Terminal.app or TTY and publishes nothing, so an agent
+may run it in the background; it is not a release. Nothing else may use the
+Mac while acceptance runs (window focus). Run it again to retry only what
+failed or never ran.
+
+`npm run release:gate:status` prints what is recorded for the current
+commit and what is still owed, running nothing. When it reports that
+everything but `release:security` passed, start the release; the gate then
+takes seconds, and both 1Password prompts come within a minute of each other.
+
+- **Any commit on `main` after the gate ran voids it**, because the commit is
+  part of the key. Hold merges to `main` from `release:prepare` until the
+  release command starts.
+- Use the same shell setup (the same `node`) for `release:prepare` and the
+  release, or the key differs and everything reruns.
+- Inside `release.sh` the gate stops at the first failing stage. Relaunching
+  the same release command on the same commit runs only what is still owed,
+  including after a Ctrl+C; inside acceptance that means only the scenarios
+  that failed or never finished. Each attempt still gets the full in-run
+  budget (Cucumber's retry and the one fresh-process rerun of 1–10 failures).
+- The gate ends with a `Press gate evidence:` block listing every stage's
+  pass (time, attempt, log digest), acceptance's count and attempts, every
+  scenario that passed only after failing in an earlier run with that run's
+  error, and the ledger's SHA-256. Quote it verbatim in the release incident,
+  with any `Acceptance rerun passed` blocks. Keep the release worktree's
+  `output/release-gate/` until the records PR merges.
+
 ### Resuming after a flaky packaged check
 
 A packaged check between the macOS build and the tag push can fail for a
@@ -78,8 +169,25 @@ refuses unless `dist/.release-build-stamp`, written after a successful build,
 names this commit, version and Mac architecture set, and every file it lists
 (each top-level artifact, plus each app's executable and `app.asar`) still has
 its recorded SHA-256. Record the reason in the release incident. A failure in
-the press gate, the build or anything after the tag push is not resumable this
-way. A real bug always means a fix and a full release.
+the build or anything after the tag push is not resumable this way; the press
+gate resumes through its own ledger (above). A real bug always means a fix and
+a full release.
+
+When every press-gate step has already passed on the release commit, but not
+in one run (a flake stopped `release.sh` and the rest were run by hand), the
+owner may waive the gate in writing:
+
+```sh
+BLANC_RELEASE_PRESS_WAIVER='<the commit, which run passed each step, and the owner approval>' \
+<the same release command>
+```
+
+It skips `npm run release:verify:press` alone; the dependency installs, every
+preflight, the build and every packaged check still run. Never use it without
+that evidence for every step, and record the waiver in the release incident as
+a waiver, not as a passed gate. It was a one-off stopgap for 1.46.0: with the
+gate's ledger (above), relaunching the release resumes the gate instead, so a
+waiver is only for passes the ledger did not record.
 
 ### Private Windows and Linux validation before release
 
@@ -162,6 +270,10 @@ BLANC_RELEASE_OPERATOR=terminal \
 BLANC_COSIGN_IDENTITY='anthony@bnfy.me' \
 BLANC_COSIGN_OIDC_ISSUER='https://github.com/login/oauth' \
 BLANC_RELEASE_MODE=stable \
+BLANC_RELEASE_RUNTIME=ecs \
+BLANC_EVS_PYTHON="$HOME/.config/evs/venv/bin/python" \
+EVS_CONFIG_FILE="$HOME/.config/evs/config.json" \
+EVS_CACHE_FILE="$HOME/.config/evs/cache.json" \
 BLANC_RELEASE_PLATFORMS=mac,windows,linux \
 BLANC_MAC_ARCHES=arm64,x64 \
 npm run release
@@ -176,6 +288,10 @@ BLANC_RELEASE_OPERATOR=agent \
 BLANC_COSIGN_IDENTITY='anthony@bnfy.me' \
 BLANC_COSIGN_OIDC_ISSUER='https://github.com/login/oauth' \
 BLANC_RELEASE_MODE=stable \
+BLANC_RELEASE_RUNTIME=ecs \
+BLANC_EVS_PYTHON="$HOME/.config/evs/venv/bin/python" \
+EVS_CONFIG_FILE="$HOME/.config/evs/config.json" \
+EVS_CACHE_FILE="$HOME/.config/evs/cache.json" \
 BLANC_RELEASE_PLATFORMS=mac,windows,linux \
 BLANC_MAC_ARCHES=arm64,x64 \
 npm run release

@@ -1,4 +1,5 @@
 import { _electron } from 'playwright';
+import { inMainTurn } from './support/main-turn.js';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import os from 'node:os';
@@ -31,7 +32,7 @@ try {
   );
   const before = await app.evaluate(() => globalThis.__blanc.state());
   const sourceId = before.activeTabId;
-  await app.evaluate(async ({ webContents }) => {
+  await inMainTurn(app, async ({ webContents }) => {
     const wc = webContents.getAllWebContents()
       .find((candidate) => candidate.getURL().startsWith('blanc://newtab/'));
     if (!wc) throw new Error('a start page should exist');
@@ -68,7 +69,7 @@ try {
     fs.writeFileSync('output/playwright/mahjong-sunrise.png', Buffer.from(png, 'base64'));
   }
   const played = await waitFor(
-    () => app.evaluate(async ({ webContents }) => {
+    () => inMainTurn(app, async ({ webContents }) => {
       const wc = webContents.getAllWebContents()
         .find((candidate) => candidate.getURL().startsWith('blanc://mahjong/'));
       if (!wc) return false;
@@ -205,7 +206,7 @@ try {
     'direct game URL in a new managed tab',
   );
   const resumeOffered = await waitFor(
-    () => app.evaluate(async ({ webContents }) => {
+    () => inMainTurn(app, async ({ webContents }) => {
       const state = globalThis.__blanc.state();
       const wc = webContents.fromId(state.tabs.find((tab) => tab.id === state.activeTabId)?.webContentsId);
       return wc?.executeJavaScript(`!document.getElementById('mjResumeNotice')?.hidden`) ?? false;

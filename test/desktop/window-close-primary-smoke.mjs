@@ -6,6 +6,7 @@ import path from 'node:path';
 import { _electron } from 'playwright';
 import poll from './support/poll.js';
 import testHookCall from './support/test-hook-call.js';
+import { inMainTurn } from './support/main-turn.js';
 
 // Closing the primary window on Windows or Linux while another window stays
 // open. That close removes the primary like any window that is not the last
@@ -117,7 +118,7 @@ try {
   const [primaryWindowId] = await app.evaluate(({ BrowserWindow }) => BrowserWindow.getAllWindows()
     .filter((w) => w.isVisible() && w.webContents.getURL() === 'blanc-chrome://index/')
     .map((w) => w.id).sort((a, b) => a - b));
-  await app.evaluate(({ BrowserWindow }, id) => BrowserWindow.fromId(id).close(), primaryWindowId);
+  await inMainTurn(app, ({ BrowserWindow }, id) => BrowserWindow.fromId(id).close(), primaryWindowId);
   await waitForValue(() => runtimes(app), (rows) => !rows.find((row) => row.id === 'primary')?.attached,
     'primary window to close', 10_000);
   assert.equal(app.process().exitCode, null, 'Blanc keeps running with the secondary window open');

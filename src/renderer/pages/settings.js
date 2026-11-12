@@ -6,6 +6,8 @@
     appInfo,
     capabilities,
     onePasswordAvailable,
+    recentTabOrderAvailable,
+    miniWindow,
     languages,
   } =
     await window.bowserPages.settings.get();
@@ -20,6 +22,8 @@
   // abort this whole IIFE, and removing a container first makes its children
   // un-findable by id (getElementById → null → `.addEventListener` throws).
   const { t } = blancI18n;
+  // The Default page zoom choices; page-zoom.js holds the same list.
+  const PAGE_ZOOM_OPTIONS = [50, 67, 75, 80, 90, 100, 110, 125, 150, 175, 200];
   const cap = capabilities ? new Set(capabilities) : null;
   const supports = (feature) => !cap || cap.has(feature);
 
@@ -30,7 +34,7 @@
   // Removals run one at a time and each reads the saved list afresh, so two
   // quick clicks can never write back a site the first one removed.
   let siteRemovals = Promise.resolve();
-  function renderSiteList({ list, input, hostnames, emptyKey, onRemove }) {
+  function renderSiteList({ list, input, hostnames, emptyKey, onRemove, detailOf }) {
     list.replaceChildren();
     if (hostnames.length === 0) {
       const empty = document.createElement('div');
@@ -59,7 +63,14 @@
         const buttons = list.querySelectorAll('.site-row-remove');
         (buttons[Math.min(index, buttons.length - 1)] ?? input).focus();
       });
-      row.append(name, remove);
+      row.append(name);
+      if (detailOf) {
+        const detail = document.createElement('span');
+        detail.className = 'site-row-detail';
+        detail.textContent = detailOf(hostname);
+        row.append(detail);
+      }
+      row.append(remove);
       list.append(row);
     });
   }
@@ -84,6 +95,46 @@
     });
   } else {
     document.getElementById('dynamicWallpaperSetting')?.remove();
+  }
+
+  // F49: this device's own Start Page image. Main answers with the same
+  // { source, hasImage, image } projection the Start Page receives.
+  if (supports('newtabCustomWallpaper') && window.bowserPages.settings.wallpaper) {
+    const toggle = document.getElementById('newtabCustomWallpaper');
+    const choose = document.getElementById('customWallpaperChoose');
+    const remove = document.getElementById('customWallpaperRemove');
+    const hint = document.getElementById('customWallpaperHint');
+    const errors = {
+      'too-large': 'newtab.wallpaper.error.tooLarge',
+      unsupported: 'newtab.wallpaper.error.unsupported',
+      unreadable: 'newtab.wallpaper.error.unreadable',
+    };
+    let state = { source: 'sunrise', hasImage: false };
+    const render = (error) => {
+      toggle.checked = state.source === 'custom';
+      choose.textContent = state.hasImage ? t('newtab.wallpaper.change') : t('newtab.wallpaper.choose');
+      remove.hidden = !state.hasImage;
+      hint.textContent = errors[error] ? t(errors[error]) : t('settings.general.newtabCustomWallpaper.hint');
+    };
+    const apply = (next, error) => {
+      if (next && typeof next === 'object') state = next;
+      render(error);
+    };
+    const pick = async () => {
+      const reply = await window.bowserPages.settings.chooseWallpaper();
+      apply(reply?.wallpaper, reply?.error);
+    };
+    choose.addEventListener('click', pick);
+    remove.addEventListener('click', async () => apply(await window.bowserPages.settings.removeWallpaper()));
+    toggle.addEventListener('change', async () => {
+      if (toggle.checked && !state.hasImage) return pick();
+      const off = settings.newtabDynamicWallpaper === true ? 'time-of-day' : 'sunrise';
+      apply(await window.bowserPages.settings.setWallpaper(toggle.checked ? 'custom' : off));
+    });
+    window.bowserPages.settings.onAppearance?.((status) => apply(status.wallpaper));
+    window.bowserPages.settings.wallpaper().then((next) => apply(next));
+  } else {
+    document.getElementById('customWallpaperSetting')?.remove();
   }
 
   // About is a read-only projection of the running desktop build. Other
@@ -121,6 +172,35 @@
     }
   }
 
+  // ECS only. Poll while this settings document lives; readiness is not a
+  // promise that a particular streaming service will accept playback.
+  if (typeof window.bowserPages.settings.drmStatus === 'function') {
+    const card = document.getElementById('drmCard');
+    const status = document.getElementById('drmStatus');
+    const restart = document.getElementById('drmRestart');
+    let restarting = false;
+    const refresh = async () => {
+      try {
+        const state = await window.bowserPages.settings.drmStatus();
+        card.hidden = !state.enabled;
+        const key = ({ idle: 'drm.preparing', preparing: 'drm.preparing', ready: 'drm.ready',
+          'restart-required': 'drm.restartRequired', 'updates-disabled': 'drm.disabled' })[state.state] || 'drm.failed';
+        status.textContent = t(key);
+        restart.hidden = !state.canRestart;
+        restart.disabled = restarting;
+      } catch { status.textContent = t('drm.failed'); restart.hidden = true; }
+    };
+    restart.addEventListener('click', async () => {
+      restarting = true; restart.disabled = true;
+      try { await window.bowserPages.settings.drmRestart(); }
+      catch { status.textContent = t('drm.failed'); }
+      finally { restarting = false; await refresh(); }
+    });
+    await refresh();
+    const timer = setInterval(refresh, 2000);
+    window.addEventListener('unload', () => clearInterval(timer), { once: true });
+  }
+
   // --- Core: theme / search engine / adblock (always supported) ---
   const theme = document.getElementById('theme');
   const newtabLayout = document.getElementById('newtabLayout');
@@ -128,7 +208,7 @@
   const searchEngine = document.getElementById('searchEngine');
   const searchSuggestions = document.getElementById('searchSuggestions');
   const adblockEnabled = document.getElementById('adblockEnabled');
-  if (typeof window.bowserPages.settings.blockingStatus === 'function') {
+  if (supports('blockingStatus') && typeof window.bowserPages.settings.blockingStatus === 'function') {
     const selector = document.getElementById('adblockProvider');
     const label = id => id === 'ublock-origin' ? 'uBlock Origin' : 'Blanc Blocker';
     const renderBlocking = (state) => {
@@ -215,10 +295,55 @@
   searchSuggestions.checked = settings.searchSuggestions ?? false;
   adblockEnabled.checked = settings.adblockEnabled;
 
+  // iOS sends core settings with the existing appearance event after a pull.
+  // Update controls in place; a focused field belongs to the person editing it.
+  window.bowserPages.settings.onAppearance?.((state) => {
+    const current = state?.settings;
+    if (!current) return;
+    for (const [control, key] of [[theme, 'theme'], [searchEngine, 'searchEngine']]) {
+      if (typeof current[key] === 'string' && document.activeElement !== control) {
+        control.value = current[key];
+        settings[key] = current[key];
+      }
+    }
+    if (typeof current.adblockEnabled === 'boolean' && document.activeElement !== adblockEnabled) {
+      adblockEnabled.checked = current.adblockEnabled;
+      settings.adblockEnabled = current.adblockEnabled;
+    }
+  });
+
   theme.addEventListener('change', () =>
     window.bowserPages.settings.set({ theme: theme.value }));
+
+  // Main restyles every open internal page, this one included, on a change.
+  const surfaceStyle = document.getElementById('surfaceStyle');
+  const showSurfaceStyle = (value) => { surfaceStyle.value = value === 'neutral' ? 'neutral' : 'sunrise'; };
+  showSurfaceStyle(settings.surfaceStyle);
+  surfaceStyle.addEventListener('change', async () => {
+    try {
+      showSurfaceStyle((await window.bowserPages.settings.set({ surfaceStyle: surfaceStyle.value })).surfaceStyle);
+    } catch {
+      window.bowserPages.settings.get().then(({ settings: saved }) => showSurfaceStyle(saved.surfaceStyle), () => {});
+    }
+  });
   newtabLayout.addEventListener('change', () =>
     window.bowserPages.settings.set({ newtabLayout: newtabLayout.value }));
+  if (supports('launchSunrise')) {
+    const launchSunrise = document.getElementById('launchSunrise');
+    launchSunrise.checked = settings.launchSunrise === true;
+    launchSunrise.addEventListener('change', async () => {
+      try {
+        const saved = await window.bowserPages.settings.set({ launchSunrise: launchSunrise.checked });
+        launchSunrise.checked = saved.launchSunrise === true;
+      } catch {
+        window.bowserPages.settings.get().then(({ settings: saved }) => {
+          launchSunrise.checked = saved.launchSunrise === true;
+        }, () => {});
+      }
+    });
+  } else {
+    document.getElementById('launchSunriseSetting')?.remove();
+  }
   // The tour opens as a real tab in the sheet's window — main creates and
   // activates it (the sheet's own navigation is default-deny for blanc://).
   showWelcomeTour.addEventListener('click', () =>
@@ -414,6 +539,30 @@
     document.getElementById('tabLayoutSetting')?.remove();
   }
 
+  if (supports('islandSize')) {
+    const islandSize = document.getElementById('islandSize');
+    const showIslandSize = (value) => { islandSize.value = value || 'default'; };
+    showIslandSize(settings.islandSize);
+    islandSize.addEventListener('change', async () => {
+      try {
+        showIslandSize((await window.bowserPages.settings.set({ islandSize: islandSize.value })).islandSize);
+      } catch {
+        window.bowserPages.settings.get().then(({ settings: saved }) => showIslandSize(saved.islandSize), () => {});
+      }
+    });
+  } else {
+    document.getElementById('islandSizeSetting')?.remove();
+  }
+
+  if (supports('tabLayout')) {
+    const textSize = document.getElementById('verticalTabsTextSize');
+    textSize.value = settings.verticalTabsTextSize ?? 'default';
+    textSize.addEventListener('change', () =>
+      window.bowserPages.settings.set({ verticalTabsTextSize: textSize.value }));
+  } else {
+    document.getElementById('verticalTabsTextSizeSetting')?.remove();
+  }
+
   if (supports('islandHoverOpen')) {
     const islandHoverOpen = document.getElementById('islandHoverOpen');
     islandHoverOpen.checked = settings.islandHoverOpen === true;
@@ -423,6 +572,87 @@
     });
   } else {
     document.getElementById('islandHoverOpenSetting')?.remove();
+  }
+
+  if (supports('islandTabIcons')) {
+    const islandTabIcons = document.getElementById('islandTabIcons');
+    islandTabIcons.checked = settings.islandTabIcons === true;
+    islandTabIcons.addEventListener('change', async () => {
+      const saved = await window.bowserPages.settings.set({ islandTabIcons: islandTabIcons.checked });
+      islandTabIcons.checked = saved.islandTabIcons === true;
+    });
+  } else {
+    document.getElementById('islandTabIconsSetting')?.remove();
+  }
+
+  // How a revealed Island makes room; only meaningful while auto-hide is on.
+  const islandAutoHideStyleSetting = document.getElementById('islandAutoHideStyleSetting');
+  const showIslandAutoHideStyle = (on) => {
+    if (islandAutoHideStyleSetting) islandAutoHideStyleSetting.hidden = !on;
+  };
+  if (supports('islandAutoHideStyle')) {
+    const islandAutoHideStyle = document.getElementById('islandAutoHideStyle');
+    islandAutoHideStyle.value = settings.islandAutoHideStyle === 'push' ? 'push' : 'float';
+    islandAutoHideStyle.addEventListener('change', async () => {
+      const saved = await window.bowserPages.settings.set({ islandAutoHideStyle: islandAutoHideStyle.value });
+      islandAutoHideStyle.value = saved.islandAutoHideStyle === 'push' ? 'push' : 'float';
+    });
+  } else {
+    islandAutoHideStyleSetting?.remove();
+  }
+
+  if (supports('islandAutoHide')) {
+    const islandAutoHide = document.getElementById('islandAutoHide');
+    islandAutoHide.checked = settings.islandAutoHide === true;
+    showIslandAutoHideStyle(islandAutoHide.checked);
+    islandAutoHide.addEventListener('change', async () => {
+      const saved = await window.bowserPages.settings.set({ islandAutoHide: islandAutoHide.checked });
+      islandAutoHide.checked = saved.islandAutoHide === true;
+      showIslandAutoHideStyle(islandAutoHide.checked);
+    });
+  } else {
+    document.getElementById('islandAutoHideSetting')?.remove();
+    islandAutoHideStyleSetting?.remove();
+  }
+
+  // --- Default page zoom, and the sites with a zoom of their own ---
+  if (supports('pageZoom')) {
+    const percentLabel = (percent) => t('settings.general.pageZoom.percent', { percent });
+    const pageZoom = document.getElementById('pageZoom');
+    pageZoom.replaceChildren(...PAGE_ZOOM_OPTIONS.map((percent) => new Option(percentLabel(percent), String(percent))));
+    pageZoom.value = String(settings.pageZoom ?? 100);
+    pageZoom.addEventListener('change', async () => {
+      const saved = await window.bowserPages.settings.set({ pageZoom: Number(pageZoom.value) });
+      pageZoom.value = String(saved.pageZoom);
+    });
+
+    const siteZoomBlock = document.getElementById('siteZoomBlock');
+    const siteZoomList = document.getElementById('siteZoomList');
+    const renderSiteZoom = async () => {
+      const sites = await window.bowserPages.zoom.list();
+      const percents = new Map(sites.map(({ site, percent }) => [site, percent]));
+      siteZoomBlock.hidden = sites.length === 0;
+      if (!sites.length) return;
+      renderSiteList({
+        list: siteZoomList,
+        input: pageZoom,
+        hostnames: [...percents.keys()],
+        detailOf: (site) => percentLabel(percents.get(site)),
+        onRemove: async (site) => {
+          await window.bowserPages.zoom.remove(site);
+          await renderSiteZoom();
+        },
+      });
+    };
+    document.getElementById('siteZoomClear').addEventListener('click', async () => {
+      await window.bowserPages.zoom.clear();
+      await renderSiteZoom();
+      pageZoom.focus();
+    });
+    renderSiteZoom().catch((error) => console.error(error));
+  } else {
+    document.getElementById('pageZoomSetting')?.remove();
+    document.getElementById('siteZoomBlock')?.remove();
   }
 
   // --- Quiet Tabs idle delay (device-local memory policy) ---
@@ -437,6 +667,18 @@
     });
   } else {
     document.getElementById('islandSiteColorsSetting')?.remove();
+  }
+
+  // Device-local: search suggestions lead the Island's typed results.
+  if (supports('searchPriorityResults')) {
+    const searchPriority = document.getElementById('searchPriorityResults');
+    searchPriority.checked = settings.searchPriorityResults === true;
+    searchPriority.addEventListener('change', async () => {
+      const saved = await window.bowserPages.settings.set({ searchPriorityResults: searchPriority.checked });
+      searchPriority.checked = saved.searchPriorityResults === true;
+    });
+  } else {
+    document.getElementById('searchPriorityResultsSetting')?.remove();
   }
 
   // --- Dark websites (device-local) ---
@@ -520,6 +762,54 @@
     }
   }
 
+  // Ctrl+Tab by most recent use is offered only where main says the Ctrl
+  // release reaches Blanc (tab-switcher.js); elsewhere Ctrl+Tab stays by position.
+  if (recentTabOrderAvailable === true && supports('tabSwitchOrder')) {
+    const tabSwitchOrder = document.getElementById('tabSwitchOrder');
+    tabSwitchOrder.value = settings.tabSwitchOrder === 'list' ? 'list' : 'recent';
+    tabSwitchOrder.addEventListener('change', async () => {
+      const saved = await window.bowserPages.settings.set({ tabSwitchOrder: tabSwitchOrder.value });
+      tabSwitchOrder.value = saved.tabSwitchOrder === 'list' ? 'list' : 'recent';
+    });
+  } else {
+    document.getElementById('tabSwitchOrderSetting')?.remove();
+  }
+
+  // Mini Window (#1138): the global shortcut, from the choices this platform
+  // offers (mini-window.js). Off by default; the status line says when the
+  // chosen chord can't be used.
+  if (supports('miniWindowShortcut') && Array.isArray(miniWindow?.choices) && miniWindow.choices.length) {
+    const select = document.getElementById('miniWindowShortcut');
+    const status = document.getElementById('miniWindowStatus');
+    const mac = appInfo?.platform === 'darwin';
+    const labelKeys = {
+      'alt-cmd-n': 'settings.general.miniWindow.shortcut.altCmdN',
+      'ctrl-alt-space': mac ? 'settings.general.miniWindow.shortcut.ctrlAltSpaceMac' : 'settings.general.miniWindow.shortcut.ctrlAltSpace',
+      'ctrl-shift-space': 'settings.general.miniWindow.shortcut.ctrlShiftSpace',
+    };
+    for (const id of miniWindow.choices) {
+      if (!labelKeys[id]) continue;
+      const option = document.createElement('option');
+      option.value = id;
+      option.textContent = t(labelKeys[id]);
+      select.append(option);
+    }
+    const show = (value, state) => {
+      select.value = [...select.options].some((option) => option.value === value) ? value : 'off';
+      status.hidden = state !== 'unavailable';
+    };
+    show(settings.miniWindowShortcut, miniWindow.status);
+    select.addEventListener('change', async () => {
+      try {
+        await window.bowserPages.settings.set({ miniWindowShortcut: select.value });
+      } catch { /* shown from the saved state below */ }
+      const fresh = await window.bowserPages.settings.get().catch(() => null);
+      if (fresh) show(fresh.settings.miniWindowShortcut, fresh.miniWindow?.status);
+    });
+  } else {
+    document.getElementById('miniWindowSetting')?.remove();
+  }
+
   if (supports('tabSleep')) {
     const tabSleep = document.getElementById('tabSleep');
     tabSleep.value = settings.tabSleep ?? '1h';
@@ -527,6 +817,15 @@
       window.bowserPages.settings.set({ tabSleep: tabSleep.value }));
   } else {
     document.getElementById('tabSleepSetting')?.remove();
+  }
+
+  if (supports('tabArchive')) {
+    const tabArchive = document.getElementById('tabArchive');
+    tabArchive.value = settings.tabArchive ?? 'off';
+    tabArchive.addEventListener('change', () =>
+      window.bowserPages.settings.set({ tabArchive: tabArchive.value }));
+  } else {
+    document.getElementById('tabArchiveSetting')?.remove();
   }
 
   // Device-local right-button gestures. Drawing uses left pointer input in
@@ -1073,6 +1372,9 @@
     document.getElementById('group-patron')?.remove();
   }
 
+  // Set by the link routing block below; profile changes re-read its targets.
+  let refreshLinkRoutes = () => {};
+
   // --- Local profiles ---
   if (supports('localProfiles')) {
     const profileList = document.getElementById('profilesList');
@@ -1184,6 +1486,7 @@
         row.append(main, actions);
         profileList.append(row);
       }
+      refreshLinkRoutes();
     }
 
     async function createProfile() {
@@ -1209,6 +1512,381 @@
     });
   } else {
     document.getElementById('group-profiles')?.remove();
+  }
+
+  // --- Open links from other apps (F60) ---
+  // Rules live in main (settings.setLinkRoutes() validates the whole list).
+  // Rows being typed stay here until their value is valid; only valid rows
+  // are saved, so an unfinished row never blocks the others.
+  if (supports('localProfiles') && supports('linkRoutes')) {
+    const card = document.getElementById('linkRoutesCard');
+    const list = document.getElementById('linkRoutesList');
+    const addButton = document.getElementById('linkRouteAdd');
+    const status = document.getElementById('linkRoutesStatus');
+    const MAX_RULES = 50;
+    const MAX_VALUE = 200;
+    let targets = { profiles: [], spaces: [] };
+    let currentProfileId = 'default';
+    let drafts = (settings.linkRoutes ?? []).map((route) => ({
+      id: route.id,
+      kind: route.match.kind,
+      text: route.match.value,
+      profileId: route.destination.profileId,
+      spaceId: route.destination.spaceId ?? null,
+      private: route.destination.private === true,
+      note: '',
+    }));
+    let loadSerial = 0;
+    let saving = Promise.resolve();
+    // Links opened in a new tab from a page follow the rules too (#1199).
+    const inApp = document.getElementById('linkRoutesInApp');
+    inApp.checked = settings.linkRoutesInApp === true;
+    inApp.addEventListener('change', async () => {
+      try {
+        const saved = await window.bowserPages.settings.set({ linkRoutesInApp: inApp.checked });
+        inApp.checked = saved.linkRoutesInApp === true;
+      } catch {
+        window.bowserPages.settings.get().then(({ settings: saved }) => {
+          inApp.checked = saved.linkRoutesInApp === true;
+        }, () => {});
+      }
+    });
+
+    const newId = () => `r${Date.now().toString(36)}${Math.random().toString(36).slice(2, 10)}`;
+    const isIp = (host) => /^\d{1,3}(?:\.\d{1,3}){3}$/.test(host) || host.startsWith('[');
+
+    // Mirrors normalizeDomain() in src/main/link-routes.js so the field can
+    // explain itself; main normalizes again and is the one that stores.
+    function fieldDomain(text) {
+      const value = text.trim();
+      if (!value) return { ok: false, error: 'empty' };
+      if (value.length > MAX_VALUE) return { ok: false, error: 'too-long' };
+      const fromUrl = /^[a-z][a-z0-9+.-]*:\/\//i.test(value);
+      if (!fromUrl && /[\s/\\:@?#*%[\]]/.test(value)) return { ok: false, error: 'invalid' };
+      let host;
+      try {
+        const url = new URL(fromUrl ? value : `http://${value}/`);
+        if (url.protocol !== 'http:' && url.protocol !== 'https:') return { ok: false, error: 'invalid' };
+        host = url.hostname.toLowerCase().replace(/\.$/, '');
+      } catch {
+        return { ok: false, error: 'invalid' };
+      }
+      if (!host || host.includes('..') || host.startsWith('.')) return { ok: false, error: 'invalid' };
+      if (!isIp(host) && host.startsWith('www.') && host.slice(4).includes('.')) host = host.slice(4);
+      if (host.length > MAX_VALUE) return { ok: false, error: 'too-long' };
+      return { ok: true, value: host, fromUrl };
+    }
+    function fieldContains(text) {
+      const value = text.trim();
+      if (!value) return { ok: false, error: 'empty' };
+      if (value.length > MAX_VALUE) return { ok: false, error: 'too-long' };
+      if ([...value].some((ch) => ch.charCodeAt(0) < 0x20 || ch.charCodeAt(0) === 0x7f)) return { ok: false, error: 'invalid' };
+      return { ok: true, value };
+    }
+    const check = (draft) => (draft.kind === 'domain' ? fieldDomain : fieldContains)(draft.text);
+
+    const profileName = (id) => targets.profiles.find((profile) => profile.id === id)?.name ?? null;
+    const spaceName = (draft) => targets.spaces.find((space) =>
+      space.id === draft.spaceId && space.profileId === draft.profileId)?.name ?? null;
+
+    function summary(draft) {
+      const profile = profileName(draft.profileId) ?? t('settings.linkRoutes.profileDeleted');
+      let destination = profile;
+      if (draft.spaceId) {
+        destination = t('settings.linkRoutes.destinationSpace', {
+          profile, space: spaceName(draft) ?? t('settings.linkRoutes.spaceDeleted'),
+        });
+      }
+      if (draft.private) destination = t('settings.linkRoutes.destinationPrivate', { destination });
+      const value = draft.text.trim();
+      if (!value) return t('settings.linkRoutes.summaryNew', { destination });
+      return t(draft.kind === 'domain' ? 'settings.linkRoutes.summaryDomain' : 'settings.linkRoutes.summaryContains',
+        { value, destination });
+    }
+
+    function save() {
+      const routes = [];
+      for (const draft of drafts) {
+        const result = check(draft);
+        if (!result.ok) continue;
+        routes.push({
+          id: draft.id,
+          match: { kind: draft.kind, value: result.value },
+          destination: { profileId: draft.profileId, spaceId: draft.spaceId, private: draft.private },
+        });
+      }
+      saving = saving.then(async () => {
+        const result = await window.bowserPages.settings.setLinkRoutes(routes);
+        if (!result?.ok) status.textContent = t('settings.linkRoutes.saveFailed');
+      }).catch(() => { status.textContent = t('settings.linkRoutes.saveFailed'); });
+      return saving;
+    }
+
+    const option = (value, label) => {
+      const element = document.createElement('option');
+      element.value = value;
+      element.textContent = label;
+      element.dataset.i18nIgnore = '';
+      return element;
+    };
+
+    function fillSpaces(select, draft) {
+      select.replaceChildren(option('', t('settings.linkRoutes.anyWindow')));
+      for (const space of targets.spaces.filter((candidate) => candidate.profileId === draft.profileId)) {
+        select.append(option(space.id, space.name));
+      }
+      if (draft.spaceId && !spaceName(draft)) select.append(option(draft.spaceId, t('settings.linkRoutes.spaceDeleted')));
+      select.value = draft.spaceId ?? '';
+      select.disabled = select.options.length < 2;
+    }
+
+    function targetNote(draft) {
+      if (!profileName(draft.profileId)) return t('settings.linkRoutes.profileDeletedNote');
+      if (draft.spaceId && !spaceName(draft)) return t('settings.linkRoutes.spaceDeletedNote');
+      return '';
+    }
+
+    let openMenu = null;
+    function closeMenu({ focusButton = false } = {}) {
+      if (!openMenu) return;
+      const { menu, trigger } = openMenu;
+      menu.hidden = true;
+      trigger.setAttribute('aria-expanded', 'false');
+      openMenu = null;
+      if (focusButton) trigger.focus();
+    }
+    document.addEventListener('click', (event) => {
+      if (openMenu && !openMenu.menu.parentElement.contains(event.target)) closeMenu();
+    });
+
+    function focusRow(index, selector) {
+      list.children[index]?.querySelector(selector)?.focus();
+    }
+
+    function moveDraft(index, delta) {
+      const target = index + delta;
+      if (target < 0 || target >= drafts.length) return;
+      [drafts[index], drafts[target]] = [drafts[target], drafts[index]];
+      render();
+      save();
+      focusRow(target, '.link-route-more > button');
+      status.textContent = t('settings.linkRoutes.moved', { position: target + 1, count: drafts.length });
+    }
+
+    function renderRow(draft, index) {
+      const row = document.createElement('div');
+      row.className = 'link-route-row';
+      row.setAttribute('role', 'group');
+      row.dataset.routeId = draft.id;
+      const errorId = `linkRouteError-${draft.id}`;
+
+      const lead = document.createElement('span');
+      lead.textContent = t(draft.kind === 'domain' ? 'settings.linkRoutes.linksTo' : 'settings.linkRoutes.linksContaining');
+
+      const input = document.createElement('input');
+      input.type = 'text';
+      input.autocomplete = 'off';
+      input.spellcheck = false;
+      input.maxLength = MAX_VALUE;
+      input.value = draft.text;
+      input.placeholder = t(draft.kind === 'domain' ? 'settings.linkRoutes.domainPlaceholder' : 'settings.linkRoutes.containsPlaceholder');
+      input.setAttribute('aria-label', t(draft.kind === 'domain' ? 'settings.linkRoutes.domainLabel' : 'settings.linkRoutes.containsLabel'));
+      input.setAttribute('aria-describedby', errorId);
+
+      const openIn = document.createElement('span');
+      openIn.textContent = t('settings.linkRoutes.openIn');
+
+      const profileSelect = document.createElement('select');
+      profileSelect.setAttribute('aria-label', t('settings.linkRoutes.profileLabel'));
+      for (const profile of targets.profiles) profileSelect.append(option(profile.id, profile.name));
+      if (!profileName(draft.profileId)) profileSelect.append(option(draft.profileId, t('settings.linkRoutes.profileDeleted')));
+      profileSelect.value = draft.profileId;
+
+      const spaceSelect = document.createElement('select');
+      spaceSelect.setAttribute('aria-label', t('settings.linkRoutes.spaceLabel'));
+      fillSpaces(spaceSelect, draft);
+
+      const privateLabel = document.createElement('label');
+      privateLabel.className = 'inline-check';
+      const privateBox = document.createElement('input');
+      privateBox.type = 'checkbox';
+      privateBox.checked = draft.private;
+      const privateText = document.createElement('span');
+      privateText.textContent = t('settings.linkRoutes.private');
+      privateLabel.append(privateBox, privateText);
+
+      const more = document.createElement('div');
+      more.className = 'link-route-more';
+      const trigger = document.createElement('button');
+      trigger.type = 'button';
+      trigger.textContent = '⋮';
+      trigger.setAttribute('aria-label', t('settings.linkRoutes.more'));
+      trigger.setAttribute('aria-haspopup', 'menu');
+      trigger.setAttribute('aria-expanded', 'false');
+      const menu = document.createElement('div');
+      menu.className = 'link-route-menu';
+      menu.setAttribute('role', 'menu');
+      menu.hidden = true;
+      const item = (key, action, { disabled = false, danger = false } = {}) => {
+        const element = document.createElement('button');
+        element.type = 'button';
+        element.setAttribute('role', 'menuitem');
+        element.textContent = t(key);
+        element.disabled = disabled;
+        if (danger) element.className = 'danger';
+        element.addEventListener('click', (event) => {
+          event.stopPropagation();
+          closeMenu();
+          action();
+        });
+        return element;
+      };
+      menu.append(
+        item('settings.linkRoutes.moveUp', () => moveDraft(index, -1), { disabled: index === 0 }),
+        item('settings.linkRoutes.moveDown', () => moveDraft(index, 1), { disabled: index === drafts.length - 1 }),
+        item(draft.kind === 'domain' ? 'settings.linkRoutes.matchContains' : 'settings.linkRoutes.matchDomain', () => {
+          draft.kind = draft.kind === 'domain' ? 'contains' : 'domain';
+          draft.note = '';
+          render();
+          save();
+          focusRow(index, 'input[type="text"]');
+        }),
+        item('settings.linkRoutes.delete', () => {
+          drafts.splice(index, 1);
+          render();
+          save();
+          if (drafts.length) focusRow(Math.min(index, drafts.length - 1), 'input[type="text"]');
+          else addButton.focus();
+          status.textContent = t('settings.linkRoutes.deleted');
+        }, { danger: true }),
+      );
+      const menuItems = () => [...menu.querySelectorAll('button:not(:disabled)')];
+      trigger.addEventListener('click', (event) => {
+        event.stopPropagation();
+        if (openMenu?.menu === menu) return closeMenu();
+        closeMenu();
+        menu.hidden = false;
+        trigger.setAttribute('aria-expanded', 'true');
+        openMenu = { menu, trigger };
+        menuItems()[0]?.focus();
+      });
+      menu.addEventListener('keydown', (event) => {
+        const items = menuItems();
+        const at = items.indexOf(document.activeElement);
+        if (event.key === 'ArrowDown' || event.key === 'ArrowUp') {
+          event.preventDefault();
+          const step = event.key === 'ArrowDown' ? 1 : -1;
+          items[(at + step + items.length) % items.length]?.focus();
+        } else if (event.key === 'Escape') {
+          event.preventDefault();
+          closeMenu({ focusButton: true });
+        } else if (event.key === 'Tab') {
+          closeMenu();
+        }
+      });
+      more.append(trigger, menu);
+
+      const note = document.createElement('p');
+      note.className = 'link-route-note';
+      const error = document.createElement('p');
+      error.className = 'hint field-error';
+      error.id = errorId;
+
+      const refresh = () => {
+        row.setAttribute('aria-label', summary(draft));
+        const result = check(draft);
+        const invalid = !result.ok && result.error !== 'empty';
+        input.setAttribute('aria-invalid', invalid ? 'true' : 'false');
+        let errorKey = draft.kind === 'domain' ? 'settings.linkRoutes.invalidDomain' : 'settings.linkRoutes.invalidContains';
+        if (result.error === 'too-long') errorKey = 'settings.linkRoutes.tooLong';
+        error.textContent = invalid ? t(errorKey) : draft.note;
+        error.hidden = !error.textContent;
+        note.textContent = targetNote(draft);
+        note.hidden = !note.textContent;
+      };
+
+      input.addEventListener('input', () => {
+        draft.text = input.value;
+        draft.note = '';
+        refresh();
+      });
+      input.addEventListener('change', () => {
+        draft.text = input.value;
+        const result = check(draft);
+        if (result.ok && draft.kind === 'domain') {
+          draft.note = result.fromUrl ? t('settings.linkRoutes.keptHost', { host: result.value }) : '';
+          draft.text = result.value;
+          input.value = result.value;
+        }
+        refresh();
+        save();
+      });
+      profileSelect.addEventListener('change', () => {
+        draft.profileId = profileSelect.value;
+        draft.spaceId = null;
+        fillSpaces(spaceSelect, draft);
+        refresh();
+        save();
+      });
+      spaceSelect.addEventListener('change', () => {
+        draft.spaceId = spaceSelect.value || null;
+        refresh();
+        save();
+      });
+      privateBox.addEventListener('change', () => {
+        draft.private = privateBox.checked;
+        refresh();
+        save();
+      });
+
+      row.append(lead, input, openIn, profileSelect, spaceSelect, privateLabel, more, note, error);
+      refresh();
+      return row;
+    }
+
+    function render() {
+      closeMenu();
+      list.replaceChildren(...drafts.map(renderRow));
+      addButton.disabled = drafts.length >= MAX_RULES;
+      if (addButton.disabled) status.textContent = t('settings.linkRoutes.limit', { count: MAX_RULES });
+    }
+
+    addButton.addEventListener('click', () => {
+      if (drafts.length >= MAX_RULES) return;
+      const profileId = targets.profiles.some((profile) => profile.id === currentProfileId)
+        ? currentProfileId : (targets.profiles[0]?.id ?? 'default');
+      drafts.push({ id: newId(), kind: 'domain', text: '', profileId, spaceId: null, private: false, note: '' });
+      render();
+      focusRow(drafts.length - 1, 'input[type="text"]');
+    });
+
+    refreshLinkRoutes = async () => {
+      const serial = ++loadSerial;
+      try {
+        const [next, profiles] = await Promise.all([
+          window.bowserPages.settings.linkTargets(),
+          window.bowserPages.profiles.list(),
+        ]);
+        if (serial !== loadSerial) return;
+        targets = { profiles: next?.profiles ?? [], spaces: next?.spaces ?? [] };
+        currentProfileId = profiles?.currentId ?? currentProfileId;
+        // Deleting a profile removed its rules in main; drop them here too.
+        const { settings: stored } = await window.bowserPages.settings.get();
+        if (serial !== loadSerial) return;
+        const storedIds = new Set((stored.linkRoutes ?? []).map((route) => route.id));
+        drafts = drafts.filter((draft) => storedIds.has(draft.id) || !check(draft).ok
+          || profileName(draft.profileId));
+        card.hidden = !(targets.profiles.length >= 2 || targets.spaces.length >= 1);
+        card.dataset.ready = 'true';
+        // Never rebuild under someone typing in a rule.
+        if (!list.contains(document.activeElement)) render();
+      } catch {
+        status.textContent = t('settings.linkRoutes.loadFailed');
+      }
+    };
+    refreshLinkRoutes();
+  } else {
+    document.getElementById('linkRoutesCard')?.remove();
   }
 
   // --- Site permissions ---
@@ -1353,9 +2031,9 @@
     }
   }
 
-  // A Privacy card whose every control was removed above (unsupported on this
-  // platform) would otherwise leave a lone title behind.
-  for (const card of document.querySelectorAll('#group-privacy .settings-card')) {
+  // A General or Privacy card whose every control was removed above
+  // (unsupported on this platform) would otherwise leave a lone title behind.
+  for (const card of document.querySelectorAll('#group-general .settings-card, #group-privacy .settings-card')) {
     if (!card.querySelector(':scope > :not(.card-title)')) card.remove();
   }
 
@@ -1369,6 +2047,11 @@
       const setupIntro = document.getElementById('syncSetupIntro');
       const paths = document.getElementById('syncPaths');
       const pathStart = document.getElementById('syncPathStart');
+      const pathJoin = document.getElementById('syncPathJoin');
+      const turnOnRow = document.getElementById('syncTurnOnRow');
+      const turnOnBtn = document.getElementById('syncTurnOn');
+      const turnOnStatus = document.getElementById('syncTurnOnStatus');
+      const connectIphoneBtn = document.getElementById('syncConnectIphone');
       const form = document.getElementById('syncForm');
       const handleEl = document.getElementById('syncHandle');
       const passEl = document.getElementById('syncPassphrase');
@@ -1387,7 +2070,6 @@
       const syncStatusHandle = document.getElementById('syncStatusHandle');
       const deviceNameEl = document.getElementById('syncDeviceName');
       const syncStatusData = document.getElementById('syncStatusData');
-      const syncStatusTabs = document.getElementById('syncStatusTabs');
       const syncStatusErrorRow = document.getElementById('syncStatusErrorRow');
       const syncStatusError = document.getElementById('syncStatusError');
       const nowBtn = document.getElementById('syncNow');
@@ -1427,11 +2109,135 @@
       const switchNotice = document.getElementById('syncSwitchNotice');
       const recoveryCopy = document.getElementById('syncRecoveryCopy');
       const recoveryNote = document.getElementById('syncRecoveryNote');
+      const recoveryPrompt = document.getElementById('syncRecoveryPrompt');
+      const recoveryPromptCopy = document.getElementById('syncRecoveryPromptCopy');
+      const recoveryPromptNotNow = document.getElementById('syncRecoveryPromptNotNow');
+      const recoveryPromptNote = document.getElementById('syncRecoveryPromptNote');
+      // The sheet after the code is taken (design 2026-10-28 §6.4).
+      const pairingJoined = document.getElementById('syncPairingJoined');
+      const pairingJoinedTitle = document.getElementById('syncPairingJoinedTitle');
+      const pairingQuestion = document.getElementById('syncPairingQuestion');
+      const pairingSpacesOn = document.getElementById('syncPairingSpacesOn');
+      const pairingSpacesNotNow = document.getElementById('syncPairingSpacesNotNow');
+      const pairingRecovery = document.getElementById('syncPairingRecovery');
+      const pairingRecoveryCopy = document.getElementById('syncPairingRecoveryCopy');
+      const pairingDone = document.getElementById('syncPairingDone');
+      // Connect your iPhone (design 2026-10-28 §6.1–§6.2): the start state and the QR.
+      const pairingTitle = document.getElementById('syncPairingTitle');
+      const pairingInstruction = document.getElementById('syncPairingInstruction');
+      const pairingOrType = document.getElementById('syncPairingOrType');
+      const pairingQr = document.getElementById('syncPairingQr');
+      const pairingStart = document.getElementById('syncPairingStart');
+      const pairingStartBody = document.getElementById('syncPairingStartBody');
+      const pairingNotReady = document.getElementById('syncPairingNotReady');
+      const pairingStartNotice = document.getElementById('syncPairingStartNotice');
+      const pairingStartActions = document.getElementById('syncPairingStartActions');
+      const pairingContinue = document.getElementById('syncPairingContinue');
+      const pairingStartCancel = document.getElementById('syncPairingStartCancel');
+      const pairingStartRetry = document.getElementById('syncPairingStartRetry');
+      const pairingAlready = document.getElementById('syncPairingAlready');
+      const pairingAddThisFirst = document.getElementById('syncPairingAddThisFirst');
+      const pairingNotReadyCancel = document.getElementById('syncPairingNotReadyCancel');
+      const pairingMaking = document.getElementById('syncPairingMaking');
+      const pairingMakingCancel = document.getElementById('syncPairingMakingCancel');
+      // Whether this build offers iPhone pairing (main decides, design §9),
+      // and whether this is a Mac, for the start state's wording.
+      let iphonePairing = false;
+      let onMac = false;
+      // Redesign 2026-10-27: identity, status colour, the device list and the
+      // Add device sheet.
+      const avatar = document.getElementById('syncAvatar');
+      const statusLine = document.getElementById('syncStatusLine');
+      const deviceList = document.getElementById('syncDeviceList');
+      const thisDeviceIcon = document.getElementById('syncThisDeviceIcon');
+      const thisDevicePlatform = document.getElementById('syncThisDevicePlatform');
+      const pairingDialog = document.getElementById('syncPairingDialog');
+      const canCreate = supports('syncCreate');
+      const canWipeRemote = supports('syncWipeRemote');
+      pathStart.hidden = !canCreate;
+      startNewBtn.hidden = !canCreate;
+      turnOnRow.hidden = !canCreate;
+      for (const anchor of [pathStart, startNewBtn]) {
+        if (canCreate) continue;
+        const note = document.createElement('p');
+        note.className = 'section-hint';
+        note.dataset.i18n = 'settings.sync.createOnComputer';
+        note.textContent = t('settings.sync.createOnComputer');
+        anchor.after(note);
+      }
+      wipeEl.closest('label').hidden = !canWipeRemote;
+      switchWipe.closest('label').hidden = !canWipeRemote;
+      const eraseRetry = document.getElementById('syncEraseRetry');
       let currentHandle = '';
+      // Shown on the device that started this sync without a passphrase until
+      // its recovery code is saved or the prompt dismissed (design 2026-10-28 §5.4).
+      let recoveryPromptWanted = false;
 
-      // On-state: one row per category; the error lives ONLY in its own row.
+      // Devices are drawn, not named: a phone for iOS, a computer otherwise.
+      const DEVICE_ICON_PATHS = {
+        computer: ['M5.5 5h13A1.5 1.5 0 0 1 20 6.5V16H4V6.5A1.5 1.5 0 0 1 5.5 5z', 'M2.5 19h19'],
+        phone: ['M8.5 3h7A1.5 1.5 0 0 1 17 4.5v15a1.5 1.5 0 0 1-1.5 1.5h-7A1.5 1.5 0 0 1 7 19.5v-15A1.5 1.5 0 0 1 8.5 3z', 'M11 18h2'],
+      };
+      function drawDeviceIcon(el, platform) {
+        const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+        svg.setAttribute('viewBox', '0 0 24 24');
+        for (const d of DEVICE_ICON_PATHS[platform === 'ios' ? 'phone' : 'computer']) {
+          const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+          path.setAttribute('d', d);
+          svg.append(path);
+        }
+        el.replaceChildren(svg);
+      }
+      const platformLabel = (platform) => ({
+        darwin: t('settings.sync.devices.platform.darwin'),
+        win32: t('settings.sync.devices.platform.win32'),
+        linux: t('settings.sync.devices.platform.linux'),
+        ios: t('settings.sync.devices.platform.ios'),
+      })[platform] ?? t('settings.sync.devices.platform.unknown');
+
+      // This device leads the list (its name is the field); every other device
+      // the sync knows of follows, newest first, as names and platforms only.
+      let devicesRequest = 0;
+      async function refreshDevices() {
+        const request = ++devicesRequest;
+        let listed;
+        try { listed = await window.bowserPages.settings.syncDevices(); } catch { return; }
+        if (request !== devicesRequest || !listed) return;
+        drawDeviceIcon(thisDeviceIcon, listed.platform);
+        thisDevicePlatform.textContent = platformLabel(listed.platform);
+        deviceList.querySelectorAll('.sync-device-other').forEach((row) => row.remove());
+        for (const device of listed.devices ?? []) {
+          const row = document.createElement('li');
+          row.className = 'sync-device sync-device-other';
+          const icon = document.createElement('span');
+          icon.className = 'sync-device-icon';
+          icon.setAttribute('aria-hidden', 'true');
+          drawDeviceIcon(icon, device.platform);
+          const text = document.createElement('span');
+          text.className = 'sync-device-text';
+          const name = document.createElement('span');
+          name.className = 'sync-device-label';
+          name.dataset.i18nIgnore = '';
+          name.textContent = device.name;
+          text.append(name);
+          // An iPhone is named "iPhone": don't say it twice.
+          const platform = platformLabel(device.platform);
+          if (platform.toLocaleLowerCase() !== String(device.name).trim().toLocaleLowerCase()) {
+            const meta = document.createElement('span');
+            meta.className = 'sync-device-meta';
+            meta.textContent = platform;
+            text.append(meta);
+          }
+          row.append(icon, text);
+          deviceList.append(row);
+        }
+      }
+
+      // On-state: identity and status, what syncs, then the devices; the error
+      // lives ONLY in its own callout. Open-tab sharing shows as its switch.
       function renderStatus(status, note) {
         const on = !!status.enabled;
+        eraseRetry.hidden = !canWipeRemote || !status.erasurePending;
         setup.hidden = on;
         active.hidden = !on;
         tabsShareEl.checked = !!status.syncTabs;
@@ -1443,18 +2249,36 @@
           deviceNameEl.placeholder = status.deviceNamePublished || '';
           const lastSynced = relativeSyncTime(status.lastSyncedAt);
           syncStatusData.textContent = lastSynced ? t('settings.sync.lastSynced', { when: lastSynced }) : t('settings.sync.notSynced');
-          syncStatusTabs.textContent = status.syncTabs ? t('settings.sync.sharing') : t('settings.sync.notShared');
           syncStatusErrorRow.hidden = !status.lastError;
           syncStatusError.textContent = status.lastError || '';
           activeStatus.textContent = note || '';
+          // The sync's monogram, and a status dot: up to date, waiting, or an error.
+          avatar.textContent = Array.from(String(status.handle || '').trim())[0]?.toLocaleUpperCase() ?? '';
+          statusLine.dataset.state = status.lastError ? 'error' : (lastSynced ? 'ok' : 'pending');
+          refreshDevices();
         }
+        recoveryPromptWanted = on && status.origin === 'generated' && !status.recoveryPromptDismissed;
+        recoveryPrompt.hidden = !recoveryPromptWanted;
+        renderPairing();
       }
+
+      window.bowserPages.settings.onAppearance?.((state) => {
+        if (state?.syncStatus) renderStatus(state.syncStatus);
+      });
 
       // Off-state: the reducer owns the flow; this code only mirrors view()
       // to the DOM and performs each returned effect exactly once.
       let model = createSyncSetupModel();
       function renderSetup() {
         const v = view(model);
+        for (const [field, key] of [
+          [handleEl, model.path === 'join' ? 'settings.sync.enterSyncName' : 'settings.sync.giveYourSyncA'],
+          [passEl, model.path === 'join' ? 'settings.sync.enterPassphrase' : 'settings.sync.chooseAPassphrase'],
+        ]) {
+          const label = field.closest('label').querySelector('strong');
+          label.dataset.i18n = key;
+          label.textContent = t(key);
+        }
         setupTitle.textContent = v.setupTitle;
         setupIntro.textContent = v.setupIntro;
         paths.hidden = v.pathChosen;
@@ -1474,6 +2298,8 @@
         submitRow.hidden = v.showNotFound;
         notFound.hidden = !v.showNotFound;
         setupStatus.textContent = v.noticeText;
+        turnOnBtn.disabled = v.turnOnDisabled;
+        turnOnStatus.textContent = model.phase === 'turning-on' ? t('settings.sync.turningOn') : v.turnOnNotice;
         if (handleEl.value !== model.handle) handleEl.value = model.handle;
         if (passEl.value !== model.passphrase) passEl.value = model.passphrase;
       }
@@ -1529,10 +2355,25 @@
         }
       }
 
+      async function performTurnOn(effect) {
+        let res;
+        try {
+          res = await window.bowserPages.settings.syncStartNew();
+        } catch {
+          res = { ok: false, message: t('settings.sync.checkFailed') };
+        }
+        const current = model.phase === 'turning-on' && model.token === effect.token;
+        dispatch({ type: 'turn-on-reply', token: effect.token, ok: res.ok, message: res.message });
+        // A first pass that didn't reach the server still leaves Sync on; its
+        // error is the status line's, not repeated here.
+        if (res.status) renderStatus(res.status, current && res.ok ? t('settings.sync.startedToast') : null);
+      }
+
       function dispatch(event) {
         const { state: next, effect } = transition(model, event);
         model = next;
         renderSetup();
+        if (effect?.type === 'turn-on') performTurnOn(effect);
         if (effect?.type === 'preflight') performPreflight(effect);
         if (effect?.type === 'enable') performEnable(effect);
         if (effect?.type === 'join-code') performJoinCode(effect);
@@ -1541,17 +2382,83 @@
       // --- On state: Add another device ---
       let pairingModel = createPairingModel();
       let pairingTimer = null;
+      let watching = false;
+      function setWatch(visible) {
+        const next = visible && document.visibilityState === 'visible';
+        if (next === watching) return;
+        watching = next;
+        window.bowserPages.settings.syncPairWatch(next).catch(() => {});
+      }
       function renderPairing() {
-        const pv = pairingView(pairingModel, Date.now());
+        const pv = pairingView(pairingModel, Date.now(), { recoveryPrompt: recoveryPromptWanted });
         pairingPanel.hidden = !pv.showing;
+        pairingJoined.hidden = !pv.joined;
+        if (pv.joined) {
+          pairingJoinedTitle.textContent = t('settings.sync.sheet.joined', { device: pv.joinedName || t(pv.joinedNameKey) });
+          pairingQuestion.hidden = !pv.askingSpaces;
+          pairingRecovery.hidden = !pv.recoveryLine;
+        }
+        pairingDialog.setAttribute('aria-labelledby', pv.joined ? 'syncPairingJoinedTitle' : 'syncPairingTitle');
+        setWatch(pv.showing);
+        pairingStart.hidden = !(pv.startShown || pv.notReadyShown);
+        pairingMaking.hidden = !pv.makingCode;
+        if (pv.startShown || pv.notReadyShown) {
+          // Not ready: Sync is already on, so only the wait and its ways out.
+          pairingStartBody.hidden = pv.notReadyShown;
+          pairingStartBody.textContent = onMac ? t('settings.sync.sheet.startBody') : t('settings.sync.sheet.startBodyGeneric');
+          pairingAddThisFirst.textContent = onMac ? t('settings.sync.sheet.addThisFirst') : t('settings.sync.sheet.addThisFirstGeneric');
+          pairingNotReady.hidden = !pv.notReadyShown;
+          pairingStartActions.hidden = pv.notReadyShown;
+          pairingAlready.hidden = pv.notReadyShown;
+          pairingContinue.disabled = pv.startBusy;
+          pairingStartNotice.textContent = pv.startBusy ? t('settings.sync.turningOn') : pv.noticeText;
+        }
+        pairingTitle.textContent = t(pv.titleKey);
+        // The QR and the iPhone wording only where iPhone pairing is offered.
+        // An <svg> has no .hidden property: assigning one never touched the
+        // attribute, so the QR stayed hidden. Set the attribute itself.
+        const qrHidden = !(iphonePairing && pv.showing);
+        pairingQr.toggleAttribute('hidden', qrHidden);
+        pairingOrType.hidden = qrHidden;
+        pairingInstruction.textContent = iphonePairing ? t('settings.sync.sheet.scanIphone') : t('settings.sync.pairing.instruction');
+        if (!qrHidden) {
+          const matrix = window.blancQrCode.encode(`https://blanc.day/pair#${pairingModel.code}`);
+          const box = window.blancQrCode.viewBoxSize(matrix);
+          pairingQr.setAttribute('viewBox', `0 0 ${box} ${box}`);
+          pairingQr.firstElementChild.setAttribute('d', window.blancQrCode.svgPath(matrix));
+        } else {
+          pairingQr.firstElementChild.removeAttribute('d');
+        }
         addDeviceBtn.hidden = !pv.beginVisible;
         addDeviceBtn.disabled = pairingModel.phase === 'starting';
         pairingCodeEl.textContent = pv.codeText;
         pairingRemaining.textContent = pv.showing ? t('settings.sync.pairing.expiresIn', { time: pv.remainingText }) : '';
         pairingNotice.textContent = pv.expired ? t('settings.sync.pairing.expired') : pv.noticeText;
         pairingNotice.hidden = !pairingNotice.textContent;
+        // The code shows in a modal sheet; its notice (expired, failed) stays
+        // in the Devices card, where it is still visible once the sheet closes.
+        if (pv.sheetOpen && !pairingDialog.open) pairingDialog.showModal();
+        if (!pv.sheetOpen && pairingDialog.open) pairingDialog.close();
         if (pv.showing && !pairingTimer) pairingTimer = setInterval(() => dispatchPairing({ type: 'tick', now: Date.now() }), 1000);
         if (!pv.showing && pairingTimer) { clearInterval(pairingTimer); pairingTimer = null; }
+      }
+      // The sheet's Continue: Sync on without a passphrase, then a code once
+      // the new account has reached the server (design 2026-10-28 §5.1).
+      async function performSheetStartNew() {
+        let res;
+        try {
+          res = await window.bowserPages.settings.syncStartNew();
+        } catch {
+          res = { ok: false, message: t('settings.sync.checkFailed') };
+        }
+        if (res.status) renderStatus(res.status);
+        dispatchPairing({ type: 'started', ok: res.ok, synced: res.synced === true, message: res.message });
+      }
+      async function performSheetRetry() {
+        let status = null;
+        try { status = await window.bowserPages.settings.syncNow(); } catch { /* still not ready */ }
+        if (status) renderStatus(status);
+        dispatchPairing({ type: 'started', ok: true, synced: (status?.lastSyncedAt ?? 0) > 0 });
       }
       async function performPairBegin() {
         let res;
@@ -1568,9 +2475,51 @@
         renderPairing();
         if (effect?.type === 'pair-begin') performPairBegin();
         if (effect?.type === 'pair-cancel') window.bowserPages.settings.syncPairCancel().catch(() => {});
+        if (effect?.type === 'start-new') performSheetStartNew();
+        if (effect?.type === 'retry-sync') performSheetRetry();
+        if (effect?.type === 'open-code-path') { dispatch({ type: 'choose', path: 'code' }); codeEl.focus(); }
+        if (effect?.type === 'spaces-acknowledge') window.bowserPages.settings.sharedSpacesAcknowledge(effect.deviceId).catch(() => {});
+        // Turn on answers the question the way the Settings notice does:
+        // acknowledge, then the Spaces switch opens its own sheet.
+        if (effect?.type === 'spaces-turn-on') {
+          // The sheet closes for the Spaces one; main forgets the join too.
+          window.bowserPages.settings.syncPairCancel().catch(() => {});
+          window.bowserPages.settings.sharedSpacesAcknowledge(effect.deviceId)
+            .then(() => document.getElementById('sharedSpacesToggle')?.click())
+            .catch(() => {});
+        }
       }
+      // The device that took the code arrived; ask the Spaces question only
+      // when M16 would (this desktop's switch off, the question still open).
+      window.bowserPages.settings.onSyncPairJoined(async (device) => {
+        dispatchPairing({ type: 'joined', name: device?.name, platform: device?.platform });
+        refreshDevices();
+        let question = null;
+        try {
+          const shared = await window.bowserPages.settings.sharedSpacesStatus?.();
+          if (shared?.offered && !shared.enabled) question = shared.question?.deviceId ?? null;
+        } catch { /* no question */ }
+        dispatchPairing({ type: 'question', deviceId: question });
+      });
+      document.addEventListener('visibilitychange', () => setWatch(pairingModel.phase === 'showing'));
+      window.addEventListener('pagehide', () => setWatch(false));
+      pairingDone.addEventListener('click', () => dispatchPairing({ type: 'done' }));
+      pairingContinue.addEventListener('click', () => dispatchPairing({ type: 'continue' }));
+      pairingStartCancel.addEventListener('click', () => dispatchPairing({ type: 'cancel' }));
+      pairingStartRetry.addEventListener('click', () => dispatchPairing({ type: 'retry' }));
+      pairingNotReadyCancel.addEventListener('click', () => dispatchPairing({ type: 'cancel' }));
+      pairingMakingCancel.addEventListener('click', () => dispatchPairing({ type: 'cancel' }));
+      pairingAddThisFirst.addEventListener('click', () => dispatchPairing({ type: 'add-this-first' }));
+      connectIphoneBtn.addEventListener('click', () => dispatchPairing({ type: 'open', syncOn: false }));
+      pairingSpacesOn.addEventListener('click', () => dispatchPairing({ type: 'spaces-answer', answer: 'on' }));
+      pairingSpacesNotNow.addEventListener('click', () => dispatchPairing({ type: 'spaces-answer', answer: 'not-now' }));
       addDeviceBtn.addEventListener('click', () => dispatchPairing({ type: 'begin' }));
       pairingCancel.addEventListener('click', () => dispatchPairing({ type: 'cancel' }));
+      // Esc on the sheet is Cancel: the model ends the code and closes it.
+      pairingDialog.addEventListener('cancel', (event) => {
+        event.preventDefault();
+        dispatchPairing({ type: pairingModel.phase === 'joined' ? 'done' : 'cancel' });
+      });
       pairingCopy.addEventListener('click', () => {
         // The pairing code is the one secret meant to travel; the recovery
         // code never passes through this page.
@@ -1603,7 +2552,7 @@
         switchNotice.textContent = t('settings.sync.turningOn');
         let res;
         try {
-          res = await window.bowserPages.settings.syncSwitchCode({ code: effect.code, wipeRemote: effect.wipeRemote });
+          res = await window.bowserPages.settings.syncSwitchCode({ code: effect.code, wipeRemote: canWipeRemote && effect.wipeRemote });
         } catch {
           res = { ok: false, message: t('settings.sync.checkFailed') };
         }
@@ -1626,19 +2575,32 @@
       switchForm.addEventListener('submit', (e) => { e.preventDefault(); dispatchSwitch({ type: 'submit' }); });
 
       // --- On state: Copy recovery code (main shows the dialog and writes the clipboard) ---
-      recoveryCopy.addEventListener('click', async () => {
-        recoveryCopy.disabled = true;
+      async function copyRecovery(button, note) {
+        button.disabled = true;
         let res;
         try {
           res = await window.bowserPages.settings.syncRecoveryCodeCopy();
         } catch {
           res = { ok: false };
         }
-        recoveryCopy.disabled = false;
-        recoveryNote.textContent = res.ok ? t('settings.sync.recovery.copied') : (res.error === 'cancelled' ? '' : (res.message ?? ''));
+        button.disabled = false;
+        note.textContent = res.ok ? t('settings.sync.recovery.copied') : (res.error === 'cancelled' ? '' : (res.message ?? ''));
+        // A saved code retires the prompt (main records it).
+        if (res.ok) window.bowserPages.settings.syncGet().then((status) => renderStatus(status)).catch(() => {});
+      }
+      recoveryCopy.addEventListener('click', () => copyRecovery(recoveryCopy, recoveryNote));
+      recoveryPromptCopy.addEventListener('click', () => copyRecovery(recoveryPromptCopy, recoveryPromptNote));
+      pairingRecoveryCopy.addEventListener('click', () => copyRecovery(pairingRecoveryCopy, recoveryNote));
+      recoveryPromptNotNow.addEventListener('click', async () => {
+        await window.bowserPages.settings.syncRecoveryPromptDismiss().catch(() => {});
+        recoveryPromptWanted = false;
+        recoveryPrompt.hidden = true;
+        renderPairing();
       });
 
-      pathStart.addEventListener('click', () => { dispatch({ type: 'choose', path: 'start' }); handleEl.focus(); });
+      pathStart.addEventListener('click', () => { if (!canCreate) return; dispatch({ type: 'choose', path: 'start' }); handleEl.focus(); });
+      pathJoin.addEventListener('click', () => { dispatch({ type: 'choose', path: 'join' }); handleEl.focus(); });
+      turnOnBtn.addEventListener('click', () => { if (canCreate) dispatch({ type: 'turn-on' }); });
       pathCode.addEventListener('click', () => { dispatch({ type: 'choose', path: 'code' }); codeEl.focus(); });
       backBtn.addEventListener('click', () => dispatch({ type: 'back' }));
       codeBack.addEventListener('click', () => dispatch({ type: 'back' }));
@@ -1650,14 +2612,19 @@
       passEl.addEventListener('input', onInput);
       form.addEventListener('submit', (e) => { e.preventDefault(); dispatch({ type: 'submit' }); });
       tryAgainBtn.addEventListener('click', () => { dispatch({ type: 'input', handle: handleEl.value, passphrase: passEl.value }); passEl.focus(); });
-      startNewBtn.addEventListener('click', () => dispatch({ type: 'start-new' }));
+      startNewBtn.addEventListener('click', () => { if (canCreate) dispatch({ type: 'start-new' }); });
 
       window.bowserPages.settings.syncGet().then((status) => {
+        iphonePairing = status.iphonePairing === true;
+        onMac = status.platform === 'darwin';
+        connectIphoneBtn.hidden = !iphonePairing || !canCreate;
         renderStatus(status);
         renderSetup();
         renderPairing();
         renderSwitch();
-        if (status.enabled) resumePairing();
+        // Finish setup's Connect your iPhone opens the sheet directly.
+        if (status.openPairSheet) dispatchPairing({ type: 'open', syncOn: !!status.enabled });
+        else if (status.enabled) resumePairing();
       }).catch(() => {});
 
       nowBtn.addEventListener('click', async () => {
@@ -1667,19 +2634,25 @@
         nowBtn.disabled = false;
       });
 
-      disableBtn.addEventListener('click', async () => {
-        const res = await window.bowserPages.settings.syncDisable({ wipeRemote: wipeEl.checked });
+      async function turnOff(wipeRemote) {
+        eraseRetry.disabled = true;
+        disableBtn.disabled = true;
+        let res;
+        try { res = await window.bowserPages.settings.syncDisable({ wipeRemote }); }
+        finally { eraseRetry.disabled = false; disableBtn.disabled = false; }
         // A failed remote wipe keeps sync ON (the accountId is the only handle
         // on the server copy) — leave the checkbox set for the retry and say why.
         wipeEl.checked = res.ok ? false : wipeEl.checked;
         model = createSyncSetupModel();
         pairingModel = createPairingModel();
         switchModel = createSwitchModel();
-        renderStatus(res.status, res.ok ? null : res.message);
+        renderStatus(res.status, res.ok || res.error === 'erasure-pending' ? null : res.message);
         renderSetup();
         renderPairing();
         renderSwitch();
-      });
+      }
+      eraseRetry.addEventListener('click', () => turnOff(true));
+      disableBtn.addEventListener('click', () => turnOff(canWipeRemote && wipeEl.checked));
 
       tabsShareEl.addEventListener('change', async () => {
         renderStatus(await window.bowserPages.settings.syncTabsSet(tabsShareEl.checked));

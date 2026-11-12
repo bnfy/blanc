@@ -4,6 +4,7 @@ import globals from 'globals';
 // Correctness checks for first-party shipped JavaScript. Generated catalogs
 // retain their source/byte parity checks; test fixtures are checked by tests.
 export default [
+  { ignores: ['src/renderer/pages/reader-*.generated.js'] },
   {
     files: ['src/**/*.js', 'cloudflare/**/src/**/*.js'],
     ...js.configs.recommended,
@@ -60,7 +61,7 @@ export default [
     // pages/bangs-catalog.js first; they publish window.WorkspaceUI,
     // window.Bangs and window.BangsCatalog.
     files: ['src/renderer/overlay.js'],
-    languageOptions: { globals: { WorkspaceUI: 'readonly', Bangs: 'readonly', BangsCatalog: 'readonly' } },
+    languageOptions: { globals: { WorkspaceUI: 'readonly', Bangs: 'readonly', BangsCatalog: 'readonly', SpaceIdentity: 'readonly' } },
   },
   {
     // settings.html loads bangs.js and bangs-catalog.js before settings.js.
@@ -71,6 +72,12 @@ export default [
     // index.html loads space-identity.js first; it publishes window.SpaceIdentity.
     files: ['src/renderer/renderer.js'],
     languageOptions: { globals: { SpaceIdentity: 'readonly' } },
+  },
+  {
+    // index.html and overlay.html load tab-sections.js first; it publishes
+    // window.TabSections (groups and runs of ungrouped tabs).
+    files: ['src/renderer/renderer.js', 'src/renderer/overlay.js', 'src/renderer/vertical-tabs.js'],
+    languageOptions: { globals: { TabSections: 'readonly' } },
   },
   {
     files: ['cloudflare/**/src/**/*.js'],

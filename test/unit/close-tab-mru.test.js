@@ -17,9 +17,14 @@ const closeTabSource = start >= 0 && end >= 0 ? mainSource.slice(start, end) : n
 
 function makeSandbox({ runtime, tabs, onSelect }) {
   return {
+    // Split View (F53): no split in these fixtures.
+    splitForTab: () => null,
+    pruneSplits: () => {},
+    visibleSplitTabIds: () => [],
     sleepSnapshots: new Map(),
     sleepTeardownInProgress: false,
     fillHintScheduler: null,
+    readerMode: { forget: () => {}, forgetPrivate: () => {} },
     tabs,
     forgetTabWebContentsIds: () => {},
     cancelAddressBarFocusReclaim: () => {},
@@ -41,6 +46,7 @@ function makeSandbox({ runtime, tabs, onSelect }) {
     parkTabView: () => false,
     trimSnapshot: () => null,
     liveContents: (tab) => tab.view?.webContents ?? null,
+    presentationContents: (tab) => tab?.view?.webContents ?? null,
     Date,
     rt: () => runtime,
     windowRuntimes: { runtimeForTab: () => runtime, detachTab: () => {} },

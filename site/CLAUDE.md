@@ -25,7 +25,9 @@ plus `revamp.css`, both imported by `BaseLayout.astro`; pages add their own
 (bundled + hashed). **Every page is set in Blubird** since October 15, 2026
 (owner direction: the fonts roll out across the whole site, not only the
 redesigned homepage): headings in Blubird Display at regular weight and 0
-tracking (`--site-font-display` and `--site-font-patron`), text in Blubird
+tracking (`--site-font-display` and `--site-font-patron`); a small Display title, 24px
+and under, may open up to +0.03em (owner, October 22, 2026), never
+negative, and headlines stay at 0. Text in Blubird
 Text (the `html, body` stack and the site's own labels and controls); see
 *Blubird and the lockup* below. Mockups of the app's own UI (the Island
 figures, demo UI, coded illustrations) use the app's face, Instrument Sans at
@@ -60,7 +62,7 @@ heading display; `test/site/blubird-reach.test.mjs` and
 Newsreader is no longer loaded by any page; its condensed build
 (`scripts/build-condensed-newsreader.py`, `src/fonts/`) is unused and can be
 removed. These files are NOT under the root `tokens/` substrate guard.
-`src/scripts/site.js` (release-link resolution + consent-gated GA, all pages
+`src/scripts/site.js` (release-link resolution + region-dependent website measurement with an opt-out, all pages
 except legal) is Astro-processed. Anything needing a **stable URL** — favicons,
 `og-image.png`, `logo.png`, `feature-*.png` (OG images), `robots.txt`,
 `shots/**` (the Island figures' page captures) — lives in `public/`; never hash or
@@ -190,13 +192,24 @@ law needs), and offers Patrons priority feature requests: requests emailed to
 support@blanc.day from the checkout address are read and answered first.
 Patron still unlocks no browser features.
 
-**Blanc Mail waitlist:** `components/MailWaitlistForm.astro` (on `/mail` and
-`/mail/download`) posts `{email, website}` to the same Worker's
+**Blanc Mail waitlist:** `components/MailWaitlistForm.astro` (on `/mail`, twice,
+and in the Mail bar) posts `{email, website}` to the same Worker's
 `/mail-waitlist` route. It is a separate double opt-in list under its own
 `mailwait*` KV prefixes, never joins the newsletter, and is purged after the
 Mail launch announcement (runbook in the Worker README). The form copy, the
 Worker contract and the privacy page's `#mail-waitlist` section must change
 together.
+
+**Blanc Mail survey:** `pages/mail/survey.astro` and
+`components/MailSurveyForm.astro` post anonymous answers to the separate
+`blanc-mail-survey` Worker (`cloudflare/mail-survey-worker/`), which keeps no
+request logs and stores only the answers and the ISO week. Its ids live in the
+Worker's `src/survey.js`; the page, the Worker contract and the privacy page's
+`#mail-survey` section change together. `src/data/mail-survey.json` (`open`)
+shows the form or a closed message, and ships `false` until the go-live PR
+in the Worker README opens it with the Worker; the page is noindex and unlisted, and
+closing (summary, purge, flag, privacy update) follows the Worker README.
+Spec: `docs/superpowers/specs/2026-11-12-mail-feature-survey-design.md`.
 
 **Ambassador applications:** `src/pages/ambassadors.astro` posts the compact
 application form to `/ambassador-apply` on the same Worker. It sends name,
@@ -218,8 +231,21 @@ Console).
 
 Releases don't deploy the site. After a release: `npm run site:changelog`,
 commit `releases.json`, update the Feature Roadmap, re-pin the Bangs page to
-the new tag (`npm run site:bangs -- --ref <tag> --release <tag>`), then
-`npm run site:deploy`.
+the new tag (`npm run site:bangs -- --ref <tag> --release <tag>`), after a
+feature release re-check `/compare`, then `npm run site:deploy`.
+
+**Compare page (`/compare`):** `src/pages/compare.astro` renders the
+owner-approved chart in `src/data/compare.json` (Blanc next to Crest, Arc,
+Helium and Brave; spec
+`docs/superpowers/specs/2026-11-02-compare-page-design.md`). Every cell is a
+claim in `docs/website-compare-claims-<release>.json`, answers about other
+browsers cite first-party pages the page links, and a cell whose pages are
+silent reads `Not stated.`. It is re-checked after each Blanc feature release
+(`test/unit/site-compare-data.test.js` fails until `checkedAgainst` moves),
+every month for the other browsers, and when Arc ends on December 22, 2026
+(a build after `endsOn` drops its column). Procedure and schedule:
+`docs/compare-page-maintenance.md`. Changed cell wording needs the owner's
+approval.
 
 **Feature Roadmap (`/roadmap`):** `src/pages/roadmap.astro` renders the
 hand-edited `src/data/roadmap.json` (Now / Next / Later, no dates) plus a

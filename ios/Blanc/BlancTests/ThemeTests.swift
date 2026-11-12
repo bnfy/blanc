@@ -26,4 +26,13 @@ final class ThemeTests: XCTestCase {
     func testDarkWithDarkSystem() {
         XCTAssertEqual(resolvedTheme(preference: .dark, systemScheme: .dark), .dark)
     }
+
+    func testPrivateTabForcesPrivateTheme() {
+        for preference in [BlancThemePreference.system, .light, .dark] {
+            for scheme in [ColorScheme.light, .dark] {
+                XCTAssertEqual(resolvedTheme(preference: preference, systemScheme: scheme, isPrivate: true), .privateBrowsing)
+                XCTAssertNotEqual(resolvedTheme(preference: preference, systemScheme: scheme, isPrivate: false), .privateBrowsing)
+            }
+        }
+    }
 }

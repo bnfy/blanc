@@ -18,6 +18,10 @@ import { captureOutputDirectory, installedBlanc, poll, run, settle, sha256, writ
 //
 // Output goes to a temporary directory unless BLANC_CAPTURE_OUTPUT_DIR is set
 // (captures carry live page content, so a rerun never matches a ledger's hashes).
+//
+// BLANC_CAPTURE_GROUP_COLORS gives the two groups preset colors in order, as
+// hex values (tab group colors, v1.37.0+), e.g. "#9b4761,#426c4c".
+// BLANC_CAPTURE_FRONT is the index of the tab left active (default 0, The Met).
 
 const tabs = [
   ['inspiration', 'https://www.metmuseum.org/art/collection/search/436535'],
@@ -45,7 +49,11 @@ writeJson('settings', {
   presentationDefaultsResetVersion: 1,
 });
 // Restore the six tabs in their groups; each is woken below so it loads.
-const groups = [{ id: 'capture-inspiration', name: 'inspiration', collapsed: false }, { id: 'capture-reading', name: 'reading', collapsed: false }];
+const groupColors = (process.env.BLANC_CAPTURE_GROUP_COLORS || '').split(',').map((value) => value.trim()).filter(Boolean);
+const groups = [{ id: 'capture-inspiration', name: 'inspiration', collapsed: false }, { id: 'capture-reading', name: 'reading', collapsed: false }]
+  .map((group, index) => (groupColors[index] ? { ...group, color: groupColors[index] } : group));
+const front = Number(process.env.BLANC_CAPTURE_FRONT ?? 0);
+assert.ok(Number.isInteger(front) && front >= 0 && front < tabs.length, `BLANC_CAPTURE_FRONT must be a tab index, got ${front}`);
 const urls = tabs.map(([, url]) => url);
 const groupIds = tabs.map(([group]) => `capture-${group}`);
 const entry = { id: 'primary', profileId: 'default', workspaceId: null, urls, activeIndex: 0, groups, groupIds, pinned: urls.map(() => false), meta: urls.map(() => ({ title: '', favicon: null })) };
@@ -103,8 +111,9 @@ try {
   const list = await poll(() => chrome.evaluate(() => window.__captureTabs?.tabs), (value) => Array.isArray(value) && value.length === tabs.length, 'tab list not reported');
   const ids = urls.map((url) => list.find((tab) => tab.url === url)?.id);
   assert.ok(ids.every((id) => id != null), 'restored tabs not found');
-  // Visit every tab so each loads its own title and favicon, then return to The Met.
-  for (const id of [...ids.slice(1), ids[0]]) {
+  // Visit every tab so each loads its own title and favicon, then return to
+  // the front tab (The Met unless BLANC_CAPTURE_FRONT says otherwise).
+  for (const id of [...ids.filter((_, index) => index !== front), ids[front]]) {
     await chrome.evaluate((id) => window.browserAPI.switchTab(id), id);
     await poll(() => chrome.evaluate((id) => {
       const tab = window.__captureTabs?.tabs?.find((item) => item.id === id);

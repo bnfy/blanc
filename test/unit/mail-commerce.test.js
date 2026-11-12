@@ -11,7 +11,7 @@ test('Mail and Suite checkout selects one production plan and stays closed', asy
   };
   for (const [plan, id] of Object.entries(expected)) {
     assert.deepEqual(commerce.checkoutRequestFor(plan), {
-      products: [id], return_url: 'https://blanc.day/mail/pricing',
+      products: [id], return_url: 'https://blanc.day/mail#pricing',
     });
     assert.equal(commerce.checkoutHrefFor(plan), null);
   }
@@ -20,10 +20,14 @@ test('Mail and Suite checkout selects one production plan and stays closed', asy
   assert.equal(commerce.purchaseTestingPassed, false);
   assert.equal(commerce.keyContinuityTestingPassed, false);
   assert.equal(commerce.checkoutEnabled, false);
+  assert.equal(commerce.noddingOffBenefitId, '972583d1-c22d-415d-bd69-494ed63c5220');
   assert.deepEqual(commerce.productFor('suite-monthly').benefits, [
-    'ed1cce8c-d87e-4d27-b9d7-d30bda2de402', commerce.mailBenefitId,
+    'ed1cce8c-d87e-4d27-b9d7-d30bda2de402', commerce.mailBenefitId, commerce.noddingOffBenefitId,
   ]);
   assert.deepEqual(commerce.productFor('suite-annual').benefits, [
-    'ed1cce8c-d87e-4d27-b9d7-d30bda2de402', commerce.mailBenefitId,
+    'ed1cce8c-d87e-4d27-b9d7-d30bda2de402', commerce.mailBenefitId, commerce.noddingOffBenefitId,
   ]);
+  // Nodding Off is only in Suite, never in a Mail-only plan.
+  assert.ok(!commerce.productFor('mail-monthly').benefits.includes(commerce.noddingOffBenefitId));
+  assert.ok(!commerce.productFor('mail-annual').benefits.includes(commerce.noddingOffBenefitId));
 });

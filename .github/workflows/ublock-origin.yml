@@ -1,19 +1,35 @@
 name: Full uBlock Origin candidate
 on:
+  # Pull requests run it only when they change what its scripts exercise: the
+  # blocking providers, the shield, the inherited document policy, uBO's
+  # payload and the helpers these scripts import. Every other change, including
+  # main.js and the shared chrome renderers, is covered by the nightly run on
+  # main below (October 27, 2026: on almost every desktop PR it added up to 20
+  # minutes and failed about one completed run in five on flakes).
+  # test/unit/ci-ublock-scope.test.js pins this list.
   pull_request:
     paths:
-      - 'src/main/**'
-      - 'src/renderer/renderer.js'
-      - 'src/renderer/overlay*'
-      - 'src/renderer/index.html'
-      - 'src/renderer/styles.css'
-      - 'src/renderer/pages/settings*'
+      - 'src/main/ublock*'
+      - 'src/main/adblock*'
+      - 'src/main/blocking-*'
+      - 'src/main/shield*'
+      - 'src/main/document-policy*'
+      - 'src/main/inert-local-file*'
+      - 'src/main/tab-view.js'
       - 'src/renderer/ublock-*'
       - 'src/renderer/ublock-popup-icons/**'
       - 'ublock/**'
+      - 'adblock/**'
       - 'test/desktop/ublock*'
       - 'test/desktop/shield-provider*'
-      - 'test/desktop/support/**'
+      - 'test/desktop/document-policy*'
+      - 'test/desktop/modified-link-click*'
+      - 'test/desktop/support/test-hook-call.js'
+      - 'test/desktop/support/poll.js'
+      - 'test/desktop/support/main-turn.js'
+      - 'test/desktop/support/popup-focus-trace.js'
+      - 'test/desktop/support/quiet-rest.js'
+      - 'test/desktop/support/temp-profile.js'
       - 'test/unit/ublock*'
       - 'test/unit/blocking*'
       - 'test/unit/shield*'
@@ -21,26 +37,41 @@ on:
       - 'scripts/*capture-preload*'
       - 'scripts/verify-packaged-*'
       - 'scripts/generate-compliance*'
-      - 'adblock/**'
       - 'compliance/**'
       - '.gitattributes'
       - 'package*.json'
       - '.github/workflows/ublock-origin.yml'
+  # Pull requests run the Windows and Linux desktop jobs; both Macs (Apple
+  # Silicon and Intel) run nightly on main and on manual runs, so they don't
+  # hold PRs in the macOS queue (October 2026).
+  schedule:
+    - cron: "11 7 * * *"
   workflow_dispatch:
     inputs:
       installed_intel:
         description: "Also exercise an unsigned installed Intel package (not signing acceptance)"
         type: boolean
         default: false
+      intel_audio:
+        description: "Compare official Electron, ECS and native output clocks on disposable Intel"
+        type: boolean
+        default: false
       linux_native_diagnostics:
         description: "Capture Linux native stacks from repeated isolated real-blocking fixtures"
         type: boolean
         default: false
+# A new push to a pull request cancels that PR's older run. Pushes to main,
+# schedules and manual dispatches each get their own group (run_id), so
+# none is ever cancelled or queued behind another.
+concurrency:
+  group: ublock-origin-${{ github.event.pull_request.number || github.run_id }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
 permissions:
   contents: read
 jobs:
   ordinary-package:
-    if: ${{ github.event_name != 'workflow_dispatch' || (!inputs.installed_intel && !inputs.linux_native_diagnostics) }}
+    if: ${{ github.event_name != 'workflow_dispatch' || (!inputs.installed_intel && !inputs.linux_native_diagnostics && !inputs.intel_audio) }}
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
@@ -54,12 +85,14 @@ jobs:
       - name: Verify ordinary payload and exclusion boundary
         run: node scripts/verify-packaged-ublock.js dist/linux-unpacked/resources/app.asar
   desktop:
-    if: ${{ github.event_name != 'workflow_dispatch' || (!inputs.installed_intel && !inputs.linux_native_diagnostics) }}
+    if: ${{ github.event_name != 'workflow_dispatch' || (!inputs.installed_intel && !inputs.linux_native_diagnostics && !inputs.intel_audio) }}
     strategy:
       fail-fast: false
       matrix:
-        os: [macos-15, macos-15-intel, windows-latest, ubuntu-latest]
-    runs-on: ${{ matrix.os }}
+        # Pull requests add Apple Silicon only when a self-hosted Mac is set up
+        # (vars.MAC_RUNNER_LABELS); Intel always stays GitHub-hosted, nightly.
+        os: ${{ fromJSON(github.event_name == 'pull_request' && (vars.MAC_RUNNER_LABELS != '' && '["macos-15", "windows-latest", "ubuntu-latest"]' || '["windows-latest", "ubuntu-latest"]') || '["macos-15", "macos-15-intel", "windows-latest", "ubuntu-latest"]') }}
+    runs-on: ${{ (matrix.os == 'macos-15' && vars.MAC_RUNNER_LABELS != '' && (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository)) && fromJSON(vars.MAC_RUNNER_LABELS) || matrix.os }}
     timeout-minutes: 20
     steps:
       - name: Preserve verified bytes on Windows
@@ -77,8 +110,24 @@ jobs:
         run: bash scripts/ci-enable-linux-sandbox.sh
       - run: npm ci --no-audit --no-fund
       - run: npm run ublock:check
-      - run: npm run lint
-      - run: npm run test:unit
+      # Parity guards (Linux) and Unit tests (Windows, macOS) run these on every
+      # pull request; nightly and manual runs keep them, the only Intel run.
+      - if: ${{ github.event_name != 'pull_request' }}
+        run: npm run lint
+      - if: ${{ github.event_name != 'pull_request' }}
+        run: npm run test:unit
+      # Page-opened tabs keep their opener's sandbox or stay inert on the exact
+      # runtime (src/main/document-policy.js), on all four native targets.
+      - name: Inherited document policy and modified link clicks
+        shell: bash
+        run: |
+          if [ "$RUNNER_OS" = Linux ]; then
+            xvfb-run -a npm run test:document-policy:desktop
+            xvfb-run -a npm run test:modified-links:desktop
+          else
+            npm run test:document-policy:desktop
+            npm run test:modified-links:desktop
+          fi
       - name: Real blocking, original tools, isolation and lifecycle
         shell: bash
         run: |
@@ -99,6 +148,48 @@ jobs:
             npm run test:ublock-noscript:desktop
             npm run test:ublock-slow-install:desktop
           fi
+
+  intel-audio:
+    if: ${{ github.event_name == 'workflow_dispatch' && inputs.intel_audio && github.ref == 'refs/heads/codex/ecs-production-integration' }}
+    runs-on: macos-15-intel
+    timeout-minutes: 15
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: 22
+      - run: npm ci --no-audit --no-fund --foreground-scripts
+      - name: Prepare unmodified version-matched audio controls
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          test "$(uname -m)" = x86_64
+          test "$(node -p 'process.arch')" = x64
+          mkdir -p "$RUNNER_TEMP/official-audio"
+          gh release download v45.2.1 -R electron/electron -p electron-v45.2.1-darwin-x64.zip -p SHASUMS256.txt -D "$RUNNER_TEMP/official-audio"
+          cd "$RUNNER_TEMP/official-audio"
+          awk '$2 == "*electron-v45.2.1-darwin-x64.zip" || $2 == "electron-v45.2.1-darwin-x64.zip"' SHASUMS256.txt > expected.sha256
+          test "$(wc -l < expected.sha256 | tr -d ' ')" = 1
+          shasum -a 256 -c expected.sha256
+          ditto -x -k electron-v45.2.1-darwin-x64.zip .
+          echo "OFFICIAL_AUDIO_EXECUTABLE=$RUNNER_TEMP/official-audio/Electron.app/Contents/MacOS/Electron" >> "$GITHUB_ENV"
+          cd "$GITHUB_WORKSPACE"
+          node -e 'require("./scripts/prepare-ecs-runtime.cjs").prepareEcsRuntime("darwin","x64").then(r=>require("node:fs").appendFileSync(process.env.GITHUB_ENV,"ECS_AUDIO_EXECUTABLE="+r.directory+"/Electron.app/Contents/MacOS/Electron\n"))'
+          swiftc test/desktop/native-audio-clock.swift -o "$RUNNER_TEMP/native-audio-clock"
+          echo "NATIVE_AUDIO_PROBE=$RUNNER_TEMP/native-audio-clock" >> "$GITHUB_ENV"
+      - name: Compare local PCM media, Web Audio and native CoreAudio
+        run: node test/desktop/intel-audio-comparison.mjs
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        if: always()
+        with:
+          name: intel-audio-comparison-${{ github.run_id }}
+          path: output/ecs-production/intel-audio-comparison.json
+          if-no-files-found: error
+          retention-days: 3
 
   installed-intel:
     if: ${{ github.event_name == 'workflow_dispatch' && inputs.installed_intel }}
@@ -174,7 +265,7 @@ jobs:
       - run: npm ci --no-audit --no-fund
       - name: Prepare official native debugger
         run: |
-          command -v gdb || { sudo apt-get update; sudo apt-get install -y gdb; }
+          command -v gdb || { bash scripts/ci-apt-mirror.sh && sudo apt-get update && sudo apt-get install -y gdb; }
           chmod +x test/desktop/support/electron-native-debug.sh
       - name: Capture isolated browser-process native stacks
         shell: bash

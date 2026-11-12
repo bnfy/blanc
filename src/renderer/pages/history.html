@@ -18,9 +18,14 @@
       <a href="blanc://downloads/" data-i18n="pagesNav.downloads">Downloads</a>
     </nav>
     <h1 data-i18n="pagesNav.history">History</h1>
+    <div class="history-views" role="group" aria-label="History" data-i18n-aria-label="pagesNav.history">
+      <button id="viewVisits" type="button" aria-pressed="true" data-i18n="history.view.visits">Visits</button>
+      <button id="viewArchived" type="button" aria-pressed="false" data-i18n="history.view.archived">Archived tabs</button>
+    </div>
     <div class="toolbar-row">
       <input id="search" type="text" placeholder="Search history" aria-label="Search history" data-i18n-placeholder="history.search" data-i18n-aria-label="history.search" />
       <button id="clearAll" class="danger" data-i18n="history.clearAll">Clear all</button>
+      <button id="clearArchive" class="danger" hidden data-i18n="history.archived.clear">Clear Archive</button>
     </div>
     <div id="list" class="row-list aligned with-icons"></div>
   </div>

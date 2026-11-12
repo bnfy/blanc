@@ -29,8 +29,13 @@ test('a quitting active-tab teardown never selects and wakes a quiet replacement
     ['quiet', { id: 'quiet', url: 'https://quiet.test/', private: false, asleep: true, view: null }],
   ]);
   const sandbox = {
+    // Split View (F53): no split in these fixtures.
+    splitForTab: () => null,
+    pruneSplits: () => {},
+    visibleSplitTabIds: () => [],
     sleepSnapshots: new Map(),
     fillHintScheduler: null,
+    readerMode: { forget: () => {}, forgetPrivate: () => {} },
     sleepTeardownInProgress: true,
     tabs,
     forgetTabWebContentsIds: () => {},
@@ -53,6 +58,7 @@ test('a quitting active-tab teardown never selects and wakes a quiet replacement
     parkTabView: () => false,
     trimSnapshot: () => null,
     liveContents: (tab) => tab.view?.webContents ?? null,
+    presentationContents: (tab) => tab?.view?.webContents ?? null,
     Date,
     rt: () => runtime,
     windowRuntimes: { runtimeForTab: () => runtime, detachTab: () => {} },
@@ -83,8 +89,13 @@ test('closeTab tolerates a malformed provisional url during WebContents teardown
     ['malformed', { id: 'malformed', url: { not: 'a string' }, private: false, view: null }],
   ]);
   const sandbox = {
+    // Split View (F53): no split in these fixtures.
+    splitForTab: () => null,
+    pruneSplits: () => {},
+    visibleSplitTabIds: () => [],
     sleepSnapshots: new Map(),
     fillHintScheduler: null,
+    readerMode: { forget: () => {}, forgetPrivate: () => {} },
     sleepTeardownInProgress: false,
     tabs,
     forgetTabWebContentsIds: () => {},
@@ -107,6 +118,7 @@ test('closeTab tolerates a malformed provisional url during WebContents teardown
     parkTabView: () => false,
     trimSnapshot: () => null,
     liveContents: (tab) => tab.view?.webContents ?? null,
+    presentationContents: (tab) => tab?.view?.webContents ?? null,
     Date,
     rt: () => runtime,
     windowRuntimes: { runtimeForTab: () => runtime, detachTab: () => {} },
@@ -140,9 +152,14 @@ test('closing a quiet storage-bearing tab also closes its retained WebContents',
     ['quiet', { view: { webContents: retainedWc }, entries: [], index: 0 }],
   ]);
   const sandbox = {
+    // Split View (F53): no split in these fixtures.
+    splitForTab: () => null,
+    pruneSplits: () => {},
+    visibleSplitTabIds: () => [],
     sleepSnapshots: snapshots,
     sleepTeardownInProgress: false,
     fillHintScheduler: null,
+    readerMode: { forget: () => {}, forgetPrivate: () => {} },
     tabs,
     forgetTabWebContentsIds: () => {},
     cancelAddressBarFocusReclaim: () => {},
@@ -164,6 +181,7 @@ test('closing a quiet storage-bearing tab also closes its retained WebContents',
     parkTabView: () => false,
     trimSnapshot: () => null,
     liveContents: (tab) => tab.view?.webContents ?? null,
+    presentationContents: (tab) => tab?.view?.webContents ?? null,
     Date,
     rt: () => runtime,
     windowRuntimes: { runtimeForTab: () => runtime, detachTab: () => {} },
@@ -203,7 +221,12 @@ test('active private close keeps its native parent until WebContents destruction
   };
   const tabs = new Map([[tab.id, tab]]);
   const sandbox = {
+    // Split View (F53): no split in these fixtures.
+    splitForTab: () => null,
+    pruneSplits: () => {},
+    visibleSplitTabIds: () => [],
     sleepSnapshots: new Map(), sleepTeardownInProgress: false, fillHintScheduler: null,
+    readerMode: { forget: () => {}, forgetPrivate: () => {} },
     tabs, rt: () => runtime, isQuitting: false, process: { platform: 'win32' },
     setImmediate: task => deferred.push(task),
     windowRuntimes: { runtimeForTab: () => runtime, detachTab: () => {} },
@@ -220,6 +243,7 @@ test('active private close keeps its native parent until WebContents destruction
     resetFocusedPane: () => {}, popupChildCounts: new Map(),
     pruneEmptyGroups: () => {}, lastMainFrameMethod: new Map(),
     liveContents: target => target?.view?.webContents ?? null,
+    presentationContents: target => target?.view?.webContents ?? null,
     liveViewContents: view => view?.webContents && !destroyed ? wc : null,
     hasLiveWindow: () => true, unwireTabView: () => calls.push('unwire'), matchBrowserShortcut: () => true,
     setTabViewVisible: (target, visible) => {

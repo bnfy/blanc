@@ -1,5 +1,2457 @@
 [
   {
+    "tag": "v1.48.0",
+    "version": "1.48.0",
+    "name": "1.48.0",
+    "publishedAt": "2026-11-11T16:14:11.000Z",
+    "humanDate": "November 11, 2026",
+    "machineDate": "2026-11-11",
+    "url": "https://github.com/bnfy/blanc/releases/tag/v1.48.0",
+    "anchor": "v1-48-0",
+    "compareUrl": null,
+    "sections": [
+      {
+        "heading": "Added",
+        "blocks": [
+          {
+            "type": "list",
+            "items": [
+              {
+                "spans": [
+                  {
+                    "type": "strong",
+                    "value": "Glance over a split."
+                  },
+                  {
+                    "type": "text",
+                    "value": " With Split View showing, Glance now opens as a floating card over both panes, from a tab's Glance button in the ⌘L panel, a tab's menu, the View menu (⌘⇧G on a Mac, Ctrl+Shift+G on Windows and Linux) or "
+                  },
+                  {
+                    "type": "code",
+                    "value": "/glance"
+                  },
+                  {
+                    "type": "text",
+                    "value": ". Clicking between the two panes keeps the Glance open, and if you close one pane, the other fills the window with the Glance still over it. Before, the Glance button looked available over a split but did nothing. Choosing Glance for one of the split's own two tabs still takes that tab out of the split and floats it over the other, and the card's "
+                  },
+                  {
+                    "type": "strong",
+                    "value": "Keep as split"
+                  },
+                  {
+                    "type": "text",
+                    "value": " is hidden while a split is showing."
+                  }
+                ],
+                "url": null
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "heading": "Fixed",
+        "blocks": [
+          {
+            "type": "list",
+            "items": [
+              {
+                "spans": [
+                  {
+                    "type": "text",
+                    "value": "After choosing "
+                  },
+                  {
+                    "type": "strong",
+                    "value": "Continue"
+                  },
+                  {
+                    "type": "text",
+                    "value": " past a certificate warning on a local or private-network address, the page couldn't open live connections (WebSockets) back to the same address, so consoles and live views such as Proxmox's couldn't connect. They now use the same choice, for that same address and certificate only."
+                  }
+                ],
+                "url": null
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "tag": "v1.47.1",
+    "version": "1.47.1",
+    "name": "1.47.1",
+    "publishedAt": "2026-11-09T19:47:15.000Z",
+    "humanDate": "November 9, 2026",
+    "machineDate": "2026-11-09",
+    "url": "https://github.com/bnfy/blanc/releases/tag/v1.47.1",
+    "anchor": "v1-47-1",
+    "compareUrl": null,
+    "sections": [
+      {
+        "heading": "Fixed",
+        "blocks": [
+          {
+            "type": "list",
+            "items": [
+              {
+                "spans": [
+                  {
+                    "type": "text",
+                    "value": "Blanc no longer crashes when a page contains a frame that fails its certificate check. The frame is refused and the rest of the page stays open."
+                  }
+                ],
+                "url": null
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "tag": "v1.47.0",
+    "version": "1.47.0",
+    "name": "1.47.0",
+    "publishedAt": "2026-11-07T17:18:21.000Z",
+    "humanDate": "November 7, 2026",
+    "machineDate": "2026-11-07",
+    "url": "https://github.com/bnfy/blanc/releases/tag/v1.47.0",
+    "anchor": "v1-47-0",
+    "compareUrl": null,
+    "sections": [
+      {
+        "heading": "Added",
+        "blocks": [
+          {
+            "type": "list",
+            "items": [
+              {
+                "spans": [
+                  {
+                    "type": "strong",
+                    "value": "Default page zoom."
+                  },
+                  {
+                    "type": "text",
+                    "value": " Settings → General → "
+                  },
+                  {
+                    "type": "strong",
+                    "value": "Default page zoom"
+                  },
+                  {
+                    "type": "text",
+                    "value": " sets the size web pages open at, from 50% to 200%, and open tabs change at once. Zooming in or out on a site (⌘+ and ⌘− on a Mac, Ctrl++ and Ctrl+− on Windows and Linux) saves a size just for that site in the current profile, and every tab on that site follows; ⌘0 or Ctrl+0 forgets it and returns to the default. Settings lists the sites with their own zoom, each with "
+                  },
+                  {
+                    "type": "strong",
+                    "value": "Remove"
+                  },
+                  {
+                    "type": "text",
+                    "value": ", plus "
+                  },
+                  {
+                    "type": "strong",
+                    "value": "Clear all"
+                  },
+                  {
+                    "type": "text",
+                    "value": ". Private tabs save nothing, and zoom you set in earlier versions carries over. Sign-in popup windows aren't covered yet: they stay at 100%."
+                  }
+                ],
+                "url": null
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "heading": "Changed",
+        "blocks": [
+          {
+            "type": "list",
+            "items": [
+              {
+                "spans": [
+                  {
+                    "type": "text",
+                    "value": "Zooming in and out now steps through the same sizes as Chrome (… 75%, 80%, 90%, 100%, 110%, 125% …), so zooming back always lands on 100%."
+                  }
+                ],
+                "url": null
+              },
+              {
+                "spans": [
+                  {
+                    "type": "text",
+                    "value": "On Windows, with Island auto-hide on, the band along the top of the page that drags the window is 10 pixels tall instead of 6, so it's easier to grab. The top few rows of the page under it no longer take clicks while the Island is tucked away. macOS and Linux keep 6 pixels."
+                  }
+                ],
+                "url": null
+              },
+              {
+                "spans": [
+                  {
+                    "type": "text",
+                    "value": "Blanc now runs on castLabs' Electron for Content Security 45.2.1, with Chromium 156.0.8078.75, instead of 44.9.3 with Chromium 152. The optional uBlock Origin blocker remains available on this version."
+                  }
+                ],
+                "url": null
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "heading": "Fixed",
+        "blocks": [
+          {
+            "type": "list",
+            "items": [
+              {
+                "spans": [
+                  {
+                    "type": "text",
+                    "value": "With sync on and a shared Space open or set aside, quitting Blanc while a shared Space was arriving from another device could overwrite the saved windows file with an empty one. Quitting now keeps it."
+                  }
+                ],
+                "url": null
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "tag": "v1.46.0",
+    "version": "1.46.0",
+    "name": "1.46.0",
+    "publishedAt": "2026-11-03T02:57:32.000Z",
+    "humanDate": "November 2, 2026",
+    "machineDate": "2026-11-02",
+    "url": "https://github.com/bnfy/blanc/releases/tag/v1.46.0",
+    "anchor": "v1-46-0",
+    "compareUrl": null,
+    "sections": [
+      {
+        "heading": "Added",
+        "blocks": [
+          {
+            "type": "list",
+            "items": [
+              {
+                "spans": [
+                  {
+                    "type": "strong",
+                    "value": "Island size."
+                  },
+                  {
+                    "type": "text",
+                    "value": " Settings → General → "
+                  },
+                  {
+                    "type": "strong",
+                    "value": "Island size"
+                  },
+                  {
+                    "type": "text",
+                    "value": " makes the Island and its buttons bigger: choose Default, Large or Extra large. The site address grows with it, and the page moves down to make room. It's set on each device."
+                  }
+                ],
+                "url": null
+              },
+              {
+                "spans": [
+                  {
+                    "type": "strong",
+                    "value": "Mini Window."
+                  },
+                  {
+                    "type": "text",
+                    "value": " A small Blanc window for looking something up or opening a link without leaving the app you're in. Open one from File → "
+                  },
+                  {
+                    "type": "strong",
+                    "value": "New Mini Window"
+                  },
+                  {
+                    "type": "text",
+                    "value": ", from Blanc's Dock menu on a Mac, or with a shortcut that works in any app while Blanc is running: turn it on in Settings → General → "
+                  },
+                  {
+                    "type": "strong",
+                    "value": "Mini window shortcut"
+                  },
+                  {
+                    "type": "text",
+                    "value": " (⌥⌘N or ⌃⌥Spacebar on a Mac, Ctrl+Alt+Spacebar or Ctrl+Shift+Spacebar on Windows and Linux). The shortcut is off by default, and Settings says so if it can't be used. A mini window isn't saved, links from other apps never open in it, and it closes after an hour unused unless a page in it is in use or has unsaved changes; closing its last tab closes it too. Choose "
+                  },
+                  {
+                    "type": "strong",
+                    "value": "Open in Blanc"
+                  },
+                  {
+                    "type": "text",
+                    "value": " to keep it as an ordinary window."
+                  }
+                ],
+                "url": null
+              },
+              {
+                "spans": [
+                  {
+                    "type": "strong",
+                    "value": "Ctrl+Tab by most recent use on the Mac."
+                  },
+                  {
+                    "type": "text",
+                    "value": " Ctrl+Tab now goes back through the tabs you used last on macOS too, as it already does on Windows and Linux: hold Ctrl and press Tab, then let go to switch, or press Esc to stay where you are. To go by position instead, choose "
+                  },
+                  {
+                    "type": "strong",
+                    "value": "In the order of the tab list"
+                  },
+                  {
+                    "type": "text",
+                    "value": " in Settings → General → "
+                  },
+                  {
+                    "type": "strong",
+                    "value": "Switch tabs with Ctrl+Tab"
+                  },
+                  {
+                    "type": "text",
+                    "value": "."
+                  }
+                ],
+                "url": null
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "heading": "Changed",
+        "blocks": [
+          {
+            "type": "list",
+            "items": [
+              {
+                "spans": [
+                  {
+                    "type": "strong",
+                    "value": "Sync checks for changes more often."
+                  },
+                  {
+                    "type": "text",
+                    "value": " While a Blanc window is in front, Blanc checks for changes from your other devices every 15 seconds instead of once a minute, and downloads only what changed."
+                  }
+                ],
+                "url": null
+              },
+              {
+                "spans": [
+                  {
+                    "type": "strong",
+                    "value": "A cleaner Glance card."
+                  },
+                  {
+                    "type": "text",
+                    "value": " The Glance card no longer draws a border or a line around its page; its shadow sets it apart, and its GLANCE label brightens when it has focus."
+                  }
+                ],
+                "url": null
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "heading": "Fixed",
+        "blocks": [
+          {
+            "type": "list",
+            "items": [
+              {
+                "spans": [
+                  {
+                    "type": "text",
+                    "value": "With Spaces sync on, the "
+                  },
+                  {
+                    "type": "strong",
+                    "value": "Choose Spaces"
+                  },
+                  {
+                    "type": "text",
+                    "value": " sheet opens at once instead of waiting behind \"Sync is busy; retrying.\", "
+                  },
+                  {
+                    "type": "strong",
+                    "value": "Turn on"
+                  },
+                  {
+                    "type": "text",
+                    "value": " closes it as soon as your choice is saved while the upload carries on in the background, and "
+                  },
+                  {
+                    "type": "strong",
+                    "value": "Cancel"
+                  },
+                  {
+                    "type": "text",
+                    "value": " always works."
+                  }
+                ],
+                "url": null
+              },
+              {
+                "spans": [
+                  {
+                    "type": "text",
+                    "value": "A Space you save while Spaces sync is on shares itself and reaches your other devices in seconds, instead of waiting a minute or more, including a Space whose only tab is the New Tab page."
+                  }
+                ],
+                "url": null
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "tag": "v1.45.1",
+    "version": "1.45.1",
+    "name": "1.45.1",
+    "publishedAt": "2026-10-29T22:38:24.000Z",
+    "humanDate": "October 29, 2026",
+    "machineDate": "2026-10-29",
+    "url": "https://github.com/bnfy/blanc/releases/tag/v1.45.1",
+    "anchor": "v1-45-1",
+    "compareUrl": null,
+    "sections": [
+      {
+        "heading": "Changed",
+        "blocks": [
+          {
+            "type": "list",
+            "items": [
+              {
+                "spans": [
+                  {
+                    "type": "text",
+                    "value": "In the Spaces menu, a shared Space's sync status now sits on its own line under the Space's name, so a long name is no longer cut short."
+                  }
+                ],
+                "url": null
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "heading": "Fixed",
+        "blocks": [
+          {
+            "type": "list",
+            "items": [
+              {
+                "spans": [
+                  {
+                    "type": "text",
+                    "value": "With Shared Spaces on, the Spaces menu no longer keeps saying \"Sync is busy; retrying.\" or marks shared Spaces \"Waiting to upload\" during routine sync. They now appear only when sync is actually being held back or a Space has changes it hasn't uploaded yet."
+                  }
+                ],
+                "url": null
+              },
+              {
+                "spans": [
+                  {
+                    "type": "text",
+                    "value": "With "
+                  },
+                  {
+                    "type": "strong",
+                    "value": "Also for links I open in a new tab"
+                  },
+                  {
+                    "type": "text",
+                    "value": " on, a link you open in the background (middle-click, ⌘-click or Ctrl-click) whose rule needs a new window now opens that window behind the one you're using, instead of in front."
+                  }
+                ],
+                "url": null
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "tag": "v1.45.0",
+    "version": "1.45.0",
+    "name": "1.45.0",
+    "publishedAt": "2026-10-29T03:55:49.000Z",
+    "humanDate": "October 28, 2026",
+    "machineDate": "2026-10-28",
+    "url": "https://github.com/bnfy/blanc/releases/tag/v1.45.0",
+    "anchor": "v1-45-0",
+    "compareUrl": null,
+    "sections": [
+      {
+        "heading": "Added",
+        "blocks": [
+          {
+            "type": "list",
+            "items": [
+              {
+                "spans": [
+                  {
+                    "type": "strong",
+                    "value": "Shared Spaces."
+                  },
+                  {
+                    "type": "text",
+                    "value": " Keep a Space the same on each of your computers. With Sync on, open Settings → Sync, turn on "
+                  },
+                  {
+                    "type": "strong",
+                    "value": "Spaces and groups"
+                  },
+                  {
+                    "type": "text",
+                    "value": " under What syncs, and choose which Spaces to share. Their open tabs, tab names, groups and pinned tabs, in the same order, then match on every device that has it turned on, and a change on one appears on the others. Every device that turns it on can change these Spaces. The page you're looking at never changes under you: a close or a new address from another device waits until you leave that tab. The switch is off by default and set on each device; turning it off keeps a copy of your Spaces on that device, and your other devices keep syncing. Shared Spaces is end-to-end encrypted like the rest of Sync and belongs to the Personal profile. Private tabs, internal pages and local files never sync. Up to 25 Spaces can be shared, and a Space you delete still uses sync storage for 30 days. A Space too large to sync says so and asks you to split it."
+                  }
+                ],
+                "url": null
+              },
+              {
+                "spans": [
+                  {
+                    "type": "strong",
+                    "value": "Recently closed on every device."
+                  },
+                  {
+                    "type": "text",
+                    "value": " A tab you close in a shared Space closes on your other devices too, and their Recently closed lists it with the name of the device it was closed on, so you can bring it back from any of them. Closed tabs still use sync storage for 30 days."
+                  }
+                ],
+                "url": null
+              },
+              {
+                "spans": [
+                  {
+                    "type": "strong",
+                    "value": "Turn on Sync without a passphrase."
+                  },
+                  {
+                    "type": "text",
+                    "value": " In Settings → Sync, "
+                  },
+                  {
+                    "type": "strong",
+                    "value": "Turn on Sync"
+                  },
+                  {
+                    "type": "text",
+                    "value": " starts syncing this device with nothing to name or remember. To add another device, choose "
+                  },
+                  {
+                    "type": "strong",
+                    "value": "Add device"
+                  },
+                  {
+                    "type": "text",
+                    "value": " to show a code, and on the other device choose "
+                  },
+                  {
+                    "type": "strong",
+                    "value": "Add this device with a code"
+                  },
+                  {
+                    "type": "text",
+                    "value": " and enter it; the sheet says when the device joined. Because a sync like this has no passphrase, the device that started it offers "
+                  },
+                  {
+                    "type": "strong",
+                    "value": "Keep a way back in"
+                  },
+                  {
+                    "type": "text",
+                    "value": ": copy its recovery code into your password manager, since it's the only way to reach your synced data if you ever lose all your devices. Starting with a sync name and passphrase is still there under "
+                  },
+                  {
+                    "type": "strong",
+                    "value": "Other ways"
+                  },
+                  {
+                    "type": "text",
+                    "value": "."
+                  }
+                ],
+                "url": null
+              },
+              {
+                "spans": [
+                  {
+                    "type": "strong",
+                    "value": "Play the Sunrise when Blanc opens."
+                  },
+                  {
+                    "type": "text",
+                    "value": " Settings → Appearance → "
+                  },
+                  {
+                    "type": "strong",
+                    "value": "Play the Sunrise when Blanc opens"
+                  },
+                  {
+                    "type": "text",
+                    "value": " draws the Sunrise once on the first Start Page after launch, over the page as it already looks. It's off by default and set on each device. Any click or key ends it, and it's skipped when your system reduces motion."
+                  }
+                ],
+                "url": null
+              },
+              {
+                "spans": [
+                  {
+                    "type": "strong",
+                    "value": "Links you open in a new tab can follow your link rules."
+                  },
+                  {
+                    "type": "text",
+                    "value": " Turn on Settings → Profiles → Open links from other apps → "
+                  },
+                  {
+                    "type": "strong",
+                    "value": "Also for links I open in a new tab"
+                  },
+                  {
+                    "type": "text",
+                    "value": ", and a link you open in a new tab (a click on a link that opens a new tab, a middle-click, ⌘-click or Ctrl-click, or "
+                  },
+                  {
+                    "type": "strong",
+                    "value": "Open Link in New Tab"
+                  },
+                  {
+                    "type": "text",
+                    "value": ") opens where a rule sends it: another profile, another Space or a private tab. It's off by default and set on each device. Links a page opens by itself, such as a sign-in window, and links in private tabs stay where they are."
+                  }
+                ],
+                "url": null
+              },
+              {
+                "spans": [
+                  {
+                    "type": "strong",
+                    "value": "Connect your iPhone."
+                  },
+                  {
+                    "type": "text",
+                    "value": " Pair Blanc for iPhone, now in a public beta on TestFlight, by scanning a code. In Settings → Sync choose "
+                  },
+                  {
+                    "type": "strong",
+                    "value": "Connect your iPhone"
+                  },
+                  {
+                    "type": "text",
+                    "value": " (it's also in the Start Page's "
+                  },
+                  {
+                    "type": "strong",
+                    "value": "Finish setup"
+                  },
+                  {
+                    "type": "text",
+                    "value": " list), and on your iPhone open Blanc, choose "
+                  },
+                  {
+                    "type": "strong",
+                    "value": "Pair with your Blanc"
+                  },
+                  {
+                    "type": "text",
+                    "value": " and point it at the code. If Sync isn't on yet, Blanc asks before turning it on. When Sync is on, "
+                  },
+                  {
+                    "type": "strong",
+                    "value": "Add device"
+                  },
+                  {
+                    "type": "text",
+                    "value": " shows the same scannable code."
+                  }
+                ],
+                "url": null
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "heading": "Changed",
+        "blocks": [
+          {
+            "type": "list",
+            "items": [
+              {
+                "spans": [
+                  {
+                    "type": "strong",
+                    "value": "Vertical tabs show your Space."
+                  },
+                  {
+                    "type": "text",
+                    "value": " With tabs on the side, the current Space's mark sits in the rail's top row and opens the Spaces menu; with no Spaces yet it offers them. The rail's footer gains a button beside "
+                  },
+                  {
+                    "type": "strong",
+                    "value": "New tab"
+                  },
+                  {
+                    "type": "text",
+                    "value": " that puts the current tab, or the selected tabs, in a new group."
+                  }
+                ],
+                "url": null
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "heading": "Fixed",
+        "blocks": [
+          {
+            "type": "list",
+            "items": [
+              {
+                "spans": [
+                  {
+                    "type": "text",
+                    "value": "A tab a site opened in the background (with ⌘-click or Ctrl-click on GitHub or YouTube, for example) no longer stops you from switching Spaces once it has loaded."
+                  }
+                ],
+                "url": null
+              },
+              {
+                "spans": [
+                  {
+                    "type": "text",
+                    "value": "Site icons that aren't square, such as a wide logo, keep their shape instead of being stretched."
+                  }
+                ],
+                "url": null
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "tag": "v1.44.1",
+    "version": "1.44.1",
+    "name": "1.44.1",
+    "publishedAt": "2026-10-28T02:32:21.000Z",
+    "humanDate": "October 27, 2026",
+    "machineDate": "2026-10-27",
+    "url": "https://github.com/bnfy/blanc/releases/tag/v1.44.1",
+    "anchor": "v1-44-1",
+    "compareUrl": null,
+    "sections": [
+      {
+        "heading": "Added",
+        "blocks": [
+          {
+            "type": "list",
+            "items": [
+              {
+                "spans": [
+                  {
+                    "type": "strong",
+                    "value": "Reader Mode."
+                  },
+                  {
+                    "type": "text",
+                    "value": " Read an article without the clutter around it. Type "
+                  },
+                  {
+                    "type": "code",
+                    "value": "/reader"
+                  },
+                  {
+                    "type": "text",
+                    "value": ", or choose "
+                  },
+                  {
+                    "type": "strong",
+                    "value": "Enter Reader Mode"
+                  },
+                  {
+                    "type": "text",
+                    "value": " when the expanded Island offers it. Blanc lifts the article out of the page you've already loaded, on your computer, and keeps its headings, links, images with captions, tables and code. Choose System, Light, Dark or Sepia, one of four typefaces, a text size from 16 to 28 pixels and one of three widths; Blanc remembers your choice on this device. "
+                  },
+                  {
+                    "type": "strong",
+                    "value": "Exit Reader Mode"
+                  },
+                  {
+                    "type": "text",
+                    "value": " returns to the page as you left it, without reloading. Reader Mode is free. Some pages aren't articles, and on those Blanc says so and leaves the page as it was."
+                  }
+                ],
+                "url": null
+              },
+              {
+                "spans": [
+                  {
+                    "type": "strong",
+                    "value": "Move to Space."
+                  },
+                  {
+                    "type": "text",
+                    "value": " Once you have a space, a tab's menu has "
+                  },
+                  {
+                    "type": "strong",
+                    "value": "Move to Space ▸"
+                  },
+                  {
+                    "type": "text",
+                    "value": ": it moves the tab, as it is, to the end of another space without leaving the window you're in. "
+                  },
+                  {
+                    "type": "strong",
+                    "value": "New Space…"
+                  },
+                  {
+                    "type": "text",
+                    "value": " in the same menu makes a space that starts with that tab. A tab group's menu has "
+                  },
+                  {
+                    "type": "strong",
+                    "value": "Move Group to Space ▸"
+                  },
+                  {
+                    "type": "text",
+                    "value": ", which moves the whole group with its name and colour, and "
+                  },
+                  {
+                    "type": "strong",
+                    "value": "Open Link in Space ▸"
+                  },
+                  {
+                    "type": "text",
+                    "value": " in a link's menu opens the link in another space. Private tabs don't offer these."
+                  }
+                ],
+                "url": null
+              },
+              {
+                "spans": [
+                  {
+                    "type": "strong",
+                    "value": "Select several tabs."
+                  },
+                  {
+                    "type": "text",
+                    "value": " In the ⌘L panel and in vertical tabs, ⌘-click (Ctrl-click on Windows and Linux) adds or removes a tab, Shift-click selects a range, and Shift with the arrow keys extends the selection. Right-click a selected tab to move, group, pin, mute, reload, quiet, copy the links of or close them all at once. Closing them is one entry in Recently closed."
+                  }
+                ],
+                "url": null
+              },
+              {
+                "spans": [
+                  {
+                    "type": "strong",
+                    "value": "Send to Device."
+                  },
+                  {
+                    "type": "text",
+                    "value": " Send the page you're on to another of your synced Blanc devices from the tab menu's "
+                  },
+                  {
+                    "type": "strong",
+                    "value": "Send to Device ▸"
+                  },
+                  {
+                    "type": "text",
+                    "value": " or with "
+                  },
+                  {
+                    "type": "code",
+                    "value": "/send <device>"
+                  },
+                  {
+                    "type": "text",
+                    "value": ". It waits for you in "
+                  },
+                  {
+                    "type": "strong",
+                    "value": "Sent to this device"
+                  },
+                  {
+                    "type": "text",
+                    "value": " at the top of the Other devices drawer and on the Ledger start page; nothing opens by itself. Pages stay up to 7 days. Private tabs and internal pages can't be sent. Sending needs Profile Sync on both devices."
+                  }
+                ],
+                "url": null
+              },
+              {
+                "spans": [
+                  {
+                    "type": "strong",
+                    "value": "Open links from other apps where they belong."
+                  },
+                  {
+                    "type": "text",
+                    "value": " When another app opens a link in Blanc (a link you click in Slack, Mail or a terminal, say), rules in Settings → Profiles → "
+                  },
+                  {
+                    "type": "strong",
+                    "value": "Open links from other apps"
+                  },
+                  {
+                    "type": "text",
+                    "value": " decide which profile, and optionally which Space, it opens in. A rule reads \"Links to jira.example.com open in Work\". It matches that domain and its subdomains, or, from the rule's ⋮ menu, any address that contains text you choose. The first matching rule wins. A Space that isn't open opens in a new window of its profile, and a rule can open its links as private tabs. Links no rule matches open where they always have, in the window you used last. The group appears once you have two profiles or a Space. Rules stay on this device and aren't synced."
+                  }
+                ],
+                "url": null
+              },
+              {
+                "spans": [
+                  {
+                    "type": "strong",
+                    "value": "Make a rule from the page you're on."
+                  },
+                  {
+                    "type": "text",
+                    "value": " With two or more profiles, the shield popover has "
+                  },
+                  {
+                    "type": "strong",
+                    "value": "Open links to this site in this profile"
+                  },
+                  {
+                    "type": "text",
+                    "value": " (or "
+                  },
+                  {
+                    "type": "strong",
+                    "value": "…in this Space"
+                  },
+                  {
+                    "type": "text",
+                    "value": " when the window shows one); click it again to remove the rule. "
+                  },
+                  {
+                    "type": "code",
+                    "value": "/route"
+                  },
+                  {
+                    "type": "text",
+                    "value": " in the ⌘L panel does the same for the current page, and "
+                  },
+                  {
+                    "type": "code",
+                    "value": "/route off"
+                  },
+                  {
+                    "type": "text",
+                    "value": " removes its rule. Neither is available in a private tab."
+                  }
+                ],
+                "url": null
+              },
+              {
+                "spans": [
+                  {
+                    "type": "strong",
+                    "value": "Copy Link (⇧⌘C, Ctrl+Shift+C on Windows and Linux)."
+                  },
+                  {
+                    "type": "text",
+                    "value": " Copies the current page's address without selecting the address first, from the keyboard or Edit → "
+                  },
+                  {
+                    "type": "strong",
+                    "value": "Copy Link"
+                  },
+                  {
+                    "type": "text",
+                    "value": ". The Island briefly says \"Link copied\". On macOS, ⌥⇧⌘C copies the address without tracking parameters (Edit → "
+                  },
+                  {
+                    "type": "strong",
+                    "value": "Copy Clean Link"
+                  },
+                  {
+                    "type": "text",
+                    "value": "). Blank and internal pages copy nothing."
+                  }
+                ],
+                "url": null
+              },
+              {
+                "spans": [
+                  {
+                    "type": "strong",
+                    "value": "`/copy` and `/copy clean`."
+                  },
+                  {
+                    "type": "text",
+                    "value": " The same two copies from the ⌘L panel, so the clean copy has a keyboard path on Windows and Linux too."
+                  }
+                ],
+                "url": null
+              },
+              {
+                "spans": [
+                  {
+                    "type": "strong",
+                    "value": "Ctrl+Tab by most recent use (Linux and Windows)."
+                  },
+                  {
+                    "type": "text",
+                    "value": " Ctrl+Tab goes back to the tab you used before, and a second tap comes back. Hold Ctrl and press Tab again to step further back; a row of tab icons under the Island shows where you'll land, and letting go of Ctrl switches there. Esc stays put (on Windows, Ctrl+Esc opens the Start menu, which also leaves you where you were), a click on a tile switches at once, and Ctrl+W closes the picked tab. Ctrl+PageDown and Ctrl+PageUp still go by position. Turn it off in Settings → General → "
+                  },
+                  {
+                    "type": "strong",
+                    "value": "Switch tabs with Ctrl+Tab"
+                  },
+                  {
+                    "type": "text",
+                    "value": ". On macOS, Ctrl+Tab still goes by position for now."
+                  }
+                ],
+                "url": null
+              },
+              {
+                "spans": [
+                  {
+                    "type": "strong",
+                    "value": "Vertical tab text size."
+                  },
+                  {
+                    "type": "text",
+                    "value": " Settings → General → Island → "
+                  },
+                  {
+                    "type": "strong",
+                    "value": "Vertical tab text size"
+                  },
+                  {
+                    "type": "text",
+                    "value": ": Default, Large or Extra large. Titles and group names grow together, in every open window at once."
+                  }
+                ],
+                "url": null
+              },
+              {
+                "spans": [
+                  {
+                    "type": "strong",
+                    "value": "Site icons on the Island."
+                  },
+                  {
+                    "type": "text",
+                    "value": " Settings → General → Island → "
+                  },
+                  {
+                    "type": "strong",
+                    "value": "Show site icons on the Island"
+                  },
+                  {
+                    "type": "text",
+                    "value": " draws each tab on the Island as its site’s icon instead of a dot, so you can tell which tab is which without hovering. A small dot under an icon marks the current tab. Icons take more room, so fewer tabs fit before the rest go into a count. It’s off by default and stays on this device."
+                  }
+                ],
+                "url": null
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "heading": "Changed",
+        "blocks": [
+          {
+            "type": "list",
+            "items": [
+              {
+                "spans": [
+                  {
+                    "type": "strong",
+                    "value": "Switching spaces says which tab is in the way, and is in the way less often."
+                  },
+                  {
+                    "type": "text",
+                    "value": " When a page has to stay open during a switch, the switch box names up to three of them with the reason (still loading, using your camera, microphone or screen, a pop-up open, or connected to the page that opened it, as during a sign-in) and a "
+                  },
+                  {
+                    "type": "strong",
+                    "value": "Show tab"
+                  },
+                  {
+                    "type": "text",
+                    "value": " button. A tab another page opened no longer holds the window once that page has closed, and a page whose ad or chat frame keeps reloading no longer counts as loading."
+                  }
+                ],
+                "url": null
+              },
+              {
+                "spans": [
+                  {
+                    "type": "strong",
+                    "value": "Settings → Sync shows your devices."
+                  },
+                  {
+                    "type": "text",
+                    "value": " This device comes first, with a name you can edit in place, followed by your other synced devices and their platforms. What syncs is shown as tiles. The recovery code, joining with a code and turning sync off are now under "
+                  },
+                  {
+                    "type": "strong",
+                    "value": "More options"
+                  },
+                  {
+                    "type": "text",
+                    "value": "."
+                  }
+                ],
+                "url": null
+              },
+              {
+                "spans": [
+                  {
+                    "type": "text",
+                    "value": "Pinned tabs always lead the Island's dots, including pinned tabs inside a group, and show as rounded squares (on a tile with site icons on). While a pinned tab is active, the Island keeps showing its group, or the last section you were in."
+                  }
+                ],
+                "url": null
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "heading": "Fixed",
+        "blocks": [
+          {
+            "type": "list",
+            "items": [
+              {
+                "spans": [
+                  {
+                    "type": "strong",
+                    "value": "Open in Glance"
+                  },
+                  {
+                    "type": "text",
+                    "value": " in a tab's menu now works on either page of a two-page split: that page leaves the split and floats over the other."
+                  }
+                ],
+                "url": null
+              },
+              {
+                "spans": [
+                  {
+                    "type": "text",
+                    "value": "With vertical tabs on Windows and Linux, the main-menu button moves into the rail, so it stays reachable."
+                  }
+                ],
+                "url": null
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "tag": "v1.43.1",
+    "version": "1.43.1",
+    "name": "1.43.1",
+    "publishedAt": "2026-10-24T15:21:12.000Z",
+    "humanDate": "October 24, 2026",
+    "machineDate": "2026-10-24",
+    "url": "https://github.com/bnfy/blanc/releases/tag/v1.43.1",
+    "anchor": "v1-43-1",
+    "compareUrl": null,
+    "sections": [
+      {
+        "heading": "Fixed",
+        "blocks": [
+          {
+            "type": "list",
+            "items": [
+              {
+                "spans": [
+                  {
+                    "type": "text",
+                    "value": "Blanc 1.43.0 didn't start on Linux distributions whose C library (glibc) is older than 2.38, such as Ubuntu 22.04 LTS and Debian 12, so Linux updates were held at 1.42.1. Blanc 1.43.1 needs only glibc 2.28 and starts on Ubuntu 22.04 LTS, and Linux updates resume with it. If you downloaded the 1.43.0 AppImage, download 1.43.1 again; 1.43.0 can't start to update itself."
+                  }
+                ],
+                "url": null
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "tag": "v1.43.0",
+    "version": "1.43.0",
+    "name": "1.43.0",
+    "publishedAt": "2026-10-24T12:55:30.000Z",
+    "humanDate": "October 24, 2026",
+    "machineDate": "2026-10-24",
+    "url": "https://github.com/bnfy/blanc/releases/tag/v1.43.0",
+    "anchor": "v1-43-0",
+    "compareUrl": null,
+    "sections": [
+      {
+        "heading": "Added",
+        "blocks": [
+          {
+            "type": "list",
+            "items": [
+              {
+                "spans": [
+                  {
+                    "type": "strong",
+                    "value": "Protected video playback."
+                  },
+                  {
+                    "type": "text",
+                    "value": " Blanc now plays video and music that sites protect with Widevine DRM (copy protection), on macOS (Apple Silicon and Intel), Windows and Linux. The first time Blanc starts after the update, it downloads the Widevine component from Google's update service in the background, and you can keep browsing meanwhile. "
+                  },
+                  {
+                    "type": "strong",
+                    "value": "Protected media"
+                  },
+                  {
+                    "type": "text",
+                    "value": " in Settings → Help shows when the component is ready. On Linux, Blanc asks you to "
+                  },
+                  {
+                    "type": "strong",
+                    "value": "Restart Blanc"
+                  },
+                  {
+                    "type": "text",
+                    "value": " once the component is installed, and again after the component updates; on any system the same button appears if setup fails or takes too long. Netflix and Spotify were tried on an Apple Silicon Mac. Whether a particular site plays still depends on that site."
+                  }
+                ],
+                "url": null
+              },
+              {
+                "spans": [
+                  {
+                    "type": "strong",
+                    "value": "Sunrise Spectrum and Sunrise Amber."
+                  },
+                  {
+                    "type": "text",
+                    "value": " Two new macOS app icons: the Sunrise redrawn in glass as a ring sun, rays and water lines inside a white outline. Spectrum is coral and red over royal blue and navy on a gray tile; Amber is gold over bronze on a cream tile. Both tiles turn dark in Dark mode. Choose one in Settings → General → App icon."
+                  }
+                ],
+                "url": null
+              },
+              {
+                "spans": [
+                  {
+                    "type": "strong",
+                    "value": "Neutral surface style."
+                  },
+                  {
+                    "type": "text",
+                    "value": " A new "
+                  },
+                  {
+                    "type": "strong",
+                    "value": "Surface style"
+                  },
+                  {
+                    "type": "text",
+                    "value": " setting in Settings → General swaps the cream and gold of the Start Page and of Favorites, History, Downloads and Settings for plain ink and gray, in Light and Dark. "
+                  },
+                  {
+                    "type": "strong",
+                    "value": "Sunrise"
+                  },
+                  {
+                    "type": "text",
+                    "value": " stays the default. Wallpapers, app icons and the Sunrise mark don't change. The choice applies to this device and to the next page that opens."
+                  }
+                ],
+                "url": null
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "heading": "Changed",
+        "blocks": [
+          {
+            "type": "list",
+            "items": [
+              {
+                "spans": [
+                  {
+                    "type": "strong",
+                    "value": "Pinned tabs can join a Split View."
+                  },
+                  {
+                    "type": "text",
+                    "value": " A split is now pinned or unpinned as a whole. Split a pinned tab with any other tab, or press "
+                  },
+                  {
+                    "type": "strong",
+                    "value": "Keep as split"
+                  },
+                  {
+                    "type": "text",
+                    "value": " on a Glance card over a pinned page, and the split is pinned. "
+                  },
+                  {
+                    "type": "strong",
+                    "value": "Pin Split"
+                  },
+                  {
+                    "type": "text",
+                    "value": " and "
+                  },
+                  {
+                    "type": "strong",
+                    "value": "Unpin Split"
+                  },
+                  {
+                    "type": "text",
+                    "value": " in either tab's menu pin or unpin both tabs. A pinned split is one row under Pinned in the ⌘L panel and in vertical tabs, stays pinned after a relaunch, and comes back pinned with Reopen Closed Tab. Before, pinned tabs couldn't join a split, and pinning a tab took it out of its split."
+                  }
+                ],
+                "url": null
+              },
+              {
+                "spans": [
+                  {
+                    "type": "text",
+                    "value": "Blanc now runs on castLabs' Electron for Content Security 44.9.3, a build of Electron that can play Widevine-protected media, instead of Electron 44.8.0. Chromium stays at 152.0.7977.167. The optional uBlock Origin blocker remains available on this version. It includes Electron 44.9.1's security fix that stops trusting compromised eMudhra intermediate certificates."
+                  }
+                ],
+                "url": null
+              },
+              {
+                "spans": [
+                  {
+                    "type": "text",
+                    "value": "On macOS, an HTML file you open from Finder or another app now opens in its own window as a static preview instead of in a Blanc tab. Its scripts don't run, and it can't load anything from the network or from other files, so only what is inside the file itself shows."
+                  }
+                ],
+                "url": null
+              },
+              {
+                "spans": [
+                  {
+                    "type": "text",
+                    "value": "Local HTML tabs from earlier versions are kept. A local HTML file's tab, restored from your last session, a Space, a pinned tab or Reopen Closed Tab, keeps its place and title and shows a short explanation instead of the page. The file itself is unchanged: open it in another app, or close the tab."
+                  }
+                ],
+                "url": null
+              },
+              {
+                "spans": [
+                  {
+                    "type": "text",
+                    "value": "Tabs that a page opens keep that page's restrictions. These are tabs from a link that opens a new tab, a ⌘-click or Ctrl-click, a middle-click, or a page's own pop-up. Blanc can't rebuild such a tab with those restrictions, so it never goes quiet and can't be duplicated. After a relaunch, or when you reopen it after closing it, it shows "
+                  },
+                  {
+                    "type": "strong",
+                    "value": "This tab can’t be reopened"
+                  },
+                  {
+                    "type": "text",
+                    "value": " and a "
+                  },
+                  {
+                    "type": "strong",
+                    "value": "Copy link"
+                  },
+                  {
+                    "type": "text",
+                    "value": " button instead of loading the page. Tabs you open yourself are unaffected."
+                  }
+                ],
+                "url": null
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "heading": "Fixed",
+        "blocks": [
+          {
+            "type": "list",
+            "items": [
+              {
+                "spans": [
+                  {
+                    "type": "text",
+                    "value": "A page you opened while Blanc was still starting could show a \"blocked\" error page even though the page itself had loaded. Blanc holds web pages for a moment at startup until its blocker is ready, then opens them; the error no longer appears over a page that opened normally."
+                  }
+                ],
+                "url": null
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "tag": "v1.42.1",
+    "version": "1.42.1",
+    "name": "1.42.1",
+    "publishedAt": "2026-10-22T17:07:27.000Z",
+    "humanDate": "October 22, 2026",
+    "machineDate": "2026-10-22",
+    "url": "https://github.com/bnfy/blanc/releases/tag/v1.42.1",
+    "anchor": "v1-42-1",
+    "compareUrl": null,
+    "sections": [
+      {
+        "heading": "Changed",
+        "blocks": [
+          {
+            "type": "list",
+            "items": [
+              {
+                "spans": [
+                  {
+                    "type": "text",
+                    "value": "The floating Glance card stands out more from the page behind it: it casts a deeper shadow, its corners are rounder, and the page inside it sits slightly inset under its header."
+                  }
+                ],
+                "url": null
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "heading": "Fixed",
+        "blocks": [
+          {
+            "type": "list",
+            "items": [
+              {
+                "spans": [
+                  {
+                    "type": "text",
+                    "value": "On Windows, with Auto-hide set to Float, the floating Island no longer loses its rounded ends when it gets wider, for example after you open more tabs or visit a site with a longer address."
+                  }
+                ],
+                "url": null
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "tag": "v1.42.0",
+    "version": "1.42.0",
+    "name": "1.42.0",
+    "publishedAt": "2026-10-22T14:46:10.000Z",
+    "humanDate": "October 22, 2026",
+    "machineDate": "2026-10-22",
+    "url": "https://github.com/bnfy/blanc/releases/tag/v1.42.0",
+    "anchor": "v1-42-0",
+    "compareUrl": null,
+    "sections": [
+      {
+        "heading": "Added",
+        "blocks": [
+          {
+            "type": "list",
+            "items": [
+              {
+                "spans": [
+                  {
+                    "type": "strong",
+                    "value": "Search priority results."
+                  },
+                  {
+                    "type": "text",
+                    "value": " A new setting in Settings → General, under Island, puts search suggestions first as you type: the search for what you typed and your search engine's suggestions come before your tabs, groups, Spaces, Favorites and history, and Enter searches. It is off by default, so the order you know stays the same until you turn it on."
+                  }
+                ],
+                "url": null
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "heading": "Fixed",
+        "blocks": [
+          {
+            "type": "list",
+            "items": [
+              {
+                "spans": [
+                  {
+                    "type": "text",
+                    "value": "On Windows and Linux, the first permission prompt in a window no longer keeps the keyboard, so what you type next goes to the page instead of being lost."
+                  }
+                ],
+                "url": null
+              },
+              {
+                "spans": [
+                  {
+                    "type": "text",
+                    "value": "With Auto-hide set to Float, the floating Island casts one shadow again, without a second outline along its bottom edge."
+                  }
+                ],
+                "url": null
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "tag": "v1.41.0",
+    "version": "1.41.0",
+    "name": "1.41.0",
+    "publishedAt": "2026-10-21T23:21:58.000Z",
+    "humanDate": "October 21, 2026",
+    "machineDate": "2026-10-21",
+    "url": "https://github.com/bnfy/blanc/releases/tag/v1.41.0",
+    "anchor": "v1-41-0",
+    "compareUrl": null,
+    "sections": [
+      {
+        "heading": "Added",
+        "blocks": [
+          {
+            "type": "list",
+            "items": [
+              {
+                "spans": [
+                  {
+                    "type": "strong",
+                    "value": "Clock Font & color."
+                  },
+                  {
+                    "type": "text",
+                    "value": " Choose how the Billboard Start Page's clock looks, like the iOS Lock Screen: open "
+                  },
+                  {
+                    "type": "strong",
+                    "value": "Customize"
+                  },
+                  {
+                    "type": "text",
+                    "value": " and pick "
+                  },
+                  {
+                    "type": "strong",
+                    "value": "Clock"
+                  },
+                  {
+                    "type": "text",
+                    "value": ", or right-click the clock. Pick a font (Instrument Sans, Instrument Sans Condensed, Inter or Roboto Flex), its weight and its height, then a color: "
+                  },
+                  {
+                    "type": "strong",
+                    "value": "Automatic"
+                  },
+                  {
+                    "type": "text",
+                    "value": " or one of eight colors with a tone. "
+                  },
+                  {
+                    "type": "strong",
+                    "value": "Glass"
+                  },
+                  {
+                    "type": "text",
+                    "value": " bends the page behind the numerals like glass; "
+                  },
+                  {
+                    "type": "strong",
+                    "value": "Solid"
+                  },
+                  {
+                    "type": "text",
+                    "value": " draws them flat. Every clock now has a soft shadow so it stays readable on any background."
+                  }
+                ],
+                "url": null
+              },
+              {
+                "spans": [
+                  {
+                    "type": "strong",
+                    "value": "Start Page pins."
+                  },
+                  {
+                    "type": "text",
+                    "value": " Pin up to eight pages to the Start Page, and they come first on every layout, newest first. Pin a Billboard tile, a favorite on Ledger, Shelf or Tally, a favorite on the Favorites page, or the current page from a tab's right-click menu with "
+                  },
+                  {
+                    "type": "strong",
+                    "value": "Pin to Start Page"
+                  },
+                  {
+                    "type": "text",
+                    "value": ". Pins sync with Profile Sync."
+                  }
+                ],
+                "url": null
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "heading": "Fixed",
+        "blocks": [
+          {
+            "type": "list",
+            "items": [
+              {
+                "spans": [
+                  {
+                    "type": "text",
+                    "value": "After a site asks for a permission, the keyboard goes back to that page instead of to a tab you can't see."
+                  }
+                ],
+                "url": null
+              },
+              {
+                "spans": [
+                  {
+                    "type": "text",
+                    "value": "On the Billboard Start Page in dark mode, a tile's × is visible again."
+                  }
+                ],
+                "url": null
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "tag": "v1.40.0",
+    "version": "1.40.0",
+    "name": "1.40.0",
+    "publishedAt": "2026-10-21T03:27:16.000Z",
+    "humanDate": "October 20, 2026",
+    "machineDate": "2026-10-20",
+    "url": "https://github.com/bnfy/blanc/releases/tag/v1.40.0",
+    "anchor": "v1-40-0",
+    "compareUrl": null,
+    "sections": [
+      {
+        "heading": "Added",
+        "blocks": [
+          {
+            "type": "list",
+            "items": [
+              {
+                "spans": [
+                  {
+                    "type": "strong",
+                    "value": "Split View."
+                  },
+                  {
+                    "type": "text",
+                    "value": " Show two tabs side by side in one window. Right-click a tab and choose "
+                  },
+                  {
+                    "type": "strong",
+                    "value": "Split with"
+                  },
+                  {
+                    "type": "text",
+                    "value": ", or press "
+                  },
+                  {
+                    "type": "strong",
+                    "value": "Keep as split"
+                  },
+                  {
+                    "type": "text",
+                    "value": " on a Glance card. Drag the divider between the panes to resize them. The pane you click is the current tab, so the Island, Back and Reload follow it, and each pane's corner shows its site. A split stays together in the ⌘L panel and comes back after a relaunch and in Blanc Spaces. "
+                  },
+                  {
+                    "type": "strong",
+                    "value": "Remove from Split"
+                  },
+                  {
+                    "type": "text",
+                    "value": " in a tab's menu (or the × in its corner) takes one tab out; "
+                  },
+                  {
+                    "type": "strong",
+                    "value": "Close Split"
+                  },
+                  {
+                    "type": "text",
+                    "value": " closes both, and Reopen Closed Tab brings the split back."
+                  }
+                ],
+                "url": null
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "heading": "Changed",
+        "blocks": [
+          {
+            "type": "list",
+            "items": [
+              {
+                "spans": [
+                  {
+                    "type": "strong",
+                    "value": "Glance floats over the page."
+                  },
+                  {
+                    "type": "text",
+                    "value": " The tab you pick now opens as a large card over the current page instead of beside it, and the page behind stays usable. Drag the card's header to move it, drag an edge to resize it, and double-click the header to put it back; Blanc remembers where you left it. "
+                  },
+                  {
+                    "type": "strong",
+                    "value": "Open as tab"
+                  },
+                  {
+                    "type": "text",
+                    "value": " makes the Glance page the current tab, and "
+                  },
+                  {
+                    "type": "strong",
+                    "value": "Keep as split"
+                  },
+                  {
+                    "type": "text",
+                    "value": " turns the two into a Split View. Switching tabs closes the Glance, and so does Escape on the card's header; Escape inside the page stays with the page."
+                  }
+                ],
+                "url": null
+              },
+              {
+                "spans": [
+                  {
+                    "type": "strong",
+                    "value": "With Auto-hide on, the Island floats over the page when it comes back"
+                  },
+                  {
+                    "type": "text",
+                    "value": " instead of pushing the page down. To keep the old behavior, choose "
+                  },
+                  {
+                    "type": "strong",
+                    "value": "Push the page down"
+                  },
+                  {
+                    "type": "text",
+                    "value": " under "
+                  },
+                  {
+                    "type": "strong",
+                    "value": "When the Island comes back"
+                  },
+                  {
+                    "type": "text",
+                    "value": " in Settings → General. While it floats, the Island comes back only from the top edge of the window (or ⌘L, Ctrl+L on Windows and Linux) and hides as soon as the pointer moves into the page, and the window buttons hide and come back with it."
+                  }
+                ],
+                "url": null
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "heading": "Fixed",
+        "blocks": [
+          {
+            "type": "list",
+            "items": [
+              {
+                "spans": [
+                  {
+                    "type": "text",
+                    "value": "After you close a window's last tab, the address field is ready to type into, as it is after ⌘T."
+                  }
+                ],
+                "url": null
+              },
+              {
+                "spans": [
+                  {
+                    "type": "text",
+                    "value": "Dark and private tabs load on a dark background instead of flashing white."
+                  }
+                ],
+                "url": null
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "tag": "v1.39.0",
+    "version": "1.39.0",
+    "name": "1.39.0",
+    "publishedAt": "2026-10-20T01:50:41.000Z",
+    "humanDate": "October 19, 2026",
+    "machineDate": "2026-10-19",
+    "url": "https://github.com/bnfy/blanc/releases/tag/v1.39.0",
+    "anchor": "v1-39-0",
+    "compareUrl": null,
+    "sections": [
+      {
+        "heading": "Added",
+        "blocks": [
+          {
+            "type": "list",
+            "items": [
+              {
+                "spans": [
+                  {
+                    "type": "strong",
+                    "value": "Auto-hide the Island."
+                  },
+                  {
+                    "type": "text",
+                    "value": " Turn on "
+                  },
+                  {
+                    "type": "strong",
+                    "value": "Auto-hide the Island"
+                  },
+                  {
+                    "type": "text",
+                    "value": " in Settings → General, from the View menu, or with ⌘⌥B on macOS (Ctrl+Alt+B on Windows and Linux), and the page fills the whole window. Point at the top edge of the window, rest the pointer near the top, or press ⌘L (Ctrl+L) to bring the Island back; it slides away again once you move off it. It's off by default."
+                  }
+                ],
+                "url": null
+              },
+              {
+                "spans": [
+                  {
+                    "type": "strong",
+                    "value": "Tab Archive."
+                  },
+                  {
+                    "type": "text",
+                    "value": " Turn on "
+                  },
+                  {
+                    "type": "strong",
+                    "value": "Archive inactive tabs"
+                  },
+                  {
+                    "type": "text",
+                    "value": " in Settings → General, and loose tabs you haven't looked at for 12 hours, a day, 7 days or 30 days close themselves into an Archive. Pinned, grouped and private tabs are never archived, and neither is a tab that is playing media or holding something you typed. Find archived tabs in the ⌘L panel, or in History → "
+                  },
+                  {
+                    "type": "strong",
+                    "value": "Archived tabs"
+                  },
+                  {
+                    "type": "text",
+                    "value": " (or "
+                  },
+                  {
+                    "type": "code",
+                    "value": "/archive"
+                  },
+                  {
+                    "type": "text",
+                    "value": "), and restore them with one click. The Archive stays on this device and keeps each tab for 30 days. It's off by default; a new profile offers it during setup."
+                  }
+                ],
+                "url": null
+              },
+              {
+                "spans": [
+                  {
+                    "type": "strong",
+                    "value": "Sunrise Gold."
+                  },
+                  {
+                    "type": "text",
+                    "value": " A new macOS app icon: the Sunrise in glass over gold, soft in Light and polished in Dark. Choose it in Settings → General → App icon."
+                  }
+                ],
+                "url": null
+              },
+              {
+                "spans": [
+                  {
+                    "type": "strong",
+                    "value": "What's New."
+                  },
+                  {
+                    "type": "text",
+                    "value": " After an update that adds features, Blanc opens a page on blanc.day showing the highlights, once."
+                  }
+                ],
+                "url": null
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "heading": "Changed",
+        "blocks": [
+          {
+            "type": "list",
+            "items": [
+              {
+                "spans": [
+                  {
+                    "type": "strong",
+                    "value": "Settings → General is grouped into cards:"
+                  },
+                  {
+                    "type": "text",
+                    "value": " Island, Appearance, Start Page, Search and Browsing. The theme setting is now labeled "
+                  },
+                  {
+                    "type": "strong",
+                    "value": "Theme"
+                  },
+                  {
+                    "type": "text",
+                    "value": "."
+                  }
+                ],
+                "url": null
+              },
+              {
+                "spans": [
+                  {
+                    "type": "strong",
+                    "value": "A panel opened by hover closes when you move away"
+                  },
+                  {
+                    "type": "text",
+                    "value": " from it, unless you used it."
+                  }
+                ],
+                "url": null
+              },
+              {
+                "spans": [
+                  {
+                    "type": "strong",
+                    "value": "On macOS, the window buttons sit where Safari and Finder put them."
+                  }
+                ],
+                "url": null
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "tag": "v1.38.0",
+    "version": "1.38.0",
+    "name": "1.38.0",
+    "publishedAt": "2026-10-18T20:24:38.000Z",
+    "humanDate": "October 18, 2026",
+    "machineDate": "2026-10-18",
+    "url": "https://github.com/bnfy/blanc/releases/tag/v1.38.0",
+    "anchor": "v1-38-0",
+    "compareUrl": null,
+    "sections": [
+      {
+        "heading": "Added",
+        "blocks": [
+          {
+            "type": "list",
+            "items": [
+              {
+                "spans": [
+                  {
+                    "type": "strong",
+                    "value": "Your own Start Page image."
+                  },
+                  {
+                    "type": "text",
+                    "value": " Open "
+                  },
+                  {
+                    "type": "strong",
+                    "value": "Customize"
+                  },
+                  {
+                    "type": "text",
+                    "value": " on the Start Page and choose "
+                  },
+                  {
+                    "type": "strong",
+                    "value": "Your image"
+                  },
+                  {
+                    "type": "text",
+                    "value": " under Wallpaper to show a JPEG or PNG of your own, up to 25 MB. "
+                  },
+                  {
+                    "type": "strong",
+                    "value": "Wash"
+                  },
+                  {
+                    "type": "text",
+                    "value": " (Auto, Light, Dark or Spotlight) and "
+                  },
+                  {
+                    "type": "strong",
+                    "value": "Fade"
+                  },
+                  {
+                    "type": "text",
+                    "value": " keep the page readable over it. Blanc keeps a resized copy on this device only, with location, camera and time details removed. It isn't synced, and private tabs never show it. Settings → General → Start Page image offers the same choice."
+                  }
+                ],
+                "url": null
+              },
+              {
+                "spans": [
+                  {
+                    "type": "strong",
+                    "value": "A Start Page color."
+                  },
+                  {
+                    "type": "text",
+                    "value": " Choose "
+                  },
+                  {
+                    "type": "strong",
+                    "value": "Color"
+                  },
+                  {
+                    "type": "text",
+                    "value": " under Wallpaper to paint the Start Page in one of the eight colors Spaces use, as a "
+                  },
+                  {
+                    "type": "strong",
+                    "value": "Soft"
+                  },
+                  {
+                    "type": "text",
+                    "value": ", "
+                  },
+                  {
+                    "type": "strong",
+                    "value": "Solid"
+                  },
+                  {
+                    "type": "text",
+                    "value": " or "
+                  },
+                  {
+                    "type": "strong",
+                    "value": "Gradient"
+                  },
+                  {
+                    "type": "text",
+                    "value": " fill. Turn on "
+                  },
+                  {
+                    "type": "strong",
+                    "value": "Match each space's color"
+                  },
+                  {
+                    "type": "text",
+                    "value": ", and a window that belongs to a space shows that space's color instead. The color settings sync with Profile Sync; an image chosen on this device still takes priority here. Private tabs never show the color."
+                  }
+                ],
+                "url": null
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "tag": "v1.37.0",
+    "version": "1.37.0",
+    "name": "1.37.0",
+    "publishedAt": "2026-10-18T08:04:59.000Z",
+    "humanDate": "October 18, 2026",
+    "machineDate": "2026-10-18",
+    "url": "https://github.com/bnfy/blanc/releases/tag/v1.37.0",
+    "anchor": "v1-37-0",
+    "compareUrl": null,
+    "sections": [
+      {
+        "heading": "Added",
+        "blocks": [
+          {
+            "type": "list",
+            "items": [
+              {
+                "spans": [
+                  {
+                    "type": "strong",
+                    "value": "Tab group colors."
+                  },
+                  {
+                    "type": "text",
+                    "value": " A group can take one of eight colors, the same ones Spaces use, or none, which is the default. A colored group's block in the ⌘L panel and on the vertical tabs rail takes a light tint, its name gets a dot, and its tabs' dots in the Island take the color."
+                  }
+                ],
+                "url": null
+              },
+              {
+                "spans": [
+                  {
+                    "type": "strong",
+                    "value": "A menu for each group."
+                  },
+                  {
+                    "type": "text",
+                    "value": " Right-click a group's header, or press the ⋮ that appears when you point at it. The menu holds the group's name, its color, "
+                  },
+                  {
+                    "type": "strong",
+                    "value": "New Tab in Group"
+                  },
+                  {
+                    "type": "text",
+                    "value": ", "
+                  },
+                  {
+                    "type": "strong",
+                    "value": "Move Group to New Window"
+                  },
+                  {
+                    "type": "text",
+                    "value": ", "
+                  },
+                  {
+                    "type": "strong",
+                    "value": "Ungroup"
+                  },
+                  {
+                    "type": "text",
+                    "value": " and "
+                  },
+                  {
+                    "type": "strong",
+                    "value": "Close Group"
+                  },
+                  {
+                    "type": "text",
+                    "value": "."
+                  }
+                ],
+                "url": null
+              },
+              {
+                "spans": [
+                  {
+                    "type": "strong",
+                    "value": "Put ungrouped tabs anywhere."
+                  },
+                  {
+                    "type": "text",
+                    "value": " Drag an ungrouped tab above, between or below your groups in the ⌘L panel or on the vertical tabs rail, or move it with ⌥⇧↑ and ⌥⇧↓. Each run of ungrouped tabs gets its own place in the Island's dots and in ⌘1–9. New tabs still land at the bottom, and windows and spaces saved before this update open exactly as before."
+                  }
+                ],
+                "url": null
+              },
+              {
+                "spans": [
+                  {
+                    "type": "strong",
+                    "value": "More in the tab menu."
+                  },
+                  {
+                    "type": "text",
+                    "value": " Right-click a tab for "
+                  },
+                  {
+                    "type": "strong",
+                    "value": "New Tab Below"
+                  },
+                  {
+                    "type": "text",
+                    "value": ", "
+                  },
+                  {
+                    "type": "strong",
+                    "value": "Close Tabs Above"
+                  },
+                  {
+                    "type": "text",
+                    "value": " and "
+                  },
+                  {
+                    "type": "strong",
+                    "value": "Close Tabs Below"
+                  },
+                  {
+                    "type": "text",
+                    "value": ", which leave pinned tabs alone and can be reopened in one go, and "
+                  },
+                  {
+                    "type": "strong",
+                    "value": "Mute Site"
+                  },
+                  {
+                    "type": "text",
+                    "value": ", which mutes every tab on that site, including ones you open there later, until you quit Blanc."
+                  }
+                ],
+                "url": null
+              },
+              {
+                "spans": [
+                  {
+                    "type": "strong",
+                    "value": "Pinned pages."
+                  },
+                  {
+                    "type": "text",
+                    "value": " A pinned tab remembers the page you pinned it on. When you reopen Blanc after quitting normally, each pinned tab starts back on its pinned page. After a crash, it reopens on the page you were on. Right-click a pinned tab for "
+                  },
+                  {
+                    "type": "strong",
+                    "value": "Back to Pinned Page"
+                  },
+                  {
+                    "type": "text",
+                    "value": " or "
+                  },
+                  {
+                    "type": "strong",
+                    "value": "Replace Pinned Page with Current"
+                  },
+                  {
+                    "type": "text",
+                    "value": "."
+                  }
+                ],
+                "url": null
+              },
+              {
+                "spans": [
+                  {
+                    "type": "strong",
+                    "value": "Open the Island on hover."
+                  },
+                  {
+                    "type": "text",
+                    "value": " Turn on "
+                  },
+                  {
+                    "type": "strong",
+                    "value": "Open the Island on hover"
+                  },
+                  {
+                    "type": "text",
+                    "value": " in Settings → General, and resting the pointer on the Island's address for a moment opens the panel. It's off by default."
+                  }
+                ],
+                "url": null
+              },
+              {
+                "spans": [
+                  {
+                    "type": "strong",
+                    "value": "Site icons on bang rows."
+                  },
+                  {
+                    "type": "text",
+                    "value": " Bangs in the ⌘L panel now show each site's icon. Blanc uses an icon you already have from your own visits when it can. Otherwise it asks blanc.day's icon server for that one site's icon and keeps a small copy on this device. Private tabs never ask."
+                  }
+                ],
+                "url": null
+              },
+              {
+                "spans": [
+                  {
+                    "type": "strong",
+                    "value": "Tooltips throughout the Island."
+                  },
+                  {
+                    "type": "text",
+                    "value": " Buttons in the ⌘L panel and on the resting Island now show their tooltip reliably when you point at them."
+                  }
+                ],
+                "url": null
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "heading": "Changed",
+        "blocks": [
+          {
+            "type": "list",
+            "items": [
+              {
+                "spans": [
+                  {
+                    "type": "strong",
+                    "value": "Links open as ungrouped tabs."
+                  },
+                  {
+                    "type": "text",
+                    "value": " A link opened in a new tab from a grouped tab now opens ungrouped, at the bottom, like any new tab, instead of joining the group."
+                  }
+                ],
+                "url": null
+              },
+              {
+                "spans": [
+                  {
+                    "type": "strong",
+                    "value": "Quieter private mode."
+                  },
+                  {
+                    "type": "text",
+                    "value": " Private tabs no longer draw dashed outlines. The Island's private marker is a small "
+                  },
+                  {
+                    "type": "strong",
+                    "value": "Private"
+                  },
+                  {
+                    "type": "text",
+                    "value": " label that shows its × when you point at it, the header on a private Start Page matches its wallpaper, and the private Start Page shows the date."
+                  }
+                ],
+                "url": null
+              },
+              {
+                "spans": [
+                  {
+                    "type": "strong",
+                    "value": "The Start Page footer sits on the wallpaper"
+                  },
+                  {
+                    "type": "text",
+                    "value": " instead of on a solid band, shaded to match each wallpaper and time of day so it stays easy to read."
+                  }
+                ],
+                "url": null
+              },
+              {
+                "spans": [
+                  {
+                    "type": "strong",
+                    "value": "The Island's reload, favorite and close buttons match"
+                  },
+                  {
+                    "type": "text",
+                    "value": " in size and hover, and a button you can't use right now is dimmed instead of nearly disappearing."
+                  }
+                ],
+                "url": null
+              },
+              {
+                "spans": [
+                  {
+                    "type": "strong",
+                    "value": "A clearer Glance icon"
+                  },
+                  {
+                    "type": "text",
+                    "value": " in the ⌘L panel, and larger pin, mute, Glance and close buttons on tab rows."
+                  }
+                ],
+                "url": null
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "heading": "Fixed",
+        "blocks": [
+          {
+            "type": "list",
+            "items": [
+              {
+                "spans": [
+                  {
+                    "type": "strong",
+                    "value": "On Linux, Invite a Friend"
+                  },
+                  {
+                    "type": "text",
+                    "value": " now copies the invite when no mail app opens it, and says so."
+                  }
+                ],
+                "url": null
+              },
+              {
+                "spans": [
+                  {
+                    "type": "strong",
+                    "value": "The scroll bar in the ⌘L panel"
+                  },
+                  {
+                    "type": "text",
+                    "value": " and on the vertical tabs rail no longer covers the end of each row."
+                  }
+                ],
+                "url": null
+              },
+              {
+                "spans": [
+                  {
+                    "type": "strong",
+                    "value": "Dragging a tab to the top of your unpinned tabs"
+                  },
+                  {
+                    "type": "text",
+                    "value": " now works when you have no pinned tabs."
+                  }
+                ],
+                "url": null
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
     "tag": "v1.36.0",
     "version": "1.36.0",
     "name": "1.36.0",

@@ -16,7 +16,7 @@ test('lift found the overlay Escape registration with its drag guard', () => {
   assert.match(registration, /overlayDragActive\(rt\(\)\)/);
 });
 
-function fixture(dragging) {
+function fixture(dragging, selected = false) {
   const wc = new EventEmitter();
   const sent = [];
   wc.isDestroyed = () => false;
@@ -28,6 +28,7 @@ function fixture(dragging) {
     owner, rt: () => owner, bindWindowRuntime: (_o, fn) => fn,
     overlayDragActive: (r) => r.overlayDragging === true,
     hideOverlay: () => { hides += 1; },
+    clearTabSelection: () => { const had = selected; selected = false; return had; },
   });
   const press = () => {
     let prevented = false;
@@ -48,4 +49,10 @@ test('Escape without a drag still dismisses', () => {
   const f = fixture(false);
   assert.equal(f.press(), true);
   assert.equal(f.hides(), 1);
+});
+
+test('Escape clears a selection before a second Escape dismisses the panel', () => {
+  const f = fixture(false, true);
+  assert.equal(f.press(), true); assert.equal(f.hides(), 0);
+  assert.equal(f.press(), true); assert.equal(f.hides(), 1);
 });

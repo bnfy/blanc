@@ -1,0 +1,343 @@
+{
+  "publicRelease": "v1.41.0",
+  "sourceSha": "9298b0916987ea9628bb2bee014717e85cd11628",
+  "releaseEvidence": "docs/release-incidents/2026-10-21-v1.41.0.md",
+  "scope": "Site copy verified against public v1.41.0 on October 21, 2026: the clock's Font & color (F54, #1026) on /features/start-page, its headline, the clock section, and the hero gallery of 26 customized Start Pages captured from the public app. Owner approved the captures and copy in writing on October 21, 2026. Start Page pins (#1029) are not described here. The wallpaper and layout galleries are retaken from the same public app.",
+  "prohibitedClaims": [
+    "Choose your Start Page layout and wallpaper.",
+    "Billboard puts frequently visited sites within reach.",
+    "Daily Turtle / Burst"
+  ],
+  "evidenceGroups": {
+    "clockStyle": {
+      "evidence": [
+        "spec/features.md",
+        "src/main/start-clock-style.js",
+        "src/main/settings.js",
+        "src/renderer/pages/newtab.html",
+        "src/renderer/pages/newtab.js",
+        "src/renderer/pages/clock-art.js",
+        "src/renderer/pages/clock-ink.js",
+        "copy/messages/en.json",
+        "docs/press/release-notes/v1.41.0.md"
+      ],
+      "qualification": "Since v1.41.0 the Billboard Start Page's clock has a Font & color sheet (F54), opened from Customize → Clock or by right-clicking the clock. Fonts: Instrument Sans, Instrument Sans Condensed, Inter and Roboto Flex (a clock-only subset), each with a weight slider over its own range. Height uses the face's width and weight axes and is offered only where the face has room: Instrument Sans up to 130% and Roboto Flex up to 300%. Color is Automatic (the page's text color, so it follows the theme) or one of the eight Spaces presets with a Tone. Glass refracts the page behind the numerals; Solid draws them flat; Glass draws as Solid under prefers-reduced-transparency. Every clock has a shadow opposite its color. The six newtabClock* settings are in settings.js SYNCED_KEYS, so Profile Sync carries them. Billboard layout only; not macOS's native Liquid Glass. Hand-checked on macOS and Windows by the owner and in the Linux VM on an ARM64 build of the release commit (docs/release-incidents/2026-10-21-v1.41.0.md)."
+    },
+    "captures": {
+      "evidence": [
+        "src/renderer/pages/newtab.html",
+        "src/renderer/pages/clock-art.js",
+        "src/main/wallpaper.js"
+      ],
+      "qualification": "The gallery shows 26 Billboard Start Pages captured from the public v1.41.0 arm64 DMG (docs/website-captures-v1.41.0.json): the clock styles over the Sunrise wallpaper, your own image (public-domain paintings from The Met and Unsplash-licensed photographs, credited on the page) and the Color wallpaper. The images are samples a person could choose; Blanc ships none of them."
+    },
+    "mahjongCapture": {
+      "evidence": [
+        "src/renderer/pages/mahjong.html",
+        "src/renderer/pages/mahjong.js",
+        "src/renderer/pages/mahjong-engine.js"
+      ],
+      "qualification": "Standalone Mahjong as public v1.41.0 draws it, opened from the Start Page footer: the Daily deal (which rotates across the eight boards; Pyramid on October 21, 2026) in Burst mode. Captured with scripts/capture-installed-start-page.mjs from the public v1.41.0 DMG (docs/website-captures-v1.41.0.json)."
+    }
+  },
+  "claims": [
+    {
+      "id": "v141-001",
+      "source": "site/src/pages/features/start-page.astro",
+      "exactWording": "Choose your Start Page layout, wallpaper and clock.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "clockStyle"
+      ],
+      "verdict": "verified",
+      "replaces": "v138-016"
+    },
+    {
+      "id": "v141-002",
+      "source": "site/src/pages/features/start-page.astro",
+      "exactWording": "Make the clock your own.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "clockStyle"
+      ],
+      "verdict": "verified"
+    },
+    {
+      "id": "v141-003",
+      "source": "site/src/pages/features/start-page.astro",
+      "exactWording": "Font, weight and height",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "clockStyle"
+      ],
+      "verdict": "verified"
+    },
+    {
+      "id": "v141-004",
+      "source": "site/src/pages/features/start-page.astro",
+      "exactWording": "Right-click the Billboard clock, or open Customize and choose Clock. Pick Instrument Sans, Instrument Sans Condensed, Inter or Roboto Flex, then set its weight and, with Instrument Sans or Roboto Flex, how tall it stands.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "clockStyle"
+      ],
+      "verdict": "verified"
+    },
+    {
+      "id": "v141-005",
+      "source": "site/src/pages/features/start-page.astro",
+      "exactWording": "A color, or glass",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "clockStyle"
+      ],
+      "verdict": "verified"
+    },
+    {
+      "id": "v141-006",
+      "source": "site/src/pages/features/start-page.astro",
+      "exactWording": "Keep Automatic, which follows your theme, or pick one of the eight Spaces colors and a tone. Glass bends whatever is behind the numerals; Solid draws them flat.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "clockStyle"
+      ],
+      "verdict": "verified"
+    },
+    {
+      "id": "v141-007",
+      "source": "site/src/pages/features/start-page.astro",
+      "exactWording": "Readable on any wallpaper",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "clockStyle"
+      ],
+      "verdict": "verified"
+    },
+    {
+      "id": "v141-008",
+      "source": "site/src/pages/features/start-page.astro",
+      "exactWording": "Every clock has a soft shadow. When the system asks for reduced transparency, Glass draws as Solid.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "clockStyle"
+      ],
+      "verdict": "verified"
+    },
+    {
+      "id": "v141-009",
+      "source": "site/src/pages/features/start-page.astro",
+      "exactWording": "Follows you",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "clockStyle"
+      ],
+      "verdict": "verified"
+    },
+    {
+      "id": "v141-010",
+      "source": "site/src/pages/features/start-page.astro",
+      "exactWording": "Your clock style syncs with Profile Sync.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "clockStyle"
+      ],
+      "verdict": "verified"
+    },
+    {
+      "id": "v141-011",
+      "source": "site/src/pages/features/start-page.astro",
+      "exactWording": "Standalone Mahjong — Daily Pyramid / Burst",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "mahjongCapture"
+      ],
+      "verdict": "verified",
+      "replaces": "v138-017"
+    }
+  ],
+  "labels": [
+    {
+      "source": "site/src/data/start-page-designs.json",
+      "exactWording": "Glass, Roboto Flex"
+    },
+    {
+      "source": "site/src/data/start-page-designs.json",
+      "exactWording": "Glass, Roboto Flex, dark theme"
+    },
+    {
+      "source": "site/src/data/start-page-designs.json",
+      "exactWording": "Right-click the clock → Font & color"
+    },
+    {
+      "source": "site/src/data/start-page-designs.json",
+      "exactWording": "Solid, Inter in Sand, dark theme"
+    },
+    {
+      "source": "site/src/data/start-page-designs.json",
+      "exactWording": "Glass, Roboto Flex"
+    },
+    {
+      "source": "site/src/data/start-page-designs.json",
+      "exactWording": "Solid, Inter in Graphite"
+    },
+    {
+      "source": "site/src/data/start-page-designs.json",
+      "exactWording": "Glass, Roboto Flex, dark theme"
+    },
+    {
+      "source": "site/src/data/start-page-designs.json",
+      "exactWording": "Solid, Instrument Sans in Rose"
+    },
+    {
+      "source": "site/src/data/start-page-designs.json",
+      "exactWording": "Glass, Roboto Flex on the Iris gradient, dark theme"
+    },
+    {
+      "source": "site/src/data/start-page-designs.json",
+      "exactWording": "Glass, Roboto Flex, dark theme"
+    },
+    {
+      "source": "site/src/data/start-page-designs.json",
+      "exactWording": "Solid, Instrument Sans in Iris"
+    },
+    {
+      "source": "site/src/data/start-page-designs.json",
+      "exactWording": "Solid, Instrument Sans Condensed in Sky"
+    },
+    {
+      "source": "site/src/data/start-page-designs.json",
+      "exactWording": "Solid, Instrument Sans Condensed, dark theme"
+    },
+    {
+      "source": "site/src/data/start-page-designs.json",
+      "exactWording": "Glass, Roboto Flex, dark theme"
+    },
+    {
+      "source": "site/src/data/start-page-designs.json",
+      "exactWording": "Solid, Instrument Sans in Graphite"
+    },
+    {
+      "source": "site/src/data/start-page-designs.json",
+      "exactWording": "Solid, Instrument Sans Condensed, dark theme"
+    },
+    {
+      "source": "site/src/data/start-page-designs.json",
+      "exactWording": "Solid, Inter in Rose"
+    },
+    {
+      "source": "site/src/data/start-page-designs.json",
+      "exactWording": "Solid, Instrument Sans"
+    },
+    {
+      "source": "site/src/data/start-page-designs.json",
+      "exactWording": "Solid, Inter, dark theme"
+    },
+    {
+      "source": "site/src/data/start-page-designs.json",
+      "exactWording": "Solid, Instrument Sans Condensed in Graphite"
+    },
+    {
+      "source": "site/src/data/start-page-designs.json",
+      "exactWording": "Solid, Instrument Sans on Sand"
+    },
+    {
+      "source": "site/src/data/start-page-designs.json",
+      "exactWording": "Glass, Instrument Sans Condensed, dark theme"
+    },
+    {
+      "source": "site/src/data/start-page-designs.json",
+      "exactWording": "Solid, Inter in Sage"
+    },
+    {
+      "source": "site/src/data/start-page-designs.json",
+      "exactWording": "Solid, Instrument Sans Condensed in Sky"
+    },
+    {
+      "source": "site/src/data/start-page-designs.json",
+      "exactWording": "Solid, Inter in Clay"
+    },
+    {
+      "source": "site/src/data/start-page-designs.json",
+      "exactWording": "Solid, Instrument Sans Condensed on Rose"
+    },
+    {
+      "source": "site/src/data/start-page-designs.json",
+      "exactWording": "Katsushika Hokusai, The Great Wave · The Met, public domain"
+    },
+    {
+      "source": "site/src/data/start-page-designs.json",
+      "exactWording": "Photo: Aditya Chinchure, Unsplash"
+    },
+    {
+      "source": "site/src/data/start-page-designs.json",
+      "exactWording": "Photo: Brandon Day, Unsplash"
+    },
+    {
+      "source": "site/src/data/start-page-designs.json",
+      "exactWording": "Vincent van Gogh, Wheat Field with Cypresses · The Met, public domain"
+    },
+    {
+      "source": "site/src/data/start-page-designs.json",
+      "exactWording": "Photo: matthew Feeney, Unsplash"
+    },
+    {
+      "source": "site/src/data/start-page-designs.json",
+      "exactWording": "Photo: Jonatan Pie, Unsplash"
+    },
+    {
+      "source": "site/src/data/start-page-designs.json",
+      "exactWording": "Photo: AcidFern, Unsplash"
+    },
+    {
+      "source": "site/src/data/start-page-designs.json",
+      "exactWording": "Photo: insung yoon, Unsplash"
+    },
+    {
+      "source": "site/src/data/start-page-designs.json",
+      "exactWording": "Vincent van Gogh, Irises · The Met, public domain"
+    },
+    {
+      "source": "site/src/data/start-page-designs.json",
+      "exactWording": "Photo: Ittemaldiviano, Unsplash"
+    },
+    {
+      "source": "site/src/data/start-page-designs.json",
+      "exactWording": "Photo: ActionVance, Unsplash"
+    },
+    {
+      "source": "site/src/data/start-page-designs.json",
+      "exactWording": "Thomas Cole, The Oxbow · The Met, public domain"
+    },
+    {
+      "source": "site/src/data/start-page-designs.json",
+      "exactWording": "Photo: Austris Augusts, Unsplash"
+    },
+    {
+      "source": "site/src/data/start-page-designs.json",
+      "exactWording": "Photo: Irina Iriser, Unsplash"
+    },
+    {
+      "source": "site/src/data/start-page-designs.json",
+      "exactWording": "Albert Bierstadt, The Rocky Mountains, Lander’s Peak · The Met, public domain"
+    },
+    {
+      "source": "site/src/data/start-page-designs.json",
+      "exactWording": "Photo: NASA, Unsplash"
+    },
+    {
+      "source": "site/src/data/start-page-designs.json",
+      "exactWording": "Utagawa Hiroshige, Evening Snow at Kanbara · The Met, public domain"
+    },
+    {
+      "source": "site/src/data/start-page-designs.json",
+      "exactWording": "Albert Bierstadt, Merced River, Yosemite Valley · The Met, public domain"
+    },
+    {
+      "source": "site/src/data/start-page-designs.json",
+      "exactWording": "Paul Cézanne, Mont Sainte-Victoire · The Met, public domain"
+    },
+    {
+      "source": "site/src/data/start-page-designs.json",
+      "exactWording": "Utagawa Hiroshige, Sudden Shower at Shōno · The Met, public domain"
+    }
+  ]
+}

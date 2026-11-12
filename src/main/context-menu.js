@@ -26,6 +26,7 @@ function attachContextMenu(wc, actions, menuGate = null) {
     const linkItems = linkMenuItems(params, {
       openBackgroundTab: actions.openBackgroundTab,
       openInGlance: actions.openInGlance,
+      spaceItems: actions.spaceItems,
       copyLink: (url) => clipboard.writeText(url),
     }, t);
     if (linkItems.length) {
@@ -72,9 +73,13 @@ function attachContextMenu(wc, actions, menuGate = null) {
 
     // Plain page background: navigation controls.
     if (!params.linkURL && !params.isEditable && !params.selectionText.trim() && params.mediaType === 'none') {
-      push({ label: t('contextMenu.back'), enabled: wc.navigationHistory.canGoBack(), click: () => wc.navigationHistory.goBack() });
-      push({ label: t('contextMenu.forward'), enabled: wc.navigationHistory.canGoForward(), click: () => wc.navigationHistory.goForward() });
-      push({ label: t('menu.reload'), click: () => wc.reload() });
+      push({ label: t('contextMenu.back'), enabled: actions.canGoBack?.() ?? wc.navigationHistory.canGoBack(), click: () => actions.goBack ? actions.goBack() : wc.navigationHistory.goBack() });
+      push({ label: t('contextMenu.forward'), enabled: actions.canGoForward?.() ?? wc.navigationHistory.canGoForward(), click: () => actions.goForward ? actions.goForward() : wc.navigationHistory.goForward() });
+      push({ label: t('menu.reload'), click: () => actions.reload ? actions.reload() : wc.reload() });
+      const reader = actions.readerAction?.();
+      if (reader && (reader.active || /^https?:/.test(wc.getURL()))) {
+        push({ label: t(reader.active ? 'reader.exit' : 'reader.enter'), click: reader.click });
+      }
       // New tab, NOT in-place — and don't "simplify" this to wc.loadURL().
       // Chromium REPLACES the current history entry when navigating to
       // view-source: of the page you're already on (measured: entry count

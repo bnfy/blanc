@@ -127,9 +127,11 @@ function fakeWebContents(id) {
   return wc;
 }
 
-/** Creates a brand-new prompt view while `focused` holds the keyboard. */
-function createPromptView(focused) {
-  const runtime = { permissionView: null, permissionPrompts: new Map() };
+/** Creates a brand-new prompt view while `focused` holds the keyboard.
+ * `window` is what is on screen; by default nothing on it reports focus, so
+ * the choice falls back to Electron's getFocusedWebContents(). */
+function createPromptView(focused, window = null) {
+  const runtime = { permissionView: null, permissionPrompts: new Map(), window };
   const sandbox = {
     rt: () => runtime,
     WebContentsView: class { constructor() { this.webContents = fakeWebContents(99); } setBackgroundColor() {} },
@@ -142,31 +144,67 @@ function createPromptView(focused) {
     lockPrivilegedNavigation() {},
     installChromeShortcuts() {},
     webContents: { getFocusedWebContents: () => focused },
+    onScreenFocusedContents: require('../../src/main/focused-contents').onScreenFocusedContents,
+    setImmediate,
   };
   vm.createContext(sandbox);
   return vm.runInContext(`${ensureSource}; ensurePermissionView();`, sandbox);
 }
 
-test('a brand-new prompt view hands the keyboard straight back to the page', () => {
+const nextTurn = () => new Promise((resolve) => setImmediate(resolve));
+
+test('a brand-new prompt view hands the keyboard straight back to the page', async () => {
   // Electron focuses a newly created view the moment it is attached.
   const page = fakeWebContents(5);
   const view = createPromptView(page);
   view.webContents.emit('focus');
+  await nextTurn();
   assert.equal(page.focusCalls, 1);
 });
 
-test('once the prompt has loaded, clicking into it keeps the keyboard there', () => {
+test('the hand-back waits until the prompt has finished taking focus', async () => {
+  // On Windows and Linux a focus() made inside the new view's focus event is
+  // overridden as Chromium finishes moving focus to it, and the prompt keeps
+  // the keyboard (checked with real keystrokes for v1.41.0).
   const page = fakeWebContents(5);
   const view = createPromptView(page);
   view.webContents.emit('focus');
+  assert.equal(page.focusCalls, 0, 'focus() inside the focus event is lost on Windows and Linux');
+  await nextTurn();
+  assert.equal(page.focusCalls, 1);
+});
+
+test('once the prompt has loaded, clicking into it keeps the keyboard there', async () => {
+  const page = fakeWebContents(5);
+  const view = createPromptView(page);
+  view.webContents.emit('focus');
+  await nextTurn();
   view.webContents.emit('did-finish-load');
   view.webContents.emit('focus'); // the person clicks Allow or Block
+  await nextTurn();
   assert.equal(page.focusCalls, 1, 'a deliberate click must not bounce focus back to the page');
 });
 
-test('nothing held the keyboard, so nothing is handed back', () => {
+test('a hidden tab still reporting focus never takes the keyboard back from the page', async () => {
+  // On macOS a tab detached while focused can keep reporting it, and
+  // Electron's getFocusedWebContents() then names that tab first.
+  const stale = Object.assign(fakeWebContents(43), { isFocused: () => true });
+  const page = Object.assign(fakeWebContents(45), { isFocused: () => true });
+  const window = {
+    isDestroyed: () => false,
+    webContents: Object.assign(fakeWebContents(1), { isFocused: () => false }),
+    contentView: { children: [{ webContents: stale, getVisible: () => false }, { webContents: page, getVisible: () => true }] },
+  };
+  const view = createPromptView(stale, window);
+  view.webContents.emit('focus');
+  await nextTurn();
+  assert.deepEqual({ page: page.focusCalls, stale: stale.focusCalls }, { page: 1, stale: 0 });
+});
+
+test('nothing held the keyboard, so nothing is handed back', async () => {
   const view = createPromptView(null);
   assert.doesNotThrow(() => view.webContents.emit('focus'));
+  await nextTurn();
 });
 
 for (const platform of ['linux', 'darwin']) {

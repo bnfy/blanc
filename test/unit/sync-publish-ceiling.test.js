@@ -17,6 +17,10 @@ const { trackJsonStores } = require('./support/track-json-stores');
 const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'blanc-sync-ceiling-'));
 const key = Buffer.alloc(32, 7);
 const requests = [];
+// The production request window deliberately uses monotonic time. Advance
+// that clock with this fixture's virtual wall clock, rather than leave nine
+// simulated minutes of requests inside one real millisecond-long window.
+mock.method(performance,'now',()=>Date.now());
 
 const electronId = require.resolve('electron');
 require.cache[electronId] = {
@@ -70,6 +74,7 @@ test.after(async () => {
   // sync.json, tab-sync.json and tab-icons.json are still being written when
   // the last test ends.
   await jsonStores.settle();
+  mock.restoreAll();
   fs.rmSync(tmp, { recursive: true, force: true });
 });
 
@@ -82,6 +87,13 @@ const tabList = () => [{
 /** Let a fired timer's async pass dispatch its network requests. */
 async function settle() {
   for (let i = 0; i < 20; i += 1) await new Promise((resolve) => setImmediate(resolve));
+}
+
+// Turns of the event loop until `done()`, at most `turns`. A publish that a
+// timer just started still encrypts and sends through real async work, which a
+// slow runner (Windows CI, November 11, 2026) didn't finish in settle()'s 20.
+async function settleUntil(done, turns = 5000) {
+  for (let i = 0; i < turns && !done(); i += 1) await new Promise((resolve) => setImmediate(resolve));
 }
 
 const sessionRequests = () => requests.filter(({ url }) => url.endsWith('/session'));
@@ -146,7 +158,7 @@ test('the trailing 15 s still applies when changes stop', async () => {
     await settle();
     assert.equal(sessionRequests().length, 0, 'nothing publishes before the trailing delay elapses');
     mock.timers.tick(2 * SECOND);
-    await settle();
+    await settleUntil(() => sessionRequests().length > 0);
     assert.ok(sessionRequests().length > 0, 'one quiet change publishes after 15 s');
   } finally {
     mock.timers.reset();

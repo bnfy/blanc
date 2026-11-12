@@ -59,3 +59,52 @@ test('an observer throwing synchronously does not escape a native callback', asy
   assert.doesNotThrow(() => f.handlers.get('onCompleted')({ id: 2 }));
   await new Promise(resolve => setImmediate(resolve));
 });
+
+test('the optional trace observes which layer cancelled a main-frame request without changing any decision', async () => {
+  const run = async trace => {
+    const handlers = new Map();
+    const session = { isPersistent: () => true, webRequest: Object.fromEntries([...CALLBACK_EVENTS, ...OBSERVE_EVENTS].map(event => [event, (_filter, listener) => handlers.set(event, listener)])) };
+    const coordinator = createBlockingCoordinator(trace ? { trace } : undefined);
+    const request = (event, details) => new Promise(resolve => handlers.get(event)(details, resolve));
+    const main = { id: 77, resourceType: 'mainFrame', url: 'https://castlabs.github.io/wv-vmp-lab/?q=1', webContentsId: 5, method: 'GET' };
+    const out = [];
+    coordinator.setGate(session, () => true);
+    out.push(await request('onBeforeRequest', main));
+    coordinator.setGate(session, null);
+    coordinator.setProvider(session, { decide: () => ({ cancel: true }) });
+    out.push(await request('onBeforeRequest', main));
+    out.push(await request('onBeforeRequest', { ...main, resourceType: 'script' }));
+    coordinator.setProvider(session, { decide: async () => { throw new Error('lost'); } });
+    out.push(await request('onBeforeRequest', main));
+    // Header stages: an exception there also cancels and must be visible.
+    out.push(await request('onBeforeSendHeaders', { ...main, requestHeaders: {} }));
+    out.push(await request('onHeadersReceived', main));
+    coordinator.setProvider(session, { decide: () => ({}) });
+    out.push(await request('onBeforeRequest', main));
+    return out;
+  };
+  const records = [];
+  const traced = await run({ record: (event, fields) => records.push([event, fields.source, fields.stage, fields.requestId, fields.webContentsId]) });
+  assert.deepEqual(traced, await run(null));
+  assert.deepEqual(traced, [{ cancel: true }, { cancel: true }, { cancel: true }, { cancel: true }, { cancel: true }, { cancel: true }, {}]);
+  // Main-frame cancellations at every stage, with the request ID; the script cancel is not recorded.
+  assert.deepEqual(records, [
+    ['coordinator-cancel', 'gate', 'onBeforeRequest', 77, 5],
+    ['coordinator-cancel', 'provider', 'onBeforeRequest', 77, 5],
+    ['coordinator-cancel', 'policy-exception', 'onBeforeRequest', 77, 5],
+    ['coordinator-cancel', 'policy-exception', 'onBeforeSendHeaders', 77, 5],
+    ['coordinator-cancel', 'policy-exception', 'onHeadersReceived', 77, 5],
+  ]);
+});
+
+test('private and other non-persistent sessions are never traced; an unknown session fails closed', async () => {
+  for (const persistence of [() => false, undefined]) {
+    const handlers = new Map(); const records = [];
+    const session = { ...(persistence ? { isPersistent: persistence } : {}), webRequest: Object.fromEntries([...CALLBACK_EVENTS, ...OBSERVE_EVENTS].map(event => [event, (_f, l) => handlers.set(event, l)])) };
+    const coordinator = createBlockingCoordinator({ trace: { record: (...args) => records.push(args) } });
+    coordinator.setGate(session, () => true);
+    const decision = await new Promise(resolve => handlers.get('onBeforeRequest')({ id: 1, resourceType: 'mainFrame', url: 'https://castlabs.github.io/', webContentsId: 9 }, resolve));
+    assert.deepEqual(decision, { cancel: true });
+    assert.deepEqual(records, []);
+  }
+});

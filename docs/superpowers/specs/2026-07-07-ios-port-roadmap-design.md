@@ -1,7 +1,7 @@
 # Blanc — iOS Port Roadmap (thin-beta-first, vertical-slice)
 
 **Date:** 2026-07-07
-**Status:** Draft — brainstorm converged, not yet approved
+**Status:** Draft — brainstorm converged, not yet approved. M0–M6 were built as an unreleased prototype (July 7–10, 2026); see the [October 2026 revisit](2026-10-21-ios-port-revisit.md).
 **Surfaces:** a new `ios/` Xcode project in **this** monorepo (SwiftUI + `WKWebView`) that consumes the already-generated `settings-schema/generated/BlancSettings.swift` and `tokens/generated/Tokens.swift`; the S4 `blanc://` web bundle and S1 filter pipeline as they land; the shared `spec/acceptance/` scenarios re-bound to iOS step definitions. No desktop runtime changes — at most, promotion of shared substrate the port also consumes.
 
 ---

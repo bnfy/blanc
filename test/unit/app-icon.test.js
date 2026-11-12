@@ -10,6 +10,7 @@ const {
   BUNDLE_APP_ICON_NAME,
   applyDockAppIcon,
   createDockIconApplier,
+  isMonochromeIconStyle,
   macOSMajorVersion,
   nativeIconNameFor,
   setWindowsAppUserModelId,
@@ -50,11 +51,117 @@ function harness({ packaged = true, namedEmpty = false, pathEmpty = false } = {}
 }
 
 test('every selectable colorway has a named native icon stack', () => {
-  const selectable = ['sunrise', 'sunrise-dark'].sort();
+  const selectable = ['sunrise', 'sunrise-dark', 'sunrise-gold', 'sunrise-spectrum', 'sunrise-amber'].sort();
   assert.deepEqual(Object.keys(APP_ICON_ASSETS).sort(), selectable);
   assert.equal(new Set(Object.values(APP_ICON_ASSETS).map((x) => x.nativeName)).size, selectable.length);
   for (const definition of Object.values(APP_ICON_ASSETS)) {
-    assert.equal(createIconDocument(definition).groups[0].layers[0]['image-name'], 'sunrise-mark.png');
+    const imageDir = path.join(root, definition.imageDir ?? 'build/app-icons/Icon.icon/Assets');
+    const document = createIconDocument(definition);
+    assert.equal(document.groups[0].layers[0]['image-name'], definition.imageName);
+    const images = [
+      definition.imageName,
+      ...(definition.extraLayers ?? []).map((extra) => extra.imageName),
+      definition.rimImageName,
+      definition.tileImageName,
+      definition.darkTileImageName,
+    ];
+    for (const image of images.filter(Boolean)) {
+      assert.ok(fs.existsSync(path.join(imageDir, image)), `${image} exists in ${imageDir}`);
+    }
+  }
+  // Colorway layers live outside the default package so it stays unchanged.
+  assert.deepEqual(
+    fs.readdirSync(path.join(root, 'build/app-icons/Icon.icon/Assets')).sort(),
+    ['blanc-mark.svg', 'sunrise-mark.png'],
+  );
+});
+
+test('the Sunrise Gold stack is a glass mark over per-appearance gold tiles', () => {
+  const document = createIconDocument(APP_ICON_ASSETS['sunrise-gold']);
+  assert.equal(APP_ICON_ASSETS['sunrise-gold'].nativeName, 'SunriseGold');
+  // Icon Composer darkens a plain fill by itself in Dark; the gold must come
+  // from image layers, so the fill carries no appearance specialization.
+  assert.equal(document['fill-specializations'], undefined);
+  assert.equal(document.groups.length, 2);
+  const [mark, tiles] = document.groups;
+  assert.equal(mark.layers[0].glass, true);
+  assert.equal(mark.layers[0]['image-name'], 'sunrise-mark-cream.png');
+  assert.equal(mark.specular, true);
+  assert.equal(mark.lighting, 'individual');
+  assert.deepEqual(mark.shadow, { kind: 'layer-color', opacity: 0.6 });
+  assert.deepEqual(mark.translucency, { enabled: true, value: 0.25 });
+  const byName = Object.fromEntries(tiles.layers.map((layer) => [layer['image-name'], layer]));
+  assert.deepEqual(Object.keys(byName).sort(), ['gold-tile-dark.png', 'gold-tile.png']);
+  // Clear and Tinted ('tinted') hide both tiles so macOS draws its own glass
+  // or tint background, as it does for Sunrise; an opaque tile covered it.
+  assert.deepEqual(
+    byName['gold-tile.png']['hidden-specializations'],
+    [{ appearance: 'dark', value: true }, { appearance: 'tinted', value: true }],
+  );
+  assert.deepEqual(
+    byName['gold-tile-dark.png']['hidden-specializations'],
+    [{ value: true }, { appearance: 'dark', value: false }, { appearance: 'tinted', value: true }],
+  );
+  for (const layer of tiles.layers) assert.equal(layer.glass, false);
+});
+
+test('Sunrise Spectrum and Amber stack a glass sun, rays and water over a white rim', () => {
+  for (const [id, nativeName, prefix] of [
+    ['sunrise-spectrum', 'SunriseSpectrum', 'spectrum'],
+    ['sunrise-amber', 'SunriseAmber', 'amber'],
+  ]) {
+    const definition = APP_ICON_ASSETS[id];
+    assert.equal(definition.nativeName, nativeName);
+    assert.equal(definition.darkFlatIcon, `${id}-dark`);
+    const document = createIconDocument(definition);
+    // A light fill that Icon Composer darkens itself in Dark.
+    assert.equal(document['fill-specializations'][0].appearance, 'dark');
+    const [mark, rim, tiles] = document.groups;
+    assert.deepEqual(
+      mark.layers.map((layer) => [layer.name, layer['image-name'], layer.glass]),
+      [['Sun', `${prefix}-sun.png`, true], ['Rays', `${prefix}-rays.png`, true], ['Water', `${prefix}-water.png`, true]],
+    );
+    assert.equal(mark.specular, true);
+    assert.equal(mark.lighting, 'individual');
+    assert.deepEqual(rim.layers, [{
+      glass: false,
+      'image-name': `${prefix}-rim.png`,
+      name: 'Rim',
+      'hidden-specializations': [{ appearance: 'tinted', value: true }],
+    }]);
+    // Spectrum's graded gray tile is too much for a one-color fill, so it is
+    // drawn as tile images over the fill, with a near-black one in Dark.
+    if (prefix === 'spectrum') {
+      assert.deepEqual(
+        tiles.layers.map((layer) => layer['image-name']).sort(),
+        ['spectrum-tile-dark.png', 'spectrum-tile.png'],
+      );
+    } else {
+      assert.equal(tiles, undefined);
+    }
+  }
+});
+
+test('Sunrise Spectrum\'s tile grades from darker gray at the top to lighter below, as Arc\'s does', async () => {
+  const tile = path.join(root, 'build/app-icons/colorways/spectrum-tile.png');
+  const { data, info } = await sharp(tile).removeAlpha().raw().toBuffer({ resolveWithObject: true });
+  const luminance = (y) => {
+    const offset = ((y * info.width) + 512) * info.channels;
+    return (data[offset] + data[offset + 1] + data[offset + 2]) / 3;
+  };
+  assert.ok(luminance(1000) - luminance(20) > 30, 'the bottom of the tile is clearly lighter than the top');
+  const offset = (512 * info.width + 512) * info.channels;
+  const [r, g, b] = data.subarray(offset, offset + 3);
+  assert.ok(b > r && Math.abs(r - g) < 12, 'the tile is a cool, near-neutral gray');
+});
+
+test('other colorways keep a single-group stack with the default shadow', () => {
+  for (const id of ['sunrise', 'sunrise-dark']) {
+    const document = createIconDocument(APP_ICON_ASSETS[id]);
+    assert.equal(document.groups.length, 1);
+    assert.deepEqual(document.groups[0].shadow, { kind: 'neutral', opacity: 0.25 });
+    assert.equal(document.groups[0].specular, undefined);
+    assert.equal(document.groups[0].layers[0].glass, false);
   }
 });
 
@@ -232,8 +339,8 @@ test('uses an explicit candidate icon only for an unpackaged macOS preview', () 
     platform: 'darwin',
     systemVersion: '26.0',
   });
-  assert.deepEqual(packagedResult, { source: 'native', nativeName: 'Icon' });
-  assert.deepEqual(packaged.calls[0], ['named', 'Icon']);
+  assert.deepEqual(packagedResult, { source: 'bundle', nativeName: 'Icon' });
+  assert.deepEqual(packaged.calls[0], ['setIcon', null]);
 });
 
 test('uses the dark candidate in dark appearance and keeps packaged adaptation native', () => {
@@ -259,8 +366,8 @@ test('uses the dark candidate in dark appearance and keeps packaged adaptation n
     platform: 'darwin',
     systemVersion: '26.0',
   });
-  assert.deepEqual(packagedResult, { source: 'native', nativeName: 'Icon' });
-  assert.deepEqual(packaged.calls[0], ['named', 'Icon']);
+  assert.deepEqual(packagedResult, { source: 'bundle', nativeName: 'Icon' });
+  assert.deepEqual(packaged.calls[0], ['setIcon', null]);
 });
 
 test('the flat Sunrise fallback follows appearance while Sunrise Dark stays dark', () => {
@@ -287,19 +394,38 @@ test('the flat Sunrise fallback follows appearance while Sunrise Dark stays dark
   assert.deepEqual(explicit.calls[0], ['path', path.join('/icons', 'icon-sunrise-dark.png')]);
 });
 
+test('the flat Sunrise Gold, Spectrum and Amber fallbacks follow appearance', () => {
+  for (const [appIcon, darkAppearance, file] of ['sunrise-gold', 'sunrise-spectrum', 'sunrise-amber'].flatMap((id) => [
+    [id, false, `icon-${id}.png`],
+    [id, true, `icon-${id}-dark.png`],
+  ])) {
+    assert.ok(fs.existsSync(path.join(root, 'src/renderer/pages', file)), `${file} exists`);
+    const h = harness({ packaged: false });
+    const result = applyDockAppIcon({
+      ...h,
+      appIcon,
+      darkAppearance,
+      platform: 'darwin',
+      iconsDirectory: '/icons',
+    });
+    assert.deepEqual(result, { source: 'png', appIcon: file.slice(5, -4) });
+    assert.deepEqual(h.calls[0], ['path', path.join('/icons', file)]);
+  }
+});
+
 test('falls back to the PNG if the packaged asset catalog cannot resolve a name', () => {
   const h = harness({ namedEmpty: true });
   const result = applyDockAppIcon({
     ...h,
-    appIcon: 'sunrise',
+    appIcon: 'sunrise-gold',
     platform: 'darwin',
     systemVersion: '27.0',
     iconsDirectory: '/icons',
   });
-  assert.deepEqual(result, { source: 'png', appIcon: 'sunrise' });
+  assert.deepEqual(result, { source: 'png', appIcon: 'sunrise-gold' });
   assert.deepEqual(h.calls.slice(0, 2), [
-    ['named', 'Icon'],
-    ['path', path.join('/icons', 'icon-sunrise.png')],
+    ['named', 'SunriseGold'],
+    ['path', path.join('/icons', 'icon-sunrise-gold.png')],
   ]);
 });
 
@@ -366,9 +492,13 @@ test('the default icon is set again once another icon has replaced it', () => {
   const h = harness({ packaged: true });
   const apply = dockApplier(h, { systemVersion: '26.6.2' });
   assert.deepEqual(apply({ appIcon: 'sunrise-dark' }), { source: 'native', nativeName: 'SunriseDark' });
-  assert.deepEqual(apply({ appIcon: 'sunrise' }), { source: 'native', nativeName: BUNDLE_APP_ICON_NAME });
-  assert.deepEqual(h.calls.filter(([kind]) => kind === 'named').map(([, name]) => name), ['SunriseDark', BUNDLE_APP_ICON_NAME]);
-  assert.equal(h.calls.filter(([kind]) => kind === 'setIcon').length, 2);
+  // Clearing the custom image puts back the live bundle icon, which macOS
+  // keeps restyling; loading it by name would hand back a fixed bitmap.
+  assert.deepEqual(apply({ appIcon: 'sunrise' }), { source: 'bundle', nativeName: BUNDLE_APP_ICON_NAME });
+  assert.deepEqual(h.calls.filter(([kind]) => kind === 'named').map(([, name]) => name), ['SunriseDark']);
+  assert.deepEqual(h.calls.at(-1), ['setIcon', null]);
+  // Back on the bundle icon, later writes cost nothing again.
+  assert.equal(apply({ appIcon: 'sunrise', darkAppearance: true }), null);
 });
 
 test('a failed apply after a replacement never mistakes the Dock for the bundle icon', () => {
@@ -378,8 +508,8 @@ test('a failed apply after a replacement never mistakes the Dock for the bundle 
   h.nativeImage.createFromNamedImage = (name) => (h.calls.push(['named', name]), image(true));
   h.nativeImage.createFromPath = (file) => (h.calls.push(['path', file]), image(true));
   assert.equal(apply({ appIcon: 'sunrise-dark' }, { force: true }), null);
-  h.nativeImage.createFromNamedImage = (name) => (h.calls.push(['named', name]), image(false));
-  assert.deepEqual(apply({ appIcon: 'sunrise' }), { source: 'native', nativeName: BUNDLE_APP_ICON_NAME });
+  assert.deepEqual(apply({ appIcon: 'sunrise' }), { source: 'bundle', nativeName: BUNDLE_APP_ICON_NAME });
+  assert.deepEqual(h.calls.at(-1), ['setIcon', null]);
 });
 
 test('older macOS, development builds and forced reapplies still set the icon', () => {
@@ -390,7 +520,47 @@ test('older macOS, development builds and forced reapplies still set the icon', 
   const forced = harness({ packaged: true });
   assert.deepEqual(
     dockApplier(forced, { systemVersion: '26.6.2' })({ appIcon: 'sunrise' }, { force: true }),
-    { source: 'native', nativeName: BUNDLE_APP_ICON_NAME },
+    { source: 'bundle', nativeName: BUNDLE_APP_ICON_NAME },
+  );
+});
+
+// macOS restyles only the bundle's own icon for the Clear and Tinted Icon &
+// widget styles; an image given to dock.setIcon stays as drawn.
+test('Clear and Tinted icon styles show the live bundle icon', () => {
+  assert.equal(isMonochromeIconStyle('ClearLight'), true);
+  assert.equal(isMonochromeIconStyle('ClearDark'), true);
+  assert.equal(isMonochromeIconStyle('TintedAutomatic'), true);
+  assert.equal(isMonochromeIconStyle('RegularDark'), false);
+  assert.equal(isMonochromeIconStyle(''), false);
+  assert.equal(isMonochromeIconStyle(null), false);
+
+  const h = harness({ packaged: true });
+  const apply = dockApplier(h, { systemVersion: '26.6.2' });
+  assert.deepEqual(apply({ appIcon: 'sunrise-gold' }), { source: 'native', nativeName: 'SunriseGold' });
+  assert.deepEqual(
+    apply({ appIcon: 'sunrise-gold', iconStyle: 'ClearDark' }),
+    { source: 'bundle', nativeName: BUNDLE_APP_ICON_NAME },
+  );
+  assert.deepEqual(h.calls.at(-1), ['setIcon', null]);
+  assert.equal(apply({ appIcon: 'sunrise-gold', iconStyle: 'TintedLight' }), null, 'already the bundle icon');
+  assert.deepEqual(
+    apply({ appIcon: 'sunrise-gold', iconStyle: 'RegularLight' }),
+    { source: 'native', nativeName: 'SunriseGold' },
+  );
+
+  // Launching in Clear with Gold selected leaves the bundle icon untouched.
+  const launch = harness({ packaged: true });
+  assert.deepEqual(
+    dockApplier(launch, { systemVersion: '26.6.2' })({ appIcon: 'sunrise-gold', iconStyle: 'ClearLight' }),
+    { source: 'bundle', nativeName: BUNDLE_APP_ICON_NAME },
+  );
+  assert.deepEqual(launch.calls, []);
+
+  // Development builds and older macOS have no bundle stack to fall back to.
+  const dev = harness({ packaged: false });
+  assert.deepEqual(
+    applyDockAppIcon({ ...dev, appIcon: 'sunrise-gold', iconStyle: 'ClearDark', platform: 'darwin', iconsDirectory: '/icons' }),
+    { source: 'png', appIcon: 'sunrise-gold' },
   );
 });
 
@@ -531,6 +701,172 @@ test('the adaptive Sunrise artwork matches the flat icon scale and omits the det
   }
   assert.ok(lowestRow > 0);
   assert.ok(lowestMaxX - lowestMinX < 100, 'the removed detached baseline must not return');
+});
+
+test('the Sunrise Gold artwork matches the flat icon scale and stays a fixed gold tile', async () => {
+  const CANVAS = 1024;
+  const near = (pixel, hex, tolerance) => {
+    const want = [1, 3, 5].map((offset) => Number.parseInt(hex.slice(offset, offset + 2), 16));
+    return want.every((value, channel) => Math.abs(pixel[channel] - value) <= tolerance);
+  };
+  const pixel = async (file, x, y) => {
+    const { data, info } = await sharp(file).ensureAlpha().raw().toBuffer({ resolveWithObject: true });
+    const offset = ((y * info.width) + x) * info.channels;
+    return Array.from(data.subarray(offset, offset + 4));
+  };
+
+  const tilePath = path.join(root, 'build/app-icons/colorways/gold-tile.png');
+  const tileMeta = await sharp(tilePath).metadata();
+  assert.equal(tileMeta.width, CANVAS);
+  assert.equal(tileMeta.height, CANVAS);
+  const top = await pixel(tilePath, 512, 8);
+  assert.ok(near(top, '#E3BF78', 12), `tile top is ${top}`);
+  assert.ok(near(await pixel(tilePath, 512, 1015), '#BE8D40', 12), 'tile bottom is the deep gold');
+  const center = await pixel(tilePath, 512, 482);
+  const edge = await pixel(tilePath, 8, 482);
+  assert.ok(center[0] + center[1] + center[2] > edge[0] + edge[1] + edge[2] + 30, 'a glow sits behind the sun');
+  assert.equal(top[3], 255, 'the tile is opaque');
+
+  const markPath = path.join(root, 'build/app-icons/colorways/sunrise-mark-cream.png');
+  const { data, info } = await sharp(markPath).ensureAlpha().raw().toBuffer({ resolveWithObject: true });
+  assert.equal(info.width, CANVAS);
+  assert.equal(info.height, CANVAS);
+  for (let offset = 0; offset < data.length; offset += info.channels) {
+    if (data[offset + 3] <= 24) continue;
+    assert.ok(near(data.subarray(offset, offset + 3), '#FFF7E6', 4), 'the glass layer is a cream silhouette');
+  }
+  const native = await markBoundsOf(sharp(markPath), (_r, _g, _b, a) => a > 24);
+  assert.ok(native.height > 780 && native.height < 820, 'artwork stays large within the icon safe area');
+
+  const flat = path.join(root, 'src/renderer/pages/icon-sunrise-gold.png');
+  const tile = await markBoundsOf(sharp(flat), (_r, _g, _b, a) => a > 250);
+  const flatMark = await markBoundsOf(sharp(flat), (_r, _g, b, a) => a > 24 && b > 200);
+  assert.equal(tile.height, 824, 'the flat Gold icon keeps the 824px visible tile');
+  const flatRatio = flatMark.height / tile.height;
+  const nativeRatio = native.height / CANVAS;
+  assert.ok(Math.abs(nativeRatio - flatRatio) < 0.01, `native ${nativeRatio} vs flat ${flatRatio}`);
+  const flatOffset = ((flatMark.minX + flatMark.maxX) / 2 - (tile.minX + tile.maxX) / 2) / tile.width;
+  const nativeOffset = ((native.minX + native.maxX) / 2 - (CANVAS - 1) / 2) / CANVAS;
+  assert.ok(Math.abs(nativeOffset - flatOffset) < 0.005, 'the Gold mark sits where the native one does');
+
+  const darkTilePath = path.join(root, 'build/app-icons/colorways/gold-tile-dark.png');
+  const mean = async (file) => (await sharp(file).stats()).channels.slice(0, 3).reduce((sum, c) => sum + c.mean, 0) / 3;
+  assert.equal((await pixel(darkTilePath, 512, 512))[3], 255, 'the dark tile is opaque');
+  assert.ok(await mean(darkTilePath) < (await mean(tilePath)) - 60, 'the Dark tile is a much deeper gold');
+  const darkPixel = await pixel(darkTilePath, 512, 512);
+  assert.ok(darkPixel[0] > darkPixel[2] + 20, 'the Dark tile stays gold, not gray');
+
+  const flatDark = path.join(root, 'src/renderer/pages/icon-sunrise-gold-dark.png');
+  const darkTileBounds = await markBoundsOf(sharp(flatDark), (_r, _g, _b, a) => a > 250);
+  const darkMark = await markBoundsOf(sharp(flatDark), (_r, _g, b, a) => a > 24 && b > 200);
+  assert.equal(darkTileBounds.height, 824);
+  assert.ok(Math.abs(darkMark.height / darkTileBounds.height - flatRatio) < 0.01, 'both flat icons draw the mark at one size');
+});
+
+test('the Spectrum and Amber artwork keeps one mark size in the native and flat icons', async () => {
+  const CANVAS = 1024;
+  const visible = (_r, _g, _b, a) => a > 24;
+  // The colored strokes, not the white rim, glow or tile.
+  const colored = (r, g, b, a) => a > 200 && Math.max(r, g, b) - Math.min(r, g, b) > 60;
+  for (const prefix of ['spectrum', 'amber']) {
+    const layer = (part) => path.join(root, `build/app-icons/colorways/${prefix}-${part}.png`);
+    let native = null;
+    for (const part of ['sun', 'rays', 'water']) {
+      const meta = await sharp(layer(part)).metadata();
+      assert.deepEqual([meta.width, meta.height, meta.hasAlpha], [CANVAS, CANVAS, true]);
+      const bounds = await markBoundsOf(sharp(layer(part)), visible);
+      native = native ? {
+        minX: Math.min(native.minX, bounds.minX), maxX: Math.max(native.maxX, bounds.maxX),
+        minY: Math.min(native.minY, bounds.minY), maxY: Math.max(native.maxY, bounds.maxY),
+      } : bounds;
+    }
+    // The ring sun, rays and water lines make a nearly square mark that fills
+    // the tile.
+    const nativeHeight = native.maxY - native.minY + 1;
+    const nativeWidth = native.maxX - native.minX + 1;
+    assert.ok(nativeWidth > 790 && nativeWidth < 840, `${prefix} artwork stays large within the safe area`);
+    assert.ok(nativeHeight > 765 && nativeHeight < 815, `${prefix} artwork spans rays to water`);
+    // The sun is an outlined ring, open in the middle, not a solid disc.
+    const sun = await sharp(layer('sun')).ensureAlpha().raw().toBuffer({ resolveWithObject: true });
+    const sunBounds = await markBoundsOf(sharp(layer('sun')), (_r, _g, _b, a) => a > 128);
+    const row = Math.round(sunBounds.minY + sunBounds.height * 0.7);
+    const alphaAt = (x) => sun.data[((row * sun.info.width) + x) * sun.info.channels + 3];
+    assert.ok(alphaAt(512) < 24, `${prefix} sun is open in the middle`);
+    assert.ok(alphaAt(sunBounds.minX + 12) > 200 && alphaAt(sunBounds.maxX - 12) > 200, `${prefix} sun is a ring`);
+    // Like the Sunrise artwork, the middle ray stands tallest: the topmost
+    // pixels are its tip, centered on the canvas.
+    const raysBounds = await markBoundsOf(sharp(layer('rays')), visible);
+    const tip = await markBoundsOf(
+      sharp(layer('rays')).extract({ left: 0, top: raysBounds.minY, width: CANVAS, height: 30 }),
+      visible,
+    );
+    assert.ok(Math.abs((tip.minX + tip.maxX) / 2 - (CANVAS - 1) / 2) < 6, `${prefix} middle ray is the tallest`);
+
+    const { data, info } = await sharp(layer('rim')).ensureAlpha().raw().toBuffer({ resolveWithObject: true });
+    // The rim is plain white (its edge blends a little into the shadow under
+    // it); the only other pixels are that soft, dark drop shadow, which stays
+    // well short of opaque.
+    let shadowPixels = 0;
+    for (let offset = 0; offset < data.length; offset += info.channels) {
+      const alpha = data[offset + 3];
+      if (alpha <= 24) continue;
+      if (alpha > 200) {
+        assert.ok(data[offset] >= 230 && data[offset + 1] >= 230 && data[offset + 2] >= 230, 'the rim is plain white');
+      } else if (data[offset] < 60) {
+        shadowPixels += 1;
+      }
+    }
+    assert.ok(shadowPixels > 10_000, `${prefix} rim carries a drop shadow`);
+    const rim = await markBoundsOf(sharp(layer('rim')), visible);
+    assert.ok(rim.minY < native.minY && rim.maxY > native.maxY, 'the rim outlines every part');
+
+    for (const suffix of ['', '-dark']) {
+      const flat = path.join(root, `src/renderer/pages/icon-sunrise-${prefix}${suffix}.png`);
+      const tile = await markBoundsOf(sharp(flat), (_r, _g, _b, a) => a > 250);
+      assert.equal(tile.height, 824, 'the flat icon keeps the 824px visible tile');
+      const mark = await markBoundsOf(sharp(flat), colored);
+      const ratio = mark.height / tile.height;
+      assert.ok(Math.abs(ratio - nativeHeight / CANVAS) < 0.015, `${prefix}${suffix}: flat ${ratio} vs native ${nativeHeight / CANVAS}`);
+    }
+  }
+});
+
+test('the water is the Sunrise\'s six stepped lines, with the ring\'s color where it passes behind', async () => {
+  for (const prefix of ['spectrum', 'amber']) {
+    const file = path.join(root, `build/app-icons/colorways/${prefix}-water.png`);
+    const { data, info } = await sharp(file).ensureAlpha().raw().toBuffer({ resolveWithObject: true });
+    const at = (x, y) => Array.from(data.subarray(((y * info.width) + x) * info.channels, ((y * info.width) + x) * info.channels + 4));
+    // Down the middle: one opaque run per water line.
+    const lines = [];
+    let inLine = false;
+    for (let y = 0; y < info.height; y += 1) {
+      const on = at(512, y)[3] > 128;
+      if (on && !inLine) lines.push({ top: y });
+      if (!on && inLine) lines.at(-1).bottom = y - 1;
+      inLine = on;
+    }
+    assert.equal(lines.length, 6, `${prefix} has six water lines`);
+    // Each line is narrower than the one above it.
+    const widths = lines.map(({ top, bottom }) => {
+      const y = Math.round((top + bottom) / 2);
+      let left = 512;
+      let right = 512;
+      while (at(left - 1, y)[3] > 128) left -= 1;
+      while (at(right + 1, y)[3] > 128) right += 1;
+      return { y, left, right, width: right - left };
+    });
+    for (let i = 1; i < widths.length; i += 1) {
+      assert.ok(widths[i].width < widths[i - 1].width, `${prefix} water line ${i + 1} steps in`);
+    }
+    // In the top line, the ring passes behind about halfway out from the
+    // middle; its color, screened over the line's, brightens it there.
+    const { y, left, right } = widths[0];
+    const half = (right - left) / 2;
+    const brightness = (x) => at(x, y).slice(0, 3).reduce((sum, c) => sum + c, 0);
+    const ringX = Math.round(512 + half * (214 / 415));
+    const plainX = Math.round(512 + half * 0.85);
+    assert.ok(brightness(ringX) > brightness(plainX) + 60, `${prefix} ring color shows through the water`);
+  }
 });
 
 test('settings exposes icon colorways only on macOS; Patron activation is cross-platform', () => {

@@ -1,0 +1,583 @@
+{
+  "firstRelease": "1.36",
+  "noPage": [
+    "1.42",
+    "1.47",
+    "1.48"
+  ],
+  "pages": [
+    {
+      "release": "1.46",
+      "highlights": [
+        {
+          "id": "island-size",
+          "tile": "Island size",
+          "title": "Make the Island bigger",
+          "body": "Choose Large or Extra large, and the Island grows with everything in it: its buttons, its tab dots and the site address. The page moves down to make room.",
+          "steps": [
+            "Open Settings, then General.",
+            "Under Island size, choose Default, Large or Extra large."
+          ],
+          "note": "It’s set on each device.",
+          "learnMore": "/features/island",
+          "media": {
+            "kind": "image",
+            "src": "/feature-captures/island-size-v1.46.0.webp",
+            "width": 1440,
+            "height": 900,
+            "alt": "Blanc’s Settings sheet open on General over a Wikipedia page, with Island size set to Extra large. Above it, the Island is drawn at its larger size, with bigger buttons and site address."
+          }
+        },
+        {
+          "id": "mini-window",
+          "tile": "Mini Window",
+          "title": "A small Blanc window over any app",
+          "body": "Look something up or open a link without leaving what you’re doing. A mini window opens over the app you’re in, isn’t saved, and closes by itself after an hour unused. Choose Open in Blanc to keep it.",
+          "steps": [
+            "Choose File → New Mini Window, or New Mini Window in Blanc’s Dock menu on a Mac.",
+            "To open one from any app, choose a shortcut in Settings → General → Mini window shortcut."
+          ],
+          "note": "The shortcut is off by default. Links from other apps never open in a mini window, and one with a page in use or unsaved changes stays open.",
+          "media": {
+            "kind": "image",
+            "src": "/feature-captures/mini-window-v1.46.0.webp",
+            "width": 1440,
+            "height": 900,
+            "alt": "A small Blanc window open over a TextEdit note titled Trip notes, showing the Wikipedia article Sunrise equation. Its Island starts with an Open in Blanc button."
+          }
+        },
+        {
+          "id": "ctrl-tab-recent-order",
+          "tile": "Ctrl+Tab",
+          "title": "Ctrl+Tab takes you back to your last tab",
+          "body": "Hold `Ctrl` and press `Tab` to step back through the tabs you used last, then let go to switch. A quick `Ctrl+Tab` flips between your two latest tabs, and `Esc` stays where you are.",
+          "note": "To go by position instead, open Settings → General → Switch tabs with Ctrl+Tab and choose In the order of the tab list.",
+          "platforms": [
+            "mac"
+          ],
+          "media": {
+            "kind": "image",
+            "src": "/feature-captures/ctrl-tab-recent-order-v1.46.0.webp",
+            "width": 1440,
+            "height": 900,
+            "alt": "Blanc’s tab switcher below the Island while Ctrl is held: a row of six tab tiles in the order they were last used, with the third tile selected and its name, Harbor - Wikipedia, underneath."
+          }
+        }
+      ]
+    },
+    {
+      "release": "1.45",
+      "highlights": [
+        {
+          "id": "shared-spaces",
+          "tile": "Shared Spaces",
+          "title": "Keep your Spaces the same on every computer",
+          "body": "Choose Spaces to share, and their open tabs, tab names, groups and pinned tabs match on each computer that has it turned on. A change on one appears on the others, end-to-end encrypted like the rest of Sync.",
+          "steps": [
+            "With Sync on, open Settings, then Sync.",
+            "Under What syncs, turn on Spaces and groups and choose your Spaces. Do the same on each computer."
+          ],
+          "note": "It’s off by default and belongs to the Personal profile. Private tabs, internal pages and local files never sync.",
+          "media": {
+            "kind": "image",
+            "src": "/feature-captures/shared-spaces-v1.45.0.webp",
+            "width": 1440,
+            "height": 900,
+            "alt": "Blanc’s Sync settings with Spaces and groups turned on and the Choose Spaces to sync sheet open: 3 of 25 shared Spaces, with Research (4 tabs), Trip (3 tabs) and Recipes (2 tabs) checked, each to be added as a copy."
+          }
+        },
+        {
+          "id": "connect-your-iphone",
+          "tile": "iPhone pairing",
+          "title": "Pair Blanc for iPhone by scanning a code",
+          "body": "Blanc for iPhone is in a public beta on TestFlight. Your computer shows a code, your iPhone scans it, and it joins your Sync, so your Favorites and your other devices’ tabs come with you.",
+          "steps": [
+            "In Settings → Sync, choose Connect your iPhone. It’s also in the Start Page’s Finish setup list.",
+            "On your iPhone, open Blanc, choose Pair with your Blanc and point it at the code."
+          ],
+          "note": "If Sync isn’t on yet, Blanc asks before turning it on. When Sync is on, Add device shows the same code.",
+          "media": {
+            "kind": "image",
+            "src": "/feature-captures/connect-your-iphone-v1.45.0.webp",
+            "width": 1440,
+            "height": 900,
+            "alt": "The Connect your iPhone sheet over Blanc’s Sync settings: a QR code, the line “On your iPhone, open Blanc and choose Pair with your Blanc. Point it at this code.”, the same code to type in Settings → Sync, and Expires in 10:00 with Copy and Cancel."
+          }
+        },
+        {
+          "id": "turn-on-sync-without-a-passphrase",
+          "tile": "Easy Sync",
+          "title": "Turn on Sync with nothing to remember",
+          "body": "Turn on Sync starts syncing this computer straight away, with no name or passphrase to make up. Add your other devices with a short code, and the sheet tells you when one has joined.",
+          "steps": [
+            "Open Settings → Sync and choose Turn on Sync.",
+            "To add a device, choose Add device and enter the code on the other device with Add this device with a code."
+          ],
+          "note": "Keep the recovery code Blanc offers in your password manager: without a passphrase, it’s your only way back if you lose all your devices.",
+          "media": {
+            "kind": "image",
+            "src": "/feature-captures/turn-on-sync-without-a-passphrase-v1.45.0.webp",
+            "width": 1440,
+            "height": 900,
+            "alt": "Blanc’s Sync settings with Sync off: Sync your Blanc, with Turn on Sync and Connect your iPhone, and under Already sync on another device?, Add this device with a code."
+          }
+        },
+        {
+          "id": "play-the-sunrise-when-blanc-opens",
+          "tile": "Sunrise",
+          "title": "Start the day with the Sunrise",
+          "body": "Turn it on, and the first Start Page after Blanc opens plays the Sunrise once, over the page as it already looks. Any click or key ends it.",
+          "steps": [
+            "Open Settings → Appearance and turn on Play the Sunrise when Blanc opens."
+          ],
+          "note": "It’s off by default, set on each device, and skipped when your system reduces motion.",
+          "learnMore": "/features/start-page",
+          "media": {
+            "kind": "image",
+            "src": "/feature-captures/play-the-sunrise-when-blanc-opens-v1.45.0.webp",
+            "width": 1440,
+            "height": 900,
+            "alt": "Blanc opening with the Sunrise: the golden Sunrise mark, its rays out, on a warm dark sky drawn over the Start Page, below the Island."
+          }
+        }
+      ]
+    },
+    {
+      "release": "1.44",
+      "highlights": [
+        {
+          "id": "reader-mode",
+          "tile": "Reader Mode",
+          "title": "Read articles without the clutter",
+          "body": "Reader Mode lifts the article out of the page you’ve already loaded, on your computer, and keeps its headings, links, images, tables and code. It’s free, and leaving it returns to the page as you left it, without reloading.",
+          "steps": [
+            "Type /reader, or choose Enter Reader Mode when the expanded Island offers it.",
+            "Pick a theme, typeface, text size and width. Blanc remembers them on this device."
+          ],
+          "note": "Some pages aren’t articles. On those, Blanc says so and leaves the page as it was.",
+          "media": {
+            "kind": "image",
+            "src": "/feature-captures/reader-mode-v1.44.0.webp",
+            "width": 1440,
+            "height": 900,
+            "alt": "An article titled “Why the tide comes in twice a day” in Blanc’s Reader Mode, in the Sepia theme. The Appearance panel is open with Theme, Font, Text size and Reading width."
+          }
+        },
+        {
+          "id": "move-to-space",
+          "tile": "Move to Space",
+          "title": "Move tabs and groups between spaces",
+          "body": "Move a tab, as it is, to the end of another space without leaving the window you’re in. A whole group moves with its name and colour, and a link can open straight in another space.",
+          "steps": [
+            "Right-click a tab, choose Move to Space, then pick a space or New Space….",
+            "For a whole group, use Move Group to Space; for a link, Open Link in Space."
+          ],
+          "note": "These appear once you have a space. Private tabs don’t offer them.",
+          "learnMore": "/features/workspaces",
+          "media": {
+            "kind": "image",
+            "src": "/feature-captures/move-to-space-v1.44.0.webp",
+            "width": 1440,
+            "height": 900,
+            "alt": "Blanc’s tab panel listing five tabs, with a tab’s menu open on Move to Space. The submenu lists the spaces Work, Home and Lisbon trip, and New Space…"
+          }
+        },
+        {
+          "id": "select-several-tabs",
+          "tile": "Select tabs",
+          "title": "Act on several tabs at once",
+          "body": "Select tabs in the `⌘L` panel or in vertical tabs, then move, group, pin, mute, reload, quiet, copy the links of or close them all together. Closing them is one entry in Recently closed.",
+          "steps": [
+            "`⌘-click` (Ctrl-click on Windows and Linux) to add or remove a tab, or Shift-click to select a range.",
+            "Right-click a selected tab and choose what to do with all of them."
+          ],
+          "learnMore": "/features/vertical-tabs",
+          "media": {
+            "kind": "image",
+            "src": "/feature-captures/select-tabs-v1.44.0.webp",
+            "width": 1440,
+            "height": 900,
+            "alt": "Four tabs selected in Blanc’s tab panel, with the menu for the selection open: 4 tabs, Move to Space, Move Tabs to New Window, Move to Group, Pin, Mute, Reload, Quiet, Copy Links and Close Tabs."
+          }
+        },
+        {
+          "id": "send-to-device",
+          "tile": "Send to Device",
+          "title": "Send a page to your other devices",
+          "body": "Send the page you’re on to another of your synced Blanc devices. It waits there in Sent to this device, and nothing opens by itself. Pages stay up to 7 days.",
+          "steps": [
+            "Right-click the tab and choose Send to Device, then a device, or type /send and the device’s name.",
+            "On the other device, find it at the top of the Other devices drawer or on the Ledger start page."
+          ],
+          "note": "Sending needs Profile Sync on both devices. Private tabs and internal pages can’t be sent.",
+          "learnMore": "/features/sync",
+          "media": {
+            "kind": "image",
+            "src": "/feature-captures/send-to-device-v1.44.0.webp",
+            "width": 1440,
+            "height": 900,
+            "alt": "The Ledger Start Page with Favorites on the left and Sent to this device on the right: Weeknight lentil soup from iPhone and Lisbon walking routes from Work laptop."
+          }
+        }
+      ]
+    },
+    {
+      "release": "1.43",
+      "highlights": [
+        {
+          "id": "protected-video-playback",
+          "tile": "Protected video",
+          "title": "Watch protected video and music",
+          "body": "Blanc now plays video and music that sites protect with Widevine DRM, on Mac, Windows and Linux. Netflix and Spotify were tried on an Apple Silicon Mac; whether a particular site plays still depends on that site.",
+          "steps": [
+            "Keep browsing while Blanc downloads the Widevine component from Google in the background.",
+            "Open Settings, then Help, to see when Protected media is ready."
+          ],
+          "note": "On Linux, Blanc asks you to restart once the component is installed, and again after it updates.",
+          "media": {
+            "kind": "image",
+            "src": "/feature-captures/protected-media-v1.43.0.webp",
+            "width": 1440,
+            "height": 900,
+            "alt": "Blanc’s Settings sheet open on Help over the Start Page. A Protected media card reads: The protected-media component is ready. Playback availability depends on the website."
+          }
+        },
+        {
+          "id": "glass-app-icons",
+          "tile": "Glass app icons",
+          "title": "Two new glass app icons",
+          "body": "Sunrise Spectrum and Sunrise Amber redraw the Sunrise in glass: a ring sun, rays and water lines inside a white outline. Spectrum is coral and red over royal blue; Amber is gold over bronze. Both turn dark in Dark mode.",
+          "steps": [
+            "Open Settings, then General.",
+            "Under App icon, choose Sunrise Spectrum or Sunrise Amber."
+          ],
+          "platforms": [
+            "mac"
+          ],
+          "media": {
+            "kind": "image",
+            "src": "/feature-captures/app-icons-v1.43.0.webp",
+            "width": 1440,
+            "height": 900,
+            "alt": "Blanc’s Settings sheet open on General. The App icon row shows five icons, Sunrise, Sunrise Dark, Sunrise Gold, Sunrise Spectrum and Sunrise Amber, with Sunrise Spectrum selected."
+          }
+        },
+        {
+          "id": "neutral-surface-style",
+          "tile": "Neutral style",
+          "title": "A plainer look for Blanc’s own pages",
+          "body": "The new Neutral surface style swaps the cream and gold of the Start Page, Favorites, History, Downloads and Settings for plain ink and gray, in Light and Dark. Sunrise stays the default.",
+          "steps": [
+            "Open Settings, then General.",
+            "Set Surface style to Neutral."
+          ],
+          "note": "Wallpapers, app icons and the Sunrise mark don’t change.",
+          "media": {
+            "kind": "image",
+            "src": "/feature-captures/neutral-surface-v1.43.0.webp",
+            "width": 1440,
+            "height": 900,
+            "alt": "The Favorites sheet in the Neutral surface style over the Start Page: a white card on a light gray sheet listing MDN Web Docs, GitHub, Wikipedia, Hacker News, NASA and BBC News."
+          }
+        }
+      ]
+    },
+    {
+      "release": "1.41",
+      "highlights": [
+        {
+          "id": "clock-font-color",
+          "tile": "Clock Font & color",
+          "title": "Make the clock your own",
+          "body": "Choose the Billboard clock’s font, weight, height and color, as on the iOS Lock Screen. Glass bends the wallpaper behind the numerals; Solid draws them flat.",
+          "steps": [
+            "On the Start Page, right-click the clock.",
+            "Pick a font, then drag Weight and Height and choose a color."
+          ],
+          "note": "Or open Customize and choose Clock. Every clock now has a soft shadow, so it reads on any wallpaper.",
+          "learnMore": "/features/start-page",
+          "media": {
+            "kind": "image",
+            "src": "/feature-captures/start-page-clock-v1.41.0.webp",
+            "width": 1440,
+            "height": 900,
+            "alt": "The Billboard Start Page with a tall glass clock reading 6:31 over a misty sunrise wallpaper, and the Font & color sheet open below it: four font samples, Weight and Height sliders, nine color swatches and a Glass or Solid switch."
+          }
+        },
+        {
+          "id": "start-page-pins",
+          "tile": "Start Page pins",
+          "title": "Pin pages to your Start Page",
+          "body": "Pin up to eight pages and they come first on every Start Page layout, newest first. Pins sync with Profile Sync.",
+          "steps": [
+            "Right-click a tab and choose Pin to Start Page.",
+            "Or press the pin on a Start Page tile or a favorite."
+          ],
+          "note": "You can pin and unpin favorites from the Favorites page too.",
+          "learnMore": "/features/start-page",
+          "media": {
+            "kind": "image",
+            "src": "/feature-captures/start-page-pins-v1.41.0.webp",
+            "width": 1440,
+            "height": 900,
+            "alt": "The Billboard Start Page with six site tiles under the clock; NASA and Wikipedia lead the row, each marked with a small pin."
+          }
+        }
+      ]
+    },
+    {
+      "release": "1.40",
+      "highlights": [
+        {
+          "id": "split-view",
+          "tile": "Split View",
+          "title": "Two tabs side by side",
+          "body": "Show two tabs in one window and drag the divider to share the space between them. The pane you click is the current tab, and the split stays together after a relaunch.",
+          "steps": [
+            "Right-click a tab and choose Split with.",
+            "Pick the tab to show beside it."
+          ],
+          "note": "To end it, choose Remove from Split or Close Split in a tab’s menu.",
+          "media": {
+            "kind": "image",
+            "src": "/feature-captures/split-view-v1.40.0.webp",
+            "width": 1440,
+            "height": 888,
+            "alt": "A Blanc window split in two: The Met’s page for Van Gogh’s Wheat Field with Cypresses on the left and the painting’s Wikipedia article on the right, each in its own rounded pane."
+          }
+        },
+        {
+          "id": "floating-glance",
+          "tile": "Glance",
+          "title": "Glance floats over your page",
+          "body": "The tab you pick opens as a card over the page you’re on, and the page behind stays usable. Move it, resize it, and Blanc remembers where you left it.",
+          "steps": [
+            "Right-click a tab and choose Open in Glance.",
+            "Drag the card’s header to move it, or an edge to resize it."
+          ],
+          "note": "Open as tab makes the Glance page the current tab, and Keep as split puts the two side by side.",
+          "media": {
+            "kind": "image",
+            "src": "/feature-captures/floating-glance-v1.40.0.webp",
+            "width": 1440,
+            "height": 888,
+            "alt": "A Glance card floating over The Met’s page for Wheat Field with Cypresses, showing the painting’s Wikipedia article under a header with Change, Open as tab and Keep as split."
+          }
+        },
+        {
+          "id": "floating-island",
+          "tile": "A floating Island",
+          "title": "The Island floats over the page",
+          "body": "With Auto-hide the Island on, the Island now floats over the page when it comes back, so the page never jumps down to make room.",
+          "steps": [
+            "Open Settings → General.",
+            "Turn on Auto-hide the Island."
+          ],
+          "note": "Prefer the page to move? Under When the Island comes back, choose Push the page down.",
+          "media": {
+            "kind": "image",
+            "src": "/feature-captures/floating-island-v1.40.0.webp",
+            "width": 1440,
+            "height": 888,
+            "alt": "The Island floating over the top of The Met’s page for Wheat Field with Cypresses, which fills the Blanc window to its top edge."
+          }
+        }
+      ]
+    },
+    {
+      "release": "1.39",
+      "highlights": [
+        {
+          "id": "auto-hide-island",
+          "tile": "Auto-hide the Island",
+          "title": "Give the page the whole window",
+          "body": "Turn on Auto-hide the Island, and the page fills the window to its top edge. The Island slides back when you point at the top edge, rest the pointer near the top, or press `⌘L`.",
+          "steps": [
+            "Open Settings → General.",
+            "Turn on Auto-hide the Island, or press `⌘⌥B` (`Ctrl+Alt+B` on Windows and Linux)."
+          ],
+          "note": "It’s off by default.",
+          "learnMore": "/features/island",
+          "media": {
+            "kind": "image",
+            "src": "/feature-captures/auto-hide-island-v1.39.0.webp",
+            "width": 1440,
+            "height": 900,
+            "alt": "The Met’s page for Van Gogh’s Wheat Field with Cypresses filling a Blanc window to its top edge, with the Island hidden."
+          }
+        },
+        {
+          "id": "tab-archive",
+          "tile": "Tab Archive",
+          "title": "Let idle tabs tidy themselves away",
+          "body": "Loose tabs you haven’t looked at in a while close themselves into an Archive. Find them again in the `⌘L` panel or in History, and bring one back with a click.",
+          "steps": [
+            "Open Settings → General.",
+            "Under Archive inactive tabs, choose 12 hours, 1 day, 7 days or 30 days."
+          ],
+          "note": "Pinned, grouped and private tabs are never archived, and nor is a tab playing media or holding something you typed. The Archive stays on this device for 30 days.",
+          "media": {
+            "kind": "image",
+            "src": "/feature-captures/tab-archive-v1.39.0.webp",
+            "width": 1440,
+            "height": 900,
+            "alt": "Blanc’s History sheet on the Archived tabs view, listing six archived tabs under Today and Yesterday, each with its site icon and the time it was archived."
+          }
+        },
+        {
+          "id": "sunrise-gold",
+          "tile": "Sunrise Gold",
+          "title": "A gold icon for your Dock",
+          "body": "Sunrise Gold puts the Sunrise in glass over gold: soft in Light, polished in Dark.",
+          "steps": [
+            "Open Settings → General.",
+            "Under App icon, choose Sunrise Gold."
+          ],
+          "note": "Sunrise Gold is for macOS.",
+          "platforms": [
+            "mac"
+          ],
+          "media": {
+            "kind": "image",
+            "src": "/feature-captures/sunrise-gold-v1.39.0.webp",
+            "width": 1440,
+            "height": 900,
+            "alt": "Blanc’s Settings on the Appearance card, where the App icon row offers Sunrise, Sunrise Dark and Sunrise Gold, with Sunrise Gold selected."
+          }
+        }
+      ]
+    },
+    {
+      "release": "1.38",
+      "highlights": [
+        {
+          "id": "your-image",
+          "tile": "Your own Start Page image",
+          "title": "Make the Start Page your own",
+          "body": "Put a photo of your own behind the Start Page. Wash and Fade keep the page easy to read over it.",
+          "steps": [
+            "Open Customize at the bottom of the Start Page.",
+            "Under Wallpaper, choose Your image.",
+            "Pick a JPEG or PNG, up to 25 MB."
+          ],
+          "note": "Blanc keeps a resized copy on this device only, without location, camera or time details. It isn't synced, and private tabs never show it.",
+          "learnMore": "/features/start-page",
+          "media": {
+            "kind": "image",
+            "src": "/feature-captures/start-page-image-v1.38.0.webp",
+            "width": 1440,
+            "height": 900,
+            "alt": "Blanc’s Billboard Start Page over Van Gogh’s Wheat Field with Cypresses, with the Spotlight wash behind the clock and favorites.",
+            "caption": "Van Gogh, Wheat Field with Cypresses, The Met (public domain)."
+          }
+        },
+        {
+          "id": "start-page-color",
+          "tile": "A Start Page color",
+          "title": "Paint the Start Page in a color",
+          "body": "Choose one of the eight colors Spaces use, as a Soft, Solid or Gradient fill. Turn on Match each space’s color, and a window that belongs to a space shows that space’s color instead.",
+          "steps": [
+            "Open Customize at the bottom of the Start Page.",
+            "Under Wallpaper, choose Color.",
+            "Pick a color and a fill."
+          ],
+          "note": "The color settings sync with Profile Sync. An image chosen on this device still comes first here, and private tabs never show the color.",
+          "learnMore": "/features/start-page",
+          "media": {
+            "kind": "image",
+            "src": "/feature-captures/start-page-color-rose-solid-v1.38.0.webp",
+            "width": 1440,
+            "height": 900,
+            "alt": "Blanc’s Billboard Start Page painted in the Rose color with the Solid fill."
+          }
+        }
+      ]
+    },
+    {
+      "release": "1.37",
+      "highlights": [
+        {
+          "id": "group-colors",
+          "tile": "Tab group colors",
+          "title": "Give each tab group a color",
+          "body": "A group can take one of the eight colors Spaces use. Its block in the `⌘L` panel takes a light tint, its name gets a dot, and its tabs’ dots in the Island take the color.",
+          "steps": [
+            "Right-click a group’s header in the `⌘L` panel, or press its `⋮` button.",
+            "Pick a color."
+          ],
+          "note": "Groups have no color unless you choose one.",
+          "learnMore": "/features/tab-groups",
+          "media": {
+            "kind": "image",
+            "src": "/feature-captures/tab-group-colors-v1.38.0.webp",
+            "width": 1440,
+            "height": 900,
+            "alt": "Blanc’s ⌘L panel over a Wikipedia article, with an Inspiration group tinted rose and a Reading group tinted green."
+          }
+        },
+        {
+          "id": "island-hover",
+          "tile": "Open the Island on hover",
+          "title": "Open the Island just by pointing",
+          "body": "Rest the pointer on the Island’s address for a moment, and the panel opens.",
+          "steps": [
+            "Open Settings → General.",
+            "Turn on Open the Island on hover."
+          ],
+          "note": "It’s off by default.",
+          "learnMore": "/features/island",
+          "media": {
+            "kind": "image",
+            "src": "/feature-captures/island-hover-v1.38.0.webp",
+            "width": 1440,
+            "height": 900,
+            "alt": "Blanc’s resting Island over the Smithsonian Open Access page, with the address and the tab dots of a rose-colored group."
+          }
+        }
+      ]
+    },
+    {
+      "release": "1.36",
+      "highlights": [
+        {
+          "id": "bangs",
+          "tile": "Bangs",
+          "title": "Search any site from the address bar",
+          "body": "Type an exclamation mark and a site’s code before your search, like `!yt lofi`, and Blanc opens that site’s results directly, whichever search engine you use.",
+          "steps": [
+            "Press `⌘L`, or `Ctrl+L` on Windows and Linux.",
+            "Type `!yt lofi` and press Return."
+          ],
+          "note": "Type `!` on its own to see popular bangs. The list ships inside Blanc, so Blanc never looks bangs up online.",
+          "learnMore": "/bangs",
+          "media": {
+            "kind": "image",
+            "src": "/feature-captures/bangs-v1.36.0.webp",
+            "width": 1440,
+            "height": 900,
+            "alt": "Blanc’s ⌘L panel on the Start Page with !yt lofi typed and the bang row Search YouTube for “lofi”."
+          }
+        },
+        {
+          "id": "recently-closed",
+          "tile": "Recently closed",
+          "title": "Bring back what you closed",
+          "body": "Recently closed sits as a band in the `⌘L` panel. Unfold it to see every closed tab Blanc keeps, up to 25, newest first.",
+          "steps": [
+            "Press `⌘L`, or `Ctrl+L` on Windows and Linux.",
+            "Unfold Recently closed and pick what to bring back."
+          ],
+          "learnMore": "/features/reopen-closed-tabs",
+          "media": {
+            "kind": "image",
+            "src": "/feature-captures/reopen-closed-tabs-great-wave-v1.38.0.webp",
+            "width": 1440,
+            "height": 900,
+            "alt": "Blanc’s ⌘L panel over The Met’s page for Hokusai’s Under the Wave off Kanagawa, with Recently closed unfolded above a Painting class group.",
+            "caption": "Katsushika Hokusai, Under the Wave off Kanagawa, The Met (public domain)."
+          }
+        }
+      ]
+    }
+  ]
+}

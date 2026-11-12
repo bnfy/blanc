@@ -51,20 +51,31 @@ const jobs = [
     output: `feature-captures/${name}-v1.35.0.webp`,
   })),
   { source: 'feature-captures/mahjong-v1.21.0.png', output: 'feature-captures/mahjong-v1.21.0.webp' },
-  // Blanc Mail screenshots (capture-public-shots.sh in bnfy/blanc-mail):
-  // 1100px copies for MailShot's srcset; the 2200px captures stay as taken.
-  ...['main', 'dark', 'island', 'zero', 'zero-night', 'rules'].map(name => ({
-    source: `mail/screens/${name}.webp`,
-    output: `mail/screens/${name}-1100.webp`,
-    width: 1100,
-  })),
+  // The Blanc Mail rule editor, dark, from the Mail repository's
+  // capture-public-shots.sh (scene rule-editor, bnfy/blanc-mail#147): a 1100px
+  // copy for MailShot's srcset; the 1400px capture stays as taken.
+  { source: 'mail/screens/rule-editor.webp', output: 'mail/screens/rule-editor-1100.webp', width: 1100 },
+  // The homepage's first screen: the floating Island from public v1.40.0
+  // (docs/website-captures-float-island-v1.40.0.json). The hidden capture is
+  // the window; the macOS buttons are cut from the revealed one at their
+  // measured place (the system draws them, not the app).
+  { source: 'feature-captures/float-island-hidden-v1.40.0.png', output: 'revamp/float-island-hidden-v1.40.0-display.webp' },
+  { source: 'feature-captures/float-island-hidden-v1.40.0.png', output: 'revamp/float-island-hidden-v1.40.0-800.webp', width: 800 },
+  { source: 'feature-captures/float-island-revealed-v1.40.0.png', output: 'revamp/float-island-lights-v1.40.0.webp', extract: floatIslandLights() },
 ];
+
+function floatIslandLights() {
+  const { measured } = JSON.parse(readFileSync(join(site, '../docs/website-captures-float-island-v1.40.0.json'), 'utf8'));
+  const { trafficLightsRect: rect, scale } = measured;
+  return { left: rect.x * scale, top: rect.y * scale, width: rect.width * scale, height: rect.height * scale };
+}
 
 const sha256 = bytes => createHash('sha256').update(bytes).digest('hex');
 const manifest = [];
 for (const job of jobs) {
   const input = readFileSync(pub(job.source));
   let image = sharp(input).keepIccProfile();
+  if (job.extract) image = image.extract(job.extract);
   if (job.width) image = image.resize({ width: job.width });
   const { data, info } = await image.webp({ quality: 88, alphaQuality: 100, effort: 6 }).toBuffer({ resolveWithObject: true });
   writeFileSync(pub(job.output), data);

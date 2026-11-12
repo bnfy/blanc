@@ -1,0 +1,13 @@
+{
+  "version": "45.2.1+wvcus",
+  "chromium": "156.0.8078.75",
+  "vendorCommit": "ab2120c6a5d49d412bcb2b7e3f9c9c3e74cb0243",
+  "release": "https://github.com/castlabs/electron-releases/releases/tag/v45.2.1%2Bwvcus",
+  "publishedAt": "2026-11-05T00:53:29Z",
+  "archives": {
+    "darwin-arm64": "93e1976a66d58004bf25e5b777c979cc3c03513868d5faf294bcd6f58e63bd24",
+    "darwin-x64": "865396e65fc869c2d824a77e1c1bb4c2f5d3392566f00b5e5edeeec1b3f11bed",
+    "linux-x64": "18953cdab1cdc2499f9b0089f85d069559bf992145008a40aacd0d7714b97960",
+    "win32-x64": "a17f87a95a62e8f336d6fa18e57b9bc83d513b02211e4e5771a45cfd7482740e"
+  }
+}

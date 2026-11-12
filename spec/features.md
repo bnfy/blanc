@@ -16,13 +16,21 @@ The single custom command surface that replaces a traditional tab strip +
 toolbar (Bowser Design System "Island Chrome").
 
 - **Resting pill** shows, left→right: back/forward (desktop; mobile uses edge-swipe
-  gestures per D7), direct dots for standalone pinned tabs followed by the
-  active section (named group, loose tabs, or pinned shelf), capped at 8 total,
+  gestures per D7), direct dots for every pinned tab, grouped or not, followed
+  by the active section without its pins (named group or loose tabs; with a pin
+  active, its own group when that has other tabs, else the section last
+  visited), capped at 8 total,
   with a quiet window-wide `+N` for every omitted tab that opens the panel; on
   a pointer platform, hovering/focusing a dot reveals that tab's favicon so it
-  can be identified before switching), favicon,
+  can be identified before switching; a device-local setting, off by default,
+  draws each direct tab as its site icon instead, and fewer fit before `+N`;
+  a pinned tab's dot is a rounded square), favicon,
   domain, shield count (F12), a private chip when private (F4), and a trailing
-  action cluster (reload / favorite / close tab / downloads). The resting pill
+  action cluster (reload / favorite / close tab / downloads). On desktop,
+  Settings → General → **Island size** (Default, Large, Extra large;
+  device-local, never synced) scales the resting pill and everything in it,
+  and the strip that holds it grows with it, so pages start lower. The
+  expanded panel keeps its size. The resting pill
   carries **no group name** — group identity is named in full in the panel
   (F3). Each dot always represents one tab; making a tab quiet (F31) never
   removes, moves, or restyles its dot. In
@@ -32,9 +40,15 @@ toolbar (Bowser Design System "Island Chrome").
   `palette` (same panel summoned by the ⌘L-equivalent, floated over a scrim),
   `find` (F8). Only the active state shows; Escape/back dismisses.
 - On desktop, an off-by-default setting may open `panel` after the pointer
-  remains over the resting Island for 300 ms. Leaving early cancels it; closing
+  remains over the resting Island's address (favicon and domain) for 300 ms;
+  its buttons, dots and chips never hover-open. Leaving early cancels it; closing
   under a resting pointer requires leaving and re-entering before it can open
   again. Touch-only devices have no hover-open behavior (D28).
+- On desktop, an off-by-default **Auto-hide the Island** setting (also a View
+  menu toggle) lets the page fill the window. Pointing at the window's top edge
+  brings the strip back and pages make room for it; it hides again once the
+  pointer leaves the strip. Every expanded state, popover and Glance keeps it
+  shown while open (D29).
 - The panel's list area shows: the **tab switcher** at rest, **slash commands**
   (F7) when input starts with `/`, the **Quick Switcher** (F6) otherwise.
 - Below the list, one footer line holds **New tab** (the one solid pill, with
@@ -53,8 +67,10 @@ toolbar (Bowser Design System "Island Chrome").
   desktop, edge-swipe gesture on mobile per D7), 3 dots, the domain, a shield
   count of 2, and the action cluster — and not the name `work`. Summoning the
   palette floats the command bar with the tab switcher listed. On desktop,
-  enabling hover-open and dwelling on the Island opens the panel once; crossing
-  it, hovering nearby, or disabling the setting mid-dwell does not.
+  enabling hover-open and dwelling on the Island's address opens the panel once;
+  crossing it, resting on its buttons, hovering nearby, or disabling the setting
+  mid-dwell does not. With auto-hide on, the page starts at the window's top
+  edge; pointing there or summoning the palette shows the strip again.
 
 ## F2 — Tabs
 
@@ -62,8 +78,15 @@ toolbar (Bowser Design System "Island Chrome").
   **mute/unmute**. A plain new tab (F7 `/new`, panel row, new-tab shortcut) always
   opens **ungrouped** and to the newtab page (F16), regardless of the active tab's
   group.
-- `window.open` / context-menu children **inherit the opener's group** (F3) and
-  privacy (F4).
+- `window.open` / context-menu children inherit the opener's privacy (F4) but
+  **not its group**: like a plain new tab they open **ungrouped**, after the
+  other ungrouped tabs (F3).
+- The tab menu also offers **New Tab Below** (directly under the tab, inside
+  its group if it has one), **Close Tabs Above** and **Close Tabs Below**
+  (unpinned tabs across the window, one undo step), and **Mute Site** /
+  **Unmute Site** (every tab on that exact host, until Blanc quits; private tabs
+  keep their own). Unmuting one tab on a muted site overrides the site for that
+  tab until it leaves the host.
 - Switching tabs never loses an inactive tab's identity. On every platform an
   inactive tab may have its renderer discarded to reclaim memory — on desktop
   deliberately, after an idle delay the person controls (F31); on mobile because
@@ -86,36 +109,68 @@ toolbar (Bowser Design System "Island Chrome").
 
 ## F3 — Tab groups
 
-- Groups have **names, not colors**, kept in the case typed and matched in any
+- Groups have **names**, kept in the case typed and matched in any
   case: `/group research` joins "Research", and two groups can't differ only
   by case. A group exists only while it holds ≥1 tab (auto-pruned when empty).
 - Create/join via `/group <name>` (find-or-create; typing new capitals for an
   existing group re-cases it) or an inline picker on the tab row; leave via
-  `/ungroup`; close all via `/close-group`. A group header's right-click menu
-  offers **Rename Group…** (a name another group already has is refused, not
-  merged), **Ungroup** and **Close Group**.
-- The pill's direct dots show standalone pins followed by the active section:
-  the active named group, loose ungrouped tabs, or the pinned shelf itself.
+  `/ungroup`; close all via `/close-group`. A group's menu (below) renames it;
+  a name another group already has is refused, not merged.
+- A group may have an optional **color**, one of the eight Spaces presets, off
+  by default. A colored group's block takes a light tint of it, a dot sits
+  before its name, and the Island's dots take it. Right-clicking a group header
+  or its ⋮ opens the group menu: the name, the colors, New Tab in Group, Move
+  Group to New Window, Ungroup and Close Group.
+- The pill's direct dots show every pinned tab, grouped or not, in tab order,
+  followed by the active section: the active named group or the active tab's
+  run of ungrouped tabs, without its pins, so no tab is drawn twice. A pinned
+  dot keeps its group's color. When a pin is active, the section is its own
+  group if that has other tabs, else the one the person was last on (the first
+  section if none is known yet), so a pinned tab never hides every other tab
+  behind `+N`; with only pins, the shelf is the whole set.
   They share an eight-dot budget, always retain the active tab, and use `+N` to
-  count every other tab in the window. A group's pinned tabs stay inside it and
-  lead its rows/dots; only ungrouped pins use the standalone pinned section.
+  count every other tab in the window. In the panel, a group's pinned tabs stay
+  inside it and lead its rows; only ungrouped pins use the standalone pinned
+  section.
   Other groups live in the palette panel (per-group headers, foldable;
   collapsed group shows an "N tabs tucked away" row).
 - The Quick Switcher (F6) matches group names, ranked above tabs; picking a group
   focuses it (unfolding if collapsed). The nth-cluster shortcut (D7) focuses the
-  nth *group's* first tab when groups exist.
+  nth *section's* first tab when groups exist.
+- **Ungrouped tabs anywhere:** the window's tab order is the order drawn.
+  Ungrouped tabs may sit above, between or below groups; each run of ungrouped
+  tabs with no group between them is its own section, numbered with the groups
+  top to bottom. A new group appears where its tab was (directly below the
+  group that tab left, if any); Remove from Group lands a tab directly below
+  its group; Ungroup leaves the tabs where they were. New tabs still land at the
+  bottom. A window saved before this order is laid out as before: groups, then
+  ungrouped tabs.
 - New **private** tabs are never grouped.
+- A tab opened from a link in a grouped tab (`window.open` / `target=_blank`,
+  Open Link in New Tab, Open Link in Glance) opens **ungrouped**, in the same
+  place as a plain new tab: after the other ungrouped tabs. It joins a group
+  only when the person moves it there.
 - **Drag to reorder** (rail and expanded island, same gesture): drag a tab
   within its section, into another group's section or onto any group header
-  (appends; a collapsed group stays collapsed), or out to the loose section.
-  Dragging never changes pinned state. Drag a group header to reorder groups;
+  (appends; a collapsed group stays collapsed), or into any gap above, between
+  or below groups, where it becomes ungrouped. Dragging never changes pinned
+  state. Drag a group header to reorder groups, including past ungrouped tabs;
   cluster order (⌘1–9, ⌥⌘↑/↓, pill dots) follows. ⌥⇧↑/↓ does the same from the
-  keyboard, skipping collapsed groups and stopping at either end. Dragging out
+  keyboard, stopping in each gap between groups, skipping collapsed groups (but
+  not the gaps beside them) and stopping at either end. Dragging out
   over page content does nothing and gives the page no data.
 - **Acceptance:** With one standalone pin, 2 tabs in `work`, and 3 tabs in
   `play`, activating `work` shows 3 direct dots and `+3`; activating `play`
-  shows 4 direct dots and `+2`. Collapse `work` → its tabs show as "N tabs
+  shows 4 direct dots and `+2`. Pin the first tab of a 3-tab `work` beside a
+  2-tab `play` → that pin leads the dots once whichever of `work`, `play` or the
+  pin itself is active (3 dots, `+3`). Collapse `work` → its tabs show as "N tabs
   tucked away" in the panel. Delete the last tab in `play` → `play` disappears.
+
+- **iOS (M17, unreleased):** groups are sections of the tab grid (colour dot,
+  name, count, fold, ⋯ menu) and of the palette's tab list, with the same
+  naming, colour and empty-group rules; a tab's long-press menu moves it into
+  or out of a group. With Spaces sync on, a shared Space's groups sync as
+  records. Dragging tabs into groups is after M17.
 
 ## F4 — Private tabs
 
@@ -126,8 +181,8 @@ toolbar (Bowser Design System "Island Chrome").
 - Private tabs share a dedicated **non-persistent web session** with one another,
   isolated from normal tabs. Cookies, storage, cache, service workers, HTTP auth,
   and permission decisions remain memory-only and disappear when Blanc quits.
-- While the active tab is private, chrome uses the **private theme** (F15): dashed
-  pill border, hollow dots, and a "private" chip that closes the tab (quick exit).
+- While the active tab is private, chrome uses the **private theme** (F15): deeper
+  ink, hollow dots, and a "private" chip that closes the tab (quick exit).
 - Shield counts and downloads behave normally. Existing Favorites can be
   opened in private tabs, but Blanc does not add Favorites from private
   browsing because that would create a persistent record.
@@ -136,7 +191,7 @@ toolbar (Bowser Design System "Island Chrome").
   **ephemeral** — unusable after Blanc quits (D16).
 - **Acceptance:** Open a private tab, visit a site → it does not appear in history
   or share normal-session site data; closing and reopen-closed does not bring it
-  back; the pill shows the private chip and dashed styling.
+  back; the pill shows the private chip and the private theme.
 
 ## F5 — Address input & search
 
@@ -317,6 +372,7 @@ From the desktop `DEFAULTS`:
 | `theme` | `system` | system/light/dark |
 | `tabLayout` | `island` | desktop-only `island`/`vertical`; device-local, never synced (F28/D19) |
 | `verticalTabsWidth` | `248` | desktop-only preferred rail width, clamped to 200–360px; device-local, never synced (F28/D19) |
+| `verticalTabsTextSize` | `default` | desktop-only `default`/`large`/`extra-large`; device-local, never synced (F28/D19) |
 | `appIcon` | `sunrise` | one of `sunrise`/`sunrise-dark`/`paper`/`ink`; device-local |
 | `adblockExceptions` | `[]` | lowercased hostnames, no scheme/path/`www.` |
 | `darkWebsites` | `false` | desktop-only boolean; device-local, never synced (F42) |
@@ -381,15 +437,23 @@ From the desktop `DEFAULTS`:
 
 ## F17 — Patron & app icons
 
-- macOS Settings offers four Dock colorways: `sunrise` (default),
-  `sunrise-dark`, `paper`, and `ink`. Older ids are retired; any stale or
-  hand-set retired id falls back to `sunrise`.
+- macOS Settings offers five Dock colorways: `sunrise` (default, follows the
+  system appearance), `sunrise-dark`, `sunrise-gold` (soft gold in Light,
+  polished gold in Dark), `sunrise-spectrum` (a glass ring sun, rays and water
+  lines in coral over blue) and `sunrise-amber` (the same in gold and bronze); the last two sit
+  on a light tile (Arc's graded gray for Spectrum, cream for Amber) that darkens in Dark. Older ids, including the monogram `gold`, are
+  retired; any stale or hand-set retired id falls back to `sunrise`.
+- iPhone Settings → Appearance → App icon offers those five plus
+  `sunrise-bronze` (Sunrise Bronze) and `sunrise-dawn` (Sunrise Dawn), both
+  iPhone only; Sunrise is the standard icon, as on the Mac. All seven are
+  Icon Composer packages, and iOS itself remembers the choice (D33).
 - Patron is optional support and unlocks nothing: Blanc Spaces (F41) is free
   for everyone, and icon variants were never a Patron benefit. Renderers only
   ever see a derived `patronActive` boolean; the entitlement record stays in
   main.
 - **Diverges:** purchase rails (D5 — Apple IAP / Play Billing, not Polar, on mobile)
-  and icon-switching mechanism (D6 — clean on iOS, limited on Android).
+  and icon-switching mechanism (D6 — clean on iOS, limited on Android); the
+  iPhone's catalog and standard icon (D33).
 - **Acceptance:** A current colorway can be selected; a retired id is rejected
   even when Patron is active.
 
@@ -412,7 +476,8 @@ From the desktop `DEFAULTS`:
 ## F19 — Context menu (link/page actions)
 
 - Link/page actions: open in new tab, open in **background** tab, copy link,
-  save/relevant page actions. Children inherit group + privacy (F2/F4). OS hand-off
+  save/relevant page actions. Children inherit privacy (F4) and open ungrouped
+  (F2/F3). OS hand-off
   (D4) honored for `mailto:` etc. Gesture entry point diverges (D7 — long-press on
   mobile vs right-click on desktop).
 - **URL-bar menu (desktop only — D20):** the command bar's address input offers
@@ -422,11 +487,23 @@ From the desktop `DEFAULTS`:
   and **Paste and Go** (clipboard text through the full typed-address pipeline —
   OS hand-off, search-vs-URL heuristic, utility-sheet routing — then the island
   closes).
+- **Copy Link shortcut (desktop only — D7):** ⇧⌘C (Ctrl+Shift+C on
+  Windows and Linux) and Edit → **Copy Link** copy the current page's exact
+  address without opening the command bar, for web and `file:` pages (nothing
+  for a blank or internal page, as in the tab menu); the pill says **Link
+  copied** for a moment. Chrome gives this chord to DevTools' element picker,
+  so no page expects it. Edit → **Copy Clean Link** (⌥⇧⌘C on macOS) copies
+  it without tracking parameters (the exact address when there is nothing to
+  strip); the pill says **Clean link copied**. Windows and Linux get the menu
+  item without a chord, because Ctrl+Alt is AltGr on international layouts.
 - **Acceptance:** Long-press/right-click a link → "open in background tab" opens it
-  without switching away, inheriting the opener's group.
+  without switching away, ungrouped even when the opener is in a group.
 - **Acceptance (desktop):** Copy Clean Link on a URL with `utm_*`/click-id
   params yields the URL without them, other params intact; Paste and Go with a
   URL on the clipboard navigates the active tab and closes the island.
+- **Acceptance (desktop):** Copy Link on a web page puts its address on the
+  clipboard; on a blank tab the clipboard is unchanged
+  (`test/desktop/browser-shortcuts-smoke.mjs`).
 
 ## F20 — HTTP authentication policy
 
@@ -590,6 +667,12 @@ From the desktop `DEFAULTS`:
   Renaming A on B shows the new name in B's drawer, Quick Switcher and start
   page; renaming it to empty shows A's published name again.
 
+- **iOS (M17, unreleased):** the phone's snapshot publishes its groups, and,
+  with Spaces sync on, its `shared` sidecar bound to the snapshot it publishes
+  (a membership change gives the snapshot a fresh clock). Another device's
+  tabs bound to a shared Space the phone holds are left out of Other devices,
+  the start page and the Quick Switcher; a stale binding hides nothing.
+
 ## F28 — Vertical tabs
 
 - On desktop, `tabLayout` selects `island` or `vertical`. It defaults to
@@ -615,13 +698,23 @@ From the desktop `DEFAULTS`:
   supported 640×480 minimum, the pane is 392px wide and the visible find
   capsule fits within 368px of it without touching the rail. The expanded
   Island footer has an accessible two-way vertical-tabs toggle, while the
-  rail's unlabeled top bar contains a single accessible sidebar icon that turns
-  vertical tabs off. The top bar and group labels use spacing instead of
+  rail's top bar holds the current Space's mark (the only place it shows; the
+  resting Island never does), opening the Spaces menu below it; with no Spaces
+  yet it shows the Spaces glyph) and, at its far end, an accessible sidebar icon that turns vertical
+  tabs off. On Windows and Linux the main-menu button leads the row. The rail's
+  footer has **New tab** and, beside it, **New group**, which starts a group
+  from the current tab (or every selected tab) like the tab menu's Move to
+  Group → New Group…. The top bar and group labels use spacing instead of
   divider rules. `⌘⌥V` on macOS / `Ctrl+Alt+V` elsewhere toggles the layout
   from anywhere.
+- Settings → General → Island offers **Vertical tab text size**: Default
+  (12.5px), Large (15px), and Extra large (18px). Tab titles and group labels
+  grow together, with taller rows to fit. The device-local choice applies to
+  all open windows immediately and survives restart; it never syncs.
 - The rail renders local tabs from the canonical tab order: ungrouped pins,
-  named groups (group pins first), then loose tabs, followed by the new-tab
-  action. Rows expose favicon and title plus active, loading, private, pinned,
+  then named groups (group pins first) and runs of ungrouped tabs in tab order,
+  followed by the new-tab action. As in the island, each group is a tinted
+  block and runs of ungrouped tabs are plain rows with no heading. Rows expose favicon and title plus active, loading, private, pinned,
   audible, and muted states. Directly hovering a genuinely truncated title
   starts a delayed, reduced-motion-aware reading pass to its hidden end;
   fully visible titles stay still and pointer exit restores the ellipsis.
@@ -630,7 +723,7 @@ From the desktop `DEFAULTS`:
   become rail rows.
 - Pointer actions switch, close, middle-click close, create a new tab, and
   fold/unfold groups. Drag reorder follows F3's rule: tabs may move between
-  groups and the loose section, never across the pinned boundary; a
+  groups and the ungrouped places between them, never across the pinned boundary; a
   pin-crossing drop is rejected without changing order, membership or pinned
   state. Pin/unpin, mute/unmute, duplicate, and group membership editing
   remain available through the Island and native menus in the first rail
@@ -789,82 +882,83 @@ From the desktop `DEFAULTS`:
 
 ## F34 — Glance reference pane
 
-- Desktop can keep one additional tab from the same native workspace visible as
-  a temporary reference pane. The active page remains the dominant main pane;
-  Glance opens to its right at a 62/38 default split and stacks below it when
-  the available page region is too narrow, with an explicit header introducing
-  the lower reference.
-- A person chooses the exact reference tab from a dedicated local-tab picker
-  that excludes search, history, Favorites, commands, and remote tabs. The native
-  View menu exposes **Open Glance… / Close Glance** with
-  `Cmd/Ctrl+Shift+G`, so the feature is reachable on macOS, Windows, and Linux;
-  `/glance` opens the same picker (the Change picker while Glance is open) and
-  `/glance <text>` opens it filtered to the text; a link's context menu offers
-  **Open Link in Glance** after **Open Link in New Tab**, with the same
-  hand-off and forbidden-URL guards, opening the link as the reference in the
-  opener's profile, private flag and group. The picker is a dialog named by
-  its heading; its rows share the ⌘L panel's vocabulary (quiet tabs dimmed
-  with the word only in the accessible name, private tabs with the chip, a
-  tooltip of title and host, names joined with commas), arrow keys move the
-  highlight without re-announcing the count, and a chosen quiet tab's row
-  says "Opening…" while it wakes.
-- The strip keeps the Island centered over the main pane and gives the
-  reference a flat header with favicon/title plus **Make main**, **Change**, and
-  close controls. Reference pages remain fully interactive without changing
-  roles; promotion is explicit and swaps the two visible tabs.
-- Browser commands follow the focused pane. With keyboard focus in the
-  reference, Reload and Hard Reload, Close Tab, Find, zoom, Print, Back and
-  Forward (`Cmd+[` / `]` on macOS, `Alt+Left` / `Right` on Windows and
-  Linux), the 1Password fill and its hint, and mouse
-  gestures act on the reference; Close Tab there closes the reference tab and
-  Glance collapses. ⌘L and the Island, New Tab, ⌘1–9, the shield popover, the
-  blocked count and the tab-scoped slash commands stay on the main page. The
-  header's eyebrow and bottom hairline brighten while the reference holds
-  focus. A 1Password message belongs to the pane it is about: only that
-  pane navigating dismisses it, not the other pane.
-- A tab the reference opens in the foreground (`target=_blank`,
-  `window.open`, Cmd/Ctrl+Shift-click) becomes the reference; the previous
-  reference stays open as an ordinary tab and the main page is untouched.
-  Background opens stay in the background.
-- While Glance is open the Island hides its tab dots (and the +N count) to
-  keep room for the address and its controls; tabs stay reachable from the
-  ⌘L panel, the rail and `Cmd/Ctrl+1–9`. When the main pane is narrow the
-  Island also hides Forward and Favorite, and the divider stops before the
-  address becomes unreadable (measured from what the Island is showing).
-  The divider also never makes the reference narrower than its header needs
-  at its most compact (measured, so it includes the window controls on
-  Windows and Linux), and Glance stacks instead of going side by side when
-  the main pane's minimum would leave the reference less than that. Stacked
-  on Windows and Linux the Island is centred between two reservations for
-  the window controls; when even the slim Island does not fit there (a narrow
-  window with vertical tabs), it gives up its centre line, reserving the
-  controls once on their side, before its address truncates.
-- The reference header carries **Back** (disabled when there is nothing to go
-  back to) and **Reload** / **Stop**. **Make main**'s accessible name begins
-  with its visible words, and right-clicking the header's title opens the
-  reference tab's menu with **Close Glance**. A private reference shows the
-  private chip beside its title. Glance moves in the chrome's own vocabulary:
-  the header and divider fade and slide 6 px in and out, the picker grows out
-  of its anchor and shrinks back, Make main cross-fades the header's identity
-  and announces "{title} is now the main page; {other} is in Glance"; under
-  Reduce Motion every one of these is a 140 ms fade.
-- The divider is pointer-resizable and keyboard accessible, with a reset to the
-  62/38 default. Glance never crosses window/profile ownership, never survives
-  native-window teardown or session restore, and a visible Glance tab is never
-  made quiet (F31).
+- Desktop can show one other tab from the same native workspace as a temporary
+  **floating card** over the active page: a quick look at another page without
+  leaving the one you're on. Side by side always means Split View (F53); Glance
+  is the card. The card is large and centered below the Island at first (up to
+  1,100 px or 80% of the page area wide), drawn like a Split View pane:
+  rounded corners, a 1 px border (darker while it has focus) and a soft shadow.
+  The page behind stays visible and usable: clicking or scrolling it never
+  closes the card. Over a visible Split View (F53) the card floats over every
+  pane. (Design: `docs/superpowers/specs/2026-10-20-floating-glance-design.md`.)
+- A person chooses the exact tab from a dedicated local-tab picker that excludes
+  search, history, Favorites, commands, and remote tabs. The native View menu
+  exposes **Open Glance… / Close Glance** with `Cmd/Ctrl+Shift+G`, so the
+  feature is reachable on macOS, Windows, and Linux; `/glance` opens the same
+  picker (the Change picker while Glance is open) and `/glance <text>` opens it
+  filtered to the text; a link's context menu offers **Open Link in Glance**
+  after **Open Link in New Tab**, with the same hand-off and forbidden-URL
+  guards, opening the link in the opener's profile and private flag, ungrouped
+  (F3). The picker is a dialog named by its heading; its rows share the ⌘L
+  panel's vocabulary (quiet tabs dimmed with the word only in the accessible
+  name, private tabs with the chip, a tooltip of title and host, names joined
+  with commas), arrow keys move the highlight without re-announcing the count,
+  and a chosen quiet tab's row says "Opening…" while it wakes.
+- The card can be moved by dragging its header and resized from any edge or
+  corner (never below 360 × 280, always inside the page area). The next Glance
+  opens at the size and place the last card was left, remembered once per
+  device as a share of the page area and never synced; double-clicking the
+  header resets it. A focusable **Move or resize Glance** control moves the card
+  with the arrow keys (16 px, 64 px with Shift), resizes it with Option/Alt and
+  an arrow, resets it with Enter, and announces each change.
+- The header carries the GLANCE label, the site (favicon and host, with the
+  private chip for a private tab), **Back** and **Reload** / **Stop**,
+  **Change**, **Open as tab**, **Keep as split** and **×**. As the card narrows
+  the three actions become icons, then the GLANCE label hides, then the host;
+  Back, Reload, × and the private chip never hide. Accessible names begin with
+  the visible words, and right-clicking the header opens the Glance tab's menu.
+- **Open as tab** (or choosing the Glance tab from the Island dots, ⌘1–9 or the
+  ⌘L list) ends the Glance and makes its page the current tab; the page it
+  floated over stays open as an ordinary tab. **Keep as split** turns the two
+  pages into a fresh 50/50 Split View, main page first. Switching to any other
+  tab closes the Glance; switching back doesn't bring it back. Closing the main
+  page makes the Glance page the current tab.
+- **Escape** closes the Glance only from the card's chrome (its header and
+  controls); inside the Glance page Escape stays the site's. **×** and
+  `Cmd/Ctrl+Shift+G` close it from anywhere. A closing card disappears at once.
+- Browser commands follow the focused pane. With keyboard focus in the Glance
+  page, Reload and Hard Reload, Close Tab, Find, zoom, Print, Back and Forward
+  (`Cmd+[` / `]` on macOS, `Alt+Left` / `Right` on Windows and Linux), the
+  1Password fill and its hint, and mouse gestures act on it; Close Tab there
+  closes the Glance tab and the Glance ends. ⌘L and the Island, New Tab, ⌘1–9,
+  the shield popover, the blocked count and the tab-scoped slash commands stay
+  on the main page. Find and a 1Password message about the Glance page sit
+  over the card; a 1Password message belongs to the pane it is about.
+- A tab the Glance page opens in the foreground (`target=_blank`,
+  `window.open`, Cmd/Ctrl+Shift-click) becomes the Glance; the previous one
+  stays open as an ordinary tab and the main page is untouched. Background
+  opens stay in the background.
+- The card's chrome fades in (a 140 ms fade; none under Reduce Motion) and
+  closes at once. The Island hides and reveals as usual under Auto-hide while a
+  Glance is open, in either style. Glance never crosses window/profile
+  ownership, never survives native-window teardown or session restore, and a
+  visible Glance tab is never made quiet (F31).
 - Glance is a desktop window-model capability (D11). Phone ports are N/A unless
   a future tablet/foldable contract defines a comparable multi-pane surface.
 - **Acceptance:**
-  [`acceptance/glance.feature`](./acceptance/glance.feature) selects a specific
-  tab through the dedicated picker, verifies dominant/reference geometry,
-  proves reference focus does not promote, changes and explicitly swaps the
-  visible roles, resizes the divider, and dismisses back to one full page.
-  It also proves that reload, close, find, zoom, Back, the 1Password fill and
-  gestures follow the focused pane, that foreground links from the reference
-  open into Glance, and that the header's Back, Reload and menu address the
-  reference; and that the motion and its reduced form hold, that picker rows
-  read like the panel's, that `/glance` and **Open Link in Glance** reach
-  the picker and the reference, and that Make main names both pages.
+  [`acceptance/glance.feature`](./acceptance/glance.feature) opens a specific
+  tab through the dedicated picker as a centered card over the whole main page
+  (F34-2), keeps it on screen as the window changes (F34-3), moves, resizes and
+  resets it and remembers where it was (F34-4, F34-5), closes it on a tab
+  switch and opens it as the tab (F34-6 to F34-8, F34-15), saves a move and hides the card at once whichever way the Glance ends (F34-16), shows nothing of a window's first Glance until its card has drawn (F34-17), announces Open as tab and Keep as split once (F34-18), keeps the card still while a pushed Island slides in (F34-19), keeps Escape in the
+  page and closes from the header (F34-9), leaves the page behind usable
+  (F34-10), compacts the header and moves it from the keyboard (F34-11,
+  F34-12), anchors find to the card (F34-13) and fades in and closes at once
+  (F34-14). The F34-1 scenarios keep proving that reload, close, find, zoom,
+  Back, the 1Password fill and gestures follow the focused pane, that
+  foreground links from the Glance page open into Glance, that the header's
+  Back, Reload and menu address it, that picker rows read like the panel's,
+  and that `/glance` and **Open Link in Glance** reach the picker and the card.
 
 ## F35 — Start page layouts
 
@@ -887,7 +981,34 @@ From the desktop `DEFAULTS`:
   profile's `blanc://newtab` localStorage; it does not delete history, sync,
   emit telemetry, or contact a favicon service. Clearing history also clears
   its cached Billboard artwork. Private Billboard tabs receive
-  no history-derived sites. All four re-ink under the light, dark, and private themes.
+  no history-derived sites. All four re-ink under the light, dark, and
+  private themes.
+- **Start Page pins.** Up to eight pages can be pinned to the front of every
+  layout, from four places: a Billboard tile's pin (on the corner opposite its
+  ×, which pins the page the tile opens, the site's page visited last, under
+  its title), a
+  favorite's pin on Ledger, Shelf or Tally (at the end of a row, in a Shelf
+  card's corner), the Favorites page's **pin**/**unpin** row action, and the
+  tab right-click menu's **Pin to Start Page**/**Unpin from Start Page** (web
+  pages in non-private tabs only, like **Save to Favorites**, and unavailable
+  for a new pin once all eight are taken). Every layout draws the pins first,
+  newest first, so a fresh pin always shows, as far as it has room (Billboard and Ledger
+  six, Shelf eight, Tally five); Billboard follows them with the ranked sites
+  whose site isn't already pinned and Ledger, Shelf and Tally with the
+  Favorites that aren't pinned, in Favorites order. A pin's button stays on
+  show, filled; a pinned Billboard tile can be unpinned but not hidden. The
+  Favorites page marks a pinned favorite beside its date. A pin is an http(s)
+  URL and a name of at most 200 characters, with an icon only from the
+  profile's own Favorites or history cache. Main keeps the list in each local
+  profile's `start-page-pins.json`: never reported, kept when history is
+  cleared, and removed with a named profile. Profile Sync carries the Personal
+  profile's list inside the end-to-end-encrypted settings payload
+  (`startPagePins`) as one value with one clock, so the newest change wins
+  whole; a Blanc that predates it drops the value on upload and the next newer
+  device restores it. Only the
+  Start Page and the Favorites page reach it (`pages:pins:*`), and open
+  copies of both redraw when it changes. Private start pages draw the pins
+  but never change them.
 - All four start-page layouts use **Inter** for text that previously used the
   shared JetBrains Mono role, including the shared footer and onboarding. This
   override is local to the new-tab and standalone Mahjong documents; other
@@ -932,6 +1053,18 @@ From the desktop `DEFAULTS`:
   Favorites: ledger, shelf, and tally show "Favorite a page with ♥ to pin it
   here" when there are none. Billboard, which shows recent sites, shows no
   hint. Private start pages show no Patron pill and no blocked counts.
+- **Play the Sunrise when Blanc opens** (desktop, Settings → Appearance; off
+  by default, device-local, never synced). When on, the first visible,
+  non-private Start Page within 30 seconds of launch draws the website's
+  opening Sunrise once over its finished layout: the sky warms, the horizon
+  draws in, the disc rises and the rays open, then the scene fades onto the
+  page (about 2.7 seconds). It is cut from the app's own Sunrise mark and
+  never uses the website's files or wordmark font. Its sky fades in from and
+  back out to the page itself, wallpaper included. It takes no pointer
+  input, ends at the first click or the first key the page receives
+  (browser shortcuts such as ⌘L go to the browser and let it finish), never
+  delays startup or a link opened at launch, and is skipped entirely when
+  the system asks for reduced motion.
 - Billboard centres whatever it shows (clock, blocked line, groups, recent
   sites) vertically between the window top and the footer; on a short window
   it stops just below the brand row rather than sliding under it.
@@ -949,7 +1082,9 @@ From the desktop `DEFAULTS`:
 - **Acceptance:**
   [`acceptance/newtab-layouts.feature`](./acceptance/newtab-layouts.feature)
   renders the saved layout on a new tab, persists a footer switch, verifies
-  Billboard's local frequency ranking and dismissal, and confirms that each
+  Billboard's local frequency ranking, dismissal and pinning, pins from a
+  favorite tile, the tab menu and the Favorites page leading the favorites
+  layouts, and confirms that each
   footer opens a standalone, playable 144-tile Mahjong deal.
 
 ## F36 — First-run onboarding
@@ -1062,6 +1197,14 @@ From the desktop `DEFAULTS`:
 - A page loaded after continuing reports **Not secure** until that document is
   replaced, even if the choice is later withdrawn; **Stop allowing** withdraws
   it.
+- A frame with an invalid certificate is refused without replacing the page
+  around it.
+- A page loaded after continuing can open WebSockets to that same origin and
+  certificate; a WebSocket never offers or records a choice of its own.
+- A pop-up window a page opens (such as a separate console window) uses the
+  choice made in its tab for that origin and certificate, for its page and its
+  WebSockets. A pop-up never offers or records a choice of its own, so any
+  other certificate failure in it is refused.
 - This does not reproduce Chromium's HSTS refusal: platforms that cannot read
   the engine's HSTS state must not claim it.
 - **Acceptance:** [`acceptance/site-certificate-safety.feature`](./acceptance/site-certificate-safety.feature).
@@ -1098,6 +1241,14 @@ existing certificate-safety scenario; historical PR evidence retains its old IDs
   opaque renderer projection, transactional apply, ownership/cancellation,
   onboarding, and the separate workspace handoff.
 
+- **iOS (M17, unreleased): Bring a Space.** The phone has no other browser
+  to read; F40 there means bringing another device's Space. With Spaces sync
+  off, the Spaces menu and Quick Switcher list the library's Spaces under the
+  device that made each; a review sheet (one read, never merged or saved)
+  shows its groups and tabs, and **Bring to iPhone** copies it as an unlinked
+  local Space with quiet tabs. With Spaces sync on, every library Space is
+  already on the phone.
+
 ## F41 — Blanc Spaces (desktop)
 
 - A **space** is a named, saved set of one window's tabs and groups in the
@@ -1108,13 +1259,14 @@ existing certificate-safety scenario; historical PR evidence retains its old IDs
   and symbol in list order, written once on load. The drawn ink is derived so
   the symbol and name reach 4.5:1 against every surface they sit on and their
   own wash, in light, dark and private; the stored hex is never changed.
-- The Island shows the current space as a **mark** at its leading edge
-  (symbol and name on its colour); a window in no space shows a quiet grey
-  mark once any space exists; before the first space nothing is shown. The
-  mark opens the **Spaces menu**, lined up under it and hanging just below the
-  Island; the ⌘L footer's icon-only Spaces button opens the same menu below
-  the Island (neither ever covers it), and the Quick Switcher matches space
-  names.
+- The resting Island shows no space mark, so the closed Island stays short
+  (owner decision, November 11, 2026); the ⌘L footer's icon-only Spaces
+  button (the current space's tile, or the planet in no space) opens the
+  **Spaces menu** below the Island (never covering it), and
+  the Quick Switcher matches space names. With vertical tabs, the rail's top
+  bar shows the current space as a **mark** (symbol and name on its colour; a
+  window in no space shows the quiet grey Spaces glyph), which opens the same
+  menu, lined up under it and hanging just below the mark and the Island.
 - The menu edits in place (name validated as you type, preset and custom
   colours, symbols; changes apply live), deletes immediately with **Undo**
   (which also puts the window back in the space), reorders by drag or
@@ -1130,15 +1282,59 @@ existing certificate-safety scenario; historical PR evidence retains its old IDs
   switching back keeps their pages as they were.
 - Deleted spaces stay in Recently deleted for 7 days, where they can be
   restored or forgotten.
+- A tab's menu has **Move to Space ▸** once the profile has a space, listing
+  every space with the window's own checked. Choosing another moves that one
+  tab, live, to the end of the space, ungrouped; the window stays where it
+  is. A space open nowhere is set aside to receive it. Private tabs never get
+  the item; it is disabled for a window's only tab, a page using the camera
+  or microphone, playing sound or sharing its screen, one with a popup open,
+  or one being quieted, and a space whose window is closing or mid switch is
+  a disabled row (#1060). The space's record is written, with the tab, and
+  checked before the tab leaves its window; a failed write moves nothing.
+  **New Space…** at the end of the submenu opens the name, colour and symbol
+  editor with a fixed **With this tab** start. Creation saves the tab in the
+  new space before moving it live, without switching this window. It remains
+  available when the current space is the only one; creation is disabled at
+  25 spaces. Cancel creates nothing, and a failed save keeps the editor open.
+- A tab group's menu has **Move Group to Space ▸** once the profile has a
+  space: the same spaces and New Space… in a native menu. Every member moves,
+  live and in order, to the end of the space as the same group, with its name
+  and colour; if the space already has a group of that name (in any case),
+  the tabs join it instead, keeping that group's name and colour. It is
+  disabled when any member couldn't move on its own; moving a window's every
+  tab leaves a blank start page. The same write-first rule applies (D8 of
+  `docs/superpowers/specs/2026-10-24-move-to-space-follow-ups-design.md`).
 - Entry points: the ⌘L panel footer's Spaces button, `/space` (alias
   `/workspace`), Bring Your Tabs (F40) and the Arc Spaces import (F45).
-- Spaces are device-local and profile-scoped; they never sync.
+- Spaces are profile-scoped. On each desktop device, **Keep Spaces and groups
+  in sync on this device** is off by default. When enabled it synchronizes the
+  chosen Spaces through end-to-end-encrypted Profile Sync (F57); private tabs,
+  internal pages, local files and document-policy-restricted pages never enter
+  the encrypted records.
+- If a shared tab navigates to an internal page, local file, or another
+  unshareable page, its shared record stays at the last shareable HTTP(S) page.
+  Other devices keep showing that page. Only actually closing the tab publishes
+  its final deletion; returning to HTTP(S) updates the same record.
 - **Acceptance:**
   [`acceptance/F41-named-workspaces.feature`](./acceptance/F41-named-workspaces.feature)
   (`@workspace`, bound in `test/desktop/steps/named-workspaces.steps.js`,
-  `test/desktop/steps/workspace-lifecycle.steps.js` and
-  `test/desktop/steps/spaces-redesign.steps.js`);
+  `test/desktop/steps/workspace-lifecycle.steps.js`,
+  `test/desktop/steps/spaces-redesign.steps.js` and
+  `test/desktop/steps/move-to-space.steps.js` and
+  `test/desktop/steps/group-space.steps.js`);
   `test/unit/workspace*.test.js`, `test/unit/space*.test.js`.
+
+- **Open Link in Space:** the page link menu offers other spaces and New Space… for normal web links. A space shown in another window loads a background tab there; a set-aside space receives a quiet tab; a closed space receives only a saved record. Deferred writes are checked before adding a tab. New Space fixes its start to “With this link” and saves without loading. Private tabs and non-web links do not offer it. Failures open the existing Spaces error surface; success is announced to screen readers. F41-51–57 cover destinations, restart, write failures and quiet-tab rollback.
+
+- **Several-tab selection (desktop):** ⌘/Ctrl-click toggles rows, Shift-click selects a visible range, and Shift-arrow extends from a focused row in the panel or side list. Splits are selected whole. The current row joins a new selection; plain activation, Escape and a space switch clear it. Selection is owned by main and never saved or synced. The separate menu moves, groups, pins, mutes, reloads, quiets, copies or closes selected tabs. Space moves write the full capture first and retain unmoved tabs after partial failure; other placement edits apply in one pass. Close Tabs records one batch, including split layouts. A drag still moves only its starting row.
+
+- **iOS (M17, unreleased):** the phone's tabs outside any Space are **This
+  iPhone**; local Spaces, the Spaces card, Move to Space, delete with Undo
+  and Recently deleted (7 days) follow desktop. As on desktop, the resting
+  Island shows no Space mark: the palette's footer has a Spaces button (the
+  shown Space's tile, or the quiet Spaces glyph) once a Space exists. A shared
+  Space deleted on the phone is deleted everywhere at once; Undo keeps a copy
+  on the phone.
 
 ## F42 — Dark websites
 
@@ -1299,3 +1495,491 @@ engine, without passing through it. Design:
   `test/unit/bangs.test.js`, `bangs-build.test.js`, `bangs-settings.test.js`,
   `bang-resolution.test.js`, `bangs-overlay.test.js`, `bang-icons-policy.test.js`,
   `bang-icons.test.js` and `bang-icons-main.test.js`.
+
+## F48 — Pinned homes (desktop)
+
+A pinned tab remembers the page where it was pinned as its home, matching the
+bounded Zen/Arc behavior described in the design spec without turning pins into
+shared bookmarks or resetting them on every selection.
+
+- **During a session.** Browsing away keeps the tab's ordinary history and its
+  current page. Switching tabs, windows, or Spaces does not reset it.
+- **On a clean launch.** The tab opens its pinned home. Crash recovery restores
+  the last page instead, so recovering work remains the priority.
+- **Deliberate changes.** Unpinning clears the home; pinning again records the
+  current page. A pinned tab's context menu offers **Back to Pinned Page**
+  and **Replace Pinned Page with Current** when each action is applicable.
+- **Lifetime and privacy.** The home stays with Duplicate, Reopen Closed Tab,
+  window moves, Spaces and history clearing. Private tabs may use it only in
+  memory. Tab Sync never receives it.
+- **Acceptance:**
+  [`acceptance/tabs-and-groups.feature`](./acceptance/tabs-and-groups.feature)
+  (`@F48`, bound in `test/desktop/steps/pinned-home.steps.js`), plus
+  `test/desktop/pinned-home-recovery-smoke.mjs` and
+  `test/unit/pinned-home*.test.js`.
+
+## F49 — Start Page wallpaper image (desktop)
+
+The Start Page can show the person's own picture instead of the bundled
+Sunrise artwork. F35's Customize popover offers a Wallpaper choice,
+**Sunrise** or **Your image**, and shows only the chosen wallpaper's options:
+"Change with time of day" under Sunrise; Change, Remove, Wash and Fade under
+your image, so the clock switch never seems to apply to a photo. Settings →
+General → Start Page image offers the same.
+
+- **Sources.** Three choices: Sunrise, time of day (the synced
+  `newtabDynamicWallpaper`), and **Your image** (device-local
+  `newtabCustomWallpaper`). Choosing your image leaves the synced time-of-day
+  choice alone, so other devices keep what they show; a device without an
+  image draws the bundled artwork that choice selects.
+- **The image.** JPEG or PNG up to 25 MB. It is decoded, fitted inside 3840 px
+  and re-encoded, so the stored copy keeps no location, camera or time
+  metadata. Only the EXIF orientation is written back, so phone photos stay
+  upright. It lives in this device's data folder (owner-only), never in
+  settings and never in Profile Sync. Remove deletes it.
+- **Private tabs.** A private Start Page never shows or offers it.
+- **Legibility.** The image is cropped to fill and centred under an even
+  theme wash. A **Fade** slider (device-local `newtabWallpaperWash`, 0–100,
+  default 100) lets the person trade that wash for more of the picture. A
+  **Wash** choice (device-local `newtabWallpaperStyle`) sets its kind: Auto
+  follows the app theme; Light and Dark force that wash and switch the page's
+  text and surfaces to match, whatever the theme; Spotlight follows the theme
+  but washes only behind the content and header, leaving the image's edges
+  bare. The footer always keeps its fog and ink.
+- **Serving.** The page receives an address with a random per-launch name
+  (`blanc://newtab/user-wallpaper-<token>.jpg`), answered from that file
+  alone, so no website can embed it by guessing. In a Chromium port, this
+  becomes a WebUI data-source path, and the policy module moves unchanged.
+- **Portability.** `src/main/wallpaper-model.js` (source choice, size and
+  record rules, the orientation reader and writer) has no Electron
+  dependency; `src/main/wallpaper.js` is the Electron adapter.
+- **Acceptance:** `test/desktop/custom-wallpaper-smoke.mjs`,
+  `test/unit/wallpaper-model.test.js` and `test/unit/newtab-wallpaper.test.js`.
+
+## F50 — Start Page color wallpaper (desktop)
+
+F49's Wallpaper choice gains a third option, **Color**, between Sunrise and
+Your image. It paints the Start Page with one of the eight Spaces presets
+(Sage, Sky, Iris, Rose, Clay, Sand, Slate, Graphite) instead of artwork.
+
+- **Fill.** Soft tints the theme's own background and keeps its text; Solid
+  is the color exactly; Gradient runs from a lighter glow to a deeper corner
+  of it. Solid and Gradient switch the page to the text set that suits the
+  color and use its ink (white for every preset). Every stop keeps that ink
+  and its quieter dim tone at 4.5:1 or better, and Soft keeps the theme's dim
+  text at 4.5:1.
+- **Match each space's color.** While Color shows, a window in a Blanc Space
+  draws that Space's color with the chosen fill, live as the Space is saved or
+  recolored. The swatches then apply only outside Spaces. The page receives
+  the color alone, never the Space's name or id.
+- **Sync.** The choice, the preset, the fill and the switch are synced
+  (`newtabColorWallpaper`, `newtabWallpaperColor`, `newtabWallpaperFill`,
+  `newtabFollowSpaceColor`). This device's own image (F49) still wins on this
+  device. Older builds ignore these keys and show Sunrise or time of day.
+- **Private tabs** never show a color.
+- **Portability.** `src/main/start-page-paint.js` (the stops, inks and soft
+  tints, with no Electron dependency) decides every color; the page applies
+  the finished values.
+- **Acceptance:** `test/desktop/custom-wallpaper-smoke.mjs`,
+  `test/unit/start-page-paint.test.js` and `test/unit/wallpaper-model.test.js`.
+
+## F51 — What's New page (desktop)
+
+After an update that adds features, Blanc opens that release's highlights page
+on blanc.day once, in the style of Chrome's What's New tab. The Start Page's
+What's new pill links to the same page. The changelog keeps the full detail
+(`docs/superpowers/specs/2026-10-19-whats-new-page-design.md`).
+
+- **When it opens.** The first launch after an update that changes
+  `major.minor` (1.38.x → 1.39.0), once, as an ordinary active tab beside the
+  restored tabs. Never after a bug-fix update, a fresh install, a pre-release
+  or a downgrade, never as a private tab, and never in a renamed build.
+- **Only when the page exists.** Main first sends one `HEAD` for
+  `https://blanc.day/whats-new/<major>.<minor>` (no cookies, no redirects,
+  5 s timeout; only a 200 counts), at most once per launch while the pill's
+  7-day window is open. No page yet (the site deploy trails the release, or the
+  release has none) means no tab and a changelog link on the pill; a later
+  launch in the window tries again. With no window to take it, the tab stays
+  owed.
+- **The page.** One highlight at a time (headline, short text, steps,
+  Learn more and Next, with a capture, clip or site demo), colored tiles in the
+  Spaces palette, and a link to the changelog. It runs no analytics. Every page
+  needs the owner's sign-off before it deploys.
+- **State.** `whatsNewPageVersion` and `whatsNewTabRelease` are device-local
+  settings, never synced.
+- **Portability.** `src/main/whats-new.js` holds every decision without an
+  Electron dependency; `src/main/whats-new-check.js` is the request.
+- **Acceptance:** `test/unit/whats-new.test.js`,
+  `test/unit/whats-new-check.test.js`, `test/unit/whats-new-settings.test.js`,
+  `test/unit/whats-new-site-data.test.js` and `test/site/whats-new-page.test.mjs`.
+
+## F52 — Tab Archive (desktop)
+
+Blanc can close loose tabs nobody has looked at in a while and keep them in a
+searchable Archive, in the style of Arc's archived Today tabs
+(`docs/superpowers/specs/2026-10-19-tab-archive-design.md`).
+
+- **Setting.** `tabArchive` (`off|12h|1d|7d|30d`), default `off`,
+  device-local and never synced. An update never turns it on.
+- **What can be archived.** Only ungrouped, unpinned, non-private tabs that
+  are not active, not in Glance, not playing or capturing media, not waiting
+  on a permission prompt, not a popup's opener, not loading, and holding no
+  unsaved form work, after the chosen time without being viewed. An idle blank
+  new tab is closed without an entry.
+- **Idle clock.** `lastViewedAt` is stamped when a tab is viewed and saved in
+  session meta, so idle time counts across relaunches. Nothing is archived for
+  10 minutes after launch, resume or a change to the setting, and at most 20
+  tabs per window per 30-second sweep.
+- **The Archive.** One per local profile (`archive.json`), holding only URL,
+  title, icon, custom name, timestamps and the Space name; never page state,
+  back history or openers. Entries expire after 30 days, at most 500 per
+  profile. Clearing history clears it. Archiving never adds a Recently closed
+  entry.
+- **Restore.** From the ⌘L Quick Switcher (rows marked Archived) or the
+  History sheet's Archived view (`/archive`): a new ungrouped tab at the end of
+  the window, loaded fresh, with its custom name.
+- **Portability.** `src/main/tab-archive.js` holds every decision without an
+  Electron dependency.
+- **Acceptance:** `spec/acceptance/tab-archive.feature`,
+  `test/unit/tab-archive.test.js`.
+
+## F53 — Split View (desktop)
+
+Two to four ordinary tabs in one window shown side by side, kept as one item
+that survives relaunch and Spaces (spec
+`docs/superpowers/specs/2026-10-19-split-view-design.md`). Glance is the first
+step: **Keep as split** in its header turns the current Glance into a split.
+
+- **Making one.** Keep as split (from Glance), or a tab's **Split with ▸**
+  menu. A pinned tab can join, and the split is then pinned. The initiating
+  tab's group wins: every other tab moves into it, or out of its group (D1).
+- **Layout.** Two or three columns; four panes are a 2×2 grid with one shared
+  cross. Narrow windows fall back in a fixed order (rows, then focus only;
+  for four panes, four columns first). Fallbacks are never saved (D3).
+- **Chrome.** One Island, centred in the strip, always addresses the focused
+  pane, which is the window's active tab. Every pane has a header band at its
+  top, painted by the chrome document in space reserved between page views
+  (D5). Pane focus cycles with `Cmd+Option+]` / `[` on macOS and
+  `Ctrl+Alt+]` / `[` on Windows and Linux (D6).
+- **In the tab list.** One row per split in the ⌘L panel and the rail; its
+  tabs stay real tabs. ⌘1–9 count a split once (D4).
+- **Leaving.** Remove from Split lands the tab directly below the split's row
+  (D8); a split left with one tab dissolves. A split is pinned as a whole:
+  Pin Split on any pane pins every pane (D7). Close Split is one Recently
+  closed entry that reopens it whole.
+- **Persistence.** Saved in `session.json` v2 windows and in Spaces
+  (`splits`, `splitIds`), never in the flat rollback mirror, never synced.
+  Private tabs are never saved; a split with fewer than two saved tabs is
+  written as plain tabs (D2).
+- **Other features.** Visible panes never go quiet; split tabs are never
+  archived (F52). A Glance floats over the whole split (F34): focus moving
+  between the panes keeps it, a pane closing or leaving hands the window to
+  the remaining pane under it, and its Keep as split is hidden while a split
+  shows. Glance on a pane of a two-pane split takes that pane out of the
+  split instead.
+- **Portability.** `src/main/split-model.js` and `src/main/split-layout.js`
+  hold every decision without an Electron dependency. A desktop window-model
+  capability (D11); phones are N/A.
+- **Acceptance:** `spec/acceptance/split-view.feature`,
+  `test/unit/split-model.test.js`, `test/unit/split-layout.test.js`.
+
+## F54 — Billboard clock Font & color (desktop)
+
+The Billboard layout's clock takes the iOS Lock Screen's Font & Color
+choices (`docs/superpowers/specs/2026-10-21-billboard-clock-style-design.md`).
+Customize shows **Clock font & color…** while Billboard is the layout; it
+opens a popover under the clock, so every change shows on the clock as it is
+made.
+
+- **Font.** Four bundled OFL faces, each shown as the numerals "12":
+  Instrument Sans, Instrument Sans Condensed (its 75% width), Inter and
+  Roboto Flex (a clock-only 11 KB subset).
+- **Weight.** A slider across the chosen face's own range (Instrument Sans
+  400–700, Inter 100–900, Roboto Flex 100–1000). The weight is saved as
+  chosen and drawn inside the face's range, so moving to a narrower face and
+  back restores it.
+- **Height.** The Lock Screen's stretch, as type: the figures are set larger
+  and drawn narrower and lighter through the face's own width and weight
+  axes, so the clock keeps its width and stroke and nothing is distorted; it
+  stays real text. Roboto Flex reaches 300%, Instrument Sans 130%; the others
+  offer no Height. Held to half the window's height.
+- **Color.** **Automatic** (the page's own text color, following the theme
+  and wallpaper) or one of the eight Spaces presets, with a **Tone** slider
+  from deeper to lighter. The color is the person's choice; there is no
+  contrast guard.
+- **Style.** **Solid** (flat ink) or **Glass**: the figures are a lens that
+  bends the page behind them, lit with a bright rim. It is drawn in the page,
+  on every platform (not macOS's native Liquid Glass, which Electron does not
+  expose). Glass draws as Solid under reduced transparency.
+- **Shadow.** Every clock carries a shadow so it reads over any background in
+  any color: a dark one under light ink, a light halo around dark ink, and an
+  outside-only shadow for Glass.
+- **Defaults** draw the clock as it was (Instrument Sans 500, Automatic,
+  Solid, 100%), with the shadow.
+- **Sync.** All five choices are synced like the layout (`newtabClockFont`,
+  `newtabClockWeight`, `newtabClockColor`, `newtabClockTone`,
+  `newtabClockStyle`, `newtabClockHeight`). Older builds ignore them. Private tabs draw the same
+  clock.
+- **Portability.** `src/main/start-clock-style.js` (validation, weight ranges
+  and the toned ink, with no Electron dependency) finishes every value; the
+  page applies them. The Height fit and the glass and shadow rules in
+  `src/renderer/pages/clock-art.js` are pure functions.
+- **Acceptance:** `test/desktop/billboard-clock-smoke.mjs`,
+  `test/unit/start-clock-style.test.js`, `test/unit/clock-art.test.js` and
+  `test/unit/clock-font.test.js`.
+
+## F55 — Send to device
+
+A person sends the page they're on to one of their other synced Blanc devices,
+where it waits in a short **Sent to this device** list until they open or
+dismiss it; nothing opens by itself
+(`docs/superpowers/specs/2026-10-24-ios-m7b-send-to-device-design.md`).
+
+- **Sending.** Desktop: the tab menu's **Send to Device ▸** and
+  `/send <device>` (device names match without regard to case). iPhone: a
+  **Send** menu on the pill. Private tabs, internal pages and inert
+  page-opened tabs can't be sent, and the controls don't appear for them.
+- **Targets.** Every other device of the sync account that publishes
+  presence in the `sends` store or a tab list, named as the Other devices
+  drawer names it. With none, the menu item says **No other devices**.
+- **Result.** "Sent to {device}." — never "delivered" — or "Sending isn't
+  available yet." when the sync Worker doesn't serve the store, or
+  "Couldn't send. Check your connection and try again." A page that didn't go
+  is taken back.
+- **Receiving.** At most 20 pages per sender, each kept 7 days. Desktop shows
+  them first in the ⌘L Other devices drawer (whose button then counts them)
+  and above Other devices on the Ledger start page; the phone at the top of
+  the palette. Opening one opens a new ordinary tab; opening or dismissing it
+  hides it on that device only.
+- **Sync.** A new optional store, `sends`, end-to-end encrypted like the
+  others; each device writes only its own entry. Presence alone never creates
+  it, and leaving a sync publishes a retraction. Pulled with the focus refresh
+  (no new timer).
+- **Portability.** `src/main/sends-model.js` (no Electron dependency) holds
+  every rule; the iOS port is checked against vectors generated from it.
+
+## F56 — Tab gestures (iPhone)
+
+Two gestures Arc's iPhone users rely on, asked for on r/ArcBrowser
+(2026-10-24; `docs/superpowers/specs/2026-10-23-ios-user-feedback-plan.md` §7).
+
+- **Switch tabs from the pill.** A sideways swipe on the resting pill moves to
+  the previous or next tab in the order the pill's dots show (the active tab's
+  group or run of ungrouped tabs), the page following the finger; the pill
+  resists at either end. A tap still opens the palette. Back and forward stay
+  the page-edge gestures (D7).
+- **Flick up to close.** The palette's resting switcher is a horizontal strip
+  of page cards, groups as labeled runs; a card closes when flicked up, like
+  the iOS app switcher, and reopens like a tab closed with `/close`.
+- **Pull to refresh.** Pulling a page down from its top reloads it, as
+  the Sunrise menu's Reload does (desktop's ⌘R, D7), as Safari does. The system spinner, in
+  its light or dark style, whichever shows against the page, stays until the
+  reload finishes or fails, and Stop ends it. A page scrolled down scrolls back up first. Not on the Start
+  Page, in Reader (its own view, the page beneath untouched), or on a quiet tab
+  until it wakes. Added on 2026-11-02 at the owner's request.
+- **Equivalents.** VoiceOver actions (Next tab, Previous tab, Close) and
+  `/close`; Reduce Motion replaces the slide with a cross-fade.
+- **Desktop.** Not applicable: trackpad and keyboard tab switching already
+  exist, and the Island has no bottom bar.
+
+## F57 — Shared Spaces sync (desktop)
+
+Each desktop device may opt selected Blanc Spaces into Profile Sync. The
+encrypted records contain shareable HTTP(S) addresses, titles, custom names,
+pins, groups, ordering and final close tombstones; they never contain page
+content, history, private tabs, internal pages, local files, permissions or
+document-policy-restricted pages. Active and visible tabs defer remote closes
+and navigations until they are no longer protected.
+
+Moving a bound tab to an internal page, local file or other excluded page does
+not delete its shared record: other devices retain the last shareable web page.
+Only an actual close publishes deletion. The switch is off by default and is
+local to each device. See `acceptance/shared-spaces.feature` and the M16 design.
+
+**Unreleased (owner, 2026-10-31):** the selection sheet opens at once from the
+device's saved index and checks other devices in the background, with no "Sync
+is busy" at that moment. While the switch is on, **Choose Spaces to sync** adds
+more Spaces without switching it off, and a Space saved while it is on is
+shared by itself. A Space left unticked in a sheet stays on the device.
+
+Shipped in public v1.45.0 (October 29, 2026), Personal profile only, up to 25
+shared Spaces, after the Gate D device rerun passed Mac↔Windows and Mac↔Linux
+(`docs/reviews/2026-10-28-shared-spaces-gate-d-1.45.0.md`); evidence in
+`docs/release-incidents/2026-10-29-v1.45.0.md`.
+
+**iOS (M17c, unreleased):** Settings → Sync → **Keep Spaces and groups in
+sync on this iPhone** (off by default) with the same first-time sheet,
+dormant copies, Rejoin / Add as a copy, sync marks, full-Space dot, status
+lines and "kept on this iPhone" recovery Spaces. The selected tab defers
+remote closes and navigations; a deferred change applies at the next cold
+start while every tab is still quiet. The palette's Recently closed band
+merges the phone's closes with other devices' ("Closed on {device}"); with
+the switch off it is the phone's own, kept 24 hours. While Blanc is open
+with the switch on, the phone checks for changes every minute, as desktop
+does. A Space's name, colour, symbol and order are written when changed on
+the phone, never by comparison at sync time. The two-device check against
+the deployed Worker passed on October 29, 2026 (desktop v1.45.0 on macOS
+and an iPhone Air on iOS 27.2).
+
+**iOS, unreleased (owner, 2026-10-31; parity with desktop's change of that
+date):** while the switch is on, a Space made on the phone is shared by
+itself about 1.5 s after the change settles. A Space the person saw in a
+Choose Spaces sheet and left unticked stays on the phone until they choose
+it; one that can't be shared (too many tabs, too large, no room) stays on
+the phone and is offered in the sheet. The phone keeps the Spaces already
+offered as `knownWorkspaceIds` in `shared-spaces.json`, as desktop does; a
+phone switched on by an older build counts the Spaces it holds as already
+offered, so the update shares nothing on its own.
+
+## F58 — Reader Mode (desktop and iOS candidate)
+
+Free, manually activated article reading, implemented on the candidate branch;
+not shipped in public v1.43.1. `/reader` always permits a manual attempt. A
+suitability hint offers Enter Reader Mode in the expanded Island (desktop) or
+palette (iOS); the active reader has Exit Reader Mode and appearance controls.
+
+- Extract the already-loaded main-frame article locally, retaining its source
+  view for return without reloading. No pre-load transformation or speed claim.
+- Shared Source Serif 4, Instrument Sans, Inter, and JetBrains Mono fonts;
+  System/Light/Dark/Sepia, 16–28px text, and three widths;
+  remember appearance locally, with private changes confined to memory.
+- Retain headings, available metadata, links, figures/captions, tables, and code;
+  sanitize untrusted markup and preserve language/direction. Failure retains
+  the source and explains that no article was found.
+- Keep source identity for history, Favorites, sharing, and restore. Never save
+  or sync reader article content or reader-active state.
+- Desktop uses a sandboxed companion, blocker-checked cookie-free image broker,
+  and reader-aware Find/Print/zoom/focus/Glance/Split View. iOS uses a separate
+  nonpersistent WKWebView and already-loaded, canvas-readable images (D31).
+- See `docs/reader-mode.md`, `browser-api/reader.json`, and F58 acceptance tests.
+  Automatic activation, speech, AI, annotations, offline saving, and pre-load
+  simplification are outside this version.
+
+## F59 — Switch tabs in the order you used them (desktop)
+
+Ctrl+Tab goes back through the window's tabs in the order they were last used,
+as Firefox and Arc do (asked for on r/ArcBrowser, 2026-10-24). Design:
+`docs/superpowers/specs/2026-10-24-mru-tab-switcher-design.md`. Implemented on
+the candidate branch; not shipped in public v1.43.1.
+
+- **Keys.** A tap of Ctrl+Tab goes to the previous tab, and a second tap comes
+  back. Holding Ctrl and pressing Tab again steps further back; letting go of
+  Ctrl switches to the pick. Ctrl+Shift+Tab steps the other way. Esc, a click,
+  any other key or the window losing focus cancels and stays put. Nothing
+  changes until Ctrl is released: stepping never moves focus or wakes a quiet
+  tab.
+- **Order.** The current tab, then the window's tabs newest-first by
+  activation, then tabs never activated in list order. A split is one entry.
+- **Setting.** Settings → General → Switch tabs with Ctrl+Tab: in the order
+  you used them (default) or in the order of the tab list. Device-local, never
+  synced. Ctrl+PageDown / Ctrl+PageUp always go by list position.
+- **Platforms.** Recent order needs Blanc to see the Ctrl release; it ships
+  only where that has been proven with real keys (Linux, Windows and macOS).
+  Elsewhere Ctrl+Tab keeps going by position and the setting is hidden. On
+  Windows, Ctrl+Esc is the Start menu, so Esc can't cancel; Blanc losing focus
+  cancels the switch. On macOS, where ⌘W closes tabs, Ctrl+W during a switch
+  cancels like any other key.
+- **Card.** From the second step (or 150 ms into a held Ctrl), a row of
+  favicon tiles under the Island shows the pick raised, with its title and
+  host. It never takes focus; a click on a tile switches at once; Ctrl+W closes
+  the picked tab and the pick moves one step older. Screen readers hear
+  "Switch tabs, {title}, {n} of {count}" and each step. With another Island
+  surface open the switch works without the card.
+- **Mobile.** Not applicable: phones have no Ctrl key.
+
+## F60 — Open links from other apps where they belong (desktop)
+
+A short, ordered list of rules sends a link another app hands Blanc to the
+profile, and optionally the Space, it belongs in, like Arc's Air Traffic
+Control (asked for on r/ArcBrowser, 2026-10-24). Design:
+`docs/superpowers/specs/2026-10-26-link-routing-design.md`. Implemented on the
+candidate branch (PR 1); not shipped in public v1.43.1.
+
+- **What is routed.** Only web URLs the OS hands Blanc: macOS `open-url`, and
+  http(s) URLs on the command line at startup or through a second launch.
+  Local HTML files, tab handoff, links clicked inside Blanc and typed
+  addresses are never routed, except as below.
+- **Links opened in a new tab from a page** (#1199, opt-in: *Also for links I
+  open in a new tab*, off by default, device-local). With it on, a link the
+  person activates in a tab's own top-level page that opens a new tab (a
+  `target=_blank` or modified click, a middle-click) or Open Link in New Tab
+  follows a rule that points at another profile, a Space this window isn't
+  showing, or a private tab, and opens there like a link from another app.
+  A link in a sandboxed frame, a page's own `window.open`, a featureful pop-up
+  (OAuth, payments, which keep their opener), a form post, a private tab and
+  a same-tab click never route, and a rule pointing where the link already is
+  changes nothing, so nothing loops. A background open never brings a window
+  forward. The window the link left reads out where it went. Rules can't
+  match by the sending app: Electron passes only the URL (spec §3.8).
+- **Rules.** *Links to example.com open in Work*: a `domain` rule matches the
+  URL's parsed host (ASCII, lowercase, a leading `www.` dropped from the rule)
+  and its subdomains; IP addresses match only exactly; userinfo never counts,
+  so `https://work.example.com@evil.test/` matches `evil.test`. *Match
+  addresses containing…* is a case-insensitive substring of the whole URL. The
+  first matching rule wins. At most 50 rules, each value at most 200
+  characters, no regular expressions.
+- **Destinations.** A profile: its most recently focused window, else a new
+  window of that profile holding just the link. A profile and Space: the
+  window showing that Space, else the Space opens in a new window (never by
+  switching the current one); if that is refused or fails, a new window of
+  the profile. Optionally as a private tab. The receiving window comes to the
+  front; a multi-URL handoff routes each URL, keeps their order per window
+  and selects only the last.
+- **Deleted targets.** Deleting a profile removes its rules. A rule whose
+  Space was deleted is kept, marked "Space deleted" and skipped, because
+  Spaces have Undo. A skipped rule lets the link fall through.
+- **Unmatched links** open exactly as before: in the window used last.
+- **Settings.** Settings → Profiles → Open links from other apps, shown with
+  at least two profiles or one Space. Rules are device-local, never synced and
+  never visible to websites.
+- **Making a rule from where you are.** With two or more profiles, the
+  shield popover has *Open links to this site in this profile* (*…in this
+  Space* when the window shows one): it writes or replaces the domain rule
+  for the page's host, pointing at this window's profile and Space, and a
+  second click removes it. A new rule goes first, so a broader rule further
+  down can't shadow it. When a rule sends the site elsewhere, the row says
+  where. `/route` does the same for the active tab and `/route off` removes
+  the rule for its host. Neither is offered in a private tab, which would
+  write its host to settings; the pill says so.
+- **Mobile.** Not applicable until a mobile Blanc has profiles to route
+  between (D32).
+
+## F61 — Mini Window (desktop)
+
+A small Blanc window opened over the app the person is in, to look something
+up or open a link without going back to the Blanc window (#1138). Design:
+`docs/superpowers/specs/2026-11-02-mini-window-design.md`. Implemented on the
+candidate branch (PR 1); not in a public release.
+
+- **Opening one.** File → New Mini Window, the macOS Dock menu, or an opt-in
+  shortcut that works in any app while Blanc runs (Settings → General → Mini
+  window shortcut; off by default, device-local). The choices are ⌥⌘N or ⌃⌥Space
+  on macOS, and Ctrl+Alt+Space or Ctrl+Shift+Space on Windows and Linux. A
+  chord that can't be used is reported in Settings.
+- **The window.** 760 × 600 on the display under the pointer, a new tab with
+  the Island's search focused. Otherwise an ordinary window: the same Island,
+  blocking and permissions.
+- **Ephemeral.** Never saved with the session, never where a link from
+  another app or a link rule opens, and holds no Space. Closes by itself after
+  an hour without focus, unless a page in it is in use or has unsaved work.
+  Its pages stay in History. Closing its last tab (⌘W) closes the window
+  rather than leaving a blank tab.
+- **Open in Blanc.** The Island's leading button (and a File menu item) keeps
+  it as an ordinary window: a new window's size, saved from then on.
+- **Mobile.** Not applicable.
+
+## F62 — Default page zoom (desktop)
+
+- **Default page zoom.** Settings → General → Appearance sets the size web pages
+  open at, from 50% to 200%. A change reaches open tabs at once. Blanc's own
+  pages stay at 100%; PDFs keep the viewer's zoom; sign-in popup windows are not
+  covered.
+- **Per-site zoom.** ⌘+ and ⌘− save a size for that site in the current profile,
+  and every tab on the site follows. ⌘0 forgets it and returns to the default. A
+  site can stay at 100% under another default. Steps follow Chrome's list, so
+  100% is always reachable. Settings lists saved sites with Remove and Clear all.
+- **Privacy.** Saved sites stay on the device, are never synced, and stay when
+  history is cleared. Private tabs read them and write nothing: their own zoom
+  lasts until quit. Browsing leaves no list of visited sites in Chromium's files.
+- **Mobile.** Not applicable: pages use native pinch-zoom and reflow (F23, D10).
+- **Acceptance:** `spec/acceptance/page-zoom.feature`.

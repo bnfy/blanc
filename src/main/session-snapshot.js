@@ -26,10 +26,21 @@ const MAX_META_TITLE = 200;
 const MAX_META_FAVICON = 8192;
 const { validFavicon } = require('./bookmark-validate');
 const { normalizeTabName, displayTitle } = require('./tab-name');
+const { isInertPageUrl } = require('./document-policy');
 
 /** Session metadata carries only the same fixed-size PNG data accepted by
  * Favorites; live remote sources never survive a restart. */
 function persistableFavicon(favicon) { return validFavicon(favicon); }
+
+// Lazy to keep pinned-home's reuse of persistableUrl free of an initialization
+// cycle: session-snapshot is the lower-level URL policy module.
+function validPinnedHome(value) {
+  if (typeof value !== 'string') return null;
+  const { pinnedHomeFor } = require('./pinned-home');
+  return pinnedHomeFor(value, { localFile: value.startsWith('file:') });
+}
+
+const validViewedAt = (value) => Number.isFinite(value) && value > 0;
 
 /** session.json's meta entry for one tab (Quiet Tabs spec §10.1): what the
  * pill and the rail draw for a tab restored quiet, before it has any
@@ -37,15 +48,28 @@ function persistableFavicon(favicon) { return validFavicon(favicon); }
  * persistableUrl() unwraps that url back to the real destination, and the
  * title showing there is Blanc's error copy, not the site's. */
 function sessionTabMeta(tab) {
-  const onErrorPage = typeof tab?.url === 'string' && tab.url.startsWith('blanc://error');
-  const title = !onErrorPage && typeof tab?.title === 'string'
-    ? tab.title.slice(0, MAX_META_TITLE)
-    : '';
+  // An inert tab's page shows its own title (document-policy.js), so it stays.
+  const onErrorPage = typeof tab?.url === 'string' && tab.url.startsWith('blanc://error')
+    && !isInertPageUrl(tab.url);
+  // A DRM build's inert local-file record keeps the title it was restored
+  // with; the placeholder page's own title is never saved over it.
+  const inertTitle = typeof tab?.inertLocalFileUrl === 'string'
+    && typeof tab?.inertLocalFileTitle === 'string' ? tab.inertLocalFileTitle : null;
+  const title = inertTitle !== null ? inertTitle.slice(0, MAX_META_TITLE)
+    : !onErrorPage && typeof tab?.title === 'string'
+      ? tab.title.slice(0, MAX_META_TITLE)
+      : '';
   const meta = { title, favicon: persistableFavicon(tab?.favicon) };
   // F46: only a renamed tab carries the key, so every other entry is written
   // exactly as before and older builds simply ignore it.
   const customTitle = normalizeTabName(tab?.customTitle);
   if (customTitle) meta.customTitle = customTitle;
+  const pinnedHomeUrl = tab?.pinned && !tab?.private
+    ? validPinnedHome(tab.pinnedHomeUrl)
+    : null;
+  if (pinnedHomeUrl) meta.pinnedHomeUrl = pinnedHomeUrl;
+  // F52: the Tab Archive's idle clock, so idle time counts across relaunches.
+  if (validViewedAt(tab?.lastViewedAt)) meta.lastViewedAt = tab.lastViewedAt;
   return meta;
 }
 
@@ -54,10 +78,20 @@ function sessionTabMeta(tab) {
  * group name, and stays. Null when nothing is worth keeping, so the caller
  * deletes the column exactly as it always has. */
 function metaAfterHistoryClear(meta) {
-  if (!Array.isArray(meta) || !meta.some((m) => normalizeTabName(m?.customTitle))) return null;
-  return meta.map((m) => {
-    const customTitle = normalizeTabName(m?.customTitle);
-    return customTitle ? { title: '', favicon: null, customTitle } : { title: '', favicon: null };
+  if (!Array.isArray(meta)) return null;
+  const retained = meta.map((m) => ({
+    customTitle: normalizeTabName(m?.customTitle),
+    pinnedHomeUrl: validPinnedHome(m?.pinnedHomeUrl),
+    // A timestamp, not page content: the Archive's idle clock (F52) stays.
+    lastViewedAt: validViewedAt(m?.lastViewedAt) ? m.lastViewedAt : null,
+  }));
+  if (!retained.some((r) => r.customTitle || r.pinnedHomeUrl || r.lastViewedAt)) return null;
+  return retained.map(({ customTitle, pinnedHomeUrl, lastViewedAt }) => {
+    const entry = { title: '', favicon: null };
+    if (customTitle) entry.customTitle = customTitle;
+    if (pinnedHomeUrl) entry.pinnedHomeUrl = pinnedHomeUrl;
+    if (lastViewedAt) entry.lastViewedAt = lastViewedAt;
+    return entry;
   });
 }
 
@@ -79,7 +113,9 @@ function persistableEntries(tabList) {
  * order, without device-local presentation state (collapsed). */
 function syncSnapshot(tabList, groups) {
   const tabs = (tabList ?? [])
-    .filter((t) => t && !t.private)
+    // A page-opened tab never leaves this device: older Blanc builds would
+    // ignore its document-policy mark and open it unrestricted.
+    .filter((t) => t && !t.private && t.inheritsDocumentPolicy !== true)
     .map((t) => {
       const url = persistableUrl(t.url);
       if (!url || !/^https?:\/\//.test(url) || url.length > MAX_SYNC_URL) return null;
@@ -101,6 +137,6 @@ function syncSnapshot(tabList, groups) {
 }
 
 module.exports = {
-  persistableEntries, syncSnapshot, sessionTabMeta, metaAfterHistoryClear,
+  persistableUrl, persistableEntries, syncSnapshot, sessionTabMeta, metaAfterHistoryClear,
   MAX_SYNC_TABS, MAX_SYNC_URL, MAX_SYNC_TITLE, MAX_META_TITLE, MAX_META_FAVICON,
 };

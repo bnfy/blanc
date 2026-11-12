@@ -3,10 +3,13 @@ const os = require('node:os');
 const fs = require('node:fs');
 const { execFileSync } = require('node:child_process');
 const { _electron } = require('playwright');
-const { BeforeAll, AfterAll, Before, setDefaultTimeout } = require('@cucumber/cucumber');
+const { BeforeAll, AfterAll, Before, After, AfterStep, setDefaultTimeout } = require('@cucumber/cucumber');
 const fixtures = require('./fixtures-server');
 const ctx = require('./context');
 const { callTestHook } = require('./test-hook-call');
+const {
+  isTransportError, firstLine, shouldHealAfterReset, exitCodeOf, probeApp, routeUncaught, createHealingLog,
+} = require('./app-health');
 const { browserDataRoot } = require('../../../src/main/browser-data-import');
 const { createChromiumSession } = require('../../support/chromium-session-fixture');
 
@@ -24,6 +27,26 @@ let secureSpkiHash = null;
 let browserHomeDir;
 let savedClipboard = null;
 let uncaughtLogPath;
+let relaunchEnv = {};
+const peerApps = new Map();
+// Temporary profiles made by ctx.relaunch(..., { freshProfile: true }). An
+// unpackaged Blanc keeps its data beside each one in "<dir>-Dev", so both go.
+const tempProfileDirs = new Set();
+function removeUnusedTempProfiles({ all = false } = {}) {
+  for (const directory of tempProfileDirs) {
+    if (!all && directory === ctx.profileDir) continue;
+    try {
+      for (const target of [directory, `${directory}-Dev`]) {
+        fs.rmSync(target, { recursive: true, force: true, maxRetries: 5 });
+      }
+      tempProfileDirs.delete(directory);
+    } catch (error) {
+      // Best effort: a directory Windows still holds is tried again at the
+      // next relaunch and in AfterAll, and never stops the app coming back.
+      process.stderr.write(`acceptance: could not remove ${directory} yet: ${firstLine(error.message)}\n`);
+    }
+  }
+}
 
 function mainProcessExceptionsSinceLaunch(electronApp) {
   if (!uncaughtLogPath || !fs.existsSync(uncaughtLogPath)) return '';
@@ -31,26 +54,27 @@ function mainProcessExceptionsSinceLaunch(electronApp) {
   return contents.slice(electronApp.__blancUncaughtOffset ?? 0).trim();
 }
 
-function assertNoMainProcessExceptions(electronApp) {
-  const failures = mainProcessExceptionsSinceLaunch(electronApp);
-  if (failures) throw new Error(`Electron main-process exception:\n${failures}`);
-}
-
+/**
+ * Close an app and return the main-process exception text it logged since its
+ * launch. The text is also queued on ctx.pendingMainProcessException, which
+ * the last After hook turns into the scenario's failure: throwing here instead
+ * left callers such as ctx.relaunch holding a closed app.
+ */
 async function closeApp(electronApp) {
-  if (!electronApp) return;
+  if (!electronApp) return '';
+  const text = mainProcessExceptionsSinceLaunch(electronApp);
+  if (text) ctx.pendingMainProcessException += `${text}\n`;
   try {
     await electronApp.close();
   } catch (error) {
     // A fatal main-process exception may close Playwright's target before the
-    // explicit close completes. Prefer the captured application stack when it
-    // exists; otherwise preserve the original close failure.
-    assertNoMainProcessExceptions(electronApp);
-    throw error;
+    // explicit close completes; a process that is already gone is closed.
+    if (exitCodeOf(electronApp) === null) throw error;
   }
-  assertNoMainProcessExceptions(electronApp);
+  return text;
 }
 
-async function launchApp() {
+async function launchApp(extraEnv = {}, { recoveryChoice = null, profileDir = userDataDir } = {}) {
   // Cursor/VS Code agent shells inherit ELECTRON_RUN_AS_NODE=1 so their own
   // Electron host can spawn Node helpers. That makes the app binary reject
   // Playwright's --remote-debugging-port as a "bad option" and exit before
@@ -65,7 +89,7 @@ async function launchApp() {
     // 127.0.0.1 (i.e. 'local', never 'http').
     args: [
       REPO_ROOT,
-      `--user-data-dir=${userDataDir}`,
+      `--user-data-dir=${profileDir}`,
       // Both names map to loopback at the resolver, so scheme-classified
       // pages load offline: the connection model reads HOSTNAMES, and every
       // plain fixtures-server URL is 127.0.0.1 (i.e. 'local', never 'http').
@@ -80,6 +104,7 @@ async function launchApp() {
       BLANC_TEST: '1',
       BLANC_TEST_BROWSER_HOME: browserHomeDir,
       BLANC_TEST_UNCAUGHT_LOG: uncaughtLogPath,
+      ...extraEnv,
     },
   });
   if (process.env.BLANC_TEST_APP_OUTPUT === '1') {
@@ -95,6 +120,28 @@ async function launchApp() {
   // blocker-gated workspace restore. Returning while persistence is still
   // suspended lets the first scenario mutate an in-memory workspace that
   // cannot yet reach session.json.
+  // After a crash, startup waits for the session-recovery choice (the crash
+  // ledger) when the crashed session held something to restore; make it as
+  // a person would. A session of one blank start page asks nothing. Wait for
+  // startup to have decided which: before that, startupReady() can read true
+  // (persistence isn't suspended yet) while a prompt is still coming.
+  if (recoveryChoice) {
+    const asked = await electronApp.evaluate(
+      () => new Promise((resolve) => {
+        const t = setInterval(() => {
+          const recovery = globalThis.__blancCall ? globalThis.__blanc?.sessionRecoveryState?.() : null;
+          if (recovery?.decided === true) {
+            clearInterval(t);
+            resolve(recovery.required === true);
+          }
+        }, 50);
+      })
+    );
+    if (asked) {
+      const chosen = await callTestHook(electronApp, 'chooseSessionRecovery', [recoveryChoice]);
+      if (!chosen?.ok) throw new Error(`session recovery choice failed: ${JSON.stringify(chosen)}`);
+    }
+  }
   await electronApp.evaluate(
     () => new Promise((resolve) => {
       const t = setInterval(() => {
@@ -326,12 +373,60 @@ BeforeAll({ timeout: 120_000 }, async () => {
     recoverableSession.subarray(0, recoverableSession.length - 3),
   );
 
+  ctx.healing = createHealingLog();
+  ctx.profileDir = userDataDir;
   ctx.app = await launchApp();
   // F28-1 exercises a genuine process relaunch against this same profile,
   // rather than a renderer reload or an in-memory persistence proxy.
-  ctx.relaunch = async () => {
+  // { freshProfile: true } relaunches on a new temporary profile instead, as a
+  // new device would start (Shared Spaces: the sync request budget persists in
+  // the profile, so reusing one made each scenario wait out the last one's).
+  // Any relaunch removes temporary profiles no longer in use.
+  ctx.relaunch = async (extraEnv = {}, { freshProfile = false } = {}) => {
     if (ctx.app) await closeApp(ctx.app);
-    ctx.app = await launchApp();
+    relaunchEnv = extraEnv;
+    ctx.profileDir = freshProfile
+      ? fs.mkdtempSync(path.join(os.tmpdir(), 'blanc-shared-a-'))
+      : userDataDir;
+    if (freshProfile) tempProfileDirs.add(ctx.profileDir);
+    removeUnusedTempProfiles();
+    ctx.app = await launchApp(extraEnv, { profileDir: ctx.profileDir });
+  };
+  ctx.launchPeerApp = async (extraEnv = {}) => {
+    const directory = fs.mkdtempSync(path.join(os.tmpdir(), 'blanc-shared-peer-'));
+    try { const peer = await launchApp(extraEnv, { profileDir: directory }); peerApps.set(peer,directory); return peer; }
+    catch(error) { fs.rmSync(directory,{recursive:true,force:true});throw error; }
+  };
+  ctx.closePeerApp = async peer => {
+    const directory=peerApps.get(peer);if(!directory)return;
+    await closeApp(peer);peerApps.delete(peer);fs.rmSync(directory,{recursive:true,force:true});
+  };
+  // A crash, not a quit: the process is killed, so nothing gets a chance to
+  // flush on the way out, and the next launch sees only what was on disk.
+  // The whole tree goes: on Windows, kill() reaches only the browser process,
+  // and its orphaned GPU and renderer processes keep the stdio pipes (and so
+  // this runner) open until the job times out (pinned-home-recovery-smoke
+  // kills the same way).
+  ctx.crashAndRelaunch = async () => {
+    const child = ctx.app?.process();
+    if (child && child.exitCode === null) {
+      const exited = new Promise((resolve) => child.once('exit', resolve));
+      if (process.platform === 'win32') {
+        try { execFileSync('taskkill.exe', ['/pid', String(child.pid), '/t', '/f'], { stdio: 'ignore' }); } catch { child.kill('SIGKILL'); }
+      } else {
+        child.kill('SIGKILL');
+      }
+      await exited;
+    }
+    ctx.app = await launchApp(relaunchEnv, { recoveryChoice: 'restore', profileDir: ctx.profileDir });
+  };
+  // An ordinary quit, not a crash: before-quit and every shutdown teardown
+  // run, then the app launches again on the same profile and environment.
+  // whileQuit, when given, reads what reached disk while nothing is running.
+  ctx.quitAndRelaunch = async (whileQuit = null) => {
+    if (ctx.app) await closeApp(ctx.app);
+    try { if (whileQuit) await whileQuit(ctx.profileDir); }
+    finally { ctx.app = await launchApp(relaunchEnv, { profileDir: ctx.profileDir }); }
   };
 
   // The F19 scenarios write the REAL system clipboard — save the developer's
@@ -339,8 +434,79 @@ BeforeAll({ timeout: 120_000 }, async () => {
   savedClipboard = await callTestHook(ctx.app, 'readClipboardText').catch(() => null);
 });
 
-Before(async function () {
-  if (ctx.app) assertNoMainProcessExceptions(ctx.app);
+// Cucumber runs After hooks in reverse definition order, and support files load
+// before step files, so this hook (the first After defined) runs after every
+// tagged After, including those that relaunch the app. A main-process
+// exception fails the scenario during which it was logged, once.
+// A suspicion lives on the app it was raised against: an app a tagged After
+// replaces takes its suspicion with it, so the fresh one is not relaunched too.
+function markSuspect(reason, app = ctx.app) {
+  if (app && !app.__blancSuspect) app.__blancSuspect = reason;
+}
+
+After(function (scenario) {
+  const current = ctx.app ? mainProcessExceptionsSinceLaunch(ctx.app) : '';
+  const text = ctx.pendingMainProcessException + current;
+  ctx.pendingMainProcessException = '';
+  if (current) {
+    ctx.app.__blancUncaughtOffset = fs.statSync(uncaughtLogPath).size;
+    markSuspect('main-process exception');
+  } else if (ctx.app === ctx.scenarioApp && isTransportError(scenario.result?.message)) {
+    // A tagged After that failed on the app's handle (AfterStep sees steps
+    // only), as long as that is still the app the scenario ran on.
+    markSuspect(firstLine(scenario.result.message));
+  }
+  if (text) throw new Error(`Electron main-process exception:\n${text}`);
+});
+
+// A step that failed because the app's handle broke (a crashed renderer
+// leaves its page answering every call with "Target crashed") marks the app
+// for a relaunch before the next scenario.
+AfterStep(function ({ result }) {
+  if (result.status === 'FAILED' && isTransportError(result.message)) {
+    markSuspect(firstLine(result.message));
+  }
+});
+
+// After a renderer crash, Chromium answers requests Playwright already gave up
+// on, and Playwright's message handler throws "Target crashed" for each as an
+// uncaught exception: a stream of them while the old app dies. Cucumber fails
+// whatever hook or step is running when one arrives, so one crash used to fail
+// every following scenario. A capture callback receives uncaught exceptions
+// instead of the listeners: these mark the app for a relaunch and go no
+// further; everything else reaches Cucumber, or ends the run as Node would.
+process.setUncaughtExceptionCaptureCallback((error) => {
+  const route = routeUncaught(error, { listeners: process.listenerCount('uncaughtException') });
+  if (route === 'suspect') {
+    markSuspect(firstLine(error.message));
+  } else if (route === 'forward') {
+    process.emit('uncaughtException', error, 'uncaughtException');
+  } else {
+    process.stderr.write(`${error?.stack ?? error}\n`);
+    process.exit(1);
+  }
+});
+
+// Cucumber can abandon a hook that failed through an uncaught exception while
+// its code is still running, so a heal may still be in flight when the next
+// Before starts. Only one runs at a time, and Before waits for it.
+let healInFlight = null;
+function healApp(scenario, reason) {
+  healInFlight ??= (async () => {
+    process.stderr.write(`acceptance: relaunching Blanc before "${scenario}" (${reason})\n`);
+    // Anything the broken app logged after the After hook read the log would
+    // otherwise be lost; it goes into the healing summary instead.
+    const exception = await closeApp(ctx.app).catch(() => '');
+    ctx.pendingMainProcessException = '';
+    if (exception) process.stderr.write(`acceptance: that app also logged: ${firstLine(exception)}\n`);
+    ctx.app = await launchApp(relaunchEnv, { profileDir: ctx.profileDir });
+    ctx.healing.record({ scenario, reason, exception });
+  })().finally(() => { healInFlight = null; });
+  return healInFlight;
+}
+
+Before(async function (scenario) {
+  if (healInFlight) await healInFlight.catch(() => {});
   ctx.tabByName = {};
   ctx.activeExpectedUrl = null;
   ctx.lastNewTabId = null;
@@ -348,32 +514,79 @@ Before(async function () {
   ctx.addressMenuItems = null;
   ctx.addressMenuFieldText = null;
   ctx.groupMembers = null;
+  ctx.groupPinnedTabId = null;
   ctx.standalonePinnedTabId = null;
+  const name = scenario.pickle.name;
+  // At most one relaunch per scenario, in this order: a suspicion left by the
+  // previous scenario; a reset that fails on the app's handle; a probe of what
+  // is left after the reset. The probe runs after the reset on purpose: the
+  // product discards renderers of its own accord (Quiet Tabs, Glance), and
+  // Playwright reports such a page as crashed for good, so probing the tabs a
+  // scenario left behind relaunched a healthy app. Reset closes them first.
+  ctx.scenarioApp = null;
+  const suspect = ctx.app?.__blancSuspect ?? null;
+  let healed = Boolean(suspect);
+  if (healed) await healApp(name, suspect);
+  try {
+    await callTestHook(ctx.app, 'reset');
+  } catch (error) {
+    if (!shouldHealAfterReset({ alreadyHealed: healed, error })) throw error;
+    healed = true;
+    await healApp(name, `reset: ${firstLine(error.message)}`);
+    await callTestHook(ctx.app, 'reset');
+  }
+  if (!healed) {
+    const { reason } = await probeApp(ctx.app);
+    if (reason) {
+      await healApp(name, reason);
+      await callTestHook(ctx.app, 'reset');
+    }
+  }
+  ctx.scenarioApp = ctx.app;
+});
+
+// Scenarios tagged @test-platform-linux run in an app that acts as on Linux
+// (main and the chrome renderers alike; BLANC_TEST_PLATFORM is honoured only
+// in the acceptance test mode), then the ordinary app comes back.
+Before({ tags: '@test-platform-linux' }, async function () {
+  await ctx.relaunch({ BLANC_TEST_PLATFORM: 'linux' });
   await callTestHook(ctx.app, 'reset');
+});
+
+After({ tags: '@test-platform-linux' }, async function () {
+  await ctx.relaunch();
 });
 
 // F39 local-certificate scenarios share one fixture server and one exception
 // store: start each from certificate A and no remembered choices.
-Before({ tags: '@F39-2 or @F39-3 or @F39-4 or @F39-5 or @F39-6 or @F39-7' }, async function () {
+Before({ tags: '@F39-2 or @F39-3 or @F39-4 or @F39-5 or @F39-6 or @F39-7 or @F39-9 or @F39-10 or @F39-11' }, async function () {
   ctx.localFixtures.handle.setCertificate(ctx.localFixtures.certA);
   await callTestHook(ctx.app, 'resetCertificateExceptionsForTest');
 });
 
 AfterAll(async () => {
+  for(const peer of [...peerApps.keys()])await ctx.closePeerApp(peer);
   let closeFailure = null;
   if (ctx.app && savedClipboard !== null) {
     await callTestHook(ctx.app, 'setClipboardText', [savedClipboard])
       .catch(() => {});
   }
+  // A relaunch still in flight would leave an app running after the run.
+  if (healInFlight) await healInFlight.catch(() => {});
+  for (const line of ctx.healing?.summaryLines() ?? []) process.stderr.write(`${line}\n`);
   if (ctx.app) {
     try {
-      await closeApp(ctx.app);
+      const text = await closeApp(ctx.app);
+      if (text) closeFailure = new Error(`Electron main-process exception:\n${text}`);
     } catch (error) {
       closeFailure = error;
     }
   }
   ctx.app = null;
   ctx.relaunch = null;
+  ctx.crashAndRelaunch = null;
+  ctx.quitAndRelaunch = null;
+  removeUnusedTempProfiles({ all: true });
   if (fixturesHandle) await fixturesHandle.close();
   if (secureFixturesHandle) await secureFixturesHandle.close();
   if (untrustedFixturesHandle) await untrustedFixturesHandle.close();

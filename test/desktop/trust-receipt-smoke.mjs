@@ -1,4 +1,5 @@
 import { _electron } from 'playwright';
+import { inMainTurn } from './support/main-turn.js';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import os from 'node:os';
@@ -31,7 +32,7 @@ try {
   );
   await app.evaluate(() => globalThis.__blanc.openSettings());
   const receipt = await waitFor(
-    () => app.evaluate(async ({ webContents }) => {
+    () => inMainTurn(app, async ({ webContents }) => {
       const wc = webContents.getAllWebContents()
         .find((candidate) => candidate.getURL().startsWith('blanc://settings/'));
       if (!wc) return null;
@@ -47,7 +48,7 @@ try {
   assert.doesNotMatch(JSON.stringify(receipt), /accountId|protectedKey|passphrase|secureDnsTemplate/);
 
   const rendered = await waitFor(
-    () => app.evaluate(async ({ webContents }) => {
+    () => inMainTurn(app, async ({ webContents }) => {
       const wc = webContents.getAllWebContents()
         .find((candidate) => candidate.getURL().startsWith('blanc://settings/'));
       return wc?.executeJavaScript(`({
@@ -67,7 +68,7 @@ try {
   assert.deepEqual(rendered.links, ['Matching release', 'Verification guide', 'Release SBOM', 'Provenance attestations']);
   assert.doesNotMatch(rendered.facts, /security score|secure badge|anonymous/i);
   if (process.env.BLANC_CAPTURE_TRUST === '1') {
-    const png = await app.evaluate(async ({ webContents }) => {
+    const png = await inMainTurn(app, async ({ webContents }) => {
       const wc = webContents.getAllWebContents()
         .find((candidate) => candidate.getURL().startsWith('blanc://settings/'));
       await wc.executeJavaScript(`(async () => {

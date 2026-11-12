@@ -31,8 +31,12 @@ function windowStatePersistenceOptions(runtimeId) {
  * - 'quit': the last open window on Windows or Linux. Closing it quits Blanc
  *   (window-all-closed), so the window and its tabs stay saved, as Quit
  *   keeps them.
- * - 'remove': any other window. It leaves the saved session (F32-1). */
-function windowCloseSessionEffect({ platform, isPrimaryWindow, otherOpenWindows }) {
+ * - 'remove': any other window. It leaves the saved session (F32-1).
+ * - 'mini': a mini window (#1138). It was never saved, so closing it writes
+ *   nothing; `otherOpenWindows` never counts one, so closing the last
+ *   ordinary Windows or Linux window still quits. */
+function windowCloseSessionEffect({ platform, isPrimaryWindow, otherOpenWindows, isMiniWindow = false }) {
+  if (isMiniWindow) return 'mini';
   if (platform === 'darwin') return isPrimaryWindow ? 'dock' : 'remove';
   return otherOpenWindows > 0 ? 'remove' : 'quit';
 }
@@ -53,7 +57,8 @@ function shouldClearPersistedWindowState({ platform, isQuitting, isPrimaryWindow
  * windowless runtime with no tabs, such as a primary the launch never used,
  * would only come back as an extra, empty window. */
 function savesSessionEntry(runtime) {
-  return !runtime.resident && (Boolean(runtime.window) || runtime.tabOrder.length > 0);
+  // A mini window (#1138) is never saved; "Open in Blanc" clears the flag.
+  return !runtime.resident && !runtime.mini && (Boolean(runtime.window) || runtime.tabOrder.length > 0);
 }
 
 module.exports = {

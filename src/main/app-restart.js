@@ -2,7 +2,7 @@ const path = require('node:path');
 // Restart intent lasts through the user's Leave/Stay decision. A wall-clock
 // timeout must never disarm relaunch while a valid quit is still pending.
 /** Restart only after normal quit completes; never arm a future unrelated quit. */
-function createAppRestarter({ app, webContents, onCancelled = () => {}, platform = process.platform, env = process.env, argv = process.argv }) {
+function createAppRestarter({ app, webContents, onCancelled = () => {}, beforeRelaunch = () => {}, platform = process.platform, env = process.env, argv = process.argv }) {
   let pending = null;
   return function restartApp() {
     if (pending) return pending;
@@ -35,6 +35,9 @@ function createAppRestarter({ app, webContents, onCancelled = () => {}, platform
       // its native helper do not depend on the old FUSE mount. The regular
       // AppRun and Blanc sandbox refusal still apply.
       const image = env.APPIMAGE;
+      // Capture the stable outer path before ECS removes the old mount's
+      // environment. Only irreversible quit may change that environment.
+      beforeRelaunch();
       if (platform === 'linux' && app.isPackaged && typeof image === 'string'
         && path.isAbsolute(image) && !image.includes('\0')) {
         app.relaunch({ execPath: image, args: ['--appimage-extract-and-run',

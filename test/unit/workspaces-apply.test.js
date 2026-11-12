@@ -13,6 +13,7 @@ const vm = require('node:vm');
 // pure (no require('electron')) and imported for real, not stubbed.
 const { filterRestoredSession, restoreTargetId } = require('../../src/main/session-restore');
 const { clampClosedSlot } = require('../../src/main/closed-slot');
+const { groupRecord } = require('../../src/main/group-color');
 
 const NEW_TAB_URL = 'blanc://newtab/';
 
@@ -23,6 +24,44 @@ function slice(startMarker, endMarker) {
   const end = mainSource.indexOf(endMarker, start);
   return start >= 0 && end >= 0 ? mainSource.slice(start, end) : null;
 }
+
+test('workspaceCapture zips shared record ids through the same private-tab filter as URLs',()=>{
+  const source=slice('function workspaceCapture(runtime, { previousActiveIndex = 0 } = {}) {','\n/** Autosave only');
+  const tabs=new Map([[1,{id:1,url:'https://one.test/',sharedTabId:'a'.repeat(32)}],
+    [2,{id:2,url:'https://private.test/',private:true,sharedTabId:'b'.repeat(32)}],
+    [3,{id:3,url:'https://two.test/',sharedTabId:'c'.repeat(32)}]]);
+  const context={tabs,groupRecord,persistableEntries:require('../../src/main/session-snapshot').persistableEntries,
+    captureWindowEntry:()=>({urls:['https://one.test/','https://two.test/'],groups:[]})};
+  vm.runInNewContext(source+'\nthis.capture=workspaceCapture;',context);
+  const result=context.capture({tabOrder:[1,2,3]});
+  assert.deepEqual(JSON.parse(JSON.stringify(result)).tabIds,['a'.repeat(32),'c'.repeat(32)]);
+});
+test('the Space projection carries admission status only in the Personal profile',()=>{
+  const source=slice('function workspacesProjection() {','\n/** Freshness:');
+  const runtime={profileId:'default',workspaceId:'ws',tabOrder:[]},sharedId='a'.repeat(32);
+  let offered=true;const context={isSharedSpacesOffered:()=>offered,require:()=>require('../../src/main/shared-spaces-surfaces'),sharedSpaceState:{snapshot:()=>({recoveryNoticeSeen:false})},rt:()=>runtime,DEFAULT_PROFILE_ID:'default',spaceTint:'mark',tabs:new Map(),workspaceOwner:()=>null,
+    namedWorkspaces:{status:()=> 'ready',deleted:()=>[],list:()=>[{id:'ws',sharedId,name:'Work',revision:0,urls:['https://example.test/'],color:'#426c4c',symbol:'briefcase'}]},
+    sync:{sharedContext:()=>({}),sharedStatus:()=>({enabled:true,available:true,spaces:26,spaceLimit:25,canAdd:false}),spaceStatus:id=>({reason:'tabs',unsyncedTabIds:[id]})}};
+  vm.runInNewContext(source+'\nthis.project=workspacesProjection;',context);
+  const result=JSON.parse(JSON.stringify(context.project()));
+  assert.deepEqual(result.sharedSync,{count:26,limit:25,canAdd:false,busy:false});assert.deepEqual(result.items[0].sharedSync,{reason:'tabs',unsyncedTabIds:[sharedId],state:'full'});
+  offered=false;assert.equal(context.project().items[0].sharedSync,undefined);offered=true;runtime.profileId='named';const other=context.project();assert.equal(other.sharedSync,undefined);assert.equal(other.items[0].sharedSync,undefined);
+});
+test('a busy request window alone shows neither the busy line nor a waiting mark',()=>{
+  const source=slice('function workspacesProjection() {','\n/** Freshness:');
+  const runtime={profileId:'default',workspaceId:'ws',tabOrder:[]},sharedId='a'.repeat(32);
+  let queue={waiting:8,running:1,backoff:false,consecutiveRateLimits:0},pending=false;
+  const context={isSharedSpacesOffered:()=>true,require:()=>require('../../src/main/shared-spaces-surfaces'),sharedSpaceState:{snapshot:()=>({recoveryNoticeSeen:false})},rt:()=>runtime,DEFAULT_PROFILE_ID:'default',spaceTint:'mark',tabs:new Map(),workspaceOwner:()=>null,
+    namedWorkspaces:{status:()=> 'ready',deleted:()=>[],list:()=>[{id:'ws',sharedId,sharedLink:'active',name:'Work',revision:0,urls:['https://example.test/'],color:'#426c4c',symbol:'briefcase'}]},
+    sync:{sharedContext:()=>({}),sharedStatus:()=>({enabled:true,available:true,spaces:1,spaceLimit:25,canAdd:true,...queue}),spaceStatus:()=>({unsyncedTabIds:[],reason:null,pending})}};
+  vm.runInNewContext(source+'\nthis.project=workspacesProjection;',context);
+  let result=JSON.parse(JSON.stringify(context.project()));
+  assert.deepEqual([result.sharedSync.busy,result.sharedSync.slowed,result.items[0].sharedSync.state],[false,false,'shared']);
+  pending=true;result=JSON.parse(JSON.stringify(context.project()));
+  assert.equal(result.items[0].sharedSync.state,'waiting');
+  queue={waiting:3,running:0,backoff:true,consecutiveRateLimits:2};result=JSON.parse(JSON.stringify(context.project()));
+  assert.deepEqual([result.sharedSync.busy,result.sharedSync.slowed],[true,true]);
+});
 
 const applySource = slice(
   'function applyWorkspaceToWindow(runtime, workspace) {',
@@ -82,10 +121,15 @@ function applyHarness(runtime) {
       return id;
     },
     pruneEmptyGroups: () => calls.push(['pruneEmptyGroups']),
+    applySavedLayout: (_runtime, workspace, ids) => calls.push(['applySavedLayout', workspace, [...ids]]),
+    // Split View (F53): the Space's splits come back after its layout.
+    applyRestoredSplits: (_runtime, saved, ids) => calls.push(['applyRestoredSplits', saved, [...ids]]),
     setActiveTab: (id, opts) => calls.push(['setActiveTab', id, opts]),
     restorableUblockTool: () => false,
+    documentPolicy: require('../../src/main/document-policy'),
     filterRestoredSession,
     clampClosedSlot,
+    groupRecord,
     restoreTargetId,
     isUtilityUrl: () => false,
     isForbiddenTopLevelUrl: () => false,
@@ -121,7 +165,7 @@ test('runtime.groups is assigned from the workspace before the first createTab',
   const workspace = WORKSPACE({ groups: [{ id: 'g1', name: 'work', collapsed: true }] });
   const h = applyHarness(runtime);
   h.apply(workspace);
-  assert.deepEqual(h.groupsAtFirstCreate(), [{ id: 'g1', name: 'work', collapsed: true }],
+  assert.deepEqual(h.groupsAtFirstCreate(), [{ id: 'g1', name: 'work', collapsed: true, color: null }],
     'checklist point 5: createTab silently drops groupId unless the group already exists ' +
     'on the runtime, so groups must be swapped in before the FIRST createTab, not after');
 });
@@ -234,3 +278,16 @@ test('a save-as whose session binding fails reports the durable workspace id tru
 });
 
 // Switching/guard coverage imports workspace-controller directly.
+
+test('a Space is laid out from its saved order before a tab is selected', () => {
+  const runtime = { tabOrder: [], groups: [], closedSlot: 0, closedSlotIds: [] };
+  const harness = applyHarness(runtime);
+  const workspace = WORKSPACE();
+  harness.apply(workspace);
+  const names = harness.calls.map(([name]) => name);
+  const layout = harness.calls.find(([name]) => name === 'applySavedLayout');
+  assert.ok(layout, 'applySavedLayout was not called');
+  assert.equal(layout[1], workspace);
+  assert.deepEqual(layout[2], harness.calls.filter(([name]) => name === 'createTab').map((call) => call[3]).slice(0, layout[2].length));
+  assert.ok(names.indexOf('applySavedLayout') < names.indexOf('setActiveTab'));
+});

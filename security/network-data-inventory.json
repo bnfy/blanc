@@ -66,7 +66,7 @@
       "default": "off",
       "recipient": "Blanc Cloudflare Worker",
       "data": ["opaque v1 account locator", "store name", "opaque version", "AES-256-GCM ciphertext", "ordinary edge metadata"],
-      "retentionByBlanc": "ciphertext until a configured client requests account wipe; non-atomic account-locator and raw client-IP rate counters in KV up to 120 seconds; provider logging/metadata retention requires deployed verification",
+      "retentionByBlanc": "active ciphertext until a configured client requests account wipe; unreleased candidate stores Space ciphertext in SQLite with provider PITR history up to 30 days, requiring retention review before deployment; fixed stores stay in KV; non-atomic account-locator and raw client-IP rate counters in KV up to 120 seconds; provider logging/metadata retention requires deployed verification",
       "code": ["src/main/sync.js", "src/main/sync-crypto.js", "cloudflare/sync-worker/src/index.js"]
     },
     {
@@ -179,6 +179,16 @@
       "data": ["restricted cookieless measurement pings by default", "page and explicitly instrumented CTA events", "Google analytics cookie after Allow", "ordinary request metadata"],
       "retentionByBlanc": "consent choice in site localStorage; analytics in configured Google property",
       "code": ["site/src/scripts/site.js"]
+    },
+    {
+      "id": "website-support-chat",
+      "surface": "website",
+      "trigger": "visitor clicks the chat bubble shown on non-legal pages, or Live chat on the Support page",
+      "default": "off",
+      "recipient": "Crisp",
+      "data": ["messages the visitor types", "email address if the visitor leaves one", "Crisp session cookies (crisp-client/* prefix)", "ordinary request metadata"],
+      "retentionByBlanc": "conversation kept in Bananify's Crisp workspace until deleted",
+      "code": ["site/src/components/ChatBubble.astro", "site/src/pages/support.astro", "site/src/scripts/live-chat.js"]
     },
     {
       "id": "newsletter",

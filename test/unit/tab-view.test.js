@@ -16,6 +16,7 @@ const mainSource = fs.readFileSync(path.join(__dirname, '../../src/main/main.js'
 const liveViewContentsSource = viewSource.match(/const liveViewContents = \(view\) => \{[\s\S]*?\n\};/)?.[0];
 const liveContentsSource = viewSource.match(/const liveContents = \(tab\) => liveViewContents\(tab\?\.view\);/)?.[0];
 const createTabViewSource = viewSource.match(/function createTabView\(tab\) \{[\s\S]*?\n\}/)?.[0];
+const primeSource = viewSource.match(/function primeTabLoadingBackground\(view, tab\) \{[\s\S]*?\n\}/)?.[0];
 const wireSource = viewSource.match(/function wireTabView\(tab, view, \{ owner, adopted \}\) \{[\s\S]*?\n\}/)?.[0];
 const watchCursorForSource = mainSource.match(/function watchCursorFor\(wc, offset, bind\) \{[\s\S]*?\n\}/)?.[0];
 
@@ -23,6 +24,7 @@ test('tab-view.js still exports the functions these tests lift', () => {
   assert.ok(liveViewContentsSource, 'liveViewContents not found in tab-view.js — update this test with it');
   assert.ok(liveContentsSource, 'liveContents not found in tab-view.js — update this test with it');
   assert.ok(createTabViewSource, 'createTabView not found in tab-view.js — update this test with it');
+  assert.ok(primeSource, 'primeTabLoadingBackground not found in tab-view.js — update this test with it');
 });
 
 function loadLiveContents() {
@@ -71,17 +73,36 @@ test('main.js never dereferences cached utility-sheet webContents directly', () 
   );
 });
 
-function loadCreateTabView() {
+function loadCreateTabView({ dark = false } = {}) {
   const calls = [];
+  const primed = [];
   const sandbox = {
+    nativeTheme: { shouldUseDarkColors: dark },
+    // The sandbox's objects are another realm's; copy them out for deepEqual.
+    primeLoadingBackground: (view, theme) => primed.push({ view, theme: { ...theme } }),
     WebContentsView: class { constructor(opts) { calls.push(opts); this.opts = opts; } },
     TAB_WEB_PREFERENCES: { preload: '/tab-preload.js', sandbox: true },
     getNormalBrowsingSession: (profileId) => ({ partition: `normal:${profileId}` }),
     getPrivateBrowsingSession: (profileId) => ({ partition: `private:${profileId}` }),
+    mayBuildFreshView: require('../../src/main/document-policy').mayBuildFreshView,
   };
-  vm.runInNewContext(`${createTabViewSource}\nthis.__fn = createTabView;`, sandbox);
-  return { createTabView: sandbox.__fn, calls, prefs: sandbox.TAB_WEB_PREFERENCES };
+  vm.runInNewContext(`${createTabViewSource}\n${primeSource}\nthis.__fn = createTabView;`, sandbox);
+  return { createTabView: sandbox.__fn, calls, primed, prefs: sandbox.TAB_WEB_PREFERENCES };
 }
+
+test('createTabView primes each new view with the tab\'s theme before any load', () => {
+  const light = loadCreateTabView();
+  const view = light.createTabView({ private: false });
+  assert.deepEqual(light.primed.map((p) => p.view), [view]);
+  assert.deepEqual(light.primed[0].theme, { dark: false, private: false });
+  const dark = loadCreateTabView({ dark: true });
+  dark.createTabView({ private: true });
+  dark.createTabView(undefined);
+  assert.deepEqual(dark.primed.map((p) => p.theme), [
+    { dark: true, private: true },
+    { dark: true, private: false },
+  ]);
+});
 
 test('createTabView puts an ordinary tab on its profile session', () => {
   const { createTabView, calls, prefs } = loadCreateTabView();
@@ -106,11 +127,18 @@ test('createTabView tolerates being called before the tab record exists', () => 
   assert.deepEqual(calls[0].webPreferences.session, { partition: 'normal:default' });
 });
 
-test('createTabView applies retained document sandbox flags when rebuilding a tab', () => {
+test('createTabView refuses a fresh view for a page-opened tab that is not inert', () => {
   const { createTabView, calls } = loadCreateTabView();
-  createTabView({ private: true, profileId: 'work', openerSandboxFlags: 4294836015 });
-  assert.equal(calls[0].webPreferences.openerSandboxFlags, 4294836015);
-  assert.equal(calls[0].webPreferences.sandbox, true, 'the Electron process sandbox remains enabled');
+  assert.equal(createTabView({ private: true, profileId: 'work', inheritsDocumentPolicy: true }), null);
+  assert.equal(calls.length, 0, 'no WebContentsView is constructed');
+  // An inert tab's view only ever shows Blanc's explanation page.
+  assert.notEqual(createTabView({ profileId: 'work', inheritsDocumentPolicy: true, inert: true }), null);
+  assert.notEqual(createTabView({ profileId: 'work', inheritsDocumentPolicy: false }), null);
+  assert.equal(calls.length, 2);
+  for (const call of calls) {
+    assert.equal(call.webPreferences.sandbox, true, 'the Electron process sandbox remains enabled');
+    assert.equal('openerSandboxFlags' in call.webPreferences, false, 'Electron 44.9 removed the preference');
+  }
 });
 
 test('the private-session ternary lives in tab-view.js and nowhere else', () => {
@@ -241,6 +269,7 @@ function loadDetachTabView({ focused = true, dead = false, owned = true, current
   const { liveContents } = loadLiveContents();
   const sandbox = {
     liveContents,
+    presentationView: target => target?.view,
     tabs: new Map(current ? [[tab.id, tab]] : []),
     windowRuntimes: { runtimeForTab: () => owned ? runtime : {} },
     rt: () => runtime,
@@ -426,10 +455,34 @@ test('native tool rooting excludes websites, private tabs, macOS and stale owner
   }
 });
 
-test('certificate-error allows only through the exception store and never by default', () => {
+// Tabs and the pop-up windows pages open (#1437 follow-up: Proxmox consoles)
+// answer certificate-error through one helper.
+function certificateSources() {
   const source = require('node:fs').readFileSync(require.resolve('../../src/main/tab-view.js'), 'utf8');
-  const handler = source.slice(source.indexOf("wc.on('certificate-error'"), source.indexOf("wc.once('destroyed'"));
-  assert.match(handler, /certificateExceptions\.matches\(wc\.session/);
-  assert.match(handler, /event\.preventDefault\(\);\s*return callback\(true\);/);
-  assert.equal((handler.match(/callback\(true\)/g) ?? []).length, 1);
+  const between = (from, to) => source.slice(source.indexOf(from), source.indexOf(to, source.indexOf(from)));
+  return {
+    helper: between('function allowContinuedCertificate(', 'function wireTabView('),
+    tab: between("wc.on('certificate-error'", "wc.once('destroyed'"),
+    popup: between("childWc.on('certificate-error'", 'windowRuntimes.registerAuxiliaryContent'),
+  };
+}
+
+test('certificate-error allows only through the exception store and never by default', () => {
+  const { helper, tab, popup } = certificateSources();
+  assert.match(helper, /certificateExceptions\.matches\(wc\.session/);
+  assert.match(helper, /event\.preventDefault\(\);\s*setImmediate\(\(\) => callback\(true\)\);/);
+  assert.equal((helper.match(/callback\(true\)/g) ?? []).length, 1);
+  for (const handler of [tab, popup]) {
+    assert.match(handler, /allowContinuedCertificate\(certificateExceptions, (wc|childWc), event,/);
+    assert.equal(handler.includes('callback(true)'), false);
+  }
+});
+
+// Electron 45 emits certificate-error on the WebContents and then on app, both
+// reading a URL the request owns. Answering during the first emit frees it, and
+// the second emit crashes the browser (#1424).
+test('certificate-error never answers while Electron is still emitting the event', () => {
+  const { helper, tab, popup } = certificateSources();
+  assert.equal(helper.replace(/setImmediate\(\(\) => callback\(true\)\);/, '').includes('callback('), false);
+  for (const handler of [tab, popup]) assert.equal(handler.includes('callback('), false);
 });

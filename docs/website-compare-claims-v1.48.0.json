@@ -1,0 +1,1371 @@
+{
+ "publicRelease": "v1.48.0",
+ "sourceSha": "2098dd703c99194a58e5a3e7ec0b39923d2db59b",
+ "releaseEvidence": "docs/release-incidents/2026-11-11-v1.48.0.md",
+ "scope": "Owner-approved /compare chart and page copy (November 2, 2026; spec docs/superpowers/specs/2026-11-02-compare-page-design.md). Blanc answers rest on public v1.48.0; answers about Crest, Arc, Helium and Brave rest on their first-party pages read November 2, 2026. A cell reading Not stated records that the listed pages for that browser do not say, and cites them all. Re-check every cell before checkedAgainst moves to a new feature release. Re-checked for v1.48.0 on November 7, 2026: each of the eleven Blanc answers was read against the v1.48.0 release notes and none is affected (the release adds page zoom, a Windows drag band, a quit fix and the ECS 45.2.1 runtime); the other browsers' pages were not re-read, so their answers still date from November 2, 2026.",
+ "evidenceGroups": {
+  "page": {
+   "evidence": [
+    "docs/marketing-claims.md"
+   ],
+   "qualification": "Headings, row labels and navigation copy name the chart and its method; they claim no capability. External comparisons follow docs/marketing-claims.md: current first-party sources, recorded with access dates; silence on a page is reported as Not stated, never inferred."
+  },
+  "platforms": {
+   "evidence": [
+    "package.json",
+    "site/src/data/ios-availability.json",
+    "site/src/pages/download.astro",
+    "docs/ios/app-store-connect.md"
+   ],
+   "qualification": "Desktop builds for macOS, Windows and Linux. Blanc for iPhone was a public TestFlight beta from October 28, 2026; version 1.0 (build 202611030537, iPhone only, iOS 18.4 or later) was approved by App Review and released on the App Store by the owner on November 6, 2026 (docs/ios/app-store-connect.md, item 21; site/src/data/ios-availability.json). Version 1.0.3 (build 202611121714, from 44280ff1d) adds iPad to the same listing (iOS and iPadOS 18.4 or later); its wording here is held with docs/website-ipad-1.0.3-claims.json until App Review approves 1.0.3. The TestFlight beta stays open for early builds. There is no Android app."
+  },
+  "cost": {
+   "evidence": [
+    "site/src/pages/download.astro",
+    "src/main/patron-model.js"
+   ],
+   "qualification": "Every feature is free and needs no account; Sync needs no account either. Blanc Patron is an optional subscription that unlocks nothing."
+  },
+  "openSource": {
+   "evidence": [
+    "LICENSE",
+    "ASSET-LICENSE.md"
+   ],
+   "qualification": "MIT covers Bananify Creative-owned code; the Blanc names, logos and identity assets are reserved, and third-party components keep their own terms."
+  },
+  "status": {
+   "evidence": [
+    "package.json"
+   ],
+   "qualification": "v1.48.0 is the current public release, published November 11, 2026."
+  },
+  "extensions": {
+   "evidence": [
+    "docs/marketing-claims.md",
+    "docs/ublock-origin-support-matrix-2026-10-03.md"
+   ],
+   "qualification": "No general Chrome Web Store installation. Full uBlock Origin 1.75.0 is an optional, bundled blocking provider for regular tabs on supported builds."
+  },
+  "blocking": {
+   "evidence": [
+    "src/main/adblock.js",
+    "docs/ublock-origin-support-matrix-2026-10-03.md"
+   ],
+   "qualification": "Blanc Blocker (bundled EasyList and EasyPrivacy) is on by default and protects private tabs; uBlock Origin can replace it for regular tabs."
+  },
+  "spaces": {
+   "evidence": [
+    "src/main/workspaces.js",
+    "src/main/local-profiles.js"
+   ],
+   "qualification": "Spaces save a window’s tabs and groups. Named local profiles keep cookies, site data, Favorites, history and permissions in separate sessions."
+  },
+  "sideTabs": {
+   "evidence": [
+    "src/main/settings.js"
+   ],
+   "qualification": "Vertical tabs are an optional setting; the Island stays the address bar."
+  },
+  "split": {
+   "evidence": [
+    "src/main/split-model.js",
+    "src/main/glance-card.js",
+    "docs/press/release-notes/v1.40.0.md"
+   ],
+   "qualification": "Split View shows two tabs side by side (v1.40.0). Glance opens a link as a floating card over the page."
+  },
+  "sync": {
+   "evidence": [
+    "src/main/sync.js",
+    "src/main/sync-crypto.js",
+    "src/main/shared-spaces.js",
+    "docs/press/release-notes/v1.45.0.md"
+   ],
+   "qualification": "Off by default. Favorites and settings, open tabs if chosen per device, and shared Spaces only when turned on per device, all encrypted on the device before upload."
+  },
+  "ai": {
+   "evidence": [
+    "docs/marketing-claims.md"
+   ],
+   "qualification": "Blanc includes no AI assistant or agent features; the page presents that as a deliberate product choice (owner direction, November 2, 2026)."
+  },
+  "arcImport": {
+   "evidence": [
+    "src/main/arc-import.js",
+    "src/main/arc-sidebar.js"
+   ],
+   "qualification": "Bring Your Tabs reads Arc’s sidebar file and makes each selected Arc Space a Blanc Space (v1.32.0); no sign-ins, passwords or history."
+  }
+ },
+ "externalSources": [
+  {
+   "url": "https://github.com/pauljoda/Crest",
+   "publisher": "Crest (Paul Davis)",
+   "accessedAt": "2026-11-02",
+   "supports": "README: Mac (Apple silicon, macOS 26.1+), iPhone and iPad; MPL-2.0 license; sidebar with pins, saved tabs and folders; Split View of two to four live pages; Peek previews a link; Chromium plus WebKit on Mac."
+  },
+  {
+   "url": "https://crestbrowser.com/",
+   "publisher": "Crest (Paul Davis)",
+   "accessedAt": "2026-11-02",
+   "supports": "Homepage: early access, security not independently audited; Mac, iPad and iPhone; import from Arc of Spaces, tabs, folders, colors, icons and passwords."
+  },
+  {
+   "url": "https://crestbrowser.com/guides/engines/",
+   "publisher": "Crest (Paul Davis)",
+   "accessedAt": "2026-11-02",
+   "supports": "Engine guide: Chrome Web Store extensions run on Chromium pages only; built-in ad and tracker blocking is WebKit-only, and Chromium pages need a blocking extension."
+  },
+  {
+   "url": "https://crestbrowser.com/guides/extension-compatibility/",
+   "publisher": "Crest (Paul Davis)",
+   "accessedAt": "2026-11-02",
+   "supports": "Extension limitations: extensions run only on Chromium pages in Crest for Mac, not on WebKit pages or on iPhone and iPad."
+  },
+  {
+   "url": "https://crestbrowser.com/guides/spaces-and-isolation/",
+   "publisher": "Crest (Paul Davis)",
+   "accessedAt": "2026-11-02",
+   "supports": "Space isolation guide: each Space keeps its own cookies, website data, history, passwords and extensions; Sub-Spaces can share sign-ins."
+  },
+  {
+   "url": "https://crestbrowser.com/guides/sync-across-devices/",
+   "publisher": "Crest (Paul Davis)",
+   "accessedAt": "2026-11-02",
+   "supports": "Sync guide: optional sync through iCloud on devices signed into the same Apple Account."
+  },
+  {
+   "url": "https://crestbrowser.com/privacy/",
+   "publisher": "Crest (Paul Davis)",
+   "accessedAt": "2026-11-02",
+   "supports": "Privacy page: Crest has no account system, analytics pipeline or advertising SDK."
+  },
+  {
+   "url": "https://github.com/pauljoda/Crest/blob/main/CHANGELOG.md",
+   "publisher": "Crest (Paul Davis)",
+   "accessedAt": "2026-11-02",
+   "supports": "Changelog 0.8.0 (October 12, 2026): coding agents such as Claude Code and Codex can use Crest on Mac after Crest asks; the command palette can ask an assistant directly."
+  },
+  {
+   "url": "https://apps.apple.com/us/app/crest-browser/id6797335023",
+   "publisher": "Crest (Paul Davis), App Store listing",
+   "accessedAt": "2026-11-02",
+   "supports": "App Store listing by the developer: price Free; describes Crest as free and open source."
+  },
+  {
+   "url": "https://arc.net/",
+   "publisher": "The Browser Company",
+   "accessedAt": "2026-11-02",
+   "supports": "Arc is sunsetting on December 22, 2026: new accounts closed October 22; Arc for macOS and Windows stops working and accounts are deactivated December 22; Arc Search on iOS and Android loses sign-in and sync November 23; basic updates until then."
+  },
+  {
+   "url": "https://resources.arc.net/hc/en-us/articles/44413577819159-Arc-Sunset-Frequently-Asked-Questions",
+   "publisher": "The Browser Company",
+   "accessedAt": "2026-11-02",
+   "supports": "Sunset FAQ: Arc supports Chrome Web Store extensions; Arc features include the Sidebar, Spaces, Split View and Peek; Arc Max AI features keep working on desktop until December 22, 2026."
+  },
+  {
+   "url": "https://resources.arc.net/hc/en-us/articles/19335714372759-Troubleshoot-or-Report-a-Problem-in-Arc",
+   "publisher": "The Browser Company",
+   "accessedAt": "2026-11-02",
+   "supports": "Troubleshooting article: Arc for macOS installs the uBlock Origin ad blocker by default."
+  },
+  {
+   "url": "https://helium.computer/",
+   "publisher": "imput",
+   "accessedAt": "2026-11-02",
+   "supports": "Homepage FAQ: free and FOSS, funded by tips; blocks ads, trackers and cookie banners by default; all Chromium extensions, vertical tabs and split view; data sync not yet; desktop only, in beta."
+  },
+  {
+   "url": "https://helium.computer/download",
+   "publisher": "imput",
+   "accessedAt": "2026-11-02",
+   "supports": "Download page: macOS, Windows and Linux builds, labelled beta."
+  },
+  {
+   "url": "https://github.com/imputnet/helium",
+   "publisher": "imput",
+   "accessedAt": "2026-11-02",
+   "supports": "Repository README and license: Helium’s own code under GPL-3.0; its uBlock Origin fork is the built-in blocker."
+  },
+  {
+   "url": "https://brave.com/download/",
+   "publisher": "Brave Software",
+   "accessedAt": "2026-11-02",
+   "supports": "Download page: Brave for Linux, macOS and Windows, plus Android and iOS."
+  },
+  {
+   "url": "https://brave.com/features/",
+   "publisher": "Brave Software",
+   "accessedAt": "2026-11-02",
+   "supports": "Features page: Shields are default, built-in protection blocking ads and trackers; compatible with Chrome Web Store extensions, even those relying on MV2."
+  },
+  {
+   "url": "https://brave.com/privacy-features/",
+   "publisher": "Brave Software",
+   "accessedAt": "2026-11-02",
+   "supports": "Privacy features page: Brave Sync data is encrypted on the device and hidden from Brave."
+  },
+  {
+   "url": "https://brave.com/premium/",
+   "publisher": "Brave Software",
+   "accessedAt": "2026-11-02",
+   "supports": "Premium page: the browser is free; optional paid products include Brave VPN and Leo Premium."
+  },
+  {
+   "url": "https://brave.com/leo/",
+   "publisher": "Brave Software",
+   "accessedAt": "2026-11-02",
+   "supports": "Leo page: Brave’s built-in AI assistant, free to use, with a paid Premium tier."
+  },
+  {
+   "url": "https://brave.com/latest/",
+   "publisher": "Brave Software",
+   "accessedAt": "2026-11-02",
+   "supports": "Release notes page: regular public releases across Release, Beta and Nightly channels (v1.98.62 on October 28, 2026 when read)."
+  },
+  {
+   "url": "https://brave.com/blog/containers/",
+   "publisher": "Brave Software",
+   "accessedAt": "2026-11-02",
+   "supports": "Containers post (July 2, 2026): desktop Containers keep cookies and storage separate per tab."
+  },
+  {
+   "url": "https://brave.com/blog/vertical-tabs/",
+   "publisher": "Brave Software",
+   "accessedAt": "2026-11-02",
+   "supports": "Vertical tabs post: vertical tabs are turned on in settings."
+  },
+  {
+   "url": "https://github.com/brave/brave-browser",
+   "publisher": "Brave Software",
+   "accessedAt": "2026-11-02",
+   "supports": "brave-browser repository: MPL-2.0 license."
+  }
+ ],
+ "claims": [
+  {
+   "id": "compare-1451-001",
+   "source": "site/src/pages/compare.astro",
+   "exactWording": "How Blanc compares",
+   "subject": "label",
+   "evidenceGroups": [
+    "page"
+   ],
+   "verdict": "verified"
+  },
+  {
+   "id": "compare-1451-002",
+   "source": "site/src/pages/compare.astro",
+   "exactWording": "Blanc next to Crest, Arc, Helium and Brave, on the questions that decide a switch.",
+   "subject": "label",
+   "evidenceGroups": [
+    "page"
+   ],
+   "verdict": "verified"
+  },
+  {
+   "id": "compare-1451-003",
+   "source": "site/src/pages/compare.astro",
+   "exactWording": "Every desktop",
+   "subject": "label",
+   "evidenceGroups": [
+    "platforms"
+   ],
+   "verdict": "verified"
+  },
+  {
+   "id": "compare-1451-004",
+   "source": "site/src/pages/compare.astro",
+   "exactWording": "One browser for macOS, Windows and Linux, so your Favorites and settings can follow you between computers.",
+   "subject": "Blanc",
+   "evidenceGroups": [
+    "platforms",
+    "sync"
+   ],
+   "verdict": "verified"
+  },
+  {
+   "id": "compare-1451-005",
+   "source": "site/src/pages/compare.astro",
+   "exactWording": "Blocking from the first launch",
+   "subject": "label",
+   "evidenceGroups": [
+    "blocking"
+   ],
+   "verdict": "verified"
+  },
+  {
+   "id": "compare-1451-006",
+   "source": "site/src/pages/compare.astro",
+   "exactWording": "Ads and trackers are blocked in every tab, private tabs included, with full uBlock Origin if you want it.",
+   "subject": "Blanc",
+   "evidenceGroups": [
+    "blocking"
+   ],
+   "verdict": "verified"
+  },
+  {
+   "id": "compare-1451-007",
+   "source": "site/src/pages/compare.astro",
+   "exactWording": "Just a browser, by choice",
+   "subject": "label",
+   "evidenceGroups": [
+    "ai"
+   ],
+   "verdict": "verified"
+  },
+  {
+   "id": "compare-1451-008",
+   "source": "site/src/pages/compare.astro",
+   "exactWording": "Free, open source and no account to make. No built-in AI assistant: Blanc keeps to browsing.",
+   "subject": "Blanc",
+   "evidenceGroups": [
+    "cost",
+    "openSource",
+    "ai"
+   ],
+   "verdict": "verified"
+  },
+  {
+   "id": "compare-1451-009",
+   "source": "site/src/pages/compare.astro",
+   "exactWording": "Side by side",
+   "subject": "label",
+   "evidenceGroups": [
+    "page"
+   ],
+   "verdict": "verified"
+  },
+  {
+   "id": "compare-1451-010",
+   "source": "site/src/pages/compare.astro",
+   "exactWording": "Checked November 11, 2026 against Blanc v1.48.0.",
+   "subject": "label",
+   "evidenceGroups": [
+    "status",
+    "page"
+   ],
+   "verdict": "verified"
+  },
+  {
+   "id": "compare-1451-011",
+   "source": "site/src/pages/compare.astro",
+   "exactWording": "Choose a browser’s name to bring its column forward.",
+   "subject": "label",
+   "evidenceGroups": [
+    "page"
+   ],
+   "verdict": "verified"
+  },
+  {
+   "id": "compare-1451-012",
+   "source": "site/src/pages/compare.astro",
+   "exactWording": "Question",
+   "subject": "label",
+   "evidenceGroups": [
+    "page"
+   ],
+   "verdict": "verified"
+  },
+  {
+   "id": "compare-1451-013",
+   "source": "site/src/pages/compare.astro",
+   "exactWording": "Good to know before you switch",
+   "subject": "label",
+   "evidenceGroups": [
+    "page"
+   ],
+   "verdict": "verified"
+  },
+  {
+   "id": "compare-1451-014",
+   "source": "site/src/pages/compare.astro",
+   "exactWording": "Extensions. Blanc doesn’t install extensions from the Chrome Web Store. If one is essential to you, check that first.",
+   "subject": "Blanc",
+   "evidenceGroups": [
+    "extensions"
+   ],
+   "verdict": "verified"
+  },
+  {
+   "id": "compare-1451-015",
+   "source": "site/src/pages/compare.astro",
+   "exactWording": "Phones and tablets. Blanc for iPhone and iPad is on the App Store, with a TestFlight beta for early builds; there is no Android app.",
+   "subject": "Blanc",
+   "evidenceGroups": [
+    "platforms"
+   ],
+   "verdict": "verified",
+   "reason": "November 6, 2026: reworded from “a public beta on TestFlight” after Blanc for iPhone 1.0 was released on the App Store. November 12, 2026: “Phones. Blanc for iPhone is on the App Store, …” became “Phones and tablets. Blanc for iPhone and iPad is on the App Store, …” for version 1.0.3, which adds iPad; held with docs/website-ipad-1.0.3-claims.json until App Review approves it."
+  },
+  {
+   "id": "compare-1451-016",
+   "source": "site/src/pages/compare.astro",
+   "exactWording": "Coming from Arc? Blanc brings your Arc Spaces over, with folders as tab groups. See how the import works.",
+   "subject": "Blanc",
+   "evidenceGroups": [
+    "arcImport"
+   ],
+   "verdict": "verified"
+  },
+  {
+   "id": "compare-1451-017",
+   "source": "site/src/pages/compare.astro",
+   "exactWording": "Sources",
+   "subject": "label",
+   "evidenceGroups": [
+    "page"
+   ],
+   "verdict": "verified"
+  },
+  {
+   "id": "compare-1451-018",
+   "source": "site/src/pages/compare.astro",
+   "exactWording": "Blanc’s answers come from its v1.48.0 release and the release notes. Answers about other browsers come from these pages, read on November 2, 2026.",
+   "subject": "label",
+   "evidenceGroups": [
+    "page"
+   ],
+   "verdict": "verified"
+  },
+  {
+   "id": "compare-1451-019",
+   "source": "site/src/pages/compare.astro",
+   "exactWording": "“Not stated” means the pages listed for that browser don’t say.",
+   "subject": "label",
+   "evidenceGroups": [
+    "page"
+   ],
+   "verdict": "verified"
+  },
+  {
+   "id": "compare-1451-020",
+   "source": "site/src/pages/compare.astro",
+   "exactWording": "A little less browser.",
+   "subject": "label",
+   "evidenceGroups": [
+    "page"
+   ],
+   "verdict": "verified"
+  },
+  {
+   "id": "compare-1451-021",
+   "source": "site/src/pages/compare.astro",
+   "exactWording": "Free for macOS, Windows and Linux.",
+   "subject": "Blanc",
+   "evidenceGroups": [
+    "platforms",
+    "cost"
+   ],
+   "verdict": "verified"
+  },
+  {
+   "id": "compare-1451-022",
+   "source": "site/src/pages/arc-alternative.astro",
+   "exactWording": "Weighing other browsers too? See Blanc next to Crest, Arc, Helium and Brave.",
+   "subject": "label",
+   "evidenceGroups": [
+    "page"
+   ],
+   "verdict": "verified"
+  },
+  {
+   "id": "compare-1451-023",
+   "source": "site/src/data/compare.json",
+   "exactWording": "The basics",
+   "subject": "label",
+   "evidenceGroups": [
+    "page"
+   ],
+   "verdict": "verified"
+  },
+  {
+   "id": "compare-1451-024",
+   "source": "site/src/data/compare.json",
+   "exactWording": "What’s built in",
+   "subject": "label",
+   "evidenceGroups": [
+    "page"
+   ],
+   "verdict": "verified"
+  },
+  {
+   "id": "compare-1451-025",
+   "source": "site/src/data/compare.json",
+   "exactWording": "Organizing your tabs",
+   "subject": "label",
+   "evidenceGroups": [
+    "page"
+   ],
+   "verdict": "verified"
+  },
+  {
+   "id": "compare-1451-026",
+   "source": "site/src/data/compare.json",
+   "exactWording": "Across your devices",
+   "subject": "label",
+   "evidenceGroups": [
+    "page"
+   ],
+   "verdict": "verified"
+  },
+  {
+   "id": "compare-1451-027",
+   "source": "site/src/data/compare.json",
+   "exactWording": "Ends Dec 22, 2026",
+   "subject": "Arc",
+   "evidenceGroups": [],
+   "verdict": "qualified",
+   "externalSources": [
+    "https://arc.net/"
+   ]
+  },
+  {
+   "id": "compare-1451-028",
+   "source": "site/src/data/compare.json",
+   "exactWording": "Arc ended on December 22, 2026, so it is no longer in this chart.",
+   "subject": "Arc",
+   "evidenceGroups": [],
+   "verdict": "qualified",
+   "externalSources": [
+    "https://arc.net/"
+   ]
+  },
+  {
+   "id": "compare-1451-029",
+   "source": "site/src/data/compare.json",
+   "exactWording": "Where it runs",
+   "subject": "label",
+   "evidenceGroups": [
+    "page"
+   ],
+   "verdict": "verified"
+  },
+  {
+   "id": "compare-1451-030",
+   "source": "site/src/data/compare.json",
+   "row": "platforms",
+   "column": "blanc",
+   "exactWording": "macOS, Windows, Linux. iPhone and iPad on the App Store, with a TestFlight beta.",
+   "subject": "Blanc",
+   "evidenceGroups": [
+    "platforms"
+   ],
+   "verdict": "verified",
+   "reason": "November 6, 2026: reworded from “macOS, Windows, Linux. iPhone is a public TestFlight beta.” after Blanc for iPhone 1.0 was released on the App Store. The owner asked on November 6, 2026 for the TestFlight beta to stay named next to the App Store. November 12, 2026: “iPhone on the App Store” became “iPhone and iPad on the App Store” for version 1.0.3, which adds iPad; held with docs/website-ipad-1.0.3-claims.json until App Review approves it."
+  },
+  {
+   "id": "compare-1451-031",
+   "source": "site/src/data/compare.json",
+   "row": "platforms",
+   "column": "crest",
+   "exactWording": "Mac (Apple silicon), iPhone, iPad. No Windows or Linux.",
+   "subject": "Crest",
+   "evidenceGroups": [],
+   "verdict": "qualified",
+   "externalSources": [
+    "https://github.com/pauljoda/Crest"
+   ]
+  },
+  {
+   "id": "compare-1451-032",
+   "source": "site/src/data/compare.json",
+   "row": "platforms",
+   "column": "arc",
+   "exactWording": "macOS and Windows until Dec 22, 2026. Arc Search on iOS and Android.",
+   "subject": "Arc",
+   "evidenceGroups": [],
+   "verdict": "qualified",
+   "externalSources": [
+    "https://arc.net/"
+   ]
+  },
+  {
+   "id": "compare-1451-033",
+   "source": "site/src/data/compare.json",
+   "row": "platforms",
+   "column": "helium",
+   "exactWording": "macOS, Windows, Linux, all beta. No mobile yet.",
+   "subject": "Helium",
+   "evidenceGroups": [],
+   "verdict": "qualified",
+   "externalSources": [
+    "https://helium.computer/",
+    "https://helium.computer/download"
+   ]
+  },
+  {
+   "id": "compare-1451-034",
+   "source": "site/src/data/compare.json",
+   "row": "platforms",
+   "column": "brave",
+   "exactWording": "macOS, Windows, Linux, iOS, Android.",
+   "subject": "Brave",
+   "evidenceGroups": [],
+   "verdict": "qualified",
+   "externalSources": [
+    "https://brave.com/download/"
+   ]
+  },
+  {
+   "id": "compare-1451-035",
+   "source": "site/src/data/compare.json",
+   "exactWording": "Cost and account",
+   "subject": "label",
+   "evidenceGroups": [
+    "page"
+   ],
+   "verdict": "verified"
+  },
+  {
+   "id": "compare-1451-036",
+   "source": "site/src/data/compare.json",
+   "row": "cost",
+   "column": "blanc",
+   "exactWording": "Free. No account. Patron is optional and unlocks nothing.",
+   "subject": "Blanc",
+   "evidenceGroups": [
+    "cost"
+   ],
+   "verdict": "verified"
+  },
+  {
+   "id": "compare-1451-037",
+   "source": "site/src/data/compare.json",
+   "row": "cost",
+   "column": "crest",
+   "exactWording": "Free. No account system.",
+   "subject": "Crest",
+   "evidenceGroups": [],
+   "verdict": "qualified",
+   "externalSources": [
+    "https://apps.apple.com/us/app/crest-browser/id6797335023",
+    "https://crestbrowser.com/privacy/"
+   ]
+  },
+  {
+   "id": "compare-1451-038",
+   "source": "site/src/data/compare.json",
+   "row": "cost",
+   "column": "arc",
+   "exactWording": "Price not stated. New accounts closed Oct 22, 2026.",
+   "subject": "Arc",
+   "evidenceGroups": [],
+   "verdict": "qualified",
+   "externalSources": [
+    "https://arc.net/"
+   ]
+  },
+  {
+   "id": "compare-1451-039",
+   "source": "site/src/data/compare.json",
+   "row": "cost",
+   "column": "helium",
+   "exactWording": "Free. Funded by optional tips.",
+   "subject": "Helium",
+   "evidenceGroups": [],
+   "verdict": "qualified",
+   "externalSources": [
+    "https://helium.computer/"
+   ]
+  },
+  {
+   "id": "compare-1451-040",
+   "source": "site/src/data/compare.json",
+   "row": "cost",
+   "column": "brave",
+   "exactWording": "Browser is free. Optional paid add-ons such as VPN and Leo Premium.",
+   "subject": "Brave",
+   "evidenceGroups": [],
+   "verdict": "qualified",
+   "externalSources": [
+    "https://brave.com/premium/"
+   ]
+  },
+  {
+   "id": "compare-1451-041",
+   "source": "site/src/data/compare.json",
+   "exactWording": "Open source",
+   "subject": "label",
+   "evidenceGroups": [
+    "page"
+   ],
+   "verdict": "verified"
+  },
+  {
+   "id": "compare-1451-042",
+   "source": "site/src/data/compare.json",
+   "row": "open-source",
+   "column": "blanc",
+   "exactWording": "Yes. MIT for Blanc’s own code; name and logos reserved.",
+   "subject": "Blanc",
+   "evidenceGroups": [
+    "openSource"
+   ],
+   "verdict": "verified"
+  },
+  {
+   "id": "compare-1451-043",
+   "source": "site/src/data/compare.json",
+   "row": "open-source",
+   "column": "crest",
+   "exactWording": "Yes. MPL 2.0.",
+   "subject": "Crest",
+   "evidenceGroups": [],
+   "verdict": "qualified",
+   "externalSources": [
+    "https://github.com/pauljoda/Crest"
+   ]
+  },
+  {
+   "id": "compare-1451-044",
+   "source": "site/src/data/compare.json",
+   "row": "open-source",
+   "column": "arc",
+   "exactWording": "Not stated.",
+   "subject": "Arc",
+   "evidenceGroups": [],
+   "verdict": "qualified",
+   "externalSources": [
+    "https://arc.net/",
+    "https://resources.arc.net/hc/en-us/articles/44413577819159-Arc-Sunset-Frequently-Asked-Questions",
+    "https://resources.arc.net/hc/en-us/articles/19335714372759-Troubleshoot-or-Report-a-Problem-in-Arc"
+   ]
+  },
+  {
+   "id": "compare-1451-045",
+   "source": "site/src/data/compare.json",
+   "row": "open-source",
+   "column": "helium",
+   "exactWording": "Yes. GPL 3.0 for Helium’s own code.",
+   "subject": "Helium",
+   "evidenceGroups": [],
+   "verdict": "qualified",
+   "externalSources": [
+    "https://github.com/imputnet/helium"
+   ]
+  },
+  {
+   "id": "compare-1451-046",
+   "source": "site/src/data/compare.json",
+   "row": "open-source",
+   "column": "brave",
+   "exactWording": "Yes. MPL 2.0.",
+   "subject": "Brave",
+   "evidenceGroups": [],
+   "verdict": "qualified",
+   "externalSources": [
+    "https://github.com/brave/brave-browser"
+   ]
+  },
+  {
+   "id": "compare-1451-047",
+   "source": "site/src/data/compare.json",
+   "exactWording": "Release status",
+   "subject": "label",
+   "evidenceGroups": [
+    "page"
+   ],
+   "verdict": "verified"
+  },
+  {
+   "id": "compare-1451-048",
+   "source": "site/src/data/compare.json",
+   "row": "status",
+   "column": "blanc",
+   "exactWording": "Public release v1.48.0, Nov 11, 2026.",
+   "subject": "Blanc",
+   "evidenceGroups": [
+    "status"
+   ],
+   "verdict": "verified"
+  },
+  {
+   "id": "compare-1451-049",
+   "source": "site/src/data/compare.json",
+   "row": "status",
+   "column": "crest",
+   "exactWording": "Early access, by its own description.",
+   "subject": "Crest",
+   "evidenceGroups": [],
+   "verdict": "qualified",
+   "externalSources": [
+    "https://crestbrowser.com/"
+   ]
+  },
+  {
+   "id": "compare-1451-050",
+   "source": "site/src/data/compare.json",
+   "row": "status",
+   "column": "arc",
+   "exactWording": "Sunsetting. Basic updates only until Dec 22, 2026.",
+   "subject": "Arc",
+   "evidenceGroups": [],
+   "verdict": "qualified",
+   "externalSources": [
+    "https://arc.net/"
+   ]
+  },
+  {
+   "id": "compare-1451-051",
+   "source": "site/src/data/compare.json",
+   "row": "status",
+   "column": "helium",
+   "exactWording": "Beta, by its own description.",
+   "subject": "Helium",
+   "evidenceGroups": [],
+   "verdict": "qualified",
+   "externalSources": [
+    "https://helium.computer/",
+    "https://helium.computer/download"
+   ]
+  },
+  {
+   "id": "compare-1451-052",
+   "source": "site/src/data/compare.json",
+   "row": "status",
+   "column": "brave",
+   "exactWording": "Regular public releases.",
+   "subject": "Brave",
+   "evidenceGroups": [],
+   "verdict": "qualified",
+   "externalSources": [
+    "https://brave.com/latest/"
+   ]
+  },
+  {
+   "id": "compare-1451-053",
+   "source": "site/src/data/compare.json",
+   "exactWording": "Built-in ad and tracker blocking",
+   "subject": "label",
+   "evidenceGroups": [
+    "page"
+   ],
+   "verdict": "verified"
+  },
+  {
+   "id": "compare-1451-054",
+   "source": "site/src/data/compare.json",
+   "row": "blocking",
+   "column": "blanc",
+   "exactWording": "On by default, including private tabs. Full uBlock Origin optional.",
+   "subject": "Blanc",
+   "evidenceGroups": [
+    "blocking"
+   ],
+   "verdict": "verified"
+  },
+  {
+   "id": "compare-1451-055",
+   "source": "site/src/data/compare.json",
+   "row": "blocking",
+   "column": "crest",
+   "exactWording": "WebKit pages and iPhone/iPad only. Chromium pages need an extension.",
+   "subject": "Crest",
+   "evidenceGroups": [],
+   "verdict": "qualified",
+   "externalSources": [
+    "https://crestbrowser.com/guides/engines/"
+   ]
+  },
+  {
+   "id": "compare-1451-056",
+   "source": "site/src/data/compare.json",
+   "row": "blocking",
+   "column": "arc",
+   "exactWording": "uBlock Origin installed by default on macOS.",
+   "subject": "Arc",
+   "evidenceGroups": [],
+   "verdict": "qualified",
+   "externalSources": [
+    "https://resources.arc.net/hc/en-us/articles/19335714372759-Troubleshoot-or-Report-a-Problem-in-Arc"
+   ]
+  },
+  {
+   "id": "compare-1451-057",
+   "source": "site/src/data/compare.json",
+   "row": "blocking",
+   "column": "helium",
+   "exactWording": "On by default (its uBlock Origin fork), plus cookie banners.",
+   "subject": "Helium",
+   "evidenceGroups": [],
+   "verdict": "qualified",
+   "externalSources": [
+    "https://helium.computer/",
+    "https://github.com/imputnet/helium"
+   ]
+  },
+  {
+   "id": "compare-1451-058",
+   "source": "site/src/data/compare.json",
+   "row": "blocking",
+   "column": "brave",
+   "exactWording": "On by default (Shields).",
+   "subject": "Brave",
+   "evidenceGroups": [],
+   "verdict": "qualified",
+   "externalSources": [
+    "https://brave.com/features/"
+   ]
+  },
+  {
+   "id": "compare-1451-059",
+   "source": "site/src/data/compare.json",
+   "exactWording": "Chrome Web Store extensions",
+   "subject": "label",
+   "evidenceGroups": [
+    "page"
+   ],
+   "verdict": "verified"
+  },
+  {
+   "id": "compare-1451-060",
+   "source": "site/src/data/compare.json",
+   "row": "extensions",
+   "column": "blanc",
+   "exactWording": "No. Optional uBlock Origin only.",
+   "subject": "Blanc",
+   "evidenceGroups": [
+    "extensions"
+   ],
+   "verdict": "verified"
+  },
+  {
+   "id": "compare-1451-061",
+   "source": "site/src/data/compare.json",
+   "row": "extensions",
+   "column": "crest",
+   "exactWording": "Yes, on Mac, Chromium pages only.",
+   "subject": "Crest",
+   "evidenceGroups": [],
+   "verdict": "qualified",
+   "externalSources": [
+    "https://crestbrowser.com/guides/engines/",
+    "https://crestbrowser.com/guides/extension-compatibility/"
+   ]
+  },
+  {
+   "id": "compare-1451-062",
+   "source": "site/src/data/compare.json",
+   "row": "extensions",
+   "column": "arc",
+   "exactWording": "Yes.",
+   "subject": "Arc",
+   "evidenceGroups": [],
+   "verdict": "qualified",
+   "externalSources": [
+    "https://resources.arc.net/hc/en-us/articles/44413577819159-Arc-Sunset-Frequently-Asked-Questions"
+   ]
+  },
+  {
+   "id": "compare-1451-063",
+   "source": "site/src/data/compare.json",
+   "row": "extensions",
+   "column": "helium",
+   "exactWording": "Yes.",
+   "subject": "Helium",
+   "evidenceGroups": [],
+   "verdict": "qualified",
+   "externalSources": [
+    "https://helium.computer/"
+   ]
+  },
+  {
+   "id": "compare-1451-064",
+   "source": "site/src/data/compare.json",
+   "row": "extensions",
+   "column": "brave",
+   "exactWording": "Yes, including some Manifest V2 extensions.",
+   "subject": "Brave",
+   "evidenceGroups": [],
+   "verdict": "qualified",
+   "externalSources": [
+    "https://brave.com/features/"
+   ]
+  },
+  {
+   "id": "compare-1451-065",
+   "source": "site/src/data/compare.json",
+   "exactWording": "Built-in AI",
+   "subject": "label",
+   "evidenceGroups": [
+    "page"
+   ],
+   "verdict": "verified"
+  },
+  {
+   "id": "compare-1451-066",
+   "source": "site/src/data/compare.json",
+   "row": "ai",
+   "column": "blanc",
+   "exactWording": "None, by choice.",
+   "subject": "Blanc",
+   "evidenceGroups": [
+    "ai"
+   ],
+   "verdict": "verified"
+  },
+  {
+   "id": "compare-1451-067",
+   "source": "site/src/data/compare.json",
+   "row": "ai",
+   "column": "crest",
+   "exactWording": "Lets coding agents you approve use it. Palette can ask an assistant.",
+   "subject": "Crest",
+   "evidenceGroups": [],
+   "verdict": "qualified",
+   "externalSources": [
+    "https://github.com/pauljoda/Crest/blob/main/CHANGELOG.md"
+   ]
+  },
+  {
+   "id": "compare-1451-068",
+   "source": "site/src/data/compare.json",
+   "row": "ai",
+   "column": "arc",
+   "exactWording": "Arc Max, until Dec 22, 2026 on desktop.",
+   "subject": "Arc",
+   "evidenceGroups": [],
+   "verdict": "qualified",
+   "externalSources": [
+    "https://resources.arc.net/hc/en-us/articles/44413577819159-Arc-Sunset-Frequently-Asked-Questions"
+   ]
+  },
+  {
+   "id": "compare-1451-069",
+   "source": "site/src/data/compare.json",
+   "row": "ai",
+   "column": "helium",
+   "exactWording": "Not stated.",
+   "subject": "Helium",
+   "evidenceGroups": [],
+   "verdict": "qualified",
+   "externalSources": [
+    "https://helium.computer/",
+    "https://helium.computer/download",
+    "https://github.com/imputnet/helium"
+   ]
+  },
+  {
+   "id": "compare-1451-070",
+   "source": "site/src/data/compare.json",
+   "row": "ai",
+   "column": "brave",
+   "exactWording": "Leo assistant. Free, with a paid tier.",
+   "subject": "Brave",
+   "evidenceGroups": [],
+   "verdict": "qualified",
+   "externalSources": [
+    "https://brave.com/leo/",
+    "https://brave.com/premium/"
+   ]
+  },
+  {
+   "id": "compare-1451-071",
+   "source": "site/src/data/compare.json",
+   "exactWording": "Spaces and separate accounts",
+   "subject": "label",
+   "evidenceGroups": [
+    "page"
+   ],
+   "verdict": "verified"
+  },
+  {
+   "id": "compare-1451-072",
+   "source": "site/src/data/compare.json",
+   "row": "spaces",
+   "column": "blanc",
+   "exactWording": "Spaces save tab sets. Separate local profiles keep cookies and site data apart.",
+   "subject": "Blanc",
+   "evidenceGroups": [
+    "spaces"
+   ],
+   "verdict": "verified"
+  },
+  {
+   "id": "compare-1451-073",
+   "source": "site/src/data/compare.json",
+   "row": "spaces",
+   "column": "crest",
+   "exactWording": "Spaces each keep their own cookies, history, passwords. Sub-Spaces can share sign-ins.",
+   "subject": "Crest",
+   "evidenceGroups": [],
+   "verdict": "qualified",
+   "externalSources": [
+    "https://crestbrowser.com/guides/spaces-and-isolation/"
+   ]
+  },
+  {
+   "id": "compare-1451-074",
+   "source": "site/src/data/compare.json",
+   "row": "spaces",
+   "column": "arc",
+   "exactWording": "Spaces. Account separation not stated.",
+   "subject": "Arc",
+   "evidenceGroups": [],
+   "verdict": "qualified",
+   "externalSources": [
+    "https://resources.arc.net/hc/en-us/articles/44413577819159-Arc-Sunset-Frequently-Asked-Questions"
+   ]
+  },
+  {
+   "id": "compare-1451-075",
+   "source": "site/src/data/compare.json",
+   "row": "spaces",
+   "column": "helium",
+   "exactWording": "Not stated.",
+   "subject": "Helium",
+   "evidenceGroups": [],
+   "verdict": "qualified",
+   "externalSources": [
+    "https://helium.computer/",
+    "https://helium.computer/download",
+    "https://github.com/imputnet/helium"
+   ]
+  },
+  {
+   "id": "compare-1451-076",
+   "source": "site/src/data/compare.json",
+   "row": "spaces",
+   "column": "brave",
+   "exactWording": "Containers keep cookies apart per tab, on desktop.",
+   "subject": "Brave",
+   "evidenceGroups": [],
+   "verdict": "qualified",
+   "externalSources": [
+    "https://brave.com/blog/containers/"
+   ]
+  },
+  {
+   "id": "compare-1451-077",
+   "source": "site/src/data/compare.json",
+   "exactWording": "Tabs on the side",
+   "subject": "label",
+   "evidenceGroups": [
+    "page"
+   ],
+   "verdict": "verified"
+  },
+  {
+   "id": "compare-1451-078",
+   "source": "site/src/data/compare.json",
+   "row": "side-tabs",
+   "column": "blanc",
+   "exactWording": "Optional vertical tabs.",
+   "subject": "Blanc",
+   "evidenceGroups": [
+    "sideTabs"
+   ],
+   "verdict": "verified"
+  },
+  {
+   "id": "compare-1451-079",
+   "source": "site/src/data/compare.json",
+   "row": "side-tabs",
+   "column": "crest",
+   "exactWording": "Sidebar is the main layout.",
+   "subject": "Crest",
+   "evidenceGroups": [],
+   "verdict": "qualified",
+   "externalSources": [
+    "https://github.com/pauljoda/Crest"
+   ]
+  },
+  {
+   "id": "compare-1451-080",
+   "source": "site/src/data/compare.json",
+   "row": "side-tabs",
+   "column": "arc",
+   "exactWording": "Sidebar.",
+   "subject": "Arc",
+   "evidenceGroups": [],
+   "verdict": "qualified",
+   "externalSources": [
+    "https://resources.arc.net/hc/en-us/articles/44413577819159-Arc-Sunset-Frequently-Asked-Questions"
+   ]
+  },
+  {
+   "id": "compare-1451-081",
+   "source": "site/src/data/compare.json",
+   "row": "side-tabs",
+   "column": "helium",
+   "exactWording": "Vertical tabs.",
+   "subject": "Helium",
+   "evidenceGroups": [],
+   "verdict": "qualified",
+   "externalSources": [
+    "https://helium.computer/"
+   ]
+  },
+  {
+   "id": "compare-1451-082",
+   "source": "site/src/data/compare.json",
+   "row": "side-tabs",
+   "column": "brave",
+   "exactWording": "Vertical tabs, off until turned on.",
+   "subject": "Brave",
+   "evidenceGroups": [],
+   "verdict": "qualified",
+   "externalSources": [
+    "https://brave.com/blog/vertical-tabs/"
+   ]
+  },
+  {
+   "id": "compare-1451-083",
+   "source": "site/src/data/compare.json",
+   "exactWording": "Split view and link preview",
+   "subject": "label",
+   "evidenceGroups": [
+    "page"
+   ],
+   "verdict": "verified"
+  },
+  {
+   "id": "compare-1451-084",
+   "source": "site/src/data/compare.json",
+   "row": "split",
+   "column": "blanc",
+   "exactWording": "Split View for two tabs. Glance previews a link in a floating card.",
+   "subject": "Blanc",
+   "evidenceGroups": [
+    "split"
+   ],
+   "verdict": "verified"
+  },
+  {
+   "id": "compare-1451-085",
+   "source": "site/src/data/compare.json",
+   "row": "split",
+   "column": "crest",
+   "exactWording": "Split View up to four tabs. Peek previews a link.",
+   "subject": "Crest",
+   "evidenceGroups": [],
+   "verdict": "qualified",
+   "externalSources": [
+    "https://github.com/pauljoda/Crest"
+   ]
+  },
+  {
+   "id": "compare-1451-086",
+   "source": "site/src/data/compare.json",
+   "row": "split",
+   "column": "arc",
+   "exactWording": "Split View and Peek.",
+   "subject": "Arc",
+   "evidenceGroups": [],
+   "verdict": "qualified",
+   "externalSources": [
+    "https://resources.arc.net/hc/en-us/articles/44413577819159-Arc-Sunset-Frequently-Asked-Questions"
+   ]
+  },
+  {
+   "id": "compare-1451-087",
+   "source": "site/src/data/compare.json",
+   "row": "split",
+   "column": "helium",
+   "exactWording": "Split view. No link preview stated.",
+   "subject": "Helium",
+   "evidenceGroups": [],
+   "verdict": "qualified",
+   "externalSources": [
+    "https://helium.computer/"
+   ]
+  },
+  {
+   "id": "compare-1451-088",
+   "source": "site/src/data/compare.json",
+   "row": "split",
+   "column": "brave",
+   "exactWording": "Not stated.",
+   "subject": "Brave",
+   "evidenceGroups": [],
+   "verdict": "qualified",
+   "externalSources": [
+    "https://brave.com/download/",
+    "https://brave.com/features/",
+    "https://brave.com/privacy-features/",
+    "https://brave.com/premium/",
+    "https://brave.com/leo/",
+    "https://brave.com/latest/",
+    "https://brave.com/blog/containers/",
+    "https://brave.com/blog/vertical-tabs/",
+    "https://github.com/brave/brave-browser"
+   ]
+  },
+  {
+   "id": "compare-1451-089",
+   "source": "site/src/data/compare.json",
+   "exactWording": "Sync",
+   "subject": "label",
+   "evidenceGroups": [
+    "page"
+   ],
+   "verdict": "verified"
+  },
+  {
+   "id": "compare-1451-090",
+   "source": "site/src/data/compare.json",
+   "row": "sync",
+   "column": "blanc",
+   "exactWording": "Optional and end-to-end encrypted. Favorites and settings, plus open tabs and shared Spaces if you choose.",
+   "subject": "Blanc",
+   "evidenceGroups": [
+    "sync"
+   ],
+   "verdict": "verified"
+  },
+  {
+   "id": "compare-1451-091",
+   "source": "site/src/data/compare.json",
+   "row": "sync",
+   "column": "crest",
+   "exactWording": "Optional, through iCloud. Apple devices only.",
+   "subject": "Crest",
+   "evidenceGroups": [],
+   "verdict": "qualified",
+   "externalSources": [
+    "https://crestbrowser.com/guides/sync-across-devices/"
+   ]
+  },
+  {
+   "id": "compare-1451-092",
+   "source": "site/src/data/compare.json",
+   "row": "sync",
+   "column": "arc",
+   "exactWording": "Account-based. Ends with the account, Dec 22, 2026.",
+   "subject": "Arc",
+   "evidenceGroups": [],
+   "verdict": "qualified",
+   "externalSources": [
+    "https://arc.net/"
+   ]
+  },
+  {
+   "id": "compare-1451-093",
+   "source": "site/src/data/compare.json",
+   "row": "sync",
+   "column": "helium",
+   "exactWording": "Not yet.",
+   "subject": "Helium",
+   "evidenceGroups": [],
+   "verdict": "qualified",
+   "externalSources": [
+    "https://helium.computer/"
+   ]
+  },
+  {
+   "id": "compare-1451-094",
+   "source": "site/src/data/compare.json",
+   "row": "sync",
+   "column": "brave",
+   "exactWording": "Yes. Brave says it is encrypted on the device.",
+   "subject": "Brave",
+   "evidenceGroups": [],
+   "verdict": "qualified",
+   "externalSources": [
+    "https://brave.com/privacy-features/"
+   ]
+  }
+ ]
+}

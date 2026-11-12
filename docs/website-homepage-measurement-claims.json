@@ -1,0 +1,20 @@
+{
+  "scope": "Website-only measurement explanation in the homepage footer notes; not a claim about a desktop release or a measured consent rate.",
+  "verified": "2026-10-29",
+  "websiteSourceSha": "3a3f8455c",
+  "evidence": [
+    "site/src/scripts/site.js",
+    "site/src/pages/index.astro",
+    "test/unit/site-attribution-consent.test.js"
+  ],
+  "qualification": "The draft based on websiteSourceSha enables Google and limited ad measurement outside consent-required regions when there is no saved choice. A prior denial or inaccessible choice storage keeps measurement off. Installer destinations remain ordinary anchors. The source and isolated tests show intended behavior; they do not prove deployment, external GA4 ingestion or ad attribution.",
+  "claims": [
+    {
+      "id": "home-measurement-001",
+      "source": "site/src/pages/index.astro",
+      "exactWording": "Google analytics and ad measurement are on by default outside the EEA, UK and Switzerland.",
+      "subject": "Blanc website",
+      "verdict": "verified"
+    }
+  ]
+}

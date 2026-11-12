@@ -1,0 +1,41 @@
+diff --git a/src/main/browser-shortcuts.js b/src/main/browser-shortcuts.js
+index 8569221..ec782c6 100644
+--- a/src/main/browser-shortcuts.js
++++ b/src/main/browser-shortcuts.js
+@@ -84,7 +84,7 @@ function installBrowserShortcuts({ webContents, getRuntime, ownsSurface, execute
+     if (!runtime || !ownsSurface(runtime, webContents)) return;
+     // This suppresses both page input and Electron's menu accelerator. Repeats
+     // are consumed too, so holding Ctrl+W cannot close an entire workspace.
+-    event.preventDefault();
++    if (!(process.env.BLANC_SPIKE_NOPREVENT === '1' && (id === 'next-tab' || id === 'previous-tab'))) event.preventDefault();
+     if (input.isAutoRepeat) return;
+     const handled = execute(id, runtime, webContents);
+     observe({ id, runtimeId: runtime.id, webContentsId: webContents.id, handled });
+diff --git a/src/main/main.js b/src/main/main.js
+index e2097de..092f802 100644
+--- a/src/main/main.js
++++ b/src/main/main.js
+@@ -7045,8 +7045,13 @@ const executeBrowserCommand = createBrowserCommandExecutor({
+   'new-private-tab': () => setActiveTab(createTab(PRIVATE_NEW_TAB_URL, { private: true }), { focusContent: false, focusAddress: true }),
+   'close-tab': (runtime, sender) => { const tab = browserCommandTab(runtime, sender); if (tab) closeTab(tab.id); },
+   'reopen-tab': reopenClosedTab,
+-  'next-tab': () => cycleTab(1),
+-  'previous-tab': () => cycleTab(-1),
++  // SPIKE ONLY: the switcher contract — a Tab moves the pick, never the tab or focus.
++  'next-tab': (runtime) => {
++    globalThis.__spikeSteps = (globalThis.__spikeSteps ?? 0) + 1;
++    if (process.env.BLANC_SPIKE_FOCUS === 'strip') runtime.window.webContents.focus();
++    if (process.env.BLANC_SPIKE_FOCUS === 'strip-deferred') setTimeout(() => runtime.window.webContents.focus(), 0);
++  },
++  'previous-tab': () => { globalThis.__spikeSteps = (globalThis.__spikeSteps ?? 0) - 1; },
+   'copy-link': copyBrowserCommandLink,
+   address: toggleIsland,
+   find: (runtime, sender) => openFindBar(browserCommandTab(runtime, sender)?.id),
+@@ -11392,6 +11397,7 @@ function buildMenuForRuntime(runtime) {
+       id: `browser-${id}`,
+       label: mn(t(definition.labelKey)),
+       accelerator: definition.primary,
++      ...(process.env.BLANC_SPIKE_NOPREVENT === '1' && (id === 'next-tab' || id === 'previous-tab') ? { registerAccelerator: false } : {}),
+       click: (_item, window) => {
+         const target = window
+           ? windowRuntimes.all().find(candidate => candidate.window === window)

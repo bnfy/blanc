@@ -9,6 +9,50 @@
   const browserImportBtn = document.getElementById('browserImportBtn');
   const browserFindBtn = document.getElementById('browserFindBtn');
 
+  // iOS edits Favorites but has no import and no Start Page pins; desktop
+  // leaves both flags out.
+  const capabilities = await window.bowserPages.bookmarks.capabilities();
+  const { editable } = capabilities;
+  const canImport = editable && capabilities.import !== false;
+  const canPin = editable && capabilities.pins !== false;
+  document.querySelector('.import-actions').hidden = !canImport;
+  document.getElementById('readOnlyNote').hidden = editable;
+  const showEditError = (error) => {
+    importStatus.textContent = error?.message || t('favorites.editOnComputer');
+  };
+
+  // Start Page pins (start-page-pins.js in main): a favorite can be pinned to
+  // the front of every Start Page layout from here. Main says how many fit and
+  // tells this page when they change elsewhere. Pins are stored in URL's
+  // standard form, so a favorite is matched in that form (start-pins.js).
+  const startPins = globalThis.blancStartPins;
+  let pinnedUrls = [];
+  let pinsMax = 0;
+  let ownPinChange = false;
+
+  /** Re-read the pins; resolves to whether they changed. */
+  async function loadPins() {
+    if (!canPin) return false;
+    const listed = await window.bowserPages.pins.list().catch(() => null);
+    if (!Array.isArray(listed?.pins)) return false;
+    const urls = listed.pins.map((pin) => pin.url);
+    const changed = urls.join('\n') !== pinnedUrls.join('\n') || listed.max !== pinsMax;
+    pinnedUrls = urls;
+    pinsMax = listed.max;
+    return changed;
+  }
+
+  if (canPin) window.bowserPages.pins.onChanged(() => {
+    // This page's own pin redraws when its request returns.
+    if (ownPinChange) return;
+    loadPins().then((changed) => {
+      if (changed) refresh();
+    }).catch(() => {});
+  });
+
+  // The same test the Start Page uses: any http(s) URL, in any letter case.
+  const isWebPage = (url) => startPins.siteKey(url) !== null;
+
   // This stays inside the existing utility sheet. Main's will-navigate guard
   // permits only allowlisted blanc:// utility pages and updates the sheet's
   // owned URL before this document is replaced.
@@ -26,8 +70,15 @@
   importBtn.addEventListener('click', async () => {
     importBtn.disabled = true;
     importStatus.textContent = t('favorites.import.choosing');
-    const res = await window.bowserPages.bookmarks.import();
-    importBtn.disabled = false;
+    let res;
+    try {
+      res = await window.bowserPages.bookmarks.import();
+    } catch (error) {
+      showEditError(error);
+      return;
+    } finally {
+      importBtn.disabled = false;
+    }
     if (res.cancelled) { importStatus.textContent = ''; return; }
     if (res.error === 'empty') { importStatus.textContent = t('favorites.import.fileEmpty'); return; }
     if (res.error === 'unreadable') { importStatus.textContent = t('favorites.import.fileUnreadable'); return; }
@@ -115,6 +166,8 @@
       }
       importStatus.textContent = t('favorites.import.fromSource', { source: res.source.label, result: importSummary(res.added, res.skipped) });
       refresh();
+    } catch (error) {
+      showEditError(error);
     } finally {
       browserImportBtn.disabled = false;
       browserSource.disabled = false;
@@ -144,7 +197,7 @@
   }
 
   async function refresh() {
-    const items = await window.bowserPages.bookmarks.list();
+    const [items] = await Promise.all([window.bowserPages.bookmarks.list(), loadPins()]);
     closeMenu();
     list.replaceChildren();
     if (items.length === 0) {
@@ -190,10 +243,12 @@
     removeBtn.textContent = t('favorites.folder.remove');
     removeBtn.title = t('favorites.folder.removeTitle', { folder: folder.name });
     removeBtn.addEventListener('click', async () => {
-      await window.bowserPages.bookmarks.removeFolder(folder.name);
-      refresh();
+      try {
+        await window.bowserPages.bookmarks.removeFolder(folder.name);
+        await refresh();
+      } catch (error) { showEditError(error); }
     });
-    acts.append(renameBtn, removeBtn);
+    if (editable) acts.append(renameBtn, removeBtn);
     head.append(name, count, acts);
     section.append(head);
     for (const b of folder.items) section.append(row(b, allNames));
@@ -230,8 +285,10 @@
       if (settled) return;
       settled = true;
       const next = input.value.trim();
-      if (next && next !== oldName) await window.bowserPages.bookmarks.renameFolder(oldName, next);
-      refresh();
+      try {
+        if (next && next !== oldName) await window.bowserPages.bookmarks.renameFolder(oldName, next);
+        await refresh();
+      } catch (error) { showEditError(error); }
     };
     const cancel = () => {
       if (settled) return;
@@ -251,6 +308,9 @@
   function row(b, allNames) {
     const el = document.createElement('div');
     el.className = 'row';
+    el.dataset.url = b.url;
+    const pinned = pinnedUrls.includes(startPins.canonicalUrl(b.url));
+    el.classList.toggle('start-pinned', pinned);
 
     const main = document.createElement('div');
     main.className = 'main';
@@ -268,6 +328,15 @@
     meta.className = 'meta';
     meta.textContent = new Date(b.addedAt).toLocaleDateString(blancI18n.formatLocale());
     meta.dataset.i18nIgnore = ''; // the locale's own date format
+    if (pinned) {
+      const mark = document.createElement('span');
+      mark.className = 'row-pin-mark';
+      mark.setAttribute('role', 'img');
+      mark.setAttribute('aria-label', t('favorites.row.pinned'));
+      mark.title = t('favorites.row.pinned');
+      mark.appendChild(startPins.glyph(document, 'pin'));
+      meta.prepend(mark);
+    }
 
     const actions = document.createElement('div');
     actions.className = 'actions bookmark-actions';
@@ -288,10 +357,45 @@
     remove.textContent = t('favorites.row.remove');
     remove.setAttribute('aria-label', t('favorites.row.removeLabel', { title: b.title }));
     remove.addEventListener('click', async () => {
-      await window.bowserPages.bookmarks.remove(b.id);
-      refresh();
+      try {
+        await window.bowserPages.bookmarks.remove(b.id);
+        await refresh();
+      } catch (error) { showEditError(error); }
     });
-    actions.append(folderBtn, remove);
+    if (editable) actions.append(folderBtn);
+    if (canPin && isWebPage(b.url)) {
+      const pinBtn = document.createElement('button');
+      pinBtn.type = 'button';
+      pinBtn.className = 'pin-toggle';
+      pinBtn.textContent = pinned ? t('favorites.row.unpin') : t('favorites.row.pin');
+      pinBtn.setAttribute('aria-label', pinned
+        ? t('favorites.row.unpinLabel', { title: b.title })
+        : t('favorites.row.pinLabel', { title: b.title }));
+      // Every pin taken: say so rather than fail on click.
+      if (!pinned && pinsMax > 0 && pinnedUrls.length >= pinsMax) {
+        pinBtn.disabled = true;
+        pinBtn.title = t('favorites.row.pinFull', { count: pinsMax });
+      }
+      pinBtn.addEventListener('click', async () => {
+        ownPinChange = true;
+        try {
+          if (pinned) await window.bowserPages.pins.unpin(b.url);
+          else await window.bowserPages.pins.pin(b.url, b.title);
+          await refresh();
+        } catch (error) {
+          showEditError(error);
+        } finally {
+          ownPinChange = false;
+        }
+        // The rebuilt row keeps focus on its pin, now saying the opposite.
+        [...list.querySelectorAll('.row')]
+          .find((candidate) => candidate.dataset.url === b.url)
+          ?.querySelector('.pin-toggle')
+          ?.focus();
+      });
+      actions.append(pinBtn);
+    }
+    if (editable) actions.append(remove);
 
     el.append(window.blancRowIcon.rowIcon(document, b.url, b.favicon), main, meta, actions);
     return el;
@@ -344,7 +448,10 @@
     const options = document.createElement('div');
     options.className = 'picker-options';
     menu.append(options);
-    const pick = async (fn) => { await fn(); closeMenu(); refresh(); };
+    const pick = async (fn) => {
+      try { await fn(); closeMenu(); await refresh(); }
+      catch (error) { showEditError(error); }
+    };
 
     for (const nm of allNames) {
       if (folderKey(nm) === folderKey(b.folder)) continue;

@@ -14,7 +14,7 @@ const path = require('node:path');
 const SITE = path.resolve(__dirname, '../../site');
 const read = (file) => fs.readFileSync(path.join(SITE, file), 'utf8');
 const mailPages = ['src/pages/mail.astro', ...fs.readdirSync(path.join(SITE, 'src/pages/mail')).map((f) => `src/pages/mail/${f}`)];
-const SHOTS = ['dark', 'island', 'main', 'rules', 'zero', 'zero-night'];
+const SHOTS = ['rule-editor'];
 
 test('MailShot is the only way to show a Mail screenshot, and its caption is not optional', () => {
   const shot = read('src/components/MailShot.astro');
@@ -37,19 +37,5 @@ test('every screenshot the Mail pages name exists, with a built 1100px copy', ()
     assert.ok(copy, `${name}: add it to site/scripts/build-display-images.mjs`);
     assert.equal(copy.source, `mail/screens/${name}.webp`);
     assert.equal(copy.width, 1100);
-  }
-});
-
-test('the light and dark compare has a thumb wide enough to grab on a touch screen', () => {
-  // iOS Safari moves a range input only by its thumb. The thumb is invisible
-  // (the handle is drawn separately), so on coarse pointers it is as wide as a
-  // fingertip; fine pointers keep a 2px thumb so the divider stays under them.
-  const css = read('src/styles/mail.css');
-  const coarse = css.match(/@media\(pointer:coarse\)\{((?:[^{}]*\{[^}]*\})*)\}/g)?.join('') ?? '';
-  for (const thumb of ['::-webkit-slider-thumb', '::-moz-range-thumb']) {
-    const rule = coarse.match(new RegExp(`\\.mail-compare-range${thumb}\\{([^}]*)\\}`));
-    assert.ok(rule, `a coarse-pointer ${thumb} rule`);
-    const width = Number(rule[1].match(/(?:^|;)width:(\d+)px/)?.[1]);
-    assert.ok(width >= 44, `${thumb} is ${width}px wide on touch screens`);
   }
 });

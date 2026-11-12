@@ -39,6 +39,33 @@ const FRAME_PROBE = `new Promise((resolve) => {
 const drew = (sample) => sample.visibility === 'visible' && sample.frames >= MIN_FRAMES;
 const results = [];
 
+// The floating Island's pill (auto-hide, float style) is a view of its own
+// that stays window-owned for life: it must keep drawing wherever its window
+// goes. It has nothing to scroll, so only frames count.
+async function measureFloatPill(H, runtimeId, path) {
+  const result = { path, attempts: [] };
+  try {
+    // The user is looking at this window (see measure): an unfocused window
+    // on xvfb or Windows draws slowly, and its strip may not have placed the
+    // pill yet.
+    H.focusWindowRuntime(runtimeId);
+    const wc = webContents.fromId(await waitFor(() => H.floatPillWebContentsId(runtimeId), `the floating pill in ${runtimeId}`));
+    await waitFor(() => H.floatPillDiagnostics(runtimeId)?.shown, `the floating pill in ${runtimeId} to show`, 5000).catch(() => {});
+    await sleep(300);
+    for (let attempt = 0; attempt < 3; attempt++) {
+      const sample = await bounded(wc.executeJavaScript(FRAME_PROBE), 4000);
+      result.attempts.push(sample);
+      if (drew(sample)) break;
+    }
+    result.drawing = drew(result.attempts.at(-1));
+    if (!result.drawing) result.error = `not drawing: ${JSON.stringify(H.floatPillDiagnostics(runtimeId))}`;
+  } catch (error) {
+    result.error = String(error?.message ?? error);
+    result.drawing = false;
+  }
+  results.push(result);
+}
+
 async function measure(H, id, path) {
   const result = { path, attempts: [] };
   try {
@@ -122,6 +149,22 @@ app.whenReady().then(async () => {
     await measure(H, a, 'Glance');
     await H.closeWindowGlance('primary'); await settle();
 
+    // Split View (F53): both panes draw when the split shows, after it is
+    // hidden by another tab, and after it comes back. Its own two tabs, so
+    // the measuring scroll never makes a later case's tab "deep scrolled".
+    const left = await open('drawing-split-left');
+    const right = await open('drawing-split-right');
+    if (!H.makeSplit(left, [right])) throw new Error('the split was not made');
+    await activate(left);
+    await measure(H, left, 'split: first pane');
+    await measure(H, right, 'split: second pane');
+    await activate(b);
+    await activate(right);
+    await measure(H, right, 'split: second pane, shown again');
+    await measure(H, left, 'split: first pane, shown again');
+    H.runTabMenuItem(left, 'remove-from-split'); await settle();
+    await activate(b);
+
     const closed = await open('drawing-closed');
     H.closeTabInWindow('primary', closed); await sleep(300);
     H.reopenClosedInWindow('primary');
@@ -200,6 +243,28 @@ app.whenReady().then(async () => {
     await measure(H, second, 'open a space whose window closed');
     await activate(first); await loaded(first); await settle();
     await measure(H, first, 'switch within a space whose window closed');
+
+    // The floating Island: its pill view stays window-owned and must keep
+    // drawing after tab switches, in a window a tab moved to, and in a
+    // window a space opened in.
+    H.setIslandAutoHideStyle('float');
+    H.setIslandAutoHide(true); await settle();
+    H.holdIslandInWindow('primary', true); await settle();
+    await activate(a); await activate(returned);
+    await measureFloatPill(H, 'primary', 'floating pill after tab switches');
+    const floatTab = await open('drawing-float');
+    const floatWindow = move(floatTab); await loaded(floatTab); await settle();
+    H.holdIslandInWindow(floatWindow, true); await settle();
+    await measureFloatPill(H, floatWindow, 'floating pill in a window a tab moved to');
+    // A fresh window holds only a blank tab, so the switch asks to save nothing.
+    const spaceWindow = H.openNewWindow(); await settle();
+    H.holdIslandInWindow(spaceWindow, true);
+    const opened = await H.workspaceActionInWindow(spaceWindow, 'open', one);
+    if (!opened?.ok) throw new Error(`opening the space failed: ${JSON.stringify(opened)}`);
+    await settle();
+    await measureFloatPill(H, spaceWindow, 'floating pill after a space opened in its window');
+    H.holdIslandInWindow('primary', false);
+    H.setIslandAutoHide(false); await settle();
 
     // A window that still owns hidden tab views closes cleanly.
     if (!H.closeWindowRuntime(sleeperWindow)) throw new Error('closing a window failed');

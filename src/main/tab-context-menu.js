@@ -5,11 +5,17 @@
 // Menu.popup, mirroring address-menu.js.
 
 const { Menu } = require('electron');
-const { buildTabContextMenu } = require('./tab-context-menu-model');
+const { buildTabContextMenu, buildTabsContextMenu } = require('./tab-context-menu-model');
+
+// Section headers are native on macOS 14 and later; elsewhere, and on older
+// macOS, a header is a disabled label.
+const NATIVE_HEADERS = process.platform === 'darwin'
+  && Number(String(process.getSystemVersion?.() ?? '0').split('.')[0]) >= 14;
 
 const PILL_SELECTOR = '#islandPill';
 
-function runTabContextMenuItem(id, { tab, groupId, cleanedUrl, actions }) {
+function runTabContextMenuItem(id, { tab, groupId, otherTabId, deviceId, workspaceId, cleanedUrl, selectedTabIds, actions }) {
+  if (id?.startsWith('batch-')) return actions.batch(id, { groupId, workspaceId }, selectedTabIds);
   switch (id) {
     case 'copy-link': return actions.copy(tab.url || '');
     // The model computed cleanedUrl when it decided to SHOW the item — copy
@@ -20,35 +26,57 @@ function runTabContextMenuItem(id, { tab, groupId, cleanedUrl, actions }) {
     case 'rename': return actions.rename(tab.id);
     case 'reset-title': return actions.resetTitle(tab.id);
     case 'toggle-pin': return actions.togglePin(tab.id);
+    case 'return-pinned-home': return actions.returnPinnedHome(tab.id);
+    case 'set-pinned-home': return actions.setPinnedHome(tab.id);
     case 'toggle-mute': return actions.toggleMute(tab.id);
+    case 'toggle-site-mute': return actions.toggleSiteMute(tab.id);
     case 'toggle-favorite': return actions.toggleFavorite(tab.id);
+    case 'toggle-start-pin': return actions.toggleStartPagePin(tab.id);
     case 'group-move': return actions.setGroup(tab.id, groupId);
     case 'group-none': return actions.setGroup(tab.id, null);
     case 'group-new': return actions.beginNewGroup(tab.id);
+    case 'space-new': return actions.beginNewSpaceForTab(tab.id);
+    case 'space-move': return actions.moveToSpace(tab.id, workspaceId);
     case 'glance': return actions.glance(tab.id);
     case 'close-glance': return actions.closeGlance();
+    case 'split-with-tab': return actions.splitWith(tab.id, otherTabId);
+    case 'send-to-device': return actions.sendToDevice(tab.id, deviceId);
+    case 'remove-from-split': return actions.removeFromSplit(tab.id);
+    case 'close-split': return actions.closeSplit(tab.id);
     case 'quiet': return actions.quiet(tab.id);
+    case 'new-tab-below': return actions.newTabBelow(tab.id);
     case 'new-tab': return actions.newTab();
     case 'new-private-tab': return actions.newPrivateTab();
     case 'close-others': return actions.closeOthers(tab.id);
+    case 'close-above': return actions.closeBeside(tab.id, 'above');
+    case 'close-below': return actions.closeBeside(tab.id, 'below');
     case 'move-new-window': return actions.moveToNewWindow(tab.id);
     case 'reopen-closed': return actions.reopenClosed();
     case 'close': return actions.close(tab.id);
   }
 }
 
-function toElectronTemplate(modelItems, { tab, actions }) {
+function toElectronTemplate(modelItems, { tab, actions, selectedTabIds }) {
   return modelItems.map((item) => {
     if (item.type === 'separator') return { type: 'separator' };
+    if (item.type === 'header') {
+      return { ...(item.id ? { id: item.id } : {}), label: item.label, ...(NATIVE_HEADERS ? { type: 'header' } : { enabled: false }) };
+    }
     const el = { label: item.label };
+    // Split with ▸ lists other tabs by title and groups by name: page and user
+    // data, not Blanc text. The id marks it so (the pseudo-locale sweep reads it).
+    if (item.id === 'split-with-tab') el.id = `split-with-tab:${item.tabId}`;
+    if (item.id === 'split-with-group') el.id = `split-with-group:${item.label}`;
+    // Send to Device ▸ lists device names, which are user data too.
+    if (item.id === 'send-to-device') el.id = `send-to-device:${item.deviceId}`;
     if (item.accelerator) el.accelerator = item.accelerator;
     if (item.enabled === false) el.enabled = false;
     if (item.type === 'radio') { el.type = 'radio'; el.checked = !!item.checked; }
     if (item.submenu) {
-      el.submenu = toElectronTemplate(item.submenu, { tab, actions });
+      el.submenu = toElectronTemplate(item.submenu, { tab, actions, selectedTabIds });
     } else {
       el.click = () => runTabContextMenuItem(item.id,
-        { tab, groupId: item.groupId, cleanedUrl: item.cleanedUrl, actions });
+        { tab, groupId: item.groupId, otherTabId: item.tabId, deviceId: item.deviceId, workspaceId: item.workspaceId, cleanedUrl: item.cleanedUrl, selectedTabIds, actions });
     }
     return el;
   });
@@ -81,7 +109,9 @@ async function isInPill(wc, params) {
 // Two menu surfaces share the document: vertical-rail tab rows (recorded id →
 // the shared row menu) and the resting pill (hit-test → the active-tab menu).
 // deps: { resolveActiveTab(): ctx|null, resolveTab(rawId): ctx|null,
-//         getWindow(), actions, t }
+//         getWindow(), actions, t, getOffset?(): {x, y} }
+// The floating Island's pill view (auto-hide, float style) passes getOffset:
+// its coordinates start at the view's origin, not the window's.
 function attachChromeMenu(wc, deps) {
   wc.on('context-menu', async (_event, params) => {
     let rowId;
@@ -89,8 +119,8 @@ function attachChromeMenu(wc, deps) {
     if (rowId != null) {
       const ctx = deps.resolveTab(rowId);
       if (!ctx) return;
-      const template = buildTabContextMenu({ ...ctx, surface: 'row', t: deps.t });
-      const menu = Menu.buildFromTemplate(toElectronTemplate(template, { tab: ctx.tab, actions: deps.actions }));
+      const template = ctx.batch ? buildTabsContextMenu({ ...ctx.batch, t: deps.t }) : buildTabContextMenu({ ...ctx, surface: 'row', t: deps.t });
+      const menu = Menu.buildFromTemplate(toElectronTemplate(template, { tab: ctx.tab, actions: deps.actions, selectedTabIds: ctx.batch?.ids }));
       menu.on('menu-will-show', () => deps.suppressIslandHover?.());
       try {
         menu.popup({ window: deps.getWindow(), x: Math.round(params.x), y: Math.round(params.y), sourceType: params.menuSourceType });
@@ -103,10 +133,12 @@ function attachChromeMenu(wc, deps) {
     const ctx = deps.resolveActiveTab();
     if (!ctx) return;
     const template = buildTabContextMenu({ ...ctx, surface: 'pill', t: deps.t });
-    const menu = Menu.buildFromTemplate(toElectronTemplate(template, { tab: ctx.tab, actions: deps.actions }));
+    const menu = Menu.buildFromTemplate(toElectronTemplate(template, { tab: ctx.tab, actions: deps.actions, selectedTabIds: ctx.batch?.ids }));
     menu.on('menu-will-show', () => deps.suppressIslandHover?.());
+    // A floating Island view's coordinates start at its own origin.
+    const offset = deps.getOffset?.() ?? { x: 0, y: 0 };
     try {
-      menu.popup({ window: deps.getWindow(), x: Math.round(params.x), y: Math.round(params.y), sourceType: params.menuSourceType });
+      menu.popup({ window: deps.getWindow(), x: Math.round(params.x + offset.x), y: Math.round(params.y + offset.y), sourceType: params.menuSourceType });
     } catch { /* window died mid-popup */ }
   });
 }
@@ -125,8 +157,8 @@ function attachRowMenu(wc, deps) {
     if (!deps.isOverlayLive()) return;
     const ctx = deps.resolveTab(rawId);
     if (!ctx) return;
-    const template = buildTabContextMenu({ ...ctx, surface: 'row', t: deps.t });
-    const menu = Menu.buildFromTemplate(toElectronTemplate(template, { tab: ctx.tab, actions: deps.actions }));
+    const template = ctx.batch ? buildTabsContextMenu({ ...ctx.batch, t: deps.t }) : buildTabContextMenu({ ...ctx, surface: 'row', t: deps.t });
+    const menu = Menu.buildFromTemplate(toElectronTemplate(template, { tab: ctx.tab, actions: deps.actions, selectedTabIds: ctx.batch?.ids }));
     menu.on('menu-will-show', () => deps.suppressIslandHover?.());
     const bounds = deps.getOverlayBounds();
     const ticket = deps.acquireMenuGuard();
@@ -142,4 +174,4 @@ function attachRowMenu(wc, deps) {
   });
 }
 
-module.exports = { runTabContextMenuItem, attachChromeMenu, attachRowMenu };
+module.exports = { runTabContextMenuItem, attachChromeMenu, attachRowMenu, toElectronTemplate };

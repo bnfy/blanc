@@ -39,6 +39,30 @@ There is no press-page version to bump: the website derives the version from
 `npm run compliance:check`. Merge only when every check run on the PR's head
 commit has finished green.
 
+## 1b. Put the What's New page live (feature releases, X.Y.0)
+
+`release.sh` refuses a feature release until
+`https://blanc.day/whats-new/X.Y` answers 200 (`scripts/check-whats-new-page.mjs`,
+run before building and again before Sigstore). Blanc asks for the page once
+per launch after the update, and people update within a minute of
+publication, so it has to be live first.
+
+- After the prep PR merges, draft it with
+  `npm run site:whats-new -- --release X.Y`. Before the release is public it
+  reads `docs/press/release-notes/vX.Y.0.md`, turns the bold-named Added
+  bullets into highlights with TODO media, lists candidate captures, and
+  never overwrites a page (`--force` replaces only a draft).
+- Take its captures from the merged build, show the owner the rendered page,
+  and get the owner's explicit sign-off on its final text and media. Give a
+  highlight for some platforms only a `platforms` list (Sunrise Gold:
+  `["mac"]`), so other platforms' visitors never see it. With
+  the owner's approval, a release can instead go in `noPage` in
+  `site/src/data/whats-new.json`.
+- Merge it in a website-only PR, then run `npm run site:deploy` from a clean
+  `origin/main`. Until the release is in `releases.json` it builds as the
+  one *upcoming* page: no date, `noindex`, and left out of the sitemap and
+  the `/whats-new` redirect.
+
 ## 2. Preflight
 
 - Use a clean throwaway worktree detached at `origin/main`:
@@ -47,6 +71,14 @@ commit has finished green.
   `site:build` failing with `astro: command not found`.
 - Confirm that no `vX.Y.Z` tag, draft or release exists. A draft doesn't show
   up under `releases/tags/<tag>`, so list releases instead.
+- **Run the press gate ahead of time** in that worktree, after the last
+  merge to `main`: `npm run release:prepare`. It installs as `release.sh`
+  does and runs the whole gate unattended (no 1Password, no TTY, publishes
+  nothing, so an agent may run it in the background), keeping going past a
+  failure; rerun it to retry only what failed. `npm run release:gate:status`
+  shows what is still owed. When only `release:security` (always rerun) is
+  left, start the release. Any commit on `main` after it voids the passes, so
+  hold merges until the release starts, and use the same `node` for both.
 - Confirm `gh auth status`, `op` and `cosign` work, and that no other release
   is running (`ps -eo pid,command | grep -E 'release\.sh|electron-builder'`).
   A second run's `npm ci` deletes `node_modules` under the first.
@@ -63,15 +95,36 @@ BLANC_RELEASE_OPERATOR=terminal \
 BLANC_COSIGN_IDENTITY='anthony@bnfy.me' \
 BLANC_COSIGN_OIDC_ISSUER='https://github.com/login/oauth' \
 BLANC_RELEASE_MODE=stable \
+BLANC_RELEASE_RUNTIME=ecs \
+BLANC_EVS_PYTHON="$HOME/.config/evs/venv/bin/python" \
+EVS_CONFIG_FILE="$HOME/.config/evs/config.json" \
+EVS_CACHE_FILE="$HOME/.config/evs/cache.json" \
 BLANC_RELEASE_PLATFORMS=mac,windows,linux \
 BLANC_MAC_ARCHES=arm64,x64 \
 npm run release
 ```
 
 - **Required:** `BLANC_RELEASE_MODE` (`stable`, or `candidate` for an
-  `X.Y.Z-rc.N` version, published with `--prerelease`), `BLANC_MAC_ARCHES`,
-  `BLANC_COSIGN_IDENTITY` and `BLANC_COSIGN_OIDC_ISSUER`. The script exits
-  immediately without any of them.
+  `X.Y.Z-rc.N` version, published with `--prerelease`),
+  `BLANC_RELEASE_RUNTIME`, `BLANC_MAC_ARCHES`, `BLANC_COSIGN_IDENTITY` and
+  `BLANC_COSIGN_OIDC_ISSUER`. The script exits immediately without any of
+  them.
+- **Runtime:** every public release since 1.43.0 is `ecs` (castLabs
+  Electron for Content Security, with Widevine). Shipping `official` would
+  drop DRM playback for everyone who updates, so it needs the owner's
+  explicit decision. There is no default: 1.44.0 was built on official
+  Electron because the runtime was left unset, and was never published.
+  Check that the log's `==> Preparing` line says `runtime=ecs` before the
+  press gate gets far.
+- **EVS (ECS only):** `BLANC_EVS_PYTHON`, `EVS_CONFIG_FILE` and
+  `EVS_CACHE_FILE` name the EVS client and account. They live in
+  `~/.config/evs/`, not `/tmp`, which macOS clears. The client is
+  `python3 -m venv ~/.config/evs/venv`, then
+  `~/.config/evs/venv/bin/pip install castlabs-evs==1.3.2` (the version CI
+  pins). If the saved sign-in has lapsed, the owner runs
+  `~/.config/evs/venv/bin/python -m castlabs_evs.account reauth` in
+  Terminal; never read or copy the account files. An empty `{}`
+  `cache.json` is valid.
 - **Both Mac architectures ship in every release.** Apple Silicon is the
   default build and the one smoke-tested locally; Intel ships alongside it.
   A single architecture is refused unless `BLANC_MAC_ARCH_WAIVER` gives the
@@ -116,9 +169,19 @@ before another release.
    sources, or a HEAD that isn't exactly `origin/main`.
 2. Runs `op signin`, then `npm ci` and the **press verification gate**
    (`release:verify:press`): substrate and Windows-icon checks, unit tests,
-   the acceptance dry run and desktop run, the desktop smokes (Favorites
+   the acceptance dry run and desktop run (through
+   `scripts/acceptance-gate.mjs`: if 1–10 scenarios fail, it reruns exactly
+   those once in a fresh Cucumber process and passes only if they all pass,
+   printing an `Acceptance rerun passed: N scenario(s)` block; more than 10
+   failures fail at once), the desktop smokes (Favorites
    picker, wallpaper, cold launch, browser shortcuts, Web Store, OAuth,
    modified links, DNS), the security audit, and the site build.
+   `scripts/release-gate.mjs` runs them and keeps a ledger in
+   `output/release-gate/<commit>/`: a stage or scenario that already passed
+   on this commit, installed tree, Node and Electron (within 48 hours, its
+   log or message file unchanged) is skipped, so after `release:prepare` the
+   gate takes seconds. `release:security` always reruns. It ends with a
+   `Press gate evidence:` block.
 3. Preflights the macOS identity and provisioning profile, then builds
    notarized macOS artifacts for both architectures inside
    `op run --env-file=.env.1password`. If `op` is missing it refuses; it
@@ -146,9 +209,16 @@ before another release.
   `BLANC_RELEASE_RESUME_FROM=<step>` and
   `BLANC_RELEASE_RESUME_REASON='<failure and passing rerun>'`. Steps are
   `fuses`, `blocker-payloads`, `compliance`, `first-run`, `regressions`,
-  `workspaces`, `favicons-primary`, `favicons-additional` and `migration`.
+  `workspaces`, `favicons-primary`, `favicons-additional`, `migration` and
+  `ecs-acceptance` (ECS releases only: installed uBO, file isolation and
+  protected playback on the signed app).
   This reuses the stamped build instead of rebuilding and re-notarizing.
-  Press-gate and build failures can't be resumed this way.
+  Build failures can't be resumed this way.
+- **Press gate failure or Ctrl+C:** relaunch the same command (or
+  `npm run release:prepare` first) on the same commit. The gate runs only
+  what is still owed; in acceptance, only the scenarios that failed or never
+  finished, each with the full in-run retry and fresh rerun. A real bug
+  still means a fix, which is a new commit and a whole fresh gate.
 - **Before the tag push, real bug:** stop and ask the user. Fix it in its own
   PR, then rerun the same version, which is allowed because no tag exists.
   Before relaunching, list every commit that landed on main since the failed
@@ -188,7 +258,10 @@ short:
    so rerun just that job.
 4. **Records PR** from a separate clean worktree:
    - a dated incident in `docs/release-incidents/`, linking any evidence the
-     release gate requires;
+     release gate requires, and quoting verbatim the `Press gate evidence:`
+     block and any `Acceptance rerun passed` block from the release log (the
+     owner allows a passing rerun only if it is logged); keep the release
+     worktree's `output/release-gate/` until this PR merges;
    - the public baseline in `CLAUDE.md` and `AGENTS.md`, kept byte-identical;
    - the capability boundaries in `docs/marketing-claims.md`;
    - `site/src/data/releases.json` (`npm run site:changelog`), plus the

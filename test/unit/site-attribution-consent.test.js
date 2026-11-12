@@ -6,7 +6,17 @@ const vm = require('node:vm');
 
 const source = fs.readFileSync(path.resolve(__dirname, '../../site/src/scripts/site.js'), 'utf8');
 
-function page(choice, { unavailable = false, writeFails = false, href = 'https://blancbrowser.com/download?oppref=offline-fixture', userAgent = 'Macintosh' } = {}) {
+test('download measurement choices disclose the default without gating installers', () => {
+  const html = fs.readFileSync(path.resolve(__dirname, '../../site/src/pages/download.astro'), 'utf8');
+  assert.match(html, /<button type="button" data-consent-open aria-controls="consent">Measurement choices<\/button>/);
+  assert.match(html, /on by default outside the EEA, UK and Switzerland/);
+  assert.ok(html.indexOf('download-measurement') < html.indexOf('aria-labelledby="install-title"'));
+  for (const platform of ['mac-arm64', 'mac-x64', 'win', 'linux']) {
+    assert.match(html, new RegExp(`href="/dl/${platform}"`));
+  }
+});
+
+function page(choice, { unavailable = false, writeFails = false, optInRequired = false, href = 'https://blancbrowser.com/download?oppref=offline-fixture', userAgent = 'Macintosh' } = {}) {
   const local = new Map(choice ? [['measurement-consent-v2', choice]] : []);
   const session = new Map();
   let storageUnavailable = unavailable;
@@ -57,7 +67,11 @@ function page(choice, { unavailable = false, writeFails = false, href = 'https:/
     URL, document, window: { addEventListener(type, handler) { windowEvents[type] = handler; }, history: { replaceState(_state, _title, url) { location.href = url; } } }, navigator: { userAgent },
     location,
     localStorage: storage(local), sessionStorage: storage(session),
-    fetch: async () => ({ ok: false }),
+    fetch: (url) => {
+      if (url !== '/measurement-region') return Promise.resolve({ ok: false });
+      const immediate = value => ({ then(fn) { return immediate(fn(value)); }, catch() { return immediate(value); } });
+      return immediate({ ok: true, json: () => ({ optInRequired }) });
+    },
     setTimeout: () => 1, clearTimeout() {}, requestAnimationFrame() {},
   });
   vm.runInContext(source, context);
@@ -70,10 +84,22 @@ function page(choice, { unavailable = false, writeFails = false, href = 'https:/
     failWrites: () => { storageWriteFails = true; },
     allow: () => allow.handlers.click(),
     deny: () => deny.handlers.click(),
-    click: (link = links[0]) => clickHandlers.forEach((handler) => handler({ target: link })),
+    click: (link = links[0], options = {}) => clickHandlers.forEach((handler) => handler({ target: link, ...options })),
     failStorage: () => { storageUnavailable = true; },
   };
 }
+
+test('consent-required regions wait for a choice before Google or OpenAI measurement', () => {
+  const p = page(undefined, { optInRequired: true });
+  assert.equal(p.googleScripts().length, 0);
+  assert.equal(p.banner.hidden, false);
+  p.click();
+  assert.equal(new URL(p.links[0].href).searchParams.has('oppref'), false);
+  p.allow();
+  p.click();
+  assert.equal(p.googleScripts().length, 1);
+  assert.equal(new URL(p.links[0].href).searchParams.get('oppref'), 'offline-fixture');
+});
 
 test('the hero names the platform only when it downloads directly', () => {
   assert.equal(page(null, { userAgent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)' }).ctas[0].textContent, 'Download for Windows');
@@ -86,11 +112,8 @@ test('the hero names the platform only when it downloads directly', () => {
   assert.equal(new URL(phone.href).pathname, '/download');
 });
 
-test('a download requires Allow before forwarding the pending ad reference', () => {
+test('a download forwards the pending ad reference by default', () => {
   const p = page();
-  p.click();
-  assert.equal(new URL(p.links[0].href).searchParams.has('oppref'), false);
-  p.allow();
   p.click();
   assert.equal(new URL(p.links[0].href).searchParams.get('oppref'), 'offline-fixture');
 });
@@ -140,8 +163,8 @@ test('attribution never changes an external or non-download destination', () => 
   }
 });
 
-test('unset, denied and inaccessible storage load no Google script or event queue and show no prompt', () => {
-  for (const p of [page(), page('denied'), page('granted', { unavailable: true })]) {
+test('denied and inaccessible storage load no Google script or event queue and show no prompt', () => {
+  for (const p of [page('denied'), page('granted', { unavailable: true })]) {
     assert.equal(p.googleScripts().length, 0);
     assert.equal(p.context.window.gtag, undefined);
     assert.equal(p.banner.hidden, true);
@@ -152,11 +175,11 @@ test('unset, denied and inaccessible storage load no Google script or event queu
   }
 });
 
-test('an explicit or saved grant loads Google exactly once', () => {
+test('the default and saved grant load Google exactly once', () => {
   const p = page();
   p.openChoice();
   assert.equal(p.banner.hidden, false);
-  assert.equal(p.googleScripts().length, 0);
+  assert.equal(p.googleScripts().length, 1);
   p.allow(); p.allow();
   assert.equal(p.googleScripts().length, 1);
   assert.equal(page('granted').googleScripts().length, 1);
@@ -179,7 +202,7 @@ test('withdrawal denies, stops dispatch, clears references and reloads the grant
 });
 
 test('a grant that cannot be stored fails closed and leaves downloads working', () => {
-  const p = page(undefined, { writeFails: true });
+  const p = page('denied', { writeFails: true });
   p.openChoice(); p.allow(); p.click();
   assert.equal(p.googleScripts().length, 0);
   assert.equal(p.banner.hidden, false);
@@ -204,7 +227,7 @@ test('withdrawal in another tab disables this page and reloads', () => {
 });
 
 
-test('homepage CTA hooks dispatch the original events only with consent', () => {
+test('homepage navigation is not an installer conversion and respects measurement choice', () => {
   const home = fs.readFileSync(path.resolve(__dirname, '../../site/src/pages/index.astro'), 'utf8');
   const anchors = [...home.matchAll(/<a\b[^>]*>/g)].map(([tag]) => {
     const attributes = Object.fromEntries([...tag.matchAll(/([\w-]+)="([^"]*)"/g)].map(([, key, value]) => [key, value]));
@@ -212,15 +235,15 @@ test('homepage CTA hooks dispatch the original events only with consent', () => 
       href: new URL(attributes.href, 'https://blancbrowser.com').href,
       dataset: Object.fromEntries(Object.entries(attributes).filter(([key]) => key.startsWith('data-')).map(([key, value]) => [key.slice(5).replace(/-([a-z])/g, (_, letter) => letter.toUpperCase()), value])),
       closest(selector) {
-        if (selector === '[data-track]') return attributes['data-track'] ? this : null;
+        if (selector === '[data-track], a[href]') return this;
         return /\bdata-download-cta\b/.test(tag) ? this : null;
       },
     };
   });
   for (const [position, event, feature] of [
-    ['hero', 'download_click', undefined],
-    ['home-close', 'download_click', undefined],
-    ['home-spaces', 'download_click', undefined],
+    ['hero', 'download_page_click', undefined],
+    ['home-close', 'download_page_click', undefined],
+    ['home-spaces', 'download_page_click', undefined],
     ['home-spaces-detail', 'feature_cta_click', 'named-workspaces'],
     ['home-patron', 'feature_cta_click', 'named-workspaces'],
     ['home-patron-close', 'supporter_click', 'patron'],
@@ -229,10 +252,11 @@ test('homepage CTA hooks dispatch the original events only with consent', () => 
     assert.ok(anchor, `${position}: missing conversion hook`);
     for (const consent of [undefined, 'denied', 'granted']) {
       const p = page(consent);
+      if (p.context.window.dataLayer) p.context.window.dataLayer.length = 0;
       p.context.document.body.dataset.page = 'home';
       p.click(anchor);
       const events = Array.from(p.context.window.dataLayer || []).filter(item => item[0] === 'event');
-      assert.equal(events.length, consent === 'granted' ? 1 : 0, `${position}: consent boundary`);
+      assert.equal(events.length, consent === 'denied' ? 0 : 1, `${position}: measurement choice`);
       if (events.length) {
         assert.equal(events[0][1], event);
         assert.equal(events[0][2].source_page, 'home');
@@ -241,4 +265,51 @@ test('homepage CTA hooks dispatch the original events only with consent', () => 
       }
     }
   }
+});
+
+test('only supported same-origin installer requests dispatch download_click', () => {
+  for (const platform of ['mac-arm64', 'mac-x64', 'win', 'linux']) {
+    const p = page('granted');
+    p.links[0].href = `https://blancbrowser.com/dl/${platform}?keep=yes`;
+    p.context.window.dataLayer.length = 0;
+    p.click();
+    const events = Array.from(p.context.window.dataLayer).filter(item => item[0] === 'event');
+    assert.equal(events.length, 1);
+    assert.equal(events[0][1], 'download_click');
+    assert.equal(events[0][2].platform, platform);
+  }
+  for (const href of ['https://example.com/dl/win', '/dl/mac', '/dl/unknown', '/privacy', '/dl/win/extra']) {
+    const p = page('granted');
+    p.links[0].href = href;
+    p.context.window.dataLayer.length = 0;
+    p.click();
+    assert.equal(Array.from(p.context.window.dataLayer).filter(item => item[0] === 'event').length, 0, href);
+  }
+});
+
+test('direct Windows and Linux hero requests count, canceled navigation does not', () => {
+  for (const userAgent of ['Windows', 'Linux']) {
+    const p = page('granted', { userAgent });
+    p.context.window.dataLayer.length = 0;
+    p.click(p.ctas[0], { defaultPrevented: true });
+    assert.equal(Array.from(p.context.window.dataLayer).filter(item => item[0] === 'event').length, 0);
+    p.click(p.ctas[0]);
+    const events = Array.from(p.context.window.dataLayer).filter(item => item[0] === 'event');
+    assert.equal(events.length, 1);
+    assert.equal(events[0][1], 'download_click');
+  }
+});
+
+test('funnel views start once by default and feature links respect turning measurement off', () => {
+  const p = page();
+  const names = () => Array.from(p.context.window.dataLayer || []).filter(item => item[0] === 'event').map(item => item[1]);
+  assert.deepEqual(names(), ['landing_page_view', 'download_page_view']);
+  p.allow();
+  assert.deepEqual(names(), ['landing_page_view', 'download_page_view']);
+  const link = { href: '/features/glance', dataset: {}, closest() { return this; } };
+  p.click(link);
+  assert.equal(names().at(-1), 'feature_cta_click');
+  p.deny();
+  p.click(link);
+  assert.deepEqual(names(), []);
 });

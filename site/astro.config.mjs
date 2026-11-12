@@ -1,4 +1,5 @@
 import { defineConfig } from 'astro/config';
+import searchIndex from './scripts/search-index.mjs';
 import { fileURLToPath } from 'node:url';
 import { SITE_ORIGIN } from './src/lib/site-origin.mjs';
 
@@ -6,7 +7,7 @@ export default defineConfig({
   site: SITE_ORIGIN,
   output: 'static',
   devToolbar: { enabled: false },
-  integrations: [{
+  integrations: [searchIndex(), {
     name: 'isolated-vite-cache',
     hooks: {
       'astro:config:setup': ({ command, updateConfig }) => {

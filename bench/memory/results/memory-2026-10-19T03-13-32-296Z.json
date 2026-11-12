@@ -1,0 +1,1180 @@
+{
+  "meta": {
+    "startedAt": "2026-10-19T03:13:32.296Z",
+    "finishedAt": "2026-10-19T03:47:40.562Z",
+    "osVersion": "27.2.0",
+    "arch": "arm64",
+    "totalRamGiB": 24,
+    "backend": "footprint",
+    "metric": "phys_footprint",
+    "repetitions": 3,
+    "requestedRepetitions": 3,
+    "workloads": [
+      "baseline",
+      "adheavy"
+    ],
+    "warmedProfiles": true,
+    "skipped": [],
+    "failures": []
+  },
+  "results": [
+    {
+      "browserId": "blanc",
+      "label": "Blanc",
+      "engine": "Chromium (Electron)",
+      "version": "1.38.0",
+      "bundlePath": "/Applications/Blanc.app",
+      "blocking": "built-in (EasyList + EasyPrivacy, network layer)",
+      "blockingClass": "ads+trackers",
+      "notes": [
+        "main.js creates one blanc://newtab at startup in addition to the URLs",
+        "passed on the command line — hence extraBlankTabs: 1.",
+        "Blanc CANCELS every http(s) main-frame request until its blocker is",
+        "compiled (installStartupNavigationGate, main.js:226/3751). On a cold",
+        "profile that gate can stay shut for the whole sampling window, so the",
+        "runner warms a template profile first and verifies every loaded cell",
+        "against the browser's own idle baseline.",
+        "Do NOT set BLANC_TEST=1 for a benchmark run: acceptanceTestMode in",
+        "main.js disables ad blocking, which would measure a configuration the",
+        "app never ships."
+      ],
+      "workload": "baseline",
+      "workloadLabel": "Idle (no pages)",
+      "workloadDescription": "Startup cost only. Subtracted from loaded runs to get per-tab marginal cost.",
+      "workloadPages": 0,
+      "tabCount": 1,
+      "extraBlankTabs": 1,
+      "metric": "phys_footprint",
+      "backend": "footprint",
+      "repetitions": [
+        {
+          "totalBytes": 484377600,
+          "processCount": 6,
+          "settled": true,
+          "elapsedMs": 20582,
+          "series": [
+            557761536,
+            482247680,
+            483329024,
+            484377600,
+            486474752
+          ],
+          "tabCount": 1,
+          "pagesLoaded": 0,
+          "pagesRequested": 0
+        },
+        {
+          "totalBytes": 481199104,
+          "processCount": 6,
+          "settled": true,
+          "elapsedMs": 20624,
+          "series": [
+            561988608,
+            478053376,
+            478053376,
+            481199104,
+            482247680
+          ],
+          "tabCount": 1,
+          "pagesLoaded": 0,
+          "pagesRequested": 0
+        },
+        {
+          "totalBytes": 454935552,
+          "processCount": 6,
+          "settled": true,
+          "elapsedMs": 41064,
+          "series": [
+            578601984,
+            489587712,
+            489538560,
+            500024320,
+            489538560,
+            489538560,
+            462275584,
+            453886976,
+            454935552
+          ],
+          "tabCount": 1,
+          "pagesLoaded": 0,
+          "pagesRequested": 0
+        }
+      ]
+    },
+    {
+      "browserId": "blanc-noblock",
+      "label": "Blanc (blocking off)",
+      "engine": "Chromium (Electron)",
+      "version": "1.38.0",
+      "bundlePath": "/Applications/Blanc.app",
+      "blocking": "none",
+      "blockingClass": "none",
+      "notes": [
+        "Isolates what the built-in blocker contributes. The runner seeds",
+        "settings.json in the throwaway profile with adblockEnabled: false.",
+        "Shares a bundle path with the 'blanc' entry, so a process surviving one",
+        "cell would be attributed to the other — which is why quit() reaps the",
+        "whole measured process set rather than just the root pid."
+      ],
+      "workload": "baseline",
+      "workloadLabel": "Idle (no pages)",
+      "workloadDescription": "Startup cost only. Subtracted from loaded runs to get per-tab marginal cost.",
+      "workloadPages": 0,
+      "tabCount": 1,
+      "extraBlankTabs": 1,
+      "metric": "phys_footprint",
+      "backend": "footprint",
+      "repetitions": [
+        {
+          "totalBytes": 479134720,
+          "processCount": 6,
+          "settled": true,
+          "elapsedMs": 20610,
+          "series": [
+            547292160,
+            479134720,
+            477037568,
+            479134720,
+            481166336
+          ],
+          "tabCount": 1,
+          "pagesLoaded": 0,
+          "pagesRequested": 0
+        },
+        {
+          "totalBytes": 479020032,
+          "processCount": 6,
+          "settled": true,
+          "elapsedMs": 20627,
+          "series": [
+            541885440,
+            474825728,
+            476922880,
+            479020032,
+            481117184
+          ],
+          "tabCount": 1,
+          "pagesLoaded": 0,
+          "pagesRequested": 0
+        },
+        {
+          "totalBytes": 476972032,
+          "processCount": 6,
+          "settled": true,
+          "elapsedMs": 20561,
+          "series": [
+            586007552,
+            474874880,
+            474874880,
+            476972032,
+            476972032
+          ],
+          "tabCount": 1,
+          "pagesLoaded": 0,
+          "pagesRequested": 0
+        }
+      ]
+    },
+    {
+      "browserId": "chrome",
+      "label": "Google Chrome",
+      "engine": "Chromium (Blink)",
+      "version": "155.0.8059.80",
+      "bundlePath": "/Applications/Google Chrome.app",
+      "blocking": "none (stock profile)",
+      "blockingClass": "none",
+      "notes": [
+        "The report's reference row: percentages are relative to Chrome rather",
+        "than to whichever browser scored lowest."
+      ],
+      "workload": "baseline",
+      "workloadLabel": "Idle (no pages)",
+      "workloadDescription": "Startup cost only. Subtracted from loaded runs to get per-tab marginal cost.",
+      "workloadPages": 0,
+      "tabCount": 0,
+      "extraBlankTabs": 0,
+      "metric": "phys_footprint",
+      "backend": "footprint",
+      "repetitions": [
+        {
+          "totalBytes": 503219200,
+          "processCount": 12,
+          "settled": true,
+          "elapsedMs": 41555,
+          "series": [
+            678282240,
+            613319680,
+            600736768,
+            582910976,
+            595397632,
+            595364864,
+            510594048,
+            503219200,
+            503219200
+          ],
+          "tabCount": 0,
+          "pagesLoaded": 0,
+          "pagesRequested": 0
+        },
+        {
+          "totalBytes": 585912320,
+          "processCount": 15,
+          "settled": true,
+          "elapsedMs": 20869,
+          "series": [
+            624723968,
+            616384512,
+            588072960,
+            577587200,
+            585912320
+          ],
+          "tabCount": 0,
+          "pagesLoaded": 0,
+          "pagesRequested": 0
+        },
+        {
+          "totalBytes": 502138880,
+          "processCount": 12,
+          "settled": true,
+          "elapsedMs": 41551,
+          "series": [
+            632145920,
+            622725120,
+            590219264,
+            580782080,
+            593301504,
+            593268736,
+            509431808,
+            502138880,
+            502138880
+          ],
+          "tabCount": 0,
+          "pagesLoaded": 0,
+          "pagesRequested": 0
+        }
+      ]
+    },
+    {
+      "browserId": "zen",
+      "label": "Zen Browser",
+      "engine": "Gecko (Firefox)",
+      "version": "1.23.3b",
+      "bundlePath": "/Applications/Zen.app",
+      "blocking": "ETP Standard — tracker cookies, cryptominers, fingerprinters; does NOT block ads, and blocks tracking content only in private windows",
+      "blockingClass": "trackers",
+      "notes": [
+        "Zen ships its own onboarding, separate from Mozilla's about:welcome, so",
+        "browser.aboutwelcome.enabled=false does not touch it. Every cell mints a",
+        "fresh profile, so every Zen cell is a first run; its welcome flow hides",
+        "the browser content until a human clicks through, which would settle",
+        "fast and clean and be recorded as an excellent result at the requested",
+        "tab count. extraPrefs sets the pref that suppresses it — if a future",
+        "build renames it, the welcome screen returns silently and only the load",
+        "check against Zen's own idle baseline catches it.",
+        "CONFIRMED 2026-08-09 on Zen 1.x / macOS 27: user.js startup-homepage",
+        "tab seeding IS honoured — the upstream report of it failing on macOS",
+        "aarch64 (zen-browser/desktop#12154) did not reproduce here. But Zen",
+        "consumes the FIRST startup entry with its own workspace/new-tab",
+        "surface, so the first workload URL was silently dropped (9/10 pages,",
+        "twice, deterministically). geckoUserJs now leads with about:blank to",
+        "absorb that."
+      ],
+      "workload": "baseline",
+      "workloadLabel": "Idle (no pages)",
+      "workloadDescription": "Startup cost only. Subtracted from loaded runs to get per-tab marginal cost.",
+      "workloadPages": 0,
+      "tabCount": 0,
+      "extraBlankTabs": 0,
+      "metric": "phys_footprint",
+      "backend": "footprint",
+      "repetitions": [
+        {
+          "totalBytes": 856686592,
+          "processCount": 11,
+          "settled": true,
+          "elapsedMs": 20635,
+          "series": [
+            851443712,
+            895483904,
+            864026624,
+            856686592,
+            854589440
+          ],
+          "tabCount": 0,
+          "pagesLoaded": 0,
+          "pagesRequested": 0
+        },
+        {
+          "totalBytes": 855638016,
+          "processCount": 11,
+          "settled": true,
+          "elapsedMs": 20608,
+          "series": [
+            816840704,
+            888143872,
+            865075200,
+            855638016,
+            855638016
+          ],
+          "tabCount": 0,
+          "pagesLoaded": 0,
+          "pagesRequested": 0
+        },
+        {
+          "totalBytes": 859832320,
+          "processCount": 11,
+          "settled": true,
+          "elapsedMs": 20606,
+          "series": [
+            819986432,
+            895483904,
+            870318080,
+            859832320,
+            859832320
+          ],
+          "tabCount": 0,
+          "pagesLoaded": 0,
+          "pagesRequested": 0
+        }
+      ]
+    },
+    {
+      "browserId": "brave",
+      "label": "Brave",
+      "engine": "Chromium (Blink)",
+      "version": "155.1.97.59",
+      "bundlePath": "/Applications/Brave Browser.app",
+      "blocking": "built-in Brave Shields",
+      "blockingClass": "ads+trackers",
+      "notes": [
+        "Brave's updater (Sparkle) lives inside the app bundle and keeps its",
+        "check state in ~/Library/Preferences, which --user-data-dir does not",
+        "reset — so a fresh profile does not prevent an update check firing mid",
+        "measurement. --disable-brave-update suppresses it. This changes no",
+        "process-model knob, so it does not violate the no-flags rule; the Gecko",
+        "driver already sets app.update.auto=false for the same reason.",
+        "UNVERIFIED: whether Brave opens a welcome tab on a fresh profile despite",
+        "--no-first-run. If it does, extraBlankTabs must be raised."
+      ],
+      "workload": "baseline",
+      "workloadLabel": "Idle (no pages)",
+      "workloadDescription": "Startup cost only. Subtracted from loaded runs to get per-tab marginal cost.",
+      "workloadPages": 0,
+      "tabCount": 0,
+      "extraBlankTabs": 0,
+      "metric": "phys_footprint",
+      "backend": "footprint",
+      "repetitions": [
+        {
+          "totalBytes": 478150656,
+          "processCount": 6,
+          "settled": true,
+          "elapsedMs": 20558,
+          "series": [
+            707788800,
+            548405248,
+            482344960,
+            478150656,
+            478150656
+          ],
+          "tabCount": 0,
+          "pagesLoaded": 0,
+          "pagesRequested": 0
+        },
+        {
+          "totalBytes": 481296384,
+          "processCount": 6,
+          "settled": true,
+          "elapsedMs": 20557,
+          "series": [
+            682622976,
+            553648128,
+            486539264,
+            481296384,
+            481296384
+          ],
+          "tabCount": 0,
+          "pagesLoaded": 0,
+          "pagesRequested": 0
+        },
+        {
+          "totalBytes": 477102080,
+          "processCount": 6,
+          "settled": true,
+          "elapsedMs": 20560,
+          "series": [
+            674234368,
+            548405248,
+            477102080,
+            477102080,
+            477102080
+          ],
+          "tabCount": 0,
+          "pagesLoaded": 0,
+          "pagesRequested": 0
+        }
+      ]
+    },
+    {
+      "browserId": "vivaldi",
+      "label": "Vivaldi",
+      "engine": "Chromium (Blink)",
+      "version": "8.2.4133.89",
+      "bundlePath": "/Applications/Vivaldi.app",
+      "blocking": "built-in blocker, trackers only at stock settings",
+      "blockingClass": "trackers",
+      "notes": [
+        "Vivaldi ships its blocker set to block trackers, NOT ads, out of the",
+        "box; the registry previously said 'built-in blocker (stock settings)',",
+        "which read as an ad-blocking peer and would have grouped it with Blanc",
+        "and Brave. UNVERIFIED against a real install — confirm in Settings >",
+        "Privacy before publishing, since a wrong class silently moves the row",
+        "into the wrong comparison group.",
+        "Vivaldi's own UI is a web page rendered in a renderer process, so its",
+        "process count and baseline include the browser chrome itself — the same",
+        "property Blanc has, and unlike Chrome's native UI."
+      ],
+      "workload": "baseline",
+      "workloadLabel": "Idle (no pages)",
+      "workloadDescription": "Startup cost only. Subtracted from loaded runs to get per-tab marginal cost.",
+      "workloadPages": 0,
+      "tabCount": 0,
+      "extraBlankTabs": 0,
+      "metric": "phys_footprint",
+      "backend": "footprint",
+      "repetitions": [
+        {
+          "totalBytes": 705577984,
+          "processCount": 8,
+          "settled": true,
+          "elapsedMs": 20588,
+          "series": [
+            950944768,
+            719209472,
+            715015168,
+            705577984,
+            705577984
+          ],
+          "tabCount": 0,
+          "pagesLoaded": 0,
+          "pagesRequested": 0
+        },
+        {
+          "totalBytes": 709689344,
+          "processCount": 8,
+          "settled": true,
+          "elapsedMs": 20622,
+          "series": [
+            954007552,
+            722272256,
+            718077952,
+            709689344,
+            709689344
+          ],
+          "tabCount": 0,
+          "pagesLoaded": 0,
+          "pagesRequested": 0
+        },
+        {
+          "totalBytes": 665666560,
+          "processCount": 8,
+          "settled": true,
+          "elapsedMs": 25712,
+          "series": [
+            956122112,
+            718095360,
+            680346624,
+            674055168,
+            665666560,
+            665666560
+          ],
+          "tabCount": 0,
+          "pagesLoaded": 0,
+          "pagesRequested": 0
+        }
+      ]
+    },
+    {
+      "browserId": "edge",
+      "label": "Microsoft Edge",
+      "engine": "Chromium (Blink)",
+      "version": "155.0.4283.62",
+      "bundlePath": "/Applications/Microsoft Edge.app",
+      "blocking": "tracking prevention (stock, Balanced)",
+      "blockingClass": "trackers",
+      "notes": [],
+      "workload": "baseline",
+      "workloadLabel": "Idle (no pages)",
+      "workloadDescription": "Startup cost only. Subtracted from loaded runs to get per-tab marginal cost.",
+      "workloadPages": 0,
+      "tabCount": 0,
+      "extraBlankTabs": 0,
+      "metric": "phys_footprint",
+      "backend": "footprint",
+      "repetitions": [
+        {
+          "totalBytes": 564133888,
+          "processCount": 7,
+          "settled": true,
+          "elapsedMs": 20570,
+          "series": [
+            609222656,
+            576716800,
+            564133888,
+            563085312,
+            569804800
+          ],
+          "tabCount": 0,
+          "pagesLoaded": 0,
+          "pagesRequested": 0
+        },
+        {
+          "totalBytes": 564133888,
+          "processCount": 7,
+          "settled": true,
+          "elapsedMs": 20573,
+          "series": [
+            607125504,
+            576716800,
+            564133888,
+            559939584,
+            566822912
+          ],
+          "tabCount": 0,
+          "pagesLoaded": 0,
+          "pagesRequested": 0
+        },
+        {
+          "totalBytes": 565182464,
+          "processCount": 7,
+          "settled": true,
+          "elapsedMs": 20573,
+          "series": [
+            609222656,
+            576716800,
+            565182464,
+            560988160,
+            567822336
+          ],
+          "tabCount": 0,
+          "pagesLoaded": 0,
+          "pagesRequested": 0
+        }
+      ]
+    },
+    {
+      "browserId": "blanc",
+      "label": "Blanc",
+      "engine": "Chromium (Electron)",
+      "version": "1.38.0",
+      "bundlePath": "/Applications/Blanc.app",
+      "blocking": "built-in (EasyList + EasyPrivacy, network layer)",
+      "blockingClass": "ads+trackers",
+      "notes": [
+        "main.js creates one blanc://newtab at startup in addition to the URLs",
+        "passed on the command line — hence extraBlankTabs: 1.",
+        "Blanc CANCELS every http(s) main-frame request until its blocker is",
+        "compiled (installStartupNavigationGate, main.js:226/3751). On a cold",
+        "profile that gate can stay shut for the whole sampling window, so the",
+        "runner warms a template profile first and verifies every loaded cell",
+        "against the browser's own idle baseline.",
+        "Do NOT set BLANC_TEST=1 for a benchmark run: acceptanceTestMode in",
+        "main.js disables ad blocking, which would measure a configuration the",
+        "app never ships."
+      ],
+      "workload": "adheavy",
+      "workloadLabel": "Ad-heavy — 6 pages",
+      "workloadDescription": "Ad- and tracker-dense pages. This is where a network-layer blocker should show up as lower memory, because blocked frames and scripts are never instantiated.",
+      "workloadPages": 6,
+      "tabCount": 7,
+      "extraBlankTabs": 1,
+      "metric": "phys_footprint",
+      "backend": "footprint",
+      "repetitions": [
+        {
+          "totalBytes": 1603240960,
+          "processCount": 18,
+          "settled": true,
+          "elapsedMs": 58415,
+          "series": [
+            839402496,
+            1725858816,
+            1670267904,
+            1735246848,
+            1810990080,
+            1789936640,
+            1728021504,
+            1555006464,
+            1559200768,
+            1600095232,
+            1603240960,
+            1609532416
+          ],
+          "tabCount": 7,
+          "pagesLoaded": 6,
+          "pagesRequested": 6
+        },
+        {
+          "totalBytes": 1559446528,
+          "processCount": 18,
+          "settled": true,
+          "elapsedMs": 47977,
+          "series": [
+            671088640,
+            1743913984,
+            1690403840,
+            1792082944,
+            1844790272,
+            1793328128,
+            1740850176,
+            1546863616,
+            1559446528,
+            1562592256
+          ],
+          "tabCount": 7,
+          "pagesLoaded": 6,
+          "pagesRequested": 6
+        },
+        {
+          "totalBytes": 1527727104,
+          "processCount": 18,
+          "settled": true,
+          "elapsedMs": 48512,
+          "series": [
+            667942912,
+            1670317056,
+            1632551936,
+            1688093696,
+            1782662144,
+            1745880064,
+            1711227904,
+            1522484224,
+            1527727104,
+            1546601472
+          ],
+          "tabCount": 7,
+          "pagesLoaded": 6,
+          "pagesRequested": 6
+        }
+      ]
+    },
+    {
+      "browserId": "blanc-noblock",
+      "label": "Blanc (blocking off)",
+      "engine": "Chromium (Electron)",
+      "version": "1.38.0",
+      "bundlePath": "/Applications/Blanc.app",
+      "blocking": "none",
+      "blockingClass": "none",
+      "notes": [
+        "Isolates what the built-in blocker contributes. The runner seeds",
+        "settings.json in the throwaway profile with adblockEnabled: false.",
+        "Shares a bundle path with the 'blanc' entry, so a process surviving one",
+        "cell would be attributed to the other — which is why quit() reaps the",
+        "whole measured process set rather than just the root pid."
+      ],
+      "workload": "adheavy",
+      "workloadLabel": "Ad-heavy — 6 pages",
+      "workloadDescription": "Ad- and tracker-dense pages. This is where a network-layer blocker should show up as lower memory, because blocked frames and scripts are never instantiated.",
+      "workloadPages": 6,
+      "tabCount": 7,
+      "extraBlankTabs": 1,
+      "metric": "phys_footprint",
+      "backend": "footprint",
+      "repetitions": [
+        {
+          "totalBytes": 5712774144,
+          "processCount": 102,
+          "settled": true,
+          "elapsedMs": 65929,
+          "series": [
+            735051776,
+            2380235776,
+            5201871872,
+            6252938240,
+            6018122752,
+            6003246080,
+            5837554688,
+            5796660224,
+            5712774144,
+            5686281216
+          ],
+          "tabCount": 7,
+          "pagesLoaded": 6,
+          "pagesRequested": 6
+        },
+        {
+          "totalBytes": 5567939584,
+          "processCount": 102,
+          "settled": true,
+          "elapsedMs": 64361,
+          "series": [
+            627048448,
+            2273149952,
+            5277271040,
+            5917099008,
+            5719065600,
+            5960156160,
+            5770314752,
+            5598348288,
+            5567939584,
+            5520458752
+          ],
+          "tabCount": 7,
+          "pagesLoaded": 6,
+          "pagesRequested": 6
+        },
+        {
+          "totalBytes": 5418025984,
+          "processCount": 103,
+          "settled": true,
+          "elapsedMs": 59014,
+          "series": [
+            723517440,
+            2656011264,
+            5985141760,
+            5989581824,
+            5814436864,
+            5672829952,
+            5462066176,
+            5418025984,
+            5404394496
+          ],
+          "tabCount": 7,
+          "pagesLoaded": 6,
+          "pagesRequested": 6
+        }
+      ]
+    },
+    {
+      "browserId": "chrome",
+      "label": "Google Chrome",
+      "engine": "Chromium (Blink)",
+      "version": "155.0.8059.80",
+      "bundlePath": "/Applications/Google Chrome.app",
+      "blocking": "none (stock profile)",
+      "blockingClass": "none",
+      "notes": [
+        "The report's reference row: percentages are relative to Chrome rather",
+        "than to whichever browser scored lowest."
+      ],
+      "workload": "adheavy",
+      "workloadLabel": "Ad-heavy — 6 pages",
+      "workloadDescription": "Ad- and tracker-dense pages. This is where a network-layer blocker should show up as lower memory, because blocked frames and scripts are never instantiated.",
+      "workloadPages": 6,
+      "tabCount": 6,
+      "extraBlankTabs": 0,
+      "metric": "phys_footprint",
+      "backend": "footprint",
+      "repetitions": [
+        {
+          "totalBytes": 5278910464,
+          "processCount": 92,
+          "settled": true,
+          "elapsedMs": 53060,
+          "series": [
+            995493888,
+            2665220096,
+            4535927808,
+            5928602624,
+            6008343552,
+            5324456960,
+            5232773120,
+            5278910464
+          ],
+          "tabCount": 6,
+          "pagesLoaded": 6,
+          "pagesRequested": 6
+        },
+        {
+          "totalBytes": 5425629184,
+          "processCount": 97,
+          "settled": true,
+          "elapsedMs": 57019,
+          "series": [
+            932644864,
+            2566473728,
+            5081795584,
+            5875779584,
+            5939742720,
+            5845370880,
+            5504272384,
+            5425629184,
+            5424580608
+          ],
+          "tabCount": 6,
+          "pagesLoaded": 6,
+          "pagesRequested": 6
+        },
+        {
+          "totalBytes": 5232920576,
+          "processCount": 95,
+          "settled": true,
+          "elapsedMs": 81023,
+          "series": [
+            1166542848,
+            2647491584,
+            5286757376,
+            5664279552,
+            5791124480,
+            5793385472,
+            5599233024,
+            5525832704,
+            5425169408,
+            5339875328,
+            5232920576,
+            5226334208,
+            5315463168
+          ],
+          "tabCount": 6,
+          "pagesLoaded": 6,
+          "pagesRequested": 6
+        }
+      ]
+    },
+    {
+      "browserId": "zen",
+      "label": "Zen Browser",
+      "engine": "Gecko (Firefox)",
+      "version": "1.23.3b",
+      "bundlePath": "/Applications/Zen.app",
+      "blocking": "ETP Standard — tracker cookies, cryptominers, fingerprinters; does NOT block ads, and blocks tracking content only in private windows",
+      "blockingClass": "trackers",
+      "notes": [
+        "Zen ships its own onboarding, separate from Mozilla's about:welcome, so",
+        "browser.aboutwelcome.enabled=false does not touch it. Every cell mints a",
+        "fresh profile, so every Zen cell is a first run; its welcome flow hides",
+        "the browser content until a human clicks through, which would settle",
+        "fast and clean and be recorded as an excellent result at the requested",
+        "tab count. extraPrefs sets the pref that suppresses it — if a future",
+        "build renames it, the welcome screen returns silently and only the load",
+        "check against Zen's own idle baseline catches it.",
+        "CONFIRMED 2026-08-09 on Zen 1.x / macOS 27: user.js startup-homepage",
+        "tab seeding IS honoured — the upstream report of it failing on macOS",
+        "aarch64 (zen-browser/desktop#12154) did not reproduce here. But Zen",
+        "consumes the FIRST startup entry with its own workspace/new-tab",
+        "surface, so the first workload URL was silently dropped (9/10 pages,",
+        "twice, deterministically). geckoUserJs now leads with about:blank to",
+        "absorb that."
+      ],
+      "workload": "adheavy",
+      "workloadLabel": "Ad-heavy — 6 pages",
+      "workloadDescription": "Ad- and tracker-dense pages. This is where a network-layer blocker should show up as lower memory, because blocked frames and scripts are never instantiated.",
+      "workloadPages": 6,
+      "tabCount": 6,
+      "extraBlankTabs": 0,
+      "metric": "phys_footprint",
+      "backend": "footprint",
+      "repetitions": [
+        {
+          "totalBytes": 5046796288,
+          "processCount": 76,
+          "settled": true,
+          "elapsedMs": 33184,
+          "series": [
+            1176502272,
+            3428843520,
+            3905945600,
+            5097127936,
+            5129633792,
+            5046796288,
+            5030019072
+          ],
+          "tabCount": 6,
+          "pagesLoaded": 6,
+          "pagesRequested": 6
+        },
+        {
+          "totalBytes": 5006950400,
+          "processCount": 69,
+          "settled": true,
+          "elapsedMs": 38398,
+          "series": [
+            1103101952,
+            3037724672,
+            3515875328,
+            3797942272,
+            4950327296,
+            4961861632,
+            5026873344,
+            5006950400
+          ],
+          "tabCount": 6,
+          "pagesLoaded": 6,
+          "pagesRequested": 6
+        },
+        {
+          "totalBytes": 5052039168,
+          "processCount": 76,
+          "settled": true,
+          "elapsedMs": 39031,
+          "series": [
+            1045430272,
+            2943352832,
+            3514826752,
+            4389339136,
+            4882169856,
+            5006950400,
+            5052039168,
+            5058330624
+          ],
+          "tabCount": 6,
+          "pagesLoaded": 6,
+          "pagesRequested": 6
+        }
+      ]
+    },
+    {
+      "browserId": "brave",
+      "label": "Brave",
+      "engine": "Chromium (Blink)",
+      "version": "155.1.97.59",
+      "bundlePath": "/Applications/Brave Browser.app",
+      "blocking": "built-in Brave Shields",
+      "blockingClass": "ads+trackers",
+      "notes": [
+        "Brave's updater (Sparkle) lives inside the app bundle and keeps its",
+        "check state in ~/Library/Preferences, which --user-data-dir does not",
+        "reset — so a fresh profile does not prevent an update check firing mid",
+        "measurement. --disable-brave-update suppresses it. This changes no",
+        "process-model knob, so it does not violate the no-flags rule; the Gecko",
+        "driver already sets app.update.auto=false for the same reason.",
+        "UNVERIFIED: whether Brave opens a welcome tab on a fresh profile despite",
+        "--no-first-run. If it does, extraBlankTabs must be raised."
+      ],
+      "workload": "adheavy",
+      "workloadLabel": "Ad-heavy — 6 pages",
+      "workloadDescription": "Ad- and tracker-dense pages. This is where a network-layer blocker should show up as lower memory, because blocked frames and scripts are never instantiated.",
+      "workloadPages": 6,
+      "tabCount": 6,
+      "extraBlankTabs": 0,
+      "metric": "phys_footprint",
+      "backend": "footprint",
+      "repetitions": [
+        {
+          "totalBytes": 1852833792,
+          "processCount": 18,
+          "settled": true,
+          "elapsedMs": 27129,
+          "series": [
+            796917760,
+            2075131904,
+            1900019712,
+            1847590912,
+            1852833792,
+            1854930944
+          ],
+          "tabCount": 6,
+          "pagesLoaded": 6,
+          "pagesRequested": 6
+        },
+        {
+          "totalBytes": 1886388224,
+          "processCount": 18,
+          "settled": true,
+          "elapsedMs": 21154,
+          "series": [
+            875560960,
+            2071986176,
+            1902116864,
+            1886388224,
+            1868562432
+          ],
+          "tabCount": 6,
+          "pagesLoaded": 6,
+          "pagesRequested": 6
+        },
+        {
+          "totalBytes": 1819279360,
+          "processCount": 18,
+          "settled": true,
+          "elapsedMs": 26398,
+          "series": [
+            855638016,
+            2001731584,
+            1889533952,
+            1819279360,
+            1820327936,
+            1805647872
+          ],
+          "tabCount": 6,
+          "pagesLoaded": 6,
+          "pagesRequested": 6
+        }
+      ]
+    },
+    {
+      "browserId": "vivaldi",
+      "label": "Vivaldi",
+      "engine": "Chromium (Blink)",
+      "version": "8.2.4133.89",
+      "bundlePath": "/Applications/Vivaldi.app",
+      "blocking": "built-in blocker, trackers only at stock settings",
+      "blockingClass": "trackers",
+      "notes": [
+        "Vivaldi ships its blocker set to block trackers, NOT ads, out of the",
+        "box; the registry previously said 'built-in blocker (stock settings)',",
+        "which read as an ad-blocking peer and would have grouped it with Blanc",
+        "and Brave. UNVERIFIED against a real install — confirm in Settings >",
+        "Privacy before publishing, since a wrong class silently moves the row",
+        "into the wrong comparison group.",
+        "Vivaldi's own UI is a web page rendered in a renderer process, so its",
+        "process count and baseline include the browser chrome itself — the same",
+        "property Blanc has, and unlike Chrome's native UI."
+      ],
+      "workload": "adheavy",
+      "workloadLabel": "Ad-heavy — 6 pages",
+      "workloadDescription": "Ad- and tracker-dense pages. This is where a network-layer blocker should show up as lower memory, because blocked frames and scripts are never instantiated.",
+      "workloadPages": 6,
+      "tabCount": 6,
+      "extraBlankTabs": 0,
+      "metric": "phys_footprint",
+      "backend": "footprint",
+      "repetitions": [
+        {
+          "totalBytes": 8004665344,
+          "processCount": 109,
+          "settled": true,
+          "elapsedMs": 50138,
+          "series": [
+            1036877824,
+            3367862272,
+            6982303744,
+            7732035584,
+            8004665344,
+            8004665344,
+            7879884800
+          ],
+          "tabCount": 6,
+          "pagesLoaded": 6,
+          "pagesRequested": 6
+        },
+        {
+          "totalBytes": 7987135488,
+          "processCount": 107,
+          "settled": true,
+          "elapsedMs": 63303,
+          "series": [
+            1039287296,
+            3449963520,
+            6617711616,
+            8334230528,
+            8367768576,
+            8181122048,
+            8025932800,
+            7961969664,
+            7987135488
+          ],
+          "tabCount": 6,
+          "pagesLoaded": 6,
+          "pagesRequested": 6
+        },
+        {
+          "totalBytes": 7724647424,
+          "processCount": 102,
+          "settled": true,
+          "elapsedMs": 66966,
+          "series": [
+            1079821312,
+            3280782336,
+            6460064768,
+            8304509952,
+            8441873408,
+            8019297280,
+            7957431296,
+            7799096320,
+            7724647424,
+            7699481600
+          ],
+          "tabCount": 6,
+          "pagesLoaded": 6,
+          "pagesRequested": 6
+        }
+      ]
+    },
+    {
+      "browserId": "edge",
+      "label": "Microsoft Edge",
+      "engine": "Chromium (Blink)",
+      "version": "155.0.4283.62",
+      "bundlePath": "/Applications/Microsoft Edge.app",
+      "blocking": "tracking prevention (stock, Balanced)",
+      "blockingClass": "trackers",
+      "notes": [],
+      "workload": "adheavy",
+      "workloadLabel": "Ad-heavy — 6 pages",
+      "workloadDescription": "Ad- and tracker-dense pages. This is where a network-layer blocker should show up as lower memory, because blocked frames and scripts are never instantiated.",
+      "workloadPages": 6,
+      "tabCount": 6,
+      "extraBlankTabs": 0,
+      "metric": "phys_footprint",
+      "backend": "footprint",
+      "repetitions": [
+        {
+          "totalBytes": 6823084032,
+          "processCount": 89,
+          "settled": true,
+          "elapsedMs": 47761,
+          "series": [
+            818937856,
+            2326790144,
+            3845128192,
+            4956618752,
+            5610930176,
+            6760169472,
+            6836715520,
+            6823084032
+          ],
+          "tabCount": 6,
+          "pagesLoaded": 6,
+          "pagesRequested": 6
+        },
+        {
+          "totalBytes": 8074496000,
+          "processCount": 89,
+          "settled": true,
+          "elapsedMs": 82072,
+          "series": [
+            700448768,
+            2274361344,
+            3837788160,
+            5258608640,
+            5787090944,
+            6782189568,
+            8549040128,
+            8217690112,
+            8540651520,
+            8305166336,
+            8121632768,
+            8074496000,
+            8035237888
+          ],
+          "tabCount": 6,
+          "pagesLoaded": 6,
+          "pagesRequested": 6
+        },
+        {
+          "totalBytes": 7939817472,
+          "processCount": 81,
+          "settled": true,
+          "elapsedMs": 63557,
+          "series": [
+            768606208,
+            2277507072,
+            4447010816,
+            4817158144,
+            5640290304,
+            7439646720,
+            8491368448,
+            7939817472,
+            7862222848,
+            7942326272
+          ],
+          "tabCount": 6,
+          "pagesLoaded": 6,
+          "pagesRequested": 6
+        }
+      ]
+    }
+  ]
+}

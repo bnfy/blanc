@@ -41,6 +41,60 @@ final class SettingsStoreTests: XCTestCase {
         XCTAssertEqual(store2.adblockEnabled, false)
     }
 
+    /// The Island tucks on scroll unless the person turns it off; the choice
+    /// survives a relaunch.
+    func testIslandTuckIsOnByDefaultAndPersistsWhenOff() {
+        let dir = tmpDir()
+        let store = SettingsStore(directory: dir)
+        XCTAssertTrue(store.islandTucksOnScroll)
+        store.update(islandTucksOnScroll: false)
+        store.flush()
+        XCTAssertFalse(SettingsStore(directory: dir).islandTucksOnScroll)
+    }
+
+    /// Back and Forward are always on the Island now, so the old switch's saved
+    /// value goes at the next save, while keys from a newer build still stay.
+    /// Back and Forward are on the iPhone Island until the person turns them
+    /// off; the choice survives a relaunch.
+    func testIslandBackForwardIsOnByDefaultAndPersistsWhenOff() {
+        let dir = tmpDir()
+        let store = SettingsStore(directory: dir)
+        XCTAssertTrue(store.islandBackForward)
+        store.update(islandBackForward: false)
+        store.flush()
+        XCTAssertFalse(SettingsStore(directory: dir).islandBackForward)
+    }
+
+    /// The old switch was off by default and saved that way, so its value is
+    /// dropped rather than carried over: those phones get the arrows too.
+    func testTheRetiredBackAndForwardSwitchIsDroppedOnSave() throws {
+        let dir = tmpDir()
+        writeJSON(["islandHistoryButtons": false, "aNewerKey": 1], to: dir)
+        let store = SettingsStore(directory: dir)
+        XCTAssertTrue(store.islandBackForward)
+        store.update(islandTucksOnScroll: false)
+        store.flush()
+        let data = try Data(contentsOf: dir.appendingPathComponent("settings.json"))
+        let saved = try XCTUnwrap(JSONSerialization.jsonObject(with: data) as? [String: Any])
+        XCTAssertNil(saved["islandHistoryButtons"])
+        XCTAssertEqual(saved["aNewerKey"] as? Int, 1)
+    }
+
+    /// The Island sits along the bottom unless the person moves it to the top;
+    /// an unknown saved value falls back to the bottom.
+    func testIslandPositionDefaultsToBottomAndPersists() {
+        let dir = tmpDir()
+        let store = SettingsStore(directory: dir)
+        XCTAssertEqual(store.islandPosition, .bottom)
+        store.update(islandPosition: .top)
+        store.flush()
+        XCTAssertEqual(SettingsStore(directory: dir).islandPosition, .top)
+
+        let other = tmpDir()
+        writeJSON(["islandPosition": "left"], to: other)
+        XCTAssertEqual(SettingsStore(directory: other).islandPosition, .bottom)
+    }
+
     func testFirstEverSaveCreatesFile() {
         // Regression guard: a first-run save must CREATE settings.json, not throw
         // because the destination doesn't exist yet. `.atomic` handles create.

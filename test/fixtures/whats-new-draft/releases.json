@@ -1,0 +1,75 @@
+[
+  {
+    "version": "2.1.0",
+    "humanDate": "November 20, 2026",
+    "anchor": "v2-1-0",
+    "sections": [
+      {
+        "heading": "Added",
+        "blocks": [
+          { "type": "paragraph", "spans": [{ "type": "text", "value": "Two new things." }] },
+          {
+            "type": "list",
+            "items": [
+              {
+                "spans": [
+                  { "type": "strong", "value": "Tab group notes." },
+                  { "type": "text", "value": " Right-click a group's header and choose " },
+                  { "type": "strong", "value": "Add Note" },
+                  { "type": "text", "value": " to keep a line of text with it, or press ⋮ and then ⌘⇧N (Ctrl+Shift+N on Windows and Linux). Type " },
+                  { "type": "code", "value": "lofi !notes" },
+                  { "type": "text", "value": " or !notes in the ⌘L panel, or run " },
+                  { "type": "code", "value": "/note" },
+                  { "type": "text", "value": "." }
+                ],
+                "url": null
+              },
+              {
+                "spans": [
+                  { "type": "text", "value": "A plain bullet with no bold name." }
+                ],
+                "url": null
+              },
+              {
+                "spans": [
+                  { "type": "strong", "value": "Sunset wallpaper:" },
+                  { "type": "text", "value": " the Start Page gains a sunset wallpaper." }
+                ],
+                "url": null
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "heading": "Fixed",
+        "blocks": [
+          {
+            "type": "list",
+            "items": [
+              { "spans": [{ "type": "strong", "value": "Downloads." }, { "type": "text", "value": " A fix, not a feature." }], "url": null }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "version": "2.0.0",
+    "humanDate": "November 1, 2026",
+    "anchor": "v2-0-0",
+    "sections": [
+      {
+        "heading": "Added",
+        "blocks": [
+          {
+            "type": "list",
+            "items": [
+              { "spans": [{ "type": "strong", "value": "One feature." }, { "type": "text", "value": " Only one." }], "url": null }
+            ]
+          }
+        ]
+      }
+    ]
+  }
+]

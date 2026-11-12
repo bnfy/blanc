@@ -41,6 +41,10 @@ test('the header row holds the brand, in flow', () => {
   );
   const css = frameCss();
   assert.match(css, /\.start-header \{[^}]*display: flex;[^}]*justify-content: space-between;/s);
+  assert.match(css, /\.start-header \{[^}]*padding: clamp\(30px, 5vh, 48px\) var\(--start-edge\) 0;/s,
+    'the brand row shares the footer\'s window-edge inset');
+  assert.doesNotMatch(css.match(/\.start-header \{[^}]*\}/)[0], /max-width/, 'the brand row is not centred on the content measure');
+  assert.match(read('src/renderer/pages/pages.css'), /\.ledger-footer,\s*body:not\(\[data-layout="ledger"\]\) \.ledger-footer \{[^}]*padding: 11px var\(--start-edge\);/s);
   assert.doesNotMatch(read('src/renderer/pages/pages.css'), /\.start-brand \{[^}]*position: fixed/s,
     'the brand no longer floats over content');
 });
@@ -130,8 +134,9 @@ test('labels are sentence case without tracking, and the date keeps locale case'
     assert.match(html, new RegExp(`>${label}<`), `label "${label}"`);
   }
   assert.doesNotMatch(html, />(favorites|pick up where you left off|on your other devices|blocked this week|blocked)</);
-  assert.match(js, /const dateText = isPrivate\s*\? t\('newtab\.privateTab'\)/);
-  assert.equal(JSON.parse(read('copy/messages/en.json'))['newtab.privateTab'].message, 'Private tab');
+  // Private tabs show the date as well; the Island's chip marks the mode.
+  assert.match(js, /const dateText = new Date\(\)\.toLocaleDateString\(/);
+  assert.equal(JSON.parse(read('copy/messages/en.json'))['newtab.privateTab'], undefined);
   assert.doesNotMatch(js.match(/const dateText[\s\S]*?;\n/)[0], /toLowerCase/);
   const css = frameCss();
   assert.match(css, /\.ledger-label,\s*\.shelf-label \{[^}]*font: 600 12px\/1\.3 var\(--font-text\);[^}]*letter-spacing: 0\.005em;[^}]*text-transform: none;/s);
@@ -146,13 +151,16 @@ test('surfaces follow one weight ladder with accessibility fallbacks', () => {
   assert.match(css, /\.shelf-tile,\s*\.shelf-card \{[^}]*background: var\(--start-card-fill\);[^}]*box-shadow: var\(--start-shadow-card\), var\(--start-card-highlight\);[^}]*backdrop-filter: blur\(12px\) saturate\(140%\);/s);
   assert.match(css, /\.group-chip \{[^}]*background: transparent;[^}]*backdrop-filter: none;/s);
   assert.match(css, /\.ledger-footer,\s*body:not\(\[data-layout="ledger"\]\) \.ledger-footer \{ border-top: 0; \}/);
-  assert.match(css, /\.ledger-footer::before \{[^}]*height: 24px;[^}]*opacity: 0;/s);
+  assert.match(css, /\.ledger-footer::before \{[^}]*inset: -28px 0 0;[^}]*opacity: 0;/s);
   assert.match(css, /body\.has-underflow \.ledger-footer::before \{ opacity: 1; \}/);
   assert.match(js, /new IntersectionObserver\(/);
   assert.match(css, /@media \(prefers-reduced-transparency: reduce\) \{[\s\S]*?backdrop-filter: none;/);
   assert.match(css, /@media \(prefers-contrast: more\) \{[\s\S]*?border-color: var\(--text-dim\);/);
-  assert.match(css, /@media \(prefers-color-scheme: dark\) \{\s*\.bb-clock \{ text-shadow: none; \}/);
-  assert.match(css, /:root\[data-theme="private"\] \.bb-clock \{ text-shadow: none; \}/);
+  // The clock's shadow follows its ink in every theme (newtab.js sets it), so
+  // no theme or wallpaper switches it off.
+  assert.match(all, /\.bb-clock \{[^}]*text-shadow: var\(--clock-shadow, none\);/);
+  assert.doesNotMatch(all, /\.bb-clock \{ text-shadow: none; \}/);
+  assert.match(js, /style\.setProperty\('--clock-shadow', shadow\)/);
   assert.match(css, /\.fav \.tile,\s*\.shelf-tile \.tile,\s*\.bb-fav \.tile \{[^}]*border-radius: 6px;[^}]*box-shadow: var\(--start-shadow-icon\);/s);
   assert.doesNotMatch(all, /\.bb-site-dismiss \{[^}]*box-shadow: 0 2px 8px/s, 'the dismiss button uses the icon shadow');
 });
@@ -167,7 +175,7 @@ test('motion grows surfaces from their source and respects reduced motion', () =
   assert.match(css, /@starting-style \{\s*body\.layout-ready \.start-content > main \{ opacity: 0; \}/);
   assert.match(css, /:active \{[^}]*transform: scale\(0\.98\);/s);
   assert.match(css, /@media \(prefers-reduced-motion: reduce\) \{[\s\S]*?\.start-customize-popover,[\s\S]*?transform: none;/);
-  assert.match(js, /requestAnimationFrame\(\(\) => document\.body\.classList\.add\('layout-ready'\)\)/);
+  assert.match(js, /requestAnimationFrame\(\(\) => \{\s*document\.body\.classList\.add\('layout-ready'\);/);
   assert.doesNotMatch(css, /cubic-bezier\([^)]*1\.[0-9]/, 'no overshooting curves');
 });
 

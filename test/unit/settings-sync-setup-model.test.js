@@ -222,3 +222,22 @@ test('join-code-reply notFound sets the notice and keeps the code; ok clears it'
   assert.equal(done.code, '');
   assert.equal(done.notice, null);
 });
+
+// Sync without a passphrase (design 2026-10-28 §5.2).
+test('turn-on emits one turn-on effect and its reply settles the attempt', () => {
+  const { transition: tr, createSyncSetupModel: create, view: v } = require('../../src/renderer/pages/settings-sync-setup-model');
+  const first = tr(create(), { type: 'turn-on' });
+  assert.equal(first.effect.type, 'turn-on');
+  assert.equal(tr(first.state, { type: 'turn-on' }).effect, null, 'a second press while starting emits nothing');
+  assert.equal(v(first.state).turnOnDisabled, true);
+  const failed = tr(first.state, { type: 'turn-on-reply', token: first.effect.token, ok: false, message: 'Offline' }).state;
+  assert.equal(v(failed).turnOnDisabled, false);
+  assert.equal(v(failed).turnOnNotice, 'Offline');
+  const stale = tr(first.state, { type: 'turn-on-reply', token: first.effect.token + 1, ok: false, message: 'x' }).state;
+  assert.equal(stale.phase, first.state.phase, 'a stale reply is dropped');
+});
+
+test('the off state reads Sync your Blanc with no path chosen', () => {
+  const { createSyncSetupModel: create, view: v } = require('../../src/renderer/pages/settings-sync-setup-model');
+  assert.equal(v(create()).setupTitle, 'Sync your Blanc');
+});

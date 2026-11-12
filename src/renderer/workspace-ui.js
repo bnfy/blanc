@@ -28,6 +28,15 @@
   // The workspace and deleted-workspace cap: MAX_WORKSPACES in main's
   // workspaces-model.js (a unit test keeps the two equal).
   const WORKSPACE_LIMIT = 25;
+  // A refused switch names this many blocking pages; the rest are counted.
+  const BLOCKING_SHOWN = 3;
+  // Why a page holds its window, from space-switch-guard.js in main.
+  const BLOCKING_REASONS = {
+    loading: 'ws.decision.blocked.loading',
+    opener: 'ws.decision.blocked.opener',
+    capture: 'ws.decision.blocked.capture',
+    popup: 'ws.decision.blocked.popup',
+  };
   const errors = {
     'duplicate-name': t('ws.error.duplicateName'),
     'invalid-name': t('ws.error.invalidName'),
@@ -144,12 +153,19 @@
       else popup.style.setProperty('--ws-bottom', `${win.innerHeight - (anchor.top - 6)}px`);
       popup.style.setProperty('--ws-right', `${Math.max(8, Math.min(win.innerWidth - anchor.right, win.innerWidth - popup.offsetWidth - 8))}px`);
     }
+    // The footer button's own glyph (the Spaces planet), shown in no space.
+    const planet = [...trigger.children];
     function syncIdentity() {
       const bound = current();
-      trigger.title = bound ? t('ws.trigger.current', { name: bound.name }) : t('footer.workspaces');
-      trigger.setAttribute('aria-label', trigger.title);
+      trigger.dataset.tooltip = bound ? t('ws.trigger.current', { name: bound.name }) : t('footer.workspaces');
+      trigger.setAttribute('aria-label', trigger.dataset.tooltip);
       trigger.setAttribute('aria-expanded', String(opened));
       trigger.classList.toggle('bound', !!bound);
+      // In a space the button shows that space's tile, painted for the
+      // current theme: the resting Island carries no Space mark (owner,
+      // November 11, 2026), so this is where the open Island says which
+      // space the window is in. The name stays in the tooltip.
+      trigger.replaceChildren(...(bound ? [tile(bound, 'ws-tile ws-trigger-tile')] : planet));
     }
     const saveError = () => (state.kind === 'edit' && failedEdit?.id === state.id ? failedEdit.message : '');
     function open() {
@@ -189,11 +205,11 @@
 
     // ---- editing state ----
     /** New: { kind, draft, start, original? } · Edit: { kind, id, draft }. */
-    function beginNew({ name = '', start = null, original = null } = {}) {
+    function beginNew({ name = '', start = null, original = null, tabId = null, tabTitle = '' } = {}) {
       if (state.pending) return;
       generation += 1;
       const identity = Identity.defaultsFor(data.items);
-      state = { kind: 'new', draft: { name, ...identity }, start: start ?? (current() ? 'empty' : 'window'), fixedStart: !!original, original, error: '', touched: false, picker: false };
+      state = { kind: 'new', draft: { name, ...identity }, start: start ?? (current() ? 'empty' : 'window'), fixedStart: !!original || ['tab', 'tabs', 'link'].includes(start), tabId, tabTitle, original, error: '', touched: false, picker: false };
       open();
     }
     function beginEdit(workspace) {
@@ -273,7 +289,8 @@
     function cancel() {
       if (state.pending) return true;
       if (state.kind === 'decision') api.cancelWorkspaceAction?.();
-      if (state.original) { state = state.original; render(); }
+      if (['tab', 'tabs', 'link'].includes(state.start)) { state = { kind: 'list' }; close({ force: true }); }
+      else if (state.original) { state = state.original; render(); }
       else if (state.kind === 'edit') { finishEdit(); }
       else if (state.kind !== 'list') { toList(); }
       else if (opened) { state.error = ''; close(); }
@@ -295,11 +312,14 @@
       state.pending = false;
       if (result?.items) data = { ...data, ...result };
       if (!result?.ok) {
-        if (result?.error === 'saved-not-opened') {
+        if (['saved-not-opened', 'saved-not-moved'].includes(result?.error)) {
           // Creation already committed. Leave the user on the list containing
           // that saved row; keeping the editor alive would turn a retry into a
           // misleading duplicate-name failure.
-          state = { kind: 'list', error: errors[result.error] };
+          const batch = state.start === 'tabs';
+          state = { kind: 'list', error: batch ? t('ws.error.movedPartly', { name: data.items.find(item => item.id === result.workspaceId)?.name ?? '', count: result.movedCount ?? 0 }) : result.error === 'saved-not-moved'
+            ? t('ws.error.savedNotMoved', { name: data.items.find((item) => item.id === result.workspaceId)?.name ?? '' })
+            : errors[result.error] };
           render();
         } else if (['unsaved-scratch', 'protected-pages'].includes(result?.error) && action) {
           state = { kind: 'decision', action, result, error: '' }; open();
@@ -329,6 +349,15 @@
       if (problem) { state.error = errors[problem]; renderEditorError(); popup.querySelector('#workspaceName')?.focus(); return; }
       const name = state.draft.name.trim().replace(/\s+/g, ' ');
       const identity = { color: state.draft.color, symbol: state.draft.symbol };
+      if (['tab', 'tabs', 'link'].includes(state.start)) {
+        const isTabs = state.start === 'tabs';
+        const isLink = state.start === 'link';
+        const tabId = state.tabId;
+        run(() => isLink ? api.createSpaceWithLink(name, identity) : isTabs ? api.createSpaceWithTabs(name, identity, tabId) : api.createSpaceWithTab(name, identity, tabId), () => {
+          state = { kind: 'list' }; close({ force: true }); api.closeOverlay();
+        });
+        return;
+      }
       if (state.start === 'empty' && !state.fixedStart) { openAction({ kind: 'create', name, identity }); return; }
       const original = state.original;
       run(() => api.saveWorkspaceAs(name, identity), () => {
@@ -356,7 +385,11 @@
       main.title = t('ws.row.title', { name: workspace.name, context, count: workspace.tabCount });
       main.setAttribute('aria-label', main.title);
       if (workspace.active) main.setAttribute('aria-current', 'true');
-      main.append(tile(workspace), dataEl('span', 'ws-row-name', workspace.name), el('span', 'ws-row-count', workspace.openElsewhere ? t('ws.row.showWindow') : number.format(workspace.tabCount)));
+      // A shared Space's sync status is a second line under its name, so the
+      // name keeps the row's width beside the count or Show window.
+      let label = dataEl('span', 'ws-row-name', workspace.name);
+      if(workspace.sharedSync){const mark=dataEl('span','ws-sync-mark',t('sharedSpaces.'+({full:'fullState',unavailable:'unavailableState'}[workspace.sharedSync.state]??workspace.sharedSync.state),{time:new Date(workspace.sharedSync.lastSyncedAt??0).toLocaleString()}));mark.setAttribute('role','status');if(workspace.sharedSync.reason)mark.title=t(workspace.sharedSync.reason==='tombstones'?'sharedSpaces.tombstones':'sharedSpaces.capacity');const text=el('span','ws-row-text');text.append(label,mark);label=text;}
+      main.append(tile(workspace), label, el('span', 'ws-row-count', workspace.openElsewhere ? t('ws.row.showWindow') : number.format(workspace.tabCount)));
       main.addEventListener('keydown', (event) => {
         if (!event.altKey || !['ArrowUp', 'ArrowDown'].includes(event.key)) return;
         event.preventDefault(); event.stopPropagation();
@@ -420,6 +453,8 @@
     }
     function renderList() {
       const nodes = [];
+      if(data.sharedSync){nodes.push(el('p','ws-sync-status',t('sharedSpaces.count',data.sharedSync)));if(data.sharedSync.busy)nodes.push(el('p','ws-sync-status',t('sharedSpaces.busy')));else if(data.sharedSync.slowed)nodes.push(el('p','ws-sync-status',t('sharedSpaces.slowed')));}
+      if(data.recoveryNotice){nodes.push(el('p','ws-sync-status',t('sharedSpaces.recoveryNote')));nodes.push(button(t('sharedSpaces.cancel'),'dismiss-recovery',()=>run(()=>api.updateWorkspace('',{ackRecovery:true}),()=>{})));}
       if (!data.items.length) nodes.push(el('p', 'ws-empty', t('ws.list.emptyHint')));
       data.items.forEach((workspace, index) => nodes.push(spaceRow(workspace, index)));
       if (undo && data.deleted?.some((d) => d.id === undo.id)) {
@@ -527,6 +562,9 @@
       }
       form.append(head, ident, status, colorLabel, swatches, pickerSlot, symbolLabel, symbols);
 
+      if (isNew && ['tab', 'tabs', 'link'].includes(state.start)) {
+        form.append(el('p', 'ws-label', t(state.start === 'link' ? 'ws.new.withLink' : state.start === 'tabs' ? 'ws.new.withTabs' : 'ws.new.withTab')), dataEl('p', 'ws-help', state.tabTitle));
+      }
       if (isNew && !state.fixedStart) {
         const seg = el('div', 'ws-segmented'); seg.setAttribute('role', 'radiogroup'); seg.setAttribute('aria-label', t('ws.editor.startWith'));
         for (const [value, text] of [['window', t('ws.editor.thisWindow', { count: data.windowTabCount ?? 0 })], ['empty', t('ws.editor.empty')]]) {
@@ -567,17 +605,35 @@
       const target = data.items.find((w) => w.id === action.id) ?? action.identity ?? Identity.defaultsFor(data.items);
       const head = el('div', 'ws-decision-head');
       const text = el('div', 'ws-decision-text');
+      const blocking = protectedPages && Array.isArray(result.blockingTabs) ? result.blockingTabs : [];
       text.append(dataEl('h2', 'ws-decision-title', t('ws.decision.title', { name: action.name })),
-        el('p', 'ws-switcher-confirm-msg', protectedPages
-          ? t('ws.decision.protected')
-          : t(result.privateCount === result.tabCount ? 'ws.decision.closePrivate' : 'ws.decision.closeUnsaved', { count: result.tabCount })));
+        el('p', 'ws-switcher-confirm-msg', !protectedPages
+          ? t(result.privateCount === result.tabCount ? 'ws.decision.closePrivate' : 'ws.decision.closeUnsaved', { count: result.tabCount })
+          : blocking.length ? t('ws.decision.blockedHint', { count: blocking.length }) : t('ws.decision.protected')));
       head.append(tile(target), text);
+      box.append(head);
+      if (blocking.length) box.append(renderBlockingTabs(blocking));
       const actions = el('div', 'ws-decision-actions');
       if (!protectedPages && result.tabCount > result.privateCount) actions.append(button(t('ws.decision.saveThenSwitch'), 'save-first', () => beginNew({ start: 'window', original: state }), 'ws-pill primary'));
       actions.append(button(t('ws.decision.newWindow'), 'new-window', () => openAction(action, { newWindow: true }), 'ws-pill'));
       if (!protectedPages) actions.append(button(t('ws.decision.closeAndSwitch'), 'close-and-switch', () => openAction(action, { decision: result.decision }), 'ws-pill danger-text'));
       actions.append(button(t('common.cancel'), 'cancel', cancel, 'ws-pill quiet'));
-      box.append(head, actions); return box;
+      box.append(actions); return box;
+    }
+    // The pages holding this window (#1140), each with a way to go to it.
+    function renderBlockingTabs(blocking) {
+      const rows = el('ul', 'ws-blocking');
+      for (const page of blocking.slice(0, BLOCKING_SHOWN)) {
+        const row = el('li', 'ws-blocking-row');
+        const show = button(t('ws.decision.showTab'), `show-tab:${page.id}`, () => {
+          api.switchTab(page.id); state = { kind: 'list' }; close({ force: true }); api.closeOverlay();
+        }, 'ws-pill');
+        show.setAttribute('aria-label', t('ws.decision.showTabLabel', { title: page.title }));
+        row.append(el('span', 'ws-blocking-text', t(BLOCKING_REASONS[page.reason] ?? 'ws.decision.blocked.loading', { title: page.title })), show);
+        rows.append(row);
+      }
+      if (blocking.length > BLOCKING_SHOWN) rows.append(el('li', 'ws-blocking-more', t('ws.decision.blockedMore', { count: blocking.length - BLOCKING_SHOWN })));
+      return rows;
     }
     function renderRecovery() {
       const box = el('section', 'ws-recovery');
@@ -599,7 +655,7 @@
         const restore = button(t('ws.recovery.restore'), `restore:${entry.id}`, () => run(() => api.restoreWorkspace(entry.id), () => { if (undo?.id === entry.id) undo = null; }), 'ws-pill');
         restore.setAttribute('aria-label', t('ws.recovery.restoreNamed', { name: entry.name }));
         const forget = button('', `forget:${entry.id}`, () => { state = { kind: 'forget', id: entry.id, name: entry.name }; render(); }, 'ws-icon-button ws-recovery-forget');
-        forget.setAttribute('aria-label', t('ws.recovery.forgetNamed', { name: entry.name })); forget.title = t('ws.recovery.forget'); forget.append(glyph('trash'));
+        forget.setAttribute('aria-label', t('ws.recovery.forgetNamed', { name: entry.name })); forget.dataset.tooltip = t('ws.recovery.forget'); forget.append(glyph('trash'));
         const actions = el('div', 'ws-recovery-actions');
         actions.append(restore, forget);
         row.append(tile({ color: entry.color, symbol: entry.symbol }), text, actions);
@@ -678,6 +734,16 @@
         if (!same && !state.pending && !['new', 'edit'].includes(state.kind)) render();
       },
       open, close, cancel, render, layout,
+      // The theme the tile is painted for changed (a private tab, dark mode).
+      repaintTrigger: syncIdentity,
+      showLinkError(name, error) {
+        state = { kind: 'list', error: `${t('ws.error.openLinkFailed', { name })} ${errors[error] || t('ws.error.generic')}` };
+        open();
+      },
+      showMoveError(name, error, movedCount = 0) {
+        state = { kind: 'list', error: error === 'moved-partly' ? t('ws.error.movedPartly', { name, count: movedCount }) : `${t('ws.error.moveFailed', { name })} ${errors[error] || t('ws.error.generic')}` };
+        open();
+      },
       /** 'new' (optionally { name, start }), 'edit' a workspace, or 'delete' one at once. */
       begin(kind, workspace = null, options = {}) {
         if (kind === 'new') beginNew(options);

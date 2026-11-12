@@ -12,12 +12,13 @@ fs.writeFileSync(fixture,`const {app,BrowserWindow}=require('electron');app.when
 const origin=process.env.BLANC_SITE_PREVIEW_URL || 'http://127.0.0.1:4328';
 const output=process.env.BLANC_REVIEW_OUTPUT_DIR || path.join(os.tmpdir(),'blanc-trust-review');fs.mkdirSync(output,{recursive:true});
 const { ELECTRON_RUN_AS_NODE: ignored, ...env }=process.env;
-async function run({choice,storageBlocked=false,js=true},fn) {
+async function run({choice,storageBlocked=false,js=true,optInRequired=false},fn) {
   const profile=path.join(root,`${choice||'unset'}-${storageBlocked}-${js}-${Date.now()}`);
   const app=await _electron.launch({args:[fixture,`--user-data-dir=${profile}`],env:{...env,SITE_JS:js?'1':'0'}});
   try {
     const page=await app.firstWindow(); const requests=[]; const errors=[];
     page.on('request',r=>requests.push(r.url())); page.on('pageerror',e=>errors.push(e.message));
+    await app.context().route('**/measurement-region',route=>route.fulfill({status:200,contentType:'application/json',body:JSON.stringify({optInRequired})}));
     await app.context().route('https://**/*',route=>{
       const isReleaseAPI=new URL(route.request().url()).hostname==='api.github.com';
       return route.fulfill({status:200,contentType:isReleaseAPI?'application/json':'application/javascript',body:isReleaseAPI?JSON.stringify({assets:[{name:'Blanc-1.25.0-arm64.dmg'},{name:'Blanc-Setup-1.25.0.exe'},{name:'Blanc-1.25.0.AppImage'}]}):'void 0;'});
@@ -31,19 +32,22 @@ async function run({choice,storageBlocked=false,js=true},fn) {
   }finally{await app.close();}
 }
 try {
-  for(const state of [{},{choice:'denied'},{choice:'granted'},{choice:'granted',storageBlocked:true}]) {
+  for(const state of [{},{optInRequired:true},{choice:'denied'},{choice:'granted'},{choice:'granted',storageBlocked:true}]) {
     await run(state,async({page,requests})=>{
+      const regionResponse = page.waitForResponse(r=>r.url().endsWith('/measurement-region'));
       await page.goto(`${origin}/download?oppref=discardable-fixture`);
-      await page.locator('[data-consent-open]').waitFor();
-      assert.equal(await page.locator('#consent').isVisible(),false);
+      await regionResponse;
+      if(!state.storageBlocked) await page.waitForFunction(()=>typeof window.gtag==='function' || document.querySelector('#consent')?.hidden === false || localStorage.getItem('measurement-consent-v2') === 'denied');
+      await page.locator('[data-consent-open]').first().waitFor();
+      assert.equal(await page.locator('#consent').isVisible(),!!state.optInRequired && !state.choice && !state.storageBlocked);
       const google=()=>requests.filter(u=>new URL(u).hostname==='www.googletagmanager.com');
-      assert.equal(google().length,state.choice==='granted'&&!state.storageBlocked?1:0);
+      assert.equal(google().length,state.choice!=='denied'&&!state.storageBlocked&&(!state.optInRequired||state.choice==='granted')?1:0);
       assert.ok(requests.some(u=>new URL(u).hostname==='static.cloudflareinsights.com'));
       assert.match(await page.locator('[data-download-link]').first().getAttribute('href'),/^\/dl\//);
       if(state.storageBlocked)return;
-      await page.locator('[data-consent-open]').click(); await page.locator('#consentAllow').click();
+      await page.locator('[data-consent-open]').first().click(); await page.locator('#consentAllow').click();
       assert.equal(google().length,1);
-      await page.locator('[data-consent-open]').click();
+      await page.locator('[data-consent-open]').first().click();
       // The seed applies only when no choice exists. Reload must read denial.
       await page.locator('#consentDeny').click();
       await page.waitForLoadState('load');
@@ -53,6 +57,20 @@ try {
       assert.equal(new URL(page.url()).searchParams.has('oppref'),false);
     });
   }
+  if(process.env.BLANC_MEASUREMENT_ONLY) {
+    await run({},async({page})=>{
+      await page.emulateMedia({reducedMotion:'reduce'});
+      for(const width of [1280,390]) {
+        await page.setViewportSize({width,height:900});
+        await page.goto(origin);
+        await page.evaluate(()=>document.fonts.ready);
+        await page.locator('[data-consent-open]').first().click();
+        assert.equal(await page.locator('#consent').isVisible(),true);
+        assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1),true);
+        await page.screenshot({path:path.join(output,`measurement-${width}.png`)});
+      }
+    });
+  } else {
   await run({},async({app,page})=>{
     await page.goto(origin);
     assert.equal(await page.locator('#demoShowcase').isVisible(),false);
@@ -179,5 +197,6 @@ try {
       await page.screenshot({path:path.join(output,width===390?'homepage-no-js.png':`homepage-no-js-${width}-${zoom}.png`)});
     }
   });
-  console.log('Website browser checks passed: consent network states, no automatic prompt, withdrawal reload, no-JS fallback, keyboard menu/demo, reduced motion, mobile/desktop and 200% zoom, control-free wallpaper autoplay/focus/hover pause/offscreen suspension/reduced-motion and static fallback.');
+  }
+  console.log('Website browser checks passed: measurement network states, choice handling and responsive preview.');
 }finally{fs.rmSync(root,{recursive:true,force:true});}

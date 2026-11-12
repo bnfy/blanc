@@ -1,0 +1,88 @@
+{
+  "schemaVersion": 1,
+  "status": "public",
+  "release": "v1.40.0",
+  "sourceSha": "17ed22052bc0e1d0c0ce3920cbcb85c4792d306e",
+  "captureDate": "2026-10-21",
+  "timezone": "America/New_York",
+  "replaces": "Nothing: new captures for the homepage first screen (docs/superpowers/specs/2026-10-21-floating-island-homepage-hero-design.md).",
+  "source": {
+    "artifact": "Public release asset Blanc-1.40.0-arm64.dmg from https://github.com/bnfy/blanc/releases/tag/v1.40.0, checked against the Sigstore-verified SHA256SUMS and mounted read-only; the installed /Applications/Blanc.app and its profile were not used",
+    "dmgSha256": "38331a6cf265afd6e42115e8f8ea6ae33cf4e51e20d0d1d8e30a6f5cf24f0465",
+    "executableSha256": "6d8856ddd9cc5647a4c6a4f4479eb5018e634d805757e63ab7b9b0e17a9b4311",
+    "version": "1.40.0",
+    "bundleBuild": "1400",
+    "architecture": "arm64",
+    "teamId": "XYGUCY4498",
+    "verification": "Gatekeeper accepted the mounted app (Notarized Developer ID); the release report records strict deep codesign, the pinned leaf certificate and the stapled ticket for this DMG. It launched as a separate instance in a disposable profile.",
+    "releaseEvidence": "docs/release-incidents/2026-10-20-v1.40.0.md"
+  },
+  "settings": {
+    "usagePing": false,
+    "searchSuggestions": false,
+    "theme": "light",
+    "tabSleep": "off",
+    "islandAutoHide": true,
+    "islandAutoHideStyle": "float",
+    "islandHoverOpen": false,
+    "whatsNew": "seeded as already shown for 1.40, so no second tab opens",
+    "profile": "Isolated disposable user-data directory",
+    "sync": "not configured",
+    "patron": "not configured"
+  },
+  "method": "BLANC_PACKAGED_EXECUTABLE=<mounted DMG>/Blanc.app/Contents/MacOS/Blanc npm run capture:float-island:installed: one tab, The Met’s page for Wheat Field with Cypresses (public domain), in the app’s default window (1280×800 CSS px). Hidden: the system pointer rests in the page; revealed: the app is brought to the front and the system pointer is moved to the window’s top edge (CGWarpMouseCursorPosition), so Blanc’s own dwell sampler floats the Island back. Each state is one native screencapture -o -x -l of the window (2560×1600, the window’s corners kept), converted to sRGB and tagged with the sRGB profile by sharp, not resized. measured comes from the strip document at the revealed moment (#islandPill’s rect and its sample state); trafficLightsRect is the bounding box of pixels that differ by more than 8 between the two captures in the window’s top-left 120×40 CSS px, padded by 2 px. Blanc Blocker ran as shipped, so the shield count is what the page loaded. Nothing is retouched.",
+  "measured": {
+    "window": {
+      "width": 1280,
+      "height": 800
+    },
+    "islandRect": {
+      "x": 414,
+      "y": 12,
+      "width": 453,
+      "height": 44
+    },
+    "pill": {
+      "domain": "www.metmuseum.org",
+      "dots": 1,
+      "activeDot": 0,
+      "shieldCount": "3",
+      "favicon": "site/public/revamp/metmuseum-favicon.png"
+    },
+    "trafficLightsRect": {
+      "x": 16,
+      "y": 17,
+      "width": 66,
+      "height": 20
+    },
+    "scale": 2
+  },
+  "captures": [
+    {
+      "state": "Auto-hide on, float style, the Island hidden: the page fills the window to its top edge",
+      "file": "site/public/feature-captures/float-island-hidden-v1.40.0.png",
+      "width": 2560,
+      "height": 1600,
+      "sha256": "340bd9ae32b728bd24f469550b7c995a4f1097df0ee6123b18b1883e0cc887a6",
+      "verdict": "verified",
+      "evidence": [
+        "docs/release-incidents/2026-10-20-v1.40.0.md",
+        "src/main/island-autohide.js",
+        "spec/acceptance/island-and-commands.feature"
+      ]
+    },
+    {
+      "state": "The Island floated back over the page with the macOS window buttons, after the pointer reached the top edge",
+      "file": "site/public/feature-captures/float-island-revealed-v1.40.0.png",
+      "width": 2560,
+      "height": 1600,
+      "sha256": "28fee153ffb32a27270bdac18ec027685804f67171d6acfbae56d0d468a62e60",
+      "verdict": "verified",
+      "evidence": [
+        "docs/release-incidents/2026-10-20-v1.40.0.md",
+        "src/main/island-autohide.js",
+        "spec/acceptance/island-and-commands.feature"
+      ]
+    }
+  ]
+}

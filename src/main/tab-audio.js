@@ -4,8 +4,18 @@
 // separate. The guard suppresses media that starts for the first time while a
 // tab is hidden, but it must not paint the tab as user-muted or stop audio the
 // user already started before switching tabs.
+// A site mute (Mute Site, until Blanc quits) mutes every tab on that host
+// unless the person unmuted that one tab (siteUnmuted).
+const siteMutedTab = (tab) => !!(tab?.siteMuted && !tab?.siteUnmuted);
+
 function effectiveTabMuted(tab) {
-  return !!(tab?.muted || tab?.backgroundAutoplayMuted);
+  return !!(tab?.muted || tab?.backgroundAutoplayMuted || siteMutedTab(tab));
+}
+
+/** What the tab shows as muted: the person's mute or a site mute, never the
+ * temporary autoplay guard. */
+function shownMuted(tab) {
+  return !!(tab?.muted || siteMutedTab(tab));
 }
 
 function noteMediaStarted(tab, isActive) {
@@ -22,4 +32,4 @@ function revealTabAudio(tab) {
   return true;
 }
 
-module.exports = { effectiveTabMuted, noteMediaStarted, revealTabAudio };
+module.exports = { effectiveTabMuted, shownMuted, noteMediaStarted, revealTabAudio };

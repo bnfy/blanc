@@ -28,8 +28,11 @@ test('resting island tokens preserve the website material and canonical geometry
     dark: 'rgba(31,31,31,.94)',
     private: 'rgba(25,25,25,.94)',
   });
+  // Private tones the top catch-light down to a hairline on its deeper ink.
   assert.deepEqual(token('shadow-island-resting'), {
-    common: 'inset 0 1px 0 rgba(255,255,255,.72), inset 0 -1px 0 rgba(14,14,14,.035), 0 5px 18px -12px rgba(14,14,14,.24)',
+    light: 'inset 0 1px 0 rgba(255,255,255,.72), inset 0 -1px 0 rgba(14,14,14,.035), 0 5px 18px -12px rgba(14,14,14,.24)',
+    dark: 'inset 0 1px 0 rgba(255,255,255,.72), inset 0 -1px 0 rgba(14,14,14,.035), 0 5px 18px -12px rgba(14,14,14,.24)',
+    private: 'inset 0 1px 0 rgba(255,255,255,.07), inset 0 -1px 0 rgba(14,14,14,.035), 0 5px 18px -12px rgba(14,14,14,.24)',
   });
   assert.deepEqual(token('island-resting-height'), { common: '44px' });
   assert.deepEqual(token('island-resting-radius'), { common: '17px' });

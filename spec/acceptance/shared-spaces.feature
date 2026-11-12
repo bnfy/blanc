@@ -1,0 +1,216 @@
+@F57 @desktop
+Feature: Shared Spaces
+  @F57-1
+  Scenario: Choose the Spaces this device shares
+    Given a Shared Spaces fixture with a local Work Space
+    When I open the Shared Spaces selection sheet
+    Then the Work Space is checked with its tab count
+    And cancelling the sheet leaves sharing off
+
+  @F57-2
+  Scenario: A new remote tab stays quiet
+    Given a Shared Spaces fixture with the Work Space shared
+    When device B adds a tab to Work
+    Then the remote tab appears quiet
+
+  @F57-3
+  Scenario: A remote close preserves local recovery
+    Given a Shared Spaces fixture with the Work Space shared
+    When device B closes the background Work tab
+    Then its parked page appears once in Recently closed
+
+  @F57-4
+  Scenario: Active navigation waits without an echo
+    Given a Shared Spaces fixture with the Work Space shared
+    When device B navigates the active Work tab
+    Then the active tab keeps its displayed address without republishing it
+
+  @F57-5
+  Scenario: An older Worker does not disable ordinary sync
+    Given a Shared Spaces fixture with a local Work Space
+    When the Worker does not support Spaces
+    Then the sheet reports Spaces unavailable and Favorites still sync
+
+  @F57-6
+  Scenario: A local-only navigation does not close the tab elsewhere
+    Given a Shared Spaces fixture with the Work Space shared
+    When the shared tab navigates to an internal page
+    Then device B still sees its last shareable web page
+
+  @F57-7
+  Scenario: Deleting a Space frees a full account immediately
+    Given a Shared Spaces fixture with the Work Space shared
+    When the account storage is full and I delete Work
+    Then the next encrypted write succeeds without waiting for retention expiry
+
+  @F57-8 @two-clients
+  Scenario: Two complete desktop clients converge through the Worker
+    Given a Shared Spaces fixture with the Work Space shared
+    And a second complete desktop client sharing Work
+    Then both complete clients exchange quiet tabs in both directions
+    And a complete client defers active navigation until its tab changes
+    And a complete client receives one remote close entry
+    And both complete clients rejoin dormant edits without duplicate tabs
+    And the complete clients stay within their request budgets
+
+  @F57-9 @peer-driver
+  Scenario Outline: Shared Spaces fault and retention rules
+    Then the Shared Spaces peer driver verifies "<case>"
+
+    Examples:
+      | case                                       |
+      | two Work Spaces                            |
+      | tombstone budget and expiry                 |
+      | stale replica recovery at the Space cap     |
+      | lost index reconciliation                  |
+      | stale read cannot roll back                 |
+      | same-version writes replay pending fields   |
+      | unrecoverable write is reported honestly    |
+      | exact occurrence dedupe and stale sidecar   |
+      | 429 backoff and fair recovery               |
+
+  @F57-10 @shared-crash
+  Scenario: A deferred close survives a hard crash
+    Given a Shared Spaces fixture with the Work Space shared
+    When device B closes the active Work tab
+    And the Shared Spaces client crashes and restores
+    Then cold restore applies the deferred close and resumes persistence
+
+  @F57-11 @shared-crash
+  Scenario: A merged tab survives a hard crash before the next autosave
+    Given a Shared Spaces fixture with the Work Space shared
+    When device B adds a tab to Work
+    And the Shared Spaces client crashes and restores
+    Then the merged remote tab survives the crash without a duplicate
+
+  @F57-12 @shared-crash
+  Scenario: A crash after the blob write retries its missing index entry
+    Given a Shared Spaces fixture with a local Work Space
+    When an index write fails after the new Space blob succeeds
+    And the Shared Spaces client crashes and restores
+    Then the restored client retries the missing index entry
+
+  @F57-13
+  Scenario: A background page with unsaved input waits for a remote navigation
+    Given a Shared Spaces fixture with the Work Space shared
+    And the background Work tab has unsaved input
+    When device B navigates the background Work tab
+    Then the background tab keeps its page and its input
+    When its input is cleared and Shared Spaces applies again
+    Then the background tab follows the remote navigation
+
+  @F57-14
+  Scenario: Failed server erasure can be retried without losing credentials
+    Given a Shared Spaces fixture with the Work Space shared
+    When erasing the server copy fails once
+    Then Settings keeps the credentials and offers an erasure retry
+    When I retry erasing the server copy
+    Then the erasure completes and sync turns off
+
+  @F57-15
+  Scenario: Quitting while a change is held closes no tab on any device
+    Given a Shared Spaces fixture whose shared Work Space has a tab alone in a group
+    When device B navigates the active Work tab
+    And the Shared Spaces client quits normally and relaunches
+    Then the quit saved no closed Work tab and kept the held navigation
+    And the relaunched client applies the held navigation and keeps every Work tab
+
+  @F57-16
+  Scenario: A group made after sharing keeps its tabs on every device
+    Given a Shared Spaces fixture with the Work Space shared
+    When I put the first Work tab in a new group "Later" with the group command
+    And I switch to the second Work tab
+    Then the "Later" group keeps the first Work tab here and in the shared copy
+    When I rename the group "Later" to "Read later" and color it "sky"
+    Then the shared copy has the group "Read later" colored "sky" holding the first Work tab
+    When device B renames the group "Read later" to "Reading list" and colors it "sage"
+    Then this device shows the group "Reading list" colored "sage" holding the first Work tab
+    When I move the second Work tab into "Reading list"
+    Then the shared copy has the group "Reading list" colored "sage" holding both Work tabs
+
+  @F57-17
+  Scenario: The rail's New group button in a shared Space keeps its tab
+    Given a Shared Spaces fixture with the Work Space shared
+    When I set the tab layout to "vertical"
+    And I click the rail's New group button
+    Then the command panel opens with "/group " for the current tab
+    When I name the new group "Reading" in the command panel
+    Then the current tab is in a group named "Reading"
+    When I switch to the first Work tab
+    Then the "Reading" group keeps the second Work tab here and in the shared copy
+
+  @F57-18
+  Scenario: A group shared with its Space follows renames, colors and new tabs both ways
+    Given a Shared Spaces fixture whose shared Work Space has the first Work tab in a group "Research"
+    When I rename the group "Research" to "Sources" and color it "iris"
+    Then the shared copy has the group "Sources" colored "iris" holding the first Work tab
+    When device B renames the group "Sources" to "References" and colors it "rose"
+    Then this device shows the group "References" colored "rose" holding the first Work tab
+    When I move the second Work tab into "References"
+    Then the shared copy has the group "References" colored "rose" holding both Work tabs
+    When I switch to the first Work tab
+    Then the "References" group keeps the second Work tab here and in the shared copy
+
+  @F57-19
+  Scenario: The selection sheet opens at once while the Spaces check waits
+    Given a Shared Spaces fixture with a local Work Space
+    And the next Spaces index fetch is held
+    When I turn on Spaces and groups
+    Then the selection sheet is open within a second and is checking other devices
+    And Settings never says Sync is busy
+    When the held Spaces index fetch is released
+    Then the sheet stops checking and the Work Space is still checked
+
+  @F57-20
+  Scenario: Turning on before the check finishes waits, then saves
+    Given a Shared Spaces fixture with a local Work Space
+    And the next Spaces index fetch is held
+    When I turn on Spaces and groups
+    And I press Turn on in the selection sheet
+    Then the Turn on button waits for the check and sharing is still off
+    When the held Spaces index fetch is released
+    Then the "Work" Space is shared once and Spaces sync is on
+
+  @F57-21
+  Scenario: A Space made while Spaces sync is on is shared by itself
+    Given a Shared Spaces fixture with the Work Space shared
+    When I make a new Space "Reading"
+    Then the "Reading" Space is shared once and Spaces sync is on
+
+  @F57-22
+  Scenario: Choose Spaces to sync adds a Space left out, with the switch still on
+    Given a Shared Spaces fixture with local Work and Private Spaces
+    When I turn on Spaces and groups
+    And I untick "Private" and press Turn on in the selection sheet
+    Then the "Private" Space stays on this device
+    When I choose Spaces to sync from Settings
+    Then the "Work" Space is listed as Shared
+    When I press Share in the selection sheet
+    Then the "Private" Space is shared once and Spaces sync is on
+    And the "Work" Space is shared once and Spaces sync is on
+
+  @F57-23
+  Scenario: Closing the sheet after Turn on keeps sharing going
+    Given a Shared Spaces fixture with a local Work Space
+    And the next Spaces index fetch is held
+    When I turn on Spaces and groups
+    And I press Turn on in the selection sheet
+    And I press Cancel in the selection sheet
+    Then the selection sheet is closed and Settings says the Spaces are uploading
+    When the held Spaces index fetch is released
+    Then the "Work" Space is shared once and Spaces sync is on
+
+  @F57-24
+  Scenario: A Space made on another device arrives within seconds
+    Given a Shared Spaces fixture with the Work Space shared
+    And Blanc is in front and has finished its launch pass
+    When another device shares a new Space "Travel"
+    Then the "Travel" Space appears here within 25 seconds
+
+  @F57-25
+  Scenario: Without the change check, a Space made on another device still arrives within a minute
+    Given a Shared Spaces fixture with the Work Space shared
+    And the sync Worker can't answer change checks
+    And Blanc is in front
+    When another device shares a new Space "Travel"
+    Then the "Travel" Space appears here within 70 seconds

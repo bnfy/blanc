@@ -81,16 +81,19 @@ test.after(async () => {
   fs.rmSync(tmp, { recursive: true, force: true });
 });
 
-test('an in-flight trigger runs one follow-up pass after releasing the guard', async () => {
+test('an in-flight trigger queues a follow-up and both callers await their own operation', async () => {
   const first = sync.syncNow(['session']);
   await firstGetStarted;
 
-  const coalesced = await sync.syncNow(['session']);
-  assert.deepEqual(coalesced, { ok: true });
+  let completed=false;
+  const coalesced = sync.syncNow(['session']).then(result=>{completed=true;return result;});
+  await new Promise(resolve=>setImmediate(resolve));
+  assert.equal(completed,false,'queued work cannot report completion before its own operation');
   assert.equal(getCalls, 1, 'the second trigger is coalesced while the pass is active');
 
   releaseFirstGet();
   assert.deepEqual(await first, { ok: true });
+  assert.deepEqual(await coalesced, { ok: true });
   assert.equal(getCalls, 2, 'the queued follow-up performs its own pull');
   assert.equal(putCalls, 1, 'the follow-up recognizes the first pass as current');
 });

@@ -34,6 +34,9 @@ feature's row in [`../parity-matrix.md`](../parity-matrix.md) shouldn't reach
 | Vertical tabs | `vertical-tabs.feature` | F28 (D19) |
 | Browser migration | `browser-migration.feature` | F30 (D22) |
 | Quiet Tabs | `quiet-tabs.feature` | F31 (D8, D23) |
+| Tab gestures | `tab-gestures.feature` | F56 (D7) |
+| Tab Archive | `tab-archive.feature` | F52 |
+| Split View | `split-view.feature` | F53 (D11) |
 | Independent windows | `multi-window.feature` | F32 (D11) |
 | Local profiles | `local-profiles.feature` | F33 (D25) |
 | Glance | `glance.feature` | F34 (D11) |
@@ -44,6 +47,8 @@ feature's row in [`../parity-matrix.md`](../parity-matrix.md) shouldn't reach
 | Tab migration | `tab-migration.feature` | F40 (D22) |
 | Interface language | `interface-language.feature` | F44 (D27) |
 | Arc Spaces import | `arc-spaces-import.feature` | F45 |
+| Link routing | `link-routing.feature` | F60 |
+| Mini Window | `mini-window.feature` | F61 |
 
 ## Grid
 
@@ -62,6 +67,37 @@ feature's row in [`../parity-matrix.md`](../parity-matrix.md) shouldn't reach
 | F1-11 | Hover-open works with vertical tabs | D28 | ✅ | ➖ | ➖ |
 | F1-12 | Disabling hover-open cancels its dwell | D28 | ✅ | ➖ | ➖ |
 | F1-13 | A pending permission prompt blocks hover-open | D28 | ✅ | ➖ | ➖ |
+| F1-14 | Only the address area opens the Island on hover | D28 | ✅ | ➖ | ➖ |
+| F1-15 | Turning auto-hide on explains the way back, then gives the page the whole window | D29 | ✅ | ➖ | ➖ |
+| F1-16 | The top edge reveals the Island and leaving hides it | D29 | ✅ | ➖ | ➖ |
+| F1-17 | The palette keeps an auto-hidden Island shown | D29 | ✅ | ➖ | ➖ |
+| F1-18 | Auto-hide works with vertical tabs | D29 | ✅ | ➖ | ➖ |
+| F1-19 | Resting at the top edge reveals the Island without page movement | D29 | ✅ | ➖ | ➖ |
+| F1-20 | A hover-opened panel closes once the pointer leaves it | D28 | ✅ | ➖ | ➖ |
+| F1-21 | A hover-opened panel stays open once it is used | D28 | ✅ | ➖ | ➖ |
+| F1-22 | Resting just below the top edge reveals the Island after a moment | D29 | ✅ | ➖ | ➖ |
+| F1-23 | Passing just below the top edge does not reveal the Island | D29 | ✅ | ➖ | ➖ |
+| F1-24 | Without a global pointer position (Wayland) the page's moves reveal and hide the Island | D29 | ✅ | ➖ | ➖ |
+| F1-25 | A hidden strip drags the window only through its thin top band | D29 | ✅ | ➖ | ➖ |
+| F1-26 | Resting where the hidden address will appear still lets hover open the Island | D29 | ✅ | ➖ | ➖ |
+| F1-27 | The vertical rail is never reveal territory | D29 | ✅ | ➖ | ➖ |
+| F1-28 | A floating Island keeps a thin top band to drag the window | D29 | ✅ | ➖ | ➖ |
+| F1-29 | A floating Island leaves the page where it is | D29 | ✅ | ➖ | ➖ |
+| F1-30 | The revealed Island floats over a page that stays still | D29 | ✅ | ➖ | ➖ |
+| F1-31 | Find and the shield menu open under the floating pill | D29 | ✅ | ➖ | ➖ |
+| F1-32 | Hover-open works on the floating pill | D29 | ✅ | ➖ | ➖ |
+| F1-33 | A Glance floats over the page in float mode | D29 | ✅ | ➖ | ➖ |
+| F1-34 | The floating pill keeps up with tabs, sheets, styles and windows | D29 | ✅ | ➖ | ➖ |
+| F1-35 | The floating pill takes the private theme | D29 | ✅ | ➖ | ➖ |
+| F1-36 | Window buttons come and go with the floating pill on Windows and Linux | D29 | ✅ | ➖ | ➖ |
+| F1-37 | Switching to push while the pill slides in leaves nothing behind | D29 | ✅ | ➖ | ➖ |
+| F1-38 | Turning auto-hide off while the pill floats | D29 | ✅ | ➖ | ➖ |
+| F1-39 | Changing the style while Glance is open | D29 | ✅ | ➖ | ➖ |
+| F1-40 | Resizing the window while the pill floats | D29 | ✅ | ➖ | ➖ |
+| F1-41 | Changing the theme while the pill floats | D29 | ✅ | ➖ | ➖ |
+| F1-42 | The floating pill is the strip's pill, in both tab layouts | D29 | ✅ | ➖ | ➖ |
+| F1-43 | Resting just below the top edge does not reveal a floating Island | D29 | ✅ | ➖ | ➖ |
+| F1-44 | A floating Island hides as soon as the pointer moves below the strip | D29 | ✅ | ➖ | ➖ |
 | F2-1 | Reopen closed restores URL | — | ✅ | ⬜ | ⬜ |
 | F2-2 | Duplicate tab | — | ✅ | ⬜ | ⬜ |
 | F2-3 | Pin orders ahead of unpinned | — | ✅ | ⬜ | ⬜ |
@@ -127,7 +163,7 @@ feature's row in [`../parity-matrix.md`](../parity-matrix.md) shouldn't reach
 | F17-1 | Current app icon applies | D6 | ✅ | ⬜ | ⬜ |
 | F17-2 | Patron cannot restore retired icon | — | ✅ | ⬜ | ⬜ |
 | F18-1 | Relaunch restores groups, not private | D8 | ✅ | ⬜ | ⬜ |
-| F19-1 | Background tab inherits group | D4, D7 | ✅ | ⬜ | ⬜ |
+| F19-1 | Background tab opens ungrouped | D4, D7 | ✅ | ⬜ | ⬜ |
 | F19-2 | Copy Clean Link strips tracking params | D20 | ✅ | ➖ | ➖ |
 | F19-3 | Paste and Go navigates + closes island | D20 | ✅ | ➖ | ➖ |
 | F20-1 | Basic-auth prompt | — | ✅ | ⬜ | ⬜ |
@@ -160,6 +196,8 @@ feature's row in [`../parity-matrix.md`](../parity-matrix.md) shouldn't reach
 | F28-15 | Constrained direct rail resize and reset | D19 | ✅ | ➖ | ➖ |
 | F28-16 | Non-destructive narrow-window width cap and persistence | D19 | ✅ | ➖ | ➖ |
 | F28-17 | Overflow-only tab-title hover scrolling | D19 | ✅ | ➖ | ➖ |
+| F28-18 | Vertical tab text size, live updates and persistence | D19 | ✅ | ➖ | ➖ |
+| F28-19 | Windows/Linux main-menu button moves into the rail | D19 | ✅ | ➖ | ➖ |
 | F30-1 | Direct profile import preserves supported Favorites and folders | D22 | ✅ | ⬜ | ⬜ |
 | F30-2 | Repeated browser import is idempotent | D22 | ✅ | ⬜ | ⬜ |
 | F30-3 | Fresh first run offers Favorites migration | D22 | ✅ | ⬜ | ⬜ |
@@ -175,12 +213,31 @@ feature's row in [`../parity-matrix.md`](../parity-matrix.md) shouldn't reach
 | F31-8 | A private tab wakes inside the private session | D8 | ✅ | ⬜ | ⬜ |
 | F31-9 | Page state never escapes snapshots into persistence, sync, or renderer IPC | D8 | ✅ | ⬜ | ⬜ |
 | F31-10 | Quieting a tab releases a real renderer process, and waking brings one back | D8 | ✅ | ⬜ | ⬜ |
+| F31-11 | A phone's background tab goes quiet and comes back with its page and history | D8 | ➖ | ⬜ | ⬜ |
 | F32-1 | A secondary window owns and discards its own workspace | D11 | ✅ | ➖ | ➖ |
 | F32-2 | Independent window workspaces restore separately | D11 | ✅ | ➖ | ➖ |
 | F33-1 | Settings creates a profile with isolated records and sessions | D25 | ✅ | ➖ | ➖ |
 | F33-2 | Settings renames and permanently deletes a named profile | D25 | ✅ | ➖ | ➖ |
 | F33-3 | Named profile workspace restores into its isolated session | D25 | ✅ | ➖ | ➖ |
-| F34-1 | Explicit Glance selection, swap, resize, and close | D11 | ✅ | ➖ | ➖ |
+| F34-1 | Explicit Glance selection, focus-following commands, the picker, and close | D11 | ✅ | ➖ | ➖ |
+| F34-2 | A Glance opens as a centered card over the page | D11 | ✅ | ➖ | ➖ |
+| F34-3 | The card keeps its header on screen when the window shrinks and grows | D11 | ✅ | ➖ | ➖ |
+| F34-4 | Moving the card keeps it there for the next Glance | D11 | ✅ | ➖ | ➖ |
+| F34-5 | Resizing the card from an edge, and double-clicking its header to reset it | D11 | ✅ | ➖ | ➖ |
+| F34-6 | Switching to another tab closes the Glance, and switching back doesn't bring it back | D11 | ✅ | ➖ | ➖ |
+| F34-7 | Choosing the Glance tab itself opens it as the tab | D11 | ✅ | ➖ | ➖ |
+| F34-8 | Open as tab makes the Glance page the current tab and keeps the old page open | D11 | ✅ | ➖ | ➖ |
+| F34-9 | Escape on the card's header closes it; Escape inside the Glance page goes to the page | D11 | ✅ | ➖ | ➖ |
+| F34-10 | Clicking and scrolling the page behind keeps the Glance open | D11 | ✅ | ➖ | ➖ |
+| F34-11 | At 360 px the header keeps Back, Reload, the three actions as icons and × | D11 | ✅ | ➖ | ➖ |
+| F34-12 | Arrow keys on Move or resize move the card 16 px and announce it | D11 | ✅ | ➖ | ➖ |
+| F34-13 | Find for the Glance page sits over the card | D11 | ✅ | ➖ | ➖ |
+| F34-14 | The card fades in at its full size and closes at once | D11 | ✅ | ➖ | ➖ |
+| F34-15 | Closing the main page while a Glance is open makes the Glance page the current tab | D11 | ✅ | ➖ | ➖ |
+| F34-16 | Closing the Glance tab or the main page just after moving the card keeps the move and takes the card at once | D11 | ✅ | ➖ | ➖ |
+| F34-17 | A window's first Glance shows nothing until its card has drawn | D11 | ✅ | ➖ | ➖ |
+| F34-18 | Open as tab and Keep as split on the Glance card are announced once, not as a close first | D11 | ✅ | ➖ | ➖ |
+| F34-19 | The card stays put while a pushed Island slides in | D11 | ✅ | ➖ | ➖ |
 | F35-1 | The saved start page layout is the one that renders | — | ✅ | ⬜ | ⬜ |
 | F35-2 | Choosing a layout from the footer persists it | — | ✅ | ⬜ | ⬜ |
 | F35-3 | Footer opens a playable standalone Mahjong tab | — | ✅ | ⬜ | ⬜ |
@@ -194,6 +251,10 @@ feature's row in [`../parity-matrix.md`](../parity-matrix.md) shouldn't reach
 | F36-2 | Skipping still records the privacy choices | — | ✅ | ⬜ | ⬜ |
 | F36-3 | A completed profile is not asked again | — | ✅ | ⬜ | ⬜ |
 | F36-4 | No browser profile is read before the explicit ask | D22 | ✅ | ➖ | ➖ |
+| F36-5 | The island step offers Tab Archive; continuing turns it on | — | ✅ | ➖ | ➖ |
+| F36-6 | Turning the offer off leaves Tab Archive off | — | ✅ | ➖ | ➖ |
+| F36-7 | Skipping the walkthrough leaves Tab Archive off | — | ✅ | ➖ | ➖ |
+| F36-8 | A finished profile is never offered Tab Archive | — | ✅ | ➖ | ➖ |
 | F37-1 | The blank-tab island invites typing | — | ✅ | ⬜ | ⬜ |
 | F37-2 | Typing on a cold-launched blank tab opens the island | — | ✅ | ⬜ | ⬜ |
 | F37-3 | The commands chip opens the command list | — | ✅ | ⬜ | ⬜ |
@@ -237,6 +298,19 @@ feature's row in [`../parity-matrix.md`](../parity-matrix.md) shouldn't reach
 | F46-8 | Choosing `/rename` without a name asks for one | — | ✅ | ➖ | ➖ |
 | F46-9 | Enter on an untouched rename prompt keeps the page title after the page retitles | — | ✅ | ➖ | ➖ |
 | F46-10 | A renamed tab keeps its name in the command panel while it loads | — | ✅ | ➖ | ➖ |
+| F56-1 | A sideways swipe on the Island moves to the next and previous tab | D7 | ➖ | ⬜ | ⬜ |
+| F56-2 | A tab grid card closes with a swipe and Undo brings it back | D7 | ➖ | ⬜ | ⬜ |
+| F56-3 | Pulling a web page down reloads it, and Blanc's pages don't | D7 | ➖ | ⬜ | ⬜ |
+| F60-1 | The link routing group is offered only when there is somewhere to route to | — | ✅ | ➖ | ➖ |
+| F60-2 | A rule added in Settings sends a domain's links to its profile | — | ✅ | ➖ | ➖ |
+| F60-3 | Deleting a profile removes its rules and its links fall through | — | ✅ | ➖ | ➖ |
+| F60-4 | The shield popover makes and removes the rule for the site in view | — | ✅ | ➖ | ➖ |
+| F60-5 | `/route` and `/route off` write and remove the rule; a private tab can't | — | ✅ | ➖ | ➖ |
+| F61-1 | A mini window opens small, isn't saved, and closes after an hour unused | — | ✅ | ➖ | ➖ |
+| F61-2 | Open in Blanc keeps a mini window as an ordinary window | — | ✅ | ➖ | ➖ |
+| F61-3 | A link from another app never opens in a mini window | — | ✅ | ➖ | ➖ |
+| F61-4 | The mini window shortcut is off until chosen | — | ✅ | ➖ | ➖ |
+| F61-5 | Closing a mini window's last tab closes the window | — | ✅ | ➖ | ➖ |
 
 > **M0–M1 note (2026-07-08):** F5 (address/search + OS hand-off) and F1 (minimal
 > address surface) are implemented and unit-tested on iOS, but the iOS acceptance

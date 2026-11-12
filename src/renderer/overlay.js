@@ -15,6 +15,7 @@
   const panelAnchor = document.getElementById('panelAnchor');
   const islandPanel = document.getElementById('islandPanel');
   const addressInput = document.getElementById('addressInput');
+  const readerBtn = document.getElementById('readerBtn');
   const panelSiteInfo = document.getElementById('panelSiteInfo');
   const islandList = document.getElementById('islandList');
   const islandHint = document.getElementById('islandHint');
@@ -35,6 +36,10 @@
   const shieldPopNote = document.getElementById('shieldPopNote');
   const shieldPopDark = document.getElementById('shieldPopDark');
   const shieldPopDarkToggle = document.getElementById('shieldPopDarkToggle');
+  const shieldPopRoute = document.getElementById('shieldPopRoute');
+  const shieldPopRouteLabel = document.getElementById('shieldPopRouteLabel');
+  const shieldPopRouteToggle = document.getElementById('shieldPopRouteToggle');
+  const shieldPopRouteNote = document.getElementById('shieldPopRouteNote');
   const shieldPopSettings = document.getElementById('shieldPopSettings');
   const shieldPopLabel = document.getElementById('shieldPopLabel');
   const shieldPopProvider = document.getElementById('shieldPopProvider');
@@ -56,6 +61,13 @@
   const capturePop = document.getElementById('capturePop');
   const capturePopHead = document.getElementById('capturePopHead');
   const capturePopRows = document.getElementById('capturePopRows');
+  const switcherCard = document.getElementById('switcherCard');
+  const switcherTiles = document.getElementById('switcherTiles');
+  const switcherTitle = document.getElementById('switcherTitle');
+  const switcherHost = document.getElementById('switcherHost');
+  const switcherStatus = document.getElementById('switcherStatus');
+  /** The Ctrl+Tab card's last payload from main: `{ tabIds, pick }`. */
+  let switcherModel = null;
   const displayShareBackdrop = document.getElementById('displayShareBackdrop');
   const displaySharePicker = document.getElementById('displaySharePicker');
   const displayShareOrigin = document.getElementById('displayShareOrigin');
@@ -99,7 +111,7 @@
   const glancePickerLive = document.getElementById('glancePickerLive');
 
   let state = { tabs: [], activeTabId: null, glanceTabId: null, groups: [], closed: [] };
-  /** @type {null | 'panel' | 'palette' | 'glance' | 'find' | 'shield' | 'capture' | 'spaces'} */
+  /** @type {null | 'panel' | 'palette' | 'glance' | 'find' | 'shield' | 'capture' | 'spaces' | 'group-menu'} */
   let mode = null;
   let glancePickerPurpose = null;
   /** The tab the find capsule searches (overlay:show purpose). */
@@ -114,6 +126,7 @@
    * (arrives in overlay:show's purpose payload; cleared once used, dismissed,
    * or the command is edited away from /group). */
   let pendingGroupTabId = null;
+  let pendingGroupTabIds = null;
   // F46: the tab a menu-initiated "Rename Tab…" targets, like pendingGroupTabId.
   let pendingRenameTabId = null;
   // F46: the exact text a rename prompt was opened with. Enter on it unedited
@@ -154,9 +167,14 @@
   // Quick Switcher corpora, refreshed each time the panel opens.
   let favorites = [];
   let historyEntries = [];
+  // F52: the profile's archived tabs (projected rows; never private).
+  let archivedEntries = [];
+  // Spec D6: the one-time first-archive notice ({count}), or null.
+  let archiveNotice = null;
   // Other devices' tab snapshots (tab sync). Renderer-local fold state —
   // devices start folded so the panel stays quiet (spec §2).
   let remoteDevices = [];
+  let sentItems = []; // pages other devices sent here (M7b)
   const unfoldedDevices = new Set();
   // Recently closed starts folded — one line like a synced device; unfold to
   // see the reopen rows (Claude island declutter iteration).
@@ -211,6 +229,9 @@
   // means the row shows the catalog's generic "search" tag.
   let searchProviderLabel = null;
   let suggestionDebounce = null;
+  // Settings → Island: search rows lead typed results even over a strong
+  // local match. Main sends it with every overlay:show.
+  let searchPriorityResults = false;
   let suggestionRequestGeneration = 0;
   let addressInputComposing = false;
   // A paste/drop or text entered while a private tab is active can contain
@@ -242,11 +263,13 @@
     placement: () => (mode === 'spaces' ? 'view' : 'anchored'),
     onOpenChange(open) {
       workspaceSwitcherOpen = open; window.browserAPI.setWorkspaceSwitcherOpen(open);
-      // Opened from the Island's space mark the menu is the whole overlay, so
-      // closing it closes the overlay and focus returns to the mark.
+      // Opened as its own overlay (the rail's space mark, or a command) the
+      // menu is the whole overlay, so closing it closes the overlay and focus
+      // returns to the mark, or the Island when the mark is hidden.
       if (!open && mode === 'spaces') window.browserAPI.closeOverlay('cancel');
     },
   });
+  window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => workspaceUI.repaintTrigger());
 
   // --- Drag to reorder (tab-drag.js; spec 2026-10-07) ---
   const dragApi = window.blancTabDrag;
@@ -288,12 +311,30 @@
     announce: announceIsland,
     onActiveChange(active) {
       window.browserAPI.setOverlayDragState(active);
+      if (active) window.browserAPI.selectTab(null, 'clear');
       if (!active && renderQueued && !pointerHeld) {
         renderQueued = false;
         renderList();
       }
     },
   });
+  islandList.addEventListener('click', (event) => {
+    const primary = event.target.closest('.row-primary[data-selection-tab-id]');
+    if (!primary || (!event.shiftKey && !(navigator.platform.includes('Mac') ? event.metaKey : event.ctrlKey))) return;
+    event.preventDefault(); event.stopImmediatePropagation();
+    primary.focus();
+    window.browserAPI.selectTab(primary.dataset.selectionTabId, event.shiftKey ? 'range' : 'toggle');
+  }, true);
+  islandList.addEventListener('keydown', (event) => {
+    if (!event.shiftKey || event.altKey || !['ArrowUp', 'ArrowDown'].includes(event.key)) return;
+    const primary = event.target.closest('.row-primary[data-selection-tab-id]');
+    if (!primary) return;
+    event.preventDefault(); event.stopImmediatePropagation();
+    primary.focus();
+    window.browserAPI.selectTab(primary.dataset.selectionTabId, event.key === 'ArrowUp' ? 'extend-up' : 'extend-down').then(id => {
+      requestAnimationFrame(() => islandList.querySelector(`[data-selection-tab-id="${CSS.escape(id ?? '')}"]`)?.focus());
+    });
+  }, true);
   islandList.addEventListener('keydown', (event) => {
     if (!event.altKey || !event.shiftKey || (event.key !== 'ArrowUp' && event.key !== 'ArrowDown')) return;
     if (!restingList()) return;
@@ -302,7 +343,7 @@
     const row = event.target.closest?.('.island-row[data-tab-id]');
     const result = header
       ? dragApi.keyboardGroupMove(state, header.dataset.groupId, direction, { withClosed: true })
-      : row ? dragApi.keyboardTabMove(state, row.dataset.tabId, direction) : null;
+      : row ? dragApi.keyboardTabMove(state, row.dataset.tabId, direction, { withClosed: true }) : null;
     if (!result) return;
     event.preventDefault();
     event.stopPropagation();
@@ -320,7 +361,11 @@
     // every row in the list carries.
     stop: '<svg viewBox="0 0 16 16"><circle cx="8" cy="8" r="5"/><rect class="stop-mark" x="6.05" y="6.05" width="3.9" height="3.9" rx="0.8"/></svg>',
     close: '<svg viewBox="0 0 16 16"><path d="M4.75 4.75l6.5 6.5M11.25 4.75l-6.5 6.5"/></svg>',
+    // The group header's ⋮ (tab group colors spec §6).
+    more: '<svg viewBox="0 0 16 16"><circle cx="8" cy="3.75" r="1.1"/><circle cx="8" cy="8" r="1.1"/><circle cx="8" cy="12.25" r="1.1"/></svg>',
     pin: '<svg viewBox="0 0 16 16"><path d="M5 3h6l-1 5 2 2v1H4v-1l2-2z"/><path d="M8 11v3"/></svg>',
+    // A split row's disclosure (F53): points right when closed, down when open.
+    caret: '<svg viewBox="0 0 16 16"><path d="M6.25 4.5 9.75 8l-3.5 3.5"/></svg>',
     mute: '<svg viewBox="0 0 16 16"><path d="M2.75 6.25h2.5L9 3.25v9.5l-3.75-3H2.75z" stroke-linejoin="round"/><path d="M11.25 6.5l3 3M14.25 6.5l-3 3"/></svg>',
     search: '<svg viewBox="0 0 16 16"><circle cx="7" cy="7" r="4.25"/><path d="m10.25 10.25 3 3"/></svg>',
     secure: '<svg viewBox="0 0 16 16"><rect x="3.25" y="7.25" width="9.5" height="6" rx="1.75"/><path d="M5.5 7.25V4.9a2.5 2.5 0 0 1 5 0v2.35"/></svg>',
@@ -329,9 +374,12 @@
     // Reopen: a leftward return arrow — drawn, not the Unicode ↶, which sits
     // baseline-low and renders unevenly across platforms.
     reopen: '<svg viewBox="0 0 16 16"><path d="M3.5 6.75h6a3 3 0 0 1 0 6h-3"/><path d="M6.25 4 3.5 6.75l2.75 2.75"/></svg>',
-    // Glance: a page with a narrower page beside it — not the footer's
-    // sidebar glyph, which is the tab-layout toggle.
-    glance: '<svg viewBox="0 0 16 16"><rect x="2.25" y="3.25" width="7.5" height="9.5" rx="1.5"/><rect x="11.25" y="4.75" width="2.5" height="6.5" rx="1"/></svg>',
+    archive: '<svg viewBox="0 0 16 16"><rect x="2.25" y="3" width="11.5" height="3" rx="0.75"/><path d="M3.25 6v6.25c0 .4.35.75.75.75h8c.4 0 .75-.35.75-.75V6M6.5 8.5h3"/></svg>',
+    // Glance: a window split down the middle with the far half filled, "this
+    // tab goes in the other half". The earlier page-and-sliver glyph read as a
+    // video camera. The filled half keeps it apart from the footer's sidebar
+    // glyph (the tab-layout toggle), whose divider sits off-centre.
+    glance: '<svg viewBox="0 0 16 16"><rect x="2" y="3" width="12" height="10" rx="1.75"/><path d="M8 3v10"/><rect class="glance-mark" x="9.6" y="4.6" width="2.8" height="6.8" rx="0.6"/></svg>',
   };
   reloadBtn.innerHTML = ICONS.reload;
 
@@ -341,23 +389,107 @@
 
   const groupById = (id) => state.groups.find((g) => g.id === id) || null;
 
-  /** Cluster order: each non-empty group in group order, then ungrouped,
-   * unpinned tabs. Pins lead their named group; only ungrouped pins use the
-   * standalone shelf. (Keep in sync with main.js.) */
+  /** Cluster order: groups and runs of ungrouped tabs, in tab order
+   * (tab-sections.js, shared with main and the rail). Pins lead their named
+   * group; only ungrouped pins use the standalone shelf. */
   function clusterTabs() {
+    const byId = new Map(state.tabs.map((t) => [t.id, t]));
     const clusters = [];
-    for (const g of state.groups) {
-      const gtabs = state.tabs
-        .filter((t) => t.groupId === g.id)
-        .sort((a, b) => Number(b.pinned) - Number(a.pinned));
-      if (gtabs.length) clusters.push({ group: g, tabs: gtabs });
+    for (const section of TabSections.sectionsOf(state.tabs)) {
+      const group = section.groupId ? groupById(section.groupId) : null;
+      if (section.groupId && !group) continue;
+      clusters.push({ group, tabs: section.tabIds.map((id) => byId.get(id)) });
     }
-    const loose = state.tabs.filter((t) => !t.groupId && !t.pinned);
-    if (loose.length) clusters.push({ group: null, tabs: loose });
     return clusters;
   }
 
   const isFavoritable = (url) => /^https?:\/\//.test(url || '');
+
+  // ---- Split View (F53): one row per split ------------------------------
+  // A split's tabs collapse into one row (TabSections.rowsOf); its disclosure
+  // lists them as ordinary rows. Which splits are open is this document's.
+  const openSplitRows = new Set();
+
+  /** Row nodes for a run of tabs, a split drawn once. `inGroup` marks rows
+   *  indented under a group header. */
+  function tabRowsFor(tabs, { inGroup = false } = {}) {
+    const byId = new Map(tabs.map((t) => [t.id, t]));
+    return TabSections.rowsOf(tabs.map((t) => t.id), state.tabs).flatMap((row) => {
+      if (row.kind === 'tab') {
+        const node = tabRow(byId.get(row.id));
+        if (inGroup) node.classList.add('in-group');
+        return [node];
+      }
+      return splitRowNodes(row.splitId, row.tabIds.map((id) => byId.get(id)).filter(Boolean), { inGroup });
+    });
+  }
+
+  function splitRowNodes(splitId, tabs, { inGroup = false } = {}) {
+    const split = (state.splits ?? []).find((s) => s.id === splitId);
+    const titles = tabs.map((t) => t.title || blancI18n.t('tab.untitled'));
+    const label = titles.length > 2
+      ? blancI18n.t('split.rowLabelMore', { first: titles[0], count: titles.length - 1 })
+      : blancI18n.t('split.rowLabel', { first: titles[0], second: titles[1] ?? '' });
+    const row = document.createElement('div');
+    row.className = 'island-row split-row'
+      + (tabs.some((t) => t.id === state.activeTabId) ? ' active' : '')
+      + (inGroup ? ' in-group' : '')
+      + ((state.selectedTabIds ?? []).includes(tabs[0]?.id) ? ' selected' : '');
+    row.dataset.splitId = splitId;
+    row.dataset.tabId = tabs[0]?.id;
+    row.setAttribute('role', 'group');
+    row.setAttribute('aria-label', blancI18n.t('split.rowName', { titles: titles.join(' + ') }));
+    row.dataset.i18nIgnore = 'aria-label'; // page titles
+    const primary = document.createElement('button');
+    primary.type = 'button';
+    primary.className = 'row-primary split-row-primary';
+    primary.dataset.selectionTabId = tabs[0]?.id;
+    const icons = document.createElement('span');
+    icons.className = 'split-row-icons';
+    for (const tab of tabs.slice(0, 4)) {
+      const favicon = document.createElement('span');
+      setFavicon(favicon, tab);
+      icons.append(favicon);
+    }
+    const title = document.createElement('span');
+    title.className = 'row-title split-row-title';
+    title.textContent = label;
+    title.dataset.i18nIgnore = '';
+    primary.append(icons, title);
+    primary.setAttribute('aria-label', blancI18n.t('dot.switchTo', { title: label }) + ((state.selectedTabIds ?? []).includes(tabs[0]?.id) ? ', ' + blancI18n.t('rail.state.selected') : ''));
+    primary.dataset.i18nIgnore = 'aria-label';
+    const focused = tabs[Math.min(split?.focusedIndex ?? 0, tabs.length - 1)] ?? tabs[0];
+    primary.addEventListener('click', () => {
+      if (focused) window.browserAPI.switchTab(focused.id);
+      window.browserAPI.closeOverlay();
+    });
+    const open = openSplitRows.has(splitId);
+    const disclosure = document.createElement('button');
+    disclosure.type = 'button';
+    disclosure.className = 'split-row-disclosure' + (open ? ' open' : '');
+    disclosure.dataset.noDrag = '';
+    disclosure.innerHTML = ICONS.caret;
+    disclosure.setAttribute('aria-expanded', String(open));
+    disclosure.setAttribute('aria-label', blancI18n.t('split.showTabs'));
+    disclosure.dataset.tooltip = blancI18n.t('split.showTabs');
+    disclosure.addEventListener('click', (e) => {
+      e.stopPropagation();
+      if (openSplitRows.has(splitId)) openSplitRows.delete(splitId);
+      else openSplitRows.add(splitId);
+      renderList();
+    });
+    row.append(primary, disclosure);
+    const nodes = [row];
+    if (open) {
+      for (const tab of tabs) {
+        const node = tabRow(tab);
+        node.classList.add('in-split');
+        if (inGroup) node.classList.add('in-group');
+        nodes.push(node);
+      }
+    }
+    return nodes;
+  }
 
   function addressDisplayValue(tab) {
     if (!tab) return '';
@@ -431,8 +563,13 @@
   // --- Dedicated Glance tab picker ---------------------------------------
 
   function eligibleGlanceTabs() {
+    // Pages already on screen can't be chosen: the main page, the current
+    // Glance, and the panes of a visible split, which Glance floats over
+    // (#1441). Taking a pane out of its split stays a tab-menu choice.
+    const shownSplit = (state.splits ?? []).find((s) => s.tabIds.includes(state.activeTabId));
     return state.tabs.filter((tab) =>
       tab.id !== state.activeTabId && tab.id !== state.glanceTabId
+      && !shownSplit?.tabIds.includes(tab.id)
     );
   }
 
@@ -551,6 +688,7 @@
       const details = [
         ...metadata,
         tab.private ? blancI18n.t('rail.state.private') : '',
+      (state.selectedTabIds ?? []).includes(tab.id) ? blancI18n.t('rail.state.selected') : '',
         tab.asleep ? blancI18n.t('rail.state.quiet') : '',
       ].filter(Boolean).join(', ') || blancI18n.t('glance.picker.openTab');
       row.setAttribute('aria-label', blancI18n.t('glance.picker.optionLabel', { title: title.textContent, details }));
@@ -625,11 +763,13 @@
     if (reloadBtn.dataset.mode !== (wantStop ? 'stop' : 'reload')) {
       reloadBtn.dataset.mode = wantStop ? 'stop' : 'reload';
       reloadBtn.innerHTML = wantStop ? ICONS.stop : ICONS.reload;
-      reloadBtn.title = wantStop ? blancI18n.t('pill.stop') : blancI18n.t('pill.reload');
+      reloadBtn.dataset.tooltip = wantStop ? blancI18n.t('pill.stop') : blancI18n.t('pill.reload');
+      reloadBtn.setAttribute('aria-label', reloadBtn.dataset.tooltip);
     }
     heartBtn.disabled = !tab || !isFavoritable(tab.url);
     heartBtn.classList.toggle('favorited', !!tab?.bookmarked);
-    heartBtn.title = tab?.bookmarked ? blancI18n.t('pill.unfavorite') : blancI18n.t('panel.favoriteShortcut');
+    heartBtn.dataset.tooltip = tab?.bookmarked ? blancI18n.t('pill.unfavorite') : blancI18n.t('panel.favoriteShortcut');
+    heartBtn.setAttribute('aria-label', heartBtn.dataset.tooltip);
     const siteInfo = tab?.siteInfo;
     const visible = !!siteInfo && !tab?.isLoading && !['internal', 'neutral'].includes(siteInfo.state);
     panelSiteInfo.hidden = !visible;
@@ -637,13 +777,17 @@
     panelSiteInfo.innerHTML = ['insecure', 'certificate-error', 'certificate-exception'].includes(siteInfo?.state)
       ? ICONS.insecure
       : siteInfo?.state === 'local' ? ICONS.local : ICONS.secure;
-    panelSiteInfo.title = siteInfo?.title ?? blancI18n.t('panel.siteInfo');
+    panelSiteInfo.dataset.tooltip = siteInfo?.title ?? blancI18n.t('panel.siteInfo');
     panelSiteInfo.setAttribute('aria-label', siteInfo?.title ?? blancI18n.t('panel.siteInfo'));
     panelSiteInfo.setAttribute('aria-expanded', String(visible && siteInfoOpen));
     if (!visible) siteInfoOpen = false;
 
+    readerBtn.hidden = !tab?.readerAvailable && !tab?.readerActive;
+    readerBtn.setAttribute('aria-pressed', String(tab?.readerActive === true));
+    readerBtn.setAttribute('aria-label', blancI18n.t(tab?.readerActive ? 'reader.exit' : 'reader.enter'));
+    readerBtn.dataset.tooltip = blancI18n.t(tab?.readerActive ? 'reader.exit' : 'reader.enter');
     const verticalTabsActive = state.tabLayout === 'vertical';
-    footerTabLayout.title = verticalTabsActive
+    footerTabLayout.dataset.tooltip = verticalTabsActive
       ? blancI18n.t('rail.islandLayout')
       : blancI18n.t('footer.tabLayoutOn');
     footerTabLayout.setAttribute('aria-pressed', String(verticalTabsActive));
@@ -656,7 +800,8 @@
     row.className =
       'island-row tab-row' +
       (tab.id === state.activeTabId ? ' active' : '') +
-      (tab.asleep ? ' quiet' : '');
+      (tab.asleep ? ' quiet' : '') +
+      ((state.selectedTabIds ?? []).includes(tab.id) ? ' selected' : '');
     row.dataset.tabId = tab.id;
     row.dataset.dragTab = '';
     row.dataset.pinned = String(!!tab.pinned);
@@ -694,6 +839,7 @@
     const primary = document.createElement('button');
     primary.type = 'button';
     primary.className = 'row-primary';
+    primary.dataset.selectionTabId = tab.id;
     // tabDomain() is '' for a blank new tab; filter rather than emit ", ,".
     // The word a person hears is quiet; the field name stays internal.
     const parts = [
@@ -701,10 +847,12 @@
       tabDomain(tab),
       tab.asleep ? blancI18n.t('rail.state.quiet') : '',
       tab.private ? blancI18n.t('rail.state.private') : '',
+      (state.selectedTabIds ?? []).includes(tab.id) ? blancI18n.t('rail.state.selected') : '',
     ].filter(Boolean);
     primary.setAttribute('aria-label', blancI18n.t('dot.switchTo', { title: parts.join(', ') }));
     if (tab.title) primary.dataset.i18nIgnore = 'aria-label'; // carries the page title
     primary.append(faviconWrap, title);
+    if(tab.syncNotSynced){const mark=document.createElement('span');mark.className='sync-not-synced';mark.textContent='•';mark.setAttribute('aria-label',blancI18n.t('sharedSpaces.unsyncedTab'));mark.title=blancI18n.t('sharedSpaces.unsyncedTab');primary.append(mark);}
     primary.addEventListener('click', () => {
       window.browserAPI.switchTab(tab.id);
       window.browserAPI.closeOverlay();
@@ -718,8 +866,8 @@
     const pin = document.createElement('button');
     pin.className = 'row-pin' + (tab.pinned ? ' on' : '');
     pin.dataset.noDrag = '';
-    pin.title = tab.pinned ? blancI18n.t('row.unpin') : blancI18n.t('row.pin');
-    pin.setAttribute('aria-label', pin.title);
+    pin.dataset.tooltip = tab.pinned ? blancI18n.t('row.unpin') : blancI18n.t('row.pin');
+    pin.setAttribute('aria-label', pin.dataset.tooltip);
     pin.innerHTML = ICONS.pin;
     pin.addEventListener('click', (e) => {
       e.stopPropagation();
@@ -731,8 +879,8 @@
       const mute = document.createElement('button');
       mute.className = 'row-mute' + (tab.muted ? ' on' : '');
       mute.dataset.noDrag = '';
-      mute.title = tab.muted ? blancI18n.t('row.unmute') : blancI18n.t('row.mute');
-      mute.setAttribute('aria-label', mute.title);
+      mute.dataset.tooltip = tab.muted ? blancI18n.t('row.unmute') : blancI18n.t('row.mute');
+      mute.setAttribute('aria-label', mute.dataset.tooltip);
       mute.innerHTML = ICONS.mute;
       mute.addEventListener('click', (e) => {
         e.stopPropagation();
@@ -741,14 +889,18 @@
       row.append(mute);
     }
 
-    if (tab.id !== state.activeTabId) {
+    // Glance floats over the page or over a whole visible split (#1441). A
+    // pane of a two-pane split leaves it for Glance (main's openTabMenuGlance,
+    // like the tab menu); a larger split's panes can't, so they get no button.
+    const shownSplit = (state.splits ?? []).find((s) => s.tabIds.includes(state.activeTabId));
+    if (tab.id !== state.activeTabId && !(shownSplit?.tabIds.includes(tab.id) && shownSplit.tabIds.length !== 2)) {
       const glance = document.createElement('button');
       const isGlance = tab.id === state.glanceTabId;
       glance.className = 'row-glance' + (isGlance ? ' on' : '');
       glance.dataset.noDrag = '';
       glance.innerHTML = ICONS.glance;
-      glance.title = isGlance ? blancI18n.t('glance.close') : blancI18n.t('row.glanceOpen');
-      glance.setAttribute('aria-label', blancI18n.t('row.actionLabel', { action: glance.title, title: label }));
+      glance.dataset.tooltip = isGlance ? blancI18n.t('glance.close') : blancI18n.t('row.glanceOpen');
+      glance.setAttribute('aria-label', blancI18n.t('row.actionLabel', { action: glance.dataset.tooltip, title: label }));
       if (tab.title) glance.dataset.i18nIgnore = 'aria-label'; // carries the page title
       glance.setAttribute('aria-pressed', String(isGlance));
       glance.addEventListener('click', async (e) => {
@@ -774,8 +926,8 @@
     const close = document.createElement('button');
     close.className = 'row-close';
     close.dataset.noDrag = '';
-    close.title = blancI18n.t('pill.closeTab');
-    close.setAttribute('aria-label', close.title);
+    close.dataset.tooltip = blancI18n.t('pill.closeTab');
+    close.setAttribute('aria-label', close.dataset.tooltip);
     close.innerHTML = ICONS.close;
     close.addEventListener('click', (e) => {
       e.stopPropagation();
@@ -812,11 +964,14 @@
 
   /** Named-group band: present --surface tint behind header + member tabs.
    * Only named groups get this — pinned / loose / furniture stay flat. */
-  function groupBand(group, nodes) {
+  function groupBand(group, nodes, firstTabId) {
     const band = document.createElement('div');
     band.className = 'island-group-band';
     band.dataset.dragSection = 'group';
     band.dataset.groupId = group.id;
+    // The gap above a group names its first tab (tab-drag.js).
+    band.dataset.firstTabId = firstTabId;
+    TabSections.paintGroup(band, group, 'group-colored');
     band.dataset.collapsed = String(!!group.collapsed);
     band.append(...nodes);
     return band;
@@ -861,6 +1016,13 @@
     row.className = 'island-ghead';
     row.innerHTML = `${CARET}<span class="ghead-name"></span><span class="ghead-n"></span><span class="ghead-kbd">${modKey}${clusterIndex + 1}</span>`;
     row.querySelector('.caret').classList.toggle('open', !group.collapsed);
+    if (group.color) {
+      // The color dot before the name; the band carries --group-color.
+      const dot = document.createElement('span');
+      dot.className = 'group-color-dot';
+      dot.setAttribute('aria-hidden', 'true');
+      row.querySelector('.ghead-name').before(dot);
+    }
     row.querySelector('.ghead-name').textContent = group.name;
     row.querySelector('.ghead-name').dataset.i18nIgnore = ''; // a user-chosen group name
     row.querySelector('.ghead-n').textContent = String(count);
@@ -874,13 +1036,214 @@
     row.setAttribute('aria-expanded', String(!group.collapsed));
     row.addEventListener('click', () => window.browserAPI.toggleGroupCollapsed(group.id));
     row.addEventListener('keydown', (event) => {
+      if (event.target !== row) return;
       if (event.key === 'Enter' || event.key === ' ') {
         event.preventDefault();
         window.browserAPI.toggleGroupCollapsed(group.id);
       }
     });
+    // The group menu: this ⋮ or a right-click on the header (spec §6).
+    const more = document.createElement('button');
+    more.type = 'button';
+    more.className = 'ghead-more';
+    more.dataset.noDrag = '';
+    more.innerHTML = ICONS.more;
+    more.setAttribute('aria-label', blancI18n.t('groupMenu.options'));
+    more.setAttribute('aria-haspopup', 'dialog');
+    more.addEventListener('click', (event) => {
+      event.stopPropagation();
+      toggleGroupMenu(group.id, row);
+    });
+    more.addEventListener('keydown', (event) => event.stopPropagation());
+    row.querySelector('.ghead-kbd').before(more);
+    if (groupMenu?.groupId === group.id) row.classList.add('menu-open');
     return row;
   }
+
+  // --- Group menu (tab group colors spec §6) ---
+  // One menu per group: its name, its color and its actions. In the panel it
+  // floats in this document beside the header; from the side list main opens
+  // the 'group-menu' mode, a transparent layer over the window, and this
+  // document shows only the menu at the header main passed.
+  const groupMenuEl = document.getElementById('groupMenu');
+  /** @type {null | { groupId: string, host: 'panel' | 'mode', cancelled: boolean }} */
+  let groupMenu = null;
+  const GROUP_MENU_GAP = 4;
+  const GROUP_MENU_MARGIN = 8;
+  const GROUP_MENU_KEBAB = 30; // the ⋮ button and its inset
+
+  function toggleGroupMenu(groupId, header) {
+    if (groupMenu?.groupId === groupId && groupMenu.host === 'panel') { closeGroupMenu(); return; }
+    const r = header.getBoundingClientRect();
+    openGroupMenu(groupId, { right: r.right, top: r.top, bottom: r.bottom }, 'panel');
+  }
+
+  function openGroupMenu(groupId, anchor, host) {
+    const group = groupById(groupId);
+    if (!group) return;
+    if (groupMenu) closeGroupMenu();
+    groupMenu = { groupId, host, cancelled: false };
+    // Escape reaches this document while the menu is open in the panel.
+    if (host === 'panel') window.browserAPI.setWorkspaceSwitcherOpen(true);
+    buildGroupMenu(group);
+    groupMenuEl.hidden = false;
+    placeGroupMenu(anchor, host);
+    document.querySelector(`#islandList .island-ghead[data-group-id="${CSS.escape(groupId)}"]`)?.classList.add('menu-open');
+    const input = groupMenuEl.querySelector('.group-menu-name');
+    input.focus();
+    input.select();
+  }
+
+  /** Below the header (above it when there is no room). In the panel its
+   * right edge meets the header's; from the side list it starts at the ⋮
+   * and opens toward the page, as Helium's does. */
+  function placeGroupMenu(anchor, host) {
+    const width = groupMenuEl.offsetWidth;
+    const height = groupMenuEl.offsetHeight;
+    const wanted = host === 'mode' ? anchor.right - GROUP_MENU_KEBAB : anchor.right - width;
+    const left = Math.max(GROUP_MENU_MARGIN, Math.min(wanted, window.innerWidth - width - GROUP_MENU_MARGIN));
+    const below = anchor.bottom + GROUP_MENU_GAP;
+    const top = below + height <= window.innerHeight - GROUP_MENU_MARGIN
+      ? below
+      : Math.max(GROUP_MENU_MARGIN, anchor.top - GROUP_MENU_GAP - height);
+    groupMenuEl.style.setProperty('--group-menu-left', `${Math.round(left)}px`);
+    groupMenuEl.style.setProperty('--group-menu-top', `${Math.round(top)}px`);
+  }
+
+  function buildGroupMenu(group) {
+    groupMenuEl.replaceChildren();
+    groupMenuEl.setAttribute('aria-label', blancI18n.t('groupMenu.options'));
+    const name = document.createElement('input');
+    name.type = 'text';
+    name.className = 'group-menu-name';
+    name.value = group.name;
+    name.spellcheck = false;
+    name.setAttribute('aria-label', blancI18n.t('groupMenu.nameLabel'));
+    name.addEventListener('keydown', (event) => {
+      if (event.key === 'Enter') {
+        event.preventDefault();
+        commitGroupName({ close: true });
+      }
+    });
+    const notice = document.createElement('div');
+    notice.className = 'group-menu-notice';
+    notice.setAttribute('role', 'status');
+    notice.hidden = true;
+
+    const colors = document.createElement('div');
+    colors.className = 'group-menu-colors';
+    colors.setAttribute('role', 'radiogroup');
+    colors.setAttribute('aria-label', blancI18n.t('groupMenu.colorLabel'));
+    const swatch = (hex, label) => {
+      const button = document.createElement('button');
+      button.type = 'button';
+      button.className = hex ? 'ws-swatch' : 'ws-swatch none';
+      button.dataset.color = hex ?? '';
+      button.setAttribute('role', 'radio');
+      button.setAttribute('aria-label', label);
+      button.setAttribute('aria-checked', String((group.color ?? null) === hex));
+      if (hex) button.style.setProperty('--swatch', hex);
+      button.addEventListener('click', async () => {
+        for (const other of colors.children) other.setAttribute('aria-checked', String(other === button));
+        await window.browserAPI.setGroupColor(group.id, hex);
+      });
+      return button;
+    };
+    colors.append(swatch(null, blancI18n.t('groupMenu.colorNone')));
+    for (const preset of SpaceIdentity.PRESETS) colors.append(swatch(preset.hex, blancI18n.t(`spaces.color.${preset.id}`)));
+    colors.addEventListener('keydown', (event) => {
+      const items = [...colors.children];
+      const at = items.indexOf(document.activeElement);
+      const step = event.key === 'ArrowRight' || event.key === 'ArrowDown' ? 1
+        : event.key === 'ArrowLeft' || event.key === 'ArrowUp' ? -1 : 0;
+      if (!step || at === -1) return;
+      event.preventDefault();
+      items[(at + step + items.length) % items.length].focus();
+    });
+
+    const holdsEveryTab = state.tabs.length > 0 && state.tabs.every((tab) => tab.groupId === group.id);
+    const action = (label, run, { disabled = false } = {}) => {
+      const button = document.createElement('button');
+      button.type = 'button';
+      button.className = 'ws-cmd group-menu-action';
+      button.textContent = label;
+      button.disabled = disabled;
+      button.addEventListener('click', async () => {
+        // A refused name keeps the menu open with its notice; nothing runs.
+        if (!(await commitGroupName({ close: false }))) return;
+        const box = button.getBoundingClientRect();
+        closeGroupMenu({ commit: false, closeOverlay: true });
+        run(box);
+      });
+      return button;
+    };
+    const actions = document.createElement('div');
+    actions.className = 'group-menu-actions';
+    actions.append(
+      action(blancI18n.t('groupMenu.newTab'), () => window.browserAPI.newTabInGroup(group.id)),
+      action(blancI18n.t('groupMenu.moveToNewWindow'), () => window.browserAPI.moveGroupToNewWindow(group.id), { disabled: holdsEveryTab }),
+    );
+    // Move Group to Space ▸ (D8): shown once the profile has a space, like
+    // Move to Space ▸ in the tab menu. Main lists the spaces in a native menu.
+    if (wsWorkspaces.length) {
+      actions.append(action(blancI18n.t('groupMenu.moveToSpace'),
+        (box) => window.browserAPI.openGroupSpaceMenu(group.id, { x: box.left, y: box.bottom })));
+    }
+    actions.append(
+      action(blancI18n.t('groupMenu.ungroup'), () => window.browserAPI.ungroupGroup(group.id)),
+      action(blancI18n.t('groupMenu.close'), () => window.browserAPI.closeGroup(group.id)),
+    );
+    groupMenuEl.append(name, notice, colors, actions);
+  }
+
+  /** Save the typed name if it changed. A name another group has keeps the
+   * menu open with the refusal; resolves false then. */
+  async function commitGroupName({ close }) {
+    if (!groupMenu) return true;
+    const group = groupById(groupMenu.groupId);
+    const input = groupMenuEl.querySelector('.group-menu-name');
+    const value = input?.value ?? '';
+    if (group && value.trim() && value !== group.name) {
+      const result = await window.browserAPI.renameGroup(group.id, value);
+      if (result && result.ok === false && result.error === 'duplicate') {
+        const notice = groupMenuEl.querySelector('.group-menu-notice');
+        if (notice && groupMenu) {
+          notice.textContent = blancI18n.t('groupMenu.duplicate', { name: value.trim() });
+          notice.hidden = false;
+          input.focus();
+        }
+        return false;
+      }
+    }
+    // Enter is a keyboard close: focus goes back to the header's ⋮.
+    if (close) closeGroupMenu({ commit: false, closeOverlay: true, reason: 'cancel' });
+    return true;
+  }
+
+  /** `commit` saves a changed name first; Escape passes false. */
+  function closeGroupMenu({ commit = true, closeOverlay = false, reason = null } = {}) {
+    if (!groupMenu) return;
+    const { host, groupId } = groupMenu;
+    if (commit) commitGroupName({ close: false });
+    groupMenu = null;
+    groupMenuEl.hidden = true;
+    groupMenuEl.replaceChildren();
+    document.querySelectorAll('#islandList .island-ghead.menu-open').forEach((el) => el.classList.remove('menu-open'));
+    if (host === 'panel') {
+      if (!workspaceSwitcherOpen) window.browserAPI.setWorkspaceSwitcherOpen(false);
+      document.querySelector(`#islandList .island-ghead[data-group-id="${CSS.escape(groupId)}"] .ghead-more`)?.focus();
+    } else if (closeOverlay && mode === 'group-menu') {
+      window.browserAPI.closeOverlay(reason ?? undefined);
+    }
+  }
+
+  document.addEventListener('mousedown', (event) => {
+    if (!groupMenu || event.target.closest('#groupMenu')) return;
+    if (groupMenu.host === 'panel' && event.target.closest('.ghead-more')) return; // its own toggle
+    const fromMode = groupMenu.host === 'mode';
+    closeGroupMenu({ commit: true });
+    if (fromMode) window.browserAPI.closeOverlay('cancel');
+  }, true);
 
   // --- Workspaces (Blanc Spaces) ---
   //
@@ -981,6 +1344,61 @@
     return row;
   }
 
+  /** "Sent to this device · 2": the inbox heading, which doesn't fold. */
+  function sentHeaderRow(count) {
+    const row = document.createElement('div');
+    row.className = 'island-ghead static sent-head';
+    row.innerHTML = '<span class="ghead-name"></span><span class="ghead-n"></span>';
+    row.querySelector('.ghead-name').textContent = blancI18n.t('sends.section');
+    row.querySelector('.ghead-n').textContent = String(count);
+    return row;
+  }
+
+  /** A page another device sent here: click opens it in a new tab (main
+   * hides it here), × dismisses it. */
+  function sentItemRow(item) {
+    const row = document.createElement('div');
+    row.className = 'island-row sent-row';
+    row.setAttribute('role', 'button');
+    row.tabIndex = 0;
+    row.dataset.sentId = item.id;
+    const favicon = document.createElement('span');
+    setFavicon(favicon, { url: item.url });
+    const text = document.createElement('span');
+    text.className = 'sent-text';
+    const title = document.createElement('span');
+    title.className = 'row-title';
+    title.textContent = item.title || item.url;
+    title.dataset.i18nIgnore = ''; // a page title is data
+    const from = document.createElement('span');
+    from.className = 'row-sub';
+    from.textContent = blancI18n.t('sends.from', { device: item.fromName, time: timeAgo(item.sentAt) });
+    text.append(title, from);
+    const dismiss = document.createElement('button');
+    dismiss.type = 'button';
+    dismiss.className = 'row-close sent-dismiss';
+    dismiss.dataset.tooltip = blancI18n.t('sends.dismiss');
+    dismiss.setAttribute('aria-label', blancI18n.t('row.actionLabel', { action: dismiss.dataset.tooltip, title: title.textContent }));
+    dismiss.dataset.i18nIgnore = 'aria-label'; // carries the page title
+    dismiss.innerHTML = ICONS.close;
+    dismiss.addEventListener('click', (event) => {
+      event.stopPropagation();
+      window.browserAPI.dismissSentItem(item.id);
+    });
+    row.append(favicon, text, dismiss);
+    const open = () => {
+      window.browserAPI.closeOverlay();
+      window.browserAPI.openSentItem(item.id);
+    };
+    row.addEventListener('click', open);
+    row.addEventListener('keydown', (event) => {
+      if (event.target !== row || (event.key !== 'Enter' && event.key !== ' ')) return;
+      event.preventDefault();
+      open();
+    });
+    return row;
+  }
+
   /** A remote tab row: opens the url as a plain new local tab (ungrouped —
    * no group reconstruction in v1, spec §2). */
   function remoteTabRow(tab, device) {
@@ -1065,6 +1483,7 @@
       window.browserAPI.saveFavorite(folder || null);
     } },
     { cmd: '/history', hint: blancI18n.t('slash.history.hint'), run: () => window.browserAPI.openPage('history') },
+    { cmd: '/archive', hint: blancI18n.t('slash.archive.hint'), run: () => window.browserAPI.openPage('history', 'archived') },
     { cmd: '/downloads', hint: blancI18n.t('slash.downloads.hint'), run: () => window.browserAPI.openPage('downloads') },
     { cmd: '/settings', hint: blancI18n.t('slash.settings.hint'), run: () => window.browserAPI.openPage('settings') },
     { cmd: '/sync', hint: blancI18n.t('slash.sync.hint'), run: () => window.browserAPI.openPage('settings', 'sync') },
@@ -1095,7 +1514,9 @@
       // A context-menu "New Group…" targets the right-clicked tab, not the
       // active one (overlay:show's purpose payload sets the pending target).
       const target = pendingGroupTabId ?? state.activeTabId;
-      if (name && target) window.browserAPI.groupTabByName(target, name);
+      if (pendingGroupTabIds) window.browserAPI.groupTabsByName(pendingGroupTabIds, name);
+      else if (name && target) window.browserAPI.groupTabByName(target, name);
+      pendingGroupTabIds = null;
       pendingGroupTabId = null;
     } },
     { cmd: '/ungroup', hint: blancI18n.t('slash.ungroup.hint'), run: () => state.activeTabId && window.browserAPI.setTabGroup(state.activeTabId, null) },
@@ -1103,10 +1524,35 @@
       const groupId = activeTab()?.groupId;
       if (groupId) window.browserAPI.closeGroup(groupId);
     } },
+    // Send to device (M7b): the argument names one of the account's other
+    // devices, matched without regard to case. Never offered in a private tab.
+    { cmd: '/send', hint: blancI18n.t('slash.send.hint'), keepOverlay: true,
+      get available() { return !activeTab()?.private; },
+      run: (input) => {
+        const name = commandArgument(input);
+        if (!name) { promptCommand('/send '); return null; }
+        const tabId = state.activeTabId;
+        // The notice shows on the resting list, so the typed command goes.
+        addressInput.value = '';
+        renderList();
+        return sendActiveTabTo(tabId, name);
+      },
+      resultNotice: (result) => sendNotice(result) },
+    // Copy Link (⌘⇧C / Ctrl+Shift+C); "/copy clean" is Copy Clean Link, which
+    // has a chord on macOS only. Main shows the pill's "copied" notice.
+    { cmd: '/copy', hint: blancI18n.t('slash.copy.hint'), run: (input) => {
+      window.browserAPI.copyActiveLink(commandArgument(input).toLowerCase() === 'clean');
+    } },
+    { cmd: '/reader', hint: blancI18n.t('slash.reader.hint'), run: () => window.browserAPI.toggleReaderMode(state.activeTabId) },
     { cmd: '/find', hint: blancI18n.t('slash.find.hint'), run: () => window.browserAPI.openFindBar(), keepOverlay: true },
     { cmd: '/block-ads', hint: blancI18n.t('slash.blockAds.hint'), run: () => window.browserAPI.toggleAdblock() },
     { cmd: '/allow-ads', hint: blancI18n.t('slash.allowAds.hint'), run: () => window.browserAPI.allowAdsOnActiveSite() },
     { cmd: '/dark-site', hint: blancI18n.t('slash.darkSite.hint'), run: () => window.browserAPI.toggleDarkSiteOnActiveSite() },
+    // Link routing (F60): links to this site from other apps open in this
+    // window's profile (and Space); "/route off" removes the rule.
+    { cmd: '/route', hint: blancI18n.t('slash.route.hint'), run: (input) => {
+      window.browserAPI.routeActiveSite(commandArgument(input).toLowerCase() === 'off' ? 'off' : 'on');
+    } },
     { cmd: '/1password', hint: blancI18n.t('slash.1password.hint'),
       available: typeof window.browserAPI.fillLoginFromOnePassword === 'function',
       run: () => window.browserAPI.fillLoginFromOnePassword() },
@@ -1120,6 +1566,25 @@
     { cmd: '/glance', hint: blancI18n.t('slash.glance.hint'), keepOverlay: true, run: (input) => window.browserAPI.openGlancePicker(commandArgument(input)) },
     { cmd: '/invite', hint: blancI18n.t('slash.invite.hint'), run: () => window.browserAPI.inviteFriend(), keepOverlay: true, clearInput: true, resultNotice: (result) => result === 'copied' ? blancI18n.t('slash.invite.copied') : '' },
   ];
+
+  async function sendActiveTabTo(tabId, name) {
+    const targets = await window.browserAPI.listSendTargets();
+    if (!targets.length) return { notice: 'none' };
+    const wanted = name.toLocaleLowerCase();
+    const target = targets.find((t) => t.name.toLocaleLowerCase() === wanted);
+    if (!target) return { notice: 'noMatch', name };
+    const { status } = await window.browserAPI.sendTabToDevice(tabId, target.id);
+    return { status, device: target.name };
+  }
+
+  function sendNotice(result) {
+    if (!result) return '';
+    if (result.notice === 'none') return blancI18n.t('sends.none');
+    if (result.notice === 'noMatch') return blancI18n.t('sends.noMatch', { name: result.name });
+    if (result.status === 'sent') return blancI18n.t('sends.sent', { device: result.device });
+    if (result.status === 'unavailable') return blancI18n.t('sends.unavailable');
+    return blancI18n.t('sends.failed');
+  }
 
   function runCommand(command) {
     // Commands like "/group work" read their argument from the typed input.
@@ -1245,8 +1710,8 @@
       clear.className = 'closed-clear';
       clear.dataset.noDrag = '';
       clear.textContent = blancI18n.t('closed.clear');
-      clear.title = blancI18n.t('closed.clearAll');
-      clear.setAttribute('aria-label', clear.title);
+      clear.dataset.tooltip = blancI18n.t('closed.clearAll');
+      clear.setAttribute('aria-label', clear.dataset.tooltip);
       clear.addEventListener('click', (e) => {
         e.stopPropagation();
         window.browserAPI.clearClosedEntries();
@@ -1274,12 +1739,13 @@
     title.textContent = entry.tabCount > 1
       ? blancI18n.t('closed.groupTitle', { title: entry.title, count: entry.tabCount })
       : entry.title;
+    if(entry.fromName)title.textContent+=' · '+blancI18n.t('sharedSpaces.closedOn',{device:entry.fromName});
     title.dataset.i18nIgnore = ''; // a closed page or group title is data
     const forget = document.createElement('button');
     forget.type = 'button';
     forget.className = 'row-close closed-forget';
-    forget.title = blancI18n.t('closed.forget');
-    forget.setAttribute('aria-label', blancI18n.t('row.actionLabel', { action: forget.title, title: title.textContent }));
+    forget.dataset.tooltip = blancI18n.t('closed.forget');
+    forget.setAttribute('aria-label', blancI18n.t('row.actionLabel', { action: forget.dataset.tooltip, title: title.textContent }));
     forget.dataset.i18nIgnore = 'aria-label'; // carries the closed page title
     forget.innerHTML = ICONS.close;
     forget.addEventListener('click', (event) => {
@@ -1298,6 +1764,47 @@
       reopen();
     });
     return row;
+  }
+
+  /** Spec D6: "Blanc archived N tabs · View Archive ×", once per profile, at
+   *  the top of the resting list where a missing tab would be looked for.
+   *  Shaped like the Recently closed band; both actions end it for good. */
+  function archiveNoticeBand(notice) {
+    const band = document.createElement('div');
+    band.className = 'island-group-band archive-notice';
+    band.setAttribute('role', 'status');
+    const row = document.createElement('div');
+    row.className = 'island-row in-group';
+    const glyph = document.createElement('span');
+    glyph.className = 'closed-glyph';
+    glyph.innerHTML = ICONS.archive;
+    const title = document.createElement('span');
+    title.className = 'row-title';
+    title.textContent = blancI18n.t('archive.notice.title', { count: notice.count });
+    const view = document.createElement('button');
+    view.type = 'button';
+    view.className = 'closed-clear archive-notice-view';
+    view.textContent = blancI18n.t('archive.notice.view');
+    view.addEventListener('click', (event) => {
+      event.stopPropagation();
+      window.browserAPI.closeOverlay();
+      window.browserAPI.archiveNoticeDone('view');
+    });
+    const dismiss = document.createElement('button');
+    dismiss.type = 'button';
+    dismiss.className = 'row-close archive-notice-dismiss';
+    dismiss.setAttribute('aria-label', blancI18n.t('archive.notice.dismiss'));
+    dismiss.dataset.tooltip = blancI18n.t('archive.notice.dismiss');
+    dismiss.innerHTML = ICONS.close;
+    dismiss.addEventListener('click', (event) => {
+      event.stopPropagation();
+      window.browserAPI.archiveNoticeDone('dismiss');
+      archiveNotice = null;
+      renderList();
+    });
+    row.append(glyph, title, view, dismiss);
+    band.append(row);
+    return band;
   }
 
   function commandNoticeRow(text) {
@@ -1420,6 +1927,16 @@
         if (s) results.push({ kind: 'remote', title: t.title || t.url, sub: `${hostOfUrl(t.url)} · ${device.name}`, url: t.url, tab: t, score: s + 0.05 });
       }
     }
+    // Archived tabs rank below remote tabs (+0.05) and above history (+0);
+    // the url-keyed dedup below keeps the archived row over a history row.
+    // A private tab's switcher never shows the Archive (F52).
+    const activePrivate = state.tabs.find((t) => t.id === state.activeTabId)?.private;
+    if (!activePrivate) {
+      for (const a of archivedEntries) {
+        const s = matchScore(query, matchableText(a.title, a.url));
+        if (s) results.push({ kind: 'archived', title: a.title || a.url, sub: `${stripUrl(a.url)} · ${blancI18n.t('result.archived')}`, url: a.url, tab: { url: a.url, favicon: a.favicon }, entryId: a.id, score: s + 0.02 });
+      }
+    }
     for (const h of historyEntries) {
       const s = matchScore(query, matchableText(h.title, h.url));
       if (s) results.push({ kind: 'history', title: h.title, sub: stripUrl(h.url), url: h.url, score: s });
@@ -1467,12 +1984,13 @@
   }
 
   /** Keep six rows total. A confident local match retains the established
-   * Quick-Switcher top slot; otherwise exact search leads, followed by engine
-   * completions and then the weaker local guesses. */
+   * Quick-Switcher top slot unless Search priority results is on; otherwise
+   * exact search leads, followed by engine completions and then the local
+   * matches. */
   function blendedResults(query) {
     const local = switcherResults(query.toLowerCase());
     const search = searchResults(query);
-    if (local[0]?.score >= STRONG_MATCH_SCORE) {
+    if (!searchPriorityResults && local[0]?.score >= STRONG_MATCH_SCORE) {
       return [
         ...local.slice(0, 3),
         ...search.slice(0, 3),
@@ -1518,6 +2036,7 @@
     if (result.kind === 'group') window.browserAPI.focusGroup(result.group.id);
     else if (result.kind === 'tab') window.browserAPI.switchTab(result.tab.id);
     else if (result.kind === 'remote') window.browserAPI.createTab(result.url, { focusAddress: false });
+    else if (result.kind === 'archived') window.browserAPI.archiveRestore(result.entryId);
     else if (result.kind === 'search' && state.activeTabId) {
       window.browserAPI.search(state.activeTabId, result.query, result.providerId);
     }
@@ -1541,6 +2060,7 @@
       leading = document.createElement('span');
       leading.className = 'row-group-mark';
       leading.innerHTML = CARET;
+      TabSections.paintGroup(leading, result.group, 'group-colored-mark');
       leading.setAttribute('aria-hidden', 'true');
     } else if (result.kind === 'search') {
       leading = document.createElement('span');
@@ -1960,6 +2480,80 @@
         : blancI18n.t('siteInfo.hint.chromium');
   }
 
+  // Tooltips for the Island's buttons: the panel's actions, its footer and the
+  // tab rows' icons (pin, mute, Glance, close). They carry data-tooltip rather
+  // than a native title: the panel is rebuilt on every tab broadcast (a page
+  // loading, a title changing), which restarts the OS hover timer, so a native
+  // tooltip here came late or never, and it couldn't match the Island's look. This one waits
+  // a short beat on hover, shows at once on keyboard focus, and follows the
+  // rebuilt button under a still pointer. It is visual only; each button's
+  // aria-label or aria-description already says the same thing.
+  const islandTip = document.createElement('div');
+  islandTip.className = 'island-tip';
+  islandTip.setAttribute('aria-hidden', 'true');
+  document.body.append(islandTip);
+  const ISLAND_TIP_DELAY_MS = 350;
+  let islandTipTarget = null;
+  let islandTipTimer = 0;
+  let islandTipPointer = null;
+
+  function placeIslandTip(el) {
+    islandTip.textContent = el.dataset.tooltip;
+    const box = el.getBoundingClientRect();
+    const tip = islandTip.getBoundingClientRect();
+    const gap = 6;
+    let top = box.top - tip.height - gap;
+    if (top < 4) top = box.bottom + gap;
+    const left = Math.max(4, Math.min(window.innerWidth - tip.width - 4,
+      box.left + box.width / 2 - tip.width / 2));
+    islandTip.style.transform = `translate(${Math.round(left)}px, ${Math.round(top)}px)`;
+    islandTip.classList.add('show');
+  }
+
+  function hideIslandTip() {
+    clearTimeout(islandTipTimer);
+    islandTipTarget = null;
+    islandTip.classList.remove('show');
+  }
+
+  function aimIslandTip(el, delay) {
+    if (el === islandTipTarget) return;
+    hideIslandTip();
+    if (!el || !el.dataset.tooltip) return;
+    islandTipTarget = el;
+    if (delay) islandTipTimer = setTimeout(() => placeIslandTip(el), delay);
+    else placeIslandTip(el);
+  }
+
+  // After a rebuild the hovered button is a new element: carry the tip over
+  // to whatever button now sits under the pointer, or drop it.
+  function refreshIslandTip() {
+    if (!islandTipTarget || islandTipTarget.isConnected) return;
+    const shown = islandTip.classList.contains('show');
+    const under = islandTipPointer
+      && document.elementFromPoint(islandTipPointer.x, islandTipPointer.y)?.closest('[data-tooltip]');
+    hideIslandTip();
+    if (under) aimIslandTip(under, shown ? 0 : ISLAND_TIP_DELAY_MS);
+  }
+
+  document.addEventListener('pointermove', (e) => {
+    islandTipPointer = { x: e.clientX, y: e.clientY };
+    aimIslandTip(e.target.closest?.('[data-tooltip]') || null, ISLAND_TIP_DELAY_MS);
+  });
+  document.documentElement.addEventListener('pointerleave', () => {
+    islandTipPointer = null;
+    hideIslandTip();
+  });
+  document.addEventListener('pointerdown', hideIslandTip, true);
+  document.addEventListener('scroll', hideIslandTip, true);
+  document.addEventListener('focusin', (e) => {
+    const el = e.target.closest?.('[data-tooltip]');
+    if (el && el.matches(':focus-visible')) aimIslandTip(el, 0);
+  });
+  document.addEventListener('focusout', (e) => {
+    if (e.target === islandTipTarget) hideIslandTip();
+  });
+
   function renderList() {
     if (pointerHeld || islandDrag.isActive()) {
       renderQueued = true;
@@ -1984,6 +2578,7 @@
       renderDevicesDrawer(false);
       islandHint.textContent = '';
       observeBangIconRows();
+      refreshIslandTip();
       return;
     }
 
@@ -2067,43 +2662,54 @@
       // which intercepts 'unsaved-scratch' before it ever becomes a plain
       // commandNotice string).
       if (commandNotice) rows.push(commandNoticeRow(commandNotice));
+      else if (archiveNotice) rows.push(archiveNoticeBand(archiveNotice));
       rows.push(pinned.length
-        ? dragSection('pinned', [pinnedHeaderRow(pinned.length), ...pinned.map(tabRow)])
+        ? dragSection('pinned', [pinnedHeaderRow(TabSections.rowsOf(pinned.map((t) => t.id), state.tabs).length), ...tabRowsFor(pinned)])
         : dragEmptyZone('pinned'));
 
       const clusters = clusterTabs();
       const shortcutOffset = pinned.length ? 1 : 0;
-      // Recently closed sits before the first group at or past its slot
-      // (main's closedSlot), else after the last group — never among the
-      // ungrouped tabs. Newest first; every entry Blanc keeps.
+      // Recently closed sits at its slot (main's closedSlot): the number of
+      // groups and ungrouped tabs above it, so it can split a run. Newest
+      // first; every entry Blanc keeps.
       const closed = (state.closed ?? []).slice().reverse();
       const closedSlot = dragApi.closedSlotIndex(state);
-      const groupIndex = new Map(state.groups.map((g, index) => [g.id, index]));
       let closedPlaced = !closed.length;
+      let itemIndex = 0;
       const placeClosed = () => {
         if (closedPlaced) return;
         rows.push(closedBand(closed));
         closedPlaced = true;
       };
+      const due = () => !closedPlaced && itemIndex >= closedSlot;
       for (const [clusterIndex, { group, tabs: gtabs }] of clusters.entries()) {
-        if (!group || groupIndex.get(group.id) >= closedSlot) placeClosed();
+        if (due()) placeClosed();
         if (group) {
           const bandNodes = [groupHeaderRow(group, gtabs.length, clusterIndex + shortcutOffset)];
           // Collapsed: header alone. Open: indent membership under the group.
-          if (!group.collapsed) {
-            for (const t of gtabs) {
-              const row = tabRow(t);
-              row.classList.add('in-group');
-              bandNodes.push(row);
-            }
-          }
-          rows.push(groupBand(group, bandNodes));
+          if (!group.collapsed) bandNodes.push(...tabRowsFor(gtabs, { inGroup: true }));
+          rows.push(groupBand(group, bandNodes, gtabs[0].id));
+          itemIndex += 1;
         } else {
-          rows.push(dragSection('loose', gtabs.map(tabRow)));
+          let chunk = [];
+          // A split is drawn once; Recently closed never lands inside one.
+          for (const row of TabSections.rowsOf(gtabs.map((t) => t.id), state.tabs)) {
+            if (due()) {
+              if (chunk.length) rows.push(dragSection('loose', chunk));
+              chunk = [];
+              placeClosed();
+            }
+            const members = row.kind === 'tab' ? [row.id] : row.tabIds;
+            chunk.push(...tabRowsFor(members.map((id) => gtabs.find((t) => t.id === id)).filter(Boolean)));
+            itemIndex += members.length;
+          }
+          if (chunk.length) rows.push(dragSection('loose', chunk));
         }
       }
       placeClosed();
-      if (!clusters.some(({ group }) => !group)) rows.push(dragEmptyZone('loose'));
+      // Below a last group there is still a place for an ungrouped tab: the
+      // empty zone a drag reveals.
+      if (!clusters.length || clusters[clusters.length - 1].group) rows.push(dragEmptyZone('loose'));
 
       islandList.replaceChildren(...rows);
       // Only the resting tab list preserves row focus; the "/" command and
@@ -2124,14 +2730,18 @@
         : activeTab()?.private ? blancI18n.t('hint.private') : '';
     }
     observeBangIconRows();
+    refreshIslandTip();
   }
 
   /** Other devices (spec 2026-10-16 §6): the footer toggle, hidden with no
    * other device to show, and the drawer between the list and the footer. */
   function renderDevicesDrawer(resting, anchor = null) {
-    footerDevices.hidden = !remoteDevices.length;
-    footerDevicesCount.textContent = String(remoteDevices.length);
-    const show = resting && devicesDrawerOpen && remoteDevices.length > 0;
+    // Pages waiting here show the drawer's button even with no device's tabs,
+    // and its count becomes theirs (M7b §5).
+    footerDevices.hidden = !remoteDevices.length && !sentItems.length;
+    footerDevices.classList.toggle('has-sent', sentItems.length > 0);
+    footerDevicesCount.textContent = String(sentItems.length || remoteDevices.length);
+    const show = resting && devicesDrawerOpen && !footerDevices.hidden;
     footerDevices.setAttribute('aria-expanded', String(show));
     islandDrawer.hidden = !show;
     if (!show) {
@@ -2139,6 +2749,7 @@
       return;
     }
     const rows = [];
+    if (sentItems.length) rows.push(sentHeaderRow(sentItems.length), ...sentItems.map(sentItemRow));
     for (const device of remoteDevices) {
       rows.push(remoteHeaderRow(device));
       if (unfoldedDevices.has(device.deviceId)) {
@@ -2155,6 +2766,8 @@
     // The private theme scope follows the active tab.
     if (activeTab()?.private) document.documentElement.dataset.theme = 'private';
     else delete document.documentElement.dataset.theme;
+    // The footer's Spaces button draws the space's tile for that theme.
+    workspaceUI.repaintTrigger();
     renderPanelChrome();
     renderList();
   }
@@ -2300,6 +2913,11 @@
     document.body.dataset.mode = next ?? '';
     document.body.dataset.glancePurpose = glancePickerPurpose ?? '';
     if (next !== 'panel' && next !== 'palette' && next !== 'spaces') closeWorkspaceSwitcher();
+    // A group menu belongs to the surface that opened it: the panel's goes
+    // when the panel does, the side list's when any other mode replaces it.
+    if (groupMenu && (groupMenu.host === 'mode' ? next !== 'group-menu' : next !== 'panel' && next !== 'palette')) {
+      closeGroupMenu({ commit: true });
+    }
     backdrop.hidden = next !== 'panel' && next !== 'palette';
     panelAnchor.hidden = next !== 'panel' && next !== 'palette';
     findBar.hidden = next !== 'find';
@@ -2307,6 +2925,8 @@
     shieldPop.hidden = next !== 'shield';
     shieldPopPointer.hidden = next !== 'shield' || !shieldConnected;
     capturePop.hidden = next !== 'capture';
+    switcherCard.hidden = next !== 'switcher';
+    if (next !== 'switcher') switcherModel = null;
     displayShareBackdrop.hidden = next !== 'display-share';
     if (next !== 'display-share') displayShareModel = null;
     glancePickerEl.hidden = next !== 'glance';
@@ -2317,6 +2937,7 @@
         closedSectionOpen = false;
         devicesDrawerOpen = false;
         pendingGroupTabId = null;
+        pendingGroupTabIds = null;
         pendingRenameTabId = null;
         renamePrefill = null;
         namePrompt = null;
@@ -2336,8 +2957,10 @@
       // tab). Glance's string purposes fall through harmlessly.
       if (purpose && typeof purpose === 'object' && purpose.beginGroupTabId != null) {
         pendingGroupTabId = purpose.beginGroupTabId;
+        pendingGroupTabIds = null;
         pendingRenameTabId = null;
       }
+      if (Array.isArray(purpose?.beginGroupTabIds)) { pendingGroupTabIds = purpose.beginGroupTabIds; pendingGroupTabId = null; }
       // "Rename Tab…" (F46): same atomic payload as New Group… above.
       if (purpose && typeof purpose === 'object' && purpose.renameTabId != null) {
         pendingRenameTabId = purpose.renameTabId;
@@ -2348,12 +2971,14 @@
       if (purpose && typeof purpose === 'object' && purpose.renameGroupId != null) {
         namePrompt = { kind: 'group', id: purpose.renameGroupId, prefill: prefill ?? '', notice: '' };
         pendingGroupTabId = null;
+        pendingGroupTabIds = null;
         pendingRenameTabId = null;
       }
       // "Rename Device…" from the Other devices drawer: the same prompt.
       if (purpose && typeof purpose === 'object' && purpose.renameDeviceId != null) {
         namePrompt = { kind: 'device', id: purpose.renameDeviceId, prefill: prefill ?? '', notice: '' };
         pendingGroupTabId = null;
+        pendingGroupTabIds = null;
         pendingRenameTabId = null;
       }
       // A workspace row's context menu (main process) has no other channel
@@ -2414,10 +3039,26 @@
       }
       renderGlancePicker({ announce: !reshow });
       glancePickerInput.focus();
+    } else if (next === 'group-menu') {
+      // The side list's group menu: the whole overlay is this one menu.
+      if (purpose?.groupId && purpose.anchor) openGroupMenu(purpose.groupId, purpose.anchor, 'mode');
     } else if (next === 'spaces') {
       // The menu is the whole overlay here; data refreshes behind the first paint.
       refreshSwitcherData();
-      if (!reshow) openWorkspaceSwitcher();
+      if (purpose?.spaceMoveError) {
+        workspaceUI.showMoveError(purpose.spaceMoveError.name, purpose.spaceMoveError.error, purpose.spaceMoveError.movedCount);
+      } else if (purpose?.spaceLinkError) {
+        workspaceUI.showLinkError(purpose.spaceLinkError.name, purpose.spaceLinkError.error);
+      } else if (purpose?.newSpaceLinkTitle != null) {
+        workspaceUI.begin('new', null, { start: 'link', tabTitle: purpose.newSpaceLinkTitle });
+      } else if (Array.isArray(purpose?.newSpaceTabIds)) {
+        // From Move Group to Space ▸ the editor names the group (user data).
+        workspaceUI.begin('new', null, { start: 'tabs', tabId: purpose.newSpaceTabIds,
+          tabTitle: typeof purpose.newSpaceGroupName === 'string' ? purpose.newSpaceGroupName : blancI18n.t('tabsMenu.header', { count: purpose.newSpaceTabIds.length }) });
+      } else if (purpose?.newSpaceTabId != null) {
+        const tab = state.tabs.find((item) => item.id === purpose.newSpaceTabId);
+        workspaceUI.begin('new', null, { start: 'tab', tabId: purpose.newSpaceTabId, tabTitle: tab?.customTitle || tab?.title || tab?.url || '' });
+      } else if (!reshow) openWorkspaceSwitcher();
     } else if (next === 'shield') {
       renderShieldPop();
       (shieldChoosing ? shieldPopProvider.querySelector('input:checked:not(:disabled)') || shieldPopBack : shieldPopToggle.hidden ? shieldPopChangeProvider.disabled ? shieldPopSettings : shieldPopChangeProvider : shieldPopToggle).focus();
@@ -2426,6 +3067,57 @@
     } else if (next === 'capture') {
       renderCapturePop();
       capturePopRows.querySelector('.capture-pop-stop, .display-share-stop')?.focus();
+    } else if (next === 'switcher') {
+      const previousPick = switcherModel ? switcherModel.tabIds[switcherModel.pick] : undefined;
+      switcherModel = purpose?.switcher ?? null;
+      renderSwitcher({ announce: reshow ? 'step' : 'open', previousPick });
+    }
+  }
+
+  // The Ctrl+Tab card draws main's order and pick as they are; it keeps no
+  // order of its own and never takes focus (main reads the keys). A click on a
+  // tile is the one thing it sends back.
+  function renderSwitcher({ announce = null, previousPick } = {}) {
+    const model = switcherModel;
+    const entries = (model?.tabIds ?? [])
+      .map((id) => state.tabs.find((tab) => tab.id === id))
+      .filter(Boolean);
+    const pickId = model?.tabIds[model.pick];
+    const tiles = entries.map((tab, index) => {
+      const li = document.createElement('li');
+      li.className = 'switcher-tile';
+      li.id = `switcher-tile-${index}`;
+      li.setAttribute('role', 'option');
+      li.setAttribute('aria-selected', String(tab.id === pickId));
+      li.setAttribute('aria-label', tab.title || blancI18n.t('tab.untitled'));
+      li.dataset.i18nIgnore = 'aria-label'; // a page title
+      const icon = document.createElement('span');
+      setFavicon(icon, tab);
+      li.append(icon);
+      li.addEventListener('mousedown', (event) => {
+        event.preventDefault();
+        window.browserAPI.switcherPick(tab.id);
+      });
+      return li;
+    });
+    switcherTiles.replaceChildren(...tiles);
+    const picked = entries.find((tab) => tab.id === pickId);
+    const pickIndex = entries.indexOf(picked);
+    if (pickIndex >= 0) {
+      switcherTiles.setAttribute('aria-activedescendant', `switcher-tile-${pickIndex}`);
+      tiles[pickIndex].scrollIntoView({ block: 'nearest', inline: 'nearest' });
+    } else {
+      switcherTiles.removeAttribute('aria-activedescendant');
+    }
+    switcherTitle.textContent = picked ? picked.title || blancI18n.t('tab.untitled') : '';
+    switcherTitle.dataset.i18nIgnore = '';
+    switcherHost.textContent = picked ? tabDomain(picked) : '';
+    switcherHost.dataset.i18nIgnore = '';
+    // Opening and each step say where the pick is; a repaint for another
+    // reason (a tab's title loading) says nothing.
+    if (picked && (announce === 'open' || (announce === 'step' && previousPick !== pickId))) {
+      const params = { title: picked.title || blancI18n.t('tab.untitled'), position: pickIndex + 1, count: entries.length };
+      switcherStatus.textContent = blancI18n.t(announce === 'open' ? 'switcher.opened' : 'switcher.step', params);
     }
   }
 
@@ -2598,6 +3290,17 @@
       shieldPopDarkToggle.setAttribute('aria-checked', String(dark.on));
       document.getElementById('shieldPopDarkNote').hidden = dark.appliesNow;
     }
+    // Link routing (F60): the same rule /route writes, for links from other apps.
+    const route = v.route;
+    shieldPopRoute.hidden = !route;
+    if (route) {
+      shieldPopRouteLabel.textContent = blancI18n.t(route.scope === 'space' ? 'shield.routeSpace' : 'shield.route');
+      shieldPopRouteToggle.classList.toggle('on', route.on);
+      shieldPopRouteToggle.setAttribute('aria-checked', String(route.on));
+      shieldPopRouteNote.textContent = route.elsewhere
+        ? blancI18n.t('shield.routeElsewhere', { destination: route.elsewhere })
+        : blancI18n.t('shield.routeNote');
+    }
   }
 
   shieldPopToggle.addEventListener('click', () => {
@@ -2609,6 +3312,9 @@
   });
   shieldPopDarkToggle.addEventListener('click', () => {
     window.browserAPI.toggleDarkSiteOnActiveSite();
+  });
+  shieldPopRouteToggle.addEventListener('click', () => {
+    window.browserAPI.routeActiveSite('toggle');
   });
   function providerName(provider) { return provider === 'ublock-origin' ? 'uBlock Origin' : 'Blanc Blocker'; }
 
@@ -2831,7 +3537,45 @@
     shieldPopPointer.hidden = mode !== 'shield' || !shieldConnected;
     if (Number.isFinite(x)) shieldPopPointer.style.left = `${x}px`;
   });
-  window.browserAPI.onOverlayShow(({ mode: next, prefill, purpose, pillRect }) => {
+  // A panel opened by hover closes once the pointer leaves it, until it is
+  // used (hover-panel-leave.js). Capture phase: rows stop their own events.
+  const HoverPanelLeave = globalThis.blancHoverPanelLeave;
+  let hoverLeave = HoverPanelLeave.initialLeaveState();
+  let hoverLeaveTimer = null;
+  function stepHoverLeave(event) {
+    const next = HoverPanelLeave.leaveStep(hoverLeave, event);
+    hoverLeave = next.state;
+    if (next.effect) {
+      clearTimeout(hoverLeaveTimer);
+      hoverLeaveTimer = null;
+    }
+    if (next.effect === 'start') {
+      hoverLeaveTimer = setTimeout(() => {
+        hoverLeaveTimer = null;
+        stepHoverLeave({ type: 'fired' });
+      }, HoverPanelLeave.LEAVE_GRACE_MS);
+    }
+    if (next.effect === 'close') window.browserAPI.closeOverlay('hover-leave');
+  }
+  const onPanelCard = (event) => HoverPanelLeave.pointNearCard(
+    { x: event.clientX, y: event.clientY }, islandPanel.getBoundingClientRect());
+  document.addEventListener('pointermove', (event) => {
+    if (hoverLeave.watching) stepHoverLeave({ type: 'move', inside: onPanelCard(event) });
+  }, { capture: true, passive: true });
+  document.documentElement.addEventListener('mouseleave', () => {
+    if (hoverLeave.watching) stepHoverLeave({ type: 'exit' });
+  });
+  document.addEventListener('keydown', () => stepHoverLeave({ type: 'interact' }), true);
+  for (const type of ['pointerdown', 'wheel']) {
+    document.addEventListener(type, (event) => {
+      if (hoverLeave.watching && onPanelCard(event)) stepHoverLeave({ type: 'interact' });
+    }, { capture: true, passive: true });
+  }
+
+  window.browserAPI.onOverlayShow((show) => {
+    const { mode: next, prefill, purpose, pillRect } = show;
+    searchPriorityResults = show.searchPriorityResults === true;
+    stepHoverLeave({ type: 'open', hoverOpened: next === 'panel' && purpose?.hoverOpened === true });
     const wasOpen = mode === next;
     endOverlayExit();
     // A quick close/reopen can arrive while the old retract timer is still
@@ -2848,6 +3592,13 @@
   // Main's overlay before-input owns Escape; when the workspace popover is
   // open it forwards here instead of hideOverlay so editors dismiss first.
   window.browserAPI.onOverlayEscape(() => {
+    if (state.selectedTabIds?.length && ['panel', 'palette'].includes(mode)) { window.browserAPI.selectTab(null, 'clear'); return; }
+    if (groupMenu) {
+      const fromMode = groupMenu.host === 'mode';
+      closeGroupMenu({ commit: false });
+      if (fromMode) window.browserAPI.closeOverlay('escape');
+      return;
+    }
     if (mode === 'shield') {
       if (shieldChoosing) cancelShieldChoice();
       else window.browserAPI.closeOverlay('escape');
@@ -2899,7 +3650,11 @@
   }
 
   window.browserAPI.onOverlayHide((payload) => {
+    stepHoverLeave({ type: 'close' });
     islandDrag.cancel();
+    hideIslandTip();
+    // Closing the overlay any other way than Escape keeps a typed name.
+    closeGroupMenu({ commit: true });
     // The next open may ask again (main refreshes stale copies on an ask).
     bangIconRequester.reset();
     drawnGeneration += 1;
@@ -2936,6 +3691,9 @@
     shieldPopPointer.hidden = true;
     shieldConnected = false;
     glancePickerEl.hidden = true;
+    switcherCard.hidden = true;
+    switcherModel = null;
+    switcherStatus.textContent = '';
     inputTouched = false;
     siteInfoOpen = false;
     commandResultGeneration += 1;
@@ -2943,6 +3701,7 @@
     addressInputComposing = false;
     suppressProviderSuggestions = false;
     pendingGroupTabId = null;
+    pendingGroupTabIds = null;
     pendingRenameTabId = null;
     renamePrefill = null;
     namePrompt = null;
@@ -2980,6 +3739,7 @@
   });
   document.addEventListener('keydown', (e) => {
     if (e.key !== 'Escape') return;
+    if (state.selectedTabIds?.length && ['panel', 'palette'].includes(mode)) { e.preventDefault(); e.stopPropagation(); window.browserAPI.selectTab(null, 'clear'); return; }
     // Prefer the IPC path (overlay:escape from main) — main's before-input
     // consumes Escape before this listener would see it. Kept as a fallback
     // for harnesses that inject keydown into the document directly.
@@ -2994,7 +3754,9 @@
       e.stopPropagation();
       return;
     }
-    window.browserAPI.closeOverlay();
+    // An Escape, as main's own path reports it: a surface opened from a
+    // control (the Glance card's Change) hands focus back to it.
+    window.browserAPI.closeOverlay('escape');
   });
 
   /** Layered Esc for the footer workspace popover. Returns true if handled
@@ -3013,6 +3775,10 @@
       : window.browserAPI.reload(state.activeTabId);
   });
   heartBtn.addEventListener('click', () => window.browserAPI.toggleBookmark());
+  readerBtn.addEventListener('click', () => {
+    window.browserAPI.closeOverlay();
+    window.browserAPI.toggleReaderMode(state.activeTabId);
+  });
   panelSiteInfo.addEventListener('click', () => {
     if (panelSiteInfo.hidden) return;
     siteInfoOpen = !siteInfoOpen;
@@ -3024,8 +3790,16 @@
   // These moved out of the scrollable list so they stay put while it shows
   // slash commands or Quick-Switcher results. Platform-correct shortcut hints.
   document.getElementById('footerNewTabKbd').textContent = `${modKey}T`;
-  footerNewTab.title = blancI18n.t('pill.newTab.title', { shortcut: `${modKey}T` });
-  footerNewPrivate.title = blancI18n.t('footer.newPrivate.title', { shortcut: `${modShiftKey}N` });
+  // These keep their visible words as their name; the tooltip's fuller text
+  // (with the shortcut) is also their accessible description.
+  for (const [button, text] of [
+    [footerNewTab, blancI18n.t('pill.newTab.title', { shortcut: `${modKey}T` })],
+    [footerNewPrivate, blancI18n.t('footer.newPrivate.title', { shortcut: `${modShiftKey}N` })],
+    [footerDevices, blancI18n.t('footer.devices.title')],
+  ]) {
+    button.dataset.tooltip = text;
+    button.setAttribute('aria-description', text);
+  }
 
   // focusAddress:false keeps the panel closed and lands the user on the fresh
   // tab, rather than main re-summoning the launchpad (its default for ⌘T).
@@ -3037,7 +3811,6 @@
     window.browserAPI.closeOverlay();
     window.browserAPI.createTab(null, { private: true, focusAddress: false });
   });
-  footerDevices.title = blancI18n.t('footer.devices.title');
   footerDevices.addEventListener('click', () => {
     devicesDrawerOpen = !devicesDrawerOpen;
     renderList();
@@ -3245,27 +4018,53 @@
   // --- State sync ---
 
   async function refreshSwitcherData() {
-    const [favoritesList, historyList, remoteList, workspacesPayload, bangsPayload] = await Promise.all([
+    const [favoritesList, historyList, remoteList, workspacesPayload, bangsPayload, archivedList, notice, sentList] = await Promise.all([
       window.browserAPI.listFavorites(),
       window.browserAPI.listHistory({ limit: 300 }),
       window.browserAPI.listRemoteTabs(),
       window.browserAPI.listWorkspaces(),
       window.browserAPI.bangs(),
+      window.browserAPI.archiveList(),
+      window.browserAPI.archiveNotice(),
+      window.browserAPI.listSentToThisDevice(),
     ]);
     favorites = favoritesList;
     historyEntries = historyList;
+    archivedEntries = Array.isArray(archivedList) ? archivedList : [];
+    archiveNotice = notice ?? null;
     remoteDevices = remoteList;
+    sentItems = Array.isArray(sentList) ? sentList : [];
     applyWorkspacesPayload(workspacesPayload);
     bangsState = bangsPayload;
     // Data lands after the panel already rendered — refresh it.
     if (mode === 'panel' || mode === 'palette') renderList();
   }
 
+  // Island size (#1292): the panel grows out of, and back into, the resting
+  // pill's corner (--island-resting-radius), which differs by size.
+  const applyIslandSize = (size) => {
+    const next = size || 'default';
+    if (document.documentElement.dataset.islandSize !== next) document.documentElement.dataset.islandSize = next;
+  };
+
   window.browserAPI.onTabsUpdated((payload) => {
+    applyIslandSize(payload.islandSize);
+    // Mini Window (#1138): no Spaces button in a mini window (CSS).
+    document.documentElement.toggleAttribute('data-mini-window', payload.miniWindow === true);
     const activeTabChanged = payload.activeTabId !== state.activeTabId;
+    if (JSON.stringify(payload.selectedTabIds ?? []) !== JSON.stringify(state.selectedTabIds ?? [])) {
+      const count = payload.selectedTabIds?.length ?? 0;
+      announceIsland(blancI18n.t(count ? 'tabsSelection.count' : 'tabsSelection.cleared', { count }));
+    }
     state = payload;
     noteBangIconPrivacy();
     islandDrag.notePayload(payload);
+    // A group that closed or dissolved under its open menu takes the menu along.
+    if (groupMenu && !groupById(groupMenu.groupId)) {
+      const fromMode = groupMenu.host === 'mode';
+      closeGroupMenu({ commit: false });
+      if (fromMode) window.browserAPI.closeOverlay('cancel');
+    }
     if (mode === 'panel' || mode === 'palette') {
       if (!inputTouched) addressInput.value = addressDisplayValue(activeTab());
       if (activeTabChanged) {
@@ -3279,11 +4078,16 @@
     if (mode === 'glance') renderGlancePicker();
     if (mode === 'shield') renderShieldPop();
     if (mode === 'capture') renderCapturePop();
+    if (mode === 'switcher') renderSwitcher();
   });
   // Cached-first: the panel renders the cache instantly, and this repaints
   // when the panel-open refresh's pull lands (tab sync).
   window.browserAPI.onRemoteTabsUpdated((devices) => {
     remoteDevices = devices;
+    if (mode === 'panel' || mode === 'palette') renderList();
+  });
+  window.browserAPI.onSentToThisDeviceUpdated((items) => {
+    sentItems = Array.isArray(items) ? items : [];
     if (mode === 'panel' || mode === 'palette') renderList();
   });
   // The bang settings changed (Settings, Profile Sync, a bang used, history
@@ -3308,6 +4112,8 @@
   });
   window.browserAPI.getAllTabs().then((payload) => {
     state = payload;
+    applyIslandSize(payload.islandSize);
+    document.documentElement.toggleAttribute('data-mini-window', payload.miniWindow === true);
     if (mode === 'glance') renderGlancePicker();
   });
 
@@ -3336,12 +4142,18 @@
     const workspaceRowEl = tabRowEl ? null : e.target.closest('.workspace-row[data-workspace-id]');
     window.__blancCtxRowTabId = tabRowEl?.dataset.tabId ?? null;
     window.__blancCtxWorkspaceId = workspaceRowEl?.dataset.workspaceId ?? null;
-    // A named group's header gets main's group menu (group-context-menu.js);
-    // the Recently closed band's header is not a group and has none.
-    const groupHeaderId = tabRowEl || workspaceRowEl
+    // A named group's header opens its group menu (tab group colors spec
+    // §6); the Recently closed band's header is not a group and has none.
+    const groupHeader = tabRowEl || workspaceRowEl
       ? null
-      : e.target.closest('#islandList [data-drag-header][data-group-id]')?.dataset.groupId ?? null;
-    window.__blancCtxGroupId = groupHeaderId === dragApi.constants.CLOSED_SECTION_ID ? null : groupHeaderId;
+      : e.target.closest('#islandList [data-drag-header][data-group-id]');
+    if (groupHeader && groupHeader.dataset.groupId !== dragApi.constants.CLOSED_SECTION_ID) {
+      e.preventDefault();
+      releasePointerHold();
+      const r = groupHeader.getBoundingClientRect();
+      openGroupMenu(groupHeader.dataset.groupId, { right: r.right, top: r.top, bottom: r.bottom }, 'panel');
+      return;
+    }
     // A device header in the Other devices drawer gets Rename Device…
     // (device-context-menu.js).
     window.__blancCtxDeviceId = tabRowEl || workspaceRowEl
@@ -3358,7 +4170,6 @@
       !e.target.closest('#addressInput')
       && window.__blancCtxRowTabId == null
       && window.__blancCtxWorkspaceId == null
-      && window.__blancCtxGroupId == null
       && window.__blancCtxDeviceId == null
     ) {
       e.preventDefault();

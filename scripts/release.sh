@@ -21,7 +21,7 @@ TAG="v$VERSION"
 MODE="${BLANC_RELEASE_MODE:-}"
 PLATFORM_CSV="${BLANC_RELEASE_PLATFORMS:-}"
 MAC_ARCH_CSV="${BLANC_MAC_ARCHES:-}"
-MIGRATION_BASE_VERSION="${BLANC_MIGRATION_BASE_VERSION:-1.36.0}"
+MIGRATION_BASE_VERSION="${BLANC_MIGRATION_BASE_VERSION:-1.48.0}"
 COSIGN_REDIRECT_PORT="${BLANC_COSIGN_REDIRECT_PORT:-49197}"
 RELEASE_OPERATOR="${BLANC_RELEASE_OPERATOR:-terminal}"
 NOTES_FILE="docs/press/release-notes/$TAG.md"
@@ -144,6 +144,73 @@ if ! { $HAS_MAC_ARM64 && $HAS_MAC_X64; } && [ -z "$MAC_ARCH_WAIVER" ]; then
 fi
 [ -z "$MAC_ARCH_WAIVER" ] || echo "==> Mac architecture waiver: $MAC_ARCH_WAIVER"
 
+# Empty arrays below use ${A[@]+"${A[@]}"}: macOS bash 3.2 aborts on an
+# empty "${A[@]}" under set -u.
+# Runtime: official Electron or castLabs' Electron for Content Security
+# (Widevine DRM). ECS builds every platform from the pinned, hashed archives
+# in build/ecs-runtime.json, VMP-signs them through the existing EVS account,
+# and enables uBO only through its reviewed ECS runtime record. There is no
+# default: since 1.43.0 public releases are ECS, and a 1.44.0 build that
+# silently defaulted to official Electron would have dropped Widevine for
+# every updater.
+RELEASE_RUNTIME="${BLANC_RELEASE_RUNTIME:-}"
+case "$RELEASE_RUNTIME" in
+  official) ;;
+  ecs)
+    for var in BLANC_EVS_PYTHON EVS_CONFIG_FILE EVS_CACHE_FILE; do
+      [ -n "${!var:-}" ] || {
+        echo "An ECS release requires $var for the existing EVS account (VMP signing)." >&2
+        exit 1
+      }
+    done
+    [ -x "$BLANC_EVS_PYTHON" ] && [ -f "$EVS_CONFIG_FILE" ] && [ -f "$EVS_CACHE_FILE" ] || {
+      echo "The EVS client or account files named by BLANC_EVS_PYTHON/EVS_CONFIG_FILE/EVS_CACHE_FILE are missing." >&2
+      exit 1
+    }
+    node -e '
+      const matrix = require("./src/main/ublock-platforms.json");
+      const pin = require("./build/ecs-runtime.json");
+      const evidence = String(matrix.ecsEvidence ?? "");
+      if (matrix.ecsRuntime !== pin.version || /^PENDING/.test(evidence) || !evidence.includes(pin.version)) process.exit(1);
+    ' || {
+      echo "An ECS release requires the reviewed uBO runtime record, with passed evidence naming $(node -p 'require("./build/ecs-runtime.json").version'), in src/main/ublock-platforms.json." >&2
+      exit 1
+    }
+    # Checked before any tag or draft exists: the native workflow must accept
+    # the ECS runtime, or the dispatch would fail after publication began.
+    node -e '
+      const yaml = require("js-yaml");
+      const workflow = yaml.load(require("fs").readFileSync(".github/workflows/release-windows-linux.yml", "utf8"));
+      const inputs = workflow?.on?.workflow_dispatch?.inputs;
+      if (!Array.isArray(inputs?.runtime?.options) || !inputs.runtime.options.includes("ecs") || !inputs.source_sha) process.exit(1);
+    ' || {
+      echo "The native release workflow does not accept runtime=ecs; an ECS release cannot dispatch Windows/Linux builds." >&2
+      exit 1
+    }
+    # Windows ECS needs EVS signing in the public release job, a separate
+    # owner decision; the workflow refuses it, so refuse before any tag.
+    if $HAS_WINDOWS && ! node -e '
+      const yaml = require("js-yaml");
+      const workflow = yaml.load(require("fs").readFileSync(".github/workflows/release-windows-linux.yml", "utf8"));
+      if (!String(workflow?.jobs?.windows?.environment ?? "").includes("ecs-signing")) process.exit(1);
+    '; then
+      echo "A Windows ECS release needs the separately approved EVS signing access in the release workflow." >&2
+      exit 1
+    fi
+    ;;
+  *)
+    echo "BLANC_RELEASE_RUNTIME must be explicitly set to ecs or official." >&2
+    exit 1
+    ;;
+esac
+ECS_FUSE_ARGS=()
+[ "$RELEASE_RUNTIME" = ecs ] && ECS_FUSE_ARGS=(--ecs)
+# Official releases dispatch exactly as before: no runtime input is sent.
+DISPATCH_RUNTIME_ARGS=()
+# The native ECS jobs build only if their checkout resolves to this exact
+# commit; LOCAL_HEAD is checked against origin/main before anything is tagged.
+[ "$RELEASE_RUNTIME" = ecs ] && DISPATCH_RUNTIME_ARGS=(-f runtime=ecs -f source_sha="$(git rev-parse HEAD)")
+
 HOST_ARCH="$(uname -m)"
 case "$HOST_ARCH" in
   arm64)
@@ -212,7 +279,7 @@ if ! OP_BIOMETRIC_UNLOCK_ENABLED=true op signin; then
   exit 1
 fi
 
-echo "==> Preparing Blanc $VERSION ($TAG), mode=$MODE, platforms=$PLATFORM_CSV, mac=$MAC_ARCH_CSV"
+echo "==> Preparing Blanc $VERSION ($TAG), mode=$MODE, runtime=$RELEASE_RUNTIME, platforms=$PLATFORM_CSV, mac=$MAC_ARCH_CSV"
 
 # Released and staged versions are immutable. A failed draft remains evidence
 # of that attempt; fix forward with a new rc.N/version rather than overwriting.
@@ -222,6 +289,12 @@ if git rev-parse -q --verify "refs/tags/$TAG" >/dev/null ||
   echo "Tag or release $TAG already exists. Bump package.json; never overwrite release assets." >&2
   exit 1
 fi
+
+# A feature release's What's New page must already be live: Blanc asks for it
+# once per launch after the update, and people update within a minute of
+# publication. Checked now so nothing builds without it, and again before
+# Sigstore in case the site changed during the run.
+node scripts/check-whats-new-page.mjs --version "$VERSION"
 
 RELEASE_SOURCES=(
   src
@@ -259,6 +332,13 @@ if [ "$LOCAL_HEAD" != "$(git rev-parse origin/main)" ]; then
   exit 1
 fi
 
+# Keep the Mac and its display awake for the rest of the release: the press
+# gate's acceptance run and the packaged checks drive real windows for about 40
+# minutes, and a sleeping display fails focus-dependent scenarios (October 2026).
+if command -v caffeinate >/dev/null 2>&1; then
+  caffeinate -dimsu -w $$ &
+fi
+
 # Resume after a flake. A packaged check that fails, then passes when rerun
 # alone against the same build, is not a reason to rebuild and re-notarize.
 # BLANC_RELEASE_RESUME_FROM=<step> (with BLANC_RELEASE_RESUME_REASON) skips the
@@ -267,10 +347,10 @@ fi
 # resumed; every preflight above still runs. The build stamp written after a
 # successful build must match this commit, version and Mac architectures, and
 # every stamped file in dist/ must still match its recorded SHA-256.
-RESUME_STEPS=(fuses blocker-payloads compliance first-run regressions workspaces favicons-primary favicons-additional migration)
+RESUME_STEPS=(fuses blocker-payloads compliance first-run regressions workspaces favicons-primary favicons-additional migration ecs-acceptance)
 RESUME_FROM="${BLANC_RELEASE_RESUME_FROM:-}"
 BUILD_STAMP="dist/.release-build-stamp"
-BUILD_STAMP_HEADER="commit=$LOCAL_HEAD version=$VERSION mac=$MAC_ARCH_CSV"
+BUILD_STAMP_HEADER="commit=$LOCAL_HEAD version=$VERSION mac=$MAC_ARCH_CSV runtime=$RELEASE_RUNTIME"
 step_index() {
   local i
   for i in "${!RESUME_STEPS[@]}"; do
@@ -308,7 +388,19 @@ else
   npm run ublock:distribution
   npm ci
   npm ci --prefix site
-  npm run release:verify:press
+  # The gate (scripts/release-gate.mjs) reuses every stage and acceptance
+  # scenario that already passed on this exact commit and installed tree
+  # (npm run release:prepare, or an earlier attempt), reruns only what is
+  # owed, and prints the evidence block the release incident quotes.
+  # An owner waiver skips the press gate alone: every preflight, the build and
+  # every packaged check still run. Its reason names the commit and runs whose
+  # evidence replaces the gate, and belongs in the release incident.
+  if [ -n "${BLANC_RELEASE_PRESS_WAIVER:-}" ]; then
+    echo "==> Press verification gate waived by the owner"
+    echo "    Waiver: $BLANC_RELEASE_PRESS_WAIVER"
+  else
+    npm run release:verify:press
+  fi
 
   echo "==> Preflighting the macOS identity and provisioning profile"
   node scripts/preflight-mac-signing.mjs
@@ -320,11 +412,23 @@ else
   MAC_BUILD_ARGS=()
   $HAS_MAC_ARM64 && MAC_BUILD_ARGS+=(--arm64)
   $HAS_MAC_X64 && MAC_BUILD_ARGS+=(--x64)
+  if [ "$RELEASE_RUNTIME" = ecs ]; then
+    # One build for both architectures so latest-mac.yml lists both. EVS
+    # signs before Apple signing and verifies after it (ecs-production-packaging).
+    MAC_BUILD=(env BLANC_ECS_RELEASE_PIPELINE=1 node scripts/build-ecs-production.cjs --release --mac "${MAC_BUILD_ARGS[@]}")
+  else
+    MAC_BUILD=(npx electron-builder --mac "${MAC_BUILD_ARGS[@]}" --publish never)
+  fi
   if ! OP_BIOMETRIC_UNLOCK_ENABLED=true \
     op run --env-file=.env.1password --no-masking -- \
-    npx electron-builder --mac "${MAC_BUILD_ARGS[@]}" --publish never; then
+    "${MAC_BUILD[@]}"; then
     echo "Signed/notarized macOS build failed. Nothing has been published." >&2
     exit 1
+  fi
+  if [ "$RELEASE_RUNTIME" = ecs ]; then
+    echo "==> Verifying ECS release identity, archive pin, uBO record and fuse wire"
+    $HAS_MAC_ARM64 && node scripts/verify-ecs-production-package.cjs --release "dist/mac-arm64/Blanc.app"
+    $HAS_MAC_X64 && node scripts/verify-ecs-production-package.cjs --release "dist/mac/Blanc.app"
   fi
   # Stamp the build so a later resume can prove it reuses exactly these bytes:
   # every top-level artifact plus each packaged app's executable and app.asar.
@@ -337,11 +441,15 @@ else
   } > "$BUILD_STAMP"
 fi
 
+# ECS: every packaged check from here on (including after a resume) launches
+# with updates disabled, so no fixture can follow the public update feed.
+if [ "$RELEASE_RUNTIME" = ecs ]; then export BLANC_UPDATE_CHANNEL=ecs-qualification-disabled; fi
+
 if should_run fuses; then
   echo "==> Verifying hardened Electron fuses in packaged binaries"
-  $HAS_MAC_ARM64 && node scripts/verify-electron-fuses.mjs \
+  $HAS_MAC_ARM64 && node scripts/verify-electron-fuses.mjs ${ECS_FUSE_ARGS[@]+"${ECS_FUSE_ARGS[@]}"} \
     "dist/mac-arm64/Blanc.app/Contents/MacOS/Blanc"
-  $HAS_MAC_X64 && node scripts/verify-electron-fuses.mjs \
+  $HAS_MAC_X64 && node scripts/verify-electron-fuses.mjs ${ECS_FUSE_ARGS[@]+"${ECS_FUSE_ARGS[@]}"} \
     "dist/mac/Blanc.app/Contents/MacOS/Blanc"
 fi
 
@@ -396,7 +504,12 @@ fi
 
 if should_run workspaces; then
   echo "==> Verifying packaged Workspace quit/restart recovery"
-  BLANC_PACKAGED_EXECUTABLE="$PWD/dist/$NATIVE_MAC_DIR/Blanc.app/Contents/MacOS/Blanc" \
+  # The smoke checks the reported Electron version; an ECS package reports
+  # its pinned ECS version, read from the package root.
+  WORKSPACE_ENV=()
+  [ "$RELEASE_RUNTIME" = ecs ] && WORKSPACE_ENV=("BLANC_ECS_PACKAGE_ROOT=$PWD/dist/$NATIVE_MAC_DIR/Blanc.app")
+  env ${WORKSPACE_ENV[@]+"${WORKSPACE_ENV[@]}"} \
+    BLANC_PACKAGED_EXECUTABLE="$PWD/dist/$NATIVE_MAC_DIR/Blanc.app/Contents/MacOS/Blanc" \
     npm run test:packaged:workspaces
 fi
 
@@ -428,6 +541,36 @@ if should_run migration; then
     npm run test:packaged:migration
   rm -rf "$MIGRATION_DIR"
   trap - EXIT
+fi
+
+if should_run ecs-acceptance; then
+  if [ "$RELEASE_RUNTIME" = ecs ]; then
+    # The public package enables uBO through its reviewed ECS record and must
+    # play protected media; check both on the exact signed app before tagging.
+    # The uBO suite ends with a real native Quit, which its wrapper sends.
+    echo "==> Public ECS acceptance: uBO provider and restarts, file isolation, protected playback"
+    ECS_APP="$PWD/dist/$NATIVE_MAC_DIR/Blanc.app"
+    # A resumed attempt keeps every earlier report: move it aside, then write
+    # this attempt's reports fresh (the uBO suite refuses to overwrite).
+    ECS_ATTEMPT="$(date -u +%Y%m%dT%H%M%SZ)-$$"
+    if [ -d output/ecs-production ]; then
+      # mktemp allocates a unique archive even for attempts in the same second.
+      ECS_ARCHIVE="$(mktemp -d "output/ecs-production-before-$ECS_ATTEMPT.XXXXXX")"
+      mv output/ecs-production "$ECS_ARCHIVE/"
+    fi
+    mkdir -p output/ecs-production
+    BLANC_UPDATE_CHANNEL=ecs-qualification-disabled \
+      BLANC_PACKAGED_EXECUTABLE="$ECS_APP/Contents/MacOS/Blanc" \
+      BLANC_UBLOCK_EVIDENCE="$PWD/output/ecs-production/ublock-installed-mac-$ECS_ATTEMPT.json" \
+      node test/desktop/support/installed-mac-native-quit.mjs
+    BLANC_UPDATE_CHANNEL=ecs-qualification-disabled \
+      BLANC_PACKAGED_EXECUTABLE="$ECS_APP/Contents/MacOS/Blanc" \
+      node test/desktop/ecs-production-smoke.mjs
+    node test/desktop/ecs-local-html-smoke.cjs "$ECS_APP" "output/ecs-production/local-html-mac-$ECS_ATTEMPT.json"
+    BLANC_UPDATE_CHANNEL=ecs-qualification-disabled \
+      BLANC_PACKAGED_EXECUTABLE="$ECS_APP/Contents/MacOS/Blanc" \
+      node test/desktop/ecs-production-drm-smoke.mjs
+  fi
 fi
 
 # A draft release's requested tag is not exposed as a Git ref. Publish the
@@ -472,6 +615,7 @@ if [ -n "$WORKFLOW_PLATFORM" ]; then
     --repo "$REPO" \
     -f mode=release \
     -f tag="$TAG" \
+    ${DISPATCH_RUNTIME_ARGS[@]+"${DISPATCH_RUNTIME_ARGS[@]}"} \
     -f platform="$WORKFLOW_PLATFORM"
 
   RUN_ID=""
@@ -507,6 +651,7 @@ node scripts/verify-release-manifest.mjs \
   --mac-arches "$MAC_ARCH_CSV"
 cp "dist/$NATIVE_MAC_DIR/Blanc.app/Contents/Resources/runtime-sbom.cdx.json" "$VERIFY_DIR/Blanc-$VERSION.cdx.json"
 node scripts/create-checksums.mjs "$VERIFY_DIR"
+node scripts/check-whats-new-page.mjs --version "$VERSION"
 echo "==> Signing the complete checksum manifest through Sigstore"
 echo "    Safari will open for the GitHub approval; complete the fresh page immediately."
 PATH="$PWD/scripts/release-bin:$PATH" cosign sign-blob --yes \

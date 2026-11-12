@@ -1,7 +1,7 @@
 const assert = require('node:assert/strict');
 const test = require('node:test');
 
-const { cleanLink } = require('../../src/main/clean-link');
+const { cleanLink, cleanLinkForCopy } = require('../../src/main/clean-link');
 
 test('cleanLink: strips utm_* by prefix, case-insensitively', () => {
   assert.equal(
@@ -65,4 +65,10 @@ test('cleanLink: percent-encoded tracking names are decoded for matching', () =>
 
 test('cleanLink: valueless and empty-valued params are preserved when non-tracking', () => {
   assert.equal(cleanLink('https://ex.com/?flag&utm_source=x&empty='), 'https://ex.com/?flag&empty=');
+});
+
+test('cleanLinkForCopy: the cleaned link, or the exact address when cleaning does not apply', () => {
+  assert.equal(cleanLinkForCopy('https://ex.com/p?utm_source=nl&a=1#top'), 'https://ex.com/p?a=1#top');
+  assert.equal(cleanLinkForCopy('https://ex.com/p?a=1'), 'https://ex.com/p?a=1', 'nothing to strip');
+  assert.equal(cleanLinkForCopy('file:///Users/me/page.html'), 'file:///Users/me/page.html', 'file: is copied as it is');
 });

@@ -1,12 +1,15 @@
 // Verified in Polar production (bnfy), including archived-product duplicates,
 // on 2026-10-13. These are public identifiers, never API credentials.
+// The Nodding Off License benefit (the iPhone app's key) was created and attached to both Suite
+// products on 2026-11-07, and the Suite prices were changed to $9 and $90 in Polar the same day.
 export const organizationId = '6f675077-6cb1-4965-8db8-15838e5fdb38';
 export const mailBenefitId = '93a4fbc5-b7b0-4a0b-8817-46f62814181c';
+export const noddingOffBenefitId = '972583d1-c22d-415d-bd69-494ed63c5220';
 export const products = Object.freeze({
   'mail-monthly': Object.freeze({ id: 'b39dbdde-a607-4b94-bbba-f20c5acd6439', amount: 499, interval: 'month', benefits: Object.freeze([mailBenefitId]) }),
   'mail-annual': Object.freeze({ id: '72c489be-30a0-4dee-9a02-2a482458f17b', amount: 4999, interval: 'year', benefits: Object.freeze([mailBenefitId]) }),
-  'suite-monthly': Object.freeze({ id: 'bb3a14c5-7fab-4f64-a7b2-718aafec9966', amount: 700, interval: 'month', benefits: Object.freeze(['ed1cce8c-d87e-4d27-b9d7-d30bda2de402', mailBenefitId]) }),
-  'suite-annual': Object.freeze({ id: '28957184-d99d-4954-bdb6-56397a606816', amount: 7000, interval: 'year', benefits: Object.freeze(['ed1cce8c-d87e-4d27-b9d7-d30bda2de402', mailBenefitId]) }),
+  'suite-monthly': Object.freeze({ id: 'bb3a14c5-7fab-4f64-a7b2-718aafec9966', amount: 900, interval: 'month', benefits: Object.freeze(['ed1cce8c-d87e-4d27-b9d7-d30bda2de402', mailBenefitId, noddingOffBenefitId]) }),
+  'suite-annual': Object.freeze({ id: '28957184-d99d-4954-bdb6-56397a606816', amount: 9000, interval: 'year', benefits: Object.freeze(['ed1cce8c-d87e-4d27-b9d7-d30bda2de402', mailBenefitId, noddingOffBenefitId]) }),
 });
 
 // These gates require a reviewed change after purchase and billing-period
@@ -32,7 +35,7 @@ export function productFor(plan) {
 // selection. No customer identity, token, trial or price override belongs here.
 // Constructing the payload does not create a session or open checkout.
 export function checkoutRequestFor(plan) {
-  return { products: [productFor(plan).id], return_url: 'https://blanc.day/mail/pricing' };
+  return { products: [productFor(plan).id], return_url: 'https://blanc.day/mail#pricing' };
 }
 
 export function checkoutHrefFor(plan) {

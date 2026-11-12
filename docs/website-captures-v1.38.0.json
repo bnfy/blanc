@@ -1,0 +1,401 @@
+{
+  "schemaVersion": 1,
+  "status": "public",
+  "release": "v1.38.0",
+  "sourceSha": "87538deee7e8acd0019f25bdae74f22a7481cb2d",
+  "captureDate": "2026-10-18",
+  "timezone": "America/New_York",
+  "replaces": "On /features/start-page: billboard, ledger, shelf and tally -v1.31.0 (docs/website-captures-v1.31.0.json) and mahjong-v1.21.0 (docs/website-captures-v1.21.json), which predate the Instrument Sans interface text, the footer that sits on the wallpaper and the Customize popover's Wallpaper section. The older files stay in place with their ledgers; the homepage keeps its v1.35.0 captures. The four wallpaper captures are new. On the homepage and /features: the v1.35.0 time-of-day wallpapers, layouts and Mahjong (docs/website-captures-v1.35.0.json), which keeps its files; /features/glance and the gesture demo keep their v1.35.0 captures.",
+  "source": {
+    "artifact": "Public release asset Blanc-1.38.0-arm64.dmg from https://github.com/bnfy/blanc/releases/tag/v1.38.0, checked against the Sigstore-verified SHA256SUMS and mounted read-only; the installed /Applications/Blanc.app and its profile were not used",
+    "dmgSha256": "09a08b51f4b64e85d3b9165e7a56ff8b56685a1bd8121723544299d8def681eb",
+    "executableSha256": "61e17d38f79988e24885042ef7d1b0e623a48b58e65452fbe64d1abfb679d641",
+    "version": "1.38.0",
+    "bundleBuild": "1380",
+    "architecture": "arm64",
+    "teamId": "XYGUCY4498",
+    "verification": "On October 18, 2026, Gatekeeper accepted the mounted app (Notarized Developer ID); the release report records strict deep codesign, the pinned leaf certificate and the stapled ticket for this DMG. Each state launched it as a separate instance in a disposable profile.",
+    "releaseEvidence": "docs/release-incidents/2026-10-18-v1.38.0.md"
+  },
+  "settings": {
+    "usagePing": false,
+    "searchSuggestions": false,
+    "adblockEnabled": true,
+    "theme": "light",
+    "profile": "Isolated disposable user-data directory per state",
+    "sync": "not configured",
+    "patron": "not configured"
+  },
+  "sampleImage": {
+    "title": "Wheat Field with Cypresses",
+    "artist": "Vincent van Gogh",
+    "date": "1889",
+    "source": "https://www.metmuseum.org/art/collection/search/436535",
+    "file": "https://images.metmuseum.org/CRDImages/ep/original/DP-42549-001.jpg",
+    "sha256": "b46d02a42fd3bb13b022cefc5beaa997b1d7a28cd7b53e4413d940aa0dc4014d",
+    "license": "The Met Open Access, public domain (CC0); isPublicDomain true in The Met's collection API",
+    "preparation": "3% trimmed from each edge to drop the scan's canvas border, then fitted inside 3840 px and stored as JPEG without metadata, as the released importer stores an image"
+  },
+  "method": "BLANC_PACKAGED_EXECUTABLE=<mounted DMG>/Blanc.app/Contents/MacOS/Blanc BLANC_CAPTURE_IMAGE=<the sample> BLANC_CAPTURE_WASH=spotlight BLANC_CAPTURE_TRIM=0.03 node scripts/capture-installed-custom-wallpaper.mjs, in a disposable profile per state seeded with the shared Start Page fixtures (four sample Favorites, their visits, a weekly blocked total of 328), lastRunVersion 1.38.0 and a dismissed Patron callout so the footer shows neither pill. The released importer runs only behind the native file picker, so the fixture writes the stored image and its wallpaper.json record as the importer would; everything drawn is the released app's own rendering, and the script only clicks the shipped Customize button. Each state is a native screencapture -o -x -l of that window (2560×1600), resized to 1440×900 with lanczos3 and converted from Display P3 to sRGB by sharp, with a same-size WebP companion (quality 85). The 2560×1600 originals came from the reviewed run at 00:32–00:33Z; the screen locked before a rerun, so the same resize was applied to those originals. Nothing is retouched.",
+  "captures": [
+    {
+      "file": "site/public/feature-captures/start-page-image-v1.38.0.png",
+      "width": 1440,
+      "height": 900,
+      "sha256": "420e9d4aac7151e528bff1f10f43152ed50d4e986c386d622a1c8766af936809",
+      "capturedAt": "2026-10-19T00:32:57Z",
+      "state": "Billboard over Van Gogh's Wheat Field with Cypresses (The Met, CC0) as the stored image, Wash Spotlight at Fade 100%: the wash sits behind the header, clock, blocked total and favorites, and the painting's edges stay bare. Customize closed.",
+      "evidence": [
+        "v1.38.0:src/renderer/pages/newtab.html",
+        "v1.38.0:src/renderer/pages/newtab-wallpaper.js",
+        "v1.38.0:src/main/wallpaper.js",
+        "v1.38.0:src/main/wallpaper-model.js",
+        "docs/release-incidents/2026-10-18-v1.38.0.md"
+      ],
+      "verdict": "verified",
+      "webp": {
+        "file": "site/public/feature-captures/start-page-image-v1.38.0.webp",
+        "sha256": "506d7fba210a7a69070062f794e6bb53502964d5dbe6fa837f47b0ed30e33a7b"
+      }
+    },
+    {
+      "file": "site/public/feature-captures/start-page-image-customize-v1.38.0.png",
+      "width": 1440,
+      "height": 900,
+      "sha256": "f69dec235c156786d680ce844198a9c1b0c443e17b87d0ef254a499634976a20",
+      "capturedAt": "2026-10-19T00:33:04Z",
+      "state": "The same image with the Customize popover open: Layout (Billboard), Wallpaper Sunrise | Color | Your image with Your image selected, the cover preview, Choose another image… and Remove, Wash with Spotlight selected, and Fade at 100%.",
+      "evidence": [
+        "v1.38.0:src/renderer/pages/newtab.html",
+        "v1.38.0:src/renderer/pages/newtab-wallpaper.js",
+        "v1.38.0:src/main/wallpaper.js",
+        "v1.38.0:src/main/wallpaper-model.js",
+        "docs/release-incidents/2026-10-18-v1.38.0.md"
+      ],
+      "verdict": "verified",
+      "webp": {
+        "file": "site/public/feature-captures/start-page-image-customize-v1.38.0.webp",
+        "sha256": "66cbb0093c0664d146f2ceacd36bafc3015c7096832730891c4deb33d743fa70"
+      }
+    },
+    {
+      "file": "site/public/feature-captures/start-page-color-v1.38.0.png",
+      "width": 1440,
+      "height": 900,
+      "sha256": "5bd7a153901ebc3ac0e265c5c3992c6349f4f865e59e943c6384991be1a0009a",
+      "capturedAt": "2026-10-19T00:33:11Z",
+      "state": "Billboard with the Color wallpaper: the Sky preset (#376694) with the Gradient fill and the page's light-on-color ink. Customize closed.",
+      "evidence": [
+        "v1.38.0:src/renderer/pages/newtab.html",
+        "v1.38.0:src/renderer/pages/newtab-wallpaper.js",
+        "v1.38.0:src/main/start-page-paint.js",
+        "v1.38.0:src/renderer/space-identity.js",
+        "docs/release-incidents/2026-10-18-v1.38.0.md"
+      ],
+      "verdict": "verified",
+      "webp": {
+        "file": "site/public/feature-captures/start-page-color-v1.38.0.webp",
+        "sha256": "cc7240ab78217c910053dd19abc162b9411e59ee8183812e9e74a2162f592033"
+      }
+    },
+    {
+      "file": "site/public/feature-captures/start-page-color-customize-v1.38.0.png",
+      "width": 1440,
+      "height": 900,
+      "sha256": "6cf9e240751e6bbba3f1cdb774aef983eaaa6c9a79b553414d77a7c25b31c4a6",
+      "capturedAt": "2026-10-19T00:33:18Z",
+      "state": "The Color wallpaper with the Customize popover open: Wallpaper with Color selected, the preview, the eight Spaces swatches with Sky selected, Fill with Gradient selected, and Match each space's color off with its hint.",
+      "evidence": [
+        "v1.38.0:src/renderer/pages/newtab.html",
+        "v1.38.0:src/renderer/pages/newtab-wallpaper.js",
+        "v1.38.0:src/main/start-page-paint.js",
+        "v1.38.0:src/renderer/space-identity.js",
+        "docs/release-incidents/2026-10-18-v1.38.0.md"
+      ],
+      "verdict": "verified",
+      "webp": {
+        "file": "site/public/feature-captures/start-page-color-customize-v1.38.0.webp",
+        "sha256": "b79a895e954430b2611fd9d248cbf1ea424cb1d8b24a0e414e3ae8f933eb9aa5"
+      }
+    },
+    {
+      "file": "site/public/feature-captures/ledger-v1.38.0.png",
+      "width": 2880,
+      "height": 1800,
+      "sha256": "75e250b5a8ad775b68f94f55be8aa3e09d90d7dfa7cddc4b47616786ea72f9e9",
+      "capturedAt": "2026-10-19T01:27:32Z",
+      "state": "Ledger: \"Where to?\" with four Favorites on the left and Pick up where you left off (Research, Reading, 2 tabs each) on the right; the footer shows 328 ads blocked this week, v1.38.0, Customize, Mahjong and ⌘L to go anywhere.",
+      "method": "BLANC_PACKAGED_EXECUTABLE=<mounted DMG>/Blanc.app/Contents/MacOS/Blanc BLANC_CAPTURE_SCALE=2 node scripts/capture-installed-start-page.mjs in one disposable profile seeded with the shared Start Page fixtures (six sample Favorites, four of them bookmarked; a weekly blocked total of 328), two named groups (Research, Reading) of two tabs each, lastRunVersion 1.38.0 and a dismissed Patron callout; adblockEnabled false, as in earlier runs of this script. The script picks each layout through the shipped Customize popover, closes it with Escape, then opens Mahjong from the footer's own link. Each is a Chromium page screenshot (Page.captureScreenshot) of the Start Page or Mahjong view at 1440×900 CSS px and device scale 2 (2880×1800) with reduced motion, after every running animation has finished; the native Island strip is not part of a page screenshot. Each PNG has a same-size WebP companion (quality 85).",
+      "evidence": [
+        "v1.38.0:src/renderer/pages/newtab.html",
+        "v1.38.0:src/renderer/pages/newtab.js",
+        "docs/release-incidents/2026-10-18-v1.38.0.md"
+      ],
+      "verdict": "verified",
+      "webp": {
+        "file": "site/public/feature-captures/ledger-v1.38.0.webp",
+        "sha256": "a36f58eab1e3e501930360c366e211a5f2245f8d2ee97693e23e8f4bcc71d799"
+      }
+    },
+    {
+      "file": "site/public/feature-captures/billboard-v1.38.0.png",
+      "width": 2880,
+      "height": 1800,
+      "sha256": "2c6eb750a6d29294abad0c76393a0d3c46de3d597c47c9857c5e2c60d698c43e",
+      "capturedAt": "2026-10-19T01:27:34Z",
+      "state": "Billboard: date, the clock, 328 ads blocked this week, six frequently visited sites and the Research and Reading group pills, over the Sunrise wallpaper.",
+      "method": "BLANC_PACKAGED_EXECUTABLE=<mounted DMG>/Blanc.app/Contents/MacOS/Blanc BLANC_CAPTURE_SCALE=2 node scripts/capture-installed-start-page.mjs in one disposable profile seeded with the shared Start Page fixtures (six sample Favorites, four of them bookmarked; a weekly blocked total of 328), two named groups (Research, Reading) of two tabs each, lastRunVersion 1.38.0 and a dismissed Patron callout; adblockEnabled false, as in earlier runs of this script. The script picks each layout through the shipped Customize popover, closes it with Escape, then opens Mahjong from the footer's own link. Each is a Chromium page screenshot (Page.captureScreenshot) of the Start Page or Mahjong view at 1440×900 CSS px and device scale 2 (2880×1800) with reduced motion, after every running animation has finished; the native Island strip is not part of a page screenshot. Each PNG has a same-size WebP companion (quality 85).",
+      "evidence": [
+        "v1.38.0:src/renderer/pages/newtab.html",
+        "v1.38.0:src/renderer/pages/newtab.js",
+        "docs/release-incidents/2026-10-18-v1.38.0.md"
+      ],
+      "verdict": "verified",
+      "webp": {
+        "file": "site/public/feature-captures/billboard-v1.38.0.webp",
+        "sha256": "228f6f3c7f84bd81e96dac7da577b573488332f1ca80d2e8160a731d238970ea"
+      }
+    },
+    {
+      "file": "site/public/feature-captures/shelf-v1.38.0.png",
+      "width": 2880,
+      "height": 1800,
+      "sha256": "e5298347d9ce0e4262590ca5540ecd79ad4e53f8e797a39ff5fd3e9f2d04b0e5",
+      "capturedAt": "2026-10-19T01:27:36Z",
+      "state": "Shelf: four Favorites as tiles, Pick up where you left off with Research and Reading, and the Blocked card with 328 ads this week.",
+      "method": "BLANC_PACKAGED_EXECUTABLE=<mounted DMG>/Blanc.app/Contents/MacOS/Blanc BLANC_CAPTURE_SCALE=2 node scripts/capture-installed-start-page.mjs in one disposable profile seeded with the shared Start Page fixtures (six sample Favorites, four of them bookmarked; a weekly blocked total of 328), two named groups (Research, Reading) of two tabs each, lastRunVersion 1.38.0 and a dismissed Patron callout; adblockEnabled false, as in earlier runs of this script. The script picks each layout through the shipped Customize popover, closes it with Escape, then opens Mahjong from the footer's own link. Each is a Chromium page screenshot (Page.captureScreenshot) of the Start Page or Mahjong view at 1440×900 CSS px and device scale 2 (2880×1800) with reduced motion, after every running animation has finished; the native Island strip is not part of a page screenshot. Each PNG has a same-size WebP companion (quality 85).",
+      "evidence": [
+        "v1.38.0:src/renderer/pages/newtab.html",
+        "v1.38.0:src/renderer/pages/newtab.js",
+        "docs/release-incidents/2026-10-18-v1.38.0.md"
+      ],
+      "verdict": "verified",
+      "webp": {
+        "file": "site/public/feature-captures/shelf-v1.38.0.webp",
+        "sha256": "726f6881b67077ca9823b100a062f2e9452d97b088de611d8298d00222ae430e"
+      }
+    },
+    {
+      "file": "site/public/feature-captures/tally-v1.38.0.png",
+      "width": 2880,
+      "height": 1800,
+      "sha256": "20b7d95d2b70faa5806785d934c607356a88c6f735deb76b2603717340b700ca",
+      "capturedAt": "2026-10-19T01:27:38Z",
+      "state": "Tally: Favorites and Pick up where you left off beside Blocked this week (328) with a day-by-day chart and 'busiest day tuesday'.",
+      "method": "BLANC_PACKAGED_EXECUTABLE=<mounted DMG>/Blanc.app/Contents/MacOS/Blanc BLANC_CAPTURE_SCALE=2 node scripts/capture-installed-start-page.mjs in one disposable profile seeded with the shared Start Page fixtures (six sample Favorites, four of them bookmarked; a weekly blocked total of 328), two named groups (Research, Reading) of two tabs each, lastRunVersion 1.38.0 and a dismissed Patron callout; adblockEnabled false, as in earlier runs of this script. The script picks each layout through the shipped Customize popover, closes it with Escape, then opens Mahjong from the footer's own link. Each is a Chromium page screenshot (Page.captureScreenshot) of the Start Page or Mahjong view at 1440×900 CSS px and device scale 2 (2880×1800) with reduced motion, after every running animation has finished; the native Island strip is not part of a page screenshot. Each PNG has a same-size WebP companion (quality 85).",
+      "evidence": [
+        "v1.38.0:src/renderer/pages/newtab.html",
+        "v1.38.0:src/renderer/pages/newtab.js",
+        "docs/release-incidents/2026-10-18-v1.38.0.md"
+      ],
+      "verdict": "verified",
+      "webp": {
+        "file": "site/public/feature-captures/tally-v1.38.0.webp",
+        "sha256": "7cfbb1376f1ef1da5890b981894e6b0a59b5477b9489ee630a792ab0feaa6e15"
+      }
+    },
+    {
+      "file": "site/public/feature-captures/mahjong-v1.38.0.png",
+      "width": 2880,
+      "height": 1800,
+      "sha256": "52b7ec2a297dd4009929df1a98c284c607588e569d697ce0d9f42ea2af9e8d86",
+      "capturedAt": "2026-10-19T01:27:42Z",
+      "state": "Standalone Mahjong opened from the Start Page footer: the Daily deal on Turtle in Burst mode (Auto), 72 pairs left, the Burst rack and the side tools.",
+      "method": "BLANC_PACKAGED_EXECUTABLE=<mounted DMG>/Blanc.app/Contents/MacOS/Blanc BLANC_CAPTURE_SCALE=2 node scripts/capture-installed-start-page.mjs in one disposable profile seeded with the shared Start Page fixtures (six sample Favorites, four of them bookmarked; a weekly blocked total of 328), two named groups (Research, Reading) of two tabs each, lastRunVersion 1.38.0 and a dismissed Patron callout; adblockEnabled false, as in earlier runs of this script. The script picks each layout through the shipped Customize popover, closes it with Escape, then opens Mahjong from the footer's own link. Each is a Chromium page screenshot (Page.captureScreenshot) of the Start Page or Mahjong view at 1440×900 CSS px and device scale 2 (2880×1800) with reduced motion, after every running animation has finished; the native Island strip is not part of a page screenshot. Each PNG has a same-size WebP companion (quality 85).",
+      "evidence": [
+        "v1.38.0:src/renderer/pages/mahjong.html",
+        "v1.38.0:src/renderer/pages/mahjong.js",
+        "v1.38.0:src/renderer/pages/mahjong-engine.js",
+        "docs/release-incidents/2026-10-18-v1.38.0.md"
+      ],
+      "verdict": "verified",
+      "webp": {
+        "file": "site/public/feature-captures/mahjong-v1.38.0.webp",
+        "sha256": "770ca3e5a644f2233028b2d379b54040f67e08e0ab018ddf5d74e9aa553a7f6d"
+      }
+    },
+    {
+      "file": "site/public/feature-captures/billboard-image-v1.38.0.png",
+      "width": 1440,
+      "height": 900,
+      "sha256": "6bdbca634415e842170e77deea26edc6e5aac78e3c0fd8fd0519c04a660a4dab",
+      "capturedAt": "2026-10-19T01:53:47Z",
+      "state": "Billboard over the same Van Gogh sample, chosen in the Customize popover through the shipped Your image and Spotlight controls, popover closed: the Spotlight wash behind the header, clock, blocked total, six sites and the Research and Reading pills, the painting's edges bare.",
+      "method": "BLANC_PACKAGED_EXECUTABLE=<mounted DMG>/Blanc.app/Contents/MacOS/Blanc BLANC_CAPTURE_SCALE=2 BLANC_CAPTURE_IMAGE=<the sample> BLANC_CAPTURE_TRIM=0.03 node scripts/capture-installed-start-page.mjs (the layouts run above, with the sample stored as the importer stores it). A 2880×1800 Chromium page screenshot after animations settle, resized to 1440×900 with lanczos3, with a same-size WebP companion (quality 85). The run's other outputs were not kept.",
+      "evidence": [
+        "v1.38.0:src/renderer/pages/newtab.html",
+        "v1.38.0:src/renderer/pages/newtab-wallpaper.js",
+        "v1.38.0:src/main/wallpaper.js",
+        "docs/release-incidents/2026-10-18-v1.38.0.md"
+      ],
+      "verdict": "verified",
+      "webp": {
+        "file": "site/public/feature-captures/billboard-image-v1.38.0.webp",
+        "sha256": "78a6baee8180c870631b4b66ac56bfd7861277e51c1013ec6b2c9bd63a1de21c"
+      }
+    },
+    {
+      "file": "site/public/feature-captures/start-page-color-rose-solid-v1.38.0.png",
+      "width": 1440,
+      "height": 900,
+      "sha256": "7b5d89d6a7eefd3bf5e63e0def38d556a87345dac863ff601e2db9f9129c34d6",
+      "capturedAt": "2026-10-19T18:56:00Z",
+      "state": "Billboard with the Color wallpaper: the Rose preset (#9b4761) with the Solid fill and the page's light-on-color ink. Customize closed. Added for the What's New page so its panels don't repeat the Sky capture.",
+      "source": "Installed /Applications/Blanc.app, whose executable SHA-256 equals source.executableSha256 (the verified public v1.38.0 build 1380, Team ID XYGUCY4498), launched as a separate instance in a disposable profile. BLANC_CAPTURE_COLOR=rose BLANC_CAPTURE_FILL=solid BLANC_CAPTURE_STATES=color node scripts/capture-installed-custom-wallpaper.mjs.",
+      "evidence": [
+        "v1.38.0:src/renderer/pages/newtab.html",
+        "v1.38.0:src/renderer/pages/newtab-wallpaper.js",
+        "v1.38.0:src/main/start-page-paint.js",
+        "v1.38.0:src/renderer/space-identity.js",
+        "docs/release-incidents/2026-10-18-v1.38.0.md"
+      ],
+      "verdict": "verified",
+      "webp": {
+        "file": "site/public/feature-captures/start-page-color-rose-solid-v1.38.0.webp",
+        "sha256": "b3f5c9ead0048b7ed3fb7fbcc2179730f0d1741f74fa82524564c6e3542d7c23"
+      }
+    },
+    {
+      "file": "site/public/feature-captures/tab-group-colors-v1.38.0.png",
+      "width": 1440,
+      "height": 900,
+      "sha256": "aa95cfc158ed3cc4b93d8a25264f89b99a8835119ff84b9a9945118fe14e11a9",
+      "capturedAt": "2026-10-19T19:20:00Z",
+      "state": "The ⌘L panel opened through the shipped openIsland action over Wikipedia's Stockholm Public Library article, with the group Inspiration in Rose (#9b4761) and Reading in Sage (#426c4c): tinted blocks and a colored dot before each name.",
+      "source": "Installed /Applications/Blanc.app, whose executable SHA-256 equals source.executableSha256 (the verified public v1.38.0 build 1380, Team ID XYGUCY4498), launched as a separate instance in a disposable profile. BLANC_CAPTURE_VERSION=1.38.0 BLANC_CAPTURE_GROUP_COLORS='#9b4761,#426c4c' BLANC_CAPTURE_FRONT=3 node scripts/capture-installed-media.mjs (island-expanded). Resized to 1440×900 sRGB with a quality 85 WebP companion.",
+      "evidence": [
+        "v1.38.0:src/renderer/overlay.js",
+        "v1.38.0:src/renderer/tab-sections.js",
+        "v1.38.0:src/main/group-color.js",
+        "docs/release-incidents/2026-10-18-v1.38.0.md"
+      ],
+      "verdict": "verified",
+      "webp": {
+        "file": "site/public/feature-captures/tab-group-colors-v1.38.0.webp",
+        "sha256": "7cf12b000425646fb91a36d9237e7483e7b70c1604ab9fc1b4701c243b626893"
+      }
+    },
+    {
+      "file": "site/public/feature-captures/island-hover-v1.38.0.png",
+      "width": 1440,
+      "height": 900,
+      "sha256": "5224a009ff46c55114b8353d0dd73952550d04dfc37d6cfa19e64119a31f0f2c",
+      "capturedAt": "2026-10-19T19:20:00Z",
+      "state": "The resting Island over the Smithsonian Open Access page, with the tab dots of the Rose-colored Inspiration group, +3 for the rest, and the blocked count. Used for Open the Island on hover, which opens the panel from this resting address.",
+      "source": "Installed /Applications/Blanc.app, whose executable SHA-256 equals source.executableSha256 (the verified public v1.38.0 build 1380, Team ID XYGUCY4498), launched as a separate instance in a disposable profile. BLANC_CAPTURE_VERSION=1.38.0 BLANC_CAPTURE_GROUP_COLORS='#9b4761,#426c4c' BLANC_CAPTURE_FRONT=2 node scripts/capture-installed-media.mjs (island-resting). Resized to 1440×900 sRGB with a quality 85 WebP companion.",
+      "evidence": [
+        "v1.38.0:src/renderer/index.html",
+        "v1.38.0:src/renderer/renderer.js",
+        "docs/release-incidents/2026-10-18-v1.38.0.md"
+      ],
+      "verdict": "verified",
+      "webp": {
+        "file": "site/public/feature-captures/island-hover-v1.38.0.webp",
+        "sha256": "2b87b7a357283542ef20e11f6fb4628de54ec24534d96f3fa0d5b8df9f7f0151"
+      }
+    },
+    {
+      "file": "site/public/feature-captures/reopen-closed-tabs-great-wave-v1.38.0.png",
+      "width": 1440,
+      "height": 900,
+      "sha256": "4dcde0b1bfdfd816aeed583663eef945d1dba4a314fc6c52c4db6dd160bc47b3",
+      "capturedAt": "2026-10-19T19:20:00Z",
+      "state": "The ⌘L panel over The Met's public-domain Under the Wave off Kanagawa (Hokusai), with Recently closed unfolded: Lisbon trip · 2 tabs (a closed group) and Vincent van Gogh - Wikipedia, above the open Painting class group.",
+      "source": "Installed /Applications/Blanc.app, whose executable SHA-256 equals source.executableSha256 (the verified public v1.38.0 build 1380, Team ID XYGUCY4498), launched as a separate instance in a disposable profile. BLANC_CAPTURE_VERSION=1.38.0 BLANC_CAPTURE_FRONT_URL=https://www.metmuseum.org/art/collection/search/45434 BLANC_CAPTURE_FRONT_TITLE='Under the Wave off Kanagawa' node scripts/capture-installed-reopen-closed-tabs.mjs. Resized to 1440×900 sRGB with a quality 85 WebP companion.",
+      "evidence": [
+        "v1.38.0:src/renderer/overlay.js",
+        "v1.38.0:src/main/closed-tabs.js",
+        "docs/release-incidents/2026-10-18-v1.38.0.md"
+      ],
+      "verdict": "verified",
+      "webp": {
+        "file": "site/public/feature-captures/reopen-closed-tabs-great-wave-v1.38.0.webp",
+        "sha256": "757be7d5220801a398bad77ae890db2d28b4b2614d3719b78816f5a230b35d5a"
+      }
+    }
+  ],
+  "wallpaperSettings": {
+    "newtabDynamicWallpaper": true,
+    "layout": "billboard",
+    "theme": "light",
+    "usagePing": false,
+    "searchSuggestions": false
+  },
+  "wallpapers": [
+    {
+      "phase": "dawn",
+      "theme": "light",
+      "localHourFixture": 6,
+      "chromeTint": "#f8f1e7",
+      "file": "site/public/feature-captures/home-wallpaper-dawn-v1.38.0.png",
+      "width": 2560,
+      "height": 1600,
+      "sha256": "03da79cc90a2e8739678e9ff1a30793bf2ca95d59a252dd097a802a7de1375d9",
+      "displayAsset": {
+        "file": "site/public/feature-captures/home-wallpaper-dawn-v1.38.0.webp",
+        "width": 1440,
+        "height": 900,
+        "sha256": "bdd34cb8f13c010e5f9b82ad84735304bd16fba0e94d1be4c1c367a5331e4aa3"
+      },
+      "capturedAt": "2026-10-19T01:52:58Z"
+    },
+    {
+      "phase": "day",
+      "theme": "light",
+      "localHourFixture": 12,
+      "chromeTint": "#e3e8e9",
+      "file": "site/public/feature-captures/home-wallpaper-day-v1.38.0.png",
+      "width": 2560,
+      "height": 1600,
+      "sha256": "f3217ceac9acc6ab667ffcc1d2a905a4feb32cbafe47a6369147c524d34c968b",
+      "displayAsset": {
+        "file": "site/public/feature-captures/home-wallpaper-day-v1.38.0.webp",
+        "width": 1440,
+        "height": 900,
+        "sha256": "034c3f5acf04458cd6181ba5b4694abc4fa1482ce290f045e77ba5db2c09bcde"
+      },
+      "capturedAt": "2026-10-19T01:53:01Z"
+    },
+    {
+      "phase": "dusk",
+      "theme": "light",
+      "localHourFixture": 18,
+      "chromeTint": "#f1e7df",
+      "file": "site/public/feature-captures/home-wallpaper-dusk-v1.38.0.png",
+      "width": 2560,
+      "height": 1600,
+      "sha256": "627209eb7fbf6f5b631f1398280db81834009e10dc3c305bb6ecb7c02a41f0d6",
+      "displayAsset": {
+        "file": "site/public/feature-captures/home-wallpaper-dusk-v1.38.0.webp",
+        "width": 1440,
+        "height": 900,
+        "sha256": "596f089347b1de9cb17bfc3bc897c755b938a03b470b9f7d98f2977a23b5b447"
+      },
+      "capturedAt": "2026-10-19T01:53:04Z"
+    },
+    {
+      "phase": "night",
+      "theme": "light",
+      "localHourFixture": 23,
+      "chromeTint": "#e9e4db",
+      "file": "site/public/feature-captures/home-wallpaper-night-v1.38.0.png",
+      "width": 2560,
+      "height": 1600,
+      "sha256": "f6244d83eb55f80dbe5dd032c15374355b6f1f28c441dec113ef8c2606c05118",
+      "displayAsset": {
+        "file": "site/public/feature-captures/home-wallpaper-night-v1.38.0.webp",
+        "width": 1440,
+        "height": 900,
+        "sha256": "5710cd9aea1255d19c9f1dc54c8a577a1cea77eb70513ac588d82476d4a9537e"
+      },
+      "capturedAt": "2026-10-19T01:53:07Z"
+    }
+  ],
+  "wallpaperMethod": "BLANC_PACKAGED_EXECUTABLE=<mounted DMG>/Blanc.app/Contents/MacOS/Blanc BLANC_CAPTURE_VERSION=1.38.0 npm run capture:wallpaper:installed, the procedure behind docs/website-captures-v1.35.0.json, now also seeding lastRunVersion 1.38.0 and a dismissed Patron callout so the footer shows no pill. A capture-only init script fixes the renderer clock at 6, 12, 18 or 23 h; reduced motion; native screencapture -l at 2560×1600 kept as source, with the tool's 1440px quality-90 WebP. Only the light set is kept. The chrome tint is read from the capture at 15% across, 2% down. Captured 2026-10-19 between 01:52:58Z and 01:53:07Z.",
+  "shownOn": [
+    "site/src/pages/features/start-page.astro",
+    "site/src/pages/index.astro",
+    "site/src/pages/features.astro",
+    "site/src/pages/whats-new/[release].astro"
+  ]
+}

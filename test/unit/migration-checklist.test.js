@@ -7,6 +7,7 @@ const {
   migrationChecklistForTab,
   spaceTaskIntroduction,
   defaultTaskIntroduction,
+  iphoneTaskIntroduction,
 } = require('../../src/main/migration-checklist');
 
 test('migration checklist projects progress and every visibility gate', () => {
@@ -19,7 +20,7 @@ test('migration checklist projects progress and every visibility gate', () => {
   };
 
   const project = (extra) => migrationChecklistState({ ...base, ...extra });
-  const without = { taskCount: 3, defaultAvailable: false, defaultComplete: false };
+  const without = { taskCount: 3, defaultAvailable: false, defaultComplete: false, iphoneAvailable: false, iphoneComplete: false };
   assert.deepEqual(project({}), { visible: true, completedCount: 0, ...without, syncComplete: false, tabsComplete: false, spaceComplete: false });
   assert.deepEqual(project({ syncComplete: true }), { visible: true, completedCount: 1, ...without, syncComplete: true, tabsComplete: false, spaceComplete: false });
   assert.deepEqual(project({ syncComplete: true, tabsComplete: true }), { visible: true, completedCount: 2, ...without, syncComplete: true, tabsComplete: true, spaceComplete: false });
@@ -79,4 +80,25 @@ test('the default-browser task never reopens a checklist that already retired', 
   assert.deepEqual(intro({ syncMigrationCompleted: true, tabImportCompleted: true, spaceMigrationCompleted: true }),
     { defaultChecklistIntroduced: true, migrationChecklistDismissed: true }, 'a finished checklist stays retired');
   assert.equal(intro({ defaultChecklistIntroduced: true }), null, 'it runs once');
+});
+
+// Design 2026-10-28 §6.1: Connect your iPhone, only where pairing is offered.
+test('the iPhone task counts only where pairing is offered', () => {
+  const base = { firstRunComplete: true, dismissed: false, syncComplete: true, tabsComplete: true, spaceComplete: true };
+  const withTask = migrationChecklistState({ ...base, iphoneAvailable: true, iphoneComplete: false });
+  assert.deepEqual([withTask.completedCount, withTask.taskCount, withTask.visible], [3, 4, true]);
+  const done = migrationChecklistState({ ...base, iphoneAvailable: true, iphoneComplete: true });
+  assert.deepEqual([done.completedCount, done.taskCount, done.visible, done.iphoneComplete], [4, 4, false, true]);
+  const hidden = migrationChecklistState({ ...base, iphoneAvailable: false, iphoneComplete: true });
+  assert.deepEqual([hidden.completedCount, hidden.taskCount, hidden.iphoneComplete], [3, 3, false]);
+});
+
+test('the iPhone task never reopens a checklist that already retired', () => {
+  const intro = (s, ctx) => iphoneTaskIntroduction({ iphoneChecklistIntroduced: false, migrationChecklistDismissed: false, syncMigrationCompleted: false, tabImportCompleted: false, spaceMigrationCompleted: false, defaultBrowserMigrationCompleted: false, ...s }, ctx);
+  assert.deepEqual(intro({}), { iphoneChecklistIntroduced: true }, 'a checklist still showing gains the task');
+  const allDone = { syncMigrationCompleted: true, tabImportCompleted: true, spaceMigrationCompleted: true };
+  assert.deepEqual(intro(allDone, { defaultAvailable: false }), { iphoneChecklistIntroduced: true, migrationChecklistDismissed: true }, 'a finished checklist stays retired');
+  assert.deepEqual(intro(allDone, { defaultAvailable: true }), { iphoneChecklistIntroduced: true }, 'an unfinished default task keeps it open');
+  assert.deepEqual(intro({ ...allDone, defaultBrowserMigrationCompleted: true }, { defaultAvailable: true }), { iphoneChecklistIntroduced: true, migrationChecklistDismissed: true });
+  assert.equal(intro({ iphoneChecklistIntroduced: true }), null, 'it runs once');
 });

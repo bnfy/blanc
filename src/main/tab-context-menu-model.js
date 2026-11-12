@@ -35,7 +35,68 @@ function buildGroupSubmenu(tab, groups, t) {
   return sub;
 }
 
-function buildTabContextMenu({ tab, groups = [], activeTabId, glanceTabId = null, surface, canCloseOthers, canMoveToNewWindow, canQuiet, t }) {
+// Move to Space ▸ (#1060): every space in the profile, the window's own one
+// checked (choosing it does nothing) and a space that can't receive a tab
+// right now (its window mid switch or closing) disabled. Space names are user
+// data; as radio rows the pseudo-locale sweep skips them, like group names.
+function buildSpaceSubmenu(spaces, canCreateSpace, t) {
+  return [...spaces.map((s) => ({
+    id: 'space-move', label: s.name, type: 'radio', checked: !!s.current, workspaceId: s.id,
+    ...(s.enabled === false ? { enabled: false } : {}),
+  })), { type: 'separator' }, { id: 'space-new', label: t('tabMenu.newSpace'), enabled: canCreateSpace }];
+}
+const spaceReachable = (s) => !s.current && s.enabled !== false;
+
+// Native menus grow to their widest row, so long page titles are cut.
+const SPLIT_TITLE_MAX = 48;
+const shortTitle = (title) => {
+  const chars = [...String(title)];
+  return chars.length > SPLIT_TITLE_MAX ? `${chars.slice(0, SPLIT_TITLE_MAX - 1).join('').trimEnd()}…` : chars.join('');
+};
+
+// Split with ▸ (F53): tabs in the right-clicked tab's own group (or its
+// fellow ungrouped tabs) come first; every other group, and Ungrouped, is a
+// nested submenu whose header says once how the group rule moves the pick.
+// Group names are user data, so their ids mark them (the pseudo-locale sweep).
+function buildSplitSubmenu(tab, groups, candidates, t) {
+  const own = tab.groupId ?? null;
+  const ownGroup = groups.find((g) => g.id === own);
+  const tabItem = (c) => ({ id: 'split-with-tab', label: shortTitle(c.title), tabId: c.id });
+  const sub = [];
+  const mine = candidates.filter((c) => (c.groupId ?? null) === own);
+  if (mine.length) {
+    if (ownGroup) sub.push({ id: 'split-with-header', type: 'header', label: ownGroup.name });
+    sub.push(...mine.map(tabItem));
+  }
+  const others = [];
+  for (const g of groups) {
+    if (g.id === own) continue;
+    const members = candidates.filter((c) => c.groupId === g.id);
+    if (!members.length) continue;
+    const note = ownGroup ? t('split.menuMovesInto', { group: ownGroup.name }) : t('split.menuMovesOutOf', { group: g.name });
+    others.push({ id: 'split-with-group', label: g.name, submenu: [{ type: 'header', label: note }, ...members.map(tabItem)] });
+  }
+  const loose = own == null ? [] : candidates.filter((c) => c.groupId == null);
+  if (loose.length) {
+    others.push({
+      id: 'split-with-ungrouped',
+      label: t('tabMenu.splitUngrouped'),
+      submenu: [{ type: 'header', label: t('split.menuMovesInto', { group: ownGroup?.name ?? '' }) }, ...loose.map(tabItem)],
+    });
+  }
+  if (sub.length && others.length) sub.push({ type: 'separator' });
+  sub.push(...others);
+  return sub;
+}
+
+/** The Pin/Unpin message key for `tab`: a split pins as a whole (F53), so
+ *  its tabs say so. Shared with the app menu's View item. */
+function pinLabelKey(tab) {
+  if (tab?.splitId) return tab.pinned ? 'tabMenu.unpinSplit' : 'tabMenu.pinSplit';
+  return tab?.pinned ? 'tabMenu.unpin' : 'tabMenu.pin';
+}
+
+function buildTabContextMenu({ tab, groups = [], activeTabId, glanceTabId = null, surface, canCloseOthers, canMoveToNewWindow, canQuiet, canDuplicate = true, canGlance = true, canCloseAbove = false, canCloseBelow = false, siteMuted = null, splitCandidates = [], sendTargets = null, spaces = [], canMoveToSpace = false, canCreateSpace = false, t }) {
   const isActive = tab.id === activeTabId;
   const items = [];
 
@@ -52,39 +113,92 @@ function buildTabContextMenu({ tab, groups = [], activeTabId, glanceTabId = null
   items.push({ type: 'separator' });
 
   items.push({ id: 'reload', label: t('menu.reload'), accelerator: ACCEL.reload });
-  items.push({ id: 'duplicate', label: t('tabMenu.duplicate') });
+  items.push({ id: 'duplicate', label: t('tabMenu.duplicate'), enabled: canDuplicate !== false });
   items.push({ id: 'rename', label: t('tabMenu.rename') });
   // Only a renamed tab has a page title to go back to (F46).
   if (tab.customTitle) items.push({ id: 'reset-title', label: t('tabMenu.resetTitle') });
   items.push({ type: 'separator' });
 
-  items.push({ id: 'toggle-pin', label: t(tab.pinned ? 'tabMenu.unpin' : 'tabMenu.pin') });
+  items.push({ id: 'toggle-pin', label: t(pinLabelKey(tab)) });
+  if (tab.pinned) {
+    items.push({
+      id: 'return-pinned-home',
+      label: t('tabMenu.returnPinnedHome'),
+      enabled: !!tab.pinnedHome?.canReturn,
+    });
+    items.push({
+      id: 'set-pinned-home',
+      label: t('tabMenu.setPinnedHome'),
+      enabled: !!tab.pinnedHome?.canSet,
+    });
+  }
   items.push({ id: 'toggle-mute', label: t(tab.muted ? 'tabMenu.unmute' : 'tabMenu.mute') });
+  // Mute Site: until Blanc quits, by exact host; only web pages have a site
+  // (siteMuted is null otherwise). Tab menu additions spec §4.
+  if (typeof siteMuted === 'boolean') {
+    items.push({ id: 'toggle-site-mute', label: t(siteMuted ? 'tabMenu.unmuteSite' : 'tabMenu.muteSite') });
+  }
   items.push({
     id: 'toggle-favorite',
     label: t(tab.bookmarked ? 'tabMenu.removeFavorite' : 'tabMenu.saveFavorite'),
     enabled: isFavoritable(tab),
   });
+  // Start Page pins take the same pages Favorites do, up to the store's cap;
+  // a pinned page can always be unpinned.
+  items.push({
+    id: 'toggle-start-pin',
+    label: t(tab.startPinned ? 'tabMenu.unpinStartPage' : 'tabMenu.pinStartPage'),
+    enabled: isFavoritable(tab) && (!!tab.startPinned || !tab.startPinsFull),
+  });
+  // Send to Device ▸ (M7b): null when this tab can't be sent (sync off, a
+  // private, internal or inert tab); [] when there's no other device.
+  if (Array.isArray(sendTargets)) {
+    items.push(sendTargets.length
+      ? { id: 'send-to', label: t('tabMenu.sendToDevice'), submenu: sendTargets.map((d) => ({ id: 'send-to-device', label: d.name, deviceId: d.id })) }
+      : { id: 'send-to', label: t('tabMenu.sendToDevice'), submenu: [{ id: 'send-none', label: t('sends.none'), enabled: false }] });
+  }
   items.push({ id: 'group', label: t('tabMenu.moveToGroup'), submenu: buildGroupSubmenu(tab, groups, t) });
+  // Shown once the profile has a space; a private tab never joins one. With
+  // neither an existing destination nor room to create one, or a tab main
+  // refuses to move, it is disabled.
+  if (!tab.private && spaces.length) {
+    items.push(canMoveToSpace && (spaces.some(spaceReachable) || canCreateSpace)
+      ? { id: 'space', label: t('tabMenu.moveToSpace'), submenu: buildSpaceSubmenu(spaces, canCreateSpace, t) }
+      : { id: 'space', label: t('tabMenu.moveToSpace'), enabled: false });
+  }
+  // Split View (F53): a split tab can leave or close its split; any other tab
+  // can make one with an eligible tab (main passes the candidates with their
+  // groups; buildSplitSubmenu sorts them). A split with a pinned tab is pinned.
+  if (tab.splitId) {
+    items.push({ id: 'remove-from-split', label: t('tabMenu.removeFromSplit') });
+    items.push({ id: 'close-split', label: t('tabMenu.closeSplit') });
+  } else if (!splitCandidates.length) {
+    items.push({ id: 'split-with', label: t('tabMenu.splitWith'), enabled: false });
+  } else {
+    items.push({ id: 'split-with', label: t('tabMenu.splitWith'), submenu: buildSplitSubmenu(tab, groups, splitCandidates, t) });
+  }
   items.push({ type: 'separator' });
 
-  if (surface === 'row' && !isActive) {
+  if (surface === 'row' && (!isActive || (tab.splitId && canGlance))) {
     // The current reference (its ⌘L row, or the Glance header) closes Glance.
     items.push(tab.id === glanceTabId
       ? { id: 'close-glance', label: t('menu.closeGlance') }
-      : { id: 'glance', label: t('tabMenu.glance') });
+      : { id: 'glance', label: t('tabMenu.glance'), enabled: canGlance });
     // canQuiet is main's explicit-quiet predicate (the sweep's full policy
     // minus the idle threshold) — the same check the action runs, so this
     // item can never render enabled for a tab the action would refuse.
-    items.push({ id: 'quiet', label: t('tabMenu.quiet'), enabled: !!canQuiet });
+    if (!isActive) items.push({ id: 'quiet', label: t('tabMenu.quiet'), enabled: !!canQuiet });
     items.push({ type: 'separator' });
   }
 
+  items.push({ id: 'new-tab-below', label: t('tabMenu.newTabBelow') });
   items.push({ id: 'new-tab', label: t('menu.newTab'), accelerator: ACCEL.newTab });
   items.push({ id: 'new-private-tab', label: t('menu.newPrivateTab'), accelerator: ACCEL.newPrivateTab });
   items.push({ type: 'separator' });
 
   items.push({ id: 'close-others', label: t('tabMenu.closeOthers'), enabled: !!canCloseOthers });
+  items.push({ id: 'close-above', label: t('tabMenu.closeAbove'), enabled: !!canCloseAbove });
+  items.push({ id: 'close-below', label: t('tabMenu.closeBelow'), enabled: !!canCloseBelow });
   items.push({ id: 'move-new-window', label: t('tabMenu.moveToNewWindow'), enabled: !!canMoveToNewWindow });
   items.push({ type: 'separator' });
 
@@ -94,8 +208,39 @@ function buildTabContextMenu({ tab, groups = [], activeTabId, glanceTabId = null
   return items;
 }
 
+/** A selection has its own deliberately small menu; no single-tab actions. */
+function buildTabsContextMenu({ members, groups = [], spaces = [], canPlace = false, canCreateSpace = false, canMutate = true, t }) {
+  const count = members.length;
+  const items = [{ id: 'batch-header', type: 'header', label: t('tabsMenu.header', { count }) }];
+  const item = (id, key, enabled = true) => ({ id: `batch-${id}`, label: t(key), enabled });
+  if (spaces.length) items.push({ id: 'batch-space', label: t('tabMenu.moveToSpace'), enabled: canPlace,
+    submenu: [...spaces.map(space => ({ id: 'batch-space-move', label: space.name, type: 'radio', checked: space.current,
+      enabled: canPlace && !space.current && space.enabled !== false, workspaceId: space.id })), { type: 'separator' }, item('space-new', 'tabMenu.newSpace', canPlace && canCreateSpace)] });
+  items.push(item('new-window', 'tabsMenu.newWindow', canPlace));
+  items.push({ id: 'batch-group', label: t('tabMenu.moveToGroup'), enabled: canPlace, submenu: [
+    ...groups.map(group => ({ id: 'batch-group-move', type: 'radio', checked: members.every(tab => tab.groupId === group.id), label: group.name, groupId: group.id })),
+    ...(groups.length ? [{ type: 'separator' }] : []),
+    ...(members.some(tab => tab.groupId) ? [item('group-none', 'tabMenu.removeFromGroup')] : []), item('group-new', 'tabMenu.newGroup'),
+  ] });
+  items.push({ type: 'separator' }, item('pin', members.every(tab => tab.pinned) ? 'tabsMenu.unpin' : 'tabsMenu.pin', canMutate),
+    item('mute', members.every(tab => tab.muted) ? 'tabsMenu.unmute' : 'tabsMenu.mute', canMutate),
+    item('reload', 'tabsMenu.reload', members.some(tab => tab.canReload)),
+    item('quiet', 'tabsMenu.quiet', members.some(tab => tab.canQuiet)),
+    item('copy', 'tabsMenu.copy', members.some(isCopyable)), { type: 'separator' }, item('close', 'tabsMenu.close', canMutate));
+  return items;
+}
+
 function closableTabIds({ tabOrder, tabsById, keepId }) {
   return tabOrder.filter((id) => id !== keepId && tabsById.get(id) && !tabsById.get(id).pinned);
+}
+
+/** Close Tabs Above / Below: the unpinned tabs before or after `keepId` in
+ * the window's (display) order. */
+function closableBeside({ tabOrder, tabsById, keepId, direction }) {
+  const at = tabOrder.indexOf(keepId);
+  if (at === -1) return [];
+  const side = direction === 'above' ? tabOrder.slice(0, at) : tabOrder.slice(at + 1);
+  return side.filter((id) => tabsById.get(id) && !tabsById.get(id).pinned);
 }
 
 /** When a tab leaves a window, which of the remaining tabs should the source
@@ -107,4 +252,4 @@ function pickSurvivorTabId(tabOrder, movedId) {
   return tabOrder[i + 1] ?? tabOrder[i - 1] ?? null;
 }
 
-module.exports = { buildTabContextMenu, closableTabIds, pickSurvivorTabId };
+module.exports = { buildTabsContextMenu, buildTabContextMenu, pinLabelKey, closableTabIds, closableBeside, pickSurvivorTabId, isCopyable };

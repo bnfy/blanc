@@ -99,6 +99,34 @@ test('tab layout and rail width default, validate, persist, and stay out of Prof
   assert.equal(settings.getSettings().verticalTabsWidth, 248);
 });
 
+test('vertical tab text size validates, persists, and stays local', async (t) => {
+  const userData = fs.mkdtempSync(path.join(os.tmpdir(), 'blanc-tab-text-'));
+  t.after(() => fs.rmSync(userData, { recursive: true, force: true }));
+  let settings = loadSettings(userData);
+  assert.equal(settings.getSettings().verticalTabsTextSize, 'default');
+  assert.equal(settingsSchema.internalDefaults.includes('verticalTabsTextSize'), true);
+  for (const size of ['large', 'extra-large', 'default', 'extra-large']) {
+    assert.equal(settings.setSettings({ verticalTabsTextSize: size }).verticalTabsTextSize, size);
+  }
+  for (const invalid of ['huge', '', null, 18, {}, ['large']]) {
+    assert.equal(settings.setSettings({ verticalTabsTextSize: invalid }).verticalTabsTextSize, 'extra-large');
+  }
+  assert.equal(Object.hasOwn(settings.exportForSync().values, 'verticalTabsTextSize'), false);
+  assert.equal(Object.hasOwn(settings.getSettings()._syncMeta, 'verticalTabsTextSize'), false);
+  settings.mergeFromSync({
+    values: { verticalTabsTextSize: 'large' },
+    meta: { verticalTabsTextSize: Date.now() + 10_000 },
+  });
+  assert.equal(settings.getSettings().verticalTabsTextSize, 'extra-large');
+  await waitForJson(path.join(userData, 'settings.json'), (json) => json.verticalTabsTextSize === 'extra-large');
+  settings = loadSettings(userData);
+  assert.equal(settings.getSettings().verticalTabsTextSize, 'extra-large');
+  const saved = JSON.parse(fs.readFileSync(path.join(userData, 'settings.json'), 'utf8'));
+  saved.verticalTabsTextSize = 'invalid';
+  fs.writeFileSync(path.join(userData, 'settings.json'), JSON.stringify(saved));
+  assert.equal(loadSettings(userData).getSettings().verticalTabsTextSize, 'default');
+});
+
 test('settings page presents the two tab layouts as an Appearance choice', () => {
   const html = withoutInterfaceKeys(fs.readFileSync(
     path.join(__dirname, '../../src/renderer/pages/settings.html'),
@@ -153,11 +181,13 @@ test('vertical rail top chrome is reduced to an accessible sidebar toggle', () =
 
   assert.match(
     html,
-    /id="verticalTabsUseIsland"[\s\S]*title="Turn vertical tabs off"[\s\S]*aria-label="Turn vertical tabs off"/
+    /id="verticalTabsUseIsland"[\s\S]*data-tooltip="Turn vertical tabs off"[\s\S]*aria-label="Turn vertical tabs off"/
   );
   assert.match(html, /class="vertical-tabs-layout-icon"/);
   assert.doesNotMatch(html, /vertical-tabs-heading|<span>Island<\/span>/);
-  assert.match(styles, /\.vertical-tabs-toolbar\s*\{[^}]*justify-content: flex-end;/s);
+  // The toggle keeps the row's far end; the Space mark (and on Windows and
+  // Linux the main-menu button) lead it.
+  assert.match(styles, /\.vertical-tabs-toolbar \.vertical-tabs-layout-button \{ margin-left: auto; \}/);
   assert.doesNotMatch(styles, /\.vertical-tabs-toolbar\s*\{[^}]*border-bottom:/s);
   assert.doesNotMatch(styles, /\.vertical-tabs-group-rule\s*\{/);
   assert.doesNotMatch(renderer, /vertical-tabs-group-rule/);
@@ -266,4 +296,58 @@ test('vertical rail scrolls only measured-overflow titles on direct hover', () =
   assert.match(styles, /pointer-events: none;[\s\S]*text-overflow: ellipsis;/);
   assert.match(styles, /transform var\(--vertical-tab-title-duration\) linear 600ms/);
   assert.match(styles, /prefers-reduced-motion: reduce[\s\S]*\.vertical-tab-title\.scrolling \.vertical-tab-title-text[\s\S]*text-overflow: ellipsis;[\s\S]*transition: none;/);
+});
+
+test('the rail\'s first row holds the Space mark and its footer starts a new group (#1178)', () => {
+  const read = (file) => fs.readFileSync(path.join(__dirname, '../..', file), 'utf8');
+  const html = read('src/renderer/index.html');
+  const rail = read('src/renderer/vertical-tabs.js');
+  const renderer = read('src/renderer/renderer.js');
+  const styles = read('src/renderer/styles.css');
+  const main = read('src/main/main.js');
+
+  // The Island's own mark moves (one copy, one set of handlers), on every path
+  // that sets the layout, ahead of the layout toggle; it goes back where it was.
+  assert.match(rail, /function placeSpaceMark\(layout\) \{[\s\S]*?const moved = layout === 'vertical'\s*\? moveKeepingFocus\(spaceMark, useIslandButton\.parentElement, useIslandButton\)\s*: moveKeepingFocus\(spaceMark, spaceMarkHome\.parent,[\s\S]*?if \(moved\) window\.blancSpaceMark\?\.placed\(\);/);
+  assert.equal(rail.match(/placeSpaceMark\((?:'island'|layout)\);/g)?.length, 2);
+  // The resting Island never shows the mark (it keeps the Island short, and
+  // Spaces open from the ⌘L footer there); only the rail's first row does.
+  assert.match(renderer, /function placeSpaceMarkState\(\) \{\s*pillSpace\.hidden = spaceMarkOnIsland\(\);\s*\}/);
+  assert.doesNotMatch(renderer, /has-space/);
+  assert.doesNotMatch(styles, /has-space/);
+  // The Spaces menu hangs below both the mark and the Island, never over it;
+  // with the mark hidden it lines up with the Island.
+  assert.match(renderer, /const anchor = pillSpace\.hidden \? islandPill : pillSpace;\s*const bottom = Math\.max\(stageRect\(anchor\)\.bottom, stageRect\(islandPill\)\.bottom\);/);
+  // With no Spaces yet the rail shows the Spaces glyph, like the neutral mark,
+  // and a right-click on the rail's mark opens its menu.
+  assert.match(styles, /\.space-mark:is\(\[data-state="neutral"\], \.vertical-tabs-toolbar \[data-state="none"\]\) \{/);
+  assert.match(styles, /\.vertical-tabs-toolbar #pillSpace:focus-visible \{[^}]*outline: 2px solid var\(--accent\);/);
+  assert.match(renderer, /const railSpaceMark = e\.target\.closest\('\.vertical-tabs-toolbar #pillSpace'\);\s*if \(railSpaceMark\) \{\s*e\.preventDefault\(\);\s*railSpaceMark\.click\(\);\s*return;\s*\}/);
+
+  // New group sits beside New tab, named and described for screen readers.
+  assert.match(html, /id="verticalTabsNew"[\s\S]*?<\/button>\s*<button\s+id="verticalTabsNewGroup"[\s\S]*?data-i18n-aria-label="rail\.newGroup"/);
+  assert.match(rail, /newGroupButton\?\.addEventListener\('click', \(\) => \{\s*invokeLeavingRail\('start a new group', \(\) => api\.beginNewGroup\(\)\);/);
+  // It runs the tab menu's New Group… behind one gate (newGroupTarget): the
+  // selection when several tabs are selected and batchCanPlace allows (the
+  // tab menu's canPlace and the batch actions use the same helper), else the
+  // active tab; never while the window closes or switches Space.
+  assert.match(main, /function batchCanPlace\(owner, ids\) \{\s*return ids\.every\(id => canMoveTabToSpace\(tabs\.get\(id\), owner, true\)\);/);
+  assert.match(main, /function newGroupTarget\(runtime\) \{\s*if \(runtime\.closing \|\| runtime\.workspaceTransition\) return null;[\s\S]*?if \(ids\.length > 1\) return batchCanPlace\(runtime, ids\)/);
+  assert.match(main, /const place = batchCanPlace\(source, ids\);/);
+  assert.match(main, /canPlace: batchCanPlace\(owner, ids\),/);
+  // The click prunes the selection; one that changed under it is shown first
+  // instead of acted on.
+  assert.match(main, /chromeOn\('chrome:new-group', \(\) => \{\s*const runtime = rt\(\);\s*const before = runtime\.selectedTabIds \?\? \[\];\s*Object\.assign\(runtime, pruneSelection\(runtime, tabLayoutList\(runtime\)\)\);[\s\S]*?if \(before\.length > 1 && JSON\.stringify\(before\) !== JSON\.stringify\(runtime\.selectedTabIds \?\? \[\]\)\) \{\s*broadcastTabs\(\);\s*return;\s*\}\s*const target = newGroupTarget\(runtime\);\s*if \(target\?\.ids\) \{\s*runTabsAction\('batch-group-new', \{\}, target\.ids\)\s*\.catch\(/);
+  // Both tab payloads carry the gate's answer, from a pruned selection.
+  assert.equal(main.match(/canStartGroup: !!newGroupTarget\((?:runtime|rt\(\))\),/g)?.length, 2, 'both tab payloads carry the gate');
+  assert.match(main, /chromeHandle\('tabs:get-all', \(\) => \(syncTabLayout\(rt\(\)\),\s*Object\.assign\(rt\(\), pruneSelection\(rt\(\), tabLayoutList\(rt\(\)\)\)\), \{/);
+  // Its label names what it acts on; unavailable is display only (the click
+  // always asks main) and attributes are written only when they change.
+  assert.match(rail, /blancI18n\.t\(\(payload\.selectedTabIds\?\.length \?\? 0\) > 1 \? 'rail\.newGroupSelection' : 'rail\.newGroup'\)/);
+  assert.match(rail, /if \(newGroupButton\.dataset\.tooltip !== label\) newGroupButton\.dataset\.tooltip = label;/);
+  assert.match(rail, /if \(newGroupButton\.getAttribute\('aria-disabled'\) !== unavailable\) newGroupButton\.setAttribute\('aria-disabled', unavailable\);/);
+  assert.doesNotMatch(rail, /getAttribute\('aria-disabled'\) === 'true'\) return/);
+  assert.doesNotMatch(rail, /newGroupButton\.disabled/);
+  // The drag-deferral comment stays on render().
+  assert.match(rail, /rendered exactly once when the drag ends\.\n  function render\(payload = \{\}\) \{/);
 });

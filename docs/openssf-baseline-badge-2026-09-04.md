@@ -11,7 +11,9 @@ to the public record. It does not describe the badge as a security
 certification or an independent audit.
 
 `site/public/openssf-baseline-2.svg` is an exact snapshot of the badge returned
-by the official project badge endpoint on that date. It appears only in the
-Security page's assessment block. Serving the snapshot locally avoids a
+by the official project badge endpoint on that date. It appears in the
+Security feature page's assessment block and, since October 19, 2026, in the
+"Evidence you can inspect" card at the top of Privacy & Security (`/trust`),
+so the page the header links to shows it without opening a section. Serving the snapshot locally avoids a
 third-party request; its link still opens the live assessment so visitors can
 check its current state.

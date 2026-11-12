@@ -1,7 +1,7 @@
 const assert = require('node:assert/strict');
 const test = require('node:test');
 
-const { moveTab, reorderGroup } = require('../../src/main/tab-order');
+const { moveTab, reorderGroup, reorderItems } = require('../../src/main/tab-order');
 
 const tabs = (entries) => new Map(entries.map(([id, groupId, pinned = false]) => [
   id,
@@ -114,4 +114,72 @@ test('moveTab requires an explicit groupId: a missing one never ungroups a tab',
   assert.equal(moveTab(order, model, groups, 'a', { groupId: '', beforeId: null }), null, 'empty id is not loose');
   assert.deepEqual(moveTab(order, model, groups, 'a', { groupId: null, beforeId: null }),
     { order: ['b', 'l', 'a'], groupId: null }, 'explicit null is the loose section');
+});
+
+// Ungrouped tabs anywhere (spec 2026-10-17): a loose target's beforeId may be
+// a loose tab, the first tab of a group, the tab itself, or null (the end).
+test('loose tab dropped above a group', () => {
+  const model = tabs([['a', 'work'], ['b', 'work'], ['l', null]]);
+  assert.deepEqual(
+    moveTab(['a', 'b', 'l'], model, groupsOf('work'), 'l', { groupId: null, beforeId: 'a' }),
+    { order: ['l', 'a', 'b'], groupId: null }
+  );
+});
+
+test('loose tab dropped between two groups', () => {
+  const model = tabs([['a', 'work'], ['b', 'play'], ['l', null]]);
+  assert.deepEqual(
+    moveTab(['a', 'b', 'l'], model, groupsOf('work', 'play'), 'l', { groupId: null, beforeId: 'b' }),
+    { order: ['a', 'l', 'b'], groupId: null }
+  );
+});
+
+test('a grouped tab leaving for a gap lands before the first tab of the next group', () => {
+  const model = tabs([['a', 'work'], ['a2', 'work'], ['b', 'play']]);
+  assert.deepEqual(
+    moveTab(['a', 'a2', 'b'], model, groupsOf('work', 'play'), 'a2', { groupId: null, beforeId: 'b' }),
+    { order: ['a', 'a2', 'b'], groupId: null }
+  );
+});
+
+test('null beforeId appends a loose tab to the end', () => {
+  const model = tabs([['l', null], ['a', 'work'], ['m', null]]);
+  assert.deepEqual(
+    moveTab(['l', 'a', 'm'], model, groupsOf('work'), 'l', { groupId: null, beforeId: null }),
+    { order: ['a', 'm', 'l'], groupId: null }
+  );
+});
+
+test('self-target into the gap above its own group', () => {
+  const model = tabs([['x', null], ['a', 'work'], ['b', 'work']]);
+  assert.deepEqual(
+    moveTab(['x', 'a', 'b'], model, groupsOf('work'), 'a', { groupId: null, beforeId: 'a' }),
+    { order: ['x', 'a', 'b'], groupId: null }
+  );
+});
+
+test('beforeId in the middle of a group is rejected for a loose target', () => {
+  const model = tabs([['a', 'work'], ['b', 'work'], ['l', null]]);
+  assert.equal(moveTab(['a', 'b', 'l'], model, groupsOf('work'), 'l', { groupId: null, beforeId: 'b' }), null);
+});
+
+test('a group\'s first drawn tab is its leading pin', () => {
+  const model = tabs([['a', 'work'], ['p', 'work', true], ['l', null]]);
+  assert.equal(moveTab(['a', 'p', 'l'], model, groupsOf('work'), 'l', { groupId: null, beforeId: 'a' }), null);
+  assert.deepEqual(
+    moveTab(['a', 'p', 'l'], model, groupsOf('work'), 'l', { groupId: null, beforeId: 'p' }),
+    { order: ['l', 'a', 'p'], groupId: null }
+  );
+});
+
+test('reorderItems moves a group between two loose tabs', () => {
+  assert.deepEqual(
+    reorderItems(['l1', 'l2', 'work'], 0, 'work', 'l2'),
+    { order: ['l1', 'work', 'l2'], slot: 0 }
+  );
+  assert.deepEqual(
+    reorderItems(['l1', 'work'], 2, 'recently-closed', 'l1'),
+    { order: ['l1', 'work'], slot: 0 }
+  );
+  assert.equal(reorderItems(['l1', 'work'], 0, 'work', 'nope'), null);
 });

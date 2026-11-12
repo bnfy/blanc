@@ -19,6 +19,8 @@ const ERROR_KEYS = {
   conflict: 'sync.error.conflict',
   server: 'sync.error.server',
   'server-error': 'sync.error.serverError',
+  'erasure-pending': 'sync.error.erasurePending',
+  'account-quota': 'sharedSpaces.accountFull',
   offline: 'sync.error.offline',
   'sync-off': 'sync.error.off',
   'local-key-protect': 'sync.error.localKeyProtect',
@@ -28,6 +30,7 @@ const ERROR_KEYS = {
   'pair-unavailable': 'sync.error.pairUnavailable',
   'pair-invalid': 'sync.error.pairInvalid',
   'sync-on': 'sync.error.syncOn',
+  'not-ready': 'settings.sync.sheet.notReady',
 };
 
 // SyncKeyStorageError codes (sync-key-storage.js, sync.js).

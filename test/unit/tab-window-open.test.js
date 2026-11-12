@@ -21,6 +21,7 @@ function harness({ isPrivate = false, openerIsReference = false } = {}) {
   const activated = [];
   const scheduled = [];
   const adopted = [];
+  const primed = [];
   const childWc = { isDestroyed: () => false };
   const owner = { resident: false, activeTabId: 'main', glanceTabId: openerIsReference ? 'opener' : null };
   const glanced = [];
@@ -34,6 +35,7 @@ function harness({ isPrivate = false, openerIsReference = false } = {}) {
     isUtilityUrl: require('../../src/main/utility-pages').isUtilityUrl,
     handOffToOs: () => false,
     openInternalPage: () => {},
+    primeTabLoadingBackground: (view, source) => primed.push({ view, source }),
     WebContentsView: class {
       constructor(options) {
         if (!options.webContents) throw new TypeError('options.webContents must be a WebContents');
@@ -58,7 +60,7 @@ function harness({ isPrivate = false, openerIsReference = false } = {}) {
     setWindowOpenHandler: (callback) => { handler = callback; },
     on: () => {},
   });
-  return { handler, tab, childWc, created, activated, scheduled, adopted, glanced };
+  return { handler, tab, childWc, created, activated, scheduled, adopted, glanced, primed };
 }
 
 for (const isPrivate of [false, true]) {
@@ -72,10 +74,11 @@ for (const isPrivate of [false, true]) {
     assert.equal(h.created.length, 1);
     assert.equal(h.created[0].url, 'https://example.test/target');
     assert.equal(h.created[0].options.private, isPrivate);
-    assert.equal(h.created[0].options.groupId, h.tab.groupId);
+    assert.equal(h.created[0].options.groupId ?? null, null, 'a link child opens ungrouped, like a plain new tab');
     assert.equal(h.created[0].options.view ?? null, null, 'normal createTab owns construction and navigation');
     assert.equal(h.created[0].options.openerTabId ?? null, null, 'deferred contents have no adopted opener family');
     assert.equal(h.adopted.length, 0);
+    assert.equal(h.primed.length, 0, 'createTab primes the view it builds');
     assert.equal(h.scheduled.length, 0, 'background clicks preserve the active tab');
     assert.equal(h.activated.length, 0);
   });
@@ -88,10 +91,27 @@ test('an existing window.open child is adopted and activated without losing its 
   assert.equal(response.createWindow({ webContents: existing }), existing);
   assert.deepEqual(h.adopted, [existing]);
   assert.equal(h.created[0].options.view.webContents, existing);
+  assert.deepEqual(h.primed.map((p) => [p.view, p.source]), [[h.created[0].options.view, h.tab]],
+    'the adopted view loads on the opener\'s theme, not a white flash');
   assert.equal(h.created[0].options.openerTabId, h.tab.id);
+  assert.equal(h.created[0].options.openedInBackground, false, 'a foreground child may be a sign-in hand-off');
+  assert.equal(h.created[0].options.groupId ?? null, null, 'an adopted window.open child keeps its opener but not its group');
   assert.equal(h.scheduled.length, 1);
   h.scheduled[0]();
   assert.deepEqual(h.activated, ['child']);
+});
+
+test('a window.open child from a modifier click is adopted as a background child (#1140)', () => {
+  // GitHub and YouTube open Cmd/Ctrl+clicked links from script, so Electron
+  // hands over a built WebContents with window.opener connected, while the
+  // click's modifiers still make the disposition 'background-tab'.
+  const h = harness();
+  const response = h.handler({ url: 'https://example.test/issue', disposition: 'background-tab' });
+  const existing = { isDestroyed: () => false };
+  assert.equal(response.createWindow({ webContents: existing }), existing);
+  assert.equal(h.created[0].options.openerTabId, h.tab.id, 'the opener family still keeps Quiet Tabs away');
+  assert.equal(h.created[0].options.openedInBackground, true, 'but the child never holds a space switch');
+  assert.equal(h.scheduled.length, 0, 'the active tab stays');
 });
 
 test('a foreground click with deferred contents also loads and activates a normal tab', () => {
@@ -117,14 +137,14 @@ test('a foreground click in the Glance reference opens the new tab into Glance, 
   assert.deepEqual(background.glanced, []);
 });
 
-test('deferred contents retain Chromium document sandbox flags and the full referrer policy', () => {
+test('every page-opened child is marked and keeps the full referrer policy', () => {
   const h = harness();
   const referrer = { url: 'https://example.test/source', policy: 'origin' };
   const response = h.handler({ url: 'https://example.test/target', disposition: 'background-tab', referrer });
-  response.createWindow({ webPreferences: { openerSandboxFlags: 4294836015, nodeIntegration: true } });
-  assert.equal(h.created[0].options.openerSandboxFlags, 4294836015);
+  response.createWindow({ webPreferences: { nodeIntegration: true } });
+  assert.equal(h.created[0].options.inheritsDocumentPolicy, true);
   assert.equal(h.created[0].options.httpReferrer, referrer);
-  assert.equal(h.created[0].options.webPreferences, undefined, 'only the inherited sandbox flags are accepted');
+  assert.equal(h.created[0].options.webPreferences, undefined, 'replacement web preferences are never accepted');
 });
 
 test('a no-referrer navigation keeps its empty URL and policy', () => {
@@ -133,7 +153,7 @@ test('a no-referrer navigation keeps its empty URL and policy', () => {
   const response = h.handler({ url: 'https://example.test/target', disposition: 'background-tab', referrer });
   response.createWindow({});
   assert.equal(h.created[0].options.httpReferrer, referrer);
-  assert.equal(h.created[0].options.openerSandboxFlags, 0);
+  assert.equal(h.created[0].options.inheritsDocumentPolicy, true);
 });
 
 test('featureful new-window requests still use Electron popup creation', () => {

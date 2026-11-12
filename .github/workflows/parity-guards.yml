@@ -9,6 +9,19 @@ on:
   push:
     branches: [main]
   pull_request:
+  # macOS legs of the desktop jobs run here, not on every pull request or push:
+  # GitHub's concurrent macOS job limit queued PRs for 30-40 minutes behind them
+  # (October 2026). A manual run can add them to any branch.
+  schedule:
+    - cron: "41 7 * * *"
+  workflow_dispatch:
+
+# A new push to a pull request cancels that PR's older run. Pushes to main,
+# schedules and manual dispatches each get their own group (run_id), so
+# none is ever cancelled or queued behind another.
+concurrency:
+  group: parity-guards-${{ github.event.pull_request.number || github.run_id }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 permissions:
   contents: read
@@ -84,6 +97,10 @@ jobs:
         if: runner.os == 'Linux'
         run: bash scripts/ci-enable-linux-sandbox.sh
       - run: npm ci
+      - name: Sync Worker quota in the local Workers runtime
+        run: |
+          npm ci --prefix cloudflare/sync-worker
+          npm --prefix cloudflare/sync-worker run test:runtime
       - name: Generated brand assets match their sources
         # Needs sharp from npm ci. PNGs within one channel level of the
         # committed file count as current (macOS/Linux rasterizer rounding).
@@ -144,6 +161,10 @@ jobs:
         run: xvfb-run -a npm run test:favorites-picker:desktop
       - name: Local-clock dynamic wallpaper regression
         run: xvfb-run -a npm run test:wallpaper:desktop
+      - name: Custom Start Page wallpaper (F49)
+        run: xvfb-run -a npm run test:custom-wallpaper:desktop
+      - name: Billboard clock Font & color (F54)
+        run: xvfb-run -a npm run test:billboard-clock:desktop
 
   modified-link-clicks:
     needs: changes
@@ -228,9 +249,12 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-latest, windows-latest, macos-latest]
-    runs-on: ${{ matrix.os }}
-    timeout-minutes: 10
+        # macOS only nightly and on manual runs (see `on:` above), on the
+        # self-hosted Mac when vars.MAC_RUNNER_LABELS is set. Every pull request
+        # would queue three more jobs for it. docs/ci-self-hosted-macos-runner.md
+        os: ${{ fromJSON((github.event_name == 'schedule' || github.event_name == 'workflow_dispatch') && '["ubuntu-latest", "windows-latest", "macos-latest"]' || '["ubuntu-latest", "windows-latest"]') }}
+    runs-on: ${{ (matrix.os == 'macos-latest' && vars.MAC_RUNNER_LABELS != '' && (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository)) && fromJSON(vars.MAC_RUNNER_LABELS) || matrix.os }}
+    timeout-minutes: 25
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
@@ -260,6 +284,37 @@ jobs:
         if: ${{ !cancelled() && runner.os == 'Windows' }}
         run: npm run test:window-close-primary
 
+  shared-spaces:
+    needs: changes
+    # Runs unless `changes` proved a website/docs-only PR (also runs if it failed).
+    if: ${{ !cancelled() && needs.changes.outputs.app != 'false' }}
+    # Two real clients and hard restarts, obeying the real 10-GET/60-second
+    # window: 16 minutes in one job, so its scenarios are split across three.
+    strategy:
+      fail-fast: false
+      matrix:
+        shard: [1, 2, 3]
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - name: Shared Spaces window and consent acceptance
+        run: |
+          bash scripts/ci-apt-mirror.sh
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends gnome-keyring dbus-x11 libsecret-1-0
+          bash scripts/ci-enable-linux-sandbox.sh
+          dbus-run-session -- bash -c '
+            set -euo pipefail
+            printf "%s\n" "blanc-ci-fixture" | gnome-keyring-daemon --unlock --components=secrets
+            BLANC_TEST_SECURE_STORAGE=1 XDG_CURRENT_DESKTOP=GNOME xvfb-run -a npx cucumber-js -c test/desktop/cucumber.mjs -p runnable --tags @F57 --shard ${{ matrix.shard }}/3
+          '
+
   favorites-import:
     needs: changes
     # Runs unless `changes` proved a website/docs-only PR (also runs if it failed).
@@ -270,8 +325,11 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-latest, windows-latest, macos-latest]
-    runs-on: ${{ matrix.os }}
+        # macOS only nightly and on manual runs (see `on:` above), on the
+        # self-hosted Mac when vars.MAC_RUNNER_LABELS is set. Every pull request
+        # would queue three more jobs for it. docs/ci-self-hosted-macos-runner.md
+        os: ${{ fromJSON((github.event_name == 'schedule' || github.event_name == 'workflow_dispatch') && '["ubuntu-latest", "windows-latest", "macos-latest"]' || '["ubuntu-latest", "windows-latest"]') }}
+    runs-on: ${{ (matrix.os == 'macos-latest' && vars.MAC_RUNNER_LABELS != '' && (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository)) && fromJSON(vars.MAC_RUNNER_LABELS) || matrix.os }}
     timeout-minutes: 10
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -318,12 +376,30 @@ jobs:
       - name: Quiet Tabs (Windows)
         if: runner.os != 'Linux'
         run: npm run test:quiet-tabs:desktop
+      - name: Page zoom (Linux)
+        if: ${{ !cancelled() && runner.os == 'Linux' }}
+        run: xvfb-run -a npm run test:page-zoom:desktop
+      - name: Page zoom (Windows)
+        if: ${{ !cancelled() && runner.os != 'Linux' }}
+        run: npm run test:page-zoom:desktop
       - name: Tab views keep drawing (Linux)
         if: ${{ !cancelled() && runner.os == 'Linux' }}
         run: xvfb-run -a npm run test:tab-view-drawing:desktop
       - name: Tab views keep drawing (Windows)
         if: ${{ !cancelled() && runner.os != 'Linux' }}
         run: npm run test:tab-view-drawing:desktop
+      - name: Pinned-home crash recovery (Linux)
+        if: ${{ !cancelled() && runner.os == 'Linux' }}
+        run: xvfb-run -a npm run test:pinned-home-recovery:desktop
+      - name: Pinned-home crash recovery (Windows)
+        if: ${{ !cancelled() && runner.os != 'Linux' }}
+        run: npm run test:pinned-home-recovery:desktop
+      - name: Acceptance harness healing (Linux)
+        if: ${{ !cancelled() && runner.os == 'Linux' }}
+        run: xvfb-run -a npm run test:acceptance:healing:desktop
+      - name: Acceptance harness healing (Windows)
+        if: ${{ !cancelled() && runner.os != 'Linux' }}
+        run: npm run test:acceptance:healing:desktop
 
   browser-shortcuts:
     needs: changes
@@ -332,7 +408,12 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-latest, windows-latest, macos-latest]
+        # macOS only nightly and on manual runs (see `on:` above), and always
+        # GitHub-hosted: the smoke posts real key events, and hosted macOS
+        # images already grant the runner Accessibility. Granting it on the
+        # self-hosted Mac would let every job drive that machine's keyboard and
+        # mouse. docs/ci-self-hosted-macos-runner.md
+        os: ${{ fromJSON((github.event_name == 'schedule' || github.event_name == 'workflow_dispatch') && '["ubuntu-latest", "windows-latest", "macos-latest"]' || '["ubuntu-latest", "windows-latest"]') }}
     runs-on: ${{ matrix.os }}
     timeout-minutes: 10
     steps:
@@ -342,6 +423,11 @@ jobs:
           node-version: 22
           cache: npm
       - run: npm ci
+      # Real X11 keys for most-recent Ctrl+Tab: synthetic events can't prove
+      # the Control release arrives (docs/superpowers/specs/2026-10-24-mru-tab-switcher-design.md §8).
+      - name: Install xdotool (Linux)
+        if: runner.os == 'Linux'
+        run: bash scripts/ci-apt-mirror.sh && sudo apt-get update -q && sudo apt-get install -y -q xdotool
       - name: Browser commands and Settings (Linux)
         if: runner.os == 'Linux'
         run: |
@@ -373,6 +459,12 @@ jobs:
       - name: PDFs render with each blocker (Windows/macOS)
         if: ${{ !cancelled() && runner.os != 'Linux' }}
         run: npm run test:pdf-viewer:desktop
+      - name: Reader Mode lifecycle and pane routing (Linux)
+        if: ${{ !cancelled() && runner.os == 'Linux' }}
+        run: xvfb-run -a npm run test:reader:desktop
+      - name: Reader Mode lifecycle and pane routing (Windows/macOS)
+        if: ${{ !cancelled() && runner.os != 'Linux' }}
+        run: npm run test:reader:desktop
       - name: Retain private native command failure diagnostics
         if: failure()
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
