@@ -1,0 +1,64 @@
+// What a Blanc Mail survey answer may contain, and how answers are counted.
+// The ids are shared with site/src/components/MailSurveyForm.astro; change
+// them together (test/unit/mail-survey-site.test.js checks they match).
+// Spec: docs/superpowers/specs/2026-11-12-mail-feature-survey-design.md.
+
+export const CHOICES = Object.freeze({
+  account: Object.freeze(['gmail', 'proton', 'both', 'other']),
+  speed: Object.freeze(['instant', 'minute', 'few-minutes', 'whenever']),
+  features: Object.freeze([
+    'unsubscribe-mute',
+    'calendar-replies',
+    'sets',
+    'snooze-send-later-templates',
+    'rules-vacation',
+    'saved-search',
+    'trusted-images',
+    'print-pdf-windows',
+    'proton-drafts',
+  ]),
+});
+
+export const MAX_FEATURES = 3;
+export const MAX_NOTE = 500;
+
+// "website" is the honeypot the Worker checks before parsing.
+const ALLOWED_FIELDS = new Set(['account', 'speed', 'features', 'note', 'website']);
+
+const refuse = (reason) => ({ ok: false, reason });
+
+export function parseAnswer(body) {
+  if (!body || typeof body !== 'object' || Array.isArray(body)) return refuse('not an object');
+  for (const key of Object.keys(body)) {
+    if (!ALLOWED_FIELDS.has(key)) return refuse(`unknown field ${key}`);
+  }
+  const { account, speed, features = [], note = null } = body;
+  if (!CHOICES.account.includes(account)) return refuse('account');
+  if (!CHOICES.speed.includes(speed)) return refuse('speed');
+  if (!Array.isArray(features) || features.length > MAX_FEATURES) return refuse('features');
+  if (new Set(features).size !== features.length) return refuse('repeated feature');
+  if (!features.every((id) => CHOICES.features.includes(id))) return refuse('feature');
+  if (note !== null && typeof note !== 'string') return refuse('note');
+  const trimmed = note === null ? '' : note.trim();
+  if ([...trimmed].length > MAX_NOTE) return refuse('note too long');
+  return { ok: true, answer: { account, speed, features: [...features], note: trimmed || null } };
+}
+
+const zeros = (ids) => Object.fromEntries(ids.map((id) => [id, 0]));
+
+export function summarize(records, open) {
+  const accounts = zeros(CHOICES.account);
+  const speed = zeros(CHOICES.speed);
+  const features = zeros(CHOICES.features);
+  const speedByAccount = Object.fromEntries(CHOICES.account.map((id) => [id, zeros(CHOICES.speed)]));
+  const notes = [];
+  for (const record of records) {
+    if (record.account in accounts) accounts[record.account] += 1;
+    if (record.speed in speed) speed[record.speed] += 1;
+    if (record.account in speedByAccount && record.speed in speed) speedByAccount[record.account][record.speed] += 1;
+    for (const id of record.features ?? []) if (id in features) features[id] += 1;
+    if (record.note) notes.push({ day: record.day, text: record.note });
+  }
+  notes.sort((a, b) => (a.day < b.day ? -1 : a.day > b.day ? 1 : 0));
+  return { open, total: records.length, accounts, speed, speedByAccount, features, notes };
+}
