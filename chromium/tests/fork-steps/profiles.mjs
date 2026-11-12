@@ -116,7 +116,9 @@ export default function register(step){
   const hosts=await this.waitFor(()=>profileHosts(this),h=>this.profileRestore.every(p=>h.some(x=>x.directory===p.directory)),'both profile windows restored');
   for(const expected of this.profileRestore){
    const host=hosts.find(p=>p.directory===expected.directory);assert.equal(host.name,expected.name);
-   const snap=await nativeCall(host.cdp,'snapshot');assert.ok(snap.tabs.some(t=>t.url===expected.url));
+   // The window appears first; its Space is bound as the restore settles.
+   const snap=await this.waitFor(()=>nativeCall(host.cdp,'snapshot'),s=>s.spaceName===expected.spaceId&&s.tabs.some(t=>t.url===expected.url),'restored profile window with its Space',10000).catch(()=>nativeCall(host.cdp,'snapshot'));
+   assert.ok(snap.tabs.some(t=>t.url===expected.url));
    assert.equal(snap.spaceName,expected.spaceId);
    assert.equal(snap.tabs.some(t=>this.profileRestore.some(p=>p.directory!==host.directory&&p.url===t.url)),false);
   }
