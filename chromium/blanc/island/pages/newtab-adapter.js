@@ -134,9 +134,13 @@
     return snapshot;
   }
 
+  // The Patron pill's state rides on every status publish, as in shipping's
+  // single status payload. Until Blanc has answered it keeps the pill hidden:
+  // an early publish (the surface style applying) must not flash the pill.
+  let patronStatus = { patronActive: false, patronCalloutSnoozedUntil: Infinity };
   const preferences = () => {
     const saved = read();
-    return { ...(clockValue ? { clock: clockValue } : {}), layout: sharedLayout ?? (layouts.includes(saved.layout) ? saved.layout : 'billboard'),
+    return { ...patronStatus, ...(clockValue ? { clock: clockValue } : {}), layout: sharedLayout ?? (layouts.includes(saved.layout) ? saved.layout : 'billboard'),
       dynamicWallpaperEnabled: saved.dynamicWallpaperEnabled === true,
       wallpaper: usesStoreTheme(saved) ? { ...wallpaper(saved), source: 'web-store',
         image: installedTheme.image || null, hasImage: !!installedTheme.image, themeAvailable: true }
@@ -371,6 +375,7 @@
         // First run: the privacy gate and the walkthrough's saved values.
         const firstRun = isPrivatePage ? null : await request('firstRun').catch(error => { console.warn(error.message); return null; });
         const patron = isPrivatePage ? null : await request('patronCallout').catch(() => null);
+        if (patron) patronStatus = { patronActive: patron.active === true, patronCalloutSnoozedUntil: Number(patron.snoozedUntil) || 0 };
         const launchSunrise = isPrivatePage ? false : await request('launchSunrise').catch(() => false);
         const migrationChecklist = isPrivatePage ? null : await request('checklist').catch(() => null);
         // What's New (F51): nothing until a release build reports a version.
@@ -379,8 +384,7 @@
           ? window.BlancWhatsNew.whatsNewState(release.state, { version: release.version, now: Date.now() }) : null;
         return { ...preferences(), sentItems: isPrivatePage ? [] : await request('sentItems').catch(() => []),
           remoteDevices: isPrivatePage ? [] : await request('remoteDevices').catch(() => []), privacy: firstRun?.privacy, onboarding: firstRun?.onboarding ?? null,
-          migrationChecklist, whatsNew, patronActive: patron?.active === true,
-          patronCalloutSnoozedUntil: Number(patron?.snoozedUntil) || 0, launchSunrise: launchSunrise === true,
+          migrationChecklist, whatsNew, ...patronStatus, launchSunrise: launchSunrise === true,
           blockedThisWeek: Number.isInteger(week?.blocked) ? week.blocked : 0,
           blockerStatisticsAvailable: Number.isInteger(week?.blocked),
           blockedByDay: days, blockedBarHeights: heights,
@@ -510,6 +514,13 @@
     sentItems: async () => {
       const items = isPrivatePage ? [] : await request('sentItems');
       for (const listener of sentListeners) listener(items);
+    },
+    // The Patron pill's status, as shipping broadcasts it after a close.
+    patronCallout: async () => {
+      if (isPrivatePage) return;
+      const patron = await request('patronCallout');
+      patronStatus = { patronActive: patron?.active === true, patronCalloutSnoozedUntil: Number(patron?.snoozedUntil) || 0 };
+      publish();
     },
     // The moving-in checklist (N11): a status push, as shipping's.
     checklist: async () => {

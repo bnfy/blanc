@@ -4057,6 +4057,8 @@ class NewTabHandler : public content::WebUIMessageHandler,
     clock_observing_ = false;
     layout_pref_observer_.Reset();
     layout_observing_ = false;
+    patron_observer_.Reset();
+    patron_observing_ = false;
   }
 
  private:
@@ -4393,6 +4395,14 @@ class NewTabHandler : public content::WebUIMessageHandler,
         return;
       }
       if (method == "patronCallout" && args.empty()) {
+        // Every open Start Page, a background or preloaded one included,
+        // hears when the pill is closed, as shipping broadcasts its status.
+        if (!patron_observing_) {
+          patron_observer_.Init(g_browser_process->local_state());
+          patron_observer_.Add(kPatronCalloutDismissedAtPref,
+              base::BindRepeating(&NewTabHandler::Notify, base::Unretained(this), "patronCallout"));
+          patron_observing_ = true;
+        }
         const double dismissed = g_browser_process->local_state()->GetInt64(kPatronCalloutDismissedAtPref);
         const double now = base::Time::Now().InMillisecondsSinceUnixEpoch();
         constexpr double snooze = 90.0 * 24 * 60 * 60 * 1000;
@@ -4628,6 +4638,8 @@ class NewTabHandler : public content::WebUIMessageHandler,
   void LayoutChanged() { Notify("layout"); }
   PrefChangeRegistrar layout_pref_observer_;
   bool layout_observing_ = false;
+  PrefChangeRegistrar patron_observer_;
+  bool patron_observing_ = false;
   void ClockChanged() { Notify("clock"); }
   PrefChangeRegistrar clock_pref_observer_;
   bool clock_observing_ = false;
