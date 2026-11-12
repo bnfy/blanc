@@ -41,6 +41,11 @@ final class BrowserServices {
             appearance?.values["imageVersion"] as? String
         })
         settingsStore = SettingsStore(directory: settingsDirectory)
+        #if DEBUG
+        // The App Store images show the Island without Back and Forward
+        // (owner, 2026-11-11).
+        if UITestSeed.appStore { settingsStore.update(islandBackForward: false) }
+        #endif
         sessionStore = SessionStore(directory: sessionDirectory)
         tabHistory = TabHistoryStore(directory: sessionDirectory)
         historyStore = HistoryStore(directory: settingsDirectory)
