@@ -1,0 +1,61 @@
+---
+// The Mail page's survey invitation: a quiet corner card that asks the
+// survey's first question. Each chip opens /mail/survey with that answer
+// preselected; nothing is sent until the survey itself is submitted. Closing
+// it, or tapping a chip, hides it for 7 days; submitting the survey hides it
+// for good. That memory is one localStorage entry in the visitor's browser
+// (scripts/mail-survey-invite.mjs), disclosed on the privacy page. It starts
+// hidden so a closed or snoozed card never flashes, and never takes focus.
+// Spec: docs/superpowers/specs/2026-11-12-mail-feature-survey-design.md.
+const accounts = [
+  ['gmail', 'Gmail'],
+  ['proton', 'Proton Mail'],
+  ['both', 'Both'],
+  ['other', 'Something else'],
+];
+---
+<aside class="mail-survey-invite" role="dialog" aria-labelledby="mail-survey-invite-title" data-mail-survey-invite hidden>
+  <button type="button" class="mail-survey-invite-close" aria-label="Close">
+    <svg viewBox="0 0 12 12" width="12" height="12" aria-hidden="true"><path d="M2 2l8 8M10 2l-8 8" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>
+  </button>
+  <p class="mail-survey-invite-title" id="mail-survey-invite-title">Help shape Blanc Mail</p>
+  <p class="mail-survey-invite-question">Which accounts would you use?</p>
+  <div class="mail-survey-invite-chips">
+    {accounts.map(([id, label]) => (
+      <a class="mail-survey-invite-chip" href={`/mail/survey?account=${id}`}>{label}</a>
+    ))}
+  </div>
+  <a class="mail-survey-invite-suggest" href="/mail/survey#suggest">Suggest something else</a>
+</aside>
+<script>
+  import { browserStorage, overlaps, readState, shouldShow, snooze, writeState } from '../scripts/mail-survey-invite.mjs';
+  const card = document.querySelector<HTMLElement>('[data-mail-survey-invite]');
+  const storage = browserStorage();
+  if (card && shouldShow(readState(storage), Date.now())) {
+    card.hidden = false;
+    // The card never covers a waitlist form (owner's choice for phones,
+    // 2026-11-12): it waits, out of sight, while one is behind it, and appears
+    // once the form scrolls clear.
+    const forms = [...document.querySelectorAll<HTMLFormElement>('main form[data-mail-waitlist]')];
+    let queued = false;
+    const place = () => {
+      queued = false;
+      const box = card.getBoundingClientRect();
+      card.classList.toggle('is-waiting', forms.some((form) => overlaps(form.getBoundingClientRect(), box)));
+    };
+    const queue = () => {
+      if (!queued) { queued = true; requestAnimationFrame(place); }
+    };
+    place();
+    addEventListener('scroll', queue, { passive: true });
+    addEventListener('resize', queue);
+    const putAway = () => writeState(storage, snooze(Date.now()));
+    card.querySelector('.mail-survey-invite-close')?.addEventListener('click', () => {
+      putAway();
+      card.hidden = true;
+      removeEventListener('scroll', queue);
+      removeEventListener('resize', queue);
+    });
+    card.querySelectorAll('.mail-survey-invite-chip, .mail-survey-invite-suggest').forEach((chip) => chip.addEventListener('click', putAway));
+  }
+</script>
