@@ -22,6 +22,7 @@ const v145Ledger = JSON.parse(read('docs/website-v1.45-claims.json'));
 const arcWelcomeLedger = JSON.parse(read('docs/website-arc-welcome-claims.json'));
 const compareLedger = JSON.parse(read('docs/website-compare-claims-v1.48.0.json'));
 const iphoneLedger = JSON.parse(read('docs/website-iphone-1.0-claims.json'));
+const ipadLedger = JSON.parse(read('docs/website-ipad-1.0.3-claims.json'));
 const entities = { rsquo: '’', lsquo: '‘', amp: '&', ldquo: '“', rdquo: '”' };
 // Compare source text only; consume incomplete tags and decode entities once.
 const normalize = text => text.replace(/<br\s*\/?>/gi, ' ').replace(/<[^>]*(?:>|$)/g, '').replace(/&(rsquo|lsquo|amp|ldquo|rdquo);/g, (_, name) => entities[name]).replace(/\s+/g, ' ').trim();
@@ -339,7 +340,7 @@ test('every sentence on the homepage is recorded in a claims ledger or named as 
   const file = 'site/src/pages/index.astro';
   const source = read(file);
   const recorded = [cinemaLedger, ledger, v132Ledger, v133Ledger, v134Ledger, JSON.parse(read('docs/website-reorder-claims-v1.30.json')),
-    JSON.parse(read('docs/website-v1.36-claims.json')), JSON.parse(read('docs/website-v1.38-claims.json')), v140Ledger, JSON.parse(read('docs/website-v1.43-claims.json')), v145Ledger, iphoneLedger, JSON.parse(read('docs/website-homepage-measurement-claims.json'))]
+    JSON.parse(read('docs/website-v1.36-claims.json')), JSON.parse(read('docs/website-v1.38-claims.json')), v140Ledger, JSON.parse(read('docs/website-v1.43-claims.json')), v145Ledger, iphoneLedger, ipadLedger, JSON.parse(read('docs/website-homepage-measurement-claims.json'))]
     .flatMap(item => [...item.claims, ...(item.externalClaims || [])])
     .filter(claim => claim.source === file)
     .map(claim => claim.exactWording)
@@ -687,6 +688,63 @@ test('v1.45.0 Shared Spaces and Sync copy resolves to verified public v1.45.0 ev
   assert.match(notes, /\*\*Shared Spaces\.\*\*/);
   assert.match(notes, /\*\*Turn on Sync without a passphrase\.\*\*/);
   assert.match(notes, /\*\*Connect your iPhone\.\*\*/);
+});
+
+// Blanc for iPhone and iPad 1.0.3, the first App Store version that runs on
+// iPad (#1479, #1480). The wording and its evidence are checked now; the copy
+// is held until App Review approves 1.0.3, so this test fails on purpose while
+// approvedOn and publicRelease are null, and passes only once they name the
+// approval and the day 1.0.3 went on sale, recorded in App Store Connect.
+test('Blanc for iPhone and iPad copy resolves to App Store version 1.0.3 once App Review approves it', () => {
+  const record = ipadLedger;
+  assert.equal(record.iosRelease, '1.0.3 (202611121714)');
+  assert.equal(execFileSync('git', ['rev-parse', `${record.iosSourceSha}^{commit}`], { cwd: root, encoding: 'utf8' }).trim(), record.iosSourceSha);
+  for (const commit of Object.keys(record.requiredCommits)) {
+    execFileSync('git', ['merge-base', '--is-ancestor', commit, record.iosSourceSha], { cwd: root });
+  }
+  // The submitted build runs on iPhone and iPad, in every iPad orientation, from iOS 18.4.
+  const project = execFileSync('git', ['show', `${record.iosSourceSha}:ios/Blanc/Blanc.xcodeproj/project.pbxproj`], { cwd: root, encoding: 'utf8' });
+  assert.match(project, /TARGETED_DEVICE_FAMILY = "1,2";/);
+  assert.doesNotMatch(project, /TARGETED_DEVICE_FAMILY = 1;/);
+  assert.match(project, /IPHONEOS_DEPLOYMENT_TARGET = 18\.4;/);
+  assert.match(project, /MARKETING_VERSION = 1\.0\.3;/);
+  assert.match(project, /UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";/);
+  const retired = new Map(record.supersededClaims.map(claim => [claim.id, claim]));
+  for (const claim of record.claims) {
+    assert.ok(['verified', 'qualified'].includes(claim.verdict), claim.id);
+    assert.ok(normalize(read(claim.source)).includes(claim.exactWording), `${claim.id}: exact wording drifted`);
+    if (claim.replaces) assert.equal(retired.get(claim.replaces)?.source, claim.source, `${claim.id}: records the wording it replaces`);
+    assert.ok(claim.evidenceGroups.length, `${claim.id}: no release evidence`);
+    for (const key of claim.evidenceGroups) {
+      const group = record.evidenceGroups[key];
+      assert.ok(group?.qualification && group.evidence.length, `${claim.id}: evidence and qualification`);
+      for (const evidence of group.evidence) execFileSync('git', ['cat-file', '-e', `${group.ref}:${evidence}`], { cwd: root });
+      for (const file of group.records || []) assert.ok(fs.existsSync(path.join(root, file)), `${claim.id}: ${file}`);
+    }
+  }
+  for (const claim of retired.values()) assert.ok(!normalize(read(claim.source)).includes(claim.exactWording), `${claim.id}: retired wording is still on the page`);
+  const files = new Set([...record.claims.map(claim => claim.source), 'site/src/pages/compare.astro', 'site/src/data/compare.json']);
+  for (const file of files) {
+    const text = normalize(read(file));
+    for (const prohibited of record.prohibitedClaims) assert.ok(!text.includes(prohibited), `${file}: says “${prohibited}”`);
+  }
+
+  // Held until App Review approves 1.0.3 and it is on sale.
+  assert.ok(record.approvedOn && record.publicRelease, `held: ${record.pending}`);
+  for (const date of [record.approvedOn, record.publicRelease]) assert.match(date, /^\d{4}-\d{2}-\d{2}$/);
+  assert.ok(record.publicRelease >= record.approvedOn, 'on sale after approval');
+  // The App Store Connect record names 1.0.3 as approved or released, with its build and source.
+  const connect = read(record.releaseEvidence);
+  const row = connect.split('\n').find(line => /^\| \d+ \| [^|]*1\.0\.3[^|]*\| (?:approved|released)\b/.test(line));
+  assert.ok(row, 'docs/ios/app-store-connect.md records 1.0.3 as approved or released');
+  assert.ok(row.includes('202611121714') && row.includes(record.iosSourceSha.slice(0, 9)), 'that row names build 202611121714 and its source');
+  const availability = JSON.parse(read('site/src/data/ios-availability.json'));
+  assert.equal(availability.channel, 'app-store');
+  assert.equal(availability.ipadBuild, record.iosRelease);
+  assert.equal(availability.ipadSince, record.publicRelease);
+  // The privacy policy's date covers its iPad disclosure.
+  const updated = read('site/src/pages/privacy.astro').match(/Last updated (\w+ \d{1,2}, \d{4})/)[1];
+  assert.ok(new Date(`${updated} UTC`).toISOString().slice(0, 10) >= record.approvedOn, 'privacy policy Last updated predates the approval');
 });
 
 // Blanc for iPhone 1.0 on the App Store, recorded once the owner released it.

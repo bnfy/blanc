@@ -539,6 +539,18 @@ original reports:
   update ships them. There is no Android app. Evidence:
   `docs/ios/app-store-connect.md` item 21 and
   `docs/website-iphone-1.0-claims.json`.
+- **Blanc for iPad (held for App Review):** App Store version 1.0.3 (build
+  202611121714, from `44280ff1d`, with #1479 and #1480) adds iPad to the same
+  listing. Until App Review approves it and it is on sale, don't say Blanc
+  runs on iPad. After that, say it as the App Store description does: Blanc
+  for iPhone and iPad; on iPad a native full-screen app in every orientation,
+  with Split View (two tabs side by side), a floating Glance card for links,
+  tabs in their own windows and hardware-keyboard shortcuts like ⌘L and ⌘T;
+  pages load their desktop layout by default, with Request Mobile Website per
+  site. Never claim trackpad or pointer support (not tested on a real iPad)
+  or Stage Manager, and never present it as a desktop app feature. The site
+  copy waits in `docs/website-ipad-1.0.3-claims.json`, whose test fails until
+  `approvedOn` and `publicRelease` are filled.
 - **Play the Sunrise when Blanc opens:** Since v1.45.0, opt-in in Settings →
   Appearance and set on each device: the Sunrise plays once on the first
   Start Page after launch, ends on any click or key and is skipped when the

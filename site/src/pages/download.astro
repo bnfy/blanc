@@ -54,9 +54,9 @@ const latest = releases[0];
 
   <aside class="download-handheld" data-handheld-note hidden aria-labelledby="handheld-title">
     <h2 id="handheld-title">On a phone or tablet?</h2>
-    <p data-not-iphone>Blanc is a desktop browser for macOS, Windows and Linux.</p>
-    <p data-iphone-store hidden>Blanc for iPhone is free on the App Store. Blanc for your Mac or PC is a desktop browser for macOS, Windows and Linux.</p>
-    <a class="download-handheld-action" href={ios.storeUrl} rel="noopener" data-iphone-store hidden>Get it on the App Store</a>
+    <p data-not-ios>Blanc is a desktop browser for macOS, Windows and Linux.</p>
+    <p data-ios-store hidden>Blanc for iPhone and iPad is free on the App Store. Blanc for your Mac or PC is a desktop browser for macOS, Windows and Linux.</p>
+    <a class="download-handheld-action" href={ios.storeUrl} rel="noopener" data-ios-store hidden>Get it on the App Store</a>
     <a class="download-handheld-action" href="/download" data-handheld-share="download-share-status" data-handheld-label="Send to my computer" data-handheld-text="Blanc is a desktop browser for macOS, Windows and Linux.">Send to my computer</a>
     <p id="download-share-status" role="status" aria-live="polite"></p>
   </aside>
@@ -83,9 +83,9 @@ const latest = releases[0];
       <span>AppImage · signed checksum manifest</span>
     </a>
     <a class="platform-card" href="#iphone">
-      <span class="platform-label platform-label--macos"><PlatformLogo platform="apple" />iPhone</span>
-      <strong>Blanc for iPhone</strong>
-      <span>App Store · iOS 18.4 or later</span>
+      <span class="platform-label platform-label--macos"><PlatformLogo platform="apple" />iPhone and iPad</span>
+      <strong>Blanc for iPhone and iPad</strong>
+      <span>App Store · iOS and iPadOS 18.4 or later</span>
     </a>
   </section>
 
@@ -152,16 +152,17 @@ const latest = releases[0];
   <section class="download-block" id="iphone" aria-labelledby="iphone-title">
     <div class="iphone-band">
       <div class="iphone-band-copy">
-        <p class="iphone-band-label">iPhone</p>
+        <p class="iphone-band-label">iPhone and iPad</p>
         <div class="download-section-head">
-          <h2 id="iphone-title">Blanc for iPhone.</h2>
+          <h2 id="iphone-title">Blanc for iPhone and iPad.</h2>
         </div>
-        <p>Blanc for iPhone is free on the App Store. It joins the Sync you set up in Blanc on your computer, so your other devices' tabs and your Favorites come with you, and it blocks ads and trackers.</p>
+        <p>Blanc for iPhone and iPad is free on the App Store. It joins the Sync you set up in Blanc on your computer, so your other devices' tabs and your Favorites come with you, and it blocks ads and trackers.</p>
+        <p>On iPad, Blanc runs as a native full-screen app in every orientation, with Split View (two tabs side by side), a floating Glance card for links, tabs in their own windows, and hardware-keyboard shortcuts like ⌘L and ⌘T. Pages load their desktop layout by default, with Request Mobile Website per site.</p>
         <div class="iphone-band-ctas">
           <a class="iphone-band-cta" href={ios.storeUrl} target="_blank" rel="noopener">Get it on the App Store <span aria-hidden="true">↗</span></a>
           <a class="iphone-band-cta iphone-band-cta--beta" href={ios.joinUrl} target="_blank" rel="noopener">Join the beta on TestFlight <span aria-hidden="true">↗</span></a>
         </div>
-        <p class="iphone-band-note">Needs iOS 18.4 or later. The beta gets new builds first and needs Apple's free TestFlight app.</p>
+        <p class="iphone-band-note">Needs iOS or iPadOS 18.4 or later. The beta gets new builds first and needs Apple's free TestFlight app.</p>
       </div>
       <figure class="iphone-band-shot">
         <img src="/iphone/blanc-day-on-iphone.webp" width="921" height="2000" alt="Blanc for iPhone showing blanc.day, with the Island at the bottom" loading="lazy" decoding="async" />
