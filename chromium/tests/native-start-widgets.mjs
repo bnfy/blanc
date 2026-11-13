@@ -83,9 +83,11 @@ try{
   const tray=cs('#bbWidgets'),fade=getComputedStyle(document.getElementById('layoutFooter'),'::after'),clock=getComputedStyle(document.querySelector('.bb-clock-row'),'::before');
   return {tray:!!tray&&!clear(tray)&&tray.backdropFilter.includes('blur'),
    sections:[...document.querySelectorAll('#bbWidgets > .bb-widget')].filter(e=>getComputedStyle(e).display!=='none').map(e=>clear(getComputedStyle(e))),
-   text:Object.fromEntries(['.start-brand-date','.bb-fav .label'].map(s=>{const c=cs(s);return [s,c?{clear:clear(c),shadow:c.textShadow!=='none'}:null];})),
+   text:Object.fromEntries(['.bb-fav .label'].map(s=>{const c=cs(s);return [s,c?{clear:clear(c),shadow:c.textShadow!=='none'}:null];})),
    footerItems:['.start-customize','.footer-right','#footerLeft'].map(s=>{const c=cs(s);return c?clear(c):true;}),
    fade:fade.content!=='none'&&fade.backgroundImage.includes('gradient'),
+   headerFade:(h=>h.content!=='none'&&h.backgroundImage.includes('gradient'))(getComputedStyle(document.querySelector('.start-header'),'::after')),
+   dateClear:clear(cs('.start-brand-date')),
    clockHalo:clock.content!=='none'&&clock.content!=='normal',haloAttr:document.querySelector('.bb-clock-row').hasAttribute('data-halo')};})()`);
  result.look=look;
  assert.equal(look.tray,true,'the widgets sit on one glass tray');
@@ -93,8 +95,9 @@ try{
  for(const [sel,t] of Object.entries(look.text))if(t){assert.equal(t.clear,true,`${sel} has no backing`);assert.equal(t.shadow,true,`${sel} keeps a soft shadow`);}
  assert.ok(look.footerItems.every(Boolean),'the footer\'s items have no backing');
  assert.equal(look.fade,true,'the footer sits in a fade');
+ assert.equal(look.headerFade,true,'the header sits in a fade');assert.equal(look.dateClear,true,'the date has no backing');
  assert.equal(look.clockHalo,false,'no halo behind the clock');assert.equal(look.haloAttr,false);
- result.checks.push('over an image the widgets sit on one glass tray, small text keeps a shadow, the footer a fade, and the clock is as before');
+ result.checks.push('over an image the widgets sit on one glass tray, small text keeps a shadow, the header and footer a fade, and the clock is as before');
  await visible();result.result='pass';
 }catch(error){result.result=error.code==='BLANC_ENVIRONMENT_STOP'?'blocked-environment':'fail';result.error=String(error.stack);process.exitCode=1;}
 finally{

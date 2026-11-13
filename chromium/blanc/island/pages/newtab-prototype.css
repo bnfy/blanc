@@ -309,8 +309,24 @@ body.widget-chart-on #bbBlocked { display: none; }
 }
 
 /* Small text over an image: a soft shadow opposite its ink, no backing. */
-.ledger-body[data-wallpaper-style] :is(.start-brand-date, #bbBlocked, .bb-fav .label, .bb-groups .group-chip) {
+.ledger-body[data-wallpaper-style] :is(#bbBlocked, .bb-fav .label, .bb-groups .group-chip) {
   text-shadow: var(--start-text-halo);
+}
+
+/* The header over an image: the footer's fade, mirrored down from the top
+   edge behind the Sunrise mark and the date (owner: a shadow alone was not
+   enough there). */
+.ledger-body[data-wallpaper-style] .start-header {
+  --text-dim: var(--start-tray-ink-dim);
+}
+.ledger-body[data-wallpaper-style] .start-brand-date { color: var(--start-tray-ink-dim); }
+.ledger-body[data-wallpaper-style] .start-header::after {
+  content: ""; position: absolute; inset: 0 0 auto 0; z-index: -1; pointer-events: none;
+  height: calc(var(--start-header-h, 96px) + 72px);
+  background: linear-gradient(to bottom,
+    rgb(var(--start-footer-fade) / 0.9) 0,
+    rgb(var(--start-footer-fade) / 0.82) var(--start-header-h, 96px),
+    rgb(var(--start-footer-fade) / 0) 100%);
 }
 
 /* The footer over an image: a fade up from the window's bottom edge, strong
