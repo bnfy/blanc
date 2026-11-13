@@ -1,5 +1,11 @@
 import SwiftUI
 
+/// Where the Island sits: along the bottom of the screen, under the thumb (the
+/// default), or along the top, as in a desktop browser (Settings → Appearance).
+enum IslandPosition: String, CaseIterable {
+    case bottom, top
+}
+
 /// Duo-1: what the Island does in the window's size classes. Regular in both
 /// directions (the iPhone Duo's inner display) is the unfolded layout;
 /// everything else, including the inner display in system Split View and a
@@ -9,14 +15,37 @@ import SwiftUI
 struct IslandLayout: Equatable {
     enum Palette { case sheet, panel }
 
-    /// Back and Forward on the Island.
-    let showsHistoryButtons: Bool
+    /// Where Back and Forward sit on the Island, if anywhere.
+    enum History: Equatable { case hidden, afterAddress }
+
+    /// The Island's buttons around the address. New Tab is always on it, and
+    /// the address always leads.
+    struct Buttons: Equatable {
+        let history: History
+        /// Reload, which is Stop while a page loads.
+        let reload: Bool
+    }
+
     /// A bottom sheet, or a panel growing up from the Island in its place.
     let palette: Palette
+    /// Split View (F53): a split's panes side by side. Elsewhere its focused
+    /// pane fills the screen, and the split comes back with the room (D30).
+    let showsSplitView: Bool
 
     init(_ horizontal: UserInterfaceSizeClass?, _ vertical: UserInterfaceSizeClass?) {
         let unfolded = horizontal == .regular && vertical == .regular
-        showsHistoryButtons = unfolded
         palette = unfolded ? .panel : .sheet
+        showsSplitView = unfolded
+    }
+
+    /// Every Island, iPhone or iPad, has Back, Forward and New Tab after the
+    /// address, but not Reload as well (owner, 2026-11-12: the iPad Island
+    /// matches the iPhone's): pull to refresh and the Sunrise menu
+    /// reload a page, and Stop still shows while a page loads, since nothing
+    /// else can stop one. With the Back and Forward setting off, Reload takes
+    /// their place.
+    func buttons(backForward: Bool, isLoading: Bool) -> Buttons {
+        if backForward { return Buttons(history: .afterAddress, reload: isLoading) }
+        return Buttons(history: .hidden, reload: true)
     }
 }

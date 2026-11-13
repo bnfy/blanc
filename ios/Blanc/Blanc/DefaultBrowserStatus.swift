@@ -2,30 +2,34 @@ import SwiftUI
 import UIKit
 
 /// The default-browser offer (M18 §5): the walkthrough's step and a Settings
-/// row. iOS lists Blanc under Default Browser App only once Apple grants
-/// `com.apple.developer.web-browser` (request P2X5BCD4C9), so both stay hidden
-/// until then. The change that adds the entitlement turns this on.
+/// row. iOS lists Blanc under Default Browser App because the app carries
+/// `com.apple.developer.web-browser`.
 enum DefaultBrowserOffer {
-    static let enabled = false
-
     /// iOS's Default Apps screen, where the person picks their browser.
     static var settingsURL: URL? { URL(string: UIApplication.openDefaultApplicationsSettingsURLString) }
 }
 
 /// Whether Blanc is the default browser. Apple rate-limits the check without
 /// saying how far, so it's asked only when a screen showing the answer appears
-/// or Blanc comes back from iOS Settings; an error reads as unknown (`nil`),
-/// which still shows the offer, never "done".
+/// or Blanc comes back from iOS Settings. A refused check keeps the last answer;
+/// with none yet it reads as unknown (`nil`), which still shows the offer.
 @MainActor @Observable final class DefaultBrowserStatus {
     private(set) var isDefault: Bool?
     private let check: () throws -> Bool
+    private let defaults: UserDefaults
+    private static let lastAnswerKey = "defaultBrowserLastAnswer"
 
-    init(check: @escaping () throws -> Bool = { try UIApplication.shared.isDefault(.webBrowser) }) {
+    init(check: @escaping () throws -> Bool = { try UIApplication.shared.isDefault(.webBrowser) },
+         defaults: UserDefaults = .standard) {
         self.check = check
+        self.defaults = defaults
+        isDefault = defaults.object(forKey: Self.lastAnswerKey) as? Bool
     }
 
     func refresh() {
-        isDefault = try? check()
+        guard let answer = try? check() else { return }
+        isDefault = answer
+        defaults.set(answer, forKey: Self.lastAnswerKey)
     }
 }
 
@@ -39,8 +43,13 @@ struct DefaultBrowserRow: View {
         Button {
             if let url = DefaultBrowserOffer.settingsURL { openURL(url) }
         } label: {
-            LabeledContent(SyncCopy.text("ios.defaultBrowser.row"),
-                           value: status.isDefault == true ? "Blanc" : SyncCopy.text("ios.defaultBrowser.notBlanc"))
+            LabeledContent {
+                if let isDefault = status.isDefault {
+                    Text(isDefault ? "Blanc" : SyncCopy.text("ios.defaultBrowser.notBlanc"))
+                }
+            } label: {
+                Text(SyncCopy.text("ios.defaultBrowser.row"))
+            }
         }
         .accessibilityIdentifier("settings.defaultBrowser")
         .onAppear { status.refresh() }

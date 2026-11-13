@@ -5,7 +5,16 @@ import UIKit
 /// Device-local Start Page appearance. Image data never leaves the app.
 @Observable
 final class StartAppearanceStore {
-    private(set) var values: [String: Any] = [:]
+    /// What the phone draws: the saved choices over `defaults`.
+    var values: [String: Any] { Self.defaults.merging(saved) { $1 } }
+    /// The phone's own first-run clock, kept out of the file so a person who
+    /// never changed it follows any later default: Roboto Flex at its tallest,
+    /// in Liquid Glass, with a light stroke (stretching thins the figures, so
+    /// anything under about 300 draws as a hairline). Desktop keeps
+    /// settings-schema's defaults; this store never syncs.
+    static let defaults: [String: Any] = ["newtabClockFont": "flex", "newtabClockHeight": 300,
+                                          "newtabClockStyle": "glass", "newtabClockWeight": 450]
+    private var saved: [String: Any] = [:]
     let imageURL: URL
     private let fileURL: URL
     private static let presets = ["sage", "sky", "iris", "rose", "clay", "sand", "slate", "graphite"]
@@ -17,7 +26,7 @@ final class StartAppearanceStore {
         imageURL = root.appendingPathComponent("start-wallpaper.jpg")
         if let data = try? Data(contentsOf: fileURL),
            let saved = try? JSONSerialization.jsonObject(with: data) as? [String: Any] {
-            values = saved
+            self.saved = saved
         }
     }
 
@@ -29,7 +38,7 @@ final class StartAppearanceStore {
 
     @discardableResult
     func change(_ method: String, value: Any?) throws -> [String: Any] {
-        var next = values
+        var next = saved
         func select(_ key: String, _ choices: [String]) {
             if let s = value as? String, choices.contains(s) { next[key] = s }
         }
@@ -93,7 +102,7 @@ final class StartAppearanceStore {
         }
         guard let data = normalized.jpegData(compressionQuality: 0.85) else { throw CocoaError(.fileWriteUnknown) }
         try data.write(to: imageURL, options: .atomic)
-        var next = values
+        var next = saved
         next["newtabCustomWallpaper"] = true
         next["imageVersion"] = UUID().uuidString
         try save(next)
@@ -102,6 +111,6 @@ final class StartAppearanceStore {
     private func save(_ next: [String: Any]) throws {
         let data = try JSONSerialization.data(withJSONObject: next, options: [.sortedKeys])
         try data.write(to: fileURL, options: .atomic)
-        values = next
+        saved = next
     }
 }

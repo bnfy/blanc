@@ -1,10 +1,10 @@
 'use strict';
-// Diagnostic only: the exact ECS 44.9.3+wvcus Linux x64 binary returns a null
+// Diagnostic only: the exact ECS 45.2.1+wvcus Linux x64 binary returns a null
 // zygote for kCdm (4). Restore Chromium's generic-zygote choice for that type.
 // Never apply this to a shipped installation or an unrecognized runtime.
 const { createHash } = require('node:crypto');
-const ORIGINAL_SHA256 = 'ea41e23f4833628bc18948a4cf9f5597040226c128b01c6531dfe86a41edc2b4';
-const OFFSET = 0x8634812;
+const ORIGINAL_SHA256 = '83b1440e7627de8d3c3e5064029346249b6691b3c05fe9866ae0414d5cc45d68';
+const OFFSET = 0x87c6d62;
 const INSTRUCTION = Buffer.from('b9b00000000fa3c1731831c0eb04', 'hex');
 const hash = bytes => createHash('sha256').update(bytes).digest('hex');
 function restoreCdmMask(instruction) {
@@ -17,7 +17,7 @@ function patchVerifiedRuntime(bytes) {
   if (!Buffer.isBuffer(bytes) || hash(bytes) !== ORIGINAL_SHA256) throw Error('CDM zygote trial requires the exact pinned vendor binary');
   const result = Buffer.from(bytes);
   restoreCdmMask(bytes.subarray(OFFSET, OFFSET + INSTRUCTION.length)).copy(result, OFFSET);
-  return { bytes: result, receipt: { experimental: true, platform: 'linux-x64', runtime: '44.9.3+wvcus',
+  return { bytes: result, receipt: { experimental: true, platform: 'linux-x64', runtime: '45.2.1+wvcus',
     originalSha256: ORIGINAL_SHA256, patchedSha256: hash(result), offset: OFFSET,
     before: INSTRUCTION.toString('hex'), after: result.subarray(OFFSET, OFFSET + INSTRUCTION.length).toString('hex'),
     change: 'Restore generic zygote for kCdm only; not a production-qualified runtime' } };

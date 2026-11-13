@@ -1,0 +1,332 @@
+{
+ "iosRelease": "1.0.3 (202611121714)",
+ "iosSourceSha": "44280ff1dd0fae569a4270e07c6a3d2943c157f2",
+ "requiredCommits": {
+  "65428e44a47c598480464e6adb694c5a778fcf47": "iOS: Blanc for iPad (#1479)",
+  "44280ff1dd0fae569a4270e07c6a3d2943c157f2": "iOS: websites start below the status bar and clear the Dynamic Island; version 1.0.3 (#1480)"
+ },
+ "approvedOn": "2026-11-12",
+ "publicRelease": "2026-11-12",
+ "releaseEvidence": "docs/ios/app-store-connect.md",
+ "pending": "Released. App Review approved App Store version 1.0.3 (build 202611121714, from 44280ff1d, with #1479 and #1480) on November 12, 2026, about an hour after it was submitted (review submission 622e22ae, 18:34 UTC), and it released itself automatically: the App Store lists 1.0.3 from 19:30 UTC that day, with iPad devices and the seven 13-inch iPad screenshots. Note: #1485 merged at 18:45 UTC, before the approval, while this test reported held; the copy first reached production on November 13 with the What's New 1.49 deploy (from ac3d6d9), after 1.0.3 was on sale.",
+ "ownerDecisions": {
+  "approvedOn": "2026-11-12",
+  "decisions": [
+   "Privacy policy: disclose that the launch count says whether it came from an iPhone or an iPad (the device field LaunchPing adds in #1479).",
+   "Blanc vs. Chrome row “Phone and tablet apps”: Partly, “iPhone and iPad; no Android”, replacing “Desktop only”.",
+   "/pair claims iPad pairing on #1479’s word and the simulator, without a check on a real iPad.",
+   "Terms keeps “A mobile version is in development” unchanged for now."
+  ]
+ },
+ "scope": "Site copy naming iPad beside iPhone, for Blanc for iPhone and iPad 1.0.3, the first App Store version that runs on iPad: the homepage hero platforms line, its “Can I sync with my phone?” answer and the Blanc vs. Chrome row “Phone and tablet apps”; the download page’s handheld note, platform card and iPhone and iPad section (which gains the App Store description’s ON IPAD sentence); /pair; the privacy policy’s Blanc for iPhone and iPad section (which now also discloses that the launch count says whether it came from an iPhone or an iPad); the header’s Browser menu; and the /compare chart’s Where it runs cell and Phones and tablets note, edited in place in docs/website-compare-claims-v1.48.0.json. On the download page and homepage an iPad visitor, including one whose Safari sends a Mac user agent, is shown the App Store button and is no longer offered a Mac installer first. The wording follows the owner-approved App Store description, which opens “Blanc for iPhone and iPad is the companion to Blanc”.",
+ "prohibitedClaims": [
+  "Stage Manager",
+  "trackpad support",
+  "pointer support",
+  "iPhone only",
+  "Desktop only",
+  "Blanc for iPhone is free on the App Store",
+  "Blanc for iPhone is on the App Store",
+  "Blanc for iPhone is available"
+ ],
+ "evidenceGroups": {
+  "ipadAppStore": {
+   "ref": "44280ff1dd0fae569a4270e07c6a3d2943c157f2",
+   "evidence": [
+    "ios/Blanc/Blanc.xcodeproj/project.pbxproj",
+    "ios/Blanc/Blanc/WindowRoot.swift",
+    "ios/Blanc/Blanc/SplitModel.swift",
+    "ios/Blanc/Blanc/GlanceCard.swift",
+    "ios/Blanc/Blanc/BrowserCommands.swift",
+    "ios/Blanc/Blanc/IslandMenu.swift",
+    "ios/Blanc/Blanc/SettingsStore.swift",
+    "ios/Blanc/Blanc/TabNavigationDelegate.swift",
+    "ios/Blanc/Blanc/PairWithBlancView.swift",
+    "ios/Blanc/Blanc/ContentBlocker.swift",
+    "ios/Blanc/BlancTests/SplitViewTests.swift",
+    "ios/Blanc/BlancTests/MultipleWindowsTests.swift",
+    "ios/Blanc/BlancUITests/GlanceUITests.swift",
+    "ios/Blanc/BlancUITests/IPadWindowUITests.swift",
+    "ios/Blanc/BlancUITests/KeyboardShortcutsUITests.swift"
+   ],
+   "records": [
+    "docs/ios/app-store-connect.md",
+    "site/src/data/ios-availability.json"
+   ],
+   "qualification": "Blanc for iPhone and iPad 1.0.3, build 202611121714 from 44280ff1d (with #1479, iPad support, and #1480, the status bar fix), is the same free App Store listing as iPhone 1.0 (Apple ID 6828027794) and the first version that runs on iPad: TARGETED_DEVICE_FAMILY 1,2, iOS and iPadOS 18.4 or later, all four iPad orientations. On iPad, Blanc runs as a native full-screen app in every orientation, with Split View (two tabs side by side, SplitModel), a floating Glance card for links (GlanceCard), tabs in their own windows (WindowRoot, MultipleWindowsTests) and hardware-keyboard shortcuts such as ⌘L and ⌘T (BrowserCommands). Pages load their desktop layout by default, with Request Mobile Website per site (IslandMenu, SettingsStore, TabNavigationDelegate). It blocks ads and trackers with the bundled EasyList and EasyPrivacy rules and pairs with a desktop Sync as on iPhone. Not claimed: trackpad or pointer support (not tested on a real iPad), Stage Manager, or anything about the desktop app. There is no Android app. Held until App Review approves 1.0.3 (approvedOn) and it is on sale (publicRelease)."
+  },
+  "iphonePairing": {
+   "ref": "v1.45.0",
+   "evidence": [
+    "src/main/main.js",
+    "copy/messages/en.json",
+    "docs/press/release-notes/v1.45.0.md"
+   ],
+   "qualification": "Since desktop v1.45.0 (IPHONE_PAIRING_FROM is 1.45) Settings → Sync → Connect your iPhone, and Add device when Sync is on, show a QR code that Blanc for iPhone scans with Pair with your Blanc to join the same Sync, bringing Favorites and the other devices’ tabs. Android has no Blanc app."
+  },
+  "syncWithoutPassphrase": {
+   "ref": "v1.45.0",
+   "evidence": [
+    "src/main/sync.js",
+    "src/main/sync-pairing.js",
+    "docs/press/release-notes/v1.45.0.md"
+   ],
+   "qualification": "Optional Sync keeps Favorites, settings and open tabs in step across computers, end-to-end encrypted; history and passwords never sync. See docs/website-v1.45-claims.json."
+  },
+  "launchPing": {
+   "ref": "44280ff1dd0fae569a4270e07c6a3d2943c157f2",
+   "evidence": [
+    "ios/Blanc/Blanc/LaunchPing.swift",
+    "cloudflare/ping-worker/src/index.js"
+   ],
+   "qualification": "Since #1479 the launch count Blanc for iPhone and iPad sends with Measure usage on carries a device field, iphone or ipad (LaunchPing.body), beside the install ID, session ID, app version, platform, architecture and OS major version; the ping Worker counts launches and new installs by device. Version 1.0.2 and earlier send no device field."
+  }
+ },
+ "claims": [
+  {
+   "id": "ipad103-001",
+   "source": "site/src/pages/index.astro",
+   "exactWording": "On an iPhone or iPad, yes: Blanc for iPhone and iPad is on the App Store. Since Blanc 1.45 you pair it by scanning a code in Settings → Sync, and your Favorites and your other devices’ tabs come with you. Optional sync keeps Favorites, settings and open tabs in step across your computers, end-to-end encrypted. History and passwords never sync.",
+   "subject": "Blanc",
+   "evidenceGroups": [
+    "ipadAppStore",
+    "iphonePairing",
+    "syncWithoutPassphrase"
+   ],
+   "verdict": "verified",
+   "replaces": "iphone10-001"
+  },
+  {
+   "id": "ipad103-002",
+   "source": "site/src/pages/index.astro",
+   "exactWording": "For macOS, Windows, Linux, iPhone and iPad",
+   "subject": "Blanc",
+   "evidenceGroups": [
+    "ipadAppStore"
+   ],
+   "verdict": "verified",
+   "replaces": "iphone10-006"
+  },
+  {
+   "id": "ipad103-003",
+   "source": "site/src/pages/index.astro",
+   "exactWording": "iPhone and iPad; no Android",
+   "subject": "Blanc",
+   "evidenceGroups": [
+    "ipadAppStore"
+   ],
+   "verdict": "qualified",
+   "replaces": "cinema-data-22"
+  },
+  {
+   "id": "ipad103-004",
+   "source": "site/src/pages/download.astro",
+   "exactWording": "Blanc for iPhone and iPad is free on the App Store. It joins the Sync you set up in Blanc on your computer, so your other devices' tabs and your Favorites come with you, and it blocks ads and trackers.",
+   "subject": "Blanc",
+   "evidenceGroups": [
+    "ipadAppStore",
+    "iphonePairing"
+   ],
+   "verdict": "verified",
+   "replaces": "iphone10-002"
+  },
+  {
+   "id": "ipad103-005",
+   "source": "site/src/pages/download.astro",
+   "exactWording": "On iPad, Blanc runs as a native full-screen app in every orientation, with Split View (two tabs side by side), a floating Glance card for links, tabs in their own windows, and hardware-keyboard shortcuts like ⌘L and ⌘T. Pages load their desktop layout by default, with Request Mobile Website per site.",
+   "subject": "Blanc",
+   "evidenceGroups": [
+    "ipadAppStore"
+   ],
+   "verdict": "qualified"
+  },
+  {
+   "id": "ipad103-006",
+   "source": "site/src/pages/download.astro",
+   "exactWording": "Needs iOS or iPadOS 18.4 or later. The beta gets new builds first and needs Apple's free TestFlight app.",
+   "subject": "Blanc",
+   "evidenceGroups": [
+    "ipadAppStore"
+   ],
+   "verdict": "verified",
+   "replaces": "iphone10-003"
+  },
+  {
+   "id": "ipad103-007",
+   "source": "site/src/pages/download.astro",
+   "exactWording": "Blanc for iPhone and iPad is free on the App Store. Blanc for your Mac or PC is a desktop browser for macOS, Windows and Linux.",
+   "subject": "Blanc",
+   "evidenceGroups": [
+    "ipadAppStore"
+   ],
+   "verdict": "verified",
+   "replaces": "iphone10-007"
+  },
+  {
+   "id": "ipad103-008",
+   "source": "site/src/pages/download.astro",
+   "exactWording": "App Store · iOS and iPadOS 18.4 or later",
+   "subject": "Blanc",
+   "evidenceGroups": [
+    "ipadAppStore"
+   ],
+   "verdict": "verified"
+  },
+  {
+   "id": "ipad103-009",
+   "source": "site/src/pages/pair.astro",
+   "exactWording": "Open Blanc on your iPhone or iPad, choose Pair with your Blanc in Settings → Sync, and point it at the code on your computer.",
+   "subject": "Blanc",
+   "evidenceGroups": [
+    "ipadAppStore",
+    "iphonePairing"
+   ],
+   "verdict": "verified"
+  },
+  {
+   "id": "ipad103-010",
+   "source": "site/src/pages/pair.astro",
+   "exactWording": "Don’t have Blanc for iPhone and iPad yet? It’s free on the App Store.",
+   "subject": "Blanc",
+   "evidenceGroups": [
+    "ipadAppStore"
+   ],
+   "verdict": "verified",
+   "replaces": "iphone10-004"
+  },
+  {
+   "id": "ipad103-011",
+   "source": "site/src/pages/pair.astro",
+   "exactWording": "Needs iOS or iPadOS 18.4 or later.",
+   "subject": "Blanc",
+   "evidenceGroups": [
+    "ipadAppStore"
+   ],
+   "verdict": "verified"
+  },
+  {
+   "id": "ipad103-012",
+   "source": "site/src/pages/privacy.astro",
+   "exactWording": "Blanc for iPhone and iPad is available on Apple's App Store, and as a beta through Apple's TestFlight.",
+   "subject": "Blanc",
+   "evidenceGroups": [
+    "ipadAppStore"
+   ],
+   "verdict": "verified",
+   "replaces": "iphone10-005"
+  },
+  {
+   "id": "ipad103-013",
+   "source": "site/src/pages/privacy.astro",
+   "exactWording": "With Measure usage on, each time you open Blanc it sends one anonymous count: a random ID for this install, the app version, the iOS or iPadOS version and whether it is an iPhone or an iPad, and never what you browse.",
+   "subject": "Blanc",
+   "evidenceGroups": [
+    "launchPing"
+   ],
+   "verdict": "verified"
+  }
+ ],
+ "supersededClaims": [
+  {
+   "id": "iphone10-001",
+   "source": "site/src/pages/index.astro",
+   "exactWording": "On an iPhone, yes: Blanc for iPhone is on the App Store. Since Blanc 1.45 you pair it by scanning a code in Settings → Sync, and your Favorites and your other devices’ tabs come with you. Optional sync keeps Favorites, settings and open tabs in step across your computers, end-to-end encrypted. History and passwords never sync.",
+   "subject": "Blanc",
+   "evidenceGroups": [
+    "iphoneAppStore",
+    "iphonePairing",
+    "syncWithoutPassphrase"
+   ],
+   "verdict": "verified",
+   "replaces": "v145-020",
+   "ledger": "docs/website-iphone-1.0-claims.json",
+   "reason": "Held with this ledger: App Store version 1.0.3 (build 202611121714) adds iPad, and the site names it once App Review approves 1.0.3."
+  },
+  {
+   "id": "iphone10-002",
+   "source": "site/src/pages/download.astro",
+   "exactWording": "Blanc for iPhone is free on the App Store. It joins the Sync you set up in Blanc on your computer, so your other devices' tabs and your Favorites come with you, and it blocks ads and trackers.",
+   "subject": "Blanc",
+   "evidenceGroups": [
+    "iphoneAppStore",
+    "iphonePairing"
+   ],
+   "verdict": "verified",
+   "ledger": "docs/website-iphone-1.0-claims.json",
+   "reason": "Held with this ledger: App Store version 1.0.3 (build 202611121714) adds iPad, and the site names it once App Review approves 1.0.3."
+  },
+  {
+   "id": "iphone10-003",
+   "source": "site/src/pages/download.astro",
+   "exactWording": "Needs iOS 18.4 or later. The beta gets new builds first and needs Apple's free TestFlight app.",
+   "subject": "Blanc",
+   "evidenceGroups": [
+    "iphoneAppStore"
+   ],
+   "verdict": "verified",
+   "ledger": "docs/website-iphone-1.0-claims.json",
+   "reason": "Held with this ledger: App Store version 1.0.3 (build 202611121714) adds iPad, and the site names it once App Review approves 1.0.3."
+  },
+  {
+   "id": "iphone10-004",
+   "source": "site/src/pages/pair.astro",
+   "exactWording": "Don’t have Blanc for iPhone yet? It’s free on the App Store.",
+   "subject": "Blanc",
+   "evidenceGroups": [
+    "iphoneAppStore"
+   ],
+   "verdict": "verified",
+   "ledger": "docs/website-iphone-1.0-claims.json",
+   "reason": "Held with this ledger: App Store version 1.0.3 (build 202611121714) adds iPad, and the site names it once App Review approves 1.0.3."
+  },
+  {
+   "id": "iphone10-005",
+   "source": "site/src/pages/privacy.astro",
+   "exactWording": "Blanc for iPhone is available on Apple's App Store, and as a beta through Apple's TestFlight.",
+   "subject": "Blanc",
+   "evidenceGroups": [
+    "iphoneAppStore"
+   ],
+   "verdict": "verified",
+   "ledger": "docs/website-iphone-1.0-claims.json",
+   "reason": "Held with this ledger: App Store version 1.0.3 (build 202611121714) adds iPad, and the site names it once App Review approves 1.0.3."
+  },
+  {
+   "id": "iphone10-006",
+   "source": "site/src/pages/index.astro",
+   "exactWording": "For macOS, Windows, Linux and iPhone",
+   "subject": "Blanc",
+   "evidenceGroups": [
+    "iphoneAppStore"
+   ],
+   "verdict": "verified",
+   "replaces": "v140-035",
+   "ledger": "docs/website-iphone-1.0-claims.json",
+   "reason": "Held with this ledger: App Store version 1.0.3 (build 202611121714) adds iPad, and the site names it once App Review approves 1.0.3."
+  },
+  {
+   "id": "iphone10-007",
+   "source": "site/src/pages/download.astro",
+   "exactWording": "Blanc for iPhone is free on the App Store. Blanc for your Mac or PC is a desktop browser for macOS, Windows and Linux.",
+   "subject": "Blanc",
+   "evidenceGroups": [
+    "iphoneAppStore"
+   ],
+   "verdict": "verified",
+   "ledger": "docs/website-iphone-1.0-claims.json",
+   "reason": "Held with this ledger: App Store version 1.0.3 (build 202611121714) adds iPad, and the site names it once App Review approves 1.0.3."
+  },
+  {
+   "id": "cinema-data-22",
+   "source": "site/src/pages/index.astro",
+   "exactWording": "Desktop only",
+   "subject": "Blanc",
+   "evidenceGroups": [
+    "platforms"
+   ],
+   "verdict": "qualified",
+   "ledger": "docs/website-cinematic-homepage-claims-v1.34.json",
+   "reason": "The homepage’s Blanc vs. Chrome row “Phone and tablet apps” said Blanc was desktop only, which stopped being true when Blanc for iPhone 1.0 reached the App Store on November 6, 2026. Held with this ledger: App Store version 1.0.3 (build 202611121714) adds iPad, and the site names it once App Review approves 1.0.3."
+  }
+ ]
+}

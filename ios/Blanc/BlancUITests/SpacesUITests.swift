@@ -1,6 +1,6 @@
 import XCTest
 
-/// M17a: tab groups in the grid, and the Space mark and Spaces card.
+/// M17a: tab groups in the grid, and the palette's Spaces button and Spaces card.
 final class SpacesUITests: XCTestCase {
   private func launch() -> XCUIApplication {
     continueAfterFailure = false
@@ -29,11 +29,13 @@ final class SpacesUITests: XCTestCase {
     waitCount(cards, 4, "two loose tabs and two in Research")
     XCTAssertTrue(app.otherElements["group.header.Research"].exists || app.descendants(matching: .any)["group.header.Research"].exists)
 
+    XCTAssertEqual(app.buttons["group.fold"].label, "Research")
+    XCTAssertEqual(app.buttons["group.fold"].value as? String, "2")
+
     app.buttons["group.fold"].tap()
-    XCTAssertTrue(app.buttons["group.tucked"].waitForExistence(timeout: 5))
     waitCount(cards, 2, "a folded group hides its cards")
-    app.buttons["group.tucked"].tap()
-    waitCount(cards, 4, "the tucked row unfolds the group")
+    app.buttons["group.fold"].tap()
+    waitCount(cards, 4, "its header unfolds the group")
 
     app.buttons["group.menu"].tap()
     app.buttons["Rename…"].tap()
@@ -52,13 +54,28 @@ final class SpacesUITests: XCTestCase {
     waitCount(cards, 4, "Undo brings the whole group back")
   }
 
+  func testAFoldedGroupKeepsTheCurrentTab() {
+    let app = launch()
+    openGrid(app)
+    let cards = app.buttons.matching(identifier: "tab.card")
+    waitCount(cards, 4, "two loose tabs and two in Research")
+    cards.element(boundBy: 2).tap()
+    XCTAssertTrue(app.buttons["pill.palette"].waitForExistence(timeout: 5))
+    openGrid(app)
+
+    app.buttons["group.fold"].tap()
+    waitCount(cards, 3, "the current tab's card stays, as the way back to it")
+    cards.element(boundBy: 2).tap()
+    XCTAssertTrue(app.buttons["pill.palette"].waitForExistence(timeout: 5), "the card leaves the grid")
+  }
+
   func testMoveTabToANewGroupFromItsMenu() {
     let app = launch()
     openGrid(app)
     let cards = app.buttons.matching(identifier: "tab.card")
-    cards.element(boundBy: 1).press(forDuration: 1.2)
-    app.buttons["Move to Group"].tap()
-    app.buttons["New Group…"].tap()
+    app.holdForMenu(cards.element(boundBy: 1))
+    app.tapMenuItem("Move to Group", opensSubmenu: true)
+    app.tapMenuItem("New Group…")
     let field = app.textFields["group.nameField"]
     XCTAssertTrue(field.waitForExistence(timeout: 5))
     field.typeText("Later")
@@ -66,13 +83,13 @@ final class SpacesUITests: XCTestCase {
     XCTAssertTrue(app.descendants(matching: .any)["group.header.Later"].waitForExistence(timeout: 5))
   }
 
-  /// The Island's tabs button shows the count and opens the grid (owner, 2026-10-29).
-  func testTheIslandsTabsButtonOpensTheGrid() {
+  /// The Island tells VoiceOver the count, and a swipe up opens the grid.
+  func testASwipeUpOnTheIslandOpensTheGrid() {
     let app = launch()
-    let tabs = app.buttons["pill.tabs"]
-    XCTAssertTrue(tabs.waitForExistence(timeout: 5))
-    XCTAssertEqual(tabs.value as? String, "4 tabs")
-    tabs.tap()
+    let island = app.buttons["pill.palette"]
+    XCTAssertTrue(island.waitForExistence(timeout: 5))
+    XCTAssertEqual(island.value as? String, "4 tabs")
+    app.openTabGrid()
     XCTAssertTrue(app.buttons.matching(identifier: "tab.card").firstMatch.waitForExistence(timeout: 5))
   }
 
@@ -81,15 +98,15 @@ final class SpacesUITests: XCTestCase {
     app.buttons["pill.palette"].tap()
     let rows = app.buttons.matching(identifier: "palette.tab")
     waitCount(rows, 4, "This iPhone's four tabs")
-    rows.element(boundBy: index).press(forDuration: 1.2)
+    app.holdForMenu(rows.element(boundBy: index))
     return rows
   }
 
   func testMoveATabToANewGroupFromItsPaletteRow() {
     let app = launch()
     _ = pressPaletteRow(app, 1)
-    app.buttons["Move to Group"].tap()
-    app.buttons["New Group…"].tap()
+    app.tapMenuItem("Move to Group", opensSubmenu: true)
+    app.tapMenuItem("New Group…")
     let field = app.textFields["group.nameField"]
     XCTAssertTrue(field.waitForExistence(timeout: 5))
     field.typeText("Later")
@@ -100,45 +117,55 @@ final class SpacesUITests: XCTestCase {
   func testMoveATabToASpaceFromItsPaletteRow() {
     let app = launch()
     let rows = pressPaletteRow(app, 1)
-    app.buttons["Move to Space"].tap()
-    app.buttons["Work"].tap()
+    app.tapMenuItem("Move to Space", opensSubmenu: true)
+    app.tapMenuItem("Work")
     waitCount(rows, 3, "the tab left This iPhone for Work")
   }
 
   func testSwitchToASpaceAndBackToThisIPhone() {
     let app = launch()
-    let mark = app.buttons["island.space"]
-    XCTAssertTrue(mark.waitForExistence(timeout: 5), "the quiet mark shows once a Space exists")
-    mark.tap()
+    XCTAssertFalse(app.buttons["island.space"].exists, "the resting Island carries no Space mark")
+    let spaces = app.paletteSpacesButton()
+    XCTAssertEqual(spaces.label, "Spaces", "the quiet glyph shows once a Space exists")
+    spaces.tap()
     let work = app.buttons["spaces.row.Work"]
     XCTAssertTrue(work.waitForExistence(timeout: 5))
     work.tap()
     let site = app.buttons["pill.palette"]
     let edu = XCTNSPredicateExpectation(predicate: NSPredicate(format: "label CONTAINS %@", "example.edu"), object: site)
     XCTAssertEqual(XCTWaiter().wait(for: [edu], timeout: 5), .completed, site.label)
-    XCTAssertEqual(mark.label, "Space: Work")
 
-    mark.tap()
+    openGrid(app)
+    let name = app.descendants(matching: .any)["tabs.spaceName"]
+    XCTAssertTrue(name.waitForExistence(timeout: 5), "the grid says which Space it holds")
+    XCTAssertEqual(name.label, "Work")
+    app.buttons.matching(identifier: "tab.card").firstMatch.tap()
+    XCTAssertTrue(site.waitForExistence(timeout: 5))
+
+    XCTAssertEqual(app.paletteSpacesButton().label, "Space: Work")
+    app.buttons["palette.spaces"].tap()
     app.buttons["spaces.iphone"].tap()
     let com = XCTNSPredicateExpectation(predicate: NSPredicate(format: "label CONTAINS %@", "example.com"), object: site)
     XCTAssertEqual(XCTWaiter().wait(for: [com], timeout: 5), .completed, "This iPhone's tabs come back")
+    openGrid(app)
+    XCTAssertFalse(name.exists, "This iPhone needs no name in the grid")
   }
 
   func testCreateSpaceThenDeleteWithUndo() {
     let app = launch()
-    let mark = app.buttons["island.space"]
-    XCTAssertTrue(mark.waitForExistence(timeout: 5))
-    mark.tap()
+    app.openSpacesCard()
     app.buttons["spaces.new"].tap()
     let name = app.textFields["space.name"]
     XCTAssertTrue(name.waitForExistence(timeout: 5))
     name.tap()
     name.typeText("Reading")
     app.buttons["space.save"].tap()
-    let reading = XCTNSPredicateExpectation(predicate: NSPredicate(format: "label == %@", "Space: Reading"), object: mark)
-    XCTAssertEqual(XCTWaiter().wait(for: [reading], timeout: 5), .completed, mark.label)
+    XCTAssertTrue(name.waitForNonExistence(timeout: 5))
+    let spaces = app.paletteSpacesButton()
+    let reading = XCTNSPredicateExpectation(predicate: NSPredicate(format: "label == %@", "Space: Reading"), object: spaces)
+    XCTAssertEqual(XCTWaiter().wait(for: [reading], timeout: 5), .completed, spaces.label)
 
-    mark.tap()
+    spaces.tap()
     app.buttons["spaces.edit"].tap()
     app.buttons["Edit Reading"].tap()
     let delete = app.buttons["space.delete"]
@@ -147,7 +174,9 @@ final class SpacesUITests: XCTestCase {
     let undo = app.buttons["banner.undo"]
     XCTAssertTrue(undo.waitForExistence(timeout: 5))
     undo.tap()
-    XCTAssertEqual(XCTWaiter().wait(for: [XCTNSPredicateExpectation(predicate: NSPredicate(format: "label == %@", "Space: Reading"), object: mark)], timeout: 5), .completed,
+    XCTAssertTrue(undo.waitForNonExistence(timeout: 5))
+    let restored = app.paletteSpacesButton()
+    XCTAssertEqual(XCTWaiter().wait(for: [XCTNSPredicateExpectation(predicate: NSPredicate(format: "label == %@", "Space: Reading"), object: restored)], timeout: 5), .completed,
                    "Undo puts the Space back and shows it again")
   }
 }

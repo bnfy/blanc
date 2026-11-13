@@ -19,6 +19,15 @@ const renderer={
           const frameRect = document.querySelector('.mj-board-frame')?.getBoundingClientRect();
           const wrapRect = document.getElementById('mjBoardWrap')?.getBoundingClientRect();
           const boardRect = document.getElementById('mjBoard')?.getBoundingClientRect();
+          const wrapStyles = document.getElementById('mjBoardWrap')
+            ? getComputedStyle(document.getElementById('mjBoardWrap')) : null;
+          const safe = (name) => Math.max(0, Number.parseFloat(wrapStyles?.getPropertyValue(name)) || 0);
+          const boardSafeOffsetX = (safe('--mj-board-safe-left') - safe('--mj-board-safe-right')) / 2;
+          const tileRects = [...document.querySelectorAll('.mj-tile:not([hidden])')].map((tile) => tile.getBoundingClientRect());
+          const tilesRect = tileRects.length ? {
+            left: Math.min(...tileRects.map((r) => r.left)),
+            right: Math.max(...tileRects.map((r) => r.right)),
+          } : null;
           const dockRect = document.querySelector('.mj-dock')?.getBoundingClientRect();
           const dockButtons = [...document.querySelectorAll('.mj-dock > button')]
             .map((button) => button.getBoundingClientRect());
@@ -36,8 +45,15 @@ const renderer={
             tileHeight: tileRect?.height ?? 0,
             boardFrameHeight: frameRect?.height ?? 0,
             boardWrapWidth: wrapRect?.width ?? 0,
-            boardCenterDeltaX: boardRect && frameRect
-              ? Math.abs((boardRect.left + boardRect.right - frameRect.left - frameRect.right) / 2)
+            // The visible tiles centre in the frame's space beside the dock:
+            // since #931 the wrap keeps a safe area on the left for the dock
+            // rail (--mj-board-safe-left/right) and fitBoard() shifts the board
+            // by half the difference. Measured on the tiles, not the board's
+            // box, which fitBoard() also offsets so the tiles of each layout
+            // (Daily changes every day) sit centred.
+            boardCenterDeltaX: tilesRect && frameRect
+              ? Math.abs((tilesRect.left + tilesRect.right - frameRect.left - frameRect.right) / 2
+                - boardSafeOffsetX)
               : Infinity,
             boardFrameLeft: frameRect?.left ?? 0,
             boardFrameRight: frameRect?.right ?? 0,
@@ -61,7 +77,25 @@ const renderer={
               .filter((element) => getComputedStyle(element).fontFamily.includes('Instrument Sans'))
               .slice(0, 20)
               .map((element) => element.id || element.className || element.tagName),
-            tileFaceFamily: getComputedStyle(document.querySelector('.mj-face text')).fontFamily,
+            // Text that still falls back to Inter anywhere in its font stack
+            // (the game's labels never do since #1489); tile art is excluded.
+            interText: [...document.querySelectorAll('body, body *')]
+              .filter((element) => !element.closest('.mj-face')
+                && /(^|,)\\s*"?Inter"?\\s*(,|$)/.test(getComputedStyle(element).fontFamily))
+              .slice(0, 20)
+              .map((element) => element.id || element.className || element.tagName),
+            // Tile faces are the shipped art since #931: SVG images, no glyphs.
+            tileFaces: (() => {
+              const faces = [...document.querySelectorAll('.mj-tile .mj-face')];
+              const hrefs = faces.flatMap((face) => [...face.querySelectorAll('image')]
+                .map((image) => image.getAttribute('href') ?? ''));
+              return {
+                count: faces.length,
+                withArt: faces.filter((face) => face.querySelector('image')).length,
+                glyphs: faces.reduce((total, face) => total + face.querySelectorAll('text').length, 0),
+                hrefs: [...new Set(hrefs)],
+              };
+            })(),
             viewportWidth: innerWidth,
             viewportHeight: innerHeight,
           };

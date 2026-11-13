@@ -8,16 +8,33 @@ final class TabsManager {
     private(set) var tabs: [TabModel] = []
     /// The shown set's tab groups, in the order their sections draw (M17).
     private(set) var groups: [TabGroup] = []
+    /// Split View (F53): pairs of tabs kept side by side (`SplitModel`).
+    private(set) var splits: [TabSplit] = []
     var isWallpaperPickerPresented = false
     var wallpaperSelectionCompletion: ((UIImage?) -> Void)?
-    let startAppearance: StartAppearanceStore
+    var startAppearance: StartAppearanceStore { services.startAppearance }
     var isPalettePresented = false {
         didSet { if !isPalettePresented { paletteDraft = "" } }
     }
     /// The palette's text. It lives here rather than in the palette's view so
     /// folding or unfolding, which swaps the sheet and the panel, keeps it
     /// (Duo-1); every close clears it.
-    var paletteDraft = ""
+    var paletteDraft = "" {
+        didSet {
+            if paletteDraft.isEmpty {
+                paletteTyped = true
+            } else if !SearchSuggestions.isTypedEdit(from: oldValue, to: paletteDraft) {
+                paletteTyped = false
+            }
+        }
+    }
+    /// False once the palette's text arrived more than a character at a time:
+    /// pasted, dictated, or put there by Blanc (the page's address to edit).
+    /// Such text is never sent for search suggestions (F5); emptying the
+    /// field starts over.
+    private(set) var paletteTyped = true
+    /// Downloads this window's pages start (F11).
+    @ObservationIgnored let downloads = PageDownloads()
     private final class WeakPreview {
         weak var tab: TabModel?
         let layout: BlancStartPageLayout?
@@ -90,7 +107,7 @@ final class TabsManager {
     /// New Space with the name filled in, as desktop's.
     func runSpaceCommand(_ name: String) {
         let wanted = SyncCrypto.lowercaseLikeJavaScript(SyncCrypto.trim(name))
-        let iphone = SyncCrypto.lowercaseLikeJavaScript(SyncCopy.text("spaces.thisIPhone"))
+        let iphone = SyncCrypto.lowercaseLikeJavaScript(TabSets.deviceSetName)
         if wanted.isEmpty {
             if isPalettePresented { pendingSpacesMenu = true; isPalettePresented = false } else { isSpacesMenuPresented = true }
         } else if wanted == iphone {
@@ -128,6 +145,16 @@ final class TabsManager {
         bridge.broadcastAppearance()
     }
 
+    /// Moves the Island. Open Start Pages reload, so their header and footer
+    /// make room for it where it now sits.
+    func setIslandPosition(_ position: IslandPosition) {
+        guard position != settingsStore.islandPosition else { return }
+        settingsStore.update(islandPosition: position)
+        for tab in tabs where tab.hasWebView && !TabModel.allowsPullToRefresh(tab.currentURL) {
+            tab.webView.reload()
+        }
+    }
+
     func setAdblockExceptions(_ exceptions: [String]) {
         let old = settingsStore.adblockExceptions
         settingsStore.update(adblockExceptions: exceptions)
@@ -136,11 +163,15 @@ final class TabsManager {
             tab.webView.reload()
         }
     }
-    let readerPreferences: ReaderPreferences
+    var readerPreferences: ReaderPreferences { services.readerPreferences }
     var readerError = false
     /// The shown tab. Whatever makes a tab current also wakes it if quiet.
     var activeTabId: UUID? {
-        didSet { if !holdingWake, let tab = activeTab, tab.isQuiet { wake(tab) } }
+        didSet {
+            if !holdingWake, let tab = activeTab, tab.isQuiet { wake(tab) }
+            // A tab switch ends a Glance (F34), as on desktop.
+            if activeTabId != oldValue { glanceTabId = nil }
+        }
     }
     /// The addresses quiet tabs last woke at, newest last (a test seam).
     @ObservationIgnored private(set) var wokenURLs: [URL] = []
@@ -148,54 +179,39 @@ final class TabsManager {
     /// restored tab stays quiet until they have (M16 §4.4).
     @ObservationIgnored private var holdingWake = false
 
-    let settingsStore: SettingsStore
-    let historyStore: HistoryStore
-    private let syncDirectory: URL
-    @ObservationIgnored private var applyingRemoteSettings = false
-    @ObservationIgnored lazy var syncEngine: SyncEngine = {
-        var client = SyncWorkerClient()
-        var secrets: any SyncSecretStore = KeychainSyncSecretStore()
-        #if DEBUG
-        if UITestSeed.settings {
-            client = SyncWorkerClient(transport: SettingsUITestTransport())
-            secrets = SettingsUITestSecrets()
-        }
-        if UITestSeed.sharedSeed {
-            client = SyncWorkerClient(transport: SharedSpacesUITestTransport(
-                stores: UITestSeed.workerStores(), account: UITestSeed.sharedAccount, key: UITestSeed.sharedKey))
-            secrets = SharedSpacesUITestSecrets()
-        }
-        #endif
-        let engine = SyncEngine(state: SyncStateStore(directory: syncDirectory), secrets: secrets, client: client,
-            settingsSink: { [weak self] settings in
-                guard let self else { return }
-                self.applyingRemoteSettings = true
-                defer { self.applyingRemoteSettings = false }
-                let values = settings.payload()["values"]
-                var patch: [String: Any] = [:]
-                if let theme = values?["theme"]?.text { patch["theme"] = theme }
-                if let search = values?["searchEngine"]?.text { patch["searchEngine"] = search }
-                if let enabled = values?["adblockEnabled"]?.boolean { patch["adblockEnabled"] = enabled }
-                self.applySettingsPatch(patch)
-            }, tabsSource: { [weak self] in self?.syncedTabs ?? [] })
-        engine.onChanged = { [weak self] in
-            self?.bridge.emitSyncChanges()
-            self?.sharedSyncChanged()
-        }
-        engine.onSpacesMerged = { [weak self] (ids: [String]) in self?.sharedSpacesMerged(ids) }
-        engine.sharedTabsSource = { [weak self] in self?.snapshotTabs ?? [] }
-        engine.sharedGroupsSource = { [weak self] in
-            self?.groups.map { (g: TabGroup) -> (id: String, name: String) in (g.id, g.name) } ?? []
-        }
-        return engine
-    }()
+    /// What every window shares (`BrowserServices`).
+    @ObservationIgnored let services: BrowserServices
+    /// This window's id in the saved session (its scene's, once there are
+    /// several windows).
+    @ObservationIgnored let windowId: String
+    /// The window's `UISceneSession.persistentIdentifier`, when it has one.
+    @ObservationIgnored let sceneSessionId: String?
+    /// Closes this window (set by its `WindowRoot`); with it, closing the last
+    /// tab closes the window when another window is open.
+    @ObservationIgnored var closeWindowAction: (() -> Void)?
+    /// Whether the window shows its own unsaved set (a new window's), not
+    /// This iPhone or a Space.
+    var showsUnsavedSet: Bool { shownSetId == SavedWindow.unsavedSetId(windowId) }
+    private var library: SpaceLibrary { services.library }
+    /// Whether this window is rebuilding its tabs, when nothing is saved.
+    var isRestoring: Bool { isRestoringSession }
+    var settingsStore: SettingsStore { services.settingsStore }
+    var historyStore: HistoryStore { services.historyStore }
+    private var syncDirectory: URL { services.syncDirectory }
+    var syncEngine: SyncEngine { services.syncEngine }
+
+    /// Sync has news: the open pages hear of it, and Shared Spaces apply it.
+    func syncDidChange() {
+        bridge.emitSyncChanges()
+        sharedSyncChanged()
+    }
     var normalizer: AddressNormalizer
 
-    @ObservationIgnored private let schemeHandler: BlancSchemeHandler
+    private var schemeHandler: BlancSchemeHandler { services.schemeHandler }
     @ObservationIgnored private lazy var bridge = PagesBridge(manager: self)
     @ObservationIgnored private lazy var startPageHold = StartPageHold(manager: self)
-    @ObservationIgnored private let contentBlocker = ContentBlocker()
-    @ObservationIgnored private let sessionStore: SessionStore
+    private var contentBlocker: ContentBlocker { services.contentBlocker }
+    private var sessionStore: SessionStore { services.sessionStore }
     @ObservationIgnored private var isRestoringSession = false
 
     static let newTabURL = URL(string: "blanc://newtab/")!
@@ -203,23 +219,18 @@ final class TabsManager {
 
     /// One in-memory web session shared by every private tab, forgotten when
     /// the last private tab closes (and when Blanc quits).
-    @ObservationIgnored private var privateStore: WKWebsiteDataStore?
-    var privateDataStore: WKWebsiteDataStore {
-        if let privateStore { return privateStore }
-        let store = WKWebsiteDataStore.nonPersistent()
-        privateStore = store
-        return store
-    }
+    var privateDataStore: WKWebsiteDataStore { services.privateDataStore }
 
     /// Settings → Privacy's Clear cookies, cache & site data, as on the computer:
     /// signs every site out, in normal and private tabs, then reloads the open
     /// pages so none stays signed in from memory. History, Favorites and Sync stay.
     func clearSiteData() async {
-        let stores = [siteDataStore, privateStore].compactMap { $0 }
+        let stores = [siteDataStore, services.existingPrivateStore].compactMap { $0 }
         await withTaskGroup(of: Void.self) { group in
             for store in stores { group.addTask { await Self.clearWebsites(in: store) } }
         }
         pagesToReloadAfterClearing.forEach { $0.reload() }
+        services.forgetTabHistories()
     }
 
     /// Open web pages; quiet tabs load fresh when shown, and Blanc's own pages
@@ -310,58 +321,37 @@ final class TabsManager {
         contentBlocker.isReady && contentBlocker.enabled
     }
 
-    /// The web store normal tabs share; tests pass their own.
-    @ObservationIgnored let siteDataStore: WKWebsiteDataStore
+    var siteDataStore: WKWebsiteDataStore { services.siteDataStore }
 
-    init(settingsDirectory: URL? = nil, sessionDirectory: URL? = nil, siteDataStore: WKWebsiteDataStore = .default()) {
-        self.siteDataStore = siteDataStore
-        #if DEBUG
-        if UITestSeed.settings { UITestSeed.prepareSettings() }
-        let settingsDirectory = UITestSeed.settings ? UITestSeed.settingsDirectory : settingsDirectory
-        let sessionDirectory = UITestSeed.settings ? UITestSeed.settingsDirectory : sessionDirectory
-        #endif
-        syncDirectory = settingsDirectory ?? FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask)[0]
-        self.readerPreferences = ReaderPreferences(directory: settingsDirectory)
-        let appearance = StartAppearanceStore(directory: settingsDirectory)
-        self.startAppearance = appearance
-        self.schemeHandler = BlancSchemeHandler(wallpaperURL: appearance.imageURL, wallpaperVersion: { [weak appearance] in
-            appearance?.values["imageVersion"] as? String
-        })
-        let store = SettingsStore(directory: settingsDirectory)
-        self.settingsStore = store
-        self.sessionStore = SessionStore(directory: sessionDirectory)
-        self.historyStore = HistoryStore(directory: settingsDirectory)
-        self.normalizer = AddressNormalizer(searchEngine: store.searchEngine)
+    convenience init(settingsDirectory: URL? = nil, sessionDirectory: URL? = nil, siteDataStore: WKWebsiteDataStore = .default()) {
+        self.init(services: BrowserServices(settingsDirectory: settingsDirectory, sessionDirectory: sessionDirectory,
+                                            siteDataStore: siteDataStore))
+    }
 
-        contentBlocker.enabled = store.adblockEnabled
-
-        // Always compile the blocklist, even when disabled — `enabled` gates only
-        // attachment (see ContentBlocker). Skipping prepare while disabled would
-        // leave isReady forever false, so a later enable would queue tabs forever.
-        if let loaded = ContentBlocker.loadBundledBlocklist() {
-            contentBlocker.prepare(version: loaded.version, jsonProvider: loaded.loadJSON)
-        }
+    init(services: BrowserServices, windowId: String = "main", sceneSessionId: String? = nil) {
+        self.services = services
+        self.windowId = windowId
+        self.sceneSessionId = sceneSessionId
+        self.normalizer = AddressNormalizer(searchEngine: services.settingsStore.searchEngine)
+        services.register(self)
 
         var savedURLs = sessionStore.urls.compactMap { URL(string: $0) }
         var restoredState = sessionStore.state
         #if DEBUG
-        // Every UI test starts with an empty Recently closed.
-        if ProcessInfo.processInfo.arguments.contains(where: { $0.hasPrefix("-BlancUITest") }) {
-            try? FileManager.default.removeItem(at: syncDirectory.appendingPathComponent("recently-closed.json"))
-        }
-        if UITestSeed.sends || UITestSeed.twoTabs || UITestSeed.startPage || UITestSeed.favorites || UITestSeed.privateTab {
+        if UITestSeed.sends || UITestSeed.twoTabs || UITestSeed.startPage || UITestSeed.favorites || UITestSeed.privateTab || UITestSeed.tapPage {
             restoredState = nil
         }
         if UITestSeed.groups {
             UITestSeed.seedFavorites(into: syncDirectory)
             restoredState = UITestSeed.groupsState()
         }
+        if UITestSeed.split { restoredState = UITestSeed.splitState() }
         if UITestSeed.sharedSeed {
             UITestSeed.seedSharedSpaces(into: syncDirectory)
             restoredState = UITestSeed.sharedSpacesState()
         }
         if UITestSeed.appStore {
-            UITestSeed.seedAppStoreSends(into: syncDirectory)
+            UITestSeed.seedAppStore(into: syncDirectory)
             restoredState = UITestSeed.appStoreState()
         }
         if UITestSeed.sends {
@@ -376,23 +366,60 @@ final class TabsManager {
             UITestSeed.seedFavorites(into: syncDirectory)
             savedURLs = [TabsManager.newTabURL]
         }
+        if UITestSeed.tapPage {
+            UITestSeed.seedFavorites(into: syncDirectory)
+            savedURLs = [UITestSeed.tapPageURL]
+        }
         if UITestSeed.favorites || UITestSeed.privateTab {
             UITestSeed.seedFavorites(into: syncDirectory)
             savedURLs = [UITestSeed.pageURL]
         }
         defer { if UITestSeed.privateTab { createTab(url: UITestSeed.pageURL, isPrivate: true) } }
+        // Glance needs the layout, which the window reports once it shows.
+        defer { if UITestSeed.glance { DispatchQueue.main.asyncAfter(deadline: .now() + 1) { [self] in showInGlance(tabs[1].id) } } }
         defer { if UITestSeed.twoTabs { activeTabId = tabs.first?.id } }
+        defer {
+            if UITestSeed.formPage {
+                DispatchQueue.main.asyncAfter(deadline: .now() + 1) { [self] in
+                    activeTab?.webView.loadHTMLString(UITestSeed.formPageHTML, baseURL: UITestSeed.pageURL)
+                }
+            }
+        }
         #endif
-        if let state = restoredState {
-            iphoneSet = state.iphone
-            spaces = state.spaces
-            sharedBaselines = state.sharedBaselines ?? [:]
-            sharedAccepted = state.sharedAccepted ?? [:]
-            sharedAccount = state.sharedAccount
-            recoveryNoted = Set(state.recoveryNoted ?? [])
-            let now = Int64(Date().timeIntervalSince1970 * 1000)
-            recentlyDeleted = state.deleted.filter { now - $0.deletedAt < TabSets.deletedRetentionMs }
-            if spaces.contains(where: { $0.id == state.shown }) { shownSetId = state.shown }
+        // The first window to start reads the saved sets; the rest share them.
+        if !library.loaded {
+            if let state = restoredState { library.load(state) } else { library.markLoaded() }
+            services.loadSavedWindows(restoredState?.windows ?? [])
+        }
+        let entry = services.savedWindow(windowId)
+        let wanted = entry?.shown ?? restoredState?.shown ?? TabSets.iphoneId
+        // A closed window opened again from Recently closed brings its tabs.
+        let reopened = services.takePendingSet(windowId)
+        // A window that isn't the only one and has no set of its own, or whose
+        // set another window shows, starts with an unsaved set and a Start Page.
+        let startsUnsaved = services.windows.count > 1
+            && (entry == nil || services.window(showing: wanted, except: self) != nil)
+        let target = services.takePendingShow(windowId)
+        let targetSet = target.flatMap { id in
+            services.window(showing: id, except: self) == nil
+                ? (id == TabSets.iphoneId ? iphoneSet : spaces.first { $0.id == id }?.set) : nil
+        }
+        if let reopened {
+            shownSetId = SavedWindow.unsavedSetId(windowId)
+            show(reopened)
+            persistSession()
+        } else if let target, let targetSet {
+            // A Space the person chose to open here rather than close tabs.
+            shownSetId = target
+            show(targetSet)
+            persistSession()
+        } else if startsUnsaved || entry?.showsUnsavedSet == true {
+            shownSetId = SavedWindow.unsavedSetId(windowId)
+            show(startsUnsaved ? SavedSet() : entry?.set ?? SavedSet())
+            persistSession()
+        } else if let state = restoredState {
+            let shown = entry?.shown ?? state.shown
+            if spaces.contains(where: { $0.id == shown }) { shownSetId = shown }
             // Changes that waited for the selected tab when Blanc last ran
             // apply first, while every tab is still quiet; only then does the
             // surviving selection load, at its resulting address.
@@ -416,7 +443,7 @@ final class TabsManager {
             paired: SyncStateStore(directory: syncDirectory).state.enabled,
             completedVersion: Self.walkthroughForced ? 0
                 : Self.walkthroughSuppressed ? .max : settingsStore.walkthroughCompletedVersion,
-            offerDefaultBrowser: DefaultBrowserOffer.enabled, isDefaultBrowser: nil)
+            isDefaultBrowser: nil)
         #if DEBUG
         // Screenshots of the What arrived card from a seeded sync.
         if ProcessInfo.processInfo.arguments.contains("-BlancUITestWalkthroughArrived") { walkthrough.joined() }
@@ -426,7 +453,7 @@ final class TabsManager {
     // MARK: The first-minute walkthrough (M18 §3)
 
     /// The card over the start page; `current == nil` hides it.
-    var walkthrough = WalkthroughFlow(paired: true, completedVersion: .max, offerDefaultBrowser: false, isDefaultBrowser: nil)
+    var walkthrough = WalkthroughFlow(paired: true, completedVersion: .max, isDefaultBrowser: nil)
 
     /// UI tests start past the walkthrough unless one asks for it with
     /// `-BlancUITestWalkthrough`, which shows it as on a fresh install.
@@ -453,14 +480,17 @@ final class TabsManager {
         Task { @MainActor in
             try? await Task.sleep(for: .milliseconds(600))
             walkthrough = .replay(paired: syncEngine.stateStore.state.enabled,
-                                  offerDefaultBrowser: DefaultBrowserOffer.enabled, isDefaultBrowser: nil)
+                                  isDefaultBrowser: nil)
         }
     }
 
-    /// Closes the card by any path: the privacy choice is saved with the value
-    /// on screen if it wasn't already (§3.2), and this version counts as seen.
-    func closeWalkthrough(usagePingShown: Bool) {
-        if walkthrough.close() { settingsStore.update(usagePing: usagePingShown) }
+    /// Closes the card by any path: the privacy choices are saved with the
+    /// values on screen if they weren't already (§3.2), and this version
+    /// counts as seen.
+    func closeWalkthrough(usagePingShown: Bool, searchSuggestionsShown: Bool) {
+        if walkthrough.close() {
+            settingsStore.update(usagePing: usagePingShown, searchSuggestions: searchSuggestionsShown)
+        }
         settingsStore.update(walkthroughCompletedVersion: WalkthroughFlow.version)
         settingsStore.flush()
     }
@@ -513,7 +543,30 @@ final class TabsManager {
         } else {
             applyBlocking(to: tab, for: tab.currentURL)
         }
-        tab.wake()
+        tab.wake(history: tab.isPrivate ? nil : services.tabHistory.state(id: tab.historyId))
+    }
+
+    /// After the person clears their history: nothing open now, or waiting on
+    /// Undo, writes its list again.
+    func stopSavingTabHistories() {
+        tabs.forEach { $0.savesHistory = false }
+        lastClosed?.tab.savesHistory = false
+    }
+
+    /// Saves each open page's Back and Forward list; a quiet tab's stays as it was.
+    func saveTabHistories() {
+        tabs.forEach(saveHistory(of:))
+    }
+
+    private func saveHistory(of tab: TabModel) {
+        guard !tab.isPrivate, tab.savesHistory, let view = tab.existingWebView else { return }
+        // A Start Page comes back fresh, as a new tab does.
+        if tab.currentURL.scheme != "blanc", view.canGoBack || view.canGoForward,
+           let state = view.interactionState as? Data {
+            services.tabHistory.save(state, id: tab.historyId)
+        } else {
+            services.tabHistory.remove(tab.historyId)
+        }
     }
 
     /// A tab a page opened: last in the list and current, private when its
@@ -523,6 +576,7 @@ final class TabsManager {
             url: url ?? URL(string: "about:blank")!, configuration: configuration,
             isPrivate: opener.isPrivate, load: false)
         tab.readerAllowed = false // A page-opened child may inherit sandbox policy.
+        tab.openedByPage = true
         add(tab)
         return tab.webView
     }
@@ -539,7 +593,33 @@ final class TabsManager {
             && !AdblockExceptions.isExcepted(tab.currentURL, in: settingsStore.adblockExceptions) {
             contentBlocker.attach(to: tab.webView)
         }
+        tab.onPagePinch = { [weak self] in self?.onPagePinch?($0) }
+        // Wired here, so a tab moved to another window closes in that one.
+        if tab.openedByPage {
+            tab.uiDelegate.onClose = { [weak self, weak tab] in
+                if let self, let tab { self.closeTab(tab.id) }
+            }
+        }
+        // The page still showing is on screen: say why its link or reload did
+        // nothing. A background tab's page simply stays as it was.
+        tab.navigationDelegate.onLoadFailure = { [weak self, weak tab] failure in
+            if let self, tab?.existingWebView?.window != nil { self.showNotice(failure.reason) }
+        }
+        tab.navigationDelegate.onDownload = { [weak self] download in
+            guard let self else { return }
+            self.downloads.onNotice = { [weak self] in self?.showNotice($0) }
+            self.downloads.begin(download)
+        }
+        tab.navigationDelegate.onAppLink = { [weak self, weak tab] url in
+            guard let self, let view = tab?.existingWebView else { return }
+            AppLinks.ask(url, from: view) { [weak self] in self?.showNotice($0) }
+        }
+        tab.uiDelegate.canGlance = { [weak self] in self?.canOpenGlance ?? false }
+        tab.uiDelegate.onGlance = { [weak self] url in self?.openInGlance(url) }
         tab.navigationDelegate.onSettingsNavigation = { [weak self] url in self?.routeSettings(url) ?? false }
+        tab.navigationDelegate.wantsMobileSite = { [weak self] url in
+            self?.wantsMobileSite(url, isPrivate: isPrivate) ?? false
+        }
         // Re-persist whenever this tab settles on a new URL (navigation/redirect).
         tab.navigationDelegate.onURLChange = { [weak self] _ in
             self?.persistSession()
@@ -571,6 +651,11 @@ final class TabsManager {
     /// Counts links opened from other apps; ContentView closes the tab grid on
     /// each, so the page shows.
     private(set) var incomingLinkCount = 0
+    /// Each step of a pinch on a page, for the window to follow. A callback,
+    /// because `onChange` merges steps that land together and would lose one.
+    @ObservationIgnored var onPagePinch: ((PagePinchUpdate) -> Void)?
+    /// Private tabs' Request Mobile Website choices, gone when the app quits.
+    @ObservationIgnored private var privateMobileSites: [String: Bool] = [:]
 
     /// A link from another app (`IncomingLinks`): a new ordinary tab, never
     /// private, made current over whatever sheet was open.
@@ -589,7 +674,8 @@ final class TabsManager {
     }
 
     /// What the last send said, shown over the Island for five seconds; the
-    /// Sunrise menu's Send and `/send` share it.
+    /// Sunrise menu's Send and `/send` share it, and so does a load that
+    /// failed behind a page that stays on screen.
     private(set) var sendNotice: String?
 
     /// Sends `tab`'s page to `target` and shows the result.
@@ -597,7 +683,7 @@ final class TabsManager {
         let url = tab.currentURL.absoluteString, title = tab.pageTitle
         Task {
             let result = await syncEngine.send(url: url, title: title, to: target.id)
-            showSendNotice(SyncCopy.sendResult(result, device: target.name))
+            showNotice(SyncCopy.sendResult(result, device: target.name))
         }
     }
 
@@ -606,21 +692,42 @@ final class TabsManager {
     func sendActiveTab(toDeviceNamed name: String) {
         guard let tab = activeTab, !tab.isPrivate else { return }
         let targets = syncEngine.sendTargets
-        guard !targets.isEmpty else { return showSendNotice(SyncCopy.text("sends.none")) }
+        guard !targets.isEmpty else { return showNotice(SyncCopy.text("sends.none")) }
         guard let target = SlashCommand.sendTarget(named: name, in: targets) else {
-            return showSendNotice(SyncCopy.text("sends.noMatch", ["name": name]))
+            return showNotice(SyncCopy.text("sends.noMatch", ["name": name]))
         }
-        guard canSend(tab) else { return showSendNotice(SyncCopy.text("sends.unavailable")) }
+        guard canSend(tab) else { return showNotice(SyncCopy.text("sends.unavailable")) }
         send(tab, to: target)
     }
 
-    private func showSendNotice(_ message: String) {
+    func showNotice(_ message: String) {
         sendNotice = message
         UIAccessibility.post(notification: .announcement, argument: message)
         Task { [weak self] in
             try? await Task.sleep(for: .seconds(5))
             if self?.sendNotice == message { self?.sendNotice = nil }
         }
+    }
+
+    /// Copy Link in the Sunrise menu and the palette: the page's whole address.
+    func copyLink(_ tab: TabModel) {
+        UIPasteboard.general.string = tab.currentURL.absoluteString
+        showNotice(SyncCopy.text("error.inert.copied"))
+    }
+
+    /// Search suggestions for the palette's text, or none: only with the
+    /// setting on, for text typed by hand, and never from a private tab.
+    func searchSuggestions(for text: String) async -> [String] {
+        guard settingsStore.searchSuggestionsOn, paletteTyped, activeTab?.isPrivate != true else { return [] }
+        return await SearchSuggestions.fetch(engine: settingsStore.searchEngine, query: text)
+    }
+
+    /// The palette's "Search for …" row and a tapped suggestion: always a
+    /// search, whatever the text looks like.
+    func search(for query: String) {
+        guard let tab = activeTab else { return }
+        tab.addressText = normalizer.searchURL(for: query).absoluteString
+        submitActiveTabAddress()
     }
 
     /// `/find` asks for Find in page; the page shows it once the palette has
@@ -674,6 +781,11 @@ final class TabsManager {
             tabs.insert(tab, at: min(index, tabs.count))
         }
         if let group = closed.group, !groups.contains(where: { $0.id == group.id }) { groups.append(group) }
+        for split in closed.splits {
+            // A split comes back whole: its other tab must still be open.
+            let open = split.tabIds.allSatisfy { id in tabs.contains { $0.id == id } }
+            if open, split.tabIds.allSatisfy({ self.split(for: $0) == nil }) { splits.append(split) }
+        }
         activeTabId = closed.tab.id
         normalizeLayout()
         persistSession()
@@ -689,6 +801,16 @@ final class TabsManager {
             reopenList.insert(ReopenEntry(url: tab.currentURL, title: tab.pageTitle), at: 0)
         }
         if reopenList.count > 10 { reopenList.removeLast(reopenList.count - 10) }
+    }
+
+    /// Lets Undo bring back `closing` for `undoWindow`, then lets it go.
+    private func startUndoWindow(for closing: TabModel) {
+        let window = undoWindow
+        undoExpiry = Task { [weak self] in
+            do { try await Task.sleep(for: window) } catch { return }
+            guard let self, self.lastClosed?.tab === closing else { return }
+            self.expireUndo()
+        }
     }
 
     /// Opens the newest closed tab again (/reopen).
@@ -711,34 +833,33 @@ final class TabsManager {
         // isn't reloaded after it's gone (and isn't kept alive by the pending queue).
         if let view = tabs[index].existingWebView { contentBlocker.cancelPending(for: view) }
         let closingGroup = groups.first { $0.id == closing.groupId }
+        let closingSplit = split(for: id)
         tabs.remove(at: index)
         let recorded = recordLocalClose(closing)
         normalizeLayout()
-        if !tabs.contains(where: \.isPrivate) { privateStore = nil; readerPreferences.clearPrivate() }
+        services.releasePrivateBrowsingIfUnused()
         // Only the newest close is undoable. A private tab's close is final, as
         // on desktop: no Undo, never in the reopen list.
         expireUndo()
         if !closing.isPrivate {
             lastClosed = ClosedTab(tab: closing, index: index, blankId: nil,
                                    group: closingGroup.flatMap { g in groups.contains { $0.id == g.id } ? nil : g },
-                                   closedIds: recorded.map { [$0] } ?? [])
-            let window = undoWindow
-            undoExpiry = Task { [weak self] in
-                do { try await Task.sleep(for: window) } catch { return }
-                guard let self, self.lastClosed?.tab === closing else { return }
-                self.expireUndo()
-            }
+                                   closedIds: recorded.map { [$0] } ?? [],
+                                   splits: closingSplit.map { [$0] } ?? [])
+            startUndoWindow(for: closing)
         }
 
         if tabs.isEmpty {
+            if closeEmptyWindow() { return }
             let blank = createTab()
             lastClosed?.blankId = blank
             return
         }
 
         if wasActive {
-            let nextIndex = min(index, tabs.count - 1)
-            activeTabId = tabs[nextIndex].id
+            // Closing a pane leaves its split's other tab current.
+            let partner = closingSplit?.tabIds.first { $0 != id && tabs.map(\.id).contains($0) }
+            activeTabId = partner ?? tabs[min(index, tabs.count - 1)].id
         }
         persistSession()
     }
@@ -748,6 +869,7 @@ final class TabsManager {
         guard tabs.contains(where: { $0.id == id }) else { return }
         let leaving = protectedSharedTabId
         activeTabId = id
+        activeTab?.showIsland()
         activeTab?.probeReader()
         // The tab the person left takes the remote changes that waited for it.
         if leaving != nil, leaving != protectedSharedTabId { applySharedAccepted(protectedTabId: protectedSharedTabId) }
@@ -766,6 +888,303 @@ final class TabsManager {
         tabs = TabSections.normalizeOrder(items).compactMap { byId[$0] }
         let order = TabSections.sections(items).compactMap(\.groupId)
         groups = order.compactMap { id in groups.first { $0.id == id } }
+        // A split's tabs share a group, a pin and privacy, and sit together. A
+        // change from elsewhere (a closed tab, a synced move) that breaks that
+        // dissolves the split rather than moving tabs the person didn't touch.
+        let live = Dictionary(uniqueKeysWithValues: tabs.map { ($0.id, $0) })
+        splits = splits.filter { split in
+            let members = split.tabIds.compactMap { live[$0] }
+            guard members.count == split.tabIds.count, members.count >= 2, let first = members.first else { return false }
+            return members.allSatisfy { $0.groupId == first.groupId && $0.pinned == first.pinned && $0.isPrivate == first.isPrivate }
+        }
+        if !splits.isEmpty {
+            tabs = SplitModel.normalizeOrder(tabs.map(\.id), splits: splits).compactMap { live[$0] }
+        }
+        if let glanceTabId, live[glanceTabId] == nil || split(for: glanceTabId) != nil { self.glanceTabId = nil }
+    }
+
+    // MARK: Windows (multiple windows design, W2b)
+
+    /// What iPadOS's window list calls this window: its Space, or its page.
+    var windowTitle: String {
+        if let space = shownSpace { return space.name }
+        return activeTab.map(TabTitle.display) ?? ""
+    }
+
+    /// A switch to this set waits for the person: this window's unsaved tabs
+    /// would close (`show(set:closingUnsaved:)`).
+    var pendingSetSwitch: String?
+
+    /// This window's unsaved tabs worth asking about: ordinary tabs other
+    /// than an untouched Start Page.
+    var unsavedTabCount: Int {
+        guard showsUnsavedSet else { return 0 }
+        return tabs.filter { !$0.isPrivate && !($0.currentURL == Self.newTabURL && !$0.canGoBack) }.count
+    }
+
+    /// The name a set goes by in the Spaces menu.
+    func setName(_ id: String) -> String {
+        id == TabSets.iphoneId ? TabSets.deviceSetName : spaces.first { $0.id == id }?.name ?? ""
+    }
+
+    /// The waiting switch, shown in a new window instead, leaving this one's
+    /// tabs where they are.
+    func showPendingSetInNewWindow() {
+        guard let id = pendingSetSwitch else { return }
+        pendingSetSwitch = nil
+        services.openNewWindow(showing: id)
+    }
+
+    /// Closed windows in Recently closed, newest first.
+    var closedWindows: [ClosedWindow] { recentlyClosed.currentWindows }
+    func reopenClosedWindow(_ window: ClosedWindow) { services.reopen(window, fallback: self) }
+    func forgetClosedWindow(_ window: ClosedWindow) { recentlyClosed.removeWindow(window.id) }
+
+    /// This window as the saved session keeps it. A Space or This iPhone
+    /// takes the window's live tabs back into the library first.
+    func savedEntry() -> SavedWindow {
+        let set = captureShown()
+        if showsUnsavedSet { return SavedWindow(id: windowId, shown: shownSetId, set: set, session: sceneSessionId) }
+        library.store(set, for: shownSetId)
+        return SavedWindow(id: windowId, shown: shownSetId, session: sceneSessionId)
+    }
+
+    /// The last tab closed: with another window open, this window closes
+    /// instead of opening a Start Page. Returns whether it did.
+    private func closeEmptyWindow() -> Bool {
+        guard services.windows.count > 1, let closeWindowAction else { return false }
+        persistSession()
+        closeWindowAction()
+        return true
+    }
+
+    /// Takes a tab out of this window for another, page and all: nothing
+    /// closes and nothing is recorded. It leaves its split, Glance and group.
+    func detachTab(_ id: UUID) -> TabModel? {
+        guard let index = tabs.firstIndex(where: { $0.id == id }) else { return nil }
+        let tab = tabs[index]
+        let wasActive = id == activeTabId
+        removeFromSplit(id)
+        tabs.remove(at: index)
+        tab.groupId = nil
+        normalizeLayout()
+        if tabs.isEmpty { createTab() }
+        else if wasActive { activeTabId = tabs[min(index, tabs.count - 1)].id }
+        persistSession()
+        return tab
+    }
+
+    /// A tab moved here from another window: it replaces this window's
+    /// untouched Start Page and becomes current.
+    func adopt(_ tab: TabModel) {
+        if tabs.count == 1, let only = tabs.first, only.currentURL == Self.newTabURL, !only.canGoBack {
+            if let view = only.existingWebView { contentBlocker.cancelPending(for: view) }
+            tabs.removeAll()
+        }
+        add(tab)
+        activeTabId = tab.id
+        persistSession()
+    }
+
+    // MARK: Keyboard shortcuts (D7, iPad)
+
+    private var shortcutItems: [TabSections.Item] {
+        tabs.map { TabSections.Item(id: $0.id.uuidString, groupId: $0.groupId, pinned: $0.pinned) }
+    }
+
+    /// ⌘1–9 (`TabShortcuts.target`).
+    func selectTab(number: Int) {
+        let splitIds = splits.map { $0.tabIds.map(\.uuidString) }
+        switch TabShortcuts.target(number: number, items: shortcutItems, splits: splitIds) {
+        case .group(let id): showGroup(id)
+        case .tab(let id): if let tab = tabs.first(where: { $0.id.uuidString == id }) { setActive(tab.id) }
+        case nil: break
+        }
+    }
+
+    /// ⌘⇧] and ⌘⇧[: the next or previous tab in order, wrapping.
+    func cycleTab(by offset: Int) {
+        guard tabs.count > 1, let index = tabs.firstIndex(where: { $0.id == activeTabId }) else { return }
+        setActive(tabs[(index + offset + tabs.count) % tabs.count].id)
+    }
+
+    /// ⌥⌘← and ⌥⌘→: focus moves to the split's other pane.
+    func focusPane(by offset: Int) {
+        guard let split = activeSplit, let id = activeTabId, let index = split.tabIds.firstIndex(of: id) else { return }
+        let count = split.tabIds.count
+        setActive(split.tabIds[(index + offset + count) % count])
+    }
+
+    /// ⌘Return in the palette: a new tab behind this one, as private as it is.
+    func openInBackground(_ url: URL) {
+        // Only a web page can wait behind; Blanc's pages open as they always do.
+        let background = ["http", "https"].contains(url.scheme?.lowercased() ?? "")
+        createTab(url: url, isPrivate: activeTab?.isPrivate ?? false, quiet: background)
+    }
+    func openInBackground(typed text: String) { openInBackground(normalizer.normalize(text)) }
+
+    /// ⌘+, ⌘− and ⌘0 on the current page.
+    func zoomActive(step: Int) {
+        guard let webView = activeTab?.existingWebView else { return }
+        webView.pageZoom = TabShortcuts.zoom(from: Double(webView.pageZoom), step: step)
+    }
+
+    /// Find in Page on the current page, or its Reader view.
+    func presentFind() {
+        guard let tab = activeTab else { return }
+        (tab.reader?.webView ?? tab.webView).findInteraction?.presentFindNavigator(showingReplace: false)
+    }
+
+    // MARK: Glance (F34)
+
+    /// The tab shown in the Glance card over the current page. It's an
+    /// ordinary open tab: closing the card leaves it open, as on desktop.
+    private(set) var glanceTabId: UUID?
+    var glanceTab: TabModel? { glanceTabId.flatMap { id in tabs.first { $0.id == id } } }
+    /// Whether the window is wide enough for Glance and Split View, from the
+    /// layout (`IslandLayout.showsSplitView`). Narrowing it ends a Glance.
+    var showsWideLayout = false {
+        didSet { if !showsWideLayout { glanceTabId = nil } }
+    }
+    /// The card's frame as fractions of the page area, for this run only.
+    var glanceFrame: CGRect?
+
+    /// Glance opens over a page that isn't a split's pane, in the wide layout.
+    var canOpenGlance: Bool { showsWideLayout && activeTab != nil && activeSplit == nil }
+
+    /// Opens `url` as a new tab shown in the Glance card, private when the
+    /// current tab is. A Glance already open stays open as a tab.
+    func openInGlance(_ url: URL) {
+        guard canOpenGlance, let current = activeTab else { return }
+        let id = createTab(url: url, isPrivate: current.isPrivate, quiet: true)
+        guard let tab = tabs.first(where: { $0.id == id }) else { return }
+        glanceTabId = id
+        wakePane(tab)
+        UIAccessibility.post(notification: .announcement, argument: SyncCopy.text("glance.openedUntitled"))
+    }
+
+    /// Shows an open tab in the Glance card.
+    func showInGlance(_ id: UUID) {
+        guard canOpenGlance, id != activeTabId, split(for: id) == nil,
+              let tab = tabs.first(where: { $0.id == id }) else { return }
+        glanceTabId = id
+        wakePane(tab)
+    }
+
+    func closeGlance() { glanceTabId = nil }
+
+    /// ⌘⇧G: closes the card, or shows the next tab in it. (Desktop opens a
+    /// picker; here the Sunrise menu's Open in Glance ▸ is that list.)
+    func toggleGlance() {
+        if glanceTabId != nil { closeGlance() } else if let next = glanceCandidates.first { showInGlance(next.id) }
+    }
+    var canToggleGlance: Bool { glanceTabId != nil || (canOpenGlance && !glanceCandidates.isEmpty) }
+
+    /// The tabs Glance could show over the current one.
+    var glanceCandidates: [TabModel] {
+        tabs.filter { $0.id != activeTabId && $0.id != glanceTabId && split(for: $0.id) == nil }
+    }
+
+    /// Ends the Glance and makes its page the current tab.
+    func openGlanceAsTab() {
+        guard let id = glanceTabId else { return }
+        setActive(id)
+    }
+
+    /// Ends the Glance with its page beside the current one, the current
+    /// page first.
+    func keepGlanceAsSplit() {
+        guard let id = glanceTabId, let current = activeTabId else { return }
+        glanceTabId = nil
+        makeSplit(current, with: id)
+    }
+
+    // MARK: Split View (F53)
+
+    /// The split holding `tabId`, if any.
+    func split(for tabId: UUID?) -> TabSplit? { SplitModel.split(for: tabId, in: splits) }
+
+    /// The split the current tab is a pane of.
+    var activeSplit: TabSplit? { split(for: activeTabId) }
+
+    /// The tabs `tab` could be split with: open, not in a split, and private
+    /// only with private.
+    func splitCandidates(for tab: TabModel) -> [TabModel] {
+        guard split(for: tab.id) == nil else { return [] }
+        return tabs.filter { $0.id != tab.id && $0.isPrivate == tab.isPrivate && split(for: $0.id) == nil }
+    }
+
+    /// Puts `otherId` beside `tabId`, which stays current in the leading pane.
+    /// The other tab takes `tabId`'s group (or none) and pin, as desktop's
+    /// "the initiating tab's group wins".
+    func makeSplit(_ tabId: UUID, with otherId: UUID) {
+        guard let tab = tabs.first(where: { $0.id == tabId }),
+              let other = splitCandidates(for: tab).first(where: { $0.id == otherId }) else { return }
+        other.groupId = tab.groupId
+        other.pinned = tab.pinned
+        let made = SplitModel.create(initiator: tab.id, other: other.id)
+        splits.append(made)
+        normalizeLayout()
+        if activeTabId != tab.id { setActive(tab.id) }
+        wakePane(other)
+        persistSession()
+        UIAccessibility.post(notification: .announcement, argument: SyncCopy.text(
+            "split.made", ["first": TabTitle.display(tab), "second": TabTitle.display(other)]))
+    }
+
+    /// Takes a tab out of its split; with two panes the split ends and both
+    /// tabs stay open where they are.
+    func removeFromSplit(_ tabId: UUID) {
+        guard let index = splits.firstIndex(where: { $0.tabIds.contains(tabId) }) else { return }
+        let result = SplitModel.remove(splits[index], tabId: tabId)
+        if let next = result.split { splits[index] = next } else { splits.remove(at: index) }
+        persistSession()
+    }
+
+    /// Closes every tab of the split as one Undo, which brings the split back.
+    func closeSplit(_ id: String) {
+        guard let split = splits.first(where: { $0.id == id }) else { return }
+        let members = tabs.enumerated().filter { split.tabIds.contains($0.element.id) }
+        guard let first = members.first else { return }
+        let wasActive = members.contains { $0.element.id == activeTabId }
+        for member in members {
+            member.element.exitReader()
+            if let view = member.element.existingWebView { contentBlocker.cancelPending(for: view) }
+        }
+        let closingGroup = groups.first { $0.id == first.element.groupId }
+        tabs.removeAll { split.tabIds.contains($0.id) }
+        let recorded = members.compactMap { recordLocalClose($0.element) }
+        normalizeLayout()
+        services.releasePrivateBrowsingIfUnused()
+        expireUndo()
+        if !first.element.isPrivate {
+            lastClosed = ClosedTab(tab: first.element, index: first.offset, blankId: nil,
+                                   others: members.dropFirst().map { ($0.element, $0.offset) },
+                                   group: closingGroup.flatMap { g in groups.contains { $0.id == g.id } ? nil : g },
+                                   closedIds: recorded, splits: [split])
+            startUndoWindow(for: first.element)
+        }
+        if tabs.isEmpty {
+            if closeEmptyWindow() { return }
+            let blank = createTab()
+            lastClosed?.blankId = blank
+            return
+        }
+        if wasActive { activeTabId = tabs[min(first.offset, tabs.count - 1)].id }
+        persistSession()
+    }
+
+    /// The leading pane's share of the width, from the divider.
+    func setSplitRatio(_ id: String, _ ratio: Double) {
+        guard let index = splits.firstIndex(where: { $0.id == id }) else { return }
+        splits[index].ratio = SplitModel.clampRatio(ratio)
+        saveSession()
+    }
+
+    /// A pane shown beside the current tab loads, as the current tab does:
+    /// visible panes are never quiet.
+    func wakePane(_ tab: TabModel) {
+        if tab.isQuiet, !holdingWake { wake(tab) }
     }
 
     private func reorder(_ ids: [String]) {
@@ -856,6 +1275,8 @@ final class TabsManager {
     /// its group to just below it.
     func moveTab(_ tabId: UUID, toGroup groupId: String?) {
         guard let tab = tabs.first(where: { $0.id == tabId }), !tab.isPrivate, tab.groupId != groupId else { return }
+        // A split moves as one item: its panes join or leave the group together.
+        if let split = split(for: tabId) { return moveSplit(split, toGroup: groupId) }
         let key = tab.id.uuidString
         if let groupId {
             guard groups.contains(where: { $0.id == groupId }) else { return }
@@ -870,6 +1291,29 @@ final class TabsManager {
                 reorder(ids)
             }
         }
+        normalizeLayout()
+        persistSession()
+    }
+
+    /// `moveTab(_:toGroup:)` for a split, led by its first pane.
+    private func moveSplit(_ split: TabSplit, toGroup groupId: String?) {
+        if let groupId, !groups.contains(where: { $0.id == groupId }) { return }
+        let members = split.tabIds.compactMap { id in tabs.first { $0.id == id } }
+        guard let lead = members.first else { return }
+        let old = lead.groupId
+        for member in members { member.groupId = groupId }
+        var ids = tabs.map { $0.id.uuidString }
+        let keys = members.map { $0.id.uuidString }
+        if let groupId {
+            ids.removeAll(where: keys.contains)
+            let last = tabs.last { $0.groupId == groupId && !split.tabIds.contains($0.id) }
+            let at = last.flatMap { ids.firstIndex(of: $0.id.uuidString) }.map { $0 + 1 } ?? ids.count
+            ids.insert(contentsOf: keys, at: at)
+        } else if let old, let last = tabs.last(where: { $0.groupId == old }) {
+            ids.removeAll(where: keys.contains)
+            ids.insert(contentsOf: keys, at: ids.firstIndex(of: last.id.uuidString)! + 1)
+        }
+        reorder(ids)
         normalizeLayout()
         persistSession()
     }
@@ -899,21 +1343,17 @@ final class TabsManager {
             member.element.exitReader()
             if let view = member.element.existingWebView { contentBlocker.cancelPending(for: view) }
         }
+        let groupSplits = splits.filter { s in s.tabIds.allSatisfy { id in members.contains { $0.element.id == id } } }
         tabs.removeAll { $0.groupId == id }
         let recorded = members.compactMap { recordLocalClose($0.element) }
         expireUndo()
         lastClosed = ClosedTab(tab: first.element, index: first.offset, blankId: nil,
                                others: members.dropFirst().map { ($0.element, $0.offset) }, group: group, groupClose: true,
-                               closedIds: recorded)
-        let closing = first.element
-        let window = undoWindow
-        undoExpiry = Task { [weak self] in
-            do { try await Task.sleep(for: window) } catch { return }
-            guard let self, self.lastClosed?.tab === closing else { return }
-            self.expireUndo()
-        }
+                               closedIds: recorded, splits: groupSplits)
+        startUndoWindow(for: first.element)
         normalizeLayout()
         if tabs.isEmpty {
+            if closeEmptyWindow() { return }
             let blank = createTab()
             lastClosed?.blankId = blank
             return
@@ -941,21 +1381,31 @@ final class TabsManager {
     private(set) var shownSetId = TabSets.iphoneId
     /// The phone's Spaces in their order. The shown Space's saved tabs are
     /// stale while it shows; `tabs` is the truth.
-    private(set) var spaces: [SpaceRecord] = []
-    private(set) var recentlyDeleted: [DeletedSpace] = []
+    private(set) var spaces: [SpaceRecord] {
+        get { library.spaces }
+        set { library.spaces = newValue }
+    }
+    private(set) var recentlyDeleted: [DeletedSpace] {
+        get { library.recentlyDeleted }
+        set { library.recentlyDeleted = newValue }
+    }
     /// The Space whose deletion Undo can still take back.
     private(set) var lastDeletedSpaceId: String?
     /// Whether that Space was deleted everywhere (it was shared).
     private(set) var lastDeletedSpaceWasShared = false
     @ObservationIgnored private var deletedSpaceWasShown = false
     @ObservationIgnored private var spaceUndoExpiry: Task<Void, Never>?
-    @ObservationIgnored private var iphoneSet = SavedSet()
+    private var iphoneSet: SavedSet {
+        get { library.iphoneSet }
+        set { library.iphoneSet = newValue }
+    }
 
     var shownSpace: SpaceRecord? { spaces.first { $0.id == shownSetId } }
     /// The Spaces menu over the Island (M17).
     var isSpacesMenuPresented = false
-    /// The Island shows a Space mark once a Space exists, never on a private tab.
-    var showsSpaceMark: Bool { activeTab?.isPrivate != true && !spaces.isEmpty }
+    /// The palette's footer offers the Spaces card once a Space exists, never
+    /// on a private tab (the resting Island carries no Space mark).
+    var offersSpacesButton: Bool { activeTab?.isPrivate != true && !spaces.isEmpty }
     /// Tabs in a set, for the Spaces menu's counts.
     func tabCount(_ id: String) -> Int {
         id == shownSetId ? tabs.filter { !$0.isPrivate }.count : (savedSet(id)?.tabs.count ?? 0)
@@ -964,11 +1414,14 @@ final class TabsManager {
     /// The shown set as it would be put away.
     func captureShown() -> SavedSet {
         let saved = tabs.filter { !$0.isPrivate }
+        let columns = SplitModel.capture(splits, saved: saved.map(\.id))
         return SavedSet(
             tabs: saved.map { SavedTab(url: $0.currentURL.absoluteString, title: $0.pageTitle, pinned: $0.pinned,
-                                       groupId: $0.groupId, tabId: $0.sharedTabId) },
+                                       groupId: $0.groupId, tabId: $0.sharedTabId, historyId: $0.historyId) },
             groups: groups,
-            activeIndex: saved.firstIndex { $0.id == activeTabId } ?? 0)
+            activeIndex: saved.firstIndex { $0.id == activeTabId } ?? 0,
+            splits: columns.splits.isEmpty ? nil : columns.splits,
+            splitIds: columns.splits.isEmpty ? nil : columns.splitIds)
     }
 
     /// A set's saved tabs, for one that isn't shown (the shown one: `captureShown`).
@@ -986,6 +1439,7 @@ final class TabsManager {
     /// Replaces the ordinary tabs with `set`'s, all quiet but the selected
     /// one. Private tabs stay open; they belong to no set.
     private func show(_ set: SavedSet) {
+        saveTabHistories()
         let privates = tabs.filter(\.isPrivate)
         for tab in tabs where !tab.isPrivate {
             tab.exitReader()
@@ -996,12 +1450,18 @@ final class TabsManager {
         activeTabId = nil
         tabs = []
         groups = set.groups
+        // Private tabs' splits stay with them; the set's own come back below.
+        splits = splits.filter { s in s.tabIds.allSatisfy { id in privates.contains { $0.id == id } } }
+        var restored: [UUID] = []
         for saved in set.tabs {
             createTab(url: URL(string: saved.url) ?? Self.newTabURL, title: saved.title, quiet: true)
             tabs.last?.pinned = saved.pinned
             tabs.last?.groupId = saved.groupId
             tabs.last?.sharedTabId = saved.tabId
+            if let historyId = saved.historyId { tabs.last?.historyId = historyId }
+            if let id = tabs.last?.id { restored.append(id) }
         }
+        splits += SplitModel.restore(set.splits, splitIds: set.splitIds, restored: restored)
         if tabs.isEmpty { createTab(quiet: true) }
         let count = tabs.count
         tabs.append(contentsOf: privates)
@@ -1012,12 +1472,27 @@ final class TabsManager {
     }
 
     /// Puts the shown set away and shows This iPhone or a Space.
-    func show(set id: String) {
+    func show(set id: String, closingUnsaved: Bool = false) {
         guard id != shownSetId, let set = savedSet(id) else { return }
+        // A set shows in one window: choosing one another window shows brings
+        // that window forward instead (desktop's workspace controller).
+        if let other = services.window(showing: id, except: self) {
+            services.bringForward(windowId: other)
+            return
+        }
+        // Unsaved tabs would close: ask first, as desktop does.
+        if showsUnsavedSet, !closingUnsaved, unsavedTabCount > 0 {
+            pendingSetSwitch = id
+            return
+        }
+        pendingSetSwitch = nil
         expireUndo()
         // Leaving a shared Space applies what waited for its selected tab.
         applySharedAccepted(protectedTabId: nil)
-        storeShown()
+        // A new window's unsaved tabs have nowhere to wait: like desktop's
+        // switch from an unsaved window, they close, into Recently closed.
+        if showsUnsavedSet { services.recordClosedTabs(captureShown().tabs) }
+        else { storeShown() }
         shownSetId = id
         show(set)
         persistSession()
@@ -1090,7 +1565,10 @@ final class TabsManager {
               let index = tabs.firstIndex(where: { $0.id == tabId }), !tabs[index].isPrivate,
               tabs.filter({ !$0.isPrivate }).count > 1 else { return }
         let tab = tabs[index]
-        let saved = SavedTab(url: tab.currentURL.absoluteString, title: tab.pageTitle, pinned: tab.pinned)
+        removeFromSplit(tab.id)
+        saveHistory(of: tab)
+        let saved = SavedTab(url: tab.currentURL.absoluteString, title: tab.pageTitle, pinned: tab.pinned,
+                             historyId: tab.historyId)
         if id == TabSets.iphoneId { iphoneSet.tabs.append(saved) }
         else if let target = spaces.firstIndex(where: { $0.id == id }) { spaces[target].set.tabs.append(saved) }
         tab.exitReader()
@@ -1164,20 +1642,7 @@ final class TabsManager {
     /// Writes session.json (debounced) without telling sync the tabs changed.
     private func saveSession() {
         guard !isRestoringSession else { return }
-        // Private tabs are never saved. With only private tabs open, the saved
-        // session is one blank tab, so tabs the person closed stay closed.
-        let saved = tabs.filter { !$0.isPrivate }
-        let urls = saved.isEmpty ? [Self.newTabURL.absoluteString] : saved.map { $0.currentURL.absoluteString }
-        let activeIdx = saved.firstIndex(where: { $0.id == activeTabId }) ?? 0
-        var state = SessionState(shown: shownSetId, iphone: iphoneSet, spaces: spaces, deleted: recentlyDeleted,
-                                 sharedBaselines: sharedBaselines.isEmpty ? nil : sharedBaselines,
-                                 sharedAccepted: sharedAccepted.isEmpty ? nil : sharedAccepted,
-                                 sharedAccount: sharedAccount,
-                                 recoveryNoted: recoveryNoted.isEmpty ? nil : recoveryNoted.sorted())
-        let shown = captureShown()
-        if shownSetId == TabSets.iphoneId { state.iphone = shown }
-        else if let index = state.spaces.firstIndex(where: { $0.id == shownSetId }) { state.spaces[index].set = shown }
-        sessionStore.save(urls: urls, activeIndex: activeIdx, state: state)
+        services.saveSession()
     }
 
     // MARK: Shared Spaces (M17c)
@@ -1188,8 +1653,14 @@ final class TabsManager {
     /// Remote closes applied outside a merge pass (a waiting change applying
     /// as the person moves on), for Recently closed.
     @ObservationIgnored var sharedClosedSink: (([ClosedRow]) -> Void)?
-    @ObservationIgnored private var sharedBaselines: [String: JSONValue] = [:]
-    @ObservationIgnored private var sharedAccepted: [String: JSONValue] = [:]
+    private var sharedBaselines: [String: JSONValue] {
+        get { library.sharedBaselines }
+        set { library.sharedBaselines = newValue }
+    }
+    private var sharedAccepted: [String: JSONValue] {
+        get { library.sharedAccepted }
+        set { library.sharedAccepted = newValue }
+    }
     /// Local edits taken before an apply, waiting for `sharedSpaceEdits`.
     @ObservationIgnored private var sharedOutbox: [String: JSONValue] = [:]
     @ObservationIgnored private var sharedDeviceId: String?
@@ -1424,6 +1895,7 @@ final class TabsManager {
             } else {
                 createTab(url: URL(string: saved.url) ?? Self.newTabURL, title: saved.title, quiet: true)
                 guard let made = tabs.last else { continue }
+                if let historyId = saved.historyId { made.historyId = historyId }
                 tab = made
             }
             tab.pinned = saved.pinned
@@ -1458,9 +1930,12 @@ final class TabsManager {
 
     // MARK: Shared Spaces wiring (M17c Task 18)
 
-    @ObservationIgnored private var sharedAccount: String?
+    private var sharedAccount: String? {
+        get { library.sharedAccount }
+        set { library.sharedAccount = newValue }
+    }
     /// The phone's own Recently closed (Task 20).
-    @ObservationIgnored private(set) lazy var recentlyClosed = RecentlyClosedStore(directory: syncDirectory)
+    var recentlyClosed: RecentlyClosedStore { services.recentlyClosed }
     @ObservationIgnored private var sharedPublishTask: Task<Void, Never>?
     /// How long tab changes gather before their records are written.
     @ObservationIgnored var sharedPublishDelay: Duration = .milliseconds(300)
@@ -1521,7 +1996,12 @@ final class TabsManager {
         var copy = space
         copy.sharedId = nil
         copy.link = nil
-        copy.set.tabs = copy.set.tabs.map { (tab: SavedTab) -> SavedTab in var t = tab; t.tabId = nil; return t }
+        copy.set.tabs = copy.set.tabs.map { (tab: SavedTab) -> SavedTab in
+            var t = tab
+            t.tabId = nil
+            t.historyId = nil
+            return t
+        }
         return copy
     }
 
@@ -1556,7 +2036,10 @@ final class TabsManager {
     // MARK: Status (M17c Task 21)
 
     /// Recovery Spaces whose note was shown in the Spaces menu.
-    private(set) var recoveryNoted: Set<String> = []
+    private(set) var recoveryNoted: Set<String> {
+        get { library.recoveryNoted }
+        set { library.recoveryNoted = newValue }
+    }
     /// The Spaces menu closed: each recovery Space's note has been said.
     func noteRecoveriesSeen() {
         let ids = Set(spaces.filter { $0.recoveredFrom != nil }.map(\.id))
@@ -1817,8 +2300,8 @@ final class TabsManager {
     /// shown now; This iPhone keeps a Start Page. Returns the Space's id.
     @discardableResult
     func saveIPhoneAsSpace() throws -> String {
-        let base = syncEngine.status["deviceName"]?.text.flatMap { $0.isEmpty ? nil : $0 } ?? "iPhone"
-        var name = TabSets.spaceName(base) ?? "iPhone"
+        let base = syncEngine.status["deviceName"]?.text.flatMap { $0.isEmpty ? nil : $0 } ?? ThisDevice.name
+        var name = TabSets.spaceName(base) ?? ThisDevice.name
         var n = 2
         while nameTaken(name) { name = TabSets.spaceName("\(base) \(n)") ?? "\(base) \(n)"; n += 1 }
         let preset = SpaceIdentity.presets[spaces.count % SpaceIdentity.presets.count]
@@ -1931,47 +2414,14 @@ final class TabsManager {
     /// type, applies side effects (search engine → normalizer, adblock → tabs),
     /// then routes the accepted values through `SettingsStore.update`, which
     /// persists them. Unknown/invalid keys are ignored.
+    /// A settings change from a page or a slash command: it applies once for
+    /// the device and every window follows (`BrowserServices.applySettingsPatch`).
     func applySettingsPatch(_ patch: [String: Any]) {
-        var themeUpdate: BlancThemePreference?
-        var engineUpdate: BlancSearchEngine?
-        var adblockUpdate: Bool?
-
-        if let raw = patch["theme"] as? String,
-           let value = BlancThemePreference(rawValue: raw) {
-            themeUpdate = value
-        }
-
-        if let raw = patch["searchEngine"] as? String,
-           let value = BlancSearchEngine(rawValue: raw) {
-            engineUpdate = value
-            normalizer.searchEngine = value
-        }
-
-        if let enabled = patch["adblockEnabled"] as? Bool {
-            adblockUpdate = enabled
-            // Foreground sync re-applies the full settings payload. An unchanged
-            // blocker preference must preserve the page and its in-memory state.
-            if enabled != settingsStore.adblockEnabled { applyAdblockToggle(enabled) }
-        }
-
-        // One validated mutation that also schedules the debounced save.
-        let oldTheme = settingsStore.theme
-        let oldEngine = settingsStore.searchEngine
-        let oldBlocking = settingsStore.adblockEnabled
-        settingsStore.update(theme: themeUpdate, searchEngine: engineUpdate, adblockEnabled: adblockUpdate)
-        if oldTheme != settingsStore.theme || oldEngine != settingsStore.searchEngine || oldBlocking != settingsStore.adblockEnabled {
-            bridge.emitSettingsChanges()
-            bridge.emit("start.onStatus", payload: .object([("mobileAdblockEnabled", .bool(settingsStore.adblockEnabled))]), host: "newtab")
-        }
-        if !applyingRemoteSettings {
-            if let themeUpdate, themeUpdate != oldTheme { syncEngine.localSettingChanged(key: "theme", value: .string(themeUpdate.rawValue)) }
-            if let engineUpdate, engineUpdate != oldEngine { syncEngine.localSettingChanged(key: "searchEngine", value: .string(engineUpdate.rawValue)) }
-            if let adblockUpdate, adblockUpdate != oldBlocking { syncEngine.localSettingChanged(key: "adblockEnabled", value: .bool(adblockUpdate)) }
-        }
+        services.applySettingsPatch(patch)
     }
 
-    private func applyAdblockToggle(_ enabled: Bool) {
-        contentBlocker.setEnabled(enabled)
+    /// Blanc Blocker turned on or off: this window's loaded pages follow.
+    func blockingTurned(_ enabled: Bool) {
         if enabled {
             if contentBlocker.isReady {
                 for tab in tabs where tab.hasWebView {
@@ -1993,6 +2443,12 @@ final class TabsManager {
         }
     }
 
+    /// The theme, search engine or blocking changed: this window's pages hear.
+    func settingsDidChange() {
+        bridge.emitSettingsChanges()
+        bridge.emit("start.onStatus", payload: .object([("mobileAdblockEnabled", .bool(settingsStore.adblockEnabled))]), host: "newtab")
+    }
+
     // MARK: Blanc Blocker, per site
 
     /// Whether Blanc Blocker protects the page `tab` shows: blocking is on and
@@ -2007,6 +2463,31 @@ final class TabsManager {
         var list = settingsStore.adblockExceptions.filter { $0 != host }
         if !on { list.append(host) }
         setAdblockExceptions(list)
+    }
+
+    /// Request Mobile Website (iPad): whether `tab`'s site gets its phone
+    /// layout, which it keeps across tabs and launches. A private tab's choice
+    /// stays in memory and only applies to private tabs.
+    func wantsMobileSite(_ url: URL, isPrivate: Bool) -> Bool {
+        guard let host = AdblockExceptions.host(for: url) else { return false }
+        if isPrivate, let chosen = privateMobileSites.first(where: { SettingsStore.site($0.key, covers: host) }) {
+            return chosen.value
+        }
+        return settingsStore.mobileSites.contains { SettingsStore.site($0, covers: host) }
+    }
+
+    /// Asks the site `tab` shows for its phone or desktop layout, then reloads it.
+    func setMobileSite(_ tab: TabModel, mobile: Bool) {
+        guard let host = AdblockExceptions.host(for: tab.currentURL) else { return }
+        if tab.isPrivate {
+            privateMobileSites = privateMobileSites.filter { !SettingsStore.sameSite($0.key, host) }
+            privateMobileSites[host] = mobile
+        } else {
+            settingsStore.setMobileSite(host, mobile: mobile)
+        }
+        tab.exitReader()
+        // Loaded afresh: a reload keeps the layout the page was asked for with.
+        tab.navigationDelegate.loadAgain(tab.currentURL, in: tab.webView)
     }
 
     /// Puts the tab's blocking rules on or off for the site it is about to show.
@@ -2038,6 +2519,8 @@ struct ClosedTab {
     var groupClose = false
     /// Its Recently closed rows, which Undo takes back.
     var closedIds: [String] = []
+    /// The splits the closed tabs were panes of, put back by Undo (F53).
+    var splits: [TabSplit] = []
 }
 
 enum GroupNameError: Error, Equatable { case empty, duplicate }

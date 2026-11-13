@@ -21,7 +21,7 @@ TAG="v$VERSION"
 MODE="${BLANC_RELEASE_MODE:-}"
 PLATFORM_CSV="${BLANC_RELEASE_PLATFORMS:-}"
 MAC_ARCH_CSV="${BLANC_MAC_ARCHES:-}"
-MIGRATION_BASE_VERSION="${BLANC_MIGRATION_BASE_VERSION:-1.45.1}"
+MIGRATION_BASE_VERSION="${BLANC_MIGRATION_BASE_VERSION:-1.49.0}"
 COSIGN_REDIRECT_PORT="${BLANC_COSIGN_REDIRECT_PORT:-49197}"
 RELEASE_OPERATOR="${BLANC_RELEASE_OPERATOR:-terminal}"
 NOTES_FILE="docs/press/release-notes/$TAG.md"
@@ -170,9 +170,10 @@ case "$RELEASE_RUNTIME" in
     node -e '
       const matrix = require("./src/main/ublock-platforms.json");
       const pin = require("./build/ecs-runtime.json");
-      if (matrix.ecsRuntime !== pin.version) process.exit(1);
+      const evidence = String(matrix.ecsEvidence ?? "");
+      if (matrix.ecsRuntime !== pin.version || /^PENDING/.test(evidence) || !evidence.includes(pin.version)) process.exit(1);
     ' || {
-      echo "An ECS release requires the reviewed uBO runtime record for $(node -p 'require("./build/ecs-runtime.json").version')." >&2
+      echo "An ECS release requires the reviewed uBO runtime record, with passed evidence naming $(node -p 'require("./build/ecs-runtime.json").version'), in src/main/ublock-platforms.json." >&2
       exit 1
     }
     # Checked before any tag or draft exists: the native workflow must accept
@@ -387,7 +388,19 @@ else
   npm run ublock:distribution
   npm ci
   npm ci --prefix site
-  npm run release:verify:press
+  # The gate (scripts/release-gate.mjs) reuses every stage and acceptance
+  # scenario that already passed on this exact commit and installed tree
+  # (npm run release:prepare, or an earlier attempt), reruns only what is
+  # owed, and prints the evidence block the release incident quotes.
+  # An owner waiver skips the press gate alone: every preflight, the build and
+  # every packaged check still run. Its reason names the commit and runs whose
+  # evidence replaces the gate, and belongs in the release incident.
+  if [ -n "${BLANC_RELEASE_PRESS_WAIVER:-}" ]; then
+    echo "==> Press verification gate waived by the owner"
+    echo "    Waiver: $BLANC_RELEASE_PRESS_WAIVER"
+  else
+    npm run release:verify:press
+  fi
 
   echo "==> Preflighting the macOS identity and provisioning profile"
   node scripts/preflight-mac-signing.mjs

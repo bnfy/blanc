@@ -3,10 +3,11 @@
 //
 //   node bench/memory/run.js --help
 //
-// Measures the phys_footprint of each browser's entire process tree after
-// loading an identical set of pages, repeated, with the browsers interleaved so
-// that drift in the live web is spread evenly across them rather than
-// concentrated on whichever one ran last.
+// Measures the memory of each browser's entire process tree after loading an
+// identical set of pages — phys_footprint on macOS, private working set on
+// Windows — repeated, with the browsers interleaved so that drift in the live
+// web is spread evenly across them rather than concentrated on whichever one
+// ran last.
 
 const fs = require('node:fs');
 const os = require('node:os');
@@ -39,7 +40,7 @@ const MIN_PROCESSES = 2;
 const REPORTED_WINDOW = 3;
 
 const USAGE = `
-Browser memory benchmark (macOS)
+Browser memory benchmark (macOS and Windows)
 
   node bench/memory/run.js [options]
 
@@ -47,7 +48,9 @@ Options
   --browsers=a,b        Browser ids to run (default: every installed one)
   --workloads=a,b       Workload keys (default: baseline,mixed)
   --reps=N              Repetitions per cell (default: 3)
-  --backend=id          Force a measurement backend: footprint|vmmap|top|ps
+  --backend=id          Force a measurement backend.
+                        macOS: footprint|vmmap|top|ps
+                        Windows: perf-private-ws|get-process-ws
   --out=DIR             Output directory (default: bench/memory/results)
   --settle-max=MS       Give up waiting for settle after this long (default: 120000)
   --settle-interval=MS  Sampling interval (default: 5000)
@@ -60,9 +63,10 @@ Options
   --help
 
 Notes
-  Run against the packaged /Applications/Blanc.app, never a dev run: an
-  unpackaged Blanc appends "-Dev" to its userData path (main.js:144) and
-  behaves differently from what ships.
+  Run against the packaged /Applications/Blanc.app (Windows: the installed
+  %LOCALAPPDATA%\\Programs\\blanc), never a dev run: an unpackaged Blanc appends
+  "-Dev" to its userData path (main.js:144) and behaves differently from what
+  ships.
 
   Quit your everyday browsers first. Pre-existing processes are excluded from
   the totals, but their memory pressure still perturbs the machine.
@@ -126,6 +130,28 @@ function parseArgs(argv) {
     throw new Error('--settle-interval must be smaller than --settle-max');
   }
   return options;
+}
+
+/** macOS and Windows are the only platforms with a memory metric and a process lister. */
+function assertSupportedPlatform(platform) {
+  if (platform === 'darwin' || platform === 'win32') return;
+  throw new Error(
+    `This benchmark runs on macOS and Windows only (this is ${platform}). ` +
+      'Use --dry-run to validate the plan elsewhere.'
+  );
+}
+
+/**
+ * Where throwaway profiles live.
+ *
+ * On Windows the temp directory is usually reported through an 8.3 short name
+ * (C:\Users\RUNNER~1\...). Browsers canonicalize their profile path and some
+ * compare it against the long form, so resolve it once here. macOS is left as it
+ * was: /var/folders is a symlink there and the existing runs used it unresolved.
+ */
+function tempRoot() {
+  const dir = os.tmpdir();
+  return process.platform === 'win32' ? fs.realpathSync.native(dir) : dir;
 }
 
 /**
@@ -320,7 +346,7 @@ function seedBlancProfile(profileDir, { adblockEnabled }) {
  * and restorable session out of the benchmark.
  */
 function prepareProfile(browser, template) {
-  const profileDir = fs.mkdtempSync(path.join(os.tmpdir(), `blanc-bench-${browser.id}-`));
+  const profileDir = fs.mkdtempSync(path.join(tempRoot(), `blanc-bench-${browser.id}-`));
   if (template && fs.existsSync(template)) {
     fs.rmSync(profileDir, { recursive: true, force: true });
     fs.cpSync(template, profileDir, { recursive: true });
@@ -359,11 +385,36 @@ function prepareProfile(browser, template) {
   return profileDir;
 }
 
-function removeProfile(profileDir) {
+/**
+ * Delete a throwaway profile, best effort.
+ *
+ * Cleanup must never cost a measurement. It runs in a `finally` after a cell has
+ * been measured and again before the report is written, so a throw here (a
+ * browser process that outlived its cell still holding a file, antivirus, a slow
+ * handle release on Windows) turned finished work into a failure and, once, lost
+ * a whole run's report. It retries briefly and then gives up quietly: a leftover
+ * temp folder is a nuisance, a lost run is not.
+ *
+ * @param {string} profileDir
+ * @param {(dir: string, options: object) => void} [rm] injectable for tests
+ * @returns {boolean} whether everything was removed
+ */
+function removeProfile(profileDir, rm = fs.rmSync) {
+  let removed = true;
   for (const dir of [profileDir, `${profileDir}-Dev`]) {
-    fs.rmSync(dir, { recursive: true, force: true });
+    try {
+      rm(dir, { recursive: true, force: true, maxRetries: 5, retryDelay: 250 });
+    } catch {
+      removed = false;
+      leftoverProfiles.push(dir);
+    }
   }
+  return removed;
 }
+
+// Folders removeProfile could not delete, reported once at the end of the run so
+// a quiet failure cannot quietly fill the disk.
+const leftoverProfiles = [];
 
 // Every browser this process has launched and not yet reaped, so a Ctrl-C
 // cannot leave several gigabytes of browser running against a profile
@@ -388,6 +439,41 @@ function stderrTail(launched) {
   if (!text) return '';
   const tail = text.split('\n').filter(Boolean).slice(-4).join(' | ');
   return tail ? ` — browser said: ${tail}` : '';
+}
+
+/**
+ * How the browser's root process ended, appended to a failure reason. A Windows
+ * crash code is shown in hex as well, since that is how it is looked up.
+ */
+function exitNote(launched) {
+  const info = launched && typeof launched.exitInfo === 'function' ? launched.exitInfo() : null;
+  if (!info) return '';
+  if (info.signal) return ` (signal ${info.signal})`;
+  if (!Number.isInteger(info.code)) return '';
+  const hex = info.code > 255 ? ` = 0x${info.code.toString(16).toUpperCase()}` : '';
+  return ` (exit code ${info.code}${hex})`;
+}
+
+/**
+ * Processes from the same install still running when a browser dies at startup.
+ *
+ * A leftover from an earlier cell is the usual suspect for a browser that starts
+ * and immediately yields to "another instance", and it would also contaminate
+ * the next measurement, so a failure says whether there is one.
+ */
+function describeSurvivors(rows, bundlePath, excludePids = []) {
+  const excluded = new Set(excludePids);
+  const pids = proctree.matchingBundle(rows, bundlePath).filter((pid) => !excluded.has(pid));
+  if (!pids.length) return '';
+  return ` — ${pids.length} process(es) from this install were still running: ${pids.slice(0, 8).join(', ')}`;
+}
+
+async function survivorNote(browser, launchedPid) {
+  try {
+    return describeSurvivors(await proctree.snapshot(), browser.bundlePath, [launchedPid]);
+  } catch {
+    return '';
+  }
 }
 
 /** One measured cell: launch, sample until settled, verify, quit. */
@@ -417,7 +503,10 @@ async function runCell({ browser, workload, urls, backend, options, log, baselin
     // settle window sampling a corpse.
     await new Promise((resolve) => setTimeout(resolve, 1500));
     if (!launcher.isAlive(launched.pid)) {
-      throw new Error(`exited immediately after launch${stderrTail(launched)}`);
+      throw new Error(
+        `exited immediately after launch${exitNote(launched)}${stderrTail(launched)}` +
+          (await survivorNote(browser, launched.pid))
+      );
     }
 
     // A downgrade decided here applies to THIS cell too — the cell that
@@ -490,7 +579,7 @@ async function runCell({ browser, workload, urls, backend, options, log, baselin
     });
 
     if (!launcher.isAlive(launched.pid)) {
-      throw new Error(`exited before it could be measured${stderrTail(launched)}`);
+      throw new Error(`exited before it could be measured${exitNote(launched)}${stderrTail(launched)}`);
     }
 
     // A tree we could only partially read is not a total.
@@ -565,17 +654,31 @@ async function runCell({ browser, workload, urls, backend, options, log, baselin
  * warming is applied to everyone rather than special-casing one product.
  */
 async function warmTemplate(browser, options, log) {
-  const dir = fs.mkdtempSync(path.join(os.tmpdir(), `blanc-bench-warm-${browser.id}-`));
+  const dir = fs.mkdtempSync(path.join(tempRoot(), `blanc-bench-warm-${browser.id}-`));
   fs.mkdirSync(dir, { recursive: true });
   if (browser.family === 'blanc') {
     seedBlancProfile(dir, { adblockEnabled: browser.requiresProfileSeed !== 'adblockDisabled' });
   }
   log(`  warming ${browser.label}…`);
+  const preExisting = new Set((await proctree.snapshot()).map((r) => r.pid));
   const launched = await launcher.launch(browser, { profileDir: dir, urls: [] });
   const entry = { pid: launched.pid, pids: [] };
   liveLaunches.add(entry);
   await new Promise((resolve) => setTimeout(resolve, options.warmMs || 45_000));
-  await launcher.quit(launched.pid);
+  // Quit the whole tree, not just the root. A browser that starts through a
+  // launcher process (Firefox on Windows) leaves its real process running after
+  // the root is gone; that survivor then held the template's files open, failed
+  // every copy of it, and kept this run alive until the job timed out.
+  try {
+    entry.pids = proctree.browserProcessSet(await proctree.snapshot(), {
+      rootPid: launched.pid,
+      bundlePath: browser.bundlePath,
+      excludePids: preExisting,
+    });
+  } catch {
+    /* quit() still handles the root on its own */
+  }
+  await launcher.quit(launched.pid, { pids: entry.pids });
   liveLaunches.delete(entry);
   // Let the profile's own writes flush before it is used as a copy source.
   await new Promise((resolve) => setTimeout(resolve, 1500));
@@ -591,7 +694,10 @@ async function main() {
 
   const startedAt = new Date().toISOString();
   const log = (message) => process.stdout.write(`${message}\n`);
-  const { browsers } = registry.loadRegistry({ registryPath: options.registry });
+  const { browsers } = registry.loadRegistry({
+    registryPath: options.registry,
+    platform: process.platform,
+  });
 
   if (options.list) {
     for (const b of browsers) {
@@ -600,20 +706,15 @@ async function main() {
     return;
   }
 
-  if (process.platform !== 'darwin' && !options.dryRun) {
-    throw new Error(
-      `This benchmark measures macOS phys_footprint and only runs on darwin (this is ${process.platform}). ` +
-        'Use --dry-run to validate the plan elsewhere.'
-    );
-  }
+  if (!options.dryRun) assertSupportedPlatform(process.platform);
 
   if (options.probe) {
     let backend = await measure.selectBackend({ only: options.backend });
     log(`backend: ${backend.id}\nmetric:  ${backend.metric}\n${backend.description}`);
     log(
-      '\nNote: this probed our own Node process. Whether it can read a hardened,\n' +
-        'signed browser is only established on the first real cell, which aborts\n' +
-        'the run if it cannot.'
+      '\nNote: this probed our own Node process. Whether it can read a browser\n' +
+        'is only established on the first real cell, which aborts the run if it\n' +
+        'cannot.'
     );
     return;
   }
@@ -663,7 +764,13 @@ async function main() {
   // under a stable label.
   const versions = new Map();
   for (const browser of selected) {
-    versions.set(browser.id, await registry.bundleVersion(browser.bundlePath));
+    versions.set(
+      browser.id,
+      await registry.bundleVersion(browser.bundlePath, {
+        platform: process.platform,
+        binary: browser.binary,
+      })
+    );
   }
 
   options.templates = new Map();
@@ -684,15 +791,23 @@ async function main() {
       pinned: Boolean(options.backend),
     });
     if (!resolved.backend) {
+      const why =
+        process.platform === 'win32'
+          ? 'Check that PowerShell can run and that the WMI performance counters are ' +
+            'available (`Get-CimInstance Win32_PerfRawData_PerfProc_Process`).'
+          : 'Browsers ship a hardened runtime and deny task_for_pid to unprivileged ' +
+            'callers, so every measurement would be zero.';
       throw new Error(
         `No measurement backend can read browser process ${pid} (tried: ` +
-          `${resolved.tried.join(', ')}). Browsers ship a hardened runtime and deny ` +
-          'task_for_pid to unprivileged callers, so every measurement would be zero.\n' +
+          `${resolved.tried.join(', ')}). ${why}\n` +
           (options.backend
             ? `--backend=${options.backend} is pinned, so it was not downgraded. Drop the ` +
               'flag to let the run fall back on its own.'
-            : 'Do NOT run the whole harness under sudo — that launches every browser as ' +
-              'root, which is not the configuration anyone uses.')
+            : process.platform === 'win32'
+              ? 'Run from an ordinary, non-elevated session: an elevated harness launches ' +
+                'every browser elevated, which is not the configuration anyone uses.'
+              : 'Do NOT run the whole harness under sudo — that launches every browser as ' +
+                'root, which is not the configuration anyone uses.')
       );
     }
     if (resolved.downgradedFrom) {
@@ -799,6 +914,7 @@ async function main() {
     meta: {
       startedAt,
       finishedAt: new Date().toISOString(),
+      platform: process.platform,
       osVersion: os.release(),
       arch: os.arch(),
       totalRamGiB: Math.round(os.totalmem() / 1024 ** 3),
@@ -832,6 +948,10 @@ async function main() {
   if (failures.length) log(`\n${failures.length} cell(s) failed — see the report's Failed cells section.`);
   log(`\nWrote ${jsonPath}`);
   log(`Wrote ${mdPath}`);
+  if (leftoverProfiles.length) {
+    log(`\n${leftoverProfiles.length} profile folder(s) could not be deleted and were left behind:`);
+    for (const dir of leftoverProfiles.slice(0, 5)) log(`  ${dir}`);
+  }
 
   if (silent.length) {
     throw new Error(
@@ -858,15 +978,19 @@ if (require.main === module) {
 
 module.exports = {
   parseArgs,
+  assertSupportedPlatform,
   rotate,
   buildPlan,
   orderWorkloads,
   seedBlancProfile,
   verifyLoaded,
   stderrTail,
+  exitNote,
+  describeSurvivors,
   summarizeWindow,
   baselineKey,
   prepareProfile,
+  removeProfile,
   MIN_LOAD_GROWTH,
   MIN_PROCESSES,
   REPORTED_WINDOW,

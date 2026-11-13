@@ -83,12 +83,14 @@ final class PagesBridge: NSObject, WKScriptMessageHandler {
     }
 
     static func startData(layout: BlancStartPageLayout = MobileStartPageDefaults.layout,
-                          adblockEnabled: Bool = true) -> JSONValue {
+                          adblockEnabled: Bool = true,
+                          islandPosition: IslandPosition = .bottom) -> JSONValue {
         .object([
             ("groups", .array([])), ("blockedThisWeek", .number(0)),
             ("layout", .string(layout.rawValue)), ("topSites", .array([])),
             ("wallpaperVisible", .bool(true)), ("dynamicWallpaperEnabled", .bool(false)),
             ("mobileAdblockEnabled", .bool(adblockEnabled)),
+            ("mobileIslandPosition", .string(islandPosition.rawValue)),
         ])
     }
 
@@ -307,14 +309,20 @@ final class PagesBridge: NSObject, WKScriptMessageHandler {
         root.append(viewport, style);
       }
       if (typeof document !== 'undefined' && location.hostname === 'newtab') {
+        // The viewport before the first layout: added later, the page could
+        // keep sizes resolved against a wider default viewport (vw units),
+        // so the clock came out a different size from launch to launch.
+        const viewport = document.createElement('meta');
+        viewport.name = 'viewport';
+        viewport.content = 'width=device-width, initial-scale=1, viewport-fit=cover';
+        document.documentElement.append(viewport);
         document.addEventListener('DOMContentLoaded', function () {
-          const viewport = document.createElement('meta');
-          viewport.name = 'viewport';
-          viewport.content = 'width=device-width, initial-scale=1, viewport-fit=cover';
-          document.head.append(viewport);
           document.documentElement.dataset.platform = 'ios';
           const style = document.createElement('link');
           style.rel = 'stylesheet'; style.href = 'ios-start-page.css';
+          // The clock can be drawn before this sheet sizes it for the phone:
+          // a resize makes newtab.js measure it again.
+          style.addEventListener('load', () => window.dispatchEvent(new Event('resize')), { once: true });
           document.head.append(style);
           const mobile = document.createElement('script');
           mobile.src = 'ios-start-page.js'; document.body.append(mobile);
@@ -419,7 +427,8 @@ final class PagesBridge: NSObject, WKScriptMessageHandler {
         case ("bookmarks", "list"): return .value(favoritesPayload())
         case ("start", "data"):
             var data = Self.startData(layout: manager?.settingsStore.newtabLayout ?? MobileStartPageDefaults.layout,
-                                      adblockEnabled: manager?.settingsStore.adblockEnabled ?? true)
+                                      adblockEnabled: manager?.settingsStore.adblockEnabled ?? true,
+                                      islandPosition: manager?.settingsStore.islandPosition ?? .bottom)
             data["remoteDevices"] = remoteDevicesPayload()
             data["sentItems"] = sentItemsPayload()
             data["bookmarks"] = favoritesPayload()
@@ -458,6 +467,7 @@ final class PagesBridge: NSObject, WKScriptMessageHandler {
             manager?.historyStore.remove(url: url, visitedAt: visitedAt.int64Value)
         case ("history", "clear"):
             manager?.historyStore.clear()
+            manager?.services.forgetTabHistories()
         case ("bookmarks", "remove"):
             guard let id = text(0) else { return .value(.null) }
             editFavorites { SyncedFavorites.remove($0, id: id, now: now) }

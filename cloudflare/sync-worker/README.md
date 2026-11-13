@@ -15,10 +15,12 @@ version `ec302891-ce5f-4a29-9095-39fb6f305e1f`, uploaded under the owner's
 account while this section still said deployment was on hold). The deploy was
 found during the v1.44.1 release, and on October 28, 2026 the owner chose to
 keep it ([v1.44.1 incident](../../docs/release-incidents/2026-10-28-v1.44.1.md#the-sync-worker)).
-The current production version is `9f7efb3a-dad5-45eb-960c-bd2a7e3fd906`,
-deployed October 28, 2026 at 20:03 UTC with the owner's approval: it raises
-`NEW_ACCOUNT_DAILY_LIMIT` from 10 to 100 for Sync without a passphrase, and
-its code is unchanged from `ec302891`. Public v1.45.0 uses the M16 stores for
+The current production version is `b2008d91-f075-4905-b935-d386b97be0bb`,
+deployed November 2, 2026 from main `e011b8d7f` with the owner's approval: it
+adds the change check below (#1295), with `FIXED_COPY_EPOCH = "1"` and every
+other setting unchanged. Before it, `9f7efb3a-dad5-45eb-960c-bd2a7e3fd906`
+(October 28, 2026 at 20:03 UTC) raised `NEW_ACCOUNT_DAILY_LIMIT` from 10 to
+100 for Sync without a passphrase, its code unchanged from `ec302891`. Public v1.45.0 uses the M16 stores for
 Shared Spaces ([v1.45.0 incident](../../docs/release-incidents/2026-10-29-v1.45.0.md#the-sync-worker)).
 Every later production deployment still needs the owner's separate approval:
 record the storage-exposure decision below and verify the approved client and
@@ -57,7 +59,7 @@ Design: `docs/superpowers/specs/2026-10-05-sync-storage-budget-design.md`.
   the account Durable Object’s SQLite storage. Its value, byte charge and slot
   commit in one transaction; there is no KV mirror or separate pending intent.
   Fixed stores are still written to KV, and (since the change-check design of
-  2026-11-02, not yet deployed) the object also keeps a copy of each, which
+  2026-11-02, deployed the same day) the object also keeps a copy of each, which
   GETs and conflict checks use; see "Change check" below. Requests are
   serialized per account. A successful
   replacement settles its charge atomically with its ciphertext. Quota exhaustion returns
@@ -102,7 +104,7 @@ Never set `CLEANUP_ENABLED` until every account has a marker:
 `node scripts/backfill-seen-markers.mjs`, then
 `node scripts/backfill-seen-markers.mjs --verify` must exit 0.
 
-## Change check (design 2026-11-02, not deployed)
+## Change check (design 2026-11-02, deployed 2026-11-02)
 
 Design: `docs/superpowers/specs/2026-11-02-sync-changes-check-design.md`.
 

@@ -13,9 +13,11 @@ struct RecentlyClosedSection: View {
 
     var body: some View {
         let rows = manager.closedBand
-        if !rows.isEmpty {
+        let windows = manager.closedWindows
+        if !rows.isEmpty || !windows.isEmpty {
             Section {
                 if open {
+                    ForEach(windows) { window in windowRow(window) }
                     ForEach(rows) { row in
                         Button {
                             manager.reopenClosed(row)
@@ -54,7 +56,7 @@ struct RecentlyClosedSection: View {
                     Button { withAnimation { open.toggle() } } label: {
                         HStack(spacing: 6) {
                             Text(SyncCopy.text("closed.header")).font(BrowserStyle.font(11, semibold: true))
-                            Text("\(rows.count)").font(.system(size: 11))
+                            Text("\(rows.count + windows.count)").font(.system(size: 11))
                             Image(systemName: open ? "chevron.down" : "chevron.right").font(.system(size: 9, weight: .semibold))
                             Spacer(minLength: 0)
                         }
@@ -83,4 +85,36 @@ struct RecentlyClosedSection: View {
         if let device = manager.closedDeviceName(row) { return SyncCopy.text("sharedSpaces.closedOn", ["device": device]) }
         return URL(string: row.url)?.host ?? row.url
     }
+
+    /// A closed window's pages as one entry, as desktop's ⌘L band shows a
+    /// closed group: its first page and how many there were. Tapping opens
+    /// them again together; a swipe forgets them.
+    private func windowRow(_ window: ClosedWindow) -> some View {
+        let first = window.tabs.first.map { $0.title.isEmpty ? $0.url : $0.title } ?? ""
+        let title = SyncCopy.plural("closed.groupTitle", count: window.tabs.count, ["title": first])
+        return Button {
+            manager.reopenClosedWindow(window)
+            onOpen()
+        } label: {
+            HStack(spacing: 10) {
+                Image(systemName: "macwindow").font(.system(size: 16))
+                    .foregroundStyle(style.secondary).frame(width: 24)
+                Text(title).font(BrowserStyle.font(15)).lineLimit(1)
+                Spacer(minLength: 4)
+            }
+            .frame(maxWidth: .infinity, minHeight: 48, alignment: .leading)
+            .contentShape(Rectangle())
+        }
+        .accessibilityLabel(title)
+        .accessibilityHint(SyncCopy.text("closed.reopen"))
+        .accessibilityIdentifier("closed.window")
+        .listRowSeparator(.hidden)
+        .listRowBackground(Color.clear)
+        .listRowInsets(EdgeInsets(top: 2, leading: 22, bottom: 2, trailing: 22))
+        .swipeActions(edge: .trailing) {
+            Button(SyncCopy.text("closed.forget"), role: .destructive) { manager.forgetClosedWindow(window) }
+                .buttonStyle(.automatic)
+        }
+    }
+
 }

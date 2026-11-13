@@ -18,6 +18,22 @@
     "URLs, so the report can disclose the real tab count. The per-page column",
     "divides by workload pages regardless, so this never flatters a browser.",
     "",
+    "windows is an optional block of overrides used only when the harness runs",
+    "on Windows. bundlePath is then an install DIRECTORY (not an .app bundle)",
+    "and may use %LOCALAPPDATA%, %ProgramFiles% and %ProgramFiles(x86)%;",
+    "executableName is the .exe inside it. A browser with no windows block is",
+    "reported 'not installed' there, never run from its macOS path: no block",
+    "means nobody has checked that browser's process layout on Windows. A",
+    "windows block's notes REPLACE the shared ones (which are written about",
+    "macOS); leave notes out to keep them.",
+    "Firefox (and so Zen and LibreWolf) deliberately has NO windows block yet:",
+    "on Windows firefox.exe is a launcher that hands off to a second process",
+    "and exits, so the root pid the harness attributes from is gone at once. A",
+    "hosted-runner probe confirmed it: the warm-up's real process outlived its",
+    "root, kept the template profile's files locked, and failed every cell.",
+    "Supporting it means attributing from the launcher's successor, which has",
+    "not been built.",
+    "",
     "blockingClass drives the report's grouping: none | trackers | ads+trackers.",
     "It is NOT cosmetic. A browser that blocks ads renders less content, so",
     "ranking it against a non-blocking browser in one column would present a",
@@ -34,6 +50,10 @@
       "engine": "Chromium (Electron)",
       "bundlePath": ["/Applications/Blanc.app"],
       "executableName": "Blanc",
+      "windows": {
+        "bundlePath": ["%LOCALAPPDATA%\\Programs\\blanc"],
+        "executableName": "Blanc.exe"
+      },
       "extraBlankTabs": 1,
       "blocking": "built-in (EasyList + EasyPrivacy, network layer)",
       "blockingClass": "ads+trackers",
@@ -57,6 +77,10 @@
       "engine": "Chromium (Electron)",
       "bundlePath": ["/Applications/Blanc.app"],
       "executableName": "Blanc",
+      "windows": {
+        "bundlePath": ["%LOCALAPPDATA%\\Programs\\blanc"],
+        "executableName": "Blanc.exe"
+      },
       "extraBlankTabs": 1,
       "blocking": "none",
       "blockingClass": "none",
@@ -76,6 +100,14 @@
       "engine": "Chromium (Blink)",
       "bundlePath": ["/Applications/Google Chrome.app"],
       "executableName": "Google Chrome",
+      "windows": {
+        "bundlePath": [
+          "%ProgramFiles%\\Google\\Chrome\\Application",
+          "%ProgramFiles(x86)%\\Google\\Chrome\\Application",
+          "%LOCALAPPDATA%\\Google\\Chrome\\Application"
+        ],
+        "executableName": "chrome.exe"
+      },
       "blocking": "none (stock profile)",
       "blockingClass": "none",
       "notes": [
@@ -155,6 +187,21 @@
       "engine": "Chromium (Blink)",
       "bundlePath": ["/Applications/Brave Browser.app"],
       "executableName": "Brave Browser",
+      "windows": {
+        "bundlePath": [
+          "%ProgramFiles%\\BraveSoftware\\Brave-Browser\\Application",
+          "%LOCALAPPDATA%\\BraveSoftware\\Brave-Browser\\Application"
+        ],
+        "executableName": "brave.exe",
+        "notes": [
+          "--disable-brave-update is inherited from the macOS entry. On Windows",
+          "Brave updates through its own updater service, outside the install",
+          "directory, which that flag may not reach. UNVERIFIED that no update",
+          "check runs mid-measurement.",
+          "UNVERIFIED: whether Brave opens a welcome tab on a fresh profile despite",
+          "--no-first-run. If it does, extraBlankTabs must be raised."
+        ]
+      },
       "extraArgs": ["--disable-brave-update"],
       "blocking": "built-in Brave Shields",
       "blockingClass": "ads+trackers",
@@ -176,6 +223,19 @@
       "engine": "Chromium (Blink)",
       "bundlePath": ["/Applications/Microsoft Edge.app"],
       "executableName": "Microsoft Edge",
+      "windows": {
+        "bundlePath": [
+          "%ProgramFiles(x86)%\\Microsoft\\Edge\\Application",
+          "%ProgramFiles%\\Microsoft\\Edge\\Application"
+        ],
+        "executableName": "msedge.exe",
+        "notes": [
+          "UNVERIFIED on Windows: Edge can stay resident after its window closes",
+          "(startup boost, background mode) and can open its own first-run or",
+          "welcome page despite --no-first-run. quit() force-kills survivors after",
+          "its grace period; an extra tab shows up in the tab count."
+        ]
+      },
       "blocking": "tracking prevention (stock, Balanced)",
       "blockingClass": "trackers"
     },
@@ -186,6 +246,13 @@
       "engine": "Chromium (Blink)",
       "bundlePath": ["/Applications/Vivaldi.app"],
       "executableName": "Vivaldi",
+      "windows": {
+        "bundlePath": [
+          "%LOCALAPPDATA%\\Vivaldi\\Application",
+          "%ProgramFiles%\\Vivaldi\\Application"
+        ],
+        "executableName": "vivaldi.exe"
+      },
       "blocking": "built-in blocker, trackers only at stock settings",
       "blockingClass": "trackers",
       "notes": [

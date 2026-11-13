@@ -25,10 +25,17 @@ const RESETTING_STEPS = [
   'device B closes the active Work tab',
   'the restored client retries the missing index entry',
   'the relaunched client applies the held navigation and keeps every Work tab',
-  // F57-24/25 time a peer's new Space arriving; turning sync on and sharing
-  // Work just before fill the window, so the device is put past that burst.
+  // F57-25 times a peer's new Space arriving through the once-a-minute pass;
+  // turning sync on and sharing Work just before fill the window, and the
+  // pass the setup scheduled is what finds that Space (see the step's comment).
   'Blanc is in front',
 ];
+
+// F57-24 times a peer's new Space arriving through the change check. Turning
+// sync on and sharing Work just before fills the window and leaves a full pass
+// scheduled, so the device is put past that burst: the pending pass runs, then
+// the window is freed.
+const SETTLING_STEPS = ['Blanc is in front and has finished its launch pass'];
 
 /** Helpers that reset for the steps calling them, and those steps. */
 const RESETTING_HELPERS = ['sharedCopy'];
@@ -65,6 +72,21 @@ test('only the measured in-scenario budget waits reset the request window', () =
   for (const helper of RESETTING_HELPERS) assert.ok(helperBody(helper).includes('resetRequestWindow'), helper);
   const copyCallers = [...src.matchAll(/^(?:When|Then|Given)\('([^']+)'/gm)].map((m) => m[1]).filter((name) => stepBody(name).includes('sharedCopy(this'));
   assert.deepEqual(copyCallers.sort(), [...SHARED_COPY_STEPS].sort());
+});
+
+test('only the steps that time a peer\'s new Space settle the setup\'s requests', () => {
+  const callers = desktopSources().filter((file) => /settleRequests/.test(fs.readFileSync(file, 'utf8')));
+  assert.deepEqual(callers, [stepsPath]);
+  assert.equal(src.match(/settleRequests/g).length, SETTLING_STEPS.length);
+  for (const step of SETTLING_STEPS) {
+    assert.ok(stepBody(step).includes('settleRequests'), step);
+    // The hook answers whether the device ended with nothing queued; a step that
+    // ignores the answer would measure a device that is still spending its window.
+    assert.match(stepBody(step), /assert\.equal\(await this\.call\('sharedSpacesTest','settleRequests'\),true/, step);
+    // A plain reset runs before the pass the setup scheduled, which then
+    // spends the window again (F57-24 failed one run in five on that).
+    assert.ok(!stepBody(step).includes('resetRequestWindow'), step);
+  }
 });
 
 test('the budget and automatic-sync scenarios never reset the window', () => {

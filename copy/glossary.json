@@ -242,7 +242,8 @@
       "settings.sync.devices.platform.win32",
       "settings.sync.devices.platform.linux",
       "settings.sync.devices.platform.ios",
-      "settings.general.miniWindow.shortcut.altCmdN"
+      "settings.general.miniWindow.shortcut.altCmdN",
+      "ios.settings.islandPosition"
     ],
     "es": [
       "about.chromium",
@@ -365,7 +366,8 @@
       "settings.sync.devices.platform.win32",
       "settings.sync.devices.platform.linux",
       "settings.sync.devices.platform.ios",
-      "settings.general.miniWindow.shortcut.altCmdN"
+      "settings.general.miniWindow.shortcut.altCmdN",
+      "ios.settings.islandPosition"
     ],
     "pt-BR": [
       "about.chromium",

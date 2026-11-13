@@ -75,9 +75,10 @@ function exportIndex(ctx) {
   for(const id of Object.keys(index.spaces)) {
     if(!d.knownIndex[id] && !d.blobs[id]?.lastPublishable){delete index.spaces[id];continue;}
     const receipt=d.pending[id]?.index,entry=index.spaces[id];
-    if(receipt&&entry.rev!==receipt.rev) {
+    if(receipt&&entry.rev!==receipt.rev&&!model.receiptSuperseded(receipt,entry,ctx.deviceId)) {
       // A newer hint must outrank every hint already published, even one
-      // from a device whose clock runs ahead.
+      // from a device whose clock runs ahead. A receipt another device has
+      // published over is older than that hint and is dropped (settleIndex).
       entry.rev=receipt.rev;
       entry.revAt=Math.max(receipt.at??0,(Number.isSafeInteger(entry.revAt)?entry.revAt:-1)+1);
       entry.revBy=receipt.by??ctx.deviceId;
@@ -93,7 +94,8 @@ function settleIndex(payload,ctx) {
     if(d.index.spaces[id])for(const key of ['rev','revAt','revBy']) {
       if(entry[key]!==undefined)d.index.spaces[id][key]=entry[key];else delete d.index.spaces[id][key];
     }
-    if(d.pending[id]?.index?.rev===entry.rev)delete d.pending[id].index;
+    const receipt=d.pending[id]?.index;
+    if(receipt&&(receipt.rev===entry.rev||model.receiptSuperseded(receipt,entry,ctx.deviceId)))delete d.pending[id].index;
   }});
 }
 function mergeSpace(id,remote,version,ctx,encryptFn) {
@@ -102,7 +104,8 @@ function mergeSpace(id,remote,version,ctx,encryptFn) {
   const local=entry?.blob??remote??{v:1,spaceId:id,tabs:{},groups:{}};
   const before=copy(s.data.pending[id]??{});
   const plan=model.pushPlan({fetchedBlob:remote,fetchedVersion:version,localBlob:local,pending:before,
-    lastMergeAt:entry?.mergedAt,now:Date.now(),deviceId:ctx.deviceId,encryptFn,lastPublishable:entry?.lastPublishable,admissionOrder:retryOrder});
+    lastMergeAt:entry?.mergedAt,now:Date.now(),deviceId:ctx.deviceId,encryptFn,lastPublishable:entry?.lastPublishable,admissionOrder:retryOrder,
+    firstUpload:!s.data.knownIndex[id]&&!entry?.lastPublishable,indexHint:s.data.index.spaces[id]??null});
   s.update(d=>{
     if(plan.recover.size) {
       const recovery=d.recoveries[id]??={tabs:{},groups:{}};
@@ -118,7 +121,9 @@ function mergeSpace(id,remote,version,ctx,encryptFn) {
       }),reason:plan.reason};
     // A failed/no PUT cannot acknowledge unrelated writes. Retention cleanup
     // is independent, and must survive failure and process restart too.
-    d.pending[id]=plan.upload?model.settleUpload(plan,before,{blobStored:false}).pending:copy(plan.pendingAfter);
+    // With nothing to write, the receipt describes what the Worker holds now.
+    d.pending[id]=plan.upload?model.settleUpload(plan,before,{blobStored:false}).pending
+      :{...copy(plan.pendingAfter),...(plan.indexEntry?{index:copy(plan.indexEntry)}:{})};
   });
   notify(remoteChanged);
   return {...plan,pendingBefore:before,accountId:ctx.accountId};

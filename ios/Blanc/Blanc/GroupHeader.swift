@@ -11,20 +11,24 @@ struct GroupHeader: View {
 
     var body: some View {
         HStack(spacing: 8) {
-            GroupDot(color: group.color, style: style)
-            Text(group.name).font(BrowserStyle.font(17, semibold: true)).lineLimit(1)
-            Text("\(count)").font(.system(size: 14)).foregroundStyle(style.secondary)
-            Spacer(minLength: 0)
+            // The whole row folds the group; the arrow sits with its name.
             Button {
                 withAnimation { manager.setGroupCollapsed(group.id, !group.collapsed) }
             } label: {
-                Image(systemName: group.collapsed ? "chevron.right" : "chevron.down")
-                    .font(.system(size: 13, weight: .semibold))
-                    .foregroundStyle(style.secondary)
-                    .frame(width: 44, height: 44)
-                    .contentShape(Rectangle())
+                HStack(spacing: 8) {
+                    GroupDot(color: group.color, style: style)
+                    Text(group.name).font(BrowserStyle.font(17, semibold: true)).lineLimit(1)
+                    Text("\(count)").font(.system(size: 14)).foregroundStyle(style.secondary)
+                    Image(systemName: group.collapsed ? "chevron.right" : "chevron.down")
+                        .font(.system(size: 12, weight: .semibold))
+                        .foregroundStyle(style.secondary)
+                }
+                .frame(maxWidth: .infinity, minHeight: 44, alignment: .leading)
+                .contentShape(Rectangle())
             }
-            .accessibilityLabel(SyncCopy.text(group.collapsed ? "group.unfold" : "group.fold"))
+            .accessibilityLabel(group.name)
+            .accessibilityValue("\(count)")
+            .accessibilityHint(SyncCopy.text(group.collapsed ? "group.unfold" : "group.fold"))
             .accessibilityIdentifier("group.fold")
             Menu {
                 Button(SyncCopy.text("groupMenu.rename"), systemImage: "pencil", action: rename)

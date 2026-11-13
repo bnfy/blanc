@@ -54,9 +54,7 @@ final class SharedSpacesUITests: XCTestCase {
     XCTAssertTrue(element(app, "sync.spaces.choose").waitForExistence(timeout: 5), "the switch is on")
     app.buttons["settings.done"].firstMatch.tap()
 
-    let mark = app.buttons["island.space"]
-    XCTAssertTrue(mark.waitForExistence(timeout: 5))
-    mark.tap()
+    app.openSpacesCard()
     XCTAssertTrue(element(app, "spaces.syncMark.Reading").waitForExistence(timeout: 5), "Reading is shared")
     XCTAssertFalse(element(app, "spaces.syncMark.Archive").exists, "Archive stays local")
     capture(app, "Spaces card with shared Spaces")
@@ -65,9 +63,7 @@ final class SharedSpacesUITests: XCTestCase {
   /// review sheet brings it here as a local copy, shown with its group.
   func testBringSpaceCopiesAndShows() {
     let app = launch("-BlancUITestSharedSpaces")
-    let mark = app.buttons["island.space"]
-    XCTAssertTrue(mark.waitForExistence(timeout: 5))
-    mark.tap()
+    app.openSpacesCard()
     XCTAssertTrue(element(app, "spaces.device.MacBook Pro").waitForExistence(timeout: 15), "On MacBook Pro")
     let travel = app.buttons["spaces.remote.Travel"]
     XCTAssertTrue(travel.exists)
@@ -79,7 +75,9 @@ final class SharedSpacesUITests: XCTestCase {
     capture(app, "Bring a Space review")
     bring.tap()
     XCTAssertTrue(bring.waitForNonExistence(timeout: 5))
-    XCTAssertEqual(mark.label, "Space: Travel", "the copy is shown")
+    XCTAssertEqual(app.paletteSpacesButton().label, "Space: Travel", "the copy is shown")
+    app.buttons["Collapse Island"].tap()
+    XCTAssertTrue(app.buttons["palette.spaces"].waitForNonExistence(timeout: 5))
     let start = app.buttons["pill.palette"].coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.5))
     start.press(forDuration: 0.05, thenDragTo: start.withOffset(CGVector(dx: 0, dy: -250)))
     XCTAssertTrue(element(app, "group.header.Flights").waitForExistence(timeout: 5), "the grid shows its group")
@@ -92,8 +90,7 @@ extension SharedSpacesUITests {
   /// the tab is gone and the palette's Recently closed says where it closed.
   func testRemoteCloseLandsInRecentlyClosed() {
     let app = launch("-BlancUITestSharedSpacesOn")
-    XCTAssertEqual(app.buttons["island.space"].label, "Space: Work")
-    app.buttons["pill.palette"].tap()
+    XCTAssertEqual(app.paletteSpacesButton().label, "Space: Work")
     let row = app.buttons["closed.row." + String(format: "%032x", 0x772)]
     let toggle = app.buttons["closed.toggle"]
     XCTAssertTrue(toggle.waitForExistence(timeout: 30), "the remote close lands in Recently closed")

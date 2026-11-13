@@ -231,6 +231,8 @@ test('the page top and the Island anchor can differ (floating Island)', () => {
   assert.deepEqual(floating.dragBand, { x: 0, y: 0, width: 1200, height: 6 });
   const vertical = calculateChromeLayout({ width: 1200, height: 800, chromeHeight: 0, islandHeight: 68, tabLayout: 'vertical', verticalTabsWidth: 248 });
   assert.deepEqual(vertical.dragBand, { x: 248, y: 0, width: 952, height: 6 });
+  const windows = calculateChromeLayout({ width: 1200, height: 800, chromeHeight: 1, islandHeight: 68, platform: 'win32' });
+  assert.deepEqual(windows.dragBand, { x: 0, y: 0, width: 1200, height: 10 });
   const shown = calculateChromeLayout({ width: 1200, height: 800, chromeHeight: 68 });
   assert.equal(shown.findBounds.y, 68);
   assert.equal(shown.islandBounds.height, 68);

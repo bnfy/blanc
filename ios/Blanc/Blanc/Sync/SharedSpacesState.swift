@@ -208,10 +208,12 @@ import Foundation
         continue
       }
       guard let receipt = data["pending"]?[id]?["index"], var entry = spaces[id],
-        receipt["rev"]?.canonical() != entry["rev"]?.canonical()
+        receipt["rev"]?.canonical() != entry["rev"]?.canonical(),
+        !Model.receiptSuperseded(receipt, entry, deviceId: deviceId)
       else { continue }
       // A newer hint must outrank every hint already published, even one
-      // from a device whose clock runs ahead.
+      // from a device whose clock runs ahead. A receipt another device has
+      // published over is older than that hint and is dropped (settleIndex).
       entry["rev"] = receipt["rev"]
       let previous = Model.safeInteger(entry["revAt"]) ?? -1
       entry["revAt"] = .number(max(receipt["at"]?.number ?? 0, previous + 1))
@@ -224,7 +226,7 @@ import Foundation
     return Model.expireTombstones(Model.relayInto(index, relay, now: now), now: now)
   }
   /// After the index PUT succeeded for `accountId`.
-  func settleIndex(_ payload: JSONValue, accountId: String) {
+  func settleIndex(_ payload: JSONValue, accountId: String, deviceId: String) {
     guard self.accountId == accountId else { return }
     for (id, entry) in payload["spaces"]?.pairs ?? [] {
       setIn("knownIndex", id, .bool(true))
@@ -234,7 +236,10 @@ import Foundation
         index["spaces"]?[id] = local
         data["index"] = index
       }
-      if let rev = data["pending"]?[id]?["index"]?["rev"], rev.canonical() == entry["rev"]?.canonical() {
+      if let receipt = data["pending"]?[id]?["index"],
+        receipt["rev"]?.canonical() == entry["rev"]?.canonical()
+          || Model.receiptSuperseded(receipt, entry, deviceId: deviceId)
+      {
         var pending = data["pending"]![id]!
         pending["index"] = nil
         setIn("pending", id, pending)
@@ -258,7 +263,9 @@ import Foundation
     var plan = try Model.pushPlan(
       fetchedBlob: remote, fetchedVersion: version, localBlob: local, pending: before,
       lastMergeAt: entry?["mergedAt"]?.intValue, now: now, deviceId: deviceId, encrypt: encrypt,
-      lastPublishable: entry?["lastPublishable"], admissionOrder: retryOrder)
+      lastPublishable: entry?["lastPublishable"], admissionOrder: retryOrder,
+      firstUpload: data["knownIndex"]?[id] == nil && entry?["lastPublishable"] == nil,
+      indexHint: data["index"]?["spaces"]?[id])
     if !plan.recover.isEmpty {
       var recovery = data["recoveries"]?[id] ?? .object([("tabs", .object([])), ("groups", .object([]))])
       for kind in ["tabs", "groups"] {
@@ -290,11 +297,14 @@ import Foundation
     next["reason"] = plan.reason.map(JSONValue.string) ?? .null
     setIn("blobs", id, next)
     // A failed or absent PUT can't acknowledge unrelated writes; retention
-    // cleanup is independent and survives a failure and a restart too.
+    // cleanup is independent and survives a failure and a restart too. With
+    // nothing to write, the receipt describes what the Worker holds now.
+    var nextPending = plan.pendingAfter
+    if let receipt = plan.indexEntry { nextPending["index"] = receipt }
     setIn(
       "pending", id,
       plan.upload != nil
-        ? Model.settleUpload(plan, before, blobStored: false, indexStored: false).pending : plan.pendingAfter)
+        ? Model.settleUpload(plan, before, blobStored: false, indexStored: false).pending : nextPending)
     save()
     plan.pendingBefore = before
     plan.accountId = accountId
@@ -409,6 +419,16 @@ import Foundation
     (data["index"]?["spaces"]?[id]?["rev"] ?? .null).canonical()
       != (data["blobs"]?[id]?["rev"] ?? .null).canonical()
   }
+  /// The revision the index names for `id` (canonical; "null" when none).
+  func indexRevision(_ id: String) -> String { (data["index"]?["spaces"]?[id]?["rev"] ?? .null).canonical() }
+  /// Whether anything waits to go out or failed to (the retry pass's work):
+  /// field writes or an index receipt, or a Space push that failed.
+  var hasPendingUploads: Bool {
+    (data["pending"]?.pairs ?? []).contains { !$0.1.pairs.isEmpty }
+      || (data["blobs"]?.pairs ?? []).contains { $0.1["failedAt"] != nil }
+  }
+  /// Whether the last push or download of Space `id` failed.
+  func hasFailed(_ id: String) -> Bool { data["blobs"]?[id]?["failedAt"] != nil }
   /// The merged blob held for `id`, as the adapter reads it.
   func blob(_ id: String) -> JSONValue? { data["blobs"]?[id]?["blob"] }
   /// A Space push failed (or recovered): desktop's `failedAt` for the status line.

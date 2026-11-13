@@ -24,7 +24,9 @@ for(const name of ['readMahjongDom','readMahjongDealState','copyMahjongDealFromB
  test(`${name} evaluates shipping's exact renderer body in the active duplicate-URL target`,async()=>{
   const f=fixture({url});
   const start=shipping.indexOf(`async ${name}()`);
-  const body=shipping.slice(start).match(/executeJavaScript\(`([\s\S]*?)`(?:, true)?\)/)[1];
+  // What the hook sends: the template literal's value, so an escape such as \\s arrives as \s.
+  const raw=shipping.slice(start).match(/executeJavaScript\(`([\s\S]*?)`(?:, true)?\)/)[1];
+  const body=new Function('return `'+raw+'`')();
   const result=await mahjong[name](f.world);
   assert.ok(f.expressions.includes(body));
   if(name==='readMahjongDom')assert.equal(result.url,'blanc://mahjong/?deal=peaks-91005');

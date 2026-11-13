@@ -25,6 +25,8 @@ const BLOCKING_CLASSES = [
   { id: 'unknown', label: 'Blocking not classified' },
 ];
 
+const OS_NAMES = { darwin: 'macOS', win32: 'Windows' };
+
 // The anchor for the percentage column. Chrome is the market default, so "+N%
 // vs Chrome" is a claim a reader can situate. Anchoring to the best row instead
 // would mean a vendor benchmark whose reference point is its own product's best
@@ -163,7 +165,9 @@ function buildMarkdown(report) {
   const out = [];
   out.push('# Browser memory benchmark');
   out.push('');
-  out.push(`Run: ${meta.startedAt} · macOS ${meta.osVersion} · ${meta.arch} · ${meta.totalRamGiB} GiB RAM`);
+  // Reports written before the platform was recorded were all macOS runs.
+  const osName = OS_NAMES[meta.platform] || 'macOS';
+  out.push(`Run: ${meta.startedAt} · ${osName} ${meta.osVersion} · ${meta.arch} · ${meta.totalRamGiB} GiB RAM`);
   out.push(`Metric: \`${metric}\` via \`${meta.backend}\` · up to ${meta.repetitions} repetitions per cell` +
     (meta.warmedProfiles ? ' · profiles warmed before measuring' : ' · cold profiles'));
   out.push('');
@@ -174,6 +178,22 @@ function buildMarkdown(report) {
     out.push('> every renderer, so totals are inflated and inflated *unevenly* between');
     out.push('> engines with different process counts. Treat this run as indicative');
     out.push('> only, and re-run with a phys_footprint backend before quoting it.');
+    out.push('');
+  } else if (metric === 'working_set') {
+    out.push('> **⚠️ These numbers are working set, not private working set.** Working set');
+    out.push('> includes pages shared between processes, so the engine\'s DLLs are counted');
+    out.push('> once per renderer, and totals are inflated *unevenly* between engines with');
+    out.push('> different process counts. Treat this run as indicative only, and re-run');
+    out.push('> with the private working set backend before quoting it.');
+    out.push('');
+  } else if (metric === 'private_working_set') {
+    // Not a warning: this is the publishable Windows metric. It is not the macOS
+    // one, and a reader comparing across platforms needs to be told so.
+    out.push('> Private working set is the Windows counterpart of macOS `phys_footprint`');
+    out.push('> (Task Manager\'s Memory column), not the same measure. It counts resident');
+    out.push('> pages only: anything Windows has compressed or paged-out is missing from');
+    out.push('> it, where `phys_footprint` includes compressed pages. Compare rows within');
+    out.push('> this run, never against a macOS run.');
     out.push('');
   }
 

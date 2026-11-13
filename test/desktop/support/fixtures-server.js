@@ -2,6 +2,7 @@
 // network in tests). Any /site/<name> path returns a minimal page whose title
 // is <name> and whose body contains the word "widget" three times (used by the
 // find-in-page scenario when that step is implemented).
+const crypto = require('node:crypto');
 const http = require('node:http');
 const https = require('node:https');
 
@@ -62,6 +63,15 @@ function pageBody(req) {
     `<div id="acceptance-tall" style="height:5000px"></div>` +
     store +
     (raw.includes('probe=1') ? `<script src="/asset/probe.js"></script>` : '') +
+    // F39-9: a WebSocket to the page's own origin. An error after it opened
+    // (the fixture drops it) must not hide that it opened.
+    (raw.includes('socket=1')
+      ? `<script>window.__socketState='connecting';` +
+        `{const s=new WebSocket('wss://'+location.host+'/asset/socket');` +
+        `s.onopen=()=>{window.__socketState='open';};` +
+        `s.onerror=()=>{if(window.__socketState!=='open')window.__socketState='error';};}` +
+        `</script>`
+      : '') +
     `</body></html>`
   );
 }
@@ -169,6 +179,11 @@ function start() {
   const server = http.createServer((req, res) => {
     if (workspaceResponse(req, res)) return;
     if (handleAuthFixture(req, res)) return;
+    if (req.url === '/zoom.pdf') {
+      res.writeHead(200, { 'Content-Type': 'application/pdf' });
+      res.end('%PDF-1.4\n1 0 obj<</Type/Catalog/Pages 2 0 R>>endobj\n2 0 obj<</Type/Pages/Kids[3 0 R]/Count 1>>endobj\n3 0 obj<</Type/Page/Parent 2 0 R/MediaBox[0 0 300 300]>>endobj\ntrailer<</Root 1 0 R>>\n');
+      return;
+    }
     const url = new URL(req.url || '/', 'http://fixture.invalid');
     if (url.searchParams.has('redirect-start')) {
       url.searchParams.delete('redirect-start');
@@ -214,6 +229,23 @@ function startSecure({ key, cert }) {
     res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8' });
     res.end(pageBody(req));
   });
+  // F39-9: accept a WebSocket handshake on /asset/socket and hold it open
+  // until the fixture closes. No frames are exchanged.
+  const sockets = new Set();
+  server.on('upgrade', (req, socket) => {
+    if (!(req.url || '').startsWith('/asset/socket') || !req.headers['sec-websocket-key']) {
+      socket.destroy();
+      return;
+    }
+    const accept = crypto.createHash('sha1')
+      .update(`${req.headers['sec-websocket-key']}258EAFA5-E914-47DA-95CA-C5AB0DC85B11`).digest('base64');
+    sockets.add(socket);
+    socket.on('error', () => {});
+    socket.on('close', () => sockets.delete(socket));
+    socket.write('HTTP/1.1 101 Switching Protocols\r\nUpgrade: websocket\r\n' +
+      `Connection: Upgrade\r\nSec-WebSocket-Accept: ${accept}\r\n\r\n`);
+  });
+  const dropSockets = () => { for (const socket of sockets) socket.destroy(); };
   return new Promise((resolve) => {
     server.listen(0, '127.0.0.1', () => {
       const { port } = server.address();
@@ -221,8 +253,8 @@ function startSecure({ key, cert }) {
         port,
         // Swap the presented certificate and drop live sockets so the next
         // request handshakes again (F39-3 / F39-7).
-        setCertificate: (next) => { server.setSecureContext(next); server.closeAllConnections(); },
-        close: () => new Promise((r) => server.close(r)),
+        setCertificate: (next) => { server.setSecureContext(next); server.closeAllConnections(); dropSockets(); },
+        close: () => { dropSockets(); return new Promise((r) => server.close(r)); },
       });
     });
   });

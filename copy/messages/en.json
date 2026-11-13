@@ -244,7 +244,7 @@
   },
   "pill.placeholder": {
     "message": "Search or type URL",
-    "note": "Pill label on a blank new tab, inviting the user to open the command bar.",
+    "note": "Pill label on a blank new tab, inviting the user to open the command bar. Also the iPhone Island's dimmed label on the Start Page, where it must fit a narrow Island.",
     "maxLength": 28
   },
   "pill.notice.cleanLinkCopied": {
@@ -2698,6 +2698,10 @@
     "message": "This sync no longer exists. Turn sync off here, then add this phone again from your computer.",
     "note": "Profile Sync error on iPhone when the sync's data is gone from the server (deleted from desktop); the phone stops instead of recreating it."
   },
+  "sync.error.accountGone.ipad": {
+    "message": "This sync no longer exists. Turn sync off here, then add this iPad again from your computer.",
+    "note": "iPad: sync.error.accountGone's counterpart on an iPad. SyncCopy uses a key's .ipad sibling there."
+  },
   "settings.sync.recovery.dialogMessage": {
     "message": "Copy your sync recovery code?",
     "note": "Settings → Sync → Copy recovery code: native dialog title."
@@ -3066,10 +3070,6 @@
   "glance.status.closed": {
     "message": "Glance closed",
     "note": "Screen reader announcement."
-  },
-  "split.glanceUnavailable": {
-    "message": "Glance isn't available while a split is showing",
-    "note": "Screen reader announcement and status when Glance is asked to open while a Split View (F53) is showing."
   },
   "glance.status.openedAsTab": {
     "message": "{title} is now the current tab",
@@ -7575,6 +7575,10 @@
     "message": "layout",
     "note": "Mahjong → Boards (choose your game): text (legend)."
   },
+  "mahjong.setup.dailyLayoutHint": {
+    "message": "Daily plays today’s layout. Switch to Random to pick another.",
+    "note": "Mahjong → Boards (choose your game): shown beside the layout heading while the Daily deal is selected, when the other layouts are dimmed. “Random” is the deal button’s name."
+  },
   "mahjong.layout.turtleDetail": {
     "message": "144 tiles · unhurried",
     "note": "Mahjong → Boards (choose your game): tile count and pace under a board name on a narrow card; keep it short."
@@ -7674,17 +7678,18 @@
     "message": "<0>Zen game</0> Hide time and score, and keep this game out of Records.",
     "note": "Mahjong → Boards (choose your game): text (span)."
   },
-  "mahjong.setup.freeHighlight": {
-    "message": "<0>Stronger free-tile highlight</0> Adds a persistent high-contrast ring to every tile available to play.",
-    "note": "Mahjong → Boards (choose your game): text (span)."
-  },
   "mahjong.setup.replaces": {
     "message": "Starting replaces the board currently on this table.",
     "note": "Mahjong → Boards (choose your game): text (p)."
   },
   "mahjong.setup.copyDeal": {
-    "message": "copy current deal",
-    "note": "Mahjong → Boards (choose your game): button.",
+    "message": "copy board link",
+    "note": "Mahjong → Boards (choose your game): button that copies a link to the board on the table, so someone else can play the same deal.",
+    "maxLength": 24
+  },
+  "mahjong.setup.linkCopied": {
+    "message": "link copied",
+    "note": "Mahjong → Boards: the copy button reads this for a moment after the link is copied.",
     "maxLength": 24
   },
   "mahjong.setup.start": {
@@ -7859,33 +7864,33 @@
     "message": "white dragon, {motif}",
     "note": "Mahjong: accessible tile name; {motif} is the picture on it."
   },
-  "mahjong.tile.motif.sunrise": {
-    "message": "sunrise",
-    "note": "Mahjong: accessible tile name: picture on the east wind tile."
+  "mahjong.tile.windEastPlain": {
+    "message": "east wind",
+    "note": "Mahjong: accessible tile name for the standard tile art, which shows only the wind or dragon itself."
   },
-  "mahjong.tile.motif.sun": {
-    "message": "sun",
-    "note": "Mahjong: accessible tile name: picture on the south wind tile."
+  "mahjong.tile.windSouthPlain": {
+    "message": "south wind",
+    "note": "Mahjong: accessible tile name for the standard tile art, which shows only the wind or dragon itself."
   },
-  "mahjong.tile.motif.moonAndWave": {
-    "message": "moon and wave",
-    "note": "Mahjong: accessible tile name: picture on the west wind tile."
+  "mahjong.tile.windWestPlain": {
+    "message": "west wind",
+    "note": "Mahjong: accessible tile name for the standard tile art, which shows only the wind or dragon itself."
   },
-  "mahjong.tile.motif.mountain": {
-    "message": "mountain",
-    "note": "Mahjong: accessible tile name: picture on the north wind tile."
+  "mahjong.tile.windNorthPlain": {
+    "message": "north wind",
+    "note": "Mahjong: accessible tile name for the standard tile art, which shows only the wind or dragon itself."
+  },
+  "mahjong.tile.dragonRedPlain": {
+    "message": "red dragon",
+    "note": "Mahjong: accessible tile name for the standard tile art, which shows only the wind or dragon itself."
+  },
+  "mahjong.tile.dragonGreenPlain": {
+    "message": "green dragon",
+    "note": "Mahjong: accessible tile name for the standard tile art, which shows only the wind or dragon itself."
   },
   "mahjong.tile.motif.compass": {
     "message": "compass",
     "note": "Mahjong: accessible tile name: picture on the alternative wind tiles."
-  },
-  "mahjong.tile.motif.flame": {
-    "message": "flame",
-    "note": "Mahjong: accessible tile name: picture on the red dragon tile."
-  },
-  "mahjong.tile.motif.flourish": {
-    "message": "flourish",
-    "note": "Mahjong: accessible tile name: picture on the green dragon tile (an ornamental swirl)."
   },
   "mahjong.tile.motif.blancMark": {
     "message": "Blanc mark",
@@ -8102,6 +8107,42 @@
   "mahjong.win.quietTitle": {
     "message": "A quiet finish.",
     "note": "Mahjong → board-cleared card: heading after a Zen game."
+  },
+  "mahjong.win.titleRecord": {
+    "message": "A new personal best.",
+    "note": "Mahjong: board-cleared card title when this clear set a new record."
+  },
+  "mahjong.win.titleFirst": {
+    "message": "First time clearing {layout}.",
+    "note": "Mahjong: board-cleared card title for the first clear of a layout; {layout} is its name, such as Arch."
+  },
+  "mahjong.win.titleStreak": {
+    "message": "{run} in a row. New tiles next.",
+    "note": "Mahjong: board-cleared card title on every third board cleared in a row, when the next deal switches to a new tile set. {run} starts the sentence: a capitalized number word (Three, Six, Nine) or digits above nine."
+  },
+  "mahjong.win.titleDaily": {
+    "message": "Today’s Daily, done.",
+    "note": "Mahjong: board-cleared card title after finishing today’s Daily."
+  },
+  "mahjong.win.titleSweep": {
+    "message": "Clean sweep.",
+    "note": "Mahjong: one of the rotating board-cleared card titles."
+  },
+  "mahjong.win.titleHome": {
+    "message": "Every tile, home.",
+    "note": "Mahjong: one of the rotating board-cleared card titles (every tile has found its pair)."
+  },
+  "mahjong.win.titleLastPair": {
+    "message": "That’s the last pair.",
+    "note": "Mahjong: one of the rotating board-cleared card titles."
+  },
+  "mahjong.win.titleTidy": {
+    "message": "A tidy table.",
+    "note": "Mahjong: one of the rotating board-cleared card titles."
+  },
+  "mahjong.win.titleWellPlayed": {
+    "message": "Well played.",
+    "note": "Mahjong: one of the rotating board-cleared card titles."
   },
   "mahjong.win.rules": {
     "message": "{mode} · {rules}",
@@ -8621,6 +8662,10 @@
     "message": "Start your sync on your computer, then add this phone with a code.",
     "note": "iOS M7a capability guidance in the shared Favorites or Sync page."
   },
+  "settings.sync.createOnComputer.ipad": {
+    "message": "Start your sync on your computer, then add this iPad with a code.",
+    "note": "iPad: settings.sync.createOnComputer's counterpart on an iPad. SyncCopy uses a key's .ipad sibling there."
+  },
   "settings.sync.enterSyncName": {
     "message": "Enter your sync name",
     "note": "Settings → Sync: field label when joining an existing sync; asks for the credential already used on another device, not a new one."
@@ -9073,13 +9118,25 @@
     "message": "Share this phone’s regular open tabs with your other devices. Private tabs are never shared.",
     "note": "Native iOS Settings sheet: shareTabsHelp."
   },
+  "ios.settings.shareTabsHelp.ipad": {
+    "message": "Share this iPad’s regular open tabs with your other devices. Private tabs are never shared.",
+    "note": "iPad: ios.settings.shareTabsHelp's counterpart on an iPad. SyncCopy uses a key's .ipad sibling there."
+  },
   "ios.settings.disconnectHelp": {
     "message": "Disconnect this phone? Your local Favorites and settings stay here. Your other devices are not affected.",
     "note": "Native iOS Settings sheet: disconnectHelp."
   },
+  "ios.settings.disconnectHelp.ipad": {
+    "message": "Disconnect this iPad? Your local Favorites and settings stay here. Your other devices are not affected.",
+    "note": "iPad: ios.settings.disconnectHelp's counterpart on an iPad. SyncCopy uses a key's .ipad sibling there."
+  },
   "ios.settings.switchHelp": {
     "message": "This phone will leave its current sync. Your local Favorites and settings stay here. Your other devices are not affected.",
     "note": "Native iOS Settings sheet: switchHelp."
+  },
+  "ios.settings.switchHelp.ipad": {
+    "message": "This iPad will leave its current sync. Your local Favorites and settings stay here. Your other devices are not affected.",
+    "note": "iPad: ios.settings.switchHelp's counterpart on an iPad. SyncCopy uses a key's .ipad sibling there."
   },
   "ios.settings.timeOfDay": {
     "message": "Time of day",
@@ -9318,6 +9375,26 @@
     "message": "Make the Island and its buttons bigger. The page moves down to make room.",
     "note": "Desktop Settings, General → Island: hint under Island size. The strip grows with the Island, so web pages start lower."
   },
+  "settings.general.pageZoom.label": {
+    "message": "Default page zoom",
+    "note": "Desktop Settings, General → Appearance: the setting's name."
+  },
+  "settings.general.pageZoom.hint": {
+    "message": "The size web pages open at. Zooming in or out on a site saves a size just for that site.",
+    "note": "Desktop Settings, General → Appearance: hint under Default page zoom."
+  },
+  "settings.general.pageZoom.percent": {
+    "message": "{percent}%",
+    "note": "Desktop Settings: a zoom size in the Default page zoom menu and the saved sites list; {percent} is a whole number from 25 to 500."
+  },
+  "settings.general.siteZoom.hint": {
+    "message": "These sites have their own zoom. Remove one to go back to the default.",
+    "note": "Desktop Settings, General → Appearance: above the list of sites with a saved zoom. Removing one returns it to the Default page zoom."
+  },
+  "settings.general.siteZoom.clearAll": {
+    "message": "Clear all",
+    "note": "Desktop Settings, General → Appearance: button that forgets every saved site zoom in this profile."
+  },
   "settings.general.islandSize.default": {
     "message": "Default",
     "note": "Desktop Settings, General → Island size option."
@@ -9358,6 +9435,10 @@
     "message": "This phone",
     "note": "Android: the phone's own tabs that are in no Space, first row of the Spaces menu."
   },
+  "spaces.thisIPad": {
+    "message": "This iPad",
+    "note": "iPad: the iPad's own tabs that are in no Space, first row of the Spaces menu. spaces.thisIPhone's counterpart on an iPad."
+  },
   "spaces.menuLabel": {
     "message": "Spaces",
     "note": "iPhone: accessible name of the Island's Space mark and the Spaces menu it opens (M17)."
@@ -9386,9 +9467,17 @@
     "message": "Keep Spaces and groups in sync on this iPhone",
     "note": "iPhone Settings → Sync: the per-device switch for Shared Spaces (M17)."
   },
+  "sharedSpaces.switch.iphone.ipad": {
+    "message": "Keep Spaces and groups in sync on this iPad",
+    "note": "iPad: sharedSpaces.switch.iphone's counterpart on an iPad. SyncCopy uses a key's .ipad sibling there."
+  },
   "sharedSpaces.switch.line.iphone": {
     "message": "Tabs in your shared Spaces are synced from this iPhone.",
     "note": "iPhone Settings → Sync: the consent line under the Shared Spaces switch (M17)."
+  },
+  "sharedSpaces.switch.line.iphone.ipad": {
+    "message": "Tabs in your shared Spaces are synced from this iPad.",
+    "note": "iPad: sharedSpaces.switch.line.iphone's counterpart on an iPad. SyncCopy uses a key's .ipad sibling there."
   },
   "sharedSpaces.waitingCount": {
     "message": "{count, plural, one {# shared Space is waiting} other {# shared Spaces are waiting}}",
@@ -9398,13 +9487,25 @@
     "message": "Save This iPhone as a Space",
     "note": "iPhone: first-time Shared Spaces sheet, a row that saves the loose tabs (This iPhone) as a Space before sharing (M17)."
   },
+  "sharedSpaces.saveThisIPhone.ipad": {
+    "message": "Save This iPad as a Space",
+    "note": "iPad: sharedSpaces.saveThisIPhone's counterpart on an iPad. SyncCopy uses a key's .ipad sibling there."
+  },
   "sharedSpaces.recoveryName.iphone": {
     "message": "{name} · kept on this iPhone",
     "note": "iPhone: name of the local Space that keeps tabs a long-stale phone could not publish (M17)."
   },
+  "sharedSpaces.recoveryName.iphone.ipad": {
+    "message": "{name} · kept on this iPad",
+    "note": "iPad: sharedSpaces.recoveryName.iphone's counterpart on an iPad. SyncCopy uses a key's .ipad sibling there."
+  },
   "sharedSpaces.deletedEverywhere": {
     "message": "Deleted everywhere. Undo keeps a copy on this iPhone.",
     "note": "iPhone: Undo banner after deleting a shared Space; Undo restores only a local copy because the deletion reached every device (M17)."
+  },
+  "sharedSpaces.deletedEverywhere.ipad": {
+    "message": "Deleted everywhere. Undo keeps a copy on this iPad.",
+    "note": "iPad: sharedSpaces.deletedEverywhere's counterpart on an iPad. SyncCopy uses a key's .ipad sibling there."
   },
   "spaces.onDevice": {
     "message": "On {device}",
@@ -9413,6 +9514,10 @@
   "bringSpace.action": {
     "message": "Bring to iPhone",
     "note": "iPhone: primary button of the Bring a Space review sheet, with the Spaces switch off (M17)."
+  },
+  "bringSpace.action.ipad": {
+    "message": "Bring to iPad",
+    "note": "iPad: bringSpace.action's counterpart on an iPad. SyncCopy uses a key's .ipad sibling there."
   },
   "bringSpace.copyNote": {
     "message": "This copy won’t change when the Space changes on {device}. Turn on Spaces sync to keep them together.",
@@ -9429,6 +9534,38 @@
   "ios.island.reload": {
     "message": "Reload page",
     "note": "iOS Island: accessible name of the reload button."
+  },
+  "ios.settings.islandTuck": {
+    "message": "Hide the Island while scrolling",
+    "note": "iOS Settings → Appearance: switch for the Island tucking away while a page scrolls down. On by default."
+  },
+  "ios.settings.islandHistoryButtons": {
+    "message": "Back and Forward buttons",
+    "note": "iOS Settings → Island: switch that puts Back and Forward on the Island (iPhone and iPad). On by default."
+  },
+  "ios.settings.islandHistoryButtonsHelp": {
+    "message": "Turn them off to show Reload in their place. You can also pull down on a page to reload it.",
+    "note": "iOS Settings → Island: footer under the Back and Forward switch. Applies to every Island, iPhone and iPad."
+  },
+  "ios.settings.islandPosition": {
+    "message": "Position",
+    "note": "iOS Settings → Island: picker for where the Island sits on the screen, under the Island header."
+  },
+  "ios.settings.islandPosition.bottom": {
+    "message": "Bottom",
+    "note": "iOS Settings → Appearance → Island position: along the bottom of the screen (the default)."
+  },
+  "ios.settings.islandPosition.top": {
+    "message": "Top",
+    "note": "iOS Settings → Appearance → Island position: along the top of the screen."
+  },
+  "ios.settings.island": {
+    "message": "Island",
+    "note": "iOS Settings: header over the Island position and hide-while-scrolling rows. The product name Island stays untranslated."
+  },
+  "ios.settings.privacySync": {
+    "message": "Privacy & Sync",
+    "note": "iOS Settings: header over the Blanc Blocker and Sync rows."
   },
   "ios.island.stop": {
     "message": "Stop loading",
@@ -9457,6 +9594,30 @@
   "ios.palette.noMatches": {
     "message": "No matches. Press Return to open it as an address or search.",
     "note": "iOS palette: shown when typed text matches no tab, Favorite or history entry; Return is the keyboard's return key."
+  },
+  "ios.palette.editAddress": {
+    "message": "Edit address",
+    "note": "iOS palette: accessible name of the row that shows the current page's full address; tapping it puts the address in the field to edit."
+  },
+  "ios.island.pageZoom": {
+    "message": "Page Zoom",
+    "note": "iOS Sunrise menu: submenu holding Zoom In, Zoom Out and Actual Size for the current page."
+  },
+  "ios.island.desktopSite": {
+    "message": "Request Desktop Website",
+    "note": "iOS Sunrise menu: reloads the page asking the site for its desktop version."
+  },
+  "ios.island.mobileSite": {
+    "message": "Request Mobile Website",
+    "note": "iOS Sunrise menu: shown in place of Request Desktop Website once the desktop version was asked for; reloads the page as a phone again."
+  },
+  "ios.appLink.message": {
+    "message": "This page wants to open another app.",
+    "note": "iOS: message of the alert shown when a tapped link belongs to another app (an App Store or maps link). The alert's title is the site; its buttons are Cancel and Open."
+  },
+  "ios.downloads.failed": {
+    "message": "Couldn’t download {file}",
+    "note": "iOS: notice over the Island when a download fails; {file} is the file name."
   },
   "ios.tabs.openTabs": {
     "message": "Open tabs",
@@ -9489,6 +9650,10 @@
   "ios.welcome.title": {
     "message": "Your Blanc, in your pocket.",
     "note": "iOS first-minute walkthrough (M18 §3): the Welcome card's heading."
+  },
+  "ios.welcome.title.ipad": {
+    "message": "Your Blanc, on your iPad.",
+    "note": "iOS first-minute walkthrough on an iPad: the Welcome card's heading. ios.welcome.title's counterpart; the phone's says “in your pocket.”"
   },
   "ios.welcome.body": {
     "message": "Bring the tabs, Spaces and Favorites from Blanc on your computer.",
@@ -9534,6 +9699,26 @@
     "message": "Share from this iPhone",
     "note": "iOS walkthrough: the Share back card's heading, over two switches that are off by default."
   },
+  "ios.welcome.shareTitle.ipad": {
+    "message": "Share from this iPad",
+    "note": "iPad: ios.welcome.shareTitle's counterpart on an iPad. SyncCopy uses a key's .ipad sibling there."
+  },
+  "ios.menu.requestMobileSite": {
+    "message": "Request Mobile Website",
+    "note": "iPad Sunrise menu: asks this site for its phone layout, as Safari's item does. iPads get desktop sites by default."
+  },
+  "ios.menu.requestDesktopSite": {
+    "message": "Request Desktop Website",
+    "note": "iPad Sunrise menu: on a site set to its phone layout, goes back to the desktop site."
+  },
+  "menu.focusNextPane": {
+    "message": "Focus Next Pane",
+    "note": "iPad menu bar, Tabs: moves focus to the split's other pane (⌥⌘→)."
+  },
+  "menu.focusPreviousPane": {
+    "message": "Focus Previous Pane",
+    "note": "iPad menu bar, Tabs: moves focus to the split's other pane (⌥⌘←)."
+  },
   "ios.welcome.shareBody": {
     "message": "Both stay off until you turn them on. You can change them later in Settings → Sync.",
     "note": "iOS walkthrough: the Share back card's line under the heading."
@@ -9549,6 +9734,10 @@
   "ios.welcome.measureUsageHelp": {
     "message": "Each time you open Blanc, it sends one anonymous count: a random ID for this install, the app version and the iOS version. Never what you browse. See blanc.day/privacy.",
     "note": "iOS walkthrough: under the Measure usage switch; says exactly what the launch ping carries."
+  },
+  "ios.welcome.suggestionsHelp": {
+    "message": "While you type a search, the text goes to your search provider, which sends back suggestions. Never from a private tab, and never an address, pasted text or anything that looks like a password or key.",
+    "note": "iOS walkthrough: under the Search suggestions switch on the privacy card; says what is sent to the chosen search engine and what never is."
   },
   "ios.welcome.showAgain": {
     "message": "Show the welcome again",

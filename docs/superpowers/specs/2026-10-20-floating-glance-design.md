@@ -116,8 +116,9 @@ panes. If you need it for longer, **Keep as split** turns it into a split.
 ### The card
 
 - **Look:** the same language as Split View's pane cards (spec D9): rounded
-  corners at the pane radius, a 1 px border, darker while the card has
-  focus, and a soft shadow so it reads as floating. The page view inside
+  corners at the pane radius and a soft shadow so it reads as floating.
+  *(November 2, 2026, owner: no border on the card and no line around the
+  page, focused or not; the header's brighter GLANCE label marks focus.)* The page view inside
   gets matching corners, as split panes do. *(October 22, 2026, owner: the
   card's corners are 14 px, and the page sits inset 6 px in the card's frame
   below the header with 8 px corners of its own, with no line under the
@@ -195,6 +196,12 @@ panes. If you need it for longer, **Keep as split** turns it into a split.
 
 - **Split View:** unchanged. Glance still can't open while a split shows,
   and making a split still ends a Glance. Keep as split is described above.
+  *(Amended November 11, 2026, owner decision on #1441: the card floats over
+  the whole visible split. Focus moving between the split's panes keeps it, a
+  pane closing or leaving the split hands the window to the remaining pane
+  with the card still over it, the visible panes aren't offered in the
+  picker, and Keep as split is hidden while a split shows. Making a split
+  still ends a Glance.)*
 - **Floating Island:** the card sits below the Island band and below every
   Island surface. Stacking order: tabs < Glance card < utility sheet <
   Island float views < fill capsule < overlay < permission view < tooltip

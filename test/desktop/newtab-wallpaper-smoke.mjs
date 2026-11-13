@@ -50,7 +50,7 @@ try {
   assert.equal((await page.evaluate(() => window.bowserPages.start.data())).dynamicWallpaperEnabled, true,
     'footer enables the free setting without Patron');
   assert.equal(JSON.parse(fs.readFileSync(path.join(`${profile}-Dev`, 'settings.json'))).usagePing, false);
-  await app.evaluate(({ BrowserWindow }) => BrowserWindow.getAllWindows()[0].setContentSize(1200, 820));
+  await inMainTurn(app, ({ BrowserWindow }) => BrowserWindow.getAllWindows()[0].setContentSize(1200, 820));
   const privateId = await callTestHook(app, 'openTab', ['blanc://newtab/?private=1', { private: true }]);
   const privatePage = await waitForValue(async () => (await app.windows()).find((p) => p.url() === 'blanc://newtab/?private=1'), Boolean, 'private start page');
   // The page is found by URL while its <head> scripts may still be loading, so
@@ -92,7 +92,7 @@ try {
       await openCustomize(current);
       const switcher = current.getByRole('button', { name: 'Change with time of day', exact: true });
       for (const width of [640, 800, 1040, 1041, 1200]) {
-        await app.evaluate(({ BrowserWindow }, width) => BrowserWindow.getAllWindows()[0].setContentSize(width, 820), width);
+        await inMainTurn(app, ({ BrowserWindow }, width) => BrowserWindow.getAllWindows()[0].setContentSize(width, 820), width);
         await current.waitForFunction((width) => innerWidth === width, width);
         await openCustomize(current);
         const boxes = await current.evaluate(() => {
@@ -160,7 +160,7 @@ try {
   assert.equal(await privatePage.locator('.start-wallpaper-layer.is-fading').first().evaluate((layer) =>
     getComputedStyle(layer).transitionDuration), '2s');
   // Resume broadcasts repeat the preference; they must leave this fade intact.
-  await app.evaluate(({ powerMonitor }) => powerMonitor.emit('resume'));
+  await inMainTurn(app, ({ powerMonitor }) => powerMonitor.emit('resume'));
   await privatePage.evaluate(() => window.bowserPages.start.data());
   assert.equal(await privatePage.locator('.start-wallpaper-layer.is-fading').count(), 2);
   await privateSwitch.click();
@@ -236,13 +236,13 @@ try {
   // real hide/show events there; native desktop runners retain minimize/restore.
   const hiddenAction = process.platform === 'linux' ? 'hide' : 'minimize';
   const visibleAction = process.platform === 'linux' ? 'show' : 'restore';
-  await app.evaluate(({ BrowserWindow }, action) => BrowserWindow.getAllWindows()[0][action](), hiddenAction);
+  await inMainTurn(app, ({ BrowserWindow }, action) => BrowserWindow.getAllWindows()[0][action](), hiddenAction);
   await privatePage.waitForFunction(() => document.body.dataset.wallpaperVisible === 'false');
   assert.equal(await privatePage.evaluate(() => wallpaperMinuteTimers.size), 0);
-  await app.evaluate(({ BrowserWindow }, action) => BrowserWindow.getAllWindows()[0][action](), visibleAction);
+  await inMainTurn(app, ({ BrowserWindow }, action) => BrowserWindow.getAllWindows()[0][action](), visibleAction);
   await privatePage.waitForFunction(() => document.body.dataset.wallpaperVisible === 'true');
   assert.equal(await privatePage.evaluate(() => wallpaperMinuteTimers.size), 1);
-  await app.evaluate(({ powerMonitor }) => powerMonitor.emit('resume'));
+  await inMainTurn(app, ({ powerMonitor }) => powerMonitor.emit('resume'));
   assert.equal((await privatePage.evaluate(() => window.bowserPages.start.data())).dynamicWallpaperEnabled, true);
   if (process.platform === 'darwin') {
     const contentsId = await app.evaluate(({ webContents }) => webContents.getAllWebContents()
@@ -258,14 +258,14 @@ try {
       (value) => value === 'false', 'retained start page hidden');
     assert.equal(await privatePage.evaluate(() => wallpaperMinuteTimers.size), 0, 'Dock close cancels the minute timer');
     await privatePage.evaluate(() => { Date.prototype.getHours = () => 6; });
-    await app.evaluate(({ powerMonitor }) => powerMonitor.emit('resume'));
+    await inMainTurn(app, ({ powerMonitor }) => powerMonitor.emit('resume'));
     // An acknowledged data request follows the resume status on the same IPC
     // connection, so the assertion observes that status handler's effect.
     await privatePage.evaluate(() => window.bowserPages.start.data());
     assert.deepEqual(await privatePage.evaluate(() => ({
       phase: document.body.dataset.wallpaperPhase, timers: wallpaperMinuteTimers.size,
     })), { phase: 'night', timers: 0 }, 'resume must not restart a closed window’s wallpaper');
-    await app.evaluate(({ app }) => app.emit('activate'));
+    await inMainTurn(app, ({ app }) => app.emit('activate'));
     await privatePage.waitForFunction(() => document.body.dataset.wallpaperVisible === 'true'
       && document.body.dataset.wallpaperPhase === 'dawn');
     assert.equal(await privatePage.evaluate(() => wallpaperMinuteTimers.size), 1, 'Dock reopen refreshes time and starts one timer');

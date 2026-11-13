@@ -1655,7 +1655,7 @@
     {
       "id": "trust-125-298",
       "source": "site/src/pages/privacy.astro",
-      "exactWording": "This policy covers the Blanc desktop browser for macOS, Windows, and Linux, the Blanc for iPhone beta, and its website, blanc.day (formerly blancbrowser.com). The data controller is Bananify, an independent software studio in Rochester, New York, United States. Contact support@blanc.day for privacy questions or requests.",
+      "exactWording": "This policy covers the Blanc desktop browser for macOS, Windows, and Linux, Blanc for iPhone and iPad, and its website, blanc.day (formerly blancbrowser.com). The data controller is Bananify, an independent software studio in Rochester, New York, United States. Contact support@blanc.day for privacy questions or requests.",
       "subject": "Blanc or website",
       "evidenceGroups": [
         "trust"

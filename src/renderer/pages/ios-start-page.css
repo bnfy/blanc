@@ -28,7 +28,9 @@ html[data-platform="ios"] body[data-layout="billboard"] .start-content {
   justify-content: center;
   padding-block: 40px;
 }
-html[data-platform="ios"] .bb-clock { font-size: clamp(64px, 21vw, 120px); }
+/* The cap on every phone 400 points wide or more, the size the owner chose on
+   November 3, 2026; narrower phones scale down from it. */
+html[data-platform="ios"] .bb-clock { font-size: clamp(64px, 30vw, 120px); }
 html[data-platform="ios"] .bb-blocked { display: none; }
 html[data-platform="ios"] .bb-favs {
   display: grid;
@@ -196,3 +198,30 @@ html[data-platform="ios"] .bb-clock {
 html[data-platform="ios"] .bb-clock[data-font="inter"] { letter-spacing: 0; }
 html[data-platform="ios"] .bb-clock[data-font="condensed"],
 html[data-platform="ios"] .bb-clock[data-font="flex"] { letter-spacing: .01em; }
+
+/* The Island along the top (Settings → Island position): the header moves
+   below it, and the footer and popovers drop to the bottom edge it left. */
+html[data-platform="ios"][data-island="top"] .start-header {
+  padding-top: calc(88px + env(safe-area-inset-top, 0px));
+}
+html[data-platform="ios"][data-island="top"] .ledger-body {
+  padding-bottom: calc(84px + env(safe-area-inset-bottom, 0px));
+}
+html[data-platform="ios"][data-island="top"] :is(.ledger-footer, body:not([data-layout="ledger"]) .ledger-footer) {
+  inset: auto 0 env(safe-area-inset-bottom, 0px);
+}
+html[data-platform="ios"][data-island="top"] #customizePopover:popover-open {
+  inset: auto 16px calc(76px + env(safe-area-inset-bottom, 0px));
+  max-height: calc(100dvh - 220px - env(safe-area-inset-top, 0px));
+}
+html[data-platform="ios"][data-island="top"] body:has(#clockPopover:popover-open) .bb-clock-row {
+  inset: calc(80px + env(safe-area-inset-top, 0px)) 24px auto;
+}
+html[data-platform="ios"][data-island="top"] body {
+  --mobile-clock-panel-top: max(44dvh, calc(96px + env(safe-area-inset-top, 0px) + var(--mobile-clock-height, 100px)));
+}
+html[data-platform="ios"][data-island="top"] #clockPopover:popover-open {
+  inset: var(--mobile-clock-panel-top) 12px calc(8px + env(safe-area-inset-bottom, 0px));
+  height: calc(100dvh - var(--mobile-clock-panel-top) - 8px - env(safe-area-inset-bottom, 0px));
+  max-height: calc(100dvh - var(--mobile-clock-panel-top) - 8px - env(safe-area-inset-bottom, 0px));
+}

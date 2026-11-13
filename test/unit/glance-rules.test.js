@@ -22,7 +22,11 @@ const between = (source, start, end) => {
 test('switching to any other tab, the Glance tab included, ends the Glance first', () => {
   const activate = between(main, 'function setActiveTab(', 'cancelAddressBarFocusReclaim();');
   assert.doesNotMatch(activate, /promotingGlance/);
-  assert.match(activate, /if \(rt\(\)\.glanceTabId\) closeGlance\(\{ focusContent: false \}\);/);
+  // Only focus moving between the panes of the split the Glance floats over,
+  // or that split's survivor taking over (keepGlance), keeps it (#1441).
+  assert.match(activate, /const withinShownSplit = shownBefore\.has\(prevId\) && shownBefore\.has\(id\);/);
+  assert.match(activate, /if \(rt\(\)\.glanceTabId && !\(\(keepGlance \|\| withinShownSplit\) && id !== rt\(\)\.glanceTabId\)\) \{\n\s+closeGlance\(\{ focusContent: false \}\);/);
+  assert.match(activate, /const shownBefore = new Set\(visibleSplitTabIds\(rt\(\)\)\);/);
 });
 
 test('Open as tab ends the Glance and makes its page the current tab', () => {
@@ -57,7 +61,8 @@ test('a closing card is hidden before anything else runs', () => {
 
 test('every way a Glance ends saves the card and hides it through endGlance', () => {
   assert.equal((main.match(/glanceTabId = null/g) ?? []).length, 1, 'only endGlance clears glanceTabId');
-  assert.match(between(main, "app.on('before-quit',", '\n});\n'), /glanceCards\.flush\(\);/);
+  assert.match(main, /app\.on\('before-quit', beginQuit\);/);
+  assert.match(between(main, 'function beginQuit() {', '\n}\n'), /glanceCards\.flush\(\);/);
 });
 
 test('a fill message for the Glance page sits at the bottom of the card', () => {

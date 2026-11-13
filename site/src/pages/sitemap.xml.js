@@ -8,11 +8,11 @@ import whatsNew from '../data/whats-new.json';
 import releases from '../data/releases.json';
 import { publishedPages } from '../lib/whats-new.mjs';
 
-const MANIFEST = ['/', '/download', '/mail', '/mail/privacy', '/mail/terms', '/support', '/trust', '/changelog', '/roadmap', '/about', '/privacy', '/terms', '/media', '/ambassadors', '/patron', '/arc-alternative', '/ublock-origin-after-chrome', '/features', '/bangs', ...topics.map(topic => `/features/${topic.id}`)];
+const MANIFEST = ['/', '/download', '/mail', '/mail/privacy', '/mail/terms', '/support', '/trust', '/changelog', '/roadmap', '/about', '/privacy', '/terms', '/media', '/ambassadors', '/patron', '/arc-alternative', '/compare', '/ublock-origin-after-chrome', '/features', '/bangs', ...topics.map(topic => `/features/${topic.id}`)];
 
 // /whats-new only forwards to the newest page; each release's page is listed
 // from the data, since the route itself is one dynamic file.
-const UNLISTED = new Set(['/404', '/import-tabs', '/pair', '/[...legacy]', '/whats-new/', '/whats-new/[release]']);
+const UNLISTED = new Set(['/404', '/import-tabs', '/pair', '/mail/survey', '/[...legacy]', '/whats-new/', '/whats-new/[release]']);
 const WHATS_NEW = publishedPages(whatsNew, releases).filter((page) => !page.upcoming).map((page) => `/whats-new/${page.release}`);
 
 const SITE = SITE_ORIGIN;

@@ -38,10 +38,10 @@ const englishT = (() => {
   return createTranslator({ locale: 'en', messages: strings.messages });
 })();
 
-function buildRow(tab, { activeTabId = 'active' } = {}) {
+function buildRow(tab, { activeTabId = 'active', splits = [] } = {}) {
   const sandbox = {
     document: { createElement: fakeElement },
-    state: { activeTabId, glanceTabId: null },
+    state: { activeTabId, glanceTabId: null, splits },
     ICONS: { pin: '', mute: '', close: '', glance: '<svg data-glyph="glance"></svg>' },
     setFavicon() {},
     tabDomain: () => 'example.com',
@@ -90,4 +90,30 @@ test('the Glance action is an icon, not a word', () => {
   assert.equal(glance.textContent, '');
   assert.match(glance.innerHTML, /<svg/);
   assert.equal(glance.dataset.tooltip, 'Open this tab in Glance');
+});
+
+// #1441: Glance floats over a visible split, so rows keep their Glance
+// button while one shows.
+const glanceOf = (row) => row.children.find((child) => child.className.split(' ')[0] === 'row-glance');
+
+test('with a split showing, other rows and the two-pane split\'s other pane offer Glance', () => {
+  for (const splits of [
+    [{ id: 'split', tabIds: ['active', 'other'] }],
+    [{ id: 'split', tabIds: ['active', 'background'] }],
+    [{ id: 'split', tabIds: ['elsewhere', 'other'] }],
+  ]) {
+    const glance = glanceOf(buildRow({ ...TAB, private: false }, { splits }));
+    assert.ok(glance, JSON.stringify(splits));
+    assert.equal(glance.dataset.tooltip, 'Open this tab in Glance');
+  }
+});
+
+test('a pane of a larger visible split has no Glance button', () => {
+  const splits = [{ id: 'split', tabIds: ['active', 'background', 'third'] }];
+  assert.equal(glanceOf(buildRow({ ...TAB, private: false }, { splits })), undefined);
+});
+
+test('the row button and the tab menu share main\'s split-aware Glance path', () => {
+  const main = fs.readFileSync(path.join(ROOT, 'src/main/main.js'), 'utf8');
+  assert.match(main, /chromeHandle\('tabs:set-glance', \(_e, id\) => openTabMenuGlance\(id\)\);/);
 });

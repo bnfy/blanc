@@ -120,6 +120,16 @@ final class SharedSpacesModelTests: XCTestCase {
       XCTAssertEqual(try M.mergeIndex(i["b"], i["a"]).canonical(), canon(v["expected"]))
     }
   }
+  func testIndexReceiptsMatchVectors() throws {
+    let cases = try SyncVectors.section("spacesIndexReceipts")
+    XCTAssertEqual(cases.count, 5)
+    for v in cases {
+      let i = v["input"]!
+      XCTAssertEqual(
+        M.receiptSuperseded(i["receipt"], i["entry"], deviceId: i["deviceId"]!.string!), v["expected"]?.bool,
+        v["name"]!.string!)
+    }
+  }
   func testMergeRejectsUnreadableSides() {
     XCTAssertThrowsError(try M.mergeBlob(.string("blob"), nil))
     XCTAssertThrowsError(try M.mergeIndex(.object([("v", .number(2))]), nil))
@@ -211,7 +221,8 @@ final class SharedSpacesPlanTests: XCTestCase {
       lastMergeAt: i["lastMergeAt"]?.intValue, now: i["now"]!.intValue!,
       deviceId: i["deviceId"]!.string!, encrypt: SharedSpacesModelTests.encrypt(),
       lastPublishable: opt(i["lastPublishable"]),
-      admissionOrder: i["admissionOrder"]?.array.compactMap(\.string) ?? [])
+      admissionOrder: i["admissionOrder"]?.array.compactMap(\.string) ?? [],
+      firstUpload: i["firstUpload"]?.bool ?? false, indexHint: opt(i["indexHint"]))
   }
 
   func testPipelineMatchesVectors() throws {

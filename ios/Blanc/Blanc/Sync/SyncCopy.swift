@@ -1,4 +1,13 @@
 import Foundation
+import UIKit
+
+/// What this device is called: to the person, and to their other devices.
+/// Copy and the sync name only, never layout, which goes by size class.
+enum ThisDevice {
+  static let isPad = UIDevice.current.userInterfaceIdiom == .pad
+  static var name: String { isPad ? "iPad" : "iPhone" }  // not user-visible: Apple's product names, never translated
+  static var symbol: String { isPad ? "ipad" : "iphone" }
+}
 
 /// Read the very same generated catalog used by the bundled pages.
 enum SyncCopy {
@@ -27,7 +36,11 @@ enum SyncCopy {
     let fallback = catalog["fallback"] as? [String: String] ?? [:]
     return fallback.merging(own) { _, translated in translated }
   }
-  static func text(_ key: String) -> String { messages[key] ?? key }
+  static func text(_ key: String) -> String { message(key, in: messages, onPad: ThisDevice.isPad) }
+  /// A key's message: on an iPad, its `<key>.ipad` wording where it has one.
+  static func message(_ key: String, in messages: [String: String], onPad: Bool) -> String {
+    (onPad ? messages[key + ".ipad"] : nil) ?? messages[key] ?? key
+  }
   /// A catalog message with its `{name}` placeholders filled (the simple
   /// arguments the sends.* strings use).
   static func text(_ key: String, _ params: [String: String]) -> String {

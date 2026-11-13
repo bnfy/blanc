@@ -710,7 +710,11 @@ jobs:
   linux:
     needs: validate-inputs
     if: ${{ !inputs.ecs_candidate && !inputs.ecs_production && (inputs.mode == 'release' || inputs.mode == 'validation') && (inputs.platform == 'all' || inputs.platform == 'linux') }}
-    runs-on: ubuntu-latest
+    # Pinned: ubuntu-latest became Ubuntu 26.04 after v1.47.1, and on
+    # November 11, 2026 its runners could not resolve Ubuntu's apt mirrors, so
+    # the v1.48.0 build failed twice at "Install AppImage smoke runtime".
+    # Every public AppImage through v1.47.1 was built and smoke-tested on 24.04.
+    runs-on: ubuntu-24.04
     env:
       RELEASE_RUNTIME: ${{ inputs.runtime == 'ecs' && 'ecs' || 'official' }}
       # Read by the workspace smoke: an ECS package reports its pinned ECS
@@ -827,6 +831,26 @@ jobs:
 
       - name: Install AppImage smoke runtime
         run: |
+          # Release runs check out the tag, so this lives inline, not in scripts/.
+          # azure.archive.ubuntu.com (the hosted runners' default mirror)
+          # intermittently failed to resolve on November 11, 2026 and stopped
+          # every v1.48.0 Linux attempt here. apt still checks every package
+          # against Ubuntu's archive keys; only the download host changes.
+          if [ -f /etc/apt/apt-mirrors.txt ]; then
+            # kernel.org alone: archive.ubuntu.com failed to resolve too, and apt
+            # tried it before kernel.org on every index (#1452).
+            printf '%s\n' http://mirrors.edge.kernel.org/ubuntu/ | sudo tee /etc/apt/apt-mirrors.txt >/dev/null
+          fi
+          for file in /etc/apt/sources.list /etc/apt/sources.list.d/*.list /etc/apt/sources.list.d/*.sources; do
+            if [ -f "$file" ]; then
+              sudo sed -E -i 's#https?://azure\.archive\.ubuntu\.com/ubuntu/?#http://mirrors.edge.kernel.org/ubuntu/#g' "$file"
+            fi
+          done
+          if grep -rqs 'azure\.archive\.ubuntu\.com' /etc/apt/apt-mirrors.txt /etc/apt/sources.list /etc/apt/sources.list.d; then
+            echo "azure.archive.ubuntu.com is still configured" >&2
+            exit 1
+          fi
+          echo 'Acquire::Retries "5";' | sudo tee /etc/apt/apt.conf.d/80-blanc-retries >/dev/null
           sudo apt-get update
           sudo apt-get install --yes dbus-x11 desktop-file-utils xdg-utils xvfb
           TOOLSET=$(node -p "require('./package.json').build.toolsets?.appimage || '0.0.0'")
@@ -1081,6 +1105,26 @@ jobs:
 
       - name: Install AppImage runtime
         run: |
+          # Release runs check out the tag, so this lives inline, not in scripts/.
+          # azure.archive.ubuntu.com (the hosted runners' default mirror)
+          # intermittently failed to resolve on November 11, 2026 and stopped
+          # every v1.48.0 Linux attempt here. apt still checks every package
+          # against Ubuntu's archive keys; only the download host changes.
+          if [ -f /etc/apt/apt-mirrors.txt ]; then
+            # kernel.org alone: archive.ubuntu.com failed to resolve too, and apt
+            # tried it before kernel.org on every index (#1452).
+            printf '%s\n' http://mirrors.edge.kernel.org/ubuntu/ | sudo tee /etc/apt/apt-mirrors.txt >/dev/null
+          fi
+          for file in /etc/apt/sources.list /etc/apt/sources.list.d/*.list /etc/apt/sources.list.d/*.sources; do
+            if [ -f "$file" ]; then
+              sudo sed -E -i 's#https?://azure\.archive\.ubuntu\.com/ubuntu/?#http://mirrors.edge.kernel.org/ubuntu/#g' "$file"
+            fi
+          done
+          if grep -rqs 'azure\.archive\.ubuntu\.com' /etc/apt/apt-mirrors.txt /etc/apt/sources.list /etc/apt/sources.list.d; then
+            echo "azure.archive.ubuntu.com is still configured" >&2
+            exit 1
+          fi
+          echo 'Acquire::Retries "5";' | sudo tee /etc/apt/apt.conf.d/80-blanc-retries >/dev/null
           sudo apt-get update
           sudo apt-get install --yes libfuse2 xvfb
 
@@ -1138,6 +1182,20 @@ jobs:
       - run: npm ci
       - name: Install disposable desktop test environment
         run: |
+          # Inline like the release steps (#1449, #1452): this job can run on an older ref.
+          if [ -f /etc/apt/apt-mirrors.txt ]; then
+            printf '%s\n' http://mirrors.edge.kernel.org/ubuntu/ | sudo tee /etc/apt/apt-mirrors.txt >/dev/null
+          fi
+          for file in /etc/apt/sources.list /etc/apt/sources.list.d/*.list /etc/apt/sources.list.d/*.sources; do
+            if [ -f "$file" ]; then
+              sudo sed -E -i 's#https?://azure\.archive\.ubuntu\.com/ubuntu/?#http://mirrors.edge.kernel.org/ubuntu/#g' "$file"
+            fi
+          done
+          if grep -rqs 'azure\.archive\.ubuntu\.com' /etc/apt/apt-mirrors.txt /etc/apt/sources.list /etc/apt/sources.list.d; then
+            echo "azure.archive.ubuntu.com is still configured" >&2
+            exit 1
+          fi
+          echo 'Acquire::Retries "5";' | sudo tee /etc/apt/apt.conf.d/80-blanc-retries >/dev/null
           sudo apt-get update
           sudo apt-get install --yes dbus-x11 desktop-file-utils xdg-utils xvfb libgtk-3-bin
       - name: Build private AppImage without publishing
@@ -1274,6 +1332,20 @@ jobs:
         run: |
           BLANC_ECS_BUILD_RESULT="$GITHUB_WORKSPACE/output/ecs-next-build.json" node scripts/build-next-ecs-candidate.cjs "$GITHUB_WORKSPACE/output/ecs-build.json"
           BLANC_ECS_BUILD_RESULT="$GITHUB_WORKSPACE/output/ecs-third-build.json" node scripts/build-next-ecs-candidate.cjs "$GITHUB_WORKSPACE/output/ecs-build.json" 3
+          # Inline like the release steps (#1449, #1452): this job can run on an older ref.
+          if [ -f /etc/apt/apt-mirrors.txt ]; then
+            printf '%s\n' http://mirrors.edge.kernel.org/ubuntu/ | sudo tee /etc/apt/apt-mirrors.txt >/dev/null
+          fi
+          for file in /etc/apt/sources.list /etc/apt/sources.list.d/*.list /etc/apt/sources.list.d/*.sources; do
+            if [ -f "$file" ]; then
+              sudo sed -E -i 's#https?://azure\.archive\.ubuntu\.com/ubuntu/?#http://mirrors.edge.kernel.org/ubuntu/#g' "$file"
+            fi
+          done
+          if grep -rqs 'azure\.archive\.ubuntu\.com' /etc/apt/apt-mirrors.txt /etc/apt/sources.list /etc/apt/sources.list.d; then
+            echo "azure.archive.ubuntu.com is still configured" >&2
+            exit 1
+          fi
+          echo 'Acquire::Retries "5";' | sudo tee /etc/apt/apt.conf.d/80-blanc-retries >/dev/null
           sudo apt-get update
           sudo apt-get install --yes xdotool
       - name: Linux real staged Restart Now handoff

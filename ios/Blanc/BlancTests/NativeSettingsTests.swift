@@ -185,6 +185,10 @@ import WebKit
         guard ready else { return }
         let customizeDisplay = try await webView.evaluateJavaScript("getComputedStyle(document.getElementById('customizeButton')).display") as? String
         XCTAssertEqual(customizeDisplay, "none", "Read-only previews must not show the page’s customization controls")
+        // The footer sits above the Island on the phone; in the short preview
+        // that lands mid-page, and its frosted band covered the cards there.
+        let footerDisplay = try await webView.evaluateJavaScript("getComputedStyle(document.getElementById('layoutFooter')).display") as? String
+        XCTAssertEqual(footerDisplay, "none", "Previews must not draw the footer over the page")
         _ = try await webView.evaluateJavaScript("window.bowserPages.start.onStatus(value => window.__nativeSettingsChange = value); true")
         manager.setStartLayout(.ledger)
         try await Task.sleep(for: .milliseconds(200))

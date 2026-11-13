@@ -22,7 +22,7 @@ A **split** is a small, named-by-its-tabs set of 2–4 ordinary tabs in one wind
 - **From the tab menu:** **Split with ▸** lists this window's other tabs (the Glance picker, filtered to eligible tabs). Picking one makes a two-pane split of the right-clicked tab and the chosen tab, side by side.
 - **Adding a pane:** while a split is showing, **Add to Split…** (pane header menu, the tab menu's **Add to Split**, `/split`) opens the same picker and adds the chosen tab as a new pane, up to four. With four panes the action is disabled, and its tooltip says why.
 - **Eligible tabs:** any tab in the window that isn't already in a split, including private tabs (a private pane shows the private chip, as a private Glance reference does). A split never crosses windows or profiles.
-- While a split is showing, **Open Glance** becomes **Add to Split…**. Glance and a visible split never coexist in one window.
+- While a split is showing, **Open Glance** becomes **Add to Split…**. Glance and a visible split never coexist in one window. *(Superseded November 11, 2026, owner decision on #1441: Add to Split… was never built, and a floating Glance now floats over the whole visible split. Focus moving between the panes keeps it; a pane closing or leaving hands the window to the remaining pane with the Glance still over it; the card's Keep as split is hidden while a split shows.)*
 - **Open in Glance from a pane menu (owner direction, 2026-10-24):** in a two-pane split, either pane can be removed from the split and opened as a floating Glance over the remaining tab. The split dissolves, both existing pages keep their state, and closing Glance leaves its tab open. This applies to the focused pane too; other tabs cannot open Glance over a still-visible split.
 - **Which group wins.** The initiating tab decides the split's group:
   - **Keep as split:** the Glance main page.
@@ -109,7 +109,7 @@ A **split** is a small, named-by-its-tabs set of 2–4 ordinary tabs in one wind
 
 | Feature | Rule |
 |---|---|
-| Glance (F34) | Unchanged on its own. **Keep as split** converts it. While a split shows, Open Glance becomes Add to Split. |
+| Glance (F34) | Unchanged on its own. **Keep as split** converts it. While a split shows, Open Glance becomes Add to Split. *(Superseded November 11, 2026: Glance floats over the visible split; see §3.1.)* |
 | Quiet Tabs (F31) | Every visible pane is exempt (`visibleTabIds` grows to all visible panes). A hidden split's panes quiet normally. Showing a split wakes all of them. |
 | Tab Archive (F52) | Split tabs are never archived: a split is organized, like a group. A split dissolving makes its tabs ordinary again. |
 | Recently closed | Closing a pane records a tab entry. That entry reopens as an ordinary tab, not back into the split. Close Split records one split entry that reopens whole. Same tiers, holds and privacy rules as group entries. |

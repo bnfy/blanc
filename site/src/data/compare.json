@@ -1,0 +1,612 @@
+{
+  "checked": "2026-11-02",
+  "checkedBlanc": "2026-11-13",
+  "checkedAgainst": "v1.49.0",
+  "notStated": "Not stated.",
+  "columns": [
+    {
+      "id": "blanc",
+      "name": "Blanc"
+    },
+    {
+      "id": "crest",
+      "name": "Crest"
+    },
+    {
+      "id": "arc",
+      "name": "Arc",
+      "note": "Ends Dec 22, 2026",
+      "endsOn": "2026-12-22",
+      "endedNote": "Arc ended on December 22, 2026, so it is no longer in this chart."
+    },
+    {
+      "id": "helium",
+      "name": "Helium"
+    },
+    {
+      "id": "brave",
+      "name": "Brave"
+    }
+  ],
+  "groups": [
+    {
+      "id": "basics",
+      "label": "The basics",
+      "rows": [
+        "platforms",
+        "cost",
+        "open-source",
+        "status"
+      ]
+    },
+    {
+      "id": "built-in",
+      "label": "What’s built in",
+      "rows": [
+        "blocking",
+        "extensions",
+        "ai"
+      ]
+    },
+    {
+      "id": "tabs",
+      "label": "Organizing your tabs",
+      "rows": [
+        "spaces",
+        "side-tabs",
+        "split"
+      ]
+    },
+    {
+      "id": "devices",
+      "label": "Across your devices",
+      "rows": [
+        "sync"
+      ]
+    }
+  ],
+  "rows": [
+    {
+      "id": "platforms",
+      "label": "Where it runs",
+      "cells": {
+        "blanc": {
+          "text": "macOS, Windows, Linux. iPhone and iPad on the App Store, with a TestFlight beta.",
+          "sources": []
+        },
+        "crest": {
+          "text": "Mac (Apple silicon), iPhone, iPad. No Windows or Linux.",
+          "sources": [
+            "crest-github"
+          ]
+        },
+        "arc": {
+          "text": "macOS and Windows until Dec 22, 2026. Arc Search on iOS and Android.",
+          "sources": [
+            "arc-home"
+          ]
+        },
+        "helium": {
+          "text": "macOS, Windows, Linux, all beta. No mobile yet.",
+          "sources": [
+            "helium-home",
+            "helium-download"
+          ]
+        },
+        "brave": {
+          "text": "macOS, Windows, Linux, iOS, Android.",
+          "sources": [
+            "brave-download"
+          ]
+        }
+      }
+    },
+    {
+      "id": "cost",
+      "label": "Cost and account",
+      "cells": {
+        "blanc": {
+          "text": "Free. No account. Patron is optional and unlocks nothing.",
+          "sources": []
+        },
+        "crest": {
+          "text": "Free. No account system.",
+          "sources": [
+            "crest-appstore",
+            "crest-privacy"
+          ]
+        },
+        "arc": {
+          "text": "Price not stated. New accounts closed Oct 22, 2026.",
+          "sources": [
+            "arc-home"
+          ]
+        },
+        "helium": {
+          "text": "Free. Funded by optional tips.",
+          "sources": [
+            "helium-home"
+          ]
+        },
+        "brave": {
+          "text": "Browser is free. Optional paid add-ons such as VPN and Leo Premium.",
+          "sources": [
+            "brave-premium"
+          ]
+        }
+      }
+    },
+    {
+      "id": "open-source",
+      "label": "Open source",
+      "cells": {
+        "blanc": {
+          "text": "Yes. MIT for Blanc’s own code; name and logos reserved.",
+          "sources": []
+        },
+        "crest": {
+          "text": "Yes. MPL 2.0.",
+          "sources": [
+            "crest-github"
+          ]
+        },
+        "arc": {
+          "text": "Not stated.",
+          "sources": []
+        },
+        "helium": {
+          "text": "Yes. GPL 3.0 for Helium’s own code.",
+          "sources": [
+            "helium-github"
+          ]
+        },
+        "brave": {
+          "text": "Yes. MPL 2.0.",
+          "sources": [
+            "brave-github"
+          ]
+        }
+      }
+    },
+    {
+      "id": "status",
+      "label": "Release status",
+      "cells": {
+        "blanc": {
+          "text": "Public release v1.49.0, Nov 13, 2026.",
+          "sources": []
+        },
+        "crest": {
+          "text": "Early access, by its own description.",
+          "sources": [
+            "crest-home"
+          ]
+        },
+        "arc": {
+          "text": "Sunsetting. Basic updates only until Dec 22, 2026.",
+          "sources": [
+            "arc-home"
+          ]
+        },
+        "helium": {
+          "text": "Beta, by its own description.",
+          "sources": [
+            "helium-home",
+            "helium-download"
+          ]
+        },
+        "brave": {
+          "text": "Regular public releases.",
+          "sources": [
+            "brave-latest"
+          ]
+        }
+      }
+    },
+    {
+      "id": "blocking",
+      "label": "Built-in ad and tracker blocking",
+      "cells": {
+        "blanc": {
+          "text": "On by default, including private tabs. Full uBlock Origin optional.",
+          "sources": []
+        },
+        "crest": {
+          "text": "WebKit pages and iPhone/iPad only. Chromium pages need an extension.",
+          "sources": [
+            "crest-engines"
+          ]
+        },
+        "arc": {
+          "text": "uBlock Origin installed by default on macOS.",
+          "sources": [
+            "arc-troubleshoot"
+          ]
+        },
+        "helium": {
+          "text": "On by default (its uBlock Origin fork), plus cookie banners.",
+          "sources": [
+            "helium-home",
+            "helium-github"
+          ]
+        },
+        "brave": {
+          "text": "On by default (Shields).",
+          "sources": [
+            "brave-features"
+          ]
+        }
+      }
+    },
+    {
+      "id": "extensions",
+      "label": "Chrome Web Store extensions",
+      "cells": {
+        "blanc": {
+          "text": "No. Optional uBlock Origin only.",
+          "sources": []
+        },
+        "crest": {
+          "text": "Yes, on Mac, Chromium pages only.",
+          "sources": [
+            "crest-engines",
+            "crest-extensions"
+          ]
+        },
+        "arc": {
+          "text": "Yes.",
+          "sources": [
+            "arc-faq"
+          ]
+        },
+        "helium": {
+          "text": "Yes.",
+          "sources": [
+            "helium-home"
+          ]
+        },
+        "brave": {
+          "text": "Yes, including some Manifest V2 extensions.",
+          "sources": [
+            "brave-features"
+          ]
+        }
+      }
+    },
+    {
+      "id": "ai",
+      "label": "Built-in AI",
+      "cells": {
+        "blanc": {
+          "text": "None, by choice.",
+          "sources": []
+        },
+        "crest": {
+          "text": "Lets coding agents you approve use it. Palette can ask an assistant.",
+          "sources": [
+            "crest-changelog"
+          ]
+        },
+        "arc": {
+          "text": "Arc Max, until Dec 22, 2026 on desktop.",
+          "sources": [
+            "arc-faq"
+          ]
+        },
+        "helium": {
+          "text": "Not stated.",
+          "sources": []
+        },
+        "brave": {
+          "text": "Leo assistant. Free, with a paid tier.",
+          "sources": [
+            "brave-leo",
+            "brave-premium"
+          ]
+        }
+      }
+    },
+    {
+      "id": "spaces",
+      "label": "Spaces and separate accounts",
+      "cells": {
+        "blanc": {
+          "text": "Spaces save tab sets. Separate local profiles keep cookies and site data apart.",
+          "sources": []
+        },
+        "crest": {
+          "text": "Spaces each keep their own cookies, history, passwords. Sub-Spaces can share sign-ins.",
+          "sources": [
+            "crest-spaces"
+          ]
+        },
+        "arc": {
+          "text": "Spaces. Account separation not stated.",
+          "sources": [
+            "arc-faq"
+          ]
+        },
+        "helium": {
+          "text": "Not stated.",
+          "sources": []
+        },
+        "brave": {
+          "text": "Containers keep cookies apart per tab, on desktop.",
+          "sources": [
+            "brave-containers"
+          ]
+        }
+      }
+    },
+    {
+      "id": "side-tabs",
+      "label": "Tabs on the side",
+      "cells": {
+        "blanc": {
+          "text": "Optional vertical tabs.",
+          "sources": []
+        },
+        "crest": {
+          "text": "Sidebar is the main layout.",
+          "sources": [
+            "crest-github"
+          ]
+        },
+        "arc": {
+          "text": "Sidebar.",
+          "sources": [
+            "arc-faq"
+          ]
+        },
+        "helium": {
+          "text": "Vertical tabs.",
+          "sources": [
+            "helium-home"
+          ]
+        },
+        "brave": {
+          "text": "Vertical tabs, off until turned on.",
+          "sources": [
+            "brave-vertical-tabs"
+          ]
+        }
+      }
+    },
+    {
+      "id": "split",
+      "label": "Split view and link preview",
+      "cells": {
+        "blanc": {
+          "text": "Split View for two tabs. Glance previews a link in a floating card.",
+          "sources": []
+        },
+        "crest": {
+          "text": "Split View up to four tabs. Peek previews a link.",
+          "sources": [
+            "crest-github"
+          ]
+        },
+        "arc": {
+          "text": "Split View and Peek.",
+          "sources": [
+            "arc-faq"
+          ]
+        },
+        "helium": {
+          "text": "Split view. No link preview stated.",
+          "sources": [
+            "helium-home"
+          ]
+        },
+        "brave": {
+          "text": "Not stated.",
+          "sources": []
+        }
+      }
+    },
+    {
+      "id": "sync",
+      "label": "Sync",
+      "cells": {
+        "blanc": {
+          "text": "Optional and end-to-end encrypted. Favorites and settings, plus open tabs and shared Spaces if you choose.",
+          "sources": []
+        },
+        "crest": {
+          "text": "Optional, through iCloud. Apple devices only.",
+          "sources": [
+            "crest-sync"
+          ]
+        },
+        "arc": {
+          "text": "Account-based. Ends with the account, Dec 22, 2026.",
+          "sources": [
+            "arc-home"
+          ]
+        },
+        "helium": {
+          "text": "Not yet.",
+          "sources": [
+            "helium-home"
+          ]
+        },
+        "brave": {
+          "text": "Yes. Brave says it is encrypted on the device.",
+          "sources": [
+            "brave-privacy"
+          ]
+        }
+      }
+    }
+  ],
+  "sources": [
+    {
+      "id": "crest-github",
+      "column": "crest",
+      "url": "https://github.com/pauljoda/Crest",
+      "publisher": "Crest (Paul Davis)",
+      "accessedAt": "2026-11-02"
+    },
+    {
+      "id": "crest-home",
+      "column": "crest",
+      "url": "https://crestbrowser.com/",
+      "publisher": "Crest (Paul Davis)",
+      "accessedAt": "2026-11-02"
+    },
+    {
+      "id": "crest-engines",
+      "column": "crest",
+      "url": "https://crestbrowser.com/guides/engines/",
+      "publisher": "Crest (Paul Davis)",
+      "accessedAt": "2026-11-02"
+    },
+    {
+      "id": "crest-extensions",
+      "column": "crest",
+      "url": "https://crestbrowser.com/guides/extension-compatibility/",
+      "publisher": "Crest (Paul Davis)",
+      "accessedAt": "2026-11-02"
+    },
+    {
+      "id": "crest-spaces",
+      "column": "crest",
+      "url": "https://crestbrowser.com/guides/spaces-and-isolation/",
+      "publisher": "Crest (Paul Davis)",
+      "accessedAt": "2026-11-02"
+    },
+    {
+      "id": "crest-sync",
+      "column": "crest",
+      "url": "https://crestbrowser.com/guides/sync-across-devices/",
+      "publisher": "Crest (Paul Davis)",
+      "accessedAt": "2026-11-02"
+    },
+    {
+      "id": "crest-privacy",
+      "column": "crest",
+      "url": "https://crestbrowser.com/privacy/",
+      "publisher": "Crest (Paul Davis)",
+      "accessedAt": "2026-11-02"
+    },
+    {
+      "id": "crest-changelog",
+      "column": "crest",
+      "url": "https://github.com/pauljoda/Crest/blob/main/CHANGELOG.md",
+      "publisher": "Crest (Paul Davis)",
+      "accessedAt": "2026-11-02"
+    },
+    {
+      "id": "crest-appstore",
+      "column": "crest",
+      "url": "https://apps.apple.com/us/app/crest-browser/id6797335023",
+      "publisher": "Crest (Paul Davis), App Store listing",
+      "accessedAt": "2026-11-02"
+    },
+    {
+      "id": "arc-home",
+      "column": "arc",
+      "url": "https://arc.net/",
+      "publisher": "The Browser Company",
+      "accessedAt": "2026-11-02"
+    },
+    {
+      "id": "arc-faq",
+      "column": "arc",
+      "url": "https://resources.arc.net/hc/en-us/articles/44413577819159-Arc-Sunset-Frequently-Asked-Questions",
+      "publisher": "The Browser Company",
+      "accessedAt": "2026-11-02"
+    },
+    {
+      "id": "arc-troubleshoot",
+      "column": "arc",
+      "url": "https://resources.arc.net/hc/en-us/articles/19335714372759-Troubleshoot-or-Report-a-Problem-in-Arc",
+      "publisher": "The Browser Company",
+      "accessedAt": "2026-11-02"
+    },
+    {
+      "id": "helium-home",
+      "column": "helium",
+      "url": "https://helium.computer/",
+      "publisher": "imput",
+      "accessedAt": "2026-11-02"
+    },
+    {
+      "id": "helium-download",
+      "column": "helium",
+      "url": "https://helium.computer/download",
+      "publisher": "imput",
+      "accessedAt": "2026-11-02"
+    },
+    {
+      "id": "helium-github",
+      "column": "helium",
+      "url": "https://github.com/imputnet/helium",
+      "publisher": "imput",
+      "accessedAt": "2026-11-02"
+    },
+    {
+      "id": "brave-download",
+      "column": "brave",
+      "url": "https://brave.com/download/",
+      "publisher": "Brave Software",
+      "accessedAt": "2026-11-02"
+    },
+    {
+      "id": "brave-features",
+      "column": "brave",
+      "url": "https://brave.com/features/",
+      "publisher": "Brave Software",
+      "accessedAt": "2026-11-02"
+    },
+    {
+      "id": "brave-privacy",
+      "column": "brave",
+      "url": "https://brave.com/privacy-features/",
+      "publisher": "Brave Software",
+      "accessedAt": "2026-11-02"
+    },
+    {
+      "id": "brave-premium",
+      "column": "brave",
+      "url": "https://brave.com/premium/",
+      "publisher": "Brave Software",
+      "accessedAt": "2026-11-02"
+    },
+    {
+      "id": "brave-leo",
+      "column": "brave",
+      "url": "https://brave.com/leo/",
+      "publisher": "Brave Software",
+      "accessedAt": "2026-11-02"
+    },
+    {
+      "id": "brave-latest",
+      "column": "brave",
+      "url": "https://brave.com/latest/",
+      "publisher": "Brave Software",
+      "accessedAt": "2026-11-02"
+    },
+    {
+      "id": "brave-containers",
+      "column": "brave",
+      "url": "https://brave.com/blog/containers/",
+      "publisher": "Brave Software",
+      "accessedAt": "2026-11-02"
+    },
+    {
+      "id": "brave-vertical-tabs",
+      "column": "brave",
+      "url": "https://brave.com/blog/vertical-tabs/",
+      "publisher": "Brave Software",
+      "accessedAt": "2026-11-02"
+    },
+    {
+      "id": "brave-github",
+      "column": "brave",
+      "url": "https://github.com/brave/brave-browser",
+      "publisher": "Brave Software",
+      "accessedAt": "2026-11-02"
+    }
+  ]
+}

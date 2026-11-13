@@ -16,6 +16,27 @@ final class MobileStartPageTests: XCTestCase {
         }
     }
 
+    /// Holding the Start Page opens its settings, so a hold must not also
+    /// select the text under the finger and bring up the text menu.
+    func testHoldingTheStartPageCannotSelectItsText() async throws {
+        let directory = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
+        defer { try? FileManager.default.removeItem(at: directory) }
+        let manager = TabsManager(settingsDirectory: directory, sessionDirectory: directory)
+        let webView = try XCTUnwrap(manager.activeTab?.webView)
+        var selectable: String?
+        for _ in 0..<100 {
+            selectable = try? await webView.evaluateJavaScript("""
+                document.readyState !== 'complete' || location.host !== 'newtab' ? null : JSON.stringify(
+                  [...document.body.querySelectorAll('*')]
+                    .filter(e => !e.matches('input, textarea, select') && getComputedStyle(e).webkitUserSelect !== 'none')
+                    .map(e => e.id || e.className || e.tagName).slice(0, 10))
+                """) as? String
+            if selectable != nil { break }
+            try await Task.sleep(nanoseconds: 100_000_000)
+        }
+        XCTAssertEqual(selectable, "[]")
+    }
+
     func testAllLayoutsLoadFitAndPersistInWebKit() async throws {
         let directory = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
         defer { try? FileManager.default.removeItem(at: directory) }
@@ -130,6 +151,39 @@ final class MobileStartPageTests: XCTestCase {
         add(backdropImage)
         _ = try await webView.evaluateJavaScript("document.getElementById('glassBackdropProbe').remove()")
 
+        // Leaving Billboard must take the native glass clock away at once: the
+        // page's own clock is hidden by the layout's CSS, the overlay is not.
+        _ = try await webView.evaluateJavaScript("document.querySelector('[data-layout-pick=\"ledger\"]').click()")
+        for _ in 0..<20 where manager.activeTab?.nativeClock.isVisible == true {
+            try await Task.sleep(nanoseconds: 50_000_000)
+        }
+        XCTAssertFalse(manager.activeTab?.nativeClock.isVisible == true, "Switching away from Billboard must remove the native glass clock")
+        _ = try await webView.evaluateJavaScript("document.querySelector('[data-layout-pick=\"billboard\"]').click()")
+        for _ in 0..<40 where manager.activeTab?.nativeClock.isVisible != true {
+            try await Task.sleep(nanoseconds: 50_000_000)
+        }
+        XCTAssertTrue(manager.activeTab?.nativeClock.isVisible == true, "Returning to Billboard must bring the glass clock back")
+        // A load that fails before it commits leaves the Start Page in the web
+        // view, with its glass clock (the page's own copy is hidden), and the
+        // failure view over both, naming the address that failed.
+        // Not port 9: it's on WebKit's blocked list, and iOS 26 answers that
+        // by committing an empty page in place of the Start Page.
+        let failing = URL(string: "http://127.0.0.1:\(try closedPort())/")!
+        webView.load(URLRequest(url: failing))
+        try await Task.sleep(nanoseconds: 200_000_000)
+        for _ in 0..<100 where webView.isLoading {
+            try await Task.sleep(nanoseconds: 50_000_000)
+        }
+        XCTAssertEqual(webView.url?.host, "newtab")
+        XCTAssertTrue(manager.activeTab?.nativeClock.isVisible == true, "A failed load must not take the glass clock off the Start Page")
+        XCTAssertEqual(manager.activeTab?.loadFailure?.url, failing, "the failure shows over the Start Page")
+        // Back to the Start Page itself for the rest.
+        webView.load(URLRequest(url: TabsManager.newTabURL))
+        for _ in 0..<100 where manager.activeTab?.loadFailure != nil || webView.isLoading || manager.activeTab?.nativeClock.isVisible != true {
+            try await Task.sleep(nanoseconds: 50_000_000)
+        }
+        XCTAssertEqual(manager.activeTab?.currentURL, TabsManager.newTabURL)
+
         _ = try await webView.callAsyncJavaScript("return await window.bowserPages.start.setClock({font:'flex',height:150,style:'solid'});", arguments: [:], in: nil, contentWorld: .page)
         for _ in 0..<20 where manager.activeTab?.nativeClock.isVisible == true {
             try await Task.sleep(nanoseconds: 50_000_000)
@@ -197,4 +251,28 @@ final class MobileStartPageTests: XCTestCase {
         let pageErrors = try await webView.evaluateJavaScript("JSON.stringify(window.__pageErrors)") as? String
         XCTAssertEqual(pageErrors, "[]")
     }
+}
+
+/// A loopback port nothing listens on. It comes from below the ephemeral range
+/// (49152 and up on Apple platforms), where every server that asks for port 0
+/// lands: on a shared CI runner, another test's server once took a port this
+/// picked there, and the "failing" load committed a real page. 20000–29999
+/// holds no port on WebKit's blocked list.
+private func closedPort() throws -> Int {
+    for _ in 0..<50 {
+        let port = UInt16.random(in: 20000..<30000)
+        let fd = socket(AF_INET, SOCK_STREAM, 0)
+        guard fd >= 0 else { throw XCTSkip("no socket") }
+        defer { close(fd) }
+        var address = sockaddr_in()
+        address.sin_len = UInt8(MemoryLayout<sockaddr_in>.size)
+        address.sin_family = sa_family_t(AF_INET)
+        address.sin_port = port.bigEndian
+        address.sin_addr.s_addr = inet_addr("127.0.0.1")
+        let free = withUnsafePointer(to: &address) {
+            $0.withMemoryRebound(to: sockaddr.self, capacity: 1) { bind(fd, $0, socklen_t(MemoryLayout<sockaddr_in>.size)) == 0 }
+        }
+        if free { return Int(port) }
+    }
+    throw XCTSkip("no free loopback port")
 }

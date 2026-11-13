@@ -452,6 +452,9 @@ a:focus-visible, button:focus-visible { outline: 2px solid var(--site-accent); o
 .download-handheld[hidden] { display: none; }
 .download-handheld h2 { margin: 0; font-family: var(--site-font-display); font-size: 28px; font-weight: 400; letter-spacing: 0; }
 .download-handheld p { margin: 8px 0 0; color: var(--site-text-dim); }
+.download-handheld-action[hidden], .download-handheld p[hidden] { display: none; }
+.download-handheld-action.is-secondary { background: transparent; color: var(--site-text); box-shadow: inset 0 0 0 1px currentColor; }
+.download-handheld .download-handheld-action { margin-inline: 4px; }
 .download-handheld-action { display: inline-flex; align-items: center; min-height: 48px; margin-top: 16px; padding: 0 24px; border-radius: 999px; background: var(--site-text); color: var(--site-bg); text-decoration: none; }
 .download-handheld [role="status"] { color: var(--site-text); font-weight: 500; }
 .download-handheld [role="status"]:empty { display: none; }
@@ -546,6 +549,9 @@ a:focus-visible, button:focus-visible { outline: 2px solid var(--site-accent); o
 .iphone-band-copy > p:not([class]) { margin: 18px 0 0; color: rgba(255, 255, 255, 0.72); font-size: 16px; line-height: 1.6; }
 .iphone-band-cta { display: inline-flex; gap: 8px; margin-top: 26px; padding: 11px 20px; border-radius: 999px; background: var(--site-bg); color: var(--site-text); font-size: 14px; font-weight: 500; text-decoration: none; transition: background 0.18s ease, color 0.18s ease; }
 .iphone-band-cta:is(:hover, :focus-visible) { background: var(--site-accent); color: var(--site-bg); }
+.iphone-band-ctas { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 26px; }
+.iphone-band-ctas .iphone-band-cta { margin-top: 0; }
+.iphone-band-cta--beta { background: transparent; color: var(--site-bg); box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.4); }
 .iphone-band-note { margin: 14px 0 0; color: rgba(255, 255, 255, 0.55); font-family: var(--font-mono); font-size: 12px; }
 .iphone-band-shot { align-self: end; height: 430px; margin: 48px 0 0; overflow: hidden; }
 .iphone-band-shot img { display: block; width: 100%; height: auto; border: 6px solid rgba(255, 255, 255, 0.14); border-bottom: 0; border-radius: 46px 46px 0 0; }

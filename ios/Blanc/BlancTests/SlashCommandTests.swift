@@ -190,7 +190,7 @@ final class SlashCommandTests: XCTestCase {
         let work = try m.createSpace(name: "Work", color: "#426c4c", symbol: "briefcase")
         _ = run("/space work", in: m)
         XCTAssertEqual(m.shownSetId, work)
-        _ = run("/space This iPhone", in: m)
+        _ = run("/space \(TabSets.deviceSetName)", in: m)
         XCTAssertEqual(m.shownSetId, TabSets.iphoneId)
         _ = run("/space Reading", in: m)
         XCTAssertEqual(m.spaceEditor, .new(name: "Reading"))
