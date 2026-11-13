@@ -32,6 +32,10 @@ export function makeManifest(r, payloads) {
   validateAcceptance(JSON.parse(payloads['acceptance.json']), r, payloads);
   const sbom = JSON.parse(payloads['Blanc-Beta.cdx.json']);
   check(sbom.bomFormat === 'CycloneDX' && ['1.5','1.6'].includes(sbom.specVersion) && sbom.version === 1, 'CycloneDX SBOM required');
+  // sbom.mjs build binds the SBOM to this release's source and inputs.
+  const meta = sbom.metadata?.component, property = name => meta?.properties?.find(p => p.name === name)?.value;
+  check(meta?.name === 'Blanc Beta' && meta.version === r.version && property('blanc:sourceCommit') === r.sourceCommit &&
+    property('blanc:inputDigest') === r.inputDigest, 'SBOM must describe this release (sbom.mjs build)');
   for (const [name, version] of [['Chromium', r.chromiumVersion], ['Sparkle', r.sparkle.version]])
     check(sbom.components?.some(c => c.name === name && c.version === version && c.licenses?.length > 0), `SBOM must include ${name} with licence`);
   for (const arch of r.arches) {

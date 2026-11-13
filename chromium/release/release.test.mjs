@@ -110,7 +110,7 @@ function payloadFixture(){
   const {r,bytes,signature}=keyFixture(),payloads={},e={sourceCommit:r.sourceCommit,inputDigest:r.inputDigest,build:r.build,arches:{}};
   for(const arch of r.arches){payloads[assetName(r,arch)]=bytes;payloads[`appcast-${arch}.xml`]=Buffer.from(generateAppcast(r,arch,bytes,signature));e.arches[arch]={candidate:r.candidates[arch],dmgSHA256:sha256(bytes),gnArgsSHA256:r.gnArgsSHA256[arch],gates:Object.fromEntries(GATES.map(g=>[g,{status:'pass',evidenceSHA256:'a'.repeat(64)}]))};}
   payloads['release.json']=Buffer.from(JSON.stringify(r));payloads['acceptance.json']=Buffer.from(JSON.stringify(e));payloads['NOTICES.txt']=Buffer.from('fixture notices');
-  payloads['Blanc-Beta.cdx.json']=Buffer.from(JSON.stringify({bomFormat:'CycloneDX',specVersion:'1.6',version:1,components:[{name:'Chromium',version:r.chromiumVersion,licenses:[{license:{id:'BSD-3-Clause'}}]},{name:'Sparkle',version:r.sparkle.version,licenses:[{license:{id:'MIT'}}]}]}));
+  payloads['Blanc-Beta.cdx.json']=Buffer.from(JSON.stringify({bomFormat:'CycloneDX',specVersion:'1.6',version:1,metadata:{component:{name:'Blanc Beta',version:r.version,properties:[{name:'blanc:sourceCommit',value:r.sourceCommit},{name:'blanc:inputDigest',value:r.inputDigest}]}},components:[{name:'Chromium',version:r.chromiumVersion,licenses:[{license:{id:'BSD-3-Clause'}}]},{name:'Sparkle',version:r.sparkle.version,licenses:[{license:{id:'MIT'}}]}]}));
   return {r,payloads,e};
 }
 test('manifest covers every payload, itself in checksums, excludes signature recursion',()=>temp(dir=>{
@@ -123,7 +123,7 @@ test('manifest covers every payload, itself in checksums, excludes signature rec
   fs.appendFileSync(path.join(dir,'NOTICES.txt'),'changed');assert.throws(()=>verifyManifest(dir,r));
 }));
 test('manifest rejects stable metadata, missing evidence, mismatched candidate and partial SBOM',()=>{
-  for(const alter of [p=>p['latest-mac.yml']=Buffer.from('bad'),p=>delete p['NOTICES.txt'],p=>p['Blanc-Beta.cdx.json']=Buffer.from('{}'),p=>{const e=JSON.parse(p['acceptance.json']);e.arches.arm64.candidate='wrong';p['acceptance.json']=Buffer.from(JSON.stringify(e));},p=>{const e=JSON.parse(p['acceptance.json']);e.arches.arm64.gates['production-sync-real-device'].status='pending';p['acceptance.json']=Buffer.from(JSON.stringify(e));}]){const {r,payloads}=payloadFixture();alter(payloads);assert.throws(()=>makeManifest(r,payloads));}
+  for(const alter of [p=>p['latest-mac.yml']=Buffer.from('bad'),p=>delete p['NOTICES.txt'],p=>p['Blanc-Beta.cdx.json']=Buffer.from('{}'),p=>{const b=JSON.parse(p['Blanc-Beta.cdx.json']);b.metadata.component.properties[0].value='1'.repeat(40);p['Blanc-Beta.cdx.json']=Buffer.from(JSON.stringify(b));},p=>{const e=JSON.parse(p['acceptance.json']);e.arches.arm64.candidate='wrong';p['acceptance.json']=Buffer.from(JSON.stringify(e));},p=>{const e=JSON.parse(p['acceptance.json']);e.arches.arm64.gates['production-sync-real-device'].status='pending';p['acceptance.json']=Buffer.from(JSON.stringify(e));}]){const {r,payloads}=payloadFixture();alter(payloads);assert.throws(()=>makeManifest(r,payloads));}
 });
 test('source inventory detects changed patch and pristine inputs without a Chromium checkout',()=>temp(root=>{
   const write=(name,value)=>{fs.mkdirSync(path.dirname(path.join(root,name)),{recursive:true});fs.writeFileSync(path.join(root,name),value);};

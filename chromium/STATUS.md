@@ -932,6 +932,20 @@ remain pending. D3 beta-only no-DRM exception accepted; EME notice/handoff requi
   16 px at 1000 × 760; it fits at 1280 × 800 and larger, in every
   wallpaper mode). native-start-widgets 8/8; newtab-layouts 24/25 (:21 as
   before).
+- **SBOM, NOTICES.txt and the notices-and-credits gate (2026-11-13, owner):**
+  `chromium/release/sbom_scan.py` lists what `//chrome:chrome` ships with
+  Chromium's own `licenses.py` (322 components on out/BlancBeta, versions for
+  all but 19 in-tree ones), hashing each licence text and recording the 7
+  folders the tool skips; `sbom.mjs build` writes a deterministic CycloneDX
+  1.6 SBOM and a deduplicated NOTICES.txt (334 components, 178 texts);
+  `sbom.mjs audit` checks the packaged notices, credits and SBOM and writes
+  the gate evidence. Reviewed extras: `chromium/release/sbom-extra.json`.
+  `manifest.mjs` now also requires the SBOM to name the release's source
+  commit and input digest. sbom 5/5; unit 413/413. Open: the packaged
+  `THIRD_PARTY_NOTICES.txt` is the Electron app's notice, so the audit fails;
+  and the packaged beta embeds no blocker (desktop loads it only from
+  `--blanc-blocker-assets`), so the Ghostery engine and filter lists are
+  listed as not bundled.
 - **Staged beta release operator (2026-11-13, owner):** `chromium/release/release.mjs`
   runs the runbook's §10 commands as eleven named stages (preflight, sign,
   notarize-app, dmg, notarize-dmg, sparkle, manifest, draft, sigstore,

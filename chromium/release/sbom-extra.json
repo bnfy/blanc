@@ -1,0 +1,31 @@
+{
+  "schema": 1,
+  "note": "Reviewed inputs to sbom.mjs beyond Chromium's own licence metadata. blancAssets: third-party files the Island serves from the beta's resources; each file's SHA-256 must equal chromium/blanc/island-assets.json, and its name, version, licence and text come from compliance/policy.json, and unless it is marked derived (built from the reviewed source) it must be byte-identical to that asset's file. chromiumAdditions: components inside folders Chromium's licenses.py skips for missing metadata (upstream Chrome's credits skip them too); paths are relative to Chromium src. reviewedSkips: every folder licenses.py skips must be listed here or under chromiumAdditions, or the audit fails. notBundled: third-party payloads deliberately absent from the packaged beta, so they are not in the SBOM.",
+  "blancAssets": [
+    {"asset": "inter-font", "files": ["pages/inter-latin.woff2"]},
+    {"asset": "jetbrains-mono-font", "files": ["pages/jetbrains-mono-latin.woff2"]},
+    {"asset": "caveat-font", "files": ["pages/caveat-latin.woff2"]},
+    {"asset": "instrument-sans-font", "files": ["pages/instrument-sans-latin-wdth-normal.woff2"]},
+    {"asset": "roboto-flex-clock-font", "files": ["pages/roboto-flex-clock.woff2"]},
+    {"asset": "kagi-bangs-data", "derived": true, "files": ["pages/bangs-catalog.js"]},
+    {"name": "Lucide icons (Island)", "license": "ISC", "licenseFile": "src/renderer/ublock-popup-icons/lucide-LICENSE.txt",
+     "homepage": "https://github.com/lucide-icons/lucide", "noticeMatch": "Lucide",
+     "attribution": "Lucide Contributors; panel-left.svg is adapted from Lucide's Panel Left icon",
+     "files": ["icons/chevron-left.svg", "icons/external-link.svg", "icons/search.svg", "icons/settings.svg", "panel-left.svg"]}
+  ],
+  "chromiumAdditions": [
+    {"name": "Catapult", "dir": "third_party/catapult", "license": "BSD-3-Clause", "licenseFile": "third_party/catapult/LICENSE", "url": "https://chromium.googlesource.com/catapult"},
+    {"name": "Crubit support library", "dir": "third_party/rust-toolchain/lib/third_party/crubit", "license": "Apache-2.0 WITH LLVM-exception", "licenseFile": "third_party/rust-toolchain/lib/third_party/crubit/LICENSE", "url": "https://github.com/google/crubit"},
+    {"name": "LLVM 10.0 (SwiftShader)", "dir": "third_party/swiftshader/third_party/llvm-10.0", "version": "10.0", "license": "Apache-2.0 WITH LLVM-exception", "licenseFile": "third_party/llvm-libc/src/LICENSE.TXT", "url": "https://llvm.org/"},
+    {"name": "Marl (SwiftShader)", "dir": "third_party/swiftshader/third_party/marl", "license": "Apache-2.0", "licenseFile": "third_party/swiftshader/third_party/marl/LICENSE", "url": "https://github.com/google/marl"}
+  ],
+  "reviewedSkips": {
+    "third_party/rust": "A container: each crate under third_party/rust/chromium_crates_io carries its own metadata and is listed individually.",
+    "third_party/perfetto/protos/third_party/android": "Perfetto's own protocol definitions, covered by the Perfetto component and its licence.",
+    "third_party/perfetto/protos/third_party/chromium": "Perfetto's own protocol definitions, covered by the Perfetto component and its licence."
+  },
+  "notBundled": [
+    {"name": "Ghostery adblocker engine, EasyList, EasyPrivacy and Ghostery resources",
+     "reason": "Desktop builds load the blocker bundle only from --blanc-blocker-assets (chromium/blanc/services/blocker/blocker_available.h); the packaged beta embeds no blocker payload yet. Add them here as blancAssets when it does."}
+  ]
+}
