@@ -260,6 +260,17 @@
     <string name="blanc_settings_privacy_clear_browsing_data_confirm">Clear all cookies, cache, and site data? You will be logged out of everything.</string>
     <string name="blanc_settings_privacy_clear_browsing_data_done">Cleared.</string>
     <string name="blanc_settings_privacy_removes_cookies_cache_and">Removes cookies, cache, and site data for every site. You\'ll be logged out of everything.</string>
+    <string name="blanc_ios_palette_edit_address">Edit address</string>
+    <string name="blanc_tab_menu_copy_link">Copy Link</string>
+    <string name="blanc_pill_notice_link_copied">Link copied</string>
+    <string name="blanc_context_menu_search_for">Search for “%1$s”</string>
+    <string name="blanc_menu_close_tab">Close Tab</string>
+    <string name="blanc_ios_island_page_zoom">Page Zoom</string>
+    <string name="blanc_menu_zoom_in">Zoom In</string>
+    <string name="blanc_menu_zoom_out">Zoom Out</string>
+    <string name="blanc_menu_actual_size">Actual Size</string>
+    <string name="blanc_ios_island_desktop_site">Request Desktop Website</string>
+    <string name="blanc_ios_island_mobile_site">Request Mobile Website</string>
     <plurals name="blanc_shared_spaces_waiting_count">
         <item quantity="one">%d shared Space is waiting</item>
         <item quantity="other">%d shared Spaces are waiting</item>

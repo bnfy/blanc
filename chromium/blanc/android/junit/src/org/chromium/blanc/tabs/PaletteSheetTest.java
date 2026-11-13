@@ -7,6 +7,8 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
 import android.app.Activity;
+import android.content.ClipboardManager;
+import android.graphics.drawable.GradientDrawable;
 import android.view.View;
 import android.view.inputmethod.EditorInfo;
 
@@ -20,6 +22,7 @@ import org.chromium.base.ContextUtils;
 import org.chromium.blanc.settings.SettingsDestination;
 import org.chromium.base.test.BaseRobolectricTestRunner;
 import org.chromium.blanc.palette.PaletteSheet;
+import org.chromium.blanc.palette.SwipeToCloseRow;
 import org.chromium.blanc.spaces.BlancSpaces;
 import org.chromium.blanc.spaces.SpaceSwitcher;
 import org.chromium.blanc.spaces.SpacesController;
@@ -27,6 +30,7 @@ import org.chromium.blanc.spaces.SpacesController;
 import java.lang.reflect.Proxy;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 /** The palette as Blanc for iPhone draws it (PaletteSheet.swift), over a plain tab store. */
 @RunWith(BaseRobolectricTestRunner.class)
@@ -117,9 +121,17 @@ public class PaletteSheetTest {
         return out;
     }
 
+    /** A row by its title; the address row, which repeats the current tab's address, never. */
     private static PaletteSheet.Row row(PaletteSheet sheet, String title) {
-        for (PaletteSheet.Row row : sheet.rows()) if (row.title.equals(title)) return row;
+        for (PaletteSheet.Row row : sheet.rows()) {
+            if (row.title.equals(title) && row.kind != PaletteSheet.RowKind.ADDRESS) return row;
+        }
         throw new AssertionError("no row " + title);
+    }
+
+    /** Lets a row's slide finish. */
+    private static void settle() {
+        ShadowLooper.idleMainLooper(1, TimeUnit.SECONDS);
     }
 
     private static void type(PaletteSheet sheet, String text) {
@@ -174,8 +186,8 @@ public class PaletteSheetTest {
         assertFalse(sheet.isShowing());
         PaletteSheet again = show();
         PaletteSheet.Row b = row(again, "https://b.example/");
-        assertEquals("Close https://b.example/", b.close.getContentDescription().toString());
-        b.close.performClick();
+        assertEquals("Close https://b.example/", b.button.getContentDescription().toString());
+        b.button.performClick();
         ShadowLooper.idleMainLooper();
         assertFalse(titles(again, PaletteSheet.RowKind.TAB).contains("https://b.example/"));
     }
@@ -252,7 +264,8 @@ public class PaletteSheetTest {
         List<String> results = titles(sheet, PaletteSheet.RowKind.RESULT);
         assertTrue(results.size() <= 12);
         assertEquals("Example docs", results.get(results.size() - 1));
-        type(sheet, "zzzz");
+        // An address with no match: there's no search to offer either (#1445).
+        type(sheet, "zzzz.example");
         assertEquals(List.of("No matches. Press Return to open it as an address or search."),
                 titles(sheet, PaletteSheet.RowKind.EMPTY));
     }
@@ -385,5 +398,84 @@ public class PaletteSheetTest {
     @Test
     public void aSendResultNamesTheDevice() {
         assertEquals("Sent to Mac.", PaletteSheet.sendResult(Robolectric.buildActivity(Activity.class).get(), "sent", "Mac"));
+    }
+
+    // #1445: the page's whole address leads the resting list; a tap puts it in the field to
+    // edit, and its button copies it.
+    @Test
+    public void atRestTheCurrentAddressLeadsAndCanBeEditedOrCopied() {
+        PaletteSheet sheet = show();
+        PaletteSheet.Row address = sheet.rows().get(0);
+        assertEquals(PaletteSheet.RowKind.ADDRESS, address.kind);
+        assertEquals("https://example.com/", address.title);
+        assertEquals("Edit address, https://example.com/", address.view.getContentDescription().toString());
+        address.view.performClick();
+        assertEquals("https://example.com/", sheet.field().getText().toString());
+        assertTrue(sheet.isShowing());
+        PaletteSheet again = show();
+        PaletteSheet.Row copy = again.rows().get(0);
+        assertEquals("Copy Link", copy.button.getContentDescription().toString());
+        copy.button.performClick();
+        ClipboardManager clipboard = mActivity.getSystemService(ClipboardManager.class);
+        assertEquals("https://example.com/", clipboard.getPrimaryClip().getItemAt(0).getText().toString());
+        assertFalse(again.isShowing());
+    }
+
+    @Test
+    public void blancsOwnPagesHaveNoAddressRow() {
+        mStore.select(mStore.create("chrome://blanc/newtab.html", false, null, -1));
+        assertEquals(PaletteSheet.RowKind.HEADING, show().rows().get(0).kind);
+    }
+
+    // #1463/#1466: no × to miss; a swipe shows the trash, and TalkBack has Close Tab.
+    @Test
+    public void aTabRowHidesItsTrashUntilSwipedAndTalkBackCanCloseIt() {
+        PaletteSheet sheet = show();
+        PaletteSheet.Row b = row(sheet, "https://b.example/");
+        assertEquals(View.GONE, ((View) b.button.getParent()).getVisibility());
+        ((SwipeToCloseRow) b.view.getParent()).open();
+        settle();
+        assertEquals(View.VISIBLE, ((View) b.button.getParent()).getVisibility());
+        // Opening another row shuts this one: one row open at a time.
+        ((SwipeToCloseRow) row(sheet, "https://a.example/").view.getParent()).open();
+        settle();
+        assertEquals(View.GONE, ((View) b.button.getParent()).getVisibility());
+        assertTrue(b.view.performAccessibilityAction(SwipeToCloseRow.closeActionId(), null));
+        ShadowLooper.idleMainLooper();
+        assertFalse(titles(sheet, PaletteSheet.RowKind.TAB).contains("https://b.example/"));
+    }
+
+    // A group's header and tabs share one tinted block, so loose tabs never read as members.
+    @Test
+    public void aGroupsTabsShareItsTintAndLooseTabsDoNot() {
+        PaletteSheet sheet = show();
+        View grouped = (View) row(sheet, "https://a.example/").view.getParent();
+        View loose = (View) row(sheet, "https://example.com/").view.getParent();
+        assertTrue(grouped.getBackground() instanceof GradientDrawable);
+        assertEquals(null, loose.getBackground());
+    }
+
+    // #1445: what Go does comes first: a strong match, or Search for "…" with the engine.
+    @Test
+    public void typedTextLeadsWithWhatGoDoes() {
+        mFavorites = List.of(new QuickSwitcher.Page("f", "Kitten care", "https://kittens.example/"));
+        PaletteSheet sheet = show();
+        // Its letters in order, not a run of them: a weak match, so Go searches.
+        type(sheet, "kittencare");
+        assertEquals(PaletteSheet.RowKind.SEARCH, sheet.rows().get(0).kind);
+        assertEquals("Search for \u201ckittencare\u201d", sheet.rows().get(0).title);
+        assertEquals("DuckDuckGo", sheet.rows().get(0).subtitle);
+        assertEquals(List.of("Kitten care"), titles(sheet, PaletteSheet.RowKind.RESULT));
+        type(sheet, "research");
+        assertEquals(PaletteSheet.RowKind.RESULT, sheet.rows().get(0).kind);
+        type(sheet, "example.com");
+        assertFalse(titles(sheet, PaletteSheet.RowKind.SEARCH).size() > 0);
+        // A run of the title's letters is strong: the match comes first and Go opens it.
+        type(sheet, "kitten");
+        assertEquals("Kitten care", sheet.rows().get(0).title);
+        assertEquals(PaletteSheet.RowKind.SEARCH, sheet.rows().get(1).kind);
+        type(sheet, "kittencare");
+        sheet.rows().get(0).view.performClick();
+        assertEquals("https://duckduckgo.com/?q=kittencare", mLoaded.get(mLoaded.size() - 1));
     }
 }

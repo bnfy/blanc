@@ -260,6 +260,17 @@
     <string name="blanc_settings_privacy_clear_browsing_data_confirm">Effacer tous les cookies, le cache et les données des sites ? Vous serez déconnecté partout.</string>
     <string name="blanc_settings_privacy_clear_browsing_data_done">Effacé.</string>
     <string name="blanc_settings_privacy_removes_cookies_cache_and">Supprime les cookies, le cache et les données de tous les sites. Vous serez déconnecté partout.</string>
+    <string name="blanc_ios_palette_edit_address">Modifier l’adresse</string>
+    <string name="blanc_tab_menu_copy_link">Copier le lien</string>
+    <string name="blanc_pill_notice_link_copied">Lien copié</string>
+    <string name="blanc_context_menu_search_for">Rechercher « %1$s »</string>
+    <string name="blanc_menu_close_tab">Fermer l’onglet</string>
+    <string name="blanc_ios_island_page_zoom">Zoom de page</string>
+    <string name="blanc_menu_zoom_in">Zoom avant</string>
+    <string name="blanc_menu_zoom_out">Zoom arrière</string>
+    <string name="blanc_menu_actual_size">Taille réelle</string>
+    <string name="blanc_ios_island_desktop_site">Demander le site web pour ordinateur</string>
+    <string name="blanc_ios_island_mobile_site">Demander le site web mobile</string>
     <plurals name="blanc_shared_spaces_waiting_count">
         <item quantity="one">%d Space partagé vous attend</item>
         <item quantity="many">%d Spaces partagés vous attendent</item>

@@ -88,6 +88,10 @@ export const ANDROID_KEYS = [
   'settings.general.theme.system', 'settings.privacy.clearBrowsingData',
   'settings.privacy.clearBrowsingData.confirm', 'settings.privacy.clearBrowsingData.done',
   'settings.privacy.removesCookiesCacheAnd',
+  // The iPhone's palette and Sunrise menu from #1445 and #1466.
+  'ios.palette.editAddress', 'tabMenu.copyLink', 'pill.notice.linkCopied', 'contextMenu.searchFor', 'menu.closeTab',
+  'ios.island.pageZoom', 'menu.zoomIn', 'menu.zoomOut', 'menu.actualSize', 'ios.island.desktopSite',
+  'ios.island.mobileSite',
 ];
 // ICU plurals, as Android <plurals>: the Island's tab count for TalkBack.
 export const ANDROID_PLURALS = ['sharedSpaces.waitingCount', 'newtab.groups.count', 'shield.count.blocked', 'tabGroups.tucked', 'tabsMenu.header',
