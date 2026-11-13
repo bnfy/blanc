@@ -733,7 +733,7 @@
     if (!marker) return;
     let info;
     try { info = JSON.parse(marker.content); } catch { return; }
-    const statusUrl = 'https://github.com/bnfy/blanc/pull/1028';
+    const statusUrl = 'https://github.com/bnfy/blanc/pull/1304';
     const supportUrl = 'mailto:support@blanc.day?subject=Blanc%20Chromium%20Preview';
     if (!/^\d+\.\d+\.\d+\.\d+$/.test(info.version) ||
         !['not-released', 'withdrawn'].includes(info.status) ||
