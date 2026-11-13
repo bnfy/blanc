@@ -382,7 +382,7 @@
     "blanc/browser/ui/blanc_quiet_schedule.h": "f5e3c6919a752eb63393cd7c1d4e54436746ce79179fb3d16fbd2df7c0c3fcc4",
     "blanc/browser/ui/blanc_quiet_strings.h": "3daaf170f6545b9de664dc49a35eb31e463a860cc456d38d1f8524c61089d446",
     "blanc/browser/ui/blanc_tab_name_rules.h": "374c5064e93cb2ab5c36c7ea1edfb338e65cb25db57ca2459dab5707513aeed6",
-    "blanc/browser/ui/blanc_webstore_promotion.h": "2095cbea3733a7e78bf76b77ff80c039389a18e2633128980ee440898c11c9b6",
+    "blanc/browser/ui/blanc_webstore_promotion.h": "ba2ef694d9ff9e9ab7c6e0343c68f34607c58c1711153a2fe0206ea392f080cd",
     "blanc/browser/ui/browser_api/appearance.cc": "dc7d41c1f9952ad1906e8a1cc95d7046a38eedc40648e0c6faf8e3c5f91133cf",
     "blanc/browser/ui/browser_api/appearance.h": "1e1c6d9195ac79e521be27dde5adb8f75445dd91c460d6ee1672d6b89bae55b0",
     "blanc/browser/ui/browser_api/bang_icon_policy.cc": "a2c2dba1b1ed17aa612b0793f5abd81befc647ee9f314c0934f35c43fbc8a960",

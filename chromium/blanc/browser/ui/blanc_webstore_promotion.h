@@ -42,6 +42,26 @@ inline constexpr char16_t kBlancWebStorePromotion[] = uR"BLANC(// Prototype comp
         break;
       }
     }
+    // English "Switch to Chrome?" card (seen 2026-11-13): a heading, one
+    // sentence and exactly two actions, "No thanks" and "Yes". Match its whole
+    // copy and those two controls only, and hide the smallest box holding
+    // them (with a dialog shell that holds nothing else). Never a box with
+    // any other control, so no listing, search or installation is touched.
+    const cardCopy = 'Switch to Chrome?Google recommends using Chrome when using extensions and themes.No thanksYes';
+    for (const decline of document.querySelectorAll('button,a[href],[role="button"]')) {
+      if (decline.textContent.trim() !== 'No thanks') continue;
+      for (let box = decline.parentElement; box && box !== document.body; box = box.parentElement) {
+        const controls = [...box.querySelectorAll('a,button,input,select,textarea,iframe,[role="button"]')];
+        if (controls.length > 2 || controls.some(c => !['No thanks', 'Yes'].includes(c.textContent.trim()))) break;
+        if (box.textContent.replace(/\s/g, '') !== cardCopy.replace(/\s/g, '')) continue;
+        const shell = box.parentElement;
+        const alone = shell && shell.getAttribute('role') === 'dialog' &&
+          shell.textContent.replace(/\s/g, '') === box.textContent.replace(/\s/g, '') &&
+          shell.querySelectorAll('a,button,input,select,textarea,iframe,[role="button"]').length === controls.length;
+        (alone ? shell : box).style.setProperty('display', 'none', 'important');
+        break;
+      }
+    }
     for (const link of document.querySelectorAll('a[href]')) {
       let url;
       try { url = new URL(link.href); } catch { continue; }

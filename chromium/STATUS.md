@@ -879,6 +879,14 @@ remain pending. D3 beta-only no-DRM exception accepted; EME notice/handoff requi
   this week", fork string start.billboard.blocked). native-start-widgets.mjs
   8/8 (a real pointer drag included); newtab-layouts 24/25 (:21 is
   shipping's stale Mahjong check; :134 passes once its audit reads the tiles).
+- **The Web Store's "Switch to Chrome?" card is hidden (2026-11-13, owner's
+  report):** opening a gallery extension's listing showed a new Store card
+  (heading, one sentence, No thanks / Yes) over the install button, which
+  the existing rule did not know. `blanc_webstore_promotion.h` now also hides
+  that card, matched by its whole English copy and exactly those two
+  controls, and nothing larger. Test `chromium/tests/native-webstore-promotion.mjs`
+  (the rule's own script on Store-shaped markup): 3/3; it fails on the old
+  rule. Other languages' cards are not matched yet.
 - **V26 — no Blocked this week widget (2026-11-13, owner; fork only):** the
   week's chart is no longer a Start Page widget; Billboard's line under the
   clock ("N ads blocked this week") always shows the count, and a private
@@ -2721,5 +2729,5 @@ Android's Bar A counts the shared scenarios bound in `chromium/tests/android/acc
 
 Legacy macOS stages come from the approved spec; they await verification on the canonical candidate. No legacy stage counts as Verified.
 
-Candidate identities: macOS: macos-f7cc5ba20a64acf1; Windows: none; Linux: none; Android: android-arm64-7bd35e94ef746069.
+Candidate identities: macOS: macos-2e648a5b57ea066b; Windows: none; Linux: none; Android: android-arm64-7bd35e94ef746069.
 <!-- END GENERATED PROGRESS -->
