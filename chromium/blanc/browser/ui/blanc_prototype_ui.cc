@@ -107,6 +107,8 @@
 #include "components/split_tabs/split_tab_visual_data.h"
 #include "components/tabs/public/split_tab_data.h"
 #include "chrome/browser/ui/views/frame/multi_contents_view.h"
+#include "chrome/browser/ui/views/frame/contents_web_view.h"
+#include "ui/gfx/geometry/rect_conversions.h"
 #include "ui/views/layout/proposed_layout.h"
 #include <array>
 #include <vector>
@@ -296,7 +298,12 @@
 #include "chrome/browser/ui/toolbar/toolbar_action_view_model.h"
 #include "chrome/grit/branded_strings.h"
 #include "chrome/browser/extensions/extension_context_menu_model.h"
+#include "chrome/browser/extensions/api/side_panel/side_panel_service.h"
+#include "chrome/browser/extensions/extension_view_host.h"
+#include "chrome/browser/extensions/extension_view_host_factory.h"
+#include "chrome/browser/ui/views/extensions/extension_view_views.h"
 #include "extensions/browser/extension_registry.h"
+#include "extensions/browser/unpacked_installer.h"
 #include "ui/views/controls/menu/menu_model_adapter.h"
 #include "ui/views/controls/menu/menu_runner.h"
 #include "ui/views/view_tracker.h"
@@ -1094,6 +1101,11 @@ void AutoHideActivated(Owner* owner);
 void EndGlanceSoon(Owner* owner, int next_reference);
 void EndOverlayGlance(Owner* owner, bool focus_active);
 views::WebView* OverlayGlanceView(Owner* owner);
+// Extension side panels as Start Page cards (V24 follow-up, prototype).
+base::ListValue StartPanelList(Profile* profile);
+bool PlaceStartPanel(content::WebContents* page, const std::string& id, const gfx::Rect& css);
+void HideStartPanels(content::WebContents* page, const std::string& id);
+void CloseStartPanels(content::WebContents* page);
 // Clicking or tabbing into the Glance page over a split makes it the page
 // commands act on; into a split pane, that pane. The Island taking focus
 // changes nothing.
@@ -2969,6 +2981,25 @@ scoped_refptr<base::RefCountedMemory> MahjongStateScript(scoped_refptr<base::Ref
   return base::MakeRefCounted<base::RefCountedString>(std::move(text));
 }
 
+// Shipping's Mahjong dock draws its icons with <use href="mahjong-icons.svg#…">.
+// Chromium loads no external SVG document for <use> on its internal pages
+// (each fails with net::ERR_FAILED), so the dock showed empty circles. The
+// page served here carries the same sprite inline, in a hidden block at the
+// top of its body, and points each <use> at it; the files stay shipping's.
+scoped_refptr<base::RefCountedMemory> MahjongPage(scoped_refptr<base::RefCountedMemory> page,
+                                                  scoped_refptr<base::RefCountedMemory> sprite) {
+  if (!page || !sprite) return page;
+  std::string html(reinterpret_cast<const char*>(page->front()), page->size());
+  std::string svg(reinterpret_cast<const char*>(sprite->front()), sprite->size());
+  if (const auto start = svg.find("<svg"); start != std::string::npos) svg.erase(0, start);
+  static constexpr std::string_view kBody = "<body class=\"mahjong-body\">";
+  const auto body = html.find(kBody);
+  if (body == std::string::npos || svg.empty()) return page;
+  html.insert(body + kBody.size(), "\n<div hidden>" + svg + "</div>");
+  base::ReplaceSubstringsAfterOffset(&html, 0, "href=\"mahjong-icons.svg#", "href=\"#");
+  return base::MakeRefCounted<base::RefCountedString>(std::move(html));
+}
+
 #if BUILDFLAG(ENABLE_BLANC_DISK_ASSETS)
 scoped_refptr<base::RefCountedMemory> ReadAsset(base::FilePath root,
                                                std::string path) {
@@ -4287,6 +4318,7 @@ class NewTabHandler : public content::WebUIMessageHandler,
     layout_observing_ = false;
     widgets_pref_observer_.Reset();
     widgets_observing_ = false;
+    CloseStartPanels(web_ui()->GetWebContents());
     patron_observer_.Reset();
     patron_observing_ = false;
   }
@@ -4558,7 +4590,8 @@ class NewTabHandler : public content::WebUIMessageHandler,
     // old layout once, so nothing a person used goes away.
     if ((method == "widgetsRead" && args.empty()) ||
         (method == "widgetsWrite" && args.size() == 2 && args[0].is_string() && args[1].is_bool()) ||
-        (method == "widgetsPlace" && args.size() == 2 && args[0].is_list() && args[1].is_list())) {
+        (method == "widgetsPlace" && args.size() == 2 && args[0].is_list() && args[1].is_list()) ||
+        (method == "widgetsPanel" && args.size() == 2 && args[0].is_string() && args[1].is_bool())) {
       constexpr char kWidgets[] = "blanc.start.widgets";
       constexpr std::string_view kNames[] = {"favorites", "devices", "chart", "shortcuts"};
       auto* local = g_browser_process->local_state();
@@ -4598,6 +4631,23 @@ class NewTabHandler : public content::WebUIMessageHandler,
       // card once (Sent to this device included). Unknown or repeated names
       // are dropped; a card missing from both goes back to its default side.
       constexpr std::string_view kCards[] = {"favorites", "devices", "sent", "chart"};
+      // Extension side panels on the page: their ids, each a card "ext:<id>".
+      if (method == "widgetsPanel") {
+        const auto& panel = args[0].GetString();
+        const bool valid = panel.size() == 32 && std::all_of(panel.begin(), panel.end(), [](char c) { return c >= 'a' && c <= 'p'; });
+        if (!valid) { Reply(id, false, base::Value("Unknown extension")); return; }
+        auto next = local->GetDict(kWidgets).Clone();
+        base::ListValue panels;
+        if (const auto* old = next.FindList("panels"))
+          for (const auto& item : *old) if (item.is_string() && item.GetString() != panel) panels.Append(item.GetString());
+        if (args[1].GetBool()) panels.Append(panel);
+        next.Set("panels", std::move(panels));
+        local->SetDict(kWidgets, std::move(next));
+        local->CommitPendingWrite();
+      }
+      std::vector<std::string> cards(std::begin(kCards), std::end(kCards));
+      if (const auto* panels = local->GetDict(kWidgets).FindList("panels"))
+        for (const auto& item : *panels) if (item.is_string()) cards.push_back("ext:" + item.GetString());
       const auto place = [&](const base::ListValue* left, const base::ListValue* right) {
         base::ListValue l, r;
         std::set<std::string> seen;
@@ -4606,14 +4656,14 @@ class NewTabHandler : public content::WebUIMessageHandler,
           for (const auto& item : *from) {
             if (!item.is_string()) continue;
             const std::string& name = item.GetString();
-            if (std::find(std::begin(kCards), std::end(kCards), name) == std::end(kCards) || !seen.insert(name).second) continue;
+            if (std::find(cards.begin(), cards.end(), name) == cards.end() || !seen.insert(name).second) continue;
             to.Append(name);
           }
         };
         take(left, l); take(right, r);
-        for (const auto card : kCards) {
-          if (seen.count(std::string(card))) continue;
-          (card == "favorites" || card == "devices" ? l : r).Append(std::string(card));
+        for (const auto& card : cards) {
+          if (seen.count(card)) continue;
+          (card == "favorites" || card == "devices" ? l : r).Append(card);
         }
         return base::DictValue().Set("left", std::move(l)).Set("right", std::move(r));
       };
@@ -4629,7 +4679,24 @@ class NewTabHandler : public content::WebUIMessageHandler,
       const auto* saved_place = saved.FindDict("place");
       out.Set("place", place(saved_place ? saved_place->FindList("left") : nullptr,
                              saved_place ? saved_place->FindList("right") : nullptr));
+      base::ListValue on_panels;
+      if (const auto* panels = saved.FindList("panels")) on_panels = panels->Clone();
+      out.Set("panels", std::move(on_panels));
       Reply(id, true, base::Value(std::move(out))); return;
+    }
+    if (method == "panelList" && args.empty()) {
+      Reply(id, true, base::Value(StartPanelList(profile->GetOriginalProfile()))); return;
+    }
+    if (method == "panelPlace" && args.size() == 5 && args[0].is_string() &&
+        std::all_of(args.begin() + 1, args.end(), [](const base::Value& v) { return v.is_int() || v.is_double(); })) {
+      const gfx::Rect css(static_cast<int>(args[1].GetDouble()), static_cast<int>(args[2].GetDouble()),
+                          static_cast<int>(args[3].GetDouble()), static_cast<int>(args[4].GetDouble()));
+      Reply(id, true, base::Value(!profile->IsOffTheRecord() && PlaceStartPanel(web_ui()->GetWebContents(), args[0].GetString(), css)));
+      return;
+    }
+    if (method == "panelHide" && args.size() == 1 && args[0].is_string()) {
+      HideStartPanels(web_ui()->GetWebContents(), args[0].GetString());
+      Reply(id, true, base::Value(true)); return;
     }
     if ((method == "pinsList" && args.empty()) ||
         (method == "pinsPin" && args.size() == 2 && args[0].is_string() && args[1].is_string()) ||
@@ -6336,6 +6403,19 @@ class Handler : public content::WebUIMessageHandler, public extensions::Extensio
     }
     // The operating system's open-file path, exactly as AppController hands
     // it over (application:openURLs: -> OpenExternalLink).
+    if (quiet_method == "testLoadUnpacked" && quiet_args.size() == 1 && quiet_args[0].is_string()) {
+      auto installer = extensions::UnpackedInstaller::Create(Profile::FromWebUI(web_ui())->GetOriginalProfile());
+      installer->set_be_noisy_on_failure(false);
+      installer->set_completion_callback(base::BindOnce(
+          [](base::WeakPtr<Handler> self, std::string id, const extensions::Extension* extension,
+             const base::FilePath&, const std::u16string& error) {
+            if (!self) return;
+            if (extension) self->Reply(id, true, base::Value(extension->id()));
+            else self->Reply(id, false, base::Value(base::UTF16ToUTF8(error)));
+          }, weak_factory_.GetWeakPtr(), id));
+      installer->Load(base::FilePath(quiet_args[0].GetString()));
+      return;
+    }
     if (quiet_method == "testOpenLocalFile" && quiet_args.size() == 1 && quiet_args[0].is_string()) {
       Reply(id, true, base::Value(OpenExternalLink(GURL(quiet_args[0].GetString())))); return;
     }
@@ -12450,8 +12530,95 @@ bool ExecuteForFocusedGlance(BrowserWindowInterface* browser, int command_id) {
 // Chromium is about to show `contents` in one of its own content views: a
 // Glance over a split that holds it lets it go first (a page can be in one
 // view only), and ends.
+// Extension side panels as Start Page cards. Each panel is the extension's
+// own side panel page in its own extension process (Chromium's side panel
+// host), drawn as a native view over its card's slot on the Start Page, below
+// the Island. A page's panels are its own, hidden whenever another tab shows
+// and closed with the page. Defined in the unnamed namespace that declares them.
+namespace {
+struct StartPanel {
+  std::unique_ptr<extensions::ExtensionViewHost> host;
+  views::ViewTracker view;
+};
+std::map<content::WebContents*, std::map<std::string, StartPanel>>& StartPanels() {
+  static base::NoDestructor<std::map<content::WebContents*, std::map<std::string, StartPanel>>> panels;
+  return *panels;
+}
+void DropStartPanel(StartPanel& panel) {
+  if (auto* view = panel.view.view(); view && view->parent()) view->parent()->RemoveChildViewT(view);
+  panel.view.SetView(nullptr);
+  panel.host.reset();
+}
+base::ListValue StartPanelList(Profile* profile) {
+  base::ListValue list;
+  auto* registry = extensions::ExtensionRegistry::Get(profile);
+  auto* service = extensions::SidePanelService::Get(profile);
+  if (!registry || !service) return list;
+  for (const auto& extension : registry->enabled_extensions()) {
+    auto options = service->GetOptions(*extension, std::nullopt);
+    if (!options.enabled.value_or(false) || !options.path.has_value()) continue;
+    list.Append(base::DictValue().Set("id", extension->id()).Set("name", extension->name()));
+  }
+  return list;
+}
+bool PlaceStartPanel(content::WebContents* page, const std::string& id, const gfx::Rect& css) {
+  Owner* owner = nullptr;
+  for (auto* o : Owner::Live())
+    if (o->browser && o->browser->GetTabStripModel()->GetIndexOfWebContents(page) != TabStripModel::kNoTab) { owner = o; break; }
+  if (!owner || !owner->view || !owner->view->parent()) return false;
+  if (owner->browser->GetTabStripModel()->GetActiveWebContents() != page) { HideStartPanels(page, ""); return false; }
+  auto* browser_view = BrowserViewFor(owner);
+  auto* multi = browser_view ? browser_view->multi_contents_view() : nullptr;
+  views::WebView* web = multi ? multi->GetActiveContentsView() : nullptr;
+  if (!web || web->web_contents() != page) return false;
+  auto& panel = StartPanels()[page][id];
+  if (!panel.view.view()) {
+    Profile* profile = Profile::FromBrowserContext(page->GetBrowserContext());
+    const auto* extension = extensions::ExtensionRegistry::Get(profile)->enabled_extensions().GetByID(id);
+    auto* service = extensions::SidePanelService::Get(profile);
+    if (!extension || !service) { StartPanels()[page].erase(id); return false; }
+    auto options = service->GetOptions(*extension, std::nullopt);
+    if (!options.enabled.value_or(false) || !options.path.has_value()) { StartPanels()[page].erase(id); return false; }
+    GURL url(*options.path);
+    if (!url.SchemeIsHTTPOrHTTPS()) url = extension->ResolveExtensionURL(*options.path);
+    panel.host = extensions::ExtensionViewHostFactory::CreateSidePanelHost(*extension, url, owner->browser, nullptr);
+    if (!panel.host) { StartPanels()[page].erase(id); return false; }
+    auto created = std::make_unique<ExtensionViewViews>(profile, panel.host.get());
+    created->Init();
+    auto* parent = owner->view->parent();
+    auto* view = parent->AddChildViewAt(std::move(created), parent->GetIndexOf(owner->view).value_or(0));
+    view->holder()->SetNativeViewCornerRadii(gfx::RoundedCornersF(12));
+    panel.view.SetView(view);
+  }
+  auto* view = panel.view.view();
+  const double zoom = blink::ZoomLevelToZoomFactor(content::HostZoomMap::GetZoomLevel(page));
+  gfx::Rect bounds = gfx::ScaleToEnclosingRect(css, zoom);
+  gfx::Point origin;
+  views::View::ConvertPointToTarget(web, view->parent(), &origin);
+  bounds.Offset(origin.x(), origin.y());
+  bounds.Intersect(gfx::Rect(origin, web->size()));
+  view->SetBoundsRect(bounds);
+  view->SetVisible(!bounds.IsEmpty());
+  return true;
+}
+void HideStartPanels(content::WebContents* page, const std::string& id) {
+  auto found = StartPanels().find(page);
+  if (found == StartPanels().end()) return;
+  for (auto& [panel_id, panel] : found->second)
+    if ((id.empty() || panel_id == id) && panel.view.view()) panel.view.view()->SetVisible(false);
+}
+void CloseStartPanels(content::WebContents* page) {
+  auto found = StartPanels().find(page);
+  if (found == StartPanels().end()) return;
+  for (auto& [panel_id, panel] : found->second) DropStartPanel(panel);
+  StartPanels().erase(found);
+}
+}  // namespace
 void ReleaseOverlayGlance(content::WebContents* contents) {
   if (!contents) return;
+  // Another tab showing: no Start Page's panels stay over it.
+  for (auto& [page, panels] : StartPanels())
+    if (page != contents) HideStartPanels(page, "");
   for (auto* owner : std::set<Owner*>(Owner::Live()))
     if (auto* view = OverlayGlanceView(owner); view && view->web_contents() == contents) EndOverlayGlance(owner, false);
 }
@@ -12865,6 +13032,21 @@ UI::UI(content::WebUI* web_ui) : ui::MojoWebUIController(web_ui, /*enable_chrome
               }
 #endif
               std::move(callback).Run(MahjongStateScript(blanc::island_resources::Find("pages/mahjong-state.js")));
+              return;
+            }
+            if (path == "pages/mahjong.html" || path.starts_with("pages/mahjong.html?")) {
+#if BUILDFLAG(ENABLE_BLANC_DISK_ASSETS)
+              if (!root.empty()) {
+                base::ThreadPool::PostTaskAndReplyWithResult(
+                    FROM_HERE, {base::MayBlock()},
+                    base::BindOnce([](base::FilePath root) {
+                      return MahjongPage(ReadAsset(root, "pages/mahjong.html"), ReadAsset(root, "pages/mahjong-icons.svg"));
+                    }, root), std::move(callback));
+                return;
+              }
+#endif
+              std::move(callback).Run(MahjongPage(blanc::island_resources::Find("pages/mahjong.html"),
+                                                  blanc::island_resources::Find("pages/mahjong-icons.svg")));
               return;
             }
             // Only the exact private and tour Start Page queries and the
