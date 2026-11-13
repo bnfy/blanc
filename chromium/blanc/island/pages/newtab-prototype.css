@@ -216,6 +216,8 @@ html[data-store-theme] .start-wallpaper-layer { display:none !important; }
 .bb-widget .tally-count { font-size: 40px; margin-top: 8px; }
 .bb-widget .tally-chart { height: 52px; margin-top: 12px; }
 .bb-widget .tally-caption { margin-top: 10px; }
+/* The blocked line one step heavier than body text (owner). */
+#bbBlocked { font-weight: 500; }
 /* The week's chart replaces Billboard's one-line count. */
 body.widget-chart-on #bbBlocked { display: none; }
 
