@@ -605,8 +605,11 @@ function emptyFavoritesHint() {
 function renderLedgerFavorites() {
   const list = document.getElementById('favoritesList');
   list.replaceChildren();
-  // The Favorites widget (V24) lists up to eight, the most any old layout showed.
-  const tiles = favoriteTilesFor(8);
+  // The Favorites widget (V24) lists up to eight, the most any old layout
+  // showed; given a size (or while being resized) it lists them all and
+  // scrolls inside its card.
+  const sized = document.getElementById('favoritesWidget')?.dataset.size !== undefined;
+  const tiles = favoriteTilesFor(sized ? 500 : 8);
   if (!tiles.length) {
     list.appendChild(emptyFavoritesHint());
     return;
@@ -621,7 +624,6 @@ function renderPinnedLayouts() {
   invalidate();
   if (state.layout === 'billboard') renderBillboard();
   if (state.layout === 'shelf') renderShelf();
-  if (state.widgets?.chart) renderTally();
   rendered.add(state.layout);
 }
 
@@ -733,7 +735,7 @@ function remoteFade(list) {
   list.dataset.fadeStart = String(list.scrollTop > 2);
 }
 let remoteScrollIdle = 0;
-document.getElementById('remoteList')?.addEventListener('scroll', (event) => {
+for (const scroller of [document.getElementById('remoteList'), document.getElementById('favoritesList')]) scroller?.addEventListener('scroll', (event) => {
   const list = event.currentTarget;
   remoteFade(list);
   // The scrollbar shows while the list moves (a finger, a wheel or keys),
@@ -742,8 +744,7 @@ document.getElementById('remoteList')?.addEventListener('scroll', (event) => {
   clearTimeout(remoteScrollIdle);
   remoteScrollIdle = setTimeout(() => { list.dataset.scrolling = 'false'; }, 900);
 }, { passive: true });
-{
-  const list = document.getElementById('remoteList');
+for (const list of [document.getElementById('remoteList'), document.getElementById('favoritesList')]) {
   if (list) new ResizeObserver(() => remoteFade(list)).observe(list);
 }
 
@@ -1073,6 +1074,8 @@ function renderShelf() {
 }
 
 function renderTally() {
+  // The week's chart card is gone from the fork's Start Page (V26).
+  if (!document.getElementById('tlCount')) return;
   document.getElementById('tlCount').textContent = state.blockedThisWeek.toLocaleString(blancI18n.formatLocale());
   // Private tabs show no blocked counts; the data column goes entirely.
   document.querySelector('.tally-right').hidden = isPrivate || !state.blockerStatisticsAvailable;
@@ -1647,16 +1650,17 @@ function applyLayout(name) {
   }
   if (name === 'billboard') startClock();
   if (name === 'billboard') fillBillboardSites().catch(() => {});
-  if (state.widgets?.chart) renderTally();
 }
 
-const WIDGET_NAMES = ['favorites', 'devices', 'chart', 'shortcuts'];
+// V26 (owner, 2026-11-13): no Blocked this week widget; Billboard's line
+// under the clock always says the week's count.
+const WIDGET_NAMES = ['favorites', 'devices', 'shortcuts'];
 /** Shows the widgets that are on and sets their switches. Turning More
  * shortcuts on or off redraws Billboard's tiles at 12 or 6. */
 function applyWidgets(widgets) {
   const next = Object.fromEntries(WIDGET_NAMES.map((name) => [name, widgets?.[name] === true]));
   const tilesChanged = state.widgets?.shortcuts !== next.shortcuts;
-  next.place = widgets?.place ?? state.widgets?.place ?? { left: ['favorites', 'devices'], right: ['sent', 'chart'] };
+  next.place = widgets?.place ?? state.widgets?.place ?? { left: ['favorites', 'devices'], right: ['sent'] };
   next.panels = widgets?.panels ?? state.widgets?.panels ?? [];
   next.sizes = widgets?.sizes ?? state.widgets?.sizes ?? {};
   state.widgets = next;
@@ -1667,12 +1671,9 @@ function applyWidgets(widgets) {
   for (const section of document.querySelectorAll('#bbWidgets [data-widget]')) {
     section.classList.toggle('widget-on', next[section.dataset.widget] === true);
   }
-  // The week's chart replaces Billboard's one-line count.
-  document.body.classList.toggle('widget-chart-on', next.chart);
   for (const button of widgetButtons) {
     button.setAttribute('aria-checked', String(next[button.dataset.widgetPick] === true));
   }
-  if (next.chart) renderTally();
   if (tilesChanged && rendered.has('billboard')) {
     renderBillboard();
     fillBillboardSites().catch(() => {});
@@ -1813,6 +1814,7 @@ function applyCardSizes(sizes) {
   }
 }
 function setCardHeight(card, px, live = false) {
+  const wasSized = card.dataset.size !== undefined;
   if (px) {
     card.dataset.size = live ? 'live' : String(px);
     card.style.setProperty('--card-size', `${px}px`);
@@ -1820,6 +1822,8 @@ function setCardHeight(card, px, live = false) {
     delete card.dataset.size;
     card.style.removeProperty('--card-size');
   }
+  // Favorites lists all its favorites once it has a size, eight otherwise.
+  if (card.id === 'favoritesWidget' && wasSized !== (card.dataset.size !== undefined)) renderLedgerFavorites();
   if (!live) updateResizeAria(card);
 }
 // The sizes this card can take where it is: those its column has room for
@@ -1974,6 +1978,7 @@ function addResizeEdge(card) {
   });
 }
 addResizeEdge(document.getElementById('remoteSection'));
+addResizeEdge(document.getElementById('favoritesWidget'));
 new MutationObserver(() => { if (!cardDrag) refreshRails(); placePanels(); }).observe(document.getElementById('bbWidgets'),
   { subtree: true, attributes: true, attributeFilter: ['hidden', 'class'] });
 

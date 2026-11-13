@@ -879,6 +879,24 @@ remain pending. D3 beta-only no-DRM exception accepted; EME notice/handoff requi
   this week", fork string start.billboard.blocked). native-start-widgets.mjs
   8/8 (a real pointer drag included); newtab-layouts 24/25 (:21 is
   shipping's stale Mahjong check; :134 passes once its audit reads the tiles).
+- **V26 — no Blocked this week widget (2026-11-13, owner; fork only):** the
+  week's chart is no longer a Start Page widget; Billboard's line under the
+  clock ("N ads blocked this week") always shows the count, and a private
+  page's line says it counts nothing, as before. A saved "chart" choice or
+  place from an earlier build is ignored and dropped (natively), and a
+  profile moving from Tally gets Favorites alone. Customize offers three
+  widgets plus any extension panels. Shipping steps it changes run as V26
+  replacements: Tally's two columns at 1440x840 (now the Favorites card
+  beside the week's line), the two Mahjong footer steps (three Customize
+  choices, not four), and the typography audit (ten samples, not twelve);
+  Tally's narrow "data above the list" runs as shipping wrote it, reading
+  the line. newtab-layouts 24/25 (:21 is shipping's stale Mahjong check).
+- **Favorites resizes too (2026-11-13, owner):** like the devices card, by
+  its bottom edge onto the fixed sizes. At its own size it lists eight
+  favorites; given a size (or while being resized) it lists all of them and
+  scrolls inside its card with the same fades, hover scrollbar and touch
+  panning. native-start-devices 10/10; native-start-widgets 8/8 (now moving
+  Favorites, and checking a saved chart is ignored).
 - **On your other devices, redesigned (2026-11-13, owner: "Redesign this
   widget using apple-design"; fork only):** the card groups tabs under each
   device, its name shown once in a small header with a laptop or phone glyph
@@ -2618,5 +2636,5 @@ Android's Bar A counts the shared scenarios bound in `chromium/tests/android/acc
 
 Legacy macOS stages come from the approved spec; they await verification on the canonical candidate. No legacy stage counts as Verified.
 
-Candidate identities: macOS: macos-55e76d00700a4fb1; Windows: none; Linux: none; Android: android-arm64-7bd35e94ef746069.
+Candidate identities: macOS: macos-46f148134b5becbb; Windows: none; Linux: none; Android: android-arm64-7bd35e94ef746069.
 <!-- END GENERATED PROGRESS -->

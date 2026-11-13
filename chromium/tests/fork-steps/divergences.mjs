@@ -137,7 +137,6 @@ export const DIVERGENCES = new Map([
       `Billboard with the ${layout} widgets`, 8000);
     assert.deepEqual(dom.visibleRoots, ['Billboard'], 'Billboard is the one layout drawn');
     assert.equal(dom.shown.favorites, want.favorites, 'the Favorites widget shows exactly when it is on');
-    if (!want.chart) assert.equal(dom.shown.chart, false, 'the week\'s chart shows only when it is on');
     assert.equal(dom.tileLimit, want.shortcuts ? 12 : 6, 'More shortcuts gives Billboard twelve tiles');
   }}],
   // V24: Shelf's grid of favorites is the Favorites widget, which lists every
@@ -152,20 +151,78 @@ export const DIVERGENCES = new Map([
         `favorite ${JSON.stringify(row)} inside its card ${JSON.stringify(card)}`);
     assert.equal(dom.tileLimit, 12, 'Shelf\'s larger grid is More shortcuts');
   }}],
-  // V24: Tally's two columns are the Favorites and chart widgets, which still
-  // fit side by side in a narrow window: both whole, apart, above the footer.
-  ['Tally stacks the data above the list at 820x840', {divergence: 'V24', async run() {
-    try {
-      await this.call('setWindowContentSize', 820, 840);
-      const dom = await this.waitFor(() => this.call('readStartWidgets'),
-        d => d?.viewportWidth === 820 && d.cards.favorites && d.cards.chart, 'the widgets at 820x840', 8000);
-      const {favorites, chart} = dom.cards;
-      for (const card of [favorites, chart]) assert.ok(card.left >= 0 && card.right <= dom.viewportWidth, `card ${JSON.stringify(card)} inside the window`);
-      const apart = favorites.right <= chart.left || chart.right <= favorites.left || favorites.bottom <= chart.top || chart.bottom <= favorites.top;
-      assert.ok(apart, `widgets do not overlap: ${JSON.stringify(dom.cards)}`);
-    } finally {
-      const original = this.tallyOriginalBounds;
-      if (original) await this.call('setWindowContentSize', original.width, original.height);
+  // V26 (owner, 2026-11-13): no Blocked this week widget. Tally's two
+  // columns were Favorites and the week's chart; the week's count is now
+  // Billboard's line under the clock. At 1440x840 the Favorites card shows
+  // whole in its column beside the clock and the line shows, apart. (Tally's
+  // narrow "data above the list" runs as shipping wrote it, the line being
+  // the data: adapters/pages.mjs readTallyGeometry.)
+  ['Tally shows two equal, top-aligned columns centered at 1440x840', {divergence: 'V26', async run() {
+    this.tallyOriginalBounds = await this.call('windowContentBounds');
+    await this.call('setWindowContentSize', 1440, 840);
+    const tally = await this.waitFor(() => this.call('readTallyGeometry'),
+      v => v?.viewportWidth === 1440 && v.left && v.right, 'Favorites and the week\'s line at 1440x840', 8000);
+    const {left: favorites, right: line} = tally;
+    assert.ok(favorites.left >= 0 && favorites.right <= 1440, `the Favorites card inside the window: ${JSON.stringify(favorites)}`);
+    const apart = favorites.right <= line.left || line.right <= favorites.left || favorites.bottom <= line.top || line.bottom <= favorites.top;
+    assert.ok(apart, `the card and the line do not overlap: ${JSON.stringify(tally)}`);
+  }}],
+  // V26 (owner, 2026-11-13): Customize's choices that stand for shipping's
+  // four layouts are three widget tiles (V24 made the layouts widgets; V26
+  // took Blocked this week away). Everything else these two steps check is
+  // shipping's, unchanged: the Mahjong link is the footer's own (no frame),
+  // opens Mahjong in a new managed tab, private from a private page, and the
+  // Start Page keeps its layout.
+  ['I launch Mahjong from the start-page footer', {divergence: 'V26', async run() {
+    const before = await this.waitFor(() => this.state(),
+      state => state.tabs.find(tab => tab.id === state.activeTabId)?.loadedUrl?.startsWith('blanc://newtab/'),
+      'loaded start page before launching Mahjong', 8000);
+    const source = before.tabs.find(tab => tab.id === before.activeTabId);
+    const footer = await this.waitFor(() => this.call('readMahjongFooterLink'),
+      value => value?.switcherCount === 3 && value.frameCount === 0, 'three widget choices and a separate Mahjong footer link', 8000);
+    assert.equal(footer.href, source.private ? 'blanc://mahjong/?private=1' : 'blanc://mahjong/');
+    assert.equal(footer.target, '_blank');
+    this.mahjongSource = {id: source.id, layout: footer.layout, private: source.private, count: before.tabs.length};
+    assert.equal(await this.call('clickMahjongFooterLink'), true);
+    await this.waitForState(state => {
+      const active = state.tabs.find(tab => tab.id === state.activeTabId);
+      return state.tabs.length === before.tabs.length + 1 && active?.loadedUrl?.startsWith('blanc://mahjong/');
+    });
+  }}],
+  ['each of the four layout footers launches Mahjong in a new tab', {divergence: 'V26', async run() {
+    for (const layout of ['ledger', 'billboard', 'shelf', 'tally']) {
+      assert.equal(await this.call('setNewtabLayout', layout), layout);
+      await this.call('newTab');
+      await this.waitForState(state => state.tabs.find(tab => tab.id === state.activeTabId)?.loadedUrl?.startsWith('blanc://newtab'));
+      const before = await this.state();
+      const sourceId = before.activeTabId;
+      const footer = await this.waitFor(() => this.call('readMahjongFooterLink'), value => value?.layout === layout, `${layout} footer`, 8000);
+      assert.equal(footer.switcherCount, 3);
+      assert.equal(footer.frameCount, 0);
+      assert.equal(await this.call('clickMahjongFooterLink'), true);
+      const after = await this.waitForState(state => state.tabs.length === before.tabs.length + 1 &&
+        state.tabs.find(tab => tab.id === state.activeTabId)?.loadedUrl?.startsWith('blanc://mahjong/'));
+      assert.ok(after.tabs.find(tab => tab.id === sourceId)?.loadedUrl?.startsWith('blanc://newtab/'));
+      assert.equal(await this.call('newtabLayout'), layout);
+    }
+  }}],
+  // V26: the Start Page has no Blocked this week card, so the typography
+  // audit has ten samples, not shipping's twelve (no .tally-count or
+  // .tally-caption, the chart's count and caption). Every rule is shipping's:
+  // Instrument Sans loads, no JetBrains Mono or Newsreader, nine headings
+  // and every sample in Instrument Sans but the Inter counts.
+  ['the start page uses Instrument Sans for the Billboard clock and invitation headings', {divergence: 'V26', async run() {
+    const usage = await this.waitFor(() => this.call('readStartPageFontUsage'),
+      value => value?.page?.samples?.length === 10, 'the new-tab document to expose its computed fonts', 10000);
+    assert.equal(usage.page.textFaceLoaded, true);
+    assert.deepEqual(usage.page.jetbrains, []);
+    assert.deepEqual(usage.page.newsreader, []);
+    assert.equal(usage.page.headings.length, 9);
+    for (const heading of usage.page.headings) assert.match(heading.family, /^"?Instrument Sans"?,/, `${heading.selector} resolved to ${heading.family}`);
+    const keepInter = new Set(['.shelf-count']);
+    for (const sample of usage.page.samples) {
+      const expected = keepInter.has(sample.selector) ? /^"?Inter"?,/ : /^"?Instrument Sans"?,/;
+      assert.match(sample.family, expected, `${sample.selector} resolved to ${sample.family}`);
     }
   }}],
   // V24: the Favorites widget lists up to eight favorites (Shelf's eight, the

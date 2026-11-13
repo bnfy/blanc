@@ -212,15 +212,17 @@ export const pages={
    visibleRoots:['Ledger','Billboard','Shelf','Tally'].filter(n=>rect(document.getElementById('layout'+n))),
    widgets:typeof state==='object'?state.widgets:null,
    switches:Object.fromEntries([...document.querySelectorAll('[data-widget-pick]')].map(b=>[b.dataset.widgetPick,b.getAttribute('aria-checked')==='true'])),
-   shown:Object.fromEntries(['favorites','devices','chart'].map(n=>[n,!!rect(section(n))])),
-   cards:Object.fromEntries(['favorites','devices','chart'].map(n=>[n,rect(section(n))])),
+   shown:Object.fromEntries(['favorites','devices'].map(n=>[n,!!rect(section(n))])),
+   cards:Object.fromEntries(['favorites','devices'].map(n=>[n,rect(section(n))])),
    favoriteRows:[...document.querySelectorAll('#favoritesList [data-favorite-url]')].map(rect).filter(Boolean),
    footer:rect(document.getElementById('layoutFooter')),
    mahjongPill:rect(document.getElementById('mahjongPill')),mahjongInFooterLeft:document.getElementById('mahjongPill')?.parentElement?.classList.contains('footer-left')===true,
    mahjongText:document.getElementById('mahjongLink')?.textContent.trim()??null,
    tileLimit:typeof billboardSiteCount==='function'?billboardSiteCount():null};})()`),
- // V24: the week's count lives in the chart widget (Shelf's blocked card is gone).
- readStartBlockedCard:onStart(null,`(()=>{const e=document.querySelector('#bbWidgets .bb-widget-chart .tally-right');if(!e||e.hidden)return false;
+ // V26: the week's count is Billboard's line under the clock (Shelf's blocked
+ // card and the Blocked this week widget are gone); a private page's line
+ // says it counts nothing instead.
+ readStartBlockedCard:onStart(null,`(()=>{const e=document.getElementById('bbBlocked');if(!e||e.hidden||getComputedStyle(e).display==='none'||(typeof isPrivate==='boolean'&&isPrivate))return false;
   const r=e.getBoundingClientRect();return r.width>0&&r.height>0&&getComputedStyle(e).visibility!=='hidden';})()`),
  readShelfGeometry:onStart(null,`(()=>{const rect=e=>{if(!e||e.hidden||getComputedStyle(e).display==='none')return null;const r=e.getBoundingClientRect();
   return {left:Math.round(r.left),right:Math.round(r.right),top:Math.round(r.top),bottom:Math.round(r.bottom)};};
@@ -230,7 +232,7 @@ export const pages={
  readTallyGeometry:onStart(null,`(()=>{const rect=e=>{if(!e||e.hidden||getComputedStyle(e).display==='none')return null;const r=e.getBoundingClientRect();
   return {left:Math.round(r.left),right:Math.round(r.right),top:Math.round(r.top),bottom:Math.round(r.bottom),width:Math.round(r.width)};};
   return {viewportWidth:innerWidth,private:document.documentElement.dataset.theme==='private',content:rect(document.getElementById('startContent')),
-   left:rect(document.querySelector('#bbWidgets [data-widget="favorites"]')),right:rect(document.querySelector('#bbWidgets [data-widget="chart"]'))};})()`),
+   left:rect(document.querySelector('#bbWidgets [data-widget="favorites"]')),right:rect(document.getElementById('bbBlocked'))};})()`),
  readBillboardVerticalBox:onStart(null,`(()=>{const shown=[...document.getElementById('layoutBillboard').children].filter(e=>{const s=getComputedStyle(e);const b=e.getBoundingClientRect();
   return !e.hidden&&s.display!=='none'&&s.position!=='absolute'&&b.height>1;});if(!shown.length)return null;
   const top=Math.min(...shown.map(e=>e.getBoundingClientRect().top));const bottom=Math.max(...shown.map(e=>e.getBoundingClientRect().bottom));

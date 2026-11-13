@@ -22,15 +22,17 @@ const DEVICES=[{deviceId:'a',name:'MacBook Pro',platform:'darwin',tabs:tabs(30,'
 try{
  await f.launch(config,path.join(parent,'fixture'),{testHooks:true,diskAssets:process.env.DISK_ASSETS==="1"});
  await installDriver(f.host);await assertRendering(e=>f.host.eval(e));await w.reset();
+ // Twenty favorites: the Favorites card shows eight until it is given a size.
+ for(let i=0;i<20;i++)await w.call('seedFavorite',`https://fav-${i}.example/`,`Favorite ${i+1}`);
  await w.call('setWindowContentSize',1600,960);await w.call('newTab');
  const target=await w.waitFor(async()=>(await f.targets()).find(t=>t.type==='page'&&/newtab/.test(t.url)),Boolean,'the Start Page',10000);
  const page=await f.connectTarget(target);
  await w.waitFor(()=>page.eval("document.body.classList.contains('layout-ready')"),Boolean,'the Start Page ready',10000);
- for(const name of ['devices','chart'])await page.eval(`window.bowserPages.start.setWidget(${JSON.stringify(name)},true).then(()=>1)`);
- await page.eval(`window.bowserPages.start.setWidgetPlace(['favorites','sent'],['devices','chart']).then(()=>1)`);
+ for(const name of ['devices','favorites'])await page.eval(`window.bowserPages.start.setWidget(${JSON.stringify(name)},true).then(()=>1)`);
+ await page.eval(`window.bowserPages.start.setWidgetPlace(['sent'],['devices','favorites']).then(()=>1)`);
  // This profile has no synced devices: the page draws these three itself,
  // and its own refreshes (which would read none) draw them too.
- const draw=()=>page.eval(`(()=>{const r=document.querySelector('.tally-right');if(r)r.hidden=false;remoteExpanded.add('a');
+ const draw=()=>page.eval(`(()=>{remoteExpanded.add('a');
   const devices=${JSON.stringify(DEVICES)};
   if(!window.__devicesStub){window.__devicesStub=true;const send=chrome.send.bind(chrome);
    chrome.send=(name,args)=>name==='blancNewTab'&&args?.[1]==='remoteDevices'?void setTimeout(()=>window.blancNewTabReply(args[0],true,devices)):send(name,args);}
@@ -47,7 +49,7 @@ try{
  assert.ok(fit.railBottom<=fit.footerTop,'the column ends above the footer');
  result.checks.push('the right column starts level with the Sunrise and date, its top clickable above the header');
  assert.ok(fit.listContent>fit.listHeight+200&&fit.fadeEnd==='true','the list scrolls inside its card, faded at the end');
- result.checks.push('with 58 tabs and the chart in one column, the column ends above the footer and the list scrolls inside its card');
+ result.checks.push('with 58 tabs and Favorites in one column, the column ends above the footer and the list scrolls inside its card');
  // Carry the devices card by its grip.
  const grip=await page.eval(`(()=>{const b=document.querySelector('#remoteSection .bb-widget-grip').getBoundingClientRect();return {x:b.left+b.width/2,y:b.top+b.height/2};})()`);
  await page.send('Input.dispatchMouseEvent',{type:'mouseMoved',x:grip.x,y:grip.y});
@@ -136,6 +138,22 @@ try{
  result.resize.fit=fitted;
  assert.equal(fitted.size,null,'double-click fits the column again');
  result.checks.push('arrow keys step through the sizes, the size is kept across a reload, and double-click fits the column again');
+ // Favorites resizes too: eight at its own size; given a size it lists all
+ // twenty and scrolls inside the card; fitting the column again shows eight.
+ const favs=()=>page.eval(`(()=>{const c=document.getElementById('favoritesWidget'),l=document.getElementById('favoritesList');
+  return {size:c.dataset.size??null,height:Math.round(c.getBoundingClientRect().height),rows:l.querySelectorAll('[data-favorite-url]').length,
+   scrolls:l.scrollHeight>l.clientHeight+20,overflow:getComputedStyle(l).overflowY,edge:!!c.querySelector(':scope > .bb-widget-resize'),saved:state.widgets?.sizes?.favorites??null};})()`);
+ let fav=await favs();
+ assert.ok(fav.edge&&fav.rows===8&&fav.size===null,`Favorites starts with eight and a resize edge: ${JSON.stringify(fav)}`);
+ await page.eval(`(()=>{const e=document.querySelector('#favoritesWidget > .bb-widget-resize');e.focus();e.dispatchEvent(new KeyboardEvent('keydown',{key:'Home',bubbles:true}));return 1;})()`);
+ fav=await w.waitFor(favs,v=>v.saved===240&&v.size==='240','Favorites at the smallest size',5000).catch(()=>favs());
+ result.favorites={sized:fav};
+ assert.ok(fav.saved===240&&fav.height===240&&fav.rows===20&&fav.scrolls&&fav.overflow==='auto',`a sized Favorites lists all twenty and scrolls: ${JSON.stringify(fav)}`);
+ await page.eval(`document.querySelector('#favoritesWidget > .bb-widget-resize').dispatchEvent(new KeyboardEvent('keydown',{key:'Delete',bubbles:true})),1`);
+ fav=await w.waitFor(favs,v=>v.saved===null&&v.size===null,'Favorites fits its column',5000).catch(()=>favs());
+ result.favorites.fit=fav;
+ assert.equal(fav.rows,8,'back to eight when it fits its column');
+ result.checks.push('Favorites resizes too: eight at its own size, every favorite (scrolling) once it has a size');
  fs.writeFileSync(path.join(out,'result.json'),JSON.stringify(result,null,1));console.log(JSON.stringify(result));
 }catch(e){result.error=String(e.stack||e);fs.writeFileSync(path.join(out,'result.json'),JSON.stringify(result,null,1));console.log(JSON.stringify(result));process.exitCode=1;}
 finally{await f.close();fs.rmSync(parent,{recursive:true,force:true});}

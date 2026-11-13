@@ -4594,7 +4594,9 @@ class NewTabHandler : public content::WebUIMessageHandler,
         (method == "widgetsPanel" && args.size() == 2 && args[0].is_string() && args[1].is_bool()) ||
         (method == "widgetsSize" && args.size() == 2 && args[0].is_string() && args[1].is_int())) {
       constexpr char kWidgets[] = "blanc.start.widgets";
-      constexpr std::string_view kNames[] = {"favorites", "devices", "chart", "shortcuts"};
+      // V26 (owner, 2026-11-13): no Blocked this week widget; a saved "chart"
+      // is ignored and its card dropped from the columns.
+      constexpr std::string_view kNames[] = {"favorites", "devices", "shortcuts"};
       auto* local = g_browser_process->local_state();
       if (!local || !local->FindPreference(kWidgets)) {
         Reply(id, false, base::Value("Start Page widgets unavailable")); return;
@@ -4606,15 +4608,15 @@ class NewTabHandler : public content::WebUIMessageHandler,
         widgets_observing_ = true;
       }
       if (!local->GetDict(kWidgets).FindInt("v")) {
-        // First read: Ledger showed Favorites and other devices, Tally the
-        // week's chart and Favorites, Shelf a larger grid of favorites.
+        // First read: Ledger showed Favorites and other devices, Tally
+        // Favorites (its chart is Billboard's line), Shelf a larger grid of
+        // favorites.
         auto* prefs = profile->GetOriginalProfile()->GetPrefs();
         const std::string layout = prefs && prefs->FindPreference("blanc.prototype.start_layout")
             ? prefs->GetString("blanc.prototype.start_layout") : std::string();
         local->SetDict(kWidgets, base::DictValue().Set("v", 1)
             .Set("favorites", layout == "ledger" || layout == "tally" || layout == "shelf")
             .Set("devices", layout == "ledger")
-            .Set("chart", layout == "tally")
             .Set("shortcuts", layout == "shelf")
             .Set("from", layout.empty() ? "billboard" : layout));
       }
@@ -4631,7 +4633,7 @@ class NewTabHandler : public content::WebUIMessageHandler,
       // Where each card sits: a left and a right column, top to bottom, each
       // card once (Sent to this device included). Unknown or repeated names
       // are dropped; a card missing from both goes back to its default side.
-      constexpr std::string_view kCards[] = {"favorites", "devices", "sent", "chart"};
+      constexpr std::string_view kCards[] = {"favorites", "devices", "sent"};
       // Extension side panels on the page: their ids, each a card "ext:<id>".
       if (method == "widgetsPanel") {
         const auto& panel = args[0].GetString();
@@ -4669,11 +4671,12 @@ class NewTabHandler : public content::WebUIMessageHandler,
         return base::DictValue().Set("left", std::move(l)).Set("right", std::move(r));
       };
       // A scrolling card's height, one of the page's fixed sizes (in CSS
-      // pixels), or 0 to fit its column again. Only cards that scroll inside
-      // (other devices, an extension's panel) take a size.
+      // pixels), or 0 to fit its column again. Only cards that can scroll
+      // inside (Favorites, other devices, an extension's panel) take a size.
       constexpr int kSizes[] = {240, 360, 480, 600, 720};
       const auto sizable = [&](const std::string& card) {
-        return card == "devices" || (card.starts_with("ext:") && std::find(cards.begin(), cards.end(), card) != cards.end());
+        return card == "favorites" || card == "devices" ||
+               (card.starts_with("ext:") && std::find(cards.begin(), cards.end(), card) != cards.end());
       };
       if (method == "widgetsSize") {
         const auto& card = args[0].GetString();

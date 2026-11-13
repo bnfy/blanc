@@ -236,7 +236,6 @@ body.widget-dragging .bb-rail { display: flex; min-height: 96px; }
 #bbWidgets [data-widget]:not(.widget-on) { display: none; }
 body:not(.widget-dragging) .bb-widgets:not(:has(> .bb-rail[data-empty="false"])) { display: none; }
 /* No week's data to show (private, or statistics unavailable): no empty card. */
-#bbWidgets .bb-widget-chart:has(> .tally-right[hidden]) { display: none; }
 .bb-widget.ledger-section { margin: 0; }
 .bb-widget { position: relative; min-width: 0; padding: 14px 18px 16px; text-align: start; }
 /* The grip: on show while the card is hovered or focused; drag it, or use
@@ -277,7 +276,6 @@ body:not(.widget-dragging) .bb-widgets:not(:has(> .bb-rail[data-empty="false"]))
 /* The blocked line one step heavier than body text (owner). */
 #bbBlocked { font-weight: 500; }
 /* The week's chart replaces Billboard's one-line count. */
-body.widget-chart-on #bbBlocked { display: none; }
 
 /* Customize: a 2×2 grid of preview tiles, each a small drawing of its
    widget; a tile that is on takes the gold outline and a check. */
@@ -541,11 +539,28 @@ body.widget-resizing, body.widget-resizing * { cursor: ns-resize !important; use
   transition: height 140ms ease-out;
 }
 #bbWidgets #remoteSection.widget-on:not([hidden])[data-size],
+#bbWidgets #favoritesWidget.widget-on:not([hidden])[data-size],
 #bbWidgets .bb-widget-panel[data-size] {
   display: flex; flex-direction: column; box-sizing: border-box;
   height: var(--card-size); flex: 0 1 var(--card-size); min-height: 0;
 }
 #bbWidgets #remoteSection[data-size] #remoteList.remote-grouped { flex: 1 1 auto; min-height: 0; max-height: none; }
+/* A sized Favorites card lists every favorite and scrolls the way the
+   devices list does: edge fades, a scrollbar on hover and while it moves,
+   a finger pans it. */
+#bbWidgets #favoritesWidget[data-size] #favoritesList {
+  flex: 1 1 auto; min-height: 0; align-content: start; overflow-y: auto; overscroll-behavior: contain;
+  scrollbar-width: thin; scrollbar-color: transparent transparent; scrollbar-gutter: stable;
+  touch-action: pan-y pinch-zoom; margin-inline: -4px; padding: 2px 0 8px 4px;
+  --fade-top: #000; --fade-bottom: #000;
+  mask-image: linear-gradient(to bottom, var(--fade-top), #000 20px, #000 calc(100% - 28px), var(--fade-bottom));
+}
+#bbWidgets #favoritesWidget[data-size] #favoritesList[data-fade-start="true"] { --fade-top: transparent; }
+#bbWidgets #favoritesWidget[data-size] #favoritesList[data-fade-end="true"] { --fade-bottom: transparent; }
+#bbWidgets #favoritesWidget[data-size] #favoritesList:hover,
+#bbWidgets #favoritesWidget[data-size] #favoritesList[data-scrolling="true"] {
+  scrollbar-color: color-mix(in srgb, var(--text) 32%, transparent) transparent;
+}
 #bbWidgets .bb-widget-panel[data-size] .bb-panel-slot { flex: 1 1 auto; min-height: 0; height: auto; max-height: none; }
 @media (pointer: coarse) {
   .bb-widget-resize { height: 28px; }
