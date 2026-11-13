@@ -849,6 +849,21 @@ remain pending. D3 beta-only no-DRM exception accepted; EME notice/handoff requi
   those gone; settings-and-theming, island-and-commands and internal-pages
   match their last runs. Chromium's own name still shows in a few strings
   ("About Chromium", Default browser); that is branding, not this slice.
+- **Shipping target moved to main 8a4e57e78 (2026-11-12, owner):** the
+  fork now follows shipping's unreleased main (the coming 1.49.0) at
+  8a4e57e78dfe47a72c05d17fd6040be26c3dffd3, labelled by that commit. The
+  Island and strings are regenerated (the Mini-window edit now rides on
+  #1450's rule that the resting Island never shows the Space mark), the
+  shipping page copies follow it (#931/#1489's Mahjong: 82 files added, 14
+  retired, 5 changed), and the inventory has 612 declarations and 661 cases.
+  #1450/#1454/#1461/#1464 arrive with the Island; #1478 (a pop-up honors a
+  tab's certificate Continue) is Chromium's own per-profile decision, and
+  F39-10/11 pass through two new main-process ports and a gated
+  closeAllConnections hook. spaceMarkState reports where the mark sits.
+  Known: newtab-layouts.feature:21 (F35-3) fails because shipping's step
+  still expects text tile faces in JetBrains Mono, which #931 replaced with
+  image art; shipping's own reader fails the same way and its CI doesn't run
+  the scenario. Not changed here (shipping's test is read-only to the fork).
 - **Glance over a split (F53-29/30, shipping v1.47.0; 2026-11-12, owner):**
   Chromium's split holds two pages, so a Glance opened over a visible split
   shows its tab in a view of its own, between the split's pages and the
@@ -2457,5 +2472,5 @@ Android's Bar A counts the shared scenarios bound in `chromium/tests/android/acc
 
 Legacy macOS stages come from the approved spec; they await verification on the canonical candidate. No legacy stage counts as Verified.
 
-Candidate identities: macOS: macos-44f4cf4009613336; Windows: none; Linux: none; Android: android-arm64-7bd35e94ef746069.
+Candidate identities: macOS: macos-19c5d5e4546d8b41; Windows: none; Linux: none; Android: android-arm64-7bd35e94ef746069.
 <!-- END GENERATED PROGRESS -->

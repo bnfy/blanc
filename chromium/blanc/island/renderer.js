@@ -1112,9 +1112,11 @@ const __blancMarkup = trustedTypes.createPolicy("blanc-static-renderer", {create
 
   // ---- Blanc Spaces mark (F41) ----
   // The strip reads the same projection as the Spaces menu and only draws the
-  // current space's mark: its symbol and name on its colour, the grey Spaces
-  // planet (SpaceIdentity.SPACES_GLYPH) when this window is in no space,
-  // nothing before the first space exists.
+  // current space's mark: its symbol and name on its colour, or the grey
+  // Spaces planet (SpaceIdentity.SPACES_GLYPH) when this window is in no
+  // space. The resting Island never shows it (owner, November 11, 2026: the
+  // closed Island keeps its room, and Spaces live in the open Island's ⌘L
+  // footer); it is drawn only in the vertical tabs rail's first row.
   let spaces = { items: [], tint: 'mark' };
   let markedSpace = { id: null, index: -1 };
   let spaceMarkPainted = false;
@@ -1135,20 +1137,20 @@ const __blancMarkup = trustedTypes.createPolicy("blanc-static-renderer", {create
   // The menu lines up with the mark but hangs from the Island's bottom edge,
   // so it never covers the Island (spec D18). In the vertical tabs rail's first
   // row (vertical-tabs.js placeSpaceMark) it hangs from whichever is lower, the
-  // mark or the Island, so it covers neither.
+  // mark or the Island, so it covers neither. With the mark hidden (it is
+  // never shown on the Island) the menu lines up with the Island instead.
   function spacesAnchor() {
-    const bottom = Math.max(stageRect(pillSpace).bottom, stageRect(islandPill).bottom);
-    return { left: stageRect(pillSpace).left, bottom };
+    const anchor = pillSpace.hidden ? islandPill : pillSpace;
+    const bottom = Math.max(stageRect(anchor).bottom, stageRect(islandPill).bottom);
+    return { left: stageRect(anchor).left, bottom };
   }
   const spaceMarkOnIsland = () => islandPill.contains(pillSpace);
-  // What depends on where the mark is. On the Island it hides with no Spaces
-  // and marks the Island as carrying one; in the rail's first row it always
-  // shows (with no Spaces, the Spaces glyph offers them) and leaves the Island
-  // alone. vertical-tabs.js calls placed() whenever it moves the mark.
+  // The mark keeps its place in the Island's markup (vertical-tabs.js moves it
+  // back there when tabs leave the rail), but the resting Island never shows
+  // it. In the rail's first row it always shows (with no Spaces, the Spaces
+  // glyph offers them). vertical-tabs.js calls placed() whenever it moves it.
   function placeSpaceMarkState() {
-    const state = pillSpace.dataset.state || 'none';
-    pillSpace.hidden = document.documentElement.hasAttribute('data-mini-window') || state === 'none' && spaceMarkOnIsland();
-    islandPill.classList.toggle('has-space', state === 'space' && spaceMarkOnIsland());
+    pillSpace.hidden = document.documentElement.hasAttribute('data-mini-window') || spaceMarkOnIsland();
   }
   window.blancSpaceMark = Object.freeze({ placed: placeSpaceMarkState });
   function renderSpaceMark() {
@@ -1191,8 +1193,8 @@ const __blancMarkup = trustedTypes.createPolicy("blanc-static-renderer", {create
     spaceMarkPainted = true;
   }
   // A switch slides the new mark in from the side it comes from in the list
-  // (moving down the list, content moves up) while the page cluster follows
-  // and the mark settles to its new width — critically damped, no overshoot.
+  // (moving down the list, content moves up) while the mark settles to its
+  // new width — critically damped, no overshoot.
   // Reduce Motion keeps only a cross-fade.
   function animateSpaceSwitch(fromIndex, toIndex, widthBefore) {
     const easing = 'cubic-bezier(.2, .9, .25, 1)';
@@ -1203,12 +1205,6 @@ const __blancMarkup = trustedTypes.createPolicy("blanc-static-renderer", {create
     const dir = toIndex > fromIndex ? 1 : -1;
     for (const node of [pillSpaceSymbol, pillSpaceName]) {
       node.animate([{ transform: `translateY(${7 * dir}px)`, opacity: 0 }, { transform: 'none', opacity: 1 }], { duration: 300, easing });
-    }
-    // The Island's page cluster follows the mark only when the mark is on it.
-    if (spaceMarkOnIsland()) {
-      for (const node of [pillDots, pillFavicon, pillDomain]) {
-        node.animate([{ transform: `translateX(${10 * dir}px)`, opacity: 0 }, { transform: 'none', opacity: 1 }], { duration: 300, easing });
-      }
     }
     const widthAfter = pillSpace.hidden ? 0 : pillSpace.getBoundingClientRect().width;
     if (widthBefore && widthAfter && widthBefore !== widthAfter) {
@@ -1235,8 +1231,8 @@ const __blancMarkup = trustedTypes.createPolicy("blanc-static-renderer", {create
   });
 
   function render() {
-    // Mini Window (#1138): Open in Blanc leads the Island, and the Space mark
-    // hides (CSS), since a mini window holds no Space.
+    // Mini Window (#1138): Open in Blanc leads the Island, and the rail's
+    // Space mark hides (CSS), since a mini window holds no Space.
     const miniWindow = state.miniWindow === true;
     document.documentElement.toggleAttribute('data-mini-window', miniWindow);
     pillMiniOpen.hidden = !miniWindow;
@@ -1691,7 +1687,8 @@ const __blancMarkup = trustedTypes.createPolicy("blanc-static-renderer", {create
     // focus() here lands in a focused document and paints the ring.
     if (restoreTrigger === 'shield') pillShield.focus();
     else if (restoreTrigger === 'insecure') pillInsecure.focus();
-    if (restoreTrigger === 'spaces') pillSpace.focus();
+    // The resting Island hides the mark, so focus goes back to the Island.
+    if (restoreTrigger === 'spaces') (pillSpace.hidden ? islandPill : pillSpace).focus();
     // The side list's group menu closed: its header row forgets the open
     // state, and Escape hands focus back to that header's ⋮.
     if (mode === null && typeof trigger === 'string' && trigger.startsWith('group-menu:')) {

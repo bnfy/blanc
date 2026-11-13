@@ -265,7 +265,9 @@ export function createAppShim(fixture){
   windows(){return [...pages.values()];},
   evaluate(fn,arg){
    const port=PORTS[sourceKey(fn)];
-   if(!port)throw new UndefinedNativeAdapterError('Shipping main-process evaluate needs a native adapter');
+   // A rejection, not a throw: a cleanup that catches (ctx.app?.evaluate(...)
+   // .catch()) stays a no-op, and an awaited step still fails as undefined.
+   if(!port)return Promise.reject(new UndefinedNativeAdapterError('Shipping main-process evaluate needs a native adapter'));
    return port(fixture,ported,arg);
   },
   async frameConnection(frameId,parent){

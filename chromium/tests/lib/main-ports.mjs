@@ -97,6 +97,22 @@ export const PORTS = {
     state.authProbe = {windows: await windows(fixture)};
   },
   // readProbe: the challenges since installProbe, as shipping's login events.
+  // F39-10/11: a featureful window.open is a pop-up window, a page target of
+  // its own here. The step's function runs against that page: isLoading and
+  // executeJavaScript, the two members it uses.
+  '92002942c68850eff84ad3e574985911c866278b6e084e605be8f4aca9e5536a': async (fixture, state, {path, source}) => {
+    const target = (await fixture.targets()).find(t => t.type === 'page' && t.url.includes(path));
+    if (!target) return {found: false};
+    const page = await fixture.connectTarget(target);
+    // Electron's isLoading answers at once; read the page's state first.
+    const loading = (await page.eval('document.readyState')) !== 'complete';
+    const wc = {isLoading: () => loading, executeJavaScript: code => page.eval(code)};
+    const run = new Function('wc', `return (${source})(wc);`);
+    return {found: true, value: await run(wc)};
+  },
+  // F39-10: the tab's session's open connections close, so the pop-up's own
+  // load checks the certificate (the window profile's network context).
+  '5b4cc28bef6aad2bf89b1334dc38313b5167418c53fd9581e3f88761b25a9747': async fixture => nativeCall(fixture.host, 'closeAllConnections', []),
   // F39-8: the origins of every frame in the page that embeds the refused
   // frame, from Chromium's own frame tree (a cross-origin frame, refused or
   // not, is still listed there with the origin it committed).

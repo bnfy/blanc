@@ -47,17 +47,17 @@ const __blancMarkup = trustedTypes.createPolicy("blanc-static-vertical-tabs", {c
     }
   }
 
-  /** The Island's Space mark moves into the rail's first row while tabs are
-   * vertical, so the row says which Space this is and opens the Spaces menu,
-   * and the Island keeps one copy. It goes back to its place in the Island
-   * otherwise. renderer.js keeps painting it wherever it is, and is told when
-   * it moves (its visibility depends on where it is). */
+  /** The Space mark moves into the rail's first row while tabs are vertical,
+   * so the row says which Space this is and opens the Spaces menu. It goes
+   * back to its place in the Island's markup otherwise, where it stays hidden:
+   * the resting Island never shows it. renderer.js keeps painting it wherever
+   * it is, and is told when it moves (its visibility depends on where it is). */
   function placeSpaceMark(layout) {
     if (!spaceMark || !spaceMarkHome) return;
     const moved = layout === 'vertical'
       ? moveKeepingFocus(spaceMark, useIslandButton.parentElement, useIslandButton)
       : moveKeepingFocus(spaceMark, spaceMarkHome.parent, spaceMarkHome.next?.parentElement === spaceMarkHome.parent ? spaceMarkHome.next : null);
-    // The Island-only states (hidden with no Spaces, has-space) follow a move.
+    // Its visibility (hidden on the Island, shown in the rail) follows a move.
     if (moved) window.blancSpaceMark?.placed();
   }
 

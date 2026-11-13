@@ -130,6 +130,7 @@
 #include "crypto/hash.h"
 #include "base/strings/escape.h"
 #include "content/public/browser/storage_partition.h"
+#include "services/network/public/mojom/network_context.mojom.h"
 #include "services/network/public/cpp/simple_url_loader.h"
 #include "services/network/public/cpp/resource_request.h"
 #include "services/network/public/cpp/shared_url_loader_factory.h"
@@ -6136,6 +6137,15 @@ class Handler : public content::WebUIMessageHandler, public extensions::Extensio
     const auto& quiet_args = message[2].GetList();
     const auto& quiet_method = message[1].GetString();
     // Test-only operations run behind both the build flag and --blanc-test.
+    // F39-10: close the window profile's open connections, as shipping's step
+    // closes its session's, so a pop-up's load checks the certificate itself.
+    if (quiet_method == "closeAllConnections" && quiet_args.empty()) {
+      auto* partition = Profile::FromWebUI(web_ui())->GetOriginalProfile()->GetDefaultStoragePartition();
+      partition->GetNetworkContext()->CloseAllConnections(base::BindOnce(
+          [](base::WeakPtr<Handler> self, std::string id) { if (self) self->Reply(id, true, base::Value(true)); },
+          weak_factory_.GetWeakPtr(), id));
+      return;
+    }
     // F62 page zoom, read and set as shipping's test hook does: the profile's
     // default (percent), its saved sites, the hosts in its Preferences, and
     // one tab's zoom, zoom mode and drawn width. "crash" ends a tab's renderer.

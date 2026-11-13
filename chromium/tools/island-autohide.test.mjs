@@ -12,7 +12,7 @@ import {execFileSync} from 'node:child_process';
 import {fileURLToPath} from 'node:url';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
-const SHIPPING = '2098dd703c99194a58e5a3e7ec0b39923d2db59b';
+const SHIPPING = '8a4e57e78dfe47a72c05d17fd6040be26c3dffd3';
 const module = {exports: {}};
 vm.runInNewContext(execFileSync('git', ['show', `${SHIPPING}:src/main/island-autohide.js`], {cwd: root, encoding: 'utf8'}), {module});
 const ship = module.exports;

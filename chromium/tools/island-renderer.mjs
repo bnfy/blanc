@@ -69,7 +69,7 @@ export const EDITS = {
     ['      <div id="islandHint"></div>\n', '      <button id="previewStatusLink" class="preview-notice-button" type="button" hidden>Security &amp; updates</button>\n<div id="islandHint"></div>\n'],
   ],
   'renderer.js': [
-    ["    pillSpace.hidden = state === 'none' && spaceMarkOnIsland();", "    pillSpace.hidden = document.documentElement.hasAttribute('data-mini-window') || state === 'none' && spaceMarkOnIsland();"],
+    ["    pillSpace.hidden = spaceMarkOnIsland();", "    pillSpace.hidden = document.documentElement.hasAttribute('data-mini-window') || spaceMarkOnIsland();"],
     // An extension's page goes by the extension's name, not its 32-letter id.
     ["function tabDomain(tab) {\n    if (!tab?.url || tab.url.startsWith('blanc://newtab')) return '';\n",
      "function tabDomain(tab) {\n    if (!tab?.url || tab.url.startsWith('blanc://newtab')) return '';\n    if (tab.extensionName) return tab.extensionName;\n"],

@@ -1,6 +1,6 @@
 {
  "$comment": "Every shipping settings.js DEFAULTS key at the shipping tag, and where it lives in the fork (S1.7, F14). kind: blanc-pref (a Blanc preference with shipping's default), native (Chromium's own store), divergence (approved, not built), later (a named later slice or row), pending-decision, unassigned (no spec row yet). status for S1.7 keys: built (the store holds shipping's default) or to-build. Checked by tools/settings-keys.mjs.",
- "shippingTag": "v1.48.0",
+ "shippingTag": "8a4e57e78",
  "keys": [
   {
    "key": "searchEngine",

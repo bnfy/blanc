@@ -266,11 +266,13 @@ const __blancMarkup = trustedTypes.createPolicy("blanc-static-overlay", {createH
     placement: () => (mode === 'spaces' ? 'view' : 'anchored'),
     onOpenChange(open) {
       workspaceSwitcherOpen = open; window.browserAPI.setWorkspaceSwitcherOpen(open);
-      // Opened from the Island's space mark the menu is the whole overlay, so
-      // closing it closes the overlay and focus returns to the mark.
+      // Opened as its own overlay (the rail's space mark, or a command) the
+      // menu is the whole overlay, so closing it closes the overlay and focus
+      // returns to the mark, or the Island when the mark is hidden.
       if (!open && mode === 'spaces') window.browserAPI.closeOverlay('cancel');
     },
   });
+  window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => workspaceUI.repaintTrigger());
 
   // --- Drag to reorder (tab-drag.js; spec 2026-10-07) ---
   const dragApi = window.blancTabDrag;
@@ -2777,6 +2779,8 @@ const __blancMarkup = trustedTypes.createPolicy("blanc-static-overlay", {createH
     // The private theme scope follows the active tab.
     if (activeTab()?.private) document.documentElement.dataset.theme = 'private';
     else delete document.documentElement.dataset.theme;
+    // The footer's Spaces button draws the space's tile for that theme.
+    workspaceUI.repaintTrigger();
     renderPanelChrome();
     renderList();
   }
