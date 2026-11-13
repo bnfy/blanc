@@ -1020,13 +1020,9 @@ function renderTally() {
   const peak = Math.max(...state.blockedByDay);
   const caption = document.getElementById('tlCaption');
   caption.replaceChildren();
-  if (peak > 0) {
-    caption.append(
-      t('newtab.tally.busiest', { day: DAY_NAMES[state.blockedByDay.indexOf(peak)] }),
-      document.createElement('br'),
-    );
-  }
-  caption.append(t('newtab.tally.nothingFollowed'));
+  // The busiest day alone (owner, 2026-11-13: no "nothing followed you home").
+  if (peak > 0) caption.append(t('newtab.tally.busiest', { day: DAY_NAMES[state.blockedByDay.indexOf(peak)] }));
+  caption.hidden = peak <= 0;
 }
 
 // The billboard clock ticks on the minute, and only while it is on screen.
