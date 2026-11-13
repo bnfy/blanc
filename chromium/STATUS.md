@@ -864,6 +864,17 @@ remain pending. D3 beta-only no-DRM exception accepted; EME notice/handoff requi
   still expects text tile faces in JetBrains Mono, which #931 replaced with
   image art; shipping's own reader fails the same way and its CI doesn't run
   the scenario. Not changed here (shipping's test is read-only to the fork).
+- **Beta polish: the app's name and About (2026-11-13, owner):** the
+  application menu names the app from its bundle (About, Hide and Quit
+  "Blanc Beta" / "Blanc Prototype", patch 0075); About, from that menu or
+  the standard About panel, opens Blanc's Settings sheet at About instead of
+  a full-page tab (patch 0076); and Chromium's own text names the browser
+  Blanc in every language (patch 0077, `blanc/common/product_name.h`,
+  owner's choice "Blanc"), keeping "The Chromium Authors", the credited
+  "Chromium open source project", ChromiumOS, Chromium Enterprise, URLs and
+  longer words. native-app-menu-about.mjs and product-name.test.mjs check
+  them. All four land in the first beta (owner: "I need all these fixes in
+  the first beta that real users see").
 - **Glance over a split (F53-29/30, shipping v1.47.0; 2026-11-12, owner):**
   Chromium's split holds two pages, so a Glance opened over a visible split
   shows its tab in a view of its own, between the split's pages and the
@@ -872,8 +883,10 @@ remain pending. D3 beta-only no-DRM exception accepted; EME notice/handoff requi
   switch, on its own tab leaving, or when Chromium is about to show its page
   (patch 0072 hooks both of Chromium's attach points). The Island cuts the
   pane frames, corner tabs and divider away under the card; the tab menu
-  offers Glance while a split shows. Not built: keyboard commands follow
-  focus into this card (they act on the split pane). Both scenarios pass,
+  offers Glance while a split shows. Page commands follow focus into this
+  card (patch 0074, 2026-11-13): zoom, Back/Forward, Reload and Find act on
+  the Glance page while it has focus and on the pane again once a pane
+  does (native-glance-split-commands.mjs). Both scenarios pass,
   and glance.feature and split-view.feature pass 101 with 2 excluded on
   macos-c2c2bcc050e0af2d.
 - **F62 default page zoom on Chromium's zoom (2026-11-12):** all 11
@@ -2472,5 +2485,5 @@ Android's Bar A counts the shared scenarios bound in `chromium/tests/android/acc
 
 Legacy macOS stages come from the approved spec; they await verification on the canonical candidate. No legacy stage counts as Verified.
 
-Candidate identities: macOS: macos-19c5d5e4546d8b41; Windows: none; Linux: none; Android: android-arm64-7bd35e94ef746069.
+Candidate identities: macOS: macos-04721b1809f49057; Windows: none; Linux: none; Android: android-arm64-7bd35e94ef746069.
 <!-- END GENERATED PROGRESS -->

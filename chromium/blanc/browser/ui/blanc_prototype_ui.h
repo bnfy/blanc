@@ -95,6 +95,8 @@ bool IsPersistentSplitTab(content::WebContents* tab);
 bool HasSplitPresentation(content::WebContents* tab);
 // A Glance over a split lets go of `contents` before Chromium shows it.
 void ReleaseOverlayGlance(content::WebContents* contents);
+// A page command while focus is in a Glance over a split goes to its page.
+bool ExecuteForFocusedGlance(BrowserWindowInterface* browser, int command_id);
 inline constexpr char kGroupPinKey[] = "blanc.tab.group-pin.v1";
 bool GroupPinned(content::WebContents* tab);
 void SetGroupPinned(content::WebContents* tab, bool pinned);

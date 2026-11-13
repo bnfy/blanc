@@ -5,6 +5,7 @@
 #include <stdint.h>
 
 #include <string>
+#include <vector>
 
 #include "base/containers/span.h"
 
@@ -19,6 +20,10 @@ std::u16string MainMenuItemTitle(int menu_tag, int item_tag);
 void SetDockIcon(base::span<const uint8_t> png);
 std::u16string DockMenuItemTitle(int item_tag);
 bool ClickDockMenuItem(int item_tag);
+// The application menu's item titles in order (About, Hide, Quit… carry the
+// app's name, patch 0075), and clicking its About item as a person would.
+std::vector<std::u16string> AppMenuItemTitles();
+bool ClickAppMenuAbout();
 
 }  // namespace blanc
 

@@ -10,6 +10,8 @@
 #include "content/public/browser/host_zoom_map.h"
 #include "chrome/browser/ui/zoom/chrome_zoom_level_prefs.h"
 #include "components/zoom/zoom_controller.h"
+#include "components/zoom/page_zoom.h"
+#include "ui/views/focus/focus_manager.h"
 #include "content/public/common/result_codes.h"
 #include "third_party/blink/public/common/page/page_zoom.h"
 #include "blanc/browser/sync/favorite_helpers.h"
@@ -1091,6 +1093,19 @@ void AutoHidePageMove(Owner* owner, const blink::WebInputEvent& event);
 void AutoHideActivated(Owner* owner);
 void EndGlanceSoon(Owner* owner, int next_reference);
 void EndOverlayGlance(Owner* owner, bool focus_active);
+views::WebView* OverlayGlanceView(Owner* owner);
+// Clicking or tabbing into the Glance page over a split makes it the page
+// commands act on; into a split pane, that pane. The Island taking focus
+// changes nothing.
+class OverlayFocusListener final : public views::FocusChangeListener {
+ public:
+  explicit OverlayFocusListener(Owner* owner) : owner_(owner) {}
+  ~OverlayFocusListener() override = default;
+  void OnWillChangeFocus(views::View*, views::View*) override {}
+  void OnDidChangeFocus(views::View*, views::View* now) override;
+ private:
+  raw_ptr<Owner> owner_;
+};
 
 class Owner : public base::SupportsUserData::Data,
               public content::WebContentsObserver,
@@ -1191,6 +1206,18 @@ class Owner : public base::SupportsUserData::Data,
   int overlay_glance = -1;
   std::set<int> overlay_panes;
   views::ViewTracker overlay_view;
+  // Which page the person last put focus in: the Glance page or a split
+  // pane. Focus moving into the Island (find, the panel) leaves it as it was,
+  // so page commands keep their page while the Island takes the keyboard.
+  bool overlay_focused = false;
+  std::unique_ptr<OverlayFocusListener> overlay_focus_listener;
+  // The page the window's page commands, find and the Island's page buttons
+  // act on: a focused Glance over a split, else the active tab.
+  content::WebContents* CommandTarget() {
+    auto* overlay = overlay_focused ? OverlayGlanceView(this) : nullptr;
+    if (overlay && overlay->web_contents()) return overlay->web_contents();
+    return browser->GetTabStripModel()->GetActiveWebContents();
+  }
   // Where the reference tab came from. Chromium's split needs its two tabs
   // side by side and alike, so the tab goes back when the Glance ends.
   int glance_origin_index = -1;
@@ -1298,7 +1325,7 @@ class Owner : public base::SupportsUserData::Data,
 
   void SyncActive() {
     if (closing_) return;
-    auto* active = browser->GetTabStripModel()->GetActiveWebContents();
+    auto* active = CommandTarget();
     if (active != web_contents()) {
       StopFind(true);
       Observe(active);
@@ -1329,7 +1356,7 @@ class Owner : public base::SupportsUserData::Data,
   void DidReceiveFindReply(int request_id, int matches, const gfx::Rect&,
                            int ordinal, bool final_update) override {
     if (find_request_ < 0 || request_id != find_request_ || !web_contents() ||
-        browser->GetTabStripModel()->GetActiveWebContents() != web_contents()) return;
+        CommandTarget() != web_contents()) return;
     if (matches >= 0) find_matches_ = matches;
     if (ordinal >= 0) find_ordinal_ = ordinal;
     FindEvent(base::UTF8ToUTF16(base::StringPrintf(
@@ -2058,6 +2085,12 @@ void EndOverlayGlance(Owner* owner, bool focus_active) {
   if (!owner || owner->overlay_glance < 0) return;
   owner->overlay_glance = -1;
   owner->overlay_panes.clear();
+  owner->overlay_focused = false;
+  if (owner->overlay_focus_listener) {
+    if (auto* manager = owner->view ? owner->view->GetFocusManager() : nullptr)
+      manager->RemoveFocusChangeListener(owner->overlay_focus_listener.get());
+    owner->overlay_focus_listener.reset();
+  }
   owner->glance_page = gfx::Rect();
   owner->glance_ring.clear();
   if (auto* view = OverlayGlanceView(owner)) {
@@ -2095,9 +2128,24 @@ bool OpenOverlayGlance(Owner* owner, content::WebContents* tab) {
   }
   view->SetWebContents(tab);
   owner->overlay_glance = sessions::SessionTabHelper::IdForTab(tab).id();
+  if (!owner->overlay_focus_listener && owner->view->GetFocusManager()) {
+    owner->overlay_focus_listener = std::make_unique<OverlayFocusListener>(owner);
+    owner->view->GetFocusManager()->AddFocusChangeListener(owner->overlay_focus_listener.get());
+  }
   PlaceOverlayGlance(owner);
   RefreshHostSoon(owner);
   return true;
+}
+void OverlayFocusListener::OnDidChangeFocus(views::View*, views::View* now) {
+  auto* overlay = OverlayGlanceView(owner_);
+  auto* browser_view = BrowserViewFor(owner_);
+  bool focused = owner_->overlay_focused;
+  if (now && overlay && (now == overlay || overlay->Contains(now))) focused = true;
+  else if (now && browser_view && browser_view->multi_contents_view()->Contains(now)) focused = false;
+  if (focused == owner_->overlay_focused) return;
+  owner_->overlay_focused = focused;
+  owner_->SyncActive();
+  RefreshHostSoon(owner_);
 }
 // Ends a Glance: the pair stops being a split, the reference tab goes back to
 // where it came from, and `activate` (if live) becomes the current tab.
@@ -4111,9 +4159,7 @@ base::DictValue Snapshot(BrowserWindowInterface* browser, Owner* owner) {
   auto* active = main_index >= 0 ? model->GetWebContentsAt(main_index) : nullptr;
   auto* focused = model->GetActiveWebContents();
   // Focus inside a Glance over a split is the Glance tab's.
-  if (auto* overlay = OverlayGlanceView(owner); overlay && overlay->web_contents() &&
-      overlay->web_contents()->GetRenderWidgetHostView() &&
-      overlay->web_contents()->GetRenderWidgetHostView()->HasFocus()) focused = overlay->web_contents();
+  if (owner->overlay_focused) focused = owner->CommandTarget();
   base::Value active_id =
       active ? base::Value(sessions::SessionTabHelper::IdForTab(active).id())
              : base::Value();
@@ -6965,6 +7011,18 @@ class Handler : public content::WebUIMessageHandler, public extensions::Extensio
     }
     if (message[1].GetString() == "clickDockPrivateWindow" && message[2].GetList().empty()) {
       Reply(id, true, base::Value(blanc::ClickDockMenuItem(IDC_NEW_INCOGNITO_WINDOW)));
+      return;
+    }
+    // The application menu (patch 0075 names it; patch 0076 sends About to
+    // the Settings sheet).
+    if (message[1].GetString() == "appMenuItems" && message[2].GetList().empty()) {
+      base::ListValue titles;
+      for (const auto& title : blanc::AppMenuItemTitles()) titles.Append(base::UTF16ToUTF8(title));
+      Reply(id, true, base::Value(std::move(titles)));
+      return;
+    }
+    if (message[1].GetString() == "clickAppMenuAbout" && message[2].GetList().empty()) {
+      Reply(id, true, base::Value(blanc::ClickAppMenuAbout()));
       return;
     }
 #endif
@@ -11137,7 +11195,7 @@ class Handler : public content::WebUIMessageHandler, public extensions::Extensio
       reply(true, base::Value(ToggleStartPinFromTab(TabProfile(tab), tab, args[1].GetString()))); return;
     }
     if (method == "find" || method == "stopFind") {
-      if (index != model->active_index()) {
+      if (index != model->active_index() && tab != owner->CommandTarget()) {
         reply(false, base::Value("Find requires the active tab in this window.")); return;
       }
       if (method == "stopFind" && args.size() == 1) {
@@ -12281,6 +12339,31 @@ bool SelectIslandSlot(BrowserWindowInterface* browser, int slot) {
 bool IsPersistentSplitTab(content::WebContents* tab) {
   return IsEnabled() && !tab->GetBrowserContext()->IsOffTheRecord() && tab->GetUserData(kPersistentSplitKey);
 }
+// A page command (zoom, Back, Forward, Reload, Stop) while focus is in a
+// Glance over a split goes to the Glance page, as shipping's commands follow
+// focus into the card (#1441). Find follows through the Island's focused tab.
+bool ExecuteForFocusedGlance(BrowserWindowInterface* browser, int command_id) {
+  if (!IsEnabled() || !browser) return false;
+  for (auto* owner : Owner::Live()) {
+    if (owner->browser != browser || owner->overlay_glance < 0 || !owner->overlay_focused) continue;
+    auto* target = owner->CommandTarget();
+    if (!target || target == browser->GetTabStripModel()->GetActiveWebContents()) return false;
+    auto& controller = target->GetController();
+    switch (command_id) {
+      case IDC_ZOOM_PLUS: zoom::PageZoom::Zoom(target, content::PAGE_ZOOM_IN); return true;
+      case IDC_ZOOM_MINUS: zoom::PageZoom::Zoom(target, content::PAGE_ZOOM_OUT); return true;
+      case IDC_ZOOM_NORMAL: zoom::PageZoom::Zoom(target, content::PAGE_ZOOM_RESET); return true;
+      case IDC_BACK: if (controller.CanGoBack()) controller.GoBack(); return true;
+      case IDC_FORWARD: if (controller.CanGoForward()) controller.GoForward(); return true;
+      case IDC_RELOAD: controller.Reload(content::ReloadType::NORMAL, true); return true;
+      case IDC_RELOAD_BYPASSING_CACHE:
+      case IDC_RELOAD_CLEARING_CACHE: controller.Reload(content::ReloadType::BYPASSING_CACHE, true); return true;
+      case IDC_STOP: target->Stop(); return true;
+      default: return false;
+    }
+  }
+  return false;
+}
 // Chromium is about to show `contents` in one of its own content views: a
 // Glance over a split that holds it lets it go first (a page can be in one
 // view only), and ends.
@@ -12780,7 +12863,8 @@ bool OpenExtensions(BrowserWindowInterface* browser) {
 
 bool OpenUtilitySheet(BrowserWindowInterface* browser, std::string_view page) {
   // The Start Page's Patron invitation opens Settings at its checkout row.
-  const bool patron = page == "patron";
+  // About and the Patron invitation open Settings at its About section.
+  const bool patron = page == "patron" || page == "about";
   if (page != "history" && page != "downloads" && page != "bookmarks" && page != "settings" && page != "tab-import" && !patron) return false;
   // A private window keeps Chromium's pages; the sheet shows regular data.
   // Settings, like Chromium's, is the regular profile's in either window.

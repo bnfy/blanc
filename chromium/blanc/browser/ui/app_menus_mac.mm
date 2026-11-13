@@ -59,6 +59,19 @@ bool ClickDockMenuItem(int item_tag) {
   return [NSApp sendAction:item.action to:item.target from:item];
 }
 
+std::vector<std::u16string> AppMenuItemTitles() {
+  std::vector<std::u16string> titles;
+  for (NSMenuItem* item in [NSApp.mainMenu itemAtIndex:0].submenu.itemArray)
+    if (!item.separatorItem) titles.push_back(base::SysNSStringToUTF16(item.title));
+  return titles;
+}
+
+bool ClickAppMenuAbout() {
+  NSMenuItem* item = [[NSApp.mainMenu itemAtIndex:0].submenu itemWithTag:IDC_ABOUT];
+  if (!item.action) return false;
+  return [NSApp sendAction:item.action to:item.target from:item];
+}
+
 void SetDockIcon(base::span<const uint8_t> png) {
   NSImage* image = nil;
   if (!png.empty()) {
