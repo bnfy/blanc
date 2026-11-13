@@ -26,13 +26,19 @@ public final class IslandMenu {
         /** The Island has no Reload (#1463); Stop while the page loads. */
         RELOAD,
         SHARE,
+        /** The page's whole address, which the Island shows only the site of (#1445). */
+        COPY_LINK,
         FIND,
+        /** Page Zoom ▸: Zoom In, Zoom Out and Actual Size (#1445). */
+        PAGE_ZOOM,
+        /** Request Desktop Website, or Request Mobile Website once it was asked for (#1445). */
+        DESKTOP_SITE,
         NEW_PRIVATE_TAB,
         /** Blanc's Settings, always last (#1463). */
         SETTINGS
     }
 
-    /** One entry; BLOCKING and FAVORITE carry their state. */
+    /** One entry; BLOCKING, FAVORITE and DESKTOP_SITE carry their state. */
     public static final class Item {
         public final Kind kind;
         public final boolean on;
@@ -54,6 +60,10 @@ public final class IslandMenu {
             return new Item(Kind.FAVORITE, saved);
         }
 
+        public static Item desktopSite(boolean on) {
+            return new Item(Kind.DESKTOP_SITE, on);
+        }
+
         @Override
         public boolean equals(@Nullable Object other) {
             return other instanceof Item item && item.kind == kind && item.on == on;
@@ -66,7 +76,8 @@ public final class IslandMenu {
 
         @Override
         public String toString() {
-            return kind + (kind == Kind.BLOCKING || kind == Kind.FAVORITE ? "(" + on + ")" : "");
+            boolean stateful = kind == Kind.BLOCKING || kind == Kind.FAVORITE || kind == Kind.DESKTOP_SITE;
+            return kind + (stateful ? "(" + on + ")" : "");
         }
     }
 
@@ -92,6 +103,9 @@ public final class IslandMenu {
 
         /** The page is loading, so Reload reads Stop. */
         public boolean loading;
+
+        /** The tab asks sites for their desktop layout. */
+        public boolean desktopSite;
     }
 
     private IslandMenu() {}
@@ -109,7 +123,10 @@ public final class IslandMenu {
             if (c.canSend && c.hasSendTargets) items.add(Item.of(Kind.SEND));
             items.add(Item.of(Kind.RELOAD));
             items.add(Item.of(Kind.SHARE));
+            items.add(Item.of(Kind.COPY_LINK));
             items.add(Item.of(Kind.FIND));
+            items.add(Item.of(Kind.PAGE_ZOOM));
+            items.add(Item.desktopSite(c.desktopSite));
         }
         items.add(Item.of(Kind.NEW_PRIVATE_TAB));
         items.add(Item.of(Kind.SETTINGS));

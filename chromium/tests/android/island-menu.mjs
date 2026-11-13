@@ -1,6 +1,7 @@
 // A1 Task 7 on the emulator: the Sunrise menu does what the iPhone's does.
 //   - On the Start Page it holds only New Private Tab.
-//   - On a web page: Save to Favorites, Share, Find in Page, New Private Tab, in that order.
+//   - On a web page: Save to Favorites, Share, Copy Link, Find in Page, Page Zoom, Request Desktop
+//     Website, New Private Tab, in that order.
 //   - Save to Favorites saves the page: the menu then offers Remove from Favorites.
 //   - Share opens Android's share sheet.
 //   - New Private Tab opens a private tab: the private chip shows and the
@@ -15,7 +16,10 @@ import {fileURLToPath} from 'node:url';
 
 const PACKAGE = 'me.bnfy.blanc.dev';
 const PAGE = 'https://www.iana.org/help/example-domains';
-const ENTRIES = ['Save to Favorites', 'Remove from Favorites', 'Share', 'Find in Page', 'New Private Tab'];
+const ENTRIES = ['Save to Favorites', 'Remove from Favorites', 'Share', 'Copy Link', 'Find in Page', 'Page Zoom',
+  'Request Desktop Website', 'New Private Tab'];
+// What a web page's menu offers between Share and New Private Tab (#1445).
+const PAGE_ENTRIES = ['Share', 'Copy Link', 'Find in Page', 'Page Zoom', 'Request Desktop Website', 'New Private Tab'];
 
 const center = b => [Math.round((b.left + b.right) / 2), Math.round((b.top + b.bottom) / 2)];
 
@@ -78,10 +82,10 @@ function main(argv) {
 
   adb('shell', 'am', 'start', '-a', 'android.intent.action.VIEW', '-d', PAGE, '-p', PACKAGE);
   sleep(8);
-  check('web page', same(openMenu('2-web-page'), ['Save to Favorites', 'Share', 'Find in Page', 'New Private Tab']));
+  check('web page', same(openMenu('2-web-page'), ['Save to Favorites', ...PAGE_ENTRIES]));
   const save = nodeBounds(dump(), {text: 'Save to Favorites'});
   if (save) tap(save); else close();
-  check('saved', same(openMenu('3-saved'), ['Remove from Favorites', 'Share', 'Find in Page', 'New Private Tab']));
+  check('saved', same(openMenu('3-saved'), ['Remove from Favorites', ...PAGE_ENTRIES]));
 
   const share = nodeBounds(dump(), {text: 'Share'});
   if (share) tap(share);
@@ -103,7 +107,7 @@ function main(argv) {
   adb('shell', 'input', 'text', PAGE);
   adb('shell', 'input', 'keyevent', 'KEYCODE_ENTER');
   sleep(8);
-  check('private page', same(openMenu('7-private-page'), ['Share', 'Find in Page', 'New Private Tab']));
+  check('private page', same(openMenu('7-private-page'), PAGE_ENTRIES));
   close();
 
   fs.writeFileSync(path.join(evidence, 'island-menu.json'), JSON.stringify({results, checkedAt: new Date().toISOString()}, null, 2) + '\n');

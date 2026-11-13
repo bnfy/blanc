@@ -33,7 +33,15 @@ public final class IslandMenuPopup {
 
         void share();
 
+        void copyLink();
+
         void find();
+
+        /** Chromium's zoom bar for the page. */
+        void pageZoom();
+
+        /** Request Desktop Website, or back to the mobile site. */
+        void toggleDesktopSite();
 
         void send();
 
@@ -47,7 +55,8 @@ public final class IslandMenuPopup {
 
     static final Set<IslandMenu.Kind> BUILT =
             EnumSet.of(IslandMenu.Kind.BLOCKING, IslandMenu.Kind.BLOCKING_SETTINGS, IslandMenu.Kind.BLOCKING_UNAVAILABLE,
-                    IslandMenu.Kind.FAVORITE, IslandMenu.Kind.SEND, IslandMenu.Kind.SHARE, IslandMenu.Kind.FIND,
+                    IslandMenu.Kind.FAVORITE, IslandMenu.Kind.SEND, IslandMenu.Kind.SHARE, IslandMenu.Kind.COPY_LINK,
+                    IslandMenu.Kind.FIND, IslandMenu.Kind.PAGE_ZOOM, IslandMenu.Kind.DESKTOP_SITE,
                     IslandMenu.Kind.NEW_PRIVATE_TAB, IslandMenu.Kind.RELOAD, IslandMenu.Kind.SETTINGS);
 
     private IslandMenuPopup() {}
@@ -79,9 +88,21 @@ public final class IslandMenuPopup {
                     title = R.string.blanc_tab_menu_send_to_device;
                     run = actions::send;
                     break;
+                case COPY_LINK:
+                    title = R.string.blanc_tab_menu_copy_link;
+                    run = actions::copyLink;
+                    break;
                 case FIND:
                     title = R.string.blanc_menu_find_in_page;
                     run = actions::find;
+                    break;
+                case PAGE_ZOOM:
+                    title = R.string.blanc_ios_island_page_zoom;
+                    run = actions::pageZoom;
+                    break;
+                case DESKTOP_SITE:
+                    title = item.on ? R.string.blanc_ios_island_mobile_site : R.string.blanc_ios_island_desktop_site;
+                    run = actions::toggleDesktopSite;
                     break;
                 case RELOAD:
                     title = context.loading ? R.string.blanc_ios_island_stop : R.string.blanc_menu_reload;

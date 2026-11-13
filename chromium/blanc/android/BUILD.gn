@@ -338,6 +338,7 @@ android_library("island_view_java") {
   resources_package = "org.chromium.blanc.island"
   sources = [
     "java/src/org/chromium/blanc/island/IslandMenuPopup.java",
+    "java/src/org/chromium/blanc/island/IslandProgress.java",
     "java/src/org/chromium/blanc/island/IslandView.java",
     "java/src/org/chromium/blanc/find/FindCapsule.java",
     "java/src/org/chromium/blanc/grid/GroupNameDialog.java",

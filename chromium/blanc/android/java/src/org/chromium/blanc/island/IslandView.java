@@ -6,6 +6,7 @@ import android.content.Context;
 import android.content.res.ColorStateList;
 import android.content.res.Configuration;
 import android.content.res.Resources;
+import android.graphics.Typeface;
 import android.graphics.drawable.GradientDrawable;
 import android.os.Build;
 import android.os.Bundle;
@@ -95,6 +96,7 @@ public class IslandView extends FrameLayout {
     private final ImageButton mNewTab;
     private final View mDividerStart;
     private final View mDividerEnd;
+    private final IslandProgress mProgress;
     private final int mMaxWidth;
     private final float mDensity;
 
@@ -110,6 +112,10 @@ public class IslandView extends FrameLayout {
         setPadding(h, v, h, v);
         setClipToPadding(false);
         mPill = findViewById(R.id.blanc_island_pill);
+        // The loading line is the pill's foreground; the capsule clips it to its round ends.
+        mProgress = new IslandProgress(Math.round(2 * mDensity));
+        mPill.setForeground(mProgress);
+        mPill.setClipToOutline(true);
         mMenu = findViewById(R.id.blanc_island_menu);
         mDomain = findViewById(R.id.blanc_island_domain);
         mPrivate = findViewById(R.id.blanc_island_private);
@@ -154,6 +160,9 @@ public class IslandView extends FrameLayout {
         mDomain.setText(state.startPage ? res.getString(R.string.blanc_pill_placeholder) : state.title);
         mDomain.setEllipsize(state.startPage ? TextUtils.TruncateAt.END : TextUtils.TruncateAt.MIDDLE);
         mDomain.setAlpha(state.startPage ? PLACEHOLDER_ALPHA : 1f);
+        // #1472: the site in SemiBold, as Safari draws its address, so it holds up over busy pages;
+        // the Start Page's placeholder stays regular.
+        mDomain.setTypeface(Typeface.create(Typeface.DEFAULT, siteWeight(state.startPage), false));
         // No Reload on the Island (#1463): the Sunrise menu and pull to refresh reload. Stop shows
         // while a page loads, since nothing else can stop one.
         mStop.setVisibility(state.loading ? View.VISIBLE : View.GONE);
@@ -201,6 +210,7 @@ public class IslandView extends FrameLayout {
         mForward.setImageTintList(ink);
         mNewTab.setImageTintList(ink);
         mDomain.setTextColor(style.text);
+        mProgress.setInk((style.text & 0x00FFFFFF) | 0x8C000000);
         mPrivate.setTextColor(style.text);
         GradientDrawable chip = new GradientDrawable();
         chip.setCornerRadius(100 * mDensity);
@@ -252,6 +262,17 @@ public class IslandView extends FrameLayout {
     /** At the top, a swipe into the page goes down; at the bottom, up. */
     public void setAtTop(boolean atTop) {
         mAtTop = atTop;
+        mProgress.setAtTop(atTop);
+    }
+
+    /** The site's weight: SemiBold, or regular for the Start Page's placeholder (#1472). */
+    static int siteWeight(boolean startPage) {
+        return startPage ? 400 : 600;
+    }
+
+    /** The current page's load, for the line along the Island's outer edge (#1445). */
+    public void setLoadProgress(boolean loading, float progress) {
+        mProgress.set(loading, progress);
     }
 
     @Override

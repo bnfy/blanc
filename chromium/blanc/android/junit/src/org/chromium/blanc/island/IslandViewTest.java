@@ -7,6 +7,8 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
 import android.app.Activity;
+import android.graphics.Rect;
+import android.graphics.drawable.GradientDrawable;
 import android.view.View;
 import android.view.View.MeasureSpec;
 import android.widget.TextView;
@@ -173,7 +175,29 @@ public class IslandViewTest {
                 MeasureSpec.makeMeasureSpec((int) (200 * d), MeasureSpec.AT_MOST));
         assertEquals(Math.round(48 * d), menu.getMeasuredWidth());
         assertEquals(Math.round(44 * d), newTab.getMeasuredWidth());
-        assertEquals(Math.round(48 * d), newTab.getMeasuredHeight());
+        // #1472: the closed Island is a 52 tall capsule.
+        assertEquals(Math.round(52 * d), newTab.getMeasuredHeight());
+    }
+
+    // #1472: a capsule with 4 more at its round ends for the mark and New tab.
+    @Test
+    public void thePillIsACapsuleWithRoomAtItsEnds() {
+        float d = mActivity.getResources().getDisplayMetrics().density;
+        View pill = mView.findViewById(R.id.blanc_island_pill);
+        mView.measure(MeasureSpec.makeMeasureSpec((int) (390 * d), MeasureSpec.EXACTLY),
+                MeasureSpec.makeMeasureSpec((int) (200 * d), MeasureSpec.AT_MOST));
+        assertEquals(Math.round(52 * d), pill.getMeasuredHeight());
+        assertEquals(26 * d, ((GradientDrawable) pill.getBackground()).getCornerRadius(), 0.5f);
+        assertEquals(Math.round(4 * d), pill.getPaddingStart());
+        assertEquals(Math.round(4 * d), pill.getPaddingEnd());
+    }
+
+    // #1472: the site in SemiBold, as Safari draws its address; the Start Page placeholder stays regular.
+    @Test
+    public void theSiteIsSemiboldAndThePlaceholderRegular() {
+        // Robolectric's typefaces carry no weight, so the rule is checked where IslandView reads it.
+        assertEquals(600, IslandView.siteWeight(false));
+        assertEquals(400, IslandView.siteWeight(true));
     }
 
     @Test
@@ -222,5 +246,24 @@ public class IslandViewTest {
 
     private static android.view.MotionEvent down(float x, float y) {
         return android.view.MotionEvent.obtain(0, 0, android.view.MotionEvent.ACTION_DOWN, x, y, 0);
+    }
+
+    // #1445: a 2 tall line along the Island's outer edge fills as the page loads, at least a sliver
+    // so a load is seen at once, then fades when it ends.
+    @Test
+    public void aLineAlongTheOuterEdgeFillsAsThePageLoads() {
+        float d = mActivity.getResources().getDisplayMetrics().density;
+        View pill = mView.findViewById(R.id.blanc_island_pill);
+        IslandProgress line = (IslandProgress) pill.getForeground();
+        Rect bounds = new Rect(0, 0, Math.round(300 * d), Math.round(52 * d));
+        mView.setLoadProgress(true, 0.5f);
+        assertEquals(0.5f, line.target(), 0f);
+        assertTrue(line.showing());
+        assertEquals(new Rect(0, bounds.bottom - Math.round(2 * d), bounds.width() / 2, bounds.bottom),
+                IslandProgress.line(bounds, 0.5f, false, Math.round(2 * d)));
+        assertEquals(new Rect(0, 0, Math.round(bounds.width() * 0.06f), Math.round(2 * d)),
+                IslandProgress.line(bounds, 0f, true, Math.round(2 * d)));
+        mView.setLoadProgress(false, 1f);
+        assertFalse(line.showing());
     }
 }

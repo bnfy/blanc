@@ -77,7 +77,7 @@ diff -ruN a/chrome/android/java/src/org/chromium/chrome/browser/tabbed_mode/Tabb
          if (mVerticalTabsPreferenceListener != null) {
              ContextUtils.getAppSharedPreferences()
                      .unregisterOnSharedPreferenceChangeListener(mVerticalTabsPreferenceListener);
-@@ -1290,12 +1310,483 @@
+@@ -1290,12 +1310,516 @@
                      .asNonNull()
                      .get()
                      .setSideUiStateProviderSupplier(mSideUiStateProviderSupplier);
@@ -186,7 +186,7 @@ diff -ruN a/chrome/android/java/src/org/chromium/chrome/browser/tabbed_mode/Tabb
 +                            url,
 +                            org.chromium.ui.base.PageTransition.TYPED
 +                                    | org.chromium.ui.base.PageTransition.FROM_ADDRESS_BAR));
-         }
++        }
 +    }
 +
 +    // Favorites for the palette's Quick Switcher: every bookmarked address, from Chromium's model.
@@ -241,10 +241,10 @@ diff -ruN a/chrome/android/java/src/org/chromium/chrome/browser/tabbed_mode/Tabb
 +                                    item.getUrl().getSpec()));
 +                }
 +            }
-+        }
+         }
 +        return out;
-+    }
-+
+     }
+ 
 +    // The tab grid (A2 Task 5), Blanc for iPhone's: the Island's tabs button and a swipe from it
 +    // into the page open it. Card images come from Chromium's tab captures.
 +    private void showBlancTabGrid() {
@@ -320,8 +320,8 @@ diff -ruN a/chrome/android/java/src/org/chromium/chrome/browser/tabbed_mode/Tabb
 +                    tab.removeObserver(results);
 +                    bridge.destroy();
 +                });
-     }
- 
++    }
++
 +    // The Sunrise menu (A1 Task 7): Favorites, Share and New Private Tab, as on the iPhone.
 +    private void showBlancMenu(View anchor, Tab tab) {
 +        GURL url = tab.getUrl();
@@ -341,6 +341,9 @@ diff -ruN a/chrome/android/java/src/org/chromium/chrome/browser/tabbed_mode/Tabb
 +        context.canFavorite = bookmarks.isBookmarkModelLoaded();
 +        context.favorite = context.canFavorite && bookmarks.isBookmarked(url);
 +        context.loading = tab.isLoading();
++        org.chromium.content_public.browser.WebContents contents = tab.getWebContents();
++        context.desktopSite =
++                contents != null && contents.getNavigationController().getUseDesktopUserAgent();
 +        org.chromium.blanc.island.IslandMenuPopup.show(
 +                anchor,
 +                context,
@@ -372,6 +375,36 @@ diff -ruN a/chrome/android/java/src/org/chromium/chrome/browser/tabbed_mode/Tabb
 +                    @Override
 +                    public void find() {
 +                        showBlancFind();
++                    }
++
++                    // The page's whole address, which the Island shows only the site of (#1445).
++                    @Override
++                    public void copyLink() {
++                        android.content.ClipboardManager clipboard =
++                                mActivity.getSystemService(android.content.ClipboardManager.class);
++                        if (clipboard == null) return;
++                        clipboard.setPrimaryClip(
++                                android.content.ClipData.newPlainText(url.getSpec(), url.getSpec()));
++                        android.widget.Toast.makeText(
++                                        mActivity,
++                                        org.chromium.blanc.island.R.string.blanc_pill_notice_link_copied,
++                                        android.widget.Toast.LENGTH_SHORT)
++                                .show();
++                    }
++
++                    // Chromium's own zoom bar, which stays open while the size is stepped, as the
++                    // iPhone's Page Zoom menu does.
++                    @Override
++                    public void pageZoom() {
++                        handleMenuOrKeyboardAction(R.id.page_zoom_id, /* fromMenu= */ true);
++                    }
++
++                    // As Chrome's own menu does it: the site is remembered and the page reloads.
++                    @Override
++                    public void toggleDesktopSite() {
++                        ((org.chromium.chrome.browser.app.ChromeActivity) mActivity)
++                                .onMenuOrKeyboardAction(
++                                        R.id.request_desktop_site_id, /* fromMenu= */ true, null, null);
 +                    }
 +
 +                    @Override
@@ -561,7 +594,7 @@ diff -ruN a/chrome/android/java/src/org/chromium/chrome/browser/tabbed_mode/Tabb
          assert mLayoutManager != null;
  
          if (mCountrySupplier != null && mCountrySupplier.get() == null) {
-@@ -2962,9 +3453,8 @@
+@@ -2962,9 +3486,8 @@
          mNotificationPermissionController =
                  new NotificationPermissionController(mWindowAndroid, rationaleUIDelegateSupplier);
          NotificationPermissionController.attach(mWindowAndroid, mNotificationPermissionController);

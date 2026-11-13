@@ -2,7 +2,9 @@
 <!-- Copyright 2026 Bananify Creative. MIT; see LICENSE.
      Blanc for iPhone's Island measurements (ContentView.swift), in dp. -->
 <resources>
-    <dimen name="blanc_island_corner_radius">17dp</dimen>
+    <!-- The closed Island: a capsule 52 tall (#1472), its corners half its height. -->
+    <dimen name="blanc_island_height">52dp</dimen>
+    <dimen name="blanc_island_corner_radius">26dp</dimen>
     <dimen name="blanc_island_max_width">600dp</dimen>
     <dimen name="blanc_island_padding_horizontal">16dp</dimen>
     <dimen name="blanc_island_padding_vertical">10dp</dimen>

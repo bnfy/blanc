@@ -56,8 +56,23 @@ public class IslandMenuPopupTest {
                 }
 
                 @Override
+                public void copyLink() {
+                    mRan.add("copy");
+                }
+
+                @Override
                 public void find() {
                     mRan.add("find");
+                }
+
+                @Override
+                public void pageZoom() {
+                    mRan.add("zoom");
+                }
+
+                @Override
+                public void toggleDesktopSite() {
+                    mRan.add("desktop");
                 }
 
                 @Override
@@ -119,7 +134,8 @@ public class IslandMenuPopupTest {
     @Test
     public void aWebPageShowsTheIphonesOrderWithA1sEntries() {
         assertEquals(
-                List.of("Ad & tracker blocking", "Nothing blocked on this page yet", "Save to Favorites", "Send to Device", "Reload", "Share", "Find in Page", "New Private Tab", "Settings"),
+                List.of("Ad & tracker blocking", "Nothing blocked on this page yet", "Save to Favorites", "Send to Device", "Reload", "Share",
+                        "Copy Link", "Find in Page", "Page Zoom", "Request Desktop Website", "New Private Tab", "Settings"),
                 titles(IslandMenuPopup.show(mAnchor, page(false, false), mActions)));
     }
 
@@ -131,7 +147,8 @@ public class IslandMenuPopupTest {
     @Test
     public void aPrivateTabHasNoFavorite() {
         assertEquals(
-                List.of("Ad & tracker blocking", "Nothing blocked on this page yet", "Reload", "Share", "Find in Page", "New Private Tab", "Settings"),
+                List.of("Ad & tracker blocking", "Nothing blocked on this page yet", "Reload", "Share", "Copy Link",
+                        "Find in Page", "Page Zoom", "Request Desktop Website", "New Private Tab", "Settings"),
                 titles(IslandMenuPopup.show(mAnchor, page(true, false), mActions)));
     }
 
@@ -143,7 +160,16 @@ public class IslandMenuPopupTest {
             assertNotNull(menu.getItem(i));
             menu.performIdentifierAction(menu.getItem(i).getItemId(), 0);
         }
-        assertEquals(List.of("protect:false", "favorite", "send", "reload", "share", "find", "private", "settings"), mRan);
+        assertEquals(List.of("protect:false", "favorite", "send", "reload", "share", "copy", "find", "zoom", "desktop",
+                "private", "settings"), mRan);
+    }
+
+    // #1445: once the tab asks for desktop sites, the entry offers the mobile site back.
+    @Test
+    public void aDesktopSiteOffersTheMobileSite() {
+        IslandMenu.Context c = page(false, false);
+        c.desktopSite = true;
+        assertTrue(titles(IslandMenuPopup.show(mAnchor, c, mActions)).contains("Request Mobile Website"));
     }
 
     private IslandMenu.Context blockable() {
@@ -159,7 +185,9 @@ public class IslandMenuPopupTest {
         IslandMenu.Context c = blockable();
         c.blockedCount = 3;
         PopupMenu popup = IslandMenuPopup.show(mAnchor, c, mActions);
-        assertEquals(List.of("Ad & tracker blocking", "3 ads & trackers blocked on this page", "Reload", "Share", "Find in Page", "New Private Tab", "Settings"), titles(popup));
+        assertEquals(List.of("Ad & tracker blocking", "3 ads & trackers blocked on this page", "Reload", "Share",
+                "Copy Link", "Find in Page", "Page Zoom", "Request Desktop Website", "New Private Tab", "Settings"),
+                titles(popup));
         assertTrue(popup.getMenu().getItem(0).isChecked());
         assertFalse(popup.getMenu().getItem(1).isEnabled());
     }

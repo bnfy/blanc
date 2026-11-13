@@ -126,6 +126,12 @@ public final class IslandCoordinator {
                     refresh();
                 }
 
+                // The line along the Island's edge (#1445); only the line redraws.
+                @Override
+                public void onLoadProgressChanged(Tab tab, float progress) {
+                    mView.setLoadProgress(tab.isLoading(), progress);
+                }
+
                 // Back and Forward follow the page's history, including pages that change it with
                 // pushState.
                 @Override
@@ -376,6 +382,7 @@ public final class IslandCoordinator {
         IslandView.State state = new IslandView.State();
         state.title = title(tab);
         state.loading = tab != null && tab.isLoading();
+        mView.setLoadProgress(state.loading, tab == null ? 0 : tab.getProgress());
         state.privateTab = tab != null && tab.isIncognito();
         state.startPage = onStartPage();
         state.canGoBack = tab != null && tab.canGoBack();
