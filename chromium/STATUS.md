@@ -864,6 +864,16 @@ remain pending. D3 beta-only no-DRM exception accepted; EME notice/handoff requi
   still expects text tile faces in JetBrains Mono, which #931 replaced with
   image art; shipping's own reader fails the same way and its CI doesn't run
   the scenario. Not changed here (shipping's test is read-only to the fork).
+- **Resting Island geometry matches shipping (2026-11-13, owner):** measured
+  side by side with shipping's Electron build (8a4e57e78) at 1200 px, the
+  fork's prototype.css had re-spaced the closed Island (6 px gaps instead of
+  10, 26 px action buttons instead of 22 × zoom, a 14 px corner at every
+  Island size instead of 17/19/21, and no top highlight in the shadow). Those
+  overrides are gone: every gap, button, corner and the shadow now equal
+  shipping's to 0.01 px. The only difference left is the fork's native
+  Extensions slot at the start of the actions (26 px, shipping's 1.15 px
+  step). island-resting-geometry.test.mjs keeps fork stylesheets from
+  changing the resting pill again.
 - **Beta polish: the app's name and About (2026-11-13, owner):** the
   application menu names the app from its bundle (About, Hide and Quit
   "Blanc Beta" / "Blanc Prototype", patch 0075); About, from that menu or
@@ -2485,5 +2495,5 @@ Android's Bar A counts the shared scenarios bound in `chromium/tests/android/acc
 
 Legacy macOS stages come from the approved spec; they await verification on the canonical candidate. No legacy stage counts as Verified.
 
-Candidate identities: macOS: macos-04721b1809f49057; Windows: none; Linux: none; Android: android-arm64-7bd35e94ef746069.
+Candidate identities: macOS: macos-f7b5f8256e4bdf54; Windows: none; Linux: none; Android: android-arm64-7bd35e94ef746069.
 <!-- END GENERATED PROGRESS -->
