@@ -30,8 +30,8 @@ public class IslandMenuTest {
     @Test
     public void webPageOffersEverything() {
         assertEquals(
-                List.of(Item.blocking(true), Item.favorite(false), Item.of(Kind.SHARE), Item.of(Kind.FIND),
-                        Item.of(Kind.NEW_PRIVATE_TAB)),
+                List.of(Item.blocking(true), Item.favorite(false), Item.of(Kind.RELOAD), Item.of(Kind.SHARE),
+                        Item.of(Kind.FIND), Item.of(Kind.NEW_PRIVATE_TAB), Item.of(Kind.SETTINGS)),
                 IslandMenu.items(web()));
     }
 
@@ -39,7 +39,8 @@ public class IslandMenuTest {
     public void startPageOffersCustomizeAndAPrivateTab() {
         IslandMenu.Context c = new IslandMenu.Context();
         c.startPage = true;
-        assertEquals(List.of(Item.of(Kind.CUSTOMIZE_START_PAGE), Item.of(Kind.NEW_PRIVATE_TAB)), IslandMenu.items(c));
+        assertEquals(List.of(Item.of(Kind.CUSTOMIZE_START_PAGE), Item.of(Kind.NEW_PRIVATE_TAB), Item.of(Kind.SETTINGS)),
+                IslandMenu.items(c));
     }
 
     @Test
@@ -47,7 +48,8 @@ public class IslandMenuTest {
         IslandMenu.Context c = web();
         c.privateTab = true;
         assertEquals(
-                List.of(Item.blocking(true), Item.of(Kind.SHARE), Item.of(Kind.FIND), Item.of(Kind.NEW_PRIVATE_TAB)),
+                List.of(Item.blocking(true), Item.of(Kind.RELOAD), Item.of(Kind.SHARE), Item.of(Kind.FIND),
+                        Item.of(Kind.NEW_PRIVATE_TAB), Item.of(Kind.SETTINGS)),
                 IslandMenu.items(c));
     }
 
@@ -71,7 +73,7 @@ public class IslandMenuTest {
         IslandMenu.Context c = web();
         c.canSend = true;
         assertEquals(Item.favorite(false), IslandMenu.items(c).get(1));
-        assertEquals(Item.of(Kind.SHARE), IslandMenu.items(c).get(2));
+        assertEquals(Item.of(Kind.RELOAD), IslandMenu.items(c).get(2));
         c.hasSendTargets = true;
         assertEquals(Item.of(Kind.SEND), IslandMenu.items(c).get(2));
     }
@@ -81,7 +83,17 @@ public class IslandMenuTest {
         // A page the blocker stopped never commits, so the tab isn't on a web page.
         IslandMenu.Context c = new IslandMenu.Context();
         c.blockingUnavailable = true;
-        assertEquals(List.of(IslandMenu.Item.of(IslandMenu.Kind.BLOCKING_UNAVAILABLE), IslandMenu.Item.of(IslandMenu.Kind.NEW_PRIVATE_TAB)),
+        assertEquals(List.of(IslandMenu.Item.of(IslandMenu.Kind.BLOCKING_UNAVAILABLE), IslandMenu.Item.of(IslandMenu.Kind.NEW_PRIVATE_TAB),
+                        IslandMenu.Item.of(IslandMenu.Kind.SETTINGS)),
                 IslandMenu.items(c));
+    }
+
+    // #1463: the iPhone Island has no Reload button, so Reload sits in the menu before Share (Stop
+    // while the page loads), and Settings is always last.
+    @Test
+    public void reloadIsOnWebPagesAndSettingsIsAlwaysLast() {
+        List<Item> items = IslandMenu.items(web());
+        assertEquals(items.indexOf(Item.of(Kind.SHARE)) - 1, items.indexOf(Item.of(Kind.RELOAD)));
+        assertEquals(Item.of(Kind.SETTINGS), items.get(items.size() - 1));
     }
 }

@@ -82,6 +82,32 @@ diff -ruN a/chrome/android/java/src/org/chromium/chrome/browser/settings/Setting
      }
  
      @Override
+diff -ruN a/chrome/android/java/src/org/chromium/chrome/browser/settings/SettingsMenuHelper.java b/chrome/android/java/src/org/chromium/chrome/browser/settings/SettingsMenuHelper.java
+--- a/chrome/android/java/src/org/chromium/chrome/browser/settings/SettingsMenuHelper.java
++++ b/chrome/android/java/src/org/chromium/chrome/browser/settings/SettingsMenuHelper.java
+@@ -102,9 +102,8 @@
+      * @param delegate The Delegate to provide the host state.
+      */
+     public static void onPrepareOptionsMenu(Menu menu, Delegate delegate) {
+-        if (delegate.isShownInTab()) {
+-            removeHelpMenuItems(menu);
+-        }
++        // Blanc (patch 0110): Chrome's help opens Google's Chrome help, so no Settings screen has it.
++        removeHelpMenuItems(menu);
+         for (int i = 0; i < menu.size(); i++) {
+             MenuItem item = menu.getItem(i);
+             if (item.getIcon() != null) {
+@@ -114,8 +113,8 @@
+     }
+ 
+     /**
+-     * Removes any help menu items (general, targeted, site settings or editor) from the menu when
+-     * settings is shown in a tab.
++     * Removes any help menu items (general, targeted, site settings or editor) from the menu. Blanc
++     * (patch 0110) removes them on every Settings screen, not only when settings is shown in a tab.
+      */
+     private static void removeHelpMenuItems(Menu menu) {
+         menu.removeItem(R.id.menu_id_general_help);
 diff -ruN a/chrome/android/java/src/org/chromium/chrome/browser/tabbed_mode/TabbedRootUiCoordinator.java b/chrome/android/java/src/org/chromium/chrome/browser/tabbed_mode/TabbedRootUiCoordinator.java
 --- a/chrome/android/java/src/org/chromium/chrome/browser/tabbed_mode/TabbedRootUiCoordinator.java	2026-11-07 11:04:09
 +++ b/chrome/android/java/src/org/chromium/chrome/browser/tabbed_mode/TabbedRootUiCoordinator.java	2026-11-07 11:04:09

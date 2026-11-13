@@ -10,7 +10,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import {execFileSync} from 'node:child_process';
 import {fileURLToPath} from 'node:url';
-import {nodeBounds} from './island-menu.mjs';
+import {gridSwipe, nodeBounds} from './island-menu.mjs';
 import {tabCount} from './tabs.mjs';
 
 const PACKAGE = 'me.bnfy.blanc.dev';
@@ -99,7 +99,17 @@ function main(argv) {
   const switched = !!row;
   check('a tab in the list switches to it', switched && !paletteField(dump()) ? [] : ['no tab row, or the palette stayed open']);
 
-  const count = () => tabCount(dump());
+  // The closed Island has no tab count: opens the grid with the swipe from the Island, reads its
+  // count and closes it.
+  const count = () => {
+    const swipe = gridSwipe(dump());
+    if (!swipe) return null;
+    adb('shell', 'input', 'swipe', ...swipe, '250'); sleep(2);
+    const open = dump();
+    const done = nodeBounds(open, {text: 'Done'});
+    if (done) { adb('shell', 'input', 'tap', ...center(done)); sleep(1.5); }
+    return tabCount(open);
+  };
   const start = count();
   openPalette(); typeAndGo('/new');
   const afterNew = count();

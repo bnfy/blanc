@@ -4,6 +4,7 @@ package org.chromium.blanc.island;
 
 import android.app.Activity;
 import android.content.SharedPreferences;
+import android.os.SystemClock;
 import android.provider.Settings;
 import android.view.Gravity;
 import android.view.View;
@@ -11,7 +12,6 @@ import android.view.ViewGroup;
 import android.view.accessibility.AccessibilityManager;
 import android.view.animation.DecelerateInterpolator;
 import android.widget.FrameLayout;
-import android.widget.ImageButton;
 
 import androidx.core.graphics.Insets;
 import androidx.core.view.WindowInsetsCompat;
@@ -20,8 +20,6 @@ import org.chromium.base.Callback;
 import org.chromium.base.ContextUtils;
 import org.chromium.base.supplier.NullableObservableSupplier;
 import org.chromium.blanc.settings.SettingsStore;
-import org.chromium.blanc.spaces.SpacesCard;
-import org.chromium.blanc.spaces.SpacesController;
 import org.chromium.build.annotations.NullMarked;
 import org.chromium.build.annotations.Nullable;
 import org.chromium.cc.mojom.RootScrollOffsetUpdateFrequency;
@@ -42,7 +40,7 @@ import org.chromium.url.GURL;
 
 /**
  * Puts Blanc for iPhone's Island over the page and keeps it in step with the browser: the active
- * tab's site, loading state and privacy, the tab count, the iPhone's tuck rules on the person's
+ * tab's site, loading state, history and privacy, the tab count for TalkBack, the iPhone's tuck rules on the person's
  * scrolling, its position setting, and the window's insets (system bars, cutout and keyboard,
  * which the Island rides above, as on the iPhone). Actions that need the activity go to
  * {@link Callbacks}. Spike: docs/android/a1-island-spike.md.
@@ -76,7 +74,7 @@ public final class IslandCoordinator {
     private static final long SETTLE_MS = 350;
 
     private final Activity mActivity;
-    private @Nullable SpacesController mWatchedSpaces;
+    private final PagePinch mPinch = new PagePinch();
     private final NullableObservableSupplier<Tab> mActiveTab;
     private final TabModelSelector mSelector;
     private final @Nullable InsetObserver mInsets;
@@ -128,6 +126,19 @@ public final class IslandCoordinator {
                     refresh();
                 }
 
+                // Back and Forward follow the page's history, including pages that change it with
+                // pushState.
+                @Override
+                public void onNavigationEntriesDeleted(Tab tab) {
+                    refresh();
+                }
+
+                @Override
+                public void onDidFinishNavigationInPrimaryMainFrame(
+                        Tab tab, org.chromium.content_public.browser.NavigationHandle navigation) {
+                    refresh();
+                }
+
                 @Override
                 public void onContentChanged(Tab tab) {
                     attachGestures(tab.getWebContents());
@@ -170,7 +181,7 @@ public final class IslandCoordinator {
             @Nullable InsetObserver insets,
             Callbacks callbacks) {
         mActivity = activity;
-        SpacesController.setCurrentListener(this::refresh);
+        PagePinchBridge.setListener(this::onPagePinch);
         mActiveTab = activeTab;
         mSelector = selector;
         mInsets = insets;
@@ -197,7 +208,6 @@ public final class IslandCoordinator {
                         mCallbacks.onTabs();
                     }
                 });
-        mView.tabsButton().setOnClickListener(v -> mCallbacks.onTabs());
         mView.newTabButton().setOnClickListener(v -> mCallbacks.onNewTab());
         mView.privateChip()
                 .setOnClickListener(
@@ -205,16 +215,24 @@ public final class IslandCoordinator {
                             Tab tab = mTab;
                             if (tab != null && tab.isIncognito()) mCallbacks.onClosePrivateTab(tab);
                         });
-        mView.reloadButton()
+        // #1463: Stop while a page loads, then Back and Forward; Reload is in the Sunrise menu.
+        mView.stopButton()
                 .setOnClickListener(
                         v -> {
                             Tab tab = mTab;
-                            if (tab == null) return;
-                            if (tab.isLoading()) {
-                                tab.stopLoading();
-                            } else {
-                                tab.reload();
-                            }
+                            if (tab != null) tab.stopLoading();
+                        });
+        mView.backButton()
+                .setOnClickListener(
+                        v -> {
+                            Tab tab = mTab;
+                            if (tab != null && tab.canGoBack()) tab.goBack();
+                        });
+        mView.forwardButton()
+                .setOnClickListener(
+                        v -> {
+                            Tab tab = mTab;
+                            if (tab != null && tab.canGoForward()) tab.goForward();
                         });
         ViewGroup content = activity.findViewById(android.R.id.content);
         content.addView(
@@ -259,7 +277,7 @@ public final class IslandCoordinator {
     }
 
     public void destroy() {
-        SpacesController.setCurrentListener(null);
+        PagePinchBridge.setListener(null);
         ContextUtils.getAppSharedPreferences().unregisterOnSharedPreferenceChangeListener(mPositionChanged);
         setTab(null);
         mActiveTab.removeObserver(mTabChanged);
@@ -279,6 +297,24 @@ public final class IslandCoordinator {
         refresh();
     }
 
+    /**
+     * The iPhone's pinch into the tab grid: a pinch in on the page on show, fully zoomed out, opens
+     * the grid once the fingers have closed far or fast enough (PagePinch).
+     */
+    private void onPagePinch(WebContents contents, int phase, float scale) {
+        if (contents != mWebContents) return;
+        long now = SystemClock.uptimeMillis();
+        if (phase == PagePinchBridge.BEGAN) {
+            RenderCoordinates page = RenderCoordinates.fromWebContents(contents);
+            mPinch.begin(
+                    PagePinch.zoomedOut(page.getPageScaleFactor(), page.getMinPageScaleFactor()), now);
+        } else if (phase == PagePinchBridge.CHANGED) {
+            mPinch.update(scale, now);
+        } else if (mPinch.end(now)) {
+            mCallbacks.onTabs();
+        }
+    }
+
     private void attachGestures(@Nullable WebContents webContents) {
         if (mWebContents == webContents) return;
         GestureListenerManager old =
@@ -293,6 +329,7 @@ public final class IslandCoordinator {
         if (manager != null) {
             manager.addListener(mGestures, RootScrollOffsetUpdateFrequency.ALL_UPDATES);
         }
+        if (webContents != null) PagePinchBridge.watch(webContents);
     }
 
     /** Switches to the neighbor (left goes to the next), sliding the page in from that side. */
@@ -340,13 +377,15 @@ public final class IslandCoordinator {
         state.title = title(tab);
         state.loading = tab != null && tab.isLoading();
         state.privateTab = tab != null && tab.isIncognito();
+        state.startPage = onStartPage();
+        state.canGoBack = tab != null && tab.canGoBack();
+        state.canGoForward = tab != null && tab.canGoForward();
         state.tabCount = mSelector.getTotalTabCount();
         TabModel model = mSelector.getCurrentModel();
         state.hasPrevious = model.index() > 0;
         state.hasNext = model.index() < model.getCount() - 1;
         mView.setAtTop(position() == IslandPosition.TOP);
         mView.bind(state);
-        bindSpaceMark(tab);
         updateTuck();
     }
 
@@ -381,22 +420,6 @@ public final class IslandCoordinator {
         return ("chrome".equals(url.getScheme()) && "blanc".equals(url.getHost())
                         && "/newtab.html".equals(url.getPath()))
                 || "chrome-native".equals(url.getScheme());
-    }
-
-    // Never on a private tab, and only once a Space exists, as on the iPhone.
-    private void bindSpaceMark(@Nullable Tab tab) {
-        SpacesController spaces = SpacesController.current();
-        if (spaces != mWatchedSpaces) {
-            mWatchedSpaces = spaces;
-            if (spaces != null) spaces.addListener(this::refresh);
-        }
-        ImageButton mark = mView.spaceButton();
-        if (spaces == null || spaces.library().spaces.isEmpty() || (tab != null && tab.isIncognito())) {
-            mark.setVisibility(View.GONE);
-            return;
-        }
-        mark.setVisibility(View.VISIBLE);
-        SpacesCard.bindMark(mActivity, mark, spaces.mark(), (mView.textColor() & 0x00FFFFFF) | 0x99000000);
     }
 
     private void updateTuck() {
@@ -441,7 +464,7 @@ public final class IslandCoordinator {
     private void setButtonsEnabled(boolean enabled) {
         View[] buttons = {
             mView.menuButton(), mView.domainView(), mView.privateChip(),
-            mView.reloadButton(), mView.tabsButton(), mView.newTabButton()
+            mView.stopButton(), mView.backButton(), mView.forwardButton(), mView.newTabButton()
         };
         for (View button : buttons) button.setEnabled(enabled);
     }

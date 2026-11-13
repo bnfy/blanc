@@ -18,8 +18,8 @@ test('the six pages and the iPhone phone layout are listed', () => {
   assert.deepEqual(PAGES, ['newtab', 'bookmarks', 'history', 'shortcuts', 'error', 'mahjong']);
 });
 
-test('the pin is the current public release, v1.46.0', () => {
-  assert.equal(pinned().commit, '6479ed3a314e4fd6219b8de1598bacffa78b4d7c');
+test('the pin is the current public release, v1.47.1', () => {
+  assert.equal(pinned().commit, 'cfd3daa03ad50e6d0d77c402599d94e771d937be');
 });
 
 test('the list is flat and sorted, like shipping\'s pages folder', () => {

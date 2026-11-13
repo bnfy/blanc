@@ -1,3 +1,17 @@
+diff -ruN a/chrome/android/java/src/org/chromium/chrome/browser/tasks/ReturnToChromeUtil.java b/chrome/android/java/src/org/chromium/chrome/browser/tasks/ReturnToChromeUtil.java
+--- a/chrome/android/java/src/org/chromium/chrome/browser/tasks/ReturnToChromeUtil.java
++++ b/chrome/android/java/src/org/chromium/chrome/browser/tasks/ReturnToChromeUtil.java
+@@ -95,6 +95,10 @@
+      * @return true if past threshold, false if not past threshold or experiment cannot be loaded.
+      */
+     public static boolean shouldShowTabSwitcher(final long lastTimeMillis) {
++        // Blanc (patch 0105): coming back reopens the last tab, as on the iPhone. Chrome opened its
++        // new tab page after four hours away and failed its own check on Blanc's Start Page address.
++        // Decided here rather than by the return-time param, which Chrome caches from the last launch.
++        if (true) return false;
+         long tabSwitcherAfterMillis =
+                 getReturnTime(ChromeFeatureList.sStartSurfaceReturnTimeTabletSecs);
+ 
 diff -ruN a/chrome/browser/flags/android/chrome_feature_list.cc b/chrome/browser/flags/android/chrome_feature_list.cc
 --- a/chrome/browser/flags/android/chrome_feature_list.cc
 +++ b/chrome/browser/flags/android/chrome_feature_list.cc

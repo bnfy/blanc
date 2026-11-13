@@ -8,6 +8,24 @@ const vm = require('node:vm');
 const BUNDLE = path.resolve(__dirname, '../../../blanc/services/sync_runner/generated/sync-bundle.js');
 const u8 = bytes => Uint8Array.from(Buffer.from(bytes));
 
+// A kept-alive connection the server dropped before answering. The test's thread is blocked by adb
+// and sleep() past the Worker's five-second keep-alive, so a request can land on one.
+const DROPPED = new Set(['ECONNRESET', 'UND_ERR_SOCKET', 'EPIPE']);
+
+// After a long block every idle connection in the pool can be stale, so a few tries, not one.
+const TRIES = 5;
+
+// The native host's fetch, in Node. Like Chromium, it sends a request again when its connection was
+// dropped before any answer.
+function hostFetch(url, method, headers, body, done, tries = TRIES) {
+  fetch(url, {method, headers: JSON.parse(headers), body: body ? Buffer.from(body) : undefined}).then(async response => {
+    done(null, response.status, JSON.stringify(Object.fromEntries(response.headers)), u8(await response.arrayBuffer()));
+  }, error => {
+    if (tries > 1 && DROPPED.has(error.cause?.code)) hostFetch(url, method, headers, body, done, tries - 1);
+    else done(String(error));
+  });
+}
+
 function peer(name, endpoint, {stores = {}, platform = 'linux', emit} = {}) {
   let context;
   const host = {
@@ -41,11 +59,7 @@ function peer(name, endpoint, {stores = {}, platform = 'linux', emit} = {}) {
         return u8(Buffer.concat([decipher.update(bytes.subarray(0, bytes.length - 16)), decipher.final()]));
       } catch { return null; }
     },
-    fetch(url, method, headers, body, done) {
-      fetch(url, {method, headers: JSON.parse(headers), body: body ? Buffer.from(body) : undefined}).then(async response => {
-        done(null, response.status, JSON.stringify(Object.fromEntries(response.headers)), u8(await response.arrayBuffer()));
-      }, error => done(String(error)));
-    },
+    fetch: hostFetch,
   };
   context = vm.createContext({__host: host});
   vm.runInContext(fs.readFileSync(BUNDLE, 'utf8'), context, {filename: 'sync-bundle.js'});
@@ -58,4 +72,4 @@ function peer(name, endpoint, {stores = {}, platform = 'linux', emit} = {}) {
   };
 }
 
-module.exports = {peer};
+module.exports = {peer, hostFetch};

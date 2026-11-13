@@ -2578,13 +2578,75 @@ all six languages; Accessibility is left out of More because its page names Chro
 | Runner and tool tests (`node --test chromium/tools/*.test.mjs`, on the Mac) | 216 pass | local |
 | A4 gate (A1 to A3, sync, Spaces, Shared Spaces, shield race) | Pass | `a4/` |
 | APK (x86_64, emulator) | `b57a4ca6…` | `apk.sha256` |
-| APK (arm64, for the Pixel) | `fed28dc1…` (`out/AndroidDebug/apks/ChromePublic.apk`, built; not yet installed) | — |
-| Owner hands-on, Pixel and desktop (Sync through Settings) | **Pending** | — |
+| APK (arm64, for the Pixel) | `fed28dc1…` (`out/AndroidDebug/apks/ChromePublic.apk`), installed on the owner's Pixel 10 Pro | — |
+| Owner hands-on, Pixel and desktop (Sync through Settings) | Pass, November 11, 2026: Settings opened from `/settings` with every section; the Sync row opened the Sync sheet; the owner paired with their desktop and the desktop's Spaces arrived. Three bugs found (below). | owner |
 
 The first full run failed twice: the A3 check "quick endings stop pages, and Retry recovers" slept a fixed six
 seconds and looked once for its notice (it passed alone; it now waits up to 30 s), and the tools tests need iOS
 fixtures the server lacks (they run on the Mac). An earlier standalone Settings run had failed
 `blanc://settings#privacy` once; it passed in both gate runs, cause not found, so it stays watched.
+
+On the Pixel (November 11) three bugs showed, fixed in the A5a follow-up: the Sync row kept saying Not connected
+after pairing until Settings was opened again (it asked only when Settings was built; it now asks again when the
+Sync sheet closes); Settings' **?** button opened Google's Chrome help (Chromium hides it only when Settings is
+shown in a tab; patch 0110 now hides it on every Settings screen); and a launch after four days away crashed on
+Chromium's check that the new tab page it opens after four hours away has Chrome's address, not Blanc's Start
+Page (`ReturnToChromeUtil`; patch 0105 makes `shouldShowTabSwitcher` always say no, so Blanc reopens the last tab as
+the iPhone does; a first try changed the return-time param's default instead, which review found Chrome caches from
+the launch before, so an updated install would still have crashed once). The palette's Settings button, `blanc://settings` and the theme switch weren't tried on the Pixel; they pass
+on the emulator.
+
+The fixed build (`1f2faf38…`, arm64, installed over wireless debugging) was checked on the Pixel on November 11:
+no help button on Settings, Site settings or Downloads, and a launch from the home screen with Blanc's last-seen
+time set five hours back reopened the last tab with no crash (that build carried the param fix; the emulator check now
+also plants the old cached four hours). The Sync row's update when the sheet closes wasn't
+tried on the Pixel, since that means turning Sync off and pairing again; Robolectric covers the sheet's signal. The
+Settings check script's wording scan read Site settings while the root was still on screen and so never opened its
+pages; it now waits for the root to go.
+
+The Space mark moved off the closed Island on November 11 at the owner's request, to save room on the bar: it now
+sits in the open Island's footer, before Favorites, under the same rule (once a Space exists, never on a private
+tab), and opens the Spaces menu. The iPhone is making the same change in its own session, so this isn't a
+divergence. The Spaces emulator check now requires the closed Island to have no mark.
+
+The Sync screen was redesigned on November 11 at the owner's request ("visually overwhelming"; they picked a grouped
+list from three mock-ups). It opens as a full page with a back arrow instead of a dialog with a stack of eight
+buttons and Done: the iPhone's Form groups as Sunrise cards (status, account and last sync; Device name, Share open
+tabs and Sync now; the Spaces switch and Choose Spaces to sync; Add another device, Copy recovery code, Switch
+account and Disconnect in red), with each group's help under its card. Device name is a row that opens a rename box,
+so Save name is gone. The not-connected screens follow the same style. Layouts, colors and sizes are Android
+resources. Robolectric covers the groups, the rows (no buttons), the rename box and Back; the owner looked at it on
+the Pixel (`bc6fdebd…`) and approved it. The not-connected screens weren't seen on the phone.
+
+The tab count left the closed Island on November 11 too, as on the iPhone since November 5 (#1372). The tab grid
+opens with the swipe from the Island into the page; TalkBack hears the count on the address ("Search or switch
+tabs, example.com, 3 tabs") and gets a Show all tabs action there. The emulator scripts open the grid with that
+swipe and read the count from the grid's header.
+
+The iPhone's pinch into the tab grid is ported in two parts (owner, November 11: "pinch first, motion next"). Part 1,
+the gesture: a pinch in on a fully zoomed-out page opens the grid once the fingers close past 0.8 or close quickly
+(`PagePinch`, the iPhone's numbers); a zoomed-in page zooms out first. Chromium handles page touches outside the
+browser's views (InputOnViz), so the Island hears the gesture events through a native input observer
+(`page_pinch_bridge.cc`, patch 0111), alongside the page's own zoom. The grid opens with its present animation. Part
+2, the page shrinking into its card under the fingers with the grid behind it, is not built: Android's grid is a
+dialog over the page, so it needs the grid moved behind the page and a spike on scaling the page surface.
+
+The Island's layout follows the iPhone's #1463 (opened November 11, not merged at the time of the port): after the
+Sunrise mark and the left-aligned address come Stop while a page loads, Back, Forward and New tab. Reload moved into
+the Sunrise menu, before Share, where it reads Stop while a page loads, and Settings is the menu's last entry. Opening
+the menu gives a light haptic tap. On the Start Page the address reads "Search or type URL", dimmed, while TalkBack
+still hears "Start Page"; the owner shortened the shared string on November 11 (#1464 on main, the same edit here) so
+it fits a 411dp phone beside Back, Forward and New Tab at the iPhone's 44dp. If #1463 changes in review, this follows
+it.
+
+The Start Page's Billboard clock defaults to the iPhone's first-run clock (#1331): Roboto Flex at its tallest (300),
+weight 450, in glass. `blanc_pages_ui.cc` puts these under the Start Page's appearance settings; Android has no
+appearance store yet (A5b), and these are never saved, so a later default reaches everyone who never changed the
+clock. Android has no Liquid Glass, so the page draws the glass itself with `clock-art.js`, as desktop does; it looks
+close to the iPhone's but is not the system material. The pinned page copies moved from v1.46.0 to v1.47.1, which
+brings the iPhone's larger phone clock (30vw, capped at 120px) and its glass-clock fixes. `pages-phone.mjs` checks
+the fresh install's clock (it failed on the old build: Instrument Sans, solid). Not wired yet: the Start Page's
+layout for the Island along the top (`mobileIslandPosition`, which v1.47.1's phone script reads).
 
 ### Shield count across a page's commit
 

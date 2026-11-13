@@ -1,6 +1,6 @@
 {
-  "note": "Shipping page files Blanc for Android serves unchanged at chrome://blanc/, copied by tools/android-pages.mjs from this commit (v1.46.0). The adapter in pages-adapter/ marks them for the phone, as the iPhone does.",
-  "commit": "6479ed3a314e4fd6219b8de1598bacffa78b4d7c",
+  "note": "Shipping page files Blanc for Android serves unchanged at chrome://blanc/, copied by tools/android-pages.mjs from this commit (v1.47.1). The adapter in pages-adapter/ marks them for the phone, as the iPhone does.",
+  "commit": "cfd3daa03ad50e6d0d77c402599d94e771d937be",
   "files": [
     "bookmarks.html",
     "bookmarks.js",

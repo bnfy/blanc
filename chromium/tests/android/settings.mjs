@@ -4,6 +4,8 @@
 //   - Search engine, Theme and Island position change and show the new value.
 //   - The blocker switch and the allowed-sites list work with no tab open.
 //   - Sync opens the Sync sheet; Clear site data asks first.
+//   - No Settings screen has Chrome's help button, which opens Google's Chrome help.
+//   - Coming back after hours away reopens the last tab (Chrome would open its new tab page).
 // Fails closed: a row or screen it can't find fails.
 //
 //   node chromium/tests/android/settings.mjs --apk <ChromePublic.apk> --evidence <dir>
@@ -48,16 +50,32 @@ function main(argv) {
   fs.mkdirSync(evidence, {recursive: true});
   const adb = (...args) => execFileSync('adb', args, {encoding: 'utf8', maxBuffer: 64 * 1024 * 1024});
   const sleep = s => execFileSync('sleep', [String(s)]);
-  const dump = () => { adb('shell', 'uiautomator', 'dump', '/sdcard/blanc-ui.xml'); return adb('shell', 'cat', '/sdcard/blanc-ui.xml'); };
+  // Screens where Chrome's help button showed; `screen` names whatever the script opened last.
+  const helpOn = new Set();
+  let screen = 'Settings';
+  const dump = () => {
+    adb('shell', 'uiautomator', 'dump', '/sdcard/blanc-ui.xml');
+    const xml = adb('shell', 'cat', '/sdcard/blanc-ui.xml');
+    if (/content-desc="[^"]*\bHelp\b/i.test(xml)) helpOn.add(screen);
+    return xml;
+  };
   const shot = name => fs.writeFileSync(path.join(evidence, `${name}.png`), execFileSync('adb', ['exec-out', 'screencap', '-p'], {maxBuffer: 64 * 1024 * 1024}));
   const results = [];
-  const check = (name, problems) => results.push({case: name, problems});
+  // Each check also fails on a crash logged since the last one, so a crash names its step.
+  const fatalCount = () => (adb('logcat', '-d', '-b', 'crash').match(/FATAL EXCEPTION/g) || []).length;
+  let crashesSeen = 0;
+  const check = (name, problems) => {
+    const now = fatalCount();
+    if (now > crashesSeen) problems = [...problems, 'Blanc crashed during this check'];
+    crashesSeen = now;
+    results.push({case: name, problems});
+  };
   const size = adb('shell', 'wm', 'size').match(/(\d+)x(\d+)/);
   const [width, height] = [+size[1], +size[2]];
   const scroll = (down = true) => { adb('shell', 'input', 'swipe', String(width / 2), String(height * (down ? 0.75 : 0.3)), String(width / 2), String(height * (down ? 0.3 : 0.75)), '300'); sleep(0.8); };
   const tapAt = b => { adb('shell', 'input', 'tap', String(Math.round((b.left + b.right) / 2)), String(Math.round((b.top + b.bottom) / 2))); sleep(1.5); };
   // Scrolls (from the top) until `text` is on screen, then taps it. Returns the screen's XML first.
-  const open = () => { adb('shell', 'am', 'force-stop', PACKAGE); adb('shell', 'am', 'start', '-n', SETTINGS); sleep(4); };
+  const open = () => { adb('shell', 'am', 'force-stop', PACKAGE); adb('shell', 'am', 'start', '-n', SETTINGS); sleep(4); screen = 'Settings'; };
   const find = text => {
     for (let i = 0; i < 10; i++) {
       const xml = dump();
@@ -72,6 +90,8 @@ function main(argv) {
 
   adb('install', '-r', apk);
   adb('shell', 'pm', 'clear', PACKAGE);
+  // Only this run's crashes count.
+  adb('logcat', '-b', 'crash', '-c');
   adb('root');
   adb('shell', 'cmd', 'uimode', 'night', 'no');
   open();
@@ -281,11 +301,19 @@ function main(argv) {
     return found;
   };
   const wording = (label, all) => [...new Set(all.filter(t => BANNED.some(b => b.test(t)) && !ENGINE_NAMES.test(t)))].map(t => `${label}: "${t}"`);
+  // Settings swaps pages with an animation, and a dump taken during it still holds the root's rows;
+  // waits until the root's Browsing heading is gone.
+  const leftRoot = () => {
+    for (let i = 0; i < 10; i++) { if (!texts(dump()).includes('Browsing')) return true; sleep(0.5); }
+    return false;
+  };
   const visit = (page, row) => {
     open();
-    if (!tapText(page)) return null;
+    if (!tapText(page) || !leftRoot()) return null;
+    screen = page;
     sleep(1.2);
     if (row && !tapText(row)) return null;
+    if (row) screen = `${page} > ${row}`;
     sleep(1.2);
     return scanScreen();
   };
@@ -298,6 +326,7 @@ function main(argv) {
       // The page's rows: its first-screen titles (not their summaries) that open a screen of their own.
       open();
       tapText(page);
+      if (!leftRoot()) problems.push(`${page} never replaced the root`);
       sleep(1.2);
       shot(`more-${page.toLowerCase().replace(/ /g, '-')}`);
       const rows = [...new Set(texts(dump()))].filter(t => !['Settings', 'Search settings', page].includes(t)).slice(0, 10);
@@ -310,8 +339,51 @@ function main(argv) {
     console.log(`${problems.length ? 'FAIL' : 'pass'}  no Chrome or Google wording in ${page}`);
   }
 
+  check('no Settings screen has Chrome\'s help button', [...helpOn].map(where => `help button on ${where}`));
+
+  // Back after more than Chrome's four hours: Chrome would open a new tab page at launch and, finding
+  // Blanc's Start Page address instead of its own, fail a check. Blanc reopens the last tab, as the iPhone does.
+  problems = [];
+  adb('shell', 'am', 'force-stop', PACKAGE);
+  adb('shell', 'am', 'start', '-a', 'android.intent.action.VIEW', '-d', "'https://example.com/'", '-p', PACKAGE);
+  sleep(6);
+  // Home first: Chromium saves which tab is active when it stops, and a bare force-stop skips that.
+  adb('shell', 'input', 'keyevent', 'KEYCODE_HOME');
+  sleep(3);
+  adb('shell', 'am', 'force-stop', PACKAGE);
+  const prefs = `/data/data/${PACKAGE}/shared_prefs/${PACKAGE}_preferences.xml`;
+  const away = String(Date.now() - 5 * 3600 * 1000);
+  // Chrome caches its return time from the launch before; an update from an older build still holds
+  // its four hours (14400 s), so the check plants that too.
+  const returnTime = 'Chrome.Flags.FeatureParamCached.StartSurfaceReturnTime:start_surface_return_time_on_tablet_seconds';
+  const planted = ['Chrome.StartSurface.LastVisibleTimeMs', 'ChromeTabbedActivity.BackgroundTimeMs', returnTime];
+  // Drops whatever the file holds for those three (any value, -1 included), then adds them.
+  const xml = adb('shell', 'cat', prefs).split('\n')
+    .filter(line => !planted.some(name => line.includes(`name="${name}"`)))
+    .join('\n')
+    .replace('</map>', `    <long name="${planted[0]}" value="${away}" />\n    <long name="${planted[1]}" value="${away}" />\n    <int name="${returnTime}" value="14400" />\n</map>`);
+  const local = path.join(evidence, 'prefs-away.xml');
+  fs.writeFileSync(local, xml);
+  const owner = adb('shell', 'stat', '-c', '%u:%g', prefs).trim();
+  adb('push', local, prefs);
+  adb('shell', 'chown', owner, prefs);
+  adb('shell', 'chmod', '660', prefs);
+  fs.rmSync(local);
+  const fatal = () => (adb('logcat', '-d', '-b', 'crash').match(/FATAL EXCEPTION/g) || []).length;
+  const crashesBefore = fatal();
+  adb('shell', 'monkey', '-p', PACKAGE, '-c', 'android.intent.category.LAUNCHER', '1');
+  sleep(8);
+  if (fatal() > crashesBefore) problems.push('Blanc crashed at launch');
+  const shown = texts(dump());
+  // The Island shows the page's host as its own text; an exact match, not a substring.
+  if (!shown.some(text => text === 'example.com')) problems.push(`the last tab isn't shown: ${JSON.stringify(shown.slice(0, 8))}`);
+  shot('back-after-hours');
+  check('coming back after hours away reopens the last tab', problems);
+
   const crashes = adb('logcat', '-d', '-b', 'crash');
-  check('no crash during the run', /FATAL EXCEPTION/.test(crashes) ? ['a crash was logged'] : []);
+  // Later stages clear the buffer, so a crash keeps its log here.
+  if (/FATAL EXCEPTION/.test(crashes)) fs.writeFileSync(path.join(evidence, 'crash.txt'), crashes);
+  check('no crash during the run', /FATAL EXCEPTION/.test(crashes) ? ['a crash was logged (crash.txt)'] : []);
 
   fs.writeFileSync(path.join(evidence, 'settings.json'), JSON.stringify(results, null, 2));
   let failed = 0;

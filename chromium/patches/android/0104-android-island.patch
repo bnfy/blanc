@@ -77,10 +77,13 @@ diff -ruN a/chrome/android/java/src/org/chromium/chrome/browser/tabbed_mode/Tabb
          if (mVerticalTabsPreferenceListener != null) {
              ContextUtils.getAppSharedPreferences()
                      .unregisterOnSharedPreferenceChangeListener(mVerticalTabsPreferenceListener);
-@@ -1293,9 +1313,462 @@
-         }
-     }
- 
+@@ -1290,12 +1310,483 @@
+                     .asNonNull()
+                     .get()
+                     .setSideUiStateProviderSupplier(mSideUiStateProviderSupplier);
++        }
++    }
++
 +    // The palette (A2 Task 4), Blanc for iPhone's: the Island's site opens it. Typed addresses load
 +    // in the current tab as typed navigations; an app link goes to Android, whose chooser asks
 +    // which app.
@@ -183,7 +186,7 @@ diff -ruN a/chrome/android/java/src/org/chromium/chrome/browser/tabbed_mode/Tabb
 +                            url,
 +                            org.chromium.ui.base.PageTransition.TYPED
 +                                    | org.chromium.ui.base.PageTransition.FROM_ADDRESS_BAR));
-+        }
+         }
 +    }
 +
 +    // Favorites for the palette's Quick Switcher: every bookmarked address, from Chromium's model.
@@ -317,8 +320,8 @@ diff -ruN a/chrome/android/java/src/org/chromium/chrome/browser/tabbed_mode/Tabb
 +                    tab.removeObserver(results);
 +                    bridge.destroy();
 +                });
-+    }
-+
+     }
+ 
 +    // The Sunrise menu (A1 Task 7): Favorites, Share and New Private Tab, as on the iPhone.
 +    private void showBlancMenu(View anchor, Tab tab) {
 +        GURL url = tab.getUrl();
@@ -337,6 +340,7 @@ diff -ruN a/chrome/android/java/src/org/chromium/chrome/browser/tabbed_mode/Tabb
 +        context.hasSendTargets = !org.chromium.blanc.sync.OtherDevices.targets().isEmpty();
 +        context.canFavorite = bookmarks.isBookmarkModelLoaded();
 +        context.favorite = context.canFavorite && bookmarks.isBookmarked(url);
++        context.loading = tab.isLoading();
 +        org.chromium.blanc.island.IslandMenuPopup.show(
 +                anchor,
 +                context,
@@ -397,6 +401,23 @@ diff -ruN a/chrome/android/java/src/org/chromium/chrome/browser/tabbed_mode/Tabb
 +                                .get()
 +                                .getTabCreator(true)
 +                                .launchNtp(TabLaunchType.FROM_CHROME_UI);
++                    }
++
++                    // The Island has no Reload (#1463); this is Stop while the page loads.
++                    @Override
++                    public void reload() {
++                        if (tab.isLoading()) {
++                            tab.stopLoading();
++                        } else {
++                            tab.reload();
++                        }
++                    }
++
++                    @Override
++                    public void openSettings() {
++                        org.chromium.chrome.browser.settings.SettingsNavigationFactory
++                                .createSettingsNavigation()
++                                .startSettings(mActivity);
 +                    }
 +                });
 +    }
@@ -540,7 +561,7 @@ diff -ruN a/chrome/android/java/src/org/chromium/chrome/browser/tabbed_mode/Tabb
          assert mLayoutManager != null;
  
          if (mCountrySupplier != null && mCountrySupplier.get() == null) {
-@@ -2962,9 +3435,8 @@
+@@ -2962,9 +3453,8 @@
          mNotificationPermissionController =
                  new NotificationPermissionController(mWindowAndroid, rationaleUIDelegateSupplier);
          NotificationPermissionController.attach(mWindowAndroid, mNotificationPermissionController);

@@ -35,7 +35,6 @@ public final class SpacesController {
 
     private static @Nullable Hook sHook;
     private static @Nullable SpacesController sCurrent;
-    private static @Nullable Runnable sCurrentListener;
 
     private final BlancSpaces mLibrary;
     private final SpaceSwitcher mSwitcher;
@@ -43,11 +42,6 @@ public final class SpacesController {
     private final List<Runnable> mListeners = new ArrayList<>();
     private @Nullable String mUndoId;
     private boolean mDeletedWasShown;
-
-    /** Told when a window's controller arrives, after anything drawn before it. */
-    public static void setCurrentListener(@Nullable Runnable listener) {
-        sCurrentListener = listener;
-    }
 
     public static Set<String> unsynced() {
         return sHook == null ? Set.of() : sHook.unsynced();
@@ -64,7 +58,6 @@ public final class SpacesController {
 
     public static void setCurrent(@Nullable SpacesController controller) {
         sCurrent = controller;
-        if (controller != null && sCurrentListener != null) sCurrentListener.run();
     }
 
     public SpacesController(BlancSpaces library, SpaceSwitcher.Tabs tabs) {

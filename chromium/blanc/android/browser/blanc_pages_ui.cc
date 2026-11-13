@@ -213,9 +213,22 @@ class PagesHandler : public content::WebUIMessageHandler {
         .Set("sentItems", profile()->IsOffTheRecord() ? base::ListValue() : ::blanc::SyncSentItems())
         .Set("bookmarks", Favorites(Bookmarks()))
         .Set("appearance", base::DictValue()
-                               .Set("settings", base::DictValue())
+                               .Set("settings", FirstRunAppearance())
                                .Set("hasImage", false)
                                .Set("image", base::Value()));
+  }
+
+  // The iPhone's first-run Billboard clock (StartAppearanceStore.defaults, #1331): Roboto Flex at its
+  // tallest, in glass, with a light stroke, since stretching thins the figures. Android has no
+  // appearance store yet (A5b); saved choices will go over these, and these are never saved, so a
+  // later default reaches everyone who never changed the clock. Android has no Liquid Glass, so the
+  // page draws the glass itself (clock-art.js), as desktop does.
+  static base::DictValue FirstRunAppearance() {
+    return base::DictValue()
+        .Set("newtabClockFont", "flex")
+        .Set("newtabClockHeight", 300)
+        .Set("newtabClockStyle", "glass")
+        .Set("newtabClockWeight", 450);
   }
 
   void RemoveFavorite(int id, const base::ListValue& args) {

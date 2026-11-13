@@ -3,6 +3,8 @@
 package org.chromium.blanc.island;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
 
 import android.app.Activity;
 import android.view.View;
@@ -43,24 +45,110 @@ public class IslandViewTest {
         mView.bind(state("example.com", false, 3, false));
         TextView domain = mView.findViewById(R.id.blanc_island_domain);
         assertEquals("example.com", domain.getText().toString());
-        assertEquals("Search or switch tabs, example.com", domain.getContentDescription().toString());
+        assertEquals("Search or switch tabs, example.com, 3 tabs", heard(domain));
     }
 
+    // #1463: the Island has no Reload (the Sunrise menu and pull to refresh reload); Stop shows only
+    // while a page loads, just before Back and Forward.
     @Test
-    public void reloadBecomesStopWhileLoading() {
-        View reload = mView.findViewById(R.id.blanc_island_reload);
+    public void stopShowsOnlyWhileLoading() {
+        View stop = mView.findViewById(R.id.blanc_island_stop);
         mView.bind(state("example.com", false, 1, false));
-        assertEquals("Reload page", reload.getContentDescription().toString());
+        assertEquals(View.GONE, stop.getVisibility());
         mView.bind(state("example.com", true, 1, false));
-        assertEquals("Stop loading", reload.getContentDescription().toString());
+        assertEquals(View.VISIBLE, stop.getVisibility());
+        assertEquals("Stop loading", stop.getContentDescription().toString());
     }
 
     @Test
-    public void theTabCountShowsTheNumber() {
+    public void backForwardAndNewTabFollowTheAddressInThatOrder() {
+        mView.bind(state("example.com", true, 1, false));
+        int[] order = {R.id.blanc_island_menu, R.id.blanc_island_domain, R.id.blanc_island_stop,
+            R.id.blanc_island_back, R.id.blanc_island_forward, R.id.blanc_island_new_tab};
+        android.view.ViewGroup pill = mView.findViewById(R.id.blanc_island_pill);
+        int last = -1;
+        for (int id : order) {
+            int at = pill.indexOfChild(mView.findViewById(id));
+            assertTrue("out of order: " + mActivity.getResources().getResourceEntryName(id), at > last);
+            last = at;
+        }
+        assertEquals("Back", mView.findViewById(R.id.blanc_island_back).getContentDescription().toString());
+        assertEquals("Forward", mView.findViewById(R.id.blanc_island_forward).getContentDescription().toString());
+    }
+
+    @Test
+    public void backAndForwardAreOffWhenThereIsNowhereToGo() {
+        IslandView.State s = state("example.com", false, 1, false);
+        s.canGoBack = true;
+        mView.bind(s);
+        assertTrue(mView.findViewById(R.id.blanc_island_back).isEnabled());
+        assertFalse(mView.findViewById(R.id.blanc_island_forward).isEnabled());
+    }
+
+    // #1463: the Start Page invites a search, dimmed like a placeholder; TalkBack still hears the page.
+    @Test
+    public void theStartPageShowsADimmedPlaceholder() {
+        IslandView.State s = state("Start Page", false, 1, false);
+        s.startPage = true;
+        mView.bind(s);
+        TextView domain = mView.findViewById(R.id.blanc_island_domain);
+        assertEquals("Search or type URL", domain.getText().toString());
+        assertTrue(domain.getAlpha() < 1f);
+        assertTrue(domain.getContentDescription().toString().startsWith("Search or switch tabs, Start Page"));
+        mView.bind(state("example.com", false, 1, false));
+        assertEquals("example.com", domain.getText().toString());
+        assertEquals(1f, domain.getAlpha(), 0f);
+    }
+
+    // The iPhone dropped the tab count on November 5 (#1372): the grid opens by swiping from the Island
+    // into the page, and TalkBack hears the count on the address and gets a Show all tabs action.
+    @Test
+    public void theClosedIslandHasNoTabCount() {
         mView.bind(state("example.com", false, 12, false));
-        TextView count = mView.findViewById(R.id.blanc_island_tab_count);
-        assertEquals("12", count.getText().toString());
-        assertEquals("Show all tabs, 12 tabs", heard(mView.findViewById(R.id.blanc_island_tabs)));
+        for (View view : all(mView)) {
+            if (view instanceof TextView t && "12".contentEquals(t.getText())) {
+                throw new AssertionError("the Island still shows the tab count");
+            }
+        }
+    }
+
+    @Test
+    public void theAddressReadsTheTabCountAndOffersShowAllTabs() {
+        int[] opened = {0};
+        mView.setSwipeListener(new IslandView.SwipeListener() {
+            @Override
+            public void onSwipe(float displayedPx) {}
+
+            @Override
+            public void onSwipeEnd(IslandSwipe.Outcome outcome) {}
+
+            @Override
+            public void onSwipeIntoPage() {
+                opened[0]++;
+            }
+        });
+        View domain = mView.findViewById(R.id.blanc_island_domain);
+        mView.bind(state("example.com", false, 1, false));
+        assertEquals("Search or switch tabs, example.com, 1 tab", heard(domain));
+        mView.bind(state("example.com", false, 3, false));
+        assertEquals("Search or switch tabs, example.com, 3 tabs", heard(domain));
+        android.view.accessibility.AccessibilityNodeInfo info = domain.createAccessibilityNodeInfo();
+        int action = -1;
+        for (android.view.accessibility.AccessibilityNodeInfo.AccessibilityAction a : info.getActionList()) {
+            if ("Show all tabs".contentEquals(String.valueOf(a.getLabel()))) action = a.getId();
+        }
+        assertTrue("no Show all tabs action on the address", action != -1);
+        assertTrue(domain.performAccessibilityAction(action, null));
+        assertEquals(1, opened[0]);
+    }
+
+    private static java.util.List<View> all(View root) {
+        java.util.List<View> out = new java.util.ArrayList<>();
+        out.add(root);
+        if (root instanceof android.view.ViewGroup g) {
+            for (int i = 0; i < g.getChildCount(); i++) out.addAll(all(g.getChildAt(i)));
+        }
+        return out;
     }
 
     @Test
@@ -98,15 +186,6 @@ public class IslandViewTest {
         mView.measure(MeasureSpec.makeMeasureSpec((int) (390 * d), MeasureSpec.EXACTLY),
                 MeasureSpec.makeMeasureSpec((int) (200 * d), MeasureSpec.AT_MOST));
         assertEquals(Math.round((390 - 32) * d), pill.getMeasuredWidth());
-    }
-
-    @Test
-    public void theTabCountIsReadAsTheIphonesValue() {
-        View tabs = mView.findViewById(R.id.blanc_island_tabs);
-        mView.bind(state("example.com", false, 1, false));
-        assertEquals("Show all tabs, 1 tab", heard(tabs));
-        mView.bind(state("example.com", false, 3, false));
-        assertEquals("Show all tabs, 3 tabs", heard(tabs));
     }
 
     // What TalkBack reads: the label, then the state (Android 11+), or the label alone before.
