@@ -26,6 +26,16 @@ try {
   const chrome = await wait(() => Promise.resolve(app.pages().find(page => page.url() === 'blanc-chrome://index/')), Boolean, 'packaged chrome');
   const state = () => chrome.evaluate(() => window.browserAPI.getAllTabs());
   await wait(state, value => value.tabs.some(tab => tab.url === `${origin}/one`), 'initial packaged tab');
+  // The launch link's tab takes focus and its window is revealed. On Linux
+  // that first activation lands asynchronously, and when it does Chromium
+  // hands focus back to the link's page: if the typed tab below already
+  // exists, keystrokes go astray until Blanc reclaims the address field
+  // (v1.49.0's release run lost all but "h"). Let the launch's own activation
+  // land first, so the check below measures only the new tab's focus. A
+  // window manager that never activates the window leaves the check as before.
+  const launched = await wait(() => Promise.resolve(app.pages().find(page => page.url() === `${origin}/one`)), Boolean, 'launch link page');
+  await wait(() => launched.evaluate(() => document.readyState === 'complete' && document.hasFocus()).catch(() => false),
+    Boolean, 'launch window activation', 15_000).catch(() => console.log('launch window never took focus; checking typed input anyway'));
   const initialCount = (await state()).tabs.length;
   // Exercise actual input with production blur policy (BLANC_TEST=0). Main
   // process evaluation in the source harness deliberately suppresses blur.
@@ -37,7 +47,14 @@ try {
   await overlay.keyboard.type('https://example.com');
   await overlay.evaluate(() => new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve))));
   assert.equal(await address.isVisible(), true, 'typing must not dismiss the address surface');
-  assert.equal(await address.inputValue(), 'https://example.com', 'late focus cannot replace a typed prefix');
+  const typed = await address.inputValue();
+  if (typed !== 'https://example.com') {
+    // Where focus went decides the cause, so report it with the failure.
+    console.log('address focus after typing:', JSON.stringify(await overlay.evaluate(() => ({
+      overlayFocused: document.hasFocus(), active: document.activeElement?.id || document.activeElement?.tagName,
+    }))));
+  }
+  assert.equal(typed, 'https://example.com', 'late focus cannot replace a typed prefix');
   await overlay.keyboard.press('Escape');
   await address.waitFor({ state: 'hidden' });
   await chrome.evaluate(id => window.browserAPI.closeTab(id), typedTab.activeTabId);
