@@ -900,6 +900,10 @@ remain pending. D3 beta-only no-DRM exception accepted; EME notice/handoff requi
   `:focus-within` scrollbar rule with a color transition froze the page's
   painting when a row took focus (a native sample showed paint repeating);
   both are gone. Test `chromium/tests/native-start-devices.mjs`: 5/5.
+  Later (owner): the header holds only the Sunrise and date on the left, so
+  on a wide page the right column starts on the header's top line and ends
+  level with the left one, above the header's empty right half. The devices
+  test checks it: 6/6.
 - **Extension side panels as Start Page cards (2026-11-13, owner: "Prototype
   it"; fork only, prototype):** an installed extension with a side panel
   (`chrome.sidePanel`, `side_panel.default_path`) appears in Customize as one
@@ -2601,5 +2605,5 @@ Android's Bar A counts the shared scenarios bound in `chromium/tests/android/acc
 
 Legacy macOS stages come from the approved spec; they await verification on the canonical candidate. No legacy stage counts as Verified.
 
-Candidate identities: macOS: macos-17c23d2c2396d6db; Windows: none; Linux: none; Android: android-arm64-7bd35e94ef746069.
+Candidate identities: macOS: macos-f2695a2b7775cc22; Windows: none; Linux: none; Android: android-arm64-7bd35e94ef746069.
 <!-- END GENERATED PROGRESS -->

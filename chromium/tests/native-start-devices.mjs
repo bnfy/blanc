@@ -1,5 +1,5 @@
-// The Start Page's On your other devices card (fork redesign): a column fits
-// between the header and the footer however many tabs it lists (the list
+// The Start Page's On your other devices card (fork redesign): the right
+// column starts on the header's line, a column fits between the header and the footer however many tabs it lists (the list
 // scrolls inside the card), a tall card is carried as a short preview, a
 // finger swipe scrolls the list, the scrollbar shows on hover and while
 // scrolling only, and a row taking focus never freezes the page.
@@ -30,10 +30,16 @@ try{
  // This profile has no synced devices: the page draws these three itself.
  const draw=()=>page.eval(`(()=>{const r=document.querySelector('.tally-right');if(r)r.hidden=false;remoteExpanded.add('a');renderRemote(${JSON.stringify(DEVICES)});return 1;})()`);
  await draw();await new Promise(r=>setTimeout(r,500));
- const fit=await page.eval(`(()=>{const rail=document.getElementById('bbRailRight').getBoundingClientRect(),foot=document.getElementById('layoutFooter').getBoundingClientRect(),list=document.getElementById('remoteList');
-  return {railBottom:rail.bottom,footerTop:foot.top,listHeight:list.clientHeight,listContent:list.scrollHeight,fadeEnd:list.dataset.fadeEnd};})()`);
+ const fit=await page.eval(`(()=>{const railEl=document.getElementById('bbRailRight'),rail=railEl.getBoundingClientRect(),left=document.getElementById('bbRailLeft').getBoundingClientRect(),
+  brand=document.querySelector('.start-brand').getBoundingClientRect(),foot=document.getElementById('layoutFooter').getBoundingClientRect(),list=document.getElementById('remoteList');
+  const hit=document.elementFromPoint(rail.left+rail.width/2,rail.top+8);
+  return {railTop:rail.top,brandTop:brand.top,leftTop:left.top,railBottom:rail.bottom,leftBottom:left.bottom,footerTop:foot.top,topClickable:!!hit&&railEl.contains(hit),
+   listHeight:list.clientHeight,listContent:list.scrollHeight,fadeEnd:list.dataset.fadeEnd};})()`);
  result.fit=fit;
+ assert.ok(Math.abs(fit.railTop-fit.brandTop)<=2&&fit.railTop<fit.leftTop,'the right column rises to the header line, beside the Sunrise');
+ assert.ok(fit.topClickable,'the right column\'s top is not under the header');
  assert.ok(fit.railBottom<=fit.footerTop,'the column ends above the footer');
+ result.checks.push('the right column starts level with the Sunrise and date, its top clickable above the header');
  assert.ok(fit.listContent>fit.listHeight+200&&fit.fadeEnd==='true','the list scrolls inside its card, faded at the end');
  result.checks.push('with 58 tabs and the chart in one column, the column ends above the footer and the list scrolls inside its card');
  // Carry the devices card by its grip.

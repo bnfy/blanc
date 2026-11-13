@@ -222,6 +222,16 @@ body.widget-dragging .bb-rail { display: flex; min-height: 96px; }
   .bb-rail[data-side="left"] { left: var(--start-edge); }
   .bb-rail[data-side="right"] { right: var(--start-edge); }
   body.widget-dragging .bb-rail { min-height: calc(100vh - var(--start-header-h, 96px) - var(--start-footer-h, 64px) - 48px); }
+  /* The header holds only the Sunrise and the date, on the left, so the right
+     column rises to the header's own top line (owner, 2026-11-13) and ends
+     level with the left one. It sits above the header's empty right half,
+     which would otherwise take its clicks. */
+  .bb-rail[data-side="right"] {
+    --rail-top: clamp(30px, 5vh, 48px);
+    top: var(--rail-top); z-index: 7;
+    max-height: calc(100vh - var(--rail-top) - var(--start-footer-h, 64px) - 24px);
+  }
+  body.widget-dragging .bb-rail[data-side="right"] { min-height: calc(100vh - var(--rail-top) - var(--start-footer-h, 64px) - 24px); }
 }
 #bbWidgets [data-widget]:not(.widget-on) { display: none; }
 body:not(.widget-dragging) .bb-widgets:not(:has(> .bb-rail[data-empty="false"])) { display: none; }
