@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 import fs from 'node:fs';
 import path from 'node:path';
+import {pinnedBlockerBundle} from './verify.mjs';
 import { pathToFileURL } from 'node:url';
 import { validateRelease, validateProfile, validateIdentityList, validateGN, validateLedger, ROOT_ID, PRODUCT, TEAM, sha256, check, equal, reason } from './policy.mjs';
 import { profileAt, run, GIT, PYTHON } from './native.mjs';
@@ -68,6 +69,8 @@ export function preflight(r, {root = ROOT, inputs, now = Date.now()} = {}) {
     const gn=validateGN(fs.readFileSync(inputs.gnArgs[arch],'utf8'),arch);
     run(PYTHON,[path.join(root,'chromium/blanc/third_party/sparkle/verify.py'),
       '--stage',gn.blanc_sparkle_stage,'--archive-sha256',r.sparkle.archiveSHA256]);
+    // The build embeds this engine; the build and the browser refuse any other bytes.
+    equal(sha256(fs.readFileSync(path.join(gn.blanc_blocker_bundle,'engine.js'))), pinnedBlockerBundle(root), 'blocker bundle is not the pinned one');
   }
   const inspected = profileAt(inputs.profile);
   validateProfile(inspected.data, inspected.certificates, r, now);

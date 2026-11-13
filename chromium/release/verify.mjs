@@ -33,6 +33,15 @@ export function parts(r) {
     {path: `${sparkle}/Versions/B/XPCServices/Downloader.xpc`, id: 'org.sparkle-project.DownloaderService', role: 'none', runtime: true},
   ];
 }
+// The blocker engine ships inside the app (//blanc:beta_blocker_engine); the
+// browser refuses any other bytes, so a wrong one would stop every page.
+export const BLOCKER_ENGINE = 'Contents/Resources/blanc_blocker/engine.js';
+export function pinnedBlockerBundle(root = path.resolve(import.meta.dirname, '../..')) {
+  const header = fs.readFileSync(path.join(root, 'chromium/blanc/services/blocker/bundle_hash.h'), 'utf8');
+  const pinned = header.match(/kBlancBlockerBundleSha256\[\] = "([0-9a-f]{64})"/)?.[1];
+  check(pinned, 'no pinned blocker bundle hash');
+  return pinned;
+}
 export const NOTICES = ['LICENSE', 'THIRD-PARTY-NOTICES.md', 'ASSET-LICENSE.md', 'Chromium-LICENSE', 'Chromium-credits.html', 'Sparkle-LICENSE', 'THIRD_PARTY_NOTICES.txt'];
 export function validateAppInfo(info, r, arch, {allowLocalQualification = false} = {}) {
   const local = r.localQualification === true;
@@ -107,6 +116,7 @@ export function validateLayout(app, r, tree) {
     const stat = fs.statSync(path.join(app, 'Contents/Resources/notices', notice));
     check(stat.isFile() && stat.size > 0, 'missing packaged notice');
   }
+  equal(sha256(fs.readFileSync(path.join(app, BLOCKER_ENGINE))), pinnedBlockerBundle(), 'packaged blocker engine is the pinned bundle');
   return expected;
 }
 // Explicit local-only inspection. No signer lookup, profile install, Gatekeeper,
@@ -130,7 +140,7 @@ export function verifyLocalApp(app, r, arch) {
   check(run('/usr/bin/otool',['-L',framework]).includes('Sparkle.framework/Versions/B/Sparkle'), 'Sparkle native linkage missing');
   const notices = Object.fromEntries(NOTICES.map(name=>[name,sha256(fs.readFileSync(path.join(app,'Contents/Resources/notices',name)))]));
   return {candidate:r.candidates[arch],build:r.build,version:r.version,arch,
-    status:'local-layout-and-architecture-verified',localQualification:true,binaries,nestedIds:ids,notices,
+    status:'local-layout-and-architecture-verified',localQualification:true,binaries,nestedIds:ids,notices,blockerEngine:pinnedBlockerBundle(),
     developerId:'NOT RUN',notarization:'NOT RUN',gatekeeper:'NOT RUN (Apple contact prohibited)',acceptance:'NOT RUN'};
 }
 export function verifyApp(app, r, arch, scratch) {

@@ -160,7 +160,10 @@ export default function register(step){
    texts=>texts.includes('research'),'the research group on the rendered Start Page');
  });
  step('it shows the weekly blocked count',async function(){
-  await until(this,()=>startDom(this,`(()=>{const e=document.getElementById('footerLeft');return !!e&&!e.hidden&&e.getBoundingClientRect().width>0&&/\\d/.test(e.textContent);})()`),
+  // V24/V26 (owner, 2026-11-13): Billboard is the one layout, and its week's
+  // count is the line under the clock; shipping shows #footerLeft's count in
+  // Ledger only (pages.css hides it in every other layout).
+  await until(this,()=>startDom(this,`(()=>{const e=document.getElementById('bbBlocked');return !!e&&!e.hidden&&e.getBoundingClientRect().width>0&&/\\d/.test(e.textContent);})()`),
    Boolean,'a visible weekly blocked count');
  });
  step('it shows no mascot',async function(){

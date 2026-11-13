@@ -21,7 +21,7 @@ export const check = (condition, message) => { if (!condition) throw new Release
 export const equal = (actual, expected, message) => check(isDeepStrictEqual(actual, expected), message);
 export const reason = error => error instanceof ReleaseCheckError ? error.message : 'unexpected error (details withheld)';
 // GN arguments beyond the required ones, each added here only after review.
-export const GN_REVIEWED_EXTRA = ['blanc_beta_version', 'blanc_beta_build', 'blanc_sparkle_stage', 'blanc_sparkle_public_key', 'blanc_sparkle_archive_sha256', 'blanc_beta_local_qualification', 'chrome_pgo_phase', 'symbol_level', 'mac_deployment_target', 'mac_min_system_version'];
+export const GN_REVIEWED_EXTRA = ['blanc_beta_version', 'blanc_beta_build', 'blanc_sparkle_stage', 'blanc_sparkle_public_key', 'blanc_sparkle_archive_sha256', 'blanc_blocker_bundle', 'blanc_beta_local_qualification', 'chrome_pgo_phase', 'symbol_level', 'mac_deployment_target', 'mac_min_system_version'];
 export function base64(value, bytes) {
   return typeof value === 'string' && /^[A-Za-z0-9+/]+={0,2}$/.test(value) &&
     Buffer.from(value, 'base64').length === bytes && Buffer.from(value, 'base64').toString('base64') === value;
@@ -49,7 +49,9 @@ export function validateRelease(r, {allowLocalQualification = false} = {}) {
   check(/^[a-f0-9]{64}$/.test(r.inputDigest), 'input digest required');
   check(Array.isArray(r.arches) && r.arches.length > 0 && r.arches.length === new Set(r.arches).size && r.arches.every(a => ['arm64', 'x64'].includes(a)), 'architecture set');
   check(r.arches.length === 2 || (typeof r.archWaiver === 'string' && r.archWaiver.trim().length >= 20), 'both architectures or recorded owner waiver required');
-  if (r.version === '2.0.0-beta.1') equal(r.arches, ['arm64'], 'beta 1 is Apple Silicon only under the owner Intel waiver');
+  // The owner's Intel waiver (2026-11-10) covers the first beta: beta.1 is the private
+  // local-qualification build, and the first public beta is beta.2 (owner, 2026-11-13).
+  if (['2.0.0-beta.1', '2.0.0-beta.2'].includes(r.version)) equal(r.arches, ['arm64'], 'the first beta is Apple Silicon only under the owner Intel waiver');
   equal(Object.keys(r.candidates).sort(), [...r.arches].sort(), 'candidate for every architecture');
   for (const arch of r.arches) {
     check(/^macos-[a-f0-9]{16}$/.test(r.candidates[arch]), 'candidate id');
@@ -81,6 +83,7 @@ export function validateGN(text, arch, {allowLocalQualification = false} = {}) {
   check(Number.isInteger(values.blanc_beta_build) && values.blanc_beta_build > 0 && values.blanc_beta_build <= 9999, 'explicit beta build GN argument');
   check(typeof values.blanc_sparkle_stage === 'string' && values.blanc_sparkle_stage.startsWith('/'), 'absolute immutable Sparkle stage required');
   check(base64(values.blanc_sparkle_public_key, 32), 'Sparkle GN public key required');
+  check(typeof values.blanc_blocker_bundle === 'string' && values.blanc_blocker_bundle.startsWith('/'), 'absolute blocker bundle folder required');
   check(/^[a-f0-9]{64}$/.test(values.blanc_sparkle_archive_sha256), 'Sparkle GN archive digest required');
   for (const [key, expected] of Object.entries({chrome_pgo_phase:0, symbol_level:0,
     mac_deployment_target:'13.0', mac_min_system_version:'13.0'}))

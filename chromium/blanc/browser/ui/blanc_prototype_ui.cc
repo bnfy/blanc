@@ -73,6 +73,7 @@
 #include "base/task/single_thread_task_runner.h"
 #include "ui/views/window/dialog_delegate.h"
 #include "chrome/browser/lifetime/application_lifetime.h"
+#include "blanc/services/blocker/blocker_available.h"
 #include "blanc/services/blocker/blocker_proxy.h"
 #include "chrome/browser/ui/profiles/profile_picker.h"
 #include "ui/views/controls/label.h"
@@ -4260,7 +4261,7 @@ base::DictValue Snapshot(BrowserWindowInterface* browser, Owner* owner) {
       .Set("verticalTabsPreferredWidth", owner->rail_width)
       .Set("verticalTabsMinWidth", 200).Set("verticalTabsMaxWidth", 360)
       .Set("verticalTabsDefaultWidth", 248)
-      .Set("adblockEnabled", base::CommandLine::ForCurrentProcess()->HasSwitch("blanc-blocker-assets") && blanc::BlockingEnabled(browser->GetProfile()))
+      .Set("adblockEnabled", blanc::BlockerAvailable() && blanc::BlockingEnabled(browser->GetProfile()))
       .Set("captureChip", base::DictValue().Set("audio", capture_audio).Set("video", capture_video))
       .Set("capturePopover", base::DictValue().Set("rows", std::move(capture_rows)))
       .Set("displayShares", base::ListValue());

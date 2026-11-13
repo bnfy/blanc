@@ -218,7 +218,7 @@ The complete two-architecture set has 11 assets:
 
 An architecture waiver removes its DMG/appcast pair, not integrity assets. No `latest*.yml`, `beta*.yml`, Electron ZIP, blockmap or stable-named installer is allowed. Store debug symbols privately, keyed by candidate/UUID, unless an expanded public asset schema is reviewed.
 
-Generate a full CycloneDX SBOM from the actual pinned Chromium DEPS/build dependency graph, bundled native libraries/resources, canonical Blanc source, Sparkle and third-party payloads. Include versions, licences, hashes/provenance and component relationships. Electron's npm runtime SBOM is insufficient. A fork SBOM/credits extraction adapter is **not implemented here** and is a phase-2 gate; `manifest.mjs` only validates the CycloneDX envelope and Chromium/Sparkle component floor, not completeness. Audit the contents against the packaged dependency closure before setting the notices gate to pass.
+Generate a full CycloneDX SBOM from the actual pinned Chromium DEPS/build dependency graph, bundled native libraries/resources, canonical Blanc source, Sparkle and third-party payloads. Include versions, licences, hashes/provenance and component relationships. Electron's npm runtime SBOM is insufficient. The fork's adapter is `chromium/release/sbom_scan.py` plus `sbom.mjs` (see *SBOM, NOTICES.txt and the notices-and-credits gate* below); `manifest.mjs` itself still checks only the CycloneDX envelope, the Chromium/Sparkle floor and that the SBOM names this release's source commit and input digest. Audit the contents against the packaged dependency closure before setting the notices gate to pass.
 
 In a new staging directory containing only the eight payloads, with the gate evidence bundles in a separate private directory as `<arch>/<gate>.evidence` (one file per gate named in `GATES`, each matching the digest recorded in `acceptance.json`):
 
@@ -349,8 +349,13 @@ The staging tool performs no download or signing, refuses reuse of its
 hash-named directory, validates safe symlinks and the complete file inventory,
 and records the source archive hash. Set `blanc_sparkle_stage` to that immutable
 absolute directory, `blanc_sparkle_archive_sha256` to its reviewed archive hash,
-and `blanc_sparkle_public_key` to the owner-supplied public key. These are beta
-build arguments; leave preview's args.gn alone. The public key is passed to the
+and `blanc_sparkle_public_key` to the owner-supplied public key. Set
+`blanc_blocker_bundle` to the absolute folder holding the blocker's `engine.js`
+(made by `experiments/chromium-extension-spike/native/blocker/bundle.mjs`): the
+beta embeds it as `Contents/Resources/blanc_blocker/engine.js`, and the build
+(`services/blocker/verify_bundle.py`), preflight, `verify.mjs` and the browser
+each refuse any bytes but the hash pinned in `services/blocker/bundle_hash.h`.
+These are beta build arguments; leave preview's args.gn alone. The public key is passed to the
 metadata generator in a generated JSON input, not command-line output. No
 private key is generated, stored or passed by this integration.
 
@@ -589,3 +594,94 @@ immutable assets, and record the future public N→N+1 handoff separately.
 
 The guarded `scripts/release-chromium-beta.sh` remains plan-only. The commands
 above deliberately do not turn it into an unqualified automated release path.
+
+### Staged operator: `chromium/release/release.mjs` (2026-11-13)
+
+The owner asked for the build, signing and publish stages to be written, and
+chose **2.0.0-beta.2** (build 2) for the first public beta; `ledger.json`
+keeps beta.1 reserved for the private local-qualification build, and the
+Intel waiver moves with the first beta to beta.2. `release.mjs` runs the
+§10 commands above as named stages, one per invocation, from a foreground
+Terminal:
+
+```sh
+node chromium/release/release.mjs status "$BETA_WORK"
+node chromium/release/release.mjs preflight "$BETA_WORK"      # §10.3, preflight.mjs
+node chromium/release/release.mjs sign "$BETA_WORK"           # §10.3, operator.mjs signApp
+OP_BIOMETRIC_UNLOCK_ENABLED=true op run --env-file=.env.1password --no-masking -- \
+  node chromium/release/release.mjs notarize-app "$BETA_WORK" # §10.4: zip, notarize, staple
+node chromium/release/release.mjs dmg "$BETA_WORK"            # §10.5: hdiutil, sign the DMG
+OP_BIOMETRIC_UNLOCK_ENABLED=true op run --env-file=.env.1password --no-masking -- \
+  node chromium/release/release.mjs notarize-dmg "$BETA_WORK" # §10.5: notarize, staple, verify.mjs, spctl
+node chromium/release/release.mjs sparkle "$BETA_WORK"        # §10.6: sign_update -p, appcast
+node chromium/release/release.mjs manifest "$BETA_WORK"       # §7: payloads, evidence, manifest
+node chromium/release/release.mjs draft "$BETA_WORK"          # §10.8: absence, typed OK, tag, draft, re-download
+node chromium/release/release.mjs sigstore "$BETA_WORK"       # §7: Safari Sigstore, verify, upload bundle
+node chromium/release/release.mjs publish "$BETA_WORK"        # typed OK; pre-release, not latest
+node chromium/release/release.mjs verify-public "$BETA_WORK"  # §8: logged-out download, all checks
+```
+
+`$BETA_WORK` is an owner-only folder outside Git holding `release.json`,
+`local-inputs.json` (preflight's inputs plus `unsigned: {arm64: <built app>}`
+and `sparkle: <extracted pinned Sparkle>`), and before `manifest`,
+`payloads/` (`acceptance.json`, `Blanc-Beta.cdx.json`, `NOTICES.txt`,
+`release-notes.md`) and `evidence/<arch>/<gate>.evidence`. Each stage checks
+the one before it and records what it made in `state.json`, bound to the
+digest of `release.json`. From `draft` on, nothing earlier can run again and no
+stage reruns: fix forward with a new ledger build. Absence of the tag and of
+every release, drafts included, must be answered by Git and GitHub; an error
+is not absence. `draft` and `publish` require typing a confirmation phrase.
+`publish` checks GitHub shows a published pre-release and that `/latest` is
+still an Electron release. Feed promotion stays the reviewed website PR.
+
+Still owed before the first public run: the production key ceremony (§10.1)
+and the production-argument build at beta.2 (§10.2); the gate adapters that
+produce real `acceptance.json` evidence on an official image (§6: acceptance
+harness, desktop Sync on the official artifact, packaged blocker extractor, outbound isolation, native checks, signed N→N+1);
+the fork's hosted smoke workflow and the blanc.day feed routes (§8). Tests:
+`chromium/release/release-stages.test.mjs` (ordering, no rerun, absence,
+unconfirmed draft and publish, `/latest`), with a fake runner throughout.
+
+### SBOM, NOTICES.txt and the notices-and-credits gate (2026-11-13)
+
+Three steps per candidate, all read-only on the build folder and offline:
+
+1. `python3 chromium/release/sbom_scan.py --src SRC --out-dir out/<dir> SCAN.json`
+   runs Chromium's own `tools/licenses/licenses.py` discovery (the one
+   `chrome://credits` is generated from) for `//chrome:chrome` with
+   `shipped_only`, adds each component's version, revision and CPE, hashes
+   every licence text, and records every folder the tool skipped. `gn desc`
+   runs on a temporary copy of `args.gn`, never in the build folder. Run it
+   with depot_tools on `PATH` and `DEVELOPER_DIR` set, as for builds.
+2. `node chromium/release/sbom.mjs build RELEASE.json SCAN.json SRC OUT_DIR`
+   writes `Blanc-Beta.cdx.json` (CycloneDX 1.6, deterministic: Blanc Beta as
+   the subject with its source commit and input digest, Chromium, Sparkle with
+   its archive digest, the Blanc interface assets and every Chromium
+   component, with licences, licence-text digests and the dependency tree) and
+   `NOTICES.txt` (every component with its licence, each distinct licence text
+   once). It refuses a licence text that changed since the scan, an Island
+   asset that isn't the pinned or reviewed file, and any skipped folder not
+   reviewed in `chromium/release/sbom-extra.json`. That file is the reviewed
+   list of what Chromium's metadata doesn't cover: the Island's fonts, Kagi
+   bangs and Lucide icons; four components in folders `licenses.py` skips
+   (upstream Chrome's credits skip them too); and what the beta deliberately
+   doesn't bundle. Put both outputs in the work folder's `payloads/`.
+3. `node chromium/release/sbom.mjs audit RELEASE.json SCAN.json SRC APP SBOM EVIDENCE`
+   checks the packaged app and writes the evidence file whatever the result
+   (copy it to `evidence/<arch>/notices-and-credits.evidence` only on a pass):
+   every file in `Contents/Resources/notices` present and equal to its
+   reviewed source, `Chromium-credits.html` naming every shipped component,
+   the SBOM rebuilt byte for byte, `THIRD_PARTY_NOTICES.txt` naming every
+   Blanc asset and none of the Electron app's components, and the app's
+   `CFBundleVersion` equal to the release build.
+
+The first run (2026-11-13) found two gaps, both fixed the same day: the
+packaged `THIRD_PARTY_NOTICES.txt` was the Electron app's notice, and desktop
+builds loaded the blocker only from `--blanc-blocker-assets`, so a beta opened
+from Finder blocked nothing. The beta now embeds the pinned engine (see the
+`blanc_blocker_bundle` argument above), and its notice is generated by
+`chromium/release/fork-notice.mjs` from compliance/policy.json, sbom-extra.json
+and `chromium/blanc/third_party/blocker/bundle.json` (the engine bundle's
+provenance and licence texts), with full licence texts; `--check` fails when
+it is stale. The SBOM lists the engine bundle and what it was built from.
+Tests: `chromium/release/sbom.test.mjs`.

@@ -19,13 +19,13 @@ const keyFixture = () => {
   r.sparkle.publicKey=Buffer.from(v.publicKeyHex,'hex').toString('base64');
   return {r,bytes:Buffer.from(v.messageHex,'hex'),signature:Buffer.from(v.signatureHex,'hex').toString('base64')};
 };
-const gn = (arch, archiveSHA256=sha256('sparkle')) => `target_os = "mac"\ntarget_cpu = "${arch}"\nis_official_build = true\nis_debug = false\nis_component_build = false\nis_chrome_branded = false\nblanc_channel = "beta"\nenable_widevine = false\nbundle_widevine_cdm = false\nenable_updater = false\nblanc_beta_version = "2.0.0-beta.1"\nblanc_beta_build = 1\nblanc_sparkle_stage = "/fixture/sparkle"\nblanc_sparkle_public_key = "${fixture().sparkle.publicKey}"\nblanc_sparkle_archive_sha256 = "${archiveSHA256}"\n`;
+const gn = (arch, archiveSHA256=sha256('sparkle')) => `target_os = "mac"\ntarget_cpu = "${arch}"\nis_official_build = true\nis_debug = false\nis_component_build = false\nis_chrome_branded = false\nblanc_channel = "beta"\nenable_widevine = false\nbundle_widevine_cdm = false\nenable_updater = false\nblanc_beta_version = "2.0.0-beta.1"\nblanc_beta_build = 1\nblanc_sparkle_stage = "/fixture/sparkle"\nblanc_sparkle_public_key = "${fixture().sparkle.publicKey}"\nblanc_sparkle_archive_sha256 = "${archiveSHA256}"\nblanc_blocker_bundle = "/fixture/blocker"\n`;
 test('preflight pins actual GN, profile and Sparkle bytes; refuses preview/DRM/expressions',()=>temp(dir=>{
   const r=fixture(),inputs={profile:path.join(dir,'profile'),sparkleArchive:path.join(dir,'sparkle'),gnArgs:{}};
   fs.writeFileSync(inputs.profile,'profile');r.profileSHA256=sha256('profile');fs.writeFileSync(inputs.sparkleArchive,'sparkle');r.sparkle.archiveSHA256=sha256('sparkle');
   for(const arch of r.arches){inputs.gnArgs[arch]=path.join(dir,arch);fs.writeFileSync(inputs.gnArgs[arch],gn(arch));r.gnArgsSHA256[arch]=sha256(gn(arch));}
   validateLocalInputs(r,inputs);
-  for(const changed of [gn('arm64').replace('is_official_build = true','is_official_build = false'),gn('arm64').replace('enable_widevine = false','enable_widevine = true'),gn('arm64').replace('"beta"','"release"'),gn('arm64')+'import("other.gni")',gn('arm64')+'target_cpu = "x64"',gn('arm64')+'dcheck_always_on = true',gn('arm64')+'is_asan = true'])assert.throws(()=>validateGN(changed,'arm64'));
+  for(const changed of [gn('arm64').replace('blanc_blocker_bundle = "/fixture/blocker"\n',''),gn('arm64').replace('"/fixture/blocker"','"relative/blocker"'),gn('arm64').replace('is_official_build = true','is_official_build = false'),gn('arm64').replace('enable_widevine = false','enable_widevine = true'),gn('arm64').replace('"beta"','"release"'),gn('arm64')+'import("other.gni")',gn('arm64')+'target_cpu = "x64"',gn('arm64')+'dcheck_always_on = true',gn('arm64')+'is_asan = true'])assert.throws(()=>validateGN(changed,'arm64'));
   fs.writeFileSync(inputs.sparkleArchive,'changed');assert.throws(()=>validateLocalInputs(r,inputs));
 }));
 test('release policy accepts isolated beta and requires immutable monotonic versions', () => {
@@ -110,7 +110,7 @@ function payloadFixture(){
   const {r,bytes,signature}=keyFixture(),payloads={},e={sourceCommit:r.sourceCommit,inputDigest:r.inputDigest,build:r.build,arches:{}};
   for(const arch of r.arches){payloads[assetName(r,arch)]=bytes;payloads[`appcast-${arch}.xml`]=Buffer.from(generateAppcast(r,arch,bytes,signature));e.arches[arch]={candidate:r.candidates[arch],dmgSHA256:sha256(bytes),gnArgsSHA256:r.gnArgsSHA256[arch],gates:Object.fromEntries(GATES.map(g=>[g,{status:'pass',evidenceSHA256:'a'.repeat(64)}]))};}
   payloads['release.json']=Buffer.from(JSON.stringify(r));payloads['acceptance.json']=Buffer.from(JSON.stringify(e));payloads['NOTICES.txt']=Buffer.from('fixture notices');
-  payloads['Blanc-Beta.cdx.json']=Buffer.from(JSON.stringify({bomFormat:'CycloneDX',specVersion:'1.6',version:1,components:[{name:'Chromium',version:r.chromiumVersion,licenses:[{license:{id:'BSD-3-Clause'}}]},{name:'Sparkle',version:r.sparkle.version,licenses:[{license:{id:'MIT'}}]}]}));
+  payloads['Blanc-Beta.cdx.json']=Buffer.from(JSON.stringify({bomFormat:'CycloneDX',specVersion:'1.6',version:1,metadata:{component:{name:'Blanc Beta',version:r.version,properties:[{name:'blanc:sourceCommit',value:r.sourceCommit},{name:'blanc:inputDigest',value:r.inputDigest}]}},components:[{name:'Chromium',version:r.chromiumVersion,licenses:[{license:{id:'BSD-3-Clause'}}]},{name:'Sparkle',version:r.sparkle.version,licenses:[{license:{id:'MIT'}}]}]}));
   return {r,payloads,e};
 }
 test('manifest covers every payload, itself in checksums, excludes signature recursion',()=>temp(dir=>{
@@ -123,7 +123,7 @@ test('manifest covers every payload, itself in checksums, excludes signature rec
   fs.appendFileSync(path.join(dir,'NOTICES.txt'),'changed');assert.throws(()=>verifyManifest(dir,r));
 }));
 test('manifest rejects stable metadata, missing evidence, mismatched candidate and partial SBOM',()=>{
-  for(const alter of [p=>p['latest-mac.yml']=Buffer.from('bad'),p=>delete p['NOTICES.txt'],p=>p['Blanc-Beta.cdx.json']=Buffer.from('{}'),p=>{const e=JSON.parse(p['acceptance.json']);e.arches.arm64.candidate='wrong';p['acceptance.json']=Buffer.from(JSON.stringify(e));},p=>{const e=JSON.parse(p['acceptance.json']);e.arches.arm64.gates['production-sync-real-device'].status='pending';p['acceptance.json']=Buffer.from(JSON.stringify(e));}]){const {r,payloads}=payloadFixture();alter(payloads);assert.throws(()=>makeManifest(r,payloads));}
+  for(const alter of [p=>p['latest-mac.yml']=Buffer.from('bad'),p=>delete p['NOTICES.txt'],p=>p['Blanc-Beta.cdx.json']=Buffer.from('{}'),p=>{const b=JSON.parse(p['Blanc-Beta.cdx.json']);b.metadata.component.properties[0].value='1'.repeat(40);p['Blanc-Beta.cdx.json']=Buffer.from(JSON.stringify(b));},p=>{const e=JSON.parse(p['acceptance.json']);e.arches.arm64.candidate='wrong';p['acceptance.json']=Buffer.from(JSON.stringify(e));},p=>{const e=JSON.parse(p['acceptance.json']);e.arches.arm64.gates['production-sync-real-device'].status='pending';p['acceptance.json']=Buffer.from(JSON.stringify(e));}]){const {r,payloads}=payloadFixture();alter(payloads);assert.throws(()=>makeManifest(r,payloads));}
 });
 test('source inventory detects changed patch and pristine inputs without a Chromium checkout',()=>temp(root=>{
   const write=(name,value)=>{fs.mkdirSync(path.dirname(path.join(root,name)),{recursive:true});fs.writeFileSync(path.join(root,name),value);};
@@ -199,5 +199,6 @@ test('local artifact marker and loopback feed cannot pass production metadata ve
 test('beta notice source copies preserve the repository grants and complete third-party terms',()=>{
   const root=fileURLToPath(new URL('../../',import.meta.url));
   for(const name of ['LICENSE','ASSET-LICENSE.md','THIRD-PARTY-NOTICES.md'])assert.deepEqual(fs.readFileSync(path.join(root,'chromium/blanc/notices',name)),fs.readFileSync(path.join(root,name)));
-  assert.deepEqual(fs.readFileSync(path.join(root,'chromium/blanc/notices/THIRD_PARTY_NOTICES.txt')),fs.readFileSync(path.join(root,'compliance/THIRD_PARTY_NOTICES.txt')));
+  // The beta's own notice (fork-notice.mjs), never the Electron app's.
+  assert.notDeepEqual(fs.readFileSync(path.join(root,'chromium/blanc/notices/THIRD_PARTY_NOTICES.txt')),fs.readFileSync(path.join(root,'compliance/THIRD_PARTY_NOTICES.txt')));
 });

@@ -10,6 +10,9 @@
 #if !BUILDFLAG(IS_ANDROID)
 #include "chrome/browser/profiles/nuke_profile_directory_utils.h"
 #endif
+#if BUILDFLAG(BLANC_BETA_CHANNEL)
+#include "base/apple/bundle_locations.h"
+#endif
 #if BUILDFLAG(IS_ANDROID)
 #include "base/android/apk_assets.h"
 #include "base/containers/span.h"
@@ -130,7 +133,19 @@ std::string ReadBundle() {
   if (!file.ReadAndCheck(region.offset, base::as_writable_byte_span(script))) return std::string();
   if (test_bad_bundle) script.back() ^= 1;
 #else
-  auto path = base::CommandLine::ForCurrentProcess()->GetSwitchValuePath("blanc-blocker-assets").AppendASCII("engine.js");
+  const auto* command_line = base::CommandLine::ForCurrentProcess();
+  base::FilePath path;
+  if (command_line->HasSwitch("blanc-blocker-assets")) {
+    path = command_line->GetSwitchValuePath("blanc-blocker-assets").AppendASCII("engine.js");
+  } else {
+#if BUILDFLAG(BLANC_BETA_CHANNEL)
+    // Embedded by //blanc:beta_blocker_engine; this runs in the browser process.
+    path = base::apple::OuterBundlePath().Append("Contents").Append("Resources")
+               .Append("blanc_blocker").AppendASCII("engine.js");
+#else
+    return std::string();
+#endif
+  }
   if (!base::ReadFileToStringWithMaxSize(path, &script, 16 * 1024 * 1024)) return std::string();
 #endif
   if (base::ToLowerASCII(base::HexEncode(crypto::hash::Sha256(script))) != kBlancBlockerBundleSha256) return std::string();
