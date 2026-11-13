@@ -877,11 +877,12 @@ remain pending. D3 beta-only no-DRM exception accepted; EME notice/handoff requi
   Favorites + More shortcuts (Shelf's grid showed favorites), Billboard →
   none. Over your image or a theme's image the image stays untouched (owner,
   after the first try's cream plates and clock halo looked wrong): the
-  widgets sit on one glass tray in the Island's material family, the date,
-  blocked line, tile names and group chips keep a soft shadow opposite their
-  ink, the footer sits in a fade up from the bottom edge, the Sunrise mark
-  and date in a soft oval of the same tint on the left only (owner: a shadow
-  alone was not enough for the date, a full top wash too much), and the clock is as
+  widgets sit on one glass tray in the Island's material family; the date,
+  blocked line, tile names and group chips take whichever ink, light or dark,
+  stands out more against the image (and wash) right behind them, read from
+  the image itself (newtab-adapter.js, the Lock Screen's way; owner, after a
+  shadow alone and then a wash behind the date both fell short); the footer
+  sits in a fade up from the bottom edge; and the clock is as
   it was (its own opposite shadow). The tray's inks and the footer's ink keep
   4.5:1 or more over pure black and pure white behind them
   (start-plates.test.mjs); native-start-widgets.mjs checks the switches, live
@@ -2539,5 +2540,5 @@ Android's Bar A counts the shared scenarios bound in `chromium/tests/android/acc
 
 Legacy macOS stages come from the approved spec; they await verification on the canonical candidate. No legacy stage counts as Verified.
 
-Candidate identities: macOS: macos-2959317a22366dfb; Windows: none; Linux: none; Android: android-arm64-7bd35e94ef746069.
+Candidate identities: macOS: macos-387a2a3a263cae42; Windows: none; Linux: none; Android: android-arm64-7bd35e94ef746069.
 <!-- END GENERATED PROGRESS -->

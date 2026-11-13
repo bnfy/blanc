@@ -27,8 +27,6 @@ const schemes = [...css.matchAll(/([^{}]+)\{([^{}]*--start-tray:[^{}]*)\}/g)].ma
 });
 // The fade's weakest point under the footer's text.
 const FADE_UNDER_TEXT = Number(/rgb\(var\(--start-footer-fade\) \/ ([\d.]+)\) var\(--start-footer-h/.exec(css)?.[1]);
-// The oval behind the Sunrise mark and date, where the date sits (62%).
-const HEADER_FADE_UNDER_TEXT = Number(/\.start-brand::after[^}]*rgb\(var\(--start-footer-fade\) \/ ([\d.]+)\) 62%/.exec(css)?.[1]);
 
 test('every tray scheme is defined', () => {
   assert.ok(schemes.length >= 4, `found ${schemes.length} tray schemes`);
@@ -38,7 +36,6 @@ test('every tray scheme is defined', () => {
     for (const [name, value] of s.inks) assert.match(value ?? '', /^#[0-9a-f]{6}$/i, `${s.selector}: ${name}`);
   }
   assert.ok(FADE_UNDER_TEXT >= 0.5, `footer fade under its text: ${FADE_UNDER_TEXT}`);
-  assert.ok(HEADER_FADE_UNDER_TEXT >= 0.5, `header fade under the date: ${HEADER_FADE_UNDER_TEXT}`);
 });
 
 test('tray inks keep 4.5:1 over any backdrop', () => {
@@ -50,9 +47,9 @@ test('tray inks keep 4.5:1 over any backdrop', () => {
   assert.deepEqual(failures, []);
 });
 
-test('the footer and header fades keep their ink at 4.5:1 over any backdrop', () => {
+test('the footer fade keeps its ink at 4.5:1 over any backdrop', () => {
   const failures = [];
-  for (const s of schemes) for (const back of BACKS) for (const [where, alpha] of [['footer', FADE_UNDER_TEXT], ['header', HEADER_FADE_UNDER_TEXT]]) {
+  for (const s of schemes) for (const back of BACKS) for (const [where, alpha] of [['footer', FADE_UNDER_TEXT]]) {
     const ink = s.inks.find(([name]) => name === 'start-tray-ink-dim')[1];
     const ratio = contrast(hex(ink), over([...s.fade, alpha], back));
     if (ratio < 4.5) failures.push(`${s.selector} ${where} over ${back[0] ? 'white' : 'black'}: ${ratio.toFixed(2)}`);

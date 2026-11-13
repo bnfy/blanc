@@ -256,7 +256,6 @@ body.widget-chart-on #bbBlocked { display: none; }
   --start-tray-ink: #12100b;
   --start-tray-ink-dim: #4d463d;
   --start-tray-accent: #533a12;
-  --start-text-halo: 0 0 2px rgb(250 247 242 / 0.85), 0 0 6px rgb(250 247 242 / 0.75), 0 1px 16px rgb(250 247 242 / 0.6);
   --start-footer-fade: 250 247 242;
 }
 @media (prefers-color-scheme: dark) {
@@ -267,7 +266,6 @@ body.widget-chart-on #bbBlocked { display: none; }
     --start-tray-ink: #f7f0e5;
     --start-tray-ink-dim: #cdbfae;
     --start-tray-accent: #e0bd7a;
-    --start-text-halo: 0 0 2px rgb(0 0 0 / 0.7), 0 0 6px rgb(0 0 0 / 0.6), 0 1px 16px rgb(0 0 0 / 0.5);
     --start-footer-fade: 24 20 16;
   }
 }
@@ -278,7 +276,6 @@ body.widget-chart-on #bbBlocked { display: none; }
   --start-tray-ink: #12100b;
   --start-tray-ink-dim: #4d463d;
   --start-tray-accent: #533a12;
-  --start-text-halo: 0 0 2px rgb(250 247 242 / 0.85), 0 0 6px rgb(250 247 242 / 0.75), 0 1px 16px rgb(250 247 242 / 0.6);
   --start-footer-fade: 250 247 242;
 }
 .ledger-body[data-wallpaper-style="dark"],
@@ -289,7 +286,6 @@ body.widget-chart-on #bbBlocked { display: none; }
   --start-tray-ink: #f7f0e5;
   --start-tray-ink-dim: #cdbfae;
   --start-tray-accent: #e0bd7a;
-  --start-text-halo: 0 0 2px rgb(0 0 0 / 0.7), 0 0 6px rgb(0 0 0 / 0.6), 0 1px 16px rgb(0 0 0 / 0.5);
   --start-footer-fade: 24 20 16;
 }
 
@@ -308,28 +304,20 @@ body.widget-chart-on #bbBlocked { display: none; }
   box-shadow: 0 10px 30px -18px rgb(0 0 0 / 0.4);
 }
 
-/* Small text over an image: a soft shadow opposite its ink, no backing. */
-.ledger-body[data-wallpaper-style] :is(#bbBlocked, .bb-fav .label, .bb-groups .group-chip) {
-  text-shadow: var(--start-text-halo);
+/* Small text over an image: no backing and no wash. newtab-adapter.js reads
+   the image behind each piece and sets data-ink to the ink that stands out
+   more against it (owner: the Lock Screen's way); a faint shadow in the
+   opposite tone gives it a little lift. */
+.ledger-body[data-wallpaper-style] [data-ink="light"] {
+  color: #f7f0e5 !important;
+  text-shadow: 0 0 1px rgb(0 0 0 / 0.3), 0 1px 8px rgb(0 0 0 / 0.35);
 }
-
-/* The Sunrise mark and date over an image: a soft oval of the footer's
-   tint behind just them, fading out on every side (owner: no wash across the
-   whole top edge; a shadow alone was not enough for the date). */
-.ledger-body[data-wallpaper-style] .start-header {
-  --text-dim: var(--start-tray-ink-dim);
+.ledger-body[data-wallpaper-style] [data-ink="dark"] {
+  color: #12100b !important;
+  text-shadow: 0 0 1px rgb(255 255 255 / 0.3), 0 1px 8px rgb(255 255 255 / 0.4);
 }
-.ledger-body[data-wallpaper-style] .start-brand-date { color: var(--start-tray-ink-dim); }
-.ledger-body[data-wallpaper-style] .start-brand { position: relative; isolation: isolate; }
-.ledger-body[data-wallpaper-style] .start-brand::after {
-  content: ""; position: absolute; inset: -40px -96px; z-index: -1; pointer-events: none;
-  background: radial-gradient(closest-side,
-    rgb(var(--start-footer-fade) / 0.84) 0,
-    rgb(var(--start-footer-fade) / 0.8) 62%,
-    rgb(var(--start-footer-fade) / 0.5) 76%,
-    rgb(var(--start-footer-fade) / 0.2) 89%,
-    rgb(var(--start-footer-fade) / 0) 100%);
-}
+.ledger-body[data-wallpaper-style] .group-chip[data-ink] { border-color: color-mix(in srgb, currentColor 35%, transparent); }
+.ledger-body[data-wallpaper-style] .group-chip[data-ink] .chip-dots i { background: currentColor; }
 
 /* The footer over an image: a fade up from the window's bottom edge, strong
    under the footer's text and gone a little above it. Its items keep their

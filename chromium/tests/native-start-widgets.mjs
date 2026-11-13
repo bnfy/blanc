@@ -75,29 +75,32 @@ try{
  result.checks.push('a profile that chose Tally gets its Favorites and chart once, on Billboard');
 
  // Over an image: the image stays untouched. The widgets sit on one glass
- // tray, small text keeps a soft shadow with no backing, the footer sits in a
+ // tray, small text takes the ink that stands out against the image behind
+ // it (no backing, no wash), the footer sits in a
  // fade, and the clock is as it always was (its own shadow, no halo).
- const look=await e.eval(`(async()=>{document.body.dataset.wallpaperStyle='spotlight';await new Promise(r=>requestAnimationFrame(()=>requestAnimationFrame(r)));
+ const look=await e.eval(`(async()=>{document.body.dataset.wallpaperStyle='spotlight';
+  const src=new URL('start-page-night.png',location.href).href;
+  for(const l of document.querySelectorAll('.start-wallpaper-layer')){l.dataset.wallpaperPhase='custom';l.dataset.wallpaperImage=src;l.style.setProperty('--wallpaper-image','url('+JSON.stringify(src)+')');l.classList.add('is-visible');}await new Promise(r=>requestAnimationFrame(()=>requestAnimationFrame(r)));await window.blancStartInk.update();
   const cs=s=>{const el=document.querySelector(s);return el&&getComputedStyle(el).display!=='none'?getComputedStyle(el):null;};
   const clear=c=>c.backgroundColor==='rgba(0, 0, 0, 0)';
   const tray=cs('#bbWidgets'),fade=getComputedStyle(document.getElementById('layoutFooter'),'::after'),clock=getComputedStyle(document.querySelector('.bb-clock-row'),'::before');
   return {tray:!!tray&&!clear(tray)&&tray.backdropFilter.includes('blur'),
    sections:[...document.querySelectorAll('#bbWidgets > .bb-widget')].filter(e=>getComputedStyle(e).display!=='none').map(e=>clear(getComputedStyle(e))),
-   text:Object.fromEntries(['.bb-fav .label'].map(s=>{const c=cs(s);return [s,c?{clear:clear(c),shadow:c.textShadow!=='none'}:null];})),
+   text:Object.fromEntries(['.start-brand-date','.bb-fav .label'].map(s=>{const c=cs(s);return [s,c?{clear:clear(c),ink:document.querySelector(s).dataset.ink??null}:null];})),
    footerItems:['.start-customize','.footer-right','#footerLeft'].map(s=>{const c=cs(s);return c?clear(c):true;}),
    fade:fade.content!=='none'&&fade.backgroundImage.includes('gradient'),
-   headerFade:(h=>h.content!=='none'&&h.backgroundImage.includes('gradient'))(getComputedStyle(document.querySelector('.start-brand'),'::after')),
+   brandOval:(h=>h.content!=='none'&&h.content!=='normal')(getComputedStyle(document.querySelector('.start-brand'),'::after')),
    dateClear:clear(cs('.start-brand-date')),
    clockHalo:clock.content!=='none'&&clock.content!=='normal',haloAttr:document.querySelector('.bb-clock-row').hasAttribute('data-halo')};})()`);
  result.look=look;
  assert.equal(look.tray,true,'the widgets sit on one glass tray');
  assert.ok(look.sections.length>0&&look.sections.every(Boolean),'the tray\'s sections carry no cards of their own');
- for(const [sel,t] of Object.entries(look.text))if(t){assert.equal(t.clear,true,`${sel} has no backing`);assert.equal(t.shadow,true,`${sel} keeps a soft shadow`);}
+ for(const [sel,t] of Object.entries(look.text))if(t){assert.equal(t.clear,true,`${sel} has no backing`);assert.ok(['light','dark'].includes(t.ink),`${sel} takes the ink that stands out against the image behind it`);}
  assert.ok(look.footerItems.every(Boolean),'the footer\'s items have no backing');
  assert.equal(look.fade,true,'the footer sits in a fade');
- assert.equal(look.headerFade,true,'the header sits in a fade');assert.equal(look.dateClear,true,'the date has no backing');
+ assert.equal(look.brandOval,false,'no wash behind the date');assert.equal(look.dateClear,true,'the date has no backing');
  assert.equal(look.clockHalo,false,'no halo behind the clock');assert.equal(look.haloAttr,false);
- result.checks.push('over an image the widgets sit on one glass tray, small text keeps a shadow, the header and footer a fade, and the clock is as before');
+ result.checks.push('over an image the widgets sit on one glass tray, small text takes the ink its image calls for, the footer a fade, and the clock is as before');
  await visible();result.result='pass';
 }catch(error){result.result=error.code==='BLANC_ENVIRONMENT_STOP'?'blocked-environment':'fail';result.error=String(error.stack);process.exitCode=1;}
 finally{
