@@ -4557,7 +4557,8 @@ class NewTabHandler : public content::WebUIMessageHandler,
     // layout; a page that never chose widgets takes them from the profile's
     // old layout once, so nothing a person used goes away.
     if ((method == "widgetsRead" && args.empty()) ||
-        (method == "widgetsWrite" && args.size() == 2 && args[0].is_string() && args[1].is_bool())) {
+        (method == "widgetsWrite" && args.size() == 2 && args[0].is_string() && args[1].is_bool()) ||
+        (method == "widgetsPlace" && args.size() == 2 && args[0].is_list() && args[1].is_list())) {
       constexpr char kWidgets[] = "blanc.start.widgets";
       constexpr std::string_view kNames[] = {"favorites", "devices", "chart", "shortcuts"};
       auto* local = g_browser_process->local_state();
@@ -4593,9 +4594,41 @@ class NewTabHandler : public content::WebUIMessageHandler,
         local->SetDict(kWidgets, std::move(next));
         local->CommitPendingWrite();
       }
+      // Where each card sits: a left and a right column, top to bottom, each
+      // card once (Sent to this device included). Unknown or repeated names
+      // are dropped; a card missing from both goes back to its default side.
+      constexpr std::string_view kCards[] = {"favorites", "devices", "sent", "chart"};
+      const auto place = [&](const base::ListValue* left, const base::ListValue* right) {
+        base::ListValue l, r;
+        std::set<std::string> seen;
+        const auto take = [&](const base::ListValue* from, base::ListValue& to) {
+          if (!from) return;
+          for (const auto& item : *from) {
+            if (!item.is_string()) continue;
+            const std::string& name = item.GetString();
+            if (std::find(std::begin(kCards), std::end(kCards), name) == std::end(kCards) || !seen.insert(name).second) continue;
+            to.Append(name);
+          }
+        };
+        take(left, l); take(right, r);
+        for (const auto card : kCards) {
+          if (seen.count(std::string(card))) continue;
+          (card == "favorites" || card == "devices" ? l : r).Append(std::string(card));
+        }
+        return base::DictValue().Set("left", std::move(l)).Set("right", std::move(r));
+      };
+      if (method == "widgetsPlace") {
+        auto next = local->GetDict(kWidgets).Clone();
+        next.Set("place", place(&args[0].GetList(), &args[1].GetList()));
+        local->SetDict(kWidgets, std::move(next));
+        local->CommitPendingWrite();
+      }
       base::DictValue out;
       const auto& saved = local->GetDict(kWidgets);
       for (const auto name : kNames) out.Set(name, saved.FindBool(name).value_or(false));
+      const auto* saved_place = saved.FindDict("place");
+      out.Set("place", place(saved_place ? saved_place->FindList("left") : nullptr,
+                             saved_place ? saved_place->FindList("right") : nullptr));
       Reply(id, true, base::Value(std::move(out))); return;
     }
     if ((method == "pinsList" && args.empty()) ||

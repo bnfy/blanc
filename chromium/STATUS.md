@@ -864,6 +864,21 @@ remain pending. D3 beta-only no-DRM exception accepted; EME notice/handoff requi
   still expects text tile faces in JetBrains Mono, which #931 replaced with
   image art; shipping's own reader fails the same way and its CI doesn't run
   the scenario. Not changed here (shipping's test is read-only to the fork).
+- **V24 follow-up — widgets beside the clock, placed by hand (2026-11-13,
+  owner):** on a window 1200 px or wider the widget cards sit in a column on
+  each side of the Start Page, level with each other, clear of the header and
+  footer; narrower, the two columns sit side by side under the clock. Each
+  card has a grip: drag it to reorder or move it to the other side, or use
+  its arrow keys (Up/Down within a column, Left/Right across), announced to
+  assistive technology. The placement (Favorites and other devices on the
+  left, Sent and the chart on the right by default) is saved device-wide with
+  the widgets (`place` in blanc.start.widgets) and every open Start Page
+  follows it. Each card is its own glass panel. Customize offers the widgets
+  as a 2×2 grid of preview tiles (a drawing of each; gold outline and a check
+  when on). The line under the clock is the count alone ("121 ads blocked
+  this week", fork string start.billboard.blocked). native-start-widgets.mjs
+  8/8 (a real pointer drag included); newtab-layouts 24/25 (:21 is
+  shipping's stale Mahjong check; :134 passes once its audit reads the tiles).
 - **V25 — Mahjong takes Patron's place in the Start Page footer (2026-11-13,
   owner; fork only, "for now"):** the Become a Blanc Patron pill leaves the
   Start Page (Settings → Patron still offers it), and Play Blanc Mahjong
@@ -2546,5 +2561,5 @@ Android's Bar A counts the shared scenarios bound in `chromium/tests/android/acc
 
 Legacy macOS stages come from the approved spec; they await verification on the canonical candidate. No legacy stage counts as Verified.
 
-Candidate identities: macOS: macos-5f972ebb4ca85674; Windows: none; Linux: none; Android: android-arm64-7bd35e94ef746069.
+Candidate identities: macOS: macos-49dc3c97f01f235e; Windows: none; Linux: none; Android: android-arm64-7bd35e94ef746069.
 <!-- END GENERATED PROGRESS -->

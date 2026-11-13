@@ -14,7 +14,7 @@ export const observations={
         const selectors = [
           '.start-brand-date', '.ledger-label', '.bb-clock',
           '.bb-blocked', '.shelf-label', '.shelf-count', '.tally-count',
-          '.tally-caption', '.ledger-footer', /* V24: Customize's widget switches */ '.widget-switch',
+          '.tally-caption', '.ledger-footer', /* V24: Customize's widget tiles */ '.widget-tile',
           '.ob-step-label', '.ob-content p'
         ];
         if (selectors.some((selector) => !document.querySelector(selector))) return null;

@@ -826,7 +826,8 @@ function renderBillboard() {
   document.getElementById('bbBlocked').hidden = !isPrivate && !state.blockerStatisticsAvailable;
   document.getElementById('bbBlocked').textContent = isPrivate
     ? t('newtab.billboard.private')
-    : t('newtab.billboard.blocked', { count: state.blockedThisWeek });
+    // The count alone (owner, 2026-11-13; fork string).
+    : t('start.billboard.blocked', { count: state.blockedThisWeek });
 
   // Empty sections disappear entirely — an empty flex row would still hold
   // its margin, leaving a silent gap where a section pretends to be.
@@ -1554,7 +1555,9 @@ const WIDGET_NAMES = ['favorites', 'devices', 'chart', 'shortcuts'];
 function applyWidgets(widgets) {
   const next = Object.fromEntries(WIDGET_NAMES.map((name) => [name, widgets?.[name] === true]));
   const tilesChanged = state.widgets?.shortcuts !== next.shortcuts;
+  next.place = widgets?.place ?? state.widgets?.place ?? { left: ['favorites', 'devices'], right: ['sent', 'chart'] };
   state.widgets = next;
+  if (!cardDrag) placeCards(next.place);
   for (const section of document.querySelectorAll('#bbWidgets [data-widget]')) {
     section.classList.toggle('widget-on', next[section.dataset.widget] === true);
   }
@@ -1569,6 +1572,110 @@ function applyWidgets(widgets) {
     fillBillboardSites().catch(() => {});
   }
 }
+
+// The cards' columns (V24): each card in its column and order, top to
+// bottom. A column with nothing showing folds away under the clock.
+const cardRails = { left: document.getElementById('bbRailLeft'), right: document.getElementById('bbRailRight') };
+const widgetMoveStatus = document.getElementById('widgetMoveStatus');
+let cardDrag = null;
+const cardShown = (card) => getComputedStyle(card).display !== 'none';
+const cardName = (card) => card.querySelector('.ledger-label')?.textContent.trim() ?? '';
+function placeCards(place) {
+  for (const side of ['left', 'right']) {
+    for (const name of place?.[side] ?? []) {
+      const card = document.querySelector(`.bb-widget[data-card="${name}"]`);
+      if (card) cardRails[side].appendChild(card);
+    }
+  }
+  refreshRails();
+}
+function refreshRails() {
+  for (const rail of Object.values(cardRails)) {
+    rail.dataset.empty = String(![...rail.children].some((card) => card.matches('.bb-widget') && cardShown(card)));
+  }
+  for (const grip of document.querySelectorAll('.bb-widget-grip')) {
+    grip.setAttribute('aria-label', t('start.widgets.move', { name: cardName(grip.closest('.bb-widget')) }));
+  }
+}
+const railOrder = (rail) => [...rail.children].filter((card) => card.matches('.bb-widget')).map((card) => card.dataset.card);
+async function saveCardPlace(card) {
+  const side = card.parentElement === cardRails.right ? 'right' : 'left';
+  const shown = [...cardRails[side].children].filter((c) => c.matches('.bb-widget') && cardShown(c));
+  widgetMoveStatus.textContent = t(side === 'left' ? 'start.widgets.movedLeft' : 'start.widgets.movedRight',
+    { name: cardName(card), position: shown.indexOf(card) + 1 });
+  refreshRails();
+  try { applyWidgets(await window.bowserPages.start.setWidgetPlace(railOrder(cardRails.left), railOrder(cardRails.right))); }
+  catch { window.blancNewTabEvent('widgets'); }
+}
+// Which column and slot a point is over: the nearer column, and the slot
+// before the first shown card whose middle is below the point.
+function dropSlot(x, y) {
+  const rails = Object.entries(cardRails).map(([side, rail]) => {
+    const r = rail.getBoundingClientRect();
+    return { side, rail, distance: Math.abs(x - (r.left + r.width / 2)) };
+  }).sort((a, b) => a.distance - b.distance);
+  const { rail } = rails[0];
+  const before = [...rail.children].find((card) => card.matches('.bb-widget') && card !== cardDrag?.card &&
+    cardShown(card) && card.getBoundingClientRect().top + card.getBoundingClientRect().height / 2 > y);
+  return { rail, before: before ?? null };
+}
+for (const grip of document.querySelectorAll('.bb-widget-grip')) {
+  grip.addEventListener('pointerdown', (event) => {
+    if (event.button !== 0 || cardDrag) return;
+    event.preventDefault();
+    const card = grip.closest('.bb-widget');
+    const r = card.getBoundingClientRect();
+    const holder = document.createElement('div');
+    holder.className = 'bb-widget-holder';
+    holder.style.height = `${r.height}px`;
+    card.after(holder);
+    document.body.classList.add('widget-dragging');
+    card.classList.add('dragging');
+    Object.assign(card.style, { position: 'fixed', left: `${r.left}px`, top: `${r.top}px`, width: `${r.width}px`, zIndex: '60', pointerEvents: 'none' });
+    cardDrag = { card, holder, dx: event.clientX - r.left, dy: event.clientY - r.top };
+    grip.setPointerCapture(event.pointerId);
+  });
+  grip.addEventListener('pointermove', (event) => {
+    if (!cardDrag) return;
+    cardDrag.card.style.left = `${event.clientX - cardDrag.dx}px`;
+    cardDrag.card.style.top = `${event.clientY - cardDrag.dy}px`;
+    const { rail, before } = dropSlot(event.clientX, event.clientY);
+    if (before) rail.insertBefore(cardDrag.holder, before); else rail.appendChild(cardDrag.holder);
+  });
+  const end = () => {
+    if (!cardDrag) return;
+    const { card, holder } = cardDrag;
+    cardDrag = null;
+    holder.replaceWith(card);
+    card.classList.remove('dragging');
+    for (const key of ['position', 'left', 'top', 'width', 'zIndex', 'pointerEvents']) card.style[key] = '';
+    document.body.classList.remove('widget-dragging');
+    saveCardPlace(card);
+  };
+  grip.addEventListener('pointerup', end);
+  grip.addEventListener('pointercancel', end);
+  // Up and Down move a card past its shown neighbours; Left and Right move
+  // it to the other column, at the same height where it can.
+  grip.addEventListener('keydown', (event) => {
+    const card = grip.closest('.bb-widget');
+    const rail = card.parentElement;
+    const shownIn = (r) => [...r.children].filter((c) => c.matches('.bb-widget') && cardShown(c));
+    const list = shownIn(rail);
+    const index = list.indexOf(card);
+    if (event.key === 'ArrowUp' && index > 0) list[index - 1].before(card);
+    else if (event.key === 'ArrowDown' && index < list.length - 1) list[index + 1].after(card);
+    else if ((event.key === 'ArrowLeft' && rail === cardRails.right) || (event.key === 'ArrowRight' && rail === cardRails.left)) {
+      const other = rail === cardRails.left ? cardRails.right : cardRails.left;
+      const target = shownIn(other)[index];
+      if (target) target.before(card); else other.appendChild(card);
+    } else return;
+    event.preventDefault();
+    grip.focus();
+    saveCardPlace(card);
+  });
+}
+new MutationObserver(() => { if (!cardDrag) refreshRails(); }).observe(document.getElementById('bbWidgets'),
+  { subtree: true, attributes: true, attributeFilter: ['hidden', 'class'] });
 
 const widgetButtons = [...document.querySelectorAll('[data-widget-pick]')];
 const widgetSaveStatus = document.getElementById('widgetSaveStatus');

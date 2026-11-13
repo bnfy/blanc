@@ -56,9 +56,34 @@ try{
  assert.equal(d.chart,true);
  result.checks.push('another open Start Page follows the change at once');
 
+ // Placement: Favorites and other devices on the left, Sent and the chart on
+ // the right by default; the grip's arrow keys and a real drag move a card,
+ // every open Start Page follows, and the choice is kept.
+ const where=(cdp,card)=>cdp.eval(`(()=>{const c=document.querySelector('[data-card=${card}]');return {side:c?.parentElement?.dataset.side??null,place:state.widgets.place};})()`);
+ let p=await where(b,'chart');
+ assert.deepEqual(p.place,{left:['favorites','devices'],right:['sent','chart']},'the default placement');
+ assert.equal(p.side,'right');
+ await b.eval(`(()=>{const g=document.querySelector('[data-card=chart] .bb-widget-grip');g.focus();g.dispatchEvent(new KeyboardEvent('keydown',{key:'ArrowLeft',bubbles:true}));return 1;})()`);
+ p=await w.waitFor(()=>where(b,'chart'),x=>x.side==='left'&&x.place.left.includes('chart'),'the chart moved left by keyboard',8000);
+ assert.match(await b.eval(`document.getElementById('widgetMoveStatus').textContent`),/left/i,'the move is announced');
+ await w.waitFor(()=>where(a,'chart'),x=>x.side==='left','the other Start Page follows the move',8000);
+ result.checks.push('the grip\'s arrow keys move a card to the other side, announced, and every open Start Page follows');
+ // A real drag of the chart's grip back to the right-hand column.
+ const box=await b.eval(`(()=>{const g=document.querySelector('[data-card=chart] .bb-widget-grip').getBoundingClientRect();const r=document.getElementById('bbRailRight').getBoundingClientRect();
+  return {x:g.left+g.width/2,y:g.top+g.height/2,tx:r.left+r.width/2,ty:r.top+40,wide:innerWidth>=1200};})()`);
+ const mouse=(type,x,y,buttons)=>b.send('Input.dispatchMouseEvent',{type,x,y,button:'left',buttons,clickCount:type==='mouseMoved'?0:1});
+ await mouse('mouseMoved',box.x,box.y,0);await mouse('mousePressed',box.x,box.y,1);
+ for(let i=1;i<=8;i++)await mouse('mouseMoved',box.x+(box.tx-box.x)*i/8,box.y+(box.ty-box.y)*i/8,1);
+ await mouse('mouseReleased',box.tx,box.ty,0);
+ p=await w.waitFor(()=>where(b,'chart'),x=>x.side==='right'&&x.place.right.includes('chart'),'the chart dragged back to the right',8000);
+ result.checks.push(`dragging a card's grip moves it between the columns (${box.wide?'one each side of the page':'under the clock'})`);
+ await b.eval(`(()=>{const g=document.querySelector('[data-card=chart] .bb-widget-grip');g.dispatchEvent(new KeyboardEvent('keydown',{key:'ArrowLeft',bubbles:true}));return 1;})()`);
+ await w.waitFor(()=>where(b,'chart'),x=>x.side==='left','the chart moved left again',8000);
+
  await w.relaunch();await visible();
  const c=await newStartPage();d=await read(c);
  assert.ok(same(d.widgets,{favorites:false,devices:false,chart:true,shortcuts:true}),`kept after a relaunch: ${JSON.stringify(d.widgets)}`);
+ assert.equal((await where(c,'chart')).side,'left','the chart keeps its place after a relaunch');
  result.checks.push('the widgets are kept across a relaunch');
 
  // Someone on Tally before V24: no widget choice yet, the old layout saved.
@@ -83,9 +108,8 @@ try{
   for(const l of document.querySelectorAll('.start-wallpaper-layer')){l.dataset.wallpaperPhase='custom';l.dataset.wallpaperImage=src;l.style.setProperty('--wallpaper-image','url('+JSON.stringify(src)+')');l.classList.add('is-visible');}await new Promise(r=>requestAnimationFrame(()=>requestAnimationFrame(r)));await window.blancStartInk.update();
   const cs=s=>{const el=document.querySelector(s);return el&&getComputedStyle(el).display!=='none'?getComputedStyle(el):null;};
   const clear=c=>c.backgroundColor==='rgba(0, 0, 0, 0)';
-  const tray=cs('#bbWidgets'),fade=getComputedStyle(document.getElementById('layoutFooter'),'::after'),clock=getComputedStyle(document.querySelector('.bb-clock-row'),'::before');
-  return {tray:!!tray&&!clear(tray)&&tray.backdropFilter.includes('blur'),
-   sections:[...document.querySelectorAll('#bbWidgets > .bb-widget')].filter(e=>getComputedStyle(e).display!=='none').map(e=>clear(getComputedStyle(e))),
+  const fade=getComputedStyle(document.getElementById('layoutFooter'),'::after'),clock=getComputedStyle(document.querySelector('.bb-clock-row'),'::before');
+  return {cards:[...document.querySelectorAll('#bbWidgets .bb-rail > .bb-widget')].filter(e=>getComputedStyle(e).display!=='none').map(e=>{const c=getComputedStyle(e);return !clear(c)&&c.backdropFilter.includes('blur');}),
    text:Object.fromEntries(['.start-brand-date','.bb-fav .label'].map(s=>{const c=cs(s);return [s,c?{clear:clear(c),ink:document.querySelector(s).dataset.ink??null}:null];})),
    footerItems:['.start-customize','.footer-right','#footerLeft'].map(s=>{const c=cs(s);return c?clear(c):true;}),
    fade:fade.content!=='none'&&fade.backgroundImage.includes('gradient'),
@@ -94,15 +118,14 @@ try{
    dateClear:clear(cs('.start-brand-date')),
    clockHalo:clock.content!=='none'&&clock.content!=='normal',haloAttr:document.querySelector('.bb-clock-row').hasAttribute('data-halo')};})()`);
  result.look=look;
- assert.equal(look.tray,true,'the widgets sit on one glass tray');
- assert.ok(look.sections.length>0&&look.sections.every(Boolean),'the tray\'s sections carry no cards of their own');
+ assert.ok(look.cards.length>0&&look.cards.every(Boolean),'each widget card is glass');
  for(const [sel,t] of Object.entries(look.text))if(t){assert.equal(t.clear,true,`${sel} has no backing`);assert.ok(['light','dark'].includes(t.ink),`${sel} takes the ink that stands out against the image behind it`);}
  assert.ok(look.footerItems.every(Boolean),'the footer\'s items have no backing');
  assert.equal(look.fade,true,'the footer sits in a fade');
  assert.equal(look.brandOval,false,'no wash behind the date');
  if(look.text['.start-brand-date']?.ink==='light')assert.match(look.markFilter,/invert/,'over a dark image the Sunrise mark turns cream with the date');assert.equal(look.dateClear,true,'the date has no backing');
  assert.equal(look.clockHalo,false,'no halo behind the clock');assert.equal(look.haloAttr,false);
- result.checks.push('over an image the widgets sit on one glass tray, small text takes the ink its image calls for, the footer a fade, and the clock is as before');
+ result.checks.push('over an image each widget card is glass, small text takes the ink its image calls for, the footer a fade, and the clock is as before');
  await visible();result.result='pass';
 }catch(error){result.result=error.code==='BLANC_ENVIRONMENT_STOP'?'blocked-environment':'fail';result.error=String(error.stack);process.exitCode=1;}
 finally{

@@ -128,7 +128,15 @@
   // The optional widgets (V24, fork only): none until Blanc answers.
   const WIDGETS = ['favorites', 'devices', 'chart', 'shortcuts'];
   let sharedWidgets = null, widgetsEpoch = 0;
-  const noWidgets = () => Object.fromEntries(WIDGETS.map(name => [name, false]));
+  const CARDS = ['favorites', 'devices', 'sent', 'chart'];
+  const DEFAULT_PLACE = {left: ['favorites', 'devices'], right: ['sent', 'chart']};
+  const placeOf = value => {
+    const side = list => Array.isArray(list) ? list.filter(name => CARDS.includes(name)) : [];
+    const place = {left: side(value?.left), right: side(value?.right)};
+    return place.left.length + place.right.length ? place : DEFAULT_PLACE;
+  };
+  const widgetsOf = value => ({...Object.fromEntries(WIDGETS.map(name => [name, value?.[name] === true])), place: placeOf(value?.place)});
+  const noWidgets = () => widgetsOf(null);
   let clockEpoch = 0, layoutEpoch = 0;
   let groupEpoch = 0;
   function validateGroupSnapshot(snapshot) {
@@ -219,7 +227,7 @@
     try {
       const value = await request('widgetsRead');
       if (epoch !== widgetsEpoch || !value || typeof value !== 'object') return false;
-      sharedWidgets = Object.fromEntries(WIDGETS.map(name => [name, value[name] === true]));
+      sharedWidgets = widgetsOf(value);
       return true;
     } catch (error) {
       if (epoch === widgetsEpoch) console.warn('Start Page widgets unavailable', error);
@@ -446,7 +454,19 @@
           const value = await request('widgetsWrite', [name, on === true]);
           ++widgetsEpoch;
           if (!value || typeof value !== 'object') throw new Error('Widget confirmation unavailable');
-          sharedWidgets = Object.fromEntries(WIDGETS.map(item => [item, value[item] === true]));
+          sharedWidgets = widgetsOf(value);
+          publish();
+          return sharedWidgets;
+        } catch (error) { ++widgetsEpoch; throw error; }
+      },
+      // Where the cards sit: the left and right columns, top to bottom.
+      setWidgetPlace: async (left, right) => {
+        ++widgetsEpoch;
+        try {
+          const value = await request('widgetsPlace', [left.map(String), right.map(String)]);
+          ++widgetsEpoch;
+          if (!value || typeof value !== 'object') throw new Error('Widget placement unavailable');
+          sharedWidgets = widgetsOf(value);
           publish();
           return sharedWidgets;
         } catch (error) { ++widgetsEpoch; throw error; }

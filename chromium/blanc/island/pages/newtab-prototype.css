@@ -191,17 +191,53 @@ html[data-store-theme] .start-wallpaper-layer { display:none !important; }
    and Tally showed comes back as optional widgets, switched on in Customize.
    ------------------------------------------------------------------------- */
 .bb-widgets {
-  display: flex; align-items: stretch; box-sizing: border-box;
+  display: flex; align-items: flex-start; gap: 14px; box-sizing: border-box;
   width: min(760px, calc(100vw - 96px)); margin-top: 30px;
 }
+/* The two columns: side by side under the clock on a narrow window... */
+.bb-rail { flex: 1 1 0; min-width: 0; display: flex; flex-direction: column; gap: 14px; }
+.bb-rail[data-empty="true"] { display: none; }
+body.widget-dragging .bb-rail { display: flex; min-height: 96px; }
+/* ...and one each side of the Start Page on a wide one, beside the clock,
+   level with each other, clear of the header and the footer. */
+@media (min-width: 1200px) {
+  .bb-widgets { display: contents; }
+  .bb-rail {
+    position: fixed; z-index: 2;
+    top: calc(var(--start-header-h, 96px) + 24px);
+    width: clamp(240px, 20vw, 300px);
+    max-height: calc(100vh - var(--start-header-h, 96px) - var(--start-footer-h, 64px) - 48px);
+  }
+  /* An empty column draws nothing here, and stays a place to drop a card. */
+  .bb-rail[data-empty="true"] { display: flex; }
+  .bb-rail[data-side="left"] { left: var(--start-edge); }
+  .bb-rail[data-side="right"] { right: var(--start-edge); }
+  body.widget-dragging .bb-rail { min-height: calc(100vh - var(--start-header-h, 96px) - var(--start-footer-h, 64px) - 48px); }
+}
 #bbWidgets [data-widget]:not(.widget-on) { display: none; }
+body:not(.widget-dragging) .bb-widgets:not(:has(> .bb-rail[data-empty="false"])) { display: none; }
 /* No week's data to show (private, or statistics unavailable): no empty card. */
 #bbWidgets .bb-widget-chart:has(> .tally-right[hidden]) { display: none; }
-.bb-widgets:not(:has(> :is(#sentSection:not([hidden]), [data-widget].widget-on:not([hidden])))) { display: none; }
 .bb-widget.ledger-section { margin: 0; }
-.bb-widget { flex: 1 1 0; min-width: 0; padding: 14px 18px 16px; text-align: start; }
-/* A hairline between neighbouring sections of the tray. */
-.bb-widget:not([hidden]):not([data-widget]:not(.widget-on)) ~ .bb-widget { border-inline-start: 1px solid var(--start-tray-rule); }
+.bb-widget { position: relative; min-width: 0; padding: 14px 18px 16px; text-align: start; }
+/* The grip: on show while the card is hovered or focused; drag it, or use
+   its arrow keys, to move the card. */
+.bb-widget-grip {
+  position: absolute; top: 10px; right: 10px; display: grid; place-items: center;
+  width: 22px; height: 26px; padding: 0; border: 0; border-radius: 6px;
+  background: transparent; color: var(--text-dim); cursor: grab; touch-action: none;
+  opacity: 0; transition: opacity 120ms ease, background-color 120ms ease;
+}
+.bb-widget-grip svg { fill: currentColor; }
+.bb-widget:hover > .bb-widget-grip, .bb-widget-grip:focus-visible, .bb-widget.dragging > .bb-widget-grip { opacity: 1; }
+.bb-widget-grip:hover { background: color-mix(in srgb, var(--text) 8%, transparent); }
+.bb-widget-grip:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+.bb-widget.dragging { cursor: grabbing; box-shadow: 0 22px 48px -20px rgb(0 0 0 / 0.5); transform: scale(1.02); }
+.bb-widget-holder {
+  border: 1.5px dashed color-mix(in srgb, var(--text-dim) 45%, transparent); border-radius: 18px;
+  background: color-mix(in srgb, var(--text) 4%, transparent);
+}
+@media (prefers-reduced-motion: reduce) { .bb-widget-grip { transition: none; } .bb-widget.dragging { transform: none; } }
 .bb-widget .start-empty-hint { text-wrap: balance; }
 .bb-widget .ledger-list { margin-top: 10px; gap: 10px; }
 /* Favorites in columns (four across a full-width card, two beside the
@@ -221,27 +257,32 @@ html[data-store-theme] .start-wallpaper-layer { display:none !important; }
 /* The week's chart replaces Billboard's one-line count. */
 body.widget-chart-on #bbBlocked { display: none; }
 
-/* Customize: one switch per widget, label first, as a settings row. */
-.widget-switches { display: grid; gap: 2px; margin-top: 8px; }
-.widget-switch {
-  display: flex; align-items: center; justify-content: space-between; gap: 12px;
-  width: 100%; padding: 8px 4px; border: 0; border-radius: 8px;
-  background: transparent; color: var(--text); font: inherit; font-size: 13px; text-align: start; cursor: pointer;
+/* Customize: a 2×2 grid of preview tiles, each a small drawing of its
+   widget; a tile that is on takes the gold outline and a check. */
+.widget-switches { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; margin-top: 8px; }
+.widget-tile {
+  position: relative; display: flex; flex-direction: column; align-items: center; gap: 6px;
+  min-width: 0; padding: 10px 8px 9px; border: 1px solid var(--border); border-radius: 12px;
+  background: color-mix(in srgb, var(--surface-raised, #fff) 70%, transparent);
+  color: var(--text-dim); font: inherit; font-size: 12px; line-height: 1.25; text-align: center; cursor: pointer;
+  transition: border-color 120ms ease, color 120ms ease, background-color 120ms ease;
 }
-.widget-switch:hover { background: var(--accent-dim); }
-.widget-switch:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
-.widget-switch[aria-disabled="true"] { cursor: progress; }
-.widget-switch-track {
-  position: relative; flex: none; width: 30px; height: 18px; border-radius: 9px;
-  background: color-mix(in srgb, var(--text-dim) 45%, transparent); transition: background .15s ease;
+.widget-tile:hover { border-color: color-mix(in srgb, var(--patron-gold) 55%, var(--border)); color: var(--text); }
+.widget-tile:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.widget-tile[aria-disabled="true"] { cursor: progress; }
+.widget-tile-art { width: 64px; height: 36px; color: inherit; }
+.widget-tile-art * { vector-effect: non-scaling-stroke; }
+.widget-tile[aria-checked="true"] {
+  border-color: var(--patron-gold); color: var(--text);
+  background: color-mix(in srgb, var(--patron-gold) 10%, var(--surface-raised, #fff));
 }
-.widget-switch-track::after {
-  content: ""; position: absolute; top: 2px; left: 2px; width: 14px; height: 14px; border-radius: 50%;
-  background: #fff; box-shadow: 0 1px 2px #0004; transition: transform .15s ease;
+.widget-tile[aria-checked="true"] .widget-tile-art { color: var(--patron-gold); }
+.widget-tile-check {
+  position: absolute; top: 6px; right: 6px; width: 14px; height: 14px; border-radius: 50%;
+  background: var(--patron-gold); color: #fff; display: none; place-items: center;
 }
-.widget-switch[aria-checked="true"] .widget-switch-track { background: var(--accent); }
-.widget-switch[aria-checked="true"] .widget-switch-track::after { transform: translateX(12px); }
-@media (prefers-reduced-motion: reduce) { .widget-switch-track, .widget-switch-track::after { transition: none; } }
+.widget-tile[aria-checked="true"] .widget-tile-check { display: grid; }
+@media (prefers-reduced-motion: reduce) { .widget-tile { transition: none; } }
 
 /* ---------------------------------------------------------------------------
    Over your image or a theme's image (owner, 2026-11-13): the image stays
@@ -291,9 +332,9 @@ body.widget-chart-on #bbBlocked { display: none; }
   --start-footer-fade: 24 20 16;
 }
 
-/* The widgets' one glass tray, the Island's material family (its panel
+/* Each widget card is glass in the Island's material family (its panel
    radius, a blurred translucent surface), lighter than the Island itself. */
-#bbWidgets {
+.bb-widget {
   --text: var(--start-tray-ink);
   --text-dim: var(--start-tray-ink-dim);
   --accent: var(--start-tray-accent);
