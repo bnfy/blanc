@@ -6,6 +6,7 @@
 // Scenes: page, palette, settings, settings-<section> such as settings-privacy
 // (default: page, palette, settings).
 import {LAYOUT_WIDGETS} from './lib/start-widgets.mjs';
+import {jsLiteral} from './lib/js-literal.mjs';
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
@@ -137,7 +138,7 @@ async function openStartPage(fixture, language, layout = null) {
     // V24: a named layout is its widget set on Billboard.
     const widgets = LAYOUT_WIDGETS[layout];
     if (!widgets) throw new Error(`Unknown start-page layout ${layout}`);
-    await page.eval(`(async()=>{for(const [n,v] of Object.entries(${JSON.stringify(widgets)}))await window.bowserPages.start.setWidget(n,v);return true;})()`);
+    await page.eval(`(async()=>{for(const [n,v] of Object.entries(${jsLiteral(widgets)}))await window.bowserPages.start.setWidget(n,v);return true;})()`);
     page.close();
     await pause(2000);
   }

@@ -101,7 +101,7 @@ export default register=>{
  });
  register('I reviewed the maximum 500 open-tab candidates',async function(){
   await reviewed(this,500);
-  await this.hostEval(`(()=>{window.__importBatchBroadcasts=[];const prior=new Set(${JSON.stringify(this.importBefore.tabs.map(t=>t.id))});let last='';window.__importBatchUnsubscribe=window.BlancPrototypeHost.api.onTabsUpdated(s=>{const ids=s.tabs.filter(t=>!prior.has(String(t.id))).map(t=>String(t.id));const key=ids.join(',');if(ids.length&&key!==last){window.__importBatchBroadcasts.push(ids.length);last=key;}});})()`);
+  await this.hostEval(`(()=>{window.__importBatchBroadcasts=[];const prior=new Set(${jsLiteral(this.importBefore.tabs.map(t=>t.id))});let last='';window.__importBatchUnsubscribe=window.BlancPrototypeHost.api.onTabsUpdated(s=>{const ids=s.tabs.filter(t=>!prior.has(String(t.id))).map(t=>String(t.id));const key=ids.join(',');if(ids.length&&key!==last){window.__importBatchBroadcasts.push(ids.length);last=key;}});})()`);
  });
  register('only the focused imported tab has live web contents',async function(){const s=await this.snapshot();const ids=new Set(this.importResult.tabIds);const live=s.tabs.filter(t=>ids.has(String(t.id))&&t.rendererLive);assert.equal(live.length,1);assert.equal(String(live[0].id),this.importResult.tabIds[0]);});
  register('the other imported tabs remain quiet and viewless',async function(){const s=await this.snapshot();for(const t of s.tabs.filter(t=>this.importResult.tabIds.slice(1).includes(String(t.id)))){assert.equal(t.asleep,true);assert.equal(t.rendererLive,false);}});

@@ -9,13 +9,14 @@ import {NativeFixture} from './lib/fixture.mjs';
 import {installDriver} from './lib/test-driver.mjs';
 import {assertRendering,assertNodeRuntime} from './lib/render-guard.mjs';
 import {createWorld} from './world.mjs';
+import {jsLiteral} from './lib/js-literal.mjs';
 const [configFile,out]=process.argv.slice(2),config=JSON.parse(fs.readFileSync(configFile));
 assertNodeRuntime();assert.equal(fs.existsSync(out),false);fs.mkdirSync(out,{recursive:true});
 const f=new NativeFixture(),w=createWorld(f),result={candidate:config.candidate,checks:[]};
 const parent=fs.mkdtempSync(path.join(os.tmpdir(),'blanc-ext-float-'));
 const visible=()=>assertRendering(e=>f.host.eval(e));
 // What the host draws on top at the centre of a frame: the panel, or the frame.
-const topAt=sel=>w.hostEval(`(()=>{const r=document.querySelector(${JSON.stringify(sel)}).getBoundingClientRect();
+const topAt=sel=>w.hostEval(`(()=>{const r=document.querySelector(${jsLiteral(sel)}).getBoundingClientRect();
  const e=document.elementFromPoint(r.left+r.width/2,r.top+r.height/2);return e?.closest('#extensionsPanel')?'panel':(e?.id||e?.tagName||null);})()`);
 try{
  await f.launch(config,path.join(parent,'fixture'),{testHooks:true,diskAssets:process.env.DISK_ASSETS==="1"});

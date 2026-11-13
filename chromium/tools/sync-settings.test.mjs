@@ -20,7 +20,7 @@ const read=p=>fs.readFileSync(p,'utf8');
 const native=read(path.join(root,'chromium/blanc/browser/ui/chromium_settings_handler.inc'));
 const ui=read(path.join(web,'blanc_sync_page/blanc_sync_page.ts'));
 const strings=new Map([...read(path.join(staging,'chrome/browser/ui/webui/settings/settings_ui.cc'))
- .matchAll(/AddString\("(blancSync\w+)", u("[^"\n]*(?:\\.[^"\n]*)*")\);/g)].map(m=>[m[1],JSON.parse(m[2])]));
+ .matchAll(/AddString\("(blancSync\w+)", u("(?:[^"\\\n]|\\.)*")\);/g)].map(m=>[m[1],JSON.parse(m[2])]));
 
 // Use the integration tree's TS parser only when available. No emitted files.
 const source=process.env.BLANC_CHROMIUM_SRC??path.resolve(root,'../src');

@@ -3,6 +3,7 @@
 // Preferences) and the Page zoom menu and Zoom levels list Chromium's
 // Settings already has, shown in Blanc's Settings sheet.
 import {nativeCall} from '../lib/test-driver.mjs';
+import {jsLiteral} from '../lib/js-literal.mjs';
 import {inSettings} from './commands.mjs';
 import {runtimes} from './tabs.mjs';
 import {tabPage} from './core.mjs';
@@ -69,7 +70,7 @@ export const zoom={
  async settingsRemoveSiteZoom(w,host){
   const cdp=await sheetTarget(w);if(!cdp)return false;
   await zoomLevelRows(w);
-  return cdp.eval(`(()=>{${DEEP}const row=all('.list-item').find(r=>r.querySelector('.url-directionality')?.textContent.trim()===${JSON.stringify(host)});
+  return cdp.eval(`(()=>{${DEEP}const row=all('.list-item').find(r=>r.querySelector('.url-directionality')?.textContent.trim()===${jsLiteral(host)});
    const button=row?.querySelector('cr-icon-button.icon-clear');if(!button)return false;button.click();return true;})()`);
  },
  async activateTabInWindow(w,runtimeId,tabId){

@@ -90,10 +90,17 @@ function stage() {
 function serve() {
   const feed = need('feed'), log = need('log');
   http.createServer((request, response) => {
-    const file = path.join(feed, path.basename(decodeURIComponent(new URL(request.url, 'http://x').pathname)));
-    const ok = fs.existsSync(file) && fs.statSync(file).isFile();
-    fs.appendFileSync(log, `${new Date().toISOString()} ${request.method} ${request.url} ${ok ? 200 : 404} ${request.headers['user-agent'] ?? ''}\n`);
-    if (!ok) { response.writeHead(404); response.end(); return; }
+    // Only the feed's own files are served, and the log records only what
+    // this server chose (the file's own name, the method as GET or other,
+    // whether Sparkle asked): nothing a request sends reaches the file.
+    let wanted = '';
+    try { wanted = path.basename(decodeURIComponent(new URL(request.url, 'http://x').pathname)); } catch {}
+    const name = fs.readdirSync(feed).find(entry => entry === wanted && fs.statSync(path.join(feed, entry)).isFile());
+    const file = name ? path.join(feed, name) : null;
+    const method = request.method === 'GET' ? 'GET' : 'OTHER';
+    const client = /Sparkle/.test(String(request.headers['user-agent'] ?? '')) ? 'sparkle' : 'other';
+    fs.appendFileSync(log, `${new Date().toISOString()} ${method} /${name ?? '(unknown)'} ${file ? 200 : 404} ${client}\n`);
+    if (!file) { response.writeHead(404); response.end(); return; }
     response.writeHead(200, {'content-type': file.endsWith('.xml') ? 'application/rss+xml' : 'application/octet-stream',
       'content-length': fs.statSync(file).size});
     fs.createReadStream(file).pipe(response);
