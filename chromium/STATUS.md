@@ -891,6 +891,15 @@ remain pending. D3 beta-only no-DRM exception accepted; EME notice/handoff requi
   choices, not four), and the typography audit (ten samples, not twelve);
   Tally's narrow "data above the list" runs as shipping wrote it, reading
   the line. newtab-layouts 24/25 (:21 is shipping's stale Mahjong check).
+- **Shortcuts is a choice, not a widget (2026-11-13, owner):** More shortcuts
+  never was a card; it doubled Billboard's tiles under the clock. Customize
+  now has a Shortcuts section (6 or 12, the Wallpaper section's segmented
+  control) in its place. Billboard draws only the sites it has (pins and the
+  most visited), so with fewer than the count chosen the choice seemed to do
+  nothing (the owner's report: a dev profile with one site). Customize now
+  says "N sites so far. More appear as you browse." in that case. Shipping's
+  Mahjong steps count three Customize choices (V26, two tiles and this one).
+  native-start-widgets 8/8; newtab-layouts 24/25 (:21 as before).
 - **Favorites resizes too (2026-11-13, owner):** like the devices card, by
   its bottom edge onto the fixed sizes. At its own size it lists eight
   favorites; given a size (or while being resized) it lists all of them and
@@ -2636,5 +2645,5 @@ Android's Bar A counts the shared scenarios bound in `chromium/tests/android/acc
 
 Legacy macOS stages come from the approved spec; they await verification on the canonical candidate. No legacy stage counts as Verified.
 
-Candidate identities: macOS: macos-46f148134b5becbb; Windows: none; Linux: none; Android: android-arm64-7bd35e94ef746069.
+Candidate identities: macOS: macos-76499bdaedc849fc; Windows: none; Linux: none; Android: android-arm64-7bd35e94ef746069.
 <!-- END GENERATED PROGRESS -->

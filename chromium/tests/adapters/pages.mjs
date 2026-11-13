@@ -150,9 +150,12 @@ export const pages={
   if(!popover||!opener)return false;if(!popover.matches(':popover-open')){opener.focus();opener.click();}
   if(!popover.matches(':popover-open'))return false;
   const want=${JSON.stringify(LAYOUT_WIDGETS[String(name)]??null)};if(!want)return false;
-  return (async()=>{for(const [pick,on] of Object.entries(want)){const button=popover.querySelector('[data-widget-pick="'+pick+'"]');if(!button)return false;
-   if((button.getAttribute('aria-checked')==='true')===on)continue;button.click();
-   for(let i=0;i<100&&(button.hasAttribute('aria-disabled')||(button.getAttribute('aria-checked')==='true')!==on);i++)await new Promise(r=>setTimeout(r,50));}
+  // More shortcuts is Customize's Shortcuts choice (6 or 12), pressed, not a tile.
+  return (async()=>{for(const [pick,on] of Object.entries(want)){
+   const count=pick==='shortcuts';const button=count?popover.querySelector('[data-shortcuts="'+(on?12:6)+'"]'):popover.querySelector('[data-widget-pick="'+pick+'"]');if(!button)return false;
+   const isSet=()=>count?button.getAttribute('aria-pressed')==='true':(button.getAttribute('aria-checked')==='true')===on;
+   if(isSet())continue;button.click();
+   for(let i=0;i<100&&(button.hasAttribute('aria-disabled')||!isSet());i++)await new Promise(r=>setTimeout(r,50));}
    return true;})();})()`),
  openStartCustomize:onStart(false,`(()=>{const popover=document.getElementById('customizePopover');const opener=document.getElementById('customizeButton');
   if(!popover||!opener)return false;if(!popover.matches(':popover-open')){opener.focus();opener.click();}return popover.matches(':popover-open');})()`),
@@ -211,7 +214,8 @@ export const pages={
   return {root:document.body.dataset.layout,viewportWidth:innerWidth,viewportHeight:innerHeight,
    visibleRoots:['Ledger','Billboard','Shelf','Tally'].filter(n=>rect(document.getElementById('layout'+n))),
    widgets:typeof state==='object'?state.widgets:null,
-   switches:Object.fromEntries([...document.querySelectorAll('[data-widget-pick]')].map(b=>[b.dataset.widgetPick,b.getAttribute('aria-checked')==='true'])),
+   switches:{...Object.fromEntries([...document.querySelectorAll('[data-widget-pick]')].map(b=>[b.dataset.widgetPick,b.getAttribute('aria-checked')==='true'])),
+    shortcuts:document.querySelector('[data-shortcuts="12"]')?.getAttribute('aria-pressed')==='true'},
    shown:Object.fromEntries(['favorites','devices'].map(n=>[n,!!rect(section(n))])),
    cards:Object.fromEntries(['favorites','devices'].map(n=>[n,rect(section(n))])),
    favoriteRows:[...document.querySelectorAll('#favoritesList [data-favorite-url]')].map(rect).filter(Boolean),
@@ -280,7 +284,9 @@ export const pages={
   return {present:true,shown:!scene.hidden,pointerEvents:style.pointerEvents,
    animations:[scene,...scene.querySelectorAll('.launch-sunrise-sky,.launch-sunrise-horizon,.launch-sunrise-mark .launch-sunrise-disc,.launch-sunrise-rays,.launch-sunrise-reflect')].flatMap(el=>getComputedStyle(el).animationName.split(', ')),layoutReady:document.body.classList.contains('layout-ready')};})()`),
  readMahjongFooterLink:onStart(null,`(()=>({href:document.getElementById('mahjongLink')?.href??null,target:document.getElementById('mahjongLink')?.target??null,
-  layout:${PAGE_LAYOUT},switcherCount:document.querySelectorAll('[data-widget-pick]').length,frameCount:document.querySelectorAll('iframe').length}))()`),
+  // V26: Customize's choices standing for shipping's four layouts: the two
+  // widget tiles and the Shortcuts choice.
+  layout:${PAGE_LAYOUT},switcherCount:document.querySelectorAll('[data-widget-pick]').length+(document.getElementById('shortcutCountPicker')?1:0),frameCount:document.querySelectorAll('iframe').length}))()`),
  clickMahjongFooterLink:onStart(false,`(()=>{const link=document.getElementById('mahjongLink');if(!link)return false;link.click();return true;})()`),
  // Patron and the app icon (F17). The preview has no license keys (owner,
  // 2026-11-05), so there is never a supporter to clear.

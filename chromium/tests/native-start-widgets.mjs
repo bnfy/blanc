@@ -22,7 +22,10 @@ const NAMES=['favorites','devices','shortcuts'];
 const startPages=async()=>Promise.all((await f.targets()).filter(t=>t.type==='page'&&/newtab/.test(t.url)).map(t=>f.connectTarget(t)));
 const read=cdp=>cdp.eval(`(()=>{const shown=e=>!!e&&getComputedStyle(e).display!=='none'&&e.getBoundingClientRect().height>0;
  return {ready:document.body.classList.contains('layout-ready'),root:document.body.dataset.layout,widgets:typeof state==='object'?state.widgets:null,
-  switches:Object.fromEntries([...document.querySelectorAll('[data-widget-pick]')].map(b=>[b.dataset.widgetPick,b.getAttribute('aria-checked')])),
+  switches:{...Object.fromEntries([...document.querySelectorAll('[data-widget-pick]')].map(b=>[b.dataset.widgetPick,b.getAttribute('aria-checked')])),
+   shortcuts:document.querySelector('[data-shortcuts="12"]')?.getAttribute('aria-pressed')??null},
+  counts:[...document.querySelectorAll('[data-shortcuts]')].map(b=>b.dataset.shortcuts+':'+b.getAttribute('aria-pressed')+':'+b.getAttribute('aria-label')),
+  hint:document.getElementById('shortcutsHint').hidden?null:document.getElementById('shortcutsHint').textContent,sites:document.querySelectorAll('#bbFavorites .bb-site').length,
   roles:[...document.querySelectorAll('[data-widget-pick]')].map(b=>b.getAttribute('role')),
   names:[...document.querySelectorAll('[data-widget-pick]')].map(b=>b.textContent.trim()),
   favorites:shown(document.querySelector('#bbWidgets [data-widget=favorites]')),
@@ -37,24 +40,26 @@ try{
  await installDriver(f.host);await visible();await w.reset();
  const a=await newStartPage();let d=await read(a);
  assert.equal(d.root,'billboard');assert.ok(same(d.widgets,LAYOUT_WIDGETS.billboard),'a new profile starts with Billboard alone');
- assert.deepEqual(d.roles,['switch','switch','switch']);
- assert.deepEqual(d.names,['Favorites','On your other devices','More shortcuts']);
+ assert.deepEqual(d.roles,['switch','switch']);
+ assert.deepEqual(d.names,['Favorites','On your other devices']);
+ assert.deepEqual(d.counts,['6:true:6 shortcuts','12:false:12 shortcuts'],'Shortcuts is its own choice in Customize, 6 by default');
  assert.equal(d.tileLimit,6);assert.equal(d.favorites,false);assert.equal(d.chart,false,'no Blocked this week widget (V26)');
  assert.equal(d.line,true,'Billboard\'s line says the week\'s count');
- result.checks.push('a new profile shows Billboard alone, with three widget switches in Customize and no Blocked this week widget');
+ result.checks.push('a new profile shows Billboard alone, with two widget switches and a Shortcuts choice (6 or 12) in Customize, and no Blocked this week widget');
 
  // Switch Favorites and More shortcuts on as a person would, from Customize.
  const b=await newStartPage();
- for(const name of ['favorites','shortcuts']){
+ for(const [selector,attr] of [['[data-widget-pick=favorites]','aria-checked'],['[data-shortcuts="12"]','aria-pressed']]){
   assert.equal(await b.eval(`(async()=>{const p=document.getElementById('customizePopover');if(!p.matches(':popover-open'))document.getElementById('customizeButton').click();
-   const s=document.querySelector('[data-widget-pick=${name}]');s.click();for(let i=0;i<100&&s.getAttribute('aria-checked')!=='true';i++)await new Promise(r=>setTimeout(r,50));
-   return s.getAttribute('aria-checked');})()`),'true',`${name} switched on`);
+   const s=document.querySelector('${selector}');s.click();for(let i=0;i<100&&s.getAttribute('${attr}')!=='true';i++)await new Promise(r=>setTimeout(r,50));
+   return s.getAttribute('${attr}');})()`),'true',`${selector} chosen`);
  }
  await b.eval(`document.getElementById('customizePopover').hidePopover(),1`);
  d=await w.waitFor(()=>read(b),x=>x?.widgets?.favorites&&x.widgets.shortcuts,'Favorites and More shortcuts on',8000);
  assert.equal(d.favorites,true,'the Favorites widget shows');assert.equal(d.line,true,'the week\'s line stays');assert.equal(d.tileLimit,12);
- result.checks.push('Favorites shows, the week\'s line stays, and More shortcuts gives Billboard twelve tiles');
- d=await w.waitFor(()=>read(a),x=>x?.widgets?.favorites&&x.widgets.shortcuts&&x.switches.favorites==='true','the other Start Page to follow',8000);
+ assert.ok(d.sites<12&&/so far/.test(d.hint??''),`with fewer sites than chosen, Customize says how many there are: ${d.sites} ${d.hint}`);
+ result.checks.push('Favorites shows, the week\'s line stays, Shortcuts 12 gives Billboard twelve tiles, and with fewer sites Customize says how many so far');
+ d=await w.waitFor(()=>read(a),x=>x?.widgets?.favorites&&x.widgets.shortcuts&&x.switches.favorites==='true'&&x.switches.shortcuts==='true','the other Start Page to follow',8000);
  assert.equal(d.favorites,true);
  result.checks.push('another open Start Page follows the change at once');
 

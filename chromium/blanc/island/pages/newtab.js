@@ -1674,6 +1674,10 @@ function applyWidgets(widgets) {
   for (const button of widgetButtons) {
     button.setAttribute('aria-checked', String(next[button.dataset.widgetPick] === true));
   }
+  for (const button of document.querySelectorAll('[data-shortcuts]')) {
+    button.setAttribute('aria-pressed', String((button.dataset.shortcuts === '12') === next.shortcuts));
+  }
+  updateShortcutsHint();
   if (tilesChanged && rendered.has('billboard')) {
     renderBillboard();
     fillBillboardSites().catch(() => {});
@@ -2136,6 +2140,42 @@ document.addEventListener('toggle', (event) => {
 document.addEventListener('visibilitychange', placePanels);
 window.addEventListener('resize', placePanels);
 window.addEventListener('scroll', placePanels, { capture: true, passive: true });
+
+// Shortcuts: 6 or 12 tiles under the clock. Billboard shows only the sites
+// it has (pins and the most visited), so with fewer than the count chosen a
+// note says how many there are so far; otherwise the choice would seem to
+// do nothing.
+for (const button of document.querySelectorAll('[data-shortcuts]')) {
+  button.setAttribute('aria-label', t('start.shortcuts.count', { count: Number(button.dataset.shortcuts) }));
+  button.addEventListener('click', async () => {
+    const want = button.dataset.shortcuts === '12';
+    if (widgetWritePending || state.widgets?.shortcuts === want) return;
+    widgetWritePending = true;
+    widgetSaveStatus.hidden = true;
+    try {
+      applyWidgets(await window.bowserPages.start.setWidget('shortcuts', want));
+    } catch {
+      widgetSaveStatus.textContent = t('start.widgets.unconfirmed');
+      widgetSaveStatus.hidden = false;
+    } finally {
+      widgetWritePending = false;
+      window.blancNewTabEvent('widgets');
+    }
+  });
+}
+function updateShortcutsHint() {
+  const hint = document.getElementById('shortcutsHint');
+  const grid = document.getElementById('bbFavorites');
+  if (!hint || !grid) return;
+  const count = grid.querySelectorAll('.bb-site').length;
+  const fewer = count < billboardSiteCount();
+  hint.hidden = !fewer;
+  if (fewer) hint.textContent = t('start.shortcuts.sofar', { count });
+}
+{
+  const grid = document.getElementById('bbFavorites');
+  if (grid) new MutationObserver(updateShortcutsHint).observe(grid, { childList: true, subtree: true });
+}
 
 const clockReadStatus = document.getElementById('clockReadStatus');
 document.addEventListener('blancClockReadFailure', () => {

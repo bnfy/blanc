@@ -168,8 +168,9 @@ export const DIVERGENCES = new Map([
     assert.ok(apart, `the card and the line do not overlap: ${JSON.stringify(tally)}`);
   }}],
   // V26 (owner, 2026-11-13): Customize's choices that stand for shipping's
-  // four layouts are three widget tiles (V24 made the layouts widgets; V26
-  // took Blocked this week away). Everything else these two steps check is
+  // four layouts are three: the Favorites and other-devices tiles and the
+  // Shortcuts choice (V24 made the layouts widgets; V26 took Blocked this
+  // week away). Everything else these two steps check is
   // shipping's, unchanged: the Mahjong link is the footer's own (no frame),
   // opens Mahjong in a new managed tab, private from a private page, and the
   // Start Page keeps its layout.
@@ -179,7 +180,7 @@ export const DIVERGENCES = new Map([
       'loaded start page before launching Mahjong', 8000);
     const source = before.tabs.find(tab => tab.id === before.activeTabId);
     const footer = await this.waitFor(() => this.call('readMahjongFooterLink'),
-      value => value?.switcherCount === 3 && value.frameCount === 0, 'three widget choices and a separate Mahjong footer link', 8000);
+      value => value?.switcherCount === 3 && value.frameCount === 0, 'three Customize choices and a separate Mahjong footer link', 8000);
     assert.equal(footer.href, source.private ? 'blanc://mahjong/?private=1' : 'blanc://mahjong/');
     assert.equal(footer.target, '_blank');
     this.mahjongSource = {id: source.id, layout: footer.layout, private: source.private, count: before.tabs.length};
