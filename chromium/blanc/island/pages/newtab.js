@@ -1658,9 +1658,11 @@ function applyWidgets(widgets) {
   const tilesChanged = state.widgets?.shortcuts !== next.shortcuts;
   next.place = widgets?.place ?? state.widgets?.place ?? { left: ['favorites', 'devices'], right: ['sent', 'chart'] };
   next.panels = widgets?.panels ?? state.widgets?.panels ?? [];
+  next.sizes = widgets?.sizes ?? state.widgets?.sizes ?? {};
   state.widgets = next;
   syncPanelCards(next.panels);
-  if (!cardDrag) placeCards(next.place);
+  if (!cardDrag && !cardResize) placeCards(next.place);
+  applyCardSizes(next.sizes);
   placePanels();
   for (const section of document.querySelectorAll('#bbWidgets [data-widget]')) {
     section.classList.toggle('widget-on', next[section.dataset.widget] === true);
@@ -1684,11 +1686,18 @@ const widgetMoveStatus = document.getElementById('widgetMoveStatus');
 let cardDrag = null;
 const cardShown = (card) => getComputedStyle(card).display !== 'none';
 const cardName = (card) => card.querySelector('.ledger-label')?.textContent.trim() ?? '';
+// Moves only the cards that are out of place: re-inserting one that is
+// already right would drop a pointer it holds (a resize in progress) and
+// its focus.
 function placeCards(place) {
   for (const side of ['left', 'right']) {
+    const rail = cardRails[side];
+    let at = 0;
     for (const name of place?.[side] ?? []) {
       const card = document.querySelector(`.bb-widget[data-card="${name}"]`);
-      if (card) cardRails[side].appendChild(card);
+      if (!card) continue;
+      if (rail.children[at] !== card) rail.insertBefore(card, rail.children[at] ?? null);
+      at += 1;
     }
   }
   refreshRails();
@@ -1785,6 +1794,186 @@ function bindGrip(grip) {
   });
 }
 for (const grip of document.querySelectorAll('.bb-widget-grip')) bindGrip(grip);
+
+// Resizing a scrolling card by its bottom edge (owner, 2026-11-13): the
+// card follows the pointer or finger 1:1, past the smallest and largest
+// sizes with growing resistance; a dashed outline shows the size it will
+// take; on release it settles on the size nearest where the gesture was
+// heading (its speed projected forward), with a critically damped spring
+// that starts at the gesture's speed. The sizes are the page's fixed grid,
+// the largest the column has room for; double-click (or Delete) fits the
+// column again. Arrow keys step through the sizes.
+var CARD_SIZES = [240, 360, 480, 600, 720];
+var cardResize = null;
+var cardSpring = new Map();
+function applyCardSizes(sizes) {
+  for (const card of document.querySelectorAll('#bbWidgets .bb-widget-sizable')) {
+    if (card.dataset.resizing === 'true' || cardSpring.has(card)) continue;
+    setCardHeight(card, sizes?.[card.dataset.card] || 0);
+  }
+}
+function setCardHeight(card, px, live = false) {
+  if (px) {
+    card.dataset.size = live ? 'live' : String(px);
+    card.style.setProperty('--card-size', `${px}px`);
+  } else {
+    delete card.dataset.size;
+    card.style.removeProperty('--card-size');
+  }
+  if (!live) updateResizeAria(card);
+}
+// The sizes this card can take where it is: those its column has room for
+// beside the other cards (at least the smallest).
+function cardSteps(card) {
+  const rail = card.parentElement;
+  const max = parseFloat(getComputedStyle(rail).maxHeight);
+  if (!rail?.matches('.bb-rail') || !Number.isFinite(max)) return CARD_SIZES;
+  const gap = parseFloat(getComputedStyle(rail).rowGap) || 0;
+  const others = [...rail.children].filter((c) => c !== card && c.matches('.bb-widget') && cardShown(c));
+  const room = max - others.reduce((sum, c) => sum + c.getBoundingClientRect().height + gap, 0);
+  const fits = CARD_SIZES.filter((size) => size <= room);
+  return fits.length ? fits : CARD_SIZES.slice(0, 1);
+}
+const nearestStep = (steps, h) => steps.reduce((a, b) => (Math.abs(b - h) < Math.abs(a - h) ? b : a));
+function rubberband(value, min, max) {
+  const resist = (over) => (over * 200 * 0.55) / (200 + 0.55 * over);
+  return value < min ? min - resist(min - value) : value > max ? max + resist(value - max) : value;
+}
+function updateResizeAria(card) {
+  const edge = card.querySelector(':scope > .bb-widget-resize');
+  if (!edge) return;
+  const size = Number(card.dataset.size) || 0;
+  const index = CARD_SIZES.indexOf(size);
+  edge.setAttribute('aria-label', t('start.widgets.resize', { name: cardName(card) }));
+  edge.setAttribute('aria-valuemin', '0');
+  edge.setAttribute('aria-valuemax', String(CARD_SIZES.length));
+  edge.setAttribute('aria-valuenow', String(index + 1));
+  edge.setAttribute('aria-valuetext', index < 0 ? t('start.widgets.sizeAuto')
+    : t('start.widgets.size', { size: index + 1, count: CARD_SIZES.length }));
+}
+// The outline of the size a resize will settle on.
+function snapGuide(card, height) {
+  let guide = document.getElementById('cardSnapGuide');
+  if (!card) { guide?.remove(); return; }
+  if (!guide) {
+    guide = document.createElement('div');
+    guide.id = 'cardSnapGuide';
+    guide.className = 'bb-widget-snap';
+    guide.setAttribute('aria-hidden', 'true');
+    document.body.append(guide);
+  }
+  const r = card.getBoundingClientRect();
+  Object.assign(guide.style, { left: `${r.left}px`, top: `${r.top}px`, width: `${r.width}px`, height: `${height}px` });
+}
+// A critically damped spring (damping 1, response 0.3 s) from the card's
+// height now to `target`, starting at `velocity` px/s.
+function springCardTo(card, target, velocity, done) {
+  cardSpring.get(card)?.cancel();
+  const from = card.getBoundingClientRect().height;
+  if (matchMedia('(prefers-reduced-motion: reduce)').matches || Math.abs(from - target) < 0.5) {
+    setCardHeight(card, target); done?.(); return;
+  }
+  const omega = (2 * Math.PI) / 0.3;
+  const x0 = from - target;
+  const start = performance.now();
+  let frame = 0;
+  const step = (now) => {
+    const time = (now - start) / 1000;
+    const decay = Math.exp(-omega * time);
+    const x = (x0 + (velocity + omega * x0) * time) * decay;
+    const v = (velocity - omega * (velocity + omega * x0) * time) * decay;
+    if (Math.abs(x) < 0.5 && Math.abs(v) < 8) {
+      cardSpring.delete(card); setCardHeight(card, target); done?.(); return;
+    }
+    setCardHeight(card, target + x, true);
+    frame = requestAnimationFrame(step);
+  };
+  frame = requestAnimationFrame(step);
+  cardSpring.set(card, { cancel: () => { cancelAnimationFrame(frame); cardSpring.delete(card); } });
+}
+async function saveCardSize(card, size, announce = true) {
+  setCardHeight(card, size);
+  if (announce) {
+    const index = CARD_SIZES.indexOf(size);
+    widgetMoveStatus.textContent = index < 0
+      ? t('start.widgets.resizedAuto', { name: cardName(card) })
+      : t('start.widgets.resized', { name: cardName(card), size: index + 1, count: CARD_SIZES.length });
+  }
+  try { applyWidgets(await window.bowserPages.start.setWidgetSize(card.dataset.card, size)); }
+  catch { window.blancNewTabEvent('widgets'); }
+}
+function addResizeEdge(card) {
+  if (!card || card.querySelector(':scope > .bb-widget-resize')) return;
+  card.classList.add('bb-widget-sizable');
+  const edge = document.createElement('div');
+  edge.className = 'bb-widget-resize';
+  edge.setAttribute('role', 'separator');
+  edge.setAttribute('aria-orientation', 'horizontal');
+  edge.tabIndex = 0;
+  edge.append(document.createElement('span'));
+  card.append(edge);
+  updateResizeAria(card);
+  edge.addEventListener('pointerdown', (event) => {
+    if (event.button !== 0 || cardDrag || cardResize) return;
+    event.preventDefault();
+    event.stopPropagation();
+    cardSpring.get(card)?.cancel();
+    edge.setPointerCapture(event.pointerId);
+    const height = card.getBoundingClientRect().height;
+    cardResize = { card, edge, startY: event.clientY, startHeight: height, height, steps: cardSteps(card),
+      samples: [{ y: event.clientY, t: event.timeStamp }] };
+    card.dataset.resizing = 'true';
+    document.body.classList.add('widget-resizing');
+    snapGuide(card, nearestStep(cardResize.steps, height));
+  });
+  edge.addEventListener('pointermove', (event) => {
+    if (cardResize?.edge !== edge) return;
+    const { steps } = cardResize;
+    const raw = cardResize.startHeight + (event.clientY - cardResize.startY);
+    cardResize.height = rubberband(raw, steps[0], steps[steps.length - 1]);
+    setCardHeight(card, cardResize.height, true);
+    cardResize.samples.push({ y: event.clientY, t: event.timeStamp });
+    while (cardResize.samples.length > 2 && event.timeStamp - cardResize.samples[0].t > 100) cardResize.samples.shift();
+    snapGuide(card, nearestStep(steps, cardResize.height));
+  });
+  const end = (event) => {
+    if (cardResize?.edge !== edge) return;
+    const { steps, samples, height } = cardResize;
+    cardResize = null;
+    snapGuide(null);
+    document.body.classList.remove('widget-resizing');
+    const first = samples[0], last = samples[samples.length - 1];
+    // A pointer that rested before letting go carries no speed.
+    const rested = event.timeStamp - last.t > 100;
+    const velocity = !rested && last.t > first.t ? ((last.y - first.y) / (last.t - first.t)) * 1000 : 0;
+    // Where the gesture was heading (Apple's projection, deceleration .99).
+    const projected = height + (velocity / 1000) * 0.99 / (1 - 0.99);
+    const target = event.type === 'pointercancel' ? nearestStep(steps, height) : nearestStep(steps, projected);
+    springCardTo(card, target, velocity, () => {
+      delete card.dataset.resizing;
+      saveCardSize(card, target);
+    });
+  };
+  edge.addEventListener('pointerup', end);
+  edge.addEventListener('pointercancel', end);
+  edge.addEventListener('dblclick', () => saveCardSize(card, 0));
+  edge.addEventListener('keydown', (event) => {
+    const steps = cardSteps(card);
+    const now = Number(card.dataset.size) || nearestStep(steps, card.getBoundingClientRect().height);
+    const at = steps.indexOf(nearestStep(steps, now));
+    let next = null;
+    if (event.key === 'ArrowUp') next = steps[Math.max(0, at - 1)];
+    else if (event.key === 'ArrowDown') next = steps[Math.min(steps.length - 1, at + 1)];
+    else if (event.key === 'Home') next = steps[0];
+    else if (event.key === 'End') next = steps[steps.length - 1];
+    else if (event.key === 'Delete' || event.key === 'Backspace') next = 0;
+    else return;
+    event.preventDefault();
+    if (next === 0) { saveCardSize(card, 0); return; }
+    springCardTo(card, next, 0, () => saveCardSize(card, next));
+  });
+}
+addResizeEdge(document.getElementById('remoteSection'));
 new MutationObserver(() => { if (!cardDrag) refreshRails(); placePanels(); }).observe(document.getElementById('bbWidgets'),
   { subtree: true, attributes: true, attributeFilter: ['hidden', 'class'] });
 
@@ -1851,6 +2040,7 @@ function syncPanelCards(enabled) {
     card.append(grip, label, slot);
     cards.append(card);
     bindGrip(grip);
+    addResizeEdge(card);
     panelSlots.observe(slot);
   }
   for (const tile of document.querySelectorAll('[data-panel-pick]')) {

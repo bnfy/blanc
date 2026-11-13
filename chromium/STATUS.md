@@ -904,6 +904,19 @@ remain pending. D3 beta-only no-DRM exception accepted; EME notice/handoff requi
   on a wide page the right column starts on the header's top line and ends
   level with the left one, above the header's empty right half. The devices
   test checks it: 6/6.
+  Resizable long cards (owner, same day): the devices card and an extension
+  panel card resize by their bottom edge (a grabber shows on hover, focus and
+  touch). The card follows the pointer or finger 1:1, with growing
+  resistance past the smallest and largest sizes; a dashed outline shows the
+  size it will take; on release it settles on the fixed size nearest where
+  the gesture was heading (240, 360, 480, 600 or 720 px, the largest its
+  column has room for), with a critically damped spring that starts at the
+  gesture's speed. Arrow keys, Home and End step through the sizes; double-
+  click or Delete fits the column again. Sizes are saved with the widgets
+  (`sizes`, validated natively). While fixing it: a widgets refresh during a
+  gesture re-inserted every card, dropping the pointer a resize held; cards
+  now move only when out of place. native-start-devices 9/9;
+  native-start-widgets 8/8.
 - **Extension side panels as Start Page cards (2026-11-13, owner: "Prototype
   it"; fork only, prototype):** an installed extension with a side panel
   (`chrome.sidePanel`, `side_panel.default_path`) appears in Customize as one
@@ -2605,5 +2618,5 @@ Android's Bar A counts the shared scenarios bound in `chromium/tests/android/acc
 
 Legacy macOS stages come from the approved spec; they await verification on the canonical candidate. No legacy stage counts as Verified.
 
-Candidate identities: macOS: macos-f2695a2b7775cc22; Windows: none; Linux: none; Android: android-arm64-7bd35e94ef746069.
+Candidate identities: macOS: macos-55e76d00700a4fb1; Windows: none; Linux: none; Android: android-arm64-7bd35e94ef746069.
 <!-- END GENERATED PROGRESS -->

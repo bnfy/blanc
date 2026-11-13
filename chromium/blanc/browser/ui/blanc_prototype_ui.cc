@@ -4591,7 +4591,8 @@ class NewTabHandler : public content::WebUIMessageHandler,
     if ((method == "widgetsRead" && args.empty()) ||
         (method == "widgetsWrite" && args.size() == 2 && args[0].is_string() && args[1].is_bool()) ||
         (method == "widgetsPlace" && args.size() == 2 && args[0].is_list() && args[1].is_list()) ||
-        (method == "widgetsPanel" && args.size() == 2 && args[0].is_string() && args[1].is_bool())) {
+        (method == "widgetsPanel" && args.size() == 2 && args[0].is_string() && args[1].is_bool()) ||
+        (method == "widgetsSize" && args.size() == 2 && args[0].is_string() && args[1].is_int())) {
       constexpr char kWidgets[] = "blanc.start.widgets";
       constexpr std::string_view kNames[] = {"favorites", "devices", "chart", "shortcuts"};
       auto* local = g_browser_process->local_state();
@@ -4667,6 +4668,26 @@ class NewTabHandler : public content::WebUIMessageHandler,
         }
         return base::DictValue().Set("left", std::move(l)).Set("right", std::move(r));
       };
+      // A scrolling card's height, one of the page's fixed sizes (in CSS
+      // pixels), or 0 to fit its column again. Only cards that scroll inside
+      // (other devices, an extension's panel) take a size.
+      constexpr int kSizes[] = {240, 360, 480, 600, 720};
+      const auto sizable = [&](const std::string& card) {
+        return card == "devices" || (card.starts_with("ext:") && std::find(cards.begin(), cards.end(), card) != cards.end());
+      };
+      if (method == "widgetsSize") {
+        const auto& card = args[0].GetString();
+        const int size = args[1].GetInt();
+        if (!sizable(card) || (size != 0 && std::find(std::begin(kSizes), std::end(kSizes), size) == std::end(kSizes))) {
+          Reply(id, false, base::Value("Unknown card size")); return;
+        }
+        auto next = local->GetDict(kWidgets).Clone();
+        auto sizes = next.FindDict("sizes") ? next.FindDict("sizes")->Clone() : base::DictValue();
+        if (size) sizes.Set(card, size); else sizes.Remove(card);
+        next.Set("sizes", std::move(sizes));
+        local->SetDict(kWidgets, std::move(next));
+        local->CommitPendingWrite();
+      }
       if (method == "widgetsPlace") {
         auto next = local->GetDict(kWidgets).Clone();
         next.Set("place", place(&args[0].GetList(), &args[1].GetList()));
@@ -4682,6 +4703,12 @@ class NewTabHandler : public content::WebUIMessageHandler,
       base::ListValue on_panels;
       if (const auto* panels = saved.FindList("panels")) on_panels = panels->Clone();
       out.Set("panels", std::move(on_panels));
+      base::DictValue on_sizes;
+      if (const auto* sizes = saved.FindDict("sizes"))
+        for (const auto [card, value] : *sizes)
+          if (sizable(card) && value.is_int() && std::find(std::begin(kSizes), std::end(kSizes), value.GetInt()) != std::end(kSizes))
+            on_sizes.Set(card, value.GetInt());
+      out.Set("sizes", std::move(on_sizes));
       Reply(id, true, base::Value(std::move(out))); return;
     }
     if (method == "panelList" && args.empty()) {

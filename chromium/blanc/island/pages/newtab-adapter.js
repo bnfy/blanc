@@ -132,6 +132,8 @@
   // An extension's side panel shown as a card (prototype): "ext:<extension id>".
   const PANEL_ID = /^[a-p]{32}$/;
   const PANEL_CARD = /^ext:[a-p]{32}$/;
+  // The heights a scrolling card snaps to (CSS pixels); 0 fits its column.
+  const CARD_SIZES = [240, 360, 480, 600, 720];
   const DEFAULT_PLACE = {left: ['favorites', 'devices'], right: ['sent', 'chart']};
   const placeOf = value => {
     const side = list => Array.isArray(list) ? list.filter(name => CARDS.includes(name) || PANEL_CARD.test(name)) : [];
@@ -139,7 +141,9 @@
     return place.left.length + place.right.length ? place : DEFAULT_PLACE;
   };
   const widgetsOf = value => ({...Object.fromEntries(WIDGETS.map(name => [name, value?.[name] === true])), place: placeOf(value?.place),
-    panels: Array.isArray(value?.panels) ? value.panels.filter(id => PANEL_ID.test(id)) : []});
+    panels: Array.isArray(value?.panels) ? value.panels.filter(id => PANEL_ID.test(id)) : [],
+    sizes: Object.fromEntries(Object.entries(value?.sizes && typeof value.sizes === 'object' ? value.sizes : {})
+      .filter(([card, size]) => (card === 'devices' || PANEL_CARD.test(card)) && CARD_SIZES.includes(size)))});
   const noWidgets = () => widgetsOf(null);
   let clockEpoch = 0, layoutEpoch = 0;
   let groupEpoch = 0;
@@ -482,6 +486,21 @@
           return sharedWidgets;
         } catch (error) { ++widgetsEpoch; throw error; }
       },
+      // A scrolling card's height, one of CARD_SIZES, or 0 to fit its column.
+      setWidgetSize: async (card, size) => {
+        if (!(card === 'devices' || PANEL_CARD.test(card)) || !(size === 0 || CARD_SIZES.includes(size)))
+          throw new Error('Unknown card size');
+        ++widgetsEpoch;
+        try {
+          const value = await request('widgetsSize', [card, size]);
+          ++widgetsEpoch;
+          if (!value || typeof value !== 'object') throw new Error('Widget size unavailable');
+          sharedWidgets = widgetsOf(value);
+          publish();
+          return sharedWidgets;
+        } catch (error) { ++widgetsEpoch; throw error; }
+      },
+      cardSizes: CARD_SIZES,
       placePanel: (id, rect) => PANEL_ID.test(id) ?
         request('panelPlace', [id, rect.x, rect.y, rect.width, rect.height]) : Promise.resolve(false),
       hidePanels: (id = '') => request('panelHide', [PANEL_ID.test(id) ? id : '']),

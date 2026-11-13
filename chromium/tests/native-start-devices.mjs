@@ -2,7 +2,8 @@
 // column starts on the header's line, a column fits between the header and the footer however many tabs it lists (the list
 // scrolls inside the card), a tall card is carried as a short preview, a
 // finger swipe scrolls the list, the scrollbar shows on hover and while
-// scrolling only, and a row taking focus never freezes the page.
+// scrolling only, a row taking focus never freezes the page, and a long
+// card resizes by its bottom edge onto the page's fixed sizes.
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
@@ -27,8 +28,13 @@ try{
  await w.waitFor(()=>page.eval("document.body.classList.contains('layout-ready')"),Boolean,'the Start Page ready',10000);
  for(const name of ['devices','chart'])await page.eval(`window.bowserPages.start.setWidget(${JSON.stringify(name)},true).then(()=>1)`);
  await page.eval(`window.bowserPages.start.setWidgetPlace(['favorites','sent'],['devices','chart']).then(()=>1)`);
- // This profile has no synced devices: the page draws these three itself.
- const draw=()=>page.eval(`(()=>{const r=document.querySelector('.tally-right');if(r)r.hidden=false;remoteExpanded.add('a');renderRemote(${JSON.stringify(DEVICES)});return 1;})()`);
+ // This profile has no synced devices: the page draws these three itself,
+ // and its own refreshes (which would read none) draw them too.
+ const draw=()=>page.eval(`(()=>{const r=document.querySelector('.tally-right');if(r)r.hidden=false;remoteExpanded.add('a');
+  const devices=${JSON.stringify(DEVICES)};
+  if(!window.__devicesStub){window.__devicesStub=true;const send=chrome.send.bind(chrome);
+   chrome.send=(name,args)=>name==='blancNewTab'&&args?.[1]==='remoteDevices'?void setTimeout(()=>window.blancNewTabReply(args[0],true,devices)):send(name,args);}
+  renderRemote(devices);return 1;})()`);
  await draw();await new Promise(r=>setTimeout(r,500));
  const fit=await page.eval(`(()=>{const railEl=document.getElementById('bbRailRight'),rail=railEl.getBoundingClientRect(),left=document.getElementById('bbRailLeft').getBoundingClientRect(),
   brand=document.querySelector('.start-brand').getBoundingClientRect(),foot=document.getElementById('layoutFooter').getBoundingClientRect(),list=document.getElementById('remoteList');
@@ -78,6 +84,58 @@ try{
  assert.match(away,/^rgba\(0, 0, 0, 0\) /,'no scrollbar at rest');
  assert.doesNotMatch(over,/^rgba\(0, 0, 0, 0\) /,'the scrollbar on hover');
  result.checks.push('the scrollbar is hidden at rest and shows on hover');
+ // Resizing by the bottom edge, onto the fixed sizes.
+ const SIZES=[240,360,480,600,720];
+ const edgeAt=()=>page.eval(`(()=>{const e=document.querySelector('#remoteSection > .bb-widget-resize');const b=e.getBoundingClientRect();
+  return {x:b.left+b.width/2,y:b.top+b.height/2,role:e.getAttribute('role'),label:e.getAttribute('aria-label'),text:e.getAttribute('aria-valuetext')};})()`);
+ const sized=()=>page.eval(`(()=>{const c=document.getElementById('remoteSection');return {size:c.dataset.size??null,height:Math.round(c.getBoundingClientRect().height),saved:state.widgets?.sizes?.devices??null,resizing:c.dataset.resizing??null};})()`);
+ let edge=await edgeAt();
+ assert.equal(edge.role,'separator');assert.match(edge.label,/On your other devices/);
+ // A slow drag up by about 230px, resting before release: the nearest size.
+ const before=await sized();
+ await page.send('Input.dispatchMouseEvent',{type:'mouseMoved',x:edge.x,y:edge.y});
+ await page.send('Input.dispatchMouseEvent',{type:'mousePressed',x:edge.x,y:edge.y,button:'left',buttons:1,clickCount:1});
+ for(let i=1;i<=10;i++){await page.send('Input.dispatchMouseEvent',{type:'mouseMoved',x:edge.x,y:edge.y-i*23,button:'left',buttons:1});await new Promise(r=>setTimeout(r,25));}
+ const guide=await page.eval(`(()=>{const g=document.getElementById('cardSnapGuide');return g?Math.round(g.getBoundingClientRect().height):null;})()`);
+ {const {data}=await page.send('Page.captureScreenshot',{format:'png'});fs.writeFileSync(path.join(out,'resizing.png'),Buffer.from(data,'base64'));}
+ await new Promise(r=>setTimeout(r,250));
+ await page.send('Input.dispatchMouseEvent',{type:'mouseReleased',x:edge.x,y:edge.y-230,button:'left',buttons:0,clickCount:1});
+ const slow=await w.waitFor(sized,v=>v.saved&&!v.resizing,'the card settled and saved',5000);
+ result.resize={before,guide,slow};
+ assert.ok(SIZES.includes(slow.saved)&&Math.abs(slow.height-slow.saved)<=1,'it settles exactly on a fixed size');
+ assert.equal(slow.saved,SIZES.reduce((a,b)=>Math.abs(b-(before.height-230))<Math.abs(a-(before.height-230))?b:a),'the nearest size to where it was let go');
+ assert.equal(guide,slow.saved,'the outline showed the size it settled on');
+ result.checks.push('dragging the bottom edge resizes the card onto the nearest fixed size, shown by an outline first, and saves it');
+ // A quick flick down from there carries past the nearest size.
+ edge=await edgeAt();
+ await page.send('Input.dispatchMouseEvent',{type:'mouseMoved',x:edge.x,y:edge.y});
+ await page.send('Input.dispatchMouseEvent',{type:'mousePressed',x:edge.x,y:edge.y,button:'left',buttons:1,clickCount:1});
+ for(let i=1;i<=4;i++)await page.send('Input.dispatchMouseEvent',{type:'mouseMoved',x:edge.x,y:edge.y+i*10,button:'left',buttons:1});
+ await page.send('Input.dispatchMouseEvent',{type:'mouseReleased',x:edge.x,y:edge.y+40,button:'left',buttons:0,clickCount:1});
+ const flick=await w.waitFor(sized,v=>v.saved&&v.saved!==slow.saved&&!v.resizing,'the flick settled',5000).catch(()=>sized());
+ result.resize.flick=flick;
+ assert.ok(flick.saved>=slow.saved+120,'a 40px flick (nearest size: the same) carries to a larger size');
+ result.checks.push('a quick flick carries the card past the nearest size, as the gesture was heading');
+ // Keys step through the sizes; Delete fits the column again.
+ await page.eval(`document.querySelector('#remoteSection > .bb-widget-resize').focus(),1`);
+ await page.send('Input.dispatchKeyEvent',{type:'keyDown',key:'ArrowUp',code:'ArrowUp',windowsVirtualKeyCode:38});
+ await page.send('Input.dispatchKeyEvent',{type:'keyUp',key:'ArrowUp',code:'ArrowUp',windowsVirtualKeyCode:38});
+ const up=await w.waitFor(sized,v=>v.saved===flick.saved-120&&!v.resizing,'one size smaller',5000).catch(()=>sized());
+ result.resize.key=up;
+ assert.equal(up.saved,flick.saved-120,'ArrowUp takes the next smaller size');
+ assert.match((await edgeAt()).text,/^Size \d of 5$/);
+ // The size is kept when the page loads again.
+ await page.eval('location.reload(),1');
+ await w.waitFor(()=>page.eval("document.body.classList.contains('layout-ready')&&!!document.querySelector('#remoteSection > .bb-widget-resize')").catch(()=>false),Boolean,'the page again',10000);
+ await draw();await new Promise(r=>setTimeout(r,500));
+ const reloaded=await sized();
+ result.resize.reloaded=reloaded;
+ assert.equal(Number(reloaded.size),up.saved,'the size is kept');
+ await page.eval(`document.querySelector('#remoteSection > .bb-widget-resize').dispatchEvent(new MouseEvent('dblclick',{bubbles:true})),1`);
+ const fitted=await w.waitFor(sized,v=>v.size===null&&v.saved===null,'fits the column again',5000).catch(()=>sized());
+ result.resize.fit=fitted;
+ assert.equal(fitted.size,null,'double-click fits the column again');
+ result.checks.push('arrow keys step through the sizes, the size is kept across a reload, and double-click fits the column again');
  fs.writeFileSync(path.join(out,'result.json'),JSON.stringify(result,null,1));console.log(JSON.stringify(result));
 }catch(e){result.error=String(e.stack||e);fs.writeFileSync(path.join(out,'result.json'),JSON.stringify(result,null,1));console.log(JSON.stringify(result));process.exitCode=1;}
 finally{await f.close();fs.rmSync(parent,{recursive:true,force:true});}

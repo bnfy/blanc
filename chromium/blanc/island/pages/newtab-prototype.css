@@ -512,3 +512,45 @@ body.widget-chart-on #bbBlocked { display: none; }
   #remoteList .fav.remote-tab { transition: none; }
   #remoteList .fav.remote-tab:active { transform: none; }
 }
+
+/* Resizable scrolling cards (owner, 2026-11-13): the bottom edge is a
+   handle with a small grabber, shown on hover, focus and while resizing
+   (always on a touchscreen). A sized card takes one of the fixed sizes
+   (--card-size, outer height) and its list or panel fills it; while it is
+   resized a dashed outline shows the size it will settle on. */
+.bb-widget-resize {
+  position: absolute; left: 24px; right: 24px; bottom: 0; height: 16px;
+  display: grid; place-items: center; border-radius: 8px;
+  cursor: ns-resize; touch-action: none; z-index: 2;
+}
+.bb-widget-resize > span {
+  width: 36px; height: 4px; border-radius: 2px;
+  background: color-mix(in srgb, var(--text) 28%, transparent);
+  opacity: 0; transition: opacity 120ms ease-out, width 160ms ease-out, background-color 120ms ease-out;
+}
+.bb-widget:hover > .bb-widget-resize > span, .bb-widget-resize:focus-visible > span,
+.bb-widget[data-resizing="true"] > .bb-widget-resize > span { opacity: 1; }
+.bb-widget-resize:hover > span, .bb-widget[data-resizing="true"] > .bb-widget-resize > span {
+  width: 48px; background: color-mix(in srgb, var(--text) 48%, transparent);
+}
+.bb-widget-resize:focus-visible { outline: 2px solid var(--accent); outline-offset: -2px; }
+body.widget-resizing, body.widget-resizing * { cursor: ns-resize !important; user-select: none; }
+.bb-widget-snap {
+  position: fixed; z-index: 3; pointer-events: none; box-sizing: border-box;
+  border: 1.5px dashed color-mix(in srgb, var(--text-dim) 55%, transparent); border-radius: 18px;
+  transition: height 140ms ease-out;
+}
+#bbWidgets #remoteSection.widget-on:not([hidden])[data-size],
+#bbWidgets .bb-widget-panel[data-size] {
+  display: flex; flex-direction: column; box-sizing: border-box;
+  height: var(--card-size); flex: 0 1 var(--card-size); min-height: 0;
+}
+#bbWidgets #remoteSection[data-size] #remoteList.remote-grouped { flex: 1 1 auto; min-height: 0; max-height: none; }
+#bbWidgets .bb-widget-panel[data-size] .bb-panel-slot { flex: 1 1 auto; min-height: 0; height: auto; max-height: none; }
+@media (pointer: coarse) {
+  .bb-widget-resize { height: 28px; }
+  .bb-widget-resize > span { opacity: 1; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .bb-widget-resize > span, .bb-widget-snap { transition: none; }
+}
