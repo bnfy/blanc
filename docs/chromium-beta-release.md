@@ -589,3 +589,51 @@ immutable assets, and record the future public N→N+1 handoff separately.
 
 The guarded `scripts/release-chromium-beta.sh` remains plan-only. The commands
 above deliberately do not turn it into an unqualified automated release path.
+
+### Staged operator: `chromium/release/release.mjs` (2026-11-13)
+
+The owner asked for the build, signing and publish stages to be written, and
+chose **2.0.0-beta.2** (build 2) for the first public beta; `ledger.json`
+keeps beta.1 reserved for the private local-qualification build, and the
+Intel waiver moves with the first beta to beta.2. `release.mjs` runs the
+§10 commands above as named stages, one per invocation, from a foreground
+Terminal:
+
+```sh
+node chromium/release/release.mjs status "$BETA_WORK"
+node chromium/release/release.mjs preflight "$BETA_WORK"      # §10.3, preflight.mjs
+node chromium/release/release.mjs sign "$BETA_WORK"           # §10.3, operator.mjs signApp
+OP_BIOMETRIC_UNLOCK_ENABLED=true op run --env-file=.env.1password --no-masking -- \
+  node chromium/release/release.mjs notarize-app "$BETA_WORK" # §10.4: zip, notarize, staple
+node chromium/release/release.mjs dmg "$BETA_WORK"            # §10.5: hdiutil, sign the DMG
+OP_BIOMETRIC_UNLOCK_ENABLED=true op run --env-file=.env.1password --no-masking -- \
+  node chromium/release/release.mjs notarize-dmg "$BETA_WORK" # §10.5: notarize, staple, verify.mjs, spctl
+node chromium/release/release.mjs sparkle "$BETA_WORK"        # §10.6: sign_update -p, appcast
+node chromium/release/release.mjs manifest "$BETA_WORK"       # §7: payloads, evidence, manifest
+node chromium/release/release.mjs draft "$BETA_WORK"          # §10.8: absence, typed OK, tag, draft, re-download
+node chromium/release/release.mjs sigstore "$BETA_WORK"       # §7: Safari Sigstore, verify, upload bundle
+node chromium/release/release.mjs publish "$BETA_WORK"        # typed OK; pre-release, not latest
+node chromium/release/release.mjs verify-public "$BETA_WORK"  # §8: logged-out download, all checks
+```
+
+`$BETA_WORK` is an owner-only folder outside Git holding `release.json`,
+`local-inputs.json` (preflight's inputs plus `unsigned: {arm64: <built app>}`
+and `sparkle: <extracted pinned Sparkle>`), and before `manifest`,
+`payloads/` (`acceptance.json`, `Blanc-Beta.cdx.json`, `NOTICES.txt`,
+`release-notes.md`) and `evidence/<arch>/<gate>.evidence`. Each stage checks
+the one before it and records what it made in `state.json`, bound to the
+digest of `release.json`. From `draft` on, nothing earlier can run again and no
+stage reruns: fix forward with a new ledger build. Absence of the tag and of
+every release, drafts included, must be answered by Git and GitHub; an error
+is not absence. `draft` and `publish` require typing a confirmation phrase.
+`publish` checks GitHub shows a published pre-release and that `/latest` is
+still an Electron release. Feed promotion stays the reviewed website PR.
+
+Still owed before the first public run: the production key ceremony (§10.1)
+and the production-argument build at beta.2 (§10.2); the gate adapters that
+produce real `acceptance.json` evidence on an official image (§6: acceptance
+harness, desktop Sync on the official artifact, SBOM and credits extraction,
+packaged blocker extractor, outbound isolation, native checks, signed N→N+1);
+the fork's hosted smoke workflow and the blanc.day feed routes (§8). Tests:
+`chromium/release/release-stages.test.mjs` (ordering, no rerun, absence,
+unconfirmed draft and publish, `/latest`), with a fake runner throughout.

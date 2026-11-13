@@ -49,7 +49,9 @@ export function validateRelease(r, {allowLocalQualification = false} = {}) {
   check(/^[a-f0-9]{64}$/.test(r.inputDigest), 'input digest required');
   check(Array.isArray(r.arches) && r.arches.length > 0 && r.arches.length === new Set(r.arches).size && r.arches.every(a => ['arm64', 'x64'].includes(a)), 'architecture set');
   check(r.arches.length === 2 || (typeof r.archWaiver === 'string' && r.archWaiver.trim().length >= 20), 'both architectures or recorded owner waiver required');
-  if (r.version === '2.0.0-beta.1') equal(r.arches, ['arm64'], 'beta 1 is Apple Silicon only under the owner Intel waiver');
+  // The owner's Intel waiver (2026-11-10) covers the first beta: beta.1 is the private
+  // local-qualification build, and the first public beta is beta.2 (owner, 2026-11-13).
+  if (['2.0.0-beta.1', '2.0.0-beta.2'].includes(r.version)) equal(r.arches, ['arm64'], 'the first beta is Apple Silicon only under the owner Intel waiver');
   equal(Object.keys(r.candidates).sort(), [...r.arches].sort(), 'candidate for every architecture');
   for (const arch of r.arches) {
     check(/^macos-[a-f0-9]{16}$/.test(r.candidates[arch]), 'candidate id');

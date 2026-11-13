@@ -932,6 +932,17 @@ remain pending. D3 beta-only no-DRM exception accepted; EME notice/handoff requi
   16 px at 1000 × 760; it fits at 1280 × 800 and larger, in every
   wallpaper mode). native-start-widgets 8/8; newtab-layouts 24/25 (:21 as
   before).
+- **Staged beta release operator (2026-11-13, owner):** `chromium/release/release.mjs`
+  runs the runbook's §10 commands as eleven named stages (preflight, sign,
+  notarize-app, dmg, notarize-dmg, sparkle, manifest, draft, sigstore,
+  publish, verify-public), one per invocation from a foreground Terminal,
+  recording each in a private `state.json` bound to `release.json`. From
+  `draft` on nothing reruns; absence of the tag and every release (drafts
+  included) must be answered, an error is not absence; `draft` and `publish`
+  need a typed confirmation, and `publish` checks `/latest` stays stable.
+  The Intel waiver moves to beta.2. release-stages 5/5; unit 408/408.
+  Owed before a public run: the key ceremony, the beta.2 production build,
+  and the §6 gate adapters (docs/chromium-beta-release.md, Staged operator).
 - **First public beta is 2.0.0-beta.2 (owner, 2026-11-13):** build 2.
   `chromium/release/ledger.json` keeps 2.0.0-beta.1 reserved for the private
   local-qualification build (the one built tonight, not distributable). The
