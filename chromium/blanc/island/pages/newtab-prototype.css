@@ -232,6 +232,18 @@ body.widget-dragging .bb-rail { display: flex; min-height: 96px; }
   }
   body.widget-dragging .bb-rail[data-side="right"] { min-height: calc(100vh - var(--rail-top) - var(--start-footer-h, 64px) - 24px); }
 }
+/* Shortcuts wrap into centered rows; newtab.js sets how many fit in a row
+   (shipping's single row never wraps, at most six tiles there). */
+#bbFavorites { flex-wrap: wrap; justify-content: center; }
+/* Too little room beside the columns for three shortcuts (newtab.js
+   layoutShortcutRows): the columns go under the clock as on a narrow window. */
+@media (min-width: 1200px) {
+  body[data-rails-stacked] .bb-widgets { display: flex; }
+  body[data-rails-stacked] .bb-rail[data-side] {
+    position: static; width: auto; top: auto; left: auto; right: auto; z-index: auto; max-height: none;
+  }
+  body[data-rails-stacked] .bb-rail[data-empty="true"] { display: none; }
+}
 #bbWidgets [data-widget]:not(.widget-on) { display: none; }
 body:not(.widget-dragging) .bb-widgets:not(:has(> .bb-rail[data-empty="false"])) { display: none; }
 /* No week's data to show (private, or statistics unavailable): no empty card. */

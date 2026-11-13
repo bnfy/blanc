@@ -2073,15 +2073,40 @@ document.getElementById('customizePopover')?.addEventListener('beforetoggle', (e
 window.addEventListener('resize', () => {
   if (document.getElementById('customizePopover')?.matches(':popover-open')) fitCustomizeBelowClock();
 });
-// The tiles wrap into rows of at most six, each row centered.
+// The tiles wrap into centered rows of at most six, and never reach under the
+// widget columns beside the Start Page (owner, 2026-11-13): a row holds what
+// fits between them. When not even three fit, the columns go under the clock
+// as on a narrow window. The room comes from the columns' own sizes (the CSS
+// below), not from measuring them, so switching layouts can't flip it back.
+const MIN_TILES_BESIDE_COLUMNS = 3;
 function layoutShortcutRows() {
   const grid = document.getElementById('bbFavorites');
   const first = grid?.querySelector('.bb-site');
   if (!grid || !first) return;
   const gap = parseFloat(getComputedStyle(grid).columnGap) || 0;
-  grid.style.maxWidth = `${6 * first.getBoundingClientRect().width + 5 * gap + 1}px`;
+  const tile = first.getBoundingClientRect().width;
+  const width = document.documentElement.clientWidth;
+  let room = Infinity;
+  if (width >= 1200) {
+    // newtab-prototype.css: each column is clamp(240px, 20vw, 300px) wide at
+    // --start-edge from its side; a 24px gutter keeps tiles off it.
+    const edge = parseFloat(getComputedStyle(document.body).getPropertyValue('--start-edge')) || 24;
+    const column = Math.min(300, Math.max(240, width * 0.2));
+    const beside = side => document.querySelector(`.bb-rail[data-side="${side}"]`)?.dataset.empty === 'false';
+    const half = Math.min(beside('left') ? width / 2 - edge - column - 24 : Infinity,
+      beside('right') ? width / 2 - edge - column - 24 : Infinity);
+    room = 2 * half;
+  }
+  const fit = Math.floor((room + gap) / (tile + gap));
+  const stacked = fit < MIN_TILES_BESIDE_COLUMNS;
+  document.body.toggleAttribute('data-rails-stacked', stacked);
+  const perRow = stacked ? 6 : Math.min(6, fit);
+  grid.style.maxWidth = `${perRow * tile + (perRow - 1) * gap + 1}px`;
 }
 window.addEventListener('resize', layoutShortcutRows);
+// A column filling or emptying changes the room.
+for (const rail of document.querySelectorAll('.bb-rail'))
+  new MutationObserver(layoutShortcutRows).observe(rail, { attributes: true, attributeFilter: ['data-empty'] });
 function updateShortcutsHint() {
   const hint = document.getElementById('shortcutsHint');
   const grid = document.getElementById('bbFavorites');

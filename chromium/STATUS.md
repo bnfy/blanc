@@ -932,6 +932,17 @@ remain pending. D3 beta-only no-DRM exception accepted; EME notice/handoff requi
   16 px at 1000 × 760; it fits at 1280 × 800 and larger, in every
   wallpaper mode). native-start-widgets 8/8; newtab-layouts 24/25 (:21 as
   before).
+- **Shortcuts stay clear of the widget columns (2026-11-13, owner):** on a
+  window 1200 px or wider the columns sit fixed at the sides, and nothing
+  kept Billboard's shortcuts from sliding under them. A row now holds only
+  the tiles that fit between the filled columns (up to six, from the
+  columns' own CSS sizes so the choice can't flip back and forth), and when
+  not even three fit the columns go under the clock as on a narrow window
+  (`data-rails-stacked`). The row also wraps at all: shipping's single row
+  is `nowrap`, so Customize's "rows of at most six" never wrapped before.
+  Checked at 1200–1700 px with both columns filled: no tile overlaps a
+  column (five a row at 1200). native-start-widgets 8/8; newtab-layouts
+  25/25.
 - **Shipping corrections (2026-11-13):** a shipping step that shipping
   itself corrected after the fork's reference (8a4e57e78) now runs as the
   correcting commit wrote it, and only that definition
@@ -2766,5 +2777,5 @@ Android's Bar A counts the shared scenarios bound in `chromium/tests/android/acc
 
 Legacy macOS stages come from the approved spec; they await verification on the canonical candidate. No legacy stage counts as Verified.
 
-Candidate identities: macOS: macos-06456f4c40bef2da; Windows: none; Linux: none; Android: android-arm64-7bd35e94ef746069.
+Candidate identities: macOS: macos-656ae5d81449fec2; Windows: none; Linux: none; Android: android-arm64-7bd35e94ef746069.
 <!-- END GENERATED PROGRESS -->
