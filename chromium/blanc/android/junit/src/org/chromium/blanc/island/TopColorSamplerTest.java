@@ -135,4 +135,44 @@ public class TopColorSamplerTest {
         idle(100);
         assertTrue(mReads.isEmpty());
     }
+
+    // A copy that failed (no surface yet, a timeout) says nothing about the page: the color stays.
+    @Test
+    public void aFailedReadKeepsTheColor() {
+        mSampler.setPage(7, reader(), false);
+        mSampler.schedule(0);
+        idle(0);
+        mReads.get(0).accept(row(0xFFFF6600));
+        mSampler.schedule(0);
+        idle(0);
+        mReads.get(1).accept(new int[0]);
+        assertEquals(0xFFFF6600, mSampler.colorFor(7));
+        assertEquals(1, mChanges);
+    }
+
+    // A read of the page a tab just left never colors the page it went to.
+    @Test
+    public void aReadOfThePreviousPageIsDropped() {
+        mSampler.setPage(7, reader(), false);
+        mSampler.schedule(0);
+        idle(0);
+        mSampler.pageChanged();
+        mReads.get(0).accept(row(0xFFFF6600));
+        assertEquals(TopColor.NONE, mSampler.colorFor(7));
+        // A new page in the same tab (its WebContents swapped) drops it too.
+        mSampler.schedule(0);
+        idle(0);
+        mSampler.setPage(7, reader(), false);
+        mReads.get(1).accept(row(0xFFFF6600));
+        assertEquals(TopColor.NONE, mSampler.colorFor(7));
+    }
+
+    @Test
+    public void nothingIsReadOnceStopped() {
+        mSampler.setPage(7, reader(), false);
+        mSampler.destroy();
+        mSampler.schedule(0);
+        idle(100);
+        assertTrue(mReads.isEmpty());
+    }
 }

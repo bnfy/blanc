@@ -41,6 +41,7 @@ public final class TopColorSampler {
     private int mTabId = -1;
     private @Nullable Reader mReader;
     private boolean mPrivate;
+    private boolean mDestroyed;
     private int mGeneration;
 
     /** `onChanged` runs when the shown tab's color changes, for the status bar to redraw. */
@@ -48,16 +49,25 @@ public final class TopColorSampler {
         mOnChanged = onChanged;
     }
 
-    /** The tab on show and how to read its page; `reader` is null with no page to read. */
+    /**
+     * The tab on show and how to read its page; `reader` is null with no page to read. A new tab
+     * or a new reader (the tab's page swapped) drops any read in flight.
+     */
     public void setPage(int tabId, @Nullable Reader reader, boolean privateTab) {
-        if (tabId != mTabId) mGeneration++;
+        if (tabId != mTabId || reader != mReader) mGeneration++;
         mTabId = tabId;
         mReader = reader;
         mPrivate = privateTab;
     }
 
+    /** The shown tab started another page: a read of the old one is dropped. */
+    public void pageChanged() {
+        mGeneration++;
+    }
+
     /** Reads the shown page after `delayMs`; a later request replaces an earlier one. */
     public void schedule(long delayMs) {
+        if (mDestroyed) return;
         mHandler.removeCallbacks(mRead);
         mHandler.postDelayed(mRead, delayMs);
     }
@@ -69,6 +79,7 @@ public final class TopColorSampler {
     }
 
     public void destroy() {
+        mDestroyed = true;
         mHandler.removeCallbacks(mRead);
         mGeneration++;
         mReader = null;
@@ -80,7 +91,8 @@ public final class TopColorSampler {
         int tabId = mTabId;
         int generation = mGeneration;
         reader.read(row -> {
-            if (generation != mGeneration) return;
+            // An empty row is a copy that failed, not a page without a main color.
+            if (generation != mGeneration || row.length == 0) return;
             int color = TopColor.dominant(row);
             int before = colorFor(tabId);
             if (color == TopColor.NONE) mColors.remove(tabId);

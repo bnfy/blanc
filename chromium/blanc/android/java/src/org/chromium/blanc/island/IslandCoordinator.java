@@ -115,6 +115,7 @@ public final class IslandCoordinator {
 
                 @Override
                 public void onPageLoadStarted(Tab tab, GURL url) {
+                    mTopColor.pageChanged();
                     // Each new page brings the Island back, as on the iPhone.
                     mTuck.show();
                     refresh();
@@ -324,10 +325,10 @@ public final class IslandCoordinator {
     }
 
     public void destroy() {
-        mTopColor.destroy();
         PagePinchBridge.setListener(null);
         ContextUtils.getAppSharedPreferences().unregisterOnSharedPreferenceChangeListener(mPositionChanged);
         setTab(null);
+        mTopColor.destroy();
         mActiveTab.removeObserver(mTabChanged);
         mCountObserver.destroy();
         if (mInsets != null) mInsets.removeObserver(mInsetObserver);
