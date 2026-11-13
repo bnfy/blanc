@@ -43,9 +43,20 @@ export function licenses(expression) {
   return value.split(/,\s*/).filter(Boolean).map(item => SPDX.has(item) ? {license: {id: item}} : {license: {name: item}});
 }
 
+// A nonempty regular file's bytes, or null. Opened once and checked through
+// that descriptor, so the bytes read are the file that was checked.
+export function readRegular(file) {
+  let fd;
+  try { fd = fs.openSync(file, 'r'); } catch { return null; }
+  try {
+    const stat = fs.fstatSync(fd);
+    return stat.isFile() && stat.size > 0 ? fs.readFileSync(fd) : null;
+  } finally { fs.closeSync(fd); }
+}
 function text(file) {
-  check(fs.existsSync(file) && fs.statSync(file).isFile() && fs.statSync(file).size > 0, `missing licence text: ${path.basename(file)}`);
-  return fs.readFileSync(file);
+  const bytes = readRegular(file);
+  check(bytes, `missing licence text: ${path.basename(file)}`);
+  return bytes;
 }
 const inside = (base, rel) => {
   const full = path.resolve(base, rel);
@@ -236,11 +247,11 @@ export function audit(r, scan, src, app, sbomBytes, options) {
   if (g.unreviewed.length) fail(`unreviewed folders skipped by Chromium's licence tooling: ${g.unreviewed.join(', ')}`);
   const expected = makeSbom(g);
   if (sha256(sbomBytes) !== sha256(expected)) fail('the SBOM is not what build makes from this scan and tree');
-  const dir = path.join(app, 'Contents/Resources/notices');
+  const dir = path.join(app, 'Contents/Resources/notices'), packaged = {};
   for (const name of NOTICES) {
-    const file = path.join(dir, name);
-    if (!fs.existsSync(file) || !fs.statSync(file).isFile() || fs.statSync(file).size === 0) { fail(`missing packaged notice: ${name}`); continue; }
-    notices[name] = sha256(fs.readFileSync(file));
+    packaged[name] = readRegular(path.join(dir, name));
+    if (!packaged[name]) { fail(`missing packaged notice: ${name}`); continue; }
+    notices[name] = sha256(packaged[name]);
   }
   const root = options?.root || ROOT;
   const reviewed = {'LICENSE': 'chromium/blanc/notices/LICENSE', 'THIRD-PARTY-NOTICES.md': 'chromium/blanc/notices/THIRD-PARTY-NOTICES.md',
@@ -251,21 +262,21 @@ export function audit(r, scan, src, app, sbomBytes, options) {
   if (notices['Chromium-LICENSE'] && notices['Chromium-LICENSE'] !== g.chromiumLicense) fail('packaged Chromium-LICENSE differs from the tree');
   let missingCredits = [], titles = new Set();
   if (notices['Chromium-credits.html']) {
-    titles = creditTitles(fs.readFileSync(path.join(dir, 'Chromium-credits.html'), 'utf8'));
+    titles = creditTitles(packaged['Chromium-credits.html'].toString('utf8'));
     missingCredits = g.chromium.filter(c => !c.addition && !titles.has(c.name)).map(c => c.name);
     if (missingCredits.length) fail(`Chromium-credits.html leaves out ${missingCredits.length} shipped components`);
   }
   let missingNotice = [], extraneous = [];
   if (notices['THIRD_PARTY_NOTICES.txt']) {
-    const notice = fs.readFileSync(path.join(dir, 'THIRD_PARTY_NOTICES.txt'), 'utf8');
+    const notice = packaged['THIRD_PARTY_NOTICES.txt'].toString('utf8');
     missingNotice = g.blanc.filter(b => !notice.includes(b.noticeMatch)).map(b => b.name);
     extraneous = ELECTRON_ONLY.filter(name => notice.includes(name)).map(name => name.trim());
     if (missingNotice.length) fail(`THIRD_PARTY_NOTICES.txt leaves out: ${missingNotice.join(', ')}`);
     if (extraneous.length) fail(`THIRD_PARTY_NOTICES.txt describes the Electron app (names ${extraneous.join(', ')}), not the beta`);
   }
-  const engine = path.join(app, BLOCKER_ENGINE);
-  if (!fs.existsSync(engine)) fail('the app embeds no blocker engine');
-  else if (sha256(fs.readFileSync(engine)) !== g.bundle.bundleSha256) fail('the embedded blocker engine is not the pinned bundle');
+  const engine = readRegular(path.join(app, BLOCKER_ENGINE));
+  if (!engine) fail('the app embeds no blocker engine');
+  else if (sha256(engine) !== g.bundle.bundleSha256) fail('the embedded blocker engine is not the pinned bundle');
   const info = plist(path.join(app, 'Contents/Info.plist'));
   if (!info) fail('the app has no readable Info.plist');
   else if (String(info.CFBundleVersion) !== String(r.build)) fail('the app is not this release\'s build');
@@ -277,9 +288,20 @@ export function audit(r, scan, src, app, sbomBytes, options) {
     notices, credits: {titles: titles.size, missing: missingCredits}, blancNotice: {missing: missingNotice, extraneous}};
 }
 
-function plist(file) {
-  if (!fs.existsSync(file)) return null;
-  const result = spawnSync('/usr/bin/plutil', ['-convert', 'json', '-o', '-', file], {encoding: 'utf8'});
+// Info.plist as an object, or null. XML plists (what the build writes) parse
+// anywhere, so the audit and its tests run on Linux CI; a binary one needs
+// macOS's plutil, fed the bytes already read.
+export function plist(file) {
+  const bytes = readRegular(file);
+  if (!bytes) return null;
+  const xml = bytes.toString('utf8');
+  if (/^\s*(<\?xml|<!DOCTYPE plist|<plist)/.test(xml)) {
+    const out = {};
+    for (const m of xml.matchAll(/<key>([^<]+)<\/key>\s*<(string|integer)>([^<]*)<\/\2>/g)) out[m[1]] = m[3];
+    return out;
+  }
+  if (process.platform !== 'darwin') return null;
+  const result = spawnSync('/usr/bin/plutil', ['-convert', 'json', '-o', '-', '-'], {input: bytes, encoding: 'utf8'});
   return result.status === 0 ? JSON.parse(result.stdout) : null;
 }
 
