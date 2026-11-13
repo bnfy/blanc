@@ -875,13 +875,20 @@ remain pending. D3 beta-only no-DRM exception accepted; EME notice/handoff requi
   follows it at once. On first read a profile's old layout decides it once:
   Ledger → Favorites + other devices, Tally → Favorites + chart, Shelf →
   Favorites + More shortcuts (Shelf's grid showed favorites), Billboard →
-  none. Over your image or a theme's image every text group (date, blocked
-  line, tile names, group chips, widgets, footer pills) sits on a frosted
-  plate whose ink keeps 4.5:1 or more over pure black and pure white behind
-  it, and the clock on a halo tinted against its own ink (3:1 or more for a
-  near-black or near-white clock; a mid-tone clock color keeps its shadow).
-  start-plates.test.mjs checks the contrast; native-start-widgets.mjs the
-  switches, live sharing, relaunch, the move from Tally and the plates.
+  none. Over your image or a theme's image the image stays untouched (owner,
+  after the first try's cream plates and clock halo looked wrong): the
+  widgets sit on one glass tray in the Island's material family, the date,
+  blocked line, tile names and group chips keep a soft shadow opposite their
+  ink, the footer sits in a fade up from the bottom edge, and the clock is as
+  it was (its own opposite shadow). The tray's inks and the footer's ink keep
+  4.5:1 or more over pure black and pure white behind them
+  (start-plates.test.mjs); native-start-widgets.mjs checks the switches, live
+  sharing, relaunch, the move from Tally and that look.
+  The footer's Mahjong link reads "Play Blanc Mahjong" (owner; fork string
+  start.mahjong.play in six languages). On macos-9cd621a1e07290fa
+  native-start-widgets.mjs passes 6/6 and newtab-layouts :85, :134 (on a
+  retry), :161, :221 pass; :8, :14, :101, :114, :188, :194, :212 passed on the
+  build before the footer fade moved to ::after.
   Shipping's layout steps run as V24 replacements (tests/fork-steps,
   lib/start-widgets.mjs): newtab-layouts.feature 24/25 on
   macos-e66182e9896f8805; :21 is shipping's stale Mahjong check, failing
@@ -2530,5 +2537,5 @@ Android's Bar A counts the shared scenarios bound in `chromium/tests/android/acc
 
 Legacy macOS stages come from the approved spec; they await verification on the canonical candidate. No legacy stage counts as Verified.
 
-Candidate identities: macOS: macos-51eaa3444b2f90d6; Windows: none; Linux: none; Android: android-arm64-7bd35e94ef746069.
+Candidate identities: macOS: macos-9cd621a1e07290fa; Windows: none; Linux: none; Android: android-arm64-7bd35e94ef746069.
 <!-- END GENERATED PROGRESS -->

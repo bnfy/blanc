@@ -74,17 +74,27 @@ try{
  assert.equal(d.root,'billboard');assert.equal(d.favorites,true);assert.equal(d.chart,true);
  result.checks.push('a profile that chose Tally gets its Favorites and chart once, on Billboard');
 
- // Over an image: every text group is on a plate; the clock on a halo.
- const plates=await e.eval(`(async()=>{document.body.dataset.wallpaperStyle='spotlight';await new Promise(r=>requestAnimationFrame(()=>requestAnimationFrame(r)));
-  const plated=e=>{if(!e||getComputedStyle(e).display==='none')return null;const s=getComputedStyle(e);return s.backgroundColor!=='rgba(0, 0, 0, 0)'&&s.backdropFilter.includes('blur');};
-  const out={};for(const sel of ['.start-brand','.bb-fav .label','.start-customize','.footer-right','#bbWidgets [data-widget=favorites]','#bbWidgets [data-widget=chart]'])out[sel]=plated(document.querySelector(sel));
-  const row=document.querySelector('.bb-clock-row');const halo=getComputedStyle(row,'::before');
-  out.halo={tint:row.dataset.halo,background:halo.backgroundColor,blur:halo.backdropFilter};return out;})()`);
- result.plates=plates;
- for(const [sel,on] of Object.entries(plates))if(sel!=='halo'&&on!==null)assert.equal(on,true,`${sel} sits on a plate`);
- assert.ok(['light','dark'].includes(plates.halo.tint),'the clock has a halo tint');
- assert.notEqual(plates.halo.background,'rgba(0, 0, 0, 0)');assert.match(plates.halo.blur,/blur/);
- result.checks.push('over an image every text group sits on a frosted plate and the clock on a halo');
+ // Over an image: the image stays untouched. The widgets sit on one glass
+ // tray, small text keeps a soft shadow with no backing, the footer sits in a
+ // fade, and the clock is as it always was (its own shadow, no halo).
+ const look=await e.eval(`(async()=>{document.body.dataset.wallpaperStyle='spotlight';await new Promise(r=>requestAnimationFrame(()=>requestAnimationFrame(r)));
+  const cs=s=>{const el=document.querySelector(s);return el&&getComputedStyle(el).display!=='none'?getComputedStyle(el):null;};
+  const clear=c=>c.backgroundColor==='rgba(0, 0, 0, 0)';
+  const tray=cs('#bbWidgets'),fade=getComputedStyle(document.getElementById('layoutFooter'),'::after'),clock=getComputedStyle(document.querySelector('.bb-clock-row'),'::before');
+  return {tray:!!tray&&!clear(tray)&&tray.backdropFilter.includes('blur'),
+   sections:[...document.querySelectorAll('#bbWidgets > .bb-widget')].filter(e=>getComputedStyle(e).display!=='none').map(e=>clear(getComputedStyle(e))),
+   text:Object.fromEntries(['.start-brand-date','.bb-fav .label'].map(s=>{const c=cs(s);return [s,c?{clear:clear(c),shadow:c.textShadow!=='none'}:null];})),
+   footerItems:['.start-customize','.footer-right','#footerLeft'].map(s=>{const c=cs(s);return c?clear(c):true;}),
+   fade:fade.content!=='none'&&fade.backgroundImage.includes('gradient'),
+   clockHalo:clock.content!=='none'&&clock.content!=='normal',haloAttr:document.querySelector('.bb-clock-row').hasAttribute('data-halo')};})()`);
+ result.look=look;
+ assert.equal(look.tray,true,'the widgets sit on one glass tray');
+ assert.ok(look.sections.length>0&&look.sections.every(Boolean),'the tray\'s sections carry no cards of their own');
+ for(const [sel,t] of Object.entries(look.text))if(t){assert.equal(t.clear,true,`${sel} has no backing`);assert.equal(t.shadow,true,`${sel} keeps a soft shadow`);}
+ assert.ok(look.footerItems.every(Boolean),'the footer\'s items have no backing');
+ assert.equal(look.fade,true,'the footer sits in a fade');
+ assert.equal(look.clockHalo,false,'no halo behind the clock');assert.equal(look.haloAttr,false);
+ result.checks.push('over an image the widgets sit on one glass tray, small text keeps a shadow, the footer a fade, and the clock is as before');
  await visible();result.result='pass';
 }catch(error){result.result=error.code==='BLANC_ENVIRONMENT_STOP'?'blocked-environment':'fail';result.error=String(error.stack);process.exitCode=1;}
 finally{

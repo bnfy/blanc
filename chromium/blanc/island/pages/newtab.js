@@ -1206,10 +1206,6 @@ async function drawClockArt() {
   const computed = getComputedStyle(clockElement);
   const shadow = art.shadowFor(rgbOf(computed.color));
   clockElement.style.setProperty('--clock-shadow', shadow);
-  // Over your image (V24 readability), a frosted halo behind the clock in the
-  // tint opposite its ink: light behind a dark clock, dark behind a light one.
-  const clockLight = globalThis.blancClockArt.luminance(rgbOf(computed.color)) > 0.4;
-  clockElement.closest('.bb-clock-row')?.setAttribute('data-halo', clockLight ? 'dark' : 'light');
 
   const glass = clockState.style === 'glass' && !reducedTransparency.matches;
   if (globalThis.blancNativeClock?.render) {
