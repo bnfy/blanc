@@ -864,6 +864,13 @@ remain pending. D3 beta-only no-DRM exception accepted; EME notice/handoff requi
   still expects text tile faces in JetBrains Mono, which #931 replaced with
   image art; shipping's own reader fails the same way and its CI doesn't run
   the scenario. Not changed here (shipping's test is read-only to the fork).
+- **Extensions panel over the floating Island (2026-11-13, owner report):**
+  with Auto-hide in float style, the Extensions panel opened behind the
+  revealed floating Island (layer 2 under its 4; also under a Glance card's
+  3). It now sits on the ⌘L panel's layer (5), as shipping's overlay is above
+  its float views and the card. native-extensions-over-float.mjs fails
+  before the fix and passes after it (macos-f7b5f8256e4bdf54, Island files
+  served from disk because the beta build held the build tree).
 - **Resting Island geometry matches shipping (2026-11-13, owner):** measured
   side by side with shipping's Electron build (8a4e57e78) at 1200 px, the
   fork's prototype.css had re-spaced the closed Island (6 px gaps instead of
