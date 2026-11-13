@@ -89,6 +89,7 @@ try{
    text:Object.fromEntries(['.start-brand-date','.bb-fav .label'].map(s=>{const c=cs(s);return [s,c?{clear:clear(c),ink:document.querySelector(s).dataset.ink??null}:null];})),
    footerItems:['.start-customize','.footer-right','#footerLeft'].map(s=>{const c=cs(s);return c?clear(c):true;}),
    fade:fade.content!=='none'&&fade.backgroundImage.includes('gradient'),
+   markFilter:getComputedStyle(document.querySelector('.start-brand-mark')).filter,
    brandOval:(h=>h.content!=='none'&&h.content!=='normal')(getComputedStyle(document.querySelector('.start-brand'),'::after')),
    dateClear:clear(cs('.start-brand-date')),
    clockHalo:clock.content!=='none'&&clock.content!=='normal',haloAttr:document.querySelector('.bb-clock-row').hasAttribute('data-halo')};})()`);
@@ -98,7 +99,8 @@ try{
  for(const [sel,t] of Object.entries(look.text))if(t){assert.equal(t.clear,true,`${sel} has no backing`);assert.ok(['light','dark'].includes(t.ink),`${sel} takes the ink that stands out against the image behind it`);}
  assert.ok(look.footerItems.every(Boolean),'the footer\'s items have no backing');
  assert.equal(look.fade,true,'the footer sits in a fade');
- assert.equal(look.brandOval,false,'no wash behind the date');assert.equal(look.dateClear,true,'the date has no backing');
+ assert.equal(look.brandOval,false,'no wash behind the date');
+ if(look.text['.start-brand-date']?.ink==='light')assert.match(look.markFilter,/invert/,'over a dark image the Sunrise mark turns cream with the date');assert.equal(look.dateClear,true,'the date has no backing');
  assert.equal(look.clockHalo,false,'no halo behind the clock');assert.equal(look.haloAttr,false);
  result.checks.push('over an image the widgets sit on one glass tray, small text takes the ink its image calls for, the footer a fade, and the clock is as before');
  await visible();result.result='pass';

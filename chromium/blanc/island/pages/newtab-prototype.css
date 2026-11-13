@@ -316,6 +316,11 @@ body.widget-chart-on #bbBlocked { display: none; }
   color: #12100b !important;
   text-shadow: 0 0 1px rgb(255 255 255 / 0.3), 0 1px 8px rgb(255 255 255 / 0.4);
 }
+/* The Sunrise mark follows the date: over a dark image it becomes a cream,
+   one-color mark beside the cream date; over a light one it keeps its gold. */
+.ledger-body[data-wallpaper-style] .start-brand:has(.start-brand-date[data-ink="light"]) .start-brand-mark {
+  filter: brightness(0) invert(0.95) sepia(0.12) drop-shadow(0 1px 6px rgb(0 0 0 / 0.35));
+}
 .ledger-body[data-wallpaper-style] .group-chip[data-ink] { border-color: color-mix(in srgb, currentColor 35%, transparent); }
 .ledger-body[data-wallpaper-style] .group-chip[data-ink] .chip-dots i { background: currentColor; }
 
