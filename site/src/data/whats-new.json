@@ -39,20 +39,6 @@
             "height": 900,
             "alt": "The Turtle board dealt in the Inlay tile set, whose tiles carry bold red numerals over small golden suns."
           }
-        },
-        {
-          "id": "mahjong-celebrations",
-          "tile": "Celebrations",
-          "title": "A sunrise for every cleared board",
-          "body": "Matching two tiles draws a short trail between them, and clearing a board plays a short celebration before the results card. Click or press any key to skip it.",
-          "note": "With reduced motion on, matched tiles glow briefly in place instead.",
-          "media": {
-            "kind": "image",
-            "src": "/feature-captures/mahjong-celebration-v1.49.0.webp",
-            "width": 1440,
-            "height": 900,
-            "alt": "A cleared Mahjong board: a golden Sunrise mark in a soft circle over hazy hills, with the sun rising behind them."
-          }
         }
       ]
     },
