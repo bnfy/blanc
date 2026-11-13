@@ -2,6 +2,7 @@
 // §9), keyed by shipping's exact step text. Each keeps what the divergence
 // leaves true and names what it changes; every other step stays shipping's.
 import assert from 'node:assert/strict';
+import {LAYOUT_WIDGETS, FAVORITES_WIDGET_LIMIT} from '../lib/start-widgets.mjs';
 
 const tabDom = (world, id, expression) => world.call('executeTab', id, expression);
 
@@ -123,5 +124,80 @@ export const DIVERGENCES = new Map([
     assert.equal(open(first).length, 1, 'one reopen brings back one closed tab');
     await this.call('reopenClosed');
     await this.waitForState(state => open(state).length === 2);
+  }}],
+  // V24 (owner, 2026-11-13): Billboard is the one Start Page layout and the
+  // others' content comes back as optional widgets. A layout a scenario names
+  // is its widget set (lib/start-widgets.mjs). Same promise: the page shows
+  // what that layout showed, one root, the choice saved and its switches set.
+  ['the start page renders the {string} layout', {divergence: 'V24', async run(layout) {
+    const want = LAYOUT_WIDGETS[layout];
+    assert.ok(want, `known layout ${layout}`);
+    const dom = await this.waitFor(() => this.call('readStartWidgets'),
+      d => d?.root === 'billboard' && Object.entries(want).every(([k, v]) => d.widgets?.[k] === v && d.switches?.[k] === v),
+      `Billboard with the ${layout} widgets`, 8000);
+    assert.deepEqual(dom.visibleRoots, ['Billboard'], 'Billboard is the one layout drawn');
+    assert.equal(dom.shown.favorites, want.favorites, 'the Favorites widget shows exactly when it is on');
+    if (!want.chart) assert.equal(dom.shown.chart, false, 'the week\'s chart shows only when it is on');
+    assert.equal(dom.tileLimit, want.shortcuts ? 12 : 6, 'More shortcuts gives Billboard twelve tiles');
+  }}],
+  // V24: Shelf's grid of favorites is the Favorites widget, which lists every
+  // seeded favorite (two rows of Shelf's columns) inside its card.
+  ['Shelf shows {int} columns with full rows of tiles and cards', {divergence: 'V24', async run(columns) {
+    const count = Math.min(columns * 2, FAVORITES_WIDGET_LIMIT);
+    const dom = await this.waitFor(() => this.call('readStartWidgets'),
+      d => d?.shown.favorites && d.favoriteRows.length === count, `the Favorites widget with ${count} favorites`, 8000);
+    const card = dom.cards.favorites;
+    for (const row of dom.favoriteRows)
+      assert.ok(row.left >= card.left && row.right <= card.right && row.top >= card.top && row.bottom <= card.bottom,
+        `favorite ${JSON.stringify(row)} inside its card ${JSON.stringify(card)}`);
+    assert.equal(dom.tileLimit, 12, 'Shelf\'s larger grid is More shortcuts');
+  }}],
+  // V24: Tally's two columns are the Favorites and chart widgets, which still
+  // fit side by side in a narrow window: both whole, apart, above the footer.
+  ['Tally stacks the data above the list at 820x840', {divergence: 'V24', async run() {
+    try {
+      await this.call('setWindowContentSize', 820, 840);
+      const dom = await this.waitFor(() => this.call('readStartWidgets'),
+        d => d?.viewportWidth === 820 && d.cards.favorites && d.cards.chart, 'the widgets at 820x840', 8000);
+      const {favorites, chart} = dom.cards;
+      for (const card of [favorites, chart]) assert.ok(card.left >= 0 && card.right <= dom.viewportWidth, `card ${JSON.stringify(card)} inside the window`);
+      const apart = favorites.right <= chart.left || chart.right <= favorites.left || favorites.bottom <= chart.top || chart.bottom <= favorites.top;
+      assert.ok(apart, `widgets do not overlap: ${JSON.stringify(dom.cards)}`);
+    } finally {
+      const original = this.tallyOriginalBounds;
+      if (original) await this.call('setWindowContentSize', original.width, original.height);
+    }
+  }}],
+  // V24: the Favorites widget lists up to eight favorites (Shelf's eight, the
+  // most any layout showed), the pinned one first. Pinning on the page itself
+  // announces it and keeps focus on the pin, as Shelf did.
+  ["{string} leads the Start Page's favorites, pinned", {divergence: 'V24', async run(title) {
+    const dom = await this.waitFor(() => this.call('readStartFavorites'),
+      v => v?.favorites?.[0]?.title === title && v.favorites[0].pinned, `${title} to lead the Start Page's favorites, pinned`, 8000);
+    assert.equal(dom.favorites.length, FAVORITES_WIDGET_LIMIT);
+    assert.equal(dom.favorites.filter(f => f.pinned).length, 1);
+    assert.equal(dom.favorites[0].pinLabel, `Unpin ${title} from the Start Page`);
+    assert.equal(dom.favorites[0].pinShown, true, 'a pinned favorite keeps its pin on show');
+    assert.ok(dom.favorites.slice(1).every(f => f.pinLabel === `Pin ${f.title} to the Start Page`));
+    const saved = ['Favorite 1', 'Favorite 2', 'Favorite 3', 'Favorite 4', 'Favorite 5', 'Favorite 6', 'Favorite 7', 'Favorite 8'];
+    assert.deepEqual(dom.favorites.slice(1).map(f => f.title), saved.filter(t => t !== title).slice(0, FAVORITES_WIDGET_LIMIT - 1));
+    this.pinnedFavoriteUrl = dom.favorites[0].url;
+    // Right after a pin on the page itself (as Shelf checked): announced, and
+    // focus stays on the pin. Later checks (after Customize) keep the words.
+    if (dom.status && this.v24PinAnnounced !== title) {
+      assert.equal(dom.status, `${title} pinned to the Start Page.`);
+      assert.equal(dom.focusedPinOf, dom.favorites[0].url);
+      this.v24PinAnnounced = title;
+    }
+  }}],
+  // V24: after the unpin, the Favorites widget's eight are in saved order
+  // (Tally, where the scenario ends in shipping, showed five).
+  ["the Start Page's favorites are back in their saved order", {divergence: 'V24', async run() {
+    const dom = await this.waitFor(() => this.call('readStartFavorites'),
+      v => v?.favorites?.length && v.favorites.every(f => !f.pinned), 'the Start Page favorites to unpin', 8000);
+    assert.deepEqual(await this.call('startPagePins'), []);
+    assert.deepEqual(dom.favorites.map(f => f.title),
+      ['Favorite 1', 'Favorite 2', 'Favorite 3', 'Favorite 4', 'Favorite 5', 'Favorite 6', 'Favorite 7', 'Favorite 8'].slice(0, FAVORITES_WIDGET_LIMIT));
+    assert.equal(dom.status, 'Favorite 8 unpinned from the Start Page.');
   }}],
 ]);

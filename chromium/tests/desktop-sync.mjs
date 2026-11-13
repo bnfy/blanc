@@ -264,17 +264,17 @@ try{
   assert.equal(await privatePage.evaluate(id=>window.bowserPages.start.dismissSent(id),pendingSend.id),false);
   await w.call('closeTab',privateStart);
   const startId=await w.call('newTab'),startPage=await tabPage(w,startId);
-  await startPage.evaluate(()=>window.bowserPages.start.setLayout('ledger'));
+  // V24: Sent to this device shows on Billboard whenever something waits.
   const sentRow=startPage.locator('#sentList .sent-item').filter({hasText:'Sent from peer'});
   await sentRow.waitFor({state:'visible'});
   const beforeOpen=new Set((await w.snapshot()).tabs.map(tab=>String(tab.id)));
   await sentRow.locator('a.fav').click();
   await until(()=>w.snapshot(),snapshot=>snapshot.tabs.some(tab=>tab.url===peerUrl&&
-   !beforeOpen.has(String(tab.id))&&String(tab.id)===String(snapshot.activeTabId)), 'Ledger opens Send in a new tab');
+   !beforeOpen.has(String(tab.id))&&String(tab.id)===String(snapshot.activeTabId)), 'the Start Page opens Send in a new tab');
   await until(()=>startPage.evaluate(()=>document.querySelectorAll('#sentList .sent-item').length),
-   count=>count===0,'background Ledger removes opened Send');
+   count=>count===0,'a background Start Page removes opened Send');
   assert.equal((await w.api('listSentToThisDevice')).some(row=>row.id===pendingSend.id),false);
-  console.log('tabs: Ledger opened received page; private inbox remained empty');
+  console.log('tabs: the Start Page opened the received page; private inbox remained empty');
   await openSync();await act('share-tabs-off');
   await until(async()=>{await tabPump();return device.sync.listRemoteDevices();},rows=>!rows.some(d=>d.tabs.some(t=>t.url===macUrl)),'share-off retracts Mac tabs');
   await w.relaunch();

@@ -1,7 +1,6 @@
 /* These Electron services are not implemented by the Chromium prototype. */
 #startupCard, #obBringTabs,
-#version,
-#remoteSection { display: none !important; }
+#version { display: none !important; }
 
 /* The fork has no Spaces model yet; fixed preset colors remain available. */
 #colorWallpaperFollow, #colorWallpaperFollowHint { display: none !important; }
@@ -186,3 +185,134 @@ html[data-store-theme] .start-wallpaper-layer { display:none !important; }
   height: 8px;
   border-width: 0 1.5px 1.5px 0;
 }
+
+/* ---------------------------------------------------------------------------
+   V24 (fork only): Billboard is the one Start Page layout. What Ledger, Shelf
+   and Tally showed comes back as optional widgets, switched on in Customize.
+   ------------------------------------------------------------------------- */
+.bb-widgets {
+  display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 14px; width: min(760px, calc(100vw - 96px)); margin-top: 30px; align-items: start;
+}
+#bbWidgets [data-widget]:not(.widget-on) { display: none; }
+/* No week's data to show (private, or statistics unavailable): no empty card. */
+#bbWidgets .bb-widget-chart:has(> .tally-right[hidden]) { display: none; }
+.bb-widgets:not(:has(> :is(#sentSection:not([hidden]), [data-widget].widget-on:not([hidden])))) { display: none; }
+.bb-widget.ledger-section { margin: 0; }
+.bb-widget { min-width: 0; padding: 14px 16px 16px; text-align: start; }
+.bb-widget .ledger-list { margin-top: 10px; gap: 10px; }
+/* Favorites in columns (four across a full-width card, two beside the
+   chart), so a page with widgets fits a normal window without scrolling. */
+#bbWidgets #favoritesList { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 6px 14px; }
+#bbWidgets #favoritesList > * { min-width: 0; }
+/* In a column the page's name wins: it takes the room and the address,
+   which the name already stands for, is left out, as on Shelf's tiles. */
+#bbWidgets #favoritesList .fav .name { min-width: 0; }
+#bbWidgets #favoritesList .fav .host { display: none; }
+.bb-widget .tally-right { position: static; width: auto; margin: 0; padding: 0; }
+.bb-widget .tally-count { font-size: 40px; margin-top: 8px; }
+.bb-widget .tally-chart { height: 52px; margin-top: 12px; }
+.bb-widget .tally-caption { margin-top: 10px; }
+/* The week's chart replaces Billboard's one-line count. */
+body.widget-chart-on #bbBlocked { display: none; }
+
+/* Customize: one switch per widget, label first, as a settings row. */
+.widget-switches { display: grid; gap: 2px; margin-top: 8px; }
+.widget-switch {
+  display: flex; align-items: center; justify-content: space-between; gap: 12px;
+  width: 100%; padding: 8px 4px; border: 0; border-radius: 8px;
+  background: transparent; color: var(--text); font: inherit; font-size: 13px; text-align: start; cursor: pointer;
+}
+.widget-switch:hover { background: var(--accent-dim); }
+.widget-switch:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+.widget-switch[aria-disabled="true"] { cursor: progress; }
+.widget-switch-track {
+  position: relative; flex: none; width: 30px; height: 18px; border-radius: 9px;
+  background: color-mix(in srgb, var(--text-dim) 45%, transparent); transition: background .15s ease;
+}
+.widget-switch-track::after {
+  content: ""; position: absolute; top: 2px; left: 2px; width: 14px; height: 14px; border-radius: 50%;
+  background: #fff; box-shadow: 0 1px 2px #0004; transition: transform .15s ease;
+}
+.widget-switch[aria-checked="true"] .widget-switch-track { background: var(--accent); }
+.widget-switch[aria-checked="true"] .widget-switch-track::after { transform: translateX(12px); }
+@media (prefers-reduced-motion: reduce) { .widget-switch-track, .widget-switch-track::after { transition: none; } }
+
+/* ---------------------------------------------------------------------------
+   Readable on any wallpaper (owner, 2026-11-13). Every text group sits on a
+   plate: a frosted surface whose ink is checked at 4.5:1 or more against the
+   plate over pure black and pure white behind it (start-plates.test.mjs),
+   so no image can bring either ink below that. Widget cards always use one;
+   the date, the blocked line, the tile names and the footer use one while
+   your image or a theme's image is the wallpaper (data-wallpaper-style).
+   Plates follow the page's light or dark ink, so they never fight the wash.
+   ------------------------------------------------------------------------- */
+.ledger-body {
+  --start-plate: rgba(250, 247, 242, 0.88);
+  --start-plate-edge: rgba(255, 255, 255, 0.55);
+  --start-plate-ink: #12100b;
+  --start-plate-ink-dim: #4d463d;
+  --start-plate-accent: #6e4f1f;
+}
+@media (prefers-color-scheme: dark) {
+  .ledger-body {
+    --start-plate: rgba(24, 20, 16, 0.84);
+    --start-plate-edge: rgba(255, 255, 255, 0.08);
+    --start-plate-ink: #f7f0e5;
+    --start-plate-ink-dim: #cdbfae;
+    --start-plate-accent: #e0bd7a;
+  }
+}
+.ledger-body[data-wallpaper-style="light"] {
+  --start-plate: rgba(250, 247, 242, 0.88);
+  --start-plate-edge: rgba(255, 255, 255, 0.55);
+  --start-plate-ink: #12100b;
+  --start-plate-ink-dim: #4d463d;
+  --start-plate-accent: #6e4f1f;
+}
+.ledger-body[data-wallpaper-style="dark"],
+:root[data-theme="private"] .ledger-body {
+  --start-plate: rgba(24, 20, 16, 0.84);
+  --start-plate-edge: rgba(255, 255, 255, 0.08);
+  --start-plate-ink: #f7f0e5;
+  --start-plate-ink-dim: #cdbfae;
+  --start-plate-accent: #e0bd7a;
+}
+.bb-widget,
+.ledger-body[data-wallpaper-style] :is(.start-brand, #bbBlocked, .bb-fav .label, .bb-groups .group-chip, #footerLeft, .start-customize, .footer-right, .migration-checklist-shell, .patron-pill, .whats-new-pill) {
+  --text: var(--start-plate-ink);
+  --text-dim: var(--start-plate-ink-dim);
+  --accent: var(--start-plate-accent);
+  color: var(--start-plate-ink);
+  background: var(--start-plate);
+  border: 1px solid var(--start-plate-edge);
+  -webkit-backdrop-filter: blur(18px) saturate(1.3);
+  backdrop-filter: blur(18px) saturate(1.3);
+  box-shadow: 0 6px 24px -14px rgb(0 0 0 / 0.45);
+}
+.bb-widget { border-radius: 16px; }
+.ledger-body[data-wallpaper-style] :is(.start-brand, #bbBlocked, #footerLeft, .start-customize, .footer-right) {
+  border-radius: 999px; padding: 4px 12px;
+}
+.ledger-body[data-wallpaper-style] #footerLeft:empty { display: none; }
+.ledger-body[data-wallpaper-style] .bb-fav .label {
+  border-radius: 7px; padding: 2px 7px; color: var(--start-plate-ink);
+}
+
+/* The clock over your image: a frosted halo that fades out at its edges, in
+   the tint opposite the clock's own ink (newtab.js sets data-halo from the
+   clock's color, which Font & color can set apart from the page's ink). Its
+   core holds a near-black or near-white clock at 3:1 or more over any
+   backdrop, the large-text bar (start-plates.test.mjs); a mid-tone color you
+   pick also keeps the clock's own opposite shadow. */
+.ledger-body[data-wallpaper-style] .bb-clock-row { position: relative; isolation: isolate; }
+.ledger-body[data-wallpaper-style] .bb-clock-row::before {
+  content: ""; position: absolute; inset: -12% -14%; z-index: -1; pointer-events: none;
+  --clock-halo: rgba(250, 247, 242, 0.72);
+  background: var(--clock-halo);
+  -webkit-backdrop-filter: blur(26px) saturate(1.2);
+  backdrop-filter: blur(26px) saturate(1.2);
+  -webkit-mask-image: radial-gradient(closest-side, #000 70%, transparent 100%);
+  mask-image: radial-gradient(closest-side, #000 70%, transparent 100%);
+}
+.ledger-body[data-wallpaper-style] .bb-clock-row[data-halo="dark"]::before { --clock-halo: rgba(24, 20, 16, 0.72); }

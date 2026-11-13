@@ -125,6 +125,10 @@
   }
   let clockValue = null;
   let sharedLayout = null;
+  // The optional widgets (V24, fork only): none until Blanc answers.
+  const WIDGETS = ['favorites', 'devices', 'chart', 'shortcuts'];
+  let sharedWidgets = null, widgetsEpoch = 0;
+  const noWidgets = () => Object.fromEntries(WIDGETS.map(name => [name, false]));
   let clockEpoch = 0, layoutEpoch = 0;
   let groupEpoch = 0;
   function validateGroupSnapshot(snapshot) {
@@ -140,7 +144,7 @@
   let patronStatus = { patronActive: false, patronCalloutSnoozedUntil: Infinity };
   const preferences = () => {
     const saved = read();
-    return { ...patronStatus, ...(clockValue ? { clock: clockValue } : {}), layout: sharedLayout ?? (layouts.includes(saved.layout) ? saved.layout : 'billboard'),
+    return { ...patronStatus, ...(clockValue ? { clock: clockValue } : {}), layout: 'billboard', widgets: sharedWidgets ?? noWidgets(),
       dynamicWallpaperEnabled: saved.dynamicWallpaperEnabled === true,
       wallpaper: usesStoreTheme(saved) ? { ...wallpaper(saved), source: 'web-store',
         image: installedTheme.image || null, hasImage: !!installedTheme.image, themeAvailable: true }
@@ -207,6 +211,18 @@
       document.dispatchEvent(new Event('blancClockReadFailure'));
       console.warn('Clock settings unavailable; retaining last value', error);
       if (propagateError) throw error;
+      return false;
+    }
+  }
+  async function refreshWidgets() {
+    const epoch = widgetsEpoch;
+    try {
+      const value = await request('widgetsRead');
+      if (epoch !== widgetsEpoch || !value || typeof value !== 'object') return false;
+      sharedWidgets = Object.fromEntries(WIDGETS.map(name => [name, value[name] === true]));
+      return true;
+    } catch (error) {
+      if (epoch === widgetsEpoch) console.warn('Start Page widgets unavailable', error);
       return false;
     }
   }
@@ -354,7 +370,7 @@
       openTabImport: () => request('openSheet', ['tab-import']),
       data: async () => {
         const epoch = topSitesEpoch;
-        const results = await Promise.allSettled([refreshClock({ propagateError: true }), refreshLayout({ propagateError: true }), refreshImage().catch(() => {})]);
+        const results = await Promise.allSettled([refreshClock({ propagateError: true }), refreshLayout({ propagateError: true }), refreshWidgets(), refreshImage().catch(() => {})]);
         const failed = results.find(result => result.status === 'rejected');
         if (failed) throw failed.reason;
         let topSites = [], available = isPrivatePage;
@@ -422,6 +438,18 @@
           publish();
           return value;
         } catch (error) { ++layoutEpoch; throw error; }
+      },
+      setWidget: async (name, on) => {
+        if (!WIDGETS.includes(name)) throw new Error('Unknown Start Page widget');
+        ++widgetsEpoch;
+        try {
+          const value = await request('widgetsWrite', [name, on === true]);
+          ++widgetsEpoch;
+          if (!value || typeof value !== 'object') throw new Error('Widget confirmation unavailable');
+          sharedWidgets = Object.fromEntries(WIDGETS.map(item => [item, value[item] === true]));
+          publish();
+          return sharedWidgets;
+        } catch (error) { ++widgetsEpoch; throw error; }
       },
       chooseWallpaper,
       setWallpaper: async source => {
@@ -532,6 +560,7 @@
     pins: async () => { await Promise.all([...pinListeners].map(fn => fn())); },
     clock: async () => { if (await refreshClock()) publish(); },
     layout: async () => { if (await refreshLayout()) publish(); },
+    widgets: async () => { if (await refreshWidgets()) publish(); },
     bookmarks: async () => {
       const items = await window.bowserPages.bookmarks.list();
       if (typeof renderLedgerFavorites !== 'function') return;

@@ -1,6 +1,7 @@
 // Start Page, Favorites/History/Downloads, Glance and first run: shipping
 // test-hook names over the fork's Start Page document, its native newtab
 // bridge (window.bowserPages), the Island facade and native dispatch.
+import {LAYOUT_WIDGETS,PAGE_LAYOUT} from '../lib/start-widgets.mjs';
 import {tabPage} from './core.mjs';
 import {UndefinedNativeAdapterError,nativeId} from '../lib/adapters.mjs';
 import {jsLiteral} from '../lib/js-literal.mjs';
@@ -77,7 +78,13 @@ const onSheet=(w,expression)=>w.hostEval(`(()=>{const document=window.document.g
 const noState=(hook,what)=>()=>{throw new UndefinedNativeAdapterError(`${hook}: the fork stores no ${what}`);};
 const toggleIn=(list,cls,attr)=>key=>`(()=>{const item=[...document.querySelectorAll(${jsLiteral(list)})].find(c=>${attr}===${jsLiteral(String(key))});
  const button=item?.querySelector(${jsLiteral(cls)});if(!button)return false;button.focus();button.click();return true;})()`;
-const favoriteList="({ledger:'favoritesList',shelf:'shFavorites',tally:'tlFavorites'})[document.body.dataset.layout]";
+// V24 (owner, 2026-11-13): Billboard is the one layout, and the Favorites
+// widget is Ledger's list (six favorites, pins first), whatever layout a
+// scenario names. The old layouts are the widget sets the one-time migration
+// gives them (blanc_prototype_ui.cc widgetsRead).
+const favoriteList="'favoritesList'";
+const layoutOfWidgets=widgets=>Object.keys(LAYOUT_WIDGETS).find(name=>
+ Object.entries(LAYOUT_WIDGETS[name]).every(([k,v])=>widgets?.[k]===v))??'custom';
 export const pages={
  // ---- favorites (Chromium's BookmarkModel through the Island heart) ----
  async favoriteActive(w){
@@ -130,20 +137,28 @@ export const pages={
  seedBillboardHistory:w=>w.native('seedBillboardHistory',[]),
  seedBillboardOverflowHistory:w=>w.native('seedBillboardOverflowHistory',[]),
  // ---- Start Page layout (native layoutRead/layoutWrite via the page) ----
- setNewtabLayout:async(w,layout)=>(await anyStartPage(w)).evalExpression(`window.bowserPages.start.setLayout(${jsLiteral(String(layout))})`),
- newtabLayout:async w=>(await anyStartPage(w)).evalExpression('window.bowserPages.start.data().then(d=>d.layout)'),
- readNewtabLayoutDom:onStart(null,`(()=>({layout:document.body.dataset.layout??null,
-  active:document.querySelector('[data-layout-pick].active')?.dataset.layoutPick??null,
+ setNewtabLayout:async(w,layout)=>{
+  const want=LAYOUT_WIDGETS[String(layout)];if(!want)throw Error('Unknown start-page layout '+layout);
+  return (await anyStartPage(w)).evalExpression(`(async()=>{const start=window.bowserPages.start;
+   for(const [name,on] of Object.entries(${JSON.stringify(want)}))await start.setWidget(name,on);return ${jsLiteral(String(layout))};})()`);
+ },
+ newtabLayout:async w=>layoutOfWidgets(await (await anyStartPage(w)).evalExpression('window.bowserPages.start.data().then(d=>d.widgets)')),
+ readNewtabLayoutDom:onStart(null,`(()=>({layout:${PAGE_LAYOUT},
+  active:${PAGE_LAYOUT},
   visible:['Ledger','Billboard','Shelf','Tally'].filter(n=>{const e=document.getElementById('layout'+n);return e&&getComputedStyle(e).display!=='none';})}))()`),
  clickNewtabLayoutSwitcher:onStart(false,name=>`(()=>{const popover=document.getElementById('customizePopover');const opener=document.getElementById('customizeButton');
   if(!popover||!opener)return false;if(!popover.matches(':popover-open')){opener.focus();opener.click();}
   if(!popover.matches(':popover-open'))return false;
-  const button=popover.querySelector('[data-layout-pick="${String(name).replace(/[^a-z]/g,'')}"]');if(!button)return false;button.click();return true;})()`),
+  const want=${JSON.stringify(LAYOUT_WIDGETS[String(name)]??null)};if(!want)return false;
+  return (async()=>{for(const [pick,on] of Object.entries(want)){const button=popover.querySelector('[data-widget-pick="'+pick+'"]');if(!button)return false;
+   if((button.getAttribute('aria-checked')==='true')===on)continue;button.click();
+   for(let i=0;i<100&&(button.hasAttribute('aria-disabled')||(button.getAttribute('aria-checked')==='true')!==on);i++)await new Promise(r=>setTimeout(r,50));}
+   return true;})();})()`),
  openStartCustomize:onStart(false,`(()=>{const popover=document.getElementById('customizePopover');const opener=document.getElementById('customizeButton');
   if(!popover||!opener)return false;if(!popover.matches(':popover-open')){opener.focus();opener.click();}return popover.matches(':popover-open');})()`),
  readStartCustomize:onStart(null,`(()=>({open:document.getElementById('customizePopover')?.matches(':popover-open')??false,
   expanded:document.getElementById('customizeButton')?.getAttribute('aria-expanded')??null,focusedId:document.activeElement?.id??null,
-  pressed:[...document.querySelectorAll('[data-layout-pick][aria-pressed="true"]')].map(b=>b.dataset.layoutPick)}))()`),
+  pressed:document.querySelector('[data-widget-pick]')?[${PAGE_LAYOUT}]:[]}))()`),
  // A real key press into the focused Start Page document.
  async pressStartPageKey(w,key){
   const page=await startPage(w);if(!page)return false;
@@ -153,7 +168,7 @@ export const pages={
  startPagePins:async w=>(await (await anyStartPage(w)).evalExpression('window.bowserPages.pins.list()')).pins.map(({url,title})=>({url,title})),
  clearStartPagePins:async w=>(await anyStartPage(w)).evalExpression(`(async()=>{const p=window.bowserPages.pins;
   for(const pin of (await p.list()).pins)await p.unpin(pin.url);return (await p.list()).pins.length===0;})()`),
- readStartFavorites:onStart(null,`(()=>{const layout=document.body.dataset.layout;const list=${favoriteList};
+ readStartFavorites:onStart(null,`(()=>{const layout='ledger';const list=${favoriteList};
   const items=list?[...document.getElementById(list).querySelectorAll('[data-favorite-url]')]:[];
   return {layout,favorites:items.map(item=>({url:item.dataset.favoriteUrl,title:item.querySelector('.name')?.textContent??null,
    pinned:item.classList.contains('pinned'),pinLabel:item.querySelector('.fav-pin')?.getAttribute('aria-label')??null,
@@ -178,7 +193,7 @@ export const pages={
  // ---- Start Page geometry reads (the copied shipping DOM) ----
  readStartFrameGeometry:onStart(null,`(()=>{const rect=e=>{if(!e)return null;const s=getComputedStyle(e);if(s.display==='none'||s.visibility==='hidden')return null;
   const r=e.getBoundingClientRect();if(!r.width||!r.height)return null;return {top:r.top,right:r.right,bottom:r.bottom,left:r.left,width:r.width,height:r.height};};
-  const layout=document.body.dataset.layout;const rootEl=document.getElementById('layout'+layout.charAt(0).toUpperCase()+layout.slice(1));
+  const layout=${PAGE_LAYOUT};const rootEl=document.getElementById('layoutBillboard');
   const shellEl=document.getElementById('migrationChecklistShell');const shell=shellEl&&!shellEl.hidden?rect(shellEl):null;
   const content=[...rootEl.querySelectorAll('a, button, h2, .ledger-label, .shelf-card, .tally-chart, .tally-caption, .bb-clock, .bb-blocked, .start-empty-hint')]
    .map(e=>({selector:e.id?'#'+e.id:e.className||e.tagName,rect:rect(e)})).filter(x=>x.rect);
@@ -188,7 +203,23 @@ export const pages={
    patronInLayout:!!rootEl.querySelector('.js-patron-callout'),patronInFooterLeft:!!patron&&patron.parentElement===footerLeft,
    patronVisible:!!patron&&!patron.hidden&&!!rect(patron),patron:patron&&!patron.hidden?rect(patron):null,
    emptyHints:[...rootEl.querySelectorAll('.start-empty-hint')].filter(e=>rect(e)).length};})()`),
- readStartBlockedCard:onStart(null,`(()=>{const card=document.getElementById('shBlocked')?.closest('.shelf-card');return !!card&&!card.hidden&&getComputedStyle(card).display!=='none';})()`),
+ // V24: the Start Page's widgets as drawn: which are on, which show, the
+ // Favorites widget's rows and Billboard's tile limit.
+ readStartWidgets:onStart(null,`(()=>{const rect=e=>{if(!e||e.hidden||getComputedStyle(e).display==='none')return null;const r=e.getBoundingClientRect();
+  if(!r.width||!r.height)return null;return {left:Math.round(r.left),right:Math.round(r.right),top:Math.round(r.top),bottom:Math.round(r.bottom),width:Math.round(r.width)};};
+  const section=n=>document.querySelector('#bbWidgets [data-widget="'+n+'"]');
+  return {root:document.body.dataset.layout,viewportWidth:innerWidth,viewportHeight:innerHeight,
+   visibleRoots:['Ledger','Billboard','Shelf','Tally'].filter(n=>rect(document.getElementById('layout'+n))),
+   widgets:typeof state==='object'?state.widgets:null,
+   switches:Object.fromEntries([...document.querySelectorAll('[data-widget-pick]')].map(b=>[b.dataset.widgetPick,b.getAttribute('aria-checked')==='true'])),
+   shown:Object.fromEntries(['favorites','devices','chart'].map(n=>[n,!!rect(section(n))])),
+   cards:Object.fromEntries(['favorites','devices','chart'].map(n=>[n,rect(section(n))])),
+   favoriteRows:[...document.querySelectorAll('#favoritesList [data-favorite-url]')].map(rect).filter(Boolean),
+   footer:rect(document.getElementById('layoutFooter')),
+   tileLimit:typeof billboardSiteCount==='function'?billboardSiteCount():null};})()`),
+ // V24: the week's count lives in the chart widget (Shelf's blocked card is gone).
+ readStartBlockedCard:onStart(null,`(()=>{const e=document.querySelector('#bbWidgets .bb-widget-chart .tally-right');if(!e||e.hidden)return false;
+  const r=e.getBoundingClientRect();return r.width>0&&r.height>0&&getComputedStyle(e).visibility!=='hidden';})()`),
  readShelfGeometry:onStart(null,`(()=>{const rect=e=>{if(!e||e.hidden||getComputedStyle(e).display==='none')return null;const r=e.getBoundingClientRect();
   return {left:Math.round(r.left),right:Math.round(r.right),top:Math.round(r.top),bottom:Math.round(r.bottom)};};
   return {columns:document.getElementById('layoutShelf').dataset.columns??null,viewportWidth:innerWidth,
@@ -197,19 +228,19 @@ export const pages={
  readTallyGeometry:onStart(null,`(()=>{const rect=e=>{if(!e||e.hidden||getComputedStyle(e).display==='none')return null;const r=e.getBoundingClientRect();
   return {left:Math.round(r.left),right:Math.round(r.right),top:Math.round(r.top),bottom:Math.round(r.bottom),width:Math.round(r.width)};};
   return {viewportWidth:innerWidth,private:document.documentElement.dataset.theme==='private',content:rect(document.getElementById('startContent')),
-   left:rect(document.querySelector('.tally-left')),right:rect(document.querySelector('.tally-right'))};})()`),
+   left:rect(document.querySelector('#bbWidgets [data-widget="favorites"]')),right:rect(document.querySelector('#bbWidgets [data-widget="chart"]'))};})()`),
  readBillboardVerticalBox:onStart(null,`(()=>{const shown=[...document.getElementById('layoutBillboard').children].filter(e=>{const s=getComputedStyle(e);const b=e.getBoundingClientRect();
   return !e.hidden&&s.display!=='none'&&s.position!=='absolute'&&b.height>1;});if(!shown.length)return null;
   const top=Math.min(...shown.map(e=>e.getBoundingClientRect().top));const bottom=Math.max(...shown.map(e=>e.getBoundingClientRect().bottom));
   const footerTop=document.getElementById('layoutFooter').getBoundingClientRect().top;const headerBottom=document.querySelector('.start-header').getBoundingClientRect().bottom;
   const round=v=>Math.round(v*10)/10;
-  return {layout:document.body.dataset.layout,viewportWidth:innerWidth,headerBottom:round(headerBottom),contentTop:round(top),above:round(top),below:round(footerTop-bottom),
+  return {layout:${PAGE_LAYOUT},viewportWidth:innerWidth,headerBottom:round(headerBottom),contentTop:round(top),above:round(top),below:round(footerTop-bottom),
    parts:shown.map(e=>e.id||e.className)};})()`),
  readStartFooterLayout:onStart(null,blockedText=>`(()=>{if(${jsLiteral(blockedText??null)}!==null)document.getElementById('footerLeft').textContent=${jsLiteral(blockedText??'')};
   const box=s=>{const e=document.querySelector(s);if(!e||e.hidden||getComputedStyle(e).display==='none')return null;const r=e.getBoundingClientRect();return {top:r.top,bottom:r.bottom,left:r.left,right:r.right,height:r.height};};
   const items=[...document.querySelectorAll('#layoutFooter .footer-left > *')].filter(e=>!e.hidden&&getComputedStyle(e).display!=='none'&&e.getBoundingClientRect().width>0).map(e=>e.getBoundingClientRect());
   const centres=items.map(r=>Math.round((r.top+r.bottom)/2));
-  return {layout:document.body.dataset.layout,viewportWidth:innerWidth,leftOnOneLine:centres.every(c=>Math.abs(c-centres[0])<=4),
+  return {layout:${PAGE_LAYOUT},viewportWidth:innerWidth,leftOnOneLine:centres.every(c=>Math.abs(c-centres[0])<=4),
    left:box('#layoutFooter .footer-left'),customize:box('#customizeButton'),right:box('#layoutFooter .footer-right'),footer:box('#layoutFooter')};})()`),
  // ---- Start Page footer pills and launch scene ----
  readMigrationChecklistDom:onStart(null,`(()=>{const shell=document.getElementById('migrationChecklistShell');const popover=document.getElementById('migrationChecklist');
@@ -220,7 +251,7 @@ export const pages={
    title:document.getElementById('migrationChecklistTitle')?.textContent??null,syncComplete:sync?.classList.contains('is-complete')??false,
    tabsComplete:tabs?.classList.contains('is-complete')??false,spaceComplete:space?.classList.contains('is-complete')??false,
    expanded:document.getElementById('migrationChecklistCompact')?.getAttribute('aria-expanded')==='true',focused:document.hasFocus(),
-   focusedId:document.activeElement?.id??null,layout:document.body.dataset.layout??null,shellBounds:bounds(shell),
+   focusedId:document.activeElement?.id??null,layout:${PAGE_LAYOUT},shellBounds:bounds(shell),
    popoverBounds:popover?.matches(':popover-open')?bounds(popover):null,footerBounds:bounds(document.getElementById('layoutFooter')),
    customizeBounds:bounds(document.getElementById('customizeButton')),hideBounds:bounds(document.getElementById('migrationChecklistHide')),
    pillInFooterLeft:!!shell?.closest('#layoutFooter .footer-left'),viewportWidth:innerWidth};})()`),
@@ -245,7 +276,7 @@ export const pages={
   return {present:true,shown:!scene.hidden,pointerEvents:style.pointerEvents,
    animations:[scene,...scene.querySelectorAll('.launch-sunrise-sky,.launch-sunrise-horizon,.launch-sunrise-mark .launch-sunrise-disc,.launch-sunrise-rays,.launch-sunrise-reflect')].flatMap(el=>getComputedStyle(el).animationName.split(', ')),layoutReady:document.body.classList.contains('layout-ready')};})()`),
  readMahjongFooterLink:onStart(null,`(()=>({href:document.getElementById('mahjongLink')?.href??null,target:document.getElementById('mahjongLink')?.target??null,
-  layout:document.body.dataset.layout,switcherCount:document.querySelectorAll('[data-layout-pick]').length,frameCount:document.querySelectorAll('iframe').length}))()`),
+  layout:${PAGE_LAYOUT},switcherCount:document.querySelectorAll('[data-widget-pick]').length,frameCount:document.querySelectorAll('iframe').length}))()`),
  clickMahjongFooterLink:onStart(false,`(()=>{const link=document.getElementById('mahjongLink');if(!link)return false;link.click();return true;})()`),
  // Patron and the app icon (F17). The preview has no license keys (owner,
  // 2026-11-05), so there is never a supporter to clear.

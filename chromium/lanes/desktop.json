@@ -82,6 +82,7 @@
     "patches/0074-blanc-glance-commands.patch",
     "patches/0075-blanc-app-menu-name.patch",
     "patches/0076-blanc-about-in-sheet.patch",
-    "patches/0077-blanc-product-name.patch"
+    "patches/0077-blanc-product-name.patch",
+    "patches/0078-blanc-start-widgets.patch"
   ]
 }

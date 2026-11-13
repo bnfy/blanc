@@ -1,6 +1,7 @@
 // DOM audits copied from the v1.46.0 test hook; the shipping assertions run
 // unchanged. The only translation is native tab identity to its CDP document.
 import {tabPage} from './core.mjs';
+import {PAGE_LAYOUT} from '../lib/start-widgets.mjs';
 const audit=expression=>async w=>{const s=await w.snapshot();const p=await tabPage(w,s.activeTabId);return {page:await p.evalExpression(expression)};};
 export const observations={
  // The native command changes the global Quiet Tabs delay; its tab argument
@@ -13,7 +14,7 @@ export const observations={
         const selectors = [
           '.start-brand-date', '.ledger-label', '.bb-clock',
           '.bb-blocked', '.shelf-label', '.shelf-count', '.tally-count',
-          '.tally-caption', '.ledger-footer', '.layout-switcher button',
+          '.tally-caption', '.ledger-footer', /* V24: Customize's widget switches */ '.widget-switch',
           '.ob-step-label', '.ob-content p'
         ];
         if (selectors.some((selector) => !document.querySelector(selector))) return null;
@@ -99,7 +100,7 @@ export const observations={
               .map(describe)
           : [];
         return {
-          layout: body.dataset.layout ?? null,
+          layout: ${PAGE_LAYOUT},
           viewportWidth: innerWidth,
           viewportHeight: innerHeight,
           clientWidth: root.clientWidth,

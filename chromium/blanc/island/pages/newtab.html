@@ -50,25 +50,11 @@
 
       <div class="ledger-spread">
         <div class="ledger-col ledger-col-primary">
-          <section class="ledger-section">
-            <a class="ledger-label" href="blanc://bookmarks/" data-i18n="pagesNav.bookmarks">Favorites</a>
-            <div id="favoritesList" class="ledger-list"></div>
-          </section>
         </div>
         <div class="ledger-col ledger-col-secondary">
           <section id="groupsSection" class="ledger-section" hidden>
             <div class="ledger-label" data-i18n="newtab.groups">Pick up where you left off</div>
             <div id="groupsList" class="ledger-list ledger-groups"></div>
-          </section>
-
-          <section id="sentSection" class="ledger-section" hidden>
-            <div class="ledger-label" data-i18n="sends.section">Sent to this device</div>
-            <div id="sentList" class="ledger-list"></div>
-          </section>
-
-          <section id="remoteSection" class="ledger-section" hidden>
-            <div class="ledger-label" data-i18n="newtab.remote">On your other devices</div>
-            <div id="remoteList" class="ledger-list"></div>
           </section>
         </div>
       </div>
@@ -101,6 +87,34 @@
       <div id="bbFavorites" class="bb-favs"></div>
       <div id="bbTopSitesStatus" class="page-sr-only" role="status" aria-live="polite" aria-atomic="true"></div>
       <div id="bbGroups" class="bb-groups"></div>
+      <!-- The optional widgets (V24, fork only): Billboard is the one layout,
+           and what Ledger and Tally showed comes back here, switched on in
+           Customize. Sent to this device is an inbox, not a widget: it shows
+           whenever something is waiting. Each keeps its old ids, so the same
+           renderers draw it. -->
+      <div id="bbWidgets" class="bb-widgets">
+        <section id="sentSection" class="ledger-section bb-widget" hidden>
+          <div class="ledger-label" data-i18n="sends.section">Sent to this device</div>
+          <div id="sentList" class="ledger-list"></div>
+        </section>
+        <section class="ledger-section bb-widget" data-widget="favorites">
+          <a class="ledger-label" href="blanc://bookmarks/" data-i18n="pagesNav.bookmarks">Favorites</a>
+          <div id="favoritesList" class="ledger-list"></div>
+        </section>
+        <section id="remoteSection" class="ledger-section bb-widget" data-widget="devices" hidden>
+          <div class="ledger-label" data-i18n="newtab.remote">On your other devices</div>
+          <div id="remoteList" class="ledger-list"></div>
+        </section>
+        <section class="bb-widget bb-widget-chart" data-widget="chart">
+          <div class="tally-right">
+            <div class="ledger-label" data-i18n="newtab.tally.blocked">Blocked this week</div>
+            <div id="tlCount" class="tally-count"></div>
+            <div id="tlChart" class="tally-chart"></div>
+            <div id="tlDays" class="tally-days"></div>
+            <div id="tlCaption" class="tally-caption"></div>
+          </div>
+        </section>
+      </div>
     </main>
 
     <main class="shelf" id="layoutShelf">
@@ -128,13 +142,6 @@
         <div id="tlFavorites" class="ledger-list"></div>
         <div class="ledger-label tally-label tally-label-groups" data-i18n="newtab.groups">Pick up where you left off</div>
         <div id="tlGroups" class="tally-chiprow"></div>
-      </div>
-      <div class="tally-right">
-        <div class="ledger-label" data-i18n="newtab.tally.blocked">Blocked this week</div>
-        <div id="tlCount" class="tally-count"></div>
-        <div id="tlChart" class="tally-chart"></div>
-        <div id="tlDays" class="tally-days"></div>
-        <div id="tlCaption" class="tally-caption"></div>
       </div>
     </main>
     <div id="favoritesPinStatus" class="page-sr-only" role="status" aria-live="polite" aria-atomic="true"></div>
@@ -212,25 +219,14 @@
     <span class="footer-appearance">
       <button id="customizeButton" class="start-customize" type="button" popovertarget="customizePopover" aria-expanded="false" data-i18n="newtab.customize.button">Customize</button>
       <div id="customizePopover" class="start-customize-popover" popover role="dialog" aria-label="Customize start page" data-i18n-aria-label="newtab.customize.label">
-        <div id="customizeLayoutLabel" class="customize-label" data-i18n="newtab.customize.layout">Layout</div>
-        <p id="layoutSaveStatus" class="wallpaper-error" role="status" aria-live="polite" hidden></p>
-        <div id="layoutSwitcher" class="layout-switcher" role="group" aria-labelledby="customizeLayoutLabel" aria-describedby="layoutSaveStatus">
-          <button type="button" class="layout-preview" data-layout-pick="ledger" aria-pressed="false">
-            <span class="layout-thumb" data-thumb="ledger" aria-hidden="true"><i></i><i></i><i></i><i></i></span>
-            <span class="layout-name" data-i18n="newtab.layout.ledger">Ledger</span>
-          </button>
-          <button type="button" class="layout-preview" data-layout-pick="billboard" aria-pressed="false">
-            <span class="layout-thumb" data-thumb="billboard" aria-hidden="true"><i></i><i></i><i></i></span>
-            <span class="layout-name" data-i18n="newtab.layout.billboard">Billboard</span>
-          </button>
-          <button type="button" class="layout-preview" data-layout-pick="shelf" aria-pressed="false">
-            <span class="layout-thumb" data-thumb="shelf" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i></span>
-            <span class="layout-name" data-i18n="newtab.layout.shelf">Shelf</span>
-          </button>
-          <button type="button" class="layout-preview" data-layout-pick="tally" aria-pressed="false">
-            <span class="layout-thumb" data-thumb="tally" aria-hidden="true"><i></i><i></i><i></i></span>
-            <span class="layout-name" data-i18n="newtab.layout.tally">Tally</span>
-          </button>
+        <!-- The optional widgets (V24, fork only) in place of the layouts. -->
+        <div id="customizeWidgetsLabel" class="customize-label" data-i18n="start.widgets.heading">Widgets</div>
+        <p id="widgetSaveStatus" class="wallpaper-error" role="status" aria-live="polite" hidden></p>
+        <div id="widgetSwitches" class="widget-switches" role="group" aria-labelledby="customizeWidgetsLabel" aria-describedby="widgetSaveStatus">
+          <button type="button" class="widget-switch" role="switch" aria-checked="false" data-widget-pick="favorites"><span data-i18n="pagesNav.bookmarks">Favorites</span><span class="widget-switch-track" aria-hidden="true"></span></button>
+          <button type="button" class="widget-switch" role="switch" aria-checked="false" data-widget-pick="devices"><span data-i18n="newtab.remote">On your other devices</span><span class="widget-switch-track" aria-hidden="true"></span></button>
+          <button type="button" class="widget-switch" role="switch" aria-checked="false" data-widget-pick="chart"><span data-i18n="newtab.tally.blocked">Blocked this week</span><span class="widget-switch-track" aria-hidden="true"></span></button>
+          <button type="button" class="widget-switch" role="switch" aria-checked="false" data-widget-pick="shortcuts"><span data-i18n="start.widgets.shortcuts">More shortcuts</span><span class="widget-switch-track" aria-hidden="true"></span></button>
         </div>
         <!-- Billboard only: the clock's own section, a row in the style of a
              settings list. A live sample of the clock's face, weight and

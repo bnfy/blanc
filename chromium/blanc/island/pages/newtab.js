@@ -605,7 +605,8 @@ function emptyFavoritesHint() {
 function renderLedgerFavorites() {
   const list = document.getElementById('favoritesList');
   list.replaceChildren();
-  const tiles = favoriteTilesFor(6);
+  // The Favorites widget (V24) lists up to eight, the most any old layout showed.
+  const tiles = favoriteTilesFor(8);
   if (!tiles.length) {
     list.appendChild(emptyFavoritesHint());
     return;
@@ -620,7 +621,7 @@ function renderPinnedLayouts() {
   invalidate();
   if (state.layout === 'billboard') renderBillboard();
   if (state.layout === 'shelf') renderShelf();
-  if (state.layout === 'tally') renderTally();
+  if (state.widgets?.chart) renderTally();
   rendered.add(state.layout);
 }
 
@@ -726,6 +727,7 @@ const state = {
   pinsMax: 0,
   topSites: [],
   onboarding: null,
+  widgets: { favorites: false, devices: false, chart: false, shortcuts: false },
 };
 const rendered = new Set();
 const invalidate = () => rendered.clear();
@@ -902,8 +904,9 @@ function renderBillboard() {
   renderGroupChips('bbGroups', state.groups);
 }
 
+const billboardSiteCount = () => (state.widgets?.shortcuts ? 12 : 6);
 function visibleBillboardSites() {
-  return startPins.billboardSites(state.pins, state.topSites, hiddenTopSites, 6);
+  return startPins.billboardSites(state.pins, state.topSites, hiddenTopSites, billboardSiteCount());
 }
 
 async function fillBillboardSites() {
@@ -911,7 +914,7 @@ async function fillBillboardSites() {
     isPrivate ||
     !topSitesReady ||
     topSitesExhausted ||
-    visibleBillboardSites().length >= 6 ||
+    visibleBillboardSites().length >= billboardSiteCount() ||
     typeof window.bowserPages?.start?.topSites !== 'function'
   ) return;
   if (topSitesLoad) return topSitesLoad;
@@ -931,7 +934,7 @@ async function fillBillboardSites() {
   });
   await topSitesLoad;
   renderBillboard();
-  if (visibleBillboardSites().length < 6 && !topSitesExhausted) {
+  if (visibleBillboardSites().length < billboardSiteCount() && !topSitesExhausted) {
     await fillBillboardSites();
   }
 }
@@ -1203,6 +1206,10 @@ async function drawClockArt() {
   const computed = getComputedStyle(clockElement);
   const shadow = art.shadowFor(rgbOf(computed.color));
   clockElement.style.setProperty('--clock-shadow', shadow);
+  // Over your image (V24 readability), a frosted halo behind the clock in the
+  // tint opposite its ink: light behind a dark clock, dark behind a light one.
+  const clockLight = globalThis.blancClockArt.luminance(rgbOf(computed.color)) > 0.4;
+  clockElement.closest('.bb-clock-row')?.setAttribute('data-halo', clockLight ? 'dark' : 'light');
 
   const glass = clockState.style === 'glass' && !reducedTransparency.matches;
   if (globalThis.blancNativeClock?.render) {
@@ -1519,8 +1526,10 @@ document.getElementById('mahjongLink').addEventListener('auxclick', (event) => {
   window.bowserPages.start.openMahjong(true).catch(() => {});
 });
 
+// V24 (fork only): Billboard is the one layout. What Ledger, Shelf and Tally
+// showed comes back as optional widgets (applyWidgets below).
 function applyLayout(name) {
-  if (!['ledger', 'billboard', 'shelf', 'tally'].includes(name)) name = 'billboard';
+  name = 'billboard';
   state.layout = name;
   document.body.dataset.layout = name;
   presentPendingMigrationChecklistCompletion();
@@ -1540,30 +1549,52 @@ function applyLayout(name) {
   }
   if (name === 'billboard') startClock();
   if (name === 'billboard') fillBillboardSites().catch(() => {});
+  if (state.widgets?.chart) renderTally();
 }
 
-const layoutButtons = [...document.querySelectorAll('[data-layout-pick]')];
-const layoutSaveStatus = document.getElementById('layoutSaveStatus');
-let layoutWritePending = false;
-for (const button of layoutButtons) {
+const WIDGET_NAMES = ['favorites', 'devices', 'chart', 'shortcuts'];
+/** Shows the widgets that are on and sets their switches. Turning More
+ * shortcuts on or off redraws Billboard's tiles at 12 or 6. */
+function applyWidgets(widgets) {
+  const next = Object.fromEntries(WIDGET_NAMES.map((name) => [name, widgets?.[name] === true]));
+  const tilesChanged = state.widgets?.shortcuts !== next.shortcuts;
+  state.widgets = next;
+  for (const section of document.querySelectorAll('#bbWidgets [data-widget]')) {
+    section.classList.toggle('widget-on', next[section.dataset.widget] === true);
+  }
+  // The week's chart replaces Billboard's one-line count.
+  document.body.classList.toggle('widget-chart-on', next.chart);
+  for (const button of widgetButtons) {
+    button.setAttribute('aria-checked', String(next[button.dataset.widgetPick] === true));
+  }
+  if (next.chart) renderTally();
+  if (tilesChanged && rendered.has('billboard')) {
+    renderBillboard();
+    fillBillboardSites().catch(() => {});
+  }
+}
+
+const widgetButtons = [...document.querySelectorAll('[data-widget-pick]')];
+const widgetSaveStatus = document.getElementById('widgetSaveStatus');
+let widgetWritePending = false;
+for (const button of widgetButtons) {
   button.addEventListener('click', async () => {
-    if (layoutWritePending) return;
-    const pick = button.dataset.layoutPick;
-    layoutWritePending = true;
-    layoutSaveStatus.hidden = true;
-    for (const item of layoutButtons) item.setAttribute('aria-disabled', 'true');
+    if (widgetWritePending) return;
+    const pick = button.dataset.widgetPick;
+    widgetWritePending = true;
+    widgetSaveStatus.hidden = true;
+    for (const item of widgetButtons) item.setAttribute('aria-disabled', 'true');
     try {
-      const saved = await window.bowserPages.start.setLayout(pick);
-      applyLayout(saved);
+      applyWidgets(await window.bowserPages.start.setWidget(pick, state.widgets?.[pick] !== true));
     } catch {
       // A timeout can occur after the write: do not claim it was not saved.
-      layoutSaveStatus.textContent = t('start.layout.unconfirmed');
-      layoutSaveStatus.hidden = false;
+      widgetSaveStatus.textContent = t('start.widgets.unconfirmed');
+      widgetSaveStatus.hidden = false;
     } finally {
-      layoutWritePending = false;
-      for (const item of layoutButtons) item.removeAttribute('aria-disabled');
-      // Reconcile the actual shared setting, including other windows' changes.
-      window.blancNewTabEvent('layout');
+      widgetWritePending = false;
+      for (const item of widgetButtons) item.removeAttribute('aria-disabled');
+      // Reconcile the shared setting, including other windows' changes.
+      window.blancNewTabEvent('widgets');
     }
   });
 }
@@ -1867,7 +1898,7 @@ function applyStartData(data) {
   applyClock(data.clock);
   migrationChecklistUtilitySheetVisible = data.utilitySheetVisible === true;
   Object.assign(state, {
-    layout: data.layout ?? 'billboard',
+    layout: 'billboard',
     groups: data.groups ?? state.groups,
     blockerStatisticsAvailable: data.blockerStatisticsAvailable === true,
     blockedThisWeek: data.blockedThisWeek,
@@ -1893,6 +1924,7 @@ function applyStartData(data) {
   renderRemote(data.remoteDevices);
   renderSent(data.sentItems);
   invalidate();
+  applyWidgets(data.widgets);
 }
 const dataReady = window.bowserPages?.start.data().then(applyStartData);
 
@@ -1924,7 +1956,7 @@ window.bowserPages?.start.onStatus((status) => {
   if (status && 'dynamicWallpaperEnabled' in status) {
     applyDynamicWallpaper(status.dynamicWallpaperEnabled);
   }
-  if (!layoutWritePending && status?.layout && status.layout !== state.layout) applyLayout(status.layout);
+  if (!widgetWritePending && status?.widgets) applyWidgets(status.widgets);
   if (status) applyPatronStatus(status);
   if (status && 'migrationChecklist' in status) {
     renderMigrationChecklist(status.migrationChecklist ?? null);

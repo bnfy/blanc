@@ -4285,6 +4285,8 @@ class NewTabHandler : public content::WebUIMessageHandler,
     clock_observing_ = false;
     layout_pref_observer_.Reset();
     layout_observing_ = false;
+    widgets_pref_observer_.Reset();
+    widgets_observing_ = false;
     patron_observer_.Reset();
     patron_observing_ = false;
   }
@@ -4550,6 +4552,51 @@ class NewTabHandler : public content::WebUIMessageHandler,
         }
       }
       Reply(id, true, base::Value(prefs->GetString(kLayout))); return;
+    }
+    // The Start Page's optional widgets (V24, fork only). Billboard is the one
+    // layout; a page that never chose widgets takes them from the profile's
+    // old layout once, so nothing a person used goes away.
+    if ((method == "widgetsRead" && args.empty()) ||
+        (method == "widgetsWrite" && args.size() == 2 && args[0].is_string() && args[1].is_bool())) {
+      constexpr char kWidgets[] = "blanc.start.widgets";
+      constexpr std::string_view kNames[] = {"favorites", "devices", "chart", "shortcuts"};
+      auto* local = g_browser_process->local_state();
+      if (!local || !local->FindPreference(kWidgets)) {
+        Reply(id, false, base::Value("Start Page widgets unavailable")); return;
+      }
+      if (!widgets_observing_) {
+        widgets_pref_observer_.Init(local);
+        widgets_pref_observer_.Add(kWidgets, base::BindRepeating(
+            &NewTabHandler::WidgetsChanged, base::Unretained(this)));
+        widgets_observing_ = true;
+      }
+      if (!local->GetDict(kWidgets).FindInt("v")) {
+        // First read: Ledger showed Favorites and other devices, Tally the
+        // week's chart and Favorites, Shelf a larger grid of favorites.
+        auto* prefs = profile->GetOriginalProfile()->GetPrefs();
+        const std::string layout = prefs && prefs->FindPreference("blanc.prototype.start_layout")
+            ? prefs->GetString("blanc.prototype.start_layout") : std::string();
+        local->SetDict(kWidgets, base::DictValue().Set("v", 1)
+            .Set("favorites", layout == "ledger" || layout == "tally" || layout == "shelf")
+            .Set("devices", layout == "ledger")
+            .Set("chart", layout == "tally")
+            .Set("shortcuts", layout == "shelf")
+            .Set("from", layout.empty() ? "billboard" : layout));
+      }
+      if (method == "widgetsWrite") {
+        const auto& name = args[0].GetString();
+        if (std::find(std::begin(kNames), std::end(kNames), name) == std::end(kNames)) {
+          Reply(id, false, base::Value("Unknown Start Page widget")); return;
+        }
+        auto next = local->GetDict(kWidgets).Clone();
+        next.Set(name, args[1].GetBool());
+        local->SetDict(kWidgets, std::move(next));
+        local->CommitPendingWrite();
+      }
+      base::DictValue out;
+      const auto& saved = local->GetDict(kWidgets);
+      for (const auto name : kNames) out.Set(name, saved.FindBool(name).value_or(false));
+      Reply(id, true, base::Value(std::move(out))); return;
     }
     if ((method == "pinsList" && args.empty()) ||
         (method == "pinsPin" && args.size() == 2 && args[0].is_string() && args[1].is_string()) ||
@@ -4866,6 +4913,9 @@ class NewTabHandler : public content::WebUIMessageHandler,
   void LayoutChanged() { Notify("layout"); }
   PrefChangeRegistrar layout_pref_observer_;
   bool layout_observing_ = false;
+  void WidgetsChanged() { Notify("widgets"); }
+  PrefChangeRegistrar widgets_pref_observer_;
+  bool widgets_observing_ = false;
   PrefChangeRegistrar patron_observer_;
   bool patron_observing_ = false;
   void ClockChanged() { Notify("clock"); }

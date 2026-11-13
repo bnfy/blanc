@@ -864,6 +864,34 @@ remain pending. D3 beta-only no-DRM exception accepted; EME notice/handoff requi
   still expects text tile faces in JetBrains Mono, which #931 replaced with
   image art; shipping's own reader fails the same way and its CI doesn't run
   the scenario. Not changed here (shipping's test is read-only to the fork).
+- **V24 — one Start Page with optional widgets, readable on any wallpaper
+  (2026-11-13, owner; fork only):** Billboard is the one Start Page layout.
+  Customize's layout picker becomes four switches: Favorites (up to eight,
+  in columns), On your other devices, Blocked this week (the 7-day chart,
+  replacing Billboard's one-line count) and More shortcuts (twelve tiles
+  instead of six). Sent to this device is an inbox, not a switch: it shows
+  whenever something waits. The choice is device-wide (`blanc.start.widgets`
+  in Local State, patch 0078), never synced, and every open Start Page
+  follows it at once. On first read a profile's old layout decides it once:
+  Ledger → Favorites + other devices, Tally → Favorites + chart, Shelf →
+  Favorites + More shortcuts (Shelf's grid showed favorites), Billboard →
+  none. Over your image or a theme's image every text group (date, blocked
+  line, tile names, group chips, widgets, footer pills) sits on a frosted
+  plate whose ink keeps 4.5:1 or more over pure black and pure white behind
+  it, and the clock on a halo tinted against its own ink (3:1 or more for a
+  near-black or near-white clock; a mid-tone clock color keeps its shadow).
+  start-plates.test.mjs checks the contrast; native-start-widgets.mjs the
+  switches, live sharing, relaunch, the move from Tally and the plates.
+  Shipping's layout steps run as V24 replacements (tests/fork-steps,
+  lib/start-widgets.mjs): newtab-layouts.feature 24/25 on
+  macos-e66182e9896f8805; :21 is shipping's stale Mahjong check, failing
+  before this change too. A page with widgets fits 1000×840 without scrolling.
+  On macos-51eaa3444b2f90d6 (names win over addresses in Favorites' columns)
+  native-start-widgets.mjs passes 6/6 and :85/:101/:114/:161/:188 pass. The
+  local Sync gate ran 12/22 on macos-e66182e9896f8805, Start Page Send
+  included, then was stopped to save time (owner: "the gate is going very
+  slowly"); the other ten cover code this change does not touch (22/22 on
+  macos-c2c2bcc050e0af2d). Rerun the whole gate on the beta candidate.
 - **Extensions panel over the floating Island (2026-11-13, owner report):**
   with Auto-hide in float style, the Extensions panel opened behind the
   revealed floating Island (layer 2 under its 4; also under a Glance card's
@@ -2502,5 +2530,5 @@ Android's Bar A counts the shared scenarios bound in `chromium/tests/android/acc
 
 Legacy macOS stages come from the approved spec; they await verification on the canonical candidate. No legacy stage counts as Verified.
 
-Candidate identities: macOS: macos-f7b5f8256e4bdf54; Windows: none; Linux: none; Android: android-arm64-7bd35e94ef746069.
+Candidate identities: macOS: macos-51eaa3444b2f90d6; Windows: none; Linux: none; Android: android-arm64-7bd35e94ef746069.
 <!-- END GENERATED PROGRESS -->
