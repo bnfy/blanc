@@ -13,7 +13,7 @@
           "id": "mahjong-refresh",
           "tile": "New Mahjong",
           "title": "Mahjong, redesigned",
-          "body": "Mahjong now has Blanc’s Sunrise look in light and dark mode, with new tile artwork, a simpler setup and a smaller results card. On a wide window, the Burst rack sits beside the board.",
+          "body": "Mahjong now has Blanc’s Sunrise look in light and dark mode, with a simpler setup, a smaller results card and new tile artwork in three sets: Porcelain, Carved and Inlay. Clear three boards in a row and your next deal moves to the next set. On a wide window, the Burst rack sits beside the board.",
           "steps": [
             "On the Start Page, choose Mahjong at the bottom."
           ],
@@ -24,20 +24,26 @@
             "width": 1440,
             "height": 900,
             "alt": "Mahjong in Blanc on the Turtle board in Burst mode, with cream tiles on a pale sunrise background and the Burst rack in a column beside the board."
-          }
+          },
+          "note": "A board keeps the set it was dealt in. Starting a new game partway through a board you’ve played on starts the count again."
         },
         {
-          "id": "mahjong-tile-sets",
-          "tile": "Tile sets",
-          "title": "A new tile set every three boards",
-          "body": "Mahjong has three tile sets: Porcelain, Carved and Inlay. Clear three boards in a row and your next deal moves to the next set. A board keeps the set it was dealt in.",
-          "note": "Starting a new game partway through a board you’ve played on starts the count again.",
+          "id": "spaces-button",
+          "tile": "Spaces",
+          "title": "Your Space, one click from ⌘L",
+          "body": "The closed Island no longer shows your Space’s mark, so it stays shorter. Open the panel, and the Spaces button at its bottom shows the Space you’re in, with its symbol and color. Click it to switch Spaces or start a new one.",
+          "steps": [
+            "Press `⌘L`, or `Ctrl+L` on Windows and Linux.",
+            "Click the Spaces button at the bottom right of the panel."
+          ],
+          "note": "With vertical tabs, your Space’s mark stays at the top of the side list.",
+          "learnMore": "/features/workspaces",
           "media": {
             "kind": "image",
-            "src": "/feature-captures/mahjong-tile-sets-v1.49.0.webp",
+            "src": "/feature-captures/spaces-button-v1.49.0.webp",
             "width": 1440,
             "height": 900,
-            "alt": "The Turtle board dealt in the Inlay tile set, whose tiles carry bold red numerals over small golden suns."
+            "alt": "Blanc’s ⌘L panel open over The Met’s page for Van Gogh’s Wheat Field with Cypresses. Its Spaces button shows a purple tile, and the Spaces menu below lists Work, Home, Painting class (checked) and Lisbon trip."
           }
         }
       ]
