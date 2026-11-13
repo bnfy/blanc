@@ -233,7 +233,6 @@
         <div id="widgetSwitches" class="widget-switches" role="group" aria-labelledby="customizeWidgetsLabel" aria-describedby="widgetSaveStatus">
           <button type="button" class="widget-tile" role="switch" aria-checked="false" data-widget-pick="favorites"><span class="widget-tile-check" aria-hidden="true"><svg viewBox="0 0 10 10" width="8" height="8"><path d="M2 5.2l2 2 4-4.4" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"></path></svg></span><svg class="widget-tile-art" viewBox="0 0 64 36" aria-hidden="true"><rect x="14" y="7" width="6" height="6" rx="1.5" fill="currentColor" opacity=".55"></rect><path d="M24 10h26" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"></path><rect x="14" y="15" width="6" height="6" rx="1.5" fill="currentColor" opacity=".55"></rect><path d="M24 18h20" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"></path><rect x="14" y="23" width="6" height="6" rx="1.5" fill="currentColor" opacity=".55"></rect><path d="M24 26h23" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"></path></svg><span data-i18n="pagesNav.bookmarks">Favorites</span></button>
           <button type="button" class="widget-tile" role="switch" aria-checked="false" data-widget-pick="devices"><span class="widget-tile-check" aria-hidden="true"><svg viewBox="0 0 10 10" width="8" height="8"><path d="M2 5.2l2 2 4-4.4" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"></path></svg></span><svg class="widget-tile-art" viewBox="0 0 64 36" aria-hidden="true"><rect x="12" y="8" width="26" height="17" rx="2" fill="none" stroke="currentColor" stroke-width="1.6"></rect><path d="M9 28h32" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"></path><rect x="43" y="10" width="11" height="19" rx="2.5" fill="none" stroke="currentColor" stroke-width="1.6"></rect></svg><span data-i18n="newtab.remote">On your other devices</span></button>
-          <button type="button" id="addWidgetTile" class="widget-tile widget-tile-add" aria-haspopup="true" aria-controls="widgetGallery"><svg class="widget-tile-art" viewBox="0 0 64 36" aria-hidden="true"><path d="M32 9v18M23 18h18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"></path></svg><span data-i18n="start.gallery.add">Add widget</span></button>
         </div>
         <!-- How many shortcut tiles Billboard shows under the clock (fork,
              2026-11-13): a choice of its own, not a widget card. -->
@@ -323,19 +322,6 @@
           </div>
         </div>
         <p id="customWallpaperError" class="wallpaper-error" role="status" hidden></p>
-        <!-- Add a widget (fork, prototype): extensions whose side panel the
-             Start Page can show, a short list the owner approved, each with
-             a link to its Chrome Web Store page or, once installed, Add. -->
-        <section id="widgetGallery" class="widget-gallery" hidden aria-labelledby="widgetGalleryTitle">
-          <div class="widget-gallery-head">
-            <button type="button" id="widgetGalleryBack" class="widget-gallery-back" aria-label="Back" data-i18n-aria-label="start.gallery.back"><svg viewBox="0 0 12 12" width="12" height="12" aria-hidden="true"><path d="M7.5 2.5 4 6l3.5 3.5" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path></svg></button>
-            <h2 id="widgetGalleryTitle" class="customize-label" data-i18n="start.gallery.title">Add a widget</h2>
-          </div>
-          <p class="customize-hint widget-gallery-intro" data-i18n="start.gallery.intro">These extensions have a side panel the Start Page can show as a widget. Get one from the Chrome Web Store, then add it here.</p>
-          <ul id="widgetGalleryList" class="widget-gallery-list"></ul>
-          <a id="widgetGalleryMore" class="widget-gallery-more" href="https://chromewebstore.google.com/search/side%20panel" target="_blank" rel="noopener" data-i18n="start.gallery.more">Find more in the Chrome Web Store</a>
-          <p class="customize-hint" data-i18n="start.gallery.note">Extensions are made by their developers, not by Blanc.</p>
-        </section>
       </div>
       <!-- The Billboard clock's Font & Color, after the iOS Lock Screen's:
            four bundled faces with weight and height sliders, then the page's

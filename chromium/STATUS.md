@@ -960,35 +960,17 @@ remain pending. D3 beta-only no-DRM exception accepted; EME notice/handoff requi
   gesture re-inserted every card, dropping the pointer a resize held; cards
   now move only when out of place. native-start-devices 9/9;
   native-start-widgets 8/8.
-- **Extension side panels as Start Page cards (2026-11-13, owner: "Prototype
-  it"; fork only, prototype):** an installed extension with a side panel
-  (`chrome.sidePanel`, `side_panel.default_path`) appears in Customize as one
-  more widget tile. Turned on, it becomes a card in the side columns, moved
-  like the others, and Blanc draws the extension's own panel page over the
-  card's slot: Chromium's side panel host (`CreateSidePanelHost`) in an
-  `ExtensionViewViews` below the Island, in the extension's process, never
-  inside the Start Page. The page reports the slot's place on every move;
-  panels hide under popovers, while a card is dragged and on other tabs, and
-  close with the page. Private Start Pages show a note instead. The enabled
-  panels are saved with the widgets (`panels`, cards `ext:<id>`). Test
-  `chromium/tests/native-start-panels.mjs` (sample extension in
-  `tests/fixtures/side-panel-extension`, loaded by the gated
-  `testLoadUnpacked`): 3/3. Not yet: the panel's own height, keyboard focus
-  between page and panel, and a check with real Web Store extensions.
-  Later the same day (owner): an **Add widget** tile, last in Customize's
-  Widgets grid, opens an "Add a widget" view (with Back) listing four
-  extensions whose side panel suits a Start Page card: Bookmark Sidebar,
-  Raindrop.io, Desktop app for Google Tasks and Checker Plus for Google
-  Calendar. Each has a letter tile (no remote image), Blanc's own one-line
-  description in every language, its publisher, and Get (its Chrome Web Store
-  page in a new tab), Add once installed, or Added; plus "Find more in the
-  Chrome Web Store" and "Extensions are made by their developers, not by
-  Blanc." The list was checked on 2026-11-13 against each listing and its
-  publisher's docs or source (side panel evidence, ID to listing title);
-  Obsidian Web Clipper and Claude were left out (their panels act on the
-  page in view), as were extensions without first-party side-panel evidence.
-  **The list awaits the owner's approval before the beta.** The earlier hint
-  line is gone. native-start-panels 4/4; native-start-widgets 8/8.
+- **Extension side panels as Start Page cards: prototyped, then removed
+  (2026-11-13, owner):** an extension's Chrome side panel could become a
+  Start Page card, and an "Add a widget" gallery in Customize suggested four
+  Web Store extensions with side panels. The owner then chose to keep the
+  Start Page to Blanc's own widgets "for now", so the cards, the gallery, the
+  native panel host (`ExtensionViewViews` over the card's slot), the
+  `panel*`/`widgetsPanel` page methods, the gated `testLoadUnpacked` hook, the
+  test and its sample extension are gone (in history: d92e63c4b, 280a59a66,
+  06284793e). A saved `panels` list in the widgets pref is ignored. Kept:
+  hiding the Web Store's "Switch to Chrome?" card and leaving extension
+  installs out of Downloads, which help any extension install.
 - **Mahjong dock icons (2026-11-13):** shipping's dock uses
   `<use href="mahjong-icons.svg#…">`, which Chromium does not load on the
   fork's internal pages (net::ERR_FAILED), so the dock showed empty circles.
@@ -2737,5 +2719,5 @@ Android's Bar A counts the shared scenarios bound in `chromium/tests/android/acc
 
 Legacy macOS stages come from the approved spec; they await verification on the canonical candidate. No legacy stage counts as Verified.
 
-Candidate identities: macOS: macos-eda1ac1ce983ed86; Windows: none; Linux: none; Android: android-arm64-7bd35e94ef746069.
+Candidate identities: macOS: macos-5f109880379f57cd; Windows: none; Linux: none; Android: android-arm64-7bd35e94ef746069.
 <!-- END GENERATED PROGRESS -->

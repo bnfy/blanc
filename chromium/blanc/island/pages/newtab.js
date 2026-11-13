@@ -1661,13 +1661,10 @@ function applyWidgets(widgets) {
   const next = Object.fromEntries(WIDGET_NAMES.map((name) => [name, widgets?.[name] === true]));
   const tilesChanged = state.widgets?.shortcuts !== next.shortcuts;
   next.place = widgets?.place ?? state.widgets?.place ?? { left: ['favorites', 'devices'], right: ['sent'] };
-  next.panels = widgets?.panels ?? state.widgets?.panels ?? [];
   next.sizes = widgets?.sizes ?? state.widgets?.sizes ?? {};
   state.widgets = next;
-  syncPanelCards(next.panels);
   if (!cardDrag && !cardResize) placeCards(next.place);
   applyCardSizes(next.sizes);
-  placePanels();
   for (const section of document.querySelectorAll('#bbWidgets [data-widget]')) {
     section.classList.toggle('widget-on', next[section.dataset.widget] === true);
   }
@@ -1757,7 +1754,6 @@ function bindGrip(grip) {
       height: `${height}px`, zIndex: '60', pointerEvents: 'none' });
     cardDrag = { card, holder, dx: event.clientX - r.left, dy: event.clientY - r.top };
     grip.setPointerCapture(event.pointerId);
-    placePanels();
   });
   grip.addEventListener('pointermove', (event) => {
     if (!cardDrag) return;
@@ -1983,7 +1979,7 @@ function addResizeEdge(card) {
 }
 addResizeEdge(document.getElementById('remoteSection'));
 addResizeEdge(document.getElementById('favoritesWidget'));
-new MutationObserver(() => { if (!cardDrag) refreshRails(); placePanels(); }).observe(document.getElementById('bbWidgets'),
+new MutationObserver(() => { if (!cardDrag) refreshRails(); }).observe(document.getElementById('bbWidgets'),
   { subtree: true, attributes: true, attributeFilter: ['hidden', 'class'] });
 
 const widgetButtons = [...document.querySelectorAll('[data-widget-pick]')];
@@ -2010,236 +2006,6 @@ for (const button of widgetButtons) {
     }
   });
 }
-// Extensions' side panels as cards (prototype). An installed extension
-// with a side panel can be turned on in Customize; its card holds a slot and
-// Blanc draws the extension's own panel page over the slot (in the
-// extension's process, never inside this page). The page says where the
-// slot is whenever it moves, and hides the panels while anything covers them:
-// a popover, a card being dragged, or another tab.
-var installedPanels = [];
-var panelSlots = null;
-var panelFrame = 0;
-function syncPanelCards(enabled) {
-  const cards = document.getElementById('bbWidgetCards');
-  if (!cards) return;
-  panelSlots ??= new ResizeObserver(() => placePanels());
-  const names = new Map((installedPanels ?? []).map((panel) => [panel.id, panel.name]));
-  for (const card of document.querySelectorAll('.bb-widget[data-panel]')) {
-    if (enabled.includes(card.dataset.panel) && names.has(card.dataset.panel)) continue;
-    window.bowserPages?.start?.hidePanels?.(card.dataset.panel).catch(() => {});
-    card.remove();
-  }
-  for (const id of enabled) {
-    if (!names.has(id) || document.querySelector(`.bb-widget[data-panel="${id}"]`)) continue;
-    const card = document.createElement('section');
-    card.className = 'ledger-section bb-widget bb-widget-panel';
-    card.dataset.card = `ext:${id}`;
-    card.dataset.panel = id;
-    const grip = document.querySelector('#bbWidgets .bb-widget-grip').cloneNode(true);
-    const label = document.createElement('div');
-    label.className = 'ledger-label';
-    label.textContent = names.get(id);
-    const slot = document.createElement('div');
-    slot.className = 'bb-panel-slot';
-    const note = document.createElement('p');
-    note.className = 'start-empty-hint bb-panel-note';
-    note.hidden = true;
-    note.textContent = t('start.widgets.panelUnavailable');
-    slot.append(note);
-    card.append(grip, label, slot);
-    cards.append(card);
-    bindGrip(grip);
-    addResizeEdge(card);
-    panelSlots.observe(slot);
-  }
-  for (const tile of document.querySelectorAll('[data-panel-pick]')) {
-    tile.setAttribute('aria-checked', String(enabled.includes(tile.dataset.panelPick)));
-  }
-}
-function placePanels() {
-  if (panelFrame) return;
-  panelFrame = requestAnimationFrame(() => { panelFrame = 0; placePanelsNow(); });
-}
-async function placePanelsNow() {
-  const start = window.bowserPages?.start;
-  const cards = [...document.querySelectorAll('.bb-widget[data-panel]')];
-  if (!start?.placePanel || !cards.length) return;
-  if (document.hidden || cardDrag || document.querySelector(':popover-open')) {
-    start.hidePanels('').catch(() => {});
-    return;
-  }
-  for (const card of cards) {
-    const slot = card.querySelector('.bb-panel-slot');
-    const r = slot.getBoundingClientRect();
-    if (!card.closest('.bb-rail') || !cardShown(card) || r.width < 1 || r.height < 1) {
-      start.hidePanels(card.dataset.panel).catch(() => {});
-      continue;
-    }
-    const shown = await start.placePanel(card.dataset.panel,
-      { x: r.left, y: r.top, width: r.width, height: r.height }).catch(() => false);
-    slot.querySelector('.bb-panel-note').hidden = shown === true;
-  }
-}
-// Customize lists each extension that has a side panel as one more tile.
-function renderPanelTiles() {
-  const group = document.getElementById('widgetSwitches');
-  for (const tile of group.querySelectorAll('[data-panel-pick]')) tile.remove();
-  const ns = 'http://www.w3.org/2000/svg';
-  for (const panel of installedPanels) {
-    const tile = widgetButtons[0].cloneNode(true);
-    tile.removeAttribute('data-widget-pick');
-    tile.dataset.panelPick = panel.id;
-    const art = document.createElementNS(ns, 'svg');
-    art.setAttribute('class', 'widget-tile-art');
-    art.setAttribute('viewBox', '0 0 64 36');
-    art.setAttribute('aria-hidden', 'true');
-    for (const [tag, attrs] of [
-      ['rect', { x: 12, y: 6, width: 40, height: 24, rx: 3, fill: 'none', stroke: 'currentColor', 'stroke-width': 1.6 }],
-      ['path', { d: 'M38 6v24', stroke: 'currentColor', 'stroke-width': 1.6 }],
-      ['rect', { x: 41, y: 10, width: 8, height: 3, rx: 1, fill: 'currentColor', opacity: '.55' }],
-      ['rect', { x: 41, y: 16, width: 8, height: 3, rx: 1, fill: 'currentColor', opacity: '.55' }],
-    ]) {
-      const node = document.createElementNS(ns, tag);
-      for (const [name, value] of Object.entries(attrs)) node.setAttribute(name, String(value));
-      art.append(node);
-    }
-    tile.querySelector('.widget-tile-art').replaceWith(art);
-    const name = tile.querySelector('span[data-i18n]');
-    name.removeAttribute('data-i18n');
-    name.textContent = panel.name;
-    tile.setAttribute('aria-checked', String(state.widgets?.panels?.includes(panel.id) === true));
-    tile.addEventListener('click', async () => {
-      if (widgetWritePending) return;
-      widgetWritePending = true;
-      widgetSaveStatus.hidden = true;
-      try {
-        applyWidgets(await window.bowserPages.start.setPanel(panel.id, !state.widgets?.panels?.includes(panel.id)));
-      } catch {
-        widgetSaveStatus.textContent = t('start.widgets.unconfirmed');
-        widgetSaveStatus.hidden = false;
-      } finally {
-        widgetWritePending = false;
-        window.blancNewTabEvent('widgets');
-      }
-    });
-    group.append(tile);
-  }
-  // Add widget stays the last tile.
-  const add = document.getElementById('addWidgetTile');
-  if (add) group.append(add);
-  renderWidgetGallery();
-}
-async function refreshPanels() {
-  try {
-    installedPanels = await window.bowserPages?.start?.panels?.() ?? [];
-  } catch { return; }
-  renderPanelTiles();
-  if (state.widgets) applyWidgets(state.widgets);
-}
-refreshPanels();
-document.addEventListener('toggle', (event) => {
-  if (event.target?.id === 'customizePopover' && event.newState === 'open') refreshPanels();
-  if (event.target?.id === 'customizePopover' && event.newState === 'closed') showWidgetGallery(false);
-  placePanels();
-}, true);
-// Back from the Web Store (an extension may have been installed there).
-document.addEventListener('visibilitychange', () => { if (!document.hidden) refreshPanels(); });
-
-// Add a widget (fork, prototype): a short list of Chrome Web Store
-// extensions whose side panel the Start Page can show, which the owner
-// approved. Each links to its Web Store page; once it is installed (and its
-// panel is on) it is added from here. Names and publishers are the
-// extensions' own; the descriptions are Blanc's, in every language. No
-// remote image is loaded: each shows a letter tile.
-// Checked 2026-11-13 against each extension's Chrome Web Store listing and its
-// publisher's docs or source (side_panel in the manifest, or the listing
-// naming Chrome's side panel). The owner approves this list.
-var WIDGET_CATALOG = [
-  { id: 'jdbnofccmhefkmjbkkdkfiicjkgofkdh', key: 'bookmarkSidebar', name: 'Bookmark Sidebar', publisher: 'Philipp König' },
-  { id: 'ldgfbffkinooeloadekpmfoklnobpien', key: 'raindrop', name: 'Raindrop.io', publisher: 'Raindrop.io' },
-  { id: 'lpofefdiokgmcdnnaigddelnfamkkghi', key: 'googleTasks', name: 'Desktop app for Google Tasks', publisher: 'TasksBoard' },
-  { id: 'hkhggnncdpfibdhinjiegagmopldibha', key: 'checkerPlusCalendar', name: 'Checker Plus for Google Calendar™', publisher: 'Jason Savard' },
-];
-function showWidgetGallery(open) {
-  const popover = document.getElementById('customizePopover');
-  const gallery = document.getElementById('widgetGallery');
-  if (!popover || !gallery) return;
-  if (open) {
-    // Customize keeps its width: the gallery's text wraps inside it.
-    popover.style.width = `${popover.offsetWidth}px`;
-    popover.dataset.view = 'gallery';
-    gallery.hidden = false;
-    renderWidgetGallery();
-    document.getElementById('widgetGalleryBack')?.focus();
-  } else if (popover.dataset.view === 'gallery') {
-    delete popover.dataset.view;
-    popover.style.removeProperty('width');
-    gallery.hidden = true;
-    if (popover.matches(':popover-open')) document.getElementById('addWidgetTile')?.focus();
-  }
-}
-function renderWidgetGallery() {
-  const list = document.getElementById('widgetGalleryList');
-  if (!list || document.getElementById('widgetGallery')?.hidden) return;
-  list.replaceChildren();
-  const installed = new Set((installedPanels ?? []).map((panel) => panel.id));
-  const on = new Set(state.widgets?.panels ?? []);
-  for (const entry of WIDGET_CATALOG) {
-    const item = document.createElement('li');
-    item.className = 'widget-gallery-item';
-    item.dataset.extension = entry.id;
-    const tile = document.createElement('span');
-    tile.className = 'widget-gallery-tile';
-    tile.setAttribute('aria-hidden', 'true');
-    tile.textContent = entry.name.trim().charAt(0).toUpperCase();
-    const text = document.createElement('span');
-    text.className = 'widget-gallery-text';
-    const name = document.createElement('span');
-    name.className = 'widget-gallery-name';
-    name.textContent = entry.name;
-    const about = document.createElement('span');
-    about.className = 'widget-gallery-about';
-    about.textContent = t(`start.gallery.ext.${entry.key}`);
-    const by = document.createElement('span');
-    by.className = 'widget-gallery-by';
-    by.textContent = entry.publisher;
-    text.append(name, about, by);
-    let action;
-    if (installed.has(entry.id) && on.has(entry.id)) {
-      action = document.createElement('span');
-      action.className = 'widget-gallery-action is-added';
-      action.textContent = t('start.gallery.added');
-    } else if (installed.has(entry.id)) {
-      action = document.createElement('button');
-      action.type = 'button';
-      action.className = 'widget-gallery-action';
-      action.textContent = t('start.gallery.addOne');
-      action.setAttribute('aria-label', t('start.gallery.addLabel', { name: entry.name }));
-      action.addEventListener('click', async () => {
-        if (widgetWritePending) return;
-        widgetWritePending = true;
-        try { applyWidgets(await window.bowserPages.start.setPanel(entry.id, true)); }
-        catch { widgetSaveStatus.textContent = t('start.widgets.unconfirmed'); widgetSaveStatus.hidden = false; }
-        finally { widgetWritePending = false; window.blancNewTabEvent('widgets'); renderWidgetGallery(); }
-      });
-    } else {
-      action = document.createElement('a');
-      action.className = 'widget-gallery-action';
-      action.href = `https://chromewebstore.google.com/detail/${entry.id}`;
-      action.target = '_blank';
-      action.rel = 'noopener';
-      action.textContent = t('start.gallery.get');
-      action.setAttribute('aria-label', t('start.gallery.getLabel', { name: entry.name }));
-    }
-    item.append(tile, text, action);
-    list.append(item);
-  }
-}
-document.getElementById('addWidgetTile')?.addEventListener('click', () => showWidgetGallery(true));
-document.getElementById('widgetGalleryBack')?.addEventListener('click', () => showWidgetGallery(false));
-document.addEventListener('visibilitychange', placePanels);
-window.addEventListener('resize', placePanels);
-window.addEventListener('scroll', placePanels, { capture: true, passive: true });
 
 // Shortcuts: 6 or 12 tiles under the clock. Billboard shows only the sites
 // it has (pins and the most visited), so with fewer than the count chosen a

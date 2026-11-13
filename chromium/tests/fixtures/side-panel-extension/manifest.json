@@ -1,8 +1,0 @@
-{
-  "manifest_version": 3,
-  "name": "Blanc Test Notes",
-  "version": "1.0",
-  "description": "A side panel for Blanc's Start Page panel cards test.",
-  "permissions": ["sidePanel"],
-  "side_panel": { "default_path": "panel.html" }
-}
