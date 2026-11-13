@@ -19,6 +19,8 @@ android_library("island_java") {
     "java/src/org/chromium/blanc/island/IslandTuck.java",
     "java/src/org/chromium/blanc/island/IslandVisibility.java",
     "java/src/org/chromium/blanc/island/PagePinch.java",
+    "java/src/org/chromium/blanc/island/TopColor.java",
+    "java/src/org/chromium/blanc/island/TopColorSampler.java",
   ]
   deps = [ "//build/android:build_java" ]
 }
@@ -98,8 +100,12 @@ source_set("blocker_bridge") {
   ]
 }
 
-generate_jni("page_pinch_jni") {
-  sources = [ "java/src/org/chromium/blanc/island/PagePinchBridge.java" ]
+# The Island's two bridges: one target, since each generated srcjar brings its own GEN_JNI.
+generate_jni("island_jni") {
+  sources = [
+    "java/src/org/chromium/blanc/island/PagePinchBridge.java",
+    "java/src/org/chromium/blanc/island/TopColorBridge.java",
+  ]
 }
 
 # A page's pinch gestures for the Island's pinch into the tab grid. //chrome/browser depends on
@@ -107,10 +113,24 @@ generate_jni("page_pinch_jni") {
 source_set("page_pinch_bridge") {
   sources = [ "browser/page_pinch_bridge.cc" ]
   deps = [
-    ":page_pinch_jni",
+    ":island_jni",
     "//base",
     "//content/public/browser",
     "//third_party/blink/public/common",
+  ]
+}
+
+# The page's top row for the status bar's color. //chrome/browser depends on this (patch 0112).
+source_set("top_color_bridge") {
+  sources = [ "browser/top_color_bridge.cc" ]
+  deps = [
+    ":island_jni",
+    "//base",
+    "//components/viz/common",
+    "//content/public/browser",
+    "//skia",
+    "//ui/android",
+    "//ui/gfx/geometry",
   ]
 }
 
@@ -371,10 +391,11 @@ android_library("island_view_java") {
 # insets. chrome_java depends on it (patch 0104), so it uses Chromium's smaller
 # targets, never chrome_java itself.
 android_library("island_ui_java") {
-  srcjar_deps = [ ":page_pinch_jni" ]
+  srcjar_deps = [ ":island_jni" ]
   sources = [
     "java/src/org/chromium/blanc/island/IslandCoordinator.java",
     "java/src/org/chromium/blanc/island/PagePinchBridge.java",
+    "java/src/org/chromium/blanc/island/TopColorBridge.java",
   ]
   deps = [
     ":island_java",
@@ -407,6 +428,8 @@ robolectric_binary("blanc_android_junit_tests") {
     "junit/src/org/chromium/blanc/address/AddressInputTest.java",
     "junit/src/org/chromium/blanc/island/FindCapsuleTest.java",
     "junit/src/org/chromium/blanc/island/IslandMenuPopupTest.java",
+    "junit/src/org/chromium/blanc/island/TopColorSamplerTest.java",
+    "junit/src/org/chromium/blanc/island/TopColorTest.java",
     "junit/src/org/chromium/blanc/palette/RowSwipeTest.java",
     "junit/src/org/chromium/blanc/palette/SheetPlacementTest.java",
     "junit/src/org/chromium/blanc/island/IslandMenuTest.java",
