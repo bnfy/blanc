@@ -120,6 +120,15 @@ std::vector<content::DownloadManager*> DownloadManagers(Profile* profile) {
   return managers;
 }
 
+// A download the person made. Not a transient one, and not an extension
+// being installed (the Web Store's own download of its package, made by
+// Chromium's extension installer): neither the Downloads list nor the
+// Island's Downloads shows those.
+inline bool PersonsDownload(const download::DownloadItem* item) {
+  return !item->IsTransient() &&
+         item->GetDownloadSource() != download::DownloadSource::EXTENSION_INSTALLER;
+}
+
 // Memory-only per-profile activity. Existing downloads establish the initial
 // baseline; later starts/completions are unacknowledged until the user opens
 // Downloads. The host polls the native model with its normal snapshot.
@@ -142,7 +151,7 @@ class DownloadActivity final : public base::SupportsUserData::Data {
     for (auto* manager : DownloadManagers(profile)) {
       download::SimpleDownloadManager::DownloadVector all; manager->GetAllDownloads(&all);
       for (download::DownloadItem* item : all) {
-        if (item->IsTransient()) continue;
+        if (!PersonsDownload(item)) continue;
         const auto& guid = item->GetGuid(); const int state = item->GetState();
         current.emplace(guid, state);
         const auto previous = seen.find(guid);
@@ -181,7 +190,7 @@ base::ListValue Downloads(Profile* profile) {
   for (auto* manager : DownloadManagers(profile)) {
     download::SimpleDownloadManager::DownloadVector all;
     manager->GetAllDownloads(&all);
-    for (download::DownloadItem* item : all) if (!item->IsTransient()) items.push_back(item);
+    for (download::DownloadItem* item : all) if (PersonsDownload(item)) items.push_back(item);
   }
   std::stable_sort(items.begin(), items.end(), [](auto* a, auto* b) {
     if (a->IsDone() != b->IsDone()) return !a->IsDone();

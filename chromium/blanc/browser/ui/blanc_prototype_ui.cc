@@ -6722,6 +6722,34 @@ class Handler : public content::WebUIMessageHandler, public extensions::Extensio
       if (HeldQuietPause().continuation) std::move(HeldQuietPause().continuation).Run();
       Reply(id, true, base::Value(LastRoomPass())); return;
     }
+    // Starts a real download of `url`, as the Web Store's extension installer
+    // does when the second argument is true (its download source), else as an
+    // ordinary page download. For the Downloads-activity test only.
+    if (quiet_method == "testStartDownload" && quiet_args.size() == 2 && quiet_args[0].is_string() && quiet_args[1].is_bool()) {
+      const GURL url(quiet_args[0].GetString());
+      auto* manager = Profile::FromWebUI(web_ui())->GetDownloadManager();
+      if (!url.SchemeIsHTTPOrHTTPS() || !manager) { Reply(id, false, base::Value("No download")); return; }
+      auto params = std::make_unique<download::DownloadUrlParameters>(url,
+          net::DefineNetworkTrafficAnnotation("blanc_test_download", R"(
+            semantics { sender: "Blanc tests" description: "Downloads a local test page in a test build."
+              trigger: "A native test asks for it." data: "None." destination: LOCAL }
+            policy { cookies_allowed: NO setting: "Test builds only."
+              policy_exception_justification: "Test-only." })"));
+      params->set_download_source(quiet_args[1].GetBool() ? download::DownloadSource::EXTENSION_INSTALLER
+                                                          : download::DownloadSource::UNKNOWN);
+      manager->DownloadUrl(std::move(params));
+      Reply(id, true, base::Value(true)); return;
+    }
+    // Every download the profile's manager holds, by source, whatever the
+    // Downloads list and the Island show. For the same test.
+    if (quiet_method == "testDownloadSources" && quiet_args.empty()) {
+      base::ListValue sources;
+      download::SimpleDownloadManager::DownloadVector all;
+      Profile::FromWebUI(web_ui())->GetDownloadManager()->GetAllDownloads(&all);
+      for (download::DownloadItem* item : all)
+        sources.Append(item->GetDownloadSource() == download::DownloadSource::EXTENSION_INSTALLER ? "extension-installer" : "other");
+      Reply(id, true, base::Value(std::move(sources))); return;
+    }
     if (quiet_method == "seedDownloadsActivity" && quiet_args.size() == 1 && quiet_args[0].is_dict()) {
       utility_sheet::DownloadActivity::Get(Profile::FromWebUI(web_ui()))->test_activity = quiet_args[0].GetDict().Clone();
       Reply(id, true, base::Value(true)); return;

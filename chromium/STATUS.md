@@ -879,6 +879,14 @@ remain pending. D3 beta-only no-DRM exception accepted; EME notice/handoff requi
   this week", fork string start.billboard.blocked). native-start-widgets.mjs
   8/8 (a real pointer drag included); newtab-layouts 24/25 (:21 is
   shipping's stale Mahjong check; :134 passes once its audit reads the tiles).
+- **Installing an extension is not a download (2026-11-13, owner's report):**
+  adding an extension from the Web Store lit the Island's Downloads, because
+  Chromium's installer fetches the package through the download system. A
+  download made by the extension installer (its download source) is no
+  longer counted by the Island's Downloads or listed on the Downloads page.
+  Test `chromium/tests/native-downloads-extensions.mjs` (gated
+  `testStartDownload`/`testDownloadSources`): the installer's download is
+  made and ignored, an ordinary one still shows. downloads.feature 2/2.
 - **The Web Store's "Switch to Chrome?" card is hidden (2026-11-13, owner's
   report):** opening a gallery extension's listing showed a new Store card
   (heading, one sentence, No thanks / Yes) over the install button, which
@@ -2729,5 +2737,5 @@ Android's Bar A counts the shared scenarios bound in `chromium/tests/android/acc
 
 Legacy macOS stages come from the approved spec; they await verification on the canonical candidate. No legacy stage counts as Verified.
 
-Candidate identities: macOS: macos-2e648a5b57ea066b; Windows: none; Linux: none; Android: android-arm64-7bd35e94ef746069.
+Candidate identities: macOS: macos-eda1ac1ce983ed86; Windows: none; Linux: none; Android: android-arm64-7bd35e94ef746069.
 <!-- END GENERATED PROGRESS -->
