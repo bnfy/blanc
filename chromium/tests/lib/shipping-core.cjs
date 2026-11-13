@@ -34,19 +34,29 @@ const allowed = new Set([...stepFiles,
 // node:http(s) serve shipping's loopback fixture pages.
 const builtins = new Set(['node:assert', 'node:assert/strict', 'node:crypto', 'node:fs', 'node:os', 'node:path', 'node:url', 'node:http', 'node:https']);
 module.exports.stepFiles = stepFiles;
+// Steps shipping corrected after the reference: the fork runs each as the
+// named commit wrote it, and only that definition (the rest of its file stays
+// at the reference). Each names its pull request.
+const corrections = [
+ // #1491: the Mahjong check brought up to date with #931 (tile art) and
+ // #1489 (Instrument Sans), both already in the reference.
+ {expression: 'the standalone mahjong game is ready', file: 'test/desktop/steps/newtab-layouts.steps.js',
+  commit: '680743cdf785da95e7868f100d6ae4b671109436', pr: 1491},
+];
+module.exports.corrections = corrections;
 // Shipping's tagged Before hooks, run for matching cases (tests/runner.mjs).
 const beforeHooks = [];
 module.exports.beforeHooks = beforeHooks;
-function createLoader(register) {
+function createLoader(register, ref = reference, hooks = true) {
  const repo = path.resolve(__dirname, '../../..');
  const cache = new Map();
  const sources = new Map();
  function load(file) {
   if(!allowed.has(file))throw Error('Unaudited shipping test dependency: '+file);
   if(cache.has(file))return cache.get(file).exports;
-  const text=execFileSync('git',['show',`${reference}:${file}`],{cwd:repo,encoding:'utf8',maxBuffer:4*1024*1024});
+  const text=execFileSync('git',['show',`${ref}:${file}`],{cwd:repo,encoding:'utf8',maxBuffer:4*1024*1024});
   sources.set(file,crypto.createHash('sha256').update(text).digest('hex'));
-  const mod=new Module(path.join(repo,'.shipping-reference',reference,file));
+  const mod=new Module(path.join(repo,'.shipping-reference',ref,file));
   mod.filename=mod.id;cache.set(file,mod);
   mod.require=request=>{
    if(builtins.has(request))return require(request);
@@ -55,7 +65,7 @@ function createLoader(register) {
    if(request==='@cucumber/cucumber')return {...Object.fromEntries(['Given','When','Then'].map(kind=>[kind,(expression,...args)=>{
     const run=args.at(-1);if(typeof run!=='function')throw Error('Invalid shipping step definition');
     register(expression,run,file,sources.get(file));
-   }])),Before(options,run){beforeHooks.push({tags:String(options?.tags??''),run});},After(){}};
+   }])),Before(options,run){if(hooks)beforeHooks.push({tags:String(options?.tags??''),run});},After(){}};
    if(request.startsWith('.'))return load(path.posix.normalize(path.posix.join(path.posix.dirname(file),request.endsWith('.js')?request:request+'.js')));
    throw Error('Unaudited shipping test import: '+request);
   };
@@ -67,10 +77,19 @@ function createLoader(register) {
 // Pure shipping product modules the adapters project fork state through.
 module.exports.loadShippingModule = file => createLoader(() => { throw Error('Modules register no steps'); }).load(file);
 module.exports.loadShippingCore = function(register) {
- const {load,sources}=createLoader(register);
+ const corrected=new Set(corrections.map(c=>c.expression));
+ const {load,sources}=createLoader((expression,...rest)=>{if(!corrected.has(String(expression)))register(expression,...rest);});
  const context=load('test/desktop/support/context.js');
  const initial=JSON.stringify(context);
  for(const file of stepFiles)load(file);
+ for(const c of corrections){
+  let found=0;
+  createLoader((expression,run,file,sha256)=>{
+   if(String(expression)!==c.expression)return;
+   found++;register(expression,run,`${file} at ${c.commit.slice(0,9)} (#${c.pr})`,sha256);
+  },c.commit,false).load(c.file);
+  if(found!==1)throw Error(`Shipping correction #${c.pr} defines "${c.expression}" ${found} times`);
+ }
  return {reference,sources:Object.fromEntries(sources),context,
   resetContext(values){for(const key of Object.keys(context))delete context[key];Object.assign(context,JSON.parse(initial),values);},
  };

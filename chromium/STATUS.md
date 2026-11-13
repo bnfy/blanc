@@ -932,6 +932,14 @@ remain pending. D3 beta-only no-DRM exception accepted; EME notice/handoff requi
   16 px at 1000 × 760; it fits at 1280 × 800 and larger, in every
   wallpaper mode). native-start-widgets 8/8; newtab-layouts 24/25 (:21 as
   before).
+- **Shipping corrections (2026-11-13):** a shipping step that shipping
+  itself corrected after the fork's reference (8a4e57e78) now runs as the
+  correcting commit wrote it, and only that definition
+  (`corrections` in `tests/lib/shipping-core.cjs`, each naming its PR).
+  First: #1491 brought "the standalone mahjong game is ready" up to date
+  with #931's tile art and #1489's Instrument Sans, both already in the
+  reference, so newtab-layouts.feature:21 checked a page shipping no longer
+  draws. newtab-layouts :21, :35, :41 pass.
 - **The Island's band continues the Start Page's wallpaper (2026-11-13,
   owner; fork only):** the band above a Start Page used to take one color
   sampled from the page's top rows, which can't line up with a photo. Now
