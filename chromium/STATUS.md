@@ -879,6 +879,16 @@ remain pending. D3 beta-only no-DRM exception accepted; EME notice/handoff requi
   this week", fork string start.billboard.blocked). native-start-widgets.mjs
   8/8 (a real pointer drag included); newtab-layouts 24/25 (:21 is
   shipping's stale Mahjong check; :134 passes once its audit reads the tiles).
+- **On your other devices, redesigned (2026-11-13, owner: "Redesign this
+  widget using apple-design"; fork only):** the card groups tabs under each
+  device, its name shown once in a small header with a laptop or phone glyph
+  and its tab count. Rows are two lines (the whole title, the site beneath)
+  that highlight as one rounded row and press in slightly; an empty title shows
+  the site. Three tabs a device, then "N more tabs" / "Show fewer". With many
+  devices the list scrolls inside the card, with soft fades at its edges.
+  The shipping step that reads a row's "site · device" gets the device from
+  the row (`data-device`). sync.feature:129 and vertical-tabs.feature:129
+  pass; native-start-widgets 8/8.
 - **Extension side panels as Start Page cards (2026-11-13, owner: "Prototype
   it"; fork only, prototype):** an installed extension with a side panel
   (`chrome.sidePanel`, `side_panel.default_path`) appears in Customize as one
@@ -2580,5 +2590,5 @@ Android's Bar A counts the shared scenarios bound in `chromium/tests/android/acc
 
 Legacy macOS stages come from the approved spec; they await verification on the canonical candidate. No legacy stage counts as Verified.
 
-Candidate identities: macOS: macos-0ba0aa9a0699355a; Windows: none; Linux: none; Android: android-arm64-7bd35e94ef746069.
+Candidate identities: macOS: macos-7d39c9aade225a7b; Windows: none; Linux: none; Android: android-arm64-7bd35e94ef746069.
 <!-- END GENERATED PROGRESS -->

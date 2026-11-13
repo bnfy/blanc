@@ -55,7 +55,7 @@ export const sync = {
   return (await tabPage(w,tab.id)).evaluate(async()=>Promise.all([...document.querySelectorAll('#remoteList .fav')].map(async e=>{
    const tile=e.querySelector('.tile'),bg=tile?.style.backgroundImage??'',url=bg.match(/^url\(["']?(.*?)["']?\)$/)?.[1];
    let decoded=null;if(url?.startsWith('data:image/png;base64,')){const img=new Image();img.src=url;try{await img.decode();decoded=img.naturalWidth+'x'+img.naturalHeight;}catch{}}
-   return {title:e.querySelector('.name')?.textContent,host:e.querySelector('.host')?.textContent,faviconHasIcon:tile?.classList.contains('has-icon')??false,faviconDecoded:decoded};
+   return {title:e.querySelector('.name')?.textContent,host:(e.querySelector('.host')?.textContent??'')+(e.dataset.device?' · '+e.dataset.device:''),faviconHasIcon:tile?.classList.contains('has-icon')??false,faviconDecoded:decoded};
   })));
  },
  windowsContentProtected:w=>w.native('windowsContentProtected',[]),

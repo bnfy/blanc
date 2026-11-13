@@ -629,34 +629,113 @@ function renderPinnedLayouts() {
 // tab, same as favorites above. Renders only when snapshots exist so the
 // ledger stays quiet otherwise. Re-rendered in place when a pull completes
 // after first paint (pages:start:remote-tabs).
+// Grouped by device (fork redesign, 2026-11-13): each device's name once,
+// with a laptop or phone glyph and its tab count; under it its tabs as
+// two-line rows, the whole title on the first line and the site under it.
+// Three tabs a device, the rest one tap away. The row keeps shipping's
+// .fav/.tile/.name/.host parts; its device is data-device.
+const REMOTE_TABS_SHOWN = 3;
+const remoteExpanded = new Set();
+function remoteDeviceKind(device) {
+  const hint = `${device.platform ?? ''} ${device.name ?? ''}`.toLowerCase();
+  return /iphone|ipad|ios|android|phone|pixel|galaxy/.test(hint) ? 'phone' : 'computer';
+}
+function remoteDeviceGlyph(kind) {
+  const ns = 'http://www.w3.org/2000/svg';
+  const svg = document.createElementNS(ns, 'svg');
+  svg.setAttribute('viewBox', '0 0 16 16');
+  svg.setAttribute('aria-hidden', 'true');
+  svg.setAttribute('class', 'remote-device-glyph');
+  const shapes = kind === 'phone'
+    ? [['rect', { x: 4.5, y: 1.75, width: 7, height: 12.5, rx: 1.8 }], ['path', { d: 'M7 11.9h2' }]]
+    : [['rect', { x: 2.5, y: 3, width: 11, height: 7.5, rx: 1.2 }], ['path', { d: 'M1 13h14' }]];
+  for (const [tag, attrs] of shapes) {
+    const node = document.createElementNS(ns, tag);
+    for (const [name, value] of Object.entries(attrs)) node.setAttribute(name, String(value));
+    svg.append(node);
+  }
+  return svg;
+}
 function renderRemote(remoteDevices) {
   const section = document.getElementById('remoteSection');
   const list = document.getElementById('remoteList');
   list.replaceChildren();
-  section.hidden = !remoteDevices?.length;
+  const devices = (remoteDevices ?? []).filter((device) => device?.tabs?.length);
+  section.hidden = !devices.length;
   if (section.hidden) return;
-  for (const device of remoteDevices) {
-    for (const t of device.tabs.slice(0, 4)) {
+  list.classList.add('remote-grouped');
+  for (const device of devices) {
+    const key = String(device.deviceId ?? device.name);
+    const group = document.createElement('div');
+    group.className = 'remote-device';
+    group.dataset.i18nIgnore = ''; // page titles, hosts and device names
+    const head = document.createElement('div');
+    head.className = 'remote-device-head';
+    const name = document.createElement('span');
+    name.className = 'remote-device-name';
+    name.textContent = device.name;
+    const count = document.createElement('span');
+    count.className = 'remote-device-count';
+    count.textContent = t('start.devices.tabs', { count: device.tabs.length });
+    head.append(remoteDeviceGlyph(remoteDeviceKind(device)), name, count);
+    const rows = document.createElement('div');
+    rows.className = 'remote-device-tabs';
+    const open = remoteExpanded.has(key);
+    const shown = open ? device.tabs : device.tabs.slice(0, REMOTE_TABS_SHOWN);
+    for (const tab of shown) {
       const row = document.createElement('a');
-      row.className = 'fav';
-      row.href = t.url;
-      const host = hostOf(t.url);
+      row.className = 'fav remote-tab';
+      row.href = tab.url;
+      row.dataset.device = device.name;
+      const host = hostOf(tab.url);
       const tile = document.createElement('span');
       tile.className = 'tile';
       // The same letter-then-icon treatment favorites get; 'synced' restricts it
       // to the inert PNG payload and skips the bookmark-clearing error path.
-      decorateTile(tile, t, { mode: 'synced' });
-      const name = document.createElement('span');
-      name.className = 'name';
-      name.textContent = t.title || t.url;
+      decorateTile(tile, tab, { mode: 'synced' });
+      const text = document.createElement('span');
+      text.className = 'remote-tab-text';
+      const title = document.createElement('span');
+      title.className = 'name';
+      title.textContent = tab.title && tab.title !== tab.url ? tab.title : host || tab.url;
       const hostEl = document.createElement('span');
       hostEl.className = 'host';
-      hostEl.textContent = `${host} · ${device.name}`;
-      row.dataset.i18nIgnore = ''; // page titles, hosts and device names
-      row.append(tile, name, hostEl);
-      list.appendChild(row);
+      hostEl.textContent = host;
+      text.append(title, hostEl);
+      row.title = tab.title || tab.url;
+      row.append(tile, text);
+      rows.append(row);
     }
+    group.append(head, rows);
+    const hidden = device.tabs.length - REMOTE_TABS_SHOWN;
+    if (hidden > 0) {
+      const more = document.createElement('button');
+      more.type = 'button';
+      more.className = 'remote-device-more';
+      more.setAttribute('aria-expanded', String(open));
+      more.textContent = open ? t('start.devices.fewer') : t('start.devices.more', { count: hidden });
+      more.addEventListener('click', () => {
+        if (open) remoteExpanded.delete(key); else remoteExpanded.add(key);
+        renderRemote(remoteDevices);
+        list.querySelector(`.remote-device:nth-child(${devices.indexOf(device) + 1}) .remote-device-more`)?.focus();
+      });
+      group.append(more);
+    }
+    list.append(group);
   }
+  remoteFade(list);
+}
+// The list scrolls inside its card when the devices outgrow the page; a soft
+// fade at the edge says there is more, and goes away at the end.
+function remoteFade(list) {
+  const more = list.scrollHeight - list.clientHeight - list.scrollTop > 2;
+  list.dataset.fadeEnd = String(more);
+  list.dataset.fadeStart = String(list.scrollTop > 2);
+}
+document.getElementById('remoteList')?.addEventListener('scroll', (event) => remoteFade(event.currentTarget), { passive: true });
+{
+  const list = document.getElementById('remoteList');
+  if (list) new ResizeObserver(() => remoteFade(list)).observe(list);
 }
 
 // Send to device (M7b): pages other devices sent here wait above Other
