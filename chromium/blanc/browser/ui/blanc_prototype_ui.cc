@@ -339,6 +339,11 @@
 namespace blanc_prototype {
 // The Island's own header height, before auto-hide moves the page over it.
 int BaseHeaderHeight(views::View* parent);
+// The Island band continues a Start Page's wallpaper (owner, 2026-11-13):
+// the band's height and the vertical-tab rail's width the page lays its
+// wallpaper out under (both 0 when the band does not continue it), and the
+// window's Island host paints the band from `spec` (cleared when null).
+void IslandBackdrop(content::WebContents* tab, const base::DictValue* spec, int* band, int* rail);
 namespace {
 base::Value SiteLinkRoute(BrowserWindowInterface* browser, content::WebContents* page);
 void ObserveLinkRouteProfiles();
@@ -1338,6 +1343,18 @@ class Owner : public base::SupportsUserData::Data,
   // Match site colors changed: clear or resample the tint.
   void SiteColorsChanged() {
     if (!closing_) ResetTint();
+    // Each Start Page asks again, so its band continuation follows the switch
+    // (newtab-adapter.js; the page's reply clears the host's copy when off).
+    if (closing_ || !browser) return;
+    auto* model = browser->GetTabStripModel();
+    for (int i = 0; i < model->count(); ++i) {
+      auto* frame = model->GetWebContentsAt(i)->GetPrimaryMainFrame();
+      if (!frame || !frame->IsRenderFrameLive() || frame->IsErrorDocument() ||
+          !IsRegularStartPage(frame->GetLastCommittedURL()) ||
+          !content::ChildProcessSecurityPolicy::GetInstance()->HasWebUIBindings(
+              frame->GetProcess()->GetID())) continue;
+      frame->ExecuteJavaScript(u"window.blancIslandBackdropRefresh?.()", base::NullCallback());
+    }
   }
 
  private:
@@ -4571,6 +4588,49 @@ class NewTabHandler : public content::WebUIMessageHandler,
         }
       }
       Reply(id, true, base::Value(prefs->GetString(kLayout))); return;
+    }
+    // The Island's band continues this page's wallpaper (owner, 2026-11-13).
+    // The page sends the computed background of each layer it paints; only
+    // known fields of bounded size reach the Island host. The reply is the
+    // band (and vertical-tab rail) the page lays its wallpaper out under.
+    if (method == "islandBackdrop" && args.size() == 1 && args[0].is_dict()) {
+      const auto& in = args[0].GetDict();
+      const auto number = [](const base::Value* value, double low, double high) -> std::optional<double> {
+        if (!value || !(value->is_int() || value->is_double())) return std::nullopt;
+        const double got = value->GetDouble();
+        if (!std::isfinite(got) || got < low || got > high) return std::nullopt;
+        return got;
+      };
+      const auto zoom = number(in.Find("zoom"), 0.25, 5);
+      const auto width = number(in.Find("width"), 1, 20000);
+      const auto height = number(in.Find("height"), 1, 20000);
+      const auto* layers = in.FindList("layers");
+      std::optional<base::DictValue> spec;
+      if (zoom && width && height && layers && !layers->empty() && layers->size() <= 4) {
+        base::ListValue copies;
+        for (const auto& item : *layers) {
+          const auto* layer = item.GetIfDict();
+          const auto opacity = layer ? number(layer->Find("opacity"), 0, 1) : std::nullopt;
+          if (!opacity) break;
+          base::DictValue copy;
+          for (const char* field : {"color", "image", "size", "position", "repeat"}) {
+            const auto* text = layer->FindString(field);
+            if (!text || text->size() > 4096) break;
+            copy.Set(field, *text);
+          }
+          if (copy.size() != 5) break;
+          copy.Set("opacity", *opacity);
+          copy.Set("fade", layer->FindBool("fade").value_or(false));
+          copies.Append(std::move(copy));
+        }
+        if (copies.size() == layers->size()) {
+          spec = base::DictValue().Set("zoom", *zoom).Set("width", *width)
+              .Set("height", *height).Set("layers", std::move(copies));
+        }
+      }
+      int band = 0, rail = 0;
+      IslandBackdrop(contents, spec ? &*spec : nullptr, &band, &rail);
+      Reply(id, true, base::Value(base::DictValue().Set("band", band).Set("rail", rail))); return;
     }
     // The Start Page's optional widgets (V24, fork only). Billboard is the one
     // layout; a page that never chose widgets takes them from the profile's
@@ -13226,6 +13286,48 @@ int RailWidth(views::View* parent) {
   auto* view = static_cast<views::WebView*>(parent->GetViewByID(kIslandViewId));
   auto* owner = GetOwner(view->GetWebContents());
   return owner && owner->vertical ? std::min(owner->rail_width, std::max(0, parent->width() - 392)) : 0;
+}
+
+void IslandBackdrop(content::WebContents* tab, const base::DictValue* spec, int* band, int* rail) {
+  *band = *rail = 0;
+  if (!tab || tab->GetBrowserContext()->IsOffTheRecord()) return;
+  auto* browser = GlobalBrowserCollection::GetInstance()->FindBrowserWithTab(tab);
+  auto* parent = browser ? BrowserView::GetBrowserViewForBrowser(browser) : nullptr;
+  if (!parent || !HasIsland(parent)) return;
+  auto* view = static_cast<views::WebView*>(parent->GetViewByID(kIslandViewId));
+  auto* owner = GetOwner(view->GetWebContents());
+  if (!owner) return;
+  auto* model = browser->GetTabStripModel();
+  const int index = model->GetIndexOfWebContents(tab);
+  // Only where the page starts below the Island's band: not with auto-hide
+  // (the page is already under the Island), not in a split (each pane has
+  // its own header), and not with Match site colors off.
+  const bool continues = index != TabStripModel::kNoTab && !model->GetSplitForTab(index) &&
+      browser->GetProfile()->GetOriginalProfile()->GetPrefs()->GetBoolean(kIslandSiteColorsPref) &&
+      AutoHidePageTop(owner, owner->strip_height) == owner->strip_height;
+  if (continues) {
+    *band = owner->strip_height;
+    *rail = RailWidth(parent);
+  }
+  auto* host = view->GetWebContents();
+  auto* frame = host ? host->GetPrimaryMainFrame() : nullptr;
+  // As FindEvent: never inject into an error document or a frame without
+  // WebUI bindings that happens to keep the host's address.
+  if (!frame || !frame->IsRenderFrameLive() || frame->IsErrorDocument() ||
+      frame->GetLastCommittedURL() != GURL("chrome://blanc-prototype/host.html") ||
+      !content::ChildProcessSecurityPolicy::GetInstance()->HasWebUIBindings(
+          frame->GetProcess()->GetID())) return;
+  // The host lays the band out with the same numbers the page was given.
+  std::string json = "null";
+  if (continues && spec) {
+    auto forwarded = spec->Clone();
+    forwarded.Set("band", *band);
+    forwarded.Set("rail", *rail);
+    json = base::WriteJson(forwarded).value_or("null");
+  }
+  frame->ExecuteJavaScript(
+      base::UTF8ToUTF16(base::StringPrintf("window.BlancPrototypeHost?.pageBackdrop(%d, %s)",
+          sessions::SessionTabHelper::IdForTab(tab).id(), json.c_str())), base::NullCallback());
 }
 
 bool IsCaption(views::View* parent, int x, int y) {

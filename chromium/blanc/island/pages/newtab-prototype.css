@@ -607,3 +607,27 @@ body.widget-resizing, body.widget-resizing * { cursor: ns-resize !important; use
    choices, and a quiet note when Billboard has fewer sites than chosen. */
 .customize-hint { margin: 8px 2px 0; font: 400 12px/1.4 var(--font-text); color: var(--text-dim); text-wrap: pretty; }
 
+
+/* The Island's band continues the wallpaper (owner, 2026-11-13). While native
+   reports a band (newtab-adapter.js sets data-island-band and the two sizes),
+   the wallpaper is laid out from the window's top-left corner, under the
+   band and the vertical-tab rail, and the Island host paints the band's slice
+   of the same layers. The body's own background (Sunrise's image, a Color
+   fill) is repeated on a fixed ::before laid out the same way; it paints over
+   the body's and under the wallpaper layers. */
+:root[data-island-band] .start-wallpaper-layer {
+  top: calc(-1 * var(--island-band-h, 0px));
+  left: calc(-1 * var(--island-rail-w, 0px));
+}
+:root[data-island-band] body.ledger-body::before {
+  content: "";
+  position: fixed;
+  top: calc(-1 * var(--island-band-h, 0px));
+  left: calc(-1 * var(--island-rail-w, 0px));
+  right: 0;
+  bottom: 0;
+  z-index: -1;
+  pointer-events: none;
+  background: inherit;
+  background-attachment: scroll;
+}

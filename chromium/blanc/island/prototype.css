@@ -67,3 +67,7 @@ html, body { background: transparent; }
 
 :root[data-extensions-page] #pillFavicon.has-icon { filter: var(--theme-icon-filter, brightness(0)); }
 :root[data-store-toolbar][data-extensions-page] #pillFavicon.has-icon { filter: var(--theme-toolbar-icon-filter); }
+
+/* While the band shows the Start Page's wallpaper (host.js paintBackdrop),
+   the strip lets the host's band through instead of painting its tint. */
+:root[data-band-backdrop] #strip { background: transparent !important; transition: none; }

@@ -932,6 +932,29 @@ remain pending. D3 beta-only no-DRM exception accepted; EME notice/handoff requi
   16 px at 1000 × 760; it fits at 1280 × 800 and larger, in every
   wallpaper mode). native-start-widgets 8/8; newtab-layouts 24/25 (:21 as
   before).
+- **The Island's band continues the Start Page's wallpaper (2026-11-13,
+  owner; fork only):** the band above a Start Page used to take one color
+  sampled from the page's top rows, which can't line up with a photo. Now
+  the page lays its wallpaper out from the window's corner, under the band
+  and the vertical-tab rail (the layers and a fixed copy of the body's own
+  background start `--island-band-h` above the page), and the Island host
+  paints the band's slice of the same layers, so the image runs behind the
+  Island (the owner chose this over mirroring the top edge). The page sends
+  each layer's computed background through `islandBackdrop`; native copies
+  only known fields of bounded size, adds the band and rail it gave the
+  page, and forwards them to that window's host, which draws only Blanc's
+  page images and your photo (read from the Start Page's own storage by its
+  key) and cross-fades with the page. Sunrise, Color fills and your photo
+  continue; website tabs keep the sampled color, private Start Pages and
+  installed browser themes keep theirs, and it stands aside with auto-hide,
+  in a split, in full screen and with Match site colors off (switching it
+  asks each open Start Page again). Test `chromium/tests/native-island-backdrop.mjs`:
+  3/3 (across the seam the band's last row and the page's first differ by
+  0.6 of 255 on Sunrise and 0.7 on a photo whose bands cross the top edge;
+  the photo set through the real file chooser). native-start-widgets 8/8;
+  newtab-layouts 24/25 (:21 is shipping's Mahjong check, which since the
+  merge from main expects Mahjong's new fonts; the fork's Mahjong page
+  copy has not taken them yet).
 - **Favorites resizes too (2026-11-13, owner):** like the devices card, by
   its bottom edge onto the fixed sizes. At its own size it lists eight
   favorites; given a size (or while being resized) it lists all of them and
@@ -2735,5 +2758,5 @@ Android's Bar A counts the shared scenarios bound in `chromium/tests/android/acc
 
 Legacy macOS stages come from the approved spec; they await verification on the canonical candidate. No legacy stage counts as Verified.
 
-Candidate identities: macOS: macos-6c39acbb81941068; Windows: none; Linux: none; Android: android-arm64-7bd35e94ef746069.
+Candidate identities: macOS: macos-06456f4c40bef2da; Windows: none; Linux: none; Android: android-arm64-7bd35e94ef746069.
 <!-- END GENERATED PROGRESS -->

@@ -723,6 +723,87 @@
       request('openSheet', ['patron']).catch((error) => console.warn(error.message));
     });
   });
+
+  // The Island's band continues this page's wallpaper (owner, 2026-11-13).
+  // Native answers with the band above this page and the vertical-tab rail
+  // beside it (both 0 where the band does not continue it: Match site colors
+  // off, auto-hide, a split, full screen); the page lays its wallpaper out
+  // from the window's corner (newtab-prototype.css), and the Island host
+  // paints the band's slice of the same layers from what this sends. Your
+  // photo goes by its storage key; the host reads it from the same storage.
+  if (!isPrivatePage) {
+    const root = document.documentElement;
+    let band = -1, rail = -1, sent = '', timer = 0, busy = false, again = false, forceNext = false;
+    const zoom = () => parseFloat(getComputedStyle(root).getPropertyValue('--blanc-page-zoom')) || 1;
+    const painter = (style, opacity, fade) => {
+      let image = style.backgroundImage;
+      if (imageUrl && imageKey) image = image.split(imageUrl).join(`blanc-wallpaper:${imageKey}`);
+      return { color: style.backgroundColor, image, size: style.backgroundSize,
+        position: style.backgroundPosition, repeat: style.backgroundRepeat, opacity, fade };
+    };
+    // The body's background (Sunrise's own image, a Color fill), then the
+    // wallpaper layers over it, in the order they paint.
+    const spec = () => {
+      const layers = [painter(getComputedStyle(document.body), 1, false)];
+      for (const layer of document.querySelectorAll('.start-wallpaper-layer')) {
+        const style = getComputedStyle(layer);
+        if (style.display === 'none') continue;
+        layers.push(painter(style, layer.classList.contains('is-visible') ? 1 : 0, layer.classList.contains('is-fading')));
+      }
+      return { zoom: zoom(), width: innerWidth, height: innerHeight, layers: layers.slice(0, 4) };
+    };
+    async function publish(force) {
+      if (busy) { again = true; forceNext ||= force; return; }
+      busy = true;
+      try {
+        const next = spec();
+        const text = JSON.stringify(next);
+        if (!force && text === sent) return;
+        const reply = await request('islandBackdrop', [next]);
+        sent = text;
+        const nextBand = Math.max(0, Number(reply?.band) || 0);
+        const nextRail = Math.max(0, Number(reply?.rail) || 0);
+        if (nextBand !== band || nextRail !== rail) {
+          band = nextBand;
+          rail = nextRail;
+          root.style.setProperty('--island-band-h', `${band / zoom()}px`);
+          root.style.setProperty('--island-rail-w', `${rail / zoom()}px`);
+          root.toggleAttribute('data-island-band', band > 0);
+        }
+      } catch {
+        // Native unavailable: the band keeps its sampled color.
+      } finally {
+        busy = false;
+        if (again) { again = false; const force = forceNext; forceNext = false; schedule(force); }
+      }
+    }
+    function schedule(force = false) {
+      forceNext ||= force;
+      clearTimeout(timer);
+      timer = setTimeout(() => { const now = forceNext; forceNext = false; publish(now); }, 40);
+    }
+    // Native calls this when Match site colors changes.
+    window.blancIslandBackdropRefresh = () => schedule(true);
+    const start = () => {
+      const observer = new MutationObserver(() => schedule());
+      const watchLayers = () => {
+        for (const layer of document.querySelectorAll('.start-wallpaper-layer'))
+          observer.observe(layer, { attributes: true, attributeFilter: ['class', 'style', 'data-wallpaper-phase'] });
+      };
+      observer.observe(document.body, { attributes: true });
+      observer.observe(root, { attributes: true, attributeFilter: ['data-store-theme', 'data-theme', 'data-store-wallpaper'] });
+      new MutationObserver(() => { watchLayers(); schedule(); }).observe(document.body, { childList: true });
+      watchLayers();
+      window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => schedule());
+      // A tab switch, a new window size or Island size, or another page's
+      // change re-asks: native knows the band only for this moment.
+      window.addEventListener('resize', () => schedule(true));
+      document.addEventListener('visibilitychange', () => { if (!document.hidden) schedule(true); });
+      schedule(true);
+    };
+    if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', start);
+    else start();
+  }
 })();
 
 'use strict';

@@ -227,6 +227,101 @@
     // The settings sheet's card follows Surface style (S1.7).
     document.getElementById('settingsSheet')?.setAttribute('data-surface',
       snapshot?.surfaceStyle === 'neutral' ? 'neutral' : 'sunrise');
+    paintBackdrop();
+  }
+
+  // The Island's band continues the Start Page's wallpaper (owner,
+  // 2026-11-13). The page sends each layer's computed background (newtab-
+  // adapter.js); native adds the band and vertical rail it gave the page.
+  // The same layers are laid out here from the window's corner over the
+  // page's size plus that band and rail, so the band shows the slice above
+  // the page. Only Blanc's own page images and your photo are drawn; the
+  // photo is read from the Start Page's storage (this origin's) by its key.
+  const backdrops = new Map();
+  const bandBackdrop = document.createElement('div');
+  bandBackdrop.id = 'bandBackdrop';
+  bandBackdrop.hidden = true;
+  document.getElementById('headerBackdrop')?.append(bandBackdrop);
+  const bandLayers = [0, 1, 2, 3].map(() => bandBackdrop.appendChild(document.createElement('div')));
+  const PHOTO = /^blanc-wallpaper:([0-9a-f-]{36})$/;
+  const PAGE_IMAGE = /^chrome:\/\/blanc-prototype\/pages\/[\w.-]+$/;
+  let photo = { key: null, url: null, loading: null };
+  function loadPhoto(key) {
+    if (photo.loading === key) return;
+    photo.loading = key;
+    new Promise((resolve, reject) => {
+      const open = indexedDB.open('blanc.prototype.wallpaper.v1', 1);
+      open.onupgradeneeded = () => open.result.createObjectStore('images');
+      open.onerror = () => reject(open.error);
+      open.onsuccess = () => {
+        const db = open.result;
+        try {
+          const get = db.transaction('images', 'readonly').objectStore('images').get(key);
+          get.onsuccess = () => { db.close(); resolve(get.result); };
+          get.onerror = () => { db.close(); reject(get.error); };
+        } catch (error) { db.close(); reject(error); }
+      };
+    }).then((blob) => {
+      if (photo.loading !== key) return;
+      const previous = photo.url;
+      // A missing photo is remembered as such, so painting doesn't re-read it.
+      photo = { key, url: blob instanceof Blob && blob.type === 'image/jpeg' ? URL.createObjectURL(blob) : null, loading: null };
+      if (previous) setTimeout(() => URL.revokeObjectURL(previous), 5000);
+      paintBackdrop();
+    }, () => { if (photo.loading === key) photo = { key, url: null, loading: null }; });
+  }
+  // A layer's background-image as this document may draw it, or 'none'.
+  function backdropImage(image) {
+    if (typeof image !== 'string' || image.length > 4096 || image.includes('\\')) return 'none';
+    let key = null;
+    for (const [, raw] of image.matchAll(/url\(([^)]*)\)/g)) {
+      const href = /^"([^"]*)"$/.exec(raw)?.[1];
+      if (href == null) return 'none';
+      const match = PHOTO.exec(href);
+      if (match) key = match[1];
+      else if (!PAGE_IMAGE.test(href)) return 'none';
+    }
+    if (!key) return image;
+    if (photo.key !== key) { loadPhoto(key); return 'none'; }
+    return photo.url ? image.replaceAll(`blanc-wallpaper:${key}`, photo.url) : 'none';
+  }
+  function pageBackdrop(nativeTabId, spec) {
+    const id = String(nativeTabId);
+    if (spec && typeof spec === 'object' && Array.isArray(spec.layers)) backdrops.set(id, spec);
+    else backdrops.delete(id);
+    if (snapshot?.activeTabId === id) paintBackdrop();
+  }
+  function paintBackdrop() {
+    const tabs = snapshot?.tabs ?? [];
+    for (const id of backdrops.keys()) if (!tabs.some(tab => tab.id === id)) backdrops.delete(id);
+    const active = tabs.find(tab => tab.id === snapshot?.activeTabId);
+    // An installed browser theme keeps its own frame color over the band
+    // (no theme reads as an empty record, as BlancInstalledTheme.apply knows).
+    const spec = active && !active.private && /^blanc:\/\/newtab\//.test(active.url ?? '') &&
+      !snapshot?.installedTheme?.id ? backdrops.get(active.id) : null;
+    const shown = !!spec;
+    document.documentElement.toggleAttribute('data-band-backdrop', shown);
+    strip.contentDocument?.documentElement?.toggleAttribute('data-band-backdrop', shown);
+    bandBackdrop.hidden = !shown;
+    if (!shown) return;
+    const zoom = Number(spec.zoom) || 1;
+    const band = Number(spec.band) || 0;
+    const rail = Number(spec.rail) || 0;
+    bandBackdrop.style.zoom = String(zoom);
+    bandBackdrop.style.width = `${(Number(spec.width) || 0) + rail / zoom}px`;
+    bandBackdrop.style.height = `${(Number(spec.height) || 0) + band / zoom}px`;
+    bandLayers.forEach((element, index) => {
+      const layer = spec.layers[index];
+      element.hidden = !layer;
+      if (!layer) return;
+      element.classList.toggle('fade', layer.fade === true);
+      element.style.backgroundColor = typeof layer.color === 'string' ? layer.color : '';
+      element.style.backgroundImage = backdropImage(layer.image);
+      element.style.backgroundSize = typeof layer.size === 'string' ? layer.size : '';
+      element.style.backgroundPosition = typeof layer.position === 'string' ? layer.position : '';
+      element.style.backgroundRepeat = typeof layer.repeat === 'string' ? layer.repeat : '';
+      element.style.opacity = String(Math.min(1, Math.max(0, Number(layer.opacity) || 0)));
+    });
   }
 
   let splitHeaderKey = '';
@@ -2696,6 +2791,7 @@
     },
     refresh,
     pageTint,
+    pageBackdrop,
     findResult: (id, activeMatchOrdinal, matches, finalUpdate) => {
       if (overlayMode === 'find' && String(id) === findTabId)
         emit('onFindResult', { activeMatchOrdinal, matches, finalUpdate });
