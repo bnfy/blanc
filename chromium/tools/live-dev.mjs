@@ -9,11 +9,13 @@
 // behaviour: no test hooks, proxy or mock Keychain. It never touches any
 // other Blanc process or profile, including earlier dev instances.
 import fs from 'node:fs';
-import os from 'node:os';
 import path from 'node:path';
+import {fileURLToPath} from 'node:url';
 import {execFileSync} from 'node:child_process';
 
-export const LIVE = path.join(os.homedir(), 'Projects/BlancChromium158/live');
+// live/ sits beside the repository checkout (~/Projects/Blanc/live next to
+// ~/Projects/Blanc/repo), wherever that folder is.
+export const LIVE = fileURLToPath(new URL('../../../live', import.meta.url));
 const record = path.join(LIVE, 'live.json');
 
 // Live instances this tool started: their executable is inside LIVE.
