@@ -340,7 +340,7 @@ body.widget-chart-on #bbBlocked { display: none; }
   --accent: var(--start-tray-accent);
   color: var(--start-tray-ink);
   background: var(--start-tray);
-  border: 1px solid var(--start-tray-edge);
+  border: 0;
   border-radius: 18px;
   -webkit-backdrop-filter: blur(28px) saturate(1.5);
   backdrop-filter: blur(28px) saturate(1.5);
