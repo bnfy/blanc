@@ -385,8 +385,11 @@ original reports:
   eight layouts. Device-local state remembers the last layout, mode, and deal,
   can offer to continue an unfinished board from another tab, and keeps records
   and daily streaks. The game also includes scoring, timed combos, automatic
-  clears, hints, shuffle, undo, and sound controls. Do not describe it as
-  online multiplayer, cloud-synced, or
+  clears, hints, shuffle, undo, and sound controls. Since v1.49.0 it has a
+  Sunrise design in light and dark mode and three tile sets (Porcelain, Carved
+  and Inlay), moving to the next set after three boards cleared in a row, plus
+  a short match trail and board-cleared celebration (a brief glow with reduced
+  motion on). Do not describe it as online multiplayer, cloud-synced, or
   AI-generated.
 - **Call audio buffering:** Automatic, Stable, and Resilient are receive-buffer
   choices for WebRTC calls. Stable targets about 400 ms and Resilient about one
@@ -614,6 +617,15 @@ original reports:
   certificate only. Neither was hand-checked against a packaged build before
   release; don't claim a specific console such as Proxmox works until someone
   has tried it.
+- **1.49.0:** The refreshed Mahjong (see Mahjong) is its main change. The
+  closed Island no longer shows the current Space's mark; Spaces open from the
+  ⌘L panel's footer button, which shows the Space's symbol on its color, and
+  vertical tabs still show the mark at the top of the side list. It also
+  fixes windows a page opens on its own (such as Proxmox's separate console)
+  after **Continue** on a certificate warning for a local or private-network
+  address. Neither Mahjong nor the pop-out fix was hand-checked in a packaged
+  build before release; the What's New captures came from a development build.
+  Don't claim a specific console works until someone has tried it.
 - **Auto-hide the Island:** Since v1.39.0 an opt-in, device-local setting
   (Settings → General, the View menu, ⌘⌥B or Ctrl+Alt+B) hides the Island's
   strip so the page fills the window. Pointing at or just above the top edge,
