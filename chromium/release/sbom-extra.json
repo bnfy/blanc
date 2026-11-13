@@ -1,13 +1,14 @@
 {
   "schema": 1,
-  "note": "Reviewed inputs to sbom.mjs beyond Chromium's own licence metadata. blancAssets: third-party files the Island serves from the beta's resources; each file's SHA-256 must equal chromium/blanc/island-assets.json, and its name, version, licence and text come from compliance/policy.json, and unless it is marked derived (built from the reviewed source) it must be byte-identical to that asset's file. chromiumAdditions: components inside folders Chromium's licenses.py skips for missing metadata (upstream Chrome's credits skip them too); paths are relative to Chromium src. reviewedSkips: every folder licenses.py skips must be listed here or under chromiumAdditions, or the audit fails. notBundled: third-party payloads deliberately absent from the packaged beta, so they are not in the SBOM.",
+  "note": "Reviewed inputs to sbom.mjs beyond Chromium's own licence metadata. blancAssets: third-party files the Island serves from the beta's resources; each file's SHA-256 must equal chromium/blanc/island-assets.json, and its name, version, licence and text come from compliance/policy.json, and unless it is marked derived (built from the reviewed source) it must be byte-identical to that asset's file. chromiumAdditions: components inside folders Chromium's licenses.py skips for missing metadata (upstream Chrome's credits skip them too); paths are relative to Chromium src. reviewedSkips: every folder licenses.py skips must be listed here or under chromiumAdditions, or the audit fails. notBundled: third-party payloads deliberately absent from the packaged beta, so they are not in the SBOM. The embedded blocker's components come from chromium/blanc/third_party/blocker/bundle.json.",
   "blancAssets": [
     {"asset": "inter-font", "files": ["pages/inter-latin.woff2"]},
     {"asset": "jetbrains-mono-font", "files": ["pages/jetbrains-mono-latin.woff2"]},
     {"asset": "caveat-font", "files": ["pages/caveat-latin.woff2"]},
     {"asset": "instrument-sans-font", "files": ["pages/instrument-sans-latin-wdth-normal.woff2"]},
     {"asset": "roboto-flex-clock-font", "files": ["pages/roboto-flex-clock.woff2"]},
-    {"asset": "kagi-bangs-data", "derived": true, "files": ["pages/bangs-catalog.js"]},
+    {"asset": "kagi-bangs-data", "derived": true, "files": ["pages/bangs-catalog.js"],
+     "attribution": "Kagi Search and contributors; compiled into the Island's pages/bangs-catalog.js by bangs/build.mjs"},
     {"name": "Lucide icons (Island)", "license": "ISC", "licenseFile": "src/renderer/ublock-popup-icons/lucide-LICENSE.txt",
      "homepage": "https://github.com/lucide-icons/lucide", "noticeMatch": "Lucide",
      "attribution": "Lucide Contributors; panel-left.svg is adapted from Lucide's Panel Left icon",
@@ -24,8 +25,5 @@
     "third_party/perfetto/protos/third_party/android": "Perfetto's own protocol definitions, covered by the Perfetto component and its licence.",
     "third_party/perfetto/protos/third_party/chromium": "Perfetto's own protocol definitions, covered by the Perfetto component and its licence."
   },
-  "notBundled": [
-    {"name": "Ghostery adblocker engine, EasyList, EasyPrivacy and Ghostery resources",
-     "reason": "Desktop builds load the blocker bundle only from --blanc-blocker-assets (chromium/blanc/services/blocker/blocker_available.h); the packaged beta embeds no blocker payload yet. Add them here as blancAssets when it does."}
-  ]
+  "notBundled": []
 }

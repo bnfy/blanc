@@ -95,9 +95,25 @@ if (blanc_beta_channel) {
     sources = [ "third_party/sparkle/LICENSE" ]
     outputs = [ "{{bundle_resources_dir}}/notices/Sparkle-LICENSE" ]
   }
+  # The blocker's engine (Ghostery over the pinned filter lists) inside the
+  # app, so a beta opened from Finder blocks without --blanc-blocker-assets.
+  action("verify_blocker_bundle") {
+    script = "services/blocker/verify_bundle.py"
+    inputs = [ "$blanc_blocker_bundle/engine.js", "services/blocker/bundle_hash.h" ]
+    outputs = [ "$target_gen_dir/blocker-bundle-verified.stamp" ]
+    args = [ "--bundle", rebase_path(inputs[0], root_build_dir),
+             "--hash-header", rebase_path(inputs[1], root_build_dir),
+             "--stamp", rebase_path(outputs[0], root_build_dir) ]
+  }
+  bundle_data("beta_blocker_engine") {
+    sources = [ "$blanc_blocker_bundle/engine.js" ]
+    outputs = [ "{{bundle_resources_dir}}/blanc_blocker/{{source_file_part}}" ]
+    public_deps = [ ":verify_blocker_bundle" ]
+  }
   group("sparkle_bundle") {
     public_deps = [ ":sparkle_framework_bundle", ":sparkle_license_bundle",
                     ":beta_notices", ":beta_chromium_license",
-                    ":beta_chromium_credits", ":beta_sparkle_notice" ]
+                    ":beta_chromium_credits", ":beta_sparkle_notice",
+                    ":beta_blocker_engine" ]
   }
 }

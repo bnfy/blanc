@@ -19,7 +19,8 @@ import path from 'node:path';
 import {spawnSync} from 'node:child_process';
 import {pathToFileURL} from 'node:url';
 import {check, equal, reason, sha256, validateRelease} from './policy.mjs';
-import {NOTICES} from './verify.mjs';
+import {NOTICES, BLOCKER_ENGINE} from './verify.mjs';
+import {blockerBundle} from './fork-notice.mjs';
 
 export const ROOT = path.resolve(import.meta.dirname, '../..');
 const EXTRA = path.join(import.meta.dirname, 'sbom-extra.json');
@@ -98,15 +99,30 @@ export function gather(r, scan, src, {root = ROOT, extra = JSON.parse(fs.readFil
       return {path: `island/${file}`, sha256: digest};
     });
     return {ref: `blanc-asset:${entry.asset || entry.name}`, name: base.name, version: base.version || null, license: base.license,
-      url: base.homepage, attribution: base.attribution || entry.attribution || null, noticeMatch: entry.noticeMatch || base.name,
+      url: base.homepage, attribution: entry.attribution || base.attribution || null, noticeMatch: entry.noticeMatch || base.name,
       licenseText: keep(text(inside(root, base.licenseFile))), files};
   });
+  // The embedded blocker: its bundle, the npm modules inside it and the
+  // lists and resources it was compiled from, as its committed provenance says.
+  const bundle = blockerBundle(root), blockerDir = path.join(root, 'chromium/blanc/third_party/blocker');
+  const blocker = [
+    ...bundle.packages.map(p => ({ref: `blocker:npm:${p.name}`, type: 'library', name: p.name, version: p.version, license: p.license,
+      purl: `pkg:npm/${p.name.replace('@', '%40')}@${p.version}`, url: p.source, licenseTexts: p.licenseFiles.map(f => keep(text(path.join(blockerDir, f.file))))})),
+    {ref: 'blocker:procedural-renderer', type: 'library', name: bundle.proceduralRenderer.name, version: bundle.proceduralRenderer.version,
+      license: bundle.proceduralRenderer.license, url: 'https://github.com/ghostery/adblocker', hash: bundle.proceduralRenderer.bundleSha256,
+      licenseTexts: bundle.proceduralRenderer.licenseFiles.map(f => keep(text(path.join(blockerDir, f.file))))},
+    ...[{id: bundle.ghosteryResources.id, version: bundle.ghosteryResources.packageVersion, hash: bundle.ghosteryResources.sha256},
+        ...bundle.filters.lists.map(l => ({id: l.id, version: bundle.filters.date, hash: l.sha256}))].map(d => {
+      const a = policy.assets.find(x => x.id === d.id); check(a, `unknown compliance asset: ${d.id}`);
+      return {ref: `blocker:data:${d.id}`, type: 'data', name: a.name, version: d.version, license: a.license, url: a.homepage, hash: d.hash, licenseTexts: []};
+    }),
+  ];
   const sparkleLicense = keep(text(path.join(root, 'chromium/blanc/third_party/sparkle/LICENSE')));
   const chromiumLicense = keep(text(path.join(src, 'LICENSE')));
   const blancLicense = keep(text(path.join(root, 'chromium/blanc/notices/LICENSE')));
   const reviewed = new Set([...Object.keys(extra.reviewedSkips), ...extra.chromiumAdditions.map(a => a.dir)]);
   const unreviewed = scan.skippedDirs.map(s => s.dir).filter(dir => !reviewed.has(dir));
-  return {r, scan, extra, chromium, blanc, texts, sparkleLicense, chromiumLicense, blancLicense, unreviewed};
+  return {r, scan, extra, chromium, blanc, bundle, blocker, texts, sparkleLicense, chromiumLicense, blancLicense, unreviewed};
 }
 
 function uuidFrom(hex) {
@@ -135,6 +151,12 @@ export function makeSbom(g) {
     ...g.blanc.map(b => ({type: 'file', 'bom-ref': b.ref, name: b.name, ...(b.version ? {version: b.version} : {}), licenses: licenses(b.license),
       ...(b.attribution ? {copyright: b.attribution} : {}), externalReferences: site(b.url),
       properties: [...b.files.map(f => prop(`blanc:file:${f.path}:sha256`, f.sha256)), prop('blanc:licenseText:sha256', b.licenseText)]})),
+    {type: 'file', 'bom-ref': 'blocker-engine', name: 'Blanc blocker engine bundle', version: g.bundle.engineVersion,
+      licenses: licenses('MPL-2.0 AND CC-BY-SA-3.0-or-later'), hashes: [{alg: 'SHA-256', content: g.bundle.bundleSha256}],
+      properties: [prop('blanc:path', BLOCKER_ENGINE), prop('blanc:referenceAppSha256', g.bundle.referenceAppSha256)]},
+    ...g.blocker.map(b => ({type: b.type, 'bom-ref': b.ref, name: b.name, version: b.version, licenses: licenses(b.license),
+      ...(b.purl ? {purl: b.purl} : {}), ...(b.hash ? {hashes: [{alg: 'SHA-256', content: b.hash}]} : {}), externalReferences: site(b.url),
+      properties: b.licenseTexts.map(t => prop('blanc:licenseText:sha256', t))})),
     ...g.chromium.map(c => ({type: 'library', 'bom-ref': c.ref, name: c.name, ...(c.version ? {version: c.version} : {}),
       licenses: licenses(c.license), ...(/^cpe:/.test(c.cpe || '') ? {cpe: c.cpe} : {}), externalReferences: site(c.url),
       properties: [prop('blanc:chromiumDir', c.dir), ...(c.revision ? [prop('blanc:revision', c.revision)] : []),
@@ -154,7 +176,8 @@ export function makeSbom(g) {
     },
     components,
     dependencies: [
-      {ref: BLANC_REF, dependsOn: [chromiumRef, sparkleRef, ...g.blanc.map(b => b.ref)]},
+      {ref: BLANC_REF, dependsOn: [chromiumRef, sparkleRef, 'blocker-engine', ...g.blanc.map(b => b.ref)]},
+      {ref: 'blocker-engine', dependsOn: g.blocker.map(b => b.ref)},
       {ref: chromiumRef, dependsOn: g.chromium.map(c => c.ref)},
     ],
   };
@@ -169,7 +192,8 @@ export function makeNotices(g) {
   const used = [];
   const cite = digest => { if (!used.includes(digest)) used.push(digest); return `[text ${digest.slice(0, 12)}]`; };
   const line = (name, version, license, url, digests) =>
-    `- ${name}${version ? ` ${version}` : ''} — ${license}${url ? ` — ${url}` : ''}\n  Licence: ${digests.map(cite).join(' ')}\n`;
+    `- ${name}${version ? ` ${version}` : ''} — ${license}${url ? ` — ${url}` : ''}\n` +
+    (digests.length ? `  Licence: ${digests.map(cite).join(' ')}\n` : '');
   let out = `BLANC BETA ${r.version} (build ${r.build}) — NOTICES\n\n` +
     'Blanc is released under the MIT License. Blanc Beta is built on Chromium and includes the third-party\n' +
     'components below. Each licence text appears once at the end, cited by the start of its SHA-256 digest.\n\n';
@@ -178,6 +202,8 @@ export function makeNotices(g) {
     line('Sparkle', r.sparkle.version, 'MIT', 'https://sparkle-project.org/', [g.sparkleLicense]);
   out += '\nBLANC INTERFACE ASSETS\n\n' + g.blanc.map(b => line(b.name, b.version, b.license, b.url, [b.licenseText]) +
     (b.attribution ? `  Attribution: ${b.attribution}\n` : '')).join('');
+  out += `\nCONTENT BLOCKER (engine bundle sha256 ${g.bundle.bundleSha256})\n\n` + g.blocker.map(b =>
+    line(b.name, b.version, b.license, b.url, b.licenseTexts)).join('');
   out += '\nCHROMIUM THIRD-PARTY COMPONENTS\n\n' + g.chromium.map(c => line(c.name, c.version, c.license, c.url, c.files.map(f => f.sha256))).join('');
   out += '\nLICENCE TEXTS\n';
   for (const digest of used) out += `\n==== [text ${digest.slice(0, 12)}] sha256 ${digest} ====\n\n${g.texts.get(digest).toString('utf8').replace(/\s+$/, '')}\n`;
@@ -237,6 +263,9 @@ export function audit(r, scan, src, app, sbomBytes, options) {
     if (missingNotice.length) fail(`THIRD_PARTY_NOTICES.txt leaves out: ${missingNotice.join(', ')}`);
     if (extraneous.length) fail(`THIRD_PARTY_NOTICES.txt describes the Electron app (names ${extraneous.join(', ')}), not the beta`);
   }
+  const engine = path.join(app, BLOCKER_ENGINE);
+  if (!fs.existsSync(engine)) fail('the app embeds no blocker engine');
+  else if (sha256(fs.readFileSync(engine)) !== g.bundle.bundleSha256) fail('the embedded blocker engine is not the pinned bundle');
   const info = plist(path.join(app, 'Contents/Info.plist'));
   if (!info) fail('the app has no readable Info.plist');
   else if (String(info.CFBundleVersion) !== String(r.build)) fail('the app is not this release\'s build');
@@ -244,7 +273,7 @@ export function audit(r, scan, src, app, sbomBytes, options) {
     release: {version: r.version, build: r.build, sourceCommit: r.sourceCommit, inputDigest: r.inputDigest},
     app: {name: path.basename(app), bundleVersion: info?.CFBundleVersion ?? null, shortVersion: info?.CFBundleShortVersionString ?? null},
     scan: {target: scan.target, outDir: scan.outDir, components: scan.components.length, skippedDirs: scan.skippedDirs.map(s => s.dir)},
-    sbom: {sha256: sha256(sbomBytes), components: g.chromium.length + g.blanc.length + 2, notBundled: g.extra.notBundled.map(n => n.name)},
+    sbom: {sha256: sha256(sbomBytes), components: g.chromium.length + g.blanc.length + g.blocker.length + 3, notBundled: g.extra.notBundled.map(n => n.name)},
     notices, credits: {titles: titles.size, missing: missingCredits}, blancNotice: {missing: missingNotice, extraneous}};
 }
 

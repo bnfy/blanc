@@ -9,7 +9,8 @@ import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import {ROOT, build, audit, gather, makeSbom, makeNotices, licenses, creditTitles} from './sbom.mjs';
-import {NOTICES} from './verify.mjs';
+import {NOTICES, BLOCKER_ENGINE} from './verify.mjs';
+import {makeNotice} from './fork-notice.mjs';
 import {sha256} from './policy.mjs';
 
 const release = JSON.parse(fs.readFileSync(new URL('./fixtures/release.json', import.meta.url)));
@@ -24,14 +25,21 @@ function world({notice} = {}) {
   const copy = rel => { fs.mkdirSync(path.dirname(path.join(root, rel)), {recursive: true}); fs.copyFileSync(path.join(ROOT, rel), path.join(root, rel)); };
   const policy = JSON.parse(fs.readFileSync(path.join(ROOT, 'compliance/policy.json')));
   ['compliance/policy.json', 'chromium/blanc/island-assets.json', 'chromium/blanc/third_party/sparkle/LICENSE',
+    'chromium/release/sbom-extra.json', 'adblock/sources/pinned.json', 'chromium/blanc/third_party/blocker/bundle.json',
+    ...fs.readdirSync(path.join(ROOT, 'chromium/blanc/third_party/blocker/licenses')).map(f => `chromium/blanc/third_party/blocker/licenses/${f}`),
     'chromium/blanc/notices/LICENSE', 'chromium/blanc/notices/ASSET-LICENSE.md', 'chromium/blanc/notices/THIRD-PARTY-NOTICES.md'].forEach(copy);
   for (const entry of extra.blancAssets) {
     entry.files.forEach(file => copy(`chromium/blanc/island/${file}`));
     const asset = entry.asset ? policy.assets.find(a => a.id === entry.asset) : entry;
     copy(asset.licenseFile); if (entry.asset) copy(asset.file);
   }
-  const names = extra.blancAssets.map(e => e.noticeMatch || policy.assets.find(a => a.id === e.asset).name);
-  fs.writeFileSync(path.join(root, 'chromium/blanc/notices/THIRD_PARTY_NOTICES.txt'), notice ?? `BLANC BETA NOTICES\n${names.join('\n')}\n`);
+  // A stand-in engine, pinned the way the real one is.
+  const engine = 'fake engine bundle\n';
+  fs.mkdirSync(path.join(root, 'chromium/blanc/services/blocker'), {recursive: true});
+  fs.writeFileSync(path.join(root, 'chromium/blanc/services/blocker/bundle_hash.h'), `inline constexpr char kBlancBlockerBundleSha256[] = "${sha256(engine)}";\n`);
+  const bundleFile = path.join(root, 'chromium/blanc/third_party/blocker/bundle.json');
+  fs.writeFileSync(bundleFile, JSON.stringify({...JSON.parse(fs.readFileSync(bundleFile)), bundleSha256: sha256(engine)}));
+  fs.writeFileSync(path.join(root, 'chromium/blanc/notices/THIRD_PARTY_NOTICES.txt'), notice ?? makeNotice(root));
   fs.mkdirSync(src); fs.writeFileSync(path.join(src, 'LICENSE'), 'Copyright The Chromium Authors. BSD-3-Clause.\n');
   const components = [{name: 'The Chromium Project', version: null, revision: null, url: 'https://www.chromium.org', license: 'BSD-3-Clause',
     cpePrefix: null, dir: '', licenseFiles: [{path: 'LICENSE', sha256: sha256(fs.readFileSync(path.join(src, 'LICENSE')))}]}];
@@ -49,6 +57,7 @@ function world({notice} = {}) {
     'ASSET-LICENSE.md': 'chromium/blanc/notices/ASSET-LICENSE.md', 'THIRD_PARTY_NOTICES.txt': 'chromium/blanc/notices/THIRD_PARTY_NOTICES.txt',
     'Sparkle-LICENSE': 'chromium/blanc/third_party/sparkle/LICENSE'})) fs.copyFileSync(path.join(root, from), path.join(notices, name));
   fs.copyFileSync(path.join(src, 'LICENSE'), path.join(notices, 'Chromium-LICENSE'));
+  fs.mkdirSync(path.dirname(path.join(app, BLOCKER_ENGINE)), {recursive: true}); fs.writeFileSync(path.join(app, BLOCKER_ENGINE), engine);
   const credits = components.map(c => `<div class="product"><span class="title">${escape(c.name)}</span></div>`).join('\n');
   fs.writeFileSync(path.join(notices, 'Chromium-credits.html'), `<html><body>${credits}</body></html>`);
   fs.writeFileSync(path.join(app, 'Contents/Info.plist'), `<?xml version="1.0" encoding="UTF-8"?>
@@ -66,21 +75,27 @@ test('the SBOM is CycloneDX 1.6, deterministic, and lists every shipped componen
   assert.match(sbom.serialNumber, /^urn:uuid:[0-9a-f]{8}-[0-9a-f]{4}-5[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/);
   for (const [name, version] of [['Chromium', release.chromiumVersion], ['Sparkle', release.sparkle.version]])
     assert.ok(sbom.components.some(c => c.name === name && c.version === version && c.licenses.length > 0), name);
-  assert.equal(result.components, 2 + extra.blancAssets.length + LIBS);
+  const bundle = JSON.parse(fs.readFileSync(path.join(w.root, 'chromium/blanc/third_party/blocker/bundle.json')));
+  const blockerParts = bundle.packages.length + 1 + 1 + bundle.filters.lists.length;
+  assert.equal(result.components, 3 + extra.blancAssets.length + blockerParts + LIBS);
+  assert.deepEqual(sbom.dependencies.find(d => d.ref === 'blocker-engine').dependsOn.length, blockerParts);
+  assert.equal(sbom.components.find(c => c['bom-ref'] === 'blocker-engine').hashes[0].content, bundle.bundleSha256);
+  assert.ok(sbom.components.some(c => c.name === 'EasyList' && c.hashes?.length));
   assert.ok(sbom.components.every(c => c.licenses?.length > 0 && c['bom-ref']));
-  assert.deepEqual(sbom.dependencies[1].dependsOn.length, LIBS);
+  assert.deepEqual(sbom.dependencies.find(d => d.ref === 'chromium').dependsOn.length, LIBS);
   assert.ok(sbom.components.find(c => c.name === 'Lib 1').cpe);
   assert.deepEqual(sbom.components.find(c => c.name === 'Lib 0').licenses, [{license: {id: 'Apache-2.0'}}, {license: {id: 'BSD-3-Clause'}}]);
   assert.equal(sbom.metadata.component.name, 'Blanc Beta');
   for (const [name, value] of [['blanc:sourceCommit', release.sourceCommit], ['blanc:inputDigest', release.inputDigest]])
     assert.equal(sbom.metadata.component.properties.find(p => p.name === name).value, value, 'manifest.mjs binds these');
-  assert.ok(sbom.metadata.component.properties.some(p => p.name === 'blanc:notBundled'), 'what the beta leaves out is stated');
   const again = makeSbom(gather(release, w.scan, w.src, w.options));
   assert.equal(again, fs.readFileSync(path.join(out, 'Blanc-Beta.cdx.json'), 'utf8'));
   // Every component is named in NOTICES.txt and each distinct text appears once.
   const notices = fs.readFileSync(path.join(out, 'NOTICES.txt'), 'utf8');
   for (const c of w.scan.components.slice(1)) assert.ok(notices.includes(`- ${c.name}`), c.name);
-  assert.equal((notices.match(/^==== \[text /gm) || []).length, new Set([...Array(7).keys()]).size + 3 + extra.blancAssets.length);
+  const blockerTexts = new Set([...bundle.packages, bundle.proceduralRenderer].flatMap(p => p.licenseFiles.map(f => f.sha256))).size;
+  assert.equal((notices.match(/^==== \[text /gm) || []).length, 7 + 3 + extra.blancAssets.length + blockerTexts);
+  assert.ok(notices.includes('- EasyPrivacy') && notices.includes('- @ghostery/adblocker 2.18.2'));
   assert.throws(() => build(release, w.scan, w.src, out, w.options), /EEXIST/, 'never overwrites');
   w.done();
 });
@@ -125,18 +140,35 @@ test('the audit passes only a packaged app whose notices and credits match', () 
   fails(() => fs.appendFileSync(path.join(dir, 'Chromium-LICENSE'), 'x'), /Chromium-LICENSE differs/);
   fails(() => fs.writeFileSync(path.join(w.app, 'Contents/Info.plist'), fs.readFileSync(path.join(w.app, 'Contents/Info.plist'), 'utf8').replace(`<string>${release.build}</string>`, '<string>99</string>')), /not this release's build/);
   fails(() => audit(release, w.scan, w.src, w.app, Buffer.from(sbom.toString().replace('"Lib 9"', '"Lib 9x"')), w.options), /not what build makes/);
+  const engine = path.join(w.app, BLOCKER_ENGINE), bytes = fs.readFileSync(engine);
+  fails(() => fs.rmSync(engine), /embeds no blocker engine/); fs.writeFileSync(engine, bytes);
+  fails(() => fs.appendFileSync(engine, 'x'), /not the pinned bundle/); fs.writeFileSync(engine, bytes);
   fails(() => audit(release, {...w.scan, skippedDirs: [{dir: 'third_party/odd', reason: 'x'}]}, w.src, w.app, sbom, w.options), /unreviewed folders/);
   w.done();
 });
 
 test('the audit fails a beta that ships the Electron app\'s notice', () => {
-  const electron = fs.readFileSync(path.join(ROOT, 'chromium/blanc/notices/THIRD_PARTY_NOTICES.txt'), 'utf8');
+  const electron = fs.readFileSync(path.join(ROOT, 'compliance/THIRD_PARTY_NOTICES.txt'), 'utf8');
   const w = world({notice: electron});
   const sbom = Buffer.from(makeSbom(gather(release, w.scan, w.src, w.options)));
   const report = audit(release, w.scan, w.src, w.app, sbom, w.options);
   assert.equal(report.status, 'fail');
   assert.match(report.failures.join('\n'), /describes the Electron app/);
   assert.ok(report.blancNotice.extraneous.includes('Electron'));
+  w.done();
+});
+
+test('the beta notice is generated, current, and names only what the beta ships', async () => {
+  const {makeNotice: make, blockerBundle, NOTICE} = await import('./fork-notice.mjs');
+  const notice = fs.readFileSync(path.join(ROOT, NOTICE), 'utf8');
+  assert.equal(notice, make(), 'run node chromium/release/fork-notice.mjs');
+  for (const name of ['Electron', '@1password', 'uBlock Origin', 'Dark Reader', 'electron-updater']) assert.ok(!notice.includes(name), name);
+  for (const name of ['@ghostery/adblocker 2.18.2', 'EasyList', 'EasyPrivacy', 'Inter Latin webfont', 'Kagi bangs', 'Lucide', 'Mozilla Public License'])
+    assert.ok(notice.includes(name), name);
+  const w = world();
+  blockerBundle(w.root);
+  fs.appendFileSync(path.join(w.root, 'chromium/blanc/third_party/blocker/licenses/tldts-experimental-LICENSE'), 'x');
+  assert.throws(() => blockerBundle(w.root), /licence text changed/);
   w.done();
 });
 
