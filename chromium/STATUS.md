@@ -879,6 +879,25 @@ remain pending. D3 beta-only no-DRM exception accepted; EME notice/handoff requi
   this week", fork string start.billboard.blocked). native-start-widgets.mjs
   8/8 (a real pointer drag included); newtab-layouts 24/25 (:21 is
   shipping's stale Mahjong check; :134 passes once its audit reads the tiles).
+- **Extension side panels as Start Page cards (2026-11-13, owner: "Prototype
+  it"; fork only, prototype):** an installed extension with a side panel
+  (`chrome.sidePanel`, `side_panel.default_path`) appears in Customize as one
+  more widget tile. Turned on, it becomes a card in the side columns, moved
+  like the others, and Blanc draws the extension's own panel page over the
+  card's slot: Chromium's side panel host (`CreateSidePanelHost`) in an
+  `ExtensionViewViews` below the Island, in the extension's process, never
+  inside the Start Page. The page reports the slot's place on every move;
+  panels hide under popovers, while a card is dragged and on other tabs, and
+  close with the page. Private Start Pages show a note instead. The enabled
+  panels are saved with the widgets (`panels`, cards `ext:<id>`). Test
+  `chromium/tests/native-start-panels.mjs` (sample extension in
+  `tests/fixtures/side-panel-extension`, loaded by the gated
+  `testLoadUnpacked`): 3/3. Not yet: the panel's own height, keyboard focus
+  between page and panel, and a check with real Web Store extensions.
+- **Mahjong dock icons (2026-11-13):** shipping's dock uses
+  `<use href="mahjong-icons.svg#…">`, which Chromium does not load on the
+  fork's internal pages (net::ERR_FAILED), so the dock showed empty circles.
+  The served page inlines the sprite; shipping's files are unchanged.
 - **V25 — Mahjong takes Patron's place in the Start Page footer (2026-11-13,
   owner; fork only, "for now"):** the Become a Blanc Patron pill leaves the
   Start Page (Settings → Patron still offers it), and Play Blanc Mahjong
@@ -2561,5 +2580,5 @@ Android's Bar A counts the shared scenarios bound in `chromium/tests/android/acc
 
 Legacy macOS stages come from the approved spec; they await verification on the canonical candidate. No legacy stage counts as Verified.
 
-Candidate identities: macOS: macos-636e3c3d5f987ce4; Windows: none; Linux: none; Android: android-arm64-7bd35e94ef746069.
+Candidate identities: macOS: macos-0ba0aa9a0699355a; Windows: none; Linux: none; Android: android-arm64-7bd35e94ef746069.
 <!-- END GENERATED PROGRESS -->

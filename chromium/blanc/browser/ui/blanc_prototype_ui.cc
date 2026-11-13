@@ -6404,6 +6404,8 @@ class Handler : public content::WebUIMessageHandler, public extensions::Extensio
     // The operating system's open-file path, exactly as AppController hands
     // it over (application:openURLs: -> OpenExternalLink).
     if (quiet_method == "testLoadUnpacked" && quiet_args.size() == 1 && quiet_args[0].is_string()) {
+      // Chromium keeps unpacked extensions off while developer mode is off.
+      Profile::FromWebUI(web_ui())->GetOriginalProfile()->GetPrefs()->SetBoolean(prefs::kExtensionsUIDeveloperMode, true);
       auto installer = extensions::UnpackedInstaller::Create(Profile::FromWebUI(web_ui())->GetOriginalProfile());
       installer->set_be_noisy_on_failure(false);
       installer->set_completion_callback(base::BindOnce(

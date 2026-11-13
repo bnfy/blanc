@@ -409,3 +409,12 @@ body.widget-chart-on #bbBlocked { display: none; }
 
 /* The clock centred on its ink (newtab.js sets --clock-optical). */
 .bb-clock-row { transform: translateX(var(--clock-optical, 0px)); }
+
+/* Extensions' side panels as cards (prototype): the slot Blanc draws the
+   extension's own panel page over, and a note when it cannot. */
+.bb-widget-panel .bb-panel-slot {
+  position: relative; height: 360px; margin-top: 10px; border-radius: 12px;
+  display: grid; place-items: center;
+  background: color-mix(in srgb, var(--start-tray-ink, var(--text)) 5%, transparent);
+}
+.bb-widget-panel .bb-panel-note { margin: 0; padding: 0 16px; text-align: center; }
