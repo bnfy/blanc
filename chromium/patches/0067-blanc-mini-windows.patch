@@ -61,7 +61,7 @@ diff --git a/chrome/browser/resources/settings/appearance_page/appearance_page.h
 +        <div class="secondary" id="blancMiniHint">$i18n{blancMiniHint}</div>
 +        <div class="secondary" id="blancMiniUnavailable" role="status" ?hidden="${this.blancMiniState_?.status!=='unavailable'}">$i18n{blancMiniUnavailable}</div>
 +      </div>
-+      <select id="blancMiniWindowShortcut" aria-label="$i18n{blancMiniLabel}" aria-describedby="blancMiniHint blancMiniUnavailable"
++      <select id="blancMiniWindowShortcut" class="md-select" aria-label="$i18n{blancMiniLabel}" aria-describedby="blancMiniHint blancMiniUnavailable"
 +          ?disabled="${!this.blancMiniState_}" .value="${this.blancMiniState_?.saved??'off'}" @change="${this.onBlancMiniShortcutChange_}">
 +        ${this.blancMiniOptions_.map(option=>html`<option value="${option.value}" ?selected="${option.value===this.blancMiniState_?.saved}">${option.name}</option>`)}
 +      </select>

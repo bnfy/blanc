@@ -741,7 +741,7 @@
     "chrome/browser/resources/settings/BUILD.gn": "69b8b7bfae98f09a10c3a194e3566bab002d57de306162d0bc631a1030b98e85",
     "chrome/browser/resources/settings/about_page/about_page.html.ts": "1dc5de368c1fb3c41435f85086f266f860d7d97ab4e3427a11eeb56b52c2271d",
     "chrome/browser/resources/settings/about_page/about_page.ts": "6de9428ae1510cb539e2c9fadb73ca2e7dbc194c6ad2bbe64e459cba43aa58b7",
-    "chrome/browser/resources/settings/appearance_page/appearance_page.html.ts": "fdc115636e103d0a06b742512a9771a0dd32310665273c04bf2ddb6585eef8c6",
+    "chrome/browser/resources/settings/appearance_page/appearance_page.html.ts": "1fbdfac95086a44e709e16ed5f606b273d42eda4605ee2812101c4f802591545",
     "chrome/browser/resources/settings/appearance_page/appearance_page.ts": "8847f43a9604060e6472715a268a71a4d7a5a0ae0759cb434001d1ed02b77d67",
     "chrome/browser/resources/settings/autofill_page/autofill_page.html.ts": "ad1abf3c5d226bdec1cf17624bc38044b290971e86fd372ba07e9ed0f147227d",
     "chrome/browser/resources/settings/blanc_settings_proxy.ts": "d1ce1642eb508c45d1d4cddb409a68e041d75f139eef6fd8d060c5b2e807ceb4",
