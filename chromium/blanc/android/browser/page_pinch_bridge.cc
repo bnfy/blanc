@@ -6,7 +6,7 @@
 // detected it. It only observes; the page's own zoom is untouched.
 
 #include "base/memory/raw_ptr.h"
-#include "blanc/android/page_pinch_jni/PagePinchBridge_jni.h"
+#include "blanc/android/island_jni/PagePinchBridge_jni.h"
 #include "content/public/browser/render_frame_host.h"
 #include "content/public/browser/render_widget_host.h"
 #include "content/public/browser/render_widget_host_observer.h"

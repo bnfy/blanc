@@ -26,6 +26,10 @@ in the lane file in its place. Numbering starts at 0101.
 - `0104-android-island.patch`: hides Chrome's toolbar behind one HIDDEN
   browser-controls delegate and creates Blanc's Island
   (`//blanc/android:island_ui_java`) in `TabbedRootUiCoordinator`.
+- `0112-android-top-color.patch`: colors the status bar with what's drawn at the
+  page's top, as Safari does: `ChromeTabbedActivity.getBaseStatusBarColor` asks
+  the Island's `TopColorSampler`, which reads the page's top row through
+  `//blanc/android:top_color_bridge`, and falls back to Chrome's own color.
 
 A file dropped or moved in the lane keeps its applied edits in an existing checkout
 (`apply.py` touches only the lane's files, and never deletes): restore a

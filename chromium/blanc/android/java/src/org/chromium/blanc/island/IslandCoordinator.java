@@ -61,6 +61,9 @@ public final class IslandCoordinator {
 
         /** The view the page draws in, which follows the finger during the Island's swipe. */
         @Nullable View pageView();
+
+        /** The shown tab's {@link #topColor} changed: the status bar redraws. */
+        default void onTopColorChanged() {}
     }
 
     /** Device-local settings, as the iPhone stores them (SettingsStore.swift). */
@@ -81,6 +84,7 @@ public final class IslandCoordinator {
     private final Callbacks mCallbacks;
     private final IslandView mView;
     private final IslandTuck mTuck = new IslandTuck();
+    private final TopColorSampler mTopColor;
     private final float mDensity;
     private final Callback<@Nullable Tab> mTabChanged = this::setTab;
     // Settings can move the Island while it is showing, so it follows the stored position at once.
@@ -132,6 +136,28 @@ public final class IslandCoordinator {
                     mView.setLoadProgress(tab.isLoading(), progress);
                 }
 
+                // The status bar takes the color drawn at the page's top: read it once there is
+                // something drawn, and again when the page settles or changes its colors.
+                @Override
+                public void didFirstVisuallyNonEmptyPaint(Tab tab) {
+                    mTopColor.schedule(50);
+                }
+
+                @Override
+                public void onPageLoadFinished(Tab tab, GURL url) {
+                    mTopColor.schedule(300);
+                }
+
+                @Override
+                public void onBackgroundColorChanged(Tab tab, int color) {
+                    mTopColor.schedule(50);
+                }
+
+                @Override
+                public void onDidChangeThemeColor(Tab tab, int color) {
+                    mTopColor.schedule(50);
+                }
+
                 // Back and Forward follow the page's history, including pages that change it with
                 // pushState.
                 @Override
@@ -148,6 +174,8 @@ public final class IslandCoordinator {
                 @Override
                 public void onContentChanged(Tab tab) {
                     attachGestures(tab.getWebContents());
+                    pointTopColor(tab);
+                    mTopColor.schedule(100);
                     refresh();
                 }
             };
@@ -167,16 +195,20 @@ public final class IslandCoordinator {
                 @Override
                 public void onFlingEndGesture(int offset, int extent) {
                     mScrollingByPerson = false;
+                    mTopColor.schedule(0);
                 }
 
                 @Override
                 public void onScrollEnded(int offset, int extent) {
                     mScrollingByPerson = false;
+                    mTopColor.schedule(0);
                 }
 
                 @Override
                 public void onScrollOffsetOrExtentChanged(int offset, int extent) {
                     scrolled(offset, extent);
+                    // What's at the top changes as the page moves; read it once it rests.
+                    mTopColor.schedule(150);
                 }
             };
 
@@ -192,6 +224,7 @@ public final class IslandCoordinator {
         mSelector = selector;
         mInsets = insets;
         mCallbacks = callbacks;
+        mTopColor = new TopColorSampler(callbacks::onTopColorChanged);
         mDensity = activity.getResources().getDisplayMetrics().density;
         mView = new IslandView(activity);
         mView.menuButton().setOnClickListener(mCallbacks::onMenu);
@@ -282,7 +315,16 @@ public final class IslandCoordinator {
         return mView;
     }
 
+    /**
+     * The color drawn at the top of this tab's page, for the status bar behind it, or {@link
+     * TopColor#NONE} for Chrome's own (private tabs, or a page not read yet).
+     */
+    public int topColor(@Nullable Tab tab) {
+        return tab == null ? TopColor.NONE : mTopColor.colorFor(tab.getId());
+    }
+
     public void destroy() {
+        mTopColor.destroy();
         PagePinchBridge.setListener(null);
         ContextUtils.getAppSharedPreferences().unregisterOnSharedPreferenceChangeListener(mPositionChanged);
         setTab(null);
@@ -299,8 +341,19 @@ public final class IslandCoordinator {
         mTab = tab;
         if (tab != null) tab.addObserver(mTabObserver);
         attachGestures(tab == null ? null : tab.getWebContents());
+        pointTopColor(tab);
+        mTopColor.schedule(150);
         mTuck.show();
         refresh();
+    }
+
+    /** Points the status bar's sampler at the shown tab's page. */
+    private void pointTopColor(@Nullable Tab tab) {
+        WebContents contents = tab == null || tab.isNativePage() ? null : tab.getWebContents();
+        mTopColor.setPage(
+                tab == null ? -1 : tab.getId(),
+                contents == null ? null : row -> TopColorBridge.read(contents, row),
+                tab != null && tab.isIncognito());
     }
 
     /**

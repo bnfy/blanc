@@ -6,6 +6,7 @@
     "chrome/android/BUILD.gn": "0ddb8f56c59166dcdb6cc49f2e5a8d2ab22491aa8a3822d4ac27a133fa2d3760",
     "chrome/android/java/res_base/drawable/ic_launcher.xml": "f817d44b43a7798b93829d8c81e72482484886997ef03ca9f11bfc88e3c0aec7",
     "chrome/android/java/res_base/drawable/ic_launcher_round.xml": "c059dc4d529f084b91dfffdf09c19ba62cbe61c91a1d01b17bda3d6d2d80e936",
+    "chrome/android/java/src/org/chromium/chrome/browser/ChromeTabbedActivity.java": "e8703a8a265007752b7cbb2182c4caca6787d98741298bb56aca329462b95152",
     "chrome/android/java/src/org/chromium/chrome/browser/SwipeRefreshHandler.java": "479f0b00e1ca0baa859bc40c528132b942b20aae99b3cd19050a58a4a041f912",
     "chrome/android/java/src/org/chromium/chrome/browser/background_task_scheduler/ChromeBackgroundTaskFactory.java": "3f94b4d9ad95a56886bbbade9b8fcd66339ec5211890782be17e68895c29132d",
     "chrome/android/java/src/org/chromium/chrome/browser/base/SplitCompatApplication.java": "bcd45e73b8fa5daf1eb2939f2199bc8522b56beaccb9d58feae775ec2439e9dd",
