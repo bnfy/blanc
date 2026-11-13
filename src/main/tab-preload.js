@@ -5,8 +5,10 @@ const { contextBridge, ipcRenderer } = require('electron');
 // Isolated-world invalidation only: no API is exposed to ordinary websites,
 // and no DOM values, URLs, colors, or pixels cross this channel. Main chooses
 // its own live foreground view and coalesces all requests before sampling.
+// The internal hosts match SUNRISE_PAGES in page-tint-policy.js, which this
+// sandboxed preload cannot require.
 if (typeof process !== 'undefined' && process.isMainFrame && (/^https?:$/.test(window.location.protocol)
-  || (window.location.protocol === 'blanc:' && window.location.host === 'newtab'))) {
+  || (window.location.protocol === 'blanc:' && ['newtab', 'mahjong'].includes(window.location.host)))) {
   let pending = null;
   let lastSignal = -Infinity;
   let observing = false;
@@ -306,6 +308,11 @@ if (window.location.protocol === 'blanc:') {
       permissions: {
         list: () => invoke('pages:permissions:list'),
         remove: (key) => invoke('pages:permissions:remove', key),
+      },
+      zoom: {
+        list: () => invoke('pages:zoom:list'),
+        remove: (site) => invoke('pages:zoom:remove', site),
+        clear: () => invoke('pages:zoom:clear'),
       },
       defaultBrowser: {
         get: () => invoke('pages:default-browser:get'),

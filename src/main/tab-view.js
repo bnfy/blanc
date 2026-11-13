@@ -136,7 +136,7 @@ function initTabView(injected) {
     'registerPopupCaptureSurface', 'clearTabCaptureState', 'recordRendererCrash',
     'dispatchMouseGesture',
     'sanitizeCertificate', 'certificateErrorQuery',
-    'certificateExceptions', 'certificateObserver', 't',
+    'certificateExceptions', 'certificateObserver', 't', 'tabZoom',
   ];
   for (const name of required) {
     if (injected?.[name] === undefined) throw new Error(`initTabView missing dependency: ${name}`);
@@ -179,6 +179,18 @@ function unwireTabView(wc) {
   wiredListeners.delete(wc);
 }
 
+/** Allow a certificate failure that matches a Continue made in a tab of this
+ * session (same origin, certificate and error). Never answers synchronously:
+ * Electron 45 emits certificate-error on the WebContents and then on `app`,
+ * and an answer between the two crashes the browser (#1424). Returns whether
+ * it allowed; a refusal leaves `callback` to Electron's default deny. */
+function allowContinuedCertificate(certificateExceptions, wc, event, { url, error, certificate }, callback) {
+  if (!certificateExceptions.matches(wc.session, { url, error, certificate, now: Date.now() })) return false;
+  event.preventDefault();
+  setImmediate(() => callback(true));
+  return true;
+}
+
 function wireTabView(tab, view, { owner, adopted }) {
   if (!deps) throw new Error('wireTabView called before initTabView');
   const {
@@ -194,10 +206,11 @@ function wireTabView(tab, view, { owner, adopted }) {
     registerPopupCaptureSurface, clearTabCaptureState, recordRendererCrash,
     dispatchMouseGesture,
     sanitizeCertificate, certificateErrorQuery,
-    certificateExceptions, certificateObserver,
+    certificateExceptions, certificateObserver, tabZoom,
   } = deps;
   const id = tab.id;
   const wc = view.webContents;
+  tabZoom.prepare(wc);
   const gesture = createRecognizer();
   const heldModifiers = new Set();
   let gestureButton = null;
@@ -384,6 +397,7 @@ function wireTabView(tab, view, { owner, adopted }) {
     // commits, history holds only it: Back and Forward have nothing to reach.
     if (tab.inert) setImmediate(() => { if (!wc.isDestroyed() && tab.inert) wc.navigationHistory.clear(); });
     tab.navEpoch++;
+    tabZoom.applyToTab(tab, wc, String(url));
     deps.noteMainFrameCommitted?.(tab, wc, url);
     // The not-secure mark belongs to the history entry that committed
     // (certificate spec §4.5). The session-wide certificate observer is
@@ -589,13 +603,19 @@ function wireTabView(tab, view, { owner, adopted }) {
   // continue past (certificate spec §4.2) is allowed only on an exact
   // origin+fingerprint+error+validity match; everything else is rejected,
   // and subframe failures stay denied without replacing the visible page.
+  //
+  // Never call `callback` while this event is being emitted. Electron 45 emits
+  // it here and then on `app`, both reading a URL the request owns, and an
+  // answer frees the request before the second emit, which crashes the browser
+  // on a failing subframe (#1424). Electron denies by default once both emits
+  // finish, so a refusal leaves `callback` alone. An allow waits a macrotask:
+  // Node drains microtasks and nextTicks between the two emits.
   wc.on('certificate-error', boundToTab((event, failedUrl, error, certificate, callback, isMainFrame) => {
-    if (tab.sleeping || tab.view?.webContents !== wc) return callback(false);
+    if (tab.sleeping || tab.view?.webContents !== wc) return;
     const sanitized = sanitizeCertificate(certificate);
-    if (certificateExceptions.matches(wc.session, { url: failedUrl, error, certificate: sanitized, now: Date.now() })) {
+    if (allowContinuedCertificate(certificateExceptions, wc, event, { url: failedUrl, error, certificate: sanitized }, callback)) {
       if (isMainFrame) tab.pendingCertificateException = { url: failedUrl, certificate: sanitized };
-      event.preventDefault();
-      return callback(true);
+      return;
     }
     if (isMainFrame) {
       tab.certificateError = {
@@ -604,7 +624,6 @@ function wireTabView(tab, view, { owner, adopted }) {
         certificate: sanitized,
       };
     }
-    callback(false);
   }));
   // A destroyed view's gate refusals can never fail late into another tab.
   const refusalContentsId = wc.id;
@@ -748,6 +767,15 @@ function wireTabView(tab, view, { owner, adopted }) {
         notePopupChild(tab.id, childWindow, targetWc.id, details?.url);
         const childWc = childWindow.webContents;
         const childWcId = childWc.id;
+        // A pop-up (Proxmox's console window, say) shares its opener's
+        // session, so it honors a Continue made in a tab for the same origin
+        // and certificate, for its page and its WebSockets. It has no warning
+        // page and never records a choice: anything else is left to
+        // Electron's default deny.
+        childWc.on('certificate-error', (event, failedUrl, error, certificate, callback) => {
+          allowContinuedCertificate(certificateExceptions, childWc, event,
+            { url: failedUrl, error, certificate: sanitizeCertificate(certificate) }, callback);
+        });
         windowRuntimes.registerAuxiliaryContent(getOwner(), childWcId);
         // Alongside — not via — auxiliaryOwner: popup capture state must
         // survive detachWindow on macOS close/reopen (spec §3.3).

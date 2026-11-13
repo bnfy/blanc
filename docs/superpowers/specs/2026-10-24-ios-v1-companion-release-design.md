@@ -321,7 +321,7 @@ documents stay correct.
 | Duo-1 | Edge to edge on both Duo displays, the regular-width Island and palette | Merged (#1275, #1276); Duo-2 and Duo-3 after 1.0 |
 | **M18** | **First minute and release readiness**: the walkthrough (§3), default browser, share-sheet target, Background App Refresh, six languages, the launch ping, App Store listing ([design](2026-10-30-ios-m18-first-minute-release-readiness-design.md)) | In progress |
 | Beta | TestFlight, the real-iPhone gate, kill criteria armed | Public TestFlight beta live since 2026-10-28; kill criteria wait on the M18 launch ping |
-| **1.0** | App Store | Waits on M18 and Apple's default-browser grant |
+| **1.0** | App Store | Waits on M18 (amended 2026-11-02: submitted without the default-browser grant, by the owner's decision; see §8) |
 
 Order rationale: M8 and M9 are small and make the phone a real browser for
 testers early; M16 is desktop work and can run while M9 does; M17 needs M16
@@ -350,7 +350,10 @@ settled; M18 is last because it depends on everything it introduces.
   (`com.apple.developer.web-browser`) was requested on 2026-10-28 and
   refiled the same day as `P2X5BCD4C9` with the public TestFlight link; it
   is waiting on Apple (`docs/ios/app-store-connect.md` item 4). **1.0 does
-  not ship until Apple grants it.** `Blanc.entitlements` exists, wired for
+  not ship until Apple grants it.** (Amended 2026-11-02: the owner chose to submit 1.0
+  without the grant and without waiting on the beta criteria above; the
+  default-browser offer and website passkeys follow in a 1.0.x update once
+  Apple grants it. 1.0 releases manually after approval.) `Blanc.entitlements` exists, wired for
   both configurations and empty; the key goes in only together with the
   portal switch, in the change that also turns on M18's default-browser
   offer.

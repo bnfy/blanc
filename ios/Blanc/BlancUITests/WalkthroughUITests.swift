@@ -4,6 +4,10 @@ import XCTest
 final class WalkthroughUITests: XCTestCase {
   override func setUp() { continueAfterFailure = false }
 
+  private var welcomeTitle: String {
+    UIDevice.current.userInterfaceIdiom == .pad ? "Your Blanc, on your iPad." : "Your Blanc, in your pocket."
+  }
+
   private func launch() -> XCUIApplication {
     let app = XCUIApplication()
     app.launchArguments = ["-BlancUITestStartPage", "-BlancUITestWalkthrough"]
@@ -11,20 +15,23 @@ final class WalkthroughUITests: XCTestCase {
     return app
   }
 
-  func testBrowseWithoutPairingReachesPrivacyAndCloses() {
+  func testBrowseWithoutPairingReachesPrivacyThenTheDefaultBrowserOfferAndCloses() {
     let app = launch()
-    XCTAssertTrue(app.staticTexts["Your Blanc, in your pocket."].waitForExistence(timeout: 10))
+    XCTAssertTrue(app.staticTexts[welcomeTitle].waitForExistence(timeout: 10))
     app.buttons["welcome.browse"].tap()
     XCTAssertTrue(app.switches["welcome.measureUsage"].waitForExistence(timeout: 5))
+    XCTAssertTrue(app.switches["welcome.searchSuggestions"].exists)
     app.buttons["welcome.continue"].tap()
-    XCTAssertTrue(app.staticTexts["Your Blanc, in your pocket."].waitForNonExistence(timeout: 5))
+    XCTAssertTrue(app.buttons["welcome.openDefaultApps"].waitForExistence(timeout: 5))
+    app.buttons["welcome.notNow"].tap()
+    XCTAssertTrue(app.buttons["welcome.notNow"].waitForNonExistence(timeout: 5))
     // Seen once: a relaunch shows no card.
     app.terminate()
     let again = XCUIApplication()
     // No -BlancUITest argument: the app reads what the first launch saved.
     again.launchArguments = ["-BlancWalkthroughSeen"]
     again.launch()
-    XCTAssertFalse(again.staticTexts["Your Blanc, in your pocket."].waitForExistence(timeout: 4))
+    XCTAssertFalse(again.staticTexts[welcomeTitle].waitForExistence(timeout: 4))
   }
 
   func testPairOpensThePairingChoices() {
@@ -40,13 +47,15 @@ final class WalkthroughUITests: XCTestCase {
   /// Review Focus 1: a link from another app opens behind the card, which stays.
   func testLinkWhileTheCardShowsOpensBehindIt() {
     let app = launch()
-    let title = app.staticTexts["Your Blanc, in your pocket."]
+    let title = app.staticTexts[welcomeTitle]
     XCTAssertTrue(title.waitForExistence(timeout: 10))
     app.open(URL(string: "https://example.org/")!)
     sleep(2)
     XCTAssertTrue(title.exists, "the card stays")
     app.buttons["welcome.browse"].tap()
     app.buttons["welcome.continue"].tap()
+    XCTAssertTrue(app.buttons["welcome.notNow"].waitForExistence(timeout: 5))
+    app.buttons["welcome.notNow"].tap()
     let site = app.buttons["pill.palette"]
     let shown = XCTNSPredicateExpectation(predicate: NSPredicate(format: "label CONTAINS 'example.org'"), object: site)
     XCTAssertEqual(XCTWaiter().wait(for: [shown], timeout: 10), .completed, "the link's tab is current")

@@ -75,7 +75,7 @@
     },
     {
       "file": "cloudflare/ping-worker/src/index.js",
-      "sha256": "7232de6e86e9d20f85ad98f41244dc41ecec13df1db404fdfa4781ac84bf3a47",
+      "sha256": "bf747dc3b381d2dfe9ffa67717fce6fcc26f97f3280bf2f8a46f2a661db49042",
       "literalChannels": [],
       "role": "privileged implementation or service"
     },
@@ -260,7 +260,7 @@
     },
     {
       "file": "src/main/main.js",
-      "sha256": "7e202dd1214c926fc886c424d87ff7b06510dbc6d5bd6ca7d118371a6dfd3dd6",
+      "sha256": "1d8f29140431d439be771cd4ee7e3843a17e0e03264a794a3a5dc41dfb05ab26",
       "literalChannels": [
         "activate",
         "bang-icons:changed",
@@ -268,6 +268,7 @@
         "before-input-event",
         "before-mouse-event",
         "before-quit",
+        "before-quit-for-update",
         "blur",
         "browser-window-blur",
         "browser-window-focus",
@@ -376,6 +377,7 @@
         "did-finish-load",
         "did-navigate",
         "display-capture:picker-resolve",
+        "error",
         "fill:reply",
         "focus",
         "groups:move-closed",
@@ -504,7 +506,7 @@
     },
     {
       "file": "src/main/page-tint-policy.js",
-      "sha256": "482979bdc155e8f7782c130fe07dc8b108628e9f193331219df9b8bb701eb487",
+      "sha256": "b3287b2472ab57b642a3a20fd0c3e7b91ff4c78edaadf24df82d359ca88f3235",
       "literalChannels": [],
       "role": "foreground/main-frame eligibility policy"
     },
@@ -516,7 +518,7 @@
     },
     {
       "file": "src/main/pages.js",
-      "sha256": "dba1c80a4164321e1036b8e16100f502f09ef842f42d3ce1af8370c255a19157",
+      "sha256": "ccd144d2b86a41b3c7c98b719eb170514ebd92672009137682f32f5b7d850344",
       "literalChannels": [
         "blanc",
         "pages:app-version",
@@ -652,7 +654,10 @@
         "pages:tab-import:submit-embeddings",
         "pages:tab-import:suggest-embed",
         "pages:tab-import:suggest-source-groups",
-        "pages:telemetry:reset-install-id"
+        "pages:telemetry:reset-install-id",
+        "pages:zoom:clear",
+        "pages:zoom:list",
+        "pages:zoom:remove"
       ],
       "role": "privileged implementation or service"
     },
@@ -964,7 +969,7 @@
     },
     {
       "file": "src/main/sync.js",
-      "sha256": "f26dcf6bb2adaf6e27869b3384bac189f9898a8d8d80f7cb625b2e525397949e",
+      "sha256": "0a7c5974677f186c08ab657512173eb20beaf3f5571e1373ceb5aa3cb701271f",
       "literalChannels": [
         "before-quit"
       ],
@@ -978,7 +983,7 @@
     },
     {
       "file": "src/main/tab-preload.js",
-      "sha256": "b1c9163a2e555eba26ed2b28967d4a458052b8a527d93d0827b49a5504f7b1c0",
+      "sha256": "2382ad567d5996a9c4834acbbf4be4db3a71f5ca066f6b367e8112a83b2055fa",
       "literalChannels": [
         "page-tint:changed",
         "pages:app-version",
@@ -1123,7 +1128,10 @@
         "pages:tab-import:submit-embeddings",
         "pages:tab-import:suggest-embed",
         "pages:tab-import:suggest-source-groups",
-        "pages:telemetry:reset-install-id"
+        "pages:telemetry:reset-install-id",
+        "pages:zoom:clear",
+        "pages:zoom:list",
+        "pages:zoom:remove"
       ],
       "role": "preload"
     },
@@ -1135,7 +1143,7 @@
     },
     {
       "file": "src/main/tab-view.js",
-      "sha256": "83cf296d7abda8e716a350defc5521474ca5bb491bcd3dd9cd6a2f4524e3f441",
+      "sha256": "2a90edb5e62310785085402a74dab910adbd77f1da432f81487b84359713181e",
       "literalChannels": [
         "audio-state-changed",
         "before-input-event",

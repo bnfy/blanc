@@ -18,3 +18,8 @@ test('experimental zygote mask restores only kCdm without modifying other exclus
   const wrong = Buffer.from(before); wrong[0] = 0;
   assert.throws(() => restoreCdmMask(wrong), /Unrecognized/);
 });
+test('the zygote patch names the pinned ECS runtime, so a pin change cannot skip it', () => {
+  const { version } = require('../../build/ecs-runtime.json');
+  const source = require('node:fs').readFileSync(require.resolve('../../scripts/ecs-linux-cdm-zygote-trial.cjs'), 'utf8');
+  assert.ok(source.includes(`runtime: '${version}'`));
+});

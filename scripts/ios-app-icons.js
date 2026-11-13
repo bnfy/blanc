@@ -1,16 +1,17 @@
 'use strict';
 
-// Blanc for iPhone's app icons: six Icon Composer packages, so iOS 26 and
+// Blanc for iPhone's app icons: seven Icon Composer packages, so iOS 26 and
 // later draw them in Liquid Glass with their Light, Dark, Clear and Tinted
-// styles, and Xcode generates flat copies for older iOS. Sunrise Gold is the
-// primary icon; Sunrise Dawn (iPhone only) and the Mac's other icons are
-// alternates in Settings → Appearance → App icon. Spec:
+// styles, and Xcode generates flat copies for older iOS. Sunrise is the
+// primary icon (owner, 2026-11-11; Sunrise Gold was until then); Sunrise
+// Bronze and Sunrise Dawn (iPhone only), Sunrise Gold and the Mac's other
+// icons are alternates in Settings → Appearance → App icon. Spec:
 // docs/superpowers/specs/2026-10-29-ios-liquid-glass-app-icons-design.md.
 //
-// Dawn and Gold are cut from the Sunrise's native layer (itself cut from the
-// locked master), split into sun, rays and water, each a flat-painted glass
-// layer that Icon Composer lights. Sunrise, Sunrise Dark, Spectrum and Amber
-// reuse the Mac's documents and layers unchanged.
+// Bronze, Dawn and Gold are cut from the Sunrise's native layer (itself cut
+// from the locked master), split into sun, rays and water, each a
+// flat-painted glass layer that Icon Composer lights. Sunrise, Sunrise Dark,
+// Spectrum and Amber reuse the Mac's documents and layers unchanged.
 
 const crypto = require('node:crypto');
 const fs = require('node:fs');
@@ -27,9 +28,10 @@ const SCHEMA_LABELS = new Map(SCHEMA_ICONS.map((icon) => [icon.id, icon.label]))
 // In picker order, the primary (standard) icon first. Every id but Dawn's is
 // shared with the Mac, so its label comes from the settings schema.
 const IOS_APP_ICONS = Object.freeze([
-  ['sunrise-gold', 'AppIcon'],
+  ['sunrise', 'AppIcon'],
+  ['sunrise-bronze', 'SunriseBronze', 'Sunrise Bronze'],
+  ['sunrise-gold', 'SunriseGold'],
   ['sunrise-dawn', 'SunriseDawn', 'Sunrise Dawn'],
-  ['sunrise', 'Sunrise'],
   ['sunrise-dark', 'SunriseDark'],
   ['sunrise-spectrum', 'SunriseSpectrum'],
   ['sunrise-amber', 'SunriseAmber'],
@@ -222,6 +224,42 @@ async function goldPackage(parts) {
   return { doc, images };
 }
 
+// The Sunrise turned inside out (owner, 2026-11-11, option C of three): the
+// cream of Sunrise's tile becomes a glass mark, and the bronze of its brushed
+// sun becomes the tile, with Gold's warm glow behind the sun and its
+// reflection in the water. In Dark the tile is a deep bronze-brown and the
+// mark stays cream.
+async function bronzePackage(parts) {
+  const images = {
+    'water.png': await paint(parts.water, waterWarmth('#FFFDF7', '#F3E6CC')),
+    'sun.png': await paint(parts.sun, '#FBF5EA'),
+    'rays.png': await paint(parts.rays, '#F7F0E5'),
+    'reflection.png': await raster(reflection('#FFE9C4', 0.55)),
+    'glow.png': await raster(glow('#FFE2B0', '#E8B470', 300, 0.45)),
+    'tile.png': await raster(svg(vertical('tile', [[0, '#C68E4C'], [0.55, '#8F5A26'], [1, '#4E3012']], 0, CANVAS), FULL('url(#tile)'))),
+  };
+  const creamGlass = (imageName, name, translucency) => glassGroup({ 'image-name': imageName, name }, {
+    shadow: { kind: 'layer-color', opacity: 0.5 },
+    translucency: { enabled: true, value: translucency },
+    lighting: 'individual',
+  });
+  const doc = {
+    fill: linear('#C68E4C', '#4E3012'),
+    'fill-specializations': [{ appearance: 'dark', value: linear('#3A2616', '#160F09') }],
+    groups: [
+      creamGlass('water.png', 'Water', 0.35),
+      creamGlass('sun.png', 'Sun', 0.25),
+      creamGlass('rays.png', 'Rays', 0.25),
+      { layers: [
+        tileLayer('reflection.png', 'Reflection', NOT_TINTED),
+        tileLayer('glow.png', 'Glow', NOT_TINTED, { 'opacity-specializations': [{ appearance: 'dark', value: 0.3 }] }),
+        tileLayer('tile.png', 'Tile', LIGHT_ONLY),
+      ] },
+    ],
+  };
+  return { doc, images };
+}
+
 // A Mac icon as an iPhone package: its own document and layers, unchanged
 // but for the platforms it declares.
 function macPackage(definition) {
@@ -252,9 +290,10 @@ async function iosAppIconFiles() {
     water: await grow(split.water, GROW.water),
   };
   const packages = {
-    AppIcon: await goldPackage(parts),
+    AppIcon: macPackage(APP_ICON_ASSETS.sunrise),
+    SunriseBronze: await bronzePackage(parts),
+    SunriseGold: await goldPackage(parts),
     SunriseDawn: await dawnPackage(parts),
-    Sunrise: macPackage(APP_ICON_ASSETS.sunrise),
     SunriseDark: macPackage(APP_ICON_ASSETS['sunrise-dark']),
     SunriseSpectrum: macPackage(APP_ICON_ASSETS['sunrise-spectrum']),
     SunriseAmber: macPackage(APP_ICON_ASSETS['sunrise-amber']),

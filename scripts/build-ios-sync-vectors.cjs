@@ -180,6 +180,9 @@ try {
     const result=spaces.pushPlan({...input,encryptFn:t=>crypt.encrypt(Buffer.alloc(32),t)});
     return entry(stale?'recovery excluded':'new record upload',input,{...result,recover:[...result.recover],unsynced:[...result.unsynced]});
   });
+  const emptyInput={fetchedBlob:null,fetchedVersion:null,localBlob:{v:1,spaceId:pipeSpace,groups:{},tabs:{}},pending:{},lastMergeAt:1000,now:2000,deviceId:'a',firstUpload:true};
+  const emptyResult=spaces.pushPlan({...emptyInput,encryptFn:t=>crypt.encrypt(Buffer.alloc(32),t)});
+  vectors.spacesPipeline.push(entry('empty Space never published uploads',emptyInput,{...emptyResult,recover:[...emptyResult.recover],unsynced:[...emptyResult.unsynced]}));
   const expiredTab={...pipeTab,deleted:pipeField(true)};
   const expiredInput={...pipeInput,fetchedBlob:pipeInput.localBlob,localBlob:{...pipeInput.localBlob,tabs:{[pipeId]:expiredTab}},pending:{tabs:{[pipeId]:{deleted:expiredTab.deleted}}},lastMergeAt:spaces.LIMITS.tombstoneMs+199,now:spaces.LIMITS.tombstoneMs+200};
   const expiredResult=spaces.pushPlan({...expiredInput,encryptFn:t=>crypt.encrypt(Buffer.alloc(32),t)});
@@ -222,6 +225,25 @@ try {
     assert.deepEqual(spaces.mergeIndex(revIndex(b),revIndex(a)),expected);
     return entry(name,{a:revIndex(a),b:revIndex(b)},expected);
   });
+  // A receipt names the hint it replaces; one another device published over
+  // is dropped, and a download the hint doesn't describe corrects it.
+  const hintBase={rev:'1111111111111111',revAt:10,revBy:'b'};
+  const hintReceipt={id:pipeSpace,rev:'2222222222222222',at:20,by:'a',base:hintBase};
+  vectors.spacesIndexReceipts=[
+    ['base unchanged publishes',hintReceipt,revEntry('1111111111111111',10,'b')],
+    ['another device published over the base: dropped',hintReceipt,revEntry('3333333333333333',30,'b')],
+    ['this device published over the base: publishes',hintReceipt,revEntry('3333333333333333',30,'a')],
+    ['same revision, newer hint: dropped',hintReceipt,revEntry('1111111111111111',11,'b')],
+    ['a receipt without a base publishes',{id:pipeSpace,rev:'2222222222222222',at:20,by:'a'},revEntry('3333333333333333',30,'b')],
+  ].map(([name,receipt,current])=>entry(name,{receipt,entry:current,deviceId:'a'},spaces.receiptSuperseded(receipt,current,'a')));
+  for(const [name,input] of [
+    ['upload receipt names its base',{...pipeInput,indexHint:revEntry('1111111111111111',10,'b')}],
+    ['download the hint does not describe: correction',{...pipeInput,localBlob:pipeInput.fetchedBlob,pending:{},indexHint:revEntry('1111111111111111',10,'b')}],
+    ['download the hint describes: nothing',{...pipeInput,localBlob:pipeInput.fetchedBlob,pending:{},indexHint:revEntry(spaces.revisionOf(pipeInput.fetchedBlob),10,'b')}],
+  ]) {
+    const result=spaces.pushPlan({...input,encryptFn:t=>crypt.encrypt(Buffer.alloc(32),t)});
+    vectors.spacesPipeline.push(entry(name,input,{...result,recover:[...result.recover],unsynced:[...result.unsynced]}));
+  }
   // Uploads relay what this version can't interpret, unchanged.
   const relayTab=(n,over={})=>({...selectionTab(n),...over});
   const partialTab=relayTab(1);delete partialTab.name;

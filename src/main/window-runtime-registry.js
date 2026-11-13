@@ -27,6 +27,10 @@ function createRuntime({ id = null, profileId = DEFAULT_PROFILE_ID } = {}) {
     id: resolvedId,
     profileId,
     closing: false,
+    // Closed, but its tabs stay saved: the macOS primary in the Dock
+    // (dock-reopen.js), or a window a failed update restart closed. A new
+    // window clears it.
+    dockClosed: false,
     resident: false,
     // A mini window (#1138, mini-window.js): small, never saved, never a
     // link's destination, and closed after an hour unused.

@@ -265,11 +265,7 @@ jobs:
         # would queue three more jobs for it. docs/ci-self-hosted-macos-runner.md
         os: ${{ fromJSON((github.event_name == 'schedule' || github.event_name == 'workflow_dispatch') && '["ubuntu-latest", "windows-latest", "macos-latest"]' || '["ubuntu-latest", "windows-latest"]') }}
     runs-on: ${{ (matrix.os == 'macos-latest' && vars.MAC_RUNNER_LABELS != '' && (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository)) && fromJSON(vars.MAC_RUNNER_LABELS) || matrix.os }}
-    # Shared Spaces includes two real clients and hard restarts while obeying
-    # the real 10-GET/60-second window (about 26 minutes on its own on Linux),
-    # and its keyring apt-get install can take several minutes; preserve time
-    # for the ordinary smokes.
-    timeout-minutes: 50
+    timeout-minutes: 25
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
@@ -285,17 +281,6 @@ jobs:
       - name: Workspace preservation and opener families (Windows/macOS)
         if: runner.os != 'Linux'
         run: npm run test:workspaces:desktop
-      - name: Shared Spaces window and consent acceptance (Linux)
-        if: runner.os == 'Linux'
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y gnome-keyring dbus-x11 libsecret-1-0
-          bash scripts/ci-enable-linux-sandbox.sh
-          dbus-run-session -- bash -c '
-            set -euo pipefail
-            printf "%s\n" "blanc-ci-fixture" | gnome-keyring-daemon --unlock --components=secrets
-            BLANC_TEST_SECURE_STORAGE=1 XDG_CURRENT_DESKTOP=GNOME xvfb-run -a npx cucumber-js -c test/desktop/cucumber.mjs -p runnable --tags @F57
-          '
       # Linux runs the same smoke in the tab-handoff job.
       - name: Closing the last window quits Blanc and keeps its tabs (Windows)
         if: ${{ !cancelled() && runner.os == 'Windows' }}
@@ -309,6 +294,37 @@ jobs:
       - name: A closed primary window stays closed (Windows)
         if: ${{ !cancelled() && runner.os == 'Windows' }}
         run: npm run test:window-close-primary
+
+  shared-spaces:
+    needs: changes
+    # Runs unless `changes` proved a website/docs-only PR (also runs if it failed).
+    if: ${{ !cancelled() && needs.changes.outputs.app != 'false' }}
+    # Two real clients and hard restarts, obeying the real 10-GET/60-second
+    # window: 16 minutes in one job, so its scenarios are split across three.
+    strategy:
+      fail-fast: false
+      matrix:
+        shard: [1, 2, 3]
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - name: Shared Spaces window and consent acceptance
+        run: |
+          bash scripts/ci-apt-mirror.sh
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends gnome-keyring dbus-x11 libsecret-1-0
+          bash scripts/ci-enable-linux-sandbox.sh
+          dbus-run-session -- bash -c '
+            set -euo pipefail
+            printf "%s\n" "blanc-ci-fixture" | gnome-keyring-daemon --unlock --components=secrets
+            BLANC_TEST_SECURE_STORAGE=1 XDG_CURRENT_DESKTOP=GNOME xvfb-run -a npx cucumber-js -c test/desktop/cucumber.mjs -p runnable --tags @F57 --shard ${{ matrix.shard }}/3
+          '
 
   favorites-import:
     needs: changes
@@ -371,6 +387,12 @@ jobs:
       - name: Quiet Tabs (Windows)
         if: runner.os != 'Linux'
         run: npm run test:quiet-tabs:desktop
+      - name: Page zoom (Linux)
+        if: ${{ !cancelled() && runner.os == 'Linux' }}
+        run: xvfb-run -a npm run test:page-zoom:desktop
+      - name: Page zoom (Windows)
+        if: ${{ !cancelled() && runner.os != 'Linux' }}
+        run: npm run test:page-zoom:desktop
       - name: Tab views keep drawing (Linux)
         if: ${{ !cancelled() && runner.os == 'Linux' }}
         run: xvfb-run -a npm run test:tab-view-drawing:desktop
@@ -416,7 +438,7 @@ jobs:
       # the Control release arrives (docs/superpowers/specs/2026-10-24-mru-tab-switcher-design.md §8).
       - name: Install xdotool (Linux)
         if: runner.os == 'Linux'
-        run: sudo apt-get update -q && sudo apt-get install -y -q xdotool
+        run: bash scripts/ci-apt-mirror.sh && sudo apt-get update -q && sudo apt-get install -y -q xdotool
       - name: Browser commands and Settings (Linux)
         if: runner.os == 'Linux'
         run: |

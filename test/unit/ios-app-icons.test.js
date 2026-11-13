@@ -11,20 +11,25 @@ const packageDir = (icon) => path.join(ROOT, IOS_APP_ICON_DIR, `${icon.nativeNam
 const iconDocument = (icon) => JSON.parse(fs.readFileSync(path.join(packageDir(icon), 'icon.json'), 'utf8'));
 const byName = (name) => IOS_APP_ICONS.find((icon) => icon.nativeName === name);
 
-test('the iPhone catalog is Gold (the standard icon) first, then Dawn, then the Mac icons', () => {
+const IPHONE_ONLY = ['sunrise-bronze', 'sunrise-dawn'];
+
+test('the iPhone catalog is Sunrise (the standard icon) first, then Bronze, Gold, Dawn and the Mac icons', () => {
   assert.deepEqual(IOS_APP_ICONS.map((icon) => icon.id), [
-    'sunrise-gold', 'sunrise-dawn', 'sunrise', 'sunrise-dark', 'sunrise-spectrum', 'sunrise-amber',
+    'sunrise', 'sunrise-bronze', 'sunrise-gold', 'sunrise-dawn', 'sunrise-dark', 'sunrise-spectrum', 'sunrise-amber',
   ]);
   assert.deepEqual(IOS_APP_ICONS.map((icon) => icon.nativeName), [
-    'AppIcon', 'SunriseDawn', 'Sunrise', 'SunriseDark', 'SunriseSpectrum', 'SunriseAmber',
+    'AppIcon', 'SunriseBronze', 'SunriseGold', 'SunriseDawn', 'SunriseDark', 'SunriseSpectrum', 'SunriseAmber',
   ]);
-  assert.equal(IOS_APP_ICONS[1].label, 'Sunrise Dawn');
+  assert.equal(byName('SunriseBronze').label, 'Sunrise Bronze');
+  assert.equal(byName('SunriseDawn').label, 'Sunrise Dawn');
   const schema = JSON.parse(fs.readFileSync(path.join(ROOT, 'settings-schema/schema.json'), 'utf8'));
   const labels = new Map(schema.appIcons.map((icon) => [icon.id, icon.label]));
-  for (const icon of IOS_APP_ICONS.filter((icon) => icon.id !== 'sunrise-dawn')) {
+  for (const icon of IOS_APP_ICONS.filter((icon) => !IPHONE_ONLY.includes(icon.id))) {
     assert.equal(icon.label, labels.get(icon.id), icon.id);
   }
-  assert.equal(labels.has('sunrise-dawn'), false, 'Dawn is iPhone-only and stays out of the shared schema');
+  for (const id of IPHONE_ONLY) {
+    assert.equal(labels.has(id), false, `${id} is iPhone-only and stays out of the shared schema`);
+  }
 });
 
 test('every package exists and names only images it contains', () => {
@@ -38,19 +43,21 @@ test('every package exists and names only images it contains', () => {
   }
 });
 
-test('Dawn and Gold glass groups match the spec appendix', () => {
+test('Bronze, Dawn and Gold glass groups match the spec appendix', () => {
   const layerNames = (doc) => doc.groups.map((group) => group.layers.map((layer) => layer.name));
   const dawn = iconDocument(byName('SunriseDawn'));
   assert.deepEqual(layerNames(dawn), [['Water'], ['Sun'], ['Rays'], ['Glow', 'Night', 'Sky']]);
   assert.deepEqual(dawn.groups[0].translucency, { enabled: true, value: 0.35 });
   assert.equal(dawn.groups[0]['blur-material'], 0.6);
-  const gold = iconDocument(byName('AppIcon'));
+  const gold = iconDocument(byName('SunriseGold'));
   assert.deepEqual(layerNames(gold), [['Water'], ['Sun'], ['Rays'], ['Reflection', 'Glow', 'Tile']]);
+  const bronze = iconDocument(byName('SunriseBronze'));
+  assert.deepEqual(layerNames(bronze), [['Water'], ['Sun'], ['Rays'], ['Reflection', 'Glow', 'Tile']]);
 });
 
-test('Dawn and Gold glass layers are silhouettes of the mark, not full-canvas paint', async () => {
+test('Bronze, Dawn and Gold glass layers are silhouettes of the mark, not full-canvas paint', async () => {
   const sharp = require('sharp');
-  for (const name of ['AppIcon', 'SunriseDawn']) {
+  for (const name of ['SunriseBronze', 'SunriseGold', 'SunriseDawn']) {
     const doc = iconDocument(byName(name));
     for (const layer of doc.groups.flatMap((group) => group.layers).filter((layer) => layer.glass)) {
       const file = path.join(packageDir(byName(name)), 'Assets', layer['image-name']);
@@ -99,7 +106,7 @@ test('the previews lock matches every package', () => {
 test('reused packages match their Mac layers byte for byte', () => {
   const same = (packaged, source) => assert.deepEqual(
     fs.readFileSync(packaged), fs.readFileSync(path.join(ROOT, source)), path.relative(ROOT, packaged));
-  for (const name of ['Sunrise', 'SunriseDark']) {
+  for (const name of ['AppIcon', 'SunriseDark']) {
     same(path.join(packageDir(byName(name)), 'Assets/sunrise-mark.png'), 'build/app-icons/Icon.icon/Assets/sunrise-mark.png');
   }
   for (const name of ['SunriseSpectrum', 'SunriseAmber']) {
@@ -144,7 +151,7 @@ test('package digests ignore dotfiles such as Finder\'s .DS_Store', () => {
   const os = require('node:os');
   const copy = fs.mkdtempSync(path.join(os.tmpdir(), 'blanc-icon-digest-'));
   try {
-    fs.cpSync(packageDir(byName('Sunrise')), copy, { recursive: true });
+    fs.cpSync(packageDir(byName('AppIcon')), copy, { recursive: true });
     const before = packageDigest(copy);
     fs.writeFileSync(path.join(copy, '.DS_Store'), 'finder');
     fs.writeFileSync(path.join(copy, 'Assets', '.DS_Store'), 'finder');

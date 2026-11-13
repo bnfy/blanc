@@ -243,7 +243,7 @@
   },
   "pill.placeholder": {
     "message": "Pesquise ou digite uma URL",
-    "source": "sha256:2e08dd16f185dce91d05c05daf014358e0e4a3288b77548b35d7036a441d2379"
+    "source": "sha256:8d94349d68e65bad7b02e39aa7e4eafbf42f58c875dec41fe663ba8005f16a77"
   },
   "pill.notice.cleanLinkCopied": {
     "message": "Link limpo copiado",
@@ -2630,6 +2630,10 @@
     "message": "Esta sincronização não existe mais. Desative-a aqui e adicione este telefone de novo pelo seu computador.",
     "source": "sha256:342277ecfd5ccbdacb710e5e2298d117d09f2c93ed789df46e65a8c170878f01"
   },
+  "sync.error.accountGone.ipad": {
+    "message": "Esta sincronização não existe mais. Desative-a aqui e adicione este iPad de novo pelo seu computador.",
+    "source": "sha256:1931925bccfddf21adc23eb371e617e8370dc8250bdd1a9501b4aa24c105d064"
+  },
   "settings.sync.recovery.dialogMessage": {
     "message": "Copiar o código de recuperação da sincronização?",
     "source": "sha256:f845de77b6c5ee8077b4523af5750307d27f07c5805b9e6d4ef92fb3934817fa"
@@ -2998,10 +3002,6 @@
   "glance.status.closed": {
     "message": "Glance fechado",
     "source": "sha256:1008c10836b5872a9ac50e128369c885836df91e8e756948e2b3abf4aed4a15e"
-  },
-  "split.glanceUnavailable": {
-    "message": "O Glance não está disponível enquanto uma visualização dividida é exibida",
-    "source": "sha256:f2310b15f7e0b49d589da7dfe191a1033dd0c654dc19f4c4e1b15b87d5c8256f"
   },
   "glance.status.openedAsTab": {
     "message": "{title} agora é a aba atual",
@@ -7327,6 +7327,10 @@
     "message": "tabuleiro",
     "source": "sha256:3427faa722440de430c983369e0e58b06701bc2990a647d782ad0a1d8df17d67"
   },
+  "mahjong.setup.dailyLayoutHint": {
+    "message": "A partida do dia usa o layout de hoje. Mude para “Aleatória” para escolher outro.",
+    "source": "sha256:24ae317b8e6bafdaa017aa28bd5de16c9cad98e1a4d978c34fa769e01922ce47"
+  },
   "mahjong.layout.turtleDetail": {
     "message": "144 peças · tranquilo",
     "source": "sha256:64841fe57365e0fe1eb676f73cf291e3841e56b119084ecade3e5b655713add4"
@@ -7423,17 +7427,17 @@
     "message": "<0>Partida Zen</0> Oculta o tempo e a pontuação, e deixa esta partida fora dos recordes.",
     "source": "sha256:e8fdf7aee42c0d71edd6664a8ab56c4d058ce69c39845175dd18db5af5c0741e"
   },
-  "mahjong.setup.freeHighlight": {
-    "message": "<0>Destaque mais forte das peças livres</0> Adiciona um anel fixo de alto contraste a cada peça que pode ser jogada.",
-    "source": "sha256:650c89c61e8a6a0d5510c12d722e090728f1a1e6de5fa1721488b217fc687810"
-  },
   "mahjong.setup.replaces": {
     "message": "Começar substitui o tabuleiro que está nesta mesa.",
     "source": "sha256:9aed92ef1a9909b68f6232fec4819c25a5b95b6775c1f6fdb98b9644760bb5d8"
   },
   "mahjong.setup.copyDeal": {
-    "message": "copiar a partida atual",
-    "source": "sha256:5eb79d2bca875e7438c52b53e1c3c598bc6f59db0360798c907f722367071ef9"
+    "message": "copiar link",
+    "source": "sha256:e72d235453e7a7f28c0215905385db9ae7471632a9f936085b2f480577cb469c"
+  },
+  "mahjong.setup.linkCopied": {
+    "message": "link copiado",
+    "source": "sha256:1feca2c795efb3afdcb911a8b712f3fb9b5b5227b343581ceb84830dab95a946"
   },
   "mahjong.setup.start": {
     "message": "começar",
@@ -7599,33 +7603,33 @@
     "message": "dragão branco, {motif}",
     "source": "sha256:a6bf943e9af21299811463503ef949a13e36ab8d058bd3bd174add09e0456639"
   },
-  "mahjong.tile.motif.sunrise": {
-    "message": "nascer do sol",
-    "source": "sha256:fd26826556dbf0a583900e526636c4d75e3d4aa0df5ad9be34b4dccddc0ff0b2"
+  "mahjong.tile.windEastPlain": {
+    "message": "vento leste",
+    "source": "sha256:e7c8667b5055ce85371a5cf4e8bc3d8fce72126a14d5c82c088c58e425a94ff7"
   },
-  "mahjong.tile.motif.sun": {
-    "message": "sol",
-    "source": "sha256:cb8156bf23b6e637692cf64e1eaa490ed46dea42e0bb19b1cbf7979cb45cac19"
+  "mahjong.tile.windSouthPlain": {
+    "message": "vento sul",
+    "source": "sha256:de27fa7079e569c8aaf88b1ada511e1f53042b745939c7afc2adacf749cf5ccd"
   },
-  "mahjong.tile.motif.moonAndWave": {
-    "message": "lua e onda",
-    "source": "sha256:4dcf189c43f12523227b974b4810938b34d029aeed4d865eab5fa838e849f651"
+  "mahjong.tile.windWestPlain": {
+    "message": "vento oeste",
+    "source": "sha256:ea00b1481a4e7963056ee52a50eb4bfcc9e8860c542d1ded6a8af1fc1eb2257f"
   },
-  "mahjong.tile.motif.mountain": {
-    "message": "montanha",
-    "source": "sha256:f72104660aba44adcb1053a54c857f6fd83179df9f701a81a61f860b4b2c701a"
+  "mahjong.tile.windNorthPlain": {
+    "message": "vento norte",
+    "source": "sha256:7d96b46e40c442f15c489e552797bc2e14b8733372c45607c07a3aa2e361e4b8"
+  },
+  "mahjong.tile.dragonRedPlain": {
+    "message": "dragão vermelho",
+    "source": "sha256:f91061d529f95302034707e06f46939fba314c681b9efd8f4887cede141b38f6"
+  },
+  "mahjong.tile.dragonGreenPlain": {
+    "message": "dragão verde",
+    "source": "sha256:1e9c9024c8352f016af6767d8647870992fb4d1e4c68ffd9432012dfa38144f3"
   },
   "mahjong.tile.motif.compass": {
     "message": "bússola",
     "source": "sha256:2df6fdfece5cf4d3e8071d49fe04f6efc39d99bc9564c55cc25972cd9b8f06b9"
-  },
-  "mahjong.tile.motif.flame": {
-    "message": "chama",
-    "source": "sha256:72af75562afdb2f2ea0ad6d1edfa2ae4acdc5dcf4aa508cdf7f65f347512cd7b"
-  },
-  "mahjong.tile.motif.flourish": {
-    "message": "arabesco",
-    "source": "sha256:b68da143e73e6d42eddc3dd177b6b995873fd78e304927ce8135f45049797f44"
   },
   "mahjong.tile.motif.blancMark": {
     "message": "logo do Blanc",
@@ -7842,6 +7846,42 @@
   "mahjong.win.quietTitle": {
     "message": "Um final tranquilo.",
     "source": "sha256:02044e13ec6e158bac2a971fc2e2f0ea9a63389de0f00fd67ced1158658b03fa"
+  },
+  "mahjong.win.titleRecord": {
+    "message": "Um novo recorde pessoal.",
+    "source": "sha256:296fcbb0bf58ad579037f2e45e127d049b3b1c26f693421cb9020637fa75b48b"
+  },
+  "mahjong.win.titleFirst": {
+    "message": "Primeira vez que você completa {layout}.",
+    "source": "sha256:492d6aee3583db3f28e2578a9b2531ca85caaee02f5a62e02a9991440f275bc7"
+  },
+  "mahjong.win.titleStreak": {
+    "message": "{run} seguidas. Agora, peças novas.",
+    "source": "sha256:642b6f59f40afb5e5161033f33ce4c7700840ed95dc8a4661e5df6bc0990aca3"
+  },
+  "mahjong.win.titleDaily": {
+    "message": "A diária de hoje está concluída.",
+    "source": "sha256:5c4ba8ca52573baefdc2b9f533cea468af0bf4041862d8d153c58c1d0616bcf5"
+  },
+  "mahjong.win.titleSweep": {
+    "message": "Mesa limpa.",
+    "source": "sha256:ba94fd22d040b82da4dd12d0b04a8cea340475f79ff03ba35c9914619c54242c"
+  },
+  "mahjong.win.titleHome": {
+    "message": "Cada peça em seu lugar.",
+    "source": "sha256:097b24e605ab4fa2f4bd27482d89d76b863ca4429ca966a29adb6b65dc854586"
+  },
+  "mahjong.win.titleLastPair": {
+    "message": "Era o último par.",
+    "source": "sha256:32c4a8460e463ac717226fee92ed5ebfe95a18bff9fe55598d0f1e5004b347e0"
+  },
+  "mahjong.win.titleTidy": {
+    "message": "Uma mesa arrumada.",
+    "source": "sha256:a1d6b160c314c1638f860cba6143d4fca81dc29319754587e71336c6f0d7895f"
+  },
+  "mahjong.win.titleWellPlayed": {
+    "message": "Bem jogado.",
+    "source": "sha256:100e0ace2b71fb0d9ae9c39be6d84ea1dbd06f5240d3cf33845a984f12350b47"
   },
   "mahjong.win.rules": {
     "message": "{mode} · {rules}",
@@ -8331,6 +8371,10 @@
     "message": "Inicie a sincronização no seu computador e adicione este telefone com um código.",
     "source": "sha256:afd19ac9e6a3c113db62227c93337efcff83cfbd57e0ac89625576ed0a69db94"
   },
+  "settings.sync.createOnComputer.ipad": {
+    "message": "Inicie a sincronização no seu computador e adicione este iPad com um código.",
+    "source": "sha256:5c2568d59005c18c7ffc4927335198d152c66c919bf3a3727a192e336fe25b49"
+  },
   "settings.sync.enterSyncName": {
     "message": "Digite o nome da sua sincronização",
     "source": "sha256:21c2e58d05113dfe2f34338ed74a4f308bb6e0f5adf43b77754fc2107cbf540d"
@@ -8783,13 +8827,25 @@
     "message": "Compartilhe as abas abertas normais deste iPhone com seus outros dispositivos. Abas privadas nunca são compartilhadas.",
     "source": "sha256:83d7996fbe9b9d874ba434cbe43221a9fd2799fc25d6f692d05310d6844e087b"
   },
+  "ios.settings.shareTabsHelp.ipad": {
+    "message": "Compartilhe as abas abertas normais deste iPad com seus outros dispositivos. Abas privadas nunca são compartilhadas.",
+    "source": "sha256:8856a9ddc34f97998d7b672757de8378f7279da16210ca14f98b79cacd63af7b"
+  },
   "ios.settings.disconnectHelp": {
     "message": "Desconectar este iPhone? Seus Favoritos e ajustes locais ficam aqui. Seus outros dispositivos não são afetados.",
     "source": "sha256:0d8334eb54e8e7eb72a963a6d65e2b3f72ddcf351d20fe7ec101467fc4b4b1dd"
   },
+  "ios.settings.disconnectHelp.ipad": {
+    "message": "Desconectar este iPad? Seus Favoritos e ajustes locais ficam aqui. Seus outros dispositivos não são afetados.",
+    "source": "sha256:1cd1481e376119473a304b072dddcc0ee0ebb14c37c5dae99a114acdd25dca1d"
+  },
   "ios.settings.switchHelp": {
     "message": "Este iPhone sairá da sincronização atual. Seus Favoritos e ajustes locais ficam aqui. Seus outros dispositivos não são afetados.",
     "source": "sha256:82889fc299ef71255083ed05c51921fbfccc2eb8977562d6a8ae7c56b793c272"
+  },
+  "ios.settings.switchHelp.ipad": {
+    "message": "Este iPad sairá da sincronização atual. Seus Favoritos e ajustes locais ficam aqui. Seus outros dispositivos não são afetados.",
+    "source": "sha256:a1c1a51482b0d8f4264e4a55dea3e68d240c16cceb90bc27607fe8b94b0a24d1"
   },
   "ios.settings.timeOfDay": {
     "message": "Hora do dia",
@@ -9029,6 +9085,26 @@
     "message": "Deixa a Island e os botões maiores. A página desce para abrir espaço.",
     "source": "sha256:48c1d3a1a214af35519502d499581a6d02de870bcacc9b805359bb539b21f58d"
   },
+  "settings.general.pageZoom.label": {
+    "message": "Zoom padrão da página",
+    "source": "sha256:fe73fcb3567cd53127a2d319a777c0b71e678eb9519d48093ebbd771a3b15b83"
+  },
+  "settings.general.pageZoom.hint": {
+    "message": "O tamanho com que as páginas da web abrem. Ao aumentar ou reduzir o zoom em um site, o tamanho é salvo só para esse site.",
+    "source": "sha256:92d47376c4e3ddeba8965ebdaaa4bb85838869de83f14c5daaf425ad7a96bf22"
+  },
+  "settings.general.pageZoom.percent": {
+    "message": "{percent}%",
+    "source": "sha256:5f1c7869f205f85c914f58cc7090021e03baf27faaaa382b41353ffc6312fb8b"
+  },
+  "settings.general.siteZoom.hint": {
+    "message": "Estes sites têm zoom próprio. Remova um para voltar ao padrão.",
+    "source": "sha256:b6b6948ccced487b221de55765e76c5eea4d539e0258878db9552d31a085eb5a"
+  },
+  "settings.general.siteZoom.clearAll": {
+    "message": "Limpar tudo",
+    "source": "sha256:b39813f37a5cb176f968bbe93d8e610bd12021fa8ab48ac4c793ce29c346352b"
+  },
   "settings.general.islandSize.default": {
     "message": "Padrão",
     "source": "sha256:ff21948bae12e207abf2eb10170dcc542a289349152b11bb45cf2bfecf684e53"
@@ -9069,6 +9145,10 @@
     "message": "Este telefone",
     "source": "sha256:b026046d8dfbc3b8b3eade4d617aecce3c30cbd1b4aa8b741164583a8a88a4a9"
   },
+  "spaces.thisIPad": {
+    "message": "Este iPad",
+    "source": "sha256:1585758383f584e1390802e41ffe68d77fa9d99d958b462f50a6cd08561edb39"
+  },
   "spaces.menuLabel": {
     "message": "Spaces",
     "source": "sha256:8e891bb692010b9fa0e4ac71d8f835de61caa035dce16f05c8933e0618b7924a"
@@ -9097,9 +9177,17 @@
     "message": "Manter Spaces e grupos sincronizados neste iPhone",
     "source": "sha256:37f571fc1dc4b0a7299b0c4062eee63119c24848a52820fa96405910b0ea0683"
   },
+  "sharedSpaces.switch.iphone.ipad": {
+    "message": "Manter Spaces e grupos sincronizados neste iPad",
+    "source": "sha256:3ce594881d5c46e96863d972e9b48ba9beff75c9a62d1127d3fcd580baf6c9d3"
+  },
   "sharedSpaces.switch.line.iphone": {
     "message": "As abas dos seus Spaces compartilhados são sincronizadas a partir deste iPhone.",
     "source": "sha256:3a52ae761ef984f6537ac718ef7cedb34fe1f6b59d01620d9daeb0218cb6c242"
+  },
+  "sharedSpaces.switch.line.iphone.ipad": {
+    "message": "As abas dos seus Spaces compartilhados são sincronizadas a partir deste iPad.",
+    "source": "sha256:6b31e8c7523b0c0f758b9cbed0cd67513d03e11b86cb351dad6c08a01f042d91"
   },
   "sharedSpaces.waitingCount": {
     "message": "{count, plural, one {# Space compartilhado está esperando} many {# Spaces compartilhados estão esperando} other {# Spaces compartilhados estão esperando}}",
@@ -9109,13 +9197,25 @@
     "message": "Salvar Este iPhone como Space",
     "source": "sha256:29322ed63d9fca7aca123a8d29dc57c0a922a43fb008c9200098b0b7ae357249"
   },
+  "sharedSpaces.saveThisIPhone.ipad": {
+    "message": "Salvar Este iPad como Space",
+    "source": "sha256:eefbb4136228567c028b7d81b8511d4805c5134f50d1f31ada985b95820cdd7b"
+  },
   "sharedSpaces.recoveryName.iphone": {
     "message": "{name} · mantido neste iPhone",
     "source": "sha256:4fc90d0e3a8eda549190a942e5b17c1a84a1ce47c17803da49681e2132c32c38"
   },
+  "sharedSpaces.recoveryName.iphone.ipad": {
+    "message": "{name} · mantido neste iPad",
+    "source": "sha256:cf35525e5abdf98f03fac55871601309408e05e0b7ec09e8fb382f7326477c6e"
+  },
   "sharedSpaces.deletedEverywhere": {
     "message": "Excluído em todos os lugares. Desfazer mantém uma cópia neste iPhone.",
     "source": "sha256:8321dabd3f5afe88f2cecd37514c421fa323e4e7f662a13e0a34b282c1f484ec"
+  },
+  "sharedSpaces.deletedEverywhere.ipad": {
+    "message": "Excluído em todos os lugares. Desfazer mantém uma cópia neste iPad.",
+    "source": "sha256:6a614aff72b50de906d5d7823c762682f8480cd2cfff0ff7eef2b8713d45c9b6"
   },
   "spaces.onDevice": {
     "message": "Em {device}",
@@ -9124,6 +9224,10 @@
   "bringSpace.action": {
     "message": "Trazer para o iPhone",
     "source": "sha256:ea5b99999b3b68bd5611ae0e535c7372be51f0cdc24fdf62fef0d03d1dd70d3e"
+  },
+  "bringSpace.action.ipad": {
+    "message": "Trazer para o iPad",
+    "source": "sha256:09f4059d161d3ae253303a844736d34f186059a21056d2af5f09eadea8285fe2"
   },
   "bringSpace.copyNote": {
     "message": "Esta cópia não muda quando o Space mudar em {device}. Ative a sincronização de Spaces para mantê-los iguais.",
@@ -9140,6 +9244,38 @@
   "ios.island.reload": {
     "message": "Recarregar a página",
     "source": "sha256:a97b578f423dbbb6a41916f986dab254f7855930346ab81e04fe955ed8fd29ed"
+  },
+  "ios.settings.islandTuck": {
+    "message": "Ocultar a Island ao rolar",
+    "source": "sha256:b2880c6b19c41edf58338069bb2a673ca49e360df2a3827a331bf3f9186d5f7e"
+  },
+  "ios.settings.islandHistoryButtons": {
+    "message": "Botões Voltar e Avançar",
+    "source": "sha256:24b5daf02568586be73f80ddd0aeb9272f802b6b953247fe9c0dc9df17cfa571"
+  },
+  "ios.settings.islandHistoryButtonsHelp": {
+    "message": "Se desativá-los, Recarregar aparece no lugar deles. Você também pode puxar uma página para baixo para recarregá-la.",
+    "source": "sha256:4cc6e57fb31059f5f1acd09b2e8f9790272f49bdd10a4ce96eabcd702c3ec041"
+  },
+  "ios.settings.islandPosition": {
+    "message": "Posição",
+    "source": "sha256:5e36b380b1a6313a28b506c3f362800c429010f9dbeac405fd02c10c94119fbf"
+  },
+  "ios.settings.islandPosition.bottom": {
+    "message": "Embaixo",
+    "source": "sha256:9777aa9f73ae775741f6da6b6debbd232fb32c68c0880ca887ccd2a822e7a967"
+  },
+  "ios.settings.islandPosition.top": {
+    "message": "Em cima",
+    "source": "sha256:250636ac6f210db91413e7f10809e3218296d9932f13ec3f7d2e514ade52d389"
+  },
+  "ios.settings.island": {
+    "message": "Island",
+    "source": "sha256:c7651da6acb66d3cbb701eece1bfbb39fe9ab063e6ae104732720b010b1abb09"
+  },
+  "ios.settings.privacySync": {
+    "message": "Privacidade e sincronização",
+    "source": "sha256:aee4b9a1361196db220e4bb7945a425d25fdf0ea8988dc92de489a34f0fb474f"
   },
   "ios.island.stop": {
     "message": "Parar de carregar",
@@ -9168,6 +9304,30 @@
   "ios.palette.noMatches": {
     "message": "Nenhum resultado. Toque em Retorno para abrir como endereço ou pesquisa.",
     "source": "sha256:46db92f26b57de707da442b42408e8bf0086343fd07da52e5967f9e4912de2cf"
+  },
+  "ios.palette.editAddress": {
+    "message": "Editar endereço",
+    "source": "sha256:dfbb61b6b19e7cb18c745888e725052c4c00764e10af5bffdf6d678594f96330"
+  },
+  "ios.island.pageZoom": {
+    "message": "Zoom da página",
+    "source": "sha256:20d98a6a2b92cc042344220be60fe3b39d67547c2b978597bf622d53fc1780dd"
+  },
+  "ios.island.desktopSite": {
+    "message": "Solicitar site para computador",
+    "source": "sha256:26fce8e023bb66144767cd3297b77ecf89bd966f2a482e07e330c2d4ef10ac8f"
+  },
+  "ios.island.mobileSite": {
+    "message": "Solicitar site para celular",
+    "source": "sha256:d85602f2c34cb0dc8c6fe1d7b89d47ae3d3b28ca4226a91a70c44d20b02a3b0c"
+  },
+  "ios.appLink.message": {
+    "message": "Esta página quer abrir outro aplicativo.",
+    "source": "sha256:0ec329b3a709623bad526c6473165ac3c8e2cb0bd289e2140f75e975a26bacba"
+  },
+  "ios.downloads.failed": {
+    "message": "Não foi possível baixar {file}",
+    "source": "sha256:528a807eb1ee9254b624cc9abbaae34a1bf5d4cddd78d1349911e1e8b2bd43b5"
   },
   "ios.tabs.openTabs": {
     "message": "Abas abertas",
@@ -9200,6 +9360,10 @@
   "ios.welcome.title": {
     "message": "Seu Blanc, no seu bolso.",
     "source": "sha256:9b3d61d7c90b5e7efb6caab1e5abe9561db5d8701d0cfc23ad3291cc847fb9d1"
+  },
+  "ios.welcome.title.ipad": {
+    "message": "Seu Blanc, no seu iPad.",
+    "source": "sha256:0a588438f990307df5acdd5232d9bc88f4745ecd8afef73071aa233ecccc2c08"
   },
   "ios.welcome.body": {
     "message": "Traga as abas, os Spaces e os Favoritos do Blanc no seu computador.",
@@ -9245,6 +9409,26 @@
     "message": "Compartilhar deste iPhone",
     "source": "sha256:61dd993df0201b989d53efd771e1d61505b3e653e4c43fdc60c1edc0ad5498fd"
   },
+  "ios.welcome.shareTitle.ipad": {
+    "message": "Compartilhar deste iPad",
+    "source": "sha256:b2710f3259484b8979dfe18aab1d64924103bac618b8276b8eb518fe0c7b674d"
+  },
+  "ios.menu.requestMobileSite": {
+    "message": "Solicitar site para celular",
+    "source": "sha256:18811c9eb691ba477ea5989dab4bfb497b56f9619ac817b6d56ac9ed31dfbf38"
+  },
+  "ios.menu.requestDesktopSite": {
+    "message": "Solicitar site para computador",
+    "source": "sha256:527f089f6269388ded9f5cd79a376ca933cd5475dc40b51f79e82bf6256a5d0e"
+  },
+  "menu.focusNextPane": {
+    "message": "Próximo painel",
+    "source": "sha256:11dc6350ef1ae461ccb42190827924d52f4cad3c6a0120717ebf2ea55825f22f"
+  },
+  "menu.focusPreviousPane": {
+    "message": "Painel anterior",
+    "source": "sha256:de933dbf93f18b308af517f1758b7f69d31394e277488b353280f907c6b8288e"
+  },
   "ios.welcome.shareBody": {
     "message": "Os dois ficam desativados até você ativá-los. Você pode mudá-los depois em Ajustes → Sincronização.",
     "source": "sha256:8a81a001677bb25429863d7754431e93c3916de0846173acf9df6399edac60fc"
@@ -9260,6 +9444,10 @@
   "ios.welcome.measureUsageHelp": {
     "message": "Cada vez que você abre o Blanc, ele envia uma contagem anônima: um ID aleatório desta instalação, a versão do app e a versão do iOS. Nunca o que você navega. Veja blanc.day/privacy.",
     "source": "sha256:918daf894fa3d224ceb4594a9ca31bb335ea73f40215009a0e188c3b261689bc"
+  },
+  "ios.welcome.suggestionsHelp": {
+    "message": "Enquanto você digita uma pesquisa, o texto vai para o seu provedor de pesquisa, que devolve sugestões. Nunca de uma aba privada, e nunca um endereço, texto colado ou qualquer coisa que pareça uma senha ou chave.",
+    "source": "sha256:54fe76e488a4dfe5362d990df43edc375a3c92743a380cefe519fda8cfe1f6dd"
   },
   "ios.welcome.showAgain": {
     "message": "Mostrar as boas-vindas de novo",

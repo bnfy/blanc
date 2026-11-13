@@ -1,4 +1,5 @@
 import Foundation
+import UIKit
 
 /// A tab put away: what comes back when its set is shown again (M17). Never
 /// page state, and never a private tab.
@@ -9,6 +10,14 @@ struct SavedTab: Codable, Equatable {
     var groupId: String?
     /// The shared record's id while the tab is in a shared Space (M17c).
     var tabId: String?
+    /// Finds this tab's Back and Forward list in `TabHistoryStore`. This
+    /// device's only: sync builds its records field by field and never reads
+    /// it, and it isn't part of what the tab is, so `==` ignores it.
+    var historyId: String?
+
+    static func == (a: SavedTab, b: SavedTab) -> Bool {
+        a.url == b.url && a.title == b.title && a.pinned == b.pinned && a.groupId == b.groupId && a.tabId == b.tabId
+    }
 }
 
 /// One set of tabs: This iPhone or a Space.
@@ -16,6 +25,10 @@ struct SavedSet: Codable, Equatable {
     var tabs: [SavedTab] = []
     var groups: [TabGroup] = []
     var activeIndex = 0
+    /// Split View (F53): the splits, and each tab's split id parallel to
+    /// `tabs`. Kept on this device only, as on desktop: never synced.
+    var splits: [SavedSplit]?
+    var splitIds: [String?]?
 }
 
 /// A Space on this phone. Local unless it has a `sharedId` (M17c).
@@ -57,10 +70,18 @@ struct SessionState: Codable, Equatable {
     var sharedAccount: String?
     /// Recovery Spaces whose one-time note has been shown.
     var recoveryNoted: [String]?
+    /// Each window and the set it showed (multiple windows W2). Older builds
+    /// ignore it and open `shown`.
+    var windows: [SavedWindow]?
 }
 
 enum TabSets {
     static let iphoneId = "iphone"
+    /// The device's own set's name: This iPad on an iPad, This iPhone
+    /// elsewhere (the Duo too). Its id stays "iphone" everywhere.
+    static var deviceSetName: String {
+        SyncCopy.text(ThisDevice.isPad ? "spaces.thisIPad" : "spaces.thisIPhone")
+    }
     static let spaceLimit = 25
     static let nameLimit = 60
     static let deletedRetentionMs: Int64 = 7 * 86_400_000

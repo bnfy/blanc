@@ -786,6 +786,9 @@ body.sheet .page > .row-list > .empty {
   font-size: 18px;
   line-height: 1;
 }
+.site-row-detail { flex: none; color: var(--text-dim); font-feature-settings: "tnum"; }
+.site-list-clear { margin-top: 10px; }
+#siteZoomList .site-row:last-child { border-bottom: 0; }
 .site-row-remove:hover { background: var(--surface); color: var(--danger); }
 .site-row-remove:focus-visible { color: var(--danger); }
 .site-list-add { display: flex; align-items: center; gap: 8px; padding: 4px 4px 4px 12px; }
@@ -3818,8 +3821,14 @@ body[data-layout="tally"] #layoutTally { display: grid; }
 }
 .start-customize:hover,
 .start-customize[aria-expanded="true"] { color: var(--text); border-color: var(--border); background: transparent; }
-/* Blanc for iPhone's read-only Start Page previews (TabsManager.makeStartPreview). */
-.start-preview .start-customize { display: none !important; }
+/* Blanc for iPhone's read-only Start Page previews (TabsManager.makeStartPreview).
+   The footer too: it sits above the Island on the phone, which in the short
+   preview is mid-page, where its frosted band covered the cards. */
+.start-preview :is(.start-customize, .ledger-footer) { display: none !important; }
+/* A Billboard preview shows the clock alone: a tall clock in the short
+   preview otherwise ran over the Sunrise mark and date. Gone rather than
+   hidden, so --start-header-h is 0 and the clock centres in the row. */
+.start-preview body[data-layout="billboard"] .start-header { display: none !important; }
 .start-customize:focus-visible { outline: 1px solid var(--text-dim); outline-offset: 3px; }
 
 /* Level-2 material: near-opaque, because it floats over the translucent footer. */

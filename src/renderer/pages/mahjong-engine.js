@@ -362,7 +362,7 @@
     if (typeof seedOrOptions === 'number') {
       return {
         seed: seedOrOptions, layoutId: 'turtle', mode: MODES.CLASSIC, gameId: null,
-        dailyKey: null, burstRules: BURST_RULES.AUTO, zen: false,
+        dailyKey: null, burstRules: BURST_RULES.AUTO, zen: false, dealId: null, tileTheme: null,
       };
     }
     const options = seedOrOptions && typeof seedOrOptions === 'object' ? seedOrOptions : {};
@@ -374,6 +374,8 @@
       dailyKey: options.dailyKey || null,
       burstRules: options.burstRules || BURST_RULES.AUTO,
       zen: options.zen === true,
+      dealId: options.dealId || null,
+      tileTheme: options.tileTheme || null,
     };
   }
 
@@ -413,6 +415,8 @@
       status: STATUSES.PLAYING,
       completionRecorded: false,
       assists: { undo: 0, hint: 0, shuffle: 0 },
+      dealId: options.dealId,
+      tileTheme: options.tileTheme,
       updatedAt: Date.now(),
     };
   }
@@ -926,6 +930,8 @@
       status: restored.status,
       completionRecorded: restored.completionRecorded,
       assists: { ...restored.assists },
+      dealId: restored.dealId,
+      tileTheme: restored.tileTheme,
       updatedAt: restored.updatedAt,
     };
   }
@@ -984,6 +990,10 @@
       || !Number.isInteger(raw.updatedAt) || raw.updatedAt < 0) return null;
     if (raw.dailyKey != null && (typeof raw.dailyKey !== 'string' || raw.dailyKey.length > 32)) return null;
     if (raw.gameId != null && (typeof raw.gameId !== 'string' || raw.gameId.length < 1 || raw.gameId.length > 128)) return null;
+    // Presentation metadata the page pins to one deal: an opaque deal id and
+    // the tile set it was dealt in. Older saves carry neither.
+    if (raw.dealId != null && (typeof raw.dealId !== 'string' || raw.dealId.length < 1 || raw.dealId.length > 128)) return null;
+    if (raw.tileTheme != null && (typeof raw.tileTheme !== 'string' || raw.tileTheme.length < 1 || raw.tileTheme.length > 32)) return null;
     if (!raw.assists || !['undo', 'hint', 'shuffle'].every(
       (key) => Number.isInteger(raw.assists[key]) && raw.assists[key] >= 0
     )) return null;
@@ -1031,6 +1041,8 @@
       status: raw.status,
       completionRecorded: raw.completionRecorded === true,
       assists: { undo: raw.assists.undo, hint: raw.assists.hint, shuffle: raw.assists.shuffle },
+      dealId: raw.dealId == null ? null : raw.dealId,
+      tileTheme: raw.tileTheme == null ? null : raw.tileTheme,
       updatedAt: raw.updatedAt,
     };
     if (restored.selected != null && !isFree(restored, restored.selected)) return null;

@@ -114,8 +114,11 @@ struct SettingsSheet: View {
         .font(BrowserStyle.font(17))
         .tracking(0.17)
         .foregroundStyle(style.text)
-        .tint(style.text)
+        .tint(BrowserStyle.adaptiveText)
+        .toggleStyle(BrowserSwitchStyle())
         .presentationDetents([.large])
+        // A wide window's tall card, which a long list needs; a phone's sheet is unchanged.
+        .presentationSizing(.page)
         .presentationDragIndicator(.visible)
         .presentationBackground(style.surface)
         .onAppear { if destination != .root { path = [destination] } }
@@ -129,8 +132,25 @@ struct SettingsSheet: View {
                     set: { manager.applySettingsPatch(["searchEngine": $0.rawValue]) })) {
                     ForEach(SettingsCopy.searchEngines, id: \.self) { Text($0.label).tag($0) }
                 }.accessibilityIdentifier("settings.searchEngine")
-                if DefaultBrowserOffer.enabled { DefaultBrowserRow() }
+                DefaultBrowserRow()
             }
+            Section {
+                Picker(SettingsCopy.text("islandPosition"), selection: Binding(
+                    get: { manager.settingsStore.islandPosition },
+                    set: { manager.setIslandPosition($0) })) {
+                    ForEach(IslandPosition.allCases, id: \.self) {
+                        Text(SettingsCopy.text("islandPosition." + $0.rawValue)).tag($0)
+                    }
+                }.accessibilityIdentifier("settings.islandPosition")
+                Toggle(SettingsCopy.text("islandTuck"), isOn: Binding(
+                    get: { manager.settingsStore.islandTucksOnScroll },
+                    set: { manager.settingsStore.update(islandTucksOnScroll: $0) }))
+                    .accessibilityIdentifier("settings.islandTuck")
+                Toggle(SettingsCopy.text("islandHistoryButtons"), isOn: Binding(
+                    get: { manager.settingsStore.islandBackForward },
+                    set: { manager.settingsStore.update(islandBackForward: $0) }))
+                    .accessibilityIdentifier("settings.islandHistoryButtons")
+            } header: { Text(SettingsCopy.text("island")) } footer: { Text(SettingsCopy.text("islandHistoryButtonsHelp")) }
             Section(SettingsCopy.text("appearance")) {
                 Picker(SettingsCopy.text("theme"), selection: Binding(get: { manager.settingsStore.theme }, set: { manager.applySettingsPatch(["theme": $0.rawValue]) })) {
                     ForEach(BlancThemePreference.allCases, id: \.self) { Text(SettingsCopy.text($0.rawValue)).tag($0) }
@@ -142,12 +162,10 @@ struct SettingsSheet: View {
                     summary("startPage", value: SettingsCopy.text(manager.settingsStore.newtabLayout.rawValue))
                 }.accessibilityIdentifier("settings.startPage")
             }
-            Section(SettingsCopy.text("privacy")) {
+            Section(SettingsCopy.text("privacySync")) {
                 NavigationLink(value: SettingsDestination.privacy) {
                     summary("blocker", value: SettingsCopy.text(manager.settingsStore.adblockEnabled ? "on" : "off"))
                 }.accessibilityIdentifier("settings.privacy")
-            }
-            Section(SettingsCopy.text("sync")) {
                 NavigationLink(value: SettingsDestination.sync) {
                     summary("sync", value: SettingsCopy.text(manager.syncEngine.status["enabled"]?.bool == true ? "connected" : "notConnected"))
                 }.accessibilityIdentifier("settings.sync")
@@ -265,6 +283,14 @@ struct PrivacySettingsView: View {
                         .accessibilityIdentifier("settings.clearSiteData.done")
                 }
             } footer: { Text(SettingsCopy.text("clearSiteDataHelp")) }
+            // The walkthrough's privacy step asks first (F5); until that
+            // choice is saved, this reads off.
+            Section {
+                Toggle(SyncCopy.text("settings.general.searchSuggestions.label"), isOn: Binding(
+                    get: { manager.settingsStore.searchSuggestionsOn },
+                    set: { manager.settingsStore.update(searchSuggestions: $0) }))
+                    .accessibilityIdentifier("settings.searchSuggestions")
+            } footer: { Text(SyncCopy.text("settings.general.searchSuggestions.hint")) }
             // The launch ping's consent (F21, M18 §7.1); off stops it at once.
             Section {
                 Toggle(SyncCopy.text("ios.welcome.measureUsage"), isOn: Binding(
@@ -305,9 +331,7 @@ struct StartSettingsView: View {
     var body: some View {
         Form {
             Section {
-                StartSettingsPreview(manager: manager).frame(height: 250)
-                    .accessibilityLabel(SettingsCopy.text("preview"))
-                    .listRowInsets(EdgeInsets())
+                StartSettingsPreviewRow(manager: manager)
                 Picker(SettingsCopy.text("layout"), selection: Binding(get: { manager.settingsStore.newtabLayout }, set: { manager.setStartLayout($0) })) {
                     ForEach(BlancStartPageLayout.allCases, id: \.self) { Text(SettingsCopy.text($0.rawValue)).tag($0) }
                 }.accessibilityIdentifier("settings.layout")
@@ -334,6 +358,9 @@ struct StartSettingsPreview: UIViewRepresentable {
     func makeCoordinator() -> Coordinator { Coordinator() }
     final class Coordinator { var tab: TabModel? }
     final class PreviewContainer: UIView {
+        /// The shortest page the preview row shows, in page points: what the
+        /// widest iPhone row gives it, so no iPhone preview changes.
+        static let minimumPageHeight: CGFloat = 250
         let webView: WKWebView
         private let spinner = UIActivityIndicatorView(style: .medium)
         private var loadingObservation: NSKeyValueObservation?
@@ -357,9 +384,14 @@ struct StartSettingsPreview: UIViewRepresentable {
         override func layoutSubviews() {
             super.layoutSubviews()
             guard bounds.width > 0, bounds.height > 0 else { return }
-            let scale = bounds.width / 390
+            // A phone's width scaled to the row, but never a page shorter than
+            // a phone's row gives it, and never larger than life. On an iPad's
+            // wide row the width alone left the page about 135 pt tall and
+            // drew the Billboard clock over the date; there the page takes the
+            // row's own size.
+            let scale = min(bounds.width / 390, bounds.height / Self.minimumPageHeight, 1)
             webView.transform = .identity
-            webView.bounds = CGRect(x: 0, y: 0, width: 390, height: bounds.height / scale)
+            webView.bounds = CGRect(x: 0, y: 0, width: bounds.width / scale, height: bounds.height / scale)
             webView.center = CGPoint(x: bounds.midX, y: bounds.midY)
             webView.transform = CGAffineTransform(scaleX: scale, y: scale)
             spinner.center = CGPoint(x: bounds.midX, y: bounds.midY)

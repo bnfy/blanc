@@ -67,7 +67,7 @@ Then('the island shows the typing prompt', async function () {
   const pill = await this.call('pillPlaceholderState');
   assert.ok(pill, 'the pill label was not found in the chrome document');
   assert.ok(pill.placeholder, 'the pill label is not in placeholder mode');
-  assert.strictEqual(pill.text, 'Search or type a URL');
+  assert.strictEqual(pill.text, 'Search or type URL');
   // What makes the prompt read as a field rather than a label is its motion:
   // a bright band washing through the glyphs, painted by a gradient clipped
   // to the text. Under reduced motion that is deliberately traded for a

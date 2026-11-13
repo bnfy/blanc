@@ -25,11 +25,10 @@ Feature: Split View
     Then both split tabs are shown and the second pane is focused
 
   @F53-4 @F53 @desktop @D11
-  Scenario: Visible panes never go quiet, and Glance is unavailable while a split shows
+  Scenario: Visible panes never go quiet
     Given two loaded tabs made into a split
     When every background tab is asked to go quiet
     Then neither split pane is quiet
-    And Glance cannot open while the split shows
 
   @F53-5 @F53 @desktop @D11
   Scenario: Keep as split turns Glance into a split, keeping the main page's group
@@ -239,3 +238,21 @@ Feature: Split View
       | pane   |
       | first  |
       | second |
+
+  @F53-29 @F53 @F34 @desktop @D11 @glance-over-split
+  Scenario: Glance floats over a whole split and stays while focus moves between its panes
+    Given two loaded tabs made into a split
+    And another ordinary tab
+    When I open the ordinary tab in Glance from its tab menu
+    Then the ordinary tab floats in Glance over both split panes
+    And the Glance header offers no Keep as split
+    When focus moves to the split's second pane
+    Then the Glance stays open over the split and no page reloaded
+
+  @F53-30 @F53 @F34 @desktop @D11 @glance-over-split
+  Scenario: Closing the focused pane under a Glance hands the window to the other pane and keeps the Glance
+    Given two loaded tabs made into a split
+    And another ordinary tab
+    When I open the ordinary tab in Glance from its tab menu
+    And I close the split's first tab
+    Then the split's second tab has the window and the Glance stays open over it

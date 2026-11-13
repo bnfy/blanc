@@ -5,6 +5,7 @@ import WebKit
 /// 2026-10-25). The page's own floating Customize button is hidden on the
 /// phone; a half-second hold on empty space (not a link, button or field)
 /// opens Settings at the Start Page, where its layout, wallpaper and clock are.
+/// The page's text can't be selected, or that hold would also bring up the text menu.
 final class StartPageHold: NSObject, WKScriptMessageHandler {
     static let messageHandlerName = "blancStartHold"
 
@@ -13,6 +14,7 @@ final class StartPageHold: NSObject, WKScriptMessageHandler {
       if (location.protocol !== 'blanc:' || location.host !== 'newtab') return;
       document.getElementById('customizeButton')?.style.setProperty('display', 'none', 'important');
       document.body?.style.setProperty('-webkit-touch-callout', 'none');
+      document.body?.style.setProperty('-webkit-user-select', 'none');
       let timer = null, x = 0, y = 0;
       const cancel = () => { clearTimeout(timer); timer = null; };
       addEventListener('touchstart', (event) => {

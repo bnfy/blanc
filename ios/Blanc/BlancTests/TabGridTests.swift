@@ -44,7 +44,7 @@ final class TabGridTests: XCTestCase {
         manager.setActive(originalID)
         XCTAssertEqual(manager.activeTabId, originalID)
         XCTAssertNotNil(manager.activeTab?.thumbnail)
-        let grid = UIHostingController(rootView: TabGridView(manager: manager))
+        let grid = UIHostingController(rootView: TabGridView(manager: manager, close: {}, onCardFrame: { _, _ in }))
         window.rootViewController = grid
         grid.view.frame = window.bounds
         for _ in 0..<100 {
@@ -62,5 +62,19 @@ final class TabGridTests: XCTestCase {
         manager.closeTab(secondID)
         XCTAssertEqual(manager.tabs.count, 1)
         XCTAssertEqual(manager.activeTabId, originalID)
+    }
+
+    /// A memory warning keeps only the pictures of the pages on screen.
+    @MainActor func testAMemoryWarningReleasesPicturesOfTabsNotOnScreen() {
+        let dir = FileManager.default.temporaryDirectory.appendingPathComponent("TabGridTests-\(UUID().uuidString)")
+        let manager = TabsManager(settingsDirectory: dir, sessionDirectory: dir)
+        manager.services.register(manager)
+        let other = manager.createTab(url: URL(string: "https://example.com/")!, quiet: true)
+        let current = manager.activeTab
+        let picture = UIGraphicsImageRenderer(size: CGSize(width: 4, height: 4)).image { _ in }
+        manager.tabs.forEach { $0.thumbnail = picture }
+        manager.services.releaseThumbnails()
+        XCTAssertNotNil(current?.thumbnail)
+        XCTAssertNil(manager.tabs.first { $0.id == other }?.thumbnail)
     }
 }

@@ -91,9 +91,12 @@ original reports:
 
 - **Optional uBlock Origin:** Public v1.39.0 offers full uBO 1.75.0 on
   Apple Silicon, native Intel Mac, Windows x64 and Linux x64. Since v1.43.0 it
-  runs on castLabs' Electron for Content Security 44.9.3 (Chromium
-  152.0.7977.167, as on official Electron 44.8.0 from v1.35.0 to v1.42.1), where it
-  passed signed-package uBO acceptance on all four. The move from 44.5.1 passed the real blocking and tools
+  runs on castLabs' Electron for Content Security: 45.2.1 (Chromium
+  156.0.8078.75) since v1.47.0, and 44.9.3 (Chromium 152.0.7977.167) from
+  v1.43.0 to v1.46.0 (official Electron 44.8.0 from v1.35.0 to v1.42.1). Each
+  passed signed-package uBO acceptance on all four. The native-source review
+  of 45.2.1 is waived by the owner, not passed, so never call the runtime
+  audited or reviewed. The move from 44.5.1 passed the real blocking and tools
   suite on all four in hosted CI; the installed-candidate acceptance dates
   from v1.27.0 on 44.5.1. Click the Island shield to choose a blocker and restart
   Blanc to apply it. Blanc Blocker stays the default and protects private
@@ -205,7 +208,11 @@ original reports:
   menu offers Open Link in Glance, and `/glance` opens the picker. Glance
   holds one reference at a time; do not describe more panes, tiling of
   several tabs, or automatic pairing of related pages. Material about v1.39.0
-  or earlier describes the side-by-side Glance of those releases.
+  or earlier describes the side-by-side Glance of those releases. Since
+  v1.48.0 Glance also opens over a Split View, as one card over both panes;
+  clicking between the panes keeps it open, and Keep as split is hidden while
+  a split shows. It has run only in the Linux acceptance suite, not by hand in
+  a packaged build, so don't describe how it looks on a given platform.
 - **Split View:** Since v1.40.0 two tabs can show side by side in one window,
   made from a tab's Split with menu or Glance's Keep as split. The divider
   resizes the panes, the pane you click is the current tab, and a split stays
@@ -378,8 +385,11 @@ original reports:
   eight layouts. Device-local state remembers the last layout, mode, and deal,
   can offer to continue an unfinished board from another tab, and keeps records
   and daily streaks. The game also includes scoring, timed combos, automatic
-  clears, hints, shuffle, undo, and sound controls. Do not describe it as
-  online multiplayer, cloud-synced, or
+  clears, hints, shuffle, undo, and sound controls. Since v1.49.0 it has a
+  Sunrise design in light and dark mode and three tile sets (Porcelain, Carved
+  and Inlay), moving to the next set after three boards cleared in a row, plus
+  a short match trail and board-cleared celebration (a brief glow with reduced
+  motion on). Do not describe it as online multiplayer, cloud-synced, or
   AI-generated.
 - **Call audio buffering:** Automatic, Stable, and Resilient are receive-buffer
   choices for WebRTC calls. Stable targets about 400 ms and Resilient about one
@@ -479,10 +489,11 @@ original reports:
 - **Copy Link:** Since v1.44.1, ⇧⌘C / Ctrl+Shift+C and `/copy` copy the page's
   address; ⌥⇧⌘C (macOS) and `/copy clean` copy it without tracking
   parameters.
-- **Ctrl+Tab by most recent use:** Since v1.44.1 on Linux and Windows only,
-  proven with real OS key input in CI; a hand check on a real Windows keyboard
-  is still pending. On macOS Ctrl+Tab still goes by position: never claim it
-  there. On Windows, Ctrl+Esc opens the Start menu (the switch cancels).
+- **Ctrl+Tab by most recent use:** Since v1.44.1 on Linux and Windows, and
+  since v1.46.0 on macOS too, proven with real OS key input in CI on all three;
+  a hand check on a real Windows keyboard is still pending. Never say macOS
+  had it before v1.46.0. On Windows, Ctrl+Esc opens the Start menu (the
+  switch cancels).
 - **Vertical tab text size and site icons on the Island:** Since v1.44.1, two
   device-local settings: Default, Large or Extra large vertical tab text, and
   site icons instead of dots on the Island (off by default; fewer tabs fit).
@@ -520,8 +531,29 @@ original reports:
 - **Connect your iPhone:** Since v1.45.0, Settings → Sync → **Connect your
   iPhone** (and the Start Page's Finish setup list) shows a QR code that
   Blanc for iPhone scans with **Pair with your Blanc** to join the same Sync.
-  Blanc for iPhone is a public beta on TestFlight, not on the App Store: say
-  so wherever it's named. If Sync is off, Blanc asks before turning it on.
+  If Sync is off, Blanc asks before turning it on.
+- **Blanc for iPhone on the App Store:** Since November 6, 2026, Blanc for
+  iPhone 1.0 (build 202611030537) is free on the App Store
+  (<https://apps.apple.com/app/id6828027794>), after a public TestFlight beta
+  from October 28. Don't call it a beta any more; early builds still go to
+  TestFlight. That build is iPhone only and needs iOS 18.4 or later. It
+  doesn't offer to be the default browser, use website passkeys or run on
+  iPad: those are in later builds and are claimed only once an App Store
+  update ships them. There is no Android app. Evidence:
+  `docs/ios/app-store-connect.md` item 21 and
+  `docs/website-iphone-1.0-claims.json`.
+- **Blanc for iPad (held for App Review):** App Store version 1.0.3 (build
+  202611121714, from `44280ff1d`, with #1479 and #1480) adds iPad to the same
+  listing. Until App Review approves it and it is on sale, don't say Blanc
+  runs on iPad. After that, say it as the App Store description does: Blanc
+  for iPhone and iPad; on iPad a native full-screen app in every orientation,
+  with Split View (two tabs side by side), a floating Glance card for links,
+  tabs in their own windows and hardware-keyboard shortcuts like ⌘L and ⌘T;
+  pages load their desktop layout by default, with Request Mobile Website per
+  site. Never claim trackpad or pointer support (not tested on a real iPad)
+  or Stage Manager, and never present it as a desktop app feature. The site
+  copy waits in `docs/website-ipad-1.0.3-claims.json`, whose test fails until
+  `approvedOn` and `publicRelease` are filled.
 - **Play the Sunrise when Blanc opens:** Since v1.45.0, opt-in in Settings →
   Appearance and set on each device: the Sunrise plays once on the first
   Start Page after launch, ends on any click or key and is skipped when the
@@ -539,6 +571,61 @@ original reports:
   link whose rule needs a new window opens that window behind the current one.
   It adds no feature: describe new capabilities as since v1.45.0, never
   v1.45.1.
+- **Island size:** Since v1.46.0, Settings → General → **Island size**
+  (Default, Large or Extra large), set on each device. The Island, its buttons
+  and the site address grow; the page moves down to make room.
+- **Mini Window:** Since v1.46.0, a small window opened from File → **New Mini
+  Window**, Blanc's Dock menu on a Mac, or an opt-in global shortcut (off by
+  default; ⌥⌘N or ⌃⌥Spacebar on a Mac, Ctrl+Alt+Spacebar or
+  Ctrl+Shift+Spacebar on Windows and Linux) that works only while Blanc is
+  running. It isn't saved, links from other apps never open in it, it closes
+  after an hour unused unless a page is in use or has unsaved changes, and
+  **Open in Blanc** keeps it. Hand-checked on macOS and Windows before release
+  (the shortcut over another app without raising other Blanc windows, the Dock
+  item, placement); not checked on Linux, with several displays, or for the
+  hour-long close, so don't show those.
+- **Sync checks for changes every 15 seconds:** Since v1.46.0, while a Blanc
+  window is in front, and it downloads only what changed. Never call it
+  instant or real-time.
+- **Default page zoom:** Since v1.47.0, Settings → General → **Default page
+  zoom** sets the size web pages open at (50% to 200%), and open tabs change at
+  once. Zooming a site with ⌘+ and ⌘− (Ctrl++ and Ctrl+− on Windows and Linux)
+  saves a size for that site in the current profile, every tab on it follows,
+  and ⌘0 (Ctrl+0) forgets it. Settings lists saved sites with Remove and
+  Clear all. Private tabs save nothing, and Blanc's own pages stay at 100%.
+  ⌘+ and ⌘− step through Chrome's sizes (… 75, 80, 90, 100, 110, 125 …). Don't
+  claim zoom for sign-in popup windows (they stay at 100%) or show a zoom
+  percentage on screen (none appears). Hand-checked in a packaged ECS build on
+  Apple Silicon only (15 of 15 with real keys); on Windows and Linux it passed
+  CI acceptance but wasn't tried in a packaged build, so don't show it there.
+- **Windows drag band with Island auto-hide:** Since v1.47.0 the strip that
+  drags the window while the Island is tucked away is 10 px tall on Windows
+  (6 px on macOS and Linux), measured on a hosted runner at 100% scale, not
+  at 200% scale or in maximized or fullscreen windows. The top rows of the page
+  under it don't take clicks. Don't claim it for every Windows setup.
+- **Quitting with Shared Spaces:** Since v1.47.0 a Shared Space arriving from
+  another device during a quit no longer overwrites the saved windows file.
+  Don't claim more than that, and don't say any tabs were lost before.
+- **1.47.1 is fixes only:** Since v1.47.1 a frame that fails its certificate
+  check is refused without crashing Blanc. The crash came with v1.47.0's
+  Electron 45 runtime. The fix was run in Blanc on macOS only, so don't say it
+  was tested on Linux or Windows. It adds no feature: describe new capabilities
+  as since v1.47.0, never v1.47.1.
+- **1.48.0:** Glance over a split (see Glance) is its one new feature. It also
+  fixes live connections (WebSockets) after **Continue** on a certificate
+  warning for a local or private-network address, for that same address and
+  certificate only. Neither was hand-checked against a packaged build before
+  release; don't claim a specific console such as Proxmox works until someone
+  has tried it.
+- **1.49.0:** The refreshed Mahjong (see Mahjong) is its main change. The
+  closed Island no longer shows the current Space's mark; Spaces open from the
+  ⌘L panel's footer button, which shows the Space's symbol on its color, and
+  vertical tabs still show the mark at the top of the side list. It also
+  fixes windows a page opens on its own (such as Proxmox's separate console)
+  after **Continue** on a certificate warning for a local or private-network
+  address. Neither Mahjong nor the pop-out fix was hand-checked in a packaged
+  build before release; the What's New captures came from a development build.
+  Don't claim a specific console works until someone has tried it.
 - **Auto-hide the Island:** Since v1.39.0 an opt-in, device-local setting
   (Settings → General, the View menu, ⌘⌥B or Ctrl+Alt+B) hides the Island's
   strip so the page fills the window. Pointing at or just above the top edge,

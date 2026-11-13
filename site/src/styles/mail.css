@@ -102,7 +102,7 @@ body .revamp-nav .site-nav-cta:hover{background:none;color:#000}
 @media(hover:hover){.mail-waitlist button:hover{background:#44361e}}
 .mail-waitlist button:focus-visible{outline:2px solid var(--mail-gold);outline-offset:2px}
 .mail-waitlist button:disabled{opacity:.6;cursor:progress;transform:none}
-.mail-waitlist .mail-waitlist-hp{position:absolute;left:-9999px;width:1px;height:1px;padding:0;opacity:0}
+:is(.mail-waitlist,.mail-survey) .mail-waitlist-hp{position:absolute;left:-9999px;width:1px;height:1px;padding:0;opacity:0}
 .mail-waitlist .mail-waitlist-note{margin:12px 0 0;color:var(--mail-muted);font-size:13px;line-height:1.5;letter-spacing:.005em}
 .mail-waitlist .mail-waitlist-status{margin:12px 0 0;font-size:16px;font-weight:600}
 .mail-waitlist .mail-waitlist-status:empty{display:none}
@@ -346,3 +346,44 @@ body .revamp-nav .site-nav-cta:hover{background:none;color:#000}
   .mail-feature,.mail-plan{box-shadow:inset 0 0 0 1px #f2ead899}
   .mail-soon .mail-waitlist-controls{border-color:#f2ead899}
 }
+
+/* The anonymous Blanc Mail survey (/mail/survey). */
+.mail-survey{max-width:680px;margin:32px 0 0;display:grid;gap:28px}
+.mail-survey-question{margin:0;padding:0;border:0;display:grid;gap:10px}
+.mail-survey-question legend,.mail-survey-legend{margin:0 0 4px;padding:0;color:var(--mail-ink);font-size:18px;font-weight:600}
+.mail-survey-choice{display:flex;align-items:flex-start;gap:10px;color:var(--mail-text);font-size:16px;line-height:1.45;cursor:pointer}
+.mail-survey-choice input{flex:none;margin:3px 0 0;accent-color:var(--mail-gold)}
+.mail-survey-choice:has(input:disabled){color:var(--mail-faint);cursor:default}
+.mail-survey textarea{width:100%;box-sizing:border-box;padding:12px 14px;border:1px solid var(--mail-line-strong);border-radius:12px;background:var(--mail-paper);color:var(--mail-ink);font:inherit;font-size:16px;resize:vertical}
+.mail-survey textarea:focus-visible{outline:2px solid var(--mail-gold);outline-offset:1px}
+.mail-survey-help{margin:0;color:var(--mail-muted);font-size:14px}
+.mail-survey-submit{justify-self:start;padding:11px 20px;border:0;border-radius:999px;background:var(--mail-ink);color:#f7f0e5;font:inherit;font-size:15px;font-weight:600;cursor:pointer}
+.mail-survey-submit:disabled{opacity:.6;cursor:default}
+.mail-survey-submit:focus-visible{outline:2px solid var(--mail-gold);outline-offset:2px}
+.mail-survey-status{margin:0;font-size:16px;font-weight:600;color:var(--mail-ink)}
+.mail-survey-status:empty{display:none}
+.mail-survey-link{margin:14px 0 0;font-size:15px}
+.mail-survey-link a,.mail-waitlist-survey a{color:inherit;text-decoration:underline;text-underline-offset:3px}
+.mail-waitlist .mail-waitlist-survey{margin:8px 0 0;font-size:15px}
+
+/* The survey invitation card on /mail (components/MailSurveyInvite.astro). */
+.mail-survey-invite{position:fixed;right:max(20px,env(safe-area-inset-right,0px));bottom:max(20px,env(safe-area-inset-bottom,0px));z-index:40;width:min(300px,calc(100vw - 40px));box-sizing:border-box;padding:18px 18px 16px;border-radius:18px;background:rgba(18,14,9,.94);-webkit-backdrop-filter:blur(24px) saturate(160%);backdrop-filter:blur(24px) saturate(160%);color:var(--mail-band-text);box-shadow:0 0 0 .5px #e0c0844d,inset 0 1px 0 #fff3d61a,0 2px 6px #00000040,0 28px 56px -24px #000000b3;animation:mail-survey-invite-in 420ms var(--mail-arrive) both}
+.mail-survey-invite[hidden]{display:none}
+.mail-survey-invite-title{margin:0 28px 4px 0;color:#f6e7bd;font-size:15px;font-weight:600}
+.mail-survey-invite-question{margin:0 0 12px;color:var(--mail-band-muted);font-size:13.5px}
+.mail-survey-invite-chips{display:flex;flex-wrap:wrap;gap:6px}
+.mail-survey-invite-chip{padding:6px 11px;border:1px solid #e0c08466;border-radius:999px;color:var(--mail-band-text);font-size:13px;text-decoration:none;transition:background-color 160ms ease,border-color 160ms ease}
+.mail-survey-invite-chip:hover{border-color:#e0c084;background:#e0c0841a}
+.mail-survey-invite-close{position:absolute;top:12px;right:12px;display:grid;place-items:center;width:26px;height:26px;padding:0;border:0;border-radius:999px;background:transparent;color:#8f846f;cursor:pointer}
+.mail-survey-invite-close:hover{background:#ffffff12;color:var(--mail-band-text)}
+:is(.mail-survey-invite-chip,.mail-survey-invite-close):focus-visible{outline:2px solid var(--mail-band-gold);outline-offset:1px}
+@keyframes mail-survey-invite-in{from{opacity:0;transform:translateY(12px) scale(.97)}}
+@media (prefers-reduced-motion:reduce){.mail-survey-invite{animation:none}}
+.mail-survey-invite.is-waiting{visibility:hidden;opacity:0;animation:none}
+/* Phones: along the bottom edge, clear of the chat button's corner. The card
+   waits while a waitlist form is behind it (owner's choice A, 2026-11-12). */
+@media (max-width:640px){.mail-survey-invite{left:72px;right:8px;bottom:max(8px,env(safe-area-inset-bottom,0px));width:auto}}
+.mail-survey-invite-suggest{display:inline-block;margin-top:11px;color:var(--mail-band-muted);font-size:12.5px;text-decoration:underline;text-underline-offset:3px}
+.mail-survey-invite-suggest:hover{color:var(--mail-band-text)}
+.mail-survey-invite-suggest:focus-visible{outline:2px solid var(--mail-band-gold);outline-offset:2px;border-radius:4px}
+#suggest{scroll-margin-top:calc(var(--mail-header-h) + var(--mail-bar-h) + 24px)}

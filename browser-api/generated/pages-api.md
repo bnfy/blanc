@@ -142,6 +142,9 @@ Exposed by `src/main/tab-preload.js` to the top-level `blanc://` page on each ho
 | `profiles.open` | invoke | `pages:profiles:open` | settings | Open a profile in a new window. |
 | `profiles.rename` | invoke | `pages:profiles:rename` | settings | Rename a named profile. |
 | `profiles.remove` | invoke | `pages:profiles:remove` | settings | Delete a named profile; requires its exact name as confirmation. |
+| `zoom.list` | invoke | `pages:zoom:list` | settings | The current profile's sites with a saved page zoom. |
+| `zoom.remove` | invoke | `pages:zoom:remove` | settings | Forgets one site's saved page zoom. |
+| `zoom.clear` | invoke | `pages:zoom:clear` | settings | Forgets every saved page zoom in the current profile. |
 | `permissions.list` | invoke | `pages:permissions:list` | settings | Remembered site permission decisions. |
 | `permissions.remove` | invoke | `pages:permissions:remove` | settings | Forget one permission decision. |
 | `defaultBrowser.get` | invoke | `pages:default-browser:get` | settings | Default-browser status. |
@@ -165,7 +168,7 @@ IPC the preload sends without exposing an API to the page.
 
 | Channel | Documents | Description |
 | --- | --- | --- |
-| `page-tint:changed` | https://example.com/, http://example.com/, blanc://newtab/ | Isolated-world invalidation for the strip's page tint: no arguments, no API exposed to the page. |
+| `page-tint:changed` | https://example.com/, http://example.com/, blanc://newtab/, blanc://mahjong/ | Isolated-world invalidation for the strip's page tint: no arguments, no API exposed to the page. |
 
 # window.blancFillStatus
 

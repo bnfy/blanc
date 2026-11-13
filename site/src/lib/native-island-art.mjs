@@ -90,13 +90,17 @@ export function nativeGlanceCardArt({ styles, document, renderer, host, icon }) 
   };
   const selectors = [
     '*', '*, *::before, *::after', 'button, input, select, textarea', 'button', 'button svg',
-    '.favicon', '.favicon.has-icon', '.split-panes, .split-tab-surface, .glance-card',
+    '.favicon', '.favicon.has-icon',
     '.glance-header', '.glance-copy', '.glance-eyebrow', '.glance-tab-identity',
     '.glance-tab-identity .favicon', '#glanceTitle', '.glance-actions', '.glance-header button',
     '.glance-action', '.glance-action svg, .glance-move svg', '.glance-close', '.glance-move',
     '.glance-nav', '.glance-header .glance-nav-btn', '.glance-nav-btn svg', '.glance-header .glance-nav-btn:disabled',
   ];
-  const css = [tokens, ...selectors.map(take), surface('.glance-card'), surface('.glance-header')].join('\n');
+  // The card's own measures (radius, ring, page inset) sit on the Glance
+  // document's root in the app; here they ride on the card itself.
+  const measures = rules.find((candidate) => candidate.selector === 'html[data-surface="glance"]');
+  if (!measures) throw new Error('Missing native Glance rule: html[data-surface="glance"]');
+  const css = [tokens, ...selectors.map(take), `.glance-card {${measures.body}}`, surface('.glance-card'), surface('.glance-header')].join('\n');
   const start = document.indexOf('<header id="glanceHeader"');
   const end = document.indexOf('</header>', start) + '</header>'.length;
   if (start < 0 || end < start) throw new Error('Missing native Glance header markup');
@@ -181,17 +185,6 @@ export function namespaceNativeArt({ html, css }, prefix) {
   };
 }
 
-// Rules the resting Island adds once its window is in a space: the space mark
-// at the pill's leading edge (renderer.js renderSpaceMark), open while its
-// Spaces menu shows.
-export const SPACE_MARK_SELECTORS = [
-  '.space-mark', '.space-mark:hover, .space-mark[aria-expanded="true"]',
-  '.space-mark-symbol', '.space-mark-symbol svg', '.space-mark-name',
-  '.space-mark[data-state="space"]', '.space-mark[data-state="space"] .space-mark-symbol',
-  '.space-mark[data-state="space"] .space-mark-symbol svg', '.space-mark[data-edge="true"] .space-mark-symbol',
-  '#islandPill:has(> .space-mark:not([hidden]))',
-];
-
 // The Spaces menu's list and its New space… command (workspace-ui.js). The
 // rows' ••• editor button is left out: it only appears on hover, and the demo
 // has no editor to open.
@@ -218,40 +211,74 @@ const escapeHtml = text => String(text).replace(/[&<>"]/g, c => ({ '&': '&amp;',
 const svgMarkup = (elements, className) => `<svg viewBox="0 0 24 24" aria-hidden="true"${className ? ` class="${className}"` : ''}>${
   elements.map(([tag, attrs]) => `<${tag} ${Object.entries(attrs).map(([key, value]) => `${key}="${value}"`).join(' ')}/>`).join('')}</svg>`;
 
-// The resting Island in a space, with the Spaces menu open below its mark.
-// `spaces` are sample records {name, color, symbol, tabs, domain, favicon};
-// the first is current. Each row is a real button carrying what the demo
-// script needs to repaint the mark (fill, symbol ink, edge per appearance)
-// and the pill (dots, favicon, domain) when it is chosen.
-export function nativeSpacesArt({ styles, document, renderer, overlay, workspaceUi, identity, spaces, newSpaceLabel }) {
-  const pill = nativeIslandArt({ styles, document, renderer, extraSelectors: SPACE_MARK_SELECTORS });
-  const { take } = nativeRules(styles);
-  const css = `${pill.css}\n${SPACES_MENU_SELECTORS.map(take).join('\n')}`;
+// The open Island's rules the Spaces demo draws: the panel card, its address
+// row, the tab rows at rest and the footer with its Spaces button (in a
+// space, it carries the bound fill).
+const SPACES_PANEL_SELECTORS = [
+  '#islandPanel', '.panel-row', '#addressInput', '.panel-actions', '.act-btn', '.act-btn:disabled',
+  '.island-row', '.island-row.active', '.island-row.active .row-title, .island-row.active .row-cmd',
+  '.island-row .row-primary', '.island-row .row-title', '.row-favicon-wrap',
+  '#islandFooter', '.footer-launchers, .footer-tools', '.footer-launchers', '.footer-tools',
+  '.footer-new', '.footer-new svg', '.footer-new.private', '.footer-kbd', '.footer-act', '.footer-act svg',
+  '#footerWorkspace svg', '.footer-act.ws.bound',
+];
+
+// The tab rows overlay.js draws for a space's tabs at rest (tabRow): favicon
+// and title, the current tab's title in bold.
+function spaceTabRows(pages) {
+  return pages.map((page, index) => `<div class="island-row tab-row${index === 0 ? ' active' : ''}" role="group">`
+    + `<button type="button" class="row-primary"><span class="row-favicon-wrap"><span class="favicon has-icon" style="background-image:url(${escapeHtml(page.favicon)})"></span></span>`
+    + `<span class="row-title">${escapeHtml(page.title)}</span></button></div>`).join('');
+}
+
+// The open Island in a space, with the Spaces menu open below its footer's
+// Spaces button. The resting Island carries no Space mark: Spaces open from
+// the panel's footer (overlay.html #footerWorkspace). `spaces` are sample
+// records {name, color, symbol, tabs, pages: [{title, url, favicon}]}; the
+// first is current. Each menu row is a real button carrying what the demo
+// script needs to show that space's tabs (its pages as JSON) when chosen.
+export function nativeSpacesArt({ styles, overlay, overlayScript, workspaceUi, identity, spaces, newSpaceLabel }) {
+  const { take, tokens } = nativeRules(styles);
+  const base = ['*', '*, *::before, *::after', 'button, input, select, textarea', 'button', 'button svg', '.favicon', '.favicon.has-icon'];
+  const css = [tokens, ...[...base, ...SPACES_PANEL_SELECTORS, ...SPACES_MENU_SELECTORS].map(take)].join('\n');
   const painted = spaces.map(space => {
     const light = identity.paint(space.color, 'light'), dark = identity.paint(space.color, 'dark');
     if (!light || !dark) throw new Error(`Spaces demo: invalid colour ${space.color}`);
     if (!identity.isSymbol(space.symbol)) throw new Error(`Spaces demo: unknown symbol ${space.symbol}`);
+    if (!space.pages?.length) throw new Error(`Spaces demo: ${space.name} has no pages`);
     return { ...space, fill: light.fill, on: light.on, edge: { light: light.edge, dark: dark.edge } };
   });
   const current = painted[0];
 
-  let html = pill.html;
+  // overlay.html's panel: the address row, the tab list and the footer.
+  const start = overlay.indexOf('<div id="islandPanel">');
+  const end = overlay.indexOf('<div id="workspaceFeedback"', start);
+  if (start < 0 || end < start) throw new Error('Missing native Island panel markup');
+  // The markup's own comments (the Spaces planet's note) don't ship. Strip
+  // until nothing is left, so a removal can never join a new `<!--`.
+  let panel = stripInterfaceKeys(overlay.slice(start, end));
+  for (let before = ''; before !== panel;) { before = panel; panel = panel.replace(/<!--[\s\S]*?-->/g, ''); }
+  if (panel.includes('<!--')) throw new Error('Missing native Island panel markup: unclosed comment');
   const set = (from, to) => {
-    if (!html.includes(from)) throw new Error(`Missing native Spaces markup: ${from}`);
-    html = html.replace(from, to);
+    if (!panel.includes(from)) throw new Error(`Missing native Island panel markup: ${from}`);
+    panel = panel.replace(from, to);
   };
-  set('<button id="pillSpace" class="space-mark" type="button" aria-haspopup="dialog" aria-expanded="false" data-state="none" hidden>',
-    `<button id="pillSpace" class="space-mark" type="button" aria-haspopup="dialog" aria-expanded="true" data-state="space" data-edge="${current.edge.light}" style="--space-fill:${current.fill};--space-on:${current.on}">`);
-  set('<span id="pillSpaceSymbol" class="space-mark-symbol" aria-hidden="true"></span>',
-    `<span id="pillSpaceSymbol" class="space-mark-symbol" aria-hidden="true">${svgMarkup(identity.SYMBOLS[current.symbol])}</span>`);
-  set('<span id="pillSpaceName" class="space-mark-name"></span>', `<span id="pillSpaceName" class="space-mark-name">${escapeHtml(current.name)}</span>`);
-  html = html.replace(/<div id="pillDots">[\s\S]*?<\/div>/, `<div id="pillDots">${Array.from({ length: current.tabs }, (_, i) => `<button class="island-dot${i === 0 ? ' active' : ''}"></button>`).join('')}</div>`);
-  set('background-image:url(/favicon.svg)', `background-image:url(${current.favicon})`);
-  set('<span id="pillDomain">blanc.day</span>', `<span id="pillDomain">${escapeHtml(current.domain)}</span>`);
-  // No blocked count is claimed for sample pages.
-  set('<span id="pillShieldCount">1</span>', '<span id="pillShieldCount"></span>');
-  set('id="pillShield" class="shield"', 'id="pillShield" class="shield shield-quiet"');
+  set('<input id="addressInput" spellcheck="false" autocomplete="off" placeholder="Search, enter address, or / for commands" />',
+    `<input id="addressInput" spellcheck="false" autocomplete="off" tabindex="-1" readonly value="${escapeHtml(current.pages[0].url)}" />`);
+  set('<div id="islandList"></div>', `<div id="islandList">${spaceTabRows(current.pages)}</div>`);
+  set('<span id="footerNewTabKbd" class="footer-kbd"></span>', '<span id="footerNewTabKbd" class="footer-kbd">⌘T</span>');
+  set('class="footer-act ws"', 'class="footer-act ws bound"');
+  set('aria-expanded="false"\n          aria-haspopup="true"', 'aria-expanded="true"\n          aria-haspopup="true"');
+  panel = panel.trim();
+  // Reload is drawn by overlay.js (ICONS.reload); the others are inline in the markup.
+  const reload = rendererIcon(overlayScript, 'reload');
+  set('data-tooltip="Reload"></button>', `data-tooltip="Reload">${reload}</button>`);
+  return { css, panel, menu: spacesMenu({ overlay, workspaceUi, identity, painted, newSpaceLabel }) };
+}
 
+// The Spaces menu as workspace-ui.js draws it: a row per space (its tile,
+// name and tab count; the current one checked), then New space….
+function spacesMenu({ overlay, workspaceUi, identity, painted, newSpaceLabel }) {
   // overlay.html's menu: a list, then the commands pinned below it.
   if (!/<div id="workspaceSwitcher" class="ws-switcher"[^>]*>\s*<div id="workspaceSwitcherList"><\/div>\s*<div id="workspaceSwitcherCommands" class="ws-commands" hidden><\/div>\s*<\/div>/.test(overlay)) {
     throw new Error('Missing native Spaces menu markup');
@@ -261,16 +288,14 @@ export function nativeSpacesArt({ styles, document, renderer, overlay, workspace
   const rows = painted.map((space, index) => {
     const on = index === 0;
     return `<div class="workspace-row ws-row"><button type="button" class="ws-row-main${on ? ' on' : ''}" aria-pressed="${on}" aria-label="${escapeHtml(`${space.name}, ${space.tabs} tabs`)}"`
-      + ` data-fill="${space.fill}" data-on="${space.on}" data-edge-light="${space.edge.light}" data-edge-dark="${space.edge.dark}"`
-      + ` data-tabs="${space.tabs}" data-domain="${escapeHtml(space.domain)}" data-favicon="${escapeHtml(space.favicon)}">`
+      + ` data-edge-light="${space.edge.light}" data-edge-dark="${space.edge.dark}" data-pages="${escapeHtml(JSON.stringify(space.pages))}">`
       + `<span class="ws-tile" style="--space-fill:${space.fill};--space-on:${space.on}" data-edge="${space.edge.light}">${svgMarkup(identity.SYMBOLS[space.symbol], 'ws-symbol')}</span>`
       + `<span class="ws-row-name">${escapeHtml(space.name)}</span><span class="ws-row-count">${space.tabs}</span></button></div>`;
   }).join('');
   // New space… is shown, not offered: the demo has no editor behind it.
   const command = `<div class="ws-cmd" aria-hidden="true">${svgMarkup([['path', { d: plus }]], 'ws-glyph')}${escapeHtml(newSpaceLabel)}</div>`;
-  const menu = `<div id="workspaceSwitcher" class="ws-switcher" role="group" aria-label="Sample spaces"><div id="workspaceSwitcherList">${rows}</div>`
+  return `<div id="workspaceSwitcher" class="ws-switcher" role="group" aria-label="Sample spaces"><div id="workspaceSwitcherList">${rows}</div>`
     + `<div id="workspaceSwitcherCommands" class="ws-commands">${command}</div></div>`;
-  return { css, pill: html, menu };
 }
 
 // A whole Blanc window for the feature pages' resting-Island figures: the

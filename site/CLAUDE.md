@@ -200,6 +200,17 @@ Mail launch announcement (runbook in the Worker README). The form copy, the
 Worker contract and the privacy page's `#mail-waitlist` section must change
 together.
 
+**Blanc Mail survey:** `pages/mail/survey.astro` and
+`components/MailSurveyForm.astro` post anonymous answers to the separate
+`blanc-mail-survey` Worker (`cloudflare/mail-survey-worker/`), which keeps no
+request logs and stores only the answers and the ISO week. Its ids live in the
+Worker's `src/survey.js`; the page, the Worker contract and the privacy page's
+`#mail-survey` section change together. `src/data/mail-survey.json` (`open`)
+shows the form or a closed message, and ships `false` until the go-live PR
+in the Worker README opens it with the Worker; the page is noindex and unlisted, and
+closing (summary, purge, flag, privacy update) follows the Worker README.
+Spec: `docs/superpowers/specs/2026-11-12-mail-feature-survey-design.md`.
+
 **Ambassador applications:** `src/pages/ambassadors.astro` posts the compact
 application form to `/ambassador-apply` on the same Worker. It sends name,
 email, one HTTPS creator-profile URL, a short introduction, and the hidden
@@ -220,8 +231,21 @@ Console).
 
 Releases don't deploy the site. After a release: `npm run site:changelog`,
 commit `releases.json`, update the Feature Roadmap, re-pin the Bangs page to
-the new tag (`npm run site:bangs -- --ref <tag> --release <tag>`), then
-`npm run site:deploy`.
+the new tag (`npm run site:bangs -- --ref <tag> --release <tag>`), after a
+feature release re-check `/compare`, then `npm run site:deploy`.
+
+**Compare page (`/compare`):** `src/pages/compare.astro` renders the
+owner-approved chart in `src/data/compare.json` (Blanc next to Crest, Arc,
+Helium and Brave; spec
+`docs/superpowers/specs/2026-11-02-compare-page-design.md`). Every cell is a
+claim in `docs/website-compare-claims-<release>.json`, answers about other
+browsers cite first-party pages the page links, and a cell whose pages are
+silent reads `Not stated.`. It is re-checked after each Blanc feature release
+(`test/unit/site-compare-data.test.js` fails until `checkedAgainst` moves),
+every month for the other browsers, and when Arc ends on December 22, 2026
+(a build after `endsOn` drops its column). Procedure and schedule:
+`docs/compare-page-maintenance.md`. Changed cell wording needs the owner's
+approval.
 
 **Feature Roadmap (`/roadmap`):** `src/pages/roadmap.astro` renders the
 hand-edited `src/data/roadmap.json` (Now / Next / Later, no dates) plus a

@@ -24,7 +24,11 @@ for(const name of ['readMahjongDom','readMahjongDealState','copyMahjongDealFromB
  test(`${name} evaluates shipping's exact renderer body in the active duplicate-URL target`,async()=>{
   const f=fixture({url});
   const start=shipping.indexOf(`async ${name}()`);
-  const body=shipping.slice(start).match(/executeJavaScript\(`([\s\S]*?)`(?:, true)?\)/)[1];
+  const raw=shipping.slice(start).match(/executeJavaScript\(`([\s\S]*?)`(?:, true)?\)/)[1];
+  // The page runs the template's cooked text (shipping's \\s reaches the page
+  // as \s), so compare that. These bodies escape only \\, \` and \$.
+  assert.ok(!raw.replace(/\\[\\`$]/g,'').includes('\\'),`${name}: an escape this test does not cook`);
+  const body=raw.replace(/\\([\\`$])/g,'$1');
   const result=await mahjong[name](f.world);
   assert.ok(f.expressions.includes(body));
   if(name==='readMahjongDom')assert.equal(result.url,'blanc://mahjong/?deal=peaks-91005');

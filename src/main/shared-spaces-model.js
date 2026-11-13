@@ -120,6 +120,21 @@ function newerRev(a, b) {
   if (by(a) !== by(b)) return by(a) < by(b) ? a : b;
   return a.rev <= b.rev ? a : b;
 }
+// The revision hint alone ({rev, revAt, revBy}), or undefined without one.
+function revHint(raw) {
+  if (!raw || typeof raw !== 'object' || typeof raw.rev !== 'string' || !/^[0-9a-f]{16}$/.test(raw.rev)) return undefined;
+  const out = {};
+  copyIndexMeta({ rev: raw.rev, revAt: raw.revAt, revBy: raw.revBy }, out);
+  return out;
+}
+// A receipt names the hint it was built over (`base`). Once another device has
+// published over that hint, its blob write came after ours (blob writes are
+// conditional), so publishing the receipt would regress the hint. Receipts
+// saved before `base` existed keep the old rule and publish.
+function receiptSuperseded(receipt, entry, deviceId) {
+  if (!receipt?.base || entry?.revBy === deviceId) return false;
+  return canonical(revHint(entry) ?? null) !== canonical(revHint(receipt.base) ?? null);
+}
 function mergeIndexMeta(l, r, out) {
   for (const key of ['rev','revAt','revBy']) delete out[key];
   const rev = newerRev(l, r);
@@ -281,7 +296,7 @@ function relayInto(upload, relay, now, retired = {}) {
 }
 module.exports = { LIMITS, field, mergeField, mergeRecord, mergeBlob, mergeIndex, mid, tagOf, keyFor, validKey, orderOf,
   acknowledged, revisionOf, blobFits, liveTabCount, sanitizeBlob, sanitizeIndex, expireTombstones, effectiveGroup, activeTabId,
-  relayBlob, relayIndex, relayInto, newerRev };
+  relayBlob, relayIndex, relayInto, newerRev, receiptSuperseded };
 
 // Pending writes are namespaced by record kind/id/field; index publication is a
 // separate caller-owned entry. A fetched value, never a PUT response, settles a
@@ -308,6 +323,7 @@ function sanitizePending(pending = {}) {
     out.index={id:pending.index.id,rev:pending.index.rev};
     if (Number.isSafeInteger(pending.index.at) && pending.index.at >= 0) out.index.at=pending.index.at;
     if (typeof pending.index.by==='string' && pending.index.by.length>0 && pending.index.by.length<=128) out.index.by=pending.index.by;
+    const base=revHint(pending.index.base);if (base) out.index.base=base;
   }
   return out;
 }
@@ -436,7 +452,7 @@ function admit({candidate,changes=[],encryptFn,finish=blob=>blob}) {
   for (const unit of changes) unsynced.add(unit.id);
   return {blob:null,unsynced,reason:changes.some(u=>u.required)?'required-state-over-budget':'remote-over-budget'};
 }
-function pushPlan({fetchedBlob, fetchedVersion=null, localBlob, pending={}, lastMergeAt, now, deviceId, encryptFn, lastPublishable, admissionOrder=[]}) {
+function pushPlan({fetchedBlob, fetchedVersion=null, localBlob, pending={}, lastMergeAt, now, deviceId, encryptFn, lastPublishable, admissionOrder=[], firstUpload=false, indexHint=null}) {
   const local=sanitizeBlob(localBlob), remote=sanitizeBlob(fetchedBlob), relay=relayBlob(fetchedBlob);
   // Only an actual missing blob may start an empty remote. An unreadable
   // response must not be overwritten with a locally understood older schema.
@@ -486,13 +502,22 @@ function pushPlan({fetchedBlob, fetchedVersion=null, localBlob, pending={}, last
     for(const unit of [...changes].sort((a,b)=>a.clock-b.clock || (a.key<b.key?-1:1)))unit.admissionRank=ranks.get(unit.key)??next++;
   }
   const admission=admit({candidate:mergedBlob,changes,encryptFn,finish:blob=>relayInto(blob,relay,now,expiredRecords)});
-  const changed=admission.blob && canonical(admission.blob)!==canonical(relay??fetched);
+  // A Space this device made that the Worker has never named (firstUpload)
+  // uploads even when it holds nothing (its only tab is the New Tab page),
+  // so other devices learn of it. One the Worker named whose blob is gone is
+  // never recreated empty.
+  const creates=firstUpload&&fetchedBlob==null&&!published;
+  const changed=admission.blob && (creates || canonical(admission.blob)!==canonical(relay??fetched));
   const upload=changed?{blob:admission.blob,rev:revisionOf(admission.blob),ifVersion:fetchedVersion}:null;
   // Proposal only: caller may publish this revision after the blob PUT succeeds.
   // Identity fields remain in the separately merged index, never guessed here.
   // The revision is of what the Worker holds afterwards, relayed content included.
-  const indexEntry=upload?{id:upload.blob.spaceId,rev:upload.rev,at:now,by:deviceId}
-    : !admission.reason && pendingAfter.index ? {id:fetched.spaceId,rev:revisionOf(relay??fetched),at:now,by:deviceId} : null;
+  // A download the index hint doesn't describe corrects the hint, so a hint
+  // that fell behind (or was regressed) never stops other devices fetching.
+  const hint=revHint(indexHint),base=hint?{base:hint}:{},heldRev=revisionOf(relay??fetched);
+  const corrects=fetchedBlob!=null && !!indexHint && hint?.rev!==heldRev;
+  const indexEntry=upload?{id:upload.blob.spaceId,rev:upload.rev,at:now,by:deviceId,...base}
+    : !admission.reason && (pendingAfter.index || corrects) ? {id:fetched.spaceId,rev:heldRev,at:now,by:deviceId,...base} : null;
   return {upload,pendingAfter,expiredRecords,recover,unsynced:admission.unsynced,mergedBlob,nextLastMergeAt:now,indexEntry,reason:admission.reason};
 }
 Object.assign(module.exports,{applyLocalEdits,settlePending,recoveryDecision,admit,pushPlan});

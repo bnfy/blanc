@@ -420,11 +420,20 @@ Then('the standalone mahjong game is ready', async function () {
     'the standalone Mahjong tab to render its active Daily layout at playable size'
   );
   const game = await this.call('readMahjongDom');
-  assert.deepEqual(game.instrument, [], 'Mahjong keeps Inter and its tile font');
+  // Every label, count and score is Instrument Sans and never falls back to
+  // Inter (owner choice, November 12, 2026; #1489).
+  assert.deepEqual(game.interText, [], 'no Mahjong text falls back to Inter');
   for (const sample of game.fontSamples) {
-    assert.match(sample.family, /Inter/, `${sample.selector} resolved to ${sample.family}`);
+    assert.match(sample.family, /^"?Instrument Sans"?/, `${sample.selector} resolved to ${sample.family}`);
   }
-  assert.match(game.tileFaceFamily, /JetBrains Mono/, 'Mahjong tile faces keep JetBrains Mono');
+  // Since #931 every tile face is the shipped art, not a font glyph.
+  const { tileFaces } = game;
+  assert.ok(tileFaces.count >= game.tileCount, `every tile has a face (${tileFaces.count} of ${game.tileCount})`);
+  assert.equal(tileFaces.withArt, tileFaces.count, 'every tile face draws its art');
+  assert.equal(tileFaces.glyphs, 0, 'no tile face falls back to a text glyph');
+  for (const href of tileFaces.hrefs) {
+    assert.match(href, /^mahjong-[\w-]+\.png$/, `tile art comes from Mahjong's own files: ${href}`);
+  }
   assert.ok(game.boardCenterDeltaX <= 1, `board x center drifted ${game.boardCenterDeltaX}px`);
   assert.ok(game.dockLeft >= game.boardFrameLeft - 1, 'control rail should begin inside the board frame');
   assert.ok(game.dockRight <= game.boardFrameRight + 1, 'control rail should end inside the board frame');

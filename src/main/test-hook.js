@@ -15,7 +15,10 @@ const archive = require('./archive');
 const bookmarks = require('./bookmarks');
 const startPagePins = require('./start-page-pins');
 const path = require('node:path');
-const { app, BrowserWindow, Menu, clipboard, nativeImage, powerMonitor, webContents } = require('electron');
+const fs = require('node:fs');
+const { app, BrowserWindow, Menu, clipboard, nativeImage, powerMonitor, session, webContents } = require('electron');
+const siteZoom = require('./site-zoom');
+const { levelToPercent } = require('./page-zoom');
 // A 1×1 PNG the bang icon server stub answers with (stubBangIconServer).
 const TEST_BANG_ICON_PNG = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8DwHwAFBQIAX8jx0gAAAABJRU5ErkJggg==';
 const { buildAddressMenu } = require('./address-menu-model');
@@ -185,6 +188,7 @@ function install(refs) {
     hideUtilitySheet,
     getUtilitySheetState,
     getUtilitySheetWebContents,
+    zoomActiveTab,
     getOverlayWebContents,
     getChromeWebContents,
     setWindowContentSize,
@@ -919,6 +923,30 @@ function install(refs) {
       return (focused ?? webContents.getFocusedWebContents())?.id ?? null;
     },
     zoomLevel(tabId) { return liveContents(tabs.get(tabId))?.getZoomLevel() ?? null; },
+    zoomMode(tabId) { return liveContents(tabs.get(tabId))?.getZoomMode() ?? null; },
+    zoomPercent(tabId) {
+      const level = liveContents(tabs.get(tabId))?.getZoomLevel();
+      return typeof level === 'number' ? levelToPercent(level) : null;
+    },
+    /** What the page is really drawn at, not what Electron reports: in manual
+     * mode a level reads back without the page changing. */
+    async drawnZoomPercent(tabId) {
+      const tab = tabs.get(tabId);
+      const wc = liveContents(tab);
+      if (!wc) return null;
+      return Math.round(100 * tab.view.getBounds().width / await wc.executeJavaScript('innerWidth'));
+    },
+    tabUrl(tabId) { return liveContents(tabs.get(tabId))?.getURL() ?? null; },
+    pageZoom() { return settings.getSettings().pageZoom; },
+    setPageZoom(percent) { return settings.setSettings({ pageZoom: percent }).pageZoom; },
+    siteZoomSites() { return siteZoom.sites(); },
+    clearSiteZoom() { siteZoom.clearSites(); },
+    /** Hosts in Chromium's saved per-host zoom for the Personal session. */
+    chromiumZoomHosts() {
+      const file = path.join(session.defaultSession.getStoragePath(), 'Preferences');
+      const partitions = JSON.parse(fs.readFileSync(file, 'utf8')).partition?.per_host_zoom_levels ?? {};
+      return Object.values(partitions).flatMap((hosts) => Object.keys(hosts));
+    },
     // A real mouse click on an element of a tab's page, so the page's own
     // target=_blank / modifier handling decides the window-open disposition.
     async clickInTab(tabId, selector, modifiers = []) {
@@ -1831,6 +1859,15 @@ function install(refs) {
           const frameRect = document.querySelector('.mj-board-frame')?.getBoundingClientRect();
           const wrapRect = document.getElementById('mjBoardWrap')?.getBoundingClientRect();
           const boardRect = document.getElementById('mjBoard')?.getBoundingClientRect();
+          const wrapStyles = document.getElementById('mjBoardWrap')
+            ? getComputedStyle(document.getElementById('mjBoardWrap')) : null;
+          const safe = (name) => Math.max(0, Number.parseFloat(wrapStyles?.getPropertyValue(name)) || 0);
+          const boardSafeOffsetX = (safe('--mj-board-safe-left') - safe('--mj-board-safe-right')) / 2;
+          const tileRects = [...document.querySelectorAll('.mj-tile:not([hidden])')].map((tile) => tile.getBoundingClientRect());
+          const tilesRect = tileRects.length ? {
+            left: Math.min(...tileRects.map((r) => r.left)),
+            right: Math.max(...tileRects.map((r) => r.right)),
+          } : null;
           const dockRect = document.querySelector('.mj-dock')?.getBoundingClientRect();
           const dockButtons = [...document.querySelectorAll('.mj-dock > button')]
             .map((button) => button.getBoundingClientRect());
@@ -1848,8 +1885,15 @@ function install(refs) {
             tileHeight: tileRect?.height ?? 0,
             boardFrameHeight: frameRect?.height ?? 0,
             boardWrapWidth: wrapRect?.width ?? 0,
-            boardCenterDeltaX: boardRect && frameRect
-              ? Math.abs((boardRect.left + boardRect.right - frameRect.left - frameRect.right) / 2)
+            // The visible tiles centre in the frame's space beside the dock:
+            // since #931 the wrap keeps a safe area on the left for the dock
+            // rail (--mj-board-safe-left/right) and fitBoard() shifts the board
+            // by half the difference. Measured on the tiles, not the board's
+            // box, which fitBoard() also offsets so the tiles of each layout
+            // (Daily changes every day) sit centred.
+            boardCenterDeltaX: tilesRect && frameRect
+              ? Math.abs((tilesRect.left + tilesRect.right - frameRect.left - frameRect.right) / 2
+                - boardSafeOffsetX)
               : Infinity,
             boardFrameLeft: frameRect?.left ?? 0,
             boardFrameRight: frameRect?.right ?? 0,
@@ -1873,7 +1917,25 @@ function install(refs) {
               .filter((element) => getComputedStyle(element).fontFamily.includes('Instrument Sans'))
               .slice(0, 20)
               .map((element) => element.id || element.className || element.tagName),
-            tileFaceFamily: getComputedStyle(document.querySelector('.mj-face text')).fontFamily,
+            // Text that still falls back to Inter anywhere in its font stack
+            // (the game's labels never do since #1489); tile art is excluded.
+            interText: [...document.querySelectorAll('body, body *')]
+              .filter((element) => !element.closest('.mj-face')
+                && /(^|,)\\s*"?Inter"?\\s*(,|$)/.test(getComputedStyle(element).fontFamily))
+              .slice(0, 20)
+              .map((element) => element.id || element.className || element.tagName),
+            // Tile faces are the shipped art since #931: SVG images, no glyphs.
+            tileFaces: (() => {
+              const faces = [...document.querySelectorAll('.mj-tile .mj-face')];
+              const hrefs = faces.flatMap((face) => [...face.querySelectorAll('image')]
+                .map((image) => image.getAttribute('href') ?? ''));
+              return {
+                count: faces.length,
+                withArt: faces.filter((face) => face.querySelector('image')).length,
+                glyphs: faces.reduce((total, face) => total + face.querySelectorAll('text').length, 0),
+                hrefs: [...new Set(hrefs)],
+              };
+            })(),
             viewportWidth: innerWidth,
             viewportHeight: innerHeight,
           };
@@ -2804,6 +2866,8 @@ function install(refs) {
           const parts = [document.getElementById('pillSpaceSymbol'), document.getElementById('pillSpaceName')];
           return {
             hidden: mark.hidden,
+            inIsland: !!mark.closest('#islandPill'),
+            inRail: !!mark.closest('.vertical-tabs-toolbar'),
             state: mark.dataset.state,
             name: parts[1].textContent,
             label: mark.getAttribute('aria-label'),
@@ -2976,6 +3040,43 @@ function install(refs) {
         if (!row) return false;
         row.querySelector('.site-row-remove').click();
         return true;
+      })()`);
+    },
+    /** ⌘+ in one window, whichever window the OS has focused. */
+    zoomInWindow(id) { return refs.runInWindowRuntime(String(id), () => zoomActiveTab(1)); },
+    openSettingsInWindow(id) { return refs.runInWindowRuntime(String(id), () => openInternalPage('blanc://settings/')); },
+    async settingsSiteZoomRowsInWindow(id) {
+      return refs.runInWindowRuntime(String(id), () => getUtilitySheetWebContents()?.executeJavaScript(
+        `[...document.querySelectorAll('#siteZoomList .site-row-name')].map((name) => name.textContent)`) ?? []);
+    },
+    closeUtilitySurfaceInWindow(id) { return refs.runInWindowRuntime(String(id), () => hideUtilitySheet()); },
+    async settingsChoosePageZoom(percent) {
+      const wc = getUtilitySheetWebContents();
+      if (!wc) return false;
+      return wc.executeJavaScript(`(() => {
+        const select = document.getElementById('pageZoom');
+        if (!select?.options.length) return false;
+        select.value = ${JSON.stringify(String(percent))};
+        select.dispatchEvent(new Event('change', { bubbles: true }));
+        return true;
+      })()`);
+    },
+    async settingsSiteZoomRows() {
+      const wc = getUtilitySheetWebContents();
+      if (!wc) return [];
+      return wc.executeJavaScript(`[...document.querySelectorAll('#siteZoomList .site-row')].map((row) => ({
+        name: row.querySelector('.site-row-name')?.textContent ?? '',
+        detail: row.querySelector('.site-row-detail')?.textContent ?? '',
+      }))`);
+    },
+    async settingsRemoveSiteZoom(site) {
+      const wc = getUtilitySheetWebContents();
+      if (!wc) return false;
+      return wc.executeJavaScript(`(() => {
+        const row = [...document.querySelectorAll('#siteZoomList .site-row')]
+          .find((candidate) => candidate.querySelector('.site-row-name')?.textContent === ${JSON.stringify(String(site))});
+        row?.querySelector('.site-row-remove').click();
+        return !!row;
       })()`);
     },
     async settingsProfileRows() {

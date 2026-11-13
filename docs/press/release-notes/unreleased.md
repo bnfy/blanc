@@ -1,7 +1,46 @@
 # Unreleased notes
 
-v1.45.1 is the current public release ([notes](v1.45.1.md)). Changes merged
+v1.49.0 is the current public release ([notes](v1.49.0.md)). Changes merged
 since then are below as they're recorded.
+
+## Still open from 1.49
+
+- **The pop-out certificate fix** (#1478) against a real local console, such
+  as Proxmox's noVNC and xterm.js windows, after **Continue**.
+- **Mahjong** in a packaged build: the three tile sets, the match trail and
+  board-cleared celebration (and the reduced-motion glow), in light and dark
+  mode.
+
+## Still open from 1.48
+
+- **Glance over a split hands-on checks** (#1444) in a packaged build on
+  macOS, Windows and Linux: the card drawing above both panes and their
+  corner tabs (Linux especially), clicking between panes, and closing a pane
+  under the card. It has only run in the acceptance suite on Linux.
+- **The WebSocket certificate fix** (#1442) against a real local console,
+  such as Proxmox's, after **Continue**.
+
+## Still open from 1.47.1
+
+- **The certificate crash fix** (#1424) held on the published Apple Silicon
+  app. It hasn't been run in Blanc on Linux or Windows.
+
+## Still open from 1.47
+
+- **The update-restart change in #1405:** the macOS and Windows updater
+  handoffs were confirmed on November 7, 2026, and the owner reported
+  everything fine after the Mac update. How many windows were open wasn't
+  recorded, so a multi-window restart is still unproven.
+- **Page zoom** in a packaged ECS build on Windows and Linux, and its PDF,
+  private-tab, sign-in popup and second-profile cases in a packaged build.
+- **1Password fill** misses forms in iframes, shadow DOM or hidden behind a
+  button, as it did in v1.46.0.
+- **The first release on ECS 45.2.1** has no native-source review (waived).
+
+## Still open from 1.46
+
+- **Mini Window:** not hand-checked on Linux, with several displays, or for
+  the hour-long close.
 
 ## Still open from 1.45
 

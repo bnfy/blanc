@@ -38,6 +38,9 @@ test('the strip scales the pill and itself together, keeping the default untouch
   assert.match(css, /--island-resting-height: 44px;/);
   assert.match(css, /--strip-h: 68px;/);
   assert.match(css, /--pill-zoom: 1\.15;/);
+  // Default keeps its 12.5px address: the scale is only set by the size blocks.
+  assert.match(css, /#pillDomain \{[^}]*font-size: calc\(12\.5px \* var\(--island-text-scale, 1\) \/ var\(--pill-zoom\)\);/);
+  assert.doesNotMatch(css.match(/:root \{[\s\S]*?\n\}/)[0], /--island-text-scale/);
   const size = (name) => css.match(new RegExp(`:root\\[data-island-size="${name}"\\] \\{([^}]*)\\}`))[1];
   for (const [name, zoom, height, radius, strip] of [['large', '1.3', 50, 19, 76], ['extra-large', '1.45', 56, 21, 84]]) {
     const block = size(name);
@@ -47,6 +50,9 @@ test('the strip scales the pill and itself together, keeping the default untouch
     assert.match(block, new RegExp(`--island-resting-height: ${height}px;`));
     assert.match(block, new RegExp(`--island-resting-radius: ${radius}px;`));
     assert.match(block, new RegExp(`--strip-h: ${strip}px;`));
+    // The address grows with the Island (zoom over the default zoom).
+    const scale = Number(block.match(/--island-text-scale: ([\d.]+);/)[1]);
+    assert.ok(Math.abs(scale - Number(zoom) / 1.15) < 0.001, `${name}: text scale ${scale}`);
     // The strip keeps the pill's margins: 10px of zoomed margin above, the rest below.
     const above = 10 * Number(zoom);
     assert.ok(Math.abs((strip - height - above) - above) <= 1.5, `${name}: margins stay even`);

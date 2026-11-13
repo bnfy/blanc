@@ -9,6 +9,8 @@
 //               resolves to a definition without launching Electron.
 //   rerun     - `runnable` scenarios named as path:line arguments, once, with
 //               no retry: the release gate's rerun of what failed.
+//   remaining - `runnable` scenarios named as path:line arguments, with
+//               `runnable`'s retry: the press gate's resume of what is owed.
 //   default   - every desktop-applicable scenario (`not @mobile`). Runs the
 //               implemented subset and reports the rest as UNDEFINED — an
 //               honest view of the remaining backlog.
@@ -23,6 +25,7 @@ const common = {
 
 // The scenarios implemented in steps/ (by their stable @F#-n ids).
 const RUNNABLE = [
+  '@F62-1', '@F62-2', '@F62-3', '@F62-4', '@F62-5', '@F62-6', '@F62-7', '@F62-8', '@F62-9', '@F62-10', '@F62-11',
   '@F60-1', '@F60-2', '@F60-3', '@F60-4', '@F60-5', '@F60-6', '@F60-7',
   '@F61-1', '@F61-2', '@F61-3', '@F61-4', '@F61-5',
   '@F58-1', '@F58-2', '@F58-3',
@@ -60,7 +63,7 @@ const RUNNABLE = [
   '@F28-13', '@F28-14', '@F28-15', '@F28-16', '@F28-17', '@F28-18', '@F28-19', '@F28-20',
   '@F30-1', '@F30-2', '@F30-3', '@F30-4', '@F30-5',
   '@F31-1', '@F31-2', '@F31-3', '@F31-4', '@F31-5',
-  '@F53-1', '@F53-2', '@F53-3', '@F53-4', '@F53-5', '@F53-6', '@F53-7', '@F53-8', '@F53-9', '@F53-10', '@F53-11', '@F53-12', '@F53-13', '@F53-14', '@F53-15', '@F53-16', '@F53-17', '@F53-18', '@F53-19', '@F53-20', '@F53-21', '@F53-22', '@F53-23', '@F53-24', '@F53-25', '@F53-26', '@F53-27', '@F53-28',
+  '@F53-1', '@F53-2', '@F53-3', '@F53-4', '@F53-5', '@F53-6', '@F53-7', '@F53-8', '@F53-9', '@F53-10', '@F53-11', '@F53-12', '@F53-13', '@F53-14', '@F53-15', '@F53-16', '@F53-17', '@F53-18', '@F53-19', '@F53-20', '@F53-21', '@F53-22', '@F53-23', '@F53-24', '@F53-25', '@F53-26', '@F53-27', '@F53-28', '@F53-29', '@F53-30',
   '@F52-1', '@F52-2', '@F52-3', '@F52-4', '@F52-5', '@F52-6', '@F52-7', '@F52-8', '@F52-9', '@F52-10', '@F52-11', '@F52-12', '@F52-13', '@F52-14', '@F52-15', '@F52-16',
   '@F35-1', '@F35-2', '@F35-3', '@F35-4', '@F35-5', '@F35-6', '@F35-7', '@F35-8', '@F35-9', '@F35-10', '@F35-11', '@F35-12', '@F35-13', '@F35-14', '@F35-15', '@F35-16', '@F35-17', '@F35-18', '@F35-19',
   '@F36-1', '@F36-2', '@F36-3', '@F36-4', '@F36-5', '@F36-6', '@F36-7', '@F36-8',
@@ -70,7 +73,7 @@ const RUNNABLE = [
   '@F34-1', '@F34-2', '@F34-3', '@F34-4', '@F34-5', '@F34-6', '@F34-7', '@F34-8', '@F34-9', '@F34-10', '@F34-11', '@F34-12', '@F34-13', '@F34-14', '@F34-15', '@F34-16', '@F34-17', '@F34-18', '@F34-19',
   '@F37-1', '@F37-2', '@F37-3', '@F37-4',
   '@F38-2', '@F38-3', '@F38-4', '@F38-5', '@F38-6', '@F38-7',
-  '@F39-1', '@F39-2', '@F39-3', '@F39-4', '@F39-5', '@F39-6', '@F39-7',
+  '@F39-1', '@F39-2', '@F39-3', '@F39-4', '@F39-5', '@F39-6', '@F39-7', '@F39-8', '@F39-9', '@F39-10', '@F39-11',
   // F39 is already the current certificate-safety scenario. Migration uses
   // F40 so reconciling PR #205 cannot alias or replace that safety coverage.
   '@F40-1', '@F40-2', '@F40-4', '@F40-5',
@@ -85,12 +88,15 @@ const RUNNABLE = [
   '@F48-1', '@F48-2', '@F48-3', '@F48-4', '@F48-5', '@F48-6', '@F48-7',
 ].join(' or ');
 
-// The release gate (scripts/acceptance-gate.mjs) names its JSON report here: a
-// [type, path] pair skips Cucumber's colon parsing, which rejects a Windows
-// drive letter.
-const gateReport = process.env.BLANC_ACCEPTANCE_REPORT
-  ? { format: ['progress', ['json', process.env.BLANC_ACCEPTANCE_REPORT]] }
-  : {};
+// The release gate (scripts/acceptance-gate.mjs) names its JSON report and its
+// Cucumber message stream (scripts/release-gate.mjs's per-scenario ledger)
+// here: a [type, path] pair skips Cucumber's colon parsing, which rejects a
+// Windows drive letter.
+const gateFiles = [
+  ...(process.env.BLANC_ACCEPTANCE_REPORT ? [['json', process.env.BLANC_ACCEPTANCE_REPORT]] : []),
+  ...(process.env.BLANC_ACCEPTANCE_MESSAGES ? [['message', process.env.BLANC_ACCEPTANCE_MESSAGES]] : []),
+];
+const gateReport = gateFiles.length ? { format: ['progress', ...gateFiles] } : {};
 
 export default { ...common, tags: 'not @mobile' };
 export const runnable = { ...common, tags: RUNNABLE, retry: 1, ...gateReport };
@@ -101,7 +107,13 @@ export const runnable = { ...common, tags: RUNNABLE, retry: 1, ...gateReport };
 export const rerun = {
   require: common.require, import: common.import, tags: RUNNABLE, retry: 0, ...gateReport,
 };
-export const dry = { ...common, tags: RUNNABLE, dryRun: true };
+// The press gate's run of the scenarios still owed from an earlier attempt:
+// like `rerun`, the positional path:line arguments are the whole selection, but
+// with `runnable`'s retry, so a resumed scenario has the same in-run budget.
+export const remaining = { ...rerun, retry: 1 };
+// The release gate's expected-scenario set comes from this dry run's message
+// stream (BLANC_ACCEPTANCE_MESSAGES).
+export const dry = { ...common, tags: RUNNABLE, dryRun: true, ...gateReport };
 // The harness's own self-test (test/desktop/harness/): scenarios that break the
 // app on purpose to prove the hooks heal it. Run by healing-smoke.mjs, which
 // checks the expected mix of failures; never part of `runnable`.

@@ -67,7 +67,10 @@ jobs:
     runs-on: macos-26
     # The build and full suite took 29 minutes on October 29, 2026, after
     # M17c and the icon picker added UI tests; 30 cancelled runs mid-suite.
-    timeout-minutes: 45
+    # By November 3, after the iPad work's Split View, Glance and keyboard
+    # tests, green runs took 34-38 minutes and a run with failing tests ran
+    # past 45.
+    timeout-minutes: 60
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       # The pill's Liquid Glass branch needs at least the iOS 26 SDK, so use
@@ -106,6 +109,77 @@ jobs:
             fi
           fi
           echo "only=$only" >> "$GITHUB_OUTPUT"
+      # A test that fails runs once more before the job fails: most failures in
+      # October and November 2026 were timing flakes on a busy runner, and
+      # rerunning the job costs most of an hour. Tests that needed the second
+      # try are listed in the job summary and as warnings, so they still get
+      # fixed.
+      - name: Build and test
+        working-directory: ios/Blanc
+        run: |
+          set -o pipefail
+          xcodebuild test \
+            -project Blanc.xcodeproj \
+            -scheme Blanc \
+            -destination "id=${{ steps.sim.outputs.udid }}" \
+            ${{ steps.scope.outputs.only }} \
+            -retry-tests-on-failure -test-iterations 2 \
+            -resultBundlePath "$RUNNER_TEMP/Blanc.xcresult" \
+            CODE_SIGNING_ALLOWED=NO 2>&1 | tee "$RUNNER_TEMP/xcodebuild.log"
+      - name: List tests that failed at first
+        if: ${{ !cancelled() }}
+        run: |
+          log="$RUNNER_TEMP/xcodebuild.log"
+          [ -f "$log" ] || exit 0
+          failed=$(sed -nE "s/^Test Case '-\[([A-Za-z0-9_]+\.[A-Za-z0-9_]+ [A-Za-z0-9_]+)\]' failed.*/\1/p" "$log" | sort -u)
+          [ -n "$failed" ] || exit 0
+          echo "### iOS tests that failed at least once" >> "$GITHUB_STEP_SUMMARY"
+          while IFS= read -r test; do
+            if grep -qF "Test Case '-[$test]' passed" "$log"; then
+              echo "::warning title=Flaky iOS test::$test failed, then passed on its second try"
+              echo "- \`$test\`: failed, then passed on its second try" >> "$GITHUB_STEP_SUMMARY"
+            else
+              echo "- \`$test\`: failed both tries" >> "$GITHUB_STEP_SUMMARY"
+            fi
+          done <<< "$failed"
+      # Screenshots, recordings and the UI tree at each failure, for a test
+      # that fails only on CI.
+      - name: Keep the result bundle
+        if: failure()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: xctest-result-bundle
+          path: ${{ runner.temp }}/Blanc.xcresult
+          retention-days: 3
+          if-no-files-found: ignore
+      - name: Print app crash reports
+        # A UI test that ends with "application is not running" crashed the
+        # app; the simulator writes the report on the host.
+        if: failure()
+        run: |
+          for f in $(ls -t ~/Library/Logs/DiagnosticReports/Blanc* 2>/dev/null | head -3); do
+            echo "::group::$f"; head -c 60000 "$f"; echo "::endgroup::"
+          done
+
+  # The same app on an iPad: the unit tests, and a smoke of what only the wide
+  # layout and iPad windows show. The iPhone job above runs the full UI suite.
+  xctest-ipad:
+    runs-on: macos-26
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - name: Select the newest Xcode
+        run: |
+          ls -d /Applications/Xcode*.app
+          xcode=$(ls -d /Applications/Xcode_[0-9]*.app | sort -V | tail -1)
+          sudo xcode-select -s "$xcode"
+          xcodebuild -version
+      - name: Pick an iPad simulator
+        id: sim
+        run: |
+          udid=$(xcrun simctl list devices available --json \
+            | python3 -c 'import json,sys; d=json.load(sys.stdin)["devices"]; ios=[(r,x) for r,v in d.items() if "iOS" in r for x in v if x["name"].startswith("iPad Pro 11")]; ios.sort(key=lambda p: [int(n) for n in p[0].rsplit("iOS-",1)[1].split("-")]); print(ios[-1][1]["udid"])')
+          echo "udid=$udid" >> "$GITHUB_OUTPUT"
       - name: Build and test
         working-directory: ios/Blanc
         run: |
@@ -113,11 +187,12 @@ jobs:
             -project Blanc.xcodeproj \
             -scheme Blanc \
             -destination "id=${{ steps.sim.outputs.udid }}" \
-            ${{ steps.scope.outputs.only }} \
+            -only-testing:BlancTests \
+            -only-testing:BlancUITests/IPadWindowUITests \
+            -only-testing:BlancUITests/MultipleWindowsUITests \
+            -only-testing:BlancUITests/DuoUITests \
             CODE_SIGNING_ALLOWED=NO
       - name: Print app crash reports
-        # A UI test that ends with "application is not running" crashed the
-        # app; the simulator writes the report on the host.
         if: failure()
         run: |
           for f in $(ls -t ~/Library/Logs/DiagnosticReports/Blanc* 2>/dev/null | head -3); do

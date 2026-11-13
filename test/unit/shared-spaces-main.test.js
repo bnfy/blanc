@@ -234,8 +234,9 @@ for (const exit of ['quit','window close']) for(const inFlight of [false,true]) 
     app:{on:(_name,fn)=>{sandbox.quit=fn;},quit:()=>events.push('retry-quit')}};
   const event={preventDefault:()=>events.push('prevent')};
   if(exit==='quit') {
-    const begin=source.indexOf("app.on('before-quit',");
-    const end=source.indexOf('\n});',begin)+4;
+    const register="app.on('before-quit', beginQuit);";
+    const begin=source.indexOf('function beginQuit() {'),end=source.indexOf(register,begin)+register.length;
+    assert.ok(begin>0&&end>begin+register.length,'main starts every quit in beginQuit');
     vm.runInNewContext(source.slice(begin,end),sandbox);sandbox.quit(event);
     assert.equal(sandbox.isQuitting,true);
   } else {
@@ -293,7 +294,7 @@ test('a Space tombstone leaves an open window unsaved and disposes a set-aside r
   const code=source.match(/function applySharedSpaceChanges\(runtime, options=\{\}\) \{[\s\S]*?\n\}/)[0];
   for(const resident of [false,true]) {
     const events=[],runtime={workspaceId:'local',resident};
-    const sandbox={sharedSpaceRuntimeContext:()=>({spaceId:sid,workspace:{id:'local'},store:{data:{index:{spaces:{[sid]:{deleted:{v:true}}}}}}}),
+    const sandbox={sharedSpaceWorkHalted:()=>false,sharedSpaceRuntimeContext:()=>({spaceId:sid,workspace:{id:'local'},store:{data:{index:{spaces:{[sid]:{deleted:{v:true}}}}}}}),
       sharedSpaceState:{isEnabled:()=>true,isDormant:()=>false},namedWorkspaces:{remove:id=>{events.push('remove:'+id);return {ok:true};}},
       disposeResident:()=>events.push('dispose'),broadcastWorkspacesUpdated:()=>events.push('broadcast'),
       sharedRuntimeSync:{apply:()=>{events.push('tabs-mutated');return Promise.resolve(true);}},
@@ -360,13 +361,15 @@ function mainSharedSync() {
   const source=fs.readFileSync(require.resolve('../../src/main/main.js'),'utf8');
   const wiring=source.match(/const sharedRuntimeSync=createRuntimeSync\(\{[\s\S]*?\n\}\);/)?.[0];
   assert.ok(wiring,'main needs its sharedRuntimeSync wiring');
-  const helper=source.match(/function adoptSharedGroupIds\(runtime,bindings\) \{[\s\S]*?\n\}/)?.[0]??'';
+  const helpers=['adoptSharedGroupIds\\(runtime,bindings\\)','sharedSpaceWorkHalted\\(runtime\\)'].map(name=>source.match(new RegExp(`function ${name} \\{[\\s\\S]*?\\n\\}`))?.[0]);
+  assert.ok(helpers.every(Boolean),'main needs the sync wiring\'s helpers');
+  const helper=helpers.join('\n');
   const one=record(1),two=record(2,one.pos.v),base={v:1,spaceId:sid,groups:{},tabs:{[id(1)]:one,[id(2)]:two}};
   const tabs=new Map([['t1',{id:'t1',url:one.nav.v.url,title:'T1',sharedTabId:id(1),groupId:null}],['t2',{id:'t2',url:two.nav.v.url,title:'T2',sharedTabId:id(2),groupId:null}]]);
   const runtime={id:'window',workspaceId:'work',tabOrder:['t1','t2'],groups:[],activeTabId:'t2'};
   const data={windows:{['window:'+sid]:{spaceId:sid,displayed:structuredClone(base),accepted:[],groupBindings:{}}}};
   let blob=structuredClone(base);const writes=[],broadcasts=[];
-  const sandbox={createRuntimeSync,sharedSpaceModel:model,tabs,NEW_TAB_URL:'blanc://newtab/',
+  const sandbox={createRuntimeSync,sharedSpaceModel:model,tabs,NEW_TAB_URL:'blanc://newtab/',isQuitting:false,sessionHeldForQuit:false,
     sharedSpaceRuntimeContext:()=>({spaceId:sid,accountId:'a',deviceId:'desktop',blob,window:Object.values(data.windows).find(w=>w.spaceId===sid),protectedIds:[],ctx:{},
       store:{data,update:fn=>fn(data),flush:()=>true}}),
     withWindowRuntime:(_r,fn)=>fn(),

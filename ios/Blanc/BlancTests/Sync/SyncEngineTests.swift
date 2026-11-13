@@ -34,6 +34,8 @@ final class MemorySyncTransport: SyncTransport, @unchecked Sendable {
     private var held: CheckedContinuation<Void, Never>?
     private var retired: Set<String> = []
     private var stampClock: TestClock?
+    private var versionsServed = false
+    private var namedAhead: Set<String> = []
     private var stamps: [Stamp] = []
     private func locked<T>(_ body: () throws -> T) rethrows -> T { lock.lock(); defer { lock.unlock() }; return try body() }
     func records() -> [Request] { locked { requests } }
@@ -43,9 +45,14 @@ final class MemorySyncTransport: SyncTransport, @unchecked Sendable {
     /// An older Worker that doesn't serve `store` at all (M7b's `sends`).
     func retire(_ store: SyncStore) { _ = locked { retired.insert(store.rawValue) } }
     func retire(name: String) { _ = locked { retired.insert(name) } }
+    /// A Worker with the change check (`GET v1/versions/<account>`); without it, a 404 as from an older Worker.
+    func serveVersions() { locked { versionsServed = true } }
+    /// The check names `name` one version past what a GET returns, as when the read raced a newer write.
+    func nameAhead(_ name: String) { _ = locked { namedAhead.insert(name) } }
     func install(_ account: String, name: String, _ value: JSONValue, key: SymmetricKey) throws {
         let sealed = try SyncCrypto.seal(Data(value.jsStringify().utf8), key: key)
-        locked { blobs["v1/blob/\(account)/\(name)"] = (1, sealed) }
+        // A new copy is a new version, as on the Worker.
+        locked { blobs["v1/blob/\(account)/\(name)"] = ((blobs["v1/blob/\(account)/\(name)"]?.0 ?? 0) + 1, sealed) }
     }
     func value(_ account: String, name: String, key: SymmetricKey) throws -> JSONValue? {
         guard let (_, blob) = locked({ blobs["v1/blob/\(account)/\(name)"] }) else { return nil }
@@ -74,7 +81,14 @@ final class MemorySyncTransport: SyncTransport, @unchecked Sendable {
         let response: (status: Int, body: Data)
         let exactKey = method + " " + path
         let failureKey = failures[exactKey] != nil ? exactKey : (failures.keys.first { $0.hasSuffix("/") && exactKey.hasPrefix($0) } ?? exactKey)
-        if let store = path.split(separator: "/").last.map(String.init), retired.contains(store), path.hasPrefix("v1/blob/") {
+        if method == "GET", versionsServed, path.hasPrefix("v1/versions/") {
+            let account = String(path.dropFirst("v1/versions/".count))
+            var stores: [String: Any] = [:]
+            for name in SyncChanges.fixedStores {
+                stores[name] = blobs["v1/blob/\(account)/\(name)"].map { String($0.0 + (namedAhead.contains(name) ? 1 : 0)) } ?? NSNull()
+            }
+            response = (200, try JSONSerialization.data(withJSONObject: ["v": 1, "stores": stores]))
+        } else if let store = path.split(separator: "/").last.map(String.init), retired.contains(store), path.hasPrefix("v1/blob/") {
             response = (404, Data("unknown store".utf8))
         } else if var pending = failures[failureKey], !pending.isEmpty {
             let status = pending.removeFirst(); failures[failureKey] = pending
@@ -498,9 +512,9 @@ final class MemorySyncTransport: SyncTransport, @unchecked Sendable {
     func testForegroundDoesNotRepeatACompletedPassWithinAMinute() async throws {
         let f = try await make()
         await f.engine.appDidBecomeActive()
-        let first = await f.transport.records().count
+        let first = await f.transport.records().filter { $0.path.hasPrefix("v1/blob/") }.count
         await f.engine.appDidBecomeActive()
-        let second = await f.transport.records().count
+        let second = await f.transport.records().filter { $0.path.hasPrefix("v1/blob/") }.count
         XCTAssertEqual(first, second)
         XCTAssertGreaterThan(first, 0)
     }
@@ -536,7 +550,7 @@ final class MemorySyncTransport: SyncTransport, @unchecked Sendable {
         try await f.transport.install(accountA, .sends, sendsStore([("mac", macEntry())]), key: f.key)
         await f.engine.syncNow()
         let own = try await f.transport.value(accountA, .sends, key: f.key)?["devices"]?[f.state.state.deviceId]
-        XCTAssertEqual(own?["name"], .string("iPhone"))
+        XCTAssertEqual(own?["name"], .string(ThisDevice.name))
         XCTAssertEqual(own?["platform"], .string("ios"))
         await f.engine.syncNow()
         let puts = await requestCount(f.transport, "PUT", suffix: "/sends")
@@ -653,4 +667,70 @@ final class MemorySyncTransport: SyncTransport, @unchecked Sendable {
         XCTAssertNil(f.state.load(.sends))
     }
 
+}
+
+// MARK: The change check's remembered versions (design 2026-11-02)
+extension SyncEngineTests {
+    func testAPassRemembersEachFixedStoresVersion() async throws {
+        let f = try await make()
+        await f.engine.syncNow()
+        XCTAssertEqual(f.engine.seenVersions["settings"], .some("1"), "the settings read")
+        XCTAssertEqual(f.engine.seenVersions["bookmarks"], .some(nil), "a store not on the Worker is remembered as absent")
+        addFavorite(f.engine, "https://fav.example/")
+        await f.engine.syncNow()
+        XCTAssertEqual(f.engine.seenVersions["bookmarks"], .some("1"), "the version this phone's own upload got")
+    }
+    func testAnotherAccountOrSyncOffStartsEmpty() async throws {
+        let f = try await make()
+        await f.engine.syncNow()
+        XCTAssertFalse(f.engine.seenVersions.isEmpty)
+        try f.state.update { $0.accountId = accountB }
+        XCTAssertTrue(f.engine.seenVersions.isEmpty, "versions belong to the account that read them")
+        try f.state.update { $0.accountId = accountA }
+        _ = await f.engine.disable()
+        XCTAssertTrue(f.engine.seenVersions.isEmpty)
+        XCTAssertNil(f.state.state.seenVersions)
+    }
+}
+
+// MARK: A pass over only the stores that changed (design 2026-11-02)
+extension SyncEngineTests {
+    func testOnlySettingsReadsOneStore() async throws {
+        let f = try await make()
+        try await f.transport.install(accountA, .bookmarks, .object([("items", .array([])), ("tombstones", .array([]))]), key: f.key)
+        try await f.transport.install(accountA, .settings, settings("dark", at: 200), key: f.key)
+        await f.engine.syncNow(only: [.settings])
+        let requests = await f.transport.records()
+        XCTAssertEqual(requests.map(\.method), ["GET"])
+        XCTAssertEqual(requests.map(\.path), ["v1/blob/\(accountA)/settings"])
+        XCTAssertEqual(f.state.load(.settings)?["values"]?["theme"], .string("dark"), "what it read is applied")
+        XCTAssertEqual(f.engine.seenVersions.keys.sorted(), ["settings"])
+        XCTAssertNil(f.state.state.lastError)
+    }
+    func testAPassOverOptionalStoresKeepsTheSyncStatus() async throws {
+        let f = try await make()
+        try f.state.update { $0.lastError = "server"; $0.lastSyncedAt = 5 }
+        await f.engine.syncNow(only: [.icons])
+        XCTAssertEqual(f.state.state.lastError, "server", "only a required store can clear an error")
+        XCTAssertEqual(f.state.state.lastSyncedAt, 5)
+    }
+    func testAMissingSettingsEndsTheAccountOnlyWhenSettingsWasRead() async throws {
+        let f = try await make()
+        await f.transport.remove(accountA, .settings)
+        await f.engine.syncNow(only: [.bookmarks])
+        XCTAssertNil(f.state.state.lastError, "a pass that didn't read settings can't tell")
+        await f.engine.syncNow(only: [.settings])
+        XCTAssertEqual(f.state.state.lastError, SyncError.accountGone.code)
+    }
+    func testAPhoneEditStillGoesOutInAFullPass() async throws {
+        let f = try await make()
+        addFavorite(f.engine, "https://fav.example/")
+        await f.engine.syncNow(only: [.settings])
+        let before = try await f.transport.value(accountA, .bookmarks, key: f.key)
+        XCTAssertNil(before, "a store not read is never written")
+        XCTAssertEqual(f.engine.favorites.map(\.url), ["https://fav.example/"], "and the phone's copy stays")
+        await f.engine.syncNow()
+        let after = try await f.transport.value(accountA, .bookmarks, key: f.key)
+        XCTAssertEqual(favoriteURLs(after), ["https://fav.example/"])
+    }
 }
