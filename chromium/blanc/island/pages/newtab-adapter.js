@@ -139,6 +139,8 @@
     return place.left.length + place.right.length ? place : DEFAULT_PLACE;
   };
   const widgetsOf = value => ({...Object.fromEntries(WIDGETS.map(name => [name, value?.[name] === true])), place: placeOf(value?.place),
+    shortcutCount: Number.isInteger(value?.shortcutCount) && value.shortcutCount >= 1 && value.shortcutCount <= 12
+      ? value.shortcutCount : (value?.shortcuts === true ? 12 : 6),
     sizes: Object.fromEntries(Object.entries(value?.sizes && typeof value.sizes === 'object' ? value.sizes : {})
       .filter(([card, size]) => SIZABLE(card) && CARD_SIZES.includes(size)))});
   const noWidgets = () => widgetsOf(null);
@@ -459,6 +461,19 @@
           const value = await request('widgetsWrite', [name, on === true]);
           ++widgetsEpoch;
           if (!value || typeof value !== 'object') throw new Error('Widget confirmation unavailable');
+          sharedWidgets = widgetsOf(value);
+          publish();
+          return sharedWidgets;
+        } catch (error) { ++widgetsEpoch; throw error; }
+      },
+      // How many shortcut tiles Billboard shows, 1 to 12.
+      setShortcutCount: async (count) => {
+        if (!Number.isInteger(count) || count < 1 || count > 12) throw new Error('Shortcuts are 1 to 12');
+        ++widgetsEpoch;
+        try {
+          const value = await request('widgetsShortcuts', [count]);
+          ++widgetsEpoch;
+          if (!value || typeof value !== 'object') throw new Error('Shortcut count unavailable');
           sharedWidgets = widgetsOf(value);
           publish();
           return sharedWidgets;

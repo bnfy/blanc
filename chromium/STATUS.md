@@ -916,6 +916,22 @@ remain pending. D3 beta-only no-DRM exception accepted; EME notice/handoff requi
   says "N sites so far. More appear as you browse." in that case. Shipping's
   Mahjong steps count three Customize choices (V26, two tiles and this one).
   native-start-widgets 8/8; newtab-layouts 24/25 (:21 as before).
+- **Customize, redesigned (2026-11-13, owner; apple-design):** two columns
+  from 760 px wide (stacked when narrower): Widgets, Shortcuts and Clock on
+  the left; Wallpaper on the right with every option it had (Sunrise, Color
+  with its fill and space color, Your image with Wash and Fade, time of
+  day). The widget tiles are skeleton drawings of each card, like the old
+  layout picker's thumbnails (gold outline when on). Shortcuts is a − / +
+  stepper from 1 to 12, saved as `shortcutCount` in blanc.start.widgets (the
+  older 6-or-12 `shortcuts` is kept in step for earlier builds); arrow keys
+  step it, a run of presses saves once, and its ends use aria-disabled so
+  focus stays put. Billboard's tiles wrap into centered rows of at most six.
+  The popover never covers the clock or the line under it, so a change to
+  the clock's look stays in view: its height is capped to the room between
+  that line and its button, and it scrolls inside when it needs more (by
+  16 px at 1000 × 760; it fits at 1280 × 800 and larger, in every
+  wallpaper mode). native-start-widgets 8/8; newtab-layouts 24/25 (:21 as
+  before).
 - **Favorites resizes too (2026-11-13, owner):** like the devices card, by
   its bottom edge onto the fixed sizes. At its own size it lists eight
   favorites; given a size (or while being resized) it lists all of them and
@@ -2719,5 +2735,5 @@ Android's Bar A counts the shared scenarios bound in `chromium/tests/android/acc
 
 Legacy macOS stages come from the approved spec; they await verification on the canonical candidate. No legacy stage counts as Verified.
 
-Candidate identities: macOS: macos-5f109880379f57cd; Windows: none; Linux: none; Android: android-arm64-7bd35e94ef746069.
+Candidate identities: macOS: macos-6c39acbb81941068; Windows: none; Linux: none; Android: android-arm64-7bd35e94ef746069.
 <!-- END GENERATED PROGRESS -->

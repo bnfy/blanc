@@ -276,32 +276,76 @@ body:not(.widget-dragging) .bb-widgets:not(:has(> .bb-rail[data-empty="false"]))
 #bbBlocked { font-weight: 500; }
 /* The week's chart replaces Billboard's one-line count. */
 
-/* Customize: a 2×2 grid of preview tiles, each a small drawing of its
-   widget; a tile that is on takes the gold outline and a check. */
-.widget-switches { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; margin-top: 8px; }
+/* Customize (option 3, owner 2026-11-13). Each widget is a skeleton of its
+   card in the old Layout picker's style (a small frame of gray bars), two up,
+   its name beneath; a widget that is on takes the gold outline. Shortcuts is
+   a 1-12 stepper, the clock keeps its live sample card, and the wallpaper
+   sits in a second column where there is room. The popover never covers the
+   clock (its height is capped by the page script) and scrolls inside. */
+.start-customize-popover { width: max-content; overflow-y: auto; overscroll-behavior: contain; scrollbar-width: thin; }
+.customize-cols { display: grid; grid-template-columns: min(300px, calc(100vw - 64px)); gap: 0; }
+.customize-col { display: flex; flex-direction: column; min-width: 0; }
+.customize-col-wallpaper { margin-top: 14px; padding-top: 14px; border-top: 1px solid color-mix(in srgb, var(--border) 80%, transparent); }
+/* A slightly shorter preview lets Color's options fit a 1280 × 800 window
+   without scrolling. */
+.customize-col-wallpaper .wallpaper-cover { height: 110px; }
+@media (min-width: 760px) {
+  .customize-cols { grid-template-columns: 300px 300px; column-gap: 22px; }
+  .customize-col-wallpaper { margin-top: 0; padding-top: 0; border-top: 0; padding-inline-start: 22px;
+    border-inline-start: 1px solid color-mix(in srgb, var(--border) 80%, transparent); }
+}
+.widget-switches { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; margin-top: 2px; }
 .widget-tile {
-  position: relative; display: flex; flex-direction: column; align-items: center; gap: 6px;
-  min-width: 0; padding: 10px 8px 9px; border: 1px solid var(--border); border-radius: 12px;
-  background: color-mix(in srgb, var(--surface-raised, #fff) 70%, transparent);
-  color: var(--text-dim); font: inherit; font-size: 12px; line-height: 1.25; text-align: center; cursor: pointer;
-  transition: border-color 120ms ease, color 120ms ease, background-color 120ms ease;
+  display: flex; flex-direction: column; align-items: stretch; gap: 7px; min-width: 0; padding: 0;
+  border: 0; background: none; color: var(--text-dim); font: 500 12px/1.3 var(--font-text); text-align: start;
+  cursor: pointer; -webkit-tap-highlight-color: transparent;
 }
-.widget-tile:hover { border-color: color-mix(in srgb, var(--patron-gold) 55%, var(--border)); color: var(--text); }
-.widget-tile:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.widget-tile-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; transition: color 120ms ease-out; }
+.widget-tile:hover, .widget-tile[aria-checked="true"] { color: var(--text); }
+.widget-tile:focus-visible { outline: none; }
+.widget-tile:focus-visible .widget-thumb { outline: 2px solid var(--accent); outline-offset: 2px; }
 .widget-tile[aria-disabled="true"] { cursor: progress; }
-.widget-tile-art { width: 64px; height: 36px; color: inherit; }
-.widget-tile-art * { vector-effect: non-scaling-stroke; }
-.widget-tile[aria-checked="true"] {
-  border-color: var(--patron-gold); color: var(--text);
-  background: color-mix(in srgb, var(--patron-gold) 10%, var(--surface-raised, #fff));
+.widget-thumb {
+  display: grid; gap: 4px; height: 64px; padding: 9px; box-sizing: border-box;
+  border: 1px solid var(--border); border-radius: 9px; background: var(--surface-raised, #fff);
+  transition: outline-color 140ms ease-out, transform 100ms ease-out;
+  outline: 2px solid transparent; outline-offset: 1px;
 }
-.widget-tile[aria-checked="true"] .widget-tile-art { color: var(--patron-gold); }
-.widget-tile-check {
-  position: absolute; top: 6px; right: 6px; width: 14px; height: 14px; border-radius: 50%;
-  background: var(--patron-gold); color: #fff; display: none; place-items: center;
+.widget-thumb i, .widget-thumb b { display: block; min-width: 0; min-height: 0; border-radius: 2px; }
+.widget-thumb i { background: color-mix(in srgb, var(--text-dim) 30%, transparent); }
+.widget-thumb b { background: color-mix(in srgb, var(--text-dim) 55%, transparent); }
+.widget-tile:hover .widget-thumb { border-color: color-mix(in srgb, var(--text-dim) 45%, var(--border)); }
+.widget-tile:active .widget-thumb { transform: scale(0.97); }
+.widget-tile[aria-checked="true"] .widget-thumb { outline-color: var(--patron-gold); }
+.widget-tile[aria-checked="true"] .widget-thumb b { background: color-mix(in srgb, var(--patron-gold) 75%, transparent); }
+/* Favorites: icons beside lines. */
+.widget-thumb[data-thumb="favorites"] { grid-template-columns: 9px 1fr; grid-template-rows: repeat(4, 1fr); }
+.widget-thumb[data-thumb="favorites"] i:nth-of-type(2) { width: 70%; }
+.widget-thumb[data-thumb="favorites"] i:nth-of-type(3) { width: 85%; }
+.widget-thumb[data-thumb="favorites"] i:nth-of-type(4) { width: 60%; }
+/* Other devices: a device's name over its tabs, then the next device. */
+.widget-thumb[data-thumb="devices"] { grid-template-columns: 1fr; grid-template-rows: 5px 1fr 1fr 5px 1fr; }
+.widget-thumb[data-thumb="devices"] b:nth-of-type(1) { width: 50%; }
+.widget-thumb[data-thumb="devices"] b:nth-of-type(2) { width: 40%; }
+.widget-thumb[data-thumb="devices"] i:nth-of-type(2) { width: 75%; }
+.widget-thumb[data-thumb="devices"] i:nth-of-type(3) { width: 80%; }
+/* A row: a label at the start, its control at the end. */
+.customize-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-top: 14px; }
+.customize-row-label { color: var(--text); font: 500 13px/1.3 var(--font-text); }
+/* The stepper: minus, the count, plus, in one pill. */
+.shortcut-stepper { display: inline-flex; align-items: center; gap: 2px; padding: 2px; border-radius: 999px;
+  background: color-mix(in srgb, var(--text) 7%, transparent); }
+.shortcut-step { display: grid; place-items: center; width: 28px; height: 26px; padding: 0; border: 0; border-radius: 999px;
+  background: transparent; color: var(--text); cursor: pointer; transition: background-color 100ms ease-out, transform 100ms ease-out; }
+.shortcut-step:hover:not([aria-disabled="true"]) { background: var(--surface-raised, #fff); }
+.shortcut-step:active:not([aria-disabled="true"]) { transform: scale(0.92); }
+.shortcut-step[aria-disabled="true"] { color: color-mix(in srgb, var(--text-dim) 45%, transparent); cursor: default; }
+.shortcut-step:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+.shortcut-count { min-width: 24px; text-align: center; color: var(--text); font: 600 13px/1 var(--font-text); font-variant-numeric: tabular-nums; }
+@media (prefers-reduced-motion: reduce) {
+  .widget-thumb, .widget-tile-name, .shortcut-step { transition: none; }
+  .widget-tile:active .widget-thumb, .shortcut-step:active:not([aria-disabled="true"]) { transform: none; }
 }
-.widget-tile[aria-checked="true"] .widget-tile-check { display: grid; }
-@media (prefers-reduced-motion: reduce) { .widget-tile { transition: none; } }
 
 /* ---------------------------------------------------------------------------
    Over your image or a theme's image (owner, 2026-11-13): the image stays

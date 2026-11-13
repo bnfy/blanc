@@ -150,10 +150,13 @@ export const pages={
   if(!popover||!opener)return false;if(!popover.matches(':popover-open')){opener.focus();opener.click();}
   if(!popover.matches(':popover-open'))return false;
   const want=${JSON.stringify(LAYOUT_WIDGETS[String(name)]??null)};if(!want)return false;
-  // More shortcuts is Customize's Shortcuts choice (6 or 12), pressed, not a tile.
+  // More shortcuts is Customize's Shortcuts stepper: on is 12 tiles, off 6.
   return (async()=>{for(const [pick,on] of Object.entries(want)){
-   const count=pick==='shortcuts';const button=count?popover.querySelector('[data-shortcuts="'+(on?12:6)+'"]'):popover.querySelector('[data-widget-pick="'+pick+'"]');if(!button)return false;
-   const isSet=()=>count?button.getAttribute('aria-pressed')==='true':(button.getAttribute('aria-checked')==='true')===on;
+   if(pick==='shortcuts'){const target=on?12:6;const out=popover.querySelector('#shortcutCount');if(!out)return false;
+    for(let i=0;i<24&&Number(out.dataset.count||out.textContent)!==target;i++)popover.querySelector(Number(out.dataset.count||out.textContent)<target?'#shortcutMore':'#shortcutFewer').click();
+    for(let i=0;i<100&&state.widgets?.shortcutCount!==target;i++)await new Promise(r=>setTimeout(r,50));continue;}
+   const button=popover.querySelector('[data-widget-pick="'+pick+'"]');if(!button)return false;
+   const isSet=()=>(button.getAttribute('aria-checked')==='true')===on;
    if(isSet())continue;button.click();
    for(let i=0;i<100&&(button.hasAttribute('aria-disabled')||!isSet());i++)await new Promise(r=>setTimeout(r,50));}
    return true;})();})()`),
@@ -215,7 +218,7 @@ export const pages={
    visibleRoots:['Ledger','Billboard','Shelf','Tally'].filter(n=>rect(document.getElementById('layout'+n))),
    widgets:typeof state==='object'?state.widgets:null,
    switches:{...Object.fromEntries([...document.querySelectorAll('[data-widget-pick]')].map(b=>[b.dataset.widgetPick,b.getAttribute('aria-checked')==='true'])),
-    shortcuts:document.querySelector('[data-shortcuts="12"]')?.getAttribute('aria-pressed')==='true'},
+    shortcuts:Number(document.getElementById('shortcutCount')?.dataset.count)===12},
    shown:Object.fromEntries(['favorites','devices'].map(n=>[n,!!rect(section(n))])),
    cards:Object.fromEntries(['favorites','devices'].map(n=>[n,rect(section(n))])),
    favoriteRows:[...document.querySelectorAll('#favoritesList [data-favorite-url]')].map(rect).filter(Boolean),
@@ -286,7 +289,7 @@ export const pages={
  readMahjongFooterLink:onStart(null,`(()=>({href:document.getElementById('mahjongLink')?.href??null,target:document.getElementById('mahjongLink')?.target??null,
   // V26: Customize's choices standing for shipping's four layouts: the two
   // widget tiles and the Shortcuts choice.
-  layout:${PAGE_LAYOUT},switcherCount:document.querySelectorAll('[data-widget-pick]').length+(document.getElementById('shortcutCountPicker')?1:0),frameCount:document.querySelectorAll('iframe').length}))()`),
+  layout:${PAGE_LAYOUT},switcherCount:document.querySelectorAll('[data-widget-pick]').length+(document.getElementById('shortcutStepper')?1:0),frameCount:document.querySelectorAll('iframe').length}))()`),
  clickMahjongFooterLink:onStart(false,`(()=>{const link=document.getElementById('mahjongLink');if(!link)return false;link.click();return true;})()`),
  // Patron and the app icon (F17). The preview has no license keys (owner,
  // 2026-11-05), so there is never a supporter to clear.

@@ -994,7 +994,7 @@ function renderBillboard() {
   renderGroupChips('bbGroups', state.groups);
 }
 
-const billboardSiteCount = () => (state.widgets?.shortcuts ? 12 : 6);
+const billboardSiteCount = () => state.widgets?.shortcutCount ?? (state.widgets?.shortcuts ? 12 : 6);
 function visibleBillboardSites() {
   return startPins.billboardSites(state.pins, state.topSites, hiddenTopSites, billboardSiteCount());
 }
@@ -1659,7 +1659,8 @@ const WIDGET_NAMES = ['favorites', 'devices', 'shortcuts'];
  * shortcuts on or off redraws Billboard's tiles at 12 or 6. */
 function applyWidgets(widgets) {
   const next = Object.fromEntries(WIDGET_NAMES.map((name) => [name, widgets?.[name] === true]));
-  const tilesChanged = state.widgets?.shortcuts !== next.shortcuts;
+  next.shortcutCount = widgets?.shortcutCount ?? state.widgets?.shortcutCount ?? (next.shortcuts ? 12 : 6);
+  const tilesChanged = billboardSiteCount() !== next.shortcutCount;
   next.place = widgets?.place ?? state.widgets?.place ?? { left: ['favorites', 'devices'], right: ['sent'] };
   next.sizes = widgets?.sizes ?? state.widgets?.sizes ?? {};
   state.widgets = next;
@@ -1671,9 +1672,7 @@ function applyWidgets(widgets) {
   for (const button of widgetButtons) {
     button.setAttribute('aria-checked', String(next[button.dataset.widgetPick] === true));
   }
-  for (const button of document.querySelectorAll('[data-shortcuts]')) {
-    button.setAttribute('aria-pressed', String((button.dataset.shortcuts === '12') === next.shortcuts));
-  }
+  if (!shortcutSaveTimer) showShortcutCount(next.shortcutCount);
   updateShortcutsHint();
   if (tilesChanged && rendered.has('billboard')) {
     renderBillboard();
@@ -2007,28 +2006,82 @@ for (const button of widgetButtons) {
   });
 }
 
-// Shortcuts: 6 or 12 tiles under the clock. Billboard shows only the sites
-// it has (pins and the most visited), so with fewer than the count chosen a
-// note says how many there are so far; otherwise the choice would seem to
-// do nothing.
-for (const button of document.querySelectorAll('[data-shortcuts]')) {
-  button.setAttribute('aria-label', t('start.shortcuts.count', { count: Number(button.dataset.shortcuts) }));
-  button.addEventListener('click', async () => {
-    const want = button.dataset.shortcuts === '12';
-    if (widgetWritePending || state.widgets?.shortcuts === want) return;
-    widgetWritePending = true;
+// Shortcuts: a stepper, 1 to 12 tiles under the clock. The number changes at
+// once on each press; the choice is saved a moment after the last one, so a
+// run of presses is one write. Billboard shows only the sites it has (pins
+// and the most visited), so with fewer than the count chosen a note says how
+// many there are so far; otherwise the choice would seem to do nothing.
+var shortcutSaveTimer = 0;
+function showShortcutCount(count) {
+  const out = document.getElementById('shortcutCount');
+  if (!out) return;
+  out.textContent = String(count);
+  out.dataset.count = String(count);
+  // aria-disabled, not disabled: a disabled button would drop keyboard focus
+  // at either end. stepShortcuts already stops at 1 and 12.
+  document.getElementById('shortcutFewer').setAttribute('aria-disabled', String(count <= 1));
+  document.getElementById('shortcutMore').setAttribute('aria-disabled', String(count >= 12));
+}
+function stepShortcuts(delta) {
+  const out = document.getElementById('shortcutCount');
+  const now = Number(out?.dataset.count || billboardSiteCount());
+  const next = Math.min(12, Math.max(1, now + delta));
+  if (next === now) return;
+  showShortcutCount(next);
+  clearTimeout(shortcutSaveTimer);
+  shortcutSaveTimer = setTimeout(async () => {
+    shortcutSaveTimer = 0;
     widgetSaveStatus.hidden = true;
     try {
-      applyWidgets(await window.bowserPages.start.setWidget('shortcuts', want));
+      applyWidgets(await window.bowserPages.start.setShortcutCount(next));
     } catch {
       widgetSaveStatus.textContent = t('start.widgets.unconfirmed');
       widgetSaveStatus.hidden = false;
     } finally {
-      widgetWritePending = false;
       window.blancNewTabEvent('widgets');
     }
-  });
+  }, 250);
 }
+document.getElementById('shortcutFewer')?.addEventListener('click', () => stepShortcuts(-1));
+document.getElementById('shortcutMore')?.addEventListener('click', () => stepShortcuts(1));
+// Arrow keys step from either button, as a stepper's do.
+document.getElementById('shortcutStepper')?.addEventListener('keydown', (event) => {
+  const delta = event.key === 'ArrowUp' || event.key === 'ArrowRight' ? 1
+    : event.key === 'ArrowDown' || event.key === 'ArrowLeft' ? -1 : 0;
+  if (!delta) return;
+  event.preventDefault();
+  stepShortcuts(delta);
+});
+// Customize never covers the clock, whose styling it changes: it takes at
+// most the room between the clock's bottom and its own button, and scrolls
+// inside if it needs more (owner, 2026-11-13).
+function fitCustomizeBelowClock() {
+  const popover = document.getElementById('customizePopover');
+  const button = document.getElementById('customizeButton');
+  if (!popover || !button) return;
+  // The clock and the line under it both stay in view.
+  const clockBottom = [document.querySelector('.bb-clock-row'), document.getElementById('bbBlocked')]
+    .map((el) => el?.getBoundingClientRect())
+    .filter((rect) => rect && rect.height > 0)
+    .reduce((bottom, rect) => Math.max(bottom, rect.bottom), 0);
+  const room = button.getBoundingClientRect().top - 10 - clockBottom - 16;
+  popover.style.maxHeight = `${Math.max(260, Math.floor(room))}px`;
+}
+document.getElementById('customizePopover')?.addEventListener('beforetoggle', (event) => {
+  if (event.newState === 'open') fitCustomizeBelowClock();
+});
+window.addEventListener('resize', () => {
+  if (document.getElementById('customizePopover')?.matches(':popover-open')) fitCustomizeBelowClock();
+});
+// The tiles wrap into rows of at most six, each row centered.
+function layoutShortcutRows() {
+  const grid = document.getElementById('bbFavorites');
+  const first = grid?.querySelector('.bb-site');
+  if (!grid || !first) return;
+  const gap = parseFloat(getComputedStyle(grid).columnGap) || 0;
+  grid.style.maxWidth = `${6 * first.getBoundingClientRect().width + 5 * gap + 1}px`;
+}
+window.addEventListener('resize', layoutShortcutRows);
 function updateShortcutsHint() {
   const hint = document.getElementById('shortcutsHint');
   const grid = document.getElementById('bbFavorites');
@@ -2037,6 +2090,7 @@ function updateShortcutsHint() {
   const fewer = count < billboardSiteCount();
   hint.hidden = !fewer;
   if (fewer) hint.textContent = t('start.shortcuts.sofar', { count });
+  layoutShortcutRows();
 }
 {
   const grid = document.getElementById('bbFavorites');

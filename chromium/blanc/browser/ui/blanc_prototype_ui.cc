@@ -4578,7 +4578,8 @@ class NewTabHandler : public content::WebUIMessageHandler,
     if ((method == "widgetsRead" && args.empty()) ||
         (method == "widgetsWrite" && args.size() == 2 && args[0].is_string() && args[1].is_bool()) ||
         (method == "widgetsPlace" && args.size() == 2 && args[0].is_list() && args[1].is_list()) ||
-        (method == "widgetsSize" && args.size() == 2 && args[0].is_string() && args[1].is_int())) {
+        (method == "widgetsSize" && args.size() == 2 && args[0].is_string() && args[1].is_int()) ||
+        (method == "widgetsShortcuts" && args.size() == 1 && args[0].is_int())) {
       constexpr char kWidgets[] = "blanc.start.widgets";
       // V26 (owner, 2026-11-13): no Blocked this week widget; a saved "chart"
       // is ignored and its card dropped from the columns.
@@ -4613,6 +4614,18 @@ class NewTabHandler : public content::WebUIMessageHandler,
         }
         auto next = local->GetDict(kWidgets).Clone();
         next.Set(name, args[1].GetBool());
+        // The old 6-or-12 switch sets the count it stood for.
+        if (name == "shortcuts") next.Set("shortcutCount", args[1].GetBool() ? 12 : 6);
+        local->SetDict(kWidgets, std::move(next));
+        local->CommitPendingWrite();
+      }
+      // How many shortcut tiles Billboard shows, 1 to 12 (Customize's stepper).
+      if (method == "widgetsShortcuts") {
+        const int count = args[0].GetInt();
+        if (count < 1 || count > 12) { Reply(id, false, base::Value("Shortcuts are 1 to 12")); return; }
+        auto next = local->GetDict(kWidgets).Clone();
+        next.Set("shortcutCount", count);
+        next.Set("shortcuts", count == 12);
         local->SetDict(kWidgets, std::move(next));
         local->CommitPendingWrite();
       }
@@ -4669,6 +4682,12 @@ class NewTabHandler : public content::WebUIMessageHandler,
       base::DictValue out;
       const auto& saved = local->GetDict(kWidgets);
       for (const auto name : kNames) out.Set(name, saved.FindBool(name).value_or(false));
+      {
+        // A count saved by the stepper, else what the old switch stood for.
+        const auto count = saved.FindInt("shortcutCount");
+        out.Set("shortcutCount", count && *count >= 1 && *count <= 12 ? *count
+                                 : saved.FindBool("shortcuts").value_or(false) ? 12 : 6);
+      }
       const auto* saved_place = saved.FindDict("place");
       out.Set("place", place(saved_place ? saved_place->FindList("left") : nullptr,
                              saved_place ? saved_place->FindList("right") : nullptr));

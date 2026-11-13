@@ -227,20 +227,27 @@
     <span class="footer-appearance">
       <button id="customizeButton" class="start-customize" type="button" popovertarget="customizePopover" aria-expanded="false" data-i18n="newtab.customize.button">Customize</button>
       <div id="customizePopover" class="start-customize-popover" popover role="dialog" aria-label="Customize start page" data-i18n-aria-label="newtab.customize.label">
+        <!-- Two columns where there is room (the popover stays below the clock,
+             whose styling it changes): widgets, shortcuts and the clock, then
+             the wallpaper. -->
+        <div class="customize-cols">
+        <div class="customize-col">
         <!-- The optional widgets (V24, fork only) in place of the layouts. -->
         <div id="customizeWidgetsLabel" class="customize-label" data-i18n="start.widgets.heading">Widgets</div>
         <p id="widgetSaveStatus" class="wallpaper-error" role="status" aria-live="polite" hidden></p>
         <div id="widgetSwitches" class="widget-switches" role="group" aria-labelledby="customizeWidgetsLabel" aria-describedby="widgetSaveStatus">
-          <button type="button" class="widget-tile" role="switch" aria-checked="false" data-widget-pick="favorites"><span class="widget-tile-check" aria-hidden="true"><svg viewBox="0 0 10 10" width="8" height="8"><path d="M2 5.2l2 2 4-4.4" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"></path></svg></span><svg class="widget-tile-art" viewBox="0 0 64 36" aria-hidden="true"><rect x="14" y="7" width="6" height="6" rx="1.5" fill="currentColor" opacity=".55"></rect><path d="M24 10h26" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"></path><rect x="14" y="15" width="6" height="6" rx="1.5" fill="currentColor" opacity=".55"></rect><path d="M24 18h20" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"></path><rect x="14" y="23" width="6" height="6" rx="1.5" fill="currentColor" opacity=".55"></rect><path d="M24 26h23" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"></path></svg><span data-i18n="pagesNav.bookmarks">Favorites</span></button>
-          <button type="button" class="widget-tile" role="switch" aria-checked="false" data-widget-pick="devices"><span class="widget-tile-check" aria-hidden="true"><svg viewBox="0 0 10 10" width="8" height="8"><path d="M2 5.2l2 2 4-4.4" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"></path></svg></span><svg class="widget-tile-art" viewBox="0 0 64 36" aria-hidden="true"><rect x="12" y="8" width="26" height="17" rx="2" fill="none" stroke="currentColor" stroke-width="1.6"></rect><path d="M9 28h32" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"></path><rect x="43" y="10" width="11" height="19" rx="2.5" fill="none" stroke="currentColor" stroke-width="1.6"></rect></svg><span data-i18n="newtab.remote">On your other devices</span></button>
+          <button type="button" class="widget-tile" role="switch" aria-checked="false" data-widget-pick="favorites"><span class="widget-thumb" data-thumb="favorites" aria-hidden="true"><b></b><i></i><b></b><i></i><b></b><i></i><b></b><i></i></span><span class="widget-tile-name" data-i18n="pagesNav.bookmarks">Favorites</span></button>
+          <button type="button" class="widget-tile" role="switch" aria-checked="false" data-widget-pick="devices"><span class="widget-thumb" data-thumb="devices" aria-hidden="true"><b></b><i></i><i></i><b></b><i></i></span><span class="widget-tile-name" data-i18n="newtab.remote">On your other devices</span></button>
         </div>
-        <!-- How many shortcut tiles Billboard shows under the clock (fork,
-             2026-11-13): a choice of its own, not a widget card. -->
-        <hr class="customize-divider" />
-        <div id="customizeShortcutsLabel" class="customize-label" data-i18n="start.shortcuts.heading">Shortcuts</div>
-        <div id="shortcutCountPicker" class="wallpaper-seg shortcut-seg" role="group" aria-labelledby="customizeShortcutsLabel" aria-describedby="shortcutsHint">
-          <button type="button" aria-pressed="true" data-shortcuts="6">6</button>
-          <button type="button" aria-pressed="false" data-shortcuts="12">12</button>
+        <!-- How many shortcut tiles Billboard shows under the clock, 1 to 12
+             (fork, 2026-11-13): a stepper of its own, not a widget card. -->
+        <div class="customize-row">
+          <span id="customizeShortcutsLabel" class="customize-row-label" data-i18n="start.shortcuts.heading">Shortcuts</span>
+          <div id="shortcutStepper" class="shortcut-stepper" role="group" aria-labelledby="customizeShortcutsLabel" aria-describedby="shortcutsHint">
+            <button type="button" id="shortcutFewer" class="shortcut-step" aria-label="Fewer shortcuts" data-i18n-aria-label="start.shortcuts.fewer"><svg viewBox="0 0 12 12" width="12" height="12" aria-hidden="true"><path d="M2.5 6h7" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"></path></svg></button>
+            <output id="shortcutCount" class="shortcut-count" aria-live="polite">6</output>
+            <button type="button" id="shortcutMore" class="shortcut-step" aria-label="More shortcuts" data-i18n-aria-label="start.shortcuts.more"><svg viewBox="0 0 12 12" width="12" height="12" aria-hidden="true"><path d="M2.5 6h7M6 2.5v7" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"></path></svg></button>
+          </div>
         </div>
         <p id="shortcutsHint" class="customize-hint" hidden></p>
         <!-- Billboard only: the clock's own section, a row in the style of a
@@ -260,7 +267,8 @@
             <svg class="customize-clock-chevron" viewBox="0 0 12 12" width="12" height="12" aria-hidden="true"><path d="M4.5 2.5 8 6l-3.5 3.5" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path></svg>
           </button>
         </div>
-        <hr class="customize-divider" />
+        </div>
+        <div class="customize-col customize-col-wallpaper">
         <div id="customizeWallpaperLabel" class="customize-label" data-i18n="newtab.customize.wallpaperHeading">Wallpaper</div>
         <!-- A cover preview of what the Start Page will show. Only the chosen
              wallpaper's options appear, so the clock switch can never look
@@ -322,6 +330,8 @@
           </div>
         </div>
         <p id="customWallpaperError" class="wallpaper-error" role="status" hidden></p>
+        </div>
+        </div>
       </div>
       <!-- The Billboard clock's Font & Color, after the iOS Lock Screen's:
            four bundled faces with weight and height sliders, then the page's
