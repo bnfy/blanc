@@ -5,6 +5,7 @@
 // the fork's store is only reachable through its Settings page, so a write or
 // read drives that page's own control and a missing control is the product's.
 import {UndefinedNativeAdapterError} from '../lib/adapters.mjs';
+import {jsLiteral} from '../lib/js-literal.mjs';
 const ADDRESS='addressInput';
 const overlay=w=>w.frame('overlay');
 const inOverlay=(w,fn,arg)=>overlay(w).evaluate(fn,arg);
@@ -115,7 +116,7 @@ async function settingsPage(w){
 const DEEP=`const find=(sel,root=document)=>{const e=root.querySelector(sel);if(e)return e;
  for(const el of root.querySelectorAll('*'))if(el.shadowRoot){const x=find(sel,el.shadowRoot);if(x)return x;}return null;};
  const all=(sel,root=document,out=[])=>{out.push(...root.querySelectorAll(sel));for(const el of root.querySelectorAll('*'))if(el.shadowRoot)all(sel,el.shadowRoot,out);return out;};`;
-const inPage=(page,fn,arg)=>page.evaluate(`(()=>{${DEEP}return (${fn})(${JSON.stringify(arg??null)},{find,all});})()`);
+const inPage=(page,fn,arg)=>page.evaluate(`(()=>{${DEEP}return (${fn})(${jsLiteral(arg??null)},{find,all});})()`);
 // Read an already-open native Settings target without opening or navigating
 // it. Sync assertions must fail when /sync routed to the wrong section.
 export async function readSettings(w,fn,arg){
@@ -127,7 +128,7 @@ export async function readSettings(w,fn,arg){
 const at=(page,section)=>page.evaluate('location.href').then(href=>href.startsWith(`chrome://settings/${section}`)).catch(()=>false);
 async function moveTo(w,page,section){
  if(await at(page,section))return page;
- await page.evaluate(`location.href=${JSON.stringify(`chrome://settings/${section}`)}`).catch(()=>{});
+ await page.evaluate(`location.href=${jsLiteral(`chrome://settings/${section}`)}`).catch(()=>{});
  return w.waitFor(async()=>{const p=await settingsPage(w);return p&&await at(p,section)?p:null;},Boolean,`Settings → ${section}`,8000);
 }
 // What shows that a section has drawn Blanc's controls, and filled its lists.

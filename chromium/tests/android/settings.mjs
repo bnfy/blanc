@@ -184,7 +184,7 @@ function main(argv) {
     adb('shell', 'input', 'text', 'https://www.Example.org/');
     adb('shell', 'input', 'keyevent', 'KEYCODE_ENTER');
     sleep(1.5);
-    if (!texts(dump()).includes('example.org')) problems.push('example.org was not added');
+    if (!texts(dump()).some(text => text === 'example.org')) problems.push('example.org was not added');
     shot('allowed-sites');
     const again = fieldBounds(dump());
     if (again) tapAt(again);
@@ -196,7 +196,7 @@ function main(argv) {
     const remove = /content-desc="Remove site: example\.org"[^>]*bounds="\[(\d+),(\d+)\]\[(\d+),(\d+)\]"/.exec(xml)
       || /bounds="\[(\d+),(\d+)\]\[(\d+),(\d+)\]"[^>]*content-desc="Remove site: example\.org"/.exec(xml);
     if (!remove) problems.push('no Remove button for example.org');
-    else { tapAt({left: +remove[1], top: +remove[2], right: +remove[3], bottom: +remove[4]}); if (texts(dump()).includes('example.org')) problems.push('example.org stayed'); }
+    else { tapAt({left: +remove[1], top: +remove[2], right: +remove[3], bottom: +remove[4]}); if (texts(dump()).some(text => text === 'example.org')) problems.push('example.org stayed'); }
   }
   check('allowed sites adds, refuses and removes', problems);
 
