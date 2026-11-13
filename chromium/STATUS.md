@@ -932,6 +932,14 @@ remain pending. D3 beta-only no-DRM exception accepted; EME notice/handoff requi
   16 px at 1000 × 760; it fits at 1280 × 800 and larger, in every
   wallpaper mode). native-start-widgets 8/8; newtab-layouts 24/25 (:21 as
   before).
+- **Final full macOS run (2026-11-13):** on macos-656ae5d81449fec2, the
+  source the first beta is built from: 629 pass, 1 fail, 3 undefined, 28
+  excluded, in 54 minutes. The failure, internal-pages.feature:7, read the
+  week's blocked count from the footer, which shipping shows only in
+  Ledger; since V24 the count is the line under Billboard's clock, and the
+  fork's step (fork-steps/pages.mjs) now reads it there; it passes. The
+  undefined three are the in-app updater, private-tab passkeys and Patron
+  icons, as before. The dedicated beta build started after it.
 - **Shortcuts stay clear of the widget columns (2026-11-13, owner):** on a
   window 1200 px or wider the columns sit fixed at the sides, and nothing
   kept Billboard's shortcuts from sliding under them. A row now holds only
