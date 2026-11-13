@@ -57,13 +57,20 @@
       };
     }
   }
+  // Android's Billboard clock is solid only: the page never draws its glass here, and the Start
+  // Page offers no Glass or Solid choice (android-start-page.css), so a synced Glass stays for the
+  // devices that draw it.
+  function solid(clock) {
+    if (clock && typeof clock === 'object') clock.style = 'solid';
+    return clock;
+  }
   // The iPhone's Start Page appearance projection, from ios-start-rules.js.
   function projectAppearance(data) {
     const raw = data.appearance || {};
     const settings = raw.settings || {};
     const rules = globalThis.BlancStartRules;
     if (!rules) return data;
-    data.clock = rules.clock.clockStyleFromSettings(settings);
+    data.clock = solid(rules.clock.clockStyleFromSettings(settings));
     data.dynamicWallpaperEnabled = settings.newtabDynamicWallpaper === true;
     const source = settings.newtabCustomWallpaper && raw.hasImage ? 'custom'
       : settings.newtabColorWallpaper ? 'color' : data.dynamicWallpaperEnabled ? 'time-of-day' : 'sunrise';
@@ -83,6 +90,14 @@
     api.start.data = () => rawData().then(projectAppearance);
     const onStatus = api.start.onStatus;
     api.start.onStatus = listener => onStatus(data => listener(data.appearance ? projectAppearance(data) : data));
+    const setClock = api.start.setClock;
+    if (setClock) {
+      api.start.setClock = partial => {
+        const change = Object.assign({}, partial);
+        delete change.style;
+        return setClock(change).then(solid);
+      };
+    }
     const onVisibility = api.start.onVisibility;
     api.start.onVisibility = listener => {
       const off = onVisibility(listener);
@@ -134,9 +149,41 @@
     document.addEventListener('DOMContentLoaded', function () {
       document.head.append(viewport());
       document.documentElement.dataset.platform = 'ios';
-      document.head.append(stylesheet('ios-start-page.css'));
+      document.head.append(stylesheet('ios-start-page.css'), stylesheet('android-start-page.css'));
       const mobile = document.createElement('script');
       mobile.src = 'ios-start-page.js'; document.body.append(mobile);
+      centerClock();
     }, { once: true });
+  }
+
+  // The Billboard clock's figures at the middle of the screen. The iPhone's stylesheet puts the
+  // middle of the clock's box at the middle of the page (50dvh), which on the iPhone runs under the
+  // status bar; here the page starts below it, and a box's middle isn't its figures' middle either.
+  // This measures the figures from the clock's font, as CSS lays out its one line, and
+  // android-start-page.css moves the clock by the difference.
+  function centerClock() {
+    const clock = document.getElementById('bbClock');
+    if (!clock) return;
+    const root = document.documentElement;
+    const context = document.createElement('canvas').getContext('2d');
+    function place() {
+      const style = getComputedStyle(clock);
+      context.font = style.fontWeight + ' ' + style.fontSize + ' ' + style.fontFamily;
+      const m = context.measureText(clock.textContent);
+      // The baseline sits where the font's ascent and descent, centered in the line, put it; the
+      // figures reach up and down from there.
+      const figures = innerHeight / 2 + (m.fontBoundingBoxAscent - m.fontBoundingBoxDescent) / 2
+        + (m.actualBoundingBoxDescent - m.actualBoundingBoxAscent) / 2;
+      // A page that fills the screen below the status bar (screen.availTop tall) centers on the
+      // screen; one sharing it (split screen, the keyboard up) on itself.
+      const full = Math.abs(screen.height - screen.availTop - innerHeight) <= 3;
+      const middle = full ? screen.height / 2 - screen.availTop : innerHeight / 2;
+      root.style.setProperty('--android-clock-nudge', (middle - figures).toFixed(2) + 'px');
+    }
+    place();
+    new MutationObserver(place).observe(clock, { attributes: true, characterData: true, childList: true, subtree: true });
+    new ResizeObserver(place).observe(clock);
+    addEventListener('resize', place);
+    document.fonts.addEventListener('loadingdone', place);
   }
 })();

@@ -1,0 +1,12 @@
+/* Copyright 2026 Bananify Creative. MIT; see LICENSE.
+   Blanc for Android's Start Page, after the iPhone's ios-start-page.css. The adapter measures how
+   far the clock's figures sit from the middle of the screen (--android-clock-nudge); this moves the
+   clock, and the favorites under it, by that much. The clock is solid only on Android, so its
+   Glass or Solid choice isn't offered. */
+html[data-platform="ios"] body[data-layout="billboard"]:not(:has(#clockPopover:popover-open)) .bb-clock-row {
+  translate: 0 var(--android-clock-nudge, 0px);
+}
+html[data-platform="ios"] body[data-layout="billboard"] .bb-favs {
+  margin-top: calc(50dvh + var(--mobile-clock-half-height, 50px) + var(--android-clock-nudge, 0px));
+}
+html[data-platform="ios"] #clockStyles { display: none; }

@@ -2710,13 +2710,17 @@ it fits a 411dp phone beside Back, Forward and New Tab at the iPhone's 44dp. If 
 it.
 
 The Start Page's Billboard clock defaults to the iPhone's first-run clock (#1331): Roboto Flex at its tallest (300),
-weight 450, in glass. `blanc_pages_ui.cc` puts these under the Start Page's appearance settings; Android has no
+weight 450. `blanc_pages_ui.cc` puts these under the Start Page's appearance settings; Android has no
 appearance store yet (A5b), and these are never saved, so a later default reaches everyone who never changed the
-clock. Android has no Liquid Glass, so the page draws the glass itself with `clock-art.js`, as desktop does; it looks
-close to the iPhone's but is not the system material. The pinned page copies moved from v1.46.0 to v1.47.1, which
-brings the iPhone's larger phone clock (30vw, capped at 120px) and its glass-clock fixes. `pages-phone.mjs` checks
-the fresh install's clock (it failed on the old build: Instrument Sans, solid). Not wired yet: the Start Page's
-layout for the Island along the top (`mobileIslandPosition`, which v1.47.1's phone script reads).
+clock. The Android clock is solid only (the owner's call, November 13, 2026): the adapter shows every clock as
+solid, Font & color offers no Glass or Solid choice (`android-start-page.css`), and Android never saves a clock
+style, so a synced Glass stays for the iPhone and desktop. The clock's figures sit at the middle of the screen:
+the iPhone's stylesheet centers the clock's box in the page, which on Android starts below the status bar (27 px
+low on a Pixel 10 Pro), so the adapter measures the figures from the clock's font and the stylesheet moves the
+clock by the difference. The pinned page copies moved from v1.46.0 to v1.47.1, which brings the iPhone's larger
+phone clock (30vw, capped at 120px). `pages-phone.mjs` checks the fresh install's clock and that its figures
+center on the screen. Not wired yet: the Start Page's layout for the Island along the top
+(`mobileIslandPosition`, which v1.47.1's phone script reads).
 
 ### Shield count across a page's commit
 
