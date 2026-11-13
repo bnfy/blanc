@@ -21,37 +21,42 @@ diff --git a/chrome/browser/resources/settings/appearance_page/appearance_page.h
  import type {SettingsAppearancePageElement} from './appearance_page.js';
  
  export function getHtml(this: SettingsAppearancePageElement) {
-@@ -49,6 +50,35 @@
+@@ -49,6 +50,40 @@
        </div>
  </if>
      </div>
 +    <div class="cr-row">
-+      <label class="flex cr-padded-text" for="blancMouseGestures"><div>$i18n{blancGestureLabel}</div><div class="secondary">$i18n{blancGestureHint}</div></label>
-+      <input id="blancMouseGestures" type="checkbox" .checked="${this.blancGestures_?.enabled??false}" @change="${this.onBlancGestureEnabledChange_}">
++      <div class="flex cr-padded-text" id="blancGestureText"><div>$i18n{blancGestureLabel}</div><div class="secondary">$i18n{blancGestureHint}</div></div>
++      <cr-toggle id="blancMouseGestures" aria-labelledby="blancGestureText" ?checked="${this.blancGestures_?.enabled??false}" @change="${this.onBlancGestureEnabledChange_}"></cr-toggle>
 +    </div>
-+    <div class="cr-padded-text" ?hidden="${!this.blancGestures_?.enabled}">
-+      <h3>$i18n{blancGestureAssigned}</h3>
-+      <p ?hidden="${Object.keys(this.blancGestures_?.mapping??{}).length>0}">$i18n{blancGestureEmpty}</p>
++    <div class="list-frame" ?hidden="${!this.blancGestures_?.enabled}">
++      <div class="list-item secondary" id="blancGestureAssigned">$i18n{blancGestureAssigned}</div>
++      <div class="list-item" ?hidden="${Object.keys(this.blancGestures_?.mapping??{}).length>0}">$i18n{blancGestureEmpty}</div>
 +      ${Object.entries(this.blancGestures_?.mapping??{}).map(([pattern,action])=>html`
-+        <div class="cr-row"><code>${this.blancGestureGlyph_(pattern)}</code>
-+          <select aria-label="${this.blancGestureGlyph_(pattern)}" data-pattern="${pattern}" @change="${this.onBlancGestureActionChange_}">
++        <div class="list-item">
++          <span class="flex" aria-hidden="true" style="font-size:16px;letter-spacing:3px">${this.blancGestureGlyph_(pattern)}</span>
++          <select class="md-select" aria-label="${this.blancGestureGlyph_(pattern)}" data-pattern="${pattern}" @change="${this.onBlancGestureActionChange_}">
 +            ${this.blancGestureActions_.map(id=>html`<option value="${id}" ?selected="${id===action}">${this.blancGestureLabel_(id)}</option>`)}
 +          </select>
-+          <cr-button aria-label="${loadTimeData.getString('blancGestureRemove').replace('{gesture}',this.blancGestureGlyph_(pattern))}" data-pattern="${pattern}" @click="${this.onBlancGestureRemoveClick_}">×</cr-button>
++          <cr-icon-button class="icon-clear" style="margin-inline-start:8px" title="${loadTimeData.getString('blancGestureRemove').replace('{gesture}',this.blancGestureGlyph_(pattern))}" aria-label="${loadTimeData.getString('blancGestureRemove').replace('{gesture}',this.blancGestureGlyph_(pattern))}" data-pattern="${pattern}" @click="${this.onBlancGestureRemoveClick_}"></cr-icon-button>
 +        </div>`)}
-+      <cr-button id="blancGestureAdd" @click="${this.onBlancGestureAddClick_}">$i18n{blancGestureAdd}</cr-button>
-+      <cr-button @click="${this.onBlancGestureResetClick_}">$i18n{blancGestureReset}</cr-button>
-+      <div ?hidden="${!this.blancGestureComposer_}">
-+        <p>$i18n{blancGestureDrawHint}</p>
-+        <div id="blancGesturePad" role="group" aria-label="$i18n{blancGesturePadLabel}" style="min-height:100px;border:1px solid var(--cr-separator-color);touch-action:none;user-select:none"
-+          @pointerdown="${this.onBlancGesturePointerdown_}" @pointermove="${this.onBlancGesturePointermove_}" @pointerup="${this.onBlancGesturePointerup_}" @pointercancel="${this.onBlancGesturePointercancel_}">$i18n{blancGesturePadPrompt}</div>
-+        <select aria-label="$i18n{blancGestureChooseAction}" @change="${this.onBlancGestureComposerActionChange_}">
-+          ${this.blancGestureActions_.map(id=>html`<option value="${id}">${this.blancGestureLabel_(id)}</option>`)}
-+        </select>
-+        <cr-button ?disabled="${!this.blancGesturePattern_}" @click="${this.onBlancGestureSaveClick_}">$i18n{blancGestureSave}</cr-button>
-+        <cr-button @click="${this.onBlancGestureCancelClick_}">$i18n{blancGestureCancel}</cr-button>
++      <div class="list-item" style="gap:8px">
++        <cr-button id="blancGestureAdd" @click="${this.onBlancGestureAddClick_}">$i18n{blancGestureAdd}</cr-button>
++        <cr-button @click="${this.onBlancGestureResetClick_}">$i18n{blancGestureReset}</cr-button>
 +      </div>
-+      <p role="status" aria-live="polite">${this.blancGestureMessage_}</p>
++      <div class="list-item" style="display:block;padding-block:12px" ?hidden="${!this.blancGestureComposer_}">
++        <div class="secondary">$i18n{blancGestureDrawHint}</div>
++        <div id="blancGesturePad" role="group" aria-label="$i18n{blancGesturePadLabel}" style="min-height:120px;margin:10px 0;border:1px dashed var(--cr-separator-color);border-radius:10px;display:grid;place-items:center;color:var(--cr-secondary-text-color);touch-action:none;user-select:none"
++          @pointerdown="${this.onBlancGesturePointerdown_}" @pointermove="${this.onBlancGesturePointermove_}" @pointerup="${this.onBlancGesturePointerup_}" @pointercancel="${this.onBlancGesturePointercancel_}">$i18n{blancGesturePadPrompt}</div>
++        <div style="display:flex;gap:8px;align-items:center">
++          <select class="md-select" aria-label="$i18n{blancGestureChooseAction}" @change="${this.onBlancGestureComposerActionChange_}">
++            ${this.blancGestureActions_.map(id=>html`<option value="${id}">${this.blancGestureLabel_(id)}</option>`)}
++          </select>
++          <cr-button class="action-button" ?disabled="${!this.blancGesturePattern_}" @click="${this.onBlancGestureSaveClick_}">$i18n{blancGestureSave}</cr-button>
++          <cr-button @click="${this.onBlancGestureCancelClick_}">$i18n{blancGestureCancel}</cr-button>
++        </div>
++      </div>
++      <div class="secondary" role="status" aria-live="polite" style="padding:${this.blancGestureMessage_?'8px 20px':'0'}">${this.blancGestureMessage_}</div>
 +    </div>
 +
      <!-- Blanc (S1.7): the Island replaces Chromium's toolbar. -->
@@ -60,7 +65,16 @@ diff --git a/chrome/browser/resources/settings/appearance_page/appearance_page.h
 diff --git a/chrome/browser/resources/settings/appearance_page/appearance_page.ts b/chrome/browser/resources/settings/appearance_page/appearance_page.ts
 --- a/chrome/browser/resources/settings/appearance_page/appearance_page.ts
 +++ b/chrome/browser/resources/settings/appearance_page/appearance_page.ts
-@@ -154,6 +154,11 @@
+@@ -4,6 +4,8 @@
+ 
+ import 'chrome://resources/cr_components/managed_dialog/managed_dialog.js';
+ import 'chrome://resources/cr_elements/cr_button/cr_button.js';
++import 'chrome://resources/cr_elements/cr_icon_button/cr_icon_button.js';
++import 'chrome://resources/cr_elements/cr_toggle/cr_toggle.js';
+ import 'chrome://resources/cr_elements/cr_link_row/cr_link_row.js';
+ import '../controls/controlled_radio_button.js';
+ import '/shared/settings/controls/extension_controlled_indicator.js';
+@@ -154,6 +156,11 @@
        blancIslandAutoHideStyleOptions_: {type: Array},
        blancIslandSizeOptions_: {type: Array},
        blancTabArchiveOptions_: {type: Array},
@@ -72,7 +86,7 @@ diff --git a/chrome/browser/resources/settings/appearance_page/appearance_page.t
        blancMiniState_: {type: Object},
        blancMiniOptions_: {type: Array},
        blancAppIconOptions_: {type: Array},
-@@ -231,6 +236,59 @@
+@@ -231,6 +238,59 @@
          {value: 'push',
           name: loadTimeData.getString('blancIslandAutoHideStylePush')},
        ];
@@ -132,7 +146,7 @@ diff --git a/chrome/browser/resources/settings/appearance_page/appearance_page.t
    protected accessor blancMiniState_: {saved:string,status:string}|null = null;
    protected accessor blancMiniOptions_: DropdownMenuOptionList = [
      {value:'off',name:loadTimeData.getString('blancMiniOff')},
-@@ -388,6 +446,7 @@
+@@ -388,6 +448,7 @@
  
    override connectedCallback() {
      super.connectedCallback();
