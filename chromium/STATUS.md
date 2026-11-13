@@ -932,6 +932,13 @@ remain pending. D3 beta-only no-DRM exception accepted; EME notice/handoff requi
   16 px at 1000 × 760; it fits at 1280 × 800 and larger, in every
   wallpaper mode). native-start-widgets 8/8; newtab-layouts 24/25 (:21 as
   before).
+- **First public beta is 2.0.0-beta.2 (owner, 2026-11-13):** build 2.
+  `chromium/release/ledger.json` keeps 2.0.0-beta.1 reserved for the private
+  local-qualification build (the one built tonight, not distributable). The
+  production build needs the owner's Sparkle key ceremony
+  (docs/chromium-beta-release.md §10.1) for its public key, then production
+  arguments (beta.2, build 2, local qualification off); the release
+  script's build, signing and publish stages are still the phase-one plan.
 - **Final full macOS run (2026-11-13):** on macos-656ae5d81449fec2, the
   source the first beta is built from: 629 pass, 1 fail, 3 undefined, 28
   excluded, in 54 minutes. The failure, internal-pages.feature:7, read the
