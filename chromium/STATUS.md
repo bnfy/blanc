@@ -864,6 +864,12 @@ remain pending. D3 beta-only no-DRM exception accepted; EME notice/handoff requi
   still expects text tile faces in JetBrains Mono, which #931 replaced with
   image art; shipping's own reader fails the same way and its CI doesn't run
   the scenario. Not changed here (shipping's test is read-only to the fork).
+- **V25 — Mahjong takes Patron's place in the Start Page footer (2026-11-13,
+  owner; fork only, "for now"):** the Become a Blanc Patron pill leaves the
+  Start Page (Settings → Patron still offers it), and Play Blanc Mahjong
+  moves from the footer's right to the footer's left in that pill's look
+  (gold outline, weight 600, a two-tile mark, no ×). Shipping's two steps that
+  find or close the Patron pill run as V25 replacements.
 - **V24 — one Start Page with optional widgets, readable on any wallpaper
   (2026-11-13, owner; fork only):** Billboard is the one Start Page layout.
   Customize's layout picker becomes four switches: Favorites (up to eight,
@@ -2540,5 +2546,5 @@ Android's Bar A counts the shared scenarios bound in `chromium/tests/android/acc
 
 Legacy macOS stages come from the approved spec; they await verification on the canonical candidate. No legacy stage counts as Verified.
 
-Candidate identities: macOS: macos-0423c2c7bb7a1ff3; Windows: none; Linux: none; Android: android-arm64-7bd35e94ef746069.
+Candidate identities: macOS: macos-5f972ebb4ca85674; Windows: none; Linux: none; Android: android-arm64-7bd35e94ef746069.
 <!-- END GENERATED PROGRESS -->

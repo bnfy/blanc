@@ -200,4 +200,22 @@ export const DIVERGENCES = new Map([
       ['Favorite 1', 'Favorite 2', 'Favorite 3', 'Favorite 4', 'Favorite 5', 'Favorite 6', 'Favorite 7', 'Favorite 8'].slice(0, FAVORITES_WIDGET_LIMIT));
     assert.equal(dom.status, 'Favorite 8 unpinned from the Start Page.');
   }}],
+  // V25 (owner, 2026-11-13): Patron leaves the Start Page for now (Settings
+  // offers it) and Play Blanc Mahjong takes its pill on the footer's left.
+  ["every start-page layout shows the Patron upgrade on the footer's left", {divergence: 'V25', async run() {
+    for (const layout of ['ledger', 'billboard', 'shelf', 'tally']) {
+      assert.equal(await this.call('setNewtabLayout', layout), layout);
+      const frame = await this.waitFor(() => this.call('readStartFrameGeometry'), v => v?.layout === layout, `${layout} frame`, 8000);
+      assert.equal(frame.patronVisible, false, `${layout}: no Patron on the Start Page`);
+      const dom = await this.call('readStartWidgets');
+      assert.ok(dom.mahjongPill, `${layout}: the Mahjong pill shows`);
+      assert.equal(dom.mahjongInFooterLeft, true, `${layout}: on the footer's left, where Patron was`);
+      assert.equal(dom.mahjongText, 'Play Blanc Mahjong');
+      assert.ok(dom.mahjongPill.top >= dom.footer.top - 1 && dom.mahjongPill.bottom <= dom.footer.bottom + 1, `${layout}: inside the footer`);
+    }
+  }}],
+  ['I close the Patron upgrade', {divergence: 'V25', async run() {
+    const frame = await this.call('readStartFrameGeometry');
+    assert.equal(frame.patronVisible, false, 'there is no Patron pill to close on the Start Page');
+  }}],
 ]);

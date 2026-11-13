@@ -209,6 +209,11 @@
           <svg viewBox="0 0 10 10" width="10" height="10" aria-hidden="true"><path d="M2 2l6 6M8 2l-6 6"></path></svg>
         </button>
       </span>
+      <!-- V25 (owner, 2026-11-13): Mahjong takes the Patron pill's place and look;
+           Patron is offered in Settings only for now. -->
+      <span id="mahjongPill" class="mahjong-pill">
+        <a id="mahjongLink" href="blanc://mahjong/" target="_blank"><svg class="mahjong-pill-mark" viewBox="0 0 16 16" width="16" height="16" aria-hidden="true"><rect x="2.25" y="3.75" width="6.5" height="9.5" rx="1.5"></rect><rect x="7.25" y="2.25" width="6.5" height="9.5" rx="1.5"></rect></svg><span data-i18n="start.mahjong.play">Play Blanc Mahjong</span></a>
+      </span>
       <span id="whatsNew" class="whats-new-pill js-whats-new" hidden>
         <a id="whatsNewLink" href="https://blanc.day/changelog"><span id="whatsNewLabel"></span></a>
         <button id="whatsNewHide" class="start-pill-close" type="button" aria-label="Hide What’s new" data-i18n-aria-label="newtab.whatsNew.hide">
@@ -353,7 +358,6 @@
       </div>
     </span>
     <span class="footer-right">
-      <a id="mahjongLink" href="blanc://mahjong/" target="_blank" data-i18n="start.mahjong.play">Play Blanc Mahjong</a>
       <span id="goAnywhere"></span>
     </span>
   </footer>

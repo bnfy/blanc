@@ -216,6 +216,8 @@ export const pages={
    cards:Object.fromEntries(['favorites','devices','chart'].map(n=>[n,rect(section(n))])),
    favoriteRows:[...document.querySelectorAll('#favoritesList [data-favorite-url]')].map(rect).filter(Boolean),
    footer:rect(document.getElementById('layoutFooter')),
+   mahjongPill:rect(document.getElementById('mahjongPill')),mahjongInFooterLeft:document.getElementById('mahjongPill')?.parentElement?.classList.contains('footer-left')===true,
+   mahjongText:document.getElementById('mahjongLink')?.textContent.trim()??null,
    tileLimit:typeof billboardSiteCount==='function'?billboardSiteCount():null};})()`),
  // V24: the week's count lives in the chart widget (Shelf's blocked card is gone).
  readStartBlockedCard:onStart(null,`(()=>{const e=document.querySelector('#bbWidgets .bb-widget-chart .tally-right');if(!e||e.hidden)return false;
