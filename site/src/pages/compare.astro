@@ -1,7 +1,7 @@
 ---
 // Blanc next to Crest, Arc, Helium and Brave. The chart is data
 // (src/data/compare.json); every answer is recorded with its evidence in
-// docs/website-compare-claims-v1.48.0.json, and answers about other browsers
+// docs/website-compare-claims-v1.49.0.json, and answers about other browsers
 // link the first-party pages they came from. Spec:
 // docs/superpowers/specs/2026-11-02-compare-page-design.md; upkeep:
 // docs/compare-page-maintenance.md.
@@ -65,7 +65,7 @@ const linkText = (url) => url.replace(/^https:\/\//, '').replace(/\/$/, '');
     <section class="compare-chart" aria-labelledby="chart-title">
       <div class="compare-chart-head">
         <h2 id="chart-title">Side by side</h2>
-        <p class="compare-checked">Checked November 11, 2026 against Blanc v1.48.0.</p>
+        <p class="compare-checked">Checked November 13, 2026 against Blanc v1.49.0.</p>
       </div>
       {ended.map((column) => <p class="compare-ended">{column.endedNote}</p>)}
       <p class="compare-hint" data-compare-hint hidden>Choose a browser’s name to bring its column forward.</p>
@@ -114,7 +114,7 @@ const linkText = (url) => url.replace(/^https:\/\//, '').replace(/\/$/, '');
 
     <section class="compare-sources" aria-labelledby="sources-title">
       <h2 id="sources-title">Sources</h2>
-      <p>Blanc’s answers come from its v1.48.0 release and the <a href="/changelog">release notes</a>. Answers about other browsers come from these pages, read on November 2, 2026.</p>
+      <p>Blanc’s answers come from its v1.49.0 release and the <a href="/changelog">release notes</a>. Answers about other browsers come from these pages, read on November 2, 2026.</p>
       <p>“Not stated” means the pages listed for that browser don’t say.</p>
       <div class="compare-source-groups">
         {others.map((column) => (
