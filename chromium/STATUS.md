@@ -306,7 +306,7 @@ remain pending. D3 beta-only no-DRM exception accepted; EME notice/handoff requi
   Refresh it after each piece of work: `node chromium/tools/
   rc-readiness.mjs --baseline <evidence>/<newest full run>/baseline.json
   --runs <evidence> --out <dir>` (since 2026-11-12 the newest full run is
-  `v148-full-1`, against shipping v1.48.0 on macos-c2c2bcc050e0af2d), upload the three files to the dashboard
+  `main-full-1`, against shipping main 8a4e57e78 on macos-19c5d5e4546d8b41), upload the three files to the dashboard
   and point its datasets at them. Gates live in that tool; edit them with
   this file.
 - F0.1/F0.2/F0.4/F0.8 as before.
