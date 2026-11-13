@@ -174,9 +174,10 @@
       // figures reach up and down from there.
       const figures = innerHeight / 2 + (m.fontBoundingBoxAscent - m.fontBoundingBoxDescent) / 2
         + (m.actualBoundingBoxDescent - m.actualBoundingBoxAscent) / 2;
-      // A page that fills the screen below the status bar (screen.availTop tall) centers on the
-      // screen; one sharing it (split screen, the keyboard up) on itself.
-      const full = Math.abs(screen.height - screen.availTop - innerHeight) <= 3;
+      // A page that starts below the status bar (screen.availTop tall) and fills the screen's
+      // height, under the navigation bar or not, centers on the screen; one sharing it (split
+      // screen, the keyboard up) on itself.
+      const full = innerHeight >= screen.availHeight - 3;
       const middle = full ? screen.height / 2 - screen.availTop : innerHeight / 2;
       root.style.setProperty('--android-clock-nudge', (middle - figures).toFixed(2) + 'px');
     }

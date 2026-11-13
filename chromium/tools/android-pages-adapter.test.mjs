@@ -145,7 +145,7 @@ test('the Start Page gets the phone stylesheet and script once its body exists',
 // first-run clock in Roboto Flex at 360 px, as measured there on November 13, 2026 (the face's
 // ascent and descent are 300 and 80 of 324).
 const PIXEL = {
-  screen: {height: 919, availTop: 65}, innerHeight: 852,
+  screen: {height: 919, availTop: 65, availHeight: 817}, innerHeight: 852,
   font: {fontWeight: '245', fontSize: '360px', fontFamily: '"Blanc Clock Flex", sans-serif'},
   metrics: {fontBoundingBoxAscent: 333.33, fontBoundingBoxDescent: 88.89, actualBoundingBoxAscent: 263.6, actualBoundingBoxDescent: 6.4},
 };
@@ -178,6 +178,17 @@ test('the clock is measured again when it changes, the window resizes or a font 
   const resized = rootStyle['--android-clock-nudge'];
   listeners['fonts.loadingdone'].forEach(fn => fn());
   assert.notEqual(rootStyle['--android-clock-nudge'], resized);
+});
+
+test('a page that stops above the navigation bar still centers the clock on the screen', () => {
+  // Three-button navigation, the page not drawn under its 48 px bar: the page fills the screen's
+  // available height, not all of it below the status bar.
+  const page = {...PIXEL, screen: {height: 919, availTop: 65, availHeight: 806}, innerHeight: 806};
+  const {fire, rootStyle} = load('chrome://blanc/newtab.html', withClock(page));
+  fire('DOMContentLoaded');
+  const {fontBoundingBoxAscent: a, fontBoundingBoxDescent: d, actualBoundingBoxAscent: ia, actualBoundingBoxDescent: id} = PIXEL.metrics;
+  const figures = 806 / 2 + (a - d) / 2 + (id - ia) / 2;
+  assert.ok(Math.abs(figures + parseFloat(rootStyle['--android-clock-nudge']) - (919 / 2 - 65)) < 0.01);
 });
 
 test('a page sharing the screen (split screen, the keyboard up) centers the clock on itself', () => {
