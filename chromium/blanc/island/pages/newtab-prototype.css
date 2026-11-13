@@ -573,3 +573,44 @@ body.widget-resizing, body.widget-resizing * { cursor: ns-resize !important; use
 /* Shortcuts in Customize: the Wallpaper section's segmented control, two
    choices, and a quiet note when Billboard has fewer sites than chosen. */
 .customize-hint { margin: 8px 2px 0; font: 400 12px/1.4 var(--font-text); color: var(--text-dim); text-wrap: pretty; }
+
+/* Add a widget (fork, prototype): the last tile of the Widgets grid opens a
+   view of Customize's own, a short list of extensions with a side panel, and
+   a way back. */
+.widget-tile-add { border-style: dashed; color: var(--text-dim); background: transparent; }
+.widget-tile-add:hover { color: var(--text); border-color: color-mix(in srgb, var(--text) 35%, transparent); }
+#customizePopover[data-view="gallery"] > :not(#widgetGallery) { display: none !important; }
+.widget-gallery { display: flex; flex-direction: column; gap: 10px; }
+.widget-gallery-head { display: flex; align-items: center; gap: 6px; margin-inline-start: -6px; }
+.widget-gallery-head .customize-label { margin: 0; }
+.widget-gallery-back {
+  display: grid; place-items: center; width: 28px; height: 28px; padding: 0; border: 0; border-radius: 8px;
+  background: transparent; color: var(--text-dim); cursor: pointer;
+}
+.widget-gallery-back:hover { background: color-mix(in srgb, var(--text) 7%, transparent); color: var(--text); }
+.widget-gallery-back:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+.widget-gallery-intro { margin: 0; }
+.widget-gallery-list {
+  display: flex; flex-direction: column; gap: 2px; margin: 0; padding: 0; list-style: none;
+  max-height: min(420px, 52vh); overflow-y: auto; overscroll-behavior: contain;
+}
+.widget-gallery-item { display: flex; align-items: center; gap: 12px; padding: 8px 6px; border-radius: 12px; }
+.widget-gallery-item:hover { background: color-mix(in srgb, var(--text) 4%, transparent); }
+.widget-gallery-tile {
+  flex: none; display: grid; place-items: center; width: 36px; height: 36px; border-radius: 9px;
+  border: 1px solid var(--border); background: var(--surface); color: var(--accent);
+  font: 600 15px/1 var(--font-text);
+}
+.widget-gallery-text { display: flex; flex-direction: column; gap: 1px; min-width: 0; flex: 1; }
+.widget-gallery-name { font: 600 13.5px/1.25 var(--font-text); color: var(--text); }
+.widget-gallery-about { font: 400 12.5px/1.3 var(--font-text); color: var(--text-dim); text-wrap: pretty; }
+.widget-gallery-by { font: 400 11.5px/1.3 var(--font-text); color: color-mix(in srgb, var(--text-dim) 80%, transparent); }
+.widget-gallery-action {
+  flex: none; padding: 5px 12px; border: 1px solid var(--border); border-radius: 999px;
+  background: var(--surface); color: var(--text); font: 600 12px/1.2 var(--font-text); text-decoration: none; cursor: pointer;
+}
+.widget-gallery-action:hover { border-color: color-mix(in srgb, var(--patron-gold) 55%, var(--border)); }
+.widget-gallery-action:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.widget-gallery-action.is-added { border-color: transparent; background: transparent; color: var(--text-dim); cursor: default; }
+.widget-gallery-more { align-self: flex-start; color: var(--accent); font: 500 12.5px/1.3 var(--font-text); text-decoration: none; }
+.widget-gallery-more:hover { text-decoration: underline; }

@@ -2084,9 +2084,6 @@ async function placePanelsNow() {
 function renderPanelTiles() {
   const group = document.getElementById('widgetSwitches');
   for (const tile of group.querySelectorAll('[data-panel-pick]')) tile.remove();
-  // With no extension panel to offer, a line says where they would appear.
-  const hint = document.getElementById('widgetPanelsHint');
-  if (hint) hint.hidden = installedPanels.length > 0;
   const ns = 'http://www.w3.org/2000/svg';
   for (const panel of installedPanels) {
     const tile = widgetButtons[0].cloneNode(true);
@@ -2127,6 +2124,10 @@ function renderPanelTiles() {
     });
     group.append(tile);
   }
+  // Add widget stays the last tile.
+  const add = document.getElementById('addWidgetTile');
+  if (add) group.append(add);
+  renderWidgetGallery();
 }
 async function refreshPanels() {
   try {
@@ -2138,8 +2139,104 @@ async function refreshPanels() {
 refreshPanels();
 document.addEventListener('toggle', (event) => {
   if (event.target?.id === 'customizePopover' && event.newState === 'open') refreshPanels();
+  if (event.target?.id === 'customizePopover' && event.newState === 'closed') showWidgetGallery(false);
   placePanels();
 }, true);
+// Back from the Web Store (an extension may have been installed there).
+document.addEventListener('visibilitychange', () => { if (!document.hidden) refreshPanels(); });
+
+// Add a widget (fork, prototype): a short list of Chrome Web Store
+// extensions whose side panel the Start Page can show, which the owner
+// approved. Each links to its Web Store page; once it is installed (and its
+// panel is on) it is added from here. Names and publishers are the
+// extensions' own; the descriptions are Blanc's, in every language. No
+// remote image is loaded: each shows a letter tile.
+// Checked 2026-11-13 against each extension's Chrome Web Store listing and its
+// publisher's docs or source (side_panel in the manifest, or the listing
+// naming Chrome's side panel). The owner approves this list.
+var WIDGET_CATALOG = [
+  { id: 'jdbnofccmhefkmjbkkdkfiicjkgofkdh', key: 'bookmarkSidebar', name: 'Bookmark Sidebar', publisher: 'Philipp König' },
+  { id: 'ldgfbffkinooeloadekpmfoklnobpien', key: 'raindrop', name: 'Raindrop.io', publisher: 'Raindrop.io' },
+  { id: 'lpofefdiokgmcdnnaigddelnfamkkghi', key: 'googleTasks', name: 'Desktop app for Google Tasks', publisher: 'TasksBoard' },
+  { id: 'hkhggnncdpfibdhinjiegagmopldibha', key: 'checkerPlusCalendar', name: 'Checker Plus for Google Calendar™', publisher: 'Jason Savard' },
+];
+function showWidgetGallery(open) {
+  const popover = document.getElementById('customizePopover');
+  const gallery = document.getElementById('widgetGallery');
+  if (!popover || !gallery) return;
+  if (open) {
+    // Customize keeps its width: the gallery's text wraps inside it.
+    popover.style.width = `${popover.offsetWidth}px`;
+    popover.dataset.view = 'gallery';
+    gallery.hidden = false;
+    renderWidgetGallery();
+    document.getElementById('widgetGalleryBack')?.focus();
+  } else if (popover.dataset.view === 'gallery') {
+    delete popover.dataset.view;
+    popover.style.removeProperty('width');
+    gallery.hidden = true;
+    if (popover.matches(':popover-open')) document.getElementById('addWidgetTile')?.focus();
+  }
+}
+function renderWidgetGallery() {
+  const list = document.getElementById('widgetGalleryList');
+  if (!list || document.getElementById('widgetGallery')?.hidden) return;
+  list.replaceChildren();
+  const installed = new Set((installedPanels ?? []).map((panel) => panel.id));
+  const on = new Set(state.widgets?.panels ?? []);
+  for (const entry of WIDGET_CATALOG) {
+    const item = document.createElement('li');
+    item.className = 'widget-gallery-item';
+    item.dataset.extension = entry.id;
+    const tile = document.createElement('span');
+    tile.className = 'widget-gallery-tile';
+    tile.setAttribute('aria-hidden', 'true');
+    tile.textContent = entry.name.trim().charAt(0).toUpperCase();
+    const text = document.createElement('span');
+    text.className = 'widget-gallery-text';
+    const name = document.createElement('span');
+    name.className = 'widget-gallery-name';
+    name.textContent = entry.name;
+    const about = document.createElement('span');
+    about.className = 'widget-gallery-about';
+    about.textContent = t(`start.gallery.ext.${entry.key}`);
+    const by = document.createElement('span');
+    by.className = 'widget-gallery-by';
+    by.textContent = entry.publisher;
+    text.append(name, about, by);
+    let action;
+    if (installed.has(entry.id) && on.has(entry.id)) {
+      action = document.createElement('span');
+      action.className = 'widget-gallery-action is-added';
+      action.textContent = t('start.gallery.added');
+    } else if (installed.has(entry.id)) {
+      action = document.createElement('button');
+      action.type = 'button';
+      action.className = 'widget-gallery-action';
+      action.textContent = t('start.gallery.addOne');
+      action.setAttribute('aria-label', t('start.gallery.addLabel', { name: entry.name }));
+      action.addEventListener('click', async () => {
+        if (widgetWritePending) return;
+        widgetWritePending = true;
+        try { applyWidgets(await window.bowserPages.start.setPanel(entry.id, true)); }
+        catch { widgetSaveStatus.textContent = t('start.widgets.unconfirmed'); widgetSaveStatus.hidden = false; }
+        finally { widgetWritePending = false; window.blancNewTabEvent('widgets'); renderWidgetGallery(); }
+      });
+    } else {
+      action = document.createElement('a');
+      action.className = 'widget-gallery-action';
+      action.href = `https://chromewebstore.google.com/detail/${entry.id}`;
+      action.target = '_blank';
+      action.rel = 'noopener';
+      action.textContent = t('start.gallery.get');
+      action.setAttribute('aria-label', t('start.gallery.getLabel', { name: entry.name }));
+    }
+    item.append(tile, text, action);
+    list.append(item);
+  }
+}
+document.getElementById('addWidgetTile')?.addEventListener('click', () => showWidgetGallery(true));
+document.getElementById('widgetGalleryBack')?.addEventListener('click', () => showWidgetGallery(false));
 document.addEventListener('visibilitychange', placePanels);
 window.addEventListener('resize', placePanels);
 window.addEventListener('scroll', placePanels, { capture: true, passive: true });

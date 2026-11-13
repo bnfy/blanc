@@ -959,9 +959,20 @@ remain pending. D3 beta-only no-DRM exception accepted; EME notice/handoff requi
   `tests/fixtures/side-panel-extension`, loaded by the gated
   `testLoadUnpacked`): 3/3. Not yet: the panel's own height, keyboard focus
   between page and panel, and a check with real Web Store extensions.
-  Later the same day (owner): while no installed extension has a side panel,
-  Customize says "Extensions with a side panel show up here too." under the
-  widget tiles; the line goes once one is offered. native-start-panels 4/4.
+  Later the same day (owner): an **Add widget** tile, last in Customize's
+  Widgets grid, opens an "Add a widget" view (with Back) listing four
+  extensions whose side panel suits a Start Page card: Bookmark Sidebar,
+  Raindrop.io, Desktop app for Google Tasks and Checker Plus for Google
+  Calendar. Each has a letter tile (no remote image), Blanc's own one-line
+  description in every language, its publisher, and Get (its Chrome Web Store
+  page in a new tab), Add once installed, or Added; plus "Find more in the
+  Chrome Web Store" and "Extensions are made by their developers, not by
+  Blanc." The list was checked on 2026-11-13 against each listing and its
+  publisher's docs or source (side panel evidence, ID to listing title);
+  Obsidian Web Clipper and Claude were left out (their panels act on the
+  page in view), as were extensions without first-party side-panel evidence.
+  **The list awaits the owner's approval before the beta.** The earlier hint
+  line is gone. native-start-panels 4/4; native-start-widgets 8/8.
 - **Mahjong dock icons (2026-11-13):** shipping's dock uses
   `<use href="mahjong-icons.svg#…">`, which Chromium does not load on the
   fork's internal pages (net::ERR_FAILED), so the dock showed empty circles.
@@ -2710,5 +2721,5 @@ Android's Bar A counts the shared scenarios bound in `chromium/tests/android/acc
 
 Legacy macOS stages come from the approved spec; they await verification on the canonical candidate. No legacy stage counts as Verified.
 
-Candidate identities: macOS: macos-fd48ba4702351495; Windows: none; Linux: none; Android: android-arm64-7bd35e94ef746069.
+Candidate identities: macOS: macos-f7cc5ba20a64acf1; Windows: none; Linux: none; Android: android-arm64-7bd35e94ef746069.
 <!-- END GENERATED PROGRESS -->

@@ -39,13 +39,27 @@ try{
  const target0=await w.waitFor(async()=>(await f.targets()).find(t=>t.type==='page'&&/newtab/.test(t.url)),Boolean,'the Start Page',10000);
  const cdp=await f.connectTarget(target0);page=cdp;
  await w.waitFor(()=>cdp.eval('!!window.bowserPages?.start?.panels'),Boolean,'the page bridge',8000);
- // With no extension panel yet, Customize says where they would appear.
- const hint=()=>cdp.eval(`(()=>{const h=document.getElementById('widgetPanelsHint');return {shown:!h.hidden&&h.getBoundingClientRect().height>0,text:h.textContent.trim(),tiles:document.querySelectorAll('[data-panel-pick]').length};})()`);
+ // Add widget, the grid's last tile, opens Customize's gallery of extensions
+ // with a side panel. The sample extension stands in for a catalog entry
+ // (the real ones are Web Store extensions this fixture cannot install).
  await cdp.eval(`document.getElementById('customizePopover').showPopover(),1`);
- const before=await w.waitFor(hint,v=>v.shown,'the extension panels hint',5000).catch(()=>hint());
- result.hintBefore=before;
- assert.ok(before.shown&&before.tiles===0&&before.text==='Extensions with a side panel show up here too.',`the hint while no extension has a panel: ${JSON.stringify(before)}`);
- await shot('0-customize-hint');
+ const SAMPLE='hjkbdcfjmbgkdngfolbmllefkimdcnpa';
+ await cdp.eval(`WIDGET_CATALOG.push({id:'${SAMPLE}',key:'test',name:'Blanc Test Notes',publisher:'Blanc tests'}),1`);
+ const gallery=()=>cdp.eval(`(()=>{const g=document.getElementById('widgetGallery');const tiles=[...document.querySelectorAll('#widgetSwitches > .widget-tile')];
+  const item=document.querySelector('.widget-gallery-item[data-extension="${SAMPLE}"]');const action=item?.querySelector('.widget-gallery-action');
+  return {open:!g.hidden&&g.getBoundingClientRect().height>0,addLast:tiles.at(-1)?.id==='addWidgetTile',items:document.querySelectorAll('.widget-gallery-item').length,
+   catalog:WIDGET_CATALOG.length,action:action?{tag:action.tagName,text:action.textContent,href:action.getAttribute('href'),label:action.getAttribute('aria-label')}:null,
+   widgetsHidden:getComputedStyle(document.getElementById('widgetSwitches')).display==='none',focus:document.activeElement?.id??null,
+   width:document.getElementById('customizePopover').offsetWidth};})()`);
+ const customizeWidth=await cdp.eval(`document.getElementById('customizePopover').offsetWidth`);
+ await cdp.eval(`document.getElementById('addWidgetTile').click(),1`);
+ const before=await w.waitFor(gallery,v=>v.open,'the gallery',5000).catch(()=>gallery());
+ assert.ok(Math.abs(before.width-customizeWidth)<=1,`the gallery keeps Customize's width: ${customizeWidth} -> ${before.width}`);
+ result.galleryBefore=before;
+ assert.ok(before.open&&before.addLast&&before.widgetsHidden&&before.focus==='widgetGalleryBack','Add widget is the last tile and opens the gallery in place of Customize\'s sections, focus on Back');
+ assert.equal(before.items,before.catalog,'every catalog entry is listed');
+ assert.ok(before.action?.tag==='A'&&before.action.href===`https://chromewebstore.google.com/detail/${SAMPLE}`&&/Chrome Web Store/.test(before.action.label),`an extension not installed links to its Web Store page: ${JSON.stringify(before.action)}`);
+ await shot('0-gallery');
  await cdp.eval(`document.getElementById('customizePopover').hidePopover(),1`);
  const id=await w.native('testLoadUnpacked',[path.join(here,'fixtures','side-panel-extension')]);
  assert.match(String(id),/^[a-p]{32}$/,'the sample extension loads');
@@ -54,9 +68,19 @@ try{
  await cdp.eval(`(async()=>{document.getElementById('customizePopover').showPopover();await new Promise(r=>setTimeout(r,500));return 1;})()`);
  await w.waitFor(()=>cdp.eval(`!!document.querySelector('[data-panel-pick="${id}"]')`),Boolean,'the tile',5000);
  result.tile=await cdp.eval(`document.querySelector('[data-panel-pick="${id}"]').textContent.trim()`);
- const after=await hint();result.hintAfter=after;
- assert.equal(after.shown,false,'the hint goes once an extension panel is offered');
- result.checks.push('with no extension panel Customize says where they appear, and the line goes once one is offered');
+ // Installed now: the gallery offers Add, which turns its panel on.
+ await cdp.eval(`document.getElementById('addWidgetTile').click(),1`);
+ const installed=await w.waitFor(gallery,v=>v.open&&v.action?.tag==='BUTTON','Add in the gallery',5000).catch(()=>gallery());
+ result.galleryInstalled=installed;
+ assert.equal(installed.action?.text,'Add');
+ await cdp.eval(`document.querySelector('.widget-gallery-item[data-extension="${SAMPLE}"] .widget-gallery-action').click(),1`);
+ const added=await w.waitFor(gallery,v=>v.action?.text==='Added','Added in the gallery',5000).catch(()=>gallery());
+ result.galleryAdded=added;
+ assert.equal(await cdp.eval(`state.widgets.panels.includes('${SAMPLE}')`),true,'Add turned the panel on');
+ await cdp.eval(`document.getElementById('widgetGalleryBack').click(),1`);
+ assert.equal((await gallery()).open,false,'Back returns to Customize');
+ await cdp.eval(`(async()=>{await window.bowserPages.start.setPanel('${SAMPLE}',false);return 1;})()`);
+ result.checks.push('Add widget opens a gallery: Get links to the Web Store, an installed extension is added from it, and Back returns');
  await shot('1-customize');
  await cdp.eval(`document.querySelector('[data-panel-pick="${id}"]').click(),1`);
  await w.waitFor(()=>cdp.eval(`document.querySelector('[data-panel-pick="${id}"]').getAttribute('aria-checked')`),v=>v==='true','the tile on',5000);
