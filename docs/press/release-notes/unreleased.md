@@ -1,13 +1,18 @@
 # Unreleased notes
 
-v1.48.0 is the current public release ([notes](v1.48.0.md)). Changes merged
-since then are below as they're recorded.
+v1.48.0 is the current public release ([notes](v1.48.0.md)). The next release
+is 1.49.0, a feature release ([notes](v1.49.0.md)). Changes merged after its
+release commit are below as they're recorded.
 
-## Fixed
+## Before 1.49.0 publishes
 
-- After **Continue** on a certificate warning for a local or private-network
-  address, windows that page opens on its own, such as Proxmox's separate
-  console, now load and connect too, instead of staying black or white.
+- **What's New:** a page for 1.49 leading with the refreshed Mahjong design,
+  live on blanc.day with the owner's sign-off on its text and media.
+- **The pop-out certificate fix** (#1478) against a real local console, such
+  as Proxmox's noVNC and xterm.js windows, after **Continue**.
+- **Mahjong** in a packaged build: the three tile sets, the match trail and
+  board-cleared celebration (and the reduced-motion glow), in light and dark
+  mode.
 
 ## Still open from 1.48
 
