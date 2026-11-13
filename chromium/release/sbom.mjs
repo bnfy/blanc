@@ -118,7 +118,7 @@ export function gather(r, scan, src, {root = ROOT, extra = JSON.parse(fs.readFil
   const bundle = blockerBundle(root), blockerDir = path.join(root, 'chromium/blanc/third_party/blocker');
   const blocker = [
     ...bundle.packages.map(p => ({ref: `blocker:npm:${p.name}`, type: 'library', name: p.name, version: p.version, license: p.license,
-      purl: `pkg:npm/${p.name.replace('@', '%40')}@${p.version}`, url: p.source, licenseTexts: p.licenseFiles.map(f => keep(text(path.join(blockerDir, f.file))))})),
+      purl: `pkg:npm/${p.name.split('/').map(encodeURIComponent).join('/')}@${p.version}`, url: p.source, licenseTexts: p.licenseFiles.map(f => keep(text(path.join(blockerDir, f.file))))})),
     {ref: 'blocker:procedural-renderer', type: 'library', name: bundle.proceduralRenderer.name, version: bundle.proceduralRenderer.version,
       license: bundle.proceduralRenderer.license, url: 'https://github.com/ghostery/adblocker', hash: bundle.proceduralRenderer.bundleSha256,
       licenseTexts: bundle.proceduralRenderer.licenseFiles.map(f => keep(text(path.join(blockerDir, f.file))))},

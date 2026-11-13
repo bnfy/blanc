@@ -81,6 +81,7 @@ test('the SBOM is CycloneDX 1.6, deterministic, and lists every shipped componen
   assert.deepEqual(sbom.dependencies.find(d => d.ref === 'blocker-engine').dependsOn.length, blockerParts);
   assert.equal(sbom.components.find(c => c['bom-ref'] === 'blocker-engine').hashes[0].content, bundle.bundleSha256);
   assert.ok(sbom.components.some(c => c.name === 'EasyList' && c.hashes?.length));
+  assert.equal(sbom.components.find(c => c.name === '@ghostery/adblocker').purl, 'pkg:npm/%40ghostery/adblocker@2.18.2', 'purl segments are percent-encoded');
   assert.ok(sbom.components.every(c => c.licenses?.length > 0 && c['bom-ref']));
   assert.deepEqual(sbom.dependencies.find(d => d.ref === 'chromium').dependsOn.length, LIBS);
   assert.ok(sbom.components.find(c => c.name === 'Lib 1').cpe);
