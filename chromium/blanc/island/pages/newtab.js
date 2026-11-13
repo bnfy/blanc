@@ -2084,6 +2084,9 @@ async function placePanelsNow() {
 function renderPanelTiles() {
   const group = document.getElementById('widgetSwitches');
   for (const tile of group.querySelectorAll('[data-panel-pick]')) tile.remove();
+  // With no extension panel to offer, a line says where they would appear.
+  const hint = document.getElementById('widgetPanelsHint');
+  if (hint) hint.hidden = installedPanels.length > 0;
   const ns = 'http://www.w3.org/2000/svg';
   for (const panel of installedPanels) {
     const tile = widgetButtons[0].cloneNode(true);

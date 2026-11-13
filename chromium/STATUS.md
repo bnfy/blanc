@@ -959,6 +959,9 @@ remain pending. D3 beta-only no-DRM exception accepted; EME notice/handoff requi
   `tests/fixtures/side-panel-extension`, loaded by the gated
   `testLoadUnpacked`): 3/3. Not yet: the panel's own height, keyboard focus
   between page and panel, and a check with real Web Store extensions.
+  Later the same day (owner): while no installed extension has a side panel,
+  Customize says "Extensions with a side panel show up here too." under the
+  widget tiles; the line goes once one is offered. native-start-panels 4/4.
 - **Mahjong dock icons (2026-11-13):** shipping's dock uses
   `<use href="mahjong-icons.svg#…">`, which Chromium does not load on the
   fork's internal pages (net::ERR_FAILED), so the dock showed empty circles.
@@ -2707,5 +2710,5 @@ Android's Bar A counts the shared scenarios bound in `chromium/tests/android/acc
 
 Legacy macOS stages come from the approved spec; they await verification on the canonical candidate. No legacy stage counts as Verified.
 
-Candidate identities: macOS: macos-76499bdaedc849fc; Windows: none; Linux: none; Android: android-arm64-7bd35e94ef746069.
+Candidate identities: macOS: macos-fd48ba4702351495; Windows: none; Linux: none; Android: android-arm64-7bd35e94ef746069.
 <!-- END GENERATED PROGRESS -->

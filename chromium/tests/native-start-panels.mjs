@@ -34,18 +34,29 @@ const shot=async name=>{
 try{
  await f.launch(config,path.join(parent,'fixture'),{testHooks:true,diskAssets:process.env.DISK_ASSETS==="1"});
  await installDriver(f.host);await assertRendering(e=>f.host.eval(e));await w.reset();
- const id=await w.native('testLoadUnpacked',[path.join(here,'fixtures','side-panel-extension')]);
- assert.match(String(id),/^[a-p]{32}$/,'the sample extension loads');
  await w.call('setWindowContentSize',1600,960);
  await w.native('createTab',['chrome://newtab/']);
  const target0=await w.waitFor(async()=>(await f.targets()).find(t=>t.type==='page'&&/newtab/.test(t.url)),Boolean,'the Start Page',10000);
  const cdp=await f.connectTarget(target0);page=cdp;
  await w.waitFor(()=>cdp.eval('!!window.bowserPages?.start?.panels'),Boolean,'the page bridge',8000);
+ // With no extension panel yet, Customize says where they would appear.
+ const hint=()=>cdp.eval(`(()=>{const h=document.getElementById('widgetPanelsHint');return {shown:!h.hidden&&h.getBoundingClientRect().height>0,text:h.textContent.trim(),tiles:document.querySelectorAll('[data-panel-pick]').length};})()`);
+ await cdp.eval(`document.getElementById('customizePopover').showPopover(),1`);
+ const before=await w.waitFor(hint,v=>v.shown,'the extension panels hint',5000).catch(()=>hint());
+ result.hintBefore=before;
+ assert.ok(before.shown&&before.tiles===0&&before.text==='Extensions with a side panel show up here too.',`the hint while no extension has a panel: ${JSON.stringify(before)}`);
+ await shot('0-customize-hint');
+ await cdp.eval(`document.getElementById('customizePopover').hidePopover(),1`);
+ const id=await w.native('testLoadUnpacked',[path.join(here,'fixtures','side-panel-extension')]);
+ assert.match(String(id),/^[a-p]{32}$/,'the sample extension loads');
  const list=await cdp.eval('window.bowserPages.start.panels()');
  result.id=id;result.list=list;assert.ok(list.some(p=>p.id===id&&p.name==='Blanc Test Notes'),'the panel is offered');
  await cdp.eval(`(async()=>{document.getElementById('customizePopover').showPopover();await new Promise(r=>setTimeout(r,500));return 1;})()`);
  await w.waitFor(()=>cdp.eval(`!!document.querySelector('[data-panel-pick="${id}"]')`),Boolean,'the tile',5000);
  result.tile=await cdp.eval(`document.querySelector('[data-panel-pick="${id}"]').textContent.trim()`);
+ const after=await hint();result.hintAfter=after;
+ assert.equal(after.shown,false,'the hint goes once an extension panel is offered');
+ result.checks.push('with no extension panel Customize says where they appear, and the line goes once one is offered');
  await shot('1-customize');
  await cdp.eval(`document.querySelector('[data-panel-pick="${id}"]').click(),1`);
  await w.waitFor(()=>cdp.eval(`document.querySelector('[data-panel-pick="${id}"]').getAttribute('aria-checked')`),v=>v==='true','the tile on',5000);
