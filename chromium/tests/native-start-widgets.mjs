@@ -86,7 +86,7 @@ try{
    text:Object.fromEntries(['.bb-fav .label'].map(s=>{const c=cs(s);return [s,c?{clear:clear(c),shadow:c.textShadow!=='none'}:null];})),
    footerItems:['.start-customize','.footer-right','#footerLeft'].map(s=>{const c=cs(s);return c?clear(c):true;}),
    fade:fade.content!=='none'&&fade.backgroundImage.includes('gradient'),
-   headerFade:(h=>h.content!=='none'&&h.backgroundImage.includes('gradient'))(getComputedStyle(document.querySelector('.start-header'),'::after')),
+   headerFade:(h=>h.content!=='none'&&h.backgroundImage.includes('gradient'))(getComputedStyle(document.querySelector('.start-brand'),'::after')),
    dateClear:clear(cs('.start-brand-date')),
    clockHalo:clock.content!=='none'&&clock.content!=='normal',haloAttr:document.querySelector('.bb-clock-row').hasAttribute('data-halo')};})()`);
  result.look=look;

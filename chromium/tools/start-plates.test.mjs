@@ -27,8 +27,8 @@ const schemes = [...css.matchAll(/([^{}]+)\{([^{}]*--start-tray:[^{}]*)\}/g)].ma
 });
 // The fade's weakest point under the footer's text.
 const FADE_UNDER_TEXT = Number(/rgb\(var\(--start-footer-fade\) \/ ([\d.]+)\) var\(--start-footer-h/.exec(css)?.[1]);
-// The same fade mirrored behind the header's date.
-const HEADER_FADE_UNDER_TEXT = Number(/rgb\(var\(--start-footer-fade\) \/ ([\d.]+)\) var\(--start-header-h/.exec(css)?.[1]);
+// The oval behind the Sunrise mark and date, where the date sits (62%).
+const HEADER_FADE_UNDER_TEXT = Number(/\.start-brand::after[^}]*rgb\(var\(--start-footer-fade\) \/ ([\d.]+)\) 62%/.exec(css)?.[1]);
 
 test('every tray scheme is defined', () => {
   assert.ok(schemes.length >= 4, `found ${schemes.length} tray schemes`);

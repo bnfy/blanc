@@ -879,9 +879,9 @@ remain pending. D3 beta-only no-DRM exception accepted; EME notice/handoff requi
   after the first try's cream plates and clock halo looked wrong): the
   widgets sit on one glass tray in the Island's material family, the date,
   blocked line, tile names and group chips keep a soft shadow opposite their
-  ink, the footer sits in a fade up from the bottom edge and the header (mark
-  and date) in the same fade down from the top (owner: a shadow alone was not
-  enough for the date), and the clock is as
+  ink, the footer sits in a fade up from the bottom edge, the Sunrise mark
+  and date in a soft oval of the same tint on the left only (owner: a shadow
+  alone was not enough for the date, a full top wash too much), and the clock is as
   it was (its own opposite shadow). The tray's inks and the footer's ink keep
   4.5:1 or more over pure black and pure white behind them
   (start-plates.test.mjs); native-start-widgets.mjs checks the switches, live
@@ -2539,5 +2539,5 @@ Android's Bar A counts the shared scenarios bound in `chromium/tests/android/acc
 
 Legacy macOS stages come from the approved spec; they await verification on the canonical candidate. No legacy stage counts as Verified.
 
-Candidate identities: macOS: macos-633cd8a663c02ab9; Windows: none; Linux: none; Android: android-arm64-7bd35e94ef746069.
+Candidate identities: macOS: macos-2959317a22366dfb; Windows: none; Linux: none; Android: android-arm64-7bd35e94ef746069.
 <!-- END GENERATED PROGRESS -->
