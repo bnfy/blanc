@@ -32,8 +32,45 @@ export function shippingEvaluations(text) {
 // Island windows open in this browser (one host document each).
 const windows = async fixture => (await fixture.targets())
   .filter(t => t.type === 'page' && t.url === 'chrome://blanc-prototype/host.html').length;
+async function resizeWindow(fixture,width,height){
+  const snapshot=await nativeCall(fixture.host,'snapshot');
+  const targets=await nativeCall(fixture.host,'tabTargets');
+  const {windowId}=await fixture.browser.send('Browser.getWindowForTarget',{targetId:targets[String(snapshot.activeTabId)]});
+  await fixture.browser.send('Browser.setWindowBounds',{windowId,bounds:{width,height}});
+}
 
+export async function nativeNavigationHistory(fixture,identity){
+ const id=fixture.pageIdentities?.get(identity);
+ if(id==null)throw Error('Unknown page identity');
+ const targetId=(await nativeCall(fixture.host,'tabTargets'))[String(id)];
+ const target=(await fixture.targets()).find(t=>t.id===targetId);
+ if(!target)throw Error('Native page is no longer live');
+ const page=await fixture.connectTarget(target);
+ try{return (await page.send('Page.getNavigationHistory')).entries.map(entry=>entry.url);}
+ finally{page.close();}
+}
 export const PORTS = {
+ // F60: exact shipping main-process functions reach the real native local
+ // preferences and the same URL dispatcher used by macOS openURLs.
+ '4f20693a4f06287542d9ab8cf190387a9f73d56f421e5a4063352915b5c7da7d':f=>nativeCall(f.host,'linkRoutes'),
+ '23a55419967a253f935a732e4b23b5cb28dea3387408386e262d3117bcfcd04f':(f,_s,url)=>nativeCall(f.host,'externalLink',[url]),
+ '47df83fe691701c48024552f15bbd806c30ae2e3b885fc7510b95b5fa8e82e42':(f,_s,{profileId,host})=>nativeCall(f.host,'setLinkRoutes',[[{id:'routed',match:{kind:'domain',value:host},destination:{profileId}}]]),
+ '2aa7da05a7640c5e6fa7c45a22374b6534018bc14b846ab3f2e33b3d2f28ab8a':(f,_s,{profileId,value})=>nativeCall(f.host,'setLinkRoutes',[[{id:'in-app',match:{kind:'contains',value},destination:{profileId}}]]),
+ '7c162279255d28ba3f0d17547cd42c0ceef30a0f2b4141b703856753d94a52f9':f=>nativeCall(f.host,'setLinkRoutesInApp',[true]),
+ '60dc20a93d2d0b92f8f124081b9b89080d0eb299034c28c0ddecf7cc66f9acd4':f=>nativeCall(f.host,'focusedWindowTitle'),
+ '968888fd8427ad4c9f66a4a802d2f5ae8904769485ac25111f7abc37b59975ba':f=>f.host.send('Page.bringToFront'),
+ // The shipping UI event seam, through the native snapshot delivery channel.
+ 'ddda45a20481d7d0c4a7d3dcdc3274ee9431344ddb08d186360b530943ac2858': (fixture,state,activity)=>nativeCall(fixture.host,'seedDownloadsActivity',[activity]),
+ '4a2133a8440f0601dcbde090523f8bde7306fe72248c83117c18dbc54a7c1c32':(fixture,state,identity)=>nativeNavigationHistory(fixture,identity),
+  // Resize and zoom the real native Island window, including its overlay.
+  '295d076520c1b8725f1d47c40a614568ce66335910de65bb8f0747e0bddb118e': async fixture => {
+    await resizeWindow(fixture,640,480);
+  },
+  '830cba0d06e796ed6394eba654fa390ada9b50b367ffe8074245437f2b43248b': fixture => nativeCall(fixture.host,'setIslandZoomFactor',[1.25]),
+  '51e40719c2075b4775a63ed25283e307ff4490a185ba3abb51bd14e9cacd53df': async fixture => {
+    await nativeCall(fixture.host,'setIslandZoomFactor',[1]);
+    await resizeWindow(fixture,1280,800);
+  },
   // Whether a set-aside page's download was stopped: shipping's will-download,
   // as the count of downloads started, from a page's own download link.
   '270cc54fc97d5ae90d03ddf003f93e0e4039021fc2b627e44432ee24a29f7d99': async (fixture, state, identity) => {
@@ -60,6 +97,51 @@ export const PORTS = {
     state.authProbe = {windows: await windows(fixture)};
   },
   // readProbe: the challenges since installProbe, as shipping's login events.
+  // F39-10/11: a featureful window.open is a pop-up window, a page target of
+  // its own here. The step's function runs against that page: isLoading and
+  // executeJavaScript, the two members it uses.
+  '92002942c68850eff84ad3e574985911c866278b6e084e605be8f4aca9e5536a': async (fixture, state, {path, source}) => {
+    const target = (await fixture.targets()).find(t => t.type === 'page' && t.url.includes(path));
+    if (!target) return {found: false};
+    const page = await fixture.connectTarget(target);
+    // Electron's isLoading answers at once; read the page's state first.
+    const loading = (await page.eval('document.readyState')) !== 'complete';
+    const wc = {isLoading: () => loading, executeJavaScript: code => page.eval(code)};
+    const run = new Function('wc', `return (${source})(wc);`);
+    return {found: true, value: await run(wc)};
+  },
+  // F39-10: the tab's session's open connections close, so the pop-up's own
+  // load checks the certificate (the window profile's network context).
+  '5b4cc28bef6aad2bf89b1334dc38313b5167418c53fd9581e3f88761b25a9747': async fixture => nativeCall(fixture.host, 'closeAllConnections', []),
+  // F39-8: the origins of every frame in the page that embeds the refused
+  // frame, from Chromium's own frame tree (a cross-origin frame, refused or
+  // not, is still listed there with the origin it committed).
+  'f500c640c47afab99e1a88b0dd33209bba00cb1e392f26e9c1413809d82f3419': async (fixture, state, url) => {
+    const target = (await fixture.targets()).find(t => t.type === 'page' && t.url === url);
+    if (!target) return null;
+    const page = await fixture.connectTarget(target);
+    const {frameTree} = await page.send('Page.getFrameTree');
+    const origins = [];
+    const walk = node => {
+      origins.push(node.frame.securityOrigin || (() => { try { return new URL(node.frame.url).origin; } catch { return 'null'; } })());
+      for (const child of node.childFrames || []) walk(child);
+    };
+    walk(frameTree);
+    // A frame in another process (site isolation; a refused frame's error
+    // page) is its own iframe target whose parent frame is in this tree.
+    const ids = new Set();
+    const collect = node => { ids.add(node.frame.id); for (const child of node.childFrames || []) collect(child); };
+    collect(frameTree);
+    for (const info of await fixture.targets()) {
+      if (info.type !== 'iframe' || (info.parentId && info.parentId !== target.id && !ids.has(info.parentId))) continue;
+      // Its committed origin, not the address it tried: an error page keeps
+      // the refused URL but commits an opaque origin.
+      const frame = await fixture.connectTarget(info);
+      const own = (await frame.send('Page.getFrameTree')).frameTree.frame;
+      origins.push(own.securityOrigin || 'null');
+    }
+    return origins;
+  },
   'bd1f99ce463c197760613b7d483716fb162610d2533187ca3367d11f9a77558f': async (fixture, state) => state.authProbe ? {
     logins: await nativeCall(fixture.host, 'authChallenges'),
     windowsCreated: Math.max(0, await windows(fixture) - state.authProbe.windows),

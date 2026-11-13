@@ -126,6 +126,11 @@ void LoadStores(const Args& args) {
 void WriteStore(const Args& args) {
   g_service->host()->WriteStore(ToString(args.GetIsolate(), args[0]), Bytes(args[1]));
 }
+void PersistDesktopStore(const Args& args) {
+  bool saved = false;
+  g_service->host()->PersistDesktopStore(ToString(args.GetIsolate(), args[0]), Bytes(args[1]), &saved);
+  args.GetReturnValue().Set(saved);
+}
 void RandomBytes(const Args& args) {
   std::vector<uint8_t> out(static_cast<size_t>(Int(args, 0)));
   crypto::RandBytes(out);
@@ -209,8 +214,13 @@ void Emit(const Args& args) {
 }
 void CallDone(const Args& args) {
   auto* isolate = args.GetIsolate();
-  g_service->FinishCall(args.Data()->Int32Value(isolate->GetCurrentContext()).FromMaybe(0),
-                        args[0]->BooleanValue(isolate), ToString(isolate, args[1]));
+  // Desktop's V8 (158) deprecates Data() for DataV2(), which Android's (156)
+  // may not have; Data() is the one both lanes compile.
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wdeprecated-declarations"
+  const int id = args.Data()->Int32Value(isolate->GetCurrentContext()).FromMaybe(0);
+#pragma clang diagnostic pop
+  g_service->FinishCall(id, args[0]->BooleanValue(isolate), ToString(isolate, args[1]));
 }
 }  // namespace
 
@@ -291,6 +301,7 @@ void SyncRunnerService::Start(const std::string& script,
   add("parseUrl", ParseUrl);
   add("loadStores", LoadStores);
   add("writeStore", blanc::WriteStore);
+  add("persistDesktopStore", blanc::PersistDesktopStore);
   add("randomBytes", RandomBytes);
   add("digest", Digest);
   add("scrypt", Scrypt);

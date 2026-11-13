@@ -272,6 +272,8 @@ const migrationSyncTask = document.getElementById('migrationSyncTask');
 const migrationTabsTask = document.getElementById('migrationTabsTask');
 const migrationSyncAction = document.getElementById('migrationSyncAction');
 const migrationTabsAction = document.getElementById('migrationTabsAction');
+const migrationIphoneTask = document.getElementById('migrationIphoneTask');
+const migrationIphoneAction = document.getElementById('migrationIphoneAction');
 const migrationSpaceTask = document.getElementById('migrationSpaceTask');
 const migrationSpaceAction = document.getElementById('migrationSpaceAction');
 const migrationChecklistHide = document.getElementById('migrationChecklistHide');
@@ -304,10 +306,8 @@ function paintMigrationChecklist(checklist, { completing = false } = {}) {
   setMigrationTask(migrationSyncTask, migrationSyncAction, checklist.syncComplete, t('newtab.checklist.sync'));
   setMigrationTask(migrationTabsTask, migrationTabsAction, checklist.tabsComplete, t('newtab.checklist.tabs'));
   setMigrationTask(migrationSpaceTask, migrationSpaceAction, checklist.spaceComplete, t('newtab.checklist.space'));
-  // The fork lists a task only where it works (first_run.inc).
-  migrationSyncTask.hidden = checklist.syncAvailable === false;
-  migrationTabsTask.hidden = checklist.tabsAvailable === false;
-  migrationSpaceTask.hidden = checklist.spaceAvailable === false;
+  migrationIphoneTask.hidden = checklist.iphoneAvailable !== true;
+  setMigrationTask(migrationIphoneTask, migrationIphoneAction, checklist.iphoneComplete === true, t('newtab.checklist.iphone'));
 }
 
 function hideMigrationChecklist() {
@@ -398,6 +398,11 @@ migrationSyncAction.addEventListener('click', () => {
   window.bowserPages?.start.openSettings('sync').catch(() => {});
 });
 migrationTabsAction.addEventListener('click', closeMigrationChecklistPopover);
+// Settings → Sync with the pairing sheet open (design 2026-10-28 §6.1).
+migrationIphoneAction.addEventListener('click', () => {
+  closeMigrationChecklistPopover();
+  window.bowserPages?.start.openSettings('sync-pair').catch(() => {});
+});
 migrationSpaceAction.addEventListener('click', () => {
   closeMigrationChecklistPopover();
   window.bowserPages?.start.openSpaces().catch(() => {});
@@ -600,7 +605,11 @@ function emptyFavoritesHint() {
 function renderLedgerFavorites() {
   const list = document.getElementById('favoritesList');
   list.replaceChildren();
-  const tiles = favoriteTilesFor(6);
+  // The Favorites widget (V24) lists up to eight, the most any old layout
+  // showed; given a size (or while being resized) it lists them all and
+  // scrolls inside its card.
+  const sized = document.getElementById('favoritesWidget')?.dataset.size !== undefined;
+  const tiles = favoriteTilesFor(sized ? 500 : 8);
   if (!tiles.length) {
     list.appendChild(emptyFavoritesHint());
     return;
@@ -615,7 +624,6 @@ function renderPinnedLayouts() {
   invalidate();
   if (state.layout === 'billboard') renderBillboard();
   if (state.layout === 'shelf') renderShelf();
-  if (state.layout === 'tally') renderTally();
   rendered.add(state.layout);
 }
 
@@ -623,34 +631,121 @@ function renderPinnedLayouts() {
 // tab, same as favorites above. Renders only when snapshots exist so the
 // ledger stays quiet otherwise. Re-rendered in place when a pull completes
 // after first paint (pages:start:remote-tabs).
+// Grouped by device (fork redesign, 2026-11-13): each device's name once,
+// with a laptop or phone glyph and its tab count; under it its tabs as
+// two-line rows, the whole title on the first line and the site under it.
+// Three tabs a device, the rest one tap away. The row keeps shipping's
+// .fav/.tile/.name/.host parts; its device is data-device.
+const REMOTE_TABS_SHOWN = 3;
+const remoteExpanded = new Set();
+function remoteDeviceKind(device) {
+  const hint = `${device.platform ?? ''} ${device.name ?? ''}`.toLowerCase();
+  return /iphone|ipad|ios|android|phone|pixel|galaxy/.test(hint) ? 'phone' : 'computer';
+}
+function remoteDeviceGlyph(kind) {
+  const ns = 'http://www.w3.org/2000/svg';
+  const svg = document.createElementNS(ns, 'svg');
+  svg.setAttribute('viewBox', '0 0 16 16');
+  svg.setAttribute('aria-hidden', 'true');
+  svg.setAttribute('class', 'remote-device-glyph');
+  const shapes = kind === 'phone'
+    ? [['rect', { x: 4.5, y: 1.75, width: 7, height: 12.5, rx: 1.8 }], ['path', { d: 'M7 11.9h2' }]]
+    : [['rect', { x: 2.5, y: 3, width: 11, height: 7.5, rx: 1.2 }], ['path', { d: 'M1 13h14' }]];
+  for (const [tag, attrs] of shapes) {
+    const node = document.createElementNS(ns, tag);
+    for (const [name, value] of Object.entries(attrs)) node.setAttribute(name, String(value));
+    svg.append(node);
+  }
+  return svg;
+}
 function renderRemote(remoteDevices) {
   const section = document.getElementById('remoteSection');
   const list = document.getElementById('remoteList');
   list.replaceChildren();
-  section.hidden = !remoteDevices?.length;
+  const devices = (remoteDevices ?? []).filter((device) => device?.tabs?.length);
+  section.hidden = !devices.length;
   if (section.hidden) return;
-  for (const device of remoteDevices) {
-    for (const t of device.tabs.slice(0, 4)) {
+  list.classList.add('remote-grouped');
+  for (const device of devices) {
+    const key = String(device.deviceId ?? device.name);
+    const group = document.createElement('div');
+    group.className = 'remote-device';
+    group.dataset.i18nIgnore = ''; // page titles, hosts and device names
+    const head = document.createElement('div');
+    head.className = 'remote-device-head';
+    const name = document.createElement('span');
+    name.className = 'remote-device-name';
+    name.textContent = device.name;
+    const count = document.createElement('span');
+    count.className = 'remote-device-count';
+    count.textContent = t('start.devices.tabs', { count: device.tabs.length });
+    head.append(remoteDeviceGlyph(remoteDeviceKind(device)), name, count);
+    const rows = document.createElement('div');
+    rows.className = 'remote-device-tabs';
+    const open = remoteExpanded.has(key);
+    const shown = open ? device.tabs : device.tabs.slice(0, REMOTE_TABS_SHOWN);
+    for (const tab of shown) {
       const row = document.createElement('a');
-      row.className = 'fav';
-      row.href = t.url;
-      const host = hostOf(t.url);
+      row.className = 'fav remote-tab';
+      row.href = tab.url;
+      row.dataset.device = device.name;
+      const host = hostOf(tab.url);
       const tile = document.createElement('span');
       tile.className = 'tile';
       // The same letter-then-icon treatment favorites get; 'synced' restricts it
       // to the inert PNG payload and skips the bookmark-clearing error path.
-      decorateTile(tile, t, { mode: 'synced' });
-      const name = document.createElement('span');
-      name.className = 'name';
-      name.textContent = t.title || t.url;
+      decorateTile(tile, tab, { mode: 'synced' });
+      const text = document.createElement('span');
+      text.className = 'remote-tab-text';
+      const title = document.createElement('span');
+      title.className = 'name';
+      title.textContent = tab.title && tab.title !== tab.url ? tab.title : host || tab.url;
       const hostEl = document.createElement('span');
       hostEl.className = 'host';
-      hostEl.textContent = `${host} · ${device.name}`;
-      row.dataset.i18nIgnore = ''; // page titles, hosts and device names
-      row.append(tile, name, hostEl);
-      list.appendChild(row);
+      hostEl.textContent = host;
+      text.append(title, hostEl);
+      row.title = tab.title || tab.url;
+      row.append(tile, text);
+      rows.append(row);
     }
+    group.append(head, rows);
+    const hidden = device.tabs.length - REMOTE_TABS_SHOWN;
+    if (hidden > 0) {
+      const more = document.createElement('button');
+      more.type = 'button';
+      more.className = 'remote-device-more';
+      more.setAttribute('aria-expanded', String(open));
+      more.textContent = open ? t('start.devices.fewer') : t('start.devices.more', { count: hidden });
+      more.addEventListener('click', () => {
+        if (open) remoteExpanded.delete(key); else remoteExpanded.add(key);
+        renderRemote(remoteDevices);
+        list.querySelector(`.remote-device:nth-child(${devices.indexOf(device) + 1}) .remote-device-more`)?.focus();
+      });
+      group.append(more);
+    }
+    list.append(group);
   }
+  remoteFade(list);
+}
+// The list scrolls inside its card when the devices outgrow the page; a soft
+// fade at the edge says there is more, and goes away at the end.
+function remoteFade(list) {
+  const more = list.scrollHeight - list.clientHeight - list.scrollTop > 2;
+  list.dataset.fadeEnd = String(more);
+  list.dataset.fadeStart = String(list.scrollTop > 2);
+}
+let remoteScrollIdle = 0;
+for (const scroller of [document.getElementById('remoteList'), document.getElementById('favoritesList')]) scroller?.addEventListener('scroll', (event) => {
+  const list = event.currentTarget;
+  remoteFade(list);
+  // The scrollbar shows while the list moves (a finger, a wheel or keys),
+  // then hides again unless the pointer is over it.
+  list.dataset.scrolling = 'true';
+  clearTimeout(remoteScrollIdle);
+  remoteScrollIdle = setTimeout(() => { list.dataset.scrolling = 'false'; }, 900);
+}, { passive: true });
+for (const list of [document.getElementById('remoteList'), document.getElementById('favoritesList')]) {
+  if (list) new ResizeObserver(() => remoteFade(list)).observe(list);
 }
 
 // Send to device (M7b): pages other devices sent here wait above Other
@@ -721,6 +816,7 @@ const state = {
   pinsMax: 0,
   topSites: [],
   onboarding: null,
+  widgets: { favorites: false, devices: false, chart: false, shortcuts: false },
 };
 const rendered = new Set();
 const invalidate = () => rendered.clear();
@@ -819,7 +915,8 @@ function renderBillboard() {
   document.getElementById('bbBlocked').hidden = !isPrivate && !state.blockerStatisticsAvailable;
   document.getElementById('bbBlocked').textContent = isPrivate
     ? t('newtab.billboard.private')
-    : t('newtab.billboard.blocked', { count: state.blockedThisWeek });
+    // The count alone (owner, 2026-11-13; fork string).
+    : t('start.billboard.blocked', { count: state.blockedThisWeek });
 
   // Empty sections disappear entirely — an empty flex row would still hold
   // its margin, leaving a silent gap where a section pretends to be.
@@ -897,8 +994,9 @@ function renderBillboard() {
   renderGroupChips('bbGroups', state.groups);
 }
 
+const billboardSiteCount = () => (state.widgets?.shortcuts ? 12 : 6);
 function visibleBillboardSites() {
-  return startPins.billboardSites(state.pins, state.topSites, hiddenTopSites, 6);
+  return startPins.billboardSites(state.pins, state.topSites, hiddenTopSites, billboardSiteCount());
 }
 
 async function fillBillboardSites() {
@@ -906,7 +1004,7 @@ async function fillBillboardSites() {
     isPrivate ||
     !topSitesReady ||
     topSitesExhausted ||
-    visibleBillboardSites().length >= 6 ||
+    visibleBillboardSites().length >= billboardSiteCount() ||
     typeof window.bowserPages?.start?.topSites !== 'function'
   ) return;
   if (topSitesLoad) return topSitesLoad;
@@ -926,7 +1024,7 @@ async function fillBillboardSites() {
   });
   await topSitesLoad;
   renderBillboard();
-  if (visibleBillboardSites().length < 6 && !topSitesExhausted) {
+  if (visibleBillboardSites().length < billboardSiteCount() && !topSitesExhausted) {
     await fillBillboardSites();
   }
 }
@@ -976,6 +1074,8 @@ function renderShelf() {
 }
 
 function renderTally() {
+  // The week's chart card is gone from the fork's Start Page (V26).
+  if (!document.getElementById('tlCount')) return;
   document.getElementById('tlCount').textContent = state.blockedThisWeek.toLocaleString(blancI18n.formatLocale());
   // Private tabs show no blocked counts; the data column goes entirely.
   document.querySelector('.tally-right').hidden = isPrivate || !state.blockerStatisticsAvailable;
@@ -1011,13 +1111,9 @@ function renderTally() {
   const peak = Math.max(...state.blockedByDay);
   const caption = document.getElementById('tlCaption');
   caption.replaceChildren();
-  if (peak > 0) {
-    caption.append(
-      t('newtab.tally.busiest', { day: DAY_NAMES[state.blockedByDay.indexOf(peak)] }),
-      document.createElement('br'),
-    );
-  }
-  caption.append(t('newtab.tally.nothingFollowed'));
+  // The busiest day alone (owner, 2026-11-13: no "nothing followed you home").
+  if (peak > 0) caption.append(t('newtab.tally.busiest', { day: DAY_NAMES[state.blockedByDay.indexOf(peak)] }));
+  caption.hidden = peak <= 0;
 }
 
 // The billboard clock ticks on the minute, and only while it is on screen.
@@ -1198,6 +1294,23 @@ async function drawClockArt() {
   const computed = getComputedStyle(clockElement);
   const shadow = art.shadowFor(rgbOf(computed.color));
   clockElement.style.setProperty('--clock-shadow', shadow);
+
+  // Optical centring (owner, 2026-11-13): the figures' ink, not their
+  // advance box, sits on the page's centre line. Measured with the same face
+  // the glass draws with (proportional figures at this exact width and
+  // weight); the row moves, so the glass and native clock move with it.
+  try {
+    const inkFamily = await art.instance(face.url, type.stretch, type.weight);
+    if (generation !== clockDrawGeneration) return;
+    const measure = document.createElement('canvas').getContext('2d');
+    measure.font = `${Math.round(type.weight)} ${parseFloat(computed.fontSize)}px ${inkFamily}`;
+    measure.letterSpacing = computed.letterSpacing === 'normal' ? '0px' : computed.letterSpacing;
+    const m = measure.measureText(clockElement.textContent);
+    const offset = (m.actualBoundingBoxRight - m.actualBoundingBoxLeft) / 2 - m.width / 2;
+    clockElement.closest('.bb-clock-row')?.style.setProperty('--clock-optical', `${(-offset).toFixed(2)}px`);
+  } catch {
+    clockElement.closest('.bb-clock-row')?.style.removeProperty('--clock-optical');
+  }
 
   const glass = clockState.style === 'glass' && !reducedTransparency.matches;
   if (globalThis.blancNativeClock?.render) {
@@ -1514,8 +1627,10 @@ document.getElementById('mahjongLink').addEventListener('auxclick', (event) => {
   window.bowserPages.start.openMahjong(true).catch(() => {});
 });
 
+// V24 (fork only): Billboard is the one layout. What Ledger, Shelf and Tally
+// showed comes back as optional widgets (applyWidgets below).
 function applyLayout(name) {
-  if (!['ledger', 'billboard', 'shelf', 'tally'].includes(name)) name = 'billboard';
+  name = 'billboard';
   state.layout = name;
   document.body.dataset.layout = name;
   presentPendingMigrationChecklistCompletion();
@@ -1537,31 +1652,631 @@ function applyLayout(name) {
   if (name === 'billboard') fillBillboardSites().catch(() => {});
 }
 
-const layoutButtons = [...document.querySelectorAll('[data-layout-pick]')];
-const layoutSaveStatus = document.getElementById('layoutSaveStatus');
-let layoutWritePending = false;
-for (const button of layoutButtons) {
+// V26 (owner, 2026-11-13): no Blocked this week widget; Billboard's line
+// under the clock always says the week's count.
+const WIDGET_NAMES = ['favorites', 'devices', 'shortcuts'];
+/** Shows the widgets that are on and sets their switches. Turning More
+ * shortcuts on or off redraws Billboard's tiles at 12 or 6. */
+function applyWidgets(widgets) {
+  const next = Object.fromEntries(WIDGET_NAMES.map((name) => [name, widgets?.[name] === true]));
+  const tilesChanged = state.widgets?.shortcuts !== next.shortcuts;
+  next.place = widgets?.place ?? state.widgets?.place ?? { left: ['favorites', 'devices'], right: ['sent'] };
+  next.panels = widgets?.panels ?? state.widgets?.panels ?? [];
+  next.sizes = widgets?.sizes ?? state.widgets?.sizes ?? {};
+  state.widgets = next;
+  syncPanelCards(next.panels);
+  if (!cardDrag && !cardResize) placeCards(next.place);
+  applyCardSizes(next.sizes);
+  placePanels();
+  for (const section of document.querySelectorAll('#bbWidgets [data-widget]')) {
+    section.classList.toggle('widget-on', next[section.dataset.widget] === true);
+  }
+  for (const button of widgetButtons) {
+    button.setAttribute('aria-checked', String(next[button.dataset.widgetPick] === true));
+  }
+  for (const button of document.querySelectorAll('[data-shortcuts]')) {
+    button.setAttribute('aria-pressed', String((button.dataset.shortcuts === '12') === next.shortcuts));
+  }
+  updateShortcutsHint();
+  if (tilesChanged && rendered.has('billboard')) {
+    renderBillboard();
+    fillBillboardSites().catch(() => {});
+  }
+}
+
+// The cards' columns (V24): each card in its column and order, top to
+// bottom. A column with nothing showing folds away under the clock.
+const cardRails = { left: document.getElementById('bbRailLeft'), right: document.getElementById('bbRailRight') };
+const widgetMoveStatus = document.getElementById('widgetMoveStatus');
+let cardDrag = null;
+const cardShown = (card) => getComputedStyle(card).display !== 'none';
+const cardName = (card) => card.querySelector('.ledger-label')?.textContent.trim() ?? '';
+// Moves only the cards that are out of place: re-inserting one that is
+// already right would drop a pointer it holds (a resize in progress) and
+// its focus.
+function placeCards(place) {
+  for (const side of ['left', 'right']) {
+    const rail = cardRails[side];
+    let at = 0;
+    for (const name of place?.[side] ?? []) {
+      const card = document.querySelector(`.bb-widget[data-card="${name}"]`);
+      if (!card) continue;
+      if (rail.children[at] !== card) rail.insertBefore(card, rail.children[at] ?? null);
+      at += 1;
+    }
+  }
+  refreshRails();
+}
+function refreshRails() {
+  for (const rail of Object.values(cardRails)) {
+    rail.dataset.empty = String(![...rail.children].some((card) => card.matches('.bb-widget') && cardShown(card)));
+  }
+  for (const grip of document.querySelectorAll('.bb-widget-grip')) {
+    grip.setAttribute('aria-label', t('start.widgets.move', { name: cardName(grip.closest('.bb-widget')) }));
+  }
+}
+const railOrder = (rail) => [...rail.children].filter((card) => card.matches('.bb-widget')).map((card) => card.dataset.card);
+async function saveCardPlace(card) {
+  const side = card.parentElement === cardRails.right ? 'right' : 'left';
+  const shown = [...cardRails[side].children].filter((c) => c.matches('.bb-widget') && cardShown(c));
+  widgetMoveStatus.textContent = t(side === 'left' ? 'start.widgets.movedLeft' : 'start.widgets.movedRight',
+    { name: cardName(card), position: shown.indexOf(card) + 1 });
+  refreshRails();
+  try { applyWidgets(await window.bowserPages.start.setWidgetPlace(railOrder(cardRails.left), railOrder(cardRails.right))); }
+  catch { window.blancNewTabEvent('widgets'); }
+}
+// Which column and slot a point is over: the nearer column, and the slot
+// before the first shown card whose middle is below the point.
+function dropSlot(x, y) {
+  const rails = Object.entries(cardRails).map(([side, rail]) => {
+    const r = rail.getBoundingClientRect();
+    return { side, rail, distance: Math.abs(x - (r.left + r.width / 2)) };
+  }).sort((a, b) => a.distance - b.distance);
+  const { rail } = rails[0];
+  const before = [...rail.children].find((card) => card.matches('.bb-widget') && card !== cardDrag?.card &&
+    cardShown(card) && card.getBoundingClientRect().top + card.getBoundingClientRect().height / 2 > y);
+  return { rail, before: before ?? null };
+}
+const CARD_DRAG_PREVIEW = 220;
+function bindGrip(grip) {
+  grip.addEventListener('pointerdown', (event) => {
+    if (event.button !== 0 || cardDrag) return;
+    event.preventDefault();
+    const card = grip.closest('.bb-widget');
+    const r = card.getBoundingClientRect();
+    // A tall card is carried as a short preview, and its slot is as short.
+    const height = Math.min(r.height, CARD_DRAG_PREVIEW);
+    const holder = document.createElement('div');
+    holder.className = 'bb-widget-holder';
+    holder.style.height = `${height}px`;
+    card.after(holder);
+    document.body.classList.add('widget-dragging');
+    card.classList.add('dragging');
+    card.classList.toggle('drag-clipped', height < r.height);
+    Object.assign(card.style, { position: 'fixed', left: `${r.left}px`, top: `${r.top}px`, width: `${r.width}px`,
+      height: `${height}px`, zIndex: '60', pointerEvents: 'none' });
+    cardDrag = { card, holder, dx: event.clientX - r.left, dy: event.clientY - r.top };
+    grip.setPointerCapture(event.pointerId);
+    placePanels();
+  });
+  grip.addEventListener('pointermove', (event) => {
+    if (!cardDrag) return;
+    cardDrag.card.style.left = `${event.clientX - cardDrag.dx}px`;
+    cardDrag.card.style.top = `${event.clientY - cardDrag.dy}px`;
+    const { rail, before } = dropSlot(event.clientX, event.clientY);
+    if (before) rail.insertBefore(cardDrag.holder, before); else rail.appendChild(cardDrag.holder);
+  });
+  const end = () => {
+    if (!cardDrag) return;
+    const { card, holder } = cardDrag;
+    cardDrag = null;
+    holder.replaceWith(card);
+    card.classList.remove('dragging', 'drag-clipped');
+    for (const key of ['position', 'left', 'top', 'width', 'height', 'zIndex', 'pointerEvents']) card.style[key] = '';
+    document.body.classList.remove('widget-dragging');
+    saveCardPlace(card);
+  };
+  grip.addEventListener('pointerup', end);
+  grip.addEventListener('pointercancel', end);
+  // Up and Down move a card past its shown neighbours; Left and Right move
+  // it to the other column, at the same height where it can.
+  grip.addEventListener('keydown', (event) => {
+    const card = grip.closest('.bb-widget');
+    const rail = card.parentElement;
+    const shownIn = (r) => [...r.children].filter((c) => c.matches('.bb-widget') && cardShown(c));
+    const list = shownIn(rail);
+    const index = list.indexOf(card);
+    if (event.key === 'ArrowUp' && index > 0) list[index - 1].before(card);
+    else if (event.key === 'ArrowDown' && index < list.length - 1) list[index + 1].after(card);
+    else if ((event.key === 'ArrowLeft' && rail === cardRails.right) || (event.key === 'ArrowRight' && rail === cardRails.left)) {
+      const other = rail === cardRails.left ? cardRails.right : cardRails.left;
+      const target = shownIn(other)[index];
+      if (target) target.before(card); else other.appendChild(card);
+    } else return;
+    event.preventDefault();
+    grip.focus();
+    saveCardPlace(card);
+  });
+}
+for (const grip of document.querySelectorAll('.bb-widget-grip')) bindGrip(grip);
+
+// Resizing a scrolling card by its bottom edge (owner, 2026-11-13): the
+// card follows the pointer or finger 1:1, past the smallest and largest
+// sizes with growing resistance; a dashed outline shows the size it will
+// take; on release it settles on the size nearest where the gesture was
+// heading (its speed projected forward), with a critically damped spring
+// that starts at the gesture's speed. The sizes are the page's fixed grid,
+// the largest the column has room for; double-click (or Delete) fits the
+// column again. Arrow keys step through the sizes.
+var CARD_SIZES = [240, 360, 480, 600, 720];
+var cardResize = null;
+var cardSpring = new Map();
+function applyCardSizes(sizes) {
+  for (const card of document.querySelectorAll('#bbWidgets .bb-widget-sizable')) {
+    if (card.dataset.resizing === 'true' || cardSpring.has(card)) continue;
+    setCardHeight(card, sizes?.[card.dataset.card] || 0);
+  }
+}
+function setCardHeight(card, px, live = false) {
+  const wasSized = card.dataset.size !== undefined;
+  if (px) {
+    card.dataset.size = live ? 'live' : String(px);
+    card.style.setProperty('--card-size', `${px}px`);
+  } else {
+    delete card.dataset.size;
+    card.style.removeProperty('--card-size');
+  }
+  // Favorites lists all its favorites once it has a size, eight otherwise.
+  if (card.id === 'favoritesWidget' && wasSized !== (card.dataset.size !== undefined)) renderLedgerFavorites();
+  if (!live) updateResizeAria(card);
+}
+// The sizes this card can take where it is: those its column has room for
+// beside the other cards (at least the smallest).
+function cardSteps(card) {
+  const rail = card.parentElement;
+  const max = parseFloat(getComputedStyle(rail).maxHeight);
+  if (!rail?.matches('.bb-rail') || !Number.isFinite(max)) return CARD_SIZES;
+  const gap = parseFloat(getComputedStyle(rail).rowGap) || 0;
+  const others = [...rail.children].filter((c) => c !== card && c.matches('.bb-widget') && cardShown(c));
+  const room = max - others.reduce((sum, c) => sum + c.getBoundingClientRect().height + gap, 0);
+  const fits = CARD_SIZES.filter((size) => size <= room);
+  return fits.length ? fits : CARD_SIZES.slice(0, 1);
+}
+const nearestStep = (steps, h) => steps.reduce((a, b) => (Math.abs(b - h) < Math.abs(a - h) ? b : a));
+function rubberband(value, min, max) {
+  const resist = (over) => (over * 200 * 0.55) / (200 + 0.55 * over);
+  return value < min ? min - resist(min - value) : value > max ? max + resist(value - max) : value;
+}
+function updateResizeAria(card) {
+  const edge = card.querySelector(':scope > .bb-widget-resize');
+  if (!edge) return;
+  const size = Number(card.dataset.size) || 0;
+  const index = CARD_SIZES.indexOf(size);
+  edge.setAttribute('aria-label', t('start.widgets.resize', { name: cardName(card) }));
+  edge.setAttribute('aria-valuemin', '0');
+  edge.setAttribute('aria-valuemax', String(CARD_SIZES.length));
+  edge.setAttribute('aria-valuenow', String(index + 1));
+  edge.setAttribute('aria-valuetext', index < 0 ? t('start.widgets.sizeAuto')
+    : t('start.widgets.size', { size: index + 1, count: CARD_SIZES.length }));
+}
+// The outline of the size a resize will settle on.
+function snapGuide(card, height) {
+  let guide = document.getElementById('cardSnapGuide');
+  if (!card) { guide?.remove(); return; }
+  if (!guide) {
+    guide = document.createElement('div');
+    guide.id = 'cardSnapGuide';
+    guide.className = 'bb-widget-snap';
+    guide.setAttribute('aria-hidden', 'true');
+    document.body.append(guide);
+  }
+  const r = card.getBoundingClientRect();
+  Object.assign(guide.style, { left: `${r.left}px`, top: `${r.top}px`, width: `${r.width}px`, height: `${height}px` });
+}
+// A critically damped spring (damping 1, response 0.3 s) from the card's
+// height now to `target`, starting at `velocity` px/s.
+function springCardTo(card, target, velocity, done) {
+  cardSpring.get(card)?.cancel();
+  const from = card.getBoundingClientRect().height;
+  if (matchMedia('(prefers-reduced-motion: reduce)').matches || Math.abs(from - target) < 0.5) {
+    setCardHeight(card, target); done?.(); return;
+  }
+  const omega = (2 * Math.PI) / 0.3;
+  const x0 = from - target;
+  const start = performance.now();
+  let frame = 0;
+  const step = (now) => {
+    const time = (now - start) / 1000;
+    const decay = Math.exp(-omega * time);
+    const x = (x0 + (velocity + omega * x0) * time) * decay;
+    const v = (velocity - omega * (velocity + omega * x0) * time) * decay;
+    if (Math.abs(x) < 0.5 && Math.abs(v) < 8) {
+      cardSpring.delete(card); setCardHeight(card, target); done?.(); return;
+    }
+    setCardHeight(card, target + x, true);
+    frame = requestAnimationFrame(step);
+  };
+  frame = requestAnimationFrame(step);
+  cardSpring.set(card, { cancel: () => { cancelAnimationFrame(frame); cardSpring.delete(card); } });
+}
+async function saveCardSize(card, size, announce = true) {
+  setCardHeight(card, size);
+  if (announce) {
+    const index = CARD_SIZES.indexOf(size);
+    widgetMoveStatus.textContent = index < 0
+      ? t('start.widgets.resizedAuto', { name: cardName(card) })
+      : t('start.widgets.resized', { name: cardName(card), size: index + 1, count: CARD_SIZES.length });
+  }
+  try { applyWidgets(await window.bowserPages.start.setWidgetSize(card.dataset.card, size)); }
+  catch { window.blancNewTabEvent('widgets'); }
+}
+function addResizeEdge(card) {
+  if (!card || card.querySelector(':scope > .bb-widget-resize')) return;
+  card.classList.add('bb-widget-sizable');
+  const edge = document.createElement('div');
+  edge.className = 'bb-widget-resize';
+  edge.setAttribute('role', 'separator');
+  edge.setAttribute('aria-orientation', 'horizontal');
+  edge.tabIndex = 0;
+  edge.append(document.createElement('span'));
+  card.append(edge);
+  updateResizeAria(card);
+  edge.addEventListener('pointerdown', (event) => {
+    if (event.button !== 0 || cardDrag || cardResize) return;
+    event.preventDefault();
+    event.stopPropagation();
+    cardSpring.get(card)?.cancel();
+    edge.setPointerCapture(event.pointerId);
+    const height = card.getBoundingClientRect().height;
+    cardResize = { card, edge, startY: event.clientY, startHeight: height, height, steps: cardSteps(card),
+      samples: [{ y: event.clientY, t: event.timeStamp }] };
+    card.dataset.resizing = 'true';
+    document.body.classList.add('widget-resizing');
+    snapGuide(card, nearestStep(cardResize.steps, height));
+  });
+  edge.addEventListener('pointermove', (event) => {
+    if (cardResize?.edge !== edge) return;
+    const { steps } = cardResize;
+    const raw = cardResize.startHeight + (event.clientY - cardResize.startY);
+    cardResize.height = rubberband(raw, steps[0], steps[steps.length - 1]);
+    setCardHeight(card, cardResize.height, true);
+    cardResize.samples.push({ y: event.clientY, t: event.timeStamp });
+    while (cardResize.samples.length > 2 && event.timeStamp - cardResize.samples[0].t > 100) cardResize.samples.shift();
+    snapGuide(card, nearestStep(steps, cardResize.height));
+  });
+  const end = (event) => {
+    if (cardResize?.edge !== edge) return;
+    const { steps, samples, height } = cardResize;
+    cardResize = null;
+    snapGuide(null);
+    document.body.classList.remove('widget-resizing');
+    const first = samples[0], last = samples[samples.length - 1];
+    // A pointer that rested before letting go carries no speed.
+    const rested = event.timeStamp - last.t > 100;
+    const velocity = !rested && last.t > first.t ? ((last.y - first.y) / (last.t - first.t)) * 1000 : 0;
+    // Where the gesture was heading (Apple's projection, deceleration .99).
+    const projected = height + (velocity / 1000) * 0.99 / (1 - 0.99);
+    const target = event.type === 'pointercancel' ? nearestStep(steps, height) : nearestStep(steps, projected);
+    springCardTo(card, target, velocity, () => {
+      delete card.dataset.resizing;
+      saveCardSize(card, target);
+    });
+  };
+  edge.addEventListener('pointerup', end);
+  edge.addEventListener('pointercancel', end);
+  edge.addEventListener('dblclick', () => saveCardSize(card, 0));
+  edge.addEventListener('keydown', (event) => {
+    const steps = cardSteps(card);
+    const now = Number(card.dataset.size) || nearestStep(steps, card.getBoundingClientRect().height);
+    const at = steps.indexOf(nearestStep(steps, now));
+    let next = null;
+    if (event.key === 'ArrowUp') next = steps[Math.max(0, at - 1)];
+    else if (event.key === 'ArrowDown') next = steps[Math.min(steps.length - 1, at + 1)];
+    else if (event.key === 'Home') next = steps[0];
+    else if (event.key === 'End') next = steps[steps.length - 1];
+    else if (event.key === 'Delete' || event.key === 'Backspace') next = 0;
+    else return;
+    event.preventDefault();
+    if (next === 0) { saveCardSize(card, 0); return; }
+    springCardTo(card, next, 0, () => saveCardSize(card, next));
+  });
+}
+addResizeEdge(document.getElementById('remoteSection'));
+addResizeEdge(document.getElementById('favoritesWidget'));
+new MutationObserver(() => { if (!cardDrag) refreshRails(); placePanels(); }).observe(document.getElementById('bbWidgets'),
+  { subtree: true, attributes: true, attributeFilter: ['hidden', 'class'] });
+
+const widgetButtons = [...document.querySelectorAll('[data-widget-pick]')];
+const widgetSaveStatus = document.getElementById('widgetSaveStatus');
+let widgetWritePending = false;
+for (const button of widgetButtons) {
   button.addEventListener('click', async () => {
-    if (layoutWritePending) return;
-    const pick = button.dataset.layoutPick;
-    layoutWritePending = true;
-    layoutSaveStatus.hidden = true;
-    for (const item of layoutButtons) item.setAttribute('aria-disabled', 'true');
+    if (widgetWritePending) return;
+    const pick = button.dataset.widgetPick;
+    widgetWritePending = true;
+    widgetSaveStatus.hidden = true;
+    for (const item of widgetButtons) item.setAttribute('aria-disabled', 'true');
     try {
-      const saved = await window.bowserPages.start.setLayout(pick);
-      applyLayout(saved);
+      applyWidgets(await window.bowserPages.start.setWidget(pick, state.widgets?.[pick] !== true));
     } catch {
       // A timeout can occur after the write: do not claim it was not saved.
-      layoutSaveStatus.textContent = t('start.layout.unconfirmed');
-      layoutSaveStatus.hidden = false;
+      widgetSaveStatus.textContent = t('start.widgets.unconfirmed');
+      widgetSaveStatus.hidden = false;
     } finally {
-      layoutWritePending = false;
-      for (const item of layoutButtons) item.removeAttribute('aria-disabled');
-      // Reconcile the actual shared setting, including other windows' changes.
-      window.blancNewTabEvent('layout');
+      widgetWritePending = false;
+      for (const item of widgetButtons) item.removeAttribute('aria-disabled');
+      // Reconcile the shared setting, including other windows' changes.
+      window.blancNewTabEvent('widgets');
     }
   });
 }
+// Extensions' side panels as cards (prototype). An installed extension
+// with a side panel can be turned on in Customize; its card holds a slot and
+// Blanc draws the extension's own panel page over the slot (in the
+// extension's process, never inside this page). The page says where the
+// slot is whenever it moves, and hides the panels while anything covers them:
+// a popover, a card being dragged, or another tab.
+var installedPanels = [];
+var panelSlots = null;
+var panelFrame = 0;
+function syncPanelCards(enabled) {
+  const cards = document.getElementById('bbWidgetCards');
+  if (!cards) return;
+  panelSlots ??= new ResizeObserver(() => placePanels());
+  const names = new Map((installedPanels ?? []).map((panel) => [panel.id, panel.name]));
+  for (const card of document.querySelectorAll('.bb-widget[data-panel]')) {
+    if (enabled.includes(card.dataset.panel) && names.has(card.dataset.panel)) continue;
+    window.bowserPages?.start?.hidePanels?.(card.dataset.panel).catch(() => {});
+    card.remove();
+  }
+  for (const id of enabled) {
+    if (!names.has(id) || document.querySelector(`.bb-widget[data-panel="${id}"]`)) continue;
+    const card = document.createElement('section');
+    card.className = 'ledger-section bb-widget bb-widget-panel';
+    card.dataset.card = `ext:${id}`;
+    card.dataset.panel = id;
+    const grip = document.querySelector('#bbWidgets .bb-widget-grip').cloneNode(true);
+    const label = document.createElement('div');
+    label.className = 'ledger-label';
+    label.textContent = names.get(id);
+    const slot = document.createElement('div');
+    slot.className = 'bb-panel-slot';
+    const note = document.createElement('p');
+    note.className = 'start-empty-hint bb-panel-note';
+    note.hidden = true;
+    note.textContent = t('start.widgets.panelUnavailable');
+    slot.append(note);
+    card.append(grip, label, slot);
+    cards.append(card);
+    bindGrip(grip);
+    addResizeEdge(card);
+    panelSlots.observe(slot);
+  }
+  for (const tile of document.querySelectorAll('[data-panel-pick]')) {
+    tile.setAttribute('aria-checked', String(enabled.includes(tile.dataset.panelPick)));
+  }
+}
+function placePanels() {
+  if (panelFrame) return;
+  panelFrame = requestAnimationFrame(() => { panelFrame = 0; placePanelsNow(); });
+}
+async function placePanelsNow() {
+  const start = window.bowserPages?.start;
+  const cards = [...document.querySelectorAll('.bb-widget[data-panel]')];
+  if (!start?.placePanel || !cards.length) return;
+  if (document.hidden || cardDrag || document.querySelector(':popover-open')) {
+    start.hidePanels('').catch(() => {});
+    return;
+  }
+  for (const card of cards) {
+    const slot = card.querySelector('.bb-panel-slot');
+    const r = slot.getBoundingClientRect();
+    if (!card.closest('.bb-rail') || !cardShown(card) || r.width < 1 || r.height < 1) {
+      start.hidePanels(card.dataset.panel).catch(() => {});
+      continue;
+    }
+    const shown = await start.placePanel(card.dataset.panel,
+      { x: r.left, y: r.top, width: r.width, height: r.height }).catch(() => false);
+    slot.querySelector('.bb-panel-note').hidden = shown === true;
+  }
+}
+// Customize lists each extension that has a side panel as one more tile.
+function renderPanelTiles() {
+  const group = document.getElementById('widgetSwitches');
+  for (const tile of group.querySelectorAll('[data-panel-pick]')) tile.remove();
+  const ns = 'http://www.w3.org/2000/svg';
+  for (const panel of installedPanels) {
+    const tile = widgetButtons[0].cloneNode(true);
+    tile.removeAttribute('data-widget-pick');
+    tile.dataset.panelPick = panel.id;
+    const art = document.createElementNS(ns, 'svg');
+    art.setAttribute('class', 'widget-tile-art');
+    art.setAttribute('viewBox', '0 0 64 36');
+    art.setAttribute('aria-hidden', 'true');
+    for (const [tag, attrs] of [
+      ['rect', { x: 12, y: 6, width: 40, height: 24, rx: 3, fill: 'none', stroke: 'currentColor', 'stroke-width': 1.6 }],
+      ['path', { d: 'M38 6v24', stroke: 'currentColor', 'stroke-width': 1.6 }],
+      ['rect', { x: 41, y: 10, width: 8, height: 3, rx: 1, fill: 'currentColor', opacity: '.55' }],
+      ['rect', { x: 41, y: 16, width: 8, height: 3, rx: 1, fill: 'currentColor', opacity: '.55' }],
+    ]) {
+      const node = document.createElementNS(ns, tag);
+      for (const [name, value] of Object.entries(attrs)) node.setAttribute(name, String(value));
+      art.append(node);
+    }
+    tile.querySelector('.widget-tile-art').replaceWith(art);
+    const name = tile.querySelector('span[data-i18n]');
+    name.removeAttribute('data-i18n');
+    name.textContent = panel.name;
+    tile.setAttribute('aria-checked', String(state.widgets?.panels?.includes(panel.id) === true));
+    tile.addEventListener('click', async () => {
+      if (widgetWritePending) return;
+      widgetWritePending = true;
+      widgetSaveStatus.hidden = true;
+      try {
+        applyWidgets(await window.bowserPages.start.setPanel(panel.id, !state.widgets?.panels?.includes(panel.id)));
+      } catch {
+        widgetSaveStatus.textContent = t('start.widgets.unconfirmed');
+        widgetSaveStatus.hidden = false;
+      } finally {
+        widgetWritePending = false;
+        window.blancNewTabEvent('widgets');
+      }
+    });
+    group.append(tile);
+  }
+  // Add widget stays the last tile.
+  const add = document.getElementById('addWidgetTile');
+  if (add) group.append(add);
+  renderWidgetGallery();
+}
+async function refreshPanels() {
+  try {
+    installedPanels = await window.bowserPages?.start?.panels?.() ?? [];
+  } catch { return; }
+  renderPanelTiles();
+  if (state.widgets) applyWidgets(state.widgets);
+}
+refreshPanels();
+document.addEventListener('toggle', (event) => {
+  if (event.target?.id === 'customizePopover' && event.newState === 'open') refreshPanels();
+  if (event.target?.id === 'customizePopover' && event.newState === 'closed') showWidgetGallery(false);
+  placePanels();
+}, true);
+// Back from the Web Store (an extension may have been installed there).
+document.addEventListener('visibilitychange', () => { if (!document.hidden) refreshPanels(); });
+
+// Add a widget (fork, prototype): a short list of Chrome Web Store
+// extensions whose side panel the Start Page can show, which the owner
+// approved. Each links to its Web Store page; once it is installed (and its
+// panel is on) it is added from here. Names and publishers are the
+// extensions' own; the descriptions are Blanc's, in every language. No
+// remote image is loaded: each shows a letter tile.
+// Checked 2026-11-13 against each extension's Chrome Web Store listing and its
+// publisher's docs or source (side_panel in the manifest, or the listing
+// naming Chrome's side panel). The owner approves this list.
+var WIDGET_CATALOG = [
+  { id: 'jdbnofccmhefkmjbkkdkfiicjkgofkdh', key: 'bookmarkSidebar', name: 'Bookmark Sidebar', publisher: 'Philipp König' },
+  { id: 'ldgfbffkinooeloadekpmfoklnobpien', key: 'raindrop', name: 'Raindrop.io', publisher: 'Raindrop.io' },
+  { id: 'lpofefdiokgmcdnnaigddelnfamkkghi', key: 'googleTasks', name: 'Desktop app for Google Tasks', publisher: 'TasksBoard' },
+  { id: 'hkhggnncdpfibdhinjiegagmopldibha', key: 'checkerPlusCalendar', name: 'Checker Plus for Google Calendar™', publisher: 'Jason Savard' },
+];
+function showWidgetGallery(open) {
+  const popover = document.getElementById('customizePopover');
+  const gallery = document.getElementById('widgetGallery');
+  if (!popover || !gallery) return;
+  if (open) {
+    // Customize keeps its width: the gallery's text wraps inside it.
+    popover.style.width = `${popover.offsetWidth}px`;
+    popover.dataset.view = 'gallery';
+    gallery.hidden = false;
+    renderWidgetGallery();
+    document.getElementById('widgetGalleryBack')?.focus();
+  } else if (popover.dataset.view === 'gallery') {
+    delete popover.dataset.view;
+    popover.style.removeProperty('width');
+    gallery.hidden = true;
+    if (popover.matches(':popover-open')) document.getElementById('addWidgetTile')?.focus();
+  }
+}
+function renderWidgetGallery() {
+  const list = document.getElementById('widgetGalleryList');
+  if (!list || document.getElementById('widgetGallery')?.hidden) return;
+  list.replaceChildren();
+  const installed = new Set((installedPanels ?? []).map((panel) => panel.id));
+  const on = new Set(state.widgets?.panels ?? []);
+  for (const entry of WIDGET_CATALOG) {
+    const item = document.createElement('li');
+    item.className = 'widget-gallery-item';
+    item.dataset.extension = entry.id;
+    const tile = document.createElement('span');
+    tile.className = 'widget-gallery-tile';
+    tile.setAttribute('aria-hidden', 'true');
+    tile.textContent = entry.name.trim().charAt(0).toUpperCase();
+    const text = document.createElement('span');
+    text.className = 'widget-gallery-text';
+    const name = document.createElement('span');
+    name.className = 'widget-gallery-name';
+    name.textContent = entry.name;
+    const about = document.createElement('span');
+    about.className = 'widget-gallery-about';
+    about.textContent = t(`start.gallery.ext.${entry.key}`);
+    const by = document.createElement('span');
+    by.className = 'widget-gallery-by';
+    by.textContent = entry.publisher;
+    text.append(name, about, by);
+    let action;
+    if (installed.has(entry.id) && on.has(entry.id)) {
+      action = document.createElement('span');
+      action.className = 'widget-gallery-action is-added';
+      action.textContent = t('start.gallery.added');
+    } else if (installed.has(entry.id)) {
+      action = document.createElement('button');
+      action.type = 'button';
+      action.className = 'widget-gallery-action';
+      action.textContent = t('start.gallery.addOne');
+      action.setAttribute('aria-label', t('start.gallery.addLabel', { name: entry.name }));
+      action.addEventListener('click', async () => {
+        if (widgetWritePending) return;
+        widgetWritePending = true;
+        try { applyWidgets(await window.bowserPages.start.setPanel(entry.id, true)); }
+        catch { widgetSaveStatus.textContent = t('start.widgets.unconfirmed'); widgetSaveStatus.hidden = false; }
+        finally { widgetWritePending = false; window.blancNewTabEvent('widgets'); renderWidgetGallery(); }
+      });
+    } else {
+      action = document.createElement('a');
+      action.className = 'widget-gallery-action';
+      action.href = `https://chromewebstore.google.com/detail/${entry.id}`;
+      action.target = '_blank';
+      action.rel = 'noopener';
+      action.textContent = t('start.gallery.get');
+      action.setAttribute('aria-label', t('start.gallery.getLabel', { name: entry.name }));
+    }
+    item.append(tile, text, action);
+    list.append(item);
+  }
+}
+document.getElementById('addWidgetTile')?.addEventListener('click', () => showWidgetGallery(true));
+document.getElementById('widgetGalleryBack')?.addEventListener('click', () => showWidgetGallery(false));
+document.addEventListener('visibilitychange', placePanels);
+window.addEventListener('resize', placePanels);
+window.addEventListener('scroll', placePanels, { capture: true, passive: true });
+
+// Shortcuts: 6 or 12 tiles under the clock. Billboard shows only the sites
+// it has (pins and the most visited), so with fewer than the count chosen a
+// note says how many there are so far; otherwise the choice would seem to
+// do nothing.
+for (const button of document.querySelectorAll('[data-shortcuts]')) {
+  button.setAttribute('aria-label', t('start.shortcuts.count', { count: Number(button.dataset.shortcuts) }));
+  button.addEventListener('click', async () => {
+    const want = button.dataset.shortcuts === '12';
+    if (widgetWritePending || state.widgets?.shortcuts === want) return;
+    widgetWritePending = true;
+    widgetSaveStatus.hidden = true;
+    try {
+      applyWidgets(await window.bowserPages.start.setWidget('shortcuts', want));
+    } catch {
+      widgetSaveStatus.textContent = t('start.widgets.unconfirmed');
+      widgetSaveStatus.hidden = false;
+    } finally {
+      widgetWritePending = false;
+      window.blancNewTabEvent('widgets');
+    }
+  });
+}
+function updateShortcutsHint() {
+  const hint = document.getElementById('shortcutsHint');
+  const grid = document.getElementById('bbFavorites');
+  if (!hint || !grid) return;
+  const count = grid.querySelectorAll('.bb-site').length;
+  const fewer = count < billboardSiteCount();
+  hint.hidden = !fewer;
+  if (fewer) hint.textContent = t('start.shortcuts.sofar', { count });
+}
+{
+  const grid = document.getElementById('bbFavorites');
+  if (grid) new MutationObserver(updateShortcutsHint).observe(grid, { childList: true, subtree: true });
+}
+
 const clockReadStatus = document.getElementById('clockReadStatus');
 document.addEventListener('blancClockReadFailure', () => {
   clockReadStatus.textContent = t('start.clock.readFailed');
@@ -1862,7 +2577,7 @@ function applyStartData(data) {
   applyClock(data.clock);
   migrationChecklistUtilitySheetVisible = data.utilitySheetVisible === true;
   Object.assign(state, {
-    layout: data.layout ?? 'billboard',
+    layout: 'billboard',
     groups: data.groups ?? state.groups,
     blockerStatisticsAvailable: data.blockerStatisticsAvailable === true,
     blockedThisWeek: data.blockedThisWeek,
@@ -1888,6 +2603,7 @@ function applyStartData(data) {
   renderRemote(data.remoteDevices);
   renderSent(data.sentItems);
   invalidate();
+  applyWidgets(data.widgets);
 }
 const dataReady = window.bowserPages?.start.data().then(applyStartData);
 
@@ -1919,7 +2635,7 @@ window.bowserPages?.start.onStatus((status) => {
   if (status && 'dynamicWallpaperEnabled' in status) {
     applyDynamicWallpaper(status.dynamicWallpaperEnabled);
   }
-  if (!layoutWritePending && status?.layout && status.layout !== state.layout) applyLayout(status.layout);
+  if (!widgetWritePending && status?.widgets) applyWidgets(status.widgets);
   if (status) applyPatronStatus(status);
   if (status && 'migrationChecklist' in status) {
     renderMigrationChecklist(status.migrationChecklist ?? null);

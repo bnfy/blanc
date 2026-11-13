@@ -6,6 +6,7 @@
 #include <string>
 
 #include "base/memory/raw_ptr.h"
+#include "base/functional/callback.h"
 #include "base/scoped_observation.h"
 #include "blanc/common/browser_api/browser_api.mojom.h"
 #include "chrome/browser/themes/theme_service_observer.h"
@@ -17,6 +18,7 @@
 #include "ui/native_theme/native_theme_observer.h"
 
 class Profile;
+class BrowserWindowInterface;
 class ThemeService;
 
 namespace blanc::browser_api {
@@ -37,7 +39,8 @@ class Appearance : public mojom::Appearance,
                    public ThemeServiceObserver,
                    public ui::NativeThemeObserver {
  public:
-  Appearance(Profile* profile, mojo::PendingReceiver<mojom::Appearance> receiver,
+  Appearance(Profile* profile, base::RepeatingCallback<BrowserWindowInterface*()> browser,
+             mojo::PendingReceiver<mojom::Appearance> receiver,
              mojo::PendingRemote<mojom::AppearanceClient> client);
   Appearance(const Appearance&) = delete;
   Appearance& operator=(const Appearance&) = delete;
@@ -57,6 +60,7 @@ class Appearance : public mojom::Appearance,
   void SendAppearance();
 
   raw_ptr<Profile> profile_;
+  base::RepeatingCallback<BrowserWindowInterface*()> browser_;
   mojo::Receiver<mojom::Appearance> receiver_;
   mojo::Remote<mojom::AppearanceClient> client_;
   std::optional<std::string> sent_;

@@ -42,6 +42,7 @@ function peer(name, endpoint, {stores = {}, platform = 'linux', emit} = {}) {
     },
     loadStores: () => ({...stores}),
     writeStore(file, data) { stores[file] = u8(data); },
+    persistDesktopStore(file, data) { stores[file] = u8(data); return true; },
     randomBytes: size => u8(crypto.randomBytes(size)),
     digest: (algorithm, data) => u8(crypto.createHash(algorithm).update(data).digest()),
     scrypt: (password, salt, N, r, p, maxmem, size) => u8(crypto.scryptSync(Buffer.from(password), Buffer.from(salt), size, {N, r, p, maxmem})),

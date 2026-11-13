@@ -266,11 +266,13 @@ const __blancMarkup = trustedTypes.createPolicy("blanc-static-overlay", {createH
     placement: () => (mode === 'spaces' ? 'view' : 'anchored'),
     onOpenChange(open) {
       workspaceSwitcherOpen = open; window.browserAPI.setWorkspaceSwitcherOpen(open);
-      // Opened from the Island's space mark the menu is the whole overlay, so
-      // closing it closes the overlay and focus returns to the mark.
+      // Opened as its own overlay (the rail's space mark, or a command) the
+      // menu is the whole overlay, so closing it closes the overlay and focus
+      // returns to the mark, or the Island when the mark is hidden.
       if (!open && mode === 'spaces') window.browserAPI.closeOverlay('cancel');
     },
   });
+  window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => workspaceUI.repaintTrigger());
 
   // --- Drag to reorder (tab-drag.js; spec 2026-10-07) ---
   const dragApi = window.blancTabDrag;
@@ -567,8 +569,13 @@ const __blancMarkup = trustedTypes.createPolicy("blanc-static-overlay", {createH
   // --- Dedicated Glance tab picker ---------------------------------------
 
   function eligibleGlanceTabs() {
+    // Pages already on screen can't be chosen: the main page, the current
+    // Glance, and the panes of a visible split, which Glance floats over
+    // (#1441). Taking a pane out of its split stays a tab-menu choice.
+    const shownSplit = (state.splits ?? []).find((s) => s.tabIds.includes(state.activeTabId));
     return state.tabs.filter((tab) =>
       tab.id !== state.activeTabId && tab.id !== state.glanceTabId
+      && !shownSplit?.tabIds.includes(tab.id)
     );
   }
 
@@ -888,7 +895,11 @@ const __blancMarkup = trustedTypes.createPolicy("blanc-static-overlay", {createH
       row.append(mute);
     }
 
-    if (tab.id !== state.activeTabId) {
+    // Glance floats over the page or over a whole visible split (#1441). A
+    // pane of a two-pane split leaves it for Glance (main's openTabMenuGlance,
+    // like the tab menu); a larger split's panes can't, so they get no button.
+    const shownSplit = (state.splits ?? []).find((s) => s.tabIds.includes(state.activeTabId));
+    if (tab.id !== state.activeTabId && !(shownSplit?.tabIds.includes(tab.id) && shownSplit.tabIds.length !== 2)) {
       const glance = document.createElement('button');
       const isGlance = tab.id === state.glanceTabId;
       glance.className = 'row-glance' + (isGlance ? ' on' : '');
@@ -1344,7 +1355,11 @@ const __blancMarkup = trustedTypes.createPolicy("blanc-static-overlay", {createH
   function sentHeaderRow(count) {
     const row = document.createElement('div');
     row.className = 'island-ghead static sent-head';
-    row.innerHTML = __blancMarkup.createHTML('<span class="ghead-name"></span><span class="ghead-n"></span>');
+    for (const name of ["ghead-name", "ghead-n"]) {
+      const span = document.createElement("span");
+      span.className = name;
+      row.append(span);
+    }
     row.querySelector('.ghead-name').textContent = blancI18n.t('sends.section');
     row.querySelector('.ghead-n').textContent = String(count);
     return row;
@@ -2684,8 +2699,8 @@ const __blancMarkup = trustedTypes.createPolicy("blanc-static-overlay", {createH
         if (due()) placeClosed();
         if (group) {
           const bandNodes = [groupHeaderRow(group, gtabs.length, clusterIndex + shortcutOffset)];
-          // Collapsed: header alone. Open: indent membership under the group.
-          if (!group.collapsed) bandNodes.push(...tabRowsFor(gtabs, { inGroup: true }));
+          if (group.collapsed) bandNodes.push(emptyRow(blancI18n.t('tabGroups.tucked', { count: gtabs.length })));
+          else bandNodes.push(...tabRowsFor(gtabs, { inGroup: true }));
           rows.push(groupBand(group, bandNodes, gtabs[0].id));
           itemIndex += 1;
         } else {
@@ -2764,6 +2779,8 @@ const __blancMarkup = trustedTypes.createPolicy("blanc-static-overlay", {createH
     // The private theme scope follows the active tab.
     if (activeTab()?.private) document.documentElement.dataset.theme = 'private';
     else delete document.documentElement.dataset.theme;
+    // The footer's Spaces button draws the space's tile for that theme.
+    workspaceUI.repaintTrigger();
     renderPanelChrome();
     renderList();
   }

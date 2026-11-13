@@ -1,0 +1,1224 @@
+{
+  "candidate": "macos-f0bd093f621c613f",
+  "runtimeConfig": "q3-group-pins-5-runtime-config.json",
+  "shippingTag": "v1.46.0",
+  "shippingCommit": "6479ed3a314e4fd6219b8de1598bacffa78b4d7c",
+  "caseCount": 640,
+  "counts": {
+    "pass": 443,
+    "fail": 8,
+    "undefined": 187,
+    "excluded": 2
+  },
+  "undefinedCounts": {
+    "missing adapter": 110,
+    "missing fork feature": 75,
+    "not applicable to macOS": 2
+  },
+  "undefined": [
+    {
+      "id": "spec/acceptance/F41-named-workspaces.feature:4:plain",
+      "scenario": "Switching preserves a dirty page in the same process",
+      "classification": "missing adapter",
+      "reason": "Space action needs an adapter: metrics"
+    },
+    {
+      "id": "spec/acceptance/F41-named-workspaces.feature:16:plain",
+      "scenario": "Failed rename preserves the editor and its input",
+      "classification": "missing adapter",
+      "reason": "Page shim lacks getByRole"
+    },
+    {
+      "id": "spec/acceptance/F41-named-workspaces.feature:22:plain",
+      "scenario": "A switch decision remains visible while searching or clicking outside",
+      "classification": "missing adapter",
+      "reason": "Page shim lacks getByRole"
+    },
+    {
+      "id": "spec/acceptance/F41-named-workspaces.feature:46:plain",
+      "scenario": "Twenty five workspaces remain reachable in a small viewport",
+      "classification": "missing adapter",
+      "reason": "Shipping main-process evaluate needs a native adapter"
+    },
+    {
+      "id": "spec/acceptance/F41-named-workspaces.feature:57:plain",
+      "scenario": "A partial workspace save stays discoverable without losing the outgoing page",
+      "classification": "missing adapter",
+      "reason": "Space action needs an adapter: fail-session-commit"
+    },
+    {
+      "id": "spec/acceptance/F41-named-workspaces.feature:69:plain",
+      "scenario": "Switching preserves a submitted POST response without repeating it",
+      "classification": "missing adapter",
+      "reason": "Shipping main-process evaluate needs a native adapter"
+    },
+    {
+      "id": "spec/acceptance/F41-named-workspaces.feature:103:plain",
+      "scenario": "Anyone can save a window as a space",
+      "classification": "missing adapter",
+      "reason": "Page shim lacks getByRole"
+    },
+    {
+      "id": "spec/acceptance/F41-named-workspaces.feature:153:plain",
+      "scenario": "The Spaces menu works from the keyboard",
+      "classification": "missing adapter",
+      "reason": "native hook adapter missing: pressOverlayKey"
+    },
+    {
+      "id": "spec/acceptance/F41-named-workspaces.feature:162:plain",
+      "scenario": "With Reduce Motion a switch only cross-fades",
+      "classification": "missing adapter",
+      "reason": "native hook adapter missing: emulateReducedMotion"
+    },
+    {
+      "id": "spec/acceptance/F41-named-workspaces.feature:189:plain",
+      "scenario": "Closing the Spaces menu fades it out where it was",
+      "classification": "missing adapter",
+      "reason": "native hook adapter missing: pressOverlayKey"
+    },
+    {
+      "id": "spec/acceptance/F41-named-workspaces.feature:196:plain",
+      "scenario": "With Reduce Motion the closing Spaces menu only fades",
+      "classification": "missing adapter",
+      "reason": "native hook adapter missing: emulateReducedMotion; native hook adapter missing: pressOverlayKey"
+    },
+    {
+      "id": "spec/acceptance/F41-named-workspaces.feature:204:plain",
+      "scenario": "Clicking the mark while the Spaces menu fades opens it again",
+      "classification": "missing adapter",
+      "reason": "native hook adapter missing: pressOverlayKey, spacesMenuExitState; native hook adapter missing: spacesMenuExitState"
+    },
+    {
+      "id": "spec/acceptance/F41-named-workspaces.feature:246:plain",
+      "scenario": "Switching back to a space while its page is being quieted shows the page",
+      "classification": "missing adapter",
+      "reason": "native hook adapter missing: raceSwitchBackDuringQuiet"
+    },
+    {
+      "id": "spec/acceptance/F41-named-workspaces.feature:254:plain",
+      "scenario": "Blanc never keeps more than six spaces set aside",
+      "classification": "missing adapter",
+      "reason": "native hook adapter missing: setQuietTabs"
+    },
+    {
+      "id": "spec/acceptance/F41-named-workspaces.feature:262:plain",
+      "scenario": "With Quiet Tabs off, set-aside spaces stay loaded",
+      "classification": "missing adapter",
+      "reason": "native hook adapter missing: setQuietTabs"
+    },
+    {
+      "id": "spec/acceptance/F41-named-workspaces.feature:396:plain",
+      "scenario": "A link sent to a visible space loads in its other window",
+      "classification": "missing adapter",
+      "reason": "step definition missing"
+    },
+    {
+      "id": "spec/acceptance/F41-named-workspaces.feature:403:plain",
+      "scenario": "A link sent to a set-aside space stays quiet until selected",
+      "classification": "missing adapter",
+      "reason": "step definition missing"
+    },
+    {
+      "id": "spec/acceptance/F41-named-workspaces.feature:413:plain",
+      "scenario": "A link sent to a closed space is saved without loading",
+      "classification": "missing adapter",
+      "reason": "step definition missing"
+    },
+    {
+      "id": "spec/acceptance/F41-named-workspaces.feature:423:plain",
+      "scenario": "A failed link write adds nothing and shows the Spaces error",
+      "classification": "missing adapter",
+      "reason": "step definition missing"
+    },
+    {
+      "id": "spec/acceptance/F41-named-workspaces.feature:431:plain",
+      "scenario": "New Space from a link works when only the current space exists",
+      "classification": "missing adapter",
+      "reason": "step definition missing"
+    },
+    {
+      "id": "spec/acceptance/F41-named-workspaces.feature:439:plain",
+      "scenario": "A failed New Space write retains the chosen link and editor draft",
+      "classification": "missing adapter",
+      "reason": "step definition missing"
+    },
+    {
+      "id": "spec/acceptance/F41-named-workspaces.feature:449:plain",
+      "scenario": "A failed quiet-tab creation rolls back the saved link",
+      "classification": "missing adapter",
+      "reason": "step definition missing"
+    },
+    {
+      "id": "spec/acceptance/F41-named-workspaces.feature:480:plain",
+      "scenario": "A split selection closes and restores as one batch",
+      "classification": "missing adapter",
+      "reason": "Batch operation is not built: batch-close"
+    },
+    {
+      "id": "spec/acceptance/arc-spaces-import.feature:7:plain",
+      "scenario": "Arc's file is read only after the person asks",
+      "classification": "missing fork feature",
+      "reason": "Arc sidebar/Spaces importer absent; first_run.inc kBrowsers omits Arc; tracker F45 unstarted. First runner gap: step definition missing"
+    },
+    {
+      "id": "spec/acceptance/arc-spaces-import.feature:14:plain",
+      "scenario": "Each selected Arc Space becomes a space",
+      "classification": "missing fork feature",
+      "reason": "Arc sidebar/Spaces importer absent; first_run.inc kBrowsers omits Arc; tracker F45 unstarted. First runner gap: step definition missing"
+    },
+    {
+      "id": "spec/acceptance/arc-spaces-import.feature:23:plain",
+      "scenario": "A selection that does not fit creates nothing",
+      "classification": "missing fork feature",
+      "reason": "Arc sidebar/Spaces importer absent; first_run.inc kBrowsers omits Arc; tracker F45 unstarted. First runner gap: step definition missing"
+    },
+    {
+      "id": "spec/acceptance/arc-spaces-import.feature:31:plain",
+      "scenario": "Arc Spaces become spaces without Blanc Patron",
+      "classification": "missing fork feature",
+      "reason": "Arc sidebar/Spaces importer absent; first_run.inc kBrowsers omits Arc; tracker F45 unstarted. First runner gap: step definition missing"
+    },
+    {
+      "id": "spec/acceptance/arc-spaces-import.feature:39:plain",
+      "scenario": "Arc's Favorites join a Favorites folder named Arc",
+      "classification": "missing fork feature",
+      "reason": "Arc sidebar/Spaces importer absent; first_run.inc kBrowsers omits Arc; tracker F45 unstarted. First runner gap: step definition missing"
+    },
+    {
+      "id": "spec/acceptance/arc-spaces-import.feature:46:plain",
+      "scenario": "The page sees names and counts, never URLs or paths",
+      "classification": "missing fork feature",
+      "reason": "Arc sidebar/Spaces importer absent; first_run.inc kBrowsers omits Arc; tracker F45 unstarted. First runner gap: step definition missing"
+    },
+    {
+      "id": "spec/acceptance/arc-spaces-import.feature:53:plain",
+      "scenario": "Linux imports a chosen file",
+      "classification": "not applicable to macOS",
+      "reason": "Scenario explicitly targets Windows/Linux or Linux; raw undefined retained. step definition missing"
+    },
+    {
+      "id": "spec/acceptance/arc-spaces-import.feature:60:plain",
+      "scenario": "Closing the sheet drops what Blanc read from Arc",
+      "classification": "missing fork feature",
+      "reason": "Arc sidebar/Spaces importer absent; first_run.inc kBrowsers omits Arc; tracker F45 unstarted. First runner gap: step definition missing"
+    },
+    {
+      "id": "spec/acceptance/downloads.feature:13:plain",
+      "scenario": "A completed download is retrievable",
+      "classification": "missing adapter",
+      "reason": "step definition missing"
+    },
+    {
+      "id": "spec/acceptance/glance.feature:24:plain",
+      "scenario": "A visible Glance reference is never quieted",
+      "classification": "missing adapter",
+      "reason": "native hook adapter missing: setTabIdleSince"
+    },
+    {
+      "id": "spec/acceptance/glance.feature:31:plain",
+      "scenario": "Cancelling a Change picker after its reference closed leaves focus on the page",
+      "classification": "missing adapter",
+      "reason": "Shipping main-process evaluate needs a native adapter"
+    },
+    {
+      "id": "spec/acceptance/glance.feature:38:plain",
+      "scenario": "Media started in the reference pane is audible",
+      "classification": "missing adapter",
+      "reason": "native hook adapter missing: simulateMediaStarted"
+    },
+    {
+      "id": "spec/acceptance/glance.feature:45:plain",
+      "scenario": "A tab muted as a background tab is unmuted when it opens in Glance",
+      "classification": "missing adapter",
+      "reason": "native hook adapter missing: simulateMediaStarted"
+    },
+    {
+      "id": "spec/acceptance/glance.feature:117:plain",
+      "scenario": "Choosing again before a cancelled wake lands opens Glance without a contradictory announcement",
+      "classification": "missing adapter",
+      "reason": "Shipping main-process evaluate needs a native adapter"
+    },
+    {
+      "id": "spec/acceptance/glance.feature:127:plain",
+      "scenario": "A picker re-opened after a cancelled wake shows no stale error",
+      "classification": "missing adapter",
+      "reason": "Shipping main-process evaluate needs a native adapter"
+    },
+    {
+      "id": "spec/acceptance/glance.feature:178:plain",
+      "scenario": "Zoom and Back follow focus into the reference",
+      "classification": "missing adapter",
+      "reason": "native hook adapter missing: zoomLevel"
+    },
+    {
+      "id": "spec/acceptance/glance.feature:187:plain",
+      "scenario": "The 1Password fill and its hint follow the focused pane",
+      "classification": "missing fork feature",
+      "reason": "Deliberate F38 policy: no 1Password SDK in fork; Chrome Web Store extension is the chosen path. These steps demand shipping SDK integration. native hook adapter missing: setOnePasswordConfig"
+    },
+    {
+      "id": "spec/acceptance/glance.feature:197:plain",
+      "scenario": "A reference navigation leaves a 1Password question about the main page alone",
+      "classification": "missing fork feature",
+      "reason": "Deliberate F38 policy: no 1Password SDK in fork; Chrome Web Store extension is the chosen path. These steps demand shipping SDK integration. native hook adapter missing: fillStatusState; native hook adapter missing: setOnePasswordConfig; step definition missing"
+    },
+    {
+      "id": "spec/acceptance/glance.feature:207:plain",
+      "scenario": "A mouse gesture in the reference acts on the reference",
+      "classification": "missing adapter",
+      "reason": "native hook adapter missing: setMouseGestures"
+    },
+    {
+      "id": "spec/acceptance/glance.feature:221:plain",
+      "scenario": "A background-tab click in the reference stays in the background",
+      "classification": "missing adapter",
+      "reason": "Keyboard shim lacks key meta"
+    },
+    {
+      "id": "spec/acceptance/glance.feature:234:plain",
+      "scenario": "The Glance header goes back and reloads the reference",
+      "classification": "missing adapter",
+      "reason": "native hook adapter missing: zoomLevel"
+    },
+    {
+      "id": "spec/acceptance/glance.feature:253:plain",
+      "scenario": "Find pressed in the other pane starts a fresh search there",
+      "classification": "missing adapter",
+      "reason": "Browser command needs an adapter: find"
+    },
+    {
+      "id": "spec/acceptance/glance.feature:264:plain",
+      "scenario": "The Island makes room for a new chip and grows back when it goes",
+      "classification": "missing adapter",
+      "reason": "Shipping main-process evaluate needs a native adapter"
+    },
+    {
+      "id": "spec/acceptance/glance.feature:273:plain",
+      "scenario": "A growing blocked count leaves the Island's dots alone",
+      "classification": "missing adapter",
+      "reason": "Shipping main-process evaluate needs a native adapter"
+    },
+    {
+      "id": "spec/acceptance/glance.feature:280:plain",
+      "scenario": "The Island re-fits when the interface font finishes loading",
+      "classification": "missing adapter",
+      "reason": "Shipping main-process evaluate needs a native adapter"
+    },
+    {
+      "id": "spec/acceptance/glance.feature:287:plain",
+      "scenario": "Close Tab from the find bar on the reference hands focus to the main page",
+      "classification": "missing adapter",
+      "reason": "Browser command needs an adapter: find"
+    },
+    {
+      "id": "spec/acceptance/glance.feature:296:plain",
+      "scenario": "A new tab opened with focus in the reference makes the main page the focused pane",
+      "classification": "missing adapter",
+      "reason": "Browser command needs an adapter: new-tab"
+    },
+    {
+      "id": "spec/acceptance/glance.feature:345:plain",
+      "scenario": "A private reference shows the private chip in the header",
+      "classification": "missing adapter",
+      "reason": "glanceHeaderMotion needs an adapter"
+    },
+    {
+      "id": "spec/acceptance/glance.feature:459:plain",
+      "scenario": "Clicking and scrolling the page behind keeps the Glance open",
+      "classification": "missing adapter",
+      "reason": "Key input shim lacks "
+    },
+    {
+      "id": "spec/acceptance/glance.feature:471:plain",
+      "scenario": "At 360 px the header keeps Back, Reload, the three actions as icons and \u00d7",
+      "classification": "missing adapter",
+      "reason": "native hook adapter missing: tooltipViewState"
+    },
+    {
+      "id": "spec/acceptance/glance.feature:489:plain",
+      "scenario": "Find for the Glance page sits over the card",
+      "classification": "missing adapter",
+      "reason": "Browser command needs an adapter: find"
+    },
+    {
+      "id": "spec/acceptance/glance.feature:498:plain",
+      "scenario": "The card fades in at its full size and closes at once",
+      "classification": "missing adapter",
+      "reason": "native hook adapter missing: closeGlanceAndReadCard; native hook adapter missing: glanceCardMotion"
+    },
+    {
+      "id": "spec/acceptance/glance.feature:506:example-515",
+      "scenario": "Closing the Glance tab just after moving the card keeps the move and takes the card at once",
+      "classification": "missing adapter",
+      "reason": "native hook adapter missing: closeTabAndReadGlance"
+    },
+    {
+      "id": "spec/acceptance/glance.feature:506:example-516",
+      "scenario": "Closing the main page just after moving the card keeps the move and takes the card at once",
+      "classification": "missing adapter",
+      "reason": "native hook adapter missing: closeTabAndReadGlance"
+    },
+    {
+      "id": "spec/acceptance/glance.feature:519:plain",
+      "scenario": "A window's first Glance shows nothing until its card has drawn",
+      "classification": "missing adapter",
+      "reason": "native hook adapter missing: openFirstGlanceAndRead"
+    },
+    {
+      "id": "spec/acceptance/island-and-commands.feature:320:plain",
+      "scenario": "Window buttons come and go with the floating pill on Windows and Linux",
+      "classification": "not applicable to macOS",
+      "reason": "Scenario explicitly targets Windows/Linux or Linux; raw undefined retained. The fork strip reports no window-button geometry to the host"
+    },
+    {
+      "id": "spec/acceptance/link-routing.feature:8:plain",
+      "scenario": "the group is offered only when there is somewhere to route to",
+      "classification": "missing fork feature",
+      "reason": "Appearance::RouteActiveSite returns unavailable (appearance.cc); tracker F60 unstarted. First runner gap: step definition missing"
+    },
+    {
+      "id": "spec/acceptance/link-routing.feature:16:plain",
+      "scenario": "a rule added in Settings sends a domain's links to its profile",
+      "classification": "missing fork feature",
+      "reason": "Appearance::RouteActiveSite returns unavailable (appearance.cc); tracker F60 unstarted. First runner gap: step definition missing"
+    },
+    {
+      "id": "spec/acceptance/link-routing.feature:28:plain",
+      "scenario": "deleting a profile removes its rules and its links fall through",
+      "classification": "missing fork feature",
+      "reason": "Appearance::RouteActiveSite returns unavailable (appearance.cc); tracker F60 unstarted. First runner gap: step definition missing"
+    },
+    {
+      "id": "spec/acceptance/link-routing.feature:37:plain",
+      "scenario": "the shield popover makes and removes the rule for the site in view",
+      "classification": "missing fork feature",
+      "reason": "Appearance::RouteActiveSite returns unavailable (appearance.cc); tracker F60 unstarted. First runner gap: step definition missing"
+    },
+    {
+      "id": "spec/acceptance/link-routing.feature:50:plain",
+      "scenario": "/route and /route off write and remove the rule; a private tab can't",
+      "classification": "missing fork feature",
+      "reason": "Appearance::RouteActiveSite returns unavailable (appearance.cc); tracker F60 unstarted. First runner gap: step definition missing"
+    },
+    {
+      "id": "spec/acceptance/link-routing.feature:62:plain",
+      "scenario": "with the switch on, a link opened in a new tab follows a rule to another profile",
+      "classification": "missing fork feature",
+      "reason": "Appearance::RouteActiveSite returns unavailable (appearance.cc); tracker F60 unstarted. First runner gap: step definition missing"
+    },
+    {
+      "id": "spec/acceptance/link-routing.feature:79:plain",
+      "scenario": "a link opened in the background into a new window leaves the current window in front",
+      "classification": "missing fork feature",
+      "reason": "Appearance::RouteActiveSite returns unavailable (appearance.cc); tracker F60 unstarted. First runner gap: step definition missing"
+    },
+    {
+      "id": "spec/acceptance/local-profiles.feature:7:plain",
+      "scenario": "Settings creates a profile with isolated records and sessions",
+      "classification": "missing adapter",
+      "reason": "step definition missing"
+    },
+    {
+      "id": "spec/acceptance/local-profiles.feature:17:plain",
+      "scenario": "Settings renames and permanently deletes a named profile",
+      "classification": "missing adapter",
+      "reason": "step definition missing"
+    },
+    {
+      "id": "spec/acceptance/local-profiles.feature:27:plain",
+      "scenario": "a named profile workspace restores into the same isolated session",
+      "classification": "missing adapter",
+      "reason": "step definition missing"
+    },
+    {
+      "id": "spec/acceptance/mini-window.feature:10:plain",
+      "scenario": "a mini window opens small, isn't saved, and closes after an hour unused",
+      "classification": "missing fork feature",
+      "reason": "Tracker F61 says v1.46.0 feature not yet in fork; no native mini-window handler. First runner gap: step definition missing"
+    },
+    {
+      "id": "spec/acceptance/mini-window.feature:18:plain",
+      "scenario": "Open in Blanc keeps a mini window as an ordinary window",
+      "classification": "missing fork feature",
+      "reason": "Tracker F61 says v1.46.0 feature not yet in fork; no native mini-window handler. First runner gap: step definition missing"
+    },
+    {
+      "id": "spec/acceptance/mini-window.feature:24:plain",
+      "scenario": "a link from another app never opens in a mini window",
+      "classification": "missing fork feature",
+      "reason": "Tracker F61 says v1.46.0 feature not yet in fork; no native mini-window handler. First runner gap: step definition missing"
+    },
+    {
+      "id": "spec/acceptance/mini-window.feature:30:plain",
+      "scenario": "closing a mini window's last tab closes the window",
+      "classification": "missing fork feature",
+      "reason": "Tracker F61 says v1.46.0 feature not yet in fork; no native mini-window handler. First runner gap: step definition missing"
+    },
+    {
+      "id": "spec/acceptance/mini-window.feature:36:plain",
+      "scenario": "the mini window shortcut is off until chosen",
+      "classification": "missing fork feature",
+      "reason": "Tracker F61 says v1.46.0 feature not yet in fork; no native mini-window handler. First runner gap: step definition missing"
+    },
+    {
+      "id": "spec/acceptance/navigation-and-context-menu.feature:12:example-23",
+      "scenario": "Typing a query searches with the selected engine",
+      "classification": "missing adapter",
+      "reason": "V12: Kagi is added under chrome://settings \u2192 Manage search engines"
+    },
+    {
+      "id": "spec/acceptance/navigation-and-context-menu.feature:77:plain",
+      "scenario": "A custom search address is used for searches",
+      "classification": "missing adapter",
+      "reason": "V12: a custom search address is added under chrome://settings \u2192 Manage search engines"
+    },
+    {
+      "id": "spec/acceptance/navigation-and-context-menu.feature:83:plain",
+      "scenario": "A custom address can't send searches over the internet unencrypted",
+      "classification": "missing adapter",
+      "reason": "V12: a custom search address is added under chrome://settings \u2192 Manage search engines"
+    },
+    {
+      "id": "spec/acceptance/navigation-and-context-menu.feature:91:plain",
+      "scenario": "A custom search engine gets no live suggestions and searches its own address",
+      "classification": "missing adapter",
+      "reason": "V12: a custom search address is added under chrome://settings \u2192 Manage search engines"
+    },
+    {
+      "id": "spec/acceptance/navigation-and-context-menu.feature:100:plain",
+      "scenario": "Open link in a background tab opens it ungrouped",
+      "classification": "missing adapter",
+      "reason": "step definition missing"
+    },
+    {
+      "id": "spec/acceptance/newtab-layouts.feature:126:plain",
+      "scenario": "Billboard continues past its initial candidate page",
+      "classification": "missing fork feature",
+      "reason": "seedBillboardOverflowHistory: real history::TopSites caps GetMostVisitedURLs at 10 (kTopSitesNumber); needs an owner-approved native design decision, not a test op"
+    },
+    {
+      "id": "spec/acceptance/newtab-layouts.feature:134:plain",
+      "scenario": "Every start-page layout uses the approved typography roles",
+      "classification": "missing adapter",
+      "reason": "native hook adapter missing: readStartPageFontUsage; native hook adapter missing: readStartPageLayoutFit"
+    },
+    {
+      "id": "spec/acceptance/permissions-and-auth.feature:13:plain",
+      "scenario": "Mic capture lights the capture chip and stop clears it",
+      "classification": "missing adapter",
+      "reason": "step definition missing"
+    },
+    {
+      "id": "spec/acceptance/platform-services.feature:25:plain",
+      "scenario": "Desktop updates through the in-app updater",
+      "classification": "missing fork feature",
+      "reason": "In-app updater is unstarted (tracker F22); beta build remains on owner hold. step definition missing"
+    },
+    {
+      "id": "spec/acceptance/platform-services.feature:50:plain",
+      "scenario": "Blanc fills only a matching 1Password login after an explicit ask",
+      "classification": "missing fork feature",
+      "reason": "Deliberate F38 policy: no 1Password SDK in fork; Chrome Web Store extension is the chosen path. These steps demand shipping SDK integration. step definition missing"
+    },
+    {
+      "id": "spec/acceptance/platform-services.feature:64:plain",
+      "scenario": "The island offers Fill only for a visible, uncontradicted login form",
+      "classification": "missing fork feature",
+      "reason": "Deliberate F38 policy: no 1Password SDK in fork; Chrome Web Store extension is the chosen path. These steps demand shipping SDK integration. step definition missing"
+    },
+    {
+      "id": "spec/acceptance/platform-services.feature:76:plain",
+      "scenario": "Fill questions open as a dialog capsule with Cancel focused and full keyboard control",
+      "classification": "missing fork feature",
+      "reason": "Deliberate F38 policy: no 1Password SDK in fork; Chrome Web Store extension is the chosen path. These steps demand shipping SDK integration. step definition missing"
+    },
+    {
+      "id": "spec/acceptance/platform-services.feature:88:plain",
+      "scenario": "Fill errors persist until dismissed and their announcement survives",
+      "classification": "missing fork feature",
+      "reason": "Deliberate F38 policy: no 1Password SDK in fork; Chrome Web Store extension is the chosen path. These steps demand shipping SDK integration. step definition missing"
+    },
+    {
+      "id": "spec/acceptance/platform-services.feature:98:plain",
+      "scenario": "A successful fill confirms politely and gets out of the way on its own",
+      "classification": "missing fork feature",
+      "reason": "Deliberate F38 policy: no 1Password SDK in fork; Chrome Web Store extension is the chosen path. These steps demand shipping SDK integration. step definition missing"
+    },
+    {
+      "id": "spec/acceptance/platform-services.feature:105:plain",
+      "scenario": "Switching tabs withdraws a pending fill question",
+      "classification": "missing fork feature",
+      "reason": "Deliberate F38 policy: no 1Password SDK in fork; Chrome Web Store extension is the chosen path. These steps demand shipping SDK integration. step definition missing"
+    },
+    {
+      "id": "spec/acceptance/platform-services.feature:112:plain",
+      "scenario": "The success confirmation waits while pointed at or focused",
+      "classification": "missing fork feature",
+      "reason": "Deliberate F38 policy: no 1Password SDK in fork; Chrome Web Store extension is the chosen path. These steps demand shipping SDK integration. step definition missing"
+    },
+    {
+      "id": "spec/acceptance/private-tabs.feature:7:plain",
+      "scenario": "Private browsing is not recorded and cannot be reopened",
+      "classification": "missing adapter",
+      "reason": "step definition missing"
+    },
+    {
+      "id": "spec/acceptance/private-tabs.feature:16:plain",
+      "scenario": "Private chrome styling and quick exit",
+      "classification": "missing adapter",
+      "reason": "step definition missing"
+    },
+    {
+      "id": "spec/acceptance/private-tabs.feature:24:plain",
+      "scenario": "Child tabs inherit privacy",
+      "classification": "missing adapter",
+      "reason": "step definition missing"
+    },
+    {
+      "id": "spec/acceptance/private-tabs.feature:40:plain",
+      "scenario": "Passkeys created in a private tab are ephemeral",
+      "classification": "missing adapter",
+      "reason": "step definition missing"
+    },
+    {
+      "id": "spec/acceptance/quiet-tabs.feature:28:example-45",
+      "scenario": "Protected background tabs stay awake and beforeunload remains functional",
+      "classification": "missing adapter",
+      "reason": "Electron listener counts/will-prevent-unload contract has no native counterpart; real native refusal verified separately. Chromium has no Electron WebContents listener counts"
+    },
+    {
+      "id": "spec/acceptance/reader-mode.feature:7:plain",
+      "scenario": "Extract a readable article into a separate sandbox",
+      "classification": "missing fork feature",
+      "reason": "Shipping Reader Mode contract not ported: Navigation::ToggleReaderMode returns false. Host separately exposes Chromium reading mode; its parity is unverified. First runner gap: step definition missing"
+    },
+    {
+      "id": "spec/acceptance/reader-mode.feature:13:plain",
+      "scenario": "Return to the same document and scroll position",
+      "classification": "missing fork feature",
+      "reason": "Shipping Reader Mode contract not ported: Navigation::ToggleReaderMode returns false. Host separately exposes Chromium reading mode; its parity is unverified. First runner gap: step definition missing"
+    },
+    {
+      "id": "spec/acceptance/reader-mode.feature:20:plain",
+      "scenario": "Reader appearance is remembered locally",
+      "classification": "missing fork feature",
+      "reason": "Shipping Reader Mode contract not ported: Navigation::ToggleReaderMode returns false. Host separately exposes Chromium reading mode; its parity is unverified. First runner gap: step definition missing"
+    },
+    {
+      "id": "spec/acceptance/send-to-device.feature:7:plain",
+      "scenario": "A page sent here waits first in the Other devices drawer",
+      "classification": "missing adapter",
+      "reason": "step definition missing"
+    },
+    {
+      "id": "spec/acceptance/send-to-device.feature:15:plain",
+      "scenario": "Opening a sent page opens it in a new tab and hides it",
+      "classification": "missing adapter",
+      "reason": "step definition missing"
+    },
+    {
+      "id": "spec/acceptance/send-to-device.feature:24:plain",
+      "scenario": "Dismissing a sent page hides it without opening it",
+      "classification": "missing adapter",
+      "reason": "step definition missing"
+    },
+    {
+      "id": "spec/acceptance/send-to-device.feature:33:plain",
+      "scenario": "/send sends the current page to the named device",
+      "classification": "missing adapter",
+      "reason": "step definition missing"
+    },
+    {
+      "id": "spec/acceptance/send-to-device.feature:41:plain",
+      "scenario": "/send on an older sync server says sending isn't available",
+      "classification": "missing adapter",
+      "reason": "step definition missing"
+    },
+    {
+      "id": "spec/acceptance/send-to-device.feature:49:plain",
+      "scenario": "/send without other devices says so",
+      "classification": "missing adapter",
+      "reason": "step definition missing"
+    },
+    {
+      "id": "spec/acceptance/send-to-device.feature:56:plain",
+      "scenario": "A private tab offers no /send",
+      "classification": "missing adapter",
+      "reason": "step definition missing"
+    },
+    {
+      "id": "spec/acceptance/send-to-device.feature:63:plain",
+      "scenario": "A page sent here waits on the Ledger start page",
+      "classification": "missing adapter",
+      "reason": "step definition missing"
+    },
+    {
+      "id": "spec/acceptance/settings-and-theming.feature:49:plain",
+      "scenario": "Dark websites darkens a white page while Blanc is dark",
+      "classification": "missing fork feature",
+      "reason": "Dark websites is unported: Appearance::ToggleDarkSiteOnActiveSite returns null. step definition missing"
+    },
+    {
+      "id": "spec/acceptance/settings-and-theming.feature:57:plain",
+      "scenario": "Dark websites leaves pages alone while it is off or Blanc is light",
+      "classification": "missing fork feature",
+      "reason": "Dark websites is unported: Appearance::ToggleDarkSiteOnActiveSite returns null. step definition missing"
+    },
+    {
+      "id": "spec/acceptance/settings-and-theming.feature:65:plain",
+      "scenario": "/dark-site keeps one site in its own colors",
+      "classification": "missing fork feature",
+      "reason": "Dark websites is unported: Appearance::ToggleDarkSiteOnActiveSite returns null. step definition missing"
+    },
+    {
+      "id": "spec/acceptance/settings-and-theming.feature:74:plain",
+      "scenario": "A private tab's /dark-site choice is not saved",
+      "classification": "missing fork feature",
+      "reason": "Dark websites is unported: Appearance::ToggleDarkSiteOnActiveSite returns null. step definition missing"
+    },
+    {
+      "id": "spec/acceptance/shared-spaces.feature:4:plain",
+      "scenario": "Choose the Spaces this device shares",
+      "classification": "missing adapter",
+      "reason": "step definition missing"
+    },
+    {
+      "id": "spec/acceptance/shared-spaces.feature:11:plain",
+      "scenario": "A new remote tab stays quiet",
+      "classification": "missing adapter",
+      "reason": "step definition missing"
+    },
+    {
+      "id": "spec/acceptance/shared-spaces.feature:17:plain",
+      "scenario": "A remote close preserves local recovery",
+      "classification": "missing adapter",
+      "reason": "step definition missing"
+    },
+    {
+      "id": "spec/acceptance/shared-spaces.feature:23:plain",
+      "scenario": "Active navigation waits without an echo",
+      "classification": "missing adapter",
+      "reason": "step definition missing"
+    },
+    {
+      "id": "spec/acceptance/shared-spaces.feature:29:plain",
+      "scenario": "An older Worker does not disable ordinary sync",
+      "classification": "missing adapter",
+      "reason": "step definition missing"
+    },
+    {
+      "id": "spec/acceptance/shared-spaces.feature:35:plain",
+      "scenario": "A local-only navigation does not close the tab elsewhere",
+      "classification": "missing adapter",
+      "reason": "step definition missing"
+    },
+    {
+      "id": "spec/acceptance/shared-spaces.feature:41:plain",
+      "scenario": "Deleting a Space frees a full account immediately",
+      "classification": "missing adapter",
+      "reason": "step definition missing"
+    },
+    {
+      "id": "spec/acceptance/shared-spaces.feature:47:plain",
+      "scenario": "Two complete desktop clients converge through the Worker",
+      "classification": "missing adapter",
+      "reason": "step definition missing"
+    },
+    {
+      "id": "spec/acceptance/shared-spaces.feature:57:example-62",
+      "scenario": "Shared Spaces fault and retention rules",
+      "classification": "missing adapter",
+      "reason": "step definition missing"
+    },
+    {
+      "id": "spec/acceptance/shared-spaces.feature:57:example-63",
+      "scenario": "Shared Spaces fault and retention rules",
+      "classification": "missing adapter",
+      "reason": "step definition missing"
+    },
+    {
+      "id": "spec/acceptance/shared-spaces.feature:57:example-64",
+      "scenario": "Shared Spaces fault and retention rules",
+      "classification": "missing adapter",
+      "reason": "step definition missing"
+    },
+    {
+      "id": "spec/acceptance/shared-spaces.feature:57:example-65",
+      "scenario": "Shared Spaces fault and retention rules",
+      "classification": "missing adapter",
+      "reason": "step definition missing"
+    },
+    {
+      "id": "spec/acceptance/shared-spaces.feature:57:example-66",
+      "scenario": "Shared Spaces fault and retention rules",
+      "classification": "missing adapter",
+      "reason": "step definition missing"
+    },
+    {
+      "id": "spec/acceptance/shared-spaces.feature:57:example-67",
+      "scenario": "Shared Spaces fault and retention rules",
+      "classification": "missing adapter",
+      "reason": "step definition missing"
+    },
+    {
+      "id": "spec/acceptance/shared-spaces.feature:57:example-68",
+      "scenario": "Shared Spaces fault and retention rules",
+      "classification": "missing adapter",
+      "reason": "step definition missing"
+    },
+    {
+      "id": "spec/acceptance/shared-spaces.feature:57:example-69",
+      "scenario": "Shared Spaces fault and retention rules",
+      "classification": "missing adapter",
+      "reason": "step definition missing"
+    },
+    {
+      "id": "spec/acceptance/shared-spaces.feature:57:example-70",
+      "scenario": "Shared Spaces fault and retention rules",
+      "classification": "missing adapter",
+      "reason": "step definition missing"
+    },
+    {
+      "id": "spec/acceptance/shared-spaces.feature:73:plain",
+      "scenario": "A deferred close survives a hard crash",
+      "classification": "missing adapter",
+      "reason": "step definition missing"
+    },
+    {
+      "id": "spec/acceptance/shared-spaces.feature:80:plain",
+      "scenario": "A merged tab survives a hard crash before the next autosave",
+      "classification": "missing adapter",
+      "reason": "step definition missing"
+    },
+    {
+      "id": "spec/acceptance/shared-spaces.feature:87:plain",
+      "scenario": "A crash after the blob write retries its missing index entry",
+      "classification": "missing adapter",
+      "reason": "step definition missing"
+    },
+    {
+      "id": "spec/acceptance/shared-spaces.feature:94:plain",
+      "scenario": "A background page with unsaved input waits for a remote navigation",
+      "classification": "missing adapter",
+      "reason": "step definition missing"
+    },
+    {
+      "id": "spec/acceptance/shared-spaces.feature:103:plain",
+      "scenario": "Failed server erasure can be retried without losing credentials",
+      "classification": "missing adapter",
+      "reason": "step definition missing"
+    },
+    {
+      "id": "spec/acceptance/shared-spaces.feature:111:plain",
+      "scenario": "Quitting while a change is held closes no tab on any device",
+      "classification": "missing adapter",
+      "reason": "step definition missing"
+    },
+    {
+      "id": "spec/acceptance/shared-spaces.feature:119:plain",
+      "scenario": "A group made after sharing keeps its tabs on every device",
+      "classification": "missing adapter",
+      "reason": "step definition missing"
+    },
+    {
+      "id": "spec/acceptance/shared-spaces.feature:132:plain",
+      "scenario": "The rail's New group button in a shared Space keeps its tab",
+      "classification": "missing adapter",
+      "reason": "step definition missing"
+    },
+    {
+      "id": "spec/acceptance/shared-spaces.feature:143:plain",
+      "scenario": "A group shared with its Space follows renames, colors and new tabs both ways",
+      "classification": "missing adapter",
+      "reason": "step definition missing"
+    },
+    {
+      "id": "spec/acceptance/shared-spaces.feature:155:plain",
+      "scenario": "The selection sheet opens at once while the Spaces check waits",
+      "classification": "missing adapter",
+      "reason": "step definition missing"
+    },
+    {
+      "id": "spec/acceptance/shared-spaces.feature:165:plain",
+      "scenario": "Turning on before the check finishes waits, then saves",
+      "classification": "missing adapter",
+      "reason": "step definition missing"
+    },
+    {
+      "id": "spec/acceptance/shared-spaces.feature:175:plain",
+      "scenario": "A Space made while Spaces sync is on is shared by itself",
+      "classification": "missing adapter",
+      "reason": "step definition missing"
+    },
+    {
+      "id": "spec/acceptance/shared-spaces.feature:181:plain",
+      "scenario": "Choose Spaces to sync adds a Space left out, with the switch still on",
+      "classification": "missing adapter",
+      "reason": "step definition missing"
+    },
+    {
+      "id": "spec/acceptance/shared-spaces.feature:193:plain",
+      "scenario": "Closing the sheet after Turn on keeps sharing going",
+      "classification": "missing adapter",
+      "reason": "step definition missing"
+    },
+    {
+      "id": "spec/acceptance/shared-spaces.feature:204:plain",
+      "scenario": "A Space made on another device arrives within seconds",
+      "classification": "missing adapter",
+      "reason": "step definition missing"
+    },
+    {
+      "id": "spec/acceptance/shared-spaces.feature:211:plain",
+      "scenario": "Without the change check, a Space made on another device still arrives within a minute",
+      "classification": "missing adapter",
+      "reason": "step definition missing"
+    },
+    {
+      "id": "spec/acceptance/site-certificate-safety.feature:41:plain",
+      "scenario": "A reopened page keeps its not-secure state, and eviction does not clear it",
+      "classification": "missing adapter",
+      "reason": "Native snapshot adapter does not expose closedEntry.held; later eviction-cap path is also absent (tabs.mjs setCertificateExceptionCap)."
+    },
+    {
+      "id": "spec/acceptance/split-view.feature:201:plain",
+      "scenario": "A pane view raised above the floating Island goes back under it at the next layout",
+      "classification": "missing adapter",
+      "reason": "native hook adapter missing: raiseTabView"
+    },
+    {
+      "id": "spec/acceptance/supporter-and-session.feature:12:plain",
+      "scenario": "A retired icon cannot be restored by an active Patron",
+      "classification": "missing adapter",
+      "reason": "native hook adapter missing: setSupporterActive"
+    },
+    {
+      "id": "spec/acceptance/supporter-and-session.feature:26:plain",
+      "scenario": "Relaunch restores groups but not private tabs",
+      "classification": "missing adapter",
+      "reason": "step definition missing"
+    },
+    {
+      "id": "spec/acceptance/tab-archive.feature:8:plain",
+      "scenario": "An idle loose tab is archived",
+      "classification": "missing fork feature",
+      "reason": "host.js archive.list returns []; restore/forget return false; F52 not in fork. First runner gap: step definition missing"
+    },
+    {
+      "id": "spec/acceptance/tab-archive.feature:15:plain",
+      "scenario": "Pinned and grouped tabs are never archived",
+      "classification": "missing fork feature",
+      "reason": "host.js archive.list returns []; restore/forget return false; F52 not in fork. First runner gap: step definition missing"
+    },
+    {
+      "id": "spec/acceptance/tab-archive.feature:22:plain",
+      "scenario": "Nothing is archived during the grace period",
+      "classification": "missing fork feature",
+      "reason": "host.js archive.list returns []; restore/forget return false; F52 not in fork. First runner gap: step definition missing"
+    },
+    {
+      "id": "spec/acceptance/tab-archive.feature:29:plain",
+      "scenario": "A tab with unsaved form work is not archived",
+      "classification": "missing fork feature",
+      "reason": "host.js archive.list returns []; restore/forget return false; F52 not in fork. First runner gap: step definition missing"
+    },
+    {
+      "id": "spec/acceptance/tab-archive.feature:36:plain",
+      "scenario": "Restoring an archived tab opens it once, with its custom name",
+      "classification": "missing fork feature",
+      "reason": "host.js archive.list returns []; restore/forget return false; F52 not in fork. First runner gap: step definition missing"
+    },
+    {
+      "id": "spec/acceptance/tab-archive.feature:43:plain",
+      "scenario": "Clearing history empties the Archive",
+      "classification": "missing fork feature",
+      "reason": "host.js archive.list returns []; restore/forget return false; F52 not in fork. First runner gap: step definition missing"
+    },
+    {
+      "id": "spec/acceptance/tab-archive.feature:49:plain",
+      "scenario": "Nothing is archived right after the computer wakes from sleep",
+      "classification": "missing fork feature",
+      "reason": "host.js archive.list returns []; restore/forget return false; F52 not in fork. First runner gap: step definition missing"
+    },
+    {
+      "id": "spec/acceptance/tab-archive.feature:56:plain",
+      "scenario": "Restore an archived tab from the History sheet",
+      "classification": "missing fork feature",
+      "reason": "host.js archive.list returns []; restore/forget return false; F52 not in fork. First runner gap: step definition missing"
+    },
+    {
+      "id": "spec/acceptance/tab-archive.feature:64:plain",
+      "scenario": "Clear the Archive from the History sheet",
+      "classification": "missing fork feature",
+      "reason": "host.js archive.list returns []; restore/forget return false; F52 not in fork. First runner gap: step definition missing"
+    },
+    {
+      "id": "spec/acceptance/tab-archive.feature:71:plain",
+      "scenario": "A tab I switch to while the sweep is checking it stays open",
+      "classification": "missing fork feature",
+      "reason": "host.js archive.list returns []; restore/forget return false; F52 not in fork. First runner gap: step definition missing"
+    },
+    {
+      "id": "spec/acceptance/tab-archive.feature:79:plain",
+      "scenario": "Overlapping sweeps archive a tab only once",
+      "classification": "missing fork feature",
+      "reason": "host.js archive.list returns []; restore/forget return false; F52 not in fork. First runner gap: step definition missing"
+    },
+    {
+      "id": "spec/acceptance/tab-archive.feature:87:plain",
+      "scenario": "Restoring works while a private tab is active",
+      "classification": "missing fork feature",
+      "reason": "host.js archive.list returns []; restore/forget return false; F52 not in fork. First runner gap: step definition missing"
+    },
+    {
+      "id": "spec/acceptance/tab-archive.feature:94:plain",
+      "scenario": "Tabs in a Space set aside are left alone, and start their idle clock again when it comes back",
+      "classification": "missing fork feature",
+      "reason": "host.js archive.list returns []; restore/forget return false; F52 not in fork. First runner gap: step definition missing"
+    },
+    {
+      "id": "spec/acceptance/tab-archive.feature:104:plain",
+      "scenario": "The first archive is announced once, and View Archive opens it",
+      "classification": "missing fork feature",
+      "reason": "host.js archive.list returns []; restore/forget return false; F52 not in fork. First runner gap: step definition missing"
+    },
+    {
+      "id": "spec/acceptance/tab-archive.feature:113:plain",
+      "scenario": "A dismissed notice never comes back",
+      "classification": "missing fork feature",
+      "reason": "host.js archive.list returns []; restore/forget return false; F52 not in fork. First runner gap: step definition missing"
+    },
+    {
+      "id": "spec/acceptance/tab-archive.feature:122:plain",
+      "scenario": "Closing only a blank New Tab announces nothing",
+      "classification": "missing fork feature",
+      "reason": "host.js archive.list returns []; restore/forget return false; F52 not in fork. First runner gap: step definition missing"
+    },
+    {
+      "id": "spec/acceptance/tab-drag.feature:136:plain",
+      "scenario": "Escape mid-drag keeps the island open",
+      "classification": "missing adapter",
+      "reason": "The fork host discards setOverlayDragState; no overlay drag flag exists to read"
+    },
+    {
+      "id": "spec/acceptance/tab-migration.feature:7:plain",
+      "scenario": "A selected browser profile exposes its verified open tabs",
+      "classification": "missing fork feature",
+      "reason": "Open-tab migration F40 unstarted; first_run.inc ImportSource imports BookmarkModel entries only, with no reviewed session-tab migration path. First runner gap: step definition missing"
+    },
+    {
+      "id": "spec/acceptance/tab-migration.feature:15:plain",
+      "scenario": "Apply preserves order, pins, and quiet state",
+      "classification": "missing fork feature",
+      "reason": "Open-tab migration F40 unstarted; first_run.inc ImportSource imports BookmarkModel entries only, with no reviewed session-tab migration path. First runner gap: step definition missing"
+    },
+    {
+      "id": "spec/acceptance/tab-migration.feature:26:plain",
+      "scenario": "Source groups seed editable Named Groups",
+      "classification": "missing fork feature",
+      "reason": "Open-tab migration F40 unstarted; first_run.inc ImportSource imports BookmarkModel entries only, with no reviewed session-tab migration path. First runner gap: step definition missing"
+    },
+    {
+      "id": "spec/acceptance/tab-migration.feature:35:plain",
+      "scenario": "Source bytes are not read before explicit selection",
+      "classification": "missing fork feature",
+      "reason": "Open-tab migration F40 unstarted; first_run.inc ImportSource imports BookmarkModel entries only, with no reviewed session-tab migration path. First runner gap: step definition missing"
+    },
+    {
+      "id": "spec/acceptance/tab-migration.feature:43:plain",
+      "scenario": "The utility renderer receives no full URLs or source paths",
+      "classification": "missing fork feature",
+      "reason": "Open-tab migration F40 unstarted; first_run.inc ImportSource imports BookmarkModel entries only, with no reviewed session-tab migration path. First runner gap: step definition missing"
+    },
+    {
+      "id": "spec/acceptance/tab-migration.feature:50:plain",
+      "scenario": "A failed tab batch leaves no imported state",
+      "classification": "missing fork feature",
+      "reason": "Open-tab migration F40 unstarted; first_run.inc ImportSource imports BookmarkModel entries only, with no reviewed session-tab migration path. First runner gap: step definition missing"
+    },
+    {
+      "id": "spec/acceptance/tab-migration.feature:58:plain",
+      "scenario": "Quit guidance requires recoverability evidence",
+      "classification": "missing fork feature",
+      "reason": "Open-tab migration F40 unstarted; first_run.inc ImportSource imports BookmarkModel entries only, with no reviewed session-tab migration path. First runner gap: step definition missing"
+    },
+    {
+      "id": "spec/acceptance/tab-migration.feature:66:plain",
+      "scenario": "A reviewed name matching an existing group merges",
+      "classification": "missing fork feature",
+      "reason": "Open-tab migration F40 unstarted; first_run.inc ImportSource imports BookmarkModel entries only, with no reviewed session-tab migration path. First runner gap: step definition missing"
+    },
+    {
+      "id": "spec/acceptance/tab-migration.feature:74:plain",
+      "scenario": "A stale or differently owned session cannot apply",
+      "classification": "missing fork feature",
+      "reason": "Open-tab migration F40 unstarted; first_run.inc ImportSource imports BookmarkModel entries only, with no reviewed session-tab migration path. First runner gap: step definition missing"
+    },
+    {
+      "id": "spec/acceptance/tab-migration.feature:81:plain",
+      "scenario": "Post-quit verification never falls back to stale state",
+      "classification": "missing fork feature",
+      "reason": "Open-tab migration F40 unstarted; first_run.inc ImportSource imports BookmarkModel entries only, with no reviewed session-tab migration path. First runner gap: step definition missing"
+    },
+    {
+      "id": "spec/acceptance/tab-migration.feature:88:plain",
+      "scenario": "Onboarding reaches the separate open-tab flow",
+      "classification": "missing fork feature",
+      "reason": "Open-tab migration F40 unstarted; first_run.inc ImportSource imports BookmarkModel entries only, with no reviewed session-tab migration path. First runner gap: step definition missing"
+    },
+    {
+      "id": "spec/acceptance/tab-migration.feature:95:plain",
+      "scenario": "Unsupported session formats fail closed",
+      "classification": "missing fork feature",
+      "reason": "Open-tab migration F40 unstarted; first_run.inc ImportSource imports BookmarkModel entries only, with no reviewed session-tab migration path. First runner gap: step definition missing"
+    },
+    {
+      "id": "spec/acceptance/tab-migration.feature:102:plain",
+      "scenario": "Workspace save stays separate from migration",
+      "classification": "missing fork feature",
+      "reason": "Open-tab migration F40 unstarted; first_run.inc ImportSource imports BookmarkModel entries only, with no reviewed session-tab migration path. First runner gap: step definition missing"
+    },
+    {
+      "id": "spec/acceptance/tab-migration.feature:109:plain",
+      "scenario": "Cancel destroys the ephemeral migration session",
+      "classification": "missing fork feature",
+      "reason": "Open-tab migration F40 unstarted; first_run.inc ImportSource imports BookmarkModel entries only, with no reviewed session-tab migration path. First runner gap: step definition missing"
+    },
+    {
+      "id": "spec/acceptance/tab-migration.feature:116:plain",
+      "scenario": "A 500-candidate import keeps one live imported tab",
+      "classification": "missing fork feature",
+      "reason": "Open-tab migration F40 unstarted; first_run.inc ImportSource imports BookmarkModel entries only, with no reviewed session-tab migration path. First runner gap: step definition missing"
+    },
+    {
+      "id": "spec/acceptance/tabs-and-groups.feature:240:plain",
+      "scenario": "Browsing a pinned tab keeps its session history",
+      "classification": "missing fork feature",
+      "reason": "Pinned-home F48 has no home URL state or handlers in native source/patches; pin state only records pinning. Undefined native adapter: pinnedHome"
+    },
+    {
+      "id": "spec/acceptance/tabs-and-groups.feature:249:plain",
+      "scenario": "A clean relaunch returns a pinned tab to its home",
+      "classification": "missing fork feature",
+      "reason": "Pinned-home F48 has no home URL state or handlers in native source/patches; pin state only records pinning. Undefined native adapter: pinnedHome"
+    },
+    {
+      "id": "spec/acceptance/tabs-and-groups.feature:256:plain",
+      "scenario": "Pin controls deliberately change the home",
+      "classification": "missing fork feature",
+      "reason": "Pinned-home F48 has no home URL state or handlers in native source/patches; pin state only records pinning. Undefined native adapter: pinnedHome"
+    },
+    {
+      "id": "spec/acceptance/tabs-and-groups.feature:270:plain",
+      "scenario": "Quiet and private tabs keep the pinned-home privacy rules",
+      "classification": "missing fork feature",
+      "reason": "Pinned-home F48 has no home URL state or handlers in native source/patches; pin state only records pinning. Undefined native adapter: pinnedHome"
+    },
+    {
+      "id": "spec/acceptance/tabs-and-groups.feature:278:plain",
+      "scenario": "Tab and Space transfers retain the pinned home",
+      "classification": "missing fork feature",
+      "reason": "Pinned-home F48 has no home URL state or handlers in native source/patches; pin state only records pinning. Undefined native adapter: pinnedHome"
+    },
+    {
+      "id": "spec/acceptance/tabs-and-groups.feature:284:plain",
+      "scenario": "Clearing history does not clear a pinned home",
+      "classification": "missing fork feature",
+      "reason": "Pinned-home F48 has no home URL state or handlers in native source/patches; pin state only records pinning. Undefined native adapter: pinnedHome"
+    },
+    {
+      "id": "spec/acceptance/tabs-and-groups.feature:292:plain",
+      "scenario": "A local-file home follows the normal file-access policy",
+      "classification": "missing fork feature",
+      "reason": "Pinned-home F48 has no home URL state or handlers in native source/patches; pin state only records pinning. native hook adapter missing: pinnedHome; native hook adapter missing: returnPinnedHome, pinnedHome"
+    },
+    {
+      "id": "spec/acceptance/tabs-and-groups.feature:392:plain",
+      "scenario": "Mute Site lasts until Blanc quits",
+      "classification": "missing adapter",
+      "reason": "Native snapshot adapter does not expose state.tabs.1.audioMuted"
+    }
+  ],
+  "failures": [
+    {
+      "id": "spec/acceptance/F41-named-workspaces.feature:34:plain",
+      "scenario": "Quiet tabs and inactive navigation keep their workspace ownership",
+      "error": "timed out waiting for eligible fixture page to become quiet; last: false",
+      "retried": true,
+      "firstAttempt": {
+        "result": "fail",
+        "error": "timed out waiting for eligible fixture page to become quiet; last: false"
+      }
+    },
+    {
+      "id": "spec/acceptance/F41-named-workspaces.feature:613:plain",
+      "scenario": "A group moves to a space with its name and colour",
+      "error": "Expected values to be strictly equal:\n\n'' !== '#426c4c'\n",
+      "retried": true,
+      "firstAttempt": {
+        "result": "fail",
+        "error": "Expected values to be strictly equal:\n\n'' !== '#426c4c'\n"
+      }
+    },
+    {
+      "id": "spec/acceptance/glance.feature:88:plain",
+      "scenario": "Cancelling the picker while a quiet tab wakes leaves Glance closed",
+      "error": "Timeout waiting for #glancePickerInput[aria-busy=\"true\"] to be visible",
+      "retried": true,
+      "firstAttempt": {
+        "result": "fail",
+        "error": "Timeout waiting for #glancePickerInput[aria-busy=\"true\"] to be visible"
+      }
+    },
+    {
+      "id": "spec/acceptance/glance.feature:98:plain",
+      "scenario": "Closing Glance takes the Change picker with it",
+      "error": "cancel restored focus toward a control that no longer exists\n+ actual - expected\n\n+ undefined\n- null\n",
+      "retried": true,
+      "firstAttempt": {
+        "result": "fail",
+        "error": "cancel restored focus toward a control that no longer exists\n+ actual - expected\n\n+ undefined\n- null\n"
+      }
+    },
+    {
+      "id": "spec/acceptance/platform-services.feature:7:plain",
+      "scenario": "A fresh profile sends nothing before its usage-ping choice is committed",
+      "error": "CDP timeout: Runtime.evaluate",
+      "retried": true,
+      "firstAttempt": {
+        "result": "fail",
+        "error": "CDP timeout: Runtime.evaluate"
+      }
+    },
+    {
+      "id": "spec/acceptance/platform-services.feature:17:plain",
+      "scenario": "Declining the usage ping persists without minting an install id",
+      "error": "CDP timeout: Runtime.evaluate",
+      "retried": true,
+      "firstAttempt": {
+        "result": "fail",
+        "error": "CDP timeout: Runtime.evaluate"
+      }
+    },
+    {
+      "id": "spec/acceptance/tabs-and-groups.feature:112:plain",
+      "scenario": "Collapsing a group tucks its tabs away in the panel",
+      "error": "Timeout waiting for a \"3 tabs tucked away\" row for work: false",
+      "retried": true,
+      "firstAttempt": {
+        "result": "fail",
+        "error": "Timeout waiting for a \"3 tabs tucked away\" row for work: false"
+      }
+    },
+    {
+      "id": "spec/acceptance/vertical-tabs.feature:239:plain",
+      "scenario": "The main-menu button moves into the rail on Windows and Linux",
+      "error": "timed out waiting for the main-menu button in the rail's first row; last: {\"hidden\":true,\"home\":\"vertical-tabs-toolbar\",\"leads\":true,\"beforePill\":false,\"rect\":{\"x\":0,\"y\":0,\"width\":0,\"height\":0},\"layoutButtonX\":210,\"reachable\":false}",
+      "retried": true,
+      "firstAttempt": {
+        "result": "fail",
+        "error": "timed out waiting for the main-menu button in the rail's first row; last: {\"hidden\":true,\"home\":\"vertical-tabs-toolbar\",\"leads\":true,\"beforePill\":false,\"rect\":{\"x\":0,\"y\":0,\"width\":0,\"height\":0},\"layoutButtonX\":210,\"reachable\":false}"
+      }
+    }
+  ]
+}

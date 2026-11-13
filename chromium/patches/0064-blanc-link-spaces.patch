@@ -1,0 +1,58 @@
+diff --git a/chrome/browser/renderer_context_menu/render_view_context_menu.cc b/chrome/browser/renderer_context_menu/render_view_context_menu.cc
+--- a/chrome/browser/renderer_context_menu/render_view_context_menu.cc
++++ b/chrome/browser/renderer_context_menu/render_view_context_menu.cc
+@@ -2045,6 +2045,15 @@
+                           blanc_prototype::OpenLinkInGlanceLabel());
+     }
+ 
++    blanc_space_targets_ = blanc_prototype::LinkSpaceTargets(source_web_contents_, GetRenderFrameHost(), params_.link_url);
++    if (!blanc_space_targets_.empty()) {
++      blanc_spaces_menu_ = std::make_unique<ui::SimpleMenuModel>(this);
++      for (size_t i = 0; i < blanc_space_targets_.size(); ++i)
++        blanc_spaces_menu_->AddItem(blanc_prototype::kLinkSpaceFirstCommand + i, blanc_space_targets_[i].second);
++      menu_model_.AddSubMenu(blanc_prototype::kLinkSpaceMenuCommand,
++          blanc_prototype::LinkSpaceLabel(false), blanc_spaces_menu_.get());
++    }
++
+     if (show_open_in_new_window) {
+       AddItemWithOptionalIcon(IDC_CONTENT_CONTEXT_OPENLINKNEWWINDOW,
+                               IDS_CONTENT_CONTEXT_OPENLINKNEWWINDOW,
+@@ -3485,6 +3494,9 @@
+ // Menu delegate functions -----------------------------------------------------
+ 
+ bool RenderViewContextMenu::IsCommandIdEnabled(int id) const {
++  if (id == blanc_prototype::kLinkSpaceMenuCommand) return !blanc_space_targets_.empty();
++  if (id >= blanc_prototype::kLinkSpaceFirstCommand && id < blanc_prototype::kLinkSpaceFirstCommand + 26)
++    return static_cast<size_t>(id - blanc_prototype::kLinkSpaceFirstCommand) < blanc_space_targets_.size();
+   if (id == blanc_prototype::kOpenLinkInGlanceCommand) return true;
+ #if BUILDFLAG(IS_CHROMEOS)
+   // Disable context menu in locked fullscreen mode to prevent users from
+@@ -3922,6 +3934,13 @@
+ }
+ 
+ void RenderViewContextMenu::ExecuteCommand(int id, int event_flags) {
++  if (id >= blanc_prototype::kLinkSpaceFirstCommand && id < blanc_prototype::kLinkSpaceFirstCommand + 26) {
++    const size_t index = id - blanc_prototype::kLinkSpaceFirstCommand;
++    if (index < blanc_space_targets_.size())
++      blanc_prototype::OpenLinkInSpace(source_web_contents_, GetRenderFrameHost(), params_.link_url,
++          params_.link_text, blanc_space_targets_[index].first);
++    return;
++  }
+   if (id == blanc_prototype::kOpenLinkInGlanceCommand) {
+     blanc_prototype::OpenLinkInGlance(source_web_contents_, params_.link_url);
+     return;
+diff --git a/chrome/browser/renderer_context_menu/render_view_context_menu.h b/chrome/browser/renderer_context_menu/render_view_context_menu.h
+--- a/chrome/browser/renderer_context_menu/render_view_context_menu.h
++++ b/chrome/browser/renderer_context_menu/render_view_context_menu.h
+@@ -274,6 +274,11 @@
+           navigation_handle_callback) override;
+ 
+  private:
++  // Blanc: one menu's captured Space identities; later reordering cannot
++  // redirect the chosen command to a different Space.
++  std::vector<std::pair<std::string, std::u16string>> blanc_space_targets_;
++  std::unique_ptr<ui::SimpleMenuModel> blanc_spaces_menu_;
++
+   std::u16string GetElidedSelectionText(size_t max_length,
+                                         gfx::BreakType break_type);
+ 

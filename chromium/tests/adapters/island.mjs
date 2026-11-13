@@ -14,7 +14,7 @@ export function cdpMouse(input,offset={x:0,y:0}){
  const type=MOUSE[input?.type];
  if(!type)throw new UndefinedNativeAdapterError('Mouse input shim lacks '+input?.type);
  const button=type==='mouseMoved'?(input.button?String(input.button):'none'):String(input.button||'left');
- return {type,x:Number(input.x)+offset.x,y:Number(input.y)+offset.y,button,clickCount:Number(input.clickCount)||(type==='mouseMoved'?0:1)};
+ return {type,x:Number(input.x)+offset.x,y:Number(input.y)+offset.y,button,buttons:type==='mouseReleased'?0:({left:1,right:2,middle:4}[button]??0),clickCount:Number(input.clickCount)||(type==='mouseMoved'?0:1)};
 }
 // Electron keyDown/char/keyUp with a one-character keyCode -> CDP key events.
 export function cdpKey(input){
@@ -30,7 +30,8 @@ export function cdpKey(input){
  throw new UndefinedNativeAdapterError('Key input shim lacks '+input?.type);
 }
 async function send(cdp,input,offset){
- if(MOUSE[input?.type])await cdp.send('Input.dispatchMouseEvent',cdpMouse(input,offset));
+ if(input?.type==='mouseWheel')await cdp.send('Input.dispatchMouseEvent',{type:'mouseWheel',x:Number(input.x)+(offset?.x??0),y:Number(input.y)+(offset?.y??0),deltaX:Number(input.deltaX)||0,deltaY:Number(input.deltaY)||0});
+ else if(MOUSE[input?.type])await cdp.send('Input.dispatchMouseEvent',cdpMouse(input,offset));
  else await cdp.send('Input.dispatchKeyEvent',cdpKey(input));
  return true;
 }
@@ -66,7 +67,7 @@ async function floatViewState(w,role='pill'){
  const state=await w.hostEval('window.BlancPrototypeHost.floatViewState()');
  if(!state)return null;
  const b=state.bounds;
- const above=!!b&&state.shown&&await w.native('hitTarget',[Math.round(b.x+b.width/2),Math.round(b.y+Math.min(b.height-1,30))])==='island';
+ const above=!!b&&await w.native('islandAbovePages')&&(!state.shown||await w.native('hitTarget',[Math.round(b.x+b.width/2),Math.round(b.y+Math.min(b.height-1,30))])==='island');
  return {...state,aboveTabsAndSheet:above};
 }
 // Blink dispatches mouse moves with the next frame, after CDP has answered;
@@ -102,13 +103,27 @@ async function islandReport(w){
 // Shipping sets these through its Settings page; drive the fork's Settings
 // page the same way. A missing control is the product's own gap.
 export const island={
+ tabLayout:async w=>{
+  const layout=(await w.snapshot()).tabLayout;
+  // A restored native tab model can precede the strip iframe's first render.
+  // Observe its actual layout after it catches up with the persisted model.
+  return w.waitFor(()=>strip(w).evaluate(()=>document.documentElement.dataset.tabLayout),v=>v===layout,'rendered tab layout');
+ },
+ verticalTabsWidth:async w=>(await w.snapshot()).verticalTabsPreferredWidth,
+ verticalTabsMetrics:async w=>{const s=await w.snapshot();return Object.fromEntries(Object.entries(s).filter(([k])=>k.startsWith('verticalTabs')));},
+ utilityBounds:async w=>{const settings=await frameRect(w,'settingsSheet');return settings??frameRect(w,'sheet');},
+ overlayElementRect:(w,selector)=>w.waitFor(()=>overlay(w).locator(selector).boundingBox(),Boolean,'rendered overlay '+selector),
  // ---- window ----
  async windowContentBounds(w){
   const {bounds}=await windowOf(w);
   // The Island window has no OS frame: the host and the page split its height,
   // or (auto-hide) the page takes all of it with the Island above it.
-  const [host,page]=await Promise.all([w.hostEval('({w:innerWidth,h:innerHeight})'),(await activePage(w)).evalExpression('innerHeight')]);
-  if(host.w!==bounds.width||([68,76,84].includes(host.h)&&host.h+page!==bounds.height&&page!==bounds.height))throw Error('Island window content does not fill its frame: '+JSON.stringify({bounds,host,page}));
+  // A zoomed page (Mahjong's records check) reports fewer CSS pixels; its
+  // height is compared in the host's, within the pixel that rounding costs.
+  const [host,inner]=await Promise.all([w.hostEval('({w:innerWidth,h:innerHeight,dpr:devicePixelRatio})'),(await activePage(w)).evalExpression('({h:innerHeight,dpr:devicePixelRatio})')]);
+  const zoomed=inner.dpr!==host.dpr,page=zoomed?Math.round(inner.h*inner.dpr/host.dpr):inner.h;
+  const fills=h=>zoomed?Math.abs(h-bounds.height)<=1:h===bounds.height;
+  if(host.w!==bounds.width||([68,76,84].includes(host.h)&&!fills(host.h+page)&&!fills(page)))throw Error('Island window content does not fill its frame: '+JSON.stringify({bounds,host,page}));
   return {x:bounds.left,y:bounds.top,width:bounds.width,height:bounds.height};
  },
  async setWindowContentSize(w,width,height){
@@ -160,13 +175,36 @@ export const island={
  // The overlay iframe is the fork's overlay view: shown is attached.
  overlayViewAttached:async w=>!!(await frameRect(w,'overlay')),
  overlayViewBounds:w=>frameRect(w,'overlay'),
- // The Spaces menu is drawn inside the overlay iframe, which fills the window;
- // shipping's view is the menu plus its shadow room (chrome-layout.js).
- async overlayBounds(w){const frame=await frameRect(w,'overlay');
-  if(!frame||await w.call('overlayRendererMode')!=='spaces')return frame;
+ // Shipping attaches its positioned Spaces view before reporting its bounds.
+ // The fork publishes the host mode before the next-frame renderer handoff;
+ // wait for that handoff before reading the menu and its actual shadow room.
+ async overlayBounds(w){
+  const spaces=await w.call('overlayMode')==='spaces';
+  if(spaces)await w.waitFor(()=>w.call('overlayRendererMode'),mode=>mode==='spaces','rendered Spaces overlay');
+  const frame=await frameRect(w,'overlay');
+  if(!frame)return frame;
+  // Shipping reports native view bounds, before its WebContents zoom. Frame
+  // DOM bounds are zoomed CSS pixels; recover the host's native window scale.
+  const {bounds}=await windowOf(w);
+  const scale=bounds.width/await w.hostEval('innerWidth');
+  const native=r=>Object.fromEntries(Object.entries(r).map(([key,value])=>[key,value*scale]));
+  if(!spaces)return native(frame);
   const menu=await overlay(w).locator('#workspaceSwitcher').boundingBox();if(!menu)return frame;
-  return {x:frame.x+menu.x-SPACES_MENU_SIDE,y:frame.y+menu.y-SPACES_MENU_PAD,width:menu.width+SPACES_MENU_SIDE*2,height:menu.height+SPACES_MENU_PAD*2};},
+  return native({x:frame.x+menu.x-SPACES_MENU_SIDE,y:frame.y+menu.y-SPACES_MENU_PAD,width:menu.width+SPACES_MENU_SIDE*2,height:menu.height+SPACES_MENU_PAD*2});},
  sendOverlayInput:(w,input)=>frameInput(w,'overlay',input),
+ async pressOverlayKey(w,key,modifiers=[]){
+  await overlay(w).evaluate(()=>window.focus());
+  await overlay(w).keyboard.press([...modifiers,key].join('+'));return true;
+ },
+ async spacesMenuExitState(w){
+  const view={mode:await w.call('overlayMode'),showing:!!(await frameRect(w,'overlay'))};
+  const menu=await overlay(w).evaluate(()=>{
+   const m=document.getElementById('workspaceSwitcher'),s=getComputedStyle(m);
+   return {hidden:m.hidden,closing:document.body.dataset.closing??'',display:s.display,
+    top:s.top,left:s.left,transform:s.transform,opacity:Number(s.opacity)};
+  });
+  return {...view,...menu};
+ },
  // Counts the host's own onOverlayShow broadcasts to the current overlay
  // document, from the reset onward.
  resetOverlayShowCount:w=>w.hostEval(`(()=>{const d=document.getElementById('overlay').contentDocument;
@@ -177,9 +215,24 @@ export const island={
   if(n==null)throw Error('Overlay show counter was not reset on the current overlay document');
   return n;
  },
- overlayDragging:undef('The fork host discards setOverlayDragState; no overlay drag flag exists to read'),
+ overlayDragging:w=>w.hostEval('window.BlancPrototypeHost.overlayDragging()'),
  // ---- tab documents ----
- async sendMouseInput(w,id,input){const page=await tabPage(w,id);await page.evalExpression('1');return send(page.cdp,input);},
+ setMouseGestures:(w,enabled,mapping)=>w.native("setMouseGestures",mapping===undefined?[!!enabled]:[!!enabled,mapping]),
+ async sendMouseInput(w,id,input){
+  const page=await tabPage(w,id);await page.evalExpression('1');
+  if(input?.type==='mouseDown'){
+   await w.waitFor(async()=>{
+    const s=await w.snapshot(),bounds=s.tabs.find(t=>String(t.id)===String(id))?.viewBounds;
+    const shown=String(s.glanceTabId)!==String(id)||(await w.hostEval('window.BlancPrototypeHost.glanceState()')).shown;
+    return !!bounds&&bounds.width>0&&bounds.height>0&&shown&&await page.evalExpression('document.visibilityState === "visible"');
+   },Boolean,'visible native input target');
+  }
+  const sent=await send(page.cdp,input);
+  // A CDP mouse-move acknowledgement can precede its frame dispatch. Flush
+  // it before the next release, as Electron sendInputEvent's native path does.
+  if(input?.type==='mouseMove')await page.evalExpression(nextFrames);
+  return sent;
+ },
  async typeIntoActivePage(w,key){const page=await activePage(w);await page.evalExpression('1');
   for(const type of ['keyDown','char','keyUp'])await page.cdp.send('Input.dispatchKeyEvent',cdpKey({type,keyCode:key}));return true;},
  // Keep the rail path for active tabs; background focus uses the test hook.
@@ -280,9 +333,11 @@ export const island={
  async floatWebContentsIds(w,runtimeId){
   const id=String(runtimeId);
   const {targetInfos:targets}=await w.fixture.browser.send('Target.getTargets');
-  const host=id==='primary'?null:targets.find(t=>t.targetId===id);
-  if(id!=='primary'&&!host)return [];
-  return [`${id}:floatPill`];
+  const ordered=await w.native('windowOrdinals');
+  const targetId=id==='primary'?ordered[0]:/^window-\d+$/.test(id)?ordered[Number(id.slice(7))-1]:id;
+  const host=targets.find(t=>t.targetId===targetId&&t.url==='chrome://blanc-prototype/host.html');
+  if(!host)return [];
+  return [`${targetId}:floatPill`];
  },
  floatPillWebContentsId:undef('The fork\'s floating pill is a frame of the Island host, not its own web contents'),
  async chromeSurfaceRegistered(w,surface){

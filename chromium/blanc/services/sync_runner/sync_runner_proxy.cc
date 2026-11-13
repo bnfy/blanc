@@ -46,6 +46,8 @@
 
 #if BUILDFLAG(IS_ANDROID)
 #include "base/android/apk_assets.h"
+#else
+#include "blanc/services/sync_runner/sync_resources.h"
 #endif
 
 namespace blanc {
@@ -86,8 +88,15 @@ std::string ReadBundle() {
   if (base::CommandLine::ForCurrentProcess()->HasSwitch("blanc-sync-test-bad-bundle")) script.back() ^= 1;
 #endif
 #else
-  auto path = base::CommandLine::ForCurrentProcess()->GetSwitchValuePath("blanc-sync-assets").AppendASCII("sync-bundle.js");
-  if (!base::ReadFileToStringWithMaxSize(path, &script, 16 * 1024 * 1024)) return std::string();
+  const auto* command = base::CommandLine::ForCurrentProcess();
+  if (command->HasSwitch("blanc-sync-assets")) {
+    auto path = command->GetSwitchValuePath("blanc-sync-assets").AppendASCII("sync-bundle.js");
+    if (!base::ReadFileToStringWithMaxSize(path, &script, 16 * 1024 * 1024)) return std::string();
+  } else {
+    auto resource = sync_resources::Find("sync-bundle.js");
+    if (!resource) return std::string();
+    script.assign(reinterpret_cast<const char*>(resource->data()), resource->size());
+  }
 #endif
   if (base::ToLowerASCII(base::HexEncode(crypto::hash::Sha256(script))) != kBlancSyncBundleSha256) return std::string();
   return script;
@@ -159,12 +168,34 @@ class Runner : public mojom::SyncHost {
         LOG(ERROR) << "sync: could not write " << path.BaseName();
     }, g_platform->StoreDir().AppendASCII(name), data));
   }
+  void PersistDesktopStore(const std::string& name, const std::vector<uint8_t>& data,
+                           PersistDesktopStoreCallback callback) override {
+    if ((name != "shared-spaces.json" && name != "desktop-spaces-visible.json") || data.size() > kMaxBody) {
+      std::move(callback).Run(false); return;
+    }
+    writer_->PostTaskAndReplyWithResult(FROM_HERE,
+        base::BindOnce([](base::FilePath path, std::vector<uint8_t> data) {
+          return base::CreateDirectory(path.DirName()) && base::ImportantFileWriter::WriteFileAtomically(
+              path, std::string(data.begin(), data.end()));
+        }, g_platform->StoreDir().AppendASCII(name), data),
+        mojo::WrapCallbackWithDefaultInvokeIfNotRun(std::move(callback), false));
+  }
   void Protect(const std::vector<uint8_t>& data, ProtectCallback callback) override {
+#if !BUILDFLAG(IS_ANDROID)
+    // Desktop can quit while ThreadPool drops a pending crypto reply. Resolve
+    // the open Mojo response as unavailable; never leave a live responder.
+    callback = mojo::WrapCallbackWithDefaultInvokeIfNotRun(
+        std::move(callback), std::optional<std::vector<uint8_t>>());
+#endif
     // Keystore goes through binder: never on the thread that draws the app.
     base::ThreadPool::PostTaskAndReplyWithResult(FROM_HERE, {base::MayBlock()},
         base::BindOnce(&SyncPlatform::Protect, base::Unretained(g_platform), data), std::move(callback));
   }
   void Unprotect(const std::vector<uint8_t>& data, UnprotectCallback callback) override {
+#if !BUILDFLAG(IS_ANDROID)
+    callback = mojo::WrapCallbackWithDefaultInvokeIfNotRun(
+        std::move(callback), std::optional<std::vector<uint8_t>>());
+#endif
     base::ThreadPool::PostTaskAndReplyWithResult(FROM_HERE, {base::MayBlock()},
         base::BindOnce(&SyncPlatform::Unprotect, base::Unretained(g_platform), data), std::move(callback));
   }

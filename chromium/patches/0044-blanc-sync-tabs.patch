@@ -1,0 +1,79 @@
+--- a/chrome/browser/resources/settings/blanc_settings_proxy.ts
++++ b/chrome/browser/resources/settings/blanc_settings_proxy.ts
+@@ -286,6 +286,7 @@
+ // once, never retained in a shared proxy or returned in status/listener data.
+ export interface BlancSyncStatus {
+   enabled: boolean;
++  syncTabs: boolean;
+   handle: string;
+   lastSyncedAt: number;
+   lastError: string|null;
+@@ -315,7 +316,7 @@
+ 
+ export type BlancSyncMethod = 'sync.startNew'|'sync.joinWithCode'|
+     'sync.preflight'|'sync.enable'|'sync.syncNow'|'sync.disable'|'sync.status'|'sync.beginPairing'|'sync.cancelPairing'|'sync.pairingState'|
+-    'sync.setPairingWatch';
++    'sync.setPairingWatch'|'sync.setSyncTabs';
+ 
+ interface BlancSyncReply<T> {
+   ok: boolean;
+--- a/chrome/browser/resources/settings/blanc_sync_page/blanc_sync_page.ts
++++ b/chrome/browser/resources/settings/blanc_sync_page/blanc_sync_page.ts
+@@ -425,6 +425,11 @@
+     }
+   }
+ 
++  protected onTabsShareChange_(event: Event) {
++    const on = (event.target as HTMLInputElement).checked;
++    void this.act_(() => blancSync.call('sync.setSyncTabs', [on]));
++  }
++
+   protected onSyncNowClick_() {
+     this.run_('sync.syncNow');
+   }
+--- a/chrome/browser/resources/settings/blanc_sync_page/blanc_sync_page.html
++++ b/chrome/browser/resources/settings/blanc_sync_page/blanc_sync_page.html
+@@ -74,6 +74,9 @@
+       </div>
+ 
+       <div id="syncOn" ?hidden="${!this.state_?.status?.enabled}">
++        <label id="syncTabsShareSetting"><input id="syncTabsShare" type="checkbox"
++            .checked="${!!this.state_?.status?.syncTabs}" ?disabled="${this.busy_}"
++            @change="${this.onTabsShareChange_}"> Open tabs — From this device</label>
+         <p id="syncAccount">${this.state_?.status?.handle ?? ''}</p>
+         <cr-button id="syncNow" ?disabled="${this.busy_}"
+             @click="${this.onSyncNowClick_}">$i18n{blancSyncNow}</cr-button>
+--- a/chrome/browser/sessions/session_service_base.cc
++++ b/chrome/browser/sessions/session_service_base.cc
+@@ -635,6 +635,9 @@
+   if (!tab_identity.empty()) command_storage_manager()->AppendRebuildCommand(
+       sessions::CreateAddTabExtraDataCommand(session_id,
+           blanc_prototype::kTabIdentityKey, tab_identity));
++  if (blanc_prototype::HasInheritedDocumentPolicy(tab))
++    command_storage_manager()->AppendRebuildCommand(sessions::CreateAddTabExtraDataCommand(
++        session_id, blanc_prototype::kInheritedDocumentPolicyKey, "1"));
+   const auto inherited_sandbox = blanc_prototype::InheritedSandboxState(tab);
+   if (!inherited_sandbox.empty()) command_storage_manager()->AppendRebuildCommand(
+       sessions::CreateAddTabExtraDataCommand(session_id,
+--- a/chrome/browser/ui/browser_live_tab_context.cc
++++ b/chrome/browser/ui/browser_live_tab_context.cc
+@@ -208,6 +208,8 @@
+ 
+   const auto name = blanc_prototype::PersistentTabName(tab_strip_model_->GetWebContentsAt(index));
+   if (!name.empty()) extra_data[blanc_prototype::kTabNameKey] = name;
++  if (blanc_prototype::HasInheritedDocumentPolicy(tab_strip_model_->GetWebContentsAt(index)))
++    extra_data[blanc_prototype::kInheritedDocumentPolicyKey] = "1";
+   const auto sandbox = blanc_prototype::InheritedSandboxState(tab_strip_model_->GetWebContentsAt(index));
+   if (!sandbox.empty()) extra_data[blanc_prototype::kInheritedSandboxKey] = sandbox;
+ 
+--- a/chrome/browser/ui/browser_commands.cc
++++ b/chrome/browser/ui/browser_commands.cc
+@@ -1777,7 +1777,7 @@
+   }
+   WebContents* contents = browser->GetTabStripModel()->GetWebContentsAt(index);
+   // Blanc (N4): a copy could not keep the sandbox the tab inherited.
+-  return contents && !blanc_prototype::HasInheritedSandbox(contents);
++  return contents && !blanc_prototype::HasInheritedDocumentPolicy(contents);
+ }
+ 
+ void MoveTabsToExistingWindow(BrowserWindowInterface* source,

@@ -1,0 +1,51 @@
+--- a/chrome/browser/ui/browser_commands.cc
++++ b/chrome/browser/ui/browser_commands.cc
+@@ -396,6 +396,7 @@
+       browser->GetTabStripModel()->GetWebContentsAt(index);
+   CHECK(contents);
+   std::unique_ptr<content::WebContents> contents_dupe = contents->Clone();
++  blanc_prototype::CopySyncExclusion(contents, contents_dupe.get());
+   content::WebContents* raw_contents_dupe = contents_dupe.get();
+ 
+   bool pinned = false;
+@@ -1777,7 +1778,7 @@
+   }
+   WebContents* contents = browser->GetTabStripModel()->GetWebContentsAt(index);
+   // Blanc (N4): a copy could not keep the sandbox the tab inherited.
+-  return contents && !blanc_prototype::HasInheritedDocumentPolicy(contents);
++  return contents && !blanc_prototype::HasInheritedSandbox(contents);
+ }
+ 
+ void MoveTabsToExistingWindow(BrowserWindowInterface* source,
+@@ -2615,6 +2616,10 @@
+ }
+ 
+ void ToggleVerticalTabs(BrowserWindowInterface* browser) {
++  if (blanc_prototype::IsIslandWindow(browser)) {
++    blanc_prototype::ToggleTabLayout(browser);
++    return;
++  }
+   tabs::VerticalTabStripStateController* controller =
+       tabs::VerticalTabStripStateController::From(browser);
+   if (!controller) {
+--- a/chrome/browser/global_keyboard_shortcuts_mac.mm
++++ b/chrome/browser/global_keyboard_shortcuts_mac.mm
+@@ -11,6 +11,7 @@
+ #include "base/check.h"
+ #include "base/feature_list.h"
+ #include "base/no_destructor.h"
++#include "blanc/browser/ui/blanc_prototype_ui.h"
+ #include "build/buildflag.h"
+ #include "chrome/app/chrome_command_ids.h"
+ #import "chrome/browser/app_controller_mac.h"
+@@ -165,6 +166,10 @@
+     keys.push_back(
+         {true, false, true, false, kVK_ANSI_Z, IDC_FOCUS_PREV_TAB_GROUP});
+ 
++    if (blanc_prototype::IsEnabled()) {
++      keys.push_back({true, false, false, true, kVK_ANSI_V, IDC_TOGGLE_VERTICAL_TABS});
++    }
++
+     if (base::FeatureList::IsEnabled(features::kUIDebugTools)) {
+       keys.push_back(
+           {false, true, true, true, kVK_ANSI_T, IDC_DEBUG_TOGGLE_TABLET_MODE});

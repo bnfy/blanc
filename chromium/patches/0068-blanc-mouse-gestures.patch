@@ -1,0 +1,167 @@
+diff --git a/chrome/browser/prefs/browser_prefs.cc b/chrome/browser/prefs/browser_prefs.cc
+--- a/chrome/browser/prefs/browser_prefs.cc
++++ b/chrome/browser/prefs/browser_prefs.cc
+@@ -2080,6 +2080,8 @@
+   TRACE_EVENT0("browser", "chrome::RegisterProfilePrefs");
+ #if __has_include("blanc/browser/ui/blanc_prototype_ui.h")
+   registry->RegisterStringPref("blanc.prototype.start_layout", "");
++  registry->RegisterBooleanPref("blanc.mouse_gestures.enabled", false);
++  registry->RegisterDictionaryPref("blanc.mouse_gestures.mapping", base::DictValue().Set("L", "back").Set("R", "forward").Set("U", "newTab").Set("D", "closeTab"));
+ #endif
+ #if __has_include("blanc/browser/ui/blanc_prototype_ui.h")
+   registry->RegisterListPref("blanc.prototype.start_page_pins");
+diff --git a/chrome/browser/resources/settings/appearance_page/appearance_page.html.ts b/chrome/browser/resources/settings/appearance_page/appearance_page.html.ts
+--- a/chrome/browser/resources/settings/appearance_page/appearance_page.html.ts
++++ b/chrome/browser/resources/settings/appearance_page/appearance_page.html.ts
+@@ -4,6 +4,7 @@
+ 
+ import {html} from '//resources/lit/v3_0/lit.rollup.js';
+ 
++import {loadTimeData} from '../i18n_setup.js';
+ import type {SettingsAppearancePageElement} from './appearance_page.js';
+ 
+ export function getHtml(this: SettingsAppearancePageElement) {
+@@ -49,6 +50,40 @@
+       </div>
+ </if>
+     </div>
++    <div class="cr-row">
++      <div class="flex cr-padded-text" id="blancGestureText"><div>$i18n{blancGestureLabel}</div><div class="secondary">$i18n{blancGestureHint}</div></div>
++      <cr-toggle id="blancMouseGestures" aria-labelledby="blancGestureText" ?checked="${this.blancGestures_?.enabled??false}" @change="${this.onBlancGestureEnabledChange_}"></cr-toggle>
++    </div>
++    <div class="list-frame" ?hidden="${!this.blancGestures_?.enabled}">
++      <div class="list-item secondary" id="blancGestureAssigned">$i18n{blancGestureAssigned}</div>
++      <div class="list-item" ?hidden="${Object.keys(this.blancGestures_?.mapping??{}).length>0}">$i18n{blancGestureEmpty}</div>
++      ${Object.entries(this.blancGestures_?.mapping??{}).map(([pattern,action])=>html`
++        <div class="list-item">
++          <span class="flex" aria-hidden="true" style="font-size:16px;letter-spacing:3px">${this.blancGestureGlyph_(pattern)}</span>
++          <select class="md-select" aria-label="${this.blancGestureGlyph_(pattern)}" data-pattern="${pattern}" @change="${this.onBlancGestureActionChange_}">
++            ${this.blancGestureActions_.map(id=>html`<option value="${id}" ?selected="${id===action}">${this.blancGestureLabel_(id)}</option>`)}
++          </select>
++          <cr-icon-button class="icon-clear" style="margin-inline-start:8px" title="${loadTimeData.getString('blancGestureRemove').replace('{gesture}',this.blancGestureGlyph_(pattern))}" aria-label="${loadTimeData.getString('blancGestureRemove').replace('{gesture}',this.blancGestureGlyph_(pattern))}" data-pattern="${pattern}" @click="${this.onBlancGestureRemoveClick_}"></cr-icon-button>
++        </div>`)}
++      <div class="list-item" style="gap:8px">
++        <cr-button id="blancGestureAdd" @click="${this.onBlancGestureAddClick_}">$i18n{blancGestureAdd}</cr-button>
++        <cr-button @click="${this.onBlancGestureResetClick_}">$i18n{blancGestureReset}</cr-button>
++      </div>
++      <div class="list-item" style="display:block;padding-block:12px" ?hidden="${!this.blancGestureComposer_}">
++        <div class="secondary">$i18n{blancGestureDrawHint}</div>
++        <div id="blancGesturePad" role="group" aria-label="$i18n{blancGesturePadLabel}" style="min-height:120px;margin:10px 0;border:1px dashed var(--cr-separator-color);border-radius:10px;display:grid;place-items:center;color:var(--cr-secondary-text-color);touch-action:none;user-select:none"
++          @pointerdown="${this.onBlancGesturePointerdown_}" @pointermove="${this.onBlancGesturePointermove_}" @pointerup="${this.onBlancGesturePointerup_}" @pointercancel="${this.onBlancGesturePointercancel_}">$i18n{blancGesturePadPrompt}</div>
++        <div style="display:flex;gap:8px;align-items:center">
++          <select class="md-select" aria-label="$i18n{blancGestureChooseAction}" @change="${this.onBlancGestureComposerActionChange_}">
++            ${this.blancGestureActions_.map(id=>html`<option value="${id}">${this.blancGestureLabel_(id)}</option>`)}
++          </select>
++          <cr-button class="action-button" ?disabled="${!this.blancGesturePattern_}" @click="${this.onBlancGestureSaveClick_}">$i18n{blancGestureSave}</cr-button>
++          <cr-button @click="${this.onBlancGestureCancelClick_}">$i18n{blancGestureCancel}</cr-button>
++        </div>
++      </div>
++      <div class="secondary" role="status" aria-live="polite" style="padding:${this.blancGestureMessage_?'8px 20px':'0'}">${this.blancGestureMessage_}</div>
++    </div>
++
+     <!-- Blanc (S1.7): the Island replaces Chromium's toolbar. -->
+     <div id="toolbarRow" class="settings-row" hidden>
+       <cr-link-row id="customizeToolbar" label="$i18n{customizeToolbar}"
+diff --git a/chrome/browser/resources/settings/appearance_page/appearance_page.ts b/chrome/browser/resources/settings/appearance_page/appearance_page.ts
+--- a/chrome/browser/resources/settings/appearance_page/appearance_page.ts
++++ b/chrome/browser/resources/settings/appearance_page/appearance_page.ts
+@@ -4,6 +4,8 @@
+ 
+ import 'chrome://resources/cr_components/managed_dialog/managed_dialog.js';
+ import 'chrome://resources/cr_elements/cr_button/cr_button.js';
++import 'chrome://resources/cr_elements/cr_icon_button/cr_icon_button.js';
++import 'chrome://resources/cr_elements/cr_toggle/cr_toggle.js';
+ import 'chrome://resources/cr_elements/cr_link_row/cr_link_row.js';
+ import '../controls/controlled_radio_button.js';
+ import '/shared/settings/controls/extension_controlled_indicator.js';
+@@ -154,6 +156,11 @@
+       blancIslandAutoHideStyleOptions_: {type: Array},
+       blancIslandSizeOptions_: {type: Array},
+       blancTabArchiveOptions_: {type: Array},
++      blancGestures_: {type:Object},
++      blancGestureComposer_: {type:Boolean},
++      blancGesturePattern_: {type:String},
++      blancGestureMessage_: {type:String},
++      blancGestureAction_: {type:String},
+       blancMiniState_: {type: Object},
+       blancMiniOptions_: {type: Array},
+       blancAppIconOptions_: {type: Array},
+@@ -231,6 +238,59 @@
+         {value: 'push',
+          name: loadTimeData.getString('blancIslandAutoHideStylePush')},
+       ];
++  protected accessor blancGestures_: {enabled:boolean,mapping:Record<string,string>}|null = null;
++  protected accessor blancGestureComposer_ = false;
++  protected accessor blancGesturePattern_ = '';
++  protected accessor blancGestureMessage_ = '';
++  protected accessor blancGestureAction_ = 'back';
++  protected blancGestureActions_ = ['back','forward','reload','newTab','closeTab','reopenTab','previousTab','nextTab','island'];
++  private blancGestureWrite_: Promise<void> = Promise.resolve();
++  private blancGestureDrawing_: {x:number,y:number,pattern:string,overflow:boolean}|null = null;
++  protected blancGestureGlyph_(pattern:string):string {return [...pattern].map(ch=>({U:'↑',D:'↓',L:'←',R:'→'}[ch])).join('');}
++  protected blancGestureLabel_(action:string):string {return loadTimeData.getString('blancGestureAction'+action);}
++  private blancSaveGesture_(change:(state:{enabled:boolean,mapping:Record<string,string>})=>{enabled:boolean,mapping:Record<string,string>}):Promise<void> {
++    const write=this.blancGestureWrite_.then(async()=>{
++      if(!this.blancGestures_)return;
++      try {const result=await blancSettings.mouseGestures(change(this.blancGestures_));
++        if(!result.ok)throw Error('Gesture settings rejected');this.blancGestures_=result.state;this.blancGestureMessage_='';
++      } catch {this.blancGestureMessage_=loadTimeData.getString('blancGestureSaveFailed');}
++    });this.blancGestureWrite_=write.catch(()=>{});return write;
++  }
++  protected onBlancGestureEnabledChange_(event:Event) {const enabled=(event.target as HTMLInputElement).checked;
++    if(!enabled)this.blancGestureComposer_=false;void this.blancSaveGesture_(state=>({...state,enabled}));}
++  protected onBlancGestureActionChange_(event:Event) {const pattern=(event.currentTarget as HTMLElement).dataset['pattern']!;const action=(event.target as HTMLSelectElement).value;
++    void this.blancSaveGesture_(state=>({...state,mapping:{...state.mapping,[pattern]:action}}));}
++  protected async onBlancGestureRemoveClick_(event:Event) {const pattern=(event.currentTarget as HTMLElement).dataset['pattern']!;await this.blancSaveGesture_(state=>{const mapping={...state.mapping};delete mapping[pattern];return {...state,mapping};});await this.updateComplete;this.shadowRoot?.querySelector<HTMLElement>('#blancGestureAdd')?.focus();}
++  protected onBlancGestureResetClick_() {this.blancGestureComposer_=false;void this.blancSaveGesture_(state=>({...state,mapping:{L:'back',R:'forward',U:'newTab',D:'closeTab'}}));}
++  protected onBlancGestureAddClick_() {
++    if(Object.keys(this.blancGestures_?.mapping??{}).length>=16){this.blancGestureMessage_=loadTimeData.getString('blancGestureLimit');return;}
++    this.blancGestureComposer_=true;this.blancGesturePattern_='';this.blancGestureMessage_='';
++  }
++  protected onBlancGesturePointerdown_(event:PointerEvent) {
++    if(event.button!==0)return;this.blancGesturePattern_='';this.blancGestureMessage_='';
++    this.blancGestureDrawing_={x:event.clientX,y:event.clientY,pattern:'',overflow:false};(event.currentTarget as HTMLElement).setPointerCapture(event.pointerId);
++  }
++  protected onBlancGesturePointermove_(event:PointerEvent) {
++    const draw=this.blancGestureDrawing_;if(!draw)return;const dx=event.clientX-draw.x,dy=event.clientY-draw.y;
++    if(Math.max(Math.abs(dx),Math.abs(dy))<24)return;
++    const direction=Math.abs(dx)>=Math.abs(dy)?(dx>0?'R':'L'):(dy>0?'D':'U');
++    if(draw.pattern.at(-1)!==direction){if(draw.pattern.length<3)draw.pattern+=direction;else draw.overflow=true;}
++    draw.x=event.clientX;draw.y=event.clientY;this.blancGestureMessage_=this.blancGestureGlyph_(draw.pattern);
++  }
++  protected onBlancGesturePointerup_() {
++    const draw=this.blancGestureDrawing_;this.blancGestureDrawing_=null;if(!draw)return;
++    const error=draw.overflow?'blancGestureTooLong':!draw.pattern?'blancGestureTooShort':Object.hasOwn(this.blancGestures_?.mapping??{},draw.pattern)?'blancGestureDuplicate':'';
++    if(error){this.blancGestureMessage_=loadTimeData.getString(error);return;}this.blancGesturePattern_=draw.pattern;
++  }
++  protected onBlancGesturePointercancel_() {this.onBlancGestureCancelClick_();}
++  protected onBlancGestureComposerActionChange_(event:Event) {this.blancGestureAction_=(event.target as HTMLSelectElement).value;}
++  protected onBlancGestureCancelClick_() {this.blancGestureDrawing_=null;this.blancGesturePattern_='';this.blancGestureComposer_=false;this.blancGestureMessage_='';}
++  protected async onBlancGestureSaveClick_() {
++    const pattern=this.blancGesturePattern_,action=this.blancGestureAction_;if(!pattern)return;
++    await this.blancSaveGesture_(state=>Object.hasOwn(state.mapping,pattern)?state:({...state,mapping:{...state.mapping,[pattern]:action}}));
++    if(this.blancGestures_?.mapping[pattern]===action)this.onBlancGestureCancelClick_();
++  }
++
+   protected accessor blancMiniState_: {saved:string,status:string}|null = null;
+   protected accessor blancMiniOptions_: DropdownMenuOptionList = [
+     {value:'off',name:loadTimeData.getString('blancMiniOff')},
+@@ -388,6 +448,7 @@
+ 
+   override connectedCallback() {
+     super.connectedCallback();
++    void blancSettings.mouseGestures().then(result=>{this.blancGestures_=result.state;});
+     void blancSettings.miniWindow().then(state=>{this.blancMiniState_=state;});
+ 
+     this.mirrorPrefs({
+diff --git a/chrome/browser/resources/settings/blanc_settings_proxy.ts b/chrome/browser/resources/settings/blanc_settings_proxy.ts
+--- a/chrome/browser/resources/settings/blanc_settings_proxy.ts
++++ b/chrome/browser/resources/settings/blanc_settings_proxy.ts
+@@ -55,6 +55,7 @@
+ export interface BlancRouteDraft {route:BlancLinkRoute,valid:boolean,note:string,error:string;}
+ 
+ export const blancSettings = {
++  mouseGestures: (state: {enabled:boolean,mapping:Record<string,string>}|null=null) => sendWithPromise<{ok:boolean,state:{enabled:boolean,mapping:Record<string,string>}}>('blancMouseGestures',state?JSON.stringify(state):''),
+   miniWindow: (choice: string|null = null) => sendWithPromise<{saved:string,status:string}>('blancMiniWindowShortcut',choice??''),
+   routeState: () => sendWithPromise<BlancRouteState>('blancLinkRouteState'),
+   routeValidate: (route:BlancLinkRoute) => sendWithPromise<{ok:boolean,value:BlancLinkRoute|null}>('blancLinkRouteValidate', JSON.stringify(route)),

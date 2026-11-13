@@ -1,8 +1,18 @@
 // Native history, lazy restore, quiet lifecycle and the existing scheduler.
+import {forkUrl} from './core.mjs';
 import {nativeId} from '../lib/adapters.mjs';
 async function settled(w,id){return w.waitForState(s=>s.tabs.some(t=>t.id===String(id)&&!t.loading));}
 export const quietNative={
- async navigateTab(w,id,url){await w.native(/^https?:/i.test(url)?'navigate':'testNavigateTabAnyScheme',[nativeId(id),url]);await settled(w,id);return true;},
+ setTabIdleSince:(w,id,ms)=>w.native('quietIdleAge',[nativeId(id),ms]),
+ async sessionSyncSnapshot(w){
+  const tab=(await w.snapshot()).tabs.find(t=>String(t.id)===String(w.quietCandidateId));
+  if(!tab)throw Error('Quiet candidate missing from native tab model');
+  // Wait for the real utility process to acknowledge this native snapshot.
+  // This is the actual sync input, not a locally manufactured URL-only list.
+  return w.waitFor(()=>w.native('quietSyncSnapshot'),v=>Array.isArray(v)&&
+   v[0].some(t=>t.url===tab.url),'quiet tab in runner-accepted sync snapshot');
+ },
+ async navigateTab(w,id,url){await w.native(/^https?:/i.test(url)?'navigate':'testNavigateTabAnyScheme',[nativeId(id),forkUrl(url)]);await settled(w,id);return true;},
  tabNavigation:(w,id)=>w.native('quietNavigation',[nativeId(id)]),
  sleepState:(w,id)=>w.native('quietSleepState',[nativeId(id)]),
  async wakeTab(w,id,url){

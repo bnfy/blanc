@@ -15,7 +15,7 @@ const patches = [path.join(root, 'patches/baseline/0001-foundation-baseline.patc
 
 test('every shipping key is classified and registered defaults match', () => {
   const defaults = shippingDefaults(doc.shippingTag);
-  assert.equal(Object.keys(defaults).length, 83);
+  assert.equal(Object.keys(defaults).length, 84);
   assert.deepEqual(check(doc, defaults, registeredPrefs(patches)).errors, []);
 });
 

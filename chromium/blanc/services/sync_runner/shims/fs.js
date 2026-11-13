@@ -25,4 +25,9 @@ fsObj.promises = {
     writeFile: async d => { parts.push(typeof d === 'string' ? Buffer.from(d) : d); }, write: async d => { parts.push(typeof d === 'string' ? Buffer.from(d) : d); },
     sync: async () => {}, chmod: async () => {}, close: async () => { files.set(p, Buffer.concat(parts)); } }; },
 };
+// Desktop opt-in only. Missing support is a refusal, never a fake durability receipt.
+fsObj.__persistDesktop = name => {
+  const bytes = files.get(`/sync/${name}`);
+  return !!bytes && host.persistDesktopStore?.(name, bytes) === true;
+};
 module.exports = fsObj;

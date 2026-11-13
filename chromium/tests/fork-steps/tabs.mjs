@@ -22,6 +22,45 @@ async function groupId(world,name){
  assert.ok(g,`group ${name} should exist`);return String(g.id);
 }
 export default function register(step){
+ step('I open the context menu on a link',async function(){
+  const state=await this.state();this.linkSource=state.activeTabId;this.linkBefore=state.tabs.map(t=>t.id);
+  this.contextLink=this.fixtureUrl('background-link-destination');
+  const href=await this.call('executeTab',this.linkSource,`(()=>{const a=document.createElement('a');a.href=${jsLiteral(this.contextLink)};a.textContent='Background link';document.body.append(a);return a.href;})()`);
+  assert.equal(await this.native('contextLinkMenu',[Number(this.linkSource),href]),true,'native background-link command is enabled');
+ });
+ step('I choose {string}',async function(label){
+  assert.equal(label,'Open link in background tab');
+  assert.equal(await this.native('contextLinkOpen'),true);
+ });
+ step('a new tab opens on that link without switching to it',async function(){
+  const state=await this.waitForState(s=>s.tabs.some(t=>t.url===this.contextLink&&!this.linkBefore.includes(t.id)));
+  assert.equal(state.activeTabId,this.linkSource);
+  this.shippingContext.lastNewTabId=state.tabs.find(t=>t.url===this.contextLink&&!this.linkBefore.includes(t.id)).id;
+ });
+ step('one private tab open',async function(){
+  this.sessionPrivateUrl=this.fixtureUrl('private-session-sentinel');
+  await this.call('openTab',this.sessionPrivateUrl,{private:true});
+ });
+ step('I relaunch the app',async function(){
+  await this.waitForState(s=>s.tabs.every(t=>!t.isLoading));
+  const s=await this.state();
+  this.sessionGroups=s.groups.map(group=>({name:group.name,
+   urls:s.tabs.filter(tab=>tab.groupId===group.id&&!tab.private).map(tab=>tab.url).sort()}));
+  await this.relaunch();
+ });
+ step('the group {string} is restored with its {int} tab(s)',async function(name,count){
+  const state=await this.waitForState(s=>{
+   const group=s.groups.find(g=>g.name===name);
+   return group&&s.tabs.filter(t=>t.groupId===group.id).length===count;
+  });
+  const group=state.groups.find(g=>g.name===name),tabs=state.tabs.filter(t=>t.groupId===group.id);
+  assert.equal(tabs.length,count);
+  assert.deepEqual(tabs.map(t=>t.url).sort(),this.sessionGroups.find(g=>g.name===name).urls);
+ });
+ step('no private tab is restored',async function(){
+  const state=await this.state();
+  assert.equal(state.tabs.some(t=>t.private||t.url===this.sessionPrivateUrl),false);
+ });
  // F12-1
  step('I load a page that requests known trackers',async function(){this.trackerTabId=await loadTrackers(this,'trackers');});
  step('the shield count for the tab is greater than 0',async function(){

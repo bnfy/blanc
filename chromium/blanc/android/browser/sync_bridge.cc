@@ -23,6 +23,7 @@
 #include "blanc/android/browser/sync_start_data.h"
 #include "blanc/android/sync_jni/SyncBridge_jni.h"
 #include "blanc/services/blocker/blocker_proxy.h"
+#include "blanc/services/sync_runner/sync_endpoint.h"
 #include "blanc/services/sync_runner/sync_runner_proxy.h"
 #include "chrome/browser/bookmarks/bookmark_model_factory.h"
 #include "chrome/browser/browser_process.h"
@@ -40,8 +41,6 @@
 
 namespace blanc {
 namespace {
-constexpr char kEndpoint[] = "https://blanc-sync.bnfy-441.workers.dev";
-
 // Compiled out of release (blanc/config.gni): only a test build can point sync elsewhere.
 std::string TestEndpoint() {
 #if defined(BLANC_SYNC_TEST_HOOKS)
@@ -60,7 +59,7 @@ class AndroidSync : public SyncPlatform {
   }
   std::string Endpoint() override {
     std::string test = TestEndpoint();
-    return test.empty() ? kEndpoint : test;
+    return test.empty() ? kSyncEndpoint : test;
   }
   std::string ConfigJson() override {
     base::DictValue config;

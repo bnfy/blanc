@@ -8,17 +8,79 @@
 //     without blocking (shipping's host normalization),
 //   Languages → the interface language (device-wide, after a relaunch).
 // Only chrome://settings in the regular profile's main frame reaches it.
-class ChromiumSettingsHandler final : public settings::SettingsPageUIHandler {
+class ChromiumSettingsHandler final : public settings::SettingsPageUIHandler,
+                                      public blanc::DesktopSyncService::Observer {
  public:
-  explicit ChromiumSettingsHandler(Profile* profile)
-      : profile_(profile->GetOriginalProfile()) {}
-  ~ChromiumSettingsHandler() override = default;
+  explicit ChromiumSettingsHandler(Profile* profile);
+  ~ChromiumSettingsHandler() override;
 
   void RegisterMessages() override;
   void OnJavascriptAllowed() override;
   void OnJavascriptDisallowed() override;
 
  private:
+  void HandleMouseGestures(const base::ListValue& args) {
+    if (!Begin(args, 1)) return;
+    const auto raw = args[1].GetString();bool ok = true;
+    if (!raw.empty()) {auto parsed = base::JSONReader::Read(raw, base::JSON_PARSE_RFC);ok = parsed && parsed->is_dict() && SaveGestureSettings(profile_, parsed->GetDict());}
+    ResolveJavascriptCallback(args[0], base::Value(base::DictValue().Set("ok", ok).Set("state", GestureSettings(profile_))));
+  }
+  void HandleMiniWindowShortcut(const base::ListValue& args) {
+    if (!Begin(args, 1)) return;
+    ResolveJavascriptCallback(args[0], base::Value(MiniKeys().Apply(
+        args[1].GetString().empty() ? std::nullopt : std::make_optional(args[1].GetString()))));
+  }
+#if BUILDFLAG(IS_MAC)
+#if BUILDFLAG(BLANC_BETA_CHANNEL)
+  void HandleBetaUpdate(const base::ListValue& args) {
+    if (!Begin(args, 0) || !web_ui()->GetRenderFrameHost()->GetLastCommittedURL().SchemeIs(content::kChromeUIScheme)) return;
+    const bool started = blanc::beta::CheckForUpdates();
+    ResolveJavascriptCallback(args[0], base::Value(started));
+  }
+  void HandleBetaUpdateState(const base::ListValue& args) {
+    if (!Begin(args, 0) || !web_ui()->GetRenderFrameHost()->GetLastCommittedURL().SchemeIs(content::kChromeUIScheme)) return;
+    const auto state = blanc::beta::GetUpdaterState();
+    ResolveJavascriptCallback(args[0], base::Value(base::DictValue()
+        .Set("available", state.available).Set("canCheck", state.can_check)
+        .Set("inProgress", state.in_progress).Set("version", state.version)));
+  }
+#endif
+#endif
+  void HandleLinkRouteState(const base::ListValue& args) {
+    if (!Begin(args, 0)) return;
+    ResolveJavascriptCallback(args[0], base::Value(LinkRouteSettings(profile_)));
+  }
+  void HandleLinkRouteValidate(const base::ListValue& args) {
+    if (!Begin(args, 1)) return;
+    auto raw = base::JSONReader::Read(args[1].GetString(), base::JSON_PARSE_RFC);
+    base::ListValue one; if (raw) one.Append(std::move(*raw));
+    auto valid = raw ? ValidateLinkRoutes(one) : std::nullopt;
+    ResolveJavascriptCallback(args[0], base::Value(base::DictValue().Set("ok", valid.has_value())
+        .Set("value", valid && !valid->empty() ? valid->front().Clone() : base::Value())));
+  }
+  void HandleLinkRouteSet(const base::ListValue& args) {
+    if (!Begin(args, 1)) return;
+    auto raw = base::JSONReader::Read(args[1].GetString(), base::JSON_PARSE_RFC);
+    const bool ok = raw && raw->is_list() && WriteLinkRoutes(raw->GetList());
+    ResolveJavascriptCallback(args[0], base::Value(base::DictValue().Set("ok", ok).Set("state", LinkRouteSettings(profile_))));
+  }
+  void HandleLinkRouteInApp(const base::ListValue& args) {
+    if (!Begin(args, 1)) return;
+    if (args[1].GetString() != "on" && args[1].GetString() != "off") { ResolveJavascriptCallback(args[0], base::Value(false)); return; }
+    auto* prefs = g_browser_process->local_state();
+    prefs->SetBoolean(kLinkRoutesInAppPref, args[1].GetString() == "on"); prefs->CommitPendingWrite();
+    ResolveJavascriptCallback(args[0], base::Value(true));
+  }
+  void HandleLinkRouteLoad(const base::ListValue& args) {
+    if (!Begin(args, 1)) return;
+    auto* entry = RouteProfile(args[1].GetString());
+    if (!entry) {ResolveJavascriptCallback(args[0], base::Value(false)); return;}
+    const bool loading = g_browser_process->profile_manager()->LoadProfile(entry->GetPath().BaseName(), false,
+        base::BindOnce([](base::WeakPtr<ChromiumSettingsHandler> self, base::Value callback, Profile* loaded) {
+          if (self && self->IsJavascriptAllowed()) self->ResolveJavascriptCallback(callback, base::Value(loaded != nullptr));
+        }, weak_factory_.GetWeakPtr(), args[0].Clone()));
+    if (!loading) ResolveJavascriptCallback(args[0], base::Value(false));
+  }
   bool Allowed() {
     auto* frame = web_ui()->GetRenderFrameHost();
     return frame && frame == web_ui()->GetWebContents()->GetPrimaryMainFrame() &&
@@ -33,6 +95,181 @@ class ChromiumSettingsHandler final : public settings::SettingsPageUIHandler {
     AllowJavascript();
     return true;
   }
+  // Settings sheets intentionally use the original profile for Chromium's
+  // other controls. Sync must use the owning WINDOW's profile in that case,
+  // so a private window cannot inherit its original profile's Sync service.
+  Profile* SyncProfile() {
+    if (auto* owner = SettingsSheetOwner(web_ui()->GetWebContents()))
+      return owner->browser->GetProfile();
+    return Profile::FromWebUI(web_ui());
+  }
+  // Private Settings may read availability but cannot attach to default Sync.
+  bool BeginSync(const base::ListValue& args, size_t count) {
+    auto* frame = web_ui()->GetRenderFrameHost();
+    if (!frame || frame != web_ui()->GetWebContents()->GetPrimaryMainFrame() ||
+        !frame->GetLastCommittedURL().SchemeIs(content::kChromeUIScheme) ||
+        frame->GetLastCommittedURL().host() != chrome::kChromeUISettingsHost ||
+        args.size() != count + 1 || !args[0].is_string()) return false;
+    AllowJavascript();
+    return true;
+  }
+  void StopSyncObservation() {
+    SetPairCapture(false);
+    if (sync_) {
+      sync_->Call("sync.setPairingWatch", "[false]", base::BindOnce([](bool, const std::string&) {}));
+      sync_->RemoveObserver(this);
+    }
+    sync_ = nullptr;
+  }
+  void SetPairCapture(bool active) {
+    auto* owner = SettingsSheetOwner(web_ui()->GetWebContents());
+    if (!owner) return;
+    owner->sync_capture_requested = active;
+    if (auto* widget = owner->view->GetWidget()) widget->SetAllowScreenshots(!active);
+  }
+  void HandleSyncCapture(const base::ListValue& args) {
+    if (!BeginSync(args, 1) || !args[1].is_bool()) return;
+    if (!sync_) { SyncFailure(args[0], "unavailable"); return; }
+    SetPairCapture(args[1].GetBool());
+    ResolveJavascriptCallback(args[0], base::Value(true));
+  }
+  void SyncFailure(const base::Value& callback, std::string error) {
+    ResolveJavascriptCallback(callback, base::Value(base::DictValue()
+        .Set("ok", false).Set("error", std::move(error))));
+  }
+  void HandleSyncState(const base::ListValue& args) {
+    if (!BeginSync(args, 0)) return;
+    if (!sync_) {
+      ResolveJavascriptCallback(args[0], base::Value(base::DictValue()
+          .Set("available", false).Set("status", base::Value())
+          .Set("pendingFirstUpload", 0)));
+      return;
+    }
+    sync_->Call("sync.status", "[]", base::BindOnce(
+        &ChromiumSettingsHandler::SyncStateReply, weak_factory_.GetWeakPtr(),
+        args[0].Clone()));
+  }
+  void SyncStateReply(base::Value callback, bool ok, const std::string& json) {
+    if (!IsJavascriptAllowed() || !sync_) return;
+    auto value = ok ? base::JSONReader::Read(json, base::JSON_PARSE_RFC)
+                    : std::nullopt;
+    base::DictValue state;
+    state.Set("available", true);
+    state.Set("pendingFirstUpload", static_cast<double>(sync_->PendingFirstUploadCount()));
+    if (value && value->is_dict()) {
+      if (value->GetDict().FindBool("enabled").value_or(false)) NoteChecklistTask(SyncProfile(), "sync");
+      state.Set("status", std::move(*value));
+    } else {
+      // A failed status read is unknown, never an invented enabled:false.
+      state.Set("status", base::Value());
+      state.Set("error", ok ? "invalid-status" : json);
+    }
+    ResolveJavascriptCallback(callback, base::Value(std::move(state)));
+  }
+  static bool ValidSyncCall(std::string_view method, const base::ListValue& args) {
+    // No general runner gateway: no sharedContext, stores, or keys;
+    // account switching or raw tab/Space snapshots. Explicit server erasure
+    // accepts only a boolean alongside the normal disable operation. The sharing
+    // switch accepts only a boolean; native code supplies the tab inventory.
+    if (method == "sync.status" || method == "sync.syncNow" ||
+        method == "sync.beginPairing" ||
+        method == "sync.cancelPairing" || method == "sync.pairingState") return args.empty();
+    if (method == "desktop.spaces.status" || method == "desktop.spaces.armPairing") return args.empty();
+    if (method == "desktop.spaces.acknowledge") return args.size() == 1 && args[0].is_string() && args[0].GetString().size() <= 128;
+    if (method == "sync.disable" || method == "desktop.spaces.preview") {
+      if (args.empty()) return true;
+      const char* key = method == "sync.disable" ? "wipeRemote" : "local";
+      return args.size() == 1 && args[0].is_dict() && args[0].GetDict().size() == 1 &&
+          args[0].GetDict().FindBool(key).has_value();
+    }
+    if (method == "desktop.spaces.apply") {
+      if (args.size() != 1 || !args[0].is_dict()) return false;
+      const auto& value = args[0].GetDict();
+      const auto* selections = value.FindList("selections");
+      if (!value.FindBool("enabled") || !selections || selections->size() > 25 || value.size() != 2) return false;
+      for (const auto& choice : *selections) {
+        if (!choice.is_dict() || choice.GetDict().size() != 2) return false;
+        const auto* id = choice.GetDict().FindString("id"), *mode = choice.GetDict().FindString("mode");
+        if (!id || id->size() > 120 || !mode || (*mode != "copy" && *mode != "rejoin")) return false;
+      }
+      return true;
+    }
+    if (method == "sync.setThisDeviceName") return args.size() == 1 && args[0].is_string() &&
+        args[0].GetString().size() <= 320 && base::UTF8ToUTF16(args[0].GetString()).size() <= 80;
+    if (method == "sync.setSyncTabs") return args.size() == 1 && args[0].is_bool();
+    if (method == "sync.setPairingWatch") return args.size() == 1 && args[0].is_bool();
+    if (method == "sync.joinWithCode")
+      return args.size() == 1 && args[0].is_string() &&
+             args[0].GetString().size() <= 8192;
+    if (method != "sync.startNew" && method != "sync.preflight" &&
+        method != "sync.enable") return false;
+    if (args.size() != 1 || !args[0].is_dict()) return false;
+    const auto& value = args[0].GetDict();
+    const auto* handle = value.FindString("handle");
+    if (!handle || handle->size() > 256) return false;
+    if (method == "sync.startNew") return value.size() == 1;
+    const auto* passphrase = value.FindString("passphrase");
+    return value.size() == 2 && passphrase && passphrase->size() <= 4096;
+  }
+  void HandleSyncCall(const base::ListValue& args) {
+    if (!BeginSync(args, 2)) return;
+    if (!sync_) { SyncFailure(args[0], "unavailable"); return; }
+    if (!args[1].is_string() || !args[2].is_string() ||
+        args[2].GetString().size() > 16384) {
+      SyncFailure(args[0], "invalid-arguments"); return;
+    }
+    auto parsed = base::JSONReader::Read(args[2].GetString(), base::JSON_PARSE_RFC);
+    if (!parsed || !parsed->is_list() ||
+        !ValidSyncCall(args[1].GetString(), parsed->GetList())) {
+      SyncFailure(args[0], "call-not-allowed"); return;
+    }
+    if (args[1].GetString() == "sync.enable") {
+      // Unlike startNew/joinWithCode, the shipping enable export does not
+      // itself refuse an already-enabled account. Do not expose switching.
+      sync_->Call("sync.status", "[]", base::BindOnce(
+          &ChromiumSettingsHandler::SyncEnableChecked, weak_factory_.GetWeakPtr(),
+          args[0].Clone(), args[2].GetString()));
+      return;
+    }
+    sync_->Call(args[1].GetString(), args[2].GetString(), base::BindOnce(
+        &ChromiumSettingsHandler::SyncCallReply, weak_factory_.GetWeakPtr(),
+        args[0].Clone()));
+  }
+  void SyncEnableChecked(base::Value callback, std::string args,
+                         bool ok, const std::string& json) {
+    if (!IsJavascriptAllowed() || !sync_) return;
+    const auto status = ok ? base::JSONReader::Read(json, base::JSON_PARSE_RFC)
+                           : std::nullopt;
+    if (!status || !status->is_dict() ||
+        status->GetDict().FindBool("enabled") != std::optional<bool>(false)) {
+      SyncFailure(callback, "sync-on-or-unknown");
+      return;
+    }
+    sync_->Call("sync.enable", std::move(args), base::BindOnce(
+        &ChromiumSettingsHandler::SyncCallReply, weak_factory_.GetWeakPtr(),
+        std::move(callback)));
+  }
+  void SyncCallReply(base::Value callback, bool ok, const std::string& json) {
+    if (!IsJavascriptAllowed()) return;
+    auto value = ok ? base::JSONReader::Read(json, base::JSON_PARSE_RFC)
+                    : std::nullopt;
+    if (!value) { SyncFailure(callback, ok ? "invalid-result" : json); return; }
+    if (value->is_dict()) {
+      const auto* joined = value->GetDict().FindDict("joined");
+      if (joined && joined->FindString("platform") && *joined->FindString("platform") == "ios")
+        NoteChecklistTask(SyncProfile(), "iphone");
+    }
+    ResolveJavascriptCallback(callback, base::Value(base::DictValue()
+        .Set("ok", true).Set("value", std::move(*value))));
+  }
+  void HandleSyncConfirm(const base::ListValue& args) {
+    if (!BeginSync(args, 1)) return;
+    if (!sync_) { SyncFailure(args[0], "unavailable"); return; }
+    if (!args[1].is_bool()) { SyncFailure(args[0], "invalid-arguments"); return; }
+    sync_->ConfirmFirstUpload(args[1].GetBool());
+    ResolveJavascriptCallback(args[0], base::Value(base::DictValue().Set("ok", true)));
+  }
+  void OnSyncEvent(const std::string& event, const std::string& json) override;
   base::Value State() {
     auto* prefs = profile_->GetPrefs();
     base::ListValue bangs;
@@ -59,6 +296,7 @@ class ChromiumSettingsHandler final : public settings::SettingsPageUIHandler {
     // Shipping's sheet look follows Surface style (S1.7).
     state.Set("surfaceStyle",
               prefs->GetString("blanc.appearance.surface_style") == "neutral" ? "neutral" : "sunrise");
+    state.Set("theme", blanc::browser_api::ThemeOf(profile_));
     state.Set("pageZoom", BlancPagesZoom(*prefs));
     state.Set("usagePing", g_browser_process->local_state()->GetBoolean(kUsagePingPref));
     state.Set("uiLanguage", g_browser_process->local_state()->GetString(std::string(blanc::ui_language::kPref)));
@@ -193,10 +431,12 @@ class ChromiumSettingsHandler final : public settings::SettingsPageUIHandler {
   // Device-wide choices, so they live outside this profile's prefs (F21).
   void HandleSetUsagePing(const base::ListValue& args) {
     if (!Begin(args, 1)) return;
-    PrefService* local = g_browser_process->local_state();
-    local->SetBoolean(kUsagePingPref, args[1].GetString() == "on");
-    local->CommitPendingWrite();
-    Resolve(args, base::DictValue());
+    PersistUsagePing(args[1].GetString() == "on", base::BindOnce(
+        [](base::WeakPtr<ChromiumSettingsHandler> self, base::Value callback, bool saved) {
+          if (!self || !self->IsJavascriptAllowed()) return;
+          if (!saved) { self->RejectJavascriptCallback(callback, base::Value("Could not save privacy choice")); return; }
+          self->ResolveJavascriptCallback(callback, base::Value(base::DictValue().Set("state", self->State())));
+        }, weak_factory_.GetWeakPtr(), args[0].Clone()));
   }
   void HandleResetInstallId(const base::ListValue& args) {
     if (!Begin(args, 0)) return;
@@ -252,13 +492,32 @@ class ChromiumSettingsHandler final : public settings::SettingsPageUIHandler {
   raw_ptr<Profile> profile_;
   PrefChangeRegistrar prefs_;
   PrefChangeRegistrar local_;
+  raw_ptr<blanc::DesktopSyncService> sync_ = nullptr;
+  base::WeakPtrFactory<ChromiumSettingsHandler> weak_factory_{this};
 };
 
 void ChromiumSettingsHandler::RegisterMessages() {
   const auto bind = [this](const char* name, void (ChromiumSettingsHandler::*method)(const base::ListValue&)) {
     web_ui()->RegisterMessageCallback(name, base::BindRepeating(method, base::Unretained(this)));
   };
+#if BUILDFLAG(IS_MAC)
+#if BUILDFLAG(BLANC_BETA_CHANNEL)
+  bind("blancBetaCheckForUpdates", &ChromiumSettingsHandler::HandleBetaUpdate);
+  bind("blancBetaUpdaterState", &ChromiumSettingsHandler::HandleBetaUpdateState);
+#endif
+#endif
+  bind("blancSyncCapture", &ChromiumSettingsHandler::HandleSyncCapture);
+  bind("blancSyncState", &ChromiumSettingsHandler::HandleSyncState);
+  bind("blancSyncCall", &ChromiumSettingsHandler::HandleSyncCall);
+  bind("blancSyncConfirmFirstUpload", &ChromiumSettingsHandler::HandleSyncConfirm);
   bind("blancSettingsGet", &ChromiumSettingsHandler::HandleGet);
+  bind("blancMouseGestures", &ChromiumSettingsHandler::HandleMouseGestures);
+  bind("blancMiniWindowShortcut", &ChromiumSettingsHandler::HandleMiniWindowShortcut);
+  bind("blancLinkRouteState", &ChromiumSettingsHandler::HandleLinkRouteState);
+  bind("blancLinkRouteValidate", &ChromiumSettingsHandler::HandleLinkRouteValidate);
+  bind("blancLinkRouteSet", &ChromiumSettingsHandler::HandleLinkRouteSet);
+  bind("blancLinkRouteInApp", &ChromiumSettingsHandler::HandleLinkRouteInApp);
+  bind("blancLinkRouteLoad", &ChromiumSettingsHandler::HandleLinkRouteLoad);
   bind("blancSettingsAddBang", &ChromiumSettingsHandler::HandleAddBang);
   bind("blancSettingsRemoveBang", &ChromiumSettingsHandler::HandleRemoveBang);
   bind("blancSettingsAddException", &ChromiumSettingsHandler::HandleAddException);
@@ -274,10 +533,12 @@ void ChromiumSettingsHandler::RegisterMessages() {
 }
 
 void ChromiumSettingsHandler::OnJavascriptAllowed() {
+  sync_ = blanc::DesktopSyncService::ForProfile(SyncProfile());
+  if (sync_) sync_->AddObserver(this);
   prefs_.Init(profile_->GetPrefs());
   for (const char* pref : {blanc::browser_api::bangs::kCustomPref, "blanc.blocking.enabled",
                            "blanc.blocking.exceptions", "blanc.appearance.surface_style",
-                           kDefaultFontSizePref})
+                           kDefaultFontSizePref, prefs::kBrowserColorScheme})
     prefs_.Add(pref, base::BindRepeating(&ChromiumSettingsHandler::Changed, base::Unretained(this)));
   local_.Init(g_browser_process->local_state());
   local_.Add(std::string(blanc::ui_language::kPref),
@@ -285,6 +546,21 @@ void ChromiumSettingsHandler::OnJavascriptAllowed() {
 }
 
 void ChromiumSettingsHandler::OnJavascriptDisallowed() {
+  weak_factory_.InvalidateWeakPtrs();
+  StopSyncObservation();
   prefs_.Reset();
   local_.Reset();
 }
+
+ChromiumSettingsHandler::ChromiumSettingsHandler(Profile* profile)
+    : profile_(profile->GetOriginalProfile()) {}
+ChromiumSettingsHandler::~ChromiumSettingsHandler() { StopSyncObservation(); }
+void ChromiumSettingsHandler::OnSyncEvent(const std::string& event, const std::string& json) {
+    if (!IsJavascriptAllowed() || !sync_ ||
+        (event != "status" && event != "first-upload" && event != "desktop-error")) return;
+    auto value = base::JSONReader::Read(json, base::JSON_PARSE_RFC);
+    if (!value) return;
+    FireWebUIListener("blanc-sync-changed", base::Value(base::DictValue()
+        .Set("event", event).Set("value", std::move(*value))
+        .Set("pendingFirstUpload", static_cast<double>(sync_->PendingFirstUploadCount()))));
+  }

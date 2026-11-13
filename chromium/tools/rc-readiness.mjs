@@ -25,11 +25,15 @@ export const DIVERGENT_ROWS = new Set(['F38', 'F42']);
 // Gates a beta needs beyond the code, each as STATUS.md or the tracker
 // records it. Edit with STATUS.md.
 export const GATES = [
-  {gate: 'Fork signing and identity (F0.3)', status: 'Waiting on owner', note: 'The identity spike needs an internally signed build; signing waits for the owner\'s approval.'},
-  {gate: 'Widevine VMP certification (X2)', status: 'Waiting on castLabs', note: 'A custom Chromium build needs castLabs\' commercial certification; NDA signed 2026-10-26, requirements not yet shared.'},
+  {gate: 'Beta signing and notarization', status: 'Waiting on owner', note: 'Identity approved (Blanc Beta, me.bnfy.blanc.beta, 2.0.0-beta.N). Developer ID signing, the beta provisioning profile, notarization and the production update key are owner steps.'},
+  {gate: 'Dedicated beta build', status: 'Waiting on owner (on hold)', note: 'The owner held it again on 2026-11-13 at about 1,300 of 40,000 remaining steps, after the hold was lifted and the Metal Toolchain installed; its cache is kept, so it resumes incrementally. The first public beta is built from the final source, with every fix so far: Glance commands over a split, About in the Settings sheet, the app menu and Chromium text naming Blanc, shipping\'s exact resting Island geometry, the Extensions panel over the floating Island, and the one Start Page with optional widgets readable on any wallpaper (V24). Local beta versions are never reused, so it is beta.3 or later.'},
+  {gate: 'Distribution and updates (F22)', status: 'Waiting on the beta build', note: 'Release tooling and the Sparkle 2.10.1 feed design are merged. local-update-proof.mjs (2026-11-13) stages beta.1 and beta.2, signs a loopback feed with a throwaway key and checks the install, a wrong key and a tampered download; it runs once both local builds exist. Its acceptance case stays undefined until then.'},
+  {gate: 'Sync on production', status: 'Waiting on owner', note: 'The local Sync gate passes 22 of 22 against the test Worker. A production pass with a real iPhone and the real Keychain has not been run.'},
+  {gate: 'Touch ID passkeys', status: 'Waiting on a signed build', note: 'The private-tab passkey ceremony needs signed entitlements and the owner at the keyboard; its acceptance case stays undefined.'},
+  {gate: 'Full macOS run on the current candidate', status: 'Done (one shipping test is stale)', note: 'Full run against shipping main 8a4e57e78 (unreleased 1.49.0) on macos-19c5d5e4546d8b41 (2026-11-12): 628 pass, 2 fail, 3 undefined, 28 excluded, in 54 minutes. newtab-layouts :21 fails because shipping\'s step still expects the text tile faces #931 replaced (shipping\'s own reader fails the same way); vertical-tabs :58 is a drag-timing flake that passes 3 of 3 on rerun.'},
+  {gate: 'Widevine VMP certification (X2)', status: 'Waiting on castLabs', note: 'A custom Chromium build needs castLabs\' commercial certification; NDA signed 2026-10-26, requirements not yet shared. Beta 1 ships without Widevine.'},
+  {gate: 'Intel Mac build', status: 'Done for beta 1 (waived)', note: 'Beta 1 is Apple Silicon only, with the waiver recorded.'},
   {gate: 'Windows and Linux fork builds', status: 'Not started', note: 'No fork candidate exists for either platform yet.'},
-  {gate: 'Distribution and updates (F22)', status: 'Not started', note: 'No fork release channel or updater yet.'},
-  {gate: 'Full macOS run on the current candidate', status: 'Stale', note: 'The last full run was on macos-3f969a35b9f9f7ad (2026-11-01); every build since, including the current macos-bf6e0c81960ab463, is checked with targeted runs only.'},
 ];
 
 // tracker.json's stages, with the labels STATUS.md's Bar B gives them.

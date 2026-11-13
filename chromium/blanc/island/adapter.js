@@ -4,6 +4,12 @@ if (location.origin === 'chrome://blanc-prototype' && parent !== window) {
   // The prototype's auxiliary WebView does not receive macOS's native
   // selectAll: edit command. Handle it only for this trusted UI's text fields.
   window.addEventListener('keydown', (event) => {
+    // Auxiliary WebViews do not always forward Cocoa menu accelerators.
+    if (event.metaKey && event.altKey && !event.ctrlKey && !event.shiftKey && event.code === 'KeyV') {
+      event.preventDefault();
+      parent.BlancPrototypeHost.toggleTabLayout();
+      return;
+    }
     if ((event.metaKey || event.ctrlKey) && !event.altKey && !event.shiftKey
         && event.key.toLowerCase() === 'a'
         && (event.target instanceof HTMLInputElement || event.target instanceof HTMLTextAreaElement)) {
@@ -106,10 +112,20 @@ if (location.origin === 'chrome://blanc-prototype' && parent !== window) {
       item('reload', 'tabsMenu.reload', 'Reload Tabs', rules.canReload),
       item('quiet', 'tabsMenu.quiet', 'Quiet Tabs', rules.canQuiet),
       item('copy', 'tabsMenu.copy', 'Copy Links', rules.canCopy),
-      item('close', 'tabsMenu.close', 'Close Tabs', false));
+      item('close', 'tabsMenu.close', 'Close Tabs', rules.canMutate));
     appendActions(actions); placeMenu(event);
   }
   document.addEventListener('contextmenu', async event => {
+    const deviceRow = event.target.closest('#islandDrawer [data-device-id]');
+    if (deviceRow) {
+      event.preventDefault();
+      dismissMenu(); menuOrigin = document.activeElement;
+      menu = document.createElement('div'); menu.className = 'prototype-tab-menu';
+      menu.setAttribute('role', 'menu');
+      appendActions([[localized('deviceMenu.rename', 'Rename Device…'),
+        () => window.browserAPI.beginRenameDevice(deviceRow.dataset.deviceId)]]);
+      placeMenu(event); return;
+    }
     const row = event.target.closest('[data-tab-id]');
     if (!row && !event.target.closest('#islandPill')) return;
     if (event.target.closest('input,textarea')) return;
@@ -158,6 +174,10 @@ if (location.origin === 'chrome://blanc-prototype' && parent !== window) {
       [localized('tabMenu.rename', 'Rename Tab…'), () => window.browserAPI.beginRenameTab(id)],
       ...(tab.pageTitle != null ? [[localized('tabMenu.resetTitle', 'Reset Tab Title'), () => window.browserAPI.renameTab(id, '')]] : []),
       [localized(split ? (tab.pinned ? 'tabMenu.unpinSplit' : 'tabMenu.pinSplit') : (tab.pinned ? 'tabMenu.unpin' : 'tabMenu.pin'), split ? (tab.pinned ? 'Unpin Split' : 'Pin Split') : (tab.pinned ? 'Unpin Tab' : 'Pin Tab')), () => window.browserAPI.toggleTabPinned(id)],
+      ...(tab.pinned ? [
+        [localized('tabMenu.returnPinnedHome', 'Back to Pinned Page'), () => window.browserAPI.returnPinnedHome(id), !tab.pinnedHome?.canReturn],
+        [localized('tabMenu.setPinnedHome', 'Use Current Page as Pinned Home'), () => window.browserAPI.setPinnedHome(id), !tab.pinnedHome?.canSet],
+      ] : []),
       [localized(tab.muted ? 'tabMenu.unmute' : 'tabMenu.mute', tab.muted ? 'Unmute Tab' : 'Mute Tab'), () => window.browserAPI.toggleTabMuted(id)],
       [localized('tabMenu.newTabBelow', 'New Tab Below'), () => window.browserAPI.newTabBelow(id)],
       [localized('tabMenu.closeAbove', 'Close Tabs Above'), () => window.browserAPI.closeAbove(id), !canCloseAbove],
@@ -165,6 +185,25 @@ if (location.origin === 'chrome://blanc-prototype' && parent !== window) {
       [localized('menu.closeTab', 'Close Tab'), () => window.browserAPI.closeTab(id)],
     ];
     if (typeof tab.siteMuted === 'boolean') actions.splice(3, 0, [localized(tab.siteMuted ? 'tabMenu.unmuteSite' : 'tabMenu.muteSite', tab.siteMuted ? 'Unmute Site' : 'Mute Site'), () => window.browserAPI.toggleSiteMute(id)]);
+    const groupRules = await window.browserAPI.selectedTabsMenuState([id]);
+    if (requestEpoch !== menuEpoch || !menu) return;
+    actions.push(
+      [localized('tabMenu.newGroup', 'New Group…'), () => window.browserAPI.beginNewGroupForTab(id), !groupRules.canGroup],
+      [localized('menu.ungroupTab', 'Ungroup Tab'), () => window.browserAPI.setTabGroup(id, null), !tab.groupId || !groupRules.canMove]);
+    if (tab.canSend === true) {
+      const targets = await window.browserAPI.listSendTargets().catch(() => []);
+      if (requestEpoch !== menuEpoch || !menu) return;
+      actions.push([localized('tabMenu.sendToDevice', 'Send to Device'), () => {
+        menu.replaceChildren();
+        appendActions(targets.length ? targets.map(target => [target.name, async () => {
+          const result = await window.browserAPI.sendTabToDevice(id, target.id);
+          parent.BlancPrototypeHost.notice(result.status === 'sent'
+            ? localized('sends.sent', `Sent to ${target.name}`, {device: target.name})
+            : localized(result.status === 'unavailable' ? 'sends.unavailable' : 'sends.failed', 'Could not send this tab.'));
+        }]) : [[localized('sends.none', 'No other devices available'), () => {}, true]]);
+        placeMenu(event);
+      }, false, true]);
+    }
     // Query native state for the targeted tab, not the currently active tab.
     // The native action rechecks the committed URL so a navigated row cannot
     // apply the stale menu to a different page.
@@ -177,8 +216,9 @@ if (location.origin === 'chrome://blanc-prototype' && parent !== window) {
       const changed = await window.browserAPI.toggleStartPin(id, startPin.url);
       if (!changed) parent.BlancPrototypeHost.notice('This page could not be changed on the Start Page.');
     }, !startPin?.enabled]);
-    // Open in Glance: any other tab of this window, while no split shows.
-    if (id !== state.activeTabId && !split && !state.splits?.some(s => s.tabIds.includes(state.activeTabId))) {
+    // Open in Glance: any other tab of this window, over the page or over a
+    // whole visible split (F53-29, shipping v1.47.0).
+    if (id !== state.activeTabId && !split) {
       actions.push([localized('tabMenu.glance', 'Open in Glance'), () => window.browserAPI.setGlanceTab(id), id === state.glanceTabId]);
     }
     // A split pane opens in Glance over the pane that stays.

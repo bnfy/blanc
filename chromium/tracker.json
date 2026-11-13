@@ -1,7 +1,9 @@
 {
   "schemaVersion": 1,
   "qualification": "Initial platform inventory imported from approved spec; legacy macOS stages are not canonical verification.",
-  "shippingTag": "v1.46.0",
+  "shippingTag": "8a4e57e78",
+  "bundleTag": "v1.46.0",
+  "bundleTagNote": "The sandboxed Sync and import bundles (shared with Android) stay on v1.46.0: shipping changed neither for users through v1.48.0 (sync.js gained only an acceptance-harness helper). Move them with an Android recheck.",
   "shippingCommit": "6479ed3a314e4fd6219b8de1598bacffa78b4d7c",
   "rows": [
     {
@@ -1629,6 +1631,37 @@
       }
     },
     {
+      "id": "F62",
+      "requirement": "Default page zoom, saved sites in Settings (new in v1.47.0)",
+      "slice": "S3",
+      "legacyMacState": "Not assessed",
+      "platformVerification": {
+        "macos": null,
+        "windows": null,
+        "linux": null,
+        "android": null
+      },
+      "canonicalState": "not-started",
+      "platformProgress": {
+        "macos": {
+          "stage": "implemented",
+          "basis": "all 11 page-zoom.feature scenarios pass on macos-62c03a037c249ee0 (v148-zoom-cases-3): Chromium's own default and per-site zoom, Chrome's zoom steps (patch 0071), web-only default (patch 0070); Settings uses Chromium's Page zoom menu and Zoom levels list"
+        },
+        "windows": {
+          "stage": "not-started",
+          "basis": "no fork build"
+        },
+        "linux": {
+          "stage": "not-started",
+          "basis": "no fork build"
+        },
+        "android": {
+          "stage": "not-started",
+          "basis": "no fork build"
+        }
+      }
+    },
+    {
       "id": "R1",
       "requirement": "Launch Sunrise (opt-in)",
       "slice": "S5",
@@ -2226,8 +2259,8 @@
       },
       "platformProgress": {
         "macos": {
-          "stage": "not-started",
-          "basis": "approved spec macOS inventory; awaiting candidate verification"
+          "stage": "implemented",
+          "basis": "granted local HTML tabs, as shipping's official builds: tabs-and-groups.feature:292 (n15-pinned-file-2) and nine native checks (n15-local-files-smoke-4) pass on macos-dae7f4583f5966a0; the DRM-build isolated preview window and the public.html association are not built"
         },
         "windows": {
           "stage": "not-started",
@@ -2459,8 +2492,8 @@
   ],
   "currentCandidates": {
     "macos": {
-      "id": "macos-91629aa302c0c8a7",
-      "frameworkSha256": "91629aa302c0c8a77b093e75ca2ca5642bc55b28ccd37f53ac48d2ffa9588ec1",
+      "id": "macos-eda1ac1ce983ed86",
+      "frameworkSha256": "eda1ac1ce983ed86d14126763ef8c8a68bbe615e87a113cd0b1840c464d2f632",
       "executableSha256": "cca20d7ed00bbdecf8db310c6802fbed003b4e63c6bc3b1f71dabc9dbff2ff01",
       "version": "158.0.8127.2",
       "qualification": "compiled candidate; runtime acceptance pending"
@@ -2475,7 +2508,7 @@
     }
   },
   "baselines": {
-    "macos": "scenarios/baseline-macos-3f969a35b9f9f7ad.json"
+    "macos": "scenarios/baseline-macos-343a9dfa66dcb9d3.json"
   },
   "scenarioIds": [
     "spec/acceptance/F41-named-workspaces.feature:4",
@@ -4893,5 +4926,6 @@
     "spec/acceptance/vertical-tabs.feature:249": [
       "spec/acceptance/vertical-tabs.feature:249:plain"
     ]
-  }
+  },
+  "currentSlice": "S4B"
 }

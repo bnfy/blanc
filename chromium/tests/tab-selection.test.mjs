@@ -93,7 +93,7 @@ test('failed native mutations preserve selection and unsupported actions stay un
  assert.equal(await ctx.action('batch-mute'),false);
  assert.deepEqual(plain(ctx.tabSelection.selectedTabIds),['a','b','c']);
  const {UndefinedNativeAdapterError}=await import('./lib/adapters.mjs');
- assert.throws(()=>tabs.runSelectedTabsAction({},'batch-close'),UndefinedNativeAdapterError);
+ assert.throws(()=>tabs.runSelectedTabsAction({},'batch-unknown'),UndefinedNativeAdapterError);
 });
 test('a partial Space move retains only source members and names the failure', async () => {
  const ctx=actionHost((method,args,ctx)=>{
@@ -220,6 +220,10 @@ test('batch unpin keeps source order at the end, matching single-tab placement',
  assert.ok(start>=0 && end>start);
  const loop=nativeSource.slice(start,end)
   .replace('auto ordered = pages;', 'const ordered = [...pages];')
+  .replace('if (const auto split = model->GetSplitForTab(at)) {', '{ const split = model->GetSplitForTab(at); if (split) {')
+  .replace('} else SetPinnedTab(model, at, enable);', '} else SetPinnedTab(model, at, enable); }')
+  .replaceAll('for (int i =', 'for (let i =')
+  .replaceAll('static_cast<int>(range.end())', 'range.end()')
   .replace('std::ranges::reverse(ordered)', 'ordered.reverse()')
   .replaceAll(/for \(auto\* page : (\w+)\)/g,'for (const page of $1)')
   .replaceAll('const int ', 'const ').replaceAll('const auto ', 'const ').replaceAll('->','.')
@@ -238,7 +242,8 @@ test('batch unpin keeps source order at the end, matching single-tab placement',
   },
   MoveWebContentsAt(from,to){const [page]=strip.splice(from,1);strip.splice(to,0,page);},
  };
- vm.runInNewContext(loop,{pages:strip.slice(0,2),model,action:'pin',enable:false});
+ vm.runInNewContext(loop,{pages:strip.slice(0,2),model,action:'pin',enable:false,
+  TabPinned:(strip,at)=>strip.IsTabPinned(at),SetPinnedTab:(strip,at,value)=>strip.SetTabPinned(at,value)});
  assert.deepEqual(strip.map(page=>page.id),['c','d','a','b']);
  assert.deepEqual(strip.filter(page=>page.pinned).map(page=>page.id),['c']);
 });

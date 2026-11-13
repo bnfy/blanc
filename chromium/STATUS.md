@@ -14,6 +14,42 @@ D7, F0.7, cold builds, new machines, D2/D4–D6/D8/V2 and replacement D3
 remain pending. D3 beta-only no-DRM exception accepted; EME notice/handoff required.
 
 ## Current work
+- **2026-11-10 — Beta identity patch (preview candidate macos-77c0cea3ecc01285):**
+  dedicated gated Blanc Beta identity, profile guards, version metadata and
+  release policy implemented. Preview incremental build passes; pure native
+  path tests and pinned-compiler identity syntax pass. Separate beta/official
+  build and signed OS/Keychain qualification remain outside this queue.
+- **2026-11-10 — Vertical-tab repairs (candidate macos-e7a071bb7948929b):**
+  shortcut, focus/dismissal, group menus and 32px favicon conversion repaired.
+  All seven former vertical adapter gaps now have passing execution; the
+  approved grouped-pin divergence and Linux-only controls remain explicit.
+  Expanded tabs/Send local gate passes 3/3, including cloned policy exclusions
+  and restart. Full final-candidate regression remains owed; see queue report.
+- **2026-11-10 — Desktop Sync S4c (candidate macos-9320a60d81bec2f7):**
+  open-tab sharing defaults off; Other devices, Rename Device and Send use the
+  native default-profile service. Private and policy-marked tabs are excluded.
+  One clean full local gate passes 21 checks. The four requested files record
+  108 pass / 4 fail / 9 undefined, preserving all 100 prior S4b passes and gaining
+  eight Sync cases. Shared Spaces needs a desktop entry in the frozen bundle;
+  remaining repairs and final-candidate qualification are still in progress.
+  [Queue report](CODEX-NOTES-finish.md).
+- **2026-11-09 — Desktop Sync S4b (candidate macos-9d75c2778b9b408a):**
+  native Settings now offers iPhone/add-device pairing with shipping's code,
+  QR, expiry/cancel states and capture request. The Start Page checklist opens
+  Sync and reflects actual enabled/iOS-device state. The loopback-only gate
+  extends S4a with all seven setting mappings, stalled-runner/write-fault
+  preservation and private/secondary-profile refusal. Scoped results and
+  remaining S4c/S4d work: [S4b report](CODEX-NOTES-s4b-sync.md).
+- **2026-11-09 — Requested non-Sync acceptance repairs (candidate macos-c50cd71293d37d45):**
+  all 18 supplied case IDs were reproduced and rerun together: 13 pass,
+  4 fail and 1 undefined. Rail geometry, replacement-tab focus, oversized quiet
+  recovery, renderer release, Glance positioning and floating/split controls
+  are repaired. Two stale shipping scenarios remain; grouped pins and the
+  excluded Settings/Sync work remain open. The eight affected files total
+  275 pass / 10 fail / 72 undefined; the sole lost morning pass is a confirmed
+  System/Dark versus assumed Light theme setup in F41:182. This is scoped
+  acceptance evidence, not beta qualification. Exact output, commits and
+  remaining causes: [repair report](CODEX-NOTES-17-failures.md).
 - **2026-11-09 — Extensions icon follows Auto-hide (candidate macos-bf6e0c81960ab463):**
   the icon is Chromium's native view over the pill, so it popped on and off
   while the pill slid in CSS. It now runs the pill's slide natively (same
@@ -264,12 +300,13 @@ remain pending. D3 beta-only no-DRM exception accepted; EME notice/handoff requi
   gets its own branch and small PR into `chromium/migration`.
 - **Release-candidate readiness tracker:**
   https://claude.ai/artifact/BKaBQpYoAMMeUmqBfVbBPA (private to the owner).
-  It shows each shipping acceptance case's latest macOS result (the full run
-  of 2026-11-01 overlaid by every targeted run since, so it mixes
-  candidates), the tracker rows' stages per platform and the gates outside
-  the code. Refresh it after each piece of work: `node chromium/tools/
-  rc-readiness.mjs --baseline <evidence>/s1-full-renderer-2/baseline.json
-  --runs <evidence> --out <dir>`, upload the three files to the dashboard
+  It shows each shipping acceptance case's latest macOS result (the newest
+  full run overlaid by every targeted run since, so it mixes candidates),
+  the tracker rows' stages per platform and the gates outside the code.
+  Refresh it after each piece of work: `node chromium/tools/
+  rc-readiness.mjs --baseline <evidence>/<newest full run>/baseline.json
+  --runs <evidence> --out <dir>` (since 2026-11-12 the newest full run is
+  `main-full-1`, against shipping main 8a4e57e78 on macos-19c5d5e4546d8b41), upload the three files to the dashboard
   and point its datasets at them. Gates live in that tool; edit them with
   this file.
 - F0.1/F0.2/F0.4/F0.8 as before.
@@ -812,6 +849,266 @@ remain pending. D3 beta-only no-DRM exception accepted; EME notice/handoff requi
   those gone; settings-and-theming, island-and-commands and internal-pages
   match their last runs. Chromium's own name still shows in a few strings
   ("About Chromium", Default browser); that is branding, not this slice.
+- **Shipping target moved to main 8a4e57e78 (2026-11-12, owner):** the
+  fork now follows shipping's unreleased main (the coming 1.49.0) at
+  8a4e57e78dfe47a72c05d17fd6040be26c3dffd3, labelled by that commit. The
+  Island and strings are regenerated (the Mini-window edit now rides on
+  #1450's rule that the resting Island never shows the Space mark), the
+  shipping page copies follow it (#931/#1489's Mahjong: 82 files added, 14
+  retired, 5 changed), and the inventory has 612 declarations and 661 cases.
+  #1450/#1454/#1461/#1464 arrive with the Island; #1478 (a pop-up honors a
+  tab's certificate Continue) is Chromium's own per-profile decision, and
+  F39-10/11 pass through two new main-process ports and a gated
+  closeAllConnections hook. spaceMarkState reports where the mark sits.
+  Known: newtab-layouts.feature:21 (F35-3) fails because shipping's step
+  still expects text tile faces in JetBrains Mono, which #931 replaced with
+  image art; shipping's own reader fails the same way and its CI doesn't run
+  the scenario. Not changed here (shipping's test is read-only to the fork).
+- **V24 follow-up — widgets beside the clock, placed by hand (2026-11-13,
+  owner):** on a window 1200 px or wider the widget cards sit in a column on
+  each side of the Start Page, level with each other, clear of the header and
+  footer; narrower, the two columns sit side by side under the clock. Each
+  card has a grip: drag it to reorder or move it to the other side, or use
+  its arrow keys (Up/Down within a column, Left/Right across), announced to
+  assistive technology. The placement (Favorites and other devices on the
+  left, Sent and the chart on the right by default) is saved device-wide with
+  the widgets (`place` in blanc.start.widgets) and every open Start Page
+  follows it. Each card is its own glass panel. Customize offers the widgets
+  as a 2×2 grid of preview tiles (a drawing of each; gold outline and a check
+  when on). The line under the clock is the count alone ("121 ads blocked
+  this week", fork string start.billboard.blocked). native-start-widgets.mjs
+  8/8 (a real pointer drag included); newtab-layouts 24/25 (:21 is
+  shipping's stale Mahjong check; :134 passes once its audit reads the tiles).
+- **Installing an extension is not a download (2026-11-13, owner's report):**
+  adding an extension from the Web Store lit the Island's Downloads, because
+  Chromium's installer fetches the package through the download system. A
+  download made by the extension installer (its download source) is no
+  longer counted by the Island's Downloads or listed on the Downloads page.
+  Test `chromium/tests/native-downloads-extensions.mjs` (gated
+  `testStartDownload`/`testDownloadSources`): the installer's download is
+  made and ignored, an ordinary one still shows. downloads.feature 2/2.
+- **The Web Store's "Switch to Chrome?" card is hidden (2026-11-13, owner's
+  report):** opening a gallery extension's listing showed a new Store card
+  (heading, one sentence, No thanks / Yes) over the install button, which
+  the existing rule did not know. `blanc_webstore_promotion.h` now also hides
+  that card, matched by its whole English copy and exactly those two
+  controls, and nothing larger. Test `chromium/tests/native-webstore-promotion.mjs`
+  (the rule's own script on Store-shaped markup): 3/3; it fails on the old
+  rule. Other languages' cards are not matched yet.
+- **V26 — no Blocked this week widget (2026-11-13, owner; fork only):** the
+  week's chart is no longer a Start Page widget; Billboard's line under the
+  clock ("N ads blocked this week") always shows the count, and a private
+  page's line says it counts nothing, as before. A saved "chart" choice or
+  place from an earlier build is ignored and dropped (natively), and a
+  profile moving from Tally gets Favorites alone. Customize offers three
+  widgets plus any extension panels. Shipping steps it changes run as V26
+  replacements: Tally's two columns at 1440x840 (now the Favorites card
+  beside the week's line), the two Mahjong footer steps (three Customize
+  choices, not four), and the typography audit (ten samples, not twelve);
+  Tally's narrow "data above the list" runs as shipping wrote it, reading
+  the line. newtab-layouts 24/25 (:21 is shipping's stale Mahjong check).
+- **Shortcuts is a choice, not a widget (2026-11-13, owner):** More shortcuts
+  never was a card; it doubled Billboard's tiles under the clock. Customize
+  now has a Shortcuts section (6 or 12, the Wallpaper section's segmented
+  control) in its place. Billboard draws only the sites it has (pins and the
+  most visited), so with fewer than the count chosen the choice seemed to do
+  nothing (the owner's report: a dev profile with one site). Customize now
+  says "N sites so far. More appear as you browse." in that case. Shipping's
+  Mahjong steps count three Customize choices (V26, two tiles and this one).
+  native-start-widgets 8/8; newtab-layouts 24/25 (:21 as before).
+- **Favorites resizes too (2026-11-13, owner):** like the devices card, by
+  its bottom edge onto the fixed sizes. At its own size it lists eight
+  favorites; given a size (or while being resized) it lists all of them and
+  scrolls inside its card with the same fades, hover scrollbar and touch
+  panning. native-start-devices 10/10; native-start-widgets 8/8 (now moving
+  Favorites, and checking a saved chart is ignored).
+- **On your other devices, redesigned (2026-11-13, owner: "Redesign this
+  widget using apple-design"; fork only):** the card groups tabs under each
+  device, its name shown once in a small header with a laptop or phone glyph
+  and its tab count. Rows are two lines (the whole title, the site beneath)
+  that highlight as one rounded row and press in slightly; an empty title shows
+  the site. Three tabs a device, then "N more tabs" / "Show fewer". With many
+  devices the list scrolls inside the card, with soft fades at its edges.
+  The shipping step that reads a row's "site · device" gets the device from
+  the row (`data-device`). sync.feature:129 and vertical-tabs.feature:129
+  pass; native-start-widgets 8/8.
+  Follow-ups the same day (owner): a thin scrollbar shows on hover and while
+  the list scrolls, hidden otherwise; a finger pans the list (momentum, a
+  contained bounce), rows grow to finger-sized targets on a touchscreen,
+  hover highlights apply only where there is hover, and the grips stay
+  visible for touch. Dragging the long card had pushed its column under the
+  footer: on a wide page a column now fits between header and footer (the
+  devices card and an extension panel card give up height and scroll), and a
+  tall card is carried as a 220px preview over a slot as short. A
+  `:focus-within` scrollbar rule with a color transition froze the page's
+  painting when a row took focus (a native sample showed paint repeating);
+  both are gone. Test `chromium/tests/native-start-devices.mjs`: 5/5.
+  Later (owner): the header holds only the Sunrise and date on the left, so
+  on a wide page the right column starts on the header's top line and ends
+  level with the left one, above the header's empty right half. The devices
+  test checks it: 6/6.
+  Resizable long cards (owner, same day): the devices card and an extension
+  panel card resize by their bottom edge (a grabber shows on hover, focus and
+  touch). The card follows the pointer or finger 1:1, with growing
+  resistance past the smallest and largest sizes; a dashed outline shows the
+  size it will take; on release it settles on the fixed size nearest where
+  the gesture was heading (240, 360, 480, 600 or 720 px, the largest its
+  column has room for), with a critically damped spring that starts at the
+  gesture's speed. Arrow keys, Home and End step through the sizes; double-
+  click or Delete fits the column again. Sizes are saved with the widgets
+  (`sizes`, validated natively). While fixing it: a widgets refresh during a
+  gesture re-inserted every card, dropping the pointer a resize held; cards
+  now move only when out of place. native-start-devices 9/9;
+  native-start-widgets 8/8.
+- **Extension side panels as Start Page cards (2026-11-13, owner: "Prototype
+  it"; fork only, prototype):** an installed extension with a side panel
+  (`chrome.sidePanel`, `side_panel.default_path`) appears in Customize as one
+  more widget tile. Turned on, it becomes a card in the side columns, moved
+  like the others, and Blanc draws the extension's own panel page over the
+  card's slot: Chromium's side panel host (`CreateSidePanelHost`) in an
+  `ExtensionViewViews` below the Island, in the extension's process, never
+  inside the Start Page. The page reports the slot's place on every move;
+  panels hide under popovers, while a card is dragged and on other tabs, and
+  close with the page. Private Start Pages show a note instead. The enabled
+  panels are saved with the widgets (`panels`, cards `ext:<id>`). Test
+  `chromium/tests/native-start-panels.mjs` (sample extension in
+  `tests/fixtures/side-panel-extension`, loaded by the gated
+  `testLoadUnpacked`): 3/3. Not yet: the panel's own height, keyboard focus
+  between page and panel, and a check with real Web Store extensions.
+  Later the same day (owner): an **Add widget** tile, last in Customize's
+  Widgets grid, opens an "Add a widget" view (with Back) listing four
+  extensions whose side panel suits a Start Page card: Bookmark Sidebar,
+  Raindrop.io, Desktop app for Google Tasks and Checker Plus for Google
+  Calendar. Each has a letter tile (no remote image), Blanc's own one-line
+  description in every language, its publisher, and Get (its Chrome Web Store
+  page in a new tab), Add once installed, or Added; plus "Find more in the
+  Chrome Web Store" and "Extensions are made by their developers, not by
+  Blanc." The list was checked on 2026-11-13 against each listing and its
+  publisher's docs or source (side panel evidence, ID to listing title);
+  Obsidian Web Clipper and Claude were left out (their panels act on the
+  page in view), as were extensions without first-party side-panel evidence.
+  **The list awaits the owner's approval before the beta.** The earlier hint
+  line is gone. native-start-panels 4/4; native-start-widgets 8/8.
+- **Mahjong dock icons (2026-11-13):** shipping's dock uses
+  `<use href="mahjong-icons.svg#…">`, which Chromium does not load on the
+  fork's internal pages (net::ERR_FAILED), so the dock showed empty circles.
+  The served page inlines the sprite; shipping's files are unchanged.
+- **V25 — Mahjong takes Patron's place in the Start Page footer (2026-11-13,
+  owner; fork only, "for now"):** the Become a Blanc Patron pill leaves the
+  Start Page (Settings → Patron still offers it), and Play Blanc Mahjong
+  moves from the footer's right to the footer's left in that pill's look
+  (gold outline, weight 600, a two-tile mark, no ×). Shipping's two steps that
+  find or close the Patron pill run as V25 replacements.
+- **V24 — one Start Page with optional widgets, readable on any wallpaper
+  (2026-11-13, owner; fork only):** Billboard is the one Start Page layout.
+  Customize's layout picker becomes four switches: Favorites (up to eight,
+  in columns), On your other devices, Blocked this week (the 7-day chart,
+  replacing Billboard's one-line count) and More shortcuts (twelve tiles
+  instead of six). Sent to this device is an inbox, not a switch: it shows
+  whenever something waits. The choice is device-wide (`blanc.start.widgets`
+  in Local State, patch 0078), never synced, and every open Start Page
+  follows it at once. On first read a profile's old layout decides it once:
+  Ledger → Favorites + other devices, Tally → Favorites + chart, Shelf →
+  Favorites + More shortcuts (Shelf's grid showed favorites), Billboard →
+  none. Over your image or a theme's image the image stays untouched (owner,
+  after the first try's cream plates and clock halo looked wrong): the
+  widgets sit on one glass tray in the Island's material family; the date,
+  blocked line, tile names and group chips take whichever ink, light or dark,
+  stands out more against the image (and wash) right behind them, read from
+  the image itself (newtab-adapter.js, the Lock Screen's way; owner, after a
+  shadow alone and then a wash behind the date both fell short); the footer
+  sits in a fade up from the bottom edge; and the clock is as
+  it was (its own opposite shadow). The tray's inks and the footer's ink keep
+  4.5:1 or more over pure black and pure white behind them
+  (start-plates.test.mjs); native-start-widgets.mjs checks the switches, live
+  sharing, relaunch, the move from Tally and that look.
+  The footer's Mahjong link reads "Play Blanc Mahjong" (owner; fork string
+  start.mahjong.play in six languages). On macos-9cd621a1e07290fa
+  native-start-widgets.mjs passes 6/6 and newtab-layouts :85, :134 (on a
+  retry), :161, :221 pass; :8, :14, :101, :114, :188, :194, :212 passed on the
+  build before the footer fade moved to ::after.
+  Shipping's layout steps run as V24 replacements (tests/fork-steps,
+  lib/start-widgets.mjs): newtab-layouts.feature 24/25 on
+  macos-e66182e9896f8805; :21 is shipping's stale Mahjong check, failing
+  before this change too. A page with widgets fits 1000×840 without scrolling.
+  On macos-51eaa3444b2f90d6 (names win over addresses in Favorites' columns)
+  native-start-widgets.mjs passes 6/6 and :85/:101/:114/:161/:188 pass. The
+  local Sync gate ran 12/22 on macos-e66182e9896f8805, Start Page Send
+  included, then was stopped to save time (owner: "the gate is going very
+  slowly"); the other ten cover code this change does not touch (22/22 on
+  macos-c2c2bcc050e0af2d). Rerun the whole gate on the beta candidate.
+- **Extensions panel over the floating Island (2026-11-13, owner report):**
+  with Auto-hide in float style, the Extensions panel opened behind the
+  revealed floating Island (layer 2 under its 4; also under a Glance card's
+  3). It now sits on the ⌘L panel's layer (5), as shipping's overlay is above
+  its float views and the card. native-extensions-over-float.mjs fails
+  before the fix and passes after it (macos-f7b5f8256e4bdf54, Island files
+  served from disk because the beta build held the build tree).
+- **Resting Island geometry matches shipping (2026-11-13, owner):** measured
+  side by side with shipping's Electron build (8a4e57e78) at 1200 px, the
+  fork's prototype.css had re-spaced the closed Island (6 px gaps instead of
+  10, 26 px action buttons instead of 22 × zoom, a 14 px corner at every
+  Island size instead of 17/19/21, and no top highlight in the shadow). Those
+  overrides are gone: every gap, button, corner and the shadow now equal
+  shipping's to 0.01 px. The only difference left is the fork's native
+  Extensions slot at the start of the actions (26 px, shipping's 1.15 px
+  step). island-resting-geometry.test.mjs keeps fork stylesheets from
+  changing the resting pill again.
+- **Beta polish: the app's name and About (2026-11-13, owner):** the
+  application menu names the app from its bundle (About, Hide and Quit
+  "Blanc Beta" / "Blanc Prototype", patch 0075); About, from that menu or
+  the standard About panel, opens Blanc's Settings sheet at About instead of
+  a full-page tab (patch 0076); and Chromium's own text names the browser
+  Blanc in every language (patch 0077, `blanc/common/product_name.h`,
+  owner's choice "Blanc"), keeping "The Chromium Authors", the credited
+  "Chromium open source project", ChromiumOS, Chromium Enterprise, URLs and
+  longer words. native-app-menu-about.mjs and product-name.test.mjs check
+  them. All four land in the first beta (owner: "I need all these fixes in
+  the first beta that real users see").
+- **Glance over a split (F53-29/30, shipping v1.47.0; 2026-11-12, owner):**
+  Chromium's split holds two pages, so a Glance opened over a visible split
+  shows its tab in a view of its own, between the split's pages and the
+  Island (which draws the card's frame); the tab stays where it is. It stays
+  while focus moves between the panes or one closes, and ends on any other
+  switch, on its own tab leaving, or when Chromium is about to show its page
+  (patch 0072 hooks both of Chromium's attach points). The Island cuts the
+  pane frames, corner tabs and divider away under the card; the tab menu
+  offers Glance while a split shows. Page commands follow focus into this
+  card (patch 0074, 2026-11-13): zoom, Back/Forward, Reload and Find act on
+  the Glance page while it has focus and on the pane again once a pane
+  does (native-glance-split-commands.mjs). Both scenarios pass,
+  and glance.feature and split-view.feature pass 101 with 2 excluded on
+  macos-c2c2bcc050e0af2d.
+- **F62 default page zoom on Chromium's zoom (2026-11-12):** all 11
+  page-zoom.feature scenarios pass on macos-62c03a037c249ee0
+  (`v148-zoom-cases-3`). Chromium already keeps a profile's default and
+  per-site zoom (private tabs in memory only, profiles apart, ⌘0 back to the
+  default, no entry for a site at the default). Patch 0070 gives only web
+  content the default, so the Island, the Start Page, Settings and extension
+  pages stay at 100% until zoomed themselves (shipping's usesDefaultZoom);
+  patch 0071 returns ⌘+/⌘− to Chrome's step ladder, replacing the baseline's
+  Electron ±0.5-level steps, as shipping did in v1.47.0. Settings uses
+  Chromium's own Page zoom menu (Appearance) and Zoom levels list (Site
+  settings). Owner decisions (2026-11-12): the default page zoom is
+  device-wide as in shipping (`blanc.page_zoom` in Local State; every
+  profile's default follows it, patch 0073), an exception to V18; saved sites
+  stay in each profile's Chromium preferences and are listed under Site
+  settings → Zoom levels, reached from a link beneath Page zoom (V23,
+  approved). Glance zoom, the Start Page layouts and page scaling still pass;
+  native-device-zoom.mjs checks the device-wide default and the link.
+- **Shipping target moved to v1.48.0 (2026-11-12, owner):** shipping v1.48.0
+  went public on 2026-11-11, so the fork's reference moves from v1.46.0. The
+  Island renderer (every fork edit still applies; island-autohide.js,
+  overlay.js, renderer.js and styles.css changed), the interface, menu and
+  settings strings, the asset provenance, the parity tests and the scenario
+  inventory (610 declarations, 659 cases, from 591 and 640) follow v1.48.0.
+  New for the desktop: F62 default page zoom (11 scenarios, v1.47.0; the key
+  check gains `pageZoom`, to build on Chromium's own zoom), Glance over a whole
+  split (F53-29, F53-30), a refused bad-certificate frame and a WebSocket past
+  a continued warning (F39-8, F39-9). The phone-only tab gestures (F56) map to
+  N14 and are excluded. The sandboxed Sync and import bundles stay on v1.46.0
+  (`bundleTag`): through v1.48.0 shipping changed neither for users, and
+  moving them changes Android's runner. A new spec row is F62.
 - **Shipping target moved to v1.46.0, candidate macos-e225d28ca11f8f10 (2026-11-04, owner):**
   `tools/island-renderer.mjs` regenerated the Island from v1.46.0 (every
   fork edit still applies; index.html, overlay.js, renderer.js and
@@ -882,8 +1179,9 @@ remain pending. D3 beta-only no-DRM exception accepted; EME notice/handoff requi
   (F2-9); a group's first tab dragged out lands above its group (F3-23); the
   weekly blocked counter (pref `blanc.blocking.week_stats`, shipping's
   adblock-stats.js week) shows on Ledger, Shelf and Tally (F35-16, F35-17);
-  Kagi under V12 (F5-2). Decided (owner): V16, a pinned tab leaves its
-  group (F3-5 checks it; F3-34 has no case), and V17, Close Tabs Below
+  Kagi under V12 (F5-2). Historical V16 made a pinned tab leave its
+  group; queue 3 restores shipping grouped pins and retires those overrides
+  (see CODEX-NOTES-quiet.md). V17, Close Tabs Below
   reopens one tab at a time (F2-10 checks it). Final reruns: tab-drag 15/0,
   ad-blocking 9/0, tabs-and-groups 32/1 (F3-3), internal-pages 9/1 (F16-1),
   island-and-commands 63/3 (F1-13, F1-33, F1-39), newtab-layouts with
@@ -2425,19 +2723,19 @@ Android's Bar A counts the shared scenarios bound in `chromium/tests/android/acc
 
 | State | macOS | Windows | Linux | Android |
 | --- | ---: | ---: | ---: | ---: |
-| Not started / unassessed | 25 | 80 | 80 | 68 |
+| Not started / unassessed | 24 | 81 | 81 | 69 |
 | Research only | 1 | 0 | 0 | 0 |
 | Drafted | 5 | 0 | 0 | 0 |
-| Implemented | 4 | 0 | 0 | 12 |
+| Implemented | 6 | 0 | 0 | 12 |
 | Built, isolated (legacy) | 4 | 0 | 0 | 0 |
 | Integrated, partial (legacy) | 3 | 0 | 0 | 0 |
 | Integrated | 38 | 0 | 0 | 0 |
 | Verification needs recheck | 0 | 0 | 0 | 0 |
 | Verified | 0 | 0 | 0 | 0 |
 | Release-ready | 0 | 0 | 0 | 0 |
-| Total | 80 | 80 | 80 | 80 |
+| Total | 81 | 81 | 81 | 81 |
 
 Legacy macOS stages come from the approved spec; they await verification on the canonical candidate. No legacy stage counts as Verified.
 
-Candidate identities: macOS: macos-91629aa302c0c8a7; Windows: none; Linux: none; Android: android-arm64-7bd35e94ef746069.
+Candidate identities: macOS: macos-eda1ac1ce983ed86; Windows: none; Linux: none; Android: android-arm64-7bd35e94ef746069.
 <!-- END GENERATED PROGRESS -->

@@ -3,7 +3,7 @@
    Chromium's bookmark and history services; the row pin and mute controls and
    drag-to-reorder by TabStripModel; the warning badge by the host's siteInfo
    (S1.6). Glance has no native counterpart yet. */
-#pillFillHint, #pillCapture, #pillDisplayShare,
+#pillFillHint, #pillDisplayShare,
 #panelSiteInfo {
   display: none !important;
 }
@@ -14,10 +14,10 @@
   display: none !important;
 }
 
-/* Native Chromium extension views occupy this measured slot in the pill. */
+/* Native Chromium extension views occupy this measured slot in the pill.
+   Everything else in the resting pill keeps shipping's exact spacing, button
+   sizes, corners and shadow (owner, 2026-11-13): no overrides here. */
 #nativeExtensions { display: inline-block; flex: 0 0 auto; width: calc(26px / var(--pill-zoom)); height: calc(26px / var(--pill-zoom)); }
-#islandPill { gap: 6px; }
-#pillDomain { min-width: 24px; flex-shrink: 1; }
 /* Native controls cannot inherit a renderer transform. Keep their shared frame stable. */
 #islandPill.proximity-active { transform: none !important; }
 
@@ -26,18 +26,6 @@
 @media (max-width: 800px) {
   #panelAnchor { top: 48px; }
   #islandPanel { max-height: calc(100vh - 60px); }
-}
-
-/* Keep the three actions visually consistent with the native Extensions inkdrop.
-   26px is the rendered circle diameter; the pill scales CSS by --pill-zoom. */
-#pillActions .pill-btn {
-  width: calc(26px / var(--pill-zoom));
-  height: calc(26px / var(--pill-zoom));
-}
-#pillActions .pill-btn:not(:disabled):hover,
-#pillActions .pill-btn:not(:disabled):active {
-  background: var(--accent-dim) !important;
-  color: var(--accent) !important;
 }
 
 .prototype-tab-menu {position:fixed; z-index:2000; min-width:180px; padding:5px;
@@ -75,12 +63,6 @@ html, body { background: transparent; }
   background-image: var(--theme-toolbar-image);
   background-position: center;
   background-size: cover;
-}
-
-/* Preserve the approved native Island radius and shadow over the pinned renderer. */
-#islandPill {
-  --island-resting-radius: 14px;
-  --shadow-island-resting: inset 0 -1px 0 rgba(14,14,14,.035), 0 5px 18px -12px rgba(14,14,14,.24);
 }
 
 :root[data-extensions-page] #pillFavicon.has-icon { filter: var(--theme-icon-filter, brightness(0)); }

@@ -34,11 +34,11 @@ function withAndroidLane(fn) {
   } finally { fs.rmSync(dir, {recursive: true, force: true}); }
 }
 
-test('desktop lane is unchanged', () => {
+test('desktop lane reconstructs its pinned source set', () => {
   const plain = check(tree), desktop = check(tree, '--lane', 'desktop');
   assert.equal(plain.status, 0, plain.stderr);
   assert.equal(desktop.stdout, plain.stdout);
-  assert.match(plain.stdout, /"upstreamFiles": 143/);
+  assert.match(plain.stdout, /"upstreamFiles": 176/);
 });
 
 test('android lane verifies its own inputs', () => withAndroidLane((root, file) => {

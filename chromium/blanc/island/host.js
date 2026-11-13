@@ -2,6 +2,7 @@
 (() => {
   let nextId = 0;
   let snapshot = null;
+  let syncedClosed = [];
   let tabSelection = BlancTabSelection.emptySelection();
   let selectionRevision = 0;
   const selectionTabs = () => snapshot?.tabs ?? [];
@@ -24,7 +25,10 @@
   let serialized = '';
   let pillRect = null;
   let opened = false;
+  let miniSearchOpened = false;
   let overlayMode = null;
+  let overlayDragging = false;
+  let overlayClosing = null;
   // When the open surface appeared, and whether its native context menu is up.
   let overlayShownAt = 0;
   let overlayMenuOpen = false;
@@ -75,6 +79,7 @@
     }
     return slot;
   }
+  const effectiveRailWidth = () => layout === 'vertical' ? (snapshot?.verticalTabsWidth ?? railWidth) : 0;
   async function applyRail(persist = false) {
     railWidth = await request('rail', [layout === 'vertical', Math.round(railWidth)]);
     strip.style.height = layout === 'vertical' ? '100%' : 'var(--strip-h, 68px)';
@@ -133,6 +138,9 @@
       const epoch = pendingFindShow.epoch;
       queueMicrotask(() => deliverFindShow(epoch));
     }
+    if (event === 'onDownloadsActivity') queueMicrotask(() => {
+      if (snapshot?.downloadsActivity && subscribers.get(event)?.has(callback)) callback(snapshot.downloadsActivity);
+    });
     if (event === 'onPermissionPrompt') queueMicrotask(() => {
       for (const payload of prompts.values())
         if (subscribers.get(event)?.has(callback)) callback(payload);
@@ -167,7 +175,7 @@
   function request(method, args = []) {
     return new Promise((resolve, reject) => {
       const id = String(++nextId);
-      const timeout = ['extensionContextMenu', 'closeSplit', 'closeTab', 'spaceOpenNewWindow'].includes(method) ? null : setTimeout(() => {
+      const timeout = ['extensionContextMenu', 'closeSplit', 'closeTab', 'spaceOpenNewWindow', 'importArcRead'].includes(method) ? null : setTimeout(() => {
         pending.delete(id);
         const error = new Error(`Native bridge timed out: ${method}`);
         if (method === 'snapshot') error[snapshotTimeoutMarker] = true;
@@ -257,6 +265,7 @@
   const SPACE_LIMIT = 25;
   let spacesBound = '';
   const spaceList = async () => {
+    if (snapshot?.miniWindow) return {meta:{order:[],items:{},deleted:[]},elsewhere:new Set(),held:new Set()};
     const { meta, elsewhere, held } = await request('spaceMeta');
     return { meta: { order: [], items: {}, deleted: [], ...meta }, elsewhere: new Set(elsewhere), held: new Set(held) };
   };
@@ -294,6 +303,7 @@
     await announceSpaces();
   }
   async function saveSpaceAs(rawName, identity) {
+    if (snapshot?.miniWindow) return {ok:false,error:'busy'};
     const list = await spaceList();
     const checked = checkSpaceName(list, rawName);
     if (checked.error) return { ok: false, error: checked.error };
@@ -307,11 +317,12 @@
     return spaceResult({ workspaceId: id, action: 'swap' });
   }
   async function swapToSpace(id) {
+    if (snapshot?.miniWindow) return {ok:false,error:'busy'};
     const current = snapshot?.spaceName || SPACE_SCRATCH;
     try {
       await request('previewSpaceSave', [current]);
       await request('previewSpaceOpen', [id]);
-    } catch (e) { return { ok: false, error: 'activation-failed', detail: e.message }; }
+    } catch (e) { return { ok: false, error: /^Session metadata save (?:failed|unavailable|acknowledgement timed out)/.test(e.message) ? 'storage-failed' : 'activation-failed', detail: e.message }; }
     clearSelection();
     const leftCount = savedTabCount();
     await close(false);
@@ -452,6 +463,35 @@
   // holding the tab, then moves the page; a failed write moves nothing. The
   // window stays in its own Space.
   let lastSpaceMove = null;
+  let pendingSpaceLink = null, lastSpaceLinkResult = null;
+  async function offerSpaceLink(token, title, destination) {
+    pendingSpaceLink = {token, title}; lastSpaceLinkResult = null;
+    let result;
+    if (destination === 'new') {
+      await show('', 'spaces', null, {newSpaceLinkTitle:title}); result = true;
+    } else {
+      const list = await spaceList();
+      result = await request('spaceLinkOpen', [token, destination, false]);
+      await announceSpaces();
+      if (result.ok) pendingSpaceLink = null;
+      else await show('', 'spaces', null, {spaceLinkError:{name:list.meta.items[destination]?.name ?? '',error:result.error}});
+    }
+    lastSpaceLinkResult = {token, result}; return result;
+  }
+  async function createSpaceWithLink(rawName, identity) {
+    const link = pendingSpaceLink;
+    if (!link || overlayMode !== 'spaces' || overlayPurpose?.newSpaceLinkTitle == null)
+      return {ok:false,error:'not-found',...(await spacesPayload())};
+    const list = await spaceList(), checked = checkSpaceName(list, rawName);
+    if (checked.error) return {ok:false,error:checked.error,...(await spacesPayload())};
+    if (list.meta.order.length >= SPACE_LIMIT) return {ok:false,error:'limit',...(await spacesPayload())};
+    const id = crypto.randomUUID();
+    const result = await request('spaceLinkOpen',[link.token,id,true]);
+    if (!result.ok) return {...result,...(await spacesPayload())};
+    list.meta.items[id] = {name:checked.name,...spaceIdentity(list,identity),tabCount:1}; list.meta.order.push(id);
+    await writeSpaces(list); pendingSpaceLink = null;
+    return spaceResult({workspaceId:id});
+  }
   async function moveTabToSpace(tabId, id) {
     const list = await spaceList();
     if (!list.meta.items[id] || list.meta.deleted.includes(id)) return { ok: false, error: 'not-found', moved: false };
@@ -522,8 +562,10 @@
   // card's generation, so a message from a card that has gone is refused. The
   // save is debounced and a close flushes it.
   const GlanceCard = window.BlancGlanceCard;
-  const glance = { tabId: null, generation: 0, pending: undefined, timer: null, key: '', requestEpoch: 0 };
-  const glanceArea = () => snapshot?.splitGeometry?.mode === 'glance' ? snapshot.splitGeometry.pageArea : null;
+  const glance = { ready: false, loadEpoch: 0, tabId: null, nativeTabId: null, nativeMainId: null, generation: 0, pending: undefined, timer: null, key: '', requestEpoch: 0 };
+  // A Glance over a split (F53-29) reports its own page area; a Glance pair
+  // reports it as its split geometry.
+  const glanceArea = () => snapshot?.glanceArea ?? (snapshot?.splitGeometry?.mode === 'glance' ? snapshot.splitGeometry.pageArea : null);
   const glanceFractions = () => (glance.pending !== undefined ? glance.pending : snapshot?.glanceFrame ?? null);
   const glanceCardFrameNow = () => GlanceCard.fractionsToFrame(glanceFractions(), glanceArea());
   function glancePayload() {
@@ -547,6 +589,9 @@
     glanceCardFrame.contentWindow.focus();
   }
   function publishGlance() {
+    // A newly-created card document must paint before its page is exposed.
+    // Keep the native page rectangle empty until both can appear together.
+    if (!glance.ready) { glanceCardFrame.hidden = true; return; }
     const payload = glancePayload();
     const key = JSON.stringify(payload);
     if (key === glance.key) return;
@@ -568,22 +613,31 @@
       glanceCardFrame.hidden = true;
     }
     emit('onGlanceLayout', payload);
+    // The split's frames are cut where the card now is.
+    paintSplitHeaders();
   }
   function syncGlance() {
     const id = snapshot?.glanceTabId ?? null;
-    if (id !== glance.tabId) {
-      // Shipping's announcements for a Glance that ended with its tab.
-      const open = tabId => snapshot.tabs.find(tab => tab.id === tabId);
-      if (id == null && glance.tabId != null && !glance.closing) {
-        if (!open(glance.tabId)) glanceSay('glance.status.tabClosed');
-        else if (!open(glance.mainId)) glanceSay('glance.status.mainClosed', { title: glanceTitle(glance.tabId) });
+    // Native ownership can change before the first card layout. Remember it
+    // independently of the visual identity so an immediate close still
+    // announces which page survived.
+    if (id !== glance.nativeTabId) {
+      const open = tabId => snapshot.tabs.some(tab => String(tab.id) === String(tabId));
+      if (id == null && glance.nativeTabId != null && !glance.closing) {
+        if (!open(glance.nativeTabId)) glanceSay('glance.status.tabClosed');
+        else if (!open(glance.nativeMainId)) glanceSay('glance.status.mainClosed', { title: glanceTitle(glance.nativeTabId) });
       }
+      glance.nativeTabId = id;
+    }
+    if (id != null) glance.nativeMainId = snapshot.activeTabId;
+    // A replacement keeps the old card while its page area is pending; the
+    // first card stays hidden until native layout and the renderer are ready.
+    if (id != null && !glanceArea()) { setTimeout(refresh, 50); return; }
+    if (id !== glance.tabId) {
       flushGlanceSave(); glance.tabId = id; glance.generation += 1;
     }
     if (id != null) glance.mainId = snapshot.activeTabId;
     publishGlance();
-    // Native reports the page area after its next layout.
-    if (id != null && !glanceArea()) setTimeout(refresh, 50);
   }
   function changeGlanceCard(input, next) {
     if (snapshot?.glanceTabId == null || Number(input?.generation) !== glance.generation) return null;
@@ -688,7 +742,13 @@
     const split = snapshot?.splits?.find(s => s.tabIds.includes(snapshot.activeTabId));
     const tabs = split?.tabIds.map(id => snapshot.tabs.find(t => t.id === id)) ?? [];
     const geometry = snapshot?.splitGeometry;
-    const key = JSON.stringify([split, tabs, snapshot?.activeTabId, layout, railWidth, geometry]);
+    // A Glance floating over the split (F53-29) covers what lies under its
+    // card: the pane frames, corner tabs and divider are drawn here, above
+    // the pages, so they are cut away where the card is.
+    const card = snapshot?.glanceArea ? glancePayload()?.card.chrome : null;
+    const key = JSON.stringify([split, tabs, snapshot?.activeTabId, layout, railWidth, geometry, card]);
+    const cut = card ? `path(evenodd, 'M-10000 -10000H20000V20000H-10000Z M${card.x} ${card.y}h${card.width}v${card.height}h${-card.width}Z')` : '';
+    box.style.clipPath = cut; divider.style.clipPath = cut;
     divider.hidden = !split || geometry?.mode !== 'columns';
     if (split && geometry?.divider) {
       const r = geometry.divider;
@@ -831,10 +891,20 @@
     }).catch(() => {}).finally(() => { extensionNamesLoading = false; });
   }
 
+  let downloadsActivityKey = null;
   async function refreshNow() {
     const attempt = ++snapshotRefreshAttempt;
     try {
       snapshot = await request('snapshot');
+      if (snapshot.miniWindow && !miniSearchOpened) {
+        miniSearchOpened = true;
+        setTimeout(() => window.BlancPrototypeHost.open(true), 50);
+      }
+      const activityKey = JSON.stringify(snapshot.downloadsActivity);
+      if (activityKey !== downloadsActivityKey) {
+        downloadsActivityKey = activityKey;
+        emit('onDownloadsActivity', snapshot.downloadsActivity);
+      }
       // Shipping's tab records name their split; the panel draws one row from it.
       nameExtensionTabs(snapshot.tabs);
       for (const tab of snapshot.tabs) tab.splitId = snapshot.splits?.find(split => split.tabIds.includes(tab.id))?.id ?? null;
@@ -918,7 +988,7 @@
         adblockEnabled: enabled, connection: shieldTab.connection, t,
       }) : null;
       snapshot.shieldPopover = shippingShield ? {
-        ...shippingShield,
+        ...shippingShield, route: snapshot.linkRoute,
         // Keep the shipping site/global distinction; unhealthy protection, or
         // a navigation still on its way to another page, has recovery
         // semantics rather than an apparently active site switch. A page
@@ -936,6 +1006,17 @@
       snapshot.selectedTabIds = [...tabSelection.selectedTabIds];
       snapshot.contextMenuSelection = !!tabSelection.contextMenu;
       const items = strip.contentWindow?.TabSections?.itemsOf(snapshot.tabs) ?? [];
+      const localClosed = snapshot.closed ?? [];
+      const remoteById = new Map(syncedClosed.map(row => [row.id, row]));
+      snapshot.closed = localClosed.map(row => {
+        const remote = remoteById.get(row.sharedTabId);
+        if (!remote) return row;
+        remoteById.delete(row.sharedTabId);
+        return {...row, fromName: remote.fromName, syncId: remote.id};
+      });
+      for (const remote of remoteById.values()) snapshot.closed.push({...remote,
+        id: `sync:${remote.id}`, sharedTabId: remote.id, syncId: remote.id, tabCount: 1});
+      snapshot.closed.sort((a, b) => (a.closedAt ?? 0) - (b.closedAt ?? 0));
       snapshot.closedSlot = closedSlotFor(items.map(item => item.id));
       strip.contentDocument?.documentElement?.toggleAttribute('data-extensions-page',
         snapshot.tabs.find(t => t.id === snapshot.activeTabId)?.url === 'chrome://extensions/');
@@ -953,6 +1034,8 @@
         emit('onTabsUpdated', snapshot);
         emit('onSplitLayout', currentSplitLayout());
       }
+      if (opened && overlayMode === 'capture' && !snapshot.capturePopover?.rows.length)
+        await close(false);
       // A newer fully processed snapshot can retire only its own older timeout.
       // Preserve any later unrelated notice and wait while any snapshot is pending.
       const status = document.getElementById('status');
@@ -988,12 +1071,26 @@
   // Shipping chrome-layout.js: 404px view, 380px card, centered on the
   // measured trigger and clamped inside the window. CSS paints the card.
   function positionShield() {
+    if (overlayClosing === 'spaces') return;
     if (opened && overlayMode === 'spaces') { positionSpaces(); return; }
-    if (!opened || overlayMode !== 'shield') {
+    if (opened && overlayMode === 'find' && findTabId === snapshot?.glanceTabId) {
+      const page = glancePayload()?.card.page;
+      if (page) {
+        Object.assign(overlay.style, {left: page.x + 'px', top: page.y + 'px',
+          width: page.width + 'px', height: Math.min(160, page.height) + 'px', right: 'auto', bottom: 'auto'});
+        return;
+      }
+    }
+    if (!opened || !['shield', 'capture'].includes(overlayMode)) {
       for (const key of ['left', 'top', 'width', 'height', 'right', 'bottom']) overlay.style[key] = '';
+      if (layout === 'vertical') {
+        const left = effectiveRailWidth();
+        overlay.style.left = `${left}px`;
+        overlay.style.width = `${Math.max(0, innerWidth - left)}px`;
+      }
       return;
     }
-    const trigger = strip.contentDocument?.getElementById(shieldTrigger === 'insecure' ? 'pillInsecure' : 'pillShield');
+    const trigger = strip.contentDocument?.getElementById(overlayMode === 'capture' ? 'pillCapture' : shieldTrigger === 'insecure' ? 'pillInsecure' : 'pillShield');
     const rect = trigger?.getBoundingClientRect();
     const stripRect = strip.getBoundingClientRect();
     const width = Math.min(404, Math.max(0, innerWidth - 24));
@@ -1010,7 +1107,7 @@
     const slot = strip.contentDocument?.getElementById('nativeExtensions');
     const panel = paneMenu ?? (extensionsOpened ? document.getElementById('extensionsPanel')
       : !opened && !sheet.page && prompts.size ? permissionFrame
-      : opened ? overlay.contentDocument?.getElementById(overlayMode === 'find' ? 'findBar' : overlayMode === 'shield' ? 'shieldPop'
+      : opened ? overlay.contentDocument?.getElementById(overlayMode === 'find' ? 'findBar' : overlayMode === 'shield' ? 'shieldPop' : overlayMode === 'capture' ? 'capturePop'
         : overlayMode === 'group-menu' ? 'groupMenu' : overlayMode === 'spaces' ? 'workspaceSwitcher' : 'islandPanel')
       : strip.contentDocument?.getElementById('islandPill'));
     if (!slot || !panel) return;
@@ -1032,11 +1129,15 @@
   }
 
   async function show(prefill, mode = 'panel', trigger = null, purpose = undefined) {
+    overlayDragging = false;
+    if (mode === 'panel' || mode === 'palette') request('syncSurface', ['refreshSession', []]).catch(() => {});
     // Every open ends a hover dwell, as shipping's showOverlay does.
     hoverStepWith({ type: 'ineligible' });
     await hideSheet(false);
     invalidateFindShow(mode === 'shield');
     const epoch = findShowEpoch;
+    overlayClosing = null;
+    overlay.style.pointerEvents = '';
     if (overlayMode === 'find') emit('onOverlayHide', {});
     findTabId = null;
     overlay.dataset.mode = mode;
@@ -1060,8 +1161,11 @@
     overlayMenuOpen = false;
     overlay.hidden = false;
     emit('onIslandState', { mode, trigger: shieldTrigger, restoreTrigger: null });
-    requestAnimationFrame(() => {
-      if (epoch !== findShowEpoch || !opened || overlayMode !== mode) return;
+    // Opening resolves only after the renderer has received its purpose and
+    // prefill. Otherwise the next action can type into the visible input and
+    // have that text overwritten by this deferred initialization.
+    await new Promise(resolve => requestAnimationFrame(() => {
+      if (epoch !== findShowEpoch || !opened || overlayMode !== mode) { resolve(); return; }
       // Search priority results (S1.7) is read where the panel opens, as
       // shipping's overlay:show carries it.
       emit('onOverlayShow', { mode, prefill, pillRect, ...(purpose ? { purpose } : {}),
@@ -1073,7 +1177,8 @@
         input.dispatchEvent(new overlay.contentWindow.Event('input', { bubbles: true }));
       }
       overlay.contentWindow.focus();
-    });
+      resolve();
+    }));
   }
 
   // A backgrounded host can stop receiving animation frames. The timer also
@@ -1082,6 +1187,7 @@
   function invalidateFindShow(preserveShield = false) {
     if (!preserveShield) pendingShieldOpen = null;
     ++findShowEpoch;
+    pendingFindShow?.resolve();
     pendingFindShow = null;
   }
 
@@ -1091,16 +1197,22 @@
         !opened || overlayMode !== 'find' || findTabId !== pending.tabId ||
         !pruneOverlayShowSubscribers()?.size) return;
     pendingFindShow = null;
-    emit('onOverlayShow', { mode: 'find', purpose: { findTabId: pending.tabId } });
-    // A callback may synchronously close or replace the overlay.
-    if (epoch !== findShowEpoch || !opened || overlayMode !== 'find') return;
-    overlay.contentWindow.focus();
-    reportGeometry();
+    try {
+      emit('onOverlayShow', { mode: 'find', purpose: { findTabId: pending.tabId } });
+      // A callback may synchronously close or replace the overlay.
+      if (epoch !== findShowEpoch || !opened || overlayMode !== 'find') return;
+      overlay.contentWindow.focus();
+      reportGeometry();
+    } finally {
+      pending.resolve();
+    }
   }
 
   async function openFindBar() {
     await hideSheet(false);
     invalidateFindShow();
+    overlayClosing = null;
+    overlay.style.pointerEvents = '';
     const epoch = findShowEpoch;
     await refresh();
     if (epoch !== findShowEpoch || !snapshot?.activeTabId) return;
@@ -1123,28 +1235,45 @@
     opened = true;
     overlay.hidden = false;
     emit('onIslandState', { mode: 'find' });
-    pendingFindShow = { epoch, tabId: findTabId };
-    requestAnimationFrame(() => deliverFindShow(epoch));
-    setTimeout(() => deliverFindShow(epoch), 250);
+    // A caller may type as soon as opening resolves. Wait until the current
+    // renderer has received the initialization that clears its previous query.
+    await new Promise(resolve => {
+      pendingFindShow = { epoch, tabId: findTabId, resolve };
+      requestAnimationFrame(() => deliverFindShow(epoch));
+      setTimeout(() => deliverFindShow(epoch), 250);
+    });
   }
 
-  async function close(focus = true) {
+  async function close(focus = true, restoreTrigger = null) {
+    overlayDragging = false;
     invalidateFindShow();
     const epoch = findShowEpoch;
     await dismissPaneMenu();
     if (epoch !== findShowEpoch) return;
+    const leaving = overlayMode;
+    overlayClosing = leaving === 'spaces' || leaving === 'glance' ? leaving : null;
     tooltip.hidden = true;
     extensionsOpened = false;
     extensionsPanel.hide();
     strip.style.visibility = '';
     emit('onOverlayHide', {});
-    emit('onIslandState', { mode: null, trigger: groupMenuClosed(), restoreTrigger: null });
+    if (restoreTrigger) strip.contentWindow.focus();
+    emit('onIslandState', { mode: null, trigger: groupMenuClosed(), restoreTrigger });
     opened = false;
     overlayMode = null;
     overlayPurpose = null;
     shieldTrigger = null;
     findTabId = null;
     overlay.dataset.mode = '';
+    // Keep the closing pixels at their original position, but release input
+    // and logical state immediately. A later open owns the view and cancels
+    // this epoch's delayed detach.
+    overlay.style.pointerEvents = 'none';
+    if (!overlayClosing) overlay.hidden = true;
+    if (focus && !restoreTrigger) await request('focusPage');
+    if (overlayClosing) await new Promise(resolve => setTimeout(resolve, 200));
+    if (epoch !== findShowEpoch) return;
+    overlayClosing = null;
     overlay.hidden = true;
     // An open sheet keeps the window's height; hideSheet gives it back.
     if (!sheet.page) await restHeight();
@@ -1152,13 +1281,19 @@
     // Escape and outside clicks return focus to the page (Electron's
     // hideOverlay does the same); extension activation passes false so the
     // native popup takes focus instead.
-    if (focus) await request('focusPage');
+    if (restoreTrigger) strip.contentWindow.focus();
+    else if (focus) await request('focusPage');
     if (epoch !== findShowEpoch) return;
     reportGeometry();
     // The resting pointer is sampled where it is now, as shipping's
     // hideOverlay does: still over the address it disarms hover-open instead
     // of reopening, and anywhere off the Island (no point) it re-arms it.
-    updateHover(hover.lastPoint, { sampled: true });
+    const cursor = await request('sampleIslandCursor');
+    if (epoch !== findShowEpoch) return;
+    const stripBounds = strip.getBoundingClientRect();
+    const point = cursor && { x: cursor.x - stripBounds.x, y: cursor.y - stripBounds.y };
+    hover.lastPoint = point;
+    updateHover(point, { sampled: true });
   }
 
   const extensionsPanel = new window.BlancExtensions({
@@ -1202,13 +1337,14 @@
   const dismissOnFocusLoss = () => {
     setTimeout(() => {
       if (!opened || !overlayMode || overlayMode === 'find' || overlayMode === 'display-share' ||
-          overlayMenuOpen || document.hasFocus() || performance.now() - overlayShownAt < 400) return;
+          overlayDragging || overlayMenuOpen || document.hasFocus() || performance.now() - overlayShownAt < 400) return;
       close(false);
     }, 0);
   };
   // Focus inside the overlay frame leaves the host window with nothing to
   // blur, so the frame's own window reports the loss too.
   const watchOverlay = () => {
+    overlayDragging = false;
     const win = overlay.contentWindow;
     win.addEventListener('blur', dismissOnFocusLoss);
     // Focus coming back is the native menu closing.
@@ -1283,7 +1419,7 @@
   // over the page, never as tabs. The frame claims the window as the palette
   // does, its page draws its own scrim and card, and the host answers its
   // window.bowserPages (pages/sheet-adapter.js) from Chromium's models.
-  const SHEET_PAGES = ['bookmarks', 'history', 'downloads'];
+  const SHEET_PAGES = ['bookmarks', 'history', 'downloads', 'tab-import'];
   const sheet = { frame: null, page: null, contents: 0, epoch: 0, tabs: null,
     escapeArmed: false, escapeListeners: new Set() };
   const sheetCurrent = (win, page) => !!sheet.frame && sheet.frame.contentWindow === win && sheet.page === page;
@@ -1298,7 +1434,7 @@
     return [Math.round(r.left), Math.round(r.top), Math.round(r.width), Math.round(r.height)];
   };
   function placeSettingsSheet() {
-    const top = layout === 'vertical' ? 0 : stripH(), left = layout === 'vertical' ? railWidth : 0;
+    const top = stripH(), left = effectiveRailWidth();
     Object.assign(settingsSheet.style, { top: `${top}px`, left: `${left}px`,
       width: `calc(100% - ${left}px)`, height: `calc(100% - ${top}px)` });
   }
@@ -1362,7 +1498,7 @@
   }
   // The page's place: below the strip, or beside the vertical rail.
   function placeSheet() {
-    const top = layout === 'vertical' ? 0 : stripH(), left = layout === 'vertical' ? railWidth : 0;
+    const top = stripH(), left = effectiveRailWidth();
     Object.assign(sheet.frame.style, { top: `${top}px`, left: `${left}px`,
       width: `calc(100% - ${left}px)`, height: `calc(100% - ${top}px)` });
   }
@@ -1374,7 +1510,10 @@
     // A document the bridge didn't open (a page setting its own address)
     // ends the sheet, as shipping's will-navigate refuses it.
     frame.addEventListener('load', () => {
-      if (sheet.frame === frame && sheet.page &&
+      // Switching to native Settings blanks this iframe. Its ensuing load
+      // is not navigation of the separate Settings WebContents and must not
+      // dismiss the sheet we just opened.
+      if (sheet.frame === frame && sheet.page && sheet.page !== 'settings' &&
           frame.contentWindow.location.pathname !== `/pages/${sheet.page}.html`) hideSheet();
     });
     // Under the floating pill and the overlay, as shipping stacks its views.
@@ -1386,7 +1525,7 @@
     if (!SHEET_PAGES.includes(name)) throw new Error(`No utility sheet page named ${name}.`);
     // Re-invoking the shown page closes it; while it loads, a repeat is the
     // same request (shipping's showUtilityPage toggle).
-    if (sheet.page === name && sheet.frame) {
+    if (sheet.page === name && sheet.frame && (name !== 'history' || (section === 'archived') === (new URLSearchParams(sheet.frame.contentWindow.location.search).get('view') === 'archived'))) {
       if (sheetReady()) return hideSheet();
       sheet.frame.contentWindow.focus();
       return;
@@ -1405,7 +1544,7 @@
       await request('settingsSheet', ['hide']).catch(() => {});
     }
     placeSheet();
-    sheet.frame.src = `pages/${name}.html`;
+    sheet.frame.src = `pages/${name}.html${name === 'history' && section === 'archived' ? '?view=archived' : ''}`;
     sheet.frame.hidden = false;
     await request('height', [10000]);
     if (epoch !== sheet.epoch) return;
@@ -1418,8 +1557,10 @@
   }
   async function hideSheet(focus = true) {
     if (!sheet.page) return;
+    const importing = sheet.page === 'tab-import';
     const epoch = ++sheet.epoch;
     sheet.page = null;
+    if (importing) await request('importDiscard').catch(() => {});
     sheet.tabs = null;
     sheet.escapeArmed = false;
     sheet.escapeListeners.clear();
@@ -1478,6 +1619,27 @@
         return () => sheet.escapeListeners.delete(callback);
       },
     };
+    if (page === 'tab-import') return { surface, tabImport: {
+      sources: () => call('importSources'),
+      openSource: (id, options = {}) => call('importOpenSource', [String(id), options]),
+      project: id => call('importProject', [String(id)]),
+      setSelection: (id, selection) => call('importSelection', [String(id), selection]),
+      suggestSourceGroups: id => call('importSuggest', [String(id)]),
+      cancel: id => call('importCancel', [String(id)]),
+      apply: async (id, request) => {
+        const result = await call('importApply', [String(id), request]);
+        if (result?.ok) { await hideSheet(false); await refresh(); }
+        return result;
+      },
+      arcDetect: () => call('importArcDetect'),
+      arcRead: source => call('importArcRead', [String(source)]),
+      arcApply: async (id, request) => {
+        const result = await call('importArcApply', [String(id), request]);
+        if (result?.ok) await announceSpaces();
+        return result;
+      },
+      arcCancel: id => call('importArcCancel', [String(id)]),
+    }};
     if (page === 'bookmarks') return { surface,
       bookmarks: {
         capabilities: async () => ({ editable: true, import: true }),
@@ -1518,8 +1680,16 @@
         remove: (url, visitedAt) => call('sheetHistoryRemove', [String(url), Number(visitedAt)]),
         clear: () => call('clearHistory'),
       },
-      // Tab Archive (F52) is not in the fork yet, so nothing is archived.
-      archive: { list: async () => [], restore: async () => false, forget: async () => false, clear: async () => {} },
+      archive: {
+        list: async (options = {}) => {
+          const query = String(options?.query ?? '').trim().toLowerCase();
+          const rows = await call('archiveList');
+          return query ? rows.filter(row => row.title.toLowerCase().includes(query) || row.url.toLowerCase().includes(query)) : rows;
+        },
+        restore: async id => { const result = await call('archiveRestore', [String(id)]); await refresh(); return result; },
+        forget: id => call('archiveForget', [String(id)]),
+        clear: () => call('archiveClear'),
+      },
     };
     if (page === 'downloads') return { surface,
       downloads: {
@@ -1559,12 +1729,25 @@
     });
   }
 
+  let railActivationSerial = 0;
   const implemented = {
     platform: 'darwin',
     startPinMenuState: id => request('startPinMenuState', [nativeId(id)]),
     toggleStartPin: (id, expectedUrl) => request('toggleStartPin', [nativeId(id), expectedUrl]),
     toggleAdblock: async () => { const tab = snapshot?.tabs.find(t => t.id === snapshot.activeTabId); const value = await request('toggleAdblock', [tab?.committedUrl ?? '']); await refresh(); return value; },
     allowAdsOnActiveSite: async () => { const tab = snapshot?.tabs.find(t => t.id === snapshot.activeTabId); const value = await request('allowAdsOnActiveSite', [tab?.committedUrl ?? '']); await refresh(); return value; },
+    openCapturePopover: async () => {
+      if (opened && overlayMode === 'capture') return close(false);
+      await refresh();
+      if (!snapshot?.capturePopover?.rows.length) return false;
+      await show(undefined, 'capture', 'capture');
+      return true;
+    },
+    captureStop: async id => { await request('captureStop', [nativeId(id)]); await refresh(); },
+    captureFocus: async id => {
+      await request('switchTab', [nativeId(id)]); await close(false);
+      await request('focusPage'); await refresh();
+    },
     openShieldPopover: async anchor => {
       const trigger = anchor?.trigger === 'insecure' ? 'insecure' : 'shield';
       if (pendingShieldOpen) {
@@ -1594,7 +1777,11 @@
     setTabLayout: async value => { layout = value === 'vertical' ? 'vertical' : 'island'; await applyRail(true); return layout; },
     setVerticalTabsWidth: async width => { railWidth = Number(width) || 248; return applyRail(true); },
     previewVerticalTabsWidth: async width => { railWidth = Number(width) || 248; return applyRail(); },
-    activateTabFromRail: async id => { clearSelection(); await request('switchTab', [nativeId(id)]); await request('focusPage'); await refresh(); },
+    activateTabFromRail: async id => {
+      railActivationSerial++; clearSelection();
+      await close(false); await hideSheet(false);
+      await request('switchTab', [nativeId(id)]); await request('focusPage'); await refresh();
+    },
     toggleSiteMute: async id => { const result = await request('toggleSiteMute', [nativeId(id)]); await refresh(); return result; },
     moveClosedSection: async before => { closedBefore = before == null ? '' : String(before); closedBelow = null; localStorage.setItem('blanc.prototype.closedBefore', closedBefore); await refresh(); return true; },
     showTooltip: ({ text, anchor, privateTheme }) => {
@@ -1604,12 +1791,13 @@
       tooltip.dataset.private = String(privateTheme === true);
       const width = tooltip.getBoundingClientRect().width;
       tooltip.style.left = `${Math.max(4, Math.min(innerWidth - width - 4, anchor.x + anchor.width / 2 - width / 2))}px`;
-      tooltip.style.top = `${Math.max(0, Math.min(44, anchor.y + anchor.height + 4))}px`;
+      tooltip.style.top = `${Math.max(0, Math.min(innerHeight - tooltip.offsetHeight, anchor.y + anchor.height + 4))}px`;
     },
     hideTooltip: () => { tooltip.hidden = true; },
     bangs: loadBangs,
     bangIcons: hosts => typed('bangIcons', [Array.isArray(hosts) ? hosts.map(String) : []]),
     getAllTabs: async () => snapshot ?? request('snapshot'),
+    keepMiniWindow: async () => {const kept = await request('keepMiniWindow'); await refresh(); await announceSpaces(); return kept;},
     createTab: async (url, options) => {
       // As in shipping, the address is loaded as given (the browser refuses
       // what a tab may not open); typed text goes through navigate instead.
@@ -1625,6 +1813,13 @@
     navigate: async (id, value) => {
       const bang = openTypedBang(id, value);
       if (bang) return bang;
+      // A shared Mahjong deal (blanc://mahjong/?deal=...) opens the game.
+      const deal = /^blanc:\/\/mahjong\/(\?[^#\s]*)?$/i.exec(String(value).trim());
+      if (deal) {
+        const result = await typed('navigate', [String(nativeId(id)), `chrome://blanc-prototype/pages/mahjong.html${deal[1] ?? ''}`]);
+        await refresh();
+        return result;
+      }
       const meaning = window.BlancAddressInput.interpret(value);
       // A hand-off goes to the browser as typed; it classifies the text again
       // and opens the app itself (V9). Nothing loads in the tab.
@@ -1649,7 +1844,7 @@
       if (name === 'settings') return showSheet('settings', section);
       // Electron names Favorites `bookmarks` internally. Utility pages open
       // in the sheet; Extensions is Chromium's own page.
-      if (SHEET_PAGES.includes(name)) return showSheet(name);
+      if (SHEET_PAGES.includes(name)) return showSheet(name, section);
       if (name !== 'extensions') throw new Error('Use Chromium’s native controls for this page in the prototype.');
       await request('createTab', ['chrome://extensions/']);
     },
@@ -1734,6 +1929,10 @@
       const group = snapshot?.groups?.find(item => item.id === groupId);
       if (group) await show(group.name, 'panel', null, { renameGroupId: group.id });
     },
+    beginNewGroupForTab: async id => {
+      if (!snapshot?.tabs.some(tab => String(tab.id) === String(id))) return;
+      await show('/group ', 'panel', null, { beginGroupTabId: String(id) });
+    },
     beginNewGroup: async () => {
       const ids = [...tabSelection.selectedTabIds];
       await show('/group ', 'panel', null, ids.length > 1 ? { beginGroupTabIds: ids } : { beginGroupTabId: snapshot?.activeTabId });
@@ -1746,6 +1945,8 @@
     },
     // Duplicate (F2): native copies the tab and its history, and refuses a
     // page-opened tab whose opener's sandbox a copy could not carry.
+    setPinnedHome: id => request('setPinnedHome', [nativeId(id)]),
+    returnPinnedHome: id => request('returnPinnedHome', [nativeId(id)]),
     duplicateTab: async (id) => {
       const copied = await request('duplicateTab', [nativeId(id)]);
       await refresh();
@@ -1767,7 +1968,7 @@
       const quieted = [];
       for (const tab of snapshot?.tabs ?? []) {
         if (visible.has(String(tab.id)) || tab.asleep) continue;
-        if (await request('quietTab', [nativeId(tab.id)]).catch(() => false) === true) quieted.push(tab.id);
+        if (await request('quietCandidate', [nativeId(tab.id)]).catch(() => false) === true) quieted.push(tab.id);
       }
       if (quieted.length) await refresh();
       return quieted;
@@ -1794,8 +1995,7 @@
       const message = window.BlancInviteFriend.inviteMessage(t);
       return request('inviteFriend', [window.BlancInviteFriend.inviteMailto(message), `${message.subject}\n\n${message.body}`]);
     },
-    // Sending a tab needs Blanc Sync, not in the fork yet: shipping's answer.
-    sendTabToDevice: async () => ({ status: 'unavailable' }),
+    sendTabToDevice: (id, to) => request('sendTabToDevice', [nativeId(id), String(to)]),
     setTabGroup: async (id, groupId) => {
       await request('setTabGroup', [nativeId(id), typeof groupId === 'string' ? groupId : null]);
       await refresh();
@@ -1827,7 +2027,16 @@
       const limit = Number.isInteger(options?.limit) ? options.limit : 300;
       return request('listHistory', [Math.min(300, Math.max(1, limit))]);
     },
-    listRemoteTabs: async () => [],
+    listRemoteTabs: () => request('syncSurface', ['listRemoteDevices', []]),
+    beginRenameDevice: async id => {
+      const devices = await request('syncSurface', ['listRemoteDevices', []]);
+      const device = devices.find(d => d.deviceId === id);
+      if (device) await show(device.name, 'panel', null, {renameDeviceId: id});
+    },
+    renameDevice: async (id, name) => {
+      const result = await request('syncSurface', ['renameRemoteDevice', [String(id), String(name ?? '')]]);
+      await refreshSyncSurfaces(); return result;
+    },
     // Internal migration probes; no user-facing Glance acceptance yet.
     createSplit: async (first, second) => {
       const result = await request('createSplit', [nativeId(first), nativeId(second)]);
@@ -1907,7 +2116,7 @@
         for (const id of ids) {
           try {
             if (action === 'batch-quiet') {
-              if (await request('quietTab', [nativeId(id)]) === true) done.push(id);
+              if (await request('quietCandidate', [nativeId(id)]) === true) done.push(id);
             } else {
               const tab = snapshot.tabs.find(tab => tab.id === id);
               if (!tab) continue;
@@ -1921,9 +2130,11 @@
         glanceSay(action === 'batch-quiet' ? 'tabsSelection.quieted' : 'tabsSelection.reloaded', { count: done.length, total: ids.length });
         return done.length === ids.length;
       }
-      const nativeAction = { 'batch-new-window': 'new-window', 'batch-copy': 'copy', 'batch-pin': 'pin', 'batch-mute': 'mute', 'batch-group-move': 'group-move', 'batch-group-none': 'group-none' }[action];
+      const nativeAction = { 'batch-close': 'close', 'batch-new-window': 'new-window', 'batch-copy': 'copy', 'batch-pin': 'pin', 'batch-mute': 'mute', 'batch-group-move': 'group-move', 'batch-group-none': 'group-none' }[action];
       if (!nativeAction) throw new Error(`Batch action is not implemented: ${action}`);
-      const result = await request('batchTabsAction', [ids.map(nativeId), nativeAction, options.groupId ?? null]);
+      const nativeResult = await request('batchTabsAction', [ids.map(nativeId), nativeAction, options.groupId ?? null]);
+      // Close acknowledges durable history with a void success; failures reject.
+      const result = nativeAction === 'close' ? nativeResult !== false : nativeResult;
       if (result && selectionRevision === revision) clearSelection(false);
       if (!result) glanceSay('tabsSelection.failed');
       await refresh();
@@ -1960,7 +2171,15 @@
           return false;
         }
       }
-      if (snapshot?.glanceTabId != null) { glance.closing = true; await request('closeGlance'); glance.closing = false; await refresh(); }
+      // A pane of the shown two-pane split leaves it and floats over the other
+      // pane, as shipping's openTabMenuGlance does (F53); a larger split's
+      // panes can't.
+      const shown = snapshot?.splits?.find(s => s.tabIds.includes(snapshot.activeTabId));
+      if (shown?.tabIds.includes(String(id))) {
+        if (shown.tabIds.length !== 2) return false;
+        const other = shown.tabIds.find(tabId => tabId !== String(id));
+        await request('removeFromSplit', [nativeId(id)]); await request('switchTab', [nativeId(other)]); await refresh();
+      }
       const opened = await request('previewGlancePair', [nativeId(snapshot.activeTabId), nativeId(id)]);
       await close(); await refresh();
       if (opened === true) glanceSay('glance.status.opened', { title: glanceTitle(String(id)) });
@@ -2024,6 +2243,7 @@
     moveTabToSpace: (tabId, id) => (lastSpaceMove = moveTabToSpace(tabId, id)),
     // The last menu move's result, for the harness (shipping returns it from the click).
     lastSpaceMove: () => lastSpaceMove,
+    createSpaceWithLink,
     createSpaceWithTab: (name, identity, tabId) => createSpaceWithTab(name, identity, tabId),
     createSpaceWithTabs: (name, identity, ids) => createSpaceWithTabs(name, identity, ids),
     beginNewSpaceForGroup: groupId => {
@@ -2040,16 +2260,35 @@
       if (anchor?.closing === true) return;
       show('', 'spaces');
     },
-    // Tab Archive (F52) and sending tabs (Profile Sync) are not ported yet:
-    // the overlay reads them with favorites and history at startup, so they
-    // answer as shipping does with nothing archived, sent or paired.
-    archiveList: async () => [],
-    archiveNotice: async () => null,
-    listSentToThisDevice: async () => [],
-    listSendTargets: async () => [],
+    archiveList: () => request('archiveList'),
+    archiveNotice: () => request('archiveNotice'),
+    archiveRestore: async id => { const result = await request('archiveRestore', [String(id)]); await close(); await refresh(); return result; },
+    archiveForget: id => request('archiveForget', [String(id)]),
+    archiveClear: () => request('archiveClear'),
+    archiveNoticeDone: async action => {
+      const result = await request('archiveNoticeDone');
+      if (action === 'view') await showSheet('history', 'archived');
+      return result;
+    },
+    listSentToThisDevice: () => request('syncSurface', ['listSentToThisDevice', []]),
+    listSendTargets: () => request('syncSurface', ['listSendTargets', []]),
+    dismissSentItem: async id => {
+      const item = await request('syncSurface', ['hideSentItem', [String(id)]]);
+      await refreshSyncSurfaces(); return !!item;
+    },
+    openSentItem: async id => {
+      const item = await request('syncSurface', ['hideSentItem', [String(id)]]);
+      if (!item || !/^https?:\/\//i.test(item.url)) return false;
+      await request('createTab', [item.url]); await close(); await refresh();
+      await refreshSyncSurfaces(); return true;
+    },
     searchSuggestions: query => typed('searchSuggestions', [String(query)]),
     cycleTheme: theme => typed('cycleTheme', [typeof theme === 'string' ? theme : null]),
-    routeActiveSite: mode => typed('routeActiveSite', [String(mode)]),
+    routeActiveSite: async mode => {
+      const result = await typed('routeActiveSite', [String(mode)]);
+      emit('onPillNotice', result.ok ? (result.on ? 'route-on' : 'route-off') : result.error === 'limit' ? 'route-limit' : 'route-unavailable');
+      await refresh(); return result;
+    },
     openFindBar,
     findInPage: (id, query, options = {}) => request('find',
       [nativeId(id), String(query), options.forward !== false, options.findNext !== false]),
@@ -2063,8 +2302,16 @@
     openIslandCommands: () => show('/'),
     // Cancelling the Change picker hands focus back to its control on the card.
     closeOverlay: async reason => {
+      if (reason === 'escape' && overlayDragging) return false;
+      if (overlayMode === 'spaces' && (reason === 'escape' || reason === 'cancel'))
+        return close(false, 'spaces');
       if (overlayMode === 'glance' && reason !== 'selected') {
         glance.requestEpoch += 1;
+        const epoch = findShowEpoch;
+        // The reference can close behind this picker before the next poll.
+        // Only a current native pair can own the Change control's focus.
+        await refresh();
+        if (epoch !== findShowEpoch || overlayMode !== 'glance') return;
         if (overlayPurpose === 'change' && snapshot?.glanceTabId != null) {
           await close(false);
           emit('onIslandState', { mode: null, trigger: null, restoreTrigger: 'glance-change' });
@@ -2081,8 +2328,9 @@
     // Shared panel cleanup runs even though this prototype has no workspace actions.
     cancelWorkspaceAction: () => { spacesDecision = null; },
     setWorkspaceSwitcherOpen: () => {},
-    setOverlayDragState: () => {},
-    acknowledgeDownloads: () => {},
+    // Only apiForDocument grants this to the current overlay document.
+    setOverlayDragState: () => false,
+    acknowledgeDownloads: () => request('acknowledgeDownloads').then(refresh),
     respondPermission,
     // Site controls' Stop allowing on a page loaded past a certificate warning.
     siteInfoForgetCertificateException: async () => {
@@ -2100,7 +2348,20 @@
 
   for (const method of ['reopenClosedTab', 'reopenClosedEntry', 'forgetClosedEntry', 'clearClosedEntries']) {
     implemented[method] = async (...args) => {
-      const result = await request(method, args.map(String));
+      const entry = method === 'reopenClosedTab' ? snapshot?.closed?.at(-1)
+        : snapshot?.closed?.find(row => row.id === String(args[0]));
+      let result;
+      if (entry?.id.startsWith('sync:') && method !== 'clearClosedEntries') {
+        const item = await request('syncSurface', ['hideClosedFromSync', [entry.syncId]]);
+        result = !!item;
+        if (item && method !== 'forgetClosedEntry' && /^https?:\/\//i.test(item.url))
+          await request('createTab', [item.url]);
+      } else {
+        result = await request(method, args.map(String));
+        if (result && entry?.syncId) await request('syncSurface', ['hideClosedFromSync', [entry.syncId]]);
+      }
+      if (method === 'clearClosedEntries') await request('syncSurface', ['clearClosedFromSync', []]);
+      if (entry?.syncId || method === 'clearClosedEntries') await refreshSyncSurfaces();
       await refresh();
       return result;
     };
@@ -2139,9 +2400,25 @@
 
   // Capture the iframe Document when its adapter starts. A callback from an
   // obsolete realm must not register itself as the new overlay document.
+  function acceptOverlayDragState(ownerDocument, value) {
+    if (typeof value !== 'boolean' || ownerDocument !== overlay.contentDocument) return false;
+    if (value && (!opened || (overlayMode !== 'panel' && overlayMode !== 'palette'))) return false;
+    overlayDragging = value;
+    return true;
+  }
   function apiForDocument(ownerDocument) {
     return new Proxy(api, {
       get(target, property) {
+        if (property === 'setOverlayDragState') return value => acceptOverlayDragState(ownerDocument, value);
+        if (property === 'showTooltip') return payload => {
+          const frame = ownerDocument.defaultView?.frameElement;
+          const rect = frame?.getBoundingClientRect();
+          const stage = ownerDocument.getElementById('chrome')?.getBoundingClientRect();
+          if (!rect || !payload?.anchor) return;
+          return target.showTooltip({...payload, anchor: {...payload.anchor,
+            x: payload.anchor.x + rect.x + (stage?.x ?? 0),
+            y: payload.anchor.y + rect.y + (stage?.y ?? 0)}});
+        };
         if (property === 'onOverlayShow')
           return callback => subscribe(property, callback, ownerDocument);
         return target[property];
@@ -2237,6 +2514,13 @@
   let introTip = false;
   function syncAutoHide() {
     const state = snapshot?.islandAutoHide;
+    // The Glance host stays window-fixed. Slide only the strip; the card
+    // and its page must not inherit the strip's native push offset.
+    const pushedGlance = snapshot?.glanceTabId != null && layout !== 'vertical' && !state?.floating;
+    const duration = state?.stripHidden ? AutoHide.SLIDE_OUT_MS : AutoHide.SLIDE_IN_MS;
+    strip.style.transition = pushedGlance && !matchMedia('(prefers-reduced-motion: reduce)').matches
+      ? `transform ${duration}ms cubic-bezier(.33,1,.68,1)` : '';
+    strip.style.transform = pushedGlance && state?.stripHidden ? `translateY(-${stripH() + 30}px)` : '';
     // Shipping's stripCovered: hidden, or floating under its pill.
     const hidden = state?.stripHidden === true || state?.floating === true;
     if (hidden !== stripHiddenSent) { stripHiddenSent = hidden; emit('onStripHidden', hidden); }
@@ -2300,7 +2584,7 @@
     const state = snapshot?.islandAutoHide;
     const root = document.documentElement;
     root.toggleAttribute('data-strip-covered', state?.floating === true || (layout === 'vertical' && state?.stripHidden === true));
-    root.style.setProperty('--rail-w', layout === 'vertical' ? `${railWidth}px` : '0px');
+    root.style.setProperty('--rail-w', layout === 'vertical' ? `${effectiveRailWidth()}px` : '0px');
     const wanted = AutoHide.floatViewsWanted({ autoHide: state?.enabled === true, style: state?.style, platform: floatPlatform }).pill;
     floatPill.dataset.wanted = String(wanted);
     if (!wanted) {
@@ -2325,8 +2609,18 @@
     claimFloat();
   }
 
+  const routedTokens = new Set();
   window.BlancPrototypeHost = {
     api,
+    offerSpaceLink,
+    routeExternalLink: async (token, id) => {
+      if (routedTokens.has(token)) return;
+      routedTokens.add(token);
+      if (routedTokens.size > 100) routedTokens.delete(routedTokens.values().next().value);
+      let result; try { result = await swapToSpace(id); } catch { result = {ok:false}; }
+      await request('linkRouteDone', [token, !!result.ok]);
+    },
+    spaceLinkResult: () => lastSpaceLinkResult,
     toggleGlance: () => (snapshot?.glanceTabId != null ? api.closeGlance() : api.openGlancePicker()),
     focusGlanceCard,
     spaceHeldState: () => request('spaceMeta'),
@@ -2340,8 +2634,18 @@
       }
       await announceSpaces();
     },
+    reloadGlanceCard: () => {
+      glance.ready = false; glance.loadEpoch += 1; glance.key = '';
+      glanceCardFrame.hidden = true;
+      glanceCardFrame.src = glanceCardFrame.dataset.src;
+    },
     glanceState: () => ({ layout: glancePayload(), shown: !glanceCardFrame.hidden, generation: glance.generation }),
+    findState: () => ({ tabId: findTabId }),
     apiForDocument,
+    overlayDragging: () => overlayDragging,
+    refreshSyncSurfaces,
+    railActivationSerial: () => railActivationSerial,
+    toggleTabLayout: () => implemented.setTabLayout(layout === 'vertical' ? 'island' : 'vertical'),
     hoverState: () => ({ ...hover.state }),
     // Whether the how-to tip is on screen (shipping's introTipShown).
     autoHideIntroShown: () => introTip && !tooltip.hidden,
@@ -2369,7 +2673,7 @@
       await close();
       return true;
     },
-    escape: () => opened || extensionsOpened ? close() : undefined,
+    escape: () => !overlayDragging && (opened || extensionsOpened) ? close() : undefined,
     // The utility sheet: its pages' bridge and links (pages/sheet-adapter.js),
     // native commands (History, Downloads, Favorites) and its state.
     sheetBridge, sheetLink, sheetEscape,
@@ -2412,6 +2716,11 @@
   glanceCardFrame.src = glanceCardFrame.dataset.src;
   // Escape closes a Glance only from the card's own chrome (F34).
   glanceCardFrame.addEventListener('load', () => {
+    const epoch = glance.loadEpoch;
+    requestAnimationFrame(() => requestAnimationFrame(() => {
+      if (epoch !== glance.loadEpoch) return;
+      glance.ready = true; glance.key = ''; publishGlance();
+    }));
     glanceCardFrame.contentDocument.addEventListener('keydown', event => {
       if (event.key === 'Escape' && snapshot?.glanceTabId != null) window.BlancPrototypeHost.api.closeGlance();
     });
@@ -2421,6 +2730,12 @@
 
   window.addEventListener('unhandledrejection', (event) => {
     notice(event.reason?.message ?? String(event.reason));
+  });
+  window.addEventListener('keydown', event => {
+    if (event.metaKey && event.altKey && !event.ctrlKey && !event.shiftKey && event.code === 'KeyV') {
+      event.preventDefault();
+      window.BlancPrototypeHost.toggleTabLayout();
+    }
   });
   window.addEventListener('resize', reportGeometry);
   window.addEventListener('resize', () => syncFloat());
@@ -2466,6 +2781,20 @@
     if (!result.ok) await request('previewPageCommand', ['closeWindow']);
   }
   openPendingSpace().catch(error => notice(error.message));
+  let syncReading = false;
+  async function refreshSyncSurfaces() {
+    if (syncReading) return;
+    syncReading = true;
+    try {
+      const devices = await request('syncSurface', ['listRemoteDevices', []]);
+      const sent = await request('syncSurface', ['listSentToThisDevice', []]);
+      syncedClosed = await request('syncSurface', ['listClosedFromSync', []]);
+      emit('onRemoteTabsUpdated', devices);
+      emit('onSentToThisDeviceUpdated', sent);
+    } catch { /* A runner failure is not an empty remote inventory. */ }
+    finally { syncReading = false; }
+  }
+  setInterval(refreshSyncSurfaces, 5000);
   setInterval(refresh, 300);
   applyRail().catch(error => notice(error.message));
 })();

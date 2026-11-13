@@ -1,0 +1,163 @@
+diff --git a/chrome/browser/app_controller_mac.mm b/chrome/browser/app_controller_mac.mm
+--- a/chrome/browser/app_controller_mac.mm
++++ b/chrome/browser/app_controller_mac.mm
+@@ -1616,6 +1616,7 @@
+   BOOL enable = NO;
+   // Whether the profile is loaded and opening a new browser window is allowed.
+   BOOL canOpenNewBrowser = [self canOpenNewBrowser];
++  if (action == @selector(blancMiniWindow:)) return blanc::IslandMode() && canOpenNewBrowser;
+   BOOL hasLoadedProfile = [self lastProfileIfLoaded] ? YES : NO;
+   // Commands from dock are always handled by commandFromDock:, but commands
+   // from the menu bar are only handled by commandDispatch: if there is no key
+@@ -2184,6 +2185,11 @@
+   [self commandDispatch:sender];
+ }
+ 
++- (void)blancMiniWindow:(id)sender {
++  [NSApp activateIgnoringOtherApps:YES];
++  blanc_prototype::OpenMiniWindow();
++}
++
+ - (NSMenu*)applicationDockMenu:(NSApplication*)sender {
+   NSMenu* dockMenu = [[NSMenu alloc] initWithTitle:@""];
+ 
+@@ -2203,6 +2209,14 @@
+   item.tag = IDC_NEW_WINDOW;
+   item.enabled = [self validateUserInterfaceItem:item];
+   [dockMenu addItem:item];
++
++  if (blanc::IslandMode()) {
++    item = [[NSMenuItem alloc] initWithTitle:base::SysUTF16ToNSString(
++        blanc::menu::ForLocale(g_browser_process->GetApplicationLocale()).new_mini_window)
++        action:@selector(blancMiniWindow:) keyEquivalent:@""];
++    item.target = self; item.tag = 65040; item.enabled = YES;
++    [dockMenu addItem:item];
++  }
+ 
+   Profile* profile = [self lastProfileIfLoaded];
+ 
+diff --git a/chrome/browser/prefs/browser_prefs.cc b/chrome/browser/prefs/browser_prefs.cc
+--- a/chrome/browser/prefs/browser_prefs.cc
++++ b/chrome/browser/prefs/browser_prefs.cc
+@@ -1725,6 +1725,7 @@
+   registry->RegisterStringPref("blanc.ui_language", "system");
+   registry->RegisterListPref("blanc.links.routes");
+   registry->RegisterBooleanPref("blanc.links.in_app", false);
++  registry->RegisterStringPref("blanc.mini_window.shortcut", "off");
+   // First run (F36) and the usage ping's consent (F21): device-wide, as
+   // shipping's are. The preview channel never sends.
+   registry->RegisterDoublePref("blanc.first_run.completed_at", 0);
+diff --git a/chrome/browser/resources/settings/appearance_page/appearance_page.html.ts b/chrome/browser/resources/settings/appearance_page/appearance_page.html.ts
+--- a/chrome/browser/resources/settings/appearance_page/appearance_page.html.ts
++++ b/chrome/browser/resources/settings/appearance_page/appearance_page.html.ts
+@@ -102,6 +102,17 @@
+           label="$i18n{blancIslandSize}"
+           .menuOptions="${this.blancIslandSizeOptions_}">
+       </settings-dropdown-menu>
++    </div>
++    <div class="cr-row" id="blancMiniWindowRow">
++      <div class="flex cr-padded-text">
++        <div>$i18n{blancMiniLabel}</div>
++        <div class="secondary" id="blancMiniHint">$i18n{blancMiniHint}</div>
++        <div class="secondary" id="blancMiniUnavailable" role="status" ?hidden="${this.blancMiniState_?.status!=='unavailable'}">$i18n{blancMiniUnavailable}</div>
++      </div>
++      <select id="blancMiniWindowShortcut" class="md-select" aria-label="$i18n{blancMiniLabel}" aria-describedby="blancMiniHint blancMiniUnavailable"
++          ?disabled="${!this.blancMiniState_}" .value="${this.blancMiniState_?.saved??'off'}" @change="${this.onBlancMiniShortcutChange_}">
++        ${this.blancMiniOptions_.map(option=>html`<option value="${option.value}" ?selected="${option.value===this.blancMiniState_?.saved}">${option.name}</option>`)}
++      </select>
+     </div>
+     <div class="cr-row" id="blancTabArchiveRow">
+       <div class="flex cr-padded-text" aria-hidden="true">
+diff --git a/chrome/browser/resources/settings/appearance_page/appearance_page.ts b/chrome/browser/resources/settings/appearance_page/appearance_page.ts
+--- a/chrome/browser/resources/settings/appearance_page/appearance_page.ts
++++ b/chrome/browser/resources/settings/appearance_page/appearance_page.ts
+@@ -25,6 +25,9 @@
+ 
+ import type {DropdownMenuOptionList, SettingsDropdownMenuElement} from '../controls/settings_dropdown_menu.js';
+ import type {SettingsToggleButtonElement} from '../controls/settings_toggle_button.js';
++import {isMac} from 'chrome://resources/js/platform.js';
++import {blancSettings} from '../blanc_settings_proxy.js';
++
+ import {loadTimeData} from '../i18n_setup.js';
+ import type {MetricsBrowserProxy} from '../metrics_browser_proxy.js';
+ import {MetricsBrowserProxyImpl} from '../metrics_browser_proxy.js';
+@@ -151,6 +154,8 @@
+       blancIslandAutoHideStyleOptions_: {type: Array},
+       blancIslandSizeOptions_: {type: Array},
+       blancTabArchiveOptions_: {type: Array},
++      blancMiniState_: {type: Object},
++      blancMiniOptions_: {type: Array},
+       blancAppIconOptions_: {type: Array},
+       blancSurfaceStyleOptions_: {type: Array},
+       sidePanelAlignmentOverridesPref_: {type: Object},
+@@ -226,6 +231,18 @@
+         {value: 'push',
+          name: loadTimeData.getString('blancIslandAutoHideStylePush')},
+       ];
++  protected accessor blancMiniState_: {saved:string,status:string}|null = null;
++  protected accessor blancMiniOptions_: DropdownMenuOptionList = [
++    {value:'off',name:loadTimeData.getString('blancMiniOff')},
++    ...(isMac ? [{value:'alt-cmd-n',name:loadTimeData.getString('blancMiniAltCmdN')}] : []),
++    {value:'ctrl-alt-space',name:loadTimeData.getString(isMac?'blancMiniCtrlAltSpaceMac':'blancMiniCtrlAltSpace')},
++    ...(!isMac ? [{value:'ctrl-shift-space',name:loadTimeData.getString('blancMiniCtrlShiftSpace')}] : []),
++  ];
++  protected async onBlancMiniShortcutChange_(event: Event) {
++    const value=(event.target as HTMLSelectElement).value;
++    this.blancMiniState_=await blancSettings.miniWindow(value);
++  }
++
+   protected accessor blancTabArchiveOptions_: DropdownMenuOptionList = [
+     {value: 'off', name: loadTimeData.getString('blancTabArchiveOff')},
+     {value: '12h', name: loadTimeData.getString('blancTabArchive12h')},
+@@ -371,6 +388,7 @@
+ 
+   override connectedCallback() {
+     super.connectedCallback();
++    void blancSettings.miniWindow().then(state=>{this.blancMiniState_=state;});
+ 
+     this.mirrorPrefs({
+       'autogenerated.theme.policy.color': 'themePolicyColorPref_',
+diff --git a/chrome/browser/resources/settings/blanc_settings_proxy.ts b/chrome/browser/resources/settings/blanc_settings_proxy.ts
+--- a/chrome/browser/resources/settings/blanc_settings_proxy.ts
++++ b/chrome/browser/resources/settings/blanc_settings_proxy.ts
+@@ -55,6 +55,7 @@
+ export interface BlancRouteDraft {route:BlancLinkRoute,valid:boolean,note:string,error:string;}
+ 
+ export const blancSettings = {
++  miniWindow: (choice: string|null = null) => sendWithPromise<{saved:string,status:string}>('blancMiniWindowShortcut',choice??''),
+   routeState: () => sendWithPromise<BlancRouteState>('blancLinkRouteState'),
+   routeValidate: (route:BlancLinkRoute) => sendWithPromise<{ok:boolean,value:BlancLinkRoute|null}>('blancLinkRouteValidate', JSON.stringify(route)),
+   routeSet: (routes:BlancLinkRoute[]) => sendWithPromise<{ok:boolean,state:BlancRouteState}>('blancLinkRouteSet', JSON.stringify(routes)),
+diff --git a/chrome/browser/ui/browser_init_state.h b/chrome/browser/ui/browser_init_state.h
+--- a/chrome/browser/ui/browser_init_state.h
++++ b/chrome/browser/ui/browser_init_state.h
+@@ -93,6 +93,8 @@
+   }
+ 
+   bool omit_from_session_restore() const { return omit_from_session_restore_; }
++  // Blanc: explicit promotion of a transient Mini window keeps this window.
++  void IncludeInSessionRestore() { omit_from_session_restore_ = false; }
+   bool should_trigger_session_restore() const {
+     return should_trigger_session_restore_;
+   }
+@@ -103,7 +105,7 @@
+ 
+   // Whether this Browser should be omitted from being saved/restored by session
+   // restore.
+-  const bool omit_from_session_restore_;
++  bool omit_from_session_restore_;
+ 
+   // If true, a new window opening should be treated like the start of a session
+   // (with potential session restore, startup URLs, etc.). Otherwise, don't
+diff --git a/chrome/browser/ui/views/frame/browser_view.cc b/chrome/browser/ui/views/frame/browser_view.cc
+--- a/chrome/browser/ui/views/frame/browser_view.cc
++++ b/chrome/browser/ui/views/frame/browser_view.cc
+@@ -4053,6 +4053,8 @@
+ }
+ 
+ bool BrowserView::ShouldSaveWindowPlacement() const {
++  if (blanc_prototype::IsIslandWindow(browser_.get()) &&
++      BrowserInitState::From(browser_.get())->omit_from_session_restore()) return false;
+   // If IsFullscreen() is true, we've just changed into fullscreen mode, and
+   // we're catching the going-into-fullscreen sizing and positioning calls,
+   // which we want to ignore.

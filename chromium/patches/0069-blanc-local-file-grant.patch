@@ -1,0 +1,13 @@
+diff --git a/chrome/browser/sessions/session_service_base.cc b/chrome/browser/sessions/session_service_base.cc
+--- a/chrome/browser/sessions/session_service_base.cc
++++ b/chrome/browser/sessions/session_service_base.cc
+@@ -633,6 +633,9 @@
+   const auto pinned_home = blanc_prototype::PinnedHome(tab);
+   if (!pinned_home.empty()) command_storage_manager()->AppendRebuildCommand(
+       sessions::CreateAddTabExtraDataCommand(session_id, blanc_prototype::kPinnedHomeKey, pinned_home));
++  const auto local_file = blanc_prototype::LocalFileGrant(tab);
++  if (!local_file.empty()) command_storage_manager()->AppendRebuildCommand(
++      sessions::CreateAddTabExtraDataCommand(session_id, blanc_prototype::kLocalFileGrantKey, local_file));
+   const auto shared_id = blanc_prototype::SharedTabId(tab);
+   if (!shared_id.empty()) command_storage_manager()->AppendRebuildCommand(
+       sessions::CreateAddTabExtraDataCommand(session_id, blanc_prototype::kSharedTabIdKey, shared_id));

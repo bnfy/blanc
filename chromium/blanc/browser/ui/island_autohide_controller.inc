@@ -337,6 +337,7 @@ int AutoHidePageTop(Owner* owner, int base) {
   return TargetPageTop(owner, base);
 }
 
+#if BUILDFLAG(ENABLE_BLANC_TEST_HOOKS)
 base::DictValue AutoHideState(Owner* owner) {
   auto* view = BrowserViewFor(owner);
   base::Value bounds;
@@ -367,3 +368,4 @@ base::DictValue AutoHideState(Owner* owner) {
       .Set("coveredStripPx", 0)
       .Set("activeBounds", std::move(bounds));
 }
+#endif  // BUILDFLAG(ENABLE_BLANC_TEST_HOOKS)

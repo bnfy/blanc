@@ -1,8 +1,8 @@
 {
-  "reviewedAt": "2026-11-09",
+  "reviewedAt": "2026-11-10",
   "chromiumRevision": "681cd621e82e606d7536eae8ea2576afb3c7d65c",
-  "sparkleTag": "2.8.0",
-  "scope": "Public source reads only; no binary distributions or release endpoints queried. Native behavior remains unverified.",
+  "sparkleTag": "2.10.1",
+  "scope": "Pinned Chromium source plus owner-approved first-party Sparkle release, archive, license and security-advisory review. No Blanc releases, Apple, production Sync or 1Password contacted.",
   "chromium": [
     {
       "path": "build/apple/tweak_info_plist.gni",
@@ -183,69 +183,175 @@
   "sparkle": [
     {
       "path": "Configurations/ConfigCommon.xcconfig",
-      "url": "https://raw.githubusercontent.com/sparkle-project/Sparkle/2.8.0/Configurations/ConfigCommon.xcconfig",
-      "sha256": "217d627bb702c40274310a93d536d152f5ed8965d4f8b92dfd97cbdfe0eb73e9"
+      "url": "https://raw.githubusercontent.com/sparkle-project/Sparkle/2.10.1/Configurations/ConfigCommon.xcconfig",
+      "sha256": "1b17b8791eb24e90d48ef2dedd3b316d1711a65e0269cba42b19288ea1d7012e"
     },
     {
       "path": "Configurations/ConfigDownloader.xcconfig",
-      "url": "https://raw.githubusercontent.com/sparkle-project/Sparkle/2.8.0/Configurations/ConfigDownloader.xcconfig",
-      "sha256": "2da664ace6839fae60b64b6c3022fe28f5fec201c4fc2be850eaeda1db188cb6"
+      "url": "https://raw.githubusercontent.com/sparkle-project/Sparkle/2.10.1/Configurations/ConfigDownloader.xcconfig",
+      "sha256": "3b722beebfe9a377f15b8a967abe14a806f91e002bab7b7658f2d0440f67f974"
     },
     {
       "path": "Configurations/ConfigFramework.xcconfig",
-      "url": "https://raw.githubusercontent.com/sparkle-project/Sparkle/2.8.0/Configurations/ConfigFramework.xcconfig",
+      "url": "https://raw.githubusercontent.com/sparkle-project/Sparkle/2.10.1/Configurations/ConfigFramework.xcconfig",
       "sha256": "267819ba1df34992d93eeb93871453caaacacc8eb251f1ade60a0cfd31149338"
     },
     {
       "path": "Configurations/ConfigInstallerLauncher.xcconfig",
-      "url": "https://raw.githubusercontent.com/sparkle-project/Sparkle/2.8.0/Configurations/ConfigInstallerLauncher.xcconfig",
-      "sha256": "e3fb785cbca1cfc78ffd15c5e3346e6cd92ee22db0d27be2d82e11d75725d22c"
+      "url": "https://raw.githubusercontent.com/sparkle-project/Sparkle/2.10.1/Configurations/ConfigInstallerLauncher.xcconfig",
+      "sha256": "fb8446c6d2a7f1efe19c56c4523da3dfa1214a3a9489245a089164ce6585078a"
     },
     {
       "path": "Configurations/ConfigInstallerProgress.xcconfig",
-      "url": "https://raw.githubusercontent.com/sparkle-project/Sparkle/2.8.0/Configurations/ConfigInstallerProgress.xcconfig",
+      "url": "https://raw.githubusercontent.com/sparkle-project/Sparkle/2.10.1/Configurations/ConfigInstallerProgress.xcconfig",
       "sha256": "e13bb9dc5dd3f0606d4f397449f0bf68d14d39b3d66f5dd16dc1c14f37d106d2"
     },
     {
       "path": "Configurations/ConfigRelaunch.xcconfig",
-      "url": "https://raw.githubusercontent.com/sparkle-project/Sparkle/2.8.0/Configurations/ConfigRelaunch.xcconfig",
+      "url": "https://raw.githubusercontent.com/sparkle-project/Sparkle/2.10.1/Configurations/ConfigRelaunch.xcconfig",
       "sha256": "46b752d3aa19f0f2de0eba6898ef415e5be8faeab00aaa9aab9cc0b94e09a3f7"
     },
     {
       "path": "Downloader/Info.plist",
-      "url": "https://raw.githubusercontent.com/sparkle-project/Sparkle/2.8.0/Downloader/Info.plist",
+      "url": "https://raw.githubusercontent.com/sparkle-project/Sparkle/2.10.1/Downloader/Info.plist",
       "sha256": "e1643ea943b133b84291fa17a5b9e0699a71642cdc97c4b120a671d397621505"
     },
     {
       "path": "InstallerLauncher/Info.plist",
-      "url": "https://raw.githubusercontent.com/sparkle-project/Sparkle/2.8.0/InstallerLauncher/Info.plist",
+      "url": "https://raw.githubusercontent.com/sparkle-project/Sparkle/2.10.1/InstallerLauncher/Info.plist",
       "sha256": "415fa99aa54d4d0e43e2dbf62ad26c61f8123076f35e0741e4f11a978ebc44ea"
     },
     {
       "path": "LICENSE",
-      "url": "https://raw.githubusercontent.com/sparkle-project/Sparkle/2.8.0/LICENSE",
+      "url": "https://raw.githubusercontent.com/sparkle-project/Sparkle/2.10.1/LICENSE",
       "sha256": "389a4e4e9a32f059775b13a06e25a591445ba229d2838d26dd3e7c0c45127cfe"
     },
     {
       "path": "Sparkle/SPUStandardUpdaterController.h",
-      "url": "https://raw.githubusercontent.com/sparkle-project/Sparkle/2.8.0/Sparkle/SPUStandardUpdaterController.h",
-      "sha256": "c5bf6c9ded9e20645d0c1414f06c346bfcd5113e377bd83c76e2960561cb55fb"
+      "url": "https://raw.githubusercontent.com/sparkle-project/Sparkle/2.10.1/Sparkle/SPUStandardUpdaterController.h",
+      "sha256": "f45dfdf2315664c5891b97ad0d7ffce9ab09d067effbd2921b10b58b4831ef0f"
     },
     {
       "path": "Sparkle/Sparkle-Info.plist",
-      "url": "https://raw.githubusercontent.com/sparkle-project/Sparkle/2.8.0/Sparkle/Sparkle-Info.plist",
+      "url": "https://raw.githubusercontent.com/sparkle-project/Sparkle/2.10.1/Sparkle/Sparkle-Info.plist",
       "sha256": "5c8610a0bf328c6318321f0d15a874de10717d2e343eea4acab4aafda2ff1f40"
     },
     {
       "path": "Sparkle.xcodeproj/project.pbxproj",
-      "url": "https://raw.githubusercontent.com/sparkle-project/Sparkle/2.8.0/Sparkle.xcodeproj/project.pbxproj",
-      "sha256": "3658bfc1024b6de21eaacfc58a90ee3e412268c38bbd227b84794f16dd3a09e2"
+      "url": "https://raw.githubusercontent.com/sparkle-project/Sparkle/2.10.1/Sparkle.xcodeproj/project.pbxproj",
+      "sha256": "944888408724f46fb0fd0e1594bbe6bbe47f12a7bde20f0c38070d33e7e71eed"
+    },
+    {
+      "path": "Sparkle/SPUUpdateCheck.h",
+      "url": "https://raw.githubusercontent.com/sparkle-project/Sparkle/2.10.1/Sparkle/SPUUpdateCheck.h",
+      "sha256": "1f7d05da2e466263aefe3e09130e56b2e65b8862579e07b9829c9bf5ed921c03"
+    },
+    {
+      "path": "Sparkle/SPUUpdater.h",
+      "url": "https://raw.githubusercontent.com/sparkle-project/Sparkle/2.10.1/Sparkle/SPUUpdater.h",
+      "sha256": "a30b876dc722a2861fb8f271a0bf0c95bd664db4cf2af57d216d190f2e010ee7"
+    },
+    {
+      "path": "Sparkle/SPUUpdaterDelegate.h",
+      "url": "https://raw.githubusercontent.com/sparkle-project/Sparkle/2.10.1/Sparkle/SPUUpdaterDelegate.h",
+      "sha256": "20ea4bf5273eaa6560160941d680acec6565965162737f50ea4240845a7dde24"
+    },
+    {
+      "path": "Sparkle/SPUUserDriver.h",
+      "url": "https://raw.githubusercontent.com/sparkle-project/Sparkle/2.10.1/Sparkle/SPUUserDriver.h",
+      "sha256": "db9fe6cf78aca0f2f79a99898d38daff566f96c823de2bb2b985511ad77017dc"
+    },
+    {
+      "path": "Sparkle/SPUUserUpdateState.h",
+      "url": "https://raw.githubusercontent.com/sparkle-project/Sparkle/2.10.1/Sparkle/SPUUserUpdateState.h",
+      "sha256": "59f95e933f8b5b2b39c1e7c465aa39af021a2c88820b4b09dbcfc55b1dd19c30"
+    },
+    {
+      "path": "Sparkle/SUAppcastItem.h",
+      "url": "https://raw.githubusercontent.com/sparkle-project/Sparkle/2.10.1/Sparkle/SUAppcastItem.h",
+      "sha256": "21df22d4f0ebd4eaba530f77f520a29451a057b70093efec3104ce0253026cf9"
+    },
+    {
+      "path": "Sparkle/SUExport.h",
+      "url": "https://raw.githubusercontent.com/sparkle-project/Sparkle/2.10.1/Sparkle/SUExport.h",
+      "sha256": "5cef024266c54e12db620f78f4d106860de0fa2a2e230dffdfe04208bb447451"
     }
   ],
   "unverified": [
-    "Complete prototype and release args.gn: not present in this branch; documented preservation rules and channel predicates read, literal values must be recovered on build host.",
-    "Sparkle distribution archive bytes/digest, signed binaries and current maintenance/security suitability; no GitHub releases contacted.",
-    "Local Developer ID certificate/private-key availability and expiry, beta Developer ID provisioning profile existence/authorization; no keychain, Apple or 1Password contacted.",
-    "All compile, native signing, notarization, sandbox, entitlement, updater and runtime acceptance behavior."
+    "Dedicated beta official GN effective values, native Sparkle linkage and full N-to-N+1 installation remain to be qualified. Prototype args were read and preserved (see runbook).",
+    "Developer ID private-key availability and expiry were not queried. The committed beta provisioning profile is covered by offline tests.",
+    "Developer ID signing, notarization, production real-device Sync and public distribution remain unauthorized operator work."
+  ],
+  "securityReview": {
+    "checked": "2026-11-10",
+    "pin": "2.10.1",
+    "status": "Owner-approved newest stable 2.x; known post-2.8.0 advisories reviewed and fixed by this pin. Native integration and distribution gates remain separate.",
+    "record": "chromium/release/sparkle-review-2026-11-10.md",
+    "sources": [
+      "https://github.com/sparkle-project/Sparkle/releases/tag/2.10.1",
+      "https://github.com/sparkle-project/Sparkle/releases/tag/2.10.0",
+      "https://sparkle-project.org/documentation/security-and-reliability/",
+      "https://github.com/sparkle-project/Sparkle/discussions/2838",
+      "https://github.com/sparkle-project/Sparkle/security/advisories/GHSA-3x7w-j75x-ppq5",
+      "https://github.com/sparkle-project/Sparkle/security/advisories/GHSA-4v99-qgq9-6pxp",
+      "https://github.com/sparkle-project/Sparkle/security/advisories/GHSA-gmj2-gq3j-vqmj",
+      "https://github.com/sparkle-project/Sparkle/security/advisories/GHSA-hg88-v3cw-3qrh",
+      "https://github.com/sparkle-project/Sparkle/security/advisories/GHSA-g3hp-f6mg-559v"
+    ]
+  },
+  "sparkleDistribution": {
+    "version": "2.10.1",
+    "frameworkBuild": "2065",
+    "minimumMacOS": "12.0",
+    "releaseURL": "https://github.com/sparkle-project/Sparkle/releases/tag/2.10.1",
+    "publishedAt": "2026-10-25T14:36:36Z",
+    "url": "https://github.com/sparkle-project/Sparkle/releases/download/2.10.1/Sparkle-2.10.1.tar.xz",
+    "bytes": 16346336,
+    "sha256": "1a856d2a9edb8e628de88121d7be04cf0e2167f8641650b78fca00b14244cf27",
+    "digestSource": "GitHub first-party release asset digest; independently hashed downloaded bytes",
+    "licenseSHA256": "389a4e4e9a32f059775b13a06e25a591445ba229d2838d26dd3e7c0c45127cfe",
+    "nativeInputs": "evidence/foundation/sparkle-2.10.1-review/native-inputs.json",
+    "architectures": [
+      "arm64",
+      "x86_64"
+    ],
+    "upstreamSignatures": "Ad-hoc, no team; five binaries pass local strict integrity verification. Production must re-sign with the pinned Developer ID."
+  },
+  "qualificationSources": [
+    {
+      "path": "common_cli/Signing.swift",
+      "url": "https://raw.githubusercontent.com/sparkle-project/Sparkle/2.10.1/common_cli/Signing.swift",
+      "sha256": "c7e502d683c84e62da5ff4d7d1579ea31b0f9489838fb808ec2205ca7c597a7f"
+    },
+    {
+      "path": "generate_keys/main.swift",
+      "url": "https://raw.githubusercontent.com/sparkle-project/Sparkle/2.10.1/generate_keys/main.swift",
+      "sha256": "6e6e5bfa43e98bc4be8a28c7acb1a1b48feb299d7914fbf7be16799ebe42f873"
+    },
+    {
+      "path": "sign_update/main.swift",
+      "url": "https://raw.githubusercontent.com/sparkle-project/Sparkle/2.10.1/sign_update/main.swift",
+      "sha256": "2abf05c401f240103ef5061e862c35dd5d1848c484ec14f956a70911d2b89948"
+    },
+    {
+      "path": "Autoupdate/AppInstaller.m",
+      "url": "https://raw.githubusercontent.com/sparkle-project/Sparkle/2.10.1/Autoupdate/AppInstaller.m",
+      "sha256": "39369669a98181f81fa58ab7d409c8310fbe4b5ff046fb48bd11a39632195dd1"
+    },
+    {
+      "path": "Autoupdate/SUCodeSigningVerifier.m",
+      "url": "https://raw.githubusercontent.com/sparkle-project/Sparkle/2.10.1/Autoupdate/SUCodeSigningVerifier.m",
+      "sha256": "9ca1226912254de42cf0c36e2b266a6ebcd437bf164a9c48d3594aa677fd7b9f"
+    },
+    {
+      "path": "Autoupdate/SUInstaller.m",
+      "url": "https://raw.githubusercontent.com/sparkle-project/Sparkle/2.10.1/Autoupdate/SUInstaller.m",
+      "sha256": "30d38f074235b0bbfc21326c5f5b8710444e2e03f740411426eee29fbf6c3532"
+    },
+    {
+      "path": "Autoupdate/SUPlainInstaller.m",
+      "url": "https://raw.githubusercontent.com/sparkle-project/Sparkle/2.10.1/Autoupdate/SUPlainInstaller.m",
+      "sha256": "d5191e8b7684df756383c2122dcfcaaa011d5bae237b2ddbf9fa05986c8f5b55"
+    }
   ]
 }

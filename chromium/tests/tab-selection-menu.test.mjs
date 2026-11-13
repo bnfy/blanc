@@ -48,7 +48,7 @@ test('right-clicking a selected row builds only the several-tab menu',async()=>{
  assert.equal(menu.children[0].textContent,'3 tabs');
  assert.ok(menu.children.some(b=>b.dataset.action==='batch-pin'));
  assert.equal(menu.children.find(b=>b.dataset.action==='batch-quiet').disabled,true);
- assert.equal(menu.children.find(b=>b.dataset.action==='batch-close').disabled,true);
+ assert.equal(menu.children.find(b=>b.dataset.action==='batch-close').disabled,false);
  assert.ok(!menu.children.some(b=>/Duplicate|Rename/.test(b.textContent)));
  menu.children.find(b=>b.dataset.action==='batch-pin').listeners.click();
  await Promise.resolve();assert.deepEqual(JSON.parse(JSON.stringify(f.calls)),[['batch-pin',{selectedTabIds:['a','b','c']}]]);

@@ -1,4 +1,4 @@
-// Phase-one policy. These are proposed beta defaults, not a release authorization.
+// Owner-approved beta identity and release policy; no release authorization.
 import { isDeepStrictEqual } from 'node:util';
 import { createHash, X509Certificate } from 'node:crypto';
 export const ROOT_ID = 'me.bnfy.blanc.beta';
@@ -8,7 +8,7 @@ export const CERT = '55283A84D3706D5A22386D5F002A0CD4845ECFD4';
 export const FEED_ROOT = 'https://blanc.day/updates/chromium-beta/';
 export const UPSTREAM = '681cd621e82e606d7536eae8ea2576afb3c7d65c';
 export const CHROME_VERSION = '158.0.8127.2';
-export const SPARKLE = '2.8.0';
+export const SPARKLE = '2.10.1';
 export const sha256 = bytes => createHash('sha256').update(bytes).digest('hex');
 // The certificate's standard SHA-1 thumbprint: the identifier Keychain, codesign and the
 // pinned identity all use. An identifier for matching the pin, not a security digest.
@@ -21,22 +21,24 @@ export const check = (condition, message) => { if (!condition) throw new Release
 export const equal = (actual, expected, message) => check(isDeepStrictEqual(actual, expected), message);
 export const reason = error => error instanceof ReleaseCheckError ? error.message : 'unexpected error (details withheld)';
 // GN arguments beyond the required ones, each added here only after review.
-export const GN_REVIEWED_EXTRA = [];
+export const GN_REVIEWED_EXTRA = ['blanc_beta_version', 'blanc_beta_build', 'blanc_sparkle_stage', 'blanc_sparkle_public_key', 'blanc_sparkle_archive_sha256', 'blanc_beta_local_qualification', 'chrome_pgo_phase', 'symbol_level', 'mac_deployment_target', 'mac_min_system_version'];
 export function base64(value, bytes) {
   return typeof value === 'string' && /^[A-Za-z0-9+/]+={0,2}$/.test(value) &&
     Buffer.from(value, 'base64').length === bytes && Buffer.from(value, 'base64').toString('base64') === value;
 }
-export function validateRelease(r) {
+export function validateRelease(r, {allowLocalQualification = false} = {}) {
+  check(r?.localQualification !== true || allowLocalQualification, 'local qualification is not a distributable release');
   check(r?.schema === 1, 'release schema must be 1');
   equal(r.bundleId, ROOT_ID, 'beta identity must not be the shipping identity');
   equal(r.product, PRODUCT, 'beta product');
   equal(r.userDataDir, PRODUCT, 'beta user-data folder');
+  equal(r.launchScheme, 'blanc-beta', 'isolated beta launch scheme');
   equal(r.keychainGroup, `${TEAM}.${ROOT_ID}.webauthn`, 'isolated keychain group');
   equal(r.certificateSHA1, CERT, 'reviewed certificate fingerprint');
   equal(r.teamId, TEAM, 'Developer ID team');
   equal(r.upstream, UPSTREAM, 'reviewed upstream revision');
   equal(r.chromiumVersion, CHROME_VERSION, 'chrome/VERSION stays upstream');
-  check(/^1\.0\.0-beta\.[1-9]\d*$/.test(r.version), 'version must be 1.0.0-beta.N');
+  check(/^2\.0\.0-beta\.[1-9]\d*$/.test(r.version), 'version must be 2.0.0-beta.N');
   equal(r.tag, `chromium-beta-${r.version}`, 'tag must be outside stable semver tags');
   // Owner decision (2026-11-10): the app and the update feed both show the full beta version.
   equal(r.shortVersion, r.version, 'CFBundleShortVersionString must be the beta version shown in the feed');
@@ -47,6 +49,7 @@ export function validateRelease(r) {
   check(/^[a-f0-9]{64}$/.test(r.inputDigest), 'input digest required');
   check(Array.isArray(r.arches) && r.arches.length > 0 && r.arches.length === new Set(r.arches).size && r.arches.every(a => ['arm64', 'x64'].includes(a)), 'architecture set');
   check(r.arches.length === 2 || (typeof r.archWaiver === 'string' && r.archWaiver.trim().length >= 20), 'both architectures or recorded owner waiver required');
+  if (r.version === '2.0.0-beta.1') equal(r.arches, ['arm64'], 'beta 1 is Apple Silicon only under the owner Intel waiver');
   equal(Object.keys(r.candidates).sort(), [...r.arches].sort(), 'candidate for every architecture');
   for (const arch of r.arches) {
     check(/^macos-[a-f0-9]{16}$/.test(r.candidates[arch]), 'candidate id');
@@ -56,11 +59,11 @@ export function validateRelease(r) {
   check(base64(r.sparkle.publicKey, 32), '32-byte Sparkle Ed25519 public key required');
   check(/^[a-f0-9]{64}$/.test(r.sparkle.archiveSHA256), 'Sparkle distribution digest required');
   check(/^\d+\.\d+(?:\.\d+)?$/.test(r.minimumSystemVersion), 'minimum macOS version required');
-  check(Number(r.minimumSystemVersion.split('.')[0]) >= 13, 'pinned Chromium requires macOS 13 or newer');
+  equal(r.minimumSystemVersion, '13.0', 'approved minimum macOS 13');
   check(/^[a-f0-9]{64}$/.test(r.profileSHA256), 'profile digest required');
   return r;
 }
-export function validateGN(text, arch) {
+export function validateGN(text, arch, {allowLocalQualification = false} = {}) {
   const values = {};
   for (const line of text.split(/\r?\n/)) {
     const cleaned = line.replace(/#.*$/, '').trim();
@@ -74,6 +77,18 @@ export function validateGN(text, arch) {
   // Fail closed on anything else (sanitizers, dcheck_always_on, ...) until it is reviewed.
   const unreviewed = Object.keys(values).filter(key => !Object.hasOwn(required, key) && !GN_REVIEWED_EXTRA.includes(key));
   check(unreviewed.length === 0, `unreviewed GN argument: ${unreviewed[0]}`);
+  check(/^2\.0\.0-beta\.[1-9]\d*$/.test(values.blanc_beta_version), 'explicit beta version GN argument');
+  check(Number.isInteger(values.blanc_beta_build) && values.blanc_beta_build > 0 && values.blanc_beta_build <= 9999, 'explicit beta build GN argument');
+  check(typeof values.blanc_sparkle_stage === 'string' && values.blanc_sparkle_stage.startsWith('/'), 'absolute immutable Sparkle stage required');
+  check(base64(values.blanc_sparkle_public_key, 32), 'Sparkle GN public key required');
+  check(/^[a-f0-9]{64}$/.test(values.blanc_sparkle_archive_sha256), 'Sparkle GN archive digest required');
+  for (const [key, expected] of Object.entries({chrome_pgo_phase:0, symbol_level:0,
+    mac_deployment_target:'13.0', mac_min_system_version:'13.0'}))
+    if (Object.hasOwn(values,key)) equal(values[key],expected,`reviewed GN fallback ${key}`);
+  if (Object.hasOwn(values,'blanc_beta_local_qualification')) {
+    check(typeof values.blanc_beta_local_qualification === 'boolean', 'qualification GN must be boolean');
+    check(!values.blanc_beta_local_qualification || (allowLocalQualification && arch === 'arm64'), 'local qualification GN is not distributable');
+  }
   return values;
 }
 // chromium/release/ledger.json lists every beta build number already consumed, public or

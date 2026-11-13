@@ -40,7 +40,11 @@ export function validateLocalInputs(r, inputs) {
     check(path.isAbsolute(inputs.gnArgs?.[arch] || ''), 'absolute GN args path required');
     const bytes = fs.readFileSync(inputs.gnArgs[arch]);
     equal(sha256(bytes), r.gnArgsSHA256[arch], 'GN args changed');
-    validateGN(bytes.toString('utf8'), arch);
+    const gn=validateGN(bytes.toString('utf8'), arch);
+    equal(gn.blanc_beta_version, r.version, 'GN beta version differs from release');
+    equal(gn.blanc_beta_build, r.build, 'GN beta build differs from release');
+    equal(gn.blanc_sparkle_public_key, r.sparkle.publicKey, 'GN updater key differs from release');
+    equal(gn.blanc_sparkle_archive_sha256, r.sparkle.archiveSHA256, 'GN Sparkle archive differs from release');
   }
   equal(sha256(fs.readFileSync(inputs.profile)), r.profileSHA256, 'profile bytes changed');
 }
@@ -56,11 +60,15 @@ export function preflight(r, {root = ROOT, inputs, now = Date.now()} = {}) {
   validateLedger(JSON.parse(fs.readFileSync(path.join(root, 'chromium/release/ledger.json'))), r);
   const inventory = inputInventory(root);
   equal(inventory.upstream, r.upstream, 'upstream input'); equal(inventory.digest, r.inputDigest, 'source inputs changed');
-  // The phase-one tree intentionally lacks this: current release branding is
-  // Electron's ID. A plausible descriptor must never make that source releasable.
+  // Select the dedicated beta branding; preserved release branding is Electron's ID.
   validateBetaBranding(fs.readFileSync(path.join(root, 'chromium/blanc/branding/beta/BRANDING'), 'utf8'));
   run(PYTHON, [path.join(root, 'chromium/tools/check-patches.py'), '--lane', 'desktop']);
   validateLocalInputs(r, inputs);
+  for (const arch of r.arches) {
+    const gn=validateGN(fs.readFileSync(inputs.gnArgs[arch],'utf8'),arch);
+    run(PYTHON,[path.join(root,'chromium/blanc/third_party/sparkle/verify.py'),
+      '--stage',gn.blanc_sparkle_stage,'--archive-sha256',r.sparkle.archiveSHA256]);
+  }
   const inspected = profileAt(inputs.profile);
   validateProfile(inspected.data, inspected.certificates, r, now);
   validateIdentityList(run('/usr/bin/security', ['find-identity', '-v', '-p', 'codesigning']), r);

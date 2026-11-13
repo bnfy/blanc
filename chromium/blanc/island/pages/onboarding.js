@@ -294,7 +294,7 @@
 
   function openBringTabs() {
     dismissForHandoff();
-    window.location.href = 'blanc://tab-import/';
+    return window.bowserPages.start.openTabImport();
   }
 
   async function finish() {

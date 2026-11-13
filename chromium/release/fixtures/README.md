@@ -1,8 +1,10 @@
 # Offline test data only
 
-Every digest, candidate, minimum OS and key in release.json is synthetic.
+Every digest, candidate and key in release.json is synthetic. Identity and
+minimum OS reflect the approved policy.
 It is a schema example, never a release input. No signing identity was queried.
-Tests create ephemeral Ed25519 keys in memory; no private key is written.
+Tests use only RFC 8032 TEST 2 public verification data from ed25519-vector.json.
+They generate no keys and perform no signing; its one-byte message is not an app archive.
 Native certificate/profile fixtures are observations, not Apple credentials.
 blanc-beta.profile.json is the exception: it records what `security cms -D`
 shows for the committed ../blanc-beta.provisionprofile (public data, no secret),

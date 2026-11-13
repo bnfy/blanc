@@ -1,4 +1,5 @@
 import fs from 'node:fs';
+import {phase} from './timing.mjs';
 import os from 'node:os';
 import path from 'node:path';
 import http from 'node:http';
@@ -14,6 +15,21 @@ function mintCertificate(dir,name,hosts=[name],file=name){
   execFileSync('openssl',['req','-x509','-newkey','rsa:2048','-keyout',key,'-out',cert,'-days','2','-nodes','-subj','/CN='+name,'-addext','subjectAltName='+hosts.map(h=>'DNS:'+h).join(',')],{stdio:'pipe'});
   const spki=crypto.createHash('sha256').update(crypto.createPublicKey(fs.readFileSync(cert)).export({type:'spki',format:'der'})).digest('base64');
   return {key:fs.readFileSync(key),cert:fs.readFileSync(cert),spki};
+}
+// Like shipping's BeforeAll, certificate material belongs to this runner,
+// not a browser profile. Every case still owns fresh profiles, servers,
+// response state, TLS contexts and certificate exception decisions. The five
+// keys stay distinct; nothing is shared across runner processes or persisted.
+const certificateCache=new Map();
+function fixtureCertificate(name,hosts=[name],file=name){
+ const key=JSON.stringify([name,hosts,file]);
+ if(!certificateCache.has(key)){
+  const dir=fs.mkdtempSync(path.join(os.tmpdir(),'blanc-fixture-cert-'));
+  try{certificateCache.set(key,mintCertificate(dir,name,hosts,file));}
+  finally{fs.rmSync(dir,{recursive:true,force:true});}
+ }
+ const value=certificateCache.get(key);
+ return {key:Buffer.from(value.key),cert:Buffer.from(value.cert),spki:value.spki};
 }
 // Local-use names (F39/N5): two untrusted keys A and B, plus one trusted by pin.
 const LOCAL_HOSTS=['nas.home.arpa','lab.home.arpa'];
@@ -73,13 +89,12 @@ export class NativeFixture {
     this.base=pages?pages.base:`http://127.0.0.1:${this.server.address().port}`;
     let tlsFlags=[];
     if(pages){
-      const tls=path.join(directory,'tls');fs.mkdirSync(tls,{mode:0o700});
       const {startSecure}=loadShippingModule('test/desktop/support/fixtures-server.js');
-      const secure=mintCertificate(tls,'secure.test'),untrusted=mintCertificate(tls,'badcert.test');
+      const secure=fixtureCertificate('secure.test'),untrusted=fixtureCertificate('badcert.test');
       this.secureServer=await startSecure(secure);this.untrustedServer=await startSecure(untrusted);
       this.secureBase=`https://secure.test:${this.secureServer.port}`;
       this.untrustedBase=`https://badcert.test:${this.untrustedServer.port}`;
-      const local=Object.fromEntries(['a','b','trusted'].map(k=>[k,mintCertificate(tls,LOCAL_HOSTS[0],LOCAL_HOSTS,'local-'+k)]));
+      const local=Object.fromEntries(['a','b','trusted'].map(k=>[k,fixtureCertificate(LOCAL_HOSTS[0],LOCAL_HOSTS,'local-'+k)]));
       const pair=({key,cert})=>({key,cert});
       this.localServer=await startSecure(pair(local.a));
       this.localFixtures={handle:this.localServer,certA:pair(local.a),certB:pair(local.b),certTrusted:pair(local.trusted)};
@@ -112,6 +127,7 @@ export class NativeFixture {
   // window may hold nothing but Chromium's native "Restore pages?" bubble,
   // which starts no web page and so never starts the blocker.
   async start(url=null,{waitBlocker=true}={}){
+    return phase('browserLaunch',async()=>{
     this.exit=null;this.launchError=null;fs.rmSync(path.join(this.profile,'DevToolsActivePort'),{force:true});
     const fd=fs.openSync(path.join(this.directory,'browser.log'),'a');
     const child=this.process=spawn(this.config.executable,[...this.flags,...(this.extraArgs||[]),...(url?[url]:[])],{stdio:['ignore',fd,fd]});
@@ -122,9 +138,11 @@ export class NativeFixture {
     this.targets=()=>fetch(`http://127.0.0.1:${this.port}/json/list`).then(r=>r.json());
     this.browser=await connect(await fetch(`http://127.0.0.1:${this.port}/json/version`).then(r=>r.json()));this.connections.push(this.browser);
     const targets=await waitFor(this.targets,ts=>ts.some(t=>t.url.includes('/host.html'))&&(!url||ts.some(t=>t.url===url)),'Island');
-    this.host=await connect(targets.find(t=>t.url.includes('/host.html')));this.connections.push(this.host);
+    const hostTarget=targets.find(t=>t.url.includes('/host.html'));this.hostTargetId=hostTarget.id;
+    this.host=await connect(hostTarget);this.connections.push(this.host);
     this.snapshot=()=>this.host.eval('window.BlancPrototypeHost.api.getAllTabs()');
-    if(waitBlocker)await waitFor(this.snapshot,s=>s.blockerHealth==='ready','blocker');
+    if(waitBlocker)await phase('blockerReadiness',()=>waitFor(this.snapshot,s=>s.blockerHealth==='ready','blocker'));
+    });
   }
   // Quit (Browser.close, which must exit cleanly) or crash (SIGKILL), keeping
   // the profile and fixture servers for the next start.

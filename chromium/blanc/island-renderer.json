@@ -1,6 +1,6 @@
 {
-  "ref": "v1.46.0",
-  "commit": "6479ed3a314e4fd6219b8de1598bacffa78b4d7c",
+  "ref": "8a4e57e78dfe47a72c05d17fd6040be26c3dffd3",
+  "commit": "8a4e57e78dfe47a72c05d17fd6040be26c3dffd3",
   "files": [
     "index.html",
     "overlay.html",
@@ -15,6 +15,7 @@
     "hover-panel-leave.js",
     "permission.html",
     "permission.js",
+    "pages/onboarding.js",
     "pages/sheet.js",
     "pages/row-icon.js",
     "pages/history-groups.js",
@@ -24,7 +25,10 @@
     "pages/history.html",
     "pages/history.js",
     "pages/downloads.html",
-    "pages/downloads.js"
+    "pages/downloads.js",
+    "pages/tab-import.html",
+    "pages/tab-import-open-tabs.js",
+    "pages/tab-import-arc.js"
   ],
   "mainFiles": [
     "island-hover-open.js",

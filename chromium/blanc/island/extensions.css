@@ -8,7 +8,11 @@
   box-sizing: border-box; display: flex; flex-direction: column;
   padding: 0 14px; border: 1px solid #dedede; border-radius: 18px;
   background: #fff; color: #202020; box-shadow: 0 8px 24px #0000000c;
-  font: 14px/1.4 "Instrument Sans", Inter, system-ui, sans-serif; font-stretch: 98%; letter-spacing: .01em; z-index: 2;
+  font: 14px/1.4 "Instrument Sans", Inter, system-ui, sans-serif; font-stretch: 98%; letter-spacing: .01em;
+  /* The Island expanded in place, on the ⌘L panel's layer (host.css #overlay):
+     above Auto-hide's floating pill and the Glance card, as shipping's overlay
+     is above its float views and the card. */
+  z-index: 5;
 }
 #extensionsPanel[hidden] { display: none; }
 #extensionsPanel button, #extensionsPanel input { font: inherit; font-stretch: 98%; letter-spacing: inherit; }

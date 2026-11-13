@@ -120,6 +120,69 @@ std::vector<content::DownloadManager*> DownloadManagers(Profile* profile) {
   return managers;
 }
 
+// A download the person made. Not a transient one, and not an extension
+// being installed (the Web Store's own download of its package, made by
+// Chromium's extension installer): neither the Downloads list nor the
+// Island's Downloads shows those.
+inline bool PersonsDownload(const download::DownloadItem* item) {
+  return !item->IsTransient() &&
+         item->GetDownloadSource() != download::DownloadSource::EXTENSION_INSTALLER;
+}
+
+// Memory-only per-profile activity. Existing downloads establish the initial
+// baseline; later starts/completions are unacknowledged until the user opens
+// Downloads. The host polls the native model with its normal snapshot.
+class DownloadActivity final : public base::SupportsUserData::Data {
+ public:
+  DownloadActivity();
+  ~DownloadActivity() override;
+  static DownloadActivity* Get(Profile* profile) {
+    static const int key = 0;
+    auto* value = static_cast<DownloadActivity*>(profile->GetUserData(&key));
+    if (!value) {
+      auto owned = std::make_unique<DownloadActivity>(); value = owned.get();
+      profile->SetUserData(&key, std::move(owned));
+    }
+    return value;
+  }
+  base::DictValue Read(Profile* profile) {
+    int active = 0; double received = 0, total = 0;
+    std::map<std::string, int> current;
+    for (auto* manager : DownloadManagers(profile)) {
+      download::SimpleDownloadManager::DownloadVector all; manager->GetAllDownloads(&all);
+      for (download::DownloadItem* item : all) {
+        if (!PersonsDownload(item)) continue;
+        const auto& guid = item->GetGuid(); const int state = item->GetState();
+        current.emplace(guid, state);
+        const auto previous = seen.find(guid);
+        if (initialized && previous == seen.end()) recent = true;
+        if (initialized && state == download::DownloadItem::COMPLETE &&
+            (previous == seen.end() || previous->second != state))
+          completed = item->GetEndTime().is_null() ? base::Time::Now() : item->GetEndTime();
+        if (!item->IsDone()) {
+          ++active; received += std::max<int64_t>(0, item->GetReceivedBytes());
+          total += std::max<int64_t>(0, item->GetTotalBytes());
+        }
+      }
+    }
+    initialized = true; seen = std::move(current);
+    if (test_activity) return test_activity->Clone();
+    return base::DictValue().Set("active", active).Set("hasRecent", recent)
+        .Set("receivedBytes", received).Set("totalBytes", total)
+        .Set("lastCompletedAt", completed.is_null() ? base::Value() : base::Value(completed.InMillisecondsFSinceUnixEpoch()));
+  }
+  void Acknowledge(Profile* profile) { Read(profile); recent = false; }
+  // Set only through the opt-in native test channel (shipping's event seam).
+  std::optional<base::DictValue> test_activity;
+ private:
+  bool initialized = false, recent = false;
+  base::Time completed;
+  std::map<std::string, int> seen;
+};
+
+DownloadActivity::DownloadActivity() = default;
+DownloadActivity::~DownloadActivity() = default;
+
 // Shipping's listDownloads(): downloads still in flight first, then finished
 // ones, newest first in each, capped. No file path leaves the browser.
 base::ListValue Downloads(Profile* profile) {
@@ -127,7 +190,7 @@ base::ListValue Downloads(Profile* profile) {
   for (auto* manager : DownloadManagers(profile)) {
     download::SimpleDownloadManager::DownloadVector all;
     manager->GetAllDownloads(&all);
-    for (download::DownloadItem* item : all) if (!item->IsTransient()) items.push_back(item);
+    for (download::DownloadItem* item : all) if (PersonsDownload(item)) items.push_back(item);
   }
   std::stable_sort(items.begin(), items.end(), [](auto* a, auto* b) {
     if (a->IsDone() != b->IsDone()) return !a->IsDone();

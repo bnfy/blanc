@@ -25,21 +25,24 @@ export function blockableHostname(url){
 }
 // A shipping closed-entry summary from the native TabRestoreService row
 // (oldest first, like Electron's per-window list). The fork exposes no entry
-// kind or live-view tier, so `kind` and `held` stay absent.
-export const closedSummary=e=>({id:String(e.id),url:e.url||null,tabCount:e.tabCount});
+// kind; the live-view flag comes from the native parked-page holder.
+export const closedSummary=e=>({id:String(e.id),url:e.url||null,tabCount:e.tabCount,...(typeof e.held==='boolean'?{held:e.held}:{})});
 // A window runtime as shipping's windowRuntimeSnapshots() shapes it, from
 // that window's own native snapshot. Profile, title, closed count (the fork's
 // closed list is profile-wide) and Spaces residency have no per-window source.
-export function runtimeRecord(id,snapshot){
+export function runtimeRecord(id,snapshot,profile=null){
  const tabs=snapshot.tabs.map(t=>({id:String(t.id),url:shippingPageUrl(t.url),private:!!t.private}));
- return {id,tabOrder:tabs.map(t=>t.id),activeTabId:snapshot.activeTabId==null?null:String(snapshot.activeTabId),
-  glanceTabId:snapshot.glanceTabId==null?null:String(snapshot.glanceTabId),tabs,
+ return {id,...(typeof snapshot.miniWindow==='boolean'?{mini:snapshot.miniWindow}:{}),tabOrder:tabs.map(t=>t.id),activeTabId:snapshot.activeTabId==null?null:String(snapshot.activeTabId),
+  ...(profile?{profileId:profile.directory==='Default'?'default':profile.directory}:{}),
+  title:snapshot.tabs.find(t=>String(t.id)===String(snapshot.activeTabId))?.title??'',
+  glanceTabId:snapshot.glanceTabId==null?null:String(snapshot.glanceTabId),workspaceId:snapshot.spaceName||null,tabs,
   groups:(snapshot.groups||[]).map(g=>({id:String(g.id),name:g.name,collapsed:!!g.collapsed,color:g.color||null})),attached:true};
 }
 // Shipping tab-menu item ids, by the i18n keys the fork's Island menu
 // (adapter.js) and shipping's model both label them with.
 export const MENU_KEYS={
  'toggle-start-pin':['tabMenu.pinStartPage','tabMenu.unpinStartPage'],
+ 'return-pinned-home':['tabMenu.returnPinnedHome'],'set-pinned-home':['tabMenu.setPinnedHome'],
  'toggle-pin':['tabMenu.pin','tabMenu.unpin','tabMenu.pinSplit','tabMenu.unpinSplit'],
  'toggle-mute':['tabMenu.mute','tabMenu.unmute'],'toggle-site-mute':['tabMenu.muteSite','tabMenu.unmuteSite'],
  'toggle-favorite':['tabMenu.saveFavorite','tabMenu.removeFavorite'],'reload':['menu.reload'],
@@ -60,7 +63,7 @@ async function primaryTargetId(w){
 // stays meaningful across one (native windowOrdinals; F32). The CDP
 // connection to actually drive a window is still matched by its real
 // target id, independent of that label.
-async function runtimes(w){
+export async function runtimes(w){
  const primary=await primaryTargetId(w);w._hosts??=new Map();
  const ordered=await w.native('windowOrdinals');
  const hosts=(await w.fixture.targets()).filter(t=>t.url===HOST);
@@ -90,7 +93,7 @@ const exceptionRows=async w=>(await w.native('blockingExceptions',[])).map(Strin
 async function activeTab(w){const s=await w.snapshot();return s.tabs.find(t=>String(t.id)===String(s.activeTabId))??null;}
 // The fork's Island tab menu: a real right-click on the tab's row in the
 // ⌘L panel, read back as rendered buttons.
-async function openTabMenu(w,tabId){
+export async function openTabMenu(w,tabId){
  if(!await overlayShown(w))await w.hostEval('window.BlancPrototypeHost.open(false)');
  const page=overlay(w);
  // A split is one row; its tabs are listed under its disclosure.
@@ -135,14 +138,14 @@ export const tabs={
  selectTabRows:(w,id,mode)=>w.api('selectTab',[id==null?null:String(id),mode]),
  selectedTabIds:async w=>(await w.api('getAllTabs')).selectedTabIds,
  runSelectedTabsAction:(w,action,options={})=>{
-  if(!['batch-pin','batch-mute','batch-group-new','batch-group-move','batch-group-none','batch-quiet','batch-reload','batch-copy','batch-space-new','batch-space-move','batch-new-window'].includes(action))
+  if(!['batch-close','batch-pin','batch-mute','batch-group-new','batch-group-move','batch-group-none','batch-quiet','batch-reload','batch-copy','batch-space-new','batch-space-move','batch-new-window'].includes(action))
    throw new UndefinedNativeAdapterError('Batch operation is not built: '+action);
   return w.api('runSelectedTabsAction',[action,options]);
  },
  // Windows (F32). The primary window keeps shipping's id 'primary'; others
  // are 'window-2', 'window-3' etc. by SessionID order (see runtimes()).
  async windowRuntimes(w){
-  const out=[];for(const r of await runtimes(w))out.push(strict(runtimeRecord(r.id,await snap(r)),'windowRuntime'));
+  const out=[];for(const r of await runtimes(w))out.push(strict(runtimeRecord(r.id,await snap(r),await nativeCall(r.cdp,'profileInfo')),'windowRuntime'));
   return out;
  },
  // Chromium's own new-window path (Cmd+N is an accelerator CDP cannot press).
@@ -180,7 +183,7 @@ export const tabs={
   const r=await runtime(w,runtimeId);
   if(!(await snap(r)).tabs.some(t=>String(t.id)===String(tabId)))return false;
   await nativeCall(r.cdp,'closeTab',[Number(tabId)]);
-  await waitFor(()=>snap(r),s=>!s.tabs.some(t=>String(t.id)===String(tabId)),'tab close in window');
+  await waitFor(async()=>{const live=(await runtimes(w)).find(x=>x.id===r.id);return !live||!(await snap(live)).tabs.some(t=>String(t.id)===String(tabId));},Boolean,'tab or its window closed');
   return true;
  },
  async reopenClosedInWindow(w,runtimeId){
@@ -190,7 +193,22 @@ export const tabs={
   return String(after.activeTabId)!==before?String(after.activeTabId):null;
  },
  moveTabToNewWindow:(w,id)=>w.api('moveTabToNewWindow',[String(id)]),
- persistedSessionData:w=>w.native('sessionWindows'),
+ async pinnedHome(w,id){
+  for(const host of await runtimes(w)) {
+   const tab=(await snap(host)).tabs.find(t=>String(t.id)===String(id));
+   if(tab)return tab.pinnedHomeUrl??null;
+  }
+  throw Error('Missing native tab '+id);
+ },
+ setPinnedHome:(w,id)=>w.api('setPinnedHome',[String(id)]),
+ returnPinnedHome:(w,id)=>w.api('returnPinnedHome',[String(id)]),
+ async persistedSessionData(w){
+  const data=await w.native('sessionWindows');
+  for(const window of data.windows)for(const tab of window.tabs)for(const entry of tab.navigations){
+   if(entry.pageStateBytes!==0)throw Error('Persisted navigation contains recovery page state: '+entry.pageStateBytes+' bytes');
+  }
+  return data;
+ },
  // Closed entries (F2).
  async closedEntriesSummary(w){return (await w.snapshot()).closed.map(e=>strict(closedSummary(e),'closedEntry'));},
  // The tab payload the Island renders from: the host's processed snapshot.
@@ -272,7 +290,34 @@ export const tabs={
   return group ? w.api('beginNewSpaceForGroup',[group.id]) : false;
  },
  // Spaces (F41), through the host's bridge as the menu calls it.
+ async runLinkSpaceMenuItem(w,id,url,title,item){
+  const destination=item==='link-space-new'?'new':item.startsWith('link-space:')?item.slice(11):null;
+  if(!destination)throw Error('Unknown link Space command');
+  const token=await w.native('contextSpaceLink',[nativeId(id),url,title,destination]);
+  const completed=await w.waitFor(()=>w.hostEval('window.BlancPrototypeHost.spaceLinkResult()'),row=>row?.token===token,'native link Space menu action');
+  return completed.result;
+ },
+ async raceSwitchBackDuringQuiet(w,id){
+  w.app.releasePages();
+  const tabId=String(await w.native('heldQuietRaceStart',[String(id)]));
+  try{
+   const sleepingAtSwitch=await w.waitFor(()=>w.native('heldQuietRaceReady'),Boolean,'native held quiet probe in flight');
+   const result=await w.call('workspaceAction','open',id);
+   const outcome=await w.native('heldQuietRaceResume');
+   if(outcome!=='done:0')throw Error('Restored page was quieted: '+outcome);
+   return {tabId,result,sleepingAtSwitch};
+  }finally{await w.native('heldQuietRaceResume');}
+ },
  async workspaceAction(w,action,...args){
+  if(action==='fail-session-commit'){
+   if(!await w.native('spaceMoveFault',['session-commit','storage-failed']))throw Error('Session failure seam unavailable');
+   return w.api('createBlankWorkspace',[args[0],{}]);
+  }
+  if(action==='metrics'){
+   const [processes,spaces]=await Promise.all([
+    w.fixture.browser.send('SystemInfo.getProcessInfo'),w.hostEval('window.BlancPrototypeHost.spaceHeldState()')]);
+   return {processes:processes.processInfo,residentSpaces:spaces.held.length};
+  }
   // Move to Space's test seams (shipping's arm-move-fault and saved-urls).
   if(action==='arm-move-fault')return {ok:await nativeCall(w.fixture.host,'spaceMoveFault',[String(args[0]),String(args[1]??'storage-failed')])};
   if(action==='saved-urls')return nativeCall(w.fixture.host,'spaceSavedUrls',[String(args[0])]);
@@ -297,17 +342,16 @@ export const tabs={
   return state.held.map(id=>({id,name:state.meta.items[id]?.name,groups:state.heldGroups[id]||[],tabs:(state.heldTabs[id]||[]).map(t=>({...t,id:String(t.id)}))}));
  },
  roomPass:async w=>{const pass=(await w.hostEval('window.BlancPrototypeHost.spaceHeldState()')).roomPass||'';return {outcome:pass.split(':')[0]};},
- spaceMarkState:w=>strip(w).evalExpression("(() => { const mark = document.getElementById('pillSpace'); if (!mark) return null; const rect = mark.getBoundingClientRect(); const parts = [document.getElementById('pillSpaceSymbol'), document.getElementById('pillSpaceName')]; return { hidden: mark.hidden, state: mark.dataset.state, name: parts[1].textContent, label: mark.getAttribute('aria-label'), expanded: mark.getAttribute('aria-expanded'), fill: mark.style.getPropertyValue('--space-fill'), on: mark.style.getPropertyValue('--space-on'), edge: mark.dataset.edge ?? null, markBackground: getComputedStyle(mark).backgroundColor, squareBackground: getComputedStyle(parts[0]).backgroundColor, symbolColor: getComputedStyle(parts[0]).color, nameColor: getComputedStyle(parts[1]).color, islandText: getComputedStyle(document.getElementById('islandPill')).color, square: (() => { const b = parts[0].getBoundingClientRect(); return { width: b.width, height: b.height, inset: b.left - rect.left }; })(), nameTruncated: parts[1].scrollWidth > parts[1].clientWidth, symbol: parts[0].dataset.symbol ?? null, left: rect.left, bottom: rect.bottom, islandBottom: document.getElementById('islandPill').getBoundingClientRect().bottom, animatedProperties: [...new Set(parts.flatMap((p) => p.getAnimations()).flatMap((a) => a.effect.getKeyframes().flatMap((k) => Object.keys(k))))], animations: parts.flatMap((p) => p.getAnimations()).map((a) => ({ kind: a.constructor.name, time: a.currentTime, duration: a.effect.getTiming().duration })), reducedMotion: window.matchMedia('(prefers-reduced-motion: reduce)').matches, }; })()"),
+ spaceMarkState:w=>strip(w).evalExpression("(() => { const mark = document.getElementById('pillSpace'); if (!mark) return null; const place = { inIsland: !!mark.closest('#islandPill'), inRail: !!mark.closest('.vertical-tabs-toolbar') }; const rect = mark.getBoundingClientRect(); const parts = [document.getElementById('pillSpaceSymbol'), document.getElementById('pillSpaceName')]; return { ...place,  hidden: mark.hidden, state: mark.dataset.state, name: parts[1].textContent, label: mark.getAttribute('aria-label'), expanded: mark.getAttribute('aria-expanded'), fill: mark.style.getPropertyValue('--space-fill'), on: mark.style.getPropertyValue('--space-on'), edge: mark.dataset.edge ?? null, markBackground: getComputedStyle(mark).backgroundColor, squareBackground: getComputedStyle(parts[0]).backgroundColor, symbolColor: getComputedStyle(parts[0]).color, nameColor: getComputedStyle(parts[1]).color, islandText: getComputedStyle(document.getElementById('islandPill')).color, square: (() => { const b = parts[0].getBoundingClientRect(); return { width: b.width, height: b.height, inset: b.left - rect.left }; })(), nameTruncated: parts[1].scrollWidth > parts[1].clientWidth, symbol: parts[0].dataset.symbol ?? null, left: rect.left, bottom: rect.bottom, islandBottom: document.getElementById('islandPill').getBoundingClientRect().bottom, animatedProperties: [...new Set(parts.flatMap((p) => p.getAnimations()).flatMap((a) => a.effect.getKeyframes().flatMap((k) => Object.keys(k))))], animations: parts.flatMap((p) => p.getAnimations()).map((a) => ({ kind: a.constructor.name, time: a.currentTime, duration: a.effect.getTiming().duration })), reducedMotion: window.matchMedia('(prefers-reduced-motion: reduce)').matches, }; })()"),
  async clickPillSpace(w){await strip(w).locator('#pillSpace').click();},
  pressBrowserCommand:async(w,id,command)=>{
   if(command==='reload'){await w.api('reload',[id]);return true;}
-  const native={'close-tab':'close','zoom-in':'zoomIn','zoom-out':'zoomOut','zoom-reset':'zoomReset'}[command];
+  if(command==='back'){await w.api('goBack',[id]);return true;}
+  const native={'close-tab':'close','zoom-in':'zoomIn','zoom-out':'zoomOut','zoom-reset':'zoomReset','find':'find','new-tab':'newTab'}[command];
   if(!native)throw new UndefinedNativeAdapterError('Browser command needs an adapter: '+command);
   return (await w.native('previewPageCommand',[native]))!==false;},
  sleepBackgroundTabsNow:w=>{w.app.releasePages();return w.api('sleepBackgroundTabs');},
  sleepTab:async(w,id)=>{
-  if((await w.snapshot()).tabs.find(t=>String(t.id)===String(id))?.private)
-   throw new UndefinedNativeAdapterError('F31-8 remains undefined pending private discard context preservation');
   w.app.releasePages();return w.api('quietTab',[id]);
  },
  keepGlanceAsSplit:w=>w.api('keepGlanceAsSplit'),
@@ -319,13 +363,17 @@ export const tabs={
   return (s.splits||[]).filter(x=>x.tabIds.some(id=>!open.has(String(id)))).map(x=>String(x.id));},
  windowChildViewCount:async w=>({tabViews:(await w.snapshot()).tabs.filter(t=>t.viewBounds).length}),
  tabBounds:async(w,id)=>(await w.snapshot()).tabs.find(t=>String(t.id)===String(id))?.viewBounds??null,
+ raiseTabView:(w,id)=>w.native('raiseTabView',[Number(id)]),
  attachedTabViewIds:async w=>(await w.snapshot()).tabs.filter(t=>t.viewBounds).map(t=>String(t.id)),
  focusPane:async(w,tabId)=>{await w.native('switchTab',[nativeId(tabId)]);return true;},
  focusedWebContentsId:async w=>(await w.snapshot()).focusedTabId??null,
  async splitCornerTabs(w){
   const s=await w.snapshot();const split=(s.splits||[]).find(x=>x.tabIds.includes(s.activeTabId));if(!split)return [];
   const rows=await w.hostEval(`[...document.querySelectorAll('#splitHeaders .split-pane-header')].map(pane=>{const r=pane.getBoundingClientRect();const title=pane.querySelector('.split-pane-title');
-   return {bounds:{x:r.x,y:r.y,width:r.width,height:r.height},width:r.width,shown:r.width>0,site:title.hidden?'':title.textContent};})`);
+   const headers=document.getElementById('splitHeaders'),float=document.getElementById('floatPill');
+   const hz=Number(getComputedStyle(headers).zIndex)||0,fz=float?(Number(getComputedStyle(float).zIndex)||0):0;
+   const belowFloat=!!float&&(hz<fz||(hz===fz&&!!(headers.compareDocumentPosition(float)&Node.DOCUMENT_POSITION_FOLLOWING)));
+   return {belowFloat,bounds:{x:r.x,y:r.y,width:r.width,height:r.height},width:r.width,shown:r.width>0,site:title.hidden?'':title.textContent};})`);
   return split.tabIds.map((id,i)=>({tabId:String(id),focused:id===s.activeTabId,...rows[i]}));
  },
  async clickSplitCorner(w,tabId,part){
@@ -392,7 +440,7 @@ export const tabs={
  },
  forgetCertificateExceptionInTab:async(w,id)=>(await w.api('forgetCertificateExceptionInTab',[String(id),true]))===true,
  forgetCertificateExceptionOnly:async(w,id)=>(await w.api('forgetCertificateExceptionInTab',[String(id),false]))===true,
- setCertificateExceptionCap(){throw new UndefinedNativeAdapterError('Chromium keeps certificate decisions without Blanc\'s bounded cap; no fork path sets one');},
+ setCertificateExceptionCap:(w,n)=>w.native('setCertificateExceptionCap',[Number(n)]),
  // Shipping's chrome document is blanc-chrome://index/, the fork's strip.
  attemptChromeNavigation:(w,url)=>strip(w).evalExpression(`location.href=${jsLiteral(String(url))}`),
  async chromeUrl(w){

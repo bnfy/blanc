@@ -50,25 +50,11 @@
 
       <div class="ledger-spread">
         <div class="ledger-col ledger-col-primary">
-          <section class="ledger-section">
-            <a class="ledger-label" href="blanc://bookmarks/" data-i18n="pagesNav.bookmarks">Favorites</a>
-            <div id="favoritesList" class="ledger-list"></div>
-          </section>
         </div>
         <div class="ledger-col ledger-col-secondary">
           <section id="groupsSection" class="ledger-section" hidden>
             <div class="ledger-label" data-i18n="newtab.groups">Pick up where you left off</div>
             <div id="groupsList" class="ledger-list ledger-groups"></div>
-          </section>
-
-          <section id="sentSection" class="ledger-section" hidden>
-            <div class="ledger-label" data-i18n="sends.section">Sent to this device</div>
-            <div id="sentList" class="ledger-list"></div>
-          </section>
-
-          <section id="remoteSection" class="ledger-section" hidden>
-            <div class="ledger-label" data-i18n="newtab.remote">On your other devices</div>
-            <div id="remoteList" class="ledger-list"></div>
           </section>
         </div>
       </div>
@@ -101,6 +87,37 @@
       <div id="bbFavorites" class="bb-favs"></div>
       <div id="bbTopSitesStatus" class="page-sr-only" role="status" aria-live="polite" aria-atomic="true"></div>
       <div id="bbGroups" class="bb-groups"></div>
+      <!-- The optional widgets (V24, fork only): Billboard is the one layout,
+           and what Ledger and Tally showed comes back here, switched on in
+           Customize. Sent to this device is an inbox, not a widget: it shows
+           whenever something is waiting. Each keeps its old ids, so the same
+           renderers draw it. -->
+      <div id="bbWidgets" class="bb-widgets">
+        <!-- Two columns, one each side of the Start Page on a wide window and
+             side by side under it on a narrow one (V24). newtab.js puts each
+             card in its column and order; the grip drags it, and its arrow
+             keys move it. -->
+        <div id="bbRailLeft" class="bb-rail" data-side="left"></div>
+        <div id="bbRailRight" class="bb-rail" data-side="right"></div>
+        <div id="bbWidgetCards" hidden>
+          <section id="sentSection" class="ledger-section bb-widget" data-card="sent" hidden>
+            <button type="button" class="bb-widget-grip"><svg viewBox="0 0 10 16" width="10" height="16" aria-hidden="true"><circle cx="3" cy="3" r="1.3"></circle><circle cx="7" cy="3" r="1.3"></circle><circle cx="3" cy="8" r="1.3"></circle><circle cx="7" cy="8" r="1.3"></circle><circle cx="3" cy="13" r="1.3"></circle><circle cx="7" cy="13" r="1.3"></circle></svg></button>
+            <div class="ledger-label" data-i18n="sends.section">Sent to this device</div>
+            <div id="sentList" class="ledger-list"></div>
+          </section>
+          <section id="favoritesWidget" class="ledger-section bb-widget" data-widget="favorites" data-card="favorites">
+            <button type="button" class="bb-widget-grip"><svg viewBox="0 0 10 16" width="10" height="16" aria-hidden="true"><circle cx="3" cy="3" r="1.3"></circle><circle cx="7" cy="3" r="1.3"></circle><circle cx="3" cy="8" r="1.3"></circle><circle cx="7" cy="8" r="1.3"></circle><circle cx="3" cy="13" r="1.3"></circle><circle cx="7" cy="13" r="1.3"></circle></svg></button>
+            <a class="ledger-label" href="blanc://bookmarks/" data-i18n="pagesNav.bookmarks">Favorites</a>
+            <div id="favoritesList" class="ledger-list"></div>
+          </section>
+          <section id="remoteSection" class="ledger-section bb-widget" data-widget="devices" data-card="devices" hidden>
+            <button type="button" class="bb-widget-grip"><svg viewBox="0 0 10 16" width="10" height="16" aria-hidden="true"><circle cx="3" cy="3" r="1.3"></circle><circle cx="7" cy="3" r="1.3"></circle><circle cx="3" cy="8" r="1.3"></circle><circle cx="7" cy="8" r="1.3"></circle><circle cx="3" cy="13" r="1.3"></circle><circle cx="7" cy="13" r="1.3"></circle></svg></button>
+            <div class="ledger-label" data-i18n="newtab.remote">On your other devices</div>
+            <div id="remoteList" class="ledger-list"></div>
+          </section>
+        </div>
+        <p id="widgetMoveStatus" class="page-sr-only" role="status" aria-live="polite"></p>
+      </div>
     </main>
 
     <main class="shelf" id="layoutShelf">
@@ -128,13 +145,6 @@
         <div id="tlFavorites" class="ledger-list"></div>
         <div class="ledger-label tally-label tally-label-groups" data-i18n="newtab.groups">Pick up where you left off</div>
         <div id="tlGroups" class="tally-chiprow"></div>
-      </div>
-      <div class="tally-right">
-        <div class="ledger-label" data-i18n="newtab.tally.blocked">Blocked this week</div>
-        <div id="tlCount" class="tally-count"></div>
-        <div id="tlChart" class="tally-chart"></div>
-        <div id="tlDays" class="tally-days"></div>
-        <div id="tlCaption" class="tally-caption"></div>
       </div>
     </main>
     <div id="favoritesPinStatus" class="page-sr-only" role="status" aria-live="polite" aria-atomic="true"></div>
@@ -179,6 +189,13 @@
                 <span class="page-sr-only migration-task-status" data-i18n="newtab.checklist.notCompleted">Not completed</span>
               </a>
             </li>
+            <li id="migrationIphoneTask" hidden>
+              <button id="migrationIphoneAction" class="migration-task" type="button">
+                <span class="migration-task-check" aria-hidden="true"></span>
+                <span class="migration-task-label" data-i18n="newtab.checklist.iphone">Connect your iPhone</span>
+                <span class="page-sr-only migration-task-status" data-i18n="newtab.checklist.notCompleted">Not completed</span>
+              </button>
+            </li>
             <li id="migrationSpaceTask">
               <button id="migrationSpaceAction" class="migration-task" type="button">
                 <span class="migration-task-check" aria-hidden="true"></span>
@@ -195,6 +212,11 @@
           <svg viewBox="0 0 10 10" width="10" height="10" aria-hidden="true"><path d="M2 2l6 6M8 2l-6 6"></path></svg>
         </button>
       </span>
+      <!-- V25 (owner, 2026-11-13): Mahjong takes the Patron pill's place and look;
+           Patron is offered in Settings only for now. -->
+      <span id="mahjongPill" class="mahjong-pill">
+        <a id="mahjongLink" href="blanc://mahjong/" target="_blank"><svg class="mahjong-pill-mark" viewBox="0 0 16 16" width="16" height="16" aria-hidden="true"><rect x="2.25" y="3.75" width="6.5" height="9.5" rx="1.5"></rect><rect x="7.25" y="2.25" width="6.5" height="9.5" rx="1.5"></rect></svg><span data-i18n="start.mahjong.play">Play Blanc Mahjong</span></a>
+      </span>
       <span id="whatsNew" class="whats-new-pill js-whats-new" hidden>
         <a id="whatsNewLink" href="https://blanc.day/changelog"><span id="whatsNewLabel"></span></a>
         <button id="whatsNewHide" class="start-pill-close" type="button" aria-label="Hide What’s new" data-i18n-aria-label="newtab.whatsNew.hide">
@@ -205,26 +227,23 @@
     <span class="footer-appearance">
       <button id="customizeButton" class="start-customize" type="button" popovertarget="customizePopover" aria-expanded="false" data-i18n="newtab.customize.button">Customize</button>
       <div id="customizePopover" class="start-customize-popover" popover role="dialog" aria-label="Customize start page" data-i18n-aria-label="newtab.customize.label">
-        <div id="customizeLayoutLabel" class="customize-label" data-i18n="newtab.customize.layout">Layout</div>
-        <p id="layoutSaveStatus" class="wallpaper-error" role="status" aria-live="polite" hidden></p>
-        <div id="layoutSwitcher" class="layout-switcher" role="group" aria-labelledby="customizeLayoutLabel" aria-describedby="layoutSaveStatus">
-          <button type="button" class="layout-preview" data-layout-pick="ledger" aria-pressed="false">
-            <span class="layout-thumb" data-thumb="ledger" aria-hidden="true"><i></i><i></i><i></i><i></i></span>
-            <span class="layout-name" data-i18n="newtab.layout.ledger">Ledger</span>
-          </button>
-          <button type="button" class="layout-preview" data-layout-pick="billboard" aria-pressed="false">
-            <span class="layout-thumb" data-thumb="billboard" aria-hidden="true"><i></i><i></i><i></i></span>
-            <span class="layout-name" data-i18n="newtab.layout.billboard">Billboard</span>
-          </button>
-          <button type="button" class="layout-preview" data-layout-pick="shelf" aria-pressed="false">
-            <span class="layout-thumb" data-thumb="shelf" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i></span>
-            <span class="layout-name" data-i18n="newtab.layout.shelf">Shelf</span>
-          </button>
-          <button type="button" class="layout-preview" data-layout-pick="tally" aria-pressed="false">
-            <span class="layout-thumb" data-thumb="tally" aria-hidden="true"><i></i><i></i><i></i></span>
-            <span class="layout-name" data-i18n="newtab.layout.tally">Tally</span>
-          </button>
+        <!-- The optional widgets (V24, fork only) in place of the layouts. -->
+        <div id="customizeWidgetsLabel" class="customize-label" data-i18n="start.widgets.heading">Widgets</div>
+        <p id="widgetSaveStatus" class="wallpaper-error" role="status" aria-live="polite" hidden></p>
+        <div id="widgetSwitches" class="widget-switches" role="group" aria-labelledby="customizeWidgetsLabel" aria-describedby="widgetSaveStatus">
+          <button type="button" class="widget-tile" role="switch" aria-checked="false" data-widget-pick="favorites"><span class="widget-tile-check" aria-hidden="true"><svg viewBox="0 0 10 10" width="8" height="8"><path d="M2 5.2l2 2 4-4.4" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"></path></svg></span><svg class="widget-tile-art" viewBox="0 0 64 36" aria-hidden="true"><rect x="14" y="7" width="6" height="6" rx="1.5" fill="currentColor" opacity=".55"></rect><path d="M24 10h26" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"></path><rect x="14" y="15" width="6" height="6" rx="1.5" fill="currentColor" opacity=".55"></rect><path d="M24 18h20" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"></path><rect x="14" y="23" width="6" height="6" rx="1.5" fill="currentColor" opacity=".55"></rect><path d="M24 26h23" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"></path></svg><span data-i18n="pagesNav.bookmarks">Favorites</span></button>
+          <button type="button" class="widget-tile" role="switch" aria-checked="false" data-widget-pick="devices"><span class="widget-tile-check" aria-hidden="true"><svg viewBox="0 0 10 10" width="8" height="8"><path d="M2 5.2l2 2 4-4.4" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"></path></svg></span><svg class="widget-tile-art" viewBox="0 0 64 36" aria-hidden="true"><rect x="12" y="8" width="26" height="17" rx="2" fill="none" stroke="currentColor" stroke-width="1.6"></rect><path d="M9 28h32" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"></path><rect x="43" y="10" width="11" height="19" rx="2.5" fill="none" stroke="currentColor" stroke-width="1.6"></rect></svg><span data-i18n="newtab.remote">On your other devices</span></button>
+          <button type="button" id="addWidgetTile" class="widget-tile widget-tile-add" aria-haspopup="true" aria-controls="widgetGallery"><svg class="widget-tile-art" viewBox="0 0 64 36" aria-hidden="true"><path d="M32 9v18M23 18h18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"></path></svg><span data-i18n="start.gallery.add">Add widget</span></button>
         </div>
+        <!-- How many shortcut tiles Billboard shows under the clock (fork,
+             2026-11-13): a choice of its own, not a widget card. -->
+        <hr class="customize-divider" />
+        <div id="customizeShortcutsLabel" class="customize-label" data-i18n="start.shortcuts.heading">Shortcuts</div>
+        <div id="shortcutCountPicker" class="wallpaper-seg shortcut-seg" role="group" aria-labelledby="customizeShortcutsLabel" aria-describedby="shortcutsHint">
+          <button type="button" aria-pressed="true" data-shortcuts="6">6</button>
+          <button type="button" aria-pressed="false" data-shortcuts="12">12</button>
+        </div>
+        <p id="shortcutsHint" class="customize-hint" hidden></p>
         <!-- Billboard only: the clock's own section, a row in the style of a
              settings list. A live sample of the clock's face, weight and
              color, what it is set to, and a chevron to the Font & color sheet,
@@ -304,6 +323,19 @@
           </div>
         </div>
         <p id="customWallpaperError" class="wallpaper-error" role="status" hidden></p>
+        <!-- Add a widget (fork, prototype): extensions whose side panel the
+             Start Page can show, a short list the owner approved, each with
+             a link to its Chrome Web Store page or, once installed, Add. -->
+        <section id="widgetGallery" class="widget-gallery" hidden aria-labelledby="widgetGalleryTitle">
+          <div class="widget-gallery-head">
+            <button type="button" id="widgetGalleryBack" class="widget-gallery-back" aria-label="Back" data-i18n-aria-label="start.gallery.back"><svg viewBox="0 0 12 12" width="12" height="12" aria-hidden="true"><path d="M7.5 2.5 4 6l3.5 3.5" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path></svg></button>
+            <h2 id="widgetGalleryTitle" class="customize-label" data-i18n="start.gallery.title">Add a widget</h2>
+          </div>
+          <p class="customize-hint widget-gallery-intro" data-i18n="start.gallery.intro">These extensions have a side panel the Start Page can show as a widget. Get one from the Chrome Web Store, then add it here.</p>
+          <ul id="widgetGalleryList" class="widget-gallery-list"></ul>
+          <a id="widgetGalleryMore" class="widget-gallery-more" href="https://chromewebstore.google.com/search/side%20panel" target="_blank" rel="noopener" data-i18n="start.gallery.more">Find more in the Chrome Web Store</a>
+          <p class="customize-hint" data-i18n="start.gallery.note">Extensions are made by their developers, not by Blanc.</p>
+        </section>
       </div>
       <!-- The Billboard clock's Font & Color, after the iOS Lock Screen's:
            four bundled faces with weight and height sliders, then the page's
@@ -350,7 +382,6 @@
       </div>
     </span>
     <span class="footer-right">
-      <a id="mahjongLink" href="blanc://mahjong/" target="_blank" data-i18n="newtab.mahjong">Mahjong</a>
       <span id="goAnywhere"></span>
     </span>
   </footer>

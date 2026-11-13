@@ -14,7 +14,7 @@ const here = path.dirname(fileURLToPath(import.meta.url));
 const runner = path.resolve(here, '../blanc/services/sync_runner');
 const {peer} = require('../tests/android/support/sync-peer.cjs');
 const {createSyncFixture} = require('../../test/desktop/support/sync-fixture.js');
-const tag = JSON.parse(fs.readFileSync(path.resolve(here, '../tracker.json'), 'utf8')).shippingTag;
+const tag = (t => t.bundleTag ?? t.shippingTag)(JSON.parse(fs.readFileSync(path.resolve(here, '../tracker.json'), 'utf8')));
 
 test('the committed bundle and its hash are what the tag and the shims produce', () => {
   const text = bundle(tag);

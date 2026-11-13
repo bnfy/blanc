@@ -1,9 +1,15 @@
+import {performance} from 'node:perf_hooks';
+import {timedOut} from './timing.mjs';
 import {jsLiteral} from './js-literal.mjs';
 // Installed only into the exact native Island of an isolated fixture.
 export async function installDriver(host){
   const url=await host.eval('location.href');
   if(url!=='chrome://blanc-prototype/host.html')throw Error('Test driver requires the native Island');
   const bootstrap=function(){
+    // Multiple adapters may connect to one native Island document. Its
+    // request counter and in-flight replies belong to that document, so a
+    // second CDP connection must reuse them instead of replaying old ids.
+    if(typeof window.__blancNativeCall==='function'&&typeof window.blancTestReply==='function')return;
     let next=0;const pending=new Map();
     window.blancTestReply=(id,success,value)=>{
       const call=pending.get(id);if(!call)return;
@@ -20,6 +26,8 @@ export async function installDriver(host){
   };
   await host.eval('('+bootstrap.toString()+')()');
 }
-export function nativeCall(host,method,args=[],id=null,timeout=15000){
-  return host.eval(`window.__blancNativeCall(${jsLiteral(method)},${jsLiteral(args)},${id?JSON.stringify(String(id)):'undefined'},${timeout})`);
+export async function nativeCall(host,method,args=[],id=null,timeout=15000){
+  const start=performance.now();
+  try{return await host.eval(`window.__blancNativeCall(${jsLiteral(method)},${jsLiteral(args)},${id?JSON.stringify(String(id)):'undefined'},${timeout})`,undefined,timeout+1000);}
+  catch(error){if(error.message.includes('Native test operation timed out:'))timedOut('native',method,performance.now()-start);throw error;}
 }

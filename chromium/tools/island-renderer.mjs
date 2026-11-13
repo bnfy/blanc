@@ -21,10 +21,10 @@ const record = path.join(root, 'blanc/island-renderer.json');
 // The utility sheet's pages (S1.5): Favorites, History and Downloads, shown
 // in a frame of the Island host over Chromium's own models.
 export const SHEET_FILES = ['sheet.js', 'row-icon.js', 'history-groups.js', 'downloads-row-model.js',
-  'bookmarks.html', 'bookmarks.js', 'history.html', 'history.js', 'downloads.html', 'downloads.js'].map(file => `pages/${file}`);
+  'bookmarks.html', 'bookmarks.js', 'history.html', 'history.js', 'downloads.html', 'downloads.js', 'tab-import.html', 'tab-import-open-tabs.js', 'tab-import-arc.js'].map(file => `pages/${file}`);
 export const FILES = ['index.html', 'overlay.html', 'overlay.js', 'renderer.js', 'styles.css', 'tab-drag.js',
   'tab-sections.js', 'vertical-tabs.js', 'workspace-ui.js', 'glance-card-drag.js', 'hover-panel-leave.js',
-  'permission.html', 'permission.js', ...SHEET_FILES];
+  'permission.html', 'permission.js', 'pages/onboarding.js', ...SHEET_FILES];
 // The sheet pages' bridge, the fork's own file, loads before their strings,
 // and so does the launch's interface language (F44), as in index.html.
 const SHEET_BRIDGE = ['  <script src="strings.js"></script>\n', '  <script src="sheet-adapter.js"></script>\n  <script src="../ui-language.js"></script>\n  <script src="strings.js"></script>\n'];
@@ -47,6 +47,9 @@ export const EDITS = {
   'pages/bookmarks.html': [SHEET_BRIDGE],
   'pages/history.html': [SHEET_BRIDGE],
   'pages/downloads.html': [SHEET_BRIDGE],
+  'pages/tab-import.html': [SHEET_BRIDGE],
+  'pages/tab-import-open-tabs.js': [["'incomplete-session', 'missing-session-marker'", "'incomplete-session', 'missing-session-marker', 'invalid-session', 'invalid-session-header', 'invalid-session-command', 'unsupported-session-version', 'unreadable', 'permission'"]],
+  'pages/onboarding.js': [["    window.location.href = 'blanc://tab-import/';", "    return window.bowserPages.start.openTabImport();"]],
   'index.html': [
     // The Island facade and the fork's own styles load around shipping's.
     // The launch's interface language (F44) is pinned before strings.js reads it.
@@ -66,6 +69,7 @@ export const EDITS = {
     ['      <div id="islandHint"></div>\n', '      <button id="previewStatusLink" class="preview-notice-button" type="button" hidden>Security &amp; updates</button>\n<div id="islandHint"></div>\n'],
   ],
   'renderer.js': [
+    ["    pillSpace.hidden = spaceMarkOnIsland();", "    pillSpace.hidden = document.documentElement.hasAttribute('data-mini-window') || spaceMarkOnIsland();"],
     // An extension's page goes by the extension's name, not its 32-letter id.
     ["function tabDomain(tab) {\n    if (!tab?.url || tab.url.startsWith('blanc://newtab')) return '';\n",
      "function tabDomain(tab) {\n    if (!tab?.url || tab.url.startsWith('blanc://newtab')) return '';\n    if (tab.extensionName) return tab.extensionName;\n"],
@@ -81,6 +85,14 @@ export const EDITS = {
       "  const glanceSurface = window.location.hostname === 'glance' || window.location.search === '?surface=glance';\n"],
   ],
   'overlay.js': [
+    // F3-3: a collapsed group's membership stays explicit in the panel.
+    // Use shipping's translated plural string and existing empty-row style.
+    ["          // Collapsed: header alone. Open: indent membership under the group.\n          if (!group.collapsed) bandNodes.push(...tabRowsFor(gtabs, { inGroup: true }));",
+     "          if (group.collapsed) bandNodes.push(emptyRow(blancI18n.t('tabGroups.tucked', { count: gtabs.length })));\n          else bandNodes.push(...tabRowsFor(gtabs, { inGroup: true }));"],
+    // The inbox heading has no SVG. Build its static spans as DOM nodes;
+    // it is not an SVG skeleton accepted by the narrow Trusted Types policy.
+    ['    row.innerHTML = \'<span class="ghead-name"></span><span class="ghead-n"></span>\';',
+     '    for (const name of ["ghead-name", "ghead-n"]) {\n      const span = document.createElement("span");\n      span.className = name;\n      row.append(span);\n    }'],
     // An extension's page goes by the extension's name, not its 32-letter id.
     ["function tabDomain(tab) {\n    if (!tab?.url || tab.url.startsWith('blanc://newtab')) return '';\n",
      "function tabDomain(tab) {\n    if (!tab?.url || tab.url.startsWith('blanc://newtab')) return '';\n    if (tab.extensionName) return tab.extensionName;\n"],

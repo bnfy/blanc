@@ -8,26 +8,31 @@
   "teamId": "XYGUCY4498",
   "upstream": "681cd621e82e606d7536eae8ea2576afb3c7d65c",
   "chromiumVersion": "158.0.8127.2",
-  "version": "1.0.0-beta.1",
-  "tag": "chromium-beta-1.0.0-beta.1",
-  "shortVersion": "1.0.0-beta.1",
+  "version": "2.0.0-beta.1",
+  "tag": "chromium-beta-2.0.0-beta.1",
+  "shortVersion": "2.0.0-beta.1",
   "build": 1,
   "previousBuild": 0,
   "prerelease": true,
   "makeLatest": false,
   "sourceCommit": "0000000000000000000000000000000000000000",
   "inputDigest": "0000000000000000000000000000000000000000000000000000000000000000",
-  "arches": ["arm64", "x64"],
-  "candidates": {"arm64": "macos-0000000000000000", "x64": "macos-1111111111111111"},
+  "arches": [
+    "arm64"
+  ],
+  "candidates": {
+    "arm64": "macos-0000000000000000"
+  },
   "gnArgsSHA256": {
-    "arm64": "0000000000000000000000000000000000000000000000000000000000000000",
-    "x64": "1111111111111111111111111111111111111111111111111111111111111111"
+    "arm64": "0000000000000000000000000000000000000000000000000000000000000000"
   },
   "sparkle": {
-    "version": "2.8.0",
+    "version": "2.10.1",
     "publicKey": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=",
     "archiveSHA256": "0000000000000000000000000000000000000000000000000000000000000000"
   },
   "minimumSystemVersion": "13.0",
-  "profileSHA256": "0000000000000000000000000000000000000000000000000000000000000000"
+  "profileSHA256": "0000000000000000000000000000000000000000000000000000000000000000",
+  "launchScheme": "blanc-beta",
+  "archWaiver": "Owner approved 2026-11-10: beta 1 is Apple Silicon only; Intel deferred until a separately qualified native build."
 }

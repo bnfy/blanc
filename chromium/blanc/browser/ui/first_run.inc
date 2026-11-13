@@ -14,7 +14,10 @@ constexpr char kTabArchivePref[] = "blanc.tabs.archive";
 // asks for the walkthrough; the fork's test profiles do the same, unless a
 // test asks for the real saved state (--blanc-test-first-run).
 bool g_first_run_pending_for_test = false;
+int g_privacy_writes_pending = 0;
+bool g_privacy_commit_failed = false;
 bool FirstRunPending() {
+  if (g_privacy_commit_failed || g_privacy_writes_pending > 0) return true;
   const auto* command_line = base::CommandLine::ForCurrentProcess();
   if (command_line->HasSwitch("blanc-test") && !command_line->HasSwitch("blanc-test-first-run"))
     return g_first_run_pending_for_test;
@@ -53,20 +56,57 @@ void ApplyOnboardingSet(Profile* profile, const base::DictValue& partial) {
       profile->GetOriginalProfile()->GetPrefs()->SetString(kTabArchivePref, *archive);
   }
 }
+// CommitPendingWrite callbacks signal completion, including failed writes.
+// Read the durable values before acknowledging consent or opening telemetry.
+// Only the two choices and completion marker are inspected; no browsing data.
+bool PrivacyChoicesOnDisk(const base::FilePath& profile_path,
+                          const base::FilePath& local_path,
+                          bool suggestions, bool ping) {
+  std::string profile_bytes, local_bytes;
+  if (!base::ReadFileToString(profile_path, &profile_bytes) ||
+      !base::ReadFileToString(local_path, &local_bytes)) return false;
+  const auto profile = base::JSONReader::ReadDict(profile_bytes, base::JSON_PARSE_RFC);
+  const auto local = base::JSONReader::ReadDict(local_bytes, base::JSON_PARSE_RFC);
+  return profile && local &&
+      profile->FindBoolByDottedPath("search.suggest_enabled") == suggestions &&
+      local->FindBoolByDottedPath(kUsagePingPref) == ping &&
+      local->FindDoubleByDottedPath(kFirstRunCompletedPref).value_or(0) > 0;
+}
+
 // settings.js's completeFirstRunPrivacyChoices: both choices or nothing, and
 // the walkthrough closes only once they are saved.
-bool CompleteFirstRunPrivacy(Profile* profile, const base::DictValue& choices) {
+void CompleteFirstRunPrivacy(Profile* profile, const base::DictValue& choices,
+                             base::OnceCallback<void(bool)> done) {
   const auto suggestions = choices.FindBool("searchSuggestions");
   const auto ping = choices.FindBool("usagePing");
-  if (!suggestions || !ping) return false;
+  if (!suggestions || !ping) { std::move(done).Run(false); return; }
+  ++g_privacy_writes_pending;
   profile->GetOriginalProfile()->GetPrefs()->SetBoolean(prefs::kSearchSuggestEnabled, *suggestions);
   PrefService* local = g_browser_process->local_state();
   local->SetBoolean(kUsagePingPref, *ping);
   if (local->GetDouble(kFirstRunCompletedPref) <= 0)
     local->SetDouble(kFirstRunCompletedPref, base::Time::Now().InMillisecondsFSinceUnixEpoch());
-  local->CommitPendingWrite();
-  g_first_run_pending_for_test = false;
-  return true;
+  // Count overlapping submissions so an earlier completion cannot open the
+  // telemetry gate while a later choice is still being committed/verified.
+  auto verify = base::BindOnce(
+      [](base::FilePath profile_path, base::FilePath local_path,
+         bool suggestions, bool ping, base::OnceCallback<void(bool)> done) {
+        base::ThreadPool::PostTaskAndReplyWithResult(
+            FROM_HERE, {base::MayBlock(), base::TaskPriority::USER_VISIBLE},
+            base::BindOnce(&PrivacyChoicesOnDisk, profile_path, local_path, suggestions, ping),
+            base::BindOnce([](base::OnceCallback<void(bool)> done, bool saved) {
+              --g_privacy_writes_pending;
+              g_privacy_commit_failed = !saved;
+              if (saved) g_first_run_pending_for_test = false;
+              std::move(done).Run(saved);
+            }, std::move(done)));
+      }, profile->GetOriginalProfile()->GetPath().AppendASCII("Preferences"),
+      g_browser_process->profile_manager()->user_data_dir().AppendASCII("Local State"),
+      *suggestions, *ping, std::move(done));
+  profile->GetOriginalProfile()->GetPrefs()->CommitPendingWrite(base::BindOnce(
+      [](base::OnceClosure verify) {
+        g_browser_process->local_state()->CommitPendingWrite(std::move(verify));
+      }, std::move(verify)));
 }
 
 // Shipping's default-browser status for the walkthrough's first step (V20:
@@ -77,28 +117,47 @@ base::Value DefaultBrowserStatus(shell_integration::DefaultWebClientState state)
       .Set("canSet", shell_integration::CanSetAsDefaultBrowser()));
 }
 
-// The moving-in checklist (N11): shipping's migration-checklist.js. A task is
-// listed only where it works, so Sync (F27), Bring your tabs (F40), the first
-// space (F41) and the iPhone join as those features land. Device-wide, and
-// never in a private tab or a named profile (migrationChecklistForTab).
+// Shipping's durable moving-in checklist; only the default regular profile.
 constexpr char kChecklistDismissedPref[] = "blanc.checklist.dismissed";
 constexpr char kChecklistDefaultPref[] = "blanc.checklist.default_done";
+constexpr char kChecklistProgressPref[] = "blanc.checklist.progress";
+void NoteChecklistTask(Profile* profile, std::string_view task) {
+  if (!profile || profile->IsOffTheRecord() ||
+      profile->GetPath() != g_browser_process->profile_manager()->user_data_dir().Append(ProfileManager::GetInitialProfileDir())) return;
+  auto* local = g_browser_process->local_state();
+  auto progress = local->GetDict(kChecklistProgressPref).Clone();
+  if (progress.FindBool(task).value_or(false)) return;
+  progress.Set(task, true);
+  local->SetDict(kChecklistProgressPref, std::move(progress));
+}
 base::Value MigrationChecklist(Profile* profile) {
   if (profile->IsOffTheRecord() || profile->GetBaseName().value() != FILE_PATH_LITERAL("Default"))
     return base::Value();
   PrefService* local = g_browser_process->local_state();
+  // Like shipping's unpackaged development build, preview doesn't offer
+  // changing the system default from this checklist.
+#if defined(OFFICIAL_BUILD)
   const bool default_shown = shell_integration::CanSetAsDefaultBrowser();
+#else
+  const bool default_shown = false;
+#endif
   const bool default_done = default_shown && local->GetBoolean(kChecklistDefaultPref);
-  const int tasks = default_shown ? 1 : 0;
-  const int completed = default_done ? 1 : 0;
+  const auto& progress = local->GetDict(kChecklistProgressPref);
+  const bool sync = progress.FindBool("sync").value_or(false);
+  const bool tabs = progress.FindBool("tabs").value_or(false);
+  const bool space = progress.FindBool("space").value_or(false);
+  const bool iphone = progress.FindBool("iphone").value_or(false);
+  const int tasks = 4 + int(default_shown);
+  const int completed = int(default_done) + int(sync) + int(tabs) + int(space) + int(iphone);
   return base::Value(base::DictValue()
       .Set("visible", !FirstRunPending() && !local->GetBoolean(kChecklistDismissedPref) && completed < tasks)
+      .Set("dismissed", local->GetBoolean(kChecklistDismissedPref))
       .Set("completedCount", completed).Set("taskCount", tasks)
       .Set("defaultAvailable", default_shown).Set("defaultComplete", default_done)
-      .Set("syncAvailable", false).Set("syncComplete", false)
-      .Set("tabsAvailable", false).Set("tabsComplete", false)
-      .Set("spaceAvailable", false).Set("spaceComplete", false)
-      .Set("iphoneAvailable", false).Set("iphoneComplete", false));
+      .Set("syncAvailable", true).Set("syncComplete", sync)
+      .Set("tabsAvailable", true).Set("tabsComplete", tabs)
+      .Set("spaceAvailable", true).Set("spaceComplete", space)
+      .Set("iphoneAvailable", true).Set("iphoneComplete", iphone));
 }
 // Noted whenever the OS is asked, as shipping notes it on launch and focus.
 void NoteDefaultBrowser(shell_integration::DefaultWebClientState state) {

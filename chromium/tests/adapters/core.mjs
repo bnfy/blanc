@@ -40,12 +40,22 @@ async function created(w,reply){
 }
 // Shipping's internal addresses, as the fork serves them: the Start Page and
 // the utility pages are chrome:// pages (the sheet takes the utility ones).
-const forkUrl=url=>{
+export const forkUrl=url=>{
+ if(String(url).startsWith('blanc://mahjong/'))return 'chrome://blanc-prototype/pages/mahjong.html'+String(url).slice('blanc://mahjong/'.length);
  const m=/^blanc:\/\/(newtab|settings|downloads|bookmarks|history)\/?(?:[?#].*)?$/i.exec(String(url));
  return m?`chrome://${m[1].toLowerCase()}/`:String(url);};
 export const core={
  state:w=>w.state(),
  async openTab(w,url,opts){
+  // A local HTML file arrives through the operating system's open-file path
+  // (N15): the fork opens it in a new tab that holds the grant for that file.
+  if(opts?.allowLocalFile){
+   if(Object.keys(opts).some(k=>k!=='allowLocalFile'))throw new UndefinedNativeAdapterError('Tab creation options need an adapter: '+Object.keys(opts));
+   const before=new Set((await w.snapshot()).tabs.map(t=>t.id)),file=String(url);
+   if(await w.native('testOpenLocalFile',[file])!==true)throw Error('The native open-file path did not take the local file');
+   const opened=s=>s.tabs.find(t=>!before.has(t.id)&&t.url===file&&!t.loading);
+   return (await w.waitForState(s=>Boolean(opened(s)))).tabs.find(t=>!before.has(t.id)&&t.url===file).id;
+  }
   if(opts&&Object.keys(opts).some(k=>k!=='private'))throw new UndefinedNativeAdapterError('Tab creation options need an adapter: '+Object.keys(opts));
   // A private tab opens in this window on the private profile (D1). Its
   // shipping address is the private Start Page, blanc://newtab/?private=1:
@@ -76,8 +86,16 @@ export const core={
    await page.cdp.send('Page.enable');}
   return w.native('closeTab',[nativeId(id)]);
  },
- activateTab:(w,id)=>w.native('switchTab',[nativeId(id)]),
+ async activateTab(w,id){
+  const wasQuiet=(await w.snapshot()).tabs.find(t=>String(t.id)===String(id))?.asleep;
+  const result=await w.native('switchTab',[nativeId(id)]);
+  // Activation starts Chromium's asynchronous restore. Match the completed
+  // wake before the next shipping action can ask to discard this tab again.
+  if(wasQuiet)await w.waitForState(s=>s.tabs.some(t=>String(t.id)===String(id)&&!t.asleep&&!t.loading));
+  return result;
+ },
  duplicateActive:async w=>w.native('duplicateTab',[(await w.snapshot()).activeTabId]),
+ goBack:(w,id)=>w.api('goBack',[String(id)]),
  pinTab:(w,id)=>w.native('togglePinned',[nativeId(id)]),
  muteTab:(w,id)=>w.api('toggleTabMuted',[String(id)]),
  toggleSiteMute:(w,id)=>w.api('toggleSiteMute',[String(id)]),
@@ -111,35 +129,54 @@ export const core={
   await w.hostEval(`new Promise(r=>{const end=Date.now()+2000;(function check(){
    if(document.getElementById('overlay').hidden||innerHeight>68||Date.now()>end)return r(true);
    requestAnimationFrame(check);})();})`);},
- openPalette:w=>openIsland(w,false),
+ openPalette:async w=>{await w.api('closeOverlay',[false]);return openIsland(w,false);},
  // The host owns the mode (main in shipping); the overlay document's own
  // body mode is what its renderer has applied.
  overlayMode:w=>w.hostEval(`(()=>{const f=document.querySelector('#overlay');return !f||f.hidden?null:f.dataset.mode||null})()`),
  overlayRendererMode:w=>w.hostEval(`(()=>{const f=document.querySelector('#overlay');return !f||f.hidden?null:f.contentDocument?.body?.dataset.mode||null})()`),
- // Fronts the Island window and reports whether its document has focus.
- async focusWindow(w){await w.fixture.host.send('Page.bringToFront');return w.hostEval('document.hasFocus()');},
+ // Shipping reports BrowserWindow.isFocused(), not the host document's
+ // focus: the page or an Island iframe can own keyboard focus in that window.
+ async focusWindow(w){
+  await w.fixture.host.send('Page.bringToFront');
+  let state=await w.snapshot();
+  // The host delegate has no ActivateContents; the real tab delegate does.
+  if(!state.windowActive){await (await tabPage(w,state.activeTabId)).bringToFront();state=await w.snapshot();}
+  return state.windowActive===true;
+ },
  executeTab:async(w,id,source)=>(await tabPage(w,id)).evalExpression(String(source)),
  setTabLayout:(w,layout)=>w.api('setTabLayout',[layout]),
  // A presentation seed: the title goes through the page itself so Chromium
  // reports it as a real title; seeds with no page path stay undefined.
  async setTabPresentation(w,id,patch={}){
-  const keys=Object.keys(patch).filter(k=>k!=='title'&&k!=='muted'&&k!=='isLoading');
+  const keys=Object.keys(patch).filter(k=>k!=='title'&&k!=='muted'&&k!=='isLoading'&&k!=='favicon'&&k!=='audible'&&k!=='blockedCount');
   if(keys.length)throw new UndefinedNativeAdapterError('Tab presentation seed needs an adapter: '+keys);
   if(typeof patch.title==='string'){
    await (await tabPage(w,id)).evaluate(t=>{document.title=t;},patch.title);
    await w.waitForState(s=>s.tabs.some(t=>t.id===String(id)&&t.title===patch.title));
   }
+  // Private icons are deliberately absent from the native projection.
+  if(typeof patch.favicon==='string'&&!(await w.state()).tabs.find(t=>t.id===String(id))?.private){
+   await (await tabPage(w,id)).evaluate(url=>{let link=document.querySelector('link[rel=icon]');if(!link){link=document.createElement('link');link.rel='icon';document.head.append(link);}link.href=url;},patch.favicon);
+   await w.waitFor(()=>w.snapshot(),s=>!!s.tabs.find(t=>String(t.id)===String(id))?.favicon,'page favicon');
+  }
+  if(Number.isInteger(patch.blockedCount)&&!await w.native('seedBlockedCount',[nativeId(id),patch.blockedCount]))throw Error('Native shield count seed refused');
+  if(patch.audible===true)await w.call('setQuietProtection',id,'audible');
+  if(patch.audible===false)await (await tabPage(w,id)).evaluate(()=>window.__quietAudio?.pause());
   if(typeof patch.muted==='boolean'&&(await w.state()).tabs.find(t=>t.id===String(id)).muted!==patch.muted)await w.api('toggleTabMuted',[String(id)]);
   if(patch.isLoading===true){
-   // A real, slow navigation to the tab's own address: headers arrive at
-   // once (the tab genuinely starts loading) and the body 2.5s later, via
-   // shipping's own ?hold=slow fixture mechanism. Not awaited to settle:
-   // the caller observes the loading state itself.
+   // Hold a real loopback response until the row assertions finish. A fixed
+   // delay expires while the other identity rows are still being created.
    const tab=(await w.snapshot()).tabs.find(t=>String(t.id)===String(id));
    if(!tab)throw Error('Unknown native tab '+id);
-   const holdUrl=new URL(tab.committedUrl||tab.url);
-   holdUrl.searchParams.set('hold','slow');
-   w.native('navigate',[nativeId(id),holdUrl.toString()]);
+   const url=new URL(tab.committedUrl||tab.url);url.searchParams.set('hold','slow');
+   if(url.hostname!=='127.0.0.1')throw Error('Loading fixture requires loopback');
+   const page=await tabPage(w,id);await page.evalExpression('1');let paused=false;
+   page.cdp.on('Fetch.requestPaused',()=>{paused=true;});
+   await page.cdp.send('Fetch.enable',{patterns:[{urlPattern:url.href,requestStage:'Response'}]});
+   (w.heldLoadingPages??=[]).push(page);
+   w.native('navigate',[nativeId(id),url.href]).catch(()=>{});
+   await w.waitFor(()=>paused,Boolean,'held fixture response');
+   await w.waitFor(()=>w.snapshot(),s=>s.tabs.find(t=>String(t.id)===String(id))?.isLoading,'native loading state');
   }
   return true;
  },

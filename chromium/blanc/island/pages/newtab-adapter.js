@@ -125,6 +125,27 @@
   }
   let clockValue = null;
   let sharedLayout = null;
+  // The optional widgets (V24, fork only): none until Blanc answers.
+  const WIDGETS = ['favorites', 'devices', 'shortcuts'];
+  let sharedWidgets = null, widgetsEpoch = 0;
+  const CARDS = ['favorites', 'devices', 'sent'];
+  // An extension's side panel shown as a card (prototype): "ext:<extension id>".
+  const PANEL_ID = /^[a-p]{32}$/;
+  const PANEL_CARD = /^ext:[a-p]{32}$/;
+  // The heights a scrolling card snaps to (CSS pixels); 0 fits its column.
+  const CARD_SIZES = [240, 360, 480, 600, 720];
+  const SIZABLE = card => card === 'favorites' || card === 'devices' || PANEL_CARD.test(card);
+  const DEFAULT_PLACE = {left: ['favorites', 'devices'], right: ['sent']};
+  const placeOf = value => {
+    const side = list => Array.isArray(list) ? list.filter(name => CARDS.includes(name) || PANEL_CARD.test(name)) : [];
+    const place = {left: side(value?.left), right: side(value?.right)};
+    return place.left.length + place.right.length ? place : DEFAULT_PLACE;
+  };
+  const widgetsOf = value => ({...Object.fromEntries(WIDGETS.map(name => [name, value?.[name] === true])), place: placeOf(value?.place),
+    panels: Array.isArray(value?.panels) ? value.panels.filter(id => PANEL_ID.test(id)) : [],
+    sizes: Object.fromEntries(Object.entries(value?.sizes && typeof value.sizes === 'object' ? value.sizes : {})
+      .filter(([card, size]) => SIZABLE(card) && CARD_SIZES.includes(size)))});
+  const noWidgets = () => widgetsOf(null);
   let clockEpoch = 0, layoutEpoch = 0;
   let groupEpoch = 0;
   function validateGroupSnapshot(snapshot) {
@@ -134,9 +155,13 @@
     return snapshot;
   }
 
+  // The Patron pill's state rides on every status publish, as in shipping's
+  // single status payload. Until Blanc has answered it keeps the pill hidden:
+  // an early publish (the surface style applying) must not flash the pill.
+  let patronStatus = { patronActive: false, patronCalloutSnoozedUntil: Infinity };
   const preferences = () => {
     const saved = read();
-    return { ...(clockValue ? { clock: clockValue } : {}), layout: sharedLayout ?? (layouts.includes(saved.layout) ? saved.layout : 'billboard'),
+    return { ...patronStatus, ...(clockValue ? { clock: clockValue } : {}), layout: 'billboard', widgets: sharedWidgets ?? noWidgets(),
       dynamicWallpaperEnabled: saved.dynamicWallpaperEnabled === true,
       wallpaper: usesStoreTheme(saved) ? { ...wallpaper(saved), source: 'web-store',
         image: installedTheme.image || null, hasImage: !!installedTheme.image, themeAvailable: true }
@@ -203,6 +228,18 @@
       document.dispatchEvent(new Event('blancClockReadFailure'));
       console.warn('Clock settings unavailable; retaining last value', error);
       if (propagateError) throw error;
+      return false;
+    }
+  }
+  async function refreshWidgets() {
+    const epoch = widgetsEpoch;
+    try {
+      const value = await request('widgetsRead');
+      if (epoch !== widgetsEpoch || !value || typeof value !== 'object') return false;
+      sharedWidgets = widgetsOf(value);
+      return true;
+    } catch (error) {
+      if (epoch === widgetsEpoch) console.warn('Start Page widgets unavailable', error);
       return false;
     }
   }
@@ -319,6 +356,9 @@
   window.blancPinIconsAvailable = () => pinIconsStatus(false);
   window.blancTopSitesSnapshotCurrent = epoch => epoch === topSitesEpoch;
   window.blancTopSitesUnavailable = suppressRankedSites;
+  const utilityListeners = new Set();
+  const sentListeners = new Set();
+  window.blancUtilitySheetVisibility = visible => { for (const fn of utilityListeners) fn(visible); };
   window.bowserPages = {
     appVersion: async () => 'Chromium prototype',
     pins: {
@@ -344,9 +384,10 @@
       return picked.entries ? request('importEntries', [picked.entries], 60000) : picked;
     } },
     start: {
+      openTabImport: () => request('openSheet', ['tab-import']),
       data: async () => {
         const epoch = topSitesEpoch;
-        const results = await Promise.allSettled([refreshClock({ propagateError: true }), refreshLayout({ propagateError: true }), refreshImage().catch(() => {})]);
+        const results = await Promise.allSettled([refreshClock({ propagateError: true }), refreshLayout({ propagateError: true }), refreshWidgets(), refreshImage().catch(() => {})]);
         const failed = results.find(result => result.status === 'rejected');
         if (failed) throw failed.reason;
         let topSites = [], available = isPrivatePage;
@@ -367,15 +408,16 @@
         // First run: the privacy gate and the walkthrough's saved values.
         const firstRun = isPrivatePage ? null : await request('firstRun').catch(error => { console.warn(error.message); return null; });
         const patron = isPrivatePage ? null : await request('patronCallout').catch(() => null);
+        if (patron) patronStatus = { patronActive: patron.active === true, patronCalloutSnoozedUntil: Number(patron.snoozedUntil) || 0 };
         const launchSunrise = isPrivatePage ? false : await request('launchSunrise').catch(() => false);
         const migrationChecklist = isPrivatePage ? null : await request('checklist').catch(() => null);
         // What's New (F51): nothing until a release build reports a version.
         const release = isPrivatePage ? null : await request('whatsNew').catch(() => null);
         const whatsNew = release?.version
           ? window.BlancWhatsNew.whatsNewState(release.state, { version: release.version, now: Date.now() }) : null;
-        return { ...preferences(), remoteDevices: [], privacy: firstRun?.privacy, onboarding: firstRun?.onboarding ?? null,
-          migrationChecklist, whatsNew, patronActive: patron?.active === true,
-          patronCalloutSnoozedUntil: Number(patron?.snoozedUntil) || 0, launchSunrise: launchSunrise === true,
+        return { ...preferences(), sentItems: isPrivatePage ? [] : await request('sentItems').catch(() => []),
+          remoteDevices: isPrivatePage ? [] : await request('remoteDevices').catch(() => []), privacy: firstRun?.privacy, onboarding: firstRun?.onboarding ?? null,
+          migrationChecklist, whatsNew, ...patronStatus, launchSunrise: launchSunrise === true,
           blockedThisWeek: Number.isInteger(week?.blocked) ? week.blocked : 0,
           blockerStatisticsAvailable: Number.isInteger(week?.blocked),
           blockedByDay: days, blockedBarHeights: heights,
@@ -395,7 +437,13 @@
         if (epoch === clockEpoch) { clockValue = value; document.dispatchEvent(new Event('blancClockReadSuccess')); publish(); }
         return value;
       },
-      topSites: async () => [], // Chromium supplies its complete TopSites list above.
+      topSites: async ({offset = 0, limit = 48} = {}) => {
+        if (isPrivatePage) return [];
+        const epoch = topSitesEpoch;
+        const items = await request('topSites', [offset, limit]);
+        if (!Array.isArray(items) || epoch !== topSitesEpoch) throw new Error('Top Sites unavailable or changed');
+        return items;
+      },
       setLayout: async (layout) => {
         if (!layouts.includes(layout)) throw new Error('Unknown start-page layout');
         ++layoutEpoch;
@@ -407,6 +455,67 @@
           publish();
           return value;
         } catch (error) { ++layoutEpoch; throw error; }
+      },
+      setWidget: async (name, on) => {
+        if (!WIDGETS.includes(name)) throw new Error('Unknown Start Page widget');
+        ++widgetsEpoch;
+        try {
+          const value = await request('widgetsWrite', [name, on === true]);
+          ++widgetsEpoch;
+          if (!value || typeof value !== 'object') throw new Error('Widget confirmation unavailable');
+          sharedWidgets = widgetsOf(value);
+          publish();
+          return sharedWidgets;
+        } catch (error) { ++widgetsEpoch; throw error; }
+      },
+      // Extensions' side panels as cards (prototype). The list is the
+      // installed extensions that have a side panel; a panel is drawn by
+      // Blanc over its card's slot, so the page reports where the slot is.
+      panels: async () => {
+        const value = await request('panelList');
+        return Array.isArray(value) ? value.filter(p => p && PANEL_ID.test(p.id) && typeof p.name === 'string') : [];
+      },
+      setPanel: async (id, on) => {
+        if (!PANEL_ID.test(id)) throw new Error('Unknown extension');
+        ++widgetsEpoch;
+        try {
+          const value = await request('widgetsPanel', [id, on === true]);
+          ++widgetsEpoch;
+          if (!value || typeof value !== 'object') throw new Error('Widget confirmation unavailable');
+          sharedWidgets = widgetsOf(value);
+          publish();
+          return sharedWidgets;
+        } catch (error) { ++widgetsEpoch; throw error; }
+      },
+      // A scrolling card's height, one of CARD_SIZES, or 0 to fit its column.
+      setWidgetSize: async (card, size) => {
+        if (!SIZABLE(card) || !(size === 0 || CARD_SIZES.includes(size)))
+          throw new Error('Unknown card size');
+        ++widgetsEpoch;
+        try {
+          const value = await request('widgetsSize', [card, size]);
+          ++widgetsEpoch;
+          if (!value || typeof value !== 'object') throw new Error('Widget size unavailable');
+          sharedWidgets = widgetsOf(value);
+          publish();
+          return sharedWidgets;
+        } catch (error) { ++widgetsEpoch; throw error; }
+      },
+      cardSizes: CARD_SIZES,
+      placePanel: (id, rect) => PANEL_ID.test(id) ?
+        request('panelPlace', [id, rect.x, rect.y, rect.width, rect.height]) : Promise.resolve(false),
+      hidePanels: (id = '') => request('panelHide', [PANEL_ID.test(id) ? id : '']),
+      // Where the cards sit: the left and right columns, top to bottom.
+      setWidgetPlace: async (left, right) => {
+        ++widgetsEpoch;
+        try {
+          const value = await request('widgetsPlace', [left.map(String), right.map(String)]);
+          ++widgetsEpoch;
+          if (!value || typeof value !== 'object') throw new Error('Widget placement unavailable');
+          sharedWidgets = widgetsOf(value);
+          publish();
+          return sharedWidgets;
+        } catch (error) { ++widgetsEpoch; throw error; }
       },
       chooseWallpaper,
       setWallpaper: async source => {
@@ -450,6 +559,8 @@
       },
       setWallpaperFollowSpace: async () => { throw new Error('Spaces are not available in this prototype.'); },
       setDynamicWallpaper: async (enabled) => save({ dynamicWallpaperEnabled: enabled === true }).dynamicWallpaperEnabled,
+      openSettings: section => request('openSettings', [section]),
+      openSpaces: () => request('openIsland', ['/space ']),
       dismissMigrationChecklist: () => request('checklistDismiss'),
       dismissPatronCallout: () => request('patronCalloutDismiss'),
       dismissWhatsNew: () => request('whatsNewDismiss'),
@@ -467,8 +578,19 @@
         document.addEventListener('visibilitychange', update);
         return () => document.removeEventListener('visibilitychange', update);
       },
-      onRemoteTabs: () => {},
-      onUtilitySheetVisibility: () => {},
+      onRemoteTabs: listener => {
+        let reading = false;
+        const timer = setInterval(async () => {
+          if (reading || isPrivatePage || document.hidden) return;
+          reading = true;
+          try { listener(await request('remoteDevices')); } catch {} finally { reading = false; }
+        }, 5000);
+        window.addEventListener('pagehide', () => clearInterval(timer), {once: true});
+      },
+      onSentItems: listener => { sentListeners.add(listener); return () => sentListeners.delete(listener); },
+      openSent: id => isPrivatePage ? Promise.resolve(false) : request('openSent', [String(id)]),
+      dismissSent: id => isPrivatePage ? Promise.resolve(false) : request('dismissSent', [String(id)]),
+      onUtilitySheetVisibility: fn => { utilityListeners.add(fn); return () => utilityListeners.delete(fn); },
       openIsland: text => request('openIsland', [text]),
       openMahjong: background => request('openMahjong', [background === true]),
     },
@@ -478,6 +600,22 @@
   // visits, /clear). Bursts coalesce per kind into one re-fetch, which
   // re-renders through the copied page's own globals once it is ready.
   const refreshers = {
+    // Sync pushes must reach background Start Pages too. Their visible-page
+    // poll is only a fallback; no hidden page needs to poll to stay current.
+    remoteTabs: async () => {
+      if (!isPrivatePage && typeof renderRemote === 'function') renderRemote(await request('remoteDevices'));
+    },
+    sentItems: async () => {
+      const items = isPrivatePage ? [] : await request('sentItems');
+      for (const listener of sentListeners) listener(items);
+    },
+    // The Patron pill's status, as shipping broadcasts it after a close.
+    patronCallout: async () => {
+      if (isPrivatePage) return;
+      const patron = await request('patronCallout');
+      patronStatus = { patronActive: patron?.active === true, patronCalloutSnoozedUntil: Number(patron?.snoozedUntil) || 0 };
+      publish();
+    },
     // The moving-in checklist (N11): a status push, as shipping's.
     checklist: async () => {
       if (isPrivatePage) return;
@@ -488,6 +626,7 @@
     pins: async () => { await Promise.all([...pinListeners].map(fn => fn())); },
     clock: async () => { if (await refreshClock()) publish(); },
     layout: async () => { if (await refreshLayout()) publish(); },
+    widgets: async () => { if (await refreshWidgets()) publish(); },
     bookmarks: async () => {
       const items = await window.bowserPages.bookmarks.list();
       if (typeof renderLedgerFavorites !== 'function') return;
@@ -495,8 +634,8 @@
       renderLedgerFavorites(items);
     },
     topSites: async () => {
-      // The page's own pager is already exhausted (start.topSites returns
-      // nothing more), so the full native list simply replaces the state.
+      // Replace the first page and let the existing Billboard pager fill
+      // past locally hidden sites when the refreshed layout needs more.
       const epoch = topSitesEpoch;
       let items;
       try {
@@ -507,7 +646,7 @@
       state.topSites = items;
       topSitesReady = true;
       topSitesOffset = items.length;
-      topSitesExhausted = true;
+      topSitesExhausted = isPrivatePage || items.length < TOP_SITES_PAGE_SIZE;
     },
   };
   // One ordered queue prevents an older response from overwriting a newer
@@ -584,10 +723,10 @@
     document.getElementById('retryPinnedSites')?.addEventListener('click', () => window.blancNewTabEvent('pins'));
     // The Favorites heading opens the utility sheet, as shipping's
     // blanc://bookmarks/ link does; the page itself never navigates there.
-    for (const link of document.querySelectorAll('a[href="blanc://bookmarks/"]')) {
+    for (const link of document.querySelectorAll('a[href="blanc://bookmarks/"], a[href="blanc://tab-import/"]')) {
       link.addEventListener('click', (event) => {
         event.preventDefault();
-        request('openSheet', ['bookmarks']).catch((error) => console.warn(error.message));
+        request('openSheet', [link.getAttribute('href').includes('tab-import') ? 'tab-import' : 'bookmarks']).catch((error) => console.warn(error.message));
       });
     }
     document.querySelector('#patronCallout a')?.addEventListener('click', (event) => {
@@ -639,4 +778,138 @@
       });
     }
   });
+})();
+
+// Small text over your image (owner, 2026-11-13): no backing and no wash.
+// Blanc looks at the part of your image right behind each piece of small
+// text (the date, the blocked line, tile names, group chips), mixes in the
+// page's own wash there, and gives that text whichever ink, light or dark,
+// stands out more against it, as the iPhone Lock Screen does. Only while your
+// image or a theme's image is the wallpaper (body[data-wallpaper-style]).
+(() => {
+  'use strict';
+  const TARGETS = '.start-brand-date, #bbBlocked, .bb-fav .label, .bb-groups .group-chip';
+  const INK = {dark: [18, 16, 11], light: [247, 240, 229]};
+  const lin = c => { c /= 255; return c <= 0.04045 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4; };
+  const lum = ([r, g, b]) => 0.2126 * lin(r) + 0.7152 * lin(g) + 0.0722 * lin(b);
+  const contrast = (a, b) => { const [x, y] = [lum(a), lum(b)].sort((p, q) => q - p); return (x + 0.05) / (y + 0.05); };
+  const images = new Map();
+  function image(url) {
+    if (!images.has(url)) images.set(url, new Promise(resolve => {
+      const img = new Image();
+      img.onload = () => resolve(img); img.onerror = () => resolve(null);
+      img.src = url;
+    }));
+    return images.get(url);
+  }
+  // Where `cover` puts the image in the window, with the layer's own position.
+  function placement(img, layer) {
+    const W = innerWidth, H = innerHeight;
+    const scale = Math.max(W / img.naturalWidth, H / img.naturalHeight);
+    const w = img.naturalWidth * scale, h = img.naturalHeight * scale;
+    const position = getComputedStyle(layer).backgroundPosition.split(',').pop().trim().split(/\s+/);
+    const axis = (v, spare, horizontal) => {
+      if (v === undefined || v === 'center') return spare / 2;
+      if (v === (horizontal ? 'left' : 'top')) return 0;
+      if (v === (horizontal ? 'right' : 'bottom')) return spare;
+      if (v.endsWith('%')) return spare * parseFloat(v) / 100;
+      return parseFloat(v) || 0;
+    };
+    return {x: axis(position[0], W - w, true), y: axis(position[1] ?? position[0], H - h, false), scale};
+  }
+  // The page's wash at a point: each gradient of --start-wallpaper-overlay,
+  // its stops scaled by the Fade slider, combined as layers over each other.
+  function wash(layer, px, py) {
+    const css = getComputedStyle(layer).getPropertyValue('--start-wallpaper-overlay');
+    const body = getComputedStyle(document.body);
+    const fade = Number.parseFloat(body.getPropertyValue('--start-wallpaper-wash'));
+    const k = Number.isFinite(fade) ? fade : 1;
+    let color = null, through = 1;
+    for (const part of css.split(/(?=(?:radial|linear)-gradient\()/)) {
+      const stops = [...part.matchAll(/rgba\(\s*([\d.]+),\s*([\d.]+),\s*([\d.]+),\s*(?:calc\(\s*([\d.]+)\s*\*[^)]*\)|([\d.]+))\s*\)\s*(-?[\d.]+)?(px|%)?/g)]
+        .map(m => ({rgb: [+m[1], +m[2], +m[3]], a: (m[4] !== undefined ? +m[4] * k : +m[5]), at: m[6] === undefined ? null : +m[6], unit: m[7]}));
+      if (!stops.length) continue;
+      color ??= stops[0].rgb;
+      let t;
+      if (part.startsWith('radial')) {
+        const m = /ellipse\s+([\d.]+)%\s+([\d.]+)%\s+at\s+([\d.]+)%\s+([\d.]+)%/.exec(part);
+        const [rx, ry, cx, cy] = m ? m.slice(1).map(Number) : [50, 50, 50, 50];
+        t = Math.hypot((px / innerWidth * 100 - cx) / rx, (py / innerHeight * 100 - cy) / ry) * 100;
+      } else t = null;
+      const pos = s => s.at === null ? null : s.unit === 'px' ? (t === null ? s.at / innerHeight * 100 : s.at) : s.at;
+      const along = t ?? py / innerHeight * 100;
+      stops.forEach((s, i) => { if (s.at === null) s.at = i === 0 ? 0 : i === stops.length - 1 ? 100 : null; s.p = pos(s); });
+      let a = stops.at(-1).a;
+      for (let i = 0; i < stops.length - 1; i++) {
+        const s0 = stops[i], s1 = stops[i + 1];
+        if (s0.p === null || s1.p === null) continue;
+        if (along <= s0.p) { a = s0.a; break; }
+        if (along <= s1.p) { a = s0.a + (s1.a - s0.a) * (along - s0.p) / Math.max(1e-6, s1.p - s0.p); break; }
+      }
+      through *= 1 - Math.max(0, Math.min(1, a));
+    }
+    return {color: color ?? [247, 240, 229], alpha: 1 - through};
+  }
+  const canvas = document.createElement('canvas');
+  canvas.width = canvas.height = 16;
+  const ctx = canvas.getContext('2d', {willReadFrequently: true});
+  function backdrop(img, at, layer, rect) {
+    const sx = (rect.left - at.x) / at.scale, sy = (rect.top - at.y) / at.scale;
+    const sw = Math.max(1, rect.width / at.scale), sh = Math.max(1, rect.height / at.scale);
+    ctx.clearRect(0, 0, 16, 16);
+    ctx.drawImage(img, sx, sy, sw, sh, 0, 0, 16, 16);
+    const data = ctx.getImageData(0, 0, 16, 16).data;
+    const mean = [0, 0, 0];
+    for (let i = 0; i < data.length; i += 4) for (let c = 0; c < 3; c++) mean[c] += data[i + c];
+    for (let c = 0; c < 3; c++) mean[c] /= data.length / 4;
+    const w = wash(layer, rect.left + rect.width / 2, rect.top + rect.height / 2);
+    return mean.map((v, c) => v * (1 - w.alpha) + w.color[c] * w.alpha);
+  }
+  let pending = 0;
+  async function update() {
+    pending = 0;
+    const targets = [...document.querySelectorAll(TARGETS)];
+    const layer = document.querySelector('.start-wallpaper-layer.is-visible');
+    const url = layer?.dataset.wallpaperImage;
+    if (!document.body.dataset.wallpaperStyle || !url) { for (const el of targets) delete el.dataset.ink; return; }
+    const img = await image(url);
+    if (!img || !img.naturalWidth) { for (const el of targets) delete el.dataset.ink; return; }
+    const at = placement(img, layer);
+    for (const el of targets) {
+      const rect = el.getBoundingClientRect();
+      if (!rect.width || !rect.height) continue;
+      try {
+        const back = backdrop(img, at, layer, rect);
+        el.dataset.ink = contrast(INK.light, back) > contrast(INK.dark, back) ? 'light' : 'dark';
+      } catch { delete el.dataset.ink; }
+    }
+  }
+  const schedule = () => { if (!pending) pending = requestAnimationFrame(() => setTimeout(update, 60)); };
+  function start() {
+    new MutationObserver(schedule).observe(document.body, {attributes: true, attributeFilter: ['data-wallpaper-style', 'style', 'class', 'data-wallpaper-phase'], subtree: false});
+    for (const id of ['bbFavorites', 'bbGroups', 'layoutBillboard'])
+      { const el = document.getElementById(id); if (el) new MutationObserver(schedule).observe(el, {childList: true, subtree: true}); }
+    const watched = new WeakSet();
+    const watchLayers = () => document.querySelectorAll('.start-wallpaper-layer').forEach(l => {
+      if (watched.has(l)) return; watched.add(l);
+      new MutationObserver(schedule).observe(l, {attributes: true, attributeFilter: ['class', 'data-wallpaper-image']});
+    });
+    watchLayers();
+    new MutationObserver(watchLayers).observe(document.body, {childList: true});
+    addEventListener('resize', schedule);
+    document.addEventListener('blancStartDataReady', schedule);
+    schedule();
+  }
+  // What the chooser sees behind one element (for checks and debugging).
+  async function explain(el) {
+    const layer = document.querySelector('.start-wallpaper-layer.is-visible');
+    const img = await image(layer?.dataset.wallpaperImage);
+    if (!img) return null;
+    const rect = el.getBoundingClientRect();
+    const at = placement(img, layer);
+    const w = wash(layer, rect.left + rect.width / 2, rect.top + rect.height / 2);
+    return {at, wash: w, back: backdrop(img, at, layer, rect).map(Math.round), ink: el.dataset.ink ?? null};
+  }
+  window.blancStartInk = {update, explain};
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', start); else start();
 })();

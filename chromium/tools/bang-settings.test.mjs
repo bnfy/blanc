@@ -9,7 +9,7 @@ import {execFileSync} from 'node:child_process';
 import {fileURLToPath} from 'node:url';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
-const SHIPPING = '6479ed3a314e4fd6219b8de1598bacffa78b4d7c';
+const SHIPPING = '8a4e57e78dfe47a72c05d17fd6040be26c3dffd3';
 const show = file => execFileSync('git', ['show', `${SHIPPING}:${file}`], {cwd: root, encoding: 'utf8', maxBuffer: 64 * 1024 * 1024});
 const read = file => fs.readFileSync(path.join(root, file), 'utf8');
 

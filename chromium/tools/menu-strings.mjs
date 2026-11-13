@@ -15,7 +15,7 @@ const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const header = path.join(root, 'blanc/common/menu_strings.h');
 const {ref, commit} = JSON.parse(fs.readFileSync(path.join(root, 'blanc/island-renderer.json'), 'utf8'));
 // Struct field, shipping message key.
-export const LABELS = [['new_private_tab', 'menu.newPrivateTab'], ['new_private_window', 'menu.newPrivateWindow'],
+export const LABELS = [['new_mini_window', 'menu.newMiniWindow'], ['new_private_tab', 'menu.newPrivateTab'], ['new_private_window', 'menu.newPrivateWindow'],
   // The Island address input's menu (F19), shipping's address-menu-model.js.
   ['undo', 'menu.undo'], ['redo', 'menu.redo'], ['cut', 'menu.cut'], ['copy', 'menu.copy'],
   ['copy_clean_link', 'menu.copyCleanLink'], ['paste', 'menu.paste'],

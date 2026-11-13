@@ -128,7 +128,7 @@ Columns:
 | F31 | Quiet Tabs | S3 | Adapt | Integrated in an isolated candidate; regular-profile timed test passed | `@F31-*` |
 | F32 | Independent windows | S1 | Adapt | Not assessed | `@F32-*` |
 | F33 | Local profiles | S2 | Adapt | Not assessed | `@F33-*` |
-| F34 | Glance floating card | S3 | Custom | Drafted (many unbuilt generations) | `@F34-*` |
+| F34 | Glance floating card (over a whole split since v1.47.0) | S3 | Custom | Drafted (many unbuilt generations) | `@F34-*` |
 | F35 | Start Page layouts, pins, Customize, blocked counts | S1 | Custom | Integrated (partial) | `@F35-*` |
 | F36 | First-run onboarding | S2 | Custom | Not assessed | `@F36-*` |
 | F37 | Blank tab shows where to type | S1 | Custom | Built (CSS fix unpromoted) | `@F37-*` incl. IME |
@@ -152,6 +152,7 @@ Columns:
 | F59 | Ctrl+Tab recent order (every desktop platform since v1.46.0) | S3 | Custom | Drafted | Real-key browser-shortcuts suite |
 | F60 | Link routing incl. background window keeps focus | S3 | Custom | Not assessed | `@F60-*` |
 | F61 | Mini Window (new in v1.46.0) | S3 | Custom | Not assessed | `@F61-*` |
+| F62 | Default page zoom, saved sites in Settings (new in v1.47.0) | S3 | Adapt (Chromium zoom) | Not assessed | `@F62-*` |
 | R1 | Launch Sunrise (opt-in) | S5 | Custom | Built in an isolated candidate | Scenario |
 | R2 | Sync without a passphrase + recovery code | S4 | Reuse JS | Drafted | Shipping sync suites |
 | R3 | Pair iPhone (QR) | S4 | Reuse JS | Not started | Two-device check |
@@ -306,7 +307,8 @@ Each row has its own status, decided only by the owner. **Until a row is approve
 | V19 | Passkeys are Chromium's own: its Touch ID authenticator and iCloud Keychain passkeys on macOS, instead of shipping's Blanc-owned Secure Enclave passkey store (N7, S2); signing still carries the keychain entitlement and provisioning profile | Native model | **Approved** (owner, November 4, 2026) |
 | V20 | Default-browser status is Chromium's Default browser section and checks in chrome://settings (restyled), instead of shipping's own status row; shipping's reminder may sit on top (N10, S2) | Native model | **Approved** (owner, November 4, 2026) |
 | V21 | Mute Site is Chromium's own sound setting, so a muted site stays muted after a relaunch until it is unmuted, instead of shipping's mute that lasts until Blanc quits (N13, S3); private tabs keep their own set, which ends with the private session | Native model | **Approved** (owner, November 5, 2026) |
-| V22 | Glance's card chrome sits above the Glance page with a hole for it, because the Island is above page views here; shipping's chrome view sits below the page. The picture is the same (F34, S3) | Native model | **Approved** (owner, November 5, 2026) |
+| V22 | Glance's card chrome sits above the Glance page with a hole for it, because the Island is above page views here; shipping's chrome view sits below the page. The picture is the same, also for a Glance over a split, whose page is a view between the split's pages and the Island (F34, F53, S3) | Native model | **Approved** (owner, November 5, 2026) |
+| V23 | Sites with their own zoom are kept in each profile's Chromium preferences and listed, with Remove, in Settings → Site settings → Zoom levels, reached from a link beneath Page zoom, instead of shipping's separate site-zoom file and its list beneath Default page zoom. The default page zoom itself stays device-wide as in shipping, an exception to V18 (F62, S3) | Native model; only zoomed sites are kept, never synced, never for private tabs | **Approved** (owner, November 12, 2026) |
 
 ## 10. Release gates for the replacement
 

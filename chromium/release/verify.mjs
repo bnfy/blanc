@@ -34,14 +34,17 @@ export function parts(r) {
   ];
 }
 export const NOTICES = ['LICENSE', 'THIRD-PARTY-NOTICES.md', 'ASSET-LICENSE.md', 'Chromium-LICENSE', 'Chromium-credits.html', 'Sparkle-LICENSE', 'THIRD_PARTY_NOTICES.txt'];
-export function validateAppInfo(info, r, arch) {
+export function validateAppInfo(info, r, arch, {allowLocalQualification = false} = {}) {
+  const local = r.localQualification === true;
+  check(!local || allowLocalQualification, 'local qualification artifact is not distributable');
+  equal(info.BlancLocalQualification === true, local, 'compiled local qualification marker');
   equal(info.CFBundleIdentifier, ROOT_ID, 'beta app ID');
   equal(info.CFBundleName, PRODUCT, 'beta name'); equal(info.CFBundleDisplayName, PRODUCT, 'beta display name');
   equal(info.CFBundleExecutable, PRODUCT, 'beta executable');
   equal(info.CrProductDirName, PRODUCT, 'isolated profile directory');
   equal(info.CFBundleVersion, String(r.build), 'Sparkle build');
   equal(info.CFBundleShortVersionString, r.shortVersion, 'marketing version');
-  equal(info.SUFeedURL, feedURL(arch), 'architecture-specific beta feed');
+  equal(info.SUFeedURL, local ? 'http://127.0.0.1:49262/arm64.xml' : feedURL(arch), 'architecture-specific beta feed');
   equal(info.SUPublicEDKey, r.sparkle.publicKey, 'embedded EdDSA trust anchor');
   equal(info.SUVerifyUpdateBeforeExtraction, true, 'verify update before extraction');
   equal(info.LSMinimumSystemVersion, r.minimumSystemVersion, 'minimum macOS');
@@ -78,7 +81,7 @@ export function inspectTree(app) {
   }
   walk(root); return {root, files, bundles};
 }
-function macho(file) {
+export function macho(file) {
   const fd = fs.openSync(file, 'r'), bytes = Buffer.alloc(4);
   try { fs.readSync(fd, bytes, 0, 4, 0); } finally { fs.closeSync(fd); }
   return ['feedface','feedfacf','cefaedfe','cffaedfe','cafebabe','bebafeca','cafebabf','bfbafeca'].includes(bytes.toString('hex'));
@@ -90,13 +93,7 @@ function signatureDescription(file) {
 function signatureFields(description, certificate) {
   return {identifier: description.match(/^Identifier=(.+)$/m)?.[1], team: description.match(/^TeamIdentifier=(.+)$/m)?.[1], authority: description.match(/^Authority=(.+)$/m)?.[1] || '', timestamp: /^Timestamp=.+$/m.test(description), runtime: /flags=.*\bruntime\b/.test(description), fingerprint: fingerprint(certificate)};
 }
-export function verifyApp(app, r, arch, scratch) {
-  validateRelease(r); check(r.arches.includes(arch), 'unselected architecture');
-  const tree = inspectTree(app), info = readPlist(path.join(app, 'Contents/Info.plist'));
-  validateAppInfo(info, r, arch);
-  const embedded = path.join(app, 'Contents/embedded.provisionprofile');
-  equal(sha256(fs.readFileSync(embedded)), r.profileSHA256, 'embedded profile digest');
-  const profile = profileAt(embedded); validateProfile(profile.data, profile.certificates, r);
+export function validateLayout(app, r, tree) {
   const expected = parts(r), realParts = new Set(expected.map(p => fs.realpathSync(path.join(app, p.path))));
   for (const bundle of tree.bundles) check(realParts.has(fs.realpathSync(bundle)), 'unreviewed nested bundle');
   for (const part of expected.filter(p => /\.(app|xpc|framework)$/.test(p.path))) {
@@ -110,6 +107,40 @@ export function verifyApp(app, r, arch, scratch) {
     const stat = fs.statSync(path.join(app, 'Contents/Resources/notices', notice));
     check(stat.isFile() && stat.size > 0, 'missing packaged notice');
   }
+  return expected;
+}
+// Explicit local-only inspection. No signer lookup, profile install, Gatekeeper,
+// notarization ticket check, launch or network operation occurs in this mode.
+export function verifyLocalApp(app, r, arch) {
+  validateRelease(r, {allowLocalQualification:true});
+  check(r.localQualification === true && arch === 'arm64', 'local qualification descriptor required');
+  check(process.platform === 'darwin', 'macOS verification required');
+  check(app.endsWith('.app'), 'local inspection requires an app directory');
+  const tree = inspectTree(app), info = readPlist(path.join(app,'Contents/Info.plist'));
+  validateAppInfo(info,r,arch,{allowLocalQualification:true});
+  const expected = validateLayout(app,r,tree);
+  const ids = expected.filter(p=>p.path.endsWith('.app')||p.path.endsWith('.xpc')||p.path.endsWith('.framework')).map(p=>p.id);
+  let binaries = 0;
+  for (const file of tree.files.filter(macho)) {
+    const arches = run('/usr/bin/lipo',['-archs',file]).trim().split(/\s+/);
+    check(arches.includes('arm64'),'local native payload lacks Apple Silicon');
+    binaries++;
+  }
+  const framework = path.join(app,`Contents/Frameworks/${PRODUCT} Framework.framework/Versions/${r.chromiumVersion}/${PRODUCT} Framework`);
+  check(run('/usr/bin/otool',['-L',framework]).includes('Sparkle.framework/Versions/B/Sparkle'), 'Sparkle native linkage missing');
+  const notices = Object.fromEntries(NOTICES.map(name=>[name,sha256(fs.readFileSync(path.join(app,'Contents/Resources/notices',name)))]));
+  return {candidate:r.candidates[arch],build:r.build,version:r.version,arch,
+    status:'local-layout-and-architecture-verified',localQualification:true,binaries,nestedIds:ids,notices,
+    developerId:'NOT RUN',notarization:'NOT RUN',gatekeeper:'NOT RUN (Apple contact prohibited)',acceptance:'NOT RUN'};
+}
+export function verifyApp(app, r, arch, scratch) {
+  validateRelease(r); check(r.arches.includes(arch), 'unselected architecture');
+  const tree = inspectTree(app), info = readPlist(path.join(app, 'Contents/Info.plist'));
+  validateAppInfo(info, r, arch);
+  const embedded = path.join(app, 'Contents/embedded.provisionprofile');
+  equal(sha256(fs.readFileSync(embedded)), r.profileSHA256, 'embedded profile digest');
+  const profile = profileAt(embedded); validateProfile(profile.data, profile.certificates, r);
+  const expected = validateLayout(app, r, tree);
   // Notices presence alone is not license completeness; the candidate's compliance gate audits contents.
   const coveredExecutables = new Set(); let serial = 0;
   function inspect(file, expectedPart) {
@@ -169,7 +200,10 @@ export function verifyArtifact(artifact, r, arch) {
 }
 if (process.argv[1] && import.meta.url === pathToFileURL(path.resolve(process.argv[1])).href) {
   try {
-    check(process.argv.length === 5, 'usage: verify.mjs RELEASE.json ARCH APP_OR_DMG');
-    console.log(JSON.stringify(verifyArtifact(path.resolve(process.argv[4]), JSON.parse(fs.readFileSync(process.argv[2])), process.argv[3])));
+    const local = process.argv[2] === '--local';
+    const args = process.argv.slice(local ? 3 : 2);
+    check(args.length === 3, 'usage: verify.mjs [--local] RELEASE.json ARCH APP_OR_DMG');
+    const descriptor = JSON.parse(fs.readFileSync(args[0]));
+    console.log(JSON.stringify((local ? verifyLocalApp : verifyArtifact)(path.resolve(args[2]), descriptor, args[1])));
   } catch (error) { console.error(`Beta artifact verification failed: ${reason(error)}. Nothing signed, launched or published.`); process.exitCode = 1; }
 }

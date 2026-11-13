@@ -1,9 +1,11 @@
 // Start Page, Favorites/History/Downloads, Glance and first run: shipping
 // test-hook names over the fork's Start Page document, its native newtab
 // bridge (window.bowserPages), the Island facade and native dispatch.
+import {LAYOUT_WIDGETS,PAGE_LAYOUT} from '../lib/start-widgets.mjs';
+import {tabPage} from './core.mjs';
 import {UndefinedNativeAdapterError,nativeId} from '../lib/adapters.mjs';
 import {jsLiteral} from '../lib/js-literal.mjs';
-import {inSettings} from './commands.mjs';
+import {inSettings,readSettings} from './commands.mjs';
 export const NEWTAB=/^chrome:\/\/(newtab\/|new-tab-page\/|blanc-prototype\/pages\/newtab\.html)/;
 // Fork utility pages shown as tabs: Chromium's managers and Settings, when
 // opened other than through the Island, whose sheet shows them otherwise.
@@ -29,8 +31,10 @@ async function activeTab(w){const s=await w.snapshot();return s.tabs.find(t=>Str
 // The active tab's Start Page document, or null when it isn't a Start Page.
 async function startPage(w){
  const tab=await activeTab(w);if(!tab||!NEWTAB.test(tab.committedUrl||tab.url))return null;
- const targets=(await w.fixture.targets()).filter(t=>t.type==='page'&&NEWTAB.test(t.url));
- return visiblePage(w,targets);
+ // A restored quiet Start Page may expose a target without a renderer.
+ // Evaluating visibility on it times out (or wakes unrelated work). The
+ // native tab-target mapping identifies exactly the selected document.
+ return tabPage(w,tab.id);
 }
 // Any Start Page document: profile-wide reads and writes need one renderer.
 async function anyStartPage(w){
@@ -74,7 +78,13 @@ const onSheet=(w,expression)=>w.hostEval(`(()=>{const document=window.document.g
 const noState=(hook,what)=>()=>{throw new UndefinedNativeAdapterError(`${hook}: the fork stores no ${what}`);};
 const toggleIn=(list,cls,attr)=>key=>`(()=>{const item=[...document.querySelectorAll(${jsLiteral(list)})].find(c=>${attr}===${jsLiteral(String(key))});
  const button=item?.querySelector(${jsLiteral(cls)});if(!button)return false;button.focus();button.click();return true;})()`;
-const favoriteList="({ledger:'favoritesList',shelf:'shFavorites',tally:'tlFavorites'})[document.body.dataset.layout]";
+// V24 (owner, 2026-11-13): Billboard is the one layout, and the Favorites
+// widget is Ledger's list (six favorites, pins first), whatever layout a
+// scenario names. The old layouts are the widget sets the one-time migration
+// gives them (blanc_prototype_ui.cc widgetsRead).
+const favoriteList="'favoritesList'";
+const layoutOfWidgets=widgets=>Object.keys(LAYOUT_WIDGETS).find(name=>
+ Object.entries(LAYOUT_WIDGETS[name]).every(([k,v])=>widgets?.[k]===v))??'custom';
 export const pages={
  // ---- favorites (Chromium's BookmarkModel through the Island heart) ----
  async favoriteActive(w){
@@ -125,26 +135,33 @@ export const pages={
   if((await w.snapshot()).tabs.some(t=>String(t.id)===before))await w.native('switchTab',[nativeId(before)]);
  },
  seedBillboardHistory:w=>w.native('seedBillboardHistory',[]),
- // Blocked on a real native cap, not a missing test op: history::TopSites
- // hard-truncates GetMostVisitedURLs to kTopSitesNumber (10), so no amount
- // of seeded history can make the real ranking service return 60 sites.
- // See chromium/CODEX-NOTES-billboard-history.md.
- seedBillboardOverflowHistory:()=>{throw new UndefinedNativeAdapterError('seedBillboardOverflowHistory: real history::TopSites caps GetMostVisitedURLs at 10 (kTopSitesNumber); needs an owner-approved native design decision, not a test op');},
+ seedBillboardOverflowHistory:w=>w.native('seedBillboardOverflowHistory',[]),
  // ---- Start Page layout (native layoutRead/layoutWrite via the page) ----
- setNewtabLayout:async(w,layout)=>(await anyStartPage(w)).evalExpression(`window.bowserPages.start.setLayout(${jsLiteral(String(layout))})`),
- newtabLayout:async w=>(await anyStartPage(w)).evalExpression('window.bowserPages.start.data().then(d=>d.layout)'),
- readNewtabLayoutDom:onStart(null,`(()=>({layout:document.body.dataset.layout??null,
-  active:document.querySelector('[data-layout-pick].active')?.dataset.layoutPick??null,
+ setNewtabLayout:async(w,layout)=>{
+  const want=LAYOUT_WIDGETS[String(layout)];if(!want)throw Error('Unknown start-page layout '+layout);
+  return (await anyStartPage(w)).evalExpression(`(async()=>{const start=window.bowserPages.start;
+   for(const [name,on] of Object.entries(${JSON.stringify(want)}))await start.setWidget(name,on);return ${jsLiteral(String(layout))};})()`);
+ },
+ newtabLayout:async w=>layoutOfWidgets(await (await anyStartPage(w)).evalExpression('window.bowserPages.start.data().then(d=>d.widgets)')),
+ readNewtabLayoutDom:onStart(null,`(()=>({layout:${PAGE_LAYOUT},
+  active:${PAGE_LAYOUT},
   visible:['Ledger','Billboard','Shelf','Tally'].filter(n=>{const e=document.getElementById('layout'+n);return e&&getComputedStyle(e).display!=='none';})}))()`),
  clickNewtabLayoutSwitcher:onStart(false,name=>`(()=>{const popover=document.getElementById('customizePopover');const opener=document.getElementById('customizeButton');
   if(!popover||!opener)return false;if(!popover.matches(':popover-open')){opener.focus();opener.click();}
   if(!popover.matches(':popover-open'))return false;
-  const button=popover.querySelector('[data-layout-pick="${String(name).replace(/[^a-z]/g,'')}"]');if(!button)return false;button.click();return true;})()`),
+  const want=${JSON.stringify(LAYOUT_WIDGETS[String(name)]??null)};if(!want)return false;
+  // More shortcuts is Customize's Shortcuts choice (6 or 12), pressed, not a tile.
+  return (async()=>{for(const [pick,on] of Object.entries(want)){
+   const count=pick==='shortcuts';const button=count?popover.querySelector('[data-shortcuts="'+(on?12:6)+'"]'):popover.querySelector('[data-widget-pick="'+pick+'"]');if(!button)return false;
+   const isSet=()=>count?button.getAttribute('aria-pressed')==='true':(button.getAttribute('aria-checked')==='true')===on;
+   if(isSet())continue;button.click();
+   for(let i=0;i<100&&(button.hasAttribute('aria-disabled')||!isSet());i++)await new Promise(r=>setTimeout(r,50));}
+   return true;})();})()`),
  openStartCustomize:onStart(false,`(()=>{const popover=document.getElementById('customizePopover');const opener=document.getElementById('customizeButton');
   if(!popover||!opener)return false;if(!popover.matches(':popover-open')){opener.focus();opener.click();}return popover.matches(':popover-open');})()`),
  readStartCustomize:onStart(null,`(()=>({open:document.getElementById('customizePopover')?.matches(':popover-open')??false,
   expanded:document.getElementById('customizeButton')?.getAttribute('aria-expanded')??null,focusedId:document.activeElement?.id??null,
-  pressed:[...document.querySelectorAll('[data-layout-pick][aria-pressed="true"]')].map(b=>b.dataset.layoutPick)}))()`),
+  pressed:document.querySelector('[data-widget-pick]')?[${PAGE_LAYOUT}]:[]}))()`),
  // A real key press into the focused Start Page document.
  async pressStartPageKey(w,key){
   const page=await startPage(w);if(!page)return false;
@@ -154,7 +171,7 @@ export const pages={
  startPagePins:async w=>(await (await anyStartPage(w)).evalExpression('window.bowserPages.pins.list()')).pins.map(({url,title})=>({url,title})),
  clearStartPagePins:async w=>(await anyStartPage(w)).evalExpression(`(async()=>{const p=window.bowserPages.pins;
   for(const pin of (await p.list()).pins)await p.unpin(pin.url);return (await p.list()).pins.length===0;})()`),
- readStartFavorites:onStart(null,`(()=>{const layout=document.body.dataset.layout;const list=${favoriteList};
+ readStartFavorites:onStart(null,`(()=>{const layout='ledger';const list=${favoriteList};
   const items=list?[...document.getElementById(list).querySelectorAll('[data-favorite-url]')]:[];
   return {layout,favorites:items.map(item=>({url:item.dataset.favoriteUrl,title:item.querySelector('.name')?.textContent??null,
    pinned:item.classList.contains('pinned'),pinLabel:item.querySelector('.fav-pin')?.getAttribute('aria-label')??null,
@@ -179,7 +196,7 @@ export const pages={
  // ---- Start Page geometry reads (the copied shipping DOM) ----
  readStartFrameGeometry:onStart(null,`(()=>{const rect=e=>{if(!e)return null;const s=getComputedStyle(e);if(s.display==='none'||s.visibility==='hidden')return null;
   const r=e.getBoundingClientRect();if(!r.width||!r.height)return null;return {top:r.top,right:r.right,bottom:r.bottom,left:r.left,width:r.width,height:r.height};};
-  const layout=document.body.dataset.layout;const rootEl=document.getElementById('layout'+layout.charAt(0).toUpperCase()+layout.slice(1));
+  const layout=${PAGE_LAYOUT};const rootEl=document.getElementById('layoutBillboard');
   const shellEl=document.getElementById('migrationChecklistShell');const shell=shellEl&&!shellEl.hidden?rect(shellEl):null;
   const content=[...rootEl.querySelectorAll('a, button, h2, .ledger-label, .shelf-card, .tally-chart, .tally-caption, .bb-clock, .bb-blocked, .start-empty-hint')]
    .map(e=>({selector:e.id?'#'+e.id:e.className||e.tagName,rect:rect(e)})).filter(x=>x.rect);
@@ -189,7 +206,28 @@ export const pages={
    patronInLayout:!!rootEl.querySelector('.js-patron-callout'),patronInFooterLeft:!!patron&&patron.parentElement===footerLeft,
    patronVisible:!!patron&&!patron.hidden&&!!rect(patron),patron:patron&&!patron.hidden?rect(patron):null,
    emptyHints:[...rootEl.querySelectorAll('.start-empty-hint')].filter(e=>rect(e)).length};})()`),
- readStartBlockedCard:onStart(null,`(()=>{const card=document.getElementById('shBlocked')?.closest('.shelf-card');return !!card&&!card.hidden&&getComputedStyle(card).display!=='none';})()`),
+ // V24: the Start Page's widgets as drawn: which are on, which show, the
+ // Favorites widget's rows and Billboard's tile limit.
+ readStartWidgets:onStart(null,`(()=>{const rect=e=>{if(!e||e.hidden||getComputedStyle(e).display==='none')return null;const r=e.getBoundingClientRect();
+  if(!r.width||!r.height)return null;return {left:Math.round(r.left),right:Math.round(r.right),top:Math.round(r.top),bottom:Math.round(r.bottom),width:Math.round(r.width)};};
+  const section=n=>document.querySelector('#bbWidgets [data-widget="'+n+'"]');
+  return {root:document.body.dataset.layout,viewportWidth:innerWidth,viewportHeight:innerHeight,
+   visibleRoots:['Ledger','Billboard','Shelf','Tally'].filter(n=>rect(document.getElementById('layout'+n))),
+   widgets:typeof state==='object'?state.widgets:null,
+   switches:{...Object.fromEntries([...document.querySelectorAll('[data-widget-pick]')].map(b=>[b.dataset.widgetPick,b.getAttribute('aria-checked')==='true'])),
+    shortcuts:document.querySelector('[data-shortcuts="12"]')?.getAttribute('aria-pressed')==='true'},
+   shown:Object.fromEntries(['favorites','devices'].map(n=>[n,!!rect(section(n))])),
+   cards:Object.fromEntries(['favorites','devices'].map(n=>[n,rect(section(n))])),
+   favoriteRows:[...document.querySelectorAll('#favoritesList [data-favorite-url]')].map(rect).filter(Boolean),
+   footer:rect(document.getElementById('layoutFooter')),
+   mahjongPill:rect(document.getElementById('mahjongPill')),mahjongInFooterLeft:document.getElementById('mahjongPill')?.parentElement?.classList.contains('footer-left')===true,
+   mahjongText:document.getElementById('mahjongLink')?.textContent.trim()??null,
+   tileLimit:typeof billboardSiteCount==='function'?billboardSiteCount():null};})()`),
+ // V26: the week's count is Billboard's line under the clock (Shelf's blocked
+ // card and the Blocked this week widget are gone); a private page's line
+ // says it counts nothing instead.
+ readStartBlockedCard:onStart(null,`(()=>{const e=document.getElementById('bbBlocked');if(!e||e.hidden||getComputedStyle(e).display==='none'||(typeof isPrivate==='boolean'&&isPrivate))return false;
+  const r=e.getBoundingClientRect();return r.width>0&&r.height>0&&getComputedStyle(e).visibility!=='hidden';})()`),
  readShelfGeometry:onStart(null,`(()=>{const rect=e=>{if(!e||e.hidden||getComputedStyle(e).display==='none')return null;const r=e.getBoundingClientRect();
   return {left:Math.round(r.left),right:Math.round(r.right),top:Math.round(r.top),bottom:Math.round(r.bottom)};};
   return {columns:document.getElementById('layoutShelf').dataset.columns??null,viewportWidth:innerWidth,
@@ -198,19 +236,19 @@ export const pages={
  readTallyGeometry:onStart(null,`(()=>{const rect=e=>{if(!e||e.hidden||getComputedStyle(e).display==='none')return null;const r=e.getBoundingClientRect();
   return {left:Math.round(r.left),right:Math.round(r.right),top:Math.round(r.top),bottom:Math.round(r.bottom),width:Math.round(r.width)};};
   return {viewportWidth:innerWidth,private:document.documentElement.dataset.theme==='private',content:rect(document.getElementById('startContent')),
-   left:rect(document.querySelector('.tally-left')),right:rect(document.querySelector('.tally-right'))};})()`),
+   left:rect(document.querySelector('#bbWidgets [data-widget="favorites"]')),right:rect(document.getElementById('bbBlocked'))};})()`),
  readBillboardVerticalBox:onStart(null,`(()=>{const shown=[...document.getElementById('layoutBillboard').children].filter(e=>{const s=getComputedStyle(e);const b=e.getBoundingClientRect();
   return !e.hidden&&s.display!=='none'&&s.position!=='absolute'&&b.height>1;});if(!shown.length)return null;
   const top=Math.min(...shown.map(e=>e.getBoundingClientRect().top));const bottom=Math.max(...shown.map(e=>e.getBoundingClientRect().bottom));
   const footerTop=document.getElementById('layoutFooter').getBoundingClientRect().top;const headerBottom=document.querySelector('.start-header').getBoundingClientRect().bottom;
   const round=v=>Math.round(v*10)/10;
-  return {layout:document.body.dataset.layout,viewportWidth:innerWidth,headerBottom:round(headerBottom),contentTop:round(top),above:round(top),below:round(footerTop-bottom),
+  return {layout:${PAGE_LAYOUT},viewportWidth:innerWidth,headerBottom:round(headerBottom),contentTop:round(top),above:round(top),below:round(footerTop-bottom),
    parts:shown.map(e=>e.id||e.className)};})()`),
  readStartFooterLayout:onStart(null,blockedText=>`(()=>{if(${jsLiteral(blockedText??null)}!==null)document.getElementById('footerLeft').textContent=${jsLiteral(blockedText??'')};
   const box=s=>{const e=document.querySelector(s);if(!e||e.hidden||getComputedStyle(e).display==='none')return null;const r=e.getBoundingClientRect();return {top:r.top,bottom:r.bottom,left:r.left,right:r.right,height:r.height};};
   const items=[...document.querySelectorAll('#layoutFooter .footer-left > *')].filter(e=>!e.hidden&&getComputedStyle(e).display!=='none'&&e.getBoundingClientRect().width>0).map(e=>e.getBoundingClientRect());
   const centres=items.map(r=>Math.round((r.top+r.bottom)/2));
-  return {layout:document.body.dataset.layout,viewportWidth:innerWidth,leftOnOneLine:centres.every(c=>Math.abs(c-centres[0])<=4),
+  return {layout:${PAGE_LAYOUT},viewportWidth:innerWidth,leftOnOneLine:centres.every(c=>Math.abs(c-centres[0])<=4),
    left:box('#layoutFooter .footer-left'),customize:box('#customizeButton'),right:box('#layoutFooter .footer-right'),footer:box('#layoutFooter')};})()`),
  // ---- Start Page footer pills and launch scene ----
  readMigrationChecklistDom:onStart(null,`(()=>{const shell=document.getElementById('migrationChecklistShell');const popover=document.getElementById('migrationChecklist');
@@ -221,27 +259,35 @@ export const pages={
    title:document.getElementById('migrationChecklistTitle')?.textContent??null,syncComplete:sync?.classList.contains('is-complete')??false,
    tabsComplete:tabs?.classList.contains('is-complete')??false,spaceComplete:space?.classList.contains('is-complete')??false,
    expanded:document.getElementById('migrationChecklistCompact')?.getAttribute('aria-expanded')==='true',focused:document.hasFocus(),
-   focusedId:document.activeElement?.id??null,layout:document.body.dataset.layout??null,shellBounds:bounds(shell),
+   focusedId:document.activeElement?.id??null,layout:${PAGE_LAYOUT},shellBounds:bounds(shell),
    popoverBounds:popover?.matches(':popover-open')?bounds(popover):null,footerBounds:bounds(document.getElementById('layoutFooter')),
    customizeBounds:bounds(document.getElementById('customizeButton')),hideBounds:bounds(document.getElementById('migrationChecklistHide')),
    pillInFooterLeft:!!shell?.closest('#layoutFooter .footer-left'),viewportWidth:innerWidth};})()`),
- clickMigrationChecklist:onStart(false,action=>{const id={sync:'migrationSyncAction',tabs:'migrationTabsAction',space:'migrationSpaceAction',iphone:'migrationIphoneAction',hide:'migrationChecklistHide',compact:'migrationChecklistCompact'}[action];
-  const inPopover=['sync','tabs','space'].includes(action);
-  return `(()=>{const btn=${id?`document.getElementById('${id}')`:'null'};if(!btn)return false;
+ async clickMigrationChecklist(w,action){const page=await startPage(w);if(!page)return false;const id={sync:'migrationSyncAction',tabs:'migrationTabsAction',space:'migrationSpaceAction',iphone:'migrationIphoneAction',hide:'migrationChecklistHide',compact:'migrationChecklistCompact'}[action];
+  const inPopover=['sync','tabs','space','iphone'].includes(action);
+  if(!id)return false;
+  // The navigation can finish before asynchronous Start Page data paints the
+  // checklist. Wait for the actual available task, then retain the popover
+  // and visible button checks below. No hidden task is treated as actionable.
+  await w.waitFor(()=>page.evaluate(id=>{
+   const shell=document.getElementById('migrationChecklistShell'),button=document.getElementById(id);
+   if(!shell||!button||shell.hidden||button.closest('[hidden]'))return false;
+   const box=shell.getBoundingClientRect();return box.width>0&&box.height>0;
+  },id),Boolean,'rendered moving-in checklist task '+action);
+  return page.evalExpression(`(()=>{const btn=${id?`document.getElementById('${id}')`:'null'};if(!btn)return false;
    if(${inPopover}){const popover=document.getElementById('migrationChecklist');if(!popover.matches(':popover-open'))document.getElementById('migrationChecklistCompact').click();
     if(!popover.matches(':popover-open'))return false;const box=btn.getBoundingClientRect();if(!box.width||!box.height)return false;}
-   btn.focus();btn.click();return true;})()`;}),
+   btn.focus();btn.click();return true;})()`);},
  clickPatronCalloutClose:onStart(false,`(()=>{const btn=document.getElementById('patronCalloutHide');if(!btn||btn.closest('[hidden]'))return false;btn.click();return document.getElementById('patronCallout').hidden;})()`),
  readLaunchSunrise:onStart(null,`(()=>{const scene=document.getElementById('launchSunrise');
   if(!scene)return {present:false,layoutReady:document.body.classList.contains('layout-ready')};const style=getComputedStyle(scene);
   return {present:true,shown:!scene.hidden,pointerEvents:style.pointerEvents,
    animations:[scene,...scene.querySelectorAll('.launch-sunrise-sky,.launch-sunrise-horizon,.launch-sunrise-mark .launch-sunrise-disc,.launch-sunrise-rays,.launch-sunrise-reflect')].flatMap(el=>getComputedStyle(el).animationName.split(', ')),layoutReady:document.body.classList.contains('layout-ready')};})()`),
  readMahjongFooterLink:onStart(null,`(()=>({href:document.getElementById('mahjongLink')?.href??null,target:document.getElementById('mahjongLink')?.target??null,
-  layout:document.body.dataset.layout,switcherCount:document.querySelectorAll('[data-layout-pick]').length,frameCount:document.querySelectorAll('iframe').length}))()`),
+  // V26: Customize's choices standing for shipping's four layouts: the two
+  // widget tiles and the Shortcuts choice.
+  layout:${PAGE_LAYOUT},switcherCount:document.querySelectorAll('[data-widget-pick]').length+(document.getElementById('shortcutCountPicker')?1:0),frameCount:document.querySelectorAll('iframe').length}))()`),
  clickMahjongFooterLink:onStart(false,`(()=>{const link=document.getElementById('mahjongLink');if(!link)return false;link.click();return true;})()`),
- // Deep game hooks are deferred until footer launch is verified live.
- ...Object.fromEntries(['readMahjongDom','readMahjongCompletionGeometry','rapidUndoMahjongMatch','auditMahjongCorrectness','readMahjongDealState',
-  'copyMahjongDealFromBoards','readMahjongRecordsGeometry'].map(h=>[h,()=>{throw Error(h+': deep Mahjong hook is not ported');}])),
  // Patron and the app icon (F17). The preview has no license keys (owner,
  // 2026-11-05), so there is never a supporter to clear.
  clearSupporter:async()=>true,
@@ -317,6 +363,8 @@ export const pages={
  selectBrowserSource:(w,label)=>onSheet(w,`((label)=>{const select=document.getElementById('browserSource');const option=[...(select?.options??[])].find(o=>o.textContent===label&&!o.disabled);
   if(!option)return false;select.value=option.value;select.dispatchEvent(new Event('change',{bubbles:true}));return true;})(${jsLiteral(String(label))})`),
  clickBrowserImport:w=>onSheet(w,`(()=>{const button=document.getElementById('browserImportBtn');if(!button||button.hidden)return false;button.click();return true;})()`),
+ migrationChecklistSettings:w=>w.native('checklistProgress',[]),
+ async setMigrationChecklistProgress(w,...args){await w.native('checklistProgress',args);return true;},
  // Shipping's reset; the fork keeps only the default-browser task's state.
  async resetMigrationChecklist(w){
   await w.native('resetChecklist');const page=await startPage(w);if(page)await page.evalExpression("window.blancNewTabEvent('checklist')");
@@ -332,6 +380,16 @@ export const pages={
  // Where a utility page shows: the sheet when it is open, else the active
  // tab when it is a utility page (Settings, until S1.7); `kind` says which.
  async utilitySurface(w){
+  const native=await w.native('settingsSheetState',[]);
+  if(native.attached){
+   const page=await readSettings(w,(_a,d)=>({path:location.pathname,
+    ready:document.readyState==='complete' && (location.pathname!=='/sync' ||
+     !!d.find('settings-blanc-sync-page[blanc-ready]'))}));
+   // Shipping's logical section URL, derived from the native target's actual
+   // location. The product still uses chrome://settings/sync (S4a decision).
+   return {visible:native.visible===true,ready:!!page?.ready,
+    url:page?.path==='/sync'?'blanc://settings/#group-sync':'blanc://settings/',kind:'sheet'};
+  }
   const sheet=await sheetState(w);
   if(sheet.visible)return {visible:true,ready:sheet.ready,url:sheet.url,kind:'sheet'};
   const tab=await activeTab(w);const url=tab?.committedUrl||tab?.url||'';
@@ -386,6 +444,20 @@ export const pages={
  sendGlanceCardInput:async(w,input)=>{const fr=w.frame('glanceCardFrame');if(!fr)return false;
   if(input.type==='keyDown'){await w.hostEval('window.BlancPrototypeHost.focusGlanceCard()');await fr.keyboard.press(input.keyCode);return true;}
   throw new UndefinedNativeAdapterError('Card pointer input needs an adapter: '+input.type);},
+ async openFirstGlanceAndRead(w,id){
+  // Delay actual paint callbacks while a fresh card document loads. Fetch
+  // interception cannot pause chrome:// documents. No visibility is mocked.
+  await w.hostEval(`(()=>{const real=requestAnimationFrame,queued=[];
+   window.requestAnimationFrame=callback=>{queued.push(callback);return -queued.length;};
+   window.__releaseFirstGlancePaint=()=>{window.requestAnimationFrame=real;for(const callback of queued)real(callback);delete window.__releaseFirstGlancePaint;};
+   window.BlancPrototypeHost.reloadGlanceCard();})()`);
+  try{
+   const opened=await w.api('setGlanceTab',[String(id)]);
+   const state=await w.snapshot(),card=await w.hostEval('window.BlancPrototypeHost.glanceState()');
+   const bounds=state.tabs.find(t=>t.id===String(id))?.viewBounds;
+   return {opened,cardViewVisible:card.shown,glancePageVisible:!!bounds&&bounds.width>0&&bounds.height>0};
+  }finally{await w.hostEval('window.__releaseFirstGlancePaint()');}
+ },
  glancePageViewVisible:async w=>{const s=await w.snapshot();return !!s.tabs.find(t=>t.id===s.glanceTabId)?.viewBounds;},
  glanceCardFocused:async w=>{const fr=w.frame('glanceCardFrame');return fr?fr.evaluate(()=>document.hasFocus()):false;},
  async closeGlance(w){const s=await w.snapshot();if(s.glanceTabId==null)return false;await w.api('closeGlance');return true;},
@@ -399,11 +471,56 @@ export const pages={
   for(let i=0;i<20&&!same(s.tabs.find(t=>t.id===s.glanceTabId)?.viewBounds,g.layout.card.page);i++){await new Promise(r=>setTimeout(r,50));s=await w.snapshot();}
   // Shipping reads these in the window; the fork's are the Island's, which
   // moves under a pushed Auto-hide.
-  const dy=s.splitGeometry.islandY||0;const win=r=>r&&{...r,y:r.y+dy};
+  const dy=(s.glanceArea?.islandY??s.splitGeometry?.islandY)||0;const win=r=>r&&{...r,y:r.y+dy};
   const view=id=>win(s.tabs.find(t=>t.id===id)?.viewBounds??null);
-  const area=win(s.splitGeometry.pageArea);const c=g.layout.card;
+  const rawArea=s.glanceArea??s.splitGeometry.pageArea;
+  const area=win(rawArea&&{x:rawArea.x,y:rawArea.y,width:rawArea.width,height:rawArea.height});const c=g.layout.card;
   return {chrome:win(c.chrome),frame:win(c.frame),header:win(c.header),page:win(c.page),cardViewBounds:win(c.chrome),cardViewVisible:g.shown,pageArea:area,pageBounds:area,generation:g.layout.generation,focusedPane:g.layout.focusedPane,
    viewBounds:view(s.glanceTabId),mainViewBounds:view(s.activeTabId),savedFrame:s.glanceFrame??null};
  },
- glanceHeaderMotion:()=>{throw new UndefinedNativeAdapterError('glanceHeaderMotion needs an adapter');},
+ async glanceHeaderMotion(w){
+  const page=w.frame('glanceCardFrame');
+  const result=await page.evaluate(()=>{
+   const element=document.querySelector('#glanceHeader');
+   const style=getComputedStyle(element),identity=element.querySelector('.glance-tab-identity');
+   return {header:{transition:style.transition,transform:style.transform,opacity:style.opacity,
+    transformOrigin:style.transformOrigin,width:element.getBoundingClientRect().width},
+    identity:identity?{transition:getComputedStyle(identity).transition,swapping:identity.classList.contains('swapping')}:null};
+  });
+  result.picker=await w.call('overlayMode')==='glance'?await w.frame('overlay').evaluate(()=>{
+   const element=document.querySelector('#glancePicker'),style=getComputedStyle(element);
+   return {transition:style.transition,transform:style.transform,opacity:style.opacity,
+    transformOrigin:style.transformOrigin,width:element.getBoundingClientRect().width};
+  }):null;return result;
+ },
+ glanceCardMotion:w=>w.frame('glanceCardFrame').evaluate(()=>{
+  const card=document.getElementById('glanceCard');if(!card)return null;
+  const style=getComputedStyle(card);
+  return {transition:style.transition,transform:style.transform,opacity:style.opacity,hidden:card.hidden};
+ }),
+ closeGlanceAndReadCard:w=>w.hostEval(`(async()=>{
+  const wasOpen=(await window.BlancPrototypeHost.api.getAllTabs()).glanceTabId!=null;
+  await window.BlancPrototypeHost.api.closeGlance();
+  const closed=wasOpen&&(await window.BlancPrototypeHost.api.getAllTabs()).glanceTabId==null;
+  return {closed,cardViewVisible:!document.getElementById('glanceCardFrame').hidden};
+ })()`),
+ tooltipViewState:w=>w.hostEval(`(()=>{
+  const tip=document.getElementById('prototypeTooltip'),r=tip.getBoundingClientRect();
+  return {attached:!tip.hidden,bounds:tip.hidden?null:{x:r.x,y:r.y,width:r.width,height:r.height}};
+ })()`),
+ closeTabAndReadGlance:(w,id)=>w.hostEval(`(async()=>{
+  const started=performance.now();
+  const area=(await window.BlancPrototypeHost.api.getAllTabs()).splitGeometry.pageArea;
+  await window.BlancPrototypeHost.api.closeTab(${jsLiteral(String(id))});
+  await window.BlancPrototypeHost.refresh();
+  const state=await window.BlancPrototypeHost.api.getAllTabs();
+  if(performance.now()-started>=250)throw Error('Close observation exceeded the save debounce');
+  return {glanceTabId:state.glanceTabId??null,
+   cardViewVisible:!document.getElementById('glanceCardFrame').hidden,
+   savedFrame:state.glanceFrame?window.BlancGlanceCard.fractionsToFrame(state.glanceFrame,area):null};
+ })()`),
+ zoomLevel:async(w,id)=>Math.log(await (await tabPage(w,id)).evaluate(()=>devicePixelRatio)/
+  await w.hostEval('devicePixelRatio'))/Math.log(1.2),
+ simulateMediaStarted:(w,id)=>w.native('simulateMediaStarted',[nativeId(id)]),
+ findTabId:w=>w.hostEval('window.BlancPrototypeHost.findState().tabId'),
 };

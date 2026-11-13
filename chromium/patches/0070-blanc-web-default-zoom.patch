@@ -1,0 +1,18 @@
+diff --git a/content/browser/host_zoom_map_impl.cc b/content/browser/host_zoom_map_impl.cc
+--- a/content/browser/host_zoom_map_impl.cc
++++ b/content/browser/host_zoom_map_impl.cc
+@@ -220,6 +220,14 @@
+       return i->second.level;
+   }
+ 
++  // Blanc (F62): the default page zoom is for web content. Blanc's own pages,
++  // the Island and extension pages open at 100% until they are zoomed
++  // themselves, as shipping's usesDefaultZoom (src/main/page-zoom.js).
++  if (scheme != "http" && scheme != "https" && scheme != "file" &&
++      scheme != "blob" && scheme != "data") {
++    const auto it = host_zoom_levels_.find(host);
++    return it != host_zoom_levels_.end() ? it->second.level : 0.0;
++  }
+   return GetZoomLevelForHost(host);
+ }
+ 

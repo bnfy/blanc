@@ -4,11 +4,14 @@
 // host, so frame pages offset input by the iframe's position.
 import {UndefinedNativeAdapterError} from './adapters.mjs';
 import {pause} from './cdp.mjs';
+import {timedOut} from './timing.mjs';
+const timeoutError=(text,elapsed)=>{timedOut('page',text,elapsed);return Error(text);};
 import {jsLiteral} from './js-literal.mjs';
 import {PORTS,sourceKey} from './main-ports.mjs';
 const KEYS={Enter:[13,'\r'],Escape:[27],Tab:[9],Backspace:[8],Delete:[46],ArrowDown:[40],ArrowUp:[38],ArrowLeft:[37],ArrowRight:[39],
  Home:[36],End:[35],PageDown:[34],PageUp:[33],Space:[32,' '],' ':[32,' '],Meta:[91],Control:[17],Shift:[16],Alt:[18],F6:[117]};
 const MODIFIER_BITS={Alt:1,Control:2,Meta:4,Shift:8};
+const canonicalKey=key=>({meta:'Meta',control:'Control',shift:'Shift',alt:'Alt',Down:'ArrowDown',Up:'ArrowUp'})[key]??key;
 function keyEvent(key){
  if(KEYS[key])return {key:key==='Space'?' ':key,code:key==='Space'||key===' '?'Space':key,windowsVirtualKeyCode:KEYS[key][0],text:KEYS[key][1]};
  if(key.length===1){const upper=key.toUpperCase();const code=/[a-z]/i.test(key)?'Key'+upper:/\d/.test(key)?'Digit'+key:undefined;
@@ -17,11 +20,11 @@ function keyEvent(key){
 }
 export class Keyboard{
  constructor(cdp){this.cdp=cdp;this.modifiers=0;}
- async down(key){const e=keyEvent(key);if(MODIFIER_BITS[key])this.modifiers|=MODIFIER_BITS[key];
+ async down(key){key=canonicalKey(key);const e=keyEvent(key);if(MODIFIER_BITS[key])this.modifiers|=MODIFIER_BITS[key];
   const text=this.modifiers&~MODIFIER_BITS.Shift?undefined:e.text;
   await this.cdp.send('Input.dispatchKeyEvent',{type:text?'keyDown':'rawKeyDown',modifiers:this.modifiers,...e,text,unmodifiedText:text,
    ...(this.modifiers&MODIFIER_BITS.Meta&&key.length===1?{commands:[]}:{})});}
- async up(key){const e=keyEvent(key);if(MODIFIER_BITS[key])this.modifiers&=~MODIFIER_BITS[key];
+ async up(key){key=canonicalKey(key);const e=keyEvent(key);if(MODIFIER_BITS[key])this.modifiers&=~MODIFIER_BITS[key];
   await this.cdp.send('Input.dispatchKeyEvent',{type:'keyUp',modifiers:this.modifiers,...e,text:undefined});}
  async press(combo){const keys=combo.split('+').map(k=>k==='ControlOrMeta'?'Meta':k);
   for(const k of keys)await this.down(k);for(const k of [...keys].reverse())await this.up(k);}
@@ -48,9 +51,16 @@ function step(css,{hasText}={}){
  if(hasText==null)return css;
  return {css,text:hasText instanceof RegExp?{source:hasText.source,flags:hasText.flags}:String(hasText)};
 }
+// The supported role is a button, with the accessible name precedence used
+// by these shipping steps: labelledby, aria-label, then its visible text.
+function roleStep(role,{name,exact=false,includeHidden=false,...rest}={}){
+ if(role!=='button'||Object.keys(rest).length)throw new UndefinedNativeAdapterError('Unsupported role selector: '+role);
+ return {css:'button,[role="button"],input[type="button"],input[type="submit"]',role,
+  name:name instanceof RegExp?{source:name.source,flags:name.flags}:name,exact,includeHidden};
+}
 export class Locator{
  constructor(page,selectors,index=null){this.page=page;this.selectors=selectors;this.index=index;}
- locator(selector,options){return new Locator(this.page,[...this.selectors,step(selector,options)],this.index===null?null:this.index);}
+ locator(selector,options){return new Locator(this.page,[...this.selectors,...(this.index===null?[]:[{index:this.index}]),step(selector,options)]);}
  // Playwright's filter({hasText}): the last selector keeps only matches
  // whose text contains it, as locator(css,{hasText}) does.
  filter({hasText,...rest}={}){
@@ -58,21 +68,37 @@ export class Locator{
   if(Object.keys(rest).length||hasText==null||typeof last!=='string')throw new UndefinedNativeAdapterError('Locator shim filters by hasText on a plain selector only');
   return new Locator(this.page,[...this.selectors.slice(0,-1),step(last,{hasText})],this.index);
  }
+ and(other){
+  if(other.page!==this.page||other.selectors.length!==1||typeof other.selectors[0]!=='string'||other.index!==null)
+   throw new UndefinedNativeAdapterError('Locator intersection requires one plain selector in the same frame');
+  const selectors=[...this.selectors],last=selectors.pop(),suffix=':is('+other.selectors[0]+')';
+  selectors.push(typeof last==='string'?last+suffix:{...last,css:last.css+suffix});
+  return new Locator(this.page,selectors,this.index);
+ }
  first(){return new Locator(this.page,this.selectors,0);}
  last(){return new Locator(this.page,this.selectors,-1);}
  nth(i){return new Locator(this.page,this.selectors,i);}
- getByRole(){throw new UndefinedNativeAdapterError('Locator shim lacks getByRole');}
+ getByRole(role,options){return new Locator(this.page,[...this.selectors,...(this.index===null?[]:[{index:this.index}]),roleStep(role,options)]);}
  // Resolve inside the page: each selector narrows the previous matches.
  query(body,arg){return `(()=>{let els=[document];const norm=t=>t.replace(/\\s+/g,' ').trim();
-  for(const s of ${jsLiteral(this.selectors)}){els=els.flatMap(e=>[...e.querySelectorAll(typeof s==='string'?s:s.css)]);
-   if(typeof s!=='string')els=els.filter(e=>typeof s.text==='string'?norm(e.textContent).toLowerCase().includes(norm(s.text).toLowerCase()):new RegExp(s.text.source,s.text.flags).test(norm(e.textContent)));}
+  for(const s of ${jsLiteral(this.selectors)}){if(typeof s==='object'&&'index' in s){els=[...new Set(els)];els=s.index<0?els.slice(s.index):els.slice(s.index,s.index+1);continue;}
+   els=els.flatMap(e=>[...e.querySelectorAll(typeof s==='string'?s:s.css)]);
+   if(typeof s!=='string'&&s.role)els=els.filter(e=>{
+    if(!s.includeHidden&&(e.closest('[aria-hidden="true"], [hidden]')||!e.getClientRects().length||getComputedStyle(e).visibility==='hidden'))return false;
+    const refs=e.getAttribute('aria-labelledby')?.split(/\\s+/).map(id=>document.getElementById(id)).filter(Boolean);
+    const name=norm(refs?.length?refs.map(el=>el.textContent).join(' '):e.getAttribute('aria-label')??(e.tagName==='INPUT'?e.value:e.textContent));
+    if(s.name==null)return true;
+    if(typeof s.name==='string')return s.exact?name===norm(s.name):name.toLowerCase().includes(norm(s.name).toLowerCase());
+    return new RegExp(s.name.source,s.name.flags).test(name);
+   });
+   else if(typeof s!=='string')els=els.filter(e=>typeof s.text==='string'?norm(e.textContent).toLowerCase().includes(norm(s.text).toLowerCase()):new RegExp(s.text.source,s.text.flags).test(norm(e.textContent)));}
   els=[...new Set(els)];const index=${jsLiteral(this.index)};
   if(index!==null)els=index<0?els.slice(index):els.slice(index,index+1);return (${body})(els,${jsLiteral(arg)});})()`;}
  async all(fn,arg){return this.page.evalExpression(this.query(`(els,arg)=>(${fn.toString()})(els,arg)`,arg));}
  async one(fn,arg,{timeout=5000}={}){const end=Date.now()+timeout;
   for(;;){const r=await this.page.evalExpression(this.query(`(els,arg)=>els.length===0?{missing:true}:els.length>1&&${this.index===null}?{strict:els.length}:{value:(${fn.toString()})(els[0],arg)}`,arg));
    if(r.strict)throw Error(`strict mode violation: ${this.selectors.map(s=>typeof s==='string'?s:s.css+':has-text('+JSON.stringify(s.text)+')').join(' ')} resolved to ${r.strict} elements`);
-   if(!r.missing)return r.value;if(Date.now()>end)throw Error('Timeout waiting for '+this.selectors.map(s=>typeof s==='string'?s:s.css+':has-text('+JSON.stringify(s.text)+')').join(' '));await pause(50);}}
+   if(!r.missing)return r.value;if(Date.now()>end)throw timeoutError('Timeout waiting for '+this.selectors.map(s=>typeof s==='string'?s:s.css+':has-text('+JSON.stringify(s.text)+')').join(' '),Date.now()-(end-timeout));await pause(50);}}
  count(){return this.all(els=>els.length);}
  allTextContents(){return this.all(els=>els.map(e=>e.textContent));}
  allInnerTexts(){return this.all(els=>els.map(e=>e.innerText));}
@@ -89,7 +115,7 @@ export class Locator{
  async waitFor({state='visible',timeout=5000}={}){const end=Date.now()+timeout;
   for(;;){const [count,visible]=await Promise.all([this.count(),this.isVisible()]);
    if(state==='attached'&&count||state==='detached'&&!count||state==='visible'&&visible||state==='hidden'&&!visible)return;
-   if(Date.now()>end)throw Error(`Timeout waiting for ${this.selectors.map(s=>typeof s==='string'?s:s.css+':has-text('+JSON.stringify(s.text)+')').join(' ')} to be ${state}`);await pause(50);}}
+   if(Date.now()>end)throw timeoutError(`Timeout waiting for ${this.selectors.map(s=>typeof s==='string'?s:s.css+':has-text('+JSON.stringify(s.text)+')').join(' ')} to be ${state}`,Date.now()-(end-timeout));await pause(50);}}
  boundingBox(){return this.all(els=>{const e=els[0];if(!e)return null;const r=e.getBoundingClientRect();
   return r.width||r.height?{x:r.x,y:r.y,width:r.width,height:r.height}:null;});}
  scrollIntoViewIfNeeded(){return this.one(e=>{e.scrollIntoView({block:'nearest',inline:'nearest'});return true;});}
@@ -98,16 +124,17 @@ export class Locator{
  dispatchEvent(type,init={}){return this.one((e,a)=>{e.dispatchEvent(new (a.type.startsWith('pointer')?PointerEvent:a.type.startsWith('mouse')||a.type==='click'||a.type==='contextmenu'?MouseEvent:a.type.startsWith('key')?KeyboardEvent:Event)(a.type,{bubbles:true,cancelable:true,composed:true,...a.init}));return true;},{type,init});}
  selectOption(value){return this.one((e,v)=>{e.value=v;e.dispatchEvent(new Event('input',{bubbles:true}));e.dispatchEvent(new Event('change',{bubbles:true}));return [e.value];},value);}
  // Playwright's actionability: visible, stable across animation frames, and
- // the hit target at its centre (an opening morph must not eat the click).
- async center({timeout=5000}={}){await this.waitFor({timeout});await this.scrollIntoViewIfNeeded();const end=Date.now()+timeout;
+ // the hit target at the requested point (center by default). Explicit
+ // positions need the same checks; a zero-height list must not hit its backdrop.
+ async center({timeout=5000,position}={}){await this.waitFor({timeout});await this.scrollIntoViewIfNeeded();const end=Date.now()+timeout;
   for(let last=null;;){// A throttled (background) document may never paint; a timer bounds the wait.
-   const r=await this.evaluate(e=>new Promise(done=>{const read=()=>{const b=e.getBoundingClientRect(),x=b.x+b.width/2,y=b.y+b.height/2;
-    done({x:b.x,y:b.y,width:b.width,height:b.height,hit:e.contains(document.elementFromPoint(x,y))});};
-    requestAnimationFrame(()=>requestAnimationFrame(read));setTimeout(read,100);}));
-   if(r.width&&r.hit&&last&&['x','y','width','height'].every(k=>r[k]===last[k]))return {x:r.x+r.width/2,y:r.y+r.height/2};
-   if(Date.now()>end)throw Error(`Timeout waiting for ${this.selectors.map(s=>typeof s==='string'?s:s.css+':has-text('+JSON.stringify(s.text)+')').join(' ')} to be stable and receive pointer events`);last=r;}}
- async click({button='left',clickCount=1,modifiers=[],position}={}){
-  const b=position?await this.boundingBox():null;const p=position?{x:b.x+position.x,y:b.y+position.y}:await this.center();
+   const r=await this.evaluate((e,position)=>new Promise(done=>{const read=()=>{const b=e.getBoundingClientRect(),x=b.x+(position?.x??b.width/2),y=b.y+(position?.y??b.height/2);
+    done({x:b.x,y:b.y,width:b.width,height:b.height,pointX:x,pointY:y,hit:e.contains(document.elementFromPoint(x,y))});};
+    requestAnimationFrame(()=>requestAnimationFrame(read));setTimeout(read,100);}),position);
+   if(r.width&&r.height&&r.hit&&last&&['x','y','width','height'].every(k=>r[k]===last[k]))return {x:r.pointX,y:r.pointY};
+   if(Date.now()>end)throw timeoutError(`Timeout waiting for ${this.selectors.map(s=>typeof s==='string'?s:s.css+':has-text('+JSON.stringify(s.text)+')').join(' ')} to be stable and receive pointer events`,Date.now()-(end-timeout));last=r;}}
+ async click({button='left',clickCount=1,modifiers=[],position,timeout=5000}={}){
+  const p=await this.center({position,timeout});
   for(const m of modifiers)await this.page.keyboard.down(m==='ControlOrMeta'?'Meta':m);
   await this.page.mouse.move(p.x,p.y);
   for(let i=1;i<=clickCount;i++){await this.page.mouse.down({button,clickCount:i});await this.page.mouse.up({button,clickCount:i});}
@@ -118,6 +145,7 @@ export class Locator{
   await this.one((e,v)=>{e.value=v;e.dispatchEvent(new InputEvent('input',{bubbles:true,inputType:'insertText',data:v}));return true;},value);}
  async press(key){await this.focus();await this.page.keyboard.press(key);}
  async type(text){await this.focus();await this.page.keyboard.type(text);}
+ async pressSequentially(text,{delay=0}={}){await this.focus();for(const ch of String(text)){await this.page.keyboard.type(ch);if(delay)await pause(delay);}}
  screenshot(){throw new UndefinedNativeAdapterError('Locator shim lacks screenshot');}
  page(){return this.page;}
 }
@@ -151,14 +179,17 @@ export class Page{
  evaluate(fn,arg){return this.evalExpression(call(fn,arg));}
  async waitForFunction(fn,arg,{timeout=5000,polling=50}={}){const end=Date.now()+timeout;let last;
   for(;;){try{last=await this.evaluate(fn,arg);if(last)return last;}catch(e){last=e.message;}
-   if(Date.now()>end)throw Error('waitForFunction timed out: '+JSON.stringify(last));await pause(typeof polling==='number'?polling:50);}}
+   if(Date.now()>end)throw timeoutError('waitForFunction timed out: '+JSON.stringify(last),Date.now()-(end-timeout));await pause(typeof polling==='number'?polling:50);}}
+ emulateMedia(options={}){return this.cdp.send('Emulation.setEmulatedMedia',{features:Object.entries(options).map(([name,value])=>({name:({reducedMotion:'prefers-reduced-motion',colorScheme:'prefers-color-scheme'})[name]||name,value}))});}
  waitForTimeout(ms){return pause(ms);}
  async waitForLoadState(){await this.waitForFunction(()=>document.readyState!=='loading');}
  locator(selector,options){return new Locator(this,[step(selector,options)]);}
+ frameLocator(selector){return new ChildFramePage(this,selector);}
  // Playwright's page.$: the first match, or null when nothing matches.
  async $(selector){const found=this.locator(selector);return await found.count()?found.first():null;}
  $$eval(selector,fn,arg){return this.locator(selector).all(fn,arg);}
- getByRole(){throw new UndefinedNativeAdapterError('Page shim lacks getByRole');}
+ getByRole(role,options){return new Locator(this,[roleStep(role,options)]);}
+ isVisible(selector){return this.locator(selector).isVisible();}
  fill(selector,value){return this.locator(selector).fill(value);}
  press(selector,key){return this.locator(selector).press(key);}
  hover(selector){return this.locator(selector).hover();}
@@ -177,9 +208,39 @@ export class Page{
   if(name!=='close'||!this.app)throw new UndefinedNativeAdapterError('Page shim waits only for a tab closing');
   const end=Date.now()+timeout;
   for(;;){await this.app.refresh();if(this.isClosed())return;
-   if(Date.now()>end)throw Error('Timeout waiting for the page to close');await pause(50);}}
+   if(Date.now()>end)throw timeoutError('Timeout waiting for the page to close',Date.now()-(end-timeout));await pause(50);}}
  context(){if(!this.app)throw new UndefinedNativeAdapterError('Page shim lacks context');return this.app.context();}
  bringToFront(){return this.cdp.send('Page.bringToFront');}
+}
+// Resolve the actual frame owner and inspect its own document through CDP.
+// An isolated automation world does not enable page scripts or change sandbox
+// flags. Pointer input still enters the top-level widget at the frame's bounds.
+class ChildFramePage extends Page {
+ constructor(parent,selector){
+  const input={send:async(method,args)=>{await parent.evaluate(()=>true);return parent.cdp.send(method,args);}};
+  super({cdp:input,url:'',closed:()=>parent.isClosed()});
+  this.parent=parent;this.selector=selector;this.app=parent.app;
+ }
+ frameLocator(){throw new UndefinedNativeAdapterError('Nested child-frame locators need a native adapter');}
+ async offset(){
+  const parent=await this.parent.offset();
+  const box=await this.parent.locator(this.selector).evaluate(e=>{const r=e.getBoundingClientRect();return {x:r.x+e.clientLeft,y:r.y+e.clientTop};});
+  return {x:parent.x+box.x,y:parent.y+box.y};
+ }
+ async evalExpression(expression){
+  await this.parent.evaluate(()=>true);
+  const cdp=this.parent.cdp;
+  const {result,exceptionDetails}=await cdp.send('Runtime.evaluate',{
+   expression:`document.querySelector(${jsLiteral(this.selector)})`,contextId:await this.parent.contextId(),returnByValue:false});
+  if(exceptionDetails||!result.objectId)throw Error('Frame owner is missing: '+this.selector);
+  let frameId;
+  try{frameId=(await cdp.send('DOM.describeNode',{objectId:result.objectId})).node.frameId;}
+  finally{await cdp.send('Runtime.releaseObject',{objectId:result.objectId});}
+  if(!frameId)throw Error('Selected element is not a loaded frame: '+this.selector);
+  const frameCdp=this.app?await this.app.frameConnection(frameId,cdp):cdp;
+  const {executionContextId}=await frameCdp.send('Page.createIsolatedWorld',{frameId,worldName:'blanc-native-test-locator'});
+  return frameCdp.eval(expression,executionContextId);
+ }
 }
 // Shipping URLs for the Island's documents and its internal pages.
 export const ISLAND_FRAMES={'blanc-chrome://overlay/':'overlay','blanc-chrome://index/':'strip','blanc-chrome://float/':'floatPill','blanc-chrome://permission/':'permission','blanc-chrome://glance/':'glanceCardFrame'};
@@ -199,12 +260,21 @@ const HOLD_ANCHOR='about:blank#blanc-hold';
 export function createAppShim(fixture){
  const pages=new Map();
  const ported={};
+ const frameConnections=new Map();
  const app={
   windows(){return [...pages.values()];},
   evaluate(fn,arg){
    const port=PORTS[sourceKey(fn)];
-   if(!port)throw new UndefinedNativeAdapterError('Shipping main-process evaluate needs a native adapter');
+   // A rejection, not a throw: a cleanup that catches (ctx.app?.evaluate(...)
+   // .catch()) stays a no-op, and an awaited step still fails as undefined.
+   if(!port)return Promise.reject(new UndefinedNativeAdapterError('Shipping main-process evaluate needs a native adapter'));
    return port(fixture,ported,arg);
+  },
+  async frameConnection(frameId,parent){
+   const target=(await fixture.targets()).find(t=>t.id===frameId&&t.type==='iframe');
+   if(!target)return parent;
+   if(!frameConnections.has(frameId))frameConnections.set(frameId,await fixture.connectTarget(target));
+   return frameConnections.get(frameId);
   },
   firstWindow(){return pages.get('strip');},
   // Playwright's BrowserContext. pages() is synchronous, so a poll sees a
@@ -217,10 +287,24 @@ export function createAppShim(fixture){
   // and Playwright's hold on shipping's pages doesn't count as that.
   releasePages(){for(const page of pages.values())if(page.targetId&&page.cdp){page.cdp.close();page.cdp=null;}},
   // A relaunch replaces every connection; pages are rebuilt on refresh.
-  reset(){for(const page of pages.values())page.closed=true;pages.clear();},
+  reset(){for(const page of pages.values())page.closed=true;pages.clear();for(const cdp of frameConnections.values())cdp.close();frameConnections.clear();},
   async refresh(){
    for(const [url,frame] of Object.entries(ISLAND_FRAMES))if(!pages.has(frame)){const page=new Page({cdp:fixture.host,url,frame,host:fixture.host});page.app=app;pages.set(frame,page);}
-   const targets=(await fixture.targets()).filter(t=>t.type==='page'&&!t.url.startsWith('chrome://blanc-prototype/host.html')&&t.url!==HOLD_ANCHOR);
+   const allTargets=await fixture.targets();
+   // Each native window owns an Island host. Expose its real iframe pages,
+   // too, so shipping's two-window assertions inspect both renderers.
+   const hosts=allTargets.filter(t=>t.type==='page'&&t.url==='chrome://blanc-prototype/host.html');
+   const liveHosts=new Set(hosts.map(t=>t.id));
+   for(const [key,page] of pages)if(page.hostTargetId&&!liveHosts.has(page.hostTargetId)){page.closed=true;pages.delete(key);}
+   for(const target of hosts){
+    if(target.id===fixture.hostTargetId||pages.has('island:'+target.id+':strip'))continue;
+    const host=await fixture.connectTarget(target);
+    for(const [url,frame] of Object.entries(ISLAND_FRAMES)){
+     const page=new Page({cdp:host,url,frame,host});page.app=app;page.hostTargetId=target.id;
+     pages.set('island:'+target.id+':'+frame,page);
+    }
+   }
+   const targets=allTargets.filter(t=>t.type==='page'&&!t.url.startsWith('chrome://blanc-prototype/host.html')&&t.url!==HOLD_ANCHOR);
    const live=new Set(targets.map(t=>t.id));
    for(const [key,page] of pages)if(page.targetId&&!live.has(page.targetId)){page.closed=true;pages.delete(key);}
    // A tab keeps its target as it navigates.
@@ -229,7 +313,7 @@ export function createAppShim(fixture){
     const page=new Page({cdp:null,url:shippingPageUrl(t.url),closed:()=>page.closed===true});page.targetId=t.id;page.app=app;
     // Connect lazily; most steps never touch tab documents.
     const connectFor=async()=>{if(!page.cdp){page.cdp=await fixture.connectTarget(t);page.keyboard=new Keyboard(page.cdp);page.mouse=new Mouse(page.cdp,()=>page.offset(),()=>page.keyboard.modifiers);}return page.cdp;};
-    for(const m of ['evalExpression','offset'])page[m]=(orig=>async(...a)=>{await connectFor();return orig.apply(page,a);})(Page.prototype[m]);
+    for(const m of ['evalExpression','offset','bringToFront'])page[m]=(orig=>async(...a)=>{await connectFor();return orig.apply(page,a);})(Page.prototype[m]);
     pages.set(t.id,page);
    }
   },

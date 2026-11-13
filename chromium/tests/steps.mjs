@@ -4,12 +4,36 @@ const require=createRequire(import.meta.url);
 const {CucumberExpression,RegularExpression,ParameterTypeRegistry}=require('@cucumber/cucumber-expressions');
 const parameters=new ParameterTypeRegistry();
 const {loadShippingCore}=require('./lib/shipping-core.cjs');
+import {BATCH_CLOSE_STEPS} from './fork-steps/batch-close.mjs';
+import {LINK_SPACE_STEPS} from './fork-steps/link-space.mjs';
+import {ARCHIVE_STEPS} from './fork-steps/archive.mjs';
+import {PINNED_HOME_STEPS} from './fork-steps/pinned-home.mjs';
+import {WORKSPACE_LIFECYCLE_STEPS} from './fork-steps/workspace-lifecycle.mjs';
+import {GLANCE_STEPS} from './fork-steps/glance.mjs';
+import {CERTIFICATE_RECOVERY_STEPS} from './fork-steps/certificate-recovery.mjs';
+import {WINDOW_LAYOUT_STEPS} from './fork-steps/window-layout.mjs';
 import {DIVERGENCES} from './fork-steps/divergences.mjs';
 export const definitions=[];
 // These intent-level steps preserve the assertions in shipping v1.45.1
 // test/desktop/steps/runnable.steps.js; only the native transport changes.
 function register(expression,run,source,sourceSha256=null){
+ const batchClose=BATCH_CLOSE_STEPS.get(String(expression));
+ if(batchClose){run=batchClose;source=`chromium/tests/fork-steps/batch-close.mjs (shipping ${source})`;}
+ const linkSpace=LINK_SPACE_STEPS.get(String(expression));
+ if(linkSpace){run=linkSpace;source=`chromium/tests/fork-steps/link-space.mjs (shipping ${source})`;}
+ const archive=ARCHIVE_STEPS.get(String(expression));
+ if(archive){run=archive;source=`chromium/tests/fork-steps/archive.mjs (shipping ${source})`;}
  // An owner-approved divergence replaces shipping's step and says so.
+ const transport=WINDOW_LAYOUT_STEPS.get(String(expression));
+ if(transport){run=transport;source=`chromium/tests/fork-steps/window-layout.mjs (shipping ${source})`;}
+ const recovery=CERTIFICATE_RECOVERY_STEPS.get(String(expression));
+ if(recovery){run=recovery;source=`chromium/tests/fork-steps/certificate-recovery.mjs (shipping ${source})`;}
+ const glance=GLANCE_STEPS.get(String(expression));
+ if(glance){run=glance;source=`chromium/tests/fork-steps/glance.mjs (shipping ${source})`;}
+ const lifecycle=WORKSPACE_LIFECYCLE_STEPS.get(String(expression));
+ if(lifecycle){run=lifecycle;source=`chromium/tests/fork-steps/workspace-lifecycle.mjs (shipping ${source})`;}
+ const pinned=PINNED_HOME_STEPS.get(String(expression));
+ if(pinned){run=pinned;source=`chromium/tests/fork-steps/pinned-home.mjs (shipping ${source})`;}
  const divergent=DIVERGENCES.get(String(expression));
  if(divergent){run=divergent.run;source=`chromium/tests/fork-steps/divergences.mjs (${divergent.divergence}; shipping ${source})`;}
  const matcher=expression instanceof RegExp?new RegularExpression(expression,parameters):typeof expression==='string'?new CucumberExpression(expression,parameters):null;
@@ -42,7 +66,7 @@ step('the page content is enlarged',async function(){await this.waitFor(()=>acti
 step('I reset the zoom',async function(){assert.equal(await this.call('zoomReset'),true);},'spec/acceptance/platform-services.feature');
 step("the page returns to its default scale",async function(){await this.waitFor(()=>activeScale(this),n=>Math.abs(n-this.zoomBefore)<1e-6,'page reset');},'spec/acceptance/platform-services.feature');
 // Steps shipping never defined, written for the fork from their Gherkin.
-for(const area of ['island','commands','pages','tabs']){
+for(const area of ['island','commands','pages','tabs','sync','private','shared-spaces','capture','import','profiles','link-routing']){
  const {default:registerArea}=await import(`./fork-steps/${area}.mjs`);
  registerArea((expression,run)=>step(expression,run,`chromium/tests/fork-steps/${area}.mjs`));
 }

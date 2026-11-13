@@ -1,0 +1,42 @@
+diff --git a/chrome/browser/prefs/browser_prefs.cc b/chrome/browser/prefs/browser_prefs.cc
+--- a/chrome/browser/prefs/browser_prefs.cc
++++ b/chrome/browser/prefs/browser_prefs.cc
+@@ -1741,6 +1741,9 @@
+   // Start Page Patron callout snooze (F35-11): 0 until closed once, then the
+   // close time in ms since the epoch, as in shipping's patronCalloutDismissedAt.
+   registry->RegisterInt64Pref("blanc.start.patron_callout_dismissed_at", 0);
++  // Default page zoom (F62), in percent: device-wide as shipping keeps it;
++  // every profile follows it.
++  registry->RegisterIntegerPref("blanc.page_zoom", 100);
+   // Play the Sunrise when Blanc opens (F35-19), device-local as in shipping.
+   registry->RegisterBooleanPref("blanc.start.launch_sunrise", false);
+ #endif
+diff --git a/chrome/browser/resources/settings/appearance_page/appearance_page.html.ts b/chrome/browser/resources/settings/appearance_page/appearance_page.html.ts
+--- a/chrome/browser/resources/settings/appearance_page/appearance_page.html.ts
++++ b/chrome/browser/resources/settings/appearance_page/appearance_page.html.ts
+@@ -467,6 +467,10 @@
+         `)}
+       </select>
+     </div>
++    <cr-link-row id="blancSiteZoom" class="hr" ?hidden="${!this.pageVisibility_.pageZoom}"
++        label="$i18n{siteSettingsCategoryZoomLevels}" sub-label="$i18n{blancSiteZoomHint}"
++        @click="${this.onBlancSiteZoomClick_}">
++    </cr-link-row>
+ <if expr="is_macosx">
+     <settings-toggle-button class="hr" pref-key="webkit.webprefs.tabs_to_links"
+         label="$i18n{tabsToLinks}">
+diff --git a/chrome/browser/resources/settings/appearance_page/appearance_page.ts b/chrome/browser/resources/settings/appearance_page/appearance_page.ts
+--- a/chrome/browser/resources/settings/appearance_page/appearance_page.ts
++++ b/chrome/browser/resources/settings/appearance_page/appearance_page.ts
+@@ -576,6 +576,11 @@
+     Router.getInstance().navigateTo(routes.FONTS);
+   }
+ 
++  // Blanc (F62): the sites with their own zoom, Chromium's Zoom levels list.
++  protected onBlancSiteZoomClick_() {
++    Router.getInstance().navigateTo(routes.SITE_SETTINGS_ZOOM_LEVELS);
++  }
++
+   protected onDisableExtensionClick_() {
+     PrefService.getInstance().refreshPrefFromBackend('homepage');
+   }

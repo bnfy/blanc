@@ -11,7 +11,7 @@ source_set("service") {
 }
 source_set("browser") {
   sources = [ "//blanc/services/blocker/blocker_proxy.cc", "//blanc/services/blocker/shield_page_count.h", "//blanc/services/blocker/blocker_available.h", "//blanc/services/blocker/blocker_proxy.h", "//blanc/services/blocker/bundle_hash.h" ]
-  deps = [ ":mojom", "//base", "//content/public/browser", "//crypto", "//components/sessions", "//chrome/browser/profiles:profile", "//components/prefs",
+  deps = [ "//blanc:buildflags", ":mojom", "//base", "//content/public/browser", "//crypto", "//components/sessions", "//chrome/browser/profiles:profile", "//components/prefs",
            "//mojo/public/cpp/bindings", "//net", "//services/network/public/cpp",
            "//services/network/public/mojom", "//url" ]
   # The research hooks are compiled out, so Android (no extension system) builds without these.

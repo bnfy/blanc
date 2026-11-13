@@ -43,3 +43,11 @@ test('stable GitHubProvider ignores newer beta Atom entry and requests only stab
   assert.ok(requests.includes(`/bnfy/blanc/releases/download/${stableTag}/latest-mac.yml`));
   assert.ok(!requests.some(p=>p.includes(beta.tag)));
 });
+
+test('approved beta identity is separate from stable and beta 1 records the Intel waiver',()=>{
+  assert.equal(beta.version,'2.0.0-beta.1');assert.equal(beta.tag,'chromium-beta-2.0.0-beta.1');
+  assert.equal(beta.bundleId,'me.bnfy.blanc.beta');assert.equal(beta.userDataDir,'Blanc Beta');
+  assert.equal(beta.launchScheme,'blanc-beta');assert.equal(beta.minimumSystemVersion,'13.0');
+  assert.deepEqual(beta.arches,['arm64']);assert.match(beta.archWaiver,/Owner approved 2026-11-10/);
+  assert.throws(()=>validateRelease({...beta,arches:['arm64','x64']}));
+});

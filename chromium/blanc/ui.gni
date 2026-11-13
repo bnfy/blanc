@@ -1,5 +1,6 @@
 # Custom source is canonical under //blanc; target ownership stays at the
 # browser boundary to respect upstream dependency visibility.
+import("//blanc/config.gni")
 import("//build/config/features.gni")
 import("//build/config/ozone.gni")
 import("//build/config/ui.gni")
@@ -19,11 +20,16 @@ source_set(target_name) {
               "//blanc/browser/ui/browser_api/bang_icon_policy.cc", "//blanc/browser/ui/browser_api/bang_icon_policy.h",
               "//blanc/browser/ui/browser_api/search.cc", "//blanc/browser/ui/browser_api/search.h",
               "//blanc/browser/ui/browser_api/suggestion_policy.cc", "//blanc/browser/ui/browser_api/suggestion_policy.h",
-              "//blanc/browser/ui/browser_api/search_choice.h",
               "//blanc/browser/ui/browser_api/appearance.cc", "//blanc/browser/ui/browser_api/appearance.h",
               "//blanc/browser/ui/browser_api/theme_choice.h" ]
   public_deps = [ "//chrome/browser/ui/views/frame:browser_view_header" ]
   deps = [
+    "//ui/base/accelerators/global_accelerator_listener",
+    "//blanc/services/sync_runner:mojom",
+    "//blanc/services/sync_runner:resources",
+    "//blanc/browser/sync:search_validation",
+    "//blanc/browser/sync:favorite_helpers",
+    "//blanc/browser/sync",
     "//blanc:buildflags",
     "//blanc/common/browser_api",
     "//blanc/island_resources",
@@ -67,6 +73,7 @@ source_set(target_name) {
     "//base",
     "//base:i18n",
     "//ui/gfx/codec",
+    "//ui/shell_dialogs",
     "//skia",
     "//services/data_decoder/public/cpp",
     "//chrome/app:branded_strings",
@@ -215,6 +222,8 @@ source_set(target_name) {
     "//chrome/browser/ui/window_metadata",
     "//chrome/browser/ui/window_sizer",
     "//chrome/browser/ui/zoom:browser_window_zoom_observer",
+    "//chrome/browser/ui/zoom",
+    "//components/zoom",
     "//chrome/browser/user_education",
     "//chrome/common",
     "//chrome/common:channel_info",
@@ -299,6 +308,7 @@ source_set(target_name) {
     ]
   }
   if (is_mac) {
+    deps += [ "//blanc:beta_updater" ]
     sources += [ "//blanc/browser/ui/window_buttons_mac.h", "//blanc/browser/ui/window_buttons_mac.mm",
                  "//blanc/browser/ui/app_menus_mac.h", "//blanc/browser/ui/app_menus_mac.mm" ]
     frameworks = [ "AppKit.framework" ]

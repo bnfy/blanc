@@ -3,7 +3,7 @@ const path = require('node:path');
 const crypto = require('node:crypto');
 const Module = require('node:module');
 const {execFileSync} = require('node:child_process');
-const reference = '6479ed3a314e4fd6219b8de1598bacffa78b4d7c';
+const reference = '8a4e57e78dfe47a72c05d17fd6040be26c3dffd3';
 // Step files whose definitions S1-tagged scenarios resolve to at the reference.
 // Later slices add their files when their adapters start.
 const stepFiles = [
@@ -14,7 +14,7 @@ const stepFiles = [
  'tab-drag', 'workspace-recovery', 'group-names', 'link-children', 'group-colors',
  'tab-menu-additions', 'browser-migration', 'split-view', 'spaces-redesign',
  'workspace-lifecycle', 'move-to-space', 'tab-selection', 'quiet-tabs',
- 'group-space',
+ 'group-space', 'other-devices', 'send-to-device', 'arc-import', 'tab-archive', 'open-link-in-space', 'link-routing', 'mini-window', 'page-zoom',
 ].map(name => `test/desktop/steps/${name}.steps.js`);
 // Every import was audited for module-load effects: support helpers reach the
 // app only through the context the runner injects, and the product modules are

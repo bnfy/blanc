@@ -1,4 +1,5 @@
 import {waitFor,pause} from './lib/cdp.mjs';
+import {phase} from './lib/timing.mjs';
 import {nativeCall,installDriver} from './lib/test-driver.mjs';
 import {shippingCore} from './steps.mjs';
 import {UndefinedNativeAdapterError,observedState} from './lib/adapters.mjs';
@@ -15,7 +16,7 @@ export function missingAdapters(definition){
 }
 export function createWorld(fixture){
  const app=createAppShim(fixture);
- const world={fixture,app,named:new Map(),waitFor,
+ const world={fixture,app,shippingContext:shippingCore.context,named:new Map(),waitFor,
   fixtureUrl:n=>fixture.base+'/site/'+encodeURIComponent(n),
   // Shipping hooks.js host mapping: the resolver sends these names to the
   // loopback fixture servers (lib/fixture.mjs).
@@ -54,7 +55,7 @@ export function createWorld(fixture){
    await this.waitForState(s=>s.tabs.length===1&&s.activeTabId===keep&&!s.tabs[0].loading);
    await app.refresh();
   },
-  async relaunch({crash=false}={}){
+  async relaunch({crash=false,afterStop}={}){
    // adapters/tabs.mjs's runtimes() caches the primary window's CDP target id
    // on this world object (_primaryTarget) and its secondary hosts (_hosts)
    // to avoid reinstalling the test driver on every call. A relaunch is a new
@@ -64,7 +65,13 @@ export function createWorld(fixture){
    // colliding with ids the native side already has on record for it.
    delete this._primaryTarget;this._hosts=new Map();
    if(!crash){
-    await fixture.stop({crash});await fixture.start();
+    await fixture.stop({crash});await afterStop?.();await fixture.start(null,{waitBlocker:false});
+    // Like crash restore below, an internal-page-only session has made no
+    // network request and legitimately has not started the blocker yet.
+    // Restored quiet web tabs also make no request until activated.
+    const restored=await waitFor(fixture.snapshot,s=>s?.tabs?.length>0,'restored tab model');
+    if(restored.tabs.some(t=>!t.asleep&&/^https?:\/\//.test(t.url)))
+     await phase('blockerReadiness',()=>waitFor(fixture.snapshot,s=>s.blockerHealth==='ready','blocker',45000));
     await installDriver(fixture.host);app.reset();await app.refresh();
     return;
    }
@@ -93,8 +100,8 @@ export function createWorld(fixture){
    // hold nothing but chrome://newtab/ (e.g. a successful move leaves the
    // source with no page of its own), and would never reach "ready" then.
    const restored=await fixture.snapshot();
-   if(restored.tabs.some(t=>/^https?:\/\//.test(t.url)))
-    await waitFor(fixture.snapshot,s=>s.blockerHealth==='ready','blocker',45000);
+   if(restored.tabs.some(t=>!t.asleep&&/^https?:\/\//.test(t.url)))
+    await phase('blockerReadiness',()=>waitFor(fixture.snapshot,s=>s.blockerHealth==='ready','blocker',45000));
    await app.refresh();
   },
   bindShippingContext(){

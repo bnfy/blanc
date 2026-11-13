@@ -25,6 +25,8 @@ bool SetBlockingSiteException(content::BrowserContext* context,
 base::DictValue BlockedThisWeek(content::BrowserContext* context);
 // Read-only tab-lifetime count; never creates state.
 int ShieldBlockedCount(content::WebContents* contents);
+// Requires the preview build and explicit --blanc-test. Seeds the real counter.
+bool SeedShieldBlockedCountForTesting(content::WebContents* contents, int count);
 void AddNavigationResponseGate(content::NavigationThrottleRegistry& registry);
 std::unique_ptr<content::CommitDeferringCondition> MaybeCreateActivationGate(
     content::NavigationHandle& navigation,

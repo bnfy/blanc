@@ -1,0 +1,24 @@
+diff --git a/chrome/browser/ui/views/frame/multi_contents_view.cc b/chrome/browser/ui/views/frame/multi_contents_view.cc
+--- a/chrome/browser/ui/views/frame/multi_contents_view.cc
++++ b/chrome/browser/ui/views/frame/multi_contents_view.cc
+@@ -264,6 +264,8 @@
+     content::WebContents* web_contents,
+     int index) {
+   CHECK(index >= 0 && index < 2);
++  // Blanc (F53-29): a Glance floating over a split lets go of its page first.
++  blanc_prototype::ReleaseOverlayGlance(web_contents);
+   contents_container_views_[index]->contents_view()->SetWebContents(
+       web_contents);
+ 
+diff --git a/chrome/browser/ui/views/frame/browser_view.cc b/chrome/browser/ui/views/frame/browser_view.cc
+--- a/chrome/browser/ui/views/frame/browser_view.cc
++++ b/chrome/browser/ui/views/frame/browser_view.cc
+@@ -2111,6 +2111,8 @@
+ 
+     const tabs::TabInterface* active_tab =
+         tabs::TabInterface::GetFromContents(new_contents);
++    // Blanc (F53-29): a Glance floating over a split lets go of its page first.
++    blanc_prototype::ReleaseOverlayGlance(new_contents);
+     if (active_tab->IsSplit()) {
+       ShowSplitView(/*focus_active_view=*/false);
+     } else {

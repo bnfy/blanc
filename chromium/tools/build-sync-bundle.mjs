@@ -11,7 +11,7 @@ import {fileURLToPath} from 'node:url';
 const here = path.dirname(fileURLToPath(import.meta.url));
 const root = path.resolve(here, '../..');
 const runner = path.resolve(here, '../blanc/services/sync_runner');
-const SHIMS = ['crypto', 'fs', 'path', 'os', 'child_process', 'async_hooks', 'url', 'electron', 'spaces'];
+const SHIMS = ['crypto', 'fs', 'path', 'os', 'child_process', 'async_hooks', 'url', 'electron', 'spaces', 'desktop-spaces', 'desktop-tabs'];
 const EXTERNAL = {crypto: 'crypto', 'node:crypto': 'crypto', fs: 'fs', 'node:fs': 'fs', path: 'path', 'node:path': 'path',
   os: 'os', child_process: 'child_process', 'node:async_hooks': 'async_hooks', 'node:url': 'url', electron: 'electron'};
 
@@ -88,7 +88,7 @@ inline constexpr char kBlancSyncBundleSha256[] = "${hash}";
 `;
 
 if (process.argv[1] === fileURLToPath(import.meta.url)) {
-  const tag = JSON.parse(fs.readFileSync(path.resolve(here, '../tracker.json'), 'utf8')).shippingTag;
+  const tag = (t => t.bundleTag ?? t.shippingTag)(JSON.parse(fs.readFileSync(path.resolve(here, '../tracker.json'), 'utf8')));
   const text = bundle(tag), header = hashHeader(sha256(text));
   const bundlePath = path.join(runner, 'generated/sync-bundle.js'), headerPath = path.join(runner, 'bundle_hash.h');
   if (process.argv.includes('--check')) {

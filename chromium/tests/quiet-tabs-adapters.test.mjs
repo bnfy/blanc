@@ -22,7 +22,14 @@ test('the real slash-command panel releases page inspection connections', async 
  assert.match(calls[1],/api.openIsland/);
 });
 
-test('private discard remains undefined before any dispatch',async()=>{
- const w={snapshot:async()=>({tabs:[{id:17,private:true}]}),app:{releasePages(){assert.fail('private discard must not start');}}};
- await assert.rejects(()=>tabs.sleepTab(w,'17'),{code:'BLANC_ADAPTER_UNDEFINED'});
+test('private discard uses the same production path after detaching',async()=>{
+ const calls=[];
+ const w={app:{releasePages(){calls.push('detach');}},api(m,a){calls.push([m,a]);return true;}};
+ assert.equal(await tabs.sleepTab(w,'17'),true);
+ assert.deepEqual(calls,['detach',['quietTab',['17']]]);
+});
+
+test('persistence observation refuses even encoded or non-secret page state',async()=>{
+ const w={native:async()=>({windows:[{tabs:[{navigations:[{pageStateBytes:32}]}]}]})};
+ await assert.rejects(()=>tabs.persistedSessionData(w),/Persisted navigation contains recovery page state/);
 });
