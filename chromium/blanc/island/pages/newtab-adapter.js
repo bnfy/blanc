@@ -129,20 +129,16 @@
   const WIDGETS = ['favorites', 'devices', 'shortcuts'];
   let sharedWidgets = null, widgetsEpoch = 0;
   const CARDS = ['favorites', 'devices', 'sent'];
-  // An extension's side panel shown as a card (prototype): "ext:<extension id>".
-  const PANEL_ID = /^[a-p]{32}$/;
-  const PANEL_CARD = /^ext:[a-p]{32}$/;
   // The heights a scrolling card snaps to (CSS pixels); 0 fits its column.
   const CARD_SIZES = [240, 360, 480, 600, 720];
-  const SIZABLE = card => card === 'favorites' || card === 'devices' || PANEL_CARD.test(card);
+  const SIZABLE = card => card === 'favorites' || card === 'devices';
   const DEFAULT_PLACE = {left: ['favorites', 'devices'], right: ['sent']};
   const placeOf = value => {
-    const side = list => Array.isArray(list) ? list.filter(name => CARDS.includes(name) || PANEL_CARD.test(name)) : [];
+    const side = list => Array.isArray(list) ? list.filter(name => CARDS.includes(name)) : [];
     const place = {left: side(value?.left), right: side(value?.right)};
     return place.left.length + place.right.length ? place : DEFAULT_PLACE;
   };
   const widgetsOf = value => ({...Object.fromEntries(WIDGETS.map(name => [name, value?.[name] === true])), place: placeOf(value?.place),
-    panels: Array.isArray(value?.panels) ? value.panels.filter(id => PANEL_ID.test(id)) : [],
     sizes: Object.fromEntries(Object.entries(value?.sizes && typeof value.sizes === 'object' ? value.sizes : {})
       .filter(([card, size]) => SIZABLE(card) && CARD_SIZES.includes(size)))});
   const noWidgets = () => widgetsOf(null);
@@ -468,25 +464,6 @@
           return sharedWidgets;
         } catch (error) { ++widgetsEpoch; throw error; }
       },
-      // Extensions' side panels as cards (prototype). The list is the
-      // installed extensions that have a side panel; a panel is drawn by
-      // Blanc over its card's slot, so the page reports where the slot is.
-      panels: async () => {
-        const value = await request('panelList');
-        return Array.isArray(value) ? value.filter(p => p && PANEL_ID.test(p.id) && typeof p.name === 'string') : [];
-      },
-      setPanel: async (id, on) => {
-        if (!PANEL_ID.test(id)) throw new Error('Unknown extension');
-        ++widgetsEpoch;
-        try {
-          const value = await request('widgetsPanel', [id, on === true]);
-          ++widgetsEpoch;
-          if (!value || typeof value !== 'object') throw new Error('Widget confirmation unavailable');
-          sharedWidgets = widgetsOf(value);
-          publish();
-          return sharedWidgets;
-        } catch (error) { ++widgetsEpoch; throw error; }
-      },
       // A scrolling card's height, one of CARD_SIZES, or 0 to fit its column.
       setWidgetSize: async (card, size) => {
         if (!SIZABLE(card) || !(size === 0 || CARD_SIZES.includes(size)))
@@ -502,9 +479,6 @@
         } catch (error) { ++widgetsEpoch; throw error; }
       },
       cardSizes: CARD_SIZES,
-      placePanel: (id, rect) => PANEL_ID.test(id) ?
-        request('panelPlace', [id, rect.x, rect.y, rect.width, rect.height]) : Promise.resolve(false),
-      hidePanels: (id = '') => request('panelHide', [PANEL_ID.test(id) ? id : '']),
       // Where the cards sit: the left and right columns, top to bottom.
       setWidgetPlace: async (left, right) => {
         ++widgetsEpoch;
