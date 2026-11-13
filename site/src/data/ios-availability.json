@@ -5,8 +5,8 @@
   "since": "2026-11-06",
   "build": "1.0 (202611030537)",
   "ipadBuild": "1.0.3 (202611121714)",
-  "ipadSince": null,
+  "ipadSince": "2026-11-12",
   "joinUrl": "https://testflight.apple.com/join/AfczdZne",
   "betaSince": "2026-10-28",
-  "note": "Blanc for iPhone 1.0 is on the App Store (Apple ID 6828027794), approved by App Review and released by the owner on 2026-11-06 (docs/ios/app-store-connect.md, item 21). Version 1.0.3 (ipadBuild) adds iPad to the same listing; ipadSince is the date it went on sale, filled in with docs/website-ipad-1.0.3-claims.json once App Review approves it. The public TestFlight beta (joinUrl) stays open for early builds. test/unit/iphone-pairing-offered.test.js reads public before the desktop may set IPHONE_PAIRING_FROM; site/src/pages/pair.astro and the download page link storeUrl."
+  "note": "Blanc for iPhone 1.0 is on the App Store (Apple ID 6828027794), approved by App Review and released by the owner on 2026-11-06 (docs/ios/app-store-connect.md, item 21). Version 1.0.3 (ipadBuild) adds iPad to the same listing; ipadSince is the date it went on sale (2026-11-12, docs/website-ipad-1.0.3-claims.json and docs/ios/app-store-connect.md item 24). The public TestFlight beta (joinUrl) stays open for early builds. test/unit/iphone-pairing-offered.test.js reads public before the desktop may set IPHONE_PAIRING_FROM; site/src/pages/pair.astro and the download page link storeUrl."
 }

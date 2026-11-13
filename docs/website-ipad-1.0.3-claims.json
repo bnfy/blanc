@@ -5,10 +5,10 @@
   "65428e44a47c598480464e6adb694c5a778fcf47": "iOS: Blanc for iPad (#1479)",
   "44280ff1dd0fae569a4270e07c6a3d2943c157f2": "iOS: websites start below the status bar and clear the Dynamic Island; version 1.0.3 (#1480)"
  },
- "approvedOn": null,
- "publicRelease": null,
+ "approvedOn": "2026-11-12",
+ "publicRelease": "2026-11-12",
  "releaseEvidence": "docs/ios/app-store-connect.md",
- "pending": "Prepared on November 12, 2026 and held: App Store version 1.0.3 (build 202611121714, from 44280ff1d, with #1479 and #1480) is submitted, or about to be, and App Review hasn’t approved it. Before merging: set approvedOn to the date App Review approved 1.0.3 and publicRelease to the date it went on sale on the App Store (both YYYY-MM-DD), set ipadSince in site/src/data/ios-availability.json to publicRelease, record 1.0.3 as approved or released in docs/ios/app-store-connect.md with its build and source commit, read the approved build’s iPad behavior against each qualification below, and make the privacy policy’s Last updated date no earlier than approvedOn. Don’t run site:deploy before 1.0.3 is on the App Store.",
+ "pending": "Released. App Review approved App Store version 1.0.3 (build 202611121714, from 44280ff1d, with #1479 and #1480) on November 12, 2026, about an hour after it was submitted (review submission 622e22ae, 18:34 UTC), and it released itself automatically: the App Store lists 1.0.3 from 19:30 UTC that day, with iPad devices and the seven 13-inch iPad screenshots. Note: #1485 merged at 18:45 UTC, before the approval, while this test reported held; the copy first reached production on November 13 with the What's New 1.49 deploy (from ac3d6d9), after 1.0.3 was on sale.",
  "ownerDecisions": {
   "approvedOn": "2026-11-12",
   "decisions": [
