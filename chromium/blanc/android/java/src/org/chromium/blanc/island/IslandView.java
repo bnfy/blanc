@@ -209,7 +209,9 @@ public class IslandView extends FrameLayout {
         mPill.setOutlineAmbientShadowColor(shadow);
         mPill.setOutlineSpotShadowColor(shadow);
         ColorStateList ink = ColorStateList.valueOf(style.text);
-        mMenu.setImageTintList(ink);
+        // The Sunrise mark keeps its own gold, as the Start Page shows it, never the Island's ink
+        // (#1463, the owner's call of November 11, 2026).
+        mMenu.setImageTintList(null);
         mStop.setImageTintList(ink);
         mBack.setImageTintList(ink);
         mForward.setImageTintList(ink);

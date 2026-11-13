@@ -266,4 +266,15 @@ public class IslandViewTest {
         mView.setLoadProgress(false, 1f);
         assertFalse(line.showing());
     }
+
+    // #1463: the Sunrise mark in its own gold, as the Start Page shows it, never in the Island's
+    // ink, private tabs included.
+    @Test
+    public void theSunriseMarkKeepsItsOwnColors() {
+        android.widget.ImageButton menu = mView.findViewById(R.id.blanc_island_menu);
+        mView.bind(state("example.com", false, 1, false));
+        assertEquals(null, menu.getImageTintList());
+        mView.bind(state("example.com", true, 1, false));
+        assertEquals(null, menu.getImageTintList());
+    }
 }
