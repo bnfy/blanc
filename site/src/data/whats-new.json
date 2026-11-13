@@ -7,6 +7,48 @@
   ],
   "pages": [
     {
+      "release": "1.49",
+      "highlights": [
+        {
+          "id": "mahjong-refresh",
+          "tile": "New Mahjong",
+          "title": "Mahjong, redesigned",
+          "body": "Mahjong now has Blanc’s Sunrise look in light and dark mode, with a simpler setup, a smaller results card and new tile artwork in three sets: Porcelain, Carved and Inlay. Clear three boards in a row and your next deal moves to the next set. On a wide window, the Burst rack sits beside the board.",
+          "steps": [
+            "On the Start Page, choose Mahjong at the bottom."
+          ],
+          "learnMore": "/features/start-page",
+          "media": {
+            "kind": "image",
+            "src": "/feature-captures/mahjong-refresh-v1.49.0.webp",
+            "width": 1440,
+            "height": 900,
+            "alt": "Mahjong in Blanc on the Turtle board in Burst mode, with cream tiles on a pale sunrise background and the Burst rack in a column beside the board."
+          },
+          "note": "A board keeps the set it was dealt in. Starting a new game partway through a board you’ve played on starts the count again."
+        },
+        {
+          "id": "spaces-button",
+          "tile": "Spaces",
+          "title": "Your Space, one click from ⌘L",
+          "body": "The closed Island no longer shows your Space’s mark, so it stays shorter. Open the panel, and the Spaces button at its bottom shows the Space you’re in, with its symbol and color. Click it to switch Spaces or start a new one.",
+          "steps": [
+            "Press `⌘L`, or `Ctrl+L` on Windows and Linux.",
+            "Click the Spaces button at the bottom right of the panel."
+          ],
+          "note": "With vertical tabs, your Space’s mark stays at the top of the side list.",
+          "learnMore": "/features/workspaces",
+          "media": {
+            "kind": "image",
+            "src": "/feature-captures/spaces-button-v1.49.0.webp",
+            "width": 1440,
+            "height": 900,
+            "alt": "Blanc’s ⌘L panel open over The Met’s page for Van Gogh’s Wheat Field with Cypresses. Its Spaces button shows a purple tile, and the Spaces menu below lists Work, Home, Painting class (checked) and Lisbon trip."
+          }
+        }
+      ]
+    },
+    {
       "release": "1.46",
       "highlights": [
         {
