@@ -184,8 +184,8 @@ public final class PaletteSheet extends Dialog {
         root.setOrientation(LinearLayout.VERTICAL);
         GradientDrawable background = new GradientDrawable();
         background.setColor(mStyle.raised);
-        float r = 22 * mDensity;
-        background.setCornerRadii(new float[] {r, r, r, r, 0, 0, 0, 0});
+        // All four corners: the sheet floats clear of the screen's edges (SheetPlacement, #1472).
+        background.setCornerRadius(SheetPlacement.CORNER * mDensity);
         root.setBackground(background);
 
         LinearLayout addressRow = new LinearLayout(activity);
@@ -278,32 +278,28 @@ public final class PaletteSheet extends Dialog {
             }
         });
 
-        // The window fills the space above the keyboard; the sheet sits at its bottom, at most
-        // RESTING_HEIGHT_DP tall, and its list gives up height first, so the field and the footer
-        // stay above the keyboard on any screen. A tap above the sheet closes it.
+        // The window fills the screen; the sheet floats at its bottom (SheetPlacement), at most
+        // RESTING_HEIGHT_DP tall plus the room it keeps for a gesture bar, and its list gives up
+        // height first, so the field and the footer stay above the keyboard on any screen. A tap
+        // above the sheet closes it.
         int resting = dp(RESTING_HEIGHT_DP);
         FrameLayout frame = new FrameLayout(activity) {
             @Override
             protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
-                int height = Math.min(resting, MeasureSpec.getSize(heightMeasureSpec) - getPaddingBottom());
-                ViewGroup.LayoutParams lp = root.getLayoutParams();
+                FrameLayout.LayoutParams lp = (FrameLayout.LayoutParams) root.getLayoutParams();
+                int height = Math.min(resting + root.getPaddingBottom(),
+                        MeasureSpec.getSize(heightMeasureSpec) - lp.bottomMargin - getPaddingTop());
                 if (lp.height != height) lp.height = height;
                 super.onMeasure(widthMeasureSpec, heightMeasureSpec);
             }
         };
         frame.addView(root, new FrameLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, resting, Gravity.BOTTOM));
         frame.setOnClickListener(v -> dismiss());
-        // Edge to edge (Android 15 and later), the window isn't resized for the keyboard, so the
-        // sheet keeps clear of it, and of the navigation bar, itself.
+        // Edge to edge, the window isn't resized for the keyboard or the navigation bar, so the
+        // sheet places itself clear of them.
         frame.setOnApplyWindowInsetsListener((v, insets) -> {
-            int bottom;
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
-                bottom = Math.max(insets.getInsets(WindowInsets.Type.ime()).bottom,
-                        insets.getInsets(WindowInsets.Type.navigationBars()).bottom);
-            } else {
-                bottom = insets.getSystemWindowInsetBottom();
-            }
-            v.setPadding(0, 0, 0, bottom);
+            place(root, background, insets);
+            v.setPadding(0, insets.getSystemWindowInsetTop(), 0, 0);
             return insets;
         });
         root.setClickable(true);
@@ -312,6 +308,19 @@ public final class PaletteSheet extends Dialog {
         Window window = getWindow();
         if (window != null) {
             window.setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
+            // The page shows around the floating sheet, under the navigation bar too: without this
+            // flag Android paints a dialog's bar strips black itself.
+            window.addFlags(WindowManager.LayoutParams.FLAG_DRAWS_SYSTEM_BAR_BACKGROUNDS);
+            window.setNavigationBarColor(Color.TRANSPARENT);
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) window.setNavigationBarContrastEnforced(false);
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+                window.setDecorFitsSystemWindows(false);
+                // A dialog's window stops above the system bars unless told otherwise; this one
+                // reaches the screen's edges, and the sheet places itself (SheetPlacement).
+                WindowManager.LayoutParams attributes = window.getAttributes();
+                attributes.setFitInsetsTypes(0);
+                window.setAttributes(attributes);
+            }
             window.setGravity(Gravity.BOTTOM);
             window.setLayout(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT);
             window.setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_ADJUST_RESIZE
@@ -319,6 +328,32 @@ public final class PaletteSheet extends Dialog {
         }
         render();
         bindSpaceMark();
+    }
+
+    /** Floats the sheet clear of the keyboard, the navigation bar and the screen's edges. */
+    private void place(View root, GradientDrawable background, WindowInsets insets) {
+        int navigation;
+        int tappable = 0;
+        int keyboard = 0;
+        float screenCorner = 0;
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+            navigation = insets.getInsets(WindowInsets.Type.navigationBars()).bottom;
+            tappable = insets.getInsets(WindowInsets.Type.tappableElement()).bottom;
+            keyboard = insets.getInsets(WindowInsets.Type.ime()).bottom;
+        } else {
+            navigation = insets.getSystemWindowInsetBottom();
+            tappable = navigation;
+        }
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+            android.view.RoundedCorner corner = insets.getRoundedCorner(android.view.RoundedCorner.POSITION_BOTTOM_LEFT);
+            if (corner != null) screenCorner = corner.getRadius() / mDensity;
+        }
+        SheetPlacement p = SheetPlacement.of(navigation / mDensity, tappable / mDensity, keyboard / mDensity, screenCorner);
+        FrameLayout.LayoutParams lp = (FrameLayout.LayoutParams) root.getLayoutParams();
+        lp.setMargins(dp(p.side), 0, dp(p.side), dp(p.bottom));
+        root.setLayoutParams(lp);
+        root.setPadding(0, 0, 0, dp(p.padding));
+        background.setCornerRadius(p.corner * mDensity);
     }
 
     public static PaletteSheet show(Activity activity, BlancTabs tabs, Callbacks callbacks) {
