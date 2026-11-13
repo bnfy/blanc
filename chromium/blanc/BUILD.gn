@@ -14,11 +14,15 @@ buildflag_header("buildflags") {
   ]
 }
 
-group("blanc") {
-  deps = [ ":ui", "services/blocker:browser" ]
-}
-group("ui") {
-  deps = [ "//chrome/browser/ui/views/frame:blanc_ui" ]
+# Desktop's views UI. The Android lane loads this file too (its blocker and sync use
+# :buildflags), and //chrome/browser/ui/views/frame asserts it is never built for Android.
+if (!is_android) {
+  group("blanc") {
+    deps = [ ":ui", "services/blocker:browser" ]
+  }
+  group("ui") {
+    deps = [ "//chrome/browser/ui/views/frame:blanc_ui" ]
+  }
 }
 
 # Header ownership stays available in preview; executable identity code is beta-only.
