@@ -114,6 +114,7 @@ try{
    footerItems:['.start-customize','.footer-right','#footerLeft'].map(s=>{const c=cs(s);return c?clear(c):true;}),
    fade:fade.content!=='none'&&fade.backgroundImage.includes('gradient'),
    markFilter:getComputedStyle(document.querySelector('.start-brand-mark')).filter,
+   lineWash:(await window.blancStartInk.explain(document.querySelector('.start-brand-date')))?.wash.alpha??null,
    brandOval:(h=>h.content!=='none'&&h.content!=='normal')(getComputedStyle(document.querySelector('.start-brand'),'::after')),
    dateClear:clear(cs('.start-brand-date')),
    clockHalo:clock.content!=='none'&&clock.content!=='normal',haloAttr:document.querySelector('.bb-clock-row').hasAttribute('data-halo')};})()`);
@@ -123,6 +124,7 @@ try{
  assert.ok(look.footerItems.every(Boolean),'the footer\'s items have no backing');
  assert.equal(look.fade,true,'the footer sits in a fade');
  assert.equal(look.brandOval,false,'no wash behind the date');
+ assert.ok(look.lineWash>0,`the ink chooser counts the page's wash (${look.lineWash})`);
  if(look.text['.start-brand-date']?.ink==='light')assert.match(look.markFilter,/invert/,'over a dark image the Sunrise mark turns cream with the date');assert.equal(look.dateClear,true,'the date has no backing');
  assert.equal(look.clockHalo,false,'no halo behind the clock');assert.equal(look.haloAttr,false);
  result.checks.push('over an image each widget card is glass, small text takes the ink its image calls for, the footer a fade, and the clock is as before');

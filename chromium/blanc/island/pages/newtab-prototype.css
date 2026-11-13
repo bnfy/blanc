@@ -406,3 +406,6 @@ body.widget-chart-on #bbBlocked { display: none; }
 .mahjong-pill-mark { flex: 0 0 auto; fill: none; stroke: var(--patron-gold); stroke-width: 1.3; }
 .mahjong-pill-mark rect:last-child { fill: color-mix(in srgb, var(--patron-gold) 18%, transparent); }
 @media (prefers-reduced-motion: reduce) { .mahjong-pill, .mahjong-pill:has(> a:active) { transition: none; transform: none; } }
+
+/* The clock centred on its ink (newtab.js sets --clock-optical). */
+.bb-clock-row { transform: translateX(var(--clock-optical, 0px)); }

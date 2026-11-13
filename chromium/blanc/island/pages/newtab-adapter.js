@@ -780,7 +780,7 @@
     const k = Number.isFinite(fade) ? fade : 1;
     let color = null, through = 1;
     for (const part of css.split(/(?=(?:radial|linear)-gradient\()/)) {
-      const stops = [...part.matchAll(/rgba\(\s*([\d.]+),\s*([\d.]+),\s*([\d.]+),\s*(?:calc\(\s*([\d.]+)\s*\*[^)]*\)\s*\)|([\d.]+))\s*\)\s*(-?[\d.]+)?(px|%)?/g)]
+      const stops = [...part.matchAll(/rgba\(\s*([\d.]+),\s*([\d.]+),\s*([\d.]+),\s*(?:calc\(\s*([\d.]+)\s*\*[^)]*\)|([\d.]+))\s*\)\s*(-?[\d.]+)?(px|%)?/g)]
         .map(m => ({rgb: [+m[1], +m[2], +m[3]], a: (m[4] !== undefined ? +m[4] * k : +m[5]), at: m[6] === undefined ? null : +m[6], unit: m[7]}));
       if (!stops.length) continue;
       color ??= stops[0].rgb;
@@ -854,6 +854,16 @@
     document.addEventListener('blancStartDataReady', schedule);
     schedule();
   }
-  window.blancStartInk = {update};
+  // What the chooser sees behind one element (for checks and debugging).
+  async function explain(el) {
+    const layer = document.querySelector('.start-wallpaper-layer.is-visible');
+    const img = await image(layer?.dataset.wallpaperImage);
+    if (!img) return null;
+    const rect = el.getBoundingClientRect();
+    const at = placement(img, layer);
+    const w = wash(layer, rect.left + rect.width / 2, rect.top + rect.height / 2);
+    return {at, wash: w, back: backdrop(img, at, layer, rect).map(Math.round), ink: el.dataset.ink ?? null};
+  }
+  window.blancStartInk = {update, explain};
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', start); else start();
 })();

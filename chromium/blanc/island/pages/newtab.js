@@ -1204,6 +1204,23 @@ async function drawClockArt() {
   const shadow = art.shadowFor(rgbOf(computed.color));
   clockElement.style.setProperty('--clock-shadow', shadow);
 
+  // Optical centring (owner, 2026-11-13): the figures' ink, not their
+  // advance box, sits on the page's centre line. Measured with the same face
+  // the glass draws with (proportional figures at this exact width and
+  // weight); the row moves, so the glass and native clock move with it.
+  try {
+    const inkFamily = await art.instance(face.url, type.stretch, type.weight);
+    if (generation !== clockDrawGeneration) return;
+    const measure = document.createElement('canvas').getContext('2d');
+    measure.font = `${Math.round(type.weight)} ${parseFloat(computed.fontSize)}px ${inkFamily}`;
+    measure.letterSpacing = computed.letterSpacing === 'normal' ? '0px' : computed.letterSpacing;
+    const m = measure.measureText(clockElement.textContent);
+    const offset = (m.actualBoundingBoxRight - m.actualBoundingBoxLeft) / 2 - m.width / 2;
+    clockElement.closest('.bb-clock-row')?.style.setProperty('--clock-optical', `${(-offset).toFixed(2)}px`);
+  } catch {
+    clockElement.closest('.bb-clock-row')?.style.removeProperty('--clock-optical');
+  }
+
   const glass = clockState.style === 'glass' && !reducedTransparency.matches;
   if (globalThis.blancNativeClock?.render) {
     dropClockArt();
