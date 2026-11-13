@@ -52,8 +52,9 @@ final class AndroidWireTests: XCTestCase {
 
   func testWhatTheIPhoneWritesIsWhatAndroidIsGiven() throws {
     let now = 1_800_000_000_000.0
+    // An iPhone's entry, named as one: on an iPad simulator the device's own name is "iPad".
     let session = TabSnapshots.ownEntry(
-      tabs: [(url: "https://iphone-tab.example/", title: "From iPhone")], previous: nil, now: Int64(now))
+      tabs: [(url: "https://iphone-tab.example/", title: "From iPhone")], previous: nil, name: "iPhone", now: Int64(now))
     let closed = try XCTUnwrap(
       SyncedClosed.addItem(
         to: nil,

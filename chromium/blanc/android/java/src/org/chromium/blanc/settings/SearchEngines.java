@@ -51,6 +51,12 @@ public final class SearchEngines {
         return id != null && isOffered(id) ? id : DEFAULT;
     }
 
+    /** An engine's name, as the palette's Search for row shows it under the query. */
+    public static String label(String id) {
+        for (Engine engine : ALL) if (engine.id.equals(id)) return engine.label;
+        return ALL.get(0).label;
+    }
+
     /** The search address for an engine, with %s where the encoded query goes. */
     public static String template(String id) {
         for (Engine engine : ALL) if (engine.id.equals(id)) return engine.template;

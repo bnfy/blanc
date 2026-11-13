@@ -4,6 +4,8 @@ package org.chromium.blanc.palette;
 
 import android.app.Activity;
 import android.app.Dialog;
+import android.content.ClipData;
+import android.content.ClipboardManager;
 import android.content.res.ColorStateList;
 import android.content.res.Configuration;
 import android.content.res.Resources;
@@ -39,6 +41,7 @@ import org.chromium.base.ContextUtils;
 import org.chromium.blanc.address.AddressInput;
 import org.chromium.blanc.island.IslandStyle;
 import org.chromium.blanc.island.R;
+import org.chromium.blanc.settings.SearchEngines;
 import org.chromium.blanc.settings.SettingsDestination;
 import org.chromium.blanc.settings.SettingsStore;
 import org.chromium.blanc.spaces.BlancSpaces;
@@ -118,7 +121,11 @@ public final class PaletteSheet extends Dialog {
         TUCKED,
         COMMAND,
         RESULT,
-        EMPTY
+        EMPTY,
+        /** The current page's whole address, first at rest (#1445). */
+        ADDRESS,
+        /** Search for "…" with the chosen engine (#1445). */
+        SEARCH
     }
 
     /** One drawn row, for tests and TalkBack. */
@@ -128,15 +135,17 @@ public final class PaletteSheet extends Dialog {
         public final String subtitle;
         public final boolean selected;
         public final View view;
-        public final @Nullable View close;
 
-        Row(RowKind kind, String title, String subtitle, boolean selected, View view, @Nullable View close) {
+        /** The row's trailing button: a tab's trash, or the address's Copy Link. */
+        public final @Nullable View button;
+
+        Row(RowKind kind, String title, String subtitle, boolean selected, View view, @Nullable View button) {
             this.kind = kind;
             this.title = title;
             this.subtitle = subtitle;
             this.selected = selected;
             this.view = view;
-            this.close = close;
+            this.button = button;
         }
     }
 
@@ -158,6 +167,7 @@ public final class PaletteSheet extends Dialog {
     private final ImageButton mSettings;
     private final ImageButton mSpace;
     private final List<Row> mRows = new ArrayList<>();
+    private final SwipeToCloseRow.Group mSwipes = new SwipeToCloseRow.Group();
 
     private PaletteSheet(Activity activity, BlancTabs tabs, Callbacks callbacks) {
         super(activity);
@@ -174,13 +184,15 @@ public final class PaletteSheet extends Dialog {
         root.setOrientation(LinearLayout.VERTICAL);
         GradientDrawable background = new GradientDrawable();
         background.setColor(mStyle.raised);
-        float r = 22 * mDensity;
-        background.setCornerRadii(new float[] {r, r, r, r, 0, 0, 0, 0});
+        // All four corners: the sheet floats clear of the screen's edges (SheetPlacement, #1472).
+        background.setCornerRadius(SheetPlacement.CORNER * mDensity);
         root.setBackground(background);
 
         LinearLayout addressRow = new LinearLayout(activity);
         addressRow.setGravity(Gravity.CENTER_VERTICAL);
-        addressRow.setPadding(dp(16), dp(8), dp(4), dp(8));
+        // Its icons line up with the list's (#1472): the glass over the rows' icons, the caret over
+        // Copy Link and Settings.
+        addressRow.setPadding(dp(22), dp(8), dp(12), dp(8));
         ImageView search = icon(R.drawable.blanc_palette_search, secondary());
         addressRow.addView(search, new LinearLayout.LayoutParams(dp(24), dp(24)));
         mField = new EditText(activity);
@@ -266,32 +278,28 @@ public final class PaletteSheet extends Dialog {
             }
         });
 
-        // The window fills the space above the keyboard; the sheet sits at its bottom, at most
-        // RESTING_HEIGHT_DP tall, and its list gives up height first, so the field and the footer
-        // stay above the keyboard on any screen. A tap above the sheet closes it.
+        // The window fills the screen; the sheet floats at its bottom (SheetPlacement), at most
+        // RESTING_HEIGHT_DP tall plus the room it keeps for a gesture bar, and its list gives up
+        // height first, so the field and the footer stay above the keyboard on any screen. A tap
+        // above the sheet closes it.
         int resting = dp(RESTING_HEIGHT_DP);
         FrameLayout frame = new FrameLayout(activity) {
             @Override
             protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
-                int height = Math.min(resting, MeasureSpec.getSize(heightMeasureSpec) - getPaddingBottom());
-                ViewGroup.LayoutParams lp = root.getLayoutParams();
+                FrameLayout.LayoutParams lp = (FrameLayout.LayoutParams) root.getLayoutParams();
+                int height = Math.min(resting + root.getPaddingBottom(),
+                        MeasureSpec.getSize(heightMeasureSpec) - lp.bottomMargin - getPaddingTop());
                 if (lp.height != height) lp.height = height;
                 super.onMeasure(widthMeasureSpec, heightMeasureSpec);
             }
         };
         frame.addView(root, new FrameLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, resting, Gravity.BOTTOM));
         frame.setOnClickListener(v -> dismiss());
-        // Edge to edge (Android 15 and later), the window isn't resized for the keyboard, so the
-        // sheet keeps clear of it, and of the navigation bar, itself.
+        // Edge to edge, the window isn't resized for the keyboard or the navigation bar, so the
+        // sheet places itself clear of them.
         frame.setOnApplyWindowInsetsListener((v, insets) -> {
-            int bottom;
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
-                bottom = Math.max(insets.getInsets(WindowInsets.Type.ime()).bottom,
-                        insets.getInsets(WindowInsets.Type.navigationBars()).bottom);
-            } else {
-                bottom = insets.getSystemWindowInsetBottom();
-            }
-            v.setPadding(0, 0, 0, bottom);
+            place(root, background, insets);
+            v.setPadding(0, insets.getSystemWindowInsetTop(), 0, 0);
             return insets;
         });
         root.setClickable(true);
@@ -300,6 +308,19 @@ public final class PaletteSheet extends Dialog {
         Window window = getWindow();
         if (window != null) {
             window.setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
+            // The page shows around the floating sheet, under the navigation bar too: without this
+            // flag Android paints a dialog's bar strips black itself.
+            window.addFlags(WindowManager.LayoutParams.FLAG_DRAWS_SYSTEM_BAR_BACKGROUNDS);
+            window.setNavigationBarColor(Color.TRANSPARENT);
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) window.setNavigationBarContrastEnforced(false);
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+                window.setDecorFitsSystemWindows(false);
+                // A dialog's window stops above the system bars unless told otherwise; this one
+                // reaches the screen's edges, and the sheet places itself (SheetPlacement).
+                WindowManager.LayoutParams attributes = window.getAttributes();
+                attributes.setFitInsetsTypes(0);
+                window.setAttributes(attributes);
+            }
             window.setGravity(Gravity.BOTTOM);
             window.setLayout(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT);
             window.setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_ADJUST_RESIZE
@@ -307,6 +328,32 @@ public final class PaletteSheet extends Dialog {
         }
         render();
         bindSpaceMark();
+    }
+
+    /** Floats the sheet clear of the keyboard, the navigation bar and the screen's edges. */
+    private void place(View root, GradientDrawable background, WindowInsets insets) {
+        int navigation;
+        int tappable = 0;
+        int keyboard = 0;
+        float screenCorner = 0;
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+            navigation = insets.getInsets(WindowInsets.Type.navigationBars()).bottom;
+            tappable = insets.getInsets(WindowInsets.Type.tappableElement()).bottom;
+            keyboard = insets.getInsets(WindowInsets.Type.ime()).bottom;
+        } else {
+            navigation = insets.getSystemWindowInsetBottom();
+            tappable = navigation;
+        }
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+            android.view.RoundedCorner corner = insets.getRoundedCorner(android.view.RoundedCorner.POSITION_BOTTOM_LEFT);
+            if (corner != null) screenCorner = corner.getRadius() / mDensity;
+        }
+        SheetPlacement p = SheetPlacement.of(navigation / mDensity, tappable / mDensity, keyboard / mDensity, screenCorner);
+        FrameLayout.LayoutParams lp = (FrameLayout.LayoutParams) root.getLayoutParams();
+        lp.setMargins(dp(p.side), 0, dp(p.side), dp(p.bottom));
+        root.setLayoutParams(lp);
+        root.setPadding(0, 0, 0, dp(p.padding));
+        background.setCornerRadius(p.corner * mDensity);
     }
 
     public static PaletteSheet show(Activity activity, BlancTabs tabs, Callbacks callbacks) {
@@ -393,26 +440,29 @@ public final class PaletteSheet extends Dialog {
         for (TabStore.Entry tab : normal) byId.put(tab.id, tab);
         Map<String, TabStore.Group> groups = new HashMap<>();
         for (TabStore.Group group : mTabs.groups()) groups.put(group.id, group);
+        currentAddress();
         heading(mActivity.getString(R.string.blanc_ios_tabs_open_tabs), normal.size());
         for (TabSections.Section section : mTabs.displaySections()) {
             TabStore.Group group = section.groupId == null ? null : groups.get(section.groupId);
+            List<TabStore.Entry> tabs = new ArrayList<>();
+            for (String id : section.tabIds) {
+                TabStore.Entry tab = byId.get(id);
+                if (tab != null) tabs.add(tab);
+            }
             if (group != null) {
-                groupRow(group, section.tabIds.size());
+                groupRow(group, section.tabIds.size(), !group.collapsed && tabs.isEmpty());
                 if (group.collapsed) {
                     tuckedRow(group, section.tabIds.size());
                     continue;
                 }
             }
-            for (String id : section.tabIds) {
-                TabStore.Entry tab = byId.get(id);
-                if (tab != null) tabRow(tab);
-            }
+            for (int i = 0; i < tabs.size(); i++) tabRow(tabs.get(i), group, i == tabs.size() - 1);
         }
         // Chromium keeps private tabs apart, so they're their own section (A2 spike, decision 4).
         List<TabStore.Entry> privateTabs = mTabs.entries(true);
         if (!privateTabs.isEmpty()) {
             heading(mActivity.getString(R.string.blanc_pill_private_chip), privateTabs.size());
-            for (TabStore.Entry tab : privateTabs) tabRow(tab);
+            for (TabStore.Entry tab : privateTabs) tabRow(tab, null, false);
         }
         renderClosed();
         renderSent();
@@ -469,7 +519,10 @@ public final class PaletteSheet extends Dialog {
                 render();
             });
             line.addView(forget, new LinearLayout.LayoutParams(dp(44), dp(48)));
-            mList.addView(line);
+            LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT,
+                    ViewGroup.LayoutParams.WRAP_CONTENT);
+            lp.setMargins(dp(12), 0, dp(12), 0);
+            mList.addView(line, lp);
         }
     }
 
@@ -481,22 +534,15 @@ public final class PaletteSheet extends Dialog {
             CharSequence ago = DateUtils.getRelativeTimeSpanString(item.sentAt);
             String subtitle = mActivity.getString(R.string.blanc_sends_from, item.from, ago);
             String title = item.title.isEmpty() ? item.url : item.title;
-            LinearLayout line = new LinearLayout(mActivity);
-            line.setGravity(Gravity.CENTER_VERTICAL);
-            View main = row(R.drawable.blanc_palette_globe, title, subtitle, false, v -> {
+            View main = row(R.drawable.blanc_palette_sent, title, subtitle, false, v -> {
                 mCallbacks.openTab(item.url);
                 OtherDevices.hide(item.id);
                 dismiss();
             });
-            mList.removeView(main);
-            line.addView(main, new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1));
-            ImageButton hide = button(R.drawable.blanc_palette_close, 0, v -> {
+            swipeable(main, mActivity.getString(R.string.blanc_sends_dismiss), null, false, () -> {
                 OtherDevices.hide(item.id);
                 render();
             });
-            hide.setContentDescription(mActivity.getString(R.string.blanc_sends_dismiss));
-            line.addView(hide, new LinearLayout.LayoutParams(dp(44), dp(48)));
-            mList.addView(line);
         }
     }
 
@@ -512,17 +558,23 @@ public final class PaletteSheet extends Dialog {
         mList.addView(heading);
         for (OtherDevices.Device device : devices) {
             boolean open = mOpenDevices.contains(device.name);
-            row(open ? R.drawable.blanc_palette_chevron_down : R.drawable.blanc_palette_chevron_right,
-                    device.name + " (" + device.tabs.size() + ")", "", false, v -> {
-                        if (!mOpenDevices.remove(device.name)) mOpenDevices.add(device.name);
-                        render();
-                    });
+            // A cloud marks a device's tabs as synced, not open here (#1470); the arrow sits under
+            // the caret and Copy Link.
+            View head = row(R.drawable.blanc_palette_cloud, device.name + " (" + device.tabs.size() + ")", "", false, v -> {
+                if (!mOpenDevices.remove(device.name)) mOpenDevices.add(device.name);
+                render();
+            });
+            ((LinearLayout) head).addView(icon(open ? R.drawable.blanc_palette_chevron_down : R.drawable.blanc_palette_chevron_right,
+                    secondary()), new LinearLayout.LayoutParams(dp(24), dp(24)));
+            inset(head, 12, 0);
             if (!open) continue;
+            // As tight as the open tabs above (#1467), one step in under the device.
             for (OtherDevices.Page tab : device.tabs) {
-                row(R.drawable.blanc_palette_globe, tab.title.isEmpty() ? tab.url : tab.title, tab.url, false, v -> {
+                View page = row(R.drawable.blanc_palette_globe, tab.title.isEmpty() ? tab.url : tab.title, tab.url, false, v -> {
                     mCallbacks.openTab(tab.url);
                     dismiss();
                 });
+                inset(page, 12 + 24, 2);
             }
         }
     }
@@ -542,12 +594,22 @@ public final class PaletteSheet extends Dialog {
         }
     }
 
+    /**
+     * The typed-text list. Its first row is always what Go does (#1445): a strong match, or
+     * Search for "…" with the chosen engine, then the rest of the matches.
+     */
     private void renderResults() {
-        List<QuickSwitcher.Result> results = search(AddressInput.trim(mField.getText().toString()));
-        if (results.isEmpty()) {
-            empty(R.string.blanc_ios_palette_no_matches);
-            return;
-        }
+        String query = AddressInput.trim(mField.getText().toString());
+        List<QuickSwitcher.Result> results = search(query);
+        boolean goesToMatch = QuickSwitcher.goTarget(query, results) != null;
+        boolean isSearch = !query.isEmpty() && AddressInput.interpret(query).kind == AddressInput.Kind.SEARCH;
+        if (goesToMatch) resultRows(results);
+        if (isSearch) searchRow(query);
+        if (!goesToMatch) resultRows(results);
+        if (mRows.isEmpty()) empty(R.string.blanc_ios_palette_no_matches);
+    }
+
+    private void resultRows(List<QuickSwitcher.Result> results) {
         for (QuickSwitcher.Result result : results) {
             boolean remote = result.id.startsWith("remoteSpace:");
             boolean group = remote || result.id.startsWith("group:") || result.id.startsWith("set:");
@@ -562,6 +624,17 @@ public final class PaletteSheet extends Dialog {
                     });
             mRows.add(new Row(RowKind.RESULT, result.title, subtitle, false, view, null));
         }
+    }
+
+    private void searchRow(String query) {
+        SettingsStore settings = new SettingsStore(ContextUtils.getAppSharedPreferences());
+        String title = mActivity.getString(R.string.blanc_context_menu_search_for, query);
+        String engine = SearchEngines.label(settings.searchEngine());
+        View view = row(R.drawable.blanc_palette_search, title, engine, false, v -> {
+            mCallbacks.load(AddressInput.searchUrl(query, settings.searchTemplate()));
+            dismiss();
+        });
+        mRows.add(new Row(RowKind.SEARCH, title, engine, false, view, null));
     }
 
     /** /space: bare, the menu; a name, that set, This Phone too; a new name, the editor. */
@@ -652,12 +725,25 @@ public final class PaletteSheet extends Dialog {
         mRows.add(new Row(RowKind.HEADING, title, String.valueOf(count), false, view, null));
     }
 
-    private void groupRow(TabStore.Group group, int count) {
+    /**
+     * A group's header opens its block: the header and its tabs share one tint, as desktop's ⌘L
+     * panel draws a group, so loose tabs after it never read as its members. The dot sits in the
+     * tabs' icon column and the chevron in their trash's.
+     */
+    private void groupRow(TabStore.Group group, int count, boolean closesBlock) {
         LinearLayout view = new LinearLayout(mActivity);
         view.setGravity(Gravity.CENTER_VERTICAL);
         view.setMinimumHeight(dp(36));
-        view.setPadding(dp(26), 0, dp(4), 0);
-        view.setBackground(wash(group));
+        view.setPadding(dp(10), dp(2), dp(0), closesBlock ? dp(2) : 0);
+        view.setBackground(wash(group, true, closesBlock));
+        View dot = new View(mActivity);
+        GradientDrawable disc = new GradientDrawable();
+        disc.setShape(GradientDrawable.OVAL);
+        disc.setColor(group.color == null ? secondary() : Color.parseColor(group.color));
+        dot.setBackground(disc);
+        LinearLayout.LayoutParams dotLp = new LinearLayout.LayoutParams(dp(8), dp(8));
+        dotLp.setMargins(dp(12), 0, dp(18), 0);
+        view.addView(dot, dotLp);
         TextView name = text(group.name, 13, mStyle.text);
         name.setTypeface(Typeface.DEFAULT_BOLD);
         view.addView(name);
@@ -669,13 +755,14 @@ public final class PaletteSheet extends Dialog {
         // TalkBack hears the name, the count and what a tap does, as the iPhone's label and hint.
         view.setContentDescription(group.name + ", "
                 + mActivity.getResources().getQuantityString(R.plurals.blanc_newtab_groups_count, count, count) + ", " + action);
+        // Instant, as the iPhone's (#1469): the header and its rows change in one frame.
         view.setOnClickListener(v -> {
             mTabs.setGroupCollapsed(group.id, !group.collapsed);
             render();
         });
         LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT,
                 ViewGroup.LayoutParams.WRAP_CONTENT);
-        lp.setMargins(dp(12), dp(4), dp(12), 0);
+        lp.setMargins(dp(12), dp(4), dp(12), closesBlock ? dp(2) : 0);
         mList.addView(view, lp);
         mRows.add(new Row(RowKind.GROUP, group.name, String.valueOf(count), false, view, null));
     }
@@ -684,45 +771,115 @@ public final class PaletteSheet extends Dialog {
     private void tuckedRow(TabStore.Group group, int count) {
         String label = mActivity.getResources().getQuantityString(R.plurals.blanc_tab_groups_tucked, count, count);
         TextView view = text(label, 13, secondary());
-        view.setPadding(dp(38), dp(8), dp(22), dp(8));
+        view.setPadding(dp(26), dp(8), dp(10), dp(10));
         view.setOnClickListener(v -> {
             mTabs.setGroupCollapsed(group.id, false);
             render();
         });
-        mList.addView(view);
+        // Inside the group's block, closing it: it stands for the group's tabs.
+        view.setBackground(wash(group, false, true));
+        LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT,
+                ViewGroup.LayoutParams.WRAP_CONTENT);
+        lp.setMargins(dp(12), 0, dp(12), dp(4));
+        mList.addView(view, lp);
         mRows.add(new Row(RowKind.TUCKED, label, "", false, view, null));
     }
 
-    private void tabRow(TabStore.Entry tab) {
+    /**
+     * A tab's row; in a group, `last` closes the group's block under it. A swipe to the left shows
+     * a trash button and a full swipe closes the tab (#1463, #1466): no × to miss and open it
+     * instead. The current tab is its row's highlight, without a dot (#1466).
+     */
+    private void tabRow(TabStore.Entry tab, TabStore.@Nullable Group group, boolean last) {
         boolean blanc = tab.url.startsWith(PAGES);
         String title = tab.title.isEmpty() ? mActivity.getString(R.string.blanc_tab_untitled) : tab.title;
         String subtitle = blanc ? "Blanc" : host(tab.url);
         boolean selected = tab.id.equals(mTabs.activeId()) && tab.privateTab == mTabs.privateSelected();
-        LinearLayout line = new LinearLayout(mActivity);
-        line.setGravity(Gravity.CENTER_VERTICAL);
         View main = row(blanc ? R.drawable.blanc_island_mark : R.drawable.blanc_palette_globe, title, subtitle, selected, v -> {
             mTabs.select(tab.id);
             dismiss();
         });
-        mList.removeView(main);
-        line.addView(main, new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1));
-        ImageButton close = button(R.drawable.blanc_palette_close, 0, v -> {
-            mTabs.close(tab.id);
-            render();
-        });
-        close.setContentDescription(mActivity.getString(R.string.blanc_ios_tabs_close, title));
-        line.addView(close, new LinearLayout.LayoutParams(dp(44), dp(48)));
         if (selected) {
             GradientDrawable selection = new GradientDrawable();
             selection.setColor((mStyle.text & 0x00FFFFFF) | 0x14000000);
             selection.setCornerRadius(dp(10));
-            line.setBackground(selection);
+            main.setBackground(selection);
         }
+        SwipeToCloseRow swipe = swipeable(main, mActivity.getString(R.string.blanc_ios_tabs_close, title), group, last, () -> {
+            mTabs.close(tab.id);
+            render();
+        });
+        mRows.add(new Row(RowKind.TAB, title, subtitle, selected, main, swipe.trash()));
+    }
+
+    /**
+     * Moves a drawn row into a {@link SwipeToCloseRow} that closes it with `onClose`. In a group,
+     * the group's tint stays under the sliding row, and `last` rounds the block's bottom.
+     */
+    private SwipeToCloseRow swipeable(View main, String label, TabStore.@Nullable Group group, boolean last,
+            Runnable onClose) {
+        int index = mList.indexOfChild(main);
+        mList.removeView(main);
+        SwipeToCloseRow swipe = new SwipeToCloseRow(mActivity, main, label, onClose, mSwipes);
         LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT,
                 ViewGroup.LayoutParams.WRAP_CONTENT);
-        lp.setMargins(dp(12), dp(2), dp(12), dp(2));
+        if (group == null) {
+            lp.setMargins(dp(12), dp(2), dp(12), dp(2));
+        } else {
+            // Inside a block, 4 on every side: rows inset 16 against the block's 12.
+            lp.setMargins(dp(12), 0, dp(12), last ? dp(4) : 0);
+            swipe.setPadding(dp(4), dp(2), dp(4), last ? dp(4) : dp(2));
+            swipe.setBackground(wash(group, false, last));
+        }
+        mList.addView(swipe, index, lp);
+        return swipe;
+    }
+
+    /** A row drawn straight into the list, `start` dp from the sheet's edges and `vertical` dp apart. */
+    private void inset(View view, int start, int vertical) {
+        LinearLayout.LayoutParams lp = (LinearLayout.LayoutParams) view.getLayoutParams();
+        lp.setMargins(dp(start), dp(vertical), dp(12), dp(vertical));
+        view.setLayoutParams(lp);
+    }
+
+    /**
+     * The current page's whole address, which the Island shows only the site of (#1445): a tap
+     * puts it in the field to edit, and the button copies it. Only for web pages.
+     */
+    private void currentAddress() {
+        String active = mTabs.activeId();
+        TabStore.Entry current = null;
+        for (TabStore.Entry tab : mTabs.entries(mTabs.privateSelected())) if (tab.id.equals(active)) current = tab;
+        if (current == null || !(current.url.startsWith("https://") || current.url.startsWith("http://"))) return;
+        String address = current.url;
+        LinearLayout line = new LinearLayout(mActivity);
+        line.setGravity(Gravity.CENTER_VERTICAL);
+        line.setMinimumHeight(dp(44));
+        line.setPadding(dp(10), 0, 0, 0);
+        line.addView(icon(R.drawable.blanc_palette_link, secondary()), new LinearLayout.LayoutParams(dp(24), dp(24)));
+        TextView text = text(address, 13, secondary());
+        text.setEllipsize(TextUtils.TruncateAt.MIDDLE);
+        text.setPadding(dp(10), 0, dp(4), 0);
+        line.addView(text, new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1));
+        line.setContentDescription(mActivity.getString(R.string.blanc_ios_palette_edit_address) + ", " + address);
+        line.setOnClickListener(v -> {
+            mField.setText(address);
+            mField.setSelection(address.length());
+            mField.requestFocus();
+        });
+        ImageButton copy = button(R.drawable.blanc_palette_copy, R.string.blanc_tab_menu_copy_link, v -> {
+            ClipboardManager clipboard = mActivity.getSystemService(ClipboardManager.class);
+            if (clipboard != null) clipboard.setPrimaryClip(ClipData.newPlainText(address, address));
+            mCallbacks.notice(mActivity.getString(R.string.blanc_pill_notice_link_copied));
+            dismiss();
+        });
+        copy.setImageTintList(ColorStateList.valueOf(secondary()));
+        line.addView(copy, new LinearLayout.LayoutParams(dp(44), dp(44)));
+        LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT,
+                ViewGroup.LayoutParams.WRAP_CONTENT);
+        lp.setMargins(dp(12), 0, dp(12), 0);
         mList.addView(line, lp);
-        mRows.add(new Row(RowKind.TAB, title, subtitle, selected, main, close));
+        mRows.add(new Row(RowKind.ADDRESS, address, "", false, line, copy));
     }
 
     private void empty(int message) {
@@ -748,7 +905,11 @@ public final class PaletteSheet extends Dialog {
         view.setSelected(selected);
         view.setOnClickListener(click);
         view.setContentDescription(subtitle.isEmpty() ? title : title + ", " + subtitle);
-        mList.addView(view);
+        // 12 from the sheet's edges, so every row's icon sits in one column (#1472).
+        LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT,
+                ViewGroup.LayoutParams.WRAP_CONTENT);
+        lp.setMargins(dp(12), 0, dp(12), 0);
+        mList.addView(view, lp);
         return view;
     }
 
@@ -791,13 +952,16 @@ public final class PaletteSheet extends Dialog {
     }
 
     /** A group's block: its color's wash, or the ink's, as the iPhone tints it. */
-    private GradientDrawable wash(TabStore.Group group) {
+    private GradientDrawable wash(TabStore.Group group, boolean top, boolean bottom) {
         GradientDrawable wash = new GradientDrawable();
         int alpha = mStyle.dark ? 0x29 : 0x1A;
         int base = group.color == null ? mStyle.text : Color.parseColor(group.color);
         if (group.color == null) alpha = mStyle.dark ? 0x12 : 0x09;
         wash.setColor((base & 0x00FFFFFF) | (alpha << 24));
-        wash.setCornerRadius(dp(10));
+        // One block: rounded where it begins and ends, square where its rows meet.
+        float t = top ? dp(10) : 0;
+        float b = bottom ? dp(10) : 0;
+        wash.setCornerRadii(new float[] {t, t, t, t, b, b, b, b});
         return wash;
     }
 

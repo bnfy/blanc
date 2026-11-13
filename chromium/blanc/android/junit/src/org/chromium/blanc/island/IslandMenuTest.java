@@ -3,6 +3,7 @@
 package org.chromium.blanc.island;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -31,8 +32,18 @@ public class IslandMenuTest {
     public void webPageOffersEverything() {
         assertEquals(
                 List.of(Item.blocking(true), Item.favorite(false), Item.of(Kind.RELOAD), Item.of(Kind.SHARE),
-                        Item.of(Kind.FIND), Item.of(Kind.NEW_PRIVATE_TAB), Item.of(Kind.SETTINGS)),
+                        Item.of(Kind.COPY_LINK), Item.of(Kind.FIND), Item.of(Kind.PAGE_ZOOM), Item.desktopSite(false),
+                        Item.of(Kind.NEW_PRIVATE_TAB), Item.of(Kind.SETTINGS)),
                 IslandMenu.items(web()));
+    }
+
+    // #1445: Request Desktop Website, or Request Mobile Website once the tab asked for it.
+    @Test
+    public void theSiteRequestFollowsTheTab() {
+        IslandMenu.Context c = web();
+        c.desktopSite = true;
+        assertTrue(IslandMenu.items(c).contains(Item.desktopSite(true)));
+        assertEquals("DESKTOP_SITE(true)", Item.desktopSite(true).toString());
     }
 
     @Test
@@ -48,7 +59,8 @@ public class IslandMenuTest {
         IslandMenu.Context c = web();
         c.privateTab = true;
         assertEquals(
-                List.of(Item.blocking(true), Item.of(Kind.RELOAD), Item.of(Kind.SHARE), Item.of(Kind.FIND),
+                List.of(Item.blocking(true), Item.of(Kind.RELOAD), Item.of(Kind.SHARE), Item.of(Kind.COPY_LINK),
+                        Item.of(Kind.FIND), Item.of(Kind.PAGE_ZOOM), Item.desktopSite(false),
                         Item.of(Kind.NEW_PRIVATE_TAB), Item.of(Kind.SETTINGS)),
                 IslandMenu.items(c));
     }

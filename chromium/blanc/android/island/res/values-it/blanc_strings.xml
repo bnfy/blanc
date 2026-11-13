@@ -260,6 +260,16 @@
     <string name="blanc_settings_privacy_clear_browsing_data_confirm">Cancellare tutti i cookie, la cache e i dati dei siti? Uscirai da tutti gli account.</string>
     <string name="blanc_settings_privacy_clear_browsing_data_done">Cancellati.</string>
     <string name="blanc_settings_privacy_removes_cookies_cache_and">Rimuove cookie, cache e dati di tutti i siti. Uscirai da tutti gli account.</string>
+    <string name="blanc_ios_palette_edit_address">Modifica indirizzo</string>
+    <string name="blanc_tab_menu_copy_link">Copia link</string>
+    <string name="blanc_pill_notice_link_copied">Link copiato</string>
+    <string name="blanc_context_menu_search_for">Cerca «%1$s»</string>
+    <string name="blanc_ios_island_page_zoom">Zoom della pagina</string>
+    <string name="blanc_menu_zoom_in">Ingrandisci</string>
+    <string name="blanc_menu_zoom_out">Riduci</string>
+    <string name="blanc_menu_actual_size">Dimensioni reali</string>
+    <string name="blanc_ios_island_desktop_site">Richiedi sito desktop</string>
+    <string name="blanc_ios_island_mobile_site">Richiedi sito mobile</string>
     <plurals name="blanc_shared_spaces_waiting_count">
         <item quantity="one">%d Space condiviso è in attesa</item>
         <item quantity="many">%d Spaces condivisi sono in attesa</item>
