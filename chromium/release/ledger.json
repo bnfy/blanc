@@ -10,7 +10,7 @@
       ],
       "archWaiver": "Owner approval 2026-11-10: Apple Silicon only; Intel deferred until a separately qualified native build.",
       "localQualification": true,
-      "note": "Reserved private build; owner hold was overlooked before the cold attempt. Build failed after 6.42 seconds on absent optional Metal Toolchain; no app or distribution. Hold now enforced, temporary private key deleted. Never publish these bytes or reuse the reserved version for production."
+      "note": "Reserved private local-qualification build. The first cold attempt (2026-11-10) stopped after 6.42 seconds on the absent optional Metal Toolchain, before the owner hold was enforced; no app or distribution. The owner lifted the hold on 2026-11-13; the Metal Toolchain is now installed (Xcode component 27B47) and the local qualification build resumed with a fresh throwaway EdDSA key held only in an owner-only temporary folder. Never publish these bytes or reuse the reserved version for production."
     }
   ]
 }
