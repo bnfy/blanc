@@ -116,6 +116,10 @@ public class IslandView extends FrameLayout {
         mProgress = new IslandProgress(Math.round(2 * mDensity));
         mPill.setForeground(mProgress);
         mPill.setClipToOutline(true);
+        // A capsule at any height: a large font can make the pill taller than 52.
+        mPill.addOnLayoutChangeListener((pill, l, t, r, b, ol, ot, or, ob) -> {
+            if (pill.getBackground() instanceof GradientDrawable surface) surface.setCornerRadius((b - t) / 2f);
+        });
         mMenu = findViewById(R.id.blanc_island_menu);
         mDomain = findViewById(R.id.blanc_island_domain);
         mPrivate = findViewById(R.id.blanc_island_private);
@@ -192,7 +196,8 @@ public class IslandView extends FrameLayout {
     private void applyStyle(IslandStyle style) {
         GradientDrawable surface = new GradientDrawable();
         surface.setColor(style.raised);
-        surface.setCornerRadius(getResources().getDimension(R.dimen.blanc_island_corner_radius));
+        int height = mPill.getHeight();
+        surface.setCornerRadius(height > 0 ? height / 2f : getResources().getDimension(R.dimen.blanc_island_corner_radius));
         surface.setStroke(
                 getResources().getDimensionPixelSize(R.dimen.blanc_island_border_width),
                 style.border);

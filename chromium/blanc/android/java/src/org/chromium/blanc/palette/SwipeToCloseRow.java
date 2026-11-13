@@ -142,11 +142,13 @@ public final class SwipeToCloseRow extends FrameLayout {
                 track(event);
                 if (mDragging) release(event);
                 else settle(false);
+                endTracking();
                 yield true;
             }
             case MotionEvent.ACTION_CANCEL -> {
                 mDragging = false;
                 settle(mOpen);
+                endTracking();
                 yield true;
             }
             default -> super.onTouchEvent(event);
@@ -161,6 +163,12 @@ public final class SwipeToCloseRow extends FrameLayout {
         if (mVelocity != null) mVelocity.recycle();
         mVelocity = VelocityTracker.obtain();
         track(event);
+    }
+
+    private void endTracking() {
+        if (mVelocity == null) return;
+        mVelocity.recycle();
+        mVelocity = null;
     }
 
     private void track(MotionEvent event) {
@@ -230,7 +238,13 @@ public final class SwipeToCloseRow extends FrameLayout {
     private void close() {
         if (mGroup.mOpen == this) mGroup.mOpen = null;
         mOpen = false;
-        mOnClose.run();
+        if (!isLaidOut()) {
+            mOnClose.run();
+            return;
+        }
+        mContent.animate().translationX(-getWidth()).setDuration(200)
+                .setUpdateListener(a -> setOffset(mContent.getTranslationX()))
+                .withEndAction(mOnClose);
     }
 
     private void setOffset(float px) {

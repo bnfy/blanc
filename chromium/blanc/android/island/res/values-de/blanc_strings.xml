@@ -264,7 +264,6 @@
     <string name="blanc_tab_menu_copy_link">Link kopieren</string>
     <string name="blanc_pill_notice_link_copied">Link kopiert</string>
     <string name="blanc_context_menu_search_for">Nach „%1$s“ suchen</string>
-    <string name="blanc_menu_close_tab">Tab schließen</string>
     <string name="blanc_ios_island_page_zoom">Seitenzoom</string>
     <string name="blanc_menu_zoom_in">Vergrößern</string>
     <string name="blanc_menu_zoom_out">Verkleinern</string>

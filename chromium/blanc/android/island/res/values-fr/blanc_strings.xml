@@ -264,7 +264,6 @@
     <string name="blanc_tab_menu_copy_link">Copier le lien</string>
     <string name="blanc_pill_notice_link_copied">Lien copié</string>
     <string name="blanc_context_menu_search_for">Rechercher « %1$s »</string>
-    <string name="blanc_menu_close_tab">Fermer l’onglet</string>
     <string name="blanc_ios_island_page_zoom">Zoom de page</string>
     <string name="blanc_menu_zoom_in">Zoom avant</string>
     <string name="blanc_menu_zoom_out">Zoom arrière</string>

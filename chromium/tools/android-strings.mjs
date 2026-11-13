@@ -89,7 +89,7 @@ export const ANDROID_KEYS = [
   'settings.privacy.clearBrowsingData.confirm', 'settings.privacy.clearBrowsingData.done',
   'settings.privacy.removesCookiesCacheAnd',
   // The iPhone's palette and Sunrise menu from #1445 and #1466.
-  'ios.palette.editAddress', 'tabMenu.copyLink', 'pill.notice.linkCopied', 'contextMenu.searchFor', 'menu.closeTab',
+  'ios.palette.editAddress', 'tabMenu.copyLink', 'pill.notice.linkCopied', 'contextMenu.searchFor',
   'ios.island.pageZoom', 'menu.zoomIn', 'menu.zoomOut', 'menu.actualSize', 'ios.island.desktopSite',
   'ios.island.mobileSite',
 ];

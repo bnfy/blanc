@@ -415,7 +415,7 @@ public final class PaletteSheet extends Dialog {
                 if (tab != null) tabs.add(tab);
             }
             if (group != null) {
-                groupRow(group, section.tabIds.size(), group.collapsed || tabs.isEmpty());
+                groupRow(group, section.tabIds.size(), !group.collapsed && tabs.isEmpty());
                 if (group.collapsed) {
                     tuckedRow(group, section.tabIds.size());
                     continue;
@@ -504,7 +504,7 @@ public final class PaletteSheet extends Dialog {
                 OtherDevices.hide(item.id);
                 dismiss();
             });
-            swipeable(main, mActivity.getString(R.string.blanc_sends_dismiss), null, false, false, () -> {
+            swipeable(main, mActivity.getString(R.string.blanc_sends_dismiss), null, false, () -> {
                 OtherDevices.hide(item.id);
                 render();
             });
@@ -736,12 +736,17 @@ public final class PaletteSheet extends Dialog {
     private void tuckedRow(TabStore.Group group, int count) {
         String label = mActivity.getResources().getQuantityString(R.plurals.blanc_tab_groups_tucked, count, count);
         TextView view = text(label, 13, secondary());
-        view.setPadding(dp(38), dp(8), dp(22), dp(8));
+        view.setPadding(dp(26), dp(8), dp(10), dp(10));
         view.setOnClickListener(v -> {
             mTabs.setGroupCollapsed(group.id, false);
             render();
         });
-        mList.addView(view);
+        // Inside the group's block, closing it: it stands for the group's tabs.
+        view.setBackground(wash(group, false, true));
+        LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT,
+                ViewGroup.LayoutParams.WRAP_CONTENT);
+        lp.setMargins(dp(12), 0, dp(12), dp(4));
+        mList.addView(view, lp);
         mRows.add(new Row(RowKind.TUCKED, label, "", false, view, null));
     }
 
@@ -765,7 +770,7 @@ public final class PaletteSheet extends Dialog {
             selection.setCornerRadius(dp(10));
             main.setBackground(selection);
         }
-        SwipeToCloseRow swipe = swipeable(main, mActivity.getString(R.string.blanc_ios_tabs_close, title), group, false, last, () -> {
+        SwipeToCloseRow swipe = swipeable(main, mActivity.getString(R.string.blanc_ios_tabs_close, title), group, last, () -> {
             mTabs.close(tab.id);
             render();
         });
@@ -776,7 +781,7 @@ public final class PaletteSheet extends Dialog {
      * Moves a drawn row into a {@link SwipeToCloseRow} that closes it with `onClose`. In a group,
      * the group's tint stays under the sliding row, and `last` rounds the block's bottom.
      */
-    private SwipeToCloseRow swipeable(View main, String label, TabStore.@Nullable Group group, boolean first, boolean last,
+    private SwipeToCloseRow swipeable(View main, String label, TabStore.@Nullable Group group, boolean last,
             Runnable onClose) {
         int index = mList.indexOfChild(main);
         mList.removeView(main);
@@ -789,7 +794,7 @@ public final class PaletteSheet extends Dialog {
             // Inside a block, 4 on every side: rows inset 16 against the block's 12.
             lp.setMargins(dp(12), 0, dp(12), last ? dp(4) : 0);
             swipe.setPadding(dp(4), dp(2), dp(4), last ? dp(4) : dp(2));
-            swipe.setBackground(wash(group, first, last));
+            swipe.setBackground(wash(group, false, last));
         }
         mList.addView(swipe, index, lp);
         return swipe;
