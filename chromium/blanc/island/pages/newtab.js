@@ -732,7 +732,16 @@ function remoteFade(list) {
   list.dataset.fadeEnd = String(more);
   list.dataset.fadeStart = String(list.scrollTop > 2);
 }
-document.getElementById('remoteList')?.addEventListener('scroll', (event) => remoteFade(event.currentTarget), { passive: true });
+let remoteScrollIdle = 0;
+document.getElementById('remoteList')?.addEventListener('scroll', (event) => {
+  const list = event.currentTarget;
+  remoteFade(list);
+  // The scrollbar shows while the list moves (a finger, a wheel or keys),
+  // then hides again unless the pointer is over it.
+  list.dataset.scrolling = 'true';
+  clearTimeout(remoteScrollIdle);
+  remoteScrollIdle = setTimeout(() => { list.dataset.scrolling = 'false'; }, 900);
+}, { passive: true });
 {
   const list = document.getElementById('remoteList');
   if (list) new ResizeObserver(() => remoteFade(list)).observe(list);
@@ -1714,19 +1723,24 @@ function dropSlot(x, y) {
     cardShown(card) && card.getBoundingClientRect().top + card.getBoundingClientRect().height / 2 > y);
   return { rail, before: before ?? null };
 }
+const CARD_DRAG_PREVIEW = 220;
 function bindGrip(grip) {
   grip.addEventListener('pointerdown', (event) => {
     if (event.button !== 0 || cardDrag) return;
     event.preventDefault();
     const card = grip.closest('.bb-widget');
     const r = card.getBoundingClientRect();
+    // A tall card is carried as a short preview, and its slot is as short.
+    const height = Math.min(r.height, CARD_DRAG_PREVIEW);
     const holder = document.createElement('div');
     holder.className = 'bb-widget-holder';
-    holder.style.height = `${r.height}px`;
+    holder.style.height = `${height}px`;
     card.after(holder);
     document.body.classList.add('widget-dragging');
     card.classList.add('dragging');
-    Object.assign(card.style, { position: 'fixed', left: `${r.left}px`, top: `${r.top}px`, width: `${r.width}px`, zIndex: '60', pointerEvents: 'none' });
+    card.classList.toggle('drag-clipped', height < r.height);
+    Object.assign(card.style, { position: 'fixed', left: `${r.left}px`, top: `${r.top}px`, width: `${r.width}px`,
+      height: `${height}px`, zIndex: '60', pointerEvents: 'none' });
     cardDrag = { card, holder, dx: event.clientX - r.left, dy: event.clientY - r.top };
     grip.setPointerCapture(event.pointerId);
     placePanels();
@@ -1743,8 +1757,8 @@ function bindGrip(grip) {
     const { card, holder } = cardDrag;
     cardDrag = null;
     holder.replaceWith(card);
-    card.classList.remove('dragging');
-    for (const key of ['position', 'left', 'top', 'width', 'zIndex', 'pointerEvents']) card.style[key] = '';
+    card.classList.remove('dragging', 'drag-clipped');
+    for (const key of ['position', 'left', 'top', 'width', 'height', 'zIndex', 'pointerEvents']) card.style[key] = '';
     document.body.classList.remove('widget-dragging');
     saveCardPlace(card);
   };

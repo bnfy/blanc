@@ -889,6 +889,17 @@ remain pending. D3 beta-only no-DRM exception accepted; EME notice/handoff requi
   The shipping step that reads a row's "site · device" gets the device from
   the row (`data-device`). sync.feature:129 and vertical-tabs.feature:129
   pass; native-start-widgets 8/8.
+  Follow-ups the same day (owner): a thin scrollbar shows on hover and while
+  the list scrolls, hidden otherwise; a finger pans the list (momentum, a
+  contained bounce), rows grow to finger-sized targets on a touchscreen,
+  hover highlights apply only where there is hover, and the grips stay
+  visible for touch. Dragging the long card had pushed its column under the
+  footer: on a wide page a column now fits between header and footer (the
+  devices card and an extension panel card give up height and scroll), and a
+  tall card is carried as a 220px preview over a slot as short. A
+  `:focus-within` scrollbar rule with a color transition froze the page's
+  painting when a row took focus (a native sample showed paint repeating);
+  both are gone. Test `chromium/tests/native-start-devices.mjs`: 5/5.
 - **Extension side panels as Start Page cards (2026-11-13, owner: "Prototype
   it"; fork only, prototype):** an installed extension with a side panel
   (`chrome.sidePanel`, `side_panel.default_path`) appears in Customize as one
@@ -2590,5 +2601,5 @@ Android's Bar A counts the shared scenarios bound in `chromium/tests/android/acc
 
 Legacy macOS stages come from the approved spec; they await verification on the canonical candidate. No legacy stage counts as Verified.
 
-Candidate identities: macOS: macos-7d39c9aade225a7b; Windows: none; Linux: none; Android: android-arm64-7bd35e94ef746069.
+Candidate identities: macOS: macos-17c23d2c2396d6db; Windows: none; Linux: none; Android: android-arm64-7bd35e94ef746069.
 <!-- END GENERATED PROGRESS -->
