@@ -30,9 +30,11 @@ in the lane file in its place. Numbering starts at 0101.
   page's top, as Safari does: `ChromeTabbedActivity.getBaseStatusBarColor` asks
   the Island's `TopColorSampler`, which reads the page's top row through
   `//blanc/android:top_color_bridge`, and falls back to Chrome's own color.
-- `0113-android-start-page.patch`: registers the Start Page's two profile
-  preferences, `blanc.start.widgets` and `blanc.start.clock` (A5b), which
-  `blanc_pages_ui.cc` reads and writes for the fork's Start Page. Neither syncs.
+- `0113-android-start-page.patch`: registers the Start Page's profile
+  preferences, `blanc.start.widgets` and `blanc.start.clock` (A5b), and the
+  fork's pinned-shortcut list `blanc.prototype.start_page_pins`
+  (`blanc/browser/ui/start_page_pins.inc`), which `blanc_pages_ui.cc` reads and
+  writes for the fork's Start Page. None of them syncs.
 
 A file dropped or moved in the lane keeps its applied edits in an existing checkout
 (`apply.py` touches only the lane's files, and never deletes): restore a
