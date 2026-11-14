@@ -71,6 +71,18 @@ remain pending. D3 beta-only no-DRM exception accepted; EME notice/handoff requi
   by a unit test and on screen: 15 of 15 on candidate macos-80a0b0baafd9ca87
   (one earlier run timed out opening a card at that step, likely the real
   mouse on the test window; the rerun passed).
+- **2026-11-14 — The vertical tabs rail's layout toggle clicks again (owner's report):**
+  On macOS the rail's header shares the title-bar band, and `IsCaption`
+  treated every point of that band outside the Island pill as the window's
+  caption, so a click on the toggle ("Turn vertical tabs off") started a
+  window drag instead. The rail is now never a drag handle, as shipping marks
+  the whole rail `no-drag`; the strip beside it still drags the window.
+  Checked on the Mac Studio with `chromium/tests/rail-toggle-caption.mjs`:
+  with the fix the toggle's point is not a caption, the strip beside the rail
+  is, and clicking the toggle turns vertical tabs off; the same check on the
+  build without the fix (2f08fe889) failed at the toggle. The screen there
+  was locked, so the run skipped the drawing guard (hit-testing and layout
+  need no frames). Ships in the next beta.
 - **2026-11-14 — The Dock icon follows Dark again (owner's report on beta.4):**
   Beta.4 (published from 57e3109dd, with patch 0082) handed the Dock the
   named Icon Composer stacks directly. AppKit draws a stack given to
