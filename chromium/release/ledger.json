@@ -11,6 +11,24 @@
       "archWaiver": "Owner approval 2026-11-10: Apple Silicon only; Intel deferred until a separately qualified native build.",
       "localQualification": true,
       "note": "Reserved private local-qualification build. The first cold attempt (2026-11-10) stopped after 6.42 seconds on the absent optional Metal Toolchain, before the owner hold was enforced; no app or distribution. The owner lifted the hold on 2026-11-13; the Metal Toolchain is now installed (Xcode component 27B47) and the local qualification build resumed with a fresh throwaway EdDSA key held only in an owner-only temporary folder. Never publish these bytes or reuse the reserved version for production. On 2026-11-14 a private local-qualification 2.0.0-beta.2 (build 2) was built only as the local update proof's N+1 (throwaway key, loopback feed, never left the owner's Mac); its copies were deleted, and the owner kept 2.0.0-beta.2 (build 2) for the first public beta."
+    },
+    {
+      "build": 2,
+      "version": "2.0.0-beta.2",
+      "tag": "chromium-beta-2.0.0-beta.2",
+      "date": "2026-11-14",
+      "arches": [
+        "arm64"
+      ],
+      "archWaiver": "Owner approved 2026-11-10: the first public beta is Apple Silicon only; Intel deferred until a separately qualified native build.",
+      "sourceCommit": "058277389292e4a02291be56e496acc7b8d68add",
+      "candidate": "macos-176939e3a1706e6f",
+      "dmgSHA256": "d155c31638b7a7c7d849269cae75be81977f4b8293d1bcbcad00493c6d382e62",
+      "gateWaivers": [
+        "no-drm-handoff",
+        "production-sync-real-device"
+      ],
+      "note": "First public Blanc Beta, published 2026-11-14 as a GitHub pre-release (not latest). Signed with the pinned Developer ID, notarized and stapled; Sigstore-signed checksums; logged-out public verification passed. Owner waivers: protected-video notice (due beta.3) and the real-iPhone Sync pass. Known issue: the vertical tab rail can reopen at its narrow cap after a relaunch (vertical-tabs.feature:58, intermittent)."
     }
   ]
 }

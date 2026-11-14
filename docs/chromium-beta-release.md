@@ -844,6 +844,30 @@ that exists on `main`, so it becomes runnable once `chromium/next` reaches
 `main`. Tests: `chromium/release/public-smoke.test.mjs`; the launch step was
 tried on a local image of the local-qualification beta.
 
+### Blanc Beta 2.0.0-beta.2: the first public beta (2026-11-14)
+
+Published as a GitHub pre-release, not latest:
+<https://github.com/bnfy/blanc/releases/tag/chromium-beta-2.0.0-beta.2>, tag at
+`058277389`, candidate `macos-176939e3a1706e6f`, DMG SHA-256
+`d155c31638b7a7c7d849269cae75be81977f4b8293d1bcbcad00493c6d382e62`, nine assets.
+Every `release.mjs` stage ran from the owner's Terminal through one-command
+wrappers in `~/Projects/Blanc/scripts/` (`beta2-sign`, `beta2-notarize`, which
+takes the two Apple values by hidden input instead of `op run` because
+1Password won't stay unlocked on the Mac Studio, `beta2-sparkle`,
+`beta2-draft`, `beta2-publish`). The update key's 1Password copy was made on
+the MacBook Pro (`sparkle-key-airdrop.command`: export, proven against the
+production public key, AirDropped, saved, both copies deleted). The release's
+gate evidence was assembled by `gate-evidence.mjs`: 11 passed (acceptance by
+equivalence, desktop Sync, notices and credits, blocker, outbound, profile,
+Touch ID passkeys on the notarized app, test hooks absent, the local update
+proof, native signature, Gatekeeper) and 2 waived (no-drm-handoff,
+production-sync-real-device). Known issue for beta.3: after a relaunch the
+vertical tab rail can reopen at its narrow-window cap (intermittent,
+`vertical-tabs.feature:58`). Sigstore's first attempt hung because cosign ran
+without a terminal; `release.mjs` now gives it one. Owed: the hosted smoke
+check once the workflow is on main, and the website PR (feed, a Download page
+section, `/dl/beta`).
+
 ### Owner gate decisions for the first public beta (2026-11-14)
 
 - **acceptance:** the shipping corpus drives the app through test hooks the

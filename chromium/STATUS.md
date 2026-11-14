@@ -949,6 +949,21 @@ remain pending. D3 beta-only no-DRM exception accepted; EME notice/handoff requi
   the owner's Touch ID passkey checks pass 5 of 5. The owner waived the
   real-iPhone Sync gate for this first fork beta; that waiver's reason rides
   in `acceptance.json` (policy `GATE_WAIVERS`), since `release.json` was fixed.
+- **Blanc Beta 2.0.0-beta.2 published (owner, 2026-11-14):** the first public
+  fork beta, a GitHub pre-release (not latest; v1.49.0 stays latest), tag
+  `chromium-beta-2.0.0-beta.2` at `058277389`, nine assets, DMG `d155c316…`.
+  Acceptance by equivalence: the full suite on the same-source prototype
+  passed 578, with 4 undefined, 27 excluded; the two Island auto-hide failures
+  passed when rerun with the Mac idle, and `vertical-tabs.feature:58` is a
+  known intermittent issue (the rail can reopen at its narrow cap after a
+  relaunch; fix in beta.3). 11 gates passed, 2 waived (no-drm-handoff,
+  production-sync-real-device). The update key's 1Password copy was made on
+  the MacBook Pro (1Password won't stay unlocked on the Mac Studio). The
+  Sigstore stage first hung (cosign had no terminal and fell back to a
+  hidden device-code sign-in); fixed by giving it the Terminal (`99bcadb21`).
+  Logged-out public verification passed. Still owed: the hosted smoke check
+  (needs the workflow on main), and the website PR with the feed, the
+  Download page section and `/dl/beta`.
 - **Beta.2 production build (owner, 2026-11-14):** `out/BlancBeta` switched to
   production (2.0.0-beta.2, build 2, the production key, local qualification
   off) and rebuilt through the guard with the owner-approved
