@@ -288,9 +288,13 @@ export class Device {
     this.tap({text: entry});
   }
 
-  // Whether Settings' Blanc Blocker switch is on, from the switch after its title; back where it was after.
-  blockerSwitchOn() {
+  // Whether Settings' Blanc Blocker switch is on, from the switch after its title. Swipes only once
+  // Settings is in front, and goes Back only if it opened, so the page underneath is never touched.
+  async blockerSwitchOn() {
+    const inSettings = () => adb('shell', 'dumpsys', 'activity', 'activities')
+        .split('\n').some(l => /ResumedActivity/.test(l) && l.includes('.settings.SettingsActivity'));
     this.menu('Settings');
+    await this.waitFor(async () => inSettings(), 'Settings to open');
     try {
       const {width, height} = this.screenSize();
       for (let i = 0; i < 10; i++) {
