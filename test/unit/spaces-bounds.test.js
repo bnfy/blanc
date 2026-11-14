@@ -42,6 +42,9 @@ test('the menu stays inside a narrow or short window, its shadow room may run pa
 test('an anchor outside the strip or missing falls back to the strip, centred', () => {
   const below = calculateSpacesBounds({ windowWidth: 1000, windowHeight: 800, stripHeight: 68, anchorLeft: 100, anchorBottom: 500 });
   assert.equal(below.y, 68 + SPACES_MENU_GAP - SPACES_MENU_PAD, 'never below the strip');
+  // With vertical tabs the mark can sit in the rail's header, below the strip.
+  const rail = calculateSpacesBounds({ windowWidth: 1000, windowHeight: 800, stripHeight: 68, anchorLimit: 800, anchorLeft: 14, anchorBottom: 83 });
+  assert.equal(rail.y, 83 + SPACES_MENU_GAP - SPACES_MENU_PAD, 'hangs from a rail mark below the strip');
   const none = calculateSpacesBounds({ windowWidth: 1000, windowHeight: 800, stripHeight: 68, anchorLeft: null, anchorBottom: null });
   assert.equal(menuLeft(none), Math.round((1000 - SPACES_MENU_WIDTH) / 2));
   const junk = calculateSpacesBounds({ windowWidth: NaN, windowHeight: undefined, stripHeight: -5, anchorLeft: 'x', anchorBottom: {} });

@@ -672,6 +672,7 @@ html { --stage-w: 100vw; }
    (vertical-tabs.js placeSpaceMark); the resting Island never shows it. It names the Space and opens the Spaces
    menu. It takes the room the row has and shrinks before anything else, its
    name ending in an ellipsis, so the layout toggle always stays in the rail.
+   On macOS it has a row of its own under the traffic lights (below).
    With no Spaces yet it shows the neutral Spaces glyph (renderer.js keeps it
    visible here), so the row always offers them. */
 .vertical-tabs-toolbar #pillSpace {
@@ -696,15 +697,15 @@ html { --stage-w: 100vw; }
    website gutter remains independent. The Space mark takes a second row
    beneath, across the rail's whole width and in line with the tab rows, so a
    long Space name has room and never runs into the traffic lights; at the
-   narrowest rail it still ends in an ellipsis. Both rows fit the strip's
-   height, so the tab list starts where it did and the Spaces menu, which
-   hangs from the mark, still anchors inside the strip (main.js
-   setSpacesAnchor). */
+   narrowest rail it still ends in an ellipsis. 16px between the rows keeps the
+   name clear of the lights (owner, November 14, 2026), so the header runs
+   below the strip and the Spaces menu hangs from the mark there (main.js
+   spacesAnchorLimit). */
 body.mac .vertical-tabs-toolbar {
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto;
   grid-template-rows: 28px 28px;
-  row-gap: 0;
+  row-gap: 16px;
   min-height: var(--strip-h);
   padding: 11px 10px 1px 14px;
 }

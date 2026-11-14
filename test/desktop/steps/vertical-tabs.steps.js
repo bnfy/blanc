@@ -1882,7 +1882,7 @@ Then('at every rail width the Space mark {string} clears the window controls, it
     if (state.mac) {
       // The traffic lights are 14pt buttons at the window's button position.
       assert.ok(lights, details);
-      assert.ok(state.mark.top >= lights.y + 14, `the mark sits below the traffic lights: ${details}`);
+      assert.ok(state.mark.top >= lights.y + 14 + 16, `the mark sits at least 16px below the traffic lights: ${details}`);
       assert.ok(Math.abs((state.toggle.top + state.toggle.bottom) / 2 - (lights.y + 7)) <= 3, `the toggle lines up with the traffic lights: ${details}`);
     } else {
       assert.ok(state.mark.right <= state.toggle.left, `the mark ends before the layout toggle: ${details}`);
