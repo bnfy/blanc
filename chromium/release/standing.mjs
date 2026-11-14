@@ -23,7 +23,10 @@ export function betaNumber(version) {
 export function validateStanding(s) {
   must(s?.schema === 1, 'standing decisions schema must be 1');
   must(Array.isArray(s.anyChange) && s.anyChange.every(g => typeof g === 'string' && g), 'standing anyChange must be a list of paths');
+  must(typeof s.archWaiver === 'string' && s.archWaiver.trim().length >= 20, 'standing Intel waiver needs the owner\'s reason');
+  must(Array.isArray(s.whatToKnow) && s.whatToKnow.every(l => typeof l === 'string' && l.startsWith('- ')), 'standing whatToKnow must be release-notes bullets');
   for (const [gate, w] of Object.entries(s.waivers ?? {})) {
+    must(typeof s.notes?.[gate] === 'string' && s.notes[gate].startsWith('- '), `standing waiver needs its release-notes line: ${gate}`);
     must(KNOWN_GATES.includes(gate), `standing waiver names an unknown gate: ${gate}`);
     must(betaNumber(w?.since) !== null, `standing waiver needs since: ${gate}`);
     must(w.until === undefined || betaNumber(w.until) > betaNumber(w.since), `standing waiver until must come after since: ${gate}`);

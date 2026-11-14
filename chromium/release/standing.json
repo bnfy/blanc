@@ -5,6 +5,18 @@
     "chromium/lanes/desktop.json",
     "chromium/upstream/**"
   ],
+  "archWaiver": "Owner standing decision 2026-11-14: daily betas are Apple Silicon only; Intel is deferred until a separately qualified native build.",
+  "whatToKnow": [
+    "- **A separate app.** Blanc Beta has its own name, its own data folder and its own passkeys. Your regular Blanc, its data, settings and passkeys are left untouched.",
+    "- **Apple Silicon Macs, macOS 13 or later.** There is no Intel build of this beta.",
+    "- **Blocking is built in.** Ads and trackers are blocked from the first page, including in private windows.",
+    "- **Its own updates.** Beta updates come from blanc.day, signed with the beta's own key. They never touch the regular Blanc.",
+    "- **Touch ID passkeys** work, in ordinary and private windows."
+  ],
+  "notes": {
+    "no-drm-handoff": "- **Protected video** (such as Netflix or Spotify) doesn't play. Use the regular Blanc for those sites; a notice offering to open them there is coming in a later beta.",
+    "production-sync-real-device": "- **Sync** is included but still being checked against the live service, so don't rely on it yet."
+  },
   "waivers": {
     "no-drm-handoff": {
       "since": "2.0.0-beta.5",

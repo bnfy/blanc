@@ -6,6 +6,9 @@ import { validateRelease, waiverAllowed } from './policy.mjs';
 const standing = {
   schema: 1,
   anyChange: ['chromium/lanes/desktop.json', 'chromium/upstream/**'],
+  archWaiver: 'an owner Intel waiver long enough',
+  whatToKnow: ['- **A separate app.**'],
+  notes: { 'no-drm-handoff': '- **Protected video**', 'production-sync-real-device': '- **Sync**' },
   waivers: {
     'no-drm-handoff': { since: '2.0.0-beta.5', reason: 'a standing owner reason long enough' },
     'production-sync-real-device': { since: '2.0.0-beta.5', until: '2.0.0-beta.9', reason: 'a retired owner reason long enough' },
@@ -56,10 +59,12 @@ test('the committed standing file is valid and names only real gates', () => {
   assert.ok(Object.keys(s.waivers).includes('no-drm-handoff'));
 });
 
-test('validateStanding refuses a short reason, a bad range and an unknown gate', () => {
+test('validateStanding refuses a short reason, a bad range, an unknown gate and a missing notes line', () => {
+  validateStanding(standing);
+  assert.throws(() => validateStanding({ ...standing, notes: {} }), /release-notes line/);
   assert.throws(() => validateStanding({ ...standing, waivers: { 'no-drm-handoff': { since: '2.0.0-beta.5', reason: 'short' } } }), /reason/);
   assert.throws(() => validateStanding({ ...standing, waivers: { 'no-drm-handoff': { since: '2.0.0-beta.5', until: '2.0.0-beta.5', reason: 'x'.repeat(30) } } }), /until/);
-  assert.throws(() => validateStanding({ ...standing, waivers: { 'made-up': { since: '2.0.0-beta.5', reason: 'x'.repeat(30) } } }), /gate/);
+  assert.throws(() => validateStanding({ ...standing, notes: { ...standing.notes, 'made-up': '- x' }, waivers: { 'made-up': { since: '2.0.0-beta.5', reason: 'x'.repeat(30) } } }), /gate/);
   assert.throws(() => validateStanding({ ...standing, carried: { webauthn: { ...standing.carried.webauthn, lastPass: { ...standing.carried.webauthn.lastPass, sha256: 'x' } } } }), /lastPass/);
 });
 
