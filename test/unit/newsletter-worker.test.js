@@ -503,6 +503,124 @@ test('confirming twice leaves exactly one removal lookup for the address', async
   assert.deepEqual([...env.SUBSCRIBERS.values.values()].filter((v) => v.includes('twice@example.com')), []);
 });
 
+function androidBetaRequest(body, headers = {}) {
+  return new Request('https://newsletter.test/android-beta', {
+    method: 'POST',
+    headers: {
+      Origin: 'https://blanc.day',
+      'CF-Connecting-IP': '203.0.113.30',
+      'Content-Type': 'application/json',
+      ...headers,
+    },
+    body: JSON.stringify(body),
+  });
+}
+
+test('the Android beta list has its own double opt-in and joins neither the newsletter nor the Mail waitlist', async (t) => {
+  const env = { ...environment(), ADMIN_TOKEN: 'admin', SIGNUP_ALERT_TO: 'support@blanc.day' };
+  const originalFetch = globalThis.fetch;
+  const mails = [];
+  globalThis.fetch = async (_url, init) => {
+    mails.push(JSON.parse(init.body));
+    return new Response(JSON.stringify({ id: `mail-${mails.length}` }), { status: 200 });
+  };
+  t.after(() => { globalThis.fetch = originalFetch; });
+
+  assert.equal((await worker.fetch(androidBetaRequest({ email: 'a@example.com' }, { Origin: 'https://evil.example' }), env)).status, 403);
+  const preflight = await worker.fetch(new Request('https://newsletter.test/android-beta', { method: 'OPTIONS', headers: { Origin: 'https://blanc.day' } }), env);
+  assert.equal(preflight.status, 204);
+  assert.equal(preflight.headers.get('Access-Control-Allow-Origin'), 'https://blanc.day');
+  assert.equal((await worker.fetch(androidBetaRequest({ email: 'nope' }), env)).status, 400);
+  assert.equal(mails.length, 0);
+
+  const pending = await worker.fetch(androidBetaRequest({ email: ' Tester@Example.com ', website: '' }), env);
+  assert.equal(pending.status, 202);
+  const [mail] = mails;
+  assert.deepEqual(mail.to, ['tester@example.com']);
+  assert.match(mail.subject, /Blanc for Android beta/);
+  assert.match(mail.text, /does not subscribe you to the Blanc newsletter/);
+  assert.match(mail.text, /deleted when the beta ends/);
+  assert.equal(await env.SUBSCRIBERS.get('androidbeta:tester@example.com'), null, 'nothing is on the list before confirmation');
+
+  // A beta token confirms nothing on the other lists.
+  const token = mail.text.match(/\/android-beta\/confirm\?token=([A-Za-z0-9_-]{43})/)?.[1];
+  assert.ok(token);
+  for (const other of ['/confirm', '/mail-waitlist/confirm']) {
+    assert.match(await (await worker.fetch(new Request(`https://newsletter.test${other}?token=${token}`), env)).text(), /invalid or expired/, other);
+  }
+
+  const confirmed = await worker.fetch(new Request(`https://newsletter.test/android-beta/confirm?token=${token}`), env);
+  assert.match(await confirmed.text(), /on the beta list/);
+  const record = await env.SUBSCRIBERS.get('androidbeta:tester@example.com', { type: 'json' });
+  assert.match(record.unsubscribeToken, /^[A-Za-z0-9_-]{43}$/);
+  assert.equal(await env.SUBSCRIBERS.get('sub:tester@example.com'), null);
+  assert.equal(await env.SUBSCRIBERS.get('mailwait:tester@example.com'), null);
+  assert.match(mails.at(-1).subject, /^New Blanc for Android beta signup: tester@example\.com$/);
+  assert.match(mails.at(-1).text, /That makes 1 person on the beta list\./);
+
+  assert.equal((await (await worker.fetch(admin('/subscribers'), env)).json()).count, 0);
+  assert.equal((await (await worker.fetch(admin('/mail-waitlist/members'), env)).json()).count, 0);
+  const beta = await (await worker.fetch(admin('/android-beta/members'), env)).json();
+  assert.deepEqual(beta.subscribers.map(({ email }) => email), ['tester@example.com']);
+  assert.match(beta.subscribers[0].unsubscribeUrl, /^https:\/\/blanc-newsletter\.bnfy-441\.workers\.dev\/android-beta\/leave\?token=/);
+
+  const left = await worker.fetch(new Request(`https://newsletter.test/android-beta/leave?token=${record.unsubscribeToken}`), env);
+  assert.match(await left.text(), /removed from the Blanc for Android beta list/);
+  assert.equal(await env.SUBSCRIBERS.get('androidbeta:tester@example.com'), null);
+});
+
+test('Android beta honeypot hits are quarantined on their own and send nothing', async (t) => {
+  const env = environment();
+  const originalFetch = globalThis.fetch;
+  let mailCalls = 0;
+  globalThis.fetch = async () => { mailCalls += 1; return new Response('{}'); };
+  t.after(() => { globalThis.fetch = originalFetch; });
+
+  const trapped = await worker.fetch(androidBetaRequest({ email: 'bot@example.com', website: 'x' }), env);
+  assert.equal(trapped.status, 202);
+  assert.equal(mailCalls, 0);
+  assert.ok(await env.SUBSCRIBERS.get('androidbeta-hp:bot@example.com'));
+  assert.equal(await env.SUBSCRIBERS.get('hp:bot@example.com'), null);
+  assert.equal(await env.SUBSCRIBERS.get('mailwait-hp:bot@example.com'), null);
+});
+
+test('Android beta admin endpoints fail closed, and each purge empties only its own list', async (t) => {
+  const env = { ...environment(), ADMIN_TOKEN: 'admin' };
+  const originalFetch = globalThis.fetch;
+  globalThis.fetch = async () => new Response('{}');
+  t.after(() => { globalThis.fetch = originalFetch; });
+
+  await env.SUBSCRIBERS.put('sub:reader@example.com', JSON.stringify({ ts: 't' }));
+  await env.SUBSCRIBERS.put('mailwait:waiting@example.com', JSON.stringify({ ts: 't' }));
+  await env.SUBSCRIBERS.put('androidbeta:tester@example.com', JSON.stringify({ ts: 't' }));
+  await env.SUBSCRIBERS.put('androidbeta-leave:hash', 'tester@example.com');
+  await env.SUBSCRIBERS.put('androidbeta-hp:bot@example.com', JSON.stringify({ ts: 't' }));
+
+  assert.equal((await worker.fetch(admin('/android-beta/members', 'GET', null), env)).status, 401);
+  assert.equal((await worker.fetch(admin('/android-beta/members', 'DELETE', 'wrong'), env)).status, 401);
+  assert.equal((await worker.fetch(admin('/android-beta/member?email=tester@example.com', 'DELETE', null), env)).status, 401);
+  assert.equal((await worker.fetch(admin('/android-beta/members', 'DELETE'), env)).status, 400);
+  assert.ok(await env.SUBSCRIBERS.get('androidbeta:tester@example.com'));
+
+  const purged = await worker.fetch(admin('/android-beta/members?confirm=delete-all', 'DELETE'), env);
+  assert.deepEqual(await purged.json(), { deleted: 1, remaining: false });
+  assert.deepEqual([...env.SUBSCRIBERS.values.keys()].sort(), ['mailwait:waiting@example.com', 'sub:reader@example.com']);
+
+  await env.SUBSCRIBERS.put('androidbeta:tester@example.com', JSON.stringify({ ts: 't' }));
+  await worker.fetch(admin('/mail-waitlist/members?confirm=delete-all', 'DELETE'), env);
+  assert.deepEqual([...env.SUBSCRIBERS.values.keys()].sort(), ['androidbeta:tester@example.com', 'sub:reader@example.com']);
+
+  assert.equal((await worker.fetch(admin('/android-beta/member?email=Tester@Example.com', 'DELETE'), env)).status, 204);
+  assert.deepEqual([...env.SUBSCRIBERS.values.keys()], ['sub:reader@example.com']);
+});
+
+test('unknown paths beside a waitlist are not routes', async () => {
+  const env = { ...environment(), ADMIN_TOKEN: 'admin' };
+  for (const pathname of ['/android-beta/', '/android-betas', '/android-beta/other', '/mail-waitlist/x']) {
+    assert.equal((await worker.fetch(admin(pathname), env)).status, 404, pathname);
+  }
+});
+
 // Records console.error lines for one test and restores it afterwards.
 function captureErrors(t) {
   const lines = [];
