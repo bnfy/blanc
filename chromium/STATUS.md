@@ -961,9 +961,10 @@ remain pending. D3 beta-only no-DRM exception accepted; EME notice/handoff requi
   the MacBook Pro (1Password won't stay unlocked on the Mac Studio). The
   Sigstore stage first hung (cosign had no terminal and fell back to a
   hidden device-code sign-in); fixed by giving it the Terminal (`99bcadb21`).
-  Logged-out public verification passed. Still owed: the hosted smoke check
-  (needs the workflow on main), and the website PR with the feed, the
-  Download page section and `/dl/beta`.
+  Logged-out public verification passed. After publication: the website
+  shipped the feed, the Download page tile and `/dl/beta` (#1511, #1512), and
+  the hosted smoke check passed all six checks (run 43561295021 on `main`,
+  with the live feed). Still owed: the first signed beta.2 → beta.3 handoff.
 - **Beta.2 production build (owner, 2026-11-14):** `out/BlancBeta` switched to
   production (2.0.0-beta.2, build 2, the production key, local qualification
   off) and rebuilt through the guard with the owner-approved
