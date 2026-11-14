@@ -836,3 +836,19 @@ owner's Mac, where cosign is installed. GitHub only dispatches a workflow
 that exists on `main`, so it becomes runnable once `chromium/next` reaches
 `main`. Tests: `chromium/release/public-smoke.test.mjs`; the launch step was
 tried on a local image of the local-qualification beta.
+
+### Owner gate decisions for the first public beta (2026-11-14)
+
+- **acceptance:** the shipping corpus drives the app through test hooks the
+  beta compiles out, so its evidence is an equivalence: the full suite on the
+  prototype built from the same Blanc source as the beta candidate (desktop
+  sources unchanged between them), plus the beta's own checks (blocker,
+  no test hooks, profile separation, notices and credits, outbound
+  isolation, Sync, update proof). This supersedes §6.1's "a separately
+  instrumented sibling cannot substitute" for this beta only.
+- **desktop-sync:** `beta-sync.mjs` on the local-qualification build (same
+  code, local Worker) counts; production Sync is covered by the owner's
+  real-device gate on the signed build.
+- **sparkle-N-to-N+1:** the local update proof (good feed installs; wrong key
+  and tampered refused) counts for beta.2; the first signed handoff is
+  beta.2 → beta.3 after publication, recorded then.

@@ -932,6 +932,11 @@ remain pending. D3 beta-only no-DRM exception accepted; EME notice/handoff requi
   16 px at 1000 × 760; it fits at 1280 × 800 and larger, in every
   wallpaper mode). native-start-widgets 8/8; newtab-layouts 24/25 (:21 as
   before).
+- **Gate decisions for the first public beta (owner, 2026-11-14):** acceptance
+  by equivalence (full suite on the same-source prototype plus the beta's
+  own checks), desktop Sync by the local-build check, and the update gate by
+  the local proof; the first signed handoff is beta.2 → beta.3 after release
+  (docs/chromium-beta-release.md, Owner gate decisions).
 - **Beta.2 production build (owner, 2026-11-14):** `out/BlancBeta` switched to
   production (2.0.0-beta.2, build 2, the production key, local qualification
   off) and rebuilt through the guard with the owner-approved
