@@ -932,6 +932,16 @@ remain pending. D3 beta-only no-DRM exception accepted; EME notice/handoff requi
   16 px at 1000 × 760; it fits at 1280 × 800 and larger, in every
   wallpaper mode). native-start-widgets 8/8; newtab-layouts 24/25 (:21 as
   before).
+- **Beta.2 production build (owner, 2026-11-14):** `out/BlancBeta` switched to
+  production (2.0.0-beta.2, build 2, the production key, local qualification
+  off) and rebuilt through the guard with the owner-approved
+  `--allow-large-build` for the changed build-flag header (27 steps). The app
+  reports 2.0.0-beta.2 (2), trusts the production key and feeds from
+  blanc.day. On it, with a local draft descriptor (placeholder hashes), the
+  blocker, hooks, profile and notices/credits checks pass; no update check
+  ran. Still to come: the 1Password key backup, the outbound check on this
+  build, signing, notarization, the real descriptor and evidence on the signed
+  DMG, production Sync with a real iPhone and passkeys.
 - **Production update key and beta.2 (owner, 2026-11-14):** the key ceremony
   ran split because 1Password kept locking: the production EdDSA key is in
   the owner's Keychain (`me.bnfy.blanc.beta`) and its public key is pinned
