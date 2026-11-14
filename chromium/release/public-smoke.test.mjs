@@ -7,7 +7,7 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
-import {smoke, releaseState, TAG} from './public-smoke.mjs';
+import {smoke, releaseState, TAG, realIO} from './public-smoke.mjs';
 import {assetName} from './policy.mjs';
 
 const release = JSON.parse(fs.readFileSync(new URL('./fixtures/release.json', import.meta.url)));
@@ -16,8 +16,8 @@ function fakeIO(overrides = {}) {
   const calls = [];
   const io = {
     arch: 'arm64',
-    api: async route => route.endsWith('/latest') ? {tag_name: 'v1.49.0'}
-      : {draft: false, prerelease: true, assets: Object.keys(files).map(name => ({name, browser_download_url: `https://example.test/${name}`}))},
+    release: async () => ({draft: false, prerelease: true, assets: Object.keys(files).map(name => ({name, browser_download_url: `https://example.test/${name}`}))}),
+    latest: async () => ({tag_name: 'v1.49.0'}),
     download: async (url, file) => { calls.push(url); fs.writeFileSync(file, files[path.basename(file)]); },
     text: async () => Buffer.from('<rss/>'),
     verifyManifest: () => {}, verifyArtifact: () => {},
@@ -56,11 +56,18 @@ test('any failing check fails the smoke', async () => {
     [{verifyManifest: () => { throw Error('x'); }}, /asset set/],
     [{verifyArtifact: () => { throw Error('x'); }}, /passes verify\.mjs/],
     [{launch: async () => ({requests: [], quitOnItsOwn: true})}, /launches and opens a page/],
-    [{api: async route => route.endsWith('/latest') ? {tag_name: release.tag} : {draft: false, prerelease: true, assets: [{name: 'release.json', browser_download_url: 'https://example.test/release.json'}]}}, /not latest/],
+    [{latest: async () => ({tag_name: release.tag})}, /not latest/],
     [{arch: 'x64'}, /does not ship/],
     [{text: async () => Buffer.from('old feed')}, /live feed/, {feed: true}],
   ]) {
     const result = await run(overrides, options ?? {});
     assert.equal(result.status, 'fail'); assert.match(result.failures.join('\n'), pattern);
   }
+});
+
+test('the real downloader fetches only this repository\'s beta release assets', async () => {
+  const {download} = realIO();
+  for (const url of ['https://evil.test/Blanc-Beta.dmg', 'http://github.com/bnfy/blanc/releases/download/chromium-beta-2.0.0-beta.2/x.dmg',
+    'https://github.com/bnfy/blanc/releases/download/v1.49.0/Blanc-1.49.0-arm64.dmg', 'https://github.com/other/blanc/releases/download/chromium-beta-2.0.0-beta.2/x.dmg'])
+    await assert.rejects(download(url, path.join(os.tmpdir(), 'never-written')), /unexpected download address/, url);
 });

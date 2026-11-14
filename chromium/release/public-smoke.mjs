@@ -31,11 +31,20 @@ export const TAG = /^chromium-beta-2\.0\.0-beta\.[1-9]\d*$/;
 
 export function realIO() {
   const headers = process.env.GH_TOKEN ? {authorization: `Bearer ${process.env.GH_TOKEN}`} : {};
+  const get = async route => { const res = await fetch(`https://api.github.com/repos/${REPO}/${route}`, {headers: {...headers, accept: 'application/vnd.github+json'}}); check(res.ok, `GitHub answered ${res.status} for ${route}`); return res.json(); };
   return {
     arch: os.arch() === 'arm64' ? 'arm64' : 'x64',
-    api: async route => { const res = await fetch(`https://api.github.com/${route}`, {headers: {...headers, accept: 'application/vnd.github+json'}}); check(res.ok, `GitHub answered ${res.status} for ${route.split('/').slice(-2).join('/')}`); return res.json(); },
-    // Public asset URLs, without credentials, as anyone downloads them.
-    download: async (url, file) => { const res = await fetch(url, {redirect: 'follow'}); check(res.ok, 'a public download failed'); fs.writeFileSync(file, Buffer.from(await res.arrayBuffer())); },
+    // Fixed requests only: the release is found in GitHub's list by its tag here,
+    // so no request URL carries data read from a file.
+    release: async tag => { const found = (await get('releases?per_page=100')).find(view => view.tag_name === tag); check(found, 'GitHub does not list this tag among its releases'); return found; },
+    latest: () => get('releases/latest'),
+    // Public asset URLs, without credentials, as anyone downloads them; curl
+    // writes the file, as release.mjs verify-public does.
+    download: async (url, file) => {
+      check(/^https:\/\/github\.com\/bnfy\/blanc\/releases\/download\/chromium-beta-2\.0\.0-beta\.[1-9]\d*\/[\w.-]+$/.test(url), 'an unexpected download address');
+      const done = spawnSync('/usr/bin/curl', ['-fsSL', '--proto', '=https', '--proto-redir', '=https', '-o', file, url], {stdio: 'ignore'});
+      check(done.status === 0, 'a public download failed');
+    },
     text: async url => { const res = await fetch(url, {redirect: 'error'}); check(res.ok, 'the live feed did not answer'); return Buffer.from(await res.arrayBuffer()); },
     verifyArtifact, verifyManifest,
     launch: async (dmg, home) => {
@@ -72,7 +81,7 @@ export async function smoke(tag, out, {feed = false, io = realIO()} = {}) {
   fs.mkdirSync(dir, {recursive: true});
   let r;
   await step('every public asset downloads logged out', async () => {
-    const view = await io.api(`repos/${REPO}/releases/tags/${tag}`);
+    const view = await io.release(tag);
     for (const asset of view.assets) {
       check(/^[\w.-]+$/.test(asset.name), 'unexpected asset name');
       await io.download(asset.browser_download_url, path.join(dir, asset.name));
@@ -85,7 +94,7 @@ export async function smoke(tag, out, {feed = false, io = realIO()} = {}) {
   if (!r) return finish(result, out);
   await step('the exact asset set, manifest, checksums and appcast signatures', async () => { io.verifyManifest(dir, r); });
   await step('GitHub shows a published pre-release that is not latest', async () => {
-    const failures = releaseState(await io.api(`repos/${REPO}/releases/tags/${tag}`), await io.api(`repos/${REPO}/releases/latest`), r);
+    const failures = releaseState(await io.release(tag), await io.latest(), r);
     check(failures.length === 0, failures.join('; '));
   });
   if (!r.arches.includes(io.arch)) result.failures.push(`this runner is ${io.arch}, which the release does not ship`);

@@ -41,12 +41,21 @@ export function sourceVerdict(text) {
   return said.every(v => PASSING.has(v.toLowerCase())) ? 'pass' : 'fail';
 }
 
+// Opened once and checked through the open descriptor (no symlinks, a regular,
+// nonempty file within the size limit), so the bytes read are the bytes checked.
 function readSource(file) {
   check(typeof file === 'string' && path.isAbsolute(file), 'evidence sources must be absolute paths');
-  const stat = fs.lstatSync(file, {throwIfNoEntry: false});
-  check(stat?.isFile(), `evidence source missing: ${path.basename(file)}`);
-  check(stat.size > 0 && stat.size <= MAX_SOURCE, `evidence source size: ${path.basename(file)}`);
-  const bytes = fs.readFileSync(file), text = bytes.toString('utf8');
+  let fd;
+  try { fd = fs.openSync(file, fs.constants.O_RDONLY | fs.constants.O_NOFOLLOW); }
+  catch { check(false, `evidence source missing: ${path.basename(file)}`); }
+  let bytes;
+  try {
+    const stat = fs.fstatSync(fd);
+    check(stat.isFile(), `evidence source missing: ${path.basename(file)}`);
+    check(stat.size > 0 && stat.size <= MAX_SOURCE, `evidence source size: ${path.basename(file)}`);
+    bytes = fs.readFileSync(fd);
+  } finally { fs.closeSync(fd); }
+  const text = bytes.toString('utf8');
   check(Buffer.from(text, 'utf8').equals(bytes), `evidence source must be UTF-8 text: ${path.basename(file)}`);
   return {name: path.basename(file), sha256: sha256(bytes), text};
 }
@@ -101,12 +110,24 @@ export function assemble(work, map, {write = false} = {}) {
   if (!write) return {plan, missing};
   check(!missing.length, `gate not ready: ${missing[0]?.gate} (${missing[0]?.why})`);
   validateAcceptance(acceptance, r, payloads);
+  // Nothing is checked and then written: the index is claimed first ('wx'),
+  // each architecture's evidence folder must be new, and every bundle is
+  // written 'wx'. Any refusal leaves the claimed index removed.
   const index = path.join(work, 'payloads', 'acceptance.json');
-  check(!fs.existsSync(index), 'payloads/acceptance.json already exists; nothing was overwritten');
-  for (const b of bundles) check(!fs.existsSync(b.file), 'an evidence bundle already exists; nothing was overwritten');
-  for (const b of bundles) { fs.mkdirSync(path.dirname(b.file), {recursive: true, mode: 0o700}); fs.writeFileSync(b.file, b.bytes, {flag: 'wx', mode: 0o600}); }
+  const exclusive = (fn, what) => { try { return fn(); } catch (e) { check(e.code !== 'EEXIST', `${what} already exists; nothing was overwritten`); throw e; } };
   fs.mkdirSync(path.dirname(index), {recursive: true, mode: 0o700});
-  fs.writeFileSync(index, JSON.stringify(acceptance, null, 2) + '\n', {flag: 'wx', mode: 0o600});
+  const fd = exclusive(() => fs.openSync(index, 'wx', 0o600), 'payloads/acceptance.json');
+  let written = false;
+  try {
+    fs.mkdirSync(path.join(work, 'evidence'), {recursive: true, mode: 0o700});
+    for (const arch of r.arches) exclusive(() => fs.mkdirSync(path.join(work, 'evidence', arch), {mode: 0o700}), `evidence/${arch}`);
+    for (const b of bundles) exclusive(() => fs.writeFileSync(b.file, b.bytes, {flag: 'wx', mode: 0o600}), 'an evidence bundle');
+    fs.writeSync(fd, JSON.stringify(acceptance, null, 2) + '\n');
+    written = true;
+  } finally {
+    fs.closeSync(fd);
+    if (!written) fs.rmSync(index, {force: true});
+  }
   return {plan, missing, acceptance};
 }
 

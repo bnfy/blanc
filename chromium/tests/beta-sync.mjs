@@ -33,7 +33,10 @@ const FIND = `(function find(sel, root = document) {
   const hit = root.querySelector(sel); if (hit) return hit;
   for (const el of root.querySelectorAll('*')) if (el.shadowRoot) { const deep = find(sel, el.shadowRoot); if (deep) return deep; }
   return null; })`;
-const page = id => `(${FIND})('settings-blanc-sync-page')?.shadowRoot?.getElementById(${JSON.stringify(id)})`;
+// A JavaScript string literal safe to splice into page script: JSON plus the
+// characters that could close a script or end a line inside it.
+const literal = value => JSON.stringify(String(value)).replace(/[<>/\u2028\u2029]/g, c => `\\u${c.charCodeAt(0).toString(16).padStart(4, '0')}`);
+const page = id => `(${FIND})('settings-blanc-sync-page')?.shadowRoot?.getElementById(${literal(id)})`;
 const visible = id => `(() => { const e = ${page(id)}; return !!e && !e.hidden && e.getBoundingClientRect().width > 0; })()`;
 const click = id => `(() => { const e = ${page(id)}; const more = e?.closest('details'); if (more && !more.open) more.querySelector('summary').click();
   if (!e || e.disabled || !e.getBoundingClientRect().width) return false; e.focus(); e.click(); return true; })()`;
@@ -58,13 +61,15 @@ try {
     up.on('error', () => socket.destroy()); socket.on('error', () => up.destroy()); });
   await new Promise((resolve, reject) => { relay.once('error', reject); relay.listen(ENDPOINT_PORT, '127.0.0.1', resolve); });
 
-  browser = spawn(path.join(app, 'Contents/MacOS/Blanc Beta'), [`--user-data-dir=${profile}`, '--remote-debugging-port=0',
+  // The harness picks the debugging port, so nothing read from the profile
+  // reaches a request.
+  port = await new Promise((resolve, reject) => { const probe = net.createServer(); probe.once('error', reject);
+    probe.listen(0, '127.0.0.1', () => { const {port: free} = probe.address(); probe.close(() => resolve(free)); }); });
+  browser = spawn(path.join(app, 'Contents/MacOS/Blanc Beta'), [`--user-data-dir=${profile}`, `--remote-debugging-port=${port}`,
     '--no-first-run', '--no-default-browser-check', '--use-mock-keychain',
     '--host-resolver-rules=MAP * ~NOTFOUND, EXCLUDE localhost, EXCLUDE 127.0.0.1', 'about:blank'],
   {stdio: 'ignore', env: {...process.env, HOME: home, CFFIXED_USER_HOME: home}});
-  const portFile = path.join(profile, 'DevToolsActivePort');
-  await waitFor(async () => fs.existsSync(portFile) && fs.readFileSync(portFile, 'utf8').split('\n')[0], Boolean, 'remote debugging port', 30000);
-  port = fs.readFileSync(portFile, 'utf8').split('\n')[0];
+  await waitFor(() => fetch(`http://127.0.0.1:${port}/json/version`).then(r => r.ok, () => false), Boolean, 'remote debugging port', 30000);
   const list = () => fetch(`http://127.0.0.1:${port}/json/list`).then(r => r.json());
 
   await step('Settings → Sync opens in the beta', async () => {

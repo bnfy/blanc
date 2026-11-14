@@ -94,6 +94,11 @@ test('refuses missing, failing or unstated evidence, and a waiver the descriptor
     assert.throws(() => assemble(work, map), /unknown gate/);
   }
   {
+    const {work, map, src} = setup(); const link = path.join(src, 'linked.json');
+    fs.symlinkSync(path.join(src, 'webauthn.json'), link); map.arm64.webauthn.files = [link];
+    assert.throws(() => assemble(work, map), /evidence source missing: linked\.json/, 'a symlinked source is refused');
+  }
+  {
     const {work, map} = setup(); map.arm64.webauthn.files = ['relative.json'];
     assert.throws(() => assemble(work, map), /absolute/);
   }
