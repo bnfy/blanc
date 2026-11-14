@@ -4,6 +4,7 @@
 
 #include <algorithm>
 #include <initializer_list>
+#include <map>
 #include <optional>
 #include <set>
 #include <string>
@@ -11,6 +12,8 @@
 #include <utility>
 #include <vector>
 
+#include "base/barrier_callback.h"
+#include "base/base64.h"
 #include "base/memory/raw_ptr.h"
 #include "base/memory/ref_counted_memory.h"
 #include "base/memory/weak_ptr.h"
@@ -26,16 +29,20 @@
 #include "blanc/android/pages_resources/pages_resources.h"
 #include "chrome/browser/bookmarks/bookmark_model_factory.h"
 #include "chrome/browser/browser_process.h"
+#include "chrome/browser/favicon/favicon_service_factory.h"
 #include "chrome/browser/history/history_service_factory.h"
 #include "chrome/browser/profiles/profile.h"
 #include "components/bookmarks/browser/base_bookmark_model_observer.h"
 #include "components/bookmarks/browser/bookmark_model.h"
 #include "components/bookmarks/browser/bookmark_node.h"
 #include "components/bookmarks/common/bookmark_metrics.h"
+#include "components/favicon/core/favicon_service.h"
+#include "components/favicon_base/favicon_types.h"
 #include "components/prefs/pref_change_registrar.h"
 #include "components/prefs/pref_service.h"
 #include "components/prefs/scoped_user_pref_update.h"
 #include "components/history/core/browser/history_service.h"
+#include "components/history/core/browser/history_service_observer.h"
 #include "components/history/core/browser/history_types.h"
 #include "components/keyed_service/core/service_access_type.h"
 #include "components/version_info/version_info.h"
@@ -45,9 +52,14 @@
 #include "content/public/browser/web_ui_data_source.h"
 #include "content/public/browser/web_ui_message_handler.h"
 #include "services/network/public/mojom/content_security_policy.mojom.h"
+#include "third_party/skia/include/core/SkBitmap.h"
 #include "ui/base/models/tree_node_iterator.h"
 #include "ui/base/page_transition_types.h"
 #include "ui/base/window_open_disposition.h"
+#include "ui/gfx/codec/png_codec.h"
+#include "ui/gfx/image/image.h"
+#include "ui/gfx/image/image_skia.h"
+#include "ui/gfx/image/image_skia_rep.h"
 #include "url/gurl.h"
 
 // blocker_proxy.h needs the blocker's mojom, which this target (inside webui:configs) can't depend on.
@@ -130,6 +142,27 @@ base::ListValue Favorites(bookmarks::BookmarkModel* model) {
   return list;
 }
 
+// The Start Page's pins are the fork's own (sanitizing, the cap of eight, pin and unpin), in the
+// fork's profile pref, which patch 0113 registers. They stay on this phone: the iPhone has no pins,
+// so nothing syncs them.
+#include "blanc/browser/ui/start_page_pins.inc"
+
+// An icon from the local favicon database as a data URL, at its sharpest stored scale, or "" for
+// none. Nothing is ever fetched.
+std::string FaviconDataUrl(const gfx::Image& image) {
+  if (image.IsEmpty()) return std::string();
+  const std::vector<gfx::ImageSkiaRep> reps = image.AsImageSkia().image_reps();
+  const gfx::ImageSkiaRep* best = nullptr;
+  for (const gfx::ImageSkiaRep& rep : reps) {
+    if (!best || rep.scale() > best->scale()) best = &rep;
+  }
+  if (!best) return std::string();
+  const SkBitmap& bitmap = best->GetBitmap();
+  if (bitmap.drawsNothing() || bitmap.width() > 256 || bitmap.height() > 256) return std::string();
+  const std::optional<std::vector<uint8_t>> png = gfx::PNGCodec::EncodeBGRASkBitmap(bitmap, false);
+  return png ? "data:image/png;base64," + base::Base64Encode(*png) : std::string();
+}
+
 // window.bowserPages' calls, as the iPhone's PagesBridge answers them.
 class PagesHandler : public content::WebUIMessageHandler {
  public:
@@ -155,6 +188,8 @@ class PagesHandler : public content::WebUIMessageHandler {
   void OnJavascriptDisallowed() override {
     weak_factory_.InvalidateWeakPtrs();
     tracker_.TryCancelAll();
+    favicons_changed_ = {};
+    history_observation_.Reset();
   }
 
  private:
@@ -233,6 +268,7 @@ class PagesHandler : public content::WebUIMessageHandler {
     start_prefs_.Init(StartPrefs());
     start_prefs_.Add(kStartWidgets, base::BindRepeating(&PagesHandler::StartEvent, base::Unretained(this), "widgets"));
     start_prefs_.Add(kStartClock, base::BindRepeating(&PagesHandler::StartEvent, base::Unretained(this), "clock"));
+    start_prefs_.Add(kStartPagePinsPref, base::BindRepeating(&PagesHandler::StartEvent, base::Unretained(this), "pins"));
     bookmarks::BookmarkModel* model = Bookmarks();
     if (model && !bookmark_observation_.IsObserving()) bookmark_observation_.Observe(model);
   }
@@ -269,14 +305,13 @@ class PagesHandler : public content::WebUIMessageHandler {
       // null tells the page the model is still loading; it asks again.
       return StartReply(id, true, model && model->loaded() ? base::Value(Favorites(model)) : base::Value());
     }
-    // Android has no ranked sites, pinned shortcuts or tab groups on the Start Page yet.
-    if (method == "topSites" || method == "groupsRead") return StartReply(id, true, base::Value(base::ListValue()));
-    if (method == "pinsList")
-      return StartReply(id, true, base::Value(base::DictValue().Set("max", 8).Set("pins", base::ListValue())));
-    if (method == "pinsPin")
-      return StartReply(id, true, base::Value(base::DictValue().Set("ok", false).Set("reason", "unavailable")));
-    if (method == "pinsUnpin" || method == "focusGroup" || method == "openIsland")
-      return StartReply(id, true, base::Value(false));
+    // Billboard's shortcuts: ranked sites and pins, as the fork answers them.
+    if (method == "topSites") return StartTopSites(id, args, off_the_record);
+    if (method == "pinsList" || method == "pinsPin" || method == "pinsUnpin")
+      return StartPins(id, method, args, off_the_record);
+    // Android has no tab groups on the Start Page yet.
+    if (method == "groupsRead") return StartReply(id, true, base::Value(base::ListValue()));
+    if (method == "focusGroup" || method == "openIsland") return StartReply(id, true, base::Value(false));
     // A private Start Page gets nothing from other devices, as on desktop.
     if (method == "remoteDevices")
       return StartReply(id, true, base::Value(off_the_record ? base::ListValue() : ::blanc::SyncRemoteDevices()));
@@ -441,6 +476,177 @@ class PagesHandler : public content::WebUIMessageHandler {
     StartReply(id, true, base::Value(std::move(out)));
   }
 
+  // ---- Billboard's shortcuts: blanc_prototype_ui.cc's NewTabHandler, on Android's profile ----
+
+  // topSites([offset, limit]): history's most visited sites, one per site (www. folded), http(s)
+  // only, each still visited (not kept only by a Favorite) under its current title, with its icon
+  // from the local database. A private Start Page gets none.
+  void StartTopSites(const std::string& id, const base::ListValue& args, bool off_the_record) {
+    if (off_the_record) return StartReply(id, true, base::Value(base::ListValue()));
+    int offset = 0, limit = 48;
+    if (!args.empty()) {
+      if (args.size() != 2 || !args[0].is_int() || !args[1].is_int() || args[0].GetInt() < 0 ||
+          args[0].GetInt() > 5000 || args[1].GetInt() < 1 || args[1].GetInt() > 48)
+        return StartReply(id, false, base::Value("Invalid Top Sites page"));
+      offset = args[0].GetInt();
+      limit = args[1].GetInt();
+    }
+    history::HistoryService* history = History();
+    if (!history) return StartReply(id, false, base::Value("History unavailable"));
+    WatchHistory(history);
+    const auto task = history->QueryMostVisitedURLs(
+        5000, base::BindOnce(&PagesHandler::OnMostVisited, weak_factory_.GetWeakPtr(), id, offset, limit), &tracker_);
+    if (task == base::CancelableTaskTracker::kBadTaskId) StartReply(id, false, base::Value("History unavailable"));
+  }
+
+  // A ranked site: its place on the page, and its title if history still has visits to it.
+  using Visited = std::pair<size_t, std::optional<std::string>>;
+
+  void OnMostVisited(std::string id, int offset, int limit, history::MostVisitedURLList sites) {
+    std::set<std::string> seen;
+    base::ListValue items;
+    int rank = 0;
+    for (const history::MostVisitedURL& site : sites) {
+      if (!site.url.SchemeIsHTTPOrHTTPS() || site.url.has_username() || site.url.has_password()) continue;
+      std::string key(site.url.host());
+      if (key.starts_with("www.")) key.erase(0, 4);
+      if (!seen.insert(key).second || rank++ < offset) continue;
+      items.Append(base::DictValue()
+                       .Set("url", site.url.spec())
+                       .Set("key", key)
+                       .Set("title", base::UTF16ToUTF8(site.title)));
+      if (items.size() >= static_cast<size_t>(limit)) break;
+    }
+    history::HistoryService* history = History();
+    if (!history) return StartReply(id, false, base::Value("History unavailable"));
+    if (items.empty()) return StartReply(id, true, base::Value(std::move(items)));
+    // The ranking keeps a site whose only row a Favorite holds after its visits were deleted; that
+    // row has no visits, so the site goes.
+    auto done = base::BarrierCallback<Visited>(
+        items.size(), base::BindOnce(&PagesHandler::OnSitesVisited, weak_factory_.GetWeakPtr(), id, items.Clone()));
+    for (size_t i = 0; i < items.size(); ++i) {
+      const auto task = history->QueryURL(
+          GURL(*items[i].GetDict().FindString("url")),
+          base::BindOnce(
+              [](size_t i, base::RepeatingCallback<void(Visited)> done, history::QueryURLResult result) {
+                done.Run({i, result.success && result.row.visit_count() > 0
+                                 ? std::optional<std::string>(base::UTF16ToUTF8(result.row.title()))
+                                 : std::nullopt});
+              },
+              i, done),
+          &tracker_);
+      if (task == base::CancelableTaskTracker::kBadTaskId) done.Run({i, std::nullopt});
+    }
+  }
+
+  void OnSitesVisited(std::string id, base::ListValue items, std::vector<Visited> visited) {
+    std::ranges::sort(visited, {}, &Visited::first);
+    base::ListValue kept;
+    for (auto& [i, title] : visited) {
+      if (!title) continue;
+      items[i].GetDict().Set("title", std::move(*title));
+      kept.Append(std::move(items[i]));
+    }
+    WithIcons(std::move(kept), base::BindOnce(&PagesHandler::ReplySites, weak_factory_.GetWeakPtr(), id));
+  }
+  void ReplySites(std::string id, base::ListValue sites) { StartReply(id, true, base::Value(std::move(sites))); }
+
+  // pinsList, pinsPin(url, title), pinsUnpin(url): up to eight pages, which lead Billboard's row
+  // whatever history does. A private Start Page lists them without icons and changes none.
+  void StartPins(const std::string& id, const std::string& method, const base::ListValue& args, bool off_the_record) {
+    PrefService* prefs = StartPrefs();
+    if (method == "pinsList" && args.empty()) {
+      base::ListValue pins = SanitizeStartPins(prefs->GetList(kStartPagePinsPref));
+      if (off_the_record) return ReplyPins(id, std::move(pins));
+      WatchHistory(History());
+      return WithIcons(std::move(pins), base::BindOnce(&PagesHandler::ReplyPins, weak_factory_.GetWeakPtr(), id));
+    }
+    const bool pin = method == "pinsPin";
+    if (pin ? args.size() != 2 || !args[0].is_string() || !args[1].is_string()
+            : method != "pinsUnpin" || args.size() != 1 || !args[0].is_string())
+      return StartReply(id, false, base::Value("Unsupported start-page request"));
+    if (off_the_record) {
+      return StartReply(id, true, pin ? base::Value(base::DictValue().Set("ok", false).Set("reason", "private"))
+                                      : base::Value(false));
+    }
+    StartReply(id, true, ChangeStartPin(prefs, pin, args[0].GetString(), pin ? args[1].GetString() : std::string()));
+  }
+  // The pins as they are now, so one unpinned while its icon loaded doesn't come back.
+  void ReplyPins(std::string id, base::ListValue loaded) {
+    std::map<std::string, std::string> icons;
+    for (const base::Value& pin : loaded) {
+      const std::string* icon = pin.GetDict().FindString("favicon");
+      if (icon) icons[*pin.GetDict().FindString("url")] = *icon;
+    }
+    base::ListValue pins = SanitizeStartPins(StartPrefs()->GetList(kStartPagePinsPref));
+    for (base::Value& pin : pins) {
+      const auto icon = icons.find(*pin.GetDict().FindString("url"));
+      if (icon != icons.end()) pin.GetDict().Set("favicon", icon->second);
+    }
+    StartReply(id, true,
+               base::Value(base::DictValue().Set("max", static_cast<int>(kStartPageMaxPins)).Set("pins", std::move(pins))));
+  }
+
+  // Sets each item's "favicon" from the local favicon database, then hands the items on.
+  void WithIcons(base::ListValue items, base::OnceCallback<void(base::ListValue)> then) {
+    favicon::FaviconService* favicons =
+        FaviconServiceFactory::GetForProfile(profile(), ServiceAccessType::EXPLICIT_ACCESS);
+    if (!favicons || items.empty()) return std::move(then).Run(std::move(items));
+    using Icon = std::pair<size_t, std::string>;
+    auto done = base::BarrierCallback<Icon>(
+        items.size(), base::BindOnce(
+                          [](base::ListValue items, base::OnceCallback<void(base::ListValue)> then,
+                             std::vector<Icon> icons) {
+                            for (auto& [i, icon] : icons) {
+                              if (!icon.empty()) items[i].GetDict().Set("favicon", std::move(icon));
+                            }
+                            std::move(then).Run(std::move(items));
+                          },
+                          items.Clone(), std::move(then)));
+    for (size_t i = 0; i < items.size(); ++i) {
+      const auto task = favicons->GetFaviconImageForPageURL(
+          GURL(*items[i].GetDict().FindString("url")),
+          base::BindOnce([](size_t i, base::RepeatingCallback<void(Icon)> done,
+                            const favicon_base::FaviconImageResult& result) { done.Run({i, FaviconDataUrl(result.image)}); },
+                         i, done),
+          &tracker_);
+      if (task == base::CancelableTaskTracker::kBadTaskId) done.Run({i, std::string()});
+    }
+  }
+
+  // Visits, deletions and new icons reach every open Start Page, as on desktop.
+  void WatchHistory(history::HistoryService* history) {
+    if (!history || history_observation_.IsObserving()) return;
+    history_observation_.Observe(history);
+    favicons_changed_ = history->AddFaviconsChangedCallback(base::BindRepeating(
+        [](base::WeakPtr<PagesHandler> self, const std::set<GURL>&, const GURL&) {
+          if (!self) return;
+          self->StartEvent("topSites");
+          self->StartEvent("pins");
+        },
+        weak_factory_.GetWeakPtr()));
+  }
+  class HistoryWatch : public history::HistoryServiceObserver {
+   public:
+    explicit HistoryWatch(PagesHandler* handler) : handler_(handler) {}
+    void OnURLVisited(history::HistoryService*, const history::VisitedURLInfo&) override {
+      handler_->StartEvent("topSites");
+      handler_->StartEvent("pins");
+    }
+    // The page hides its ranked sites and pin icons until it has read them again.
+    void OnHistoryDeletions(history::HistoryService*, const history::DeletionInfo&) override {
+      handler_->StartEvent("topSitesInvalidated");
+      handler_->StartEvent("pinIconsInvalidated");
+    }
+    void HistoryServiceBeingDeleted(history::HistoryService*) override {
+      handler_->favicons_changed_ = {};
+      handler_->history_observation_.Reset();
+    }
+
+   private:
+    raw_ptr<PagesHandler> handler_;
+  };
+
   // Favorites changed (the Island's heart, the Favorites page, Sync): the Start Page reads them again.
   class FavoritesWatch : public bookmarks::BaseBookmarkModelObserver {
    public:
@@ -512,6 +718,10 @@ class PagesHandler : public content::WebUIMessageHandler {
   FavoritesWatch favorites_watch_{this};
   base::ScopedObservation<bookmarks::BookmarkModel, bookmarks::BaseBookmarkModelObserver> bookmark_observation_{
       &favorites_watch_};
+  HistoryWatch history_watch_{this};
+  base::ScopedObservation<history::HistoryService, history::HistoryServiceObserver> history_observation_{
+      &history_watch_};
+  base::CallbackListSubscription favicons_changed_;
   base::CancelableTaskTracker tracker_;
   base::WeakPtrFactory<PagesHandler> weak_factory_{this};
 };
