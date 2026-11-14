@@ -14,6 +14,39 @@ D7, F0.7, cold builds, new machines, D2/D4–D6/D8/V2 and replacement D3
 remain pending. D3 beta-only no-DRM exception accepted; EME notice/handoff required.
 
 ## Current work
+- **2026-11-14 — Hover previews in the vertical tab rail (patch 0084 plus
+  host and native code, owner-approved layout A; design
+  `docs/superpowers/specs/2026-11-14-rail-hover-previews-design.md`, plan
+  `docs/superpowers/plans/2026-11-14-rail-hover-previews.md`):** with vertical
+  tabs, resting 500ms on a rail row shows a card beside the rail with the
+  tab's title, host and Chromium's thumbnail; resting on a collapsed group's
+  header shows a list card of its tabs, whose rows show the picture card
+  beside it (clicking one opens the group and switches to the tab). Once a
+  card is up the next row swaps it at once, and so do arrow/Home/End focus
+  moves; a click, scroll, key (in the rail or the page), blur, resize, tab
+  switch, any surface, a Glance or a changed card closes it. Private tabs
+  never get a picture; a quiet tab shows only what Chromium kept and is
+  never subscribed to (that would load a restored tab); the current tab and
+  visible split panes show none. No Settings switch yet (owner: no
+  English-only label; it follows when shipping has the copy). Chromium 158
+  leaves `kTabHoverCardImages` off on macOS (Google turns it on through the
+  `TabHoverCardImagesMacArm` field trial, which Blanc doesn't receive), so
+  no tab had a ThumbnailTabHelper; owner, 2026-11-14: patch 0084 turns it on
+  in Blanc builds (cost: a small in-memory JPEG per backgrounded tab).
+  Pure rules in `island/rail-hover.js`, cards in `island/rail-hover-card.js`,
+  the host section in `island/host.js`; native `tabThumbnail`,
+  `watchThumbnail`/`unwatchThumbnail`, `hoverCardBounds` and
+  `railCardsShown` in `blanc_prototype_ui.cc`; rail rows drop their system
+  tooltip through two declared `vertical-tabs.js` edits. Patch totals: 83
+  desktop patches touching 166 files (340 file diffs, 713 hunks). Checked:
+  the fork unit suite (498 pass, 0 fail, 12 skipped), patch reconstruction
+  (both lanes), the Island renderer and asset checks, and a syntax-only
+  compile of `blanc_prototype_ui.cc` with out/BlancBeta's flags on the Mac
+  Studio (read only). Not yet built or seen on screen: an incremental build,
+  then both themes, a private tab, a quiet tab, a collapsed group and a
+  split row. Deferred minors: Cmd-Tab away with the page focused doesn't
+  close a card; a permission prompt opening doesn't; a watched tab that goes
+  quiet keeps its watch until the card closes (it never loads the tab).
 - **2026-11-14 — The red button keeps the main window's tabs (patch 0083
   here, 0082 on beta.4's branch; candidate macos-f390619940f08515, owner's report on beta.4):** shipping's
   macOS Dock close (`windowCloseSessionEffect` → `'dock'`, `dock-reopen.js`)
