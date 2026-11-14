@@ -17,6 +17,7 @@
     "chrome/browser/chrome_browser_interface_binders_webui_parts_desktop.cc": "40b3a313ca535be1c008ecbd968d5cf85fa92f2c16c4b463c1ffafcb9a30c8b8",
     "chrome/browser/chrome_content_browser_client.cc": "43829c46f8492d59bf22cf795e9c1745b8b7e68cd2b333674b765890affc9845",
     "chrome/browser/chrome_content_browser_client_receiver_bindings.cc": "247926287b50797456c7ebc8b2b0e2db2213a0a38e979dbbeb39e8d1500f3690",
+    "chrome/browser/extensions/api/extension_action/extension_action_api.cc": "57b072a833d3249d3841c922c4e39c6b51b5c5145a644d9bd868ed91b7d169c2",
     "chrome/browser/extensions/api/settings_private/prefs_util.cc": "93b2037f82378f8db8cad29dfad1d29bff02cb5272d45ff1f7620affe547c62e",
     "chrome/browser/extensions/browser_extension_window_controller.cc": "08500671a582bd05db438f3c76da93fc9cce2bfe208a4ad83524bd717b201438",
     "chrome/browser/extensions/component_extensions_allowlist/allowlist.cc": "751aa498bec9930a1d44689922295ae11e3d8497abcdc291aab78b80fa4cc583",

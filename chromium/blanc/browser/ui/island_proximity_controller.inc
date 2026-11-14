@@ -69,9 +69,23 @@ void ArmIslandPointer(Owner* owner) {
 // (extensions_pill_y) and the swell the host measured on their slot. The view
 // keeps the slot's resting bounds; the swell grows it from its own corner and
 // moves it as the slot moved.
+// A transform is no bounds change to a bubble: an extension's popup hanging
+// from these buttons is placed again, so it moves with them.
+void ReanchorExtensionPopups(views::View* extensions) {
+  auto* widget = extensions->GetWidget();
+  if (!widget) return;
+  for (views::Widget* child : views::Widget::GetAllOwnedWidgets(widget->GetNativeView())) {
+    auto* delegate = child->widget_delegate();
+    auto* bubble = delegate ? delegate->AsBubbleDialogDelegate() : nullptr;
+    auto* anchor = bubble ? bubble->GetAnchorView() : nullptr;
+    if (anchor && extensions->Contains(anchor)) bubble->OnAnchorBoundsChanged();
+  }
+}
+
 void SetExtensionsPillOffset(Owner* owner, views::View* extensions) {
   gfx::Transform transform;
   transform.Translate(owner->extensions_swell_dx, owner->extensions_pill_y + owner->extensions_swell_dy);
   transform.Scale(owner->extensions_swell_scale, owner->extensions_swell_scale);
   extensions->SetTransform(transform);
+  if (owner->extension_popup) ReanchorExtensionPopups(extensions);
 }

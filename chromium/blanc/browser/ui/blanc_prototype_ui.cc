@@ -1238,6 +1238,9 @@ class Owner : public base::SupportsUserData::Data,
   // Acceptance only, as shipping's testHoldIsland: held up as an open popup
   // would hold it, without a pointer or a focused window.
   bool autohide_test_hold = false;
+  // An extension's action popup is open, anchored on the Island's
+  // Extensions button (ExtensionPopupChanged): it holds the Island up.
+  bool extension_popup = false;
   std::optional<blanc::island_autohide::Dwell> autohide_dwell;
   std::optional<gfx::PointF> last_pointer;
   base::OneShotTimer autohide_watch;
@@ -13220,6 +13223,30 @@ bool OpenExtensions(BrowserWindowInterface* browser) {
   contents->GetPrimaryMainFrame()->ExecuteJavaScript(
       u"window.BlancPrototypeHost?.extensions()", base::NullCallback());
   return true;
+}
+
+// Chromium refuses chrome.action.openPopup in a window whose toolbar isn't
+// visible, and the Island hides Chromium's toolbar. Its extensions container
+// lives on in the Island (LayoutIsland), so an Island window takes the
+// popup, except while a page is fullscreen and the Island is gone.
+bool CanOpenExtensionPopup(BrowserWindowInterface* browser) {
+  return IsIslandWindow(browser) && !IsPageFullscreen(browser);
+}
+
+// The popup anchors on the Island's Extensions button, which Auto-hide
+// takes away with the strip: hold the Island down while a popup is open,
+// as HoldIslandForTest does, then let the usual check hide it.
+void ExtensionPopupChanged(BrowserWindowInterface* browser, bool open) {
+  if (!IsIslandWindow(browser)) return;
+  for (auto* owner : Owner::Live()) {
+    if (owner->browser.get() != browser || owner->extension_popup == open) continue;
+    owner->extension_popup = open;
+    if (!AutoHideApplies(owner)) continue;
+    if (open) RevealIsland(owner);
+    else if (owner->autohide_revealed) ScheduleAutoHideCheck(owner);
+    Relayout(owner);
+    NotifyAutoHide(owner);
+  }
 }
 
 #include "blanc/browser/ui/permission_prompt.inc"

@@ -14,6 +14,21 @@ D7, F0.7, cold builds, new machines, D2/D4–D6/D8/V2 and replacement D3
 remain pending. D3 beta-only no-DRM exception accepted; EME notice/handoff required.
 
 ## Current work
+- **2026-11-14 — Extensions can open their own popup (patch 0081, candidate
+  macos-cf13e2bc70dce670, owner's report):** 1Password's in-page "Unlock
+  1Password" did nothing in Blanc Beta. It calls chrome.action.openPopup, and
+  Chromium refuses that with "Browser window has no toolbar." (confirmed on
+  beta.3) because the baseline makes IsToolbarVisible false in Island windows.
+  OpenPopupInBrowser now lets an Island window through unless a page is
+  fullscreen (`CanOpenExtensionPopup`); IsToolbarVisible itself is unchanged.
+  The popup anchors on the Island's Extensions button, so SetPopupOwner tells
+  the Island (`ExtensionPopupChanged`): with Auto-hide on it comes down and
+  stays while the popup is open, and an open popup follows the button's
+  slide. `tests/native-extension-open-popup.mjs` passes on the MacBook Pro
+  (Auto-hide off, float and push; popup at the same spot in all three);
+  macOS window full screen opens it too. Not run: a page-fullscreen refusal
+  (Chromium denied requestFullscreen in the fixture), Windows/Linux, the
+  vertical tab layout, a real 1Password account.
 - **2026-11-14 — Beta.4 full suite (prototype candidate macos-402d768b8c8f6e43, source 75f85e960):**
   run on the owner's MacBook Pro (the Mac Studio's screen was locked) from a
   clean checkout: 577 pass, 4 fail, 4 undefined, 27 excluded (636 executed),
@@ -3190,5 +3205,5 @@ Android's Bar A counts the shared scenarios bound in `chromium/tests/android/acc
 
 Legacy macOS stages come from the approved spec; they await verification on the canonical candidate. No legacy stage counts as Verified.
 
-Candidate identities: macOS: macos-c38dc309aaefdebe; Windows: none; Linux: none; Android: android-arm64-7bd35e94ef746069.
+Candidate identities: macOS: macos-cf13e2bc70dce670; Windows: none; Linux: none; Android: android-arm64-7bd35e94ef746069.
 <!-- END GENERATED PROGRESS -->
