@@ -985,6 +985,69 @@ in this order. Each item says what went wrong the first time.
 
     Write new release and test code this way from the start.
 
+### Lessons from beta.3: releasing from the MacBook Pro (2026-11-14)
+
+The owner asked for beta.3 to run without anyone at the Mac Studio. Every
+`release.mjs` stage still runs on the Mac Studio, from a one-command wrapper on
+the MacBook Pro that connects over SSH. Each item says what went wrong first.
+
+1. **Wrappers live in `chromium/release/owner/remote/`** (copied to
+   `~/Projects/Blanc-Remote/betaN/` with the new version). Start them with
+   `osascript -e 'tell application "Terminal" to do script "bash …"'`: after a
+   few runs, `open -a Terminal x.command` opened a bare prompt without running
+   the script. Every wrapper keeps its window open at the end, because Terminal
+   closes a finished window and its error with it.
+2. **An SSH session can't reach the Mac Studio's login keychain** until
+   `security unlock-keychain` runs in that session (the owner types the
+   password). Every stage that signs or uses `gh` needs it: sign, the DMG
+   stage (it signs the DMG, and runs in the notarize wrapper), draft and
+   publish. Launch checks over plain SSH lack it too: Chromium can't encrypt
+   cookies, so the blocker check's ordinary-window cookie is never saved (a
+   false failure) and Sync can't start. Run the blocker and hooks checks on the
+   MacBook Pro against a copy of the candidate (framework hash checked), or
+   unlock first. The profile and notices checks don't depend on it.
+3. **Secrets come from 1Password on the MacBook Pro.** In Terminal, `op` isn't
+   signed in even when another app's is, so the wrappers run
+   `OP_BIOMETRIC_UNLOCK_ENABLED=true op signin` first, read each value into a
+   variable and refuse to send an empty one. Every `release.mjs` stage
+   refuses a stdin that isn't a terminal, so stages run under `ssh -t` and
+   secrets travel as SSH environment (`LC_*`, which macOS's sshd accepts):
+   `LC_BLANC_APPLE_ID` and `LC_BLANC_APPLE_PW` from "Apple Notarization"
+   (fields `username` and `credential`), and the update key as
+   `LC_BLANC_SPARKLE_KEY`, handed to `release.mjs` as `BLANC_SPARKLE_KEY`,
+   which it drops from its environment on load and gives `sign_update` only on
+   stdin. Never on a command line or disk.
+4. **Never print a secret, even to test it.** In zsh, `cmd 2>&1 >/dev/null |
+   …` still sends stdout down the pipe (MULTIOS). On November 14 that put the
+   notarization app password in a session transcript, and the owner revoked
+   it. Check a secret by its field labels or a command's exit status only.
+5. **The outbound check needs a run long enough to catch background fetches.**
+   Chromium's default Safe Browsing fetched Google's lists after a relaunch;
+   beta.2's run ended before the first fetch, so it passed. Patch 0079 turns
+   Safe Browsing off by default. Adobe Creative Cloud in the `blanc-test`
+   session is built on Chromium too: it resolves names itself and updates from
+   Google, so its blocked packets can't be told from the beta's.
+   `tests/outbound/beta-root-remote.sh` quits it for the run, and starts the
+   test user's half through `launchctl asuser` in its existing login session,
+   so both users must stay logged in. A run takes about 8 minutes and is done
+   only when its window says Done.
+6. **Evidence tools never overwrite** (`wx`). After a rebuild, move the old
+   candidate's evidence aside first, or the run stops with "unexpected error".
+7. **Rebuilding mid-release.** `apply.py` may meet a tree whose files come from
+   several commits: give it a previous map of the committed versions (each
+   tree file's blob found in Git history) rather than forcing it. A commit
+   before `preflight` means rebinding `release.json`'s `sourceCommit`; the
+   input digest and the candidate change only when `chromium/blanc/` or the
+   patches change. Only `preflight` checks `HEAD`. Afterwards, move the Mac
+   Studio's repo only to the commit you need, not the branch tip, because other
+   sessions push to `chromium/next`. No other session applies sources or builds
+   on the Mac Studio until the release is published.
+8. **The ledger entry comes after publication.** `preflight` requires
+   `previousBuild` to equal the ledger's highest build.
+9. **The hands-on checks run on the MacBook Pro** from the notarized DMG,
+   which replaces its installed beta. Reinstall the previous public beta
+   before checking the signed N → N+1 update.
+
 ### Owner gate decisions for the first public beta (2026-11-14)
 
 - **acceptance:** the shipping corpus drives the app through test hooks the
