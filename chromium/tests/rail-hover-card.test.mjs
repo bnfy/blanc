@@ -96,3 +96,11 @@ test('a card is redrawn only when what it shows changed (a picture alone doesn\'
   assert.equal(card.sameCard(mail, card.cardModel(snapshot, {kind: 'tab', tabId: 1}, {})), true);
   assert.equal(card.sameCard(mail, null), false);
 });
+
+test('a tab going quiet changes its card, so the card closes and its picture watch ends', () => {
+  const awake = card.cardModel(snapshot, {kind: 'tab', tabId: 1}, {});
+  const quiet = card.cardModel({...snapshot, tabs: tabs.map(t => t.id === 1 ? {...t, asleep: true} : t)}, {kind: 'tab', tabId: 1}, {});
+  assert.equal(awake.picture, 'live');
+  assert.equal(quiet.picture, 'quiet');
+  assert.equal(card.sameCard(awake, quiet), false);
+});

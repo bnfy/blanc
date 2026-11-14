@@ -63,9 +63,14 @@ remain pending. D3 beta-only no-DRM exception accepted; EME notice/handoff requi
   prompt now close a card (a background window may still show cards, as
   macOS lets it take hover). 2f08fe889: `tests/native-rail-hover.mjs` passes
   14 of 14 on candidate macos-80a0b0baafd9ca87, including a quiet tab's card
-  showing the picture Chromium kept without waking the tab. Deferred minor:
-  a watched tab that goes quiet keeps its watch until the card closes (it
-  never loads the tab).
+  showing the picture Chromium kept without waking the tab. The last
+  deferred item (a watched tab going quiet under its card) can't happen:
+  Chromium doesn't quiet a tab while its thumbnail is being drawn, so the tab
+  under a card stays awake and goes quiet once the card closes; a tab that
+  does turn quiet changes its card, which closes and ends the watch. Pinned
+  by a unit test and on screen: 15 of 15 on candidate macos-80a0b0baafd9ca87
+  (one earlier run timed out opening a card at that step, likely the real
+  mouse on the test window; the rerun passed).
 - **2026-11-14 — The Dock icon follows Dark again (owner's report on beta.4):**
   Beta.4 (published from 57e3109dd, with patch 0082) handed the Dock the
   named Icon Composer stacks directly. AppKit draws a stack given to

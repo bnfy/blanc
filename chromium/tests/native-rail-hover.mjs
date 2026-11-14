@@ -183,18 +183,30 @@ try{
  snap=await w.waitFor(()=>w.snapshot(),s=>s.tabs.some(t=>/\/purple$/.test(t.url)&&!t.isLoading),'the background tab loaded',5000);
  const purple=snap.tabs.find(t=>/\/purple$/.test(t.url));assert.notEqual(String(snap.activeTabId),String(purple.id),'opened in the background');
  await pause(2500);
- const purpleRow=await row(purple.id);await move(purpleRow.cx,purpleRow.cy);
+ let purpleRow=await row(purple.id);await move(purpleRow.cx,purpleRow.cy);
  const firstCard=await w.waitFor(()=>card('picture'),Boolean,'the background tab\'s card',2000);
  assert.equal(firstCard.image,'data:image/jpeg;base64,','the picture is there as the card opens');
  await shot('6-background-tab-card');
  check('a tab opened in the background has its picture when its first card opens');
  await away();
 
+ // The card's picture watch never holds a quiet tab: Chromium doesn't quiet
+ // a tab while its thumbnail is being drawn, so the tab under a card stays
+ // awake (the others go quiet) and goes quiet once the card has closed.
+ const asleepNow=async id=>(await w.snapshot()).tabs.find(t=>String(t.id)===String(id)).asleep;
+ purpleRow=await row(purple.id);await move(purpleRow.cx,purpleRow.cy);
+ await w.waitFor(()=>card('picture'),c=>c?.image,'the awake tab\'s card',3000);
+ await w.api('sleepBackgroundTabs');
+ await w.waitFor(()=>w.snapshot(),s=>s.tabs.find(t=>String(t.id)===String(ids.green))?.asleep,'the other background tabs quiet',8000);
+ assert.equal(await asleepNow(purple.id),false,'the tab under the card stays awake');
+ assert.ok(await card('picture'),'its card stays');
+ await away();
+ await w.api('sleepBackgroundTabs');
+ await w.waitFor(()=>w.snapshot(),s=>s.tabs.find(t=>String(t.id)===String(purple.id))?.asleep,'the tab quiet once its card closed',8000);
+ check('the tab under a card stays awake while it shows, and goes quiet once it closes');
+
  // A quiet tab: its card shows the picture Chromium kept, and the rest
  // doesn't wake it.
- await w.api('sleepBackgroundTabs');
- await w.waitFor(()=>w.snapshot(),s=>s.tabs.find(t=>String(t.id)===String(purple.id))?.asleep,'the background tab quiet',8000);
- await pause(600);
  const quietRow=await row(purple.id);await move(quietRow.cx,quietRow.cy);
  const quietCard=await w.waitFor(()=>card('picture'),c=>c?.image,'the quiet tab\'s card with its kept picture',3000);
  assert.match(quietCard.host,/ · quiet$/,'named quiet as the rail\'s states say it');
