@@ -41,7 +41,8 @@ remain pending. D3 beta-only no-DRM exception accepted; EME notice/handoff requi
   4 checks each (dot bloom, button hover, tooltip, hover-open). One difference
   found: a strip button's tooltip sits 8px higher than shipping's (top at
   44px against 52px) because the host clamps it inside its 68px view, over
-  the pill's bottom edge; shipping's floats onto the page. Not covered: the
+  the pill's bottom edge; shipping's floats onto the page. The owner saw
+  both side by side and chose to leave it as it is (2026-11-14). Not covered: the
   swell sleeping while the window is in the background. Unit suite: 464 of
   475 pass, 11 Sync page tests skipped without Chromium's TypeScript.
 - **2026-11-10 — Beta identity patch (preview candidate macos-77c0cea3ecc01285):**
@@ -2541,7 +2542,7 @@ machine has them.
 8. **Island approach swell**: built and checked on Blanc Prototype
    (candidate macos-78921cb9b998cb49, see Current work). Still owed in the
    beta.4 candidate: the full suite, and a look at the swell in a background
-   window. Open question for the owner: the strip tooltip's 8px offset.
+   window. The strip tooltip's 8px offset stays (owner, 2026-11-14).
 
 **What lives only on the Mac Studio**
 - The release work folder `~/Projects/Blanc/records/beta2-work`: signed
