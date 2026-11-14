@@ -90,6 +90,7 @@
     "chrome/browser/ui/startup/startup_browser_creator.cc": "90a94bfdd710e052061fe70831279e999cbc5aed5f7d6fd82004e660093d8ad7",
     "chrome/browser/ui/startup/startup_browser_creator_impl.cc": "85854af5e52950af82d95cc784b2d02a9bd9cfcbc9ba7d415f3ed2037e03b81e",
     "chrome/browser/ui/sync/tab_contents_synced_tab_delegate.cc": "9391b4552f37db2891de0ebe486d1c84731fd411e4fa55cf49cbe55182494755",
+    "chrome/browser/ui/ui_features.cc": "389e09d21449adee728644d3f3f1ae20a0a37c458f6625283bf49361627c5de8",
     "chrome/browser/ui/unload_controller.cc": "9f8ea7b12055cfd39eb1e3ffb7a450cf824aa9d42344f00b7092190292d757ac",
     "chrome/browser/ui/views/extensions/extensions_toolbar_button.cc": "1f5b965431f2179b0c0864a4d3516fe8ab06ce59efbc49453c219884498a311b",
     "chrome/browser/ui/views/extensions/extensions_toolbar_button.h": "90805713fc5cd10448a03569df34bb7bc6f2342922a490ce968d5acad278ce93",

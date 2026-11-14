@@ -5,7 +5,7 @@
   "upstream": "681cd621e82e606d7536eae8ea2576afb3c7d65c",
   "upstreamDir": "upstream",
   "sourceMap": "source-map.json",
-  "fileCount": 171,
+  "fileCount": 172,
   "patches": [
     "patches/baseline/0001-foundation-baseline.patch",
     "patches/0002-canonical-layout.patch",
@@ -88,6 +88,7 @@
     "patches/0080-blanc-sync-joined-note.patch",
     "patches/0081-blanc-extension-open-popup.patch",
     "patches/0082-blanc-beta-app-icon.patch",
-    "patches/0083-blanc-dock-close.patch"
+    "patches/0083-blanc-dock-close.patch",
+    "patches/0084-blanc-tab-thumbnails.patch"
   ]
 }

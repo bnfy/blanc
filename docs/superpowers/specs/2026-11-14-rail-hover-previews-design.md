@@ -23,8 +23,9 @@ feature until a release ships it.
   replaces it at once.
 - Works in Light and Dark, Sunrise and Neutral, and in private tabs.
 - Costs nothing while nobody hovers: Blanc asks for no captures and runs no
-  timers or network requests. (Chromium's own background captures, which it
-  takes today whether or not anyone hovers, are unchanged.)
+  timers or network requests. Chromium's own thumbnails (a small picture
+  taken as a tab goes to the background, kept in memory) are switched on for
+  this; see "Tab thumbnails on macOS".
 
 ## Non-goals
 
@@ -77,9 +78,9 @@ feature until a release ships it.
 - Hover behavior elsewhere is pill-only: hover-open, the approach swell, dot
   bloom. `hover-panel-leave.js` is the ⌘L panel's 200ms leave grace.
 - Chromium's own hover card (`TabHoverCardController`) is unused because the
-  tab strip is hidden. `ThumbnailTabHelper` is still created for every tab while
-  `features::kTabHoverCardImages` is on (`TabFeatures::Init`); the fork doesn't
-  turn it off.
+  tab strip is hidden. `ThumbnailTabHelper` is created for every tab only
+  while `features::kTabHoverCardImages` is on (`TabFeatures::Init`), and
+  Chromium 158 leaves that off on macOS (found while building, below).
 - The tab snapshot already carries `private`, `asleep`, `title`, `url`,
   `favicon`, `pinned`, `groupId`, and group `collapsed`.
 
@@ -217,6 +218,18 @@ feature until a release ships it.
 - Instrument Sans as elsewhere in the Island; the picture has a 1px hairline
   and the panel's inner radius.
 - No Crest-like styling: no frosted gradients, no large search field.
+
+### Tab thumbnails on macOS (owner, 2026-11-14)
+
+Chromium 158 declares `kTabHoverCardImages` disabled by default on macOS
+(`chrome/browser/ui/ui_features.cc`); Google turns it on for Apple Silicon
+Macs through the `TabHoverCardImagesMacArm` field trial, which Blanc doesn't
+receive. Without it no tab has a `ThumbnailTabHelper`, so there would be no
+pictures. The owner chose to switch it on: patch 0084 makes the feature on by
+default in Blanc builds on every platform. Cost: Chromium takes a small
+picture as each tab goes to the background and keeps it in memory (tens of
+KB per tab). Its only other users, Chromium's own hover card and its Settings
+row, are hidden in Blanc.
 
 ## Constraints
 
