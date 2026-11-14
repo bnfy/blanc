@@ -801,7 +801,7 @@
     "chrome/browser/media/webrtc/tab_desktop_media_list.cc": "1aaae92148c41de04cc6ce51c4d8546ce25f67f202e1525d1dcb68b02fa1956b",
     "chrome/browser/performance_manager/policies/transient_keep_alive_policy.cc": "e841b36a823c570ca51c1a2f5413c8bef9a8ba04bcdd17c6189a5689fe43c8b2",
     "chrome/browser/performance_manager/policies/transient_keep_alive_policy.h": "bedc76730a0df37041bae3e0d14be3e9de8ac49a8f23a1f168e8bf824eda237e",
-    "chrome/browser/prefs/browser_prefs.cc": "eee32c94bb0d51e818951cfb20055a5d792da69bf47c7e876b4c56f29022489c",
+    "chrome/browser/prefs/browser_prefs.cc": "c437b59c05b8b3aa37607dd5d758c60354ef5994b6fb37b8c2b663dca08c50fd",
     "chrome/browser/prefs/session_startup_pref.cc": "da151f9280c2095dea87ed68ad1196a8a9a7b907eb04f1b3a4f4407c5a533063",
     "chrome/browser/profiles/profile_manager.cc": "be57ec494c3bb2b429ec2f418932ac2397f03567d7a871b525462532b409d1b9",
     "chrome/browser/renderer_context_menu/render_view_context_menu.cc": "5580d98833cdb8ed061002d83af70e5273ff9dc7b82e2e010a41b2054bdfdd23",

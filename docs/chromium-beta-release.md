@@ -1042,3 +1042,13 @@ these with buttons on 2026-11-14:
 - **sparkle-N-to-N+1:** the updater is unchanged since beta.2, so beta.2's
   local update proof counts. The first signed handoff, beta.2 → beta.3 from
   an installed beta.2, is checked after publication.
+- **Safe Browsing off by default (found by beta.3's outbound check):** after
+  a relaunch the beta fetched Google's Safe Browsing lists
+  (`safebrowsing.googleapis.com/v5/hashLists`). Chromium's default leaves it
+  on, and the desktop spec's §6.1 "default-off Google traffic" gate forbids
+  it. Beta.2's run ended before the first fetch, so the published beta.2
+  most likely does the same. The owner chose off by default, with a line in
+  beta.3's notes saying earlier betas could check those lists. Patch 0079
+  sets `safebrowsing.enabled` to false by default for every profile, so
+  Chromium neither updates the lists nor sends download checks; the Settings
+  choice stays. The outbound check runs again on the rebuilt candidate.
