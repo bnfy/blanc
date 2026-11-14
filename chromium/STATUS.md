@@ -942,6 +942,13 @@ remain pending. D3 beta-only no-DRM exception accepted; EME notice/handoff requi
   beta.2 ships without them and the notice is due in beta.3. Only that gate
   and release can be waived (`policy.mjs` `GATE_WAIVERS`); `manifest.mjs`
   accepts a `waived` gate only with the descriptor's `gateWaivers` entry.
+- **Beta.2 signed and notarized (owner, 2026-11-14):** release stages
+  preflight through sparkle ran from the owner's Terminal at `058277389`
+  (DMG `d155c316…`, Notarized Developer ID; Gatekeeper accepts the DMG and the
+  app). On it: native signature, Gatekeeper and notices-and-credits pass, and
+  the owner's Touch ID passkey checks pass 5 of 5. The owner waived the
+  real-iPhone Sync gate for this first fork beta; that waiver's reason rides
+  in `acceptance.json` (policy `GATE_WAIVERS`), since `release.json` was fixed.
 - **Beta.2 production build (owner, 2026-11-14):** `out/BlancBeta` switched to
   production (2.0.0-beta.2, build 2, the production key, local qualification
   off) and rebuilt through the guard with the owner-approved

@@ -869,3 +869,12 @@ tried on a local image of the local-qualification beta.
   evidence bundle is the waiver record. `manifest.mjs` refuses a `waived`
   gate without that descriptor entry. Make no public claim about protected
   video in Blanc Beta.
+- **production-sync-real-device (waived for beta.2):** decided after the
+  signing run began, so `release.json` (bound to every finished stage) does
+  not carry it. `GATE_WAIVERS` lists it for 2.0.0-beta.2; the owner's reason
+  goes in SOURCES as `{"waiver": "…"}`, and `gate-evidence.mjs` writes it into
+  the gate's evidence bundle and its public `acceptance.json` entry, where
+  `manifest.mjs` requires it. Desktop Sync (local Worker) still passes. The
+  hosted smoke check runs the verifier from the dispatching commit, not the
+  tag, because the tag's verifier predates this rule. The Touch ID passkey
+  gate passed on this notarized build (owner, 2026-11-14).

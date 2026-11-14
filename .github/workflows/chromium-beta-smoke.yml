@@ -1,8 +1,10 @@
 # The Chromium fork's exact-tag hosted smoke check for a published Blanc Beta
 # (docs/chromium-beta-release.md §8). Run by hand after publication:
 #   gh workflow run chromium-beta-smoke.yml -f tag=chromium-beta-2.0.0-beta.N
-# It checks out the release's own tag, downloads every public asset logged
-# out, and runs chromium/release/public-smoke.mjs on a GitHub-hosted Mac of
+# It downloads every public asset of the given tag logged out and runs
+# chromium/release/public-smoke.mjs, from the commit the workflow is dispatched
+# on (not the tag: 2.0.0-beta.2's gate waivers are known only to the newer
+# verifier, owner decision 2026-11-14), on a GitHub-hosted Mac of
 # the release's architecture (beta 1 ships Apple Silicon only, under the
 # owner's Intel waiver). The Electron app's prerelease-smoke.yml cannot count
 # for the fork.
@@ -40,7 +42,6 @@ jobs:
           }
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
-          ref: ${{ inputs.tag }}
           persist-credentials: false
       - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
         with:

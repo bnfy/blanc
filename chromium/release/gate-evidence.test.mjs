@@ -52,6 +52,19 @@ test('writes every bundle and an acceptance index the manifest stage accepts', (
   assert.throws(() => assemble(work, map, {write: true}), /already exists/);
 });
 
+test('a waiver decided after release.json was fixed comes from SOURCES, only where policy allows it', () => {
+  const later = 'Owner waiver 2026-11-14: production Sync with a real iPhone is waived for the first fork beta.';
+  const {work, map} = setup(); map.arm64['production-sync-real-device'] = {waiver: later};
+  const {acceptance} = assemble(work, map, {write: true});
+  assert.deepEqual(acceptance.arches.arm64.gates['production-sync-real-device'].status, 'waived');
+  assert.equal(acceptance.arches.arm64.gates['production-sync-real-device'].waiver, later);
+  assert.equal(JSON.parse(fs.readFileSync(path.join(work, 'evidence', 'arm64', 'production-sync-real-device.evidence'))).waiver, later);
+  const other = setup(); other.map.arm64.webauthn = {waiver: later};
+  assert.throws(() => assemble(other.work, other.map), /no owner waiver for gate: webauthn/);
+  const short = setup(); short.map.arm64['production-sync-real-device'] = {waiver: 'short'};
+  assert.throws(() => assemble(short.work, short.map), /no owner waiver/);
+});
+
 test('refuses missing, failing or unstated evidence, and a waiver the descriptor lacks', () => {
   {
     const {work, map} = setup(); delete map.arm64.gatekeeper;

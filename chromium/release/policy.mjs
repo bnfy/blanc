@@ -9,10 +9,15 @@ export const FEED_ROOT = 'https://blanc.day/updates/chromium-beta/';
 export const UPSTREAM = '681cd621e82e606d7536eae8ea2576afb3c7d65c';
 export const CHROME_VERSION = '158.0.8127.2';
 export const SPARKLE = '2.10.1';
-// Release gates the owner waived in writing, by release. Owner, 2026-11-14: 2.0.0-beta.2
-// ships without the protected-video notice and its Electron Blanc handoff (D3/X2,
-// gate no-drm-handoff); the notice is due in beta.3. Any other waiver is refused.
-export const GATE_WAIVERS = Object.freeze({'2.0.0-beta.2': Object.freeze(['no-drm-handoff'])});
+// Release gates the owner waived in writing, by release; any other waiver is refused.
+// The reason travels with the release: in release.json's gateWaivers, or, for a waiver
+// decided after release.json was fixed, in acceptance.json's gate entry. Owner, 2026-11-14,
+// for 2.0.0-beta.2: no-drm-handoff (no protected-video notice or Electron Blanc handoff,
+// D3/X2; due in beta.3) and production-sync-real-device (the real-iPhone Sync pass, waived
+// after signing for the first fork beta; local and desktop Sync gates still pass).
+export const GATE_WAIVERS = Object.freeze({'2.0.0-beta.2': Object.freeze(['no-drm-handoff', 'production-sync-real-device'])});
+export const waiverAllowed = (r, gate) => (GATE_WAIVERS[r.version] ?? []).includes(gate);
+export const waiverReason = why => typeof why === 'string' && why.trim().length >= 20;
 export const sha256 = bytes => createHash('sha256').update(bytes).digest('hex');
 // The certificate's standard SHA-1 thumbprint: the identifier Keychain, codesign and the
 // pinned identity all use. An identifier for matching the pin, not a security digest.
@@ -59,8 +64,8 @@ export function validateRelease(r, {allowLocalQualification = false} = {}) {
   if (r.gateWaivers !== undefined) {
     check(r.gateWaivers && typeof r.gateWaivers === 'object' && !Array.isArray(r.gateWaivers), 'gate waivers must be an object');
     for (const [gate, why] of Object.entries(r.gateWaivers)) {
-      check((GATE_WAIVERS[r.version] ?? []).includes(gate), `no owner waiver for gate: ${gate}`);
-      check(typeof why === 'string' && why.trim().length >= 20, `gate waiver needs the owner's reason: ${gate}`);
+      check(waiverAllowed(r, gate), `no owner waiver for gate: ${gate}`);
+      check(waiverReason(why), `gate waiver needs the owner's reason: ${gate}`);
     }
   }
   equal(Object.keys(r.candidates).sort(), [...r.arches].sort(), 'candidate for every architecture');

@@ -17,14 +17,16 @@
 //              "gatekeeper": {"files": ["/…/gatekeeper.json"]}}}
 //
 // Each bundle embeds its sources byte for byte (JSON parsed, text as text) with
-// their digests. A JSON source must report "pass" (status, verdict or result);
-// a gate the release descriptor waives (policy.mjs GATE_WAIVERS) is written as
-// "waived" with the owner's reason and needs no source. plan only reports what
+// their digests. A JSON source must report "pass" (status, verdict or result).
+// A gate policy.mjs GATE_WAIVERS lets this release waive is written "waived" with
+// the owner's reason, from release.json's gateWaivers or, for a waiver decided
+// after release.json was fixed, from its SOURCES entry {"waiver": "reason"}; the
+// reason is also put in acceptance.json. A waived gate takes no sources. plan only reports what
 // is ready; write refuses anything missing or failing and never overwrites.
 import fs from 'node:fs';
 import path from 'node:path';
 import {pathToFileURL} from 'node:url';
-import {check, equal, reason, sha256, validateRelease, assetName} from './policy.mjs';
+import {check, equal, reason, sha256, validateRelease, assetName, waiverAllowed, waiverReason} from './policy.mjs';
 import {GATES, validateAcceptance} from './manifest.mjs';
 
 const MAX_SOURCE = 4 * 1024 * 1024;
@@ -54,10 +56,11 @@ export function planGates(r, arch, dmgSHA256, sources = {}) {
   const unknown = Object.keys(sources).filter(g => !GATES.includes(g));
   check(!unknown.length, `unknown gate: ${unknown[0]}`);
   return GATES.map(gate => {
-    const entry = sources[gate], waiver = r.gateWaivers?.[gate];
+    const entry = sources[gate], waiver = r.gateWaivers?.[gate] ?? entry?.waiver;
     const head = {schema: 1, gate, arch,
       release: {version: r.version, build: r.build, sourceCommit: r.sourceCommit, inputDigest: r.inputDigest, candidate: r.candidates[arch], dmgSHA256}};
     if (waiver !== undefined) {
+      check(waiverAllowed(r, gate) && waiverReason(waiver), `no owner waiver for gate: ${gate}`);
       check(!entry?.files?.length, `a waived gate takes no evidence sources: ${gate}`);
       return {gate, ready: true, bundle: {...head, status: 'waived', waiver}};
     }
@@ -89,7 +92,7 @@ export function assemble(work, map, {write = false} = {}) {
     const gates = {};
     for (const p of plan[arch]) if (p.ready) {
       const bytes = Buffer.from(JSON.stringify(p.bundle, null, 2) + '\n');
-      gates[p.gate] = {status: p.bundle.status, evidenceSHA256: sha256(bytes)};
+      gates[p.gate] = {status: p.bundle.status, ...(p.bundle.waiver ? {waiver: p.bundle.waiver} : {}), evidenceSHA256: sha256(bytes)};
       bundles.push({file: path.join(work, 'evidence', arch, `${p.gate}.evidence`), bytes});
     }
     acceptance.arches[arch] = {candidate: r.candidates[arch], dmgSHA256, gnArgsSHA256: r.gnArgsSHA256[arch], gates};

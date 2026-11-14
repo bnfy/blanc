@@ -123,9 +123,15 @@ function payloadFixture(){
 }
 test('a waived gate counts only with the release descriptor\'s waiver for it',()=>{
   const {r,payloads,e}=payloadFixture();validateAcceptance(e,r,payloads);
+  const why='Owner waiver 2026-11-14: decided for the first fork beta.';
   e.arches.arm64.gates['no-drm-handoff'].status='waived';assert.throws(()=>validateAcceptance(e,r,payloads),/missing candidate gate: no-drm-handoff/);
-  r.gateWaivers={'no-drm-handoff':'Owner waiver 2026-11-14: the notice comes in beta.3.'};validateAcceptance(e,r,payloads);
-  e.arches.arm64.gates.webauthn.status='waived';assert.throws(()=>validateAcceptance(e,r,payloads),/missing candidate gate: webauthn/);
+  r.gateWaivers={'no-drm-handoff':why};assert.throws(()=>validateAcceptance(e,r,payloads),/missing candidate gate: no-drm-handoff/); // beta.1: no waivers
+  const dmg=payloads[assetName(r,'arm64')];r.version='2.0.0-beta.2';payloads[assetName(r,'arm64')]=dmg;validateAcceptance(e,r,payloads);
+  const sync=e.arches.arm64.gates['production-sync-real-device'];sync.status='waived';
+  assert.throws(()=>validateAcceptance(e,r,payloads),/missing candidate gate: production-sync-real-device/);
+  sync.waiver='short';assert.throws(()=>validateAcceptance(e,r,payloads),/production-sync-real-device/);
+  sync.waiver=why;validateAcceptance(e,r,payloads);
+  Object.assign(e.arches.arm64.gates.webauthn,{status:'waived',waiver:why});assert.throws(()=>validateAcceptance(e,r,payloads),/missing candidate gate: webauthn/);
 });
 test('manifest covers every payload, itself in checksums, excludes signature recursion',()=>temp(dir=>{
   const {r,payloads}=payloadFixture(),m=makeManifest(r,payloads);assert.equal(m.checksums.split('\n').filter(Boolean).length,Object.keys(payloads).length+1);
