@@ -753,3 +753,32 @@ blocked and recorded as background. Evidence stays local, in
 wrapper from Terminal.app, not an app's terminal panel: an app restart there
 killed the pf logger once.
 Tests: `chromium/tests/outbound-beta.test.mjs`.
+
+### No test hooks and profile separation (2026-11-14)
+
+`node chromium/release/hooks-evidence.mjs RELEASE.json APP EVIDENCE` writes
+the `official-hooks-absent` evidence: no Mach-O file in the app carries the
+name of a test or research switch as a C string (the prototype, which keeps
+its hooks, shows seven), and the beta launched with every one of them, its
+disk-assets and test data home pointed at a loopback collector, opens its
+page while the collector hears nothing and the data home stays empty. The
+first audit found four reads of `--blanc-test` outside the test-hooks build
+flag (first-run state, reported version and data home in `first_run.inc`,
+the telemetry collector in `telemetry.inc`, a Sync test call in
+`desktop_sync_service.cc`); they now go through `blanc::BlancTestLaunch()`
+(`chromium/blanc/common/test_launch.h`), always false where hooks are
+compiled out. The hash-pinned `--blanc-blocker-assets` and
+`--blanc-sync-assets` overrides are not hooks.
+
+`node chromium/release/profile-evidence.mjs RELEASE.json APP EVIDENCE` writes
+the `profile-coexistence` evidence. Every launch gets a throwaway `HOME`
+(and `CFFIXED_USER_HOME`) seeded with decoys of the reserved folders: the
+Electron app's (`Blanc`, `Bowser`, `me.bnfy.bowser`), the release fork's
+(`Blanc Browser`) and the preview's (`Blanc Chromium Preview`), under both
+Application Support and Caches. A default launch must create its profile
+under `Blanc Beta` and nothing else named for Blanc or Chromium; pointed at a
+decoy (directly, through a symlink, as a cache folder), at `--profile-directory=..`
+or asked to import, the beta must quit before opening its page; every decoy
+must stay byte for byte as it was, and the owner's real `Blanc Beta` folder
+unchanged. Both passed on the local-qualification beta (2026-11-14; evidence
+in `evidence/foundation/`). Tests: `chromium/release/hooks-profile-evidence.test.mjs`.

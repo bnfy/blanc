@@ -932,6 +932,14 @@ remain pending. D3 beta-only no-DRM exception accepted; EME notice/handoff requi
   16 px at 1000 × 760; it fits at 1280 × 800 and larger, in every
   wallpaper mode). native-start-widgets 8/8; newtab-layouts 24/25 (:21 as
   before).
+- **No test hooks and profile separation (2026-11-14):** the hooks audit
+  found four `--blanc-test` reads outside the test-hooks flag (first run,
+  version, data home, telemetry collector, a Sync test call); they now go
+  through `blanc::BlancTestLaunch()`, false in beta and release builds.
+  `hooks-evidence.mjs` (no test switch name in any beta binary; every test
+  switch inert at runtime) and `profile-evidence.mjs` (own folder only;
+  nine refusals of the Electron, release and preview identities' folders)
+  both passed on the rebuilt local beta.
 - **Outbound isolation of the packaged beta (2026-11-14):** the S1.1 harness
   can't show what a beta contacts on its own (test hooks, proxy, background
   networking off), so `chromium/tests/outbound/beta-scenarios.mjs` runs the
@@ -2903,5 +2911,5 @@ Android's Bar A counts the shared scenarios bound in `chromium/tests/android/acc
 
 Legacy macOS stages come from the approved spec; they await verification on the canonical candidate. No legacy stage counts as Verified.
 
-Candidate identities: macOS: macos-f945da7b1aee1cb0; Windows: none; Linux: none; Android: android-arm64-7bd35e94ef746069.
+Candidate identities: macOS: macos-19f01f5928ac8fab; Windows: none; Linux: none; Android: android-arm64-7bd35e94ef746069.
 <!-- END GENERATED PROGRESS -->

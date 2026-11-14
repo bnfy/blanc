@@ -16,6 +16,7 @@
 #include "third_party/blink/public/common/page/page_zoom.h"
 #include "blanc/browser/sync/favorite_helpers.h"
 #include "blanc/buildflags.h"
+#include "blanc/common/test_launch.h"
 #if BUILDFLAG(ENABLE_BLANC_TEST_HOOKS)
 #include "components/renderer_context_menu/context_menu_delegate.h"
 #include "components/renderer_context_menu/render_view_context_menu_base.h"

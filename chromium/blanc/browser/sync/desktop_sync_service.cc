@@ -1,6 +1,7 @@
 // Copyright 2026 Bananify Creative. MIT; see LICENSE.
 #include "blanc/browser/sync/desktop_sync_service.h"
 
+#include "blanc/common/test_launch.h"
 #include <utility>
 #include <cmath>
 #include "base/command_line.h"
@@ -275,7 +276,7 @@ void DesktopSyncService::Call(std::string method, std::string args_json, SyncCal
   // starts nothing, so it reaches the runner while a pass waits for that
   // window, as shipping v1.48.0's settleRequestsForTest frees it mid-pass.
   const bool test_window = method == "sync.resetRequestWindowForTest" && args_json == "[]" &&
-      base::CommandLine::ForCurrentProcess()->HasSwitch("blanc-test");
+      blanc::BlancTestLaunch();
   if (ready_ && (observation || local_preview || local_hide || native_inventory || test_window)) {
     SetSyncPlatform(platform_.get());
     auto reply = std::make_shared<SyncCallback>(std::move(callback));

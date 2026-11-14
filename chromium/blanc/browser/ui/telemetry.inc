@@ -29,7 +29,7 @@ TelemetrySession& Telemetry() {
 
 std::string TelemetryTestHost() {
   const auto* command_line = base::CommandLine::ForCurrentProcess();
-  return command_line->HasSwitch("blanc-test")
+  return blanc::BlancTestLaunch()
       ? command_line->GetSwitchValueASCII("blanc-test-telemetry-host") : std::string();
 }
 // settings.js and telemetry.js's gates together: a release build, first run
@@ -38,7 +38,7 @@ bool TelemetryAllowed() {
   // A test can only send to an explicitly selected loopback collector.
   // Missing or malformed overrides must never fall back to production, even
   // if a future build supplies a release version.
-  if (base::CommandLine::ForCurrentProcess()->HasSwitch("blanc-test")) {
+  if (blanc::BlancTestLaunch()) {
     const GURL host(TelemetryTestHost());
     if (!host.is_valid() || !host.SchemeIs("http") ||
         (host.host() != "127.0.0.1" && host.host() != "[::1]") ||
