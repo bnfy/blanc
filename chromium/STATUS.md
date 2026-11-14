@@ -2876,10 +2876,14 @@ all six languages; Accessibility is left out of More because its page names Chro
 | Patch reconstruction, android and desktop lanes | Pass | `patches-*.log` |
 | Robolectric | 676 pass | `robolectric.log` |
 | Runner and tool tests (`node --test chromium/tools/*.test.mjs`, on the Mac) | 216 pass | local |
-| A4 gate (A1 to A3, sync, Spaces, Shared Spaces, shield race) | Pass | `a4/` |
+| A4 gate (A1 to A3, sync, Spaces, Shared Spaces, shield race) | Pass | `a4/` (overwritten, below) |
 | APK (x86_64, emulator) | `b57a4ca6…` | `apk.sha256` |
 | APK (arm64, for the Pixel) | `fed28dc1…` (`out/AndroidDebug/apks/ChromePublic.apk`), installed on the owner's Pixel 10 Pro | — |
 | Owner hands-on, Pixel and desktop (Sync through Settings) | Pass, November 11, 2026: Settings opened from `/settings` with every section; the Sync row opened the Sync sheet; the owner paired with their desktop and the desktop's Spaces arrived. Three bugs found (below). | owner |
+
+A later run on November 11 (APK `0042c649…`) wrote over `~/blanc-evidence/android/a5a-gate/`, so its A4 logs
+are that run's, not this gate's: it failed tabs, one Sync case (a lost Keystore key) and all six Shared Spaces
+cases ("Timed out waiting for the switch"). Shared Spaces passed 6 of 6 again in the A5c gate.
 
 The first full run failed twice: the A3 check "quick endings stop pages, and Retry recovers" slept a fixed six
 seconds and looked once for its notice (it passed alone; it now waits up to 30 s), and the tools tests need iOS
@@ -3096,7 +3100,26 @@ walkthrough and the Settings rows; the launch ping, its native sender and the Wo
 - **Not yet:** the launch ping (next PR). Pairing in under a minute and the walkthrough on the Pixel wait for
   the owner.
 
-GATE_TABLE_PLACEHOLDER
+| A5c gate (November 14, 2026) | Result | Evidence (`~/blanc-evidence/android/a5c-split/`) |
+| --- | --- | --- |
+| Walkthrough | Pass, 12 of 12 | `lane1/walkthrough/` |
+| Launch ping (its PR) | Pass, 5 of 5 | `lane1/launch-ping/` |
+| Blanc's pages on a phone | Pass, 41 of 41 | `lane1/pages-phone/` |
+| Start Page shortcuts, and the ways into the Start Page | Pass, 10 of 10 and 2 of 2 | `lane1/start-*` |
+| A5a: Settings, patch reconstruction (both lanes), Robolectric | Pass: 22 of 22, passed, 904 tests | `lane1/a5a/` |
+| A4: Sync, Spaces, Shared Spaces | Pass: 17, 15, 6 of 6 | `lane2/a5a/a4/` |
+| A4: shield race | 1 miss in the gate run (the page didn't come back from the back-forward cache), then 3 runs of 2 loads and a 40-load run with none; cause not found | `lane1/a5a/a4/shield-race.log`, `fix-reruns/shield*.log` |
+| A3 blocking | 13 of 14 in the run; the Start Page case passes with #1535 | `lane2/a5a/a4/a3/`, `fix-reruns/blocking2.log` |
+| A2: tabs, palette, tab grid, find, session restore, Quiet Tabs, tab store | Pass | `lane1/a5a/a4/a3/a2/` |
+| A2 acceptance | 23 of 32 in the run; 32 of 32 with #1535 | `lane1/a5a/a4/a3/a2/acceptance/`, `fix-reruns/acceptance/` |
+| A1 (JUnit, insets at three sizes, menu, pages, outbound) | Pass | `lane1/a5a/a4/a3/a2/a1/` |
+| APK (x86_64, emulator) | `b55c9a2d…` | `lane*/apk.sha256` |
+
+The gate ran across both of the build server's emulators (each lane has its own steps), on one build of A5c
+with its launch ping and the Start Page's top Island merged in. The nine acceptance scenarios and the blocking
+case failed on main as well: the A5b Start Page (#1506) shows the week's blocked count, not an On/Off state,
+and both still read the On/Off field it dropped. #1535 changed the tests; the reruns above are from that change
+on the same APK. Shared Spaces passed 6 of 6 with #1531, after failing on November 11 (A5a, above).
 
 ### Shield count across a page's commit
 
