@@ -1238,9 +1238,13 @@ entries are no longer written; the earlier ones stay for the record.
 
 **1. Every night (the Mac Studio, unattended).** The LaunchAgent
 `me.bnfy.blanc.beta-nightly` runs `chromium/release/daily/nightly.mjs` at
-02:00 (installed by `daily/install-nightly.sh`, removed with `--remove`). It
-skips, writing why to `records/nightly/skipped.log`, if
-`records/RELEASE-IN-PROGRESS` exists, a build or the test runner is going,
+02:00 (installed by `daily/install-nightly.sh`, removed with `--remove`). The
+suite can't draw on a locked screen, so the same installer adds
+`me.bnfy.blanc.display-awake` (`caffeinate -d`), which keeps the display from
+sleeping into the lock (owner, 2026-11-14; no security setting changed). Unlock
+the Mac Studio once over Screen Sharing after installing and after every
+restart. The night skips, writing why to `records/nightly/skipped.log`, if the
+screen is locked, if `records/RELEASE-IN-PROGRESS` exists, a build or the test runner is going,
 the checkout has uncommitted changes, or it has commits `chromium/next` lacks.
 Otherwise it moves `~/Projects/Blanc/repo` to `chromium/next`'s tip and:
 

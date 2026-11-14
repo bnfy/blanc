@@ -8,8 +8,11 @@ BASE="${BLANC_STUDIO_BASE:-$HOME/Projects/Blanc}"
 LABEL=me.bnfy.blanc.beta-nightly
 PLIST="$HOME/Library/LaunchAgents/$LABEL.plist"
 DOMAIN="gui/$(id -u)"
+AWAKE=me.bnfy.blanc.display-awake
+AWAKE_PLIST="$HOME/Library/LaunchAgents/$AWAKE.plist"
 launchctl bootout "$DOMAIN/$LABEL" 2>/dev/null || true
-if [ "${1:-}" = --remove ]; then rm -f "$PLIST"; echo "Removed $LABEL."; exit 0; fi
+launchctl bootout "$DOMAIN/$AWAKE" 2>/dev/null || true
+if [ "${1:-}" = --remove ]; then rm -f "$PLIST" "$AWAKE_PLIST"; echo "Removed $LABEL and $AWAKE."; exit 0; fi
 mkdir -p "$BASE/records/nightly" "$HOME/Library/LaunchAgents" "$BASE/scripts"
 # The job's entry point lives outside the checkout, so it can bring nightly.mjs in
 # the first time: if the checkout predates it, and only when nothing is in the way
@@ -59,6 +62,24 @@ cat > "$PLIST" <<PLIST
 </dict>
 </plist>
 PLIST
+# Owner, 2026-11-14: the suite can't draw on a locked screen, so the display is kept
+# awake and never sleeps into the lock. Unlock the Mac Studio once (Screen Sharing)
+# after installing and after every restart; no security setting changes.
+cat > "$AWAKE_PLIST" <<PLIST
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+  <key>Label</key><string>$AWAKE</string>
+  <key>ProgramArguments</key>
+  <array><string>/usr/bin/caffeinate</string><string>-d</string><string>-i</string></array>
+  <key>RunAtLoad</key><true/>
+  <key>KeepAlive</key><true/>
+</dict>
+</plist>
+PLIST
 plutil -lint "$PLIST" >/dev/null
+plutil -lint "$AWAKE_PLIST" >/dev/null
 launchctl bootstrap "$DOMAIN" "$PLIST"
-echo "Installed $LABEL: every day at 02:00, logging to $BASE/records/nightly/."
+launchctl bootstrap "$DOMAIN" "$AWAKE_PLIST"
+echo "Installed $LABEL (every day at 02:00, logging to $BASE/records/nightly/) and $AWAKE (keeps the display awake)."

@@ -40,13 +40,24 @@ const BETA_APP = path.join(BETA_OUT, 'Blanc Beta.app');
 // version is a generated build flag); never a cold build.
 export const BETA_MAX_ACTIONS = 3000;
 
-export function shouldSkip({ marker, building, dirty, unpushed, lockHeld }) {
+export function shouldSkip({ marker, building, dirty, unpushed, lockHeld, screenLocked }) {
   if (lockHeld) return 'another night is running';
+  if (screenLocked) return 'the screen is locked, so the suite cannot draw (unlock the Mac Studio once over Screen Sharing; me.bnfy.blanc.display-awake keeps it awake)';
   if (marker) return 'a release is prepared (records/RELEASE-IN-PROGRESS)';
   if (building) return 'a build is running';
   if (dirty) return 'the Mac Studio checkout has uncommitted changes';
   if (unpushed) return 'the Mac Studio checkout has commits chromium/next does not have';
   return null;
+}
+
+// Whether this user's console session is locked (ioreg's IOConsoleUsers). The suite
+// needs drawn frames, which a locked screen never gives (owner, 2026-11-14: the
+// display is kept awake instead, so it never locks).
+export function screenLocked(plistXml, user) {
+  const sessions = plistXml.split('<dict>').slice(1);
+  const mine = sessions.find(d => new RegExp(`<key>kCGSSessionUserNameKey</key>\\s*<string>${user}</string>`).test(d));
+  if (!mine) return true;
+  return /<key>CGSSessionScreenIsLocked<\/key>\s*<true\/>/.test(mine) || !/<key>kCGSSessionOnConsoleKey<\/key>\s*<true\/>/.test(mine);
 }
 
 // Only the two reviewed version keys change; anything else is refused.
@@ -231,6 +242,7 @@ function main(argv) {
     marker: fs.existsSync(MARKER), lockHeld: fs.existsSync(lock), dirty: Boolean(status),
     building: competingBuild(spawnSync('/bin/ps', processListArgs(), { encoding: 'utf8' }).stdout) || spawnSync('pgrep', ['-f', 'chromium/tests/runner.mjs']).status === 0,
     unpushed: mode === 'full' && unpushed,
+    screenLocked: screenLocked(spawnSync('/bin/sh', ['-c', 'ioreg -n Root -d1 -a | plutil -extract IOConsoleUsers xml1 -o - -'], { encoding: 'utf8' }).stdout, process.env.USER ?? ''),
   });
   if (plan) return { would: why ? `skip: ${why}` : `run the ${mode} night at ${spawnSync('git', ['-C', ROOT, 'rev-parse', '--short', mode === 'full' ? 'origin/chromium/next' : 'HEAD'], { encoding: 'utf8' }).stdout.trim()}` };
   if (why) {

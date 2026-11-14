@@ -31,6 +31,7 @@ test('the night skips for a release, a build, uncommitted or unpushed work, or a
   assert.match(shouldSkip({ ...clear, dirty: true }), /uncommitted/);
   assert.match(shouldSkip({ ...clear, unpushed: true }), /commits chromium\/next does not have/);
   assert.match(shouldSkip({ ...clear, lockHeld: true, marker: true }), /another night/);
+  assert.match(shouldSkip({ ...clear, screenLocked: true }), /screen is locked/);
 });
 
 test('the version bump changes only the two reviewed keys', () => {
@@ -109,7 +110,8 @@ test('the installer writes the job and its entry point, which brings nightly.mjs
   const plist = fs.readFileSync(path.join(home, 'Library/LaunchAgents/me.bnfy.blanc.beta-nightly.plist'), 'utf8');
   assert.match(plist, /<string>[^<]*\/Blanc\/scripts\/beta-nightly\.sh<\/string>/);
   assert.match(plist, /<key>Hour<\/key><integer>2<\/integer>/);
-  assert.match(fs.readFileSync(path.join(home, 'stub.log'), 'utf8'), /launchctl bootstrap gui\/\d+ /);
+  assert.match(fs.readFileSync(path.join(home, 'stub.log'), 'utf8'), /launchctl bootstrap gui\/\d+ .*beta-nightly\.plist\nlaunchctl bootstrap gui\/\d+ .*display-awake\.plist/);
+  assert.match(fs.readFileSync(path.join(home, 'Library/LaunchAgents/me.bnfy.blanc.display-awake.plist'), 'utf8'), /<string>\/usr\/bin\/caffeinate<\/string><string>-d<\/string>[\s\S]*<key>KeepAlive<\/key><true\/>/);
   // A checkout without nightly.mjs and with uncommitted work: the entry point leaves it alone.
   const repo = path.join(base, 'repo');
   spawnSync('git', ['init', '-q', repo]); fs.writeFileSync(path.join(repo, 'work.txt'), 'unsaved');
@@ -117,4 +119,14 @@ test('the installer writes the job and its entry point, which brings nightly.mjs
   assert.equal(boot.status, 0, boot.stderr);
   assert.match(fs.readFileSync(path.join(base, 'records/nightly/skipped.log'), 'utf8'), /bootstrap skipped: uncommitted changes/);
   assert.ok(fs.existsSync(path.join(repo, 'work.txt')));
+});
+
+test('screenLocked reads the console session from ioreg', async () => {
+  const { screenLocked } = await import('./daily/nightly.mjs');
+  const session = (user, locked, onConsole) => `<dict><key>kCGSSessionOnConsoleKey</key>${onConsole ? '<true/>' : '<false/>'}${locked === null ? '' : `<key>CGSSessionScreenIsLocked</key>${locked ? '<true/>' : '<false/>'}`}<key>kCGSSessionUserNameKey</key><string>${user}</string></dict>`;
+  const xml = (...d) => `<plist><array>${d.join('')}</array></plist>`;
+  assert.equal(screenLocked(xml(session('owner', null, true), session('blanc-test', null, false)), 'owner'), false);
+  assert.equal(screenLocked(xml(session('owner', true, true)), 'owner'), true);
+  assert.equal(screenLocked(xml(session('owner', null, false), session('blanc-test', null, true)), 'owner'), true);
+  assert.equal(screenLocked(xml(session('blanc-test', null, true)), 'owner'), true);
 });
