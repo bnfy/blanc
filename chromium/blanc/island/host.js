@@ -1515,6 +1515,10 @@
   // does, its page draws its own scrim and card, and the host answers its
   // window.bowserPages (pages/sheet-adapter.js) from Chromium's models.
   const SHEET_PAGES = ['bookmarks', 'history', 'downloads', 'tab-import'];
+  // Settings sections a typed blanc://settings/<section> may name (the
+  // browser's SettingsSheetURL accepts the same names).
+  const SETTINGS_SECTIONS = new Set(['general', 'blocking', 'search', 'sync', 'appearance', 'privacy', 'security',
+    'content', 'clearBrowserData', 'downloads', 'languages', 'defaultBrowser', 'help', 'profiles', 'people']);
   const sheet = { frame: null, page: null, contents: 0, epoch: 0, tabs: null,
     escapeArmed: false, escapeListeners: new Set() };
   const sheetCurrent = (win, page) => !!sheet.frame && sheet.frame.contentWindow === win && sheet.page === page;
@@ -1908,6 +1912,16 @@
     navigate: async (id, value) => {
       const bang = openTypedBang(id, value);
       if (bang) return bang;
+      // Shipping's utility pages by their blanc:// names (isUtilityUrl) open
+      // in the sheet, never in the tab: blanc://settings[/section],
+      // blanc://downloads, blanc://bookmarks (Favorites), blanc://history.
+      const utility = /^blanc:\/\/(settings|downloads|bookmarks|favorites|history)(?:\/([a-z-]*))?\/?$/i.exec(String(value).trim());
+      if (utility) {
+        const page = utility[1].toLowerCase() === 'favorites' ? 'bookmarks' : utility[1].toLowerCase();
+        const section = page === 'settings' && SETTINGS_SECTIONS.has(utility[2] ?? '') ? utility[2] : undefined;
+        await showSheet(page, section);
+        return { status: 'sheet' };
+      }
       // A shared Mahjong deal (blanc://mahjong/?deal=...) opens the game.
       const deal = /^blanc:\/\/mahjong\/(\?[^#\s]*)?$/i.exec(String(value).trim());
       if (deal) {

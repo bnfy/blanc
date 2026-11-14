@@ -21,6 +21,7 @@ function world(answers = {}, {confirm = true} = {}) {
       return {status: 0, stdout: '', stderr: ''};
     },
     async confirm() { return confirm; },
+    keyBackupPending: () => false,
   };
 }
 const absent = {'rev-parse -q --verify': {status: 1}, 'ls-remote': {status: 2}, 'releases --jq': {status: 0, stdout: 'v1.49.0\nv1.48.0\n'}};
@@ -96,4 +97,29 @@ test('publishing needs confirmation and must leave a stable release as latest', 
   assert.ok(JSON.parse(fs.readFileSync(path.join(work, 'state.json'))).done.publish);
   await assert.rejects(() => runStage('publish', work, io), /never rerun/);
   fs.rmSync(work, {recursive: true, force: true});
+});
+
+test('nothing is drafted or published while the update key has no verified 1Password copy', async () => {
+  const before = done(STAGES.slice(0, STAGES.indexOf('publish')));
+  const work = workFolder({schema: 1, release: (await import('./policy.mjs')).sha256(JSON.stringify(release)), done: before});
+  const io = {...world({}, {confirm: true}), keyBackupPending: () => true};
+  await assert.rejects(() => runStage('publish', work, io), /not yet backed up to 1Password/);
+  assert.ok(!io.calls.some(call => call.includes('release edit')));
+  await assert.rejects(() => RUN.draft({...load(work), state: {done: {}}}, io), /not yet backed up/);
+  fs.rmSync(work, {recursive: true, force: true});
+});
+
+test('Sigstore signing gets the Terminal, so cosign opens its browser sign-in', async () => {
+  const work = workFolder(), dir = path.join(work, 'assets');
+  fs.mkdirSync(dir); fs.writeFileSync(path.join(dir, 'SHA256SUMS'), 'sums\n');
+  const seen = [];
+  const io = {...world(), verifyManifest: () => {},
+    exec(command, args, options = {}) {
+      seen.push({line: [command, ...args].join(' '), interactive: options.interactive === true});
+      if (args[0] === 'sign-blob') fs.writeFileSync(path.join(dir, 'SHA256SUMS.sigstore.json'), '{}');
+      return {status: 0, stdout: '', stderr: ''};
+    }};
+  await RUN.sigstore({work, r: release}, io);
+  assert.equal(seen.find(c => c.line.startsWith('cosign sign-blob')).interactive, true);
+  assert.equal(seen.find(c => c.line.startsWith('cosign verify-blob')).interactive, false);
 });

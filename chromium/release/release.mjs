@@ -40,10 +40,20 @@ const POINT_OF_NO_RETURN = STAGES.indexOf('draft');
 const EXTRA_PAYLOADS = ['acceptance.json', 'Blanc-Beta.cdx.json', 'NOTICES.txt'];
 
 // The real world: commands with captured output, and the owner at the keyboard.
+// Left by scripts/sparkle-key-make.command until the update key has a
+// verified 1Password copy (sparkle-key-backup.command): nothing is drafted
+// or published while the key exists only in one Mac's Keychain.
+export const KEY_BACKUP_PENDING = path.join(os.homedir(), 'Projects/Blanc/records/sparkle-production/BACKUP-PENDING');
+const keyBackedUp = io => check(!(io.keyBackupPending ?? (() => fs.existsSync(KEY_BACKUP_PENDING)))(),
+  'the update key is not yet backed up to 1Password (run sparkle-key-backup.command)');
 export function realIO() {
   return {
-    exec(command, args, {input, env, cwd} = {}) {
-      const result = spawnSync(command, args, {input, cwd, env: env ?? process.env, encoding: 'utf8', maxBuffer: 64 * 1024 * 1024});
+    // interactive: the command gets this Terminal (stdio inherited), for a sign-in it must
+    // show; its output is then not captured.
+    exec(command, args, {input, env, cwd, interactive = false} = {}) {
+      const result = interactive
+        ? spawnSync(command, args, {cwd, env: env ?? process.env, stdio: 'inherit'})
+        : spawnSync(command, args, {input, cwd, env: env ?? process.env, encoding: 'utf8', maxBuffer: 64 * 1024 * 1024});
       return {status: result.error ? -1 : result.status, stdout: result.stdout ?? '', stderr: result.stderr ?? ''};
     },
     async confirm(phrase) {
@@ -199,6 +209,7 @@ export const RUN = {
     return {manifestSHA256: sha256(Buffer.from(json)), checksumsSHA256: sha256(Buffer.from(checksums))};
   },
   async draft(ctx, io) {
+    keyBackedUp(io);
     const dir = assets(ctx), r = ctx.r;
     const names = [...payloadNames(r), 'RELEASE-MANIFEST.json', 'SHA256SUMS'];
     equal(sha256(fs.readFileSync(path.join(dir, 'SHA256SUMS'))), ctx.state.done.manifest.checksumsSHA256, 'assets changed after the manifest');
@@ -223,7 +234,9 @@ export const RUN = {
     check(!fs.existsSync(bundle), 'a Sigstore bundle already exists; it was authorized once, do not sign again');
     console.log('Safari opens for the GitHub approval; complete the fresh page immediately, never in Blanc.');
     must(io, 'cosign', ['sign-blob', '--yes', '--oidc-redirect-url', COSIGN_REDIRECT, '--bundle', bundle, sums],
-      'Sigstore signing did not complete', {env: {...io.env, PATH: `${path.join(ROOT, 'scripts/release-bin')}:${io.env.PATH}`}});
+      // Interactive: without a terminal cosign falls back to a device-code sign-in whose
+      // code nobody sees (2026-11-14), instead of opening Safari.
+      'Sigstore signing did not complete', {env: {...io.env, PATH: `${path.join(ROOT, 'scripts/release-bin')}:${io.env.PATH}`}, interactive: true});
     must(io, 'cosign', ['verify-blob', '--bundle', bundle, '--certificate-identity', COSIGN_IDENTITY,
       '--certificate-oidc-issuer', COSIGN_ISSUER, sums], 'the Sigstore bundle did not verify against the pinned identity');
     (io.verifyManifest ?? verifyManifest)(dir, ctx.r);
@@ -231,6 +244,7 @@ export const RUN = {
     return {bundleSHA256: sha256(fs.readFileSync(bundle))};
   },
   async publish(ctx, io) {
+    keyBackedUp(io);
     const r = ctx.r;
     check(await io.confirm(`publish ${r.tag}`), 'not confirmed; the draft stays private');
     must(io, 'gh', ['release', 'edit', r.tag, '--repo', REPO, '--draft=false', '--prerelease', '--latest=false'], 'could not publish the draft');

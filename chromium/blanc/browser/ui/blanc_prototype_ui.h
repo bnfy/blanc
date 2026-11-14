@@ -181,7 +181,7 @@ bool OpenExtensions(BrowserWindowInterface* browser);
 // History, Downloads and the bookmark manager in an Island window open
 // Blanc's utility sheet ("history", "downloads" or "bookmarks"), as
 // shipping's menu items do. False leaves Chromium's own page.
-bool OpenUtilitySheet(BrowserWindowInterface* browser, std::string_view page);
+bool OpenUtilitySheet(BrowserWindowInterface* browser, std::string_view page, std::string_view section = {});
 bool OpenFindIsland(BrowserWindowInterface* browser, int direction = 0);
 // ⌘D in an Island window: toggle the Favorite like the Island heart instead of
 // opening Chromium's star bubble. Returns true when the window is an Island

@@ -14,6 +14,13 @@ OUT=$DIR/results
 TEST_UID=$(id -u blanc-test)
 case "${1:-}" in
 start)
+  # A token from before the last restart is stale: pf forgets its rules and
+  # tokens at boot, so clear the leftover state instead of refusing.
+  BOOT=$(sysctl -n kern.boottime | sed -n 's/.*sec = \([0-9]*\),.*/\1/p')
+  if [ -f "$STATE/token" ] && [ "$(stat -f %m "$STATE/token")" -lt "${BOOT:-0}" ]; then
+    echo "Clearing state left from before the last restart."
+    rm -f "$STATE/token" "$STATE/tcpdump.pid"
+  fi
   if [ -f "$STATE/token" ]; then echo "Already started; run stop first." >&2; exit 1; fi
   # The anchor is only evaluated if the main ruleset includes com.apple/*.
   if ! pfctl -s rules 2>/dev/null | grep -q 'anchor "com.apple/\*"'; then

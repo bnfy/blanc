@@ -19,7 +19,7 @@ bool g_privacy_commit_failed = false;
 bool FirstRunPending() {
   if (g_privacy_commit_failed || g_privacy_writes_pending > 0) return true;
   const auto* command_line = base::CommandLine::ForCurrentProcess();
-  if (command_line->HasSwitch("blanc-test") && !command_line->HasSwitch("blanc-test-first-run"))
+  if (blanc::BlancTestLaunch() && !command_line->HasSwitch("blanc-test-first-run"))
     return g_first_run_pending_for_test;
   return g_browser_process->local_state()->GetDouble(kFirstRunCompletedPref) <= 0;
 }
@@ -172,7 +172,7 @@ void NoteDefaultBrowser(shell_integration::DefaultWebClientState state) {
 constexpr char kWhatsNewPref[] = "blanc.whats_new";
 std::string BlancReleaseVersion() {
   const auto* command_line = base::CommandLine::ForCurrentProcess();
-  if (command_line->HasSwitch("blanc-test")) return command_line->GetSwitchValueASCII("blanc-test-version");
+  if (blanc::BlancTestLaunch()) return command_line->GetSwitchValueASCII("blanc-test-version");
   return std::string();
 }
 base::Value WhatsNewState() {
@@ -241,7 +241,7 @@ constexpr BrowserInfo kBrowsers[] = {
 
 base::FilePath DataHome() {
   const auto* command_line = base::CommandLine::ForCurrentProcess();
-  if (command_line->HasSwitch("blanc-test") && command_line->HasSwitch("blanc-test-browser-home"))
+  if (blanc::BlancTestLaunch() && command_line->HasSwitch("blanc-test-browser-home"))
     return command_line->GetSwitchValuePath("blanc-test-browser-home");
 #if BUILDFLAG(IS_WIN)
   base::FilePath local;

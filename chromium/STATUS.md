@@ -932,6 +932,108 @@ remain pending. D3 beta-only no-DRM exception accepted; EME notice/handoff requi
   16 px at 1000 × 760; it fits at 1280 × 800 and larger, in every
   wallpaper mode). native-start-widgets 8/8; newtab-layouts 24/25 (:21 as
   before).
+- **Gate decisions for the first public beta (owner, 2026-11-14):** acceptance
+  by equivalence (full suite on the same-source prototype plus the beta's
+  own checks), desktop Sync by the local-build check, and the update gate by
+  the local proof; the first signed handoff is beta.2 → beta.3 after release
+  (docs/chromium-beta-release.md, Owner gate decisions).
+- **Protected-video gate waived for beta.2 (owner, 2026-11-14):** the EME
+  notice and Electron Blanc handoff (`no-drm-handoff`, D3/X2) are not built;
+  beta.2 ships without them and the notice is due in beta.3. Only that gate
+  and release can be waived (`policy.mjs` `GATE_WAIVERS`); `manifest.mjs`
+  accepts a `waived` gate only with the descriptor's `gateWaivers` entry.
+- **Beta.2 signed and notarized (owner, 2026-11-14):** release stages
+  preflight through sparkle ran from the owner's Terminal at `058277389`
+  (DMG `d155c316…`, Notarized Developer ID; Gatekeeper accepts the DMG and the
+  app). On it: native signature, Gatekeeper and notices-and-credits pass, and
+  the owner's Touch ID passkey checks pass 5 of 5. The owner waived the
+  real-iPhone Sync gate for this first fork beta; that waiver's reason rides
+  in `acceptance.json` (policy `GATE_WAIVERS`), since `release.json` was fixed.
+- **Blanc Beta 2.0.0-beta.2 published (owner, 2026-11-14):** the first public
+  fork beta, a GitHub pre-release (not latest; v1.49.0 stays latest), tag
+  `chromium-beta-2.0.0-beta.2` at `058277389`, nine assets, DMG `d155c316…`.
+  Acceptance by equivalence: the full suite on the same-source prototype
+  passed 578, with 4 undefined, 27 excluded; the two Island auto-hide failures
+  passed when rerun with the Mac idle, and `vertical-tabs.feature:58` is a
+  known intermittent issue (the rail can reopen at its narrow cap after a
+  relaunch; fix in beta.3). 11 gates passed, 2 waived (no-drm-handoff,
+  production-sync-real-device). The update key's 1Password copy was made on
+  the MacBook Pro (1Password won't stay unlocked on the Mac Studio). The
+  Sigstore stage first hung (cosign had no terminal and fell back to a
+  hidden device-code sign-in); fixed by giving it the Terminal (`99bcadb21`).
+  Logged-out public verification passed. Still owed: the hosted smoke check
+  (needs the workflow on main), and the website PR with the feed, the
+  Download page section and `/dl/beta`.
+- **Beta.2 production build (owner, 2026-11-14):** `out/BlancBeta` switched to
+  production (2.0.0-beta.2, build 2, the production key, local qualification
+  off) and rebuilt through the guard with the owner-approved
+  `--allow-large-build` for the changed build-flag header (27 steps). The app
+  reports 2.0.0-beta.2 (2), trusts the production key and feeds from
+  blanc.day. On it, with a local draft descriptor (placeholder hashes), the
+  blocker, hooks, profile and notices/credits checks pass; no update check
+  ran. The outbound isolation check also passed on it (run
+  beta-20261114T030319Z: controls logged, only the probe's lookups blocked,
+  no outside host in any network log). Still to come: the 1Password key
+  backup, signing, notarization, the real descriptor and evidence on the signed
+  DMG, production Sync with a real iPhone and passkeys.
+- **Production update key and beta.2 (owner, 2026-11-14):** the key ceremony
+  ran split because 1Password kept locking: the production EdDSA key is in
+  the owner's Keychain (`me.bnfy.blanc.beta`) and its public key is pinned
+  for the build; the 1Password copy is pending (`sparkle-key-backup.command`),
+  and `release.mjs` refuses to draft or publish until it is verified. A
+  private local-qualification beta.2 (build 2) had been built for the local
+  update proof; its copies were deleted and the owner kept 2.0.0-beta.2
+  (build 2) for the first public beta.
+- **Hosted smoke workflow (2026-11-14):** `chromium-beta-smoke.yml` +
+  `chromium/release/public-smoke.mjs`, the fork's exact-tag hosted check of
+  a published beta (assets, manifest, appcasts, pre-release state, verify.mjs,
+  launch, optional live feed). Runnable once it reaches `main`.
+- **Utility pages never open as tabs (owner, 2026-11-14):** a Settings page
+  could open as an ordinary tab (only the exact `chrome://settings/` went to
+  the sheet), showing Chromium's blue Settings icon in the Island. Now any
+  `chrome://settings/...` (opening the sheet at that page), Downloads,
+  Favorites or History load in a tab of an Island window opens the sheet
+  instead (a navigation check handed to the blocker's throttle hook by the
+  UI, `UtilityPageGate`); a tab opened only for it closes, an existing tab
+  keeps its page. Typed `blanc://settings[/section]`, `blanc://downloads`,
+  `blanc://bookmarks`/`favorites` and `blanc://history` open the sheet as in
+  shipping (they did nothing before). `native-utility-sheet.mjs` 3/3 twice;
+  internal-pages :17–:66 and settings-and-theming :29 pass; beta Sync check
+  still passes on the rebuilt beta.
+- **Desktop Sync on the local beta (2026-11-14):** `chromium/tests/beta-sync.mjs`
+  drives the beta's Settings → Sync (no test hooks) against the local
+  Worker on its fixed loopback endpoint: Sync turns on, an independent
+  iPhone-bundle peer pairs with the code shown, and with tab sharing on the
+  peer sees the beta's open page. Passed.
+- **Local Sparkle update proof (2026-11-14):** `local-update-proof.mjs` on
+  local beta.1 and beta.2 builds: the good feed installed build 2; a feed
+  signed with another key and one changed after signing were downloaded and
+  refused (build 1 kept). The first throwaway key was kept in /tmp and lost
+  in a restart, so a new one lives in `records/local-update-key` (owner-only,
+  outside Git) and the local beta now trusts it.
+- **No test hooks and profile separation (2026-11-14):** the hooks audit
+  found four `--blanc-test` reads outside the test-hooks flag (first run,
+  version, data home, telemetry collector, a Sync test call); they now go
+  through `blanc::BlancTestLaunch()`, false in beta and release builds.
+  `hooks-evidence.mjs` (no test switch name in any beta binary; every test
+  switch inert at runtime) and `profile-evidence.mjs` (own folder only;
+  nine refusals of the Electron, release and preview identities' folders)
+  both passed on the rebuilt local beta.
+- **Outbound isolation of the packaged beta (2026-11-14):** the S1.1 harness
+  can't show what a beta contacts on its own (test hooks, proxy, background
+  networking off), so `chromium/tests/outbound/beta-scenarios.mjs` runs the
+  beta as a person does under the owner-approved pf anchor, with Chromium's
+  network log, and `analyze-beta.mjs` judges it. The local-qualification
+  beta passed: all controls logged, no blocked packet from a Blanc process
+  beyond the page probe's own DNS lookups, no outside host in any network
+  log. `beta-root.sh` is the owner's one command (start, wait, stop).
+- **Blocker payload evidence (2026-11-14):** `chromium/release/blocker-evidence.mjs`
+  writes the blocker-payload gate evidence: the embedded engine is the pinned
+  bundle, and with no development switch and loopback only, ordinary and
+  private windows (each proved by whether a page cookie reaches the profile)
+  block two EasyList hosts while the page loads, and app clones with a
+  changed or missing engine let nothing through. All four passed on the
+  local-qualification beta. Tests 3/3; unit 426/426.
 - **SBOM, NOTICES.txt and the notices-and-credits gate (2026-11-13, owner):**
   `chromium/release/sbom_scan.py` lists what `//chrome:chrome` ships with
   Chromium's own `licenses.py` (322 components on out/BlancBeta, versions for
@@ -2931,5 +3033,5 @@ Android's Bar A counts the shared scenarios bound in `chromium/tests/android/acc
 
 Legacy macOS stages come from the approved spec; they await verification on the canonical candidate. No legacy stage counts as Verified.
 
-Candidate identities: macOS: macos-f945da7b1aee1cb0; Windows: none; Linux: none; Android: android-arm64-7bd35e94ef746069.
+Candidate identities: macOS: macos-c38dc309aaefdebe; Windows: none; Linux: none; Android: android-arm64-7bd35e94ef746069.
 <!-- END GENERATED PROGRESS -->

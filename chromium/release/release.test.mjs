@@ -10,7 +10,7 @@ import { validatePart, validateAppInfo, entitlements, inspectTree, parts } from 
 import { fileURLToPath } from 'node:url';
 import { derEntitlements, profileAt } from './native.mjs';
 import { inputInventory, validateLocalInputs, validateBetaBranding } from './preflight.mjs';
-import { makeManifest, verifyManifest, verifyEvidenceFiles, readPayloads, GATES } from './manifest.mjs';
+import { makeManifest, verifyManifest, verifyEvidenceFiles, readPayloads, validateAcceptance, GATES } from './manifest.mjs';
 const fixture = () => JSON.parse(fs.readFileSync(new URL('./fixtures/release.json', import.meta.url)));
 const temp = fn => { const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'beta-release-test-')); try { return fn(dir); } finally {fs.rmSync(dir,{recursive:true,force:true});} };
 // Published verification vector: no key generation, private key or signing.
@@ -35,6 +35,14 @@ test('release policy accepts isolated beta and requires immutable monotonic vers
   }
   const single=fixture();delete single.archWaiver;
   assert.throws(()=>validateRelease(single),/waiver/);single.archWaiver='Owner: Intel deferred pending machine qualification.';validateRelease(single);
+});
+test('a gate waiver is accepted only where the owner approved it',()=>{
+  const why='Owner waiver 2026-11-14: the protected-video notice comes in beta.3.';
+  const one=fixture();one.gateWaivers={'no-drm-handoff':why};assert.throws(()=>validateRelease(one),/no owner waiver for gate: no-drm-handoff/);
+  const two=()=>{const r=fixture();r.version='2.0.0-beta.2';r.tag='chromium-beta-2.0.0-beta.2';r.shortVersion=r.version;r.build=2;r.previousBuild=1;return r;};
+  const ok=two();ok.gateWaivers={'no-drm-handoff':why};validateRelease(ok);
+  for(const bad of [{'webauthn':why},{'no-drm-handoff':'short'},['no-drm-handoff']]){const r=two();r.gateWaivers=bad;assert.throws(()=>validateRelease(r));}
+  const three=two();three.version='2.0.0-beta.3';three.tag='chromium-beta-2.0.0-beta.3';three.shortVersion=three.version;three.build=3;three.arches=['arm64'];three.gateWaivers={'no-drm-handoff':why};assert.throws(()=>validateRelease(three),/no owner waiver/);
 });
 test('current release branding cannot masquerade as beta source',()=>{
   assert.throws(()=>validateBetaBranding(fs.readFileSync(new URL('../blanc/branding/release/BRANDING',import.meta.url),'utf8')));
@@ -113,6 +121,18 @@ function payloadFixture(){
   payloads['Blanc-Beta.cdx.json']=Buffer.from(JSON.stringify({bomFormat:'CycloneDX',specVersion:'1.6',version:1,metadata:{component:{name:'Blanc Beta',version:r.version,properties:[{name:'blanc:sourceCommit',value:r.sourceCommit},{name:'blanc:inputDigest',value:r.inputDigest}]}},components:[{name:'Chromium',version:r.chromiumVersion,licenses:[{license:{id:'BSD-3-Clause'}}]},{name:'Sparkle',version:r.sparkle.version,licenses:[{license:{id:'MIT'}}]}]}));
   return {r,payloads,e};
 }
+test('a waived gate counts only with the release descriptor\'s waiver for it',()=>{
+  const {r,payloads,e}=payloadFixture();validateAcceptance(e,r,payloads);
+  const why='Owner waiver 2026-11-14: decided for the first fork beta.';
+  e.arches.arm64.gates['no-drm-handoff'].status='waived';assert.throws(()=>validateAcceptance(e,r,payloads),/missing candidate gate: no-drm-handoff/);
+  r.gateWaivers={'no-drm-handoff':why};assert.throws(()=>validateAcceptance(e,r,payloads),/missing candidate gate: no-drm-handoff/); // beta.1: no waivers
+  const dmg=payloads[assetName(r,'arm64')];r.version='2.0.0-beta.2';payloads[assetName(r,'arm64')]=dmg;validateAcceptance(e,r,payloads);
+  const sync=e.arches.arm64.gates['production-sync-real-device'];sync.status='waived';
+  assert.throws(()=>validateAcceptance(e,r,payloads),/missing candidate gate: production-sync-real-device/);
+  sync.waiver='short';assert.throws(()=>validateAcceptance(e,r,payloads),/production-sync-real-device/);
+  sync.waiver=why;validateAcceptance(e,r,payloads);
+  Object.assign(e.arches.arm64.gates.webauthn,{status:'waived',waiver:why});assert.throws(()=>validateAcceptance(e,r,payloads),/missing candidate gate: webauthn/);
+});
 test('manifest covers every payload, itself in checksums, excludes signature recursion',()=>temp(dir=>{
   const {r,payloads}=payloadFixture(),m=makeManifest(r,payloads);assert.equal(m.checksums.split('\n').filter(Boolean).length,Object.keys(payloads).length+1);
   for(const [name,bytes] of Object.entries(payloads))fs.writeFileSync(path.join(dir,name),bytes);

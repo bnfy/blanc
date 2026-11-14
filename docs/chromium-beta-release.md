@@ -427,6 +427,13 @@ cmp "$BETA_WORK/private-seed.txt" "$BETA_WORK/recovered-seed.txt"
 rm "$BETA_WORK/private-seed.txt" "$BETA_WORK/recovered-seed.txt"
 ```
 
+**Split ceremony (2026-11-14):** when 1Password is unusable, the owner may run
+the Keychain half alone (`~/Projects/Blanc/scripts/sparkle-key-make.command`:
+the key in Keychain, the public key saved, a `BACKUP-PENDING` marker) and the
+1Password half later (`sparkle-key-backup.command`: export, store, read back,
+compare, delete, marker removed). `release.mjs` refuses `draft` and `publish`
+while the marker exists, so nothing ships with the key on one Mac only.
+
 If the dedicated Keychain account or 1Password title already exists, inspect and
 recover it privately instead of generating a replacement or creating duplicates.
 Cancel any manual account-setup prompt. Record custody/recovery success only;
@@ -614,6 +621,8 @@ node chromium/release/release.mjs dmg "$BETA_WORK"            # §10.5: hdiutil,
 OP_BIOMETRIC_UNLOCK_ENABLED=true op run --env-file=.env.1password --no-masking -- \
   node chromium/release/release.mjs notarize-dmg "$BETA_WORK" # §10.5: notarize, staple, verify.mjs, spctl
 node chromium/release/release.mjs sparkle "$BETA_WORK"        # §10.6: sign_update -p, appcast
+node chromium/release/gate-evidence.mjs plan  "$BETA_WORK" SOURCES.json  # every gate ready?
+node chromium/release/gate-evidence.mjs write "$BETA_WORK" SOURCES.json  # evidence/ + payloads/acceptance.json
 node chromium/release/release.mjs manifest "$BETA_WORK"       # §7: payloads, evidence, manifest
 node chromium/release/release.mjs draft "$BETA_WORK"          # §10.8: absence, typed OK, tag, draft, re-download
 node chromium/release/release.mjs sigstore "$BETA_WORK"       # §7: Safari Sigstore, verify, upload bundle
@@ -625,7 +634,12 @@ node chromium/release/release.mjs verify-public "$BETA_WORK"  # §8: logged-out 
 `local-inputs.json` (preflight's inputs plus `unsigned: {arm64: <built app>}`
 and `sparkle: <extracted pinned Sparkle>`), and before `manifest`,
 `payloads/` (`acceptance.json`, `Blanc-Beta.cdx.json`, `NOTICES.txt`,
-`release-notes.md`) and `evidence/<arch>/<gate>.evidence`. Each stage checks
+`release-notes.md`) and `evidence/<arch>/<gate>.evidence`. `gate-evidence.mjs`
+writes the last two from `SOURCES.json` (per architecture and gate: the
+evidence files and, where the owner decided one, the `basis` that lets them
+count). Each bundle embeds its sources with their digests and the final DMG's
+digest; a JSON source must report a pass, a gate the descriptor waives is
+written `waived` with the owner's reason, and nothing is overwritten. Each stage checks
 the one before it and records what it made in `state.json`, bound to the
 digest of `release.json`. From `draft` on, nothing earlier can run again and no
 stage reruns: fix forward with a new ledger build. Absence of the tag and of
@@ -696,3 +710,195 @@ the credits page only on that list. On the rebuilt local-qualification beta
 that the preview build without the blocker let through (loopback only), and
 the Aperitif helpers link exactly Chromium's libraries.
 Tests: `chromium/release/sbom.test.mjs`.
+
+### Blocker payload evidence (2026-11-14)
+
+`node chromium/release/blocker-evidence.mjs RELEASE.json APP EVIDENCE` writes
+the `blocker-payload` gate evidence (copy it to
+`evidence/<arch>/blocker-payload.evidence` only on a pass). Static: the
+embedded `blanc_blocker/engine.js` is the pinned bundle, its committed
+provenance matches the pinned filter lists, the probe hosts are on the pinned
+EasyList, and the app is the release build. Runtime, with no development
+switch and loopback only (every other host resolves to nothing): an ordinary
+and a private window each load a page whose allowed image arrives and whose
+two EasyList-listed requests never do. A page cookie proves which window ran:
+an ordinary window must save it to the profile, a private one must not, so
+both wait 35 seconds for Chromium's cookie commit. Two APFS clones of the app,
+one with a byte of the engine changed and one with none, must let nothing
+past the page through. Clones need an ad-hoc signed candidate (a changed
+resource can't be tested inside a sealed, signed app), so on the final
+signed build run it on the unsigned candidate that produced it and record the
+equivalence. On the local-qualification beta (2026-11-14) all four scenarios
+passed. Not covered here: the Island resources and the EME notice and stable
+handoff (`no-drm-handoff`). Tests: `chromium/release/blocker-evidence.test.mjs`.
+
+### Outbound isolation of the packaged beta (2026-11-14)
+
+The S1.1 harness (`chromium/tests/outbound/`) drives the prototype through
+test hooks, a recording proxy and `--disable-background-networking`, so it
+can't show what a beta contacts on its own. The beta variant runs the app as
+a person does: `setup.sh --refresh --beta APP CONFIG` copies the beta to
+`/Users/Shared/blanc-outbound/beta`; `sudo root.sh start` loads the owner-
+approved pf anchor (2026-10-31: every packet the `blanc-test` user sends off
+the Mac is dropped and logged); in the `blanc-test` session,
+`Run beta outbound check.command` (`beta-user.sh`) runs the negative controls,
+then `beta-scenarios.mjs` (startup and three minutes idle on a loopback page,
+a relaunch, a private window, about six minutes, each with Chromium's
+`--log-net-log`), then the controls again; `sudo root.sh stop`; then
+`node chromium/tests/outbound/analyze-beta.mjs /Users/Shared/blanc-outbound/results/beta-<UTC time>` (the test user can write only in `results/`).
+The run is valid only if every control reaches the pf log and every network
+log names the page's unresolvable probe host; it passes only if no blocked
+packet could have come from a Blanc process and no network log names an
+outside host. For a local-qualification beta nothing outside is intended
+(its feed is on loopback, a fresh profile has no Sync); a production run
+names its feed and release hosts with `--allow`. The network log covers
+Chromium's own requests; Sparkle and macOS frameworks are covered by the pf
+log alone. An offline dry run as the owner (2026-11-14, every host resolving
+to nothing) showed only localhost and the probe in all three logs. Chromium
+resolves names itself, so the probe also appears as DNS queries the pf block
+drops; analyze-beta.mjs reads each query's name and counts the probe's as the
+probe. The first real run on the local-qualification beta (2026-11-14, run
+`beta-20261114T013208Z`) passed: all 20 controls in the pf log (the IPv6 one
+has no route on this Mac), no blocked packet a Blanc process could have sent
+beyond 14 probe lookups, and only localhost and the probe in the three network
+logs; the account's own services (Apple, Creative Cloud, OneDrive) were
+blocked and recorded as background. Evidence stays local, in
+`evidence/foundation/outbound-beta-20261114.json`. Run the beta-root.sh
+wrapper from Terminal.app, not an app's terminal panel: an app restart there
+killed the pf logger once.
+Tests: `chromium/tests/outbound-beta.test.mjs`.
+
+### No test hooks and profile separation (2026-11-14)
+
+`node chromium/release/hooks-evidence.mjs RELEASE.json APP EVIDENCE` writes
+the `official-hooks-absent` evidence: no Mach-O file in the app carries the
+name of a test or research switch as a C string (the prototype, which keeps
+its hooks, shows seven), and the beta launched with every one of them, its
+disk-assets and test data home pointed at a loopback collector, opens its
+page while the collector hears nothing and the data home stays empty. The
+first audit found four reads of `--blanc-test` outside the test-hooks build
+flag (first-run state, reported version and data home in `first_run.inc`,
+the telemetry collector in `telemetry.inc`, a Sync test call in
+`desktop_sync_service.cc`); they now go through `blanc::BlancTestLaunch()`
+(`chromium/blanc/common/test_launch.h`), always false where hooks are
+compiled out. The hash-pinned `--blanc-blocker-assets` and
+`--blanc-sync-assets` overrides are not hooks.
+
+`node chromium/release/profile-evidence.mjs RELEASE.json APP EVIDENCE` writes
+the `profile-coexistence` evidence. Every launch gets a throwaway `HOME`
+(and `CFFIXED_USER_HOME`) seeded with decoys of the reserved folders: the
+Electron app's (`Blanc`, `Bowser`, `me.bnfy.bowser`), the release fork's
+(`Blanc Browser`) and the preview's (`Blanc Chromium Preview`), under both
+Application Support and Caches. A default launch must create its profile
+under `Blanc Beta` and nothing else named for Blanc or Chromium; pointed at a
+decoy (directly, through a symlink, as a cache folder), at `--profile-directory=..`
+or asked to import, the beta must quit before opening its page; every decoy
+must stay byte for byte as it was, and the owner's real `Blanc Beta` folder
+unchanged. Both passed on the local-qualification beta (2026-11-14; evidence
+in `evidence/foundation/`). Tests: `chromium/release/hooks-profile-evidence.test.mjs`.
+
+### Local Sparkle update proof (2026-11-14)
+
+`local-update-proof.mjs` ran on two local-qualification builds made from
+the same tree with only `blanc_beta_version`, `blanc_beta_build` and the
+throwaway `blanc_sparkle_public_key` changed (each a guarded re-pin of the
+args hash, a few build steps, saved under `artifacts/local-update/`; the
+beta's args are back at beta.1 afterwards). Each feed starts from a fresh
+stage: `good` installed build 2 at quit; `wrong-key` (signed by another
+key) and `tampered` (a byte changed after signing) were downloaded and
+refused, leaving build 1. Keep the throwaway key out of `/tmp`: the first
+one was lost in a restart. It now lives in `records/local-update-key`
+(owner-only, outside Git). Evidence: `evidence/foundation/sparkle-local-update-20261114.json`.
+
+### Desktop Sync on the local beta (2026-11-14)
+
+`node chromium/tests/beta-sync.mjs APP EVIDENCE.json` runs the beta's own
+Sync with no test hooks: the local-qualification build's fixed endpoint
+(`127.0.0.1:49261`) is relayed to the local Worker, and the check drives
+only Settings → Sync's controls over Chromium's standard remote-debugging
+connection (throwaway `HOME`, mock keychain, every other host resolving to
+nothing). It turns Sync on with the embedded runner, pairs an independent
+peer running the iPhone's bundle with the code the beta shows, and, with
+Settings' tab-sharing switch on, the peer lists the beta with its open page.
+It passed on 2026-11-14 (82 Worker requests, all loopback). Favorites, tabs,
+Spaces, recovery and profiles stay with `desktop-sync.mjs` on the prototype,
+whose hooks the beta compiles out; production Sync with a real iPhone is the
+owner's.
+
+### Hosted smoke workflow (2026-11-14)
+
+`.github/workflows/chromium-beta-smoke.yml` is the fork's exact-tag hosted
+smoke (§8), run by hand after publication with
+`gh workflow run chromium-beta-smoke.yml -f tag=chromium-beta-2.0.0-beta.N`
+(add `-f check_feed=true` after feed promotion). It checks out the release's
+own tag on a GitHub-hosted Apple Silicon Mac and runs
+`chromium/release/public-smoke.mjs`: every public asset downloaded logged
+out; the exact asset set, manifest, checksums and appcast signatures
+(`manifest.mjs`); GitHub showing a published pre-release that isn't latest,
+with a stable `vX.Y.Z` still latest; the DMG through `verify.mjs`; and the
+app, copied off the read-only image, launching and opening a loopback page.
+With `check_feed`, blanc.day's live feed must equal the release appcast.
+Sigstore's pinned identity stays with `release.mjs verify-public` on the
+owner's Mac, where cosign is installed. GitHub only dispatches a workflow
+that exists on `main`, so it becomes runnable once `chromium/next` reaches
+`main`. Tests: `chromium/release/public-smoke.test.mjs`; the launch step was
+tried on a local image of the local-qualification beta.
+
+### Blanc Beta 2.0.0-beta.2: the first public beta (2026-11-14)
+
+Published as a GitHub pre-release, not latest:
+<https://github.com/bnfy/blanc/releases/tag/chromium-beta-2.0.0-beta.2>, tag at
+`058277389`, candidate `macos-176939e3a1706e6f`, DMG SHA-256
+`d155c31638b7a7c7d849269cae75be81977f4b8293d1bcbcad00493c6d382e62`, nine assets.
+Every `release.mjs` stage ran from the owner's Terminal through one-command
+wrappers in `~/Projects/Blanc/scripts/` (`beta2-sign`, `beta2-notarize`, which
+takes the two Apple values by hidden input instead of `op run` because
+1Password won't stay unlocked on the Mac Studio, `beta2-sparkle`,
+`beta2-draft`, `beta2-publish`). The update key's 1Password copy was made on
+the MacBook Pro (`sparkle-key-airdrop.command`: export, proven against the
+production public key, AirDropped, saved, both copies deleted). The release's
+gate evidence was assembled by `gate-evidence.mjs`: 11 passed (acceptance by
+equivalence, desktop Sync, notices and credits, blocker, outbound, profile,
+Touch ID passkeys on the notarized app, test hooks absent, the local update
+proof, native signature, Gatekeeper) and 2 waived (no-drm-handoff,
+production-sync-real-device). Known issue for beta.3: after a relaunch the
+vertical tab rail can reopen at its narrow-window cap (intermittent,
+`vertical-tabs.feature:58`). Sigstore's first attempt hung because cosign ran
+without a terminal; `release.mjs` now gives it one. Owed: the hosted smoke
+check once the workflow is on main, and the website PR (feed, a Download page
+section, `/dl/beta`).
+
+### Owner gate decisions for the first public beta (2026-11-14)
+
+- **acceptance:** the shipping corpus drives the app through test hooks the
+  beta compiles out, so its evidence is an equivalence: the full suite on the
+  prototype built from the same Blanc source as the beta candidate (desktop
+  sources unchanged between them), plus the beta's own checks (blocker,
+  no test hooks, profile separation, notices and credits, outbound
+  isolation, Sync, update proof). This supersedes §6.1's "a separately
+  instrumented sibling cannot substitute" for this beta only.
+- **desktop-sync:** `beta-sync.mjs` on the local-qualification build (same
+  code, local Worker) counts; production Sync is covered by the owner's
+  real-device gate on the signed build.
+- **sparkle-N-to-N+1:** the local update proof (good feed installs; wrong key
+  and tampered refused) counts for beta.2; the first signed handoff is
+  beta.2 → beta.3 after publication, recorded then.
+- **no-drm-handoff (waived for beta.2):** the protected-video notice and its
+  open-in-Electron-Blanc action (D3/X2) are not built yet. The owner waived
+  the gate for 2.0.0-beta.2 only, choosing to ship without the notice: on a
+  site that asks for protected video, playback simply fails. The notice is
+  due in beta.3. `policy.mjs` `GATE_WAIVERS` holds the only waivable gate and
+  release; beta.2's descriptor carries `gateWaivers["no-drm-handoff"]` with
+  the owner's reason, its `acceptance.json` marks the gate `waived`, and the
+  evidence bundle is the waiver record. `manifest.mjs` refuses a `waived`
+  gate without that descriptor entry. Make no public claim about protected
+  video in Blanc Beta.
+- **production-sync-real-device (waived for beta.2):** decided after the
+  signing run began, so `release.json` (bound to every finished stage) does
+  not carry it. `GATE_WAIVERS` lists it for 2.0.0-beta.2; the owner's reason
+  goes in SOURCES as `{"waiver": "…"}`, and `gate-evidence.mjs` writes it into
+  the gate's evidence bundle and its public `acceptance.json` entry, where
+  `manifest.mjs` requires it. Desktop Sync (local Worker) still passes. The
+  hosted smoke check runs the verifier from the dispatching commit, not the
+  tag, because the tag's verifier predates this rule. The Touch ID passkey
+  gate passed on this notarized build (owner, 2026-11-14).
