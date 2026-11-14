@@ -32,6 +32,7 @@
 #include "chrome/browser/favicon/favicon_service_factory.h"
 #include "chrome/browser/history/history_service_factory.h"
 #include "chrome/browser/profiles/profile.h"
+#include "chrome/browser/search_engines/template_url_service_factory.h"
 #include "components/bookmarks/browser/base_bookmark_model_observer.h"
 #include "components/bookmarks/browser/bookmark_model.h"
 #include "components/bookmarks/browser/bookmark_node.h"
@@ -41,6 +42,8 @@
 #include "components/prefs/pref_change_registrar.h"
 #include "components/prefs/pref_service.h"
 #include "components/prefs/scoped_user_pref_update.h"
+#include "components/search_engines/template_url.h"
+#include "components/search_engines/template_url_service.h"
 #include "components/history/core/browser/history_service.h"
 #include "components/history/core/browser/history_service_observer.h"
 #include "components/history/core/browser/history_types.h"
@@ -478,9 +481,14 @@ class PagesHandler : public content::WebUIMessageHandler {
 
   // ---- Billboard's shortcuts: blanc_prototype_ui.cc's NewTabHandler, on Android's profile ----
 
-  // topSites([offset, limit]): history's most visited sites, one per site (www. folded), http(s)
-  // only, each still visited (not kept only by a Favorite) under its current title, with its icon
-  // from the local database. A private Start Page gets none.
+  // topSites([offset, limit]): the sites visited most in the last 90 days, one per site (www.
+  // folded), http(s) only, each as the page of it visited last under that page's title, with its
+  // icon from the local database. A private Start Page gets none.
+  //
+  // Unlike desktop, which ranks Chromium's most visited (typed and bookmark visits only), every
+  // visit counts here (owner, November 14: a phone reaches most sites from search results and
+  // links, so typed visits alone left one shortcut). Search engines' results pages don't count, or
+  // every search would put the search engine first; its home page still does.
   void StartTopSites(const std::string& id, const base::ListValue& args, bool off_the_record) {
     if (off_the_record) return StartReply(id, true, base::Value(base::ListValue()));
     int offset = 0, limit = 48;
@@ -494,60 +502,52 @@ class PagesHandler : public content::WebUIMessageHandler {
     history::HistoryService* history = History();
     if (!history) return StartReply(id, false, base::Value("History unavailable"));
     WatchHistory(history);
-    const auto task = history->QueryMostVisitedURLs(
-        5000, base::BindOnce(&PagesHandler::OnMostVisited, weak_factory_.GetWeakPtr(), id, offset, limit), &tracker_);
+    history::QueryOptions options;
+    options.begin_time = base::Time::Now() - base::Days(90);
+    options.max_count = 2000;
+    options.duplicate_policy = history::QueryOptions::REMOVE_ALL_DUPLICATES;
+    const auto task = history->QueryHistory(
+        std::u16string(), options,
+        base::BindOnce(&PagesHandler::OnRecentPages, weak_factory_.GetWeakPtr(), id, offset, limit), &tracker_);
     if (task == base::CancelableTaskTracker::kBadTaskId) StartReply(id, false, base::Value("History unavailable"));
   }
 
-  // A ranked site: its place on the page, and its title if history still has visits to it.
-  using Visited = std::pair<size_t, std::optional<std::string>>;
-
-  void OnMostVisited(std::string id, int offset, int limit, history::MostVisitedURLList sites) {
-    std::set<std::string> seen;
-    base::ListValue items;
-    int rank = 0;
-    for (const history::MostVisitedURL& site : sites) {
-      if (!site.url.SchemeIsHTTPOrHTTPS() || site.url.has_username() || site.url.has_password()) continue;
-      std::string key(site.url.host());
+  // One page per address, newest first, each with its visit count.
+  void OnRecentPages(std::string id, int offset, int limit, history::QueryResults pages) {
+    TemplateURLService* engines = TemplateURLServiceFactory::GetForProfile(profile());
+    const TemplateURLService::TemplateURLVector known =
+        engines && engines->loaded() ? engines->GetTemplateURLs() : TemplateURLService::TemplateURLVector();
+    const auto search_results = [&](const GURL& url) {
+      return std::ranges::any_of(known, [&](const TemplateURL* engine) {
+        return engine->IsSearchURL(url, engines->search_terms_data());
+      });
+    };
+    struct Site {
+      std::string key;
+      const history::URLResult* last;  // the site's page visited last
+      int visits = 0;
+    };
+    std::vector<Site> sites;
+    std::map<std::string, size_t> by_key;
+    for (const history::URLResult& page : pages) {
+      const GURL& url = page.url();
+      if (!url.SchemeIsHTTPOrHTTPS() || url.has_username() || url.has_password() || search_results(url)) continue;
+      std::string key(url.host());
       if (key.starts_with("www.")) key.erase(0, 4);
-      if (!seen.insert(key).second || rank++ < offset) continue;
+      auto [found, added] = by_key.try_emplace(key, sites.size());
+      if (added) sites.push_back({key, &page});
+      sites[found->second].visits += page.visit_count();
+    }
+    // Most visits first; between equals, the one visited last.
+    std::ranges::stable_sort(sites, [](const Site& a, const Site& b) { return a.visits > b.visits; });
+    base::ListValue items;
+    for (size_t i = static_cast<size_t>(offset); i < sites.size() && items.size() < static_cast<size_t>(limit); ++i) {
       items.Append(base::DictValue()
-                       .Set("url", site.url.spec())
-                       .Set("key", key)
-                       .Set("title", base::UTF16ToUTF8(site.title)));
-      if (items.size() >= static_cast<size_t>(limit)) break;
+                       .Set("url", sites[i].last->url().spec())
+                       .Set("key", sites[i].key)
+                       .Set("title", base::UTF16ToUTF8(sites[i].last->title())));
     }
-    history::HistoryService* history = History();
-    if (!history) return StartReply(id, false, base::Value("History unavailable"));
-    if (items.empty()) return StartReply(id, true, base::Value(std::move(items)));
-    // The ranking keeps a site whose only row a Favorite holds after its visits were deleted; that
-    // row has no visits, so the site goes.
-    auto done = base::BarrierCallback<Visited>(
-        items.size(), base::BindOnce(&PagesHandler::OnSitesVisited, weak_factory_.GetWeakPtr(), id, items.Clone()));
-    for (size_t i = 0; i < items.size(); ++i) {
-      const auto task = history->QueryURL(
-          GURL(*items[i].GetDict().FindString("url")),
-          base::BindOnce(
-              [](size_t i, base::RepeatingCallback<void(Visited)> done, history::QueryURLResult result) {
-                done.Run({i, result.success && result.row.visit_count() > 0
-                                 ? std::optional<std::string>(base::UTF16ToUTF8(result.row.title()))
-                                 : std::nullopt});
-              },
-              i, done),
-          &tracker_);
-      if (task == base::CancelableTaskTracker::kBadTaskId) done.Run({i, std::nullopt});
-    }
-  }
-
-  void OnSitesVisited(std::string id, base::ListValue items, std::vector<Visited> visited) {
-    std::ranges::sort(visited, {}, &Visited::first);
-    base::ListValue kept;
-    for (auto& [i, title] : visited) {
-      if (!title) continue;
-      items[i].GetDict().Set("title", std::move(*title));
-      kept.Append(std::move(items[i]));
-    }
-    WithIcons(std::move(kept), base::BindOnce(&PagesHandler::ReplySites, weak_factory_.GetWeakPtr(), id));
+    WithIcons(std::move(items), base::BindOnce(&PagesHandler::ReplySites, weak_factory_.GetWeakPtr(), id));
   }
   void ReplySites(std::string id, base::ListValue sites) { StartReply(id, true, base::Value(std::move(sites))); }
 

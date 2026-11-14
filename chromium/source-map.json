@@ -48,7 +48,7 @@
   "canonicalSha256": {
     "blanc/BUILD.gn": "8d403cf65cfd54b10772b53dad32bb6d48d9524aaf537887d38fa0e3e027e903",
     "blanc/android/BUILD.gn": "7cca1e1de8c05584a30e1cdb093e9f687179d7420faffc6cd75582e25d4ed616",
-    "blanc/android/browser/blanc_pages_ui.cc": "c26318d11e8fbf66b15e835919c2623654520d6857a7d285e9595b631904bb20",
+    "blanc/android/browser/blanc_pages_ui.cc": "48de683dd411ae96da70c7f038e9beb0cbec847b386226cd173c097bde4691c6",
     "blanc/android/browser/blanc_pages_ui.h": "6969cac9a6e8b4b237a1809b8e81f04e07f75737247119f037d9614c06e01387",
     "blanc/android/browser/blocker_bridge.cc": "b02dce564745871a884cb98a4ae5a5c5c0181f495da7e374301c091f5ea28b03",
     "blanc/android/browser/page_pinch_bridge.cc": "0332aac2fcc40fb9d943f21084f4ac01fd549c13e3b59f015b34b50d8e973df2",
@@ -360,7 +360,7 @@
     "blanc/android/pages-adapter/android-pages-adapter.js": "eaeb3aa73347dca96b6e9706520ce69ad6dce065131a25e43c8f3499c743ce7f",
     "blanc/android/pages-adapter/android-pages-adapter.template.js": "a49a380e88af41c33b612535c78538e1af6b96312030e0d75fef0cfbfe50972c",
     "blanc/android/pages-adapter/android-start.css": "578e7a25928101851199b09584096ee760354d69f4be4a49a7c08d29d8b28665",
-    "blanc/android/pages-adapter/android-start.js": "163263347029e3caf40a44878650b1a801a1a76128c1c3cc185011a4f49d0e15",
+    "blanc/android/pages-adapter/android-start.js": "92c210a43e2bbdb1dc6dbc5e303f5c9c46ccedc05e22cf3dd3ead5458a39d187",
     "blanc/android/pages.json": "b37364b83fa66ab2e1984d028b7b9109645ad68495b298c890271f0cafa63ece",
     "blanc/android/pages_resources/BUILD.gn": "575e9159df145dbc4b66fe39db38a5e040bac475d7f63fd89b2b15241add6395",
     "blanc/android/pages_resources/pages_resources.h": "57c58cdf6247ef1770655d7684b931f65469d7e62f6b0d33866706eb80b2068c",

@@ -38,7 +38,10 @@
   // out its one line, and android-start.css moves the clock by the difference.
   function centerClock(clock) {
     const context = document.createElement('canvas').getContext('2d');
+    const editing = document.getElementById('clockPopover');
     function place() {
+      // While the clock is edited it sits at the top as its own preview; place it again after.
+      if (editing?.matches(':popover-open')) return;
       const style = getComputedStyle(clock);
       context.font = style.fontWeight + ' ' + style.fontSize + ' ' + style.fontFamily;
       const m = context.measureText(clock.textContent);
@@ -51,11 +54,34 @@
       // screen, the keyboard up) on itself.
       const full = innerHeight >= screen.availHeight - 3;
       const middle = full ? screen.height / 2 - screen.availTop : innerHeight / 2;
-      root.style.setProperty('--android-clock-nudge', (middle - figures).toFixed(2) + 'px');
+      let nudge = middle - figures;
+      // With shortcuts on show, the clock moves up as far as they need to sit above Customize
+      // (owner, November 14: they landed under it), but never under the date.
+      const shortcuts = document.getElementById('bbFavorites');
+      const footer = document.querySelector('.ledger-footer');
+      const header = document.querySelector('.start-header');
+      if (shortcuts && !shortcuts.hidden && shortcuts.childElementCount && footer) {
+        const boxRect = (clock.closest('.bb-clock-row') || clock).getBoundingClientRect();
+        const half = boxRect.height / 2;
+        const rows = shortcuts.getBoundingClientRect();
+        // How far the shortcuts start below the clock's middle; both move with the clock.
+        const below = rows.top - (boxRect.top + half);
+        // The clock's middle (in the page) that puts the shortcuts' bottom 16 px above Customize.
+        const room = footer.getBoundingClientRect().top - 16 - rows.height - below;
+        const floor = (header ? header.getBoundingClientRect().bottom + scrollY : 0) + 8 + half;
+        nudge = Math.min(nudge, Math.max(floor, room) - innerHeight / 2);
+      }
+      root.style.setProperty('--android-clock-nudge', nudge.toFixed(2) + 'px');
     }
     place();
     new MutationObserver(place).observe(clock, {attributes: true, characterData: true, childList: true, subtree: true});
     new ResizeObserver(place).observe(clock);
+    editing?.addEventListener('toggle', () => requestAnimationFrame(place));
+    const shortcuts = document.getElementById('bbFavorites');
+    if (shortcuts) {
+      new MutationObserver(place).observe(shortcuts, {attributes: true, attributeFilter: ['hidden'], childList: true});
+      new ResizeObserver(place).observe(shortcuts);
+    }
     addEventListener('resize', place);
     document.fonts.addEventListener('loadingdone', place);
   }
