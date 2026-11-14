@@ -114,6 +114,10 @@ test('native forwards page moves and draws the swell on the extension buttons', 
   assert.match(ui, /#include "blanc\/browser\/ui\/island_proximity_controller.inc"/);
   assert.match(ui, /method == "extensionsSwell"[^]*?ValidSwell\(scale, dx, dy\)[^]*?SetExtensionsPillOffset\(owner, extensions\)/);
   assert.match(controller, /window\.blancIslandPointer\?\.\(%d,%d\)/);
+  // Leaving the Island's view arms the next page move, wherever it lands.
+  assert.match(ui, /method == "islandPointerLeft" && args\.empty\(\)\) \{\n\s*IslandPointerLeft\(owner\);/);
+  assert.match(controller, /void IslandPointerLeft\(Owner\* owner\) \{\n\s*owner->island_pointer_near = true;/);
+  assert.match(host, /updateHover\(null\);\n[^]*?request\('islandPointerLeft'\)/);
   // The slide and the swell share one transform: neither may replace the other.
   assert.match(controller, /Translate\(owner->extensions_swell_dx, owner->extensions_pill_y \+ owner->extensions_swell_dy\)/);
   assert.equal((ui.match(/->SetTransform\(/g) ?? []).length, 0, 'only SetExtensionsPillOffset transforms the extension buttons');

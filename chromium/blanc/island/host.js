@@ -2602,6 +2602,9 @@
       if (event.target !== doc.documentElement) return;
       hover.lastPoint = null;
       updateHover(null);
+      // Native forwards page moves only near the Island; the pointer may land
+      // anywhere, so the next page move must reach the swell wherever it is.
+      request('islandPointerLeft').catch(error => notice(error.message));
     }, true);
   }
   hookHover(document, null);

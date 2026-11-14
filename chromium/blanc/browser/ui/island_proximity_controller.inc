@@ -57,6 +57,13 @@ void IslandProximityPageMove(Owner* owner, const blink::WebInputEvent& event) {
   }
 }
 
+// The pointer left the Island's view for the page or another window. Its
+// next page move may land beyond reach, where it would go unsent while the
+// pill still shows the swell the Island's own moves gave it.
+void IslandPointerLeft(Owner* owner) {
+  owner->island_pointer_near = true;
+}
+
 // The extension buttons' transform: the floating pill's slide
 // (extensions_pill_y) and the swell the host measured on their slot. The view
 // keeps the slot's resting bounds; the swell grows it from its own corner and

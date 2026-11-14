@@ -40,6 +40,10 @@ try{
  const page=await tabPage(w,id);await page.evalExpression('1');
  const move=(x,y)=>page.cdp.send('Input.dispatchMouseEvent',{type:'mouseMoved',x,y,button:'none',buttons:0});
  const hostMove=(x,y)=>f.host.send('Input.dispatchMouseEvent',{type:'mouseMoved',x,y,button:'none',buttons:0});
+ // Like shipping, the swell sleeps while another window is in front, so each
+ // step first puts the test window in front.
+ const front=async()=>{await page.bringToFront();await w.waitFor(()=>w.snapshot(),s=>s.windowActive===true,'the test window in front',4000);};
+ await front();
  const height=await page.evalExpression('innerHeight');
  assert.ok(height>420,`the page is tall enough to leave the Island's reach: ${height}`);
  const box=await pillBox(),cx=Math.round(box.x+box.width/2);
@@ -49,7 +53,7 @@ try{
  await move(cx,height-10);await pause(400);
  assert.equal(await k(),0,'at rest with the cursor far away');
  // Just below the Island, from the page: the swell settles at 1.
- await move(cx,4);
+ await front();await move(cx,4);
  await w.waitFor(k,v=>v===1,'the pill swells as the cursor approaches from the page',4000);
  assert.equal(await w.hostEval(`${PILL}.classList.contains('proximity-active')`),true);
  result.checks.push('a cursor approaching from the page swells the resting pill fully within 80px');
@@ -71,12 +75,18 @@ try{
  result.checks.push('leaving rests the pill and the extension buttons');
 
  // Over the Island's own band, beside the pill.
- await hostMove(Math.round(box.x+box.width+40),Math.round(box.y+box.height/2));
+ await front();
+ const band=await pillBox();
+ await hostMove(Math.round(band.x+band.width+40),Math.round(band.y+band.height/2));
  await w.waitFor(k,v=>v===1,'the pill swells as the cursor approaches over the Island',4000);
- await move(cx,height-10);await w.waitFor(k,v=>v===0,'rest again',4000);
- result.checks.push('a cursor approaching over the Island\'s band swells it too');
+ // Out of the Island's view and straight on to the page, beyond the reach of
+ // the moves native forwards: the swell still rests.
+ await hostMove(cx,Math.round(await w.hostEval('innerHeight'))+30);
+ await move(cx,height-10);await w.waitFor(k,v=>v===0,'rest after leaving the Island far down the page',4000);
+ result.checks.push('a cursor approaching over the Island\'s band swells it, and leaving it far down the page rests it');
 
  // Something open over it: asleep.
+ await front();
  await w.hostEval('window.BlancPrototypeHost.api.openIsland()');
  await w.waitFor(()=>w.hostEval("!document.getElementById('overlay').hidden"),Boolean,'the panel open',4000);
  await move(cx,height-60);await move(cx,height-50);await pause(400);
@@ -91,6 +101,7 @@ try{
  result.checks.push('the pill rests while the panel is open and wakes where the cursor is when it closes');
 
  // Reduce motion: no swell at all.
+ await front();
  await f.host.send('Emulation.setEmulatedMedia',{features:[{name:'prefers-reduced-motion',value:'reduce'}]});
  await move(cx,4);await pause(500);
  assert.equal(await k(),0,'no swell under Reduce motion');
