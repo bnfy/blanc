@@ -1,10 +1,11 @@
 // Billboard's shortcuts on the emulator: history's ranked sites and the pins you keep. A fresh
 // Blanc types four fixture sites into the palette, more often the higher each should rank. The
-// Start Page must then show them in that order, as many as the Shortcuts stepper allows; a tap on a
-// site's pin must move it to the front and keep it there across a relaunch; a tap on it again must
-// unpin it, which also survives a relaunch; a tap on the icon near its pin must open the site. Taps go
-// through adb at their place on the screen, so a pin too small to hit, or one whose target covers the
-// icon, fails. Screenshots go to the evidence folder. Fails closed.
+// Start Page must then show them in that order, as many as the Shortcuts stepper allows, with no pin
+// or × in sight. A long press on a site must open its menu (not Chromium's, and not the site), whose
+// Pin to Start Page moves it to the front and keeps it there across a relaunch; its Unpin must
+// unpin it, which also survives a relaunch; a plain tap on a shortcut must open the site. Presses and
+// taps go through adb at their place on the screen. Screenshots go to the evidence folder. Fails
+// closed.
 //
 //   node chromium/tests/android/start-shortcuts.mjs --apk <ChromePublic.apk> --evidence <dir>
 import fs from 'node:fs';
@@ -31,6 +32,18 @@ export function shortcutProblems(report, want) {
   return problems;
 }
 
+// A long press's menu against what it should be: open over the Start Page (neither the site nor
+// Chromium's own link menu), with these entries in order.
+export function menuProblems(report, actions) {
+  if (!report) return ['no Start Page to read'];
+  const problems = [];
+  if (!report.open) problems.push('the menu is not open');
+  if (report.url !== START_PAGE) problems.push(`the page is ${report.url}`);
+  if (JSON.stringify(report.actions) !== JSON.stringify(actions))
+    problems.push(`its entries are ${JSON.stringify(report.actions)}, not ${JSON.stringify(actions)}`);
+  return problems;
+}
+
 // The tiles on show now.
 const READ = `(async () => {
   try {
@@ -41,23 +54,26 @@ const READ = `(async () => {
   } catch (error) { return {error: String(error)}; }
 })()`;
 
-// Where a site's pin is on the screen, in device pixels: the page runs to the screen's bottom.
-const PIN_AT = key => `(() => {
-  const pin = document.querySelector('#bbFavorites .bb-site[data-site-key="${key}"] .bb-site-pin');
-  if (!pin) return null;
-  pin.scrollIntoView({block: 'center'});
-  const r = pin.getBoundingClientRect(), top = screen.height - innerHeight;
+// The middle of an element on the screen, in device pixels (the page runs to the screen's bottom),
+// scrolled into view first; null when it isn't there.
+const CENTER_OF = selector => `(() => {
+  const element = document.querySelector(${JSON.stringify(selector)});
+  if (!element) return null;
+  element.scrollIntoView({block: 'center'});
+  const r = element.getBoundingClientRect(), top = screen.height - innerHeight;
   return {x: Math.round((r.left + r.width / 2) * devicePixelRatio), y: Math.round((top + r.top + r.height / 2) * devicePixelRatio)};
 })()`;
+const tileOf = key => `#bbFavorites .bb-site[data-site-key="${key}"] .tile`;
 
-// A point on a site's icon near its top-left corner, just clear of the pin drawn over the corner:
-// a tap there must open the site, not pin it.
-const ICON_CORNER_AT = key => `(() => {
-  const tile = document.querySelector('#bbFavorites .bb-site[data-site-key="${key}"] .tile');
-  if (!tile) return null;
-  tile.scrollIntoView({block: 'center'});
-  const r = tile.getBoundingClientRect(), top = screen.height - innerHeight;
-  return {x: Math.round((r.left + 14) * devicePixelRatio), y: Math.round((top + r.top + 16) * devicePixelRatio)};
+// Pin and × buttons on show (with any size at all): the menu replaced them.
+const VISIBLE_BUTTONS = `[...document.querySelectorAll('#bbFavorites .bb-site-pin, #bbFavorites .bb-site-dismiss')]
+  .filter(b => { const r = b.getBoundingClientRect(); return r.width > 2 && r.height > 2; }).length`;
+
+// The long-press menu: open or not, and its entries.
+const MENU = `(() => {
+  const menu = document.getElementById('androidShortcutMenu');
+  return {open: !!menu?.matches(':popover-open'), actions: [...(menu?.querySelectorAll('button') ?? [])].map(b => b.dataset.action),
+    url: location.href};
 })()`;
 
 async function main(argv) {
@@ -76,11 +92,22 @@ async function main(argv) {
     d.tap({id: 'blanc_island_new_tab'});
     await d.waitForUrl(START_PAGE);
   };
-  const tapPin = async key => {
-    const at = await d.page(PIN_AT(key));
-    if (!at) throw Error(`no pin on ${key}'s shortcut`);
+  const tapAt = (at, ms) => adb('shell', 'input', ...(ms ? ['swipe', at.x, at.y, at.x, at.y, ms] : ['tap', at.x, at.y]).map(String));
+  // Long-presses a site's shortcut, checks its menu, then chooses `action` (pin, hide or open) in it.
+  const fromMenu = async (key, action, want) => {
+    const tile = await d.page(CENTER_OF(tileOf(key)));
+    if (!tile) throw Error(`no shortcut for ${key}`);
     sleep(1);
-    adb('shell', 'input', 'tap', String(at.x), String(at.y));
+    tapAt(tile, 1000);
+    sleep(1.5);
+    const menu = await d.page(MENU);
+    screenshot(`menu on ${key}`);
+    // Chromium's own link menu is native: it shows in the view tree, not the page.
+    const chromium = d.has({text: 'Copy link address'}) ? ["Chromium's link menu opened too"] : [];
+    results.push({case: `a long press on ${key} opens its menu`, report: menu, problems: [...menuProblems(menu, want), ...chromium]});
+    const entry = await d.page(CENTER_OF(`#androidShortcutMenu button[data-action="${action}"]`));
+    if (!entry) throw Error(`no ${action} in ${key}'s menu`);
+    tapAt(entry);
     sleep(2);
   };
   // Leave Blanc as a person does, so it writes what it holds, then end it and start it again.
@@ -111,23 +138,26 @@ async function main(argv) {
     await check('ranked sites, most visited first', {sites: ranked, pinned: [], pins: []});
     await d.page(`window.bowserPages.start.setShortcutCount(${SHORTCUTS}).then(() => true)`);
     await check(`the Shortcuts stepper shows ${SHORTCUTS}`, unpinned);
-    await tapPin('c.example');
-    await check('a tap on a pin puts the site first', pinned);
+    const buttons = await d.page(VISIBLE_BUTTONS);
+    results.push({case: 'no pin or × on show', problems: buttons === 0 ? [] : [`${buttons} on show`]});
+    await fromMenu('c.example', 'pin', ['pin', 'hide', 'open', 'cancel']);
+    await check('the menu\'s Pin puts the site first', pinned);
     await relaunch();
     await startPage();
     await check('the pin survives a relaunch', pinned);
-    await tapPin('c.example');
-    await check('a second tap unpins it', unpinned);
+    // A pinned site can't be hidden, so its menu has no Hide.
+    await fromMenu('c.example', 'pin', ['pin', 'open', 'cancel']);
+    await check('the menu\'s Unpin unpins it', unpinned);
     await relaunch();
     await startPage();
     await check('the unpin survives a relaunch', unpinned);
-    const corner = await d.page(ICON_CORNER_AT('a.example'));
-    if (!corner) throw Error("no icon on a.example's shortcut");
+    const tile = await d.page(CENTER_OF(tileOf('a.example')));
+    if (!tile) throw Error("no shortcut for a.example");
     sleep(1);
-    adb('shell', 'input', 'tap', String(corner.x), String(corner.y));
+    tapAt(tile);
     const opened = await d.waitForUrl('https://a.example/').then(() => [], error => [error.message]);
-    screenshot('a tap near the icon corner opens the site');
-    results.push({case: 'a tap near an icon\'s corner opens the site, not its pin', problems: opened});
+    screenshot('a tap opens the site');
+    results.push({case: 'a tap on a shortcut opens the site', problems: opened});
   } catch (error) {
     results.push({case: 'the run', problems: [error.message]});
   } finally {

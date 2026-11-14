@@ -122,19 +122,68 @@ html[data-platform="android"] .ledger-footer :is(.footer-left, .footer-appearanc
 }
 html[data-platform="android"] .ledger-footer .footer-left { order: 1; }
 html[data-platform="android"] .ledger-footer .footer-appearance { order: 2; }
-/* A shortcut's pin and × (always on show without hover, as on any touch screen) sit on its icon's
-   top corners, a little larger. Each one's target grows up and outward only, never over the icon,
-   so a tap on the icon always opens the site; sideways it stops short of the next shortcut's. */
-html[data-platform="android"] :is(.bb-site-pin, .bb-site-dismiss) { top: -9px; width: 22px; height: 22px; }
-html[data-platform="android"] .bb-site-pin { left: calc(50% - 35px); }
-html[data-platform="android"] .bb-site-dismiss { right: calc(50% - 35px); }
-html[data-platform="android"] :is(.bb-site-pin, .bb-site-dismiss) svg { width: 12px; height: 12px; }
-html[data-platform="android"] .fav-pin { position: relative; }
-html[data-platform="android"] :is(.bb-site-pin, .bb-site-dismiss, .fav-pin)::after { content: ""; position: absolute; }
-html[data-platform="android"] .bb-site-pin::after { inset: -12px 0 0 -8px; }
-html[data-platform="android"] .bb-site-dismiss::after { inset: -12px -8px 0 0; }
-/* A favorite's pin follows its link: its target grows up, down and away from the link. */
-html[data-platform="android"] .fav-pin::after { inset: -13px -10px -13px 0; }
+/* A shortcut's and a favorite's pin and × are too small for a finger (owner, November 14): a long
+   press opens their menu instead (android-start.js). The buttons stay for screen readers, out of
+   sight, and a long press neither selects the label nor shows Chromium's link preview. */
+html[data-platform="android"] :is(.bb-site-pin, .bb-site-dismiss, .fav-pin) {
+  position: absolute !important;
+  width: 1px !important;
+  height: 1px !important;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  border: 0;
+  opacity: 1;
+}
+html[data-platform="android"] :is(.bb-site, .fav-item) { -webkit-touch-callout: none; user-select: none; }
+
+/* The long press's menu: a sheet over the bottom of the screen, above the Island, like Customize. */
+html[data-platform="android"] .android-shortcut-menu:popover-open {
+  position: fixed;
+  inset: auto 12px calc(var(--android-island) + 8px + env(safe-area-inset-bottom, 0px));
+  margin: 0 auto;
+  width: calc(100vw - 24px);
+  max-width: 480px;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  padding: 8px;
+  border: 1px solid color-mix(in srgb, var(--border) 74%, transparent);
+  border-radius: 22px;
+  background: var(--start-float-fill);
+  backdrop-filter: blur(20px) saturate(140%);
+  box-shadow: var(--start-shadow-float);
+  color: var(--text);
+  font-family: var(--font-text);
+}
+html[data-platform="android"] .android-shortcut-menu::backdrop { background: rgb(0 0 0 / 0.18); }
+html[data-platform="android"] .android-shortcut-menu-title {
+  padding: 10px 12px 8px;
+  overflow: hidden;
+  font-size: 13px;
+  color: var(--text-dim);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+html[data-platform="android"] .android-shortcut-menu button {
+  min-height: 48px;
+  padding: 0 12px;
+  border: 0;
+  border-radius: 14px;
+  background: none;
+  color: var(--text);
+  font: inherit;
+  font-size: 16px;
+  text-align: left;
+}
+html[data-platform="android"] .android-shortcut-menu button:active { background: color-mix(in srgb, var(--text) 8%, transparent); }
+html[data-platform="android"] .android-shortcut-menu .android-shortcut-menu-cancel {
+  margin-top: 4px;
+  border-top: 1px solid color-mix(in srgb, var(--border) 74%, transparent);
+  border-radius: 0 0 14px 14px;
+  color: var(--text-dim);
+}
 html[data-platform="android"] :is(#goAnywhere, .footer-right, #version, .wallpaper-follow, #colorWallpaperFollow,
   #colorWallpaperFollowHint, #storeThemeWallpaperPick) { display: none; }
 html[data-platform="android"] .start-customize { min-height: 44px; padding-inline: 20px; font-size: 14px; }

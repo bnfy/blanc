@@ -70,6 +70,67 @@
     setTimeout(() => { try { popover?.showPopover(); } catch { /* already open */ } }, 0);
   }
 
+  // A long press on a shortcut or a favorite opens its menu, a sheet over the bottom of the screen
+  // (owner, November 14: the pin and × buttons were too small to tap). Each entry presses the
+  // page's own button, which android-start.css hides from sight but leaves to screen readers, so
+  // pinning, unpinning and hiding work exactly as the fork's page does them. The long press is
+  // the page's alone: Chromium's own link menu doesn't open.
+  const t = (key, params) => window.blancI18n?.t?.(key, params) ?? key;
+  function shortcutMenu() {
+    let menu = document.getElementById('androidShortcutMenu');
+    if (menu) return menu;
+    menu = document.createElement('div');
+    menu.id = 'androidShortcutMenu';
+    menu.className = 'android-shortcut-menu';
+    menu.popover = 'auto';
+    menu.setAttribute('role', 'menu');
+    document.body.append(menu);
+    return menu;
+  }
+  function openShortcutMenu(item) {
+    const link = item.querySelector('a[href]');
+    if (!link) return false;
+    const pin = item.querySelector('.bb-site-pin, .fav-pin');
+    const hide = item.querySelector('.bb-site-dismiss');
+    const label = item.querySelector('.bb-fav .label, .fav .name');
+    const title = (label?.title || label?.textContent || link.textContent || '').trim();
+    const entries = [];
+    if (pin) {
+      entries.push([t(item.classList.contains('pinned') ? 'tabMenu.unpinStartPage' : 'tabMenu.pinStartPage'),
+        () => pin.click(), 'pin']);
+    }
+    if (hide) entries.push([t('newtab.billboard.hideTitle', {title}), () => hide.click(), 'hide']);
+    entries.push([t('contextMenu.openLinkInNewTab'), () => window.open(link.href, '_blank', 'noopener'), 'open']);
+    const menu = shortcutMenu();
+    const heading = document.createElement('div');
+    heading.className = 'android-shortcut-menu-title';
+    heading.textContent = title;
+    heading.dataset.i18nIgnore = '';
+    const buttons = entries.map(([text, run, action]) => {
+      const button = document.createElement('button');
+      button.type = 'button';
+      button.setAttribute('role', 'menuitem');
+      button.dataset.action = action;
+      button.textContent = text;
+      button.addEventListener('click', () => { menu.hidePopover(); run(); });
+      return button;
+    });
+    const cancel = document.createElement('button');
+    cancel.type = 'button';
+    cancel.className = 'android-shortcut-menu-cancel';
+    cancel.dataset.action = 'cancel';
+    cancel.textContent = t('common.cancel');
+    cancel.addEventListener('click', () => menu.hidePopover());
+    menu.replaceChildren(heading, ...buttons, cancel);
+    menu.showPopover();
+    buttons[0]?.focus({preventScroll: true});
+    return true;
+  }
+  document.addEventListener('contextmenu', event => {
+    const item = event.target?.closest?.('#bbFavorites .bb-site, .fav-item');
+    if (item && openShortcutMenu(item)) event.preventDefault();
+  });
+
   document.addEventListener('DOMContentLoaded', () => {
     const clock = document.getElementById('bbClock');
     if (clock) {

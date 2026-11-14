@@ -2,7 +2,7 @@
 // the shortcuts can be wrong.
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {SHORTCUTS, VISITS, shortcutProblems} from '../tests/android/start-shortcuts.mjs';
+import {SHORTCUTS, VISITS, menuProblems, shortcutProblems} from '../tests/android/start-shortcuts.mjs';
 
 const want = {sites: ['c.example', 'a.example', 'b.example'], pinned: ['c.example'], pins: ['c.example']};
 
@@ -24,4 +24,13 @@ test('the visits rank the sites apart, and the stepper shows fewer than were vis
   assert.deepEqual(counts, [...counts].sort((a, b) => b - a));
   assert.equal(new Set(counts).size, counts.length);
   assert.ok(SHORTCUTS < VISITS.length);
+});
+
+test('a long press must open the page\'s own menu with the right entries, and stay on the Start Page', () => {
+  const open = {open: true, url: 'chrome://blanc/newtab.html', actions: ['pin', 'hide', 'open', 'cancel']};
+  assert.deepEqual(menuProblems(open, open.actions), []);
+  assert.deepEqual(menuProblems(null, open.actions), ['no Start Page to read']);
+  assert.deepEqual(menuProblems({...open, open: false}, open.actions), ['the menu is not open']);
+  assert.deepEqual(menuProblems({...open, url: 'https://c.example/'}, open.actions), ['the page is https://c.example/']);
+  assert.match(menuProblems(open, ['pin', 'open', 'cancel'])[0], /^its entries are/);
 });
