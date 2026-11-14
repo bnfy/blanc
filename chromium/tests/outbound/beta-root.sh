@@ -21,8 +21,10 @@ The firewall rule is on, for the blanc-test user only. Now:
 This window turns the rule off by itself when the run finishes.
 EOF
 while :; do
+  # Only a run folder made after this started counts, never an earlier run
+  # still finishing.
   for log in "$DIR"/results/beta-*/user.log; do
-    [ -f "$log" ] && [ "$(stat -f %m "$log")" -ge "$START" ] && grep -q ' Done' "$log" && { echo; echo "Run finished: $(dirname "$log")"; sh "$HERE/root.sh" stop; exit 0; }
+    [ -f "$log" ] && [ "$(stat -f %B "$(dirname "$log")")" -ge "$START" ] && grep -q ' Done' "$log" && { echo; echo "Run finished: $(dirname "$log")"; sh "$HERE/root.sh" stop; exit 0; }
   done
   [ $(( $(date +%s) - START )) -lt 1800 ] || { echo; echo "No finished run after 30 minutes; turning the rule off."; sh "$HERE/root.sh" stop; exit 1; }
   sleep 10
