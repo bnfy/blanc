@@ -21,6 +21,7 @@ installed-theme.js
 invite-friend.js
 island-autohide.js
 island-hover-open.js
+island-proximity.js
 overlay.html
 overlay.js
 pages/bangs-catalog.js

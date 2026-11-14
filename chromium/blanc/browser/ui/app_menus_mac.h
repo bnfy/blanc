@@ -18,6 +18,11 @@ void InstallMiniWindowMenu();
 std::u16string MainMenuItemTitle(int menu_tag, int item_tag);
 // The Dock icon from PNG bytes; empty puts back the app's own icon.
 void SetDockIcon(base::span<const uint8_t> png);
+// The Dock icon from a named Icon Composer stack in the bundle's Assets.car,
+// which macOS keeps drawing for Light and Dark (macOS 26 and later). Clear
+// and Tinted restyle only the app's own icon, so in those styles it puts
+// that back instead. False when the stack can't be shown here.
+bool SetDockIconNamed(const std::string& name);
 std::u16string DockMenuItemTitle(int item_tag);
 bool ClickDockMenuItem(int item_tag);
 // The application menu's item titles in order (About, Hide, Quit… carry the

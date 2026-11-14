@@ -81,4 +81,20 @@ void SetDockIcon(base::span<const uint8_t> png) {
   NSApp.applicationIconImage = image;
 }
 
+bool SetDockIconNamed(const std::string& name) {
+  if (@available(macOS 26, *)) {
+    // macOS 26's Icon & widget style, e.g. ClearLight or TintedDark.
+    NSString* style = [NSUserDefaults.standardUserDefaults stringForKey:@"AppleIconAppearanceTheme"];
+    if ([style hasPrefix:@"Clear"] || [style hasPrefix:@"Tinted"]) {
+      NSApp.applicationIconImage = nil;
+      return true;
+    }
+    NSImage* image = [NSImage imageNamed:base::SysUTF8ToNSString(name)];
+    if (!image) return false;
+    NSApp.applicationIconImage = image;
+    return true;
+  }
+  return false;
+}
+
 }  // namespace blanc

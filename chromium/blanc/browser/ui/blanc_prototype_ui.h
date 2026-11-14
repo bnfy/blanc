@@ -178,6 +178,20 @@ int HeaderHeight(views::View* parent);
 bool IsCaption(views::View* parent, int x, int y);
 void RestoreExtensions(views::View* parent);
 bool OpenExtensions(BrowserWindowInterface* browser);
+// Whether an extension may open its action popup in |browser| on its own
+// (chrome.action.openPopup): an Island window, unless a page is fullscreen.
+// The Island hides Chromium's toolbar but keeps its extensions container,
+// where the popup anchors.
+bool CanOpenExtensionPopup(BrowserWindowInterface* browser);
+// Chromium's extensions container in |browser| started or stopped showing
+// an action popup. With Auto-hide on, the Island comes down and stays while
+// the popup is open, as shipping's open popups hold it.
+void ExtensionPopupChanged(BrowserWindowInterface* browser, bool open);
+// Shipping's macOS Dock close: a person's close of the primary Island window
+// hides it and keeps its tabs (true); anything else closes as usual (false).
+bool HoldWindowOnClose(BrowserWindowInterface* browser);
+// The Dock icon with no window showing: show the held primary window.
+bool ReopenHeldWindow();
 // History, Downloads and the bookmark manager in an Island window open
 // Blanc's utility sheet ("history", "downloads" or "bookmarks"), as
 // shipping's menu items do. False leaves Chromium's own page.

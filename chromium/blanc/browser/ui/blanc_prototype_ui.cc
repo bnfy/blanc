@@ -322,6 +322,7 @@
 #include "ui/gfx/animation/animation.h"
 #include "ui/gfx/geometry/transform.h"
 #include "blanc/browser/ui/island_autohide.h"
+#include "blanc/browser/ui/island_proximity.h"
 #include "blanc/private/private_tabs.h"
 #if BUILDFLAG(IS_MAC)
 #include "chrome/browser/webauthn/chrome_web_authentication_delegate.h"
@@ -391,6 +392,9 @@ double BlancPagesZoom(const PrefService& prefs) {
 }
 // Shipping's appIcon (F17; registered by patch 0029).
 constexpr char kAppIconPref[] = "blanc.app_icon";
+// Blanc Beta's bundle icon is Sunrise Gold (owner, 2026-11-14), so that is
+// its default; the other channels keep shipping's Sunrise.
+constexpr const char* kDefaultAppIcon = BUILDFLAG(BLANC_BETA_CHANNEL) ? "sunrise-gold" : "sunrise";
 // The catalog is independent of Patron. Retired or corrupt saved identifiers
 // fall back before Settings and the Dock read them, as shipping settings does.
 // F62: the default page zoom is device-wide (blanc.page_zoom, a percent),
@@ -438,10 +442,15 @@ void FollowDevicePageZoom(Profile* profile) {
 }
 void NormalizeAppIcon(Profile* profile) {
   auto* prefs = profile->GetOriginalProfile()->GetPrefs();
+  // Patch 0029 registers shipping's Sunrise; a channel with another default
+  // replaces it here, before Settings and the Dock first read it.
+  const base::Value* registered = prefs->GetDefaultPrefValue(kAppIconPref);
+  if (registered && *registered != base::Value(kDefaultAppIcon))
+    prefs->SetDefaultPrefValue(kAppIconPref, base::Value(kDefaultAppIcon));
   const auto& icon = prefs->GetString(kAppIconPref);
   if (icon != "sunrise" && icon != "sunrise-dark" && icon != "sunrise-gold" &&
       icon != "sunrise-spectrum" && icon != "sunrise-amber") {
-    prefs->SetString(kAppIconPref, "sunrise"); prefs->CommitPendingWrite();
+    prefs->ClearPref(kAppIconPref); prefs->CommitPendingWrite();
   }
 }
 
@@ -1151,6 +1160,8 @@ void AddUtilityPageGate(content::NavigationThrottleRegistry& registry) {
 class Owner;
 // Auto-hide (island_autohide_controller.inc).
 void AutoHidePageMove(Owner* owner, const blink::WebInputEvent& event);
+// The approach swell (island_proximity_controller.inc).
+void IslandProximityPageMove(Owner* owner, const blink::WebInputEvent& event);
 void AutoHideActivated(Owner* owner);
 void EndGlanceSoon(Owner* owner, int next_reference);
 void EndOverlayGlance(Owner* owner, bool focus_active);
@@ -1212,6 +1223,10 @@ class Owner : public base::SupportsUserData::Data,
     blanc::InstallMiniWindowMenu();
 #endif
     Live().insert(this);
+#if BUILDFLAG(IS_MAC)
+    primary = IsIslandWindow(browser) && !IsHoldWindow(browser) &&
+        std::ranges::none_of(Live(), [](const Owner* other) { return other->primary; });
+#endif
     FollowDevicePageZoom(browser->GetProfile());
     height = strip_height = IslandStripHeight(browser->GetProfile());
     browser->GetTabStripModel()->AddObserver(this);
@@ -1235,6 +1250,12 @@ class Owner : public base::SupportsUserData::Data,
   // Acceptance only, as shipping's testHoldIsland: held up as an open popup
   // would hold it, without a pointer or a focused window.
   bool autohide_test_hold = false;
+  // An extension's action popup is open, anchored on the Island's
+  // Extensions button (ExtensionPopupChanged): it holds the Island up.
+  bool extension_popup = false;
+  // Shipping's primary runtime (macOS): the first ordinary window of a
+  // launch, whose red button keeps its tabs for the Dock (HoldWindowOnClose).
+  bool primary = false;
   std::optional<blanc::island_autohide::Dwell> autohide_dwell;
   std::optional<gfx::PointF> last_pointer;
   base::OneShotTimer autohide_watch;
@@ -1328,6 +1349,15 @@ class Owner : public base::SupportsUserData::Data,
   double extensions_pill_y = 0;
   double extensions_pill_target = 0;
   bool extensions_pill_had_frame = false;
+  // The approach swell (island_proximity_controller.inc): the page's moves
+  // near the Island go to the host at most once a frame, the newest parked
+  // meanwhile; and the swell the host measured on the extension slot.
+  bool island_pointer_near = false;
+  base::OneShotTimer island_pointer_frame;
+  std::optional<gfx::Point> island_pointer_pending;
+  double extensions_swell_scale = 1;
+  double extensions_swell_dx = 0;
+  double extensions_swell_dy = 0;
   // The traffic lights' state last set by auto-hide (macOS).
   std::optional<bool> window_buttons_visible;
   base::DictValue split_geometry;
@@ -1681,10 +1711,12 @@ class Owner : public base::SupportsUserData::Data,
                     InputEventSource) override {
     // Wheel/gesture updates include inertial scrolling, unlike the
     // WebContents interaction callback which only reports scroll start.
-    if (event.GetType() != blink::WebInputEvent::Type::kMouseMove)
+    if (event.GetType() != blink::WebInputEvent::Type::kMouseMove) {
       RequestSample();
-    else
+    } else {
       AutoHidePageMove(this, event);
+      IslandProximityPageMove(this, event);
+    }
   }
   void RenderWidgetHostDidUpdateVisualProperties(content::RenderWidgetHost*) override {
     RequestSample();
@@ -1811,6 +1843,7 @@ void DispatchMouseGesture(base::WeakPtr<content::WebContents> page,
 }
 
 #include "blanc/browser/ui/island_autohide_controller.inc"
+#include "blanc/browser/ui/island_proximity_controller.inc"
 
 // The transparent area beside the rail must remain owned by the web page.
 class IslandView : public views::WebView, public views::ViewTargeterDelegate {
@@ -7382,6 +7415,11 @@ class Handler : public content::WebUIMessageHandler, public extensions::Extensio
               ? browser_view->toolbar()->extensions_container_for_testing() : nullptr) {
         state.Set("extensionsVisible", extensions->GetVisible());
         state.Set("extensionsPillY", owner->extensions_pill_y);
+        base::ListValue swell;
+        swell.Append(owner->extensions_swell_scale);
+        swell.Append(owner->extensions_swell_dx);
+        swell.Append(owner->extensions_swell_dy);
+        state.Set("extensionsSwell", std::move(swell));
       }
       Reply(id, true, base::Value(std::move(state)));
       return;
@@ -9660,17 +9698,33 @@ class Handler : public content::WebUIMessageHandler, public extensions::Extensio
           base::BindOnce(&Handler::StoreIcon, weak_factory_.GetWeakPtr(), id), 256 * 1024);
       return;
     }
-    // The Dock icon (F17): shipping's flat images, which is what its
-    // development builds use; the adaptive stacks need Assets.car from a
-    // packaged build. Sunrise itself is the bundle's own icon, so the Dock
-    // goes back to that.
+    // The Dock icon (F17). Blanc Beta's Assets.car carries every colorway as
+    // a named Icon Composer stack (blanc/branding/beta), as shipping's
+    // packaged builds do, so the Dock follows Light and Dark by itself; its
+    // app icon is Sunrise Gold. Elsewhere, and before macOS 26, the Dock
+    // takes shipping's flat images, its development-build path: the other
+    // channels' bundle icon is Sunrise Dark, kept for Dock testing, so Sunrise
+    // there takes its flat Light or Dark image like the rest.
     if (method == "applyAppIcon" && args.size() == 2 && args[0].is_string() && args[1].is_bool()) {
 #if BUILDFLAG(IS_MAC)
       static bool replaced = false;
       const std::string& icon = args[0].GetString();
       const bool dark = args[1].GetBool();
+#if BUILDFLAG(BLANC_BETA_CHANNEL)
+      const char* stack = icon == "sunrise" ? "Icon"
+          : icon == "sunrise-dark" ? "SunriseDark"
+          : icon == "sunrise-spectrum" ? "SunriseSpectrum"
+          : icon == "sunrise-amber" ? "SunriseAmber" : nullptr;
+      if (icon == "sunrise-gold" || (stack && blanc::SetDockIconNamed(stack))) {
+        if (!stack) blanc::SetDockIcon({});
+        replaced = stack != nullptr;
+        reply(true, base::Value());
+        return;
+      }
+#endif
       std::string file;
-      if (icon == "sunrise-dark") file = "pages/icon-sunrise-dark.png";
+      if (icon == "sunrise") file = dark ? "pages/icon-sunrise-dark.png" : "pages/icon-sunrise.png";
+      else if (icon == "sunrise-dark") file = "pages/icon-sunrise-dark.png";
       else if (icon == "sunrise-gold") file = dark ? "pages/icon-sunrise-gold-dark.png" : "pages/icon-sunrise-gold.png";
       else if (icon == "sunrise-spectrum") file = dark ? "pages/icon-sunrise-spectrum-dark.png" : "pages/icon-sunrise-spectrum.png";
       else if (icon == "sunrise-amber") file = dark ? "pages/icon-sunrise-amber-dark.png" : "pages/icon-sunrise-amber.png";
@@ -10839,6 +10893,33 @@ class Handler : public content::WebUIMessageHandler, public extensions::Extensio
       owner->interactive_bounds = gfx::Rect(args[4].GetInt(), args[5].GetInt(),
           std::max(0, args[6].GetInt()), std::max(0, args[7].GetInt()));
       if (owner->view->parent()) owner->view->parent()->InvalidateLayout();
+      reply(true, base::Value());
+      return;
+    }
+    // The swell changed without a page move (host.js armPagePointer): the
+    // next page move goes to the host wherever it lands, so the swell can rest.
+    if (method == "armIslandPointer" && args.empty()) {
+      ArmIslandPointer(owner);
+      reply(true, base::Value());
+      return;
+    }
+    // The approach swell on the extension slot, measured by the host
+    // (host.js syncExtensionsSwell): its growth and its move, which the
+    // native buttons over the slot take as a transform.
+    if (method == "extensionsSwell" && args.size() == 3 &&
+        std::ranges::all_of(args, [](const auto& v) { return v.is_int() || v.is_double(); })) {
+      const double scale = args[0].GetDouble(), dx = args[1].GetDouble(), dy = args[2].GetDouble();
+      if (!blanc::island_proximity::ValidSwell(scale, dx, dy)) {
+        reply(false, base::Value("Not a swell."));
+        return;
+      }
+      owner->extensions_swell_scale = scale;
+      owner->extensions_swell_dx = dx;
+      owner->extensions_swell_dy = dy;
+      auto* browser_view = BrowserViewFor(owner);
+      if (auto* extensions = browser_view && browser_view->toolbar()
+              ? browser_view->toolbar()->extensions_container_for_testing() : nullptr)
+        SetExtensionsPillOffset(owner, extensions);
       reply(true, base::Value());
       return;
     }
@@ -13175,6 +13256,66 @@ bool OpenExtensions(BrowserWindowInterface* browser) {
   return true;
 }
 
+// Chromium refuses chrome.action.openPopup in a window whose toolbar isn't
+// visible, and the Island hides Chromium's toolbar. Its extensions container
+// lives on in the Island (LayoutIsland), so an Island window takes the
+// popup, except while a page is fullscreen and the Island is gone.
+bool CanOpenExtensionPopup(BrowserWindowInterface* browser) {
+  return IsIslandWindow(browser) && !IsPageFullscreen(browser);
+}
+
+// Shipping's Dock close (window-state-persistence.js windowCloseSessionEffect,
+// dock-reopen.js): on macOS the red button on the primary window takes the
+// window away but keeps its tabs running, in the saved session and in Sync;
+// clicking the Dock icon brings it back as it was. Other windows close as
+// usual. BrowserView asks only for a person's close of a window with tabs,
+// never while quitting or force-closing.
+bool HoldWindowOnClose(BrowserWindowInterface* browser) {
+#if BUILDFLAG(IS_MAC)
+  if (!IsIslandWindow(browser) || IsMiniWindow(browser) || IsHoldWindow(browser)) return false;
+  for (auto* owner : Owner::Live()) {
+    if (owner->browser.get() != browser || !owner->primary) continue;
+    auto* view = BrowserView::GetBrowserViewForBrowser(browser);
+    if (!view || !view->GetWidget()) return false;
+    view->GetWidget()->Hide();
+    return true;
+  }
+#endif
+  return false;
+}
+
+// The Dock icon clicked with no window showing brings the held primary
+// window back (shipping's app 'activate'). False leaves Chromium's reopen.
+bool ReopenHeldWindow() {
+#if BUILDFLAG(IS_MAC)
+  for (auto* owner : Owner::Live()) {
+    if (!owner->primary || owner->browser->IsDeleteScheduled()) continue;
+    auto* view = BrowserView::GetBrowserViewForBrowser(owner->browser.get());
+    auto* widget = view ? view->GetWidget() : nullptr;
+    if (!widget || widget->IsVisible() || widget->IsMinimized()) continue;
+    owner->browser->GetWindow()->Show();
+    return true;
+  }
+#endif
+  return false;
+}
+
+// The popup anchors on the Island's Extensions button, which Auto-hide
+// takes away with the strip: hold the Island down while a popup is open,
+// as HoldIslandForTest does, then let the usual check hide it.
+void ExtensionPopupChanged(BrowserWindowInterface* browser, bool open) {
+  if (!IsIslandWindow(browser)) return;
+  for (auto* owner : Owner::Live()) {
+    if (owner->browser.get() != browser || owner->extension_popup == open) continue;
+    owner->extension_popup = open;
+    if (!AutoHideApplies(owner)) continue;
+    if (open) RevealIsland(owner);
+    else if (owner->autohide_revealed) ScheduleAutoHideCheck(owner);
+    Relayout(owner);
+    NotifyAutoHide(owner);
+  }
+}
+
 #include "blanc/browser/ui/permission_prompt.inc"
 
 bool OpenUtilitySheet(BrowserWindowInterface* browser, std::string_view page, std::string_view section) {
@@ -13545,12 +13686,6 @@ void AdjustSplitLayout(const MultiContentsView* view, views::ProposedLayout* lay
       .Set("originX", origin.x() + 8).Set("usableWidth", std::max(1, card_width - 8));
 }
 
-void SetExtensionsPillOffset(views::View* extensions, double y) {
-  gfx::Transform transform;
-  transform.Translate(0, y);
-  extensions->SetTransform(transform);
-}
-
 void StepExtensionsPillSlide(Owner* owner) {
   auto* browser_view = BrowserViewFor(owner);
   auto* extensions = browser_view && browser_view->toolbar()
@@ -13565,7 +13700,7 @@ void StepExtensionsPillSlide(Owner* owner) {
   const bool done = progress >= 1;
   owner->extensions_pill_y = done ? slide->to
       : slide->from + (slide->to - slide->from) * autohide::EaseOutCubic(progress);
-  SetExtensionsPillOffset(extensions, owner->extensions_pill_y);
+  SetExtensionsPillOffset(owner, extensions);
   if (done) {
     slide.reset();
     owner->extensions_pill_timer.Stop();
@@ -13586,7 +13721,7 @@ void SlideExtensionsWithPill(Owner* owner, views::View* extensions) {
   owner->extensions_pill_slide.reset();
   if (!floating || !had_frame || gfx::Animation::PrefersReducedMotion()) {
     owner->extensions_pill_y = target;
-    SetExtensionsPillOffset(extensions, target);
+    SetExtensionsPillOffset(owner, extensions);
     return;
   }
   // Timed to the pill as measured: leaving, its CSS transition began just

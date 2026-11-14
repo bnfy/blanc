@@ -163,6 +163,21 @@ test('an error before any status reads the status instead of showing it unknown'
  assert.equal(el.state_?.status?.enabled,true,'status read after the error event');
  assert.equal(el.notice_,strings.get('blancSyncCheckFailed'));
 });
+// beta.3's real-iPhone pass: after joining with a code nothing said what happened. Shipping
+// says "Connected to “{name}”. Pulling your favorites and settings now." (settings.sync.connectedTo).
+test('joining with a code says which sync it connected to, as shipping does',{skip:!ts},async()=>{
+ const {el,api,calls}=harness();
+ api.call=async(method,args=[])=>{calls.push({method,args});return {ok:true,status:{enabled:true,handle:'Family',lastSyncedAt:0,lastError:null}};};
+ el.path_='code';el.codeValid_=true;el.$.syncCode.value=' 123-456 ';
+ el.onSetupSubmit_({preventDefault(){}});await settle(el);
+ assert.deepEqual(calls.map(c=>c.method),['sync.joinWithCode']);
+ assert.equal(el.joined_,'Connected to “Family”. Pulling your favorites and settings now.');
+ const html=read(path.join(web,'blanc_sync_page/blanc_sync_page.html'));
+ assert.match(html,/<p id="syncJoined" role="status" \?hidden="\$\{!this\.joined_\}">\$\{this\.joined_\}<\/p>/);
+ api.call=async()=>({ok:false,error:'offline'});el.path_='code';el.codeValid_=true;el.$.syncCode.value='123-456';
+ el.onSetupSubmit_({preventDefault(){}});await settle(el);
+ assert.equal(el.joined_,'','a later failed attempt clears the note');
+});
 test('the status line and the notice never say the same thing twice',()=>{
  const html=read(path.join(web,'blanc_sync_page/blanc_sync_page.html'));
  assert.match(html,/id="syncError"[^>]*\?hidden="\$\{!this\.notice_ \|\| this\.notice_ === this\.statusText_\(\)\}"/);
