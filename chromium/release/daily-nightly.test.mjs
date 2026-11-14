@@ -99,12 +99,12 @@ test('every area names features the inventory has', () => {
 });
 
 test('the installer writes the job and its entry point, which brings nightly.mjs in only when nothing is in the way', async () => {
-  const os = await import('node:os'), path = await import('node:path'), { spawnSync } = await import('node:child_process');
+  const os = await import('node:os'), path = await import('node:path'), { spawnSync } = await import('node:child_process'), { fileURLToPath } = await import('node:url');
   const home = fs.mkdtempSync(path.join(os.tmpdir(), 'blanc-nightly-')), base = path.join(home, 'Blanc'), bin = path.join(home, 'bin');
   fs.mkdirSync(path.join(base, 'repo'), { recursive: true }); fs.mkdirSync(bin);
   for (const name of ['launchctl', 'plutil']) fs.writeFileSync(path.join(bin, name), `#!/bin/sh\necho "${name} $*" >> "${home}/stub.log"\n`, { mode: 0o755 });
   const env = { PATH: `${bin}:/usr/bin:/bin`, HOME: home, BLANC_STUDIO_BASE: base };
-  const install = spawnSync('bash', [new URL('./daily/install-nightly.sh', import.meta.url).pathname], { env, encoding: 'utf8' });
+  const install = spawnSync('bash', [fileURLToPath(new URL('./daily/install-nightly.sh', import.meta.url))], { env, encoding: 'utf8' });
   assert.equal(install.status, 0, install.stderr);
   const plist = fs.readFileSync(path.join(home, 'Library/LaunchAgents/me.bnfy.blanc.beta-nightly.plist'), 'utf8');
   assert.match(plist, /<string>[^<]*\/Blanc\/scripts\/beta-nightly\.sh<\/string>/);
