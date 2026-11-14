@@ -2,7 +2,7 @@
 // each way a page can be wrong on the phone.
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {clockProblems, pageProblems} from '../tests/android/pages-phone.mjs';
+import {clockCenterProblems, clockProblems, pageProblems} from '../tests/android/pages-phone.mjs';
 
 const good = {url: 'chrome://blanc/history.html', bridge: true, platform: 'ios', lang: 'de', scrollWidth: 412, innerWidth: 412, errors: []};
 
@@ -28,11 +28,21 @@ test('the error and Mahjong pages have no phone stylesheet to check', () => {
   assert.deepEqual(pageProblems('mahjong', 'de', {...good, url: 'chrome://blanc/mahjong.html', platform: null}), []);
 });
 
-test('a fresh install\'s clock is the iPhone\'s first-run clock, drawn in glass', () => {
-  const iphone = {clock: {font: 'flex', style: 'glass', height: 300, weight: 450, color: 'auto'}, glassDrawn: true};
+test('a fresh install\'s clock is the iPhone\'s first-run clock, solid as on every Android', () => {
+  const iphone = {clock: {font: 'flex', style: 'solid', height: 300, weight: 450}, glassDrawn: false};
   assert.deepEqual(clockProblems(iphone), []);
-  assert.deepEqual(clockProblems({...iphone, clock: {...iphone.clock, font: 'instrument', style: 'solid'}}),
-    ['font is "instrument", not "flex"', 'style is "solid", not "glass"']);
-  assert.deepEqual(clockProblems({...iphone, glassDrawn: false}), ['the glass is not drawn']);
+  assert.deepEqual(clockProblems({...iphone, clock: {...iphone.clock, font: 'instrument', style: 'glass'}}),
+    ['font is "instrument", not "flex"', 'style is "glass", not "solid"']);
+  assert.deepEqual(clockProblems({...iphone, glassDrawn: true}), ['the glass is drawn']);
   assert.deepEqual(clockProblems(null), ['no clock data']);
+});
+
+test('the clock\'s figures must sit at the middle of the screen', () => {
+  // The emulator's 640 px screen: figures from 158 to 482 px down it center at 320.
+  assert.deepEqual(clockCenterProblems({screenHeight: 640, inkTop: 158, inkBottom: 482}), []);
+  assert.deepEqual(clockCenterProblems({screenHeight: 640, inkTop: 162, inkBottom: 482}), []);
+  assert.match(clockCenterProblems({screenHeight: 640, inkTop: 170, inkBottom: 494})[0], /12 px below the middle/);
+  assert.match(clockCenterProblems({screenHeight: 640, inkTop: 150, inkBottom: 474})[0], /8 px above the middle/);
+  assert.deepEqual(clockCenterProblems(null), ['no clock to measure']);
+  assert.deepEqual(clockCenterProblems({timedOut: true}), ['the page did not answer within 20 s']);
 });

@@ -7,7 +7,8 @@
 //   - not scroll sideways (scrollWidth ≤ innerWidth);
 //   - throw no uncaught script errors.
 // A fresh install's Start Page must also show the iPhone's first-run clock
-// (tall Roboto Flex in glass). Screenshots go to the evidence folder. Fails
+// (tall Roboto Flex), solid as every Android clock is, its figures at the
+// middle of the screen. Screenshots go to the evidence folder. Fails
 // closed: a page that can't be reached fails.
 //
 //   node chromium/tests/android/pages-phone.mjs --apk <ChromePublic.apk> --evidence <dir>
@@ -37,17 +38,42 @@ export function pageProblems(page, locale, report) {
 }
 
 // The iPhone's first-run Billboard clock (#1331), which a fresh install must show: Roboto Flex at its
-// tallest, weight 450, in glass, with the page's glass drawn (Android has no Liquid Glass, so the
-// page draws it, as desktop does).
+// tallest, weight 450. Android's clock is solid only, so the page's glass is never drawn.
 export function clockProblems(report) {
   if (!report || !report.clock) return ['no clock data'];
   const {clock, glassDrawn} = report;
-  const want = {font: 'flex', style: 'glass', height: 300, weight: 450};
+  const want = {font: 'flex', style: 'solid', height: 300, weight: 450};
   const problems = Object.entries(want).filter(([key, value]) => clock[key] !== value)
     .map(([key, value]) => `${key} is ${JSON.stringify(clock[key])}, not ${JSON.stringify(value)}`);
-  if (!glassDrawn) problems.push('the glass is not drawn');
+  if (glassDrawn) problems.push('the glass is drawn');
   return problems;
 }
+
+// The clock's figures (in CSS px down the screen) must center on the screen: the page sits below
+// the status bar, so the iPhone's centering in the page alone puts them low. Allows 2.5 px for the
+// adapter taking the page's top from screen.availTop, which is rounded.
+export function clockCenterProblems(report) {
+  if (!report) return ['no clock to measure'];
+  if (report.timedOut) return ['the page did not answer within 20 s'];
+  const off = (report.inkTop + report.inkBottom) / 2 - report.screenHeight / 2;
+  if (Math.abs(off) <= 2.5) return [];
+  return [`the figures sit ${Math.round(Math.abs(off))} px ${off > 0 ? 'below' : 'above'} the middle of the screen`];
+}
+
+// The figures' extent where the clock is drawn, from its font as CSS lays out its one line. The
+// page's top on the screen is how much of the screen it doesn't fill, as it runs to the bottom.
+const MEASURE_FIGURES = `(() => {
+  const clock = document.getElementById('bbClock');
+  if (!clock) return null;
+  const style = getComputedStyle(clock);
+  const context = document.createElement('canvas').getContext('2d');
+  context.font = style.fontWeight + ' ' + style.fontSize + ' ' + style.fontFamily;
+  const m = context.measureText(clock.textContent);
+  const box = clock.getBoundingClientRect();
+  const baseline = box.top + (box.height - (m.fontBoundingBoxAscent + m.fontBoundingBoxDescent)) / 2 + m.fontBoundingBoxAscent;
+  const top = screen.height - innerHeight;
+  return {screenHeight: screen.height, inkTop: top + baseline - m.actualBoundingBoxAscent, inkBottom: top + baseline + m.actualBoundingBoxDescent};
+})()`;
 
 // One DevTools session on the app's only page.
 async function devtools() {
@@ -99,6 +125,12 @@ async function main(argv) {
       fs.writeFileSync(path.join(evidence, 'clock.png'), execFileSync('adb', ['exec-out', 'screencap', '-p'], {maxBuffer: 64 * 1024 * 1024}));
       const report = result?.result?.value ?? null;
       results.push({case: 'the first-run clock is the iPhone\'s', report, problems: clockProblems(report)});
+      const measured = await Promise.race([
+        tools.send('Runtime.evaluate', {returnByValue: true, expression: MEASURE_FIGURES}),
+        new Promise(resolve => setTimeout(() => resolve({timedOut: true}), 20000)),
+      ]);
+      const figures = measured.timedOut ? measured : measured.result?.result?.value ?? null;
+      results.push({case: 'the clock\'s figures sit at the middle of the screen', report: figures, problems: clockCenterProblems(figures)});
       tools.close();
     }
     for (const locale of LOCALES) {
