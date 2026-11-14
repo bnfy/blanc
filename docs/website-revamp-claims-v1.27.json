@@ -2453,106 +2453,6 @@
       "verdict": "qualified"
     },
     {
-      "id": "reddit-406",
-      "source": "site/src/pages/download.astro",
-      "exactWording": "A compact everyday workflow",
-      "claimType": "qualified capability or maintainer process statement",
-      "evidenceGroups": [
-        "trust"
-      ],
-      "verdict": "qualified"
-    },
-    {
-      "id": "reddit-407",
-      "source": "site/src/pages/download.astro",
-      "exactWording": "Open your inbox and a few articles. Preview a tab’s dot, select it, then use the full list or Cmd/Ctrl+L to find an article by name. Save a Favorite, group related tabs, and use built-in blocking while you browse.",
-      "claimType": "qualified capability or maintainer process statement",
-      "evidenceGroups": [
-        "navigation"
-      ],
-      "verdict": "qualified"
-    },
-    {
-      "id": "reddit-408",
-      "source": "site/src/pages/download.astro",
-      "exactWording": "Check the integrations you rely on",
-      "claimType": "qualified capability or maintainer process statement",
-      "evidenceGroups": [
-        "trust"
-      ],
-      "verdict": "qualified"
-    },
-    {
-      "id": "reddit-413",
-      "source": "site/src/pages/download.astro",
-      "exactWording": "See what changed in the latest release",
-      "claimType": "qualified capability or maintainer process statement",
-      "evidenceGroups": [
-        "trust"
-      ],
-      "verdict": "qualified"
-    },
-    {
-      "id": "reddit-414",
-      "source": "site/src/pages/download.astro",
-      "exactWording": "What you're actually downloading",
-      "claimType": "qualified capability or maintainer process statement",
-      "evidenceGroups": [
-        "trust"
-      ],
-      "verdict": "qualified"
-    },
-    {
-      "id": "reddit-417",
-      "source": "site/src/pages/download.astro",
-      "exactWording": "Updates arrive in place",
-      "claimType": "qualified capability or maintainer process statement",
-      "evidenceGroups": [
-        "trust"
-      ],
-      "verdict": "qualified"
-    },
-    {
-      "id": "reddit-418",
-      "source": "site/src/pages/download.astro",
-      "exactWording": "Installed release builds check GitHub Releases and update themselves automatically — no separate updater, no account.",
-      "claimType": "qualified capability or maintainer process statement",
-      "evidenceGroups": [
-        "trust"
-      ],
-      "verdict": "qualified"
-    },
-    {
-      "id": "reddit-419",
-      "source": "site/src/pages/download.astro",
-      "exactWording": "Bounded usage counts, with an off switch",
-      "claimType": "qualified capability or maintainer process statement",
-      "evidenceGroups": [
-        "trust"
-      ],
-      "verdict": "qualified"
-    },
-    {
-      "id": "reddit-428",
-      "source": "site/src/pages/download.astro",
-      "exactWording": "Every download button points to the latest Blanc release on GitHub. If your download does not start, open the release page.",
-      "claimType": "qualified capability or maintainer process statement",
-      "evidenceGroups": [
-        "trust"
-      ],
-      "verdict": "qualified"
-    },
-    {
-      "id": "reddit-429",
-      "source": "site/src/pages/download.astro",
-      "exactWording": "Read how Blanc handles your data, verify a release, or email support@blanc.day if you need a hand.",
-      "claimType": "qualified capability or maintainer process statement",
-      "evidenceGroups": [
-        "trust"
-      ],
-      "verdict": "qualified"
-    },
-    {
       "id": "reddit-433",
       "source": "site/src/pages/about.astro",
       "exactWording": "Independently controlled, without an ads business.",
@@ -7180,117 +7080,6 @@
       "id": "download-2026-10-04-01",
       "source": "site/src/pages/download.astro",
       "exactWording": "Download Blanc",
-      "subject": "Blanc",
-      "claimType": "qualified capability or maintainer process statement",
-      "evidenceGroups": [
-        "trust"
-      ],
-      "verdict": "qualified"
-    },
-    {
-      "id": "download-2026-10-04-02",
-      "source": "site/src/pages/download.astro",
-      "exactWording": "A free desktop browser for macOS, Windows and Linux.",
-      "subject": "Blanc",
-      "claimType": "qualified capability or maintainer process statement",
-      "evidenceGroups": [
-        "trust",
-        "releaseAuthentication"
-      ],
-      "verdict": "qualified"
-    },
-    {
-      "id": "download-2026-10-04-03",
-      "source": "site/src/pages/download.astro",
-      "exactWording": "Install Blanc",
-      "subject": "Blanc",
-      "claimType": "qualified capability or maintainer process statement",
-      "evidenceGroups": [
-        "releaseAuthentication"
-      ],
-      "verdict": "qualified"
-    },
-    {
-      "id": "download-2026-10-04-04",
-      "source": "site/src/pages/download.astro",
-      "exactWording": "macOS 13 Ventura or later, on Apple Silicon or Intel.",
-      "subject": "Blanc",
-      "claimType": "qualified capability or maintainer process statement",
-      "evidenceGroups": [
-        "systemRequirements"
-      ],
-      "verdict": "qualified"
-    },
-    {
-      "id": "download-2026-10-04-05",
-      "source": "site/src/pages/download.astro",
-      "exactWording": "Open Blanc from Applications. Gatekeeper checks Apple’s notarization on first launch.",
-      "subject": "Blanc",
-      "claimType": "qualified capability or maintainer process statement",
-      "evidenceGroups": [
-        "releaseAuthentication"
-      ],
-      "verdict": "qualified"
-    },
-    {
-      "id": "download-2026-10-04-06",
-      "source": "site/src/pages/download.astro",
-      "exactWording": "Windows 10 or later, 64-bit (x64).",
-      "subject": "Blanc",
-      "claimType": "qualified capability or maintainer process statement",
-      "evidenceGroups": [
-        "systemRequirements"
-      ],
-      "verdict": "qualified"
-    },
-    {
-      "id": "download-2026-10-04-07",
-      "source": "site/src/pages/download.astro",
-      "exactWording": "Check that Windows names the publisher shown on the official release. Stop if it names no one, or someone else.",
-      "subject": "Blanc",
-      "claimType": "qualified capability or maintainer process statement",
-      "evidenceGroups": [
-        "releaseAuthentication"
-      ],
-      "verdict": "qualified"
-    },
-    {
-      "id": "download-2026-10-04-08",
-      "source": "site/src/pages/download.astro",
-      "exactWording": "64-bit (x64), on a currently supported release of a major distribution such as Ubuntu, Fedora or Debian.",
-      "subject": "Blanc",
-      "claimType": "qualified capability or maintainer process statement",
-      "evidenceGroups": [
-        "systemRequirements"
-      ],
-      "verdict": "qualified"
-    },
-    {
-      "id": "download-2026-10-04-09",
-      "source": "site/src/pages/download.astro",
-      "exactWording": "Signed, and checkable",
-      "subject": "Blanc",
-      "claimType": "qualified capability or maintainer process statement",
-      "evidenceGroups": [
-        "releaseAuthentication"
-      ],
-      "verdict": "qualified"
-    },
-    {
-      "id": "download-2026-10-04-10",
-      "source": "site/src/pages/download.astro",
-      "exactWording": "Every macOS build is code-signed and notarized with Apple. Public Windows releases are Authenticode-signed, and the release pipeline refuses an unsigned installer. Checksums, signature evidence, and an SBOM accompany new releases.",
-      "subject": "Blanc",
-      "claimType": "qualified capability or maintainer process statement",
-      "evidenceGroups": [
-        "releaseAuthentication"
-      ],
-      "verdict": "qualified"
-    },
-    {
-      "id": "download-2026-10-04-11",
-      "source": "site/src/pages/download.astro",
-      "exactWording": "Usage measurement is preselected on a fresh profile, and nothing sends until you save that choice. It never includes browsing history, URLs, searches, or page content.",
       "subject": "Blanc",
       "claimType": "qualified capability or maintainer process statement",
       "evidenceGroups": [
@@ -14095,6 +13884,239 @@
         ],
         "verdict": "qualified"
       }
+    }
+  ],
+  "retiredForDownloadRedesign": [
+    {
+      "id": "reddit-406",
+      "source": "site/src/pages/download.astro",
+      "exactWording": "A compact everyday workflow",
+      "claimType": "qualified capability or maintainer process statement",
+      "evidenceGroups": [
+        "trust"
+      ],
+      "verdict": "qualified",
+      "reason": "Removed from /download on November 14, 2026, when the owner had the page reimagined with far fewer words (one button per system, three tiles, one line of facts). The new wording is recorded in docs/website-download-redesign-2026-11-14-claims.json."
+    },
+    {
+      "id": "reddit-407",
+      "source": "site/src/pages/download.astro",
+      "exactWording": "Open your inbox and a few articles. Preview a tab’s dot, select it, then use the full list or Cmd/Ctrl+L to find an article by name. Save a Favorite, group related tabs, and use built-in blocking while you browse.",
+      "claimType": "qualified capability or maintainer process statement",
+      "evidenceGroups": [
+        "navigation"
+      ],
+      "verdict": "qualified",
+      "reason": "Removed from /download on November 14, 2026, when the owner had the page reimagined with far fewer words (one button per system, three tiles, one line of facts). The new wording is recorded in docs/website-download-redesign-2026-11-14-claims.json."
+    },
+    {
+      "id": "reddit-408",
+      "source": "site/src/pages/download.astro",
+      "exactWording": "Check the integrations you rely on",
+      "claimType": "qualified capability or maintainer process statement",
+      "evidenceGroups": [
+        "trust"
+      ],
+      "verdict": "qualified",
+      "reason": "Removed from /download on November 14, 2026, when the owner had the page reimagined with far fewer words (one button per system, three tiles, one line of facts). The new wording is recorded in docs/website-download-redesign-2026-11-14-claims.json."
+    },
+    {
+      "id": "reddit-413",
+      "source": "site/src/pages/download.astro",
+      "exactWording": "See what changed in the latest release",
+      "claimType": "qualified capability or maintainer process statement",
+      "evidenceGroups": [
+        "trust"
+      ],
+      "verdict": "qualified",
+      "reason": "Removed from /download on November 14, 2026, when the owner had the page reimagined with far fewer words (one button per system, three tiles, one line of facts). The new wording is recorded in docs/website-download-redesign-2026-11-14-claims.json."
+    },
+    {
+      "id": "reddit-414",
+      "source": "site/src/pages/download.astro",
+      "exactWording": "What you're actually downloading",
+      "claimType": "qualified capability or maintainer process statement",
+      "evidenceGroups": [
+        "trust"
+      ],
+      "verdict": "qualified",
+      "reason": "Removed from /download on November 14, 2026, when the owner had the page reimagined with far fewer words (one button per system, three tiles, one line of facts). The new wording is recorded in docs/website-download-redesign-2026-11-14-claims.json."
+    },
+    {
+      "id": "reddit-417",
+      "source": "site/src/pages/download.astro",
+      "exactWording": "Updates arrive in place",
+      "claimType": "qualified capability or maintainer process statement",
+      "evidenceGroups": [
+        "trust"
+      ],
+      "verdict": "qualified",
+      "reason": "Removed from /download on November 14, 2026, when the owner had the page reimagined with far fewer words (one button per system, three tiles, one line of facts). The new wording is recorded in docs/website-download-redesign-2026-11-14-claims.json."
+    },
+    {
+      "id": "reddit-418",
+      "source": "site/src/pages/download.astro",
+      "exactWording": "Installed release builds check GitHub Releases and update themselves automatically — no separate updater, no account.",
+      "claimType": "qualified capability or maintainer process statement",
+      "evidenceGroups": [
+        "trust"
+      ],
+      "verdict": "qualified",
+      "reason": "Removed from /download on November 14, 2026, when the owner had the page reimagined with far fewer words (one button per system, three tiles, one line of facts). The new wording is recorded in docs/website-download-redesign-2026-11-14-claims.json."
+    },
+    {
+      "id": "reddit-419",
+      "source": "site/src/pages/download.astro",
+      "exactWording": "Bounded usage counts, with an off switch",
+      "claimType": "qualified capability or maintainer process statement",
+      "evidenceGroups": [
+        "trust"
+      ],
+      "verdict": "qualified",
+      "reason": "Removed from /download on November 14, 2026, when the owner had the page reimagined with far fewer words (one button per system, three tiles, one line of facts). The new wording is recorded in docs/website-download-redesign-2026-11-14-claims.json."
+    },
+    {
+      "id": "reddit-428",
+      "source": "site/src/pages/download.astro",
+      "exactWording": "Every download button points to the latest Blanc release on GitHub. If your download does not start, open the release page.",
+      "claimType": "qualified capability or maintainer process statement",
+      "evidenceGroups": [
+        "trust"
+      ],
+      "verdict": "qualified",
+      "reason": "Removed from /download on November 14, 2026, when the owner had the page reimagined with far fewer words (one button per system, three tiles, one line of facts). The new wording is recorded in docs/website-download-redesign-2026-11-14-claims.json."
+    },
+    {
+      "id": "reddit-429",
+      "source": "site/src/pages/download.astro",
+      "exactWording": "Read how Blanc handles your data, verify a release, or email support@blanc.day if you need a hand.",
+      "claimType": "qualified capability or maintainer process statement",
+      "evidenceGroups": [
+        "trust"
+      ],
+      "verdict": "qualified",
+      "reason": "Removed from /download on November 14, 2026, when the owner had the page reimagined with far fewer words (one button per system, three tiles, one line of facts). The new wording is recorded in docs/website-download-redesign-2026-11-14-claims.json."
+    },
+    {
+      "id": "download-2026-10-04-02",
+      "source": "site/src/pages/download.astro",
+      "exactWording": "A free desktop browser for macOS, Windows and Linux.",
+      "subject": "Blanc",
+      "claimType": "qualified capability or maintainer process statement",
+      "evidenceGroups": [
+        "trust",
+        "releaseAuthentication"
+      ],
+      "verdict": "qualified",
+      "reason": "Removed from /download on November 14, 2026, when the owner had the page reimagined with far fewer words (one button per system, three tiles, one line of facts). The new wording is recorded in docs/website-download-redesign-2026-11-14-claims.json."
+    },
+    {
+      "id": "download-2026-10-04-03",
+      "source": "site/src/pages/download.astro",
+      "exactWording": "Install Blanc",
+      "subject": "Blanc",
+      "claimType": "qualified capability or maintainer process statement",
+      "evidenceGroups": [
+        "releaseAuthentication"
+      ],
+      "verdict": "qualified",
+      "reason": "Removed from /download on November 14, 2026, when the owner had the page reimagined with far fewer words (one button per system, three tiles, one line of facts). The new wording is recorded in docs/website-download-redesign-2026-11-14-claims.json."
+    },
+    {
+      "id": "download-2026-10-04-04",
+      "source": "site/src/pages/download.astro",
+      "exactWording": "macOS 13 Ventura or later, on Apple Silicon or Intel.",
+      "subject": "Blanc",
+      "claimType": "qualified capability or maintainer process statement",
+      "evidenceGroups": [
+        "systemRequirements"
+      ],
+      "verdict": "qualified",
+      "reason": "Removed from /download on November 14, 2026, when the owner had the page reimagined with far fewer words (one button per system, three tiles, one line of facts). The new wording is recorded in docs/website-download-redesign-2026-11-14-claims.json."
+    },
+    {
+      "id": "download-2026-10-04-05",
+      "source": "site/src/pages/download.astro",
+      "exactWording": "Open Blanc from Applications. Gatekeeper checks Apple’s notarization on first launch.",
+      "subject": "Blanc",
+      "claimType": "qualified capability or maintainer process statement",
+      "evidenceGroups": [
+        "releaseAuthentication"
+      ],
+      "verdict": "qualified",
+      "reason": "Removed from /download on November 14, 2026, when the owner had the page reimagined with far fewer words (one button per system, three tiles, one line of facts). The new wording is recorded in docs/website-download-redesign-2026-11-14-claims.json."
+    },
+    {
+      "id": "download-2026-10-04-06",
+      "source": "site/src/pages/download.astro",
+      "exactWording": "Windows 10 or later, 64-bit (x64).",
+      "subject": "Blanc",
+      "claimType": "qualified capability or maintainer process statement",
+      "evidenceGroups": [
+        "systemRequirements"
+      ],
+      "verdict": "qualified",
+      "reason": "Removed from /download on November 14, 2026, when the owner had the page reimagined with far fewer words (one button per system, three tiles, one line of facts). The new wording is recorded in docs/website-download-redesign-2026-11-14-claims.json."
+    },
+    {
+      "id": "download-2026-10-04-07",
+      "source": "site/src/pages/download.astro",
+      "exactWording": "Check that Windows names the publisher shown on the official release. Stop if it names no one, or someone else.",
+      "subject": "Blanc",
+      "claimType": "qualified capability or maintainer process statement",
+      "evidenceGroups": [
+        "releaseAuthentication"
+      ],
+      "verdict": "qualified",
+      "reason": "Removed from /download on November 14, 2026, when the owner had the page reimagined with far fewer words (one button per system, three tiles, one line of facts). The new wording is recorded in docs/website-download-redesign-2026-11-14-claims.json."
+    },
+    {
+      "id": "download-2026-10-04-08",
+      "source": "site/src/pages/download.astro",
+      "exactWording": "64-bit (x64), on a currently supported release of a major distribution such as Ubuntu, Fedora or Debian.",
+      "subject": "Blanc",
+      "claimType": "qualified capability or maintainer process statement",
+      "evidenceGroups": [
+        "systemRequirements"
+      ],
+      "verdict": "qualified",
+      "reason": "Removed from /download on November 14, 2026, when the owner had the page reimagined with far fewer words (one button per system, three tiles, one line of facts). The new wording is recorded in docs/website-download-redesign-2026-11-14-claims.json."
+    },
+    {
+      "id": "download-2026-10-04-09",
+      "source": "site/src/pages/download.astro",
+      "exactWording": "Signed, and checkable",
+      "subject": "Blanc",
+      "claimType": "qualified capability or maintainer process statement",
+      "evidenceGroups": [
+        "releaseAuthentication"
+      ],
+      "verdict": "qualified",
+      "reason": "Removed from /download on November 14, 2026, when the owner had the page reimagined with far fewer words (one button per system, three tiles, one line of facts). The new wording is recorded in docs/website-download-redesign-2026-11-14-claims.json."
+    },
+    {
+      "id": "download-2026-10-04-10",
+      "source": "site/src/pages/download.astro",
+      "exactWording": "Every macOS build is code-signed and notarized with Apple. Public Windows releases are Authenticode-signed, and the release pipeline refuses an unsigned installer. Checksums, signature evidence, and an SBOM accompany new releases.",
+      "subject": "Blanc",
+      "claimType": "qualified capability or maintainer process statement",
+      "evidenceGroups": [
+        "releaseAuthentication"
+      ],
+      "verdict": "qualified",
+      "reason": "Removed from /download on November 14, 2026, when the owner had the page reimagined with far fewer words (one button per system, three tiles, one line of facts). The new wording is recorded in docs/website-download-redesign-2026-11-14-claims.json."
+    },
+    {
+      "id": "download-2026-10-04-11",
+      "source": "site/src/pages/download.astro",
+      "exactWording": "Usage measurement is preselected on a fresh profile, and nothing sends until you save that choice. It never includes browsing history, URLs, searches, or page content.",
+      "subject": "Blanc",
+      "claimType": "qualified capability or maintainer process statement",
+      "evidenceGroups": [
+        "trust"
+      ],
+      "verdict": "qualified",
+      "reason": "Removed from /download on November 14, 2026, when the owner had the page reimagined with far fewer words (one button per system, three tiles, one line of facts). The new wording is recorded in docs/website-download-redesign-2026-11-14-claims.json."
     }
   ]
 }
