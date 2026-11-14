@@ -46,6 +46,8 @@
   let refreshQueue = Promise.resolve();
   let extensionsOpened = false;
   let geometry = "";
+  // Rail hover previews (set up with the rail hooks below; null until then).
+  let railHover = null;
   let blockerRecoveryShown = false;
   let layout = localStorage.getItem('blanc.prototype.tabLayout') === 'vertical' ? 'vertical' : 'island';
   let railWidth = Math.max(200, Math.min(360, Number(localStorage.getItem('blanc.prototype.railWidth')) || 248));
@@ -789,6 +791,7 @@
     if (returnFocus) [...document.querySelectorAll(`[data-pane-menu="${id}"]`)].find(button => !button.hidden)?.focus();
   }
   async function openPaneMenu(tab, anchor) {
+    railDismiss('surface');
     const pair = [...(visibleSplit()?.tabIds ?? [])];
     await close(false);
     await dismissPaneMenu();
@@ -1123,6 +1126,7 @@
       const slot = strip.contentDocument?.getElementById('nativeExtensions');
       if (slot) slot.style.width = `${snapshot.extensionsWidth / 1.15}px`;
       reportGeometry();
+      syncRailHover();
       const next = JSON.stringify(snapshot);
       if (next !== serialized) {
         serialized = next;
@@ -1228,6 +1232,7 @@
   }
 
   async function show(prefill, mode = 'panel', trigger = null, purpose = undefined) {
+    railDismiss('surface');
     overlayDragging = false;
     if (mode === 'panel' || mode === 'palette') request('syncSurface', ['refreshSession', []]).catch(() => {});
     // Every open ends a hover dwell, as shipping's showOverlay does.
@@ -1400,6 +1405,7 @@
     request, close, refreshGeometry: reportGeometry, back: () => show(),
   });
   async function showExtensions() {
+    railDismiss('surface');
     await hideSheet(false);
     invalidateFindShow();
     const epoch = findShowEpoch;
@@ -1563,6 +1569,7 @@
     window.addEventListener('resize', grown);
   });
   async function showSettingsSheet(section) {
+    railDismiss('surface');
     // Re-invoking Settings closes it, as shipping's showUtilityPage toggles.
     if (sheet.page === 'settings') return hideSheet();
     const epoch = ++sheet.epoch;
@@ -1625,6 +1632,7 @@
     return frame;
   }
   async function showSheet(name, section) {
+    railDismiss('surface');
     if (name === 'settings') return showSettingsSheet(section);
     if (!SHEET_PAGES.includes(name)) throw new Error(`No utility sheet page named ${name}.`);
     // Re-invoking the shown page closes it; while it loads, a repeat is the
@@ -2707,9 +2715,220 @@
     observer.observe(pill, { attributes: true, attributeFilter: ['style', 'class'] });
   }
 
+  // ---- Rail hover previews (fork; docs/superpowers/specs/2026-11-14-rail-hover-previews-design.md).
+  // Resting on a rail row shows a picture card beside the rail; resting on a
+  // collapsed group's header shows a list card whose rows show the picture
+  // card beside it. BlancRailHover decides; this section feeds it events,
+  // runs its timers and draws the cards. Pictures stay in memory only while
+  // their card shows.
+  railHover = { state: BlancRailHover.initialState(), timer: null, grace: null, anchors: new Map(),
+    shown: { picture: null, list: null }, serial: 0, watched: null, activeTabId: null };
+  const railCards = document.getElementById('railHoverCards');
+  const railList = Object.assign(document.createElement('div'), { className: 'rail-card rail-card-list', hidden: true });
+  const railPicture = Object.assign(document.createElement('div'), { className: 'rail-card rail-card-picture', hidden: true });
+  railCards.append(railList, railPicture);
+  const railKey = target => JSON.stringify([target.kind, String(target.tabId ?? target.splitId ?? target.groupId), !!target.inList]);
+  const railDoc = () => strip.contentDocument;
+  const railElement = () => railDoc()?.getElementById('verticalTabsRail');
+  const railT = (key) => { try { return strip.contentWindow?.blancI18n?.t(key) ?? key; } catch { return key; } };
+  function railSuppressed() {
+    const rail = railElement();
+    return BlancRailHover.suppressed({ layout, glanceOpen: snapshot?.glanceTabId != null,
+      surfaceOpen: opened || extensionsOpened || !!sheet.page || !settingsSheet.hidden || !!paneMenu,
+      dragging: false, railHidden: !rail || rail.hidden });
+  }
+  function railStep(event) {
+    const next = BlancRailHover.step(railHover.state, event);
+    railHover.state = next.state;
+    for (const effect of next.effects) {
+      if (effect.type === 'cancel-timers') {
+        clearTimeout(railHover.timer); clearTimeout(railHover.grace);
+        railHover.timer = railHover.grace = null;
+      } else if (effect.type === 'start-timer') {
+        railHover.timer = setTimeout(() => railStep({ type: 'timer' }), effect.ms);
+      } else if (effect.type === 'start-grace') {
+        railHover.grace = setTimeout(() => railStep({ type: 'grace' }), effect.ms);
+      } else if (effect.type === 'show') {
+        showRailCard(effect.card, effect.target);
+      } else if (effect.type === 'hide') {
+        hideRailCard(effect.card);
+      }
+    }
+  }
+  function railDismiss(reason) {
+    if (!railHover || railHover.state.phase === 'idle') return;
+    railStep({ type: 'dismiss', reason });
+  }
+  // Host coordinates of an element in the strip document.
+  function railRect(element) {
+    const r = element.getBoundingClientRect();
+    const frame = strip.getBoundingClientRect();
+    return { left: r.left + frame.left, top: r.top + frame.top, right: r.right + frame.left, height: r.height };
+  }
+  // The rail row an element belongs to, as BlancRailHover's target.
+  function railTargetOf(element) {
+    if (!element?.closest?.('#verticalTabsRail')) return null;
+    const split = element.closest('.vertical-split-row[data-split-id]');
+    if (split) return { target: { kind: 'split', splitId: split.dataset.splitId }, row: split };
+    const header = element.closest('[data-drag-header][data-group-id]');
+    if (header) {
+      const group = snapshot?.groups?.find(g => String(g.id) === header.dataset.groupId);
+      return BlancRailHover.groupCardFor(group) ? { target: { kind: 'group', groupId: header.dataset.groupId }, row: header } : null;
+    }
+    const primary = element.closest('.vertical-tab-primary[data-tab-id]');
+    if (primary?.dataset.tabId) return { target: { kind: 'tab', tabId: primary.dataset.tabId }, row: primary.closest('.vertical-tab-row') ?? primary };
+    return null;
+  }
+  function railEnter(type, element) {
+    if (railSuppressed()) { railDismiss('surface'); return; }
+    const found = railTargetOf(element);
+    if (!found) return;
+    railHover.anchors.set(railKey(found.target), railRect(found.row));
+    if (found.target.kind === 'split') railHover.anchors.set('label:' + found.target.splitId, found.row.textContent.trim());
+    railStep({ type, target: found.target });
+  }
+  const railHooked = new WeakSet();
+  function hookRailHover(doc) {
+    const rail = doc?.getElementById('verticalTabsRail');
+    if (!rail || railHooked.has(doc)) return;
+    railHooked.add(doc);
+    doc.documentElement.dataset.railPreviews = layout === 'vertical' ? 'on' : '';
+    rail.addEventListener('pointerover', (event) => {
+      // A button held down is a drag or a press, never a rest.
+      if (event.buttons !== 0) return;
+      railEnter('enter', event.target);
+    });
+    rail.addEventListener('pointerleave', () => railStep({ type: 'leave-rail' }));
+    rail.addEventListener('focusin', (event) => {
+      if (event.target?.matches?.(':focus-visible')) railEnter('focus', event.target);
+    });
+    doc.addEventListener('pointerdown', () => railDismiss('click'), true);
+    doc.addEventListener('wheel', () => railDismiss('scroll'), { capture: true, passive: true });
+    doc.addEventListener('keydown', (event) => {
+      if (!railHover || railHover.state.phase === 'idle') return;
+      // The rail's row keys move its focus, and the focus swaps the card.
+      if (['ArrowUp', 'ArrowDown', 'Home', 'End'].includes(event.key)) return;
+      // Escape only closes the card when one is up.
+      if (event.key === 'Escape') { event.preventDefault(); event.stopPropagation(); }
+      railDismiss('key');
+    }, true);
+    doc.defaultView?.addEventListener('blur', () => railDismiss('blur'));
+  }
+  addEventListener('blur', () => railDismiss('blur'));
+  addEventListener('resize', () => railDismiss('resize'));
+  railList.addEventListener('pointerenter', () => railStep({ type: 'enter-list' }));
+  railList.addEventListener('pointerleave', () => railStep({ type: 'leave-list' }));
+  railList.addEventListener('pointerover', (event) => {
+    const row = event.target?.closest?.('.rail-card-row[data-tab-id]');
+    if (!row) return;
+    const target = { kind: 'tab', tabId: row.dataset.tabId, inList: true };
+    const r = row.getBoundingClientRect();
+    railHover.anchors.set(railKey(target), { left: r.left, top: r.top, right: r.right, height: r.height });
+    railStep({ type: 'enter-row', target });
+  });
+  railList.addEventListener('click', async (event) => {
+    const row = event.target?.closest?.('.rail-card-row[data-tab-id]');
+    const groupId = railHover.shown.list?.groupId;
+    railDismiss('click');
+    if (!row) return;
+    try {
+      // The group opens first, as ⌘1–9 does, so the tab isn't hidden behind it.
+      const group = snapshot?.groups?.find(g => String(g.id) === String(groupId));
+      if (group?.collapsed) await request('toggleGroupCollapsed', [String(group.id)]);
+      await api.activateTabFromRail(row.dataset.tabId);
+    } catch (error) { notice(error.message); }
+  });
+
+  function placeRailCard(node, anchor, left, align) {
+    node.style.left = '0px'; node.style.top = '0px';
+    const size = node.getBoundingClientRect();
+    const at = BlancRailHoverCard.place(anchor ?? { top: 0, height: 0 }, { width: size.width, height: size.height },
+      { width: innerWidth, height: innerHeight }, { left, align });
+    node.style.left = `${at.left}px`; node.style.top = `${at.top}px`;
+    return { x: at.left, y: at.top, width: size.width, height: size.height };
+  }
+  function revealRailCard(node) {
+    node.hidden = false;
+    if (node.classList.contains('shown')) return;
+    requestAnimationFrame(() => { if (!node.hidden) node.classList.add('shown'); });
+  }
+  function showRailCard(card, target) {
+    const label = target.kind === 'split' ? railHover.anchors.get('label:' + target.splitId) : '';
+    const model = BlancRailHoverCard.cardModel(snapshot, target, { label });
+    if (!model) { railDismiss('snapshot'); return; }
+    const anchor = railHover.anchors.get(railKey(target));
+    const rail = railElement();
+    const railRight = rail ? railRect(rail).right : effectiveRailWidth();
+    railHover.activeTabId = snapshot?.activeTabId ?? null;
+    if (card === 'list') {
+      railHover.shown.list = target;
+      BlancRailHoverCard.render(railList, model, railT);
+      railList.hidden = false;
+      const at = placeRailCard(railList, anchor, railRight, 'top');
+      revealRailCard(railList);
+      request('hoverCardBounds', [at.x, at.y, at.width, at.height].map(Math.round)).catch(error => notice(error.message));
+      return;
+    }
+    const serial = ++railHover.serial;
+    railHover.shown.picture = target;
+    BlancRailHoverCard.render(railPicture, model, railT);
+    railPicture.hidden = false;
+    const left = target.inList && !railList.hidden ? railList.getBoundingClientRect().right : railRight;
+    placeRailCard(railPicture, anchor, left, 'center');
+    revealRailCard(railPicture);
+    for (const tab of model.panes ?? [model]) {
+      if (tab.picture !== 'live' && tab.picture !== 'quiet') continue;
+      request('tabThumbnail', [nativeId(tab.tabId)]).then((reply) => {
+        if (serial === railHover.serial && reply?.image) BlancRailHoverCard.updateImage(railPicture, tab.tabId, reply.image);
+      }).catch(() => {});
+    }
+    // One tab at a time follows Chromium's newer pictures while its card shows.
+    const follow = !model.panes && model.picture === 'live' ? String(model.tabId) : null;
+    if (follow !== railHover.watched) {
+      railHover.watched = follow;
+      request(follow ? 'watchThumbnail' : 'unwatchThumbnail', follow ? [nativeId(follow)] : []).catch(() => {});
+    }
+  }
+  function hideRailCard(card) {
+    if (card === 'list' || card === 'all') {
+      if (railHover.shown.list) request('hoverCardBounds', [0, 0, 0, 0]).catch(error => notice(error.message));
+      railHover.shown.list = null;
+      railList.hidden = true; railList.classList.remove('shown'); railList.replaceChildren();
+    }
+    if (card === 'picture' || card === 'all') {
+      ++railHover.serial;
+      railHover.shown.picture = null;
+      railPicture.hidden = true; railPicture.classList.remove('shown'); railPicture.replaceChildren();
+      if (railHover.watched) { railHover.watched = null; request('unwatchThumbnail').catch(() => {}); }
+    }
+    if (card === 'all') railHover.anchors.clear();
+  }
+  function railThumbnail(id, image) {
+    if (railHover?.watched == null || String(id) !== railHover.watched) return;
+    BlancRailHoverCard.updateImage(railPicture, railHover.shown.picture?.tabId, image);
+  }
+  // After each snapshot: a card whose tab or group changed under it closes.
+  function syncRailHover() {
+    const doc = railDoc();
+    if (doc?.documentElement) doc.documentElement.dataset.railPreviews = layout === 'vertical' ? 'on' : '';
+    if (!railHover || railHover.state.phase === 'idle') return;
+    if (railSuppressed()) { railDismiss('surface'); return; }
+    if ((snapshot?.activeTabId ?? null) !== railHover.activeTabId && railHover.state.phase !== 'waiting') {
+      railDismiss('tab-switch'); return;
+    }
+    for (const [target, node] of [[railHover.shown.list, railList], [railHover.shown.picture, railPicture]]) {
+      if (!target) continue;
+      const model = BlancRailHoverCard.cardModel(snapshot, target, {});
+      const group = model?.kind === 'list' ? snapshot.groups.find(g => String(g.id) === String(target.groupId)) : null;
+      if (!model || (model.kind === 'list' && !BlancRailHover.groupCardFor(group)) ||
+          String(!!model.private) !== node.dataset.private) { railDismiss('snapshot'); return; }
+    }
+  }
+
   // A setting turned off, or anything else that ends eligibility, ends a dwell.
   function settleHover() {
     hookHover(strip.contentDocument, strip);
+    hookRailHover(strip.contentDocument);
     watchSwell(strip.contentDocument);
     hookHover(floatPill.contentDocument, floatPill);
     hookHover(overlay.contentDocument, overlay);
@@ -2836,6 +3055,8 @@
       await request('linkRouteDone', [token, !!result.ok]);
     },
     spaceLinkResult: () => lastSpaceLinkResult,
+    // A newer picture of the tab the rail's hover card shows (watchThumbnail).
+    tabThumbnail: (id, image) => railThumbnail(id, image),
     toggleGlance: () => (snapshot?.glanceTabId != null ? api.closeGlance() : api.openGlancePicker()),
     focusGlanceCard,
     spaceHeldState: () => request('spaceMeta'),

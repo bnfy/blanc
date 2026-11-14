@@ -186,6 +186,8 @@ panel-left.svg
 permission.html
 permission.js
 prototype.css
+rail-hover-card.js
+rail-hover.js
 renderer.js
 selection-tab-sections.js
 shield-model.js
