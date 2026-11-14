@@ -45,9 +45,13 @@ remain pending. D3 beta-only no-DRM exception accepted; EME notice/handoff requi
   it fails the same on a build without the swell's class watcher and on a
   prototype built from beta.3's own source c3a3bc898 (candidate
   macos-225a6eebdcb1a6fb: :203 failed twice, :211 passed only on its retry),
-  while beta.2's full run on the Mac Studio passed both. So it is this
-  machine or a change between beta.2 and beta.3; rerun both on the Mac
-  Studio when its screen can be unlocked). `island-and-commands.feature:348`/`:372` passed this time.
+  while beta.2's full run on the Mac Studio passed both. It is the machine:
+  on the Mac Studio, three runs of the two cases on beta.4's own source
+  e47bf1bcf (candidate macos-cf13e2bc70dce670, records/spaces-fade-studio{,-2,-3})
+  passed both every time, :203 on its first attempt each time and :211 on
+  its first attempt in two runs and on its retry in one ("the menu is still
+  drawn after the overlay closes"). So :211 is slightly flaky on the Studio
+  too, and the MacBook Pro fails both). `island-and-commands.feature:348`/`:372` passed this time.
 - **2026-11-14 — Island approach swell, for beta.4 (candidate macos-78921cb9b998cb49):**
   the owner noticed the resting Island ignores an approaching cursor. Shipping's
   resting Island has five pointer behaviors; four were already in the fork's
