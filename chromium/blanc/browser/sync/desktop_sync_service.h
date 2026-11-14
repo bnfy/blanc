@@ -67,6 +67,7 @@ class DesktopSyncService final : public ProfileObserver,
   void Run(std::string method, std::string args, SyncCallback callback, bool guard_account = true);
   void CheckRunTimeout(std::shared_ptr<SyncCallback> reply, base::TimeTicks deadline, bool may_wait_for_budget);
   void ExpireRun(std::shared_ptr<SyncCallback> reply);
+  void ProbeLane();
   void Status(bool ok, const std::string& json);
   void Favorites();
   void PlanFavorites(bool ok, const std::string& json);
@@ -101,6 +102,11 @@ class DesktopSyncService final : public ProfileObserver,
   base::ScopedObservation<bookmarks::BookmarkModel, bookmarks::BookmarkModelObserver> bookmark_observation_{this};
   PrefChangeRegistrar pref_changes_;
   base::OneShotTimer timer_;
+  // Runs only while a timed-out call holds the lane (runner_wait.h).
+  base::RepeatingTimer lane_probe_;
+  base::TimeTicks timed_out_at_;
+  uint64_t lane_probe_id_ = 0;
+  int idle_probes_ = 0;
   std::deque<Request> requests_;
   std::shared_ptr<SyncCallback> active_reply_;
   std::optional<bool> confirmation_;
