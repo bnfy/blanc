@@ -16,6 +16,22 @@ TEST_UID=$(id -u blanc-test 2>/dev/null) || { echo "No blanc-test user on this M
 # A GUI session of the test user, or Chromium has nowhere to run.
 ps -axo user=,comm= | awk '$1 == "blanc-test" && $2 ~ /loginwindow$/ {found=1} END {exit !found}' ||
   { echo "blanc-test isn't logged in on this Mac. Log it in once (Screen Sharing works), then run this again." >&2; exit 1; }
+
+# Adobe Creative Cloud in the test session is built on Chromium too: it
+# resolves names itself through the same DNS server as the beta and updates
+# from Google, so its blocked packets can't be told apart from the beta's
+# (beta.3's first clean run, 2026-11-14). Owner, 2026-11-14: run without it.
+# Its launch agents stop for this session only (until blanc-test logs in again).
+ADOBE='/Applications/Utilities/Adobe Creative Cloud|/Library/Application Support/Adobe|Adobe Desktop Service|CCXProcess|Core Sync'
+quiet_adobe() { pkill -u blanc-test -f "$ADOBE" 2>/dev/null; }
+for plist in /Library/LaunchAgents/com.adobe.*.plist; do
+  [ -e "$plist" ] && launchctl bootout "gui/$TEST_UID" "$plist" 2>/dev/null
+done
+for _ in 1 2 3 4 5 6; do quiet_adobe; sleep 5; pgrep -u blanc-test -f "$ADOBE" >/dev/null || break; done
+if pgrep -u blanc-test -f "$ADOBE" >/dev/null; then
+  echo "Creative Cloud keeps running in the blanc-test session. Nothing started." >&2; exit 1
+fi
+echo "Creative Cloud is quit in the blanc-test session."
 START=$(date +%s)
 sh "$HERE/root.sh" start || exit 1
 stop() { sh "$HERE/root.sh" stop; }
@@ -31,5 +47,9 @@ while :; do
     grep -q ' Done' "$log" && { echo; echo "Run finished: $(dirname "$log")"; stop; exit 0; }
   done
   [ $(( $(date +%s) - START )) -lt 1800 ] || { echo; echo "No finished run after 30 minutes; turning the rule off."; stop; exit 1; }
+  # A Creative Cloud that comes back would muddy the run: say so, and quit it.
+  if pgrep -u blanc-test -f "$ADOBE" >/dev/null; then
+    echo; echo "Creative Cloud came back during the run (quit again; tell Claude)."; quiet_adobe
+  fi
   sleep 10
 done
