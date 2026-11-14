@@ -84,12 +84,36 @@ op run --env-file=../.env.1password -- npx wrangler secret put RESEND_WEBHOOK_SE
   `unsubscribeUrl` from the export. After the launch announcement is sent,
   purge the whole list (below).
 
+## Blanc for Android beta list
+
+- `POST /android-beta` (the form at `blanc.day/android-beta`,
+  `site/src/components/AndroidBetaForm.astro`) runs the same double opt-in
+  against its own KV prefixes (`androidbeta:`, `androidbeta-pending:`,
+  `androidbeta-sent:`, `androidbeta-hp:`, `androidbeta-leave:`) and its own
+  per-IP rate-limit scope. No list's prefix begins with another list's, so the
+  newsletter, Mail waitlist and beta list never see each other's records.
+- `GET /android-beta/confirm?token=...` creates `androidbeta:<email>`;
+  `GET /android-beta/leave?token=...` deletes it.
+- The confirmation email states that joining does not subscribe the address to
+  the newsletter and that the address is deleted when the beta ends. The
+  privacy page's "Blanc for Android beta" section and the form describe the
+  same contract; change all three together.
+- Use the list only to invite testers to the Google Play closed test and write
+  to them about the beta. Google Play invites testers by their Google account
+  address, so the export's `email` column is what goes into Play Console's
+  tester list (`docs/android/play-console.md`). Every message must include the
+  member's exact `unsubscribeUrl`. The privacy page promises that a removal
+  also takes the address off Play Console's tester list, so compare the
+  export with that list before each invitation round and remove anyone who
+  left. When the beta ends, purge the whole list (below).
+
 ## Signup alerts
 
-- When an address confirms a newsletter subscription or a place on the Blanc
-  Mail waitlist for the first time, the Worker emails `SIGNUP_ALERT_TO` (a
-  `[vars]` entry, `support@blanc.day`) with the address, the confirmation time
-  and that list's new total, in the branded layout.
+- When an address confirms a newsletter subscription, a place on the Blanc
+  Mail waitlist or a place on the Android beta list for the first time, the
+  Worker emails `SIGNUP_ALERT_TO` (a `[vars]` entry, `support@blanc.day`)
+  with the address, the confirmation time and that list's new total, in the
+  branded layout.
 - Re-confirming an address already on the list and the Resend sync send no
   alert. Removing `SIGNUP_ALERT_TO` turns alerts off.
 - A failed alert is logged as `signup-alert-not-sent` and never affects the
@@ -228,3 +252,23 @@ The purge refuses to run without `confirm=delete-all`, deletes every
 `mailwait*` key (confirmed, removal lookup, quarantine, pending and cooldown),
 leaves newsletter records untouched, and returns `{"deleted": <confirmed
 count>}`.
+
+## Android beta list export, removal and purge
+
+The same three admin routes exist under `/android-beta`:
+
+```sh
+ADMIN="Authorization: Bearer $(op read 'op://Dev/Blanc Newsletter Admin/password')"
+# Export: one address per tester, ready for Play Console's tester list.
+curl -H "$ADMIN" https://blanc-newsletter.bnfy-441.workers.dev/android-beta/members \
+  | jq -r '.subscribers[].email'
+# Remove one address.
+curl -X DELETE -H "$ADMIN" \
+  "https://blanc-newsletter.bnfy-441.workers.dev/android-beta/member?email=a@example.com"
+# When the beta ends: delete every beta-list record.
+curl -X DELETE -H "$ADMIN" \
+  "https://blanc-newsletter.bnfy-441.workers.dev/android-beta/members?confirm=delete-all"
+```
+
+The purge deletes only `androidbeta*` keys and leaves the newsletter and Mail
+waitlist untouched.
