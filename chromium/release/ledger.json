@@ -29,6 +29,24 @@
         "production-sync-real-device"
       ],
       "note": "First public Blanc Beta, published 2026-11-14 as a GitHub pre-release (not latest). Signed with the pinned Developer ID, notarized and stapled; Sigstore-signed checksums; logged-out public verification passed. Owner waivers: protected-video notice (due beta.3) and the real-iPhone Sync pass. Known issue: the vertical tab rail can reopen at its narrow cap after a relaunch (vertical-tabs.feature:58, intermittent)."
+    },
+    {
+      "build": 3,
+      "version": "2.0.0-beta.3",
+      "tag": "chromium-beta-2.0.0-beta.3",
+      "date": "2026-11-14",
+      "arches": [
+        "arm64"
+      ],
+      "archWaiver": "Owner approved 2026-11-14: beta.3 is Apple Silicon only again; Intel deferred until a separately qualified native build.",
+      "sourceCommit": "c3a3bc89883cd6ad4daaf1b8255d0badbfa35fe1",
+      "candidate": "macos-39d309c3cba37076",
+      "dmgSHA256": "a31422ed7f63b4664e03906406827491bae91f513e9ea76abcaad63791bedb57",
+      "gateWaivers": [
+        "no-drm-handoff",
+        "production-sync-real-device"
+      ],
+      "note": "Second public Blanc Beta, published 2026-11-14 as a GitHub pre-release (not latest). Fixes beta.2's Sync lockout (Settings could say \"Could not check sync\" until a relaunch) and turns Safe Browsing off by default. Every release stage ran from the owner's MacBook Pro over SSH to the Mac Studio. Signed with the pinned Developer ID, notarized and stapled; Sigstore-signed checksums; logged-out public verification passed. Owner waivers: the protected-video notice (due beta.4) and the real-iPhone Sync pass (the beta published no open tabs and said nothing after a join; fixed for beta.4)."
     }
   ]
 }

@@ -1011,6 +1011,18 @@ remain pending. D3 beta-only no-DRM exception accepted; EME notice/handoff requi
   shipped the feed, the Download page tile and `/dl/beta` (#1511, #1512), and
   the hosted smoke check passed all six checks (run 43561295021 on `main`,
   with the live feed). Still owed: the first signed beta.2 → beta.3 handoff.
+- **Blanc Beta 2.0.0-beta.3 published (owner, 2026-11-14):** a GitHub
+  pre-release at 07:16 UTC (not latest), tag `chromium-beta-2.0.0-beta.3` at
+  `c3a3bc898`, nine assets, DMG `a31422ed…`. It fixes beta.2's Sync lockout
+  and turns Safe Browsing off by default (0079). Run entirely from the
+  MacBook Pro over SSH (`chromium/release/owner/remote/`). 11 gates passed,
+  2 waived (no-drm-handoff, production-sync-real-device: the real-iPhone pass
+  found the Sync faults in item 5a below). The website shipped it (#1518);
+  blanc.day's feed equals the release appcast. Its hosted smoke
+  check passed all six checks (run 43573427182 on `main`), and the first
+  signed Sparkle handoff passed: the public beta.2, reinstalled on the
+  MacBook Pro, updated itself to beta.3 from inside the app (About shows
+  2.0.0-beta.3; the installed code hash matches the release).
 - **Beta.2 production build (owner, 2026-11-14):** `out/BlancBeta` switched to
   production (2.0.0-beta.2, build 2, the production key, local qualification
   off) and rebuilt through the guard with the owner-approved
@@ -2520,8 +2532,14 @@ machine has them.
    `site/public/updates/chromium-beta/arm64.xml` together.
 
 5a. **Desktop Sync faults found by beta.3's real-iPhone pass** (2026-11-14,
-   gate waived for beta.3), fixed on `chromium/next` for beta.4 (build check
-   pending):
+   gate waived for beta.3), fixed on `chromium/next` for beta.4. Build check
+   (2026-11-14, `75f85e960`): `out/BlancBeta` rebuilt through the guard (GN
+   regenerated with unchanged arguments for the new keep-alive dependency;
+   24 steps). The same script on a throwaway profile with a mock keychain,
+   on the MacBook Pro: open Sync settings, close every window, open a new one.
+   The published beta.3 then reports Sync unavailable; the rebuilt beta stays
+   available. The Connected-to note's text is in the build; a real join was
+   not repeated.
    - **Closing every window broke Sync until a relaunch.** On macOS Chromium
      unloads a profile when its last window closes and loads a new Profile for
      the next window; the Sync service stays bound to the first, so Settings

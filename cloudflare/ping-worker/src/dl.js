@@ -10,7 +10,7 @@ export const DL_TARGETS = new Set(['mac-arm64', 'mac-x64', 'win', 'linux', 'beta
 // the others but always answers with the current beta's DMG, never the latest
 // (stable) release. Update with site/src/data/blanc-beta.json for each beta;
 // test/unit/site-blanc-beta.test.js keeps the two equal.
-export const BETA_DOWNLOAD = 'https://github.com/bnfy/blanc/releases/download/chromium-beta-2.0.0-beta.2/Blanc-Beta-2.0.0-beta.2-mac-arm64.dmg';
+export const BETA_DOWNLOAD = 'https://github.com/bnfy/blanc/releases/download/chromium-beta-2.0.0-beta.3/Blanc-Beta-2.0.0-beta.3-mac-arm64.dmg';
 
 export function fixedDownload(target) {
   return target === 'beta' ? BETA_DOWNLOAD : null;
