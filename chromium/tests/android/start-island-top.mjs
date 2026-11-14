@@ -11,7 +11,7 @@ import fs from 'node:fs';
 
 const PACKAGE = 'me.bnfy.blanc.dev';
 const PREFS = `/data/data/${PACKAGE}/shared_prefs/${PACKAGE}_preferences.xml`;
-const PAGE = 'chrome://blanc/newtab.html';
+const PAGE = 'chrome://blanc/newtab';
 const PORT = 9334;
 const adb = (...a) => execFileSync('adb', a, {encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'], maxBuffer: 64 << 20});
 const sleep = s => execFileSync('sleep', [String(s)]);
@@ -45,9 +45,13 @@ function tap(match, label) {
   sleep(1.5);
 }
 
-// One DevTools call in the Start Page.
+// One DevTools call in the Start Page. Right after a launch its DevTools socket may not answer yet.
 async function inPage(method, params) {
-  const list = await (await fetch(`http://localhost:${PORT}/json`)).json();
+  let list;
+  for (let i = 0; ; i++) {
+    try { list = await (await fetch(`http://localhost:${PORT}/json`)).json(); break; }
+    catch (error) { if (i === 9) throw error; sleep(1); }
+  }
   const target = list.find(t => t.type === 'page' && t.url.startsWith(PAGE));
   if (!target) throw Error(`no Start Page (${list.filter(t => t.type === 'page').map(t => t.url).join(', ')})`);
   const ws = new WebSocket(target.webSocketDebuggerUrl);
@@ -64,15 +68,19 @@ const pageState = () => evaluate(`({island: document.documentElement.dataset.isl
   kept: (() => { try { return localStorage.getItem('blanc.android.island'); } catch { return null; } })(),
   loadedAt: performance.timeOrigin})`);
 
-// Where things are on screen: the Island's pill, the page's date and its Customize button.
+// Where things are on screen: the Island's pill, the page's date and its Customize button. A page's
+// text reaches UI Automator a moment after it draws, so this looks again for up to 10 s.
 async function layout() {
-  const state = await pageState();
-  const all = nodes();
-  const pill = all.find(n => n.id.endsWith(':id/blanc_island_pill'));
-  const date = state?.date ? all.find(n => n.text === state.date || n.desc === state.date) : null;
-  const customize = all.find(n => (n.text === 'Customize' || n.desc === 'Customize') && !n.id.includes('blanc_island'));
   const [, height] = /(\d+)x(\d+)/.exec(adb('shell', 'wm', 'size')).slice(1).map(Number).sort((a, b) => a - b);
-  return {state, pill, date, customize, height};
+  for (let i = 0; ; i++) {
+    const state = await pageState();
+    const all = nodes();
+    const pill = all.find(n => n.id.endsWith(':id/blanc_island_pill'));
+    const date = state?.date ? all.find(n => n.text === state.date || n.desc === state.date) : null;
+    const customize = all.find(n => (n.text === 'Customize' || n.desc === 'Customize') && !n.id.includes('blanc_island'));
+    if ((pill && date && customize) || i === 9) return {state, pill, date, customize, height};
+    sleep(1);
+  }
 }
 
 // The layout for the Island on `side`: the date and Customize clear of it, on the side it left.
@@ -101,8 +109,10 @@ function setPositionFile(value) {
   adb('shell', `run-as ${PACKAGE} sh -c 'cat > ${PREFS}' <<'EOF'\n${xml.replace('</map>', `    <string name="blanc.island_position">${value}</string>\n</map>`)}\nEOF`);
 }
 
+// Blanc opens on the Start Page from cleared data, and goes back to it after a relaunch. Android
+// routes no chrome:// address to an app, so the launcher starts it.
 function launch() {
-  adb('shell', 'am', 'start', '-a', 'android.intent.action.VIEW', '-d', PAGE, '-p', PACKAGE);
+  adb('shell', 'monkey', '-p', PACKAGE, '-c', 'android.intent.category.LAUNCHER', '1');
   sleep(7);
   adb('forward', `tcp:${PORT}`, 'localabstract:chrome_devtools_remote');
 }
@@ -171,9 +181,13 @@ async function main(argv) {
           {acceptNode: t => t.textContent.trim() && t.parentElement.getClientRects().length ? 1 : 3});
         const first = walk.nextNode();
         return {first: first?.textContent.trim(), gap: innerHeight - s.getBoundingClientRect().bottom}; })()`);
-      const all = nodes();
-      const pill = all.find(n => n.id.endsWith(':id/blanc_island_pill'));
-      const line = sheet?.first ? all.find(n => n.text === sheet.first || n.desc === sheet.first) : null;
+      let all, pill, line;
+      for (let i = 0; i < 10 && !(pill && line); i++) {
+        if (i) sleep(1);
+        all = nodes();
+        pill = all.find(n => n.id.endsWith(':id/blanc_island_pill'));
+        line = sheet?.first ? all.find(n => n.text === sheet.first || n.desc === sheet.first) : null;
+      }
       screenshot(`${evidence}/top-customize.png`);
       if (!pill || !line) return [`no Island or no sheet text on screen (${sheet?.first})`];
       const problems = [];
