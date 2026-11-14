@@ -1,0 +1,10 @@
+{
+  "session": "retains upstream ContextualTasks merge and Blanc identities",
+  "frame": "retains upstream dependency changes and adds Blanc dependencies",
+  "certificates": {
+    "oldEntries": 111,
+    "upstreamEntries": 111,
+    "allOldRetained": true
+  },
+  "dependencySyncExit": 0
+}

@@ -1,0 +1,50 @@
+TAP version 13
+# Subtest: component ID is derived from the public key
+ok 1 - component ID is derived from the public key
+  ---
+  duration_ms: 0.448375
+  ...
+# Subtest: verified payload is private-disabled and refuses overwriting
+ok 2 - verified payload is private-disabled and refuses overwriting
+  ---
+  duration_ms: 168.745792
+  ...
+# Subtest: admission uses normal Add and only browser component integration
+ok 3 - admission uses normal Add and only browser component integration
+  ---
+  duration_ms: 0.153667
+  ...
+# Subtest: reload integration is generated from verified upstream with guarded anchors
+ok 4 - reload integration is generated from verified upstream with guarded anchors
+  ---
+  duration_ms: 111.172292
+  ...
+# Subtest: startup release requires successful list completion and observer activation
+ok 5 - startup release requires successful list completion and observer activation
+  ---
+  duration_ms: 0.946542
+  ...
+# Subtest: list completion before activation cannot release startup
+ok 6 - list completion before activation cannot release startup
+  ---
+  duration_ms: 0.53175
+  ...
+# Subtest: failed acknowledgement rejects before caller can reset engine
+ok 7 - failed acknowledgement rejects before caller can reset engine
+  ---
+  duration_ms: 0.44075
+  ...
+# Subtest: reload begin waits for browser acknowledgement
+ok 8 - reload begin waits for browser acknowledgement
+  ---
+  duration_ms: 0.292458
+  ...
+1..8
+# tests 8
+# suites 0
+# pass 8
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 314.387625

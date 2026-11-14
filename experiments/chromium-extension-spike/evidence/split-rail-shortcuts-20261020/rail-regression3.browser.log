@@ -1,0 +1,7 @@
+[26549:252785:1020/155842.045890:ERROR:chrome/browser/mac/code_sign_clone_manager.mm:93] error removing quarantine attribute "/var/folders/4x/r7mr2b5d4q53x8nbf_trvcxw0000gn/X/"
+[26549:252737:1020/155842.328026:ERROR:chrome/browser/actor/tools/tool_request.cc:32] Not implemented reached in static std::optional<ToolDefinition> actor::ToolRequest::GetToolDefinition(). 
+
+DevTools listening on ws://127.0.0.1:9277/devtools/browser/72c7c31d-641e-4247-8c3a-10bdddfba8b8
+[26549:252737:1020/155847.767220:ERROR:components/leveldb_proto/public/proto_database_provider.h:101] In memory database cannot use the given database directory
+[26549:252785:1020/155852.519478:ERROR:chrome/browser/ui/blanc_prototype_ui.cc:800] Blanc Spaces exit flush: Interrupted switch pending; saved spaces unchanged.
+[26549:252737:1020/155852.633627:ERROR:base/process/kill_posix.cc:33] waitpid(26558): No child processes (10)

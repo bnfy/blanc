@@ -1,0 +1,76 @@
+{
+  "kind": "instrumented-electron-http-capture-pilot",
+  "passed": false,
+  "started": "2026-10-17T17:49:47.944Z",
+  "sourceAsarSha256": "5b4b78c8790c3af193a2c893564c674f2b05c75481d1b5673c0428dde60203ab",
+  "appVersion": "1.36.0",
+  "instrumentationSha256": "d681ef55bf525603bf00a35ac73bc9ae8ec425944e28b674a234904de15d4701",
+  "sourceFiles": {
+    "src/main/adblock.js": "b196eae6a33e28b101aeab01b63f0d08cdd68771eff2df54c79c4e6811e535d5",
+    "src/main/blocking-coordinator.js": "bd67244c7e721a13ee107cda48a3a6567416ae0282730d0dce1aa5cafc1cb6b7",
+    "adblock/sources/pinned.json": "df317cd3e925466fb3011a143c86340e415ed10425866af26bc7c70f5f3479dc"
+  },
+  "fixtures": [
+    {
+      "url": "http://page.blanc-fixture.test/pilot.html",
+      "contentType": "text/html",
+      "sha256": "d539e45027423a4dae5ceeefef45576694f41f21c5c5eab2ded1b02f79b7a13b"
+    },
+    {
+      "url": "http://asset.blanc-fixture.test/control.js",
+      "contentType": "text/javascript",
+      "sha256": "eb166445a1ba0c1450efa1a738b53bded6a1a354249709929c5061aa286a23a7"
+    },
+    {
+      "url": "http://doubleclick.net/advertisement.js",
+      "contentType": "text/javascript",
+      "sha256": "540f65d303ce256b68fcea73b1758bdeb15d3ab1c4512492f81d6cc111f75721"
+    },
+    {
+      "url": "http://asset.blanc-fixture.test/data.json",
+      "contentType": "application/json",
+      "sha256": "69fa5e6f7532946e1eb8d6b5651f75fa4857aefc75a3f59d9ea892188f9f5214"
+    },
+    {
+      "url": "http://doubleclick.net/pagead/ads?client=fixture",
+      "contentType": "application/json",
+      "sha256": "0d3e7634efbcbfb2d930025921f740617bc4fe5766685e7283aa43f0c04cb28c"
+    }
+  ],
+  "limits": [
+    "Instrumented extracted app source on stock Electron; not a signed-package acceptance run.",
+    "HTTP-only transport pilot; no TLS/CA, workers, redirects, private teardown or 157 replay yet.",
+    "Authored fixture traffic, not the 4000-request acceptance corpus; no latency result."
+  ],
+  "profiles": {},
+  "cleanup": {
+    "sourceAsarUnchanged": true,
+    "childExited": true,
+    "disposableTreeRemoved": true
+  },
+  "filterManifest": {
+    "version": 1,
+    "date": "2026-07-09",
+    "lists": [
+      {
+        "file": "easylist.txt",
+        "url": "https://easylist.to/easylist/easylist.txt",
+        "sha256": "ceac7bd34d538ad448f05a7237b600485f2185a620d8ce32f77ae7365e1e662b"
+      },
+      {
+        "file": "easyprivacy.txt",
+        "url": "https://easylist.to/easylist/easyprivacy.txt",
+        "sha256": "5b69cbb6958485b5688e76bf2a43a548acaa5cc57380aed7d3dc800da7e0bf6b"
+      }
+    ],
+    "combinedSha256": "35cfb31efe041f8203e047f9339a59995083b7c33f19ee59e562739739240d7e",
+    "ghosteryResources": {
+      "file": "ghostery-resources.json",
+      "packageVersion": "2.18.2",
+      "commit": "c4c20aa63e3a72113f66777cf35a3f58877a36ee",
+      "sha256": "e14b498f693c4166d27971f7fdfe49b167c139a8e659cc59bedc9ab29a2348f5"
+    }
+  },
+  "error": "electron.launch: Timeout 60000ms exceeded.\nCall log:\n\u001b[2m  - <launching> /private/tmp/blanc-f12-runtime/dist/Electron.app/Contents/MacOS/Electron --inspect=0 --remote-debugging-port=0 /var/folders/4x/r7mr2b5d4q53x8nbf_trvcxw0000gn/T/blanc-f12-capture-0mqVUZ/app --user-data-dir=/var/folders/4x/r7mr2b5d4q53x8nbf_trvcxw0000gn/T/blanc-f12-capture-0mqVUZ/profile --proxy-server=http://127.0.0.1:58967 --host-resolver-rules=MAP * ~NOTFOUND, EXCLUDE 127.0.0.1, EXCLUDE localhost\u001b[22m\n\u001b[2m  - <launched> pid=14588\u001b[22m\n\u001b[2m  - [pid=14588][err] Debugger listening on ws://127.0.0.1:58970/2576614d-68ca-4e7b-95aa-ad93112ebd36\u001b[22m\n\u001b[2m  - [pid=14588][err] For help, see: https://nodejs.org/learn/getting-started/debugging\u001b[22m\n\u001b[2m  - <ws connecting> ws://127.0.0.1:58970/2576614d-68ca-4e7b-95aa-ad93112ebd36\u001b[22m\n\u001b[2m  - [pid=14588][err] Debugger attached.\u001b[22m\n\u001b[2m  - <ws connected> ws://127.0.0.1:58970/2576614d-68ca-4e7b-95aa-ad93112ebd36\u001b[22m\n\u001b[2m  - [pid=14588][err] App threw an error during load\u001b[22m\n\u001b[2m  - [pid=14588][err] Error: Unexpected capture profile\u001b[22m\n\u001b[2m  - [pid=14588][err]     at Object.<anonymous> (/private/var/folders/4x/r7mr2b5d4q53x8nbf_trvcxw0000gn/T/blanc-f12-capture-0mqVUZ/app/capture-bootstrap.cjs:8:62)\u001b[22m\n\u001b[2m  - [pid=14588][err]     at Module._compile (node:internal/modules/cjs/loader:1937:14)\u001b[22m\n\u001b[2m  - [pid=14588][err]     at Object..js (node:internal/modules/cjs/loader:2070:10)\u001b[22m\n\u001b[2m  - [pid=14588][err]     at Module.load (node:internal/modules/cjs/loader:1658:32)\u001b[22m\n\u001b[2m  - [pid=14588][err]     at Module._load (node:internal/modules/cjs/loader:1450:12)\u001b[22m\n\u001b[2m  - [pid=14588][err]     at wrapModuleLoad (node:internal/modules/cjs/loader:268:19)\u001b[22m\n\u001b[2m  - [pid=14588][err]     at loadCJSModuleWithModuleLoad (node:internal/modules/esm/translators:378:15)\u001b[22m\n\u001b[2m  - [pid=14588][err]     at ModuleWrap.<anonymous> (node:internal/modules/esm/translators:246:9)\u001b[22m\n\u001b[2m  - [pid=14588][err]     at ModuleJob.run (node:internal/modules/esm/module_job:561:25)\u001b[22m\n\u001b[2m  - [pid=14588][err]     at async node:internal/modules/esm/loader:647:26\u001b[22m\n\n    at async file:///private/tmp/blanc-f12-spike-a/experiments/chromium-extension-spike/fixtures/replay/pilot/run.mjs:60:14",
+  "finished": "2026-10-17T17:50:48.133Z"
+}

@@ -1,0 +1,174 @@
+The following is a diff from the previous accessibility tree for Window: "Extensity - Chrome Web Store" with ~ and + representing changed and added elements, respectively. Removed elements are summarized by ID range.
+Removed element IDs: 142-148
+~138 standard window Extensity - Chrome Web Store - Chromium, URL: chromewebstore.google.com/detail/extensity/jjmflmamggggndanpgfnpelongoepncg, Secondary Actions: Raise
+~	139 container Extensity - Chrome Web Store - Chromium, URL: chromewebstore.google.com/detail/extensity/jjmflmamggggndanpgfnpelongoepncg
+~			141 container
++				142 scroll area
++					143 HTML content Extensity - Chrome Web Store, URL: chromewebstore.google.com/detail/extensity/jjmflmamggggndanpgfnpelongoepncg
++						144 container
++							145 link Skip to main content
++								146 text Skip to main content
++							147 link Chrome Web Store logo chrome web store, Value: chromewebstore.google.com/
++							148 container Sitewide
++								149 combo box (settable) Search Chrome Web Store, Placeholder: Search extensions and themes
++							150 pop up button More options menu
++							151 container
++								152 button Google apps
++								153 link Sign in, Value: accounts.google.com/ServiceLogin?passive=1209600&osid=1&continue=https%3A%2F%2Fchromewebstore.google.com%2Fdetail%2Fextensity%2Fjjmflmamggggndanpgfnpelongoepncg&followup=https%3A%2F%2Fchromewebstore.google.com%2Fdetail%2Fextensity%2Fjjmflmamggggndanpgfnpelongoepncg&ec=GAZApQM
++							154 tab group
++								155 tab (settable, integer) Discover, Value: 0
++								156 tab (selected) Extensions, Value: 1
++								157 tab (settable, integer) Themes, Value: 0
++							158 container
++								159 container
++									160 image Item logo image for Extensity
++									161 heading Extensity, Value: 1
++										162 text Extensity
++									163 container
++										164 link Value: support.google.com/chrome_webstore/?hl=en-US&p=cws_badges, Created by the owner of the listed website. The publisher has a good record with no history of violations. Learn more.
++									165 link https://sergiokas.github.io/Extensity/, Value: sergiokas.github.io/Extensity/
++									166 container
++										167 link Follows recommended practices for Chrome extensions. Learn more., Value: support.google.com/chrome_webstore/?hl=en-US&p=cws_badges
++									168 text Featured
++									169 image Average rating 4.8 out of 5 stars.
++									170 text (
++									171 link 1.8K ratings, Value: chromewebstore.google.com/detail/extensity/jjmflmamggggndanpgfnpelongoepncg/reviews
++									172 text )
++									173 button Ratings are updated daily and may not reflect the most recent reviews.
++									174 button Share
++									175 link Extension, Value: chromewebstore.google.com/category/extensions
++									176 link Workflow & Planning, Value: chromewebstore.google.com/category/extensions/productivity/workflow
++									177 text 300,000 users
++									178 button Add to Chrome
++								179 container Media carousel
++									180 container
++										181 button Item media 1 (screenshot) for Extensity
++										182 button Item media 2 (screenshot) for Extensity
++								183 heading Overview, Value: 2
++									184 text Overview
++								185 container
++									186 text Quickly enable/disable Google Chrome extensions Tired of having too many extensions in your toolbar? Try Extensity, the ultimate tool for lightning fast enabling and disabling all your extensions for Google Chrome. Just enable the extension when you want to use it, and disable when you want to get rid of it for a little while. You can also launch Chrome Apps right from the list.
+
+* Keep your browser lean and fast - disable extensions that you won't use right away.
+* Keep your toolbar clean.
+* Turn all extensions off (and back on) with a single click.
+* Q
++								187 button See more
++								188 heading 4.8 out of 5 4.8 out of 5 stars 1.8K ratings• Learn more about results and reviews., Value: 2
++									189 text 4.8  out of 5
++									190 image 4.8 out of 5 stars
++									191 text 1.8K ratings •
++									192 link Learn more about results and reviews., Value: support.google.com/chrome_webstore/answer/12225786?p=cws_reviews_results
++								193 container
++									194 link See all reviews, Value: chromewebstore.google.com/detail/extensity/jjmflmamggggndanpgfnpelongoepncg/reviews
++								195 heading Details, Value: 2
++									196 text Details
++								197 content list
++									198 container
++										199 text Version 1.14.0
++									200 container
++										201 text Updated September 2, 2024
++									202 link Flag concern, Value: chromewebstore.google.com/detail/jjmflmamggggndanpgfnpelongoepncg/report
++									203 container
++										204 text Size 171KiB
++									205 container
++										206 text Languages English
++									207 container
++										208 text Developer
++										209 link Website, Value: sergiokas.github.io/Extensity/
++										210 disclosure triangle Email
++											211 image
++											212 text Email
++											213 image
++									214 container
++										215 text Non-trader This developer has not identified itself as a trader. For consumers in the European Union, please note that consumer rights do not apply to contracts between you and this developer.
++								216 heading Privacy, Value: 2
++									217 text Privacy
++								218 image
++								219 text The developer has disclosed that it will not collect or use your data.
++								220 heading This developer declares that your data is, Value: 2
++									221 text This developer declares that your data is
++								222 content list
++									223 container
++										224 AXListMarker • 
++										225 text Not being sold to third parties, outside of the 
++										226 link approved use cases, Value: developer.chrome.com/docs/webstore/program-policies/limited-use/
++									227 container
++										228 AXListMarker • 
++										229 text Not being used or transferred for purposes that are unrelated to the item's core functionality
++									230 container
++										231 AXListMarker • 
++										232 text Not being used or transferred to determine creditworthiness or for lending purposes
++								233 heading Support, Value: 2
++									234 text Support
++								235 link Visit support hub, Value: chromewebstore.google.com/detail/jjmflmamggggndanpgfnpelongoepncg/support
++								236 heading Related, Value: 2
++									237 text Related
++								238 container Related items carousel
++									239 button Previous slide
++									240 container Related item slides
++										241 container
++											242 link Ultra Button, Value: chromewebstore.google.com/detail/ultra-button/ppmnkcnnoclkpbbckblofjbjepocnflo
++											243 heading Ultra Button, Value: 3
++												244 text Ultra Button
++											245 image Average rating 4.6 out of 5 stars.
++											246 link Learn more about results and reviews "Ultra Button"., Value: support.google.com/chrome_webstore/answer/12225786?p=cws_reviews_results&hl=en-US
++											247 text A button for everything.
++										248 container
++											249 link Custom Chrome - Extension Manager, Value: chromewebstore.google.com/detail/custom-chrome-extension-m/balnpimdnhfiodmodckhkgneejophhhm
++											250 heading Custom Chrome - Extension Manager, Value: 3
++												251 text Custom Chrome - Extension Manager
++											252 image Average rating 4.3 out of 5 stars.
++											253 link Learn more about results and reviews "Custom Chrome - Extension Manager"., Value: support.google.com/chrome_webstore/answer/12225786?p=cws_reviews_results&hl=en-US
++											254 text A beautiful Google Chrome extension manager to turn on/off other extensions quickly and easily without leaving your current tab
++										255 container
++											256 link New Tab Draft, Value: chromewebstore.google.com/detail/new-tab-draft/nmfjkeiebceinkbggliapgfdjphocpdh
++											257 heading New Tab Draft, Value: 3
++												258 text New Tab Draft
++											259 image Average rating 4.7 out of 5 stars.
++											260 link Learn more about results and reviews "New Tab Draft"., Value: support.google.com/chrome_webstore/answer/12225786?p=cws_reviews_results&hl=en-US
++											261 text Simple & clean writing experience on browser new tab.
++										262 container
++											263 link Bookmarks Quick Search, Value: chromewebstore.google.com/detail/bookmarks-quick-search/lniofgaicnjjdfinpnkhmlpmnhacnkca
++											264 heading Bookmarks Quick Search, Value: 3
++												265 text Bookmarks Quick Search
++											266 image Average rating 4.6 out of 5 stars.
++											267 link Learn more about results and reviews "Bookmarks Quick Search"., Value: support.google.com/chrome_webstore/answer/12225786?p=cws_reviews_results&hl=en-US
++											268 text Search bookmarks quickly and easily, with a search popup, which can be opened by a click on the extension logo (or by cmd+E/ctrl+W).
++									269 button Next slide
++							270 content list
++								271 container
++									272 link About Chrome Web Store, Value: support.google.com/chrome_webstore/answer/1047776?hl=en-US
++									273 text •
++								274 container
++									275 link Developer Dashboard, Value: chrome.google.com/webstore/devconsole/
++									276 text •
++								277 container
++									278 link Privacy Policy, Value: myaccount.google.com/privacypolicy?hl=en-US
++									279 text •
++								280 container
++									281 link Terms of Service, Value: ssl.gstatic.com/chrome/webstore/intl/en-US/gallery_tos.html
++									282 text •
++								283 link Help, Value: support.google.com/chrome_webstore?hl=en-US
++							284 text Extensity - Chrome Web Store
++			285 scroll area
++				286 HTML content Blanc Chromium prototype, URL: chrome://blanc-prototype/host.html
++					287 container Blanc Island
++						288 HTML content Blanc, URL: chrome://blanc-prototype/index.html
++							289 container
++								290 button Search, tabs & commands (Ctrl/Cmd+L)
++									291 container
++										292 button Back
++										293 button (disabled) Forward
++									294 container
++										295 button Switch to New Tab
++										296 button Switch to Extensity - Chrome Web Store
++									297 text chromewebstore.google.com
++									298 button New tab
++									299 container
++										300 button Reload
++										301 button Favorite this page
++										302 button Close tab
++			303 pop up button Extensions menu
++	304 menu button Window sharing
+The focused UI element is 143 HTML content Extensity - Chrome Web Store, URL: chromewebstore.google.com/detail/extensity/jjmflmamggggndanpgfnpelongoepncg

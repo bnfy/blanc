@@ -1,0 +1,120 @@
+diff -ruN a/chrome/android/BUILD.gn b/chrome/android/BUILD.gn
+--- a/chrome/android/BUILD.gn
++++ b/chrome/android/BUILD.gn
+@@ -142,24 +142,28 @@
+       "java/res_base/font/chrome_google_sans_text_medium.xml",
+       "java/res_base/values/values.xml",
+       "java/res_base/xml/network_security_config.xml",
+-      "java/res_chromium_base/drawable/themed_app_icon.xml",
+-      "java/res_chromium_base/mipmap-hdpi/app_icon.png",
+-      "java/res_chromium_base/mipmap-hdpi/layered_app_icon.png",
+-      "java/res_chromium_base/mipmap-hdpi/layered_app_icon_background.png",
+-      "java/res_chromium_base/mipmap-mdpi/app_icon.png",
+-      "java/res_chromium_base/mipmap-mdpi/layered_app_icon.png",
+-      "java/res_chromium_base/mipmap-mdpi/layered_app_icon_background.png",
+-      "java/res_chromium_base/mipmap-nodpi/layered_app_icon_foreground.xml",
+-      "java/res_chromium_base/mipmap-xhdpi/app_icon.png",
+-      "java/res_chromium_base/mipmap-xhdpi/layered_app_icon.png",
+-      "java/res_chromium_base/mipmap-xhdpi/layered_app_icon_background.png",
+-      "java/res_chromium_base/mipmap-xxhdpi/app_icon.png",
+-      "java/res_chromium_base/mipmap-xxhdpi/layered_app_icon.png",
+-      "java/res_chromium_base/mipmap-xxhdpi/layered_app_icon_background.png",
+-      "java/res_chromium_base/mipmap-xxxhdpi/app_icon.png",
+-      "java/res_chromium_base/mipmap-xxxhdpi/layered_app_icon.png",
+-      "java/res_chromium_base/mipmap-xxxhdpi/layered_app_icon_background.png",
+-      "java/res_chromium_base/values/channel_constants.xml",
++      # Blanc identity (patch 0101): launcher icon and app name.
++      "//blanc/android/res/drawable-mdpi/themed_app_icon.png",
++      "//blanc/android/res/drawable-hdpi/themed_app_icon.png",
++      "//blanc/android/res/drawable-xhdpi/themed_app_icon.png",
++      "//blanc/android/res/drawable-xxhdpi/themed_app_icon.png",
++      "//blanc/android/res/drawable-xxxhdpi/themed_app_icon.png",
++      "//blanc/android/res/mipmap-mdpi/app_icon.png",
++      "//blanc/android/res/mipmap-mdpi/layered_app_icon.png",
++      "//blanc/android/res/mipmap-mdpi/layered_app_icon_background.png",
++      "//blanc/android/res/mipmap-hdpi/app_icon.png",
++      "//blanc/android/res/mipmap-hdpi/layered_app_icon.png",
++      "//blanc/android/res/mipmap-hdpi/layered_app_icon_background.png",
++      "//blanc/android/res/mipmap-xhdpi/app_icon.png",
++      "//blanc/android/res/mipmap-xhdpi/layered_app_icon.png",
++      "//blanc/android/res/mipmap-xhdpi/layered_app_icon_background.png",
++      "//blanc/android/res/mipmap-xxhdpi/app_icon.png",
++      "//blanc/android/res/mipmap-xxhdpi/layered_app_icon.png",
++      "//blanc/android/res/mipmap-xxhdpi/layered_app_icon_background.png",
++      "//blanc/android/res/mipmap-xxxhdpi/app_icon.png",
++      "//blanc/android/res/mipmap-xxxhdpi/layered_app_icon.png",
++      "//blanc/android/res/mipmap-xxxhdpi/layered_app_icon_background.png",
++      "//blanc/android/res/values/channel_constants.xml",
+     ]
+   }
+ 
+@@ -1803,24 +1807,28 @@
+   android_resources("chrome_public_apk_base_module_resources") {
+     resource_overlay = true
+     sources = [
+-      "java/res_chromium_base/drawable/themed_app_icon.xml",
+-      "java/res_chromium_base/mipmap-hdpi/app_icon.png",
+-      "java/res_chromium_base/mipmap-hdpi/layered_app_icon.png",
+-      "java/res_chromium_base/mipmap-hdpi/layered_app_icon_background.png",
+-      "java/res_chromium_base/mipmap-mdpi/app_icon.png",
+-      "java/res_chromium_base/mipmap-mdpi/layered_app_icon.png",
+-      "java/res_chromium_base/mipmap-mdpi/layered_app_icon_background.png",
+-      "java/res_chromium_base/mipmap-nodpi/layered_app_icon_foreground.xml",
+-      "java/res_chromium_base/mipmap-xhdpi/app_icon.png",
+-      "java/res_chromium_base/mipmap-xhdpi/layered_app_icon.png",
+-      "java/res_chromium_base/mipmap-xhdpi/layered_app_icon_background.png",
+-      "java/res_chromium_base/mipmap-xxhdpi/app_icon.png",
+-      "java/res_chromium_base/mipmap-xxhdpi/layered_app_icon.png",
+-      "java/res_chromium_base/mipmap-xxhdpi/layered_app_icon_background.png",
+-      "java/res_chromium_base/mipmap-xxxhdpi/app_icon.png",
+-      "java/res_chromium_base/mipmap-xxxhdpi/layered_app_icon.png",
+-      "java/res_chromium_base/mipmap-xxxhdpi/layered_app_icon_background.png",
+-      "java/res_chromium_base/values/channel_constants.xml",
++      # Blanc identity (patch 0101): launcher icon and app name.
++      "//blanc/android/res/drawable-mdpi/themed_app_icon.png",
++      "//blanc/android/res/drawable-hdpi/themed_app_icon.png",
++      "//blanc/android/res/drawable-xhdpi/themed_app_icon.png",
++      "//blanc/android/res/drawable-xxhdpi/themed_app_icon.png",
++      "//blanc/android/res/drawable-xxxhdpi/themed_app_icon.png",
++      "//blanc/android/res/mipmap-mdpi/app_icon.png",
++      "//blanc/android/res/mipmap-mdpi/layered_app_icon.png",
++      "//blanc/android/res/mipmap-mdpi/layered_app_icon_background.png",
++      "//blanc/android/res/mipmap-hdpi/app_icon.png",
++      "//blanc/android/res/mipmap-hdpi/layered_app_icon.png",
++      "//blanc/android/res/mipmap-hdpi/layered_app_icon_background.png",
++      "//blanc/android/res/mipmap-xhdpi/app_icon.png",
++      "//blanc/android/res/mipmap-xhdpi/layered_app_icon.png",
++      "//blanc/android/res/mipmap-xhdpi/layered_app_icon_background.png",
++      "//blanc/android/res/mipmap-xxhdpi/app_icon.png",
++      "//blanc/android/res/mipmap-xxhdpi/layered_app_icon.png",
++      "//blanc/android/res/mipmap-xxhdpi/layered_app_icon_background.png",
++      "//blanc/android/res/mipmap-xxxhdpi/app_icon.png",
++      "//blanc/android/res/mipmap-xxxhdpi/layered_app_icon.png",
++      "//blanc/android/res/mipmap-xxxhdpi/layered_app_icon_background.png",
++      "//blanc/android/res/values/channel_constants.xml",
+     ]
+ 
+     # Dep needed to ensure override works properly.
+diff -ruN a/chrome/android/java/res_base/drawable/ic_launcher_round.xml b/chrome/android/java/res_base/drawable/ic_launcher_round.xml
+--- a/chrome/android/java/res_base/drawable/ic_launcher_round.xml
++++ b/chrome/android/java/res_base/drawable/ic_launcher_round.xml
+@@ -7,6 +7,6 @@
+ 
+ <adaptive-icon xmlns:android="http://schemas.android.com/apk/res/android" >
+     <background android:drawable="@mipmap/layered_app_icon_background"/>
+-    <foreground android:drawable="@mipmap/layered_app_icon_foreground"/>
++    <foreground android:drawable="@mipmap/layered_app_icon"/>
+     <monochrome android:drawable="@drawable/themed_app_icon"/>
+ </adaptive-icon>
+diff -ruN a/chrome/android/java/res_base/drawable/ic_launcher.xml b/chrome/android/java/res_base/drawable/ic_launcher.xml
+--- a/chrome/android/java/res_base/drawable/ic_launcher.xml
++++ b/chrome/android/java/res_base/drawable/ic_launcher.xml
+@@ -6,7 +6,7 @@
+ -->
+ 
+ <adaptive-icon xmlns:android="http://schemas.android.com/apk/res/android" >
+-    <background android:drawable="@android:color/white"/>
++    <background android:drawable="@mipmap/layered_app_icon_background"/>
+     <foreground android:drawable="@mipmap/layered_app_icon"/>
+     <monochrome android:drawable="@drawable/themed_app_icon"/>
+ </adaptive-icon>

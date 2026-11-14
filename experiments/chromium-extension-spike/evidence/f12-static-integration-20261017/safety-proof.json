@@ -1,0 +1,13 @@
+{
+  "verified": true,
+  "checks": [
+    "regular-profile-binding",
+    "scriptlet-exception-after-filter-generation-change",
+    "replacement-generation-restores-early-payload",
+    "hostname-navigation-does-not-reuse-other-document-payload",
+    "popup-and-stale-generation-cannot-deliver-code",
+    "private-profile-binding",
+    "missing-payload-timeout-blocks-first-inline"
+  ],
+  "latencyMeasured": false
+}

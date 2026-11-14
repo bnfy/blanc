@@ -1,0 +1,182 @@
+--- a/components/security_interstitials/content/stateful_ssl_host_state_delegate.h
++++ b/components/security_interstitials/content/stateful_ssl_host_state_delegate.h
+@@ -5,7 +5,11 @@
+ #ifndef COMPONENTS_SECURITY_INTERSTITIALS_CONTENT_STATEFUL_SSL_HOST_STATE_DELEGATE_H_
+ #define COMPONENTS_SECURITY_INTERSTITIALS_CONTENT_STATEFUL_SSL_HOST_STATE_DELEGATE_H_
+ 
++#include <deque>
+ #include <memory>
++#include <tuple>
++
++#include "base/files/file_path.h"
+ #include <set>
+ #include <string>
+ 
+@@ -104,6 +108,10 @@
+ 
+   // SetClockForTesting takes ownership of the passed in clock.
+   void SetClockForTesting(std::unique_ptr<base::Clock> clock);
++
++  // Blanc preview transport may only lower the production bound.
++  void SetCertificateExceptionCapForTesting(size_t cap);
++
+ 
+   // Returns whether the user has allowed a certificate error exception for
+   // |host|.
+@@ -141,6 +149,15 @@
+       content::StoragePartition* storage_partition);
+   bool IsHttpAllowedForAnyHost(content::StoragePartition* storage_partition);
+ 
++  void RememberCertificateChoice(const std::string& host, const std::string& key,
++                                 const base::FilePath& partition);
++  void LoadCertificateChoices();
++  void EnforceCertificateExceptionCap();
++  using CertificateChoice = std::tuple<std::string, std::string, base::FilePath>;
++  std::deque<CertificateChoice> certificate_choices_;
++  size_t certificate_exception_cap_ = 64;
++  bool certificate_choices_loaded_ = false;
++
+   std::unique_ptr<base::Clock> clock_;
+   raw_ptr<content::BrowserContext> browser_context_;
+   raw_ptr<PrefService> pref_service_;
+--- a/components/security_interstitials/content/stateful_ssl_host_state_delegate.cc
++++ b/components/security_interstitials/content/stateful_ssl_host_state_delegate.cc
+@@ -6,7 +6,10 @@
+ 
+ #include <stdint.h>
+ 
++#include <algorithm>
+ #include <functional>
++
++#include "blanc/common/island_mode.h"
+ #include <memory>
+ #include <optional>
+ #include <set>
+@@ -104,6 +107,7 @@
+     const net::X509Certificate& cert,
+     net::Error error,
+     content::StoragePartition* storage_partition) {
++  if (blanc::IslandMode()) LoadCertificateChoices();
+   if (!storage_partition ||
+       storage_partition != browser_context_->GetDefaultStoragePartition()) {
+     // Decisions for non-default storage partitions are stored in memory only;
+@@ -113,6 +117,8 @@
+         AllowedCert(GetKey(cert, error), storage_partition->GetPath());
+     allowed_certs_for_non_default_storage_partitions_[host].insert(
+         allowed_cert);
++    if (blanc::IslandMode())
++      RememberCertificateChoice(host, GetKey(cert, error), storage_partition->GetPath());
+     return;
+   }
+ 
+@@ -139,6 +145,81 @@
+   // SetWebsiteSettingDefaultScope.
+   host_content_settings_map_->SetWebsiteSettingDefaultScope(
+       url, GURL(), ContentSettingsType::SSL_CERT_DECISIONS, std::move(value));
++  if (blanc::IslandMode()) RememberCertificateChoice(host, GetKey(cert, error), {});
++}
++
++// Keep Chromium's certificate/error matching and persisted proceed decisions
++// (V8), with a per-profile bound of 64 decisions. The OTR delegate and its
++// non-inheriting content settings keep their own bound. Never change the SSL
++// state stored on a committed NavigationEntry when an allowance is evicted.
++void StatefulSSLHostStateDelegate::LoadCertificateChoices() {
++  if (certificate_choices_loaded_) return;
++  certificate_choices_loaded_ = true;
++  auto rows = host_content_settings_map_->GetSettingsForOneType(
++      ContentSettingsType::SSL_CERT_DECISIONS);
++  std::stable_sort(rows.begin(), rows.end(), [](const auto& a, const auto& b) {
++    return a.metadata.last_modified() < b.metadata.last_modified();
++  });
++  for (auto& row : rows) {
++    if (!row.setting_value.is_dict()) continue;
++    const auto* decisions = GetValidCertDecisionsDict(
++        DO_NOT_CREATE_DICTIONARY_ENTRIES, row.setting_value.GetDict());
++    const GURL url(row.primary_pattern.ToString());
++    if (!decisions || !url.is_valid()) continue;
++    for (auto [key, value] : *decisions)
++      if (value.is_int() && value.GetInt() == ALLOWED)
++        certificate_choices_.emplace_back(url.host(), std::string(key), base::FilePath());
++  }
++  EnforceCertificateExceptionCap();
++}
++
++void StatefulSSLHostStateDelegate::RememberCertificateChoice(
++    const std::string& host, const std::string& key, const base::FilePath& partition) {
++  const CertificateChoice choice(host, key, partition);
++  std::erase(certificate_choices_, choice);
++  certificate_choices_.push_back(choice);
++  EnforceCertificateExceptionCap();
++}
++
++void StatefulSSLHostStateDelegate::EnforceCertificateExceptionCap() {
++  bool evicted = false;
++  while (certificate_choices_.size() > certificate_exception_cap_) {
++    const auto [host, key, partition] = certificate_choices_.front();
++    certificate_choices_.pop_front();
++    if (!partition.empty()) {
++      auto found = allowed_certs_for_non_default_storage_partitions_.find(host);
++      if (found != allowed_certs_for_non_default_storage_partitions_.end()) {
++        found->second.erase(AllowedCert(key, partition));
++        if (found->second.empty()) allowed_certs_for_non_default_storage_partitions_.erase(found);
++      }
++    } else {
++      const GURL url = GetSecureGURLForHost(host);
++      auto value = host_content_settings_map_->GetWebsiteSetting(
++          url, url, ContentSettingsType::SSL_CERT_DECISIONS, nullptr);
++      if (value.is_dict()) {
++        auto* decisions = GetValidCertDecisionsDict(DO_NOT_CREATE_DICTIONARY_ENTRIES, value.GetDict());
++        if (decisions) {
++          decisions->Remove(key);
++          if (decisions->empty()) value = base::Value();
++          host_content_settings_map_->SetWebsiteSettingDefaultScope(
++              url, GURL(), ContentSettingsType::SSL_CERT_DECISIONS, std::move(value));
++        }
++      }
++    }
++    evicted = true;
++  }
++  // As with Chromium's Stop allowing, clear pooled idle connections so a
++  // subsequent navigation cannot reuse a cached SSLConfig allowance.
++  if (evicted) browser_context_->ForEachLoadedStoragePartition([](content::StoragePartition* partition) {
++    partition->GetNetworkContext()->CloseIdleConnections(base::NullCallback());
++  });
++}
++
++void StatefulSSLHostStateDelegate::SetCertificateExceptionCapForTesting(size_t cap) {
++  if (!blanc::IslandMode()) return;
++  certificate_exception_cap_ = std::min<size_t>(cap, 64);
++  LoadCertificateChoices();
++  EnforceCertificateExceptionCap();
+ }
+ 
+ void StatefulSSLHostStateDelegate::Clear(
+@@ -146,6 +227,12 @@
+   // Convert host matching to content settings pattern matching. Content
+   // settings deletion is done synchronously on the UI thread, so we can use
+   // |host_filter| by reference.
++  std::erase_if(certificate_choices_, [&](const auto& choice) {
++    return host_filter.is_null() || host_filter.Run(std::get<0>(choice));
++  });
++  std::erase_if(allowed_certs_for_non_default_storage_partitions_, [&](const auto& entry) {
++    return host_filter.is_null() || host_filter.Run(entry.first);
++  });
+   HostContentSettingsMap::PatternSourcePredicate pattern_filter;
+   if (!host_filter.is_null()) {
+     pattern_filter =
+@@ -172,6 +259,7 @@
+     const net::X509Certificate& cert,
+     net::Error error,
+     content::StoragePartition* storage_partition) {
++  if (blanc::IslandMode()) LoadCertificateChoices();
+   if (!storage_partition ||
+       storage_partition != browser_context_->GetDefaultStoragePartition()) {
+     if (allowed_certs_for_non_default_storage_partitions_.find(host) ==
+@@ -301,6 +389,7 @@
+ 
+ void StatefulSSLHostStateDelegate::RevokeUserAllowExceptions(
+     const std::string& host) {
++  std::erase_if(certificate_choices_, [&](const auto& choice) {return std::get<0>(choice) == host;});
+   GURL url = GetSecureGURLForHost(host);
+   host_content_settings_map_->SetWebsiteSettingDefaultScope(
+       url, GURL(), ContentSettingsType::SSL_CERT_DECISIONS, base::Value());

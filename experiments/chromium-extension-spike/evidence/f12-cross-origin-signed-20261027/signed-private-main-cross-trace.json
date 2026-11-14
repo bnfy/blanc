@@ -1,0 +1,190 @@
+[
+  {
+    "args": {
+      "name": "swapper"
+    },
+    "cat": "__metadata",
+    "name": "thread_name",
+    "ph": "M",
+    "pid": 0,
+    "tid": 0,
+    "ts": 0
+  },
+  {
+    "args": {
+      "name": "PerfettoTrace"
+    },
+    "cat": "__metadata",
+    "name": "thread_name",
+    "ph": "M",
+    "pid": 7603,
+    "tid": 14462427,
+    "ts": 0
+  },
+  {
+    "args": {
+      "name": "CrBrowserMain"
+    },
+    "cat": "__metadata",
+    "name": "thread_name",
+    "ph": "M",
+    "pid": 7577,
+    "tid": 14461973,
+    "ts": 0
+  },
+  {
+    "args": {
+      "name": "Service: tracing.mojom.TracingService"
+    },
+    "cat": "__metadata",
+    "name": "process_name",
+    "ph": "M",
+    "pid": 7603,
+    "tid": 0,
+    "ts": 0
+  },
+  {
+    "args": {
+      "name": "Browser"
+    },
+    "cat": "__metadata",
+    "name": "process_name",
+    "ph": "M",
+    "pid": 7577,
+    "tid": 0,
+    "ts": 0
+  },
+  {
+    "args": {
+      "uptime": "0"
+    },
+    "cat": "__metadata",
+    "name": "process_uptime_seconds",
+    "ph": "M",
+    "pid": 7603,
+    "tid": 0,
+    "ts": 0
+  },
+  {
+    "args": {
+      "uptime": "2"
+    },
+    "cat": "__metadata",
+    "name": "process_uptime_seconds",
+    "ph": "M",
+    "pid": 7577,
+    "tid": 0,
+    "ts": 0
+  },
+  {
+    "args": {
+      "chrome_active_processes": {
+        "pid": [
+          7577,
+          7583,
+          7584,
+          7585,
+          7587,
+          7588,
+          7589,
+          7592,
+          7593,
+          7594,
+          7596,
+          7597,
+          7598,
+          7600,
+          7603
+        ]
+      }
+    },
+    "cat": "__metadata",
+    "name": "ActiveProcesses",
+    "ph": "I",
+    "pid": 0,
+    "s": "g",
+    "tid": 0,
+    "ts": 623320209746
+  },
+  {
+    "args": {
+      "method": "GET",
+      "private": true,
+      "redirect_index": 0,
+      "request_digest": "0B6093E4A9A97EAF6FB15A38500CADE22A5A1054C9B440042805CD409917608C",
+      "result": 0
+    },
+    "cat": "disabled-by-default-blanc.attribution",
+    "name": "Blanc.RequestDecision",
+    "ph": "I",
+    "pid": 7577,
+    "s": "t",
+    "tid": 14461973,
+    "ts": 623320465757,
+    "tts": 796038
+  },
+  {
+    "args": {
+      "method": "GET",
+      "private": true,
+      "redirect_index": 1,
+      "request_digest": "0B6093E4A9A97EAF6FB15A38500CADE22A5A1054C9B440042805CD409917608C",
+      "result": 0
+    },
+    "cat": "disabled-by-default-blanc.attribution",
+    "name": "Blanc.RequestDecision",
+    "ph": "I",
+    "pid": 7577,
+    "s": "t",
+    "tid": 14461973,
+    "ts": 623320468401,
+    "tts": 797207
+  },
+  {
+    "args": {
+      "method": "GET",
+      "private": true,
+      "redirect_index": 0,
+      "request_digest": "0B6093E4A9A97EAF6FB15A38500CADE22A5A1054C9B440042805CD409917608C",
+      "result": 0
+    },
+    "cat": "disabled-by-default-blanc.attribution",
+    "name": "Blanc.RequestDecision",
+    "ph": "I",
+    "pid": 7577,
+    "s": "t",
+    "tid": 14461973,
+    "ts": 623320481279,
+    "tts": 801512
+  },
+  {
+    "args": {
+      "chrome_active_processes": {
+        "pid": [
+          7577,
+          7583,
+          7584,
+          7585,
+          7587,
+          7588,
+          7589,
+          7592,
+          7593,
+          7594,
+          7596,
+          7597,
+          7598,
+          7600,
+          7603
+        ]
+      }
+    },
+    "cat": "__metadata",
+    "name": "ActiveProcesses",
+    "ph": "I",
+    "pid": 0,
+    "s": "g",
+    "tid": 0,
+    "ts": 623320502595
+  }
+]

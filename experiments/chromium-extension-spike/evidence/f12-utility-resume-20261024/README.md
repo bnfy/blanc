@@ -1,0 +1,17 @@
+# Blocker utility resume recovery — October 24
+
+## Failure and repair
+
+The preceding terminal-attribution run reproduced a helper SIGSEGV after resuming the exact suspended blocker utility following the browser's 35-second request timeout. The retained [original stack](original-crash-stack.txt) enters `gin::RunWithLocker` with the poisoned, disposed isolate address. Gin posts its locker wrapper with an unretained isolate, and locks it before the V8 task can check its cancellation state. Browser timeout resets the Mojo service; service destruction disposes that isolate while these wrappers remain queued.
+
+The [repair](repair.patch) gives only Blanc's blocker isolate a forwarding single-thread task runner. It wraps immediate, delayed and non-nestable foreground callbacks in a service-lifetime check. The service cancels these callbacks on its own sequence before resetting the V8 handles and disposing the isolate. Background threads may post callbacks; the lifetime flag is read and written only on the destination sequence. Posting retains the cancellation state without retaining the service or isolate. The upstream Gin implementation, request deadline, engine failure policy and network decisions are unchanged.
+
+## Scope
+
+**Both focused schedules pass: 24 assertions (12 regular, 12 private), with no failed runtime attempt in this checkpoint.** The [report](timeout-report.json) records the exact process IDs, registration/version joins and outcomes. Both main browsers exited with code 0; the resumed helper disappeared without a signal/crash signature in its captured launch log. Each subsequent fetch rejected without reaching the local fixture server. This verifies safe teardown after resume and continued fail-closed behavior, not automatic engine restart. The harness runs two registrations in regular and private disposable contexts, stops only the blocker child belonging to the test browser, waits for actual timeout refusal, then resumes that same child. It checks identity joins, helper disappearance without a crash, browser responsiveness, subsequent fail-closed fetch, and clean browser exit. Initial registration proves the task runner still executes work while the service is alive. No allowed/cache attribution suites, owner walkthroughs or unrelated launch-gate tests are repeated.
+
+The build is incremental: two planned actions, eight actual steps, 31.23 seconds, final guard zero. [Build identity](build-identity.json) records the source base, repair digest and executable framework digest. The upstream inventory remains 73 files/180 hunks and 151 clean Git dependencies; copied Blanc service files are outside that upstream-only count. The signed accepted Preview is unchanged and this native test output has not been packaged, signed, or notarized. No new release acceptance is implied. Electron remains paused, the Google baseline and permanent profiles remain separate, and latency is deferred.
+
+## Boundaries and reproducibility
+
+The original failure remains archived separately; it is not counted as a passing test. `run.mjs` is the executed harness with trailing whitespace removed. Raw traces and launch logs are gzip-compressed without content changes. No new test-only native switch was introduced. This is bounded native-output coverage, not signed-candidate acceptance, arbitrary shutdown races, or proof about every V8 task type. No launch gate is newly closed; progress remains 9/12.

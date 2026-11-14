@@ -1,0 +1,187 @@
+[27840:1677967:1021/105235.690236:ERROR:chrome/browser/mac/code_sign_clone_manager.mm:93] error removing quarantine attribute "/var/folders/4x/r7mr2b5d4q53x8nbf_trvcxw0000gn/X/"
+[27840:1677905:1021/105235.995178:ERROR:chrome/browser/actor/tools/tool_request.cc:32] Not implemented reached in static std::optional<ToolDefinition> actor::ToolRequest::GetToolDefinition(). 
+
+DevTools listening on ws://127.0.0.1:9297/devtools/browser/8a83fa44-f82c-4361-928f-ff07a68396ff
+[27840:1677905:1021/105239.631090:FATAL:base/threading/thread_restrictions.cc:62] DCHECK failed: !tls_blocking_disallowed. Function marked as blocking was called from a scope that disallows blocking! If this task is running inside the ThreadPool, it needs to have MayBlock() in its TaskTraits. Otherwise, consider making this blocking work asynchronous or, as a last resort, you may use ScopedAllowBlocking (see its documentation for best practices).
+tls_blocking_disallowed 1 set by
+0   Blanc Prototype Framework           0x000000014cb4e46c base::debug::CollectStackTrace(base::span<void const*, 18446744073709551615ul, void const**>) + 24
+1   Blanc Prototype Framework           0x000000014cb397a0 base::debug::StackTrace::StackTrace(unsigned long) + 224
+2   Blanc Prototype Framework           0x000000014cb1c644 base::DisallowUnresponsiveTasks() + 48
+3   Blanc Prototype Framework           0x0000000148563d5c content::BrowserMainLoop::PreMainMessageLoopRun() + 548
+4   Blanc Prototype Framework           0x0000000143b33270 base::OnceCallback<int ()>::Run() && + 112
+5   Blanc Prototype Framework           0x0000000148d43af4 content::StartupTaskRunner::RunAllTasksNow(bool) + 68
+6   Blanc Prototype Framework           0x00000001485637a8 content::BrowserMainLoop::CreateStartupTasks() + 1132
+7   Blanc Prototype Framework           0x000000014856651c content::BrowserMainRunnerImpl::Initialize(content::MainFunctionParams) + 104
+8   Blanc Prototype Framework           0x0000000148561374 content::BrowserMain(content::MainFunctionParams) + 100
+9   Blanc Prototype Framework           0x000000014b712290 content::RunBrowserProcessMain(content::MainFunctionParams, content::ContentMainDelegate*) + 136
+10  Blanc Prototype Framework           0x000000014b714c88 content::ContentMainRunnerImpl::RunBrowser(content::MainFunctionParams, bool) + 2828
+11  Blanc Prototype Framework           0x000000014b7140f8 content::ContentMainRunnerImpl::Run() + 1508
+12  Blanc Prototype Framework           0x000000014b711a1c content::RunContentProcess(content::ContentMainParams, content::ContentMainRunner*) + 988
+13  Blanc Prototype Framework           0x000000014b711bd8 content::ContentMain(content::ContentMainParams) + 104
+14  Blanc Prototype Framework           0x0000000143608e70 ChromeMain + 560
+15  Blanc Prototype                     0x000000010407c88c main + 292
+16  dyld                                0x0000000198a74d7c start + 6652
+
+0   Blanc Prototype Framework           0x000000014cb4e46c base::debug::CollectStackTrace(base::span<void const*, 18446744073709551615ul, void const**>) + 24
+1   Blanc Prototype Framework           0x000000014cb397a0 base::debug::StackTrace::StackTrace(unsigned long) + 224
+2   Blanc Prototype Framework           0x000000014ca3b7ac logging::LogMessage::Flush() + 172
+3   Blanc Prototype Framework           0x000000014ca3b61c logging::LogMessage::~LogMessage() + 36
+4   Blanc Prototype Framework           0x000000014ca20168 logging::(anonymous namespace)::DCheckLogMessage::~DCheckLogMessage() + 76
+5   Blanc Prototype Framework           0x000000014ca1fa50 logging::CheckError::~CheckError() + 44
+6   Blanc Prototype Framework           0x000000014ca1fa90 logging::CheckError::~CheckError() + 12
+7   Blanc Prototype Framework           0x000000014cb1b9b4 base::AssertBlockingAllowed() + 228
+8   Blanc Prototype Framework           0x000000014cb11bf8 base::ScopedBlockingCall::ScopedBlockingCall(base::Location const&, base::BlockingType) + 104
+9   Blanc Prototype Framework           0x000000014cb487dc base::PathExists(base::FilePath const&) + 76
+10  Blanc Prototype Framework           0x000000014c5f1c08 blanc_prototype::(anonymous namespace)::Handler::ClosedRetrySaved(std::__Cr::basic_string<char, std::__Cr::char_traits<char>, std::__Cr::allocator<char>>, base::WeakPtr<Profile>, base::ListValue, bool) + 304
+11  Blanc Prototype Framework           0x000000014c5f1a30 base::internal::Invoker<base::internal::FunctorTraits<void (blanc_prototype::(anonymous namespace)::Handler::*&&)(std::__Cr::basic_string<char, std::__Cr::char_traits<char>, std::__Cr::allocator<char>>, base::WeakPtr<Profile>, base::ListValue, bool), base::WeakPtr<blanc_prototype::(anonymous namespace)::Handler>&&, std::__Cr::basic_string<char, std::__Cr::char_traits<char>, std::__Cr::allocator<char>>&&, base::WeakPtr<Profile>&&, base::ListValue&&>, base::internal::BindState<true, true, false, void (blanc_prototype::(anonymous namespace)::Handler::*)(std::__Cr::basic_string<char, std::__Cr::char_traits<char>, std::__Cr::allocator<char>>, base::WeakPtr<Profile>, base::ListValue, bool), base::WeakPtr<blanc_prototype::(anonymous namespace)::Handler>, std::__Cr::basic_string<char, std::__Cr::char_traits<char>, std::__Cr::allocator<char>>, base::WeakPtr<Profile>, base::ListValue>, void (bool)>::RunOnce(base::internal::BindStateBase*, bool) + 172
+12  Blanc Prototype Framework           0x00000001437e1df8 base::OnceCallback<void (std::__Cr::vector<mojo::StructPtr<media::mojom::MediaEngagementScoreDetails>, std::__Cr::allocator<mojo::StructPtr<media::mojom::MediaEngagementScoreDetails>>>)>::Run(std::__Cr::vector<mojo::StructPtr<media::mojom::MediaEngagementScoreDetails>, std::__Cr::allocator<mojo::StructPtr<media::mojom::MediaEngagementScoreDetails>>>) && + 120
+13  Blanc Prototype Framework           0x0000000143b38420 void base::internal::ReplyAdapter<std::__Cr::tuple<bool>, bool>(base::OnceCallback<void (bool)>, std::__Cr::unique_ptr<std::__Cr::tuple<bool>, std::__Cr::default_delete<std::__Cr::tuple<bool>>>*) + 96
+14  Blanc Prototype Framework           0x0000000143b333a4 base::internal::Invoker<base::internal::FunctorTraits<void (*&&)(base::OnceCallback<void ((anonymous namespace)::CloseFileResult const&)>, std::__Cr::unique_ptr<std::__Cr::tuple<(anonymous namespace)::CloseFileResult>, std::__Cr::default_delete<std::__Cr::tuple<(anonymous namespace)::CloseFileResult>>>*), base::OnceCallback<void ((anonymous namespace)::CloseFileResult const&)>&&, std::__Cr::unique_ptr<std::__Cr::tuple<(anonymous namespace)::CloseFileResult>, std::__Cr::default_delete<std::__Cr::tuple<(anonymous namespace)::CloseFileResult>>>*>, base::internal::BindState<false, true, false, void (*)(base::OnceCallback<void ((anonymous namespace)::CloseFileResult const&)>, std::__Cr::unique_ptr<std::__Cr::tuple<(anonymous namespace)::CloseFileResult>, std::__Cr::default_delete<std::__Cr::tuple<(anonymous namespace)::CloseFileResult>>>*), base::OnceCallback<void ((anonymous namespace)::CloseFileResult const&)>, base::internal::OwnedWrapper<std::__Cr::unique_ptr<std::__Cr::tuple<(anonymous namespace)::CloseFileResult>, std::__Cr::default_delete<std::__Cr::tuple<(anonymous namespace)::CloseFileResult>>>, std::__Cr::default_delete<std::__Cr::unique_ptr<std::__Cr::tuple<(anonymous namespace)::CloseFileResult>, std::__Cr::default_delete<std::__Cr::tuple<(anonymous namespace)::CloseFileResult>>>>>>, void ()>::RunOnce(base::internal::BindStateBase*) + 36
+15  Blanc Prototype Framework           0x0000000143839fcc base::OnceCallback<void ()>::Run() && + 108
+16  Blanc Prototype Framework           0x000000014caed848 base::internal::PostTaskAndReplyRelay::RunReply(base::internal::PostTaskAndReplyRelay) + 140
+17  Blanc Prototype Framework           0x000000014caed6cc base::internal::Invoker<base::internal::FunctorTraits<void (*&&)(base::internal::PostTaskAndReplyRelay), base::internal::PostTaskAndReplyRelay&&>, base::internal::BindState<false, true, false, void (*)(base::internal::PostTaskAndReplyRelay), base::internal::PostTaskAndReplyRelay>, void ()>::RunOnce(base::internal::BindStateBase*) + 44
+18  Blanc Prototype Framework           0x0000000143839fcc base::OnceCallback<void ()>::Run() && + 108
+19  Blanc Prototype Framework           0x000000014cab12b0 base::TaskAnnotator::RunTaskImpl(base::PendingTask&) + 336
+20  Blanc Prototype Framework           0x000000014cadf55c base::sequence_manager::internal::ThreadControllerWithMessagePumpImpl::DoWorkImpl(base::LazyNow*) + 1968
+21  Blanc Prototype Framework           0x000000014cadeb78 base::sequence_manager::internal::ThreadControllerWithMessagePumpImpl::DoWork() + 96
+22  Blanc Prototype Framework           0x000000014cb60f98 base::MessagePumpCFRunLoopBase::RunWork() + 320
+23  Blanc Prototype Framework           0x000000014cb5a5f8 base::apple::CallWithEHFrame(void () block_pointer) + 16
+24  Blanc Prototype Framework           0x000000014cb604b8 base::MessagePumpCFRunLoopBase::RunWorkSource(void*) + 60
+25  CoreFoundation                      0x000000019cd0d920 __CFRUNLOOP_IS_CALLING_OUT_TO_A_SOURCE0_PERFORM_FUNCTION__ + 28
+26  CoreFoundation                      0x000000019cd0d8b4 __CFRunLoopDoSource0 + 224
+27  CoreFoundation                      0x000000019cd0d5ec __CFRunLoopDoSources0 + 232
+28  CoreFoundation                      0x000000019cd0c1bc __CFRunLoopRun + 832
+29  CoreFoundation                      0x000000019cde6c10 _CFRunLoopRunSpecificWithOptions + 536
+30  HIToolbox                           0x00000001a74c45e0 RunCurrentEventLoopInMode + 320
+31  HIToolbox                           0x00000001a74c796c ReceiveNextEventCommon + 492
+32  HIToolbox                           0x00000001a764ddb8 _BlockUntilNextEventMatchingListInMode + 48
+33  AppKit                              0x00000001a2cf88c0 _DPSBlockUntilNextEventMatchingListInMode + 292
+34  AppKit                              0x00000001a29b759c _DPSNextEvent + 576
+35  AppKit                              0x00000001a314e5f8 -[NSApplication(NSEventRouting) _nextEventMatchingEventMask:untilDate:inMode:dequeue:] + 832
+36  AppKit                              0x00000001a314e0e8 -[NSApplication(NSEventRouting) nextEventMatchingMask:untilDate:inMode:dequeue:] + 344
+37  Blanc Prototype Framework           0x000000014f1ffca0 __64-[CrApplication nextEventMatchingMask:untilDate:inMode:dequeue:]_block_invoke + 64
+38  Blanc Prototype Framework           0x000000014cb5a5f8 base::apple::CallWithEHFrame(void () block_pointer) + 16
+39  Blanc Prototype Framework           0x000000014f1ffbe8 -[CrApplication nextEventMatchingMask:untilDate:inMode:dequeue:] + 176
+40  AppKit                              0x00000001a29aa920 -[NSApplication run] + 396
+41  Blanc Prototype Framework           0x000000014cb617dc base::MessagePumpNSApplication::DoRun(base::MessagePump::Delegate*) + 316
+42  Blanc Prototype Framework           0x000000014cb5fc3c base::MessagePumpCFRunLoopBase::Run(base::MessagePump::Delegate*) + 124
+43  Blanc Prototype Framework           0x000000014cae0304 base::sequence_manager::internal::ThreadControllerWithMessagePumpImpl::Run(bool, base::TimeDelta) + 868
+44  Blanc Prototype Framework           0x000000014ca87a10 base::RunLoop::Run(base::Location const&) + 1024
+45  Blanc Prototype Framework           0x0000000148564b60 content::BrowserMainLoop::RunMainMessageLoop() + 236
+46  Blanc Prototype Framework           0x0000000148566974 content::BrowserMainRunnerImpl::Run() + 148
+47  Blanc Prototype Framework           0x0000000148561394 content::BrowserMain(content::MainFunctionParams) + 132
+48  Blanc Prototype Framework           0x000000014b712290 content::RunBrowserProcessMain(content::MainFunctionParams, content::ContentMainDelegate*) + 136
+49  Blanc Prototype Framework           0x000000014b714c88 content::ContentMainRunnerImpl::RunBrowser(content::MainFunctionParams, bool) + 2828
+50  Blanc Prototype Framework           0x000000014b7140f8 content::ContentMainRunnerImpl::Run() + 1508
+51  Blanc Prototype Framework           0x000000014b711a1c content::RunContentProcess(content::ContentMainParams, content::ContentMainRunner*) + 988
+52  Blanc Prototype Framework           0x000000014b711bd8 content::ContentMain(content::ContentMainParams) + 104
+53  Blanc Prototype Framework           0x0000000143608e70 ChromeMain + 560
+54  Blanc Prototype                     0x000000010407c88c main + 292
+55  dyld                                0x0000000198a74d7c start + 6652
+Task trace:
+0   Blanc Prototype Framework           0x00000001496a2ce0 sessions::CommandStorageManager::FlushSavedCommands(base::OnceCallback<void (bool)>) + 176
+1   Blanc Prototype Framework           0x00000001496a2ce0 sessions::CommandStorageManager::FlushSavedCommands(base::OnceCallback<void (bool)>) + 176
+2   Blanc Prototype Framework           0x00000001496a2ce0 sessions::CommandStorageManager::FlushSavedCommands(base::OnceCallback<void (bool)>) + 176
+3   Blanc Prototype Framework           0x00000001496a2ce0 sessions::CommandStorageManager::FlushSavedCommands(base::OnceCallback<void (bool)>) + 176
+4   Blanc Prototype Framework           0x000000014c5db750 blanc_prototype::(anonymous namespace)::Handler::Handle(base::ListValue const&) + 25360
+Task trace buffer limit hit, update PendingTask::kTaskBacktraceLength to increase.
+Crash keys:
+  "gpu-glver" = "OpenGL ES 3.0 (ANGLE 2.1.29094 git hash: 25078a7740fd)"
+  "gpu-generation-intel" = "0"
+  "gpu-vsver" = "3.00"
+  "gpu-psver" = "3.00"
+  "gpu-driver" = "27.2"
+  "gpu_count" = "1"
+  "gpu-devid" = "0x0000"
+  "gpu-venid" = "0x106b"
+  "component-extension-3" = "Gemini in Chrome"
+  "component-extension-2" = "Contextual Tasks"
+  "component-extension-1" = "Chromium PDF Viewer"
+  "num-component-extensions" = "3"
+  "num-extensions" = "0"
+  "keep_alive_registry" = "{registered_count_=2, restart_allowed_count_=0, KeepAlives=[BROWSER (1), APP_CONTROLLER (1)]}"
+  "chrome-trace-id" = "10415434674904765014"
+  "reentry_guard_tls_slot" = "271"
+  "gwp-asan-malloc" = "13801702800"
+  "num-variations-runtime-overrides" = "0"
+  "variations" = "9cdd2223-3f4a17df,bd6dd170-b5b075b6,f6f5c542-3f4a17df,adaccd11-3f4a17df,d5e1fd03-72564c9d,63ef0138-3f4a17df,c6fc28a7-3f4a17df,bc3ce3e6-60a1867b,ae727645-d13781e7,f3dbf5bd-faff9ce0,ce94569c-3f4a17df,c290aefb-d8d91f8f,f3ed486d-3f4a17df,da493d3c-3f4a17df,a29130c-3f4a17df,72bafd3e-cdb4c186,35c106c9-3f4a17df,a66dbd64-71c38a98,e51c83b-dc4755e5,1e12d864-94f75473,92b406bd-3f4a17df,6e4912ad-3f4a17df,4dc2f223-3f4a17df,d6ad7f9a-a9080253,3e15bfc6-3f4a17df,b8181361-3f4a17df,f6ce9b08-3f4a17df,5e7a6b04-3f4a17df,a1777c74-3f4a17df,53fa9d2a-3f4a17df,99fb13df-c3c0f822,6cd68a95-3f4a17df,e40bd972-3f4a17df,305240ad-3f4a17df,a4ca7cb1-3f4a17df,87bc24fc-3f4a17df,265c01cc-265c01cc,c6080aa-3f4a17df,b63743ab-3f4a17df,fa220cc1-3f4a17df,5e2ea1a-3f4a17df,4076100b-3f4a17df,533ac6d2-3f4a17df,ed3f5f6e-3f4a17df,b127f8bf-3f4a17df,e9844d40-3f4a17df,b1b6eab0-381bdb0c,8f80c10-78198108,46294e3b-3f4a17df,81bf947e-3f4a17df,d1ae5bf4-3f4a17df,8f418b04-299bae22,8f9d758f-20eb079a,6f87b0c-3f4a17df,9d5ecd8d-ca7d8d80,73f2ea1f-7fe57363,44fe0078-3f4a17df,55cc39e1-3f4a17df,8e887d5e-3f4a17df,f2f8b883-3f4a17df,b706019d-3f4a17df,c2bfaa56-3f4a17df,2a51d0ed-3f4a17df,b6b5ea41-3f4a17df,dc033963-3f4a17df,21e47f2a-3f4a17df,99a615e5-3f4a17df,4146cc26-775f6248,2385f431-3f4a17df,e14ee5ee-c6d6098d,76e51e2c-3f4a17df,25d1e44f-9c275af9,186230f2-3f4a17df,c71d21e7-3f4a17df,ef4764d7-88fcaf7d,2e862394-fb669628,9f0fccc2-3f4a17df,e3559213-c0f46cd5,7a7cc1e6-3f4a17df,80b60e4a-3f4a17df,c203d55b-3f4a17df,d5f746a4-39aaf314,6e153b90-4fb74fee,4ce582eb-3f4a17df,260bef7d-9973a429,2394f90f-ecc8f8cf,f7d06457-e9d42fcd,fd0aa8ec-3f4a17df,f914376f-3f4a17df,4369f1a2-3f4a17df,ff1e0777-3f4a17df,210f81c-3f4a17df,54b15be4-e3ec50a6,9ba1837a-3f4a17df,a374fdf0-964ff297,30cd3e72-fe6486b2,d990c4ac-3f4a17df,f980930-642c19ed,3d3f8872-3f4a17df,4354ea6d-3f4a17df,35a386c3-3f4a17df,258151b3-3f4a17df,68d69905-3f4a17df,a39574eb-3f4a17df,d3566fbd-c6f74b94,18b8e9fd-3f4a17df,959459a8-3f4a17df,c4455f20-4de0d435,4b86e77-9609086,a008700b-4593a253,779782d3-3f4a17df,8f4b3221-3f4a17df,8ad00b0c-3f4a17df,3299018c-3f4a17df,4b781a51-23ee7c7b,c71292e0-3f4a17df,f8b97b53-3f4a17df,5d43ba47-3f4a17df,ada18eb5-3f4a17df,310c8bf2-3f4a17df,3c978b59-3f4a17df,eb689255-3f4a17df,3b02c079-3f4a17df,8ba22946-3f4a17df,820f17d2-e484eeec,a028f288-d24710ce,44666d99-3d47f4f4,6821fcbe-3f4a17df,56aa5797-e5fec5a6,ef3132a9-3f4a17df,5e40cc59-a9e4c666,42e76f32-3f4a17df,9f488d92-3f4a17df,16f47e60-3f4a17df,832e9e2-3f4a17df,63c162ac-e2001c64,59f21291-3f4a17df,3f52404b-3f4a17df,ba98e1e4-3f4a17df,36f9655f-d14604de,f314f5b9-a2b13a7f,ad757a37-3f4a17df,c219b73b-1edfaeb9,9cf6c713-7585e9f1,f7adf49b-3f4a17df,70404afa-803f8fc4,c7af5641-3f4a17df,3b79d4f4-3f4a17df,531e1626-4513f3bf,7262ef2c-140d00b2,62037ac9-3f4a17df,e0041356-e8edc07e,77ca3281-3f4a17df,6678bb8a-ef96dc7c,b76b514f-3ac589b9,e043b5f9-3f4a17df,626538e5-3f4a17df,6ec84df5-3f4a17df,af943b4f-b3e166c8,703ef460-3f4a17df,8018a043-3f4a17df,eff066ba-463f4d40,9f8a0fd2-b4a3cd0c,fecddbbf-ef12f1db,6df95b12-ce455729,e22763c8-b8554d7a,36860c1b-3f4a17df,8be81a01-3f4a17df,fec9e2f8-3f4a17df,56cfb2ff-3d47f4f4,3ede7bd6-3f4a17df,9e5c75f1-30e1b12b,501f3de4-3f4a17df,26c22eba-3f4a17df,4d625646-3f4a17df,1caa3332-20af8ffe,b5c2948-84db5eb1,9102459-3967a2e7,a34be965-3f4a17df,97604fae-c1092d08,de8d7cc4-2f233952,40debc11-3f4a17df,b60ea2ed-51a6e3be,e777c151-3f4a17df,3fcef0b9-3f4a17df,ee06daaa-3f4a17df,89986dbe-3f01b610,75251bde-3d47f4f4,fbf04c3e-3f4a17df,b252442a-3f4a17df,7dcaa2cd-3f4a17df,8c162025-3d47f4f4,3ac9fcb9-3f4a17df,67dae843-3f4a17df,b0b483da-3f4a17df,e770b78e-3f4a17df,c5be9d88-3f4a17df,ad4acdda-3f4a17df,299dc502-3f4a17df,d512da3a-513c429d,a9f07d77-3f4a17df,c772283a-3f4a17df,f6264095-c3f8eab0,d09b7b7d-3f4a17df,f1e05525-3f4a17df,c0a2fd9b-3d47f4f4,dca2449f-3f4a17df,f181271f-4d066f7c,b4c2bd17-23db2647,a52330dc-6d77353e,e4d43646-3f4a17df,6ddea229-6ddea229,f4159b43-3f4a17df,65eaec3e-3f4a17df,f3b01c08-3f4a17df,6a64ab7e-d0b22900,a524a837-3f4a17df,2d2b187a-3f4a17df,5abe5347-3f4a17df,9507cc99-f2018abe,70640dfa-3f4a17df,18324944-3f4a17df,f1082cd7-52bd1062,c295f76c-3f4a17df,3ca85ee1-3d47f4f4,eac788b4-77795d80,a943479-3f4a17df,c21c2b8b-3d47f4f4,5d6e19f0-3d47f4f4,3728c466-3d47f4f4,a3652538-7f6593f0,da968c94-3f4a17df,ba1f9add-3f4a17df,57d64459-3f4a17df,7ca2dd7e-3f4a17df,c823d1e9-3d47f4f4,e2d38844-3f4a17df,29be5797-3f4a17df,d00bdbf9-3f4a17df,2faf225b-3f4a17df,2cee8ab6-3f4a17df,a49a69c3-3f4a17df,a2c6574d-3f4a17df,798ea899-3f4a17df,7b4be1f2-3f4a17df,6331e4d6-3f4a17df,6332ffaf-3f4a17df,595f5eb0-f23d1dea,5910121-3f4a17df,8a0f7c51-112fdb12,bc0b4e45-c1092d08,377002b7-3f4a17df,38b96156-3f4a17df,ed2195eb-3f4a17df,52a20523-3f4a17df,f42905ff-3f4a17df,63f121e7-3f4a17df,8d4c626e-3f4a17df,2e7369a1-4aceb943,186d6e2c-36c0e608,153d998a-53b1d3ec,fd051c38-3f4a17df,1e11dbbb-3f4a17df,bab9965f-76c70532,b3c54bb3-88fcaf7d,9a26d980-13a3e431,78049c75-111140a5,f86bc1e2-3f4a17df,3e672fd9-e109e63f,47a0a3b2-3f4a17df,1a6f8066-3f4a17df,c1e2f598-3f4a17df,47b4cae6-3f4a17df,171eed38-3f4a17df,6eb9a8f-3f4a17df,5199db31-f0c504d5,e642bc8f-3f4a17df,56c4f1cd-8c7df51c,7ccab089-3f4a17df,e6d68be3-85c54e1c,5e05ef36-3f4a17df,65e9a6d9-3f4a17df,efd40742-3f4a17df,797fe373-3f4a17df,4e83575c-3f4a17df,8ed472ab-3f4a17df,a2d45efe-2319ef5a,c297985a-3f4a17df,c7afe1d5-3f4a17df,5870a003-3f4a17df,4776ceb-3f4a17df,c5c172fe-443695d8,d436ce96-3f4a17df,f7f6ed33-3f4a17df,19784e46-3f4a17df,59ec3b4-3f4a17df,ed102d29-3f4a17df,2ad3343-3f4a17df,334b1a1c-3f4a17df,8643cb65-cf4f6ead,e9854fc-2e12b55,d0083347-3ec702d4,92ee5c9-a2abbf9f,a015f6e1-3f4a17df,4583a71-3f4a17df,53eaea5e-3f4a17df,be9ac099-f9095748,f079e901-bb7bbe90,96def758-3f4a17df,87bc8a34-3f4a17df,90860314-5ab828e2,d6284ba0-9610fd4e,c1531af3-3f4a17df,e35cc1a-3f4a17df,e5a1483c-3f4a17df,73551ca1-3f4a17df,d6737162-3f4a17df,6a68c9a6-3f4a17df,67cf2e30-f8dc2894,c55491ea-156838e5,2468be5e-5f6398dc,a5ecfb95-3f4a17df,1c4d4494-3f4a17df,64116cdb-3f4a17df,8e71e33f-3f4a17df,e8565973-3f4a17df,e0a24f31-3d47f4f4,b357b792-3f4a17df,f4f00e05-ca7d8d80,9481ce98-3d47f4f4,2a426c03-3d47f4f4,4b935545-bb2d3403,70678518-dee66fa8,be338734-dee66fa8,5f9907a9-dee66fa8,8eeccb9a-dee66fa8,2b465683-dee66fa8,52fc7926-dee66fa8,bc9b361d-dee66fa8,a41a7188-dee66fa8,ff71bfdc-dee66fa8,251fc742-dee66fa8,2159dd0c-dee66fa8,4330e9a4-dee66fa8,e7cc79d5-dee66fa8,9a38bae3-3d47f4f4,2d1e43a3-3f4a17df,370ace14-3f4a17df,386dc267-3d47f4f4,d69d967d-9cce7190,3c8f75a1-dcfbe471,a4406b35-1657e2d6,408da146-1657e2d6,"
+  "num-experiments" = "353"
+  "switch-10" = "about:blank"
+  "switch-9" = "--blanc-test-cycle-mutation"
+  "switch-8" = "--restore-last-session"
+  "switch-7" = "--hide-crash-restore-bubble"
+  "switch-6" = "--use-mock-keychain"
+  "switch-5" = "--no-default-browser-check"
+  "switch-4" = "--no-first-run"
+  "switch-3" = "--blanc-prototype-assets=/private/tmp/blanc-chromium157-work/exp"
+  "switch-2" = "--remote-debugging-port=9297"
+  "switch-1" = "--user-data-dir=/private/tmp/blanc-internal-cycle-encrypted/prof"
+  "num-switches" = "13"
+  "commandline-enabled-feature-1" = "EncryptSessionStorage:stage/write_encrypted_read_prefer_encrypte"
+  "osarch" = "arm64"
+  "pid" = "27840"
+  "ptype" = "browser"
+
+Received signal 6
+0   Blanc Prototype Framework           0x000000014cb4e46c base::debug::CollectStackTrace(base::span<void const*, 18446744073709551615ul, void const**>) + 24
+1   Blanc Prototype Framework           0x000000014cb397a0 base::debug::StackTrace::StackTrace(unsigned long) + 224
+2   Blanc Prototype Framework           0x000000014cb4e3c4 base::debug::(anonymous namespace)::StackDumpSignalHandler(int, __siginfo*, void*) + 924
+3   libsystem_platform.dylib            0x000000019db12144 _sigtramp + 56
+4   libsystem_pthread.dylib             0x0000000198b48960 pthread_kill + 296
+5   libsystem_c.dylib                   0x0000000198bdc480 abort + 148
+6   Blanc Prototype Framework           0x000000014ca3c328 logging::LogMessage::HandleFatal(unsigned long, std::__Cr::basic_string<char, std::__Cr::char_traits<char>, std::__Cr::allocator<char>> const&) const + 456
+7   Blanc Prototype Framework           0x000000014ca3bdc8 logging::LogMessage::Flush() + 1736
+8   Blanc Prototype Framework           0x000000014ca3b61c logging::LogMessage::~LogMessage() + 36
+9   Blanc Prototype Framework           0x000000014ca20168 logging::(anonymous namespace)::DCheckLogMessage::~DCheckLogMessage() + 76
+10  Blanc Prototype Framework           0x000000014ca1fa50 logging::CheckError::~CheckError() + 44
+11  Blanc Prototype Framework           0x000000014ca1fa90 logging::CheckError::~CheckError() + 12
+12  Blanc Prototype Framework           0x000000014cb1b9b4 base::AssertBlockingAllowed() + 228
+13  Blanc Prototype Framework           0x000000014cb11bf8 base::ScopedBlockingCall::ScopedBlockingCall(base::Location const&, base::BlockingType) + 104
+14  Blanc Prototype Framework           0x000000014cb487dc base::PathExists(base::FilePath const&) + 76
+15  Blanc Prototype Framework           0x000000014c5f1c08 blanc_prototype::(anonymous namespace)::Handler::ClosedRetrySaved(std::__Cr::basic_string<char, std::__Cr::char_traits<char>, std::__Cr::allocator<char>>, base::WeakPtr<Profile>, base::ListValue, bool) + 304
+16  Blanc Prototype Framework           0x000000014c5f1a30 base::internal::Invoker<base::internal::FunctorTraits<void (blanc_prototype::(anonymous namespace)::Handler::*&&)(std::__Cr::basic_string<char, std::__Cr::char_traits<char>, std::__Cr::allocator<char>>, base::WeakPtr<Profile>, base::ListValue, bool), base::WeakPtr<blanc_prototype::(anonymous namespace)::Handler>&&, std::__Cr::basic_string<char, std::__Cr::char_traits<char>, std::__Cr::allocator<char>>&&, base::WeakPtr<Profile>&&, base::ListValue&&>, base::internal::BindState<true, true, false, void (blanc_prototype::(anonymous namespace)::Handler::*)(std::__Cr::basic_string<char, std::__Cr::char_traits<char>, std::__Cr::allocator<char>>, base::WeakPtr<Profile>, base::ListValue, bool), base::WeakPtr<blanc_prototype::(anonymous namespace)::Handler>, std::__Cr::basic_string<char, std::__Cr::char_traits<char>, std::__Cr::allocator<char>>, base::WeakPtr<Profile>, base::ListValue>, void (bool)>::RunOnce(base::internal::BindStateBase*, bool) + 172
+17  Blanc Prototype Framework           0x00000001437e1df8 base::OnceCallback<void (std::__Cr::vector<mojo::StructPtr<media::mojom::MediaEngagementScoreDetails>, std::__Cr::allocator<mojo::StructPtr<media::mojom::MediaEngagementScoreDetails>>>)>::Run(std::__Cr::vector<mojo::StructPtr<media::mojom::MediaEngagementScoreDetails>, std::__Cr::allocator<mojo::StructPtr<media::mojom::MediaEngagementScoreDetails>>>) && + 120
+18  Blanc Prototype Framework           0x0000000143b38420 void base::internal::ReplyAdapter<std::__Cr::tuple<bool>, bool>(base::OnceCallback<void (bool)>, std::__Cr::unique_ptr<std::__Cr::tuple<bool>, std::__Cr::default_delete<std::__Cr::tuple<bool>>>*) + 96
+19  Blanc Prototype Framework           0x0000000143b333a4 base::internal::Invoker<base::internal::FunctorTraits<void (*&&)(base::OnceCallback<void ((anonymous namespace)::CloseFileResult const&)>, std::__Cr::unique_ptr<std::__Cr::tuple<(anonymous namespace)::CloseFileResult>, std::__Cr::default_delete<std::__Cr::tuple<(anonymous namespace)::CloseFileResult>>>*), base::OnceCallback<void ((anonymous namespace)::CloseFileResult const&)>&&, std::__Cr::unique_ptr<std::__Cr::tuple<(anonymous namespace)::CloseFileResult>, std::__Cr::default_delete<std::__Cr::tuple<(anonymous namespace)::CloseFileResult>>>*>, base::internal::BindState<false, true, false, void (*)(base::OnceCallback<void ((anonymous namespace)::CloseFileResult const&)>, std::__Cr::unique_ptr<std::__Cr::tuple<(anonymous namespace)::CloseFileResult>, std::__Cr::default_delete<std::__Cr::tuple<(anonymous namespace)::CloseFileResult>>>*), base::OnceCallback<void ((anonymous namespace)::CloseFileResult const&)>, base::internal::OwnedWrapper<std::__Cr::unique_ptr<std::__Cr::tuple<(anonymous namespace)::CloseFileResult>, std::__Cr::default_delete<std::__Cr::tuple<(anonymous namespace)::CloseFileResult>>>, std::__Cr::default_delete<std::__Cr::unique_ptr<std::__Cr::tuple<(anonymous namespace)::CloseFileResult>, std::__Cr::default_delete<std::__Cr::tuple<(anonymous namespace)::CloseFileResult>>>>>>, void ()>::RunOnce(base::internal::BindStateBase*) + 36
+20  Blanc Prototype Framework           0x0000000143839fcc base::OnceCallback<void ()>::Run() && + 108
+21  Blanc Prototype Framework           0x000000014caed848 base::internal::PostTaskAndReplyRelay::RunReply(base::internal::PostTaskAndReplyRelay) + 140
+22  Blanc Prototype Framework           0x000000014caed6cc base::internal::Invoker<base::internal::FunctorTraits<void (*&&)(base::internal::PostTaskAndReplyRelay), base::internal::PostTaskAndReplyRelay&&>, base::internal::BindState<false, true, false, void (*)(base::internal::PostTaskAndReplyRelay), base::internal::PostTaskAndReplyRelay>, void ()>::RunOnce(base::internal::BindStateBase*) + 44
+23  Blanc Prototype Framework           0x0000000143839fcc base::OnceCallback<void ()>::Run() && + 108
+24  Blanc Prototype Framework           0x000000014cab12b0 base::TaskAnnotator::RunTaskImpl(base::PendingTask&) + 336
+25  Blanc Prototype Framework           0x000000014cadf55c base::sequence_manager::internal::ThreadControllerWithMessagePumpImpl::DoWorkImpl(base::LazyNow*) + 1968
+26  Blanc Prototype Framework           0x000000014cadeb78 base::sequence_manager::internal::ThreadControllerWithMessagePumpImpl::DoWork() + 96
+27  Blanc Prototype Framework           0x000000014cb60f98 base::MessagePumpCFRunLoopBase::RunWork() + 320
+28  Blanc Prototype Framework           0x000000014cb5a5f8 base::apple::CallWithEHFrame(void () block_pointer) + 16
+29  Blanc Prototype Framework           0x000000014cb604b8 base::MessagePumpCFRunLoopBase::RunWorkSource(void*) + 60
+30  CoreFoundation                      0x000000019cd0d920 __CFRUNLOOP_IS_CALLING_OUT_TO_A_SOURCE0_PERFORM_FUNCTION__ + 28
+31  CoreFoundation                      0x000000019cd0d8b4 __CFRunLoopDoSource0 + 224
+32  CoreFoundation                      0x000000019cd0d5ec __CFRunLoopDoSources0 + 232
+33  CoreFoundation                      0x000000019cd0c1bc __CFRunLoopRun + 832
+34  CoreFoundation                      0x000000019cde6c10 _CFRunLoopRunSpecificWithOptions + 536
+35  HIToolbox                           0x00000001a74c45e0 RunCurrentEventLoopInMode + 320
+36  HIToolbox                           0x00000001a74c796c ReceiveNextEventCommon + 492
+37  HIToolbox                           0x00000001a764ddb8 _BlockUntilNextEventMatchingListInMode + 48
+38  AppKit                              0x00000001a2cf88c0 _DPSBlockUntilNextEventMatchingListInMode + 292
+39  AppKit                              0x00000001a29b759c _DPSNextEvent + 576
+40  AppKit                              0x00000001a314e5f8 -[NSApplication(NSEventRouting) _nextEventMatchingEventMask:untilDate:inMode:dequeue:] + 832
+41  AppKit                              0x00000001a314e0e8 -[NSApplication(NSEventRouting) nextEventMatchingMask:untilDate:inMode:dequeue:] + 344
+42  Blanc Prototype Framework           0x000000014f1ffca0 __64-[CrApplication nextEventMatchingMask:untilDate:inMode:dequeue:]_block_invoke + 64
+43  Blanc Prototype Framework           0x000000014cb5a5f8 base::apple::CallWithEHFrame(void () block_pointer) + 16
+44  Blanc Prototype Framework           0x000000014f1ffbe8 -[CrApplication nextEventMatchingMask:untilDate:inMode:dequeue:] + 176
+45  AppKit                              0x00000001a29aa920 -[NSApplication run] + 396
+46  Blanc Prototype Framework           0x000000014cb617dc base::MessagePumpNSApplication::DoRun(base::MessagePump::Delegate*) + 316
+47  Blanc Prototype Framework           0x000000014cb5fc3c base::MessagePumpCFRunLoopBase::Run(base::MessagePump::Delegate*) + 124
+48  Blanc Prototype Framework           0x000000014cae0304 base::sequence_manager::internal::ThreadControllerWithMessagePumpImpl::Run(bool, base::TimeDelta) + 868
+49  Blanc Prototype Framework           0x000000014ca87a10 base::RunLoop::Run(base::Location const&) + 1024
+50  Blanc Prototype Framework           0x0000000148564b60 content::BrowserMainLoop::RunMainMessageLoop() + 236
+51  Blanc Prototype Framework           0x0000000148566974 content::BrowserMainRunnerImpl::Run() + 148
+52  Blanc Prototype Framework           0x0000000148561394 content::BrowserMain(content::MainFunctionParams) + 132
+53  Blanc Prototype Framework           0x000000014b712290 content::RunBrowserProcessMain(content::MainFunctionParams, content::ContentMainDelegate*) + 136
+54  Blanc Prototype Framework           0x000000014b714c88 content::ContentMainRunnerImpl::RunBrowser(content::MainFunctionParams, bool) + 2828
+55  Blanc Prototype Framework           0x000000014b7140f8 content::ContentMainRunnerImpl::Run() + 1508
+56  Blanc Prototype Framework           0x000000014b711a1c content::RunContentProcess(content::ContentMainParams, content::ContentMainRunner*) + 988
+57  Blanc Prototype Framework           0x000000014b711bd8 content::ContentMain(content::ContentMainParams) + 104
+58  Blanc Prototype Framework           0x0000000143608e70 ChromeMain + 560
+59  Blanc Prototype                     0x000000010407c88c main + 292
+60  dyld                                0x0000000198a74d7c start + 6652
+[end of stack trace]

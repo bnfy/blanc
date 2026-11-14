@@ -1,0 +1,11 @@
+{
+  "sourceFilesSha256": {
+    "cosmetic_document.inc": "954d3ee7aa775cb65f315c1a8b424367f334cd0797b652fe7efb813787aafc11",
+    "blocker_proxy.cc": "4fabd4c9bb9291cd9f302f702addf67e2912fe3957911eb9589709cd4f21dae3"
+  },
+  "reason": "Chromium158 DocumentService now requires SelfDeletingPassKey; use MakeSelfDeleting and private destructor",
+  "isolatedObjectPassed": true,
+  "runtimeChecksPassed": false,
+  "fullBuild": "resume4 running; session95597",
+  "fallback157Unchanged": true
+}

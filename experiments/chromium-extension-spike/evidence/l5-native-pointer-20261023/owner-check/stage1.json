@@ -1,0 +1,14 @@
+{
+  "owner": "Passed",
+  "steps": [
+    "address typing/navigation",
+    "new tab and numbered tab switching",
+    "beforeunload Cancel/Stay",
+    "confirmed Leave"
+  ],
+  "agentContradiction": {
+    "message": "Tab closed, but history persistence failed or timed out.",
+    "source": "native AX and browser.log",
+    "gateAccepted": false
+  }
+}

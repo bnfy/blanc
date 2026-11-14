@@ -1,0 +1,9 @@
+{
+  "fingerprint": "92b3426d43cbd0557ee7df6a9e648a2c07379ccd4ce422a00c90ca30ab8cb03c",
+  "colorway": "sunrise-dark",
+  "toolVersion": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<!DOCTYPE plist PUBLIC \"-//Apple//DTD PLIST 1.0//EN\" \"http://www.apple.com/DTDs/PropertyList-1.0.dtd\">\n<plist version=\"1.0\">\n<dict>\n\t<key>com.apple.actool.version</key>\n\t<dict>\n\t\t<key>bundle-version</key>\n\t\t<string>25098</string>\n\t\t<key>short-bundle-version</key>\n\t\t<string>27.1</string>\n\t</dict>\n</dict>\n</plist>",
+  "outputs": {
+    "BlancDK.icns": "d34201f7710f10d7943193f4afb3bda378acba1b96381468245f553d7234a8c1",
+    "Assets.car": "66a32d12bed6d48587c6fcb792d25063b5b77f18ae873fd5a2f66e715c8828eb"
+  }
+}

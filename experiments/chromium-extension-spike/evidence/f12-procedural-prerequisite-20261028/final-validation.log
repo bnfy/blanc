@@ -1,0 +1,11 @@
+COMMAND ['xcrun', 'stapler', 'staple', '/Users/anthonyjloria/Projects/BlancPreviewArtifacts/procedural-20261028/Blanc Chromium Preview.app']
+Processing: /Users/anthonyjloria/Projects/BlancPreviewArtifacts/procedural-20261028/Blanc Chromium Preview.app
+Processing: /Users/anthonyjloria/Projects/BlancPreviewArtifacts/procedural-20261028/Blanc Chromium Preview.app
+The staple and validate action worked!
+COMMAND ['xcrun', 'stapler', 'validate', '/Users/anthonyjloria/Projects/BlancPreviewArtifacts/procedural-20261028/Blanc Chromium Preview.app']
+Processing: /Users/anthonyjloria/Projects/BlancPreviewArtifacts/procedural-20261028/Blanc Chromium Preview.app
+The validate action worked!
+COMMAND ['codesign', '--verify', '--deep', '--strict', '/Users/anthonyjloria/Projects/BlancPreviewArtifacts/procedural-20261028/Blanc Chromium Preview.app']
+COMMAND ['spctl', '--assess', '--type', 'execute', '--verbose=2', '/Users/anthonyjloria/Projects/BlancPreviewArtifacts/procedural-20261028/Blanc Chromium Preview.app']
+/Users/anthonyjloria/Projects/BlancPreviewArtifacts/procedural-20261028/Blanc Chromium Preview.app: accepted
+source=Notarized Developer ID

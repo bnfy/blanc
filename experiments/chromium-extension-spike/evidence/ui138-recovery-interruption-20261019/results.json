@@ -1,0 +1,58 @@
+{
+  "stage-first": {
+    "pass": true,
+    "recovery_crash": {
+      "live_urls": [
+        "chrome://newtab/",
+        "http://127.0.0.1:9265/source",
+        "chrome://newtab/"
+      ],
+      "point": "stage-first"
+    },
+    "journal_unchanged": true
+  },
+  "stage-all": {
+    "pass": true,
+    "recovery_crash": {
+      "live_urls": [
+        "chrome://newtab/",
+        "http://127.0.0.1:9265/source",
+        "chrome://newtab/",
+        "http://127.0.0.1:9265/source"
+      ],
+      "point": "stage-all"
+    },
+    "journal_unchanged": true
+  },
+  "remove-first": {
+    "pass": true,
+    "recovery_crash": {
+      "live_urls": [
+        "chrome://newtab/",
+        "chrome://newtab/",
+        "http://127.0.0.1:9265/source"
+      ],
+      "point": "remove-first"
+    },
+    "journal_unchanged": true
+  },
+  "remove-all": {
+    "pass": true,
+    "recovery_crash": {
+      "live_urls": [
+        "chrome://newtab/",
+        "http://127.0.0.1:9265/source"
+      ],
+      "point": "remove-all"
+    },
+    "journal_unchanged": true
+  },
+  "invalid": {
+    "pass": true,
+    "savedRecordsUnchanged": true
+  },
+  "uppercase": {
+    "pass": true,
+    "savedRecordsUnchanged": true
+  }
+}

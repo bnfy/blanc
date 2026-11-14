@@ -1,0 +1,65 @@
+{
+  "checkedAt": "2026-10-16T13:20:49.175Z",
+  "extensions": [
+    {
+      "id": "aeblfdkhhhdcdjpifhhbdiojplfjncoa",
+      "name": "1Password – Password Manager",
+      "version": "8.12.41.1",
+      "state": "ENABLED",
+      "userScriptsAccess": {
+        "isActive": false,
+        "isEnabled": false
+      }
+    },
+    {
+      "id": "dhdgffkkebhmkfjojejmpbldmpobfkfo",
+      "name": "Tampermonkey",
+      "version": "5.5.1",
+      "state": "ENABLED",
+      "userScriptsAccess": {
+        "isActive": false,
+        "isEnabled": true
+      }
+    },
+    {
+      "id": "fmkadmapgofadopljbjfkapdkoienihi",
+      "name": "React Developer Tools",
+      "version": "8.0.0",
+      "state": "ENABLED",
+      "userScriptsAccess": {
+        "isActive": false,
+        "isEnabled": false
+      }
+    },
+    {
+      "id": "kbfnbcaeplbcioakkpcpgfkobkghlhen",
+      "name": "Grammarly: AI Writing Assistant and Grammar Checker App",
+      "version": "14.1338.0",
+      "state": "ENABLED",
+      "userScriptsAccess": {
+        "isActive": false,
+        "isEnabled": false
+      }
+    },
+    {
+      "id": "nkbihfbeogaeaoehlefnkodbefgpgknn",
+      "name": "MetaMask",
+      "version": "13.52.0",
+      "state": "ENABLED",
+      "userScriptsAccess": {
+        "isActive": false,
+        "isEnabled": false
+      }
+    },
+    {
+      "id": "nngceckbapebfimnlniiiahkandclblb",
+      "name": "Bitwarden Password Manager",
+      "version": "2026.10.0",
+      "state": "ENABLED",
+      "userScriptsAccess": {
+        "isActive": false,
+        "isEnabled": false
+      }
+    }
+  ]
+}

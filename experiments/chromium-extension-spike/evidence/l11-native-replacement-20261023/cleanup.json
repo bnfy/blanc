@@ -1,0 +1,13 @@
+{
+  "removedOwnedFixturePaths": [
+    "checks/startup/final",
+    "checks/recovery/node22-home",
+    "checks/core/profile-final",
+    "checks/core/downloads",
+    "test-profile",
+    "test-app"
+  ],
+  "fixtureListenerCheck": "none listening on used test ports after suite exit",
+  "signedMasterAndArtifactsRetained": true,
+  "permanentOrGoogleProfilesRemoved": false
+}

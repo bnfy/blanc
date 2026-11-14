@@ -1,0 +1,229 @@
+{
+  "checks": [
+    {
+      "name": "overlapping new windows acknowledged",
+      "value": [
+        {
+          "groups": [],
+          "uuid": "da883c56-2975-41e7-80a1-114a6264d261",
+          "urls": [
+            "http://127.0.0.1:9278/overlap-b"
+          ],
+          "active": "http://127.0.0.1:9278/overlap-b",
+          "splits": []
+        },
+        {
+          "groups": [],
+          "uuid": "9661141c-7167-47fd-8640-76cec9497389",
+          "urls": [
+            "http://127.0.0.1:9278/overlap-a"
+          ],
+          "active": "http://127.0.0.1:9278/overlap-a",
+          "splits": []
+        },
+        {
+          "groups": [
+            {
+              "name": "Source",
+              "color": "",
+              "collapsed": false,
+              "urls": [
+                "http://127.0.0.1:9278/source-a",
+                "http://127.0.0.1:9278/source-b"
+              ]
+            }
+          ],
+          "uuid": "7cf334a0-049e-464e-bcdf-9f85b256b03e",
+          "urls": [
+            "blanc://newtab/",
+            "http://127.0.0.1:9278/source-a",
+            "http://127.0.0.1:9278/source-b"
+          ],
+          "active": "http://127.0.0.1:9278/source-a",
+          "splits": [
+            {
+              "focus": 0,
+              "ids": [
+                "http://127.0.0.1:9278/source-a",
+                "http://127.0.0.1:9278/source-b"
+              ],
+              "widths": [
+                0.5,
+                0.5
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "precrash expected owners",
+      "value": [
+        {
+          "groups": [
+            {
+              "name": "Source",
+              "color": "",
+              "collapsed": false,
+              "urls": [
+                "http://127.0.0.1:9278/source-a",
+                "http://127.0.0.1:9278/source-b"
+              ]
+            }
+          ],
+          "uuid": "7cf334a0-049e-464e-bcdf-9f85b256b03e",
+          "urls": [
+            "blanc://newtab/",
+            "http://127.0.0.1:9278/source-a",
+            "http://127.0.0.1:9278/source-b"
+          ],
+          "active": "http://127.0.0.1:9278/source-a",
+          "splits": [
+            {
+              "focus": 0,
+              "ids": [
+                "http://127.0.0.1:9278/source-a",
+                "http://127.0.0.1:9278/source-b"
+              ],
+              "widths": [
+                0.5,
+                0.5
+              ]
+            }
+          ]
+        },
+        {
+          "groups": [],
+          "uuid": "9661141c-7167-47fd-8640-76cec9497389",
+          "urls": [
+            "http://127.0.0.1:9278/overlap-a"
+          ],
+          "active": "http://127.0.0.1:9278/overlap-a",
+          "splits": []
+        },
+        {
+          "groups": [],
+          "uuid": "da883c56-2975-41e7-80a1-114a6264d261",
+          "urls": [
+            "http://127.0.0.1:9278/overlap-b"
+          ],
+          "active": "http://127.0.0.1:9278/overlap-b",
+          "splits": []
+        }
+      ]
+    },
+    {
+      "name": "first restart actual owners",
+      "value": [
+        {
+          "groups": [],
+          "uuid": "da883c56-2975-41e7-80a1-114a6264d261",
+          "urls": [
+            "http://127.0.0.1:9278/overlap-b"
+          ],
+          "active": "http://127.0.0.1:9278/overlap-b",
+          "splits": []
+        },
+        {
+          "groups": [],
+          "uuid": "9661141c-7167-47fd-8640-76cec9497389",
+          "urls": [
+            "http://127.0.0.1:9278/overlap-a"
+          ],
+          "active": "http://127.0.0.1:9278/overlap-a",
+          "splits": []
+        },
+        {
+          "groups": [
+            {
+              "name": "Source",
+              "color": "",
+              "collapsed": false,
+              "urls": [
+                "http://127.0.0.1:9278/source-a",
+                "http://127.0.0.1:9278/source-b"
+              ]
+            }
+          ],
+          "uuid": "7cf334a0-049e-464e-bcdf-9f85b256b03e",
+          "urls": [
+            "blanc://newtab/",
+            "http://127.0.0.1:9278/source-a",
+            "http://127.0.0.1:9278/source-b"
+          ],
+          "active": "http://127.0.0.1:9278/source-a",
+          "splits": [
+            {
+              "focus": 0,
+              "ids": [
+                "http://127.0.0.1:9278/source-a",
+                "http://127.0.0.1:9278/source-b"
+              ],
+              "widths": [
+                0.5,
+                0.5
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "crash restores exact remaining owners and excludes closed window",
+      "value": [
+        {
+          "groups": [],
+          "uuid": "da883c56-2975-41e7-80a1-114a6264d261",
+          "urls": [
+            "http://127.0.0.1:9278/overlap-b"
+          ],
+          "active": "http://127.0.0.1:9278/overlap-b",
+          "splits": []
+        },
+        {
+          "groups": [],
+          "uuid": "9661141c-7167-47fd-8640-76cec9497389",
+          "urls": [
+            "http://127.0.0.1:9278/overlap-a"
+          ],
+          "active": "http://127.0.0.1:9278/overlap-a",
+          "splits": []
+        },
+        {
+          "groups": [
+            {
+              "name": "Source",
+              "color": "",
+              "collapsed": false,
+              "urls": [
+                "http://127.0.0.1:9278/source-a",
+                "http://127.0.0.1:9278/source-b"
+              ]
+            }
+          ],
+          "uuid": "7cf334a0-049e-464e-bcdf-9f85b256b03e",
+          "urls": [
+            "blanc://newtab/",
+            "http://127.0.0.1:9278/source-a",
+            "http://127.0.0.1:9278/source-b"
+          ],
+          "active": "http://127.0.0.1:9278/source-a",
+          "splits": [
+            {
+              "focus": 0,
+              "ids": [
+                "http://127.0.0.1:9278/source-a",
+                "http://127.0.0.1:9278/source-b"
+              ],
+              "widths": [
+                0.5,
+                0.5
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "pass": true
+}

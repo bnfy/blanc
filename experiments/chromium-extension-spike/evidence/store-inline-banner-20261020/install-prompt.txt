@@ -1,0 +1,12 @@
+The following is a diff from the previous accessibility tree for Window: "" with ~ and + representing changed and added elements, respectively. Removed elements are summarized by ID range.
+Removed element IDs: 142-304
+~138 sheet Add "Extensity"?, Secondary Actions: Raise
+~	139 container Add "Extensity"?
+~			141 heading Add "Extensity"?
++			142 scroll area
++				143 container
++					144 text It can:
++					145 text Manage your apps, extensions, and themes
++			146 container
++				147 button Cancel
++				148 button (disabled) Add extension

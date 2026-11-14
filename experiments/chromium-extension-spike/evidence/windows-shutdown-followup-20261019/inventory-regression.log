@@ -1,0 +1,95 @@
+TAP version 13
+# Subtest: every boundary entry matches its file hash and literal channels
+ok 1 - every boundary entry matches its file hash and literal channels
+  ---
+  duration_ms: 18.526791
+  ...
+# Subtest: the committed inventory is exactly what --write renders
+ok 2 - the committed inventory is exactly what --write renders
+  ---
+  duration_ms: 12.328916
+  ...
+# Subtest: channel extraction keeps the inventory conventions
+ok 3 - channel extraction keeps the inventory conventions
+  ---
+  duration_ms: 0.22925
+  ...
+# Subtest: drift in a boundary file is reported
+ok 4 - drift in a boundary file is reported
+  ---
+  duration_ms: 1.541291
+  ...
+# Subtest: preload coverage gaps are reported
+ok 5 - preload coverage gaps are reported
+  ---
+  duration_ms: 1.048583
+  ...
+# Subtest: authorized helper sender requires live wc, exact URL, and token
+ok 6 - authorized helper sender requires live wc, exact URL, and token
+  ---
+  duration_ms: 0.337958
+  ...
+# Subtest: display-capture-broker revokes the captured contents after its window is destroyed
+ok 7 - display-capture-broker revokes the captured contents after its window is destroyed
+  ---
+  duration_ms: 0.829959
+  ...
+# Subtest: display-capture-broker-linux revokes the captured contents after its window is destroyed
+ok 8 - display-capture-broker-linux revokes the captured contents after its window is destroyed
+  ---
+  duration_ms: 0.631041
+  ...
+# Subtest: display-capture-broker-playout revokes the captured contents after its window is destroyed
+ok 9 - display-capture-broker-playout revokes the captured contents after its window is destroyed
+  ---
+  duration_ms: 0.490625
+  ...
+# Subtest: darwin selects one complete locked capture runtime
+ok 10 - darwin selects one complete locked capture runtime
+  ---
+  duration_ms: 1.6445
+  ...
+# Subtest: win32 selects one complete locked capture runtime
+ok 11 - win32 selects one complete locked capture runtime
+  ---
+  duration_ms: 0.398375
+  ...
+# Subtest: linux selects one complete locked capture runtime
+ok 12 - linux selects one complete locked capture runtime
+  ---
+  duration_ms: 0.523875
+  ...
+# Subtest: runtime selection rejects unsupported platforms and page-supplied values
+ok 13 - runtime selection rejects unsupported platforms and page-supplied values
+  ---
+  duration_ms: 0.201291
+  ...
+# Subtest: Windows retains its original runtime paths while Linux gets separate files
+ok 14 - Windows retains its original runtime paths while Linux gets separate files
+  ---
+  duration_ms: 0.060917
+  ...
+# Subtest: main selects both broker and browsing preload through the platform policy
+ok 15 - main selects both broker and browsing preload through the platform policy
+  ---
+  duration_ms: 0.973959
+  ...
+# Subtest: shared permission, relay, and capture dependencies cannot change silently
+ok 16 - shared permission, relay, and capture dependencies cannot change silently
+  ---
+  duration_ms: 0.691417
+  ...
+# Subtest: locked capture runtime bytes keep LF endings on every platform checkout
+ok 17 - locked capture runtime bytes keep LF endings on every platform checkout
+  ---
+  duration_ms: 0.197958
+  ...
+1..17
+# tests 17
+# suites 0
+# pass 17
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 67.519292

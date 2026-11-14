@@ -1,0 +1,96 @@
+{
+  "kind": "fixture-tls-security-control",
+  "passed": true,
+  "rows": [
+    {
+      "engine": "electron",
+      "version": "152.0.7977.167",
+      "pinnedLeafLoaded": true,
+      "unpinnedLeafRejected": true,
+      "unpinnedHttpRequests": 0,
+      "verifierChecks": [
+        {
+          "host": "bad.fixture.test",
+          "accepted": false
+        }
+      ],
+      "refusedConnections": [],
+      "connectionErrors": [
+        {
+          "phase": "tls",
+          "code": "ERR_SSL_SSL/TLS_ALERT_CERTIFICATE_UNKNOWN"
+        }
+      ]
+    },
+    {
+      "engine": "chromium",
+      "version": "157.0.8103.6",
+      "pinnedLeafLoaded": true,
+      "unpinnedLeafRejected": true,
+      "unpinnedHttpRequests": 0,
+      "verifierChecks": null,
+      "refusedConnections": [
+        {
+          "code": "plaintext-refused",
+          "authority": "clients2.google.com"
+        },
+        {
+          "code": "connect-refused",
+          "authority": "www.google.com:443"
+        },
+        {
+          "code": "connect-refused",
+          "authority": "accounts.google.com:443"
+        },
+        {
+          "code": "connect-refused",
+          "authority": "www.google.com:443"
+        },
+        {
+          "code": "connect-refused",
+          "authority": "www.google.com:443"
+        },
+        {
+          "code": "connect-refused",
+          "authority": "www.google.com:443"
+        },
+        {
+          "code": "connect-refused",
+          "authority": "www.google.com:443"
+        },
+        {
+          "code": "plaintext-refused",
+          "authority": "connectivitycheck.gstatic.com"
+        },
+        {
+          "code": "connect-refused",
+          "authority": "www.google.com:443"
+        },
+        {
+          "code": "connect-refused",
+          "authority": "www.google.com:443"
+        },
+        {
+          "code": "connect-refused",
+          "authority": "accounts.google.com:443"
+        }
+      ],
+      "connectionErrors": [
+        {
+          "phase": "socket",
+          "code": "ECONNRESET"
+        },
+        {
+          "phase": "tls",
+          "code": "ERR_SSL_SSL/TLS_ALERT_CERTIFICATE_UNKNOWN"
+        },
+        {
+          "phase": "tls",
+          "code": "ERR_SSL_SSL/TLS_ALERT_CERTIFICATE_UNKNOWN"
+        }
+      ]
+    }
+  ],
+  "blockerObservations": 0,
+  "disposableTreeRemoved": true
+}

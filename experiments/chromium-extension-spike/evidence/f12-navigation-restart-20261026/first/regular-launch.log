@@ -1,0 +1,157 @@
+[43366:12482063:1026/214347.597961:ERROR:chrome/browser/mac/code_sign_clone_manager.mm:93] error removing quarantine attribute "/var/folders/4x/r7mr2b5d4q53x8nbf_trvcxw0000gn/X/"
+[43366:12481963:1026/214348.407736:ERROR:chrome/browser/actor/tools/tool_request.cc:32] Not implemented reached in static std::optional<ToolDefinition> actor::ToolRequest::GetToolDefinition(). 
+
+DevTools listening on ws://127.0.0.1:63437/devtools/browser/a965149d-999b-43e6-b6f9-76749ad722a2
+[43390:12482428:1026/214350.974620:ERROR:third_party/blink/renderer/core/html/media/html_media_element.cc:5451] SetError: {code=4, message="MEDIA_ELEMENT_ERROR: Media load rejected by URL safety check"}
+[43390:12482428:1026/214350.974724:ERROR:third_party/blink/renderer/core/html/media/html_media_element.cc:5451] SetError: {code=4, message="MEDIA_ELEMENT_ERROR: Media load rejected by URL safety check"}
+[43390:12482428:1026/214350.974768:ERROR:third_party/blink/renderer/core/html/media/html_media_element.cc:5451] SetError: {code=4, message="MEDIA_ELEMENT_ERROR: Media load rejected by URL safety check"}
+[43376:12482109:1026/214351.058126:FATAL:services/network/url_loader.cc:538] DCHECK failed: !url_request_->isolation_info().IsEmpty(). 
+0   Blanc Prototype Framework           0x000000013117f26c base::debug::CollectStackTrace(base::span<void const*, 18446744073709551615ul, void const**>) + 24
+1   Blanc Prototype Framework           0x000000013116a520 base::debug::StackTrace::StackTrace(unsigned long) + 224
+2   Blanc Prototype Framework           0x000000013106c4ac logging::LogMessage::Flush() + 172
+3   Blanc Prototype Framework           0x000000013106c31c logging::LogMessage::~LogMessage() + 36
+4   Blanc Prototype Framework           0x0000000131050da8 logging::(anonymous namespace)::DCheckLogMessage::~DCheckLogMessage() + 76
+5   Blanc Prototype Framework           0x0000000131050690 logging::CheckError::~CheckError() + 44
+6   Blanc Prototype Framework           0x00000001310506d0 logging::CheckError::~CheckError() + 12
+7   Blanc Prototype Framework           0x00000001333f6a90 network::URLLoader::URLLoader(network::URLLoaderContext&, base::OnceCallback<void (network::URLLoader*)>, mojo::PendingReceiver<network::mojom::URLLoader>, int, network::ResourceRequest const&, mojo::PendingRemote<network::mojom::URLLoaderClient>, base::WeakPtr<network::mojom::URLLoaderClient>, net::NetworkTrafficAnnotationTag const&, base::numerics_internal::StrictNumeric<int>, int, base::WeakPtr<network::KeepaliveStatisticsRecorder>, std::__Cr::unique_ptr<network::TrustTokenRequestHelperFactory, std::__Cr::default_delete<network::TrustTokenRequestHelperFactory>>, network::SharedDictionaryManager*, std::__Cr::unique_ptr<network::SharedDictionaryAccessChecker, std::__Cr::default_delete<network::SharedDictionaryAccessChecker>>, network::ObserverWrapper<network::mojom::CookieAccessObserver>, network::ObserverWrapper<network::mojom::TrustTokenAccessObserver>, network::ObserverWrapper<network::mojom::URLLoaderNetworkServiceObserver>, network::ObserverWrapper<network::mojom::DevToolsObserver>, network::ObserverWrapper<network::mojom::DeviceBoundSessionAccessObserver>, mojo::PendingRemote<network::mojom::AcceptCHFrameObserver>, network::SharedResourceChecker&, std::__Cr::unique_ptr<network::DevtoolsDurableMessageWriter, std::__Cr::default_delete<network::DevtoolsDurableMessageWriter>>, mojo::ScopedHandleBase<mojo::DataPipeProducerHandle>) + 6032
+8   Blanc Prototype Framework           0x00000001334097bc std::__Cr::unique_ptr<network::URLLoader, std::__Cr::default_delete<network::URLLoader>> std::__Cr::make_unique[abi:sqn240000]<network::URLLoader, network::URLLoaderFactory&, base::OnceCallback<void (network::URLLoader*)>, mojo::PendingReceiver<network::mojom::URLLoader>, unsigned int&, network::ResourceRequest const&, mojo::PendingRemote<network::mojom::URLLoaderClient>, base::WeakPtr<network::mojom::URLLoaderClient>, net::NetworkTrafficAnnotationTag, int&, int&, base::WeakPtr<network::KeepaliveStatisticsRecorder>, std::__Cr::unique_ptr<network::TrustTokenRequestHelperFactory, std::__Cr::default_delete<network::TrustTokenRequestHelperFactory>>, network::SharedDictionaryManager*, std::__Cr::unique_ptr<network::SharedDictionaryAccessChecker, std::__Cr::default_delete<network::SharedDictionaryAccessChecker>>, network::ObserverWrapper<network::mojom::CookieAccessObserver>, network::ObserverWrapper<network::mojom::TrustTokenAccessObserver>, network::ObserverWrapper<network::mojom::URLLoaderNetworkServiceObserver>, network::ObserverWrapper<network::mojom::DevToolsObserver>, network::ObserverWrapper<network::mojom::DeviceBoundSessionAccessObserver>, mojo::PendingRemote<network::mojom::AcceptCHFrameObserver>, network::SharedResourceChecker&, std::__Cr::unique_ptr<network::DevtoolsDurableMessageWriter, std::__Cr::default_delete<network::DevtoolsDurableMessageWriter>>, mojo::ScopedHandleBase<mojo::DataPipeProducerHandle>, 0>(network::URLLoaderFactory&, base::OnceCallback<void (network::URLLoader*)>&&, mojo::PendingReceiver<network::mojom::URLLoader>&&, unsigned int&, network::ResourceRequest const&, mojo::PendingRemote<network::mojom::URLLoaderClient>&&, base::WeakPtr<network::mojom::URLLoaderClient>&&, net::NetworkTrafficAnnotationTag&&, int&, int&, base::WeakPtr<network::KeepaliveStatisticsRecorder>&&, std::__Cr::unique_ptr<network::TrustTokenRequestHelperFactory, std::__Cr::default_delete<network::TrustTokenRequestHelperFactory>>&&, network::SharedDictionaryManager*&&, std::__Cr::unique_ptr<network::SharedDictionaryAccessChecker, std::__Cr::default_delete<network::SharedDictionaryAccessChecker>>&&, network::ObserverWrapper<network::mojom::CookieAccessObserver>&&, network::ObserverWrapper<network::mojom::TrustTokenAccessObserver>&&, network::ObserverWrapper<network::mojom::URLLoaderNetworkServiceObserver>&&, network::ObserverWrapper<network::mojom::DevToolsObserver>&&, network::ObserverWrapper<network::mojom::DeviceBoundSessionAccessObserver>&&, mojo::PendingRemote<network::mojom::AcceptCHFrameObserver>&&, network::SharedResourceChecker&, std::__Cr::unique_ptr<network::DevtoolsDurableMessageWriter, std::__Cr::default_delete<network::DevtoolsDurableMessageWriter>>&&, mojo::ScopedHandleBase<mojo::DataPipeProducerHandle>&&) + 964
+9   Blanc Prototype Framework           0x000000013340830c network::URLLoaderFactory::CreateLoaderAndStartWithSyncClient(mojo::PendingReceiver<network::mojom::URLLoader>, int, unsigned int, network::ResourceRequest const&, mojo::PendingRemote<network::mojom::URLLoaderClient>, base::WeakPtr<network::mojom::URLLoaderClient>, net::MutableNetworkTrafficAnnotationTag const&) + 5088
+10  Blanc Prototype Framework           0x00000001333948cc network::cors::CorsURLLoader::StartNetworkRequest() + 588
+11  Blanc Prototype Framework           0x000000013338eb1c network::cors::CorsURLLoader::StartRequest() + 804
+12  Blanc Prototype Framework           0x000000013338e764 network::cors::CorsURLLoader::Start() + 404
+13  Blanc Prototype Framework           0x0000000133398f54 network::cors::CorsURLLoaderFactory::CreateLoaderAndStart(mojo::PendingReceiver<network::mojom::URLLoader>, int, unsigned int, network::ResourceRequest&, mojo::PendingRemote<network::mojom::URLLoaderClient>, net::MutableNetworkTrafficAnnotationTag const&) + 2804
+14  Blanc Prototype Framework           0x000000013339b4c8 network::PrefetchMatchingURLLoaderFactory::CreateLoaderAndStart(mojo::PendingReceiver<network::mojom::URLLoader>, int, unsigned int, network::ResourceRequest&, mojo::PendingRemote<network::mojom::URLLoaderClient>, net::MutableNetworkTrafficAnnotationTag const&) + 928
+15  Blanc Prototype Framework           0x0000000129187864 network::mojom::URLLoaderFactoryStubDispatch::Accept(network::mojom::URLLoaderFactory*, mojo::Message*) + 548
+16  Blanc Prototype Framework           0x000000013141a23c mojo::InterfaceEndpointClient::HandleValidatedMessage(mojo::Message*) + 1400
+17  Blanc Prototype Framework           0x00000001314202bc mojo::MessageDispatcher::Accept(mojo::Message*) + 236
+18  Blanc Prototype Framework           0x000000013141bde4 mojo::InterfaceEndpointClient::HandleIncomingMessage(mojo::Message*) + 148
+19  Blanc Prototype Framework           0x0000000131424ab8 mojo::internal::MultiplexRouter::ProcessIncomingMessage(mojo::internal::MultiplexRouter::MessageWrapper*, mojo::internal::MultiplexRouter::ClientCallBehavior, base::SequencedTaskRunner*) + 1036
+20  Blanc Prototype Framework           0x000000013142417c mojo::internal::MultiplexRouter::Accept(mojo::Message*) + 448
+21  Blanc Prototype Framework           0x0000000131420310 mojo::MessageDispatcher::Accept(mojo::Message*) + 320
+22  Blanc Prototype Framework           0x00000001314156c0 mojo::Connector::DispatchMessage(mojo::ScopedHandleBase<mojo::MessageHandle>) + 544
+23  Blanc Prototype Framework           0x0000000131415f1c mojo::Connector::ReadAllAvailableMessages() + 224
+24  Blanc Prototype Framework           0x0000000131415cf4 mojo::Connector::OnWatcherHandleReady(char const*, unsigned int) + 84
+25  Blanc Prototype Framework           0x00000001280e9f88 base::RepeatingCallback<void (net::DnsConfig const&)>::Run(net::DnsConfig const&) const & + 136
+26  Blanc Prototype Framework           0x0000000128173854 base::RepeatingCallback<void (net::MDnsTransaction::Result, net::RecordParsed const*)>::Run(net::MDnsTransaction::Result, net::RecordParsed const*) const & + 148
+27  Blanc Prototype Framework           0x00000001314426c4 mojo::SimpleWatcher::OnHandleReady(int, unsigned int, mojo::HandleSignalsState const&) + 244
+28  Blanc Prototype Framework           0x0000000131442880 mojo::SimpleWatcher::Context::Notify(unsigned int, MojoHandleSignalsState, unsigned int) + 200
+29  Blanc Prototype Framework           0x0000000131441b30 mojo::SimpleWatcher::Context::CallNotify(MojoTrapEvent const*) + 40
+30  Blanc Prototype Framework           0x0000000127e10868 mojo::core::ipcz_driver::MojoTrap::DispatchEvent(MojoTrapEvent const&) + 84
+31  Blanc Prototype Framework           0x0000000127e0f8b0 mojo::core::ipcz_driver::MojoTrap::DispatchOrQueueEvent(mojo::core::ipcz_driver::MojoTrap::Trigger&, MojoTrapEvent const&) + 392
+32  Blanc Prototype Framework           0x0000000127e105f0 mojo::core::ipcz_driver::MojoTrap::HandleEvent(IpczTrapEvent const&) + 1108
+33  Blanc Prototype Framework           0x0000000127e1018c mojo::core::ipcz_driver::MojoTrap::TrapEventHandler(IpczTrapEvent const*) + 92
+34  Blanc Prototype Framework           0x0000000127e4da6c ipcz::TrapEventDispatcher::~TrapEventDispatcher() + 112
+35  Blanc Prototype Framework           0x0000000127e43498 ipcz::Router::AcceptInboundParcel(std::__Cr::unique_ptr<ipcz::Parcel, std::__Cr::default_delete<ipcz::Parcel>>) + 256
+36  Blanc Prototype Framework           0x0000000127e33a6c ipcz::NodeLink::AcceptCompleteParcel(ipcz::StrongAlias<ipcz::SublinkIdTag, unsigned long long>, std::__Cr::unique_ptr<ipcz::Parcel, std::__Cr::default_delete<ipcz::Parcel>>) + 2188
+37  Blanc Prototype Framework           0x0000000127e353d8 ipcz::NodeLink::OnAcceptParcel(ipcz::msg::AcceptParcel&) + 1716
+38  Blanc Prototype Framework           0x0000000127e3d0d4 ipcz::msg::NodeMessageListener::OnTransportMessage(ipcz::DriverTransport::RawMessage const&, ipcz::DriverTransport const&, unsigned long) + 3080
+39  Blanc Prototype Framework           0x0000000127e2332c ipcz::(anonymous namespace)::NotifyTransport(unsigned long, void const*, unsigned long, unsigned long const*, unsigned long, unsigned int, IpczTransportActivityOptions const*) + 108
+40  Blanc Prototype Framework           0x0000000127e16544 mojo::core::ipcz_driver::Transport::OnChannelMessage(void const*, unsigned long, std::__Cr::vector<mojo::PlatformHandle, std::__Cr::allocator<mojo::PlatformHandle>>, scoped_refptr<mojo::core::ipcz_driver::Envelope>) + 460
+41  Blanc Prototype Framework           0x0000000127e01c74 mojo::core::Channel::TryDispatchMessage(base::span<char const, 18446744073709551615ul, char const*>, std::__Cr::optional<std::__Cr::vector<mojo::PlatformHandle, std::__Cr::allocator<mojo::PlatformHandle>>>, scoped_refptr<mojo::core::ipcz_driver::Envelope>, unsigned long*) + 756
+42  Blanc Prototype Framework           0x0000000127e199f4 mojo::core::(anonymous namespace)::ChannelMac::OnMachMessageReceived(unsigned int) + 2548
+43  Blanc Prototype Framework           0x00000001311aa324 base::MessagePumpKqueue::ProcessEvents(base::MessagePump::Delegate*, unsigned long) + 104
+44  Blanc Prototype Framework           0x00000001311a90d8 base::MessagePumpKqueue::DoInternalWork(base::MessagePump::Delegate*, base::MessagePump::Delegate::NextWorkInfo*) + 240
+45  Blanc Prototype Framework           0x00000001311a8f38 base::MessagePumpKqueue::Run(base::MessagePump::Delegate*) + 152
+46  Blanc Prototype Framework           0x00000001311111cc base::sequence_manager::internal::ThreadControllerWithMessagePumpImpl::Run(bool, base::TimeDelta) + 868
+47  Blanc Prototype Framework           0x00000001310b8914 base::RunLoop::Run(base::Location const&) + 1024
+48  Blanc Prototype Framework           0x0000000131148208 base::Thread::Run(base::RunLoop*) + 148
+49  Blanc Prototype Framework           0x0000000139e26c5c content::(anonymous namespace)::ChildIOThread::Run(base::RunLoop*) + 180
+50  Blanc Prototype Framework           0x000000013114856c base::Thread::ThreadMain() + 772
+51  Blanc Prototype Framework           0x0000000131168a2c base::(anonymous namespace)::ThreadFunc(void*) + 140
+52  libsystem_pthread.dylib             0x0000000198b48ce4 _pthread_start + 136
+53  libsystem_pthread.dylib             0x0000000198b43cd0 thread_start + 8
+Crash keys:
+  "net-traffic_annotation_hash" = "63171670"
+  "request_resource_type" = "0"
+  "request_initiator" = "nullptr"
+  "request_url" = "http://googleads.g.doubleclick.net:63434/replacement/main-allow/regular"
+  "chrome-trace-id" = "17958651011974666156"
+  "service-name" = "network.mojom.NetworkService"
+  "num-variations-runtime-overrides" = "0"
+  "variations" = "a66dbd64-71c38a98,fa220cc1-3f4a17df,ce94569c-3f4a17df,6f87b0c-3f4a17df,63ef0138-3f4a17df,8f80c10-78198108,a4ca7cb1-3f4a17df,ae727645-d13781e7,99fb13df-c3c0f822,92b406bd-3f4a17df,e51c83b-dc4755e5,d6ad7f9a-a9080253,e4d43646-3f4a17df,b127f8bf-3f4a17df,4dc2f223-3f4a17df,b1b6eab0-381bdb0c,8f9d758f-20eb079a,35c106c9-3f4a17df,f6f5c542-3f4a17df,305240ad-3f4a17df,bd6dd170-b5b075b6,ed3f5f6e-3f4a17df,9d5ecd8d-ca7d8d80,3e15bfc6-3f4a17df,b8181361-3f4a17df,6e4912ad-3f4a17df,1e12d864-94f75473,adaccd11-3f4a17df,46294e3b-3f4a17df,c6fc28a7-3f4a17df,6ddea229-6ddea229,e9844d40-3f4a17df,d1ae5bf4-3f4a17df,eac788b4-77795d80,f6ce9b08-3f4a17df,87bc24fc-3f4a17df,265c01cc-265c01cc,e40bd972-3f4a17df,da493d3c-3f4a17df,72bafd3e-cdb4c186,c290aefb-d8d91f8f,a29130c-3f4a17df,f3ed486d-3f4a17df,4076100b-3f4a17df,8f418b04-299bae22,a52330dc-6d77353e,81bf947e-3f4a17df,6cd68a95-3f4a17df,5e7a6b04-3f4a17df,5e2ea1a-3f4a17df,53fa9d2a-3f4a17df,b63743ab-3f4a17df,d330cac7-3f4a17df,a1777c74-3f4a17df,f3dbf5bd-faff9ce0,c6080aa-3f4a17df,533ac6d2-3f4a17df,d5e1fd03-72564c9d,9cdd2223-3f4a17df,bc3ce3e6-60a1867b,fd051c38-3f4a17df,1e11dbbb-3f4a17df,bab9965f-76c70532,b3c54bb3-88fcaf7d,9a26d980-13a3e431,78049c75-111140a5,f86bc1e2-3f4a17df,e14ee5ee-c6d6098d,ef4764d7-88fcaf7d,3e672fd9-e109e63f,47a0a3b2-3f4a17df,1a6f8066-3f4a17df,c1e2f598-3f4a17df,47b4cae6-3f4a17df,171eed38-3f4a17df,6eb9a8f-3f4a17df,5199db31-f0c504d5,e642bc8f-3f4a17df,56c4f1cd-8c7df51c,e3559213-c0f46cd5,7ccab089-3f4a17df,f7f6ed33-3f4a17df,bc0b4e45-c1092d08,8643cb65-cf4f6ead,e9854fc-2e12b55,334b1a1c-3f4a17df,a015f6e1-3f4a17df,b357b792-3f4a17df,f4f00e05-ca7d8d80,9481ce98-3d47f4f4,2a426c03-3d47f4f4,4b935545-bb2d3403,70678518-dee66fa8,be338734-dee66fa8,5f9907a9-dee66fa8,8eeccb9a-dee66fa8,2b465683-dee66fa8,52fc7926-dee66fa8,bc9b361d-dee66fa8,a41a7188-dee66fa8,ff71bfdc-dee66fa8,251fc742-dee66fa8,2159dd0c-dee66fa8,4330e9a4-dee66fa8,e7cc79d5-dee66fa8,9a38bae3-3d47f4f4,2d1e43a3-3f4a17df,370ace14-3f4a17df,386dc267-3d47f4f4,d69d967d-9cce7190,3c8f75a1-dcfbe471,a4406b35-1657e2d6,408da146-1657e2d6,"
+  "num-experiments" = "113"
+  "reentry_guard_tls_slot" = "271"
+  "switch-13" = "--seatbelt-client=31"
+  "switch-12" = "--trace-process-track-uuid=4148313737388471731"
+  "switch-11" = "--pseudonymization-salt-handle=1935764596,r,6918874709373125584,"
+  "switch-10" = "--variations-seed-version"
+  "switch-9" = "--field-trial-handle=1718379636,r,2104173253543423356,1382226151"
+  "switch-8" = "--metrics-shmem-handle=1752395122,r,14811397977709205594,7360022"
+  "switch-7" = "--shared-files"
+  "switch-6" = "--start-stack-profiler"
+  "switch-5" = "--user-data-dir=/private/tmp/blanc-f12-navigation-restart-202610"
+  "switch-4" = "--host-resolver-rules=MAP googleads.g.doubleclick.net 127.0.0.1"
+  "switch-3" = "--service-sandbox-type=network"
+  "switch-2" = "--lang=en-US"
+  "switch-1" = "--utility-sub-type=network.mojom.NetworkService"
+  "num-switches" = "14"
+  "osarch" = "arm64"
+  "pid" = "43376"
+  "ptype" = "utility"
+
+Received signal 6
+0   Blanc Prototype Framework           0x000000013117f26c base::debug::CollectStackTrace(base::span<void const*, 18446744073709551615ul, void const**>) + 24
+1   Blanc Prototype Framework           0x000000013116a520 base::debug::StackTrace::StackTrace(unsigned long) + 224
+2   Blanc Prototype Framework           0x000000013117f1c4 base::debug::(anonymous namespace)::StackDumpSignalHandler(int, __siginfo*, void*) + 924
+3   libsystem_platform.dylib            0x000000019db12144 _sigtramp + 56
+4   libsystem_pthread.dylib             0x0000000198b48960 pthread_kill + 296
+5   libsystem_c.dylib                   0x0000000198bdc480 abort + 148
+6   Blanc Prototype Framework           0x000000013106d028 logging::LogMessage::HandleFatal(unsigned long, std::__Cr::basic_string<char, std::__Cr::char_traits<char>, std::__Cr::allocator<char>> const&) const + 456
+7   Blanc Prototype Framework           0x000000013106cac8 logging::LogMessage::Flush() + 1736
+8   Blanc Prototype Framework           0x000000013106c31c logging::LogMessage::~LogMessage() + 36
+9   Blanc Prototype Framework           0x0000000131050da8 logging::(anonymous namespace)::DCheckLogMessage::~DCheckLogMessage() + 76
+10  Blanc Prototype Framework           0x0000000131050690 logging::CheckError::~CheckError() + 44
+11  Blanc Prototype Framework           0x00000001310506d0 logging::CheckError::~CheckError() + 12
+12  Blanc Prototype Framework           0x00000001333f6a90 network::URLLoader::URLLoader(network::URLLoaderContext&, base::OnceCallback<void (network::URLLoader*)>, mojo::PendingReceiver<network::mojom::URLLoader>, int, network::ResourceRequest const&, mojo::PendingRemote<network::mojom::URLLoaderClient>, base::WeakPtr<network::mojom::URLLoaderClient>, net::NetworkTrafficAnnotationTag const&, base::numerics_internal::StrictNumeric<int>, int, base::WeakPtr<network::KeepaliveStatisticsRecorder>, std::__Cr::unique_ptr<network::TrustTokenRequestHelperFactory, std::__Cr::default_delete<network::TrustTokenRequestHelperFactory>>, network::SharedDictionaryManager*, std::__Cr::unique_ptr<network::SharedDictionaryAccessChecker, std::__Cr::default_delete<network::SharedDictionaryAccessChecker>>, network::ObserverWrapper<network::mojom::CookieAccessObserver>, network::ObserverWrapper<network::mojom::TrustTokenAccessObserver>, network::ObserverWrapper<network::mojom::URLLoaderNetworkServiceObserver>, network::ObserverWrapper<network::mojom::DevToolsObserver>, network::ObserverWrapper<network::mojom::DeviceBoundSessionAccessObserver>, mojo::PendingRemote<network::mojom::AcceptCHFrameObserver>, network::SharedResourceChecker&, std::__Cr::unique_ptr<network::DevtoolsDurableMessageWriter, std::__Cr::default_delete<network::DevtoolsDurableMessageWriter>>, mojo::ScopedHandleBase<mojo::DataPipeProducerHandle>) + 6032
+13  Blanc Prototype Framework           0x00000001334097bc std::__Cr::unique_ptr<network::URLLoader, std::__Cr::default_delete<network::URLLoader>> std::__Cr::make_unique[abi:sqn240000]<network::URLLoader, network::URLLoaderFactory&, base::OnceCallback<void (network::URLLoader*)>, mojo::PendingReceiver<network::mojom::URLLoader>, unsigned int&, network::ResourceRequest const&, mojo::PendingRemote<network::mojom::URLLoaderClient>, base::WeakPtr<network::mojom::URLLoaderClient>, net::NetworkTrafficAnnotationTag, int&, int&, base::WeakPtr<network::KeepaliveStatisticsRecorder>, std::__Cr::unique_ptr<network::TrustTokenRequestHelperFactory, std::__Cr::default_delete<network::TrustTokenRequestHelperFactory>>, network::SharedDictionaryManager*, std::__Cr::unique_ptr<network::SharedDictionaryAccessChecker, std::__Cr::default_delete<network::SharedDictionaryAccessChecker>>, network::ObserverWrapper<network::mojom::CookieAccessObserver>, network::ObserverWrapper<network::mojom::TrustTokenAccessObserver>, network::ObserverWrapper<network::mojom::URLLoaderNetworkServiceObserver>, network::ObserverWrapper<network::mojom::DevToolsObserver>, network::ObserverWrapper<network::mojom::DeviceBoundSessionAccessObserver>, mojo::PendingRemote<network::mojom::AcceptCHFrameObserver>, network::SharedResourceChecker&, std::__Cr::unique_ptr<network::DevtoolsDurableMessageWriter, std::__Cr::default_delete<network::DevtoolsDurableMessageWriter>>, mojo::ScopedHandleBase<mojo::DataPipeProducerHandle>, 0>(network::URLLoaderFactory&, base::OnceCallback<void (network::URLLoader*)>&&, mojo::PendingReceiver<network::mojom::URLLoader>&&, unsigned int&, network::ResourceRequest const&, mojo::PendingRemote<network::mojom::URLLoaderClient>&&, base::WeakPtr<network::mojom::URLLoaderClient>&&, net::NetworkTrafficAnnotationTag&&, int&, int&, base::WeakPtr<network::KeepaliveStatisticsRecorder>&&, std::__Cr::unique_ptr<network::TrustTokenRequestHelperFactory, std::__Cr::default_delete<network::TrustTokenRequestHelperFactory>>&&, network::SharedDictionaryManager*&&, std::__Cr::unique_ptr<network::SharedDictionaryAccessChecker, std::__Cr::default_delete<network::SharedDictionaryAccessChecker>>&&, network::ObserverWrapper<network::mojom::CookieAccessObserver>&&, network::ObserverWrapper<network::mojom::TrustTokenAccessObserver>&&, network::ObserverWrapper<network::mojom::URLLoaderNetworkServiceObserver>&&, network::ObserverWrapper<network::mojom::DevToolsObserver>&&, network::ObserverWrapper<network::mojom::DeviceBoundSessionAccessObserver>&&, mojo::PendingRemote<network::mojom::AcceptCHFrameObserver>&&, network::SharedResourceChecker&, std::__Cr::unique_ptr<network::DevtoolsDurableMessageWriter, std::__Cr::default_delete<network::DevtoolsDurableMessageWriter>>&&, mojo::ScopedHandleBase<mojo::DataPipeProducerHandle>&&) + 964
+14  Blanc Prototype Framework           0x000000013340830c network::URLLoaderFactory::CreateLoaderAndStartWithSyncClient(mojo::PendingReceiver<network::mojom::URLLoader>, int, unsigned int, network::ResourceRequest const&, mojo::PendingRemote<network::mojom::URLLoaderClient>, base::WeakPtr<network::mojom::URLLoaderClient>, net::MutableNetworkTrafficAnnotationTag const&) + 5088
+15  Blanc Prototype Framework           0x00000001333948cc network::cors::CorsURLLoader::StartNetworkRequest() + 588
+16  Blanc Prototype Framework           0x000000013338eb1c network::cors::CorsURLLoader::StartRequest() + 804
+17  Blanc Prototype Framework           0x000000013338e764 network::cors::CorsURLLoader::Start() + 404
+18  Blanc Prototype Framework           0x0000000133398f54 network::cors::CorsURLLoaderFactory::CreateLoaderAndStart(mojo::PendingReceiver<network::mojom::URLLoader>, int, unsigned int, network::ResourceRequest&, mojo::PendingRemote<network::mojom::URLLoaderClient>, net::MutableNetworkTrafficAnnotationTag const&) + 2804
+19  Blanc Prototype Framework           0x000000013339b4c8 network::PrefetchMatchingURLLoaderFactory::CreateLoaderAndStart(mojo::PendingReceiver<network::mojom::URLLoader>, int, unsigned int, network::ResourceRequest&, mojo::PendingRemote<network::mojom::URLLoaderClient>, net::MutableNetworkTrafficAnnotationTag const&) + 928
+20  Blanc Prototype Framework           0x0000000129187864 network::mojom::URLLoaderFactoryStubDispatch::Accept(network::mojom::URLLoaderFactory*, mojo::Message*) + 548
+21  Blanc Prototype Framework           0x000000013141a23c mojo::InterfaceEndpointClient::HandleValidatedMessage(mojo::Message*) + 1400
+22  Blanc Prototype Framework           0x00000001314202bc mojo::MessageDispatcher::Accept(mojo::Message*) + 236
+23  Blanc Prototype Framework           0x000000013141bde4 mojo::InterfaceEndpointClient::HandleIncomingMessage(mojo::Message*) + 148
+24  Blanc Prototype Framework           0x0000000131424ab8 mojo::internal::MultiplexRouter::ProcessIncomingMessage(mojo::internal::MultiplexRouter::MessageWrapper*, mojo::internal::MultiplexRouter::ClientCallBehavior, base::SequencedTaskRunner*) + 1036
+25  Blanc Prototype Framework           0x000000013142417c mojo::internal::MultiplexRouter::Accept(mojo::Message*) + 448
+26  Blanc Prototype Framework           0x0000000131420310 mojo::MessageDispatcher::Accept(mojo::Message*) + 320
+27  Blanc Prototype Framework           0x00000001314156c0 mojo::Connector::DispatchMessage(mojo::ScopedHandleBase<mojo::MessageHandle>) + 544
+28  Blanc Prototype Framework           0x0000000131415f1c mojo::Connector::ReadAllAvailableMessages() + 224
+29  Blanc Prototype Framework           0x0000000131415cf4 mojo::Connector::OnWatcherHandleReady(char const*, unsigned int) + 84
+30  Blanc Prototype Framework           0x00000001280e9f88 base::RepeatingCallback<void (net::DnsConfig const&)>::Run(net::DnsConfig const&) const & + 136
+31  Blanc Prototype Framework           0x0000000128173854 base::RepeatingCallback<void (net::MDnsTransaction::Result, net::RecordParsed const*)>::Run(net::MDnsTransaction::Result, net::RecordParsed const*) const & + 148
+32  Blanc Prototype Framework           0x00000001314426c4 mojo::SimpleWatcher::OnHandleReady(int, unsigned int, mojo::HandleSignalsState const&) + 244
+33  Blanc Prototype Framework           0x0000000131442880 mojo::SimpleWatcher::Context::Notify(unsigned int, MojoHandleSignalsState, unsigned int) + 200
+34  Blanc Prototype Framework           0x0000000131441b30 mojo::SimpleWatcher::Context::CallNotify(MojoTrapEvent const*) + 40
+35  Blanc Prototype Framework           0x0000000127e10868 mojo::core::ipcz_driver::MojoTrap::DispatchEvent(MojoTrapEvent const&) + 84
+36  Blanc Prototype Framework           0x0000000127e0f8b0 mojo::core::ipcz_driver::MojoTrap::DispatchOrQueueEvent(mojo::core::ipcz_driver::MojoTrap::Trigger&, MojoTrapEvent const&) + 392
+37  Blanc Prototype Framework           0x0000000127e105f0 mojo::core::ipcz_driver::MojoTrap::HandleEvent(IpczTrapEvent const&) + 1108
+38  Blanc Prototype Framework           0x0000000127e1018c mojo::core::ipcz_driver::MojoTrap::TrapEventHandler(IpczTrapEvent const*) + 92
+39  Blanc Prototype Framework           0x0000000127e4da6c ipcz::TrapEventDispatcher::~TrapEventDispatcher() + 112
+40  Blanc Prototype Framework           0x0000000127e43498 ipcz::Router::AcceptInboundParcel(std::__Cr::unique_ptr<ipcz::Parcel, std::__Cr::default_delete<ipcz::Parcel>>) + 256
+41  Blanc Prototype Framework           0x0000000127e33a6c ipcz::NodeLink::AcceptCompleteParcel(ipcz::StrongAlias<ipcz::SublinkIdTag, unsigned long long>, std::__Cr::unique_ptr<ipcz::Parcel, std::__Cr::default_delete<ipcz::Parcel>>) + 2188
+42  Blanc Prototype Framework           0x0000000127e353d8 ipcz::NodeLink::OnAcceptParcel(ipcz::msg::AcceptParcel&) + 1716
+43  Blanc Prototype Framework           0x0000000127e3d0d4 ipcz::msg::NodeMessageListener::OnTransportMessage(ipcz::DriverTransport::RawMessage const&, ipcz::DriverTransport const&, unsigned long) + 3080
+44  Blanc Prototype Framework           0x0000000127e2332c ipcz::(anonymous namespace)::NotifyTransport(unsigned long, void const*, unsigned long, unsigned long const*, unsigned long, unsigned int, IpczTransportActivityOptions const*) + 108
+45  Blanc Prototype Framework           0x0000000127e16544 mojo::core::ipcz_driver::Transport::OnChannelMessage(void const*, unsigned long, std::__Cr::vector<mojo::PlatformHandle, std::__Cr::allocator<mojo::PlatformHandle>>, scoped_refptr<mojo::core::ipcz_driver::Envelope>) + 460
+46  Blanc Prototype Framework           0x0000000127e01c74 mojo::core::Channel::TryDispatchMessage(base::span<char const, 18446744073709551615ul, char const*>, std::__Cr::optional<std::__Cr::vector<mojo::PlatformHandle, std::__Cr::allocator<mojo::PlatformHandle>>>, scoped_refptr<mojo::core::ipcz_driver::Envelope>, unsigned long*) + 756
+47  Blanc Prototype Framework           0x0000000127e199f4 mojo::core::(anonymous namespace)::ChannelMac::OnMachMessageReceived(unsigned int) + 2548
+48  Blanc Prototype Framework           0x00000001311aa324 base::MessagePumpKqueue::ProcessEvents(base::MessagePump::Delegate*, unsigned long) + 104
+49  Blanc Prototype Framework           0x00000001311a90d8 base::MessagePumpKqueue::DoInternalWork(base::MessagePump::Delegate*, base::MessagePump::Delegate::NextWorkInfo*) + 240
+50  Blanc Prototype Framework           0x00000001311a8f38 base::MessagePumpKqueue::Run(base::MessagePump::Delegate*) + 152
+51  Blanc Prototype Framework           0x00000001311111cc base::sequence_manager::internal::ThreadControllerWithMessagePumpImpl::Run(bool, base::TimeDelta) + 868
+52  Blanc Prototype Framework           0x00000001310b8914 base::RunLoop::Run(base::Location const&) + 1024
+53  Blanc Prototype Framework           0x0000000131148208 base::Thread::Run(base::RunLoop*) + 148
+54  Blanc Prototype Framework           0x0000000139e26c5c content::(anonymous namespace)::ChildIOThread::Run(base::RunLoop*) + 180
+55  Blanc Prototype Framework           0x000000013114856c base::Thread::ThreadMain() + 772
+56  Blanc Prototype Framework           0x0000000131168a2c base::(anonymous namespace)::ThreadFunc(void*) + 140
+57  libsystem_pthread.dylib             0x0000000198b48ce4 _pthread_start + 136
+58  libsystem_pthread.dylib             0x0000000198b43cd0 thread_start + 8
+[end of stack trace]
+[43366:12481963:1026/214351.402388:ERROR:content/browser/network_service_instance_impl.cc:652] Network service crashed or was terminated, restarting service.
+[43390:12482428:1026/214351.447972:ERROR:third_party/blink/renderer/core/html/media/html_media_element.cc:5451] SetError: {code=4, message="MEDIA_ELEMENT_ERROR: Media load rejected by URL safety check"}
+[43390:12482428:1026/214351.448034:ERROR:third_party/blink/renderer/core/html/media/html_media_element.cc:5451] SetError: {code=4, message="MEDIA_ELEMENT_ERROR: Media load rejected by URL safety check"}
+[43390:12482428:1026/214351.448073:ERROR:third_party/blink/renderer/core/html/media/html_media_element.cc:5451] SetError: {code=4, message="MEDIA_ELEMENT_ERROR: Media load rejected by URL safety check"}
+[43366:12481963:1026/214351.876811:ERROR:base/process/kill_posix.cc:33] waitpid(43409): No child processes (10)

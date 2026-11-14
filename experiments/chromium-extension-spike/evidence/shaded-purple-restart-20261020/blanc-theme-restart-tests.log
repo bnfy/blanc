@@ -1,0 +1,70 @@
+TAP version 13
+# Subtest: color-only themes apply their NTP palette
+ok 1 - color-only themes apply their NTP palette
+  ---
+  duration_ms: 0.912709
+  ...
+# Subtest: Undo/removal restores CSS inheritance
+ok 2 - Undo/removal restores CSS inheritance
+  ---
+  duration_ms: 0.5825
+  ...
+# Subtest: invalid theme colors are refused
+ok 3 - invalid theme colors are refused
+  ---
+  duration_ms: 0.254208
+  ...
+# Subtest: toolbar artwork is scoped to the native theme endpoint and cleared on removal
+ok 4 - toolbar artwork is scoped to the native theme endpoint and cleared on removal
+  ---
+  duration_ms: 0.265792
+  ...
+# Subtest: suppresses only the exact Chrome Store download campaign
+ok 5 - suppresses only the exact Chrome Store download campaign
+  ---
+  duration_ms: 0.952958
+  ...
+# Subtest: does not run on other origins or child frames
+ok 6 - does not run on other origins or child frames
+  ---
+  duration_ms: 0.70275
+  ...
+# Subtest: leaves ordinary download links and installation forms alone
+ok 7 - leaves ordinary download links and installation forms alone
+  ---
+  duration_ms: 0.735958
+  ...
+# Subtest: removes empty promotion shell without hiding mixed controls
+ok 8 - removes empty promotion shell without hiding mixed controls
+  ---
+  duration_ms: 0.553542
+  ...
+# Subtest: hides the complete exact inline banner
+ok 9 - hides the complete exact inline banner
+  ---
+  duration_ms: 0.480125
+  ...
+# Subtest: retains mixed installation/search/sign-in containers and changed copy
+ok 10 - retains mixed installation/search/sign-in containers and changed copy
+  ---
+  duration_ms: 0.362042
+  ...
+# Subtest: inline rule is limited to top-level Store origin
+ok 11 - inline rule is limited to top-level Store origin
+  ---
+  duration_ms: 0.378625
+  ...
+# Subtest: relabels installation text and accessibility without replacing button
+ok 12 - relabels installation text and accessibility without replacing button
+  ---
+  duration_ms: 0.258917
+  ...
+1..12
+# tests 12
+# suites 0
+# pass 12
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 40.426166

@@ -1,0 +1,8 @@
+{
+  pass: false,
+  checks: 33,
+  error: 'Error: wait timeout\n' +
+    '    at wait (file:///private/tmp/blanc-split-divider/test.mjs:5:130)\n' +
+    '    at async menuAction (file:///private/tmp/blanc-split-divider/test.mjs:78:2)\n' +
+    '    at async file:///private/tmp/blanc-split-divider/test.mjs:84:1'
+}

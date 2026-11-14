@@ -1,0 +1,83 @@
+/* Blanc for iPhone: History, Favorites and the other utility pages open as
+   ordinary tabs above the Island, so the phone draws them as full pages, not
+   as desktop's card over a scrim (body.sheet in pages.css). Only the iOS
+   bridge loads this file, after marking the document (PagesBridge.swift),
+   and every rule is scoped to that mark, so none of it can reach desktop.
+   There is no tab bar: the phone reaches each page on its own, and Downloads,
+   Tab Archive and the Settings page are not on it (1.0 design §6, F10/F16). */
+
+:root[data-platform="ios"] {
+  -webkit-text-size-adjust: 100%;
+  /* Overscroll shows the page's own canvas, not the transparent sheet view. */
+  background: var(--sunrise-bg);
+}
+:root[data-platform="ios"] body.sheet {
+  display: block;
+  height: auto;
+  overflow: visible;
+  padding: 0;
+  background: var(--bg);
+}
+/* The document scrolls, not a card: iOS keeps its momentum scrolling and
+   the status-bar tap back to the top. */
+:root[data-platform="ios"] body.sheet .page {
+  max-width: none;
+  max-height: none;
+  overflow-x: clip;
+  overflow-y: visible;
+  padding: 20px max(16px, env(safe-area-inset-right)) 32px max(16px, env(safe-area-inset-left));
+  border: 0;
+  border-radius: 0;
+  box-shadow: none;
+}
+:root[data-platform="ios"] .page-nav,
+:root[data-platform="ios"] .history-views { display: none; }
+:root[data-platform="ios"] body.sheet .page h1 { margin-bottom: 16px; }
+:root[data-platform="ios"] body.sheet .page-head h1 { margin-bottom: 12px; }
+
+/* Under 16px, iOS zooms the page in when the field takes focus. */
+:root[data-platform="ios"] body.sheet input[type="text"] {
+  min-height: 40px;
+  font-size: 16px;
+}
+:root[data-platform="ios"] body.sheet button:not([class]),
+:root[data-platform="ios"] body.sheet button.danger {
+  min-height: 40px;
+  font-size: 15px;
+}
+:root[data-platform="ios"] body.sheet .toolbar-row { flex-wrap: nowrap; }
+
+/* Rows read at the phone's text size; their buttons stay tappable. */
+:root[data-platform="ios"] body.sheet .row { padding: 10px 8px; }
+:root[data-platform="ios"] body.sheet .row .title { font-size: 16px; }
+:root[data-platform="ios"] body.sheet .row .url { font-size: 13px; }
+:root[data-platform="ios"] body.sheet .row .actions button {
+  min-height: 32px;
+  padding: 0 12px;
+  font-size: 14px;
+}
+:root[data-platform="ios"] body.sheet .row-list.aligned.with-icons > .row .main { padding-left: 10px; }
+:root[data-platform="ios"] body.sheet .row:has(.row-icon) .actions { right: 6px; }
+:root[data-platform="ios"] body.sheet .day-heading {
+  margin: 18px 8px 4px;
+  font-size: 13px;
+}
+:root[data-platform="ios"] body.sheet .section-hint { font-size: 14px; }
+:root[data-platform="ios"] body.sheet .empty { font-size: 15px; }
+
+/* Favorites' row and folder actions appear on hover on desktop; a phone has
+   no hover, so they stay shown (quiet text actions, like desktop's). */
+:root[data-platform="ios"] body.sheet .folder-actions > button,
+:root[data-platform="ios"] body.sheet .row .actions.bookmark-actions > button {
+  opacity: 1;
+  min-height: 32px;
+  padding: 0 8px;
+  border: 0;
+  background: transparent;
+  font-size: 14px;
+}
+:root[data-platform="ios"] body.sheet .row .actions.bookmark-actions {
+  min-width: 0;
+  gap: 2px;
+  background: linear-gradient(90deg, transparent, var(--surface-raised) 16px);
+}

@@ -1,0 +1,4246 @@
+{
+  "results": [
+    {
+      "kind": "regular",
+      "mode": "concurrent",
+      "events": [
+        "eight-native-pending"
+      ],
+      "processes": {
+        "browserPid": 24618,
+        "utilityPid": 24636
+      },
+      "requests": [
+        {
+          "id": 0,
+          "type": "document",
+          "blocked": false,
+          "url": "https://page.blanc-fixture.test:57205/transport",
+          "fingerprint": [
+            46,
+            191,
+            39,
+            144,
+            238,
+            78,
+            45,
+            104,
+            123,
+            35,
+            21,
+            139,
+            34,
+            206,
+            24,
+            233,
+            199,
+            203,
+            109,
+            196,
+            80,
+            212,
+            212,
+            120,
+            71,
+            105,
+            126,
+            72,
+            175,
+            113,
+            246,
+            187
+          ]
+        },
+        {
+          "id": 1,
+          "type": "document",
+          "blocked": true,
+          "url": "https://000491b06a.com:57205/transport",
+          "fingerprint": [
+            46,
+            191,
+            39,
+            144,
+            238,
+            78,
+            45,
+            104,
+            123,
+            35,
+            21,
+            139,
+            34,
+            206,
+            24,
+            233,
+            199,
+            203,
+            109,
+            196,
+            80,
+            212,
+            212,
+            120,
+            71,
+            105,
+            126,
+            72,
+            175,
+            113,
+            246,
+            187
+          ]
+        },
+        {
+          "id": 2,
+          "type": "document",
+          "blocked": false,
+          "url": "https://page.blanc-fixture.test:57205/transport",
+          "fingerprint": [
+            46,
+            191,
+            39,
+            144,
+            238,
+            78,
+            45,
+            104,
+            123,
+            35,
+            21,
+            139,
+            34,
+            206,
+            24,
+            233,
+            199,
+            203,
+            109,
+            196,
+            80,
+            212,
+            212,
+            120,
+            71,
+            105,
+            126,
+            72,
+            175,
+            113,
+            246,
+            187
+          ]
+        },
+        {
+          "id": 3,
+          "type": "document",
+          "blocked": true,
+          "url": "https://000491b06a.com:57205/transport",
+          "fingerprint": [
+            46,
+            191,
+            39,
+            144,
+            238,
+            78,
+            45,
+            104,
+            123,
+            35,
+            21,
+            139,
+            34,
+            206,
+            24,
+            233,
+            199,
+            203,
+            109,
+            196,
+            80,
+            212,
+            212,
+            120,
+            71,
+            105,
+            126,
+            72,
+            175,
+            113,
+            246,
+            187
+          ]
+        },
+        {
+          "id": 4,
+          "type": "service",
+          "blocked": false,
+          "url": "https://page.blanc-fixture.test:57205/transport",
+          "fingerprint": [
+            46,
+            191,
+            39,
+            144,
+            238,
+            78,
+            45,
+            104,
+            123,
+            35,
+            21,
+            139,
+            34,
+            206,
+            24,
+            233,
+            199,
+            203,
+            109,
+            196,
+            80,
+            212,
+            212,
+            120,
+            71,
+            105,
+            126,
+            72,
+            175,
+            113,
+            246,
+            187
+          ]
+        },
+        {
+          "id": 5,
+          "type": "service",
+          "blocked": true,
+          "url": "https://000491b06a.com:57205/transport",
+          "fingerprint": [
+            46,
+            191,
+            39,
+            144,
+            238,
+            78,
+            45,
+            104,
+            123,
+            35,
+            21,
+            139,
+            34,
+            206,
+            24,
+            233,
+            199,
+            203,
+            109,
+            196,
+            80,
+            212,
+            212,
+            120,
+            71,
+            105,
+            126,
+            72,
+            175,
+            113,
+            246,
+            187
+          ]
+        },
+        {
+          "id": 6,
+          "type": "service",
+          "blocked": false,
+          "url": "https://page.blanc-fixture.test:57205/transport",
+          "fingerprint": [
+            46,
+            191,
+            39,
+            144,
+            238,
+            78,
+            45,
+            104,
+            123,
+            35,
+            21,
+            139,
+            34,
+            206,
+            24,
+            233,
+            199,
+            203,
+            109,
+            196,
+            80,
+            212,
+            212,
+            120,
+            71,
+            105,
+            126,
+            72,
+            175,
+            113,
+            246,
+            187
+          ]
+        },
+        {
+          "id": 7,
+          "type": "service",
+          "blocked": true,
+          "url": "https://000491b06a.com:57205/transport",
+          "fingerprint": [
+            46,
+            191,
+            39,
+            144,
+            238,
+            78,
+            45,
+            104,
+            123,
+            35,
+            21,
+            139,
+            34,
+            206,
+            24,
+            233,
+            199,
+            203,
+            109,
+            196,
+            80,
+            212,
+            212,
+            120,
+            71,
+            105,
+            126,
+            72,
+            175,
+            113,
+            246,
+            187
+          ]
+        }
+      ],
+      "pendingIds": [
+        "569B5E5306201372D48BD8E6D28D0EE5",
+        "CEDD05A3E769A9191AEAF3411A4DCD5E",
+        "7711EFF8D3231020A9DBA923DD5CE613",
+        "55A9E624BD795E5C5B23194D46D116CD",
+        "26F342DEDF389AB015A481C6BEF2709C",
+        "18D373C6275162C34C762B50BDFD86E6",
+        "A683F792DB484F7375FBAE751E42EE40",
+        "52A66B6506DD7EE1F96C58A1310B0EDC"
+      ],
+      "outcomes": [
+        {
+          "id": 1,
+          "result": {
+            "ready": false,
+            "error": "WebTransportError: Opening handshake failed."
+          }
+        },
+        {
+          "id": 3,
+          "result": {
+            "ready": false,
+            "error": "WebTransportError: Opening handshake failed."
+          }
+        },
+        {
+          "id": 5,
+          "result": {
+            "ready": false,
+            "error": "WebTransportError: Opening handshake failed."
+          }
+        },
+        {
+          "id": 7,
+          "result": {
+            "ready": false,
+            "error": "WebTransportError: Opening handshake failed."
+          }
+        },
+        {
+          "id": 0,
+          "result": {
+            "ready": true,
+            "echo": "blanc-http3-proof"
+          }
+        },
+        {
+          "id": 4,
+          "result": {
+            "ready": true,
+            "echo": "blanc-http3-proof"
+          }
+        },
+        {
+          "id": 6,
+          "result": {
+            "ready": true,
+            "echo": "blanc-http3-proof"
+          }
+        },
+        {
+          "id": 2,
+          "result": {
+            "ready": true,
+            "echo": "blanc-http3-proof"
+          }
+        }
+      ],
+      "decisions": [
+        {
+          "context_alive": true,
+          "decision": "allow",
+          "engine_result": 0,
+          "event": "webtransport-decision",
+          "initiator_origin": "http://127.0.0.1:64800",
+          "owner": "document-or-dedicated-worker",
+          "private": false,
+          "profile_unavailable": false,
+          "request_id": "569B5E5306201372D48BD8E6D28D0EE5",
+          "source_contract": "webtransport-initiator-origin",
+          "url": "https://page.blanc-fixture.test:57205/transport"
+        },
+        {
+          "context_alive": true,
+          "decision": "allow",
+          "engine_result": 0,
+          "event": "webtransport-decision",
+          "initiator_origin": "http://127.0.0.1:64800",
+          "owner": "frame-less-worker",
+          "private": false,
+          "profile_unavailable": false,
+          "request_id": "CEDD05A3E769A9191AEAF3411A4DCD5E",
+          "source_contract": "webtransport-initiator-origin",
+          "url": "https://page.blanc-fixture.test:57205/transport"
+        },
+        {
+          "context_alive": true,
+          "decision": "block",
+          "engine_result": 1,
+          "event": "webtransport-decision",
+          "initiator_origin": "http://127.0.0.1:64800",
+          "owner": "document-or-dedicated-worker",
+          "private": false,
+          "profile_unavailable": false,
+          "request_id": "7711EFF8D3231020A9DBA923DD5CE613",
+          "source_contract": "webtransport-initiator-origin",
+          "url": "https://000491b06a.com:57205/transport"
+        },
+        {
+          "context_alive": true,
+          "decision": "block",
+          "engine_result": 1,
+          "event": "webtransport-decision",
+          "initiator_origin": "http://127.0.0.1:64800",
+          "owner": "frame-less-worker",
+          "private": false,
+          "profile_unavailable": false,
+          "request_id": "55A9E624BD795E5C5B23194D46D116CD",
+          "source_contract": "webtransport-initiator-origin",
+          "url": "https://000491b06a.com:57205/transport"
+        },
+        {
+          "context_alive": true,
+          "decision": "allow",
+          "engine_result": 0,
+          "event": "webtransport-decision",
+          "initiator_origin": "http://127.0.0.1:64800",
+          "owner": "frame-less-worker",
+          "private": false,
+          "profile_unavailable": false,
+          "request_id": "26F342DEDF389AB015A481C6BEF2709C",
+          "source_contract": "webtransport-initiator-origin",
+          "url": "https://page.blanc-fixture.test:57205/transport"
+        },
+        {
+          "context_alive": true,
+          "decision": "allow",
+          "engine_result": 0,
+          "event": "webtransport-decision",
+          "initiator_origin": "http://127.0.0.1:64800",
+          "owner": "document-or-dedicated-worker",
+          "private": false,
+          "profile_unavailable": false,
+          "request_id": "18D373C6275162C34C762B50BDFD86E6",
+          "source_contract": "webtransport-initiator-origin",
+          "url": "https://page.blanc-fixture.test:57205/transport"
+        },
+        {
+          "context_alive": true,
+          "decision": "block",
+          "engine_result": 1,
+          "event": "webtransport-decision",
+          "initiator_origin": "http://127.0.0.1:64800",
+          "owner": "frame-less-worker",
+          "private": false,
+          "profile_unavailable": false,
+          "request_id": "A683F792DB484F7375FBAE751E42EE40",
+          "source_contract": "webtransport-initiator-origin",
+          "url": "https://000491b06a.com:57205/transport"
+        },
+        {
+          "context_alive": true,
+          "decision": "block",
+          "engine_result": 1,
+          "event": "webtransport-decision",
+          "initiator_origin": "http://127.0.0.1:64800",
+          "owner": "document-or-dedicated-worker",
+          "private": false,
+          "profile_unavailable": false,
+          "request_id": "52A66B6506DD7EE1F96C58A1310B0EDC",
+          "source_contract": "webtransport-initiator-origin",
+          "url": "https://000491b06a.com:57205/transport"
+        }
+      ],
+      "arrivals": [
+        {
+          "event": "alpn",
+          "value": "h3"
+        },
+        {
+          "event": "alpn",
+          "value": "h3"
+        },
+        {
+          "event": "alpn",
+          "value": "h3"
+        },
+        {
+          "event": "alpn",
+          "value": "h3"
+        },
+        {
+          "event": "connect",
+          "headers": {
+            ":scheme": "https",
+            ":method": "CONNECT",
+            ":authority": "page.blanc-fixture.test:57205",
+            ":path": "/transport",
+            ":protocol": "webtransport",
+            "sec-webtransport-http3-draft02": "1",
+            "origin": "http://127.0.0.1:64800"
+          },
+          "accepted": true
+        },
+        {
+          "event": "connect",
+          "headers": {
+            ":scheme": "https",
+            ":method": "CONNECT",
+            ":authority": "page.blanc-fixture.test:57205",
+            ":path": "/transport",
+            ":protocol": "webtransport",
+            "sec-webtransport-http3-draft02": "1",
+            "origin": "http://127.0.0.1:64800"
+          },
+          "accepted": true
+        },
+        {
+          "event": "connect",
+          "headers": {
+            ":scheme": "https",
+            ":method": "CONNECT",
+            ":authority": "page.blanc-fixture.test:57205",
+            ":path": "/transport",
+            ":protocol": "webtransport",
+            "sec-webtransport-http3-draft02": "1",
+            "origin": "http://127.0.0.1:64800"
+          },
+          "accepted": true
+        },
+        {
+          "event": "connect",
+          "headers": {
+            ":scheme": "https",
+            ":method": "CONNECT",
+            ":authority": "page.blanc-fixture.test:57205",
+            ":path": "/transport",
+            ":protocol": "webtransport",
+            "sec-webtransport-http3-draft02": "1",
+            "origin": "http://127.0.0.1:64800"
+          },
+          "accepted": true
+        },
+        {
+          "event": "echo",
+          "value": "blanc-http3-proof"
+        },
+        {
+          "event": "echo",
+          "value": "blanc-http3-proof"
+        },
+        {
+          "event": "echo",
+          "value": "blanc-http3-proof"
+        },
+        {
+          "event": "echo",
+          "value": "blanc-http3-proof"
+        }
+      ],
+      "fresh": {
+        "ready": true,
+        "echo": "blanc-http3-proof"
+      },
+      "passed": true,
+      "records": [
+        {
+          "bundle_sha256": "9acdfb68963e89c9c9be04a1a68ae831c7c35b800555790cadc8575a7172382d",
+          "event": "engine-ready"
+        },
+        {
+          "decision": "allow",
+          "devtools_request_id": "8E5C3A53BD4F8F06B2D54B2361DEAAE8",
+          "engine_result": 0,
+          "event": "decision",
+          "factory_instance": "7E8918F0B4D1D55B89B03A69F92A407F",
+          "factory_isolation_top_origin": "absent",
+          "factory_kind": "other",
+          "factory_type": 0,
+          "frame_role": "main",
+          "frame_state": "live-at-entry",
+          "hook_to_decision_us": 1459635,
+          "initiator_origin": "absent",
+          "initiator_present": false,
+          "loader_request_id": -6,
+          "method": "GET",
+          "profile_kind": "regular",
+          "redirect_index": 0,
+          "referrer": "",
+          "request_isolation_top_origin": "http://127.0.0.1:64800",
+          "resource_type": "mainFrame",
+          "status": "ready",
+          "top_frame_origin": "http://127.0.0.1:64800",
+          "url": "http://127.0.0.1:64800/"
+        },
+        {
+          "decision": "allow",
+          "devtools_request_id": "24634.2",
+          "engine_result": 0,
+          "event": "decision",
+          "factory_instance": "A5A6B9B71BC2A74D0C21DDA239895AAC",
+          "factory_isolation_top_origin": "http://127.0.0.1:64800",
+          "factory_kind": "other",
+          "factory_type": 2,
+          "frame_role": "main",
+          "frame_state": "live-at-entry",
+          "hook_to_decision_us": 3592,
+          "initiator_origin": "http://127.0.0.1:64800",
+          "initiator_present": true,
+          "loader_request_id": 418610,
+          "method": "GET",
+          "profile_kind": "regular",
+          "redirect_index": 0,
+          "referrer": "http://127.0.0.1:64800/",
+          "request_isolation_top_origin": "absent",
+          "resource_type": "script",
+          "status": "ready",
+          "top_frame_origin": "http://127.0.0.1:64800",
+          "url": "http://127.0.0.1:64800/client.js"
+        },
+        {
+          "decision": "allow",
+          "devtools_request_id": "24634.4",
+          "engine_result": 0,
+          "event": "decision",
+          "factory_instance": "A5A6B9B71BC2A74D0C21DDA239895AAC",
+          "factory_isolation_top_origin": "http://127.0.0.1:64800",
+          "factory_kind": "other",
+          "factory_type": 2,
+          "frame_role": "main",
+          "frame_state": "live-at-entry",
+          "hook_to_decision_us": 389,
+          "initiator_origin": "http://127.0.0.1:64800",
+          "initiator_present": true,
+          "loader_request_id": 418611,
+          "method": "GET",
+          "profile_kind": "regular",
+          "redirect_index": 0,
+          "referrer": "http://127.0.0.1:64800/",
+          "request_isolation_top_origin": "absent",
+          "resource_type": "image",
+          "status": "ready",
+          "top_frame_origin": "http://127.0.0.1:64800",
+          "url": "http://127.0.0.1:64800/favicon.ico"
+        },
+        {
+          "event": "webtransport-pending",
+          "private": false,
+          "request_id": "82DDB7C08510C9F07737F0AA731792FC",
+          "url": "https://page.blanc-fixture.test:57205/transport"
+        },
+        {
+          "context_alive": true,
+          "decision": "allow",
+          "engine_result": 0,
+          "event": "webtransport-decision",
+          "initiator_origin": "http://127.0.0.1:64800",
+          "owner": "document-or-dedicated-worker",
+          "private": false,
+          "profile_unavailable": false,
+          "request_id": "82DDB7C08510C9F07737F0AA731792FC",
+          "source_contract": "webtransport-initiator-origin",
+          "url": "https://page.blanc-fixture.test:57205/transport"
+        },
+        {
+          "decision": "allow",
+          "devtools_request_id": "2B8D9C9231A0165D6B3045B69FB405DA",
+          "engine_result": 0,
+          "event": "decision",
+          "factory_instance": "3347C48BEE936F3FC169F8F13DF87708",
+          "factory_isolation_top_origin": "absent",
+          "factory_kind": "service-worker-script",
+          "factory_type": 5,
+          "frame_role": "unresolved",
+          "frame_state": "not-associated",
+          "hook_to_decision_us": 415,
+          "initiator_origin": "http://127.0.0.1:64800",
+          "initiator_present": true,
+          "loader_request_id": -7,
+          "method": "GET",
+          "profile_kind": "regular",
+          "redirect_index": 0,
+          "referrer": "http://127.0.0.1:64800/",
+          "request_isolation_top_origin": "http://127.0.0.1:64800",
+          "resource_type": "script",
+          "status": "ready",
+          "top_frame_origin": "unresolved",
+          "url": "http://127.0.0.1:64800/service.js"
+        },
+        {
+          "event": "webtransport-pending",
+          "private": false,
+          "request_id": "569B5E5306201372D48BD8E6D28D0EE5",
+          "url": "https://page.blanc-fixture.test:57205/transport"
+        },
+        {
+          "event": "webtransport-pending",
+          "private": false,
+          "request_id": "CEDD05A3E769A9191AEAF3411A4DCD5E",
+          "url": "https://page.blanc-fixture.test:57205/transport"
+        },
+        {
+          "event": "webtransport-pending",
+          "private": false,
+          "request_id": "7711EFF8D3231020A9DBA923DD5CE613",
+          "url": "https://000491b06a.com:57205/transport"
+        },
+        {
+          "event": "webtransport-pending",
+          "private": false,
+          "request_id": "55A9E624BD795E5C5B23194D46D116CD",
+          "url": "https://000491b06a.com:57205/transport"
+        },
+        {
+          "event": "webtransport-pending",
+          "private": false,
+          "request_id": "26F342DEDF389AB015A481C6BEF2709C",
+          "url": "https://page.blanc-fixture.test:57205/transport"
+        },
+        {
+          "event": "webtransport-pending",
+          "private": false,
+          "request_id": "18D373C6275162C34C762B50BDFD86E6",
+          "url": "https://page.blanc-fixture.test:57205/transport"
+        },
+        {
+          "event": "webtransport-pending",
+          "private": false,
+          "request_id": "A683F792DB484F7375FBAE751E42EE40",
+          "url": "https://000491b06a.com:57205/transport"
+        },
+        {
+          "event": "webtransport-pending",
+          "private": false,
+          "request_id": "52A66B6506DD7EE1F96C58A1310B0EDC",
+          "url": "https://000491b06a.com:57205/transport"
+        },
+        {
+          "context_alive": true,
+          "decision": "allow",
+          "engine_result": 0,
+          "event": "webtransport-decision",
+          "initiator_origin": "http://127.0.0.1:64800",
+          "owner": "document-or-dedicated-worker",
+          "private": false,
+          "profile_unavailable": false,
+          "request_id": "569B5E5306201372D48BD8E6D28D0EE5",
+          "source_contract": "webtransport-initiator-origin",
+          "url": "https://page.blanc-fixture.test:57205/transport"
+        },
+        {
+          "context_alive": true,
+          "decision": "allow",
+          "engine_result": 0,
+          "event": "webtransport-decision",
+          "initiator_origin": "http://127.0.0.1:64800",
+          "owner": "frame-less-worker",
+          "private": false,
+          "profile_unavailable": false,
+          "request_id": "CEDD05A3E769A9191AEAF3411A4DCD5E",
+          "source_contract": "webtransport-initiator-origin",
+          "url": "https://page.blanc-fixture.test:57205/transport"
+        },
+        {
+          "context_alive": true,
+          "decision": "block",
+          "engine_result": 1,
+          "event": "webtransport-decision",
+          "initiator_origin": "http://127.0.0.1:64800",
+          "owner": "document-or-dedicated-worker",
+          "private": false,
+          "profile_unavailable": false,
+          "request_id": "7711EFF8D3231020A9DBA923DD5CE613",
+          "source_contract": "webtransport-initiator-origin",
+          "url": "https://000491b06a.com:57205/transport"
+        },
+        {
+          "context_alive": true,
+          "decision": "block",
+          "engine_result": 1,
+          "event": "webtransport-decision",
+          "initiator_origin": "http://127.0.0.1:64800",
+          "owner": "frame-less-worker",
+          "private": false,
+          "profile_unavailable": false,
+          "request_id": "55A9E624BD795E5C5B23194D46D116CD",
+          "source_contract": "webtransport-initiator-origin",
+          "url": "https://000491b06a.com:57205/transport"
+        },
+        {
+          "context_alive": true,
+          "decision": "allow",
+          "engine_result": 0,
+          "event": "webtransport-decision",
+          "initiator_origin": "http://127.0.0.1:64800",
+          "owner": "frame-less-worker",
+          "private": false,
+          "profile_unavailable": false,
+          "request_id": "26F342DEDF389AB015A481C6BEF2709C",
+          "source_contract": "webtransport-initiator-origin",
+          "url": "https://page.blanc-fixture.test:57205/transport"
+        },
+        {
+          "context_alive": true,
+          "decision": "allow",
+          "engine_result": 0,
+          "event": "webtransport-decision",
+          "initiator_origin": "http://127.0.0.1:64800",
+          "owner": "document-or-dedicated-worker",
+          "private": false,
+          "profile_unavailable": false,
+          "request_id": "18D373C6275162C34C762B50BDFD86E6",
+          "source_contract": "webtransport-initiator-origin",
+          "url": "https://page.blanc-fixture.test:57205/transport"
+        },
+        {
+          "context_alive": true,
+          "decision": "block",
+          "engine_result": 1,
+          "event": "webtransport-decision",
+          "initiator_origin": "http://127.0.0.1:64800",
+          "owner": "frame-less-worker",
+          "private": false,
+          "profile_unavailable": false,
+          "request_id": "A683F792DB484F7375FBAE751E42EE40",
+          "source_contract": "webtransport-initiator-origin",
+          "url": "https://000491b06a.com:57205/transport"
+        },
+        {
+          "context_alive": true,
+          "decision": "block",
+          "engine_result": 1,
+          "event": "webtransport-decision",
+          "initiator_origin": "http://127.0.0.1:64800",
+          "owner": "document-or-dedicated-worker",
+          "private": false,
+          "profile_unavailable": false,
+          "request_id": "52A66B6506DD7EE1F96C58A1310B0EDC",
+          "source_contract": "webtransport-initiator-origin",
+          "url": "https://000491b06a.com:57205/transport"
+        },
+        {
+          "event": "webtransport-pending",
+          "private": false,
+          "request_id": "D7C39E406BE1C55C18F6AA3CE5532F69",
+          "url": "https://page.blanc-fixture.test:57205/transport"
+        },
+        {
+          "context_alive": true,
+          "decision": "allow",
+          "engine_result": 0,
+          "event": "webtransport-decision",
+          "initiator_origin": "http://127.0.0.1:64800",
+          "owner": "document-or-dedicated-worker",
+          "private": false,
+          "profile_unavailable": false,
+          "request_id": "D7C39E406BE1C55C18F6AA3CE5532F69",
+          "source_contract": "webtransport-initiator-origin",
+          "url": "https://page.blanc-fixture.test:57205/transport"
+        }
+      ]
+    },
+    {
+      "kind": "regular",
+      "mode": "cancel-deletion",
+      "events": [
+        "eight-native-pending",
+        "native-beforeunload",
+        "deletion-cancelled",
+        "default-profile-retained"
+      ],
+      "processes": {
+        "browserPid": 24639,
+        "utilityPid": 24655
+      },
+      "requests": [
+        {
+          "id": 0,
+          "type": "document",
+          "blocked": false,
+          "url": "https://page.blanc-fixture.test:57205/transport",
+          "fingerprint": [
+            46,
+            191,
+            39,
+            144,
+            238,
+            78,
+            45,
+            104,
+            123,
+            35,
+            21,
+            139,
+            34,
+            206,
+            24,
+            233,
+            199,
+            203,
+            109,
+            196,
+            80,
+            212,
+            212,
+            120,
+            71,
+            105,
+            126,
+            72,
+            175,
+            113,
+            246,
+            187
+          ]
+        },
+        {
+          "id": 1,
+          "type": "document",
+          "blocked": true,
+          "url": "https://000491b06a.com:57205/transport",
+          "fingerprint": [
+            46,
+            191,
+            39,
+            144,
+            238,
+            78,
+            45,
+            104,
+            123,
+            35,
+            21,
+            139,
+            34,
+            206,
+            24,
+            233,
+            199,
+            203,
+            109,
+            196,
+            80,
+            212,
+            212,
+            120,
+            71,
+            105,
+            126,
+            72,
+            175,
+            113,
+            246,
+            187
+          ]
+        },
+        {
+          "id": 2,
+          "type": "document",
+          "blocked": false,
+          "url": "https://page.blanc-fixture.test:57205/transport",
+          "fingerprint": [
+            46,
+            191,
+            39,
+            144,
+            238,
+            78,
+            45,
+            104,
+            123,
+            35,
+            21,
+            139,
+            34,
+            206,
+            24,
+            233,
+            199,
+            203,
+            109,
+            196,
+            80,
+            212,
+            212,
+            120,
+            71,
+            105,
+            126,
+            72,
+            175,
+            113,
+            246,
+            187
+          ]
+        },
+        {
+          "id": 3,
+          "type": "document",
+          "blocked": true,
+          "url": "https://000491b06a.com:57205/transport",
+          "fingerprint": [
+            46,
+            191,
+            39,
+            144,
+            238,
+            78,
+            45,
+            104,
+            123,
+            35,
+            21,
+            139,
+            34,
+            206,
+            24,
+            233,
+            199,
+            203,
+            109,
+            196,
+            80,
+            212,
+            212,
+            120,
+            71,
+            105,
+            126,
+            72,
+            175,
+            113,
+            246,
+            187
+          ]
+        },
+        {
+          "id": 4,
+          "type": "service",
+          "blocked": false,
+          "url": "https://page.blanc-fixture.test:57205/transport",
+          "fingerprint": [
+            46,
+            191,
+            39,
+            144,
+            238,
+            78,
+            45,
+            104,
+            123,
+            35,
+            21,
+            139,
+            34,
+            206,
+            24,
+            233,
+            199,
+            203,
+            109,
+            196,
+            80,
+            212,
+            212,
+            120,
+            71,
+            105,
+            126,
+            72,
+            175,
+            113,
+            246,
+            187
+          ]
+        },
+        {
+          "id": 5,
+          "type": "service",
+          "blocked": true,
+          "url": "https://000491b06a.com:57205/transport",
+          "fingerprint": [
+            46,
+            191,
+            39,
+            144,
+            238,
+            78,
+            45,
+            104,
+            123,
+            35,
+            21,
+            139,
+            34,
+            206,
+            24,
+            233,
+            199,
+            203,
+            109,
+            196,
+            80,
+            212,
+            212,
+            120,
+            71,
+            105,
+            126,
+            72,
+            175,
+            113,
+            246,
+            187
+          ]
+        },
+        {
+          "id": 6,
+          "type": "service",
+          "blocked": false,
+          "url": "https://page.blanc-fixture.test:57205/transport",
+          "fingerprint": [
+            46,
+            191,
+            39,
+            144,
+            238,
+            78,
+            45,
+            104,
+            123,
+            35,
+            21,
+            139,
+            34,
+            206,
+            24,
+            233,
+            199,
+            203,
+            109,
+            196,
+            80,
+            212,
+            212,
+            120,
+            71,
+            105,
+            126,
+            72,
+            175,
+            113,
+            246,
+            187
+          ]
+        },
+        {
+          "id": 7,
+          "type": "service",
+          "blocked": true,
+          "url": "https://000491b06a.com:57205/transport",
+          "fingerprint": [
+            46,
+            191,
+            39,
+            144,
+            238,
+            78,
+            45,
+            104,
+            123,
+            35,
+            21,
+            139,
+            34,
+            206,
+            24,
+            233,
+            199,
+            203,
+            109,
+            196,
+            80,
+            212,
+            212,
+            120,
+            71,
+            105,
+            126,
+            72,
+            175,
+            113,
+            246,
+            187
+          ]
+        }
+      ],
+      "pendingIds": [
+        "844674B6A1F43478DCDF5D22B560504E",
+        "8E98C01D67FE84B8BE831750B471BEA6",
+        "80744128FABB1910ADBB9F949C8AE4E8",
+        "ECE4AEDA39A9E355500D1985E5E32178",
+        "3659DA6BF0041CD714D467A1BC297DB3",
+        "504F3681F5EBBD975DD68F19FBCF0633",
+        "09FE72878242801C5A1949E105A0D624",
+        "40354BFA70A507E31912BA1A05FF1868"
+      ],
+      "outcomes": [
+        {
+          "id": 1,
+          "result": {
+            "ready": false,
+            "error": "WebTransportError: Opening handshake failed."
+          }
+        },
+        {
+          "id": 3,
+          "result": {
+            "ready": false,
+            "error": "WebTransportError: Opening handshake failed."
+          }
+        },
+        {
+          "id": 5,
+          "result": {
+            "ready": false,
+            "error": "WebTransportError: Opening handshake failed."
+          }
+        },
+        {
+          "id": 7,
+          "result": {
+            "ready": false,
+            "error": "WebTransportError: Opening handshake failed."
+          }
+        },
+        {
+          "id": 0,
+          "result": {
+            "ready": true,
+            "echo": "blanc-http3-proof"
+          }
+        },
+        {
+          "id": 4,
+          "result": {
+            "ready": true,
+            "echo": "blanc-http3-proof"
+          }
+        },
+        {
+          "id": 6,
+          "result": {
+            "ready": true,
+            "echo": "blanc-http3-proof"
+          }
+        },
+        {
+          "id": 2,
+          "result": {
+            "ready": true,
+            "echo": "blanc-http3-proof"
+          }
+        }
+      ],
+      "decisions": [
+        {
+          "context_alive": true,
+          "decision": "allow",
+          "engine_result": 0,
+          "event": "webtransport-decision",
+          "initiator_origin": "http://127.0.0.1:64800",
+          "owner": "document-or-dedicated-worker",
+          "private": false,
+          "profile_unavailable": false,
+          "request_id": "844674B6A1F43478DCDF5D22B560504E",
+          "source_contract": "webtransport-initiator-origin",
+          "url": "https://page.blanc-fixture.test:57205/transport"
+        },
+        {
+          "context_alive": true,
+          "decision": "allow",
+          "engine_result": 0,
+          "event": "webtransport-decision",
+          "initiator_origin": "http://127.0.0.1:64800",
+          "owner": "frame-less-worker",
+          "private": false,
+          "profile_unavailable": false,
+          "request_id": "8E98C01D67FE84B8BE831750B471BEA6",
+          "source_contract": "webtransport-initiator-origin",
+          "url": "https://page.blanc-fixture.test:57205/transport"
+        },
+        {
+          "context_alive": true,
+          "decision": "block",
+          "engine_result": 1,
+          "event": "webtransport-decision",
+          "initiator_origin": "http://127.0.0.1:64800",
+          "owner": "frame-less-worker",
+          "private": false,
+          "profile_unavailable": false,
+          "request_id": "80744128FABB1910ADBB9F949C8AE4E8",
+          "source_contract": "webtransport-initiator-origin",
+          "url": "https://000491b06a.com:57205/transport"
+        },
+        {
+          "context_alive": true,
+          "decision": "block",
+          "engine_result": 1,
+          "event": "webtransport-decision",
+          "initiator_origin": "http://127.0.0.1:64800",
+          "owner": "document-or-dedicated-worker",
+          "private": false,
+          "profile_unavailable": false,
+          "request_id": "ECE4AEDA39A9E355500D1985E5E32178",
+          "source_contract": "webtransport-initiator-origin",
+          "url": "https://000491b06a.com:57205/transport"
+        },
+        {
+          "context_alive": true,
+          "decision": "allow",
+          "engine_result": 0,
+          "event": "webtransport-decision",
+          "initiator_origin": "http://127.0.0.1:64800",
+          "owner": "frame-less-worker",
+          "private": false,
+          "profile_unavailable": false,
+          "request_id": "3659DA6BF0041CD714D467A1BC297DB3",
+          "source_contract": "webtransport-initiator-origin",
+          "url": "https://page.blanc-fixture.test:57205/transport"
+        },
+        {
+          "context_alive": true,
+          "decision": "allow",
+          "engine_result": 0,
+          "event": "webtransport-decision",
+          "initiator_origin": "http://127.0.0.1:64800",
+          "owner": "document-or-dedicated-worker",
+          "private": false,
+          "profile_unavailable": false,
+          "request_id": "504F3681F5EBBD975DD68F19FBCF0633",
+          "source_contract": "webtransport-initiator-origin",
+          "url": "https://page.blanc-fixture.test:57205/transport"
+        },
+        {
+          "context_alive": true,
+          "decision": "block",
+          "engine_result": 1,
+          "event": "webtransport-decision",
+          "initiator_origin": "http://127.0.0.1:64800",
+          "owner": "frame-less-worker",
+          "private": false,
+          "profile_unavailable": false,
+          "request_id": "09FE72878242801C5A1949E105A0D624",
+          "source_contract": "webtransport-initiator-origin",
+          "url": "https://000491b06a.com:57205/transport"
+        },
+        {
+          "context_alive": true,
+          "decision": "block",
+          "engine_result": 1,
+          "event": "webtransport-decision",
+          "initiator_origin": "http://127.0.0.1:64800",
+          "owner": "document-or-dedicated-worker",
+          "private": false,
+          "profile_unavailable": false,
+          "request_id": "40354BFA70A507E31912BA1A05FF1868",
+          "source_contract": "webtransport-initiator-origin",
+          "url": "https://000491b06a.com:57205/transport"
+        }
+      ],
+      "arrivals": [
+        {
+          "event": "alpn",
+          "value": "h3"
+        },
+        {
+          "event": "alpn",
+          "value": "h3"
+        },
+        {
+          "event": "alpn",
+          "value": "h3"
+        },
+        {
+          "event": "alpn",
+          "value": "h3"
+        },
+        {
+          "event": "connect",
+          "headers": {
+            ":scheme": "https",
+            ":method": "CONNECT",
+            ":authority": "page.blanc-fixture.test:57205",
+            ":path": "/transport",
+            ":protocol": "webtransport",
+            "sec-webtransport-http3-draft02": "1",
+            "origin": "http://127.0.0.1:64800"
+          },
+          "accepted": true
+        },
+        {
+          "event": "connect",
+          "headers": {
+            ":scheme": "https",
+            ":method": "CONNECT",
+            ":authority": "page.blanc-fixture.test:57205",
+            ":path": "/transport",
+            ":protocol": "webtransport",
+            "sec-webtransport-http3-draft02": "1",
+            "origin": "http://127.0.0.1:64800"
+          },
+          "accepted": true
+        },
+        {
+          "event": "connect",
+          "headers": {
+            ":scheme": "https",
+            ":method": "CONNECT",
+            ":authority": "page.blanc-fixture.test:57205",
+            ":path": "/transport",
+            ":protocol": "webtransport",
+            "sec-webtransport-http3-draft02": "1",
+            "origin": "http://127.0.0.1:64800"
+          },
+          "accepted": true
+        },
+        {
+          "event": "connect",
+          "headers": {
+            ":scheme": "https",
+            ":method": "CONNECT",
+            ":authority": "page.blanc-fixture.test:57205",
+            ":path": "/transport",
+            ":protocol": "webtransport",
+            "sec-webtransport-http3-draft02": "1",
+            "origin": "http://127.0.0.1:64800"
+          },
+          "accepted": true
+        },
+        {
+          "event": "echo",
+          "value": "blanc-http3-proof"
+        },
+        {
+          "event": "echo",
+          "value": "blanc-http3-proof"
+        },
+        {
+          "event": "echo",
+          "value": "blanc-http3-proof"
+        },
+        {
+          "event": "echo",
+          "value": "blanc-http3-proof"
+        }
+      ],
+      "fresh": {
+        "ready": true,
+        "echo": "blanc-http3-proof"
+      },
+      "passed": true,
+      "records": [
+        {
+          "bundle_sha256": "9acdfb68963e89c9c9be04a1a68ae831c7c35b800555790cadc8575a7172382d",
+          "event": "engine-ready"
+        },
+        {
+          "decision": "allow",
+          "devtools_request_id": "1135CD70648740245DF4D476B27D0A44",
+          "engine_result": 0,
+          "event": "decision",
+          "factory_instance": "1CFBD145617C097169C3583AAF8C4957",
+          "factory_isolation_top_origin": "absent",
+          "factory_kind": "other",
+          "factory_type": 0,
+          "frame_role": "main",
+          "frame_state": "live-at-entry",
+          "hook_to_decision_us": 1449050,
+          "initiator_origin": "absent",
+          "initiator_present": false,
+          "loader_request_id": -6,
+          "method": "GET",
+          "profile_kind": "regular",
+          "redirect_index": 0,
+          "referrer": "",
+          "request_isolation_top_origin": "http://127.0.0.1:64800",
+          "resource_type": "mainFrame",
+          "status": "ready",
+          "top_frame_origin": "http://127.0.0.1:64800",
+          "url": "http://127.0.0.1:64800/"
+        },
+        {
+          "decision": "allow",
+          "devtools_request_id": "24653.2",
+          "engine_result": 0,
+          "event": "decision",
+          "factory_instance": "53CDFE39CD686838BF8E0705A27260A4",
+          "factory_isolation_top_origin": "http://127.0.0.1:64800",
+          "factory_kind": "other",
+          "factory_type": 2,
+          "frame_role": "main",
+          "frame_state": "live-at-entry",
+          "hook_to_decision_us": 3901,
+          "initiator_origin": "http://127.0.0.1:64800",
+          "initiator_present": true,
+          "loader_request_id": 885873,
+          "method": "GET",
+          "profile_kind": "regular",
+          "redirect_index": 0,
+          "referrer": "http://127.0.0.1:64800/",
+          "request_isolation_top_origin": "absent",
+          "resource_type": "script",
+          "status": "ready",
+          "top_frame_origin": "http://127.0.0.1:64800",
+          "url": "http://127.0.0.1:64800/client.js"
+        },
+        {
+          "decision": "allow",
+          "devtools_request_id": "24653.4",
+          "engine_result": 0,
+          "event": "decision",
+          "factory_instance": "53CDFE39CD686838BF8E0705A27260A4",
+          "factory_isolation_top_origin": "http://127.0.0.1:64800",
+          "factory_kind": "other",
+          "factory_type": 2,
+          "frame_role": "main",
+          "frame_state": "live-at-entry",
+          "hook_to_decision_us": 458,
+          "initiator_origin": "http://127.0.0.1:64800",
+          "initiator_present": true,
+          "loader_request_id": 885874,
+          "method": "GET",
+          "profile_kind": "regular",
+          "redirect_index": 0,
+          "referrer": "http://127.0.0.1:64800/",
+          "request_isolation_top_origin": "absent",
+          "resource_type": "image",
+          "status": "ready",
+          "top_frame_origin": "http://127.0.0.1:64800",
+          "url": "http://127.0.0.1:64800/favicon.ico"
+        },
+        {
+          "event": "webtransport-pending",
+          "private": false,
+          "request_id": "058E2471912F2A4B7CC0B3A8AADC3533",
+          "url": "https://page.blanc-fixture.test:57205/transport"
+        },
+        {
+          "context_alive": true,
+          "decision": "allow",
+          "engine_result": 0,
+          "event": "webtransport-decision",
+          "initiator_origin": "http://127.0.0.1:64800",
+          "owner": "document-or-dedicated-worker",
+          "private": false,
+          "profile_unavailable": false,
+          "request_id": "058E2471912F2A4B7CC0B3A8AADC3533",
+          "source_contract": "webtransport-initiator-origin",
+          "url": "https://page.blanc-fixture.test:57205/transport"
+        },
+        {
+          "decision": "allow",
+          "devtools_request_id": "467DF6747C54BC88BF8AF9B0229495DD",
+          "engine_result": 0,
+          "event": "decision",
+          "factory_instance": "7DB944EB6C2AF4FCB8C973C72DFCC6AD",
+          "factory_isolation_top_origin": "absent",
+          "factory_kind": "service-worker-script",
+          "factory_type": 5,
+          "frame_role": "unresolved",
+          "frame_state": "not-associated",
+          "hook_to_decision_us": 401,
+          "initiator_origin": "http://127.0.0.1:64800",
+          "initiator_present": true,
+          "loader_request_id": -7,
+          "method": "GET",
+          "profile_kind": "regular",
+          "redirect_index": 0,
+          "referrer": "http://127.0.0.1:64800/",
+          "request_isolation_top_origin": "http://127.0.0.1:64800",
+          "resource_type": "script",
+          "status": "ready",
+          "top_frame_origin": "unresolved",
+          "url": "http://127.0.0.1:64800/service.js"
+        },
+        {
+          "decision": "allow",
+          "devtools_request_id": "absent",
+          "engine_result": 0,
+          "event": "decision",
+          "factory_instance": "CD65D5B706A28D7A3104939D1156B75F",
+          "factory_isolation_top_origin": "absent",
+          "factory_kind": "other",
+          "factory_type": 0,
+          "frame_role": "main",
+          "frame_state": "live-at-entry",
+          "hook_to_decision_us": 14842,
+          "initiator_origin": "absent",
+          "initiator_present": false,
+          "loader_request_id": -9,
+          "method": "GET",
+          "profile_kind": "regular",
+          "redirect_index": 0,
+          "referrer": "",
+          "request_isolation_top_origin": "http://127.0.0.1:64800",
+          "resource_type": "mainFrame",
+          "status": "ready",
+          "top_frame_origin": "http://127.0.0.1:64800",
+          "url": "http://127.0.0.1:64800/#independent"
+        },
+        {
+          "decision": "allow",
+          "devtools_request_id": "24661.2",
+          "engine_result": 0,
+          "event": "decision",
+          "factory_instance": "E96C6A353D53ABC5C0EEE977051210BB",
+          "factory_isolation_top_origin": "http://127.0.0.1:64800",
+          "factory_kind": "other",
+          "factory_type": 2,
+          "frame_role": "main",
+          "frame_state": "live-at-entry",
+          "hook_to_decision_us": 4545,
+          "initiator_origin": "http://127.0.0.1:64800",
+          "initiator_present": true,
+          "loader_request_id": 57280,
+          "method": "GET",
+          "profile_kind": "regular",
+          "redirect_index": 0,
+          "referrer": "http://127.0.0.1:64800/",
+          "request_isolation_top_origin": "absent",
+          "resource_type": "script",
+          "status": "ready",
+          "top_frame_origin": "http://127.0.0.1:64800",
+          "url": "http://127.0.0.1:64800/client.js"
+        },
+        {
+          "decision": "allow",
+          "devtools_request_id": "24661.4",
+          "engine_result": 0,
+          "event": "decision",
+          "factory_instance": "E96C6A353D53ABC5C0EEE977051210BB",
+          "factory_isolation_top_origin": "http://127.0.0.1:64800",
+          "factory_kind": "other",
+          "factory_type": 2,
+          "frame_role": "main",
+          "frame_state": "live-at-entry",
+          "hook_to_decision_us": 257,
+          "initiator_origin": "http://127.0.0.1:64800",
+          "initiator_present": true,
+          "loader_request_id": 57281,
+          "method": "GET",
+          "profile_kind": "regular",
+          "redirect_index": 0,
+          "referrer": "http://127.0.0.1:64800/",
+          "request_isolation_top_origin": "absent",
+          "resource_type": "image",
+          "status": "ready",
+          "top_frame_origin": "http://127.0.0.1:64800",
+          "url": "http://127.0.0.1:64800/favicon.ico"
+        },
+        {
+          "event": "webtransport-pending",
+          "private": false,
+          "request_id": "844674B6A1F43478DCDF5D22B560504E",
+          "url": "https://page.blanc-fixture.test:57205/transport"
+        },
+        {
+          "event": "webtransport-pending",
+          "private": false,
+          "request_id": "8E98C01D67FE84B8BE831750B471BEA6",
+          "url": "https://page.blanc-fixture.test:57205/transport"
+        },
+        {
+          "event": "webtransport-pending",
+          "private": false,
+          "request_id": "80744128FABB1910ADBB9F949C8AE4E8",
+          "url": "https://000491b06a.com:57205/transport"
+        },
+        {
+          "event": "webtransport-pending",
+          "private": false,
+          "request_id": "ECE4AEDA39A9E355500D1985E5E32178",
+          "url": "https://000491b06a.com:57205/transport"
+        },
+        {
+          "event": "webtransport-pending",
+          "private": false,
+          "request_id": "3659DA6BF0041CD714D467A1BC297DB3",
+          "url": "https://page.blanc-fixture.test:57205/transport"
+        },
+        {
+          "event": "webtransport-pending",
+          "private": false,
+          "request_id": "504F3681F5EBBD975DD68F19FBCF0633",
+          "url": "https://page.blanc-fixture.test:57205/transport"
+        },
+        {
+          "event": "webtransport-pending",
+          "private": false,
+          "request_id": "09FE72878242801C5A1949E105A0D624",
+          "url": "https://000491b06a.com:57205/transport"
+        },
+        {
+          "event": "webtransport-pending",
+          "private": false,
+          "request_id": "40354BFA70A507E31912BA1A05FF1868",
+          "url": "https://000491b06a.com:57205/transport"
+        },
+        {
+          "context_alive": true,
+          "decision": "allow",
+          "engine_result": 0,
+          "event": "webtransport-decision",
+          "initiator_origin": "http://127.0.0.1:64800",
+          "owner": "document-or-dedicated-worker",
+          "private": false,
+          "profile_unavailable": false,
+          "request_id": "844674B6A1F43478DCDF5D22B560504E",
+          "source_contract": "webtransport-initiator-origin",
+          "url": "https://page.blanc-fixture.test:57205/transport"
+        },
+        {
+          "context_alive": true,
+          "decision": "allow",
+          "engine_result": 0,
+          "event": "webtransport-decision",
+          "initiator_origin": "http://127.0.0.1:64800",
+          "owner": "frame-less-worker",
+          "private": false,
+          "profile_unavailable": false,
+          "request_id": "8E98C01D67FE84B8BE831750B471BEA6",
+          "source_contract": "webtransport-initiator-origin",
+          "url": "https://page.blanc-fixture.test:57205/transport"
+        },
+        {
+          "context_alive": true,
+          "decision": "block",
+          "engine_result": 1,
+          "event": "webtransport-decision",
+          "initiator_origin": "http://127.0.0.1:64800",
+          "owner": "frame-less-worker",
+          "private": false,
+          "profile_unavailable": false,
+          "request_id": "80744128FABB1910ADBB9F949C8AE4E8",
+          "source_contract": "webtransport-initiator-origin",
+          "url": "https://000491b06a.com:57205/transport"
+        },
+        {
+          "context_alive": true,
+          "decision": "block",
+          "engine_result": 1,
+          "event": "webtransport-decision",
+          "initiator_origin": "http://127.0.0.1:64800",
+          "owner": "document-or-dedicated-worker",
+          "private": false,
+          "profile_unavailable": false,
+          "request_id": "ECE4AEDA39A9E355500D1985E5E32178",
+          "source_contract": "webtransport-initiator-origin",
+          "url": "https://000491b06a.com:57205/transport"
+        },
+        {
+          "context_alive": true,
+          "decision": "allow",
+          "engine_result": 0,
+          "event": "webtransport-decision",
+          "initiator_origin": "http://127.0.0.1:64800",
+          "owner": "frame-less-worker",
+          "private": false,
+          "profile_unavailable": false,
+          "request_id": "3659DA6BF0041CD714D467A1BC297DB3",
+          "source_contract": "webtransport-initiator-origin",
+          "url": "https://page.blanc-fixture.test:57205/transport"
+        },
+        {
+          "context_alive": true,
+          "decision": "allow",
+          "engine_result": 0,
+          "event": "webtransport-decision",
+          "initiator_origin": "http://127.0.0.1:64800",
+          "owner": "document-or-dedicated-worker",
+          "private": false,
+          "profile_unavailable": false,
+          "request_id": "504F3681F5EBBD975DD68F19FBCF0633",
+          "source_contract": "webtransport-initiator-origin",
+          "url": "https://page.blanc-fixture.test:57205/transport"
+        },
+        {
+          "context_alive": true,
+          "decision": "block",
+          "engine_result": 1,
+          "event": "webtransport-decision",
+          "initiator_origin": "http://127.0.0.1:64800",
+          "owner": "frame-less-worker",
+          "private": false,
+          "profile_unavailable": false,
+          "request_id": "09FE72878242801C5A1949E105A0D624",
+          "source_contract": "webtransport-initiator-origin",
+          "url": "https://000491b06a.com:57205/transport"
+        },
+        {
+          "context_alive": true,
+          "decision": "block",
+          "engine_result": 1,
+          "event": "webtransport-decision",
+          "initiator_origin": "http://127.0.0.1:64800",
+          "owner": "document-or-dedicated-worker",
+          "private": false,
+          "profile_unavailable": false,
+          "request_id": "40354BFA70A507E31912BA1A05FF1868",
+          "source_contract": "webtransport-initiator-origin",
+          "url": "https://000491b06a.com:57205/transport"
+        },
+        {
+          "event": "webtransport-pending",
+          "private": false,
+          "request_id": "B0201DA344F346857911D6B940BDA519",
+          "url": "https://page.blanc-fixture.test:57205/transport"
+        },
+        {
+          "context_alive": true,
+          "decision": "allow",
+          "engine_result": 0,
+          "event": "webtransport-decision",
+          "initiator_origin": "http://127.0.0.1:64800",
+          "owner": "document-or-dedicated-worker",
+          "private": false,
+          "profile_unavailable": false,
+          "request_id": "B0201DA344F346857911D6B940BDA519",
+          "source_contract": "webtransport-initiator-origin",
+          "url": "https://page.blanc-fixture.test:57205/transport"
+        }
+      ]
+    },
+    {
+      "kind": "private",
+      "mode": "concurrent",
+      "events": [
+        "eight-native-pending"
+      ],
+      "processes": {
+        "browserPid": 24681,
+        "utilityPid": 24703
+      },
+      "requests": [
+        {
+          "id": 0,
+          "type": "document",
+          "blocked": false,
+          "url": "https://page.blanc-fixture.test:57205/transport",
+          "fingerprint": [
+            46,
+            191,
+            39,
+            144,
+            238,
+            78,
+            45,
+            104,
+            123,
+            35,
+            21,
+            139,
+            34,
+            206,
+            24,
+            233,
+            199,
+            203,
+            109,
+            196,
+            80,
+            212,
+            212,
+            120,
+            71,
+            105,
+            126,
+            72,
+            175,
+            113,
+            246,
+            187
+          ]
+        },
+        {
+          "id": 1,
+          "type": "document",
+          "blocked": true,
+          "url": "https://000491b06a.com:57205/transport",
+          "fingerprint": [
+            46,
+            191,
+            39,
+            144,
+            238,
+            78,
+            45,
+            104,
+            123,
+            35,
+            21,
+            139,
+            34,
+            206,
+            24,
+            233,
+            199,
+            203,
+            109,
+            196,
+            80,
+            212,
+            212,
+            120,
+            71,
+            105,
+            126,
+            72,
+            175,
+            113,
+            246,
+            187
+          ]
+        },
+        {
+          "id": 2,
+          "type": "document",
+          "blocked": false,
+          "url": "https://page.blanc-fixture.test:57205/transport",
+          "fingerprint": [
+            46,
+            191,
+            39,
+            144,
+            238,
+            78,
+            45,
+            104,
+            123,
+            35,
+            21,
+            139,
+            34,
+            206,
+            24,
+            233,
+            199,
+            203,
+            109,
+            196,
+            80,
+            212,
+            212,
+            120,
+            71,
+            105,
+            126,
+            72,
+            175,
+            113,
+            246,
+            187
+          ]
+        },
+        {
+          "id": 3,
+          "type": "document",
+          "blocked": true,
+          "url": "https://000491b06a.com:57205/transport",
+          "fingerprint": [
+            46,
+            191,
+            39,
+            144,
+            238,
+            78,
+            45,
+            104,
+            123,
+            35,
+            21,
+            139,
+            34,
+            206,
+            24,
+            233,
+            199,
+            203,
+            109,
+            196,
+            80,
+            212,
+            212,
+            120,
+            71,
+            105,
+            126,
+            72,
+            175,
+            113,
+            246,
+            187
+          ]
+        },
+        {
+          "id": 4,
+          "type": "service",
+          "blocked": false,
+          "url": "https://page.blanc-fixture.test:57205/transport",
+          "fingerprint": [
+            46,
+            191,
+            39,
+            144,
+            238,
+            78,
+            45,
+            104,
+            123,
+            35,
+            21,
+            139,
+            34,
+            206,
+            24,
+            233,
+            199,
+            203,
+            109,
+            196,
+            80,
+            212,
+            212,
+            120,
+            71,
+            105,
+            126,
+            72,
+            175,
+            113,
+            246,
+            187
+          ]
+        },
+        {
+          "id": 5,
+          "type": "service",
+          "blocked": true,
+          "url": "https://000491b06a.com:57205/transport",
+          "fingerprint": [
+            46,
+            191,
+            39,
+            144,
+            238,
+            78,
+            45,
+            104,
+            123,
+            35,
+            21,
+            139,
+            34,
+            206,
+            24,
+            233,
+            199,
+            203,
+            109,
+            196,
+            80,
+            212,
+            212,
+            120,
+            71,
+            105,
+            126,
+            72,
+            175,
+            113,
+            246,
+            187
+          ]
+        },
+        {
+          "id": 6,
+          "type": "service",
+          "blocked": false,
+          "url": "https://page.blanc-fixture.test:57205/transport",
+          "fingerprint": [
+            46,
+            191,
+            39,
+            144,
+            238,
+            78,
+            45,
+            104,
+            123,
+            35,
+            21,
+            139,
+            34,
+            206,
+            24,
+            233,
+            199,
+            203,
+            109,
+            196,
+            80,
+            212,
+            212,
+            120,
+            71,
+            105,
+            126,
+            72,
+            175,
+            113,
+            246,
+            187
+          ]
+        },
+        {
+          "id": 7,
+          "type": "service",
+          "blocked": true,
+          "url": "https://000491b06a.com:57205/transport",
+          "fingerprint": [
+            46,
+            191,
+            39,
+            144,
+            238,
+            78,
+            45,
+            104,
+            123,
+            35,
+            21,
+            139,
+            34,
+            206,
+            24,
+            233,
+            199,
+            203,
+            109,
+            196,
+            80,
+            212,
+            212,
+            120,
+            71,
+            105,
+            126,
+            72,
+            175,
+            113,
+            246,
+            187
+          ]
+        }
+      ],
+      "pendingIds": [
+        "A13AB854E998C5E9E416DB4867B16FCB",
+        "DEB8F46380EA25A770B2C51EED802668",
+        "D97D93CE4C50975C65B8108B4108BFBD",
+        "9EDBCB883F5DDA6A309BE81F93606087",
+        "6613CAC0F2EB5D1A6D3FD4152484A6F0",
+        "62A6140242041024B270C704234FBDDC",
+        "B29CEB255F3872F549BCFA9A141C7A03",
+        "704C5B5E12459E58D28EF77AE22F8E47"
+      ],
+      "outcomes": [
+        {
+          "id": 1,
+          "result": {
+            "ready": false,
+            "error": "WebTransportError: Opening handshake failed."
+          }
+        },
+        {
+          "id": 3,
+          "result": {
+            "ready": false,
+            "error": "WebTransportError: Opening handshake failed."
+          }
+        },
+        {
+          "id": 5,
+          "result": {
+            "ready": false,
+            "error": "WebTransportError: Opening handshake failed."
+          }
+        },
+        {
+          "id": 7,
+          "result": {
+            "ready": false,
+            "error": "WebTransportError: Opening handshake failed."
+          }
+        },
+        {
+          "id": 0,
+          "result": {
+            "ready": true,
+            "echo": "blanc-http3-proof"
+          }
+        },
+        {
+          "id": 4,
+          "result": {
+            "ready": true,
+            "echo": "blanc-http3-proof"
+          }
+        },
+        {
+          "id": 2,
+          "result": {
+            "ready": true,
+            "echo": "blanc-http3-proof"
+          }
+        },
+        {
+          "id": 6,
+          "result": {
+            "ready": true,
+            "echo": "blanc-http3-proof"
+          }
+        }
+      ],
+      "decisions": [
+        {
+          "context_alive": true,
+          "decision": "allow",
+          "engine_result": 0,
+          "event": "webtransport-decision",
+          "initiator_origin": "http://127.0.0.1:64800",
+          "owner": "document-or-dedicated-worker",
+          "private": true,
+          "profile_unavailable": false,
+          "request_id": "A13AB854E998C5E9E416DB4867B16FCB",
+          "source_contract": "webtransport-initiator-origin",
+          "url": "https://page.blanc-fixture.test:57205/transport"
+        },
+        {
+          "context_alive": true,
+          "decision": "allow",
+          "engine_result": 0,
+          "event": "webtransport-decision",
+          "initiator_origin": "http://127.0.0.1:64800",
+          "owner": "frame-less-worker",
+          "private": true,
+          "profile_unavailable": false,
+          "request_id": "DEB8F46380EA25A770B2C51EED802668",
+          "source_contract": "webtransport-initiator-origin",
+          "url": "https://page.blanc-fixture.test:57205/transport"
+        },
+        {
+          "context_alive": true,
+          "decision": "block",
+          "engine_result": 1,
+          "event": "webtransport-decision",
+          "initiator_origin": "http://127.0.0.1:64800",
+          "owner": "document-or-dedicated-worker",
+          "private": true,
+          "profile_unavailable": false,
+          "request_id": "D97D93CE4C50975C65B8108B4108BFBD",
+          "source_contract": "webtransport-initiator-origin",
+          "url": "https://000491b06a.com:57205/transport"
+        },
+        {
+          "context_alive": true,
+          "decision": "block",
+          "engine_result": 1,
+          "event": "webtransport-decision",
+          "initiator_origin": "http://127.0.0.1:64800",
+          "owner": "frame-less-worker",
+          "private": true,
+          "profile_unavailable": false,
+          "request_id": "9EDBCB883F5DDA6A309BE81F93606087",
+          "source_contract": "webtransport-initiator-origin",
+          "url": "https://000491b06a.com:57205/transport"
+        },
+        {
+          "context_alive": true,
+          "decision": "allow",
+          "engine_result": 0,
+          "event": "webtransport-decision",
+          "initiator_origin": "http://127.0.0.1:64800",
+          "owner": "document-or-dedicated-worker",
+          "private": true,
+          "profile_unavailable": false,
+          "request_id": "6613CAC0F2EB5D1A6D3FD4152484A6F0",
+          "source_contract": "webtransport-initiator-origin",
+          "url": "https://page.blanc-fixture.test:57205/transport"
+        },
+        {
+          "context_alive": true,
+          "decision": "allow",
+          "engine_result": 0,
+          "event": "webtransport-decision",
+          "initiator_origin": "http://127.0.0.1:64800",
+          "owner": "frame-less-worker",
+          "private": true,
+          "profile_unavailable": false,
+          "request_id": "62A6140242041024B270C704234FBDDC",
+          "source_contract": "webtransport-initiator-origin",
+          "url": "https://page.blanc-fixture.test:57205/transport"
+        },
+        {
+          "context_alive": true,
+          "decision": "block",
+          "engine_result": 1,
+          "event": "webtransport-decision",
+          "initiator_origin": "http://127.0.0.1:64800",
+          "owner": "document-or-dedicated-worker",
+          "private": true,
+          "profile_unavailable": false,
+          "request_id": "B29CEB255F3872F549BCFA9A141C7A03",
+          "source_contract": "webtransport-initiator-origin",
+          "url": "https://000491b06a.com:57205/transport"
+        },
+        {
+          "context_alive": true,
+          "decision": "block",
+          "engine_result": 1,
+          "event": "webtransport-decision",
+          "initiator_origin": "http://127.0.0.1:64800",
+          "owner": "frame-less-worker",
+          "private": true,
+          "profile_unavailable": false,
+          "request_id": "704C5B5E12459E58D28EF77AE22F8E47",
+          "source_contract": "webtransport-initiator-origin",
+          "url": "https://000491b06a.com:57205/transport"
+        }
+      ],
+      "arrivals": [
+        {
+          "event": "alpn",
+          "value": "h3"
+        },
+        {
+          "event": "alpn",
+          "value": "h3"
+        },
+        {
+          "event": "alpn",
+          "value": "h3"
+        },
+        {
+          "event": "alpn",
+          "value": "h3"
+        },
+        {
+          "event": "connect",
+          "headers": {
+            ":scheme": "https",
+            ":method": "CONNECT",
+            ":authority": "page.blanc-fixture.test:57205",
+            ":path": "/transport",
+            ":protocol": "webtransport",
+            "sec-webtransport-http3-draft02": "1",
+            "origin": "http://127.0.0.1:64800"
+          },
+          "accepted": true
+        },
+        {
+          "event": "connect",
+          "headers": {
+            ":scheme": "https",
+            ":method": "CONNECT",
+            ":authority": "page.blanc-fixture.test:57205",
+            ":path": "/transport",
+            ":protocol": "webtransport",
+            "sec-webtransport-http3-draft02": "1",
+            "origin": "http://127.0.0.1:64800"
+          },
+          "accepted": true
+        },
+        {
+          "event": "connect",
+          "headers": {
+            ":scheme": "https",
+            ":method": "CONNECT",
+            ":authority": "page.blanc-fixture.test:57205",
+            ":path": "/transport",
+            ":protocol": "webtransport",
+            "sec-webtransport-http3-draft02": "1",
+            "origin": "http://127.0.0.1:64800"
+          },
+          "accepted": true
+        },
+        {
+          "event": "connect",
+          "headers": {
+            ":scheme": "https",
+            ":method": "CONNECT",
+            ":authority": "page.blanc-fixture.test:57205",
+            ":path": "/transport",
+            ":protocol": "webtransport",
+            "sec-webtransport-http3-draft02": "1",
+            "origin": "http://127.0.0.1:64800"
+          },
+          "accepted": true
+        },
+        {
+          "event": "echo",
+          "value": "blanc-http3-proof"
+        },
+        {
+          "event": "echo",
+          "value": "blanc-http3-proof"
+        },
+        {
+          "event": "echo",
+          "value": "blanc-http3-proof"
+        },
+        {
+          "event": "echo",
+          "value": "blanc-http3-proof"
+        }
+      ],
+      "fresh": {
+        "ready": true,
+        "echo": "blanc-http3-proof"
+      },
+      "passed": true,
+      "records": [
+        {
+          "bundle_sha256": "9acdfb68963e89c9c9be04a1a68ae831c7c35b800555790cadc8575a7172382d",
+          "event": "engine-ready"
+        },
+        {
+          "decision": "allow",
+          "devtools_request_id": "6B91BDE746508D1E95DF260659851F75",
+          "engine_result": 0,
+          "event": "decision",
+          "factory_instance": "50A16D9A79F59A51F35DA11D2AB1C437",
+          "factory_isolation_top_origin": "absent",
+          "factory_kind": "other",
+          "factory_type": 0,
+          "frame_role": "main",
+          "frame_state": "live-at-entry",
+          "hook_to_decision_us": 1476894,
+          "initiator_origin": "absent",
+          "initiator_present": false,
+          "loader_request_id": -8,
+          "method": "GET",
+          "profile_kind": "private",
+          "redirect_index": 0,
+          "referrer": "",
+          "request_isolation_top_origin": "http://127.0.0.1:64800",
+          "resource_type": "mainFrame",
+          "status": "ready",
+          "top_frame_origin": "http://127.0.0.1:64800",
+          "url": "http://127.0.0.1:64800/"
+        },
+        {
+          "decision": "allow",
+          "devtools_request_id": "24697.2",
+          "engine_result": 0,
+          "event": "decision",
+          "factory_instance": "304C066E5A88A504F19638E6DB472E9B",
+          "factory_isolation_top_origin": "http://127.0.0.1:64800",
+          "factory_kind": "other",
+          "factory_type": 2,
+          "frame_role": "main",
+          "frame_state": "live-at-entry",
+          "hook_to_decision_us": 5333,
+          "initiator_origin": "http://127.0.0.1:64800",
+          "initiator_present": true,
+          "loader_request_id": 56104,
+          "method": "GET",
+          "profile_kind": "private",
+          "redirect_index": 0,
+          "referrer": "http://127.0.0.1:64800/",
+          "request_isolation_top_origin": "absent",
+          "resource_type": "script",
+          "status": "ready",
+          "top_frame_origin": "http://127.0.0.1:64800",
+          "url": "http://127.0.0.1:64800/client.js"
+        },
+        {
+          "decision": "allow",
+          "devtools_request_id": "24697.4",
+          "engine_result": 0,
+          "event": "decision",
+          "factory_instance": "304C066E5A88A504F19638E6DB472E9B",
+          "factory_isolation_top_origin": "http://127.0.0.1:64800",
+          "factory_kind": "other",
+          "factory_type": 2,
+          "frame_role": "main",
+          "frame_state": "live-at-entry",
+          "hook_to_decision_us": 430,
+          "initiator_origin": "http://127.0.0.1:64800",
+          "initiator_present": true,
+          "loader_request_id": 56105,
+          "method": "GET",
+          "profile_kind": "private",
+          "redirect_index": 0,
+          "referrer": "http://127.0.0.1:64800/",
+          "request_isolation_top_origin": "absent",
+          "resource_type": "image",
+          "status": "ready",
+          "top_frame_origin": "http://127.0.0.1:64800",
+          "url": "http://127.0.0.1:64800/favicon.ico"
+        },
+        {
+          "event": "webtransport-pending",
+          "private": true,
+          "request_id": "F60663F0446C5F4AE9865E873661E6F6",
+          "url": "https://page.blanc-fixture.test:57205/transport"
+        },
+        {
+          "context_alive": true,
+          "decision": "allow",
+          "engine_result": 0,
+          "event": "webtransport-decision",
+          "initiator_origin": "http://127.0.0.1:64800",
+          "owner": "document-or-dedicated-worker",
+          "private": true,
+          "profile_unavailable": false,
+          "request_id": "F60663F0446C5F4AE9865E873661E6F6",
+          "source_contract": "webtransport-initiator-origin",
+          "url": "https://page.blanc-fixture.test:57205/transport"
+        },
+        {
+          "decision": "allow",
+          "devtools_request_id": "1F438ABF4017C56312D5CC49BC007E35",
+          "engine_result": 0,
+          "event": "decision",
+          "factory_instance": "F14E8A48A3B40B928C20932803464925",
+          "factory_isolation_top_origin": "absent",
+          "factory_kind": "service-worker-script",
+          "factory_type": 5,
+          "frame_role": "unresolved",
+          "frame_state": "not-associated",
+          "hook_to_decision_us": 361,
+          "initiator_origin": "http://127.0.0.1:64800",
+          "initiator_present": true,
+          "loader_request_id": -11,
+          "method": "GET",
+          "profile_kind": "private",
+          "redirect_index": 0,
+          "referrer": "http://127.0.0.1:64800/",
+          "request_isolation_top_origin": "http://127.0.0.1:64800",
+          "resource_type": "script",
+          "status": "ready",
+          "top_frame_origin": "unresolved",
+          "url": "http://127.0.0.1:64800/service.js"
+        },
+        {
+          "event": "webtransport-pending",
+          "private": true,
+          "request_id": "A13AB854E998C5E9E416DB4867B16FCB",
+          "url": "https://page.blanc-fixture.test:57205/transport"
+        },
+        {
+          "event": "webtransport-pending",
+          "private": true,
+          "request_id": "DEB8F46380EA25A770B2C51EED802668",
+          "url": "https://page.blanc-fixture.test:57205/transport"
+        },
+        {
+          "event": "webtransport-pending",
+          "private": true,
+          "request_id": "D97D93CE4C50975C65B8108B4108BFBD",
+          "url": "https://000491b06a.com:57205/transport"
+        },
+        {
+          "event": "webtransport-pending",
+          "private": true,
+          "request_id": "9EDBCB883F5DDA6A309BE81F93606087",
+          "url": "https://000491b06a.com:57205/transport"
+        },
+        {
+          "event": "webtransport-pending",
+          "private": true,
+          "request_id": "6613CAC0F2EB5D1A6D3FD4152484A6F0",
+          "url": "https://page.blanc-fixture.test:57205/transport"
+        },
+        {
+          "event": "webtransport-pending",
+          "private": true,
+          "request_id": "62A6140242041024B270C704234FBDDC",
+          "url": "https://page.blanc-fixture.test:57205/transport"
+        },
+        {
+          "event": "webtransport-pending",
+          "private": true,
+          "request_id": "B29CEB255F3872F549BCFA9A141C7A03",
+          "url": "https://000491b06a.com:57205/transport"
+        },
+        {
+          "event": "webtransport-pending",
+          "private": true,
+          "request_id": "704C5B5E12459E58D28EF77AE22F8E47",
+          "url": "https://000491b06a.com:57205/transport"
+        },
+        {
+          "context_alive": true,
+          "decision": "allow",
+          "engine_result": 0,
+          "event": "webtransport-decision",
+          "initiator_origin": "http://127.0.0.1:64800",
+          "owner": "document-or-dedicated-worker",
+          "private": true,
+          "profile_unavailable": false,
+          "request_id": "A13AB854E998C5E9E416DB4867B16FCB",
+          "source_contract": "webtransport-initiator-origin",
+          "url": "https://page.blanc-fixture.test:57205/transport"
+        },
+        {
+          "context_alive": true,
+          "decision": "allow",
+          "engine_result": 0,
+          "event": "webtransport-decision",
+          "initiator_origin": "http://127.0.0.1:64800",
+          "owner": "frame-less-worker",
+          "private": true,
+          "profile_unavailable": false,
+          "request_id": "DEB8F46380EA25A770B2C51EED802668",
+          "source_contract": "webtransport-initiator-origin",
+          "url": "https://page.blanc-fixture.test:57205/transport"
+        },
+        {
+          "context_alive": true,
+          "decision": "block",
+          "engine_result": 1,
+          "event": "webtransport-decision",
+          "initiator_origin": "http://127.0.0.1:64800",
+          "owner": "document-or-dedicated-worker",
+          "private": true,
+          "profile_unavailable": false,
+          "request_id": "D97D93CE4C50975C65B8108B4108BFBD",
+          "source_contract": "webtransport-initiator-origin",
+          "url": "https://000491b06a.com:57205/transport"
+        },
+        {
+          "context_alive": true,
+          "decision": "block",
+          "engine_result": 1,
+          "event": "webtransport-decision",
+          "initiator_origin": "http://127.0.0.1:64800",
+          "owner": "frame-less-worker",
+          "private": true,
+          "profile_unavailable": false,
+          "request_id": "9EDBCB883F5DDA6A309BE81F93606087",
+          "source_contract": "webtransport-initiator-origin",
+          "url": "https://000491b06a.com:57205/transport"
+        },
+        {
+          "context_alive": true,
+          "decision": "allow",
+          "engine_result": 0,
+          "event": "webtransport-decision",
+          "initiator_origin": "http://127.0.0.1:64800",
+          "owner": "document-or-dedicated-worker",
+          "private": true,
+          "profile_unavailable": false,
+          "request_id": "6613CAC0F2EB5D1A6D3FD4152484A6F0",
+          "source_contract": "webtransport-initiator-origin",
+          "url": "https://page.blanc-fixture.test:57205/transport"
+        },
+        {
+          "context_alive": true,
+          "decision": "allow",
+          "engine_result": 0,
+          "event": "webtransport-decision",
+          "initiator_origin": "http://127.0.0.1:64800",
+          "owner": "frame-less-worker",
+          "private": true,
+          "profile_unavailable": false,
+          "request_id": "62A6140242041024B270C704234FBDDC",
+          "source_contract": "webtransport-initiator-origin",
+          "url": "https://page.blanc-fixture.test:57205/transport"
+        },
+        {
+          "context_alive": true,
+          "decision": "block",
+          "engine_result": 1,
+          "event": "webtransport-decision",
+          "initiator_origin": "http://127.0.0.1:64800",
+          "owner": "document-or-dedicated-worker",
+          "private": true,
+          "profile_unavailable": false,
+          "request_id": "B29CEB255F3872F549BCFA9A141C7A03",
+          "source_contract": "webtransport-initiator-origin",
+          "url": "https://000491b06a.com:57205/transport"
+        },
+        {
+          "context_alive": true,
+          "decision": "block",
+          "engine_result": 1,
+          "event": "webtransport-decision",
+          "initiator_origin": "http://127.0.0.1:64800",
+          "owner": "frame-less-worker",
+          "private": true,
+          "profile_unavailable": false,
+          "request_id": "704C5B5E12459E58D28EF77AE22F8E47",
+          "source_contract": "webtransport-initiator-origin",
+          "url": "https://000491b06a.com:57205/transport"
+        },
+        {
+          "event": "webtransport-pending",
+          "private": true,
+          "request_id": "009896608B0616CB489D226364AF4670",
+          "url": "https://page.blanc-fixture.test:57205/transport"
+        },
+        {
+          "context_alive": true,
+          "decision": "allow",
+          "engine_result": 0,
+          "event": "webtransport-decision",
+          "initiator_origin": "http://127.0.0.1:64800",
+          "owner": "document-or-dedicated-worker",
+          "private": true,
+          "profile_unavailable": false,
+          "request_id": "009896608B0616CB489D226364AF4670",
+          "source_contract": "webtransport-initiator-origin",
+          "url": "https://page.blanc-fixture.test:57205/transport"
+        }
+      ]
+    },
+    {
+      "kind": "private",
+      "mode": "cancel-deletion",
+      "events": [
+        "eight-native-pending",
+        "native-beforeunload",
+        "deletion-cancelled",
+        "default-profile-retained"
+      ],
+      "processes": {
+        "browserPid": 24706,
+        "utilityPid": 24737
+      },
+      "requests": [
+        {
+          "id": 0,
+          "type": "document",
+          "blocked": false,
+          "url": "https://page.blanc-fixture.test:57205/transport",
+          "fingerprint": [
+            46,
+            191,
+            39,
+            144,
+            238,
+            78,
+            45,
+            104,
+            123,
+            35,
+            21,
+            139,
+            34,
+            206,
+            24,
+            233,
+            199,
+            203,
+            109,
+            196,
+            80,
+            212,
+            212,
+            120,
+            71,
+            105,
+            126,
+            72,
+            175,
+            113,
+            246,
+            187
+          ]
+        },
+        {
+          "id": 1,
+          "type": "document",
+          "blocked": true,
+          "url": "https://000491b06a.com:57205/transport",
+          "fingerprint": [
+            46,
+            191,
+            39,
+            144,
+            238,
+            78,
+            45,
+            104,
+            123,
+            35,
+            21,
+            139,
+            34,
+            206,
+            24,
+            233,
+            199,
+            203,
+            109,
+            196,
+            80,
+            212,
+            212,
+            120,
+            71,
+            105,
+            126,
+            72,
+            175,
+            113,
+            246,
+            187
+          ]
+        },
+        {
+          "id": 2,
+          "type": "document",
+          "blocked": false,
+          "url": "https://page.blanc-fixture.test:57205/transport",
+          "fingerprint": [
+            46,
+            191,
+            39,
+            144,
+            238,
+            78,
+            45,
+            104,
+            123,
+            35,
+            21,
+            139,
+            34,
+            206,
+            24,
+            233,
+            199,
+            203,
+            109,
+            196,
+            80,
+            212,
+            212,
+            120,
+            71,
+            105,
+            126,
+            72,
+            175,
+            113,
+            246,
+            187
+          ]
+        },
+        {
+          "id": 3,
+          "type": "document",
+          "blocked": true,
+          "url": "https://000491b06a.com:57205/transport",
+          "fingerprint": [
+            46,
+            191,
+            39,
+            144,
+            238,
+            78,
+            45,
+            104,
+            123,
+            35,
+            21,
+            139,
+            34,
+            206,
+            24,
+            233,
+            199,
+            203,
+            109,
+            196,
+            80,
+            212,
+            212,
+            120,
+            71,
+            105,
+            126,
+            72,
+            175,
+            113,
+            246,
+            187
+          ]
+        },
+        {
+          "id": 4,
+          "type": "service",
+          "blocked": false,
+          "url": "https://page.blanc-fixture.test:57205/transport",
+          "fingerprint": [
+            46,
+            191,
+            39,
+            144,
+            238,
+            78,
+            45,
+            104,
+            123,
+            35,
+            21,
+            139,
+            34,
+            206,
+            24,
+            233,
+            199,
+            203,
+            109,
+            196,
+            80,
+            212,
+            212,
+            120,
+            71,
+            105,
+            126,
+            72,
+            175,
+            113,
+            246,
+            187
+          ]
+        },
+        {
+          "id": 5,
+          "type": "service",
+          "blocked": true,
+          "url": "https://000491b06a.com:57205/transport",
+          "fingerprint": [
+            46,
+            191,
+            39,
+            144,
+            238,
+            78,
+            45,
+            104,
+            123,
+            35,
+            21,
+            139,
+            34,
+            206,
+            24,
+            233,
+            199,
+            203,
+            109,
+            196,
+            80,
+            212,
+            212,
+            120,
+            71,
+            105,
+            126,
+            72,
+            175,
+            113,
+            246,
+            187
+          ]
+        },
+        {
+          "id": 6,
+          "type": "service",
+          "blocked": false,
+          "url": "https://page.blanc-fixture.test:57205/transport",
+          "fingerprint": [
+            46,
+            191,
+            39,
+            144,
+            238,
+            78,
+            45,
+            104,
+            123,
+            35,
+            21,
+            139,
+            34,
+            206,
+            24,
+            233,
+            199,
+            203,
+            109,
+            196,
+            80,
+            212,
+            212,
+            120,
+            71,
+            105,
+            126,
+            72,
+            175,
+            113,
+            246,
+            187
+          ]
+        },
+        {
+          "id": 7,
+          "type": "service",
+          "blocked": true,
+          "url": "https://000491b06a.com:57205/transport",
+          "fingerprint": [
+            46,
+            191,
+            39,
+            144,
+            238,
+            78,
+            45,
+            104,
+            123,
+            35,
+            21,
+            139,
+            34,
+            206,
+            24,
+            233,
+            199,
+            203,
+            109,
+            196,
+            80,
+            212,
+            212,
+            120,
+            71,
+            105,
+            126,
+            72,
+            175,
+            113,
+            246,
+            187
+          ]
+        }
+      ],
+      "pendingIds": [
+        "F4F159D268ABBDE671D540443AB89FB2",
+        "3CD26C19ECC82F9CFED6C632051B9959",
+        "37A44D8AA4DC17B9C922D93504E210C5",
+        "B077AA6749CA0FA3F711C444CCF10F25",
+        "CDF2296388CD4FAA492D204543223DA6",
+        "0EF6608AF97E2E5892B08E9B7897F964",
+        "B168DE3A7B39DF53138C4C0DED71EE04",
+        "53DE32027C6F110674C4E7E92041FB5B"
+      ],
+      "outcomes": [
+        {
+          "id": 1,
+          "result": {
+            "ready": false,
+            "error": "WebTransportError: Opening handshake failed."
+          }
+        },
+        {
+          "id": 5,
+          "result": {
+            "ready": false,
+            "error": "WebTransportError: Opening handshake failed."
+          }
+        },
+        {
+          "id": 3,
+          "result": {
+            "ready": false,
+            "error": "WebTransportError: Opening handshake failed."
+          }
+        },
+        {
+          "id": 7,
+          "result": {
+            "ready": false,
+            "error": "WebTransportError: Opening handshake failed."
+          }
+        },
+        {
+          "id": 0,
+          "result": {
+            "ready": true,
+            "echo": "blanc-http3-proof"
+          }
+        },
+        {
+          "id": 2,
+          "result": {
+            "ready": true,
+            "echo": "blanc-http3-proof"
+          }
+        },
+        {
+          "id": 4,
+          "result": {
+            "ready": true,
+            "echo": "blanc-http3-proof"
+          }
+        },
+        {
+          "id": 6,
+          "result": {
+            "ready": true,
+            "echo": "blanc-http3-proof"
+          }
+        }
+      ],
+      "decisions": [
+        {
+          "context_alive": true,
+          "decision": "allow",
+          "engine_result": 0,
+          "event": "webtransport-decision",
+          "initiator_origin": "http://127.0.0.1:64800",
+          "owner": "document-or-dedicated-worker",
+          "private": true,
+          "profile_unavailable": false,
+          "request_id": "F4F159D268ABBDE671D540443AB89FB2",
+          "source_contract": "webtransport-initiator-origin",
+          "url": "https://page.blanc-fixture.test:57205/transport"
+        },
+        {
+          "context_alive": true,
+          "decision": "allow",
+          "engine_result": 0,
+          "event": "webtransport-decision",
+          "initiator_origin": "http://127.0.0.1:64800",
+          "owner": "frame-less-worker",
+          "private": true,
+          "profile_unavailable": false,
+          "request_id": "3CD26C19ECC82F9CFED6C632051B9959",
+          "source_contract": "webtransport-initiator-origin",
+          "url": "https://page.blanc-fixture.test:57205/transport"
+        },
+        {
+          "context_alive": true,
+          "decision": "block",
+          "engine_result": 1,
+          "event": "webtransport-decision",
+          "initiator_origin": "http://127.0.0.1:64800",
+          "owner": "frame-less-worker",
+          "private": true,
+          "profile_unavailable": false,
+          "request_id": "37A44D8AA4DC17B9C922D93504E210C5",
+          "source_contract": "webtransport-initiator-origin",
+          "url": "https://000491b06a.com:57205/transport"
+        },
+        {
+          "context_alive": true,
+          "decision": "block",
+          "engine_result": 1,
+          "event": "webtransport-decision",
+          "initiator_origin": "http://127.0.0.1:64800",
+          "owner": "document-or-dedicated-worker",
+          "private": true,
+          "profile_unavailable": false,
+          "request_id": "B077AA6749CA0FA3F711C444CCF10F25",
+          "source_contract": "webtransport-initiator-origin",
+          "url": "https://000491b06a.com:57205/transport"
+        },
+        {
+          "context_alive": true,
+          "decision": "allow",
+          "engine_result": 0,
+          "event": "webtransport-decision",
+          "initiator_origin": "http://127.0.0.1:64800",
+          "owner": "document-or-dedicated-worker",
+          "private": true,
+          "profile_unavailable": false,
+          "request_id": "CDF2296388CD4FAA492D204543223DA6",
+          "source_contract": "webtransport-initiator-origin",
+          "url": "https://page.blanc-fixture.test:57205/transport"
+        },
+        {
+          "context_alive": true,
+          "decision": "allow",
+          "engine_result": 0,
+          "event": "webtransport-decision",
+          "initiator_origin": "http://127.0.0.1:64800",
+          "owner": "frame-less-worker",
+          "private": true,
+          "profile_unavailable": false,
+          "request_id": "0EF6608AF97E2E5892B08E9B7897F964",
+          "source_contract": "webtransport-initiator-origin",
+          "url": "https://page.blanc-fixture.test:57205/transport"
+        },
+        {
+          "context_alive": true,
+          "decision": "block",
+          "engine_result": 1,
+          "event": "webtransport-decision",
+          "initiator_origin": "http://127.0.0.1:64800",
+          "owner": "frame-less-worker",
+          "private": true,
+          "profile_unavailable": false,
+          "request_id": "B168DE3A7B39DF53138C4C0DED71EE04",
+          "source_contract": "webtransport-initiator-origin",
+          "url": "https://000491b06a.com:57205/transport"
+        },
+        {
+          "context_alive": true,
+          "decision": "block",
+          "engine_result": 1,
+          "event": "webtransport-decision",
+          "initiator_origin": "http://127.0.0.1:64800",
+          "owner": "document-or-dedicated-worker",
+          "private": true,
+          "profile_unavailable": false,
+          "request_id": "53DE32027C6F110674C4E7E92041FB5B",
+          "source_contract": "webtransport-initiator-origin",
+          "url": "https://000491b06a.com:57205/transport"
+        }
+      ],
+      "arrivals": [
+        {
+          "event": "alpn",
+          "value": "h3"
+        },
+        {
+          "event": "alpn",
+          "value": "h3"
+        },
+        {
+          "event": "alpn",
+          "value": "h3"
+        },
+        {
+          "event": "alpn",
+          "value": "h3"
+        },
+        {
+          "event": "connect",
+          "headers": {
+            ":scheme": "https",
+            ":method": "CONNECT",
+            ":authority": "page.blanc-fixture.test:57205",
+            ":path": "/transport",
+            ":protocol": "webtransport",
+            "sec-webtransport-http3-draft02": "1",
+            "origin": "http://127.0.0.1:64800"
+          },
+          "accepted": true
+        },
+        {
+          "event": "connect",
+          "headers": {
+            ":scheme": "https",
+            ":method": "CONNECT",
+            ":authority": "page.blanc-fixture.test:57205",
+            ":path": "/transport",
+            ":protocol": "webtransport",
+            "sec-webtransport-http3-draft02": "1",
+            "origin": "http://127.0.0.1:64800"
+          },
+          "accepted": true
+        },
+        {
+          "event": "connect",
+          "headers": {
+            ":scheme": "https",
+            ":method": "CONNECT",
+            ":authority": "page.blanc-fixture.test:57205",
+            ":path": "/transport",
+            ":protocol": "webtransport",
+            "sec-webtransport-http3-draft02": "1",
+            "origin": "http://127.0.0.1:64800"
+          },
+          "accepted": true
+        },
+        {
+          "event": "connect",
+          "headers": {
+            ":scheme": "https",
+            ":method": "CONNECT",
+            ":authority": "page.blanc-fixture.test:57205",
+            ":path": "/transport",
+            ":protocol": "webtransport",
+            "sec-webtransport-http3-draft02": "1",
+            "origin": "http://127.0.0.1:64800"
+          },
+          "accepted": true
+        },
+        {
+          "event": "echo",
+          "value": "blanc-http3-proof"
+        },
+        {
+          "event": "echo",
+          "value": "blanc-http3-proof"
+        },
+        {
+          "event": "echo",
+          "value": "blanc-http3-proof"
+        },
+        {
+          "event": "echo",
+          "value": "blanc-http3-proof"
+        }
+      ],
+      "fresh": {
+        "ready": true,
+        "echo": "blanc-http3-proof"
+      },
+      "passed": true,
+      "records": [
+        {
+          "bundle_sha256": "9acdfb68963e89c9c9be04a1a68ae831c7c35b800555790cadc8575a7172382d",
+          "event": "engine-ready"
+        },
+        {
+          "decision": "allow",
+          "devtools_request_id": "4E340B8B75AF31A18A2A8DC973794ECA",
+          "engine_result": 0,
+          "event": "decision",
+          "factory_instance": "E3729ED38E74BA5E3E363A4138F718C1",
+          "factory_isolation_top_origin": "absent",
+          "factory_kind": "other",
+          "factory_type": 0,
+          "frame_role": "main",
+          "frame_state": "live-at-entry",
+          "hook_to_decision_us": 1475818,
+          "initiator_origin": "absent",
+          "initiator_present": false,
+          "loader_request_id": -8,
+          "method": "GET",
+          "profile_kind": "private",
+          "redirect_index": 0,
+          "referrer": "",
+          "request_isolation_top_origin": "http://127.0.0.1:64800",
+          "resource_type": "mainFrame",
+          "status": "ready",
+          "top_frame_origin": "http://127.0.0.1:64800",
+          "url": "http://127.0.0.1:64800/"
+        },
+        {
+          "decision": "allow",
+          "devtools_request_id": "24733.2",
+          "engine_result": 0,
+          "event": "decision",
+          "factory_instance": "2E978C10BC4619CF216C9ED79467F65E",
+          "factory_isolation_top_origin": "http://127.0.0.1:64800",
+          "factory_kind": "other",
+          "factory_type": 2,
+          "frame_role": "main",
+          "frame_state": "live-at-entry",
+          "hook_to_decision_us": 3067,
+          "initiator_origin": "http://127.0.0.1:64800",
+          "initiator_present": true,
+          "loader_request_id": 263197,
+          "method": "GET",
+          "profile_kind": "private",
+          "redirect_index": 0,
+          "referrer": "http://127.0.0.1:64800/",
+          "request_isolation_top_origin": "absent",
+          "resource_type": "script",
+          "status": "ready",
+          "top_frame_origin": "http://127.0.0.1:64800",
+          "url": "http://127.0.0.1:64800/client.js"
+        },
+        {
+          "decision": "allow",
+          "devtools_request_id": "24733.4",
+          "engine_result": 0,
+          "event": "decision",
+          "factory_instance": "2E978C10BC4619CF216C9ED79467F65E",
+          "factory_isolation_top_origin": "http://127.0.0.1:64800",
+          "factory_kind": "other",
+          "factory_type": 2,
+          "frame_role": "main",
+          "frame_state": "live-at-entry",
+          "hook_to_decision_us": 375,
+          "initiator_origin": "http://127.0.0.1:64800",
+          "initiator_present": true,
+          "loader_request_id": 263198,
+          "method": "GET",
+          "profile_kind": "private",
+          "redirect_index": 0,
+          "referrer": "http://127.0.0.1:64800/",
+          "request_isolation_top_origin": "absent",
+          "resource_type": "image",
+          "status": "ready",
+          "top_frame_origin": "http://127.0.0.1:64800",
+          "url": "http://127.0.0.1:64800/favicon.ico"
+        },
+        {
+          "event": "webtransport-pending",
+          "private": true,
+          "request_id": "F97E9FEEDF014125DE468E152E7E8B61",
+          "url": "https://page.blanc-fixture.test:57205/transport"
+        },
+        {
+          "context_alive": true,
+          "decision": "allow",
+          "engine_result": 0,
+          "event": "webtransport-decision",
+          "initiator_origin": "http://127.0.0.1:64800",
+          "owner": "document-or-dedicated-worker",
+          "private": true,
+          "profile_unavailable": false,
+          "request_id": "F97E9FEEDF014125DE468E152E7E8B61",
+          "source_contract": "webtransport-initiator-origin",
+          "url": "https://page.blanc-fixture.test:57205/transport"
+        },
+        {
+          "decision": "allow",
+          "devtools_request_id": "73A843496F96CA928687EBD88EA3E370",
+          "engine_result": 0,
+          "event": "decision",
+          "factory_instance": "3DA2A3B4FAF50ECFBD19DEA25FCFA498",
+          "factory_isolation_top_origin": "absent",
+          "factory_kind": "service-worker-script",
+          "factory_type": 5,
+          "frame_role": "unresolved",
+          "frame_state": "not-associated",
+          "hook_to_decision_us": 340,
+          "initiator_origin": "http://127.0.0.1:64800",
+          "initiator_present": true,
+          "loader_request_id": -11,
+          "method": "GET",
+          "profile_kind": "private",
+          "redirect_index": 0,
+          "referrer": "http://127.0.0.1:64800/",
+          "request_isolation_top_origin": "http://127.0.0.1:64800",
+          "resource_type": "script",
+          "status": "ready",
+          "top_frame_origin": "unresolved",
+          "url": "http://127.0.0.1:64800/service.js"
+        },
+        {
+          "decision": "allow",
+          "devtools_request_id": "absent",
+          "engine_result": 0,
+          "event": "decision",
+          "factory_instance": "F02CDAB612D3DA7030B9C63D65EF0D4E",
+          "factory_isolation_top_origin": "absent",
+          "factory_kind": "other",
+          "factory_type": 0,
+          "frame_role": "main",
+          "frame_state": "live-at-entry",
+          "hook_to_decision_us": 11266,
+          "initiator_origin": "absent",
+          "initiator_present": false,
+          "loader_request_id": -13,
+          "method": "GET",
+          "profile_kind": "regular",
+          "redirect_index": 0,
+          "referrer": "",
+          "request_isolation_top_origin": "http://127.0.0.1:64800",
+          "resource_type": "mainFrame",
+          "status": "ready",
+          "top_frame_origin": "http://127.0.0.1:64800",
+          "url": "http://127.0.0.1:64800/#independent"
+        },
+        {
+          "decision": "allow",
+          "devtools_request_id": "24743.2",
+          "engine_result": 0,
+          "event": "decision",
+          "factory_instance": "56756ACF0FFD16F168409BE2BBD08D2B",
+          "factory_isolation_top_origin": "http://127.0.0.1:64800",
+          "factory_kind": "other",
+          "factory_type": 2,
+          "frame_role": "main",
+          "frame_state": "live-at-entry",
+          "hook_to_decision_us": 4705,
+          "initiator_origin": "http://127.0.0.1:64800",
+          "initiator_present": true,
+          "loader_request_id": 1558,
+          "method": "GET",
+          "profile_kind": "regular",
+          "redirect_index": 0,
+          "referrer": "http://127.0.0.1:64800/",
+          "request_isolation_top_origin": "absent",
+          "resource_type": "script",
+          "status": "ready",
+          "top_frame_origin": "http://127.0.0.1:64800",
+          "url": "http://127.0.0.1:64800/client.js"
+        },
+        {
+          "decision": "allow",
+          "devtools_request_id": "24743.4",
+          "engine_result": 0,
+          "event": "decision",
+          "factory_instance": "56756ACF0FFD16F168409BE2BBD08D2B",
+          "factory_isolation_top_origin": "http://127.0.0.1:64800",
+          "factory_kind": "other",
+          "factory_type": 2,
+          "frame_role": "main",
+          "frame_state": "live-at-entry",
+          "hook_to_decision_us": 322,
+          "initiator_origin": "http://127.0.0.1:64800",
+          "initiator_present": true,
+          "loader_request_id": 1559,
+          "method": "GET",
+          "profile_kind": "regular",
+          "redirect_index": 0,
+          "referrer": "http://127.0.0.1:64800/",
+          "request_isolation_top_origin": "absent",
+          "resource_type": "image",
+          "status": "ready",
+          "top_frame_origin": "http://127.0.0.1:64800",
+          "url": "http://127.0.0.1:64800/favicon.ico"
+        },
+        {
+          "event": "webtransport-pending",
+          "private": true,
+          "request_id": "F4F159D268ABBDE671D540443AB89FB2",
+          "url": "https://page.blanc-fixture.test:57205/transport"
+        },
+        {
+          "event": "webtransport-pending",
+          "private": true,
+          "request_id": "3CD26C19ECC82F9CFED6C632051B9959",
+          "url": "https://page.blanc-fixture.test:57205/transport"
+        },
+        {
+          "event": "webtransport-pending",
+          "private": true,
+          "request_id": "37A44D8AA4DC17B9C922D93504E210C5",
+          "url": "https://000491b06a.com:57205/transport"
+        },
+        {
+          "event": "webtransport-pending",
+          "private": true,
+          "request_id": "B077AA6749CA0FA3F711C444CCF10F25",
+          "url": "https://000491b06a.com:57205/transport"
+        },
+        {
+          "event": "webtransport-pending",
+          "private": true,
+          "request_id": "CDF2296388CD4FAA492D204543223DA6",
+          "url": "https://page.blanc-fixture.test:57205/transport"
+        },
+        {
+          "event": "webtransport-pending",
+          "private": true,
+          "request_id": "0EF6608AF97E2E5892B08E9B7897F964",
+          "url": "https://page.blanc-fixture.test:57205/transport"
+        },
+        {
+          "event": "webtransport-pending",
+          "private": true,
+          "request_id": "B168DE3A7B39DF53138C4C0DED71EE04",
+          "url": "https://000491b06a.com:57205/transport"
+        },
+        {
+          "event": "webtransport-pending",
+          "private": true,
+          "request_id": "53DE32027C6F110674C4E7E92041FB5B",
+          "url": "https://000491b06a.com:57205/transport"
+        },
+        {
+          "context_alive": true,
+          "decision": "allow",
+          "engine_result": 0,
+          "event": "webtransport-decision",
+          "initiator_origin": "http://127.0.0.1:64800",
+          "owner": "document-or-dedicated-worker",
+          "private": true,
+          "profile_unavailable": false,
+          "request_id": "F4F159D268ABBDE671D540443AB89FB2",
+          "source_contract": "webtransport-initiator-origin",
+          "url": "https://page.blanc-fixture.test:57205/transport"
+        },
+        {
+          "context_alive": true,
+          "decision": "allow",
+          "engine_result": 0,
+          "event": "webtransport-decision",
+          "initiator_origin": "http://127.0.0.1:64800",
+          "owner": "frame-less-worker",
+          "private": true,
+          "profile_unavailable": false,
+          "request_id": "3CD26C19ECC82F9CFED6C632051B9959",
+          "source_contract": "webtransport-initiator-origin",
+          "url": "https://page.blanc-fixture.test:57205/transport"
+        },
+        {
+          "context_alive": true,
+          "decision": "block",
+          "engine_result": 1,
+          "event": "webtransport-decision",
+          "initiator_origin": "http://127.0.0.1:64800",
+          "owner": "frame-less-worker",
+          "private": true,
+          "profile_unavailable": false,
+          "request_id": "37A44D8AA4DC17B9C922D93504E210C5",
+          "source_contract": "webtransport-initiator-origin",
+          "url": "https://000491b06a.com:57205/transport"
+        },
+        {
+          "context_alive": true,
+          "decision": "block",
+          "engine_result": 1,
+          "event": "webtransport-decision",
+          "initiator_origin": "http://127.0.0.1:64800",
+          "owner": "document-or-dedicated-worker",
+          "private": true,
+          "profile_unavailable": false,
+          "request_id": "B077AA6749CA0FA3F711C444CCF10F25",
+          "source_contract": "webtransport-initiator-origin",
+          "url": "https://000491b06a.com:57205/transport"
+        },
+        {
+          "context_alive": true,
+          "decision": "allow",
+          "engine_result": 0,
+          "event": "webtransport-decision",
+          "initiator_origin": "http://127.0.0.1:64800",
+          "owner": "document-or-dedicated-worker",
+          "private": true,
+          "profile_unavailable": false,
+          "request_id": "CDF2296388CD4FAA492D204543223DA6",
+          "source_contract": "webtransport-initiator-origin",
+          "url": "https://page.blanc-fixture.test:57205/transport"
+        },
+        {
+          "context_alive": true,
+          "decision": "allow",
+          "engine_result": 0,
+          "event": "webtransport-decision",
+          "initiator_origin": "http://127.0.0.1:64800",
+          "owner": "frame-less-worker",
+          "private": true,
+          "profile_unavailable": false,
+          "request_id": "0EF6608AF97E2E5892B08E9B7897F964",
+          "source_contract": "webtransport-initiator-origin",
+          "url": "https://page.blanc-fixture.test:57205/transport"
+        },
+        {
+          "context_alive": true,
+          "decision": "block",
+          "engine_result": 1,
+          "event": "webtransport-decision",
+          "initiator_origin": "http://127.0.0.1:64800",
+          "owner": "frame-less-worker",
+          "private": true,
+          "profile_unavailable": false,
+          "request_id": "B168DE3A7B39DF53138C4C0DED71EE04",
+          "source_contract": "webtransport-initiator-origin",
+          "url": "https://000491b06a.com:57205/transport"
+        },
+        {
+          "context_alive": true,
+          "decision": "block",
+          "engine_result": 1,
+          "event": "webtransport-decision",
+          "initiator_origin": "http://127.0.0.1:64800",
+          "owner": "document-or-dedicated-worker",
+          "private": true,
+          "profile_unavailable": false,
+          "request_id": "53DE32027C6F110674C4E7E92041FB5B",
+          "source_contract": "webtransport-initiator-origin",
+          "url": "https://000491b06a.com:57205/transport"
+        },
+        {
+          "event": "webtransport-pending",
+          "private": true,
+          "request_id": "2A30942F169750DF44E73C154886C0ED",
+          "url": "https://page.blanc-fixture.test:57205/transport"
+        },
+        {
+          "context_alive": true,
+          "decision": "allow",
+          "engine_result": 0,
+          "event": "webtransport-decision",
+          "initiator_origin": "http://127.0.0.1:64800",
+          "owner": "document-or-dedicated-worker",
+          "private": true,
+          "profile_unavailable": false,
+          "request_id": "2A30942F169750DF44E73C154886C0ED",
+          "source_contract": "webtransport-initiator-origin",
+          "url": "https://page.blanc-fixture.test:57205/transport"
+        }
+      ]
+    }
+  ],
+  "serverRows": [
+    {
+      "event": "ready"
+    },
+    {
+      "event": "alpn",
+      "value": "h3"
+    },
+    {
+      "event": "connect",
+      "headers": {
+        ":scheme": "https",
+        ":method": "CONNECT",
+        ":authority": "page.blanc-fixture.test:57205",
+        ":path": "/transport",
+        ":protocol": "webtransport",
+        "sec-webtransport-http3-draft02": "1",
+        "origin": "http://127.0.0.1:64800"
+      },
+      "accepted": true
+    },
+    {
+      "event": "echo",
+      "value": "blanc-http3-proof"
+    },
+    {
+      "event": "alpn",
+      "value": "h3"
+    },
+    {
+      "event": "alpn",
+      "value": "h3"
+    },
+    {
+      "event": "alpn",
+      "value": "h3"
+    },
+    {
+      "event": "alpn",
+      "value": "h3"
+    },
+    {
+      "event": "connect",
+      "headers": {
+        ":scheme": "https",
+        ":method": "CONNECT",
+        ":authority": "page.blanc-fixture.test:57205",
+        ":path": "/transport",
+        ":protocol": "webtransport",
+        "sec-webtransport-http3-draft02": "1",
+        "origin": "http://127.0.0.1:64800"
+      },
+      "accepted": true
+    },
+    {
+      "event": "connect",
+      "headers": {
+        ":scheme": "https",
+        ":method": "CONNECT",
+        ":authority": "page.blanc-fixture.test:57205",
+        ":path": "/transport",
+        ":protocol": "webtransport",
+        "sec-webtransport-http3-draft02": "1",
+        "origin": "http://127.0.0.1:64800"
+      },
+      "accepted": true
+    },
+    {
+      "event": "connect",
+      "headers": {
+        ":scheme": "https",
+        ":method": "CONNECT",
+        ":authority": "page.blanc-fixture.test:57205",
+        ":path": "/transport",
+        ":protocol": "webtransport",
+        "sec-webtransport-http3-draft02": "1",
+        "origin": "http://127.0.0.1:64800"
+      },
+      "accepted": true
+    },
+    {
+      "event": "connect",
+      "headers": {
+        ":scheme": "https",
+        ":method": "CONNECT",
+        ":authority": "page.blanc-fixture.test:57205",
+        ":path": "/transport",
+        ":protocol": "webtransport",
+        "sec-webtransport-http3-draft02": "1",
+        "origin": "http://127.0.0.1:64800"
+      },
+      "accepted": true
+    },
+    {
+      "event": "echo",
+      "value": "blanc-http3-proof"
+    },
+    {
+      "event": "echo",
+      "value": "blanc-http3-proof"
+    },
+    {
+      "event": "echo",
+      "value": "blanc-http3-proof"
+    },
+    {
+      "event": "echo",
+      "value": "blanc-http3-proof"
+    },
+    {
+      "event": "alpn",
+      "value": "h3"
+    },
+    {
+      "event": "connect",
+      "headers": {
+        ":scheme": "https",
+        ":method": "CONNECT",
+        ":authority": "page.blanc-fixture.test:57205",
+        ":path": "/transport",
+        ":protocol": "webtransport",
+        "sec-webtransport-http3-draft02": "1",
+        "origin": "http://127.0.0.1:64800"
+      },
+      "accepted": true
+    },
+    {
+      "event": "echo",
+      "value": "blanc-http3-proof"
+    },
+    {
+      "event": "alpn",
+      "value": "h3"
+    },
+    {
+      "event": "connect",
+      "headers": {
+        ":scheme": "https",
+        ":method": "CONNECT",
+        ":authority": "page.blanc-fixture.test:57205",
+        ":path": "/transport",
+        ":protocol": "webtransport",
+        "sec-webtransport-http3-draft02": "1",
+        "origin": "http://127.0.0.1:64800"
+      },
+      "accepted": true
+    },
+    {
+      "event": "echo",
+      "value": "blanc-http3-proof"
+    },
+    {
+      "event": "alpn",
+      "value": "h3"
+    },
+    {
+      "event": "alpn",
+      "value": "h3"
+    },
+    {
+      "event": "alpn",
+      "value": "h3"
+    },
+    {
+      "event": "alpn",
+      "value": "h3"
+    },
+    {
+      "event": "connect",
+      "headers": {
+        ":scheme": "https",
+        ":method": "CONNECT",
+        ":authority": "page.blanc-fixture.test:57205",
+        ":path": "/transport",
+        ":protocol": "webtransport",
+        "sec-webtransport-http3-draft02": "1",
+        "origin": "http://127.0.0.1:64800"
+      },
+      "accepted": true
+    },
+    {
+      "event": "connect",
+      "headers": {
+        ":scheme": "https",
+        ":method": "CONNECT",
+        ":authority": "page.blanc-fixture.test:57205",
+        ":path": "/transport",
+        ":protocol": "webtransport",
+        "sec-webtransport-http3-draft02": "1",
+        "origin": "http://127.0.0.1:64800"
+      },
+      "accepted": true
+    },
+    {
+      "event": "connect",
+      "headers": {
+        ":scheme": "https",
+        ":method": "CONNECT",
+        ":authority": "page.blanc-fixture.test:57205",
+        ":path": "/transport",
+        ":protocol": "webtransport",
+        "sec-webtransport-http3-draft02": "1",
+        "origin": "http://127.0.0.1:64800"
+      },
+      "accepted": true
+    },
+    {
+      "event": "connect",
+      "headers": {
+        ":scheme": "https",
+        ":method": "CONNECT",
+        ":authority": "page.blanc-fixture.test:57205",
+        ":path": "/transport",
+        ":protocol": "webtransport",
+        "sec-webtransport-http3-draft02": "1",
+        "origin": "http://127.0.0.1:64800"
+      },
+      "accepted": true
+    },
+    {
+      "event": "echo",
+      "value": "blanc-http3-proof"
+    },
+    {
+      "event": "echo",
+      "value": "blanc-http3-proof"
+    },
+    {
+      "event": "echo",
+      "value": "blanc-http3-proof"
+    },
+    {
+      "event": "echo",
+      "value": "blanc-http3-proof"
+    },
+    {
+      "event": "alpn",
+      "value": "h3"
+    },
+    {
+      "event": "connect",
+      "headers": {
+        ":scheme": "https",
+        ":method": "CONNECT",
+        ":authority": "page.blanc-fixture.test:57205",
+        ":path": "/transport",
+        ":protocol": "webtransport",
+        "sec-webtransport-http3-draft02": "1",
+        "origin": "http://127.0.0.1:64800"
+      },
+      "accepted": true
+    },
+    {
+      "event": "echo",
+      "value": "blanc-http3-proof"
+    },
+    {
+      "event": "alpn",
+      "value": "h3"
+    },
+    {
+      "event": "connect",
+      "headers": {
+        ":scheme": "https",
+        ":method": "CONNECT",
+        ":authority": "page.blanc-fixture.test:57205",
+        ":path": "/transport",
+        ":protocol": "webtransport",
+        "sec-webtransport-http3-draft02": "1",
+        "origin": "http://127.0.0.1:64800"
+      },
+      "accepted": true
+    },
+    {
+      "event": "echo",
+      "value": "blanc-http3-proof"
+    },
+    {
+      "event": "alpn",
+      "value": "h3"
+    },
+    {
+      "event": "alpn",
+      "value": "h3"
+    },
+    {
+      "event": "alpn",
+      "value": "h3"
+    },
+    {
+      "event": "alpn",
+      "value": "h3"
+    },
+    {
+      "event": "connect",
+      "headers": {
+        ":scheme": "https",
+        ":method": "CONNECT",
+        ":authority": "page.blanc-fixture.test:57205",
+        ":path": "/transport",
+        ":protocol": "webtransport",
+        "sec-webtransport-http3-draft02": "1",
+        "origin": "http://127.0.0.1:64800"
+      },
+      "accepted": true
+    },
+    {
+      "event": "connect",
+      "headers": {
+        ":scheme": "https",
+        ":method": "CONNECT",
+        ":authority": "page.blanc-fixture.test:57205",
+        ":path": "/transport",
+        ":protocol": "webtransport",
+        "sec-webtransport-http3-draft02": "1",
+        "origin": "http://127.0.0.1:64800"
+      },
+      "accepted": true
+    },
+    {
+      "event": "connect",
+      "headers": {
+        ":scheme": "https",
+        ":method": "CONNECT",
+        ":authority": "page.blanc-fixture.test:57205",
+        ":path": "/transport",
+        ":protocol": "webtransport",
+        "sec-webtransport-http3-draft02": "1",
+        "origin": "http://127.0.0.1:64800"
+      },
+      "accepted": true
+    },
+    {
+      "event": "connect",
+      "headers": {
+        ":scheme": "https",
+        ":method": "CONNECT",
+        ":authority": "page.blanc-fixture.test:57205",
+        ":path": "/transport",
+        ":protocol": "webtransport",
+        "sec-webtransport-http3-draft02": "1",
+        "origin": "http://127.0.0.1:64800"
+      },
+      "accepted": true
+    },
+    {
+      "event": "echo",
+      "value": "blanc-http3-proof"
+    },
+    {
+      "event": "echo",
+      "value": "blanc-http3-proof"
+    },
+    {
+      "event": "echo",
+      "value": "blanc-http3-proof"
+    },
+    {
+      "event": "echo",
+      "value": "blanc-http3-proof"
+    },
+    {
+      "event": "alpn",
+      "value": "h3"
+    },
+    {
+      "event": "connect",
+      "headers": {
+        ":scheme": "https",
+        ":method": "CONNECT",
+        ":authority": "page.blanc-fixture.test:57205",
+        ":path": "/transport",
+        ":protocol": "webtransport",
+        "sec-webtransport-http3-draft02": "1",
+        "origin": "http://127.0.0.1:64800"
+      },
+      "accepted": true
+    },
+    {
+      "event": "echo",
+      "value": "blanc-http3-proof"
+    },
+    {
+      "event": "alpn",
+      "value": "h3"
+    },
+    {
+      "event": "connect",
+      "headers": {
+        ":scheme": "https",
+        ":method": "CONNECT",
+        ":authority": "page.blanc-fixture.test:57205",
+        ":path": "/transport",
+        ":protocol": "webtransport",
+        "sec-webtransport-http3-draft02": "1",
+        "origin": "http://127.0.0.1:64800"
+      },
+      "accepted": true
+    },
+    {
+      "event": "echo",
+      "value": "blanc-http3-proof"
+    },
+    {
+      "event": "alpn",
+      "value": "h3"
+    },
+    {
+      "event": "alpn",
+      "value": "h3"
+    },
+    {
+      "event": "alpn",
+      "value": "h3"
+    },
+    {
+      "event": "alpn",
+      "value": "h3"
+    },
+    {
+      "event": "connect",
+      "headers": {
+        ":scheme": "https",
+        ":method": "CONNECT",
+        ":authority": "page.blanc-fixture.test:57205",
+        ":path": "/transport",
+        ":protocol": "webtransport",
+        "sec-webtransport-http3-draft02": "1",
+        "origin": "http://127.0.0.1:64800"
+      },
+      "accepted": true
+    },
+    {
+      "event": "connect",
+      "headers": {
+        ":scheme": "https",
+        ":method": "CONNECT",
+        ":authority": "page.blanc-fixture.test:57205",
+        ":path": "/transport",
+        ":protocol": "webtransport",
+        "sec-webtransport-http3-draft02": "1",
+        "origin": "http://127.0.0.1:64800"
+      },
+      "accepted": true
+    },
+    {
+      "event": "connect",
+      "headers": {
+        ":scheme": "https",
+        ":method": "CONNECT",
+        ":authority": "page.blanc-fixture.test:57205",
+        ":path": "/transport",
+        ":protocol": "webtransport",
+        "sec-webtransport-http3-draft02": "1",
+        "origin": "http://127.0.0.1:64800"
+      },
+      "accepted": true
+    },
+    {
+      "event": "connect",
+      "headers": {
+        ":scheme": "https",
+        ":method": "CONNECT",
+        ":authority": "page.blanc-fixture.test:57205",
+        ":path": "/transport",
+        ":protocol": "webtransport",
+        "sec-webtransport-http3-draft02": "1",
+        "origin": "http://127.0.0.1:64800"
+      },
+      "accepted": true
+    },
+    {
+      "event": "echo",
+      "value": "blanc-http3-proof"
+    },
+    {
+      "event": "echo",
+      "value": "blanc-http3-proof"
+    },
+    {
+      "event": "echo",
+      "value": "blanc-http3-proof"
+    },
+    {
+      "event": "echo",
+      "value": "blanc-http3-proof"
+    },
+    {
+      "event": "alpn",
+      "value": "h3"
+    },
+    {
+      "event": "connect",
+      "headers": {
+        ":scheme": "https",
+        ":method": "CONNECT",
+        ":authority": "page.blanc-fixture.test:57205",
+        ":path": "/transport",
+        ":protocol": "webtransport",
+        "sec-webtransport-http3-draft02": "1",
+        "origin": "http://127.0.0.1:64800"
+      },
+      "accepted": true
+    },
+    {
+      "event": "echo",
+      "value": "blanc-http3-proof"
+    }
+  ],
+  "errors": []
+}

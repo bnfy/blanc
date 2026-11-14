@@ -1,0 +1,9 @@
+# Chromium158 signed candidate qualification
+
+Source commit0353d3e33443fc54fbc75dea0bbe0bd1d009e374 records the complete pinned158source bundle. Developer ID signing succeeded on the retained authorized MacBook. The retrieved app passed local strict deep verification. Existing signing entitlements match the158source plists exactly.
+
+All6real-keychain recovery and5Split View checks pass through the signed Preview launcher with sealed assets and separate disposable profiles. These exercise encrypted-only recovery, acknowledged close/crash survival, independent split ratios, active/inactive split restart, and Recently Closed without duplicate tabs. The75native-output checks remain separate evidence; unaffected native suites were not repeated.
+
+The first Documents-based package failed signing because FinderInfo attributes were present and reappeared after removal. That failed package and logs remain preserved. A separate durable Projects package passed after removal of only the recorded Finder metadata. No browser rebuild, source-output change, keychain permission change, fallback mutation or Google fixture change was made.
+
+Apple accepted submission58770fc8-39eb-4acd-8884-b9f0bddb6534. Stapled-ticket validation, strict signature and Gatekeeper passed. All459tested files remained unchanged; the ticket added one file. Fresh local archive readback passed460files/5symlinks and metadata/SBOM bindings. Archive SHA256:08e34d602a46a6c381421850eb09ed5c05e73b1ac5221f8cc69054677b717f8e. Sigstore authentication passed for anthony@bnfy.me with issuer https://github.com/login/oauth. The four-artifact verifier passed all checksums, source/SBOM/provenance bindings. No fresh network download or new launch-gate acceptance is claimed. The original157signed fallback remains preserved. Electron paused; latency deferred; original L12 criteria remain open.

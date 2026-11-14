@@ -1,0 +1,67 @@
+diff --git a/experiments/chromium-extension-spike/native/blanc_prototype_ui.cc b/experiments/chromium-extension-spike/native/blanc_prototype_ui.cc
+index 41e60c30..3f9c5bcf 100644
+--- a/experiments/chromium-extension-spike/native/blanc_prototype_ui.cc
++++ b/experiments/chromium-extension-spike/native/blanc_prototype_ui.cc
+@@ -2039,6 +2039,7 @@ class Handler : public content::WebUIMessageHandler, public extensions::Extensio
+   }
+   void ClosedHistorySaved(std::string id, bool saved) {
+     if (!history_saves_.erase(id)) return;
++    history_optional_.erase(id);
+     Reply(id, saved, saved ? base::Value() :
+         base::Value("Tab closed, but history persistence failed or timed out."));
+   }
+@@ -2099,17 +2100,12 @@ class Handler : public content::WebUIMessageHandler, public extensions::Extensio
+     if (!history_saves_.contains(id)) return;
+     auto* service = saved && profile ? ClosedService(profile.get()) : nullptr;
+     if (!service) { ClosedHistorySaved(id, false); return; }
+-    service->SaveAndFlush(base::BindOnce(&Handler::ClosedRetrySaved,
+-        weak_factory_.GetWeakPtr(), id, profile, std::move(state)));
+-  }
+-  void ClosedHistoryFlushed(std::string id, base::WeakPtr<Profile> profile, bool saved) {
+-    if (!history_saves_.contains(id)) return;
+-    // A cancellation in another owner may have arrived during a history-only save.
+-    if (saved && profile && SessionRepair(profile.get())->pending()) {
+-      RetryClosedSession(id, profile);
++    if (history_optional_.contains(id) && service->entries().empty()) {
++      ClosedRetrySaved(id, profile, std::move(state), true);
+       return;
+     }
+-    ClosedHistorySaved(id, saved && profile);
++    service->SaveAndFlush(base::BindOnce(&Handler::ClosedRetrySaved,
++        weak_factory_.GetWeakPtr(), id, profile, std::move(state)));
+   }
+   void SaveClosedHistory(std::string id, Profile* profile, bool without_history = false) {
+     if (profile->IsOffTheRecord()) { Reply(id, true, base::Value()); return; }
+@@ -2119,26 +2115,17 @@ class Handler : public content::WebUIMessageHandler, public extensions::Extensio
+       ClosedHistorySaved(id, false);
+       return;
+     }
+-    if (SessionRepair(profile)->pending()) {
+-      // Revalidate after both stores flush; mutations require a fresh snapshot.
+-      RetryClosedSession(id, profile->GetWeakPtr());
+-    } else if (without_history && service->entries().empty()) {
+-      // There is no historical entry to flush, but the closed tab must still
+-      // disappear from the persisted open session before acknowledging it.
+-      auto* session = SessionServiceFactory::GetForProfile(profile);
+-      if (!session) { ClosedHistorySaved(id, false); return; }
+-      session->ResetFromCurrentBrowsers();
+-      session->SaveAndFlushSession(base::BindOnce(
+-          &Handler::ClosedHistoryFlushed, weak_factory_.GetWeakPtr(), id, profile->GetWeakPtr()));
+-    } else {
+-      service->SaveAndFlush(base::BindOnce(
+-          &Handler::ClosedHistoryFlushed, weak_factory_.GetWeakPtr(), id, profile->GetWeakPtr()));
+-    }
++    if (without_history && service->entries().empty()) history_optional_.insert(id);
++    // History flush alone does not acknowledge the surviving open session.
++    // Rebuild and flush it on every close, including after filesystem errors,
++    // then flush closed history and revalidate mutations before replying.
++    RetryClosedSession(id, profile->GetWeakPtr());
+     base::SequencedTaskRunner::GetCurrentDefault()->PostDelayedTask(
+         FROM_HERE, base::BindOnce(&Handler::ClosedHistorySaved,
+           weak_factory_.GetWeakPtr(), id, false), base::Seconds(10));
+   }
+   std::map<std::string, uint64_t> history_saves_;
++  std::set<std::string> history_optional_;
+   void HistoryCleared(std::string id) { Reply(id, true, base::Value()); }
+   void HistoryReady(std::string id, history::QueryResults results) {
+     base::ListValue items;

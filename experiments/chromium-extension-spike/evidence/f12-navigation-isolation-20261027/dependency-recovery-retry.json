@@ -1,0 +1,22 @@
+[
+  {
+    "path": "src/third_party/libvpx/source/libvpx",
+    "pin": "d603b5421220b05fd37c5bb6439eb0398cc1f1fe",
+    "error": "CalledProcessError(1, ['git', '--git-dir=/private/tmp/blanc-f12-navigation-isolation-20261027/dependency-retry-git-views/0', 'ls-tree', '-rz', 'HEAD'])"
+  },
+  {
+    "path": "src/third_party/pdfium",
+    "pin": "4e6f5ead3e8eef06e8a8482ec4afff4b52845e18",
+    "error": "CalledProcessError(1, ['git', '--git-dir=/private/tmp/blanc-f12-navigation-isolation-20261027/dependency-retry-git-views/1', 'ls-tree', '-rz', 'HEAD'])"
+  },
+  {
+    "path": "src/third_party/skia",
+    "pin": "ac947b5f02facc8237e889c3977c3a670d9d4664",
+    "error": "CalledProcessError(1, ['git', '--git-dir=/private/tmp/blanc-f12-navigation-isolation-20261027/dependency-retry-git-views/2', 'ls-tree', '-rz', 'HEAD'])"
+  },
+  {
+    "path": "src/third_party/webrtc",
+    "pin": "95554e4a0c5c343fdc989387d9d0ce18e2a2294b",
+    "error": "CalledProcessError(1, ['git', '--git-dir=/private/tmp/blanc-f12-navigation-isolation-20261027/dependency-retry-git-views/3', 'ls-tree', '-rz', 'HEAD'])"
+  }
+]

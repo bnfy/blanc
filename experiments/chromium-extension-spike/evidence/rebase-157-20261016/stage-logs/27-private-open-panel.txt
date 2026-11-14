@@ -1,0 +1,2 @@
+{"name":"private-heart-inspection","heart":[{"theme":"private","display":"none"},{"theme":"private","display":"none"}]}
+{"name":"automated-private-guards","heart":[{"theme":"private","display":"none"},{"theme":"private","display":"none"}],"error":"Clear history from a regular window."}

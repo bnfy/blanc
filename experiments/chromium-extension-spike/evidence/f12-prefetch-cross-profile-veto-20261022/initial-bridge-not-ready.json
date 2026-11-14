@@ -1,0 +1,22 @@
+{
+  "schedules": [
+    {
+      "guardOwner": "Default",
+      "consumers": [],
+      "prompts": [],
+      "exitAcknowledgements": [],
+      "error": "Error: {\"id\":77,\"result\":{\"result\":{\"type\":\"object\",\"subtype\":\"error\",\"className\":\"ReferenceError\",\"description\":\"ReferenceError: BlancPrototypeHost is not defined\\n    at <anonymous>:1:1\",\"objectId\":\"-7456029608354689301.1.1\"},\"exceptionDetails\":{\"exceptionId\":1,\"text\":\"Uncaught\",\"lineNumber\":0,\"columnNumber\":0,\"scriptId\":\"8\",\"stackTrace\":{\"callFrames\":[{\"functionName\":\"\",\"scriptId\":\"8\",\"url\":\"\",\"lineNumber\":0,\"columnNumber\":0}]},\"exception\":{\"type\":\"object\",\"subtype\":\"error\",\"className\":\"ReferenceError\",\"description\":\"ReferenceError: BlancPrototypeHost is not defined\\n    at <anonymous>:1:1\",\"objectId\":\"-7456029608354689301.1.2\"}}}}",
+      "profileRemoved": true
+    },
+    {
+      "guardOwner": "Profile 1",
+      "consumers": [],
+      "prompts": [],
+      "exitAcknowledgements": [],
+      "error": "Error: {\"id\":77,\"result\":{\"result\":{\"type\":\"object\",\"subtype\":\"error\",\"className\":\"ReferenceError\",\"description\":\"ReferenceError: BlancPrototypeHost is not defined\\n    at <anonymous>:1:1\",\"objectId\":\"2219583957084006299.1.1\"},\"exceptionDetails\":{\"exceptionId\":1,\"text\":\"Uncaught\",\"lineNumber\":0,\"columnNumber\":0,\"scriptId\":\"8\",\"stackTrace\":{\"callFrames\":[{\"functionName\":\"\",\"scriptId\":\"8\",\"url\":\"\",\"lineNumber\":0,\"columnNumber\":0}]},\"exception\":{\"type\":\"object\",\"subtype\":\"error\",\"className\":\"ReferenceError\",\"description\":\"ReferenceError: BlancPrototypeHost is not defined\\n    at <anonymous>:1:1\",\"objectId\":\"2219583957084006299.1.2\"}}}}",
+      "profileRemoved": true
+    }
+  ],
+  "forcedFeatures": [],
+  "latencyMeasured": false
+}

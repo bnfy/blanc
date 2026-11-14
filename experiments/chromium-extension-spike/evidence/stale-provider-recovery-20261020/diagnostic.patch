@@ -1,0 +1,31 @@
+--- a/components/sessions/core/command_storage_backend.cc
++++ b/components/sessions/core/command_storage_backend.cc
+@@ -771,9 +771,26 @@
+     base::File* file,
+     const sessions::SessionCommand& command) {
+   using WriteStatus = CommandStorageBackend::WriteStatus;
+-  const std::vector<uint8_t> serialized = command.Serialize(encryptor_.get());
++  // Temporary diagnostic for a disposable profile; preserve the real provider.
++  auto effective_encryptor = encryptor_;
++  if (encryptor_ && supplied_path_.value() ==
++      "/private/tmp/blanc-stale-provider/provider/chromium-profile/Default" &&
++      base::PathExists(base::FilePath("/private/tmp/blanc-stale-provider/provider/empty"))) {
++    class UnavailableEncryptor : public os_crypt_async::Encryptor {
++     public:
++      UnavailableEncryptor() : Encryptor(KeyRing{}, "") {}
++     protected:
++      ~UnavailableEncryptor() override = default;
++    };
++    effective_encryptor = base::MakeRefCounted<UnavailableEncryptor>();
++    CHECK(!effective_encryptor->IsEncryptionAvailable());
++    CHECK(!effective_encryptor->EncryptString("probe").has_value());
++    base::WriteFile(base::FilePath("/private/tmp/blanc-stale-provider/provider/unavailable"),
++        "serialization with no-key encryptor; real provider retained");
++  }
++  const std::vector<uint8_t> serialized = command.Serialize(effective_encryptor.get());
+   if (serialized.empty()) {
+-    if (encryptor_ && !encryptor_->IsEncryptionAvailable()) {
++    if (effective_encryptor && !effective_encryptor->IsEncryptionAvailable()) {
+       return WriteStatus::kEncryptionUnavailable;
+     }
+     return WriteStatus::kSerializationError;

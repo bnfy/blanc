@@ -1,0 +1,24 @@
+{
+  "removedOwnedFixtures": [
+    "/private/tmp/blanc-prerender-final-20261024/prerender-loss/private/profile",
+    "/private/tmp/blanc-prerender-final-20261024/prerender-loss/regular/profile",
+    "/private/tmp/blanc-prerender-final-20261024/prerender-healthy/private/profile",
+    "/private/tmp/blanc-prerender-final-20261024/prerender-healthy/regular/profile",
+    "/private/tmp/blanc-prerender-final-20261024/prerender-timeout-final/regular/profile",
+    "/private/tmp/blanc-prerender-final-20261024/prerender-timeout-fixed/regular/profile",
+    "/private/tmp/blanc-prerender-final-20261024/prerender-timeout/regular/profile",
+    "/private/tmp/blanc-prerender-repair-20261024/prerender-healthy/regular/profile",
+    "/private/tmp/blanc-prerender-final-20261024/checks/startup/final",
+    "/private/tmp/blanc-prerender-final-20261024/checks/recovery/node22-home",
+    "/private/tmp/blanc-prerender-final-20261024/checks/core/profile-final",
+    "/private/tmp/blanc-prerender-final-20261024/checks/core/downloads",
+    "/private/tmp/blanc-prerender-final-20261024/test-profile",
+    "/private/tmp/blanc-prerender-final-20261024/test-app",
+    "/private/tmp/blanc-prerender-final-20261024/notice-initial/test-profile",
+    "/private/tmp/blanc-prerender-final-20261024/notice-initial/test-app",
+    "/private/tmp/blanc-prerender-final-20261024/notice-serial-failure/test-profile",
+    "/private/tmp/blanc-prerender-final-20261024/notice-serial-failure/test-app"
+  ],
+  "masterSignedBundlePreserved": true,
+  "googleBaselinePreserved": true
+}

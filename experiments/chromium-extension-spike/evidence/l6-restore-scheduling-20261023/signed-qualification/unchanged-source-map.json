@@ -1,0 +1,43 @@
+{
+  "source": "6b9a05a00f321bfbde617c181103d5a455ff45f3",
+  "ownerConfirmedSource": "7065f9c0",
+  "assets": {
+    "Contents/Resources/BlancAssets/host.css": {
+      "sha256": "c16f3126d4c411387a4a2022a2a4af44d881c9824089a663d306343e31885df3",
+      "identicalToOwnerConfirmed7065": true
+    },
+    "Contents/Resources/BlancAssets/host.js": {
+      "sha256": "647211f5fbc626487290923b6c84bfe0e8e3d6bfd9e60cd99b3c4dfc3b564b53",
+      "identicalToOwnerConfirmed7065": true
+    },
+    "Contents/Resources/BlancAssets/host.html": {
+      "sha256": "daec6220bc75ce60517ca7bf866e121b29ecca099f771d4c8ba88b2f99e4b32c",
+      "identicalToOwnerConfirmed7065": true
+    },
+    "Contents/Resources/BlancAssets/extensions.js": {
+      "sha256": "e6c24a5f8fb1559e077045c3707a0dd33d3e58a8af7c16c5a5365eb9cf74ca4d",
+      "identicalToOwnerConfirmed7065": true
+    },
+    "Contents/Resources/BlancAssets/extensions.css": {
+      "sha256": "c91af1c5bb163ce53458080c2bf2bb92704caac221120dbb0800610f3bd406ee",
+      "identicalToOwnerConfirmed7065": true
+    },
+    "Contents/Resources/BlancAssets/renderer.js": {
+      "sha256": "288253ddf5bc2ec673ceb20811afd3e1b71d8988984f8fb0604acf769a0f9641",
+      "identicalToOwnerConfirmed7065": true
+    },
+    "Contents/Resources/BlancBlocker/engine.js": {
+      "sha256": "9acdfb68963e89c9c9be04a1a68ae831c7c35b800555790cadc8575a7172382d",
+      "identicalToOwnerConfirmed7065": true
+    }
+  },
+  "recoveryUI": {
+    "nativeUIFile": "chrome/browser/ui/blanc_prototype_ui.cc",
+    "sha256": "a1f62eaaadc84118376b265b5e41fa4d0279fbd36aa93c8f8e044047410c4dbe",
+    "identicalToOwnerConfirmed7065": true,
+    "ownerNormalRestartRecord": "../l8-normal-startup-20261023/signed-qualification/owner-normal-restart-confirmation.json",
+    "priorRecoveryUIAcceptance": "Owner accepted mapped unchanged recovery UI during L6 qualification; no new spoken/physical observation claimed.",
+    "newSchedulingCode": "chrome/browser/ui/startup/startup_browser_creator_impl.cc"
+  },
+  "scope": "Unchanged existing UI/permission/security controls mapped to prior explicit owner acceptance; no new physical or spoken pass."
+}

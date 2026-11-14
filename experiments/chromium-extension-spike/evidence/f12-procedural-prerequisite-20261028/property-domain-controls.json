@@ -1,0 +1,29 @@
+{
+  "scope": "offline transformed property rule selection",
+  "checks": [
+    {
+      "hostname": "allowed.example",
+      "expected": 1,
+      "actual": 1,
+      "pass": true
+    },
+    {
+      "hostname": "excluded.allowed.example",
+      "expected": 0,
+      "actual": 0,
+      "pass": true
+    },
+    {
+      "hostname": "except.allowed.example",
+      "expected": 0,
+      "actual": 0,
+      "pass": true
+    },
+    {
+      "hostname": "other.example",
+      "expected": 0,
+      "actual": 0,
+      "pass": true
+    }
+  ]
+}

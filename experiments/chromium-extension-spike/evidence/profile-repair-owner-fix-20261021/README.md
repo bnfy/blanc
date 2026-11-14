@@ -1,0 +1,13 @@
+# Profile-scoped session repair after partial-close timeout
+
+Implementation: replace the owner-local failed-save bit with profile-owned repair generations. Mark a non-private batch cancellation before asynchronous saving or owner destruction can discard responsibility. A history close in any owner takes the Session rebuild/flush plus Tabs flush path while a generation is pending. Compare current window state and the repair generation before clearing it; a history-only save also checks whether another owner introduced a pending repair while it was in flight. Timeouts and failed writes leave the obligation pending. Profile-owned user data ends with the profile, and callbacks retain weak profile references.
+
+A successfully saved cancellation may conservatively leave a repair generation until the next revalidated history close. No performance or latency qualification is claimed. Private single-tab cancellation remains outside this profile-repair path.
+
+Temporary native diagnostic forces signature mutations between completed save cycles; it was removed before the final normal build.
+
+The six corrected timeout schedules pass92 checkpoints, including both clear/encrypted cross-owner and confirmed source-host destruction boundaries plus same-owner and settled controls. Cross-owner recovery now restores35/65; destroyed sources stay closed, and the decoy survives once. The previously failing four schedules pass60 checkpoints. Each timeout still refuses acknowledgement near the existing ten-second bound; the counters measure completed diagnostic cycles, not performance. Source before/after evidence is retained from timeout-owner-retry-20261021.
+
+Final normal-binary verification passes six schedules/65 checkpoints: direct initial-EIO cross-owner recovery and confirmed owner destruction in clear/encrypted modes, private cancellation/full-close regression, and repeated Session EIO refusal followed by successful retry and crash recovery. Together with the diagnostic timeout schedules,12 schedules/157 checkpoints pass. Seven capture tests and git diff whitespace checks pass. This does not qualify arbitrary simultaneous cancellation generations, in-flight profile destruction, same-signature page-state changes, pre-ack crashes, physical native input, or power loss.
+
+Temporary diagnostic removed byte-for-byte from the repaired normal source. Two incremental builds35.85/37.09seconds, six steps each; final guard zero. No upstream hook edit: prior54files/128hunks unchanged. Test processes exited and disposable profiles removed; retained dev/upgrade baseline and permanent profiles/tabs untouched. Latency deferred; Electron diagnostic build pending approval and unstarted. Changes/evidence not committed or pushed.

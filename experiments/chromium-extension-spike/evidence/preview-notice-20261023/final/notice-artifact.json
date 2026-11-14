@@ -1,0 +1,23 @@
+{
+  "metadata": {
+    "schemaVersion": 1,
+    "status": "not-released",
+    "statusUrl": "https://github.com/bnfy/blanc/pull/1028",
+    "supportUrl": "mailto:support@blanc.day?subject=Blanc%20Chromium%20Preview",
+    "maintainer": "Anthony Loria",
+    "supportedPlatform": "Apple Silicon \u00b7 macOS 27 (tested on 27.2)",
+    "version": "157.0.8103.15",
+    "revision": "9a1b4fa9b3ad6ebdb1ae7eebf10bea5d74533468",
+    "packagedAt": "2026-10-23T15:21:12+00:00"
+  },
+  "files": {
+    "Contents/Resources/preview-build.json": "ff9142dc6b5b15953ea968ddbe5067a4650efe7e9b887f0b8b8fe0ef5f493735",
+    "Contents/Resources/BlancAssets/pages/newtab.html": "47c79f61b322dbca42b4ad153ac462b570e552523ac167140d154bbfbb9da2ea",
+    "Contents/Resources/BlancAssets/pages/newtab-adapter.js": "910a3c0271a05fd351e4643c7db3435874e2450b8224f4bffd2deac2fe68376d",
+    "Contents/Resources/BlancAssets/pages/newtab-prototype.css": "dfef55d4112245075ad0de7b4c3a2381cd8a1a8d8279269a9f4c50553b25b27c",
+    "Contents/Resources/BlancAssets/overlay.html": "e94aef95c3804ddaf03bbf8ba5e8396288f4088fcc51f133e5ae9125bd71a198",
+    "Contents/Resources/BlancAssets/adapter.js": "54e561319035e5a21a0921f31a73420b4709e2dad80f4644622136ed82cfb6b4",
+    "Contents/Resources/BlancAssets/prototype.css": "1cbd6d309ddd75a02847f71d621e05fee55a35bcb05324da741f46cfa16e2b30"
+  },
+  "testedCopyMatchesMaster": true
+}

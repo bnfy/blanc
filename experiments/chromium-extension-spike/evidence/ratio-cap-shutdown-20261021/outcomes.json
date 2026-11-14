@@ -1,0 +1,30 @@
+[
+  {
+    "schedule": "cap-clear",
+    "pass": true,
+    "checkpoints": 8,
+    "nativeFaultEvents": 12,
+    "recordsAfterFinalExit": 0
+  },
+  {
+    "schedule": "cap-encrypted",
+    "pass": true,
+    "checkpoints": 8,
+    "nativeFaultEvents": 12,
+    "recordsAfterFinalExit": 0
+  },
+  {
+    "schedule": "shutdown-clear",
+    "pass": true,
+    "checkpoints": 8,
+    "nativeFaultEvents": 6,
+    "recordsAfterFinalExit": 0
+  },
+  {
+    "schedule": "shutdown-encrypted",
+    "pass": true,
+    "checkpoints": 8,
+    "nativeFaultEvents": 6,
+    "recordsAfterFinalExit": 0
+  }
+]

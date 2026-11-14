@@ -1,0 +1,60 @@
+[
+  {
+    "test": "MetaMask extension tab",
+    "tint": "#fff2eb",
+    "color": "rgb(255, 242, 235)",
+    "status": ""
+  },
+  {
+    "test": "new-tab-wallpaper-change",
+    "before": {
+      "tint": "#f7f0e6",
+      "color": "rgb(247, 240, 230)",
+      "status": ""
+    },
+    "samples": [
+      "#f7f0e6",
+      "#f6f0e6",
+      "#f5efe6",
+      "#f2eee8",
+      "#f0ede8",
+      "#efede8",
+      "#ebebe8",
+      "#eaebe8",
+      "#e9eae8",
+      "#e8eae9",
+      "#e7e9e9",
+      "#e5e8e9",
+      "#e9ebea",
+      "#e4e8e9",
+      "#e4e7e9",
+      "#e4e7e9",
+      "#e3e7e9",
+      "#e3e7e9",
+      "#e3e7e9",
+      "#e3e7e9"
+    ],
+    "after": {
+      "tint": "#e3e7e9",
+      "color": "rgb(227, 231, 233)",
+      "status": ""
+    }
+  },
+  {
+    "test": "wallpaper-restored",
+    "tint": "#f7f0e6",
+    "color": "rgb(247, 240, 230)",
+    "status": ""
+  },
+  {
+    "test": "narrow-window",
+    "tint": "#f7f0e6",
+    "color": "rgb(247, 240, 230)",
+    "status": ""
+  },
+  {
+    "test": "new-tab-typing-bridge",
+    "open": true,
+    "value": "b"
+  }
+]

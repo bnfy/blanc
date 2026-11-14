@@ -1,0 +1,83 @@
+[
+  {
+    "time": "57733843",
+    "event": "CORS_REQUEST",
+    "phase": 1,
+    "sourceId": 572,
+    "endpoint": "https://update.googleapis.com/service/update2/json"
+  },
+  {
+    "time": "57733843",
+    "event": "REQUEST_ALIVE",
+    "phase": 1,
+    "sourceId": 572,
+    "endpoint": "https://update.googleapis.com/service/update2/json"
+  },
+  {
+    "time": "57733843",
+    "event": "URL_REQUEST_START_JOB",
+    "phase": 1,
+    "sourceId": 572,
+    "endpoint": "https://update.googleapis.com/service/update2/json"
+  },
+  {
+    "time": "57734019",
+    "event": "UPLOAD_DATA_STREAM_INIT",
+    "phase": 2,
+    "sourceId": 572,
+    "netError": 0
+  },
+  {
+    "time": "57734019",
+    "event": "HTTP_TRANSACTION_HTTP2_SEND_REQUEST_HEADERS",
+    "phase": 0,
+    "sourceId": 572,
+    "statusLines": []
+  },
+  {
+    "time": "57734087",
+    "event": "HTTP_TRANSACTION_READ_RESPONSE_HEADERS",
+    "phase": 0,
+    "sourceId": 572,
+    "statusLines": [
+      "HTTP/1.1 200"
+    ]
+  },
+  {
+    "time": "57734127",
+    "event": "CORS_REQUEST",
+    "phase": 1,
+    "sourceId": 619,
+    "endpoint": "https://clients2.googleusercontent.com/crx/blobs/AZPVhcQcjH7td_2Gd-zaY4mOwL46OjWsLLONxZJP3tdy8EbGLNqlQHSQXW030xE6_RlGCnvu8IYeOGTdZm1kRoPpzAUkQ8oiulzC113NGiHTVKj0AokxUBJkA6psddS5KnwkAMZSmuVEGk9BpuRxMQ5xu2KIWmeIxHT9rA/NNGCECKBAPEBFIMNLNIIIAHKANDCLBLB_2026_10_0_0.crx"
+  },
+  {
+    "time": "57734127",
+    "event": "REQUEST_ALIVE",
+    "phase": 1,
+    "sourceId": 619,
+    "endpoint": "https://clients2.googleusercontent.com/crx/blobs/AZPVhcQcjH7td_2Gd-zaY4mOwL46OjWsLLONxZJP3tdy8EbGLNqlQHSQXW030xE6_RlGCnvu8IYeOGTdZm1kRoPpzAUkQ8oiulzC113NGiHTVKj0AokxUBJkA6psddS5KnwkAMZSmuVEGk9BpuRxMQ5xu2KIWmeIxHT9rA/NNGCECKBAPEBFIMNLNIIIAHKANDCLBLB_2026_10_0_0.crx"
+  },
+  {
+    "time": "57734128",
+    "event": "URL_REQUEST_START_JOB",
+    "phase": 1,
+    "sourceId": 619,
+    "endpoint": "https://clients2.googleusercontent.com/crx/blobs/AZPVhcQcjH7td_2Gd-zaY4mOwL46OjWsLLONxZJP3tdy8EbGLNqlQHSQXW030xE6_RlGCnvu8IYeOGTdZm1kRoPpzAUkQ8oiulzC113NGiHTVKj0AokxUBJkA6psddS5KnwkAMZSmuVEGk9BpuRxMQ5xu2KIWmeIxHT9rA/NNGCECKBAPEBFIMNLNIIIAHKANDCLBLB_2026_10_0_0.crx"
+  },
+  {
+    "time": "57734298",
+    "event": "HTTP_TRANSACTION_HTTP2_SEND_REQUEST_HEADERS",
+    "phase": 0,
+    "sourceId": 619,
+    "statusLines": []
+  },
+  {
+    "time": "57734408",
+    "event": "HTTP_TRANSACTION_READ_RESPONSE_HEADERS",
+    "phase": 0,
+    "sourceId": 619,
+    "statusLines": [
+      "HTTP/1.1 200"
+    ]
+  }
+]

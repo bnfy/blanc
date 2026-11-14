@@ -1,0 +1,40 @@
+{
+  "artifact": {
+    "machOHashesMatch": 17,
+    "codesign": {
+      "exit": 0,
+      "output": ""
+    },
+    "gatekeeper": {
+      "exit": 0,
+      "output": "/private/tmp/blanc-preview-notice-final/Blanc Chromium Preview.app: accepted\nsource=Notarized Developer ID\norigin=Developer ID Application: Anthony Loria (XYGUCY4498)\n"
+    },
+    "staple": {
+      "exit": 0,
+      "output": "Processing: /private/tmp/blanc-preview-notice-final/Blanc Chromium Preview.app\nThe validate action worked!\n"
+    },
+    "zipSha256": "f177e0b5100db9a3fc83c7d5522cc343b86582add4d209d49696cef4f3729a55"
+  },
+  "storage": {
+    "regular": {
+      "files": 151,
+      "fixtureURLFiles": [
+        "Default/Preferences",
+        "Default/History",
+        "Default/Cache/Cache_Data/sqldb0",
+        "Default/Sessions/Session_13437243205350779",
+        "Default/Sessions/Tabs_13437243206222540",
+        "Default/Sessions/Session_13437243205873469",
+        "segmentation_platform/ukm_db"
+      ],
+      "historyURLRows": 1,
+      "blancFiles": []
+    },
+    "private": {
+      "files": 144,
+      "fixtureURLFiles": [],
+      "historyURLRows": 0,
+      "blancFiles": []
+    }
+  }
+}

@@ -1,0 +1,1473 @@
+{
+  "schedules": [
+    {
+      "kind": "regular",
+      "mode": "delete-cancel",
+      "responses": [
+        {
+          "requestId": "6C9D6C1DB7A26E2852B12CA4BD516D9B",
+          "loaderId": "6C9D6C1DB7A26E2852B12CA4BD516D9B",
+          "timestamp": 114901.522208,
+          "type": "Document",
+          "response": {
+            "url": "https://page.blanc-fixture.test:55479/source",
+            "status": 200,
+            "statusText": "OK",
+            "headers": {
+              "Cache-Control": "public, max-age=600",
+              "Connection": "keep-alive",
+              "Content-Type": "text/html",
+              "Date": "Thu, 22 Oct 2026 02:02:48 GMT",
+              "Keep-Alive": "timeout=5",
+              "Transfer-Encoding": "chunked"
+            },
+            "mimeType": "text/html",
+            "charset": "",
+            "connectionReused": true,
+            "connectionId": 53,
+            "remoteIPAddress": "127.0.0.1",
+            "remotePort": 55479,
+            "fromDiskCache": false,
+            "fromServiceWorker": false,
+            "fromPrefetchCache": false,
+            "encodedDataLength": 192,
+            "timing": {
+              "requestTime": 114901.518929,
+              "proxyStart": -1,
+              "proxyEnd": -1,
+              "dnsStart": -1,
+              "dnsEnd": -1,
+              "connectStart": -1,
+              "connectEnd": -1,
+              "sslStart": -1,
+              "sslEnd": -1,
+              "workerStart": -1,
+              "workerReady": -1,
+              "workerFetchStart": -1,
+              "workerRespondWithSettled": -1,
+              "sendStart": 0.338,
+              "sendEnd": 0.416,
+              "pushStart": 0,
+              "pushEnd": 0,
+              "receiveHeadersStart": 2.173,
+              "receiveHeadersEnd": 2.272
+            },
+            "responseTime": 1792634568167.171,
+            "protocol": "http/1.1",
+            "alternateProtocolUsage": "unspecifiedReason",
+            "securityState": "secure",
+            "securityDetails": {
+              "protocol": "TLS 1.3",
+              "keyExchange": "",
+              "keyExchangeGroup": "X25519",
+              "cipher": "AES_256_GCM",
+              "certificateId": 0,
+              "subjectName": "Blanc disposable fixture server",
+              "sanList": [
+                "page.blanc-fixture.test",
+                "000491b06a.com"
+              ],
+              "issuer": "Blanc disposable fixture CA",
+              "validFrom": 1792634565,
+              "validTo": 1792720965,
+              "signedCertificateTimestampList": [],
+              "certificateTransparencyCompliance": "unknown",
+              "serverSignatureAlgorithm": 2052,
+              "encryptedClientHello": false
+            }
+          },
+          "hasExtraInfo": true,
+          "frameId": "793E8D581046A4A3900E2D326610CD1C"
+        },
+        {
+          "requestId": "80D688C5C6E58E5D20F4B7F6585DA0CC",
+          "loaderId": "80D688C5C6E58E5D20F4B7F6585DA0CC",
+          "timestamp": 114903.178522,
+          "type": "Prefetch",
+          "response": {
+            "url": "https://page.blanc-fixture.test:55479/regular-delete-cancel",
+            "status": 200,
+            "statusText": "OK",
+            "headers": {
+              "Cache-Control": "public, max-age=600",
+              "Connection": "keep-alive",
+              "Content-Type": "text/html",
+              "Date": "Thu, 22 Oct 2026 02:02:49 GMT",
+              "Keep-Alive": "timeout=5",
+              "Transfer-Encoding": "chunked"
+            },
+            "mimeType": "text/html",
+            "charset": "",
+            "connectionReused": true,
+            "connectionId": 53,
+            "remoteIPAddress": "127.0.0.1",
+            "remotePort": 55479,
+            "fromDiskCache": false,
+            "fromServiceWorker": false,
+            "fromPrefetchCache": true,
+            "encodedDataLength": 192,
+            "timing": {
+              "requestTime": 114903.177561,
+              "proxyStart": -1,
+              "proxyEnd": -1,
+              "dnsStart": -1,
+              "dnsEnd": -1,
+              "connectStart": -1,
+              "connectEnd": -1,
+              "sslStart": -1,
+              "sslEnd": -1,
+              "workerStart": -1,
+              "workerReady": -1,
+              "workerFetchStart": -1,
+              "workerRespondWithSettled": -1,
+              "sendStart": 0.272,
+              "sendEnd": 0.346,
+              "pushStart": 0,
+              "pushEnd": 0,
+              "receiveHeadersStart": 0.644,
+              "receiveHeadersEnd": 0.69
+            },
+            "responseTime": 1792634569824.284,
+            "protocol": "http/1.1",
+            "alternateProtocolUsage": "unspecifiedReason",
+            "securityState": "secure",
+            "securityDetails": {
+              "protocol": "TLS 1.3",
+              "keyExchange": "",
+              "keyExchangeGroup": "X25519",
+              "cipher": "AES_256_GCM",
+              "certificateId": 0,
+              "subjectName": "Blanc disposable fixture server",
+              "sanList": [
+                "page.blanc-fixture.test",
+                "000491b06a.com"
+              ],
+              "issuer": "Blanc disposable fixture CA",
+              "validFrom": 1792634565,
+              "validTo": 1792720965,
+              "signedCertificateTimestampList": [],
+              "certificateTransparencyCompliance": "unknown",
+              "serverSignatureAlgorithm": 2052,
+              "encryptedClientHello": false
+            }
+          },
+          "hasExtraInfo": true,
+          "frameId": "793E8D581046A4A3900E2D326610CD1C"
+        },
+        {
+          "requestId": "B42F6834439124F48A4F2380002925D1",
+          "loaderId": "B42F6834439124F48A4F2380002925D1",
+          "timestamp": 114903.323456,
+          "type": "Document",
+          "response": {
+            "url": "https://page.blanc-fixture.test:55479/regular-delete-cancel",
+            "status": 200,
+            "statusText": "OK",
+            "headers": {
+              "Cache-Control": "public, max-age=600",
+              "Connection": "keep-alive",
+              "Content-Type": "text/html",
+              "Date": "Thu, 22 Oct 2026 02:02:49 GMT",
+              "Keep-Alive": "timeout=5",
+              "Transfer-Encoding": "chunked"
+            },
+            "mimeType": "text/html",
+            "charset": "",
+            "connectionReused": true,
+            "connectionId": 53,
+            "remoteIPAddress": "127.0.0.1",
+            "remotePort": 55479,
+            "fromDiskCache": false,
+            "fromServiceWorker": false,
+            "fromPrefetchCache": true,
+            "encodedDataLength": 192,
+            "timing": {
+              "requestTime": 114903.177561,
+              "proxyStart": -1,
+              "proxyEnd": -1,
+              "dnsStart": -1,
+              "dnsEnd": -1,
+              "connectStart": -1,
+              "connectEnd": -1,
+              "sslStart": -1,
+              "sslEnd": -1,
+              "workerStart": -1,
+              "workerReady": -1,
+              "workerFetchStart": -1,
+              "workerRespondWithSettled": -1,
+              "sendStart": 0.272,
+              "sendEnd": 0.346,
+              "pushStart": 0,
+              "pushEnd": 0,
+              "receiveHeadersStart": 0.644,
+              "receiveHeadersEnd": 0.69
+            },
+            "responseTime": 1792634569824.284,
+            "protocol": "http/1.1",
+            "alternateProtocolUsage": "unspecifiedReason",
+            "securityState": "secure",
+            "securityDetails": {
+              "protocol": "TLS 1.3",
+              "keyExchange": "",
+              "keyExchangeGroup": "X25519",
+              "cipher": "AES_256_GCM",
+              "certificateId": 0,
+              "subjectName": "Blanc disposable fixture server",
+              "sanList": [
+                "page.blanc-fixture.test",
+                "000491b06a.com"
+              ],
+              "issuer": "Blanc disposable fixture CA",
+              "validFrom": 1792634565,
+              "validTo": 1792720965,
+              "signedCertificateTimestampList": [],
+              "certificateTransparencyCompliance": "unknown",
+              "serverSignatureAlgorithm": 2052,
+              "encryptedClientHello": false
+            }
+          },
+          "hasExtraInfo": true,
+          "frameId": "793E8D581046A4A3900E2D326610CD1C"
+        }
+      ],
+      "preloadEvents": [
+        {
+          "key": {
+            "loaderId": "6C9D6C1DB7A26E2852B12CA4BD516D9B",
+            "action": "Prefetch",
+            "url": "https://page.blanc-fixture.test:55479/regular-delete-cancel"
+          },
+          "pipelineId": "E8F48B883F2A57C09094C662BD8599FD",
+          "initiatingFrameId": "793E8D581046A4A3900E2D326610CD1C",
+          "prefetchUrl": "https://page.blanc-fixture.test:55479/regular-delete-cancel",
+          "status": "Running",
+          "prefetchStatus": "PrefetchNotFinishedInTime",
+          "requestId": "80D688C5C6E58E5D20F4B7F6585DA0CC"
+        },
+        {
+          "key": {
+            "loaderId": "6C9D6C1DB7A26E2852B12CA4BD516D9B",
+            "action": "Prefetch",
+            "url": "https://page.blanc-fixture.test:55479/regular-delete-cancel"
+          },
+          "pipelineId": "E8F48B883F2A57C09094C662BD8599FD",
+          "initiatingFrameId": "793E8D581046A4A3900E2D326610CD1C",
+          "prefetchUrl": "https://page.blanc-fixture.test:55479/regular-delete-cancel",
+          "status": "Ready",
+          "prefetchStatus": "PrefetchSuccessfulButNotUsed",
+          "requestId": "80D688C5C6E58E5D20F4B7F6585DA0CC"
+        },
+        {
+          "key": {
+            "loaderId": "6C9D6C1DB7A26E2852B12CA4BD516D9B",
+            "action": "Prefetch",
+            "url": "https://page.blanc-fixture.test:55479/regular-delete-cancel"
+          },
+          "pipelineId": "E8F48B883F2A57C09094C662BD8599FD",
+          "initiatingFrameId": "793E8D581046A4A3900E2D326610CD1C",
+          "prefetchUrl": "https://page.blanc-fixture.test:55479/regular-delete-cancel",
+          "status": "Success",
+          "prefetchStatus": "PrefetchResponseUsed",
+          "requestId": "80D688C5C6E58E5D20F4B7F6585DA0CC"
+        }
+      ],
+      "guardArmed": true,
+      "urls": [
+        "https://page.blanc-fixture.test:55479/regular-delete-cancel"
+      ],
+      "readyBeforeLoss": [
+        {
+          "key": {
+            "loaderId": "6C9D6C1DB7A26E2852B12CA4BD516D9B",
+            "action": "Prefetch",
+            "url": "https://page.blanc-fixture.test:55479/regular-delete-cancel"
+          },
+          "pipelineId": "E8F48B883F2A57C09094C662BD8599FD",
+          "initiatingFrameId": "793E8D581046A4A3900E2D326610CD1C",
+          "prefetchUrl": "https://page.blanc-fixture.test:55479/regular-delete-cancel",
+          "status": "Running",
+          "prefetchStatus": "PrefetchNotFinishedInTime",
+          "requestId": "80D688C5C6E58E5D20F4B7F6585DA0CC"
+        },
+        {
+          "key": {
+            "loaderId": "6C9D6C1DB7A26E2852B12CA4BD516D9B",
+            "action": "Prefetch",
+            "url": "https://page.blanc-fixture.test:55479/regular-delete-cancel"
+          },
+          "pipelineId": "E8F48B883F2A57C09094C662BD8599FD",
+          "initiatingFrameId": "793E8D581046A4A3900E2D326610CD1C",
+          "prefetchUrl": "https://page.blanc-fixture.test:55479/regular-delete-cancel",
+          "status": "Ready",
+          "prefetchStatus": "PrefetchSuccessfulButNotUsed",
+          "requestId": "80D688C5C6E58E5D20F4B7F6585DA0CC"
+        }
+      ],
+      "heldUtility": {
+        "pid": 52679,
+        "ppid": 52661,
+        "command": "/Users/anthonyjloria/Projects/BlancChromium157/src/out/BlancPrototype/Blanc Prototype.app/Contents/Frameworks/Blanc Prototype Framework.framework/Versions/157.0.8103.6/Helpers/Blanc Prototype Helper (Aperitif).app/Contents/MacOS/Blanc Prototype Helper (Aperitif) --type=utility --utility-sub-type=blanc.mojom.Blocker --lang=en-US --service-sandbox-type=service --host-resolver-rules=MAP page.blanc-fixture.test 127.0.0.1, MAP 000491b06a.com 127.0.0.1, MAP * ~NOTFOUND, EXCLUDE 127.0.0.1 --ignore-certificate-errors-spki-list=Shm0Yz/VPBP0klmEVL4qvxJ+m5rrFTXazI/mHNHpqM4= --user-data-dir=/private/tmp/blanc-prefetch-cancellation-veto-04/regular-delete-cancel --shared-files --metrics-shmem-handle=1752395122,r,12975845544761301647,6787280611176219136,524288 --field-trial-handle=1718379636,r,15755974411710675906,11892169117660781194,262144 --enable-features=CDPScreenshotNewSurface --disable-features=AutoDeElevate,AvoidUnnecessaryBeforeUnloadCheckSync,BlockOriginHeaderModificationOnRedirect,DestroyProfileOnBrowserClose,DialMediaRouteProvider,GlobalMediaControls,HttpsUpgrades,LensOverlay,MediaRouter,OptimizationHints,PaintHolding,ThirdPartyStoragePartitioning,Translate,msEdgeUpdateLaunchServicesPreferredVersion,msForceBrowserSignIn --variations-seed-version --pseudonymization-salt-handle=1935764596,r,11973550861092635228,8364177727059026640,4 --trace-process-track-uuid=2222899754596510404 --seatbelt-client=103"
+      },
+      "beforeConsumption": {
+        "arrivals": [
+          {
+            "url": "/regular-delete-cancel",
+            "host": "page.blanc-fixture.test:55479",
+            "headers": {
+              "host": "page.blanc-fixture.test:55479",
+              "connection": "keep-alive",
+              "upgrade-insecure-requests": "1",
+              "sec-purpose": "prefetch",
+              "sec-speculation-tags": "null",
+              "accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/jxl,image/avif,image/webp,image/apng,*/*;q=0.8",
+              "sec-ch-ua": "\"Chromium\";v=\"157\", \"Not-A.Brand\";v=\"99\"",
+              "sec-ch-ua-mobile": "?0",
+              "sec-ch-ua-platform": "\"macOS\"",
+              "sec-fetch-site": "none",
+              "sec-fetch-mode": "navigate",
+              "sec-fetch-dest": "document",
+              "referer": "https://page.blanc-fixture.test:55479/source",
+              "user-agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/157.0.0.0 Safari/537.36",
+              "accept-encoding": "gzip, deflate, br, zstd",
+              "accept-language": "en-US,en;q=0.9"
+            }
+          }
+        ],
+        "decisions": [
+          {
+            "bundle_sha256": "9acdfb68963e89c9c9be04a1a68ae831c7c35b800555790cadc8575a7172382d",
+            "event": "engine-ready"
+          },
+          {
+            "decision": "allow",
+            "devtools_request_id": "6C9D6C1DB7A26E2852B12CA4BD516D9B",
+            "engine_result": 0,
+            "event": "decision",
+            "factory_instance": "F439D06A8D97B1C51AC1D800F4E026C0",
+            "factory_isolation_top_origin": "absent",
+            "factory_kind": "other",
+            "factory_type": 0,
+            "frame_role": "main",
+            "frame_state": "live-at-entry",
+            "hook_to_decision_us": 1323735,
+            "initiator_origin": "absent",
+            "initiator_present": false,
+            "loader_request_id": -6,
+            "method": "GET",
+            "profile_kind": "regular",
+            "redirect_index": 0,
+            "referrer": "",
+            "request_isolation_top_origin": "https://page.blanc-fixture.test:55479",
+            "resource_type": "mainFrame",
+            "status": "ready",
+            "top_frame_origin": "https://page.blanc-fixture.test:55479",
+            "url": "https://page.blanc-fixture.test:55479/source"
+          },
+          {
+            "decision": "allow",
+            "engine_result": 0,
+            "event": "navigation-response-decision",
+            "private": false,
+            "url": "https://page.blanc-fixture.test:55479/source"
+          },
+          {
+            "decision": "allow",
+            "devtools_request_id": "absent",
+            "engine_result": 0,
+            "event": "decision",
+            "factory_instance": "8F03A4371A0EB87E9426EAB1A191ACA1",
+            "factory_isolation_top_origin": "absent",
+            "factory_kind": "other",
+            "factory_type": 0,
+            "frame_role": "main",
+            "frame_state": "live-at-entry",
+            "hook_to_decision_us": 6635,
+            "initiator_origin": "absent",
+            "initiator_present": false,
+            "loader_request_id": -8,
+            "method": "GET",
+            "profile_kind": "regular",
+            "redirect_index": 0,
+            "referrer": "",
+            "request_isolation_top_origin": "https://page.blanc-fixture.test:55479",
+            "resource_type": "mainFrame",
+            "status": "ready",
+            "top_frame_origin": "https://page.blanc-fixture.test:55479",
+            "url": "https://page.blanc-fixture.test:55479/#independent"
+          },
+          {
+            "decision": "allow",
+            "engine_result": 0,
+            "event": "navigation-response-decision",
+            "private": false,
+            "url": "https://page.blanc-fixture.test:55479/#independent"
+          },
+          {
+            "decision": "allow",
+            "devtools_request_id": "2232C60C589BEC08183E4EE5DC4D280A",
+            "engine_result": 0,
+            "event": "decision",
+            "factory_instance": "718DFF005363707BE3FDD1E7942C33CD",
+            "factory_isolation_top_origin": "absent",
+            "factory_kind": "other",
+            "factory_type": 0,
+            "frame_role": "main",
+            "frame_state": "live-at-entry",
+            "hook_to_decision_us": 967,
+            "initiator_origin": "absent",
+            "initiator_present": false,
+            "loader_request_id": -13,
+            "method": "GET",
+            "profile_kind": "regular",
+            "redirect_index": 0,
+            "referrer": "",
+            "request_isolation_top_origin": "https://page.blanc-fixture.test:55479",
+            "resource_type": "mainFrame",
+            "status": "ready",
+            "top_frame_origin": "https://page.blanc-fixture.test:55479",
+            "url": "https://page.blanc-fixture.test:55479/guard"
+          },
+          {
+            "decision": "allow",
+            "engine_result": 0,
+            "event": "navigation-response-decision",
+            "private": false,
+            "url": "https://page.blanc-fixture.test:55479/guard"
+          },
+          {
+            "decision": "allow",
+            "devtools_request_id": "80D688C5C6E58E5D20F4B7F6585DA0CC",
+            "engine_result": 0,
+            "event": "decision",
+            "factory_instance": "B9B13284C128CD9206BFF0BAC664B435",
+            "factory_isolation_top_origin": "absent",
+            "factory_kind": "other",
+            "factory_type": 7,
+            "frame_role": "main",
+            "frame_state": "live-at-entry",
+            "hook_to_decision_us": 390,
+            "initiator_origin": "absent",
+            "initiator_present": false,
+            "loader_request_id": 0,
+            "method": "GET",
+            "profile_kind": "regular",
+            "redirect_index": 0,
+            "referrer": "https://page.blanc-fixture.test:55479/source",
+            "request_isolation_top_origin": "https://page.blanc-fixture.test:55479",
+            "resource_type": "mainFrame",
+            "status": "ready",
+            "top_frame_origin": "https://page.blanc-fixture.test:55479",
+            "url": "https://page.blanc-fixture.test:55479/regular-delete-cancel"
+          }
+        ]
+      },
+      "pending": {
+        "settled": false,
+        "url": "https://page.blanc-fixture.test:55479/source",
+        "decisions": []
+      },
+      "waitingForPrompt": true,
+      "error": "Error: Probe wait timed out",
+      "profileRemoved": true
+    },
+    {
+      "kind": "regular",
+      "mode": "shutdown-veto",
+      "responses": [
+        {
+          "requestId": "91D0131C9B77843B4B28128356725C72",
+          "loaderId": "91D0131C9B77843B4B28128356725C72",
+          "timestamp": 114917.07445,
+          "type": "Document",
+          "response": {
+            "url": "https://page.blanc-fixture.test:55479/source",
+            "status": 200,
+            "statusText": "OK",
+            "headers": {
+              "Cache-Control": "public, max-age=600",
+              "Connection": "keep-alive",
+              "Content-Type": "text/html",
+              "Date": "Thu, 22 Oct 2026 02:03:03 GMT",
+              "Keep-Alive": "timeout=5",
+              "Transfer-Encoding": "chunked"
+            },
+            "mimeType": "text/html",
+            "charset": "",
+            "connectionReused": true,
+            "connectionId": 47,
+            "remoteIPAddress": "127.0.0.1",
+            "remotePort": 55479,
+            "fromDiskCache": false,
+            "fromServiceWorker": false,
+            "fromPrefetchCache": false,
+            "encodedDataLength": 192,
+            "timing": {
+              "requestTime": 114917.072222,
+              "proxyStart": -1,
+              "proxyEnd": -1,
+              "dnsStart": -1,
+              "dnsEnd": -1,
+              "connectStart": -1,
+              "connectEnd": -1,
+              "sslStart": -1,
+              "sslEnd": -1,
+              "workerStart": -1,
+              "workerReady": -1,
+              "workerFetchStart": -1,
+              "workerRespondWithSettled": -1,
+              "sendStart": 0.413,
+              "sendEnd": 0.497,
+              "pushStart": 0,
+              "pushEnd": 0,
+              "receiveHeadersStart": 1.048,
+              "receiveHeadersEnd": 1.146
+            },
+            "responseTime": 1792634583719.429,
+            "protocol": "http/1.1",
+            "alternateProtocolUsage": "unspecifiedReason",
+            "securityState": "secure",
+            "securityDetails": {
+              "protocol": "TLS 1.3",
+              "keyExchange": "",
+              "keyExchangeGroup": "X25519",
+              "cipher": "AES_256_GCM",
+              "certificateId": 0,
+              "subjectName": "Blanc disposable fixture server",
+              "sanList": [
+                "page.blanc-fixture.test",
+                "000491b06a.com"
+              ],
+              "issuer": "Blanc disposable fixture CA",
+              "validFrom": 1792634565,
+              "validTo": 1792720965,
+              "signedCertificateTimestampList": [],
+              "certificateTransparencyCompliance": "unknown",
+              "serverSignatureAlgorithm": 2052,
+              "encryptedClientHello": false
+            }
+          },
+          "hasExtraInfo": true,
+          "frameId": "FCB6838EA2DD405332C8B94223E9CAE3"
+        }
+      ],
+      "preloadEvents": [],
+      "guardArmed": true,
+      "urls": [
+        "https://page.blanc-fixture.test:55479/regular-shutdown-veto"
+      ],
+      "error": "Error: Probe wait timed out",
+      "profileRemoved": true
+    },
+    {
+      "kind": "private",
+      "mode": "delete-cancel",
+      "responses": [
+        {
+          "requestId": "FC9AA7B669495740BAB7457ECCBC21AE",
+          "loaderId": "FC9AA7B669495740BAB7457ECCBC21AE",
+          "timestamp": 114935.754867,
+          "type": "Document",
+          "response": {
+            "url": "https://page.blanc-fixture.test:55479/source",
+            "status": 200,
+            "statusText": "OK",
+            "headers": {
+              "Cache-Control": "public, max-age=600",
+              "Connection": "keep-alive",
+              "Content-Type": "text/html",
+              "Date": "Thu, 22 Oct 2026 02:03:22 GMT",
+              "Keep-Alive": "timeout=5",
+              "Transfer-Encoding": "chunked"
+            },
+            "mimeType": "text/html",
+            "charset": "",
+            "connectionReused": true,
+            "connectionId": 63,
+            "remoteIPAddress": "127.0.0.1",
+            "remotePort": 55479,
+            "fromDiskCache": false,
+            "fromServiceWorker": false,
+            "fromPrefetchCache": false,
+            "encodedDataLength": 192,
+            "timing": {
+              "requestTime": 114935.752976,
+              "proxyStart": -1,
+              "proxyEnd": -1,
+              "dnsStart": -1,
+              "dnsEnd": -1,
+              "connectStart": -1,
+              "connectEnd": -1,
+              "sslStart": -1,
+              "sslEnd": -1,
+              "workerStart": -1,
+              "workerReady": -1,
+              "workerFetchStart": -1,
+              "workerRespondWithSettled": -1,
+              "sendStart": 0.426,
+              "sendEnd": 0.498,
+              "pushStart": 0,
+              "pushEnd": 0,
+              "receiveHeadersStart": 0.864,
+              "receiveHeadersEnd": 0.944
+            },
+            "responseTime": 1792634602400.105,
+            "protocol": "http/1.1",
+            "alternateProtocolUsage": "unspecifiedReason",
+            "securityState": "secure",
+            "securityDetails": {
+              "protocol": "TLS 1.3",
+              "keyExchange": "",
+              "keyExchangeGroup": "X25519",
+              "cipher": "AES_256_GCM",
+              "certificateId": 0,
+              "subjectName": "Blanc disposable fixture server",
+              "sanList": [
+                "page.blanc-fixture.test",
+                "000491b06a.com"
+              ],
+              "issuer": "Blanc disposable fixture CA",
+              "validFrom": 1792634565,
+              "validTo": 1792720965,
+              "signedCertificateTimestampList": [],
+              "certificateTransparencyCompliance": "unknown",
+              "serverSignatureAlgorithm": 2052,
+              "encryptedClientHello": false
+            }
+          },
+          "hasExtraInfo": true,
+          "frameId": "A589F8B18B92AFD9F26ACD71F56738AE"
+        },
+        {
+          "requestId": "A3E04C813B501F77D8141EAAB16B5596",
+          "loaderId": "A3E04C813B501F77D8141EAAB16B5596",
+          "timestamp": 114937.428534,
+          "type": "Prefetch",
+          "response": {
+            "url": "https://page.blanc-fixture.test:55479/private-delete-cancel",
+            "status": 200,
+            "statusText": "OK",
+            "headers": {
+              "Cache-Control": "public, max-age=600",
+              "Connection": "keep-alive",
+              "Content-Type": "text/html",
+              "Date": "Thu, 22 Oct 2026 02:03:24 GMT",
+              "Keep-Alive": "timeout=5",
+              "Transfer-Encoding": "chunked"
+            },
+            "mimeType": "text/html",
+            "charset": "",
+            "connectionReused": true,
+            "connectionId": 63,
+            "remoteIPAddress": "127.0.0.1",
+            "remotePort": 55479,
+            "fromDiskCache": false,
+            "fromServiceWorker": false,
+            "fromPrefetchCache": true,
+            "encodedDataLength": 192,
+            "timing": {
+              "requestTime": 114937.426933,
+              "proxyStart": -1,
+              "proxyEnd": -1,
+              "dnsStart": -1,
+              "dnsEnd": -1,
+              "connectStart": -1,
+              "connectEnd": -1,
+              "sslStart": -1,
+              "sslEnd": -1,
+              "workerStart": -1,
+              "workerReady": -1,
+              "workerFetchStart": -1,
+              "workerRespondWithSettled": -1,
+              "sendStart": 0.605,
+              "sendEnd": 0.675,
+              "pushStart": 0,
+              "pushEnd": 0,
+              "receiveHeadersStart": 1.24,
+              "receiveHeadersEnd": 1.297
+            },
+            "responseTime": 1792634604074.448,
+            "protocol": "http/1.1",
+            "alternateProtocolUsage": "unspecifiedReason",
+            "securityState": "secure",
+            "securityDetails": {
+              "protocol": "TLS 1.3",
+              "keyExchange": "",
+              "keyExchangeGroup": "X25519",
+              "cipher": "AES_256_GCM",
+              "certificateId": 0,
+              "subjectName": "Blanc disposable fixture server",
+              "sanList": [
+                "page.blanc-fixture.test",
+                "000491b06a.com"
+              ],
+              "issuer": "Blanc disposable fixture CA",
+              "validFrom": 1792634565,
+              "validTo": 1792720965,
+              "signedCertificateTimestampList": [],
+              "certificateTransparencyCompliance": "unknown",
+              "serverSignatureAlgorithm": 2052,
+              "encryptedClientHello": false
+            }
+          },
+          "hasExtraInfo": true,
+          "frameId": "A589F8B18B92AFD9F26ACD71F56738AE"
+        },
+        {
+          "requestId": "E5D6D33C86C0C3581F83BAA1DBD282BF",
+          "loaderId": "E5D6D33C86C0C3581F83BAA1DBD282BF",
+          "timestamp": 114937.571005,
+          "type": "Document",
+          "response": {
+            "url": "https://page.blanc-fixture.test:55479/private-delete-cancel",
+            "status": 200,
+            "statusText": "OK",
+            "headers": {
+              "Cache-Control": "public, max-age=600",
+              "Connection": "keep-alive",
+              "Content-Type": "text/html",
+              "Date": "Thu, 22 Oct 2026 02:03:24 GMT",
+              "Keep-Alive": "timeout=5",
+              "Transfer-Encoding": "chunked"
+            },
+            "mimeType": "text/html",
+            "charset": "",
+            "connectionReused": true,
+            "connectionId": 63,
+            "remoteIPAddress": "127.0.0.1",
+            "remotePort": 55479,
+            "fromDiskCache": false,
+            "fromServiceWorker": false,
+            "fromPrefetchCache": true,
+            "encodedDataLength": 192,
+            "timing": {
+              "requestTime": 114937.426933,
+              "proxyStart": -1,
+              "proxyEnd": -1,
+              "dnsStart": -1,
+              "dnsEnd": -1,
+              "connectStart": -1,
+              "connectEnd": -1,
+              "sslStart": -1,
+              "sslEnd": -1,
+              "workerStart": -1,
+              "workerReady": -1,
+              "workerFetchStart": -1,
+              "workerRespondWithSettled": -1,
+              "sendStart": 0.605,
+              "sendEnd": 0.675,
+              "pushStart": 0,
+              "pushEnd": 0,
+              "receiveHeadersStart": 1.24,
+              "receiveHeadersEnd": 1.297
+            },
+            "responseTime": 1792634604074.448,
+            "protocol": "http/1.1",
+            "alternateProtocolUsage": "unspecifiedReason",
+            "securityState": "secure",
+            "securityDetails": {
+              "protocol": "TLS 1.3",
+              "keyExchange": "",
+              "keyExchangeGroup": "X25519",
+              "cipher": "AES_256_GCM",
+              "certificateId": 0,
+              "subjectName": "Blanc disposable fixture server",
+              "sanList": [
+                "page.blanc-fixture.test",
+                "000491b06a.com"
+              ],
+              "issuer": "Blanc disposable fixture CA",
+              "validFrom": 1792634565,
+              "validTo": 1792720965,
+              "signedCertificateTimestampList": [],
+              "certificateTransparencyCompliance": "unknown",
+              "serverSignatureAlgorithm": 2052,
+              "encryptedClientHello": false
+            }
+          },
+          "hasExtraInfo": true,
+          "frameId": "A589F8B18B92AFD9F26ACD71F56738AE"
+        }
+      ],
+      "preloadEvents": [
+        {
+          "key": {
+            "loaderId": "FC9AA7B669495740BAB7457ECCBC21AE",
+            "action": "Prefetch",
+            "url": "https://page.blanc-fixture.test:55479/private-delete-cancel"
+          },
+          "pipelineId": "3DEC838DCB1A44A0784DEA420CE2CBC5",
+          "initiatingFrameId": "A589F8B18B92AFD9F26ACD71F56738AE",
+          "prefetchUrl": "https://page.blanc-fixture.test:55479/private-delete-cancel",
+          "status": "Running",
+          "prefetchStatus": "PrefetchNotFinishedInTime",
+          "requestId": "A3E04C813B501F77D8141EAAB16B5596"
+        },
+        {
+          "key": {
+            "loaderId": "FC9AA7B669495740BAB7457ECCBC21AE",
+            "action": "Prefetch",
+            "url": "https://page.blanc-fixture.test:55479/private-delete-cancel"
+          },
+          "pipelineId": "3DEC838DCB1A44A0784DEA420CE2CBC5",
+          "initiatingFrameId": "A589F8B18B92AFD9F26ACD71F56738AE",
+          "prefetchUrl": "https://page.blanc-fixture.test:55479/private-delete-cancel",
+          "status": "Ready",
+          "prefetchStatus": "PrefetchSuccessfulButNotUsed",
+          "requestId": "A3E04C813B501F77D8141EAAB16B5596"
+        },
+        {
+          "key": {
+            "loaderId": "FC9AA7B669495740BAB7457ECCBC21AE",
+            "action": "Prefetch",
+            "url": "https://page.blanc-fixture.test:55479/private-delete-cancel"
+          },
+          "pipelineId": "3DEC838DCB1A44A0784DEA420CE2CBC5",
+          "initiatingFrameId": "A589F8B18B92AFD9F26ACD71F56738AE",
+          "prefetchUrl": "https://page.blanc-fixture.test:55479/private-delete-cancel",
+          "status": "Success",
+          "prefetchStatus": "PrefetchResponseUsed",
+          "requestId": "A3E04C813B501F77D8141EAAB16B5596"
+        }
+      ],
+      "guardArmed": true,
+      "urls": [
+        "https://page.blanc-fixture.test:55479/private-delete-cancel"
+      ],
+      "readyBeforeLoss": [
+        {
+          "key": {
+            "loaderId": "FC9AA7B669495740BAB7457ECCBC21AE",
+            "action": "Prefetch",
+            "url": "https://page.blanc-fixture.test:55479/private-delete-cancel"
+          },
+          "pipelineId": "3DEC838DCB1A44A0784DEA420CE2CBC5",
+          "initiatingFrameId": "A589F8B18B92AFD9F26ACD71F56738AE",
+          "prefetchUrl": "https://page.blanc-fixture.test:55479/private-delete-cancel",
+          "status": "Running",
+          "prefetchStatus": "PrefetchNotFinishedInTime",
+          "requestId": "A3E04C813B501F77D8141EAAB16B5596"
+        },
+        {
+          "key": {
+            "loaderId": "FC9AA7B669495740BAB7457ECCBC21AE",
+            "action": "Prefetch",
+            "url": "https://page.blanc-fixture.test:55479/private-delete-cancel"
+          },
+          "pipelineId": "3DEC838DCB1A44A0784DEA420CE2CBC5",
+          "initiatingFrameId": "A589F8B18B92AFD9F26ACD71F56738AE",
+          "prefetchUrl": "https://page.blanc-fixture.test:55479/private-delete-cancel",
+          "status": "Ready",
+          "prefetchStatus": "PrefetchSuccessfulButNotUsed",
+          "requestId": "A3E04C813B501F77D8141EAAB16B5596"
+        }
+      ],
+      "heldUtility": {
+        "pid": 52760,
+        "ppid": 52739,
+        "command": "/Users/anthonyjloria/Projects/BlancChromium157/src/out/BlancPrototype/Blanc Prototype.app/Contents/Frameworks/Blanc Prototype Framework.framework/Versions/157.0.8103.6/Helpers/Blanc Prototype Helper (Aperitif).app/Contents/MacOS/Blanc Prototype Helper (Aperitif) --type=utility --utility-sub-type=blanc.mojom.Blocker --lang=en-US --service-sandbox-type=service --host-resolver-rules=MAP page.blanc-fixture.test 127.0.0.1, MAP 000491b06a.com 127.0.0.1, MAP * ~NOTFOUND, EXCLUDE 127.0.0.1 --ignore-certificate-errors-spki-list=Shm0Yz/VPBP0klmEVL4qvxJ+m5rrFTXazI/mHNHpqM4= --user-data-dir=/private/tmp/blanc-prefetch-cancellation-veto-04/private-delete-cancel --shared-files --metrics-shmem-handle=1752395122,r,7553662798727036201,8613473990676631187,524288 --field-trial-handle=1718379636,r,12616825892498744301,6548292400234535855,262144 --enable-features=CDPScreenshotNewSurface --disable-features=AutoDeElevate,AvoidUnnecessaryBeforeUnloadCheckSync,BlockOriginHeaderModificationOnRedirect,DestroyProfileOnBrowserClose,DialMediaRouteProvider,GlobalMediaControls,HttpsUpgrades,LensOverlay,MediaRouter,OptimizationHints,PaintHolding,ThirdPartyStoragePartitioning,Translate,msEdgeUpdateLaunchServicesPreferredVersion,msForceBrowserSignIn --variations-seed-version --pseudonymization-salt-handle=1935764596,r,14875303883249885863,4434648540451492516,4 --trace-process-track-uuid=3453607063174744925 --seatbelt-client=97"
+      },
+      "beforeConsumption": {
+        "arrivals": [
+          {
+            "url": "/private-delete-cancel",
+            "host": "page.blanc-fixture.test:55479",
+            "headers": {
+              "host": "page.blanc-fixture.test:55479",
+              "connection": "keep-alive",
+              "upgrade-insecure-requests": "1",
+              "sec-purpose": "prefetch",
+              "sec-speculation-tags": "null",
+              "accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/jxl,image/avif,image/webp,image/apng,*/*;q=0.8",
+              "sec-ch-ua": "\"Chromium\";v=\"157\", \"Not-A.Brand\";v=\"99\"",
+              "sec-ch-ua-mobile": "?0",
+              "sec-ch-ua-platform": "\"macOS\"",
+              "sec-fetch-site": "none",
+              "sec-fetch-mode": "navigate",
+              "sec-fetch-dest": "document",
+              "referer": "https://page.blanc-fixture.test:55479/source",
+              "user-agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/157.0.0.0 Safari/537.36",
+              "accept-encoding": "gzip, deflate, br, zstd",
+              "accept-language": "en-US,en;q=0.9"
+            }
+          }
+        ],
+        "decisions": [
+          {
+            "bundle_sha256": "9acdfb68963e89c9c9be04a1a68ae831c7c35b800555790cadc8575a7172382d",
+            "event": "engine-ready"
+          },
+          {
+            "decision": "allow",
+            "devtools_request_id": "FC9AA7B669495740BAB7457ECCBC21AE",
+            "engine_result": 0,
+            "event": "decision",
+            "factory_instance": "3B64F4E94941B68205E396C1AE3BCC4D",
+            "factory_isolation_top_origin": "absent",
+            "factory_kind": "other",
+            "factory_type": 0,
+            "frame_role": "main",
+            "frame_state": "live-at-entry",
+            "hook_to_decision_us": 1403650,
+            "initiator_origin": "absent",
+            "initiator_present": false,
+            "loader_request_id": -8,
+            "method": "GET",
+            "profile_kind": "private",
+            "redirect_index": 0,
+            "referrer": "",
+            "request_isolation_top_origin": "https://page.blanc-fixture.test:55479",
+            "resource_type": "mainFrame",
+            "status": "ready",
+            "top_frame_origin": "https://page.blanc-fixture.test:55479",
+            "url": "https://page.blanc-fixture.test:55479/source"
+          },
+          {
+            "decision": "allow",
+            "engine_result": 0,
+            "event": "navigation-response-decision",
+            "private": true,
+            "url": "https://page.blanc-fixture.test:55479/source"
+          },
+          {
+            "decision": "allow",
+            "devtools_request_id": "absent",
+            "engine_result": 0,
+            "event": "decision",
+            "factory_instance": "95B4565D3763AB349344485900F06AC2",
+            "factory_isolation_top_origin": "absent",
+            "factory_kind": "other",
+            "factory_type": 0,
+            "frame_role": "main",
+            "frame_state": "live-at-entry",
+            "hook_to_decision_us": 7927,
+            "initiator_origin": "absent",
+            "initiator_present": false,
+            "loader_request_id": -12,
+            "method": "GET",
+            "profile_kind": "regular",
+            "redirect_index": 0,
+            "referrer": "",
+            "request_isolation_top_origin": "https://page.blanc-fixture.test:55479",
+            "resource_type": "mainFrame",
+            "status": "ready",
+            "top_frame_origin": "https://page.blanc-fixture.test:55479",
+            "url": "https://page.blanc-fixture.test:55479/#independent"
+          },
+          {
+            "decision": "allow",
+            "engine_result": 0,
+            "event": "navigation-response-decision",
+            "private": false,
+            "url": "https://page.blanc-fixture.test:55479/#independent"
+          },
+          {
+            "decision": "allow",
+            "devtools_request_id": "EF3DA91B93E4D4A34629F766191AF61D",
+            "engine_result": 0,
+            "event": "decision",
+            "factory_instance": "E44EC0227074AC8B7E1DEAA11BB1ED0A",
+            "factory_isolation_top_origin": "absent",
+            "factory_kind": "other",
+            "factory_type": 0,
+            "frame_role": "main",
+            "frame_state": "live-at-entry",
+            "hook_to_decision_us": 2038,
+            "initiator_origin": "absent",
+            "initiator_present": false,
+            "loader_request_id": -17,
+            "method": "GET",
+            "profile_kind": "regular",
+            "redirect_index": 0,
+            "referrer": "",
+            "request_isolation_top_origin": "https://page.blanc-fixture.test:55479",
+            "resource_type": "mainFrame",
+            "status": "ready",
+            "top_frame_origin": "https://page.blanc-fixture.test:55479",
+            "url": "https://page.blanc-fixture.test:55479/guard"
+          },
+          {
+            "decision": "allow",
+            "engine_result": 0,
+            "event": "navigation-response-decision",
+            "private": false,
+            "url": "https://page.blanc-fixture.test:55479/guard"
+          },
+          {
+            "decision": "allow",
+            "devtools_request_id": "A3E04C813B501F77D8141EAAB16B5596",
+            "engine_result": 0,
+            "event": "decision",
+            "factory_instance": "EEB0A3750B4CD68AC2683915A71627EA",
+            "factory_isolation_top_origin": "absent",
+            "factory_kind": "other",
+            "factory_type": 7,
+            "frame_role": "main",
+            "frame_state": "live-at-entry",
+            "hook_to_decision_us": 752,
+            "initiator_origin": "absent",
+            "initiator_present": false,
+            "loader_request_id": 0,
+            "method": "GET",
+            "profile_kind": "private",
+            "redirect_index": 0,
+            "referrer": "https://page.blanc-fixture.test:55479/source",
+            "request_isolation_top_origin": "https://page.blanc-fixture.test:55479",
+            "resource_type": "mainFrame",
+            "status": "ready",
+            "top_frame_origin": "https://page.blanc-fixture.test:55479",
+            "url": "https://page.blanc-fixture.test:55479/private-delete-cancel"
+          }
+        ]
+      },
+      "pending": {
+        "settled": false,
+        "url": "https://page.blanc-fixture.test:55479/source",
+        "decisions": []
+      },
+      "waitingForPrompt": true,
+      "error": "Error: Probe wait timed out",
+      "profileRemoved": true
+    },
+    {
+      "kind": "private",
+      "mode": "shutdown-veto",
+      "responses": [
+        {
+          "requestId": "E9AA79988BFBEB8CCEE27C498CA19377",
+          "loaderId": "E9AA79988BFBEB8CCEE27C498CA19377",
+          "timestamp": 114951.477204,
+          "type": "Document",
+          "response": {
+            "url": "https://page.blanc-fixture.test:55479/source",
+            "status": 200,
+            "statusText": "OK",
+            "headers": {
+              "Cache-Control": "public, max-age=600",
+              "Connection": "keep-alive",
+              "Content-Type": "text/html",
+              "Date": "Thu, 22 Oct 2026 02:03:38 GMT",
+              "Keep-Alive": "timeout=5",
+              "Transfer-Encoding": "chunked"
+            },
+            "mimeType": "text/html",
+            "charset": "",
+            "connectionReused": true,
+            "connectionId": 63,
+            "remoteIPAddress": "127.0.0.1",
+            "remotePort": 55479,
+            "fromDiskCache": false,
+            "fromServiceWorker": false,
+            "fromPrefetchCache": false,
+            "encodedDataLength": 192,
+            "timing": {
+              "requestTime": 114951.475414,
+              "proxyStart": -1,
+              "proxyEnd": -1,
+              "dnsStart": -1,
+              "dnsEnd": -1,
+              "connectStart": -1,
+              "connectEnd": -1,
+              "sslStart": -1,
+              "sslEnd": -1,
+              "workerStart": -1,
+              "workerReady": -1,
+              "workerFetchStart": -1,
+              "workerRespondWithSettled": -1,
+              "sendStart": 0.401,
+              "sendEnd": 0.471,
+              "pushStart": 0,
+              "pushEnd": 0,
+              "receiveHeadersStart": 0.773,
+              "receiveHeadersEnd": 0.868
+            },
+            "responseTime": 1792634618122.542,
+            "protocol": "http/1.1",
+            "alternateProtocolUsage": "unspecifiedReason",
+            "securityState": "secure",
+            "securityDetails": {
+              "protocol": "TLS 1.3",
+              "keyExchange": "",
+              "keyExchangeGroup": "X25519",
+              "cipher": "AES_256_GCM",
+              "certificateId": 0,
+              "subjectName": "Blanc disposable fixture server",
+              "sanList": [
+                "page.blanc-fixture.test",
+                "000491b06a.com"
+              ],
+              "issuer": "Blanc disposable fixture CA",
+              "validFrom": 1792634565,
+              "validTo": 1792720965,
+              "signedCertificateTimestampList": [],
+              "certificateTransparencyCompliance": "unknown",
+              "serverSignatureAlgorithm": 2052,
+              "encryptedClientHello": false
+            }
+          },
+          "hasExtraInfo": true,
+          "frameId": "DD18404C48A74F8931500509B1FDA776"
+        },
+        {
+          "requestId": "26E0B31891151D4F7D2A1F5F035BF108",
+          "loaderId": "26E0B31891151D4F7D2A1F5F035BF108",
+          "timestamp": 114952.278784,
+          "type": "Prefetch",
+          "response": {
+            "url": "https://page.blanc-fixture.test:55479/private-shutdown-veto",
+            "status": 200,
+            "statusText": "OK",
+            "headers": {
+              "Cache-Control": "public, max-age=600",
+              "Connection": "keep-alive",
+              "Content-Type": "text/html",
+              "Date": "Thu, 22 Oct 2026 02:03:38 GMT",
+              "Keep-Alive": "timeout=5",
+              "Transfer-Encoding": "chunked"
+            },
+            "mimeType": "text/html",
+            "charset": "",
+            "connectionReused": true,
+            "connectionId": 63,
+            "remoteIPAddress": "127.0.0.1",
+            "remotePort": 55479,
+            "fromDiskCache": false,
+            "fromServiceWorker": false,
+            "fromPrefetchCache": true,
+            "encodedDataLength": 192,
+            "timing": {
+              "requestTime": 114952.277834,
+              "proxyStart": -1,
+              "proxyEnd": -1,
+              "dnsStart": -1,
+              "dnsEnd": -1,
+              "connectStart": -1,
+              "connectEnd": -1,
+              "sslStart": -1,
+              "sslEnd": -1,
+              "workerStart": -1,
+              "workerReady": -1,
+              "workerFetchStart": -1,
+              "workerRespondWithSettled": -1,
+              "sendStart": 0.321,
+              "sendEnd": 0.432,
+              "pushStart": 0,
+              "pushEnd": 0,
+              "receiveHeadersStart": 0.636,
+              "receiveHeadersEnd": 0.682
+            },
+            "responseTime": 1792634618924.83,
+            "protocol": "http/1.1",
+            "alternateProtocolUsage": "unspecifiedReason",
+            "securityState": "secure",
+            "securityDetails": {
+              "protocol": "TLS 1.3",
+              "keyExchange": "",
+              "keyExchangeGroup": "X25519",
+              "cipher": "AES_256_GCM",
+              "certificateId": 0,
+              "subjectName": "Blanc disposable fixture server",
+              "sanList": [
+                "page.blanc-fixture.test",
+                "000491b06a.com"
+              ],
+              "issuer": "Blanc disposable fixture CA",
+              "validFrom": 1792634565,
+              "validTo": 1792720965,
+              "signedCertificateTimestampList": [],
+              "certificateTransparencyCompliance": "unknown",
+              "serverSignatureAlgorithm": 2052,
+              "encryptedClientHello": false
+            }
+          },
+          "hasExtraInfo": true,
+          "frameId": "DD18404C48A74F8931500509B1FDA776"
+        },
+        {
+          "requestId": "D2CF71F27040601E517F77FE177AF8D8",
+          "loaderId": "D2CF71F27040601E517F77FE177AF8D8",
+          "timestamp": 114952.414693,
+          "type": "Document",
+          "response": {
+            "url": "https://page.blanc-fixture.test:55479/private-shutdown-veto",
+            "status": 200,
+            "statusText": "OK",
+            "headers": {
+              "Cache-Control": "public, max-age=600",
+              "Connection": "keep-alive",
+              "Content-Type": "text/html",
+              "Date": "Thu, 22 Oct 2026 02:03:38 GMT",
+              "Keep-Alive": "timeout=5",
+              "Transfer-Encoding": "chunked"
+            },
+            "mimeType": "text/html",
+            "charset": "",
+            "connectionReused": true,
+            "connectionId": 63,
+            "remoteIPAddress": "127.0.0.1",
+            "remotePort": 55479,
+            "fromDiskCache": false,
+            "fromServiceWorker": false,
+            "fromPrefetchCache": true,
+            "encodedDataLength": 192,
+            "timing": {
+              "requestTime": 114952.277834,
+              "proxyStart": -1,
+              "proxyEnd": -1,
+              "dnsStart": -1,
+              "dnsEnd": -1,
+              "connectStart": -1,
+              "connectEnd": -1,
+              "sslStart": -1,
+              "sslEnd": -1,
+              "workerStart": -1,
+              "workerReady": -1,
+              "workerFetchStart": -1,
+              "workerRespondWithSettled": -1,
+              "sendStart": 0.321,
+              "sendEnd": 0.432,
+              "pushStart": 0,
+              "pushEnd": 0,
+              "receiveHeadersStart": 0.636,
+              "receiveHeadersEnd": 0.682
+            },
+            "responseTime": 1792634618924.83,
+            "protocol": "http/1.1",
+            "alternateProtocolUsage": "unspecifiedReason",
+            "securityState": "secure",
+            "securityDetails": {
+              "protocol": "TLS 1.3",
+              "keyExchange": "",
+              "keyExchangeGroup": "X25519",
+              "cipher": "AES_256_GCM",
+              "certificateId": 0,
+              "subjectName": "Blanc disposable fixture server",
+              "sanList": [
+                "page.blanc-fixture.test",
+                "000491b06a.com"
+              ],
+              "issuer": "Blanc disposable fixture CA",
+              "validFrom": 1792634565,
+              "validTo": 1792720965,
+              "signedCertificateTimestampList": [],
+              "certificateTransparencyCompliance": "unknown",
+              "serverSignatureAlgorithm": 2052,
+              "encryptedClientHello": false
+            }
+          },
+          "hasExtraInfo": true,
+          "frameId": "DD18404C48A74F8931500509B1FDA776"
+        }
+      ],
+      "preloadEvents": [
+        {
+          "key": {
+            "loaderId": "E9AA79988BFBEB8CCEE27C498CA19377",
+            "action": "Prefetch",
+            "url": "https://page.blanc-fixture.test:55479/private-shutdown-veto"
+          },
+          "pipelineId": "72C55003207B99916B733F552365E21C",
+          "initiatingFrameId": "DD18404C48A74F8931500509B1FDA776",
+          "prefetchUrl": "https://page.blanc-fixture.test:55479/private-shutdown-veto",
+          "status": "Running",
+          "prefetchStatus": "PrefetchNotFinishedInTime",
+          "requestId": "26E0B31891151D4F7D2A1F5F035BF108"
+        },
+        {
+          "key": {
+            "loaderId": "E9AA79988BFBEB8CCEE27C498CA19377",
+            "action": "Prefetch",
+            "url": "https://page.blanc-fixture.test:55479/private-shutdown-veto"
+          },
+          "pipelineId": "72C55003207B99916B733F552365E21C",
+          "initiatingFrameId": "DD18404C48A74F8931500509B1FDA776",
+          "prefetchUrl": "https://page.blanc-fixture.test:55479/private-shutdown-veto",
+          "status": "Ready",
+          "prefetchStatus": "PrefetchSuccessfulButNotUsed",
+          "requestId": "26E0B31891151D4F7D2A1F5F035BF108"
+        },
+        {
+          "key": {
+            "loaderId": "E9AA79988BFBEB8CCEE27C498CA19377",
+            "action": "Prefetch",
+            "url": "https://page.blanc-fixture.test:55479/private-shutdown-veto"
+          },
+          "pipelineId": "72C55003207B99916B733F552365E21C",
+          "initiatingFrameId": "DD18404C48A74F8931500509B1FDA776",
+          "prefetchUrl": "https://page.blanc-fixture.test:55479/private-shutdown-veto",
+          "status": "Success",
+          "prefetchStatus": "PrefetchResponseUsed",
+          "requestId": "26E0B31891151D4F7D2A1F5F035BF108"
+        }
+      ],
+      "guardArmed": true,
+      "urls": [
+        "https://page.blanc-fixture.test:55479/private-shutdown-veto"
+      ],
+      "readyBeforeLoss": [
+        {
+          "key": {
+            "loaderId": "E9AA79988BFBEB8CCEE27C498CA19377",
+            "action": "Prefetch",
+            "url": "https://page.blanc-fixture.test:55479/private-shutdown-veto"
+          },
+          "pipelineId": "72C55003207B99916B733F552365E21C",
+          "initiatingFrameId": "DD18404C48A74F8931500509B1FDA776",
+          "prefetchUrl": "https://page.blanc-fixture.test:55479/private-shutdown-veto",
+          "status": "Running",
+          "prefetchStatus": "PrefetchNotFinishedInTime",
+          "requestId": "26E0B31891151D4F7D2A1F5F035BF108"
+        },
+        {
+          "key": {
+            "loaderId": "E9AA79988BFBEB8CCEE27C498CA19377",
+            "action": "Prefetch",
+            "url": "https://page.blanc-fixture.test:55479/private-shutdown-veto"
+          },
+          "pipelineId": "72C55003207B99916B733F552365E21C",
+          "initiatingFrameId": "DD18404C48A74F8931500509B1FDA776",
+          "prefetchUrl": "https://page.blanc-fixture.test:55479/private-shutdown-veto",
+          "status": "Ready",
+          "prefetchStatus": "PrefetchSuccessfulButNotUsed",
+          "requestId": "26E0B31891151D4F7D2A1F5F035BF108"
+        }
+      ],
+      "heldUtility": {
+        "pid": 52814,
+        "ppid": 52795,
+        "command": "/Users/anthonyjloria/Projects/BlancChromium157/src/out/BlancPrototype/Blanc Prototype.app/Contents/Frameworks/Blanc Prototype Framework.framework/Versions/157.0.8103.6/Helpers/Blanc Prototype Helper (Aperitif).app/Contents/MacOS/Blanc Prototype Helper (Aperitif) --type=utility --utility-sub-type=blanc.mojom.Blocker --lang=en-US --service-sandbox-type=service --host-resolver-rules=MAP page.blanc-fixture.test 127.0.0.1, MAP 000491b06a.com 127.0.0.1, MAP * ~NOTFOUND, EXCLUDE 127.0.0.1 --ignore-certificate-errors-spki-list=Shm0Yz/VPBP0klmEVL4qvxJ+m5rrFTXazI/mHNHpqM4= --user-data-dir=/private/tmp/blanc-prefetch-cancellation-veto-04/private-shutdown-veto --shared-files --metrics-shmem-handle=1752395122,r,17564469880599874223,8766883978890002843,524288 --field-trial-handle=1718379636,r,10186738506982028251,14964750621459982293,262144 --enable-features=CDPScreenshotNewSurface --disable-features=AutoDeElevate,AvoidUnnecessaryBeforeUnloadCheckSync,BlockOriginHeaderModificationOnRedirect,DestroyProfileOnBrowserClose,DialMediaRouteProvider,GlobalMediaControls,HttpsUpgrades,LensOverlay,MediaRouter,OptimizationHints,PaintHolding,ThirdPartyStoragePartitioning,Translate,msEdgeUpdateLaunchServicesPreferredVersion,msForceBrowserSignIn --variations-seed-version --pseudonymization-salt-handle=1935764596,r,3853168807663448097,1235395372559412510,4 --trace-process-track-uuid=973052921975748134 --seatbelt-client=103"
+      },
+      "beforeConsumption": {
+        "arrivals": [
+          {
+            "url": "/private-shutdown-veto",
+            "host": "page.blanc-fixture.test:55479",
+            "headers": {
+              "host": "page.blanc-fixture.test:55479",
+              "connection": "keep-alive",
+              "upgrade-insecure-requests": "1",
+              "sec-purpose": "prefetch",
+              "sec-speculation-tags": "null",
+              "accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/jxl,image/avif,image/webp,image/apng,*/*;q=0.8",
+              "sec-ch-ua": "\"Chromium\";v=\"157\", \"Not-A.Brand\";v=\"99\"",
+              "sec-ch-ua-mobile": "?0",
+              "sec-ch-ua-platform": "\"macOS\"",
+              "sec-fetch-site": "none",
+              "sec-fetch-mode": "navigate",
+              "sec-fetch-dest": "document",
+              "referer": "https://page.blanc-fixture.test:55479/source",
+              "user-agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/157.0.0.0 Safari/537.36",
+              "accept-encoding": "gzip, deflate, br, zstd",
+              "accept-language": "en-US,en;q=0.9"
+            }
+          }
+        ],
+        "decisions": [
+          {
+            "bundle_sha256": "9acdfb68963e89c9c9be04a1a68ae831c7c35b800555790cadc8575a7172382d",
+            "event": "engine-ready"
+          },
+          {
+            "decision": "allow",
+            "devtools_request_id": "E9AA79988BFBEB8CCEE27C498CA19377",
+            "engine_result": 0,
+            "event": "decision",
+            "factory_instance": "0ABE211A639DC628A13F30C611127372",
+            "factory_isolation_top_origin": "absent",
+            "factory_kind": "other",
+            "factory_type": 0,
+            "frame_role": "main",
+            "frame_state": "live-at-entry",
+            "hook_to_decision_us": 1418964,
+            "initiator_origin": "absent",
+            "initiator_present": false,
+            "loader_request_id": -8,
+            "method": "GET",
+            "profile_kind": "private",
+            "redirect_index": 0,
+            "referrer": "",
+            "request_isolation_top_origin": "https://page.blanc-fixture.test:55479",
+            "resource_type": "mainFrame",
+            "status": "ready",
+            "top_frame_origin": "https://page.blanc-fixture.test:55479",
+            "url": "https://page.blanc-fixture.test:55479/source"
+          },
+          {
+            "decision": "allow",
+            "engine_result": 0,
+            "event": "navigation-response-decision",
+            "private": true,
+            "url": "https://page.blanc-fixture.test:55479/source"
+          },
+          {
+            "decision": "allow",
+            "devtools_request_id": "8E60958E5F528CAC3455A52E5C0B347A",
+            "engine_result": 0,
+            "event": "decision",
+            "factory_instance": "7EB041D56EB6204E8CA2679BB528ABEB",
+            "factory_isolation_top_origin": "absent",
+            "factory_kind": "other",
+            "factory_type": 0,
+            "frame_role": "main",
+            "frame_state": "live-at-entry",
+            "hook_to_decision_us": 511,
+            "initiator_origin": "absent",
+            "initiator_present": false,
+            "loader_request_id": -11,
+            "method": "GET",
+            "profile_kind": "regular",
+            "redirect_index": 0,
+            "referrer": "",
+            "request_isolation_top_origin": "https://page.blanc-fixture.test:55479",
+            "resource_type": "mainFrame",
+            "status": "ready",
+            "top_frame_origin": "https://page.blanc-fixture.test:55479",
+            "url": "https://page.blanc-fixture.test:55479/guard"
+          },
+          {
+            "decision": "allow",
+            "engine_result": 0,
+            "event": "navigation-response-decision",
+            "private": false,
+            "url": "https://page.blanc-fixture.test:55479/guard"
+          },
+          {
+            "decision": "allow",
+            "devtools_request_id": "26E0B31891151D4F7D2A1F5F035BF108",
+            "engine_result": 0,
+            "event": "decision",
+            "factory_instance": "2E75F4CBACC73BA62E752DFC7CC7C70C",
+            "factory_isolation_top_origin": "absent",
+            "factory_kind": "other",
+            "factory_type": 7,
+            "frame_role": "main",
+            "frame_state": "live-at-entry",
+            "hook_to_decision_us": 521,
+            "initiator_origin": "absent",
+            "initiator_present": false,
+            "loader_request_id": 0,
+            "method": "GET",
+            "profile_kind": "private",
+            "redirect_index": 0,
+            "referrer": "https://page.blanc-fixture.test:55479/source",
+            "request_isolation_top_origin": "https://page.blanc-fixture.test:55479",
+            "resource_type": "mainFrame",
+            "status": "ready",
+            "top_frame_origin": "https://page.blanc-fixture.test:55479",
+            "url": "https://page.blanc-fixture.test:55479/private-shutdown-veto"
+          }
+        ]
+      },
+      "pending": {
+        "settled": false,
+        "url": "https://page.blanc-fixture.test:55479/source",
+        "decisions": []
+      },
+      "waitingForPrompt": true,
+      "triggerError": "Error: page.goto: net::ERR_INVALID_URL at chrome://quit/\nCall log:\n\u001b[2m  - navigating to \"chrome://quit/\", waiting until \"load\"\u001b[22m\n",
+      "error": "Error: Probe wait timed out",
+      "profileRemoved": true
+    }
+  ],
+  "forcedFeatures": [],
+  "latencyMeasured": false
+}

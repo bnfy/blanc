@@ -1,0 +1,19 @@
+{
+  "profiles": [
+    {
+      "path": "/private/tmp/blanc-f12-private-registrations-20261024/profile",
+      "removed": true
+    },
+    {
+      "path": "/private/tmp/blanc-f12-private-registrations-20261024/profile-corrected",
+      "removed": true
+    },
+    {
+      "path": "/private/tmp/blanc-f12-private-registrations-20261024/profile-final",
+      "removed": true
+    }
+  ],
+  "permanentOrGoogleProfilesUsed": false,
+  "electronStarted": false,
+  "allAttemptsExitedNormally": true
+}

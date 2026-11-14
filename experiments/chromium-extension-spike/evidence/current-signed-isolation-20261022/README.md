@@ -1,0 +1,9 @@
+# Current signed artifact isolation — October 22
+
+After publishing pending-read repair 78f92ceb to PR #1028, reran L2 automated coexistence acceptance on the unchanged signed/notarized/stapled ZIP SHA25618272ab548d0117744209536bc24c0b6cc09ece38c01fec4976cf8e78899306f (Apple f527392f-6720-4974-b831-53f5ffa49c8b), Apple Silicon/macOS27.2. Cloned app bundles with cp -cR into isolated staging; fresh shipping and preview profiles; real preview keychain. Shipping1.42.1, build1421. Never copied permanent profiles or used the Google baseline.
+
+All12checks pass: both apps coexist; independent fixture tab ownership; preview quit/restart preserves both app states; both restored preview HTTP pages render; shipping quit/restart preserves preview and shipping tabs; removing only the disposable preview app leaves its profile and shipping tabs intact; both fixture processes exit. Original preview candidate and installed shipping app retained.
+
+ownership.json confirms distinct app IDs, no preview URL/document registration or update feed, and equality of installed-shipping versus tested-clone Info.plist/executable/app.asar hashes. Shipping updater disabled only for the disposable fixture using its unsupported isolated-acceptance channel; this is not an actual update/download handoff test. No owner permanent settings or profile changed. The fixture verifies tab state and data-path separation; it does not claim a fresh owner visual hand check or complete settings mutation matrix.
+
+No new build. Google baseline ledger/evidence remain separate and untouched. Primary/support plans updated: automated L2 passes on current artifact, owner hand check remains before full L2 closure. Launch progress1/12, delta0. Latency deferred, Electron diagnostic build pending. New follow-up evidence uncommitted at this checkpoint.

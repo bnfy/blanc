@@ -1,0 +1,46 @@
+[
+  {
+    "mode": "backup-enospc",
+    "pass": true,
+    "marker": {
+      "pid": 79330,
+      "path": "/private/tmp/blanc-spaces-errors/chromium-profile/Default/.day.blanc.prototype.BlancPrototypeSpaces.json.backup.fnXkio",
+      "mode": "backup-enospc",
+      "errno": 28
+    },
+    "reported_error": "Previous space checkpoint write failed."
+  },
+  {
+    "mode": "primary-enospc",
+    "pass": true,
+    "marker": {
+      "pid": 79432,
+      "path": "/private/tmp/blanc-spaces-errors/chromium-profile/Default/.day.blanc.prototype.BlancPrototypeSpaces.json.7fTkkH",
+      "mode": "primary-enospc",
+      "errno": 28
+    },
+    "reported_error": "Space write failed."
+  },
+  {
+    "mode": "backup-eio",
+    "pass": true,
+    "marker": {
+      "pid": 79515,
+      "path": "/private/tmp/blanc-spaces-errors/chromium-profile/Default/.day.blanc.prototype.BlancPrototypeSpaces.json.backup.iBtS8b",
+      "mode": "backup-eio",
+      "errno": 5
+    },
+    "reported_error": "Previous space checkpoint write failed."
+  },
+  {
+    "mode": "primary-eio",
+    "pass": true,
+    "marker": {
+      "pid": 79573,
+      "path": "/private/tmp/blanc-spaces-errors/chromium-profile/Default/.day.blanc.prototype.BlancPrototypeSpaces.json.Wq5bmB",
+      "mode": "primary-eio",
+      "errno": 5
+    },
+    "reported_error": "Space write failed."
+  }
+]

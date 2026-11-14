@@ -1,0 +1,46 @@
+{
+  "candidateSource": "14706b0e8d4753d2a7ef35ea32a875b516366b0d",
+  "version": "157.0.8103.15",
+  "signature": "Developer ID Application: Anthony Loria (XYGUCY4498)",
+  "notarization": "pending owner 1Password authorization; no corrected-candidate Apple submission",
+  "suites": [
+    {
+      "suite": "prerender-healthy",
+      "checks": 8,
+      "allPass": true
+    },
+    {
+      "suite": "prerender-loss",
+      "checks": 12,
+      "allPass": true
+    },
+    {
+      "suite": "prerender-timeout-final",
+      "checks": 6,
+      "allPass": true
+    },
+    {
+      "suite": "startup",
+      "checks": 7,
+      "allPass": true
+    },
+    {
+      "suite": "recovery",
+      "checks": 6,
+      "allPass": true
+    },
+    {
+      "suite": "core",
+      "checks": 17,
+      "allPass": true
+    },
+    {
+      "suite": "notice",
+      "checks": 16,
+      "allPass": true
+    }
+  ],
+  "signedChecks": 72,
+  "latencyBenchmarkRun": false,
+  "electronBuildRun": false
+}

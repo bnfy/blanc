@@ -1,0 +1,11 @@
+[22468:12027608:1026/173110.394758:ERROR:chrome/browser/mac/code_sign_clone_manager.mm:93] error removing quarantine attribute "/var/folders/4x/r7mr2b5d4q53x8nbf_trvcxw0000gn/X/"
+[22468:12027527:1026/173110.967620:ERROR:chrome/browser/actor/tools/tool_request.cc:32] Not implemented reached in static std::optional<ToolDefinition> actor::ToolRequest::GetToolDefinition(). 
+
+DevTools listening on ws://127.0.0.1:54132/devtools/browser/802806d8-065e-4e3a-8bcc-81a1e2acf94e
+[22468:12027527:1026/173111.657698:ERROR:components/leveldb_proto/public/proto_database_provider.h:101] In memory database cannot use the given database directory
+[22572:12028771:1026/173114.281623:ERROR:third_party/blink/renderer/core/html/media/html_media_element.cc:5451] SetError: {code=4, message="MEDIA_ELEMENT_ERROR: Media load rejected by URL safety check"}
+[22572:12028771:1026/173114.281727:ERROR:third_party/blink/renderer/core/html/media/html_media_element.cc:5451] SetError: {code=4, message="MEDIA_ELEMENT_ERROR: Media load rejected by URL safety check"}
+[22572:12028771:1026/173114.281830:ERROR:third_party/blink/renderer/core/html/media/html_media_element.cc:5451] SetError: {code=4, message="MEDIA_ELEMENT_ERROR: Media load rejected by URL safety check"}
+[22468:12027527:1026/173122.197233:ERROR:chrome/browser/ui/webui/ntp/new_tab_ui.cc:54] Requested load of chrome://newtab/ for incorrect profile type.
+[22468:12027527:1026/173122.203497:ERROR:chrome/browser/ui/webui/ntp/new_tab_ui.cc:54] Requested load of chrome://newtab/ for incorrect profile type.
+[22468:12027527:1026/173122.424642:ERROR:base/process/kill_posix.cc:33] waitpid(22481): No child processes (10)

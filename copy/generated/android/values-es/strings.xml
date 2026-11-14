@@ -2585,6 +2585,7 @@ Puedes reintentarlo con «%2$s» o reinstalar desde blanc.day.</string>
     <string name="settings_general_vertical_tabs_text_size_large">Grande</string>
     <string name="settings_general_vertical_tabs_text_size_extra_large">Muy grande</string>
     <string name="spaces_this_i_phone">Este iPhone</string>
+    <string name="spaces_this_phone">Este teléfono</string>
     <string name="spaces_this_i_pad">Este iPad</string>
     <string name="spaces_menu_label">Spaces</string>
     <string name="spaces_menu_edit">Editar</string>
@@ -2689,4 +2690,16 @@ Puedes reintentarlo con «%2$s» o reinstalar desde blanc.day.</string>
     <string name="settings_general_mini_window_shortcut_ctrl_alt_space_mac">⌃⌥Espacio</string>
     <string name="settings_general_mini_window_shortcut_ctrl_alt_space">Ctrl+Alt+Espacio</string>
     <string name="settings_general_mini_window_shortcut_ctrl_shift_space">Ctrl+Mayús+Espacio</string>
+    <string name="shared_spaces_switch_android">Mantener Spaces y grupos sincronizados en este teléfono</string>
+    <string name="shared_spaces_switch_line_android">Las pestañas de tus Spaces compartidos se sincronizan desde este teléfono.</string>
+    <string name="shared_spaces_save_this_phone">Guardar Este teléfono como Space</string>
+    <string name="shared_spaces_recovery_name_android">%1$s · guardado en este teléfono</string>
+    <string name="shared_spaces_deleted_everywhere_android">Eliminado en todas partes. Deshacer conserva una copia en este teléfono.</string>
+    <string name="bring_space_action_android">Traer a este teléfono</string>
+    <string name="android_settings_more">Más</string>
+    <string name="android_settings_island_position">Posición de la Island</string>
+    <string name="android_settings_island_position_top">Arriba</string>
+    <string name="android_settings_island_position_bottom">Abajo</string>
+    <string name="android_settings_open_source_licenses">Licencias de código abierto</string>
+    <string name="android_settings_auto_revoke_summary">Para proteger tus datos, permite que Blanc quite los permisos de los sitios que no has visitado recientemente</string>
 </resources>

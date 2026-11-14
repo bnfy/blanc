@@ -1,0 +1,53 @@
+{
+  "ownedRuntimeProcesses": [],
+  "reports": {
+    "/private/tmp/blanc-dedup-run01": {
+      "completed": false,
+      "cleanup": {
+        "removed": true
+      }
+    },
+    "/private/tmp/blanc-dedup-run02": {
+      "completed": false,
+      "cleanup": {
+        "removed": true
+      }
+    },
+    "/private/tmp/blanc-dedup-run03": {
+      "completed": true,
+      "cleanup": {
+        "removed": true
+      }
+    },
+    "/private/tmp/blanc-opaque-boundary01": {
+      "completed": true,
+      "cleanup": {
+        "removed": true
+      }
+    },
+    "/private/tmp/blanc-opaque-dedup-frames01": {
+      "completed": true,
+      "cleanup": {
+        "removed": true
+      }
+    },
+    "/private/tmp/blanc-opaque-dedup-inherited-safety": {
+      "completed": true,
+      "cleanup": {
+        "removed": true
+      }
+    },
+    "/private/tmp/blanc-opaque-dedup-gate-safety": {
+      "completed": true,
+      "cleanup": {
+        "removed": true
+      }
+    },
+    "/private/tmp/blanc-opaque-dedup-unobserved-safety": {
+      "completed": true,
+      "cleanup": {
+        "removed": true
+      }
+    }
+  }
+}

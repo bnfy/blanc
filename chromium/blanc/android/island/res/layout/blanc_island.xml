@@ -1,0 +1,98 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright 2026 Bananify Creative. MIT; see LICENSE.
+     The Island's pill, left to right as Blanc for iPhone's (ContentView.addressPill, #1463):
+     the Sunrise mark, a divider, the site, the private chip, Stop while a page loads, Back,
+     Forward, a divider and New tab. Reload is in the Sunrise menu. Since #1472 it is a capsule
+     52 tall with 4 more room at its round ends. IslandView sets the colors, the site's weight,
+     the labels and the maximum width. -->
+<merge xmlns:android="http://schemas.android.com/apk/res/android">
+    <LinearLayout
+        android:id="@+id/blanc_island_pill"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center_horizontal"
+        android:gravity="center_vertical"
+        android:orientation="horizontal"
+        android:paddingHorizontal="4dp">
+
+        <ImageButton
+            android:id="@+id/blanc_island_menu"
+            android:layout_width="48dp"
+            android:layout_height="@dimen/blanc_island_height"
+            android:background="@null"
+            android:scaleType="center"
+            android:src="@drawable/blanc_island_mark" />
+
+        <View
+            android:id="@+id/blanc_island_divider_start"
+            android:layout_width="1dp"
+            android:layout_height="18dp" />
+
+        <TextView
+            android:id="@+id/blanc_island_domain"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:ellipsize="middle"
+            android:gravity="center_vertical"
+            android:minHeight="@dimen/blanc_island_height"
+            android:paddingStart="10dp"
+            android:paddingEnd="6dp"
+            android:singleLine="true"
+            android:textSize="15sp" />
+
+        <TextView
+            android:id="@+id/blanc_island_private"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginEnd="4dp"
+            android:fontFamily="sans-serif-medium"
+            android:paddingHorizontal="8dp"
+            android:paddingVertical="3dp"
+            android:text="@string/blanc_pill_private_chip"
+            android:textSize="12sp"
+            android:textStyle="bold"
+            android:visibility="gone" />
+
+        <ImageButton
+            android:id="@+id/blanc_island_stop"
+            android:layout_width="44dp"
+            android:layout_height="@dimen/blanc_island_height"
+            android:background="@null"
+            android:contentDescription="@string/blanc_ios_island_stop"
+            android:scaleType="center"
+            android:src="@drawable/blanc_island_stop"
+            android:visibility="gone" />
+
+        <ImageButton
+            android:id="@+id/blanc_island_back"
+            android:layout_width="44dp"
+            android:layout_height="@dimen/blanc_island_height"
+            android:background="@null"
+            android:contentDescription="@string/blanc_pill_back"
+            android:scaleType="center"
+            android:src="@drawable/blanc_island_chevron_left" />
+
+        <ImageButton
+            android:id="@+id/blanc_island_forward"
+            android:layout_width="44dp"
+            android:layout_height="@dimen/blanc_island_height"
+            android:background="@null"
+            android:contentDescription="@string/blanc_pill_forward"
+            android:scaleType="center"
+            android:src="@drawable/blanc_island_chevron_right" />
+
+        <View
+            android:id="@+id/blanc_island_divider_end"
+            android:layout_width="1dp"
+            android:layout_height="18dp" />
+
+        <ImageButton
+            android:id="@+id/blanc_island_new_tab"
+            android:layout_width="44dp"
+            android:layout_height="@dimen/blanc_island_height"
+            android:background="@null"
+            android:scaleType="center"
+            android:src="@drawable/blanc_island_plus" />
+    </LinearLayout>
+</merge>

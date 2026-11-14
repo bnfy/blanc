@@ -1,0 +1,702 @@
+{
+  "passed": true,
+  "scope": "single controlled client fetch and exact-token HTTP-failed initial loader",
+  "proofs": [
+    {
+      "label": "electron-regular-a",
+      "url": "https://page.blanc-fixture.test/blanc-fixture/service-life/network",
+      "status": "resolved",
+      "context": {
+        "kind": "service_worker",
+        "scriptUrl": "https://page.blanc-fixture.test/blanc-fixture/service-life/worker.js",
+        "executionOrigin": "https://page.blanc-fixture.test",
+        "profileKind": "regular",
+        "documentFrame": "not-associated",
+        "clients": {
+          "kind": "controlled-documents",
+          "status": "observed-stable",
+          "members": [
+            {
+              "role": "observed-page-target",
+              "origin": "https://page.blanc-fixture.test"
+            }
+          ]
+        }
+      },
+      "proof": {
+        "targetId": "AABA3DB47AAA06377D25169F724E8F12",
+        "sessionId": "6868A539D7C582BDC1A78155E182B417",
+        "requestId": "93971.4",
+        "eventSequence": 37,
+        "join": "unique-observed-request-and-time",
+        "devtoolsType": "Fetch"
+      }
+    },
+    {
+      "label": "electron-regular-a",
+      "url": "https://000491b06a.com/blanc-fixture/service-life/blocked",
+      "status": "resolved",
+      "context": {
+        "kind": "service_worker",
+        "scriptUrl": "https://page.blanc-fixture.test/blanc-fixture/service-life/worker.js",
+        "executionOrigin": "https://page.blanc-fixture.test",
+        "profileKind": "regular",
+        "documentFrame": "not-associated",
+        "clients": {
+          "kind": "controlled-documents",
+          "status": "observed-stable",
+          "members": [
+            {
+              "role": "observed-page-target",
+              "origin": "https://page.blanc-fixture.test"
+            }
+          ]
+        }
+      },
+      "proof": {
+        "targetId": "AABA3DB47AAA06377D25169F724E8F12",
+        "sessionId": "6868A539D7C582BDC1A78155E182B417",
+        "requestId": "93971.7",
+        "eventSequence": 43,
+        "join": "unique-observed-request-and-time",
+        "devtoolsType": "Fetch"
+      }
+    },
+    {
+      "label": "electron-regular-a",
+      "url": "https://page.blanc-fixture.test/blanc-fixture/service-life/missing.js",
+      "status": "resolved",
+      "context": {
+        "kind": "service_worker_script_loader",
+        "phase": "http-failed-initial-script",
+        "scriptUrl": "https://page.blanc-fixture.test/blanc-fixture/service-life/missing.js",
+        "profileKind": "regular",
+        "documentFrame": "not-associated",
+        "executionRealm": "unobserved",
+        "responseStatus": 404
+      },
+      "proof": {
+        "targetId": "D7710C8AE7601042B2CCADD5E9AF4469",
+        "join": "electron-main-script-event-token-http-failure",
+        "responseSequence": 19,
+        "detachSequence": 20
+      }
+    },
+    {
+      "label": "electron-regular-b",
+      "url": "https://page.blanc-fixture.test/blanc-fixture/service-life/network",
+      "status": "resolved",
+      "context": {
+        "kind": "service_worker",
+        "scriptUrl": "https://page.blanc-fixture.test/blanc-fixture/service-life/worker.js",
+        "executionOrigin": "https://page.blanc-fixture.test",
+        "profileKind": "regular",
+        "documentFrame": "not-associated",
+        "clients": {
+          "kind": "controlled-documents",
+          "status": "observed-stable",
+          "members": [
+            {
+              "role": "observed-page-target",
+              "origin": "https://page.blanc-fixture.test"
+            }
+          ]
+        }
+      },
+      "proof": {
+        "targetId": "C234C2FCF33E96C4A5180E7FD608B708",
+        "sessionId": "A92372E1AC135F708487DD8E15593518",
+        "requestId": "93989.4",
+        "eventSequence": 37,
+        "join": "unique-observed-request-and-time",
+        "devtoolsType": "Fetch"
+      }
+    },
+    {
+      "label": "electron-regular-b",
+      "url": "https://000491b06a.com/blanc-fixture/service-life/blocked",
+      "status": "resolved",
+      "context": {
+        "kind": "service_worker",
+        "scriptUrl": "https://page.blanc-fixture.test/blanc-fixture/service-life/worker.js",
+        "executionOrigin": "https://page.blanc-fixture.test",
+        "profileKind": "regular",
+        "documentFrame": "not-associated",
+        "clients": {
+          "kind": "controlled-documents",
+          "status": "observed-stable",
+          "members": [
+            {
+              "role": "observed-page-target",
+              "origin": "https://page.blanc-fixture.test"
+            }
+          ]
+        }
+      },
+      "proof": {
+        "targetId": "C234C2FCF33E96C4A5180E7FD608B708",
+        "sessionId": "A92372E1AC135F708487DD8E15593518",
+        "requestId": "93989.7",
+        "eventSequence": 43,
+        "join": "unique-observed-request-and-time",
+        "devtoolsType": "Fetch"
+      }
+    },
+    {
+      "label": "electron-regular-b",
+      "url": "https://page.blanc-fixture.test/blanc-fixture/service-life/missing.js",
+      "status": "resolved",
+      "context": {
+        "kind": "service_worker_script_loader",
+        "phase": "http-failed-initial-script",
+        "scriptUrl": "https://page.blanc-fixture.test/blanc-fixture/service-life/missing.js",
+        "profileKind": "regular",
+        "documentFrame": "not-associated",
+        "executionRealm": "unobserved",
+        "responseStatus": 404
+      },
+      "proof": {
+        "targetId": "535BADEE08A5F4D4777F758AD0BAE45E",
+        "join": "electron-main-script-event-token-http-failure",
+        "responseSequence": 19,
+        "detachSequence": 20
+      }
+    },
+    {
+      "label": "electron-private-a",
+      "url": "https://page.blanc-fixture.test/blanc-fixture/service-life/network",
+      "status": "resolved",
+      "context": {
+        "kind": "service_worker",
+        "scriptUrl": "https://page.blanc-fixture.test/blanc-fixture/service-life/worker.js",
+        "executionOrigin": "https://page.blanc-fixture.test",
+        "profileKind": "private",
+        "documentFrame": "not-associated",
+        "clients": {
+          "kind": "controlled-documents",
+          "status": "observed-stable",
+          "members": [
+            {
+              "role": "observed-page-target",
+              "origin": "https://page.blanc-fixture.test"
+            }
+          ]
+        }
+      },
+      "proof": {
+        "targetId": "BDF273F494A59619161F4C863797D2EC",
+        "sessionId": "F299177F1D8268992BACCB1F5E132E26",
+        "requestId": "94005.4",
+        "eventSequence": 37,
+        "join": "unique-observed-request-and-time",
+        "devtoolsType": "Fetch"
+      }
+    },
+    {
+      "label": "electron-private-a",
+      "url": "https://000491b06a.com/blanc-fixture/service-life/blocked",
+      "status": "resolved",
+      "context": {
+        "kind": "service_worker",
+        "scriptUrl": "https://page.blanc-fixture.test/blanc-fixture/service-life/worker.js",
+        "executionOrigin": "https://page.blanc-fixture.test",
+        "profileKind": "private",
+        "documentFrame": "not-associated",
+        "clients": {
+          "kind": "controlled-documents",
+          "status": "observed-stable",
+          "members": [
+            {
+              "role": "observed-page-target",
+              "origin": "https://page.blanc-fixture.test"
+            }
+          ]
+        }
+      },
+      "proof": {
+        "targetId": "BDF273F494A59619161F4C863797D2EC",
+        "sessionId": "F299177F1D8268992BACCB1F5E132E26",
+        "requestId": "94005.7",
+        "eventSequence": 43,
+        "join": "unique-observed-request-and-time",
+        "devtoolsType": "Fetch"
+      }
+    },
+    {
+      "label": "electron-private-a",
+      "url": "https://page.blanc-fixture.test/blanc-fixture/service-life/missing.js",
+      "status": "resolved",
+      "context": {
+        "kind": "service_worker_script_loader",
+        "phase": "http-failed-initial-script",
+        "scriptUrl": "https://page.blanc-fixture.test/blanc-fixture/service-life/missing.js",
+        "profileKind": "private",
+        "documentFrame": "not-associated",
+        "executionRealm": "unobserved",
+        "responseStatus": 404
+      },
+      "proof": {
+        "targetId": "AA5F9DD6AFD9AF23DA94126F1EDA5FCD",
+        "join": "electron-main-script-event-token-http-failure",
+        "responseSequence": 19,
+        "detachSequence": 20
+      }
+    },
+    {
+      "label": "electron-private-b",
+      "url": "https://page.blanc-fixture.test/blanc-fixture/service-life/network",
+      "status": "resolved",
+      "context": {
+        "kind": "service_worker",
+        "scriptUrl": "https://page.blanc-fixture.test/blanc-fixture/service-life/worker.js",
+        "executionOrigin": "https://page.blanc-fixture.test",
+        "profileKind": "private",
+        "documentFrame": "not-associated",
+        "clients": {
+          "kind": "controlled-documents",
+          "status": "observed-stable",
+          "members": [
+            {
+              "role": "observed-page-target",
+              "origin": "https://page.blanc-fixture.test"
+            }
+          ]
+        }
+      },
+      "proof": {
+        "targetId": "68FE6C7C5C27C69CD9E550B70002D26F",
+        "sessionId": "8FB8BF4B5955628D5EDC2580D965C8E7",
+        "requestId": "94021.4",
+        "eventSequence": 37,
+        "join": "unique-observed-request-and-time",
+        "devtoolsType": "Fetch"
+      }
+    },
+    {
+      "label": "electron-private-b",
+      "url": "https://000491b06a.com/blanc-fixture/service-life/blocked",
+      "status": "resolved",
+      "context": {
+        "kind": "service_worker",
+        "scriptUrl": "https://page.blanc-fixture.test/blanc-fixture/service-life/worker.js",
+        "executionOrigin": "https://page.blanc-fixture.test",
+        "profileKind": "private",
+        "documentFrame": "not-associated",
+        "clients": {
+          "kind": "controlled-documents",
+          "status": "observed-stable",
+          "members": [
+            {
+              "role": "observed-page-target",
+              "origin": "https://page.blanc-fixture.test"
+            }
+          ]
+        }
+      },
+      "proof": {
+        "targetId": "68FE6C7C5C27C69CD9E550B70002D26F",
+        "sessionId": "8FB8BF4B5955628D5EDC2580D965C8E7",
+        "requestId": "94021.7",
+        "eventSequence": 43,
+        "join": "unique-observed-request-and-time",
+        "devtoolsType": "Fetch"
+      }
+    },
+    {
+      "label": "electron-private-b",
+      "url": "https://page.blanc-fixture.test/blanc-fixture/service-life/missing.js",
+      "status": "resolved",
+      "context": {
+        "kind": "service_worker_script_loader",
+        "phase": "http-failed-initial-script",
+        "scriptUrl": "https://page.blanc-fixture.test/blanc-fixture/service-life/missing.js",
+        "profileKind": "private",
+        "documentFrame": "not-associated",
+        "executionRealm": "unobserved",
+        "responseStatus": 404
+      },
+      "proof": {
+        "targetId": "EA3E3F5E059B2F841E6CF7E1DB1655D6",
+        "join": "electron-main-script-event-token-http-failure",
+        "responseSequence": 19,
+        "detachSequence": 20
+      }
+    },
+    {
+      "label": "chromium-regular-a",
+      "url": "https://page.blanc-fixture.test/blanc-fixture/service-life/network",
+      "status": "resolved",
+      "context": {
+        "kind": "service_worker",
+        "scriptUrl": "https://page.blanc-fixture.test/blanc-fixture/service-life/worker.js",
+        "executionOrigin": "https://page.blanc-fixture.test",
+        "profileKind": "regular",
+        "documentFrame": "not-associated",
+        "clients": {
+          "kind": "controlled-documents",
+          "status": "observed-stable",
+          "members": [
+            {
+              "role": "observed-page-target",
+              "origin": "https://page.blanc-fixture.test"
+            }
+          ]
+        }
+      },
+      "proof": {
+        "targetId": "226920F55B4780A47FC243DC0C5DD318",
+        "sessionId": "F7E9C4626A665A63899861D11011FF09",
+        "requestId": "94040.4",
+        "eventSequence": 33,
+        "join": "native-devtools-id",
+        "devtoolsType": "Fetch"
+      }
+    },
+    {
+      "label": "chromium-regular-a",
+      "url": "https://000491b06a.com/blanc-fixture/service-life/blocked",
+      "status": "resolved",
+      "context": {
+        "kind": "service_worker",
+        "scriptUrl": "https://page.blanc-fixture.test/blanc-fixture/service-life/worker.js",
+        "executionOrigin": "https://page.blanc-fixture.test",
+        "profileKind": "regular",
+        "documentFrame": "not-associated",
+        "clients": {
+          "kind": "controlled-documents",
+          "status": "observed-stable",
+          "members": [
+            {
+              "role": "observed-page-target",
+              "origin": "https://page.blanc-fixture.test"
+            }
+          ]
+        }
+      },
+      "proof": {
+        "targetId": "226920F55B4780A47FC243DC0C5DD318",
+        "sessionId": "F7E9C4626A665A63899861D11011FF09",
+        "requestId": "94040.7",
+        "eventSequence": 39,
+        "join": "native-devtools-id",
+        "devtoolsType": "Fetch"
+      }
+    },
+    {
+      "label": "chromium-regular-a",
+      "url": "https://page.blanc-fixture.test/blanc-fixture/service-life/missing.js",
+      "status": "resolved",
+      "context": {
+        "kind": "service_worker_script_loader",
+        "phase": "http-failed-initial-script",
+        "scriptUrl": "https://page.blanc-fixture.test/blanc-fixture/service-life/missing.js",
+        "profileKind": "regular",
+        "documentFrame": "not-associated",
+        "executionRealm": "unobserved",
+        "responseStatus": 404
+      },
+      "proof": {
+        "targetId": "79D7ACA7B359379F0A274E558DB92194",
+        "join": "native-main-script-token-http-failure",
+        "responseSequence": 16,
+        "detachSequence": 17
+      }
+    },
+    {
+      "label": "chromium-regular-b",
+      "url": "https://page.blanc-fixture.test/blanc-fixture/service-life/network",
+      "status": "resolved",
+      "context": {
+        "kind": "service_worker",
+        "scriptUrl": "https://page.blanc-fixture.test/blanc-fixture/service-life/worker.js",
+        "executionOrigin": "https://page.blanc-fixture.test",
+        "profileKind": "regular",
+        "documentFrame": "not-associated",
+        "clients": {
+          "kind": "controlled-documents",
+          "status": "observed-stable",
+          "members": [
+            {
+              "role": "observed-page-target",
+              "origin": "https://page.blanc-fixture.test"
+            }
+          ]
+        }
+      },
+      "proof": {
+        "targetId": "3D35134E1E7B024C685E668E69C855E0",
+        "sessionId": "184862C9EDCFC72C2A7FCBE67B77F076",
+        "requestId": "94058.4",
+        "eventSequence": 33,
+        "join": "native-devtools-id",
+        "devtoolsType": "Fetch"
+      }
+    },
+    {
+      "label": "chromium-regular-b",
+      "url": "https://000491b06a.com/blanc-fixture/service-life/blocked",
+      "status": "resolved",
+      "context": {
+        "kind": "service_worker",
+        "scriptUrl": "https://page.blanc-fixture.test/blanc-fixture/service-life/worker.js",
+        "executionOrigin": "https://page.blanc-fixture.test",
+        "profileKind": "regular",
+        "documentFrame": "not-associated",
+        "clients": {
+          "kind": "controlled-documents",
+          "status": "observed-stable",
+          "members": [
+            {
+              "role": "observed-page-target",
+              "origin": "https://page.blanc-fixture.test"
+            }
+          ]
+        }
+      },
+      "proof": {
+        "targetId": "3D35134E1E7B024C685E668E69C855E0",
+        "sessionId": "184862C9EDCFC72C2A7FCBE67B77F076",
+        "requestId": "94058.7",
+        "eventSequence": 39,
+        "join": "native-devtools-id",
+        "devtoolsType": "Fetch"
+      }
+    },
+    {
+      "label": "chromium-regular-b",
+      "url": "https://page.blanc-fixture.test/blanc-fixture/service-life/missing.js",
+      "status": "resolved",
+      "context": {
+        "kind": "service_worker_script_loader",
+        "phase": "http-failed-initial-script",
+        "scriptUrl": "https://page.blanc-fixture.test/blanc-fixture/service-life/missing.js",
+        "profileKind": "regular",
+        "documentFrame": "not-associated",
+        "executionRealm": "unobserved",
+        "responseStatus": 404
+      },
+      "proof": {
+        "targetId": "F852A961C0AD0701155C516F704C7AEE",
+        "join": "native-main-script-token-http-failure",
+        "responseSequence": 16,
+        "detachSequence": 17
+      }
+    },
+    {
+      "label": "chromium-private-a",
+      "url": "https://page.blanc-fixture.test/blanc-fixture/service-life/network",
+      "status": "resolved",
+      "context": {
+        "kind": "service_worker",
+        "scriptUrl": "https://page.blanc-fixture.test/blanc-fixture/service-life/worker.js",
+        "executionOrigin": "https://page.blanc-fixture.test",
+        "profileKind": "private",
+        "documentFrame": "not-associated",
+        "clients": {
+          "kind": "controlled-documents",
+          "status": "observed-stable",
+          "members": [
+            {
+              "role": "observed-page-target",
+              "origin": "https://page.blanc-fixture.test"
+            }
+          ]
+        }
+      },
+      "proof": {
+        "targetId": "0680E523E56EDAAF3267B57955CABB4B",
+        "sessionId": "4819D32844121B05AC85A6DA849348EB",
+        "requestId": "94079.4",
+        "eventSequence": 33,
+        "join": "native-devtools-id",
+        "devtoolsType": "Fetch"
+      }
+    },
+    {
+      "label": "chromium-private-a",
+      "url": "https://000491b06a.com/blanc-fixture/service-life/blocked",
+      "status": "resolved",
+      "context": {
+        "kind": "service_worker",
+        "scriptUrl": "https://page.blanc-fixture.test/blanc-fixture/service-life/worker.js",
+        "executionOrigin": "https://page.blanc-fixture.test",
+        "profileKind": "private",
+        "documentFrame": "not-associated",
+        "clients": {
+          "kind": "controlled-documents",
+          "status": "observed-stable",
+          "members": [
+            {
+              "role": "observed-page-target",
+              "origin": "https://page.blanc-fixture.test"
+            }
+          ]
+        }
+      },
+      "proof": {
+        "targetId": "0680E523E56EDAAF3267B57955CABB4B",
+        "sessionId": "4819D32844121B05AC85A6DA849348EB",
+        "requestId": "94079.7",
+        "eventSequence": 39,
+        "join": "native-devtools-id",
+        "devtoolsType": "Fetch"
+      }
+    },
+    {
+      "label": "chromium-private-a",
+      "url": "https://page.blanc-fixture.test/blanc-fixture/service-life/missing.js",
+      "status": "resolved",
+      "context": {
+        "kind": "service_worker_script_loader",
+        "phase": "http-failed-initial-script",
+        "scriptUrl": "https://page.blanc-fixture.test/blanc-fixture/service-life/missing.js",
+        "profileKind": "private",
+        "documentFrame": "not-associated",
+        "executionRealm": "unobserved",
+        "responseStatus": 404
+      },
+      "proof": {
+        "targetId": "368C54EE20AA34456572687344981ECC",
+        "join": "native-main-script-token-http-failure",
+        "responseSequence": 16,
+        "detachSequence": 17
+      }
+    },
+    {
+      "label": "chromium-private-b",
+      "url": "https://page.blanc-fixture.test/blanc-fixture/service-life/network",
+      "status": "resolved",
+      "context": {
+        "kind": "service_worker",
+        "scriptUrl": "https://page.blanc-fixture.test/blanc-fixture/service-life/worker.js",
+        "executionOrigin": "https://page.blanc-fixture.test",
+        "profileKind": "private",
+        "documentFrame": "not-associated",
+        "clients": {
+          "kind": "controlled-documents",
+          "status": "observed-stable",
+          "members": [
+            {
+              "role": "observed-page-target",
+              "origin": "https://page.blanc-fixture.test"
+            }
+          ]
+        }
+      },
+      "proof": {
+        "targetId": "CD0F74DABDF2CCF288FDC562E4E91A41",
+        "sessionId": "FA5D4A1E468EE6CA6875022AAFA0CF0F",
+        "requestId": "94120.4",
+        "eventSequence": 33,
+        "join": "native-devtools-id",
+        "devtoolsType": "Fetch"
+      }
+    },
+    {
+      "label": "chromium-private-b",
+      "url": "https://000491b06a.com/blanc-fixture/service-life/blocked",
+      "status": "resolved",
+      "context": {
+        "kind": "service_worker",
+        "scriptUrl": "https://page.blanc-fixture.test/blanc-fixture/service-life/worker.js",
+        "executionOrigin": "https://page.blanc-fixture.test",
+        "profileKind": "private",
+        "documentFrame": "not-associated",
+        "clients": {
+          "kind": "controlled-documents",
+          "status": "observed-stable",
+          "members": [
+            {
+              "role": "observed-page-target",
+              "origin": "https://page.blanc-fixture.test"
+            }
+          ]
+        }
+      },
+      "proof": {
+        "targetId": "CD0F74DABDF2CCF288FDC562E4E91A41",
+        "sessionId": "FA5D4A1E468EE6CA6875022AAFA0CF0F",
+        "requestId": "94120.7",
+        "eventSequence": 39,
+        "join": "native-devtools-id",
+        "devtoolsType": "Fetch"
+      }
+    },
+    {
+      "label": "chromium-private-b",
+      "url": "https://page.blanc-fixture.test/blanc-fixture/service-life/missing.js",
+      "status": "resolved",
+      "context": {
+        "kind": "service_worker_script_loader",
+        "phase": "http-failed-initial-script",
+        "scriptUrl": "https://page.blanc-fixture.test/blanc-fixture/service-life/missing.js",
+        "profileKind": "private",
+        "documentFrame": "not-associated",
+        "executionRealm": "unobserved",
+        "responseStatus": 404
+      },
+      "proof": {
+        "targetId": "59403C73512C88B803939FDDE2B1558D",
+        "join": "native-main-script-token-http-failure",
+        "responseSequence": 16,
+        "detachSequence": 17
+      }
+    }
+  ],
+  "updateGaps": [
+    {
+      "label": "electron-regular-a",
+      "hookOccurrence": 2,
+      "devtoolsRequestId": "not-exposed-by-electron",
+      "reason": "service-script-hook-occurrences-ambiguous"
+    },
+    {
+      "label": "electron-regular-b",
+      "hookOccurrence": 2,
+      "devtoolsRequestId": "not-exposed-by-electron",
+      "reason": "service-script-hook-occurrences-ambiguous"
+    },
+    {
+      "label": "electron-private-a",
+      "hookOccurrence": 2,
+      "devtoolsRequestId": "not-exposed-by-electron",
+      "reason": "service-script-hook-occurrences-ambiguous"
+    },
+    {
+      "label": "electron-private-b",
+      "hookOccurrence": 2,
+      "devtoolsRequestId": "not-exposed-by-electron",
+      "reason": "service-script-hook-occurrences-ambiguous"
+    },
+    {
+      "label": "chromium-regular-a",
+      "hookOccurrence": 2,
+      "devtoolsRequestId": "absent",
+      "reason": "worker-request-not-unique"
+    },
+    {
+      "label": "chromium-regular-b",
+      "hookOccurrence": 2,
+      "devtoolsRequestId": "absent",
+      "reason": "worker-request-not-unique"
+    },
+    {
+      "label": "chromium-private-a",
+      "hookOccurrence": 2,
+      "devtoolsRequestId": "absent",
+      "reason": "worker-request-not-unique"
+    },
+    {
+      "label": "chromium-private-b",
+      "hookOccurrence": 2,
+      "devtoolsRequestId": "absent",
+      "reason": "worker-request-not-unique"
+    }
+  ],
+  "remainingGaps": [
+    "startup failures without token-linked HTTP response",
+    "update script correlation",
+    "multiple clients and in-flight ownership",
+    "cache-only context"
+  ]
+}

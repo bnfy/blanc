@@ -1,0 +1,56 @@
+{
+  "scope": "same renderer bundle in isolated Chromium world; CSS property grouping only, not production broker or signed acceptance",
+  "bundleSha256": "03c7e11627648bc85ac33e949906796ee0916036a302bb3876b0e43be1a75b4f",
+  "checks": [
+    {
+      "name": "media",
+      "hidden": true,
+      "expectedHidden": true,
+      "neutralVisible": true,
+      "temporaryMarkersCleared": true,
+      "revealedAfterRuleRemoval": true
+    },
+    {
+      "name": "supports",
+      "hidden": true,
+      "expectedHidden": true,
+      "neutralVisible": true,
+      "temporaryMarkersCleared": true,
+      "revealedAfterRuleRemoval": true
+    },
+    {
+      "name": "layer",
+      "hidden": true,
+      "expectedHidden": true,
+      "neutralVisible": true,
+      "temporaryMarkersCleared": true,
+      "revealedAfterRuleRemoval": true
+    },
+    {
+      "name": "nested",
+      "hidden": true,
+      "expectedHidden": true,
+      "neutralVisible": true,
+      "temporaryMarkersCleared": true,
+      "revealedAfterRuleRemoval": true
+    },
+    {
+      "name": "inactive-media",
+      "hidden": false,
+      "expectedHidden": false,
+      "neutralVisible": true,
+      "temporaryMarkersCleared": true,
+      "revealedAfterRuleRemoval": true
+    },
+    {
+      "name": "inactive-supports",
+      "hidden": false,
+      "expectedHidden": false,
+      "neutralVisible": true,
+      "temporaryMarkersCleared": true,
+      "revealedAfterRuleRemoval": true
+    }
+  ],
+  "passed": true,
+  "cleanup": true
+}

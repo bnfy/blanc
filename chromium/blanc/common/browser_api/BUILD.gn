@@ -1,0 +1,27 @@
+# Copyright 2026 Bananify Creative. MIT; see LICENSE.
+# The typed Island interface generated from browser-api/contract.json by
+# chromium/tools/browser-api-mojom.mjs (F0.6).
+import("//mojo/public/tools/bindings/mojom.gni")
+import("//tools/typescript/webui_ts_library.gni")
+
+mojom("mojo_bindings") {
+  sources = [ "browser_api.mojom" ]
+  webui_module_path = "/"
+}
+
+source_set("browser_api") {
+  sources = [
+    "browser_api_checks.h",
+    "browser_api_factory_base.h",
+  ]
+  public_deps = [ ":mojo_bindings" ]
+}
+
+# The Island is plain JavaScript: compile only the generated bindings.
+webui_ts_library("build_ts") {
+  root_dir = target_gen_dir
+  out_dir = "$target_gen_dir/tsc"
+  in_files = [ "browser_api.mojom-webui.ts" ]
+  deps = [ "//ui/webui/resources/mojo:build_ts" ]
+  extra_deps = [ ":mojo_bindings_ts__generator" ]
+}

@@ -1,0 +1,47 @@
+{
+  "started": "2026-10-28T16:13:15.090Z",
+  "completed": false,
+  "protocol": "one discarded full warm-up then five full repetitions per profile in the same process; nearest-rank percentiles; median-of-five",
+  "pageScheduling": "26 sequential page loads per repetition, 200 candidates per page except last; each page issues its resources concurrently without pacing; full corpus unchanged; repeated roots excluded from unique URL floor",
+  "nativeClock": "base::TimeTicks from factory entry or redirect receipt through decision application; Mojo included",
+  "electronClock": "process.hrtime.bigint at JS provider-observer entry through real provider result; preceding Electron native dispatch excluded; reference only",
+  "fullAcceptance": false,
+  "sources": {
+    "latency-run.mjs": "44e0ad013d3fd5ac4b527c447471f6fc13391f9a4e5fe59bd26f5f8a851bd7b5",
+    "latency-validate.mjs": "7826c7058f487d836afeeff0beb4fb8388eb184fc3dfd453b62ccd4757aca63e",
+    "session.mjs": "2a879732bc19ad3b7aa2f6e192a56d7d85c67f4dfd6e9d1820cc6cd944b927bb",
+    "page.mjs": "f9cba4814df85c8adea3acdbc86a877392c7a69ecdc743d7917ede0d2c7ba6bc",
+    "native-latency-trace.mjs": "b27607110b0f8d53053d26ffa112ea65f98c8848dcb92a64098854e4f6b48b45"
+  },
+  "runs": [],
+  "profiles": {
+    "chromium-regular": {
+      "source": {
+        "browserKind": "chromium",
+        "kind": "regular",
+        "isOffTheRecord": false,
+        "version": "157.0.8103.15"
+      },
+      "idleBeforeSession": {
+        "at": "2026-10-28T16:13:16.690Z",
+        "user": 32.2,
+        "system": 8.8,
+        "idle": 58.99
+      },
+      "repetitions": [],
+      "boundMs": 5
+    }
+  },
+  "gaps": [
+    "Electron native-entry TimeTicks unavailable through this observer",
+    "engine-internal timing not exposed separately"
+  ],
+  "requireIdle": false,
+  "pageLayoutSha256": "ddf5a81237bd3cfa2b6a3acea7730bdbc2e7a69c116690a5ca77eb2aa4cc42c4",
+  "baseFixtureBundleSha256": "d0b37595faa4d1354c2b54cc0b75e979567e825959a2d66a1a9c46c57094a15d",
+  "error": "AssertionError [ERR_ASSERTION]: Native timing trace lost events",
+  "cleanup": {
+    "removed": true
+  },
+  "finished": "2026-10-28T16:13:46.796Z"
+}

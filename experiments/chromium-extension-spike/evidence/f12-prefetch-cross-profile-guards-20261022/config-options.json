@@ -1,0 +1,14 @@
+{
+  "profiles": [
+    "Default",
+    "Profile 1"
+  ],
+  "guardsArmedTogether": true,
+  "choices": [
+    "cancel-first",
+    "accept-first-cancel-second"
+  ],
+  "roundsPerSchedule": 2,
+  "consumersPerProfile": 1,
+  "exitRequestsPerRound": 2
+}

@@ -1,0 +1,14 @@
+Blanc native blocker experiment
+
+First-party adapter, bundler and harness code retains the repository's MIT terms.
+The generated engine bundle contains unchanged @ghostery/adblocker 2.18.2 and
+its dependencies, verified byte-for-byte against installed Blanc 1.36.0. Ghostery
+code is MPL-2.0; dependency licence texts and package/version metadata are emitted
+by bundle.mjs in licenses/ and manifest.json and must accompany redistribution.
+
+The embedded EasyList and EasyPrivacy snapshots, including derived data, are
+attributed to The EasyList authors under CC BY-SA 3.0 or later, consistent with
+adblock/generated/ and fixtures/replay/NOTICE. This bundle is not MIT-only.
+The pinned ghostery-resources payload retains its recorded upstream terms;
+see the repository's THIRD-PARTY-NOTICES.md and adblock/sources/pinned.json.
+No root packaged notice or shipping application file is changed by this experiment.

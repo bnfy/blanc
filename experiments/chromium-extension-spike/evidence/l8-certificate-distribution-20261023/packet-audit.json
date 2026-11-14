@@ -1,0 +1,58 @@
+{
+  "sourceRevision": "7c427328100d1ba76cb7e8b651a1f36d74ec86c6",
+  "version": "157.0.8103.15",
+  "archiveSha256": "ffcfefdfbb5421619f3ba359bb4c5d92134b468ac8475c18eda12153a7f5e4ed",
+  "manifestDigestMatches": [
+    {
+      "name": "Blanc-Chromium-Preview-157.0.8103.15-7c427328-arm64.zip",
+      "sha256": "ffcfefdfbb5421619f3ba359bb4c5d92134b468ac8475c18eda12153a7f5e4ed",
+      "matches": true
+    },
+    {
+      "name": "Blanc-Chromium-Preview-157.0.8103.15-7c427328.cdx.json",
+      "sha256": "d540dc7a3ce47ab56881c969ca191917f9b06228070226f3f8365f539ec6944b",
+      "matches": true
+    },
+    {
+      "name": "Blanc-Chromium-Preview-157.0.8103.15-7c427328.files.json",
+      "sha256": "1f8f137a25f1efbebab2988480a816461830bfb7b1c059f8d14a8d743d17c698",
+      "matches": true
+    },
+    {
+      "name": "Blanc-Chromium-Preview-157.0.8103.15-7c427328.provenance.json",
+      "sha256": "414cb99a320e762ef3fb5fb1edffd0d6964114ee9c61f09d9b4454ae220ece73",
+      "matches": true
+    }
+  ],
+  "regularFilesVerified": 458,
+  "symlinksVerified": 5,
+  "sourceTreeMatchesCommit": true,
+  "provenanceSubjectAndMaterialsBound": true,
+  "complianceValidated": true,
+  "componentCount": 340,
+  "nativeLicenseComponents": 323,
+  "fullNativeLicenseTexts": 320,
+  "verification": {
+    "codesign": {
+      "exitCode": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    "stapler": {
+      "exitCode": 0,
+      "stdout": "Processing: /private/tmp/blanc-l11-distribution/archive-extracted/Blanc Chromium Preview.app\nThe validate action worked!\n",
+      "stderr": ""
+    },
+    "gatekeeper": {
+      "exitCode": 0,
+      "stdout": "",
+      "stderr": "/private/tmp/blanc-l11-distribution/archive-extracted/Blanc Chromium Preview.app: accepted\nsource=Notarized Developer ID\n"
+    }
+  },
+  "limits": [
+    "Local archive extraction, not a native browser download or quarantine proof",
+    "No app launched or profile modified",
+    "Not independent hermetic reproduction or a hosted-build attestation"
+  ],
+  "authenticationRecord": "../blanc-l11-signed-replacement/manifest-verification.json (pinned signer/issuer passed separately)"
+}

@@ -1,0 +1,181 @@
+{
+  "checks": [
+    {
+      "name": "named Space saved before cancellation",
+      "value": true,
+      "time": 1792599189721
+    },
+    {
+      "name": "existing other owner settled",
+      "value": {
+        "activeTabId": "427154381",
+        "adblockEnabled": false,
+        "closed": [
+          {
+            "id": "427154379",
+            "tabCount": 1,
+            "title": "about:blank",
+            "url": "about:blank"
+          }
+        ],
+        "displayShares": [],
+        "extensionsWidth": 26,
+        "focusedTabId": "427154381",
+        "glanceTabId": null,
+        "groups": [],
+        "initialWindowSaveFailed": false,
+        "initialWindowSaved": true,
+        "installedTheme": {},
+        "spaceAutosaveError": "",
+        "spaceBusy": false,
+        "spaceName": "",
+        "spaceWindowIdentity": "0b5a91a2-b69d-4dac-bc40-5d8f3c6823ed",
+        "splitGeometry": {},
+        "splits": [],
+        "tabLayout": "island",
+        "tabs": [
+          {
+            "audible": false,
+            "blockedCount": 0,
+            "bookmarked": false,
+            "canGoBack": false,
+            "canGoForward": false,
+            "favicon": null,
+            "groupId": null,
+            "id": "427154381",
+            "isLoading": false,
+            "muted": false,
+            "pageBg": "#ffffff",
+            "pinned": false,
+            "private": false,
+            "siteMuted": false,
+            "title": "Split rail fixture",
+            "url": "http://127.0.0.1:9298/#decoy"
+          }
+        ],
+        "verticalTabsDefaultWidth": 248,
+        "verticalTabsMaxWidth": 360,
+        "verticalTabsMinWidth": 200,
+        "verticalTabsPreferredWidth": 248,
+        "verticalTabsWidth": 248,
+        "closedSlot": 1
+      },
+      "time": 1792599195896
+    },
+    {
+      "name": "close awaits unload outcome",
+      "value": true,
+      "time": 1792599196166
+    },
+    {
+      "name": "actual write boundary intercepted",
+      "value": {
+        "pid": 44012,
+        "path": "/private/tmp/blanc-repeat-delete-cancel-held-clear/profile/Default/Sessions/Session_13437072796176681",
+        "mode": "write-error",
+        "op": "write",
+        "errno": 5
+      },
+      "time": 1792599196270
+    },
+    {
+      "name": "write failure rejects durability",
+      "value": {
+        "error": "{\"exceptionId\":1,\"text\":\"Uncaught (in promise) Error: Split history/session persistence failed; recovery is not acknowledged.\",\"lineNumber\":73,\"columnNumber\":64,\"scriptId\":\"4\",\"stackTrace\":{\"callFrames\":[{\"functionName\":\"window.blancPrototypeReply\",\"scriptId\":\"4\",\"url\":\"chrome://blanc-prototype/host.js\",\"lineNumber\":72,\"columnNumber\":63},{\"functionName\":\"\",\"scriptId\":\"86\",\"url\":\"\",\"lineNumber\":0,\"columnNumber\":0}]},\"exception\":{\"type\":\"object\",\"subtype\":\"error\",\"className\":\"Error\",\"description\":\"Error: Split history/session persistence failed; recovery is not acknowledged.\\n    at window.blancPrototypeReply (chrome://blanc-prototype/host.js:73:64)\\n    at <anonymous>:1:1\",\"objectId\":\"-6645631020294329411.1.9\"}}"
+      },
+      "time": 1792599196270
+    },
+    {
+      "name": "normal binary keeps profile repair pending after initial EIO",
+      "value": true,
+      "time": 1792599196735
+    },
+    {
+      "name": "separate regular profile alive in same browser",
+      "value": {
+        "activeTabId": "427154388",
+        "adblockEnabled": false,
+        "closed": [],
+        "displayShares": [],
+        "extensionsWidth": 26,
+        "focusedTabId": "427154388",
+        "glanceTabId": null,
+        "groups": [],
+        "initialWindowSaveFailed": false,
+        "initialWindowSaved": false,
+        "installedTheme": {},
+        "spaceAutosaveError": "",
+        "spaceBusy": true,
+        "spaceName": "",
+        "spaceWindowIdentity": "9e90dbff-e2a2-4db6-b873-bce8ba1ef46c",
+        "splitGeometry": {},
+        "splits": [],
+        "tabLayout": "island",
+        "tabs": [
+          {
+            "audible": false,
+            "blockedCount": 0,
+            "bookmarked": false,
+            "canGoBack": false,
+            "canGoForward": false,
+            "favicon": null,
+            "groupId": null,
+            "id": "427154388",
+            "isLoading": false,
+            "muted": false,
+            "pageBg": "#ffffff",
+            "pinned": false,
+            "private": false,
+            "siteMuted": false,
+            "title": "Split rail fixture",
+            "url": "http://127.0.0.1:9298/#independent"
+          }
+        ],
+        "verticalTabsDefaultWidth": 248,
+        "verticalTabsMaxWidth": 360,
+        "verticalTabsMinWidth": 200,
+        "verticalTabsPreferredWidth": 248,
+        "verticalTabsWidth": 248,
+        "closedSlot": 0
+      },
+      "time": 1792599198692
+    },
+    {
+      "name": "cross-owner Session write blocked before acknowledgement",
+      "value": true,
+      "time": 1792599199579
+    },
+    {
+      "name": "begin repeated deletion cancellation",
+      "value": 1,
+      "time": 1792599199582
+    },
+    {
+      "name": "profile deletion waits on native beforeunload while save remains held",
+      "value": true,
+      "time": 1792599199923
+    },
+    {
+      "name": "native beforeunload Cancel accepted",
+      "value": true,
+      "time": 1792599199926
+    },
+    {
+      "name": "cancel preserves profile source split and cross-owner window before save release",
+      "value": true,
+      "time": 1792599200131
+    },
+    {
+      "name": "repeated deletion cancelled with save still held",
+      "value": 1,
+      "time": 1792599200131
+    },
+    {
+      "name": "begin repeated deletion cancellation",
+      "value": 2,
+      "time": 1792599200131
+    }
+  ],
+  "pass": false,
+  "error": "Error: CDP target disconnected\n    at ws.onclose (file:///private/tmp/blanc-repeat-delete-cancel-held-clear/cdp.mjs:2:482)\n    at [nodejs.internal.kHybridDispatch] (node:internal/event_target:831:20)\n    at WebSocket.dispatchEvent (node:internal/event_target:766:26)\n    at fireEvent (node:internal/deps/undici/undici:11655:14)\n    at Socket.onSocketClose (node:internal/deps/undici/undici:12054:7)\n    at Socket.emit (node:events:536:35)\n    at TCP.<anonymous> (node:net:343:12)"
+}

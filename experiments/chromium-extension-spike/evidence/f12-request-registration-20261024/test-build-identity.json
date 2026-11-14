@@ -1,0 +1,15 @@
+{
+  "baseCommit": "d519acf58d4a7d16be0afea8da6a08fb9a6795e1",
+  "sourceDeltaSha256": "089473e463468657d80ea41c40267edaffbc4ba8f72c22a81c37835a9c24c9dc",
+  "sourceFiles": {
+    "native/blocker/blocker_proxy.cc": "ff64df65ac074e6df0f8a9e276b90339a68638088ce26a1a58277ca28141f5e9",
+    "native/blocker/update_identity.inc": "e798c688ba2f7c7afc30c7f0a05c23cc088c1d0fb9e6e2d8e7128f4bc80687ae"
+  },
+  "binaryFiles": {
+    "Contents/MacOS/Blanc Prototype": "33e6b2806167d00ce95c5c7333385b7b3db96b50246f25a415416dc1fd7398ab",
+    "Contents/Frameworks/Blanc Prototype Framework.framework/Blanc Prototype Framework": "9e6c23630875bd09b866948894046a02f20613c5bcf58333d77fedfd27832353"
+  },
+  "researchHooks": 0,
+  "packaging": "Incremental native test output; not a newly signed/notarized release artifact",
+  "acceptedSignedArtifact": "14706b0e / 18a0c2ca remains unchanged"
+}

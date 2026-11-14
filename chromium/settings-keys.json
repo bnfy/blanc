@@ -1,0 +1,617 @@
+{
+ "$comment": "Every shipping settings.js DEFAULTS key at the shipping tag, and where it lives in the fork (S1.7, F14). kind: blanc-pref (a Blanc preference with shipping's default), native (Chromium's own store), divergence (approved, not built), later (a named later slice or row), pending-decision, unassigned (no spec row yet). status for S1.7 keys: built (the store holds shipping's default) or to-build. Checked by tools/settings-keys.mjs.",
+ "shippingTag": "8a4e57e78",
+ "keys": [
+  {
+   "key": "searchEngine",
+   "kind": "native",
+   "row": "F5",
+   "slice": "S1.7",
+   "store": "TemplateURLService (DuckDuckGo by prepopulated id)",
+   "page": "chrome://settings/search",
+   "status": "built"
+  },
+  {
+   "key": "searchEngineTemplate",
+   "kind": "native",
+   "row": "F5",
+   "slice": "S1.7",
+   "store": "TemplateURLService entry keyword 'blanc-custom'",
+   "page": "chrome://settings/search",
+   "status": "built"
+  },
+  {
+   "key": "searchSuggestions",
+   "kind": "native",
+   "row": "F5",
+   "slice": "S1.7",
+   "pref": "search.suggest_enabled",
+   "page": "Blanc Search section (Chromium shows it only on its Google and Sync pages)",
+   "status": "built"
+  },
+  {
+   "key": "bangsEnabled",
+   "kind": "blanc-pref",
+   "row": "F47",
+   "slice": "S1.7",
+   "pref": "blanc.bangs.enabled",
+   "scope": "profile",
+   "status": "built"
+  },
+  {
+   "key": "customBangs",
+   "kind": "blanc-pref",
+   "row": "F47",
+   "slice": "S1.7",
+   "pref": "blanc.bangs.custom",
+   "scope": "profile",
+   "status": "built"
+  },
+  {
+   "key": "recentBangs",
+   "kind": "blanc-pref",
+   "row": "F47",
+   "slice": "S1.7",
+   "pref": "blanc.bangs.recent",
+   "scope": "profile",
+   "control": null,
+   "status": "built"
+  },
+  {
+   "key": "adblockEnabled",
+   "kind": "blanc-pref",
+   "row": "F12",
+   "slice": "S1.7",
+   "pref": "blanc.blocking.enabled",
+   "scope": "profile",
+   "status": "built"
+  },
+  {
+   "key": "adblockProvider",
+   "kind": "pending-decision",
+   "row": "X1",
+   "decision": "D2 (uBlock Origin in the fork)"
+  },
+  {
+   "key": "homePage",
+   "kind": "later",
+   "row": "F35",
+   "slice": "S1.8"
+  },
+  {
+   "key": "theme",
+   "kind": "native",
+   "row": "F15",
+   "slice": "S1.7",
+   "pref": "browser.theme.color_scheme2",
+   "page": "chrome://settings/appearance",
+   "status": "built"
+  },
+  {
+   "key": "newtabLayout",
+   "kind": "later",
+   "row": "F35",
+   "slice": "S1.8",
+   "note": "blanc.prototype.start_layout defaults to '' (shown as billboard); S1.8 sets shipping's default"
+  },
+  {
+   "key": "newtabDynamicWallpaper",
+   "kind": "later",
+   "row": "F35",
+   "slice": "S1.8"
+  },
+  {
+   "key": "newtabColorWallpaper",
+   "kind": "later",
+   "row": "F50",
+   "slice": "S5"
+  },
+  {
+   "key": "newtabWallpaperColor",
+   "kind": "later",
+   "row": "F50",
+   "slice": "S5"
+  },
+  {
+   "key": "newtabWallpaperFill",
+   "kind": "later",
+   "row": "F50",
+   "slice": "S5"
+  },
+  {
+   "key": "newtabFollowSpaceColor",
+   "kind": "later",
+   "row": "F41",
+   "slice": "S3"
+  },
+  {
+   "key": "newtabClockFont",
+   "kind": "later",
+   "row": "F54",
+   "slice": "S5"
+  },
+  {
+   "key": "newtabClockWeight",
+   "kind": "later",
+   "row": "F54",
+   "slice": "S5"
+  },
+  {
+   "key": "newtabClockColor",
+   "kind": "later",
+   "row": "F54",
+   "slice": "S5"
+  },
+  {
+   "key": "newtabClockTone",
+   "kind": "later",
+   "row": "F54",
+   "slice": "S5"
+  },
+  {
+   "key": "newtabClockStyle",
+   "kind": "later",
+   "row": "F54",
+   "slice": "S5"
+  },
+  {
+   "key": "newtabClockHeight",
+   "kind": "later",
+   "row": "F54",
+   "slice": "S5"
+  },
+  {
+   "key": "newtabCustomWallpaper",
+   "kind": "later",
+   "row": "F49",
+   "slice": "S5"
+  },
+  {
+   "key": "newtabWallpaperWash",
+   "kind": "later",
+   "row": "F49",
+   "slice": "S5"
+  },
+  {
+   "key": "newtabWallpaperStyle",
+   "kind": "later",
+   "row": "F49",
+   "slice": "S5"
+  },
+  {
+   "key": "tabLayout",
+   "kind": "later",
+   "row": "F28",
+   "slice": "S3"
+  },
+  {
+   "key": "islandSiteColors",
+   "kind": "blanc-pref",
+   "row": "F1",
+   "slice": "S1.7",
+   "pref": "blanc.island.site_colors",
+   "scope": "profile",
+   "status": "built"
+  },
+  {
+   "key": "islandHoverOpen",
+   "kind": "blanc-pref",
+   "row": "F1",
+   "slice": "S1.7",
+   "pref": "blanc.island.hover_open",
+   "scope": "profile",
+   "status": "built"
+  },
+  {
+   "key": "islandTabIcons",
+   "kind": "blanc-pref",
+   "row": "F1",
+   "slice": "S1.7",
+   "pref": "blanc.island.tab_icons",
+   "scope": "profile",
+   "status": "built"
+  },
+  {
+   "key": "launchSunrise",
+   "kind": "later",
+   "row": "R1",
+   "slice": "S5"
+  },
+  {
+   "key": "searchPriorityResults",
+   "kind": "blanc-pref",
+   "row": "F6",
+   "slice": "S1.7",
+   "pref": "blanc.island.search_priority_results",
+   "scope": "profile",
+   "status": "built"
+  },
+  {
+   "key": "islandAutoHide",
+   "kind": "blanc-pref",
+   "row": "F1",
+   "slice": "S1.7",
+   "pref": "blanc.island.auto_hide",
+   "scope": "profile",
+   "status": "built"
+  },
+  {
+   "key": "islandAutoHideStyle",
+   "kind": "blanc-pref",
+   "row": "F1",
+   "slice": "S1.7",
+   "pref": "blanc.island.auto_hide_style",
+   "scope": "profile",
+   "status": "built"
+  },
+  {
+   "key": "tabSwitchOrder",
+   "kind": "later",
+   "row": "F59",
+   "slice": "S3"
+  },
+  {
+   "key": "surfaceStyle",
+   "kind": "blanc-pref",
+   "row": "F14",
+   "slice": "S1.7",
+   "pref": "blanc.appearance.surface_style",
+   "scope": "profile",
+   "status": "built",
+   "note": "No spec row; owner 2026-11-03: built in S1.7. The utility sheets' Sunrise or neutral surface"
+  },
+  {
+   "key": "glanceFrame",
+   "kind": "later",
+   "row": "F34",
+   "slice": "S3"
+  },
+  {
+   "key": "linkRoutes",
+   "kind": "later",
+   "row": "F60",
+   "slice": "S3"
+  },
+  {
+   "key": "linkRoutesInApp",
+   "kind": "later",
+   "row": "F60",
+   "slice": "S3"
+  },
+  {
+   "key": "verticalTabsWidth",
+   "kind": "later",
+   "row": "F28",
+   "slice": "S3"
+  },
+  {
+   "key": "verticalTabsTextSize",
+   "kind": "later",
+   "row": "F28",
+   "slice": "S3"
+  },
+  {
+   "key": "tabSleep",
+   "kind": "later",
+   "row": "F31",
+   "slice": "S3",
+   "note": "blanc.prototype.quiet_delay (local state) already holds shipping's '1h'"
+  },
+  {
+   "key": "tabArchive",
+   "kind": "later",
+   "row": "F52",
+   "slice": "S3"
+  },
+  {
+   "key": "uiLanguage",
+   "kind": "blanc-pref",
+   "row": "F44",
+   "slice": "S1.7",
+   "pref": "blanc.ui_language",
+   "scope": "local",
+   "status": "built"
+  },
+  {
+   "key": "mouseGesturesEnabled",
+   "kind": "later",
+   "row": "N14",
+   "slice": "S5"
+  },
+  {
+   "key": "mouseGestureMapping",
+   "kind": "later",
+   "row": "N14",
+   "slice": "S5"
+  },
+  {
+   "key": "appIcon",
+   "kind": "blanc-pref",
+   "row": "F17",
+   "slice": "S2",
+   "pref": "blanc.app_icon",
+   "scope": "profile",
+   "status": "built"
+  },
+  {
+   "key": "presentationDefaultsResetVersion",
+   "kind": "later",
+   "row": "M.2",
+   "slice": "M",
+   "note": "A shipping profile migration; the importer carries its result"
+  },
+  {
+   "key": "groupNamesRecasedVersion",
+   "kind": "later",
+   "row": "M.2",
+   "slice": "M",
+   "note": "A shipping profile migration; the importer carries its result"
+  },
+  {
+   "key": "adblockExceptions",
+   "kind": "blanc-pref",
+   "row": "F12",
+   "slice": "S1.7",
+   "pref": "blanc.blocking.exceptions",
+   "scope": "profile",
+   "status": "built"
+  },
+  {
+   "key": "darkWebsites",
+   "kind": "divergence",
+   "row": "F42",
+   "decision": "owner 2026-11-02: no built-in Dark Reader"
+  },
+  {
+   "key": "darkWebsitesExceptions",
+   "kind": "divergence",
+   "row": "F42",
+   "decision": "owner 2026-11-02: no built-in Dark Reader"
+  },
+  {
+   "key": "webrtcPolicy",
+   "kind": "native",
+   "row": "N8",
+   "slice": "S1.7",
+   "pref": "webrtc.ip_handling_policy",
+   "page": "Blanc Calls and connections section (Chromium has no control)",
+   "note": "patch 0018 sets shipping's 'standard' (default_public_interface_only)",
+   "status": "built"
+  },
+  {
+   "key": "webrtcAudioBuffer",
+   "kind": "blanc-pref",
+   "row": "F14",
+   "slice": "S1.7",
+   "pref": "blanc.webrtc.audio_buffer",
+   "scope": "profile",
+   "status": "built",
+   "note": "No spec row; owner 2026-11-03: built in S1.7. Device-local as in shipping (an unsynced profile pref, so PrefWatcher refreshes open tabs); native in Blink through RendererPreferences (V15, owner 2026-11-04)"
+  },
+  {
+   "key": "secureDns",
+   "kind": "native",
+   "row": "N8",
+   "slice": "S1.7",
+   "pref": "dns_over_https.mode",
+   "page": "chrome://settings/security",
+   "decision": "V11",
+   "status": "built"
+  },
+  {
+   "key": "secureDnsTemplate",
+   "kind": "native",
+   "row": "N8",
+   "slice": "S1.7",
+   "pref": "dns_over_https.templates",
+   "page": "chrome://settings/security",
+   "decision": "V11",
+   "status": "built"
+  },
+  {
+   "key": "onePasswordEnabled",
+   "kind": "divergence",
+   "row": "F38",
+   "decision": "owner 2026-11-02: no 1Password SDK"
+  },
+  {
+   "key": "onePasswordAccount",
+   "kind": "divergence",
+   "row": "F38",
+   "decision": "owner 2026-11-02: no 1Password SDK"
+  },
+  {
+   "key": "usagePing",
+   "kind": "blanc-pref",
+   "row": "F21",
+   "slice": "S2",
+   "pref": "blanc.telemetry.usage_ping",
+   "scope": "local",
+   "status": "built",
+   "note": "The consent choice, device-wide as in shipping; the preview channel never sends (owner, 2026-11-04)"
+  },
+  {
+   "key": "onboardingVersion",
+   "kind": "later",
+   "row": "F36",
+   "slice": "S2",
+   "note": "No fork profile predates first run, so completion alone gates it until a new walkthrough version ships"
+  },
+  {
+   "key": "firstRunCompletedAt",
+   "kind": "blanc-pref",
+   "row": "F36",
+   "slice": "S2",
+   "pref": "blanc.first_run.completed_at",
+   "scope": "local",
+   "status": "built"
+  },
+  {
+   "key": "migrationChecklistDismissed",
+   "kind": "blanc-pref",
+   "row": "N11",
+   "slice": "S2",
+   "pref": "blanc.checklist.dismissed",
+   "scope": "local",
+   "status": "built"
+  },
+  {
+   "key": "syncMigrationCompleted",
+   "kind": "later",
+   "row": "F27",
+   "slice": "S4",
+   "note": "The checklist lists Sync once F27 lands"
+  },
+  {
+   "key": "tabImportCompleted",
+   "kind": "later",
+   "row": "N11",
+   "slice": "S2"
+  },
+  {
+   "key": "spaceMigrationCompleted",
+   "kind": "later",
+   "row": "F41",
+   "slice": "S3",
+   "note": "The checklist lists the first space once F41 lands"
+  },
+  {
+   "key": "spaceChecklistIntroduced",
+   "kind": "later",
+   "row": "N11",
+   "slice": "S2"
+  },
+  {
+   "key": "defaultChecklistIntroduced",
+   "kind": "later",
+   "row": "N11",
+   "slice": "S2"
+  },
+  {
+   "key": "iphoneMigrationCompleted",
+   "kind": "later",
+   "row": "F27",
+   "slice": "S4",
+   "note": "The checklist lists the iPhone once pairing lands"
+  },
+  {
+   "key": "iphoneChecklistIntroduced",
+   "kind": "later",
+   "row": "N11",
+   "slice": "S2"
+  },
+  {
+   "key": "defaultBrowserMigrationCompleted",
+   "kind": "blanc-pref",
+   "row": "N10",
+   "slice": "S2",
+   "pref": "blanc.checklist.default_done",
+   "scope": "local",
+   "status": "built"
+  },
+  {
+   "key": "defaultBrowserReminderShown",
+   "kind": "later",
+   "row": "N10",
+   "slice": "S2"
+  },
+  {
+   "key": "patronCalloutDismissedAt",
+   "kind": "later",
+   "row": "F17",
+   "slice": "S2"
+  },
+  {
+   "key": "lastRunVersion",
+   "kind": "later",
+   "row": "F51",
+   "slice": "S2",
+   "note": "A field of the blanc.whats_new dictionary (S2.4), used once a release channel reports a Blanc version"
+  },
+  {
+   "key": "whatsNewVersion",
+   "kind": "later",
+   "row": "F51",
+   "slice": "S2",
+   "note": "A field of the blanc.whats_new dictionary (S2.4), used once a release channel reports a Blanc version"
+  },
+  {
+   "key": "whatsNewSince",
+   "kind": "later",
+   "row": "F51",
+   "slice": "S2",
+   "note": "A field of the blanc.whats_new dictionary (S2.4), used once a release channel reports a Blanc version"
+  },
+  {
+   "key": "whatsNewPageVersion",
+   "kind": "later",
+   "row": "F51",
+   "slice": "S2",
+   "note": "A field of the blanc.whats_new dictionary (S2.4), used once a release channel reports a Blanc version"
+  },
+  {
+   "key": "whatsNewTabRelease",
+   "kind": "later",
+   "row": "F51",
+   "slice": "S2",
+   "note": "A field of the blanc.whats_new dictionary (S2.4), used once a release channel reports a Blanc version"
+  },
+  {
+   "key": "supporter",
+   "kind": "later",
+   "row": "F17",
+   "slice": "S2"
+  },
+  {
+   "key": "patron",
+   "kind": "later",
+   "row": "F17",
+   "slice": "S2"
+  },
+  {
+   "key": "deviceNames",
+   "kind": "later",
+   "row": "F27",
+   "slice": "S4"
+  },
+  {
+   "key": "_syncMeta",
+   "kind": "later",
+   "row": "F27",
+   "slice": "S4"
+  },
+  {
+   "key": "_syncTieBreakers",
+   "kind": "later",
+   "row": "F27",
+   "slice": "S4"
+  },
+  {
+   "key": "islandSize",
+   "kind": "blanc-pref",
+   "row": "F1",
+   "slice": "S1.7",
+   "pref": "blanc.island.size",
+   "scope": "profile",
+   "status": "built",
+   "note": "New in v1.46.0 (#1292): Default, Large or Extra large. Device-local as in shipping (an unsynced profile pref, like the other Island settings, so each window's Island observes it); built in S1.8 by patch 0026"
+  },
+  {
+   "key": "miniWindowShortcut",
+   "kind": "later",
+   "row": "F61",
+   "slice": "post-S1 (F61 Mini Window)",
+   "note": "New in v1.46.0 (#1138): off by default; the fork has no Mini Window yet"
+  },
+  {
+   "key": "pageZoom",
+   "kind": "blanc-pref",
+   "row": "F62",
+   "slice": "S2",
+   "pref": "blanc.page_zoom",
+   "scope": "local_state",
+   "status": "built",
+   "note": "New in v1.47.0 (#1401): default page zoom in percent, device-wide as in shipping (owner, 2026-11-12). Every profile's Chromium default follows it and a change in any profile's Settings becomes the device's"
+  }
+ ]
+}

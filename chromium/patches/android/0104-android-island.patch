@@ -1,0 +1,621 @@
+diff -ruN a/chrome/android/BUILD.gn b/chrome/android/BUILD.gn
+--- a/chrome/android/BUILD.gn
++++ b/chrome/android/BUILD.gn
+@@ -531,6 +531,12 @@
+       "//chrome/browser/sync/android:java",
+       "//chrome/browser/sync/android:ui_java",
+       "//chrome/browser/sync/synced_set_up/android:java",
++      "//blanc/android:island_java",  # Blanc (patch 0104)
++      "//blanc/android:island_ui_java",
++      "//blanc/android:island_view_java",
++      "//blanc/android:sync_java",
++      "//blanc/android:tabs_java",
++      "//blanc/android:tabs_ui_java",
+       "//chrome/browser/tab:java",
+       "//chrome/browser/tab_group_suggestion:java",
+       "//chrome/browser/tab_group_suggestion:toolbar_java",
+diff -ruN a/chrome/android/java/src/org/chromium/chrome/browser/SwipeRefreshHandler.java b/chrome/android/java/src/org/chromium/chrome/browser/SwipeRefreshHandler.java
+--- a/chrome/android/java/src/org/chromium/chrome/browser/SwipeRefreshHandler.java
++++ b/chrome/android/java/src/org/chromium/chrome/browser/SwipeRefreshHandler.java
+@@ -298,6 +298,8 @@
+             @OverscrollAction int type, @BackGestureEventSwipeEdge int initiatingEdge) {
+         mSwipeType = type;
+         if (type == OverscrollAction.PULL_TO_REFRESH) {
++            // Blanc (patch 0104): never on Blanc's own pages (chrome://blanc/), as on the iPhone.
++            if (mTab.getUrl().getSpec().startsWith("chrome://blanc/")) return false;
+             if (mSwipeRefreshLayout == null) initSwipeRefreshLayout(mTab.getContext());
+             assumeNonNull(mSwipeRefreshLayout);
+             attachSwipeRefreshLayoutIfNecessary();
+diff -ruN a/chrome/android/java/src/org/chromium/chrome/browser/tabbed_mode/TabbedRootUiCoordinator.java b/chrome/android/java/src/org/chromium/chrome/browser/tabbed_mode/TabbedRootUiCoordinator.java
+--- a/chrome/android/java/src/org/chromium/chrome/browser/tabbed_mode/TabbedRootUiCoordinator.java
++++ b/chrome/android/java/src/org/chromium/chrome/browser/tabbed_mode/TabbedRootUiCoordinator.java
+@@ -57,6 +57,7 @@
+ import org.chromium.build.BuildConfig;
+ import org.chromium.build.annotations.EnsuresNonNull;
+ import org.chromium.build.annotations.NullMarked;
++import org.chromium.blanc.island.IslandCoordinator;
+ import org.chromium.build.annotations.Nullable;
+ import org.chromium.chrome.R;
+ import org.chromium.chrome.browser.ActivityTabProvider;
+@@ -198,6 +199,7 @@
+ import org.chromium.chrome.browser.sync.synced_set_up.CrossDeviceSettingImporter;
+ import org.chromium.chrome.browser.tab.RequestDesktopUtils;
+ import org.chromium.chrome.browser.tab.Tab;
++import org.chromium.chrome.browser.tab.TabLaunchType;
+ import org.chromium.chrome.browser.tab.TabAssociatedApp;
+ import org.chromium.chrome.browser.tab.TabFavicon;
+ import org.chromium.chrome.browser.tab.TabSelectionType;
+@@ -755,6 +757,12 @@
+ 
+         getAppBrowserControlsVisibilityDelegate()
+                 .addDelegate(browserControlsManager.getBrowserVisibilityDelegate());
++        // Blanc (patch 0104): Chrome's toolbar stays hidden and the page gets the whole screen;
++        // Blanc's Island floats over it (docs/android/a1-island-spike.md).
++        getAppBrowserControlsVisibilityDelegate()
++                .addDelegate(
++                        new org.chromium.components.browser_ui.util.BrowserControlsVisibilityDelegate(
++                                org.chromium.cc.input.BrowserControlsState.HIDDEN));
+         mRootUiTabObserver = new RootUiTabObserver(tabProvider);
+         mGestureNavLayoutObserver =
+                 new LayoutStateProvider.LayoutStateObserver() {
+@@ -885,6 +893,18 @@
+     @Override
+     @SuppressWarnings({"NullAway", "UseSharedPreferencesManagerFromChromeCheck"})
+     public void onDestroy() {
++        if (mBlancIsland != null) {
++            mBlancIsland.destroy();
++            mBlancIsland = null;
++        }
++        if (mBlancBlockerNotice != null) {
++            mBlancBlockerNotice.destroy();
++            mBlancBlockerNotice = null;
++        }
++        if (mBlancTabKeeper != null) {
++            mBlancTabKeeper.destroy();
++            mBlancTabKeeper = null;
++        }
+         if (mVerticalTabsPreferenceListener != null) {
+             ContextUtils.getAppSharedPreferences()
+                     .unregisterOnSharedPreferenceChangeListener(mVerticalTabsPreferenceListener);
+@@ -1290,12 +1310,516 @@
+                     .asNonNull()
+                     .get()
+                     .setSideUiStateProviderSupplier(mSideUiStateProviderSupplier);
++        }
++    }
++
++    // The palette (A2 Task 4), Blanc for iPhone's: the Island's site opens it. Typed addresses load
++    // in the current tab as typed navigations; an app link goes to Android, whose chooser asks
++    // which app.
++    private void showBlancPalette() {
++        org.chromium.blanc.tabs.BlancTabs tabs = mBlancTabs;
++        if (tabs == null) return;
++        if (mBlancIsland != null) mBlancIsland.setSheetOpen(true);
++        org.chromium.blanc.palette.PaletteSheet palette =
++                org.chromium.blanc.palette.PaletteSheet.show(
++                        mActivity,
++                        tabs,
++                        new org.chromium.blanc.palette.PaletteSheet.Callbacks() {
++                            @Override
++                            public void load(String url) {
++                                loadBlancTyped(url);
++                            }
++
++                            @Override
++                            public void openTab(String url) {
++                                tabs.open(url);
++                            }
++
++                            @Override
++                            public void setTheme(String argument) {
++                                org.chromium.base.shared_preferences.SharedPreferencesManager prefs =
++                                        org.chromium.chrome.browser.preferences.ChromeSharedPreferences
++                                                .getInstance();
++                                String key =
++                                        org.chromium.chrome.browser.preferences.ChromePreferenceKeys
++                                                .UI_THEME_SETTING;
++                                String[] names = {"system", "light", "dark"};
++                                int current = Math.max(0, Math.min(2, prefs.readInt(key, 0)));
++                                String next =
++                                        org.chromium.blanc.tabs.SlashCommands.nextTheme(
++                                                names[current], argument);
++                                prefs.writeInt(key, java.util.Arrays.asList(names).indexOf(next));
++                            }
++
++                            @Override
++                            public java.util.List<org.chromium.blanc.tabs.QuickSwitcher.Page>
++                                    favorites() {
++                                return blancFavorites();
++                            }
++
++                            @Override
++                            public void find() {
++                                showBlancFind();
++                            }
++
++                            @Override
++                            public void notice(String text) {
++                                android.widget.Toast.makeText(mActivity, text, android.widget.Toast.LENGTH_LONG).show();
++                            }
++
++                            @Override
++                            public void sync() {
++                                org.chromium.blanc.sync.SyncSheet.open(
++                                        mActivity,
++                                        (permission, done) ->
++                                                mWindowAndroid
++                                                        .requestPermissions(
++                                                                new String[] {permission},
++                                                                (permissions, results) ->
++                                                                        done.onResult(
++                                                                                results.length > 0
++                                                                                        && results[0]
++                                                                                                == android.content.pm.PackageManager.PERMISSION_GRANTED)));
++                            }
++
++                            @Override
++                            public void blockAds() {
++                                blancBlocking().blockAds();
++                            }
++
++                            @Override
++                            public void allowAds() {
++                                blancBlocking().allowAds();
++                            }
++                        });
++        palette.setOnDismissListener(
++                d -> {
++                    if (mBlancIsland != null) mBlancIsland.setSheetOpen(false);
++                });
++    }
++
++    private void loadBlancTyped(String url) {
++        Tab tab = mActivityTabProvider.get();
++        if (org.chromium.blanc.address.AddressInput.interpret(url).kind
++                == org.chromium.blanc.address.AddressInput.Kind.HANDOFF) {
++            try {
++                mActivity.startActivity(
++                        new android.content.Intent(
++                                android.content.Intent.ACTION_VIEW, android.net.Uri.parse(url)));
++            } catch (android.content.ActivityNotFoundException e) {
++                // No app handles it: nothing opens, as on the iPhone.
++            }
++        } else if (tab != null) {
++            tab.loadUrl(
++                    new org.chromium.content_public.browser.LoadUrlParams(
++                            url,
++                            org.chromium.ui.base.PageTransition.TYPED
++                                    | org.chromium.ui.base.PageTransition.FROM_ADDRESS_BAR));
++        }
++    }
++
++    // Favorites for the palette's Quick Switcher: every bookmarked address, from Chromium's model.
++    private void blancSendActive() {
++        Tab tab = mActivityTabProvider.get();
++        if (tab == null) return;
++        java.util.List<org.chromium.blanc.sync.OtherDevices.Target> targets =
++                org.chromium.blanc.sync.OtherDevices.targets();
++        String[] names = new String[targets.size()];
++        for (int i = 0; i < names.length; i++) names[i] = targets.get(i).name;
++        String url = tab.getUrl().getSpec();
++        String title = tab.getTitle();
++        new android.app.AlertDialog.Builder(mActivity)
++                .setItems(
++                        names,
++                        (dialog, which) ->
++                                org.chromium.blanc.sync.OtherDevices.send(
++                                        url,
++                                        title,
++                                        targets.get(which),
++                                        status ->
++                                                android.widget.Toast.makeText(
++                                                                mActivity,
++                                                                org.chromium.blanc.palette.PaletteSheet.sendResult(
++                                                                        mActivity, status, names[which]),
++                                                                android.widget.Toast.LENGTH_LONG)
++                                                        .show()))
++                .show();
++    }
++
++    private java.util.List<org.chromium.blanc.tabs.QuickSwitcher.Page> blancFavorites() {
++        java.util.List<org.chromium.blanc.tabs.QuickSwitcher.Page> out = new java.util.ArrayList<>();
++        Tab tab = mActivityTabProvider.get();
++        if (tab == null) return out;
++        BookmarkModel model = BookmarkModel.getForProfile(tab.getProfile().getOriginalProfile());
++        if (!model.isBookmarkModelLoaded()) return out;
++        java.util.ArrayDeque<org.chromium.components.bookmarks.BookmarkId> folders =
++                new java.util.ArrayDeque<>();
++        org.chromium.components.bookmarks.BookmarkId root = model.getRootFolderId();
++        if (root != null) folders.add(root);
++        while (!folders.isEmpty() && out.size() < 2000) {
++            for (org.chromium.components.bookmarks.BookmarkId id : model.getChildIds(folders.poll())) {
++                org.chromium.components.bookmarks.BookmarkItem item = model.getBookmarkById(id);
++                if (item == null) continue;
++                if (item.isFolder()) {
++                    folders.add(id);
++                } else {
++                    out.add(
++                            new org.chromium.blanc.tabs.QuickSwitcher.Page(
++                                    String.valueOf(id.getId()),
++                                    item.getTitle(),
++                                    item.getUrl().getSpec()));
++                }
++            }
+         }
++        return out;
+     }
+ 
++    // The tab grid (A2 Task 5), Blanc for iPhone's: the Island's tabs button and a swipe from it
++    // into the page open it. Card images come from Chromium's tab captures.
++    private void showBlancTabGrid() {
++        org.chromium.blanc.tabs.BlancTabs tabs = mBlancTabs;
++        if (tabs == null) return;
++        if (mBlancIsland != null) mBlancIsland.setSheetOpen(true);
++        org.chromium.blanc.grid.TabGrid grid =
++                org.chromium.blanc.grid.TabGrid.show(
++                        mActivity,
++                        tabs,
++                        (id, width, done) -> {
++                            TabContentManager captures = mTabContentManagerSupplier.get();
++                            if (captures == null) {
++                                done.onResult(null);
++                                return;
++                            }
++                            captures.getTabThumbnailWithCallback(
++                                    Integer.parseInt(id),
++                                    new android.util.Size(width, width),
++                                    done::onResult);
++                        });
++        grid.setOnDismissListener(
++                d -> {
++                    if (mBlancIsland != null) mBlancIsland.setSheetOpen(false);
++                });
++    }
++
++    // Find in page (A2 Task 6): Blanc's bar over Chromium's find, with Chromium's match counts.
++    private void showBlancFind() {
++        Tab tab = mActivityTabProvider.get();
++        org.chromium.content_public.browser.WebContents contents =
++                tab == null ? null : tab.getWebContents();
++        if (tab == null || contents == null) return;
++        org.chromium.components.find_in_page.FindInPageBridge bridge =
++                new org.chromium.components.find_in_page.FindInPageBridge(contents);
++        org.chromium.blanc.find.FindCapsule capsule =
++                org.chromium.blanc.find.FindCapsule.show(
++                        mActivity,
++                        new org.chromium.blanc.find.FindCapsule.Finder() {
++                            @Override
++                            public void find(String text, boolean forward) {
++                                bridge.startFinding(text, forward, /* caseSensitive= */ false);
++                            }
++
++                            @Override
++                            public void stop() {
++                                bridge.stopFinding(/* clearSelection= */ true);
++                            }
++                        },
++                        tab.isIncognito());
++        org.chromium.chrome.browser.tab.TabObserver results =
++                new org.chromium.chrome.browser.tab.TabObserver() {
++                    @Override
++                    public void onFindResultAvailable(
++                            org.chromium.components.find_in_page.FindNotificationDetails details) {
++                        capsule.setResult(details.activeMatchOrdinal, details.numberOfMatches);
++                    }
++
++                    // The bar belongs to this page: it goes when the tab leaves the screen.
++                    @Override
++                    public void onHidden(Tab hidden, @org.chromium.chrome.browser.tab.TabHidingType int reason) {
++                        capsule.dismiss();
++                    }
++
++                    @Override
++                    public void onDestroyed(Tab destroyed) {
++                        capsule.dismiss();
++                    }
++                };
++        tab.addObserver(results);
++        capsule.setOnDismissListener(
++                d -> {
++                    tab.removeObserver(results);
++                    bridge.destroy();
++                });
++    }
++
++    // The Sunrise menu (A1 Task 7): Favorites, Share and New Private Tab, as on the iPhone.
++    private void showBlancMenu(View anchor, Tab tab) {
++        GURL url = tab.getUrl();
++        BookmarkModel bookmarks = BookmarkModel.getForProfile(tab.getProfile().getOriginalProfile());
++        org.chromium.blanc.island.IslandMenu.Context context =
++                new org.chromium.blanc.island.IslandMenu.Context();
++        context.startPage = url.getSpec().startsWith("chrome://blanc/newtab.html");
++        context.blockableSite = UrlUtilities.isHttpOrHttps(url);
++        context.privateTab = tab.isIncognito();
++        org.chromium.blanc.tabs.chromium.ChromiumBlocking blocker = blancBlocker();
++        context.blockingEnabled = blocker.enabled();
++        context.siteProtected = !blocker.excepted();
++        context.blockingUnavailable = blocker.unavailable();
++        context.blockedCount = blocker.blockedCount();
++        context.canSend = !tab.isIncognito() && UrlUtilities.isHttpOrHttps(url);
++        context.hasSendTargets = !org.chromium.blanc.sync.OtherDevices.targets().isEmpty();
++        context.canFavorite = bookmarks.isBookmarkModelLoaded();
++        context.favorite = context.canFavorite && bookmarks.isBookmarked(url);
++        context.loading = tab.isLoading();
++        org.chromium.content_public.browser.WebContents contents = tab.getWebContents();
++        context.desktopSite =
++                contents != null && contents.getNavigationController().getUseDesktopUserAgent();
++        org.chromium.blanc.island.IslandMenuPopup.show(
++                anchor,
++                context,
++                new org.chromium.blanc.island.IslandMenuPopup.Actions() {
++                    @Override
++                    public void toggleFavorite() {
++                        org.chromium.components.bookmarks.BookmarkId saved =
++                                bookmarks.getMostRecentlyAddedUserBookmarkIdForUrl(url);
++                        if (saved != null) {
++                            bookmarks.deleteBookmark(saved);
++                            return;
++                        }
++                        org.chromium.components.bookmarks.BookmarkId folder =
++                                bookmarks.getMobileFolderId();
++                        if (folder == null) return;
++                        bookmarks.addBookmark(
++                                folder, bookmarks.getChildCount(folder), tab.getTitle(), url);
++                    }
++
++                    @Override
++                    public void share() {
++                        Intent send =
++                                new Intent(Intent.ACTION_SEND)
++                                        .setType("text/plain")
++                                        .putExtra(Intent.EXTRA_TEXT, url.getSpec());
++                        mActivity.startActivity(Intent.createChooser(send, null));
++                    }
++
++                    @Override
++                    public void find() {
++                        showBlancFind();
++                    }
++
++                    // The page's whole address, which the Island shows only the site of (#1445).
++                    @Override
++                    public void copyLink() {
++                        android.content.ClipboardManager clipboard =
++                                mActivity.getSystemService(android.content.ClipboardManager.class);
++                        if (clipboard == null) return;
++                        clipboard.setPrimaryClip(
++                                android.content.ClipData.newPlainText(url.getSpec(), url.getSpec()));
++                        android.widget.Toast.makeText(
++                                        mActivity,
++                                        org.chromium.blanc.island.R.string.blanc_pill_notice_link_copied,
++                                        android.widget.Toast.LENGTH_SHORT)
++                                .show();
++                    }
++
++                    // Chromium's own zoom bar, which stays open while the size is stepped, as the
++                    // iPhone's Page Zoom menu does.
++                    @Override
++                    public void pageZoom() {
++                        handleMenuOrKeyboardAction(R.id.page_zoom_id, /* fromMenu= */ true);
++                    }
++
++                    // As Chrome's own menu does it: the site is remembered and the page reloads.
++                    @Override
++                    public void toggleDesktopSite() {
++                        ((org.chromium.chrome.browser.app.ChromeActivity) mActivity)
++                                .onMenuOrKeyboardAction(
++                                        R.id.request_desktop_site_id, /* fromMenu= */ true, null, null);
++                    }
++
++                    @Override
++                    public void send() {
++                        blancSendActive();
++                    }
++
++                    @Override
++                    public void setSiteProtected(boolean on) {
++                        blancBlocking().setSiteProtected(on);
++                    }
++
++                    @Override
++                    public void turnBlockingOn() {
++                        blancBlocking().turnOn();
++                    }
++
++                    @Override
++                    public void retryBlocking() {
++                        blancBlocking().retry();
++                    }
++
++                    @Override
++                    public void newPrivateTab() {
++                        mTabCreatorManagerSupplier
++                                .asNonNull()
++                                .get()
++                                .getTabCreator(true)
++                                .launchNtp(TabLaunchType.FROM_CHROME_UI);
++                    }
++
++                    // The Island has no Reload (#1463); this is Stop while the page loads.
++                    @Override
++                    public void reload() {
++                        if (tab.isLoading()) {
++                            tab.stopLoading();
++                        } else {
++                            tab.reload();
++                        }
++                    }
++
++                    @Override
++                    public void openSettings() {
++                        org.chromium.chrome.browser.settings.SettingsNavigationFactory
++                                .createSettingsNavigation()
++                                .startSettings(mActivity);
++                    }
++                });
++    }
++
++    private org.chromium.chrome.browser.tabmodel.@Nullable TabModelSelectorTabObserver mBlancBlockerNotice;
++
++    // A page the blocker stopped says why by itself, with the way back.
++    private void showBlancBlockerNotice() {
++        var snackbars = mSnackbarManagerSupplier.get();
++        if (snackbars == null) return;
++        var controller =
++                new org.chromium.chrome.browser.ui.messages.snackbar.SnackbarManager.SnackbarController() {
++                    @Override
++                    public void onAction(@Nullable Object actionData) {
++                        blancBlocking().retry();
++                    }
++                };
++        snackbars.dismissSnackbars(controller);
++        snackbars.showSnackbar(
++                org.chromium.chrome.browser.ui.messages.snackbar.Snackbar.make(
++                                mActivity.getString(org.chromium.blanc.island.R.string.blanc_newtab_startup_failed),
++                                controller,
++                                org.chromium.chrome.browser.ui.messages.snackbar.Snackbar.TYPE_ACTION,
++                                org.chromium.chrome.browser.ui.messages.snackbar.Snackbar.UMA_UNKNOWN)
++                        .setAction(mActivity.getString(org.chromium.blanc.island.R.string.blanc_newtab_startup_retry), null));
++    }
++
++    private org.chromium.blanc.tabs.chromium.ChromiumBlocking blancBlocker() {
++        return new org.chromium.blanc.tabs.chromium.ChromiumBlocking(mActivityTabProvider);
++    }
++
++    private org.chromium.blanc.blocking.BlancBlocking blancBlocking() {
++        return new org.chromium.blanc.blocking.BlancBlocking(blancBlocker());
++    }
++
++    private org.chromium.blanc.tabs.chromium.@Nullable BlancTabKeeper mBlancTabKeeper;
++
++    // Blanc's tab operations (A2 Task 3), created with the Island.
++    private org.chromium.blanc.tabs.@Nullable BlancTabs mBlancTabs;
++
++    // Blanc's Island (patch 0104), created once native is ready.
++    private @Nullable IslandCoordinator mBlancIsland;
++
++    private void createBlancIsland() {
++        TabModelSelector selector = mTabModelSelectorSupplier.asNonNull().get();
++        // Blanc's tab operations over Chromium's tab model (A2 Task 3).
++        org.chromium.blanc.tabs.chromium.ChromiumTabStore store =
++                new org.chromium.blanc.tabs.chromium.ChromiumTabStore(
++                        selector, mTabCreatorManagerSupplier.asNonNull().get());
++        // What Chromium doesn't keep across a restart, and Quiet Tabs (A2 Task 7).
++        mBlancTabKeeper =
++                new org.chromium.blanc.tabs.chromium.BlancTabKeeper(
++                        selector,
++                        store,
++                        org.chromium.chrome.browser.tab.TabUtils::isCapturingForMedia,
++                        () -> {
++                            org.chromium.chrome.browser.app.tabmodel.TabModelOrchestrator orchestrator =
++                                    ((org.chromium.chrome.browser.app.ChromeActivity) mActivity)
++                                            .getTabModelOrchestratorSupplier()
++                                            .get();
++                            if (orchestrator != null) orchestrator.getTabPersistentStore().saveState();
++                        });
++        mBlancBlockerNotice =
++                new org.chromium.chrome.browser.tabmodel.TabModelSelectorTabObserver(selector) {
++                    @Override
++                    public void onDidFinishNavigationInPrimaryMainFrame(
++                            Tab tab, org.chromium.content_public.browser.NavigationHandle navigation) {
++                        if (navigation.errorCode() == org.chromium.net.NetError.ERR_BLOCKED_BY_CLIENT
++                                && blancBlocker().unavailable()) {
++                            showBlancBlockerNotice();
++                        }
++                    }
++                };
++        mBlancTabKeeper.start(
++                android.content.Intent.ACTION_VIEW.equals(mActivity.getIntent().getAction()));
++        mActivityLifecycleDispatcher.register(
++                new org.chromium.chrome.browser.lifecycle.PauseResumeWithNativeObserver() {
++                    @Override
++                    public void onResumeWithNative() {}
++
++                    @Override
++                    public void onPauseWithNative() {
++                        if (mBlancTabKeeper != null) mBlancTabKeeper.save();
++                    }
++                });
++        org.chromium.blanc.tabs.BlancTabs tabs =
++                new org.chromium.blanc.tabs.BlancTabs(
++                        store,
++                        android.os.SystemClock::uptimeMillis,
++                        new android.os.Handler(android.os.Looper.getMainLooper())::postDelayed);
++        mBlancTabs = tabs;
++        mBlancIsland =
++                new IslandCoordinator(
++                        mActivity,
++                        mActivityTabProvider.asObservable(),
++                        selector,
++                        mWindowAndroid.getInsetObserver(),
++                        new IslandCoordinator.Callbacks() {
++                            @Override
++                            public void onMenu(View anchor) {
++                                Tab tab = mActivityTabProvider.get();
++                                if (tab != null) showBlancMenu(anchor, tab);
++                            }
++
++                            @Override
++                            public void onAddress() {
++                                showBlancPalette();
++                            }
++
++                            @Override
++                            public void onTabs() {
++                                showBlancTabGrid();
++                            }
++
++                            @Override
++                            public void onNewTab() {
++                                if (selector.isIncognitoSelected()) {
++                                    tabs.newPrivateTab();
++                                } else {
++                                    tabs.newTab();
++                                }
++                            }
++
++                            @Override
++                            public void onClosePrivateTab(Tab tab) {
++                                // Leaving private mode closes the private tab, as on the iPhone.
++                                tabs.close(String.valueOf(tab.getId()));
++                            }
++
++                            @Override
++                            public @Nullable View pageView() {
++                                return mCompositorViewHolderSupplier.get();
++                            }
++                        });
++    }
++
+     @Override
+     public void onFinishNativeInitialization() {
+         super.onFinishNativeInitialization();
++        createBlancIsland();
+         assert mLayoutManager != null;
+ 
+         if (mCountrySupplier != null && mCountrySupplier.get() == null) {
+@@ -2962,9 +3486,8 @@
+         mNotificationPermissionController =
+                 new NotificationPermissionController(mWindowAndroid, rationaleUIDelegateSupplier);
+         NotificationPermissionController.attach(mWindowAndroid, mNotificationPermissionController);
+-        if (mNotificationPermissionController.requestPermissionIfNeeded(/* contextual= */ false)) {
+-            return true;
+-        }
++        // Blanc (patch 0104): no notification prompt at startup, as on the iPhone; Android asks
++        // in context (a download, a site's request) instead.
+ 
+         assert mAdvancedProtectionCoordinator != null;
+         if (mAdvancedProtectionCoordinator.showMessageOnStartupIfNeeded()) {
+diff -ruN a/chrome/android/java/src/org/chromium/chrome/browser/undo_tab_close_snackbar/TabUndoBarController.java b/chrome/android/java/src/org/chromium/chrome/browser/undo_tab_close_snackbar/TabUndoBarController.java
+--- a/chrome/android/java/src/org/chromium/chrome/browser/undo_tab_close_snackbar/TabUndoBarController.java
++++ b/chrome/android/java/src/org/chromium/chrome/browser/undo_tab_close_snackbar/TabUndoBarController.java
+@@ -116,8 +116,7 @@
+                             List<Tab> tabs,
+                             boolean isAllTabs,
+                             @TabClosingSource int closingSource) {
+-                        if (disableUndo(true)) return;
+-                        queueUndoBar(new TabClosureEvent(tabs, isAllTabs));
++                        // Blanc (patch 0104): Blanc's banner offers Undo (BlancTabs, A2 Task 5).
+                     }
+ 
+                     @Override

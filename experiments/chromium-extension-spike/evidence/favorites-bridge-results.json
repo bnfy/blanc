@@ -1,0 +1,59 @@
+{
+  "pullRequest": "https://github.com/bnfy/blanc/pull/858",
+  "commit": "06b3094f3e171ca6b1ba7b315157c57c19b222cf",
+  "chromium": "156.0.8078.36",
+  "build": {
+    "guardedDryRunActions": 2,
+    "actualSteps": 7,
+    "durationSeconds": 35.94,
+    "result": "passed",
+    "idempotentDryRunActions": 0
+  },
+  "runtime": {
+    "bookmarkToggle": "passed",
+    "namedFolderSave": "passed",
+    "startPageLiveRefresh": "passed",
+    "startPageFavoriteLayouts": ["ledger", "shelf", "tally"],
+    "billboardBehavior": "uses recent sites rather than Favorites by design",
+    "historyList": "passed",
+    "quickSwitcherFavoriteAndFallbackIcon": "passed",
+    "bookmarksManagerRoute": "passed",
+    "historyManagerRoute": "passed",
+    "privateHttpPage": {
+      "pillHeartHidden": true,
+      "panelHeartHiddenAfterPanelOpen": true,
+      "toggleWasSilent": true,
+      "errorBannerHidden": true,
+      "favoritesEmpty": true,
+      "historyEmpty": true,
+      "bookmarkedFalse": true
+    },
+    "sameProfilePersistenceAfterQuitRelaunch": "passed",
+    "extensionPicker": [
+      "1Password - Password Manager",
+      "Bitwarden Password Manager",
+      "Grammarly",
+      "MetaMask",
+      "React Developer Tools",
+      "Tampermonkey"
+    ],
+    "extensionServiceWorkers": 6
+  },
+  "cleanup": {
+    "testFavoritesRemaining": 0,
+    "testHistoryEntriesRemaining": 0,
+    "testFolderRemoved": true,
+    "temporaryPrivateWindowClosedOnRelaunch": true,
+    "remainingTabs": ["blanc://newtab/"]
+  },
+  "evidence": {
+    "screenshot": "favorites-bridge-final.png",
+    "firstFailedBuildLog": "/private/tmp/blanc-pr858-build.log",
+    "reviewReport": "/private/tmp/blanc-pr858-review-report.md"
+  },
+  "limitations": [
+    "No authenticated extension account workflow was repeated in this pass.",
+    "No physical click was needed for the bridge assertions; native Cmd-Shift-N opened the private window.",
+    "Billboard intentionally renders recent sites, so Favorites were verified in Ledger, Shelf and Tally."
+  ]
+}

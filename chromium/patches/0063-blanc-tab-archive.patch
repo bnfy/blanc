@@ -1,0 +1,69 @@
+diff --git a/chrome/browser/prefs/browser_prefs.cc b/chrome/browser/prefs/browser_prefs.cc
+--- a/chrome/browser/prefs/browser_prefs.cc
++++ b/chrome/browser/prefs/browser_prefs.cc
+@@ -2103,6 +2103,8 @@
+   registry->RegisterStringPref("blanc.vertical_tabs.text_size", "default");
+   // Tab Archive's first-run offer (F52 spec D5); F52 itself is S3.
+   registry->RegisterStringPref("blanc.tabs.archive", "off");
++  registry->RegisterListPref("blanc.tabs.archive_entries");
++  registry->RegisterDictionaryPref("blanc.tabs.archive_notice");
+   registry->RegisterDictionaryPref("blanc.spaces.meta");
+   // The Start Page's weekly blocked counter (shipping's adblock-stats.json).
+   registry->RegisterDictionaryPref("blanc.blocking.week_stats");
+diff --git a/chrome/browser/extensions/api/settings_private/prefs_util.cc b/chrome/browser/extensions/api/settings_private/prefs_util.cc
+--- a/chrome/browser/extensions/api/settings_private/prefs_util.cc
++++ b/chrome/browser/extensions/api/settings_private/prefs_util.cc
+@@ -242,6 +242,8 @@
+       settings_api::PrefType::kString;
+   (*s_allowlist)["blanc.webrtc.audio_buffer"] = settings_api::PrefType::kString;
+ 
++  (*s_allowlist)["blanc.tabs.archive"] = settings_api::PrefType::kString;
++
+   // Miscellaneous
+   (*s_allowlist)[::embedder_support::kAlternateErrorPagesEnabled] =
+       settings_api::PrefType::kBoolean;
+diff --git a/chrome/browser/resources/settings/appearance_page/appearance_page.ts b/chrome/browser/resources/settings/appearance_page/appearance_page.ts
+--- a/chrome/browser/resources/settings/appearance_page/appearance_page.ts
++++ b/chrome/browser/resources/settings/appearance_page/appearance_page.ts
+@@ -150,6 +150,7 @@
+       blancIslandAutoHidePref_: {type: Object},
+       blancIslandAutoHideStyleOptions_: {type: Array},
+       blancIslandSizeOptions_: {type: Array},
++      blancTabArchiveOptions_: {type: Array},
+       blancAppIconOptions_: {type: Array},
+       blancSurfaceStyleOptions_: {type: Array},
+       sidePanelAlignmentOverridesPref_: {type: Object},
+@@ -225,6 +226,13 @@
+         {value: 'push',
+          name: loadTimeData.getString('blancIslandAutoHideStylePush')},
+       ];
++  protected accessor blancTabArchiveOptions_: DropdownMenuOptionList = [
++    {value: 'off', name: loadTimeData.getString('blancTabArchiveOff')},
++    {value: '12h', name: loadTimeData.getString('blancTabArchive12h')},
++    {value: '1d', name: loadTimeData.getString('blancTabArchive1d')},
++    {value: '7d', name: loadTimeData.getString('blancTabArchive7d')},
++    {value: '30d', name: loadTimeData.getString('blancTabArchive30d')},
++  ];
+   protected accessor blancIslandSizeOptions_: DropdownMenuOptionList = [
+     {value: 'default', name: loadTimeData.getString('blancIslandSizeDefault')},
+     {value: 'large', name: loadTimeData.getString('blancIslandSizeLarge')},
+diff --git a/chrome/browser/resources/settings/appearance_page/appearance_page.html.ts b/chrome/browser/resources/settings/appearance_page/appearance_page.html.ts
+--- a/chrome/browser/resources/settings/appearance_page/appearance_page.html.ts
++++ b/chrome/browser/resources/settings/appearance_page/appearance_page.html.ts
+@@ -101,6 +101,16 @@
+           pref-key="blanc.island.size"
+           label="$i18n{blancIslandSize}"
+           .menuOptions="${this.blancIslandSizeOptions_}">
++      </settings-dropdown-menu>
++    </div>
++    <div class="cr-row" id="blancTabArchiveRow">
++      <div class="flex cr-padded-text" aria-hidden="true">
++        <div>$i18n{blancTabArchive}</div>
++        <div class="secondary">$i18n{blancTabArchiveHint}</div>
++      </div>
++      <settings-dropdown-menu id="blancTabArchive" no-label-float
++          pref-key="blanc.tabs.archive" label="$i18n{blancTabArchive}"
++          .menuOptions="${this.blancTabArchiveOptions_}">
+       </settings-dropdown-menu>
+     </div>
+     <settings-toggle-button id="blancIslandHoverOpen" class="hr"

@@ -1,0 +1,7 @@
+
+/private/tmp/blanc-chromium157-work/experiments/chromium-extension-spike/prototype/host.js
+  64:7  error  'chrome' is not defined  no-undef
+
+✖ 1 problem (1 error, 0 warnings)
+
+{"files":3,"errors":1,"warnings":0}

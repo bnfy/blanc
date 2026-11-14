@@ -1,0 +1,44 @@
+{
+  "checkedOn": "2026-10-28",
+  "repository": {
+    "full_name": "bnfy/blanc",
+    "private": false,
+    "visibility": "public"
+  },
+  "runArtifactApiTotals": [
+    {
+      "runId": 40732848133,
+      "total_count": 0,
+      "returned": 0,
+      "per_page": 100
+    },
+    {
+      "runId": 40732848073,
+      "total_count": 0,
+      "returned": 0,
+      "per_page": 100
+    },
+    {
+      "runId": 40732848065,
+      "total_count": 0,
+      "returned": 0,
+      "per_page": 100
+    },
+    {
+      "runId": 40732848269,
+      "total_count": 0,
+      "returned": 0,
+      "per_page": 100
+    }
+  ],
+  "billingPolicyURL": "https://docs.github.com/en/billing/concepts/product-billing/github-actions",
+  "conclusion": "Standard hosted compute is free for this public repository; account-wide storage and project costs remain unmeasured.",
+  "windowsFailure": {
+    "jobId": 122975636024,
+    "electron": "44.9.1",
+    "test": "test/desktop/modified-link-click-smoke.mjs:168",
+    "actual": "allowed",
+    "expected": "SecurityError",
+    "disposition": "Known paused Electron merge blocker, outside owner-approved native-preview L11 scope."
+  }
+}

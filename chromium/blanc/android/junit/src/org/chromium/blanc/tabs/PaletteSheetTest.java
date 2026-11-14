@@ -1,0 +1,481 @@
+// Copyright 2026 Bananify Creative. MIT; see LICENSE.
+
+package org.chromium.blanc.tabs;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
+
+import android.app.Activity;
+import android.content.ClipboardManager;
+import android.graphics.drawable.GradientDrawable;
+import android.view.View;
+import android.view.inputmethod.EditorInfo;
+
+import org.junit.Before;
+import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.robolectric.Robolectric;
+import org.robolectric.shadows.ShadowLooper;
+
+import org.chromium.base.ContextUtils;
+import org.chromium.blanc.settings.SettingsDestination;
+import org.chromium.base.test.BaseRobolectricTestRunner;
+import org.chromium.blanc.palette.PaletteSheet;
+import org.chromium.blanc.palette.SwipeToCloseRow;
+import org.chromium.blanc.spaces.BlancSpaces;
+import org.chromium.blanc.spaces.SpaceSwitcher;
+import org.chromium.blanc.spaces.SpacesController;
+
+import java.lang.reflect.Proxy;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.concurrent.TimeUnit;
+
+/** The palette as Blanc for iPhone draws it (PaletteSheet.swift), over a plain tab store. */
+@RunWith(BaseRobolectricTestRunner.class)
+public class PaletteSheetTest {
+    private Activity mActivity;
+    private FakeTabStore mStore;
+    private BlancTabs mTabs;
+    private final List<String> mLoaded = new ArrayList<>();
+    private final List<SettingsDestination> mSettings = new ArrayList<>();
+    private final List<String> mOpened = new ArrayList<>();
+    private final List<String> mThemes = new ArrayList<>();
+    private List<QuickSwitcher.Page> mFavorites = new ArrayList<>();
+    private String mA;
+    private String mB;
+    private String mC;
+
+    private final PaletteSheet.Callbacks mCallbacks =
+            new PaletteSheet.Callbacks() {
+                @Override
+                public void load(String url) {
+                    mLoaded.add(url);
+                }
+
+                @Override
+                public void openTab(String url) {
+                    mOpened.add(url);
+                }
+
+                @Override
+                public void setTheme(String argument) {
+                    mThemes.add(argument);
+                }
+
+                @Override
+                public List<QuickSwitcher.Page> favorites() {
+                    return mFavorites;
+                }
+
+                @Override
+                public void find() {
+                    mThemes.add("find");
+                }
+
+                @Override
+                public void sync() {}
+
+                @Override
+                public void settings(SettingsDestination destination) {
+                    mSettings.add(destination);
+                }
+
+                @Override
+                public void notice(String text) {}
+
+                @Override
+                public void blockAds() {
+                    mThemes.add("block-ads");
+                }
+
+                @Override
+                public void allowAds() {
+                    mThemes.add("allow-ads");
+                }
+            };
+
+    @Before
+    public void setUp() {
+        mActivity = Robolectric.buildActivity(Activity.class).setup().get();
+        mStore = new FakeTabStore();
+        mTabs = new BlancTabs(mStore, () -> 0);
+        mA = mStore.create("https://a.example/", false, null, -1);
+        mB = mStore.create("https://b.example/", false, null, -1);
+        mC = mStore.create("https://example.com/", false, null, -1);
+        String g = mTabs.createGroup("Research", mA);
+        mTabs.moveToGroup(mB, g);
+        mStore.select(mC);
+    }
+
+    private PaletteSheet show() {
+        PaletteSheet sheet = PaletteSheet.show(mActivity, mTabs, mCallbacks);
+        ShadowLooper.idleMainLooper();
+        return sheet;
+    }
+
+    private static List<String> titles(PaletteSheet sheet, PaletteSheet.RowKind kind) {
+        List<String> out = new ArrayList<>();
+        for (PaletteSheet.Row row : sheet.rows()) if (row.kind == kind) out.add(row.title);
+        return out;
+    }
+
+    /** A row by its title; the address row, which repeats the current tab's address, never. */
+    private static PaletteSheet.Row row(PaletteSheet sheet, String title) {
+        for (PaletteSheet.Row row : sheet.rows()) {
+            if (row.title.equals(title) && row.kind != PaletteSheet.RowKind.ADDRESS) return row;
+        }
+        throw new AssertionError("no row " + title);
+    }
+
+    /** Lets a row's slide finish. */
+    private static void settle() {
+        ShadowLooper.idleMainLooper(1, TimeUnit.SECONDS);
+    }
+
+    private static void type(PaletteSheet sheet, String text) {
+        sheet.field().setText(text);
+        ShadowLooper.idleMainLooper();
+    }
+
+    private static void go(PaletteSheet sheet) {
+        sheet.field().onEditorAction(EditorInfo.IME_ACTION_GO);
+        ShadowLooper.idleMainLooper();
+    }
+
+    @Test
+    public void atRestItListsTheTabsByGroupWithTheActiveTabSelected() {
+        PaletteSheet sheet = show();
+        assertEquals(PaletteSheet.Mode.TABS, sheet.mode());
+        assertEquals(List.of("Open tabs"), titles(sheet, PaletteSheet.RowKind.HEADING));
+        assertEquals(List.of("Research"), titles(sheet, PaletteSheet.RowKind.GROUP));
+        assertEquals("2", row(sheet, "Research").subtitle);
+        assertEquals(List.of("https://a.example/", "https://b.example/", "https://example.com/"),
+                titles(sheet, PaletteSheet.RowKind.TAB));
+        assertTrue(row(sheet, "https://example.com/").selected);
+        assertFalse(row(sheet, "https://a.example/").selected);
+    }
+
+    @Test
+    public void aGroupsHeaderFoldsIt() {
+        PaletteSheet sheet = show();
+        row(sheet, "Research").view.performClick();
+        ShadowLooper.idleMainLooper();
+        assertEquals(List.of("https://example.com/"), titles(sheet, PaletteSheet.RowKind.TAB));
+        assertTrue(mStore.groups().get(0).collapsed);
+        // As desktop's panel and the shared scenario (F3-3) show it.
+        assertEquals(List.of("2 tabs tucked away"), titles(sheet, PaletteSheet.RowKind.TUCKED));
+    }
+
+    @Test
+    public void privateTabsAreTheirOwnSectionAfterTheNormalTabs() {
+        mStore.create("https://p.example/", true, null, -1);
+        mStore.select(mC);
+        PaletteSheet sheet = show();
+        assertEquals(List.of("Open tabs", "Private"), titles(sheet, PaletteSheet.RowKind.HEADING));
+        List<String> tabs = titles(sheet, PaletteSheet.RowKind.TAB);
+        assertEquals("https://p.example/", tabs.get(tabs.size() - 1));
+    }
+
+    @Test
+    public void tappingATabSwitchesToItAndItsCloseButtonClosesIt() {
+        PaletteSheet sheet = show();
+        row(sheet, "https://a.example/").view.performClick();
+        assertEquals(mA, mStore.activeId(false));
+        assertFalse(sheet.isShowing());
+        PaletteSheet again = show();
+        PaletteSheet.Row b = row(again, "https://b.example/");
+        assertEquals("Close https://b.example/", b.button.getContentDescription().toString());
+        b.button.performClick();
+        ShadowLooper.idleMainLooper();
+        assertFalse(titles(again, PaletteSheet.RowKind.TAB).contains("https://b.example/"));
+    }
+
+    @Test
+    public void slashListsA2sCommandsWithTheirHints() {
+        PaletteSheet sheet = show();
+        type(sheet, "/");
+        assertEquals(PaletteSheet.Mode.SLASH, sheet.mode());
+        assertEquals(List.of("/favorites", "/history", "/settings", "/sync", "/new", "/private", "/close", "/reopen", "/group",
+                "/ungroup", "/close-group", "/send", "/find", "/block-ads", "/allow-ads", "/theme", "/space"), titles(sheet, PaletteSheet.RowKind.COMMAND));
+        assertEquals("Close this tab", row(sheet, "/close").subtitle);
+        type(sheet, "/cl");
+        assertEquals(List.of("/close", "/close-group"), titles(sheet, PaletteSheet.RowKind.COMMAND));
+        type(sheet, "/zz");
+        assertEquals(List.of("No matching command"), titles(sheet, PaletteSheet.RowKind.EMPTY));
+    }
+
+    @Test
+    public void aBareGroupCommandAsksForANameAndANamedOneGroupsTheTab() {
+        PaletteSheet sheet = show();
+        type(sheet, "/group");
+        go(sheet);
+        assertTrue(sheet.isShowing());
+        assertEquals("/group ", sheet.field().getText().toString());
+        type(sheet, "/group research");
+        go(sheet);
+        assertFalse(sheet.isShowing());
+        assertEquals(1, mStore.groups().size());
+        assertEquals(mStore.groups().get(0).id, mStore.tabs(false).get(2).groupId);
+    }
+
+    @Test
+    public void aSearchGoesToTheEngineChosenInSettings() {
+        ContextUtils.getAppSharedPreferences().edit().putString("blanc.search_engine", "kagi").commit();
+        try {
+            go(withText("hello world"));
+            assertEquals("https://kagi.com/search?q=hello%20world", mLoaded.get(mLoaded.size() - 1));
+        } finally {
+            ContextUtils.getAppSharedPreferences().edit().remove("blanc.search_engine").commit();
+        }
+    }
+
+    @Test
+    public void commandsRunThroughTheTabsAndCallbacks() {
+        go(withText("/new"));
+        assertEquals(4, mStore.tabs(false).size());
+        go(withText("/close"));
+        assertEquals(3, mStore.tabs(false).size());
+        go(withText("/reopen"));
+        assertEquals(4, mStore.tabs(false).size());
+        go(withText("/favorites"));
+        go(withText("/theme dark"));
+        assertEquals(List.of("chrome://blanc/bookmarks.html"), mOpened);
+        assertEquals(List.of("dark"), mThemes);
+        go(withText("/find"));
+        assertEquals(List.of("dark", "find"), mThemes);
+        go(withText("/private"));
+        assertEquals(1, mStore.tabs(true).size());
+    }
+
+    private PaletteSheet withText(String text) {
+        PaletteSheet sheet = show();
+        type(sheet, text);
+        return sheet;
+    }
+
+    @Test
+    public void typingSearchesTabsAndFavorites() {
+        mFavorites = List.of(new QuickSwitcher.Page("f", "Example docs", "https://docs.example/"));
+        PaletteSheet sheet = show();
+        type(sheet, "exa");
+        assertEquals(PaletteSheet.Mode.SWITCHER, sheet.mode());
+        List<String> results = titles(sheet, PaletteSheet.RowKind.RESULT);
+        assertTrue(results.size() <= 12);
+        assertEquals("Example docs", results.get(results.size() - 1));
+        // An address with no match: there's no search to offer either (#1445).
+        type(sheet, "zzzz.example");
+        assertEquals(List.of("No matches. Press Return to open it as an address or search."),
+                titles(sheet, PaletteSheet.RowKind.EMPTY));
+    }
+
+    @Test
+    public void goOpensAStrongMatchOrLoadsTheTypedAddressOrSearch() {
+        mStore.select(mA);
+        go(withText("example.com"));
+        assertEquals(List.of("https://example.com"), mLoaded);
+        go(withText("how tall is everest"));
+        assertEquals("https://duckduckgo.com/?q=how%20tall%20is%20everest", mLoaded.get(1));
+        PaletteSheet sheet = withText("b.example/");
+        go(sheet);
+        assertEquals(3, mLoaded.size());
+        PaletteSheet strong = withText("research");
+        go(strong);
+        assertEquals(3, mLoaded.size());
+        assertEquals(mA, mStore.activeId(false));
+    }
+
+    @Test
+    public void theFooterOpensANewTabAndThePages() {
+        PaletteSheet sheet = show();
+        sheet.newTabButton().performClick();
+        assertEquals(4, mStore.tabs(false).size());
+        assertFalse(sheet.isShowing());
+        PaletteSheet again = show();
+        again.historyButton().performClick();
+        assertEquals(List.of("chrome://blanc/history.html"), mOpened);
+    }
+
+    @Test
+    public void controlsHaveTheIphonesLabels() {
+        PaletteSheet sheet = show();
+        assertEquals("Search, enter address, or / command", sheet.field().getHint().toString());
+        assertEquals("Clear search", sheet.clearButton().getContentDescription().toString());
+        assertEquals("Collapse Island", sheet.collapseButton().getContentDescription().toString());
+        assertEquals("Favorites", sheet.favoritesButton().getContentDescription().toString());
+        sheet.collapseButton().performClick();
+        assertFalse(sheet.isShowing());
+    }
+
+    @Test
+    public void blancAddressesOpenTheServedPagesAndUnservedOnesNothing() {
+        go(withText("blanc://history"));
+        assertEquals(List.of("chrome://blanc/history.html"), mLoaded);
+        go(withText("blanc://newtab/?private=1"));
+        assertEquals("chrome://blanc/newtab.html?private=1", mLoaded.get(1));
+        PaletteSheet settings = withText("blanc://settings");
+        go(settings);
+        assertEquals(2, mLoaded.size());
+        assertFalse(settings.isShowing());
+    }
+
+    @Test
+    public void blancSettingsAddressesOpenSettingsAtTheirPart() {
+        go(withText("blanc://settings"));
+        go(withText("blanc://settings#sync"));
+        go(withText("blanc://settings#privacy"));
+        assertEquals(List.of(SettingsDestination.ROOT, SettingsDestination.SYNC, SettingsDestination.PRIVACY), mSettings);
+        assertTrue(mLoaded.isEmpty());
+    }
+
+    @Test
+    public void slashSettingsOpensSettings() {
+        PaletteSheet sheet = withText("/settings");
+        go(sheet);
+        assertEquals(List.of(SettingsDestination.ROOT), mSettings);
+        assertFalse(sheet.isShowing());
+    }
+
+    @Test
+    public void theSettingsButtonInTheFooterOpensSettings() {
+        PaletteSheet sheet = show();
+        assertEquals("Settings", sheet.settingsButton().getContentDescription().toString());
+        sheet.settingsButton().performClick();
+        assertEquals(List.of(SettingsDestination.ROOT), mSettings);
+        assertFalse(sheet.isShowing());
+    }
+
+    private static void withSpace(Runnable body) {
+        BlancSpaces library = new BlancSpaces();
+        assertEquals(BlancSpaces.Result.OK, library.create("Work", BlancSpaces.COLORS[0], "briefcase"));
+        SpaceSwitcher.Tabs unused = (SpaceSwitcher.Tabs) Proxy.newProxyInstance(
+                SpaceSwitcher.Tabs.class.getClassLoader(), new Class<?>[] {SpaceSwitcher.Tabs.class}, (o, m, args) -> null);
+        SpacesController.setCurrent(new SpacesController(library, unused));
+        try {
+            body.run();
+        } finally {
+            SpacesController.setCurrent(null);
+        }
+    }
+
+    @Test
+    public void theFooterHasNoSpaceMarkBeforeAnySpaceExists() {
+        assertEquals(View.GONE, show().spaceButton().getVisibility());
+    }
+
+    // The closed Island has no room for it, so the open Island carries the mark.
+    @Test
+    public void theFooterShowsTheSpaceMarkOnceASpaceExists() {
+        withSpace(() -> {
+            PaletteSheet sheet = show();
+            assertEquals(View.VISIBLE, sheet.spaceButton().getVisibility());
+            assertEquals("Spaces", sheet.spaceButton().getContentDescription().toString());
+        });
+    }
+
+    @Test
+    public void aPrivateTabsFooterHasNoSpaceMark() {
+        withSpace(() -> {
+            mStore.select(mStore.create("https://private.example/", true, null, -1));
+            assertEquals(View.GONE, show().spaceButton().getVisibility());
+        });
+    }
+
+    @Test
+    public void aGroupsHeaderSaysItsCountAndWhetherItIsFolded() {
+        PaletteSheet sheet = show();
+        assertEquals("Research, 2 tabs, Fold group", row(sheet, "Research").view.getContentDescription().toString());
+    }
+
+    @Test
+    public void theBlockingCommandsRunThroughTheCallbacks() {
+        go(withText("/block-ads"));
+        go(withText("/allow-ads"));
+        assertEquals(List.of("block-ads", "allow-ads"), mThemes);
+    }
+
+    @Test
+    public void aSendResultNamesTheDevice() {
+        assertEquals("Sent to Mac.", PaletteSheet.sendResult(Robolectric.buildActivity(Activity.class).get(), "sent", "Mac"));
+    }
+
+    // #1445: the page's whole address leads the resting list; a tap puts it in the field to
+    // edit, and its button copies it.
+    @Test
+    public void atRestTheCurrentAddressLeadsAndCanBeEditedOrCopied() {
+        PaletteSheet sheet = show();
+        PaletteSheet.Row address = sheet.rows().get(0);
+        assertEquals(PaletteSheet.RowKind.ADDRESS, address.kind);
+        assertEquals("https://example.com/", address.title);
+        assertEquals("Edit address, https://example.com/", address.view.getContentDescription().toString());
+        address.view.performClick();
+        assertEquals("https://example.com/", sheet.field().getText().toString());
+        assertTrue(sheet.isShowing());
+        PaletteSheet again = show();
+        PaletteSheet.Row copy = again.rows().get(0);
+        assertEquals("Copy Link", copy.button.getContentDescription().toString());
+        copy.button.performClick();
+        ClipboardManager clipboard = mActivity.getSystemService(ClipboardManager.class);
+        assertEquals("https://example.com/", clipboard.getPrimaryClip().getItemAt(0).getText().toString());
+        assertFalse(again.isShowing());
+    }
+
+    @Test
+    public void blancsOwnPagesHaveNoAddressRow() {
+        mStore.select(mStore.create("chrome://blanc/newtab.html", false, null, -1));
+        assertEquals(PaletteSheet.RowKind.HEADING, show().rows().get(0).kind);
+    }
+
+    // #1463/#1466: no × to miss; a swipe shows the trash, and TalkBack has Close Tab.
+    @Test
+    public void aTabRowHidesItsTrashUntilSwipedAndTalkBackCanCloseIt() {
+        PaletteSheet sheet = show();
+        PaletteSheet.Row b = row(sheet, "https://b.example/");
+        assertEquals(View.GONE, ((View) b.button.getParent()).getVisibility());
+        ((SwipeToCloseRow) b.view.getParent()).open();
+        settle();
+        assertEquals(View.VISIBLE, ((View) b.button.getParent()).getVisibility());
+        // Opening another row shuts this one: one row open at a time.
+        ((SwipeToCloseRow) row(sheet, "https://a.example/").view.getParent()).open();
+        settle();
+        assertEquals(View.GONE, ((View) b.button.getParent()).getVisibility());
+        assertTrue(b.view.performAccessibilityAction(SwipeToCloseRow.closeActionId(), null));
+        ShadowLooper.idleMainLooper();
+        assertFalse(titles(sheet, PaletteSheet.RowKind.TAB).contains("https://b.example/"));
+    }
+
+    // A group's header and tabs share one tinted block, so loose tabs never read as members.
+    @Test
+    public void aGroupsTabsShareItsTintAndLooseTabsDoNot() {
+        PaletteSheet sheet = show();
+        View grouped = (View) row(sheet, "https://a.example/").view.getParent();
+        View loose = (View) row(sheet, "https://example.com/").view.getParent();
+        assertTrue(grouped.getBackground() instanceof GradientDrawable);
+        assertEquals(null, loose.getBackground());
+    }
+
+    // #1445: what Go does comes first: a strong match, or Search for "…" with the engine.
+    @Test
+    public void typedTextLeadsWithWhatGoDoes() {
+        mFavorites = List.of(new QuickSwitcher.Page("f", "Kitten care", "https://kittens.example/"));
+        PaletteSheet sheet = show();
+        // Its letters in order, not a run of them: a weak match, so Go searches.
+        type(sheet, "kittencare");
+        assertEquals(PaletteSheet.RowKind.SEARCH, sheet.rows().get(0).kind);
+        assertEquals("Search for \u201ckittencare\u201d", sheet.rows().get(0).title);
+        assertEquals("DuckDuckGo", sheet.rows().get(0).subtitle);
+        assertEquals(List.of("Kitten care"), titles(sheet, PaletteSheet.RowKind.RESULT));
+        type(sheet, "research");
+        assertEquals(PaletteSheet.RowKind.RESULT, sheet.rows().get(0).kind);
+        type(sheet, "example.com");
+        assertFalse(titles(sheet, PaletteSheet.RowKind.SEARCH).size() > 0);
+        // A run of the title's letters is strong: the match comes first and Go opens it.
+        type(sheet, "kitten");
+        assertEquals("Kitten care", sheet.rows().get(0).title);
+        assertEquals(PaletteSheet.RowKind.SEARCH, sheet.rows().get(1).kind);
+        type(sheet, "kittencare");
+        sheet.rows().get(0).view.performClick();
+        assertEquals("https://duckduckgo.com/?q=kittencare", mLoaded.get(mLoaded.size() - 1));
+    }
+}

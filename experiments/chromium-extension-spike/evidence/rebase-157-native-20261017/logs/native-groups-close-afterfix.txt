@@ -1,0 +1,2 @@
+{"name":"native-ungroup-last-member-removes-group"}
+{"name":"native-close-group","closedFixtureCount":3,"tabs":[{"id":"1593473439","url":"blanc://newtab/"},{"id":"1593473478","url":"http://127.0.0.1:8786/GroupsD"},{"id":"1593473479","url":"http://127.0.0.1:8786/GroupsE"},{"id":"1593473480","url":"http://127.0.0.1:8786/GroupsF"}],"groups":[]}

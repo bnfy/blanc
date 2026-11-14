@@ -1,0 +1,22 @@
+{
+  "pidsChecked": [
+    "7548",
+    "7557",
+    "7577",
+    "7584"
+  ],
+  "removed": [
+    "profile-regular",
+    "profile-private"
+  ],
+  "exitCodes": [
+    {
+      "code": 0,
+      "signal": null
+    },
+    {
+      "code": 0,
+      "signal": null
+    }
+  ]
+}

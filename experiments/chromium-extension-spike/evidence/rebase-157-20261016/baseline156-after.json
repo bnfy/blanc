@@ -1,0 +1,5 @@
+{
+  "out/BlancPrototype/args.gn": true,
+  "out/BlancPrototype/.blanc-build-environment.json": true,
+  "third_party/llvm-build/Release+Asserts/cr_build_revision": true
+}

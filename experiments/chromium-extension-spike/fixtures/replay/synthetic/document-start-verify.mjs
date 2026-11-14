@@ -1,0 +1,13 @@
+import fs from 'node:fs';import path from 'node:path';import assert from 'node:assert/strict';import {verifyTiming} from './scriptlet-timing-verify.mjs';
+const [timingRoot,safetyRoot]=process.argv.slice(2),read=(root,name)=>JSON.parse(fs.readFileSync(path.join(root,name)));
+const report=read(timingRoot,'report.json');assert(report.completed&&report.cleanup.removed);assert.equal(report.observeInjection,false);
+const timing=verifyTiming(['electron-a','electron-b','chromium-a','chromium-b'].map(l=>read(timingRoot,l+'.json'))),native=timing.observations.filter(p=>p.label.startsWith('chromium'));
+assert.equal(native.length,12);assert(native.every(p=>p.earlyConstant&&p.earlyGetter&&p.earlyFetchPrevented));
+const safety=read(safetyRoot,'report.json');assert(safety.completed&&safety.cleanup.removed);
+assert.deepEqual(safety.checks.map(c=>c.name),['regular-profile-binding','scriptlet-exception-after-filter-generation-change','replacement-generation-restores-early-payload','hostname-navigation-does-not-reuse-other-document-payload','popup-and-stale-generation-cannot-deliver-code','private-profile-binding','missing-payload-timeout-blocks-first-inline']);
+assert(safety.checks.every(c=>c.passed));
+const [regular,exception,replaced,host,auth,priv,timeout]=safety.checks;
+assert(regular.initial.early.flag&&regular.initial.early.getter);assert.equal(regular.initial.fetch,'');assert.equal(exception.exempt.flag,false);assert.equal(exception.exempt.getter,false);assert(replaced.restored.flag&&replaced.restored.getter);assert.equal(host.other.flag,false);assert.equal(host.other.getter,false);assert(host.returned.flag&&host.returned.getter);assert.equal(auth.refused.popup,'blocked');assert.equal(auth.refused['stale-background'],403);assert.equal(priv.initial.early.flag,false);assert.equal(priv.initial.fetch,'NETWORK LEAK');assert.equal(timeout.dom.pageRan,false);
+const hit='https://page.blanc-fixture.test/blanc-fixture/cosmetic/prevented-safety';assert.equal(safety['missing-payload'].arrivals.filter(x=>x.url===hit).length,0);assert.equal(safety.regular.arrivals.filter(x=>x.url===hit).length,1);assert.equal(safety.private.arrivals.filter(x=>x.url===hit).length,1);
+for(const key of ['regular','private','missing-payload'])assert(safety[key].faults.every(f=>['plaintext-refused','connect-refused'].includes(f.code)&&['clients2.google.com','www.google.com:443','accounts.google.com:443'].includes(f.authority)));
+console.log(JSON.stringify({verified:true,nativeEarlyPasses:12,safetyChecks:7,electronEarlyPasses:timing.observations.filter(p=>p.label.startsWith('electron')&&p.earlyConstant&&p.earlyGetter&&p.earlyFetchPrevented).length,mainFramesOnly:true,latencyQualified:false,fullAcceptance:false},null,2));

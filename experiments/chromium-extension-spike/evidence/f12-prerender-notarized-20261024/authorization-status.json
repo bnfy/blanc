@@ -1,0 +1,6 @@
+{
+  "status": "authorized by user in 1Password dialog",
+  "ownerReply": "Authorized\u2014continue",
+  "automatedAuthorize": "rejected by automatic approval review; no automated retry",
+  "submissionProcess": "existing notarization invocation resumed after owner authorization"
+}

@@ -1,0 +1,109 @@
+{
+  "phase": "owner-confirmed-two-restarts",
+  "processNamesOnly": [
+    {
+      "pid": 31448,
+      "executable": "/Applications/Blanc.app/Contents/MacOS/Blanc"
+    },
+    {
+      "pid": 33920,
+      "executable": "/Applications/Blanc.app/Contents/Frameworks/Blanc Helper.app/Contents/MacOS/Blanc Helper"
+    },
+    {
+      "pid": 33921,
+      "executable": "/Applications/Blanc.app/Contents/Frameworks/Blanc Helper.app/Contents/MacOS/Blanc Helper"
+    },
+    {
+      "pid": 35334,
+      "executable": "/Applications/Blanc.app/Contents/Frameworks/Blanc Helper (Renderer).app/Contents/MacOS/Blanc Helper (Renderer)"
+    },
+    {
+      "pid": 38466,
+      "executable": "/Applications/Blanc.app/Contents/Frameworks/Blanc Helper (Renderer).app/Contents/MacOS/Blanc Helper (Renderer)"
+    },
+    {
+      "pid": 57290,
+      "executable": "/private/var/folders/4x/r7mr2b5d4q53x8nbf_trvcxw0000gn/T/AppTranslocation/703B0C38-1674-4801-9EF5-09D9B55B9E56/d/Blanc Chromium Preview-2.app/Contents/MacOS/Blanc Prototype"
+    },
+    {
+      "pid": 57292,
+      "executable": "/var/folders/4x/r7mr2b5d4q53x8nbf_trvcxw0000gn/T/AppTranslocation/703B0C38-1674-4801-9EF5-09D9B55B9E56/d/Blanc Chromium Preview-2.app/Contents/Frameworks/Blanc Prototype Framework.framework/Versions/157.0.8103.15/Helpers/chrome_crashpad_handler"
+    },
+    {
+      "pid": 57294,
+      "executable": "/var/folders/4x/r7mr2b5d4q53x8nbf_trvcxw0000gn/T/AppTranslocation/703B0C38-1674-4801-9EF5-09D9B55B9E56/d/Blanc Chromium Preview-2.app/Contents/Frameworks/Blanc Prototype Framework.framework/Versions/157.0.8103.15/Helpers/chrome_crashpad_handler"
+    },
+    {
+      "pid": 57296,
+      "executable": "/private/var/folders/4x/r7mr2b5d4q53x8nbf_trvcxw0000gn/T/AppTranslocation/703B0C38-1674-4801-9EF5-09D9B55B9E56/d/Blanc Chromium Preview-2.app/Contents/Frameworks/Blanc Prototype Framework.framework/Versions/157.0.8103.15/Helpers/Blanc Prototype Helper (Aperitif).app/Contents/MacOS/Blanc Prototype Helper (Aperitif)"
+    },
+    {
+      "pid": 57297,
+      "executable": "/private/var/folders/4x/r7mr2b5d4q53x8nbf_trvcxw0000gn/T/AppTranslocation/703B0C38-1674-4801-9EF5-09D9B55B9E56/d/Blanc Chromium Preview-2.app/Contents/Frameworks/Blanc Prototype Framework.framework/Versions/157.0.8103.15/Helpers/Blanc Prototype Helper (Aperitif).app/Contents/MacOS/Blanc Prototype Helper (Aperitif)"
+    },
+    {
+      "pid": 57298,
+      "executable": "/private/var/folders/4x/r7mr2b5d4q53x8nbf_trvcxw0000gn/T/AppTranslocation/703B0C38-1674-4801-9EF5-09D9B55B9E56/d/Blanc Chromium Preview-2.app/Contents/Frameworks/Blanc Prototype Framework.framework/Versions/157.0.8103.15/Helpers/Blanc Prototype Helper (Aperitif).app/Contents/MacOS/Blanc Prototype Helper (Aperitif)"
+    },
+    {
+      "pid": 57301,
+      "executable": "/private/var/folders/4x/r7mr2b5d4q53x8nbf_trvcxw0000gn/T/AppTranslocation/703B0C38-1674-4801-9EF5-09D9B55B9E56/d/Blanc Chromium Preview-2.app/Contents/Frameworks/Blanc Prototype Framework.framework/Versions/157.0.8103.15/Helpers/Blanc Prototype Helper (Aperitif Renderer).app/Contents/MacOS/Blanc Prototype Helper (Aperitif Renderer)"
+    },
+    {
+      "pid": 57302,
+      "executable": "/private/var/folders/4x/r7mr2b5d4q53x8nbf_trvcxw0000gn/T/AppTranslocation/703B0C38-1674-4801-9EF5-09D9B55B9E56/d/Blanc Chromium Preview-2.app/Contents/Frameworks/Blanc Prototype Framework.framework/Versions/157.0.8103.15/Helpers/Blanc Prototype Helper (Aperitif Renderer).app/Contents/MacOS/Blanc Prototype Helper (Aperitif Renderer)"
+    },
+    {
+      "pid": 57303,
+      "executable": "/private/var/folders/4x/r7mr2b5d4q53x8nbf_trvcxw0000gn/T/AppTranslocation/703B0C38-1674-4801-9EF5-09D9B55B9E56/d/Blanc Chromium Preview-2.app/Contents/Frameworks/Blanc Prototype Framework.framework/Versions/157.0.8103.15/Helpers/Blanc Prototype Helper (Aperitif Renderer).app/Contents/MacOS/Blanc Prototype Helper (Aperitif Renderer)"
+    },
+    {
+      "pid": 57304,
+      "executable": "/private/var/folders/4x/r7mr2b5d4q53x8nbf_trvcxw0000gn/T/AppTranslocation/703B0C38-1674-4801-9EF5-09D9B55B9E56/d/Blanc Chromium Preview-2.app/Contents/Frameworks/Blanc Prototype Framework.framework/Versions/157.0.8103.15/Helpers/Blanc Prototype Helper (Aperitif Renderer).app/Contents/MacOS/Blanc Prototype Helper (Aperitif Renderer)"
+    },
+    {
+      "pid": 57305,
+      "executable": "/private/var/folders/4x/r7mr2b5d4q53x8nbf_trvcxw0000gn/T/AppTranslocation/703B0C38-1674-4801-9EF5-09D9B55B9E56/d/Blanc Chromium Preview-2.app/Contents/Frameworks/Blanc Prototype Framework.framework/Versions/157.0.8103.15/Helpers/Blanc Prototype Helper (Aperitif Renderer).app/Contents/MacOS/Blanc Prototype Helper (Aperitif Renderer)"
+    },
+    {
+      "pid": 57306,
+      "executable": "/private/var/folders/4x/r7mr2b5d4q53x8nbf_trvcxw0000gn/T/AppTranslocation/703B0C38-1674-4801-9EF5-09D9B55B9E56/d/Blanc Chromium Preview-2.app/Contents/Frameworks/Blanc Prototype Framework.framework/Versions/157.0.8103.15/Helpers/Blanc Prototype Helper (Aperitif Renderer).app/Contents/MacOS/Blanc Prototype Helper (Aperitif Renderer)"
+    },
+    {
+      "pid": 57307,
+      "executable": "/private/var/folders/4x/r7mr2b5d4q53x8nbf_trvcxw0000gn/T/AppTranslocation/703B0C38-1674-4801-9EF5-09D9B55B9E56/d/Blanc Chromium Preview-2.app/Contents/Frameworks/Blanc Prototype Framework.framework/Versions/157.0.8103.15/Helpers/Blanc Prototype Helper (Aperitif).app/Contents/MacOS/Blanc Prototype Helper (Aperitif)"
+    },
+    {
+      "pid": 57310,
+      "executable": "/private/var/folders/4x/r7mr2b5d4q53x8nbf_trvcxw0000gn/T/AppTranslocation/703B0C38-1674-4801-9EF5-09D9B55B9E56/d/Blanc Chromium Preview-2.app/Contents/Frameworks/Blanc Prototype Framework.framework/Versions/157.0.8103.15/Helpers/Blanc Prototype Helper (Aperitif Renderer).app/Contents/MacOS/Blanc Prototype Helper (Aperitif Renderer)"
+    },
+    {
+      "pid": 57311,
+      "executable": "/private/var/folders/4x/r7mr2b5d4q53x8nbf_trvcxw0000gn/T/AppTranslocation/703B0C38-1674-4801-9EF5-09D9B55B9E56/d/Blanc Chromium Preview-2.app/Contents/Frameworks/Blanc Prototype Framework.framework/Versions/157.0.8103.15/Helpers/Blanc Prototype Helper (Aperitif Renderer).app/Contents/MacOS/Blanc Prototype Helper (Aperitif Renderer)"
+    },
+    {
+      "pid": 57312,
+      "executable": "/private/var/folders/4x/r7mr2b5d4q53x8nbf_trvcxw0000gn/T/AppTranslocation/703B0C38-1674-4801-9EF5-09D9B55B9E56/d/Blanc Chromium Preview-2.app/Contents/Frameworks/Blanc Prototype Framework.framework/Versions/157.0.8103.15/Helpers/Blanc Prototype Helper (Aperitif Renderer).app/Contents/MacOS/Blanc Prototype Helper (Aperitif Renderer)"
+    },
+    {
+      "pid": 69864,
+      "executable": "/Applications/Blanc.app/Contents/Frameworks/Blanc Helper (Renderer).app/Contents/MacOS/Blanc Helper (Renderer)"
+    },
+    {
+      "pid": 70824,
+      "executable": "/Applications/Blanc.app/Contents/Frameworks/Blanc Helper (Renderer).app/Contents/MacOS/Blanc Helper (Renderer)"
+    }
+  ],
+  "os": "ProductName:\t\tmacOS\nProductVersion:\t\t27.2\nBuildVersion:\t\t26B118",
+  "architecture": "arm64",
+  "note": "First optional postcheck restricted paths to Downloads; inspecting executable names also permits normal macOS App Translocation or an app closed after the hand check.",
+  "runtimeBinding": {
+    "pid": 57290,
+    "appPath": "/private/var/folders/4x/r7mr2b5d4q53x8nbf_trvcxw0000gn/T/AppTranslocation/703B0C38-1674-4801-9EF5-09D9B55B9E56/d/Blanc Chromium Preview-2.app",
+    "sourceRevision": "6b9a05a00f321bfbde617c181103d5a455ff45f3",
+    "allRegularFilesVerified": 458,
+    "allSymlinksVerified": 5,
+    "macOSAppTranslocation": true,
+    "runtimeBytesMatchAuthenticatedDownloadedCandidate": true
+  }
+}

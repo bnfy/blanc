@@ -1,0 +1,33 @@
+{
+  "application_parent": "2e0fc02d8dafad8720b945b1fdf7ca9e4bdab668",
+  "upstream": "1aa07b638799e59656559ae6c6649d4b197f555e",
+  "files": [
+    {
+      "path": "/private/tmp/blanc-chromium157-update/src/content/browser/loader/navigation_url_loader_impl.cc",
+      "sha256": "4dbba1c34cf81d03346056e3e53b6a0685115ab34efea509f781e5d4c7fb66de"
+    },
+    {
+      "path": "/private/tmp/blanc-chromium157-update/src/content/browser/loader/url_loader_factory_utils.cc",
+      "sha256": "5267120887056bdffaa55556ba2f57a3630d1a1c0d4fbcd2f2db130964eef457"
+    },
+    {
+      "path": "/private/tmp/blanc-chromium157-update/src/chrome/services/blanc_blocker/blocker_proxy.cc",
+      "sha256": "eaf73aedd7ab0cdcff01ad0fa14503666af1a5628a52ebf26de74a82e9fbf18c"
+    },
+    {
+      "path": "/private/tmp/blanc-chromium157-update/src/out/BlancPrototype/Blanc Prototype.app/Contents/MacOS/Blanc Prototype",
+      "sha256": "33e6b2806167d00ce95c5c7333385b7b3db96b50246f25a415416dc1fd7398ab"
+    },
+    {
+      "path": "/private/tmp/blanc-chromium157-update/src/out/BlancPrototype/Blanc Prototype.app/Contents/Frameworks/Blanc Prototype Framework.framework/Versions/157.0.8103.15/Blanc Prototype Framework",
+      "sha256": "869a298b87b784b86be96803202928d921a26d4879abd38066ce2a2907d228f5"
+    },
+    {
+      "path": "/private/tmp/blanc-chromium157-work/experiments/chromium-extension-spike/native/blocker/prepare_final_factory.mjs",
+      "sha256": "0407c2ee83c8011b4339d98915b73bd82569dad0ed13df094a9633ed4e335da9"
+    }
+  ],
+  "signed_replacement": false,
+  "baseline_signed_source": "1523375af5b93cf910d9cca82f522155ef525adf",
+  "baseline_archive_sha256": "e57f5cdb989d86736e6fd5add8734d0a35d802a096a6158ddb1a960f7000fc2e"
+}

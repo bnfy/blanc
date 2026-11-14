@@ -1,0 +1,172 @@
+// Copyright 2026 Bananify Creative. MIT; see LICENSE.
+
+package org.chromium.blanc.island;
+
+import android.content.res.Resources;
+import android.view.HapticFeedbackConstants;
+import android.view.Menu;
+import android.view.View;
+import android.widget.PopupMenu;
+
+import org.chromium.build.annotations.NullMarked;
+
+import java.util.EnumSet;
+import java.util.Set;
+
+/**
+ * The Sunrise mark's menu, anchored to the mark, in {@link IslandMenu}'s order with the iPhone's
+ * labels (ContentView.islandMenuElements). Entries whose feature Android doesn't have yet are left
+ * out, as the iPhone leaves out entries that don't apply: Customize Start Page waits for Settings
+ * (A5), blocking for A3 and Send to Device for A4.
+ */
+@NullMarked
+public final class IslandMenuPopup {
+    /** What the entries do; the browser supplies them. */
+    public interface Actions {
+        void setSiteProtected(boolean on);
+
+        void turnBlockingOn();
+
+        void retryBlocking();
+
+        void toggleFavorite();
+
+        void share();
+
+        void copyLink();
+
+        void find();
+
+        /** Chromium's zoom bar for the page. */
+        void pageZoom();
+
+        /** Request Desktop Website, or back to the mobile site. */
+        void toggleDesktopSite();
+
+        void send();
+
+        void newPrivateTab();
+
+        /** Reload, or Stop while the page loads. */
+        void reload();
+
+        void openSettings();
+    }
+
+    static final Set<IslandMenu.Kind> BUILT =
+            EnumSet.of(IslandMenu.Kind.BLOCKING, IslandMenu.Kind.BLOCKING_SETTINGS, IslandMenu.Kind.BLOCKING_UNAVAILABLE,
+                    IslandMenu.Kind.FAVORITE, IslandMenu.Kind.SEND, IslandMenu.Kind.SHARE, IslandMenu.Kind.COPY_LINK,
+                    IslandMenu.Kind.FIND, IslandMenu.Kind.PAGE_ZOOM, IslandMenu.Kind.DESKTOP_SITE,
+                    IslandMenu.Kind.NEW_PRIVATE_TAB, IslandMenu.Kind.RELOAD, IslandMenu.Kind.SETTINGS);
+
+    private IslandMenuPopup() {}
+
+    /** Shows the menu for `context` under `anchor` and returns it. */
+    public static PopupMenu show(View anchor, IslandMenu.Context context, Actions actions) {
+        PopupMenu popup = new PopupMenu(anchor.getContext(), anchor);
+        Menu menu = popup.getMenu();
+        int order = 0;
+        for (IslandMenu.Item item : IslandMenu.items(context)) {
+            if (!BUILT.contains(item.kind)) continue;
+            if (item.kind == IslandMenu.Kind.BLOCKING || item.kind == IslandMenu.Kind.BLOCKING_SETTINGS
+                    || item.kind == IslandMenu.Kind.BLOCKING_UNAVAILABLE) {
+                order = addBlocking(menu, order, item, context, actions, anchor);
+                continue;
+            }
+            final Runnable run;
+            final int title;
+            switch (item.kind) {
+                case FAVORITE:
+                    title = item.on ? R.string.blanc_tab_menu_remove_favorite : R.string.blanc_tab_menu_save_favorite;
+                    run = actions::toggleFavorite;
+                    break;
+                case SHARE:
+                    title = R.string.blanc_share_picker_share;
+                    run = actions::share;
+                    break;
+                case SEND:
+                    title = R.string.blanc_tab_menu_send_to_device;
+                    run = actions::send;
+                    break;
+                case COPY_LINK:
+                    title = R.string.blanc_tab_menu_copy_link;
+                    run = actions::copyLink;
+                    break;
+                case FIND:
+                    title = R.string.blanc_menu_find_in_page;
+                    run = actions::find;
+                    break;
+                case PAGE_ZOOM:
+                    title = R.string.blanc_ios_island_page_zoom;
+                    run = actions::pageZoom;
+                    break;
+                case DESKTOP_SITE:
+                    title = item.on ? R.string.blanc_ios_island_mobile_site : R.string.blanc_ios_island_desktop_site;
+                    run = actions::toggleDesktopSite;
+                    break;
+                case RELOAD:
+                    title = context.loading ? R.string.blanc_ios_island_stop : R.string.blanc_menu_reload;
+                    run = actions::reload;
+                    break;
+                case SETTINGS:
+                    title = R.string.blanc_menu_settings;
+                    run = actions::openSettings;
+                    break;
+                default:
+                    title = R.string.blanc_menu_new_private_tab;
+                    run = actions::newPrivateTab;
+                    break;
+            }
+            menu.add(Menu.NONE, order + 1, order, title)
+                    .setOnMenuItemClickListener(
+                            menuItem -> {
+                                run.run();
+                                return true;
+                            });
+            order++;
+        }
+        // A light tap as the menu opens, as on the iPhone (#1463); the system skips it where haptics
+        // are off.
+        anchor.performHapticFeedback(HapticFeedbackConstants.CONTEXT_CLICK);
+        popup.show();
+        return popup;
+    }
+
+    /** The iPhone's switch, then what the page's blocker is doing, as desktop's shield says it. */
+    private static int addBlocking(Menu menu, int order, IslandMenu.Item item, IslandMenu.Context context,
+            Actions actions, View anchor) {
+        Resources res = anchor.getResources();
+        if (item.kind == IslandMenu.Kind.BLOCKING_UNAVAILABLE) {
+            menu.add(Menu.NONE, order + 1, order, R.string.blanc_newtab_startup_failed).setEnabled(false);
+            order++;
+            menu.add(Menu.NONE, order + 1, order, R.string.blanc_newtab_startup_retry).setOnMenuItemClickListener(m -> {
+                actions.retryBlocking();
+                return true;
+            });
+            return order + 1;
+        }
+        boolean on = item.kind == IslandMenu.Kind.BLOCKING && item.on;
+        menu.add(Menu.NONE, order + 1, order, R.string.blanc_shield_ad_blocking).setCheckable(true).setChecked(on)
+                .setOnMenuItemClickListener(m -> {
+                    if (item.kind == IslandMenu.Kind.BLOCKING) {
+                        actions.setSiteProtected(!on);
+                    } else {
+                        actions.turnBlockingOn();
+                    }
+                    return true;
+                });
+        order++;
+        String status;
+        if (item.kind == IslandMenu.Kind.BLOCKING_SETTINGS) {
+            status = res.getString(R.string.blanc_shield_count_global_off);
+        } else if (!on) {
+            status = res.getString(R.string.blanc_shield_count_site_off);
+        } else if (context.blockedCount > 0) {
+            status = res.getQuantityString(R.plurals.blanc_shield_count_blocked, context.blockedCount, context.blockedCount);
+        } else {
+            status = res.getString(R.string.blanc_shield_count_none);
+        }
+        menu.add(Menu.NONE, order + 1, order, status).setEnabled(false);
+        return order + 1;
+    }
+}

@@ -1,0 +1,6 @@
+{
+  "initialCss": true,
+  "updateCss": true,
+  "noUpdateScriptlets": true,
+  "networkControl": true
+}

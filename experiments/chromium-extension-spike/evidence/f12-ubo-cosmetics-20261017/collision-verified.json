@@ -1,0 +1,81 @@
+{
+  "verified": true,
+  "sessions": 8,
+  "updateRequests": 16,
+  "contextAcceptance": false,
+  "phaseOrderIsNotRegistrationIdentity": true,
+  "proof": [
+    {
+      "label": "electron-regular-a",
+      "registrations": 2,
+      "updateIdentity": "gap",
+      "reasons": [
+        "service-script-target-ambiguous",
+        "service-script-target-ambiguous"
+      ]
+    },
+    {
+      "label": "electron-regular-b",
+      "registrations": 2,
+      "updateIdentity": "gap",
+      "reasons": [
+        "service-script-target-ambiguous",
+        "service-script-target-ambiguous"
+      ]
+    },
+    {
+      "label": "electron-private-a",
+      "registrations": 2,
+      "updateIdentity": "gap",
+      "reasons": [
+        "service-script-target-ambiguous",
+        "service-script-target-ambiguous"
+      ]
+    },
+    {
+      "label": "electron-private-b",
+      "registrations": 2,
+      "updateIdentity": "gap",
+      "reasons": [
+        "service-script-target-ambiguous",
+        "service-script-target-ambiguous"
+      ]
+    },
+    {
+      "label": "chromium-regular-a",
+      "registrations": 2,
+      "updateIdentity": "gap",
+      "reasons": [
+        "worker-request-context-mismatch",
+        "worker-request-context-mismatch"
+      ]
+    },
+    {
+      "label": "chromium-regular-b",
+      "registrations": 2,
+      "updateIdentity": "gap",
+      "reasons": [
+        "worker-request-context-mismatch",
+        "worker-request-context-mismatch"
+      ]
+    },
+    {
+      "label": "chromium-private-a",
+      "registrations": 2,
+      "updateIdentity": "gap",
+      "reasons": [
+        "worker-request-not-unique",
+        "worker-request-not-unique"
+      ]
+    },
+    {
+      "label": "chromium-private-b",
+      "registrations": 2,
+      "updateIdentity": "gap",
+      "reasons": [
+        "worker-request-not-unique",
+        "worker-request-not-unique"
+      ]
+    }
+  ]
+}

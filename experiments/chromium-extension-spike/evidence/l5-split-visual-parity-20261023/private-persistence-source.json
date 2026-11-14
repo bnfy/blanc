@@ -1,0 +1,5 @@
+{
+  "privatePersistenceHelperByteIdentical": true,
+  "presentationReadOnly": "bool HasSplitPresentation(content::WebContents* tab) {\n  // Presentation markers also exist in private windows; this performs no I/O.\n  return IsEnabled() && tab && tab->GetUserData(kPersistentSplitKey);\n}",
+  "source": "8439cabc865167f0e70cddedd22b390a3bec4438"
+}

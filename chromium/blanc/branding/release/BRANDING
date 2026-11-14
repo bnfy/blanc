@@ -1,0 +1,10 @@
+COMPANY_FULLNAME=Bananify Creative
+COMPANY_SHORTNAME=Bananify Creative
+PRODUCT_FULLNAME=Blanc
+PRODUCT_SHORTNAME=Blanc
+PRODUCT_INSTALLER_FULLNAME=Blanc Installer
+PRODUCT_INSTALLER_SHORTNAME=Blanc Installer
+COPYRIGHT=Copyright @LASTCHANGE_YEAR@ Bananify Creative and The Chromium Authors. All rights reserved.
+MAC_BUNDLE_ID=me.bnfy.bowser
+MAC_CREATOR_CODE=Cr24
+MAC_TEAM_ID=

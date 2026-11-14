@@ -1,0 +1,7 @@
+{
+  "schema": "http://cyclonedx.org/schema/bom-1.6.schema.json",
+  "valid": true,
+  "errors": null,
+  "components": 340,
+  "formats": "Not independently validated; schema structure, types, required fields and patterns checked"
+}

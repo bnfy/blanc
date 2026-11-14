@@ -1,0 +1,7 @@
+## Spaces flush and rename failure recovery — October 19, 2026
+
+Four controlled native failure cases pass: backup and primary flush failures, plus backup and primary rename failures. On macOS Chromium tries F_BARRIERFSYNC before fsync; archived operation events prove both returned EIO in each flush case. Rename cases return EIO only for the exact owned Spaces destination. Browser PID and file paths are verified. Injection is restricted to disposable profiles; no filesystem or signing settings were changed.
+
+Each case preserves the complete primary, reports the checkpoint or primary-write error, and stops autosave while errored. Backup failures retain the previous checkpoint; primary failures retain the previous primary in the new checkpoint. Removing injection and explicitly saving clears the error and persists the unsaved navigation; a later navigation autosaves successfully. All four passed on their first attempt. No product fix was needed.
+
+These are injected syscall-return failures, not actual hardware flush failure, power-loss, physical media durability, permissions exhaustion or concurrent-writer qualification. Test-helper syscall deprecation warnings retained. Four owned profiles/servers removed; retained preview untouched, host unavailable so original-tab identity not reverified. No Chromium compile; guard zero/3.52s; footprint unchanged from measured41files/100hunks. Native input pending, latency deferred, Electron diagnostic build unapproved. Plan item4 and broader gates remain open. Evidence: evidence/ui138-spaces-flush-errors-20261019/.

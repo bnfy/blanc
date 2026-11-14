@@ -1,0 +1,2 @@
+{"name":"native-ungroup-last-member-removes-group"}
+{"name":"native-close-group","closedFixtureCount":3,"tabs":[{"id":"1593473151","url":"blanc://newtab/"},{"id":"1593473152","url":"http://127.0.0.1:8786/NativeKeys"},{"id":"1593473158","url":"http://127.0.0.1:8786/NativeSecond"},{"id":"1593473159","url":"http://127.0.0.1:8786/Alpha"},{"id":"1593473160","url":"http://127.0.0.1:8786/Beta"},{"id":"1593473172","url":"http://127.0.0.1:8786/GroupsD"},{"id":"1593473173","url":"http://127.0.0.1:8786/GroupsE"},{"id":"1593473174","url":"http://127.0.0.1:8786/GroupsF"}],"groups":[]}

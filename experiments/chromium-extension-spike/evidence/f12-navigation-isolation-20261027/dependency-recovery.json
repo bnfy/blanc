@@ -1,0 +1,904 @@
+[
+  {
+    "path": "src/agents/shared",
+    "pin": "868618a8d1327ea3f6ab037b947e51f93b889ce1",
+    "restoredFiles": 50,
+    "bytes": 156112
+  },
+  {
+    "path": "src/chrome/test/data/perf/canvas_bench",
+    "pin": "a7b40ea5ae0239517d78845a5fc9b12976bfc732",
+    "restoredFiles": 405,
+    "bytes": 19422875
+  },
+  {
+    "path": "src/chrome/test/data/perf/frame_rate/content",
+    "pin": "c10272c88463efeef6bb19c9ec07c42bc8fe22b9",
+    "restoredFiles": 98,
+    "bytes": 6902847
+  },
+  {
+    "path": "src/chrome/test/data/xr/webvr_info",
+    "pin": "c58ae99b9ff9e2aa4c524633519570bf33536248",
+    "restoredFiles": 77,
+    "bytes": 97260882
+  },
+  {
+    "path": "src/docs/website",
+    "pin": "f1913ba8be7e2f05851aa2f3624ad055c13243cf",
+    "restoredFiles": 2846,
+    "bytes": 14158733
+  },
+  {
+    "path": "src/media/cdm/api",
+    "pin": "d6c4e1ea4c8fc3dcd98ac3ab5a981f63067223a4",
+    "restoredFiles": 5,
+    "bytes": 5202
+  },
+  {
+    "path": "src/net/third_party/quiche/src",
+    "pin": "541aa2a7889b7ea7651e41afc58211f2a256850a",
+    "restoredFiles": 1780,
+    "bytes": 19975187
+  },
+  {
+    "path": "src/testing/libfuzzer/fuzzers/wasm_corpus",
+    "pin": "1df5e50a45db9518a56ebb42cb020a94a090258b",
+    "restoredFiles": 53876,
+    "bytes": 10908530
+  },
+  {
+    "path": "src/third_party/angle",
+    "pin": "3b27750335a883d966eb8e460bc4f1126fed1a5d",
+    "restoredFiles": 4033,
+    "bytes": 102188869
+  },
+  {
+    "path": "src/third_party/angle/third_party/VK-GL-CTS/src",
+    "pin": "c28b3629309398dc2641c8d4d40079a952160cba",
+    "restoredFiles": 6799,
+    "bytes": 39007603
+  },
+  {
+    "path": "src/third_party/angle/third_party/glmark2/src",
+    "pin": "6edcf02205fd1e8979dc3f3964257a81959b80c8",
+    "restoredFiles": 605,
+    "bytes": 4238669
+  },
+  {
+    "path": "src/third_party/angle/third_party/rapidjson/src",
+    "pin": "24b5e7a8b27f42fa16b96fc70aade9106cf7102f",
+    "restoredFiles": 292,
+    "bytes": 1310990
+  },
+  {
+    "path": "src/third_party/anonymous_tokens/src",
+    "pin": "1ae8df5e40bab28959cc182c2c0d88923059e278",
+    "restoredFiles": 92,
+    "bytes": 806688
+  },
+  {
+    "path": "src/third_party/boringssl/src",
+    "pin": "5b83e5d1abf0ae0033ae52ab579d906b67633b2c",
+    "restoredFiles": 8668,
+    "bytes": 241270381
+  },
+  {
+    "path": "src/third_party/breakpad/breakpad",
+    "pin": "6598c9c33fc02da7805401f3b0f1a733e6a24071",
+    "restoredFiles": 927,
+    "bytes": 30011636
+  },
+  {
+    "path": "src/third_party/cast_core/public/src",
+    "pin": "1629985cfc0b065310738512a000b6e68716aa03",
+    "restoredFiles": 39,
+    "bytes": 108978
+  },
+  {
+    "path": "src/third_party/catapult",
+    "pin": "3d4673f57764ba5f999699abf34a52a3584e8b6c",
+    "restoredFiles": 8210,
+    "bytes": 589603431
+  },
+  {
+    "path": "src/third_party/ced/src",
+    "pin": "d127078cedef9c6642cbe592dacdd2292b50bb19",
+    "restoredFiles": 28,
+    "bytes": 1482175
+  },
+  {
+    "path": "src/third_party/clang-format/script",
+    "pin": "9f796802e5d633c96dbe97e0b6683d5e62594f9f",
+    "restoredFiles": 13,
+    "bytes": 100941
+  },
+  {
+    "path": "src/third_party/cld_3/src",
+    "pin": "b48dc46512566f5a2d41118c8c1116c4f96dc661",
+    "restoredFiles": 86,
+    "bytes": 2496595
+  },
+  {
+    "path": "src/third_party/colorama/src",
+    "pin": "3de9f013df4b470069d03d250224062e8cf15c49",
+    "restoredFiles": 49,
+    "bytes": 199903
+  },
+  {
+    "path": "src/third_party/compiler-rt/src",
+    "pin": "745ff42c0ef36daa46b309fb0de9b85bea856f54",
+    "restoredFiles": 4980,
+    "bytes": 41727955
+  },
+  {
+    "path": "src/third_party/content_analysis_sdk/src",
+    "pin": "0a0e7ea516249e786d5a8884552bbd6e163d89cb",
+    "restoredFiles": 61,
+    "bytes": 188943
+  },
+  {
+    "path": "src/third_party/cpu_features/src",
+    "pin": "81d13c49649f0714dd41fb56bb246398b6584085",
+    "restoredFiles": 127,
+    "bytes": 617995
+  },
+  {
+    "path": "src/third_party/cpuinfo/src",
+    "pin": "66ee79c038d70dad9f08705b2c9b3e58f6d8f512",
+    "restoredFiles": 565,
+    "bytes": 20268817
+  },
+  {
+    "path": "src/third_party/crabbyavif/src",
+    "pin": "70426ba092e1136198239469c9273d1597052b25",
+    "restoredFiles": 309,
+    "bytes": 30304285
+  },
+  {
+    "path": "src/third_party/crc32c/src",
+    "pin": "2bbb3be42e20a0e6c0f7b39dc07dc863d9ffbc07",
+    "restoredFiles": 37,
+    "bytes": 98548
+  },
+  {
+    "path": "src/third_party/cros-components/src",
+    "pin": "8d175bbffcaed7d388701535cc8c95457c179cff",
+    "restoredFiles": 74,
+    "bytes": 657985
+  },
+  {
+    "path": "src/third_party/crossbench",
+    "pin": "87113d767a7d9d4f1fbdaccfd877ee36d3f4b2c7",
+    "restoredFiles": 1386,
+    "bytes": 8085536
+  },
+  {
+    "path": "src/third_party/crossbench-web-tests",
+    "pin": "ca67d07edc2937541c38bb57e680f3787c446d0d",
+    "restoredFiles": 765,
+    "bytes": 79244170
+  },
+  {
+    "path": "src/third_party/dav1d/libdav1d",
+    "pin": "99f3354ed0b9b4bf3c7c9347318dbcc522c94af5",
+    "restoredFiles": 359,
+    "bytes": 12109956
+  },
+  {
+    "path": "src/third_party/dawn",
+    "pin": "de87968dc43d608fa96b08b731755bad86fba131",
+    "restoredFiles": 86068,
+    "bytes": 270354311
+  },
+  {
+    "path": "src/third_party/dawn/third_party/EGL-Registry/src",
+    "pin": "db3425b8246136faccb5e2782b5694960bd6edf1",
+    "restoredFiles": 370,
+    "bytes": 3105693
+  },
+  {
+    "path": "src/third_party/dawn/third_party/OpenGL-Registry/src",
+    "pin": "6af574a14089ccfee87efe230ebcdd8742859813",
+    "restoredFiles": 1054,
+    "bytes": 11860846
+  },
+  {
+    "path": "src/third_party/dawn/third_party/directx-headers/src",
+    "pin": "980971e835876dc0cde415e8f9bc646e64667bf7",
+    "restoredFiles": 33,
+    "bytes": 176665
+  },
+  {
+    "path": "src/third_party/dawn/third_party/directx-shader-compiler/src",
+    "pin": "9757d44faa47de7e8d1bb731c30551ec608624f9",
+    "restoredFiles": 17629,
+    "bytes": 55129643
+  },
+  {
+    "path": "src/third_party/dawn/third_party/glfw3/src",
+    "pin": "92dcf4ce74f2e2554a98fea09be7c705c17daa5a",
+    "restoredFiles": 138,
+    "bytes": 1189745
+  },
+  {
+    "path": "src/third_party/dawn/third_party/webgpu-cts",
+    "pin": "cc11994e92512d0a3715e9d28876ec48accb971a",
+    "restoredFiles": 1218,
+    "bytes": 7115083
+  },
+  {
+    "path": "src/third_party/dawn/third_party/webgpu-headers/src",
+    "pin": "a1dc77409bb2b8bd80540cbf4b8db219e123e909",
+    "restoredFiles": 43,
+    "bytes": 189743
+  },
+  {
+    "path": "src/third_party/depot_tools",
+    "pin": "96b9c092c0cdaa9f1ec87b0af777ec85977dee91",
+    "restoredFiles": 890,
+    "bytes": 8467292
+  },
+  {
+    "path": "src/third_party/devtools-frontend/src",
+    "pin": "2c13d600e80aea1e914e7184d2645ead1111af37",
+    "restoredFiles": 30709,
+    "bytes": 608681199
+  },
+  {
+    "path": "src/third_party/disarm/src",
+    "pin": "2d960dae4b4fb29dba05cfc48210fbed423f3d2c",
+    "restoredFiles": 43,
+    "bytes": 3590219
+  },
+  {
+    "path": "src/third_party/dom_distiller_js/dist",
+    "pin": "015cda307cf81e293889c0887cffff4f0aa090ce",
+    "restoredFiles": 6,
+    "bytes": 9479433
+  },
+  {
+    "path": "src/third_party/domato/src",
+    "pin": "fadff396cc45d521cc594d3e2396e27e887b1963",
+    "restoredFiles": 53,
+    "bytes": 1536915
+  },
+  {
+    "path": "src/third_party/dragonbox/src",
+    "pin": "beeeef91cf6fef89a4d4ba5e95d47ca64ccb3a44",
+    "restoredFiles": 91,
+    "bytes": 4839145
+  },
+  {
+    "path": "src/third_party/ds_store/src",
+    "pin": "3a85d45dbb9dc08a6d74770010e5053e0561e538",
+    "restoredFiles": 22,
+    "bytes": 106148
+  },
+  {
+    "path": "src/third_party/eigen3/src",
+    "pin": "80778f586abc56b544e92e5423e71991007c197f",
+    "restoredFiles": 2115,
+    "bytes": 18643529
+  },
+  {
+    "path": "src/third_party/emoji-segmenter/src",
+    "pin": "955936be8b391e00835257059607d7c5b72ce744",
+    "restoredFiles": 7,
+    "bytes": 26212
+  },
+  {
+    "path": "src/third_party/expat/src",
+    "pin": "a851869e111c06fbcdc89edf639abf5fc2b6deba",
+    "restoredFiles": 217,
+    "bytes": 136209779
+  },
+  {
+    "path": "src/third_party/fadec/src",
+    "pin": "c9f78f532b9004de278489019ab2c6c28ae9746e",
+    "restoredFiles": 25,
+    "bytes": 775648
+  },
+  {
+    "path": "src/third_party/farmhash/src",
+    "pin": "9d99331eb762e9ee22fd97d15a594525ad98310a",
+    "restoredFiles": 70,
+    "bytes": 1814783
+  },
+  {
+    "path": "src/third_party/fast_float/src",
+    "pin": "42f254836ee416ffcf2f4e6576260003ac33d48c",
+    "restoredFiles": 116,
+    "bytes": 498111
+  },
+  {
+    "path": "src/third_party/federated_compute/src",
+    "pin": "a9d5262aa05a4b1ff3c23697d644023c5d913840",
+    "restoredFiles": 590,
+    "bytes": 5174904
+  },
+  {
+    "path": "src/third_party/ffmpeg",
+    "pin": "5c85ff666b3434d9323b83437f910ad8431ab7c9",
+    "restoredFiles": 11351,
+    "bytes": 98782226
+  },
+  {
+    "path": "src/third_party/flac",
+    "pin": "e7108e2ed031547c3759217819a032065c820d73",
+    "restoredFiles": 91,
+    "bytes": 1570800
+  },
+  {
+    "path": "src/third_party/flatbuffers/src",
+    "pin": "a86afae9399bbe631d1ea0783f8816e780e236cc",
+    "restoredFiles": 1895,
+    "bytes": 12962598
+  },
+  {
+    "path": "src/third_party/fp16/src",
+    "pin": "782eea126dc5c755827be751a099eb01826175cf",
+    "restoredFiles": 30,
+    "bytes": 373982
+  },
+  {
+    "path": "src/third_party/freetype/src",
+    "pin": "37515cf56ba3349656049edbed89ffc6f6466f2d",
+    "restoredFiles": 768,
+    "bytes": 11169768
+  },
+  {
+    "path": "src/third_party/fuzztest/src",
+    "pin": "a8861f3aa71443dabaf42dc9cba78b3982524a51",
+    "restoredFiles": 608,
+    "bytes": 4947590
+  },
+  {
+    "path": "src/third_party/fxdiv/src",
+    "pin": "63058eff77e11aa15bf531df5dd34395ec3017c8",
+    "restoredFiles": 21,
+    "bytes": 42751
+  },
+  {
+    "path": "src/third_party/gemmlowp/src",
+    "pin": "16e8662c34917be0065110bfcd9cc27d30f52fdf",
+    "restoredFiles": 136,
+    "bytes": 5165959
+  },
+  {
+    "path": "src/third_party/glslang/src",
+    "pin": "79c91f375f7e278cf99d6925c2b8d3de83ef0f53",
+    "restoredFiles": 3753,
+    "bytes": 46396313
+  },
+  {
+    "path": "src/third_party/google_benchmark/src",
+    "pin": "8abf1e701fbd88c8170f48fe0558247e2e5f8e7d",
+    "restoredFiles": 207,
+    "bytes": 1016636
+  },
+  {
+    "path": "src/third_party/googletest/src",
+    "pin": "4fe3307fb2d9f86d19777c7eb0e4809e9694dde7",
+    "restoredFiles": 231,
+    "bytes": 2745373
+  },
+  {
+    "path": "src/third_party/harfbuzz/src",
+    "pin": "12ee77ee00514c442bcd28f9aa9d56b708c37382",
+    "restoredFiles": 3866,
+    "bytes": 103827453
+  },
+  {
+    "path": "src/third_party/highway/src",
+    "pin": "2607d3b5b0113992fe84d3848859eae13b3b52c1",
+    "restoredFiles": 270,
+    "bytes": 8524328
+  },
+  {
+    "path": "src/third_party/hunspell_dictionaries",
+    "pin": "cee14e319bb7603a1157bb4d1e216be64ee82b77",
+    "restoredFiles": 243,
+    "bytes": 277781612
+  },
+  {
+    "path": "src/third_party/icu",
+    "pin": "4fe960221710e5b5524ac6e49a454bbb8bfc295d",
+    "restoredFiles": 7074,
+    "bytes": 226300615
+  },
+  {
+    "path": "src/third_party/ink/src",
+    "pin": "b6def591a73a6aa0ffce1e58dc69b39de31484ba",
+    "restoredFiles": 560,
+    "bytes": 16586622
+  },
+  {
+    "path": "src/third_party/jetstream/main",
+    "pin": "c603c04db8505477867974a69789309ded2cc948",
+    "restoredFiles": 961,
+    "bytes": 485785970
+  },
+  {
+    "path": "src/third_party/jetstream/v2.2",
+    "pin": "2145cedef4ca2777b792cb0059d3400ee2a6153c",
+    "restoredFiles": 485,
+    "bytes": 68657414
+  },
+  {
+    "path": "src/third_party/jetstream/v3.0",
+    "pin": "06785cf861ac44855f168cbbe829278c2802e6de",
+    "restoredFiles": 960,
+    "bytes": 485754699
+  },
+  {
+    "path": "src/third_party/jsoncpp/source",
+    "pin": "3347a4b86bb914cb565f0cbda19c06e109513300",
+    "restoredFiles": 263,
+    "bytes": 728867
+  },
+  {
+    "path": "src/third_party/leveldatabase/src",
+    "pin": "bb74ef739973a70ca9f0d90788a1da89b788c0ad",
+    "restoredFiles": 152,
+    "bytes": 993828
+  },
+  {
+    "path": "src/third_party/libFuzzer/src",
+    "pin": "c7ea90fb61105752fa78e257e77a7c5d62fff7d3",
+    "restoredFiles": 61,
+    "bytes": 480294
+  },
+  {
+    "path": "src/third_party/libaddressinput/src",
+    "pin": "81eb9628382b07d371d8ea0b11badf7de3857fd5",
+    "restoredFiles": 225,
+    "bytes": 4442461
+  },
+  {
+    "path": "src/third_party/libaom/source/libaom",
+    "pin": "8fbd65b2f354e1d7059f8b1899f3f0373d1b3e2a",
+    "restoredFiles": 1518,
+    "bytes": 38635830
+  },
+  {
+    "path": "src/third_party/libc++/src",
+    "pin": "97b436da4c33663581d394f4ee0a5977fc38c2f4",
+    "restoredFiles": 12326,
+    "bytes": 58378414
+  },
+  {
+    "path": "src/third_party/libc++abi/src",
+    "pin": "0e691bb69ac90450d8d53bc8ee5968c62f9c15a7",
+    "restoredFiles": 163,
+    "bytes": 6423328
+  },
+  {
+    "path": "src/third_party/libgav1/src",
+    "pin": "085032331f60c10055d32ab52932bd7bd77e6f53",
+    "restoredFiles": 382,
+    "bytes": 7306414
+  },
+  {
+    "path": "src/third_party/libjpeg_turbo",
+    "pin": "640f254ad0fa03f6b1f29f89b7dd9366f2f6e533",
+    "restoredFiles": 307,
+    "bytes": 7099109
+  },
+  {
+    "path": "src/third_party/libpfm4/src",
+    "pin": "995ad37079531b7c3a98cbd164b7619f3b0adc0d",
+    "restoredFiles": 548,
+    "bytes": 9650699
+  },
+  {
+    "path": "src/third_party/libphonenumber/src",
+    "pin": "33be5664343676b27761213d8f5500d682568ea7",
+    "restoredFiles": 3757,
+    "bytes": 100184520
+  },
+  {
+    "path": "src/third_party/libprotobuf-mutator/src",
+    "pin": "4373c81cd7d50a65f7fbd8dc3779c0c3b1dc9d72",
+    "restoredFiles": 60,
+    "bytes": 199826
+  },
+  {
+    "path": "src/third_party/libsrtp",
+    "pin": "cd5d177bf1fde755ddb4c7f0d9ff7693f8b49e5e",
+    "restoredFiles": 75,
+    "bytes": 869145
+  },
+  {
+    "path": "src/third_party/libunwind/src",
+    "pin": "9c0490ec858b3201b9aedbe219b530b95dc0be7e",
+    "restoredFiles": 84,
+    "bytes": 903984
+  },
+  {
+    "path": "src/third_party/libva-fake-driver/src",
+    "pin": "04f902b9ba9f8083b19d22e7b55591bbcaae31c0",
+    "restoredFiles": 37,
+    "bytes": 183322
+  },
+  {
+    "path": "src/third_party/libvpx/source/libvpx",
+    "pin": "d603b5421220b05fd37c5bb6439eb0398cc1f1fe",
+    "error": "CalledProcessError(128, ['git', '--git-dir=/private/tmp/blanc-f12-navigation-isolation-20261027/dependency-git-views/87', 'show', '-s', '--format=%ct', 'HEAD'])"
+  },
+  {
+    "path": "src/third_party/libwebm/source",
+    "pin": "6184f4484a826724b5293837134ab9492261b941",
+    "restoredFiles": 903,
+    "bytes": 2722739
+  },
+  {
+    "path": "src/third_party/libwebp/src",
+    "pin": "68dd1c3040d500f56fe7ffb754b1813fb64b5887",
+    "restoredFiles": 349,
+    "bytes": 8312734
+  },
+  {
+    "path": "src/third_party/libyuv",
+    "pin": "1e2e3a35993609da1d89ac170b907719d555f4b3",
+    "restoredFiles": 194,
+    "bytes": 5682102
+  },
+  {
+    "path": "src/third_party/litert/src",
+    "pin": "2a91591eca78fdded805e6f2d924f484b6ac94a7",
+    "restoredFiles": 7753,
+    "bytes": 351045541
+  },
+  {
+    "path": "src/third_party/llvm-libc/src",
+    "pin": "97e60a1e7f7180965cc84e22ddde9f1d4ffd640f",
+    "restoredFiles": 8780,
+    "bytes": 97537960
+  },
+  {
+    "path": "src/third_party/mac_alias/src",
+    "pin": "ecc3ad82459ec92894de5994d1b5c4adacbbc7a7",
+    "restoredFiles": 25,
+    "bytes": 128546
+  },
+  {
+    "path": "src/third_party/material_color_utilities/src",
+    "pin": "5b3618b16fdc3825e21d5679bafd144662088ea1",
+    "restoredFiles": 383,
+    "bytes": 5489113
+  },
+  {
+    "path": "src/third_party/nasm",
+    "pin": "525a09a813be0f75b646ee93fc2a31c27b87d722",
+    "restoredFiles": 1356,
+    "bytes": 17808926
+  },
+  {
+    "path": "src/third_party/nearby/src",
+    "pin": "0bad8b0c9877f92eeeb550654f1ea51a71a085e4",
+    "restoredFiles": 3060,
+    "bytes": 105310698
+  },
+  {
+    "path": "src/third_party/neon_2_sse/src",
+    "pin": "183fc88bcb90dbfaefba33a292eae8a5ce94bd67",
+    "restoredFiles": 9,
+    "bytes": 834063
+  },
+  {
+    "path": "src/third_party/nlohmann_json/src",
+    "pin": "55f93686c01528224f448c19128836e7df245f72",
+    "restoredFiles": 1163,
+    "bytes": 15958746
+  },
+  {
+    "path": "src/third_party/oak/src",
+    "pin": "3ec9bd888b4bcfbe5dea1def3c642911e71e1c96",
+    "restoredFiles": 2185,
+    "bytes": 88554963
+  },
+  {
+    "path": "src/third_party/openh264/src",
+    "pin": "9547f96ea5c47f4d465d97b07264b997ecc4b4b6",
+    "restoredFiles": 741,
+    "bytes": 72671614
+  },
+  {
+    "path": "src/third_party/openscreen/src",
+    "pin": "8978b74badf042795c07fcf99d0a53dccbd3dcf6",
+    "restoredFiles": 2968,
+    "bytes": 38548759
+  },
+  {
+    "path": "src/third_party/openscreen/src/buildtools",
+    "pin": "4277578aa9c45906e51ad33cac1a5a7ad5288010",
+    "restoredFiles": 84,
+    "bytes": 171005
+  },
+  {
+    "path": "src/third_party/openscreen/src/third_party/simple_dns/src",
+    "pin": "5c7ec98798d7c9f7d76df7aa3bbe754913ff5159",
+    "restoredFiles": 132,
+    "bytes": 455308
+  },
+  {
+    "path": "src/third_party/openscreen/src/third_party/tinycbor/src",
+    "pin": "213155c8729b07dea836c5ac6e807a089486bf7b",
+    "restoredFiles": 62,
+    "bytes": 289738
+  },
+  {
+    "path": "src/third_party/ots/src",
+    "pin": "46bea9879127d0ff1c6601b078e2ce98e83fcd33",
+    "restoredFiles": 519,
+    "bytes": 56172277
+  },
+  {
+    "path": "src/third_party/pdfium",
+    "pin": "4e6f5ead3e8eef06e8a8482ec4afff4b52845e18",
+    "error": "CalledProcessError(128, ['git', '--git-dir=/private/tmp/blanc-f12-navigation-isolation-20261027/dependency-git-views/106', 'show', '-s', '--format=%ct', 'HEAD'])"
+  },
+  {
+    "path": "src/third_party/perfetto",
+    "pin": "b480aedf9171d15257a110f893bcaa940f94b907",
+    "restoredFiles": 12769,
+    "bytes": 124852126
+  },
+  {
+    "path": "src/third_party/protobuf-javascript/src",
+    "pin": "e6d763860001ba1a76a63adcff5efb12b1c96024",
+    "restoredFiles": 221,
+    "bytes": 2453259
+  },
+  {
+    "path": "src/third_party/pthreadpool/src",
+    "pin": "15a6644ba1c45f1acc16ac1e883efc3e56c6bed2",
+    "restoredFiles": 43,
+    "bytes": 1689749
+  },
+  {
+    "path": "src/third_party/pywebsocket3/src",
+    "pin": "139224e0d71db84fe1922601cb92ec8c8f3885ba",
+    "restoredFiles": 81,
+    "bytes": 495212
+  },
+  {
+    "path": "src/third_party/quic_trace/src",
+    "pin": "6ecf6aa8e604655f1dfa72c4a1ae733c4c7fc883",
+    "restoredFiles": 64,
+    "bytes": 1026541
+  },
+  {
+    "path": "src/third_party/re2/src",
+    "pin": "2da0056814cf180480a19f5cf811e7e1c054bf6d",
+    "restoredFiles": 137,
+    "bytes": 1629252
+  },
+  {
+    "path": "src/third_party/readability/src",
+    "pin": "d7949dc47dd9ed9ee1d3b34ffdcf3bce28cde435",
+    "restoredFiles": 416,
+    "bytes": 28910791
+  },
+  {
+    "path": "src/third_party/ruy/src",
+    "pin": "2264753777198e4393fb83c44c693462d57a2be1",
+    "restoredFiles": 139,
+    "bytes": 1591042
+  },
+  {
+    "path": "src/third_party/search_engines_data/resources",
+    "pin": "5dc9f1afd38a8ac2b26b1972eb4fc1bbd5754e8c",
+    "restoredFiles": 2,
+    "bytes": 70185
+  },
+  {
+    "path": "src/third_party/securemessage/src",
+    "pin": "fa07beb12babc3b25e0c5b1f38c16aa8cb6b8f84",
+    "restoredFiles": 43,
+    "bytes": 234576
+  },
+  {
+    "path": "src/third_party/sframe/src",
+    "pin": "6a37f061f4eda0c6594c91ecf99b5ff498c8c124",
+    "restoredFiles": 39,
+    "bytes": 467067
+  },
+  {
+    "path": "src/third_party/skia",
+    "pin": "ac947b5f02facc8237e889c3977c3a670d9d4664",
+    "error": "CalledProcessError(128, ['git', '--git-dir=/private/tmp/blanc-f12-navigation-isolation-20261027/dependency-git-views/118', 'show', '-s', '--format=%ct', 'HEAD'])"
+  },
+  {
+    "path": "src/third_party/smhasher/src",
+    "pin": "07bb4de10a63e8cc2e1724865454eba635742383",
+    "restoredFiles": 47,
+    "bytes": 247237
+  },
+  {
+    "path": "src/third_party/snappy/src",
+    "pin": "32ded457c0b1fe78ceb8397632c416568d6714a0",
+    "restoredFiles": 52,
+    "bytes": 3349449
+  },
+  {
+    "path": "src/third_party/speedometer/main",
+    "pin": "f866d2b077038bc85bea5edb7bff8e05cadef0b2",
+    "restoredFiles": 2754,
+    "bytes": 203164079
+  },
+  {
+    "path": "src/third_party/speedometer/v2.0",
+    "pin": "732af0dfe867f8815e662ac637357e55f285dbbb",
+    "restoredFiles": 566,
+    "bytes": 16044433
+  },
+  {
+    "path": "src/third_party/speedometer/v2.1",
+    "pin": "8bf7946e39e47c875c00767177197aea5727e84a",
+    "restoredFiles": 566,
+    "bytes": 16044861
+  },
+  {
+    "path": "src/third_party/speedometer/v3.0",
+    "pin": "8d67f28d0281ac4330f283495b7f48286654ad7d",
+    "restoredFiles": 1118,
+    "bytes": 61013581
+  },
+  {
+    "path": "src/third_party/speedometer/v3.1",
+    "pin": "1386415be8fef2f6b6bbdbe1828872471c5d802a",
+    "restoredFiles": 1118,
+    "bytes": 61022359
+  },
+  {
+    "path": "src/third_party/spirv-cross/src",
+    "pin": "b8fcf307f1f347089e3c46eb4451d27f32ebc8d3",
+    "restoredFiles": 4343,
+    "bytes": 10960950
+  },
+  {
+    "path": "src/third_party/spirv-headers/src",
+    "pin": "86f980c731e62ae4eaf383d320449d71687936bf",
+    "restoredFiles": 121,
+    "bytes": 4186977
+  },
+  {
+    "path": "src/third_party/spirv-tools/src",
+    "pin": "911d1eaf87fd7763b2365d7e339816fa31ec3f4b",
+    "restoredFiles": 1756,
+    "bytes": 26822107
+  },
+  {
+    "path": "src/third_party/sqlite/src",
+    "pin": "ba8c54c83337618a9f15dd368a267e46b672fc84",
+    "restoredFiles": 2213,
+    "bytes": 123964893
+  },
+  {
+    "path": "src/third_party/swiftshader",
+    "pin": "0f87bb2d3742c2992fd1a7dcb2f051eebf79299c",
+    "restoredFiles": 14390,
+    "bytes": 1352487160
+  },
+  {
+    "path": "src/third_party/text-fragments-polyfill/src",
+    "pin": "abc6ed408b3f20e91d9cbda9977748459f5e3877",
+    "restoredFiles": 58,
+    "bytes": 412248
+  },
+  {
+    "path": "src/third_party/tflite/src",
+    "pin": "35746aec160345c2de2f243cc774e678028d39d3",
+    "restoredFiles": 37098,
+    "bytes": 494298952
+  },
+  {
+    "path": "src/third_party/ukey2/src",
+    "pin": "0275885d8e6038c39b8a8ca55e75d1d4d1727f47",
+    "restoredFiles": 73,
+    "bytes": 549365
+  },
+  {
+    "path": "src/third_party/vulkan-deps",
+    "pin": "da42ef74dde0a6687ad63b4c387732f3d55ea974",
+    "restoredFiles": 29,
+    "bytes": 55351
+  },
+  {
+    "path": "src/third_party/vulkan-headers/src",
+    "pin": "c46850864f4661461b0f6cb9922c058ffea4915e",
+    "restoredFiles": 89,
+    "bytes": 42514875
+  },
+  {
+    "path": "src/third_party/vulkan-loader/src",
+    "pin": "6b45d76280a9525740c38c1796060eadb9267488",
+    "restoredFiles": 292,
+    "bytes": 9961205
+  },
+  {
+    "path": "src/third_party/vulkan-tools/src",
+    "pin": "a967170a2b8a1ded4dbdf82d533caaec89184efe",
+    "restoredFiles": 133,
+    "bytes": 5058831
+  },
+  {
+    "path": "src/third_party/vulkan-utility-libraries/src",
+    "pin": "90738f6edfa19561a978fc5f97543ba37075ba9d",
+    "restoredFiles": 87,
+    "bytes": 8962834
+  },
+  {
+    "path": "src/third_party/vulkan-validation-layers/src",
+    "pin": "5b41089a2b3f2ccf5112279034154c3a4e89bf4c",
+    "restoredFiles": 1029,
+    "bytes": 60154115
+  },
+  {
+    "path": "src/third_party/vulkan_memory_allocator",
+    "pin": "82a9d47e4f9d91f0e32d2b6acd9714fcee1933a0",
+    "restoredFiles": 300,
+    "bytes": 3776932
+  },
+  {
+    "path": "src/third_party/webdriver/pylib",
+    "pin": "6845a0329408f149fafdbe901f480e2bd47be3fb",
+    "restoredFiles": 321,
+    "bytes": 2392338
+  },
+  {
+    "path": "src/third_party/webgl/src",
+    "pin": "714857a28445e8f5d8d6ae1c78498578009534d8",
+    "restoredFiles": 16003,
+    "bytes": 88043871
+  },
+  {
+    "path": "src/third_party/webgpu-cts/src",
+    "pin": "cc11994e92512d0a3715e9d28876ec48accb971a",
+    "restoredFiles": 1328,
+    "bytes": 57769539
+  },
+  {
+    "path": "src/third_party/webpagereplay",
+    "pin": "6a31bb0937dccd01bedae8bd6cdeb8c113937cfb",
+    "restoredFiles": 44,
+    "bytes": 245350
+  },
+  {
+    "path": "src/third_party/webpagereplay/third_party/clang-format/script",
+    "pin": "9f796802e5d633c96dbe97e0b6683d5e62594f9f",
+    "restoredFiles": 13,
+    "bytes": 100941
+  },
+  {
+    "path": "src/third_party/webrtc",
+    "pin": "95554e4a0c5c343fdc989387d9d0ce18e2a2294b",
+    "error": "CalledProcessError(128, ['git', '--git-dir=/private/tmp/blanc-f12-navigation-isolation-20261027/dependency-git-views/146', 'show', '-s', '--format=%ct', 'HEAD'])"
+  },
+  {
+    "path": "src/third_party/wuffs/src",
+    "pin": "7411f488fe2e2c205c3d3b3d28638b7356522930",
+    "restoredFiles": 14,
+    "bytes": 5917182
+  },
+  {
+    "path": "src/third_party/xnnpack/src",
+    "pin": "5d067b8f52342ba192ad9f67ebab9e77c1d046bc",
+    "restoredFiles": 12541,
+    "bytes": 161511970
+  },
+  {
+    "path": "src/third_party/zstd/src",
+    "pin": "10da6ba6de05e29169261fa4b68eb99239f770dd",
+    "restoredFiles": 655,
+    "bytes": 8332131
+  },
+  {
+    "path": "src/v8",
+    "pin": "7b7308258b7b58b8cf112439c91b199b8a11ecf1",
+    "restoredFiles": 19966,
+    "bytes": 154042809
+  }
+]

@@ -1,0 +1,3 @@
+import fs from 'node:fs';import {connect} from '/private/tmp/blanc-save-retry-repair/recovery/cdp.mjs';
+const root='/private/tmp/blanc-signed-recovery-ui',port=9893;
+const ts=await fetch(`http://127.0.0.1:${port}/json/list`).then(r=>r.json());const h=await connect(ts.find(t=>t.url.endsWith('/host.html')));const s=await h.eval('BlancPrototypeHost.api.getAllTabs()');fs.writeFileSync(root+'/restored.json',JSON.stringify(s,null,2));h.close();const c=await connect(await fetch(`http://127.0.0.1:${port}/json/version`).then(r=>r.json()));await c.send('Browser.close').catch(()=>{});c.close();console.log(s.tabs.map(t=>t.url));

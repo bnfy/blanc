@@ -1,0 +1,130 @@
+{
+  "bounds": {
+    "left": 258,
+    "top": 63,
+    "width": 1440,
+    "height": 960,
+    "windowState": "normal"
+  },
+  "rects": [
+    {
+      "rect": {
+        "x": 810.6015625,
+        "y": 20.5,
+        "width": 26,
+        "height": 26,
+        "top": 20.5,
+        "right": 836.6015625,
+        "bottom": 46.5,
+        "left": 810.6015625
+      },
+      "title": ""
+    },
+    {
+      "rect": {
+        "x": 837.75,
+        "y": 20.5,
+        "width": 26,
+        "height": 26,
+        "top": 20.5,
+        "right": 863.75,
+        "bottom": 46.5,
+        "left": 837.75
+      },
+      "title": "Reload"
+    },
+    {
+      "rect": {
+        "x": 864.8984375,
+        "y": 20.5,
+        "width": 26,
+        "height": 26,
+        "top": 20.5,
+        "right": 890.8984375,
+        "bottom": 46.5,
+        "left": 864.8984375
+      },
+      "title": "Close tab"
+    }
+  ],
+  "results": [
+    [
+      {
+        "title": "Reload",
+        "width": 26,
+        "height": 26,
+        "background": "rgba(0, 0, 0, 0)",
+        "color": "rgb(107, 107, 107)",
+        "radius": "50%"
+      },
+      {
+        "title": "Favorite this page",
+        "width": 0,
+        "height": 0,
+        "background": "rgba(0, 0, 0, 0)",
+        "color": "rgb(222, 222, 222)",
+        "radius": "50%"
+      },
+      {
+        "title": "Close tab",
+        "width": 26,
+        "height": 26,
+        "background": "rgba(0, 0, 0, 0)",
+        "color": "rgb(107, 107, 107)",
+        "radius": "50%"
+      }
+    ],
+    [
+      {
+        "title": "Reload",
+        "width": 26,
+        "height": 26,
+        "background": "rgba(17, 17, 17, 0.08)",
+        "color": "rgb(17, 17, 17)",
+        "radius": "50%"
+      },
+      {
+        "title": "Favorite this page",
+        "width": 0,
+        "height": 0,
+        "background": "rgba(0, 0, 0, 0)",
+        "color": "rgb(222, 222, 222)",
+        "radius": "50%"
+      },
+      {
+        "title": "Close tab",
+        "width": 26,
+        "height": 26,
+        "background": "rgba(0, 0, 0, 0)",
+        "color": "rgb(107, 107, 107)",
+        "radius": "50%"
+      }
+    ],
+    [
+      {
+        "title": "Reload",
+        "width": 26,
+        "height": 26,
+        "background": "rgba(0, 0, 0, 0)",
+        "color": "rgb(107, 107, 107)",
+        "radius": "50%"
+      },
+      {
+        "title": "Favorite this page",
+        "width": 0,
+        "height": 0,
+        "background": "rgba(0, 0, 0, 0)",
+        "color": "rgb(222, 222, 222)",
+        "radius": "50%"
+      },
+      {
+        "title": "Close tab",
+        "width": 26,
+        "height": 26,
+        "background": "rgba(17, 17, 17, 0.08)",
+        "color": "rgb(17, 17, 17)",
+        "radius": "50%"
+      }
+    ]
+  ]
+}

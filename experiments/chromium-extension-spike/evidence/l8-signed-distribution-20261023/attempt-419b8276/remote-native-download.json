@@ -1,0 +1,25 @@
+{
+  "extractedApp": {
+    "path": "/Users/anthonyjloria/Downloads/Blanc Chromium Preview.app",
+    "quarantine": {
+      "exitCode": 0,
+      "stdout": "0083;6adbaf7b;Safari;6F0E18F5-AD26-4B4F-B739-24157299597B\n",
+      "stderr": ""
+    },
+    "codesign": {
+      "exitCode": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    "gatekeeper": {
+      "exitCode": 0,
+      "stdout": "",
+      "stderr": "/Users/anthonyjloria/Downloads/Blanc Chromium Preview.app: accepted\nsource=Notarized Developer ID\n"
+    },
+    "stapler": {
+      "exitCode": 0,
+      "stdout": "Processing: /Users/anthonyjloria/Downloads/Blanc Chromium Preview.app\nThe validate action worked!\n",
+      "stderr": ""
+    }
+  }
+}

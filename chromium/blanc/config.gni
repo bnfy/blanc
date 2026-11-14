@@ -1,0 +1,43 @@
+# Preview hooks are opt-in at runtime and absent from release/official builds.
+declare_args() {
+  blanc_channel = "preview"
+  blanc_beta_version = "2.0.0-beta.1"
+  blanc_beta_build = 1
+  # Explicit local-only updater/Sync qualification; never a distributable build.
+  blanc_beta_local_qualification = false
+  blanc_sparkle_stage = ""
+  blanc_sparkle_public_key = ""
+  blanc_sparkle_archive_sha256 = ""
+  # Folder holding the blocker's engine bundle (engine.js, made by
+  # experiments/chromium-extension-spike/native/blocker/bundle.mjs). Beta builds
+  # embed it; the build and the browser both refuse any bytes but the pinned
+  # hash in services/blocker/bundle_hash.h. Preview builds take it at run time
+  # from --blanc-blocker-assets instead.
+  blanc_blocker_bundle = ""
+}
+assert(blanc_channel == "preview" || blanc_channel == "release" || blanc_channel == "beta")
+blanc_beta_channel = blanc_channel == "beta"
+assert(!blanc_beta_local_qualification || (blanc_beta_channel && target_cpu == "arm64"))
+if (blanc_beta_channel) {
+  assert(is_mac, "Blanc Beta is macOS only")
+  assert(blanc_beta_build > 0 && blanc_beta_build <= 9999)
+  assert(blanc_blocker_bundle != "", "Beta builds embed the blocker bundle")
+  if (blanc_beta_version == "2.0.0-beta.1") {
+    assert(target_cpu == "arm64", "Owner-approved beta 1 Intel waiver")
+  }
+}
+blanc_enable_test_hooks = blanc_channel == "preview" && !is_official_build
+# Serving Island assets from a disk folder is a preview development override.
+blanc_disk_assets = blanc_channel == "preview" && !is_official_build
+# Each channel keeps its own data folder (Info.plist CrProductDirName) under
+# ~/Library/Application Support. Release is a sibling of shipping Electron's
+# "Blanc" folder, never inside it, so Electron files are never shared (F0.3).
+if (blanc_channel == "release") {
+  blanc_product_dir_name = "Blanc Browser"
+} else {
+  blanc_product_dir_name = "Blanc Chromium Preview"
+}
+
+if (blanc_beta_channel) {
+  blanc_product_dir_name = "Blanc Beta"
+}

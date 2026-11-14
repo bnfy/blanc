@@ -1,0 +1,235 @@
+#!/usr/bin/env node
+// The strings Blanc's own controls in chrome://settings show (S1.7):
+// loadTimeData names the settings pages read with $i18n{} and
+// loadTimeData.getString(), generated from shipping's published catalogs
+// for each selectable language, as menu-strings.mjs does for the menus.
+//   node chromium/tools/settings-strings.mjs --write | --check
+import fs from 'node:fs';
+import path from 'node:path';
+import {fileURLToPath} from 'node:url';
+import {catalogs} from './menu-strings.mjs';
+
+const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
+const header = path.join(root, 'blanc/common/settings_strings.h');
+const {ref, commit} = JSON.parse(fs.readFileSync(path.join(root, 'blanc/island-renderer.json'), 'utf8'));
+// loadTimeData name, shipping message key.
+export const STRINGS = [
+  ["blancGestureEmpty", "settings.gesture.empty"],
+  ["blancGestureLabel", "settings.general.mouseGesturesEnabled.label"],
+  ["blancGestureHint", "settings.general.mouseGesturesEnabled.hint"],
+  ["blancGestureAssigned", "settings.general.assignedGestures"],
+  ["blancGestureAdd", "settings.general.mouseGestureAdd"],
+  ["blancGestureReset", "settings.general.mouseGestureReset"],
+  ["blancGestureDrawHint", "settings.general.drawUpToThree"],
+  ["blancGesturePadLabel", "settings.general.mouseGesturePad.ariaLabel"],
+  ["blancGesturePadPrompt", "settings.general.mouseGesturePadPrompt"],
+  ["blancGestureChooseAction", "settings.general.action"],
+  ["blancGestureSave", "settings.general.mouseGestureSave"],
+  ["blancGestureCancel", "settings.general.mouseGestureCancel"],
+  ["blancGestureSaveFailed", "settings.gesture.saveFailed"],
+  ["blancGestureLimit", "settings.gesture.limit"],
+  ["blancGestureTooLong", "settings.gesture.tooLong"],
+  ["blancGestureTooShort", "settings.gesture.tooShort"],
+  ["blancGestureDuplicate", "settings.gesture.duplicate"],
+  ["blancGestureRemove", "settings.gesture.removeLabel"],
+  ["blancGestureActionback", "settings.gesture.action.back"],
+  ["blancGestureActionforward", "settings.gesture.action.forward"],
+  ["blancGestureActionreload", "settings.gesture.action.reload"],
+  ["blancGestureActionnewTab", "settings.gesture.action.newTab"],
+  ["blancGestureActioncloseTab", "settings.gesture.action.closeTab"],
+  ["blancGestureActionreopenTab", "settings.gesture.action.reopenTab"],
+  ["blancGestureActionpreviousTab", "settings.gesture.action.previousTab"],
+  ["blancGestureActionnextTab", "settings.gesture.action.nextTab"],
+  ["blancGestureActionisland", "settings.gesture.action.island"],
+
+  ['blancMiniLabel', 'settings.general.miniWindow.label'],
+  ['blancMiniHint', 'settings.general.miniWindow.hint'],
+  ['blancMiniUnavailable', 'settings.general.miniWindow.unavailable'],
+  ['blancMiniOff', 'settings.general.miniWindow.off'],
+  ['blancMiniAltCmdN', 'settings.general.miniWindow.shortcut.altCmdN'],
+  ['blancMiniCtrlAltSpaceMac', 'settings.general.miniWindow.shortcut.ctrlAltSpaceMac'],
+  ['blancMiniCtrlAltSpace', 'settings.general.miniWindow.shortcut.ctrlAltSpace'],
+  ['blancMiniCtrlShiftSpace', 'settings.general.miniWindow.shortcut.ctrlShiftSpace'],
+  ["blancLinkRouteTitle", "settings.linkRoutes.title"],
+  ["blancLinkRouteHint", "settings.linkRoutes.hint"],
+  ["blancLinkRouteInAppLabel", "settings.linkRoutes.inApp.label"],
+  ["blancLinkRouteInAppHint", "settings.linkRoutes.inApp.hint"],
+  ["blancLinkRouteFallback", "settings.linkRoutes.fallback"],
+  ["blancLinkRouteAdd", "settings.linkRoutes.add"],
+  ["blancLinkRouteLinksTo", "settings.linkRoutes.linksTo"],
+  ["blancLinkRouteLinksContaining", "settings.linkRoutes.linksContaining"],
+  ["blancLinkRouteOpenIn", "settings.linkRoutes.openIn"],
+  ["blancLinkRouteDomainLabel", "settings.linkRoutes.domainLabel"],
+  ["blancLinkRouteContainsLabel", "settings.linkRoutes.containsLabel"],
+  ["blancLinkRouteDomainPlaceholder", "settings.linkRoutes.domainPlaceholder"],
+  ["blancLinkRouteContainsPlaceholder", "settings.linkRoutes.containsPlaceholder"],
+  ["blancLinkRouteProfileLabel", "settings.linkRoutes.profileLabel"],
+  ["blancLinkRouteSpaceLabel", "settings.linkRoutes.spaceLabel"],
+  ["blancLinkRouteAnyWindow", "settings.linkRoutes.anyWindow"],
+  ["blancLinkRoutePrivate", "settings.linkRoutes.private"],
+  ["blancLinkRouteProfileDeleted", "settings.linkRoutes.profileDeleted"],
+  ["blancLinkRouteSpaceDeleted", "settings.linkRoutes.spaceDeleted"],
+  ["blancLinkRouteProfileDeletedNote", "settings.linkRoutes.profileDeletedNote"],
+  ["blancLinkRouteSpaceDeletedNote", "settings.linkRoutes.spaceDeletedNote"],
+  ["blancLinkRouteDestinationSpace", "settings.linkRoutes.destinationSpace"],
+  ["blancLinkRouteDestinationPrivate", "settings.linkRoutes.destinationPrivate"],
+  ["blancLinkRouteSummaryDomain", "settings.linkRoutes.summaryDomain"],
+  ["blancLinkRouteSummaryContains", "settings.linkRoutes.summaryContains"],
+  ["blancLinkRouteSummaryNew", "settings.linkRoutes.summaryNew"],
+  ["blancLinkRouteMore", "settings.linkRoutes.more"],
+  ["blancLinkRouteMoveUp", "settings.linkRoutes.moveUp"],
+  ["blancLinkRouteMoveDown", "settings.linkRoutes.moveDown"],
+  ["blancLinkRouteMatchContains", "settings.linkRoutes.matchContains"],
+  ["blancLinkRouteMatchDomain", "settings.linkRoutes.matchDomain"],
+  ["blancLinkRouteDelete", "settings.linkRoutes.delete"],
+  ["blancLinkRouteDeleted", "settings.linkRoutes.deleted"],
+  ["blancLinkRouteMoved", "settings.linkRoutes.moved"],
+  ["blancLinkRouteInvalidDomain", "settings.linkRoutes.invalidDomain"],
+  ["blancLinkRouteInvalidContains", "settings.linkRoutes.invalidContains"],
+  ["blancLinkRouteTooLong", "settings.linkRoutes.tooLong"],
+  ["blancLinkRouteKeptHost", "settings.linkRoutes.keptHost"],
+  ["blancLinkRouteLimit", "settings.linkRoutes.limit"],
+  ["blancLinkRouteSaveFailed", "settings.linkRoutes.saveFailed"],
+  ["blancLinkRouteLoadFailed", "settings.linkRoutes.loadFailed"],
+
+  ['blancTabArchive', 'settings.general.tabArchive.label'],
+  ['blancTabArchiveHint', 'settings.general.tabArchive.hint'],
+  ['blancTabArchiveOff', 'settings.general.tabArchive.off'],
+  ['blancTabArchive12h', 'settings.general.tabArchive.12h'],
+  ['blancTabArchive1d', 'settings.general.tabArchive.1d'],
+  ['blancTabArchive7d', 'settings.general.tabArchive.7d'],
+  ['blancTabArchive30d', 'settings.general.tabArchive.30d'],
+
+  ['blancIslandHoverOpen', 'settings.general.islandHoverOpen.label'],
+  ['blancIslandHoverOpenHint', 'settings.general.islandHoverOpen.hint'],
+  ['blancIslandAutoHide', 'settings.general.islandAutoHide.label'],
+  ['blancIslandAutoHideHint', 'settings.general.islandAutoHide.hint'],
+  ['blancIslandAutoHideStyle', 'settings.general.islandAutoHideStyle.label'],
+  ['blancIslandAutoHideStyleHint', 'settings.general.islandAutoHideStyle.hint'],
+  ['blancIslandAutoHideStyleFloat', 'settings.general.islandAutoHideStyle.float'],
+  ['blancIslandAutoHideStylePush', 'settings.general.islandAutoHideStyle.push'],
+  ['blancIslandSize', 'settings.general.islandSize.label'],
+  ['blancIslandSizeHint', 'settings.general.islandSize.hint'],
+  ['blancIslandSizeDefault', 'settings.general.islandSize.default'],
+  ['blancIslandSizeLarge', 'settings.general.islandSize.large'],
+  ['blancIslandSizeExtraLarge', 'settings.general.islandSize.extraLarge'],
+  ['blancIslandSiteColors', 'settings.general.islandSiteColors.label'],
+  ['blancIslandSiteColorsHint', 'settings.general.islandSiteColors.hint'],
+  ['blancIslandTabIcons', 'settings.general.islandTabIcons.label'],
+  ['blancIslandTabIconsHint', 'settings.general.islandTabIcons.hint'],
+  ['blancProfiles', 'settings.profiles.title'],
+  ['blancPatron', 'settings.patron.title'],
+  ['blancPatronCheckout', 'settings.patron.patronCheckout'],
+  ['blancOpenLinkInSpace', 'contextMenu.openLinkInSpace'],
+  ['blancLinkNewSpace', 'tabMenu.newSpace'],
+  ['blancOpenLinkInGlance', 'contextMenu.openLinkInGlance'],
+  ['blancSiteZoomHint', 'settings.general.siteZoom.hint'],
+  ['blancWelcomeTour', 'settings.general.showWelcomeTour.label'],
+  ['blancWelcomeTourHint', 'settings.general.showWelcomeTour.hint'],
+  ['blancUsagePing', 'settings.privacy.usagePing.label'],
+  ['blancUsagePingHint', 'settings.privacy.usagePing.hint'],
+  ['blancResetInstallId', 'settings.privacy.resetInstallId'],
+  ['blancResetInstallIdDone', 'settings.privacy.resetInstallId.done'],
+  ['blancResetInstallIdFailed', 'settings.privacy.resetInstallId.failed'],
+  ['blancAppIcon', 'settings.general.appIconSetting.label'],
+  ['blancAppIconHint', 'settings.general.appIconSetting.hint'],
+  ['blancImportBar', 'import.folder.bookmarksBar'],
+  ['blancImportOther', 'import.folder.other'],
+  ['blancImportMobile', 'import.folder.mobile'],
+  ['blancImportPermission', 'import.permissionGuidance'],
+  ['blancSurfaceStyle', 'settings.general.surfaceStyle.label'],
+  ['blancSurfaceStyleHint', 'settings.general.surfaceStyle.hint'],
+  ['blancSurfaceStyleSunrise', 'settings.general.surfaceStyle.sunrise'],
+  ['blancSurfaceStyleNeutral', 'settings.general.surfaceStyle.neutral'],
+  ['blancSearchPriorityResults', 'settings.general.searchPriorityResults.label'],
+  ['blancSearchPriorityResultsHint', 'settings.general.searchPriorityResults.hint'],
+  ['blancSearchSuggestions', 'settings.general.searchSuggestions.label'],
+  ['blancSearchSuggestionsHint', 'settings.general.searchSuggestions.hint'],
+  ['blancBangs', 'settings.general.bangs.label'],
+  ['blancBangsHint', 'settings.general.bangs.hint'],
+  ['blancBlocking', 'settings.privacy.adblockEnabled.label'],
+  ['blancBlockingHint', 'settings.privacy.adblockEnabled.hint'],
+  // Lists and the language, through the native handler.
+  ['blancCustomBangs', 'settings.general.customBangs.label'],
+  ['blancCustomBangsHint', 'settings.general.customBangs.hint'],
+  ['blancCustomBangsCode', 'settings.general.customBangs.code'],
+  ['blancCustomBangsName', 'settings.general.customBangs.name'],
+  ['blancCustomBangsAddress', 'settings.general.customBangs.address'],
+  ['blancCustomBangsAdd', 'settings.general.customBangs.add'],
+  ['blancCustomBangsEmpty', 'settings.general.customBangs.empty'],
+  ['blancCustomBangsReplaces', 'settings.general.customBangs.replaces'],
+  ['blancCustomBangsDuplicate', 'settings.general.customBangs.duplicate'],
+  ['blancCustomBangsError', 'settings.general.customBangsError'],
+  ['blancCustomBangsRemove', 'settings.general.customBangs.remove'],
+  ['blancBlockingStatusReady', 'settings.blockingStatus.ready'],
+  ['blancBlockingStatusInitializing', 'settings.blockingStatus.initializing'],
+  ['blancBlockingStatusDisabled', 'settings.blockingStatus.disabled'],
+  ['blancBlockingStatusFailed', 'settings.blockingStatus.failed'],
+  ['blancCallAudio', 'settings.privacy.webrtcAudioBuffer.label'],
+  ['blancCallAudioHint', 'settings.privacy.webrtcAudioBuffer.hint'],
+  ['blancCallAudioAutomatic', 'settings.privacy.webrtcAudioBuffer.automatic'],
+  ['blancCallAudioStable', 'settings.privacy.webrtcAudioBuffer.stable'],
+  ['blancCallAudioResilient', 'settings.privacy.webrtcAudioBuffer.resilient'],
+  ['blancExceptions', 'settings.privacy.sitesListedHereLoad'],
+  ['blancExceptionsAdd', 'settings.privacy.exceptionAdd'],
+  ['blancExceptionsEmpty', 'settings.privacy.exceptionList.empty'],
+  ['blancExceptionsRemove', 'settings.siteList.remove'],
+  ['blancLanguage', 'settings.language.label'],
+  ['blancLanguageHint', 'settings.language.hint'],
+  ['blancLanguageSystem', 'settings.language.system'],
+  ['blancLanguageRelaunch', 'settings.language.relaunch'],
+];
+
+export function generate(rows = catalogs(STRINGS)) {
+  const id = code => code.replace('-', '_');
+  const fallback = rows.filter(({code}) => code !== 'en').map(({code}) =>
+    `  if (primary == "${code.split('-')[0]}") return kStrings_${id(code)};`).join('\n');
+  return `// Generated by chromium/tools/settings-strings.mjs from shipping ${ref}
+// (${commit}); do not edit.
+#ifndef BLANC_COMMON_SETTINGS_STRINGS_H_
+#define BLANC_COMMON_SETTINGS_STRINGS_H_
+
+#include <array>
+#include <span>
+#include <string>
+#include <string_view>
+
+namespace blanc::settings {
+
+struct String {
+  std::string_view name;
+  std::u16string_view value;
+};
+${rows.map(({code, values}) => `inline constexpr std::array<String, ${STRINGS.length}> kStrings_${id(code)} = {{
+${STRINGS.map(([name], i) => `    {"${name}", u${JSON.stringify(values[i])}},`).join('\n')}
+}};`).join('\n')}
+
+// Chromium's application locale chooses, as for the settings page around
+// these strings; a region falls back to its language and anything else to
+// English, as shipping's resolveLocale does.
+inline std::span<const String> ForLocale(std::string locale) {
+  for (char& c : locale) c = c == '_' ? '-' : (c >= 'A' && c <= 'Z') ? static_cast<char>(c + 32) : c;
+  const std::string primary = locale.substr(0, locale.find('-'));
+${fallback}
+  return kStrings_en;
+}
+
+}  // namespace blanc::settings
+
+#endif  // BLANC_COMMON_SETTINGS_STRINGS_H_
+`;
+}
+
+if (process.argv[1] === fileURLToPath(import.meta.url)) {
+  const text = generate();
+  if (process.argv.includes('--write')) {
+    fs.writeFileSync(header, text);
+    console.log(`Wrote ${path.relative(root, header)} from ${ref}`);
+  } else if (process.argv.includes('--check')) {
+    if (!fs.existsSync(header) || fs.readFileSync(header, 'utf8') !== text)
+      throw Error(`${path.relative(root, header)} differs from ${ref}; run --write`);
+    console.log(`Settings strings match ${ref}`);
+  } else {
+    throw Error('Usage: settings-strings.mjs --write | --check');
+  }
+}

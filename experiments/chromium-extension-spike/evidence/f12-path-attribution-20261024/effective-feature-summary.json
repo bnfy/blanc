@@ -1,0 +1,25 @@
+{
+  "source": "14706b0e8d4753d2a7ef35ea32a875b516366b0d",
+  "complete": true,
+  "exit": {
+    "code": 0,
+    "signal": null
+  },
+  "features": {
+    "PrefetchOffTheMainThread": {
+      "enable-features": [],
+      "disable-features": []
+    },
+    "PrefetchOffTheMainThreadForceForTesting": {
+      "enable-features": [],
+      "disable-features": []
+    }
+  },
+  "defaultDeclarations": "both disabled",
+  "scope": "one fresh regular-profile process; no override flags supplied",
+  "newCheck": true,
+  "limits": [
+    "Not permanent-profile state or future field-trial policy",
+    "No forced pre-prefetch network test"
+  ]
+}

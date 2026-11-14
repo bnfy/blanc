@@ -1,0 +1,27 @@
+{
+  "status": "incomplete snapshot; other CI jobs remain running/queued",
+  "reviewedFailures": "Known paused Electron sandbox test and Firefox companion development-tool audit; no Chromium-native regression identified in these two jobs.",
+  "rows": [
+    {
+      "jobId": 122846706923,
+      "head": "569d830d69c472aff2bc232e95a50b121fc47fbd",
+      "logTruncated": false,
+      "excerpt": [
+        "2026-10-28T13:31:16.3308402Z Electron runtime verified: 44.9.1",
+        "2026-10-28T13:31:19.9282456Z AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:",
+        "2026-10-28T13:31:19.9283898Z   actual: 'allowed',",
+        "2026-10-28T13:31:19.9284037Z   expected: 'SecurityError',",
+        "2026-10-28T13:31:20.2131198Z Electron runtime verified: 44.9.1"
+      ]
+    },
+    {
+      "jobId": 122846529867,
+      "head": "569d830d69c472aff2bc232e95a50b121fc47fbd",
+      "logTruncated": false,
+      "excerpt": [
+        "2026-10-28T13:31:46.0383391Z tab-import-companions: dependency-policy violations",
+        "2026-10-28T13:31:46.0384217Z   - addons-linter (high): GHSA-GCQX-W48M-W2H4, GHSA-5P2G-FCMC-QVQQ, GHSA-W3RX-R6R6-PGPR"
+      ]
+    }
+  ]
+}

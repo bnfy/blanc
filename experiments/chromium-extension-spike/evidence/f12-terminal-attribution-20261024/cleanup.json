@@ -1,0 +1,33 @@
+{
+  "profiles": [
+    {
+      "path": "/private/tmp/blanc-f12-terminal-join-20261024/profile-timeout-regular",
+      "removed": true
+    },
+    {
+      "path": "/private/tmp/blanc-f12-terminal-join-20261024/profile-settled-timeout-private",
+      "removed": true
+    },
+    {
+      "path": "/private/tmp/blanc-f12-terminal-join-20261024/profile-fixed-timeout-regular",
+      "removed": true
+    },
+    {
+      "path": "/private/tmp/blanc-f12-terminal-join-20261024/profile-denied-private",
+      "removed": true
+    },
+    {
+      "path": "/private/tmp/blanc-f12-terminal-join-20261024/profile-fixed-timeout-private",
+      "removed": true
+    },
+    {
+      "path": "/private/tmp/blanc-f12-terminal-join-20261024/profile-denied-regular",
+      "removed": true
+    }
+  ],
+  "acceptedSignedAppReplaced": false,
+  "googleOrPermanentProfilesUsed": false,
+  "utilityResumeCrashObserved": true,
+  "utilityResumeCrashAlsoPresentBeforeFix": true,
+  "utilityRecoveryAccepted": false
+}

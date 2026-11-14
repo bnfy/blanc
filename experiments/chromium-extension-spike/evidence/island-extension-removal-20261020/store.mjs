@@ -1,0 +1,1 @@
+import{connect}from'/private/tmp/blanc-cdp.mjs';const ts=await fetch('http://127.0.0.1:9277/json/list').then(r=>r.json());const h=await connect(ts.find(t=>t.url.includes('host.html')));console.log(await h.eval("BlancPrototypeHost.api.createTab('https://chromewebstore.google.com/detail/extensity/jjmflmamggggndanpgfnpelongoepncg')"));h.close();

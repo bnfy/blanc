@@ -1,0 +1,20 @@
+keychain: "/Users/anthonyjloria/Library/Keychains/login.keychain-db"
+version: 512
+class: "genp"
+attributes:
+    0x00000007 <blob>="Blanc Chromium Preview Safe Storage"
+    0x00000008 <blob>=<NULL>
+    "acct"<blob>="Blanc Chromium Preview"
+    "cdat"<timedate>=0x32303236313032323233323431345A00  "20261022232414Z\000"
+    "crtr"<uint32>=<NULL>
+    "cusi"<sint32>=<NULL>
+    "desc"<blob>=<NULL>
+    "gena"<blob>=<NULL>
+    "icmt"<blob>=<NULL>
+    "invi"<sint32>=<NULL>
+    "mdat"<timedate>=0x32303236313032323233323431345A00  "20261022232414Z\000"
+    "nega"<sint32>=<NULL>
+    "prot"<blob>=<NULL>
+    "scrp"<sint32>=<NULL>
+    "svce"<blob>="Blanc Chromium Preview Safe Storage"
+    "type"<uint32>=<NULL>

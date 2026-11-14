@@ -1,0 +1,10 @@
+{
+  "checkedAt": "2026-10-16T13:10:22.348Z",
+  "url": "chrome-extension://fmkadmapgofadopljbjfkapdkoienihi/popups/development.html",
+  "openResult": "opened",
+  "content": {
+    "title": "",
+    "state": "complete",
+    "text": "This page is using the development build of React. 🚧\n\nNote that the development build is not suitable for production.\nMake sure to use the production build before deployment.\n\nOpen the developer tools, and \"Components\" and \"Profiler\" tabs will appear to the right."
+  }
+}

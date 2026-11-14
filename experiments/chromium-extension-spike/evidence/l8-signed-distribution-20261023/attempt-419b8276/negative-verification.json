@@ -1,0 +1,12 @@
+[
+  {
+    "case": "manifest",
+    "exitCode": 1,
+    "rejected": true
+  },
+  {
+    "case": "artifact",
+    "exitCode": 1,
+    "rejected": true
+  }
+]

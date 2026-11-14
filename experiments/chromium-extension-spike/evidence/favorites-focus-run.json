@@ -1,0 +1,130 @@
+{
+  "commit": "a50eb2a1c062c173e7c216960b26b3b3d830a2a2",
+  "checks": [
+    {
+      "name": "before-relaunch",
+      "at": "2026-10-16T20:55:30.647Z",
+      "pages": []
+    },
+    {
+      "name": "relaunched",
+      "at": "2026-10-16T20:55:32.833Z",
+      "pages": [
+        {
+          "id": "9EF9580EE56F15313526EAD586A0D90D",
+          "title": "New Tab",
+          "url": "chrome://newtab/"
+        }
+      ]
+    },
+    {
+      "name": "baseline",
+      "at": "2026-10-16T20:55:32.936Z",
+      "tabs": [
+        {
+          "id": 138412984,
+          "url": "blanc://newtab/"
+        }
+      ],
+      "favorites": []
+    },
+    {
+      "name": "cmd-d-input-focus-on",
+      "at": "2026-10-16T20:55:41.244Z",
+      "panel": {
+        "open": true,
+        "focused": "addressInput"
+      }
+    },
+    {
+      "name": "screenshot",
+      "at": "2026-10-16T20:55:41.462Z",
+      "path": "/private/tmp/blanc-focus858-cmd-d-on.png"
+    },
+    {
+      "name": "cmd-d-input-focus-off",
+      "at": "2026-10-16T20:55:42.061Z"
+    },
+    {
+      "name": "escape-then-cmd-l-no-click",
+      "at": "2026-10-16T20:55:43.277Z"
+    },
+    {
+      "name": "escape-restores-native-page-typing",
+      "at": "2026-10-16T20:55:47.602Z",
+      "value": "initial-returned",
+      "focused": "typing",
+      "keys": [
+        {
+          "key": "l",
+          "trusted": true,
+          "target": ""
+        },
+        {
+          "key": "l",
+          "trusted": true,
+          "target": ""
+        },
+        {
+          "key": "l",
+          "trusted": true,
+          "target": "typing"
+        },
+        {
+          "key": "l",
+          "trusted": true,
+          "target": "typing"
+        },
+        {
+          "key": "d",
+          "trusted": true,
+          "target": "typing"
+        }
+      ]
+    },
+    {
+      "name": "cmd-r-from-panel",
+      "at": "2026-10-16T20:55:50.269Z",
+      "before": 1792184148044.1,
+      "after": 1792184150070.4
+    },
+    {
+      "name": "cmd-back-from-panel",
+      "at": "2026-10-16T20:55:52.121Z"
+    },
+    {
+      "name": "extension-popup-native-keyboard-focus",
+      "at": "2026-10-16T20:55:56.593Z",
+      "focused": true,
+      "keys": [
+        {
+          "key": "Tab",
+          "trusted": true
+        }
+      ],
+      "active": "BUTTON",
+      "url": "chrome-extension://nngceckbapebfimnlniiiahkandclblb/popup/index.html#/default-password-manager-prompt"
+    },
+    {
+      "name": "native-focus-suite-complete",
+      "at": "2026-10-16T20:55:57.199Z"
+    },
+    {
+      "name": "cleanup-complete",
+      "at": "2026-10-16T20:56:20.515Z",
+      "tabs": [
+        {
+          "id": 138412984,
+          "url": "blanc://newtab/"
+        }
+      ],
+      "historyRowsRemoved": 2,
+      "favorites": []
+    },
+    {
+      "name": "screenshot",
+      "at": "2026-10-16T20:56:20.798Z",
+      "path": "/private/tmp/blanc-focus858-final.png"
+    }
+  ]
+}

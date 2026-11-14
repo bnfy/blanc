@@ -1,0 +1,98 @@
+{
+  "kind": "chromium-no-blocker-negative-control",
+  "started": "2026-10-17T19:09:10.716Z",
+  "passed": true,
+  "nativeBlockerInstalled": false,
+  "acceptance": false,
+  "oraclePath": "blanc-f12-expanded-09",
+  "bundleSha256": "d0b37595faa4d1354c2b54cc0b75e979567e825959a2d66a1a9c46c57094a15d",
+  "sourceHashes": {
+    "chromium-baseline.mjs": "f26d9eb6317239b57026bff16932ad281a39a511aac2d18124d2b06188a36b2f",
+    "comparison.mjs": "c960d0ebb8de584d3f9723c891b3178eb4cc1adc30ad754640d8ec15eb1859ee",
+    "transport.mjs": "f380dd4931ee609247b6068c977f2c3f67778b7296122d636338e6213e91e44e",
+    "certificate-set.mjs": "342f1ff63a111ef9536aa8250e213d972435c89b3445d285955e332ec7d0ad78"
+  },
+  "runs": [
+    {
+      "kind": "regular",
+      "letter": "a",
+      "runId": "63e7ec63-9f4f-424d-a418-04e5bce937d7",
+      "counts": {
+        "candidates": 5123,
+        "electronBlockedChromiumLoaded": 2503,
+        "bothLoaded": 2620,
+        "coverageControls": 4,
+        "forkOnlyChildren": 1211
+      },
+      "acceptance": false
+    },
+    {
+      "kind": "regular",
+      "letter": "b",
+      "runId": "29d9503e-03fd-4f0f-bdc2-4675f3322dab",
+      "counts": {
+        "candidates": 5123,
+        "electronBlockedChromiumLoaded": 2503,
+        "bothLoaded": 2620,
+        "coverageControls": 4,
+        "forkOnlyChildren": 1211
+      },
+      "acceptance": false
+    },
+    {
+      "kind": "private",
+      "letter": "a",
+      "runId": "afb24a51-28c0-4d86-8e58-4f2d67df46fc",
+      "counts": {
+        "candidates": 5123,
+        "electronBlockedChromiumLoaded": 2503,
+        "bothLoaded": 2620,
+        "coverageControls": 4,
+        "forkOnlyChildren": 1211
+      },
+      "acceptance": false
+    },
+    {
+      "kind": "private",
+      "letter": "b",
+      "runId": "3858c4a0-266f-481c-a414-ff9f3e8b7282",
+      "counts": {
+        "candidates": 5123,
+        "electronBlockedChromiumLoaded": 2503,
+        "bothLoaded": 2620,
+        "coverageControls": 4,
+        "forkOnlyChildren": 1211
+      },
+      "acceptance": false
+    }
+  ],
+  "cleanup": {
+    "disposableTreeRemoved": true
+  },
+  "nativeBuilds": 0,
+  "trust": {
+    "mechanism": "ephemeral leaf SPKI list plus exact CONNECT/SNI/Host/URL allowlist",
+    "systemTrustChanged": false,
+    "leafFingerprints": [
+      "D7:14:C2:3A:57:FD:4C:16:E2:B3:59:0F:28:11:E3:56:8D:F8:55:FF:0B:27:EE:2C:3F:1E:94:6D:C5:1C:84:29",
+      "36:83:A1:9D:9B:FF:2D:A7:E8:91:6A:CD:26:95:35:24:7F:36:78:17:C9:9E:D5:9D:5D:DD:44:60:D3:8E:1D:46",
+      "21:E6:2F:50:30:31:94:F0:EA:BB:17:CF:90:C8:C7:03:66:ED:05:6E:F6:A3:6A:7B:77:8C:B3:8B:F6:FD:AE:37",
+      "EC:9C:7C:3C:FD:0F:F5:14:68:AA:8F:66:24:52:75:42:95:25:B7:7D:84:3A:C2:FF:21:97:7F:E1:27:A2:34:73",
+      "AD:1F:3B:7A:2F:17:83:3B:DA:75:F0:66:40:61:FA:11:B0:56:D4:12:96:03:7F:3D:6E:FC:4E:AD:3C:AA:2D:60",
+      "DA:9A:AE:B3:7A:BC:17:AD:2D:9D:2A:84:8C:B7:70:72:18:84:EB:A8:3A:AB:BD:54:8F:19:11:C5:AE:E2:C5:0C",
+      "B3:9C:A1:BF:9D:45:B2:A6:DE:49:1D:13:9A:64:7E:8B:92:56:76:62:2B:E8:9B:8E:56:EE:89:55:C6:B8:31:40",
+      "42:1E:53:F9:DD:44:BA:68:26:69:33:FF:FD:00:13:B6:D0:13:D8:C6:8B:BF:4D:11:BD:B0:20:B7:35:5F:3E:17",
+      "E4:BB:33:6E:C7:9E:8D:90:E5:26:1E:79:C5:BB:37:C7:1C:61:26:FD:C0:9C:CE:10:05:59:91:FC:97:77:A7:8D",
+      "02:21:80:20:4C:DF:35:DF:58:28:70:92:27:74:D0:0F:62:FE:72:C3:A1:5A:66:57:F5:50:FE:7A:1C:B0:C4:CC",
+      "22:A8:82:59:1B:3C:B0:67:5B:74:FD:70:12:18:DB:BC:47:F2:00:53:EC:1A:E9:D9:4A:05:28:47:AC:E1:D3:A7",
+      "6F:65:A1:84:4A:80:44:0E:C7:82:A7:8B:A5:E3:DB:AA:B1:B7:7D:C1:F7:7B:63:92:EA:41:A3:51:2D:22:E5:6D",
+      "64:A2:80:F3:EF:49:56:EA:8E:3A:E0:71:D8:50:6B:4F:F5:12:BD:C5:40:CD:F1:63:1F:25:D7:DF:1E:DC:A0:1E"
+    ]
+  },
+  "gaps": [
+    "Native Mojo engine and browser request hook absent",
+    "CDP does not expose request_initiator; no substituted frame origin",
+    "Native hook timing and startup/crash holds unmeasured"
+  ],
+  "finished": "2026-10-17T19:14:22.307Z"
+}

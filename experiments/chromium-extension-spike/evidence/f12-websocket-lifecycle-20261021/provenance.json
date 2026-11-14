@@ -1,0 +1,45 @@
+{
+  "prototype_parent": "eb52b20ec70e836eb8842406785467744742c058",
+  "artifacts": [
+    {
+      "path": "/Users/anthonyjloria/Projects/BlancChromium157/src/out/BlancPrototype/Blanc Prototype.app/Contents/MacOS/Blanc Prototype",
+      "sha256": "e435953c2135e132c58bfd0437daa4298e4f49983aa917b01c2fdd41418ea978",
+      "bytes": 76016
+    },
+    {
+      "path": "/Users/anthonyjloria/Projects/BlancChromium157/src/out/BlancPrototype/Blanc Prototype Framework.framework/Blanc Prototype Framework",
+      "sha256": "a0b789bedbeeb80e896dd69c51c8dc27eebe0fe52f0f82535944e4205023f911",
+      "bytes": 595852432
+    },
+    {
+      "path": "/Users/anthonyjloria/Projects/BlancChromium157/src/chrome/services/blanc_blocker/blocker_proxy.cc",
+      "sha256": "7153de2a1a85b2c816fbf37e129a927b8843e5c9431fbff608b07702b691eafe",
+      "bytes": 36270
+    },
+    {
+      "path": "/private/tmp/blanc-chromium157-work/experiments/chromium-extension-spike/fixtures/replay/synthetic/websocket-lifecycle-run.mjs",
+      "sha256": "cac30cdde2f96ce2501384a39a342680db3fe686801ffb7c3534d1a88f9e4673",
+      "bytes": 8627
+    },
+    {
+      "path": "/private/tmp/blanc-chromium157-work/experiments/chromium-extension-spike/fixtures/replay/synthetic/websocket-handshake.mjs",
+      "sha256": "d6c01cee3035988d4a8716237132ee111416a5b1ddef1f7d86867e7aec0bf7d2",
+      "bytes": 1404
+    },
+    {
+      "path": "/private/tmp/blanc-chromium157-work/experiments/chromium-extension-spike/fixtures/replay/synthetic/session.mjs",
+      "sha256": "fc1d9b64347e156285af637f8e1c672b404e833b95d29cd6c53e2b8616c8b6c4",
+      "bytes": 12067
+    },
+    {
+      "path": "/private/tmp/blanc-chromium157-work/experiments/chromium-extension-spike/fixtures/replay/pipeline/transport.mjs",
+      "sha256": "4f32dff75fb64c874002eb3dabf56df92c95881cf1f68cb359edd4e8405fc2f6",
+      "bytes": 2900
+    },
+    {
+      "path": "/private/tmp/blanc-f12-native-assets/engine.js",
+      "sha256": "9acdfb68963e89c9c9be04a1a68ae831c7c35b800555790cadc8575a7172382d",
+      "bytes": 4676324
+    }
+  ]
+}

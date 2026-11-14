@@ -1,0 +1,10 @@
+const fs=require('node:fs');
+const Ajv=require('/private/tmp/blanc-chromium157-work/node_modules/ajv');
+const p=__dirname;
+const ajv=new Ajv({strict:false,validateFormats:false});
+for(const name of ['spdx.schema.json','jsf-0.82.schema.json']) ajv.addSchema(JSON.parse(fs.readFileSync(p+'/'+name)));
+const validate=ajv.compile(JSON.parse(fs.readFileSync(p+'/bom-1.6.schema.json')));
+const bom=JSON.parse(fs.readFileSync(p+'/compliance/runtime-sbom.cdx.json'));
+const result={schema:'http://cyclonedx.org/schema/bom-1.6.schema.json',valid:validate(bom),errors:validate.errors,components:bom.components.length,formats:'Not independently validated; schema structure, types, required fields and patterns checked'};
+fs.writeFileSync(p+'/sbom-schema-validation.json',JSON.stringify(result,null,2)+'\n');
+if(!result.valid)process.exit(1);console.log(JSON.stringify(result));

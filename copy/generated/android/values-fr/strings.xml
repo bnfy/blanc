@@ -2585,6 +2585,7 @@ Vous pouvez réessayer avec « %2$s » ou réinstaller depuis blanc.day.</stri
     <string name="settings_general_vertical_tabs_text_size_large">Grande</string>
     <string name="settings_general_vertical_tabs_text_size_extra_large">Très grande</string>
     <string name="spaces_this_i_phone">Cet iPhone</string>
+    <string name="spaces_this_phone">Ce téléphone</string>
     <string name="spaces_this_i_pad">Cet iPad</string>
     <string name="spaces_menu_label">Spaces</string>
     <string name="spaces_menu_edit">Modifier</string>
@@ -2689,4 +2690,16 @@ Vous pouvez réessayer avec « %2$s » ou réinstaller depuis blanc.day.</stri
     <string name="settings_general_mini_window_shortcut_ctrl_alt_space_mac">⌃⌥Espace</string>
     <string name="settings_general_mini_window_shortcut_ctrl_alt_space">Ctrl+Alt+Espace</string>
     <string name="settings_general_mini_window_shortcut_ctrl_shift_space">Ctrl+Maj+Espace</string>
+    <string name="shared_spaces_switch_android">Garder les Spaces et les groupes synchronisés sur ce téléphone</string>
+    <string name="shared_spaces_switch_line_android">Les onglets de vos Spaces partagés sont synchronisés depuis ce téléphone.</string>
+    <string name="shared_spaces_save_this_phone">Enregistrer Ce téléphone comme Space</string>
+    <string name="shared_spaces_recovery_name_android">%1$s · conservé sur ce téléphone</string>
+    <string name="shared_spaces_deleted_everywhere_android">Supprimé partout. Annuler garde une copie sur ce téléphone.</string>
+    <string name="bring_space_action_android">Copier sur ce téléphone</string>
+    <string name="android_settings_more">Plus</string>
+    <string name="android_settings_island_position">Position de l’Island</string>
+    <string name="android_settings_island_position_top">En haut</string>
+    <string name="android_settings_island_position_bottom">En bas</string>
+    <string name="android_settings_open_source_licenses">Licences open source</string>
+    <string name="android_settings_auto_revoke_summary">Pour protéger vos données, laissez Blanc supprimer les autorisations des sites que vous n’avez pas consultés récemment</string>
 </resources>

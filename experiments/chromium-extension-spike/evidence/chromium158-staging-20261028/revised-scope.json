@@ -1,0 +1,10 @@
+{
+  "scheduledActions": 56997,
+  "clangCompileCommands": 47073,
+  "clangPlusPlusCompileCommands": 44266,
+  "linkerDriverCommands": 45,
+  "pendingBuildflags": 0,
+  "isolatedTypeScriptTargetPassed": true,
+  "fullBuildResumed": false,
+  "warning": "Dry-run count is not a live upper bound: prior57943 plan expanded to85342 total at failure;84396 remained then."
+}

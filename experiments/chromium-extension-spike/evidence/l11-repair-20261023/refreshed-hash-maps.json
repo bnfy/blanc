@@ -1,0 +1,9 @@
+[
+  "experiments/chromium-extension-spike/evidence/l5-native-pointer-20261023/SHA256SUMS",
+  "experiments/chromium-extension-spike/evidence/l5-split-visual-parity-20261023/SHA256SUMS",
+  "experiments/chromium-extension-spike/evidence/l5-theme-accessibility-20261023/SHA256SUMS",
+  "experiments/chromium-extension-spike/evidence/l6-restore-scheduling-20261023/SHA256SUMS",
+  "experiments/chromium-extension-spike/evidence/l7-security-repair-20261023/SHA256.json",
+  "experiments/chromium-extension-spike/evidence/l7-security-review-20261023/SHA256.json",
+  "experiments/chromium-extension-spike/evidence/l8-normal-startup-20261023/SHA256SUMS"
+]

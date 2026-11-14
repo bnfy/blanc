@@ -1,0 +1,33 @@
+{
+  "checks": {
+    "profile-encryptor": true,
+    "profile-write": true,
+    "provider-empty": true,
+    "normal": true
+  },
+  "build_wrapper_seconds": {
+    "diagnostic-build": 7.46,
+    "diagnostic-build2": 10.82,
+    "diagnostic-build3": 33.24,
+    "normal-build": 33.58,
+    "final-guard": 3.53
+  },
+  "normal_source_restored": true,
+  "normal_footprint": {
+    "files": 49,
+    "hunks": 114,
+    "basis": "prior measured inventory plus byte-identical source restoration"
+  },
+  "diagnostic_maximum": {
+    "files": 49,
+    "hunks": 117
+  },
+  "limitations": [
+    "graceful whole-process profile teardown, not hot profile deletion",
+    "simulated no-key provider result, not real keychain denial",
+    "no in-process provider recovery or arbitrary rebuild/rotation/power-loss qualification"
+  ],
+  "native_input": "pending",
+  "latency": "deferred",
+  "electron_diagnostic_build": "unapproved"
+}

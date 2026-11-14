@@ -1,0 +1,99 @@
+--- a/components/os_crypt/async/common/encryptor.h
++++ b/components/os_crypt/async/common/encryptor.h
+@@ -84,7 +84,7 @@
+ 
+     std::vector<uint8_t> Encrypt(base::span<const uint8_t> plaintext) const;
+     std::optional<std::vector<uint8_t>> Decrypt(
+-        base::span<const uint8_t> ciphertext) const;
++        base::span<const uint8_t> ciphertext, bool allow_legacy_fallback) const;
+ 
+     Key Clone() const;
+ 
+@@ -141,6 +141,11 @@
+   [[nodiscard]] std::optional<std::string> DecryptData(
+       base::span<const uint8_t> data,
+       DecryptFlags* flags = nullptr) const;
++
++  // Like DecryptData, but never retries CBC with the public legacy empty key.
++  // New secret stores must not accept that backwards-compatibility fallback.
++  [[nodiscard]] std::optional<std::string> DecryptDataStrict(
++      base::span<const uint8_t> data, DecryptFlags* flags = nullptr) const;
+ 
+   // These four APIs are provided for backwards compatibility with OSCrypt. They
+   // just call the above functions. For these functions, `flags` is optional.
+@@ -193,6 +198,10 @@
+   // OSCrypt Async is available.
+   bool DefaultEncryptionProviderAvailable() const;
+ 
++  std::optional<std::string> DecryptDataInternal(
++      base::span<const uint8_t> data, DecryptFlags* flags,
++      bool allow_legacy_fallback) const;
++
+   // A KeyRing consists of a set of provider names and Key values. Encrypted
+   // data is always tagged with the provider name and this is used to look up
+   // the correct key to use for decryption. This can be empty, meaning
+--- a/components/os_crypt/async/common/encryptor.cc
++++ b/components/os_crypt/async/common/encryptor.cc
+@@ -3,6 +3,7 @@
+ // found in the LICENSE file.
+ 
+ #include "components/os_crypt/async/common/encryptor.h"
++#include "crypto/secure_util.h"
+ 
+ #include <algorithm>
+ #include <optional>
+@@ -144,7 +145,7 @@
+ }
+ 
+ std::optional<std::vector<uint8_t>> Encryptor::Key::Decrypt(
+-    base::span<const uint8_t> ciphertext) const {
++    base::span<const uint8_t> ciphertext, bool allow_legacy_fallback) const {
+   CHECK(algorithm_.has_value());
+   switch (*algorithm_) {
+     case mojom::Algorithm::kAES256GCM: {
+@@ -179,6 +180,7 @@
+       if (plaintext.has_value()) {
+         return plaintext;
+       }
++      if (!allow_legacy_fallback) return std::nullopt;
+       // Decryption failed - try the empty fallback key. See
+       // https://crbug.com/40055416.
+       // PBKDF2-HMAC-SHA1(1 iteration, key = "", salt = "saltysalt")
+@@ -241,8 +243,18 @@
+ }
+ 
+ std::optional<std::string> Encryptor::DecryptData(
+-    base::span<const uint8_t> data,
+-    DecryptFlags* flags) const {
++    base::span<const uint8_t> data, DecryptFlags* flags) const {
++  return DecryptDataInternal(data, flags, true);
++}
++
++std::optional<std::string> Encryptor::DecryptDataStrict(
++    base::span<const uint8_t> data, DecryptFlags* flags) const {
++  return DecryptDataInternal(data, flags, false);
++}
++
++std::optional<std::string> Encryptor::DecryptDataInternal(
++    base::span<const uint8_t> data, DecryptFlags* flags,
++    bool allow_legacy_fallback) const {
+   if (flags) {
+     flags->should_reencrypt = false;
+     flags->temporarily_unavailable = false;
+@@ -261,12 +273,14 @@
+         // This removes the provider prefix from the front of the data.
+         auto ciphertext = data.subspan(provider.size());
+         // The Key does the raw decrypt.
+-        auto plaintext = key->Decrypt(ciphertext);
++        auto plaintext = key->Decrypt(ciphertext, allow_legacy_fallback);
+         if (plaintext) {
+           if (flags) {
+             flags->should_reencrypt = provider != provider_for_encryption_;
+           }
+-          return std::string(plaintext->begin(), plaintext->end());
++          std::string result(plaintext->begin(), plaintext->end());
++          if (!allow_legacy_fallback) crypto::SecureZeroBuffer(*plaintext);
++          return result;
+         } else {
+           // A key is present, and the data header matches the key prefix, but
+           // the decrypt did not work. This either means the data is invalid, or

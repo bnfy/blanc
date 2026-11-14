@@ -1,0 +1,62 @@
+{
+  "content/browser/loader/url_loader_factory_utils.cc": {
+    "sha256": "eb842a491f332820fb44ca91f0871c7d710c9719c24cb9daad4ad41b953766db",
+    "excerpts": [
+      {
+        "start": 242,
+        "end": 269,
+        "text": "          : nullptr;\n  bool disable_secure_dns = false;\n\n  network::URLLoaderFactoryBuilder factory_builder;\n\n  if (content_client_params) {\n    content_client_params->Run(\n        factory_builder, type,\n        terminal_params.header_client_option() == HeaderClientOption::kAllow\n            ? &header_client\n            : nullptr,\n        terminal_params.disable_secure_dns_option() ==\n                DisableSecureDnsOption::kAllow\n            ? &disable_secure_dns\n            : nullptr,\n        factory_override_ptr, terminal_params.is_for_network_service());\n  }\n\n  if (devtools_params) {\n    auto [is_navigation, is_download] = GetIsNavigationAndDownload(type);\n    devtools_params->Run(\n        is_navigation, is_download, factory_builder, factory_override_ptr,\n        terminal_params.header_client_option() == HeaderClientOption::kAllow\n            ? &header_client\n            : nullptr);\n  }\n\n  if (auto terminal_url_loader_factory ="
+      }
+    ]
+  },
+  "content/browser/devtools/devtools_url_loader_interceptor.cc": {
+    "sha256": "4d1349c51e23931a455b0306a134cae236b3336b38bbfd3c7217232248ab3dc0",
+    "excerpts": [
+      {
+        "start": 1399,
+        "end": 1419,
+        "text": "\n  if (state_ == State::kFollowRedirect) {\n    if (!modifications->modified_url.has_value()) {\n      // TODO(caseq): report error if other modifications are present.\n\n      // At this point we already reverted headers to the original state.\n      if (modifications->modified_headers) {\n        headers_override_ = HeadersOverride::SaveAndOverride(\n            create_loader_params_->request,\n            std::move(*modifications->modified_headers));\n      }\n\n      ProcessFollowRedirect({});\n      return Response::Success();\n    }\n    CancelRequest();\n    // Fall through to the generic logic of re-starting the request\n    // at the bottom of the method.\n  }\n  if (state_ == State::kRedirectReceived) {\n    // TODO(caseq): report error if other modifications are present."
+      },
+      {
+        "start": 1472,
+        "end": 1495,
+        "text": "void InterceptionJob::ProcessFollowRedirect(\n    const net::HttpRequestHeaders& modified_cors_exempt_headers) {\n  CHECK(headers_before_redirect_);\n  network::HttpRequestHeadersUpdateParams headers_update_params;\n  HeadersOverride::ComputeModifications(*headers_before_redirect_,\n                                        create_loader_params_->request.headers,\n                                        headers_update_params.removed_headers,\n                                        headers_update_params.modified_headers);\n  headers_update_params.modified_cors_exempt_headers =\n      modified_cors_exempt_headers;\n  // Exclude browser-synthesized Origin changes from client modifications to\n  // prevent triggering the network service's invalid-argument redirect check,\n  // but preserve any Origin explicitly supplied by the caller (e.g.,\n  // CorsURLLoader on cross-origin redirect).\n  headers_update_params.modified_headers.RemoveHeader(\n      net::HttpRequestHeaders::kOrigin);\n  if (redirect_origin_header_) {\n    headers_update_params.modified_headers.SetHeader(\n        net::HttpRequestHeaders::kOrigin, std::move(*redirect_origin_header_));\n  }\n  headers_before_redirect_.reset();\n  loader_->FollowRedirect(std::move(headers_update_params), std::nullopt);\n  state_ = State::kRequestSent;\n}"
+      },
+      {
+        "start": 1789,
+        "end": 1808,
+        "text": "void InterceptionJob::StartRequest() {\n  CHECK_EQ(State::kNotStarted, state_, base::NotFatalUntil::M159);\n  CHECK(!response_metadata_, base::NotFatalUntil::M159);\n\n  state_ = State::kRequestSent;\n\n  uint32_t options = create_loader_params_->options;\n  // Always enable the header client for intercepted requests. Ensures the\n  // header client channel is always available, making the cookie override logic\n  // robust across redirects.\n  options |= network::mojom::kURLLoadOptionUseHeaderClient;\n\n  target_factory_->CreateLoaderAndStart(\n      loader_.BindNewPipeAndPassReceiver(), create_loader_params_->request_id,\n      options, create_loader_params_->request,\n      client_receiver_.BindNewPipeAndPassRemote(),\n      create_loader_params_->traffic_annotation);\n  client_receiver_.set_disconnect_handler(\n      base::BindOnce(&InterceptionJob::Shutdown, base::Unretained(this)));\n"
+      }
+    ]
+  },
+  "chrome/browser/chrome_content_browser_client.cc": {
+    "sha256": "7f485dd27862e033fe9b152f93ec6bbddf093887c5a7d3d16563bcfedf22aac8",
+    "excerpts": [
+      {
+        "start": 6890,
+        "end": 6908,
+        "text": "  // NOTE: Some unit test environments do not initialize\n  // BrowserContextKeyedAPI factories for e.g. WebRequest.\n  if (web_request_api) {\n    bool use_proxy_for_web_request =\n        web_request_api->MaybeProxyURLLoaderFactory(\n            browser_context, frame, render_process_id, type,\n            std::move(navigation_id), ukm_source_id, factory_builder,\n            header_client, navigation_response_task_runner, request_initiator);\n    if (bypass_redirect_checks) {\n      *bypass_redirect_checks = use_proxy_for_web_request;\n    }\n  }\n#endif\n\n  // Blanc network factories only; WebUI/data/file loaders keep their own protocol.\n  if (is_for_network_service)\n    blanc::MaybeProxy(browser_context, frame, static_cast<int>(type), isolation_info, factory_builder);\n\n  // Install the HTTP Header Injection proxying factory."
+      }
+    ]
+  },
+  "services/network/public/cpp/url_loader_factory_builder.h": {
+    "sha256": "a4876009a18e96091e6a0eabda494fd701af2f7a7ee08e952725fe5bffdf5a69",
+    "excerpts": [
+      {
+        "start": 19,
+        "end": 28,
+        "text": "namespace network {\n\n// URLLoaderFactoryBuilder allows to build a URLLoaderFactory where requests\n// go through interceptors/proxying URLLoaderFactories and finally processed by\n// the terminal URLLoaderFactory.\n// A request received by the resulting factory will be processed by the\n// interceptors (in the order of `Append()` calls), and then finally passed to\n// the terminal (given by `terminal_args` of `Finish*()` methods).\n//\n// URLLoaderFactoryBuilder connects pipes and URLLoaderFactories eagerly, and"
+      }
+    ]
+  },
+  "chrome/services/blanc_blocker/blocker_proxy.cc": {
+    "sha256": "2efb8b1b9cce740060a3dbb8b8fb2891d79c41f5fe1dcd76b87e29c5e878b316",
+    "excerpts": [
+      {
+        "start": 584,
+        "end": 610,
+        "text": "    Gate(base::BindOnce(&Request::Start, weak_.GetWeakPtr()), entered);\n  }\n  ~Request() override = default;\n  void FollowRedirect(network::HttpRequestHeadersUpdateParams headers, const std::optional<GURL>& url) override {\n    const perfetto::DynamicCategory category(\"disabled-by-default-blanc.attribution\");\n    bool tracing = false;\n    TRACE_EVENT_CATEGORY_GROUP_ENABLED(category, &tracing);\n    if (tracing && request_.devtools_request_id) {\n      const auto digest = crypto::hash::Sha256(*request_.devtools_request_id);\n      TRACE_EVENT_INSTANT(category, \"Blanc.RedirectFollow\",\n                          \"request_digest\", base::HexEncode(digest),\n                          \"replacement_url\", url.has_value(),\n                          \"removed_headers\", static_cast<int>(headers.removed_headers.size()),\n                          \"modified_headers\", static_cast<int>(headers.modified_headers.GetHeaderVector().size()),\n                          \"forwarded\", redirect_pending_ && !url);\n    }\n    // Forward all validation to the real loader. A caller-supplied replacement\n    // URL is not yet supported: refuse rather than evaluate a different hop.\n    if (!redirect_pending_ || url) { Complete(net::ERR_BLOCKED_BY_CLIENT); return; }\n    redirect_pending_ = false;\n    loader_->FollowRedirect(std::move(headers), url);\n  }\n  void SetPriority(net::RequestPriority priority, int32_t intra) override {\n    priority_ = priority; intra_ = intra;\n    if (loader_) loader_->SetPriority(priority, intra);\n  }\n  void OnReceiveEarlyHints(network::mojom::EarlyHintsPtr hints) override { client_->OnReceiveEarlyHints(std::move(hints)); }"
+      }
+    ]
+  }
+}

@@ -22,9 +22,13 @@ const NOT_DRAWN_ON_AN_IPAD = new Set([
   'slash.send.hint',
   'spaces.thisIPhone',
 ]);
+// Blanc for Android's own wordings (chromium/tools/android-strings.mjs): the
+// keys ending in `.android`, and these two. iOS never reads them.
+const ANDROID_ONLY = new Set(['spaces.thisPhone', 'sharedSpaces.saveThisPhone']);
 
 const phoneKeys = Object.keys(en).filter((key) => !key.endsWith('.ipad')
   && !NOT_DRAWN_ON_AN_IPAD.has(key)
+  && !key.endsWith('.android') && !ANDROID_ONLY.has(key)
   && NAMES_THE_PHONE.test(en[key].message));
 
 test('there are messages that name the phone to check', () => {

@@ -1,0 +1,9 @@
+{
+  "verified": true,
+  "nativeEarlyPasses": 12,
+  "safetyChecks": 7,
+  "electronEarlyPasses": 0,
+  "mainFramesOnly": true,
+  "latencyQualified": false,
+  "fullAcceptance": false
+}

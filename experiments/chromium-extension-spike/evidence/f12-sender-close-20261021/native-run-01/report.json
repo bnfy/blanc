@@ -1,0 +1,47 @@
+{
+  "nativeOnly": true,
+  "pairedParity": false,
+  "runs": [
+    {
+      "label": "regular-keepalive",
+      "senderClosed": true,
+      "targetDestroyed": true,
+      "terminalArrivals": [
+        "https://page.blanc-fixture.test/finish-allow"
+      ],
+      "decisionCount": 9
+    },
+    {
+      "label": "regular-beacon",
+      "senderClosed": true,
+      "targetDestroyed": true,
+      "terminalArrivals": [
+        "https://page.blanc-fixture.test/finish-allow"
+      ],
+      "decisionCount": 9
+    },
+    {
+      "label": "private-keepalive",
+      "senderClosed": true,
+      "targetDestroyed": true,
+      "terminalArrivals": [
+        "https://page.blanc-fixture.test/finish-allow"
+      ],
+      "decisionCount": 9
+    },
+    {
+      "label": "private-beacon",
+      "senderClosed": true,
+      "targetDestroyed": true,
+      "terminalArrivals": [
+        "https://page.blanc-fixture.test/finish-allow"
+      ],
+      "decisionCount": 9
+    }
+  ],
+  "started": "2026-10-21T18:59:19.340Z",
+  "engineSha256": "9acdfb68963e89c9c9be04a1a68ae831c7c35b800555790cadc8575a7172382d",
+  "harnessSha256": "2301e9d30ee5d0b185cf86f9ed11b2c8edecb945abdf669c779612c09d512d22",
+  "cleanup": true,
+  "finished": "2026-10-21T18:59:49.339Z"
+}

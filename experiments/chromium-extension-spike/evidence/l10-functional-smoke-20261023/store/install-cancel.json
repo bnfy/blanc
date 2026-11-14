@@ -1,0 +1,10 @@
+{
+  "cancelledExtensionPresentInSecurePreferences": false,
+  "extensionId": "nngceckbapebfimnlniiiahkandclblb",
+  "nativeDialog": [
+    "Read and change all your data on all websites",
+    "Read and modify data you copy and paste"
+  ],
+  "initialAddDisabled": true,
+  "nativeCancelReturnedAddToBlanc": true
+}

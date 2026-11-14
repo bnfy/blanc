@@ -1,0 +1,1036 @@
+{
+  "mode": "uncontrolled",
+  "started": "2026-10-17T23:03:12.327Z",
+  "passed": true,
+  "acceptance": false,
+  "fixtureSha256": "4285d9371549863f6598b51ed7b38ada0a6e7fee332957d7b7e81653b371d3b3",
+  "sources": {
+    "paths-run.mjs": "a023148805896d3b9001bc55a61e3799b9e6a88b1c019e46663cfecee5e1511a",
+    "paths-fixtures.mjs": "3730d1e11ce0bb5869096b30792a62c9c4cae7c5056e4678f7b5ade097b995e8",
+    "paths-compare.mjs": "46cb3b4abc65901977b54ece6f0037485f28764235be1b8b17c6e4950424a2dd",
+    "session.mjs": "c0b17830cde7072c1f449385ee36c25d84e0d85527d0c6a28ddccd2afc0cc8de",
+    "transport.mjs": "2232100bf834a499f133b1c2b2e905e95fbcf5f07180d2a35d38502e1a905e1c",
+    "worker-observer.mjs": "ce8d1489c3a40bedfa18e5de5f74938b8b39f001c812ae0cb478bde64024d033",
+    "worker-context.mjs": "8aa09de096e7f3d3adf1c766b182eaf35962566a17f379a4e8282859b13c6d05"
+  },
+  "runs": [
+    {
+      "label": "electron-regular-a",
+      "requests": 36,
+      "complete": true,
+      "results": [
+        {
+          "id": "fetch-allow",
+          "outcome": "load",
+          "body": "authored allowed target"
+        },
+        {
+          "id": "fetch-block",
+          "outcome": "error"
+        },
+        {
+          "id": "blocked-start",
+          "outcome": "error"
+        },
+        {
+          "id": "multi",
+          "outcome": "load",
+          "body": "authored allowed target"
+        },
+        {
+          "id": "script-allow",
+          "outcome": "load"
+        },
+        {
+          "id": "script-block",
+          "outcome": "error"
+        },
+        {
+          "id": "dedicated",
+          "outcome": "load",
+          "worker": {
+            "fetches": [
+              {
+                "url": "https://page.blanc-fixture.test/blanc-fixture/paths/dedicated-fetch",
+                "outcome": "load",
+                "body": "authored allowed target"
+              },
+              {
+                "url": "https://000491b06a.com/blanc-fixture/paths/dedicated-block",
+                "outcome": "error"
+              },
+              {
+                "url": "https://page.blanc-fixture.test/blanc-fixture/paths/dedicated-redirect-hop-1",
+                "outcome": "error"
+              }
+            ],
+            "imports": [
+              {
+                "url": "https://page.blanc-fixture.test/blanc-fixture/paths/dedicated-import.js",
+                "outcome": "load"
+              },
+              {
+                "url": "https://000491b06a.com/blanc-fixture/paths/dedicated-import-block.js",
+                "outcome": "error"
+              }
+            ]
+          }
+        },
+        {
+          "id": "shared",
+          "outcome": "load",
+          "worker": {
+            "fetches": [
+              {
+                "url": "https://page.blanc-fixture.test/blanc-fixture/paths/shared-fetch",
+                "outcome": "load",
+                "body": "authored allowed target"
+              },
+              {
+                "url": "https://000491b06a.com/blanc-fixture/paths/shared-block",
+                "outcome": "error"
+              },
+              {
+                "url": "https://page.blanc-fixture.test/blanc-fixture/paths/shared-redirect-hop-1",
+                "outcome": "error"
+              }
+            ],
+            "imports": [
+              {
+                "url": "https://page.blanc-fixture.test/blanc-fixture/paths/shared-import.js",
+                "outcome": "load"
+              },
+              {
+                "url": "https://000491b06a.com/blanc-fixture/paths/shared-import-block.js",
+                "outcome": "error"
+              }
+            ]
+          }
+        },
+        {
+          "id": "service",
+          "outcome": "load",
+          "worker": {
+            "fetches": [
+              {
+                "url": "https://page.blanc-fixture.test/blanc-fixture/paths/service-fetch",
+                "outcome": "load",
+                "body": "authored allowed target"
+              },
+              {
+                "url": "https://000491b06a.com/blanc-fixture/paths/service-block",
+                "outcome": "error"
+              },
+              {
+                "url": "https://page.blanc-fixture.test/blanc-fixture/paths/service-redirect-hop-1",
+                "outcome": "error"
+              }
+            ],
+            "imports": [
+              {
+                "url": "https://page.blanc-fixture.test/blanc-fixture/paths/service-import.js",
+                "outcome": "load"
+              },
+              {
+                "url": "https://000491b06a.com/blanc-fixture/paths/service-import-block.js",
+                "outcome": "error"
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "label": "electron-regular-b",
+      "requests": 36,
+      "complete": true,
+      "results": [
+        {
+          "id": "fetch-allow",
+          "outcome": "load",
+          "body": "authored allowed target"
+        },
+        {
+          "id": "fetch-block",
+          "outcome": "error"
+        },
+        {
+          "id": "blocked-start",
+          "outcome": "error"
+        },
+        {
+          "id": "multi",
+          "outcome": "load",
+          "body": "authored allowed target"
+        },
+        {
+          "id": "script-allow",
+          "outcome": "load"
+        },
+        {
+          "id": "script-block",
+          "outcome": "error"
+        },
+        {
+          "id": "dedicated",
+          "outcome": "load",
+          "worker": {
+            "fetches": [
+              {
+                "url": "https://page.blanc-fixture.test/blanc-fixture/paths/dedicated-fetch",
+                "outcome": "load",
+                "body": "authored allowed target"
+              },
+              {
+                "url": "https://000491b06a.com/blanc-fixture/paths/dedicated-block",
+                "outcome": "error"
+              },
+              {
+                "url": "https://page.blanc-fixture.test/blanc-fixture/paths/dedicated-redirect-hop-1",
+                "outcome": "error"
+              }
+            ],
+            "imports": [
+              {
+                "url": "https://page.blanc-fixture.test/blanc-fixture/paths/dedicated-import.js",
+                "outcome": "load"
+              },
+              {
+                "url": "https://000491b06a.com/blanc-fixture/paths/dedicated-import-block.js",
+                "outcome": "error"
+              }
+            ]
+          }
+        },
+        {
+          "id": "shared",
+          "outcome": "load",
+          "worker": {
+            "fetches": [
+              {
+                "url": "https://page.blanc-fixture.test/blanc-fixture/paths/shared-fetch",
+                "outcome": "load",
+                "body": "authored allowed target"
+              },
+              {
+                "url": "https://000491b06a.com/blanc-fixture/paths/shared-block",
+                "outcome": "error"
+              },
+              {
+                "url": "https://page.blanc-fixture.test/blanc-fixture/paths/shared-redirect-hop-1",
+                "outcome": "error"
+              }
+            ],
+            "imports": [
+              {
+                "url": "https://page.blanc-fixture.test/blanc-fixture/paths/shared-import.js",
+                "outcome": "load"
+              },
+              {
+                "url": "https://000491b06a.com/blanc-fixture/paths/shared-import-block.js",
+                "outcome": "error"
+              }
+            ]
+          }
+        },
+        {
+          "id": "service",
+          "outcome": "load",
+          "worker": {
+            "fetches": [
+              {
+                "url": "https://page.blanc-fixture.test/blanc-fixture/paths/service-fetch",
+                "outcome": "load",
+                "body": "authored allowed target"
+              },
+              {
+                "url": "https://000491b06a.com/blanc-fixture/paths/service-block",
+                "outcome": "error"
+              },
+              {
+                "url": "https://page.blanc-fixture.test/blanc-fixture/paths/service-redirect-hop-1",
+                "outcome": "error"
+              }
+            ],
+            "imports": [
+              {
+                "url": "https://page.blanc-fixture.test/blanc-fixture/paths/service-import.js",
+                "outcome": "load"
+              },
+              {
+                "url": "https://000491b06a.com/blanc-fixture/paths/service-import-block.js",
+                "outcome": "error"
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "label": "electron-private-a",
+      "requests": 35,
+      "complete": true,
+      "results": [
+        {
+          "id": "fetch-allow",
+          "outcome": "load",
+          "body": "authored allowed target"
+        },
+        {
+          "id": "fetch-block",
+          "outcome": "error"
+        },
+        {
+          "id": "blocked-start",
+          "outcome": "error"
+        },
+        {
+          "id": "multi",
+          "outcome": "load",
+          "body": "authored allowed target"
+        },
+        {
+          "id": "script-allow",
+          "outcome": "load"
+        },
+        {
+          "id": "script-block",
+          "outcome": "error"
+        },
+        {
+          "id": "dedicated",
+          "outcome": "load",
+          "worker": {
+            "fetches": [
+              {
+                "url": "https://page.blanc-fixture.test/blanc-fixture/paths/dedicated-fetch",
+                "outcome": "load",
+                "body": "authored allowed target"
+              },
+              {
+                "url": "https://000491b06a.com/blanc-fixture/paths/dedicated-block",
+                "outcome": "error"
+              },
+              {
+                "url": "https://page.blanc-fixture.test/blanc-fixture/paths/dedicated-redirect-hop-1",
+                "outcome": "error"
+              }
+            ],
+            "imports": [
+              {
+                "url": "https://page.blanc-fixture.test/blanc-fixture/paths/dedicated-import.js",
+                "outcome": "load"
+              },
+              {
+                "url": "https://000491b06a.com/blanc-fixture/paths/dedicated-import-block.js",
+                "outcome": "error"
+              }
+            ]
+          }
+        },
+        {
+          "id": "shared",
+          "outcome": "load",
+          "worker": {
+            "fetches": [
+              {
+                "url": "https://page.blanc-fixture.test/blanc-fixture/paths/shared-fetch",
+                "outcome": "load",
+                "body": "authored allowed target"
+              },
+              {
+                "url": "https://000491b06a.com/blanc-fixture/paths/shared-block",
+                "outcome": "error"
+              },
+              {
+                "url": "https://page.blanc-fixture.test/blanc-fixture/paths/shared-redirect-hop-1",
+                "outcome": "error"
+              }
+            ],
+            "imports": [
+              {
+                "url": "https://page.blanc-fixture.test/blanc-fixture/paths/shared-import.js",
+                "outcome": "load"
+              },
+              {
+                "url": "https://000491b06a.com/blanc-fixture/paths/shared-import-block.js",
+                "outcome": "error"
+              }
+            ]
+          }
+        },
+        {
+          "id": "service",
+          "outcome": "load",
+          "worker": {
+            "fetches": [
+              {
+                "url": "https://page.blanc-fixture.test/blanc-fixture/paths/service-fetch",
+                "outcome": "load",
+                "body": "authored allowed target"
+              },
+              {
+                "url": "https://000491b06a.com/blanc-fixture/paths/service-block",
+                "outcome": "error"
+              },
+              {
+                "url": "https://page.blanc-fixture.test/blanc-fixture/paths/service-redirect-hop-1",
+                "outcome": "error"
+              }
+            ],
+            "imports": [
+              {
+                "url": "https://page.blanc-fixture.test/blanc-fixture/paths/service-import.js",
+                "outcome": "load"
+              },
+              {
+                "url": "https://000491b06a.com/blanc-fixture/paths/service-import-block.js",
+                "outcome": "error"
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "label": "electron-private-b",
+      "requests": 35,
+      "complete": true,
+      "results": [
+        {
+          "id": "fetch-allow",
+          "outcome": "load",
+          "body": "authored allowed target"
+        },
+        {
+          "id": "fetch-block",
+          "outcome": "error"
+        },
+        {
+          "id": "blocked-start",
+          "outcome": "error"
+        },
+        {
+          "id": "multi",
+          "outcome": "load",
+          "body": "authored allowed target"
+        },
+        {
+          "id": "script-allow",
+          "outcome": "load"
+        },
+        {
+          "id": "script-block",
+          "outcome": "error"
+        },
+        {
+          "id": "dedicated",
+          "outcome": "load",
+          "worker": {
+            "fetches": [
+              {
+                "url": "https://page.blanc-fixture.test/blanc-fixture/paths/dedicated-fetch",
+                "outcome": "load",
+                "body": "authored allowed target"
+              },
+              {
+                "url": "https://000491b06a.com/blanc-fixture/paths/dedicated-block",
+                "outcome": "error"
+              },
+              {
+                "url": "https://page.blanc-fixture.test/blanc-fixture/paths/dedicated-redirect-hop-1",
+                "outcome": "error"
+              }
+            ],
+            "imports": [
+              {
+                "url": "https://page.blanc-fixture.test/blanc-fixture/paths/dedicated-import.js",
+                "outcome": "load"
+              },
+              {
+                "url": "https://000491b06a.com/blanc-fixture/paths/dedicated-import-block.js",
+                "outcome": "error"
+              }
+            ]
+          }
+        },
+        {
+          "id": "shared",
+          "outcome": "load",
+          "worker": {
+            "fetches": [
+              {
+                "url": "https://page.blanc-fixture.test/blanc-fixture/paths/shared-fetch",
+                "outcome": "load",
+                "body": "authored allowed target"
+              },
+              {
+                "url": "https://000491b06a.com/blanc-fixture/paths/shared-block",
+                "outcome": "error"
+              },
+              {
+                "url": "https://page.blanc-fixture.test/blanc-fixture/paths/shared-redirect-hop-1",
+                "outcome": "error"
+              }
+            ],
+            "imports": [
+              {
+                "url": "https://page.blanc-fixture.test/blanc-fixture/paths/shared-import.js",
+                "outcome": "load"
+              },
+              {
+                "url": "https://000491b06a.com/blanc-fixture/paths/shared-import-block.js",
+                "outcome": "error"
+              }
+            ]
+          }
+        },
+        {
+          "id": "service",
+          "outcome": "load",
+          "worker": {
+            "fetches": [
+              {
+                "url": "https://page.blanc-fixture.test/blanc-fixture/paths/service-fetch",
+                "outcome": "load",
+                "body": "authored allowed target"
+              },
+              {
+                "url": "https://000491b06a.com/blanc-fixture/paths/service-block",
+                "outcome": "error"
+              },
+              {
+                "url": "https://page.blanc-fixture.test/blanc-fixture/paths/service-redirect-hop-1",
+                "outcome": "error"
+              }
+            ],
+            "imports": [
+              {
+                "url": "https://page.blanc-fixture.test/blanc-fixture/paths/service-import.js",
+                "outcome": "load"
+              },
+              {
+                "url": "https://000491b06a.com/blanc-fixture/paths/service-import-block.js",
+                "outcome": "error"
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "label": "chromium-regular-a",
+      "requests": 35,
+      "complete": true,
+      "results": [
+        {
+          "id": "fetch-allow",
+          "outcome": "load",
+          "body": "authored allowed target"
+        },
+        {
+          "id": "fetch-block",
+          "outcome": "error"
+        },
+        {
+          "id": "blocked-start",
+          "outcome": "error"
+        },
+        {
+          "id": "multi",
+          "outcome": "load",
+          "body": "authored allowed target"
+        },
+        {
+          "id": "script-allow",
+          "outcome": "load"
+        },
+        {
+          "id": "script-block",
+          "outcome": "error"
+        },
+        {
+          "id": "dedicated",
+          "outcome": "load",
+          "worker": {
+            "fetches": [
+              {
+                "url": "https://page.blanc-fixture.test/blanc-fixture/paths/dedicated-fetch",
+                "outcome": "load",
+                "body": "authored allowed target"
+              },
+              {
+                "url": "https://000491b06a.com/blanc-fixture/paths/dedicated-block",
+                "outcome": "error"
+              },
+              {
+                "url": "https://page.blanc-fixture.test/blanc-fixture/paths/dedicated-redirect-hop-1",
+                "outcome": "error"
+              }
+            ],
+            "imports": [
+              {
+                "url": "https://page.blanc-fixture.test/blanc-fixture/paths/dedicated-import.js",
+                "outcome": "load"
+              },
+              {
+                "url": "https://000491b06a.com/blanc-fixture/paths/dedicated-import-block.js",
+                "outcome": "error"
+              }
+            ]
+          }
+        },
+        {
+          "id": "shared",
+          "outcome": "load",
+          "worker": {
+            "fetches": [
+              {
+                "url": "https://page.blanc-fixture.test/blanc-fixture/paths/shared-fetch",
+                "outcome": "load",
+                "body": "authored allowed target"
+              },
+              {
+                "url": "https://000491b06a.com/blanc-fixture/paths/shared-block",
+                "outcome": "error"
+              },
+              {
+                "url": "https://page.blanc-fixture.test/blanc-fixture/paths/shared-redirect-hop-1",
+                "outcome": "error"
+              }
+            ],
+            "imports": [
+              {
+                "url": "https://page.blanc-fixture.test/blanc-fixture/paths/shared-import.js",
+                "outcome": "load"
+              },
+              {
+                "url": "https://000491b06a.com/blanc-fixture/paths/shared-import-block.js",
+                "outcome": "error"
+              }
+            ]
+          }
+        },
+        {
+          "id": "service",
+          "outcome": "load",
+          "worker": {
+            "fetches": [
+              {
+                "url": "https://page.blanc-fixture.test/blanc-fixture/paths/service-fetch",
+                "outcome": "load",
+                "body": "authored allowed target"
+              },
+              {
+                "url": "https://000491b06a.com/blanc-fixture/paths/service-block",
+                "outcome": "error"
+              },
+              {
+                "url": "https://page.blanc-fixture.test/blanc-fixture/paths/service-redirect-hop-1",
+                "outcome": "error"
+              }
+            ],
+            "imports": [
+              {
+                "url": "https://page.blanc-fixture.test/blanc-fixture/paths/service-import.js",
+                "outcome": "load"
+              },
+              {
+                "url": "https://000491b06a.com/blanc-fixture/paths/service-import-block.js",
+                "outcome": "error"
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "label": "chromium-regular-b",
+      "requests": 35,
+      "complete": true,
+      "results": [
+        {
+          "id": "fetch-allow",
+          "outcome": "load",
+          "body": "authored allowed target"
+        },
+        {
+          "id": "fetch-block",
+          "outcome": "error"
+        },
+        {
+          "id": "blocked-start",
+          "outcome": "error"
+        },
+        {
+          "id": "multi",
+          "outcome": "load",
+          "body": "authored allowed target"
+        },
+        {
+          "id": "script-allow",
+          "outcome": "load"
+        },
+        {
+          "id": "script-block",
+          "outcome": "error"
+        },
+        {
+          "id": "dedicated",
+          "outcome": "load",
+          "worker": {
+            "fetches": [
+              {
+                "url": "https://page.blanc-fixture.test/blanc-fixture/paths/dedicated-fetch",
+                "outcome": "load",
+                "body": "authored allowed target"
+              },
+              {
+                "url": "https://000491b06a.com/blanc-fixture/paths/dedicated-block",
+                "outcome": "error"
+              },
+              {
+                "url": "https://page.blanc-fixture.test/blanc-fixture/paths/dedicated-redirect-hop-1",
+                "outcome": "error"
+              }
+            ],
+            "imports": [
+              {
+                "url": "https://page.blanc-fixture.test/blanc-fixture/paths/dedicated-import.js",
+                "outcome": "load"
+              },
+              {
+                "url": "https://000491b06a.com/blanc-fixture/paths/dedicated-import-block.js",
+                "outcome": "error"
+              }
+            ]
+          }
+        },
+        {
+          "id": "shared",
+          "outcome": "load",
+          "worker": {
+            "fetches": [
+              {
+                "url": "https://page.blanc-fixture.test/blanc-fixture/paths/shared-fetch",
+                "outcome": "load",
+                "body": "authored allowed target"
+              },
+              {
+                "url": "https://000491b06a.com/blanc-fixture/paths/shared-block",
+                "outcome": "error"
+              },
+              {
+                "url": "https://page.blanc-fixture.test/blanc-fixture/paths/shared-redirect-hop-1",
+                "outcome": "error"
+              }
+            ],
+            "imports": [
+              {
+                "url": "https://page.blanc-fixture.test/blanc-fixture/paths/shared-import.js",
+                "outcome": "load"
+              },
+              {
+                "url": "https://000491b06a.com/blanc-fixture/paths/shared-import-block.js",
+                "outcome": "error"
+              }
+            ]
+          }
+        },
+        {
+          "id": "service",
+          "outcome": "load",
+          "worker": {
+            "fetches": [
+              {
+                "url": "https://page.blanc-fixture.test/blanc-fixture/paths/service-fetch",
+                "outcome": "load",
+                "body": "authored allowed target"
+              },
+              {
+                "url": "https://000491b06a.com/blanc-fixture/paths/service-block",
+                "outcome": "error"
+              },
+              {
+                "url": "https://page.blanc-fixture.test/blanc-fixture/paths/service-redirect-hop-1",
+                "outcome": "error"
+              }
+            ],
+            "imports": [
+              {
+                "url": "https://page.blanc-fixture.test/blanc-fixture/paths/service-import.js",
+                "outcome": "load"
+              },
+              {
+                "url": "https://000491b06a.com/blanc-fixture/paths/service-import-block.js",
+                "outcome": "error"
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "label": "chromium-private-a",
+      "requests": 35,
+      "complete": true,
+      "results": [
+        {
+          "id": "fetch-allow",
+          "outcome": "load",
+          "body": "authored allowed target"
+        },
+        {
+          "id": "fetch-block",
+          "outcome": "error"
+        },
+        {
+          "id": "blocked-start",
+          "outcome": "error"
+        },
+        {
+          "id": "multi",
+          "outcome": "load",
+          "body": "authored allowed target"
+        },
+        {
+          "id": "script-allow",
+          "outcome": "load"
+        },
+        {
+          "id": "script-block",
+          "outcome": "error"
+        },
+        {
+          "id": "dedicated",
+          "outcome": "load",
+          "worker": {
+            "fetches": [
+              {
+                "url": "https://page.blanc-fixture.test/blanc-fixture/paths/dedicated-fetch",
+                "outcome": "load",
+                "body": "authored allowed target"
+              },
+              {
+                "url": "https://000491b06a.com/blanc-fixture/paths/dedicated-block",
+                "outcome": "error"
+              },
+              {
+                "url": "https://page.blanc-fixture.test/blanc-fixture/paths/dedicated-redirect-hop-1",
+                "outcome": "error"
+              }
+            ],
+            "imports": [
+              {
+                "url": "https://page.blanc-fixture.test/blanc-fixture/paths/dedicated-import.js",
+                "outcome": "load"
+              },
+              {
+                "url": "https://000491b06a.com/blanc-fixture/paths/dedicated-import-block.js",
+                "outcome": "error"
+              }
+            ]
+          }
+        },
+        {
+          "id": "shared",
+          "outcome": "load",
+          "worker": {
+            "fetches": [
+              {
+                "url": "https://page.blanc-fixture.test/blanc-fixture/paths/shared-fetch",
+                "outcome": "load",
+                "body": "authored allowed target"
+              },
+              {
+                "url": "https://000491b06a.com/blanc-fixture/paths/shared-block",
+                "outcome": "error"
+              },
+              {
+                "url": "https://page.blanc-fixture.test/blanc-fixture/paths/shared-redirect-hop-1",
+                "outcome": "error"
+              }
+            ],
+            "imports": [
+              {
+                "url": "https://page.blanc-fixture.test/blanc-fixture/paths/shared-import.js",
+                "outcome": "load"
+              },
+              {
+                "url": "https://000491b06a.com/blanc-fixture/paths/shared-import-block.js",
+                "outcome": "error"
+              }
+            ]
+          }
+        },
+        {
+          "id": "service",
+          "outcome": "load",
+          "worker": {
+            "fetches": [
+              {
+                "url": "https://page.blanc-fixture.test/blanc-fixture/paths/service-fetch",
+                "outcome": "load",
+                "body": "authored allowed target"
+              },
+              {
+                "url": "https://000491b06a.com/blanc-fixture/paths/service-block",
+                "outcome": "error"
+              },
+              {
+                "url": "https://page.blanc-fixture.test/blanc-fixture/paths/service-redirect-hop-1",
+                "outcome": "error"
+              }
+            ],
+            "imports": [
+              {
+                "url": "https://page.blanc-fixture.test/blanc-fixture/paths/service-import.js",
+                "outcome": "load"
+              },
+              {
+                "url": "https://000491b06a.com/blanc-fixture/paths/service-import-block.js",
+                "outcome": "error"
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "label": "chromium-private-b",
+      "requests": 35,
+      "complete": true,
+      "results": [
+        {
+          "id": "fetch-allow",
+          "outcome": "load",
+          "body": "authored allowed target"
+        },
+        {
+          "id": "fetch-block",
+          "outcome": "error"
+        },
+        {
+          "id": "blocked-start",
+          "outcome": "error"
+        },
+        {
+          "id": "multi",
+          "outcome": "load",
+          "body": "authored allowed target"
+        },
+        {
+          "id": "script-allow",
+          "outcome": "load"
+        },
+        {
+          "id": "script-block",
+          "outcome": "error"
+        },
+        {
+          "id": "dedicated",
+          "outcome": "load",
+          "worker": {
+            "fetches": [
+              {
+                "url": "https://page.blanc-fixture.test/blanc-fixture/paths/dedicated-fetch",
+                "outcome": "load",
+                "body": "authored allowed target"
+              },
+              {
+                "url": "https://000491b06a.com/blanc-fixture/paths/dedicated-block",
+                "outcome": "error"
+              },
+              {
+                "url": "https://page.blanc-fixture.test/blanc-fixture/paths/dedicated-redirect-hop-1",
+                "outcome": "error"
+              }
+            ],
+            "imports": [
+              {
+                "url": "https://page.blanc-fixture.test/blanc-fixture/paths/dedicated-import.js",
+                "outcome": "load"
+              },
+              {
+                "url": "https://000491b06a.com/blanc-fixture/paths/dedicated-import-block.js",
+                "outcome": "error"
+              }
+            ]
+          }
+        },
+        {
+          "id": "shared",
+          "outcome": "load",
+          "worker": {
+            "fetches": [
+              {
+                "url": "https://page.blanc-fixture.test/blanc-fixture/paths/shared-fetch",
+                "outcome": "load",
+                "body": "authored allowed target"
+              },
+              {
+                "url": "https://000491b06a.com/blanc-fixture/paths/shared-block",
+                "outcome": "error"
+              },
+              {
+                "url": "https://page.blanc-fixture.test/blanc-fixture/paths/shared-redirect-hop-1",
+                "outcome": "error"
+              }
+            ],
+            "imports": [
+              {
+                "url": "https://page.blanc-fixture.test/blanc-fixture/paths/shared-import.js",
+                "outcome": "load"
+              },
+              {
+                "url": "https://000491b06a.com/blanc-fixture/paths/shared-import-block.js",
+                "outcome": "error"
+              }
+            ]
+          }
+        },
+        {
+          "id": "service",
+          "outcome": "load",
+          "worker": {
+            "fetches": [
+              {
+                "url": "https://page.blanc-fixture.test/blanc-fixture/paths/service-fetch",
+                "outcome": "load",
+                "body": "authored allowed target"
+              },
+              {
+                "url": "https://000491b06a.com/blanc-fixture/paths/service-block",
+                "outcome": "error"
+              },
+              {
+                "url": "https://page.blanc-fixture.test/blanc-fixture/paths/service-redirect-hop-1",
+                "outcome": "error"
+              }
+            ],
+            "imports": [
+              {
+                "url": "https://page.blanc-fixture.test/blanc-fixture/paths/service-import.js",
+                "outcome": "load"
+              },
+              {
+                "url": "https://000491b06a.com/blanc-fixture/paths/service-import-block.js",
+                "outcome": "error"
+              }
+            ]
+          }
+        }
+      ]
+    }
+  ],
+  "remainingGaps": [
+    "service-worker controlled fetch/cache and update variants",
+    "worker sender teardown",
+    "opaque/subframes",
+    "redirect method/header mutation and replacement URLs"
+  ],
+  "cleanup": {
+    "removed": true
+  },
+  "finished": "2026-10-17T23:03:38.000Z"
+}

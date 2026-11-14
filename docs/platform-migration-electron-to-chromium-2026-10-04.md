@@ -4,6 +4,8 @@ Oct 4, 2026 · Evaluation for owner decision. This file is the canonical
 record; the "Blanc Platform Migration: Electron to Chromium" Claude Doc was the
 drafting copy and may lag behind it.
 
+**October 28 full-prerequisite checkpoint:** 11/12 preview gates are accepted; the owner retained L12 NO-GO pending full prerequisites. The bounded timing/reference exception is authorized, but no timing repetition has passed the CPU-idle admission requirement. Production procedural cosmetics now have unsigned native evidence, including dynamic changes, BFCache and the seven previously unsupported pinned stylesheet-property rules. Signed qualification and the remaining F12 coverage/Decision 2 disposition are still required. See [current F12 status](../experiments/chromium-extension-spike/f12-acceptance-status.md) and [procedural evidence](../experiments/chromium-extension-spike/evidence/f12-procedural-prerequisite-20261028/README.md). Electron builds/repairs remain paused; the Google baseline is separate. No migration, merge or publication approval is inferred.
+
 **Superseded, October 26, 2026:** the owner has since reversed the decision
 below. A Chromium fork of Blanc is in active development, meant to eventually
 replace the ECS Electron build. See the Platform direction section of
@@ -241,7 +243,7 @@ Phase 0 needs no fork work. Phases 1 and 2 run only under Decision 1, and shippi
 Text version:
 
 1. **Phase 0, Prepare (2–4 weeks, on Electron):** bridge contract, test vectors, Widevine questions to Google. The owner dropped the extension demand check on October 5, 2026.
-    - **Decision 1:** owner authorizes the spike and, if the spike gate passes, the proof. Declined on October 5, 2026.
+    - **Decision 1:** declined on October 5, then explicitly authorized for a time-boxed Island-and-Web-Store prototype on October 15, 2026.
 2. **Phase 1, Spike (2–3 weeks):** Chromium build with one patch and one rebase; CEF control test; Web Store acceptance tests. Spike gate: measured rebase cost and the CEF result.
 3. **Phase 2, Proof (6–10 weeks):** Island as WebUI, a 20-method shim, pixel diff, focus, accessibility and input routing, top 20 extensions. Kill gate: patch budget, popups, pixels, staffing.
     - **Decision 2:** owner migration go/no-go.
@@ -282,7 +284,7 @@ Steps 3 to 5 (the Mojo interface, the native controller, and running the shared 
 
 ## Open questions and caveats
 
-- [x] Decision 1: does the owner authorize the time-boxed spike and proof? No, not now (owner, October 5, 2026): the fork's build and rebase cadence does not fit one maintainer on one MacBook Pro.
+- [x] Decision 1: the owner declined on October 5, then authorized the time-boxed spike on October 15, including the Island in the first prototype. The build and rebase cadence still has to be measured before Decision 2.
 - [ ] Decision 2 (after the kill gate): migrate or stop?
 - [ ] Can an independently branded build install and update from the live Chrome Web Store? Phase 1 acceptance test.
 - [ ] Does the Island reach parity as WebUI, including focus, accessibility and input routing? Phase 2.

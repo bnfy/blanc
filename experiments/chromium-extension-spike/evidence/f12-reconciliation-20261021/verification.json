@@ -1,0 +1,230 @@
+[
+  {
+    "directory": "f12-paths-latency-20261017",
+    "archive": "paths-01.tar.gz",
+    "sha256": "268e57e82bb1ef9179ecabaf24a7f992967af7273b1d037b0b51b8645f7f7610",
+    "verifiedMembers": 11
+  },
+  {
+    "directory": "f12-paths-latency-20261017",
+    "archive": "paths-02.tar.gz",
+    "sha256": "ffd20370794c7ebe350ca2557f340588b0e03df77d1562c0555b3b08bd14635a",
+    "verifiedMembers": 12
+  },
+  {
+    "directory": "f12-paths-latency-20261017",
+    "archive": "paths-03.tar.gz",
+    "sha256": "330c1a8e7ca33801dd4ea3189ddac9565fdae83cd7416bfdad1fa4835f210ad7",
+    "verifiedMembers": 12
+  },
+  {
+    "directory": "f12-paths-latency-20261017",
+    "archive": "latency-01.tar.gz",
+    "sha256": "a560d9aff909f868a54c229f7bc247ad582d0d1ce573ff38120503f569de0e77",
+    "verifiedMembers": 4
+  },
+  {
+    "directory": "f12-paths-latency-20261017",
+    "archive": "latency-02.tar.gz",
+    "sha256": "218a5a1f132505f1fb838e4f507d7f897245a3d624b0796b9ba23657bfd7eed1",
+    "verifiedMembers": 4
+  },
+  {
+    "directory": "f12-paths-latency-20261017",
+    "archive": "latency-03.tar.gz",
+    "sha256": "a9a0762eb66668d82b6ed38070473175f6ece200078a6bd64582167c4b65dda6",
+    "verifiedMembers": 628
+  },
+  {
+    "directory": "f12-paths-latency-20261017",
+    "archive": "failures.tar.gz",
+    "sha256": "a78771cf5f4263bb69459b124a23bd61721707d42c1d4b45970122390a7bb3ad",
+    "verifiedMembers": 4
+  },
+  {
+    "directory": "f12-paths-latency-20261017",
+    "archive": "build.tar.gz",
+    "sha256": "ee4868f654af4c37d26815943f299a19db72b51912732901beec29ebe0eca69a",
+    "verifiedMembers": 21
+  },
+  {
+    "directory": "f12-worker-ownership-20261017",
+    "archive": "capture-source.tar.gz",
+    "sha256": "6adbe866a3d76ba5e73cf1540f86e799dee505d186107f28d3f5354666481bb9",
+    "verifiedMembers": 34
+  },
+  {
+    "directory": "f12-worker-ownership-20261017",
+    "archive": "checks.tar.gz",
+    "sha256": "4852f2e33a55528f3d874a9ee5c41005f1f4318a2b78bcaf988d71847a80dd01",
+    "verifiedMembers": 17
+  },
+  {
+    "directory": "f12-worker-ownership-20261017",
+    "archive": "controlled-05.tar.gz",
+    "sha256": "d535e023354649d5350adba1f61e143f04cb13ef70e1a9436c60e518a959a6ce",
+    "verifiedMembers": 12
+  },
+  {
+    "directory": "f12-worker-ownership-20261017",
+    "archive": "no-referrer-06.tar.gz",
+    "sha256": "1f9a25418103a978dd0a44203855ac230578a2e04c783f26d3a28c0bd9ebcd29",
+    "verifiedMembers": 12
+  },
+  {
+    "directory": "f12-worker-ownership-20261017",
+    "archive": "paths-01.tar.gz",
+    "sha256": "55f07f3cf7916fb726efefad45b4942d961627be60cb2a34516a252a1ec28619",
+    "verifiedMembers": 12
+  },
+  {
+    "directory": "f12-worker-ownership-20261017",
+    "archive": "paths-01-source.tar.gz",
+    "sha256": "762f46327addc0e68421793af6c33ea148cef2f723d35480b60eee585c8309eb",
+    "verifiedMembers": 32
+  },
+  {
+    "directory": "f12-worker-ownership-20261017",
+    "archive": "paths-02.tar.gz",
+    "sha256": "a36adba2237dd6744789d1b5d2019d6d31d562555cdacc3df2bdedcade38a3d7",
+    "verifiedMembers": 12
+  },
+  {
+    "directory": "f12-worker-ownership-20261017",
+    "archive": "paths-02-source.tar.gz",
+    "sha256": "a10d8ae88571aafffef08c9f7094338112c866f3c250cf194e3b2dd2221b955a",
+    "verifiedMembers": 34
+  },
+  {
+    "directory": "f12-worker-ownership-20261017",
+    "archive": "paths-03.tar.gz",
+    "sha256": "bee9b635d5855ed39cf537bc60f4ac7cc83e4ea32219317346ce2cf08a78334a",
+    "verifiedMembers": 12
+  },
+  {
+    "directory": "f12-worker-ownership-20261017",
+    "archive": "paths-03-source.tar.gz",
+    "sha256": "ee078755e1b0d7a4a9fc96c92f3d9240b7a38f23319cc14c070ff988a5522342",
+    "verifiedMembers": 34
+  },
+  {
+    "directory": "f12-worker-ownership-20261017",
+    "archive": "paths-04.tar.gz",
+    "sha256": "ff0ed522f9cdd80852122b7e5cf3fd5e4381b23726d3a085f396598871b456b4",
+    "verifiedMembers": 12
+  },
+  {
+    "directory": "f12-shared-lifecycle-20261017",
+    "archive": "capture-source.tar.gz",
+    "sha256": "6b3f262cffc71f1e0ccf54adf4396246778073e0f84f71172ebdd3db66420583",
+    "verifiedMembers": 9
+  },
+  {
+    "directory": "f12-shared-lifecycle-20261017",
+    "archive": "checks.tar.gz",
+    "sha256": "78a4ab3c83fec6ee352b90ec0115f46f7ff24359d4a23ddd4232df371de66750",
+    "verifiedMembers": 14
+  },
+  {
+    "directory": "f12-shared-lifecycle-20261017",
+    "archive": "lifecycle-01.tar.gz",
+    "sha256": "f80261528de8650279f48f0ec16bde63f48369fc27e0f47511d023f459399aab",
+    "verifiedMembers": 3
+  },
+  {
+    "directory": "f12-shared-lifecycle-20261017",
+    "archive": "lifecycle-02.tar.gz",
+    "sha256": "b248a9d8ccfa44a1a84e88679a458610fd89266e9f0aaa2443e2474b3e754d89",
+    "verifiedMembers": 3
+  },
+  {
+    "directory": "f12-shared-lifecycle-20261017",
+    "archive": "lifecycle-03.tar.gz",
+    "sha256": "2b3b9cd134b8465a5566cb82d2815f0979416ffb0e60ad323401bffddeee9656",
+    "verifiedMembers": 11
+  },
+  {
+    "directory": "f12-shared-lifecycle-20261017",
+    "archive": "lifecycle-04.tar.gz",
+    "sha256": "af2e16bc718829cd67482e9f0d91f91b20b637911a9bf83c64f8c8f4d74fc793",
+    "verifiedMembers": 11
+  },
+  {
+    "directory": "f12-shared-lifecycle-20261017",
+    "archive": "path-regression-05.tar.gz",
+    "sha256": "f6b6f4b0a61ebe290e3c7dc1eed52a4bc185662583dbccf5c57b92fe59735cbb",
+    "verifiedMembers": 12
+  },
+  {
+    "directory": "f12-service-context-20261017",
+    "archive": "blanc-service-context-final.tar.gz",
+    "sha256": "6d5176e413355a1a399206d1a95dfe757569a065b7062adb375952363f4a30fc",
+    "verifiedMembers": 12
+  },
+  {
+    "directory": "f12-service-context-20261017",
+    "archive": "blanc-service-context-paths.tar.gz",
+    "sha256": "35556f204ffb70c8ea41d0169a26222a720fe6182ee680f6f873a8b1398b509c",
+    "verifiedMembers": 12
+  },
+  {
+    "directory": "f12-service-loader-20261017",
+    "archive": "blanc-service-failure-response-01.tar.gz",
+    "sha256": "25628e49e77f8d715e98d9ae0c22357a84b3ecf79e023f4a883f9cded7d356f7",
+    "verifiedMembers": 12
+  },
+  {
+    "directory": "f12-service-loader-20261017",
+    "archive": "blanc-service-loader-paths.tar.gz",
+    "sha256": "7c6871aef7467e86d7319da6c8be79b1e514df3593b04501d62b9e8f53de8d88",
+    "verifiedMembers": 12
+  },
+  {
+    "directory": "f12-service-loader-20261017",
+    "archive": "blanc-service-loader-paths-final.tar.gz",
+    "sha256": "332b6b031800d079d260fddc9748d9ec6e47e4185361f177e8d57e214c24cdfc",
+    "verifiedMembers": 12
+  },
+  {
+    "directory": "f12-service-update-20261017",
+    "archive": "blanc-service-update-diagnostic-02.tar.gz",
+    "sha256": "e8b29ab01584ae957c5bc4ae9c460bf1b751d585f2d47e60195a5b23daff8acf",
+    "verifiedMembers": 11
+  },
+  {
+    "directory": "f12-service-update-20261017",
+    "archive": "blanc-service-same-url-01.tar.gz",
+    "sha256": "9a116c78e0872ee5d2c8e6f23b144ea6342beb6bb549b7c631f2fbf883f24949",
+    "verifiedMembers": 4
+  },
+  {
+    "directory": "f12-service-update-20261017",
+    "archive": "blanc-service-same-url-02.tar.gz",
+    "sha256": "ccd46a38e65be6f2958fb4ba0b3bf03c4fb6ae4abdf0b69749f9bbcee6421c8c",
+    "verifiedMembers": 11
+  },
+  {
+    "directory": "f12-service-update-20261017",
+    "archive": "blanc-service-update-path-regression.tar.gz",
+    "sha256": "26083154175dc0e80eac320d29b63dd077f33fb7af136d72c6d4140d3c1bafca",
+    "verifiedMembers": 12
+  },
+  {
+    "directory": "f12-service-update-20261017",
+    "archive": "blanc-service-same-url-final.tar.gz",
+    "sha256": "2b690134941d7c2db015947a1e36bc58a64edab4aedddb9150868a4a24b8a330",
+    "verifiedMembers": 11
+  },
+  {
+    "directory": "f12-native-recovery-20261018",
+    "archive": "record.tar.gz",
+    "sha256": "c956b30c38f2dc98ff20d784274cefa6a05b61aa76daa49d26727d3fef7e1c06",
+    "verifiedMembers": 70
+  },
+  {
+    "directory": "f12-renderer-target-20261018",
+    "archive": "record.tar.gz",
+    "sha256": "f0a91ca5a41eb283ec96152365d2457dc2590726cdf3ff07d05a703a7c6d39cf",
+    "verifiedMembers": 108
+  }
+]

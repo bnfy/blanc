@@ -1,0 +1,7 @@
+{
+  "sourceTemplate": "/Users/anthonyjloria/Projects/BlancChromium157/src/skia/ext/skia_commit_hash.h",
+  "skiaPin": "ac947b5f02facc8237e889c3977c3a670d9d4664",
+  "destination": "/private/tmp/blanc-chromium157-update/src/skia/ext/skia_commit_hash.h",
+  "sha256": "81cf7a152037103dd16c25560fc7293f889727a0293e65b449a5feb81586da67",
+  "method": "Restore missing header from preserved template and verified existing Skia HEAD; no hook, sync or toolchain update"
+}

@@ -1,0 +1,5 @@
+
+> blanc@1.36.0 tokens:check
+> node tokens/build.mjs --check
+
+tokens:check OK — desktop CSS matches the source, generated files current.

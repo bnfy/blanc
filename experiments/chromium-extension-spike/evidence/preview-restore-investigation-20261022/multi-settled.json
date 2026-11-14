@@ -1,0 +1,46 @@
+[
+  {
+    "cycle": 0,
+    "pid": 14153,
+    "urls": [
+      "blanc://newtab/",
+      "http://127.0.0.1:9470/one",
+      "http://127.0.0.1:9470/two"
+    ],
+    "selected": 1,
+    "cleanExit": true
+  },
+  {
+    "cycle": 1,
+    "pid": 14187,
+    "urls": [
+      "blanc://newtab/",
+      "http://127.0.0.1:9470/one",
+      "http://127.0.0.1:9470/two"
+    ],
+    "selected": 1,
+    "cleanExit": true
+  },
+  {
+    "cycle": 2,
+    "pid": 14207,
+    "urls": [
+      "blanc://newtab/",
+      "http://127.0.0.1:9470/one",
+      "http://127.0.0.1:9470/two"
+    ],
+    "selected": 1,
+    "cleanExit": true
+  },
+  {
+    "cycle": 3,
+    "pid": 14227,
+    "urls": [
+      "blanc://newtab/",
+      "http://127.0.0.1:9470/one",
+      "http://127.0.0.1:9470/two"
+    ],
+    "selected": 1,
+    "cleanExit": true
+  }
+]

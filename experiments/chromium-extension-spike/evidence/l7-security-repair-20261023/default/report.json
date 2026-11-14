@@ -1,0 +1,9 @@
+{
+  "alive": true,
+  "pid": 85581,
+  "command": "/private/tmp/blanc-l7-repair/Blanc Chromium Preview.app/Contents/MacOS/Blanc Prototype --blanc-prototype-assets=/private/tmp/blanc-l7-repair/Blanc Chromium Preview.app/Contents/Resources/BlancAssets --blanc-blocker-assets=/private/tmp/blanc-l7-repair/Blanc Chromium Preview.app/Contents/Resources/BlancBlocker --user-data-dir=/Users/anthonyjloria/Library/Application Support/Blanc Chromium Preview --no-default-browser-check --user-data-dir=/private/tmp/blanc-l7-repair/default/profile --no-first-run",
+  "noDebugFlags": true,
+  "browserTcpListeners": "",
+  "noBrowserListener": true,
+  "disposableTerminationExit": 0
+}

@@ -1,0 +1,13 @@
+{
+  "inputs": {
+    "developerDir": "/Applications/Xcode.app/Contents/Developer",
+    "xcode": "Xcode 27.1\nBuild version 27A9275",
+    "sdkPath": "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX27.0.sdk",
+    "sdkVersion": "27.0",
+    "sdkBuild": "26A425",
+    "clangRevision": "llvmorg-24-init-7747-g62397f8b-67",
+    "clangVersion": "clang version 24.0.0git (https://chromium.googlesource.com/a/external/github.com/llvm/llvm-project 86922d51225db089fffb99475eefc4904f79e3c8)\nTarget: arm64-apple-darwin27.2.0\nThread model: posix\nInstalledDir: /private/tmp/blanc-chromium157-update/src/third_party/llvm-build/Release+Asserts/bin",
+    "argsSha256": "414e3baad6c84730b3c17f411ed82c5065561ba344fe2a202675654e1e18a057"
+  },
+  "completedAt": "2026-10-24T19:04:47.880Z"
+}

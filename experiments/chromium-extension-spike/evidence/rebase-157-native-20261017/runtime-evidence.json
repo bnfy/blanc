@@ -1,0 +1,2913 @@
+{
+  "version": "157.0.8103.6",
+  "checks": [
+    {
+      "name": "browser-version",
+      "at": "2026-10-17T02:51:13.339Z",
+      "protocolVersion": "1.3",
+      "product": "Chrome/157.0.8103.6",
+      "revision": "@0000000000000000000000000000000000000000",
+      "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/157.0.0.0 Safari/537.36",
+      "jsVersion": "15.7.112"
+    },
+    {
+      "name": "start-page-initial",
+      "at": "2026-10-17T02:51:13.346Z",
+      "url": "chrome://blanc-prototype/pages/newtab.html",
+      "title": "New Tab",
+      "text": "Friday, October 16\nBillboard start page\n10:51\nc\nWeb Store\nCustomize\n⌘L to go anywhere",
+      "state": {
+        "layout": "billboard",
+        "topSites": [
+          {
+            "key": "chrome.google.com",
+            "title": "Web Store",
+            "url": "https://chrome.google.com/webstore?hl=en"
+          }
+        ]
+      }
+    },
+    {
+      "name": "island-initial",
+      "at": "2026-10-17T02:51:13.360Z",
+      "snapshot": {
+        "activeTabId": "1593472883",
+        "adblockEnabled": false,
+        "closed": [],
+        "displayShares": [],
+        "extensionsWidth": 26,
+        "glanceTabId": null,
+        "groups": [],
+        "tabLayout": "island",
+        "tabs": [
+          {
+            "audible": false,
+            "blockedCount": 0,
+            "bookmarked": false,
+            "canGoBack": false,
+            "canGoForward": false,
+            "favicon": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAACp0lEQVR4nKRTS2sTURQ+59w7SRr7oGkb22JbhEhp8VG0IBahK5HUjXbhqhv9B4KIG/+Ca0F8LFyriFYFMXRTEFO6qC19txZjMA152UwmmZl7vDNJIG71wgz3zj3fd7/z3W8I/nPI1oVtW1eJ7VEApVylUDS2XXBAEDEAkUJjwzBCH5sYwcyoB316/+axDIQeogjG9TMjZCiO0tBPIC5km/8NRSBORHMP7t8dIiP4NpFIAHos5VxmJtzd+05ZeQcYGUgzkuRcel0vEHoGRlkpB0GxXjJSqFua+ey1Y5HoPPkS2RoDYKUlqlrNlEf5FAEKQ7mO0EDhzcuFFNm2KbVg5dXWMRrhEyh2dd9YrZYpGO7kXGoVKkdZXac3FUPldxayP1YhEOpiu2aSV1vHNExUdk23IrCU2eaiYuwZmoDCrx0OtEdRdwPFzBb3Dp/HzP5X0Go41DWIdUyTQDsOXIHI4FnMfE+CVc5DLr2D5YPnULGqEDl1RfsXZsd2oO/khF/rY5otkCdWn5T7uQId3f2QT29D4sk9KO4lIb26CB8e3YHS4QF0RAagkPoGXi3VG2woqPcBhUKRC4UcrC8vQIXDfFhtR5OC4JDD60ufoaYEkDQ4qmtVa5Bc2/aMZX3XuLmyyKUqwfDUTdIauVO/22MKTRRqf3cTYmOT6Dlre5gmgRckUC6MxE6r6PETYndjGfa2lrlqmd4eSMPgS9Oz2NM/UhfsukJ4mCaBZVubmgCtcgl1+pzRc5dxJHaGvyy88lIKF6dvsAiEsGaZfpDawkH0Md7hXrYmJy/I+ZfPnvZG++b0BYPvqREEcGqNRg09t33XmAiymcMXM7O3bieTSw62/kzba4vX7aozrhPIjuuglAHfYZ1GIEFMQmpeuRYbn3rdxPxF8C/jDwAAAP//GDOC0AAAAAZJREFUAwDhL08TGO9e+gAAAABJRU5ErkJggg==",
+            "groupId": null,
+            "id": "1593472883",
+            "isLoading": false,
+            "muted": false,
+            "pageBg": "",
+            "pinned": false,
+            "private": false,
+            "title": "New Tab",
+            "url": "blanc://newtab/"
+          }
+        ]
+      },
+      "dom": {
+        "strip": true,
+        "overlay": true,
+        "status": ""
+      }
+    },
+    {
+      "name": "fixture-created",
+      "at": "2026-10-17T02:51:14.431Z",
+      "snapshot": {
+        "activeTabId": "1593472884",
+        "adblockEnabled": false,
+        "closed": [],
+        "displayShares": [],
+        "extensionsWidth": 26,
+        "glanceTabId": null,
+        "groups": [],
+        "tabLayout": "island",
+        "tabs": [
+          {
+            "audible": false,
+            "blockedCount": 0,
+            "bookmarked": false,
+            "canGoBack": false,
+            "canGoForward": false,
+            "favicon": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAACp0lEQVR4nKRTS2sTURQ+59w7SRr7oGkb22JbhEhp8VG0IBahK5HUjXbhqhv9B4KIG/+Ca0F8LFyriFYFMXRTEFO6qC19txZjMA152UwmmZl7vDNJIG71wgz3zj3fd7/z3W8I/nPI1oVtW1eJ7VEApVylUDS2XXBAEDEAkUJjwzBCH5sYwcyoB316/+axDIQeogjG9TMjZCiO0tBPIC5km/8NRSBORHMP7t8dIiP4NpFIAHos5VxmJtzd+05ZeQcYGUgzkuRcel0vEHoGRlkpB0GxXjJSqFua+ey1Y5HoPPkS2RoDYKUlqlrNlEf5FAEKQ7mO0EDhzcuFFNm2KbVg5dXWMRrhEyh2dd9YrZYpGO7kXGoVKkdZXac3FUPldxayP1YhEOpiu2aSV1vHNExUdk23IrCU2eaiYuwZmoDCrx0OtEdRdwPFzBb3Dp/HzP5X0Go41DWIdUyTQDsOXIHI4FnMfE+CVc5DLr2D5YPnULGqEDl1RfsXZsd2oO/khF/rY5otkCdWn5T7uQId3f2QT29D4sk9KO4lIb26CB8e3YHS4QF0RAagkPoGXi3VG2woqPcBhUKRC4UcrC8vQIXDfFhtR5OC4JDD60ufoaYEkDQ4qmtVa5Bc2/aMZX3XuLmyyKUqwfDUTdIauVO/22MKTRRqf3cTYmOT6Dlre5gmgRckUC6MxE6r6PETYndjGfa2lrlqmd4eSMPgS9Oz2NM/UhfsukJ4mCaBZVubmgCtcgl1+pzRc5dxJHaGvyy88lIKF6dvsAiEsGaZfpDawkH0Md7hXrYmJy/I+ZfPnvZG++b0BYPvqREEcGqNRg09t33XmAiymcMXM7O3bieTSw62/kzba4vX7aozrhPIjuuglAHfYZ1GIEFMQmpeuRYbn3rdxPxF8C/jDwAAAP//GDOC0AAAAAZJREFUAwDhL08TGO9e+gAAAABJRU5ErkJggg==",
+            "groupId": null,
+            "id": "1593472883",
+            "isLoading": false,
+            "muted": false,
+            "pageBg": "",
+            "pinned": false,
+            "private": false,
+            "title": "New Tab",
+            "url": "blanc://newtab/"
+          },
+          {
+            "audible": false,
+            "blockedCount": 0,
+            "bookmarked": false,
+            "canGoBack": false,
+            "canGoForward": false,
+            "favicon": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAC8UlEQVR4nHxTS0hUURg+5z7n6mgNRdNojiJamYWElCVlC8NBhCjSFhaRC12ULty0KMoJrUVhVqAhFkHtrEAty9JMohaFVIJgD/ARPsYZHWe89859n9O9vhPth/P6z/9/3zn/+Q4B1jZodd0NBZkvag9lrPStNmItp9c7H6xocqoqqckrff8FaL2T62wuAmSVF2BrbWiainRdWwDAvY2ZdFfTMed6AJClqANkRnaxSTUHgBCGCC0xY7/kOCfOBPfiFdchMAbQRKesgIkp5Q1NE+kPyxPirE2Tm9YRoK15V0NusiwISd9efeyyCHobyyw/JJ5e20VnbcyrbPZm7C/x9sgExbTZN7vKrCRVkcIRQQxZcyEkl4o83+ztAXpXg+dwQBouN4lJ6yjwfVN+fCQkVIphsf1Uzdfu59XZhTg6ZmADx+w0VEOHNDM6PT6cUFzzvaXj3tECTZZzfGNjt0vvDvmX7oKxl2i99a5a4qVndsemNEKYqkt0OzcLszwYGQ9N0g5nOUOpPllUPIVXP1ctFa6jzuOSZTF9wu8f6B795Tt70FPKj/25D1QZJKUkGMFpHgwNj5Mxjo1gQ7y75MTFzscttTnxdprboZBkP5WUHC/MBic4loLFFamJX4YHJ4qk4AxgbKwRESRSkRWg6siQwjMkF80VfnqQNxgM8FmsjfqxFSgC1f623zWlEjDKxvQ5YoFb5Y00RbdFbBqNwLQKJQUChbBjRUOkPot2+34bcYEA6sO0ym5hCRelaRLLIrgNK7rHPykaGHKvSS4KRjABAyEdQEgBKtpuFQlFZIMllVAJwwBRV8ROCZGDS0W8cnr7PltszElNxykAQwH+o1GIzHyOIeBAeJbv5ihd9j4Z7J3bWdHQ9TOJLoNm3ICKPW9gbDdlos4zINoc5U2MdLm8fmBkTtqmCM2Gl5/RBFmUcEV+SqzTHXXEFOEFwlQzBHJ92Kd9uNn2k19MBAuxq38YXMYD4EbZnuNAw/qlR/0vwTr2FwAA///YYd3sAAAABklEQVQDANILY9YXCroYAAAAAElFTkSuQmCC",
+            "groupId": null,
+            "id": "1593472884",
+            "isLoading": false,
+            "muted": false,
+            "pageBg": "#f8f2df",
+            "pinned": false,
+            "private": false,
+            "title": "Rebase157 A",
+            "url": "http://127.0.0.1:8786/A"
+          }
+        ]
+      }
+    },
+    {
+      "name": "automated-navigation",
+      "at": "2026-10-17T02:51:50.938Z"
+    },
+    {
+      "name": "automated-favorite-folder-reuse",
+      "at": "2026-10-17T02:51:50.970Z",
+      "favorites": [
+        {
+          "addedAt": 1792205510946.09,
+          "favicon": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAC8UlEQVR4nHxTS0hUURg+5z7n6mgNRdNojiJamYWElCVlC8NBhCjSFhaRC12ULty0KMoJrUVhVqAhFkHtrEAty9JMohaFVIJgD/ARPsYZHWe89859n9O9vhPth/P6z/9/3zn/+Q4B1jZodd0NBZkvag9lrPStNmItp9c7H6xocqoqqckrff8FaL2T62wuAmSVF2BrbWiainRdWwDAvY2ZdFfTMed6AJClqANkRnaxSTUHgBCGCC0xY7/kOCfOBPfiFdchMAbQRKesgIkp5Q1NE+kPyxPirE2Tm9YRoK15V0NusiwISd9efeyyCHobyyw/JJ5e20VnbcyrbPZm7C/x9sgExbTZN7vKrCRVkcIRQQxZcyEkl4o83+ztAXpXg+dwQBouN4lJ6yjwfVN+fCQkVIphsf1Uzdfu59XZhTg6ZmADx+w0VEOHNDM6PT6cUFzzvaXj3tECTZZzfGNjt0vvDvmX7oKxl2i99a5a4qVndsemNEKYqkt0OzcLszwYGQ9N0g5nOUOpPllUPIVXP1ctFa6jzuOSZTF9wu8f6B795Tt70FPKj/25D1QZJKUkGMFpHgwNj5Mxjo1gQ7y75MTFzscttTnxdprboZBkP5WUHC/MBic4loLFFamJX4YHJ4qk4AxgbKwRESRSkRWg6siQwjMkF80VfnqQNxgM8FmsjfqxFSgC1f623zWlEjDKxvQ5YoFb5Y00RbdFbBqNwLQKJQUChbBjRUOkPot2+34bcYEA6sO0ym5hCRelaRLLIrgNK7rHPykaGHKvSS4KRjABAyEdQEgBKtpuFQlFZIMllVAJwwBRV8ROCZGDS0W8cnr7PltszElNxykAQwH+o1GIzHyOIeBAeJbv5ihd9j4Z7J3bWdHQ9TOJLoNm3ICKPW9gbDdlos4zINoc5U2MdLm8fmBkTtqmCM2Gl5/RBFmUcEV+SqzTHXXEFOEFwlQzBHJ92Kd9uNn2k19MBAuxq38YXMYD4EbZnuNAw/qlR/0vwTr2FwAA///YYd3sAAAABklEQVQDANILY9YXCroYAAAAAElFTkSuQmCC",
+          "folder": "Rebase Folder",
+          "id": "5",
+          "title": "Rebase157 B",
+          "url": "http://127.0.0.1:8786/B"
+        }
+      ]
+    },
+    {
+      "name": "automated-layout",
+      "at": "2026-10-17T02:51:51.280Z",
+      "layout": "billboard"
+    },
+    {
+      "name": "automated-layout",
+      "at": "2026-10-17T02:51:52.548Z",
+      "layout": "ledger"
+    },
+    {
+      "name": "automated-layout",
+      "at": "2026-10-17T02:51:54.066Z",
+      "layout": "shelf"
+    },
+    {
+      "name": "automated-layout",
+      "at": "2026-10-17T02:51:55.281Z",
+      "layout": "tally"
+    },
+    {
+      "name": "automated-layout-cross-tab",
+      "at": "2026-10-17T02:51:56.513Z"
+    },
+    {
+      "name": "automated-pin-mute-boundary",
+      "at": "2026-10-17T02:51:57.716Z"
+    },
+    {
+      "name": "automated-group-operations",
+      "at": "2026-10-17T02:51:57.911Z",
+      "state": {
+        "active": "1593472883",
+        "groups": [],
+        "tabs": [
+          {
+            "id": "1593472887",
+            "url": "http://127.0.0.1:8786/D",
+            "pinned": false,
+            "muted": false,
+            "groupId": null
+          },
+          {
+            "id": "1593472883",
+            "url": "blanc://newtab/",
+            "pinned": false,
+            "muted": false,
+            "groupId": null
+          },
+          {
+            "id": "1593472885",
+            "url": "blanc://newtab/",
+            "pinned": false,
+            "muted": false,
+            "groupId": null
+          },
+          {
+            "id": "1593472888",
+            "url": "http://127.0.0.1:8786/E",
+            "pinned": false,
+            "muted": false,
+            "groupId": null
+          },
+          {
+            "id": "1593472889",
+            "url": "http://127.0.0.1:8786/F",
+            "pinned": false,
+            "muted": false,
+            "groupId": null
+          }
+        ]
+      }
+    },
+    {
+      "name": "automated-failure",
+      "at": "2026-10-17T02:52:38.087Z",
+      "error": "Error: Timed out: TopSites populated\n    at until (file:///private/tmp/blanc-task0/lib.mjs:17:165)\n    at async file:///private/tmp/blanc-task0/automated.mjs:22:174"
+    },
+    {
+      "name": "history-before-clear",
+      "at": "2026-10-17T02:53:00.417Z",
+      "history": [
+        {
+          "favicon": null,
+          "title": "Rebase157 F",
+          "url": "http://127.0.0.1:8786/F",
+          "visitedAt": 1792205517411.324
+        },
+        {
+          "favicon": null,
+          "title": "Rebase157 E",
+          "url": "http://127.0.0.1:8786/E",
+          "visitedAt": 1792205517122.693
+        },
+        {
+          "favicon": null,
+          "title": "Rebase157 D",
+          "url": "http://127.0.0.1:8786/D",
+          "visitedAt": 1792205516839.668
+        },
+        {
+          "favicon": null,
+          "title": "Rebase157 C",
+          "url": "http://127.0.0.1:8786/C",
+          "visitedAt": 1792205516555.604
+        },
+        {
+          "favicon": null,
+          "title": "Rebase157 B",
+          "url": "http://127.0.0.1:8786/B",
+          "visitedAt": 1792205510414.229
+        },
+        {
+          "favicon": null,
+          "title": "Rebase157 A",
+          "url": "http://127.0.0.1:8786/A",
+          "visitedAt": 1792205508369.773
+        }
+      ]
+    },
+    {
+      "name": "topsites-before-clear",
+      "at": "2026-10-17T02:53:01.633Z",
+      "sites": [
+        {
+          "key": "chrome.google.com",
+          "title": "Web Store",
+          "url": "https://chrome.google.com/webstore?hl=en"
+        }
+      ]
+    },
+    {
+      "name": "history-failure",
+      "at": "2026-10-17T02:53:31.803Z",
+      "error": "Error: Timed out: deletion notification\n    at until (file:///private/tmp/blanc-task0/lib.mjs:17:165)\n    at async file:///private/tmp/blanc-task0/history.mjs:9:2"
+    },
+    {
+      "name": "automated-restart-persistence",
+      "at": "2026-10-17T02:54:45.916Z",
+      "pin": true,
+      "groups": [
+        {
+          "collapsed": true,
+          "id": "6B3E71AFD4DB711DFDB3F8767B49CD25",
+          "name": "persist"
+        }
+      ],
+      "layout": "shelf",
+      "dynamicWallpaper": true,
+      "muted": false,
+      "note": "Per-tab mute resets on restart. Prior 156 persistence test asserts pin/order, not mute; initial new test overreached that contract."
+    },
+    {
+      "name": "typed-topsites-fixture-seed",
+      "at": "2026-10-17T02:55:45.050Z"
+    },
+    {
+      "name": "history-before-clear",
+      "at": "2026-10-17T02:56:54.318Z",
+      "history": [
+        {
+          "favicon": null,
+          "title": "http://127.0.0.1:8786/D",
+          "url": "http://127.0.0.1:8786/D",
+          "visitedAt": 1792205770396.599
+        },
+        {
+          "favicon": null,
+          "title": "http://127.0.0.1:8786/E",
+          "url": "http://127.0.0.1:8786/E",
+          "visitedAt": 1792205769589.424
+        },
+        {
+          "favicon": null,
+          "title": "Rebase157 TypedTopSite",
+          "url": "http://127.0.0.1:8786/TypedTopSite",
+          "visitedAt": 1792205767378.392
+        },
+        {
+          "favicon": null,
+          "title": "Rebase157 Persist",
+          "url": "http://127.0.0.1:8786/Persist",
+          "visitedAt": 1792205767372.794
+        },
+        {
+          "favicon": null,
+          "title": "http://127.0.0.1:8786/F",
+          "url": "http://127.0.0.1:8786/F",
+          "visitedAt": 1792205630659.467
+        }
+      ]
+    },
+    {
+      "name": "topsites-before-clear",
+      "at": "2026-10-17T02:56:55.535Z",
+      "sites": [
+        {
+          "key": "127.0.0.1",
+          "title": "Rebase157 Persist",
+          "url": "http://127.0.0.1:8786/Persist"
+        },
+        {
+          "key": "chrome.google.com",
+          "title": "Web Store",
+          "url": "https://chrome.google.com/webstore?hl=en"
+        }
+      ]
+    },
+    {
+      "name": "history-failure",
+      "at": "2026-10-17T02:56:55.596Z",
+      "error": "AssertionError [ERR_ASSERTION]: false == true\n    at file:///private/tmp/blanc-task0/history.mjs:10:72"
+    },
+    {
+      "name": "private-heart-inspection",
+      "at": "2026-10-17T02:57:41.548Z",
+      "heart": [
+        {
+          "theme": "private",
+          "display": "none"
+        },
+        {
+          "display": "flex"
+        }
+      ]
+    },
+    {
+      "name": "native-data-clear-and-notification-pass",
+      "at": "2026-10-17T02:58:08.945Z",
+      "events": [
+        "topSites"
+      ],
+      "sites": [
+        {
+          "key": "127.0.0.1",
+          "title": "Rebase157 Persist",
+          "url": "http://127.0.0.1:8786/Persist"
+        },
+        {
+          "key": "chrome.google.com",
+          "title": "Web Store",
+          "url": "https://chrome.google.com/webstore?hl=en"
+        }
+      ],
+      "favorites": [
+        {
+          "addedAt": 1792205510946.09,
+          "favicon": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAC8UlEQVR4nHxTS0hUURg+5z7n6mgNRdNojiJamYWElCVlC8NBhCjSFhaRC12ULty0KMoJrUVhVqAhFkHtrEAty9JMohaFVIJgD/ARPsYZHWe89859n9O9vhPth/P6z/9/3zn/+Q4B1jZodd0NBZkvag9lrPStNmItp9c7H6xocqoqqckrff8FaL2T62wuAmSVF2BrbWiainRdWwDAvY2ZdFfTMed6AJClqANkRnaxSTUHgBCGCC0xY7/kOCfOBPfiFdchMAbQRKesgIkp5Q1NE+kPyxPirE2Tm9YRoK15V0NusiwISd9efeyyCHobyyw/JJ5e20VnbcyrbPZm7C/x9sgExbTZN7vKrCRVkcIRQQxZcyEkl4o83+ztAXpXg+dwQBouN4lJ6yjwfVN+fCQkVIphsf1Uzdfu59XZhTg6ZmADx+w0VEOHNDM6PT6cUFzzvaXj3tECTZZzfGNjt0vvDvmX7oKxl2i99a5a4qVndsemNEKYqkt0OzcLszwYGQ9N0g5nOUOpPllUPIVXP1ctFa6jzuOSZTF9wu8f6B795Tt70FPKj/25D1QZJKUkGMFpHgwNj5Mxjo1gQ7y75MTFzscttTnxdprboZBkP5WUHC/MBic4loLFFamJX4YHJ4qk4AxgbKwRESRSkRWg6siQwjMkF80VfnqQNxgM8FmsjfqxFSgC1f623zWlEjDKxvQ5YoFb5Y00RbdFbBqNwLQKJQUChbBjRUOkPot2+34bcYEA6sO0ym5hCRelaRLLIrgNK7rHPykaGHKvSS4KRjABAyEdQEgBKtpuFQlFZIMllVAJwwBRV8ROCZGDS0W8cnr7PltszElNxykAQwH+o1GIzHyOIeBAeJbv5ihd9j4Z7J3bWdHQ9TOJLoNm3ICKPW9gbDdlos4zINoc5U2MdLm8fmBkTtqmCM2Gl5/RBFmUcEV+SqzTHXXEFOEFwlQzBHJ92Kd9uNn2k19MBAuxq38YXMYD4EbZnuNAw/qlR/0vwTr2FwAA///YYd3sAAAABklEQVQDANILY9YXCroYAAAAAElFTkSuQmCC",
+          "folder": "Rebase Folder",
+          "id": "5",
+          "title": "Rebase157 B",
+          "url": "http://127.0.0.1:8786/B"
+        }
+      ],
+      "data": {
+        "cookie": "rebaseSentinel=kept",
+        "storage": "kept"
+      },
+      "qualification": "Native TopSites is cleared and notification arrived in same document. Visible DOM refresh remains pending: locked-screen page is hidden without layout-ready class."
+    },
+    {
+      "name": "private-heart-inspection",
+      "at": "2026-10-17T02:58:10.611Z",
+      "heart": [
+        {
+          "theme": "private",
+          "display": "none"
+        },
+        {
+          "theme": "private",
+          "display": "none"
+        }
+      ]
+    },
+    {
+      "name": "automated-private-guards",
+      "at": "2026-10-17T02:58:10.617Z",
+      "heart": [
+        {
+          "theme": "private",
+          "display": "none"
+        },
+        {
+          "theme": "private",
+          "display": "none"
+        }
+      ],
+      "error": "Clear history from a regular window."
+    },
+    {
+      "name": "cleared-history-survives-restart",
+      "at": "2026-10-17T02:58:24.869Z",
+      "favoriteCount": 1
+    },
+    {
+      "name": "web-store-listing-ready",
+      "at": "2026-10-17T02:58:47.335Z",
+      "url": "https://chromewebstore.google.com/detail/react-developer-tools/fmkadmapgofadopljbjfkapdkoienihi",
+      "button": [
+        {
+          "text": "Add to Chrome",
+          "disabled": false
+        }
+      ],
+      "qualification": "No install initiated; native consent and popup tests await unlock."
+    },
+    {
+      "name": "native-keyboard-failure",
+      "at": "2026-10-17T16:15:49.154Z",
+      "error": "AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:\n\n'' !== 'before'\n\n    at file:///private/tmp/blanc-task0/native-keys.mjs:15:9"
+    },
+    {
+      "name": "native-keyboard-failure",
+      "at": "2026-10-17T16:16:30.913Z",
+      "error": "AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:\n\n'' !== 'before'\n\n    at file:///private/tmp/blanc-task0/native-keys.mjs:15:9"
+    },
+    {
+      "name": "native-keyboard-pass",
+      "at": "2026-10-17T16:17:23.378Z",
+      "checks": [
+        "Cmd-L address focus",
+        "Cmd-A replace and Enter navigation",
+        "Cmd-D with Island input focus",
+        "Escape then Cmd-L",
+        "Cmd-R from Island",
+        "Escape returns page typing",
+        "Cmd-T",
+        "Cmd-[ from Island"
+      ]
+    },
+    {
+      "name": "input-baseline",
+      "at": "2026-10-17T16:17:27.862Z",
+      "tabs": [
+        {
+          "id": "1593473151",
+          "title": "New Tab",
+          "url": "blanc://newtab/"
+        },
+        {
+          "id": "1593473152",
+          "title": "Rebase157 NativeKeys",
+          "url": "http://127.0.0.1:8786/NativeKeys"
+        },
+        {
+          "id": "1593473158",
+          "title": "Rebase157 NativeSecond",
+          "url": "http://127.0.0.1:8786/NativeSecond"
+        }
+      ],
+      "favorites": [
+        {
+          "addedAt": 1792205510946.09,
+          "favicon": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAC8UlEQVR4nHxTS0hUURg+5z7n6mgNRdNojiJamYWElCVlC8NBhCjSFhaRC12ULty0KMoJrUVhVqAhFkHtrEAty9JMohaFVIJgD/ARPsYZHWe89859n9O9vhPth/P6z/9/3zn/+Q4B1jZodd0NBZkvag9lrPStNmItp9c7H6xocqoqqckrff8FaL2T62wuAmSVF2BrbWiainRdWwDAvY2ZdFfTMed6AJClqANkRnaxSTUHgBCGCC0xY7/kOCfOBPfiFdchMAbQRKesgIkp5Q1NE+kPyxPirE2Tm9YRoK15V0NusiwISd9efeyyCHobyyw/JJ5e20VnbcyrbPZm7C/x9sgExbTZN7vKrCRVkcIRQQxZcyEkl4o83+ztAXpXg+dwQBouN4lJ6yjwfVN+fCQkVIphsf1Uzdfu59XZhTg6ZmADx+w0VEOHNDM6PT6cUFzzvaXj3tECTZZzfGNjt0vvDvmX7oKxl2i99a5a4qVndsemNEKYqkt0OzcLszwYGQ9N0g5nOUOpPllUPIVXP1ctFa6jzuOSZTF9wu8f6B795Tt70FPKj/25D1QZJKUkGMFpHgwNj5Mxjo1gQ7y75MTFzscttTnxdprboZBkP5WUHC/MBic4loLFFamJX4YHJ4qk4AxgbKwRESRSkRWg6siQwjMkF80VfnqQNxgM8FmsjfqxFSgC1f623zWlEjDKxvQ5YoFb5Y00RbdFbBqNwLQKJQUChbBjRUOkPot2+34bcYEA6sO0ym5hCRelaRLLIrgNK7rHPykaGHKvSS4KRjABAyEdQEgBKtpuFQlFZIMllVAJwwBRV8ROCZGDS0W8cnr7PltszElNxykAQwH+o1GIzHyOIeBAeJbv5ihd9j4Z7J3bWdHQ9TOJLoNm3ICKPW9gbDdlos4zINoc5U2MdLm8fmBkTtqmCM2Gl5/RBFmUcEV+SqzTHXXEFOEFwlQzBHJ92Kd9uNn2k19MBAuxq38YXMYD4EbZnuNAw/qlR/0vwTr2FwAA///YYd3sAAAABklEQVQDANILY9YXCroYAAAAAElFTkSuQmCC",
+          "folder": "Rebase Folder",
+          "id": "5",
+          "title": "Rebase157 B",
+          "url": "http://127.0.0.1:8786/B"
+        },
+        {
+          "addedAt": 1792253821639.32,
+          "favicon": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAC8UlEQVR4nHxTS0hUURg+5z7n6mgNRdNojiJamYWElCVlC8NBhCjSFhaRC12ULty0KMoJrUVhVqAhFkHtrEAty9JMohaFVIJgD/ARPsYZHWe89859n9O9vhPth/P6z/9/3zn/+Q4B1jZodd0NBZkvag9lrPStNmItp9c7H6xocqoqqckrff8FaL2T62wuAmSVF2BrbWiainRdWwDAvY2ZdFfTMed6AJClqANkRnaxSTUHgBCGCC0xY7/kOCfOBPfiFdchMAbQRKesgIkp5Q1NE+kPyxPirE2Tm9YRoK15V0NusiwISd9efeyyCHobyyw/JJ5e20VnbcyrbPZm7C/x9sgExbTZN7vKrCRVkcIRQQxZcyEkl4o83+ztAXpXg+dwQBouN4lJ6yjwfVN+fCQkVIphsf1Uzdfu59XZhTg6ZmADx+w0VEOHNDM6PT6cUFzzvaXj3tECTZZzfGNjt0vvDvmX7oKxl2i99a5a4qVndsemNEKYqkt0OzcLszwYGQ9N0g5nOUOpPllUPIVXP1ctFa6jzuOSZTF9wu8f6B795Tt70FPKj/25D1QZJKUkGMFpHgwNj5Mxjo1gQ7y75MTFzscttTnxdprboZBkP5WUHC/MBic4loLFFamJX4YHJ4qk4AxgbKwRESRSkRWg6siQwjMkF80VfnqQNxgM8FmsjfqxFSgC1f623zWlEjDKxvQ5YoFb5Y00RbdFbBqNwLQKJQUChbBjRUOkPot2+34bcYEA6sO0ym5hCRelaRLLIrgNK7rHPykaGHKvSS4KRjABAyEdQEgBKtpuFQlFZIMllVAJwwBRV8ROCZGDS0W8cnr7PltszElNxykAQwH+o1GIzHyOIeBAeJbv5ihd9j4Z7J3bWdHQ9TOJLoNm3ICKPW9gbDdlos4zINoc5U2MdLm8fmBkTtqmCM2Gl5/RBFmUcEV+SqzTHXXEFOEFwlQzBHJ92Kd9uNn2k19MBAuxq38YXMYD4EbZnuNAw/qlR/0vwTr2FwAA///YYd3sAAAABklEQVQDANILY9YXCroYAAAAAElFTkSuQmCC",
+          "folder": null,
+          "id": "9",
+          "title": "Rebase157 NativeKeys",
+          "url": "http://127.0.0.1:8786/NativeKeys"
+        }
+      ]
+    },
+    {
+      "name": "native-cmd-d-start-page-no-op",
+      "at": "2026-10-17T16:17:30.189Z"
+    },
+    {
+      "name": "host-renderer-screenshot",
+      "at": "2026-10-17T16:17:35.657Z",
+      "path": "/private/tmp/blanc-task0/cmd-d-on.png"
+    },
+    {
+      "name": "native-cmd-d-web-on",
+      "at": "2026-10-17T16:17:35.659Z"
+    },
+    {
+      "name": "native-cmd-d-web-off",
+      "at": "2026-10-17T16:17:36.255Z"
+    },
+    {
+      "name": "native-mouse-pill-heart-on-off",
+      "at": "2026-10-17T16:17:38.047Z"
+    },
+    {
+      "name": "native-mouse-panel-heart-on-off",
+      "at": "2026-10-17T16:17:41.586Z"
+    },
+    {
+      "name": "native-slash-save",
+      "at": "2026-10-17T16:17:45.408Z",
+      "item": {
+        "addedAt": 1792253864808.905,
+        "favicon": null,
+        "folder": "Codex-Native858",
+        "id": "14",
+        "title": "Rebase157 Alpha",
+        "url": "http://127.0.0.1:8786/Alpha"
+      }
+    },
+    {
+      "name": "native-slash-case-insensitive-reuse",
+      "at": "2026-10-17T16:17:49.209Z",
+      "id": "14"
+    },
+    {
+      "name": "native-bare-save-no-duplicate",
+      "at": "2026-10-17T16:17:52.967Z"
+    },
+    {
+      "name": "native-overlong-folder-rejected",
+      "at": "2026-10-17T16:18:02.901Z"
+    },
+    {
+      "name": "native-slash-moves-existing-node",
+      "at": "2026-10-17T16:18:15.282Z",
+      "id": "16"
+    },
+    {
+      "name": "native-slash-favorites-manager",
+      "at": "2026-10-17T16:18:19.127Z"
+    },
+    {
+      "name": "native-slash-history-manager",
+      "at": "2026-10-17T16:18:24.021Z"
+    },
+    {
+      "name": "native-mouse-favorites-footer",
+      "at": "2026-10-17T16:18:27.016Z"
+    },
+    {
+      "name": "native-mouse-history-footer",
+      "at": "2026-10-17T16:18:29.883Z"
+    },
+    {
+      "name": "input-phase-one-complete",
+      "at": "2026-10-17T16:18:30.882Z"
+    },
+    {
+      "name": "baseline",
+      "at": "2026-10-17T16:18:40.314Z",
+      "tabs": [
+        {
+          "audible": false,
+          "blockedCount": 0,
+          "bookmarked": false,
+          "canGoBack": false,
+          "canGoForward": false,
+          "favicon": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAACp0lEQVR4nKRTS2sTURQ+59w7SRr7oGkb22JbhEhp8VG0IBahK5HUjXbhqhv9B4KIG/+Ca0F8LFyriFYFMXRTEFO6qC19txZjMA152UwmmZl7vDNJIG71wgz3zj3fd7/z3W8I/nPI1oVtW1eJ7VEApVylUDS2XXBAEDEAkUJjwzBCH5sYwcyoB316/+axDIQeogjG9TMjZCiO0tBPIC5km/8NRSBORHMP7t8dIiP4NpFIAHos5VxmJtzd+05ZeQcYGUgzkuRcel0vEHoGRlkpB0GxXjJSqFua+ey1Y5HoPPkS2RoDYKUlqlrNlEf5FAEKQ7mO0EDhzcuFFNm2KbVg5dXWMRrhEyh2dd9YrZYpGO7kXGoVKkdZXac3FUPldxayP1YhEOpiu2aSV1vHNExUdk23IrCU2eaiYuwZmoDCrx0OtEdRdwPFzBb3Dp/HzP5X0Go41DWIdUyTQDsOXIHI4FnMfE+CVc5DLr2D5YPnULGqEDl1RfsXZsd2oO/khF/rY5otkCdWn5T7uQId3f2QT29D4sk9KO4lIb26CB8e3YHS4QF0RAagkPoGXi3VG2woqPcBhUKRC4UcrC8vQIXDfFhtR5OC4JDD60ufoaYEkDQ4qmtVa5Bc2/aMZX3XuLmyyKUqwfDUTdIauVO/22MKTRRqf3cTYmOT6Dlre5gmgRckUC6MxE6r6PETYndjGfa2lrlqmd4eSMPgS9Oz2NM/UhfsukJ4mCaBZVubmgCtcgl1+pzRc5dxJHaGvyy88lIKF6dvsAiEsGaZfpDawkH0Md7hXrYmJy/I+ZfPnvZG++b0BYPvqREEcGqNRg09t33XmAiymcMXM7O3bieTSw62/kzba4vX7aozrhPIjuuglAHfYZ1GIEFMQmpeuRYbn3rdxPxF8C/jDwAAAP//GDOC0AAAAAZJREFUAwDhL08TGO9e+gAAAABJRU5ErkJggg==",
+          "groupId": null,
+          "id": "1593473151",
+          "isLoading": false,
+          "muted": false,
+          "pageBg": "",
+          "pinned": false,
+          "private": false,
+          "title": "New Tab",
+          "url": "blanc://newtab/"
+        },
+        {
+          "audible": false,
+          "blockedCount": 0,
+          "bookmarked": true,
+          "canGoBack": true,
+          "canGoForward": false,
+          "favicon": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAC8UlEQVR4nHxTS0hUURg+5z7n6mgNRdNojiJamYWElCVlC8NBhCjSFhaRC12ULty0KMoJrUVhVqAhFkHtrEAty9JMohaFVIJgD/ARPsYZHWe89859n9O9vhPth/P6z/9/3zn/+Q4B1jZodd0NBZkvag9lrPStNmItp9c7H6xocqoqqckrff8FaL2T62wuAmSVF2BrbWiainRdWwDAvY2ZdFfTMed6AJClqANkRnaxSTUHgBCGCC0xY7/kOCfOBPfiFdchMAbQRKesgIkp5Q1NE+kPyxPirE2Tm9YRoK15V0NusiwISd9efeyyCHobyyw/JJ5e20VnbcyrbPZm7C/x9sgExbTZN7vKrCRVkcIRQQxZcyEkl4o83+ztAXpXg+dwQBouN4lJ6yjwfVN+fCQkVIphsf1Uzdfu59XZhTg6ZmADx+w0VEOHNDM6PT6cUFzzvaXj3tECTZZzfGNjt0vvDvmX7oKxl2i99a5a4qVndsemNEKYqkt0OzcLszwYGQ9N0g5nOUOpPllUPIVXP1ctFa6jzuOSZTF9wu8f6B795Tt70FPKj/25D1QZJKUkGMFpHgwNj5Mxjo1gQ7y75MTFzscttTnxdprboZBkP5WUHC/MBic4loLFFamJX4YHJ4qk4AxgbKwRESRSkRWg6siQwjMkF80VfnqQNxgM8FmsjfqxFSgC1f623zWlEjDKxvQ5YoFb5Y00RbdFbBqNwLQKJQUChbBjRUOkPot2+34bcYEA6sO0ym5hCRelaRLLIrgNK7rHPykaGHKvSS4KRjABAyEdQEgBKtpuFQlFZIMllVAJwwBRV8ROCZGDS0W8cnr7PltszElNxykAQwH+o1GIzHyOIeBAeJbv5ihd9j4Z7J3bWdHQ9TOJLoNm3ICKPW9gbDdlos4zINoc5U2MdLm8fmBkTtqmCM2Gl5/RBFmUcEV+SqzTHXXEFOEFwlQzBHJ92Kd9uNn2k19MBAuxq38YXMYD4EbZnuNAw/qlR/0vwTr2FwAA///YYd3sAAAABklEQVQDANILY9YXCroYAAAAAElFTkSuQmCC",
+          "groupId": null,
+          "id": "1593473152",
+          "isLoading": false,
+          "muted": false,
+          "pageBg": "",
+          "pinned": false,
+          "private": false,
+          "title": "Rebase157 NativeKeys",
+          "url": "http://127.0.0.1:8786/NativeKeys"
+        },
+        {
+          "audible": false,
+          "blockedCount": 0,
+          "bookmarked": false,
+          "canGoBack": true,
+          "canGoForward": true,
+          "favicon": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAC8UlEQVR4nHxTS0hUURg+5z7n6mgNRdNojiJamYWElCVlC8NBhCjSFhaRC12ULty0KMoJrUVhVqAhFkHtrEAty9JMohaFVIJgD/ARPsYZHWe89859n9O9vhPth/P6z/9/3zn/+Q4B1jZodd0NBZkvag9lrPStNmItp9c7H6xocqoqqckrff8FaL2T62wuAmSVF2BrbWiainRdWwDAvY2ZdFfTMed6AJClqANkRnaxSTUHgBCGCC0xY7/kOCfOBPfiFdchMAbQRKesgIkp5Q1NE+kPyxPirE2Tm9YRoK15V0NusiwISd9efeyyCHobyyw/JJ5e20VnbcyrbPZm7C/x9sgExbTZN7vKrCRVkcIRQQxZcyEkl4o83+ztAXpXg+dwQBouN4lJ6yjwfVN+fCQkVIphsf1Uzdfu59XZhTg6ZmADx+w0VEOHNDM6PT6cUFzzvaXj3tECTZZzfGNjt0vvDvmX7oKxl2i99a5a4qVndsemNEKYqkt0OzcLszwYGQ9N0g5nOUOpPllUPIVXP1ctFa6jzuOSZTF9wu8f6B795Tt70FPKj/25D1QZJKUkGMFpHgwNj5Mxjo1gQ7y75MTFzscttTnxdprboZBkP5WUHC/MBic4loLFFamJX4YHJ4qk4AxgbKwRESRSkRWg6siQwjMkF80VfnqQNxgM8FmsjfqxFSgC1f623zWlEjDKxvQ5YoFb5Y00RbdFbBqNwLQKJQUChbBjRUOkPot2+34bcYEA6sO0ym5hCRelaRLLIrgNK7rHPykaGHKvSS4KRjABAyEdQEgBKtpuFQlFZIMllVAJwwBRV8ROCZGDS0W8cnr7PltszElNxykAQwH+o1GIzHyOIeBAeJbv5ihd9j4Z7J3bWdHQ9TOJLoNm3ICKPW9gbDdlos4zINoc5U2MdLm8fmBkTtqmCM2Gl5/RBFmUcEV+SqzTHXXEFOEFwlQzBHJ92Kd9uNn2k19MBAuxq38YXMYD4EbZnuNAw/qlR/0vwTr2FwAA///YYd3sAAAABklEQVQDANILY9YXCroYAAAAAElFTkSuQmCC",
+          "groupId": null,
+          "id": "1593473158",
+          "isLoading": false,
+          "muted": false,
+          "pageBg": "",
+          "pinned": false,
+          "private": false,
+          "title": "Rebase157 NativeSecond",
+          "url": "http://127.0.0.1:8786/NativeSecond"
+        },
+        {
+          "audible": false,
+          "blockedCount": 0,
+          "bookmarked": true,
+          "canGoBack": true,
+          "canGoForward": false,
+          "favicon": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAC8UlEQVR4nHxTS0hUURg+5z7n6mgNRdNojiJamYWElCVlC8NBhCjSFhaRC12ULty0KMoJrUVhVqAhFkHtrEAty9JMohaFVIJgD/ARPsYZHWe89859n9O9vhPth/P6z/9/3zn/+Q4B1jZodd0NBZkvag9lrPStNmItp9c7H6xocqoqqckrff8FaL2T62wuAmSVF2BrbWiainRdWwDAvY2ZdFfTMed6AJClqANkRnaxSTUHgBCGCC0xY7/kOCfOBPfiFdchMAbQRKesgIkp5Q1NE+kPyxPirE2Tm9YRoK15V0NusiwISd9efeyyCHobyyw/JJ5e20VnbcyrbPZm7C/x9sgExbTZN7vKrCRVkcIRQQxZcyEkl4o83+ztAXpXg+dwQBouN4lJ6yjwfVN+fCQkVIphsf1Uzdfu59XZhTg6ZmADx+w0VEOHNDM6PT6cUFzzvaXj3tECTZZzfGNjt0vvDvmX7oKxl2i99a5a4qVndsemNEKYqkt0OzcLszwYGQ9N0g5nOUOpPllUPIVXP1ctFa6jzuOSZTF9wu8f6B795Tt70FPKj/25D1QZJKUkGMFpHgwNj5Mxjo1gQ7y75MTFzscttTnxdprboZBkP5WUHC/MBic4loLFFamJX4YHJ4qk4AxgbKwRESRSkRWg6siQwjMkF80VfnqQNxgM8FmsjfqxFSgC1f623zWlEjDKxvQ5YoFb5Y00RbdFbBqNwLQKJQUChbBjRUOkPot2+34bcYEA6sO0ym5hCRelaRLLIrgNK7rHPykaGHKvSS4KRjABAyEdQEgBKtpuFQlFZIMllVAJwwBRV8ROCZGDS0W8cnr7PltszElNxykAQwH+o1GIzHyOIeBAeJbv5ihd9j4Z7J3bWdHQ9TOJLoNm3ICKPW9gbDdlos4zINoc5U2MdLm8fmBkTtqmCM2Gl5/RBFmUcEV+SqzTHXXEFOEFwlQzBHJ92Kd9uNn2k19MBAuxq38YXMYD4EbZnuNAw/qlR/0vwTr2FwAA///YYd3sAAAABklEQVQDANILY9YXCroYAAAAAElFTkSuQmCC",
+          "groupId": null,
+          "id": "1593473159",
+          "isLoading": false,
+          "muted": false,
+          "pageBg": "",
+          "pinned": false,
+          "private": false,
+          "title": "Rebase157 Alpha",
+          "url": "http://127.0.0.1:8786/Alpha"
+        },
+        {
+          "audible": false,
+          "blockedCount": 0,
+          "bookmarked": true,
+          "canGoBack": true,
+          "canGoForward": false,
+          "favicon": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAC8UlEQVR4nHxTS0hUURg+5z7n6mgNRdNojiJamYWElCVlC8NBhCjSFhaRC12ULty0KMoJrUVhVqAhFkHtrEAty9JMohaFVIJgD/ARPsYZHWe89859n9O9vhPth/P6z/9/3zn/+Q4B1jZodd0NBZkvag9lrPStNmItp9c7H6xocqoqqckrff8FaL2T62wuAmSVF2BrbWiainRdWwDAvY2ZdFfTMed6AJClqANkRnaxSTUHgBCGCC0xY7/kOCfOBPfiFdchMAbQRKesgIkp5Q1NE+kPyxPirE2Tm9YRoK15V0NusiwISd9efeyyCHobyyw/JJ5e20VnbcyrbPZm7C/x9sgExbTZN7vKrCRVkcIRQQxZcyEkl4o83+ztAXpXg+dwQBouN4lJ6yjwfVN+fCQkVIphsf1Uzdfu59XZhTg6ZmADx+w0VEOHNDM6PT6cUFzzvaXj3tECTZZzfGNjt0vvDvmX7oKxl2i99a5a4qVndsemNEKYqkt0OzcLszwYGQ9N0g5nOUOpPllUPIVXP1ctFa6jzuOSZTF9wu8f6B795Tt70FPKj/25D1QZJKUkGMFpHgwNj5Mxjo1gQ7y75MTFzscttTnxdprboZBkP5WUHC/MBic4loLFFamJX4YHJ4qk4AxgbKwRESRSkRWg6siQwjMkF80VfnqQNxgM8FmsjfqxFSgC1f623zWlEjDKxvQ5YoFb5Y00RbdFbBqNwLQKJQUChbBjRUOkPot2+34bcYEA6sO0ym5hCRelaRLLIrgNK7rHPykaGHKvSS4KRjABAyEdQEgBKtpuFQlFZIMllVAJwwBRV8ROCZGDS0W8cnr7PltszElNxykAQwH+o1GIzHyOIeBAeJbv5ihd9j4Z7J3bWdHQ9TOJLoNm3ICKPW9gbDdlos4zINoc5U2MdLm8fmBkTtqmCM2Gl5/RBFmUcEV+SqzTHXXEFOEFwlQzBHJ92Kd9uNn2k19MBAuxq38YXMYD4EbZnuNAw/qlR/0vwTr2FwAA///YYd3sAAAABklEQVQDANILY9YXCroYAAAAAElFTkSuQmCC",
+          "groupId": null,
+          "id": "1593473160",
+          "isLoading": false,
+          "muted": false,
+          "pageBg": "#f8f2df",
+          "pinned": false,
+          "private": false,
+          "title": "Rebase157 Beta",
+          "url": "http://127.0.0.1:8786/Beta"
+        }
+      ],
+      "favorites": [
+        {
+          "addedAt": 1792205510946.09,
+          "favicon": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAC8UlEQVR4nHxTS0hUURg+5z7n6mgNRdNojiJamYWElCVlC8NBhCjSFhaRC12ULty0KMoJrUVhVqAhFkHtrEAty9JMohaFVIJgD/ARPsYZHWe89859n9O9vhPth/P6z/9/3zn/+Q4B1jZodd0NBZkvag9lrPStNmItp9c7H6xocqoqqckrff8FaL2T62wuAmSVF2BrbWiainRdWwDAvY2ZdFfTMed6AJClqANkRnaxSTUHgBCGCC0xY7/kOCfOBPfiFdchMAbQRKesgIkp5Q1NE+kPyxPirE2Tm9YRoK15V0NusiwISd9efeyyCHobyyw/JJ5e20VnbcyrbPZm7C/x9sgExbTZN7vKrCRVkcIRQQxZcyEkl4o83+ztAXpXg+dwQBouN4lJ6yjwfVN+fCQkVIphsf1Uzdfu59XZhTg6ZmADx+w0VEOHNDM6PT6cUFzzvaXj3tECTZZzfGNjt0vvDvmX7oKxl2i99a5a4qVndsemNEKYqkt0OzcLszwYGQ9N0g5nOUOpPllUPIVXP1ctFa6jzuOSZTF9wu8f6B795Tt70FPKj/25D1QZJKUkGMFpHgwNj5Mxjo1gQ7y75MTFzscttTnxdprboZBkP5WUHC/MBic4loLFFamJX4YHJ4qk4AxgbKwRESRSkRWg6siQwjMkF80VfnqQNxgM8FmsjfqxFSgC1f623zWlEjDKxvQ5YoFb5Y00RbdFbBqNwLQKJQUChbBjRUOkPot2+34bcYEA6sO0ym5hCRelaRLLIrgNK7rHPykaGHKvSS4KRjABAyEdQEgBKtpuFQlFZIMllVAJwwBRV8ROCZGDS0W8cnr7PltszElNxykAQwH+o1GIzHyOIeBAeJbv5ihd9j4Z7J3bWdHQ9TOJLoNm3ICKPW9gbDdlos4zINoc5U2MdLm8fmBkTtqmCM2Gl5/RBFmUcEV+SqzTHXXEFOEFwlQzBHJ92Kd9uNn2k19MBAuxq38YXMYD4EbZnuNAw/qlR/0vwTr2FwAA///YYd3sAAAABklEQVQDANILY9YXCroYAAAAAElFTkSuQmCC",
+          "folder": "Rebase Folder",
+          "id": "5",
+          "title": "Rebase157 B",
+          "url": "http://127.0.0.1:8786/B"
+        },
+        {
+          "addedAt": 1792253821639.32,
+          "favicon": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAC8UlEQVR4nHxTS0hUURg+5z7n6mgNRdNojiJamYWElCVlC8NBhCjSFhaRC12ULty0KMoJrUVhVqAhFkHtrEAty9JMohaFVIJgD/ARPsYZHWe89859n9O9vhPth/P6z/9/3zn/+Q4B1jZodd0NBZkvag9lrPStNmItp9c7H6xocqoqqckrff8FaL2T62wuAmSVF2BrbWiainRdWwDAvY2ZdFfTMed6AJClqANkRnaxSTUHgBCGCC0xY7/kOCfOBPfiFdchMAbQRKesgIkp5Q1NE+kPyxPirE2Tm9YRoK15V0NusiwISd9efeyyCHobyyw/JJ5e20VnbcyrbPZm7C/x9sgExbTZN7vKrCRVkcIRQQxZcyEkl4o83+ztAXpXg+dwQBouN4lJ6yjwfVN+fCQkVIphsf1Uzdfu59XZhTg6ZmADx+w0VEOHNDM6PT6cUFzzvaXj3tECTZZzfGNjt0vvDvmX7oKxl2i99a5a4qVndsemNEKYqkt0OzcLszwYGQ9N0g5nOUOpPllUPIVXP1ctFa6jzuOSZTF9wu8f6B795Tt70FPKj/25D1QZJKUkGMFpHgwNj5Mxjo1gQ7y75MTFzscttTnxdprboZBkP5WUHC/MBic4loLFFamJX4YHJ4qk4AxgbKwRESRSkRWg6siQwjMkF80VfnqQNxgM8FmsjfqxFSgC1f623zWlEjDKxvQ5YoFb5Y00RbdFbBqNwLQKJQUChbBjRUOkPot2+34bcYEA6sO0ym5hCRelaRLLIrgNK7rHPykaGHKvSS4KRjABAyEdQEgBKtpuFQlFZIMllVAJwwBRV8ROCZGDS0W8cnr7PltszElNxykAQwH+o1GIzHyOIeBAeJbv5ihd9j4Z7J3bWdHQ9TOJLoNm3ICKPW9gbDdlos4zINoc5U2MdLm8fmBkTtqmCM2Gl5/RBFmUcEV+SqzTHXXEFOEFwlQzBHJ92Kd9uNn2k19MBAuxq38YXMYD4EbZnuNAw/qlR/0vwTr2FwAA///YYd3sAAAABklEQVQDANILY9YXCroYAAAAAElFTkSuQmCC",
+          "folder": null,
+          "id": "9",
+          "title": "Rebase157 NativeKeys",
+          "url": "http://127.0.0.1:8786/NativeKeys"
+        },
+        {
+          "addedAt": 1792253864808.905,
+          "favicon": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAC8UlEQVR4nHxTS0hUURg+5z7n6mgNRdNojiJamYWElCVlC8NBhCjSFhaRC12ULty0KMoJrUVhVqAhFkHtrEAty9JMohaFVIJgD/ARPsYZHWe89859n9O9vhPth/P6z/9/3zn/+Q4B1jZodd0NBZkvag9lrPStNmItp9c7H6xocqoqqckrff8FaL2T62wuAmSVF2BrbWiainRdWwDAvY2ZdFfTMed6AJClqANkRnaxSTUHgBCGCC0xY7/kOCfOBPfiFdchMAbQRKesgIkp5Q1NE+kPyxPirE2Tm9YRoK15V0NusiwISd9efeyyCHobyyw/JJ5e20VnbcyrbPZm7C/x9sgExbTZN7vKrCRVkcIRQQxZcyEkl4o83+ztAXpXg+dwQBouN4lJ6yjwfVN+fCQkVIphsf1Uzdfu59XZhTg6ZmADx+w0VEOHNDM6PT6cUFzzvaXj3tECTZZzfGNjt0vvDvmX7oKxl2i99a5a4qVndsemNEKYqkt0OzcLszwYGQ9N0g5nOUOpPllUPIVXP1ctFa6jzuOSZTF9wu8f6B795Tt70FPKj/25D1QZJKUkGMFpHgwNj5Mxjo1gQ7y75MTFzscttTnxdprboZBkP5WUHC/MBic4loLFFamJX4YHJ4qk4AxgbKwRESRSkRWg6siQwjMkF80VfnqQNxgM8FmsjfqxFSgC1f623zWlEjDKxvQ5YoFb5Y00RbdFbBqNwLQKJQUChbBjRUOkPot2+34bcYEA6sO0ym5hCRelaRLLIrgNK7rHPykaGHKvSS4KRjABAyEdQEgBKtpuFQlFZIMllVAJwwBRV8ROCZGDS0W8cnr7PltszElNxykAQwH+o1GIzHyOIeBAeJbv5ihd9j4Z7J3bWdHQ9TOJLoNm3ICKPW9gbDdlos4zINoc5U2MdLm8fmBkTtqmCM2Gl5/RBFmUcEV+SqzTHXXEFOEFwlQzBHJ92Kd9uNn2k19MBAuxq38YXMYD4EbZnuNAw/qlR/0vwTr2FwAA///YYd3sAAAABklEQVQDANILY9YXCroYAAAAAElFTkSuQmCC",
+          "folder": "Codex-Native858",
+          "id": "14",
+          "title": "Rebase157 Alpha",
+          "url": "http://127.0.0.1:8786/Alpha"
+        },
+        {
+          "addedAt": 1792253890883.916,
+          "favicon": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAC8UlEQVR4nHxTS0hUURg+5z7n6mgNRdNojiJamYWElCVlC8NBhCjSFhaRC12ULty0KMoJrUVhVqAhFkHtrEAty9JMohaFVIJgD/ARPsYZHWe89859n9O9vhPth/P6z/9/3zn/+Q4B1jZodd0NBZkvag9lrPStNmItp9c7H6xocqoqqckrff8FaL2T62wuAmSVF2BrbWiainRdWwDAvY2ZdFfTMed6AJClqANkRnaxSTUHgBCGCC0xY7/kOCfOBPfiFdchMAbQRKesgIkp5Q1NE+kPyxPirE2Tm9YRoK15V0NusiwISd9efeyyCHobyyw/JJ5e20VnbcyrbPZm7C/x9sgExbTZN7vKrCRVkcIRQQxZcyEkl4o83+ztAXpXg+dwQBouN4lJ6yjwfVN+fCQkVIphsf1Uzdfu59XZhTg6ZmADx+w0VEOHNDM6PT6cUFzzvaXj3tECTZZzfGNjt0vvDvmX7oKxl2i99a5a4qVndsemNEKYqkt0OzcLszwYGQ9N0g5nOUOpPllUPIVXP1ctFa6jzuOSZTF9wu8f6B795Tt70FPKj/25D1QZJKUkGMFpHgwNj5Mxjo1gQ7y75MTFzscttTnxdprboZBkP5WUHC/MBic4loLFFamJX4YHJ4qk4AxgbKwRESRSkRWg6siQwjMkF80VfnqQNxgM8FmsjfqxFSgC1f623zWlEjDKxvQ5YoFb5Y00RbdFbBqNwLQKJQUChbBjRUOkPot2+34bcYEA6sO0ym5hCRelaRLLIrgNK7rHPykaGHKvSS4KRjABAyEdQEgBKtpuFQlFZIMllVAJwwBRV8ROCZGDS0W8cnr7PltszElNxykAQwH+o1GIzHyOIeBAeJbv5ihd9j4Z7J3bWdHQ9TOJLoNm3ICKPW9gbDdlos4zINoc5U2MdLm8fmBkTtqmCM2Gl5/RBFmUcEV+SqzTHXXEFOEFwlQzBHJ92Kd9uNn2k19MBAuxq38YXMYD4EbZnuNAw/qlR/0vwTr2FwAA///YYd3sAAAABklEQVQDANILY9YXCroYAAAAAElFTkSuQmCC",
+          "folder": "Codex-Native858",
+          "id": "16",
+          "title": "Rebase157 Beta",
+          "url": "http://127.0.0.1:8786/Beta"
+        }
+      ]
+    },
+    {
+      "name": "native-group-name-reuse-and-active-dots",
+      "at": "2026-10-17T16:18:54.220Z",
+      "groups": [
+        {
+          "collapsed": false,
+          "id": "DCFD8EE8953A19DB55692FB0C37BD814",
+          "name": "work"
+        }
+      ],
+      "dots": [
+        "1593473169",
+        "1593473170",
+        "1593473171"
+      ],
+      "tabs": [
+        {
+          "id": "1593473151",
+          "url": "blanc://newtab/",
+          "groupId": null
+        },
+        {
+          "id": "1593473152",
+          "url": "http://127.0.0.1:8786/NativeKeys",
+          "groupId": null
+        },
+        {
+          "id": "1593473158",
+          "url": "http://127.0.0.1:8786/NativeSecond",
+          "groupId": null
+        },
+        {
+          "id": "1593473159",
+          "url": "http://127.0.0.1:8786/Alpha",
+          "groupId": null
+        },
+        {
+          "id": "1593473160",
+          "url": "http://127.0.0.1:8786/Beta",
+          "groupId": null
+        },
+        {
+          "id": "1593473169",
+          "url": "http://127.0.0.1:8786/GroupsA",
+          "groupId": "DCFD8EE8953A19DB55692FB0C37BD814"
+        },
+        {
+          "id": "1593473170",
+          "url": "http://127.0.0.1:8786/GroupsB",
+          "groupId": "DCFD8EE8953A19DB55692FB0C37BD814"
+        },
+        {
+          "id": "1593473171",
+          "url": "http://127.0.0.1:8786/GroupsC",
+          "groupId": "DCFD8EE8953A19DB55692FB0C37BD814"
+        },
+        {
+          "id": "1593473172",
+          "url": "http://127.0.0.1:8786/GroupsD",
+          "groupId": null
+        },
+        {
+          "id": "1593473173",
+          "url": "http://127.0.0.1:8786/GroupsE",
+          "groupId": null
+        },
+        {
+          "id": "1593473174",
+          "url": "http://127.0.0.1:8786/GroupsF",
+          "groupId": null
+        }
+      ]
+    },
+    {
+      "name": "native-fold-unfold-preserves-active",
+      "at": "2026-10-17T16:18:56.895Z"
+    },
+    {
+      "name": "quick-switcher-results",
+      "at": "2026-10-17T16:19:01.113Z",
+      "rows": [
+        {
+          "class": "island-row active",
+          "text": "work3 tabsgroup↵"
+        },
+        {
+          "class": "island-row",
+          "text": "CReact Developer Tools - Chrome Web Storechromewebstore.google.com/detail/react-developer-tools/fmkadmapgofadopljbjfkapdkoienihihistory"
+        },
+        {
+          "class": "island-row",
+          "text": "worsearch"
+        }
+      ]
+    },
+    {
+      "name": "native-group-search-enter-unfolds",
+      "at": "2026-10-17T16:19:02.226Z"
+    },
+    {
+      "name": "second-native-group",
+      "at": "2026-10-17T16:19:06.090Z",
+      "snapshot": {
+        "activeTabId": "1593473172",
+        "adblockEnabled": false,
+        "closed": [],
+        "displayShares": [],
+        "extensionsWidth": 26,
+        "glanceTabId": null,
+        "groups": [
+          {
+            "collapsed": false,
+            "id": "DCFD8EE8953A19DB55692FB0C37BD814",
+            "name": "work"
+          },
+          {
+            "collapsed": false,
+            "id": "B66F2CB98C4B14CD4673EAC9EA1EDCDC",
+            "name": "research"
+          }
+        ],
+        "tabLayout": "island",
+        "tabs": [
+          {
+            "audible": false,
+            "blockedCount": 0,
+            "bookmarked": false,
+            "canGoBack": false,
+            "canGoForward": false,
+            "favicon": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAACp0lEQVR4nKRTS2sTURQ+59w7SRr7oGkb22JbhEhp8VG0IBahK5HUjXbhqhv9B4KIG/+Ca0F8LFyriFYFMXRTEFO6qC19txZjMA152UwmmZl7vDNJIG71wgz3zj3fd7/z3W8I/nPI1oVtW1eJ7VEApVylUDS2XXBAEDEAkUJjwzBCH5sYwcyoB316/+axDIQeogjG9TMjZCiO0tBPIC5km/8NRSBORHMP7t8dIiP4NpFIAHos5VxmJtzd+05ZeQcYGUgzkuRcel0vEHoGRlkpB0GxXjJSqFua+ey1Y5HoPPkS2RoDYKUlqlrNlEf5FAEKQ7mO0EDhzcuFFNm2KbVg5dXWMRrhEyh2dd9YrZYpGO7kXGoVKkdZXac3FUPldxayP1YhEOpiu2aSV1vHNExUdk23IrCU2eaiYuwZmoDCrx0OtEdRdwPFzBb3Dp/HzP5X0Go41DWIdUyTQDsOXIHI4FnMfE+CVc5DLr2D5YPnULGqEDl1RfsXZsd2oO/khF/rY5otkCdWn5T7uQId3f2QT29D4sk9KO4lIb26CB8e3YHS4QF0RAagkPoGXi3VG2woqPcBhUKRC4UcrC8vQIXDfFhtR5OC4JDD60ufoaYEkDQ4qmtVa5Bc2/aMZX3XuLmyyKUqwfDUTdIauVO/22MKTRRqf3cTYmOT6Dlre5gmgRckUC6MxE6r6PETYndjGfa2lrlqmd4eSMPgS9Oz2NM/UhfsukJ4mCaBZVubmgCtcgl1+pzRc5dxJHaGvyy88lIKF6dvsAiEsGaZfpDawkH0Md7hXrYmJy/I+ZfPnvZG++b0BYPvqREEcGqNRg09t33XmAiymcMXM7O3bieTSw62/kzba4vX7aozrhPIjuuglAHfYZ1GIEFMQmpeuRYbn3rdxPxF8C/jDwAAAP//GDOC0AAAAAZJREFUAwDhL08TGO9e+gAAAABJRU5ErkJggg==",
+            "groupId": null,
+            "id": "1593473151",
+            "isLoading": false,
+            "muted": false,
+            "pageBg": "",
+            "pinned": false,
+            "private": false,
+            "title": "New Tab",
+            "url": "blanc://newtab/"
+          },
+          {
+            "audible": false,
+            "blockedCount": 0,
+            "bookmarked": true,
+            "canGoBack": true,
+            "canGoForward": false,
+            "favicon": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAC8UlEQVR4nHxTS0hUURg+5z7n6mgNRdNojiJamYWElCVlC8NBhCjSFhaRC12ULty0KMoJrUVhVqAhFkHtrEAty9JMohaFVIJgD/ARPsYZHWe89859n9O9vhPth/P6z/9/3zn/+Q4B1jZodd0NBZkvag9lrPStNmItp9c7H6xocqoqqckrff8FaL2T62wuAmSVF2BrbWiainRdWwDAvY2ZdFfTMed6AJClqANkRnaxSTUHgBCGCC0xY7/kOCfOBPfiFdchMAbQRKesgIkp5Q1NE+kPyxPirE2Tm9YRoK15V0NusiwISd9efeyyCHobyyw/JJ5e20VnbcyrbPZm7C/x9sgExbTZN7vKrCRVkcIRQQxZcyEkl4o83+ztAXpXg+dwQBouN4lJ6yjwfVN+fCQkVIphsf1Uzdfu59XZhTg6ZmADx+w0VEOHNDM6PT6cUFzzvaXj3tECTZZzfGNjt0vvDvmX7oKxl2i99a5a4qVndsemNEKYqkt0OzcLszwYGQ9N0g5nOUOpPllUPIVXP1ctFa6jzuOSZTF9wu8f6B795Tt70FPKj/25D1QZJKUkGMFpHgwNj5Mxjo1gQ7y75MTFzscttTnxdprboZBkP5WUHC/MBic4loLFFamJX4YHJ4qk4AxgbKwRESRSkRWg6siQwjMkF80VfnqQNxgM8FmsjfqxFSgC1f623zWlEjDKxvQ5YoFb5Y00RbdFbBqNwLQKJQUChbBjRUOkPot2+34bcYEA6sO0ym5hCRelaRLLIrgNK7rHPykaGHKvSS4KRjABAyEdQEgBKtpuFQlFZIMllVAJwwBRV8ROCZGDS0W8cnr7PltszElNxykAQwH+o1GIzHyOIeBAeJbv5ihd9j4Z7J3bWdHQ9TOJLoNm3ICKPW9gbDdlos4zINoc5U2MdLm8fmBkTtqmCM2Gl5/RBFmUcEV+SqzTHXXEFOEFwlQzBHJ92Kd9uNn2k19MBAuxq38YXMYD4EbZnuNAw/qlR/0vwTr2FwAA///YYd3sAAAABklEQVQDANILY9YXCroYAAAAAElFTkSuQmCC",
+            "groupId": null,
+            "id": "1593473152",
+            "isLoading": false,
+            "muted": false,
+            "pageBg": "",
+            "pinned": false,
+            "private": false,
+            "title": "Rebase157 NativeKeys",
+            "url": "http://127.0.0.1:8786/NativeKeys"
+          },
+          {
+            "audible": false,
+            "blockedCount": 0,
+            "bookmarked": false,
+            "canGoBack": true,
+            "canGoForward": true,
+            "favicon": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAC8UlEQVR4nHxTS0hUURg+5z7n6mgNRdNojiJamYWElCVlC8NBhCjSFhaRC12ULty0KMoJrUVhVqAhFkHtrEAty9JMohaFVIJgD/ARPsYZHWe89859n9O9vhPth/P6z/9/3zn/+Q4B1jZodd0NBZkvag9lrPStNmItp9c7H6xocqoqqckrff8FaL2T62wuAmSVF2BrbWiainRdWwDAvY2ZdFfTMed6AJClqANkRnaxSTUHgBCGCC0xY7/kOCfOBPfiFdchMAbQRKesgIkp5Q1NE+kPyxPirE2Tm9YRoK15V0NusiwISd9efeyyCHobyyw/JJ5e20VnbcyrbPZm7C/x9sgExbTZN7vKrCRVkcIRQQxZcyEkl4o83+ztAXpXg+dwQBouN4lJ6yjwfVN+fCQkVIphsf1Uzdfu59XZhTg6ZmADx+w0VEOHNDM6PT6cUFzzvaXj3tECTZZzfGNjt0vvDvmX7oKxl2i99a5a4qVndsemNEKYqkt0OzcLszwYGQ9N0g5nOUOpPllUPIVXP1ctFa6jzuOSZTF9wu8f6B795Tt70FPKj/25D1QZJKUkGMFpHgwNj5Mxjo1gQ7y75MTFzscttTnxdprboZBkP5WUHC/MBic4loLFFamJX4YHJ4qk4AxgbKwRESRSkRWg6siQwjMkF80VfnqQNxgM8FmsjfqxFSgC1f623zWlEjDKxvQ5YoFb5Y00RbdFbBqNwLQKJQUChbBjRUOkPot2+34bcYEA6sO0ym5hCRelaRLLIrgNK7rHPykaGHKvSS4KRjABAyEdQEgBKtpuFQlFZIMllVAJwwBRV8ROCZGDS0W8cnr7PltszElNxykAQwH+o1GIzHyOIeBAeJbv5ihd9j4Z7J3bWdHQ9TOJLoNm3ICKPW9gbDdlos4zINoc5U2MdLm8fmBkTtqmCM2Gl5/RBFmUcEV+SqzTHXXEFOEFwlQzBHJ92Kd9uNn2k19MBAuxq38YXMYD4EbZnuNAw/qlR/0vwTr2FwAA///YYd3sAAAABklEQVQDANILY9YXCroYAAAAAElFTkSuQmCC",
+            "groupId": null,
+            "id": "1593473158",
+            "isLoading": false,
+            "muted": false,
+            "pageBg": "",
+            "pinned": false,
+            "private": false,
+            "title": "Rebase157 NativeSecond",
+            "url": "http://127.0.0.1:8786/NativeSecond"
+          },
+          {
+            "audible": false,
+            "blockedCount": 0,
+            "bookmarked": true,
+            "canGoBack": true,
+            "canGoForward": false,
+            "favicon": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAC8UlEQVR4nHxTS0hUURg+5z7n6mgNRdNojiJamYWElCVlC8NBhCjSFhaRC12ULty0KMoJrUVhVqAhFkHtrEAty9JMohaFVIJgD/ARPsYZHWe89859n9O9vhPth/P6z/9/3zn/+Q4B1jZodd0NBZkvag9lrPStNmItp9c7H6xocqoqqckrff8FaL2T62wuAmSVF2BrbWiainRdWwDAvY2ZdFfTMed6AJClqANkRnaxSTUHgBCGCC0xY7/kOCfOBPfiFdchMAbQRKesgIkp5Q1NE+kPyxPirE2Tm9YRoK15V0NusiwISd9efeyyCHobyyw/JJ5e20VnbcyrbPZm7C/x9sgExbTZN7vKrCRVkcIRQQxZcyEkl4o83+ztAXpXg+dwQBouN4lJ6yjwfVN+fCQkVIphsf1Uzdfu59XZhTg6ZmADx+w0VEOHNDM6PT6cUFzzvaXj3tECTZZzfGNjt0vvDvmX7oKxl2i99a5a4qVndsemNEKYqkt0OzcLszwYGQ9N0g5nOUOpPllUPIVXP1ctFa6jzuOSZTF9wu8f6B795Tt70FPKj/25D1QZJKUkGMFpHgwNj5Mxjo1gQ7y75MTFzscttTnxdprboZBkP5WUHC/MBic4loLFFamJX4YHJ4qk4AxgbKwRESRSkRWg6siQwjMkF80VfnqQNxgM8FmsjfqxFSgC1f623zWlEjDKxvQ5YoFb5Y00RbdFbBqNwLQKJQUChbBjRUOkPot2+34bcYEA6sO0ym5hCRelaRLLIrgNK7rHPykaGHKvSS4KRjABAyEdQEgBKtpuFQlFZIMllVAJwwBRV8ROCZGDS0W8cnr7PltszElNxykAQwH+o1GIzHyOIeBAeJbv5ihd9j4Z7J3bWdHQ9TOJLoNm3ICKPW9gbDdlos4zINoc5U2MdLm8fmBkTtqmCM2Gl5/RBFmUcEV+SqzTHXXEFOEFwlQzBHJ92Kd9uNn2k19MBAuxq38YXMYD4EbZnuNAw/qlR/0vwTr2FwAA///YYd3sAAAABklEQVQDANILY9YXCroYAAAAAElFTkSuQmCC",
+            "groupId": null,
+            "id": "1593473159",
+            "isLoading": false,
+            "muted": false,
+            "pageBg": "",
+            "pinned": false,
+            "private": false,
+            "title": "Rebase157 Alpha",
+            "url": "http://127.0.0.1:8786/Alpha"
+          },
+          {
+            "audible": false,
+            "blockedCount": 0,
+            "bookmarked": true,
+            "canGoBack": true,
+            "canGoForward": false,
+            "favicon": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAC8UlEQVR4nHxTS0hUURg+5z7n6mgNRdNojiJamYWElCVlC8NBhCjSFhaRC12ULty0KMoJrUVhVqAhFkHtrEAty9JMohaFVIJgD/ARPsYZHWe89859n9O9vhPth/P6z/9/3zn/+Q4B1jZodd0NBZkvag9lrPStNmItp9c7H6xocqoqqckrff8FaL2T62wuAmSVF2BrbWiainRdWwDAvY2ZdFfTMed6AJClqANkRnaxSTUHgBCGCC0xY7/kOCfOBPfiFdchMAbQRKesgIkp5Q1NE+kPyxPirE2Tm9YRoK15V0NusiwISd9efeyyCHobyyw/JJ5e20VnbcyrbPZm7C/x9sgExbTZN7vKrCRVkcIRQQxZcyEkl4o83+ztAXpXg+dwQBouN4lJ6yjwfVN+fCQkVIphsf1Uzdfu59XZhTg6ZmADx+w0VEOHNDM6PT6cUFzzvaXj3tECTZZzfGNjt0vvDvmX7oKxl2i99a5a4qVndsemNEKYqkt0OzcLszwYGQ9N0g5nOUOpPllUPIVXP1ctFa6jzuOSZTF9wu8f6B795Tt70FPKj/25D1QZJKUkGMFpHgwNj5Mxjo1gQ7y75MTFzscttTnxdprboZBkP5WUHC/MBic4loLFFamJX4YHJ4qk4AxgbKwRESRSkRWg6siQwjMkF80VfnqQNxgM8FmsjfqxFSgC1f623zWlEjDKxvQ5YoFb5Y00RbdFbBqNwLQKJQUChbBjRUOkPot2+34bcYEA6sO0ym5hCRelaRLLIrgNK7rHPykaGHKvSS4KRjABAyEdQEgBKtpuFQlFZIMllVAJwwBRV8ROCZGDS0W8cnr7PltszElNxykAQwH+o1GIzHyOIeBAeJbv5ihd9j4Z7J3bWdHQ9TOJLoNm3ICKPW9gbDdlos4zINoc5U2MdLm8fmBkTtqmCM2Gl5/RBFmUcEV+SqzTHXXEFOEFwlQzBHJ92Kd9uNn2k19MBAuxq38YXMYD4EbZnuNAw/qlR/0vwTr2FwAA///YYd3sAAAABklEQVQDANILY9YXCroYAAAAAElFTkSuQmCC",
+            "groupId": null,
+            "id": "1593473160",
+            "isLoading": false,
+            "muted": false,
+            "pageBg": "",
+            "pinned": false,
+            "private": false,
+            "title": "Rebase157 Beta",
+            "url": "http://127.0.0.1:8786/Beta"
+          },
+          {
+            "audible": false,
+            "blockedCount": 0,
+            "bookmarked": false,
+            "canGoBack": false,
+            "canGoForward": false,
+            "favicon": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAC8UlEQVR4nHxTS0hUURg+5z7n6mgNRdNojiJamYWElCVlC8NBhCjSFhaRC12ULty0KMoJrUVhVqAhFkHtrEAty9JMohaFVIJgD/ARPsYZHWe89859n9O9vhPth/P6z/9/3zn/+Q4B1jZodd0NBZkvag9lrPStNmItp9c7H6xocqoqqckrff8FaL2T62wuAmSVF2BrbWiainRdWwDAvY2ZdFfTMed6AJClqANkRnaxSTUHgBCGCC0xY7/kOCfOBPfiFdchMAbQRKesgIkp5Q1NE+kPyxPirE2Tm9YRoK15V0NusiwISd9efeyyCHobyyw/JJ5e20VnbcyrbPZm7C/x9sgExbTZN7vKrCRVkcIRQQxZcyEkl4o83+ztAXpXg+dwQBouN4lJ6yjwfVN+fCQkVIphsf1Uzdfu59XZhTg6ZmADx+w0VEOHNDM6PT6cUFzzvaXj3tECTZZzfGNjt0vvDvmX7oKxl2i99a5a4qVndsemNEKYqkt0OzcLszwYGQ9N0g5nOUOpPllUPIVXP1ctFa6jzuOSZTF9wu8f6B795Tt70FPKj/25D1QZJKUkGMFpHgwNj5Mxjo1gQ7y75MTFzscttTnxdprboZBkP5WUHC/MBic4loLFFamJX4YHJ4qk4AxgbKwRESRSkRWg6siQwjMkF80VfnqQNxgM8FmsjfqxFSgC1f623zWlEjDKxvQ5YoFb5Y00RbdFbBqNwLQKJQUChbBjRUOkPot2+34bcYEA6sO0ym5hCRelaRLLIrgNK7rHPykaGHKvSS4KRjABAyEdQEgBKtpuFQlFZIMllVAJwwBRV8ROCZGDS0W8cnr7PltszElNxykAQwH+o1GIzHyOIeBAeJbv5ihd9j4Z7J3bWdHQ9TOJLoNm3ICKPW9gbDdlos4zINoc5U2MdLm8fmBkTtqmCM2Gl5/RBFmUcEV+SqzTHXXEFOEFwlQzBHJ92Kd9uNn2k19MBAuxq38YXMYD4EbZnuNAw/qlR/0vwTr2FwAA///YYd3sAAAABklEQVQDANILY9YXCroYAAAAAElFTkSuQmCC",
+            "groupId": "DCFD8EE8953A19DB55692FB0C37BD814",
+            "id": "1593473169",
+            "isLoading": false,
+            "muted": false,
+            "pageBg": "",
+            "pinned": false,
+            "private": false,
+            "title": "Rebase157 GroupsA",
+            "url": "http://127.0.0.1:8786/GroupsA"
+          },
+          {
+            "audible": false,
+            "blockedCount": 0,
+            "bookmarked": false,
+            "canGoBack": false,
+            "canGoForward": false,
+            "favicon": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAC8UlEQVR4nHxTS0hUURg+5z7n6mgNRdNojiJamYWElCVlC8NBhCjSFhaRC12ULty0KMoJrUVhVqAhFkHtrEAty9JMohaFVIJgD/ARPsYZHWe89859n9O9vhPth/P6z/9/3zn/+Q4B1jZodd0NBZkvag9lrPStNmItp9c7H6xocqoqqckrff8FaL2T62wuAmSVF2BrbWiainRdWwDAvY2ZdFfTMed6AJClqANkRnaxSTUHgBCGCC0xY7/kOCfOBPfiFdchMAbQRKesgIkp5Q1NE+kPyxPirE2Tm9YRoK15V0NusiwISd9efeyyCHobyyw/JJ5e20VnbcyrbPZm7C/x9sgExbTZN7vKrCRVkcIRQQxZcyEkl4o83+ztAXpXg+dwQBouN4lJ6yjwfVN+fCQkVIphsf1Uzdfu59XZhTg6ZmADx+w0VEOHNDM6PT6cUFzzvaXj3tECTZZzfGNjt0vvDvmX7oKxl2i99a5a4qVndsemNEKYqkt0OzcLszwYGQ9N0g5nOUOpPllUPIVXP1ctFa6jzuOSZTF9wu8f6B795Tt70FPKj/25D1QZJKUkGMFpHgwNj5Mxjo1gQ7y75MTFzscttTnxdprboZBkP5WUHC/MBic4loLFFamJX4YHJ4qk4AxgbKwRESRSkRWg6siQwjMkF80VfnqQNxgM8FmsjfqxFSgC1f623zWlEjDKxvQ5YoFb5Y00RbdFbBqNwLQKJQUChbBjRUOkPot2+34bcYEA6sO0ym5hCRelaRLLIrgNK7rHPykaGHKvSS4KRjABAyEdQEgBKtpuFQlFZIMllVAJwwBRV8ROCZGDS0W8cnr7PltszElNxykAQwH+o1GIzHyOIeBAeJbv5ihd9j4Z7J3bWdHQ9TOJLoNm3ICKPW9gbDdlos4zINoc5U2MdLm8fmBkTtqmCM2Gl5/RBFmUcEV+SqzTHXXEFOEFwlQzBHJ92Kd9uNn2k19MBAuxq38YXMYD4EbZnuNAw/qlR/0vwTr2FwAA///YYd3sAAAABklEQVQDANILY9YXCroYAAAAAElFTkSuQmCC",
+            "groupId": "DCFD8EE8953A19DB55692FB0C37BD814",
+            "id": "1593473170",
+            "isLoading": false,
+            "muted": false,
+            "pageBg": "",
+            "pinned": false,
+            "private": false,
+            "title": "Rebase157 GroupsB",
+            "url": "http://127.0.0.1:8786/GroupsB"
+          },
+          {
+            "audible": false,
+            "blockedCount": 0,
+            "bookmarked": false,
+            "canGoBack": false,
+            "canGoForward": false,
+            "favicon": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAC8UlEQVR4nHxTS0hUURg+5z7n6mgNRdNojiJamYWElCVlC8NBhCjSFhaRC12ULty0KMoJrUVhVqAhFkHtrEAty9JMohaFVIJgD/ARPsYZHWe89859n9O9vhPth/P6z/9/3zn/+Q4B1jZodd0NBZkvag9lrPStNmItp9c7H6xocqoqqckrff8FaL2T62wuAmSVF2BrbWiainRdWwDAvY2ZdFfTMed6AJClqANkRnaxSTUHgBCGCC0xY7/kOCfOBPfiFdchMAbQRKesgIkp5Q1NE+kPyxPirE2Tm9YRoK15V0NusiwISd9efeyyCHobyyw/JJ5e20VnbcyrbPZm7C/x9sgExbTZN7vKrCRVkcIRQQxZcyEkl4o83+ztAXpXg+dwQBouN4lJ6yjwfVN+fCQkVIphsf1Uzdfu59XZhTg6ZmADx+w0VEOHNDM6PT6cUFzzvaXj3tECTZZzfGNjt0vvDvmX7oKxl2i99a5a4qVndsemNEKYqkt0OzcLszwYGQ9N0g5nOUOpPllUPIVXP1ctFa6jzuOSZTF9wu8f6B795Tt70FPKj/25D1QZJKUkGMFpHgwNj5Mxjo1gQ7y75MTFzscttTnxdprboZBkP5WUHC/MBic4loLFFamJX4YHJ4qk4AxgbKwRESRSkRWg6siQwjMkF80VfnqQNxgM8FmsjfqxFSgC1f623zWlEjDKxvQ5YoFb5Y00RbdFbBqNwLQKJQUChbBjRUOkPot2+34bcYEA6sO0ym5hCRelaRLLIrgNK7rHPykaGHKvSS4KRjABAyEdQEgBKtpuFQlFZIMllVAJwwBRV8ROCZGDS0W8cnr7PltszElNxykAQwH+o1GIzHyOIeBAeJbv5ihd9j4Z7J3bWdHQ9TOJLoNm3ICKPW9gbDdlos4zINoc5U2MdLm8fmBkTtqmCM2Gl5/RBFmUcEV+SqzTHXXEFOEFwlQzBHJ92Kd9uNn2k19MBAuxq38YXMYD4EbZnuNAw/qlR/0vwTr2FwAA///YYd3sAAAABklEQVQDANILY9YXCroYAAAAAElFTkSuQmCC",
+            "groupId": "DCFD8EE8953A19DB55692FB0C37BD814",
+            "id": "1593473171",
+            "isLoading": false,
+            "muted": false,
+            "pageBg": "",
+            "pinned": false,
+            "private": false,
+            "title": "Rebase157 GroupsC",
+            "url": "http://127.0.0.1:8786/GroupsC"
+          },
+          {
+            "audible": false,
+            "blockedCount": 0,
+            "bookmarked": false,
+            "canGoBack": false,
+            "canGoForward": false,
+            "favicon": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAC8UlEQVR4nHxTS0hUURg+5z7n6mgNRdNojiJamYWElCVlC8NBhCjSFhaRC12ULty0KMoJrUVhVqAhFkHtrEAty9JMohaFVIJgD/ARPsYZHWe89859n9O9vhPth/P6z/9/3zn/+Q4B1jZodd0NBZkvag9lrPStNmItp9c7H6xocqoqqckrff8FaL2T62wuAmSVF2BrbWiainRdWwDAvY2ZdFfTMed6AJClqANkRnaxSTUHgBCGCC0xY7/kOCfOBPfiFdchMAbQRKesgIkp5Q1NE+kPyxPirE2Tm9YRoK15V0NusiwISd9efeyyCHobyyw/JJ5e20VnbcyrbPZm7C/x9sgExbTZN7vKrCRVkcIRQQxZcyEkl4o83+ztAXpXg+dwQBouN4lJ6yjwfVN+fCQkVIphsf1Uzdfu59XZhTg6ZmADx+w0VEOHNDM6PT6cUFzzvaXj3tECTZZzfGNjt0vvDvmX7oKxl2i99a5a4qVndsemNEKYqkt0OzcLszwYGQ9N0g5nOUOpPllUPIVXP1ctFa6jzuOSZTF9wu8f6B795Tt70FPKj/25D1QZJKUkGMFpHgwNj5Mxjo1gQ7y75MTFzscttTnxdprboZBkP5WUHC/MBic4loLFFamJX4YHJ4qk4AxgbKwRESRSkRWg6siQwjMkF80VfnqQNxgM8FmsjfqxFSgC1f623zWlEjDKxvQ5YoFb5Y00RbdFbBqNwLQKJQUChbBjRUOkPot2+34bcYEA6sO0ym5hCRelaRLLIrgNK7rHPykaGHKvSS4KRjABAyEdQEgBKtpuFQlFZIMllVAJwwBRV8ROCZGDS0W8cnr7PltszElNxykAQwH+o1GIzHyOIeBAeJbv5ihd9j4Z7J3bWdHQ9TOJLoNm3ICKPW9gbDdlos4zINoc5U2MdLm8fmBkTtqmCM2Gl5/RBFmUcEV+SqzTHXXEFOEFwlQzBHJ92Kd9uNn2k19MBAuxq38YXMYD4EbZnuNAw/qlR/0vwTr2FwAA///YYd3sAAAABklEQVQDANILY9YXCroYAAAAAElFTkSuQmCC",
+            "groupId": "B66F2CB98C4B14CD4673EAC9EA1EDCDC",
+            "id": "1593473172",
+            "isLoading": false,
+            "muted": false,
+            "pageBg": "#f8f2df",
+            "pinned": false,
+            "private": false,
+            "title": "Rebase157 GroupsD",
+            "url": "http://127.0.0.1:8786/GroupsD"
+          },
+          {
+            "audible": false,
+            "blockedCount": 0,
+            "bookmarked": false,
+            "canGoBack": false,
+            "canGoForward": false,
+            "favicon": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAC8UlEQVR4nHxTS0hUURg+5z7n6mgNRdNojiJamYWElCVlC8NBhCjSFhaRC12ULty0KMoJrUVhVqAhFkHtrEAty9JMohaFVIJgD/ARPsYZHWe89859n9O9vhPth/P6z/9/3zn/+Q4B1jZodd0NBZkvag9lrPStNmItp9c7H6xocqoqqckrff8FaL2T62wuAmSVF2BrbWiainRdWwDAvY2ZdFfTMed6AJClqANkRnaxSTUHgBCGCC0xY7/kOCfOBPfiFdchMAbQRKesgIkp5Q1NE+kPyxPirE2Tm9YRoK15V0NusiwISd9efeyyCHobyyw/JJ5e20VnbcyrbPZm7C/x9sgExbTZN7vKrCRVkcIRQQxZcyEkl4o83+ztAXpXg+dwQBouN4lJ6yjwfVN+fCQkVIphsf1Uzdfu59XZhTg6ZmADx+w0VEOHNDM6PT6cUFzzvaXj3tECTZZzfGNjt0vvDvmX7oKxl2i99a5a4qVndsemNEKYqkt0OzcLszwYGQ9N0g5nOUOpPllUPIVXP1ctFa6jzuOSZTF9wu8f6B795Tt70FPKj/25D1QZJKUkGMFpHgwNj5Mxjo1gQ7y75MTFzscttTnxdprboZBkP5WUHC/MBic4loLFFamJX4YHJ4qk4AxgbKwRESRSkRWg6siQwjMkF80VfnqQNxgM8FmsjfqxFSgC1f623zWlEjDKxvQ5YoFb5Y00RbdFbBqNwLQKJQUChbBjRUOkPot2+34bcYEA6sO0ym5hCRelaRLLIrgNK7rHPykaGHKvSS4KRjABAyEdQEgBKtpuFQlFZIMllVAJwwBRV8ROCZGDS0W8cnr7PltszElNxykAQwH+o1GIzHyOIeBAeJbv5ihd9j4Z7J3bWdHQ9TOJLoNm3ICKPW9gbDdlos4zINoc5U2MdLm8fmBkTtqmCM2Gl5/RBFmUcEV+SqzTHXXEFOEFwlQzBHJ92Kd9uNn2k19MBAuxq38YXMYD4EbZnuNAw/qlR/0vwTr2FwAA///YYd3sAAAABklEQVQDANILY9YXCroYAAAAAElFTkSuQmCC",
+            "groupId": null,
+            "id": "1593473173",
+            "isLoading": false,
+            "muted": false,
+            "pageBg": "",
+            "pinned": false,
+            "private": false,
+            "title": "Rebase157 GroupsE",
+            "url": "http://127.0.0.1:8786/GroupsE"
+          },
+          {
+            "audible": false,
+            "blockedCount": 0,
+            "bookmarked": false,
+            "canGoBack": false,
+            "canGoForward": false,
+            "favicon": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAC8UlEQVR4nHxTS0hUURg+5z7n6mgNRdNojiJamYWElCVlC8NBhCjSFhaRC12ULty0KMoJrUVhVqAhFkHtrEAty9JMohaFVIJgD/ARPsYZHWe89859n9O9vhPth/P6z/9/3zn/+Q4B1jZodd0NBZkvag9lrPStNmItp9c7H6xocqoqqckrff8FaL2T62wuAmSVF2BrbWiainRdWwDAvY2ZdFfTMed6AJClqANkRnaxSTUHgBCGCC0xY7/kOCfOBPfiFdchMAbQRKesgIkp5Q1NE+kPyxPirE2Tm9YRoK15V0NusiwISd9efeyyCHobyyw/JJ5e20VnbcyrbPZm7C/x9sgExbTZN7vKrCRVkcIRQQxZcyEkl4o83+ztAXpXg+dwQBouN4lJ6yjwfVN+fCQkVIphsf1Uzdfu59XZhTg6ZmADx+w0VEOHNDM6PT6cUFzzvaXj3tECTZZzfGNjt0vvDvmX7oKxl2i99a5a4qVndsemNEKYqkt0OzcLszwYGQ9N0g5nOUOpPllUPIVXP1ctFa6jzuOSZTF9wu8f6B795Tt70FPKj/25D1QZJKUkGMFpHgwNj5Mxjo1gQ7y75MTFzscttTnxdprboZBkP5WUHC/MBic4loLFFamJX4YHJ4qk4AxgbKwRESRSkRWg6siQwjMkF80VfnqQNxgM8FmsjfqxFSgC1f623zWlEjDKxvQ5YoFb5Y00RbdFbBqNwLQKJQUChbBjRUOkPot2+34bcYEA6sO0ym5hCRelaRLLIrgNK7rHPykaGHKvSS4KRjABAyEdQEgBKtpuFQlFZIMllVAJwwBRV8ROCZGDS0W8cnr7PltszElNxykAQwH+o1GIzHyOIeBAeJbv5ihd9j4Z7J3bWdHQ9TOJLoNm3ICKPW9gbDdlos4zINoc5U2MdLm8fmBkTtqmCM2Gl5/RBFmUcEV+SqzTHXXEFOEFwlQzBHJ92Kd9uNn2k19MBAuxq38YXMYD4EbZnuNAw/qlR/0vwTr2FwAA///YYd3sAAAABklEQVQDANILY9YXCroYAAAAAElFTkSuQmCC",
+            "groupId": null,
+            "id": "1593473174",
+            "isLoading": false,
+            "muted": false,
+            "pageBg": "",
+            "pinned": false,
+            "private": false,
+            "title": "Rebase157 GroupsF",
+            "url": "http://127.0.0.1:8786/GroupsF"
+          }
+        ]
+      }
+    },
+    {
+      "name": "host-renderer-screenshot",
+      "at": "2026-10-17T16:19:07.075Z",
+      "path": "/private/tmp/blanc-task0/groups.png"
+    },
+    {
+      "name": "native-drag-loose-into-group",
+      "at": "2026-10-17T16:19:11.159Z",
+      "state": {
+        "groups": [
+          {
+            "collapsed": false,
+            "id": "DCFD8EE8953A19DB55692FB0C37BD814",
+            "name": "work"
+          },
+          {
+            "collapsed": false,
+            "id": "B66F2CB98C4B14CD4673EAC9EA1EDCDC",
+            "name": "research"
+          }
+        ],
+        "tabs": [
+          {
+            "id": "1593473151",
+            "url": "blanc://newtab/",
+            "pinned": false,
+            "groupId": null
+          },
+          {
+            "id": "1593473152",
+            "url": "http://127.0.0.1:8786/NativeKeys",
+            "pinned": false,
+            "groupId": null
+          },
+          {
+            "id": "1593473158",
+            "url": "http://127.0.0.1:8786/NativeSecond",
+            "pinned": false,
+            "groupId": null
+          },
+          {
+            "id": "1593473159",
+            "url": "http://127.0.0.1:8786/Alpha",
+            "pinned": false,
+            "groupId": null
+          },
+          {
+            "id": "1593473160",
+            "url": "http://127.0.0.1:8786/Beta",
+            "pinned": false,
+            "groupId": null
+          },
+          {
+            "id": "1593473169",
+            "url": "http://127.0.0.1:8786/GroupsA",
+            "pinned": false,
+            "groupId": "DCFD8EE8953A19DB55692FB0C37BD814"
+          },
+          {
+            "id": "1593473170",
+            "url": "http://127.0.0.1:8786/GroupsB",
+            "pinned": false,
+            "groupId": "DCFD8EE8953A19DB55692FB0C37BD814"
+          },
+          {
+            "id": "1593473171",
+            "url": "http://127.0.0.1:8786/GroupsC",
+            "pinned": false,
+            "groupId": "DCFD8EE8953A19DB55692FB0C37BD814"
+          },
+          {
+            "id": "1593473173",
+            "url": "http://127.0.0.1:8786/GroupsE",
+            "pinned": false,
+            "groupId": "DCFD8EE8953A19DB55692FB0C37BD814"
+          },
+          {
+            "id": "1593473172",
+            "url": "http://127.0.0.1:8786/GroupsD",
+            "pinned": false,
+            "groupId": "B66F2CB98C4B14CD4673EAC9EA1EDCDC"
+          },
+          {
+            "id": "1593473174",
+            "url": "http://127.0.0.1:8786/GroupsF",
+            "pinned": false,
+            "groupId": null
+          }
+        ]
+      }
+    },
+    {
+      "name": "native-drag-grouped-into-loose",
+      "at": "2026-10-17T16:19:13.720Z",
+      "state": {
+        "groups": [
+          {
+            "collapsed": false,
+            "id": "DCFD8EE8953A19DB55692FB0C37BD814",
+            "name": "work"
+          },
+          {
+            "collapsed": false,
+            "id": "B66F2CB98C4B14CD4673EAC9EA1EDCDC",
+            "name": "research"
+          }
+        ],
+        "tabs": [
+          {
+            "id": "1593473151",
+            "url": "blanc://newtab/",
+            "pinned": false,
+            "groupId": null
+          },
+          {
+            "id": "1593473152",
+            "url": "http://127.0.0.1:8786/NativeKeys",
+            "pinned": false,
+            "groupId": null
+          },
+          {
+            "id": "1593473158",
+            "url": "http://127.0.0.1:8786/NativeSecond",
+            "pinned": false,
+            "groupId": null
+          },
+          {
+            "id": "1593473159",
+            "url": "http://127.0.0.1:8786/Alpha",
+            "pinned": false,
+            "groupId": null
+          },
+          {
+            "id": "1593473160",
+            "url": "http://127.0.0.1:8786/Beta",
+            "pinned": false,
+            "groupId": null
+          },
+          {
+            "id": "1593473169",
+            "url": "http://127.0.0.1:8786/GroupsA",
+            "pinned": false,
+            "groupId": "DCFD8EE8953A19DB55692FB0C37BD814"
+          },
+          {
+            "id": "1593473170",
+            "url": "http://127.0.0.1:8786/GroupsB",
+            "pinned": false,
+            "groupId": "DCFD8EE8953A19DB55692FB0C37BD814"
+          },
+          {
+            "id": "1593473171",
+            "url": "http://127.0.0.1:8786/GroupsC",
+            "pinned": false,
+            "groupId": "DCFD8EE8953A19DB55692FB0C37BD814"
+          },
+          {
+            "id": "1593473172",
+            "url": "http://127.0.0.1:8786/GroupsD",
+            "pinned": false,
+            "groupId": "B66F2CB98C4B14CD4673EAC9EA1EDCDC"
+          },
+          {
+            "id": "1593473173",
+            "url": "http://127.0.0.1:8786/GroupsE",
+            "pinned": false,
+            "groupId": null
+          },
+          {
+            "id": "1593473174",
+            "url": "http://127.0.0.1:8786/GroupsF",
+            "pinned": false,
+            "groupId": null
+          }
+        ]
+      }
+    },
+    {
+      "name": "native-group-header-drag",
+      "at": "2026-10-17T16:19:16.233Z",
+      "state": {
+        "groups": [
+          {
+            "collapsed": false,
+            "id": "B66F2CB98C4B14CD4673EAC9EA1EDCDC",
+            "name": "research"
+          },
+          {
+            "collapsed": false,
+            "id": "DCFD8EE8953A19DB55692FB0C37BD814",
+            "name": "work"
+          }
+        ],
+        "tabs": [
+          {
+            "id": "1593473151",
+            "url": "blanc://newtab/",
+            "pinned": false,
+            "groupId": null
+          },
+          {
+            "id": "1593473152",
+            "url": "http://127.0.0.1:8786/NativeKeys",
+            "pinned": false,
+            "groupId": null
+          },
+          {
+            "id": "1593473158",
+            "url": "http://127.0.0.1:8786/NativeSecond",
+            "pinned": false,
+            "groupId": null
+          },
+          {
+            "id": "1593473159",
+            "url": "http://127.0.0.1:8786/Alpha",
+            "pinned": false,
+            "groupId": null
+          },
+          {
+            "id": "1593473160",
+            "url": "http://127.0.0.1:8786/Beta",
+            "pinned": false,
+            "groupId": null
+          },
+          {
+            "id": "1593473172",
+            "url": "http://127.0.0.1:8786/GroupsD",
+            "pinned": false,
+            "groupId": "B66F2CB98C4B14CD4673EAC9EA1EDCDC"
+          },
+          {
+            "id": "1593473169",
+            "url": "http://127.0.0.1:8786/GroupsA",
+            "pinned": false,
+            "groupId": "DCFD8EE8953A19DB55692FB0C37BD814"
+          },
+          {
+            "id": "1593473170",
+            "url": "http://127.0.0.1:8786/GroupsB",
+            "pinned": false,
+            "groupId": "DCFD8EE8953A19DB55692FB0C37BD814"
+          },
+          {
+            "id": "1593473171",
+            "url": "http://127.0.0.1:8786/GroupsC",
+            "pinned": false,
+            "groupId": "DCFD8EE8953A19DB55692FB0C37BD814"
+          },
+          {
+            "id": "1593473173",
+            "url": "http://127.0.0.1:8786/GroupsE",
+            "pinned": false,
+            "groupId": null
+          },
+          {
+            "id": "1593473174",
+            "url": "http://127.0.0.1:8786/GroupsF",
+            "pinned": false,
+            "groupId": null
+          }
+        ]
+      }
+    },
+    {
+      "name": "native-keyboard-group-reorder",
+      "at": "2026-10-17T16:19:23.986Z"
+    },
+    {
+      "name": "native-keyboard-grouped-row-reorder",
+      "at": "2026-10-17T16:19:34.213Z",
+      "calls": [
+        {
+          "name": "moveTab",
+          "args": [
+            "1593473173",
+            {
+              "groupId": "DCFD8EE8953A19DB55692FB0C37BD814",
+              "beforeId": null
+            }
+          ],
+          "result": true
+        },
+        {
+          "name": "moveTab",
+          "args": [
+            "1593473173",
+            {
+              "groupId": null,
+              "beforeId": "1593473174"
+            }
+          ],
+          "result": true
+        },
+        {
+          "name": "reorderGroup",
+          "args": [
+            "B66F2CB98C4B14CD4673EAC9EA1EDCDC",
+            "DCFD8EE8953A19DB55692FB0C37BD814"
+          ],
+          "result": true
+        },
+        {
+          "name": "reorderGroup",
+          "args": [
+            "DCFD8EE8953A19DB55692FB0C37BD814",
+            "B66F2CB98C4B14CD4673EAC9EA1EDCDC"
+          ],
+          "result": true
+        },
+        {
+          "name": "reorderGroup",
+          "args": [
+            "DCFD8EE8953A19DB55692FB0C37BD814",
+            null
+          ],
+          "result": true
+        },
+        {
+          "name": "moveTab",
+          "args": [
+            "1593473170",
+            {
+              "groupId": "DCFD8EE8953A19DB55692FB0C37BD814",
+              "beforeId": "1593473169"
+            }
+          ],
+          "result": true
+        },
+        {
+          "name": "moveTab",
+          "args": [
+            "1593473170",
+            {
+              "groupId": "DCFD8EE8953A19DB55692FB0C37BD814",
+              "beforeId": "1593473171"
+            }
+          ],
+          "result": true
+        }
+      ],
+      "state": {
+        "groups": [
+          {
+            "collapsed": false,
+            "id": "B66F2CB98C4B14CD4673EAC9EA1EDCDC",
+            "name": "research"
+          },
+          {
+            "collapsed": false,
+            "id": "DCFD8EE8953A19DB55692FB0C37BD814",
+            "name": "work"
+          }
+        ],
+        "tabs": [
+          {
+            "id": "1593473151",
+            "url": "blanc://newtab/",
+            "pinned": false,
+            "groupId": null
+          },
+          {
+            "id": "1593473152",
+            "url": "http://127.0.0.1:8786/NativeKeys",
+            "pinned": false,
+            "groupId": null
+          },
+          {
+            "id": "1593473158",
+            "url": "http://127.0.0.1:8786/NativeSecond",
+            "pinned": false,
+            "groupId": null
+          },
+          {
+            "id": "1593473159",
+            "url": "http://127.0.0.1:8786/Alpha",
+            "pinned": false,
+            "groupId": null
+          },
+          {
+            "id": "1593473160",
+            "url": "http://127.0.0.1:8786/Beta",
+            "pinned": false,
+            "groupId": null
+          },
+          {
+            "id": "1593473172",
+            "url": "http://127.0.0.1:8786/GroupsD",
+            "pinned": false,
+            "groupId": "B66F2CB98C4B14CD4673EAC9EA1EDCDC"
+          },
+          {
+            "id": "1593473173",
+            "url": "http://127.0.0.1:8786/GroupsE",
+            "pinned": false,
+            "groupId": null
+          },
+          {
+            "id": "1593473174",
+            "url": "http://127.0.0.1:8786/GroupsF",
+            "pinned": false,
+            "groupId": null
+          },
+          {
+            "id": "1593473169",
+            "url": "http://127.0.0.1:8786/GroupsA",
+            "pinned": false,
+            "groupId": "DCFD8EE8953A19DB55692FB0C37BD814"
+          },
+          {
+            "id": "1593473170",
+            "url": "http://127.0.0.1:8786/GroupsB",
+            "pinned": false,
+            "groupId": "DCFD8EE8953A19DB55692FB0C37BD814"
+          },
+          {
+            "id": "1593473171",
+            "url": "http://127.0.0.1:8786/GroupsC",
+            "pinned": false,
+            "groupId": "DCFD8EE8953A19DB55692FB0C37BD814"
+          }
+        ]
+      }
+    },
+    {
+      "name": "host-renderer-screenshot",
+      "at": "2026-10-17T16:19:34.310Z",
+      "path": "/private/tmp/blanc-task0/moves.png"
+    },
+    {
+      "name": "native-pinned-into-group-refused",
+      "at": "2026-10-17T16:19:42.242Z",
+      "calls": [
+        {
+          "name": "moveTab",
+          "args": [
+            "1593473173",
+            {
+              "groupId": "DCFD8EE8953A19DB55692FB0C37BD814",
+              "beforeId": null
+            }
+          ],
+          "result": true
+        },
+        {
+          "name": "moveTab",
+          "args": [
+            "1593473173",
+            {
+              "groupId": null,
+              "beforeId": "1593473174"
+            }
+          ],
+          "result": true
+        },
+        {
+          "name": "reorderGroup",
+          "args": [
+            "B66F2CB98C4B14CD4673EAC9EA1EDCDC",
+            "DCFD8EE8953A19DB55692FB0C37BD814"
+          ],
+          "result": true
+        },
+        {
+          "name": "reorderGroup",
+          "args": [
+            "DCFD8EE8953A19DB55692FB0C37BD814",
+            "B66F2CB98C4B14CD4673EAC9EA1EDCDC"
+          ],
+          "result": true
+        },
+        {
+          "name": "reorderGroup",
+          "args": [
+            "DCFD8EE8953A19DB55692FB0C37BD814",
+            null
+          ],
+          "result": true
+        },
+        {
+          "name": "moveTab",
+          "args": [
+            "1593473170",
+            {
+              "groupId": "DCFD8EE8953A19DB55692FB0C37BD814",
+              "beforeId": "1593473169"
+            }
+          ],
+          "result": true
+        },
+        {
+          "name": "moveTab",
+          "args": [
+            "1593473170",
+            {
+              "groupId": "DCFD8EE8953A19DB55692FB0C37BD814",
+              "beforeId": "1593473171"
+            }
+          ],
+          "result": true
+        },
+        {
+          "name": "moveTab",
+          "args": [
+            "1593473174",
+            {
+              "groupId": "DCFD8EE8953A19DB55692FB0C37BD814",
+              "beforeId": null
+            }
+          ],
+          "result": false
+        }
+      ]
+    },
+    {
+      "name": "native-group-command-unpins",
+      "at": "2026-10-17T16:19:46.668Z",
+      "tab": {
+        "audible": false,
+        "blockedCount": 0,
+        "bookmarked": false,
+        "canGoBack": false,
+        "canGoForward": false,
+        "favicon": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAC8UlEQVR4nHxTS0hUURg+5z7n6mgNRdNojiJamYWElCVlC8NBhCjSFhaRC12ULty0KMoJrUVhVqAhFkHtrEAty9JMohaFVIJgD/ARPsYZHWe89859n9O9vhPth/P6z/9/3zn/+Q4B1jZodd0NBZkvag9lrPStNmItp9c7H6xocqoqqckrff8FaL2T62wuAmSVF2BrbWiainRdWwDAvY2ZdFfTMed6AJClqANkRnaxSTUHgBCGCC0xY7/kOCfOBPfiFdchMAbQRKesgIkp5Q1NE+kPyxPirE2Tm9YRoK15V0NusiwISd9efeyyCHobyyw/JJ5e20VnbcyrbPZm7C/x9sgExbTZN7vKrCRVkcIRQQxZcyEkl4o83+ztAXpXg+dwQBouN4lJ6yjwfVN+fCQkVIphsf1Uzdfu59XZhTg6ZmADx+w0VEOHNDM6PT6cUFzzvaXj3tECTZZzfGNjt0vvDvmX7oKxl2i99a5a4qVndsemNEKYqkt0OzcLszwYGQ9N0g5nOUOpPllUPIVXP1ctFa6jzuOSZTF9wu8f6B795Tt70FPKj/25D1QZJKUkGMFpHgwNj5Mxjo1gQ7y75MTFzscttTnxdprboZBkP5WUHC/MBic4loLFFamJX4YHJ4qk4AxgbKwRESRSkRWg6siQwjMkF80VfnqQNxgM8FmsjfqxFSgC1f623zWlEjDKxvQ5YoFb5Y00RbdFbBqNwLQKJQUChbBjRUOkPot2+34bcYEA6sO0ym5hCRelaRLLIrgNK7rHPykaGHKvSS4KRjABAyEdQEgBKtpuFQlFZIMllVAJwwBRV8ROCZGDS0W8cnr7PltszElNxykAQwH+o1GIzHyOIeBAeJbv5ihd9j4Z7J3bWdHQ9TOJLoNm3ICKPW9gbDdlos4zINoc5U2MdLm8fmBkTtqmCM2Gl5/RBFmUcEV+SqzTHXXEFOEFwlQzBHJ92Kd9uNn2k19MBAuxq38YXMYD4EbZnuNAw/qlR/0vwTr2FwAA///YYd3sAAAABklEQVQDANILY9YXCroYAAAAAElFTkSuQmCC",
+        "groupId": "DCFD8EE8953A19DB55692FB0C37BD814",
+        "id": "1593473174",
+        "isLoading": false,
+        "muted": false,
+        "pageBg": "#f8f2df",
+        "pinned": false,
+        "private": false,
+        "title": "Rebase157 GroupsF",
+        "url": "http://127.0.0.1:8786/GroupsF"
+      }
+    },
+    {
+      "name": "native-ungroup",
+      "at": "2026-10-17T16:19:50.476Z"
+    },
+    {
+      "name": "native-cmd-1-2-global-tab-order",
+      "at": "2026-10-17T16:19:52.400Z",
+      "first": "blanc://newtab/",
+      "second": "http://127.0.0.1:8786/NativeKeys",
+      "active": "http://127.0.0.1:8786/NativeKeys"
+    },
+    {
+      "name": "before-group-restart",
+      "at": "2026-10-17T16:19:54.811Z",
+      "state": {
+        "groups": [
+          {
+            "collapsed": false,
+            "id": "B66F2CB98C4B14CD4673EAC9EA1EDCDC",
+            "name": "research"
+          },
+          {
+            "collapsed": true,
+            "id": "DCFD8EE8953A19DB55692FB0C37BD814",
+            "name": "work"
+          }
+        ],
+        "tabs": [
+          {
+            "id": "1593473151",
+            "url": "blanc://newtab/",
+            "pinned": false,
+            "groupId": null
+          },
+          {
+            "id": "1593473152",
+            "url": "http://127.0.0.1:8786/NativeKeys",
+            "pinned": false,
+            "groupId": null
+          },
+          {
+            "id": "1593473158",
+            "url": "http://127.0.0.1:8786/NativeSecond",
+            "pinned": false,
+            "groupId": null
+          },
+          {
+            "id": "1593473159",
+            "url": "http://127.0.0.1:8786/Alpha",
+            "pinned": false,
+            "groupId": null
+          },
+          {
+            "id": "1593473160",
+            "url": "http://127.0.0.1:8786/Beta",
+            "pinned": false,
+            "groupId": null
+          },
+          {
+            "id": "1593473172",
+            "url": "http://127.0.0.1:8786/GroupsD",
+            "pinned": false,
+            "groupId": "B66F2CB98C4B14CD4673EAC9EA1EDCDC"
+          },
+          {
+            "id": "1593473173",
+            "url": "http://127.0.0.1:8786/GroupsE",
+            "pinned": false,
+            "groupId": null
+          },
+          {
+            "id": "1593473174",
+            "url": "http://127.0.0.1:8786/GroupsF",
+            "pinned": false,
+            "groupId": null
+          },
+          {
+            "id": "1593473169",
+            "url": "http://127.0.0.1:8786/GroupsA",
+            "pinned": false,
+            "groupId": "DCFD8EE8953A19DB55692FB0C37BD814"
+          },
+          {
+            "id": "1593473170",
+            "url": "http://127.0.0.1:8786/GroupsB",
+            "pinned": false,
+            "groupId": "DCFD8EE8953A19DB55692FB0C37BD814"
+          },
+          {
+            "id": "1593473171",
+            "url": "http://127.0.0.1:8786/GroupsC",
+            "pinned": false,
+            "groupId": "DCFD8EE8953A19DB55692FB0C37BD814"
+          }
+        ]
+      },
+      "active": "http://127.0.0.1:8786/NativeKeys"
+    },
+    {
+      "name": "native-ungroup-last-member-removes-group",
+      "at": "2026-10-17T16:20:13.951Z"
+    },
+    {
+      "name": "native-close-group",
+      "at": "2026-10-17T16:20:17.707Z",
+      "closedFixtureCount": 3,
+      "tabs": [
+        {
+          "id": "1593473151",
+          "url": "blanc://newtab/"
+        },
+        {
+          "id": "1593473152",
+          "url": "http://127.0.0.1:8786/NativeKeys"
+        },
+        {
+          "id": "1593473158",
+          "url": "http://127.0.0.1:8786/NativeSecond"
+        },
+        {
+          "id": "1593473159",
+          "url": "http://127.0.0.1:8786/Alpha"
+        },
+        {
+          "id": "1593473160",
+          "url": "http://127.0.0.1:8786/Beta"
+        },
+        {
+          "id": "1593473172",
+          "url": "http://127.0.0.1:8786/GroupsD"
+        },
+        {
+          "id": "1593473173",
+          "url": "http://127.0.0.1:8786/GroupsE"
+        },
+        {
+          "id": "1593473174",
+          "url": "http://127.0.0.1:8786/GroupsF"
+        }
+      ],
+      "groups": []
+    },
+    {
+      "name": "native-row-pin-unpin",
+      "at": "2026-10-17T16:20:21.469Z"
+    },
+    {
+      "name": "native-drag-diagnostic-reopened-panel",
+      "at": "2026-10-17T16:21:29.408Z",
+      "calls": []
+    },
+    {
+      "name": "prototype-assets-refreshed",
+      "at": "2026-10-17T16:22:23.074Z",
+      "change": "coincident pinned/loose gap selection",
+      "nativeBuild": false
+    },
+    {
+      "name": "native-row-pin-unpin",
+      "at": "2026-10-17T16:23:05.183Z"
+    },
+    {
+      "name": "native-loose-row-drag",
+      "at": "2026-10-17T16:23:07.606Z"
+    },
+    {
+      "name": "native-pinned-row-drag",
+      "at": "2026-10-17T16:23:11.845Z"
+    },
+    {
+      "name": "native-pinned-boundary-refusal",
+      "at": "2026-10-17T16:23:14.279Z"
+    },
+    {
+      "name": "native-audible-row-and-slash-mute",
+      "at": "2026-10-17T16:23:26.722Z"
+    },
+    {
+      "name": "native-row-close",
+      "at": "2026-10-17T16:23:29.116Z"
+    },
+    {
+      "name": "native-visible-layout-refresh",
+      "at": "2026-10-17T16:23:55.735Z",
+      "layout": "ledger",
+      "visible": true
+    },
+    {
+      "name": "native-visible-layout-refresh",
+      "at": "2026-10-17T16:23:59.229Z",
+      "layout": "shelf",
+      "visible": true
+    },
+    {
+      "name": "native-visible-layout-refresh",
+      "at": "2026-10-17T16:24:02.696Z",
+      "layout": "tally",
+      "visible": true
+    },
+    {
+      "name": "native-visible-layout-refresh",
+      "at": "2026-10-17T16:24:05.931Z",
+      "layout": "billboard",
+      "visible": true
+    },
+    {
+      "name": "native-start-page-typing-bridge",
+      "at": "2026-10-17T16:24:24.699Z",
+      "method": "first character followed by typing into focused Island; a single multi-character CGEvent is not a physical key sequence"
+    },
+    {
+      "name": "native-typed-favorite-deduplicated",
+      "at": "2026-10-17T16:24:28.369Z",
+      "rows": [
+        {
+          "title": "Rebase157 Alpha",
+          "tag": "favorite",
+          "active": true
+        },
+        {
+          "title": "Rebase157 Alpha",
+          "tag": "search",
+          "active": false
+        }
+      ]
+    },
+    {
+      "name": "host-renderer-screenshot",
+      "at": "2026-10-17T16:24:28.455Z",
+      "path": "/private/tmp/blanc-task0/favorite-search.png"
+    },
+    {
+      "name": "native-favorite-enter-navigation",
+      "at": "2026-10-17T16:24:29.046Z"
+    },
+    {
+      "name": "native-typed-history-result",
+      "at": "2026-10-17T16:24:33.988Z",
+      "rows": [
+        {
+          "title": "Rebase157 Invalid",
+          "tag": "history",
+          "active": true
+        },
+        {
+          "title": "Rebase157 Invalid",
+          "tag": "search",
+          "active": false
+        }
+      ]
+    },
+    {
+      "name": "native-history-enter-navigation",
+      "at": "2026-10-17T16:24:34.611Z"
+    },
+    {
+      "name": "native-private-http-cmd-d-no-op-hidden-hearts",
+      "at": "2026-10-17T16:24:41.938Z",
+      "state": {
+        "pill": "none",
+        "panel": "none",
+        "error": ""
+      }
+    },
+    {
+      "name": "native-private-save-clear-guards",
+      "at": "2026-10-17T16:24:49.580Z"
+    },
+    {
+      "name": "native-search-private-complete",
+      "at": "2026-10-17T16:24:52.056Z"
+    },
+    {
+      "name": "native-store-install-button-clicked",
+      "at": "2026-10-17T16:24:55.070Z",
+      "url": "https://chromewebstore.google.com/detail/bitwarden-password-manager/nngceckbapebfimnlniiiahkandclblb"
+    },
+    {
+      "name": "native-web-store-install-pass",
+      "at": "2026-10-17T16:26:11.265Z",
+      "manifest": {
+        "version": "2026.10.0",
+        "id": "nngceckbapebfimnlniiiahkandclblb"
+      },
+      "consent": "CGEvent click on native Add extension button after normal Web Store button"
+    },
+    {
+      "name": "native-extension-popup",
+      "at": "2026-10-17T16:26:36.028Z",
+      "url": "chrome-extension://nngceckbapebfimnlniiiahkandclblb/popup/index.html",
+      "focus": true,
+      "text": "Make Bitwarden your browser's default password manager\n1\n\nSelect Continue.\n\n2\n\nSelect Allow from the browser prompt to give Bitwarden permission to change your settings.\n\n3\n\nWe'll turn off your browser's built-in password manager so you can enjoy a secure login experience.\n\nContinue\nSkip",
+      "inputs": []
+    },
+    {
+      "name": "native-extension-popup-keyboard-focus-pass",
+      "at": "2026-10-17T16:26:54.018Z",
+      "focus": true,
+      "valueCleared": true
+    },
+    {
+      "name": "native-extension-popup-escape-cmd-l",
+      "at": "2026-10-17T16:27:07.366Z"
+    },
+    {
+      "name": "native-visible-clear-fixture-seed",
+      "at": "2026-10-17T16:27:15.096Z",
+      "method": "CDP typed transitions to seed native TopSites; /clear will be CGEvent input"
+    },
+    {
+      "name": "native-visible-history-clear",
+      "at": "2026-10-17T16:27:56.218Z",
+      "sitesBefore": [
+        {
+          "key": "127.0.0.1",
+          "title": "Rebase157 TypedNative",
+          "url": "http://127.0.0.1:8786/TypedNative"
+        },
+        {
+          "key": "chromewebstore.google.com",
+          "title": "Bitwarden Password Manager - Chrome Web Store",
+          "url": "https://chromewebstore.google.com/detail/bitwarden-password-manager/nngceckbapebfimnlniiiahkandclblb"
+        },
+        {
+          "key": "chromewebstore.google.com",
+          "title": "React Developer Tools - Chrome Web Store",
+          "url": "https://chromewebstore.google.com/detail/react-developer-tools/fmkadmapgofadopljbjfkapdkoienihi"
+        },
+        {
+          "key": "chrome.google.com",
+          "title": "Web Store",
+          "url": "https://chrome.google.com/webstore?hl=en"
+        }
+      ],
+      "sitesAfter": [
+        {
+          "key": "chrome.google.com",
+          "title": "Web Store",
+          "url": "https://chrome.google.com/webstore?hl=en"
+        }
+      ],
+      "events": [
+        "topSites"
+      ],
+      "favoriteCount": 4
+    },
+    {
+      "name": "disposable-history-db",
+      "at": "2026-10-17T16:28:09.356Z",
+      "audit": {
+        "urls": [
+          [
+            "http://127.0.0.1:8786/Alpha",
+            0,
+            0
+          ],
+          [
+            "http://127.0.0.1:8786/B",
+            0,
+            0
+          ],
+          [
+            "http://127.0.0.1:8786/Beta",
+            0,
+            0
+          ],
+          [
+            "http://127.0.0.1:8786/NativeKeys",
+            0,
+            0
+          ]
+        ],
+        "segments": []
+      }
+    },
+    {
+      "name": "isolated-restart",
+      "at": "2026-10-17T16:28:10.749Z"
+    },
+    {
+      "name": "clear-restart-harness-correction",
+      "at": "2026-10-17T16:28:30.879Z",
+      "reason": "Restoring open web tabs records new visits; closed database before launch had zero visit counts and no segments. Empty-history persistence will be retested with only new tabs left.",
+      "visits": [
+        {
+          "url": "http://127.0.0.1:8786/MoveA",
+          "visitedAt": 1792254496420.46
+        },
+        {
+          "url": "https://www.google.com/search?q=chrome%3A%2F%2Fnewtab%2F&sei=AaHTas-LMLOkptQPqMbHmAg",
+          "visitedAt": 1792254495373.541
+        },
+        {
+          "url": "http://127.0.0.1:8786/Alpha",
+          "visitedAt": 1792254495053.529
+        },
+        {
+          "url": "https://chromewebstore.google.com/detail/bitwarden-password-manage/nngceckbapebfimnlniiiahkandclblb",
+          "visitedAt": 1792254493634.497
+        },
+        {
+          "url": "https://bitwarden.com/browser-start/",
+          "visitedAt": 1792254493475.703
+        },
+        {
+          "url": "http://127.0.0.1:8786/Invalid",
+          "visitedAt": 1792254493280.326
+        },
+        {
+          "url": "http://127.0.0.1:8786/TypedNative",
+          "visitedAt": 1792254492964.887
+        },
+        {
+          "url": "http://127.0.0.1:8786/MoveC",
+          "visitedAt": 1792254490185.245
+        }
+      ]
+    },
+    {
+      "name": "native-late-favicon-refresh",
+      "at": "2026-10-17T16:28:52.785Z",
+      "savedBeforeIcon": true
+    },
+    {
+      "name": "native-dynamic-tint",
+      "at": "2026-10-17T16:28:54.005Z",
+      "host": "rgba(0, 0, 0, 0)",
+      "page": "rgb(218, 232, 247)"
+    },
+    {
+      "name": "native-clear-site-data-retained",
+      "at": "2026-10-17T16:29:31.239Z",
+      "data": {
+        "cookie": "rebaseSentinel=kept; nativeSentinel=kept",
+        "storage": "kept"
+      }
+    },
+    {
+      "name": "native-web-store-install-restart-persistence",
+      "at": "2026-10-17T16:29:31.270Z",
+      "version": "2026.10.0"
+    },
+    {
+      "name": "native-layout-visual-pass",
+      "at": "2026-10-17T16:29:32.103Z",
+      "widths": [
+        1200,
+        800
+      ],
+      "height": [
+        996,
+        700
+      ],
+      "trafficLightInset": 20,
+      "divider": "absent",
+      "dynamicTint": "Native screenshot matches changed blue page; host WebUI itself is transparent",
+      "image": "native-narrow-tint.png"
+    },
+    {
+      "name": "baseline",
+      "at": "2026-10-17T16:29:32.181Z",
+      "tabs": [
+        {
+          "audible": false,
+          "blockedCount": 0,
+          "bookmarked": false,
+          "canGoBack": false,
+          "canGoForward": false,
+          "favicon": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAACp0lEQVR4nKRTS2sTURQ+59w7SRr7oGkb22JbhEhp8VG0IBahK5HUjXbhqhv9B4KIG/+Ca0F8LFyriFYFMXRTEFO6qC19txZjMA152UwmmZl7vDNJIG71wgz3zj3fd7/z3W8I/nPI1oVtW1eJ7VEApVylUDS2XXBAEDEAkUJjwzBCH5sYwcyoB316/+axDIQeogjG9TMjZCiO0tBPIC5km/8NRSBORHMP7t8dIiP4NpFIAHos5VxmJtzd+05ZeQcYGUgzkuRcel0vEHoGRlkpB0GxXjJSqFua+ey1Y5HoPPkS2RoDYKUlqlrNlEf5FAEKQ7mO0EDhzcuFFNm2KbVg5dXWMRrhEyh2dd9YrZYpGO7kXGoVKkdZXac3FUPldxayP1YhEOpiu2aSV1vHNExUdk23IrCU2eaiYuwZmoDCrx0OtEdRdwPFzBb3Dp/HzP5X0Go41DWIdUyTQDsOXIHI4FnMfE+CVc5DLr2D5YPnULGqEDl1RfsXZsd2oO/khF/rY5otkCdWn5T7uQId3f2QT29D4sk9KO4lIb26CB8e3YHS4QF0RAagkPoGXi3VG2woqPcBhUKRC4UcrC8vQIXDfFhtR5OC4JDD60ufoaYEkDQ4qmtVa5Bc2/aMZX3XuLmyyKUqwfDUTdIauVO/22MKTRRqf3cTYmOT6Dlre5gmgRckUC6MxE6r6PETYndjGfa2lrlqmd4eSMPgS9Oz2NM/UhfsukJ4mCaBZVubmgCtcgl1+pzRc5dxJHaGvyy88lIKF6dvsAiEsGaZfpDawkH0Md7hXrYmJy/I+ZfPnvZG++b0BYPvqREEcGqNRg09t33XmAiymcMXM7O3bieTSw62/kzba4vX7aozrhPIjuuglAHfYZ1GIEFMQmpeuRYbn3rdxPxF8C/jDwAAAP//GDOC0AAAAAZJREFUAwDhL08TGO9e+gAAAABJRU5ErkJggg==",
+          "groupId": null,
+          "id": "1593473439",
+          "isLoading": false,
+          "muted": false,
+          "pageBg": "#e4e8e9",
+          "pinned": false,
+          "private": false,
+          "title": "New Tab",
+          "url": "blanc://newtab/"
+        }
+      ],
+      "favorites": [
+        {
+          "addedAt": 1792205510946.09,
+          "favicon": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAC8UlEQVR4nHxTS0hUURg+5z7n6mgNRdNojiJamYWElCVlC8NBhCjSFhaRC12ULty0KMoJrUVhVqAhFkHtrEAty9JMohaFVIJgD/ARPsYZHWe89859n9O9vhPth/P6z/9/3zn/+Q4B1jZodd0NBZkvag9lrPStNmItp9c7H6xocqoqqckrff8FaL2T62wuAmSVF2BrbWiainRdWwDAvY2ZdFfTMed6AJClqANkRnaxSTUHgBCGCC0xY7/kOCfOBPfiFdchMAbQRKesgIkp5Q1NE+kPyxPirE2Tm9YRoK15V0NusiwISd9efeyyCHobyyw/JJ5e20VnbcyrbPZm7C/x9sgExbTZN7vKrCRVkcIRQQxZcyEkl4o83+ztAXpXg+dwQBouN4lJ6yjwfVN+fCQkVIphsf1Uzdfu59XZhTg6ZmADx+w0VEOHNDM6PT6cUFzzvaXj3tECTZZzfGNjt0vvDvmX7oKxl2i99a5a4qVndsemNEKYqkt0OzcLszwYGQ9N0g5nOUOpPllUPIVXP1ctFa6jzuOSZTF9wu8f6B795Tt70FPKj/25D1QZJKUkGMFpHgwNj5Mxjo1gQ7y75MTFzscttTnxdprboZBkP5WUHC/MBic4loLFFamJX4YHJ4qk4AxgbKwRESRSkRWg6siQwjMkF80VfnqQNxgM8FmsjfqxFSgC1f623zWlEjDKxvQ5YoFb5Y00RbdFbBqNwLQKJQUChbBjRUOkPot2+34bcYEA6sO0ym5hCRelaRLLIrgNK7rHPykaGHKvSS4KRjABAyEdQEgBKtpuFQlFZIMllVAJwwBRV8ROCZGDS0W8cnr7PltszElNxykAQwH+o1GIzHyOIeBAeJbv5ihd9j4Z7J3bWdHQ9TOJLoNm3ICKPW9gbDdlos4zINoc5U2MdLm8fmBkTtqmCM2Gl5/RBFmUcEV+SqzTHXXEFOEFwlQzBHJ92Kd9uNn2k19MBAuxq38YXMYD4EbZnuNAw/qlR/0vwTr2FwAA///YYd3sAAAABklEQVQDANILY9YXCroYAAAAAElFTkSuQmCC",
+          "folder": "Rebase Folder",
+          "id": "5",
+          "title": "Rebase157 B",
+          "url": "http://127.0.0.1:8786/B"
+        },
+        {
+          "addedAt": 1792253821639.32,
+          "favicon": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAC8UlEQVR4nHxTS0hUURg+5z7n6mgNRdNojiJamYWElCVlC8NBhCjSFhaRC12ULty0KMoJrUVhVqAhFkHtrEAty9JMohaFVIJgD/ARPsYZHWe89859n9O9vhPth/P6z/9/3zn/+Q4B1jZodd0NBZkvag9lrPStNmItp9c7H6xocqoqqckrff8FaL2T62wuAmSVF2BrbWiainRdWwDAvY2ZdFfTMed6AJClqANkRnaxSTUHgBCGCC0xY7/kOCfOBPfiFdchMAbQRKesgIkp5Q1NE+kPyxPirE2Tm9YRoK15V0NusiwISd9efeyyCHobyyw/JJ5e20VnbcyrbPZm7C/x9sgExbTZN7vKrCRVkcIRQQxZcyEkl4o83+ztAXpXg+dwQBouN4lJ6yjwfVN+fCQkVIphsf1Uzdfu59XZhTg6ZmADx+w0VEOHNDM6PT6cUFzzvaXj3tECTZZzfGNjt0vvDvmX7oKxl2i99a5a4qVndsemNEKYqkt0OzcLszwYGQ9N0g5nOUOpPllUPIVXP1ctFa6jzuOSZTF9wu8f6B795Tt70FPKj/25D1QZJKUkGMFpHgwNj5Mxjo1gQ7y75MTFzscttTnxdprboZBkP5WUHC/MBic4loLFFamJX4YHJ4qk4AxgbKwRESRSkRWg6siQwjMkF80VfnqQNxgM8FmsjfqxFSgC1f623zWlEjDKxvQ5YoFb5Y00RbdFbBqNwLQKJQUChbBjRUOkPot2+34bcYEA6sO0ym5hCRelaRLLIrgNK7rHPykaGHKvSS4KRjABAyEdQEgBKtpuFQlFZIMllVAJwwBRV8ROCZGDS0W8cnr7PltszElNxykAQwH+o1GIzHyOIeBAeJbv5ihd9j4Z7J3bWdHQ9TOJLoNm3ICKPW9gbDdlos4zINoc5U2MdLm8fmBkTtqmCM2Gl5/RBFmUcEV+SqzTHXXEFOEFwlQzBHJ92Kd9uNn2k19MBAuxq38YXMYD4EbZnuNAw/qlR/0vwTr2FwAA///YYd3sAAAABklEQVQDANILY9YXCroYAAAAAElFTkSuQmCC",
+          "folder": null,
+          "id": "9",
+          "title": "Rebase157 NativeKeys",
+          "url": "http://127.0.0.1:8786/NativeKeys"
+        },
+        {
+          "addedAt": 1792253864808.905,
+          "favicon": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAC8UlEQVR4nHxTS0hUURg+5z7n6mgNRdNojiJamYWElCVlC8NBhCjSFhaRC12ULty0KMoJrUVhVqAhFkHtrEAty9JMohaFVIJgD/ARPsYZHWe89859n9O9vhPth/P6z/9/3zn/+Q4B1jZodd0NBZkvag9lrPStNmItp9c7H6xocqoqqckrff8FaL2T62wuAmSVF2BrbWiainRdWwDAvY2ZdFfTMed6AJClqANkRnaxSTUHgBCGCC0xY7/kOCfOBPfiFdchMAbQRKesgIkp5Q1NE+kPyxPirE2Tm9YRoK15V0NusiwISd9efeyyCHobyyw/JJ5e20VnbcyrbPZm7C/x9sgExbTZN7vKrCRVkcIRQQxZcyEkl4o83+ztAXpXg+dwQBouN4lJ6yjwfVN+fCQkVIphsf1Uzdfu59XZhTg6ZmADx+w0VEOHNDM6PT6cUFzzvaXj3tECTZZzfGNjt0vvDvmX7oKxl2i99a5a4qVndsemNEKYqkt0OzcLszwYGQ9N0g5nOUOpPllUPIVXP1ctFa6jzuOSZTF9wu8f6B795Tt70FPKj/25D1QZJKUkGMFpHgwNj5Mxjo1gQ7y75MTFzscttTnxdprboZBkP5WUHC/MBic4loLFFamJX4YHJ4qk4AxgbKwRESRSkRWg6siQwjMkF80VfnqQNxgM8FmsjfqxFSgC1f623zWlEjDKxvQ5YoFb5Y00RbdFbBqNwLQKJQUChbBjRUOkPot2+34bcYEA6sO0ym5hCRelaRLLIrgNK7rHPykaGHKvSS4KRjABAyEdQEgBKtpuFQlFZIMllVAJwwBRV8ROCZGDS0W8cnr7PltszElNxykAQwH+o1GIzHyOIeBAeJbv5ihd9j4Z7J3bWdHQ9TOJLoNm3ICKPW9gbDdlos4zINoc5U2MdLm8fmBkTtqmCM2Gl5/RBFmUcEV+SqzTHXXEFOEFwlQzBHJ92Kd9uNn2k19MBAuxq38YXMYD4EbZnuNAw/qlR/0vwTr2FwAA///YYd3sAAAABklEQVQDANILY9YXCroYAAAAAElFTkSuQmCC",
+          "folder": "Codex-Native858",
+          "id": "14",
+          "title": "Rebase157 Alpha",
+          "url": "http://127.0.0.1:8786/Alpha"
+        },
+        {
+          "addedAt": 1792253890883.916,
+          "favicon": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAC8UlEQVR4nHxTS0hUURg+5z7n6mgNRdNojiJamYWElCVlC8NBhCjSFhaRC12ULty0KMoJrUVhVqAhFkHtrEAty9JMohaFVIJgD/ARPsYZHWe89859n9O9vhPth/P6z/9/3zn/+Q4B1jZodd0NBZkvag9lrPStNmItp9c7H6xocqoqqckrff8FaL2T62wuAmSVF2BrbWiainRdWwDAvY2ZdFfTMed6AJClqANkRnaxSTUHgBCGCC0xY7/kOCfOBPfiFdchMAbQRKesgIkp5Q1NE+kPyxPirE2Tm9YRoK15V0NusiwISd9efeyyCHobyyw/JJ5e20VnbcyrbPZm7C/x9sgExbTZN7vKrCRVkcIRQQxZcyEkl4o83+ztAXpXg+dwQBouN4lJ6yjwfVN+fCQkVIphsf1Uzdfu59XZhTg6ZmADx+w0VEOHNDM6PT6cUFzzvaXj3tECTZZzfGNjt0vvDvmX7oKxl2i99a5a4qVndsemNEKYqkt0OzcLszwYGQ9N0g5nOUOpPllUPIVXP1ctFa6jzuOSZTF9wu8f6B795Tt70FPKj/25D1QZJKUkGMFpHgwNj5Mxjo1gQ7y75MTFzscttTnxdprboZBkP5WUHC/MBic4loLFFamJX4YHJ4qk4AxgbKwRESRSkRWg6siQwjMkF80VfnqQNxgM8FmsjfqxFSgC1f623zWlEjDKxvQ5YoFb5Y00RbdFbBqNwLQKJQUChbBjRUOkPot2+34bcYEA6sO0ym5hCRelaRLLIrgNK7rHPykaGHKvSS4KRjABAyEdQEgBKtpuFQlFZIMllVAJwwBRV8ROCZGDS0W8cnr7PltszElNxykAQwH+o1GIzHyOIeBAeJbv5ihd9j4Z7J3bWdHQ9TOJLoNm3ICKPW9gbDdlos4zINoc5U2MdLm8fmBkTtqmCM2Gl5/RBFmUcEV+SqzTHXXEFOEFwlQzBHJ92Kd9uNn2k19MBAuxq38YXMYD4EbZnuNAw/qlR/0vwTr2FwAA///YYd3sAAAABklEQVQDANILY9YXCroYAAAAAElFTkSuQmCC",
+          "folder": "Codex-Native858",
+          "id": "16",
+          "title": "Rebase157 Beta",
+          "url": "http://127.0.0.1:8786/Beta"
+        },
+        {
+          "addedAt": 1792254518214.531,
+          "favicon": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAC8UlEQVR4nHxTS0hUURg+5z7n6mgNRdNojiJamYWElCVlC8NBhCjSFhaRC12ULty0KMoJrUVhVqAhFkHtrEAty9JMohaFVIJgD/ARPsYZHWe89859n9O9vhPth/P6z/9/3zn/+Q4B1jZodd0NBZkvag9lrPStNmItp9c7H6xocqoqqckrff8FaL2T62wuAmSVF2BrbWiainRdWwDAvY2ZdFfTMed6AJClqANkRnaxSTUHgBCGCC0xY7/kOCfOBPfiFdchMAbQRKesgIkp5Q1NE+kPyxPirE2Tm9YRoK15V0NusiwISd9efeyyCHobyyw/JJ5e20VnbcyrbPZm7C/x9sgExbTZN7vKrCRVkcIRQQxZcyEkl4o83+ztAXpXg+dwQBouN4lJ6yjwfVN+fCQkVIphsf1Uzdfu59XZhTg6ZmADx+w0VEOHNDM6PT6cUFzzvaXj3tECTZZzfGNjt0vvDvmX7oKxl2i99a5a4qVndsemNEKYqkt0OzcLszwYGQ9N0g5nOUOpPllUPIVXP1ctFa6jzuOSZTF9wu8f6B795Tt70FPKj/25D1QZJKUkGMFpHgwNj5Mxjo1gQ7y75MTFzscttTnxdprboZBkP5WUHC/MBic4loLFFamJX4YHJ4qk4AxgbKwRESRSkRWg6siQwjMkF80VfnqQNxgM8FmsjfqxFSgC1f623zWlEjDKxvQ5YoFb5Y00RbdFbBqNwLQKJQUChbBjRUOkPot2+34bcYEA6sO0ym5hCRelaRLLIrgNK7rHPykaGHKvSS4KRjABAyEdQEgBKtpuFQlFZIMllVAJwwBRV8ROCZGDS0W8cnr7PltszElNxykAQwH+o1GIzHyOIeBAeJbv5ihd9j4Z7J3bWdHQ9TOJLoNm3ICKPW9gbDdlos4zINoc5U2MdLm8fmBkTtqmCM2Gl5/RBFmUcEV+SqzTHXXEFOEFwlQzBHJ92Kd9uNn2k19MBAuxq38YXMYD4EbZnuNAw/qlR/0vwTr2FwAA///YYd3sAAAABklEQVQDANILY9YXCroYAAAAAElFTkSuQmCC",
+          "folder": null,
+          "id": "18",
+          "title": "Rebase157 NativeLate",
+          "url": "http://127.0.0.1:8786/NativeLate?late"
+        }
+      ]
+    },
+    {
+      "name": "native-group-name-reuse-and-active-dots",
+      "at": "2026-10-17T16:29:46.047Z",
+      "groups": [
+        {
+          "collapsed": false,
+          "id": "9AC77EBB098EC1F64AE9759A58BEAB78",
+          "name": "work"
+        }
+      ],
+      "dots": [
+        "1593473475",
+        "1593473476",
+        "1593473477"
+      ],
+      "tabs": [
+        {
+          "id": "1593473439",
+          "url": "blanc://newtab/",
+          "groupId": null
+        },
+        {
+          "id": "1593473475",
+          "url": "http://127.0.0.1:8786/GroupsA",
+          "groupId": "9AC77EBB098EC1F64AE9759A58BEAB78"
+        },
+        {
+          "id": "1593473476",
+          "url": "http://127.0.0.1:8786/GroupsB",
+          "groupId": "9AC77EBB098EC1F64AE9759A58BEAB78"
+        },
+        {
+          "id": "1593473477",
+          "url": "http://127.0.0.1:8786/GroupsC",
+          "groupId": "9AC77EBB098EC1F64AE9759A58BEAB78"
+        },
+        {
+          "id": "1593473478",
+          "url": "http://127.0.0.1:8786/GroupsD",
+          "groupId": null
+        },
+        {
+          "id": "1593473479",
+          "url": "http://127.0.0.1:8786/GroupsE",
+          "groupId": null
+        },
+        {
+          "id": "1593473480",
+          "url": "http://127.0.0.1:8786/GroupsF",
+          "groupId": null
+        }
+      ]
+    },
+    {
+      "name": "native-fold-unfold-preserves-active",
+      "at": "2026-10-17T16:29:48.784Z"
+    },
+    {
+      "name": "quick-switcher-results",
+      "at": "2026-10-17T16:29:52.956Z",
+      "rows": [
+        {
+          "class": "island-row active",
+          "text": "work3 tabsgroup↵"
+        },
+        {
+          "class": "island-row",
+          "text": "Chttps://chromewebstore.google.com/detail/bitwarden-password-manage/nngceckbapebfimnlniiiahkandclblbchromewebstore.google.com/detail/bitwarden-password-manage/nngceckbapebfimnlniiiahkandclblbhistory"
+        },
+        {
+          "class": "island-row",
+          "text": "Ghttps://www.google.com/search?q=chrome%3A%2F%2Fnewtab%2F&sei=AaHTas-LMLOkptQPqMbHmAggoogle.com/search?q=chrome%3A%2F%2Fnewtab%2F&sei=AaHTas-LMLOkptQPqMbHmAghistory"
+        },
+        {
+          "class": "island-row",
+          "text": "worsearch"
+        },
+        {
+          "class": "island-row",
+          "text": "Bhttps://bitwarden.com/browser-start/bitwarden.com/browser-starthistory"
+        }
+      ]
+    },
+    {
+      "name": "native-group-search-enter-unfolds",
+      "at": "2026-10-17T16:29:54.081Z"
+    },
+    {
+      "name": "second-native-group",
+      "at": "2026-10-17T16:29:57.997Z",
+      "snapshot": {
+        "activeTabId": "1593473478",
+        "adblockEnabled": false,
+        "closed": [],
+        "displayShares": [],
+        "extensionsWidth": 26,
+        "glanceTabId": null,
+        "groups": [
+          {
+            "collapsed": false,
+            "id": "9AC77EBB098EC1F64AE9759A58BEAB78",
+            "name": "work"
+          },
+          {
+            "collapsed": false,
+            "id": "6CFD8F6896B9C8E430FC38EAF406426C",
+            "name": "research"
+          }
+        ],
+        "tabLayout": "island",
+        "tabs": [
+          {
+            "audible": false,
+            "blockedCount": 0,
+            "bookmarked": false,
+            "canGoBack": false,
+            "canGoForward": false,
+            "favicon": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAACp0lEQVR4nKRTS2sTURQ+59w7SRr7oGkb22JbhEhp8VG0IBahK5HUjXbhqhv9B4KIG/+Ca0F8LFyriFYFMXRTEFO6qC19txZjMA152UwmmZl7vDNJIG71wgz3zj3fd7/z3W8I/nPI1oVtW1eJ7VEApVylUDS2XXBAEDEAkUJjwzBCH5sYwcyoB316/+axDIQeogjG9TMjZCiO0tBPIC5km/8NRSBORHMP7t8dIiP4NpFIAHos5VxmJtzd+05ZeQcYGUgzkuRcel0vEHoGRlkpB0GxXjJSqFua+ey1Y5HoPPkS2RoDYKUlqlrNlEf5FAEKQ7mO0EDhzcuFFNm2KbVg5dXWMRrhEyh2dd9YrZYpGO7kXGoVKkdZXac3FUPldxayP1YhEOpiu2aSV1vHNExUdk23IrCU2eaiYuwZmoDCrx0OtEdRdwPFzBb3Dp/HzP5X0Go41DWIdUyTQDsOXIHI4FnMfE+CVc5DLr2D5YPnULGqEDl1RfsXZsd2oO/khF/rY5otkCdWn5T7uQId3f2QT29D4sk9KO4lIb26CB8e3YHS4QF0RAagkPoGXi3VG2woqPcBhUKRC4UcrC8vQIXDfFhtR5OC4JDD60ufoaYEkDQ4qmtVa5Bc2/aMZX3XuLmyyKUqwfDUTdIauVO/22MKTRRqf3cTYmOT6Dlre5gmgRckUC6MxE6r6PETYndjGfa2lrlqmd4eSMPgS9Oz2NM/UhfsukJ4mCaBZVubmgCtcgl1+pzRc5dxJHaGvyy88lIKF6dvsAiEsGaZfpDawkH0Md7hXrYmJy/I+ZfPnvZG++b0BYPvqREEcGqNRg09t33XmAiymcMXM7O3bieTSw62/kzba4vX7aozrhPIjuuglAHfYZ1GIEFMQmpeuRYbn3rdxPxF8C/jDwAAAP//GDOC0AAAAAZJREFUAwDhL08TGO9e+gAAAABJRU5ErkJggg==",
+            "groupId": null,
+            "id": "1593473439",
+            "isLoading": false,
+            "muted": false,
+            "pageBg": "",
+            "pinned": false,
+            "private": false,
+            "title": "New Tab",
+            "url": "blanc://newtab/"
+          },
+          {
+            "audible": false,
+            "blockedCount": 0,
+            "bookmarked": false,
+            "canGoBack": false,
+            "canGoForward": false,
+            "favicon": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAC8UlEQVR4nHxTS0hUURg+5z7n6mgNRdNojiJamYWElCVlC8NBhCjSFhaRC12ULty0KMoJrUVhVqAhFkHtrEAty9JMohaFVIJgD/ARPsYZHWe89859n9O9vhPth/P6z/9/3zn/+Q4B1jZodd0NBZkvag9lrPStNmItp9c7H6xocqoqqckrff8FaL2T62wuAmSVF2BrbWiainRdWwDAvY2ZdFfTMed6AJClqANkRnaxSTUHgBCGCC0xY7/kOCfOBPfiFdchMAbQRKesgIkp5Q1NE+kPyxPirE2Tm9YRoK15V0NusiwISd9efeyyCHobyyw/JJ5e20VnbcyrbPZm7C/x9sgExbTZN7vKrCRVkcIRQQxZcyEkl4o83+ztAXpXg+dwQBouN4lJ6yjwfVN+fCQkVIphsf1Uzdfu59XZhTg6ZmADx+w0VEOHNDM6PT6cUFzzvaXj3tECTZZzfGNjt0vvDvmX7oKxl2i99a5a4qVndsemNEKYqkt0OzcLszwYGQ9N0g5nOUOpPllUPIVXP1ctFa6jzuOSZTF9wu8f6B795Tt70FPKj/25D1QZJKUkGMFpHgwNj5Mxjo1gQ7y75MTFzscttTnxdprboZBkP5WUHC/MBic4loLFFamJX4YHJ4qk4AxgbKwRESRSkRWg6siQwjMkF80VfnqQNxgM8FmsjfqxFSgC1f623zWlEjDKxvQ5YoFb5Y00RbdFbBqNwLQKJQUChbBjRUOkPot2+34bcYEA6sO0ym5hCRelaRLLIrgNK7rHPykaGHKvSS4KRjABAyEdQEgBKtpuFQlFZIMllVAJwwBRV8ROCZGDS0W8cnr7PltszElNxykAQwH+o1GIzHyOIeBAeJbv5ihd9j4Z7J3bWdHQ9TOJLoNm3ICKPW9gbDdlos4zINoc5U2MdLm8fmBkTtqmCM2Gl5/RBFmUcEV+SqzTHXXEFOEFwlQzBHJ92Kd9uNn2k19MBAuxq38YXMYD4EbZnuNAw/qlR/0vwTr2FwAA///YYd3sAAAABklEQVQDANILY9YXCroYAAAAAElFTkSuQmCC",
+            "groupId": "9AC77EBB098EC1F64AE9759A58BEAB78",
+            "id": "1593473475",
+            "isLoading": false,
+            "muted": false,
+            "pageBg": "",
+            "pinned": false,
+            "private": false,
+            "title": "Rebase157 GroupsA",
+            "url": "http://127.0.0.1:8786/GroupsA"
+          },
+          {
+            "audible": false,
+            "blockedCount": 0,
+            "bookmarked": false,
+            "canGoBack": false,
+            "canGoForward": false,
+            "favicon": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAC8UlEQVR4nHxTS0hUURg+5z7n6mgNRdNojiJamYWElCVlC8NBhCjSFhaRC12ULty0KMoJrUVhVqAhFkHtrEAty9JMohaFVIJgD/ARPsYZHWe89859n9O9vhPth/P6z/9/3zn/+Q4B1jZodd0NBZkvag9lrPStNmItp9c7H6xocqoqqckrff8FaL2T62wuAmSVF2BrbWiainRdWwDAvY2ZdFfTMed6AJClqANkRnaxSTUHgBCGCC0xY7/kOCfOBPfiFdchMAbQRKesgIkp5Q1NE+kPyxPirE2Tm9YRoK15V0NusiwISd9efeyyCHobyyw/JJ5e20VnbcyrbPZm7C/x9sgExbTZN7vKrCRVkcIRQQxZcyEkl4o83+ztAXpXg+dwQBouN4lJ6yjwfVN+fCQkVIphsf1Uzdfu59XZhTg6ZmADx+w0VEOHNDM6PT6cUFzzvaXj3tECTZZzfGNjt0vvDvmX7oKxl2i99a5a4qVndsemNEKYqkt0OzcLszwYGQ9N0g5nOUOpPllUPIVXP1ctFa6jzuOSZTF9wu8f6B795Tt70FPKj/25D1QZJKUkGMFpHgwNj5Mxjo1gQ7y75MTFzscttTnxdprboZBkP5WUHC/MBic4loLFFamJX4YHJ4qk4AxgbKwRESRSkRWg6siQwjMkF80VfnqQNxgM8FmsjfqxFSgC1f623zWlEjDKxvQ5YoFb5Y00RbdFbBqNwLQKJQUChbBjRUOkPot2+34bcYEA6sO0ym5hCRelaRLLIrgNK7rHPykaGHKvSS4KRjABAyEdQEgBKtpuFQlFZIMllVAJwwBRV8ROCZGDS0W8cnr7PltszElNxykAQwH+o1GIzHyOIeBAeJbv5ihd9j4Z7J3bWdHQ9TOJLoNm3ICKPW9gbDdlos4zINoc5U2MdLm8fmBkTtqmCM2Gl5/RBFmUcEV+SqzTHXXEFOEFwlQzBHJ92Kd9uNn2k19MBAuxq38YXMYD4EbZnuNAw/qlR/0vwTr2FwAA///YYd3sAAAABklEQVQDANILY9YXCroYAAAAAElFTkSuQmCC",
+            "groupId": "9AC77EBB098EC1F64AE9759A58BEAB78",
+            "id": "1593473476",
+            "isLoading": false,
+            "muted": false,
+            "pageBg": "",
+            "pinned": false,
+            "private": false,
+            "title": "Rebase157 GroupsB",
+            "url": "http://127.0.0.1:8786/GroupsB"
+          },
+          {
+            "audible": false,
+            "blockedCount": 0,
+            "bookmarked": false,
+            "canGoBack": false,
+            "canGoForward": false,
+            "favicon": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAC8UlEQVR4nHxTS0hUURg+5z7n6mgNRdNojiJamYWElCVlC8NBhCjSFhaRC12ULty0KMoJrUVhVqAhFkHtrEAty9JMohaFVIJgD/ARPsYZHWe89859n9O9vhPth/P6z/9/3zn/+Q4B1jZodd0NBZkvag9lrPStNmItp9c7H6xocqoqqckrff8FaL2T62wuAmSVF2BrbWiainRdWwDAvY2ZdFfTMed6AJClqANkRnaxSTUHgBCGCC0xY7/kOCfOBPfiFdchMAbQRKesgIkp5Q1NE+kPyxPirE2Tm9YRoK15V0NusiwISd9efeyyCHobyyw/JJ5e20VnbcyrbPZm7C/x9sgExbTZN7vKrCRVkcIRQQxZcyEkl4o83+ztAXpXg+dwQBouN4lJ6yjwfVN+fCQkVIphsf1Uzdfu59XZhTg6ZmADx+w0VEOHNDM6PT6cUFzzvaXj3tECTZZzfGNjt0vvDvmX7oKxl2i99a5a4qVndsemNEKYqkt0OzcLszwYGQ9N0g5nOUOpPllUPIVXP1ctFa6jzuOSZTF9wu8f6B795Tt70FPKj/25D1QZJKUkGMFpHgwNj5Mxjo1gQ7y75MTFzscttTnxdprboZBkP5WUHC/MBic4loLFFamJX4YHJ4qk4AxgbKwRESRSkRWg6siQwjMkF80VfnqQNxgM8FmsjfqxFSgC1f623zWlEjDKxvQ5YoFb5Y00RbdFbBqNwLQKJQUChbBjRUOkPot2+34bcYEA6sO0ym5hCRelaRLLIrgNK7rHPykaGHKvSS4KRjABAyEdQEgBKtpuFQlFZIMllVAJwwBRV8ROCZGDS0W8cnr7PltszElNxykAQwH+o1GIzHyOIeBAeJbv5ihd9j4Z7J3bWdHQ9TOJLoNm3ICKPW9gbDdlos4zINoc5U2MdLm8fmBkTtqmCM2Gl5/RBFmUcEV+SqzTHXXEFOEFwlQzBHJ92Kd9uNn2k19MBAuxq38YXMYD4EbZnuNAw/qlR/0vwTr2FwAA///YYd3sAAAABklEQVQDANILY9YXCroYAAAAAElFTkSuQmCC",
+            "groupId": "9AC77EBB098EC1F64AE9759A58BEAB78",
+            "id": "1593473477",
+            "isLoading": false,
+            "muted": false,
+            "pageBg": "",
+            "pinned": false,
+            "private": false,
+            "title": "Rebase157 GroupsC",
+            "url": "http://127.0.0.1:8786/GroupsC"
+          },
+          {
+            "audible": false,
+            "blockedCount": 0,
+            "bookmarked": false,
+            "canGoBack": false,
+            "canGoForward": false,
+            "favicon": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAC8UlEQVR4nHxTS0hUURg+5z7n6mgNRdNojiJamYWElCVlC8NBhCjSFhaRC12ULty0KMoJrUVhVqAhFkHtrEAty9JMohaFVIJgD/ARPsYZHWe89859n9O9vhPth/P6z/9/3zn/+Q4B1jZodd0NBZkvag9lrPStNmItp9c7H6xocqoqqckrff8FaL2T62wuAmSVF2BrbWiainRdWwDAvY2ZdFfTMed6AJClqANkRnaxSTUHgBCGCC0xY7/kOCfOBPfiFdchMAbQRKesgIkp5Q1NE+kPyxPirE2Tm9YRoK15V0NusiwISd9efeyyCHobyyw/JJ5e20VnbcyrbPZm7C/x9sgExbTZN7vKrCRVkcIRQQxZcyEkl4o83+ztAXpXg+dwQBouN4lJ6yjwfVN+fCQkVIphsf1Uzdfu59XZhTg6ZmADx+w0VEOHNDM6PT6cUFzzvaXj3tECTZZzfGNjt0vvDvmX7oKxl2i99a5a4qVndsemNEKYqkt0OzcLszwYGQ9N0g5nOUOpPllUPIVXP1ctFa6jzuOSZTF9wu8f6B795Tt70FPKj/25D1QZJKUkGMFpHgwNj5Mxjo1gQ7y75MTFzscttTnxdprboZBkP5WUHC/MBic4loLFFamJX4YHJ4qk4AxgbKwRESRSkRWg6siQwjMkF80VfnqQNxgM8FmsjfqxFSgC1f623zWlEjDKxvQ5YoFb5Y00RbdFbBqNwLQKJQUChbBjRUOkPot2+34bcYEA6sO0ym5hCRelaRLLIrgNK7rHPykaGHKvSS4KRjABAyEdQEgBKtpuFQlFZIMllVAJwwBRV8ROCZGDS0W8cnr7PltszElNxykAQwH+o1GIzHyOIeBAeJbv5ihd9j4Z7J3bWdHQ9TOJLoNm3ICKPW9gbDdlos4zINoc5U2MdLm8fmBkTtqmCM2Gl5/RBFmUcEV+SqzTHXXEFOEFwlQzBHJ92Kd9uNn2k19MBAuxq38YXMYD4EbZnuNAw/qlR/0vwTr2FwAA///YYd3sAAAABklEQVQDANILY9YXCroYAAAAAElFTkSuQmCC",
+            "groupId": "6CFD8F6896B9C8E430FC38EAF406426C",
+            "id": "1593473478",
+            "isLoading": false,
+            "muted": false,
+            "pageBg": "#f8f2df",
+            "pinned": false,
+            "private": false,
+            "title": "Rebase157 GroupsD",
+            "url": "http://127.0.0.1:8786/GroupsD"
+          },
+          {
+            "audible": false,
+            "blockedCount": 0,
+            "bookmarked": false,
+            "canGoBack": false,
+            "canGoForward": false,
+            "favicon": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAC8UlEQVR4nHxTS0hUURg+5z7n6mgNRdNojiJamYWElCVlC8NBhCjSFhaRC12ULty0KMoJrUVhVqAhFkHtrEAty9JMohaFVIJgD/ARPsYZHWe89859n9O9vhPth/P6z/9/3zn/+Q4B1jZodd0NBZkvag9lrPStNmItp9c7H6xocqoqqckrff8FaL2T62wuAmSVF2BrbWiainRdWwDAvY2ZdFfTMed6AJClqANkRnaxSTUHgBCGCC0xY7/kOCfOBPfiFdchMAbQRKesgIkp5Q1NE+kPyxPirE2Tm9YRoK15V0NusiwISd9efeyyCHobyyw/JJ5e20VnbcyrbPZm7C/x9sgExbTZN7vKrCRVkcIRQQxZcyEkl4o83+ztAXpXg+dwQBouN4lJ6yjwfVN+fCQkVIphsf1Uzdfu59XZhTg6ZmADx+w0VEOHNDM6PT6cUFzzvaXj3tECTZZzfGNjt0vvDvmX7oKxl2i99a5a4qVndsemNEKYqkt0OzcLszwYGQ9N0g5nOUOpPllUPIVXP1ctFa6jzuOSZTF9wu8f6B795Tt70FPKj/25D1QZJKUkGMFpHgwNj5Mxjo1gQ7y75MTFzscttTnxdprboZBkP5WUHC/MBic4loLFFamJX4YHJ4qk4AxgbKwRESRSkRWg6siQwjMkF80VfnqQNxgM8FmsjfqxFSgC1f623zWlEjDKxvQ5YoFb5Y00RbdFbBqNwLQKJQUChbBjRUOkPot2+34bcYEA6sO0ym5hCRelaRLLIrgNK7rHPykaGHKvSS4KRjABAyEdQEgBKtpuFQlFZIMllVAJwwBRV8ROCZGDS0W8cnr7PltszElNxykAQwH+o1GIzHyOIeBAeJbv5ihd9j4Z7J3bWdHQ9TOJLoNm3ICKPW9gbDdlos4zINoc5U2MdLm8fmBkTtqmCM2Gl5/RBFmUcEV+SqzTHXXEFOEFwlQzBHJ92Kd9uNn2k19MBAuxq38YXMYD4EbZnuNAw/qlR/0vwTr2FwAA///YYd3sAAAABklEQVQDANILY9YXCroYAAAAAElFTkSuQmCC",
+            "groupId": null,
+            "id": "1593473479",
+            "isLoading": false,
+            "muted": false,
+            "pageBg": "",
+            "pinned": false,
+            "private": false,
+            "title": "Rebase157 GroupsE",
+            "url": "http://127.0.0.1:8786/GroupsE"
+          },
+          {
+            "audible": false,
+            "blockedCount": 0,
+            "bookmarked": false,
+            "canGoBack": false,
+            "canGoForward": false,
+            "favicon": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAC8UlEQVR4nHxTS0hUURg+5z7n6mgNRdNojiJamYWElCVlC8NBhCjSFhaRC12ULty0KMoJrUVhVqAhFkHtrEAty9JMohaFVIJgD/ARPsYZHWe89859n9O9vhPth/P6z/9/3zn/+Q4B1jZodd0NBZkvag9lrPStNmItp9c7H6xocqoqqckrff8FaL2T62wuAmSVF2BrbWiainRdWwDAvY2ZdFfTMed6AJClqANkRnaxSTUHgBCGCC0xY7/kOCfOBPfiFdchMAbQRKesgIkp5Q1NE+kPyxPirE2Tm9YRoK15V0NusiwISd9efeyyCHobyyw/JJ5e20VnbcyrbPZm7C/x9sgExbTZN7vKrCRVkcIRQQxZcyEkl4o83+ztAXpXg+dwQBouN4lJ6yjwfVN+fCQkVIphsf1Uzdfu59XZhTg6ZmADx+w0VEOHNDM6PT6cUFzzvaXj3tECTZZzfGNjt0vvDvmX7oKxl2i99a5a4qVndsemNEKYqkt0OzcLszwYGQ9N0g5nOUOpPllUPIVXP1ctFa6jzuOSZTF9wu8f6B795Tt70FPKj/25D1QZJKUkGMFpHgwNj5Mxjo1gQ7y75MTFzscttTnxdprboZBkP5WUHC/MBic4loLFFamJX4YHJ4qk4AxgbKwRESRSkRWg6siQwjMkF80VfnqQNxgM8FmsjfqxFSgC1f623zWlEjDKxvQ5YoFb5Y00RbdFbBqNwLQKJQUChbBjRUOkPot2+34bcYEA6sO0ym5hCRelaRLLIrgNK7rHPykaGHKvSS4KRjABAyEdQEgBKtpuFQlFZIMllVAJwwBRV8ROCZGDS0W8cnr7PltszElNxykAQwH+o1GIzHyOIeBAeJbv5ihd9j4Z7J3bWdHQ9TOJLoNm3ICKPW9gbDdlos4zINoc5U2MdLm8fmBkTtqmCM2Gl5/RBFmUcEV+SqzTHXXEFOEFwlQzBHJ92Kd9uNn2k19MBAuxq38YXMYD4EbZnuNAw/qlR/0vwTr2FwAA///YYd3sAAAABklEQVQDANILY9YXCroYAAAAAElFTkSuQmCC",
+            "groupId": null,
+            "id": "1593473480",
+            "isLoading": false,
+            "muted": false,
+            "pageBg": "",
+            "pinned": false,
+            "private": false,
+            "title": "Rebase157 GroupsF",
+            "url": "http://127.0.0.1:8786/GroupsF"
+          }
+        ]
+      }
+    },
+    {
+      "name": "host-renderer-screenshot",
+      "at": "2026-10-17T16:29:58.986Z",
+      "path": "/private/tmp/blanc-task0/groups.png"
+    },
+    {
+      "name": "native-drag-loose-into-group",
+      "at": "2026-10-17T16:30:03.116Z",
+      "state": {
+        "groups": [
+          {
+            "collapsed": false,
+            "id": "9AC77EBB098EC1F64AE9759A58BEAB78",
+            "name": "work"
+          },
+          {
+            "collapsed": false,
+            "id": "6CFD8F6896B9C8E430FC38EAF406426C",
+            "name": "research"
+          }
+        ],
+        "tabs": [
+          {
+            "id": "1593473439",
+            "url": "blanc://newtab/",
+            "pinned": false,
+            "groupId": null
+          },
+          {
+            "id": "1593473475",
+            "url": "http://127.0.0.1:8786/GroupsA",
+            "pinned": false,
+            "groupId": "9AC77EBB098EC1F64AE9759A58BEAB78"
+          },
+          {
+            "id": "1593473476",
+            "url": "http://127.0.0.1:8786/GroupsB",
+            "pinned": false,
+            "groupId": "9AC77EBB098EC1F64AE9759A58BEAB78"
+          },
+          {
+            "id": "1593473477",
+            "url": "http://127.0.0.1:8786/GroupsC",
+            "pinned": false,
+            "groupId": "9AC77EBB098EC1F64AE9759A58BEAB78"
+          },
+          {
+            "id": "1593473479",
+            "url": "http://127.0.0.1:8786/GroupsE",
+            "pinned": false,
+            "groupId": "9AC77EBB098EC1F64AE9759A58BEAB78"
+          },
+          {
+            "id": "1593473478",
+            "url": "http://127.0.0.1:8786/GroupsD",
+            "pinned": false,
+            "groupId": "6CFD8F6896B9C8E430FC38EAF406426C"
+          },
+          {
+            "id": "1593473480",
+            "url": "http://127.0.0.1:8786/GroupsF",
+            "pinned": false,
+            "groupId": null
+          }
+        ]
+      }
+    },
+    {
+      "name": "native-drag-grouped-into-loose",
+      "at": "2026-10-17T16:30:05.652Z",
+      "state": {
+        "groups": [
+          {
+            "collapsed": false,
+            "id": "9AC77EBB098EC1F64AE9759A58BEAB78",
+            "name": "work"
+          },
+          {
+            "collapsed": false,
+            "id": "6CFD8F6896B9C8E430FC38EAF406426C",
+            "name": "research"
+          }
+        ],
+        "tabs": [
+          {
+            "id": "1593473439",
+            "url": "blanc://newtab/",
+            "pinned": false,
+            "groupId": null
+          },
+          {
+            "id": "1593473475",
+            "url": "http://127.0.0.1:8786/GroupsA",
+            "pinned": false,
+            "groupId": "9AC77EBB098EC1F64AE9759A58BEAB78"
+          },
+          {
+            "id": "1593473476",
+            "url": "http://127.0.0.1:8786/GroupsB",
+            "pinned": false,
+            "groupId": "9AC77EBB098EC1F64AE9759A58BEAB78"
+          },
+          {
+            "id": "1593473477",
+            "url": "http://127.0.0.1:8786/GroupsC",
+            "pinned": false,
+            "groupId": "9AC77EBB098EC1F64AE9759A58BEAB78"
+          },
+          {
+            "id": "1593473478",
+            "url": "http://127.0.0.1:8786/GroupsD",
+            "pinned": false,
+            "groupId": "6CFD8F6896B9C8E430FC38EAF406426C"
+          },
+          {
+            "id": "1593473479",
+            "url": "http://127.0.0.1:8786/GroupsE",
+            "pinned": false,
+            "groupId": null
+          },
+          {
+            "id": "1593473480",
+            "url": "http://127.0.0.1:8786/GroupsF",
+            "pinned": false,
+            "groupId": null
+          }
+        ]
+      }
+    },
+    {
+      "name": "native-group-header-drag",
+      "at": "2026-10-17T16:30:08.213Z",
+      "state": {
+        "groups": [
+          {
+            "collapsed": false,
+            "id": "6CFD8F6896B9C8E430FC38EAF406426C",
+            "name": "research"
+          },
+          {
+            "collapsed": false,
+            "id": "9AC77EBB098EC1F64AE9759A58BEAB78",
+            "name": "work"
+          }
+        ],
+        "tabs": [
+          {
+            "id": "1593473439",
+            "url": "blanc://newtab/",
+            "pinned": false,
+            "groupId": null
+          },
+          {
+            "id": "1593473478",
+            "url": "http://127.0.0.1:8786/GroupsD",
+            "pinned": false,
+            "groupId": "6CFD8F6896B9C8E430FC38EAF406426C"
+          },
+          {
+            "id": "1593473475",
+            "url": "http://127.0.0.1:8786/GroupsA",
+            "pinned": false,
+            "groupId": "9AC77EBB098EC1F64AE9759A58BEAB78"
+          },
+          {
+            "id": "1593473476",
+            "url": "http://127.0.0.1:8786/GroupsB",
+            "pinned": false,
+            "groupId": "9AC77EBB098EC1F64AE9759A58BEAB78"
+          },
+          {
+            "id": "1593473477",
+            "url": "http://127.0.0.1:8786/GroupsC",
+            "pinned": false,
+            "groupId": "9AC77EBB098EC1F64AE9759A58BEAB78"
+          },
+          {
+            "id": "1593473479",
+            "url": "http://127.0.0.1:8786/GroupsE",
+            "pinned": false,
+            "groupId": null
+          },
+          {
+            "id": "1593473480",
+            "url": "http://127.0.0.1:8786/GroupsF",
+            "pinned": false,
+            "groupId": null
+          }
+        ]
+      }
+    },
+    {
+      "name": "native-keyboard-group-reorder",
+      "at": "2026-10-17T16:30:16.045Z"
+    },
+    {
+      "name": "native-keyboard-grouped-row-reorder",
+      "at": "2026-10-17T16:30:26.344Z",
+      "calls": [
+        {
+          "name": "moveTab",
+          "args": [
+            "1593473479",
+            {
+              "groupId": "9AC77EBB098EC1F64AE9759A58BEAB78",
+              "beforeId": null
+            }
+          ],
+          "result": true
+        },
+        {
+          "name": "moveTab",
+          "args": [
+            "1593473479",
+            {
+              "groupId": null,
+              "beforeId": "1593473480"
+            }
+          ],
+          "result": true
+        },
+        {
+          "name": "reorderGroup",
+          "args": [
+            "6CFD8F6896B9C8E430FC38EAF406426C",
+            "9AC77EBB098EC1F64AE9759A58BEAB78"
+          ],
+          "result": true
+        },
+        {
+          "name": "reorderGroup",
+          "args": [
+            "9AC77EBB098EC1F64AE9759A58BEAB78",
+            "6CFD8F6896B9C8E430FC38EAF406426C"
+          ],
+          "result": true
+        },
+        {
+          "name": "reorderGroup",
+          "args": [
+            "9AC77EBB098EC1F64AE9759A58BEAB78",
+            null
+          ],
+          "result": true
+        },
+        {
+          "name": "moveTab",
+          "args": [
+            "1593473476",
+            {
+              "groupId": "9AC77EBB098EC1F64AE9759A58BEAB78",
+              "beforeId": "1593473475"
+            }
+          ],
+          "result": true
+        },
+        {
+          "name": "moveTab",
+          "args": [
+            "1593473476",
+            {
+              "groupId": "9AC77EBB098EC1F64AE9759A58BEAB78",
+              "beforeId": "1593473477"
+            }
+          ],
+          "result": true
+        }
+      ],
+      "state": {
+        "groups": [
+          {
+            "collapsed": false,
+            "id": "6CFD8F6896B9C8E430FC38EAF406426C",
+            "name": "research"
+          },
+          {
+            "collapsed": false,
+            "id": "9AC77EBB098EC1F64AE9759A58BEAB78",
+            "name": "work"
+          }
+        ],
+        "tabs": [
+          {
+            "id": "1593473439",
+            "url": "blanc://newtab/",
+            "pinned": false,
+            "groupId": null
+          },
+          {
+            "id": "1593473478",
+            "url": "http://127.0.0.1:8786/GroupsD",
+            "pinned": false,
+            "groupId": "6CFD8F6896B9C8E430FC38EAF406426C"
+          },
+          {
+            "id": "1593473479",
+            "url": "http://127.0.0.1:8786/GroupsE",
+            "pinned": false,
+            "groupId": null
+          },
+          {
+            "id": "1593473480",
+            "url": "http://127.0.0.1:8786/GroupsF",
+            "pinned": false,
+            "groupId": null
+          },
+          {
+            "id": "1593473475",
+            "url": "http://127.0.0.1:8786/GroupsA",
+            "pinned": false,
+            "groupId": "9AC77EBB098EC1F64AE9759A58BEAB78"
+          },
+          {
+            "id": "1593473476",
+            "url": "http://127.0.0.1:8786/GroupsB",
+            "pinned": false,
+            "groupId": "9AC77EBB098EC1F64AE9759A58BEAB78"
+          },
+          {
+            "id": "1593473477",
+            "url": "http://127.0.0.1:8786/GroupsC",
+            "pinned": false,
+            "groupId": "9AC77EBB098EC1F64AE9759A58BEAB78"
+          }
+        ]
+      }
+    },
+    {
+      "name": "host-renderer-screenshot",
+      "at": "2026-10-17T16:30:26.422Z",
+      "path": "/private/tmp/blanc-task0/moves.png"
+    },
+    {
+      "name": "native-pinned-into-group-refused",
+      "at": "2026-10-17T16:30:34.302Z",
+      "calls": [
+        {
+          "name": "moveTab",
+          "args": [
+            "1593473479",
+            {
+              "groupId": "9AC77EBB098EC1F64AE9759A58BEAB78",
+              "beforeId": null
+            }
+          ],
+          "result": true
+        },
+        {
+          "name": "moveTab",
+          "args": [
+            "1593473479",
+            {
+              "groupId": null,
+              "beforeId": "1593473480"
+            }
+          ],
+          "result": true
+        },
+        {
+          "name": "reorderGroup",
+          "args": [
+            "6CFD8F6896B9C8E430FC38EAF406426C",
+            "9AC77EBB098EC1F64AE9759A58BEAB78"
+          ],
+          "result": true
+        },
+        {
+          "name": "reorderGroup",
+          "args": [
+            "9AC77EBB098EC1F64AE9759A58BEAB78",
+            "6CFD8F6896B9C8E430FC38EAF406426C"
+          ],
+          "result": true
+        },
+        {
+          "name": "reorderGroup",
+          "args": [
+            "9AC77EBB098EC1F64AE9759A58BEAB78",
+            null
+          ],
+          "result": true
+        },
+        {
+          "name": "moveTab",
+          "args": [
+            "1593473476",
+            {
+              "groupId": "9AC77EBB098EC1F64AE9759A58BEAB78",
+              "beforeId": "1593473475"
+            }
+          ],
+          "result": true
+        },
+        {
+          "name": "moveTab",
+          "args": [
+            "1593473476",
+            {
+              "groupId": "9AC77EBB098EC1F64AE9759A58BEAB78",
+              "beforeId": "1593473477"
+            }
+          ],
+          "result": true
+        },
+        {
+          "name": "moveTab",
+          "args": [
+            "1593473480",
+            {
+              "groupId": "9AC77EBB098EC1F64AE9759A58BEAB78",
+              "beforeId": null
+            }
+          ],
+          "result": false
+        }
+      ]
+    },
+    {
+      "name": "native-group-command-unpins",
+      "at": "2026-10-17T16:30:38.737Z",
+      "tab": {
+        "audible": false,
+        "blockedCount": 0,
+        "bookmarked": false,
+        "canGoBack": false,
+        "canGoForward": false,
+        "favicon": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAC8UlEQVR4nHxTS0hUURg+5z7n6mgNRdNojiJamYWElCVlC8NBhCjSFhaRC12ULty0KMoJrUVhVqAhFkHtrEAty9JMohaFVIJgD/ARPsYZHWe89859n9O9vhPth/P6z/9/3zn/+Q4B1jZodd0NBZkvag9lrPStNmItp9c7H6xocqoqqckrff8FaL2T62wuAmSVF2BrbWiainRdWwDAvY2ZdFfTMed6AJClqANkRnaxSTUHgBCGCC0xY7/kOCfOBPfiFdchMAbQRKesgIkp5Q1NE+kPyxPirE2Tm9YRoK15V0NusiwISd9efeyyCHobyyw/JJ5e20VnbcyrbPZm7C/x9sgExbTZN7vKrCRVkcIRQQxZcyEkl4o83+ztAXpXg+dwQBouN4lJ6yjwfVN+fCQkVIphsf1Uzdfu59XZhTg6ZmADx+w0VEOHNDM6PT6cUFzzvaXj3tECTZZzfGNjt0vvDvmX7oKxl2i99a5a4qVndsemNEKYqkt0OzcLszwYGQ9N0g5nOUOpPllUPIVXP1ctFa6jzuOSZTF9wu8f6B795Tt70FPKj/25D1QZJKUkGMFpHgwNj5Mxjo1gQ7y75MTFzscttTnxdprboZBkP5WUHC/MBic4loLFFamJX4YHJ4qk4AxgbKwRESRSkRWg6siQwjMkF80VfnqQNxgM8FmsjfqxFSgC1f623zWlEjDKxvQ5YoFb5Y00RbdFbBqNwLQKJQUChbBjRUOkPot2+34bcYEA6sO0ym5hCRelaRLLIrgNK7rHPykaGHKvSS4KRjABAyEdQEgBKtpuFQlFZIMllVAJwwBRV8ROCZGDS0W8cnr7PltszElNxykAQwH+o1GIzHyOIeBAeJbv5ihd9j4Z7J3bWdHQ9TOJLoNm3ICKPW9gbDdlos4zINoc5U2MdLm8fmBkTtqmCM2Gl5/RBFmUcEV+SqzTHXXEFOEFwlQzBHJ92Kd9uNn2k19MBAuxq38YXMYD4EbZnuNAw/qlR/0vwTr2FwAA///YYd3sAAAABklEQVQDANILY9YXCroYAAAAAElFTkSuQmCC",
+        "groupId": "9AC77EBB098EC1F64AE9759A58BEAB78",
+        "id": "1593473480",
+        "isLoading": false,
+        "muted": false,
+        "pageBg": "#f8f2df",
+        "pinned": false,
+        "private": false,
+        "title": "Rebase157 GroupsF",
+        "url": "http://127.0.0.1:8786/GroupsF"
+      }
+    },
+    {
+      "name": "native-ungroup",
+      "at": "2026-10-17T16:30:42.565Z"
+    },
+    {
+      "name": "native-cmd-1-2-global-tab-order",
+      "at": "2026-10-17T16:30:44.497Z",
+      "first": "blanc://newtab/",
+      "second": "http://127.0.0.1:8786/GroupsD",
+      "active": "http://127.0.0.1:8786/GroupsD"
+    },
+    {
+      "name": "before-group-restart",
+      "at": "2026-10-17T16:30:46.913Z",
+      "state": {
+        "groups": [
+          {
+            "collapsed": false,
+            "id": "6CFD8F6896B9C8E430FC38EAF406426C",
+            "name": "research"
+          },
+          {
+            "collapsed": true,
+            "id": "9AC77EBB098EC1F64AE9759A58BEAB78",
+            "name": "work"
+          }
+        ],
+        "tabs": [
+          {
+            "id": "1593473439",
+            "url": "blanc://newtab/",
+            "pinned": false,
+            "groupId": null
+          },
+          {
+            "id": "1593473478",
+            "url": "http://127.0.0.1:8786/GroupsD",
+            "pinned": false,
+            "groupId": "6CFD8F6896B9C8E430FC38EAF406426C"
+          },
+          {
+            "id": "1593473479",
+            "url": "http://127.0.0.1:8786/GroupsE",
+            "pinned": false,
+            "groupId": null
+          },
+          {
+            "id": "1593473480",
+            "url": "http://127.0.0.1:8786/GroupsF",
+            "pinned": false,
+            "groupId": null
+          },
+          {
+            "id": "1593473475",
+            "url": "http://127.0.0.1:8786/GroupsA",
+            "pinned": false,
+            "groupId": "9AC77EBB098EC1F64AE9759A58BEAB78"
+          },
+          {
+            "id": "1593473476",
+            "url": "http://127.0.0.1:8786/GroupsB",
+            "pinned": false,
+            "groupId": "9AC77EBB098EC1F64AE9759A58BEAB78"
+          },
+          {
+            "id": "1593473477",
+            "url": "http://127.0.0.1:8786/GroupsC",
+            "pinned": false,
+            "groupId": "9AC77EBB098EC1F64AE9759A58BEAB78"
+          }
+        ]
+      },
+      "active": "http://127.0.0.1:8786/GroupsD"
+    },
+    {
+      "name": "native-ungroup-last-member-removes-group",
+      "at": "2026-10-17T16:30:50.646Z"
+    },
+    {
+      "name": "native-close-group",
+      "at": "2026-10-17T16:30:54.379Z",
+      "closedFixtureCount": 3,
+      "tabs": [
+        {
+          "id": "1593473439",
+          "url": "blanc://newtab/"
+        },
+        {
+          "id": "1593473478",
+          "url": "http://127.0.0.1:8786/GroupsD"
+        },
+        {
+          "id": "1593473479",
+          "url": "http://127.0.0.1:8786/GroupsE"
+        },
+        {
+          "id": "1593473480",
+          "url": "http://127.0.0.1:8786/GroupsF"
+        }
+      ],
+      "groups": []
+    },
+    {
+      "name": "extension-update-check-only",
+      "at": "2026-10-17T16:31:17.237Z",
+      "before": {
+        "version": "2026.10.0",
+        "state": "ENABLED"
+      },
+      "after": {
+        "version": "2026.10.0",
+        "state": "ENABLED"
+      },
+      "qualification": "Native updater API completed; same version means no version-upgrade acceptance claim. Older signed CRX fixture unavailable."
+    },
+    {
+      "name": "disposable-history-db",
+      "at": "2026-10-17T16:31:33.923Z",
+      "audit": {
+        "urls": [
+          [
+            "http://127.0.0.1:8786/B",
+            0,
+            0
+          ]
+        ],
+        "segments": []
+      }
+    },
+    {
+      "name": "isolated-restart",
+      "at": "2026-10-17T16:31:35.228Z"
+    },
+    {
+      "name": "native-cleanup-and-clear-restart-pass",
+      "at": "2026-10-17T16:31:36.458Z",
+      "removedTabs": 5,
+      "removedFavorites": 4,
+      "removedFolders": [
+        "13",
+        "15"
+      ],
+      "remainingFavoriteId": "5",
+      "historyCount": 0,
+      "groups": [],
+      "qualification": "Only start pages restored, so no new web visits obscure empty-history persistence. Isolated profile retained solely for pending real extension upgrade."
+    },
+    {
+      "name": "native-dock-icon-pass",
+      "at": "2026-10-17T16:31:36.464Z",
+      "app": "/Users/anthonyjloria/Projects/BlancChromium157/src/out/BlancPrototype/Blanc Prototype.app",
+      "dockCrop": "native-dock-icon.png",
+      "systemIcon": "native-application-icon.png",
+      "appearance": "Dark gold sunrise; AX Dock URL identifies 157 app"
+    },
+    {
+      "name": "native-final-disposable-state",
+      "at": "2026-10-17T16:31:47.978Z",
+      "tabs": [
+        {
+          "url": "blanc://newtab/",
+          "pinned": false
+        }
+      ],
+      "remaining": "one start page and original disposable Favorite; Bitwarden retained for update fixture; 156 untouched"
+    }
+  ]
+}

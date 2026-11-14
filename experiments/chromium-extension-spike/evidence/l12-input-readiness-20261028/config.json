@@ -1,0 +1,10 @@
+{
+  "playwright": "/Users/anthonyjloria/Documents/ChatGPT/Blanc Browser/Chromium Preview/repo/node_modules/playwright/index.mjs",
+  "asarModule": "/Users/anthonyjloria/Documents/ChatGPT/Blanc Browser/Chromium Preview/repo/node_modules/@electron/asar/lib/asar.js",
+  "asar": "/Users/anthonyjloria/Documents/ChatGPT/Blanc Browser/Chromium Preview/references/blanc-1.36.0/extracted/Blanc.app/Contents/Resources/app.asar",
+  "electron": "/Users/anthonyjloria/Documents/ChatGPT/Blanc Browser/Chromium Preview/references/electron-44.8.0/extracted/Electron.app/Contents/MacOS/Electron",
+  "chromium": "/Users/anthonyjloria/Projects/BlancChromium157Recovery/src/out/BlancPrototype/Blanc Prototype.app/Contents/MacOS/Blanc Prototype",
+  "engine": "/Users/anthonyjloria/Documents/ChatGPT/Blanc Browser/Chromium Preview/artifacts/procedural-groups-combined-20261028",
+  "ui": "/Users/anthonyjloria/Projects/BlancPreviewArtifacts/property-groups-20261028/Blanc Chromium Preview.app/Contents/Resources/BlancAssets",
+  "nativeTimingTrace": true
+}

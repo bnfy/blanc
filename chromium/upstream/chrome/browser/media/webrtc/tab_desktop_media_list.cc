@@ -1,0 +1,433 @@
+// Copyright 2016 The Chromium Authors
+// Use of this source code is governed by a BSD-style license that can be
+// found in the LICENSE file.
+
+#include "chrome/browser/media/webrtc/tab_desktop_media_list.h"
+
+#include <ranges>
+#include <utility>
+
+#include "base/compiler_specific.h"
+#include "base/functional/bind.h"
+#include "base/hash/hash.h"
+#include "base/task/bind_post_task.h"
+#include "base/task/thread_pool.h"
+#include "base/time/time.h"
+#include "chrome/browser/browser_features.h"
+#include "chrome/browser/enterprise/data_protection/data_protection_features.h"
+#include "chrome/browser/enterprise/data_protection/data_protection_page_user_data.h"
+#include "chrome/browser/media/webrtc/desktop_media_list_layout_config.h"
+#include "chrome/browser/media/webrtc/desktop_media_picker_utils.h"
+#include "chrome/browser/profiles/profile_manager.h"
+#include "chrome/browser/ui/browser_window/public/browser_window_interface.h"
+#include "chrome/browser/ui/browser_window/public/browser_window_interface_iterator.h"
+#include "chrome/browser/ui/tabs/tab_strip_model.h"
+#include "chrome/browser/ui/web_applications/app_browser_controller.h"
+#include "components/enterprise/buildflags/buildflags.h"
+#include "components/favicon/content/content_favicon_driver.h"
+#include "components/viz/common/frame_sinks/copy_output_result.h"
+#include "content/public/browser/browser_task_traits.h"
+#include "content/public/browser/browser_thread.h"
+#include "content/public/browser/render_frame_host.h"
+#include "content/public/browser/render_process_host.h"
+#include "content/public/browser/render_widget_host_view.h"
+#include "extensions/browser/app_window/app_window.h"
+#include "extensions/browser/app_window/app_window_registry.h"
+
+using content::BrowserThread;
+using content::DesktopMediaID;
+using content::WebContents;
+
+namespace {
+
+// Update the list once per second.
+constexpr base::TimeDelta kDefaultTabDesktopMediaListUpdatePeriod =
+    base::Seconds(1);
+
+void HandleCapturedBitmap(
+    base::OnceCallback<void(uint32_t, const gfx::ImageSkia&)> reply,
+    std::optional<uint32_t> last_hash,
+    const SkBitmap& bitmap) {
+  gfx::ImageSkia image;
+
+  // Only scale and update if the frame appears to be new.
+  const uint32_t hash = base::FastHash(UNSAFE_TODO(base::span(
+      static_cast<uint8_t*>(bitmap.getPixels()), bitmap.computeByteSize())));
+  if (!last_hash.has_value() || hash != last_hash.value()) {
+    image = ScaleBitmap(bitmap, desktopcapture::kPreviewSize);
+  }
+
+  content::GetUIThreadTaskRunner({})->PostTask(
+      FROM_HERE, base::BindOnce(std::move(reply), hash, image));
+}
+
+bool IsWebContentsSharingBlocked(content::WebContents* contents) {
+  if (!contents) {
+    return false;
+  }
+  auto* page_user_data =
+      enterprise_data_protection::DataProtectionPageUserData::GetForPage(
+          contents->GetPrimaryPage());
+  return page_user_data && !page_user_data->settings().allow_screenshots;
+}
+
+}  // namespace
+
+TabDesktopMediaList::TabDesktopMediaList(
+    WebContents* web_contents,
+    DesktopMediaList::WebContentsFilter includable_web_contents_filter,
+    bool include_chrome_app_windows)
+    : DesktopMediaListBase(kDefaultTabDesktopMediaListUpdatePeriod),
+      web_contents_(web_contents
+                        ? std::make_optional(web_contents->GetWeakPtr())
+                        : std::nullopt),
+      includable_web_contents_filter_(
+          std::move(includable_web_contents_filter)),
+      include_chrome_app_windows_(include_chrome_app_windows) {
+  type_ = DesktopMediaList::Type::kWebContents;
+  image_resize_task_runner_ = base::ThreadPool::CreateSequencedTaskRunner(
+      {base::MayBlock(), base::TaskPriority::USER_VISIBLE});
+}
+
+TabDesktopMediaList::~TabDesktopMediaList() {
+  // previewed_source_visible_keepalive_ is expected to be destructed on the UI
+  // thread.
+  CHECK_CURRENTLY_ON(content::BrowserThread::UI, base::NotFatalUntil::M161);
+}
+
+void TabDesktopMediaList::CompleteRefreshAfterThumbnailProcessing() {
+  CHECK_CURRENTLY_ON(BrowserThread::UI, base::NotFatalUntil::M161);
+  // OnRefreshComplete() needs to be called after all calls to
+  // UpdateSourceThumbnail() have completed. Therefore, a DoNothing task is
+  // posted to the same sequenced task runner to which
+  // CreateEnclosedFaviconImage() is posted.
+  image_resize_task_runner_.get()->PostTaskAndReply(
+      FROM_HERE, base::DoNothing(),
+      base::BindOnce(&TabDesktopMediaList::OnRefreshComplete,
+                     weak_factory_.GetWeakPtr()));
+}
+
+void TabDesktopMediaList::Refresh(bool update_thumbnails) {
+  CHECK(can_refresh(), base::NotFatalUntil::M161);
+  CHECK_CURRENTLY_ON(BrowserThread::UI, base::NotFatalUntil::M161);
+
+  Profile* profile;
+  if (web_contents_.has_value()) {
+    const base::WeakPtr<WebContents>& wc_weak_ref = web_contents_.value();
+    // Profile::FromBrowserContext is robust to receiving nullptr as input.
+    profile = Profile::FromBrowserContext(
+        wc_weak_ref ? wc_weak_ref->GetBrowserContext() : nullptr);
+  } else {
+    // When going through DesktopMediaPickerController::Show(), it can be that
+    // no WebContents was ever associated. In that case, fall back on the
+    // legacy behavior of using the last-used profile.
+    profile = ProfileManager::GetLastUsedProfileAllowedByPolicy();
+  }
+  if (!profile) {
+    OnRefreshComplete();
+    return;
+  }
+
+  std::vector<BrowserWindowInterface*> browsers;
+  ForEachCurrentBrowserWindowInterfaceOrderedByActivation(
+      [&browsers, profile](BrowserWindowInterface* browser) {
+        // Omit all the IWAs for TabDesktopMediaList as they are already
+        // present in NativeDesktopMediaList.
+        if ((!base::FeatureList::IsEnabled(
+                 features::kRemovalOfIWAsFromTabCapture) ||
+             !web_app::AppBrowserController::IsIsolatedWebApp(browser)) &&
+            browser->GetProfile()->GetOriginalProfile() ==
+                profile->GetOriginalProfile()) {
+          browsers.push_back(browser);
+        }
+        return true;
+      });
+
+  std::vector<WebContents*> contents_list;
+  // Enumerate all tabs for a user profile.
+  for (BrowserWindowInterface* const browser : browsers) {
+    const TabStripModel* tab_strip_model = browser->GetTabStripModel();
+    CHECK(tab_strip_model, base::NotFatalUntil::M161);
+
+    for (int i = 0; i < tab_strip_model->count(); i++) {
+      // Create id for tab.
+      WebContents* contents = tab_strip_model->GetWebContentsAt(i);
+      CHECK(contents, base::NotFatalUntil::M161);
+      contents_list.push_back(contents);
+    }
+  }
+
+  if (include_chrome_app_windows_) {
+    // Find all AppWindows for the given profile.
+    const extensions::AppWindowRegistry::AppWindowList& window_list =
+        extensions::AppWindowRegistry::Get(profile)->app_windows();
+    for (const extensions::AppWindow* app_window : window_list) {
+      if (!app_window->is_hidden())
+        contents_list.push_back(app_window->web_contents());
+    }
+  }
+
+  ImageHashesMap new_favicon_hashes;
+  std::vector<SourceDescription> sources;
+  std::map<base::TimeTicks, SourceDescription> tab_map;
+  std::vector<std::pair<DesktopMediaID, gfx::ImageSkia>> favicon_pairs;
+  // Fetch title, favicons, and update time for all tabs to show.
+  for (auto* contents : contents_list) {
+    if (!includable_web_contents_filter_.Run(contents)) {
+      continue;
+    }
+    content::RenderFrameHost* main_frame = contents->GetPrimaryMainFrame();
+    CHECK(main_frame, base::NotFatalUntil::M161);
+
+    DesktopMediaID media_id(DesktopMediaID::TYPE_WEB_CONTENTS,
+                            DesktopMediaID::kNullId,
+                            content::WebContentsMediaCaptureId(
+                                main_frame->GetProcess()->GetDeprecatedID(),
+                                main_frame->GetRoutingID()));
+
+    const bool is_sharing_blocked = IsWebContentsSharingBlocked(contents);
+
+    if (previewed_source_ &&
+        previewed_source_->web_contents_id == media_id.web_contents_id) {
+#if BUILDFLAG(ENTERPRISE_SCREENSHOT_PROTECTION)
+      if (base::FeatureList::IsEnabled(
+              enterprise_data_protection::kEnableTabSharingProtection)) {
+        if (is_sharing_blocked) {
+          previewed_source_visible_keepalive_.RunAndReset();
+        } else if (!previewed_source_visible_keepalive_) {
+          previewed_source_visible_keepalive_ =
+              contents->IncrementCapturerCount(
+                  gfx::Size(), /*stay_hidden=*/false, /*stay_awake=*/false,
+                  /*is_activity=*/false);
+        }
+      }
+#endif
+    }
+
+    // Get tab's last active time stamp.
+    const base::TimeTicks t = contents->GetLastActiveTimeTicks();
+    tab_map.insert(std::make_pair(
+        t,
+        SourceDescription(media_id, contents->GetTitle(), is_sharing_blocked)));
+
+    // Get favicon for tab.
+    favicon::FaviconDriver* favicon_driver =
+        favicon::ContentFaviconDriver::FromWebContents(contents);
+    if (!favicon_driver) {
+      continue;
+    }
+
+    gfx::Image favicon = favicon_driver->GetFavicon();
+    if (favicon.IsEmpty()) {
+      continue;
+    }
+
+    // Only new or changed favicon need update.
+    auto new_it =
+        new_favicon_hashes.insert_or_assign(media_id, GetImageHash(favicon))
+            .first;
+    if (auto it = favicon_hashes_.find(media_id);
+        it == favicon_hashes_.end() || (it->second != new_it->second)) {
+      gfx::ImageSkia image = favicon.AsImageSkia();
+      image.MakeThreadSafe();
+      favicon_pairs.emplace_back(media_id, image);
+    }
+  }
+  favicon_hashes_ = new_favicon_hashes;
+
+  // Sort tab sources by time. Most recent one first.
+  // When tab sharing protection is enabled, blocked tabs are sorted to the
+  // bottom; recency order is preserved within each partition.
+#if BUILDFLAG(ENTERPRISE_SCREENSHOT_PROTECTION)
+  const bool sort_blocked_tabs_last = base::FeatureList::IsEnabled(
+      enterprise_data_protection::kEnableTabSharingProtection);
+#else
+  const bool sort_blocked_tabs_last = false;
+#endif
+
+  std::vector<SourceDescription> blocked_sources;
+  for (const auto& [time, tab_source] : std::views::reverse(tab_map)) {
+    if (sort_blocked_tabs_last && tab_source.is_sharing_blocked) {
+      blocked_sources.push_back(tab_source);
+    } else {
+      sources.push_back(tab_source);
+    }
+  }
+  sources.insert(sources.end(),
+                 std::make_move_iterator(blocked_sources.begin()),
+                 std::make_move_iterator(blocked_sources.end()));
+
+  UpdateSourcesList(sources);
+
+  for (const auto& favicon_pair : favicon_pairs) {
+    UpdateSourceThumbnail(favicon_pair.first, favicon_pair.second);
+  }
+
+  if (previewed_source_) {
+    // Trigger an update of the selected tab's preview image. It handles calling
+    // OnRefreshComplete when it's ready.
+    TriggerScreenshot(/*remaining_retries=*/0,
+                      std::make_unique<TabDesktopMediaList::RefreshCompleter>(
+                          weak_factory_.GetWeakPtr()));
+  } else {
+    // No preview to update.
+    OnRefreshComplete();
+  }
+}
+
+void TabDesktopMediaList::TriggerScreenshot(
+    int remaining_retries,
+    std::unique_ptr<TabDesktopMediaList::RefreshCompleter> refresh_completer) {
+  CHECK_CURRENTLY_ON(BrowserThread::UI, base::NotFatalUntil::M161);
+
+  if (!previewed_source_.has_value()) {
+    // The selection must have been cleared while waiting to retry. Nothing to
+    // do.
+    return;
+  }
+
+  content::RenderFrameHost* host = content::RenderFrameHost::FromID(
+      previewed_source_->web_contents_id.render_process_id,
+      previewed_source_->web_contents_id.main_render_frame_id);
+
+#if BUILDFLAG(ENTERPRISE_SCREENSHOT_PROTECTION)
+  if (base::FeatureList::IsEnabled(
+          enterprise_data_protection::kEnableTabSharingProtection) &&
+      IsWebContentsSharingBlocked(WebContents::FromRenderFrameHost(host))) {
+    if (can_refresh()) {
+      UpdateSourcePreview(previewed_source_.value(), gfx::ImageSkia());
+    }
+    return;
+  }
+#endif
+
+  content::RenderWidgetHostView* const view = host ? host->GetView() : nullptr;
+  if (!view) {
+    // Clear the preview image, so that we don't have a stale image for eg
+    // crashed tabs.
+    UpdateSourcePreview(previewed_source_.value(), gfx::ImageSkia());
+    return;
+  }
+
+  view->CopyFromSurface(
+      gfx::Rect(), gfx::Size(), base::TimeDelta(),
+      base::BindPostTask(
+          content::GetUIThreadTaskRunner({}),
+          base::BindOnce(&TabDesktopMediaList::ScreenshotReceived,
+                         weak_factory_.GetWeakPtr(), remaining_retries,
+                         previewed_source_.value(),
+                         std::move(refresh_completer))));
+}
+
+void TabDesktopMediaList::ScreenshotReceived(
+    int remaining_retries,
+    const content::DesktopMediaID& id,
+    std::unique_ptr<TabDesktopMediaList::RefreshCompleter> refresh_completer,
+    const content::CopyFromSurfaceResult& result) {
+  CHECK_CURRENTLY_ON(BrowserThread::UI, base::NotFatalUntil::M161);
+  if (id != previewed_source_) {
+    // Selection has changed since triggering this screenshot. Quit early to
+    // avoid rescaling the image unnecessarily.
+    return;
+  }
+
+  // TODO(crbug.com/40187992): Listen for a newly drawn frame to be ready when a
+  // hidden tab is woken up,rather than just retrying after an arbitrary delay.
+  constexpr base::TimeDelta kScreenshotRetryDelayMs = base::Milliseconds(20);
+
+  // It can take a little time after we tell a WebContents it's being captured
+  // by calling IncrementCapturerCount before it starts painting actual frames,
+  // so do a few retries before giving up and proceeding with an empty image
+  // meaning the preview is cleared.
+  if (!result.has_value() && remaining_retries > 0) {
+    content::GetUIThreadTaskRunner({})->PostDelayedTask(
+        FROM_HERE,
+        base::BindOnce(&TabDesktopMediaList::TriggerScreenshot,
+                       weak_factory_.GetWeakPtr(), remaining_retries - 1,
+                       std::move(refresh_completer)),
+        kScreenshotRetryDelayMs);
+    return;
+  }
+
+  auto reply = base::BindOnce(&TabDesktopMediaList::OnPreviewCaptureHandled,
+                              weak_factory_.GetWeakPtr(), id,
+                              std::move(refresh_completer));
+  image_resize_task_runner_.get()->PostTask(
+      FROM_HERE,
+      base::BindOnce(&HandleCapturedBitmap, std::move(reply), last_hash_,
+                     result.has_value() ? result->bitmap : SkBitmap()));
+}
+
+void TabDesktopMediaList::OnPreviewCaptureHandled(
+    const content::DesktopMediaID& media_id,
+    std::unique_ptr<TabDesktopMediaList::RefreshCompleter> refresh_completer,
+    uint32_t new_hash,
+    const gfx::ImageSkia& image) {
+  CHECK_CURRENTLY_ON(BrowserThread::UI, base::NotFatalUntil::M161);
+
+  if (new_hash != last_hash_) {
+    last_hash_ = new_hash;
+    UpdateSourcePreview(media_id, image);
+  }
+}
+
+void TabDesktopMediaList::SetPreviewedSource(
+    const std::optional<content::DesktopMediaID>& id) {
+  CHECK_CURRENTLY_ON(BrowserThread::UI, base::NotFatalUntil::M161);
+  CHECK(!(id.has_value() && id.value().is_null()), base::NotFatalUntil::M161);
+
+  previewed_source_ = id;
+  previewed_source_visible_keepalive_.RunAndReset();
+
+  if (!id.has_value()) {
+    return;
+  }
+
+  content::RenderFrameHost* const host = content::RenderFrameHost::FromID(
+      id->web_contents_id.render_process_id,
+      id->web_contents_id.main_render_frame_id);
+  // Note host may be nullptr, but FromRenderFrameHost handles that for us.
+  WebContents* const source_contents = WebContents::FromRenderFrameHost(host);
+  if (!source_contents) {
+    // No WebContents instance found, likely the selected tab has been recently
+    // closed or crashed and the list of sources hasn't been updated yet.
+    UpdateSourcePreview(id.value(), gfx::ImageSkia());
+    return;
+  }
+
+  // Let the WebContents know that it's being visibly captured, so paints even
+  // in the background. Pass false to stay_hidden to fully wake the page to not
+  // only allow it to load, but also to avoid pages realising they're visible
+  // only in the preview and manipulating the user.
+#if BUILDFLAG(ENTERPRISE_SCREENSHOT_PROTECTION)
+  if (!base::FeatureList::IsEnabled(
+          enterprise_data_protection::kEnableTabSharingProtection) ||
+      !IsWebContentsSharingBlocked(source_contents)) {
+    previewed_source_visible_keepalive_ =
+        source_contents->IncrementCapturerCount(
+            gfx::Size(), /*stay_hidden=*/false, /*stay_awake=*/false,
+            /*is_activity=*/false);
+  }
+#else
+  previewed_source_visible_keepalive_ = source_contents->IncrementCapturerCount(
+      gfx::Size(), /*stay_hidden=*/false, /*stay_awake=*/false,
+      /*is_activity=*/false);
+#endif
+
+  // Capture a new previewed image.
+  // TODO(crbug.com/40187992): Schedule this delayed if there has been another
+  // update recently to avoid churning when a user scrolls quickly through the
+  // list.
+  constexpr int kMaxPreviewRetries = 5;
+  TriggerScreenshot(kMaxPreviewRetries, /*refresh_completer=*/nullptr);
+}
+
+TabDesktopMediaList::RefreshCompleter::RefreshCompleter(
+    base::WeakPtr<TabDesktopMediaList> list)
+    : list_(list) {}
+
+TabDesktopMediaList::RefreshCompleter::~RefreshCompleter() {
+  if (BrowserThread::CurrentlyOn(BrowserThread::UI) && list_) {
+    list_->CompleteRefreshAfterThumbnailProcessing();
+  }
+}

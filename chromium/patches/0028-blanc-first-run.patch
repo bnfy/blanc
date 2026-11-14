@@ -1,0 +1,29 @@
+diff --git a/chrome/browser/prefs/browser_prefs.cc b/chrome/browser/prefs/browser_prefs.cc
+index b8fa6d4..28d96bc 100644
+--- a/chrome/browser/prefs/browser_prefs.cc
++++ b/chrome/browser/prefs/browser_prefs.cc
+@@ -1723,6 +1723,15 @@ void RegisterLocalState(PrefRegistrySimple* registry) {
+   // Interface language (F44): "system" or a selectable language, read once
+   // per launch (blanc/browser/ui/ui_language.h).
+   registry->RegisterStringPref("blanc.ui_language", "system");
++  // First run (F36) and the usage ping's consent (F21): device-wide, as
++  // shipping's are. The preview channel never sends.
++  registry->RegisterDoublePref("blanc.first_run.completed_at", 0);
++  registry->RegisterBooleanPref("blanc.telemetry.usage_ping", true);
++  // The moving-in checklist (N11), device-wide as in shipping.
++  registry->RegisterBooleanPref("blanc.checklist.dismissed", false);
++  registry->RegisterBooleanPref("blanc.checklist.default_done", false);
++  // What's New (F51): shipping's five device-local settings.
++  registry->RegisterDictionaryPref("blanc.whats_new");
+ #endif
+   // Call outs to individual subsystems that register Local State (browser-wide)
+   // prefs en masse. See RegisterProfilePrefs for per-profile prefs. Please
+@@ -2083,6 +2092,8 @@ void RegisterProfilePrefs(user_prefs::PrefRegistrySyncable* registry,
+   // hover, auto-hide it, and how a hidden Island comes back.
+   // Shipping's islandSize (#1292): default, large or extra-large.
+   registry->RegisterStringPref("blanc.island.size", "default");
++  // Tab Archive's first-run offer (F52 spec D5); F52 itself is S3.
++  registry->RegisterStringPref("blanc.tabs.archive", "off");
+   // The Start Page's weekly blocked counter (shipping's adblock-stats.json).
+   registry->RegisterDictionaryPref("blanc.blocking.week_stats");
+   registry->RegisterBooleanPref("blanc.island.hover_open", false);

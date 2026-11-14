@@ -1,0 +1,22 @@
+{
+  "README.md": "b3bc98fd05b16504ae68b6ed6d3fda5ff8d7a1baa45b4f16fe5949adb842a366",
+  "app-unit-after-dependencies.log.gz": "7c541d43ec413a70dc42b93fc247841fdffd97a5f9e7798ee7da2bd95399a447",
+  "audit-after-0.json": "c5680f0c626febbad21dabcadef5e76ff11d0e069ce6965d35ad97b25f0fe56b",
+  "audit-after-1.json": "238c5dc99b841ef02a5ec5a7ac79f70dac375d8ea0d7fd44f1e645b236fc1235",
+  "audit-after-2.json": "2ba174dba3d8660de1a3e9a147662992d51b4bc841e9925a8bae9db587d58f6e",
+  "audit-after-3.json": "e78f9f3a255ee9438e98a245b211df692f248755ddfbc40b5f24f457484a74bd",
+  "audit-before-0.json": "0422f723e16e11179534684cb76480b4ab0d825536890da31c3486e1fe356465",
+  "audit-before-1.json": "6a3a5a7a71b4ec8d4022a14444296d81ff11b2934013d6799a9850aa5ab073b6",
+  "audit-before-2.json": "223192c00e9be7112f0b2106ce1100803359ec230c5f4f4d5ec5b3bae17a5465",
+  "audit-before-3.json": "59a03c94cb35be3b4b8dd785f2e7ca15afdd59c6f2cb7332d1895ba269274cc3",
+  "ci-substrate-9ce2d81f.log.gz": "160a95bbc0bdc417ed19794d203804e1a7396537f538c20f5fa57463b44509fe",
+  "companion-lint-after.log.gz": "5599c5a25417ca8b55d5ec1e51f44a60034392596be48ae7e83cf95f53e726e2",
+  "current-compliance.log.gz": "4e8c93a3c243f007ca139c34199b84daa0ed8817d999484cbdee4cee4084c909",
+  "current-dependency-policy.log.gz": "919e78c3d7383a3d042e807de1656f62e7e6e443c16a0b369c80a2954c6034e4",
+  "dependency-policy-after.log.gz": "c74483f6697ac51aac77a0a8e82c0d460e549c664956845f1fdbd2f2aaec3b26",
+  "lock-validation.log.gz": "9503dd838fab70d9235c38318d097fc17f9cdf5607aaa4c4e64d25f766b4def6",
+  "post-quarantine-scoped-unit.log.gz": "c663bc9d3af659a1b3b6def7dea654b7eb49126a131fe80ad3020621fa7946c4",
+  "site-build-after.log.gz": "4f5e5c09bb0f656eb9f6f66c4a2ac00a2aca20bf4b2eaa4d7f00a870743b603c",
+  "summary.json": "9b21d1a6020abc081b094a8d4102351b2d24a978881e2a8f92b484a06088b8ac",
+  "worker-runtime-after.log.gz": "73faf731de5ff2cb0a6010d6a07b130559689af954a4b875684b83107d058b3f"
+}

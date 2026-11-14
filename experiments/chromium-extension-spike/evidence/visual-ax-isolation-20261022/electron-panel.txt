@@ -1,0 +1,48 @@
+The following is a diff from the previous accessibility tree for Window: "Blanc" with ~ and + representing changed and added elements, respectively. Removed elements are summarized by ID range.
++			740 HTML content Blanc Overlay, URL: blanc-chrome://overlay/
++				741 container
++					742 container
++						743 button Connection is secure
++							744 image
++						745 text field (settable) Value: https://example.com/, Placeholder: Search, enter address, or / for commands
++						746 button Back
++							747 image
++						748 button (disabled) Forward
++							749 image
++						750 button Reload
++							751 image
++						752 button Favorite this page (Ctrl/Cmd+D)
++							753 image
++						754 button Collapse island
++							755 image
++						756 container Example Domain
++							757 button Switch to Example Domain, example.com
++								758 text E
++								759 text Example Domain
++							760 button Pin tab
++								761 image
++							762 button Close tab
++								763 image
++						764 button New tab ⌘T
++							765 image
++							766 text New tab
++							767 text ⌘T
++						768 button Private
++							769 image
++							770 text Private
++						771 pop up button Spaces
++						772 button Favorites
++							773 image
++						774 button History
++							775 image
++						776 button Downloads
++							777 image
++						778 toggle button Description: Vertical tabs, Value: 0
++						779 button Settings
++							780 image
++	781 menu button Window sharing
+Selected text: ```
+https://example.com/
+```
+
+Note: Pay special attention to the content selected by the user. If the user asks a question or refers to the content they are looking at on-screen, they might be referring to the selected content (but they might be referring to something else that's visible, too).

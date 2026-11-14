@@ -1,0 +1,9 @@
+{
+  "root": "/private/tmp/blanc-ubo-runtime-8pWODC",
+  "scope": "offline admission only",
+  "backgroundPages": [],
+  "error": "Error: No uBO background target",
+  "passed": false,
+  "rejectedRequests": 20,
+  "profileRemoved": true
+}

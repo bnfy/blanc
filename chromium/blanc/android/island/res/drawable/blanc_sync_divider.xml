@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright 2026 Bananify Creative. MIT; see LICENSE. -->
+<!-- The hairline between a card's rows. -->
+<inset xmlns:android="http://schemas.android.com/apk/res/android"
+    android:insetLeft="@dimen/blanc_sync_row_padding_horizontal">
+    <shape android:shape="rectangle">
+        <solid android:color="@color/blanc_sunrise_border" />
+        <size android:height="1dp" />
+    </shape>
+</inset>

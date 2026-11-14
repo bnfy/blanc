@@ -1,0 +1,10 @@
+{
+  "native_source": {
+    "path": "/private/tmp/blanc-chromium157-update/src/content/browser/devtools/devtools_url_loader_interceptor.cc",
+    "sha256": "6874e8e9e77c769938962bad6826ed9b6995fc7a0c925afac12656c934e9d537"
+  },
+  "framework": {
+    "path": "/private/tmp/blanc-chromium157-update/src/out/BlancPrototype/Blanc Prototype.app/Contents/Frameworks/Blanc Prototype Framework.framework/Blanc Prototype Framework",
+    "sha256": "f2267d0cba25e839ad810197c5c23de4bf97d0ea6707077187e8dbd48e3b2340"
+  }
+}

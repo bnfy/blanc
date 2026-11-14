@@ -1,0 +1,7 @@
+{
+  "complete": false,
+  "signedAcceptance": false,
+  "checks": [],
+  "stage": "waiting-for-build",
+  "error": "Build failed; no runtime checks launched"
+}

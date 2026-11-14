@@ -1,0 +1,66 @@
+{
+  "app": "/private/tmp/blanc-preview-notarization-local/Blanc Chromium Preview.app",
+  "profile": "/private/tmp/blanc-signed-preview-20261022/checks/isolated-home/Library/Application Support/Blanc Chromium Preview",
+  "mockKeychain": true,
+  "checks": [
+    {
+      "name": "fresh separate default profile",
+      "pass": true,
+      "details": {
+        "urls": [
+          "blanc://newtab/"
+        ],
+        "selected": 0
+      }
+    },
+    {
+      "name": "three settled tabs",
+      "pass": true,
+      "details": {
+        "urls": [
+          "blanc://newtab/",
+          "http://127.0.0.1:9780/a",
+          "http://127.0.0.1:9780/b"
+        ],
+        "selected": 1
+      }
+    },
+    {
+      "name": "clean restart preserves order and selection",
+      "pass": true,
+      "details": {
+        "urls": [
+          "blanc://newtab/",
+          "http://127.0.0.1:9780/a",
+          "http://127.0.0.1:9780/b"
+        ],
+        "selected": 1
+      }
+    },
+    {
+      "name": "loading close acknowledged",
+      "pass": true,
+      "details": {
+        "urls": [
+          "blanc://newtab/",
+          "http://127.0.0.1:9780/a",
+          "http://127.0.0.1:9780/b"
+        ],
+        "selected": 1
+      }
+    },
+    {
+      "name": "post-ack crash restores survivors",
+      "pass": true,
+      "details": {
+        "urls": [
+          "blanc://newtab/",
+          "http://127.0.0.1:9780/a",
+          "http://127.0.0.1:9780/b"
+        ],
+        "selected": 1
+      }
+    }
+  ],
+  "complete": true
+}

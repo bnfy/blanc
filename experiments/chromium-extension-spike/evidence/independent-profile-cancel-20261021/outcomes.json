@@ -1,0 +1,14 @@
+[
+  {
+    "mode": "clear",
+    "pass": true,
+    "checkpoints": 46,
+    "independent_cycles": 3
+  },
+  {
+    "mode": "encrypted",
+    "pass": true,
+    "checkpoints": 46,
+    "independent_cycles": 3
+  }
+]

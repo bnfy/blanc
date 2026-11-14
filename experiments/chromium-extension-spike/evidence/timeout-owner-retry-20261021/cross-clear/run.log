@@ -1,0 +1,14 @@
+{
+  pass: false,
+  checks: 12,
+  error: 'AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:\n' +
+    '+ actual - expected\n' +
+    '\n' +
+    '  [\n' +
+    '+   0.3,\n' +
+    '+   0.7\n' +
+    '-   0.35,\n' +
+    '-   0.65\n' +
+    '  ]\n' +
+    '    at file:///private/tmp/blanc-timeout-cross-clear/test.mjs:37:203'
+}

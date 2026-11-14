@@ -1,0 +1,22 @@
+[
+  {
+    "mode": "regular",
+    "pid": "36508",
+    "exit": {
+      "code": 0,
+      "signal": null
+    },
+    "process_absent": true,
+    "removed_profile": "/private/tmp/blanc-f12-navigation-20261026/signed/profile-regular"
+  },
+  {
+    "mode": "private",
+    "pid": "36560",
+    "exit": {
+      "code": 0,
+      "signal": null
+    },
+    "process_absent": true,
+    "removed_profile": "/private/tmp/blanc-f12-navigation-20261026/signed/profile-private"
+  }
+]

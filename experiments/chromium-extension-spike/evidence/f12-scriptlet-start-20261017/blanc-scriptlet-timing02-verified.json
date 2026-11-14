@@ -1,0 +1,202 @@
+{
+  "verified": true,
+  "pages": 24,
+  "earlyConstantPasses": 0,
+  "earlyFetchPasses": 0,
+  "documentStartPassed": false,
+  "latencyQualified": false,
+  "observations": [
+    {
+      "label": "electron-a",
+      "mode": "normal",
+      "stage": "cold",
+      "earlyConstant": false,
+      "earlyGetter": false,
+      "earlyFetchPrevented": false
+    },
+    {
+      "label": "electron-a",
+      "mode": "normal",
+      "stage": "reload",
+      "earlyConstant": false,
+      "earlyGetter": false,
+      "earlyFetchPrevented": false
+    },
+    {
+      "label": "electron-a",
+      "mode": "normal",
+      "stage": "fresh",
+      "earlyConstant": false,
+      "earlyGetter": false,
+      "earlyFetchPrevented": false
+    },
+    {
+      "label": "electron-a",
+      "mode": "csp",
+      "stage": "cold",
+      "earlyConstant": false,
+      "earlyGetter": false,
+      "earlyFetchPrevented": false
+    },
+    {
+      "label": "electron-a",
+      "mode": "csp",
+      "stage": "reload",
+      "earlyConstant": false,
+      "earlyGetter": false,
+      "earlyFetchPrevented": false
+    },
+    {
+      "label": "electron-a",
+      "mode": "csp",
+      "stage": "fresh",
+      "earlyConstant": false,
+      "earlyGetter": false,
+      "earlyFetchPrevented": false
+    },
+    {
+      "label": "electron-b",
+      "mode": "normal",
+      "stage": "cold",
+      "earlyConstant": false,
+      "earlyGetter": false,
+      "earlyFetchPrevented": false
+    },
+    {
+      "label": "electron-b",
+      "mode": "normal",
+      "stage": "reload",
+      "earlyConstant": false,
+      "earlyGetter": false,
+      "earlyFetchPrevented": false
+    },
+    {
+      "label": "electron-b",
+      "mode": "normal",
+      "stage": "fresh",
+      "earlyConstant": false,
+      "earlyGetter": false,
+      "earlyFetchPrevented": false
+    },
+    {
+      "label": "electron-b",
+      "mode": "csp",
+      "stage": "cold",
+      "earlyConstant": false,
+      "earlyGetter": false,
+      "earlyFetchPrevented": false
+    },
+    {
+      "label": "electron-b",
+      "mode": "csp",
+      "stage": "reload",
+      "earlyConstant": false,
+      "earlyGetter": false,
+      "earlyFetchPrevented": false
+    },
+    {
+      "label": "electron-b",
+      "mode": "csp",
+      "stage": "fresh",
+      "earlyConstant": false,
+      "earlyGetter": false,
+      "earlyFetchPrevented": false
+    },
+    {
+      "label": "chromium-a",
+      "mode": "normal",
+      "stage": "cold",
+      "earlyConstant": false,
+      "earlyGetter": false,
+      "earlyFetchPrevented": false
+    },
+    {
+      "label": "chromium-a",
+      "mode": "normal",
+      "stage": "reload",
+      "earlyConstant": false,
+      "earlyGetter": false,
+      "earlyFetchPrevented": false
+    },
+    {
+      "label": "chromium-a",
+      "mode": "normal",
+      "stage": "fresh",
+      "earlyConstant": false,
+      "earlyGetter": false,
+      "earlyFetchPrevented": false
+    },
+    {
+      "label": "chromium-a",
+      "mode": "csp",
+      "stage": "cold",
+      "earlyConstant": false,
+      "earlyGetter": false,
+      "earlyFetchPrevented": false
+    },
+    {
+      "label": "chromium-a",
+      "mode": "csp",
+      "stage": "reload",
+      "earlyConstant": false,
+      "earlyGetter": false,
+      "earlyFetchPrevented": false
+    },
+    {
+      "label": "chromium-a",
+      "mode": "csp",
+      "stage": "fresh",
+      "earlyConstant": false,
+      "earlyGetter": false,
+      "earlyFetchPrevented": false
+    },
+    {
+      "label": "chromium-b",
+      "mode": "normal",
+      "stage": "cold",
+      "earlyConstant": false,
+      "earlyGetter": false,
+      "earlyFetchPrevented": false
+    },
+    {
+      "label": "chromium-b",
+      "mode": "normal",
+      "stage": "reload",
+      "earlyConstant": false,
+      "earlyGetter": false,
+      "earlyFetchPrevented": false
+    },
+    {
+      "label": "chromium-b",
+      "mode": "normal",
+      "stage": "fresh",
+      "earlyConstant": false,
+      "earlyGetter": false,
+      "earlyFetchPrevented": false
+    },
+    {
+      "label": "chromium-b",
+      "mode": "csp",
+      "stage": "cold",
+      "earlyConstant": false,
+      "earlyGetter": false,
+      "earlyFetchPrevented": false
+    },
+    {
+      "label": "chromium-b",
+      "mode": "csp",
+      "stage": "reload",
+      "earlyConstant": false,
+      "earlyGetter": false,
+      "earlyFetchPrevented": false
+    },
+    {
+      "label": "chromium-b",
+      "mode": "csp",
+      "stage": "fresh",
+      "earlyConstant": false,
+      "earlyGetter": false,
+      "earlyFetchPrevented": false
+    }
+  ]
+}

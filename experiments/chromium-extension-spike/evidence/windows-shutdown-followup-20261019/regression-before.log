@@ -1,0 +1,117 @@
+TAP version 13
+# Subtest: authorized helper sender requires live wc, exact URL, and token
+ok 1 - authorized helper sender requires live wc, exact URL, and token
+  ---
+  duration_ms: 0.302542
+  ...
+# Subtest: display-capture-broker revokes the captured contents after its window is destroyed
+not ok 2 - display-capture-broker revokes the captured contents after its window is destroyed
+  ---
+  duration_ms: 0.599
+  location: '/private/tmp/blanc-chromium157-work/test/unit/display-capture-broker-guard.test.js:27:3'
+  failureType: 'testCodeFailure'
+  error: |-
+    Got unwanted exception.
+    Actual message: "Object has been destroyed"
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  actual:
+  error: 'Object has been destroyed'
+  stack: |-
+    get webContents (/private/tmp/blanc-chromium157-work/test/unit/display-capture-broker-guard.test.js:35:30)
+    EventEmitter.<anonymous> (/private/tmp/blanc-chromium157-work/src/main/display-capture-broker.js:103:62)
+    EventEmitter.emit (node:events:518:28)
+    /private/tmp/blanc-chromium157-work/test/unit/display-capture-broker-guard.test.js:46:34
+    getActual (node:assert:840:5)
+    Function.doesNotThrow (node:assert:1006:32)
+    TestContext.<anonymous> (/private/tmp/blanc-chromium157-work/test/unit/display-capture-broker-guard.test.js:46:12)
+    Test.runInAsyncScope (node:async_hooks:211:14)
+    Test.run (node:internal/test_runner/test:979:25)
+    Test.processPendingSubtests (node:internal/test_runner/test:677:18)
+  operator: 'doesNotThrow'
+  stack: |-
+    TestContext.<anonymous> (/private/tmp/blanc-chromium157-work/test/unit/display-capture-broker-guard.test.js:46:12)
+    Test.runInAsyncScope (node:async_hooks:211:14)
+    Test.run (node:internal/test_runner/test:979:25)
+    Test.processPendingSubtests (node:internal/test_runner/test:677:18)
+    Test.postRun (node:internal/test_runner/test:1090:19)
+    Test.run (node:internal/test_runner/test:1018:12)
+    async startSubtestAfterBootstrap (node:internal/test_runner/harness:296:3)
+  ...
+# Subtest: display-capture-broker-linux revokes the captured contents after its window is destroyed
+not ok 3 - display-capture-broker-linux revokes the captured contents after its window is destroyed
+  ---
+  duration_ms: 0.383375
+  location: '/private/tmp/blanc-chromium157-work/test/unit/display-capture-broker-guard.test.js:27:3'
+  failureType: 'testCodeFailure'
+  error: |-
+    Got unwanted exception.
+    Actual message: "Object has been destroyed"
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  actual:
+  error: 'Object has been destroyed'
+  stack: |-
+    get webContents (/private/tmp/blanc-chromium157-work/test/unit/display-capture-broker-guard.test.js:35:30)
+    EventEmitter.<anonymous> (/private/tmp/blanc-chromium157-work/src/main/display-capture-broker-linux.js:103:62)
+    EventEmitter.emit (node:events:518:28)
+    /private/tmp/blanc-chromium157-work/test/unit/display-capture-broker-guard.test.js:46:34
+    getActual (node:assert:840:5)
+    Function.doesNotThrow (node:assert:1006:32)
+    TestContext.<anonymous> (/private/tmp/blanc-chromium157-work/test/unit/display-capture-broker-guard.test.js:46:12)
+    Test.runInAsyncScope (node:async_hooks:211:14)
+    Test.run (node:internal/test_runner/test:979:25)
+    Test.processPendingSubtests (node:internal/test_runner/test:677:18)
+  operator: 'doesNotThrow'
+  stack: |-
+    TestContext.<anonymous> (/private/tmp/blanc-chromium157-work/test/unit/display-capture-broker-guard.test.js:46:12)
+    Test.runInAsyncScope (node:async_hooks:211:14)
+    Test.run (node:internal/test_runner/test:979:25)
+    Test.processPendingSubtests (node:internal/test_runner/test:677:18)
+    Test.postRun (node:internal/test_runner/test:1090:19)
+    Test.run (node:internal/test_runner/test:1018:12)
+    async Test.processPendingSubtests (node:internal/test_runner/test:677:7)
+  ...
+# Subtest: display-capture-broker-playout revokes the captured contents after its window is destroyed
+not ok 4 - display-capture-broker-playout revokes the captured contents after its window is destroyed
+  ---
+  duration_ms: 0.468541
+  location: '/private/tmp/blanc-chromium157-work/test/unit/display-capture-broker-guard.test.js:27:3'
+  failureType: 'testCodeFailure'
+  error: |-
+    Got unwanted exception.
+    Actual message: "Object has been destroyed"
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  actual:
+  error: 'Object has been destroyed'
+  stack: |-
+    get webContents (/private/tmp/blanc-chromium157-work/test/unit/display-capture-broker-guard.test.js:35:30)
+    EventEmitter.<anonymous> (/private/tmp/blanc-chromium157-work/src/main/display-capture-broker-playout.js:99:62)
+    EventEmitter.emit (node:events:518:28)
+    /private/tmp/blanc-chromium157-work/test/unit/display-capture-broker-guard.test.js:46:34
+    getActual (node:assert:840:5)
+    Function.doesNotThrow (node:assert:1006:32)
+    TestContext.<anonymous> (/private/tmp/blanc-chromium157-work/test/unit/display-capture-broker-guard.test.js:46:12)
+    Test.runInAsyncScope (node:async_hooks:211:14)
+    Test.run (node:internal/test_runner/test:979:25)
+    Test.processPendingSubtests (node:internal/test_runner/test:677:18)
+  operator: 'doesNotThrow'
+  stack: |-
+    TestContext.<anonymous> (/private/tmp/blanc-chromium157-work/test/unit/display-capture-broker-guard.test.js:46:12)
+    Test.runInAsyncScope (node:async_hooks:211:14)
+    Test.run (node:internal/test_runner/test:979:25)
+    Test.processPendingSubtests (node:internal/test_runner/test:677:18)
+    Test.postRun (node:internal/test_runner/test:1090:19)
+    Test.run (node:internal/test_runner/test:1018:12)
+    async Test.processPendingSubtests (node:internal/test_runner/test:677:7)
+  ...
+1..4
+# tests 4
+# suites 0
+# pass 1
+# fail 3
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 36.701959

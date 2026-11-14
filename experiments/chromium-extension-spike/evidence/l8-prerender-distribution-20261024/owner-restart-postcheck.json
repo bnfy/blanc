@@ -1,0 +1,31 @@
+{
+  "runningCandidate": {
+    "pid": 34095,
+    "app": "/private/var/folders/4x/r7mr2b5d4q53x8nbf_trvcxw0000gn/T/AppTranslocation/EF685C85-BC7F-478B-879B-9DBF985D155C/d/Blanc Chromium Preview-2.app",
+    "source": "14706b0e8d4753d2a7ef35ea32a875b516366b0d",
+    "userDataDir": [
+      "/Users/anthonyjloria/Library/Application Support/Blanc Chromium Preview"
+    ],
+    "regularFilesMatched": 458,
+    "symlinksMatched": 5
+  },
+  "savedSessions": [
+    {
+      "file": "Session_13437334374410057",
+      "tabRecords": 3,
+      "exampleNavigationUrls": [
+        "https://example.com/",
+        "https://example.org/"
+      ]
+    },
+    {
+      "file": "Session_13437334378543719",
+      "tabRecords": 3,
+      "exampleNavigationUrls": [
+        "https://example.com/",
+        "https://example.org/"
+      ]
+    }
+  ],
+  "inspection": "Read-only; no restart/profile mutation performed"
+}

@@ -1,0 +1,877 @@
+--- a/chrome/browser/extensions/api/settings_private/prefs_util.cc
++++ b/chrome/browser/extensions/api/settings_private/prefs_util.cc
+@@ -226,6 +226,7 @@
+   // Blanc's own controls (S1.7): the Island, Bangs and Blocking switches.
+   // Their readers normalize what they read, as for Blanc's own pages.
+   (*s_allowlist)["blanc.island.size"] = settings_api::PrefType::kString;
++  (*s_allowlist)["blanc.vertical_tabs.text_size"] = settings_api::PrefType::kString;
+   (*s_allowlist)["blanc.app_icon"] = settings_api::PrefType::kString;
+   (*s_allowlist)["blanc.island.hover_open"] = settings_api::PrefType::kBoolean;
+   (*s_allowlist)["blanc.island.auto_hide"] = settings_api::PrefType::kBoolean;
+--- a/chrome/browser/prefs/browser_prefs.cc
++++ b/chrome/browser/prefs/browser_prefs.cc
+@@ -2099,6 +2099,7 @@
+   // hover, auto-hide it, and how a hidden Island comes back.
+   // Shipping's islandSize (#1292): default, large or extra-large.
+   registry->RegisterStringPref("blanc.island.size", "default");
++  registry->RegisterStringPref("blanc.vertical_tabs.text_size", "default");
+   // Tab Archive's first-run offer (F52 spec D5); F52 itself is S3.
+   registry->RegisterStringPref("blanc.tabs.archive", "off");
+   registry->RegisterDictionaryPref("blanc.spaces.meta");
+--- a/chrome/browser/resources/settings/BUILD.gn
++++ b/chrome/browser/resources/settings/BUILD.gn
+@@ -51,6 +51,7 @@
+ 
+   # -----------------web_component_files start ---------------------------------
+   web_component_files = [
++    "blanc_sync_page/blanc_sync_page.ts",
+     "controls/collapse_radio_button.ts",
+     "controls/controlled_radio_button.ts",
+     "controls/settings_checkbox.ts",
+@@ -564,6 +565,7 @@
+   }
+ 
+   css_files = [
++    "blanc_sync_page/blanc_sync_page.css",
+     "settings_columned_section.css",
+     "settings_columned_section_lit.css",
+     "settings_shared.css",
+--- a/chrome/browser/resources/settings/appearance_page/appearance_page.html.ts
++++ b/chrome/browser/resources/settings/appearance_page/appearance_page.html.ts
+@@ -79,6 +79,17 @@
+           </option>
+         `)}
+       </select>
++    </div>
++    <div class="cr-row">
++      <div class="flex cr-padded-text" aria-hidden="true">
++        <div>$i18n{blancVerticalTabsTextSize}</div>
++        <div class="secondary">$i18n{blancVerticalTabsTextSizeHint}</div>
++      </div>
++      <settings-dropdown-menu id="blancVerticalTabsTextSize" no-label-float
++          pref-key="blanc.vertical_tabs.text_size"
++          label="$i18n{blancVerticalTabsTextSize}"
++          .menuOptions="${this.blancIslandSizeOptions_}">
++      </settings-dropdown-menu>
+     </div>
+     <!-- Blanc's Island (S1.7). -->
+     <div id="blancIslandSizeRow" class="cr-row">
+--- a/chrome/browser/resources/settings/blanc_settings_proxy.ts
++++ b/chrome/browser/resources/settings/blanc_settings_proxy.ts
+@@ -280,3 +280,66 @@
+   }
+ });
+ loadBlancFont().catch(() => {});
++
++// Desktop Sync has its own allowlisted native boundary. Credentials are sent
++// once, never retained in a shared proxy or returned in status/listener data.
++export interface BlancSyncStatus {
++  enabled: boolean;
++  handle: string;
++  lastSyncedAt: number;
++  lastError: string|null;
++  origin: string;
++  recoveryPromptDismissed: boolean;
++}
++
++export interface BlancSyncState {
++  available: boolean;
++  status: BlancSyncStatus|null;
++  pendingFirstUpload: number;
++  error?: string;
++}
++
++export interface BlancSyncResult {
++  ok: boolean;
++  error?: string;
++  outcome?: string;
++  status?: BlancSyncStatus;
++}
++
++export interface BlancSyncEvent {
++  event: 'status'|'first-upload'|'desktop-error';
++  value: BlancSyncStatus|{count: number}|string;
++  pendingFirstUpload: number;
++}
++
++export type BlancSyncMethod = 'sync.startNew'|'sync.joinWithCode'|
++    'sync.preflight'|'sync.enable'|'sync.syncNow'|'sync.disable'|'sync.status';
++
++interface BlancSyncReply<T> {
++  ok: boolean;
++  value?: T;
++  error?: string;
++}
++
++export const blancSync = {
++  state: () => sendWithPromise<BlancSyncState>('blancSyncState'),
++  async call<T = BlancSyncResult>(method: BlancSyncMethod, args: unknown[] = []):
++      Promise<T> {
++    const reply = await sendWithPromise<BlancSyncReply<T>>(
++        'blancSyncCall', method, JSON.stringify(args));
++    if (!reply.ok) {
++      throw new Error(reply.error || 'sync-call-failed');
++    }
++    return reply.value as T;
++  },
++  async confirmFirstUpload(accept: boolean): Promise<void> {
++    const reply = await sendWithPromise<BlancSyncReply<never>>(
++        'blancSyncConfirmFirstUpload', accept);
++    if (!reply.ok) {
++      throw new Error(reply.error || 'sync-confirm-failed');
++    }
++  },
++  listen: (callback: (event: BlancSyncEvent) => void): WebUiListener =>
++      addWebUiListener('blanc-sync-changed', callback),
++  stopListening: (listener: WebUiListener) => removeWebUiListener(listener),
++};
+--- /dev/null
++++ b/chrome/browser/resources/settings/blanc_sync_page/blanc_sync_page.css
+@@ -0,0 +1,91 @@
++/* Copyright 2026 Bananify Creative. MIT; see LICENSE. */
++
++/* #css_wrapper_metadata_start
++ * #type=style-lit
++ * #css_wrapper_metadata_end */
++
++:host {
++  display: block;
++}
++
++[hidden] {
++  display: none !important;
++}
++
++.sync-content {
++  padding: var(--cr-section-padding);
++}
++
++.secondary {
++  color: var(--cr-secondary-text-color);
++}
++
++h2 {
++  font-size: 1em;
++  font-weight: 500;
++}
++
++form,
++ section,
++ details {
++  border-top: var(--cr-separator-line);
++  margin-top: 20px;
++  padding-top: 16px;
++}
++
++summary {
++  cursor: pointer;
++  margin-bottom: 12px;
++}
++
++label {
++  display: block;
++  margin-bottom: 8px;
++}
++
++input {
++  background: var(--color-textfield-filled-background);
++  border: var(--cr-separator-line);
++  border-radius: 8px;
++  box-sizing: border-box;
++  color: var(--cr-primary-text-color);
++  font: inherit;
++  max-width: 420px;
++  padding: 10px;
++  width: 100%;
++}
++
++button {
++  background: var(--color-button-background-prominent);
++  border: 1px solid transparent;
++  border-radius: 8px;
++  color: var(--color-button-foreground-prominent);
++  cursor: pointer;
++  font: inherit;
++  min-height: 36px;
++  padding: 8px 16px;
++}
++
++button:disabled {
++  cursor: default;
++  opacity: 0.5;
++}
++
++input:focus-visible,
++ button:focus-visible,
++ summary:focus-visible {
++  outline: 2px solid var(--cr-focus-outline-color);
++  outline-offset: 2px;
++}
++
++cr-button,
++ button {
++  margin-bottom: 8px;
++  margin-inline-end: 8px;
++}
++
++#syncError,
++ #syncLastError {
++  color: var(--cr-primary-text-color);
++  overflow-wrap: anywhere;
++}
+--- /dev/null
++++ b/chrome/browser/resources/settings/blanc_sync_page/blanc_sync_page.html
+@@ -0,0 +1,112 @@
++<settings-section page-title="$i18n{blancSyncTitle}" section="blancSync">
++  <div class="cr-centered-card">
++    <div class="sync-content" aria-busy="${this.busy_ ? 'true' : 'false'}">
++      <p id="syncStatus" role="status">${this.statusText_()}</p>
++      <p class="secondary">$i18n{blancSyncScope}</p>
++      <cr-button id="syncRetry" ?hidden="${!!this.state_?.status || this.state_?.available === false}"
++          @click="${this.onRetryClick_}">$i18n{blancSyncTryAgain}</cr-button>
++
++      <div id="syncOff" ?hidden="${!this.state_?.available || !this.state_?.status || this.state_.status.enabled}">
++        <div id="syncPaths" ?hidden="${this.path_ !== ''}">
++          <h2>$i18n{blancSyncOffTitle}</h2>
++          <cr-button id="syncTurnOn" class="action-button"
++              ?disabled="${this.busy_}" @click="${this.onTurnOnClick_}">
++            $i18n{blancSyncTurnOn}
++          </cr-button>
++          <p>$i18n{blancSyncHaveCode}</p>
++          <cr-button id="syncPathCode" ?disabled="${this.busy_}"
++              @click="${this.onChooseCodeClick_}">$i18n{blancSyncAddCode}</cr-button>
++          <details id="syncOtherWays">
++            <summary>$i18n{blancSyncOtherWays}</summary>
++            <cr-button id="syncPathJoin" ?disabled="${this.busy_}"
++                @click="${this.onChoosePassphraseClick_}">
++              $i18n{blancSyncUsePassphrase}
++            </cr-button>
++            <cr-button id="syncPathStart" ?disabled="${this.busy_}"
++                @click="${this.onChooseStartClick_}">
++              $i18n{blancSyncStartWithPassphrase}
++            </cr-button>
++            <p class="secondary">$i18n{blancSyncStartOnlyFirstDevice}</p>
++          </details>
++        </div>
++
++        <form id="syncCodeForm" ?hidden="${this.path_ !== 'code'}"
++            @submit="${this.onSetupSubmit_}">
++          <label for="syncCode">$i18n{blancSyncCodeTitle}</label>
++          <input id="syncCode" type="text" autocomplete="off" spellcheck="false"
++              maxlength="8192" aria-describedby="syncCodeHint syncError"
++              ?disabled="${this.busy_}" @input="${this.onCodeInput_}">
++          <p id="syncCodeHint" class="secondary">$i18n{blancSyncCodeHint}</p>
++          <button id="syncCodeConnect" type="submit"
++              ?disabled="${this.busy_ || !this.codeValid_}">
++            $i18n{blancSyncConnect}
++          </button>
++          <cr-button id="syncUsePassphrase" ?disabled="${this.busy_}"
++              @click="${this.onChoosePassphraseClick_}">
++            $i18n{blancSyncUsePassphraseInstead}
++          </cr-button>
++        </form>
++
++        <form id="syncNameForm" ?hidden="${this.path_ !== 'passphrase' && this.path_ !== 'start'}"
++            @submit="${this.onSetupSubmit_}">
++          <p>${this.path_ === 'start' ? '$i18n{blancSyncStartIntro}' : '$i18n{blancSyncJoinIntro}'}</p>
++          <label for="syncHandle">$i18n{blancSyncName}</label>
++          <input id="syncHandle" type="text" autocomplete="off" spellcheck="false"
++              maxlength="256" aria-describedby="syncHandleHint"
++              ?disabled="${this.busy_}" @input="${this.onCredentialsInput_}">
++          <p id="syncHandleHint" class="secondary">$i18n{blancSyncHandleHint}</p>
++          <label for="syncPassphrase">$i18n{blancSyncPassphrase}</label>
++          <input id="syncPassphrase" type="password" autocomplete="off"
++              maxlength="4096" aria-describedby="syncPassphraseHint"
++              ?disabled="${this.busy_}" @input="${this.onCredentialsInput_}">
++          <p id="syncPassphraseHint" class="secondary">$i18n{blancSyncPassphraseHint}</p>
++          <button id="syncNameConnect" type="submit"
++              ?disabled="${this.busy_ || !this.credentialsValid_}">
++            $i18n{blancSyncConnect}
++          </button>
++        </form>
++        <cr-button id="syncBack" ?hidden="${this.path_ === ''}"
++            ?disabled="${this.busy_}" @click="${this.onBackClick_}">
++          $i18n{blancSyncBack}
++        </cr-button>
++      </div>
++
++      <div id="syncOn" ?hidden="${!this.state_?.status?.enabled}">
++        <p id="syncAccount">${this.state_?.status?.handle ?? ''}</p>
++        <cr-button id="syncNow" ?disabled="${this.busy_}"
++            @click="${this.onSyncNowClick_}">$i18n{blancSyncNow}</cr-button>
++        <p class="secondary">$i18n{blancSyncTurnOffHint}</p>
++        <cr-button id="syncDisable" ?disabled="${this.busy_ || this.confirming_}"
++            @click="${this.onTurnOffClick_}">$i18n{blancSyncDisable}</cr-button>
++      </div>
++
++      <section id="syncFirstUpload" aria-labelledby="syncFirstUploadTitle"
++          ?hidden="${!this.state_?.status?.enabled || !this.state_?.pendingFirstUpload}">
++        <h2 id="syncFirstUploadTitle">$i18n{blancSyncFirstUploadTitle}</h2>
++        <p id="syncFirstUploadCount" role="status">${this.firstUploadText_()}</p>
++        <cr-button id="syncFirstUploadContinue" class="action-button"
++            ?disabled="${this.busy_ || this.confirming_}" @click="${this.onAcceptUploadClick_}">
++          $i18n{blancSyncContinue}
++        </cr-button>
++        <cr-button id="syncFirstUploadNotNow"
++            ?disabled="${this.busy_ || this.confirming_}" @click="${this.onDeclineUploadClick_}">
++          $i18n{blancSyncNotNow}
++        </cr-button>
++      </section>
++
++      <section id="syncRecoveryPrompt" aria-labelledby="syncRecoveryTitle"
++          ?hidden="${!this.state_?.status?.enabled || this.state_.status.origin !== 'generated' || this.state_.status.recoveryPromptDismissed}">
++        <h2 id="syncRecoveryTitle">$i18n{blancSyncRecoveryTitle}</h2>
++        <p>$i18n{blancSyncRecoveryBody}</p>
++        <p class="secondary">$i18n{blancSyncRecoveryUnavailable}</p>
++      </section>
++      <p id="syncBusy" role="status" ?hidden="${!this.busy_}">
++        ${this.state_?.status?.enabled ? '$i18n{blancSyncSyncing}' : '$i18n{blancSyncChecking}'}
++      </p>
++      <p id="syncError" role="alert" ?hidden="${!this.notice_}">${this.notice_}</p>
++      <p id="syncLastError" role="status" ?hidden="${!this.state_?.status?.lastError}">
++        $i18n{blancSyncLastError}: ${this.state_?.status?.lastError ? this.errorText_(this.state_.status.lastError) : ''}
++      </p>
++    </div>
++  </div>
++</settings-section>
+--- /dev/null
++++ b/chrome/browser/resources/settings/blanc_sync_page/blanc_sync_page.ts
+@@ -0,0 +1,365 @@
++// Copyright 2026 Bananify Creative. MIT; see the Blanc repository LICENSE.
++
++import 'chrome://resources/cr_elements/cr_button/cr_button.js';
++import '../settings_page/settings_section.js';
++
++import {getCss as getCrSharedStyle} from 'chrome://resources/cr_elements/cr_shared_style_lit.css.js';
++import type {WebUiListener} from 'chrome://resources/js/cr.js';
++import {CrLitElement} from 'chrome://resources/lit/v3_0/lit.rollup.js';
++
++import {blancString, blancSync} from '../blanc_settings_proxy.js';
++import type {BlancSyncEvent, BlancSyncMethod, BlancSyncResult, BlancSyncState, BlancSyncStatus} from '../blanc_settings_proxy.js';
++import {getSearchManager} from '../search_settings.js';
++import type {SettingsPlugin} from '../settings_main/settings_plugin.js';
++import {getCss as getSettingsSharedLit} from '../settings_shared_lit.css.js';
++
++import {getCss} from './blanc_sync_page.css.js';
++import {getHtml} from './blanc_sync_page.html.js';
++
++export interface BlancSyncPageElement {
++  $: {
++    syncCode: HTMLInputElement,
++    syncHandle: HTMLInputElement,
++    syncPassphrase: HTMLInputElement,
++  };
++}
++
++export class BlancSyncPageElement extends CrLitElement implements
++    SettingsPlugin {
++  static get is() {
++    return 'settings-blanc-sync-page';
++  }
++
++  static override get styles() {
++    return [getCrSharedStyle(), getSettingsSharedLit(), getCss()];
++  }
++
++  override render() {
++    return getHtml.bind(this)();
++  }
++
++  static override get properties() {
++    return {
++      state_: {type: Object},
++      path_: {type: String},
++      busy_: {type: Boolean},
++      notice_: {type: String},
++      codeValid_: {type: Boolean},
++      credentialsValid_: {type: Boolean},
++      confirming_: {type: Boolean},
++    };
++  }
++
++  protected accessor state_: BlancSyncState|null = null;
++  protected accessor path_: ''|'code'|'passphrase'|'start' = '';
++  protected accessor busy_: boolean = false;
++  protected accessor notice_: string = '';
++  protected accessor codeValid_: boolean = false;
++  protected accessor credentialsValid_: boolean = false;
++  protected accessor confirming_: boolean = false;
++  private listener_: WebUiListener|null = null;
++  private lifetime_: number = 0;
++  private revision_: number = 0;
++
++  override connectedCallback() {
++    super.connectedCallback();
++    this.busy_ = false;
++    this.confirming_ = false;
++    this.listener_ = blancSync.listen(event => this.onSyncChanged_(event));
++    void this.refresh_();
++  }
++
++  override disconnectedCallback() {
++    super.disconnectedCallback();
++    ++this.lifetime_;
++    if (this.listener_) {
++      blancSync.stopListening(this.listener_);
++      this.listener_ = null;
++    }
++    this.clearCredentials_();
++  }
++
++  async searchContents(query: string) {
++    const request = await getSearchManager().search(query, this);
++    return request.getSearchResult();
++  }
++
++  private clearCredentials_() {
++    // These fields are always stamped, including when their form is hidden.
++    if (this.hasUpdated) {
++      this.$.syncCode.value = '';
++      this.$.syncPassphrase.value = '';
++    }
++    this.codeValid_ = false;
++    this.credentialsValid_ = false;
++  }
++
++  private onSyncChanged_(event: BlancSyncEvent) {
++    ++this.revision_;
++    const status = event.event === 'status' ? event.value as BlancSyncStatus :
++                                            this.state_?.status ?? null;
++    this.state_ = {available: true, status,
++      pendingFirstUpload: event.pendingFirstUpload};
++    if (event.event === 'first-upload') {
++      this.confirming_ = false;
++    }
++    if (event.event === 'desktop-error') {
++      this.notice_ = this.errorText_(String(event.value));
++      this.confirming_ = false;
++    }
++    if (status?.enabled) {
++      this.path_ = '';
++      this.clearCredentials_();
++    }
++  }
++
++  protected onRetryClick_() {
++    void this.refresh_();
++  }
++
++  private async refresh_() {
++    const lifetime = this.lifetime_;
++    const revision = this.revision_;
++    try {
++      const state = await blancSync.state();
++      if (!this.isConnected || lifetime !== this.lifetime_) {
++        return;
++      }
++      // Don't overwrite a newer listener event with an earlier status read.
++      if (revision === this.revision_) {
++        this.state_ = state;
++      } else if (this.state_ && !this.state_.status && state.status) {
++        this.state_ = {...this.state_, status: state.status};
++      }
++      this.toggleAttribute('blanc-ready', true);
++      if (state.error) {
++        this.notice_ = this.errorText_(state.error);
++      }
++    } catch {
++      if (this.isConnected && lifetime === this.lifetime_) {
++        this.notice_ = blancString('blancSyncCheckFailed');
++      }
++    }
++  }
++
++  protected statusText_(): string {
++    if (!this.state_) {
++      return blancString('blancSyncChecking');
++    }
++    if (!this.state_.available) {
++      return blancString('blancSyncUnavailable');
++    }
++    const status = this.state_.status;
++    if (!status) {
++      return blancString('blancSyncCheckFailed');
++    }
++    if (!status.enabled) {
++      return blancString('blancSyncOff');
++    }
++    const last = status.lastSyncedAt ?
++        blancString('blancSyncLastSynced', {
++          when: new Date(status.lastSyncedAt).toLocaleString(),
++        }) : blancString('blancSyncNotSynced');
++    return `${blancString('blancSyncOn')} ${last}`;
++  }
++
++  protected firstUploadText_(): string {
++    return blancString('blancSyncFirstUploadBody', {
++      count: String(this.state_?.pendingFirstUpload ?? 0),
++    });
++  }
++
++  protected errorText_(error: string): string {
++    const names: Record<string, string> = {
++      'pair-invalid': 'PairInvalid',
++      'pair-not-found': 'PairNotFound',
++      'pair-unavailable': 'PairUnavailable',
++      'offline': 'Offline',
++      'rate-limited': 'RateLimited',
++      'bad-passphrase': 'BadPassphrase',
++      'name-too-short': 'NameTooShort',
++      'weak-passphrase': 'WeakPassphrase',
++      'key-protect-failed': 'KeyProtect',
++      'credentials-save-failed': 'CredentialsSave',
++      'local-key-unlock': 'LocalKeyUnlock',
++      'server': 'Server',
++      'unavailable': 'Unavailable',
++    };
++    return blancString('blancSync' + (names[error] ?? 'CheckFailed'));
++  }
++
++  protected onChooseCodeClick_() {
++    this.choose_('code');
++  }
++
++  protected onChoosePassphraseClick_() {
++    this.choose_('passphrase');
++  }
++
++  protected onChooseStartClick_() {
++    this.choose_('start');
++  }
++
++  protected onBackClick_() {
++    this.choose_('');
++  }
++
++  private choose_(path: ''|'code'|'passphrase'|'start') {
++    if (this.busy_) {
++      return;
++    }
++    this.clearCredentials_();
++    this.path_ = path;
++    this.notice_ = '';
++    void this.updateComplete.then(() => {
++      if (path === 'code') {
++        this.$.syncCode.focus();
++      } else if ((path === 'passphrase' || path === 'start')) {
++        this.$.syncHandle.focus();
++      }
++    });
++  }
++
++  protected onCodeInput_() {
++    const raw = this.$.syncCode.value.trim();
++    const normalized = raw.toUpperCase().replace(/[-\s]/g, '');
++    this.codeValid_ = /^[ABCDEFGHJKMNPQRSTVWXYZ23456789]{8}$/.test(normalized) ||
++        raw.startsWith('blanc-sync:');
++    this.notice_ = raw && !this.codeValid_ ?
++        blancString('blancSyncPairInvalid') : '';
++  }
++
++  protected onCredentialsInput_() {
++    const passphrase = this.$.syncPassphrase.value;
++    const strong = passphrase.length >= 16 ||
++        (passphrase.length >= 10 &&
++         [/[a-z]/, /[A-Z]/, /[0-9]/, /[^a-zA-Z0-9]/]
++             .filter(pattern => pattern.test(passphrase)).length >= 2);
++    this.credentialsValid_ = this.$.syncHandle.value.trim().length >= 2 && strong;
++    this.notice_ = '';
++  }
++
++  // Effects only run in action handlers, never in render or state observers.
++  private async act_(effect: () => Promise<BlancSyncResult>) {
++    if (this.busy_ || !this.state_?.available || !this.state_.status) {
++      return;
++    }
++    this.busy_ = true;
++    this.notice_ = '';
++    const lifetime = this.lifetime_;
++    try {
++      const result = await effect();
++      if (!this.isConnected || lifetime !== this.lifetime_) {
++        return;
++      }
++      if (result.status) {
++        this.state_ = {...this.state_, status: result.status};
++      }
++      if (!result.ok) {
++        this.notice_ = result.outcome === 'notFound' ?
++            blancString('blancSyncNotFound') :
++            this.errorText_(result.error ?? 'unknown');
++      }
++      if (result.status?.enabled) {
++        this.path_ = '';
++      }
++      await this.refresh_();
++    } catch (error) {
++      if (this.isConnected && lifetime === this.lifetime_) {
++        this.notice_ = this.errorText_(
++            error instanceof Error ? error.message : 'unknown');
++      }
++    } finally {
++      if (this.isConnected && lifetime === this.lifetime_) {
++        this.clearCredentials_();
++        this.busy_ = false;
++      }
++    }
++  }
++
++  protected onTurnOnClick_() {
++    void this.act_(() => blancSync.call('sync.startNew', [
++      {handle: blancString('blancSyncDefaultName')},
++    ]));
++  }
++
++  protected onSetupSubmit_(event: Event) {
++    event.preventDefault();
++    if (this.path_ === 'code' && this.codeValid_) {
++      const code = this.$.syncCode.value.trim();
++      void this.act_(() => blancSync.call('sync.joinWithCode', [code]));
++    } else if ((this.path_ === 'passphrase' || this.path_ === 'start') && this.credentialsValid_) {
++      const credentials = {
++        handle: this.$.syncHandle.value.trim(),
++        passphrase: this.$.syncPassphrase.value,
++      };
++      const lifetime = this.lifetime_;
++      const starting = this.path_ === 'start';
++      void this.act_(async () => {
++        try {
++          if (starting) {
++            return await blancSync.call('sync.enable', [credentials]);
++          }
++          const probe = await blancSync.call('sync.preflight', [credentials]);
++          if (!this.isConnected || lifetime !== this.lifetime_) {
++            return {ok: false};
++          }
++          if (!probe.ok || probe.outcome !== 'found') {
++            return {...probe, ok: false};
++          }
++          return await blancSync.call('sync.enable', [credentials]);
++        } finally {
++          credentials.passphrase = '';
++        }
++      });
++    }
++  }
++
++  protected onSyncNowClick_() {
++    this.run_('sync.syncNow');
++  }
++
++  protected onTurnOffClick_() {
++    this.run_('sync.disable');
++  }
++
++  private run_(method: BlancSyncMethod) {
++    void this.act_(() => blancSync.call(method));
++  }
++
++  protected onAcceptUploadClick_() {
++    void this.confirm_(true);
++  }
++
++  protected onDeclineUploadClick_() {
++    void this.confirm_(false);
++  }
++
++  private async confirm_(accept: boolean) {
++    if (this.busy_ || this.confirming_ || !this.state_?.pendingFirstUpload) {
++      return;
++    }
++    this.confirming_ = true;
++    const lifetime = this.lifetime_;
++    try {
++      await blancSync.confirmFirstUpload(accept);
++      // Consent persists asynchronously. Only the service's next inventory
++      // event removes the prompt or re-enables it for a changed inventory.
++    } catch (error) {
++      if (this.isConnected && lifetime === this.lifetime_) {
++        this.confirming_ = false;
++        this.notice_ = this.errorText_(
++            error instanceof Error ? error.message : 'unknown');
++      }
++    }
++  }
++}
++
++declare global {
++  interface HTMLElementTagNameMap {
++    'settings-blanc-sync-page': BlancSyncPageElement;
++  }
++}
++
++customElements.define(
++    BlancSyncPageElement.is, BlancSyncPageElement);
+--- a/chrome/browser/resources/settings/page_visibility.ts
++++ b/chrome/browser/resources/settings/page_visibility.ts
+@@ -17,6 +17,7 @@
+   extensions?: boolean;
+   languages?: boolean;
+   onStartup?: boolean;
++  blancSync?: boolean;
+   people?: boolean;
+   performance?: boolean;
+   privacy?: boolean|PrivacyPageVisibility;
+@@ -44,7 +45,7 @@
+ 
+ function createPageVisibility(): PageVisibility|undefined {
+   if (!loadTimeData.getBoolean('isGuest')) {
+-    // Blanc (S1.7, owner): no Google account, Sync, AI or Safety Check
++    // Blanc (S1.7, owner): no Google account, Google Sync, AI or Safety Check
+     // sections; their routes are left out with them. The People section
+     // stays for Chromium's profiles (S2, V18), without its Google rows.
+     // Nor the home button, bookmarks bar, hover cards or side panel: the
+@@ -74,6 +75,7 @@
+     extensions: false,
+     languages: false,
+     onStartup: false,
++    blancSync: false,
+     people: false,
+     performance: false,
+     privacy: false,
+@@ -87,6 +89,7 @@
+   const pageVisibility = {
+     ai: false,
+     autofill: false,
++    blancSync: false,
+     people: false,
+     onStartup: false,
+     reset: false,
+--- a/chrome/browser/resources/settings/route.ts
++++ b/chrome/browser/resources/settings/route.ts
+@@ -155,6 +155,11 @@
+ 
+   const visibility = pageVisibility || {};
+ 
++  if (visibility.blancSync !== false) {
++    r.BLANC_SYNC = r.BASIC.createSection(
++        '/sync', 'blancSync', loadTimeData.getString('blancSyncTitle'));
++  }
++
+   if (visibility.people !== false) {
+     r.PEOPLE = r.BASIC.createSection(
+         '/people', 'people', loadTimeData.getString('peoplePageTitle'));
+--- a/chrome/browser/resources/settings/router.ts
++++ b/chrome/browser/resources/settings/router.ts
+@@ -47,6 +47,7 @@
+   ON_STARTUP: Route;
+   PASSKEYS: Route;
+   PAYMENTS: Route;
++  BLANC_SYNC: Route;
+   PEOPLE: Route;
+   PERFORMANCE: Route;
+   PRELOADING: Route;
+--- a/chrome/browser/resources/settings/settings_main/settings_main.html
++++ b/chrome/browser/resources/settings/settings_main/settings_main.html
+@@ -15,6 +15,14 @@
+ ` : ''}
+ 
+ <cr-view-manager id="switcher" ?show-all="${this.shouldShowAll_()}">
++  ${cache(this.showPage_(this.pageVisibility_?.blancSync) ? html`
++    <div slot="view" id="blancSync">
++      ${cache(this.renderPlugin_(this.routes_.BLANC_SYNC) ? html`
++        <settings-blanc-sync-page></settings-blanc-sync-page>
++      ` : '')}
++    </div>
++  ` : '')}
++
+   ${cache(this.showPage_(this.pageVisibility_?.people) ? html`
+     <div slot="view" id="people">
+       ${cache(this.renderPlugin_(this.routes_.PEOPLE) ? html`
+--- a/chrome/browser/resources/settings/settings_main/settings_main.ts
++++ b/chrome/browser/resources/settings/settings_main/settings_main.ts
+@@ -15,6 +15,7 @@
+ import '../autofill_page/autofill_page_index.js';
+ import '../on_startup_page/on_startup_page.js';
+ import '../people_page/people_page_index.js';
++import '../blanc_sync_page/blanc_sync_page.js';
+ import '../performance_page/performance_page_index.js';
+ import '../privacy_page/privacy_page_index.js';
+ import '../reset_page/reset_profile_banner.js';
+--- a/chrome/browser/resources/settings/settings_menu/settings_menu.html
++++ b/chrome/browser/resources/settings/settings_menu/settings_menu.html
+@@ -2,6 +2,13 @@
+       <cr-menu-selector id="menu" selectable="a:not(#extensionsLink)"
+           attr-for-selected="href" @iron-activate="${this.onIronActivate_}"
+           @click="${this.onLinkClick_}" selected-attribute="selected">
++        <a role="menuitem" id="blancSync" href="/sync"
++            ?hidden="${this.shouldHideMenuItem_(this.pageVisibility_?.blancSync)}"
++            class="cr-nav-menu-item">
++          <cr-icon icon="cr:sync"></cr-icon>
++          <span class="menu-label">$i18n{blancSyncTitle}</span>
++          <cr-ripple></cr-ripple>
++        </a>
+         <a role="menuitem"
+             id="people" href="/people"
+             ?hidden="${this.shouldHideMenuItem_(this.pageVisibility_?.people)}"
+--- a/chrome/browser/ui/webui/settings/settings_ui.cc
++++ b/chrome/browser/ui/webui/settings/settings_ui.cc
+@@ -281,6 +281,68 @@
+     html_source->AddString(string.name, std::u16string(string.value));
+   }
+ 
++  // Blanc desktop Sync (S4a): English fallback through the same loadTimeData
++  // mechanism as the other Blanc Settings controls. Shipping keys and new
++  // consent copy are recorded in CODEX-NOTES-s4a-sync-ui.md.
++  html_source->AddString("blancVerticalTabsTextSize", u"Vertical tab text size");
++  html_source->AddString("blancVerticalTabsTextSizeHint", u"Make tab titles and group names easier to read in the vertical tab rail.");
++  html_source->AddString("blancSyncStartWithPassphrase", u"Start with a name and passphrase");
++  html_source->AddString("blancSyncStartOnlyFirstDevice", u"Only for your first device. If you already sync elsewhere, add this device from there instead.");
++  html_source->AddString("blancSyncStartIntro", u"Sync your favorites, settings and device names across your devices, and, if you choose, open tabs. Everything is end-to-end encrypted — Blanc can’t read it, and can’t recover it if you forget your passphrase.");
++  html_source->AddString("blancSyncTitle", u"Sync");
++  html_source->AddString("blancSyncOffTitle", u"Sync your Blanc");
++  html_source->AddString("blancSyncTurnOn", u"Turn on Sync");
++  html_source->AddString("blancSyncHaveCode", u"Already sync on another device?");
++  html_source->AddString("blancSyncAddCode", u"Add this device with a code");
++  html_source->AddString("blancSyncOtherWays", u"Other ways");
++  html_source->AddString("blancSyncUsePassphrase", u"Use a sync name and passphrase");
++  html_source->AddString("blancSyncCodeTitle", u"Enter the code from your other device");
++  html_source->AddString("blancSyncCodeHint", u"It’s good for ten minutes.");
++  html_source->AddString("blancSyncUsePassphraseInstead", u"Use my sync name and passphrase instead");
++  html_source->AddString("blancSyncConnect", u"Connect");
++  html_source->AddString("blancSyncBack", u"Back");
++  html_source->AddString("blancSyncName", u"Sync name");
++  html_source->AddString("blancSyncPassphrase", u"Enter your passphrase");
++  html_source->AddString("blancSyncJoinIntro", u"Use the same sync name and passphrase as your other device. Blanc checks them before saving anything here.");
++  html_source->AddString("blancSyncHandleHint", u"Enter the exact sync name you used on your other device.");
++  html_source->AddString("blancSyncPassphraseHint", u"Enter the exact passphrase. Case matters.");
++  html_source->AddString("blancSyncNotFound", u"Nothing was found under that name and passphrase. Check for typos, including capital letters, then try again.");
++  html_source->AddString("blancSyncNow", u"Sync now");
++  html_source->AddString("blancSyncDisable", u"Turn off");
++  html_source->AddString("blancSyncTurnOffHint", u"This device stops syncing. Its favorites and settings stay as they are.");
++  html_source->AddString("blancSyncChecking", u"Checking…");
++  html_source->AddString("blancSyncCheckFailed", u"Could not check sync. Try again.");
++  html_source->AddString("blancSyncTurningOn", u"Turning on sync…");
++  html_source->AddString("blancSyncSyncing", u"Syncing…");
++  html_source->AddString("blancSyncNotSynced", u"Not synced yet");
++  html_source->AddString("blancSyncLastSynced", u"Last synced {when}");
++  html_source->AddString("blancSyncDefaultName", u"My Blanc");
++  html_source->AddString("blancSyncContinue", u"Continue");
++  html_source->AddString("blancSyncNotNow", u"Not now");
++  html_source->AddString("blancSyncRecoveryTitle", u"Keep a way back in");
++  html_source->AddString("blancSyncRecoveryBody", u"This sync has no passphrase. If you ever lose all your devices, its recovery code is the only way to reach your synced data. Save it in your password manager.");
++  html_source->AddString("blancSyncOff", u"Sync is off.");
++  html_source->AddString("blancSyncPairInvalid", u"That doesn’t look like a code. Check it and try again.");
++  html_source->AddString("blancSyncPairNotFound", u"That code isn’t valid any more. Make a new one on your other device.");
++  html_source->AddString("blancSyncPairUnavailable", u"Pairing isn’t available right now. You can still connect with your sync name and passphrase.");
++  html_source->AddString("blancSyncOffline", u"Couldn’t reach sync — check your connection.");
++  html_source->AddString("blancSyncRateLimited", u"Too many sync attempts — try again in a minute.");
++  html_source->AddString("blancSyncBadPassphrase", u"Passphrase doesn’t match this sync account.");
++  html_source->AddString("blancSyncNameTooShort", u"Choose a sync name (at least 2 characters).");
++  html_source->AddString("blancSyncWeakPassphrase", u"Use a longer passphrase — 16+ characters, or 10+ with mixed characters.");
++  html_source->AddString("blancSyncKeyProtect", u"Could not protect the sync key.");
++  html_source->AddString("blancSyncCredentialsSave", u"Could not save protected sync credentials.");
++  html_source->AddString("blancSyncLocalKeyUnlock", u"Could not unlock the local sync key");
++  html_source->AddString("blancSyncServer", u"Sync sent an unexpected response — try again later.");
++  html_source->AddString("blancSyncTryAgain", u"Try again");
++  html_source->AddString("blancSyncLastError", u"Last error");
++  html_source->AddString("blancSyncScope", u"Sync your favorites and settings across your devices, end-to-end encrypted.");
++  html_source->AddString("blancSyncOn", u"Sync is on.");
++  html_source->AddString("blancSyncUnavailable", u"Sync is available only in the default profile. Open its regular window to set up Sync.");
++  html_source->AddString("blancSyncFirstUploadTitle", u"Add this Mac’s favorites to your sync?");
++  html_source->AddString("blancSyncFirstUploadBody", u"{count} favorites on this Mac would be added to your account. Choose Not now to keep these favorites only on this Mac.");
++  html_source->AddString("blancSyncRecoveryUnavailable", u"Recovery-code export is not available in this preview.");
++
+   AddSettingsPageUIHandler(std::make_unique<AppearanceHandler>(web_ui));
+   // Blanc's lists and interface language (S1.7).
+   AddSettingsPageUIHandler(blanc_prototype::CreateSettingsHandler(profile));

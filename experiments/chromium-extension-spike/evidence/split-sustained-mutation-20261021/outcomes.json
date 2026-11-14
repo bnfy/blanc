@@ -1,0 +1,330 @@
+[
+  {
+    "mode": "encrypted",
+    "pass": true,
+    "checkpoints": 62,
+    "cycles": [
+      {
+        "result": {
+          "success": true
+        },
+        "cycle": 0,
+        "elapsed": 29,
+        "mutations": 2,
+        "observed": [
+          {
+            "requested": 0.301,
+            "actual": 0.31,
+            "pending": true
+          },
+          {
+            "requested": 0.302,
+            "actual": 0.301,
+            "pending": false
+          }
+        ]
+      },
+      {
+        "result": {
+          "success": true
+        },
+        "cycle": 1,
+        "elapsed": 21,
+        "mutations": 1,
+        "observed": [
+          {
+            "requested": 0.301,
+            "actual": 0.301,
+            "pending": false
+          }
+        ]
+      },
+      {
+        "result": {
+          "success": true
+        },
+        "cycle": 2,
+        "elapsed": 24,
+        "mutations": 1,
+        "observed": [
+          {
+            "requested": 0.301,
+            "actual": 0.301,
+            "pending": false
+          }
+        ]
+      },
+      {
+        "result": {
+          "success": true
+        },
+        "cycle": 3,
+        "elapsed": 22,
+        "mutations": 1,
+        "observed": [
+          {
+            "requested": 0.301,
+            "actual": 0.301,
+            "pending": false
+          }
+        ]
+      },
+      {
+        "result": {
+          "success": true
+        },
+        "cycle": 4,
+        "elapsed": 34,
+        "mutations": 1,
+        "observed": [
+          {
+            "requested": 0.301,
+            "actual": 0.301,
+            "pending": false
+          }
+        ]
+      },
+      {
+        "result": {
+          "success": true
+        },
+        "cycle": 5,
+        "elapsed": 26,
+        "mutations": 2,
+        "observed": [
+          {
+            "requested": 0.301,
+            "actual": 0.31,
+            "pending": true
+          },
+          {
+            "requested": 0.302,
+            "actual": 0.301,
+            "pending": false
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "mode": "clear",
+    "pass": true,
+    "checkpoints": 62,
+    "cycles": [
+      {
+        "result": {
+          "success": true
+        },
+        "cycle": 0,
+        "elapsed": 38,
+        "mutations": 2,
+        "observed": [
+          {
+            "requested": 0.301,
+            "actual": 0.31,
+            "pending": true
+          },
+          {
+            "requested": 0.302,
+            "actual": 0.301,
+            "pending": false
+          }
+        ]
+      },
+      {
+        "result": {
+          "success": true
+        },
+        "cycle": 1,
+        "elapsed": 32,
+        "mutations": 1,
+        "observed": [
+          {
+            "requested": 0.301,
+            "actual": 0.301,
+            "pending": false
+          }
+        ]
+      },
+      {
+        "result": {
+          "success": true
+        },
+        "cycle": 2,
+        "elapsed": 24,
+        "mutations": 1,
+        "observed": [
+          {
+            "requested": 0.301,
+            "actual": 0.301,
+            "pending": false
+          }
+        ]
+      },
+      {
+        "result": {
+          "success": true
+        },
+        "cycle": 3,
+        "elapsed": 44,
+        "mutations": 2,
+        "observed": [
+          {
+            "requested": 0.301,
+            "actual": 0.31,
+            "pending": true
+          },
+          {
+            "requested": 0.302,
+            "actual": 0.301,
+            "pending": false
+          }
+        ]
+      },
+      {
+        "result": {
+          "success": true
+        },
+        "cycle": 4,
+        "elapsed": 21,
+        "mutations": 1,
+        "observed": [
+          {
+            "requested": 0.301,
+            "actual": 0.301,
+            "pending": false
+          }
+        ]
+      },
+      {
+        "result": {
+          "success": true
+        },
+        "cycle": 5,
+        "elapsed": 38,
+        "mutations": 2,
+        "observed": [
+          {
+            "requested": 0.301,
+            "actual": 0.31,
+            "pending": true
+          },
+          {
+            "requested": 0.302,
+            "actual": 0.301,
+            "pending": false
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "mode": "encrypted-burst",
+    "pass": true,
+    "checkpoints": 32,
+    "cycles": [
+      {
+        "result": {
+          "success": true
+        },
+        "cycle": 0,
+        "elapsed": 37,
+        "mutations": 64,
+        "observed": [
+          {
+            "requested": 0.33199999999999996,
+            "actual": 0.31,
+            "pending": true
+          },
+          {
+            "requested": 0.364,
+            "actual": 0.33199999999999996,
+            "pending": false
+          }
+        ]
+      },
+      {
+        "result": {
+          "success": true
+        },
+        "cycle": 1,
+        "elapsed": 24,
+        "mutations": 32,
+        "observed": [
+          {
+            "requested": 0.33199999999999996,
+            "actual": 0.33199999999999996,
+            "pending": false
+          }
+        ]
+      },
+      {
+        "result": {
+          "success": true
+        },
+        "cycle": 2,
+        "elapsed": 35,
+        "mutations": 32,
+        "observed": [
+          {
+            "requested": 0.33199999999999996,
+            "actual": 0.33199999999999996,
+            "pending": false
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "mode": "clear-burst",
+    "pass": true,
+    "checkpoints": 32,
+    "cycles": [
+      {
+        "result": {
+          "success": true
+        },
+        "cycle": 0,
+        "elapsed": 39,
+        "mutations": 32,
+        "observed": [
+          {
+            "requested": 0.33199999999999996,
+            "actual": 0.33199999999999996,
+            "pending": false
+          }
+        ]
+      },
+      {
+        "result": {
+          "success": true
+        },
+        "cycle": 1,
+        "elapsed": 32,
+        "mutations": 32,
+        "observed": [
+          {
+            "requested": 0.33199999999999996,
+            "actual": 0.33199999999999996,
+            "pending": false
+          }
+        ]
+      },
+      {
+        "result": {
+          "success": true
+        },
+        "cycle": 2,
+        "elapsed": 35,
+        "mutations": 32,
+        "observed": [
+          {
+            "requested": 0.33199999999999996,
+            "actual": 0.33199999999999996,
+            "pending": false
+          }
+        ]
+      }
+    ]
+  }
+]

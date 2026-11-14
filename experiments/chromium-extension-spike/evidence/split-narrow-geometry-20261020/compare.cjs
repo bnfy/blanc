@@ -1,0 +1,4 @@
+const fs=require('node:fs');const {computeSplitLayout}=require('./split-layout.cjs');
+const raw=JSON.parse(fs.readFileSync(__dirname+'/geometry.json'));
+const rows=raw.checks.map(({value:v})=>({private:v.privateMode,width:v.host.width,ratio:v.ratio,nativeContentWidths:v.pages.map(p=>p.width),headerWidths:v.host.headers.map(h=>h.rect.width),headerOverflow:v.host.headers.map(h=>h.buttons.some(b=>b.rect.right>h.rect.right+.5)),reference:computeSplitLayout({x:0,y:68,width:v.host.width,height:652},{kind:'columns',widths:[v.ratio,1-v.ratio]},2)}));
+fs.writeFileSync(__dirname+'/comparison.json',JSON.stringify(rows,null,2));console.log(JSON.stringify({cases:rows.length,overflowCases:rows.filter(x=>x.headerOverflow.some(Boolean)).length,referenceStackedCases:rows.filter(x=>x.reference.mode==='rows').length}));

@@ -29,7 +29,8 @@ permissions:
 jobs:
   changes:
     # Decides whether this change can affect the desktop app. Pull requests that
-    # touch only website and documentation paths skip the Electron jobs below;
+    # touch only website and documentation paths, and pull-request pushes that
+    # change only the Chromium fork, skip the Electron jobs below;
     # every other change, every push to main and any failure here runs them all.
     # Gated jobs use `if:` (not workflow `paths`), so a required check that is
     # skipped still reports, as "skipped", and never leaves the PR blocked.
@@ -45,9 +46,19 @@ jobs:
           fetch-depth: 2 # The PR merge commit and its base parent.
       - id: classify
         name: Classify changed paths
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          EVENT_ACTION: ${{ github.event.action }}
+          BEFORE: ${{ github.event.before }}
+          AFTER: ${{ github.event.pull_request.head.sha }}
         run: |
           app=true
-          if [ "$GITHUB_EVENT_NAME" = pull_request ] && git rev-parse --verify -q HEAD^2 >/dev/null; then
+          if [ "$(sh scripts/ci-fork-only-push.sh)" = true ]; then
+            # Only the Chromium fork changed since this PR's last run, which
+            # ran these jobs (scripts/ci-fork-only-push.sh).
+            app=false
+            echo "Fork-only push." >> "$GITHUB_STEP_SUMMARY"
+          elif [ "$GITHUB_EVENT_NAME" = pull_request ] && git rev-parse --verify -q HEAD^2 >/dev/null; then
             # Old and new paths of every rename count, compared with the base.
             git diff --name-only --no-renames HEAD^1 HEAD > "$RUNNER_TEMP/changed.txt"
             app=false

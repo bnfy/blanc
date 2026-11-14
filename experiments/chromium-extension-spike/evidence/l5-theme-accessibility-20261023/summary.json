@@ -1,0 +1,18 @@
+{
+  "source": "c506e4aa10e4c843009ac85656b5a951451bf9d0",
+  "version": "157.0.8103.15",
+  "archive": "/private/tmp/blanc-l5-repair/Blanc-Chromium-Preview-stapled.zip",
+  "sha256": "777180c90c2b4fafb10c4e0442704fff2875763bf9d479714733151a1c150dfe",
+  "notarization": {
+    "id": "5461db97-8bd3-441d-9fdc-84de4d6152b6",
+    "status": "Accepted",
+    "message": "Processing complete"
+  },
+  "runtime": {
+    "regular": 17,
+    "private": 16,
+    "scope": 19,
+    "core": 17,
+    "recovery": 6
+  }
+}

@@ -1,0 +1,126 @@
+# Copyright 2026 Bananify Creative. MIT; see LICENSE.
+import("//build/buildflag_header.gni")
+import("//blanc/config.gni")
+
+blanc_release_channel = blanc_channel == "release"
+buildflag_header("buildflags") {
+  header = "buildflags.h"
+  flags = [
+    "ENABLE_BLANC_TEST_HOOKS=$blanc_enable_test_hooks",
+    "ENABLE_BLANC_DISK_ASSETS=$blanc_disk_assets",
+    "BLANC_RELEASE_CHANNEL=$blanc_release_channel",
+    "BLANC_BETA_CHANNEL=$blanc_beta_channel",
+    "BLANC_BETA_LOCAL_QUALIFICATION=$blanc_beta_local_qualification",
+  ]
+}
+
+# Desktop's views UI. The Android lane loads this file too (its blocker and sync use
+# :buildflags), and //chrome/browser/ui/views/frame asserts it is never built for Android.
+if (!is_android) {
+  group("blanc") {
+    deps = [ ":ui", "services/blocker:browser" ]
+  }
+  group("ui") {
+    deps = [ "//chrome/browser/ui/views/frame:blanc_ui" ]
+  }
+}
+
+# Header ownership stays available in preview; executable identity code is beta-only.
+source_set("beta_identity") {
+  sources = [ "browser/mac/beta_identity.h", "browser/mac/beta_profile_guard.h" ]
+  public_deps = [ ":buildflags" ]
+  if (blanc_beta_channel) {
+    sources += [ "browser/mac/beta_identity.cc" ]
+    deps = [ "//base" ]
+  }
+}
+
+source_set("beta_updater") {
+  sources = [ "browser/mac/beta_updater.h", "browser/mac/beta_update_policy.h" ]
+  public_deps = [ ":buildflags" ]
+  if (blanc_beta_channel) {
+    sources += [ "browser/mac/beta_updater.mm" ]
+    deps = [ "//base", ":verify_sparkle" ]
+    # Chromium already enables ARC in its default compiler configuration.
+    # GN carries the frameworks up to the first linked binary, the browser
+    # framework, and no further. Only the rpath has to reach that link as a
+    # flag; it also reaches the Aperitif helpers, which link the framework
+    # directly, but adds no load command there (verify_dynamic_libraries
+    # requires their load commands to be exactly Chromium's).
+    configs += [ ":sparkle_link" ]
+    all_dependent_configs = [ ":sparkle_rpath" ]
+  }
+}
+if (blanc_beta_channel) {
+  assert(blanc_sparkle_stage != "" && blanc_sparkle_public_key != "" &&
+         blanc_sparkle_archive_sha256 != "", "Reviewed Sparkle staging and owner public key required")
+  config("sparkle_link") {
+    framework_dirs = [ blanc_sparkle_stage ]
+    frameworks = [ "Cocoa.framework", "Sparkle.framework" ]
+  }
+  config("sparkle_rpath") {
+    # Chromium's dylib lives at Framework.framework/Versions/<Chrome version>.
+    ldflags = [ "-Wl,-rpath,@loader_path/../../.." ]
+  }
+  _sparkle_verify_args = [ "--stage", blanc_sparkle_stage,
+                          "--archive-sha256", blanc_sparkle_archive_sha256 ]
+  _sparkle_inputs = [ "$blanc_sparkle_stage/inputs.json" ]
+  foreach(file, read_file("$blanc_sparkle_stage/inputs.json", "json")) {
+    _sparkle_inputs += [ "$blanc_sparkle_stage/$file" ]
+  }
+  action("verify_sparkle") {
+    script = "third_party/sparkle/verify.py"
+    inputs = _sparkle_inputs
+    outputs = [ "$target_gen_dir/sparkle-verified.stamp" ]
+    args = _sparkle_verify_args + [ "--stamp", rebase_path(outputs[0], root_build_dir) ]
+  }
+  bundle_data("sparkle_framework_bundle") {
+    sources = [ "$blanc_sparkle_stage/Sparkle.framework" ]
+    outputs = [ "{{bundle_contents_dir}}/Frameworks/{{source_file_part}}" ]
+    public_deps = [ ":verify_sparkle" ]
+  }
+  bundle_data("sparkle_license_bundle") {
+    sources = [ "third_party/sparkle/LICENSE" ]
+    outputs = [ "{{bundle_resources_dir}}/Sparkle-LICENSE.txt" ]
+  }
+  bundle_data("beta_notices") {
+    sources = [ "notices/LICENSE", "notices/THIRD-PARTY-NOTICES.md",
+                "notices/ASSET-LICENSE.md", "notices/THIRD_PARTY_NOTICES.txt" ]
+    outputs = [ "{{bundle_resources_dir}}/notices/{{source_file_part}}" ]
+  }
+  bundle_data("beta_chromium_license") {
+    sources = [ "//LICENSE" ]
+    outputs = [ "{{bundle_resources_dir}}/notices/Chromium-LICENSE" ]
+  }
+  bundle_data("beta_chromium_credits") {
+    # Official builds generate the full license corpus, never sample credits.
+    sources = [ "$root_gen_dir/components/resources/about_credits.html" ]
+    outputs = [ "{{bundle_resources_dir}}/notices/Chromium-credits.html" ]
+    public_deps = [ "//components/resources:about_credits" ]
+  }
+  bundle_data("beta_sparkle_notice") {
+    sources = [ "third_party/sparkle/LICENSE" ]
+    outputs = [ "{{bundle_resources_dir}}/notices/Sparkle-LICENSE" ]
+  }
+  # The blocker's engine (Ghostery over the pinned filter lists) inside the
+  # app, so a beta opened from Finder blocks without --blanc-blocker-assets.
+  action("verify_blocker_bundle") {
+    script = "services/blocker/verify_bundle.py"
+    inputs = [ "$blanc_blocker_bundle/engine.js", "services/blocker/bundle_hash.h" ]
+    outputs = [ "$target_gen_dir/blocker-bundle-verified.stamp" ]
+    args = [ "--bundle", rebase_path(inputs[0], root_build_dir),
+             "--hash-header", rebase_path(inputs[1], root_build_dir),
+             "--stamp", rebase_path(outputs[0], root_build_dir) ]
+  }
+  bundle_data("beta_blocker_engine") {
+    sources = [ "$blanc_blocker_bundle/engine.js" ]
+    outputs = [ "{{bundle_resources_dir}}/blanc_blocker/{{source_file_part}}" ]
+    public_deps = [ ":verify_blocker_bundle" ]
+  }
+  group("sparkle_bundle") {
+    public_deps = [ ":sparkle_framework_bundle", ":sparkle_license_bundle",
+                    ":beta_notices", ":beta_chromium_license",
+                    ":beta_chromium_credits", ":beta_sparkle_notice",
+                    ":beta_blocker_engine" ]
+  }
+}

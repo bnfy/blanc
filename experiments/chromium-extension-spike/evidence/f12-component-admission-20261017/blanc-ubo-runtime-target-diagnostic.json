@@ -1,0 +1,58 @@
+{
+  "root": "/private/tmp/blanc-ubo-runtime-lsj07z",
+  "scope": "offline admission only",
+  "backgroundPages": [],
+  "targets": {
+    "targetInfos": [
+      {
+        "targetId": "EA19ACA949B5ADCC10660B0574475FB1",
+        "type": "service_worker",
+        "title": "Service Worker chrome-extension://admccjkmockfdflocgggjfgdacdodkdf/background.js",
+        "url": "chrome-extension://admccjkmockfdflocgggjfgdacdodkdf/background.js",
+        "attached": true,
+        "canAccessOpener": false,
+        "browserContextId": "C433B271B40D9BCDFD4A8BE0F9157C10"
+      },
+      {
+        "targetId": "2BBD0B986845E9AA89942B4768ECFF7B",
+        "type": "browser_ui",
+        "title": "Omnibox Popup",
+        "url": "chrome://omnibox-popup.top-chrome/",
+        "attached": false,
+        "canAccessOpener": false,
+        "browserContextId": "C433B271B40D9BCDFD4A8BE0F9157C10"
+      },
+      {
+        "targetId": "72A327D18FE60D1C55B341D6CF96CEBB",
+        "type": "page",
+        "title": "Blanc Chromium prototype",
+        "url": "chrome://blanc-prototype/host.html",
+        "attached": true,
+        "canAccessOpener": false,
+        "browserContextId": "C433B271B40D9BCDFD4A8BE0F9157C10"
+      },
+      {
+        "targetId": "D06D1798C026F0B15719B5C6218A4A83",
+        "type": "background_page",
+        "title": "uBlock Origin",
+        "url": "chrome-extension://oddhmofgkplblkmckempfepikkophank/background.html",
+        "attached": false,
+        "canAccessOpener": false,
+        "browserContextId": "C433B271B40D9BCDFD4A8BE0F9157C10"
+      },
+      {
+        "targetId": "DD6AE100286775F3984E9C6F2CF9F0AD",
+        "type": "page",
+        "title": "about:blank",
+        "url": "about:blank",
+        "attached": true,
+        "canAccessOpener": false,
+        "browserContextId": "C433B271B40D9BCDFD4A8BE0F9157C10"
+      }
+    ]
+  },
+  "error": "Error: No uBO background target",
+  "passed": false,
+  "rejectedRequests": 21,
+  "profileRemoved": true
+}

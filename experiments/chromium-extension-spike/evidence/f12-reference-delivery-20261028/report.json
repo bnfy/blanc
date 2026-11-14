@@ -1,0 +1,718 @@
+{
+  "complete": true,
+  "scope": "reference diagnostic authored rules; same retained native page and rules, not pinned production selection or an Electron repair",
+  "rules": [
+    "operator.blanc-fixture.test##.text:has-text(Sponsored)",
+    "operator.blanc-fixture.test###styled:matches-css(color: rgb(255, 0, 0))",
+    "operator.blanc-fixture.test##.leaf:upward(1)",
+    "operator.blanc-fixture.test###xpath-root:xpath(.//span[@data-ad=\"yes\"])",
+    "operator.blanc-fixture.test##+js(no-setTimeout-if, blancTimerTarget)"
+  ],
+  "checks": [
+    {
+      "name": "regular-0 page script runs under CSP",
+      "pass": true
+    },
+    {
+      "name": "regular-0 timer target defused",
+      "pass": false
+    },
+    {
+      "name": "regular-0 neutral timer runs",
+      "pass": true
+    },
+    {
+      "name": "regular-0 initial text",
+      "pass": false
+    },
+    {
+      "name": "regular-0 initial styled",
+      "pass": false
+    },
+    {
+      "name": "regular-0 initial upward",
+      "pass": false
+    },
+    {
+      "name": "regular-0 initial xpath",
+      "pass": false
+    },
+    {
+      "name": "regular-0 neutral visible",
+      "pass": true
+    },
+    {
+      "name": "regular-0 nonmatch reveals text",
+      "pass": true
+    },
+    {
+      "name": "regular-0 nonmatch reveals styled",
+      "pass": true
+    },
+    {
+      "name": "regular-0 nonmatch reveals upward",
+      "pass": true
+    },
+    {
+      "name": "regular-0 nonmatch reveals xpath",
+      "pass": true
+    },
+    {
+      "name": "regular-0 moved upward follows leaf",
+      "pass": false
+    },
+    {
+      "name": "regular-0 timer mutation rematches text",
+      "pass": false
+    },
+    {
+      "name": "regular-0 timer mutation rematches styled",
+      "pass": false
+    },
+    {
+      "name": "regular-0 timer mutation rematches upward",
+      "pass": false
+    },
+    {
+      "name": "regular-0 timer mutation rematches xpath",
+      "pass": false
+    },
+    {
+      "name": "regular-0 old move parent revealed",
+      "pass": true
+    },
+    {
+      "name": "regular-0 inserted subtree evaluated",
+      "pass": false
+    },
+    {
+      "name": "regular-0 neutral still visible",
+      "pass": true
+    },
+    {
+      "name": "regular-1 page script runs under CSP",
+      "pass": true
+    },
+    {
+      "name": "regular-1 timer target defused",
+      "pass": false
+    },
+    {
+      "name": "regular-1 neutral timer runs",
+      "pass": true
+    },
+    {
+      "name": "regular-1 initial text",
+      "pass": false
+    },
+    {
+      "name": "regular-1 initial styled",
+      "pass": false
+    },
+    {
+      "name": "regular-1 initial upward",
+      "pass": false
+    },
+    {
+      "name": "regular-1 initial xpath",
+      "pass": false
+    },
+    {
+      "name": "regular-1 neutral visible",
+      "pass": true
+    },
+    {
+      "name": "regular-1 nonmatch reveals text",
+      "pass": true
+    },
+    {
+      "name": "regular-1 nonmatch reveals styled",
+      "pass": true
+    },
+    {
+      "name": "regular-1 nonmatch reveals upward",
+      "pass": true
+    },
+    {
+      "name": "regular-1 nonmatch reveals xpath",
+      "pass": true
+    },
+    {
+      "name": "regular-1 moved upward follows leaf",
+      "pass": false
+    },
+    {
+      "name": "regular-1 timer mutation rematches text",
+      "pass": false
+    },
+    {
+      "name": "regular-1 timer mutation rematches styled",
+      "pass": false
+    },
+    {
+      "name": "regular-1 timer mutation rematches upward",
+      "pass": false
+    },
+    {
+      "name": "regular-1 timer mutation rematches xpath",
+      "pass": false
+    },
+    {
+      "name": "regular-1 old move parent revealed",
+      "pass": true
+    },
+    {
+      "name": "regular-1 inserted subtree evaluated",
+      "pass": false
+    },
+    {
+      "name": "regular-1 neutral still visible",
+      "pass": true
+    },
+    {
+      "name": "private-0 page script runs under CSP",
+      "pass": true
+    },
+    {
+      "name": "private-0 timer target defused",
+      "pass": false
+    },
+    {
+      "name": "private-0 neutral timer runs",
+      "pass": true
+    },
+    {
+      "name": "private-0 initial text",
+      "pass": false
+    },
+    {
+      "name": "private-0 initial styled",
+      "pass": false
+    },
+    {
+      "name": "private-0 initial upward",
+      "pass": false
+    },
+    {
+      "name": "private-0 initial xpath",
+      "pass": false
+    },
+    {
+      "name": "private-0 neutral visible",
+      "pass": true
+    },
+    {
+      "name": "private-0 nonmatch reveals text",
+      "pass": true
+    },
+    {
+      "name": "private-0 nonmatch reveals styled",
+      "pass": true
+    },
+    {
+      "name": "private-0 nonmatch reveals upward",
+      "pass": true
+    },
+    {
+      "name": "private-0 nonmatch reveals xpath",
+      "pass": true
+    },
+    {
+      "name": "private-0 moved upward follows leaf",
+      "pass": false
+    },
+    {
+      "name": "private-0 timer mutation rematches text",
+      "pass": false
+    },
+    {
+      "name": "private-0 timer mutation rematches styled",
+      "pass": false
+    },
+    {
+      "name": "private-0 timer mutation rematches upward",
+      "pass": false
+    },
+    {
+      "name": "private-0 timer mutation rematches xpath",
+      "pass": false
+    },
+    {
+      "name": "private-0 old move parent revealed",
+      "pass": true
+    },
+    {
+      "name": "private-0 inserted subtree evaluated",
+      "pass": false
+    },
+    {
+      "name": "private-0 neutral still visible",
+      "pass": true
+    },
+    {
+      "name": "private-1 page script runs under CSP",
+      "pass": true
+    },
+    {
+      "name": "private-1 timer target defused",
+      "pass": false
+    },
+    {
+      "name": "private-1 neutral timer runs",
+      "pass": true
+    },
+    {
+      "name": "private-1 initial text",
+      "pass": false
+    },
+    {
+      "name": "private-1 initial styled",
+      "pass": false
+    },
+    {
+      "name": "private-1 initial upward",
+      "pass": false
+    },
+    {
+      "name": "private-1 initial xpath",
+      "pass": false
+    },
+    {
+      "name": "private-1 neutral visible",
+      "pass": true
+    },
+    {
+      "name": "private-1 nonmatch reveals text",
+      "pass": true
+    },
+    {
+      "name": "private-1 nonmatch reveals styled",
+      "pass": true
+    },
+    {
+      "name": "private-1 nonmatch reveals upward",
+      "pass": true
+    },
+    {
+      "name": "private-1 nonmatch reveals xpath",
+      "pass": true
+    },
+    {
+      "name": "private-1 moved upward follows leaf",
+      "pass": false
+    },
+    {
+      "name": "private-1 timer mutation rematches text",
+      "pass": false
+    },
+    {
+      "name": "private-1 timer mutation rematches styled",
+      "pass": false
+    },
+    {
+      "name": "private-1 timer mutation rematches upward",
+      "pass": false
+    },
+    {
+      "name": "private-1 timer mutation rematches xpath",
+      "pass": false
+    },
+    {
+      "name": "private-1 old move parent revealed",
+      "pass": true
+    },
+    {
+      "name": "private-1 inserted subtree evaluated",
+      "pass": false
+    },
+    {
+      "name": "private-1 neutral still visible",
+      "pass": true
+    }
+  ],
+  "sources": [
+    {
+      "kind": "regular",
+      "repetition": 0,
+      "browserKind": "electron",
+      "bootstrapSha256": "df5f4a63814ce6700770196f8cfc11f159e0332c7286253add537ab9c477e3d7",
+      "asarSha256": "5b4b78c8790c3af193a2c893564c674f2b05c75481d1b5673c0428dde60203ab",
+      "versions": {
+        "node": "24.22.0",
+        "acorn": "8.18.0",
+        "ada": "4.0.0",
+        "amaro": "1.1.11",
+        "ares": "1.34.8",
+        "brotli": "1.2.0",
+        "cldr": "48.0",
+        "icu": "78.2",
+        "llhttp": "9.4.3",
+        "merve": "1.2.2",
+        "modules": "149",
+        "napi": "10",
+        "nbytes": "0.1.4",
+        "ncrypto": "0.0.1",
+        "nghttp2": "1.70.0",
+        "nghttp3": "",
+        "ngtcp2": "",
+        "openssl": "0.0.0",
+        "simdjson": "4.6.11",
+        "simdutf": "7.7.0",
+        "sqlite": "3.53.4",
+        "tz": "2026d",
+        "undici": "7.29.1",
+        "unicode": "17.0",
+        "uv": "1.52.1",
+        "uvwasi": "0.0.23",
+        "v8": "15.2.124.43-electron.0",
+        "zlib": "1.3.2.1-motley",
+        "zstd": "1.6.0",
+        "electron": "44.8.0",
+        "chrome": "152.0.7977.167"
+      },
+      "authoredCosmeticRules": [
+        "operator.blanc-fixture.test##.text:has-text(Sponsored)",
+        "operator.blanc-fixture.test###styled:matches-css(color: rgb(255, 0, 0))",
+        "operator.blanc-fixture.test##.leaf:upward(1)",
+        "operator.blanc-fixture.test###xpath-root:xpath(.//span[@data-ad=\"yes\"])",
+        "operator.blanc-fixture.test##+js(no-setTimeout-if, blancTimerTarget)"
+      ],
+      "diagnosticSelection": {
+        "rulesAdded": 5,
+        "loadExtendedSelectors": false
+      }
+    },
+    {
+      "kind": "regular",
+      "repetition": 1,
+      "browserKind": "electron",
+      "bootstrapSha256": "df5f4a63814ce6700770196f8cfc11f159e0332c7286253add537ab9c477e3d7",
+      "asarSha256": "5b4b78c8790c3af193a2c893564c674f2b05c75481d1b5673c0428dde60203ab",
+      "versions": {
+        "node": "24.22.0",
+        "acorn": "8.18.0",
+        "ada": "4.0.0",
+        "amaro": "1.1.11",
+        "ares": "1.34.8",
+        "brotli": "1.2.0",
+        "cldr": "48.0",
+        "icu": "78.2",
+        "llhttp": "9.4.3",
+        "merve": "1.2.2",
+        "modules": "149",
+        "napi": "10",
+        "nbytes": "0.1.4",
+        "ncrypto": "0.0.1",
+        "nghttp2": "1.70.0",
+        "nghttp3": "",
+        "ngtcp2": "",
+        "openssl": "0.0.0",
+        "simdjson": "4.6.11",
+        "simdutf": "7.7.0",
+        "sqlite": "3.53.4",
+        "tz": "2026d",
+        "undici": "7.29.1",
+        "unicode": "17.0",
+        "uv": "1.52.1",
+        "uvwasi": "0.0.23",
+        "v8": "15.2.124.43-electron.0",
+        "zlib": "1.3.2.1-motley",
+        "zstd": "1.6.0",
+        "electron": "44.8.0",
+        "chrome": "152.0.7977.167"
+      },
+      "authoredCosmeticRules": [
+        "operator.blanc-fixture.test##.text:has-text(Sponsored)",
+        "operator.blanc-fixture.test###styled:matches-css(color: rgb(255, 0, 0))",
+        "operator.blanc-fixture.test##.leaf:upward(1)",
+        "operator.blanc-fixture.test###xpath-root:xpath(.//span[@data-ad=\"yes\"])",
+        "operator.blanc-fixture.test##+js(no-setTimeout-if, blancTimerTarget)"
+      ],
+      "diagnosticSelection": {
+        "rulesAdded": 5,
+        "loadExtendedSelectors": false
+      }
+    },
+    {
+      "kind": "private",
+      "repetition": 0,
+      "browserKind": "electron",
+      "bootstrapSha256": "df5f4a63814ce6700770196f8cfc11f159e0332c7286253add537ab9c477e3d7",
+      "asarSha256": "5b4b78c8790c3af193a2c893564c674f2b05c75481d1b5673c0428dde60203ab",
+      "versions": {
+        "node": "24.22.0",
+        "acorn": "8.18.0",
+        "ada": "4.0.0",
+        "amaro": "1.1.11",
+        "ares": "1.34.8",
+        "brotli": "1.2.0",
+        "cldr": "48.0",
+        "icu": "78.2",
+        "llhttp": "9.4.3",
+        "merve": "1.2.2",
+        "modules": "149",
+        "napi": "10",
+        "nbytes": "0.1.4",
+        "ncrypto": "0.0.1",
+        "nghttp2": "1.70.0",
+        "nghttp3": "",
+        "ngtcp2": "",
+        "openssl": "0.0.0",
+        "simdjson": "4.6.11",
+        "simdutf": "7.7.0",
+        "sqlite": "3.53.4",
+        "tz": "2026d",
+        "undici": "7.29.1",
+        "unicode": "17.0",
+        "uv": "1.52.1",
+        "uvwasi": "0.0.23",
+        "v8": "15.2.124.43-electron.0",
+        "zlib": "1.3.2.1-motley",
+        "zstd": "1.6.0",
+        "electron": "44.8.0",
+        "chrome": "152.0.7977.167"
+      },
+      "authoredCosmeticRules": [
+        "operator.blanc-fixture.test##.text:has-text(Sponsored)",
+        "operator.blanc-fixture.test###styled:matches-css(color: rgb(255, 0, 0))",
+        "operator.blanc-fixture.test##.leaf:upward(1)",
+        "operator.blanc-fixture.test###xpath-root:xpath(.//span[@data-ad=\"yes\"])",
+        "operator.blanc-fixture.test##+js(no-setTimeout-if, blancTimerTarget)"
+      ],
+      "diagnosticSelection": {
+        "rulesAdded": 5,
+        "loadExtendedSelectors": false
+      }
+    },
+    {
+      "kind": "private",
+      "repetition": 1,
+      "browserKind": "electron",
+      "bootstrapSha256": "df5f4a63814ce6700770196f8cfc11f159e0332c7286253add537ab9c477e3d7",
+      "asarSha256": "5b4b78c8790c3af193a2c893564c674f2b05c75481d1b5673c0428dde60203ab",
+      "versions": {
+        "node": "24.22.0",
+        "acorn": "8.18.0",
+        "ada": "4.0.0",
+        "amaro": "1.1.11",
+        "ares": "1.34.8",
+        "brotli": "1.2.0",
+        "cldr": "48.0",
+        "icu": "78.2",
+        "llhttp": "9.4.3",
+        "merve": "1.2.2",
+        "modules": "149",
+        "napi": "10",
+        "nbytes": "0.1.4",
+        "ncrypto": "0.0.1",
+        "nghttp2": "1.70.0",
+        "nghttp3": "",
+        "ngtcp2": "",
+        "openssl": "0.0.0",
+        "simdjson": "4.6.11",
+        "simdutf": "7.7.0",
+        "sqlite": "3.53.4",
+        "tz": "2026d",
+        "undici": "7.29.1",
+        "unicode": "17.0",
+        "uv": "1.52.1",
+        "uvwasi": "0.0.23",
+        "v8": "15.2.124.43-electron.0",
+        "zlib": "1.3.2.1-motley",
+        "zstd": "1.6.0",
+        "electron": "44.8.0",
+        "chrome": "152.0.7977.167"
+      },
+      "authoredCosmeticRules": [
+        "operator.blanc-fixture.test##.text:has-text(Sponsored)",
+        "operator.blanc-fixture.test###styled:matches-css(color: rgb(255, 0, 0))",
+        "operator.blanc-fixture.test##.leaf:upward(1)",
+        "operator.blanc-fixture.test###xpath-root:xpath(.//span[@data-ad=\"yes\"])",
+        "operator.blanc-fixture.test##+js(no-setTimeout-if, blancTimerTarget)"
+      ],
+      "diagnosticSelection": {
+        "rulesAdded": 5,
+        "loadExtendedSelectors": false
+      }
+    }
+  ],
+  "failedChecks": [
+    {
+      "name": "regular-0 timer target defused",
+      "pass": false
+    },
+    {
+      "name": "regular-0 initial text",
+      "pass": false
+    },
+    {
+      "name": "regular-0 initial styled",
+      "pass": false
+    },
+    {
+      "name": "regular-0 initial upward",
+      "pass": false
+    },
+    {
+      "name": "regular-0 initial xpath",
+      "pass": false
+    },
+    {
+      "name": "regular-0 moved upward follows leaf",
+      "pass": false
+    },
+    {
+      "name": "regular-0 timer mutation rematches text",
+      "pass": false
+    },
+    {
+      "name": "regular-0 timer mutation rematches styled",
+      "pass": false
+    },
+    {
+      "name": "regular-0 timer mutation rematches upward",
+      "pass": false
+    },
+    {
+      "name": "regular-0 timer mutation rematches xpath",
+      "pass": false
+    },
+    {
+      "name": "regular-0 inserted subtree evaluated",
+      "pass": false
+    },
+    {
+      "name": "regular-1 timer target defused",
+      "pass": false
+    },
+    {
+      "name": "regular-1 initial text",
+      "pass": false
+    },
+    {
+      "name": "regular-1 initial styled",
+      "pass": false
+    },
+    {
+      "name": "regular-1 initial upward",
+      "pass": false
+    },
+    {
+      "name": "regular-1 initial xpath",
+      "pass": false
+    },
+    {
+      "name": "regular-1 moved upward follows leaf",
+      "pass": false
+    },
+    {
+      "name": "regular-1 timer mutation rematches text",
+      "pass": false
+    },
+    {
+      "name": "regular-1 timer mutation rematches styled",
+      "pass": false
+    },
+    {
+      "name": "regular-1 timer mutation rematches upward",
+      "pass": false
+    },
+    {
+      "name": "regular-1 timer mutation rematches xpath",
+      "pass": false
+    },
+    {
+      "name": "regular-1 inserted subtree evaluated",
+      "pass": false
+    },
+    {
+      "name": "private-0 timer target defused",
+      "pass": false
+    },
+    {
+      "name": "private-0 initial text",
+      "pass": false
+    },
+    {
+      "name": "private-0 initial styled",
+      "pass": false
+    },
+    {
+      "name": "private-0 initial upward",
+      "pass": false
+    },
+    {
+      "name": "private-0 initial xpath",
+      "pass": false
+    },
+    {
+      "name": "private-0 moved upward follows leaf",
+      "pass": false
+    },
+    {
+      "name": "private-0 timer mutation rematches text",
+      "pass": false
+    },
+    {
+      "name": "private-0 timer mutation rematches styled",
+      "pass": false
+    },
+    {
+      "name": "private-0 timer mutation rematches upward",
+      "pass": false
+    },
+    {
+      "name": "private-0 timer mutation rematches xpath",
+      "pass": false
+    },
+    {
+      "name": "private-0 inserted subtree evaluated",
+      "pass": false
+    },
+    {
+      "name": "private-1 timer target defused",
+      "pass": false
+    },
+    {
+      "name": "private-1 initial text",
+      "pass": false
+    },
+    {
+      "name": "private-1 initial styled",
+      "pass": false
+    },
+    {
+      "name": "private-1 initial upward",
+      "pass": false
+    },
+    {
+      "name": "private-1 initial xpath",
+      "pass": false
+    },
+    {
+      "name": "private-1 moved upward follows leaf",
+      "pass": false
+    },
+    {
+      "name": "private-1 timer mutation rematches text",
+      "pass": false
+    },
+    {
+      "name": "private-1 timer mutation rematches styled",
+      "pass": false
+    },
+    {
+      "name": "private-1 timer mutation rematches upward",
+      "pass": false
+    },
+    {
+      "name": "private-1 timer mutation rematches xpath",
+      "pass": false
+    },
+    {
+      "name": "private-1 inserted subtree evaluated",
+      "pass": false
+    }
+  ],
+  "cleanup": true
+}

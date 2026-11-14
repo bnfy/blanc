@@ -1,0 +1,12 @@
+{
+  "previousSource": "6b9a05a00f321bfbde617c181103d5a455ff45f3",
+  "replacementSource": "7c427328100d1ba76cb7e8b651a1f36d74ec86c6",
+  "nativeDiffExcludingCertificateTableMatchesPrevious": true,
+  "oldNativeDiffSha256": "213cc22408831e7888761759ee3d4a932314a4a5d4275b8316c930d8fc77c2ca",
+  "excludingCertificateDiffSha256": "213cc22408831e7888761759ee3d4a932314a4a5d4275b8316c930d8fc77c2ca",
+  "nativeAddedSourcesEqual": true,
+  "nativeUpstreamEqual": true,
+  "buildEnvironmentEqual": true,
+  "blockerManifestEqual": true,
+  "filterPinsEqual": true
+}

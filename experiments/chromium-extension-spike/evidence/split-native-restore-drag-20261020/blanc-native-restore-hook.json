@@ -1,0 +1,7 @@
+{
+  "file": "chrome/browser/ui/browser_command_controller.cc",
+  "anchor": "    case IDC_RESTORE_TAB:\n      RestoreTab(browser_);",
+  "replacement": "    case IDC_RESTORE_TAB:\n      if (!blanc_prototype::RestoreClosedSplitFromCommand(browser_))\n        RestoreTab(browser_);",
+  "projected_files": 51,
+  "projected_hunks": 123
+}

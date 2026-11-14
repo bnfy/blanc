@@ -1,0 +1,445 @@
+2026-10-18T00:27:37.995Z pw:browser <launching> /Users/anthonyjloria/Projects/BlancChromium157/src/out/BlancPrototype/Blanc Prototype.app/Contents/MacOS/Blanc Prototype --disable-field-trial-config --disable-background-networking --disable-background-timer-throttling --disable-backgrounding-occluded-windows --disable-back-forward-cache --disable-breakpad --disable-client-side-phishing-detection --disable-component-update --no-default-browser-check --disable-default-apps --disable-dev-shm-usage --disable-edgeupdater --disable-features=AvoidUnnecessaryBeforeUnloadCheckSync,DestroyProfileOnBrowserClose,DialMediaRouteProvider,GlobalMediaControls,HttpsUpgrades,LensOverlay,MediaRouter,PaintHolding,ThirdPartyStoragePartitioning,BlockOriginHeaderModificationOnRedirect,Translate,AutoDeElevate,OptimizationHints,msForceBrowserSignIn,msEdgeUpdateLaunchServicesPreferredVersion --enable-features=CDPScreenshotNewSurface --allow-pre-commit-input --disable-hang-monitor --disable-ipc-flooding-protection --disable-popup-blocking --disable-prompt-on-repost --disable-renderer-backgrounding --disable-updater-scheduler --force-color-profile=srgb --metrics-recording-only --no-first-run --password-store=basic --use-mock-keychain --no-service-autorun --export-tagged-pdf --disable-search-engine-choice-screen --unsafely-disable-devtools-self-xss-warnings --edge-skip-compat-layer-relaunch --disable-infobars --disable-search-engine-choice-screen --disable-sync --enable-unsafe-swiftshader --no-sandbox --use-mock-keychain --blanc-ubo-component-probe=/private/tmp/blanc-ubo-hold-payload --blanc-ubo-component-manifest={
+  "author": "Raymond Hill & contributors",
+  "background": {
+    "page": "background.html"
+  },
+  "browser_action": {
+    "default_icon": {
+      "16": "img/icon_16.png",
+      "32": "img/icon_32.png",
+      "64": "img/icon_64.png"
+    },
+    "default_popup": "popup-fenix.html",
+    "default_title": "uBlock Origin"
+  },
+  "commands": {
+    "launch-element-picker": {
+      "description": "__MSG_popupTipPicker__"
+    },
+    "launch-element-zapper": {
+      "description": "__MSG_popupTipZapper__"
+    },
+    "launch-logger": {
+      "description": "__MSG_popupTipLog__"
+    },
+    "open-dashboard": {
+      "description": "__MSG_popupTipDashboard__"
+    },
+    "relax-blocking-mode": {
+      "description": "__MSG_relaxBlockingMode__"
+    },
+    "toggle-cosmetic-filtering": {
+      "description": "__MSG_toggleCosmeticFiltering__"
+    },
+    "toggle-javascript": {
+      "description": "__MSG_toggleJavascript__"
+    }
+  },
+  "content_scripts": [
+    {
+      "all_frames": true,
+      "js": [
+        "/js/vapi.js",
+        "/js/vapi-client.js",
+        "/js/contentscript.js"
+      ],
+      "match_about_blank": true,
+      "matches": [
+        "http://*/*",
+        "https://*/*"
+      ],
+      "run_at": "document_start"
+    },
+    {
+      "all_frames": false,
+      "js": [
+        "/js/scriptlets/subscriber.js"
+      ],
+      "matches": [
+        "https://easylist.to/*",
+        "https://*.fanboy.co.nz/*",
+        "https://filterlists.com/*",
+        "https://forums.lanik.us/*",
+        "https://github.com/*",
+        "https://*.github.io/*"
+      ],
+      "run_at": "document_idle"
+    },
+    {
+      "all_frames": false,
+      "js": [
+        "/js/scriptlets/updater.js"
+      ],
+      "matches": [
+        "https://github.com/uBlockOrigin/*",
+        "https://ublockorigin.github.io/*",
+        "https://*.reddit.com/r/uBlockOrigin/*"
+      ],
+      "run_at": "document_idle"
+    }
+  ],
+  "content_security_policy": "script-src 'self'; object-src 'self'",
+  "default_locale": "en",
+  "description": "__MSG_extShortDesc__",
+  "icons": {
+    "16": "img/icon_16.png",
+    "32": "img/icon_32.png",
+    "64": "img/icon_64.png",
+    "128": "img/icon_128.png"
+  },
+  "incognito": "not_allowed",
+  "manifest_version": 2,
+  "minimum_chrome_version": "93.0",
+  "name": "uBlock Origin",
+  "options_ui": {
+    "open_in_tab": true,
+    "page": "dashboard.html"
+  },
+  "permissions": [
+    "alarms",
+    "contextMenus",
+    "privacy",
+    "storage",
+    "tabs",
+    "unlimitedStorage",
+    "webNavigation",
+    "webRequest",
+    "webRequestBlocking",
+    "<all_urls>"
+  ],
+  "short_name": "uBlock\u2080",
+  "storage": {
+    "managed_schema": "managed_storage.json"
+  },
+  "version": "1.75.0",
+  "web_accessible_resources": [
+    "/web_accessible_resources/*"
+  ],
+  "key": "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAgmQ2nqsfUeKcq4+s+lUz53iaJ97Kay2Jxn0wR+ihw4xt0cDc+bC6DhN+4AgtpI2+5HqBsM9DX3d3IFe2umzq8f6tCxT/hsEHjifB1ZemwH22QEFSVBQb6M8XDYYjQ1Sjs4dbQHiC3uQE1GXaRNm6nbtgfWsHDkS66MffjZNQlr6Mwqm2FH1sdJPn/vcNZDg50wwi+Hy9/nU2lRUnNkd3zXtPJ2+2tffD3oC9nW5XVjqSGCgD0R54VhHUInJzYgsBkkgFyhLjNsJzBV0j7YKrmisdlBR2kB6WwFmDLg4Y1J9y3mwdH2u+5CEl9NZdvPA4w2YVBujvFoFDszZugp7fkQIDAQAB"
+} --blanc-ubo-offline-probe --blanc-ubo-reload-probe --blanc-blocker-log=/private/tmp/blanc-ubo-readiness-crh0Ab/decisions.jsonl --blanc-blocker-assets=/private/tmp/blanc-f12-codeql-assets --blanc-prototype-assets=/private/tmp/blanc-chromium157-work/experiments/chromium-extension-spike/generated --proxy-server=http://127.0.0.1:53386 --host-resolver-rules=MAP * ~NOTFOUND, EXCLUDE localhost, EXCLUDE 127.0.0.1 --disable-sync --disable-component-update --user-data-dir=/private/tmp/blanc-ubo-readiness-crh0Ab/profile --remote-debugging-pipe about:blank
+2026-10-18T00:27:37.997Z pw:browser <launched> pid=326
+2026-10-18T00:27:38.143Z pw:browser [pid=326][err] [326:2961578:1017/202738.142598:ERROR:chrome/browser/mac/code_sign_clone_manager.mm:93] error removing quarantine attribute "/var/folders/4x/r7mr2b5d4q53x8nbf_trvcxw0000gn/X/"
+2026-10-18T00:27:38.247Z pw:browser [pid=326][err] [326:2961545:1017/202738.247121:ERROR:chrome/browser/actor/tools/tool_request.cc:32] Not implemented reached in static std::optional<ToolDefinition> actor::ToolRequest::GetToolDefinition(). 
+2026-10-18T00:27:38.775Z pw:browser [pid=326][err] [343:2961876:1017/202738.736677:FATAL:third_party/blink/renderer/platform/loader/fetch/url_loader/mojo_url_loader_client.cc:466] DCHECK failed: has_received_response_body_ || status.error_code != net::OK. 
+2026-10-18T00:27:38.775Z pw:browser [pid=326][err] 0   Blanc Prototype Framework           0x000000012fa3d1ec base::debug::CollectStackTrace(base::span<void const*, 18446744073709551615ul, void const**>) + 24
+2026-10-18T00:27:38.775Z pw:browser [pid=326][err] 1   Blanc Prototype Framework           0x000000012fa28560 base::debug::StackTrace::StackTrace(unsigned long) + 224
+2026-10-18T00:27:38.775Z pw:browser [pid=326][err] 2   Blanc Prototype Framework           0x000000012f92a5ec logging::LogMessage::Flush() + 172
+2026-10-18T00:27:38.775Z pw:browser [pid=326][err] 3   Blanc Prototype Framework           0x000000012f92a45c logging::LogMessage::~LogMessage() + 36
+2026-10-18T00:27:38.775Z pw:browser [pid=326][err] 4   Blanc Prototype Framework           0x000000012f90ee8c logging::(anonymous namespace)::DCheckLogMessage::~DCheckLogMessage() + 76
+2026-10-18T00:27:38.775Z pw:browser [pid=326][err] 5   Blanc Prototype Framework           0x000000012f90e768 logging::CheckError::~CheckError() + 44
+2026-10-18T00:27:38.775Z pw:browser [pid=326][err] 6   Blanc Prototype Framework           0x000000012f90e7a8 logging::CheckError::~CheckError() + 12
+2026-10-18T00:27:38.775Z pw:browser [pid=326][err] 7   Blanc Prototype Framework           0x000000012d40e528 blink::MojoURLLoaderClient::OnComplete(network::URLLoaderCompletionStatus const&) + 136
+2026-10-18T00:27:38.775Z pw:browser [pid=326][err] 8   Blanc Prototype Framework           0x0000000127fded34 blink::ThrottlingURLLoader::OnComplete(network::URLLoaderCompletionStatus const&) + 760
+2026-10-18T00:27:38.775Z pw:browser [pid=326][err] 9   Blanc Prototype Framework           0x00000001279c0ebc network::mojom::URLLoaderClientStubDispatch::Accept(network::mojom::URLLoaderClient*, mojo::Message*) + 372
+2026-10-18T00:27:38.775Z pw:browser [pid=326][err] 10  Blanc Prototype Framework           0x000000012fcd7c08 mojo::InterfaceEndpointClient::HandleValidatedMessage(mojo::Message*) + 1400
+2026-10-18T00:27:38.775Z pw:browser [pid=326][err] 11  Blanc Prototype Framework           0x000000012fcddcd0 mojo::MessageDispatcher::Accept(mojo::Message*) + 320
+2026-10-18T00:27:38.775Z pw:browser [pid=326][err] 12  Blanc Prototype Framework           0x000000012fcd97b0 mojo::InterfaceEndpointClient::HandleIncomingMessage(mojo::Message*) + 148
+2026-10-18T00:27:38.775Z pw:browser [pid=326][err] 13  Blanc Prototype Framework           0x000000012fce2478 mojo::internal::MultiplexRouter::ProcessIncomingMessage(mojo::internal::MultiplexRouter::MessageWrapper*, mojo::internal::MultiplexRouter::ClientCallBehavior, base::SequencedTaskRunner*) + 1036
+2026-10-18T00:27:38.775Z pw:browser [pid=326][err] 14  Blanc Prototype Framework           0x000000012fce1b3c mojo::internal::MultiplexRouter::Accept(mojo::Message*) + 448
+2026-10-18T00:27:38.775Z pw:browser [pid=326][err] 15  Blanc Prototype Framework           0x000000012fcddcd0 mojo::MessageDispatcher::Accept(mojo::Message*) + 320
+2026-10-18T00:27:38.775Z pw:browser [pid=326][err] 16  Blanc Prototype Framework           0x000000012fcd30a4 mojo::Connector::DispatchMessage(mojo::ScopedHandleBase<mojo::MessageHandle>) + 544
+2026-10-18T00:27:38.775Z pw:browser [pid=326][err] 17  Blanc Prototype Framework           0x000000012fcd38d0 mojo::Connector::ReadAllAvailableMessages() + 224
+2026-10-18T00:27:38.775Z pw:browser [pid=326][err] 18  Blanc Prototype Framework           0x000000012fcd36a8 mojo::Connector::OnWatcherHandleReady(char const*, unsigned int) + 84
+2026-10-18T00:27:38.775Z pw:browser [pid=326][err] 19  Blanc Prototype Framework           0x00000001269e1f08 base::RepeatingCallback<void (net::DnsConfig const&)>::Run(net::DnsConfig const&) const & + 136
+2026-10-18T00:27:38.775Z pw:browser [pid=326][err] 20  Blanc Prototype Framework           0x0000000126a6b7d4 base::RepeatingCallback<void (net::MDnsTransaction::Result, net::RecordParsed const*)>::Run(net::MDnsTransaction::Result, net::RecordParsed const*) const & + 148
+2026-10-18T00:27:38.775Z pw:browser [pid=326][err] 21  Blanc Prototype Framework           0x000000012fd006c4 mojo::SimpleWatcher::OnHandleReady(int, unsigned int, mojo::HandleSignalsState const&) + 244
+2026-10-18T00:27:38.775Z pw:browser [pid=326][err] 22  Blanc Prototype Framework           0x000000012674df8c base::OnceCallback<void ()>::Run() && + 108
+2026-10-18T00:27:38.775Z pw:browser [pid=326][err] 23  Blanc Prototype Framework           0x000000012f99fda8 base::TaskAnnotator::RunTaskImpl(base::PendingTask&) + 336
+2026-10-18T00:27:38.775Z pw:browser [pid=326][err] 24  Blanc Prototype Framework           0x000000012f9e11f0 base::internal::TaskTracker::RunTaskImpl(base::internal::Task&, base::TaskTraits const&, base::internal::TaskSource*, base::internal::SequenceToken const&) + 128
+2026-10-18T00:27:38.775Z pw:browser [pid=326][err] 25  Blanc Prototype Framework           0x000000012f9e1290 base::internal::TaskTracker::RunSkipOnShutdown(base::internal::Task&, base::TaskTraits const&, base::internal::TaskSource*, base::internal::SequenceToken const&) + 84
+2026-10-18T00:27:38.775Z pw:browser [pid=326][err] 26  Blanc Prototype Framework           0x000000012f9e0968 base::internal::TaskTracker::RunTask(base::internal::Task, base::internal::TaskSource*, base::TaskTraits const&, base::ThreadType) + 936
+2026-10-18T00:27:38.775Z pw:browser [pid=326][err] 27  Blanc Prototype Framework           0x000000012f9e0304 base::internal::TaskTracker::RunAndPopNextTask(base::internal::RegisteredTaskSource) + 572
+2026-10-18T00:27:38.775Z pw:browser [pid=326][err] 28  Blanc Prototype Framework           0x000000012f9fa158 base::internal::WorkerThread::RunWorker() + 828
+2026-10-18T00:27:38.775Z pw:browser [pid=326][err] 29  Blanc Prototype Framework           0x000000012f9f9d60 base::internal::WorkerThread::RunPooledWorker() + 16
+2026-10-18T00:27:38.775Z pw:browser [pid=326][err] 30  Blanc Prototype Framework           0x000000012f9f9c54 base::internal::WorkerThread::ThreadMain() + 176
+2026-10-18T00:27:38.775Z pw:browser [pid=326][err] 31  Blanc Prototype Framework           0x000000012fa26a2c base::(anonymous namespace)::ThreadFunc(void*) + 140
+2026-10-18T00:27:38.775Z pw:browser [pid=326][err] 32  libsystem_pthread.dylib             0x000000019dbe0ce4 _pthread_start + 136
+2026-10-18T00:27:38.775Z pw:browser [pid=326][err] 33  libsystem_pthread.dylib             0x000000019dbdbcd0 thread_start + 8
+2026-10-18T00:27:38.775Z pw:browser [pid=326][err] Task trace:
+2026-10-18T00:27:38.776Z pw:browser [pid=326][err] 0   Blanc Prototype Framework           0x000000012fd008f4 mojo::SimpleWatcher::Context::Notify(unsigned int, MojoHandleSignalsState, unsigned int) + 316
+2026-10-18T00:27:38.776Z pw:browser [pid=326][err] Crash keys:
+2026-10-18T00:27:38.776Z pw:browser [pid=326][err]   "gpu-glver" = "OpenGL ES 3.0 (ANGLE 2.1.29094 git hash: 25078a7740fd)"
+2026-10-18T00:27:38.776Z pw:browser [pid=326][err]   "gpu-generation-intel" = "0"
+2026-10-18T00:27:38.776Z pw:browser [pid=326][err]   "gpu-vsver" = "3.00"
+2026-10-18T00:27:38.776Z pw:browser [pid=326][err]   "gpu-psver" = "3.00"
+2026-10-18T00:27:38.776Z pw:browser [pid=326][err]   "gpu-driver" = "27.2"
+2026-10-18T00:27:38.776Z pw:browser [pid=326][err]   "gpu_count" = "1"
+2026-10-18T00:27:38.776Z pw:browser [pid=326][err]   "gpu-devid" = "0x0000"
+2026-10-18T00:27:38.776Z pw:browser [pid=326][err]   "gpu-venid" = "0x106b"
+2026-10-18T00:27:38.776Z pw:browser [pid=326][err]   "view-count" = "2"
+2026-10-18T00:27:38.776Z pw:browser [pid=326][err]   "loaded-origin-0" = "chrome-extension://oddhmofgkplblkmckempfepikkophank"
+2026-10-18T00:27:38.776Z pw:browser [pid=326][err]   "web-frame-count" = "2"
+2026-10-18T00:27:38.776Z pw:browser [pid=326][err]   "devtools_present" = "true"
+2026-10-18T00:27:38.776Z pw:browser [pid=326][err]   "component-extension-1" = "uBlock Origin"
+2026-10-18T00:27:38.776Z pw:browser [pid=326][err]   "num-component-extensions" = "1"
+2026-10-18T00:27:38.776Z pw:browser [pid=326][err]   "extension-1" = "oddhmofgkplblkmckempfepikkophank"
+2026-10-18T00:27:38.776Z pw:browser [pid=326][err]   "num-extensions" = "1"
+2026-10-18T00:27:38.776Z pw:browser [pid=326][err]   "renderer_foreground" = "true"
+2026-10-18T00:27:38.776Z pw:browser [pid=326][err]   "v8_ro_space_firstpage_address" = "0x215600000000"
+2026-10-18T00:27:38.776Z pw:browser [pid=326][err]   "v8_isolate_address" = "0x10400ab0000"
+2026-10-18T00:27:38.776Z pw:browser [pid=326][err]   "num-variations-runtime-overrides" = "0"
+2026-10-18T00:27:38.776Z pw:browser [pid=326][err]   "variations" = "b357b792-3f4a17df,f4f00e05-ca7d8d80,70678518-dee66fa8,be338734-dee66fa8,5f9907a9-dee66fa8,8eeccb9a-dee66fa8,2b465683-dee66fa8,52fc7926-dee66fa8,bc9b361d-dee66fa8,a41a7188-dee66fa8,ff71bfdc-dee66fa8,251fc742-dee66fa8,2159dd0c-dee66fa8,4330e9a4-dee66fa8,e7cc79d5-dee66fa8,4b935545-bb2d3403,9a38bae3-3d47f4f4,2d1e43a3-3f4a17df,370ace14-3f4a17df,386dc267-3d47f4f4,d69d967d-9cce7190,3c8f75a1-dcfbe471,a4406b35-1657e2d6,408da146-1657e2d6,"
+2026-10-18T00:27:38.776Z pw:browser [pid=326][err]   "num-experiments" = "24"
+2026-10-18T00:27:38.776Z pw:browser [pid=326][err]   "chrome-trace-id" = "1132485369368348158"
+2026-10-18T00:27:38.776Z pw:browser [pid=326][err]   "reentry_guard_tls_slot" = "271"
+2026-10-18T00:27:38.776Z pw:browser [pid=326][err]   "switch-23" = "--trace-process-track-uuid=2222078231266655124"
+2026-10-18T00:27:38.776Z pw:browser [pid=326][err]   "switch-22" = "--pseudonymization-salt-handle=1935764596,r,3334802884124476865,"
+2026-10-18T00:27:38.776Z pw:browser [pid=326][err]   "switch-21" = "--variations-seed-version"
+2026-10-18T00:27:38.776Z pw:browser [pid=326][err]   "switch-20" = "--field-trial-handle=1718379636,r,12658463586050704165,170658906"
+2026-10-18T00:27:38.776Z pw:browser [pid=326][err]   "switch-19" = "--metrics-shmem-handle=1752395122,r,6202327536251110597,99644117"
+2026-10-18T00:27:38.776Z pw:browser [pid=326][err]   "switch-18" = "--shared-files"
+2026-10-18T00:27:38.776Z pw:browser [pid=326][err]   "switch-17" = "--launch-time-ticks=110176771283"
+2026-10-18T00:27:38.776Z pw:browser [pid=326][err]   "switch-16" = "--renderer-client-id=11"
+2026-10-18T00:27:38.776Z pw:browser [pid=326][err]   "switch-15" = "--enable-main-frame-before-activation"
+2026-10-18T00:27:38.776Z pw:browser [pid=326][err]   "switch-14" = "--enable-gpu-memory-buffer-compositor-resources"
+2026-10-18T00:27:38.776Z pw:browser [pid=326][err]   "switch-13" = "--enable-zero-copy"
+2026-10-18T00:27:38.776Z pw:browser [pid=326][err]   "switch-12" = "--num-raster-threads=4"
+2026-10-18T00:27:38.776Z pw:browser [pid=326][err]   "switch-11" = "--lang=en-US"
+2026-10-18T00:27:38.776Z pw:browser [pid=326][err]   "switch-10" = "--allow-pre-commit-input"
+2026-10-18T00:27:38.776Z pw:browser [pid=326][err]   "switch-9" = "--remote-debugging-pipe"
+2026-10-18T00:27:38.776Z pw:browser [pid=326][err]   "switch-8" = "--force-color-profile=srgb"
+2026-10-18T00:27:38.776Z pw:browser [pid=326][err]   "switch-7" = "--file-url-path-alias=/gen=/Users/anthonyjloria/Projects/BlancCh"
+2026-10-18T00:27:38.776Z pw:browser [pid=326][err]   "switch-6" = "--disable-breakpad"
+2026-10-18T00:27:38.776Z pw:browser [pid=326][err]   "switch-5" = "--disable-background-timer-throttling"
+2026-10-18T00:27:38.776Z pw:browser [pid=326][err]   "switch-4" = "--disable-back-forward-cache"
+2026-10-18T00:27:38.776Z pw:browser [pid=326][err]   "switch-3" = "--no-sandbox"
+2026-10-18T00:27:38.776Z pw:browser [pid=326][err]   "switch-2" = "--extension-process"
+2026-10-18T00:27:38.776Z pw:browser [pid=326][err]   "switch-1" = "--user-data-dir=/private/tmp/blanc-ubo-readiness-crh0Ab/profile"
+2026-10-18T00:27:38.776Z pw:browser [pid=326][err]   "num-switches" = "26"
+2026-10-18T00:27:38.776Z pw:browser [pid=326][err]   "commandline-disabled-feature-15" = "msForceBrowserSignIn"
+2026-10-18T00:27:38.776Z pw:browser [pid=326][err]   "commandline-disabled-feature-14" = "msEdgeUpdateLaunchServicesPreferredVersion"
+2026-10-18T00:27:38.776Z pw:browser [pid=326][err]   "commandline-disabled-feature-13" = "Translate"
+2026-10-18T00:27:38.776Z pw:browser [pid=326][err]   "commandline-disabled-feature-12" = "ThirdPartyStoragePartitioning"
+2026-10-18T00:27:38.776Z pw:browser [pid=326][err]   "commandline-disabled-feature-11" = "PaintHolding"
+2026-10-18T00:27:38.776Z pw:browser [pid=326][err]   "commandline-disabled-feature-10" = "OptimizationHints"
+2026-10-18T00:27:38.776Z pw:browser [pid=326][err]   "commandline-disabled-feature-9" = "MediaRouter"
+2026-10-18T00:27:38.776Z pw:browser [pid=326][err]   "commandline-disabled-feature-8" = "LensOverlay"
+2026-10-18T00:27:38.776Z pw:browser [pid=326][err]   "commandline-disabled-feature-7" = "HttpsUpgrades"
+2026-10-18T00:27:38.776Z pw:browser [pid=326][err]   "commandline-disabled-feature-6" = "GlobalMediaControls"
+2026-10-18T00:27:38.776Z pw:browser [pid=326][err]   "commandline-disabled-feature-5" = "DialMediaRouteProvider"
+2026-10-18T00:27:38.776Z pw:browser [pid=326][err]   "commandline-disabled-feature-4" = "DestroyProfileOnBrowserClose"
+2026-10-18T00:27:38.776Z pw:browser [pid=326][err]   "commandline-disabled-feature-3" = "BlockOriginHeaderModificationOnRedirect"
+2026-10-18T00:27:38.776Z pw:browser [pid=326][err]   "commandline-disabled-feature-2" = "AvoidUnnecessaryBeforeUnloadCheckSync"
+2026-10-18T00:27:38.776Z pw:browser [pid=326][err]   "commandline-disabled-feature-1" = "AutoDeElevate"
+2026-10-18T00:27:38.776Z pw:browser [pid=326][err]   "commandline-enabled-feature-1" = "CDPScreenshotNewSurface"
+2026-10-18T00:27:38.776Z pw:browser [pid=326][err]   "osarch" = "arm64"
+2026-10-18T00:27:38.776Z pw:browser [pid=326][err]   "pid" = "343"
+2026-10-18T00:27:38.776Z pw:browser [pid=326][err]   "ptype" = "renderer"
+2026-10-18T00:27:38.776Z pw:browser [pid=326][err] 
+2026-10-18T00:27:38.776Z pw:browser [pid=326][err] Received signal 6
+2026-10-18T00:27:38.804Z pw:browser [pid=326][err] 0   Blanc Prototype Framework           0x000000012fa3d1ec base::debug::CollectStackTrace(base::span<void const*, 18446744073709551615ul, void const**>) + 24
+2026-10-18T00:27:38.804Z pw:browser [pid=326][err] 1   Blanc Prototype Framework           0x000000012fa28560 base::debug::StackTrace::StackTrace(unsigned long) + 224
+2026-10-18T00:27:38.804Z pw:browser [pid=326][err] 2   Blanc Prototype Framework           0x000000012fa3d144 base::debug::(anonymous namespace)::StackDumpSignalHandler(int, __siginfo*, void*) + 924
+2026-10-18T00:27:38.804Z pw:browser [pid=326][err] 3   libsystem_platform.dylib            0x00000001a2bb1144 _sigtramp + 56
+2026-10-18T00:27:38.804Z pw:browser [pid=326][err] 4   libsystem_pthread.dylib             0x000000019dbe0960 pthread_kill + 296
+2026-10-18T00:27:38.804Z pw:browser [pid=326][err] 5   libsystem_c.dylib                   0x000000019dc74480 abort + 148
+2026-10-18T00:27:38.804Z pw:browser [pid=326][err] 6   Blanc Prototype Framework           0x000000012f92b168 logging::LogMessage::HandleFatal(unsigned long, std::__Cr::basic_string<char, std::__Cr::char_traits<char>, std::__Cr::allocator<char>> const&) const + 456
+2026-10-18T00:27:38.804Z pw:browser [pid=326][err] 7   Blanc Prototype Framework           0x000000012f92ac08 logging::LogMessage::Flush() + 1736
+2026-10-18T00:27:38.804Z pw:browser [pid=326][err] 8   Blanc Prototype Framework           0x000000012f92a45c logging::LogMessage::~LogMessage() + 36
+2026-10-18T00:27:38.804Z pw:browser [pid=326][err] 9   Blanc Prototype Framework           0x000000012f90ee8c logging::(anonymous namespace)::DCheckLogMessage::~DCheckLogMessage() + 76
+2026-10-18T00:27:38.804Z pw:browser [pid=326][err] 10  Blanc Prototype Framework           0x000000012f90e768 logging::CheckError::~CheckError() + 44
+2026-10-18T00:27:38.804Z pw:browser [pid=326][err] 11  Blanc Prototype Framework           0x000000012f90e7a8 logging::CheckError::~CheckError() + 12
+2026-10-18T00:27:38.804Z pw:browser [pid=326][err] 12  Blanc Prototype Framework           0x000000012d40e528 blink::MojoURLLoaderClient::OnComplete(network::URLLoaderCompletionStatus const&) + 136
+2026-10-18T00:27:38.804Z pw:browser [pid=326][err] 13  Blanc Prototype Framework           0x0000000127fded34 blink::ThrottlingURLLoader::OnComplete(network::URLLoaderCompletionStatus const&) + 760
+2026-10-18T00:27:38.804Z pw:browser [pid=326][err] 14  Blanc Prototype Framework           0x00000001279c0ebc network::mojom::URLLoaderClientStubDispatch::Accept(network::mojom::URLLoaderClient*, mojo::Message*) + 372
+2026-10-18T00:27:38.804Z pw:browser [pid=326][err] 15  Blanc Prototype Framework           0x000000012fcd7c08 mojo::InterfaceEndpointClient::HandleValidatedMessage(mojo::Message*) + 1400
+2026-10-18T00:27:38.804Z pw:browser [pid=326][err] 16  Blanc Prototype Framework           0x000000012fcddcd0 mojo::MessageDispatcher::Accept(mojo::Message*) + 320
+2026-10-18T00:27:38.804Z pw:browser [pid=326][err] 17  Blanc Prototype Framework           0x000000012fcd97b0 mojo::InterfaceEndpointClient::HandleIncomingMessage(mojo::Message*) + 148
+2026-10-18T00:27:38.804Z pw:browser [pid=326][err] 18  Blanc Prototype Framework           0x000000012fce2478 mojo::internal::MultiplexRouter::ProcessIncomingMessage(mojo::internal::MultiplexRouter::MessageWrapper*, mojo::internal::MultiplexRouter::ClientCallBehavior, base::SequencedTaskRunner*) + 1036
+2026-10-18T00:27:38.804Z pw:browser [pid=326][err] 19  Blanc Prototype Framework           0x000000012fce1b3c mojo::internal::MultiplexRouter::Accept(mojo::Message*) + 448
+2026-10-18T00:27:38.805Z pw:browser [pid=326][err] 20  Blanc Prototype Framework           0x000000012fcddcd0 mojo::MessageDispatcher::Accept(mojo::Message*) + 320
+2026-10-18T00:27:38.805Z pw:browser [pid=326][err] 21  Blanc Prototype Framework           0x000000012fcd30a4 mojo::Connector::DispatchMessage(mojo::ScopedHandleBase<mojo::MessageHandle>) + 544
+2026-10-18T00:27:38.805Z pw:browser [pid=326][err] 22  Blanc Prototype Framework           0x000000012fcd38d0 mojo::Connector::ReadAllAvailableMessages() + 224
+2026-10-18T00:27:38.805Z pw:browser [pid=326][err] 23  Blanc Prototype Framework           0x000000012fcd36a8 mojo::Connector::OnWatcherHandleReady(char const*, unsigned int) + 84
+2026-10-18T00:27:38.805Z pw:browser [pid=326][err] 24  Blanc Prototype Framework           0x00000001269e1f08 base::RepeatingCallback<void (net::DnsConfig const&)>::Run(net::DnsConfig const&) const & + 136
+2026-10-18T00:27:38.805Z pw:browser [pid=326][err] 25  Blanc Prototype Framework           0x0000000126a6b7d4 base::RepeatingCallback<void (net::MDnsTransaction::Result, net::RecordParsed const*)>::Run(net::MDnsTransaction::Result, net::RecordParsed const*) const & + 148
+2026-10-18T00:27:38.805Z pw:browser [pid=326][err] 26  Blanc Prototype Framework           0x000000012fd006c4 mojo::SimpleWatcher::OnHandleReady(int, unsigned int, mojo::HandleSignalsState const&) + 244
+2026-10-18T00:27:38.805Z pw:browser [pid=326][err] 27  Blanc Prototype Framework           0x000000012674df8c base::OnceCallback<void ()>::Run() && + 108
+2026-10-18T00:27:38.805Z pw:browser [pid=326][err] 28  Blanc Prototype Framework           0x000000012f99fda8 base::TaskAnnotator::RunTaskImpl(base::PendingTask&) + 336
+2026-10-18T00:27:38.805Z pw:browser [pid=326][err] 29  Blanc Prototype Framework           0x000000012f9e11f0 base::internal::TaskTracker::RunTaskImpl(base::internal::Task&, base::TaskTraits const&, base::internal::TaskSource*, base::internal::SequenceToken const&) + 128
+2026-10-18T00:27:38.805Z pw:browser [pid=326][err] 30  Blanc Prototype Framework           0x000000012f9e1290 base::internal::TaskTracker::RunSkipOnShutdown(base::internal::Task&, base::TaskTraits const&, base::internal::TaskSource*, base::internal::SequenceToken const&) + 84
+2026-10-18T00:27:38.805Z pw:browser [pid=326][err] 31  Blanc Prototype Framework           0x000000012f9e0968 base::internal::TaskTracker::RunTask(base::internal::Task, base::internal::TaskSource*, base::TaskTraits const&, base::ThreadType) + 936
+2026-10-18T00:27:38.805Z pw:browser [pid=326][err] 32  Blanc Prototype Framework           0x000000012f9e0304 base::internal::TaskTracker::RunAndPopNextTask(base::internal::RegisteredTaskSource) + 572
+2026-10-18T00:27:38.805Z pw:browser [pid=326][err] 33  Blanc Prototype Framework           0x000000012f9fa158 base::internal::WorkerThread::RunWorker() + 828
+2026-10-18T00:27:38.805Z pw:browser [pid=326][err] 34  Blanc Prototype Framework           0x000000012f9f9d60 base::internal::WorkerThread::RunPooledWorker() + 16
+2026-10-18T00:27:38.805Z pw:browser [pid=326][err] 35  Blanc Prototype Framework           0x000000012f9f9c54 base::internal::WorkerThread::ThreadMain() + 176
+2026-10-18T00:27:38.805Z pw:browser [pid=326][err] 36  Blanc Prototype Framework           0x000000012fa26a2c base::(anonymous namespace)::ThreadFunc(void*) + 140
+2026-10-18T00:27:38.805Z pw:browser [pid=326][err] 37  libsystem_pthread.dylib             0x000000019dbe0ce4 _pthread_start + 136
+2026-10-18T00:27:38.805Z pw:browser [pid=326][err] 38  libsystem_pthread.dylib             0x000000019dbdbcd0 thread_start + 8
+2026-10-18T00:27:38.805Z pw:browser [pid=326][err] [end of stack trace]
+2026-10-18T00:27:41.823Z pw:browser [pid=326] <gracefully close start>
+2026-10-18T00:27:42.072Z pw:browser [pid=326][err] [326:2961545:1017/202742.072288:ERROR:base/process/kill_posix.cc:33] waitpid(333): No child processes (10)
+2026-10-18T00:27:42.102Z pw:browser [pid=326][err] [326:2961545:1017/202742.080667:ERROR:base/allocator/partition_alloc_support.cc:713] A freed allocation is still referenced by a dangling pointer at exit, or at test end. Leaked raw_ptr/raw_ref could cause PartitionAlloc's quarantine memory bloat.
+2026-10-18T00:27:42.102Z pw:browser [pid=326][err] 
+2026-10-18T00:27:42.102Z pw:browser [pid=326][err] Memory was released on:
+2026-10-18T00:27:42.102Z pw:browser [pid=326][err] Task trace:
+2026-10-18T00:27:42.102Z pw:browser [pid=326][err] No active task.
+2026-10-18T00:27:42.103Z pw:browser [pid=326][err] 0   Blanc Prototype Framework           0x00000070095251ec base::debug::CollectStackTrace(base::span<void const*, 18446744073709551615ul, void const**>) + 24
+2026-10-18T00:27:42.103Z pw:browser [pid=326][err] 1   Blanc Prototype Framework           0x0000007009510560 base::debug::StackTrace::StackTrace(unsigned long) + 224
+2026-10-18T00:27:42.103Z pw:browser [pid=326][err] 2   Blanc Prototype Framework           0x000000700952a864 base::allocator::(anonymous namespace)::DanglingRawPtrDetected(unsigned long) + 764
+2026-10-18T00:27:42.103Z pw:browser [pid=326][err] 3   Blanc Prototype Framework           0x00000070095e0ac4 void partition_alloc::PartitionRoot::FreeInline<(partition_alloc::internal::FreeFlags)8>(void*, ...) + 5388
+2026-10-18T00:27:42.103Z pw:browser [pid=326][err] 4   Blanc Prototype Framework           0x00000070078ca11c ProfileImpl::~ProfileImpl() + 16
+2026-10-18T00:27:42.103Z pw:browser [pid=326][err] 5   Blanc Prototype Framework           0x00000070089960ec ProfileDestroyer::DestroyOriginalProfileNow(std::__Cr::unique_ptr<Profile, std::__Cr::default_delete<Profile>>) + 300
+2026-10-18T00:27:42.103Z pw:browser [pid=326][err] 6   Blanc Prototype Framework           0x0000007008997094 OriginalProfileDestroyer::DoDestroyUnderlyingProfile() + 88
+2026-10-18T00:27:42.103Z pw:browser [pid=326][err] 7   Blanc Prototype Framework           0x000000700899572c ProfileDestroyer::Start(std::__Cr::set<content::RenderProcessHost*, std::__Cr::less<content::RenderProcessHost*>, std::__Cr::allocator<content::RenderProcessHost*>> const&) + 528
+2026-10-18T00:27:42.103Z pw:browser [pid=326][err] 8   Blanc Prototype Framework           0x00000070089952a0 ProfileDestroyer::DestroyOriginalProfileWhenAppropriateWithTimeout(std::__Cr::unique_ptr<Profile, std::__Cr::default_delete<Profile>>, base::TimeDelta) + 676
+2026-10-18T00:27:42.103Z pw:browser [pid=326][err] 9   Blanc Prototype Framework           0x00000070089a2200 ProfileManager::StartProfileDestruction(std::__Cr::unique_ptr<Profile, std::__Cr::default_delete<Profile>>) + 272
+2026-10-18T00:27:42.103Z pw:browser [pid=326][err] 10  Blanc Prototype Framework           0x000000700052b9b4 base::OnceCallback<void (std::__Cr::unique_ptr<net::HostResolverInternalResult, std::__Cr::default_delete<net::HostResolverInternalResult>>)>::Run(std::__Cr::unique_ptr<net::HostResolverInternalResult, std::__Cr::default_delete<net::HostResolverInternalResult>>) && + 116
+2026-10-18T00:27:42.103Z pw:browser [pid=326][err] 11  Blanc Prototype Framework           0x00000070089a069c ProfileManager::ProfileInfo::~ProfileInfo() + 240
+2026-10-18T00:27:42.103Z pw:browser [pid=326][err] 12  Blanc Prototype Framework           0x00000070089a41f0 std::__Cr::__tree<std::__Cr::__value_type<base::FilePath, std::__Cr::unique_ptr<ProfileManager::ProfileInfo, std::__Cr::default_delete<ProfileManager::ProfileInfo>>>, std::__Cr::__map_value_compare<base::FilePath, std::__Cr::pair<base::FilePath const, std::__Cr::unique_ptr<ProfileManager::ProfileInfo, std::__Cr::default_delete<ProfileManager::ProfileInfo>>>, std::__Cr::less<base::FilePath>>, std::__Cr::allocator<std::__Cr::pair<base::FilePath const, std::__Cr::unique_ptr<ProfileManager::ProfileInfo, std::__Cr::default_delete<ProfileManager::ProfileInfo>>>>>::__tree_deleter::operator()[abi:sqn240000](std::__Cr::__tree_node<std::__Cr::__value_type<base::FilePath, std::__Cr::unique_ptr<ProfileManager::ProfileInfo, std::__Cr::default_delete<ProfileManager::ProfileInfo>>>, void*>*) + 104
+2026-10-18T00:27:42.103Z pw:browser [pid=326][err] 13  Blanc Prototype Framework           0x0000007008999700 ProfileManager::~ProfileManager() + 636
+2026-10-18T00:27:42.103Z pw:browser [pid=326][err] 14  Blanc Prototype Framework           0x0000007008999a0c ProfileManager::~ProfileManager() + 12
+2026-10-18T00:27:42.103Z pw:browser [pid=326][err] 15  Blanc Prototype Framework           0x00000070065173dc BrowserProcessImpl::StartTearDown() + 672
+2026-10-18T00:27:42.103Z pw:browser [pid=326][err] 16  Blanc Prototype Framework           0x000000700653391c ChromeBrowserMainParts::PostMainMessageLoopRun() + 324
+2026-10-18T00:27:42.103Z pw:browser [pid=326][err] 17  Blanc Prototype Framework           0x0000007004f60da0 content::BrowserMainLoop::ShutdownThreadsAndCleanUp() + 456
+2026-10-18T00:27:42.103Z pw:browser [pid=326][err] 18  Blanc Prototype Framework           0x0000007004f62a60 content::BrowserMainRunnerImpl::Shutdown() + 212
+2026-10-18T00:27:42.103Z pw:browser [pid=326][err] 19  Blanc Prototype Framework           0x0000007004f5d3e4 content::BrowserMain(content::MainFunctionParams) + 212
+2026-10-18T00:27:42.103Z pw:browser [pid=326][err] 20  Blanc Prototype Framework           0x0000007008107bd0 content::RunBrowserProcessMain(content::MainFunctionParams, content::ContentMainDelegate*) + 136
+2026-10-18T00:27:42.103Z pw:browser [pid=326][err] 21  Blanc Prototype Framework           0x000000700810a5c8 content::ContentMainRunnerImpl::RunBrowser(content::MainFunctionParams, bool) + 2828
+2026-10-18T00:27:42.103Z pw:browser [pid=326][err] 22  Blanc Prototype Framework           0x0000007008109a38 content::ContentMainRunnerImpl::Run() + 1508
+2026-10-18T00:27:42.103Z pw:browser [pid=326][err] 23  Blanc Prototype Framework           0x000000700810735c content::RunContentProcess(content::ContentMainParams, content::ContentMainRunner*) + 988
+2026-10-18T00:27:42.103Z pw:browser [pid=326][err] 24  Blanc Prototype Framework           0x0000007008107518 content::ContentMain(content::ContentMainParams) + 104
+2026-10-18T00:27:42.103Z pw:browser [pid=326][err] 25  Blanc Prototype Framework           0x0000007000004e70 ChromeMain + 560
+2026-10-18T00:27:42.103Z pw:browser [pid=326][err] 26  Blanc Prototype                     0x000000010498488c main + 292
+2026-10-18T00:27:42.103Z pw:browser [pid=326][err] 27  dyld                                0x000000019db0cd7c start + 6652
+2026-10-18T00:27:42.103Z pw:browser [pid=326][err] 
+2026-10-18T00:27:42.103Z pw:browser [pid=326][err] 
+2026-10-18T00:27:42.103Z pw:browser [pid=326][err] [326:2961545:1017/202742.102825:ERROR:base/allocator/partition_alloc_support.cc:741] Building with enable_backup_ref_ptr_instance_tracer will print out stack traces of any live but dangling references.
+2026-10-18T00:27:42.115Z pw:browser [pid=326][err] [326:2961545:1017/202742.102831:FATAL:base/allocator/partition_alloc_support.cc:745] Check failed: !errors. 
+2026-10-18T00:27:42.115Z pw:browser [pid=326][err] 0   Blanc Prototype Framework           0x00000070095251ec base::debug::CollectStackTrace(base::span<void const*, 18446744073709551615ul, void const**>) + 24
+2026-10-18T00:27:42.115Z pw:browser [pid=326][err] 1   Blanc Prototype Framework           0x0000007009510560 base::debug::StackTrace::StackTrace(unsigned long) + 224
+2026-10-18T00:27:42.115Z pw:browser [pid=326][err] 2   Blanc Prototype Framework           0x00000070094125ec logging::LogMessage::Flush() + 172
+2026-10-18T00:27:42.115Z pw:browser [pid=326][err] 3   Blanc Prototype Framework           0x000000700941245c logging::LogMessage::~LogMessage() + 36
+2026-10-18T00:27:42.115Z pw:browser [pid=326][err] 4   Blanc Prototype Framework           0x00000070093f6ae4 logging::(anonymous namespace)::CheckLogMessage::~CheckLogMessage() + 76
+2026-10-18T00:27:42.115Z pw:browser [pid=326][err] 5   Blanc Prototype Framework           0x0000007012de9038 logging::CheckNoreturnError::~CheckNoreturnError() + 16
+2026-10-18T00:27:42.115Z pw:browser [pid=326][err] 6   Blanc Prototype Framework           0x0000007012de9048 base::debug::AsanHeapOverflow() + 0
+2026-10-18T00:27:42.115Z pw:browser [pid=326][err] 7   Blanc Prototype Framework           0x000000700952a55c network::PermissionsPolicyFeaturesBitset::Serialize() const.thunk.0 + 0
+2026-10-18T00:27:42.115Z pw:browser [pid=326][err] 8   Blanc Prototype Framework           0x0000007000235f8c base::OnceCallback<void ()>::Run() && + 108
+2026-10-18T00:27:42.115Z pw:browser [pid=326][err] 9   Blanc Prototype Framework           0x00000070093f3c34 base::AtExitManager::ProcessCallbacksNow() + 324
+2026-10-18T00:27:42.115Z pw:browser [pid=326][err] 10  Blanc Prototype Framework           0x00000070093f39bc base::AtExitManager::~AtExitManager() + 76
+2026-10-18T00:27:42.115Z pw:browser [pid=326][err] 11  Blanc Prototype Framework           0x000000700810a83c content::ContentMainRunnerImpl::Shutdown() + 412
+2026-10-18T00:27:42.115Z pw:browser [pid=326][err] 12  Blanc Prototype Framework           0x0000007008107370 content::RunContentProcess(content::ContentMainParams, content::ContentMainRunner*) + 1008
+2026-10-18T00:27:42.115Z pw:browser [pid=326][err] 13  Blanc Prototype Framework           0x0000007008107518 content::ContentMain(content::ContentMainParams) + 104
+2026-10-18T00:27:42.115Z pw:browser [pid=326][err] 14  Blanc Prototype Framework           0x0000007000004e70 ChromeMain + 560
+2026-10-18T00:27:42.115Z pw:browser [pid=326][err] 15  Blanc Prototype                     0x000000010498488c main + 292
+2026-10-18T00:27:42.115Z pw:browser [pid=326][err] 16  dyld                                0x000000019db0cd7c start + 6652
+2026-10-18T00:27:42.115Z pw:browser [pid=326][err] Crash keys:
+2026-10-18T00:27:42.115Z pw:browser [pid=326][err]   "shutdown-type" = "silent_exit"
+2026-10-18T00:27:42.115Z pw:browser [pid=326][err]   "total-discardable-memory-allocated" = "0"
+2026-10-18T00:27:42.115Z pw:browser [pid=326][err]   "gpu-glver" = "OpenGL ES 3.0 (ANGLE 2.1.29094 git hash: 25078a7740fd)"
+2026-10-18T00:27:42.115Z pw:browser [pid=326][err]   "gpu-generation-intel" = "0"
+2026-10-18T00:27:42.115Z pw:browser [pid=326][err]   "gpu-vsver" = "3.00"
+2026-10-18T00:27:42.115Z pw:browser [pid=326][err]   "gpu-psver" = "3.00"
+2026-10-18T00:27:42.115Z pw:browser [pid=326][err]   "gpu-driver" = "27.2"
+2026-10-18T00:27:42.115Z pw:browser [pid=326][err]   "gpu_count" = "1"
+2026-10-18T00:27:42.115Z pw:browser [pid=326][err]   "gpu-devid" = "0x0000"
+2026-10-18T00:27:42.115Z pw:browser [pid=326][err]   "gpu-venid" = "0x106b"
+2026-10-18T00:27:42.115Z pw:browser [pid=326][err]   "component-extension-2" = "Gemini in Chrome"
+2026-10-18T00:27:42.115Z pw:browser [pid=326][err]   "component-extension-1" = "Chromium PDF Viewer"
+2026-10-18T00:27:42.115Z pw:browser [pid=326][err]   "num-component-extensions" = "2"
+2026-10-18T00:27:42.115Z pw:browser [pid=326][err]   "num-extensions" = "0"
+2026-10-18T00:27:42.115Z pw:browser [pid=326][err]   "chrome-trace-id" = "9576678774811060144"
+2026-10-18T00:27:42.115Z pw:browser [pid=326][err]   "reentry_guard_tls_slot" = "271"
+2026-10-18T00:27:42.115Z pw:browser [pid=326][err]   "num-variations-runtime-overrides" = "0"
+2026-10-18T00:27:42.115Z pw:browser [pid=326][err]   "variations" = "b357b792-3f4a17df,f4f00e05-ca7d8d80,70678518-dee66fa8,be338734-dee66fa8,5f9907a9-dee66fa8,8eeccb9a-dee66fa8,2b465683-dee66fa8,52fc7926-dee66fa8,bc9b361d-dee66fa8,a41a7188-dee66fa8,ff71bfdc-dee66fa8,251fc742-dee66fa8,2159dd0c-dee66fa8,4330e9a4-dee66fa8,e7cc79d5-dee66fa8,4b935545-bb2d3403,9a38bae3-3d47f4f4,2d1e43a3-3f4a17df,370ace14-3f4a17df,386dc267-3d47f4f4,d69d967d-9cce7190,3c8f75a1-dcfbe471,a4406b35-1657e2d6,408da146-1657e2d6,"
+2026-10-18T00:27:42.115Z pw:browser [pid=326][err]   "num-experiments" = "24"
+2026-10-18T00:27:42.115Z pw:browser [pid=326][err]   "switch-49" = "about:blank"
+2026-10-18T00:27:42.115Z pw:browser [pid=326][err]   "switch-48" = "--remote-debugging-pipe"
+2026-10-18T00:27:42.115Z pw:browser [pid=326][err]   "switch-47" = "--user-data-dir=/private/tmp/blanc-ubo-readiness-crh0Ab/profile"
+2026-10-18T00:27:42.115Z pw:browser [pid=326][err]   "switch-46" = "--disable-component-update"
+2026-10-18T00:27:42.115Z pw:browser [pid=326][err]   "switch-45" = "--disable-sync"
+2026-10-18T00:27:42.115Z pw:browser [pid=326][err]   "switch-44" = "--host-resolver-rules=MAP * ~NOTFOUND, EXCLUDE localhost, EXCLUD"
+2026-10-18T00:27:42.115Z pw:browser [pid=326][err]   "switch-43" = "--proxy-server=http://127.0.0.1:53386"
+2026-10-18T00:27:42.115Z pw:browser [pid=326][err]   "switch-42" = "--blanc-prototype-assets=/private/tmp/blanc-chromium157-work/exp"
+2026-10-18T00:27:42.115Z pw:browser [pid=326][err]   "switch-41" = "--blanc-blocker-assets=/private/tmp/blanc-f12-codeql-assets"
+2026-10-18T00:27:42.115Z pw:browser [pid=326][err]   "switch-40" = "--blanc-blocker-log=/private/tmp/blanc-ubo-readiness-crh0Ab/deci"
+2026-10-18T00:27:42.115Z pw:browser [pid=326][err]   "switch-39" = "--blanc-ubo-reload-probe"
+2026-10-18T00:27:42.115Z pw:browser [pid=326][err]   "switch-38" = "--blanc-ubo-offline-probe"
+2026-10-18T00:27:42.115Z pw:browser [pid=326][err]   "switch-37" = "--blanc-ubo-component-manifest={
+2026-10-18T00:27:42.115Z pw:browser [pid=326][err]   "author": "Raymond Hill & con"
+2026-10-18T00:27:42.115Z pw:browser [pid=326][err]   "switch-36" = "--blanc-ubo-component-probe=/private/tmp/blanc-ubo-hold-payload"
+2026-10-18T00:27:42.115Z pw:browser [pid=326][err]   "switch-35" = "--use-mock-keychain"
+2026-10-18T00:27:42.115Z pw:browser [pid=326][err]   "switch-34" = "--no-sandbox"
+2026-10-18T00:27:42.115Z pw:browser [pid=326][err]   "switch-33" = "--enable-unsafe-swiftshader"
+2026-10-18T00:27:42.115Z pw:browser [pid=326][err]   "switch-32" = "--disable-sync"
+2026-10-18T00:27:42.115Z pw:browser [pid=326][err]   "switch-31" = "--disable-search-engine-choice-screen"
+2026-10-18T00:27:42.115Z pw:browser [pid=326][err]   "switch-30" = "--disable-infobars"
+2026-10-18T00:27:42.115Z pw:browser [pid=326][err]   "switch-29" = "--edge-skip-compat-layer-relaunch"
+2026-10-18T00:27:42.115Z pw:browser [pid=326][err]   "switch-28" = "--unsafely-disable-devtools-self-xss-warnings"
+2026-10-18T00:27:42.115Z pw:browser [pid=326][err]   "switch-27" = "--disable-search-engine-choice-screen"
+2026-10-18T00:27:42.115Z pw:browser [pid=326][err]   "switch-26" = "--export-tagged-pdf"
+2026-10-18T00:27:42.115Z pw:browser [pid=326][err]   "switch-25" = "--no-service-autorun"
+2026-10-18T00:27:42.115Z pw:browser [pid=326][err]   "switch-24" = "--use-mock-keychain"
+2026-10-18T00:27:42.115Z pw:browser [pid=326][err]   "switch-23" = "--password-store=basic"
+2026-10-18T00:27:42.115Z pw:browser [pid=326][err]   "switch-22" = "--no-first-run"
+2026-10-18T00:27:42.115Z pw:browser [pid=326][err]   "switch-21" = "--metrics-recording-only"
+2026-10-18T00:27:42.115Z pw:browser [pid=326][err]   "switch-20" = "--force-color-profile=srgb"
+2026-10-18T00:27:42.115Z pw:browser [pid=326][err]   "switch-19" = "--disable-updater-scheduler"
+2026-10-18T00:27:42.115Z pw:browser [pid=326][err]   "switch-18" = "--disable-renderer-backgrounding"
+2026-10-18T00:27:42.116Z pw:browser [pid=326][err]   "switch-17" = "--disable-prompt-on-repost"
+2026-10-18T00:27:42.116Z pw:browser [pid=326][err]   "switch-16" = "--disable-popup-blocking"
+2026-10-18T00:27:42.116Z pw:browser [pid=326][err]   "switch-15" = "--disable-ipc-flooding-protection"
+2026-10-18T00:27:42.116Z pw:browser [pid=326][err]   "switch-14" = "--disable-hang-monitor"
+2026-10-18T00:27:42.116Z pw:browser [pid=326][err]   "switch-13" = "--allow-pre-commit-input"
+2026-10-18T00:27:42.116Z pw:browser [pid=326][err]   "switch-12" = "--disable-edgeupdater"
+2026-10-18T00:27:42.116Z pw:browser [pid=326][err]   "switch-11" = "--disable-dev-shm-usage"
+2026-10-18T00:27:42.116Z pw:browser [pid=326][err]   "switch-10" = "--disable-default-apps"
+2026-10-18T00:27:42.116Z pw:browser [pid=326][err]   "switch-9" = "--no-default-browser-check"
+2026-10-18T00:27:42.116Z pw:browser [pid=326][err]   "switch-8" = "--disable-component-update"
+2026-10-18T00:27:42.116Z pw:browser [pid=326][err]   "switch-7" = "--disable-client-side-phishing-detection"
+2026-10-18T00:27:42.116Z pw:browser [pid=326][err]   "switch-6" = "--disable-breakpad"
+2026-10-18T00:27:42.116Z pw:browser [pid=326][err]   "switch-5" = "--disable-back-forward-cache"
+2026-10-18T00:27:42.116Z pw:browser [pid=326][err]   "switch-4" = "--disable-backgrounding-occluded-windows"
+2026-10-18T00:27:42.116Z pw:browser [pid=326][err]   "switch-3" = "--disable-background-timer-throttling"
+2026-10-18T00:27:42.116Z pw:browser [pid=326][err]   "switch-2" = "--disable-background-networking"
+2026-10-18T00:27:42.116Z pw:browser [pid=326][err]   "switch-1" = "--disable-field-trial-config"
+2026-10-18T00:27:42.116Z pw:browser [pid=326][err]   "num-switches" = "53"
+2026-10-18T00:27:42.116Z pw:browser [pid=326][err]   "commandline-disabled-feature-15" = "msEdgeUpdateLaunchServicesPreferredVersion"
+2026-10-18T00:27:42.116Z pw:browser [pid=326][err]   "commandline-disabled-feature-14" = "msForceBrowserSignIn"
+2026-10-18T00:27:42.116Z pw:browser [pid=326][err]   "commandline-disabled-feature-13" = "OptimizationHints"
+2026-10-18T00:27:42.116Z pw:browser [pid=326][err]   "commandline-disabled-feature-12" = "AutoDeElevate"
+2026-10-18T00:27:42.116Z pw:browser [pid=326][err]   "commandline-disabled-feature-11" = "Translate"
+2026-10-18T00:27:42.116Z pw:browser [pid=326][err]   "commandline-disabled-feature-10" = "BlockOriginHeaderModificationOnRedirect"
+2026-10-18T00:27:42.116Z pw:browser [pid=326][err]   "commandline-disabled-feature-9" = "ThirdPartyStoragePartitioning"
+2026-10-18T00:27:42.116Z pw:browser [pid=326][err]   "commandline-disabled-feature-8" = "PaintHolding"
+2026-10-18T00:27:42.116Z pw:browser [pid=326][err]   "commandline-disabled-feature-7" = "MediaRouter"
+2026-10-18T00:27:42.116Z pw:browser [pid=326][err]   "commandline-disabled-feature-6" = "LensOverlay"
+2026-10-18T00:27:42.116Z pw:browser [pid=326][err]   "commandline-disabled-feature-5" = "HttpsUpgrades"
+2026-10-18T00:27:42.116Z pw:browser [pid=326][err]   "commandline-disabled-feature-4" = "GlobalMediaControls"
+2026-10-18T00:27:42.116Z pw:browser [pid=326][err]   "commandline-disabled-feature-3" = "DialMediaRouteProvider"
+2026-10-18T00:27:42.116Z pw:browser [pid=326][err]   "commandline-disabled-feature-2" = "DestroyProfileOnBrowserClose"
+2026-10-18T00:27:42.116Z pw:browser [pid=326][err]   "commandline-disabled-feature-1" = "AvoidUnnecessaryBeforeUnloadCheckSync"
+2026-10-18T00:27:42.116Z pw:browser [pid=326][err]   "commandline-enabled-feature-1" = "CDPScreenshotNewSurface"
+2026-10-18T00:27:42.116Z pw:browser [pid=326][err]   "osarch" = "arm64"
+2026-10-18T00:27:42.116Z pw:browser [pid=326][err]   "pid" = "326"
+2026-10-18T00:27:42.116Z pw:browser [pid=326][err]   "ptype" = "browser"
+2026-10-18T00:27:42.116Z pw:browser [pid=326][err] 
+2026-10-18T00:27:42.116Z pw:browser [pid=326][err] Received signal 6
+2026-10-18T00:27:42.129Z pw:browser [pid=326][err] 0   Blanc Prototype Framework           0x00000070095251ec base::debug::CollectStackTrace(base::span<void const*, 18446744073709551615ul, void const**>) + 24
+2026-10-18T00:27:42.129Z pw:browser [pid=326][err] 1   Blanc Prototype Framework           0x0000007009510560 base::debug::StackTrace::StackTrace(unsigned long) + 224
+2026-10-18T00:27:42.129Z pw:browser [pid=326][err] 2   Blanc Prototype Framework           0x0000007009525144 base::debug::(anonymous namespace)::StackDumpSignalHandler(int, __siginfo*, void*) + 924
+2026-10-18T00:27:42.129Z pw:browser [pid=326][err] 3   libsystem_platform.dylib            0x00000001a2bb1144 _sigtramp + 56
+2026-10-18T00:27:42.129Z pw:browser [pid=326][err] 4   libsystem_pthread.dylib             0x000000019dbe0960 pthread_kill + 296
+2026-10-18T00:27:42.129Z pw:browser [pid=326][err] 5   libsystem_c.dylib                   0x000000019dc74480 abort + 148
+2026-10-18T00:27:42.129Z pw:browser [pid=326][err] 6   Blanc Prototype Framework           0x0000007009413168 logging::LogMessage::HandleFatal(unsigned long, std::__Cr::basic_string<char, std::__Cr::char_traits<char>, std::__Cr::allocator<char>> const&) const + 456
+2026-10-18T00:27:42.129Z pw:browser [pid=326][err] 7   Blanc Prototype Framework           0x0000007009412c08 logging::LogMessage::Flush() + 1736
+2026-10-18T00:27:42.129Z pw:browser [pid=326][err] 8   Blanc Prototype Framework           0x000000700941245c logging::LogMessage::~LogMessage() + 36
+2026-10-18T00:27:42.129Z pw:browser [pid=326][err] 9   Blanc Prototype Framework           0x00000070093f6ae4 logging::(anonymous namespace)::CheckLogMessage::~CheckLogMessage() + 76
+2026-10-18T00:27:42.129Z pw:browser [pid=326][err] 10  Blanc Prototype Framework           0x0000007012de9038 logging::CheckNoreturnError::~CheckNoreturnError() + 16
+2026-10-18T00:27:42.129Z pw:browser [pid=326][err] 11  Blanc Prototype Framework           0x0000007012de9048 base::debug::AsanHeapOverflow() + 0
+2026-10-18T00:27:42.129Z pw:browser [pid=326][err] 12  Blanc Prototype Framework           0x000000700952a55c network::PermissionsPolicyFeaturesBitset::Serialize() const.thunk.0 + 0
+2026-10-18T00:27:42.129Z pw:browser [pid=326][err] 13  Blanc Prototype Framework           0x0000007000235f8c base::OnceCallback<void ()>::Run() && + 108
+2026-10-18T00:27:42.129Z pw:browser [pid=326][err] 14  Blanc Prototype Framework           0x00000070093f3c34 base::AtExitManager::ProcessCallbacksNow() + 324
+2026-10-18T00:27:42.129Z pw:browser [pid=326][err] 15  Blanc Prototype Framework           0x00000070093f39bc base::AtExitManager::~AtExitManager() + 76
+2026-10-18T00:27:42.129Z pw:browser [pid=326][err] 16  Blanc Prototype Framework           0x000000700810a83c content::ContentMainRunnerImpl::Shutdown() + 412
+2026-10-18T00:27:42.129Z pw:browser [pid=326][err] 17  Blanc Prototype Framework           0x0000007008107370 content::RunContentProcess(content::ContentMainParams, content::ContentMainRunner*) + 1008
+2026-10-18T00:27:42.129Z pw:browser [pid=326][err] 18  Blanc Prototype Framework           0x0000007008107518 content::ContentMain(content::ContentMainParams) + 104
+2026-10-18T00:27:42.129Z pw:browser [pid=326][err] 19  Blanc Prototype Framework           0x0000007000004e70 ChromeMain + 560
+2026-10-18T00:27:42.129Z pw:browser [pid=326][err] 20  Blanc Prototype                     0x000000010498488c main + 292
+2026-10-18T00:27:42.129Z pw:browser [pid=326][err] 21  dyld                                0x000000019db0cd7c start + 6652
+2026-10-18T00:27:42.129Z pw:browser [pid=326][err] [end of stack trace]
+2026-10-18T00:27:43.201Z pw:browser [pid=326] <process did exit: exitCode=null, signal=SIGABRT>
+2026-10-18T00:27:43.202Z pw:browser [pid=326] starting temporary directories cleanup
+2026-10-18T00:27:43.203Z pw:browser [pid=326] finished temporary directories cleanup
+2026-10-18T00:27:43.203Z pw:browser [pid=326] <gracefully close end>
+{"passed":false,"error":"Error: page.goto: Page crashed\nCall log:\n\u001b[2m  - navigating to \"chrome-extension://oddhmofgkplblkmckempfepikkophank/popup-fenix.html\", waiting until \"load\"\u001b[22m\n","checks":[]}

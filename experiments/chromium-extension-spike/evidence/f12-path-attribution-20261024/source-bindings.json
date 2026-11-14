@@ -1,0 +1,8 @@
+{
+  "native/blocker/update_identity.inc": "65b6b25a3f0497475e37377786da2953db74e0f227e6085403bb8044d8feefa2",
+  "fixtures/replay/synthetic/update-loader-identity.mjs": "46d9187cc634c9d7109fe3ab60b38cf612a61b84fc99214c9b1801fc62b8daaf",
+  "evidence/f12-document-gate-20261017/update-collision-native-proof.json": "fea136d8abaf91bc29d24feb0c69d63a71e4dc70d0e3bd84d037c721dddbd128",
+  "evidence/f12-document-gate-20261017/update-changed-native-proof.json": "4cfc8f6faf797d24e663ad153c2b5af25b794347eedb4f7acdc7a9cba24ed3be",
+  "evidence/f12-document-gate-20261017/README.md": "c2604a96939ca0d746ba2c53cd6dde2dc44b4b5c9d5abfda146029903926dc18",
+  "evidence/f12-prerender-notarized-20261024/README.md": "98502fb7017091910b3366c0f1c6714ab0863e51b231938515b04b92a877f15a"
+}

@@ -1,0 +1,24 @@
+--- a/crypto/subtle_passkey.h
++++ b/crypto/subtle_passkey.h
+@@ -6,6 +6,10 @@
+ #define CRYPTO_SUBTLE_PASSKEY_H_
+ 
+ #include "crypto/crypto_export.h"
++
++namespace blanc::sync {
++class PasswordKdf;
++}
+ 
+ namespace ash {
+ class CryptohomeTokenEncryptor;
+@@ -63,6 +67,10 @@
+   // SymmetricKey.
+   friend class SymmetricKey;
+ 
++  // Blanc Sync v1 accounts require fixed scrypt N=32768,r=8,p=1 and a
++  // 64-byte root for compatibility with released desktop/mobile data.
++  friend class blanc::sync::PasswordKdf;
++
+   // This class uses custom PBKDF2 parameters, and has to keep doing so for
+   // compatibility with persisted data on disk.
+   friend class ash::CryptohomeTokenEncryptor;

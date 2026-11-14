@@ -1,0 +1,91 @@
+{
+  "baseSignedSource": "3d5d46a3c09fa13c6127e8e8abb65f6b3477f87c",
+  "candidateSignedSource": "4a77b4147663eb4f56e55eb3e1f0b356de4a66ae",
+  "sections": [
+    {
+      "section": "class ActivationGate",
+      "sameAfterExplicitExclusions": true,
+      "baseSha256": "cf64f876f2bb1a394dc0f1a016199e5105be284fe5ea20a237dab1a58933d376",
+      "candidateComparedSha256": "cf64f876f2bb1a394dc0f1a016199e5105be284fe5ea20a237dab1a58933d376",
+      "excludedBlocks": []
+    },
+    {
+      "section": "class NavigationResponseGate",
+      "sameAfterExplicitExclusions": true,
+      "baseSha256": "b3d600ac4772d7111ebdc1d9d849019a5f3a6d41bf0c06f182809163b8928ee6",
+      "candidateComparedSha256": "b3d600ac4772d7111ebdc1d9d849019a5f3a6d41bf0c06f182809163b8928ee6",
+      "excludedBlocks": []
+    },
+    {
+      "section": "class SocketDecision",
+      "sameAfterExplicitExclusions": true,
+      "baseSha256": "b9f368d06a9fd5e75d99e66d814d5d0b0a065110e052c1803146fe68e35c8be7",
+      "candidateComparedSha256": "b9f368d06a9fd5e75d99e66d814d5d0b0a065110e052c1803146fe68e35c8be7",
+      "excludedBlocks": []
+    },
+    {
+      "section": "class TransportDecision",
+      "sameAfterExplicitExclusions": true,
+      "baseSha256": "d2ffa31164c81cce949e33cdea7c6e4813dd7e5227b1d59803e19a42761b0ed6",
+      "candidateComparedSha256": "d2ffa31164c81cce949e33cdea7c6e4813dd7e5227b1d59803e19a42761b0ed6",
+      "excludedBlocks": []
+    },
+    {
+      "section": "std::string Type",
+      "sameAfterExplicitExclusions": true,
+      "baseSha256": "6b72c79da8fd359d200e1b65b0057d34d33028fc38355466548a01b5b3fcd1cb",
+      "candidateComparedSha256": "6b72c79da8fd359d200e1b65b0057d34d33028fc38355466548a01b5b3fcd1cb",
+      "excludedBlocks": []
+    },
+    {
+      "section": "class Request",
+      "sameAfterExplicitExclusions": true,
+      "baseSha256": "e19d2188aab1e2fb92c268202e857bc98323084400554084ab9b63cb6c1fd270",
+      "candidateComparedSha256": "e19d2188aab1e2fb92c268202e857bc98323084400554084ab9b63cb6c1fd270",
+      "excludedBlocks": [
+        "    const perfetto::DynamicCategory latency_category(\"disabled-by-default-blanc.latency\");\n    bool timing = false;\n    TRACE_EVENT_CATEGORY_GROUP_ENABLED(latency_category, &timing);\n    if (timing && request_.devtools_request_id) {\n      // Explicit local tracing only. Bind timing to independently observed\n      // context without restoring URL/private-profile diagnostic file logging.\n      base::ListValue context;\n      context.Append(request_.url.spec());\n      context.Append(request_.method);\n      context.Append(type);\n      context.Append(request_.request_initiator ? request_.request_initiator->Serialize() : \"absent\");\n      context.Append(type == \"mainFrame\" ? url::Origin::Create(request_.url).Serialize() : top_origin_);\n      context.Append(type == \"mainFrame\" ? \"main\" : frame_role_);\n      context.Append(context_.private_profile ? \"private\" : \"regular\");\n      context.Append(redirect_index_);\n      context.Append(request_.referrer.spec());\n      const auto serialized = base::WriteJson(context);\n      if (serialized) {\n        TRACE_EVENT_INSTANT(latency_category, \"Blanc.DecisionTiming\",\n            \"request_digest\", base::HexEncode(crypto::hash::Sha256(*request_.devtools_request_id)),\n            \"context_digest\", base::HexEncode(crypto::hash::Sha256(*serialized)),\n            \"hook_to_decision_us\", elapsed.InMicrosecondsF(), \"result\", result);\n      }\n    }\n"
+      ]
+    },
+    {
+      "section": "class Factory",
+      "sameAfterExplicitExclusions": true,
+      "baseSha256": "d9fcb4452bfc8237d1e6791b0307c0a9212a1b8d68a675b1d81efcf14b94a8eb",
+      "candidateComparedSha256": "d9fcb4452bfc8237d1e6791b0307c0a9212a1b8d68a675b1d81efcf14b94a8eb",
+      "excludedBlocks": []
+    },
+    {
+      "section": "content::ContentBrowserClient::WebSocketFactory WrapWebSocketFactory",
+      "sameAfterExplicitExclusions": true,
+      "baseSha256": "e9268c69a2478ec6aca82e0545cffdc4108461d383d7169ac94196bad28c21f8",
+      "candidateComparedSha256": "e9268c69a2478ec6aca82e0545cffdc4108461d383d7169ac94196bad28c21f8",
+      "excludedBlocks": []
+    }
+  ],
+  "unchangedFiles": [
+    {
+      "path": "experiments/chromium-extension-spike/native/blocker/blanc_url_loader_gate.h",
+      "unchanged": true,
+      "baseSha256": "f7237607aa43df79e905a0e9fef918f196626b3c0de203c2353c79fdca010b48",
+      "candidateSha256": "f7237607aa43df79e905a0e9fef918f196626b3c0de203c2353c79fdca010b48"
+    },
+    {
+      "path": "experiments/chromium-extension-spike/native/blocker/blanc_websocket_gate.h",
+      "unchanged": true,
+      "baseSha256": "2e542a56bb7527d2c70f7a8635fe9b689cda749887dd659cce3f45485ff768b2",
+      "candidateSha256": "2e542a56bb7527d2c70f7a8635fe9b689cda749887dd659cce3f45485ff768b2"
+    },
+    {
+      "path": "experiments/chromium-extension-spike/native/blocker/update_identity.inc",
+      "unchanged": true,
+      "baseSha256": "f4a4c29a41d6a0a1120bc40c387003d5b732b6aa16c2376fe8fbaf90a0dd51bd",
+      "candidateSha256": "f4a4c29a41d6a0a1120bc40c387003d5b732b6aa16c2376fe8fbaf90a0dd51bd"
+    },
+    {
+      "path": "experiments/chromium-extension-spike/native/blocker/prepare_final_factory.mjs",
+      "unchanged": true,
+      "baseSha256": "34f0f41afd54e6653ccf628aad390aa750e17e95422da111a932a53a6dc4c7a3",
+      "candidateSha256": "34f0f41afd54e6653ccf628aad390aa750e17e95422da111a932a53a6dc4c7a3"
+    }
+  ],
+  "limits": "Source mapping only, not a new runtime pass or binary equivalence. Shared engine gained Cosmetics and readiness validation; production corpus and affected cosmetic checks separately exercise those changes."
+}

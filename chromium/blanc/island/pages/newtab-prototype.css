@@ -1,0 +1,645 @@
+/* These Electron services are not implemented by the Chromium prototype. */
+#startupCard, #obBringTabs,
+#version { display: none !important; }
+
+/* The fork has no Spaces model yet; fixed preset colors remain available. */
+#colorWallpaperFollow, #colorWallpaperFollowHint { display: none !important; }
+
+/* Color-only themes have no artwork. Image themes retain the shipping
+   wallpaper scrim, wash slider and Light/Dark/Spotlight styles. */
+html[data-store-theme] body { background:var(--bg) !important; color:var(--text) !important; }
+html[data-store-theme] .start-wallpaper-layer { display:none !important; }
+.ledger-body[data-store-wallpaper] .start-wallpaper-layer {
+  background-position:center, center, var(--store-wallpaper-position, center bottom);
+  background-repeat:no-repeat, no-repeat, var(--store-wallpaper-repeat, no-repeat);
+  background-size:cover, cover, auto;
+}
+
+#storeThemeAttribution { position:fixed; right:12px; bottom:72px; max-width:30vw; max-height:15vh; pointer-events:none; }
+
+.wallpaper-seg:has(#storeThemeWallpaperPick:not([hidden])) { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); }
+.wallpaper-seg:has(#storeThemeWallpaperPick) > button { min-width:0; padding-inline:4px; white-space:nowrap; }
+
+.preview-notice-button { border:0; padding:5px 0; background:none; color:inherit; font:inherit; text-align:left; text-decoration:underline; text-underline-offset:3px; cursor:pointer; }
+.preview-notice-button:focus-visible { outline:2px solid var(--accent,#8a6530); outline-offset:3px; border-radius:4px; }
+#previewStatusLink { display:block; width:100%; margin-top:10px; padding:9px 0 0; border-top:1px solid var(--border,#7775); font-size:12px; }
+.preview-notice { box-sizing:border-box; width:min(600px,calc(100vw / var(--blanc-page-zoom, 1) - 32px)); max-height:calc(100dvh / var(--blanc-page-zoom, 1) - 32px); margin:auto; padding:24px; overflow:auto; border:1px solid var(--border,#7775); border-radius:14px; background:var(--surface-raised,#fffdf8); background:rgb(from var(--surface,#fffdf8) r g b / 1); color:var(--text,#24211d); box-shadow:0 14px 60px #0005; font-family:var(--font-text,'Instrument Sans',sans-serif); font-size:14px; line-height:1.5; }
+.preview-notice::backdrop { background:#0008; }
+.preview-notice-heading { display:flex; align-items:flex-start; justify-content:space-between; gap:16px; }
+.preview-notice-heading h2 { margin:0; font-size:24px; line-height:1.2; }
+.preview-notice-eyebrow { margin:0 0 6px; font-size:12px; }
+.preview-notice-heading button { border:1px solid var(--border,#7775); border-radius:7px; background:transparent; color:inherit; padding:6px 10px; font:inherit; cursor:pointer; }
+.preview-notice-status { font-weight:650; padding:10px 12px; border:1px solid currentColor; border-radius:8px; }
+.preview-notice-build { margin:18px 0; }
+.preview-notice-build div { display:grid; grid-template-columns:110px 1fr; gap:12px; margin:6px 0; }
+.preview-notice-build dt { opacity:.8; }
+.preview-notice-build dd { margin:0; overflow-wrap:anywhere; }
+.preview-notice h3 { font-size:16px; margin:20px 0 6px; }
+.preview-notice p { margin:12px 0; }
+.preview-notice a { color:inherit; text-decoration:underline; text-underline-offset:3px; }
+.preview-notice :focus-visible { outline:2px solid currentColor; outline-offset:4px; }
+.preview-notice-profile code { overflow-wrap:anywhere; font-size:12px; }
+@media (max-width:420px) { .preview-notice { padding:16px; } .preview-notice-build div { grid-template-columns:1fr; gap:0; } }
+
+.preview-notice-button { border:0; padding:5px 0; background:none; color:inherit; font:inherit; text-align:left; text-decoration:underline; text-underline-offset:3px; cursor:pointer; }
+.preview-notice-button:focus-visible { outline:2px solid var(--accent,#8a6530); outline-offset:3px; border-radius:4px; }
+#previewStatusLink { display:block; width:100%; margin-top:10px; padding:9px 0 0; border-top:1px solid var(--border,#7775); font-size:12px; }
+.preview-notice { box-sizing:border-box; width:min(600px,calc(100vw / var(--blanc-page-zoom, 1) - 32px)); max-height:calc(100dvh / var(--blanc-page-zoom, 1) - 32px); margin:auto; padding:24px; overflow:auto; border:1px solid var(--border,#7775); border-radius:14px; background:var(--surface-raised,#fffdf8); background:rgb(from var(--surface,#fffdf8) r g b / 1); color:var(--text,#24211d); box-shadow:0 14px 60px #0005; font-family:var(--font-text,'Instrument Sans',sans-serif); font-size:14px; line-height:1.5; }
+.preview-notice::backdrop { background:#0008; }
+.preview-notice-heading { display:flex; align-items:flex-start; justify-content:space-between; gap:16px; }
+.preview-notice-heading h2 { margin:0; font-size:24px; line-height:1.2; }
+.preview-notice-eyebrow { margin:0 0 6px; font-size:12px; }
+.preview-notice-heading button { border:1px solid var(--border,#7775); border-radius:7px; background:transparent; color:inherit; padding:6px 10px; font:inherit; cursor:pointer; }
+.preview-notice-status { font-weight:650; padding:10px 12px; border:1px solid currentColor; border-radius:8px; }
+.preview-notice-build { margin:18px 0; }
+.preview-notice-build div { display:grid; grid-template-columns:110px 1fr; gap:12px; margin:6px 0; }
+.preview-notice-build dt { opacity:.8; }
+.preview-notice-build dd { margin:0; overflow-wrap:anywhere; }
+.preview-notice h3 { font-size:16px; margin:20px 0 6px; }
+.preview-notice p { margin:12px 0; }
+.preview-notice a { color:inherit; text-decoration:underline; text-underline-offset:3px; }
+.preview-notice :focus-visible { outline:2px solid currentColor; outline-offset:4px; }
+.preview-notice-profile code { overflow-wrap:anywhere; font-size:12px; }
+@media (max-width:420px) { .preview-notice { padding:16px; } .preview-notice-build div { grid-template-columns:1fr; gap:0; } }
+
+.layout-preview[aria-disabled="true"] { opacity:.6; cursor:wait; }
+
+.launch-sunrise {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  display: grid;
+  place-items: center;
+  pointer-events: none;
+}
+.launch-sunrise[hidden] { display: none; }
+.launch-sunrise-sky {
+  position: absolute;
+  inset: 0;
+}
+.launch-sunrise-mark {
+  position: relative;
+  width: min(34vmin, 300px);
+  aspect-ratio: 1;
+}
+.launch-sunrise-mark > div {
+  position: absolute;
+  inset: 0;
+}
+.launch-sunrise-mark img {
+  position: absolute;
+  inset: 0;
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+.launch-sunrise-reflect img { clip-path: inset(70.4% 0 0 0); }
+.launch-sunrise-horizon img { clip-path: inset(67.1% 0 29.6% 0); }
+.launch-sunrise-rays img {
+  clip-path: inset(0 0 32.9% 0);
+  mask-image: radial-gradient(ellipse 26.9% 26.9% at 49.9% 67.1%, transparent 97%, #000 100%);
+}
+.launch-sunrise-disc-clip { clip-path: inset(0 0 32.9% 0); }
+.launch-sunrise-mark .launch-sunrise-disc { clip-path: circle(24.9% at 49.9% 67.1%); }
+.launch-sunrise,
+.launch-sunrise-sky,
+.launch-sunrise-mark,
+.launch-sunrise-horizon,
+.launch-sunrise-reflect,
+.launch-sunrise-mark .launch-sunrise-disc,
+.launch-sunrise-rays {
+  animation-duration: 2.6s;
+  animation-delay: 0.15s;
+  animation-timing-function: cubic-bezier(0.33, 0, 0.2, 1);
+  animation-fill-mode: both;
+}
+.launch-sunrise { animation-name: launch-sunrise-out; }
+.launch-sunrise-sky { animation-name: launch-sunrise-sky; }
+.launch-sunrise-mark { animation-name: launch-sunrise-mark; }
+.launch-sunrise-horizon { animation-name: launch-sunrise-horizon; }
+.launch-sunrise-reflect { animation-name: launch-sunrise-reflect; }
+.launch-sunrise-mark .launch-sunrise-disc { animation-name: launch-sunrise-disc; }
+.launch-sunrise-rays { animation-name: launch-sunrise-rays; }
+@keyframes launch-sunrise-sky { 0% { background-color: rgb(11 10 9 / 0); } 10%, 20% { background-color: #0b0a09; } 48% { background-color: #3a2a17; } 76% { background-color: #a9814f; } 100% { background-color: rgb(248 242 232 / 0); } }
+@keyframes launch-sunrise-mark { 0% { transform: translateY(9vh); } 58%, 74% { transform: none; opacity: 1; } 90%, 100% { transform: none; opacity: 0; } }
+@keyframes launch-sunrise-horizon { 0% { clip-path: inset(0 46% 0 46%); } 14%, 100% { clip-path: inset(0 0 0 0); } }
+@keyframes launch-sunrise-reflect { 0%, 8% { clip-path: inset(0 50% 0 50%); opacity: 0.4; } 28%, 100% { clip-path: inset(0 0 0 0); opacity: 1; } }
+@keyframes launch-sunrise-disc { 0%, 20% { transform: translateY(26%); } 54%, 100% { transform: none; } }
+@keyframes launch-sunrise-rays { 0%, 44% { clip-path: circle(25.5% at 49.9% 67.1%); opacity: 0; } 48% { opacity: 1; } 70%, 100% { clip-path: circle(75% at 49.9% 67.1%); opacity: 1; } }
+/* Its end is the scene's own: animationend removes it from the page. */
+@keyframes launch-sunrise-out { 0%, 96% { opacity: 1; } 100% { opacity: 0; } }
+@media (prefers-reduced-motion: reduce) {
+  .launch-sunrise { display: none; }
+}
+
+/* Finish setup, compact (owner, November 9, 2026): a small title with the
+   count beside it and plain rows. Shipping's ring and headline looked empty
+   with the one or two tasks this build offers. */
+.migration-checklist {
+  min-width: 232px;
+  padding: 12px 8px 8px;
+  border-radius: 12px;
+}
+.migration-checklist-heading {
+  justify-content: space-between;
+  gap: 16px;
+  padding: 0 8px;
+}
+.migration-checklist-heading h2 {
+  font: 600 13px/1.3 var(--font-text);
+  letter-spacing: 0.01em;
+}
+.migration-checklist-heading h2::first-letter { text-transform: uppercase; }
+.migration-progress-ring {
+  order: 1;
+  width: auto;
+  height: auto;
+  border: 0;
+  border-radius: 0;
+  color: var(--text-dim);
+  font: 500 11.5px/1 var(--font-ui);
+}
+.migration-checklist-tasks { gap: 0; margin: 8px 0 0; }
+.migration-task {
+  grid-template-columns: 16px minmax(0, 1fr);
+  gap: 10px;
+  padding: 7px 8px;
+  border-radius: 8px;
+  transition: background-color 120ms ease;
+}
+.migration-task:hover { background: color-mix(in srgb, var(--text) 7%, transparent); }
+.migration-task:active { background: color-mix(in srgb, var(--text) 11%, transparent); }
+.migration-task:focus-visible { outline-offset: -1px; }
+.migration-task-check {
+  width: 16px;
+  height: 16px;
+  border-color: var(--text-dim);
+  opacity: 1;
+}
+.migration-task-label { font-size: 13px; font-weight: 450; }
+.migration-checklist-tasks li.is-complete .migration-task-check { border-color: var(--accent); color: var(--accent); }
+.migration-checklist-tasks li.is-complete .migration-task-check::after {
+  left: 4.5px;
+  top: 1.5px;
+  width: 4px;
+  height: 8px;
+  border-width: 0 1.5px 1.5px 0;
+}
+
+/* ---------------------------------------------------------------------------
+   V24 (fork only): Billboard is the one Start Page layout. What Ledger, Shelf
+   and Tally showed comes back as optional widgets, switched on in Customize.
+   ------------------------------------------------------------------------- */
+.bb-widgets {
+  display: flex; align-items: flex-start; gap: 14px; box-sizing: border-box;
+  width: min(760px, calc(100vw - 96px)); margin-top: 30px;
+}
+/* The two columns: side by side under the clock on a narrow window... */
+.bb-rail { flex: 1 1 0; min-width: 0; display: flex; flex-direction: column; gap: 14px; }
+.bb-rail[data-empty="true"] { display: none; }
+body.widget-dragging .bb-rail { display: flex; min-height: 96px; }
+/* ...and one each side of the Start Page on a wide one, beside the clock,
+   level with each other, clear of the header and the footer. */
+@media (min-width: 1200px) {
+  .bb-widgets { display: contents; }
+  .bb-rail {
+    position: fixed; z-index: 2;
+    top: calc(var(--start-header-h, 96px) + 24px);
+    width: clamp(240px, 20vw, 300px);
+    max-height: calc(100vh - var(--start-header-h, 96px) - var(--start-footer-h, 64px) - 48px);
+  }
+  /* An empty column draws nothing here, and stays a place to drop a card. */
+  .bb-rail[data-empty="true"] { display: flex; }
+  /* A column fits between the header and the footer whatever it holds: the
+     cards that can scroll (Favorites, other devices) give up height
+     and scroll inside; the others keep theirs. */
+  .bb-rail > .bb-widget, .bb-rail > .bb-widget-holder { flex: none; }
+  .bb-rail > #remoteSection.widget-on:not([hidden]) {
+    display: flex; flex-direction: column; flex: 0 1 auto; min-height: 0;
+  }
+  .bb-rail > #remoteSection #remoteList.remote-grouped { flex: 1 1 auto; min-height: 132px; max-height: none; }
+  .bb-rail[data-side="left"] { left: var(--start-edge); }
+  .bb-rail[data-side="right"] { right: var(--start-edge); }
+  body.widget-dragging .bb-rail { min-height: calc(100vh - var(--start-header-h, 96px) - var(--start-footer-h, 64px) - 48px); }
+  /* The header holds only the Sunrise and the date, on the left, so the right
+     column rises to the header's own top line (owner, 2026-11-13) and ends
+     level with the left one. It sits above the header's empty right half,
+     which would otherwise take its clicks. */
+  .bb-rail[data-side="right"] {
+    --rail-top: clamp(30px, 5vh, 48px);
+    top: var(--rail-top); z-index: 7;
+    max-height: calc(100vh - var(--rail-top) - var(--start-footer-h, 64px) - 24px);
+  }
+  body.widget-dragging .bb-rail[data-side="right"] { min-height: calc(100vh - var(--rail-top) - var(--start-footer-h, 64px) - 24px); }
+}
+/* Shortcuts wrap into centered rows; newtab.js sets how many fit in a row
+   (shipping's single row never wraps, at most six tiles there). */
+#bbFavorites { flex-wrap: wrap; justify-content: center; }
+/* Too little room beside the columns for three shortcuts (newtab.js
+   layoutShortcutRows): the columns go under the clock as on a narrow window. */
+@media (min-width: 1200px) {
+  body[data-rails-stacked] .bb-widgets { display: flex; }
+  body[data-rails-stacked] .bb-rail[data-side] {
+    position: static; width: auto; top: auto; left: auto; right: auto; z-index: auto; max-height: none;
+  }
+  body[data-rails-stacked] .bb-rail[data-empty="true"] { display: none; }
+}
+#bbWidgets [data-widget]:not(.widget-on) { display: none; }
+body:not(.widget-dragging) .bb-widgets:not(:has(> .bb-rail[data-empty="false"])) { display: none; }
+/* No week's data to show (private, or statistics unavailable): no empty card. */
+.bb-widget.ledger-section { margin: 0; }
+.bb-widget { position: relative; min-width: 0; padding: 14px 18px 16px; text-align: start; }
+/* The grip: on show while the card is hovered or focused; drag it, or use
+   its arrow keys, to move the card. */
+.bb-widget-grip {
+  position: absolute; top: 10px; right: 10px; display: grid; place-items: center;
+  width: 22px; height: 26px; padding: 0; border: 0; border-radius: 6px;
+  background: transparent; color: var(--text-dim); cursor: grab; touch-action: none;
+  opacity: 0; transition: opacity 120ms ease, background-color 120ms ease;
+}
+.bb-widget-grip svg { fill: currentColor; }
+.bb-widget:hover > .bb-widget-grip, .bb-widget-grip:focus-visible, .bb-widget.dragging > .bb-widget-grip { opacity: 1; }
+.bb-widget-grip:hover { background: color-mix(in srgb, var(--text) 8%, transparent); }
+.bb-widget-grip:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+.bb-widget.dragging { cursor: grabbing; box-shadow: 0 22px 48px -20px rgb(0 0 0 / 0.5); transform: scale(1.02); }
+/* A tall card lifts as a short preview of itself, fading out at the bottom,
+   so it and its slot fit wherever it is carried. */
+.bb-widget.dragging.drag-clipped { overflow: hidden; mask-image: linear-gradient(to bottom, #000 calc(100% - 56px), transparent); }
+.bb-widget-holder {
+  border: 1.5px dashed color-mix(in srgb, var(--text-dim) 45%, transparent); border-radius: 18px;
+  background: color-mix(in srgb, var(--text) 4%, transparent);
+}
+@media (prefers-reduced-motion: reduce) { .bb-widget-grip { transition: none; } .bb-widget.dragging { transform: none; } }
+.bb-widget .start-empty-hint { text-wrap: balance; }
+.bb-widget .ledger-list { margin-top: 10px; gap: 10px; }
+/* Favorites in columns (four across a full-width card, two beside the
+   chart), so a page with widgets fits a normal window without scrolling. */
+#bbWidgets #favoritesList { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 6px 14px; }
+#bbWidgets #favoritesList > * { min-width: 0; }
+/* In a column the page's name wins: it takes the room and the address,
+   which the name already stands for, is left out, as on Shelf's tiles. */
+#bbWidgets #favoritesList .fav .name { min-width: 0; }
+#bbWidgets #favoritesList .fav .host { display: none; }
+.bb-widget .tally-right { position: static; width: auto; margin: 0; padding: 0; }
+.bb-widget .tally-count { font-size: 40px; margin-top: 8px; }
+.bb-widget .tally-chart { height: 52px; margin-top: 12px; }
+.bb-widget .tally-caption { margin-top: 10px; }
+/* The blocked line one step heavier than body text (owner). */
+#bbBlocked { font-weight: 500; }
+/* The week's chart replaces Billboard's one-line count. */
+
+/* Customize (option 3, owner 2026-11-13). Each widget is a skeleton of its
+   card in the old Layout picker's style (a small frame of gray bars), two up,
+   its name beneath; a widget that is on takes the gold outline. Shortcuts is
+   a 1-12 stepper, the clock keeps its live sample card, and the wallpaper
+   sits in a second column where there is room. The popover never covers the
+   clock (its height is capped by the page script) and scrolls inside. */
+.start-customize-popover { width: max-content; overflow-y: auto; overscroll-behavior: contain; scrollbar-width: thin; }
+.customize-cols { display: grid; grid-template-columns: min(300px, calc(100vw - 64px)); gap: 0; }
+.customize-col { display: flex; flex-direction: column; min-width: 0; }
+.customize-col-wallpaper { margin-top: 14px; padding-top: 14px; border-top: 1px solid color-mix(in srgb, var(--border) 80%, transparent); }
+/* A slightly shorter preview lets Color's options fit a 1280 × 800 window
+   without scrolling. */
+.customize-col-wallpaper .wallpaper-cover { height: 110px; }
+@media (min-width: 760px) {
+  .customize-cols { grid-template-columns: 300px 300px; column-gap: 22px; }
+  .customize-col-wallpaper { margin-top: 0; padding-top: 0; border-top: 0; padding-inline-start: 22px;
+    border-inline-start: 1px solid color-mix(in srgb, var(--border) 80%, transparent); }
+}
+.widget-switches { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; margin-top: 2px; }
+.widget-tile {
+  display: flex; flex-direction: column; align-items: stretch; gap: 7px; min-width: 0; padding: 0;
+  border: 0; background: none; color: var(--text-dim); font: 500 12px/1.3 var(--font-text); text-align: start;
+  cursor: pointer; -webkit-tap-highlight-color: transparent;
+}
+.widget-tile-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; transition: color 120ms ease-out; }
+.widget-tile:hover, .widget-tile[aria-checked="true"] { color: var(--text); }
+.widget-tile:focus-visible { outline: none; }
+.widget-tile:focus-visible .widget-thumb { outline: 2px solid var(--accent); outline-offset: 2px; }
+.widget-tile[aria-disabled="true"] { cursor: progress; }
+.widget-thumb {
+  display: grid; gap: 4px; height: 64px; padding: 9px; box-sizing: border-box;
+  border: 1px solid var(--border); border-radius: 9px; background: var(--surface-raised, #fff);
+  transition: outline-color 140ms ease-out, transform 100ms ease-out;
+  outline: 2px solid transparent; outline-offset: 1px;
+}
+.widget-thumb i, .widget-thumb b { display: block; min-width: 0; min-height: 0; border-radius: 2px; }
+.widget-thumb i { background: color-mix(in srgb, var(--text-dim) 30%, transparent); }
+.widget-thumb b { background: color-mix(in srgb, var(--text-dim) 55%, transparent); }
+.widget-tile:hover .widget-thumb { border-color: color-mix(in srgb, var(--text-dim) 45%, var(--border)); }
+.widget-tile:active .widget-thumb { transform: scale(0.97); }
+.widget-tile[aria-checked="true"] .widget-thumb { outline-color: var(--patron-gold); }
+.widget-tile[aria-checked="true"] .widget-thumb b { background: color-mix(in srgb, var(--patron-gold) 75%, transparent); }
+/* Favorites: icons beside lines. */
+.widget-thumb[data-thumb="favorites"] { grid-template-columns: 9px 1fr; grid-template-rows: repeat(4, 1fr); }
+.widget-thumb[data-thumb="favorites"] i:nth-of-type(2) { width: 70%; }
+.widget-thumb[data-thumb="favorites"] i:nth-of-type(3) { width: 85%; }
+.widget-thumb[data-thumb="favorites"] i:nth-of-type(4) { width: 60%; }
+/* Other devices: a device's name over its tabs, then the next device. */
+.widget-thumb[data-thumb="devices"] { grid-template-columns: 1fr; grid-template-rows: 5px 1fr 1fr 5px 1fr; }
+.widget-thumb[data-thumb="devices"] b:nth-of-type(1) { width: 50%; }
+.widget-thumb[data-thumb="devices"] b:nth-of-type(2) { width: 40%; }
+.widget-thumb[data-thumb="devices"] i:nth-of-type(2) { width: 75%; }
+.widget-thumb[data-thumb="devices"] i:nth-of-type(3) { width: 80%; }
+/* A row: a label at the start, its control at the end. */
+.customize-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-top: 14px; }
+.customize-row-label { color: var(--text); font: 500 13px/1.3 var(--font-text); }
+/* The stepper: minus, the count, plus, in one pill. */
+.shortcut-stepper { display: inline-flex; align-items: center; gap: 2px; padding: 2px; border-radius: 999px;
+  background: color-mix(in srgb, var(--text) 7%, transparent); }
+.shortcut-step { display: grid; place-items: center; width: 28px; height: 26px; padding: 0; border: 0; border-radius: 999px;
+  background: transparent; color: var(--text); cursor: pointer; transition: background-color 100ms ease-out, transform 100ms ease-out; }
+.shortcut-step:hover:not([aria-disabled="true"]) { background: var(--surface-raised, #fff); }
+.shortcut-step:active:not([aria-disabled="true"]) { transform: scale(0.92); }
+.shortcut-step[aria-disabled="true"] { color: color-mix(in srgb, var(--text-dim) 45%, transparent); cursor: default; }
+.shortcut-step:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+.shortcut-count { min-width: 24px; text-align: center; color: var(--text); font: 600 13px/1 var(--font-text); font-variant-numeric: tabular-nums; }
+@media (prefers-reduced-motion: reduce) {
+  .widget-thumb, .widget-tile-name, .shortcut-step { transition: none; }
+  .widget-tile:active .widget-thumb, .shortcut-step:active:not([aria-disabled="true"]) { transform: none; }
+}
+
+/* ---------------------------------------------------------------------------
+   Over your image or a theme's image (owner, 2026-11-13): the image stays
+   untouched. The widgets sit on one glass tray, the small text keeps a soft
+   shadow opposite its ink, the footer sits in a fade, and the clock keeps its
+   own shadow (clock-art.js). Tray and fade inks keep 4.5:1 or more over pure
+   black and pure white behind them (start-plates.test.mjs). Each scheme
+   follows the page's light or dark ink.
+   ------------------------------------------------------------------------- */
+.ledger-body {
+  --start-tray: rgba(255, 255, 255, 0.72);
+  --start-tray-edge: rgba(255, 255, 255, 0.6);
+  --start-tray-rule: rgba(18, 16, 11, 0.1);
+  --start-tray-ink: #12100b;
+  --start-tray-ink-dim: #4d463d;
+  --start-tray-accent: #533a12;
+  --start-footer-fade: 250 247 242;
+}
+@media (prefers-color-scheme: dark) {
+  .ledger-body {
+    --start-tray: rgba(24, 20, 16, 0.78);
+    --start-tray-edge: rgba(255, 255, 255, 0.1);
+    --start-tray-rule: rgba(247, 240, 229, 0.12);
+    --start-tray-ink: #f7f0e5;
+    --start-tray-ink-dim: #cdbfae;
+    --start-tray-accent: #e0bd7a;
+    --start-footer-fade: 24 20 16;
+  }
+}
+.ledger-body[data-wallpaper-style="light"] {
+  --start-tray: rgba(255, 255, 255, 0.72);
+  --start-tray-edge: rgba(255, 255, 255, 0.6);
+  --start-tray-rule: rgba(18, 16, 11, 0.1);
+  --start-tray-ink: #12100b;
+  --start-tray-ink-dim: #4d463d;
+  --start-tray-accent: #533a12;
+  --start-footer-fade: 250 247 242;
+}
+.ledger-body[data-wallpaper-style="dark"],
+:root[data-theme="private"] .ledger-body {
+  --start-tray: rgba(24, 20, 16, 0.78);
+  --start-tray-edge: rgba(255, 255, 255, 0.1);
+  --start-tray-rule: rgba(247, 240, 229, 0.12);
+  --start-tray-ink: #f7f0e5;
+  --start-tray-ink-dim: #cdbfae;
+  --start-tray-accent: #e0bd7a;
+  --start-footer-fade: 24 20 16;
+}
+
+/* Each widget card is glass in the Island's material family (its panel
+   radius, a blurred translucent surface), lighter than the Island itself. */
+.bb-widget {
+  --text: var(--start-tray-ink);
+  --text-dim: var(--start-tray-ink-dim);
+  --accent: var(--start-tray-accent);
+  color: var(--start-tray-ink);
+  background: var(--start-tray);
+  border: 0;
+  border-radius: 18px;
+  -webkit-backdrop-filter: blur(28px) saturate(1.5);
+  backdrop-filter: blur(28px) saturate(1.5);
+  box-shadow: 0 10px 30px -18px rgb(0 0 0 / 0.4);
+}
+
+/* Small text over an image: no backing and no wash. newtab-adapter.js reads
+   the image behind each piece and sets data-ink to the ink that stands out
+   more against it (owner: the Lock Screen's way); a faint shadow in the
+   opposite tone gives it a little lift. */
+.ledger-body[data-wallpaper-style] [data-ink="light"] {
+  color: #f7f0e5 !important;
+  text-shadow: 0 0 1px rgb(0 0 0 / 0.3), 0 1px 8px rgb(0 0 0 / 0.35);
+}
+.ledger-body[data-wallpaper-style] [data-ink="dark"] {
+  color: #12100b !important;
+  text-shadow: 0 0 1px rgb(255 255 255 / 0.3), 0 1px 8px rgb(255 255 255 / 0.4);
+}
+/* The Sunrise mark follows the date: over a dark image it becomes a cream,
+   one-color mark beside the cream date; over a light one it keeps its gold. */
+.ledger-body[data-wallpaper-style] .start-brand:has(.start-brand-date[data-ink="light"]) .start-brand-mark {
+  filter: brightness(0) invert(0.95) sepia(0.12) drop-shadow(0 1px 6px rgb(0 0 0 / 0.35));
+}
+.ledger-body[data-wallpaper-style] .group-chip[data-ink] { border-color: color-mix(in srgb, currentColor 35%, transparent); }
+.ledger-body[data-wallpaper-style] .group-chip[data-ink] .chip-dots i { background: currentColor; }
+
+/* The footer over an image: a fade up from the window's bottom edge, strong
+   under the footer's text and gone a little above it. Its items keep their
+   own styles. */
+.ledger-body[data-wallpaper-style] #layoutFooter {
+  --text-dim: var(--start-tray-ink-dim);
+  color: var(--start-tray-ink-dim);
+}
+/* ::after: shipping's ::before is the footer's scroll fade. */
+.ledger-body[data-wallpaper-style] #layoutFooter::after {
+  content: ""; position: absolute; inset: auto 0 0 0; z-index: -1; pointer-events: none;
+  height: calc(var(--start-footer-h, 64px) + 96px);
+  background: linear-gradient(to top,
+    rgb(var(--start-footer-fade) / 0.9) 0,
+    rgb(var(--start-footer-fade) / 0.82) var(--start-footer-h, 64px),
+    rgb(var(--start-footer-fade) / 0) 100%);
+}
+
+/* V25 (owner, 2026-11-13): Patron leaves the Start Page (Settings offers it),
+   and Play Blanc Mahjong takes its pill: the same gold outline, weight and
+   size, with two tiles for a mark, and no ×, since it always stays. */
+#patronCallout { display: none !important; }
+.mahjong-pill {
+  display: inline-flex; align-items: center; min-height: 28px;
+  border: 1px solid color-mix(in srgb, var(--patron-gold) 60%, transparent);
+  border-radius: 999px; background: transparent; font-family: var(--font-text);
+  transition: transform 120ms var(--start-ease), border-color 120ms ease;
+}
+.mahjong-pill:hover { border-color: var(--patron-gold); }
+.mahjong-pill a {
+  display: inline-flex; align-items: center; gap: 6px; min-height: 26px;
+  padding: 3px 11px 3px 8px; border-radius: 999px;
+  color: var(--text); font-weight: 600; text-decoration: none; white-space: nowrap;
+}
+.mahjong-pill a:hover { color: var(--text); background: transparent; }
+.mahjong-pill a:focus-visible { outline: 1px solid var(--text-dim); outline-offset: 0; }
+.mahjong-pill:has(> a:active) { transform: translateY(1px); }
+.mahjong-pill-mark { flex: 0 0 auto; fill: none; stroke: var(--patron-gold); stroke-width: 1.3; }
+.mahjong-pill-mark rect:last-child { fill: color-mix(in srgb, var(--patron-gold) 18%, transparent); }
+@media (prefers-reduced-motion: reduce) { .mahjong-pill, .mahjong-pill:has(> a:active) { transition: none; transform: none; } }
+
+/* The clock centred on its ink (newtab.js sets --clock-optical). */
+.bb-clock-row { transform: translateX(var(--clock-optical, 0px)); }
+
+
+/* On your other devices, grouped by device (fork redesign, 2026-11-13): the
+   device once, as a small header with its glyph and tab count; under it
+   two-line rows (the whole title, the site beneath) that highlight as one
+   rounded row, and a quiet link for the rest. */
+#remoteList.remote-grouped {
+  display: flex; flex-direction: column; gap: 14px; margin-top: 12px;
+  max-height: clamp(220px, calc(100vh - 360px), 620px); overflow-y: auto; overscroll-behavior: contain;
+  /* A thin scrollbar that shows on hover and while the list scrolls (a
+     finger, a wheel or the keyboard), invisible otherwise; its gutter is kept
+     so nothing shifts. No :focus-within rule and no transition on the
+     scrollbar's color: with both, a row taking focus froze the page's
+     painting in this Chromium (found 2026-11-13). A finger pans the list with momentum and a contained bounce;
+     a pinch still zooms the page. */
+  scrollbar-width: thin; scrollbar-color: transparent transparent; scrollbar-gutter: stable;
+  touch-action: pan-y pinch-zoom;
+  margin-inline: -4px; padding-inline: 4px 0;
+  --fade-top: #000; --fade-bottom: #000;
+  mask-image: linear-gradient(to bottom, var(--fade-top), #000 24px, #000 calc(100% - 32px), var(--fade-bottom));
+}
+#remoteList.remote-grouped[data-fade-start="true"] { --fade-top: transparent; }
+#remoteList.remote-grouped[data-fade-end="true"] { --fade-bottom: transparent; }
+#remoteList.remote-grouped:hover, #remoteList.remote-grouped[data-scrolling="true"] {
+  scrollbar-color: color-mix(in srgb, var(--text) 32%, transparent) transparent;
+}
+.remote-device { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.remote-device-head {
+  display: flex; align-items: center; gap: 7px; padding: 0 8px 4px;
+  color: var(--text-dim); font: 600 11.5px/1.2 var(--font-text); letter-spacing: 0.01em;
+}
+.remote-device-glyph {
+  width: 14px; height: 14px; flex: none;
+  fill: none; stroke: currentColor; stroke-width: 1.3; stroke-linecap: round; stroke-linejoin: round;
+}
+.remote-device-name { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--text); }
+.remote-device-count { margin-inline-start: auto; flex: none; font-weight: 500; font-variant-numeric: tabular-nums; }
+.remote-device-tabs { display: flex; flex-direction: column; }
+#remoteList .fav.remote-tab {
+  width: 100%; max-width: none; box-sizing: border-box; gap: 11px; padding: 6px 8px; border-radius: 10px;
+  transition: background-color 120ms ease-out, transform 100ms ease-out;
+}
+@media (hover: hover) {
+  #remoteList .fav.remote-tab:hover { background: color-mix(in srgb, var(--text) 6%, transparent); }
+  .remote-device-more:hover { background: color-mix(in srgb, var(--accent) 10%, transparent); }
+}
+#remoteList .fav.remote-tab:active { transform: scale(0.985); background: color-mix(in srgb, var(--text) 9%, transparent); }
+#remoteList .fav.remote-tab:focus-visible { outline: 2px solid var(--accent); outline-offset: 0; }
+#remoteList .fav.remote-tab:hover .name { color: var(--text); }
+#remoteList .remote-tab .tile { width: 28px; height: 28px; border-radius: 7px; }
+#remoteList .remote-tab .tile.has-icon { background-size: 16px; }
+.remote-tab-text { display: flex; flex-direction: column; gap: 1px; min-width: 0; }
+#remoteList .remote-tab .name { font-size: 14px; font-weight: 500; line-height: 1.25; letter-spacing: -0.005em; }
+#remoteList .remote-tab .host { font-size: 12px; line-height: 1.2; overflow: hidden; text-overflow: ellipsis; }
+.remote-device-more {
+  align-self: flex-start; margin: 2px 0 0 39px; padding: 3px 8px; border: 0; border-radius: 999px;
+  background: transparent; color: var(--accent); font: 500 12px/1.3 var(--font-text); cursor: pointer;
+}
+.remote-device-more:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+/* A touchscreen: rows and the more link grow to finger-sized targets, and
+   the grips stay visible, since there is no hover to reveal them. A touch
+   drag on a grip moves its card (the grip takes the finger: touch-action). */
+@media (pointer: coarse) {
+  #remoteList .fav.remote-tab { min-height: 52px; padding-block: 8px; }
+  #remoteList .remote-tab .tile { width: 32px; height: 32px; border-radius: 8px; }
+  .remote-device-more { min-height: 44px; padding-inline: 12px; }
+  #remoteList .fav.remote-tab, .remote-device-more { -webkit-tap-highlight-color: transparent; }
+  .bb-widget-grip { opacity: 1; width: 32px; height: 36px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  #remoteList .fav.remote-tab { transition: none; }
+  #remoteList .fav.remote-tab:active { transform: none; }
+}
+
+/* Resizable scrolling cards (owner, 2026-11-13): the bottom edge is a
+   handle with a small grabber, shown on hover, focus and while resizing
+   (always on a touchscreen). A sized card takes one of the fixed sizes
+   (--card-size, outer height) and its list or panel fills it; while it is
+   resized a dashed outline shows the size it will settle on. */
+.bb-widget-resize {
+  position: absolute; left: 24px; right: 24px; bottom: 0; height: 16px;
+  display: grid; place-items: center; border-radius: 8px;
+  cursor: ns-resize; touch-action: none; z-index: 2;
+}
+.bb-widget-resize > span {
+  width: 36px; height: 4px; border-radius: 2px;
+  background: color-mix(in srgb, var(--text) 28%, transparent);
+  opacity: 0; transition: opacity 120ms ease-out, width 160ms ease-out, background-color 120ms ease-out;
+}
+.bb-widget:hover > .bb-widget-resize > span, .bb-widget-resize:focus-visible > span,
+.bb-widget[data-resizing="true"] > .bb-widget-resize > span { opacity: 1; }
+.bb-widget-resize:hover > span, .bb-widget[data-resizing="true"] > .bb-widget-resize > span {
+  width: 48px; background: color-mix(in srgb, var(--text) 48%, transparent);
+}
+.bb-widget-resize:focus-visible { outline: 2px solid var(--accent); outline-offset: -2px; }
+body.widget-resizing, body.widget-resizing * { cursor: ns-resize !important; user-select: none; }
+.bb-widget-snap {
+  position: fixed; z-index: 3; pointer-events: none; box-sizing: border-box;
+  border: 1.5px dashed color-mix(in srgb, var(--text-dim) 55%, transparent); border-radius: 18px;
+  transition: height 140ms ease-out;
+}
+#bbWidgets #remoteSection.widget-on:not([hidden])[data-size],
+#bbWidgets #favoritesWidget.widget-on:not([hidden])[data-size] {
+  display: flex; flex-direction: column; box-sizing: border-box;
+  height: var(--card-size); flex: 0 1 var(--card-size); min-height: 0;
+}
+#bbWidgets #remoteSection[data-size] #remoteList.remote-grouped { flex: 1 1 auto; min-height: 0; max-height: none; }
+/* A sized Favorites card lists every favorite and scrolls the way the
+   devices list does: edge fades, a scrollbar on hover and while it moves,
+   a finger pans it. */
+#bbWidgets #favoritesWidget[data-size] #favoritesList {
+  flex: 1 1 auto; min-height: 0; align-content: start; overflow-y: auto; overscroll-behavior: contain;
+  scrollbar-width: thin; scrollbar-color: transparent transparent; scrollbar-gutter: stable;
+  touch-action: pan-y pinch-zoom; margin-inline: -4px; padding: 2px 0 8px 4px;
+  --fade-top: #000; --fade-bottom: #000;
+  mask-image: linear-gradient(to bottom, var(--fade-top), #000 20px, #000 calc(100% - 28px), var(--fade-bottom));
+}
+#bbWidgets #favoritesWidget[data-size] #favoritesList[data-fade-start="true"] { --fade-top: transparent; }
+#bbWidgets #favoritesWidget[data-size] #favoritesList[data-fade-end="true"] { --fade-bottom: transparent; }
+#bbWidgets #favoritesWidget[data-size] #favoritesList:hover,
+#bbWidgets #favoritesWidget[data-size] #favoritesList[data-scrolling="true"] {
+  scrollbar-color: color-mix(in srgb, var(--text) 32%, transparent) transparent;
+}
+@media (pointer: coarse) {
+  .bb-widget-resize { height: 28px; }
+  .bb-widget-resize > span { opacity: 1; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .bb-widget-resize > span, .bb-widget-snap { transition: none; }
+}
+
+/* Shortcuts in Customize: the Wallpaper section's segmented control, two
+   choices, and a quiet note when Billboard has fewer sites than chosen. */
+.customize-hint { margin: 8px 2px 0; font: 400 12px/1.4 var(--font-text); color: var(--text-dim); text-wrap: pretty; }
+
+
+/* The Island's band continues the wallpaper (owner, 2026-11-13). While native
+   reports a band (newtab-adapter.js sets data-island-band and the two sizes),
+   the wallpaper is laid out from the window's top-left corner, under the
+   band and the vertical-tab rail, and the Island host paints the band's slice
+   of the same layers. The body's own background (Sunrise's image, a Color
+   fill) is repeated on a fixed ::before laid out the same way; it paints over
+   the body's and under the wallpaper layers. */
+:root[data-island-band] .start-wallpaper-layer {
+  top: calc(-1 * var(--island-band-h, 0px));
+  left: calc(-1 * var(--island-rail-w, 0px));
+}
+:root[data-island-band] body.ledger-body::before {
+  content: "";
+  position: fixed;
+  top: calc(-1 * var(--island-band-h, 0px));
+  left: calc(-1 * var(--island-rail-w, 0px));
+  right: 0;
+  bottom: 0;
+  z-index: -1;
+  pointer-events: none;
+  background: inherit;
+  background-attachment: scroll;
+}

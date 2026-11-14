@@ -1,0 +1,598 @@
+diff --git a/chrome/browser/resources/extensions/item_list.html.ts b/chrome/browser/resources/extensions/item_list.html.ts
+index 054f137ce302ae538fde716bd41f10c3eb6ac225..9dee4a7f8b6a54cd2330cb7a3645490d6dd0eb62 100644
+--- a/chrome/browser/resources/extensions/item_list.html.ts
++++ b/chrome/browser/resources/extensions/item_list.html.ts
+@@ -49,8 +49,8 @@ export function getHtml(this: ExtensionsItemListElement) {
+       <h2 class="section-header items-container">
+         <span class="section-header-contents">
+           <span>$i18n{extensionsSectionHeader}</span>
+-          <span id="pinned-toggle-container"
+-              ?hidden="${!this.showExtensionsPinnedByDefault_}">
++          <!-- Blanc (owner): the Island has no toolbar to pin extensions to. -->
++          <span id="pinned-toggle-container" hidden>
+             <span id="pinned-toggle-label">$i18n{pinNewExtensions}</span>
+             <cr-toggle id="pinned-toggle"
+                 ?checked="${this.extensionsPinnedByDefault}"
+diff --git a/chrome/browser/resources/settings/blanc_settings_proxy.ts b/chrome/browser/resources/settings/blanc_settings_proxy.ts
+index 5068e4206cf348009e07b33fd7df47a7ab66a6fc..832cf7f1d894fb2364c1dd0c9f24f23c5fe778a7 100644
+--- a/chrome/browser/resources/settings/blanc_settings_proxy.ts
++++ b/chrome/browser/resources/settings/blanc_settings_proxy.ts
+@@ -30,6 +30,7 @@ export interface BlancSettingsState {
+   uiLanguages: BlancLanguage[];
+   launchUiLanguage: string|null;
+   surfaceStyle: string;
++  pageZoom: number;
+   usagePing: boolean;
+ }
+ 
+@@ -207,6 +208,22 @@ function blancTokens(p: BlancPalette): Record<string, string> {
+     '--color-toolbar-search-field-foreground': p.text,
+     '--color-toolbar-search-field-foreground-placeholder': p.dim,
+     '--color-toolbar-search-field-icon': p.dim,
++    // Roomier rows, one column as wide as the sheet allows.
++    '--cr-section-min-height': '52px',
++    '--cr-section-two-line-min-height': '68px',
++    '--cr-centered-card-max-width': '1000px',
++    '--cr-centered-card-width-percentage': '1',
++    '--cr-centered-card-min-width': '0',
++    '--color-radio-button-foreground-checked': p.accent,
++    '--blanc-raised': p.raised,
++    '--blanc-accent-ring': p.accentDim,
++    '--blanc-select-chevron':
++        `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12'%3E%3Cpath d='M2.75 4.5 6 7.75 9.25 4.5' fill='none' stroke='%23${p.dim.slice(1)}' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E")`,
++    '--blanc-select-arrow-width': '12px',
++    '--blanc-select-padding': '12px',
++    '--blanc-select-radius': '10px',
++    '--blanc-sublabel-size': '13px',
++    '--blanc-sublabel-height': '18px',
+   };
+ }
+ 
+@@ -226,6 +243,11 @@ function applyBlancTheme() {
+       '"Instrument Sans", "Inter", -apple-system, system-ui, sans-serif';
+   root.style.setProperty('font-variation-settings', '"wdth" 98');
+   root.style.letterSpacing = '0.01em';
++  // Chromium sets its own system-ui stack on body, which every shadow tree
++  // inherits, so the face and the body size go there too.
++  document.body.style.fontFamily = root.style.fontFamily;
++  document.body.style.fontSize = '14px';
++  document.body.style.lineHeight = '20px';
+ }
+ 
+ async function loadBlancFont() {
+@@ -240,11 +262,18 @@ async function loadBlancFont() {
+ 
+ applyBlancTheme();
+ darkQuery.addEventListener('change', applyBlancTheme);
++// Appearance > Font size scales this page too, so a change shows at once.
++function applyBlancZoom(zoom: number) {
++  document.documentElement.style.setProperty('zoom', String(zoom));
++}
++
+ blancSettings.get().then(state => {
+   blancSurface = state.surfaceStyle;
+   applyBlancTheme();
++  applyBlancZoom(state.pageZoom);
+ });
+ blancSettings.listen(state => {
++  applyBlancZoom(state.pageZoom);
+   if (state.surfaceStyle !== blancSurface) {
+     blancSurface = state.surfaceStyle;
+     applyBlancTheme();
+diff --git a/chrome/browser/resources/settings/settings_menu/settings_menu.css b/chrome/browser/resources/settings/settings_menu/settings_menu.css
+index bf6b45a8058e8d6934d89214599f38f11437ff51..ca2778ce7798df35bdae19154408e2bb3d55c8de 100644
+--- a/chrome/browser/resources/settings/settings_menu/settings_menu.css
++++ b/chrome/browser/resources/settings/settings_menu/settings_menu.css
+@@ -15,7 +15,7 @@
+ :host {
+   box-sizing: border-box;
+   display: block;
+-  padding-bottom: 5px; /* Prevents focus outlines from being cropped. */
++  padding-bottom: 16px; /* Prevents focus outlines from being cropped. */
+   padding-top: 8px;
+ }
+ 
+@@ -23,13 +23,29 @@
+  * Chromium's refresh flag. */
+ :host .cr-nav-menu-item {
+   --cr-nav-menu-item-content-height: 20px;
+-  border-radius: 100px;
+-  font-weight: 500;
++  border-radius: 10px;
++  font-size: 13.5px;
++  font-weight: 450;
+   line-height: var(--cr-nav-menu-item-content-height);
+-  margin-bottom: 2px;
+-  margin-inline: 8px;
+-  padding-block: 11px;
+-  padding-inline: 18px;
++  margin-bottom: 1px;
++  margin-inline: 20px 8px;
++  min-height: 34px;
++  padding-block: 7px;
++  padding-inline: 12px;
++  transition: background-color 120ms ease-out;
++}
++
++:host .cr-nav-menu-item[selected] {
++  font-weight: 500;
++}
++
++/* Feedback on the press, not the release. */
++:host .cr-nav-menu-item:active {
++  background: var(--cr-nav-menu-item-background-color-selected);
++}
++
++:host .menu-separator {
++  display: none;
+ }
+ 
+ :host .cr-nav-menu-item cr-icon,
+diff --git a/chrome/browser/resources/settings/settings_page/settings_section.css b/chrome/browser/resources/settings/settings_page/settings_section.css
+index e8a01c8d77f104e5fc25785851d1ba4f72f3d52b..2a3239cb508d6115d232f0c1f666ead8412c74ae 100644
+--- a/chrome/browser/resources/settings/settings_page/settings_section.css
++++ b/chrome/browser/resources/settings/settings_page/settings_section.css
+@@ -10,6 +10,8 @@
+   display: flex;
+   flex-direction: column;
+   outline: none;
++  /* Blanc (S3, owner): room under the card at the end of the scroll. */
++  padding-bottom: 28px;
+   position: relative;
+ }
+ 
+@@ -46,14 +48,14 @@
+ #header .title {
+   color: var(--cr-primary-text-color);
+   /* Blanc (S3, owner): shipping's section heading. */
+-  font-size: 190%;
++  font-size: 24px;
+   font-weight: 600;
+-  letter-spacing: 0;
+-  margin-bottom: 12px;
+-  margin-top: var(--cr-section-vertical-margin);
++  letter-spacing: -0.012em;
++  line-height: 30px;
++  margin-bottom: 14px;
++  margin-top: 18px;
+   outline: none;
+-  padding-bottom: 4px;
+-  padding-top: 8px;
++  padding-inline-start: 2px;
+ }
+ 
+ #feedback {
+diff --git a/chrome/browser/resources/settings/settings_page/settings_subpage.css b/chrome/browser/resources/settings/settings_page/settings_subpage.css
+index ff9dd87d6b7568e6d56733266d8cb91eb613f083..7307c8eb923f788ab35036278092df7fbf26068a 100644
+--- a/chrome/browser/resources/settings/settings_page/settings_subpage.css
++++ b/chrome/browser/resources/settings/settings_page/settings_subpage.css
+@@ -15,12 +15,12 @@
+   left: 0;
+   /* Do not shorten '0px' below to '0' as the calc function requires
+    * units. */
+-  min-height: calc(100vh - var(--cr-toolbar-height) -
+-      var(--cr-toolbar-padding-top, 0px));
+-  padding-bottom: 60px;
++  /* Blanc (S3, owner): a card as tall as its content, under the sheet's
++   * header, not a white column running off the bottom of the sheet. */
++  padding-bottom: 12px;
+   position: absolute;
+   right: 0;
+-  top: 0;
++  top: 18px;
+ }
+ 
+ :host-context([settings-refresh-2026]) {
+@@ -43,8 +43,19 @@
+   }
+ }
+ 
++/* Blanc (S3, owner): the same room under a subpage, which is positioned out
++ * of flow, so only something past its bottom edge extends the scroll. */
++:host::after {
++  content: '';
++  height: 28px;
++  position: absolute;
++  top: 100%;
++  width: 1px;
++}
++
+ :host(:not(.multi-card)) {
+   background-color: var(--cr-card-background-color);
++  border-radius: var(--cr-card-border-radius);
+   box-shadow: var(--cr-card-shadow);
+ }
+ 
+@@ -59,8 +70,8 @@
+ 
+ #headerLine {
+   min-height: 40px;
+-  padding-bottom: 24px;
+-  padding-top: 8px;
++  padding-bottom: 8px;
++  padding-top: 10px;
+ }
+ 
+ #learnMore {
+@@ -100,7 +111,11 @@
+ }
+ 
+ h1 {
++  color: var(--cr-primary-text-color);
+   flex: 1;  /* Push other items to the end. */
++  font-size: 18px;
++  font-weight: 600;
++  letter-spacing: -0.005em;
+ }
+ 
+ cr-search-field {
+diff --git a/chrome/browser/resources/settings/settings_shared_lit.css b/chrome/browser/resources/settings/settings_shared_lit.css
+index 9cfad28aaf611b4af13f34c7cc71723919d72757..a9c2ed7b9aef44c09f34bb75b4dd1944d9266feb 100644
+--- a/chrome/browser/resources/settings/settings_shared_lit.css
++++ b/chrome/browser/resources/settings/settings_shared_lit.css
+@@ -298,6 +298,9 @@ h2.first {
+ /* TODO: Remove and merge with .cr-secondary-text. */
+ .secondary {
+   color: var(--cr-secondary-text-color);
++  /* Blanc (S3, owner): supporting text is a step smaller and tighter. */
++  font-size: var(--blanc-sublabel-size, inherit);
++  line-height: var(--blanc-sublabel-height, inherit);
+   font-weight: 400;
+ }
+ 
+@@ -422,3 +425,99 @@ iron-list,
+           calc(100% - var(--cr-section-padding)),
+       transparent calc(100% - var(--cr-section-padding))) 1 0 0 0;
+ }
++
++/* Fields are outlined rounded rectangles, one height with their buttons. */
++cr-input {
++  --cr-input-background-color: var(--blanc-raised);
++  --cr-input-border-bottom: none;
++  --cr-input-border-radius: 10px;
++  --cr-input-font-size: 13.5px;
++  --cr-input-hover-background-color: transparent;
++  --cr-input-padding-bottom: 9px;
++  --cr-input-padding-end: 12px;
++  --cr-input-padding-start: 12px;
++  --cr-input-padding-top: 9px;
++  --cr-input-underline-display: none;
++  border-radius: 10px;
++  box-shadow: 0 0 0 1px var(--blanc-separator-color);
++  transition: box-shadow 120ms ease-out;
++}
++
++cr-input:focus-within {
++  box-shadow: 0 0 0 1px var(--cr-checked-color),
++      0 0 0 4px var(--blanc-accent-ring);
++}
++
++select {
++  font-family: inherit;
++}
++
++/* The interface language picker is a plain select. */
++#blancUiLanguage {
++  appearance: none;
++  background: var(--blanc-select-chevron) calc(100% - 12px) center / 12px
++      no-repeat;
++  border: 1px solid var(--blanc-separator-color);
++  border-radius: 10px;
++  box-sizing: border-box;
++  color: inherit;
++  font-size: 13.5px;
++  height: 36px;
++  padding-inline: 12px 32px;
++}
++
++cr-button {
++  border-radius: 10px;
++  transition: transform 100ms ease-out;
++}
++
++cr-button:active {
++  transform: scale(0.97);
++}
++
++@media (prefers-reduced-motion: reduce) {
++  cr-button:active {
++    transform: none;
++  }
++}
++
++/* Blanc's own lists line up with the rows above them, without Chromium's
++ * indent or a row line through the field that adds to them. */
++[id^='blanc'].list-frame {
++  padding-block-end: 16px;
++  padding-inline-start: var(--cr-section-padding);
++}
++
++[id^='blanc'].list-frame > .list-item {
++  border-image: none;
++  border-top: none;
++  min-height: 0;
++}
++
++[id^='blanc'].list-frame > .list-item.secondary {
++  padding-block: 0 10px;
++}
++
++[id^='blanc'].list-frame > [role='listitem'] {
++  min-height: 36px;
++}
++
++[id$='AddRow'].list-item {
++  --cr-input-error-display: none;
++  gap: 8px;
++}
++
++#blancCustomBangAddRow cr-input:not(.flex) {
++  flex: 0 0 120px;
++}
++
++#blancExceptions,
++#blancCustomBangs {
++  min-height: 0;
++  padding-block: 0 8px;
++}
++
++#blancBlockingStatus {
++  min-height: 0;
++  padding-block-end: 14px;
++}
+diff --git a/chrome/browser/resources/settings/settings_ui/settings_ui.css b/chrome/browser/resources/settings/settings_ui/settings_ui.css
+index 10cd9d4f5278627489b174b05ff601a2d4a9388a..61bbaef7422959875d3928857d07c86a1b79537b 100644
+--- a/chrome/browser/resources/settings/settings_ui/settings_ui.css
++++ b/chrome/browser/resources/settings/settings_ui/settings_ui.css
+@@ -16,7 +16,8 @@
+   display: flex;
+   flex-direction: column;
+   height: 100%;
+-  --settings-menu-width: 266px;
++  position: relative;
++  --settings-menu-width: 232px;
+   /* Centered cards has a max-width of var(--cr-centered-card-max-width)
+    * and a width of a certain percentage. Therefore, to make room for the
+    * cards to be at their max width, the flex-basis of #main needs to be
+@@ -55,20 +56,25 @@ cr-toolbar {
+   --cr-toolbar-center-basis: var(--settings-main-basis);
+ }
+ 
++/* Blanc (S3, owner): shipping's sheet. The heading is the sheet's own, so the
++ * toolbar is only the search field, at the top of the sidebar. */
+ cr-toolbar:not([narrow]) {
+   --cr-toolbar-left-spacer-width: var(--settings-menu-width);
++  --cr-toolbar-field-width: 100%;
++  box-sizing: border-box;
++  height: 52px;
++  inset-block-start: 0;
++  inset-inline-start: 0;
++  min-height: 52px;
++  padding-inline: 20px 8px;
++  position: absolute;
++  width: var(--settings-menu-width);
++  z-index: 1;
+ }
+ 
+-/* Blanc (S3, owner): the navigation stays beside the page in the settings
+- * sheet, which is narrower than Chromium's 980px breakpoint, so the search
+- * field takes the width the menu leaves instead of its full width. */
+-@media (max-width: 980px) {
+-  cr-toolbar:not([narrow]) {
+-    --cr-toolbar-center-basis:
+-        calc(100vw - var(--settings-menu-width) - 48px);
+-    --cr-toolbar-field-width:
+-        calc(100vw - var(--settings-menu-width) - 72px);
+-  }
++cr-toolbar:not([narrow])::part(search-field) {
++  border-radius: 10px;
++  height: 32px;
+ }
+ 
+ @media (prefers-color-scheme: light) {
+@@ -97,10 +103,61 @@ cr-toolbar:not([narrow]) {
+   top: 0;
+ }
+ 
++/* Blanc (S3, owner): the page takes the whole width beside the sidebar, and
++ * content fades under the sheet's header rather than meeting a hard shadow. */
++cr-toolbar:not([narrow]) ~ #container {
++  mask-image: linear-gradient(to bottom, transparent, #000 12px);
++}
++
++cr-toolbar:not([narrow]) ~ #container #scrollableShadow,
++cr-toolbar:not([narrow]) ~ #container #right {
++  display: none;
++}
++
++cr-toolbar:not([narrow]) ~ #container #left {
++  box-sizing: border-box;
++  flex: 0 0 var(--settings-menu-width);
++  padding-top: 52px;
++}
++
++cr-toolbar:not([narrow]) ~ #container #main {
++  box-sizing: border-box;
++  flex: 1 1 0;
++  min-width: 0;
++  padding: 0 10px 0 16px;
++}
++
++/* Blanc (S3, owner): a scrollbar that shows whenever the pointer is over
++ * something scrollable, whatever macOS's overlay scrollers decide. */
++#container::-webkit-scrollbar,
++#left settings-menu::-webkit-scrollbar {
++  width: 10px;
++}
++
++#container::-webkit-scrollbar-thumb,
++#left settings-menu::-webkit-scrollbar-thumb {
++  background-clip: padding-box;
++  background-color: transparent;
++  border: 2px solid transparent;
++  border-radius: 5px;
++  min-height: 40px;
++}
++
++#container:hover::-webkit-scrollbar-thumb,
++#left settings-menu:hover::-webkit-scrollbar-thumb {
++  background-color: color-mix(in srgb, var(--cr-primary-text-color) 28%, transparent);
++}
++
++#container::-webkit-scrollbar-thumb:hover,
++#left settings-menu::-webkit-scrollbar-thumb:hover {
++  background-color: color-mix(in srgb, var(--cr-primary-text-color) 45%, transparent);
++}
++
+ #left settings-menu {
+   max-height: 100%;
+   overflow: auto;
+-  overscroll-behavior: contain;
++  /* Blanc (S3, owner): a wheel over the sidebar still scrolls the page. */
++  overscroll-behavior: auto;
+   width: var(--settings-menu-width);
+ }
+ 
+diff --git a/chrome/browser/resources/settings/settings_ui/settings_ui.html b/chrome/browser/resources/settings/settings_ui/settings_ui.html
+index 58b88d2d133216613f150078726488f76f3aedd8..d7f456ed5b257db309abf031896f764f85d4c1c5 100644
+--- a/chrome/browser/resources/settings/settings_ui/settings_ui.html
++++ b/chrome/browser/resources/settings/settings_ui/settings_ui.html
+@@ -1,7 +1,7 @@
+     <cr-toolbar id="toolbar"
+         page-name="$i18n{settings}"
+         clear-label="$i18n{clearSearch}"
+-        autofocus
++        sidebar-search
+         search-prompt="$i18n{searchPrompt}"
+         @cr-toolbar-menu-click="${this.onCrToolbarMenuClick_}"
+         ?spinner-active="${this.toolbarSpinnerActive_}"
+diff --git a/chrome/browser/resources/settings/settings_ui/settings_ui.ts b/chrome/browser/resources/settings/settings_ui/settings_ui.ts
+index 8fd66a2076122f29b01977dba3b302ade0cb6529..abe78f6b631cbf60ba4b34a6ecfdfd1110b33120 100644
+--- a/chrome/browser/resources/settings/settings_ui/settings_ui.ts
++++ b/chrome/browser/resources/settings/settings_ui/settings_ui.ts
+@@ -186,7 +186,11 @@ export class SettingsUiElement extends SettingsUiElementBase {
+     }
+   }
+ 
+-  override currentRouteChanged(route: Route) {
++  override currentRouteChanged(route: Route, oldRoute?: Route) {
++    // Blanc (S3, owner): a new section starts at its top.
++    if (oldRoute && route.section !== oldRoute.section) {
++      this.$.container.scrollTop = 0;
++    }
+     this.$.scrollableShadow.classList.toggle(
+         'force-on', route === routes.PRIVACY_GUIDE || route.depth > 1);
+ 
+diff --git a/chrome/browser/ui/webui/settings/profile_info_handler.cc b/chrome/browser/ui/webui/settings/profile_info_handler.cc
+index 0875503057ed6512e6b34478bc9ffb3faf9874e1..bb23fff2bb804726666dc9d2b2d7272e1a2c8dd6 100644
+--- a/chrome/browser/ui/webui/settings/profile_info_handler.cc
++++ b/chrome/browser/ui/webui/settings/profile_info_handler.cc
+@@ -166,6 +166,11 @@ base::DictValue ProfileInfoHandler::GetAccountNameAndIcon() {
+     gfx::Image icon = profiles::GetSizedAvatarIcon(
+         entry->GetAvatarIcon(), kAvatarIconSize, kAvatarIconSize);
+     icon_url = webui::GetBitmapDataUrl(icon.AsBitmap());
++    // Blanc (S3, owner): a profile without a chosen picture wears the
++    // Sunrise, not Chromium's blue placeholder.
++    if (entry->IsUsingDefaultAvatar()) {
++      icon_url = "chrome://theme/current-channel-logo";
++    }
+   }
+ #endif  // BUILDFLAG(IS_CHROMEOS)
+ 
+diff --git a/ui/webui/resources/cr_elements/cr_link_row/cr_link_row.css b/ui/webui/resources/cr_elements/cr_link_row/cr_link_row.css
+index 343742f00f79e01909b9af43f8cf33b7f73829e7..f53b64d72854148ba2abe67d6bb67671e6a515ea 100644
+--- a/ui/webui/resources/cr_elements/cr_link_row/cr_link_row.css
++++ b/ui/webui/resources/cr_elements/cr_link_row/cr_link_row.css
+@@ -55,6 +55,11 @@
+   display: flex;
+ }
+ 
++#subLabel {
++  font-size: var(--blanc-sublabel-size, inherit);
++  line-height: var(--blanc-sublabel-height, inherit);
++}
++
+ #buttonAriaDescription {
+   clip: rect(0,0,0,0);
+   display: block;
+diff --git a/ui/webui/resources/cr_elements/cr_shared_style_lit.css b/ui/webui/resources/cr_elements/cr_shared_style_lit.css
+index db892c21a9e32c9f9bb998d5ef9fd80a1e407739..cb03105a8be5f92e7acc04b03108d2e55308930e 100644
+--- a/ui/webui/resources/cr_elements/cr_shared_style_lit.css
++++ b/ui/webui/resources/cr_elements/cr_shared_style_lit.css
+@@ -64,7 +64,7 @@
+   height: inherit;
+   margin: 0 auto;
+   max-width: var(--cr-centered-card-max-width);
+-  min-width: 550px;
++  min-width: var(--cr-centered-card-min-width, 550px);
+   position: relative;
+   width: calc(100% * var(--cr-centered-card-width-percentage));
+ }
+@@ -115,7 +115,10 @@ cr-tooltip::part(tooltip) {
+ 
+ .cr-secondary-text {
+   color: var(--cr-secondary-text-color);
++  /* Blanc (S3, owner): set by Settings; inert elsewhere. */
++  font-size: var(--blanc-sublabel-size, inherit);
+   font-weight: 400;
++  line-height: var(--blanc-sublabel-height, inherit);
+ }
+ 
+ .cr-form-field-label {
+diff --git a/ui/webui/resources/cr_elements/cr_toolbar/cr_toolbar.css b/ui/webui/resources/cr_elements/cr_toolbar/cr_toolbar.css
+index de24f1a045261121bf8f913ffb800bee01f256a3..8fea32a166311a7b7fcc629ef3880af0fad64e6f 100644
+--- a/ui/webui/resources/cr_elements/cr_toolbar/cr_toolbar.css
++++ b/ui/webui/resources/cr_elements/cr_toolbar/cr_toolbar.css
+@@ -82,6 +82,12 @@ cr-icon-button {
+   justify-content: flex-end;
+ }
+ 
++/* Blanc (S3, owner): Settings shows only the field, atop its sidebar. */
++:host(:not([narrow])[sidebar-search]) #leftContent,
++:host(:not([narrow])[sidebar-search]) #rightContent {
++  display: none;
++}
++
+ :host([has-overlay]) {
+   transition: visibility var(--cr-toolbar-overlay-animation-duration);
+   visibility: hidden;
+diff --git a/ui/webui/resources/cr_elements/md_select_lit.css b/ui/webui/resources/cr_elements/md_select_lit.css
+index d427d50b6627d28464ee17ea00cd533b4ea70b1b..a806ce639f2a24847e3209623f8d7710d2c0ae34 100644
+--- a/ui/webui/resources/cr_elements/md_select_lit.css
++++ b/ui/webui/resources/cr_elements/md_select_lit.css
+@@ -9,21 +9,22 @@
+  * #css_wrapper_metadata_end */
+ 
+ .md-select {
+-  --md-arrow-width: 7px;
++  /* Blanc (S3, owner): these var()s are set by Settings; inert elsewhere. */
++  --md-arrow-width: var(--blanc-select-arrow-width, 7px);
+   --md-select-bg-color: transparent;
+   --md-select-option-bg-color: white;
+-  --md-select-side-padding: 10px;
++  --md-select-side-padding: var(--blanc-select-padding, 10px);
+   --md-select-text-color: inherit;
+ 
+   -webkit-appearance: none;
+-  background: url(//resources/images/arrow_down.svg)
++  background: var(--blanc-select-chevron, url(//resources/images/arrow_down.svg))
+       calc(100% - var(--md-select-side-padding))
+       center no-repeat;
+   background-color: var(--md-select-bg-color);
+   background-size: var(--md-arrow-width);
+   border: solid 1px var(--color-combobox-container-outline,
+       var(--cr-fallback-color-neutral-outline));
+-  border-radius: 8px;
++  border-radius: var(--blanc-select-radius, 8px);
+   box-sizing: border-box;
+   color: var(--md-select-text-color);
+   cursor: pointer;
+@@ -44,7 +45,7 @@
+ @media (prefers-color-scheme: dark) {
+   .md-select {
+     --md-select-option-bg-color: var(--google-grey-900-white-4-percent);
+-    background-image: url(//resources/images/dark/arrow_down.svg);
++    background-image: var(--blanc-select-chevron, url(//resources/images/dark/arrow_down.svg));
+   }
+ }
+ 

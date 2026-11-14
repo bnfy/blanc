@@ -1,0 +1,16 @@
+{
+  "scheduledActions": 57677,
+  "clangCompileCommands": 47083,
+  "remainingScheduledActions": 10594,
+  "pendingBuildflagGenerators": 0,
+  "planSha256": "75f07f0a92e8c37b1d4d656b55d2a8357fe2142b7fe1eefe2868e7a57cb17019",
+  "upstreamFiles": 77,
+  "hunks": 186,
+  "cleanDependencies": 151,
+  "allPublishedPatchHashesMatch": true,
+  "compilationStarted": false,
+  "largeBuildAuthorized": false,
+  "metadataActionsCompleted": 121,
+  "diskFreeGiBObserved": 354,
+  "proposedLocalWorkers": 8
+}

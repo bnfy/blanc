@@ -1,0 +1,225 @@
+# Third-party notices
+
+Blanc's software and its associated documentation are released under the MIT
+License (see [LICENSE](LICENSE)). The components below are redistributed with
+Blanc under their own terms, which the MIT grant does not supersede.
+
+The notices that ship inside packaged Blanc builds are in
+[compliance/THIRD_PARTY_NOTICES.txt](compliance/THIRD_PARTY_NOTICES.txt); this file is the
+repository-level version of the same record.
+
+## Reader Mode — Mozilla Readability, DOMPurify, and Source Serif 4
+
+Mozilla Readability 0.6.0 is redistributed under Apache-2.0. DOMPurify 3.4.17
+is dual-licensed under MPL-2.0 or Apache-2.0; Blanc uses the Apache-2.0 option.
+The desktop runtime license records are generated in the packaged compliance
+notices. Full upstream texts also ship in `src/renderer/pages/reader-*-LICENSE.txt`
+and `reader-dompurify-MPL.txt`, including in the native iOS bundle.
+
+Blanc's executable copy of Readability applies two documented changes through
+`src/main/reader-readability-adaptation.js`: fully anchored article-type matching
+and an HTTP(S)/fragment link allowlist. The pinned upstream npm files are unchanged;
+desktop and iOS share the adapted code and retain the upstream copyright notices.
+
+Source Serif 4 Regular is copyright Adobe and its contributors, distributed
+under SIL OFL 1.1; its full text is `src/renderer/pages/source-serif-4-OFL.txt`.
+Reader executable inputs and the font bytes are recorded in `reader-pinned.json`.
+These third-party grants do not change Blanc's reserved identity assets.
+
+## EasyList and EasyPrivacy filter lists — CC BY-SA 3.0 or later
+
+Copyright (c) The EasyList authors — <https://easylist.to/>
+
+The EasyList and EasyPrivacy filter lists are dual-licensed by their authors
+under the GNU General Public License version 3 (or, at your option, any later
+version) **and** the Creative Commons Attribution-ShareAlike 3.0 Unported
+licence (or, at your option, any later version). The upstream statement is at
+<https://easylist.to/pages/licence.html>.
+
+**Blanc exercises the Creative Commons option** and redistributes these lists,
+the checked-in data under `adblock/generated/`, and the compiled blocking-engine
+data derived from them under
+[CC BY-SA 3.0 or later](https://creativecommons.org/licenses/by-sa/3.0/legalcode.en).
+
+Pinned sources, redistributed verbatim:
+
+| List | Upstream | Pinned | SHA-256 | Path |
+|------|----------|--------|---------|------|
+| EasyList | <https://easylist.to/easylist/easylist.txt> | 2026-07-09 | `ceac7bd34d538ad448f05a7237b600485f2185a620d8ce32f77ae7365e1e662b` | `adblock/sources/easylist.txt` |
+| EasyPrivacy | <https://easylist.to/easylist/easyprivacy.txt> | 2026-07-09 | `5b69cbb6958485b5688e76bf2a43a548acaa5cc57380aed7d3dc800da7e0bf6b` | `adblock/sources/easyprivacy.txt` |
+
+**Transformed versions.** The files under `adblock/generated/` and the blocking
+engine Blanc compiles at runtime are adaptations of the pinned sources above,
+mechanically transformed by `npm run adblock:build` into other rule formats.
+They are derivative works of EasyList and EasyPrivacy, carry the same
+CC BY-SA 3.0-or-later terms, and require the same attribution to The EasyList
+authors. See [adblock/sources/SOURCES.md](adblock/sources/SOURCES.md) for the
+update procedure.
+
+## 1Password JavaScript SDK — MIT
+
+Copyright (c) 2024 1Password. Full licence text in
+[compliance/THIRD_PARTY_NOTICES.txt](compliance/THIRD_PARTY_NOTICES.txt).
+
+## Inter, Instrument Sans, JetBrains Mono, Caveat, and Roboto Flex fonts — SIL OFL 1.1
+
+- `src/renderer/pages/inter-latin.woff2` — Copyright 2020 The Inter Project
+  Authors. Full licence text:
+  [src/renderer/pages/inter-OFL.txt](src/renderer/pages/inter-OFL.txt).
+- `src/renderer/pages/jetbrains-mono-latin.woff2` — Copyright 2020 The
+  JetBrains Mono Project Authors. Full licence text:
+  [src/renderer/pages/jetbrains-mono-OFL.txt](src/renderer/pages/jetbrains-mono-OFL.txt).
+- `src/renderer/pages/caveat-latin.woff2` — Copyright 2014 The Caveat Project
+  Authors. Full licence text:
+  [src/renderer/pages/caveat-OFL.txt](src/renderer/pages/caveat-OFL.txt).
+- `src/renderer/pages/instrument-sans-latin-wdth-normal.woff2` — Copyright 2022
+  The Instrument Sans Project Authors; the unmodified Latin variable file from
+  `@fontsource-variable/instrument-sans` 5.3.0. Full license text:
+  [src/renderer/pages/instrument-sans-OFL.txt](src/renderer/pages/instrument-sans-OFL.txt).
+- `src/renderer/pages/roboto-flex-clock.woff2` — Copyright 2017 The Roboto
+  Flex Project Authors; a Modified Version of the Latin variable file from
+  `@fontsource-variable/roboto-flex` 5.3.0, subset by
+  `scripts/build-clock-font.py` to the characters a time contains, pinned
+  upright on its slant axis and at its display optical size (weight and width
+  stay variable).
+  Roboto Flex declares no Reserved Font Name. Full license text:
+  [src/renderer/pages/roboto-flex-OFL.txt](src/renderer/pages/roboto-flex-OFL.txt).
+
+Reader Mode also offers the already bundled Inter and JetBrains Mono files above.
+
+All five font files remain under the SIL Open Font License, Version 1.1; Blanc's
+MIT grant does not supersede those terms. The font files and their full licence texts
+ship together inside packaged builds.
+
+The website serves a byte-identical copy of the Instrument Sans file at
+`site/public/fonts/instrument-sans/instrument-sans-latin-wdth-normal.woff2`
+for Blanc's emails, beside its full licence text in
+[site/public/fonts/instrument-sans/OFL.txt](site/public/fonts/instrument-sans/OFL.txt).
+
+## Newsreader website source — SIL OFL 1.1
+
+The website uses Newsreader (variable, optical-size axis, regular weight) for
+its display typography, self-hosted through
+`@fontsource-variable/newsreader` 5.3.0. Its headings use a Modified Version,
+"Newsreader Condensed" (`site/src/fonts/newsreader-condensed-*.woff2`), which
+`site/scripts/build-condensed-newsreader.py` derives from those pinned files by
+scaling every horizontal measurement to 92% and adding 0.02em of tracking; Newsreader declares no Reserved
+Font Name, and the Modified Version remains under the same licence. The desktop
+application bundles the same Newsreader Condensed Latin upright file for its
+narrowly scoped invitation headings, as listed above. The font remains under the SIL Open Font License,
+Version 1.1; Blanc's MIT grant does not supersede it. The full website copyright
+notice and licence ship at
+[site/public/fonts/newsreader-OFL.txt](site/public/fonts/newsreader-OFL.txt).
+Upstream: <https://github.com/productiontype/Newsreader>.
+
+## Lucide desktop icons — ISC
+
+`src/renderer/panel-left.svg` is adapted from Lucide's Panel Left icon.
+The uBO popup SVGs in `src/renderer/ublock-popup-icons/` are exact Lucide 0.468.0
+assets. Their upstream ISC notice (including Feather attribution) is in that
+directory's `lucide-LICENSE.txt` and the packaged
+`ThirdPartyLicenses/lucide-LICENSE.txt`.
+Copyright (c) 2026 Lucide Icons and Contributors. It remains under Lucide's ISC
+License; the full notice ships in
+[compliance/THIRD_PARTY_NOTICES.txt](compliance/THIRD_PARTY_NOTICES.txt). Upstream:
+<https://github.com/lucide-icons/lucide>.
+
+## Dark Reader — MIT
+
+Dark websites embeds the unmodified npm API build of Dark Reader 4.9.133
+(`dark-reader/upstream/darkreader.js`, pinned by hash in
+`dark-reader/pinned.json`) in the generated
+`src/main/dark-websites-preload.js`.
+Copyright (c) 2026 Dark Reader Ltd. It remains under Dark Reader's MIT
+License, kept in `dark-reader/darkreader-LICENSE.txt` and shipped as
+`ThirdPartyLicenses/darkreader-LICENSE.txt`. The MIT License covers the code,
+not the Dark Reader name or logo. Upstream:
+<https://github.com/darkreader/darkreader>.
+
+## Kagi bangs — MIT
+
+Bangs (`!yt lofi`) resolve from Kagi Search's open bang list,
+`data/bangs.json` at commit `449cf7a18c6614b4472168004c9b8804331885cc`
+(October 15, 2026), committed verbatim as `bangs/sources/bangs.json` and
+pinned by hash in `bangs/pinned.json`; `bangs/build.mjs` compiles it into
+the generated `src/renderer/pages/bangs-catalog.js`. Copyright (c) 2024 Kagi
+Search. It remains under Kagi's MIT License, kept in `bangs/sources/kagi-bangs-LICENSE.txt`
+and shipped as `ThirdPartyLicenses/kagi-bangs-LICENSE.txt`. The MIT License covers the
+list, not the Kagi name or logo. Upstream:
+<https://github.com/kagisearch/bangs>.
+
+## Runtime dependencies
+
+Blanc is built on Electron (MIT) and bundles the Chromium engine, which carries
+its own BSD-style licence and third-party notices. Blocking uses
+`@ghostery/adblocker-electron`. Dependency licences resolve through
+`package-lock.json` and are not vendored into this repository.
+
+## Names, logos, and trademarks
+
+The MIT License grants copyright permissions only. It conveys no rights in the
+**Blanc** or **Bananify Creative** names, logos, or other trademarks, whether
+registered or unregistered. You may build, modify, and redistribute the
+software; you may not present a modified build as Blanc, or use the Blanc or
+Bananify Creative names or logos to endorse or identify your build without
+permission. [TRADEMARKS.md](TRADEMARKS.md) sets out which uses need no
+permission, how to rename a fork, and the conditions for community packages.
+
+Specific artwork that is not covered by the MIT grant is enumerated in
+[ASSET-LICENSE.md](ASSET-LICENSE.md). No directory is excluded wholesale.
+
+## Optional uBlock Origin candidate — GPL-3.0-or-later
+
+Raymond Hill and contributors' full uBlock Origin 1.75.0 Chromium package is
+preserved under `ublock/upstream/`, with per-file hashes, upstream license and
+the matching source-tag archive. The host-adapted extension remains GPL-covered;
+Blanc's separately authored host sources retain MIT. Upstream libraries, fonts,
+and filter data retain the notices inside that package. The adapted Swatinem
+`diff` implementation by Arpad Borsos declares LGPLv3; uBO's modification notice
+remains in `lib/diff/swatinem_diff.js`. Its cited original source revision
+`b583915047596e2c67fe9f117d9cb775bd88dcd7` is included in
+`ublock/sources/swatinem-diff-b58391504759.tar.gz`, alongside uBO's readable
+modified source. The full GNU LGPLv3 text is in `ublock/licenses/LGPL-3.0.txt`
+and in bundled candidates' `ThirdPartyLicenses/`; the GPLv3 text is also included. Reproduction instructions
+and dated adaptation records are in `ublock/README.md` and `ublock/adaptation.*`.
+The owner-directed distribution decision and reviewed source/notice scope are
+recorded in `docs/ublock-origin-owner-distribution-2026-10-03.md`; there is no
+external legal sign-off. Platform acceptance remains required before enablement.
+
+## Website summary icons
+
+The website’s shared Chromium/Chrome browser symbol, Electron, Apple and
+Linux glyphs come from Simple Icons (CC0); its Code XML icon comes from
+Lucide (ISC). The Chromium symbol uses the common three-sector browser-mark
+geometry; only its decorative title is changed. Names and marks retain their
+upstream trademark rights. Full notices are preserved in
+`site/public/licenses/summary-icons.txt`; pinned sources and file hashes are
+recorded in `docs/website-summary-icons.json`. The four-pane platform glyph
+is original geometry, and the Patron mark uses Blanc’s reserved Sunrise
+identity through a black presentation filter. These are website assets and
+are not bundled in the desktop app.
+
+## Website platform symbols — Font Awesome Free 6.7.2
+
+The Apple, Windows, and Linux brand symbols used on the website are from
+Font Awesome Free 6.7.2, copyright 2024 Fonticons, Inc., licensed under
+[CC BY 4.0](https://creativecommons.org/licenses/by/4.0/).
+The upstream SVG attribution is preserved. Files, license and source URLs
+are in `site/public/revamp/`. Presentation adds CSS sizing and decorative
+accessibility attributes; the symbol paths are unchanged. These are website
+assets, not an endorsement by the platform vendors.
+
+### Website sample-page captures
+
+The website's `site/public/revamp/{rest,tabs,command-filtered}.png` files contain
+Wikipedia article content and photographs with separate reuse terms. Their
+attribution, source links, display treatment and licenses are recorded in
+`site/public/revamp/credits.txt`, linked beside the Island demo. The Wikipedia
+article text remains CC BY-SA 4.0; it is not included in Blanc's MIT grant.
+
+## Website 3D rendering — Three.js 0.186.1
+
+The homepage's Horizon Shield uses Three.js and its RoomEnvironment helper.
+Copyright © 2010–2026 three.js authors; MIT licensed. The complete notice ships
+at `site/public/licenses/three-MIT.txt`. The shield artwork remains a reserved
+Blanc product mark; the rendering library does not confer rights to that mark.

@@ -1,0 +1,27 @@
+{
+  "sourceRevision": "6b9a05a00f321bfbde617c181103d5a455ff45f3",
+  "archiveSha256": "a7fe468c648e1b3d096a49e663e06b182bb483353fb5c4bb1c37dc8349994aca",
+  "gate": "L8 remains open",
+  "readiness": "8/12, delta0",
+  "complete": [
+    "Exact local ZIP file/symlink inventory and four artifact checksums",
+    "Source tree/SBOM/materials/provenance subject binding",
+    "Complete license and readable credits payload",
+    "Strict signature, Apple ticket and Gatekeeper on locally extracted copy",
+    "12compliance and7artifact-verifier tests"
+  ],
+  "pending": [
+    "Sigstore pinned-identity manifest authentication; local Mac locked, owner unlock requested",
+    "Unpublished hosted six-asset packet and actual hosted-byte verification",
+    "Second-Mac native Safari quarantine/download and ordinary launch/restart/extension integration on these replacement bytes"
+  ],
+  "noNativeOrElectronBuild": true,
+  "googleBaselineSeparate": true,
+  "noReleaseApproval": true,
+  "authenticationAttempt": {
+    "result": "timed out before authentication completed",
+    "causeObserved": "Computer-use tool reported this Mac locked; owner unlock requested",
+    "authenticatedManifestCreated": false,
+    "staleOAuthUrlWillNotBeReused": true
+  }
+}

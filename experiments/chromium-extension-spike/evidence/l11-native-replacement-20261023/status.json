@@ -1,0 +1,46 @@
+{
+  "source": "7c427328100d1ba76cb7e8b651a1f36d74ec86c6",
+  "artifact": "/private/tmp/blanc-l11-signed-replacement/Blanc Chromium Preview.app",
+  "chromium": "157.0.8103.15",
+  "stage": "Notarized, stapled and locally qualified; authentication/download acceptance pending",
+  "notarizationAccepted": true,
+  "sourceDelta": "Only native certificate table differs from the prior accepted native patch; added source, build environment, blocker/filter pins match",
+  "nativeRebuild": false,
+  "incrementalGuardActions": 0,
+  "packagingLauncherCompiled": true,
+  "developerId": "Anthony Loria (XYGUCY4498)",
+  "signedCertificateEntries": 8,
+  "complianceTestsPassed": 12,
+  "signedRuntimeAcceptance": {
+    "startup": 7,
+    "encryptedRecovery": 6,
+    "core": 17,
+    "notice": 16,
+    "total": 46,
+    "allPass": true,
+    "all463FileAndSymlinkRecordsUnchanged": true
+  },
+  "releaseApproved": false,
+  "L11": "blocked by independent Electron sandbox duplication failure",
+  "L4": "no eligible Google offer",
+  "readiness": "9/12,delta0",
+  "googleBaselineTouched": false,
+  "latency": "deferred",
+  "electronDiagnosticBuild": "pending; unstarted",
+  "notarizationAttempt": {
+    "exitCode": 1,
+    "submittedToApple": false,
+    "error": "error initializing client: authorization timeout",
+    "ownerAskedOnceToUnlock": true
+  },
+  "notarizationId": "e46dbe18-f1f1-424e-abe9-ab44b79ef29c",
+  "archiveSha256": "ffcfefdfbb5421619f3ba359bb4c5d92134b468ac8475c18eda12153a7f5e4ed",
+  "signatureTicketGatekeeper": "pass",
+  "artifactManifestAuthentication": "pending; no Sigstore bundle generated for this replacement",
+  "hostedOrSecondMacDownload": "not performed for this replacement",
+  "successfulNotarizationRetry": {
+    "status": "Accepted",
+    "id": "e46dbe18-f1f1-424e-abe9-ab44b79ef29c",
+    "afterOwnerUnlock": true
+  }
+}

@@ -1,0 +1,8 @@
+{"name":"native-typed-favorite-deduplicated","rows":[{"title":"Rebase157 Alpha","tag":"favorite","active":true},{"title":"Rebase157 Alpha","tag":"search","active":false}]}
+{"name":"host-renderer-screenshot","path":"/private/tmp/blanc-task0/favorite-search.png"}
+{"name":"native-favorite-enter-navigation"}
+{"name":"native-typed-history-result","rows":[{"title":"Rebase157 Invalid","tag":"history","active":true},{"title":"Rebase157 Invalid","tag":"search","active":false}]}
+{"name":"native-history-enter-navigation"}
+{"name":"native-private-http-cmd-d-no-op-hidden-hearts","state":{"pill":"none","panel":"none","error":""}}
+{"name":"native-private-save-clear-guards"}
+{"name":"native-search-private-complete"}

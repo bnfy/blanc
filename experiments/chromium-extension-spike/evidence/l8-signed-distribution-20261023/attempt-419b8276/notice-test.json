@@ -1,0 +1,161 @@
+{
+  "expected": {
+    "schemaVersion": 1,
+    "status": "not-released",
+    "statusUrl": "https://github.com/bnfy/blanc/pull/1028",
+    "supportUrl": "mailto:support@blanc.day?subject=Blanc%20Chromium%20Preview",
+    "maintainer": "Anthony Loria",
+    "supportedPlatform": "Apple Silicon · macOS 27 (tested on 27.2)",
+    "version": "157.0.8103.15",
+    "revision": "419b8276fd42e115fdea793d461fb5f4e1642a24",
+    "packagedAt": "2026-10-23T18:41:44+00:00"
+  },
+  "checks": [
+    {
+      "name": "packaged metadata matches version and reviewed source",
+      "pass": true,
+      "details": {
+        "schemaVersion": 1,
+        "status": "not-released",
+        "statusUrl": "https://github.com/bnfy/blanc/pull/1028",
+        "supportUrl": "mailto:support@blanc.day?subject=Blanc%20Chromium%20Preview",
+        "maintainer": "Anthony Loria",
+        "supportedPlatform": "Apple Silicon · macOS 27 (tested on 27.2)",
+        "version": "157.0.8103.15",
+        "revision": "419b8276fd42e115fdea793d461fb5f4e1642a24",
+        "packagedAt": "2026-10-23T18:41:44+00:00"
+      }
+    },
+    {
+      "name": "Start Page notice visible",
+      "pass": true,
+      "details": "Preview 157.0.8103.15 · Version & security"
+    },
+    {
+      "name": "status route not automatically fetched by Start Page",
+      "pass": true
+    },
+    {
+      "name": "offline dialog opens and states not released",
+      "pass": true
+    },
+    {
+      "name": "update withdrawal and safe rollback instructions present",
+      "pass": true
+    },
+    {
+      "name": "live route and support destination match reviewed targets",
+      "pass": true
+    },
+    {
+      "name": "wide-light dialog fits without horizontal overflow",
+      "pass": true,
+      "details": {
+        "left": 200,
+        "right": 800,
+        "top": 16,
+        "bottom": 696,
+        "innerWidth": 1000,
+        "innerHeight": 712,
+        "scrollWidth": 598,
+        "clientWidth": 598,
+        "color": "rgb(18, 16, 11)",
+        "background": "color(srgb 0.94902 0.917647 0.870588)"
+      }
+    },
+    {
+      "name": "minimum-window-dark dialog fits without horizontal overflow",
+      "pass": true,
+      "details": {
+        "left": 17,
+        "right": 483,
+        "top": 16,
+        "bottom": 606,
+        "innerWidth": 500,
+        "innerHeight": 622,
+        "scrollWidth": 464,
+        "clientWidth": 464,
+        "color": "rgb(247, 240, 229)",
+        "background": "color(srgb 0.176471 0.145098 0.113725)"
+      }
+    },
+    {
+      "name": "Escape closes dialog and restores trigger focus",
+      "pass": true
+    },
+    {
+      "name": "Close button dismisses without navigation",
+      "pass": true,
+      "details": {
+        "beforeCloseUrl": "chrome://blanc-prototype/pages/newtab.html",
+        "closeState": {
+          "open": false,
+          "url": "chrome://blanc-prototype/pages/newtab.html"
+        }
+      }
+    },
+    {
+      "name": "Island notice visible with version",
+      "pass": true
+    },
+    {
+      "name": "Island route opens real status page in regular tab",
+      "pass": true
+    },
+    {
+      "name": "fixture exits cleanly",
+      "pass": true,
+      "details": {
+        "code": 0,
+        "signal": null
+      }
+    },
+    {
+      "name": "notice package restart preserves tabs and selection",
+      "pass": true,
+      "details": {
+        "before": {
+          "urls": [
+            "blanc://newtab/",
+            "https://github.com/bnfy/blanc/pull/1028",
+            "http://127.0.0.1:9913/notice"
+          ],
+          "selected": 2
+        },
+        "after": {
+          "urls": [
+            "blanc://newtab/",
+            "https://github.com/bnfy/blanc/pull/1028",
+            "http://127.0.0.1:9913/notice"
+          ],
+          "selected": 2
+        }
+      }
+    },
+    {
+      "name": "notice persists after restart",
+      "pass": true
+    },
+    {
+      "name": "fixture exits cleanly",
+      "pass": true,
+      "details": {
+        "code": 0,
+        "signal": null
+      }
+    }
+  ],
+  "screenshots": [
+    "wide-light.png",
+    "minimum-window-dark.png"
+  ],
+  "limits": [
+    "CDP interaction, not owner physical-input or VoiceOver acceptance",
+    "Dark colors simulated via prefers-color-scheme; no permanent profile used"
+  ],
+  "lastExit": {
+    "code": 0,
+    "signal": null
+  },
+  "complete": true
+}

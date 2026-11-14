@@ -1,0 +1,190 @@
+Window: "Extensity - Chrome Web Store", App: Blanc Prototype.
+0 standard window Extensity - Chrome Web Store - Chromium, URL: chromewebstore.google.com/detail/extensity/jjmflmamggggndanpgfnpelongoepncg, Secondary Actions: Raise
+	1 container Extensity - Chrome Web Store - Chromium, URL: chromewebstore.google.com/detail/extensity/jjmflmamggggndanpgfnpelongoepncg
+		2 container
+			3 container
+				4 scroll area
+					5 HTML content Extensity - Chrome Web Store, URL: chromewebstore.google.com/detail/extensity/jjmflmamggggndanpgfnpelongoepncg
+						6 container
+							7 link Skip to main content
+								8 text Skip to main content
+							9 link Chrome Web Store logo chrome web store, Value: chromewebstore.google.com/
+							10 container Sitewide
+								11 combo box (settable) Search Chrome Web Store, Placeholder: Search extensions and themes
+							12 pop up button More options menu
+							13 container
+								14 button Google apps
+								15 link Sign in, Value: accounts.google.com/ServiceLogin?passive=1209600&osid=1&continue=https%3A%2F%2Fchromewebstore.google.com%2Fdetail%2Fextensity%2Fjjmflmamggggndanpgfnpelongoepncg&followup=https%3A%2F%2Fchromewebstore.google.com%2Fdetail%2Fextensity%2Fjjmflmamggggndanpgfnpelongoepncg&ec=GAZApQM
+							16 tab group
+								17 tab (settable, integer) Discover, Value: 0
+								18 tab (selected) Extensions, Value: 1
+								19 tab (settable, integer) Themes, Value: 0
+							20 container
+								21 container
+									22 image Info
+									23 text Switch to Chrome to install extensions and themes
+									24 button Switch to Chrome to install extensions and themes Install Chrome
+								25 container
+									26 image Item logo image for Extensity
+									27 heading Extensity, Value: 1
+										28 text Extensity
+									29 container
+										30 link Value: support.google.com/chrome_webstore/?hl=en-US&p=cws_badges, Created by the owner of the listed website. The publisher has a good record with no history of violations. Learn more.
+									31 link https://sergiokas.github.io/Extensity/, Value: sergiokas.github.io/Extensity/
+									32 container
+										33 link Follows recommended practices for Chrome extensions. Learn more., Value: support.google.com/chrome_webstore/?hl=en-US&p=cws_badges
+									34 text Featured
+									35 image Average rating 4.8 out of 5 stars.
+									36 text (
+									37 link 1.8K ratings, Value: chromewebstore.google.com/detail/extensity/jjmflmamggggndanpgfnpelongoepncg/reviews
+									38 text )
+									39 button Ratings are updated daily and may not reflect the most recent reviews.
+									40 button Share
+									41 link Extension, Value: chromewebstore.google.com/category/extensions
+									42 link Workflow & Planning, Value: chromewebstore.google.com/category/extensions/productivity/workflow
+									43 text 300,000 users
+									44 button Add to Chrome
+								45 container Media carousel
+									46 container
+										47 button Item media 1 (screenshot) for Extensity
+										48 button Item media 2 (screenshot) for Extensity
+								49 heading Overview, Value: 2
+									50 text Overview
+								51 container
+									52 text Quickly enable/disable Google Chrome extensions Tired of having too many extensions in your toolbar? Try Extensity, the ultimate tool for lightning fast enabling and disabling all your extensions for Google Chrome. Just enable the extension when you want to use it, and disable when you want to get rid of it for a little while. You can also launch Chrome Apps right from the list.
+
+* Keep your browser lean and fast - disable extensions that you won't use right away.
+* Keep your toolbar clean.
+* Turn all extensions off (and back on) with a single click.
+* Q
+								53 button See more
+								54 heading 4.8 out of 5 4.8 out of 5 stars 1.8K ratings• Learn more about results and reviews., Value: 2
+									55 text 4.8  out of 5
+									56 image 4.8 out of 5 stars
+									57 text 1.8K ratings •
+									58 link Learn more about results and reviews., Value: support.google.com/chrome_webstore/answer/12225786?p=cws_reviews_results
+								59 container
+									60 link See all reviews, Value: chromewebstore.google.com/detail/extensity/jjmflmamggggndanpgfnpelongoepncg/reviews
+								61 heading Details, Value: 2
+									62 text Details
+								63 content list
+									64 container
+										65 text Version 1.14.0
+									66 container
+										67 text Updated September 2, 2024
+									68 link Flag concern, Value: chromewebstore.google.com/detail/jjmflmamggggndanpgfnpelongoepncg/report
+									69 container
+										70 text Size 171KiB
+									71 container
+										72 text Languages English
+									73 container
+										74 text Developer
+										75 link Website, Value: sergiokas.github.io/Extensity/
+										76 disclosure triangle Email
+											77 image
+											78 text Email
+											79 image
+									80 container
+										81 text Non-trader This developer has not identified itself as a trader. For consumers in the European Union, please note that consumer rights do not apply to contracts between you and this developer.
+								82 heading Privacy, Value: 2
+									83 text Privacy
+								84 image
+								85 text The developer has disclosed that it will not collect or use your data.
+								86 heading This developer declares that your data is, Value: 2
+									87 text This developer declares that your data is
+								88 content list
+									89 container
+										90 AXListMarker • 
+										91 text Not being sold to third parties, outside of the 
+										92 link approved use cases, Value: developer.chrome.com/docs/webstore/program-policies/limited-use/
+									93 container
+										94 AXListMarker • 
+										95 text Not being used or transferred for purposes that are unrelated to the item's core functionality
+									96 container
+										97 AXListMarker • 
+										98 text Not being used or transferred to determine creditworthiness or for lending purposes
+								99 heading Support, Value: 2
+									100 text Support
+								101 link Visit support hub, Value: chromewebstore.google.com/detail/jjmflmamggggndanpgfnpelongoepncg/support
+								102 heading Related, Value: 2
+									103 text Related
+								104 container Related items carousel
+									105 button Previous slide
+									106 container Related item slides
+										107 container
+											108 link Ultra Button, Value: chromewebstore.google.com/detail/ultra-button/ppmnkcnnoclkpbbckblofjbjepocnflo
+											109 heading Ultra Button, Value: 3
+												110 text Ultra Button
+											111 image Average rating 4.6 out of 5 stars.
+											112 link Learn more about results and reviews "Ultra Button"., Value: support.google.com/chrome_webstore/answer/12225786?p=cws_reviews_results&hl=en-US
+											113 text A button for everything.
+										114 container
+											115 link Custom Chrome - Extension Manager, Value: chromewebstore.google.com/detail/custom-chrome-extension-m/balnpimdnhfiodmodckhkgneejophhhm
+											116 heading Custom Chrome - Extension Manager, Value: 3
+												117 text Custom Chrome - Extension Manager
+											118 image Average rating 4.3 out of 5 stars.
+											119 link Learn more about results and reviews "Custom Chrome - Extension Manager"., Value: support.google.com/chrome_webstore/answer/12225786?p=cws_reviews_results&hl=en-US
+											120 text A beautiful Google Chrome extension manager to turn on/off other extensions quickly and easily without leaving your current tab
+										121 container
+											122 link New Tab Draft, Value: chromewebstore.google.com/detail/new-tab-draft/nmfjkeiebceinkbggliapgfdjphocpdh
+											123 heading New Tab Draft, Value: 3
+												124 text New Tab Draft
+											125 image Average rating 4.7 out of 5 stars.
+											126 link Learn more about results and reviews "New Tab Draft"., Value: support.google.com/chrome_webstore/answer/12225786?p=cws_reviews_results&hl=en-US
+											127 text Simple & clean writing experience on browser new tab.
+										128 container
+											129 link Bookmarks Quick Search, Value: chromewebstore.google.com/detail/bookmarks-quick-search/lniofgaicnjjdfinpnkhmlpmnhacnkca
+											130 heading Bookmarks Quick Search, Value: 3
+												131 text Bookmarks Quick Search
+											132 image Average rating 4.6 out of 5 stars.
+											133 link Learn more about results and reviews "Bookmarks Quick Search"., Value: support.google.com/chrome_webstore/answer/12225786?p=cws_reviews_results&hl=en-US
+											134 text Search bookmarks quickly and easily, with a search popup, which can be opened by a click on the extension logo (or by cmd+E/ctrl+W).
+									135 button Next slide
+							136 content list
+								137 container
+									138 link About Chrome Web Store, Value: support.google.com/chrome_webstore/answer/1047776?hl=en-US
+									139 text •
+								140 container
+									141 link Developer Dashboard, Value: chrome.google.com/webstore/devconsole/
+									142 text •
+								143 container
+									144 link Privacy Policy, Value: myaccount.google.com/privacypolicy?hl=en-US
+									145 text •
+								146 container
+									147 link Terms of Service, Value: ssl.gstatic.com/chrome/webstore/intl/en-US/gallery_tos.html
+									148 text •
+								149 link Help, Value: support.google.com/chrome_webstore?hl=en-US
+							150 text Extensity has been removed from Chrome.
+			151 scroll area
+				152 HTML content Blanc Chromium prototype, URL: chrome://blanc-prototype/host.html
+					153 container Blanc Island
+						154 HTML content Blanc, URL: chrome://blanc-prototype/index.html
+							155 container
+								156 button Search, tabs & commands (Ctrl/Cmd+L)
+									157 container
+										158 button Back
+										159 button (disabled) Forward
+									160 container
+										161 button Switch to New Tab
+										162 button Switch to Extensity - Chrome Web Store
+									163 text chromewebstore.google.com
+									164 button New tab
+									165 container
+										166 button Reload
+										167 button Favorite this page
+										168 button Close tab
+			169 pop up button Extensions menu
+	170 menu button Window sharing
+171 menu bar
+	172 Blanc Prototype
+	173 File
+	174 Edit
+	175 View
+	176 History
+	177 Bookmarks
+	178 Profiles
+	179 Tab
+	180 Window
+	181 Help
+
+The focused UI element is 5 HTML content Extensity - Chrome Web Store, URL: chromewebstore.google.com/detail/extensity/jjmflmamggggndanpgfnpelongoepncg

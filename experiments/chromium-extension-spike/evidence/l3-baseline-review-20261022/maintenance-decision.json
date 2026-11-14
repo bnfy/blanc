@@ -1,0 +1,7 @@
+{
+  "date": "2026-10-22",
+  "primaryMaintainer": "Anthony Loria",
+  "backupReviewer": null,
+  "ownerDecision": "Sole maintainer; suspend when unavailable",
+  "policy": "Suspend preview distribution whenever Anthony Loria cannot review Chromium security updates. No unattended release or implication of an independent backup."
+}

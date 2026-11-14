@@ -1,0 +1,20 @@
+TAP version 13
+# Subtest: Chromium harness CDP arguments remain data even with executable-looking strings
+ok 1 - Chromium harness CDP arguments remain data even with executable-looking strings
+  ---
+  duration_ms: 4.052792
+  ...
+# Subtest: Chromium harness CDP exceptions still release the global reference
+ok 2 - Chromium harness CDP exceptions still release the global reference
+  ---
+  duration_ms: 0.416833
+  ...
+1..2
+# tests 2
+# suites 0
+# pass 2
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 35.588416

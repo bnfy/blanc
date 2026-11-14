@@ -1,0 +1,8 @@
+{
+  "chrome/VERSION": true,
+  "out/BlancPrototype/args.gn": true,
+  "out/BlancPrototype/.blanc-build-environment.json": true,
+  "out/BlancPrototype/Blanc Prototype.app/Contents/MacOS/Blanc Prototype": true,
+  "third_party/llvm-build/Release+Asserts/cr_build_revision": true,
+  "head": true
+}

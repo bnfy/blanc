@@ -1,0 +1,26 @@
+{
+  "npmVersion": "10.9.9",
+  "checks": [
+    {
+      "name": "original-worker",
+      "exitCode": 1,
+      "expectedExit": 1,
+      "passed": true,
+      "missingUndici7291": true
+    },
+    {
+      "name": "fixed-worker",
+      "exitCode": 0,
+      "expectedExit": 0,
+      "passed": true,
+      "missingUndici7291": false
+    },
+    {
+      "name": "companion",
+      "exitCode": 0,
+      "expectedExit": 0,
+      "passed": true,
+      "missingUndici7291": false
+    }
+  ]
+}

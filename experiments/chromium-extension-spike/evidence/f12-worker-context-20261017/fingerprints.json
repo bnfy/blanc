@@ -1,0 +1,13 @@
+{
+  "frameworkSha256": "cd2c82ffc369dca6eb7c961b30952f4ae7126d7ce08f4d151679736e40a7cf34",
+  "argsSha256": "414e3baad6c84730b3c17f411ed82c5065561ba344fe2a202675654e1e18a057",
+  "engineSha256": "9acdfb68963e89c9c9be04a1a68ae831c7c35b800555790cadc8575a7172382d",
+  "nativeSources": {
+    "blocker_proxy.cc": "6f535f4c070c27b68eed94541fb9a6b27cda03b94bf3fe2b6c38d8e7b0eb031b",
+    "blocker_proxy.h": "ec6c444f8a8f90a38d454ff13ad3f0abb02a79e679c475b402b1c3420999c00b",
+    "blocker_service.cc": "2cda73f30d45bd825aae56aa4deaafba52d99579ea67989267084dc9e5118387",
+    "blocker_service.h": "bb1fb778032102f90c8ac97c8dc445ddf537f6f0744de45102e47ecafc678aee",
+    "blocker.mojom": "c369027c90a2760270031c059e5b2dd876acc78dad1b47172273c0501a8c2a8b",
+    "BUILD.gn": "ee378c97f0b3586a8a131353cfbf740f123f7c322c3f629f34bde2781fd0c377"
+  }
+}

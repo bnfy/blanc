@@ -1,0 +1,5 @@
+{
+  "service-lifecycle-verify.mjs": "e16fa89b71bd8b374fc1fb9ad5aade00995e88fe50dac8724b4666bdcca35140",
+  "service-script-context.mjs": "73eb182f0475fa7fc747674fa72a0572d88b2e3aac9bc9cc11351b88851dafc4",
+  "worker-observer.mjs": "5b6eba621e4ff44eb8f0155d72bee30b224d304ed921e03af466e36f3e081c9f"
+}

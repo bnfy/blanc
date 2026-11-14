@@ -1,0 +1,20 @@
+{
+  "source": "7c427328100d1ba76cb7e8b651a1f36d74ec86c6",
+  "archiveSha256": "ffcfefdfbb5421619f3ba359bb4c5d92134b468ac8475c18eda12153a7f5e4ed",
+  "authentication": "Pinned anthony@bnfy.me / https://github.com/login/oauth verified locally, remotely and after download",
+  "realTamperControls": "manifest and artifact changes rejected",
+  "uploadedAssetCount": 6,
+  "freshAnonymousDownloads": 6,
+  "draftId": 422428502,
+  "draftUrl": "https://github.com/bnfy/blanc/releases/tag/untagged-c59646031da5a954f0bb",
+  "draftStillUnpublished": true,
+  "nativeSafariDownload": "Exact replacement verified on MacBook macOS27.2/arm64:458files/5symlinks,Safari quarantine,signature,ticket,Gatekeeper pass",
+  "ownerLaunchRestartAcceptance": "Accepted: owner reports both controlled restart checks and final selection/Shelf/Bitwarden-popup/Shipping checks passed; exact running bytes verified",
+  "gate": "L8 replacement accepted; independent L4/L11/L12 and Decision2 remain open",
+  "readiness": "9/12,delta0",
+  "googleBaselineTouched": false,
+  "latency": "deferred",
+  "electronDiagnosticBuild": "pending; unstarted",
+  "ownerAction": "none for this bounded L8 walkthrough",
+  "downloadedApp": "/Users/anthonyjloria/Downloads/Blanc Chromium Preview.app"
+}

@@ -1,0 +1,110 @@
+{
+  "method": "Hash the full Mach-O before LC_CODE_SIGNATURE data, normalizing only signature-size metadata. Verify signature allocation ends at EOF; code, load commands and other pre-signature bytes remain covered.",
+  "previousSource": "f4996df4e88c775bc1947a574b2bd7a0f9ad7539",
+  "currentSource": "57fc3b131a087b3b085dbaf65766d130c6b7baed",
+  "rows": [
+    {
+      "path": "Contents/Frameworks/Blanc Prototype Framework.framework/Versions/157.0.8103.15/Blanc Prototype Framework",
+      "previousExecutableCodeSha256": "d5e6d0a17593268ee53be212eea4ed9256e1e98aa03278fc7dfdea1532cc7c6e",
+      "currentExecutableCodeSha256": "d5e6d0a17593268ee53be212eea4ed9256e1e98aa03278fc7dfdea1532cc7c6e",
+      "same": true
+    },
+    {
+      "path": "Contents/Frameworks/Blanc Prototype Framework.framework/Versions/157.0.8103.15/Helpers/Blanc Prototype Helper (Alerts).app/Contents/MacOS/Blanc Prototype Helper (Alerts)",
+      "previousExecutableCodeSha256": "6b7deabf6a876de7ff777be6237dc756f7096e0b98ef9820ae432f4bc6574620",
+      "currentExecutableCodeSha256": "6b7deabf6a876de7ff777be6237dc756f7096e0b98ef9820ae432f4bc6574620",
+      "same": true
+    },
+    {
+      "path": "Contents/Frameworks/Blanc Prototype Framework.framework/Versions/157.0.8103.15/Helpers/Blanc Prototype Helper (Aperitif Alerts).app/Contents/MacOS/Blanc Prototype Helper (Aperitif Alerts)",
+      "previousExecutableCodeSha256": "2b9ab2471175237ebaa9619359e3588ff660f5fb80fa34a6e47ceac95081681e",
+      "currentExecutableCodeSha256": "2b9ab2471175237ebaa9619359e3588ff660f5fb80fa34a6e47ceac95081681e",
+      "same": true
+    },
+    {
+      "path": "Contents/Frameworks/Blanc Prototype Framework.framework/Versions/157.0.8103.15/Helpers/Blanc Prototype Helper (Aperitif GPU).app/Contents/MacOS/Blanc Prototype Helper (Aperitif GPU)",
+      "previousExecutableCodeSha256": "20a72656a026bc686f6be316dd5f970f224810a6df1581dba5fc34c95b6502b0",
+      "currentExecutableCodeSha256": "20a72656a026bc686f6be316dd5f970f224810a6df1581dba5fc34c95b6502b0",
+      "same": true
+    },
+    {
+      "path": "Contents/Frameworks/Blanc Prototype Framework.framework/Versions/157.0.8103.15/Helpers/Blanc Prototype Helper (Aperitif Renderer).app/Contents/MacOS/Blanc Prototype Helper (Aperitif Renderer)",
+      "previousExecutableCodeSha256": "542b43a83dfe7dc87e7f32f680300318a6b121daae6a90820f0e303d313f5174",
+      "currentExecutableCodeSha256": "542b43a83dfe7dc87e7f32f680300318a6b121daae6a90820f0e303d313f5174",
+      "same": true
+    },
+    {
+      "path": "Contents/Frameworks/Blanc Prototype Framework.framework/Versions/157.0.8103.15/Helpers/Blanc Prototype Helper (Aperitif).app/Contents/MacOS/Blanc Prototype Helper (Aperitif)",
+      "previousExecutableCodeSha256": "f6dc6aa4c1871778e7e4a5e2b2ecfec58e679f512982ad7a15047f15869fd5a6",
+      "currentExecutableCodeSha256": "f6dc6aa4c1871778e7e4a5e2b2ecfec58e679f512982ad7a15047f15869fd5a6",
+      "same": true
+    },
+    {
+      "path": "Contents/Frameworks/Blanc Prototype Framework.framework/Versions/157.0.8103.15/Helpers/Blanc Prototype Helper (GPU).app/Contents/MacOS/Blanc Prototype Helper (GPU)",
+      "previousExecutableCodeSha256": "eb285f3aacc2376c9fc48ef3d07d02e445d81c10175d1de9634ca313ca36bd5e",
+      "currentExecutableCodeSha256": "eb285f3aacc2376c9fc48ef3d07d02e445d81c10175d1de9634ca313ca36bd5e",
+      "same": true
+    },
+    {
+      "path": "Contents/Frameworks/Blanc Prototype Framework.framework/Versions/157.0.8103.15/Helpers/Blanc Prototype Helper (Renderer).app/Contents/MacOS/Blanc Prototype Helper (Renderer)",
+      "previousExecutableCodeSha256": "58662b287b318a15434442dcaf52b913d3e2b125514d383a8815b0787650355d",
+      "currentExecutableCodeSha256": "58662b287b318a15434442dcaf52b913d3e2b125514d383a8815b0787650355d",
+      "same": true
+    },
+    {
+      "path": "Contents/Frameworks/Blanc Prototype Framework.framework/Versions/157.0.8103.15/Helpers/Blanc Prototype Helper.app/Contents/MacOS/Blanc Prototype Helper",
+      "previousExecutableCodeSha256": "3e6e817887dc25a4d95b49c4c3718f931371f99bc6ba483e7dee9aec7fcb3dd6",
+      "currentExecutableCodeSha256": "3e6e817887dc25a4d95b49c4c3718f931371f99bc6ba483e7dee9aec7fcb3dd6",
+      "same": true
+    },
+    {
+      "path": "Contents/Frameworks/Blanc Prototype Framework.framework/Versions/157.0.8103.15/Helpers/app_mode_loader",
+      "previousExecutableCodeSha256": "38749266b9f318aea9bf7fde30d478a9ed87a8f37f3c4bd258471b93cf9409c8",
+      "currentExecutableCodeSha256": "38749266b9f318aea9bf7fde30d478a9ed87a8f37f3c4bd258471b93cf9409c8",
+      "same": true
+    },
+    {
+      "path": "Contents/Frameworks/Blanc Prototype Framework.framework/Versions/157.0.8103.15/Helpers/chrome_crashpad_handler",
+      "previousExecutableCodeSha256": "c115a025a8cfe510956c8a6024366db15e34aca09c92cd1363478977e7bb665b",
+      "currentExecutableCodeSha256": "c115a025a8cfe510956c8a6024366db15e34aca09c92cd1363478977e7bb665b",
+      "same": true
+    },
+    {
+      "path": "Contents/Frameworks/Blanc Prototype Framework.framework/Versions/157.0.8103.15/Helpers/web_app_shortcut_copier",
+      "previousExecutableCodeSha256": "ac363219f78ea7c5fb85cbc1673552f8f7c616ff1c25b4d490edf8c68c68491d",
+      "currentExecutableCodeSha256": "ac363219f78ea7c5fb85cbc1673552f8f7c616ff1c25b4d490edf8c68c68491d",
+      "same": true
+    },
+    {
+      "path": "Contents/Frameworks/Blanc Prototype Framework.framework/Versions/157.0.8103.15/Libraries/libaperitif.dylib",
+      "previousExecutableCodeSha256": "f3e6091f09bd36d51616d3f395abdabb3131c0eec36514ae95f1e1b24cbb2060",
+      "currentExecutableCodeSha256": "f3e6091f09bd36d51616d3f395abdabb3131c0eec36514ae95f1e1b24cbb2060",
+      "same": true
+    },
+    {
+      "path": "Contents/Frameworks/Blanc Prototype Framework.framework/Versions/157.0.8103.15/Libraries/libvk_swiftshader.dylib",
+      "previousExecutableCodeSha256": "165cbb3658927939322d72759dd7ad3cfa1d980a73bb3ce84495c040d23fd224",
+      "currentExecutableCodeSha256": "165cbb3658927939322d72759dd7ad3cfa1d980a73bb3ce84495c040d23fd224",
+      "same": true
+    },
+    {
+      "path": "Contents/Frameworks/Blanc Prototype Framework.framework/Versions/157.0.8103.15/Libraries/libvulkan.dylib",
+      "previousExecutableCodeSha256": "60e77621a36ac29060ede671b832adf9c3e7c717c36cba8386dce5eac55081b2",
+      "currentExecutableCodeSha256": "60e77621a36ac29060ede671b832adf9c3e7c717c36cba8386dce5eac55081b2",
+      "same": true
+    },
+    {
+      "path": "Contents/MacOS/Blanc Preview Launcher",
+      "previousExecutableCodeSha256": "d2714d6bb578f47031eb25176494a747e6f6c0f225206556baeb9a6063ff8bfc",
+      "currentExecutableCodeSha256": "d2714d6bb578f47031eb25176494a747e6f6c0f225206556baeb9a6063ff8bfc",
+      "same": true
+    },
+    {
+      "path": "Contents/MacOS/Blanc Prototype",
+      "previousExecutableCodeSha256": "0b0154d2242cf6ca164e654c9cc4b387b0dfd06b9b74da0b7c8ef529fe1df06c",
+      "currentExecutableCodeSha256": "0b0154d2242cf6ca164e654c9cc4b387b0dfd06b9b74da0b7c8ef529fe1df06c",
+      "same": true
+    }
+  ],
+  "allCodeUnchanged": true
+}

@@ -1,0 +1,18 @@
+[
+  {
+    "cycle": 0,
+    "pid": 13570,
+    "urls": [
+      "blanc://newtab/",
+      "https://www.google.com/search?q=chrome%3A%2F%2Fversion%2F",
+      "https://www.google.com/search?q=chrome%3A%2F%2Fextensions%2F"
+    ],
+    "selected": 1,
+    "cleanExit": true
+  },
+  {
+    "cycle": 1,
+    "pid": 13597,
+    "error": "Error: restored tabs or selection mismatch"
+  }
+]

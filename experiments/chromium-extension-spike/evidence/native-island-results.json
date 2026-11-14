@@ -1,0 +1,148 @@
+{
+  "checkedAt": "2026-10-16T13:29:21.471Z",
+  "method": "CGEvent native mouse and keyboard; CDP used for geometry and readback",
+  "results": [
+    {
+      "name": "Native Manage Extensions menu destination",
+      "result": "pass",
+      "detail": {}
+    },
+    {
+      "name": "Island physical click opens focused address field",
+      "result": "pass",
+      "detail": {
+        "open": true,
+        "active": "addressInput"
+      }
+    },
+    {
+      "name": "Expanded collapse button",
+      "result": "pass",
+      "detail": {
+        "closed": true
+      }
+    },
+    {
+      "name": "Native Escape closes Island",
+      "result": "pass",
+      "detail": {
+        "closed": true
+      }
+    },
+    {
+      "name": "Outside-panel click dismisses Island",
+      "result": "pass",
+      "detail": {
+        "closed": true
+      }
+    },
+    {
+      "name": "Expanded footer New tab",
+      "result": "fail",
+      "detail": {
+        "error": "Timed out: footer new"
+      }
+    },
+    {
+      "name": "Native typing navigates from Island",
+      "result": "pass",
+      "detail": {
+        "url": "http://127.0.0.1:18763/a"
+      }
+    },
+    {
+      "name": "Expanded back and forward buttons",
+      "result": "pass",
+      "detail": {
+        "url": "http://127.0.0.1:18763/b"
+      }
+    },
+    {
+      "name": "Expanded reload button",
+      "result": "pass",
+      "detail": {
+        "before": 2,
+        "after": 3
+      }
+    },
+    {
+      "name": "Expanded footer Downloads",
+      "result": "pass",
+      "detail": {
+        "url": "chrome://downloads/",
+        "overlayClosed": true
+      }
+    },
+    {
+      "name": "Slash /close via real keyboard",
+      "result": "pass",
+      "detail": {
+        "closedId": 60438585
+      }
+    },
+    {
+      "name": "Slash /downloads via real keyboard",
+      "result": "pass",
+      "detail": {
+        "url": "chrome://downloads/"
+      }
+    },
+    {
+      "name": "Expanded row close",
+      "result": "pass",
+      "detail": {
+        "closedId": 60438587
+      }
+    },
+    {
+      "name": "Expanded row switch",
+      "result": "pass",
+      "detail": {
+        "activeTabId": 60438576,
+        "overlayClosed": true
+      }
+    },
+    {
+      "name": "Native Cmd+L routing",
+      "result": "gap",
+      "detail": {
+        "open": false,
+        "hostFocused": true,
+        "stripFocused": true,
+        "overlayFocused": false,
+        "note": "Stock Chromium address focus if Island remains closed"
+      }
+    },
+    {
+      "name": "Native Cmd+T routing",
+      "result": "gap",
+      "detail": {
+        "url": "chrome://newtab/",
+        "overlayOpen": false,
+        "nativeTabCreated": true
+      }
+    },
+    {
+      "name": "Native Cmd+W reflected in Island",
+      "result": "pass",
+      "detail": {
+        "closedId": 60438589
+      }
+    },
+    {
+      "name": "Unsupported bookmark control",
+      "result": "unsupported",
+      "detail": "Prototype does not implement toggleBookmark. Use Chromium’s native controls."
+    },
+    {
+      "name": "Unsupported expanded pin control",
+      "result": "unsupported",
+      "detail": "Prototype does not implement toggleTabPinned. Use Chromium’s native controls."
+    },
+    {
+      "name": "Unsupported footer History",
+      "result": "unsupported",
+      "detail": "Use Chromium’s native controls for this page in the prototype."
+    }
+  ]
+}

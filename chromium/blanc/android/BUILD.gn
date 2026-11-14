@@ -1,0 +1,495 @@
+# Copyright 2026 Bananify Creative. MIT; see LICENSE.
+# Blanc for Android's Java code (A1 onward). Plans:
+# docs/superpowers/plans/2026-11-04-android-a1-island.md.
+
+import("//blanc/config.gni")
+import("//build/config/android/rules.gni")
+import("//third_party/jni_zero/jni_zero.gni")
+
+# The Island's rules, ported from Blanc for iPhone (ios/Blanc/Blanc/Island*.swift):
+# plain Java with no views, so they test without a device.
+android_library("island_java") {
+  sources = [
+    "java/src/org/chromium/blanc/address/AddressInput.java",
+    "java/src/org/chromium/blanc/island/IslandMenu.java",
+    "java/src/org/chromium/blanc/island/IslandPosition.java",
+    "java/src/org/chromium/blanc/island/IslandStyle.java",
+    "java/src/org/chromium/blanc/island/IslandSwipe.java",
+    "java/src/org/chromium/blanc/island/IslandTitle.java",
+    "java/src/org/chromium/blanc/island/IslandTuck.java",
+    "java/src/org/chromium/blanc/island/IslandVisibility.java",
+    "java/src/org/chromium/blanc/island/PagePinch.java",
+    "java/src/org/chromium/blanc/island/TopColor.java",
+    "java/src/org/chromium/blanc/island/TopColorSampler.java",
+  ]
+  deps = [ "//build/android:build_java" ]
+}
+
+# Blanc's tab rules, ported from Blanc for iPhone (TabGroups, TabSections,
+# QuickSwitcher, SlashCommand) and checked against desktop's JavaScript
+# (A2 plan, Task 2): plain Java with no views.
+# Settings' own rules, with no Chromium dependency, so they run under Robolectric.
+android_library("settings_model_java") {
+  sources = [
+    "java/src/org/chromium/blanc/settings/AllowedSites.java",
+    "java/src/org/chromium/blanc/settings/SearchEngines.java",
+    "java/src/org/chromium/blanc/settings/SettingsDestination.java",
+    "java/src/org/chromium/blanc/settings/SettingsLayout.java",
+    "java/src/org/chromium/blanc/settings/SettingsStore.java",
+    "java/src/org/chromium/blanc/settings/SiteDataClearer.java",
+  ]
+  deps = [ "//build/android:build_java" ]
+}
+
+# Blanc's step over Chromium's Settings root (A5a). //chrome/android:chrome_java depends on this
+# (patch 0110), so it can't depend on chrome_java: it works on AndroidX preferences only.
+android_library("settings_java") {
+  resources_package = "org.chromium.blanc.island"
+  sources = [
+    "java/src/org/chromium/blanc/settings/AllowedSitesDialog.java",
+    "java/src/org/chromium/blanc/settings/BlancSettingsScreen.java",
+  ]
+  deps = [
+    ":island_view_resources",
+    ":settings_model_java",
+    "//build/android:build_java",
+    "//third_party/androidx:androidx_preference_preference_java",
+  ]
+}
+
+android_library("tabs_java") {
+  sources = [
+    "java/src/org/chromium/blanc/spaces/BlancSpaces.java",
+    "java/src/org/chromium/blanc/spaces/SharedRows.java",
+    "java/src/org/chromium/blanc/spaces/SpaceRows.java",
+    "java/src/org/chromium/blanc/spaces/SpaceSwitcher.java",
+    "java/src/org/chromium/blanc/spaces/SpacesController.java",
+    "java/src/org/chromium/blanc/tabs/BlancTabState.java",
+    "java/src/org/chromium/blanc/blocking/BlancBlocking.java",
+    "java/src/org/chromium/blanc/tabs/BlancTabs.java",
+    "java/src/org/chromium/blanc/tabs/CardSwipe.java",
+    "java/src/org/chromium/blanc/tabs/GroupColors.java",
+    "java/src/org/chromium/blanc/tabs/GroupNames.java",
+    "java/src/org/chromium/blanc/tabs/QuickSwitcher.java",
+    "java/src/org/chromium/blanc/tabs/QuietTabs.java",
+    "java/src/org/chromium/blanc/tabs/RecentlyClosed.java",
+    "java/src/org/chromium/blanc/tabs/SlashCommands.java",
+    "java/src/org/chromium/blanc/tabs/TabSections.java",
+    "java/src/org/chromium/blanc/tabs/TabStore.java",
+  ]
+  deps = [
+    ":island_java",
+    "//build/android:build_java",
+  ]
+}
+
+# BlancTabs' store over Chromium's tab model.
+generate_jni("blocking_jni") {
+  sources = [ "java/src/org/chromium/blanc/blocking/BlockerBridge.java" ]
+}
+
+# The Island's way to the blocker. //chrome/browser depends on this (patch 0106).
+source_set("blocker_bridge") {
+  sources = [ "browser/blocker_bridge.cc" ]
+  deps = [
+    ":blocking_jni",
+    "//base",
+    "//blanc/services/blocker:browser",
+    "//content/public/browser",
+    "//url",
+  ]
+}
+
+# The Island's two bridges: one target, since each generated srcjar brings its own GEN_JNI.
+generate_jni("island_jni") {
+  sources = [
+    "java/src/org/chromium/blanc/island/PagePinchBridge.java",
+    "java/src/org/chromium/blanc/island/TopColorBridge.java",
+  ]
+}
+
+# A page's pinch gestures for the Island's pinch into the tab grid. //chrome/browser depends on
+# this (patch 0111).
+source_set("page_pinch_bridge") {
+  sources = [ "browser/page_pinch_bridge.cc" ]
+  deps = [
+    ":island_jni",
+    "//base",
+    "//content/public/browser",
+    "//third_party/blink/public/common",
+  ]
+}
+
+# The page's top row for the status bar's color. //chrome/browser depends on this (patch 0112).
+source_set("top_color_bridge") {
+  sources = [ "browser/top_color_bridge.cc" ]
+  deps = [
+    ":island_jni",
+    "//base",
+    "//components/viz/common",
+    "//content/public/browser",
+    "//skia",
+    "//ui/android",
+    "//ui/gfx/geometry",
+  ]
+}
+
+generate_jni("sync_jni") {
+  sources = [ "java/src/org/chromium/blanc/sync/SyncBridge.java" ]
+}
+
+# Keys, files and network for the sync runner. //chrome/browser depends on this (patch 0107).
+source_set("sync_bridge") {
+  if (blanc_enable_test_hooks) {
+    defines = [ "BLANC_SYNC_TEST_HOOKS" ]
+  }
+  sources = [ "browser/sync_bridge.cc", "browser/sync_start_data.h" ]
+  deps = [
+    ":sync_jni",
+    "//base",
+    "//blanc/services/blocker:browser",
+    "//blanc/services/sync_runner:browser",
+    "//components/bookmarks/browser",
+    "//components/version_info",
+    "//services/network/public/cpp",
+  ]
+}
+
+# A build without test hooks gets the empty driver: no exported receiver exists at all.
+if (blanc_enable_test_hooks) {
+  blanc_sync_test_driver = "java/src/org/chromium/blanc/sync/SyncTestDriver.java"
+} else {
+  blanc_sync_test_driver = "java/stub/org/chromium/blanc/sync/SyncTestDriver.java"
+}
+
+android_library("sync_java") {
+  srcjar_deps = [ ":sync_jni" ]
+  sources = [
+    "java/src/org/chromium/blanc/sync/BlancKeyStore.java",
+    "java/src/org/chromium/blanc/sync/BlancSyncTask.java",
+    "java/src/org/chromium/blanc/sync/OtherDevices.java",
+    "java/src/org/chromium/blanc/sync/PairLink.java",
+    "java/src/org/chromium/blanc/sync/ProfileSync.java",
+    "java/src/org/chromium/blanc/sync/QrDecoder.java",
+    "java/src/org/chromium/blanc/sync/SyncBridge.java",
+    "java/src/org/chromium/blanc/sync/SyncCode.java",
+    "java/src/org/chromium/blanc/sync/SyncSchedule.java",
+    "java/src/org/chromium/blanc/sync/SyncSheetModel.java",
+    "java/src/org/chromium/blanc/sync/SyncedFavorites.java",
+    "java/src/org/chromium/blanc/sync/SyncedSettings.java",
+    "java/src/org/chromium/blanc/sync/SyncedClosed.java",
+    "java/src/org/chromium/blanc/sync/SyncedSpaces.java",
+    "java/src/org/chromium/blanc/sync/SyncedTabs.java",
+    blanc_sync_test_driver,
+  ]
+  deps = [
+    ":settings_model_java",
+    ":tabs_java",
+    ":zxing_java",
+    "//base:base_java",
+    "//components/background_task_scheduler:background_task_scheduler_task_ids_java",
+    "//components/background_task_scheduler:factory_java",
+    "//components/background_task_scheduler:public_java",
+    "//build/android:build_java",
+    "//third_party/jni_zero:jni_zero_java",
+  ]
+}
+
+# The pairing scanner's QR decoder: ZXing core 3.5.3 (Apache-2.0) from Maven Central, sha256
+# 8d8064c1636fdaef7189dd9055c7d59950a8940a12f2293956446ec3c109fd82. Like the blocker bundle it isn't
+# in git; it's copied here from the server's assets.
+android_java_prebuilt("zxing_java") {
+  jar_path = "zxing/core-3.5.3.jar"
+}
+
+# Shipping's sync, bundled by chromium/tools/build-sync-bundle.mjs. The runner refuses any bytes
+# but the pinned hash.
+android_assets("sync_assets") {
+  renaming_sources = [ "//blanc/services/sync_runner/generated/sync-bundle.js" ]
+  renaming_destinations = [ "blanc_sync/sync-bundle.js" ]
+  disable_compression = true
+}
+
+# Blanc's Settings, wired to Chromium (A5a). //chrome/android:chrome_java depends on this (patch 0110).
+android_library("settings_chromium_java") {
+  resources_package = "org.chromium.blanc.island"
+  sources = [
+    "java/src/org/chromium/blanc/settings/chromium/BlancSettingsHook.java",
+    "java/src/org/chromium/blanc/settings/chromium/ChromiumSettingsHost.java",
+  ]
+  deps = [
+    ":island_view_java",
+    ":island_view_resources",
+    ":settings_java",
+    ":settings_model_java",
+    ":sync_java",
+    ":tabs_ui_java",
+    "//base:base_java",
+    "//build/android:build_java",
+    "//chrome/browser/browsing_data/android:java",
+    "//chrome/browser/profiles/android:java",
+    "//chrome/browser/search_engines/android:java",
+    "//components/browsing_data/core:java",
+    "//components/search_engines/android:java",
+    "//third_party/androidx:androidx_fragment_fragment_java",
+    "//third_party/androidx:androidx_preference_preference_java",
+    "//third_party/androidx:androidx_recyclerview_recyclerview_java",
+    "//ui/android:ui_java",
+  ]
+}
+
+android_library("tabs_ui_java") {
+  srcjar_deps = [ ":blocking_jni" ]
+  sources = [
+    "java/src/org/chromium/blanc/blocking/BlockerBridge.java",
+    "java/src/org/chromium/blanc/tabs/chromium/BlancTabKeeper.java",
+    "java/src/org/chromium/blanc/tabs/chromium/ChromiumSpaces.java",
+    "java/src/org/chromium/blanc/tabs/chromium/ChromiumBlocking.java",
+    "java/src/org/chromium/blanc/tabs/chromium/ChromiumTabStore.java",
+  ]
+  deps = [
+    ":sync_java",
+    ":tabs_java",
+    "//base:base_java",
+    "//build/android:build_java",
+    "//third_party/jni_zero:jni_zero_java",
+    "//chrome/browser/android/crypto:java",
+    "//chrome/browser/profiles/android:java",
+    "//chrome/browser/tab:java",
+    "//chrome/browser/tabmodel:java",
+    "//chrome/browser/tabpersistence:java",
+    "//components/tab_groups:tab_groups_java",
+    "//content/public/android:content_java",
+    "//url:url_java",
+  ]
+}
+
+# The Island's pill: an Android view with no Chromium dependencies. Strings come
+# from copy/messages through chromium/tools/android-strings.mjs; the mark from
+# scripts/android-app-icons.js.
+android_resources("island_view_resources") {
+  sources = [
+    "island/res/drawable/blanc_space_book.xml",
+    "island/res/drawable/blanc_space_briefcase.xml",
+    "island/res/drawable/blanc_space_camera.xml",
+    "island/res/drawable/blanc_space_cap.xml",
+    "island/res/drawable/blanc_space_code.xml",
+    "island/res/drawable/blanc_space_coffee.xml",
+    "island/res/drawable/blanc_space_flask.xml",
+    "island/res/drawable/blanc_space_gamepad.xml",
+    "island/res/drawable/blanc_space_heart.xml",
+    "island/res/drawable/blanc_space_house.xml",
+    "island/res/drawable/blanc_space_leaf.xml",
+    "island/res/drawable/blanc_space_music.xml",
+    "island/res/drawable/blanc_space_plane.xml",
+    "island/res/drawable/blanc_space_star.xml",
+    "island/res/drawable/blanc_space_sun.xml",
+    "island/res/drawable/blanc_space_wallet.xml",
+    "island/res/drawable/blanc_spaces_arrow_down.xml",
+    "island/res/drawable/blanc_spaces_arrow_up.xml",
+    "island/res/drawable/blanc_spaces_check.xml",
+    "island/res/drawable/blanc_spaces_glyph.xml",
+    "island/res/drawable/blanc_spaces_pencil.xml",
+    "island/res/drawable/blanc_spaces_phone.xml",
+    "island/res/drawable-mdpi/blanc_island_mark.png",
+    "island/res/drawable-hdpi/blanc_island_mark.png",
+    "island/res/drawable-xhdpi/blanc_island_mark.png",
+    "island/res/drawable-xxhdpi/blanc_island_mark.png",
+    "island/res/drawable-xxxhdpi/blanc_island_mark.png",
+    "island/res/drawable/blanc_find_chevron_up.xml",
+    "island/res/drawable/blanc_grid_more.xml",
+    "island/res/drawable/blanc_island_plus.xml",
+    "island/res/drawable/blanc_palette_bookmark.xml",
+    "island/res/drawable/blanc_palette_chevron_down.xml",
+    "island/res/drawable/blanc_palette_chevron_right.xml",
+    "island/res/drawable/blanc_palette_close.xml",
+    "island/res/drawable/blanc_palette_cloud.xml",
+    "island/res/drawable/blanc_palette_command.xml",
+    "island/res/drawable/blanc_palette_copy.xml",
+    "island/res/drawable/blanc_palette_globe.xml",
+    "island/res/drawable/blanc_palette_history.xml",
+    "island/res/drawable/blanc_palette_link.xml",
+    "island/res/drawable/blanc_palette_search.xml",
+    "island/res/drawable/blanc_palette_sent.xml",
+    "island/res/drawable/blanc_palette_settings.xml",
+    "island/res/drawable/blanc_palette_trash.xml",
+    "island/res/drawable/blanc_island_chevron_left.xml",
+    "island/res/drawable/blanc_island_chevron_right.xml",
+    "island/res/drawable/blanc_island_stop.xml",
+    "island/res/drawable/blanc_sync_back.xml",
+    "island/res/drawable/blanc_sync_card.xml",
+    "island/res/drawable/blanc_sync_divider.xml",
+    "island/res/layout/blanc_island.xml",
+    "island/res/layout/blanc_settings_header.xml",
+    "island/res/layout/blanc_sync_card.xml",
+    "island/res/layout/blanc_sync_field.xml",
+    "island/res/layout/blanc_sync_heading.xml",
+    "island/res/layout/blanc_sync_note.xml",
+    "island/res/layout/blanc_sync_rename.xml",
+    "island/res/layout/blanc_sync_row.xml",
+    "island/res/layout/blanc_sync_screen.xml",
+    "island/res/values/blanc_grid_ids.xml",
+    "island/res/values/blanc_island_dimens.xml",
+    "island/res/values/blanc_settings_colors.xml",
+    "island/res/values/blanc_settings_dimens.xml",
+    "island/res/values/blanc_settings_theme.xml",
+    "island/res/values/blanc_sync_dimens.xml",
+    "island/res/values-night/blanc_settings_colors.xml",
+    "island/res/values/blanc_strings.xml",
+    "island/res/values-de/blanc_strings.xml",
+    "island/res/values-es/blanc_strings.xml",
+    "island/res/values-fr/blanc_strings.xml",
+    "island/res/values-it/blanc_strings.xml",
+    "island/res/values-pt-rBR/blanc_strings.xml",
+  ]
+  deps = [ "//third_party/android_deps:material_design_java" ]
+}
+
+# The blocker's engine bundle (Ghostery over the pinned lists), uncompressed so native code can read
+# it from the APK. blocker_proxy.cc refuses any bytes but the pinned hash. It isn't in git; it's
+# generated by experiments/chromium-extension-spike/native/blocker/bundle.mjs.
+android_assets("blocker_assets") {
+  renaming_sources = [ "blocker_assets/engine.js" ]
+  renaming_destinations = [ "blanc_blocker/engine.js" ]
+  disable_compression = true
+}
+
+android_library("island_view_java") {
+  resources_package = "org.chromium.blanc.island"
+  sources = [
+    "java/src/org/chromium/blanc/island/IslandMenuPopup.java",
+    "java/src/org/chromium/blanc/island/IslandProgress.java",
+    "java/src/org/chromium/blanc/island/IslandView.java",
+    "java/src/org/chromium/blanc/find/FindCapsule.java",
+    "java/src/org/chromium/blanc/grid/GroupNameDialog.java",
+    "java/src/org/chromium/blanc/grid/TabGrid.java",
+    "java/src/org/chromium/blanc/palette/PaletteSheet.java",
+    "java/src/org/chromium/blanc/palette/RowSwipe.java",
+    "java/src/org/chromium/blanc/palette/SheetPlacement.java",
+    "java/src/org/chromium/blanc/palette/SwipeToCloseRow.java",
+    "java/src/org/chromium/blanc/spaces/SpacesCard.java",
+    "java/src/org/chromium/blanc/sync/BringSpaceSheet.java",
+    "java/src/org/chromium/blanc/sync/PairScanner.java",
+    "java/src/org/chromium/blanc/sync/SharedSpacesSheet.java",
+    "java/src/org/chromium/blanc/sync/SharedSpacesUi.java",
+    "java/src/org/chromium/blanc/sync/SyncSheet.java",
+  ]
+  deps = [
+    ":blocker_assets",
+    ":sync_assets",
+    ":sync_java",
+    ":island_java",
+    ":settings_model_java",
+    ":island_view_resources",
+    ":tabs_java",
+    "//base:base_java",
+    "//build/android:build_java",
+  ]
+}
+
+# Puts the Island over the page and wires it to Chromium's tabs, scrolling and
+# insets. chrome_java depends on it (patch 0104), so it uses Chromium's smaller
+# targets, never chrome_java itself.
+android_library("island_ui_java") {
+  srcjar_deps = [ ":island_jni" ]
+  sources = [
+    "java/src/org/chromium/blanc/island/IslandCoordinator.java",
+    "java/src/org/chromium/blanc/island/PagePinchBridge.java",
+    "java/src/org/chromium/blanc/island/TopColorBridge.java",
+  ]
+  deps = [
+    ":island_java",
+    ":settings_model_java",
+    ":island_view_java",
+    ":tabs_java",
+    "//base:base_java",
+    "//base:callback_java",
+    "//base:supplier_java",
+    "//build/android:build_java",
+    "//cc/mojom:mojom_java",
+    "//chrome/browser/tab:java",
+    "//chrome/browser/tabmodel:java",
+    "//components/url_formatter/android:url_formatter_java",
+    "//content/public/android:content_java",
+    "//third_party/androidx:androidx_core_core_java",
+    "//third_party/jni_zero:jni_zero_java",
+    "//ui/android:ui_no_recycler_view_java",
+    "//url:gurl_java",
+  ]
+}
+
+# Blanc's own Robolectric binary: run with
+# out/<dir>/bin/run_blanc_android_junit_tests.
+robolectric_binary("blanc_android_junit_tests") {
+  resources_package = "org.chromium.blanc.island"
+  testonly = true
+  sources = [
+    "junit/src/org/chromium/blanc/address/AddressFixtures.java",
+    "junit/src/org/chromium/blanc/address/AddressInputTest.java",
+    "junit/src/org/chromium/blanc/island/FindCapsuleTest.java",
+    "junit/src/org/chromium/blanc/island/IslandMenuPopupTest.java",
+    "junit/src/org/chromium/blanc/island/TopColorSamplerTest.java",
+    "junit/src/org/chromium/blanc/island/TopColorTest.java",
+    "junit/src/org/chromium/blanc/palette/RowSwipeTest.java",
+    "junit/src/org/chromium/blanc/palette/SheetPlacementTest.java",
+    "junit/src/org/chromium/blanc/island/IslandMenuTest.java",
+    "junit/src/org/chromium/blanc/spaces/BlancSpacesTest.java",
+    "junit/src/org/chromium/blanc/sync/BlancKeyStoreTest.java",
+    "junit/src/org/chromium/blanc/sync/OtherDevicesTest.java",
+    "junit/src/org/chromium/blanc/spaces/SharedRowsTest.java",
+    "junit/src/org/chromium/blanc/spaces/SpaceRowsTest.java",
+    "junit/src/org/chromium/blanc/sync/SyncedClosedTest.java",
+    "junit/src/org/chromium/blanc/sync/PairScannerTest.java",
+    "junit/src/org/chromium/blanc/sync/ProfileSyncTest.java",
+    "junit/src/org/chromium/blanc/sync/SyncPairingTest.java",
+    "junit/src/org/chromium/blanc/sync/SyncSheetTest.java",
+    "junit/src/org/chromium/blanc/sync/SyncedFavoritesTest.java",
+    "junit/src/org/chromium/blanc/sync/SyncedSpacesTest.java",
+    "junit/src/org/chromium/blanc/sync/SyncedSettingsTest.java",
+    "junit/src/org/chromium/blanc/island/IslandPositionTest.java",
+    "junit/src/org/chromium/blanc/island/IslandStyleTest.java",
+    "junit/src/org/chromium/blanc/island/IslandSwipeGestureTest.java",
+    "junit/src/org/chromium/blanc/island/IslandSwipeTest.java",
+    "junit/src/org/chromium/blanc/island/PagePinchTest.java",
+    "junit/src/org/chromium/blanc/island/IslandTitleTest.java",
+    "junit/src/org/chromium/blanc/island/IslandTuckTest.java",
+    "junit/src/org/chromium/blanc/island/IslandViewTest.java",
+    "junit/src/org/chromium/blanc/island/IslandVisibilityTest.java",
+    "junit/src/org/chromium/blanc/tabs/BlancBlockingTest.java",
+    "junit/src/org/chromium/blanc/tabs/BlancTabStateTest.java",
+    "junit/src/org/chromium/blanc/tabs/BlancTabsTest.java",
+    "junit/src/org/chromium/blanc/tabs/CardSwipeTest.java",
+    "junit/src/org/chromium/blanc/tabs/FakeTabStore.java",
+    "junit/src/org/chromium/blanc/tabs/GroupNamesFixtures.java",
+    "junit/src/org/chromium/blanc/tabs/GroupNamesTest.java",
+    "junit/src/org/chromium/blanc/tabs/PaletteSheetTest.java",
+    "junit/src/org/chromium/blanc/tabs/QuickSwitcherTest.java",
+    "junit/src/org/chromium/blanc/tabs/QuietTabsTest.java",
+    "junit/src/org/chromium/blanc/tabs/RecentlyClosedTest.java",
+    "junit/src/org/chromium/blanc/settings/AllowedSitesDialogTest.java",
+    "junit/src/org/chromium/blanc/settings/AllowedSitesTest.java",
+    "junit/src/org/chromium/blanc/settings/BlancSettingsScreenTest.java",
+    "junit/src/org/chromium/blanc/settings/SearchEnginesTest.java",
+    "junit/src/org/chromium/blanc/settings/SettingsDestinationTest.java",
+    "junit/src/org/chromium/blanc/settings/SettingsStoreTest.java",
+    "junit/src/org/chromium/blanc/settings/SettingsLayoutTest.java",
+    "junit/src/org/chromium/blanc/tabs/SlashCommandsTest.java",
+    "junit/src/org/chromium/blanc/tabs/TabGridTest.java",
+    "junit/src/org/chromium/blanc/tabs/TabSectionsFixtures.java",
+    "junit/src/org/chromium/blanc/tabs/TabSectionsTest.java",
+  ]
+  deps = [
+    ":island_java",
+    ":island_view_java",
+    ":settings_java",
+    ":settings_model_java",
+    ":sync_java",
+    ":tabs_java",
+    ":zxing_java",
+    "//base:base_java_test_support",
+    "//base:base_junit_test_support",
+    "//base:callback_java",
+    "//third_party/androidx:androidx_preference_preference_java",
+    "//third_party/junit",
+  ]
+}

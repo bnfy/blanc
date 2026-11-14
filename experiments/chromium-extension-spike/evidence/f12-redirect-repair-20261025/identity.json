@@ -1,0 +1,23 @@
+{
+  "source_base": "4fb76714d813304e318b9e4cc33ca13df0c8ed75",
+  "inputs": {
+    "content/browser/loader/url_loader_factory_utils.h": "2f2f129a281de976e9e07c695b8d76e3ef6bad973da9f5d81dbed63926530845",
+    "content/browser/loader/url_loader_factory_utils.cc": "5267120887056bdffaa55556ba2f57a3630d1a1c0d4fbcd2f2db130964eef457",
+    "content/public/browser/blanc_url_loader_gate.h": "f7237607aa43df79e905a0e9fef918f196626b3c0de203c2353c79fdca010b48",
+    "chrome/browser/chrome_content_browser_client.cc": "2b48f7660b60110ead9d1b3b445e549e5bbc2a8dda3261eff1f1a851bf9f816e",
+    "chrome/services/blanc_blocker/blocker_proxy.cc": "eaf73aedd7ab0cdcff01ad0fa14503666af1a5628a52ebf26de74a82e9fbf18c",
+    "chrome/services/blanc_blocker/blocker_proxy.h": "794f8a01010a004c45bf3935d0db22cf1b8ddabe7f28e833bd10bdc718bd2d11",
+    "content/public/common/blanc_research_build.h": "27665fabd5e87d6733f2f26ca2256eb4b1b3fe32305c83290db0eda37aba68a6",
+    "framework": "a9f4b5f5364e8e1b88d004a1a0105a727c943d35eee04bece45e969e7aeb48b2"
+  },
+  "build": {
+    "planned_actions": 18,
+    "steps": 23,
+    "seconds": 70.63,
+    "final_guard": 0
+  },
+  "signed_candidate_changed": false,
+  "upstream_files": 75,
+  "upstream_hunks": 184,
+  "clean_git_dependencies": 151
+}

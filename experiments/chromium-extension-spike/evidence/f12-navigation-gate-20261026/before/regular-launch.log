@@ -1,0 +1,10 @@
+[20845:12010380:1026/172519.586855:ERROR:chrome/browser/mac/code_sign_clone_manager.mm:93] error removing quarantine attribute "/var/folders/4x/r7mr2b5d4q53x8nbf_trvcxw0000gn/X/"
+[20845:12010078:1026/172520.044357:ERROR:chrome/browser/actor/tools/tool_request.cc:32] Not implemented reached in static std::optional<ToolDefinition> actor::ToolRequest::GetToolDefinition(). 
+
+DevTools listening on ws://127.0.0.1:53802/devtools/browser/2b4d5198-5d46-4a24-8933-7b6649d80843
+[20845:12010078:1026/172520.841344:ERROR:chrome/browser/ui/webui/ntp/new_tab_ui.cc:54] Requested load of chrome://newtab/ for incorrect profile type.
+[20845:12010078:1026/172520.849080:ERROR:chrome/browser/ui/webui/ntp/new_tab_ui.cc:54] Requested load of chrome://newtab/ for incorrect profile type.
+[20872:12010783:1026/172522.984620:ERROR:third_party/blink/renderer/core/html/media/html_media_element.cc:5451] SetError: {code=4, message="MEDIA_ELEMENT_ERROR: Media load rejected by URL safety check"}
+[20872:12010783:1026/172522.985039:ERROR:third_party/blink/renderer/core/html/media/html_media_element.cc:5451] SetError: {code=4, message="MEDIA_ELEMENT_ERROR: Media load rejected by URL safety check"}
+[20872:12010783:1026/172522.985236:ERROR:third_party/blink/renderer/core/html/media/html_media_element.cc:5451] SetError: {code=4, message="MEDIA_ELEMENT_ERROR: Media load rejected by URL safety check"}
+[20845:12010078:1026/172528.669945:ERROR:base/process/kill_posix.cc:33] waitpid(20856): No child processes (10)

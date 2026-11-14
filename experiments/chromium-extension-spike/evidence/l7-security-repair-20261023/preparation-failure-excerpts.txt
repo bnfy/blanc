@@ -1,0 +1,4 @@
+Excerpts transcribed from tool output; original full failing stderr was not retained.
+Initial UI prepare: CoreSimulatorService connection became invalid; error opening log file: Operation not permitted; BlancDK.icon could not be opened. Retried with permitted tool access.
+Initial blocker prepare: ENOENT opening signed app Resources/BlancBlocker/bundle_hash.h. Corrected to authenticated engine/header staging.
+Initial unittest discovery selected zero inventory tests; direct runner later passed all 11.

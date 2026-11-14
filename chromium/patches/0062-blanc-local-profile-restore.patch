@@ -1,0 +1,27 @@
+diff --git a/chrome/browser/profiles/profile_manager.cc b/chrome/browser/profiles/profile_manager.cc
+--- a/chrome/browser/profiles/profile_manager.cc
++++ b/chrome/browser/profiles/profile_manager.cc
+@@ -3,6 +3,7 @@
+ // found in the LICENSE file.
+ 
+ #include "chrome/browser/profiles/profile_manager.h"
++#include "blanc/common/island_mode.h"
+ 
+ #include <stdint.h>
+ 
+@@ -2273,9 +2274,13 @@
+   Profile* profile = browser->GetProfile();
+   CHECK(profile, base::NotFatalUntil::M162);
+ 
++  // A local profile already owns its window during customization. Track it
++  // before Done makes it persistent; SaveActiveProfiles still filters
++  // ephemeral profiles and therefore never restores cancelled creation.
+   if (!profile->IsOffTheRecord() &&
+-      !IsRegisteredAsEphemeral(&GetProfileAttributesStorage(),
+-                               profile->GetPath()) &&
++      (blanc::IslandMode() ||
++       !IsRegisteredAsEphemeral(&GetProfileAttributesStorage(),
++                                profile->GetPath())) &&
+       browser->GetType() != BrowserWindowInterface::Type::TYPE_APP &&
+       ++browser_counts_[profile] == 1) {
+     active_profiles_.push_back(profile);

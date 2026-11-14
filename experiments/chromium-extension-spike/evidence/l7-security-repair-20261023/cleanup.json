@@ -1,0 +1,18 @@
+{
+  "removedProfiles": [
+    "/private/tmp/blanc-l7-repair/regular/profile",
+    "/private/tmp/blanc-l7-repair/private/profile",
+    "/private/tmp/blanc-l7-repair/scope/profile",
+    "/private/tmp/blanc-l7-repair/hooks-regular/profile",
+    "/private/tmp/blanc-l7-repair/hooks-private/profile",
+    "/private/tmp/blanc-l7-repair/default/profile",
+    "/private/tmp/blanc-l7-repair/transport/baseline-regular/profile",
+    "/private/tmp/blanc-l7-repair/transport/baseline-private/profile",
+    "/private/tmp/blanc-l7-repair/transport/enforced-regular/profile",
+    "/private/tmp/blanc-l7-repair/transport/enforced-private/profile"
+  ],
+  "ownedProcessesRemaining": [],
+  "remoteSigningJobAndDirectoryRemoved": true,
+  "signingKey": "retained per owner preference",
+  "masters": "new and prior preserved"
+}

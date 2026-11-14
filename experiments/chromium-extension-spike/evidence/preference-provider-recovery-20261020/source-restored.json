@@ -1,0 +1,13 @@
+{
+  "equal": true,
+  "sha256": "dc0fd010024eb95de156c55eb632a4c5cf7c5cbddd16f208ecb5d383ff15fac3",
+  "normalPriorFootprint": {
+    "files": 49,
+    "hunks": 117
+  },
+  "temporaryAddedHunks": 2,
+  "temporaryConservativeUpperBound": {
+    "files": 49,
+    "hunks": 119
+  }
+}

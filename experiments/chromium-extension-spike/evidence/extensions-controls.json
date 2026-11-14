@@ -1,0 +1,600 @@
+{
+  "open": {
+    "hidden": false,
+    "focus": "",
+    "query": "",
+    "rows": [
+      {
+        "name": "1Password – Password Manager",
+        "id": "aeblfdkhhhdcdjpifhhbdiojplfjncoa",
+        "selected": "false",
+        "disabled": false
+      },
+      {
+        "name": "Bitwarden Password Manager",
+        "id": "nngceckbapebfimnlniiiahkandclblb",
+        "selected": "false",
+        "disabled": false
+      },
+      {
+        "name": "Grammarly: AI Writing Assistant and Grammar Checker App",
+        "id": "kbfnbcaeplbcioakkpcpgfkobkghlhen",
+        "selected": "false",
+        "disabled": false
+      },
+      {
+        "name": "MetaMask",
+        "id": "nkbihfbeogaeaoehlefnkodbefgpgknn",
+        "selected": "true",
+        "disabled": false
+      },
+      {
+        "name": "React Developer Tools",
+        "id": "fmkadmapgofadopljbjfkapdkoienihi",
+        "selected": "false",
+        "disabled": false
+      },
+      {
+        "name": "Tampermonkey",
+        "id": "dhdgffkkebhmkfjojejmpbldmpobfkfo",
+        "selected": "false",
+        "disabled": false
+      }
+    ],
+    "message": "",
+    "status": ""
+  },
+  "search": {
+    "hidden": false,
+    "focus": "",
+    "query": "",
+    "rows": [
+      {
+        "name": "1Password – Password Manager",
+        "id": "aeblfdkhhhdcdjpifhhbdiojplfjncoa",
+        "selected": "false",
+        "disabled": false
+      },
+      {
+        "name": "Bitwarden Password Manager",
+        "id": "nngceckbapebfimnlniiiahkandclblb",
+        "selected": "false",
+        "disabled": false
+      },
+      {
+        "name": "Grammarly: AI Writing Assistant and Grammar Checker App",
+        "id": "kbfnbcaeplbcioakkpcpgfkobkghlhen",
+        "selected": "false",
+        "disabled": false
+      },
+      {
+        "name": "MetaMask",
+        "id": "nkbihfbeogaeaoehlefnkodbefgpgknn",
+        "selected": "true",
+        "disabled": false
+      },
+      {
+        "name": "React Developer Tools",
+        "id": "fmkadmapgofadopljbjfkapdkoienihi",
+        "selected": "false",
+        "disabled": false
+      },
+      {
+        "name": "Tampermonkey",
+        "id": "dhdgffkkebhmkfjojejmpbldmpobfkfo",
+        "selected": "false",
+        "disabled": false
+      }
+    ],
+    "message": "",
+    "status": ""
+  },
+  "searchAfterExplicitFocus": {
+    "hidden": false,
+    "focus": "extensionSearch",
+    "query": "Bitwarden",
+    "rows": [
+      {
+        "name": "Bitwarden Password Manager",
+        "id": "nngceckbapebfimnlniiiahkandclblb",
+        "selected": "true",
+        "disabled": false
+      }
+    ],
+    "message": "",
+    "status": ""
+  },
+  "freshNativeOpen": {
+    "hidden": false,
+    "focus": "extensionSearch",
+    "query": "",
+    "rows": [
+      {
+        "name": "1Password – Password Manager",
+        "id": "aeblfdkhhhdcdjpifhhbdiojplfjncoa",
+        "selected": "false",
+        "disabled": false
+      },
+      {
+        "name": "Bitwarden Password Manager",
+        "id": "nngceckbapebfimnlniiiahkandclblb",
+        "selected": "true",
+        "disabled": false
+      },
+      {
+        "name": "Grammarly: AI Writing Assistant and Grammar Checker App",
+        "id": "kbfnbcaeplbcioakkpcpgfkobkghlhen",
+        "selected": "false",
+        "disabled": false
+      },
+      {
+        "name": "MetaMask",
+        "id": "nkbihfbeogaeaoehlefnkodbefgpgknn",
+        "selected": "false",
+        "disabled": false
+      },
+      {
+        "name": "React Developer Tools",
+        "id": "fmkadmapgofadopljbjfkapdkoienihi",
+        "selected": "false",
+        "disabled": false
+      },
+      {
+        "name": "Tampermonkey",
+        "id": "dhdgffkkebhmkfjojejmpbldmpobfkfo",
+        "selected": "false",
+        "disabled": false
+      }
+    ],
+    "message": "",
+    "status": ""
+  },
+  "freshNativeTyping": {
+    "hidden": false,
+    "focus": "extensionSearch",
+    "query": "React",
+    "rows": [
+      {
+        "name": "React Developer Tools",
+        "id": "fmkadmapgofadopljbjfkapdkoienihi",
+        "selected": "true",
+        "disabled": false
+      }
+    ],
+    "message": "",
+    "status": ""
+  },
+  "nativeActions": [
+    {
+      "name": "React",
+      "entries": [
+        {
+          "url": "chrome-extension://fmkadmapgofadopljbjfkapdkoienihi/popups/restricted.html",
+          "newTarget": true,
+          "text": "This is a restricted browser page.\nReact devtools cannot access this page."
+        }
+      ],
+      "pickerClosed": true
+    },
+    {
+      "name": "Bitwarden",
+      "entries": [
+        {
+          "url": "chrome-extension://nngceckbapebfimnlniiiahkandclblb/popup/index.html#/default-password-manager-prompt",
+          "newTarget": true,
+          "text": "Make Bitwarden your browser's default password manager\n1\n\nSelect Continue.\n\n2\n\nSelect Allow from the browser prompt to give Bitwarden permission to change your settings.\n\n3\n\nWe'll turn off your browser's built-in password manager so you can enjoy a secure login experience.\n\nContinue\nSkip"
+        }
+      ],
+      "pickerClosed": true
+    },
+    {
+      "name": "1Password",
+      "entries": [
+        {
+          "url": "chrome-extension://aeblfdkhhhdcdjpifhhbdiojplfjncoa/app/app.html#/page/welcome?language=en",
+          "newTarget": false,
+          "text": "Welcome to 1Password!\nLet's get the browser extension ready.\nContinue"
+        }
+      ],
+      "pickerClosed": true
+    },
+    {
+      "name": "Tampermonkey",
+      "entries": [
+        {
+          "url": "chrome-extension://dhdgffkkebhmkfjojejmpbldmpobfkfo/action.html#138410403",
+          "newTarget": true,
+          "text": "Please enable the `Allow User Scripts` extension setting. Click here for more info how to do this.\n\tScan the QR code to use Tampermonkey on your phone or tablet.\nLearn more\n\t\n\tEnabled\n\tTampermonkey has no access to this page\n\tFind new scripts...\n\tCreate a new script...\n\n\n\tPlease send a donation\n\n\t\nUtilities\n\t\n\tDashboard\n\tHelp | Changelog | "
+        }
+      ],
+      "pickerClosed": true
+    },
+    {
+      "name": "Grammarly",
+      "entries": [
+        {
+          "url": "chrome-extension://kbfnbcaeplbcioakkpcpgfkobkghlhen/src/popup.html",
+          "newTarget": true,
+          "text": "Grammarly is active, but key features are missing.\n\nSign up now to unlock the following:\n\nPersonal dictionary\nSave and access your documents\nGet weekly writing statistics and tips\nSign up\nOpens a new tab\nAlready have an account?\nSign in\nOpens a new tab"
+        }
+      ],
+      "pickerClosed": true
+    }
+  ],
+  "tamperBefore": {
+    "hidden": false,
+    "focus": "extensionSearch",
+    "query": "Tampermonkey",
+    "rows": [
+      {
+        "name": "Tampermonkey",
+        "id": "dhdgffkkebhmkfjojejmpbldmpobfkfo",
+        "selected": "true",
+        "disabled": false
+      }
+    ],
+    "message": "",
+    "status": ""
+  },
+  "tamperTargets": [
+    {
+      "id": "28C63CA9F3E2363986F390B86CFBA4DB",
+      "url": "chrome-extension://dhdgffkkebhmkfjojejmpbldmpobfkfo/action.html#138410399"
+    },
+    {
+      "id": "4A76C9B40131CA2D6D13BF43C495CBAD",
+      "url": "chrome://newtab/"
+    },
+    {
+      "id": "F1E09C357AE8161F1BF1D818CE8E8302",
+      "url": "chrome://blanc-prototype/host.html"
+    },
+    {
+      "id": "852C70A1CD6FD63F129B62DC0984C6FD",
+      "url": "chrome://newtab/"
+    },
+    {
+      "id": "A766F8B71EEB043B79BFDA4672915A6E",
+      "url": "chrome-extension://nkbihfbeogaeaoehlefnkodbefgpgknn/home.html#/onboarding/welcome"
+    },
+    {
+      "id": "2F8E4017AEAA8F3C8F90037CC86BE241",
+      "url": "chrome://blanc-prototype/host.html"
+    }
+  ],
+  "tamperAfter": {
+    "hidden": true,
+    "focus": "",
+    "query": "Tampermonkey",
+    "rows": [
+      {
+        "name": "Tampermonkey",
+        "id": "dhdgffkkebhmkfjojejmpbldmpobfkfo",
+        "selected": "true",
+        "disabled": false
+      }
+    ],
+    "message": "",
+    "status": ""
+  },
+  "controls": {
+    "empty": {
+      "hidden": false,
+      "focus": "extensionSearch",
+      "query": "zzzz-no-such-extension",
+      "rows": [],
+      "message": "No matching extensions",
+      "status": ""
+    },
+    "search": {
+      "hidden": false,
+      "focus": "extensionSearch",
+      "query": "React",
+      "rows": [
+        {
+          "name": "React Developer Tools",
+          "id": "fmkadmapgofadopljbjfkapdkoienihi",
+          "selected": "true",
+          "disabled": false
+        }
+      ],
+      "message": "",
+      "status": ""
+    },
+    "reopened": {
+      "hidden": false,
+      "focus": "extensionSearch",
+      "query": "",
+      "rows": [
+        {
+          "name": "1Password – Password Manager",
+          "id": "aeblfdkhhhdcdjpifhhbdiojplfjncoa",
+          "selected": "false",
+          "disabled": false
+        },
+        {
+          "name": "Bitwarden Password Manager",
+          "id": "nngceckbapebfimnlniiiahkandclblb",
+          "selected": "false",
+          "disabled": false
+        },
+        {
+          "name": "Grammarly: AI Writing Assistant and Grammar Checker App",
+          "id": "kbfnbcaeplbcioakkpcpgfkobkghlhen",
+          "selected": "false",
+          "disabled": false
+        },
+        {
+          "name": "MetaMask",
+          "id": "nkbihfbeogaeaoehlefnkodbefgpgknn",
+          "selected": "false",
+          "disabled": false
+        },
+        {
+          "name": "React Developer Tools",
+          "id": "fmkadmapgofadopljbjfkapdkoienihi",
+          "selected": "true",
+          "disabled": false
+        },
+        {
+          "name": "Tampermonkey",
+          "id": "dhdgffkkebhmkfjojejmpbldmpobfkfo",
+          "selected": "false",
+          "disabled": false
+        }
+      ],
+      "message": "",
+      "status": ""
+    },
+    "down": {
+      "hidden": false,
+      "focus": "extensionSearch",
+      "query": "",
+      "rows": [
+        {
+          "name": "1Password – Password Manager",
+          "id": "aeblfdkhhhdcdjpifhhbdiojplfjncoa",
+          "selected": "false",
+          "disabled": false
+        },
+        {
+          "name": "Bitwarden Password Manager",
+          "id": "nngceckbapebfimnlniiiahkandclblb",
+          "selected": "false",
+          "disabled": false
+        },
+        {
+          "name": "Grammarly: AI Writing Assistant and Grammar Checker App",
+          "id": "kbfnbcaeplbcioakkpcpgfkobkghlhen",
+          "selected": "false",
+          "disabled": false
+        },
+        {
+          "name": "MetaMask",
+          "id": "nkbihfbeogaeaoehlefnkodbefgpgknn",
+          "selected": "false",
+          "disabled": false
+        },
+        {
+          "name": "React Developer Tools",
+          "id": "fmkadmapgofadopljbjfkapdkoienihi",
+          "selected": "false",
+          "disabled": false
+        },
+        {
+          "name": "Tampermonkey",
+          "id": "dhdgffkkebhmkfjojejmpbldmpobfkfo",
+          "selected": "true",
+          "disabled": false
+        }
+      ],
+      "message": "",
+      "status": ""
+    },
+    "up": {
+      "hidden": false,
+      "focus": "extensionSearch",
+      "query": "",
+      "rows": [
+        {
+          "name": "1Password – Password Manager",
+          "id": "aeblfdkhhhdcdjpifhhbdiojplfjncoa",
+          "selected": "false",
+          "disabled": false
+        },
+        {
+          "name": "Bitwarden Password Manager",
+          "id": "nngceckbapebfimnlniiiahkandclblb",
+          "selected": "false",
+          "disabled": false
+        },
+        {
+          "name": "Grammarly: AI Writing Assistant and Grammar Checker App",
+          "id": "kbfnbcaeplbcioakkpcpgfkobkghlhen",
+          "selected": "false",
+          "disabled": false
+        },
+        {
+          "name": "MetaMask",
+          "id": "nkbihfbeogaeaoehlefnkodbefgpgknn",
+          "selected": "false",
+          "disabled": false
+        },
+        {
+          "name": "React Developer Tools",
+          "id": "fmkadmapgofadopljbjfkapdkoienihi",
+          "selected": "true",
+          "disabled": false
+        },
+        {
+          "name": "Tampermonkey",
+          "id": "dhdgffkkebhmkfjojejmpbldmpobfkfo",
+          "selected": "false",
+          "disabled": false
+        }
+      ],
+      "message": "",
+      "status": ""
+    },
+    "back": {
+      "picker": true,
+      "tabs": false
+    },
+    "nativePointerAction": "Bitwarden popup opened"
+  },
+  "actionGuards": {
+    "noGesture": {
+      "ok": false,
+      "value": "Select the extension again on the active tab."
+    },
+    "stale": {
+      "ok": false,
+      "value": "Select the extension again on the active tab."
+    },
+    "invalid": {
+      "ok": false,
+      "value": "This extension is unavailable on the current page."
+    }
+  },
+  "pinned": {
+    "count": 6,
+    "extensionsWidth": 36
+  },
+  "footerLinks": {
+    "manage": "chrome://extensions/",
+    "store": "https://chromewebstore.google.com/category/extensions"
+  },
+  "narrow": {
+    "viewport": [
+      600,
+      420
+    ],
+    "panel": {
+      "x": 16,
+      "y": 48,
+      "width": 568,
+      "height": 360,
+      "top": 48,
+      "right": 584,
+      "bottom": 408,
+      "left": 16
+    },
+    "footer": {
+      "x": 31,
+      "y": 370.6015625,
+      "width": 538,
+      "height": 36.3984375,
+      "top": 370.6015625,
+      "right": 569,
+      "bottom": 407,
+      "left": 31
+    },
+    "list": {
+      "height": 150,
+      "scroll": 388
+    }
+  },
+  "visual": {
+    "status": "",
+    "font": "Inter, system-ui, sans-serif",
+    "fontLoaded": true,
+    "panel": {
+      "x": 458,
+      "y": 10,
+      "width": 620,
+      "height": 598.3984375,
+      "top": 10,
+      "right": 1078,
+      "bottom": 608.3984375,
+      "left": 458
+    }
+  },
+  "metaMaskNativeAction": {
+    "pickerClosed": true,
+    "interfaces": [
+      {
+        "url": "chrome-extension://nkbihfbeogaeaoehlefnkodbefgpgknn/home.html",
+        "text": " "
+      },
+      {
+        "url": "chrome-extension://nkbihfbeogaeaoehlefnkodbefgpgknn/sidepanel.html#/onboarding/welcome",
+        "text": "Create a new wallet\nI have an existing wallet"
+      },
+      {
+        "url": "chrome-extension://nkbihfbeogaeaoehlefnkodbefgpgknn/home.html#/onboarding/welcome",
+        "text": "አማርኛ\nالعربية\nбългарски\nবাংলা\nCatalà\nČeština\nDansk\nDeutsch\nελληνικά\nEnglish\nEspañol (Latinoamérica)\nEstonian\nفارسی\nSuomi\nFrançais\nGaeilge\nગુજરાત\nעברית\nमानक हिन्दी\nहिन्दी\nHrvatski\nKreyòl ayisyen\nMagyar\nBahasa Indonesia\nItaliano\n日本語\nಕನ್ನಡ\n한국어\nLietuviškai\nLatvian\nമലയാളം\nमराठी\nMalay\nNederlands\nNorwegian\nPolskie\nPortuguês\nPortuguês (Brazillian)\nPortuguês (European)\nLimba română\nРусский\nSlovenčina\nSlovenščina\nсрпски\nSvenska\nSwahili\nதமிழ்\nతెలుగు\nไทย\nFilipino\nTürkçe\nУкраїнська мова\nTiếng Việt\n中文(简体)\n中文(繁體)\nCreate a new wallet\nI have an existing wallet"
+      },
+      {
+        "url": "chrome-extension://nkbihfbeogaeaoehlefnkodbefgpgknn/home.html#/onboarding/welcome",
+        "text": "አማርኛ\nالعربية\nбългарски\nবাংলা\nCatalà\nČeština\nDansk\nDeutsch\nελληνικά\nEnglish\nEspañol (Latinoamérica)\nEstonian\nفارسی\nSuomi\nFrançais\nGaeilge\nગુજરાત\nעברית\nमानक हिन्दी\nहिन्दी\nHrvatski\nKreyòl ayisyen\nMagyar\nBahasa Indonesia\nItaliano\n日本語\nಕನ್ನಡ\n한국어\nLietuviškai\nLatvian\nമലയാളം\nमराठी\nMalay\nNederlands\nNorwegian\nPolskie\nPortuguês\nPortuguês (Brazillian)\nPortuguês (European)\nLimba română\nРусский\nSlovenčina\nSlovenščina\nсрпски\nSvenska\nSwahili\nதமிழ்\nతెలుగు\nไทย\nFilipino\nTürkçe\nУкраїнська мова\nTiếng Việt\n中文(简体)\n中文(繁體)\nCreate a new wallet\nI have an existing wallet"
+      },
+      {
+        "url": "chrome-extension://nkbihfbeogaeaoehlefnkodbefgpgknn/home.html#/onboarding/welcome",
+        "text": "አማርኛ\nالعربية\nбългарски\nবাংলা\nCatalà\nČeština\nDansk\nDeutsch\nελληνικά\nEnglish\nEspañol (Latinoamérica)\nEstonian\nفارسی\nSuomi\nFrançais\nGaeilge\nગુજરાત\nעברית\nमानक हिन्दी\nहिन्दी\nHrvatski\nKreyòl ayisyen\nMagyar\nBahasa Indonesia\nItaliano\n日本語\nಕನ್ನಡ\n한국어\nLietuviškai\nLatvian\nമലയാളം\nमराठी\nMalay\nNederlands\nNorwegian\nPolskie\nPortuguês\nPortuguês (Brazillian)\nPortuguês (European)\nLimba română\nРусский\nSlovenčina\nSlovenščina\nсрпски\nSvenska\nSwahili\nதமிழ்\nతెలుగు\nไทย\nFilipino\nTürkçe\nУкраїнська мова\nTiếng Việt\n中文(简体)\n中文(繁體)\nCreate a new wallet\nI have an existing wallet"
+      },
+      {
+        "url": "chrome-extension://nkbihfbeogaeaoehlefnkodbefgpgknn/home.html#/onboarding/welcome",
+        "text": "አማርኛ\nالعربية\nбългарски\nবাংলা\nCatalà\nČeština\nDansk\nDeutsch\nελληνικά\nEnglish\nEspañol (Latinoamérica)\nEstonian\nفارسی\nSuomi\nFrançais\nGaeilge\nગુજરાત\nעברית\nमानक हिन्दी\nहिन्दी\nHrvatski\nKreyòl ayisyen\nMagyar\nBahasa Indonesia\nItaliano\n日本語\nಕನ್ನಡ\n한국어\nLietuviškai\nLatvian\nമലയാളം\nमराठी\nMalay\nNederlands\nNorwegian\nPolskie\nPortuguês\nPortuguês (Brazillian)\nPortuguês (European)\nLimba română\nРусский\nSlovenčina\nSlovenščina\nсрпски\nSvenska\nSwahili\nதமிழ்\nతెలుగు\nไทย\nFilipino\nTürkçe\nУкраїнська мова\nTiếng Việt\n中文(简体)\n中文(繁體)\nCreate a new wallet\nI have an existing wallet"
+      }
+    ]
+  },
+  "nativeShortcuts": {
+    "cmdL": {
+      "visible": true,
+      "focused": "addressInput"
+    },
+    "cmdT": {
+      "visible": true,
+      "focused": "addressInput"
+    }
+  },
+  "finalVisual": {
+    "viewport": [
+      1224,
+      640
+    ],
+    "font": "\"Instrument Sans\", Inter, system-ui, sans-serif",
+    "fontLoaded": true,
+    "strip": "hidden",
+    "status": ""
+  },
+  "dynamicDisabled": {
+    "hidden": true,
+    "remaining": 5
+  },
+  "dynamicRestored": {
+    "rows": 6,
+    "status": ""
+  },
+  "cleanup": {
+    "testWindowRemoved": 138410398,
+    "remaining": [
+      {
+        "id": "852C70A1CD6FD63F129B62DC0984C6FD",
+        "url": "chrome://newtab/"
+      },
+      {
+        "id": "A766F8B71EEB043B79BFDA4672915A6E",
+        "url": "chrome-extension://nkbihfbeogaeaoehlefnkodbefgpgknn/home.html#/onboarding/welcome"
+      }
+    ],
+    "pickerOpen": true
+  },
+  "console": {
+    "errors": [],
+    "status": "",
+    "pickerOpen": true
+  },
+  "builds": {
+    "main": {
+      "actions": 16,
+      "seconds": 60.08
+    },
+    "polish": {
+      "actions": 7,
+      "seconds": 36.36
+    },
+    "finalPlannedActions": 0,
+    "lastVisualChanges": "assets only"
+  }
+}

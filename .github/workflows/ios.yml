@@ -42,7 +42,28 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  fork-only:
+    # A pull-request push that changes only the Chromium fork (chromium/, its
+    # experiment folder) or docs skips the jobs below; they ran for the PR's
+    # earlier commits and nothing they test changed. Every other event, and
+    # any failure here, runs them (scripts/ci-fork-only-push.sh).
+    runs-on: ubuntu-latest
+    outputs:
+      skip: ${{ steps.classify.outputs.skip }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        if: github.event_name == 'pull_request'
+      - id: classify
+        name: Classify this push
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          EVENT_ACTION: ${{ github.event.action }}
+          BEFORE: ${{ github.event.before }}
+          AFTER: ${{ github.event.pull_request.head.sha }}
+        run: echo "skip=$(sh scripts/ci-fork-only-push.sh)" >> "$GITHUB_OUTPUT"
   xctest:
+    needs: fork-only
+    if: ${{ !cancelled() && needs.fork-only.outputs.skip != 'true' }}
     runs-on: macos-26
     # The build and full suite took 29 minutes on October 29, 2026, after
     # M17c and the icon picker added UI tests; 30 cancelled runs mid-suite.

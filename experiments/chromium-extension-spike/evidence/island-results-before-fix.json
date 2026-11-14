@@ -1,0 +1,81 @@
+{
+  "checkedAt": "2026-10-16T13:06:58.003Z",
+  "results": [
+    {
+      "name": "Island new-tab button",
+      "result": "pass",
+      "detail": {
+        "tabId": 60438534,
+        "overlayVisible": true
+      }
+    },
+    {
+      "name": "Island address Enter",
+      "result": "pass",
+      "detail": {
+        "url": "http://127.0.0.1:18763/a",
+        "overlayHidden": true
+      }
+    },
+    {
+      "name": "Island back",
+      "result": "pass",
+      "detail": {
+        "url": "http://127.0.0.1:18763/a"
+      }
+    },
+    {
+      "name": "Island forward",
+      "result": "pass",
+      "detail": {
+        "url": "http://127.0.0.1:18763/b"
+      }
+    },
+    {
+      "name": "Island reload",
+      "result": "pass",
+      "detail": {
+        "requestsBefore": 2,
+        "requestsAfter": 3
+      }
+    },
+    {
+      "name": "Island tab dot",
+      "result": "pass",
+      "detail": {
+        "activeTabId": 60438534
+      }
+    },
+    {
+      "name": "Island close tab",
+      "result": "pass",
+      "detail": {
+        "remainingFixtureId": 60438535,
+        "closedId": 60438534
+      }
+    },
+    {
+      "name": "Island stop",
+      "result": "pass",
+      "detail": {
+        "url": "http://127.0.0.1:18763/slow",
+        "isLoading": false
+      }
+    },
+    {
+      "name": "Island Escape",
+      "result": "pass",
+      "detail": {
+        "overlayHidden": true
+      }
+    },
+    {
+      "name": "Host error notice",
+      "result": "fail",
+      "detail": {
+        "text": "Prototype does not implement cancelWorkspaceAction. Use Chromium’s native controls.",
+        "visible": true
+      }
+    }
+  ]
+}

@@ -1,0 +1,6 @@
+{
+  "allRuntimeRootsRemoved": true,
+  "readinessProfilesRemoved": true,
+  "noOwnedRuntimeOrBuildProcess": true,
+  "privateKeysExcluded": true
+}

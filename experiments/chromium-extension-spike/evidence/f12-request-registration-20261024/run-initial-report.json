@@ -1,0 +1,14 @@
+{
+  "complete": false,
+  "runs": [
+    {
+      "mode": "regular",
+      "profile": "/private/tmp/blanc-f12-request-join-20261024/profile-regular",
+      "origin": "http://127.0.0.1:51430",
+      "browserContextId": null
+    }
+  ],
+  "checks": [],
+  "error": "Error: condition timeout\n    at until (file:///private/tmp/blanc-f12-request-join-20261024/run.mjs:3:186)\n    at async file:///private/tmp/blanc-f12-request-join-20261024/run.mjs:10:292",
+  "serverHits": []
+}

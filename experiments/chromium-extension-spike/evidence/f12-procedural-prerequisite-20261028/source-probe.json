@@ -1,0 +1,27 @@
+{
+  "rows": [
+    {
+      "selector": "div:has-text(sponsored)",
+      "parsed": true,
+      "classification": 1
+    },
+    {
+      "selector": "div:matches-css(display: block)",
+      "parsed": true,
+      "classification": 1
+    },
+    {
+      "selector": "span:upward(1)",
+      "parsed": true,
+      "classification": 1
+    },
+    {
+      "selector": "div:xpath(.//span)",
+      "parsed": true,
+      "classification": 1
+    }
+  ],
+  "moduleVersion": "2.18.2",
+  "entrySha256": "d00c824af8a77451aae4dbc5e018e2fbd6a92a191574a4eaa38c8493721e8e31",
+  "runtimePass": false
+}

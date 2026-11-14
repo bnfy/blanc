@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- The tab grid's TalkBack action that closes a card. -->
+    <item name="blanc_grid_close_action" type="id" />
+    <!-- The Island address's TalkBack action that opens the tab grid. -->
+    <item name="blanc_island_show_all_tabs_action" type="id" />
+    <!-- A palette row's TalkBack action that closes its tab (SwipeToCloseRow). -->
+    <item name="blanc_palette_close_action" type="id" />
+</resources>

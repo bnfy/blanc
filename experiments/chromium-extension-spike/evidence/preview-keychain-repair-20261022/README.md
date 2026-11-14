@@ -1,0 +1,18 @@
+# Preview keychain namespace repair — October 22, 2026
+
+The unbranded fork now uses stable service **Blanc Chromium Preview Safe Storage** and account **Blanc Chromium Preview** in the common KeychainPassword implementation. It never falls back to, imports, removes or renames the generic Chromium item. This follows the fresh-profile-only preview contract; existing development/mock-keychain profiles are not migration-qualified. Google baseline retains its original running binary/profile, separate from the rebuilt output.
+
+## Implementation and verification
+
+- Incremental native build: 33.29 seconds, six steps; final guard zero. New upstream footprint61files/150hunks under standing owner authorization; counter limit updated. Eleven counter tests and seven capture tests pass.
+- Signed on the MacBook with the existing shipping Developer ID XYGUCY4498. Repaired signed framework contains the new service/account literals and no generic Chromium Safe Storage literal. Strict deep verification passes with macOS trust-service access.
+- Sandboxed codesign falsely rejected both the new and previously verified candidate, with authority unavailable. Additional tar/ZIP/fresh extraction attempts retained before unsandboxed verification established the environment issue; no artifact corruption is claimed. Initial notarization attempt was stopped while investigating; final attempt Accepted.
+- First fresh fixture used isolated HOME with real keychain; key creation returned authorization-cancelled (-60006), and the encrypted-store assertion failed. Retained as failed fixture, not a pass. Corrected fixture uses real HOME for login-keychain access and an explicit disposable user-data-dir.
+- Corrected real-keychain fixture passes six assertions: isolated profile, three settled tabs, actual encrypted session file, clean restart with clear Session copy removed, acknowledged loading-tab close, and immediate post-ack crash recovery preserving survivor URLs/order/selection. No mock-keychain switch. Crash stage allows both stores; only the clean restart is claimed encrypted-only.
+- Separate real-keychain native shutdown-veto fixture passes: beforeunload prompt, Cancel preserves owner, clean exit/restart preserves original three URLs including pending GET. Existing fixture creates an extra transient quit-target tab after Cancel; no exact cancellation tab-count claim.
+- Preview keychain item absent before, present afterward; only metadata queried, never password values. Its credential remains for the preview. Real denied/locked-provider recovery with saved encrypted data remains unqualified; no shared login-keychain lock, credential deletion or forced denial used.
+- Google/dev snapshot remains one NewTab selected0 / two NewTabs selected1. Temporary SSH authorization revoked, denial verified, local keypair and remote staging removed.
+
+## Release status
+
+Signing and notarization complete: Apple Accepted `fb2c7d4f-6254-4fc1-83b6-a1774730bdcb`; stapling, strict deep verification and Gatekeeper (Notarized Developer ID) pass. Final archive SHA256 `921422c6f0e37b47256ba43e0de21a3c532cce2b8bb984665e6103fac9fd6874`. Runtime tests ran on the signed code while notarization was pending; the final stapled app was verified afterward. Five task-only fixture/app paths removed; new preview keychain item retained. macOS27.2 host only; supported macOS26, complete coexistence/removal, physical acceptance and other release gates remain open. L2 namespace defect repaired but full gate not accepted. 1/12 gates (8.3%), delta0. Latency deferred; Electron diagnostic build pending/unstarted. Google baseline work remains uncommitted and separate.

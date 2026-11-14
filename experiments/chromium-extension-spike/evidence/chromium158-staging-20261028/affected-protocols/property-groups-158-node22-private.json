@@ -1,0 +1,136 @@
+{
+  "kind": "private",
+  "binary": "/Users/anthonyjloria/Projects/BlancChromium158/src/out/BlancPrototype/Blanc Prototype.app/Contents/MacOS/Blanc Prototype",
+  "args": [
+    "--host-resolver-rules=MAP gamepadla.com 127.0.0.1, MAP foreign.example 127.0.0.1, MAP neutral.example 127.0.0.1",
+    "--no-proxy-server",
+    "--user-data-dir=/Users/anthonyjloria/Documents/ChatGPT/Blanc Browser/Chromium Preview/evidence/chromium158-affected-checks/property-groups-158-node22-private/profile",
+    "--remote-debugging-port=57187",
+    "--no-first-run",
+    "--no-default-browser-check",
+    "--use-mock-keychain",
+    "--blanc-prototype-assets=/Users/anthonyjloria/Documents/ChatGPT/Blanc Browser/Chromium Preview/repo/experiments/chromium-extension-spike/generated",
+    "--blanc-blocker-assets=/Users/anthonyjloria/Documents/ChatGPT/Blanc Browser/Chromium Preview/artifacts/procedural-groups-combined-20261028",
+    "--incognito",
+    "http://gamepadla.com:57188/start"
+  ],
+  "checks": [
+    {
+      "name": "healthy request reaches fixture",
+      "pass": true
+    },
+    {
+      "name": "health is ready",
+      "pass": true
+    },
+    {
+      "name": "media target outcome",
+      "pass": true
+    },
+    {
+      "name": "media neutral visible",
+      "pass": true
+    },
+    {
+      "name": "media foreign stylesheet excluded",
+      "pass": true
+    },
+    {
+      "name": "media removal reveals target",
+      "pass": true
+    },
+    {
+      "name": "supports target outcome",
+      "pass": true
+    },
+    {
+      "name": "supports neutral visible",
+      "pass": true
+    },
+    {
+      "name": "supports foreign stylesheet excluded",
+      "pass": true
+    },
+    {
+      "name": "supports removal reveals target",
+      "pass": true
+    },
+    {
+      "name": "layer target outcome",
+      "pass": true
+    },
+    {
+      "name": "layer neutral visible",
+      "pass": true
+    },
+    {
+      "name": "layer foreign stylesheet excluded",
+      "pass": true
+    },
+    {
+      "name": "layer removal reveals target",
+      "pass": true
+    },
+    {
+      "name": "nested target outcome",
+      "pass": true
+    },
+    {
+      "name": "nested neutral visible",
+      "pass": true
+    },
+    {
+      "name": "nested foreign stylesheet excluded",
+      "pass": true
+    },
+    {
+      "name": "nested removal reveals target",
+      "pass": true
+    },
+    {
+      "name": "inactive-media target outcome",
+      "pass": true
+    },
+    {
+      "name": "inactive-media neutral visible",
+      "pass": true
+    },
+    {
+      "name": "inactive-media foreign stylesheet excluded",
+      "pass": true
+    },
+    {
+      "name": "inactive-media removal reveals target",
+      "pass": true
+    },
+    {
+      "name": "inactive-supports target outcome",
+      "pass": true
+    },
+    {
+      "name": "inactive-supports neutral visible",
+      "pass": true
+    },
+    {
+      "name": "inactive-supports foreign stylesheet excluded",
+      "pass": true
+    },
+    {
+      "name": "inactive-supports removal reveals target",
+      "pass": true
+    }
+  ],
+  "complete": true,
+  "readiness": {
+    "title": "Recovery UI fixture",
+    "url": "http://gamepadla.com:57188/start",
+    "ready": "complete",
+    "text": "Ordinary"
+  },
+  "stage": "new grouped CSS property rules only; original reference differences remain open",
+  "exit": {
+    "code": 0,
+    "signal": null
+  },
+  "requestCount": 3
+}

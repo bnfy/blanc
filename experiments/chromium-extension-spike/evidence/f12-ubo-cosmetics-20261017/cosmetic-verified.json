@@ -1,0 +1,54 @@
+{
+  "verified": true,
+  "runs": 4,
+  "pages": 8,
+  "boundedParityPassed": true,
+  "staticCss": true,
+  "hasTextMutations": true,
+  "lateConstant": true,
+  "lateFetchPrevention": true,
+  "documentStartPassed": false,
+  "documentStart": [
+    {
+      "label": "electron-a",
+      "mode": "normal",
+      "passed": false
+    },
+    {
+      "label": "electron-a",
+      "mode": "csp",
+      "passed": false
+    },
+    {
+      "label": "electron-b",
+      "mode": "normal",
+      "passed": false
+    },
+    {
+      "label": "electron-b",
+      "mode": "csp",
+      "passed": false
+    },
+    {
+      "label": "chromium-a",
+      "mode": "normal",
+      "passed": false
+    },
+    {
+      "label": "chromium-a",
+      "mode": "csp",
+      "passed": false
+    },
+    {
+      "label": "chromium-b",
+      "mode": "normal",
+      "passed": false
+    },
+    {
+      "label": "chromium-b",
+      "mode": "csp",
+      "passed": false
+    }
+  ],
+  "fullAcceptance": false
+}

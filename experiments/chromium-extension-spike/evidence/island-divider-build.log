@@ -1,0 +1,41 @@
+offline mode
+ninja: Entering directory `/Users/anthonyjloria/Projects/BlancChromium/src/out/BlancPrototype'
+
+
+workspace=/Users/anthonyjloria/Projects/BlancChromium/src dir=out/BlancPrototype
+disable fast local for non-interactive: fastlocal=1->0
+ use `--fast_local` to enable fast local with non-interactive mode
+schedule pending:1+ready:0 (node:86421 edge:2)
+build start: Ready 1 Pending 1
+rebuild manifest finished
+
+loading build.ninja... done 735.748542ms
+load siso config done 8.31975ms
+schedule pending:1+ready:0 (node:430854 edge:2)
+build start: Ready 1 Pending 1
+rebuild manifest finished
+schedule pending:1+ready:0 (node:430854 edge:9)
+build start: Ready 8179 Pending 87786
+[0/4686] 2.85s S CXX obj/chrome/browser/ui/views/frame/browser_view_tabbed_layout_impl/browser_view_tabbed_layout_impl.o
+[0/388] 6.82s F CXX obj/chrome/browser/ui/views/frame/browser_view_tabbed_layout_impl/browser_view_tabbed_layout_impl.o
+[1/388] 6.84s S SOLINK 'obj/chrome/chrome_framework_shared_library/Blanc Prototype Framework' 'obj/chrome/chrome_framework_shared_library/Blanc Prototype Framework.TOC'
+[1/388] 28.76s F SOLINK 'obj/chrome/chrome_framework_shared_library/Blanc Prototype Framework' 'obj/chrome/chrome_framework_shared_library/Blanc Prototype Framework.TOC'
+[2/80] 28.77s S COPY_BUNDLE_DATA 'obj/chrome/chrome_framework_shared_library/Blanc Prototype Framework' 'Blanc Prototype Framework.framework/Versions/156.0.8078.36/Blanc Prototype Framework'
+[2/80] 28.91s F COPY_BUNDLE_DATA 'obj/chrome/chrome_framework_shared_library/Blanc Prototype Framework' 'Blanc Prototype Framework.framework/Versions/156.0.8078.36/Blanc Prototype Framework'
+[3/78] 28.91s S ACTION //chrome:verify_chrome_framework_order(//build/toolchain/mac:clang_arm64)
+[3/78] 31.66s F ACTION //chrome:verify_chrome_framework_order(//build/toolchain/mac:clang_arm64)
+[4/55] 31.66s S COPY_BUNDLE_DATA 'Blanc Prototype Framework.framework' 'Blanc Prototype.app/Contents/Frameworks/Blanc Prototype Framework.framework'
+[4/10] 31.74s F COPY_BUNDLE_DATA 'Blanc Prototype Framework.framework' 'Blanc Prototype.app/Contents/Frameworks/Blanc Prototype Framework.framework'
+[5/9] 31.74s S ACTION //chrome:verify_libraries_chrome_app(//build/toolchain/mac:clang_arm64)
+[5/9] 31.84s F ACTION //chrome:verify_libraries_chrome_app(//build/toolchain/mac:clang_arm64)
+build finished
+
+
+noexec:2 local:4 remote:0 cache:0 skip:95959
+  cache-write:0(err:0) fallback:0 retry:0
+fs: ops: 3966(err:561) / r:566(err:0) 1.14GiB / w:2(err:0) 582.98MiB
+
+
+shutdown cloud logging/monitoring done 10.125µs
+
+32.06s Build Succeeded: 6 steps - 0.19/s

@@ -1,0 +1,21 @@
+{
+  "source": "14706b0e8d4753d2a7ef35ea32a875b516366b0d",
+  "appleSubmission": {
+    "message": "Processing complete",
+    "status": "Accepted",
+    "id": "122ace9e-196b-4f10-8986-c57854a5ee4f"
+  },
+  "oldMembersUnchanged": 462,
+  "addedMembers": [
+    "Contents/CodeResources"
+  ],
+  "finalMembers": 463,
+  "archiveSha256": "18a0c2ca240f2200fee3e8b250fbade27b7b86ec1c1dd77c21a538a6776aa8cc",
+  "archiveBytes": 243869929,
+  "notaryInputArchiveSha256": "e865e601125c64b64d0c5e8a88e554afe417c447a0fe193cff80248c76b4202a",
+  "testedPlatform": {
+    "macOS": "27.2",
+    "build": "26B118",
+    "architecture": "arm64"
+  }
+}

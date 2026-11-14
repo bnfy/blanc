@@ -1,0 +1,19 @@
+{
+  "checkedAt": "2026-10-16T13:31:38.291Z",
+  "name": "Native picker ArrowDown, ArrowUp, Enter switches target tab",
+  "result": "pass",
+  "expectedTabId": 60438640,
+  "actualTabId": 60438640,
+  "before": {
+    "input": "Blanc fixture react",
+    "active": "1\nBlanc fixture react\n127.0.0.1:18763\ntab\n↵"
+  },
+  "down": {
+    "input": "Blanc fixture react",
+    "active": "Blanc fixture react\nsearch\n↵"
+  },
+  "up": {
+    "input": "Blanc fixture react",
+    "active": "1\nBlanc fixture react\n127.0.0.1:18763\ntab\n↵"
+  }
+}

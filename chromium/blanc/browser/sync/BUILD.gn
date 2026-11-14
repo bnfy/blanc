@@ -1,0 +1,68 @@
+# Copyright 2026 Bananify Creative. MIT; see LICENSE.
+source_set("logic") {
+  sources = [ "sync_merge.cc", "sync_merge.h" ]
+}
+
+# Previously text-included by blanc_prototype_ui.cc. Shared validation has no
+# UI dependency and must be linked only once.
+source_set("favorite_helpers") {
+  sources = [ "favorite_helpers.h" ]
+  public_deps = [
+    "//base", "//chrome/browser/profiles:profile",
+    "//components/bookmarks/browser", "//components/bookmarks/common",
+    "//components/prefs", "//third_party/icu",
+  ]
+}
+
+source_set("search_validation") {
+  sources = [
+    "//blanc/browser/ui/modules/custom_template.cc",
+    "//blanc/browser/ui/modules/custom_template.h",
+    "//blanc/browser/ui/browser_api/search_choice.h",
+  ]
+  deps = [ "//base", "//net", "//url" ]
+}
+
+# UI/build-wiring callers depend on //blanc/browser/sync (not :search_validation).
+source_set("sync") {
+  sources = [
+    "desktop_sync_platform.cc",
+    "desktop_sync_platform.h",
+    "desktop_sync_service.cc",
+    "desktop_sync_service.h",
+    "runner_wait.h",
+    "desktop_sync_settings.cc",
+    "desktop_sync_settings.h",
+  ]
+  public_deps = [
+    ":favorite_helpers",
+    "//base",
+    "//blanc/services/sync_runner:browser",
+    "//chrome/browser/profiles:profile",
+    "//components/bookmarks/browser",
+    "//components/os_crypt/async/common",
+    "//components/prefs",
+  ]
+  deps = [
+    ":logic",
+    "//blanc:buildflags",
+    ":search_validation",
+    "//chrome/browser:browser_process",
+    "//chrome/browser/bookmarks",
+    "//chrome/browser/profiles",
+    "//chrome/browser/profiles:profile_manager",
+    "//chrome/browser/search_engines",
+    "//chrome/browser/themes",
+    "//components/bookmarks/common",
+    # Chromium 158 deleted //components/os_crypt/sync. OSCryptAsync provides
+    # the Keychain-compatible, thread-safe Encryptor used by SyncPlatform.
+    "//components/os_crypt/async/browser",
+    "//components/search_engines",
+    "//components/sync_device_info",
+    "//components/version_info",
+    "//content/public/browser",
+    "//services/network/public/cpp",
+    "//third_party/icu",
+    "//url",
+  ]
+}
