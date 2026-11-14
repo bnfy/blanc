@@ -8,15 +8,15 @@
 set -u
 DIR=/Users/Shared/blanc-outbound
 R=$DIR/repo/chromium
-OUT=$DIR/results-beta
+# results/ is the one folder the test user can write in (mode 1777).
+OUT=$DIR/results/beta-$(date -u +%Y%m%dT%H%M%SZ)
 CFG=$DIR/runtime-config.json
 APP="$DIR/beta/Blanc Beta.app"
 NODE=/usr/local/bin/node
 [ "$(id -un)" = blanc-test ] || { echo "Run this in the blanc-test session." >&2; exit 1; }
 [ -e "$DIR/results/pflog.txt" ] || { echo "Start the pf log first: sudo root.sh start" >&2; exit 1; }
 [ -x "$APP/Contents/MacOS/Blanc Beta" ] || { echo "No beta at $APP; run setup.sh --refresh --beta APP first." >&2; exit 1; }
-[ ! -e "$OUT" ] || { echo "$OUT exists from an earlier run; move it aside first." >&2; exit 1; }
-mkdir -p "$OUT"
+mkdir "$OUT" || { echo "Could not create $OUT." >&2; exit 1; }
 export GIT_CONFIG_COUNT=1 GIT_CONFIG_KEY_0=safe.directory GIT_CONFIG_VALUE_0=$DIR/repo
 cd "$R"
 stamp() { date -u '+%Y-%m-%dT%H:%M:%SZ'; }
@@ -29,4 +29,4 @@ run() { say "$1"; shift; caffeinate -d -i "$@"; }
 run "controls (before)" $NODE tests/outbound/controls.mjs "$CFG" "$OUT/controls-before.json"
 run "beta scenarios" $NODE tests/outbound/beta-scenarios.mjs "$APP" "$OUT" > "$OUT/beta-scenarios.log" 2>&1
 run "controls (after)" $NODE tests/outbound/controls.mjs "$CFG" "$OUT/controls-after.json"
-say "Done. Switch back and run: sudo $R/tests/outbound/root.sh stop"
+say "Done ($OUT). Switch back and run: sudo $R/tests/outbound/root.sh stop"

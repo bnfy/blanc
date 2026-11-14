@@ -731,7 +731,7 @@ the Mac is dropped and logged); in the `blanc-test` session,
 then `beta-scenarios.mjs` (startup and three minutes idle on a loopback page,
 a relaunch, a private window, about six minutes, each with Chromium's
 `--log-net-log`), then the controls again; `sudo root.sh stop`; then
-`node chromium/tests/outbound/analyze-beta.mjs /Users/Shared/blanc-outbound/results-beta`.
+`node chromium/tests/outbound/analyze-beta.mjs /Users/Shared/blanc-outbound/results/beta-<UTC time>` (the test user can write only in `results/`).
 The run is valid only if every control reaches the pf log and every network
 log names the page's unresolvable probe host; it passes only if no blocked
 packet could have come from a Blanc process and no network log names an
