@@ -200,6 +200,29 @@ Mail launch announcement (runbook in the Worker README). The form copy, the
 Worker contract and the privacy page's `#mail-waitlist` section must change
 together.
 
+**Blanc for Android beta signup (live November 14, 2026):** `/android-beta`
+(`pages/android-beta.astro`, `components/AndroidBetaForm.astro`,
+`styles/android-beta.css`) posts `{email, website}` to the same Worker's
+`/android-beta` route: a third double opt-in list under `androidbeta*` KV
+prefixes, separate from the newsletter and the Mail waitlist, deleted when
+the beta ends. The admin export is the address list for Play Console's
+closed-test testers (Worker README). The page is noindex and out of the
+sitemap; its only link on the site is the Download page's Android tab. Its
+copy may say only that Blanc for Android isn't released and a Google Play beta
+is coming (root CLAUDE.md, Blanc for Android); every sentence is in
+`docs/website-android-beta-2026-11-14-claims.json`. The form, the Worker
+contract and the privacy page's `#android-beta` section change together.
+Since Worker version 9c5131d2 (#1525), reopening a used confirmation link on
+any of the three lists shows the confirmed page instead of an error.
+
+**Measured website events:** the privacy page lists every Google event the
+site sends. Don't add a `data-track` name it doesn't list (the Android beta
+tab and form deliberately send none).
+
+**Disclaimers go just above the footer, never in a hero** (owner, November 14,
+2026): the Google measurement notice and anything like it is the last thing in
+`<main>`.
+
 **Blanc Mail survey:** `pages/mail/survey.astro` and
 `components/MailSurveyForm.astro` post anonymous answers to the separate
 `blanc-mail-survey` Worker (`cloudflare/mail-survey-worker/`), which keeps no
@@ -297,13 +320,19 @@ changelog refresh is also when a shipped command comes off it.
 
 **Download page (`/download`, reimagined November 14, 2026):** the owner
 asked for far fewer words. One button for the visitor's system sits under a
-Mac / Windows / Linux / iPhone segmented control (radios that switch the
-panels in CSS, so it works without scripting; `src/scripts/download-switcher.js`
-only preselects the system). Below come three tiles (Blanc Beta first, in dark
+Mac / Windows / Linux / iPhone / Android segmented control (radios that switch
+the panels in CSS, so it works without scripting; `src/scripts/download-switcher.js`
+only preselects the system, Android included). The Android tab leads only to
+the beta signup until Blanc for Android is released. Below come three tiles (Blanc Beta first, in dark
 ink; iPhone and iPad; Homebrew) and one line of facts. Keep every `/dl/*`
 link, the `#download-options` anchor the rest of the site links to, the
-measurement disclosure before the tiles, the phone note and the iCloud
-Keychain limitation. Every piece of text is recorded in
+measurement disclosure at the end of the page, and the extensions and iCloud
+Keychain limitation, scoped to the regular Blanc release (Blanc 1.49 today),
+because Blanc Beta shares the page and its ledger records neither. The
+"On a phone or tablet?" box was removed on November 14, 2026: the tabs open
+on iPhone or Android for phone visitors. Install lines under each button use
+one face and size, the spec dimmed, the step in full ink, with a short gold
+rule between them. Every piece of text is recorded in
 `docs/website-download-redesign-2026-11-14-claims.json` (the beta tile in
 `docs/website-blanc-beta-<version>-claims.json`), and
 `test/unit/site-download-page.test.js` fails on any unrecorded text; large
