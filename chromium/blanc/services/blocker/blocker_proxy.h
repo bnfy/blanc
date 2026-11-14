@@ -28,6 +28,11 @@ int ShieldBlockedCount(content::WebContents* contents);
 // Requires the preview build and explicit --blanc-test. Seeds the real counter.
 bool SeedShieldBlockedCountForTesting(content::WebContents* contents, int count);
 void AddNavigationResponseGate(content::NavigationThrottleRegistry& registry);
+// The browser UI's own navigation check (utility pages open in the sheet,
+// never a tab). Set once an Island window exists; this module can't depend
+// on the UI, so the UI hands it in. Desktop only.
+using UiNavigationGate = void (*)(content::NavigationThrottleRegistry& registry);
+void SetUiNavigationGate(UiNavigationGate gate);
 std::unique_ptr<content::CommitDeferringCondition> MaybeCreateActivationGate(
     content::NavigationHandle& navigation,
     content::CommitDeferringCondition::NavigationType type);

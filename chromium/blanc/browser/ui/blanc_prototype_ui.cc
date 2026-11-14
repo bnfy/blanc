@@ -275,6 +275,8 @@
 #include "components/viz/common/frame_sinks/copy_output_result.h"
 #include "content/public/browser/navigation_controller.h"
 #include "content/public/browser/navigation_handle.h"
+#include "content/public/browser/navigation_throttle.h"
+#include "content/public/browser/navigation_throttle_registry.h"
 #include "content/public/browser/render_frame_host.h"
 #include "content/public/browser/render_process_host.h"
 #include "content/public/browser/child_process_security_policy.h"
@@ -1094,6 +1096,58 @@ void InitializeMiniShortcut();
 void ForgetMiniWindow(BrowserWindowInterface* browser);
 void MiniWindowFocusChanged(BrowserWindowInterface* browser);
 
+// Which sheet page (and section) a chrome:// address is, if any: shipping's
+// utility pages (isUtilityUrl) never open as tabs.
+std::optional<std::pair<std::string, std::string>> UtilityPageFor(const GURL& url) {
+  if (!url.SchemeIs(content::kChromeUIScheme)) return std::nullopt;
+  const std::string host(url.host());
+  if (host == "settings") {
+    const bool top = url.path().empty() || url.path() == "/";
+    return std::make_pair(host, top && !url.has_ref() ? std::string() : url.spec());
+  }
+  if (host == "downloads" || host == "bookmarks" || host == "history") return std::make_pair(host, std::string());
+  return std::nullopt;
+}
+
+namespace {
+// A tab in an Island window that starts loading a utility page shows it in
+// the sheet instead, from wherever the load came (the address field, a
+// Favorite, Chromium's own "Manage" links, a restored entry). A tab opened
+// only for that page closes; any other stays where it was.
+class UtilityPageGate : public content::NavigationThrottle {
+ public:
+  explicit UtilityPageGate(content::NavigationThrottleRegistry& registry)
+      : content::NavigationThrottle(registry) {}
+  const char* GetNameForLogging() override { return "BlancUtilityPageGate"; }
+  ThrottleCheckResult WillStartRequest() override { return Check(); }
+  ThrottleCheckResult WillRedirectRequest() override { return Check(); }
+
+ private:
+  ThrottleCheckResult Check() {
+    const auto page = UtilityPageFor(navigation_handle()->GetURL());
+    if (!page) return PROCEED;
+    auto* contents = navigation_handle()->GetWebContents();
+    auto* browser = GlobalBrowserCollection::GetInstance()->FindBrowserWithTab(contents);
+    if (!browser || !IsIslandWindow(browser) || !OpenUtilitySheet(browser, page->first, page->second)) return PROCEED;
+    if (contents->GetController().IsInitialNavigation()) {
+      base::SequencedTaskRunner::GetCurrentDefault()->PostTask(FROM_HERE, base::BindOnce(
+          [](base::WeakPtr<content::WebContents> tab) {
+            if (!tab) return;
+            auto* window = GlobalBrowserCollection::GetInstance()->FindBrowserWithTab(tab.get());
+            if (!window) return;
+            auto* model = window->GetTabStripModel();
+            const int index = model->GetIndexOfWebContents(tab.get());
+            if (index != TabStripModel::kNoTab && model->count() > 1) model->CloseWebContentsAt(index, TabCloseTypes::CLOSE_NONE);
+          }, contents->GetWeakPtr()));
+    }
+    return CANCEL_AND_IGNORE;
+  }
+};
+}  // namespace
+void AddUtilityPageGate(content::NavigationThrottleRegistry& registry) {
+  if (registry.GetNavigationHandle().IsInPrimaryMainFrame() && UtilityPageFor(registry.GetNavigationHandle().GetURL()))
+    registry.AddThrottle(std::make_unique<UtilityPageGate>(registry));
+}
 class Owner;
 // Auto-hide (island_autohide_controller.inc).
 void AutoHidePageMove(Owner* owner, const blink::WebInputEvent& event);
@@ -1151,6 +1205,7 @@ class Owner : public base::SupportsUserData::Data,
   std::string space_transaction;
   std::optional<base::DictValue> space_expected;
   explicit Owner(BrowserWindowInterface* value) : browser(value) {
+    blanc::SetUiNavigationGate(&AddUtilityPageGate);
     ObserveLinkRouteProfiles();
     InitializeMiniShortcut();
 #if BUILDFLAG(IS_MAC)
@@ -2790,6 +2845,13 @@ bool InSettingsSheet(const GURL& url) {
 // Sections shipping's Settings opens, and Chromium's own pages, by name.
 std::optional<GURL> SettingsSheetURL(std::string_view section) {
   if (section == "sync-pair") return GURL("chrome://settings/sync#pair");
+  // A Settings address a tab was about to load (UtilityPageGate) opens the
+  // sheet at that same page.
+  if (section.starts_with("chrome://settings/")) {
+    const GURL url{std::string(section)};
+    if (url.is_valid() && InSettingsSheet(url)) return url;
+    return std::nullopt;
+  }
   if (section.empty() || section == "general") return GURL("chrome://settings/");
   static constexpr std::pair<std::string_view, std::string_view> kSections[] = {
       {"blocking", "privacy"}, {"search", "search"}, {"sync", "sync"},
@@ -10925,11 +10987,9 @@ class Handler : public content::WebUIMessageHandler, public extensions::Extensio
       // Utility pages open in the sheet, and re-invoking the shown one closes
       // it (shipping's createTab routes them through showUtilityPage).
       if (!make_private) {
-        for (const char* page : {"settings", "downloads", "bookmarks", "history"}) {
-          if (url == GURL(std::string("chrome://") + page + "/") && OpenUtilitySheet(browser, page)) {
-            reply(true, base::Value(base::DictValue().Set("status", "sheet")));
-            return;
-          }
+        if (const auto page = UtilityPageFor(url); page && OpenUtilitySheet(browser, page->first, page->second)) {
+          reply(true, base::Value(base::DictValue().Set("status", "sheet")));
+          return;
         }
       }
       auto* returned = make_private ? NewPrivateTab(browser, url) : chrome::AddAndReturnTabAt(browser, url, -1, true);
@@ -13117,7 +13177,7 @@ bool OpenExtensions(BrowserWindowInterface* browser) {
 
 #include "blanc/browser/ui/permission_prompt.inc"
 
-bool OpenUtilitySheet(BrowserWindowInterface* browser, std::string_view page) {
+bool OpenUtilitySheet(BrowserWindowInterface* browser, std::string_view page, std::string_view section) {
   // The Start Page's Patron invitation opens Settings at its checkout row.
   // About and the Patron invitation open Settings at its About section.
   const bool patron = page == "patron" || page == "about";
@@ -13131,12 +13191,19 @@ bool OpenUtilitySheet(BrowserWindowInterface* browser, std::string_view page) {
   auto* contents = view->GetWebContents();
   if (contents->GetLastCommittedURL() != GURL("chrome://blanc-prototype/host.html") ||
       !contents->GetPrimaryMainFrame()->IsRenderFrameLive()) return false;
-  contents->GetPrimaryMainFrame()->ExecuteJavaScript(
-      patron ? std::u16string(u"window.BlancPrototypeHost?.openSheet('settings','help')")
-             : u"window.BlancPrototypeHost?.openSheet('" + base::ASCIIToUTF16(page) + u"')",
-      base::NullCallback());
+  std::string call;
+  if (patron) {
+    call = "window.BlancPrototypeHost?.openSheet('settings','help')";
+  } else {
+    // JSON quotes the page and section as script string literals.
+    call = "window.BlancPrototypeHost?.openSheet(" + base::WriteJson(base::Value(std::string(page))).value_or("''");
+    if (!section.empty()) call += "," + base::WriteJson(base::Value(std::string(section))).value_or("''");
+    call += ")";
+  }
+  contents->GetPrimaryMainFrame()->ExecuteJavaScript(base::UTF8ToUTF16(call), base::NullCallback());
   return true;
 }
+
 
 bool ToggleFavoriteFromIsland(BrowserWindowInterface* browser) {
   if (!IsIslandWindow(browser)) return false;

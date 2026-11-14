@@ -932,6 +932,18 @@ remain pending. D3 beta-only no-DRM exception accepted; EME notice/handoff requi
   16 px at 1000 × 760; it fits at 1280 × 800 and larger, in every
   wallpaper mode). native-start-widgets 8/8; newtab-layouts 24/25 (:21 as
   before).
+- **Utility pages never open as tabs (owner, 2026-11-14):** a Settings page
+  could open as an ordinary tab (only the exact `chrome://settings/` went to
+  the sheet), showing Chromium's blue Settings icon in the Island. Now any
+  `chrome://settings/...` (opening the sheet at that page), Downloads,
+  Favorites or History load in a tab of an Island window opens the sheet
+  instead (a navigation check handed to the blocker's throttle hook by the
+  UI, `UtilityPageGate`); a tab opened only for it closes, an existing tab
+  keeps its page. Typed `blanc://settings[/section]`, `blanc://downloads`,
+  `blanc://bookmarks`/`favorites` and `blanc://history` open the sheet as in
+  shipping (they did nothing before). `native-utility-sheet.mjs` 3/3 twice;
+  internal-pages :17–:66 and settings-and-theming :29 pass; beta Sync check
+  still passes on the rebuilt beta.
 - **Desktop Sync on the local beta (2026-11-14):** `chromium/tests/beta-sync.mjs`
   drives the beta's Settings → Sync (no test hooks) against the local
   Worker on its fixed loopback endpoint: Sync turns on, an independent
@@ -2922,5 +2934,5 @@ Android's Bar A counts the shared scenarios bound in `chromium/tests/android/acc
 
 Legacy macOS stages come from the approved spec; they await verification on the canonical candidate. No legacy stage counts as Verified.
 
-Candidate identities: macOS: macos-19f01f5928ac8fab; Windows: none; Linux: none; Android: android-arm64-7bd35e94ef746069.
+Candidate identities: macOS: macos-c38dc309aaefdebe; Windows: none; Linux: none; Android: android-arm64-7bd35e94ef746069.
 <!-- END GENERATED PROGRESS -->

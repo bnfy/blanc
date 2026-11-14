@@ -1166,10 +1166,15 @@ void AddLocalFileGate(content::NavigationThrottleRegistry& registry) {
 }
 }  // namespace
 #endif
+namespace {
+UiNavigationGate g_ui_navigation_gate = nullptr;
+}  // namespace
+void SetUiNavigationGate(UiNavigationGate gate) { g_ui_navigation_gate = gate; }
 void AddNavigationResponseGate(content::NavigationThrottleRegistry& registry) {
 #if !BUILDFLAG(IS_ANDROID)
   // Local HTML files (N15) are gated whether or not the blocker is running.
   AddLocalFileGate(registry);
+  if (g_ui_navigation_gate) g_ui_navigation_gate(registry);
 #endif
   if (!BlockerAvailable()) return;
 #if BLANC_RESEARCH_HOOKS
