@@ -869,6 +869,35 @@ and `/dl/beta` (#1511, #1512; blanc-ping version `62dc6a5a`), and the hosted
 smoke check passed all six checks (run 43561295021, `check_feed=true`). Still
 owed: the first signed Sparkle handoff, beta.2 to beta.3.
 
+### Blanc Beta 2.0.0-beta.3 (2026-11-14)
+
+Published at 07:16 UTC as a GitHub pre-release, not latest:
+<https://github.com/bnfy/blanc/releases/tag/chromium-beta-2.0.0-beta.3>, tag at
+`c3a3bc898`, candidate `macos-39d309c3cba37076`, DMG SHA-256
+`a31422ed7f63b4664e03906406827491bae91f513e9ea76abcaad63791bedb57`, nine assets.
+It carries the Sync lockout fix and Safe Browsing off by default (patch 0079).
+The owner never touched the Mac Studio: every `release.mjs` stage ran from
+the MacBook Pro, through `chromium/release/owner/remote/beta3-*.command`
+calling the Mac Studio's `beta3-*.command` over SSH, with the notarization
+values and the update key read from 1Password on the MacBook Pro and sent as
+SSH environment (`chromium/release/owner/README.md`). Gates: 11 passed
+(acceptance and desktop Sync by the targeted decision above, notices and
+credits, blocker payload, outbound isolation, profile coexistence, Touch ID
+passkeys on the notarized app, test hooks absent, the update proof carried
+from beta.2, native signature, Gatekeeper) and 2 waived (no-drm-handoff,
+production-sync-real-device). The outbound check passed only after Safe
+Browsing was turned off and Adobe Creative Cloud was quit for the run (its
+traffic was attributed to the beta's test user). What cost time: the SBOM
+was built before the descriptor's source commit was rebound, so `manifest`
+refused it until it was rebuilt; the first DMG stage failed because the SSH
+session couldn't reach the login keychain (the notarize wrapper now unlocks
+it); `gh` wasn't on the SSH search path for `draft`. After publication the
+website PR shipped the feed, the Download page tile and `/dl/beta` (#1518;
+blanc-ping version `9d4bd37d`), and blanc.day's feed equals the release
+appcast byte for byte. Still owed: the hosted smoke check (it runs from
+`main`, which needs this record and beta.3's `GATE_WAIVERS` first) and the
+first signed Sparkle handoff, beta.2 to beta.3, from an installed beta.2.
+
 ### Runbook for the next beta: lessons from beta.2 (2026-11-14)
 
 Beta.2 shipped, but cost hours on things that are now known. Do the next beta
@@ -1082,3 +1111,48 @@ the MacBook Pro that connects over SSH. Each item says what went wrong first.
   hosted smoke check runs the verifier from the dispatching commit, not the
   tag, because the tag's verifier predates this rule. The Touch ID passkey
   gate passed on this notarized build (owner, 2026-11-14).
+
+### Owner gate decisions for beta.3 (2026-11-14)
+
+Beta.3 is 2.0.0-beta.3, build 3, and carries the Sync lockout fix
+(`dc054f0bf`): on beta.2, Settings → Sync could say "Could not check sync"
+until a relaunch after a long first join. Since beta.2's source
+(`058277389`) the fix is the only desktop source change. The owner decided
+these with buttons on 2026-11-14:
+
+- **arch:** Apple Silicon only again (a fresh Intel waiver in `release.json`).
+- **no-drm-handoff:** waived again. The protected-video notice moves to
+  beta.4. `GATE_WAIVERS` lists it for 2.0.0-beta.3, and the descriptor
+  carries the reason.
+- **production-sync-real-device:** runs on the notarized beta.3; not waived.
+  Your iPhone's existing Sync is joined with a code from the regular Blanc.
+- **acceptance and desktop-sync (targeted):** beta.2's full-suite equivalence
+  plus the fork unit suite at the beta.3 source. The Sync fix has its own
+  unit tests (runner always answers, lane release, Sync page). The beta's own
+  checks (blocker, hooks absent, profile, notices and credits, outbound) run
+  on the beta.3 candidate. The real-iPhone pass is the desktop Sync evidence.
+- **sparkle-N-to-N+1:** the updater is unchanged since beta.2, so beta.2's
+  local update proof counts. The first signed handoff, beta.2 → beta.3 from
+  an installed beta.2, is checked after publication.
+- **Safe Browsing off by default (found by beta.3's outbound check):** after
+  a relaunch the beta fetched Google's Safe Browsing lists
+  (`safebrowsing.googleapis.com/v5/hashLists`). Chromium's default leaves it
+  on, and the desktop spec's §6.1 "default-off Google traffic" gate forbids
+  it. Beta.2's run ended before the first fetch, so the published beta.2
+  most likely does the same. The owner chose off by default, with a line in
+  beta.3's notes saying earlier betas could check those lists. Patch 0079
+  sets `safebrowsing.enabled` to false by default for every profile, so
+  Chromium neither updates the lists nor sends download checks; the Settings
+  choice stays. The outbound check runs again on the rebuilt candidate.
+- **production-sync-real-device (waived for beta.3 after it failed):** the
+  owner's real-iPhone pass on the notarized beta.3 (2026-11-14, on the
+  MacBook Pro) found two faults. The beta published itself to the account
+  with no open tabs (device `MacBook-Pro`, 0 tabs, while tabs were open), so
+  the iPhone didn't list it. Joining with a code showed no "what will sync"
+  step (possibly by design: nothing new would upload; compare with shipping).
+  The lockout fix itself passed on real hardware: after joining, Settings
+  showed Sync on, with no "Could not check sync", and kept it after a
+  relaunch. Owner: ship beta.3 with the gate waived, its notes keeping
+  beta.2's caution that Sync isn't checked end to end, and fix both faults in
+  beta.4. `GATE_WAIVERS` lists it for 2.0.0-beta.3; the reason goes in the
+  gate sources, because `release.json` was fixed before the check ran.

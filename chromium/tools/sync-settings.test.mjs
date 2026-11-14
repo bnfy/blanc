@@ -152,6 +152,21 @@ test('unknown status does not act; first-upload accept and decline wait for serv
  el.onSyncChanged_({event:'first-upload',value:{count:0},pendingFirstUpload:0});assert.equal(el.state_.pendingFirstUpload,0);
 });
 
+// beta.2: a runner timeout reported before the first status read left status unknown, and the
+// page said "Could not check sync" twice (status line and notice). An event with no status reads
+// it; a notice that only repeats the status line is not shown again.
+test('an error before any status reads the status instead of showing it unknown',{skip:!ts},async()=>{
+ const {el,state}=harness();el.state_=null;
+ state.status={...state.status,enabled:true,lastSyncedAt:1};
+ el.onSyncChanged_({event:'desktop-error',value:'runner-timeout',pendingFirstUpload:0});
+ for(let n=0;n<20&&!el.state_?.status;n++)await new Promise(resolve=>setImmediate(resolve));
+ assert.equal(el.state_?.status?.enabled,true,'status read after the error event');
+ assert.equal(el.notice_,strings.get('blancSyncCheckFailed'));
+});
+test('the status line and the notice never say the same thing twice',()=>{
+ const html=read(path.join(web,'blanc_sync_page/blanc_sync_page.html'));
+ assert.match(html,/id="syncError"[^>]*\?hidden="\$\{!this\.notice_ \|\| this\.notice_ === this\.statusText_\(\)\}"/);
+});
 test('all target Gherkin steps resolve without launching the runner',async()=>{
  const {matchStep}=await import('../tests/steps.mjs');
  const {missingAdapters}=await import('../tests/world.mjs');

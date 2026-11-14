@@ -331,10 +331,39 @@ void DesktopSyncService::Run(std::string method, std::string args, SyncCallback 
 void DesktopSyncService::ExpireRun(std::shared_ptr<SyncCallback> reply) {
   if (!*reply) return;
   timed_out_ = true;
+  // The late reply normally frees the lane. A call the runner never answers
+  // would otherwise hold it until Blanc quits, with Sync still running behind
+  // a Settings page that can only say it could not check.
+  timed_out_at_ = base::TimeTicks::Now();
+  idle_probes_ = 0;
+  ++lane_probe_id_;
+  lane_probe_.Start(FROM_HERE, base::Seconds(10), this, &DesktopSyncService::ProbeLane);
   Notify("desktop-error", "\"runner-timeout\"");
   std::move(*reply).Run(false, "runner-timeout");
   auto waiting = std::move(requests_);
   for (auto& request : waiting) std::move(request.callback).Run(false, "runner-timeout");
+}
+void DesktopSyncService::ProbeLane() {
+  if (!timed_out_ || !profile_ || failed_) { lane_probe_.Stop(); return; }
+  SetSyncPlatform(platform_.get());
+  // Only the newest probe counts: answers a stopped runner held back arrive
+  // together and are not two observations ten seconds apart.
+  SyncCall("sync.sharedStatus", "[]", base::BindOnce(
+      [](base::WeakPtr<DesktopSyncService> self, uint64_t id, bool ok, const std::string& json) {
+        if (!self || !self->timed_out_ || id != self->lane_probe_id_) return;
+        auto state = ok ? base::JSONReader::ReadDict(json, base::JSON_PARSE_RFC) : std::nullopt;
+        // No answer worth reading is no evidence: keep the lane.
+        if (!state) { self->idle_probes_ = 0; return; }
+        const bool idle = sync_merge::RunnerQueueIdle(
+            state->FindInt("waiting").value_or(-1), state->FindInt("running").value_or(-1),
+            state->FindBool("backoff").value_or(true));
+        self->idle_probes_ = idle ? self->idle_probes_ + 1 : 0;
+        if (!sync_merge::ReleaseTimedOutLane(self->idle_probes_,
+                (base::TimeTicks::Now() - self->timed_out_at_).InMillisecondsF())) return;
+        self->lane_probe_.Stop();
+        self->timed_out_ = false;
+        self->Reconcile();
+      }, weak_factory_.GetWeakPtr(), ++lane_probe_id_));
 }
 void DesktopSyncService::CheckRunTimeout(std::shared_ptr<SyncCallback> reply,
     base::TimeTicks deadline, bool may_wait_for_budget) {
@@ -877,7 +906,7 @@ void DesktopSyncService::OnEvent(const std::string& event, const std::string& js
   if (event == "favorites" || event == "settings" || event == "account") Reconcile();
 }
 void DesktopSyncService::Fail(const std::string& error) {
-  failed_ = true; running_ = false; timer_.Stop();
+  failed_ = true; running_ = false; timer_.Stop(); lane_probe_.Stop();
   Notify("desktop-error", Json(base::Value(error)));
   auto requests = std::move(requests_);
   for (auto& request : requests) std::move(request.callback).Run(false, error);
@@ -906,7 +935,7 @@ void DesktopSyncService::BookmarkModelBeingDeleted() {
 }
 void DesktopSyncService::OnProfileWillBeDestroyed(Profile*) {
   profile_observation_.Reset(); bookmark_observation_.Reset();
-  pref_changes_.RemoveAll(); timer_.Stop();
+  pref_changes_.RemoveAll(); timer_.Stop(); lane_probe_.Stop();
   profile_ = nullptr; bookmarks_ = nullptr;
   weak_factory_.InvalidateWeakPtrs();
   if (active_reply_ && *active_reply_) std::move(*active_reply_).Run(false, "profile-closed");

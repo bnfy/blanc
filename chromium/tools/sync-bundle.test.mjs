@@ -106,6 +106,30 @@ test('a call is saved before it answers', async () => {
   assert.deepEqual(saved.items.map(item => item.url), ['https://example.org/kept']);
 });
 
+// The browser holds its whole Sync lane until a call answers, so every call answers: a failure
+// after the method returned (saving, or a result JSON can't carry) is still a reply.
+test('a call answers even when saving or sending its result fails', async () => {
+  const device = peer('Answers', 'http://127.0.0.1:1');
+  const call = (method, args) => Promise.race([
+    new Promise(done => device.context.__call(method, args, (ok, value) => done({ok, value}))),
+    new Promise(done => setTimeout(() => done('never answered'), 2000)),
+  ]);
+  device.module('bookmarks').exportForSync = () => ({count: 1n});
+  const unsendable = await call('bookmarks.exportForSync', '[]');
+  assert.equal(unsendable.ok, false, JSON.stringify(unsendable));
+  const electron = device.context.__require('shim:electron');
+  const flush = electron.__flush;
+  electron.__flush = () => { throw new Error('disk full'); };
+  try {
+    const unsaved = await call('bookmarks.saveFavorite', '["https://example.org/unsaved","Unsaved"]');
+    assert.deepEqual(unsaved, {ok: false, value: 'disk full'});
+    const flushed = await call('runner.flush', '[]');
+    assert.deepEqual(flushed, {ok: false, value: 'disk full'});
+  } finally {
+    electron.__flush = flush;
+  }
+});
+
 test('Recently closed is only there with the Spaces switch on', async () => {
   const worker = await createSyncFixture();
   try {

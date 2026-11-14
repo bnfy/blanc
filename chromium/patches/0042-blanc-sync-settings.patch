@@ -327,7 +327,7 @@
 +      <p id="syncBusy" role="status" ?hidden="${!this.busy_}">
 +        ${this.state_?.status?.enabled ? '$i18n{blancSyncSyncing}' : '$i18n{blancSyncChecking}'}
 +      </p>
-+      <p id="syncError" role="alert" ?hidden="${!this.notice_}">${this.notice_}</p>
++      <p id="syncError" role="alert" ?hidden="${!this.notice_ || this.notice_ === this.statusText_()}">${this.notice_}</p>
 +      <p id="syncLastError" role="status" ?hidden="${!this.state_?.status?.lastError}">
 +        $i18n{blancSyncLastError}: ${this.state_?.status?.lastError ? this.errorText_(this.state_.status.lastError) : ''}
 +      </p>
@@ -336,7 +336,7 @@
 +</settings-section>
 --- /dev/null
 +++ b/chrome/browser/resources/settings/blanc_sync_page/blanc_sync_page.ts
-@@ -0,0 +1,365 @@
+@@ -0,0 +1,375 @@
 +// Copyright 2026 Bananify Creative. MIT; see the Blanc repository LICENSE.
 +
 +import 'chrome://resources/cr_elements/cr_button/cr_button.js';
@@ -435,6 +435,16 @@
 +
 +  private onSyncChanged_(event: BlancSyncEvent) {
 +    ++this.revision_;
++    if (event.event !== 'status' && !this.state_?.status) {
++      // An error or inventory event carries no status. Read it rather than
++      // show a status this page never knew as unknown.
++      if (event.event === 'desktop-error') {
++        this.notice_ = this.errorText_(String(event.value));
++      }
++      this.confirming_ = false;
++      void this.refresh_();
++      return;
++    }
 +    const status = event.event === 'status' ? event.value as BlancSyncStatus :
 +                                            this.state_?.status ?? null;
 +    this.state_ = {available: true, status,

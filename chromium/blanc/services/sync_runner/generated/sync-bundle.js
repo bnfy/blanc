@@ -12910,10 +12910,13 @@ const PHONE = {
   'closed.hide': closed('hide', null),
   'closed.clear': closed('clear', null, true),
 };
+// Every call answers exactly once. The browser holds its whole Sync lane until it does, so a
+// failure after the method returned (saving, or a result JSON can't carry) is a failed reply.
+const failure = error => String(error && error.message || error);
 globalThis.__call = (method, argsJson, done) => {
   // Saves every store's pending change now, so what the phone writes down as agreed is on disk.
   if (method === 'runner.flush') {
-    __require('shim:electron').__flush();
+    try { __require('shim:electron').__flush(); } catch (error) { done(false, failure(error)); return; }
     done(true, 'null');
     return;
   }
@@ -12936,8 +12939,8 @@ globalThis.__call = (method, argsJson, done) => {
   }).then(value => {
     // Android can end Blanc at any moment: what a call changed is saved before it answers.
     __require('shim:electron').__flush();
-    done(true, JSON.stringify(value === undefined ? null : value));
-  }, error => done(false, String(error && error.message || error)));
+    return JSON.stringify(value === undefined ? null : value);
+  }).then(json => done(true, json), error => done(false, failure(error)));
 };
 
 // What the phone needs to hear about. Merges count: they're how another device's change arrives.

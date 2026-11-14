@@ -15,5 +15,20 @@ inline double RunnerQueueWaitMs(int waiting, int running, double frees_at,
     return 0;
   return std::min(delay + 5000, remaining);
 }
+// A serialized call that timed out holds the lane until its late reply. A
+// call that never answers must not hold it for the life of the process, so
+// the service probes the runner while the lane is held. Nothing waiting,
+// nothing on the wire and no retry pending: an unknown count is never idle.
+inline bool RunnerQueueIdle(int waiting, int running, bool backoff) {
+  return waiting == 0 && running == 0 && !backoff;
+}
+// Only for a runner that answered the probe. One idle answer can be the gap
+// between two requests of one pass; two in a row, ten seconds apart, leave
+// nothing of the abandoned call in flight. A busy runner keeps the lane until
+// no call can still be running: the longest one is allowed four minutes.
+inline bool ReleaseTimedOutLane(int idle_probes, double held_ms) {
+  if (!std::isfinite(held_ms) || held_ms < 0) return false;
+  return idle_probes >= 2 || held_ms >= 300000;
+}
 }
 #endif
