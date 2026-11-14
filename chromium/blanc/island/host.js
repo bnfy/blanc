@@ -1150,13 +1150,16 @@
   // Shipping's calculateSpacesBounds: the 300px menu's left edge under the
   // mark, kept in the window, in a view reaching 44px past its sides and 16px
   // above it for its shadow. CSS places the menu at (44, 16) in that view.
+  // It never hangs below the strip, except with vertical tabs (shipping's
+  // spacesAnchorLimit): the mark then sits in the rail's header, which on
+  // macOS runs below the strip.
   function positionSpaces() {
     const rect = strip.contentDocument?.getElementById('pillSpace')?.getBoundingClientRect();
     const stripRect = strip.getBoundingClientRect();
     const wanted = rect ? stripRect.x + rect.x : (innerWidth - 300) / 2;
     const pill = strip.contentDocument?.getElementById('islandPill')?.getBoundingClientRect();
     const bottom = stripRect.y + Math.max(rect?.bottom ?? 0, pill?.bottom ?? 0);
-    const below = rect ? Math.min(bottom, stripH()) : stripH();
+    const below = rect ? Math.min(bottom, layout === 'vertical' ? innerHeight : stripH()) : stripH();
     const x = Math.round(Math.max(0, Math.min(wanted, innerWidth - 300))) - 44;
     const y = Math.max(0, Math.round(below + 6 - 16));
     Object.assign(overlay.style, {left: x + 'px', top: y + 'px', right: 'auto', bottom: 'auto',
