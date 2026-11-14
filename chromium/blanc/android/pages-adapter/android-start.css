@@ -113,7 +113,7 @@ html[data-platform="android"] body:not([data-layout="ledger"]) .ledger-footer {
   align-items: center;
 }
 /* Shipping's frosted band behind the footer (pages.css's .ledger-footer::before, in the wallpaper's
-   own tint, shown while something scrolls under it), carried down behind the Island. The fork's
+   own tint, shown while something scrolls under it), carried down behind an Island below it. The fork's
    photo fade (::after) stays off: it assumes a footer at the window's bottom edge. */
 html[data-platform="android"] .ledger-footer::before {
   inset: -28px 0 calc(-1 * (var(--android-island-below) + env(safe-area-inset-bottom, 0px))) 0;

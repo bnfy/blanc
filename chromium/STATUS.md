@@ -2948,8 +2948,8 @@ the iPhone's stylesheet centers the clock's box in the page, which on Android st
 low on a Pixel 10 Pro), so the adapter measures the figures from the clock's font and the stylesheet moves the
 clock by the difference. The pinned page copies moved from v1.46.0 to v1.47.1, which brings the iPhone's larger
 phone clock (30vw, capped at 120px). `pages-phone.mjs` checks the fresh install's clock and that its figures
-center on the screen. Not wired yet: the Start Page's layout for the Island along the top
-(`mobileIslandPosition`, which v1.47.1's phone script reads). Since A5b the Start Page is the desktop fork's, and
+center on the screen. The layout for the Island along the top is in the next section's Start Page (see "The
+Island along the top"). Since A5b the Start Page is the desktop fork's, and
 the clock rules above moved with it (next section).
 
 ### A5b The fork's Start Page
@@ -3014,7 +3014,7 @@ Android works (and how the iPhone will), and its choices stay on the phone, as t
   shipping's frosted band, tinted from the page's background (a Color's base for Solid and Gradient) so the
   labels read on any wallpaper. The first emulator run showed white labels lost on a cream fade over a blue
   Color wallpaper; this replaced it.
-- **Not yet:** the Island along the top on the Start Page, and a Settings row that opens Customize while several Blanc windows are open opens
+- **Not yet:** a Settings row that opens Customize while several Blanc windows are open opens
   it in each. The fork's all-language catalog (about 1 MB) loads with every Start Page.
 
 | A5b gate | Result | Evidence (`~/blanc-evidence/android/a5b/`) |
@@ -3055,6 +3055,24 @@ The first relaunch run failed every choice: the check stopped the app at once, b
 preferences. Each change is now written at once (`CommitPendingWrite`, as the fork does), and the check leaves
 Blanc for the home screen before stopping it, as a person would. The setters had worked all along (checked by
 hand over DevTools); the check now also fails if saving itself fails.
+
+### The Island along the top on the Start Page
+
+Settings → Island position offers Top, as on the iPhone, and the Start Page now makes room for it there:
+the header moves below the Island and the footer, Customize, the clock's settings and the long press's menu
+drop to the bottom edge it left. Each of those moves by the Island's height, the iPhone's own rule
+(`ios-start-page.css`'s top block), through two variables in `android-start.css`
+(`--android-island-above` and `--android-island-below`), so the two layouts can't drift apart.
+
+- **Where the page learns it:** `android-start.js` asks (`blancAndroidIsland`), and `blanc_pages_ui.cc`
+  answers from the setting itself, read through `IslandPositionBridge.java`
+  (`browser/island_position_bridge.cc`, built in the Island's linked bridge target so no new patch is
+  needed). The setting stays only in the app's preferences.
+- **No jump on open:** the page keeps the last answer in its own storage and lays out for it before the
+  answer comes. A Start Page opened just after the Island moved while none was open still starts from
+  the old side for a moment; private Start Pages have no stored answer and start from the bottom.
+- **Moving the Island** reloads every open Start Page in that window, as the iPhone does
+  (`IslandCoordinator.reloadStartPages`).
 
 ### Shield count across a page's commit
 
