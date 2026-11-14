@@ -740,5 +740,16 @@ outside host. For a local-qualification beta nothing outside is intended
 names its feed and release hosts with `--allow`. The network log covers
 Chromium's own requests; Sparkle and macOS frameworks are covered by the pf
 log alone. An offline dry run as the owner (2026-11-14, every host resolving
-to nothing) showed only localhost and the probe in all three logs.
+to nothing) showed only localhost and the probe in all three logs. Chromium
+resolves names itself, so the probe also appears as DNS queries the pf block
+drops; analyze-beta.mjs reads each query's name and counts the probe's as the
+probe. The first real run on the local-qualification beta (2026-11-14, run
+`beta-20261114T013208Z`) passed: all 20 controls in the pf log (the IPv6 one
+has no route on this Mac), no blocked packet a Blanc process could have sent
+beyond 14 probe lookups, and only localhost and the probe in the three network
+logs; the account's own services (Apple, Creative Cloud, OneDrive) were
+blocked and recorded as background. Evidence stays local, in
+`evidence/foundation/outbound-beta-20261114.json`. Run the beta-root.sh
+wrapper from Terminal.app, not an app's terminal panel: an app restart there
+killed the pf logger once.
 Tests: `chromium/tests/outbound-beta.test.mjs`.

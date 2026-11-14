@@ -3,7 +3,7 @@
 // could have sent was blocked and no network log names an outside host.
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {netlogHosts, judgeBeta} from './outbound/analyze-beta.mjs';
+import {netlogHosts, judgeBeta, dnsQuestion} from './outbound/analyze-beta.mjs';
 import {PROBE_HOST} from './outbound/beta-scenarios.mjs';
 
 const T = iso => Date.parse(iso);
@@ -20,6 +20,9 @@ test('network logs give their hosts, even cut short', () => {
   const log = JSON.stringify({constants: {}, events: [{params: {url: 'https://clients2.google.com/x'}}, {params: {host: 'localhost:8080'}}, {params: {url: 'http://~NOTFOUND/'}}]});
   assert.deepEqual(Object.fromEntries(netlogHosts(log)), {'clients2.google.com': 1, localhost: 1});
   assert.deepEqual(Object.fromEntries(netlogHosts(log.slice(0, -2) + ',\n')), {'clients2.google.com': 1, localhost: 1});
+  const lines = '{"constants": {},\n"events": [\n{"params":{"url":"https://a.example/"}},\n{"params":{"host":"b.example"}}]';
+  assert.deepEqual(Object.fromEntries(netlogHosts(lines + '\n')), {'a.example': 1, 'b.example': 1}, 'only the closing brace missing');
+  assert.deepEqual(Object.fromEntries(netlogHosts(lines.replace('{"params":{"host":"b.example"}}]', '{"params":{"host":"b.exa'))), {'a.example': 1}, 'cut inside an event');
   assert.throws(() => netlogHosts('not json'), /unreadable/);
 });
 
@@ -48,4 +51,15 @@ test('the beta fails on its own outside traffic and the run is invalid without i
   }
   const allowed = clean(); allowed.netlogs['startup-idle'].set('blanc.day', 1);
   assert.equal(judgeBeta({...allowed, allow: ['blanc.day']}).verdict, 'pass', 'an intended destination can be allowed by name');
+});
+
+test('DNS lookups of the probe host are the probe; any other name is the beta', () => {
+  const line = name => `2026-11-14 10:05:00.000000 rule 0/0(match): block out on en0: 192.168.1.20.50000 > 192.168.1.1.53: 4242+ A? ${name}. (40)`;
+  assert.equal(dnsQuestion(line(PROBE_HOST)), PROBE_HOST);
+  assert.equal(dnsQuestion(line('Clients2.Google.com')), 'clients2.google.com');
+  const probe = clean(); probe.pflog.push({at: T('2026-11-14T10:05:00Z'), address: '192.168.1.1', port: 53, line: line(PROBE_HOST)});
+  const report = judgeBeta(probe);
+  assert.equal(report.verdict, 'pass', report.problems.join('; ')); assert.equal(report.probeLookups, 1);
+  const other = clean(); other.pflog.push({at: T('2026-11-14T10:05:00Z'), address: '192.168.1.1', port: 53, line: line('clients2.google.com')});
+  assert.equal(judgeBeta(other).verdict, 'fail');
 });

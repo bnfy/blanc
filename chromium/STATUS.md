@@ -932,6 +932,14 @@ remain pending. D3 beta-only no-DRM exception accepted; EME notice/handoff requi
   16 px at 1000 × 760; it fits at 1280 × 800 and larger, in every
   wallpaper mode). native-start-widgets 8/8; newtab-layouts 24/25 (:21 as
   before).
+- **Outbound isolation of the packaged beta (2026-11-14):** the S1.1 harness
+  can't show what a beta contacts on its own (test hooks, proxy, background
+  networking off), so `chromium/tests/outbound/beta-scenarios.mjs` runs the
+  beta as a person does under the owner-approved pf anchor, with Chromium's
+  network log, and `analyze-beta.mjs` judges it. The local-qualification
+  beta passed: all controls logged, no blocked packet from a Blanc process
+  beyond the page probe's own DNS lookups, no outside host in any network
+  log. `beta-root.sh` is the owner's one command (start, wait, stop).
 - **Blocker payload evidence (2026-11-14):** `chromium/release/blocker-evidence.mjs`
   writes the blocker-payload gate evidence: the embedded engine is the pinned
   bundle, and with no development switch and loopback only, ordinary and

@@ -28,7 +28,10 @@ const BLANC = /^Blanc /;
 export function netlogHosts(text) {
   let data;
   const trimmed = text.trim().replace(/,\s*$/, '');
-  for (const candidate of [trimmed, trimmed + ']}', trimmed + '}]}']) {
+  // Chromium writes one event per line and closes the file at exit; a
+  // browser stopped mid-write leaves it unclosed, or cut inside an event.
+  const lastWhole = trimmed.lastIndexOf('},\n');
+  for (const candidate of [trimmed, trimmed + '}', trimmed + ']}', trimmed + '}]}', ...(lastWhole > 0 ? [trimmed.slice(0, lastWhole + 1) + ']}'] : [])]) {
     try { data = JSON.parse(candidate); break; } catch {}
   }
   if (!data) throw Error('unreadable network log');
@@ -40,6 +43,12 @@ export function netlogHosts(text) {
   };
   for (const e of data.events ?? []) for (const key of ['url', 'original_url', 'host']) add(e.params?.[key]);
   return hosts;
+}
+
+// The name a DNS query packet asks for, from tcpdump's decode
+// ("… > 192.168.1.1.53: 4242+ A? example.com. (29)").
+export function dnsQuestion(line = '') {
+  return /\.53: \d+\+?(?: \[[^\]]*\])? [A-Za-z0-9]+\? (\S+?)\.? \(/.exec(line)?.[1]?.toLowerCase() ?? null;
 }
 
 export function judgeBeta({controls, pflog, owners, run, scenarios, netlogs, allow = []}) {
@@ -56,8 +65,12 @@ export function judgeBeta({controls, pflog, owners, run, scenarios, netlogs, all
   if (!scenarios?.length) problems.push('no beta scenarios ran: the run is invalid');
   const during = p => run && p.at >= run.start && p.at <= run.end;
   const background = new Map(), blanc = new Map();
+  let probeLookups = 0;
   for (const p of pflog) {
     if (!during(p) || windows.some(([from, to]) => p.at >= from && p.at <= to)) continue;
+    // Chromium resolves names itself, so the page's probe host shows up as
+    // DNS queries the pf block drops; those are the probe, not the beta.
+    if (p.port === 53 && dnsQuestion(p.line) === PROBE_HOST) { probeLookups++; continue; }
     const {names, near} = ownersOf(owners, p.address);
     if (LOCAL.test(p.address) || (names.length && !names.some(n => BLANC.test(n)))) {
       const key = `${p.address} (${names.length ? (near ? 'near ' : '') + names.join(', ') : 'multicast or link-local'})`;
@@ -77,7 +90,7 @@ export function judgeBeta({controls, pflog, owners, run, scenarios, netlogs, all
     hosts[s.name] = Object.fromEntries(seen);
     for (const [host, count] of seen) if (!allowed.has(host)) problems.push(`${s.name}: the beta tried to reach ${host} (${count} network log entries)`);
   }
-  return {verdict: problems.length ? 'fail' : 'pass', problems, missingRoute, controls: controls.length,
+  return {verdict: problems.length ? 'fail' : 'pass', problems, missingRoute, controls: controls.length, probeLookups,
     pflogLines: pflog.length, backgroundDuringRun: Object.fromEntries(background), netlogHosts: hosts,
     allowed: [...allowed], coverage: 'Chromium network stack via its network log; everything else (Sparkle, macOS frameworks) via the pf log only'};
 }
