@@ -1,0 +1,65 @@
+{
+  "release": "2.0.0-beta.4",
+  "tag": "chromium-beta-2.0.0-beta.4",
+  "sourceCommit": "57e3109dd3c166fe1ea76caf0cc1a3b93aa54585",
+  "publicRelease": "2026-11-14",
+  "releaseUrl": "https://github.com/bnfy/blanc/releases/tag/chromium-beta-2.0.0-beta.4",
+  "releaseEvidence": "The release's own acceptance.json (11 gates passed, 2 waived by the owner) and docs/chromium-beta-release.md on chromium/next.",
+  "ownerDecisions": {
+    "approvedOn": "2026-11-14",
+    "decisions": [
+      "Show Blanc Beta on /download as the first of the page's tiles, in dark ink, right under the download (owner, 2026-11-14, with the page's reimagining); never a platform choice, so the regular Blanc stays the download.",
+      "The Download button goes to /dl/beta on the blanc-ping Worker, counted like the other /dl/* routes.",
+      "The section names both waived gates as limitations, matching the approved release notes.",
+      "Beta.3 (owner, 2026-11-14): the tile, its text and both limitations stay as for beta.2; only the release it names changes. Its release notes keep the caution that Sync isn't checked end to end.",
+      "Beta.4 (owner, 2026-11-14): the tile, its text and both limitations stay as for beta.3; only the release it names changes. Its release notes keep the caution that Sync isn't checked end to end."
+    ]
+  },
+  "page": "site/src/pages/download.astro#beta",
+  "claims": [
+    {
+      "text": "Preview",
+      "kind": "label"
+    },
+    {
+      "text": "Blanc Beta",
+      "kind": "label"
+    },
+    {
+      "text": "Blanc built directly on Chromium.",
+      "evidence": "The release is built from the fork's Chromium 158 tree (release.json chromiumVersion 158.0.8127.2); the approved release notes say the same."
+    },
+    {
+      "text": "It installs beside Blanc and never replaces it.",
+      "evidence": "Own bundle id me.bnfy.blanc.beta and Blanc Beta data folder (release.json); profile-coexistence gate passed on the notarized app; the owner's webauthn checks confirmed the Electron app and its passkeys were untouched."
+    },
+    {
+      "text": "Apple Silicon Macs · macOS 13 or later · 2.0.0-beta.4",
+      "evidence": "release.json arches [arm64] under the owner's Intel waiver (renewed for beta.4), minimumSystemVersion 13.0, version 2.0.0-beta.4."
+    },
+    {
+      "text": "Download Blanc Beta",
+      "kind": "label"
+    },
+    {
+      "text": "Not in this beta yet",
+      "kind": "label"
+    },
+    {
+      "text": "Protected video, such as Netflix or Spotify.",
+      "evidence": "Listed under 'Not in this beta yet'. The beta ships without Widevine (enable_widevine = false); the no-drm-handoff gate is waived by the owner again for beta.4 (the notice moves to beta.5)."
+    },
+    {
+      "text": "Sync checked against the live Sync service.",
+      "evidence": "Listed under 'Not in this beta yet'. production-sync-real-device is waived by the owner for beta.4: the owner's iPhone listed the first beta.4 build with its open pages, but did not list the rebuilt beta.4 once after the red button although the Sync server had its pages."
+    },
+    {
+      "text": "Intel Macs, Windows and Linux.",
+      "evidence": "Listed under 'Not in this beta yet'. The release ships arm64 only; no fork build exists for Windows or Linux."
+    },
+    {
+      "text": "Release notes",
+      "kind": "label"
+    }
+  ]
+}
