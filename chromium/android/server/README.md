@@ -34,3 +34,29 @@ and copy it into the checkout after `apply.py` (`mkdir -p blanc/android/blocker_
 file fails the build. It comes from
 `experiments/chromium-extension-spike/native/blocker/bundle.mjs`, and Blanc refuses any bytes but
 `kBlancBlockerBundleSha256` (`blanc/services/blocker/bundle_hash.h`).
+
+## Two emulators
+
+The server runs two emulators of the same AVD (`android_36_google_apis_x64`, 4 cores and 4 GB each),
+so two checks can run at once. `bash chromium/android/server/emulators.sh` starts any that aren't
+running, each in its own tmux session:
+
+| Emulator | tmux session | Data |
+| --- | --- | --- |
+| `emulator-5554` | `emulator` | Kept across runs (`--no-read-only`). |
+| `emulator-5556` | `emulator2` | Read-only: what a run changes is gone when the emulator stops. |
+
+With both running, plain `adb` refuses to guess ("more than one device"), so every check names
+its emulator with `ANDROID_SERIAL`, which adb and every script here follow:
+
+```
+ANDROID_SERIAL=emulator-5554 BLANC_EVIDENCE=~/blanc-evidence/android/run-a bash chromium/tests/android/a4-gate.sh
+ANDROID_SERIAL=emulator-5556 BLANC_EVIDENCE=~/blanc-evidence/android/run-b bash chromium/tests/android/a5a-gate.sh
+```
+
+Give each run its own evidence folder. Ports on this server follow the emulator
+(`chromium/tests/android/support/host-ports.mjs`): `emulator-5556`'s runs use every host port plus
+100 (DevTools 9433, the acceptance fixtures 8865), because adb forward and adb reverse silently take
+over a host port another run is using. A check that adds a host port takes it through `hostPort()`.
+The outbound check runs on its run's emulator, not merely the first of that AVD. Both emulators run
+the APK from the same `out/AndroidDebugX64`, so don't rebuild while either is running a check.
