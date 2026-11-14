@@ -20,10 +20,12 @@ import org.chromium.base.Callback;
 import org.chromium.base.ContextUtils;
 import org.chromium.base.supplier.NullableObservableSupplier;
 import org.chromium.blanc.settings.SettingsStore;
+import org.chromium.blanc.settings.StartPageCustomize;
 import org.chromium.build.annotations.NullMarked;
 import org.chromium.build.annotations.Nullable;
 import org.chromium.cc.mojom.RootScrollOffsetUpdateFrequency;
 import org.chromium.chrome.browser.tab.Tab;
+import org.chromium.chrome.browser.tab.TabLaunchType;
 import org.chromium.chrome.browser.tab.TabObserver;
 import org.chromium.chrome.browser.tab.TabSelectionType;
 import org.chromium.chrome.browser.tabmodel.TabModel;
@@ -33,6 +35,7 @@ import org.chromium.components.url_formatter.SchemeDisplay;
 import org.chromium.components.url_formatter.UrlFormatter;
 import org.chromium.content_public.browser.GestureListenerManager;
 import org.chromium.content_public.browser.GestureStateListener;
+import org.chromium.content_public.browser.LoadUrlParams;
 import org.chromium.content_public.browser.RenderCoordinates;
 import org.chromium.content_public.browser.WebContents;
 import org.chromium.ui.insets.InsetObserver;
@@ -474,6 +477,21 @@ public final class IslandCoordinator {
         }
     }
 
+    /**
+     * The Start Page's Customize (StartPageCustomize, from Settings or the Island menu): on this tab
+     * when it shows a Start Page, else on a new one.
+     */
+    private void openCustomize() {
+        Tab tab = mTab;
+        String here = tab == null ? null : StartPageCustomize.onTab(tab.getUrl().getSpec());
+        if (tab != null && here != null) {
+            tab.loadUrl(new LoadUrlParams(here));
+            return;
+        }
+        mSelector.openNewTab(new LoadUrlParams(StartPageCustomize.START_PAGE + StartPageCustomize.FRAGMENT),
+                TabLaunchType.FROM_CHROME_UI, null, false);
+    }
+
     private boolean onStartPage() {
         Tab tab = mTab;
         if (tab == null) return true;
@@ -531,6 +549,10 @@ public final class IslandCoordinator {
     }
 
     private void onPositionChanged(@Nullable String key) {
+        if (StartPageCustomize.KEY.equals(key)) {
+            openCustomize();
+            return;
+        }
         if (!POSITION_KEY.equals(key)) return;
         mView.animate().cancel();
         mView.setTranslationY(0);

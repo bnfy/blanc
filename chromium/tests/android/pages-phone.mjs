@@ -8,8 +8,10 @@
 //   - throw no uncaught script errors.
 // A fresh install's Start Page must also show the iPhone's first-run clock
 // (tall Roboto Flex), solid as every Android clock is, its figures at the
-// middle of the screen. Screenshots go to the evidence folder. Fails
-// closed: a page that can't be reached fails.
+// middle of the screen. The Start Page is the desktop fork's (A5b): its
+// widgets, shortcut count, clock and wallpaper must survive a relaunch, and a
+// Glass clock asked for is never saved. Screenshots go to the evidence folder.
+// Fails closed: a page that can't be reached fails.
 //
 //   node chromium/tests/android/pages-phone.mjs --apk <ChromePublic.apk> --evidence <dir>
 import fs from 'node:fs';
@@ -20,6 +22,9 @@ import {fileURLToPath} from 'node:url';
 const PACKAGE = 'me.bnfy.blanc.dev';
 const PAGES = ['newtab', 'bookmarks', 'history', 'shortcuts', 'error', 'mahjong'];
 const PHONE_LAYOUT = ['newtab', 'bookmarks', 'history', 'shortcuts'];
+// The Start Page is the desktop fork's, marked by android-start.js; the rest are shipping's, which
+// the adapter marks with the iPhone's phone layout.
+const platformOf = page => page === 'newtab' ? 'android' : 'ios';
 const LOCALES = ['en', 'de', 'es', 'fr', 'it', 'pt-BR'];
 const PORT = 9333;
 
@@ -30,7 +35,7 @@ export function pageProblems(page, locale, report) {
   // Mahjong adds its own ?game=; the page is what matters.
   if (report.url.split(/[?#]/)[0] !== `chrome://blanc/${page}.html`) problems.push(`opened ${report.url}`);
   if (!report.bridge) problems.push('no window.bowserPages');
-  if (PHONE_LAYOUT.includes(page) && report.platform !== 'ios') problems.push('not in the phone layout');
+  if (PHONE_LAYOUT.includes(page) && report.platform !== platformOf(page)) problems.push('not in the phone layout');
   if (report.lang !== locale) problems.push(`in ${report.lang || 'no language'}, not ${locale}`);
   if (report.scrollWidth > report.innerWidth) problems.push(`scrolls sideways (${report.scrollWidth} > ${report.innerWidth})`);
   for (const error of report.errors) problems.push(`script error: ${error}`);
@@ -46,6 +51,23 @@ export function clockProblems(report) {
   const problems = Object.entries(want).filter(([key, value]) => clock[key] !== value)
     .map(([key, value]) => `${key} is ${JSON.stringify(clock[key])}, not ${JSON.stringify(value)}`);
   if (glassDrawn) problems.push('the glass is drawn');
+  return problems;
+}
+
+// What the Start Page chose before a relaunch, which it must still show after it: two widgets, four
+// shortcuts, Inter at weight 600, the Color wallpaper in sky. Glass was asked for too, and the clock
+// still reads solid.
+export const CHOICES = {widgets: {favorites: true, devices: true, shortcutCount: 4},
+  clock: {font: 'inter', weight: 600, style: 'solid'}, wallpaper: {source: 'color', preset: 'sky'}};
+export function relaunchProblems(report) {
+  if (!report) return ['no Start Page data after the relaunch'];
+  const problems = [];
+  for (const [key, want] of Object.entries(CHOICES.widgets))
+    if (report.widgets?.[key] !== want) problems.push(`widgets.${key} is ${JSON.stringify(report.widgets?.[key])}, not ${want}`);
+  for (const [key, want] of Object.entries(CHOICES.clock))
+    if (report.clock?.[key] !== want) problems.push(`clock.${key} is ${JSON.stringify(report.clock?.[key])}, not ${JSON.stringify(want)}`);
+  if (report.wallpaper?.source !== CHOICES.wallpaper.source) problems.push(`wallpaper is ${JSON.stringify(report.wallpaper?.source)}, not "color"`);
+  if (report.wallpaper?.color?.preset !== CHOICES.wallpaper.preset) problems.push(`wallpaper color is ${JSON.stringify(report.wallpaper?.color?.preset)}, not "sky"`);
   return problems;
 }
 
@@ -131,6 +153,34 @@ async function main(argv) {
       ]);
       const figures = measured.timedOut ? measured : measured.result?.result?.value ?? null;
       results.push({case: 'the clock\'s figures sit at the middle of the screen', report: figures, problems: clockCenterProblems(figures)});
+      // Choose, as Customize does, then relaunch.
+      const chose = await tools.send('Runtime.evaluate', {awaitPromise: true, returnByValue: true, expression: `(async () => {
+        const start = window.bowserPages.start;
+        await start.setWidget('favorites', true);
+        await start.setWidget('devices', true);
+        await start.setShortcutCount(4);
+        await start.setClock({font: 'inter', weight: 600, style: 'glass'});
+        await start.setWallpaper('color');
+        await start.setWallpaperColor('sky');
+        return 'chosen';
+      })().catch(error => String(error))`});
+      const chosen = chose?.result?.result?.value;
+      results.push({case: 'Customize\'s choices save', problems: chosen === 'chosen' ? [] : [`saving failed: ${chosen}`]});
+      tools.close();
+    }
+    {
+      // Leave Blanc as a person does, so it writes what it holds, then end it.
+      adb('shell', 'input', 'keyevent', 'KEYCODE_HOME');
+      sleep(5);
+      adb('shell', 'am', 'force-stop', PACKAGE);
+      launch();
+      const tools = await devtools();
+      sleep(2);
+      const {result} = await tools.send('Runtime.evaluate', {returnByValue: true, awaitPromise: true, expression: `
+        window.bowserPages.start.data().then(data => ({widgets: data.widgets, clock: data.clock, wallpaper: data.wallpaper}))`});
+      fs.writeFileSync(path.join(evidence, 'relaunch.png'), execFileSync('adb', ['exec-out', 'screencap', '-p'], {maxBuffer: 64 * 1024 * 1024}));
+      const report = result?.result?.value ?? null;
+      results.push({case: 'the Start Page\'s choices survive a relaunch', report, problems: relaunchProblems(report)});
       tools.close();
     }
     for (const locale of LOCALES) {

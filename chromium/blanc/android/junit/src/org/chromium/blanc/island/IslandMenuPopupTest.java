@@ -124,11 +124,12 @@ public class IslandMenuPopupTest {
     }
 
     @Test
-    public void theStartPageShowsOnlyNewPrivateTab() {
+    public void theStartPageOffersCustomizeFirst() {
         IslandMenu.Context start = new IslandMenu.Context();
         start.startPage = true;
-        // Customize Start Page waits for Settings (A5), so it's left out, as unbuilt entries are.
-        assertEquals(List.of("New Private Tab", "Settings"), titles(IslandMenuPopup.show(mAnchor, start, mActions)));
+        // As on the iPhone; it opens the Start Page's own Customize (A5b).
+        assertEquals(List.of("Customize", "New Private Tab", "Settings"),
+                titles(IslandMenuPopup.show(mAnchor, start, mActions)));
     }
 
     @Test

@@ -8,6 +8,8 @@ import android.view.Menu;
 import android.view.View;
 import android.widget.PopupMenu;
 
+import org.chromium.base.ContextUtils;
+import org.chromium.blanc.settings.StartPageCustomize;
 import org.chromium.build.annotations.NullMarked;
 
 import java.util.EnumSet;
@@ -51,10 +53,15 @@ public final class IslandMenuPopup {
         void reload();
 
         void openSettings();
+
+        /** The Start Page's Customize (A5b), which the Island opens on hearing the ask. */
+        default void customizeStartPage() {
+            StartPageCustomize.request(ContextUtils.getAppSharedPreferences());
+        }
     }
 
     static final Set<IslandMenu.Kind> BUILT =
-            EnumSet.of(IslandMenu.Kind.BLOCKING, IslandMenu.Kind.BLOCKING_SETTINGS, IslandMenu.Kind.BLOCKING_UNAVAILABLE,
+            EnumSet.of(IslandMenu.Kind.CUSTOMIZE_START_PAGE, IslandMenu.Kind.BLOCKING, IslandMenu.Kind.BLOCKING_SETTINGS, IslandMenu.Kind.BLOCKING_UNAVAILABLE,
                     IslandMenu.Kind.FAVORITE, IslandMenu.Kind.SEND, IslandMenu.Kind.SHARE, IslandMenu.Kind.COPY_LINK,
                     IslandMenu.Kind.FIND, IslandMenu.Kind.PAGE_ZOOM, IslandMenu.Kind.DESKTOP_SITE,
                     IslandMenu.Kind.NEW_PRIVATE_TAB, IslandMenu.Kind.RELOAD, IslandMenu.Kind.SETTINGS);
@@ -107,6 +114,10 @@ public final class IslandMenuPopup {
                 case RELOAD:
                     title = context.loading ? R.string.blanc_ios_island_stop : R.string.blanc_menu_reload;
                     run = actions::reload;
+                    break;
+                case CUSTOMIZE_START_PAGE:
+                    title = R.string.blanc_newtab_customize_button;
+                    run = actions::customizeStartPage;
                     break;
                 case SETTINGS:
                     title = R.string.blanc_menu_settings;

@@ -64,6 +64,9 @@ public final class BlancSettingsScreen {
         void openUrl(String url);
 
         void openLicenses();
+
+        /** The Start Page's Customize, where its widgets, clock and wallpaper are chosen (A5b). */
+        void openStartPage();
     }
 
     /** Above every order Chromium assigns its own rows, so Blanc's sequence is the one that shows. */
@@ -202,6 +205,9 @@ public final class BlancSettingsScreen {
                     host.setBlockerEnabled((Boolean) value);
                     return true;
                 });
+                break;
+            case "blanc_start_page":
+                action(row, R.string.blanc_settings_general_cards_start_page, 0, host::openStartPage);
                 break;
             case "blanc_allowed_sites":
                 action(row, R.string.blanc_ios_settings_exceptions, 0, host::openAllowedSites);

@@ -1,13 +1,14 @@
 # Copyright 2026 Bananify Creative. MIT; see LICENSE.
 # Blanc for Android's pages, compiled into the browser: the files pages.json
-# lists, copied unchanged by tools/android-pages.mjs, and the adapter with its Start Page
-# stylesheet.
+# lists, copied unchanged by tools/android-pages.mjs (the fork's Start Page under
+# start/), the adapter, and the Start Page's phone script and stylesheet.
 pinned = read_file("//blanc/android/pages.json", "json")
 action("generate") {
   script = "//blanc/island_resources/embed.py"
   adapter = "//blanc/android/pages-adapter/android-pages-adapter.js"
-  start_css = "//blanc/android/pages-adapter/android-start-page.css"
-  inputs = [ "//blanc/android/pages.json", adapter, start_css ]
+  start_js = "//blanc/android/pages-adapter/android-start.js"
+  start_css = "//blanc/android/pages-adapter/android-start.css"
+  inputs = [ "//blanc/android/pages.json", adapter, start_js, start_css ]
   outputs = [ "$target_gen_dir/pages_resources.cc" ]
   args = [
     "--root", ".",
@@ -15,11 +16,21 @@ action("generate") {
     "--include", "blanc/android/pages_resources/pages_resources.h",
     "--namespace", "blanc::android::pages_resources",
     "--generated", "android-pages-adapter.js=" + rebase_path(adapter, root_build_dir),
-    "--generated", "android-start-page.css=" + rebase_path(start_css, root_build_dir),
+    "--generated", "android-start.js=" + rebase_path(start_js, root_build_dir),
+    "--generated", "android-start.css=" + rebase_path(start_css, root_build_dir),
   ]
   foreach(file, pinned.files) {
     inputs += [ "//blanc/android/pages/" + file ]
     args += [ "--generated", file + "=" + rebase_path("//blanc/android/pages/" + file, root_build_dir) ]
+  }
+  start = pinned.start
+  foreach(file, start.files) {
+    inputs += [ "//blanc/android/pages/start/" + file ]
+    args += [ "--generated", "start/" + file + "=" + rebase_path("//blanc/android/pages/start/" + file, root_build_dir) ]
+  }
+  foreach(alongside, start.alongside) {
+    inputs += [ "//blanc/android/pages/" + alongside.file ]
+    args += [ "--generated", alongside.file + "=" + rebase_path("//blanc/android/pages/" + alongside.file, root_build_dir) ]
   }
 }
 source_set("pages_resources") {

@@ -50,9 +50,19 @@ function rememberHiddenTopSite(key) {
 // Start Page pins live in main (start-page-pins.js), so a tab's menu and the
 // Favorites page can pin too. Every layout draws them first. A private start
 // page draws them but never changes them.
-async function loadPins() {
-  const listed = await window.bowserPages?.pins?.list?.().catch(() => null);
-  if (!Array.isArray(listed?.pins)) return false;
+async function loadPins({ propagateError = false } = {}) {
+  const epoch = window.blancPinIconsEpoch?.();
+  const listed = await window.bowserPages?.pins?.list?.().catch((error) => {
+    if (!isPrivate && window.blancPinIconsSnapshotCurrent?.(epoch)) window.blancPinIconsUnavailable?.();
+    if (propagateError) throw error;
+    return null;
+  });
+  if (!window.blancPinIconsSnapshotCurrent?.(epoch)) return false;
+  if (!Array.isArray(listed?.pins)) {
+    if (!isPrivate) window.blancPinIconsUnavailable?.();
+    return false;
+  }
+  if (!isPrivate) window.blancPinIconsAvailable?.();
   state.pinsMax = listed.max;
   if (startPins.samePins(listed.pins, state.pins)) return false;
   state.pins = listed.pins;
@@ -563,6 +573,7 @@ function groupChip(group, { withCount = false } = {}) {
   const chip = document.createElement('button');
   chip.type = 'button';
   chip.className = 'group-chip';
+  chip.dataset.groupId = group.id;
   const dots = document.createElement('span');
   dots.className = 'chip-dots';
   for (let i = 0; i < Math.min(group.count, 5); i++) dots.appendChild(document.createElement('i'));
@@ -594,7 +605,11 @@ function emptyFavoritesHint() {
 function renderLedgerFavorites() {
   const list = document.getElementById('favoritesList');
   list.replaceChildren();
-  const tiles = favoriteTilesFor(6);
+  // The Favorites widget (V24) lists up to eight, the most any old layout
+  // showed; given a size (or while being resized) it lists them all and
+  // scrolls inside its card.
+  const sized = document.getElementById('favoritesWidget')?.dataset.size !== undefined;
+  const tiles = favoriteTilesFor(sized ? 500 : 8);
   if (!tiles.length) {
     list.appendChild(emptyFavoritesHint());
     return;
@@ -609,7 +624,6 @@ function renderPinnedLayouts() {
   invalidate();
   if (state.layout === 'billboard') renderBillboard();
   if (state.layout === 'shelf') renderShelf();
-  if (state.layout === 'tally') renderTally();
   rendered.add(state.layout);
 }
 
@@ -617,34 +631,121 @@ function renderPinnedLayouts() {
 // tab, same as favorites above. Renders only when snapshots exist so the
 // ledger stays quiet otherwise. Re-rendered in place when a pull completes
 // after first paint (pages:start:remote-tabs).
+// Grouped by device (fork redesign, 2026-11-13): each device's name once,
+// with a laptop or phone glyph and its tab count; under it its tabs as
+// two-line rows, the whole title on the first line and the site under it.
+// Three tabs a device, the rest one tap away. The row keeps shipping's
+// .fav/.tile/.name/.host parts; its device is data-device.
+const REMOTE_TABS_SHOWN = 3;
+const remoteExpanded = new Set();
+function remoteDeviceKind(device) {
+  const hint = `${device.platform ?? ''} ${device.name ?? ''}`.toLowerCase();
+  return /iphone|ipad|ios|android|phone|pixel|galaxy/.test(hint) ? 'phone' : 'computer';
+}
+function remoteDeviceGlyph(kind) {
+  const ns = 'http://www.w3.org/2000/svg';
+  const svg = document.createElementNS(ns, 'svg');
+  svg.setAttribute('viewBox', '0 0 16 16');
+  svg.setAttribute('aria-hidden', 'true');
+  svg.setAttribute('class', 'remote-device-glyph');
+  const shapes = kind === 'phone'
+    ? [['rect', { x: 4.5, y: 1.75, width: 7, height: 12.5, rx: 1.8 }], ['path', { d: 'M7 11.9h2' }]]
+    : [['rect', { x: 2.5, y: 3, width: 11, height: 7.5, rx: 1.2 }], ['path', { d: 'M1 13h14' }]];
+  for (const [tag, attrs] of shapes) {
+    const node = document.createElementNS(ns, tag);
+    for (const [name, value] of Object.entries(attrs)) node.setAttribute(name, String(value));
+    svg.append(node);
+  }
+  return svg;
+}
 function renderRemote(remoteDevices) {
   const section = document.getElementById('remoteSection');
   const list = document.getElementById('remoteList');
   list.replaceChildren();
-  section.hidden = !remoteDevices?.length;
+  const devices = (remoteDevices ?? []).filter((device) => device?.tabs?.length);
+  section.hidden = !devices.length;
   if (section.hidden) return;
-  for (const device of remoteDevices) {
-    for (const t of device.tabs.slice(0, 4)) {
+  list.classList.add('remote-grouped');
+  for (const device of devices) {
+    const key = String(device.deviceId ?? device.name);
+    const group = document.createElement('div');
+    group.className = 'remote-device';
+    group.dataset.i18nIgnore = ''; // page titles, hosts and device names
+    const head = document.createElement('div');
+    head.className = 'remote-device-head';
+    const name = document.createElement('span');
+    name.className = 'remote-device-name';
+    name.textContent = device.name;
+    const count = document.createElement('span');
+    count.className = 'remote-device-count';
+    count.textContent = t('start.devices.tabs', { count: device.tabs.length });
+    head.append(remoteDeviceGlyph(remoteDeviceKind(device)), name, count);
+    const rows = document.createElement('div');
+    rows.className = 'remote-device-tabs';
+    const open = remoteExpanded.has(key);
+    const shown = open ? device.tabs : device.tabs.slice(0, REMOTE_TABS_SHOWN);
+    for (const tab of shown) {
       const row = document.createElement('a');
-      row.className = 'fav';
-      row.href = t.url;
-      const host = hostOf(t.url);
+      row.className = 'fav remote-tab';
+      row.href = tab.url;
+      row.dataset.device = device.name;
+      const host = hostOf(tab.url);
       const tile = document.createElement('span');
       tile.className = 'tile';
       // The same letter-then-icon treatment favorites get; 'synced' restricts it
       // to the inert PNG payload and skips the bookmark-clearing error path.
-      decorateTile(tile, t, { mode: 'synced' });
-      const name = document.createElement('span');
-      name.className = 'name';
-      name.textContent = t.title || t.url;
+      decorateTile(tile, tab, { mode: 'synced' });
+      const text = document.createElement('span');
+      text.className = 'remote-tab-text';
+      const title = document.createElement('span');
+      title.className = 'name';
+      title.textContent = tab.title && tab.title !== tab.url ? tab.title : host || tab.url;
       const hostEl = document.createElement('span');
       hostEl.className = 'host';
-      hostEl.textContent = `${host} · ${device.name}`;
-      row.dataset.i18nIgnore = ''; // page titles, hosts and device names
-      row.append(tile, name, hostEl);
-      list.appendChild(row);
+      hostEl.textContent = host;
+      text.append(title, hostEl);
+      row.title = tab.title || tab.url;
+      row.append(tile, text);
+      rows.append(row);
     }
+    group.append(head, rows);
+    const hidden = device.tabs.length - REMOTE_TABS_SHOWN;
+    if (hidden > 0) {
+      const more = document.createElement('button');
+      more.type = 'button';
+      more.className = 'remote-device-more';
+      more.setAttribute('aria-expanded', String(open));
+      more.textContent = open ? t('start.devices.fewer') : t('start.devices.more', { count: hidden });
+      more.addEventListener('click', () => {
+        if (open) remoteExpanded.delete(key); else remoteExpanded.add(key);
+        renderRemote(remoteDevices);
+        list.querySelector(`.remote-device:nth-child(${devices.indexOf(device) + 1}) .remote-device-more`)?.focus();
+      });
+      group.append(more);
+    }
+    list.append(group);
   }
+  remoteFade(list);
+}
+// The list scrolls inside its card when the devices outgrow the page; a soft
+// fade at the edge says there is more, and goes away at the end.
+function remoteFade(list) {
+  const more = list.scrollHeight - list.clientHeight - list.scrollTop > 2;
+  list.dataset.fadeEnd = String(more);
+  list.dataset.fadeStart = String(list.scrollTop > 2);
+}
+let remoteScrollIdle = 0;
+for (const scroller of [document.getElementById('remoteList'), document.getElementById('favoritesList')]) scroller?.addEventListener('scroll', (event) => {
+  const list = event.currentTarget;
+  remoteFade(list);
+  // The scrollbar shows while the list moves (a finger, a wheel or keys),
+  // then hides again unless the pointer is over it.
+  list.dataset.scrolling = 'true';
+  clearTimeout(remoteScrollIdle);
+  remoteScrollIdle = setTimeout(() => { list.dataset.scrolling = 'false'; }, 900);
+}, { passive: true });
+for (const list of [document.getElementById('remoteList'), document.getElementById('favoritesList')]) {
+  if (list) new ResizeObserver(() => remoteFade(list)).observe(list);
 }
 
 // Send to device (M7b): pages other devices sent here wait above Other
@@ -705,6 +806,8 @@ function renderSent(items) {
 const state = {
   layout: 'billboard',
   groups: [],
+  groupsUnavailable: false,
+  blockerStatisticsAvailable: false,
   blockedThisWeek: 0,
   blockedByDay: [0, 0, 0, 0, 0, 0, 0],
   blockedBarHeights: [0, 0, 0, 0, 0, 0, 0],
@@ -713,6 +816,7 @@ const state = {
   pinsMax: 0,
   topSites: [],
   onboarding: null,
+  widgets: { favorites: false, devices: false, chart: false, shortcuts: false },
 };
 const rendered = new Set();
 const invalidate = () => rendered.clear();
@@ -728,14 +832,65 @@ const DAY_INITIALS = weekdays('short').map((day) => day.replace(/\.$/, '').slice
 const DAY_NAMES = weekdays('long');
 const todayIndex = () => (new Date().getDay() + 6) % 7;
 
+function appendGroupFailure(container) {
+  const status = document.createElement('span');
+  status.setAttribute('role', 'status');
+  status.textContent = `${t('newtab.groups')} — ${t('shield.badge.unavailable')} `;
+  const retry = document.createElement('button');
+  retry.type = 'button'; retry.dataset.groupRetry = 'true';
+  retry.textContent = t('error.retry');
+  retry.addEventListener('click', () => window.blancRetryStartGroups?.());
+  container.append(status, retry);
+}
+function groupProjectionSignature(groups) {
+  return JSON.stringify([state.groupsUnavailable, groups]);
+}
+function renderGroupChips(name, groups) {
+  const node = document.getElementById(name);
+  const signature = groupProjectionSignature(groups);
+  if (node.dataset.groupProjectionSignature === signature) return;
+  node.replaceChildren();
+  node.hidden = !groups.length && !state.groupsUnavailable;
+  if (name === 'shGroups') node.closest('.shelf-card').hidden = !groups.length && !state.groupsUnavailable;
+  if (name === 'tlGroups') document.querySelector('.tally-label-groups').hidden = !groups.length && !state.groupsUnavailable;
+  for (const group of groups) node.appendChild(groupChip(group, { withCount: name === 'shGroups' }));
+  if (state.groupsUnavailable) appendGroupFailure(node);
+  node.dataset.groupProjectionSignature = signature;
+}
+// Update only group elements, preserving a keyboard target by stable group ID.
+window.blancApplyStartGroups = (groups, unavailable) => {
+  const same = state.groupsUnavailable === unavailable && JSON.stringify(state.groups) === JSON.stringify(groups);
+  if (same) return;
+  const containers = ['groupsList', 'bbGroups', 'shGroups', 'tlGroups'].map(id => document.getElementById(id));
+  const active = document.activeElement;
+  const within = containers.find(node => node?.contains(active));
+  const groupId = within && active?.dataset?.groupId;
+  const wasRetry = within && active?.dataset?.groupRetry === 'true';
+  state.groups = groups; state.groupsUnavailable = unavailable;
+  renderLedgerGroups(groups);
+  for (const name of ['bbGroups', 'shGroups', 'tlGroups']) renderGroupChips(name, groups);
+  if (within) {
+    const replacement = groupId && [...within.querySelectorAll('[data-group-id]')].find(x => x.dataset.groupId === groupId);
+    const retry = within.querySelector('[data-group-retry]');
+    // The group section may now be hidden (last group removed or empty
+    // recovery). Use the always-visible Start Page content as the fallback.
+    const fallback = (groupId || wasRetry) ? document.getElementById('startContent') : null;
+    const focusTarget = replacement || retry || fallback;
+    if (focusTarget) { if (focusTarget === fallback) fallback.tabIndex = -1; focusTarget.focus(); }
+  }
+};
+
 function renderLedgerGroups(groups) {
   const section = document.getElementById('groupsSection');
   const list = document.getElementById('groupsList');
+  const signature = groupProjectionSignature(groups);
+  if (list.dataset.groupProjectionSignature === signature) return;
   list.replaceChildren();
-  section.hidden = !groups.length;
+  section.hidden = !groups.length && !state.groupsUnavailable;
   for (const g of groups) {
     const row = document.createElement('button');
     row.className = 'fav group-row';
+    row.dataset.groupId = g.id;
     const cluster = document.createElement('span');
     cluster.className = 'cluster';
     for (let i = 0; i < Math.min(g.count, 5); i++) cluster.appendChild(document.createElement('i'));
@@ -751,13 +906,17 @@ function renderLedgerGroups(groups) {
     row.addEventListener('click', () => window.bowserPages.start.focusGroup(g.id));
     list.appendChild(row);
   }
+  if (state.groupsUnavailable) appendGroupFailure(list);
+  list.dataset.groupProjectionSignature = signature;
 }
 
 function renderBillboard() {
   updateClock();
+  document.getElementById('bbBlocked').hidden = !isPrivate && !state.blockerStatisticsAvailable;
   document.getElementById('bbBlocked').textContent = isPrivate
     ? t('newtab.billboard.private')
-    : t('newtab.billboard.blocked', { count: state.blockedThisWeek });
+    // The count alone (owner, 2026-11-13; fork string).
+    : t('start.billboard.blocked', { count: state.blockedThisWeek });
 
   // Empty sections disappear entirely — an empty flex row would still hold
   // its margin, leaving a silent gap where a section pretends to be.
@@ -832,14 +991,12 @@ function renderBillboard() {
     favs.appendChild(item);
   }
 
-  const groups = document.getElementById('bbGroups');
-  groups.replaceChildren();
-  groups.hidden = !state.groups.length;
-  for (const g of state.groups) groups.appendChild(groupChip(g));
+  renderGroupChips('bbGroups', state.groups);
 }
 
+const billboardSiteCount = () => state.widgets?.shortcutCount ?? (state.widgets?.shortcuts ? 12 : 6);
 function visibleBillboardSites() {
-  return startPins.billboardSites(state.pins, state.topSites, hiddenTopSites, 6);
+  return startPins.billboardSites(state.pins, state.topSites, hiddenTopSites, billboardSiteCount());
 }
 
 async function fillBillboardSites() {
@@ -847,7 +1004,7 @@ async function fillBillboardSites() {
     isPrivate ||
     !topSitesReady ||
     topSitesExhausted ||
-    visibleBillboardSites().length >= 6 ||
+    visibleBillboardSites().length >= billboardSiteCount() ||
     typeof window.bowserPages?.start?.topSites !== 'function'
   ) return;
   if (topSitesLoad) return topSitesLoad;
@@ -867,7 +1024,7 @@ async function fillBillboardSites() {
   });
   await topSitesLoad;
   renderBillboard();
-  if (visibleBillboardSites().length < 6 && !topSitesExhausted) {
+  if (visibleBillboardSites().length < billboardSiteCount() && !topSitesExhausted) {
     await fillBillboardSites();
   }
 }
@@ -885,7 +1042,7 @@ function renderShelf() {
   // The count is drawn large on its own; the words after it still agree with it.
   document.getElementById('shBlockedUnit').textContent = t('newtab.shelf.unit', { count: state.blockedThisWeek });
   // Private tabs show no blocked counts on any layout.
-  document.getElementById('shBlocked').closest('.shelf-card').hidden = isPrivate;
+  document.getElementById('shBlocked').closest('.shelf-card').hidden = isPrivate || !state.blockerStatisticsAvailable;
 
   // Pins draw here too, so the grid and its empty hint count what is drawn.
   const grid = document.getElementById('shFavorites');
@@ -913,18 +1070,15 @@ function renderShelf() {
     grid.appendChild(pinnableFavorite(b, tileLink, 'shelf-item'));
   }
 
-  const groups = document.getElementById('shGroups');
-  groups.replaceChildren();
-  // The whole "pick up where you left off" card goes, not just its chips —
-  // a labeled empty card is an empty state with copy, which the spec forbids.
-  groups.closest('.shelf-card').hidden = !state.groups.length;
-  for (const g of state.groups) groups.appendChild(groupChip(g, { withCount: true }));
+  renderGroupChips('shGroups', state.groups);
 }
 
 function renderTally() {
+  // The week's chart card is gone from the fork's Start Page (V26).
+  if (!document.getElementById('tlCount')) return;
   document.getElementById('tlCount').textContent = state.blockedThisWeek.toLocaleString(blancI18n.formatLocale());
   // Private tabs show no blocked counts; the data column goes entirely.
-  document.querySelector('.tally-right').hidden = isPrivate;
+  document.querySelector('.tally-right').hidden = isPrivate || !state.blockerStatisticsAvailable;
 
   const favs = document.getElementById('tlFavorites');
   favs.replaceChildren();
@@ -932,11 +1086,7 @@ function renderTally() {
   if (!tallyTiles.length) favs.appendChild(emptyFavoritesHint());
   for (const b of tallyTiles) favs.appendChild(pinnableFavorite(b, favRow(b), 'fav-item'));
 
-  const groups = document.getElementById('tlGroups');
-  groups.replaceChildren();
-  groups.hidden = !state.groups.length;
-  document.querySelector('.tally-label-groups').hidden = !state.groups.length;
-  for (const g of state.groups) groups.appendChild(groupChip(g));
+  renderGroupChips('tlGroups', state.groups);
 
   // Bars run oldest to newest so today lands last, under its own initial.
   const chart = document.getElementById('tlChart');
@@ -961,13 +1111,9 @@ function renderTally() {
   const peak = Math.max(...state.blockedByDay);
   const caption = document.getElementById('tlCaption');
   caption.replaceChildren();
-  if (peak > 0) {
-    caption.append(
-      t('newtab.tally.busiest', { day: DAY_NAMES[state.blockedByDay.indexOf(peak)] }),
-      document.createElement('br'),
-    );
-  }
-  caption.append(t('newtab.tally.nothingFollowed'));
+  // The busiest day alone (owner, 2026-11-13: no "nothing followed you home").
+  if (peak > 0) caption.append(t('newtab.tally.busiest', { day: DAY_NAMES[state.blockedByDay.indexOf(peak)] }));
+  caption.hidden = peak <= 0;
 }
 
 // The billboard clock ticks on the minute, and only while it is on screen.
@@ -1148,6 +1294,23 @@ async function drawClockArt() {
   const computed = getComputedStyle(clockElement);
   const shadow = art.shadowFor(rgbOf(computed.color));
   clockElement.style.setProperty('--clock-shadow', shadow);
+
+  // Optical centring (owner, 2026-11-13): the figures' ink, not their
+  // advance box, sits on the page's centre line. Measured with the same face
+  // the glass draws with (proportional figures at this exact width and
+  // weight); the row moves, so the glass and native clock move with it.
+  try {
+    const inkFamily = await art.instance(face.url, type.stretch, type.weight);
+    if (generation !== clockDrawGeneration) return;
+    const measure = document.createElement('canvas').getContext('2d');
+    measure.font = `${Math.round(type.weight)} ${parseFloat(computed.fontSize)}px ${inkFamily}`;
+    measure.letterSpacing = computed.letterSpacing === 'normal' ? '0px' : computed.letterSpacing;
+    const m = measure.measureText(clockElement.textContent);
+    const offset = (m.actualBoundingBoxRight - m.actualBoundingBoxLeft) / 2 - m.width / 2;
+    clockElement.closest('.bb-clock-row')?.style.setProperty('--clock-optical', `${(-offset).toFixed(2)}px`);
+  } catch {
+    clockElement.closest('.bb-clock-row')?.style.removeProperty('--clock-optical');
+  }
 
   const glass = clockState.style === 'glass' && !reducedTransparency.matches;
   if (globalThis.blancNativeClock?.render) {
@@ -1464,8 +1627,10 @@ document.getElementById('mahjongLink').addEventListener('auxclick', (event) => {
   window.bowserPages.start.openMahjong(true).catch(() => {});
 });
 
+// V24 (fork only): Billboard is the one layout. What Ledger, Shelf and Tally
+// showed comes back as optional widgets (applyWidgets below).
 function applyLayout(name) {
-  if (!['ledger', 'billboard', 'shelf', 'tally'].includes(name)) name = 'billboard';
+  name = 'billboard';
   state.layout = name;
   document.body.dataset.layout = name;
   presentPendingMigrationChecklistCompletion();
@@ -1476,9 +1641,6 @@ function applyLayout(name) {
     button.setAttribute('aria-pressed', String(isActive));
   }
   stopClock();
-  // The layout's CSS hides the page's own clock, not the native glass clock
-  // iOS draws over the page: the next draw takes that one down.
-  if (name !== 'billboard') scheduleClockArt();
   if (name !== 'billboard' && clockPopover.matches(':popover-open')) clockPopover.hidePopover();
   if (!rendered.has(name)) {
     if (name === 'billboard') renderBillboard();
@@ -1490,13 +1652,482 @@ function applyLayout(name) {
   if (name === 'billboard') fillBillboardSites().catch(() => {});
 }
 
-for (const button of document.querySelectorAll('[data-layout-pick]')) {
-  button.addEventListener('click', () => {
-    const pick = button.dataset.layoutPick;
-    applyLayout(pick); // instant, per the handoff — the write follows
-    window.bowserPages?.start.setLayout(pick);
+// V26 (owner, 2026-11-13): no Blocked this week widget; Billboard's line
+// under the clock always says the week's count.
+const WIDGET_NAMES = ['favorites', 'devices', 'shortcuts'];
+/** Shows the widgets that are on and sets their switches. Turning More
+ * shortcuts on or off redraws Billboard's tiles at 12 or 6. */
+function applyWidgets(widgets) {
+  const next = Object.fromEntries(WIDGET_NAMES.map((name) => [name, widgets?.[name] === true]));
+  next.shortcutCount = widgets?.shortcutCount ?? state.widgets?.shortcutCount ?? (next.shortcuts ? 12 : 6);
+  const tilesChanged = billboardSiteCount() !== next.shortcutCount;
+  next.place = widgets?.place ?? state.widgets?.place ?? { left: ['favorites', 'devices'], right: ['sent'] };
+  next.sizes = widgets?.sizes ?? state.widgets?.sizes ?? {};
+  state.widgets = next;
+  if (!cardDrag && !cardResize) placeCards(next.place);
+  applyCardSizes(next.sizes);
+  for (const section of document.querySelectorAll('#bbWidgets [data-widget]')) {
+    section.classList.toggle('widget-on', next[section.dataset.widget] === true);
+  }
+  for (const button of widgetButtons) {
+    button.setAttribute('aria-checked', String(next[button.dataset.widgetPick] === true));
+  }
+  if (!shortcutSaveTimer) showShortcutCount(next.shortcutCount);
+  updateShortcutsHint();
+  if (tilesChanged && rendered.has('billboard')) {
+    renderBillboard();
+    fillBillboardSites().catch(() => {});
+  }
+}
+
+// The cards' columns (V24): each card in its column and order, top to
+// bottom. A column with nothing showing folds away under the clock.
+const cardRails = { left: document.getElementById('bbRailLeft'), right: document.getElementById('bbRailRight') };
+const widgetMoveStatus = document.getElementById('widgetMoveStatus');
+let cardDrag = null;
+const cardShown = (card) => getComputedStyle(card).display !== 'none';
+const cardName = (card) => card.querySelector('.ledger-label')?.textContent.trim() ?? '';
+// Moves only the cards that are out of place: re-inserting one that is
+// already right would drop a pointer it holds (a resize in progress) and
+// its focus.
+function placeCards(place) {
+  for (const side of ['left', 'right']) {
+    const rail = cardRails[side];
+    let at = 0;
+    for (const name of place?.[side] ?? []) {
+      const card = document.querySelector(`.bb-widget[data-card="${name}"]`);
+      if (!card) continue;
+      if (rail.children[at] !== card) rail.insertBefore(card, rail.children[at] ?? null);
+      at += 1;
+    }
+  }
+  refreshRails();
+}
+function refreshRails() {
+  for (const rail of Object.values(cardRails)) {
+    rail.dataset.empty = String(![...rail.children].some((card) => card.matches('.bb-widget') && cardShown(card)));
+  }
+  for (const grip of document.querySelectorAll('.bb-widget-grip')) {
+    grip.setAttribute('aria-label', t('start.widgets.move', { name: cardName(grip.closest('.bb-widget')) }));
+  }
+}
+const railOrder = (rail) => [...rail.children].filter((card) => card.matches('.bb-widget')).map((card) => card.dataset.card);
+async function saveCardPlace(card) {
+  const side = card.parentElement === cardRails.right ? 'right' : 'left';
+  const shown = [...cardRails[side].children].filter((c) => c.matches('.bb-widget') && cardShown(c));
+  widgetMoveStatus.textContent = t(side === 'left' ? 'start.widgets.movedLeft' : 'start.widgets.movedRight',
+    { name: cardName(card), position: shown.indexOf(card) + 1 });
+  refreshRails();
+  try { applyWidgets(await window.bowserPages.start.setWidgetPlace(railOrder(cardRails.left), railOrder(cardRails.right))); }
+  catch { window.blancNewTabEvent('widgets'); }
+}
+// Which column and slot a point is over: the nearer column, and the slot
+// before the first shown card whose middle is below the point.
+function dropSlot(x, y) {
+  const rails = Object.entries(cardRails).map(([side, rail]) => {
+    const r = rail.getBoundingClientRect();
+    return { side, rail, distance: Math.abs(x - (r.left + r.width / 2)) };
+  }).sort((a, b) => a.distance - b.distance);
+  const { rail } = rails[0];
+  const before = [...rail.children].find((card) => card.matches('.bb-widget') && card !== cardDrag?.card &&
+    cardShown(card) && card.getBoundingClientRect().top + card.getBoundingClientRect().height / 2 > y);
+  return { rail, before: before ?? null };
+}
+const CARD_DRAG_PREVIEW = 220;
+function bindGrip(grip) {
+  grip.addEventListener('pointerdown', (event) => {
+    if (event.button !== 0 || cardDrag) return;
+    event.preventDefault();
+    const card = grip.closest('.bb-widget');
+    const r = card.getBoundingClientRect();
+    // A tall card is carried as a short preview, and its slot is as short.
+    const height = Math.min(r.height, CARD_DRAG_PREVIEW);
+    const holder = document.createElement('div');
+    holder.className = 'bb-widget-holder';
+    holder.style.height = `${height}px`;
+    card.after(holder);
+    document.body.classList.add('widget-dragging');
+    card.classList.add('dragging');
+    card.classList.toggle('drag-clipped', height < r.height);
+    Object.assign(card.style, { position: 'fixed', left: `${r.left}px`, top: `${r.top}px`, width: `${r.width}px`,
+      height: `${height}px`, zIndex: '60', pointerEvents: 'none' });
+    cardDrag = { card, holder, dx: event.clientX - r.left, dy: event.clientY - r.top };
+    grip.setPointerCapture(event.pointerId);
+  });
+  grip.addEventListener('pointermove', (event) => {
+    if (!cardDrag) return;
+    cardDrag.card.style.left = `${event.clientX - cardDrag.dx}px`;
+    cardDrag.card.style.top = `${event.clientY - cardDrag.dy}px`;
+    const { rail, before } = dropSlot(event.clientX, event.clientY);
+    if (before) rail.insertBefore(cardDrag.holder, before); else rail.appendChild(cardDrag.holder);
+  });
+  const end = () => {
+    if (!cardDrag) return;
+    const { card, holder } = cardDrag;
+    cardDrag = null;
+    holder.replaceWith(card);
+    card.classList.remove('dragging', 'drag-clipped');
+    for (const key of ['position', 'left', 'top', 'width', 'height', 'zIndex', 'pointerEvents']) card.style[key] = '';
+    document.body.classList.remove('widget-dragging');
+    saveCardPlace(card);
+  };
+  grip.addEventListener('pointerup', end);
+  grip.addEventListener('pointercancel', end);
+  // Up and Down move a card past its shown neighbours; Left and Right move
+  // it to the other column, at the same height where it can.
+  grip.addEventListener('keydown', (event) => {
+    const card = grip.closest('.bb-widget');
+    const rail = card.parentElement;
+    const shownIn = (r) => [...r.children].filter((c) => c.matches('.bb-widget') && cardShown(c));
+    const list = shownIn(rail);
+    const index = list.indexOf(card);
+    if (event.key === 'ArrowUp' && index > 0) list[index - 1].before(card);
+    else if (event.key === 'ArrowDown' && index < list.length - 1) list[index + 1].after(card);
+    else if ((event.key === 'ArrowLeft' && rail === cardRails.right) || (event.key === 'ArrowRight' && rail === cardRails.left)) {
+      const other = rail === cardRails.left ? cardRails.right : cardRails.left;
+      const target = shownIn(other)[index];
+      if (target) target.before(card); else other.appendChild(card);
+    } else return;
+    event.preventDefault();
+    grip.focus();
+    saveCardPlace(card);
   });
 }
+for (const grip of document.querySelectorAll('.bb-widget-grip')) bindGrip(grip);
+
+// Resizing a scrolling card by its bottom edge (owner, 2026-11-13): the
+// card follows the pointer or finger 1:1, past the smallest and largest
+// sizes with growing resistance; a dashed outline shows the size it will
+// take; on release it settles on the size nearest where the gesture was
+// heading (its speed projected forward), with a critically damped spring
+// that starts at the gesture's speed. The sizes are the page's fixed grid,
+// the largest the column has room for; double-click (or Delete) fits the
+// column again. Arrow keys step through the sizes.
+var CARD_SIZES = [240, 360, 480, 600, 720];
+var cardResize = null;
+var cardSpring = new Map();
+function applyCardSizes(sizes) {
+  for (const card of document.querySelectorAll('#bbWidgets .bb-widget-sizable')) {
+    if (card.dataset.resizing === 'true' || cardSpring.has(card)) continue;
+    setCardHeight(card, sizes?.[card.dataset.card] || 0);
+  }
+}
+function setCardHeight(card, px, live = false) {
+  const wasSized = card.dataset.size !== undefined;
+  if (px) {
+    card.dataset.size = live ? 'live' : String(px);
+    card.style.setProperty('--card-size', `${px}px`);
+  } else {
+    delete card.dataset.size;
+    card.style.removeProperty('--card-size');
+  }
+  // Favorites lists all its favorites once it has a size, eight otherwise.
+  if (card.id === 'favoritesWidget' && wasSized !== (card.dataset.size !== undefined)) renderLedgerFavorites();
+  if (!live) updateResizeAria(card);
+}
+// The sizes this card can take where it is: those its column has room for
+// beside the other cards (at least the smallest).
+function cardSteps(card) {
+  const rail = card.parentElement;
+  const max = parseFloat(getComputedStyle(rail).maxHeight);
+  if (!rail?.matches('.bb-rail') || !Number.isFinite(max)) return CARD_SIZES;
+  const gap = parseFloat(getComputedStyle(rail).rowGap) || 0;
+  const others = [...rail.children].filter((c) => c !== card && c.matches('.bb-widget') && cardShown(c));
+  const room = max - others.reduce((sum, c) => sum + c.getBoundingClientRect().height + gap, 0);
+  const fits = CARD_SIZES.filter((size) => size <= room);
+  return fits.length ? fits : CARD_SIZES.slice(0, 1);
+}
+const nearestStep = (steps, h) => steps.reduce((a, b) => (Math.abs(b - h) < Math.abs(a - h) ? b : a));
+function rubberband(value, min, max) {
+  const resist = (over) => (over * 200 * 0.55) / (200 + 0.55 * over);
+  return value < min ? min - resist(min - value) : value > max ? max + resist(value - max) : value;
+}
+function updateResizeAria(card) {
+  const edge = card.querySelector(':scope > .bb-widget-resize');
+  if (!edge) return;
+  const size = Number(card.dataset.size) || 0;
+  const index = CARD_SIZES.indexOf(size);
+  edge.setAttribute('aria-label', t('start.widgets.resize', { name: cardName(card) }));
+  edge.setAttribute('aria-valuemin', '0');
+  edge.setAttribute('aria-valuemax', String(CARD_SIZES.length));
+  edge.setAttribute('aria-valuenow', String(index + 1));
+  edge.setAttribute('aria-valuetext', index < 0 ? t('start.widgets.sizeAuto')
+    : t('start.widgets.size', { size: index + 1, count: CARD_SIZES.length }));
+}
+// The outline of the size a resize will settle on.
+function snapGuide(card, height) {
+  let guide = document.getElementById('cardSnapGuide');
+  if (!card) { guide?.remove(); return; }
+  if (!guide) {
+    guide = document.createElement('div');
+    guide.id = 'cardSnapGuide';
+    guide.className = 'bb-widget-snap';
+    guide.setAttribute('aria-hidden', 'true');
+    document.body.append(guide);
+  }
+  const r = card.getBoundingClientRect();
+  Object.assign(guide.style, { left: `${r.left}px`, top: `${r.top}px`, width: `${r.width}px`, height: `${height}px` });
+}
+// A critically damped spring (damping 1, response 0.3 s) from the card's
+// height now to `target`, starting at `velocity` px/s.
+function springCardTo(card, target, velocity, done) {
+  cardSpring.get(card)?.cancel();
+  const from = card.getBoundingClientRect().height;
+  if (matchMedia('(prefers-reduced-motion: reduce)').matches || Math.abs(from - target) < 0.5) {
+    setCardHeight(card, target); done?.(); return;
+  }
+  const omega = (2 * Math.PI) / 0.3;
+  const x0 = from - target;
+  const start = performance.now();
+  let frame = 0;
+  const step = (now) => {
+    const time = (now - start) / 1000;
+    const decay = Math.exp(-omega * time);
+    const x = (x0 + (velocity + omega * x0) * time) * decay;
+    const v = (velocity - omega * (velocity + omega * x0) * time) * decay;
+    if (Math.abs(x) < 0.5 && Math.abs(v) < 8) {
+      cardSpring.delete(card); setCardHeight(card, target); done?.(); return;
+    }
+    setCardHeight(card, target + x, true);
+    frame = requestAnimationFrame(step);
+  };
+  frame = requestAnimationFrame(step);
+  cardSpring.set(card, { cancel: () => { cancelAnimationFrame(frame); cardSpring.delete(card); } });
+}
+async function saveCardSize(card, size, announce = true) {
+  setCardHeight(card, size);
+  if (announce) {
+    const index = CARD_SIZES.indexOf(size);
+    widgetMoveStatus.textContent = index < 0
+      ? t('start.widgets.resizedAuto', { name: cardName(card) })
+      : t('start.widgets.resized', { name: cardName(card), size: index + 1, count: CARD_SIZES.length });
+  }
+  try { applyWidgets(await window.bowserPages.start.setWidgetSize(card.dataset.card, size)); }
+  catch { window.blancNewTabEvent('widgets'); }
+}
+function addResizeEdge(card) {
+  if (!card || card.querySelector(':scope > .bb-widget-resize')) return;
+  card.classList.add('bb-widget-sizable');
+  const edge = document.createElement('div');
+  edge.className = 'bb-widget-resize';
+  edge.setAttribute('role', 'separator');
+  edge.setAttribute('aria-orientation', 'horizontal');
+  edge.tabIndex = 0;
+  edge.append(document.createElement('span'));
+  card.append(edge);
+  updateResizeAria(card);
+  edge.addEventListener('pointerdown', (event) => {
+    if (event.button !== 0 || cardDrag || cardResize) return;
+    event.preventDefault();
+    event.stopPropagation();
+    cardSpring.get(card)?.cancel();
+    edge.setPointerCapture(event.pointerId);
+    const height = card.getBoundingClientRect().height;
+    cardResize = { card, edge, startY: event.clientY, startHeight: height, height, steps: cardSteps(card),
+      samples: [{ y: event.clientY, t: event.timeStamp }] };
+    card.dataset.resizing = 'true';
+    document.body.classList.add('widget-resizing');
+    snapGuide(card, nearestStep(cardResize.steps, height));
+  });
+  edge.addEventListener('pointermove', (event) => {
+    if (cardResize?.edge !== edge) return;
+    const { steps } = cardResize;
+    const raw = cardResize.startHeight + (event.clientY - cardResize.startY);
+    cardResize.height = rubberband(raw, steps[0], steps[steps.length - 1]);
+    setCardHeight(card, cardResize.height, true);
+    cardResize.samples.push({ y: event.clientY, t: event.timeStamp });
+    while (cardResize.samples.length > 2 && event.timeStamp - cardResize.samples[0].t > 100) cardResize.samples.shift();
+    snapGuide(card, nearestStep(steps, cardResize.height));
+  });
+  const end = (event) => {
+    if (cardResize?.edge !== edge) return;
+    const { steps, samples, height } = cardResize;
+    cardResize = null;
+    snapGuide(null);
+    document.body.classList.remove('widget-resizing');
+    const first = samples[0], last = samples[samples.length - 1];
+    // A pointer that rested before letting go carries no speed.
+    const rested = event.timeStamp - last.t > 100;
+    const velocity = !rested && last.t > first.t ? ((last.y - first.y) / (last.t - first.t)) * 1000 : 0;
+    // Where the gesture was heading (Apple's projection, deceleration .99).
+    const projected = height + (velocity / 1000) * 0.99 / (1 - 0.99);
+    const target = event.type === 'pointercancel' ? nearestStep(steps, height) : nearestStep(steps, projected);
+    springCardTo(card, target, velocity, () => {
+      delete card.dataset.resizing;
+      saveCardSize(card, target);
+    });
+  };
+  edge.addEventListener('pointerup', end);
+  edge.addEventListener('pointercancel', end);
+  edge.addEventListener('dblclick', () => saveCardSize(card, 0));
+  edge.addEventListener('keydown', (event) => {
+    const steps = cardSteps(card);
+    const now = Number(card.dataset.size) || nearestStep(steps, card.getBoundingClientRect().height);
+    const at = steps.indexOf(nearestStep(steps, now));
+    let next = null;
+    if (event.key === 'ArrowUp') next = steps[Math.max(0, at - 1)];
+    else if (event.key === 'ArrowDown') next = steps[Math.min(steps.length - 1, at + 1)];
+    else if (event.key === 'Home') next = steps[0];
+    else if (event.key === 'End') next = steps[steps.length - 1];
+    else if (event.key === 'Delete' || event.key === 'Backspace') next = 0;
+    else return;
+    event.preventDefault();
+    if (next === 0) { saveCardSize(card, 0); return; }
+    springCardTo(card, next, 0, () => saveCardSize(card, next));
+  });
+}
+addResizeEdge(document.getElementById('remoteSection'));
+addResizeEdge(document.getElementById('favoritesWidget'));
+new MutationObserver(() => { if (!cardDrag) refreshRails(); }).observe(document.getElementById('bbWidgets'),
+  { subtree: true, attributes: true, attributeFilter: ['hidden', 'class'] });
+
+const widgetButtons = [...document.querySelectorAll('[data-widget-pick]')];
+const widgetSaveStatus = document.getElementById('widgetSaveStatus');
+let widgetWritePending = false;
+for (const button of widgetButtons) {
+  button.addEventListener('click', async () => {
+    if (widgetWritePending) return;
+    const pick = button.dataset.widgetPick;
+    widgetWritePending = true;
+    widgetSaveStatus.hidden = true;
+    for (const item of widgetButtons) item.setAttribute('aria-disabled', 'true');
+    try {
+      applyWidgets(await window.bowserPages.start.setWidget(pick, state.widgets?.[pick] !== true));
+    } catch {
+      // A timeout can occur after the write: do not claim it was not saved.
+      widgetSaveStatus.textContent = t('start.widgets.unconfirmed');
+      widgetSaveStatus.hidden = false;
+    } finally {
+      widgetWritePending = false;
+      for (const item of widgetButtons) item.removeAttribute('aria-disabled');
+      // Reconcile the shared setting, including other windows' changes.
+      window.blancNewTabEvent('widgets');
+    }
+  });
+}
+
+// Shortcuts: a stepper, 1 to 12 tiles under the clock. The number changes at
+// once on each press; the choice is saved a moment after the last one, so a
+// run of presses is one write. Billboard shows only the sites it has (pins
+// and the most visited), so with fewer than the count chosen a note says how
+// many there are so far; otherwise the choice would seem to do nothing.
+var shortcutSaveTimer = 0;
+function showShortcutCount(count) {
+  const out = document.getElementById('shortcutCount');
+  if (!out) return;
+  out.textContent = String(count);
+  out.dataset.count = String(count);
+  // aria-disabled, not disabled: a disabled button would drop keyboard focus
+  // at either end. stepShortcuts already stops at 1 and 12.
+  document.getElementById('shortcutFewer').setAttribute('aria-disabled', String(count <= 1));
+  document.getElementById('shortcutMore').setAttribute('aria-disabled', String(count >= 12));
+}
+function stepShortcuts(delta) {
+  const out = document.getElementById('shortcutCount');
+  const now = Number(out?.dataset.count || billboardSiteCount());
+  const next = Math.min(12, Math.max(1, now + delta));
+  if (next === now) return;
+  showShortcutCount(next);
+  clearTimeout(shortcutSaveTimer);
+  shortcutSaveTimer = setTimeout(async () => {
+    shortcutSaveTimer = 0;
+    widgetSaveStatus.hidden = true;
+    try {
+      applyWidgets(await window.bowserPages.start.setShortcutCount(next));
+    } catch {
+      widgetSaveStatus.textContent = t('start.widgets.unconfirmed');
+      widgetSaveStatus.hidden = false;
+    } finally {
+      window.blancNewTabEvent('widgets');
+    }
+  }, 250);
+}
+document.getElementById('shortcutFewer')?.addEventListener('click', () => stepShortcuts(-1));
+document.getElementById('shortcutMore')?.addEventListener('click', () => stepShortcuts(1));
+// Arrow keys step from either button, as a stepper's do.
+document.getElementById('shortcutStepper')?.addEventListener('keydown', (event) => {
+  const delta = event.key === 'ArrowUp' || event.key === 'ArrowRight' ? 1
+    : event.key === 'ArrowDown' || event.key === 'ArrowLeft' ? -1 : 0;
+  if (!delta) return;
+  event.preventDefault();
+  stepShortcuts(delta);
+});
+// Customize never covers the clock, whose styling it changes: it takes at
+// most the room between the clock's bottom and its own button, and scrolls
+// inside if it needs more (owner, 2026-11-13).
+function fitCustomizeBelowClock() {
+  const popover = document.getElementById('customizePopover');
+  const button = document.getElementById('customizeButton');
+  if (!popover || !button) return;
+  // The clock and the line under it both stay in view.
+  const clockBottom = [document.querySelector('.bb-clock-row'), document.getElementById('bbBlocked')]
+    .map((el) => el?.getBoundingClientRect())
+    .filter((rect) => rect && rect.height > 0)
+    .reduce((bottom, rect) => Math.max(bottom, rect.bottom), 0);
+  const room = button.getBoundingClientRect().top - 10 - clockBottom - 16;
+  popover.style.maxHeight = `${Math.max(260, Math.floor(room))}px`;
+}
+document.getElementById('customizePopover')?.addEventListener('beforetoggle', (event) => {
+  if (event.newState === 'open') fitCustomizeBelowClock();
+});
+window.addEventListener('resize', () => {
+  if (document.getElementById('customizePopover')?.matches(':popover-open')) fitCustomizeBelowClock();
+});
+// The tiles wrap into centered rows of at most six, and never reach under the
+// widget columns beside the Start Page (owner, 2026-11-13): a row holds what
+// fits between them. When not even three fit, the columns go under the clock
+// as on a narrow window. The room comes from the columns' own sizes (the CSS
+// below), not from measuring them, so switching layouts can't flip it back.
+const MIN_TILES_BESIDE_COLUMNS = 3;
+function layoutShortcutRows() {
+  const grid = document.getElementById('bbFavorites');
+  const first = grid?.querySelector('.bb-site');
+  if (!grid || !first) return;
+  const gap = parseFloat(getComputedStyle(grid).columnGap) || 0;
+  const tile = first.getBoundingClientRect().width;
+  const width = document.documentElement.clientWidth;
+  let room = Infinity;
+  if (width >= 1200) {
+    // newtab-prototype.css: each column is clamp(240px, 20vw, 300px) wide at
+    // --start-edge from its side; a 24px gutter keeps tiles off it.
+    const edge = parseFloat(getComputedStyle(document.body).getPropertyValue('--start-edge')) || 24;
+    const column = Math.min(300, Math.max(240, width * 0.2));
+    const beside = side => document.querySelector(`.bb-rail[data-side="${side}"]`)?.dataset.empty === 'false';
+    const half = Math.min(beside('left') ? width / 2 - edge - column - 24 : Infinity,
+      beside('right') ? width / 2 - edge - column - 24 : Infinity);
+    room = 2 * half;
+  }
+  const fit = Math.floor((room + gap) / (tile + gap));
+  const stacked = fit < MIN_TILES_BESIDE_COLUMNS;
+  document.body.toggleAttribute('data-rails-stacked', stacked);
+  const perRow = stacked ? 6 : Math.min(6, fit);
+  grid.style.maxWidth = `${perRow * tile + (perRow - 1) * gap + 1}px`;
+}
+window.addEventListener('resize', layoutShortcutRows);
+// A column filling or emptying changes the room.
+for (const rail of document.querySelectorAll('.bb-rail'))
+  new MutationObserver(layoutShortcutRows).observe(rail, { attributes: true, attributeFilter: ['data-empty'] });
+function updateShortcutsHint() {
+  const hint = document.getElementById('shortcutsHint');
+  const grid = document.getElementById('bbFavorites');
+  if (!hint || !grid) return;
+  const count = grid.querySelectorAll('.bb-site').length;
+  const fewer = count < billboardSiteCount();
+  hint.hidden = !fewer;
+  if (fewer) hint.textContent = t('start.shortcuts.sofar', { count });
+  layoutShortcutRows();
+}
+{
+  const grid = document.getElementById('bbFavorites');
+  if (grid) new MutationObserver(updateShortcutsHint).observe(grid, { childList: true, subtree: true });
+}
+
+const clockReadStatus = document.getElementById('clockReadStatus');
+document.addEventListener('blancClockReadFailure', () => {
+  clockReadStatus.textContent = t('start.clock.readFailed');
+  clockReadStatus.hidden = false;
+});
+document.addEventListener('blancClockReadSuccess', () => { clockReadStatus.hidden = true; });
 
 // Customize: the native popover owns opening, Escape, click-outside and
 // focus return. This only mirrors its state onto the opener. Picking a layout
@@ -1516,14 +2147,14 @@ const favoritesReady = window.bowserPages?.bookmarks.list().then((items) => {
   renderLedgerFavorites();
   invalidate();
 });
-const pinsReady = loadPins().then(() => {
+const pinsReady = loadPins({ propagateError: true }).then(() => {
   renderLedgerFavorites();
   invalidate();
 });
 // Pins change from other pages too (another start page, the Favorites page,
 // a tab's menu); a notice that brings nothing new changes nothing here.
 window.bowserPages?.pins?.onChanged?.(() => {
-  loadPins().then((changed) => {
+  return loadPins().then((changed) => {
     if (changed) renderPinnedLayouts();
   }).catch(() => {});
 });
@@ -1619,13 +2250,14 @@ function renderColorControls(color) {
   customWallpaperCover.dataset.fill = paint.fill;
 }
 function renderWallpaperControls() {
+  const storeTheme = wallpaperState.source === 'web-store';
   const custom = wallpaperState.source === 'custom';
   const color = wallpaperState.source === 'color';
-  sunriseWallpaperPick.setAttribute('aria-pressed', String(!custom && !color));
+  sunriseWallpaperPick.setAttribute('aria-pressed', String(!custom && !color && !storeTheme));
   colorWallpaperPick.setAttribute('aria-pressed', String(color));
   customWallpaperToggle.setAttribute('aria-pressed', String(custom));
   // Each wallpaper shows only its own options.
-  wallpaperToggle.hidden = custom || color;
+  wallpaperToggle.hidden = custom || color || storeTheme;
   wallpaperToggle.setAttribute('aria-pressed', String(dynamicWallpaperEnabled));
   colorWallpaperOptions.hidden = !color;
   customWallpaperRow.hidden = !custom;
@@ -1642,7 +2274,7 @@ function renderWallpaperControls() {
     delete document.body.dataset.wallpaperInk;
   }
   // The cover previews whatever the Start Page shows.
-  customWallpaperCover.dataset.source = custom ? 'custom' : color ? 'color' : 'sunrise';
+  customWallpaperCover.dataset.source = custom || storeTheme ? 'custom' : color ? 'color' : 'sunrise';
   if (wallpaperState.image) customWallpaperCover.style.setProperty('--wallpaper-thumb', `url("${wallpaperState.image}")`);
   else customWallpaperCover.style.removeProperty('--wallpaper-thumb');
   const style = wallpaperState.style ?? 'auto';
@@ -1650,7 +2282,7 @@ function renderWallpaperControls() {
     button.setAttribute('aria-pressed', String(button.dataset.wallpaperStylePick === style));
   }
   // pages.css keys the forced Light/Dark colors and the Spotlight shape off this.
-  if (custom) document.body.dataset.wallpaperStyle = style;
+  if (custom || storeTheme) document.body.dataset.wallpaperStyle = style;
   else delete document.body.dataset.wallpaperStyle;
   // A status broadcast must not yank the thumb out from under a drag.
   if (!washDragging && Number.isInteger(wallpaperState.wash)) {
@@ -1664,7 +2296,7 @@ function renderWallpaperControls() {
 }
 function applyWallpaper(state) {
   if (state && typeof state === 'object') wallpaperState = state;
-  wallpaper.setSource(wallpaperState);
+  wallpaper.setSource(wallpaperState.source === 'web-store' ? { ...wallpaperState, source: wallpaperState.hasImage ? 'custom' : 'sunrise' } : wallpaperState);
   renderWallpaperControls();
   // The wallpaper can change the page's ink, and so an Automatic clock's.
   scheduleClockArt();
@@ -1673,7 +2305,7 @@ function applyDynamicWallpaper(enabled) {
   dynamicWallpaperEnabled = enabled === true;
   // The synced switch decides the artwork unless a color or this device's own
   // image shows instead.
-  if (wallpaperState.source === 'custom' || wallpaperState.source === 'color') renderWallpaperControls();
+  if (wallpaperState.source === 'custom' || wallpaperState.source === 'color' || wallpaperState.source === 'web-store') renderWallpaperControls();
   else applyWallpaper({ ...wallpaperState, source: dynamicWallpaperEnabled ? 'time-of-day' : 'sunrise' });
 }
 function showWallpaperError(code) {
@@ -1703,7 +2335,7 @@ wallpaperToggle.addEventListener('click', () => updateWallpaper(async () => {
 }));
 sunriseWallpaperPick.addEventListener('click', () => {
   showWallpaperError(null);
-  if (wallpaperState.source !== 'custom' && wallpaperState.source !== 'color') return;
+  if (wallpaperState.source !== 'custom' && wallpaperState.source !== 'color' && wallpaperState.source !== 'web-store') return;
   // Back to Sunrise, keeping whatever the time-of-day switch says.
   updateWallpaper(async () => applyWallpaper(
     await window.bowserPages.start.setWallpaper(dynamicWallpaperEnabled ? 'time-of-day' : 'sunrise')));
@@ -1752,10 +2384,6 @@ customWallpaperRemove.addEventListener('click', () => updateWallpaper(async () =
   showWallpaperError(null);
   applyWallpaper(await window.bowserPages.start.removeWallpaper());
 }));
-// Play the Sunrise when Blanc opens (#1179). Main grants it to one Start Page
-// per launch; the page draws it over the finished layout. It takes no pointer
-// input, ends at the first click or the first key the page receives (browser
-// shortcuts go to main instead), and never plays with reduced motion.
 let launchSunriseDue = false;
 function playLaunchSunrise() {
   const scene = document.getElementById('launchSunrise');
@@ -1774,7 +2402,18 @@ function playLaunchSunrise() {
   scene.hidden = false;
 }
 
-const dataReady = window.bowserPages?.start.data().then((data) => {
+function applyStartData(data) {
+  launchSunriseDue = data.launchSunrise === true;
+  // An earlier initial request may resolve after a history deletion event.
+  const currentTopSites = isPrivate || window.blancTopSitesSnapshotCurrent?.(data.__topSitesEpoch) === true;
+  const validTopSites = isPrivate || (data.__topSitesAvailable === true && currentTopSites);
+  if (!validTopSites) {
+    // Keep a newer successful projection if this older response was delayed.
+    // An invalidation already removed any ranking derived from deleted history.
+    if (currentTopSites) window.blancTopSitesUnavailable?.();
+    data = { ...data, topSites: state.topSites };
+    window.blancNewTabEvent?.('topSites');
+  }
   wallpaper.setVisible(data.wallpaperVisible === true);
   // The projection first, so the switch below cannot paint a frame the
   // projection then replaces.
@@ -1783,34 +2422,47 @@ const dataReady = window.bowserPages?.start.data().then((data) => {
   applyClock(data.clock);
   migrationChecklistUtilitySheetVisible = data.utilitySheetVisible === true;
   Object.assign(state, {
-    layout: data.layout ?? 'billboard',
-    groups: data.groups,
+    layout: 'billboard',
+    groups: data.groups ?? state.groups,
+    blockerStatisticsAvailable: data.blockerStatisticsAvailable === true,
     blockedThisWeek: data.blockedThisWeek,
     blockedByDay: data.blockedByDay ?? state.blockedByDay,
     blockedBarHeights: data.blockedBarHeights ?? state.blockedBarHeights,
     topSites: data.topSites ?? [],
     onboarding: data.onboarding ?? null,
   });
-  topSitesReady = true;
-  topSitesOffset = state.topSites.length;
-  topSitesExhausted = isPrivate || state.topSites.length < TOP_SITES_PAGE_SIZE;
+  if (validTopSites) {
+    topSitesReady = true;
+    topSitesOffset = state.topSites.length;
+    topSitesExhausted = isPrivate || state.topSites.length < TOP_SITES_PAGE_SIZE;
+  }
   renderLaunchStatus({ startup: data.startup, recovery: data.recovery, privacy: data.privacy });
   applyPatronStatus(data);
   renderMigrationChecklist(data.migrationChecklist ?? null);
-  launchSunriseDue = data.launchSunrise === true;
   if (!isPrivate) {
-    document.getElementById('footerLeft').textContent = t('newtab.footer.blocked', { count: state.blockedThisWeek });
+    const footer = document.getElementById('footerLeft');
+    footer.hidden = !state.blockerStatisticsAvailable;
+    footer.textContent = t('newtab.footer.blocked', { count: state.blockedThisWeek });
   }
   renderLedgerGroups(state.groups);
   renderRemote(data.remoteDevices);
   renderSent(data.sentItems);
   invalidate();
-});
+  applyWidgets(data.widgets);
+}
+const dataReady = window.bowserPages?.start.data().then(applyStartData);
 
-Promise.all([favoritesReady, dataReady, pinsReady]).then(() => {
-  applyLayout(state.layout);
-  // Layout changes fade in from now on; the first paint never does. The
-  // launch Sunrise starts in the same frame, over the drawn layout.
+Promise.allSettled([favoritesReady, dataReady, pinsReady]).then((results) => {
+  // A failed initial source must not permanently suppress later changes.
+  // Keep the unavailable blocker count hidden; no failed source is treated
+  // as a successful empty result.
+  try { applyLayout(state.layout); }
+  catch { console.warn('Start Page layout is unavailable'); }
+  document.dispatchEvent(new Event('blancStartDataReady'));
+  if (results[0].status === 'rejected') window.blancNewTabEvent('bookmarks');
+  if (results[1].status === 'rejected') window.blancNewTabEvent('startData');
+  if (results[2].status === 'rejected') window.blancNewTabEvent('pins');
+  // Layout changes fade in from now on; the first paint never does.
   requestAnimationFrame(() => {
     document.body.classList.add('layout-ready');
     if (launchSunriseDue) playLaunchSunrise();
@@ -1828,7 +2480,7 @@ window.bowserPages?.start.onStatus((status) => {
   if (status && 'dynamicWallpaperEnabled' in status) {
     applyDynamicWallpaper(status.dynamicWallpaperEnabled);
   }
-  if (status?.layout && status.layout !== state.layout) applyLayout(status.layout);
+  if (!widgetWritePending && status?.widgets) applyWidgets(status.widgets);
   if (status) applyPatronStatus(status);
   if (status && 'migrationChecklist' in status) {
     renderMigrationChecklist(status.migrationChecklist ?? null);
@@ -1893,3 +2545,5 @@ document.addEventListener('keydown', (e) => {
   // not something to swallow on every keystroke.
   window.bowserPages?.start.openIsland(e.key);
 });
+
+document.getElementById('storeThemeWallpaperPick').addEventListener('click', () => updateWallpaper(async () => applyWallpaper(await window.bowserPages.start.setWallpaper('web-store'))));

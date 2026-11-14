@@ -2681,8 +2681,8 @@ Chromium's Site settings, Notifications and Downloads. Ways in: `/settings`, the
 `blanc://settings` with `#sync` and `#privacy`. One Chrome-worded string (auto-revoke summary) is overridden in
 all six languages; Accessibility is left out of More because its page names Chrome.
 
-- **Not built (A5b, A5c):** Start page layout, wallpaper and clock, the default-browser row, Language, Measure
-  usage and onboarding.
+- **Not built (A5c):** the default-browser row, Language, Measure usage and onboarding. The Start Page's
+  widgets, clock and wallpaper came with A5b (below): Settings has a Start Page row that opens its Customize.
 - **Known gaps:** Chromium's own default search engine follows Blanc's choice only after Settings has been
   opened (a startup sync is a follow-up); Settings asks the sync runner for its status on every update; the
   Open-source licenses row opens Chromium's legal page, which the wording scan doesn't cover.
@@ -2767,7 +2767,67 @@ low on a Pixel 10 Pro), so the adapter measures the figures from the clock's fon
 clock by the difference. The pinned page copies moved from v1.46.0 to v1.47.1, which brings the iPhone's larger
 phone clock (30vw, capped at 120px). `pages-phone.mjs` checks the fresh install's clock and that its figures
 center on the screen. Not wired yet: the Start Page's layout for the Island along the top
-(`mobileIslandPosition`, which v1.47.1's phone script reads).
+(`mobileIslandPosition`, which v1.47.1's phone script reads). Since A5b the Start Page is the desktop fork's, and
+the clock rules above moved with it (next section).
+
+### A5b The fork's Start Page
+
+Plan: `docs/superpowers/plans/2026-11-13-android-a5b-start-page.md`. The owner's direction (November 13, 2026):
+the desktop fork's Start Page, Billboard as the one layout with widgets that can be turned on and off, is how
+Android works (and how the iPhone will), and its choices stay on the phone, as the iPhone's do.
+
+- **The page:** `chrome://blanc/newtab.html` is the fork's own page (`chromium/blanc/island/pages`), copied byte for
+  byte by `tools/android-pages.mjs` into `android/pages/start/` (`pages.json`'s `start` list; `--check` fails on
+  drift, and a test fails when the page names a file the list leaves out). The WebUI serves it with
+  `<base href="start/">`, so its scripts, styles, images and all-language catalog load from there, and puts
+  Android's `android-start.js` and `android-start.css` first. Shipping's v1.47.1 Start Page files and the iPhone's
+  phone layout for it (`ios-start-page.*`, `ios-start-rules.js`, `android-start-page.css`) are gone; the other
+  pages stay shipping's. The catalog's language is the one Android's other pages use (`ui-language.js`).
+- **Phone layout** (`android-start.css`): the clock at the middle of the screen as before (#1504's figure
+  centering moved into `android-start.js`), the week's blocked line under it, then the shortcuts and the widgets
+  in one column, scrolling with the page; Mahjong and Customize side by side above the Island; Customize and the
+  clock's Font & color as sheets over the bottom of the screen, the clock moving to the top as its own preview.
+  Card grips and resizing are desktop's (wide windows only); pin buttons are hidden, since Start Page pins aren't
+  on Android.
+- **Choices:** the fork's adapter (`start/newtab-adapter.js`) runs unchanged and asks native code over
+  `blancNewTab`; `PagesHandler::OnStartCall` answers it. Widgets (Favorites, On your other devices), the 1–12
+  Shortcuts count, card places and sizes go in the profile pref `blanc.start.widgets` with the fork's validation;
+  the clock in `blanc.start.clock` with the fork's field rules but no style: it reads over the iPhone's first-run
+  clock (Roboto Flex, 300, 450), never saved, and always reports solid. Patch 0113 registers both. The wallpaper
+  and your photo stay in the page's own storage (localStorage and IndexedDB of `chrome://blanc`, in the profile),
+  as in the fork. Every open Start Page, private ones included, follows a change at once. Nothing about the Start
+  Page syncs (owner, November 13: device-only, like the iPhone); `SyncedSettings` is unchanged.
+- **Answered from what Android has:** Favorites (and a refresh when they change), other devices, Sent, the week's
+  blocked count (the blocker's `blanc.blocking.week_stats`), Mahjong in a new tab, the Favorites heading. Empty:
+  ranked sites, pins and tab groups (none on Android's Start Page yet), installed themes, the Island's band,
+  Patron, the checklist, What's New. Refused (`not-yet`, A5c): onboarding, default browser, Settings from the
+  page, imports.
+- **Ways in:** the Island menu on a Start Page offers Customize first, as on the iPhone, and Settings →
+  Appearance has a Start Page row. Both ask through one app preference (`StartPageCustomize`); the Island opens
+  `#customize` on the Start Page in view, or on a new one. This is a divergence from the iPhone, whose Start
+  Page row opens native Settings screens: the fork keeps these choices in Customize.
+- **Footer:** Mahjong and Customize stay above the Island, as on the iPhone; what scrolls under them goes behind
+  shipping's frosted band, tinted from the page's background (a Color's base for Solid and Gradient) so the
+  labels read on any wallpaper. The first emulator run showed white labels lost on a cream fade over a blue
+  Color wallpaper; this replaced it.
+- **Not yet:** ranked sites and pinned shortcuts (Billboard shows no shortcuts until they come), the Island along
+  the top on the Start Page, and a Settings row that opens Customize while several Blanc windows are open opens
+  it in each. The fork's all-language catalog (about 1 MB) loads with every Start Page.
+
+| A5b gate | Result | Evidence (`~/blanc-evidence/android/a5b/`) |
+| --- | --- | --- |
+| `pages-phone.mjs` (fresh install, first-run clock solid and centered, choices saved, choices survive a relaunch, every page in six languages) | 41 of 41 | `pages-phone/`, `pages-phone.log` |
+| `start-page-ways.mjs` (the Island menu's Customize and Settings' Start Page row open Customize) | 2 of 2 | `ways/` |
+| Robolectric | 808 pass | `robolectric.log` |
+| Tool and adapter tests (`node --test chromium/tools/android-*.test.mjs`, on the Mac) | 105 pass | local |
+| Patch reconstruction, android and desktop lanes | Pass | local |
+| APK (x86_64, emulator) | `50d3d27a…` | `apk.sha256` |
+| Owner hands-on, Pixel | **Pending** (no arm64 build yet) | — |
+
+The first relaunch run failed every choice: the check stopped the app at once, before Chromium had written its
+preferences. Each change is now written at once (`CommitPendingWrite`, as the fork does), and the check leaves
+Blanc for the home screen before stopping it, as a person would. The setters had worked all along (checked by
+hand over DevTools); the check now also fails if saving itself fails.
 
 ### Shield count across a page's commit
 

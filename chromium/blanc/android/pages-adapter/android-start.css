@@ -1,0 +1,199 @@
+/* Copyright 2026 Bananify Creative. MIT; see LICENSE.
+   Blanc for Android's Start Page: the desktop fork's page on a phone, after the iPhone's
+   ios-start-page.css. The clock sits at the middle of the screen; the line under it, the shortcuts
+   and the widgets follow it down the page, which scrolls when the widgets need the room. The footer
+   (Mahjong, Customize) floats above the Island, and Customize and the clock's settings open as
+   sheets over the bottom of the screen. Android's clock is solid only (#1504), so its Glass or
+   Solid choice isn't offered. */
+html[data-platform="android"] {
+  -webkit-text-size-adjust: 100%;
+  --android-island: 68px;
+  --android-footer: 64px;
+  /* The middle of the clock's box: the page's middle, moved so its figures center on the screen
+     (android-start.js measures --android-clock-nudge). */
+  --android-clock-top: calc(50dvh + var(--android-clock-nudge, 0px));
+}
+html[data-platform="android"] .ledger-body {
+  position: relative;
+  min-width: 0;
+  min-height: 100dvh;
+  height: auto;
+  padding: 0 0 calc(var(--android-island) + var(--android-footer) + 24px + env(safe-area-inset-bottom, 0px));
+  --start-edge: 16px;
+  --start-gutter: 16px;
+}
+html[data-platform="android"] .start-header {
+  padding: calc(20px + env(safe-area-inset-top, 0px)) 24px 0;
+  justify-content: center;
+}
+html[data-platform="android"] .start-brand { gap: 12px; justify-content: center; }
+html[data-platform="android"] .start-brand-mark { width: 38px; height: 38px; }
+html[data-platform="android"] .start-brand-date { font-size: 15px; }
+html[data-platform="android"] .start-content {
+  flex: 1 0 auto;
+  margin: 0;
+  padding: 0 16px 24px;
+  width: 100%;
+  min-width: 0;
+  justify-content: flex-start;
+}
+
+/* The clock at the middle of the screen, scrolling with the page; what follows starts under it. */
+html[data-platform="android"] .bb-clock { font-size: clamp(64px, 30vw, 120px); }
+html[data-platform="android"] body:not(:has(#clockPopover:popover-open)) .bb-clock-row {
+  position: absolute;
+  inset: var(--android-clock-top) 16px auto;
+  transform: translateY(-50%);
+  justify-content: center;
+  margin: 0;
+}
+html[data-platform="android"] body:not(:has(#clockPopover:popover-open)) .bb-blocked {
+  position: absolute;
+  inset: calc(var(--android-clock-top) + var(--android-clock-height, 100px) / 2 + 12px) 16px auto;
+  text-align: center;
+  margin: 0;
+}
+html[data-platform="android"] .billboard {
+  padding-top: calc(var(--android-clock-top) + var(--android-clock-height, 100px) / 2 + 56px);
+  width: 100%;
+}
+html[data-platform="android"] .bb-favs {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 20px 8px;
+  width: 100%;
+  margin-top: 0;
+}
+html[data-platform="android"] .bb-favs:has(.empty) { display: flex; }
+html[data-platform="android"] .bb-site { width: 100%; display: block; min-width: 0; }
+html[data-platform="android"] .bb-fav .tile { width: 48px; height: 48px; }
+html[data-platform="android"] .bb-fav .label { max-width: 100%; font-size: 13px; }
+html[data-platform="android"] .bb-groups { flex-wrap: wrap; margin-top: 24px; }
+
+/* The widgets in one column under the shortcuts. Cards are reordered on a wide desktop window only:
+   no grips here. */
+html[data-platform="android"] .bb-widgets {
+  width: 100%;
+  flex-direction: column;
+  gap: 12px;
+  margin-top: 28px;
+}
+html[data-platform="android"] .bb-rail { width: 100%; flex: none; gap: 12px; }
+html[data-platform="android"] .bb-widget-grip,
+html[data-platform="android"] .bb-widget-resize { display: none; }
+html[data-platform="android"] #bbWidgets #favoritesList { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+html[data-platform="android"] .fav { min-height: 48px; }
+
+/* The footer stays above the Island, as on the iPhone; what scrolls under it goes behind a frosted
+   band (below). Keyboard hints and Spaces (not on Android yet) go. */
+html[data-platform="android"] .ledger-footer,
+html[data-platform="android"] body:not([data-layout="ledger"]) .ledger-footer {
+  position: fixed;
+  inset: auto 0 calc(var(--android-island) + env(safe-area-inset-bottom, 0px));
+  z-index: 3;
+  min-height: var(--android-footer);
+  margin: 0;
+  padding: 12px 16px;
+  display: flex;
+  flex-wrap: nowrap;
+  gap: 10px;
+  justify-content: center;
+  align-items: center;
+}
+/* Shipping's frosted band behind the footer (pages.css's .ledger-footer::before, in the wallpaper's
+   own tint, shown while something scrolls under it), carried down behind the Island. The fork's
+   photo fade (::after) stays off: it assumes a footer at the window's bottom edge. */
+html[data-platform="android"] .ledger-footer::before {
+  inset: -28px 0 calc(-1 * (var(--android-island) + env(safe-area-inset-bottom, 0px))) 0;
+  /* The page's own background, which the wallpaper rules switch to suit the ink (your photo's
+     Light or Dark, a Color's), so the footer's labels always read. Shipping's tint stays Sunrise's. */
+  background: color-mix(in srgb, var(--bg) 72%, transparent);
+}
+html[data-platform="android"] body[data-wallpaper-fill="solid"] .ledger-footer::before,
+html[data-platform="android"] body[data-wallpaper-fill="gradient"] .ledger-footer::before {
+  background: color-mix(in srgb, var(--start-color-base) 72%, transparent);
+}
+html[data-platform="android"] #layoutFooter::after { display: none; }
+/* Shipping shows it once the content's end passes the footer, which here also has the Island under
+   it; with a widget on, something can always be under the footer, so the band always shows. */
+html[data-platform="android"] body:has(.bb-rail[data-empty="false"]) .ledger-footer::before { opacity: 1; }
+html[data-platform="android"] .ledger-footer :is(.footer-left, .footer-appearance) {
+  display: flex; align-items: center; gap: 10px; min-width: 0; flex: none; flex-basis: auto;
+}
+html[data-platform="android"] .ledger-footer .footer-left { order: 1; }
+html[data-platform="android"] .ledger-footer .footer-appearance { order: 2; }
+/* Start Page pins (shortcuts you keep) aren't on Android yet: no pin buttons. */
+html[data-platform="android"] :is(.fav-pin, .bb-site-pin) { display: none; }
+html[data-platform="android"] :is(#goAnywhere, .footer-right, #version, .wallpaper-follow, #colorWallpaperFollow,
+  #colorWallpaperFollowHint, #storeThemeWallpaperPick) { display: none; }
+html[data-platform="android"] .start-customize { min-height: 44px; padding-inline: 20px; font-size: 14px; }
+html[data-platform="android"] .mahjong-pill a { min-height: 44px; }
+
+/* Customize and the clock's settings: sheets over the bottom of the screen, above the Island. */
+html[data-platform="android"] #customizePopover:popover-open {
+  position: fixed;
+  position-anchor: auto;
+  position-area: none;
+  inset: auto 12px calc(var(--android-island) + 8px + env(safe-area-inset-bottom, 0px)) !important;
+  margin: 0 auto;
+  width: calc(100vw - 24px) !important;
+  max-width: 480px;
+  height: auto !important;
+  max-height: min(72dvh, calc(100dvh - var(--android-island) - 48px)) !important;
+  overflow-y: auto;
+  box-sizing: border-box;
+  padding: 18px 16px;
+  border-radius: 22px;
+}
+html[data-platform="android"] .customize-cols { grid-template-columns: minmax(0, 1fr) !important; }
+html[data-platform="android"] .customize-col-wallpaper { margin-top: 14px; padding-top: 14px; border-left: 0; padding-left: 0; }
+html[data-platform="android"] :is(.wallpaper-seg button, .wallpaper-toggle, .wallpaper-caption-action, .clock-popover-back,
+  .shortcut-stepper button) { min-height: 44px; }
+html[data-platform="android"] :is(.clock-slider, .wallpaper-fade) { min-height: 44px; touch-action: none; }
+html[data-platform="android"] :is(.clock-swatch, .wallpaper-swatch) { min-width: 34px; min-height: 34px; }
+
+/* Editing the clock: the clock itself moves to the top as the live preview, the sheet below it. */
+html[data-platform="android"] body:has(#clockPopover:popover-open) :is(.start-header, .ledger-footer, .bb-blocked,
+  .bb-favs, .bb-groups, .bb-widgets) { visibility: hidden; }
+html[data-platform="android"] body:has(#clockPopover:popover-open) .bb-clock-row {
+  position: fixed;
+  inset: calc(12px + env(safe-area-inset-top, 0px)) 16px auto;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin: 0;
+  transform: none;
+}
+html[data-platform="android"] body {
+  --android-clock-panel-top: max(40dvh, calc(28px + env(safe-area-inset-top, 0px) + var(--android-clock-height, 100px)));
+}
+html[data-platform="android"] #clockPopover:popover-open {
+  position: fixed;
+  position-anchor: auto;
+  position-area: none;
+  position-try-fallbacks: none;
+  inset: auto 12px calc(var(--android-island) + 8px + env(safe-area-inset-bottom, 0px)) !important;
+  margin: 0 auto;
+  width: calc(100vw - 24px) !important;
+  max-width: 480px;
+  height: auto !important;
+  max-height: calc(100dvh - var(--android-clock-panel-top) - var(--android-island) - 8px - env(safe-area-inset-bottom, 0px)) !important;
+  overflow-y: auto;
+  box-sizing: border-box;
+  padding: 12px 16px;
+  border-radius: 22px;
+  /* It sits inside the footer, which hides while the clock is edited. */
+  visibility: visible;
+}
+html[data-platform="android"] .clock-popover-head { grid-template-columns: 44px 1fr 44px; margin: 0 0 4px; }
+html[data-platform="android"] .clock-popover-back { width: 44px; }
+html[data-platform="android"] .clock-font { height: 44px; }
+html[data-platform="android"] .clock-swatches { flex-wrap: wrap; gap: 10px; justify-content: flex-start; padding: 5px; }
+html[data-platform="android"] #clockStyles,
+html[data-platform="android"] .clock-styles { display: none; }
+
+/* Display-sized numerals need room, as on the iPhone. */
+html[data-platform="android"] .bb-clock { letter-spacing: .005em; font-kerning: none; }
+html[data-platform="android"] .bb-clock[data-font="inter"] { letter-spacing: 0; }
+html[data-platform="android"] .bb-clock[data-font="condensed"],
+html[data-platform="android"] .bb-clock[data-font="flex"] { letter-spacing: .01em; }

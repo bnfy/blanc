@@ -252,6 +252,8 @@
     <string name="blanc_settings_general_cards_appearance">Aparência</string>
     <string name="blanc_settings_general_cards_browsing">Navegação</string>
     <string name="blanc_settings_general_search_engine_label">Mecanismo de pesquisa</string>
+    <string name="blanc_settings_general_cards_start_page">Página inicial</string>
+    <string name="blanc_newtab_customize_button">Personalizar</string>
     <string name="blanc_settings_general_theme_dark">Escuro</string>
     <string name="blanc_settings_general_theme_label">Tema</string>
     <string name="blanc_settings_general_theme_light">Claro</string>
