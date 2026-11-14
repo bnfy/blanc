@@ -143,5 +143,12 @@
     return true;
   }
 
-  root.BlancRailHoverCard = Object.freeze({hostOf, cardModel, place, render, updateImage});
+  /** Whether two card models show the same thing; pictures don't count, they update in place. */
+  function sameCard(a, b) {
+    if (!a || !b) return false;
+    const strip = model => JSON.stringify(model, (key, value) => key === 'image' ? undefined : value);
+    return strip(a) === strip(b);
+  }
+
+  root.BlancRailHoverCard = Object.freeze({hostOf, cardModel, place, render, updateImage, sameCard});
 })(typeof self !== 'undefined' ? self : globalThis);

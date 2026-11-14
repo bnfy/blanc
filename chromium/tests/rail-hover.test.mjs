@@ -122,3 +122,33 @@ test('suppressed outside the plain vertical rail', () => {
   for (const change of [{layout: 'island'}, {glanceOpen: true}, {surfaceOpen: true}, {dragging: true}, {railHidden: true}])
     assert.equal(hover.suppressed({...calm, ...change}), true, JSON.stringify(change));
 });
+
+// Final review fixes.
+test('resting off a row cancels the wait, and starts the grace once a card is up', () => {
+  const waiting = run({type: 'enter', target: tab(1)}, {type: 'leave-row'}, {type: 'timer'});
+  assert.equal(shows(waiting.effects).length, 0);
+  assert.equal(waiting.state.phase, 'idle');
+  const shown = run({type: 'enter', target: tab(1)}, {type: 'timer'}, {type: 'leave-row'});
+  assert.deepEqual(shown.effects.at(-1), {type: 'start-grace', ms: 150});
+  const back = run({type: 'enter', target: tab(1)}, {type: 'timer'}, {type: 'leave-row'}, {type: 'enter', target: tab(1)});
+  assert.equal(back.state.phase, 'shown');
+});
+
+test('the same row again while waiting keeps the running wait', () => {
+  let state = hover.step(hover.initialState(), {type: 'enter', target: tab(1)}).state;
+  assert.deepEqual(plain(hover.step(state, {type: 'enter', target: tab(1)}).effects), []);
+});
+
+test('keys: row keys keep the card, Escape is taken only from a card on screen', () => {
+  assert.equal(hover.keyAction('ArrowDown', {onRow: true, cardUp: true}), 'keep');
+  assert.equal(hover.keyAction('Home', {onRow: false, cardUp: true}), 'dismiss');
+  assert.equal(hover.keyAction('Escape', {onRow: true, cardUp: true}), 'swallow');
+  assert.equal(hover.keyAction('Escape', {onRow: true, cardUp: false}), 'dismiss');
+  assert.equal(hover.keyAction('a', {onRow: true, cardUp: true}), 'dismiss');
+});
+
+test('only focus that follows a key press opens a card', () => {
+  assert.equal(hover.keyboardFocus(1000, 1300), true);
+  assert.equal(hover.keyboardFocus(1000, 1700), false);
+  assert.equal(hover.keyboardFocus(null, 1000), false);
+});

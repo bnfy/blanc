@@ -2722,7 +2722,8 @@
   // runs its timers and draws the cards. Pictures stay in memory only while
   // their card shows.
   railHover = { state: BlancRailHover.initialState(), timer: null, grace: null, anchors: new Map(),
-    shown: { picture: null, list: null }, serial: 0, watched: null, activeTabId: null };
+    shown: { picture: null, list: null }, drawn: { picture: null, list: null }, serial: 0, watched: null,
+    activeTabId: null, lastKeyAt: null, cardsUp: false };
   const railCards = document.getElementById('railHoverCards');
   const railList = Object.assign(document.createElement('div'), { className: 'rail-card rail-card-list', hidden: true });
   const railPicture = Object.assign(document.createElement('div'), { className: 'rail-card rail-card-picture', hidden: true });
@@ -2782,7 +2783,8 @@
   function railEnter(type, element) {
     if (railSuppressed()) { railDismiss('surface'); return; }
     const found = railTargetOf(element);
-    if (!found) return;
+    // Off a row (the rail's edges, its buttons, an open group's header): no wait, and a card up goes after the grace.
+    if (!found) { if (type === 'enter') railStep({ type: 'leave-row' }); return; }
     railHover.anchors.set(railKey(found.target), railRect(found.row));
     if (found.target.kind === 'split') railHover.anchors.set('label:' + found.target.splitId, found.row.textContent.trim());
     railStep({ type, target: found.target });
@@ -2800,16 +2802,20 @@
     });
     rail.addEventListener('pointerleave', () => railStep({ type: 'leave-rail' }));
     rail.addEventListener('focusin', (event) => {
-      if (event.target?.matches?.(':focus-visible')) railEnter('focus', event.target);
+      // Rows also take focus back after a redraw; only keyboard moves count.
+      if (BlancRailHover.keyboardFocus(railHover.lastKeyAt, performance.now()) && event.target?.matches?.(':focus-visible'))
+        railEnter('focus', event.target);
     });
     doc.addEventListener('pointerdown', () => railDismiss('click'), true);
     doc.addEventListener('wheel', () => railDismiss('scroll'), { capture: true, passive: true });
     doc.addEventListener('keydown', (event) => {
-      if (!railHover || railHover.state.phase === 'idle') return;
-      // The rail's row keys move its focus, and the focus swaps the card.
-      if (['ArrowUp', 'ArrowDown', 'Home', 'End'].includes(event.key)) return;
-      // Escape only closes the card when one is up.
-      if (event.key === 'Escape') { event.preventDefault(); event.stopPropagation(); }
+      railHover.lastKeyAt = performance.now();
+      if (railHover.state.phase === 'idle') return;
+      const action = BlancRailHover.keyAction(event.key, {
+        onRow: !!event.target?.closest?.('#verticalTabsRail .vertical-tab-primary, #verticalTabsRail [data-drag-header]'),
+        cardUp: railHover.state.phase === 'shown' || railHover.state.phase === 'leaving' });
+      if (action === 'keep') return;
+      if (action === 'swallow') { event.preventDefault(); event.stopPropagation(); }
       railDismiss('key');
     }, true);
     doc.defaultView?.addEventListener('blur', () => railDismiss('blur'));
@@ -2860,6 +2866,9 @@
     const rail = railElement();
     const railRight = rail ? railRect(rail).right : effectiveRailWidth();
     railHover.activeTabId = snapshot?.activeTabId ?? null;
+    railHover.drawn[card] = model;
+    // Native closes the cards on a key or click in the page (OnInputEvent).
+    if (!railHover.cardsUp) { railHover.cardsUp = true; request('railCardsShown', [true]).catch(() => {}); }
     if (card === 'list') {
       railHover.shown.list = target;
       BlancRailHoverCard.render(railList, model, railT);
@@ -2901,7 +2910,13 @@
       railPicture.hidden = true; railPicture.classList.remove('shown'); railPicture.replaceChildren();
       if (railHover.watched) { railHover.watched = null; request('unwatchThumbnail').catch(() => {}); }
     }
+    if (card === 'list' || card === 'all') railHover.drawn.list = null;
+    if (card === 'picture' || card === 'all') railHover.drawn.picture = null;
     if (card === 'all') railHover.anchors.clear();
+    if (railHover.cardsUp && !railHover.shown.list && !railHover.shown.picture) {
+      railHover.cardsUp = false;
+      request('railCardsShown', [false]).catch(() => {});
+    }
   }
   function railThumbnail(id, image) {
     if (railHover?.watched == null || String(id) !== railHover.watched) return;
@@ -2918,12 +2933,16 @@
     if ((snapshot?.activeTabId ?? null) !== railHover.activeTabId && railHover.state.phase !== 'waiting') {
       railDismiss('tab-switch'); return;
     }
-    for (const [target, node] of [[railHover.shown.list, railList], [railHover.shown.picture, railPicture]]) {
+    // A card whose tab or group changed under it (renamed, recolored, a tab
+    // added, gone, made private, an open group) closes rather than show stale rows.
+    for (const card of ['list', 'picture']) {
+      const target = railHover.shown[card];
       if (!target) continue;
-      const model = BlancRailHoverCard.cardModel(snapshot, target, {});
+      const label = target.kind === 'split' ? railHover.anchors.get('label:' + target.splitId) : '';
+      const model = BlancRailHoverCard.cardModel(snapshot, target, { label });
       const group = model?.kind === 'list' ? snapshot.groups.find(g => String(g.id) === String(target.groupId)) : null;
-      if (!model || (model.kind === 'list' && !BlancRailHover.groupCardFor(group)) ||
-          String(!!model.private) !== node.dataset.private) { railDismiss('snapshot'); return; }
+      if (!BlancRailHoverCard.sameCard(railHover.drawn[card], model) ||
+          (model.kind === 'list' && !BlancRailHover.groupCardFor(group))) { railDismiss('snapshot'); return; }
     }
   }
 
@@ -3059,6 +3078,8 @@
     spaceLinkResult: () => lastSpaceLinkResult,
     // A newer picture of the tab the rail's hover card shows (watchThumbnail).
     tabThumbnail: (id, image) => railThumbnail(id, image),
+    // A key or click in the page closes the rail's hover cards (native OnInputEvent).
+    railDismiss: (reason) => railDismiss(String(reason)),
     toggleGlance: () => (snapshot?.glanceTabId != null ? api.closeGlance() : api.openGlancePicker()),
     focusGlanceCard,
     spaceHeldState: () => request('spaceMeta'),

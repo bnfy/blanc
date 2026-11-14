@@ -45,3 +45,23 @@ test('the watch ends with its tab', () => {
   assert.match(handler('unwatchThumbnail'), /thumbnail_watch\.reset\(\)/);
 });
 
+
+test('a reloaded host leaves no click area, watch or pending card state', () => {
+  const handler = between('class Handler : public content::WebUIMessageHandler', '\n};\n');
+  const disallowed = handler.slice(handler.indexOf('  void OnJavascriptDisallowed() override {'));
+  const body = disallowed.slice(0, disallowed.indexOf('\n  }\n'));
+  assert.match(body, /hover_card_bounds = gfx::Rect\(\)/);
+  assert.match(body, /thumbnail_watch\.reset\(\)/);
+  assert.match(body, /rail_cards_shown = false/);
+  assert.match(body, /thumbnail_requests_\.clear\(\)/);
+  assert.match(source, /owner->vertical && owner->hover_card_bounds\.Intersects\(rect\)/);
+});
+
+test('a key or click in the page closes the rail cards', () => {
+  const input = between('  void OnInputEvent(const content::RenderWidgetHost&,', '\n  }\n');
+  assert.match(input, /rail_cards_shown/);
+  assert.match(input, /BlancPrototypeHost\?\.railDismiss/);
+  assert.match(handler('railCardsShown'), /rail_cards_shown = /);
+  const host = fs.readFileSync(new URL('../blanc/island/host.js', import.meta.url), 'utf8');
+  assert.ok(host.includes("'railCardsShown'") && /railDismiss: \(/.test(host));
+});

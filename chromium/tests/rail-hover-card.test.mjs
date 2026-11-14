@@ -84,3 +84,15 @@ test('host and native agree on the request names', () => {
   }
   assert.match(host, /tabThumbnail: \(/, 'the host takes pictures the watch sends (window.BlancPrototypeHost.tabThumbnail)');
 });
+
+test('a card is redrawn only when what it shows changed (a picture alone doesn\'t count)', () => {
+  const list = card.cardModel(snapshot, {kind: 'group', groupId: 'g'}, {});
+  assert.equal(card.sameCard(list, card.cardModel(snapshot, {kind: 'group', groupId: 'g'}, {})), true);
+  const renamed = {...snapshot, groups: [{...snapshot.groups[0], name: 'Later'}]};
+  assert.equal(card.sameCard(list, card.cardModel(renamed, {kind: 'group', groupId: 'g'}, {})), false);
+  const grown = {...snapshot, tabs: [...tabs, {id: 7, title: 'New', url: 'https://c.example.com/', groupId: 'g'}]};
+  assert.equal(card.sameCard(list, card.cardModel(grown, {kind: 'group', groupId: 'g'}, {})), false);
+  const mail = card.cardModel(snapshot, {kind: 'tab', tabId: 1}, {image: 'data:image/jpeg;base64,AA'});
+  assert.equal(card.sameCard(mail, card.cardModel(snapshot, {kind: 'tab', tabId: 1}, {})), true);
+  assert.equal(card.sameCard(mail, null), false);
+});

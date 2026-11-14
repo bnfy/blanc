@@ -1337,6 +1337,7 @@ class Owner : public base::SupportsUserData::Data,
   // which takes the pointer while it shows, and the one tab thumbnail the
   // picture card watches (never a private or quiet tab's).
   gfx::Rect hover_card_bounds;
+  bool rail_cards_shown = false;
   std::unique_ptr<ThumbnailImage::Subscription> thumbnail_watch;
   int thumbnail_watch_tab = -1;
   void PublishThumbnail(int tab_id, const std::string& url) {
@@ -1734,6 +1735,20 @@ class Owner : public base::SupportsUserData::Data,
   void OnInputEvent(const content::RenderWidgetHost&,
                     const blink::WebInputEvent& event,
                     InputEventSource) override {
+    // A key, click or scroll in the page closes the rail's hover cards.
+    if (rail_cards_shown) {
+      const auto type = event.GetType();
+      using Type = blink::WebInputEvent::Type;
+      if (type == Type::kRawKeyDown || type == Type::kKeyDown || type == Type::kMouseDown ||
+          type == Type::kMouseWheel || type == Type::kGestureTapDown) {
+        rail_cards_shown = false;
+        auto* host = view ? view->GetWebContents() : nullptr;
+        if (host && host->GetLastCommittedURL() == GURL("chrome://blanc-prototype/host.html") &&
+            host->GetPrimaryMainFrame()->IsRenderFrameLive())
+          host->GetPrimaryMainFrame()->ExecuteJavaScript(
+              u"window.BlancPrototypeHost?.railDismiss('page')", base::NullCallback());
+      }
+    }
     // Wheel/gesture updates include inertial scrolling, unlike the
     // WebContents interaction callback which only reports scroll start.
     if (event.GetType() != blink::WebInputEvent::Type::kMouseMove) {
@@ -1881,7 +1896,7 @@ class IslandView : public views::WebView, public views::ViewTargeterDelegate {
     if (!owner) return GetLocalBounds().Intersects(rect);
     if (owner->float_bounds.Intersects(rect)) return true;
     // The rail's group list card (hover previews) floats beside the rail.
-    if (owner->hover_card_bounds.Intersects(rect)) return true;
+    if (owner->vertical && owner->hover_card_bounds.Intersects(rect)) return true;
     if (!owner->split_geometry.empty()) {
       const int band = owner->glance_main >= 0
           ? HeaderHeight(const_cast<views::View*>(parent())) : owner->strip_height;
@@ -6170,6 +6185,15 @@ class Handler : public content::WebUIMessageHandler, public extensions::Extensio
       runtime->busy = false; archive_running_ = false;
     }
     if (quiet_settings_) quiet_settings_->Close();
+    // Rail hover previews: a reloaded host draws no cards, so nothing of
+    // theirs may outlive it (a click area over the page, a thumbnail watch).
+    thumbnail_requests_.clear();
+    if (auto* owner = GetOwner(web_ui()->GetWebContents())) {
+      owner->hover_card_bounds = gfx::Rect();
+      owner->thumbnail_watch.reset();
+      owner->thumbnail_watch_tab = -1;
+      owner->rail_cards_shown = false;
+    }
     // A navigated or torn-down host must not receive a late history reply.
     weak_factory_.InvalidateWeakPtrs();
     tracker_.TryCancelAll();
@@ -10981,6 +11005,11 @@ class Handler : public content::WebUIMessageHandler, public extensions::Extensio
     if (method == "unwatchThumbnail" && args.empty()) {
       owner->thumbnail_watch.reset();
       owner->thumbnail_watch_tab = -1;
+      reply(true, base::Value(true));
+      return;
+    }
+    if (method == "railCardsShown" && args.size() == 1 && args[0].is_bool()) {
+      owner->rail_cards_shown = args[0].GetBool();
       reply(true, base::Value(true));
       return;
     }

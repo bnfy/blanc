@@ -28,6 +28,9 @@
   // A rail row (tab, split or group) was entered or focused.
   function enter(state, target) {
     const up = state.phase === 'shown' || state.phase === 'leaving';
+    // The same row again (Blink repeats a pointerover after each redraw)
+    // keeps the running wait, so a busy tab's card still opens.
+    if (state.phase === 'waiting' && sameTarget(state.target, target)) return result(state);
     if (!up) {
       return result({phase: 'waiting', target, pending: target},
         [{type: 'cancel-timers'}, {type: 'start-timer', ms: OPEN_DELAY_MS}]);
@@ -64,6 +67,7 @@
       }
       case 'leave-rail':
       case 'leave-list':
+      case 'leave-row': // the rail's other parts: its edges, buttons, an open group's header
         if (state.phase === 'waiting') return result({}, [{type: 'cancel-timers'}]);
         if (state.phase !== 'shown') return result(state);
         // A pending list-row picture is dropped with the timer it was waiting on.
@@ -92,6 +96,23 @@
     }
   }
 
+  const ROW_KEYS = ['ArrowUp', 'ArrowDown', 'Home', 'End'];
+  /**
+   * A key pressed in the strip while a card is up or opening: the rail's row
+   * keys move its focus (which swaps the card); Escape is taken only from a
+   * card on screen; anything else closes it and goes on as usual.
+   */
+  function keyAction(key, {onRow = false, cardUp = false} = {}) {
+    if (onRow && ROW_KEYS.includes(key)) return 'keep';
+    if (key === 'Escape' && cardUp) return 'swallow';
+    return 'dismiss';
+  }
+  /** Rows get focus from redraws too; only focus that follows a key press opens a card. */
+  const KEY_FOCUS_MS = 500;
+  function keyboardFocus(lastKeyAt, now) {
+    return Number.isFinite(lastKeyAt) && now >= lastKeyAt && now - lastKeyAt <= KEY_FOCUS_MS;
+  }
+
   /** What a card may show for a tab: never a private tab's picture, never the page already in view. */
   function pictureFor(tab, {activeTabId = null, visibleTabIds = []} = {}) {
     if (!tab) return 'none';
@@ -110,5 +131,5 @@
     return layout !== 'vertical' || !!glanceOpen || !!surfaceOpen || !!dragging || !!railHidden;
   }
 
-  root.BlancRailHover = Object.freeze({OPEN_DELAY_MS, LEAVE_GRACE_MS, initialState, step, pictureFor, groupCardFor, suppressed});
+  root.BlancRailHover = Object.freeze({OPEN_DELAY_MS, LEAVE_GRACE_MS, initialState, step, keyAction, keyboardFocus, pictureFor, groupCardFor, suppressed});
 })(typeof self !== 'undefined' ? self : globalThis);
