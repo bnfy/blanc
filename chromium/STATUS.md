@@ -14,6 +14,26 @@ D7, F0.7, cold builds, new machines, D2/D4–D6/D8/V2 and replacement D3
 remain pending. D3 beta-only no-DRM exception accepted; EME notice/handoff required.
 
 ## Current work
+- **2026-11-14 — The red button keeps the main window's tabs (patch 0082,
+  candidate macos-f390619940f08515, owner's report on beta.4):** shipping's
+  macOS Dock close (`windowCloseSessionEffect` → `'dock'`, `dock-reopen.js`)
+  was never ported: in the fork the red button closed the window and every
+  tab, so the beta shared no tabs and dropped off the owner's phones. Now a
+  person's close of the primary Island window (the first ordinary window of a
+  launch) hides it with its tabs live, in the session and in Sync
+  (`HoldWindowOnClose`, from `BrowserView::OnWindowCloseRequested`; never
+  while quitting, while Chromium already closes it, on a forced close or with
+  no tabs), and the Dock icon with no window showing brings it back
+  (`ReopenHeldWindow`, from `applicationShouldHandleReopen`). Other windows
+  close as before. Checked by hand on the MacBook Pro with the real red
+  button: same window and same live page back from the Dock, a second window
+  closes normally, quitting while held exits and restores the tab; mini
+  windows and profile removal tests pass. Also: the published device name is
+  the Mac's computer name ("MacBook Pro") as shipping's device-name.js picks
+  it, not Chromium's local host name ("MacBook-Pro");
+  `tests/native-sync-organic-tabs.mjs` (Sync with no pass asked of the Mac:
+  new pages, a saved Space, a relaunch, joining again) passes and its peer
+  sees "MacBook Pro".
 - **2026-11-14 — Extensions can open their own popup (patch 0081, candidate
   macos-cf13e2bc70dce670, owner's report):** 1Password's in-page "Unlock
   1Password" did nothing in Blanc Beta. It calls chrome.action.openPopup, and
@@ -3205,5 +3225,5 @@ Android's Bar A counts the shared scenarios bound in `chromium/tests/android/acc
 
 Legacy macOS stages come from the approved spec; they await verification on the canonical candidate. No legacy stage counts as Verified.
 
-Candidate identities: macOS: macos-cf13e2bc70dce670; Windows: none; Linux: none; Android: android-arm64-7bd35e94ef746069.
+Candidate identities: macOS: macos-f390619940f08515; Windows: none; Linux: none; Android: android-arm64-7bd35e94ef746069.
 <!-- END GENERATED PROGRESS -->
