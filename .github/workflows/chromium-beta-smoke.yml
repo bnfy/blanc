@@ -1,0 +1,69 @@
+# The Chromium fork's exact-tag hosted smoke check for a published Blanc Beta
+# (docs/chromium-beta-release.md §8). Run by hand after publication:
+#   gh workflow run chromium-beta-smoke.yml -f tag=chromium-beta-2.0.0-beta.N
+# It checks out the release's own tag, downloads every public asset logged
+# out, and runs chromium/release/public-smoke.mjs on a GitHub-hosted Mac of
+# the release's architecture (beta 1 ships Apple Silicon only, under the
+# owner's Intel waiver). The Electron app's prerelease-smoke.yml cannot count
+# for the fork.
+name: chromium-beta-smoke
+
+on:
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: Published beta tag, such as chromium-beta-2.0.0-beta.2
+        required: true
+        type: string
+      check_feed:
+        description: Also require blanc.day's live beta feed to equal the release appcast (after feed promotion)
+        required: false
+        default: false
+        type: boolean
+
+permissions:
+  contents: read
+
+jobs:
+  published-beta:
+    name: published-beta (arm64)
+    runs-on: macos-15
+    timeout-minutes: 30
+    steps:
+      - name: Validate tag
+        env:
+          TAG: ${{ inputs.tag }}
+        run: |
+          [[ "$TAG" =~ ^chromium-beta-2\.0\.0-beta\.[1-9][0-9]*$ ]] || {
+            echo "Not a beta tag: $TAG" >&2
+            exit 1
+          }
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ inputs.tag }}
+          persist-credentials: false
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: 22
+      - name: Verify the published beta
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ inputs.tag }}
+          CHECK_FEED: ${{ inputs.check_feed }}
+        run: |
+          set -euo pipefail
+          # A known platform app is the positive control for the hosted verifier.
+          codesign --verify --deep --strict /System/Applications/Utilities/Terminal.app
+          if [ "$CHECK_FEED" = true ]; then
+            node chromium/release/public-smoke.mjs "$TAG" "$RUNNER_TEMP/beta-smoke" --feed
+          else
+            node chromium/release/public-smoke.mjs "$TAG" "$RUNNER_TEMP/beta-smoke"
+          fi
+      - name: Keep the smoke record
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: chromium-beta-smoke-${{ inputs.tag }}
+          path: ${{ runner.temp }}/beta-smoke/smoke.json
+          if-no-files-found: error
+          retention-days: 90

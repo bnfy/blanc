@@ -810,3 +810,22 @@ It passed on 2026-11-14 (82 Worker requests, all loopback). Favorites, tabs,
 Spaces, recovery and profiles stay with `desktop-sync.mjs` on the prototype,
 whose hooks the beta compiles out; production Sync with a real iPhone is the
 owner's.
+
+### Hosted smoke workflow (2026-11-14)
+
+`.github/workflows/chromium-beta-smoke.yml` is the fork's exact-tag hosted
+smoke (§8), run by hand after publication with
+`gh workflow run chromium-beta-smoke.yml -f tag=chromium-beta-2.0.0-beta.N`
+(add `-f check_feed=true` after feed promotion). It checks out the release's
+own tag on a GitHub-hosted Apple Silicon Mac and runs
+`chromium/release/public-smoke.mjs`: every public asset downloaded logged
+out; the exact asset set, manifest, checksums and appcast signatures
+(`manifest.mjs`); GitHub showing a published pre-release that isn't latest,
+with a stable `vX.Y.Z` still latest; the DMG through `verify.mjs`; and the
+app, copied off the read-only image, launching and opening a loopback page.
+With `check_feed`, blanc.day's live feed must equal the release appcast.
+Sigstore's pinned identity stays with `release.mjs verify-public` on the
+owner's Mac, where cosign is installed. GitHub only dispatches a workflow
+that exists on `main`, so it becomes runnable once `chromium/next` reaches
+`main`. Tests: `chromium/release/public-smoke.test.mjs`; the launch step was
+tried on a local image of the local-qualification beta.

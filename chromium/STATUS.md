@@ -932,6 +932,10 @@ remain pending. D3 beta-only no-DRM exception accepted; EME notice/handoff requi
   16 px at 1000 × 760; it fits at 1280 × 800 and larger, in every
   wallpaper mode). native-start-widgets 8/8; newtab-layouts 24/25 (:21 as
   before).
+- **Hosted smoke workflow (2026-11-14):** `chromium-beta-smoke.yml` +
+  `chromium/release/public-smoke.mjs`, the fork's exact-tag hosted check of
+  a published beta (assets, manifest, appcasts, pre-release state, verify.mjs,
+  launch, optional live feed). Runnable once it reaches `main`.
 - **Utility pages never open as tabs (owner, 2026-11-14):** a Settings page
   could open as an ordinary tab (only the exact `chrome://settings/` went to
   the sheet), showing Chromium's blue Settings icon in the Island. Now any
