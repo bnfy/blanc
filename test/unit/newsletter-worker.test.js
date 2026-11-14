@@ -629,8 +629,8 @@ async function signUpAndGetLink(env, request, mails) {
 
 test('opening a used confirmation link again shows success while the address is on the list, and alerts once', async (t) => {
   for (const [name, request, member, leave] of [
-    ['newsletter', () => subscribeRequest({ email: 'twice@example.com' }), 'sub:twice@example.com', /\/unsubscribe\?token=/],
-    ['Android beta', () => androidBetaRequest({ email: 'twice@example.com' }), 'androidbeta:twice@example.com', /\/android-beta\/leave\?token=/],
+    ['newsletter', () => subscribeRequest({ email: 'twice@example.com' }), 'sub:twice@example.com', '/unsubscribe'],
+    ['Android beta', () => androidBetaRequest({ email: 'twice@example.com' }), 'androidbeta:twice@example.com', '/android-beta/leave'],
   ]) {
     const env = { ...environment(), SIGNUP_ALERT_TO: 'support@blanc.day', ADMIN_TOKEN: 'admin' };
     const originalFetch = globalThis.fetch;
@@ -647,7 +647,7 @@ test('opening a used confirmation link again shows success while the address is 
 
     // Leaving deletes the record and the marker, so the old link no longer says "on the list".
     const record = await env.SUBSCRIBERS.get(member, { type: 'json' });
-    const leaveUrl = `https://newsletter.test${leave.source.replaceAll('\\', '').replace('?token=', '')}?token=${record.unsubscribeToken}`;
+    const leaveUrl = `https://newsletter.test${leave}?token=${record.unsubscribeToken}`;
     await worker.fetch(new Request(leaveUrl), env);
     assert.equal(await env.SUBSCRIBERS.get(member), null, name);
     assert.match(await (await worker.fetch(new Request(link), env)).text(), /invalid or expired/, name);
