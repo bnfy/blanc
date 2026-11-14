@@ -53,7 +53,13 @@ remain pending. D3 beta-only no-DRM exception accepted; EME notice/handoff requi
   group, a split row's two panes). The first on-screen run (macos-9a6ff1dd…)
   found a split card titled with the row's fallback icon letters and a
   private card saying "private" for the chip's "Private"; both fixed in
-  c1a1c3d6d. Not checked on screen: a quiet tab's last picture. Deferred
+  c1a1c3d6d. Then (owner, after trying the build): pictures ahead of time.
+  With vertical tabs each background tab gets one picture once it finishes
+  loading (`warmThumbnail`, two at a time, never private, quiet, Blanc pages
+  or what's on screen), so a never-shown tab's first card no longer shows
+  its icon for about a second first; 748e0992d, 11 of 11 on screen on
+  candidate macos-a2155191264ea1f7. Not checked on screen: a quiet tab's
+  last picture. Deferred
   minors: Cmd-Tab away with the page focused doesn't
   close a card; a permission prompt opening doesn't; a watched tab that goes
   quiet keeps its watch until the card closes (it never loads the tab).
