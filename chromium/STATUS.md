@@ -2538,11 +2538,27 @@ machine has them.
    `docs/chromium-replacement/2026-10-30-desktop-replacement-spec.md`).
    Nothing exists yet; ask the owner about wording and design first, with
    buttons.
-2. **Vertical tabs after a relaunch**: the rail can reopen at its
-   narrow-window cap (248 px) instead of the saved width (360 px).
-   Intermittent: `vertical-tabs.feature:58` failed 2 of 4 runs on 2026-11-14.
-   The saved preference is kept; the rendered width is computed before the
-   restored window bounds apply.
+2. **The window can reopen at an earlier size after a relaunch** (seen as
+   `vertical-tabs.feature:58`, still open for beta.4; investigated
+   2026-11-14 on the MacBook Pro, candidate macos-fc405801653febe3). The rail
+   is not at fault: its saved 360 px survives every relaunch, and it follows
+   the window. The window itself comes back at one of the sizes it had during
+   the run: 1200×841 (Chromium's default for a fresh window), 640×480 (the
+   scenario's narrow step) or 1000×700 (the size at quit, correct). At 640
+   wide the rail caps at 248 px, so the case fails on about 1 attempt in 3.
+   Ruled out as the source of the old size, from copies taken after each
+   quit: the newest plain session file (always 1000×700; Chromium reads the
+   newest file with a valid marker), the encrypted session copy (relaunching
+   with `--disable-features=EncryptSessionStorage` changes nothing),
+   `browser.window_placement` in Preferences (always 1000×700), macOS saved
+   window state (none for `day.blanc.prototype`), and the fork's own Spaces
+   and session code (it saves no window bounds). Restore reuses an existing
+   window when one is visible (`ShouldRestoreToExistingBrowser`, which skips
+   the saved bounds), and the startup log says "No browser window found for
+   startup" before the fork's deferred restore (patch 0057, shared session
+   plan), so the next step is a Blanc Prototype build that logs which code
+   creates the first window and with what bounds. A harness change would hide
+   a real bug: users can get an old window size back after quitting.
 3. **Production Sync with a real iPhone** (gate
    `production-sync-real-device`, waived for beta.2). The beta joins the
    iPhone's existing Sync through Add this device with a code, with the code
