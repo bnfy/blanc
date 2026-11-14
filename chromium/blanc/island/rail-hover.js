@@ -141,11 +141,15 @@
   /** An open group already lists its tabs in the rail; only a collapsed one gets a card. */
   function groupCardFor(group) { return !!group?.collapsed; }
 
-  // windowActive is false only when the snapshot says another app is in front.
-  function suppressed({layout, glanceOpen, surfaceOpen, dragging, railHidden, windowActive = true, promptOpen = false} = {}) {
-    return layout !== 'vertical' || !!glanceOpen || !!surfaceOpen || !!dragging || !!railHidden ||
-      windowActive === false || !!promptOpen;
+  function suppressed({layout, glanceOpen, surfaceOpen, dragging, railHidden, promptOpen = false} = {}) {
+    return layout !== 'vertical' || !!glanceOpen || !!surfaceOpen || !!dragging || !!railHidden || !!promptOpen;
   }
+  /**
+   * Another app came to the front (⌘-Tab with the page focused never blurs
+   * the host). macOS lets a background window take hover, so cards may open
+   * there; only this moment closes them.
+   */
+  function windowWentAway(wasActive, isActive) { return wasActive === true && isActive === false; }
 
-  root.BlancRailHover = Object.freeze({OPEN_DELAY_MS, LEAVE_GRACE_MS, initialState, step, keyAction, keyboardFocus, pictureFor, warmTargets, groupCardFor, suppressed});
+  root.BlancRailHover = Object.freeze({OPEN_DELAY_MS, LEAVE_GRACE_MS, initialState, step, keyAction, keyboardFocus, pictureFor, warmTargets, groupCardFor, suppressed, windowWentAway});
 })(typeof self !== 'undefined' ? self : globalThis);

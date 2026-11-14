@@ -97,6 +97,7 @@ try{
  const front=()=>execFileSync('osascript',['-e',`tell application "System Events" to set frontmost of (first process whose unix id is ${f.process.pid}) to true`]);
 
  // Another app in front (⌘-Tab with the page focused) closes the card.
+ front();await w.waitFor(()=>w.snapshot(),s=>s.windowActive===true,'the test window in front',4000);await pause(400);
  await move(green.cx,green.cy);
  await w.waitFor(()=>card('picture'),Boolean,'a card before switching apps',2000);
  execFileSync('osascript',['-e','tell application "Finder" to activate']);

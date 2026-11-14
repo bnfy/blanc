@@ -174,9 +174,14 @@ test('warmTargets: a loaded background tab, once per address', () => {
   assert.deepEqual(plain(hover.warmTargets({...snapshot, glanceTabId: 8}, new Map())).map(t => t.id), [2], 'not the Glance page on screen');
 });
 
-test('suppressed while the window is in the background or a permission prompt is up', () => {
+test('suppressed while a permission prompt is up; a window going to the background closes cards once', () => {
   const calm = {layout: 'vertical', glanceOpen: false, surfaceOpen: false, dragging: false, railHidden: false};
-  assert.equal(hover.suppressed({...calm, windowActive: true, promptOpen: false}), false);
-  assert.equal(hover.suppressed({...calm, windowActive: false}), true, 'another app in front (⌘-Tab with the page focused)');
+  assert.equal(hover.suppressed({...calm, promptOpen: false}), false);
   assert.equal(hover.suppressed({...calm, promptOpen: true}), true, 'a site permission prompt');
+  // macOS lets a background window take hover, so cards may open there; only
+  // the moment another app comes to the front (⌘-Tab with the page focused) closes them.
+  assert.equal(hover.windowWentAway(true, false), true);
+  assert.equal(hover.windowWentAway(false, false), false);
+  assert.equal(hover.windowWentAway(null, false), false);
+  assert.equal(hover.windowWentAway(false, true), false);
 });

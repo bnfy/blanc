@@ -2738,9 +2738,7 @@
     const rail = railElement();
     return BlancRailHover.suppressed({ layout, glanceOpen: snapshot?.glanceTabId != null,
       surfaceOpen: opened || extensionsOpened || !!sheet.page || !settingsSheet.hidden || !!paneMenu,
-      dragging: false, railHidden: !rail || rail.hidden,
-      // ⌘-Tab away with the page focused never blurs the host; the snapshot knows.
-      windowActive: snapshot?.windowActive !== false, promptOpen: prompts.size > 0 });
+      dragging: false, railHidden: !rail || rail.hidden, promptOpen: prompts.size > 0 });
   }
   function railStep(event) {
     const next = BlancRailHover.step(railHover.state, event);
@@ -2932,6 +2930,7 @@
   // background tab gets one picture once it finishes loading, so its first
   // card never waits. Native takes two at a time and says no when busy;
   // a refused tab is asked again on the next refresh.
+  let railLastWindowActive = null;
   const railWarmed = new Map();
   let railWarming = 0;
   function warmRailPictures() {
@@ -2954,7 +2953,11 @@
     if (doc?.documentElement) doc.documentElement.dataset.railPreviews = layout === 'vertical' ? 'on' : '';
     // Rows drawn before previews were on still carry the system tooltip.
     if (layout === 'vertical') for (const row of doc?.querySelectorAll('#verticalTabsRail .vertical-tab-primary[title]') ?? []) row.removeAttribute('title');
+    const windowActive = snapshot?.windowActive;
+    const wentAway = BlancRailHover.windowWentAway(railLastWindowActive, windowActive);
+    railLastWindowActive = windowActive;
     if (!railHover || railHover.state.phase === 'idle') return;
+    if (wentAway) { railDismiss('blur'); return; }
     if (railSuppressed()) { railDismiss('surface'); return; }
     if ((snapshot?.activeTabId ?? null) !== railHover.activeTabId && railHover.state.phase !== 'waiting') {
       railDismiss('tab-switch'); return;
