@@ -1,22 +1,27 @@
 diff --git a/chrome/BUILD.gn b/chrome/BUILD.gn
-index eb528b9..ba34d2d 100644
+index eb528b9..d3691c4 100644
 --- a/chrome/BUILD.gn
 +++ b/chrome/BUILD.gn
-@@ -718,11 +718,18 @@ if (is_win) {
+@@ -717,12 +717,21 @@ if (is_win) {
+   }
  
    bundle_data("chrome_app_icon") {
-     sources = [ "app/theme/$branding_path_component/mac/app.icns" ]
+-    sources = [ "app/theme/$branding_path_component/mac/app.icns" ]
 +    if (blanc_beta_channel) {
 +      # Blanc Beta's own icon, Sunrise Gold, under the same BlancDK name.
 +      sources = [ "//blanc/branding/beta/app.icns" ]
++    } else {
++      sources = [ "app/theme/$branding_path_component/mac/app.icns" ]
 +    }
      outputs = [ "{{bundle_resources_dir}}/{{source_file_part}}" ]
    }
  
    bundle_data("chrome_asset_catalog") {
-     sources = [ "app/theme/$branding_path_component/mac/Assets.car" ]
+-    sources = [ "app/theme/$branding_path_component/mac/Assets.car" ]
 +    if (blanc_beta_channel) {
 +      sources = [ "//blanc/branding/beta/Assets.car" ]
++    } else {
++      sources = [ "app/theme/$branding_path_component/mac/Assets.car" ]
 +    }
      outputs = [ "{{bundle_resources_dir}}/{{source_file_part}}" ]
    }

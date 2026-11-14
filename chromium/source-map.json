@@ -783,7 +783,7 @@
   "targetOwnership": "//blanc:ui routes to browser-boundary template target, respecting existing upstream visibility",
   "upstreamFiles": {
     "build/config/chrome_build.gni": "c8caa7b09213ca4db86722e5b88fc0220ce3957ed852dd45aaee870a4f07e948",
-    "chrome/BUILD.gn": "5ef65e346300d1c09446362c67f6d11b31237a6bba5078b9d80eb9b9e27a7ded",
+    "chrome/BUILD.gn": "97ba026c8f2e15775181f06d3edeac82953322ed4d04f38f9794d1d59a539a89",
     "chrome/android/java/src/org/chromium/chrome/browser/common/ChromeIsolatedWorldIds.java": "4b4022b69ac8898c90651117193147079529b85e799f98ee97038cb8783fc367",
     "chrome/app/BUILD.gn": "0a10376622ee3c792e8b507c19f2c651564ca08236e3b9a5ada2a92067b15e2e",
     "chrome/app/app-Info.plist": "973921ddfae2e46604e6fe124f7c2e6d0032ea525d752bb07624ba54ff77ff71",
