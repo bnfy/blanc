@@ -14,8 +14,8 @@ D7, F0.7, cold builds, new machines, D2/D4–D6/D8/V2 and replacement D3
 remain pending. D3 beta-only no-DRM exception accepted; EME notice/handoff required.
 
 ## Current work
-- **2026-11-14 — Island approach swell, for beta.4 (not built yet):** the
-  owner noticed the resting Island ignores an approaching cursor. Shipping's
+- **2026-11-14 — Island approach swell, for beta.4 (candidate macos-78921cb9b998cb49):**
+  the owner noticed the resting Island ignores an approaching cursor. Shipping's
   resting Island has five pointer behaviors; four were already in the fork's
   code (dots bloom into site icons, button hover states, tooltips, opt-in
   hover-open). The fifth, the approach swell (the pill rises 2px and grows 2%
@@ -26,11 +26,24 @@ remain pending. D3 beta-only no-DRM exception accepted; EME notice/handoff requi
   forwards page moves within 260px of the Island at most once a frame
   (`island_proximity.h`, `island_proximity_controller.inc`), and the
   extension buttons take the slot's measured swell as a native transform
-  (owner's choice over keeping the pill flat with extensions). Unit suite:
-  464 of 475 pass, 11 Sync page tests skipped without Chromium's TypeScript;
-  `tools/island-proximity.test.mjs` compiles the native policy beside
-  shipping's module. Not compiled or run in a build: beta.3 was being
-  released from the Mac Studio. See "For beta.4" below.
+  (owner's choice over keeping the pill flat with extensions). Running it on
+  the build found that a swell set without a page move (the Island's own
+  moves, a sampled cursor when a panel closes) could stay on if the next page
+  move landed beyond reach; the host now arms native (`armIslandPointer`) so
+  that move is sent wherever it lands. Built on the Mac Studio after beta.3
+  was published (Blanc Prototype, incremental: 26 then 8 and 8 steps; GN
+  regenerated with unchanged arguments for `served.txt`). Checks ran on the
+  MacBook Pro (the Studio's screen was locked) against the copied build:
+  `tests/native-island-swell.mjs` 3 of 3 runs, 7 checks each (from the page,
+  partial partway out, extension buttons 1.02× and about 2px, rest on leaving,
+  over the band and leaving far down, asleep with the panel open and woken on
+  close, still under Reduce motion); `tests/native-island-hover.mjs` 3 of 3,
+  4 checks each (dot bloom, button hover, tooltip, hover-open). One difference
+  found: a strip button's tooltip sits 8px higher than shipping's (top at
+  44px against 52px) because the host clamps it inside its 68px view, over
+  the pill's bottom edge; shipping's floats onto the page. Not covered: the
+  swell sleeping while the window is in the background. Unit suite: 464 of
+  475 pass, 11 Sync page tests skipped without Chromium's TypeScript.
 - **2026-11-10 — Beta identity patch (preview candidate macos-77c0cea3ecc01285):**
   dedicated gated Blanc Beta identity, profile guards, version metadata and
   release policy implemented. Preview incremental build passes; pure native
@@ -2513,14 +2526,10 @@ machine has them.
    `chromium/release/owner/`; fixing it would let `op run` work again.
 
 **For beta.4**
-8. **Island approach swell** (committed on `chromium/next` 2026-11-14,
-   never compiled): build it, then check on the Mac that the pill swells as
-   the cursor approaches from the page and from the strip, stays flat under
-   Reduce motion, in a background window and while a menu is open, and that
-   pinned extension buttons move with it. The owner also asked to recheck in
-   the beta the four hover behaviors already in the code: the dots blooming
-   into site icons, button hover states, tooltips, and hover-open (Settings,
-   off by default).
+8. **Island approach swell**: built and checked on Blanc Prototype
+   (candidate macos-78921cb9b998cb49, see Current work). Still owed in the
+   beta.4 candidate: the full suite, and a look at the swell in a background
+   window. Open question for the owner: the strip tooltip's 8px offset.
 
 **What lives only on the Mac Studio**
 - The release work folder `~/Projects/Blanc/records/beta2-work`: signed
