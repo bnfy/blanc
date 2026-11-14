@@ -2495,7 +2495,7 @@
     {
       "id": "reddit-414",
       "source": "site/src/pages/download.astro",
-      "exactWording": "What you're actually downloading.",
+      "exactWording": "What you're actually downloading",
       "claimType": "qualified capability or maintainer process statement",
       "evidenceGroups": [
         "trust"
@@ -7179,7 +7179,7 @@
     {
       "id": "download-2026-10-04-01",
       "source": "site/src/pages/download.astro",
-      "exactWording": "Download Blanc.",
+      "exactWording": "Download Blanc",
       "subject": "Blanc",
       "claimType": "qualified capability or maintainer process statement",
       "evidenceGroups": [
@@ -7202,7 +7202,7 @@
     {
       "id": "download-2026-10-04-03",
       "source": "site/src/pages/download.astro",
-      "exactWording": "Install Blanc.",
+      "exactWording": "Install Blanc",
       "subject": "Blanc",
       "claimType": "qualified capability or maintainer process statement",
       "evidenceGroups": [

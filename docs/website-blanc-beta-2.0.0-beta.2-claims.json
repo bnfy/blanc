@@ -8,7 +8,7 @@
   "ownerDecisions": {
     "approvedOn": "2026-11-14",
     "decisions": [
-      "Show Blanc Beta on /download as its own 'Try Blanc Beta.' section below Install; the four platform cards stay unchanged.",
+      "Show Blanc Beta on /download as its own 'Try Blanc Beta' section right under the platform cards (moved up from below Install the same day, owner); the four platform cards stay unchanged.",
       "The Download button goes to /dl/beta on the blanc-ping Worker, counted like the other /dl/* routes.",
       "The section names both waived gates as limitations, matching the approved release notes."
     ]
@@ -16,7 +16,7 @@
   "page": "site/src/pages/download.astro#beta",
   "claims": [
     {"text": "Preview", "kind": "label"},
-    {"text": "Try Blanc Beta.", "kind": "label"},
+    {"text": "Try Blanc Beta", "kind": "label"},
     {"text": "An early preview of Blanc built directly on Chromium.", "evidence": "The release is built from the fork's Chromium 158 tree (release.json chromiumVersion 158.0.8127.2); the approved release notes say the same."},
     {"text": "It installs beside Blanc and never replaces it: Blanc Beta keeps its own data and passkeys, and your regular Blanc is left untouched.", "evidence": "Own bundle id me.bnfy.blanc.beta and Blanc Beta data folder (release.json); profile-coexistence gate passed on the notarized app; the owner's webauthn checks on the notarized build confirmed the Electron app and its passkeys were untouched."},
     {"text": "Apple Silicon Macs · macOS 13 or later · 2.0.0-beta.2", "evidence": "release.json arches [arm64] under the owner's Intel waiver, minimumSystemVersion 13.0, version 2.0.0-beta.2."},
