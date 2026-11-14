@@ -2443,6 +2443,70 @@ list/forget/cap; history visit + site icon seed; favorite favicon seed;
 first-run/checklist/Patron/launch-Sunrise state once stored; address context menu
 list/run; overlay drag flag; microphone capture seed.
 
+## Follow-ups after Blanc Beta 2.0.0-beta.2 (2026-11-14)
+Beta.2 is public (a GitHub pre-release, not latest). Its hosted smoke check
+passed, and blanc.day shows it (the `/download` tile, `/dl/beta` and the
+Sparkle feed). These are the open items, recorded here so any session on any
+machine has them.
+
+**For beta.3**
+1. **Protected-video notice** (gate `no-drm-handoff`, waived for beta.2 only).
+   On an Encrypted Media Extensions request, show an accessible notice that
+   the site needs Blanc, with an explicit Open in Blanc action for the
+   current page, and handle the Electron app being absent (D3/X2:
+   `docs/chromium-replacement/2026-10-30-desktop-replacement-spec.md`).
+   Nothing exists yet; ask the owner about wording and design first, with
+   buttons.
+2. **Vertical tabs after a relaunch**: the rail can reopen at its
+   narrow-window cap (248 px) instead of the saved width (360 px).
+   Intermittent: `vertical-tabs.feature:58` failed 2 of 4 runs on 2026-11-14.
+   The saved preference is kept; the rendered width is computed before the
+   restored window bounds apply.
+3. **Production Sync with a real iPhone** (gate
+   `production-sync-real-device`, waived for beta.2). The beta joins the
+   iPhone's existing Sync through Add this device with a code, with the code
+   from the regular Blanc's Add another device. Run
+   `chromium/release/owner/beta2-sync-check.command` (copied for beta.3).
+4. **The first signed Sparkle update, beta.2 → beta.3**, from inside an
+   installed beta.2, published through the website PR that updates
+   `site/src/data/blanc-beta.json`, `BETA_DOWNLOAD` in
+   `cloudflare/ping-worker/src/dl.js` and
+   `site/public/updates/chromium-beta/arm64.xml` together.
+
+**Other follow-ups**
+5. **Sync screen** (both apps): Turn on Sync, Connect your iPhone and Add
+   this device with a code, plus a dialog with a third choice, confused the
+   owner (2026-11-14). Design one clear "new Sync or join an existing one"
+   choice and show the owner options before changing anything.
+6. **A faster full suite**: 612 cases, about 75 minutes. Start from the run's
+   `timing.json` (per-case phases: `blockerReadiness`, `browserLaunch`,
+   `fixturePreparation`), then the slowest cases
+   (`shared-spaces.feature:47` took about 8 minutes). Ideas: reuse a browser
+   across cases, cache fixtures and blocker readiness, run independent cases
+   in parallel, isolate the pointer-sensitive cases. Report "N of total"
+   during every suite run (owner preference).
+7. **1Password re-locks every ~20 seconds on the Mac Studio** (its security
+   options are greyed out). The beta.2 workarounds are in
+   `chromium/release/owner/`; fixing it would let `op run` work again.
+
+**What lives only on the Mac Studio**
+- The release work folder `~/Projects/Blanc/records/beta2-work`: signed
+  app, DMG, `state.json`, `release.json` and evidence bundles.
+- The gate evidence in `~/Projects/Blanc/evidence/foundation/beta2-signed`.
+- The full-suite run `full-beta2-equivalence`.
+- The update key, in the Keychain; its backup is in 1Password Dev,
+  "Blanc Chromium Beta Sparkle Signing".
+- The Developer ID identity (also on the MacBook Pro).
+- Wrangler 4.86.0 signed in to BNFY (npx cache), and the Blubird fonts in
+  `~/Downloads/blubird`.
+- For a site deploy, make a clean checkout of `main`
+  (`git worktree add --detach … origin/main`), run `npm ci` in `site/`,
+  install the fonts (`node site/scripts/blubird-fonts.mjs install ~/Downloads/blubird`),
+  build with Node 22, and borrow the main checkout's root `node_modules` for
+  `brand:check`.
+- The Chromium tree and its output folders, `out/BlancBeta` at beta.2's
+  production arguments.
+
 ## Next
 1. S1.7 (F14): every S1.7 key is built and checked against v1.45.1's
    DEFAULTS (`tools/settings-keys.mjs`: none left to build), Blanc's sections
