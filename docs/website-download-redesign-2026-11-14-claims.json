@@ -5,7 +5,9 @@
   "ownerDecisions": [
     "Reimagine /download with far fewer words: one button for your system under a Mac / Windows / Linux / iPhone segmented control, three tiles (Blanc Beta first, iPhone and iPad, Homebrew), then one line of facts (the 'One button' direction, chosen 2026-11-14).",
     "No full stops after large headings.",
-    "Blanc Beta must not be buried: it leads the tiles, in dark ink."
+    "Blanc Beta must not be buried: it leads the tiles, in dark ink.",
+    "Add an Android tab to the segmented control, leading only to the beta signup (November 14, 2026).",
+    "Remove the \"On a phone or tablet?\" box: the switcher opens on the iPhone tab for iPhones and iPads and on the Android tab for Android phones, so phone visitors no longer need to send the page to a computer (November 14, 2026)."
   ],
   "publicBaseline": "v1.49.0 for the desktop app, App Store 1.0.3 for iPhone and iPad, chromium-beta-2.0.0-beta.2 for Blanc Beta (its own ledger: docs/website-blanc-beta-2.0.0-beta.2-claims.json).",
   "retired": "The wording this page dropped stays recorded under retiredForDownloadRedesign in docs/website-revamp-claims-v1.27.json, website-v1.33-claims.json, website-v1.34-claims.json and website-homebrew-claims-v1.40.json, and under supersededClaims in docs/website-ipad-1.0.3-claims.json.",
@@ -24,16 +26,17 @@
     {"id": "dl-2026-11-14-12", "exactWording": "Signed and notarized", "verdict": "qualified", "rests": ["download-2026-10-04-10"], "evidence": "Mac builds are signed and notarized by Apple; Windows installers are Authenticode-signed. 'Verify a release' links the full procedure."},
     {"id": "dl-2026-11-14-13", "exactWording": "Updates itself", "verdict": "verified", "rests": ["reddit-418"], "evidence": "Installed release builds check GitHub Releases and update themselves."},
     {"id": "dl-2026-11-14-14", "exactWording": "Free, with no account", "verdict": "qualified", "rests": ["site-133-download-02", "reddit-418"], "evidence": "Every feature is free (v1.33); nothing needs an account: updates need none, Sync pairs with a code or a passphrase, and Patron is an optional license key."},
-    {"id": "dl-2026-11-14-15", "exactWording": "No general extension support.", "verdict": "qualified", "rests": ["v134-1p-007"], "evidence": "Blanc has no general third-party extension runtime (the optional managed uBlock Origin provider is not a general extension runtime)."},
-    {"id": "dl-2026-11-14-16", "exactWording": "Synced provider passkeys, including iCloud Keychain, are not supported.", "verdict": "verified", "rests": ["v134-1p-007"], "evidence": "Unchanged from the retired limits paragraph; test/unit/website-revamp-trust.test.js requires it on this page."},
-    {"id": "dl-2026-11-14-17", "exactWording": "Download didn’t start?", "verdict": "verified", "rests": ["reddit-428"], "evidence": "The retired footnote, shortened; the link opens the latest release page."}
+    {"id": "dl-2026-11-14-15", "exactWording": "Blanc 1.49 has no general extension support, and doesn’t support synced provider passkeys such as iCloud Keychain.", "verdict": "qualified", "rests": ["v134-1p-007"], "evidence": "Blanc has no general third-party extension runtime (the optional managed uBlock Origin provider is not a general extension runtime)."},
+    {"id": "dl-2026-11-14-17", "exactWording": "Download didn’t start?", "verdict": "verified", "rests": ["reddit-428"], "evidence": "The retired footnote, shortened; the link opens the latest release page."},
+    {"id": "dl-2026-11-14-18", "exactWording": "Blanc for Android isn’t released yet.", "verdict": "verified", "rests": ["android-beta-01"], "evidence": "The Android tab's panel; same wording as the beta page. The tab leads only to the beta signup."},
+    {"id": "dl-2026-11-14-19", "exactWording": "You can sign up to test it on Google Play.", "verdict": "qualified", "rests": ["android-beta-02"], "evidence": "The Android tab's panel; its button opens blanc.day/android-beta, whose form joins the beta list. Qualified like android-beta-02: the beta has no date."}
   ],
   "labels": [
     "Download Blanc", "Mac", "Windows", "Linux", "iPhone", "Download for Mac", "Intel Mac", "Download for Windows", "Download for Linux",
     "Get it on the App Store", "Join the beta on TestFlight", "Blanc {latest.version} · What’s new", "Measurement choices",
     "iPhone and iPad", "Blanc for iPhone and iPad", "App Store", "Mac, from the terminal", "Homebrew", "brew install --cask bnfy/tap/blanc", "Copy",
-    "Verify a release", "No general extension support. Synced provider passkeys, including iCloud Keychain, are not supported.",
-    "Download didn’t start? Open the release page · support@blanc.day", "On a phone or tablet?", "Blanc is a desktop browser for macOS, Windows and Linux.",
-    "Blanc for iPhone and iPad is free on the App Store. Blanc for your Mac or PC is a desktop browser for macOS, Windows and Linux.", "Send to my computer"
+    "Verify a release", "Blanc 1.49 has no general extension support, and doesn’t support synced provider passkeys such as iCloud Keychain.",
+    "Download didn’t start? Open the release page · support@blanc.day",
+    "Android", "Join the Android beta"
   ]
 }

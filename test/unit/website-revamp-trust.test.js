@@ -89,7 +89,7 @@ test("release evidence, audit status and known Sync findings stay visible outsid
   assert.doesNotMatch(evidence, /<details/);
   assert.match(
     read("site/src/pages/download.astro"),
-    /Synced provider passkeys, including iCloud Keychain, are not supported/,
+    /Blanc 1\.49 has no general extension support, and doesn’t support synced provider passkeys such as iCloud Keychain\./,
   );
 });
 test("home keeps product limits and links to detailed ownership, licensing and audit disclosures", () => {

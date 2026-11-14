@@ -22,6 +22,8 @@ test('the form posts to the Worker route, keeps the address out of the URL and h
   assert.match(form, /button\.disabled = false;\n/);
   assert.match(form, /separate from the Blanc newsletter, and we delete it when the beta ends/);
   assert.match(form, /href="\/privacy#android-beta"/);
+  // The privacy page lists the measured website events; this form adds none.
+  assert.doesNotMatch(form, /data-track/);
 });
 
 test('the privacy page describes the beta list', async () => {
@@ -41,4 +43,20 @@ test('the built page is noindex, unlisted, and offers no second signup prompt', 
   assert.doesNotMatch(html, /data-newsletter-prompt/, 'the page already asks for an address');
   const sitemap = await read('site/dist/sitemap.xml');
   assert.doesNotMatch(sitemap, /\/android-beta</);
+});
+
+test('the Download page has an Android tab that leads only to the beta signup', async () => {
+  const { detectSystem } = await import('../../site/src/scripts/download-switcher.js');
+  const page = await read('site/src/pages/download.astro');
+  assert.match(page, /<input class="dl-radio" type="radio" name="dl-os" id="dl-os-android" value="android" \/>/);
+  assert.match(page, /<label for="dl-os-android"><PlatformLogo platform="android" \/>Android<\/label>/);
+  const panel = page.match(/<div class="dl-panel" data-os="android">([\s\S]*?)\n        <\/div>/)?.[1] ?? '';
+  assert.match(panel, /<a class="dl-button" href="\/android-beta">Join the Android beta<\/a>/);
+  assert.equal([...panel.matchAll(/href="/g)].length, 1, 'the panel links only to the beta signup');
+  assert.match(panel, /Blanc for Android isn’t released yet\./);
+  assert.doesNotMatch(page, /data-android/, 'the phone-box version is gone');
+  assert.equal(detectSystem('Mozilla/5.0 (Linux; Android 15; Pixel 9)'), 'android');
+  assert.equal(detectSystem('Mozilla/5.0 (X11; Linux x86_64)'), 'linux');
+  const logo = await read('site/public/revamp/android.svg');
+  assert.match(logo, /Font Awesome Free 6\.7\.2 .*Icons: CC BY 4\.0/, 'the icon keeps its attribution, like the other platform logos');
 });

@@ -131,7 +131,7 @@ test('when copying also fails the visitor still reaches the download page', asyn
 const fs = require('node:fs');
 const read = file => fs.readFileSync(path.resolve(__dirname, '../..', file), 'utf8');
 
-test('the homepage hero and /download carry the phone markup and load the module', () => {
+test('the homepage hero carries the phone markup and loads the module; /download needs neither', () => {
   const home = read('site/src/pages/index.astro');
   const hero = home.match(/<a class="planned-action"[^>]*data-cta-position="hero"[^>]*>/)[0];
   assert.match(hero, /href="\/download"/);
@@ -147,10 +147,9 @@ test('the homepage hero and /download carry the phone markup and load the module
   assert.doesNotMatch(home.match(/<a class="planned-action" href=\{ios\.storeUrl\}[^>]*>/)[0], /data-track/, 'no new measured event: the privacy policy lists them all');
 
   const download = read('site/src/pages/download.astro');
-  assert.match(download, /href=\{ios\.storeUrl\} rel="noopener" data-ios-store hidden>Get it on the App Store<\/a>/);
   assert.doesNotMatch(home + download, /data-(?:not-)?iphone/, 'the old iPhone-only hooks are gone');
-  assert.match(download, /<aside class="download-handheld" data-handheld-note hidden/);
-  assert.match(download, /data-handheld-share="download-share-status"/);
-  assert.match(download, /id="download-share-status" role="status"/);
-  assert.match(download, /import \{ initHandheldDownload \} from '\.\.\/scripts\/handheld-download\.js';/);
+  // The platform switcher opens on the iPhone tab for iPhones and iPads and on
+  // the Android tab for Android phones, so /download has no phone box (owner,
+  // November 14, 2026).
+  assert.doesNotMatch(download, /data-handheld|download-handheld|handheld-download/);
 });
