@@ -1,6 +1,6 @@
 {
-  "note": "Blanc Beta's icon catalog: shipping's five macOS colorways (src/main/app-icon-assets.js, build/app-icons) compiled by actool into one Assets.car. Sunrise Gold is the app icon, under the BlancDK name the Info.plist carries (owner, 2026-11-14: the beta's default for now); the others are named stacks the Dock loads by name, as shipping's packaged builds do, so each follows Light and Dark. Spectrum and Amber take their muted Dark rim from bnfy/blanc#1528.",
-  "shipping": "eb988fd7430d5ee49911db7f759822855602095c",
+  "note": "Blanc Beta's icon catalog: shipping's five macOS colorways (src/main/app-icon-assets.js, build/app-icons) compiled by actool into one Assets.car. Sunrise Gold is the app icon, under the BlancDK name the Info.plist carries (owner, 2026-11-14: the beta's default for now); the others are named stacks the Dock loads by name, as shipping's packaged builds do, so each follows Light and Dark. Spectrum and Amber take their muted Dark rim from bnfy/blanc#1528, merged.",
+  "shipping": "a54d27a75ca9d5f2c54f8ac523ce8b12f8bec7c0",
   "colorway": "sunrise-gold",
   "actool": "27.2",
   "minimumDeploymentTarget": "13.0",
@@ -15,7 +15,7 @@
     "Assets.car": "5393ea4b6ef67e77048c0a9d27fd874282069b5b0188e3ab17a83aad5b3ac6f6",
     "app.icns": "443a0af49b1cda70233ce0b3ca00fb2a50df4d14af97fde641dda1cf99532a5b"
   },
-  "shippingRef": "bnfy/blanc#1528 (claude/spectrum-amber-dark-rim)",
+  "shippingRef": "main (bnfy/blanc#1528, squash-merged; inputs identical to eb988fd74)",
   "stacks": {
     "sunrise": "Icon",
     "sunrise-dark": "SunriseDark",

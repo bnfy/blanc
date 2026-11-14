@@ -34,8 +34,9 @@ remain pending. D3 beta-only no-DRM exception accepted; EME notice/handoff requi
   name on macOS 26 and later, as shipping's packaged builds do; Clear and
   Tinted put the app's own icon back, and the flat images stay the fallback
   on older macOS. Spectrum's and Amber's stacks carry the muted warm Dark
-  rim from bnfy/blanc#1528 (pinned to its commit in `icon-manifest.json`;
-  re-pin to main once it merges). Not handled: a change of Icon & widget
+  rim from bnfy/blanc#1528 (merged as a54d27a75; `icon-manifest.json` pins
+  that commit). The fork's flat fallback images (`island/pages/`) still carry
+  the white Dark rim until the Island's shipping pin moves past it. Not handled: a change of Icon & widget
   style while Blanc runs is picked up at the next icon or appearance change
   (shipping rechecks every 10 s). Checked: the fork unit suite (466 pass), patch
   reconstruction, and a syntax-only compile with out/BlancBeta's flags. Not
