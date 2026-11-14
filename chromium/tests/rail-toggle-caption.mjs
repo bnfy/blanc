@@ -14,7 +14,8 @@ const [configFile,out]=process.argv.slice(2),config=JSON.parse(fs.readFileSync(c
 assertNodeRuntime();assert.equal(fs.existsSync(out),false);fs.mkdirSync(out,{recursive:true});
 const f=new NativeFixture(),w=createWorld(f),result={candidate:config.candidate,checks:[]};
 const parent=fs.mkdtempSync(path.join(os.tmpdir(),'blanc-rail-toggle-'));
-const rect=id=>w.hostEval(`(()=>{const r=document.getElementById(${JSON.stringify(id)}).getBoundingClientRect();return {x:r.x,y:r.y,width:r.width,height:r.height};})()`);
+// Window coordinates of an element in the strip document, where the rail lives.
+const rect=id=>w.hostEval(`(()=>{const s=document.getElementById('strip'),o=s.getBoundingClientRect(),e=s.contentDocument?.getElementById(${JSON.stringify(id)});if(!e)return {x:0,y:0,width:0,height:0};const r=e.getBoundingClientRect();return {x:o.x+r.x,y:o.y+r.y,width:r.width,height:r.height};})()`);
 try{
  await f.launch(config,path.join(parent,'fixture'),{testHooks:true,diskAssets:false});
  await installDriver(f.host);await assertRendering(e=>f.host.eval(e));await w.reset();
@@ -26,12 +27,12 @@ try{
  result.toggle={at,rail:Math.round(rail.width)};
  assert.equal(await w.native('captionAt',at),false,'the layout toggle is not a drag handle');
  result.checks.push(`the layout toggle at ${at} is not a window drag handle`);
- const pill=(await w.snapshot()).tabLayout&&await w.hostEval(`(()=>{const s=document.getElementById('strip');const p=s.contentDocument.getElementById('islandPill').getBoundingClientRect();const o=s.getBoundingClientRect();return {x:o.x+p.x};})()`);
+ const pill=await w.hostEval(`(()=>{const s=document.getElementById('strip');const p=s.contentDocument.getElementById('islandPill').getBoundingClientRect();const o=s.getBoundingClientRect();return {x:o.x+p.x};})()`);
  const beside=[Math.round(Math.max(rail.width+20,(rail.width+pill.x)/2)),20];
  result.beside=beside;
  assert.equal(await w.native('captionAt',beside),true,'the strip beside the rail still drags the window');
  result.checks.push(`the strip beside the rail (${beside}) still drags the window`);
- await w.hostEval(`document.getElementById('verticalTabsUseIsland').click()`);
+ await w.hostEval(`document.getElementById('strip').contentDocument.getElementById('verticalTabsUseIsland').click()`);
  await w.waitFor(async()=>(await w.snapshot()).tabLayout,v=>v==='island','the Island layout after the toggle');
  result.checks.push('clicking the toggle turns vertical tabs off');
  result.result='pass';
