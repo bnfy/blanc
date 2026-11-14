@@ -84,6 +84,7 @@
     "patches/0076-blanc-about-in-sheet.patch",
     "patches/0077-blanc-product-name.patch",
     "patches/0078-blanc-start-widgets.patch",
-    "patches/0079-blanc-safe-browsing-off.patch"
+    "patches/0079-blanc-safe-browsing-off.patch",
+    "patches/0080-blanc-sync-joined-note.patch"
   ]
 }
