@@ -48,3 +48,12 @@ records how beta.3 ran.
 
 For beta.4: copy both halves, change the version, the work folder and the
 DMG name, and keep everything else.
+
+## Beta.4 (2026-11-14)
+
+`beta4-*` and `remote/beta4-*` are beta.3's with the version, build, work
+folder and DMG name changed. `remote/beta4-5-owner-checks.command` also asks
+about what beta.4 fixes: 1Password's in-page Unlock button (patch 0081,
+recorded as `extension-popup.json`, not a release gate), the iPhone listing
+the Mac's open tabs, and Sync after every window has closed. Its EXIT trap
+now keeps the window open too (beta.3's second trap replaced the first).
