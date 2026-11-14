@@ -1,0 +1,84 @@
+{
+  "schema": 1,
+  "note": "Owner's standing gate decisions for daily Blanc Betas (owner, 2026-11-14: they carry until the owner changes them). A waiver applies to betas from 'since' up to, not including, 'until'; retire one by setting 'until', never by deleting it, so earlier releases still verify. A carried gate counts only while no file matching 'paths' or 'anyChange' changed since its lastPass.sourceCommit. Evidence paths are on the Mac Studio; their digests are pinned here. Edit only on the owner's word, quoting it in the commit. docs/chromium-beta-release.md, 'Daily betas'.",
+  "anyChange": [
+    "chromium/lanes/desktop.json",
+    "chromium/upstream/**"
+  ],
+  "archWaiver": "Owner standing decision 2026-11-14: daily betas are Apple Silicon only; Intel is deferred until a separately qualified native build.",
+  "whatToKnow": [
+    "- **A separate app.** Blanc Beta has its own name, its own data folder and its own passkeys. Your regular Blanc, its data, settings and passkeys are left untouched.",
+    "- **Apple Silicon Macs, macOS 13 or later.** There is no Intel build of this beta.",
+    "- **Blocking is built in.** Ads and trackers are blocked from the first page, including in private windows.",
+    "- **Its own updates.** Beta updates come from blanc.day, signed with the beta's own key. They never touch the regular Blanc.",
+    "- **Touch ID passkeys** work, in ordinary and private windows."
+  ],
+  "notes": {
+    "no-drm-handoff": "- **Protected video** (such as Netflix or Spotify) doesn't play. Use the regular Blanc for those sites; a notice offering to open them there is coming in a later beta.",
+    "production-sync-real-device": "- **Sync** is included but still being checked against the live service, so don't rely on it yet."
+  },
+  "waivers": {
+    "no-drm-handoff": {
+      "since": "2.0.0-beta.5",
+      "reason": "Owner standing waiver 2026-11-14: daily betas ship without the protected-video notice and its Electron Blanc handoff (D3/X2) until that notice is built; on a site that asks for protected video, playback fails. Make no public claim about protected video in Blanc Beta."
+    },
+    "production-sync-real-device": {
+      "since": "2.0.0-beta.5",
+      "reason": "Owner standing waiver 2026-11-14: daily betas ship without the real-iPhone Sync pass on each notarized build; desktop Sync is checked on the prototype, and the release notes keep the caution that Sync is not checked end to end."
+    }
+  },
+  "carried": {
+    "webauthn": {
+      "who": "owner",
+      "check": "Touch ID passkeys on the notarized build (remote/beta4-5-owner-checks.command's passkey questions)",
+      "paths": [
+        "chromium/blanc/branding/beta/app-entitlements.plist",
+        "chromium/blanc/browser/webauthn/**",
+        "chromium/patches/*passkey*",
+        "chromium/patches/*webauthn*",
+        "chromium/release/blanc-beta.provisionprofile",
+        "chromium/release/operator.mjs",
+        "chromium/release/native.mjs"
+      ],
+      "lastPass": {
+        "version": "2.0.0-beta.4",
+        "sourceCommit": "e47bf1bcf9d7e243b296c3ba1a3b5c385e156531",
+        "evidence": "evidence/foundation/beta4-signed-superseded-e47bf1bcf/webauthn.json",
+        "sha256": "123884203ec350715fd67d038a6964a5059d5057d6cfa36971cfdaeb2788ae9a"
+      }
+    },
+    "sparkle-N-to-N+1": {
+      "who": "claude",
+      "check": "the local update proof (local-update-proof.mjs), then the signed handoff from the previous public beta on a copy",
+      "paths": [
+        "chromium/blanc/browser/mac/beta_update*",
+        "chromium/blanc/browser/mac/beta_updater*",
+        "chromium/blanc/third_party/sparkle/**",
+        "chromium/patches/*sparkle*",
+        "chromium/release/appcast.mjs",
+        "chromium/release/stage-sparkle.py"
+      ],
+      "lastPass": {
+        "version": "2.0.0-beta.2",
+        "sourceCommit": "058277389292e4a02291be56e496acc7b8d68add",
+        "evidence": "evidence/foundation/sparkle-local-update-20261114.json",
+        "sha256": "85feef5dbfc6801234b286d2b0303f76470aa558b97dd8d48dd94dc2bc892202"
+      }
+    },
+    "desktop-sync": {
+      "who": "claude",
+      "check": "native-sync-organic-tabs.mjs on the prototype and beta-sync.mjs on a local-qualification build",
+      "paths": [
+        "chromium/blanc/browser/sync/**",
+        "chromium/blanc/services/sync_runner/**",
+        "chromium/patches/*sync*"
+      ],
+      "lastPass": {
+        "version": "2.0.0-beta.4",
+        "sourceCommit": "57e3109dd3c166fe1ea76caf0cc1a3b93aa54585",
+        "evidence": "evidence/foundation/beta4/acceptance/native-sync-organic-tabs.json",
+        "sha256": "60640a89b0d138b3db4940b88ffe925c921ed6fb12150626f73994f3b8c43d9f"
+      }
+    }
+  }
+}

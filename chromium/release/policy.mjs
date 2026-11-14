@@ -1,6 +1,7 @@
 // Owner-approved beta identity and release policy; no release authorization.
 import { isDeepStrictEqual } from 'node:util';
 import { createHash, X509Certificate } from 'node:crypto';
+import { loadStanding, standingWaiver, StandingError } from './standing.mjs';
 export const ROOT_ID = 'me.bnfy.blanc.beta';
 export const PRODUCT = 'Blanc Beta';
 export const TEAM = 'XYGUCY4498';
@@ -31,7 +32,10 @@ export const GATE_WAIVERS = Object.freeze({
   '2.0.0-beta.3': Object.freeze(['no-drm-handoff', 'production-sync-real-device']),
   '2.0.0-beta.4': Object.freeze(['no-drm-handoff', 'production-sync-real-device']),
 });
-export const waiverAllowed = (r, gate) => (GATE_WAIVERS[r.version] ?? []).includes(gate);
+// From beta.5 on, the owner's standing decisions (standing.json, owner 2026-11-14) add
+// waivers that carry from beta to beta until the owner retires them with 'until'.
+export const STANDING = loadStanding();
+export const waiverAllowed = (r, gate) => (GATE_WAIVERS[r.version] ?? []).includes(gate) || standingWaiver(STANDING, r.version, gate) !== null;
 export const waiverReason = why => typeof why === 'string' && why.trim().length >= 20;
 export const sha256 = bytes => createHash('sha256').update(bytes).digest('hex');
 // The certificate's standard SHA-1 thumbprint: the identifier Keychain, codesign and the
@@ -43,7 +47,7 @@ export const fingerprint = der => new X509Certificate(der).fingerprint.replaceAl
 export class ReleaseCheckError extends Error {}
 export const check = (condition, message) => { if (!condition) throw new ReleaseCheckError(message); };
 export const equal = (actual, expected, message) => check(isDeepStrictEqual(actual, expected), message);
-export const reason = error => error instanceof ReleaseCheckError ? error.message : 'unexpected error (details withheld)';
+export const reason = error => error instanceof ReleaseCheckError || error instanceof StandingError ? error.message : 'unexpected error (details withheld)';
 // GN arguments beyond the required ones, each added here only after review.
 export const GN_REVIEWED_EXTRA = ['blanc_beta_version', 'blanc_beta_build', 'blanc_sparkle_stage', 'blanc_sparkle_public_key', 'blanc_sparkle_archive_sha256', 'blanc_blocker_bundle', 'blanc_beta_local_qualification', 'chrome_pgo_phase', 'symbol_level', 'mac_deployment_target', 'mac_min_system_version'];
 export function base64(value, bytes) {

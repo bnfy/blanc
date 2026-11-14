@@ -1,0 +1,41 @@
+{
+ "schema": 1,
+ "bundleId": "me.bnfy.blanc.beta",
+ "product": "Blanc Beta",
+ "userDataDir": "Blanc Beta",
+ "keychainGroup": "XYGUCY4498.me.bnfy.blanc.beta.webauthn",
+ "certificateSHA1": "55283A84D3706D5A22386D5F002A0CD4845ECFD4",
+ "teamId": "XYGUCY4498",
+ "upstream": "681cd621e82e606d7536eae8ea2576afb3c7d65c",
+ "chromiumVersion": "158.0.8127.2",
+ "version": "2.0.0-beta.4",
+ "tag": "chromium-beta-2.0.0-beta.4",
+ "shortVersion": "2.0.0-beta.4",
+ "build": 4,
+ "previousBuild": 3,
+ "prerelease": true,
+ "makeLatest": false,
+ "sourceCommit": "57e3109dd3c166fe1ea76caf0cc1a3b93aa54585",
+ "inputDigest": "14313460ce9300fce7d3b1a80333a6edf27dfdc2ddad61095135b560a6d1ed0a",
+ "arches": [
+  "arm64"
+ ],
+ "candidates": {
+  "arm64": "macos-e8eb804f1ebb87a8"
+ },
+ "gnArgsSHA256": {
+  "arm64": "bb9d5e49f29431107a5ecaebf61277b226741fb6f82357818167c6c47b71e177"
+ },
+ "sparkle": {
+  "version": "2.10.1",
+  "publicKey": "6evJNrxSq6GUSthnzlQDIVCyC6U90GrhDE0eTFqYlVQ=",
+  "archiveSHA256": "1a856d2a9edb8e628de88121d7be04cf0e2167f8641650b78fca00b14244cf27"
+ },
+ "minimumSystemVersion": "13.0",
+ "profileSHA256": "c4d6ef484cb449f4c3bd730aeccc5561b1a536223b7f36e0ac26d50b698b581c",
+ "launchScheme": "blanc-beta",
+ "archWaiver": "Owner approved 2026-11-14: beta.4 is Apple Silicon only again; Intel deferred until a separately qualified native build.",
+ "gateWaivers": {
+  "no-drm-handoff": "Owner waiver 2026-11-14: beta.4 ships the Sync fixes, the macOS red-button tab retention, extension popups, the Sunrise Gold icon and the approach swell without the protected-video notice and its Electron Blanc handoff (D3/X2); the notice moves to beta.5."
+ }
+}

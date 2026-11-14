@@ -44,13 +44,15 @@ test('a gate waiver is accepted only where the owner approved it',()=>{
   for(const bad of [{'webauthn':why},{'no-drm-handoff':'short'},['no-drm-handoff']]){const r=two();r.gateWaivers=bad;assert.throws(()=>validateRelease(r));}
   // Owner, 2026-11-14: beta.3 waives the notice again, and the real-iPhone Sync pass after it
   // failed on the notarized build. Beta.4 waives both too (the Sync pass after the
-  // rebuilt beta.4's iPhone miss); beta.5 neither.
+  // rebuilt beta.4's iPhone miss).
   const next=n=>{const r=two();r.version=`2.0.0-beta.${n}`;r.tag=`chromium-beta-${r.version}`;r.shortVersion=r.version;r.build=n;r.previousBuild=n-1;r.arches=['arm64'];return r;};
   const three=next(3);three.gateWaivers={'no-drm-handoff':why};validateRelease(three);
   const sync=next(3);sync.gateWaivers={'production-sync-real-device':why};validateRelease(sync);
   const four=next(4);four.gateWaivers={'no-drm-handoff':why};validateRelease(four);
   const fourSync=next(4);fourSync.gateWaivers={'production-sync-real-device':why};validateRelease(fourSync);
-  for(const gate of ['no-drm-handoff','production-sync-real-device']){const five=next(5);five.gateWaivers={[gate]:why};assert.throws(()=>validateRelease(five),/no owner waiver/);}
+  // From beta.5 the owner's standing decisions (standing.json) waive both gates; any other gate is still refused.
+  for(const gate of ['no-drm-handoff','production-sync-real-device']){const five=next(5);five.gateWaivers={[gate]:why};validateRelease(five);}
+  const fiveOther=next(5);fiveOther.gateWaivers={'webauthn':why};assert.throws(()=>validateRelease(fiveOther),/no owner waiver for gate: webauthn/);
   const other=next(3);other.gateWaivers={'desktop-sync':why};assert.throws(()=>validateRelease(other),/no owner waiver for gate: desktop-sync/);
 });
 test('current release branding cannot masquerade as beta source',()=>{

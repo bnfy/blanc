@@ -1216,3 +1216,124 @@ these with buttons on 2026-11-14:
    `--user-data-dir`, and drive Check for Updates… by process id (System
    Events `first process whose unix id is …`), because both copies share one
    bundle id. Compare the updated copy's code hash with the released DMG's.
+
+### Daily betas (2026-11-14)
+
+The owner ships a beta every day until the fork is stable. Design:
+`docs/superpowers/specs/2026-11-14-daily-beta-release-design.md`. The owner's
+decisions, made with buttons on 2026-11-14:
+
+- **The full suite runs nightly, plus a targeted rerun.** A beta releases on a
+  passing night's evidence. Source newer than that night may release after a
+  rerun of only the scenarios its changes touch.
+- **Gate decisions carry until the owner changes them**
+  (`chromium/release/standing.json`).
+- **Hand checks run only when their code changed** since the last beta where
+  they passed.
+- **The outbound check runs inside the one release command.** No sudo rule was
+  added on the Mac Studio.
+
+Per-version wrappers (`betaN-*.command`) and per-version `GATE_WAIVERS`
+entries are no longer written; the earlier ones stay for the record.
+
+**1. Every night (the Mac Studio, unattended).** The LaunchAgent
+`me.bnfy.blanc.beta-nightly` runs `chromium/release/daily/nightly.mjs` at
+02:00 (installed by `daily/install-nightly.sh`, removed with `--remove`). It
+skips, writing why to `records/nightly/skipped.log`, if
+`records/RELEASE-IN-PROGRESS` exists, a build or the test runner is going,
+the checkout has uncommitted changes, or it has commits `chromium/next` lacks.
+Otherwise it moves `~/Projects/Blanc/repo` to `chromium/next`'s tip and:
+
+1. Builds the prototype with `scripts/rebuild.sh`. If the build leaves any
+   committed generated file changed (other than `tracker.json`), the night
+   fails: the committed source map or asset hashes are stale. Commit them.
+2. Builds the beta as the next version (ledger + 1). Only
+   `blanc_beta_version` and `blanc_beta_build` may change in `args.gn`
+   (`bumpBetaArgs`), then `gn gen`. The guard's environment is re-recorded
+   only when its own check names nothing but `argsSha256`. The build is capped
+   at 3000 actions, so it is never a cold build.
+3. Runs the full suite, reruns anything that failed once, and judges it
+   against `daily/known-failures.json`. Add a case there only with its reason;
+   remove it once fixed.
+4. Runs the blocker, test-hooks, profile and notices checks (with the SBOM)
+   under the release descriptor the release will use.
+5. Writes `records/nightly/<stamp>/result.json`, and `latest-pass.json` when
+   the night passed.
+
+`nightly.mjs --plan` says what it would do and changes nothing.
+`nightly.mjs --targeted` runs the targeted rerun on the checkout as it is
+(Claude moves it to the release commit first). `daily/scenario-areas.json`
+maps changed files to features. Anything shared or unmapped, a build file, a
+lane or upstream change, or a change to the runner needs the full suite.
+
+**2. Prepare (Claude, on the Mac Studio).** Write `CHANGES.md` (the "Fixed in
+this beta" and "New in this beta" sections, in the style of beta.4's notes)
+from the commits since the last beta, then run:
+
+```
+node chromium/release/daily/beta-prep.mjs records/nightly/<stamp>/result.json CHANGES.md [TARGETED-result.json]
+```
+
+It refuses a night that didn't pass, a checkout not at the night's commit, or a
+descriptor that differs from the one the checks ran under. It writes
+`records/beta<N>-work` with frozen copies of the unsigned app and `args.gn`,
+the release notes, `gate-sources.json` and `hand-checks.json`. It points the
+outbound check at the candidate and writes `RELEASE-IN-PROGRESS`.
+
+Carried checks use their pinned evidence. A check whose code changed is due:
+Claude runs the ones marked `claude` (the update proof, desktop Sync) before
+telling the owner. `beta-prep.mjs --abandon` clears the marker if no tag
+exists.
+
+**3. Release (the owner, on the MacBook Pro).** Run
+`chromium/release/owner/remote/beta-release.command`, the same file for every
+beta. It asks for:
+
+- Touch ID for 1Password;
+- the Mac Studio password (for sudo while the outbound check is still due,
+  then the keychain);
+- "tag and draft" (after the release notes are shown);
+- the Sigstore sign-in (Command-click the address);
+- "publish".
+
+The steps run in this order (`daily/release-steps.mjs`):
+
+1. outbound check;
+2. preflight, sign, notarize-app, dmg, notarize-dmg;
+3. signed evidence;
+4. sparkle;
+5. any due hand check;
+6. gate evidence, manifest;
+7. draft, Sigstore, publish, verify-public;
+8. the website PR.
+
+Every step is logged in `records/beta<N>-release-status.txt`. Running the
+command again resumes at the first unfinished step and never repeats one. If
+the passkey check is due, the command stops with exit 2. The owner then runs
+`owner/remote/beta-passkey-check.command`, which installs the notarized
+build, asks five questions and sends the answers, and then runs the release
+command again.
+
+**4. After publication (Claude).**
+
+1. `daily/site-pr.mjs <tag>` opens the website PR if the release command
+   didn't. It downloads the public `release.json` and appcast, checks them
+   against the Sigstore-signed checksums, and writes the feed (byte for byte),
+   the Download tile, `/dl/beta`, `dl.js`'s audit digest and the claims
+   ledger. If the waivers differ from the limitations the page lists, it
+   refuses, because the page's text changes and that needs the owner.
+2. Merge the PR when its checks pass.
+3. Deploy blanc-ping (compare the live version first), then the site from
+   the clean `main` checkout.
+4. Dispatch `chromium-beta-smoke.yml` with `check_feed=true`.
+5. Check the signed handoff on a copy (the lessons from beta.4, item 6).
+6. Run `daily/beta-record.mjs <WORK> <checkout of chromium/next>`. It adds
+   the ledger entry, moves `standing.json`'s `lastPass` for checks that ran
+   again, logs the beta in `chromium/release/daily-log.md` and clears
+   `RELEASE-IN-PROGRESS`. Commit and push to `chromium/next`.
+7. Open the PR that merges the release tag into `main`.
+
+**Changing a decision.** Edit `standing.json` only on the owner's word, quoting
+it in the commit. Retire a waiver with `until` (the first beta it no longer
+covers); never delete it, so earlier releases still verify. A changed waiver
+needs a new night, because the evidence binds the descriptor.
