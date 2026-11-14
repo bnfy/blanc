@@ -427,6 +427,13 @@ cmp "$BETA_WORK/private-seed.txt" "$BETA_WORK/recovered-seed.txt"
 rm "$BETA_WORK/private-seed.txt" "$BETA_WORK/recovered-seed.txt"
 ```
 
+**Split ceremony (2026-11-14):** when 1Password is unusable, the owner may run
+the Keychain half alone (`~/Projects/Blanc/scripts/sparkle-key-make.command`:
+the key in Keychain, the public key saved, a `BACKUP-PENDING` marker) and the
+1Password half later (`sparkle-key-backup.command`: export, store, read back,
+compare, delete, marker removed). `release.mjs` refuses `draft` and `publish`
+while the marker exists, so nothing ships with the key on one Mac only.
+
 If the dedicated Keychain account or 1Password title already exists, inspect and
 recover it privately instead of generating a replacement or creating duplicates.
 Cancel any manual account-setup prompt. Record custody/recovery success only;

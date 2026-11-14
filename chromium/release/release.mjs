@@ -40,6 +40,12 @@ const POINT_OF_NO_RETURN = STAGES.indexOf('draft');
 const EXTRA_PAYLOADS = ['acceptance.json', 'Blanc-Beta.cdx.json', 'NOTICES.txt'];
 
 // The real world: commands with captured output, and the owner at the keyboard.
+// Left by scripts/sparkle-key-make.command until the update key has a
+// verified 1Password copy (sparkle-key-backup.command): nothing is drafted
+// or published while the key exists only in one Mac's Keychain.
+export const KEY_BACKUP_PENDING = path.join(os.homedir(), 'Projects/Blanc/records/sparkle-production/BACKUP-PENDING');
+const keyBackedUp = io => check(!(io.keyBackupPending ?? (() => fs.existsSync(KEY_BACKUP_PENDING)))(),
+  'the update key is not yet backed up to 1Password (run sparkle-key-backup.command)');
 export function realIO() {
   return {
     exec(command, args, {input, env, cwd} = {}) {
@@ -199,6 +205,7 @@ export const RUN = {
     return {manifestSHA256: sha256(Buffer.from(json)), checksumsSHA256: sha256(Buffer.from(checksums))};
   },
   async draft(ctx, io) {
+    keyBackedUp(io);
     const dir = assets(ctx), r = ctx.r;
     const names = [...payloadNames(r), 'RELEASE-MANIFEST.json', 'SHA256SUMS'];
     equal(sha256(fs.readFileSync(path.join(dir, 'SHA256SUMS'))), ctx.state.done.manifest.checksumsSHA256, 'assets changed after the manifest');
@@ -231,6 +238,7 @@ export const RUN = {
     return {bundleSHA256: sha256(fs.readFileSync(bundle))};
   },
   async publish(ctx, io) {
+    keyBackedUp(io);
     const r = ctx.r;
     check(await io.confirm(`publish ${r.tag}`), 'not confirmed; the draft stays private');
     must(io, 'gh', ['release', 'edit', r.tag, '--repo', REPO, '--draft=false', '--prerelease', '--latest=false'], 'could not publish the draft');
