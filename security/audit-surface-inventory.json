@@ -51,7 +51,7 @@
     },
     {
       "file": "cloudflare/newsletter-worker/src/index.js",
-      "sha256": "32d08c585fe38dfc0cf5a22a7b7ea176bdcf422317fbdf4917b5b01ba7ba434a",
+      "sha256": "337ca2057aa9033e7d9faec35b539804e5c28dadddefca1fb11e3a58a868a2a8",
       "literalChannels": [],
       "role": "privileged implementation or service"
     },

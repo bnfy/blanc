@@ -14,6 +14,7 @@ const MAX_PROFILE_URL_LENGTH = 500;
 const MAX_INTRODUCTION_LENGTH = 1200;
 const EMAIL_RE = /^[^\s@]{1,64}@[^\s@]+\.[^\s@]{2,}$/;
 const TOKEN_RE = /^[A-Za-z0-9_-]{43}$/;
+const HASH_RE = /^[0-9a-f]{64}$/;
 // blanc.day is the site's origin; blancbrowser.com stays allowed while pages
 // served from it before the move are still open in someone's browser.
 const ALLOWED_ORIGINS = new Set([
@@ -512,26 +513,40 @@ const htmlResult = (title, message) => new Response(
 async function handleConfirm(env, url, list = LISTS.newsletter) {
   const token = url.searchParams.get('token') ?? '';
   if (!TOKEN_RE.test(token)) return htmlResult('Confirmation unavailable', 'This confirmation link is invalid or expired.');
-  const pendingKey = `${list.pending}${await sha256(token)}`;
+  const tokenHash = await sha256(token);
+  const pendingKey = `${list.pending}${tokenHash}`;
   const pending = await env.SUBSCRIBERS.get(pendingKey, { type: 'json' });
+  // A used link is opened again by a double click, a reload, Back, or a mail
+  // app handing it over twice. While the address is still on the list, that
+  // visit gets the same answer as the first one and changes nothing.
+  if (pending?.confirmedAt && typeof pending.email === 'string') {
+    const member = await env.SUBSCRIBERS.get(`${list.member}${pending.email}`, { type: 'json' });
+    if (member?.confirmHash === tokenHash) return htmlResult(...list.confirmed);
+    return htmlResult('Confirmation unavailable', 'This confirmation link is invalid or expired.');
+  }
   if (!pending || typeof pending.email !== 'string' || !TOKEN_RE.test(pending.unsubscribeToken)) {
     return htmlResult('Confirmation unavailable', 'This confirmation link is invalid or expired.');
   }
   const ts = new Date().toISOString();
   const unsubscribeHash = await sha256(pending.unsubscribeToken);
-  // A second confirmation replaces the member's removal token; drop the old
-  // lookup so it cannot keep the address after the record is removed.
+  // A second confirmation replaces the member's removal token and used-link
+  // marker; drop the old ones so they cannot outlive the record.
   const previous = await env.SUBSCRIBERS.get(`${list.member}${pending.email}`, { type: 'json' });
   if (TOKEN_RE.test(previous?.unsubscribeToken ?? '') && previous.unsubscribeToken !== pending.unsubscribeToken) {
     await env.SUBSCRIBERS.delete(`${list.leave}${await sha256(previous.unsubscribeToken)}`);
   }
-  const member = { ts, unsubscribeToken: pending.unsubscribeToken };
+  if (HASH_RE.test(previous?.confirmHash ?? '') && previous.confirmHash !== tokenHash) {
+    await env.SUBSCRIBERS.delete(`${list.pending}${previous.confirmHash}`);
+  }
+  const member = { ts, unsubscribeToken: pending.unsubscribeToken, confirmHash: tokenHash };
   await Promise.all([
     // The metadata copy lets an export read every member from list() pages
     // instead of one get() per member.
     env.SUBSCRIBERS.put(`${list.member}${pending.email}`, JSON.stringify(member), { metadata: member }),
     env.SUBSCRIBERS.put(`${list.leave}${unsubscribeHash}`, pending.email),
-    env.SUBSCRIBERS.delete(pendingKey),
+    // The pending request becomes a used-link marker for as long as the link
+    // itself could have lived. Leaving the list deletes it (dropMarker).
+    env.SUBSCRIBERS.put(pendingKey, JSON.stringify({ email: pending.email, confirmedAt: ts }), { expirationTtl: CONFIRM_TTL }),
     env.SUBSCRIBERS.delete(`${list.quarantine}${pending.email}`),
   ]);
   if (list === LISTS.newsletter) await addToSegment(env, pending.email);
@@ -548,7 +563,12 @@ async function handleUnsubscribe(env, url, list = LISTS.newsletter) {
   const key = `${list.leave}${await sha256(token)}`;
   const email = await env.SUBSCRIBERS.get(key);
   if (email) {
-    await Promise.all([env.SUBSCRIBERS.delete(`${list.member}${email}`), env.SUBSCRIBERS.delete(key)]);
+    const record = await env.SUBSCRIBERS.get(`${list.member}${email}`, { type: 'json' });
+    await Promise.all([
+      env.SUBSCRIBERS.delete(`${list.member}${email}`),
+      env.SUBSCRIBERS.delete(key),
+      dropMarker(env, list, record),
+    ]);
     if (list === LISTS.newsletter) await removeFromSegment(env, email);
   }
   return htmlResult(title, removed);
@@ -593,6 +613,13 @@ async function listMembers(env, list = LISTS.newsletter) {
   return json({ count: subscribers.length, subscribers, quarantined });
 }
 
+// Deletes the used-link marker a member's confirmation left behind.
+function dropMarker(env, list, record) {
+  return HASH_RE.test(record?.confirmHash ?? '')
+    ? env.SUBSCRIBERS.delete(`${list.pending}${record.confirmHash}`)
+    : Promise.resolve();
+}
+
 async function removeMember(env, email, list = LISTS.newsletter) {
   const record = await env.SUBSCRIBERS.get(`${list.member}${email}`, { type: 'json' });
   const tokenHash = TOKEN_RE.test(record?.unsubscribeToken ?? '')
@@ -602,6 +629,7 @@ async function removeMember(env, email, list = LISTS.newsletter) {
     env.SUBSCRIBERS.delete(`${list.member}${email}`),
     env.SUBSCRIBERS.delete(`${list.quarantine}${email}`),
     tokenHash ? env.SUBSCRIBERS.delete(`${list.leave}${tokenHash}`) : Promise.resolve(),
+    dropMarker(env, list, record),
   ]);
 }
 
