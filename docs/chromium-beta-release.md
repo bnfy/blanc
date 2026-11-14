@@ -621,6 +621,8 @@ node chromium/release/release.mjs dmg "$BETA_WORK"            # §10.5: hdiutil,
 OP_BIOMETRIC_UNLOCK_ENABLED=true op run --env-file=.env.1password --no-masking -- \
   node chromium/release/release.mjs notarize-dmg "$BETA_WORK" # §10.5: notarize, staple, verify.mjs, spctl
 node chromium/release/release.mjs sparkle "$BETA_WORK"        # §10.6: sign_update -p, appcast
+node chromium/release/gate-evidence.mjs plan  "$BETA_WORK" SOURCES.json  # every gate ready?
+node chromium/release/gate-evidence.mjs write "$BETA_WORK" SOURCES.json  # evidence/ + payloads/acceptance.json
 node chromium/release/release.mjs manifest "$BETA_WORK"       # §7: payloads, evidence, manifest
 node chromium/release/release.mjs draft "$BETA_WORK"          # §10.8: absence, typed OK, tag, draft, re-download
 node chromium/release/release.mjs sigstore "$BETA_WORK"       # §7: Safari Sigstore, verify, upload bundle
@@ -632,7 +634,12 @@ node chromium/release/release.mjs verify-public "$BETA_WORK"  # §8: logged-out 
 `local-inputs.json` (preflight's inputs plus `unsigned: {arm64: <built app>}`
 and `sparkle: <extracted pinned Sparkle>`), and before `manifest`,
 `payloads/` (`acceptance.json`, `Blanc-Beta.cdx.json`, `NOTICES.txt`,
-`release-notes.md`) and `evidence/<arch>/<gate>.evidence`. Each stage checks
+`release-notes.md`) and `evidence/<arch>/<gate>.evidence`. `gate-evidence.mjs`
+writes the last two from `SOURCES.json` (per architecture and gate: the
+evidence files and, where the owner decided one, the `basis` that lets them
+count). Each bundle embeds its sources with their digests and the final DMG's
+digest; a JSON source must report a pass, a gate the descriptor waives is
+written `waived` with the owner's reason, and nothing is overwritten. Each stage checks
 the one before it and records what it made in `state.json`, bound to the
 digest of `release.json`. From `draft` on, nothing earlier can run again and no
 stage reruns: fix forward with a new ledger build. Absence of the tag and of
