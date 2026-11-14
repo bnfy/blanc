@@ -24,11 +24,11 @@
     else if (link && link[1] === 'settings') window.bowserPages?.start?.openSettings?.('settings').catch(() => {});
   });
 
-  // The Billboard clock's height, for the stylesheet: the line under the clock and the shortcuts
-  // sit below it, whatever font and height the clock has.
+  // The Billboard clock's height before any fitting scale (below), for the stylesheet: the line
+  // under the clock and the shortcuts sit below it, whatever font and height the clock has.
   function measureClock(row) {
     new ResizeObserver(() => {
-      root.style.setProperty('--android-clock-height', row.getBoundingClientRect().height + 'px');
+      root.style.setProperty('--android-clock-height', row.offsetHeight + 'px');
     }).observe(row);
   }
 
@@ -38,7 +38,10 @@
   // out its one line, and android-start.css moves the clock by the difference.
   function centerClock(clock) {
     const context = document.createElement('canvas').getContext('2d');
+    const editing = document.getElementById('clockPopover');
     function place() {
+      // While the clock is edited it sits at the top as its own preview; place it again after.
+      if (editing?.matches(':popover-open')) return;
       const style = getComputedStyle(clock);
       context.font = style.fontWeight + ' ' + style.fontSize + ' ' + style.fontFamily;
       const m = context.measureText(clock.textContent);
@@ -51,11 +54,42 @@
       // screen, the keyboard up) on itself.
       const full = innerHeight >= screen.availHeight - 3;
       const middle = full ? screen.height / 2 - screen.availTop : innerHeight / 2;
-      root.style.setProperty('--android-clock-nudge', (middle - figures).toFixed(2) + 'px');
+      let nudge = middle - figures, fit = 1;
+      // With shortcuts on show, the clock moves up as far as they need to sit above Customize
+      // (owner, November 14: they landed under it), but never under the date; if that isn't
+      // enough, it also shrinks until every row fits.
+      const shortcuts = document.getElementById('bbFavorites');
+      const footer = document.querySelector('.ledger-footer');
+      const header = document.querySelector('.start-header');
+      // The clock is placed from the page's top, Billboard's content from its own, under the date.
+      const billboard = shortcuts?.closest('.billboard');
+      if (billboard) root.style.setProperty('--android-billboard-top', (billboard.getBoundingClientRect().top + scrollY) + 'px');
+      if (shortcuts && !shortcuts.hidden && shortcuts.childElementCount && footer) {
+        const row = clock.closest('.bb-clock-row') || clock;
+        const height = row.offsetHeight;
+        const drawn = row.getBoundingClientRect();
+        const rows = shortcuts.getBoundingClientRect();
+        // What lies between the clock's bottom and the shortcuts (the line under it and a gap); it
+        // doesn't change as the clock moves or scales.
+        const gap = rows.top - drawn.bottom;
+        const top = (header ? header.getBoundingClientRect().bottom + scrollY : 0) + 8;
+        const bottom = footer.getBoundingClientRect().top - 16 - rows.height - gap;
+        fit = Math.max(0.35, Math.min(1, (bottom - top) / height));
+        const half = height * fit / 2;
+        nudge = Math.min(nudge, Math.max(top + half, bottom - half) - innerHeight / 2);
+      }
+      root.style.setProperty('--android-clock-nudge', nudge.toFixed(2) + 'px');
+      root.style.setProperty('--android-clock-fit', fit.toFixed(3));
     }
     place();
     new MutationObserver(place).observe(clock, {attributes: true, characterData: true, childList: true, subtree: true});
     new ResizeObserver(place).observe(clock);
+    editing?.addEventListener('toggle', () => requestAnimationFrame(place));
+    const shortcuts = document.getElementById('bbFavorites');
+    if (shortcuts) {
+      new MutationObserver(place).observe(shortcuts, {attributes: true, attributeFilter: ['hidden'], childList: true});
+      new ResizeObserver(place).observe(shortcuts);
+    }
     addEventListener('resize', place);
     document.fonts.addEventListener('loadingdone', place);
   }
@@ -69,6 +103,67 @@
     // The page wires the popover's state on DOMContentLoaded; open it after that.
     setTimeout(() => { try { popover?.showPopover(); } catch { /* already open */ } }, 0);
   }
+
+  // A long press on a shortcut or a favorite opens its menu, a sheet over the bottom of the screen
+  // (owner, November 14: the pin and × buttons were too small to tap). Each entry presses the
+  // page's own button, which android-start.css hides from sight but leaves to screen readers, so
+  // pinning, unpinning and hiding work exactly as the fork's page does them. The long press is
+  // the page's alone: Chromium's own link menu doesn't open.
+  const t = (key, params) => window.blancI18n?.t?.(key, params) ?? key;
+  function shortcutMenu() {
+    let menu = document.getElementById('androidShortcutMenu');
+    if (menu) return menu;
+    menu = document.createElement('div');
+    menu.id = 'androidShortcutMenu';
+    menu.className = 'android-shortcut-menu';
+    menu.popover = 'auto';
+    menu.setAttribute('role', 'menu');
+    document.body.append(menu);
+    return menu;
+  }
+  function openShortcutMenu(item) {
+    const link = item.querySelector('a[href]');
+    if (!link) return false;
+    const pin = item.querySelector('.bb-site-pin, .fav-pin');
+    const hide = item.querySelector('.bb-site-dismiss');
+    const label = item.querySelector('.bb-fav .label, .fav .name');
+    const title = (label?.title || label?.textContent || link.textContent || '').trim();
+    const entries = [];
+    if (pin) {
+      entries.push([t(item.classList.contains('pinned') ? 'tabMenu.unpinStartPage' : 'tabMenu.pinStartPage'),
+        () => pin.click(), 'pin']);
+    }
+    if (hide) entries.push([t('newtab.billboard.hideTitle', {title}), () => hide.click(), 'hide']);
+    entries.push([t('contextMenu.openLinkInNewTab'), () => window.open(link.href, '_blank', 'noopener'), 'open']);
+    const menu = shortcutMenu();
+    const heading = document.createElement('div');
+    heading.className = 'android-shortcut-menu-title';
+    heading.textContent = title;
+    heading.dataset.i18nIgnore = '';
+    const buttons = entries.map(([text, run, action]) => {
+      const button = document.createElement('button');
+      button.type = 'button';
+      button.setAttribute('role', 'menuitem');
+      button.dataset.action = action;
+      button.textContent = text;
+      button.addEventListener('click', () => { menu.hidePopover(); run(); });
+      return button;
+    });
+    const cancel = document.createElement('button');
+    cancel.type = 'button';
+    cancel.className = 'android-shortcut-menu-cancel';
+    cancel.dataset.action = 'cancel';
+    cancel.textContent = t('common.cancel');
+    cancel.addEventListener('click', () => menu.hidePopover());
+    menu.replaceChildren(heading, ...buttons, cancel);
+    menu.showPopover();
+    buttons[0]?.focus({preventScroll: true});
+    return true;
+  }
+  document.addEventListener('contextmenu', event => {
+    const item = event.target?.closest?.('#bbFavorites .bb-site, .fav-item');
+    if (item && openShortcutMenu(item)) event.preventDefault();
+  });
 
   document.addEventListener('DOMContentLoaded', () => {
     const clock = document.getElementById('bbClock');

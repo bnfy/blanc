@@ -2787,9 +2787,14 @@ Android works (and how the iPhone will), and its choices stay on the phone, as t
   centering moved into `android-start.js`), the week's blocked line under it, then the shortcuts and the widgets
   in one column, scrolling with the page; Mahjong and Customize side by side above the Island; Customize and the
   clock's Font & color as sheets over the bottom of the screen, the clock moving to the top as its own preview.
-  Card grips and resizing are desktop's (wide windows only). Shortcuts sit four to a row; each one's pin and ×
-  are always on show, as on any touch screen, on the icon's top corners, their targets growing up and outward
-  but never over the icon (review found a first version's covered most of the icon's top half).
+  Card grips and resizing are desktop's (wide windows only). Shortcuts sit four to a row, just above Customize:
+  with shortcuts on show the clock moves up to make room (never under the date) and, if that isn't enough,
+  shrinks until every row fits; with none its figures stay centered on the screen. Before this (November 14,
+  #1509 on the owner's Pixel) a tall clock pushed the shortcuts under Customize, behind the footer's dark band.
+  A long press on a shortcut or a favorite opens its menu, a sheet over the bottom of the screen (Pin to Start
+  Page or Unpin from Start Page, Hide for a ranked site, Open Link in New Tab, Cancel), instead of desktop's
+  pin and × buttons, which the owner found too small; they stay for screen readers, out of sight. Each entry
+  presses the page's own button. Chromium's link menu doesn't open.
 - **Choices:** the fork's adapter (`start/newtab-adapter.js`) runs unchanged and asks native code over
   `blancNewTab`; `PagesHandler::OnStartCall` answers it. Widgets (Favorites, On your other devices), the 1–12
   Shortcuts count, card places and sizes go in the profile pref `blanc.start.widgets` with the fork's validation;
@@ -2804,10 +2809,13 @@ Android works (and how the iPhone will), and its choices stay on the phone, as t
   Island's band, Patron, the checklist, What's New. Refused (`not-yet`, A5c): onboarding, default browser,
   Settings from the page, imports.
 - **Shortcuts** (November 14): ranked sites and pins, answered as the fork's `NewTabHandler` answers them.
-  `topSites` is history's most visited (`QueryMostVisitedURLs`), one per site with `www.` folded, http(s) only,
-  each still visited (a row a Favorite keeps after its visits were deleted drops out) under its current title,
-  with its icon from the local favicon database (nothing is fetched). History ranks only typed and bookmark
-  visits, as on desktop; the palette's addresses load as typed. Pins are the fork's own code
+  `topSites` ranks the last 90 days of history (`QueryHistory`, up to 2,000 pages) by every visit to a site,
+  one per site with `www.` folded, http(s) only, each shown as its page visited last under that page's title,
+  with its icon from the local favicon database (nothing is fetched). Search engines' results pages don't count
+  (any engine `TemplateURLService` knows), or every search would put the engine first; its home page does. This
+  diverges from desktop, which ranks Chromium's most visited (typed and bookmark visits only): on the owner's
+  Pixel that left one shortcut, DuckDuckGo, since a phone reaches most sites from results and links (owner,
+  November 14). Pins are the fork's own code
   (`blanc/browser/ui/start_page_pins.inc`: up to eight, http(s) only, titles trimmed to 200) in its pref
   `blanc.prototype.start_page_pins`, which patch 0113 registers. They stay on the phone: the iPhone has no Start
   Page pins, so there is nothing to sync them with. Visits, history deletions and new icons reach every open
@@ -2844,7 +2852,20 @@ Android works (and how the iPhone will), and its choices stay on the phone, as t
 | Tool and adapter tests (`node --test chromium/tools/android-*.test.mjs`, on the Mac) | 108 pass | local |
 | Patch reconstruction, android and desktop lanes | Pass | local |
 | APK (x86_64, emulator; arm64, for the Pixel) | `4092f4ff…` / `816aac37…` | `apk.sha256` |
-| Owner hands-on, Pixel | **Pending**: installed on the owner's Pixel 10 Pro November 14 | — |
+| Owner hands-on, Pixel | Looked at it November 14: pin buttons too small, shortcuts under Customize behind a dark band, one shortcut only. Fixed below | — |
+
+| Long press, ranking and room gate (November 14) | Result | Evidence (`~/blanc-evidence/android/longpress/`) |
+| --- | --- | --- |
+| `start-shortcuts.mjs` (four typed fixture sites ranked by visits, the stepper at 3, no pin or × on show, a long press opens the menu without opening the site or Chromium's menu, its Pin leads and survives a relaunch, its Unpin and that survives a relaunch, a tap opens the site) | 10 of 10 | `shortcuts/` |
+| `pages-phone.mjs` | 41 of 41 | `pages-phone/`, `pages-phone.log` |
+| `start-page-ways.mjs` | 2 of 2 | `ways/`, `ways.log` |
+| Tool and adapter tests (`node --test chromium/tools/android-*.test.mjs`, on the Mac) | 115 pass | local |
+| Patch reconstruction, android and desktop lanes | Pass | local |
+| APK (x86_64, emulator; arm64, for the Pixel) | `1d256c58…` / `666f3c54…` | `apk.sha256` |
+| Owner hands-on, Pixel | **Pending**: installed November 14 | — |
+
+The check's first two runs failed on the long press: on the emulator a one-second `adb` press sometimes lands as
+a tap (it opened the site); 1.8 s worked every time by hand, and the check now holds two seconds.
 
 The first relaunch run failed every choice: the check stopped the app at once, before Chromium had written its
 preferences. Each change is now written at once (`CommitPendingWrite`, as the fork does), and the check leaves
