@@ -9,7 +9,8 @@ STUDIO=(ssh -i "$HOME/.ssh/id_ed25519_macmini" -o IdentitiesOnly=yes anthonyjlor
 # Terminal may close a window when its script ends; keep it so the outcome stays readable.
 trap 'echo; read -r -p "Press Return to close this window. " _' EXIT
 echo "Blanc Beta 2.0.0-beta.3: notarization (usually 5 to 20 minutes)"
-echo "Approve 1Password with Touch ID when it asks."
+echo "Approve 1Password with Touch ID when it asks, then type your Mac Studio password"
+echo "once (it opens the keychain that signs the DMG)."
 echo
 echo "Signing in to 1Password (Touch ID)..."
 OP_BIOMETRIC_UNLOCK_ENABLED=true op signin >/dev/null || { echo "1Password didn't sign in. Nothing was sent. Tell Claude."; exit 1; }
@@ -26,5 +27,6 @@ fi
 # The values travel as SSH environment (LC_*), not on stdin: the release stages
 # need a real terminal (ssh -t). Not on any command line, never on disk.
 LC_BLANC_APPLE_ID=$APPLE_ID LC_BLANC_APPLE_PW=$APPLE_PW "${STUDIO[@]}" \
-  -o SendEnv=LC_BLANC_APPLE_ID -o SendEnv=LC_BLANC_APPLE_PW -t 'bash "$HOME/Projects/Blanc/scripts/beta3-notarize.command"'
+  -o SendEnv=LC_BLANC_APPLE_ID -o SendEnv=LC_BLANC_APPLE_PW -t \
+  'security unlock-keychain "$HOME/Library/Keychains/login.keychain-db" || { echo "The keychain did not unlock. Nothing ran."; exit 1; }; bash "$HOME/Projects/Blanc/scripts/beta3-notarize.command"'
 unset APPLE_ID APPLE_PW
