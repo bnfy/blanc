@@ -3,6 +3,7 @@ import PlatformLogo from '../components/PlatformLogo.astro';
 import BaseLayout from '../layouts/BaseLayout.astro';
 import releases from '../data/releases.json';
 import ios from '../data/ios-availability.json';
+import beta from '../data/blanc-beta.json';
 import pkg from '../../../package.json';
 
 const latest = releases[0];
@@ -146,6 +147,35 @@ const latest = releases[0];
         </div>
         <p class="sr-only" role="status" aria-live="polite" data-terminal-status></p>
       </figure>
+    </div>
+  </section>
+
+  <!-- Blanc Beta, the Chromium preview (owner, 2026-11-14): its own section below
+       Install, never a platform card, so the regular Blanc stays the download.
+       Every sentence is in docs/website-blanc-beta-2.0.0-beta.2-claims.json. -->
+  <section class="download-block" id="beta" aria-labelledby="beta-title">
+    <div class="beta-card">
+      <div class="beta-copy">
+        <p class="beta-label">Preview</p>
+        <div class="download-section-head">
+          <h2 id="beta-title">Try Blanc Beta.</h2>
+        </div>
+        <p>An early preview of Blanc built directly on Chromium. It installs beside Blanc and never replaces it: Blanc Beta keeps its own data and passkeys, and your regular Blanc is left untouched.</p>
+        <p class="install-requirement">{beta.requirement} · {beta.version}</p>
+        <div class="beta-ctas">
+          <a class="beta-cta" href="/dl/beta" data-track="download_click" data-platform="beta" data-cta-position="beta">Download Blanc Beta</a>
+          <a class="text-link" href={beta.releaseUrl} target="_blank" rel="noopener">Release notes <span aria-hidden="true">↗</span></a>
+        </div>
+        <p class="beta-verify">Signed with Developer ID and notarized by Apple. Its checksums are signed with Sigstore.</p>
+      </div>
+      <div class="beta-notyet">
+        <h3>Not in this beta yet</h3>
+        <ul>
+          <li><strong>Protected video</strong> (such as Netflix or Spotify) doesn’t play. Use the regular Blanc for those sites.</li>
+          <li><strong>Sync</strong> is included but hasn’t been checked end to end against the live Sync service, so don’t rely on it yet.</li>
+          <li>There is no build for Intel Macs, Windows or Linux.</li>
+        </ul>
+      </div>
     </div>
   </section>
 
