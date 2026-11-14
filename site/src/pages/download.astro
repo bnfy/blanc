@@ -58,26 +58,19 @@ const latest = releases[0];
     <h1 id="download-title">Download Blanc</h1>
     <p class="dl-lede">Free for Mac, Windows, Linux, iPhone and iPad.</p>
 
-    <aside class="download-handheld" data-handheld-note hidden aria-labelledby="handheld-title">
-      <h2 id="handheld-title">On a phone or tablet?</h2>
-      <p data-not-ios>Blanc is a desktop browser for macOS, Windows and Linux.</p>
-      <p data-ios-store hidden>Blanc for iPhone and iPad is free on the App Store. Blanc for your Mac or PC is a desktop browser for macOS, Windows and Linux.</p>
-      <a class="download-handheld-action" href={ios.storeUrl} rel="noopener" data-ios-store hidden>Get it on the App Store</a>
-      <a class="download-handheld-action" href="/download" data-handheld-share="download-share-status" data-handheld-label="Send to my computer" data-handheld-text="Blanc is a desktop browser for macOS, Windows and Linux.">Send to my computer</a>
-      <p id="download-share-status" role="status" aria-live="polite"></p>
-    </aside>
-
     <div class="dl-chooser" id="download-options" data-download-chooser>
       <input class="dl-radio" type="radio" name="dl-os" id="dl-os-mac" value="mac" checked />
       <input class="dl-radio" type="radio" name="dl-os" id="dl-os-win" value="win" />
       <input class="dl-radio" type="radio" name="dl-os" id="dl-os-linux" value="linux" />
       <input class="dl-radio" type="radio" name="dl-os" id="dl-os-iphone" value="iphone" />
+      <input class="dl-radio" type="radio" name="dl-os" id="dl-os-android" value="android" />
       <div class="dl-switch" role="presentation">
         <span class="dl-switch-pill" aria-hidden="true"></span>
         <label for="dl-os-mac"><PlatformLogo platform="apple" />Mac</label>
         <label for="dl-os-win"><PlatformLogo platform="windows" />Windows</label>
         <label for="dl-os-linux"><PlatformLogo platform="linux" />Linux</label>
         <label for="dl-os-iphone"><PlatformLogo platform="apple" />iPhone</label>
+        <label for="dl-os-android"><PlatformLogo platform="android" />Android</label>
       </div>
 
       <div class="dl-panels">
@@ -110,21 +103,26 @@ const latest = releases[0];
           <p class="dl-meta">iOS and iPadOS 18.4 or later</p>
           <p class="dl-hint"><a href={ios.joinUrl} target="_blank" rel="noopener">Join the beta on TestFlight <span aria-hidden="true">↗</span></a></p>
         </div>
+        <!-- Blanc for Android isn't released: this panel only leads to the beta
+             signup (CLAUDE.md, Blanc for Android). -->
+        <div class="dl-panel" data-os="android">
+          <div class="dl-actions">
+            <a class="dl-button" href="/android-beta">Join the Android beta</a>
+          </div>
+          <p class="dl-meta">Blanc for Android isn’t released yet.</p>
+          <p class="dl-hint">You can sign up to test it on Google Play.</p>
+        </div>
       </div>
     </div>
 
     <p class="dl-version">Blanc {latest.version} · <a href="/changelog" data-track="feature_cta_click" data-feature="changelog" data-cta-position="download-options">What’s new</a></p>
-
-    <aside class="download-measurement" aria-label="Optional website measurement">
-      <p>Google analytics and ad measurement are on by default outside the EEA, UK and Switzerland.</p>
-      <button type="button" data-consent-open aria-controls="consent">Measurement choices</button>
-    </aside>
   </section>
 
   <section class="dl-more" id="download-more" aria-label="More ways to get Blanc">
     <!-- Blanc Beta (owner, 2026-11-14): never a platform choice, so the regular
          Blanc stays the download, but first among the tiles. Every sentence is in
-         docs/website-blanc-beta-2.0.0-beta.2-claims.json. -->
+         docs/website-blanc-beta-<version>-claims.json for the version in
+         src/data/blanc-beta.json. -->
     <article class="dl-tile dl-tile--beta" id="beta" aria-labelledby="beta-title">
       <p class="dl-tile-label">Preview</p>
       <h2 id="beta-title">Blanc Beta</h2>
@@ -171,15 +169,20 @@ const latest = releases[0];
       <li>Free, with no account</li>
       <li><a href="https://github.com/bnfy/blanc/blob/main/docs/release-verification.md" target="_blank" rel="noopener">Verify a release <span aria-hidden="true">↗</span></a></li>
     </ul>
-    <p>No general extension support. Synced provider passkeys, including iCloud Keychain, are not supported.</p>
+    <p>Blanc 1.49 has no general extension support, and doesn’t support synced provider passkeys such as iCloud Keychain.</p>
     <p>Download didn’t start? <a href="https://github.com/bnfy/blanc/releases/latest" target="_blank" rel="noopener">Open the release page</a> · <!--email_off--><a href="mailto:support@blanc.day">support@blanc.day</a><!--/email_off--></p>
   </section>
+
+  <!-- Disclaimers sit just above the footer, never in the hero (owner,
+       November 14, 2026). -->
+  <aside class="download-measurement" aria-label="Optional website measurement">
+    <p>Google analytics and ad measurement are on by default outside the EEA, UK and Switzerland.</p>
+    <button type="button" data-consent-open aria-controls="consent">Measurement choices</button>
+  </aside>
 </main>
 <script>
-  import { initHandheldDownload } from '../scripts/handheld-download.js';
   import { initTerminalCopy } from '../scripts/terminal-copy.js';
   import { initDownloadSwitcher } from '../scripts/download-switcher.js';
-  initHandheldDownload();
   initTerminalCopy();
   initDownloadSwitcher();
 </script>

@@ -223,7 +223,7 @@ engine-efficiency result. Compare within a group; across groups, read it as
 | vs ref | Percentage against the **reference** browser (Chrome by default), not against the lowest row. Anchoring a vendor benchmark to its own product's best configuration is the shape reviewers distrust |
 | Range | min–max across repetitions. **Overlapping ranges mean the two browsers are not distinguishable** at that sample size |
 | Per page | `(loaded median − idle median) / workload pages` — marginal cost of a page, fixed startup cost removed. Divides by workload pages, never by a browser's own inflated tab count |
-| Procs | Lowest process count across the samples the median came from. Chromium and Firefox both isolate content by site; their process models differ in ways this benchmark does not measure, so **do not read a process-count difference as the explanation for a memory difference**. See [Mozilla's process model docs](https://firefox-source-docs.mozilla.org/dom/ipc/process_model.html). Browsers whose UI is itself a web page (Blanc, Vivaldi) carry extra always-live renderers |
+| Procs | Lowest process count across the samples the median came from. Chromium and Firefox both isolate content by site; their process models differ in ways this benchmark does not measure, so **do not read a process-count difference as the explanation for a memory difference**. See [Mozilla's process model docs](https://firefox-source-docs.mozilla.org/dom/ipc/process_model.html). Browsers whose UI is itself a web page (Blanc, Blanc Beta, Vivaldi) carry extra always-live renderers |
 | Reps | How many repetitions actually produced a measurement. A row backed by 1 of 3 has a Range that looks precise and is not |
 | ⚠️N | N repetitions were still drifting when sampling gave up |
 
@@ -251,6 +251,10 @@ changes cost from what Gecko costs, and without it a Zen number is unreadable.
 `blanc-noblock` runs Blanc with `adblockEnabled: false` seeded into the
 throwaway profile — the honest way to show what the built-in blocker
 contributes rather than asserting it.
+
+`blanc-beta` is Blanc's Chromium fork, which runs its blocker and Sync in their
+own processes where Blanc keeps them in its main process: compare the two as
+whole browsers, not process by process. It has no blocking-off variant yet.
 
 ## Adding a browser
 

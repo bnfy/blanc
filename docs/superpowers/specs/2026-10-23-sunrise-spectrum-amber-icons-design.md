@@ -68,6 +68,7 @@ Add two macOS app icons that sit closer to Arc's Liquid Glass icon: **Sunrise Sp
   - Dark: a near-black tile from `#1F1F1E` to `#100F0F`.
 - Icon Composer renders both Dark tiles near-black (`#1F1F1E` to `#100F0F`), which the owner approved in `glass-proof.png`.
 - `createIconDocument` gains `extraLayers` (more layers in the front group) and `rimImageName` (the rim group). Existing colorways are unchanged.
+- Amendment (owner, 2026-11-14, bnfy/blanc#1528): `darkRimImageName` adds a `DarkRim` layer to the rim group, shown only in Dark, in a muted warm gray (`#5C534A`), because the white rim glared on the near-black Dark tile. The white `Rim` hides in Dark; both still hide in Clear and Tinted.
 
 ### Flat fallbacks
 

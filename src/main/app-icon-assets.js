@@ -71,6 +71,7 @@ function colorwayDefinition(nativeName, prefix, background, darkBackground, tile
       { imageName: `${prefix}-water.png`, layerName: 'Water' },
     ],
     rimImageName: `${prefix}-rim.png`,
+    darkRimImageName: `${prefix}-rim-dark.png`,
     glass: true,
     specular: true,
     lighting: 'individual',

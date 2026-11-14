@@ -1,0 +1,20 @@
+---
+// Signup for the Blanc for Android beta (a Google Play closed test). Noindex
+// and left out of the sitemap; the only link to it on the site is the Download
+// page's Android tab. Blanc for Android isn't
+// released, so the page says only that a beta is coming and how invitations
+// work, and claims nothing about what the app does (docs/marketing-claims.md).
+import BaseLayout from '../layouts/BaseLayout.astro';
+import AndroidBetaForm from '../components/AndroidBetaForm.astro';
+import '../styles/reference.css';
+import '../styles/android-beta.css';
+---
+<BaseLayout title="Join the Blanc for Android beta" description="Sign up to test Blanc for Android before it is released. We’ll email you an invitation when the beta opens on Google Play." path="/android-beta" robots="noindex,follow">
+  <main id="main-content" class="reference-page">
+    <header class="reference-heading">
+      <h1>Test Blanc for Android</h1>
+      <p>Blanc for Android isn’t released yet. Leave your email address and we’ll invite you when the beta opens on Google Play. Use the address of the Google account you use on Google Play, because that’s how Google Play invites testers.</p>
+    </header>
+    <AndroidBetaForm />
+  </main>
+</BaseLayout>

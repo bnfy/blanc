@@ -5232,6 +5232,7 @@ function overlayBounds() {
       windowWidth: rt().window.getContentBounds().width,
       windowHeight: rt().window.getContentBounds().height,
       stripHeight: rt().chromeHeight,
+      anchorLimit: spacesAnchorLimit(),
       anchorLeft: rt().spacesAnchorLeft,
       anchorBottom: rt().spacesAnchorBottom,
     });
@@ -5248,10 +5249,17 @@ function setShieldAnchor(anchor) {
   rt().shieldAnchorBottom = valid ? anchor.bottom : null;
 }
 
+/** How low the Spaces menu's anchor may be: the strip's bottom, or with
+ * vertical tabs the window's, since the mark then sits in the rail's header,
+ * which on macOS runs below the strip (styles.css body.mac .vertical-tabs-toolbar). */
+function spacesAnchorLimit() {
+  return tabLayout === 'vertical' ? (rt().window?.getContentBounds().height ?? 0) : rt().chromeHeight;
+}
+
 function setSpacesAnchor(anchor) {
   const width = rt().window?.getContentBounds().width ?? 0;
   const valid = Number.isFinite(anchor?.left) && anchor.left >= 0 && anchor.left <= width
-    && Number.isFinite(anchor?.bottom) && anchor.bottom >= 0 && anchor.bottom <= rt().chromeHeight;
+    && Number.isFinite(anchor?.bottom) && anchor.bottom >= 0 && anchor.bottom <= spacesAnchorLimit();
   rt().spacesAnchorLeft = valid ? anchor.left : null;
   rt().spacesAnchorBottom = valid ? anchor.bottom : null;
 }
