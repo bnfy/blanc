@@ -1202,8 +1202,11 @@ a:focus-visible, button:focus-visible { outline: 2px solid var(--site-accent); o
 .dl-button:active { transform: scale(0.97); }
 .dl-alt { color: var(--site-text); font-size: 15px; text-decoration: underline; text-decoration-color: var(--site-border); text-underline-offset: 4px; }
 .dl-alt:is(:hover, :focus-visible) { text-decoration-color: var(--site-gold); }
-.dl-meta { margin: 16px 0 0; color: var(--site-text-dim); font-family: var(--font-mono); font-size: 12.5px; }
-.dl-hint { margin: 8px 0 0; color: var(--site-text-dim); font-size: 15px; }
+/* Install lines (owner's pick, November 14, 2026): one face and size, the
+   spec dimmed, the step in full ink, a short gold rule between them. */
+.dl-meta { margin: 18px 0 0; color: var(--site-text-dim); font-size: 14px; }
+.dl-hint { margin: 0; color: var(--site-text); font-size: 14px; }
+.dl-hint::before { content: ""; display: block; width: 28px; height: 1px; margin: 12px auto; background: var(--site-gold); opacity: 0.6; }
 .dl-hint code { padding: 1px 6px; border-radius: 6px; background: rgb(0 0 0 / 0.05); font-size: 13px; }
 .dl-hint a { color: var(--site-text); text-decoration-color: var(--site-gold); text-underline-offset: 3px; }
 .dl-version { margin: 26px 0 0; color: var(--site-text-dim); font-family: var(--font-mono); font-size: 12px; }
