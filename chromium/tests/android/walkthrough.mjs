@@ -23,9 +23,11 @@ const SKIP_FILE = '/data/local/tmp/blanc-walkthrough-off';
 const PREFS = `shared_prefs/${PACKAGE}_preferences.xml`;
 const LANGUAGES = ['English', 'Deutsch', 'Español', 'Français', 'Italiano', 'Português do Brasil'];
 
-const decode = s => s.replace(/&amp;/g, '&').replace(/&quot;/g, '"').replace(/&#10;/g, '\n');
+// &amp; last, so a literal "&amp;quot;" stays "&quot;".
+const decode = s => s.replace(/&quot;/g, '"').replace(/&#10;/g, '\n').replace(/&amp;/g, '&');
+const regexEscape = s => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 const bounds = (xml, text) => {
-  const escaped = text.replace(/&/g, '&amp;').replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  const escaped = regexEscape(text.replace(/&/g, '&amp;'));
   const m = new RegExp(`<node[^>]*text="${escaped}"[^>]*bounds="\\[(\\d+),(\\d+)\\]\\[(\\d+),(\\d+)\\]"`).exec(xml);
   return m ? {left: +m[1], top: +m[2], right: +m[3], bottom: +m[4]} : null;
 };
@@ -82,7 +84,7 @@ function main(argv) {
   const openSettings = () => { adb('shell', 'am', 'start', '-n', SETTINGS); sleep(4); };
   const prefs = () => { try { return adb('shell', 'run-as', PACKAGE, 'cat', PREFS); } catch { return ''; } };
   const prefValue = (xml, key) => {
-    const m = new RegExp(`<(boolean|int) name="${key.replace(/\./g, '\\.')}" value="([^"]+)"`).exec(xml);
+    const m = new RegExp(`<(boolean|int) name="${regexEscape(key)}" value="([^"]+)"`).exec(xml);
     return m ? m[2] : null;
   };
   const fresh = () => { stop(); adb('shell', 'pm', 'clear', PACKAGE); adb('shell', 'cmd', 'role', 'remove-role-holder', 'android.app.role.BROWSER', PACKAGE); };
