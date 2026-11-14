@@ -13740,6 +13740,10 @@ bool IsCaption(views::View* parent, int x, int y) {
   if (owner && (StripHiddenFor(owner) || IslandFloating(owner)) && !owner->autohide_slide)
     return y >= 0 && y < 6 && x >= RailWidth(parent);
   if (y < view->y() || y >= view->y() + (owner ? owner->strip_height : 68)) return false;
+  // The vertical tabs rail is never a drag handle, as shipping marks the
+  // whole rail no-drag: its header shares the band, and a caption there
+  // turned the layout toggle's click into a window drag.
+  if (x < RailWidth(parent)) return false;
   return owner && !owner->interactive_bounds.Contains(x, y - view->y());
 }
 
