@@ -55,6 +55,11 @@ export function makeNotice(root = ROOT) {
     const attribution = entry.attribution || a.attribution;
     out += item(a.name, a.version, a.license, [attribution && `Attribution: ${attribution}`, `Source: ${a.homepage}`, cite(a.licenseFile)]);
   }
+  if (extra.creditsAdditions?.length) {
+    out += '\nCHROMIUM COMPONENTS ITS CREDITS PAGE LEAVES OUT\n\n' +
+      'Chromium ships these, but Chromium-credits.html does not list them.\n\n';
+    for (const c of extra.creditsAdditions) out += item(c.name, c.version, c.license, [`Source: ${c.url}`, cite(c.licenseFile)]);
+  }
   out += '\nCONTENT BLOCKER\n\n' +
     `The blocker engine is built from unmodified npm releases of the Ghostery adblocker\n` +
     `(${bundle.engineVersion}) over the pinned filter lists. Its bundle's SHA-256 is\n${bundle.bundleSha256}.\n\n`;

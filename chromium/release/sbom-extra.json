@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "note": "Reviewed inputs to sbom.mjs beyond Chromium's own licence metadata. blancAssets: third-party files the Island serves from the beta's resources; each file's SHA-256 must equal chromium/blanc/island-assets.json, and its name, version, licence and text come from compliance/policy.json, and unless it is marked derived (built from the reviewed source) it must be byte-identical to that asset's file. chromiumAdditions: components inside folders Chromium's licenses.py skips for missing metadata (upstream Chrome's credits skip them too); paths are relative to Chromium src. reviewedSkips: every folder licenses.py skips must be listed here or under chromiumAdditions, or the audit fails. notBundled: third-party payloads deliberately absent from the packaged beta, so they are not in the SBOM. The embedded blocker's components come from chromium/blanc/third_party/blocker/bundle.json.",
+  "note": "Reviewed inputs to sbom.mjs beyond Chromium's own licence metadata. blancAssets: third-party files the Island serves from the beta's resources; each file's SHA-256 must equal chromium/blanc/island-assets.json, and its name, version, licence and text come from compliance/policy.json, and unless it is marked derived (built from the reviewed source) it must be byte-identical to that asset's file. chromiumAdditions: components inside folders Chromium's licenses.py skips for missing metadata (upstream Chrome's credits skip them too); paths are relative to Chromium src. reviewedSkips: every folder licenses.py skips must be listed here or under chromiumAdditions, or the audit fails. creditsAdditions: shipped Chromium components that Chromium's own credits page leaves out; the beta's THIRD_PARTY_NOTICES.txt credits them with the committed licence text, which must equal the tree's. notBundled: third-party payloads deliberately absent from the packaged beta, so they are not in the SBOM. The embedded blocker's components come from chromium/blanc/third_party/blocker/bundle.json.",
   "blancAssets": [
     {"asset": "inter-font", "files": ["pages/inter-latin.woff2"]},
     {"asset": "jetbrains-mono-font", "files": ["pages/jetbrains-mono-latin.woff2"]},
@@ -25,5 +25,11 @@
     "third_party/perfetto/protos/third_party/android": "Perfetto's own protocol definitions, covered by the Perfetto component and its licence.",
     "third_party/perfetto/protos/third_party/chromium": "Perfetto's own protocol definitions, covered by the Perfetto component and its licence."
   },
+  "creditsAdditions": [
+    {"name": "@vscode/web-custom-data", "version": "0.5.2", "license": "MIT", "url": "https://github.com/microsoft/vscode-custom-data",
+     "dir": "third_party/devtools-frontend/src/front_end/third_party/vscode.web-custom-data",
+     "licenseFile": "chromium/blanc/third_party/credits-additions/vscode-web-custom-data-LICENSE.md",
+     "reason": "DevTools ships it, but its additional_readme_paths.json leaves it out, so Chromium's credits page (a folder walk) omits it; DevTools is a separate checkout the fork's patches don't cover."}
+  ],
   "notBundled": []
 }

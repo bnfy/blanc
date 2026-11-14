@@ -131,9 +131,17 @@ export function gather(r, scan, src, {root = ROOT, extra = JSON.parse(fs.readFil
   const sparkleLicense = keep(text(path.join(root, 'chromium/blanc/third_party/sparkle/LICENSE')));
   const chromiumLicense = keep(text(path.join(src, 'LICENSE')));
   const blancLicense = keep(text(path.join(root, 'chromium/blanc/notices/LICENSE')));
+  // Shipped components Chromium's credits page misses, credited in the beta's
+  // notice instead: each must still ship, with the licence text committed.
+  const creditsAdditions = new Set((extra.creditsAdditions || []).map(a => {
+    const shipped = chromium.find(c => c.name === a.name && c.dir === a.dir);
+    check(shipped, `credits addition no longer ships: ${a.name}`);
+    check(shipped.files.some(f => f.sha256 === sha256(text(inside(root, a.licenseFile)))), `credits addition's licence differs from the tree: ${a.name}`);
+    return a.name;
+  }));
   const reviewed = new Set([...Object.keys(extra.reviewedSkips), ...extra.chromiumAdditions.map(a => a.dir)]);
   const unreviewed = scan.skippedDirs.map(s => s.dir).filter(dir => !reviewed.has(dir));
-  return {r, scan, extra, chromium, blanc, bundle, blocker, texts, sparkleLicense, chromiumLicense, blancLicense, unreviewed};
+  return {r, scan, extra, chromium, blanc, bundle, blocker, creditsAdditions, texts, sparkleLicense, chromiumLicense, blancLicense, unreviewed};
 }
 
 function uuidFrom(hex) {
@@ -263,13 +271,13 @@ export function audit(r, scan, src, app, sbomBytes, options) {
   let missingCredits = [], titles = new Set();
   if (notices['Chromium-credits.html']) {
     titles = creditTitles(packaged['Chromium-credits.html'].toString('utf8'));
-    missingCredits = g.chromium.filter(c => !c.addition && !titles.has(c.name)).map(c => c.name);
+    missingCredits = g.chromium.filter(c => !c.addition && !titles.has(c.name) && !g.creditsAdditions.has(c.name)).map(c => c.name);
     if (missingCredits.length) fail(`Chromium-credits.html leaves out ${missingCredits.length} shipped components`);
   }
   let missingNotice = [], extraneous = [];
   if (notices['THIRD_PARTY_NOTICES.txt']) {
     const notice = packaged['THIRD_PARTY_NOTICES.txt'].toString('utf8');
-    missingNotice = g.blanc.filter(b => !notice.includes(b.noticeMatch)).map(b => b.name);
+    missingNotice = [...g.blanc.filter(b => !notice.includes(b.noticeMatch)).map(b => b.name), ...[...g.creditsAdditions].filter(name => !notice.includes(`- ${name} `))];
     extraneous = ELECTRON_ONLY.filter(name => notice.includes(name)).map(name => name.trim());
     if (missingNotice.length) fail(`THIRD_PARTY_NOTICES.txt leaves out: ${missingNotice.join(', ')}`);
     if (extraneous.length) fail(`THIRD_PARTY_NOTICES.txt describes the Electron app (names ${extraneous.join(', ')}), not the beta`);

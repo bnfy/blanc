@@ -15,7 +15,7 @@ import {sha256} from './policy.mjs';
 
 const release = JSON.parse(fs.readFileSync(new URL('./fixtures/release.json', import.meta.url)));
 const realExtra = JSON.parse(fs.readFileSync(new URL('./sbom-extra.json', import.meta.url)));
-const extra = {...realExtra, chromiumAdditions: [], reviewedSkips: {'third_party/rust': 'container'}};
+const extra = {...realExtra, chromiumAdditions: [], creditsAdditions: [], reviewedSkips: {'third_party/rust': 'container'}};
 const LIBS = 120;
 const escape = s => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
 
@@ -25,7 +25,7 @@ function world({notice} = {}) {
   const copy = rel => { fs.mkdirSync(path.dirname(path.join(root, rel)), {recursive: true}); fs.copyFileSync(path.join(ROOT, rel), path.join(root, rel)); };
   const policy = JSON.parse(fs.readFileSync(path.join(ROOT, 'compliance/policy.json')));
   ['compliance/policy.json', 'chromium/blanc/island-assets.json', 'chromium/blanc/third_party/sparkle/LICENSE',
-    'chromium/release/sbom-extra.json', 'adblock/sources/pinned.json', 'chromium/blanc/third_party/blocker/bundle.json',
+    'chromium/release/sbom-extra.json', 'adblock/sources/pinned.json', ...realExtra.creditsAdditions.map(a => a.licenseFile), 'chromium/blanc/third_party/blocker/bundle.json',
     ...fs.readdirSync(path.join(ROOT, 'chromium/blanc/third_party/blocker/licenses')).map(f => `chromium/blanc/third_party/blocker/licenses/${f}`),
     'chromium/blanc/notices/LICENSE', 'chromium/blanc/notices/ASSET-LICENSE.md', 'chromium/blanc/notices/THIRD-PARTY-NOTICES.md'].forEach(copy);
   for (const entry of extra.blancAssets) {
@@ -145,6 +145,29 @@ test('the audit passes only a packaged app whose notices and credits match', () 
   fails(() => fs.rmSync(engine), /embeds no blocker engine/); fs.writeFileSync(engine, bytes);
   fails(() => fs.appendFileSync(engine, 'x'), /not the pinned bundle/); fs.writeFileSync(engine, bytes);
   fails(() => audit(release, {...w.scan, skippedDirs: [{dir: 'third_party/odd', reason: 'x'}]}, w.src, w.app, sbom, w.options), /unreviewed folders/);
+  w.done();
+});
+
+test('a component Chromium\'s credits page misses passes only when the beta notice credits it', () => {
+  const w = world();
+  const [addition] = realExtra.creditsAdditions;
+  const bytes = fs.readFileSync(path.join(ROOT, addition.licenseFile));
+  fs.mkdirSync(path.join(w.src, addition.dir), {recursive: true}); fs.writeFileSync(path.join(w.src, addition.dir, 'LICENSE.md'), bytes);
+  const scan = {...w.scan, components: [...w.scan.components, {name: addition.name, version: addition.version, revision: null, url: addition.url,
+    license: addition.license, cpePrefix: null, dir: addition.dir, licenseFiles: [{path: `${addition.dir}/LICENSE.md`, sha256: sha256(bytes)}]}]};
+  const options = {...w.options, extra: {...extra, creditsAdditions: realExtra.creditsAdditions}};
+  const sbom = Buffer.from(makeSbom(gather(release, scan, w.src, options)));
+  const good = audit(release, scan, w.src, w.app, sbom, options);
+  assert.equal(good.status, 'pass', good.failures.join('; '));
+  // Without the reviewed entry the same app fails: the credits page leaves it out.
+  const bare = audit(release, scan, w.src, w.app, Buffer.from(makeSbom(gather(release, scan, w.src, w.options))), w.options);
+  assert.deepEqual(bare.credits.missing, [addition.name]);
+  const notices = path.join(w.app, 'Contents/Resources/notices/THIRD_PARTY_NOTICES.txt');
+  fs.writeFileSync(notices, fs.readFileSync(notices, 'utf8').replace(`- ${addition.name} `, '- someone else '));
+  assert.match(audit(release, scan, w.src, w.app, sbom, options).failures.join('\n'), /leaves out: @vscode/);
+  fs.appendFileSync(path.join(w.src, addition.dir, 'LICENSE.md'), 'x');
+  assert.throws(() => gather(release, scan, w.src, options), /changed since the scan|licence differs/);
+  assert.throws(() => gather(release, w.scan, w.src, options), /no longer ships/);
   w.done();
 });
 

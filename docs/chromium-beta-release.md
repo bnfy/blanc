@@ -684,4 +684,15 @@ from Finder blocked nothing. The beta now embeds the pinned engine (see the
 and `chromium/blanc/third_party/blocker/bundle.json` (the engine bundle's
 provenance and licence texts), with full licence texts; `--check` fails when
 it is stale. The SBOM lists the engine bundle and what it was built from.
+
+Chromium's credits page is a folder walk, and DevTools' list of its credited
+folders (`additional_readme_paths.json`) leaves out `@vscode/web-custom-data`,
+which ships; upstream Chrome's credits omit it too. DevTools is a separate
+checkout the fork's patches don't cover, so `sbom-extra.json`
+`creditsAdditions` credits it in the beta's notice with its committed licence
+text, which must equal the tree's; the audit accepts a component missing from
+the credits page only on that list. On the rebuilt local-qualification beta
+(2026-11-13) the audit passed, the embedded engine blocked two EasyList hosts
+that the preview build without the blocker let through (loopback only), and
+the Aperitif helpers link exactly Chromium's libraries.
 Tests: `chromium/release/sbom.test.mjs`.
