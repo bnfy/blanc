@@ -2505,8 +2505,14 @@ machine has them.
    `site/public/updates/chromium-beta/arm64.xml` together.
 
 5a. **Desktop Sync faults found by beta.3's real-iPhone pass** (2026-11-14,
-   gate waived for beta.3), fixed on `chromium/next` for beta.4 (build check
-   pending):
+   gate waived for beta.3), fixed on `chromium/next` for beta.4. Build check
+   (2026-11-14, `75f85e960`): `out/BlancBeta` rebuilt through the guard (GN
+   regenerated with unchanged arguments for the new keep-alive dependency;
+   24 steps). The same script on a throwaway profile with a mock keychain,
+   on the MacBook Pro: open Sync settings, close every window, open a new one.
+   The published beta.3 then reports Sync unavailable; the rebuilt beta stays
+   available. The Connected-to note's text is in the build; a real join was
+   not repeated.
    - **Closing every window broke Sync until a relaunch.** On macOS Chromium
      unloads a profile when its last window closes and loads a new Profile for
      the next window; the Sync service stays bound to the first, so Settings
