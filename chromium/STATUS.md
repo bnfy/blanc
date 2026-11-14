@@ -2787,8 +2787,8 @@ Android works (and how the iPhone will), and its choices stay on the phone, as t
   centering moved into `android-start.js`), the week's blocked line under it, then the shortcuts and the widgets
   in one column, scrolling with the page; Mahjong and Customize side by side above the Island; Customize and the
   clock's Font & color as sheets over the bottom of the screen, the clock moving to the top as its own preview.
-  Card grips and resizing are desktop's (wide windows only); pin buttons are hidden, since Start Page pins aren't
-  on Android.
+  Card grips and resizing are desktop's (wide windows only). Shortcuts sit four to a row; each one's pin and ×
+  are always on show, as on any touch screen, on the icon's top corners, with finger-sized targets.
 - **Choices:** the fork's adapter (`start/newtab-adapter.js`) runs unchanged and asks native code over
   `blancNewTab`; `PagesHandler::OnStartCall` answers it. Widgets (Favorites, On your other devices), the 1–12
   Shortcuts count, card places and sizes go in the profile pref `blanc.start.widgets` with the fork's validation;
@@ -2798,10 +2798,21 @@ Android works (and how the iPhone will), and its choices stay on the phone, as t
   as in the fork. Every open Start Page, private ones included, follows a change at once. Nothing about the Start
   Page syncs (owner, November 13: device-only, like the iPhone); `SyncedSettings` is unchanged.
 - **Answered from what Android has:** Favorites (and a refresh when they change), other devices, Sent, the week's
-  blocked count (the blocker's `blanc.blocking.week_stats`), Mahjong in a new tab, the Favorites heading. Empty:
-  ranked sites, pins and tab groups (none on Android's Start Page yet), installed themes, the Island's band,
-  Patron, the checklist, What's New. Refused (`not-yet`, A5c): onboarding, default browser, Settings from the
-  page, imports.
+  blocked count (the blocker's `blanc.blocking.week_stats`), Mahjong in a new tab, the Favorites heading, and
+  Billboard's shortcuts (below). Empty: tab groups (none on Android's Start Page yet), installed themes, the
+  Island's band, Patron, the checklist, What's New. Refused (`not-yet`, A5c): onboarding, default browser,
+  Settings from the page, imports.
+- **Shortcuts** (November 14): ranked sites and pins, answered as the fork's `NewTabHandler` answers them.
+  `topSites` is history's most visited (`QueryMostVisitedURLs`), one per site with `www.` folded, http(s) only,
+  each still visited (a row a Favorite keeps after its visits were deleted drops out) under its current title,
+  with its icon from the local favicon database (nothing is fetched). History ranks only typed and bookmark
+  visits, as on desktop; the palette's addresses load as typed. Pins are the fork's own code
+  (`blanc/browser/ui/start_page_pins.inc`: up to eight, http(s) only, titles trimmed to 200) in its pref
+  `blanc.prototype.start_page_pins`, which patch 0113 registers. They stay on the phone: the iPhone has no Start
+  Page pins, so there is nothing to sync them with. Visits, history deletions and new icons reach every open
+  Start Page. A private Start Page shows no shortcuts, as on desktop. The Shortcuts stepper (1–12) sets how many
+  show. Not on Android: pinning from the Favorites page (desktop's Favorites sheet can; Android's says it can't,
+  as the iPhone's does), and a shortcut's icon is the site's favicon, not a larger touch icon.
 - **Ways in:** the Island menu on a Start Page offers Customize first, as on the iPhone, and Settings →
   Appearance has a Start Page row. Both ask through one app preference (`StartPageCustomize`); the Island opens
   `#customize` on the Start Page in view, or on a new one. This is a divergence from the iPhone, whose Start
@@ -2810,8 +2821,7 @@ Android works (and how the iPhone will), and its choices stay on the phone, as t
   shipping's frosted band, tinted from the page's background (a Color's base for Solid and Gradient) so the
   labels read on any wallpaper. The first emulator run showed white labels lost on a cream fade over a blue
   Color wallpaper; this replaced it.
-- **Not yet:** ranked sites and pinned shortcuts (Billboard shows no shortcuts until they come), the Island along
-  the top on the Start Page, and a Settings row that opens Customize while several Blanc windows are open opens
+- **Not yet:** the Island along the top on the Start Page, and a Settings row that opens Customize while several Blanc windows are open opens
   it in each. The fork's all-language catalog (about 1 MB) loads with every Start Page.
 
 | A5b gate | Result | Evidence (`~/blanc-evidence/android/a5b/`) |
@@ -2823,6 +2833,17 @@ Android works (and how the iPhone will), and its choices stay on the phone, as t
 | Patch reconstruction, android and desktop lanes | Pass | local |
 | APK (x86_64, emulator) | `50d3d27a…` | `apk.sha256` |
 | Owner hands-on, Pixel | **Pending** (no arm64 build yet) | — |
+
+| Shortcuts gate (November 14) | Result | Evidence (`~/blanc-evidence/android/shortcuts/`) |
+| --- | --- | --- |
+| `start-shortcuts.mjs` (four typed fixture sites ranked by visits, the stepper at 3, a tapped pin leads and survives a relaunch, a second tap unpins and that survives a relaunch) | 6 of 6, first run | `shortcuts/` |
+| `pages-phone.mjs` | 41 of 41 | `pages-phone/`, `pages-phone.log` |
+| `start-page-ways.mjs` | 2 of 2 | `ways/`, `ways.log` |
+| Robolectric (no Java changed) | 808 pass | `robolectric.log` |
+| Tool and adapter tests (`node --test chromium/tools/android-*.test.mjs`, on the Mac) | 108 pass | local |
+| Patch reconstruction, android and desktop lanes | Pass | local |
+| APK (x86_64, emulator; arm64, for the Pixel) | `c2eb53f5…` / `c7929af4…` | `apk.sha256` |
+| Owner hands-on, Pixel | **Pending**: installed on the owner's Pixel 10 Pro November 14 | — |
 
 The first relaunch run failed every choice: the check stopped the app at once, before Chromium had written its
 preferences. Each change is now written at once (`CommitPendingWrite`, as the fork does), and the check leaves
