@@ -48,8 +48,12 @@ const keyBackedUp = io => check(!(io.keyBackupPending ?? (() => fs.existsSync(KE
   'the update key is not yet backed up to 1Password (run sparkle-key-backup.command)');
 export function realIO() {
   return {
-    exec(command, args, {input, env, cwd} = {}) {
-      const result = spawnSync(command, args, {input, cwd, env: env ?? process.env, encoding: 'utf8', maxBuffer: 64 * 1024 * 1024});
+    // interactive: the command gets this Terminal (stdio inherited), for a sign-in it must
+    // show; its output is then not captured.
+    exec(command, args, {input, env, cwd, interactive = false} = {}) {
+      const result = interactive
+        ? spawnSync(command, args, {cwd, env: env ?? process.env, stdio: 'inherit'})
+        : spawnSync(command, args, {input, cwd, env: env ?? process.env, encoding: 'utf8', maxBuffer: 64 * 1024 * 1024});
       return {status: result.error ? -1 : result.status, stdout: result.stdout ?? '', stderr: result.stderr ?? ''};
     },
     async confirm(phrase) {
@@ -230,7 +234,9 @@ export const RUN = {
     check(!fs.existsSync(bundle), 'a Sigstore bundle already exists; it was authorized once, do not sign again');
     console.log('Safari opens for the GitHub approval; complete the fresh page immediately, never in Blanc.');
     must(io, 'cosign', ['sign-blob', '--yes', '--oidc-redirect-url', COSIGN_REDIRECT, '--bundle', bundle, sums],
-      'Sigstore signing did not complete', {env: {...io.env, PATH: `${path.join(ROOT, 'scripts/release-bin')}:${io.env.PATH}`}});
+      // Interactive: without a terminal cosign falls back to a device-code sign-in whose
+      // code nobody sees (2026-11-14), instead of opening Safari.
+      'Sigstore signing did not complete', {env: {...io.env, PATH: `${path.join(ROOT, 'scripts/release-bin')}:${io.env.PATH}`}, interactive: true});
     must(io, 'cosign', ['verify-blob', '--bundle', bundle, '--certificate-identity', COSIGN_IDENTITY,
       '--certificate-oidc-issuer', COSIGN_ISSUER, sums], 'the Sigstore bundle did not verify against the pinned identity');
     (io.verifyManifest ?? verifyManifest)(dir, ctx.r);

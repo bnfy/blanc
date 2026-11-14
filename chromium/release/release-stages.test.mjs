@@ -108,3 +108,18 @@ test('nothing is drafted or published while the update key has no verified 1Pass
   await assert.rejects(() => RUN.draft({...load(work), state: {done: {}}}, io), /not yet backed up/);
   fs.rmSync(work, {recursive: true, force: true});
 });
+
+test('Sigstore signing gets the Terminal, so cosign opens its browser sign-in', async () => {
+  const work = workFolder(), dir = path.join(work, 'assets');
+  fs.mkdirSync(dir); fs.writeFileSync(path.join(dir, 'SHA256SUMS'), 'sums\n');
+  const seen = [];
+  const io = {...world(), verifyManifest: () => {},
+    exec(command, args, options = {}) {
+      seen.push({line: [command, ...args].join(' '), interactive: options.interactive === true});
+      if (args[0] === 'sign-blob') fs.writeFileSync(path.join(dir, 'SHA256SUMS.sigstore.json'), '{}');
+      return {status: 0, stdout: '', stderr: ''};
+    }};
+  await RUN.sigstore({work, r: release}, io);
+  assert.equal(seen.find(c => c.line.startsWith('cosign sign-blob')).interactive, true);
+  assert.equal(seen.find(c => c.line.startsWith('cosign verify-blob')).interactive, false);
+});
