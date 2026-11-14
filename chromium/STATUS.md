@@ -2971,7 +2971,9 @@ Android works (and how the iPhone will), and its choices stay on the phone, as t
   clock's Font & color as sheets over the bottom of the screen, the clock moving to the top as its own preview.
   Card grips and resizing are desktop's (wide windows only). Shortcuts sit four to a row, just above Customize:
   with shortcuts on show the clock moves up to make room (never under the date) and, if that isn't enough,
-  shrinks until every row fits; with none its figures stay centered on the screen. Before this (November 14,
+  shrinks until every row fits; with none its figures stay centered on the screen unless the week's blocked line
+  under the clock would reach Customize, which then gets the same room (a 1080×1920 screen put "0 Anzeigen diese
+  Woche blockiert" on Anpassen). Before this (November 14,
   #1509 on the owner's Pixel) a tall clock pushed the shortcuts under Customize, behind the footer's dark band.
   A long press on a shortcut or a favorite opens its menu, a sheet over the bottom of the screen (Pin to Start
   Page or Unpin from Start Page, Hide for a ranked site, Open Link in New Tab, Cancel), instead of desktop's
