@@ -47,6 +47,24 @@
         "production-sync-real-device"
       ],
       "note": "Second public Blanc Beta, published 2026-11-14 as a GitHub pre-release (not latest). Fixes beta.2's Sync lockout (Settings could say \"Could not check sync\" until a relaunch) and turns Safe Browsing off by default. Every release stage ran from the owner's MacBook Pro over SSH to the Mac Studio. Signed with the pinned Developer ID, notarized and stapled; Sigstore-signed checksums; logged-out public verification passed. Owner waivers: the protected-video notice (due beta.4) and the real-iPhone Sync pass (the beta published no open tabs and said nothing after a join; fixed for beta.4)."
+    },
+    {
+      "build": 4,
+      "version": "2.0.0-beta.4",
+      "tag": "chromium-beta-2.0.0-beta.4",
+      "date": "2026-11-14",
+      "arches": [
+        "arm64"
+      ],
+      "archWaiver": "Owner approved 2026-11-14: beta.4 is Apple Silicon only again; Intel deferred until a separately qualified native build.",
+      "sourceCommit": "57e3109dd3c166fe1ea76caf0cc1a3b93aa54585",
+      "candidate": "macos-e8eb804f1ebb87a8",
+      "dmgSHA256": "fd42bf1265db3fe3844372a34a5c7ce14e58307ca989a811186b474ec0658ed1",
+      "gateWaivers": [
+        "no-drm-handoff",
+        "production-sync-real-device"
+      ],
+      "note": "Third public Blanc Beta, published 2026-11-14 at 19:02 UTC as a GitHub pre-release (not latest). Fixes 1Password's Unlock button (extension popups open under the Island), keeps the main window's tabs on the red button as shipping Blanc does, keeps Sync publishing open pages and names the Mac as shipping Blanc does; adds the Sunrise Gold icon, the Island's pointer response and the vertical tabs' Space row. An earlier notarized build from e47bf1bcf was superseded before publication and never published. Owner waivers: the protected-video notice (moves to beta.5) and the real-iPhone Sync pass (the iPhone listed the first beta.4 build with its pages but not the rebuilt one after the red button; cause unknown). Hosted smoke passed (run 43631733437); the signed handoff beta.3 to beta.4 passed."
     }
   ]
 }
