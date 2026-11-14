@@ -42,8 +42,13 @@ source_set("beta_updater") {
     sources += [ "browser/mac/beta_updater.mm" ]
     deps = [ "//base", ":verify_sparkle" ]
     # Chromium already enables ARC in its default compiler configuration.
+    # GN carries the frameworks up to the first linked binary, the browser
+    # framework, and no further. Only the rpath has to reach that link as a
+    # flag; it also reaches the Aperitif helpers, which link the framework
+    # directly, but adds no load command there (verify_dynamic_libraries
+    # requires their load commands to be exactly Chromium's).
     configs += [ ":sparkle_link" ]
-    all_dependent_configs = [ ":sparkle_link" ]
+    all_dependent_configs = [ ":sparkle_rpath" ]
   }
 }
 if (blanc_beta_channel) {
@@ -52,6 +57,8 @@ if (blanc_beta_channel) {
   config("sparkle_link") {
     framework_dirs = [ blanc_sparkle_stage ]
     frameworks = [ "Cocoa.framework", "Sparkle.framework" ]
+  }
+  config("sparkle_rpath") {
     # Chromium's dylib lives at Framework.framework/Versions/<Chrome version>.
     ldflags = [ "-Wl,-rpath,@loader_path/../../.." ]
   }
