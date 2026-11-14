@@ -782,3 +782,16 @@ or asked to import, the beta must quit before opening its page; every decoy
 must stay byte for byte as it was, and the owner's real `Blanc Beta` folder
 unchanged. Both passed on the local-qualification beta (2026-11-14; evidence
 in `evidence/foundation/`). Tests: `chromium/release/hooks-profile-evidence.test.mjs`.
+
+### Local Sparkle update proof (2026-11-14)
+
+`local-update-proof.mjs` ran on two local-qualification builds made from
+the same tree with only `blanc_beta_version`, `blanc_beta_build` and the
+throwaway `blanc_sparkle_public_key` changed (each a guarded re-pin of the
+args hash, a few build steps, saved under `artifacts/local-update/`; the
+beta's args are back at beta.1 afterwards). Each feed starts from a fresh
+stage: `good` installed build 2 at quit; `wrong-key` (signed by another
+key) and `tampered` (a byte changed after signing) were downloaded and
+refused, leaving build 1. Keep the throwaway key out of `/tmp`: the first
+one was lost in a restart. It now lives in `records/local-update-key`
+(owner-only, outside Git). Evidence: `evidence/foundation/sparkle-local-update-20261114.json`.

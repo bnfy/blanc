@@ -932,6 +932,12 @@ remain pending. D3 beta-only no-DRM exception accepted; EME notice/handoff requi
   16 px at 1000 × 760; it fits at 1280 × 800 and larger, in every
   wallpaper mode). native-start-widgets 8/8; newtab-layouts 24/25 (:21 as
   before).
+- **Local Sparkle update proof (2026-11-14):** `local-update-proof.mjs` on
+  local beta.1 and beta.2 builds: the good feed installed build 2; a feed
+  signed with another key and one changed after signing were downloaded and
+  refused (build 1 kept). The first throwaway key was kept in /tmp and lost
+  in a restart, so a new one lives in `records/local-update-key` (owner-only,
+  outside Git) and the local beta now trusts it.
 - **No test hooks and profile separation (2026-11-14):** the hooks audit
   found four `--blanc-test` reads outside the test-hooks flag (first run,
   version, data home, telemetry collector, a Sync test call); they now go
