@@ -173,6 +173,7 @@ made. Shipping strings below are copied from `copy/messages/en.json`.
 | `blancSyncTurnOffHint` | `settings.sync.turnOff.hint` | This device stops syncing. Its favorites and settings stay as they are. |
 | `blancSyncChecking` | `settings.sync.checking` | Checking… |
 | `blancSyncCheckFailed` | `settings.sync.checkFailed` | Could not check sync. Try again. |
+| `blancSyncConnectedTo` | `settings.sync.connectedTo` | Connected to “{name}”. Pulling your favorites and settings now. |
 | `blancSyncTurningOn` | `settings.sync.turningOn` | Turning on sync… |
 | `blancSyncSyncing` | `settings.sync.syncing` | Syncing… |
 | `blancSyncNotSynced` | `settings.sync.notSynced` | Not synced yet |

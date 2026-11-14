@@ -57,18 +57,23 @@
       let nudge = middle - figures, fit = 1;
       // With shortcuts on show, the clock moves up as far as they need to sit above Customize
       // (owner, November 14: they landed under it), but never under the date; if that isn't
-      // enough, it also shrinks until every row fits.
+      // enough, it also shrinks until every row fits. With none, the week's blocked line under the
+      // clock gets the same room: on a short screen a centered clock put it over Customize.
       const shortcuts = document.getElementById('bbFavorites');
+      const blocked = document.getElementById('bbBlocked');
       const footer = document.querySelector('.ledger-footer');
       const header = document.querySelector('.start-header');
       // The clock is placed from the page's top, Billboard's content from its own, under the date.
       const billboard = shortcuts?.closest('.billboard');
       if (billboard) root.style.setProperty('--android-billboard-top', (billboard.getBoundingClientRect().top + scrollY) + 'px');
-      if (shortcuts && !shortcuts.hidden && shortcuts.childElementCount && footer) {
+      const shown = element => element && !element.hidden && element.getClientRects().length > 0;
+      const below = shown(shortcuts) && shortcuts.childElementCount ? shortcuts
+        : shown(blocked) && blocked.textContent.trim() ? blocked : null;
+      if (below && footer) {
         const row = clock.closest('.bb-clock-row') || clock;
         const height = row.offsetHeight;
         const drawn = row.getBoundingClientRect();
-        const rows = shortcuts.getBoundingClientRect();
+        const rows = below.getBoundingClientRect();
         // What lies between the clock's bottom and the shortcuts (the line under it and a gap); it
         // doesn't change as the clock moves or scales.
         const gap = rows.top - drawn.bottom;
@@ -89,6 +94,12 @@
     if (shortcuts) {
       new MutationObserver(place).observe(shortcuts, {attributes: true, attributeFilter: ['hidden'], childList: true});
       new ResizeObserver(place).observe(shortcuts);
+    }
+    // The blocked line's text arrives after the page loads, and it can wrap.
+    const blocked = document.getElementById('bbBlocked');
+    if (blocked) {
+      new MutationObserver(place).observe(blocked, {attributes: true, attributeFilter: ['hidden'], childList: true, characterData: true, subtree: true});
+      new ResizeObserver(place).observe(blocked);
     }
     addEventListener('resize', place);
     document.fonts.addEventListener('loadingdone', place);

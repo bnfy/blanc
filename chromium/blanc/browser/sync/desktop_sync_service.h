@@ -21,6 +21,7 @@
 #include "base/timer/timer.h"
 #include "base/values.h"
 #include "blanc/services/sync_runner/sync_runner_proxy.h"
+#include "chrome/browser/profiles/keep_alive/scoped_profile_keep_alive.h"
 #include "chrome/browser/profiles/profile_observer.h"
 #include "components/bookmarks/browser/base_bookmark_model_observer.h"
 #include "components/prefs/pref_change_registrar.h"
@@ -90,6 +91,11 @@ class DesktopSyncService final : public ProfileObserver,
   void BookmarkModelBeingDeleted() override;
 
   raw_ptr<Profile> profile_;
+  // On macOS Chromium unloads a profile when its last window closes, though the
+  // app keeps running, and loads a new Profile for the next window; this service
+  // is bound to the first for the process's life (beta.3: Settings then said
+  // Sync was unavailable, and open tabs stopped publishing). Keep it loaded.
+  std::unique_ptr<ScopedProfileKeepAlive> profile_keep_alive_;
   raw_ptr<bookmarks::BookmarkModel> bookmarks_ = nullptr;
   // Never destroyed while the process can issue SyncPlatform work.
   std::unique_ptr<DesktopSyncPlatform> platform_;

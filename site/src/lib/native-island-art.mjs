@@ -344,6 +344,7 @@ export function nativeWindowArt({ styles, document, renderer, overlay, verticalT
     ...(rail ? [scoped(':root[data-tab-layout="vertical"] #strip'), scoped(':root[data-tab-layout="vertical"] #pillDots'),
       scoped(':root[data-tab-layout="vertical"] #pillNewTab'), scoped(':root[data-theme="private"] .vertical-tabs-rail::after'),
       scoped('body.mac .vertical-tabs-toolbar'),
+      scoped('body.mac .vertical-tabs-toolbar .vertical-tabs-layout-button'),
       ...[...new Set(rules.map(rule => rule.selector).filter(selector => /^\.vertical-tab/.test(selector)))].map(take)] : []),
   ];
 

@@ -26,14 +26,14 @@
       "dark": "8a3c4fd5a0b762b7364ca6402dbdb2572b3a7bb69ec7ff5ef8744e4302ae0d0d"
     },
     "SunriseSpectrum": {
-      "package": "14e45c1c1ae5258a62f26e866d53e165a9a640ef0dd32a43ae61befa182c0e93",
+      "package": "36f6bc276f28a84767b82911f7fff590893cdfebd5fc4d7a8ba961187a63e64e",
       "light": "73d891efe6b2f3694d88798cda766f4c8280e2179e48165202f0b46302a07b02",
-      "dark": "74ec71d84a65dd6960e8b829d217ba46f9e87bf481c2eff349189c366cce1fdd"
+      "dark": "892c29e3e97ce0ffb5e7e296e6416cbab57db6e6db7c0bc8cd95a7c03cc26ffa"
     },
     "SunriseAmber": {
-      "package": "c45e550397f79f859d689eff152e23a91abda8488dab8bb778c92f741b9a6fbf",
+      "package": "aa5982e1670d7e856b76fe9584de4bb5d053fab341ac66d802873fea63ab1b74",
       "light": "514ac524a00d99f4f83403eed738b783b9735b95c4880c01a793ad52fdfe0c4d",
-      "dark": "6bbe67a07351fb138d605a0e325af70816c25447a243beb596832b2a21dcefa6"
+      "dark": "f7c4d31b8a0f8ab716b21730b4c4ceba1d30711d84d44aa64303b0bf7893f268"
     }
   }
 }

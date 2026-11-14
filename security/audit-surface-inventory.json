@@ -51,7 +51,7 @@
     },
     {
       "file": "cloudflare/newsletter-worker/src/index.js",
-      "sha256": "13d5b0b95a688b96822dc74b6e2591a5e90a287f169447af677b718f1ef3d0c5",
+      "sha256": "337ca2057aa9033e7d9faec35b539804e5c28dadddefca1fb11e3a58a868a2a8",
       "literalChannels": [],
       "role": "privileged implementation or service"
     },
@@ -63,7 +63,7 @@
     },
     {
       "file": "cloudflare/ping-worker/src/dl.js",
-      "sha256": "69cb052e534c0ee9b8cbf3e5c9bef2ceff82c900c11a8577ba52e8352ddf1918",
+      "sha256": "96ee8955191a50b3d553426ceb14efd2bec3a78e6d149a1825bf4f1da51c8b3d",
       "literalChannels": [],
       "role": "privileged implementation or service"
     },
@@ -260,7 +260,7 @@
     },
     {
       "file": "src/main/main.js",
-      "sha256": "b0a0ac58deb5dfc650888df4ab72c34c54cc580864fa8ba09a2c8f559c3c30e0",
+      "sha256": "952e4071620ae75d92c1bf1dcda28c7369eea73522ed41fa31d2b78fd565c800",
       "literalChannels": [
         "activate",
         "bang-icons:changed",

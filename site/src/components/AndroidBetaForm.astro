@@ -1,0 +1,59 @@
+---
+// Blanc for Android beta signup. Posts to the blanc-newsletter Worker's
+// /android-beta route (cloudflare/newsletter-worker/), which keeps the list
+// under its own KV prefixes: joining never subscribes anyone to the newsletter
+// or the Mail waitlist, an address counts only after its owner confirms it by
+// email, and the list is deleted when the beta ends. The privacy page's
+// "Blanc for Android beta" section describes exactly this contract — change
+// them together. "website" is the same honeypot the other forms use.
+// The button starts disabled and the script enables it, so the form cannot be
+// submitted before the script is ready. method="post" is a second guard that
+// keeps an address out of the page URL.
+---
+<form class="android-beta-form" id="android-beta" method="post" data-android-beta>
+  <label class="android-beta-label" for="androidBetaEmail">Your Google Play email address</label>
+  <span class="android-beta-controls">
+    <input id="androidBetaEmail" name="email" type="email" required maxlength="254" placeholder="you@gmail.com" autocomplete="email" autocapitalize="none" spellcheck="false" aria-describedby="androidBetaNote">
+    <input class="android-beta-hp" type="text" name="website" tabindex="-1" autocomplete="off" aria-hidden="true">
+    <button type="submit" disabled>Join the beta</button>
+  </span>
+  <p class="android-beta-note" id="androidBetaNote">We’ll ask you to confirm by email. The beta list is separate from the Blanc newsletter, and we delete it when the beta ends. <a href="/privacy#android-beta">How we handle it</a></p>
+  <p class="android-beta-status" role="status" aria-live="polite"></p>
+  <noscript><p class="android-beta-note">Turn on JavaScript to join the beta, or email <!--email_off--><a href="mailto:support@blanc.day">support@blanc.day</a><!--/email_off-->.</p></noscript>
+</form>
+<script>
+  const ANDROID_BETA_ENDPOINT = 'https://blanc-newsletter.bnfy-441.workers.dev/android-beta';
+
+  const form = document.querySelector<HTMLFormElement>('form[data-android-beta]')!;
+  const status = form.querySelector('.android-beta-status')!;
+  const button = form.querySelector('button')!;
+  const email = form.elements.namedItem('email') as HTMLInputElement;
+  const website = form.elements.namedItem('website') as HTMLInputElement;
+  button.disabled = false;
+  form.addEventListener('submit', async (event) => {
+    event.preventDefault();
+    status.textContent = '';
+    button.disabled = true;
+    try {
+      const response = await fetch(ANDROID_BETA_ENDPOINT, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: email.value.trim(), website: website.value }),
+      });
+      if (response.ok) {
+        form.toggleAttribute('data-done', true);
+        status.textContent = 'Check your inbox to confirm your place. The link expires in 24 hours.';
+      } else if (response.status === 400) {
+        status.textContent = 'That address didn’t look right. Please check it and try again.';
+      } else if (response.status === 429) {
+        status.textContent = 'Too many tries from here just now. Please try again in a minute.';
+      } else {
+        status.textContent = 'We couldn’t add you just now. Please try again later.';
+      }
+    } catch {
+      status.textContent = 'We couldn’t add you just now. Please try again later.';
+    } finally {
+      button.disabled = false;
+    }
+  });
+</script>

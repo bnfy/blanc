@@ -119,17 +119,6 @@
    "replaces": "cinema-data-22"
   },
   {
-   "id": "ipad103-007",
-   "source": "site/src/pages/download.astro",
-   "exactWording": "Blanc for iPhone and iPad is free on the App Store. Blanc for your Mac or PC is a desktop browser for macOS, Windows and Linux.",
-   "subject": "Blanc",
-   "evidenceGroups": [
-    "ipadAppStore"
-   ],
-   "verdict": "verified",
-   "replaces": "iphone10-007"
-  },
-  {
    "id": "ipad103-009",
    "source": "site/src/pages/pair.astro",
    "exactWording": "Open Blanc on your iPhone or iPad, choose Pair with your Blanc in Settings → Sync, and point it at the code on your computer.",
@@ -331,6 +320,18 @@
    ],
    "verdict": "verified",
    "reason": "Removed from /download on November 14, 2026, when the owner had the page reimagined with far fewer words (one button per system, three tiles, one line of facts). The new wording is recorded in docs/website-download-redesign-2026-11-14-claims.json."
+  },
+  {
+   "id": "ipad103-007",
+   "source": "site/src/pages/download.astro",
+   "exactWording": "Blanc for iPhone and iPad is free on the App Store. Blanc for your Mac or PC is a desktop browser for macOS, Windows and Linux.",
+   "subject": "Blanc",
+   "evidenceGroups": [
+    "ipadAppStore"
+   ],
+   "verdict": "verified",
+   "replaces": "iphone10-007",
+   "reason": "Removed from /download on November 14, 2026, with the \"On a phone or tablet?\" box: the platform switcher now opens on the iPhone tab for iPhones and iPads and on the Android tab for Android phones, so phone visitors no longer need to send the page to a computer (owner decision recorded in docs/website-download-redesign-2026-11-14-claims.json)."
   }
  ]
 }

@@ -225,17 +225,19 @@ const SPACES_MENU_MAX_HEIGHT = 640;
 /**
  * Bounds for the 'spaces' overlay mode: the menu's left edge under the mark,
  * just below it. The menu is kept inside the window; its shadow room may run
- * past the window's edge, so a mark near either edge still lines up.
- * @param {{windowWidth: number, windowHeight: number, stripHeight: number, anchorLeft?: number|null, anchorBottom?: number|null}} input
+ * past the window's edge, so a mark near either edge still lines up. It never
+ * hangs lower than `anchorLimit` (the strip, unless given: with vertical tabs
+ * the mark sits in the rail's header, which on macOS runs below the strip).
+ * @param {{windowWidth: number, windowHeight: number, stripHeight: number, anchorLimit?: number, anchorLeft?: number|null, anchorBottom?: number|null}} input
  */
-function calculateSpacesBounds({ windowWidth, windowHeight, stripHeight, anchorLeft, anchorBottom }) {
+function calculateSpacesBounds({ windowWidth, windowHeight, stripHeight, anchorLimit = stripHeight, anchorLeft, anchorBottom }) {
   const winWidth = dimension(windowWidth);
   const winHeight = dimension(windowHeight);
   if (!winWidth) return { x: 0, y: 0, width: 0, height: 0 };
   const width = SPACES_MENU_WIDTH + SPACES_MENU_SIDE * 2;
   const wanted = Number.isFinite(anchorLeft) ? anchorLeft : (winWidth - SPACES_MENU_WIDTH) / 2;
   const x = Math.round(Math.max(0, Math.min(wanted, winWidth - SPACES_MENU_WIDTH))) - SPACES_MENU_SIDE;
-  const below = Number.isFinite(anchorBottom) ? Math.min(anchorBottom, dimension(stripHeight)) : dimension(stripHeight);
+  const below = Number.isFinite(anchorBottom) ? Math.min(anchorBottom, dimension(anchorLimit)) : dimension(stripHeight);
   const y = Math.max(0, Math.round(below + SPACES_MENU_GAP - SPACES_MENU_PAD));
   const height = Math.max(0, Math.min(SPACES_MENU_MAX_HEIGHT, winHeight - y));
   return { x, y, width, height };
