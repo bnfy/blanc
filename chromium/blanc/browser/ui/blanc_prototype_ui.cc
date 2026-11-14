@@ -257,6 +257,8 @@
 #include "chrome/browser/ui/tabs/tab_group_model.h"
 #include "chrome/browser/ui/tabs/tab_strip_model.h"
 #include "chrome/browser/ui/tabs/tab_strip_model_observer.h"
+#include "chrome/browser/ui/thumbnails/thumbnail_image.h"
+#include "chrome/browser/ui/thumbnails/thumbnail_tab_helper.h"
 #include "components/tab_groups/tab_group_color.h"
 #include "components/tab_groups/tab_group_id.h"
 #include "components/tab_groups/tab_group_visual_data.h"
@@ -1331,6 +1333,21 @@ class Owner : public base::SupportsUserData::Data,
   int rail_width = 248;
   gfx::Rect extension_bounds;
   gfx::Rect interactive_bounds;
+  // Rail hover previews: the group list card's rectangle (host coordinates),
+  // which takes the pointer while it shows, and the one tab thumbnail the
+  // picture card watches (never a private or quiet tab's).
+  gfx::Rect hover_card_bounds;
+  std::unique_ptr<ThumbnailImage::Subscription> thumbnail_watch;
+  int thumbnail_watch_tab = -1;
+  void PublishThumbnail(int tab_id, const std::string& url) {
+    auto* host = view ? view->GetWebContents() : nullptr;
+    if (url.empty() || tab_id != thumbnail_watch_tab || !host ||
+        host->GetLastCommittedURL() != GURL("chrome://blanc-prototype/host.html") ||
+        !host->GetPrimaryMainFrame()->IsRenderFrameLive()) return;
+    host->GetPrimaryMainFrame()->ExecuteJavaScript(
+        base::UTF8ToUTF16(base::StringPrintf("window.BlancPrototypeHost?.tabThumbnail(%d, %s)",
+            tab_id, base::GetQuotedJSONString(url).c_str())), base::NullCallback());
+  }
   // Auto-hide's floating pill (Island view coordinates): its frame, which the
   // Island view grows to hold, and while it shows the only part of the
   // strip's band a floating Island claims.
@@ -1581,6 +1598,14 @@ class Owner : public base::SupportsUserData::Data,
   }
   void OnTabStripModelChanged(TabStripModel*, const TabStripModelChange& change,
                               const TabStripSelectionChange& selection) override {
+    // The picture card's watch ends with its tab (closed or moved away).
+    if (thumbnail_watch_tab >= 0 && change.type() == TabStripModelChange::kRemoved) {
+      for (const auto& removed : change.GetRemove()->contents)
+        if (sessions::SessionTabHelper::IdForTab(removed.contents).id() == thumbnail_watch_tab) {
+          thumbnail_watch.reset();
+          thumbnail_watch_tab = -1;
+        }
+    }
     // A tab that arrives without taking over was opened in the background.
     if (change.type() == TabStripModelChange::kInserted) {
       for (const auto& inserted : change.GetInsert()->contents)
@@ -1855,6 +1880,8 @@ class IslandView : public views::WebView, public views::ViewTargeterDelegate {
     auto* owner = GetOwner(const_cast<IslandView*>(this)->GetWebContents());
     if (!owner) return GetLocalBounds().Intersects(rect);
     if (owner->float_bounds.Intersects(rect)) return true;
+    // The rail's group list card (hover previews) floats beside the rail.
+    if (owner->hover_card_bounds.Intersects(rect)) return true;
     if (!owner->split_geometry.empty()) {
       const int band = owner->glance_main >= 0
           ? HeaderHeight(const_cast<views::View*>(parent())) : owner->strip_height;
@@ -2139,6 +2166,28 @@ content::WebContents* TabById(TabStripModel* model, int id) {
   for (int i = 0; i < model->count(); ++i)
     if (sessions::SessionTabHelper::IdForTab(model->GetWebContentsAt(i)).id() == id) return model->GetWebContentsAt(i);
   return nullptr;
+}
+// A quiet tab, as the snapshot reports it: discarded, or not yet loaded since
+// a restore. Observing such a tab's thumbnail would load it.
+bool TabAsleep(content::WebContents* contents) {
+  auto* lifecycle = resource_coordinator::TabLifecycleUnitExternal::FromWebContents(contents);
+  return (lifecycle && lifecycle->GetTabState() == ::mojom::LifecycleUnitState::DISCARDED) ||
+      (!contents->GetPrimaryMainFrame()->IsRenderFrameLive() && contents->GetController().NeedsReload());
+}
+// Rail hover previews: Chromium's thumbnail for a tab, never a private tab's.
+ThumbnailTabHelper* ThumbnailHelperFor(content::WebContents* contents) {
+  if (!contents || blanc::private_tabs::IsPrivateTab(contents)) return nullptr;
+  auto* tab = tabs::TabInterface::MaybeGetFromContents(contents);
+  return tab ? ThumbnailTabHelper::From(tab) : nullptr;
+}
+// Chromium keeps thumbnails as JPEG; the host gets one only as a data URL.
+std::string ThumbnailDataUrl(const ThumbnailImage::CompressedThumbnailData& data) {
+  if (!data || data->data.empty()) return std::string();
+  return "data:image/jpeg;base64," + base::Base64Encode(data->data);
+}
+base::Value ThumbnailReply(const ThumbnailImage::CompressedThumbnailData& data) {
+  const std::string url = ThumbnailDataUrl(data);
+  return base::Value(base::DictValue().Set("image", url.empty() ? base::Value() : base::Value(url)));
 }
 // The Glance page sits where the host's card leaves its hole, with the
 // card's page corners; nothing shows until the host has placed the card.
@@ -4205,11 +4254,7 @@ base::DictValue Snapshot(BrowserWindowInterface* browser, Owner* owner) {
                     .Set("title", CustomTabName(contents).empty() ? base::UTF16ToUTF8(contents->GetTitle()) : CustomTabName(contents))
                     .Set("pageTitle", CustomTabName(contents).empty() ? base::Value() : base::Value(base::UTF16ToUTF8(contents->GetTitle())))
                     .Set("rendererLive", contents->GetPrimaryMainFrame()->IsRenderFrameLive())
-                    .Set("asleep", [&] {
-                      auto* lifecycle = resource_coordinator::TabLifecycleUnitExternal::FromWebContents(contents);
-                      return (lifecycle && lifecycle->GetTabState() == ::mojom::LifecycleUnitState::DISCARDED) ||
-                          (!contents->GetPrimaryMainFrame()->IsRenderFrameLive() && controller.NeedsReload());
-                    }())
+                    .Set("asleep", TabAsleep(contents))
                     .Set("blockedCount", blanc::ShieldBlockedCount(contents))
                     .Set("certificate", CertificateState(contents))
                     .Set("adblockExcepted", blanc::BlockingSiteExcepted(browser->GetProfile(), committed))
@@ -10882,6 +10927,70 @@ class Handler : public content::WebUIMessageHandler, public extensions::Extensio
       action->ExecuteUserAction(ToolbarActionViewModel::InvocationSource::kMenuEntry);
       return;
     }
+    // Rail hover previews (fork): a tab's picture for the card, the one tab
+    // whose new pictures the card follows, and the list card's click area.
+    if (method == "tabThumbnail" && args.size() == 1 && args[0].is_int()) {
+      auto* page = TabById(model, args[0].GetInt());
+      auto* helper = ThumbnailHelperFor(page);
+      if (!helper) {
+        reply(true, ThumbnailReply(nullptr));
+        return;
+      }
+      auto thumbnail = helper->thumbnail();
+      // A quiet tab answers with whatever picture Chromium kept; subscribing
+      // would load a tab restored but never shown. A tab with a picture
+      // answers at once (the watch brings a newer one).
+      if (TabAsleep(page) || thumbnail->has_data()) {
+        reply(true, ThumbnailReply(thumbnail->data()));
+        return;
+      }
+      auto subscription = thumbnail->Subscribe();
+      subscription->SetCompressedImageCallback(base::BindRepeating(
+          [](base::WeakPtr<Handler> handler, std::string request, ThumbnailImage::CompressedThumbnailData data) {
+            base::SequencedTaskRunner::GetCurrentDefault()->PostTask(FROM_HERE,
+                base::BindOnce(&Handler::FinishThumbnailRequest, handler, request, data));
+          }, weak_factory_.GetWeakPtr(), id));
+      thumbnail_requests_[id] = std::move(subscription);
+      thumbnail->RequestCompressedThumbnailData();
+      // No picture within 300ms: the card keeps its placeholder.
+      base::SequencedTaskRunner::GetCurrentDefault()->PostDelayedTask(FROM_HERE,
+          base::BindOnce(&Handler::FinishThumbnailRequest, weak_factory_.GetWeakPtr(), id,
+              ThumbnailImage::CompressedThumbnailData()), base::Milliseconds(300));
+      return;
+    }
+    if (method == "watchThumbnail" && args.size() == 1 && args[0].is_int()) {
+      owner->thumbnail_watch.reset();
+      owner->thumbnail_watch_tab = -1;
+      auto* page = TabById(model, args[0].GetInt());
+      auto* helper = ThumbnailHelperFor(page);
+      if (!helper || TabAsleep(page)) {
+        reply(true, base::Value(false));
+        return;
+      }
+      const int tab_id = args[0].GetInt();
+      owner->thumbnail_watch = helper->thumbnail()->Subscribe();
+      owner->thumbnail_watch_tab = tab_id;
+      owner->thumbnail_watch->SetCompressedImageCallback(base::BindRepeating(
+          [](base::WeakPtr<Owner> watcher, int watched, ThumbnailImage::CompressedThumbnailData data) {
+            if (watcher) watcher->PublishThumbnail(watched, ThumbnailDataUrl(data));
+          }, owner->GetWeakPtr(), tab_id));
+      helper->thumbnail()->RequestCompressedThumbnailData();
+      reply(true, base::Value(true));
+      return;
+    }
+    if (method == "unwatchThumbnail" && args.empty()) {
+      owner->thumbnail_watch.reset();
+      owner->thumbnail_watch_tab = -1;
+      reply(true, base::Value(true));
+      return;
+    }
+    if (method == "hoverCardBounds" && args.size() == 4 &&
+        std::ranges::all_of(args, [](const auto& v) { return v.is_int(); })) {
+      owner->hover_card_bounds = gfx::Rect(args[0].GetInt(), args[1].GetInt(),
+          std::max(0, args[2].GetInt()), std::max(0, args[3].GetInt()));
+      reply(true, base::Value(true));
+      return;
+    }
     if (method == "geometry" && (args.size() == 8 || args.size() == 10) &&
         std::ranges::all_of(args, [](const auto& v) { return v.is_int(); })) {
       if (args.size() == 10) {
@@ -12163,6 +12272,14 @@ class Handler : public content::WebUIMessageHandler, public extensions::Extensio
   std::unique_ptr<views::MenuRunner> extension_menu_runner_;
   base::CancelableTaskTracker tracker_;
   std::unique_ptr<TabImporter> tab_importer_;
+  // Rail hover previews: one-off thumbnail requests waiting for Chromium's
+  // first picture, by reply id. Each ends with its reply.
+  std::map<std::string, std::unique_ptr<ThumbnailImage::Subscription>> thumbnail_requests_;
+  void FinishThumbnailRequest(const std::string& id, ThumbnailImage::CompressedThumbnailData data) {
+    // Not from inside the subscription's own callback: Chromium forbids
+    // destroying a subscription there, so the reply is posted.
+    if (thumbnail_requests_.erase(id)) Reply(id, true, ThumbnailReply(data));
+  }
   base::WeakPtrFactory<Handler> weak_factory_{this};
 };
 struct WindowIdentityState {
