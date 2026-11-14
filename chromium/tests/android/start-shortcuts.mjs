@@ -2,8 +2,9 @@
 // Blanc types four fixture sites into the palette, more often the higher each should rank. The
 // Start Page must then show them in that order, as many as the Shortcuts stepper allows; a tap on a
 // site's pin must move it to the front and keep it there across a relaunch; a tap on it again must
-// unpin it, which also survives a relaunch. Taps go through adb at the button's place on the screen,
-// so a pin too small to hit fails. Screenshots go to the evidence folder. Fails closed.
+// unpin it, which also survives a relaunch; a tap on the icon near its pin must open the site. Taps go
+// through adb at their place on the screen, so a pin too small to hit, or one whose target covers the
+// icon, fails. Screenshots go to the evidence folder. Fails closed.
 //
 //   node chromium/tests/android/start-shortcuts.mjs --apk <ChromePublic.apk> --evidence <dir>
 import fs from 'node:fs';
@@ -47,6 +48,16 @@ const PIN_AT = key => `(() => {
   pin.scrollIntoView({block: 'center'});
   const r = pin.getBoundingClientRect(), top = screen.height - innerHeight;
   return {x: Math.round((r.left + r.width / 2) * devicePixelRatio), y: Math.round((top + r.top + r.height / 2) * devicePixelRatio)};
+})()`;
+
+// A point on a site's icon near its top-left corner, just clear of the pin drawn over the corner:
+// a tap there must open the site, not pin it.
+const ICON_CORNER_AT = key => `(() => {
+  const tile = document.querySelector('#bbFavorites .bb-site[data-site-key="${key}"] .tile');
+  if (!tile) return null;
+  tile.scrollIntoView({block: 'center'});
+  const r = tile.getBoundingClientRect(), top = screen.height - innerHeight;
+  return {x: Math.round((r.left + 14) * devicePixelRatio), y: Math.round((top + r.top + 16) * devicePixelRatio)};
 })()`;
 
 async function main(argv) {
@@ -110,6 +121,13 @@ async function main(argv) {
     await relaunch();
     await startPage();
     await check('the unpin survives a relaunch', unpinned);
+    const corner = await d.page(ICON_CORNER_AT('a.example'));
+    if (!corner) throw Error("no icon on a.example's shortcut");
+    sleep(1);
+    adb('shell', 'input', 'tap', String(corner.x), String(corner.y));
+    const opened = await d.waitForUrl('https://a.example/').then(() => [], error => [error.message]);
+    screenshot('a tap near the icon corner opens the site');
+    results.push({case: 'a tap near an icon\'s corner opens the site, not its pin', problems: opened});
   } catch (error) {
     results.push({case: 'the run', problems: [error.message]});
   } finally {

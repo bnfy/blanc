@@ -123,17 +123,18 @@ html[data-platform="android"] .ledger-footer :is(.footer-left, .footer-appearanc
 html[data-platform="android"] .ledger-footer .footer-left { order: 1; }
 html[data-platform="android"] .ledger-footer .footer-appearance { order: 2; }
 /* A shortcut's pin and × (always on show without hover, as on any touch screen) sit on its icon's
-   top corners, a little larger, each with a finger-sized target around it. */
+   top corners, a little larger. Each one's target grows up and outward only, never over the icon,
+   so a tap on the icon always opens the site; sideways it stops short of the next shortcut's. */
 html[data-platform="android"] :is(.bb-site-pin, .bb-site-dismiss) { top: -9px; width: 22px; height: 22px; }
 html[data-platform="android"] .bb-site-pin { left: calc(50% - 35px); }
 html[data-platform="android"] .bb-site-dismiss { right: calc(50% - 35px); }
 html[data-platform="android"] :is(.bb-site-pin, .bb-site-dismiss) svg { width: 12px; height: 12px; }
 html[data-platform="android"] .fav-pin { position: relative; }
-html[data-platform="android"] :is(.bb-site-pin, .bb-site-dismiss, .fav-pin)::after {
-  content: "";
-  position: absolute;
-  inset: -10px;
-}
+html[data-platform="android"] :is(.bb-site-pin, .bb-site-dismiss, .fav-pin)::after { content: ""; position: absolute; }
+html[data-platform="android"] .bb-site-pin::after { inset: -12px 0 0 -8px; }
+html[data-platform="android"] .bb-site-dismiss::after { inset: -12px -8px 0 0; }
+/* A favorite's pin follows its link: its target grows up, down and away from the link. */
+html[data-platform="android"] .fav-pin::after { inset: -13px -10px -13px 0; }
 html[data-platform="android"] :is(#goAnywhere, .footer-right, #version, .wallpaper-follow, #colorWallpaperFollow,
   #colorWallpaperFollowHint, #storeThemeWallpaperPick) { display: none; }
 html[data-platform="android"] .start-customize { min-height: 44px; padding-inline: 20px; font-size: 14px; }
