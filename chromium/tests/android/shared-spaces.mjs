@@ -124,7 +124,7 @@ async function main(argv) {
       await phonePass();
       await until(() => !titles(d.grid()).includes('Three'), 'the tab to close');
       d.openPalette();
-      await d.waitFor(async () => d.dump().includes('Recently closed'), 'the band', 15);
+      await d.scrollPaletteTo('Recently closed', 'the band');
       d.tap({text: 'Recently closed  1'});
       // Below the open tabs: the list scrolls, in what the keyboard leaves of the screen.
       const {width, height} = d.screenSize();

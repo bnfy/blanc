@@ -267,7 +267,7 @@ async function main(argv) {
       await phonePass();
       await until(async () => [...await value('closed.inbox')].some(row => row.id === 'peer-closed-1'), 'the peer\'s close');
       d.tap({id: 'blanc_island_domain'});
-      await d.waitFor(async () => d.dump().includes('Recently closed'), 'the band', 15);
+      await d.scrollPaletteTo('Recently closed', 'the band');
       d.tap({text: 'Recently closed  2'});
       await d.waitFor(async () => d.dump().includes('Closed on Closer'), 'the device line', 15);
       d.tap({text: 'Closed there'});
@@ -281,7 +281,7 @@ async function main(argv) {
       d.runInPalette('/close');
       await d.relaunch();
       d.tap({id: 'blanc_island_domain'});
-      await d.waitFor(async () => d.dump().includes('Recently closed'), 'the band', 15);
+      await d.scrollPaletteTo('Recently closed', 'the band');
       d.tap({text: 'Recently closed  1'});
       await d.waitFor(async () => d.dump().includes('closed-alone.example'), 'the row', 15);
       return [];
