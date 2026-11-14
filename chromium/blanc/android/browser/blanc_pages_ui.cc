@@ -3,15 +3,19 @@
 #include "blanc/android/browser/sync_start_data.h"
 
 #include <algorithm>
+#include <initializer_list>
+#include <optional>
 #include <set>
 #include <string>
 #include <string_view>
 #include <utility>
 #include <vector>
 
+#include "base/memory/raw_ptr.h"
 #include "base/memory/ref_counted_memory.h"
 #include "base/memory/weak_ptr.h"
 #include "base/no_destructor.h"
+#include "base/scoped_observation.h"
 #include "base/strings/string_util.h"
 #include "base/strings/string_view_util.h"
 #include "base/strings/utf_string_conversions.h"
@@ -24,25 +28,35 @@
 #include "chrome/browser/browser_process.h"
 #include "chrome/browser/history/history_service_factory.h"
 #include "chrome/browser/profiles/profile.h"
+#include "components/bookmarks/browser/base_bookmark_model_observer.h"
 #include "components/bookmarks/browser/bookmark_model.h"
 #include "components/bookmarks/browser/bookmark_node.h"
 #include "components/bookmarks/common/bookmark_metrics.h"
+#include "components/prefs/pref_change_registrar.h"
 #include "components/prefs/pref_service.h"
+#include "components/prefs/scoped_user_pref_update.h"
 #include "components/history/core/browser/history_service.h"
 #include "components/history/core/browser/history_types.h"
 #include "components/keyed_service/core/service_access_type.h"
 #include "components/version_info/version_info.h"
+#include "content/public/browser/page_navigator.h"
 #include "content/public/browser/web_contents.h"
 #include "content/public/browser/web_ui.h"
 #include "content/public/browser/web_ui_data_source.h"
 #include "content/public/browser/web_ui_message_handler.h"
 #include "services/network/public/mojom/content_security_policy.mojom.h"
 #include "ui/base/models/tree_node_iterator.h"
+#include "ui/base/page_transition_types.h"
+#include "ui/base/window_open_disposition.h"
 #include "url/gurl.h"
 
 // blocker_proxy.h needs the blocker's mojom, which this target (inside webui:configs) can't depend on.
+namespace content {
+class BrowserContext;
+}
 namespace blanc {
 const char* BlockerHealth();
+base::DictValue BlockedThisWeek(content::BrowserContext* context);
 }
 
 namespace blanc::android {
@@ -51,14 +65,10 @@ namespace {
 // The pages Android 1.0 opens (tools/android-pages.mjs PAGES).
 constexpr std::string_view kPages[] = {"newtab", "bookmarks", "history", "shortcuts", "error", "mahjong"};
 
-// What each page may ask in A1. bridges.json grants more; the rest reject
-// with "not-yet" until the milestone that adds them (STATUS.md).
+// What each page may ask over window.bowserPages. bridges.json grants more; the rest reject with
+// "not-yet" until the milestone that adds them (STATUS.md). The Start Page is the desktop fork's
+// and asks over its own channel instead (OnStartCall).
 constexpr std::pair<std::string_view, std::string_view> kAnswered[] = {
-    {"newtab", "appVersion"},          {"newtab", "start.data"},
-    {"newtab", "start.topSites"},      {"newtab", "start.focusGroup"},
-    {"newtab", "start.layoutUsed"},    {"newtab", "start.openIsland"},
-    {"newtab", "start.openSent"},      {"newtab", "start.dismissSent"},
-    {"newtab", "bookmarks.list"},      {"newtab", "bookmarks.clearFavicon"},
     {"bookmarks", "bookmarks.list"},   {"bookmarks", "bookmarks.capabilities"},
     {"bookmarks", "bookmarks.remove"}, {"bookmarks", "bookmarks.clearFavicon"},
     {"history", "history.list"},       {"history", "history.remove"},
@@ -86,6 +96,13 @@ std::string StringsFile() {
       return "strings." + std::string(candidate) + ".js";
   }
   return "strings.en.js";
+}
+
+// The language the fork's Start Page catalog (start/strings.js) shows, as its ui-language.js pin:
+// the one the other pages' strings.<code>.js is in.
+std::string UiLanguage() {
+  const std::string file = StringsFile();
+  return file.substr(8, file.size() - 11);
 }
 
 int64_t Millis(base::Time time) { return time.InMillisecondsSinceUnixEpoch(); }
@@ -124,6 +141,9 @@ class PagesHandler : public content::WebUIMessageHandler {
   void RegisterMessages() override {
     web_ui()->RegisterMessageCallback(
         "blancPages", base::BindRepeating(&PagesHandler::OnCall, base::Unretained(this)));
+    // The Start Page is the desktop fork's, and its own adapter asks over the fork's channel.
+    web_ui()->RegisterMessageCallback(
+        "blancNewTab", base::BindRepeating(&PagesHandler::OnStartCall, base::Unretained(this)));
     Open().insert(this);
   }
 
@@ -144,6 +164,11 @@ class PagesHandler : public content::WebUIMessageHandler {
   }
   void PushStartLists() {
     if (!IsJavascriptAllowed() || profile()->IsOffTheRecord()) return;
+    if (IsStartPage()) {
+      StartEvent("remoteTabs");
+      StartEvent("sentItems");
+      return;
+    }
     CallJavascriptFunction("__blancEmit", base::Value("start.onRemoteTabs"), base::Value(::blanc::SyncRemoteDevices()));
     CallJavascriptFunction("__blancEmit", base::Value("start.onSentItems"), base::Value(::blanc::SyncSentItems()));
   }
@@ -170,23 +195,15 @@ class PagesHandler : public content::WebUIMessageHandler {
       return;
     }
     const base::ListValue& args = message[3].GetList();
-    if (method == "appVersion") return Reply(id, true, base::Value(version_info::GetVersionNumber()));
-    if (method == "start.data") return Reply(id, true, base::Value(StartData()));
-    if (method == "start.topSites" || method == "shortcuts.list") return Reply(id, true, base::Value(base::ListValue()));
+    if (method == "shortcuts.list") return Reply(id, true, base::Value(base::ListValue()));
     if (method == "bookmarks.list") return Reply(id, true, base::Value(Favorites(Bookmarks())));
     if (method == "bookmarks.capabilities")
       return Reply(id, true, base::Value(base::DictValue().Set("editable", true).Set("import", false).Set("pins", false)));
-    if (method == "start.openSent" || method == "start.dismissSent") {
-      if (!profile()->IsOffTheRecord() && args.size() == 1 && args[0].is_string())
-        ::blanc::SyncSentAction(args[0].GetString(), method == "start.openSent");
-      return Done(id);
-    }
     if (method == "bookmarks.remove") return RemoveFavorite(id, args);
     if (method == "history.list") return ListHistory(id, args);
     if (method == "history.remove") return RemoveHistory(id, args);
     if (method == "history.clear") return ClearHistory(id);
-    // start.focusGroup, start.layoutUsed, start.openIsland, bookmarks.clearFavicon
-    // and mahjong.played have nothing to do on Android yet.
+    // bookmarks.clearFavicon and mahjong.played have nothing to do on Android yet.
     Done(id);
   }
 
@@ -195,41 +212,238 @@ class PagesHandler : public content::WebUIMessageHandler {
     return HistoryServiceFactory::GetForProfile(profile(), ServiceAccessType::EXPLICIT_ACCESS);
   }
 
-  // The iPhone's startData: Billboard, no groups or counters, the Favorites.
-  base::DictValue StartData() {
-    return base::DictValue()
-        .Set("groups", base::ListValue())
-        .Set("blockedThisWeek", 0)
-        .Set("layout", "billboard")
-        .Set("topSites", base::ListValue())
-        .Set("wallpaperVisible", true)
-        .Set("dynamicWallpaperEnabled", false)
-        // The iPhone's Start Page script shows this state in place of a count.
-        .Set("mobileAdblockEnabled",
-             profile()->GetOriginalProfile()->GetPrefs()->GetBoolean("blanc.blocking.enabled") &&
-                 std::string_view(::blanc::BlockerHealth()) != "unavailable")
-        // A private Start Page gets neither, as on desktop.
-        .Set("remoteDevices", profile()->IsOffTheRecord() ? base::ListValue() : ::blanc::SyncRemoteDevices())
-        .Set("sentItems", profile()->IsOffTheRecord() ? base::ListValue() : ::blanc::SyncSentItems())
-        .Set("bookmarks", Favorites(Bookmarks()))
-        .Set("appearance", base::DictValue()
-                               .Set("settings", FirstRunAppearance())
-                               .Set("hasImage", false)
-                               .Set("image", base::Value()));
+  // ---- The Start Page (A5b): the desktop fork's page, answered over its blancNewTab protocol ----
+
+  bool IsStartPage() { return PageOf(web_ui()->GetWebContents()->GetLastCommittedURL()) == "newtab"; }
+  // A private Start Page shares the regular profile's widgets and clock, as the fork's does.
+  PrefService* StartPrefs() { return profile()->GetOriginalProfile()->GetPrefs(); }
+
+  void StartReply(const std::string& id, bool ok, base::Value value) {
+    if (IsJavascriptAllowed())
+      CallJavascriptFunction("blancNewTabReply", base::Value(id), base::Value(ok), value);
+  }
+  // Tells this Start Page to read one kind of its data again (the fork adapter's refreshers).
+  void StartEvent(const char* kind) {
+    if (IsJavascriptAllowed() && IsStartPage()) CallJavascriptFunction("blancNewTabEvent", base::Value(kind));
   }
 
-  // The iPhone's first-run Billboard clock (StartAppearanceStore.defaults, #1331): Roboto Flex at its
-  // tallest, in glass, with a light stroke, since stretching thins the figures. Android has no
-  // appearance store yet (A5b); saved choices will go over these, and these are never saved, so a
-  // later default reaches everyone who never changed the clock. Android has no Liquid Glass, so the
-  // page draws the glass itself (clock-art.js), as desktop does.
-  static base::DictValue FirstRunAppearance() {
-    return base::DictValue()
-        .Set("newtabClockFont", "flex")
-        .Set("newtabClockHeight", 300)
-        .Set("newtabClockStyle", "glass")
-        .Set("newtabClockWeight", 450);
+  // Every open Start Page follows a change to the widgets, the clock or Favorites at once.
+  void WatchStart() {
+    if (start_prefs_.prefs()) return;
+    start_prefs_.Init(StartPrefs());
+    start_prefs_.Add(kStartWidgets, base::BindRepeating(&PagesHandler::StartEvent, base::Unretained(this), "widgets"));
+    start_prefs_.Add(kStartClock, base::BindRepeating(&PagesHandler::StartEvent, base::Unretained(this), "clock"));
+    bookmarks::BookmarkModel* model = Bookmarks();
+    if (model && !bookmark_observation_.IsObserving()) bookmark_observation_.Observe(model);
   }
+
+  // [id, method, args], as the fork's newtab-adapter.js sends them.
+  void OnStartCall(const base::ListValue& message) {
+    AllowJavascript();
+    if (message.size() != 3 || !message[0].is_string() || !message[1].is_string() || !message[2].is_list()) return;
+    const std::string& id = message[0].GetString();
+    if (!IsStartPage()) return StartReply(id, false, base::Value("Not the Start Page"));
+    WatchStart();
+    const std::string& method = message[1].GetString();
+    const base::ListValue& args = message[2].GetList();
+    const bool off_the_record = profile()->IsOffTheRecord();
+
+    if (method == "clockRead" && args.empty()) return StartReply(id, true, base::Value(StartClock()));
+    if (method == "clockWrite" && args.size() == 1 && args[0].is_dict()) {
+      base::DictValue update = SanitizeClockUpdate(args[0].GetDict());
+      if (!update.empty()) {
+        ScopedDictPrefUpdate saved(StartPrefs(), kStartClock);
+        for (auto [key, value] : update) saved->Set(key, value.Clone());
+      }
+      return StartReply(id, true, base::Value(StartClock()));
+    }
+    // Billboard is the one layout (V24).
+    if ((method == "layoutRead" && args.empty()) ||
+        ((method == "layoutWrite" || method == "layoutInitialize") && args.size() == 1 && args[0].is_string()))
+      return StartReply(id, true, base::Value("billboard"));
+    if (method.starts_with("widgets")) return StartWidgets(id, method, args);
+
+    if (method == "bookmarks" && args.empty()) {
+      bookmarks::BookmarkModel* model = Bookmarks();
+      // null tells the page the model is still loading; it asks again.
+      return StartReply(id, true, model && model->loaded() ? base::Value(Favorites(model)) : base::Value());
+    }
+    // Android has no ranked sites, pinned shortcuts or tab groups on the Start Page yet.
+    if (method == "topSites" || method == "groupsRead") return StartReply(id, true, base::Value(base::ListValue()));
+    if (method == "pinsList")
+      return StartReply(id, true, base::Value(base::DictValue().Set("max", 8).Set("pins", base::ListValue())));
+    if (method == "pinsPin")
+      return StartReply(id, true, base::Value(base::DictValue().Set("ok", false).Set("reason", "unavailable")));
+    if (method == "pinsUnpin" || method == "focusGroup" || method == "openIsland")
+      return StartReply(id, true, base::Value(false));
+    // A private Start Page gets nothing from other devices, as on desktop.
+    if (method == "remoteDevices")
+      return StartReply(id, true, base::Value(off_the_record ? base::ListValue() : ::blanc::SyncRemoteDevices()));
+    if (method == "sentItems")
+      return StartReply(id, true, base::Value(off_the_record ? base::ListValue() : ::blanc::SyncSentItems()));
+    if ((method == "openSent" || method == "dismissSent") && args.size() == 1 && args[0].is_string()) {
+      if (!off_the_record) ::blanc::SyncSentAction(args[0].GetString(), method == "openSent");
+      return StartReply(id, true, base::Value(!off_the_record));
+    }
+    // The line under the clock: the week's blocks, which the blocker records for the regular profile.
+    if (method == "blockedWeek")
+      return StartReply(id, true, off_the_record ? base::Value() : base::Value(::blanc::BlockedThisWeek(profile())));
+    if (method == "openMahjong") {
+      const bool background = args.size() == 1 && args[0].is_bool() && args[0].GetBool();
+      OpenPage("mahjong", background ? WindowOpenDisposition::NEW_BACKGROUND_TAB : WindowOpenDisposition::NEW_FOREGROUND_TAB);
+      return StartReply(id, true, base::Value(true));
+    }
+    // The Favorites heading opens Android's Favorites page, in this tab.
+    if (method == "openSheet" && args.size() == 1 && args[0].is_string() && args[0].GetString() == "bookmarks") {
+      OpenPage("bookmarks", WindowOpenDisposition::CURRENT_TAB);
+      return StartReply(id, true, base::Value(true));
+    }
+    // Desktop's installed browser themes, the Island's band, Patron, the moving-in checklist and
+    // What's New have no Android counterpart: the page shows none of them.
+    if (method == "installedTheme" && args.size() == 1 && args[0].is_string())
+      return StartReply(id, true, args[0].GetString().empty() ? base::Value() : base::Value(base::DictValue()));
+    if (method == "islandBackdrop")
+      return StartReply(id, true, base::Value(base::DictValue().Set("band", 0).Set("rail", 0)));
+    if (method == "firstRun" || method == "patronCallout" || method == "checklist" || method == "whatsNew" ||
+        method == "patronCalloutDismiss" || method == "checklistDismiss" || method == "whatsNewDismiss" ||
+        method == "layoutUsed")
+      return StartReply(id, true, base::Value());
+    if (method == "launchSunrise") return StartReply(id, true, base::Value(false));
+    // Onboarding, the default browser, Settings from the page and imports come later (A5c).
+    StartReply(id, false, base::Value("not-yet"));
+  }
+
+  void OpenPage(const char* page, WindowOpenDisposition disposition) {
+    const GURL url(std::string("chrome://") + kPagesHost + "/" + page + ".html");
+    web_ui()->GetWebContents()->OpenURL(
+        content::OpenURLParams(url, content::Referrer(), disposition, ui::PAGE_TRANSITION_AUTO_BOOKMARK, false),
+        /*navigation_handle_callback=*/{});
+  }
+
+  // The clock Android draws: what was saved, over the iPhone's first-run clock (StartAppearanceStore
+  // defaults, #1331: Roboto Flex at its tallest, weight 450), which is never saved, so a later
+  // default reaches everyone who never changed it. Always solid (#1504).
+  base::DictValue StartClock() {
+    base::DictValue clock = base::DictValue()
+                                .Set("newtabClockFont", "flex")
+                                .Set("newtabClockHeight", 300)
+                                .Set("newtabClockWeight", 450);
+    for (auto [key, value] : StartPrefs()->GetDict(kStartClock)) clock.Set(key, value.Clone());
+    clock.Set("newtabClockStyle", "solid");
+    return clock;
+  }
+
+  // The fork's SanitizeClockUpdate (billboard_clock_settings.inc) without the style: Android never
+  // writes one, so a Glass chosen elsewhere stays for the devices that draw it.
+  static base::DictValue SanitizeClockUpdate(const base::DictValue& input) {
+    base::DictValue out;
+    const auto pick = [&](const char* key, std::initializer_list<std::string_view> allowed) {
+      const std::string* value = input.FindString(key);
+      if (value && std::ranges::find(allowed, *value) != allowed.end()) out.Set(key, *value);
+    };
+    pick("newtabClockFont", {"instrument", "condensed", "inter", "flex"});
+    pick("newtabClockColor", {"auto", "sage", "sky", "iris", "rose", "clay", "sand", "slate", "graphite"});
+    const auto integer = [&](const char* key, int min, int max) {
+      const std::optional<int> value = input.FindInt(key);
+      if (value && *value >= min && *value <= max) out.Set(key, *value);
+    };
+    integer("newtabClockWeight", 100, 1000);
+    integer("newtabClockTone", 0, 100);
+    integer("newtabClockHeight", 100, 300);
+    return out;
+  }
+
+  // The Start Page's widgets (V24, V26): blanc_prototype_ui.cc's handler, on Android's profile. A
+  // phone that never chose starts with none, as a new desktop profile does.
+  void StartWidgets(const std::string& id, const std::string& method, const base::ListValue& args) {
+    static constexpr std::string_view kNames[] = {"favorites", "devices", "shortcuts"};
+    static constexpr std::string_view kCards[] = {"favorites", "devices", "sent"};
+    static constexpr int kSizes[] = {240, 360, 480, 600, 720};
+    const auto named = [](std::string_view name) { return std::ranges::find(kNames, name) != std::end(kNames); };
+    const auto card = [](std::string_view name) { return std::ranges::find(kCards, name) != std::end(kCards); };
+    const auto size = [](int value) { return std::ranges::find(kSizes, value) != std::end(kSizes); };
+    const auto sizable = [](std::string_view name) { return name == "favorites" || name == "devices"; };
+    PrefService* prefs = StartPrefs();
+    if (!prefs->GetDict(kStartWidgets).FindInt("v")) {
+      prefs->SetDict(kStartWidgets, base::DictValue().Set("v", 1).Set("favorites", false).Set("devices", false)
+                                        .Set("shortcuts", false).Set("from", "android"));
+    }
+    // Where each card sits: unknown or repeated names dropped, a missing card back on its default side.
+    const auto place = [&](const base::ListValue* left, const base::ListValue* right) {
+      base::ListValue l, r;
+      std::set<std::string> seen;
+      const auto take = [&](const base::ListValue* from, base::ListValue& to) {
+        if (!from) return;
+        for (const base::Value& item : *from) {
+          if (item.is_string() && card(item.GetString()) && seen.insert(item.GetString()).second)
+            to.Append(item.GetString());
+        }
+      };
+      take(left, l);
+      take(right, r);
+      for (std::string_view name : kCards) {
+        if (!seen.contains(std::string(name))) (sizable(name) ? l : r).Append(name);
+      }
+      return base::DictValue().Set("left", std::move(l)).Set("right", std::move(r));
+    };
+    if (method == "widgetsWrite") {
+      if (args.size() != 2 || !args[0].is_string() || !args[1].is_bool() || !named(args[0].GetString()))
+        return StartReply(id, false, base::Value("Unknown Start Page widget"));
+      ScopedDictPrefUpdate next(prefs, kStartWidgets);
+      next->Set(args[0].GetString(), args[1].GetBool());
+      // The old 6-or-12 switch sets the count it stood for.
+      if (args[0].GetString() == "shortcuts") next->Set("shortcutCount", args[1].GetBool() ? 12 : 6);
+    } else if (method == "widgetsShortcuts") {
+      if (args.size() != 1 || !args[0].is_int() || args[0].GetInt() < 1 || args[0].GetInt() > 12)
+        return StartReply(id, false, base::Value("Shortcuts are 1 to 12"));
+      ScopedDictPrefUpdate next(prefs, kStartWidgets);
+      next->Set("shortcutCount", args[0].GetInt());
+      next->Set("shortcuts", args[0].GetInt() == 12);
+    } else if (method == "widgetsSize") {
+      if (args.size() != 2 || !args[0].is_string() || !args[1].is_int() || !sizable(args[0].GetString()) ||
+          (args[1].GetInt() != 0 && !size(args[1].GetInt())))
+        return StartReply(id, false, base::Value("Unknown card size"));
+      ScopedDictPrefUpdate next(prefs, kStartWidgets);
+      base::DictValue* sizes = next->EnsureDict("sizes");
+      if (args[1].GetInt()) sizes->Set(args[0].GetString(), args[1].GetInt());
+      else sizes->Remove(args[0].GetString());
+    } else if (method == "widgetsPlace") {
+      if (args.size() != 2 || !args[0].is_list() || !args[1].is_list())
+        return StartReply(id, false, base::Value("Unknown card place"));
+      ScopedDictPrefUpdate next(prefs, kStartWidgets);
+      next->Set("place", place(&args[0].GetList(), &args[1].GetList()));
+    } else if (method != "widgetsRead" || !args.empty()) {
+      return StartReply(id, false, base::Value("not-yet"));
+    }
+    const base::DictValue& saved = prefs->GetDict(kStartWidgets);
+    base::DictValue out;
+    for (std::string_view name : kNames) out.Set(name, saved.FindBool(name).value_or(false));
+    // A count saved by the stepper, else what the old switch stood for.
+    const std::optional<int> count = saved.FindInt("shortcutCount");
+    out.Set("shortcutCount",
+            count && *count >= 1 && *count <= 12 ? *count : saved.FindBool("shortcuts").value_or(false) ? 12 : 6);
+    const base::DictValue* saved_place = saved.FindDict("place");
+    out.Set("place", place(saved_place ? saved_place->FindList("left") : nullptr,
+                           saved_place ? saved_place->FindList("right") : nullptr));
+    base::DictValue sizes;
+    if (const base::DictValue* stored = saved.FindDict("sizes")) {
+      for (auto [name, value] : *stored) {
+        if (sizable(name) && value.is_int() && size(value.GetInt())) sizes.Set(name, value.GetInt());
+      }
+    }
+    out.Set("sizes", std::move(sizes));
+    StartReply(id, true, base::Value(std::move(out)));
+  }
+
+  // Favorites changed (the Island's heart, the Favorites page, Sync): the Start Page reads them again.
+  class FavoritesWatch : public bookmarks::BaseBookmarkModelObserver {
+   public:
+    explicit FavoritesWatch(PagesHandler* handler) : handler_(handler) {}
+    void BookmarkModelChanged() override { handler_->StartEvent("bookmarks"); }
+
+   private:
+    raw_ptr<PagesHandler> handler_;
+  };
 
   void RemoveFavorite(int id, const base::ListValue& args) {
     bookmarks::BookmarkModel* model = Bookmarks();
@@ -286,6 +500,12 @@ class PagesHandler : public content::WebUIMessageHandler {
                                   base::BindOnce(&PagesHandler::Done, weak_factory_.GetWeakPtr(), id), &tracker_);
   }
 
+  static constexpr char kStartWidgets[] = "blanc.start.widgets";  // patch 0113
+  static constexpr char kStartClock[] = "blanc.start.clock";      // patch 0113
+  PrefChangeRegistrar start_prefs_;
+  FavoritesWatch favorites_watch_{this};
+  base::ScopedObservation<bookmarks::BookmarkModel, bookmarks::BaseBookmarkModelObserver> bookmark_observation_{
+      &favorites_watch_};
   base::CancelableTaskTracker tracker_;
   base::WeakPtrFactory<PagesHandler> weak_factory_{this};
 };
@@ -306,15 +526,26 @@ PagesUI::PagesUI(content::WebUI* web_ui) : content::WebUIController(web_ui) {
         // The private Start Page and Mahjong deals carry a query; nothing else does.
         const std::string file = path.substr(0, path.find_first_of("?#"));
         if (file == "strings.js") return std::move(callback).Run(pages_resources::Find(StringsFile()));
-        scoped_refptr<base::RefCountedMemory> bytes = pages_resources::Find(file);
+        // The fork's Start Page reads its language from this before its all-language catalog
+        // (start/strings.js): the one Android's other pages are in.
+        if (file == "ui-language.js") {
+          return std::move(callback).Run(base::MakeRefCounted<base::RefCountedString>(
+              "window.__blancUiLanguage=\"" + UiLanguage() + "\";\n"));
+        }
+        // The fork's Start Page is served only as the Start Page, at newtab.html.
+        if (file.starts_with("start/") && file.ends_with(".html")) return std::move(callback).Run(nullptr);
+        const bool start_page = file == "newtab.html";
+        scoped_refptr<base::RefCountedMemory> bytes = pages_resources::Find(start_page ? "start/newtab.html" : file);
         if (!bytes || !file.ends_with(".html") || PageOf(GURL("chrome://blanc/" + file)).empty())
           return std::move(callback).Run(std::move(bytes));
-        // Every page loads the iPhone's Start Page rules and the adapter first.
         std::string html(base::as_string_view(*bytes));
         const size_t head = html.find("<head>");
         if (head == std::string::npos) return std::move(callback).Run(nullptr);
-        html.insert(head + 6, "<script src=\"ios-start-rules.js\"></script>"
-                              "<script src=\"android-pages-adapter.js\"></script>");
+        // The Start Page's own files load from start/, Android's phone script and stylesheet first.
+        // Every other page loads the adapter first.
+        html.insert(head + 6, start_page ? "<base href=\"start/\"><script src=\"/android-start.js\"></script>"
+                                           "<link rel=\"stylesheet\" href=\"/android-start.css\">"
+                                         : "<script src=\"android-pages-adapter.js\"></script>");
         std::move(callback).Run(base::MakeRefCounted<base::RefCountedString>(std::move(html)));
       }));
   web_ui->AddMessageHandler(std::make_unique<PagesHandler>());

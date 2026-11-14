@@ -21,6 +21,7 @@ import org.chromium.blanc.settings.AllowedSitesDialog;
 import org.chromium.blanc.settings.BlancSettingsScreen;
 import org.chromium.blanc.settings.SettingsStore;
 import org.chromium.blanc.settings.SiteDataClearer;
+import org.chromium.blanc.settings.StartPageCustomize;
 import org.chromium.blanc.sync.PairScanner;
 import org.chromium.blanc.sync.SyncSheet;
 import org.chromium.build.annotations.NullMarked;
@@ -211,5 +212,12 @@ final class ChromiumSettingsHost implements BlancSettingsScreen.Host {
     @Override
     public void openLicenses() {
         mLicenses.run();
+    }
+
+    // The Island opens Customize on the Start Page (StartPageCustomize) as Settings closes over it.
+    @Override
+    public void openStartPage() {
+        StartPageCustomize.request(ContextUtils.getAppSharedPreferences());
+        mActivity.finish();
     }
 }

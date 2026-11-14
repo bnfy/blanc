@@ -84,6 +84,7 @@ export const ANDROID_KEYS = [
   'ios.settings.privacy', 'ios.settings.privacyPolicy', 'ios.settings.removeSite',
   'ios.settings.site', 'ios.settings.support', 'ios.settings.version', 'ios.settings.website',
   'settings.general.cards.appearance', 'settings.general.cards.browsing', 'settings.general.searchEngine.label',
+  'settings.general.cards.startPage', 'newtab.customize.button',
   'settings.general.theme.dark', 'settings.general.theme.label', 'settings.general.theme.light',
   'settings.general.theme.system', 'settings.privacy.clearBrowsingData',
   'settings.privacy.clearBrowsingData.confirm', 'settings.privacy.clearBrowsingData.done',

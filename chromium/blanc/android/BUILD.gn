@@ -37,6 +37,7 @@ android_library("settings_model_java") {
     "java/src/org/chromium/blanc/settings/SettingsLayout.java",
     "java/src/org/chromium/blanc/settings/SettingsStore.java",
     "java/src/org/chromium/blanc/settings/SiteDataClearer.java",
+    "java/src/org/chromium/blanc/settings/StartPageCustomize.java",
   ]
   deps = [ "//build/android:build_java" ]
 }
@@ -472,6 +473,7 @@ robolectric_binary("blanc_android_junit_tests") {
     "junit/src/org/chromium/blanc/settings/SearchEnginesTest.java",
     "junit/src/org/chromium/blanc/settings/SettingsDestinationTest.java",
     "junit/src/org/chromium/blanc/settings/SettingsStoreTest.java",
+    "junit/src/org/chromium/blanc/settings/StartPageCustomizeTest.java",
     "junit/src/org/chromium/blanc/settings/SettingsLayoutTest.java",
     "junit/src/org/chromium/blanc/tabs/SlashCommandsTest.java",
     "junit/src/org/chromium/blanc/tabs/TabGridTest.java",

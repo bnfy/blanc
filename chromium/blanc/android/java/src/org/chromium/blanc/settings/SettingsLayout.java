@@ -50,7 +50,7 @@ public final class SettingsLayout {
         return List.of(
                 new Section("blanc_header_section", List.of("blanc_header")),
                 new Section("blanc_browsing_section", List.of("blanc_search_engine")),
-                new Section("blanc_appearance_section", List.of("blanc_theme", "blanc_island_position")),
+                new Section("blanc_appearance_section", List.of("blanc_theme", "blanc_island_position", "blanc_start_page")),
                 new Section("blanc_privacy_section", List.of("blanc_blocker", "blanc_allowed_sites", "blanc_clear_site_data")),
                 new Section("blanc_sync_section", List.of("blanc_sync")),
                 new Section("blanc_more_section", List.copyOf(more)),
