@@ -66,14 +66,19 @@ export function realIO() {
 }
 // The update key normally stays in the login Keychain (sign_update --account). Over SSH,
 // where Keychain can't ask (owner, 2026-11-14: the beta runs from the MacBook Pro), the
-// owner's wrapper sets BLANC_SPARKLE_KEY_STDIN=1 and pipes the 1Password copy, the seed
-// generate_keys -x exports. It reaches sign_update only on stdin, never argv or a file;
-// validateAppcast still checks every signature against the pinned public key.
-export function sparkleSigning(dmg, env, readKey) {
-  if (env?.BLANC_SPARKLE_KEY_STDIN !== '1') return {args: ['--account', ROOT_ID, '-p', dmg]};
-  const key = String(readKey()).trim();
-  check(base64(key, 32) || base64(key, 64), 'the update key from stdin is not a Sparkle private key');
-  return {args: ['--ed-key-file', '-', '-p', dmg], input: `${key}\n`};
+// owner's wrapper sends the 1Password copy, the seed generate_keys -x exports, as SSH
+// environment, because every stage needs a real terminal for stdin. It leaves this
+// process's environment as the module loads, so no command run here inherits it, and
+// reaches sign_update only on stdin, never argv or a file. validateAppcast still checks
+// every signature against the pinned public key.
+const SPARKLE_KEY = process.env.BLANC_SPARKLE_KEY;
+delete process.env.BLANC_SPARKLE_KEY;
+export const takeSparkleKey = () => SPARKLE_KEY;
+export function sparkleSigning(dmg, key) {
+  if (key === undefined) return {args: ['--account', ROOT_ID, '-p', dmg]};
+  const seed = String(key).trim();
+  check(base64(seed, 32) || base64(seed, 64), 'the update key from the environment is not a Sparkle private key');
+  return {args: ['--ed-key-file', '-', '-p', dmg], input: `${seed}\n`};
 }
 const must = (io, command, args, message, options) => {
   const result = io.exec(command, args, options);
@@ -194,13 +199,11 @@ export const RUN = {
   async sparkle(ctx, io) {
     const out = {};
     fs.mkdirSync(assets(ctx), {recursive: true});
-    let key; // stdin is read once, for every architecture
-    const readKey = () => (key ??= fs.readFileSync(0, 'utf8'));
     for (const arch of ctx.r.arches) {
       const p = paths(ctx, arch), bytes = fs.readFileSync(p.dmg);
       equal(sha256(bytes), ctx.state.done['notarize-dmg'][arch].dmgSHA256, 'the DMG changed after notarization');
       // -p prints only the archive's public signature.
-      const {args, input} = sparkleSigning(p.dmg, io.env, readKey);
+      const {args, input} = sparkleSigning(p.dmg, takeSparkleKey());
       const signature = must(io, path.join(ctx.inputs.sparkle, 'bin/sign_update'), args, 'Sparkle could not sign the DMG', {input}).trim();
       const xml = generateAppcast(ctx.r, arch, bytes, signature);
       validateAppcast(xml, ctx.r, arch, bytes, signature);
