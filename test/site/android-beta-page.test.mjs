@@ -42,3 +42,25 @@ test('the built page is noindex, unlisted, and offers no second signup prompt', 
   const sitemap = await read('site/dist/sitemap.xml');
   assert.doesNotMatch(sitemap, /\/android-beta</);
 });
+
+test('the Download page shows the beta line and button to Android phones only', async () => {
+  const { isAndroid, initHandheldDownload } = await import('../../site/src/scripts/handheld-download.js');
+  const page = await read('site/src/pages/download.astro');
+  assert.match(page, /<p data-android hidden>Blanc for Android isn’t released yet\./);
+  assert.match(page, /<a class="download-handheld-action is-secondary" href="\/android-beta" data-android data-track="android_beta_cta" hidden>Join the Android beta<\/a>/);
+
+  const visit = (userAgent, maxTouchPoints = 5) => {
+    const android = [{ hidden: true }, { hidden: true }];
+    const document = {
+      querySelectorAll: (selector) => (selector === '[data-android]' ? android : []),
+      getElementById: () => null,
+    };
+    initHandheldDownload({ document, view: { navigator: { userAgent, maxTouchPoints } } });
+    return android.every((item) => !item.hidden);
+  };
+  assert.equal(visit('Mozilla/5.0 (Linux; Android 15; Pixel 9)'), true);
+  assert.equal(visit('Mozilla/5.0 (iPhone; CPU iPhone OS 18_0 like Mac OS X)'), false);
+  assert.equal(visit('Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7)', 5), false, 'an iPad asking for the desktop site');
+  assert.equal(visit('Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7)', 0), false, 'a desktop');
+  assert.equal(isAndroid({ userAgent: 'Mozilla/5.0 (X11; Linux x86_64)' }), false, 'desktop Linux is not Android');
+});
