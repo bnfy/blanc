@@ -14,6 +14,206 @@ D7, F0.7, cold builds, new machines, D2/D4–D6/D8/V2 and replacement D3
 remain pending. D3 beta-only no-DRM exception accepted; EME notice/handoff required.
 
 ## Current work
+- **2026-11-14 — Hover previews in the vertical tab rail (patch 0084 plus
+  host and native code, owner-approved layout A; design
+  `docs/superpowers/specs/2026-11-14-rail-hover-previews-design.md`, plan
+  `docs/superpowers/plans/2026-11-14-rail-hover-previews.md`):** with vertical
+  tabs, resting 500ms on a rail row shows a card beside the rail with the
+  tab's title, host and Chromium's thumbnail; resting on a collapsed group's
+  header shows a list card of its tabs, whose rows show the picture card
+  beside it (clicking one opens the group and switches to the tab). Once a
+  card is up the next row swaps it at once, and so do arrow/Home/End focus
+  moves; a click, scroll, key (in the rail or the page), blur, resize, tab
+  switch, any surface, a Glance or a changed card closes it. Private tabs
+  never get a picture; a quiet tab shows only what Chromium kept and is
+  never subscribed to (that would load a restored tab); the current tab and
+  visible split panes show none. No Settings switch yet (owner: no
+  English-only label; it follows when shipping has the copy). Chromium 158
+  leaves `kTabHoverCardImages` off on macOS (Google turns it on through the
+  `TabHoverCardImagesMacArm` field trial, which Blanc doesn't receive), so
+  no tab had a ThumbnailTabHelper; owner, 2026-11-14: patch 0084 turns it on
+  in Blanc builds (cost: a small in-memory JPEG per backgrounded tab).
+  Pure rules in `island/rail-hover.js`, cards in `island/rail-hover-card.js`,
+  the host section in `island/host.js`; native `tabThumbnail`,
+  `watchThumbnail`/`unwatchThumbnail`, `hoverCardBounds` and
+  `railCardsShown` in `blanc_prototype_ui.cc`; rail rows drop their system
+  tooltip through two declared `vertical-tabs.js` edits. Patch totals: 83
+  desktop patches touching 166 files (340 file diffs, 713 hunks). Checked:
+  the fork unit suite (498 pass, 0 fail, 12 skipped), patch reconstruction
+  (both lanes), the Island renderer and asset checks, and a syntax-only
+  compile of `blanc_prototype_ui.cc` with out/BlancBeta's flags on the Mac
+  Studio (read only). Built incrementally into out/BlancPrototype (GN
+  regenerated with its unchanged October 16 arguments, since served.txt and
+  blanc/BUILD.gn changed; plans of 6 and 1 steps). On screen, on the MacBook
+  Pro against a copied build: `tests/native-rail-hover.mjs` passes 10 of 10
+  on candidate macos-b2d742a39a1021c2 (Chromium's picture on a background
+  tab's card, instant swap, closing on leaving the rail and on a key in the
+  page, no picture for the current tab or a private one, Dark, a collapsed
+  group's list card with a row's picture beside it, a row click opening the
+  group, a split row's two panes). The first on-screen run (macos-9a6ff1dd…)
+  found a split card titled with the row's fallback icon letters and a
+  private card saying "private" for the chip's "Private"; both fixed in
+  c1a1c3d6d. Then (owner, after trying the build): pictures ahead of time.
+  With vertical tabs each background tab gets one picture once it finishes
+  loading (`warmThumbnail`, two at a time, never private, quiet, Blanc pages
+  or what's on screen), so a never-shown tab's first card no longer shows
+  its icon for about a second first; 748e0992d, 11 of 11 on screen on
+  candidate macos-a2155191264ea1f7. Then the two deferred gaps: another app
+  coming to the front (⌘-Tab with the page focused) and a site permission
+  prompt now close a card (a background window may still show cards, as
+  macOS lets it take hover). 2f08fe889: `tests/native-rail-hover.mjs` passes
+  14 of 14 on candidate macos-80a0b0baafd9ca87, including a quiet tab's card
+  showing the picture Chromium kept without waking the tab. The last
+  deferred item (a watched tab going quiet under its card) can't happen:
+  Chromium doesn't quiet a tab while its thumbnail is being drawn, so the tab
+  under a card stays awake and goes quiet once the card closes; a tab that
+  does turn quiet changes its card, which closes and ends the watch. Pinned
+  by a unit test and on screen: 15 of 15 on candidate macos-80a0b0baafd9ca87
+  (one earlier run timed out opening a card at that step, likely the real
+  mouse on the test window; the rerun passed).
+- **2026-11-14 — The Dock icon follows Dark again (owner's report on beta.4):**
+  Beta.4 (published from 57e3109dd, with patch 0082) handed the Dock the
+  named Icon Composer stacks directly. AppKit draws a stack given to
+  `NSApp.applicationIconImage` once, in Light, and never redraws it: a
+  rasterized stack is byte-identical under Aqua and Dark Aqua (measured). So
+  in Dark, Sunrise, Spectrum and Amber stayed Light. Shipping never did
+  this: Electron 45's `nativeImage.createFromNamedImage` reads a name
+  without an NS prefix as an SF Symbol, finds none and returns an empty
+  image, so shipping always fell back to a Light or Dark image, reapplied on
+  each appearance change, with only the bundle icon live. The beta now does
+  the same with Icon Composer's own renders:
+  `blanc/branding/beta/render-dock-icons.mjs` exports each non-bundle stack's
+  Default and Dark renditions with ictool (macOS platform), at shipping's
+  Dock geometry (an 824 px tile in a 1024 canvas), into
+  `branding/beta/dock/`, which `//blanc:beta_dock_icons` copies into the
+  app's `Resources/dock`; `blanc::SetDockIconFromBundle` loads the one for
+  the current appearance, and host.js already asks again when it changes.
+  Sunrise Gold (the bundle icon) stays live, and Clear and Tinted still put
+  the bundle icon back. `icon-manifest.json` pins the renders. Checked: the
+  fork unit suite (466 pass), patch reconstruction, and a syntax-only
+  compile of both changed files with out/BlancBeta's flags. Not yet built or
+  seen in the Dock; it ships in beta.5. Also: installing the published
+  beta.4 over an earlier beta.4 candidate on the MacBook Pro left 22
+  LaunchServices registrations of `me.bnfy.blanc.beta` (Trash, scratch
+  folders, mounted images); all but `/Applications/Blanc Beta.app` were
+  unregistered.
+- **2026-11-14 — The red button keeps the main window's tabs (patch 0083
+  here, 0082 on beta.4's branch; candidate macos-f390619940f08515, owner's report on beta.4):** shipping's
+  macOS Dock close (`windowCloseSessionEffect` → `'dock'`, `dock-reopen.js`)
+  was never ported: in the fork the red button closed the window and every
+  tab, so the beta shared no tabs and dropped off the owner's phones. Now a
+  person's close of the primary Island window (the first ordinary window of a
+  launch) hides it with its tabs live, in the session and in Sync
+  (`HoldWindowOnClose`, from `BrowserView::OnWindowCloseRequested`; never
+  while quitting, while Chromium already closes it, on a forced close or with
+  no tabs), and the Dock icon with no window showing brings it back
+  (`ReopenHeldWindow`, from `applicationShouldHandleReopen`). Other windows
+  close as before. Checked by hand on the MacBook Pro with the real red
+  button: same window and same live page back from the Dock, a second window
+  closes normally, quitting while held exits and restores the tab; mini
+  windows and profile removal tests pass. Also: the published device name is
+  the Mac's computer name ("MacBook Pro") as shipping's device-name.js picks
+  it, not Chromium's local host name ("MacBook-Pro");
+  `tests/native-sync-organic-tabs.mjs` (Sync with no pass asked of the Mac:
+  new pages, a saved Space, a relaunch, joining again) passes and its peer
+  sees "MacBook Pro".
+- **2026-11-14 — Blanc Beta's icon: Sunrise Gold by default, and Sunrise follows Light and Dark (patch 0082, owner's report):**
+  The beta's bundle icon was the prototype's Sunrise Dark (kept for Dock
+  testing), so the default Sunrise stayed dark in Light mode. Owner decision:
+  Sunrise Gold is the beta's default icon for now. `blanc/branding/beta/`
+  now holds Sunrise Gold compiled by actool 27.2 from shipping's colorway
+  (Light, Dark and Tinted stacks under the same `BlancDK` name, plus the
+  `app.icns` fallback; `icon-manifest.json` records the inputs), and patch
+  0082 points chrome/BUILD.gn's `chrome_app_icon` and `chrome_asset_catalog`
+  at it in beta builds only. `blanc.app_icon` defaults to `sunrise-gold` in
+  beta (`kDefaultAppIcon`, applied by NormalizeAppIcon with
+  SetDefaultPrefValue, so a saved choice is kept), and that choice leaves the
+  Dock on the bundle icon. Preview builds keep their Sunrise Dark bundle
+  icon, and Sunrise there takes shipping's flat Light or Dark image instead.
+  Then (owner, the same day, after comparing renders): the beta's Dock shows
+  the Icon Composer versions, not the flat images. Its Assets.car now carries
+  all five colorways as named stacks (Icon, SunriseDark, BlancDK for Gold,
+  SunriseSpectrum, SunriseAmber), and `blanc::SetDockIconNamed` loads one by
+  name on macOS 26 and later, as shipping's packaged builds do; Clear and
+  Tinted put the app's own icon back, and the flat images stay the fallback
+  on older macOS. Spectrum's and Amber's stacks carry the muted warm Dark
+  rim from bnfy/blanc#1528 (merged as a54d27a75; `icon-manifest.json` pins
+  that commit). The fork's flat fallback images (`island/pages/`) still carry
+  the white Dark rim until the Island's shipping pin moves past it. Not handled: a change of Icon & widget
+  style while Blanc runs is picked up at the next icon or appearance change
+  (shipping rechecks every 10 s). Checked: the fork unit suite (466 pass), patch
+  reconstruction, and a syntax-only compile with out/BlancBeta's flags. Not
+  yet built or seen on screen: that waits for beta.4 to publish (the Mac
+  Studio tree stays untouched until then), and it ships in beta.5.
+- **2026-11-14 — Extensions can open their own popup (patch 0081, candidate
+  macos-cf13e2bc70dce670, owner's report):** 1Password's in-page "Unlock
+  1Password" did nothing in Blanc Beta. It calls chrome.action.openPopup, and
+  Chromium refuses that with "Browser window has no toolbar." (confirmed on
+  beta.3) because the baseline makes IsToolbarVisible false in Island windows.
+  OpenPopupInBrowser now lets an Island window through unless a page is
+  fullscreen (`CanOpenExtensionPopup`); IsToolbarVisible itself is unchanged.
+  The popup anchors on the Island's Extensions button, so SetPopupOwner tells
+  the Island (`ExtensionPopupChanged`): with Auto-hide on it comes down and
+  stays while the popup is open, and an open popup follows the button's
+  slide. `tests/native-extension-open-popup.mjs` passes on the MacBook Pro
+  (Auto-hide off, float and push; popup at the same spot in all three);
+  macOS window full screen opens it too. Not run: a page-fullscreen refusal
+  (Chromium denied requestFullscreen in the fixture), Windows/Linux, the
+  vertical tab layout, a real 1Password account.
+- **2026-11-14 — Beta.4 full suite (prototype candidate macos-402d768b8c8f6e43, source 75f85e960):**
+  run on the owner's MacBook Pro (the Mac Studio's screen was locked) from a
+  clean checkout: 577 pass, 4 fail, 4 undefined, 27 excluded (636 executed),
+  against beta.2's 578 / 3 / 4. Failures: `vertical-tabs.feature:58` (known
+  intermittent); `island-and-commands.feature:61` (new, the swell's: Blink
+  repeats a document's last pointer position as a move whenever what lies
+  under it changes, and the swell waking under a resting pointer made that
+  stale repeat re-arm a disarmed hover-open; the host now ignores a move that
+  does not move, as shipping's main sees only real input; passes on
+  candidate macos-fc405801653febe3); `F41-named-workspaces.feature:203` and
+  `:211` (new since beta.2: the Spaces menu closes without its fade when
+  Escape follows the click at once; it fades correctly when driven by hand,
+  and fails the same on both candidates. Not the swell's: on the MacBook Pro
+  it fails the same on a build without the swell's class watcher and on a
+  prototype built from beta.3's own source c3a3bc898 (candidate
+  macos-225a6eebdcb1a6fb: :203 failed twice, :211 passed only on its retry),
+  while beta.2's full run on the Mac Studio passed both. It is the machine:
+  on the Mac Studio, three runs of the two cases on beta.4's own source
+  e47bf1bcf (candidate macos-cf13e2bc70dce670, records/spaces-fade-studio{,-2,-3})
+  passed both every time, :203 on its first attempt each time and :211 on
+  its first attempt in two runs and on its retry in one ("the menu is still
+  drawn after the overlay closes"). So :211 is slightly flaky on the Studio
+  too, and the MacBook Pro fails both). `island-and-commands.feature:348`/`:372` passed this time.
+- **2026-11-14 — Island approach swell, for beta.4 (candidate macos-78921cb9b998cb49):**
+  the owner noticed the resting Island ignores an approaching cursor. Shipping's
+  resting Island has five pointer behaviors; four were already in the fork's
+  code (dots bloom into site icons, button hover states, tooltips, opt-in
+  hover-open). The fifth, the approach swell (the pill rises 2px and grows 2%
+  within 250px, settled 80px out; shipping's `island-proximity.js`), was off:
+  `prototype.css` forced `transform: none` because the native extension
+  buttons could not follow it, and nothing sent the cursor's distance. Now the
+  host runs shipping's module (generated `island-proximity.js`), native
+  forwards page moves within 260px of the Island at most once a frame
+  (`island_proximity.h`, `island_proximity_controller.inc`), and the
+  extension buttons take the slot's measured swell as a native transform
+  (owner's choice over keeping the pill flat with extensions). Running it on
+  the build found that a swell set without a page move (the Island's own
+  moves, a sampled cursor when a panel closes) could stay on if the next page
+  move landed beyond reach; the host now arms native (`armIslandPointer`) so
+  that move is sent wherever it lands. Built on the Mac Studio after beta.3
+  was published (Blanc Prototype, incremental: 26 then 8 and 8 steps; GN
+  regenerated with unchanged arguments for `served.txt`). Checks ran on the
+  MacBook Pro (the Studio's screen was locked) against the copied build:
+  `tests/native-island-swell.mjs` 3 of 3 runs, 7 checks each (from the page,
+  partial partway out, extension buttons 1.02× and about 2px, rest on leaving,
+  over the band and leaving far down, asleep with the panel open and woken on
+  close, still under Reduce motion); `tests/native-island-hover.mjs` 3 of 3,
+  4 checks each (dot bloom, button hover, tooltip, hover-open). One difference
+  found: a strip button's tooltip sits 8px higher than shipping's (top at
+  44px against 52px) because the host clamps it inside its 68px view, over
+  the pill's bottom edge; shipping's floats onto the page. The owner saw
+  both side by side and chose to leave it as it is (2026-11-14). Not covered: the
+  swell sleeping while the window is in the background. Unit suite: 464 of
+  475 pass, 11 Sync page tests skipped without Chromium's TypeScript.
 - **2026-11-10 — Beta identity patch (preview candidate macos-77c0cea3ecc01285):**
   dedicated gated Blanc Beta identity, profile guards, version metadata and
   release policy implemented. Preview incremental build passes; pure native
@@ -972,8 +1172,11 @@ remain pending. D3 beta-only no-DRM exception accepted; EME notice/handoff requi
   MacBook Pro over SSH (`chromium/release/owner/remote/`). 11 gates passed,
   2 waived (no-drm-handoff, production-sync-real-device: the real-iPhone pass
   found the Sync faults in item 5a below). The website shipped it (#1518);
-  blanc.day's feed equals the release appcast. Still owed: the hosted smoke
-  check and the first signed beta.2 → beta.3 handoff.
+  blanc.day's feed equals the release appcast. Its hosted smoke
+  check passed all six checks (run 43573427182 on `main`), and the first
+  signed Sparkle handoff passed: the public beta.2, reinstalled on the
+  MacBook Pro, updated itself to beta.3 from inside the app (About shows
+  2.0.0-beta.3; the installed code hash matches the release).
 - **Beta.2 production build (owner, 2026-11-14):** `out/BlancBeta` switched to
   production (2.0.0-beta.2, build 2, the production key, local qualification
   off) and rebuilt through the guard with the owner-approved
@@ -2466,11 +2669,27 @@ machine has them.
    `docs/chromium-replacement/2026-10-30-desktop-replacement-spec.md`).
    Nothing exists yet; ask the owner about wording and design first, with
    buttons.
-2. **Vertical tabs after a relaunch**: the rail can reopen at its
-   narrow-window cap (248 px) instead of the saved width (360 px).
-   Intermittent: `vertical-tabs.feature:58` failed 2 of 4 runs on 2026-11-14.
-   The saved preference is kept; the rendered width is computed before the
-   restored window bounds apply.
+2. **The window can reopen at an earlier size after a relaunch** (seen as
+   `vertical-tabs.feature:58`, still open for beta.4; investigated
+   2026-11-14 on the MacBook Pro, candidate macos-fc405801653febe3). The rail
+   is not at fault: its saved 360 px survives every relaunch, and it follows
+   the window. The window itself comes back at one of the sizes it had during
+   the run: 1200×841 (Chromium's default for a fresh window), 640×480 (the
+   scenario's narrow step) or 1000×700 (the size at quit, correct). At 640
+   wide the rail caps at 248 px, so the case fails on about 1 attempt in 3.
+   Ruled out as the source of the old size, from copies taken after each
+   quit: the newest plain session file (always 1000×700; Chromium reads the
+   newest file with a valid marker), the encrypted session copy (relaunching
+   with `--disable-features=EncryptSessionStorage` changes nothing),
+   `browser.window_placement` in Preferences (always 1000×700), macOS saved
+   window state (none for `day.blanc.prototype`), and the fork's own Spaces
+   and session code (it saves no window bounds). Restore reuses an existing
+   window when one is visible (`ShouldRestoreToExistingBrowser`, which skips
+   the saved bounds), and the startup log says "No browser window found for
+   startup" before the fork's deferred restore (patch 0057, shared session
+   plan), so the next step is a Blanc Prototype build that logs which code
+   creates the first window and with what bounds. A harness change would hide
+   a real bug: users can get an old window size back after quitting.
 3. **Production Sync with a real iPhone** (gate
    `production-sync-real-device`, waived for beta.2). The beta joins the
    iPhone's existing Sync through Add this device with a code, with the code
@@ -2483,10 +2702,28 @@ machine has them.
    `site/public/updates/chromium-beta/arm64.xml` together.
 
 5a. **Desktop Sync faults found by beta.3's real-iPhone pass** (2026-11-14,
-   gate waived for beta.3): the beta publishes itself with no open tabs, so
-   other devices don't list it; and joining with a code shows no "what will
-   sync" step. Compare the join with shipping before changing it. Both are
-   due in beta.4.
+   gate waived for beta.3), fixed on `chromium/next` for beta.4. Build check
+   (2026-11-14, `75f85e960`): `out/BlancBeta` rebuilt through the guard (GN
+   regenerated with unchanged arguments for the new keep-alive dependency;
+   24 steps). The same script on a throwaway profile with a mock keychain,
+   on the MacBook Pro: open Sync settings, close every window, open a new one.
+   The published beta.3 then reports Sync unavailable; the rebuilt beta stays
+   available. The Connected-to note's text is in the build; a real join was
+   not repeated.
+   - **Closing every window broke Sync until a relaunch.** On macOS Chromium
+     unloads a profile when its last window closes and loads a new Profile for
+     the next window; the Sync service stays bound to the first, so Settings
+     said "Sync is available only in the default profile" and open tabs
+     stopped publishing. Reproduced on a throwaway beta.3 profile. The service
+     now holds a `kBackgroundMode` keep-alive on its profile while Blanc runs.
+     Known edge: deleting the default profile may now wait until Blanc quits.
+   - **No open tabs.** With windows open the beta publishes its tabs (checked
+     live on the owner's beta.3). At the owner's join only Blanc's own pages
+     were open, so it published none, and after windows closed it stopped
+     publishing (the bug above).
+   - **No word after joining.** Shipping says "Connected to “{name}”. Pulling
+     your favorites and settings now." after a join with a code and has no
+     "what will sync" step; patch 0080 shows the same note.
 
 **Other follow-ups**
 5. **Sync screen** (both apps): Turn on Sync, Connect your iPhone and Add
@@ -2503,6 +2740,19 @@ machine has them.
 7. **1Password re-locks every ~20 seconds on the Mac Studio** (its security
    options are greyed out). The beta.2 workarounds are in
    `chromium/release/owner/`; fixing it would let `op run` work again.
+
+**For beta.4**
+8. **Island approach swell**: built and checked on Blanc Prototype
+   (candidate macos-78921cb9b998cb49, see Current work). Still owed in the
+   beta.4 candidate: the full suite, and a look at the swell in a background
+   window. The strip tooltip's 8px offset stays (owner, 2026-11-14).
+
+**For beta.5**
+9. **The Dock icon in Light and Dark** (Current work, "The Dock icon follows
+   Dark again"): patch 0082 shipped in beta.4 but its named stacks stayed
+   Light in Dark. Build out/BlancBeta with the Icon Composer images, then
+   check the Dock in Light and Dark with each of the five icons selected,
+   switching appearance while Blanc runs, and in a Tinted icon style.
 
 **What lives only on the Mac Studio**
 - The release work folder `~/Projects/Blanc/records/beta2-work`: signed
@@ -3115,5 +3365,5 @@ Android's Bar A counts the shared scenarios bound in `chromium/tests/android/acc
 
 Legacy macOS stages come from the approved spec; they await verification on the canonical candidate. No legacy stage counts as Verified.
 
-Candidate identities: macOS: macos-c38dc309aaefdebe; Windows: none; Linux: none; Android: android-arm64-7bd35e94ef746069.
+Candidate identities: macOS: macos-cf13e2bc70dce670; Windows: none; Linux: none; Android: android-arm64-7bd35e94ef746069.
 <!-- END GENERATED PROGRESS -->

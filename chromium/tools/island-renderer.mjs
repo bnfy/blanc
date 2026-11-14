@@ -30,11 +30,12 @@ export const FILES = ['index.html', 'overlay.html', 'overlay.js', 'renderer.js',
 const SHEET_BRIDGE = ['  <script src="strings.js"></script>\n', '  <script src="sheet-adapter.js"></script>\n  <script src="../ui-language.js"></script>\n  <script src="strings.js"></script>\n'];
 // Shipping's pure main-process modules the Island host runs as they are,
 // wrapped so a document can load them: the host holds the state shipping's
-// main process holds (hover-open's dwell and auto-hide's floating pill, S1.2),
+// main process holds (hover-open's dwell, the approach swell's closeness and
+// auto-hide's floating pill, S1.2),
 // runs the pure rules behind /copy clean and /invite, and derives each tab's
 // siteInfo as shipping's tab projection does (S1.6). Each exposes its
 // exports on window under the given name.
-export const MAIN_FILES = {'island-hover-open.js': 'BlancIslandHoverOpen', 'island-autohide.js': 'BlancIslandAutoHide',
+export const MAIN_FILES = {'island-hover-open.js': 'BlancIslandHoverOpen', 'island-proximity.js': 'BlancIslandProximity', 'island-autohide.js': 'BlancIslandAutoHide',
   'whats-new.js': 'BlancWhatsNew', 'glance-card.js': 'BlancGlanceCard', 'clean-link.js': 'BlancCleanLink', 'invite-friend.js': 'BlancInviteFriend', 'site-security.js': 'BlancSiteSecurity'};
 // Trusted Types policy names, per hardened script.
 const HARDEN = {'overlay.js': 'overlay', 'renderer.js': 'renderer', 'vertical-tabs.js': 'vertical-tabs'};
@@ -83,6 +84,12 @@ export const EDITS = {
     // The floating Glance card's chrome is a frame of the host too.
     ["  const glanceSurface = window.location.hostname === 'glance';\n",
       "  const glanceSurface = window.location.hostname === 'glance' || window.location.search === '?surface=glance';\n"],
+  ],
+  // Rail hover previews (fork): rows leave their tooltip to the host's hover
+  // card while it is on (host.js sets data-rail-previews on the strip's root).
+  'vertical-tabs.js': [
+    ["    primary.title = tab.pageTitle || title;", "    if (document.documentElement.dataset.railPreviews !== 'on') primary.title = tab.pageTitle || title;"],
+    ["    if (primary && !primary.hasAttribute('title')) {", "    if (primary && !primary.hasAttribute('title') && document.documentElement.dataset.railPreviews !== 'on') {"],
   ],
   'overlay.js': [
     // F3-3: a collapsed group's membership stays explicit in the panel.

@@ -257,6 +257,8 @@
 #include "chrome/browser/ui/tabs/tab_group_model.h"
 #include "chrome/browser/ui/tabs/tab_strip_model.h"
 #include "chrome/browser/ui/tabs/tab_strip_model_observer.h"
+#include "chrome/browser/ui/thumbnails/thumbnail_image.h"
+#include "chrome/browser/ui/thumbnails/thumbnail_tab_helper.h"
 #include "components/tab_groups/tab_group_color.h"
 #include "components/tab_groups/tab_group_id.h"
 #include "components/tab_groups/tab_group_visual_data.h"
@@ -322,6 +324,7 @@
 #include "ui/gfx/animation/animation.h"
 #include "ui/gfx/geometry/transform.h"
 #include "blanc/browser/ui/island_autohide.h"
+#include "blanc/browser/ui/island_proximity.h"
 #include "blanc/private/private_tabs.h"
 #if BUILDFLAG(IS_MAC)
 #include "chrome/browser/webauthn/chrome_web_authentication_delegate.h"
@@ -391,6 +394,9 @@ double BlancPagesZoom(const PrefService& prefs) {
 }
 // Shipping's appIcon (F17; registered by patch 0029).
 constexpr char kAppIconPref[] = "blanc.app_icon";
+// Blanc Beta's bundle icon is Sunrise Gold (owner, 2026-11-14), so that is
+// its default; the other channels keep shipping's Sunrise.
+constexpr const char* kDefaultAppIcon = BUILDFLAG(BLANC_BETA_CHANNEL) ? "sunrise-gold" : "sunrise";
 // The catalog is independent of Patron. Retired or corrupt saved identifiers
 // fall back before Settings and the Dock read them, as shipping settings does.
 // F62: the default page zoom is device-wide (blanc.page_zoom, a percent),
@@ -438,10 +444,15 @@ void FollowDevicePageZoom(Profile* profile) {
 }
 void NormalizeAppIcon(Profile* profile) {
   auto* prefs = profile->GetOriginalProfile()->GetPrefs();
+  // Patch 0029 registers shipping's Sunrise; a channel with another default
+  // replaces it here, before Settings and the Dock first read it.
+  const base::Value* registered = prefs->GetDefaultPrefValue(kAppIconPref);
+  if (registered && *registered != base::Value(kDefaultAppIcon))
+    prefs->SetDefaultPrefValue(kAppIconPref, base::Value(kDefaultAppIcon));
   const auto& icon = prefs->GetString(kAppIconPref);
   if (icon != "sunrise" && icon != "sunrise-dark" && icon != "sunrise-gold" &&
       icon != "sunrise-spectrum" && icon != "sunrise-amber") {
-    prefs->SetString(kAppIconPref, "sunrise"); prefs->CommitPendingWrite();
+    prefs->ClearPref(kAppIconPref); prefs->CommitPendingWrite();
   }
 }
 
@@ -1151,6 +1162,8 @@ void AddUtilityPageGate(content::NavigationThrottleRegistry& registry) {
 class Owner;
 // Auto-hide (island_autohide_controller.inc).
 void AutoHidePageMove(Owner* owner, const blink::WebInputEvent& event);
+// The approach swell (island_proximity_controller.inc).
+void IslandProximityPageMove(Owner* owner, const blink::WebInputEvent& event);
 void AutoHideActivated(Owner* owner);
 void EndGlanceSoon(Owner* owner, int next_reference);
 void EndOverlayGlance(Owner* owner, bool focus_active);
@@ -1212,6 +1225,10 @@ class Owner : public base::SupportsUserData::Data,
     blanc::InstallMiniWindowMenu();
 #endif
     Live().insert(this);
+#if BUILDFLAG(IS_MAC)
+    primary = IsIslandWindow(browser) && !IsHoldWindow(browser) &&
+        std::ranges::none_of(Live(), [](const Owner* other) { return other->primary; });
+#endif
     FollowDevicePageZoom(browser->GetProfile());
     height = strip_height = IslandStripHeight(browser->GetProfile());
     browser->GetTabStripModel()->AddObserver(this);
@@ -1235,6 +1252,12 @@ class Owner : public base::SupportsUserData::Data,
   // Acceptance only, as shipping's testHoldIsland: held up as an open popup
   // would hold it, without a pointer or a focused window.
   bool autohide_test_hold = false;
+  // An extension's action popup is open, anchored on the Island's
+  // Extensions button (ExtensionPopupChanged): it holds the Island up.
+  bool extension_popup = false;
+  // Shipping's primary runtime (macOS): the first ordinary window of a
+  // launch, whose red button keeps its tabs for the Dock (HoldWindowOnClose).
+  bool primary = false;
   std::optional<blanc::island_autohide::Dwell> autohide_dwell;
   std::optional<gfx::PointF> last_pointer;
   base::OneShotTimer autohide_watch;
@@ -1310,6 +1333,22 @@ class Owner : public base::SupportsUserData::Data,
   int rail_width = 248;
   gfx::Rect extension_bounds;
   gfx::Rect interactive_bounds;
+  // Rail hover previews: the group list card's rectangle (host coordinates),
+  // which takes the pointer while it shows, and the one tab thumbnail the
+  // picture card watches (never a private or quiet tab's).
+  gfx::Rect hover_card_bounds;
+  bool rail_cards_shown = false;
+  std::unique_ptr<ThumbnailImage::Subscription> thumbnail_watch;
+  int thumbnail_watch_tab = -1;
+  void PublishThumbnail(int tab_id, const std::string& url) {
+    auto* host = view ? view->GetWebContents() : nullptr;
+    if (url.empty() || tab_id != thumbnail_watch_tab || !host ||
+        host->GetLastCommittedURL() != GURL("chrome://blanc-prototype/host.html") ||
+        !host->GetPrimaryMainFrame()->IsRenderFrameLive()) return;
+    host->GetPrimaryMainFrame()->ExecuteJavaScript(
+        base::UTF8ToUTF16(base::StringPrintf("window.BlancPrototypeHost?.tabThumbnail(%d, %s)",
+            tab_id, base::GetQuotedJSONString(url).c_str())), base::NullCallback());
+  }
   // Auto-hide's floating pill (Island view coordinates): its frame, which the
   // Island view grows to hold, and while it shows the only part of the
   // strip's band a floating Island claims.
@@ -1328,6 +1367,15 @@ class Owner : public base::SupportsUserData::Data,
   double extensions_pill_y = 0;
   double extensions_pill_target = 0;
   bool extensions_pill_had_frame = false;
+  // The approach swell (island_proximity_controller.inc): the page's moves
+  // near the Island go to the host at most once a frame, the newest parked
+  // meanwhile; and the swell the host measured on the extension slot.
+  bool island_pointer_near = false;
+  base::OneShotTimer island_pointer_frame;
+  std::optional<gfx::Point> island_pointer_pending;
+  double extensions_swell_scale = 1;
+  double extensions_swell_dx = 0;
+  double extensions_swell_dy = 0;
   // The traffic lights' state last set by auto-hide (macOS).
   std::optional<bool> window_buttons_visible;
   base::DictValue split_geometry;
@@ -1551,6 +1599,14 @@ class Owner : public base::SupportsUserData::Data,
   }
   void OnTabStripModelChanged(TabStripModel*, const TabStripModelChange& change,
                               const TabStripSelectionChange& selection) override {
+    // The picture card's watch ends with its tab (closed or moved away).
+    if (thumbnail_watch_tab >= 0 && change.type() == TabStripModelChange::kRemoved) {
+      for (const auto& removed : change.GetRemove()->contents)
+        if (sessions::SessionTabHelper::IdForTab(removed.contents).id() == thumbnail_watch_tab) {
+          thumbnail_watch.reset();
+          thumbnail_watch_tab = -1;
+        }
+    }
     // A tab that arrives without taking over was opened in the background.
     if (change.type() == TabStripModelChange::kInserted) {
       for (const auto& inserted : change.GetInsert()->contents)
@@ -1679,12 +1735,28 @@ class Owner : public base::SupportsUserData::Data,
   void OnInputEvent(const content::RenderWidgetHost&,
                     const blink::WebInputEvent& event,
                     InputEventSource) override {
+    // A key, click or scroll in the page closes the rail's hover cards.
+    if (rail_cards_shown) {
+      const auto type = event.GetType();
+      using Type = blink::WebInputEvent::Type;
+      if (type == Type::kRawKeyDown || type == Type::kKeyDown || type == Type::kMouseDown ||
+          type == Type::kMouseWheel || type == Type::kGestureTapDown) {
+        rail_cards_shown = false;
+        auto* host = view ? view->GetWebContents() : nullptr;
+        if (host && host->GetLastCommittedURL() == GURL("chrome://blanc-prototype/host.html") &&
+            host->GetPrimaryMainFrame()->IsRenderFrameLive())
+          host->GetPrimaryMainFrame()->ExecuteJavaScript(
+              u"window.BlancPrototypeHost?.railDismiss('page')", base::NullCallback());
+      }
+    }
     // Wheel/gesture updates include inertial scrolling, unlike the
     // WebContents interaction callback which only reports scroll start.
-    if (event.GetType() != blink::WebInputEvent::Type::kMouseMove)
+    if (event.GetType() != blink::WebInputEvent::Type::kMouseMove) {
       RequestSample();
-    else
+    } else {
       AutoHidePageMove(this, event);
+      IslandProximityPageMove(this, event);
+    }
   }
   void RenderWidgetHostDidUpdateVisualProperties(content::RenderWidgetHost*) override {
     RequestSample();
@@ -1811,6 +1883,7 @@ void DispatchMouseGesture(base::WeakPtr<content::WebContents> page,
 }
 
 #include "blanc/browser/ui/island_autohide_controller.inc"
+#include "blanc/browser/ui/island_proximity_controller.inc"
 
 // The transparent area beside the rail must remain owned by the web page.
 class IslandView : public views::WebView, public views::ViewTargeterDelegate {
@@ -1822,6 +1895,8 @@ class IslandView : public views::WebView, public views::ViewTargeterDelegate {
     auto* owner = GetOwner(const_cast<IslandView*>(this)->GetWebContents());
     if (!owner) return GetLocalBounds().Intersects(rect);
     if (owner->float_bounds.Intersects(rect)) return true;
+    // The rail's group list card (hover previews) floats beside the rail.
+    if (owner->vertical && owner->hover_card_bounds.Intersects(rect)) return true;
     if (!owner->split_geometry.empty()) {
       const int band = owner->glance_main >= 0
           ? HeaderHeight(const_cast<views::View*>(parent())) : owner->strip_height;
@@ -2106,6 +2181,28 @@ content::WebContents* TabById(TabStripModel* model, int id) {
   for (int i = 0; i < model->count(); ++i)
     if (sessions::SessionTabHelper::IdForTab(model->GetWebContentsAt(i)).id() == id) return model->GetWebContentsAt(i);
   return nullptr;
+}
+// A quiet tab, as the snapshot reports it: discarded, or not yet loaded since
+// a restore. Observing such a tab's thumbnail would load it.
+bool TabAsleep(content::WebContents* contents) {
+  auto* lifecycle = resource_coordinator::TabLifecycleUnitExternal::FromWebContents(contents);
+  return (lifecycle && lifecycle->GetTabState() == ::mojom::LifecycleUnitState::DISCARDED) ||
+      (!contents->GetPrimaryMainFrame()->IsRenderFrameLive() && contents->GetController().NeedsReload());
+}
+// Rail hover previews: Chromium's thumbnail for a tab, never a private tab's.
+ThumbnailTabHelper* ThumbnailHelperFor(content::WebContents* contents) {
+  if (!contents || blanc::private_tabs::IsPrivateTab(contents)) return nullptr;
+  auto* tab = tabs::TabInterface::MaybeGetFromContents(contents);
+  return tab ? ThumbnailTabHelper::From(tab) : nullptr;
+}
+// Chromium keeps thumbnails as JPEG; the host gets one only as a data URL.
+std::string ThumbnailDataUrl(const ThumbnailImage::CompressedThumbnailData& data) {
+  if (!data || data->data.empty()) return std::string();
+  return "data:image/jpeg;base64," + base::Base64Encode(data->data);
+}
+base::Value ThumbnailReply(const ThumbnailImage::CompressedThumbnailData& data) {
+  const std::string url = ThumbnailDataUrl(data);
+  return base::Value(base::DictValue().Set("image", url.empty() ? base::Value() : base::Value(url)));
 }
 // The Glance page sits where the host's card leaves its hole, with the
 // card's page corners; nothing shows until the host has placed the card.
@@ -4172,11 +4269,7 @@ base::DictValue Snapshot(BrowserWindowInterface* browser, Owner* owner) {
                     .Set("title", CustomTabName(contents).empty() ? base::UTF16ToUTF8(contents->GetTitle()) : CustomTabName(contents))
                     .Set("pageTitle", CustomTabName(contents).empty() ? base::Value() : base::Value(base::UTF16ToUTF8(contents->GetTitle())))
                     .Set("rendererLive", contents->GetPrimaryMainFrame()->IsRenderFrameLive())
-                    .Set("asleep", [&] {
-                      auto* lifecycle = resource_coordinator::TabLifecycleUnitExternal::FromWebContents(contents);
-                      return (lifecycle && lifecycle->GetTabState() == ::mojom::LifecycleUnitState::DISCARDED) ||
-                          (!contents->GetPrimaryMainFrame()->IsRenderFrameLive() && controller.NeedsReload());
-                    }())
+                    .Set("asleep", TabAsleep(contents))
                     .Set("blockedCount", blanc::ShieldBlockedCount(contents))
                     .Set("certificate", CertificateState(contents))
                     .Set("adblockExcepted", blanc::BlockingSiteExcepted(browser->GetProfile(), committed))
@@ -6092,6 +6185,16 @@ class Handler : public content::WebUIMessageHandler, public extensions::Extensio
       runtime->busy = false; archive_running_ = false;
     }
     if (quiet_settings_) quiet_settings_->Close();
+    // Rail hover previews: a reloaded host draws no cards, so nothing of
+    // theirs may outlive it (a click area over the page, a thumbnail watch).
+    thumbnail_requests_.clear();
+    thumbnail_warms_.clear();
+    if (auto* owner = GetOwner(web_ui()->GetWebContents())) {
+      owner->hover_card_bounds = gfx::Rect();
+      owner->thumbnail_watch.reset();
+      owner->thumbnail_watch_tab = -1;
+      owner->rail_cards_shown = false;
+    }
     // A navigated or torn-down host must not receive a late history reply.
     weak_factory_.InvalidateWeakPtrs();
     tracker_.TryCancelAll();
@@ -7382,6 +7485,11 @@ class Handler : public content::WebUIMessageHandler, public extensions::Extensio
               ? browser_view->toolbar()->extensions_container_for_testing() : nullptr) {
         state.Set("extensionsVisible", extensions->GetVisible());
         state.Set("extensionsPillY", owner->extensions_pill_y);
+        base::ListValue swell;
+        swell.Append(owner->extensions_swell_scale);
+        swell.Append(owner->extensions_swell_dx);
+        swell.Append(owner->extensions_swell_dy);
+        state.Set("extensionsSwell", std::move(swell));
       }
       Reply(id, true, base::Value(std::move(state)));
       return;
@@ -9660,17 +9768,36 @@ class Handler : public content::WebUIMessageHandler, public extensions::Extensio
           base::BindOnce(&Handler::StoreIcon, weak_factory_.GetWeakPtr(), id), 256 * 1024);
       return;
     }
-    // The Dock icon (F17): shipping's flat images, which is what its
-    // development builds use; the adaptive stacks need Assets.car from a
-    // packaged build. Sunrise itself is the bundle's own icon, so the Dock
-    // goes back to that.
+    // The Dock icon (F17), as shipping draws it: the bundle icon live, every
+    // other colorway as a Light or Dark image that host.js asks for again when
+    // the appearance changes. Blanc Beta's bundle icon is Sunrise Gold and its
+    // images are Icon Composer's own renders (blanc/branding/beta/dock); a
+    // named stack handed to the Dock stays drawn in Light. Elsewhere, and
+    // before macOS 26, the Dock takes shipping's flat images, its
+    // development-build path: the other channels' bundle icon is Sunrise
+    // Dark, kept for Dock testing, so Sunrise there takes its flat Light or
+    // Dark image like the rest.
     if (method == "applyAppIcon" && args.size() == 2 && args[0].is_string() && args[1].is_bool()) {
 #if BUILDFLAG(IS_MAC)
       static bool replaced = false;
       const std::string& icon = args[0].GetString();
       const bool dark = args[1].GetBool();
+#if BUILDFLAG(BLANC_BETA_CHANNEL)
+      const char* stack = icon == "sunrise" ? "Icon"
+          : icon == "sunrise-dark" ? "SunriseDark"
+          : icon == "sunrise-spectrum" ? "SunriseSpectrum"
+          : icon == "sunrise-amber" ? "SunriseAmber" : nullptr;
+      if (icon == "sunrise-gold" ||
+          (stack && blanc::SetDockIconFromBundle(std::string(stack) + (dark ? "-dark" : "-light")))) {
+        if (!stack) blanc::SetDockIcon({});
+        replaced = stack != nullptr;
+        reply(true, base::Value());
+        return;
+      }
+#endif
       std::string file;
-      if (icon == "sunrise-dark") file = "pages/icon-sunrise-dark.png";
+      if (icon == "sunrise") file = dark ? "pages/icon-sunrise-dark.png" : "pages/icon-sunrise.png";
+      else if (icon == "sunrise-dark") file = "pages/icon-sunrise-dark.png";
       else if (icon == "sunrise-gold") file = dark ? "pages/icon-sunrise-gold-dark.png" : "pages/icon-sunrise-gold.png";
       else if (icon == "sunrise-spectrum") file = dark ? "pages/icon-sunrise-spectrum-dark.png" : "pages/icon-sunrise-spectrum.png";
       else if (icon == "sunrise-amber") file = dark ? "pages/icon-sunrise-amber-dark.png" : "pages/icon-sunrise-amber.png";
@@ -10828,6 +10955,110 @@ class Handler : public content::WebUIMessageHandler, public extensions::Extensio
       action->ExecuteUserAction(ToolbarActionViewModel::InvocationSource::kMenuEntry);
       return;
     }
+    // Rail hover previews (fork): a tab's picture for the card, the one tab
+    // whose new pictures the card follows, and the list card's click area.
+    if (method == "tabThumbnail" && args.size() == 1 && args[0].is_int()) {
+      auto* page = TabById(model, args[0].GetInt());
+      auto* helper = ThumbnailHelperFor(page);
+      if (!helper) {
+        reply(true, ThumbnailReply(nullptr));
+        return;
+      }
+      auto thumbnail = helper->thumbnail();
+      // A quiet tab answers with whatever picture Chromium kept; subscribing
+      // would load a tab restored but never shown. A tab with a picture
+      // answers at once (the watch brings a newer one).
+      if (TabAsleep(page) || thumbnail->has_data()) {
+        reply(true, ThumbnailReply(thumbnail->data()));
+        return;
+      }
+      auto subscription = thumbnail->Subscribe();
+      subscription->SetCompressedImageCallback(base::BindRepeating(
+          [](base::WeakPtr<Handler> handler, std::string request, ThumbnailImage::CompressedThumbnailData data) {
+            base::SequencedTaskRunner::GetCurrentDefault()->PostTask(FROM_HERE,
+                base::BindOnce(&Handler::FinishThumbnailRequest, handler, request, data));
+          }, weak_factory_.GetWeakPtr(), id));
+      thumbnail_requests_[id] = std::move(subscription);
+      thumbnail->RequestCompressedThumbnailData();
+      // No picture within 300ms: the card keeps its placeholder.
+      base::SequencedTaskRunner::GetCurrentDefault()->PostDelayedTask(FROM_HERE,
+          base::BindOnce(&Handler::FinishThumbnailRequest, weak_factory_.GetWeakPtr(), id,
+              ThumbnailImage::CompressedThumbnailData()), base::Milliseconds(300));
+      return;
+    }
+    // Pictures ahead of time (owner, 2026-11-14): one picture of a background
+    // tab that finished loading, so its first rail card never waits. Chromium
+    // draws a hidden tab only while its thumbnail is observed; the
+    // subscription ends with the first picture, or after 5s.
+    if (method == "warmThumbnail" && args.size() == 1 && args[0].is_int()) {
+      const int tab_id = args[0].GetInt();
+      auto* page = TabById(model, tab_id);
+      auto* helper = ThumbnailHelperFor(page);
+      if (!helper || TabAsleep(page) || thumbnail_warms_.contains(tab_id)) {
+        reply(true, base::Value(false));
+        return;
+      }
+      auto thumbnail = helper->thumbnail();
+      if (thumbnail->has_data()) {
+        reply(true, base::Value(true));
+        return;
+      }
+      if (thumbnail_warms_.size() >= kMaxThumbnailWarms) {
+        reply(true, base::Value(false));
+        return;
+      }
+      auto subscription = thumbnail->Subscribe();
+      subscription->SetCompressedImageCallback(base::BindRepeating(
+          [](base::WeakPtr<Handler> handler, int warmed, ThumbnailImage::CompressedThumbnailData) {
+            base::SequencedTaskRunner::GetCurrentDefault()->PostTask(FROM_HERE,
+                base::BindOnce(&Handler::EndThumbnailWarm, handler, warmed));
+          }, weak_factory_.GetWeakPtr(), tab_id));
+      thumbnail_warms_[tab_id] = std::move(subscription);
+      thumbnail->RequestCompressedThumbnailData();
+      base::SequencedTaskRunner::GetCurrentDefault()->PostDelayedTask(FROM_HERE,
+          base::BindOnce(&Handler::EndThumbnailWarm, weak_factory_.GetWeakPtr(), tab_id),
+          base::Seconds(5));
+      reply(true, base::Value(true));
+      return;
+    }
+    if (method == "watchThumbnail" && args.size() == 1 && args[0].is_int()) {
+      owner->thumbnail_watch.reset();
+      owner->thumbnail_watch_tab = -1;
+      auto* page = TabById(model, args[0].GetInt());
+      auto* helper = ThumbnailHelperFor(page);
+      if (!helper || TabAsleep(page)) {
+        reply(true, base::Value(false));
+        return;
+      }
+      const int tab_id = args[0].GetInt();
+      owner->thumbnail_watch = helper->thumbnail()->Subscribe();
+      owner->thumbnail_watch_tab = tab_id;
+      owner->thumbnail_watch->SetCompressedImageCallback(base::BindRepeating(
+          [](base::WeakPtr<Owner> watcher, int watched, ThumbnailImage::CompressedThumbnailData data) {
+            if (watcher) watcher->PublishThumbnail(watched, ThumbnailDataUrl(data));
+          }, owner->GetWeakPtr(), tab_id));
+      helper->thumbnail()->RequestCompressedThumbnailData();
+      reply(true, base::Value(true));
+      return;
+    }
+    if (method == "unwatchThumbnail" && args.empty()) {
+      owner->thumbnail_watch.reset();
+      owner->thumbnail_watch_tab = -1;
+      reply(true, base::Value(true));
+      return;
+    }
+    if (method == "railCardsShown" && args.size() == 1 && args[0].is_bool()) {
+      owner->rail_cards_shown = args[0].GetBool();
+      reply(true, base::Value(true));
+      return;
+    }
+    if (method == "hoverCardBounds" && args.size() == 4 &&
+        std::ranges::all_of(args, [](const auto& v) { return v.is_int(); })) {
+      owner->hover_card_bounds = gfx::Rect(args[0].GetInt(), args[1].GetInt(),
+          std::max(0, args[2].GetInt()), std::max(0, args[3].GetInt()));
+      reply(true, base::Value(true));
+      return;
+    }
     if (method == "geometry" && (args.size() == 8 || args.size() == 10) &&
         std::ranges::all_of(args, [](const auto& v) { return v.is_int(); })) {
       if (args.size() == 10) {
@@ -10839,6 +11070,33 @@ class Handler : public content::WebUIMessageHandler, public extensions::Extensio
       owner->interactive_bounds = gfx::Rect(args[4].GetInt(), args[5].GetInt(),
           std::max(0, args[6].GetInt()), std::max(0, args[7].GetInt()));
       if (owner->view->parent()) owner->view->parent()->InvalidateLayout();
+      reply(true, base::Value());
+      return;
+    }
+    // The swell changed without a page move (host.js armPagePointer): the
+    // next page move goes to the host wherever it lands, so the swell can rest.
+    if (method == "armIslandPointer" && args.empty()) {
+      ArmIslandPointer(owner);
+      reply(true, base::Value());
+      return;
+    }
+    // The approach swell on the extension slot, measured by the host
+    // (host.js syncExtensionsSwell): its growth and its move, which the
+    // native buttons over the slot take as a transform.
+    if (method == "extensionsSwell" && args.size() == 3 &&
+        std::ranges::all_of(args, [](const auto& v) { return v.is_int() || v.is_double(); })) {
+      const double scale = args[0].GetDouble(), dx = args[1].GetDouble(), dy = args[2].GetDouble();
+      if (!blanc::island_proximity::ValidSwell(scale, dx, dy)) {
+        reply(false, base::Value("Not a swell."));
+        return;
+      }
+      owner->extensions_swell_scale = scale;
+      owner->extensions_swell_dx = dx;
+      owner->extensions_swell_dy = dy;
+      auto* browser_view = BrowserViewFor(owner);
+      if (auto* extensions = browser_view && browser_view->toolbar()
+              ? browser_view->toolbar()->extensions_container_for_testing() : nullptr)
+        SetExtensionsPillOffset(owner, extensions);
       reply(true, base::Value());
       return;
     }
@@ -12082,6 +12340,19 @@ class Handler : public content::WebUIMessageHandler, public extensions::Extensio
   std::unique_ptr<views::MenuRunner> extension_menu_runner_;
   base::CancelableTaskTracker tracker_;
   std::unique_ptr<TabImporter> tab_importer_;
+  // Rail hover previews: one-off thumbnail requests waiting for Chromium's
+  // first picture, by reply id. Each ends with its reply.
+  std::map<std::string, std::unique_ptr<ThumbnailImage::Subscription>> thumbnail_requests_;
+  // Pictures ahead of time: background tabs being drawn for their first
+  // picture, by tab id, a few at once. Each ends with its picture or 5s.
+  static constexpr size_t kMaxThumbnailWarms = 2;
+  std::map<int, std::unique_ptr<ThumbnailImage::Subscription>> thumbnail_warms_;
+  void EndThumbnailWarm(int tab_id) { thumbnail_warms_.erase(tab_id); }
+  void FinishThumbnailRequest(const std::string& id, ThumbnailImage::CompressedThumbnailData data) {
+    // Not from inside the subscription's own callback: Chromium forbids
+    // destroying a subscription there, so the reply is posted.
+    if (thumbnail_requests_.erase(id)) Reply(id, true, ThumbnailReply(data));
+  }
   base::WeakPtrFactory<Handler> weak_factory_{this};
 };
 struct WindowIdentityState {
@@ -13175,6 +13446,66 @@ bool OpenExtensions(BrowserWindowInterface* browser) {
   return true;
 }
 
+// Chromium refuses chrome.action.openPopup in a window whose toolbar isn't
+// visible, and the Island hides Chromium's toolbar. Its extensions container
+// lives on in the Island (LayoutIsland), so an Island window takes the
+// popup, except while a page is fullscreen and the Island is gone.
+bool CanOpenExtensionPopup(BrowserWindowInterface* browser) {
+  return IsIslandWindow(browser) && !IsPageFullscreen(browser);
+}
+
+// Shipping's Dock close (window-state-persistence.js windowCloseSessionEffect,
+// dock-reopen.js): on macOS the red button on the primary window takes the
+// window away but keeps its tabs running, in the saved session and in Sync;
+// clicking the Dock icon brings it back as it was. Other windows close as
+// usual. BrowserView asks only for a person's close of a window with tabs,
+// never while quitting or force-closing.
+bool HoldWindowOnClose(BrowserWindowInterface* browser) {
+#if BUILDFLAG(IS_MAC)
+  if (!IsIslandWindow(browser) || IsMiniWindow(browser) || IsHoldWindow(browser)) return false;
+  for (auto* owner : Owner::Live()) {
+    if (owner->browser.get() != browser || !owner->primary) continue;
+    auto* view = BrowserView::GetBrowserViewForBrowser(browser);
+    if (!view || !view->GetWidget()) return false;
+    view->GetWidget()->Hide();
+    return true;
+  }
+#endif
+  return false;
+}
+
+// The Dock icon clicked with no window showing brings the held primary
+// window back (shipping's app 'activate'). False leaves Chromium's reopen.
+bool ReopenHeldWindow() {
+#if BUILDFLAG(IS_MAC)
+  for (auto* owner : Owner::Live()) {
+    if (!owner->primary || owner->browser->IsDeleteScheduled()) continue;
+    auto* view = BrowserView::GetBrowserViewForBrowser(owner->browser.get());
+    auto* widget = view ? view->GetWidget() : nullptr;
+    if (!widget || widget->IsVisible() || widget->IsMinimized()) continue;
+    owner->browser->GetWindow()->Show();
+    return true;
+  }
+#endif
+  return false;
+}
+
+// The popup anchors on the Island's Extensions button, which Auto-hide
+// takes away with the strip: hold the Island down while a popup is open,
+// as HoldIslandForTest does, then let the usual check hide it.
+void ExtensionPopupChanged(BrowserWindowInterface* browser, bool open) {
+  if (!IsIslandWindow(browser)) return;
+  for (auto* owner : Owner::Live()) {
+    if (owner->browser.get() != browser || owner->extension_popup == open) continue;
+    owner->extension_popup = open;
+    if (!AutoHideApplies(owner)) continue;
+    if (open) RevealIsland(owner);
+    else if (owner->autohide_revealed) ScheduleAutoHideCheck(owner);
+    Relayout(owner);
+    NotifyAutoHide(owner);
+  }
+}
+
 #include "blanc/browser/ui/permission_prompt.inc"
 
 bool OpenUtilitySheet(BrowserWindowInterface* browser, std::string_view page, std::string_view section) {
@@ -13545,12 +13876,6 @@ void AdjustSplitLayout(const MultiContentsView* view, views::ProposedLayout* lay
       .Set("originX", origin.x() + 8).Set("usableWidth", std::max(1, card_width - 8));
 }
 
-void SetExtensionsPillOffset(views::View* extensions, double y) {
-  gfx::Transform transform;
-  transform.Translate(0, y);
-  extensions->SetTransform(transform);
-}
-
 void StepExtensionsPillSlide(Owner* owner) {
   auto* browser_view = BrowserViewFor(owner);
   auto* extensions = browser_view && browser_view->toolbar()
@@ -13565,7 +13890,7 @@ void StepExtensionsPillSlide(Owner* owner) {
   const bool done = progress >= 1;
   owner->extensions_pill_y = done ? slide->to
       : slide->from + (slide->to - slide->from) * autohide::EaseOutCubic(progress);
-  SetExtensionsPillOffset(extensions, owner->extensions_pill_y);
+  SetExtensionsPillOffset(owner, extensions);
   if (done) {
     slide.reset();
     owner->extensions_pill_timer.Stop();
@@ -13586,7 +13911,7 @@ void SlideExtensionsWithPill(Owner* owner, views::View* extensions) {
   owner->extensions_pill_slide.reset();
   if (!floating || !had_frame || gfx::Animation::PrefersReducedMotion()) {
     owner->extensions_pill_y = target;
-    SetExtensionsPillOffset(extensions, target);
+    SetExtensionsPillOffset(owner, extensions);
     return;
   }
   // Timed to the pill as measured: leaving, its CSS transition began just
