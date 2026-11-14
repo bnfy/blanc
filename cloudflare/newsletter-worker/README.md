@@ -16,8 +16,16 @@ adding applicants to the newsletter or retaining an application database.
 - Resend receives the address only to deliver the confirmation message.
 - `GET /confirm?token=...` creates `sub:<email>` only after possession of the
   mailbox is demonstrated.
-- Confirmed records contain the address, confirmation time, and an opaque
-  unsubscribe token. `GET /unsubscribe?token=...` deletes the record.
+- Confirmed records contain the address, confirmation time, an opaque
+  unsubscribe token, and the hash of the confirmation token that was used.
+  `GET /unsubscribe?token=...` deletes the record.
+- Confirming turns the pending record into a used-link marker (the address and
+  confirmation time) that expires 24 hours later. Opening the same
+  confirmation link again shows the confirmed page while the address is still
+  on the list, and changes nothing; a double click, a reload or a mail app
+  handing the link over twice used to show "invalid or expired". Leaving the
+  list, an admin removal, a Resend unsubscribe or a purge deletes the marker
+  with the record. The waitlists work the same way under their own prefixes.
 - A valid address caught by the honeypot enters a separate `hp:` quarantine
   for at most 30 days. It is exported for manual review of autofill false
   positives, but never mailed or subscribed without a clean re-submission and
