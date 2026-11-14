@@ -894,9 +894,14 @@ session couldn't reach the login keychain (the notarize wrapper now unlocks
 it); `gh` wasn't on the SSH search path for `draft`. After publication the
 website PR shipped the feed, the Download page tile and `/dl/beta` (#1518;
 blanc-ping version `9d4bd37d`), and blanc.day's feed equals the release
-appcast byte for byte. Still owed: the hosted smoke check (it runs from
-`main`, which needs this record and beta.3's `GATE_WAIVERS` first) and the
-first signed Sparkle handoff, beta.2 to beta.3, from an installed beta.2.
+appcast byte for byte. The hosted smoke check passed all six checks (run
+43573427182 on `main`, `check_feed=true`) once #1519 brought this record and
+beta.3's `GATE_WAIVERS` there. The first signed Sparkle handoff passed the
+same day on the MacBook Pro: the public beta.2 (DMG `d155c316…`, reinstalled
+over beta.3 with the profile kept) found beta.3 through Check for Updates…,
+installed it and relaunched. About shows 2.0.0-beta.3, and the installed app
+is notarized and stapled, with the released beta.3's code hash
+(`b9a1e9d53dc4cf6bc2ef105068cd8e4828909fed`).
 
 ### Runbook for the next beta: lessons from beta.2 (2026-11-14)
 
