@@ -114,10 +114,10 @@ test('native forwards page moves and draws the swell on the extension buttons', 
   assert.match(ui, /#include "blanc\/browser\/ui\/island_proximity_controller.inc"/);
   assert.match(ui, /method == "extensionsSwell"[^]*?ValidSwell\(scale, dx, dy\)[^]*?SetExtensionsPillOffset\(owner, extensions\)/);
   assert.match(controller, /window\.blancIslandPointer\?\.\(%d,%d\)/);
-  // Leaving the Island's view arms the next page move, wherever it lands.
-  assert.match(ui, /method == "islandPointerLeft" && args\.empty\(\)\) \{\n\s*IslandPointerLeft\(owner\);/);
-  assert.match(controller, /void IslandPointerLeft\(Owner\* owner\) \{\n\s*owner->island_pointer_near = true;/);
-  assert.match(host, /updateHover\(null\);\n[^]*?request\('islandPointerLeft'\)/);
+  // A swell changed without a page move arms the next page move, wherever it lands.
+  assert.match(ui, /method == "armIslandPointer" && args\.empty\(\)\) \{\n\s*ArmIslandPointer\(owner\);/);
+  assert.match(controller, /void ArmIslandPointer\(Owner\* owner\) \{\n\s*owner->island_pointer_near = true;/);
+  assert.match(host, /updateHover\(null\);\n[^]*?armPagePointer\(\);/);
   // The slide and the swell share one transform: neither may replace the other.
   assert.match(controller, /Translate\(owner->extensions_swell_dx, owner->extensions_pill_y \+ owner->extensions_swell_dy\)/);
   assert.equal((ui.match(/->SetTransform\(/g) ?? []).length, 0, 'only SetExtensionsPillOffset transforms the extension buttons');
@@ -137,7 +137,7 @@ function hostHarness(snapshot = {windowActive: true, extensionsWidth: 0}) {
     emit: (name, value) => events.push({name, value}), request: (method, args) => { requests.push({method, args}); return Promise.resolve(); },
     notice() {}, strip: {getBoundingClientRect: () => ({x: 0, y: 0})}, swellSent: '1,0,0',
   });
-  vm.runInContext(['proximityAwake', 'updateProximity', 'wakeProximity', 'restingRect', 'syncExtensionsSwell'].map(fn).join('\n'), context);
+  vm.runInContext(['proximityAwake', 'updateProximity', 'wakeProximity', 'armPagePointer', 'restingRect', 'syncExtensionsSwell'].map(fn).join('\n'), context);
   vm.runInContext(host.match(/  window\.blancIslandPointer = [^]*?\n  \};/)[0].replace('window.blancIslandPointer', 'this.pointer'), context);
   return {context, events, requests};
 }
@@ -163,13 +163,15 @@ test('the host sends the swell only when it changes, and rests it while asleep',
   assert.equal(events.length, 3);
 });
 
-test('closing a surface always tells the pill where the cursor is', () => {
-  const {context: c, events} = hostHarness();
+test('closing a surface always tells the pill where the cursor is, and arms native', () => {
+  const {context: c, events, requests} = hostHarness();
   c.wakeProximity(null);          // no cursor over the window: rest
   assert.deepEqual(plain(events), [{name: 'onIslandProximity', value: {k: 0}}]);
   c.updateProximity({x: 500, y: 30});
   c.wakeProximity({x: 500, y: 30});
   assert.deepEqual(events.map(e => e.value.k), [0, 1, 1]);
+  // Native hears each wake, so its next page move goes wherever it lands.
+  assert.deepEqual(requests.map(r => r.method), ['armIslandPointer', 'armIslandPointer']);
 });
 
 function swellDom(k) {

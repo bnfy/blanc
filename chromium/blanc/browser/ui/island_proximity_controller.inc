@@ -57,10 +57,11 @@ void IslandProximityPageMove(Owner* owner, const blink::WebInputEvent& event) {
   }
 }
 
-// The pointer left the Island's view for the page or another window. Its
-// next page move may land beyond reach, where it would go unsent while the
-// pill still shows the swell the Island's own moves gave it.
-void IslandPointerLeft(Owner* owner) {
+// The swell changed without a page move: the pointer left the Island's own
+// view, or a surface closed and the host sampled the cursor. The next page
+// move may land beyond reach, where it would go unsent while the pill still
+// shows that swell, so it goes wherever it lands.
+void ArmIslandPointer(Owner* owner) {
   owner->island_pointer_near = true;
 }
 

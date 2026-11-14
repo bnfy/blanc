@@ -10862,10 +10862,10 @@ class Handler : public content::WebUIMessageHandler, public extensions::Extensio
       reply(true, base::Value());
       return;
     }
-    // The pointer left the Island's view (host.js hookHover): the next page
-    // move goes to the host wherever it lands, so the swell can rest.
-    if (method == "islandPointerLeft" && args.empty()) {
-      IslandPointerLeft(owner);
+    // The swell changed without a page move (host.js armPagePointer): the
+    // next page move goes to the host wherever it lands, so the swell can rest.
+    if (method == "armIslandPointer" && args.empty()) {
+      ArmIslandPointer(owner);
       reply(true, base::Value());
       return;
     }
