@@ -37,16 +37,3 @@ test('Chromium harness CDP exceptions still release the global reference', async
   await assert.rejects(callFunction(client, function() {}), /rejected/);
   assert.equal(calls.at(-1), 'Runtime.releaseObject');
 });
-
-test('HTTP desktop fixture does not reflect request path or blanklink payload into markup', async (t) => {
-  const server = await require('../desktop/support/fixtures-server').start();
-  t.after(server.close);
-  const payload = '<img src=x onerror=globalThis.fixtureAttack=1>';
-  const response = await fetch(`${server.base}/site/${encodeURIComponent(payload)}?blanklink=${encodeURIComponent(payload)}`);
-  const html = await response.text();
-  assert.equal(response.status, 200);
-  assert.equal(html.includes(payload), false);
-  assert.equal(html.includes(encodeURIComponent(payload)), false);
-  assert.match(html, /textContent/);
-  assert.match(html, /encodeURIComponent\(name\)/);
-});

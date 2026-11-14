@@ -153,9 +153,9 @@ public enum BlancTokens {
     }
     public static func shadowIslandResting(_ theme: BlancTheme) -> String {
         switch theme {
-        case .light: return "inset 0 -1px 0 rgba(14,14,14,.035), 0 5px 18px -12px rgba(14,14,14,.24)"
-        case .dark: return "inset 0 -1px 0 rgba(14,14,14,.035), 0 5px 18px -12px rgba(14,14,14,.24)"
-        case .privateBrowsing: return "inset 0 -1px 0 rgba(14,14,14,.035), 0 5px 18px -12px rgba(14,14,14,.24)"
+        case .light: return "inset 0 1px 0 rgba(255,255,255,.72), inset 0 -1px 0 rgba(14,14,14,.035), 0 5px 18px -12px rgba(14,14,14,.24)"
+        case .dark: return "inset 0 1px 0 rgba(255,255,255,.72), inset 0 -1px 0 rgba(14,14,14,.035), 0 5px 18px -12px rgba(14,14,14,.24)"
+        case .privateBrowsing: return "inset 0 1px 0 rgba(255,255,255,.07), inset 0 -1px 0 rgba(14,14,14,.035), 0 5px 18px -12px rgba(14,14,14,.24)"
         }
     }
     public static func shadowIslandFloat(_ theme: BlancTheme) -> String {
@@ -214,6 +214,6 @@ public enum BlancTokens {
     public static let radiusXl = "20px"
     public static let radiusFull = "999px"
     public static let islandRestingHeight = "44px"
-    public static let islandRestingRadius = "14px"
+    public static let islandRestingRadius = "17px"
     public static let islandPanelRadius = "18px"
 }

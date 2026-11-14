@@ -205,7 +205,6 @@ const {
 const { attachAddressMenu } = require('./address-menu');
 const { installDockMenu } = require('./dock-menu');
 const { createDockReopenLifecycle } = require('./dock-reopen');
-const { createWindowViewShutdown } = require('./window-view-shutdown');
 /** Handle from installDockMenu ({ update }); null until app-ready (macOS). */
 let dockMenuHandle = null;
 const { buildTabContextMenu, pinLabelKey, closableTabIds, closableBeside, pickSurvivorTabId, isCopyable } = require('./tab-context-menu-model');
@@ -13408,32 +13407,7 @@ function createMainWindowForRuntime(runtime, { ensureStartTab = false, inactive 
       });
     },
   });
-  const drainWindowViews = createWindowViewShutdown({
-    window: newWindow,
-    getViews: () => [
-      ...runtime.tabOrder.flatMap((id) => [tabs.get(id)?.view, sleepSnapshots.get(id)?.view]),
-      ...(runtime.closedEntries ?? []).map((entry) => entry.view),
-      runtime.overlayView, runtime.utilitySheetView, runtime.permissionView, runtime.fillStatusView,
-      runtime.tooltipView, runtime.glanceCardView,
-      ...Object.values(runtime.islandFloat ?? {}).map((entry) => entry.view),
-      ...[...runtime.splitCornerViews.values()].map((entry) => entry.view),
-    ],
-    resume: bindWindowRuntime(runtime, () => {
-      if (isQuitting) app.quit();
-      else if (!newWindow.isDestroyed()) newWindow.close();
-    }),
-  });
-  let windowCloseCheckpointed = false;
-  rt().window.on('close', bindWindowRuntime(runtime, (event) => {
-    if (!windowCloseCheckpointed) {
-      closeSharedSpaceWindow(runtime, event, dockReopenLifecycle.onWindowClose);
-      if (event.defaultPrevented) return;
-      windowCloseCheckpointed = true;
-    }
-    // macOS retains pages for Dock reopen. Aura platforms instead finish
-    // owned contents destruction while their focus root still exists.
-    if (process.platform !== 'darwin') drainWindowViews(event);
-  }));
+  rt().window.on('close', bindWindowRuntime(runtime, event=>closeSharedSpaceWindow(runtime,event,dockReopenLifecycle.onWindowClose)));
   rt().window.on('closed', bindWindowRuntime(runtime, () => {
     clearIslandHoverTimer(runtime);
     clearIslandAutoHideTimer(runtime);
@@ -13530,10 +13504,7 @@ function createMainWindowForRuntime(runtime, { ensureStartTab = false, inactive 
     // macOS keeps it: dock reopen reuses the broker's helper.
     if (releaseHiddenWindowsOnLastClose({ platform: process.platform, liveRuntimeWindows })
       && displayCaptureHelperWindow && !displayCaptureHelperWindow.isDestroyed()) {
-      // This is an internal helper, not a user document. The last visible
-      // window has already closed and checkpointed its session. Do not wait
-      // for a helper renderer's cooperative close to permit application quit.
-      displayCaptureHelperWindow.destroy();
+      displayCaptureHelperWindow.close();
     }
   }));
 

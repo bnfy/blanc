@@ -100,10 +100,7 @@ function attachHelperWindow({
   });
   lockPrivilegedNavigation(win.webContents, CHROME_DISPLAY_CAPTURE_HELPER_URL);
   authority.authorize(win.webContents);
-  // The BrowserWindow getter throws once its native window is destroyed.
-  // Revoke the original authority without dereferencing that dead window.
-  const helperContents = win.webContents;
-  helperContents.once('destroyed', () => authority.revoke(helperContents));
+  win.webContents.on('destroyed', () => authority.revoke(win.webContents));
   win.loadURL(CHROME_DISPLAY_CAPTURE_HELPER_URL);
   return win;
 }
