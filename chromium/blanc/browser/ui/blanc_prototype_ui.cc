@@ -6188,6 +6188,7 @@ class Handler : public content::WebUIMessageHandler, public extensions::Extensio
     // Rail hover previews: a reloaded host draws no cards, so nothing of
     // theirs may outlive it (a click area over the page, a thumbnail watch).
     thumbnail_requests_.clear();
+    thumbnail_warms_.clear();
     if (auto* owner = GetOwner(web_ui()->GetWebContents())) {
       owner->hover_card_bounds = gfx::Rect();
       owner->thumbnail_watch.reset();
@@ -10985,6 +10986,41 @@ class Handler : public content::WebUIMessageHandler, public extensions::Extensio
               ThumbnailImage::CompressedThumbnailData()), base::Milliseconds(300));
       return;
     }
+    // Pictures ahead of time (owner, 2026-11-14): one picture of a background
+    // tab that finished loading, so its first rail card never waits. Chromium
+    // draws a hidden tab only while its thumbnail is observed; the
+    // subscription ends with the first picture, or after 5s.
+    if (method == "warmThumbnail" && args.size() == 1 && args[0].is_int()) {
+      const int tab_id = args[0].GetInt();
+      auto* page = TabById(model, tab_id);
+      auto* helper = ThumbnailHelperFor(page);
+      if (!helper || TabAsleep(page) || thumbnail_warms_.contains(tab_id)) {
+        reply(true, base::Value(false));
+        return;
+      }
+      auto thumbnail = helper->thumbnail();
+      if (thumbnail->has_data()) {
+        reply(true, base::Value(true));
+        return;
+      }
+      if (thumbnail_warms_.size() >= kMaxThumbnailWarms) {
+        reply(true, base::Value(false));
+        return;
+      }
+      auto subscription = thumbnail->Subscribe();
+      subscription->SetCompressedImageCallback(base::BindRepeating(
+          [](base::WeakPtr<Handler> handler, int warmed, ThumbnailImage::CompressedThumbnailData) {
+            base::SequencedTaskRunner::GetCurrentDefault()->PostTask(FROM_HERE,
+                base::BindOnce(&Handler::EndThumbnailWarm, handler, warmed));
+          }, weak_factory_.GetWeakPtr(), tab_id));
+      thumbnail_warms_[tab_id] = std::move(subscription);
+      thumbnail->RequestCompressedThumbnailData();
+      base::SequencedTaskRunner::GetCurrentDefault()->PostDelayedTask(FROM_HERE,
+          base::BindOnce(&Handler::EndThumbnailWarm, weak_factory_.GetWeakPtr(), tab_id),
+          base::Seconds(5));
+      reply(true, base::Value(true));
+      return;
+    }
     if (method == "watchThumbnail" && args.size() == 1 && args[0].is_int()) {
       owner->thumbnail_watch.reset();
       owner->thumbnail_watch_tab = -1;
@@ -12307,6 +12343,11 @@ class Handler : public content::WebUIMessageHandler, public extensions::Extensio
   // Rail hover previews: one-off thumbnail requests waiting for Chromium's
   // first picture, by reply id. Each ends with its reply.
   std::map<std::string, std::unique_ptr<ThumbnailImage::Subscription>> thumbnail_requests_;
+  // Pictures ahead of time: background tabs being drawn for their first
+  // picture, by tab id, a few at once. Each ends with its picture or 5s.
+  static constexpr size_t kMaxThumbnailWarms = 2;
+  std::map<int, std::unique_ptr<ThumbnailImage::Subscription>> thumbnail_warms_;
+  void EndThumbnailWarm(int tab_id) { thumbnail_warms_.erase(tab_id); }
   void FinishThumbnailRequest(const std::string& id, ThumbnailImage::CompressedThumbnailData data) {
     // Not from inside the subscription's own callback: Chromium forbids
     // destroying a subscription there, so the reply is posted.

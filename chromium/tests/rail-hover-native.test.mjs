@@ -65,3 +65,12 @@ test('a key or click in the page closes the rail cards', () => {
   const host = fs.readFileSync(new URL('../blanc/island/host.js', import.meta.url), 'utf8');
   assert.ok(host.includes("'railCardsShown'") && /railDismiss: \(/.test(host));
 });
+
+test('a picture ahead of time: never private, never a quiet tab, a few at once', () => {
+  const warm = handler('warmThumbnail');
+  assert.match(warm, /ThumbnailHelperFor\(page\)/);
+  const asleep = warm.indexOf('TabAsleep(page)');
+  assert.ok(asleep > 0 && asleep < warm.indexOf('Subscribe()'), 'a quiet tab is refused before any subscription');
+  assert.match(warm, /has_data\(\)/, 'a tab that has a picture is left alone');
+  assert.match(warm, /thumbnail_warms_\.size\(\) >= kMaxThumbnailWarms/);
+});

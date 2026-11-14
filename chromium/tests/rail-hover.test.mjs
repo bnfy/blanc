@@ -152,3 +152,24 @@ test('only focus that follows a key press opens a card', () => {
   assert.equal(hover.keyboardFocus(1000, 1700), false);
   assert.equal(hover.keyboardFocus(null, 1000), false);
 });
+
+// Pictures ahead of time (owner, 2026-11-14): one picture of each background
+// tab once it finishes loading, so a tab's first card never waits.
+test('warmTargets: a loaded background tab, once per address', () => {
+  const tabs = [
+    {id: 1, url: 'https://a.example/', isLoading: false},
+    {id: 2, url: 'https://b.example/', isLoading: false},
+    {id: 3, url: 'https://c.example/', isLoading: true},
+    {id: 4, url: 'https://d.example/', isLoading: false, private: true},
+    {id: 5, url: 'https://e.example/', isLoading: false, asleep: true},
+    {id: 6, url: 'blanc://newtab/', isLoading: false},
+    {id: 7, url: 'https://g.example/', isLoading: false},
+    {id: 8, url: 'https://h.example/', isLoading: false},
+  ];
+  const snapshot = {tabs, activeTabId: 1, splits: [{id: 's', tabIds: [1, 7]}]};
+  assert.deepEqual(plain(hover.warmTargets(snapshot, new Map())), [{id: 2, url: 'https://b.example/'}, {id: 8, url: 'https://h.example/'}]);
+  assert.deepEqual(plain(hover.warmTargets(snapshot, new Map([[2, 'https://b.example/'], [8, 'https://h.example/']]))), []);
+  const moved = new Map([[2, 'https://b.example/old'], [8, 'https://h.example/']]);
+  assert.deepEqual(plain(hover.warmTargets(snapshot, moved)).map(t => t.id), [2], 'a new address gets a new picture');
+  assert.deepEqual(plain(hover.warmTargets({...snapshot, glanceTabId: 8}, new Map())).map(t => t.id), [2], 'not the Glance page on screen');
+});

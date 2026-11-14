@@ -22,10 +22,11 @@ feature until a release ships it.
 - Moving between rows never flickers: once a card is up, the next row's card
   replaces it at once.
 - Works in Light and Dark, Sunrise and Neutral, and in private tabs.
-- Costs nothing while nobody hovers: Blanc asks for no captures and runs no
-  timers or network requests. Chromium's own thumbnails (a small picture
-  taken as a tab goes to the background, kept in memory) are switched on for
-  this; see "Tab thumbnails on macOS".
+- Cheap while nobody hovers: no timers or network requests. Chromium's own
+  thumbnails (a small picture taken as a tab goes to the background, kept in
+  memory) are switched on for this; see "Tab thumbnails on macOS". With
+  vertical tabs, each background tab also gets one picture once it finishes
+  loading; see "Pictures ahead of time".
 
 ## Non-goals
 
@@ -230,6 +231,19 @@ default in Blanc builds on every platform. Cost: Chromium takes a small
 picture as each tab goes to the background and keeps it in memory (tens of
 KB per tab). Its only other users, Chromium's own hover card and its Settings
 row, are hidden in Blanc.
+
+### Pictures ahead of time (owner, 2026-11-14, after trying the build)
+
+Chromium draws a picture of a tab that was never on screen only while
+something observes its thumbnail, so a background tab's first card showed its
+icon for about a second. The owner chose to take one picture of each
+background tab once it finishes loading. With vertical tabs, the host asks
+(`warmThumbnail`) for every loaded background tab whose address has no
+picture yet: never a private, quiet or Blanc page, the tab on screen, a
+visible split pane or the Glance page. Native holds the observation until the
+first picture or 5 seconds, two tabs at a time, and refuses more; the host
+asks again on its next refresh. A tab that already has a picture is left
+alone. Cost: drawing each background tab off screen once per address.
 
 ## Constraints
 

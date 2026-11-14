@@ -78,7 +78,7 @@ test('placement: beside the rail, centered on the row, kept inside the window', 
 test('host and native agree on the request names', () => {
   const native = fs.readFileSync(new URL('../blanc/browser/ui/blanc_prototype_ui.cc', import.meta.url), 'utf8');
   const host = ['host.js', 'rail-hover-card.js'].map(file => fs.readFileSync(new URL(`../blanc/island/${file}`, import.meta.url), 'utf8')).join('\n');
-  for (const name of ['tabThumbnail', 'watchThumbnail', 'unwatchThumbnail', 'hoverCardBounds']) {
+  for (const name of ['tabThumbnail', 'watchThumbnail', 'unwatchThumbnail', 'hoverCardBounds', 'warmThumbnail']) {
     assert.ok(native.includes(`method == "${name}"`), `native handles ${name}`);
     assert.ok(host.includes(`'${name}'`), `the host asks for ${name}`);
   }

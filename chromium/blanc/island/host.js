@@ -1127,6 +1127,7 @@
       if (slot) slot.style.width = `${snapshot.extensionsWidth / 1.15}px`;
       reportGeometry();
       syncRailHover();
+      warmRailPictures();
       const next = JSON.stringify(snapshot);
       if (next !== serialized) {
         serialized = next;
@@ -2923,6 +2924,26 @@
   function railThumbnail(id, image) {
     if (railHover?.watched == null || String(id) !== railHover.watched) return;
     BlancRailHoverCard.updateImage(railPicture, railHover.shown.picture?.tabId, image);
+  }
+  // Pictures ahead of time (owner, 2026-11-14): with vertical tabs, each
+  // background tab gets one picture once it finishes loading, so its first
+  // card never waits. Native takes two at a time and says no when busy;
+  // a refused tab is asked again on the next refresh.
+  const railWarmed = new Map();
+  let railWarming = 0;
+  function warmRailPictures() {
+    if (layout !== 'vertical' || !snapshot) return;
+    const open = new Set(snapshot.tabs.map(tab => tab.id));
+    for (const id of railWarmed.keys()) if (!open.has(id)) railWarmed.delete(id);
+    for (const target of BlancRailHover.warmTargets(snapshot, railWarmed)) {
+      if (railWarming >= 2) break;
+      railWarming++;
+      railWarmed.set(target.id, target.url);
+      request('warmThumbnail', [nativeId(target.id)])
+        .then((started) => { if (!started) railWarmed.delete(target.id); })
+        .catch(() => railWarmed.delete(target.id))
+        .finally(() => { railWarming--; });
+    }
   }
   // After each snapshot: a card whose tab or group changed under it closes.
   function syncRailHover() {

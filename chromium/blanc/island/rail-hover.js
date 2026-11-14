@@ -124,6 +124,20 @@
     return 'live';
   }
 
+  /**
+   * Pictures ahead of time (owner, 2026-11-14): the background tabs that have
+   * finished loading an address not yet pictured (`warmed`: tab id → the
+   * address last asked for), so a tab's first card never waits. The same
+   * tabs pictureFor would show a live picture of; never the Glance page.
+   */
+  function warmTargets(snapshot, warmed) {
+    const visible = (snapshot?.splits ?? []).find(s => (s.tabIds ?? []).includes(snapshot.activeTabId))?.tabIds ?? [];
+    return (snapshot?.tabs ?? [])
+      .filter(tab => !tab.isLoading && tab.id !== snapshot.glanceTabId && warmed.get(tab.id) !== tab.url &&
+        pictureFor(tab, {activeTabId: snapshot.activeTabId, visibleTabIds: visible}) === 'live')
+      .map(tab => ({id: tab.id, url: tab.url}));
+  }
+
   /** An open group already lists its tabs in the rail; only a collapsed one gets a card. */
   function groupCardFor(group) { return !!group?.collapsed; }
 
@@ -131,5 +145,5 @@
     return layout !== 'vertical' || !!glanceOpen || !!surfaceOpen || !!dragging || !!railHidden;
   }
 
-  root.BlancRailHover = Object.freeze({OPEN_DELAY_MS, LEAVE_GRACE_MS, initialState, step, keyAction, keyboardFocus, pictureFor, groupCardFor, suppressed});
+  root.BlancRailHover = Object.freeze({OPEN_DELAY_MS, LEAVE_GRACE_MS, initialState, step, keyAction, keyboardFocus, pictureFor, warmTargets, groupCardFor, suppressed});
 })(typeof self !== 'undefined' ? self : globalThis);

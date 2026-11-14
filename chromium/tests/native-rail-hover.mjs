@@ -44,10 +44,11 @@ const check=text=>{result.checks.push(text);console.log('ok -',text);};
 try{
  await f.launch(config,path.join(parent,'fixture'),{testHooks:true,diskAssets:process.env.DISK_ASSETS==="1"});
  await installDriver(f.host);await assertRendering(e=>f.host.eval(e));await w.reset();
- const colors={red:'#d64545',green:'#2f9e6a',blue:'#3b6fd6',amber:'#d69a2f',grey:'#8a8f98'};
+ const colors={red:'#d64545',green:'#2f9e6a',blue:'#3b6fd6',amber:'#d69a2f',grey:'#8a8f98',purple:'#7a4fd6'};
  f.server.removeAllListeners('request');
  f.server.on('request',(q,r)=>{const name=q.url.slice(1).split('?')[0]||'grey';
   r.writeHead(200,{'content-type':'text/html'});
+  if(name==='links')return r.end('<title>Links page</title><a id="purple" href="/purple" style="font:60px system-ui">purple</a>');
   r.end(`<title>${name[0].toUpperCase()+name.slice(1)} page</title><body style="margin:0;background:${colors[name]??'#888'};font:48px system-ui;color:#fff"><h1 style="margin:40px">${name}</h1></body>`);});
  const ids={};
  for(const name of ['red','green','blue','amber'])ids[name]=String(await w.call('openTab',f.base+'/'+name));
@@ -151,6 +152,20 @@ try{
  assert.equal(splitCard.title,'Green page + Red page','the split row\'s own label');
  await pause(800);await shot('5-split-card');
  result.split=splitCard;check('a split row\'s card shows each pane');
+ await away();
+ // Pictures ahead of time: a tab opened in the background and never shown
+ // has its picture by the time its first card opens.
+ const links=String(await w.call('openTab',f.base+'/links'));
+ const linksPage=await tabPage(w,links);await linksPage.bringToFront();await pause(800);
+ await linksPage.locator('#purple').click({modifiers:['Meta']});
+ snap=await w.waitFor(()=>w.snapshot(),s=>s.tabs.some(t=>/\/purple$/.test(t.url)&&!t.isLoading),'the background tab loaded',5000);
+ const purple=snap.tabs.find(t=>/\/purple$/.test(t.url));assert.notEqual(String(snap.activeTabId),String(purple.id),'opened in the background');
+ await pause(2500);
+ const purpleRow=await row(purple.id);await move(purpleRow.cx,purpleRow.cy);
+ const firstCard=await w.waitFor(()=>card('picture'),Boolean,'the background tab\'s card',2000);
+ assert.equal(firstCard.image,'data:image/jpeg;base64,','the picture is there as the card opens');
+ await shot('6-background-tab-card');
+ check('a tab opened in the background has its picture when its first card opens');
  await away();
  fs.writeFileSync(path.join(out,'result.json'),JSON.stringify(result,null,1));
  console.log(`${result.checks.length} checks passed on ${config.candidate}`);
