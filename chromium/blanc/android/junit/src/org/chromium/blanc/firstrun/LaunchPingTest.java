@@ -86,7 +86,7 @@ public class LaunchPingTest {
         Random random = new Random(7);
         for (int i = 0; i < 1000; i++) {
             int id = LaunchPing.sessionId(random);
-            assertTrue(id >= 1 && id <= Integer.MAX_VALUE);
+            assertTrue(id >= 1);
         }
     }
 

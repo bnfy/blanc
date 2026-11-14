@@ -233,7 +233,7 @@
     "blanc/android/junit/src/org/chromium/blanc/firstrun/AppLanguagesTest.java": "ed6e9fcc555914e9e59b5ad1e357918bec84a093d17846892db7b51fabf53ccc",
     "blanc/android/junit/src/org/chromium/blanc/firstrun/DefaultBrowserTest.java": "5f71d8c0600b79ebf3cdea8df2e630ef87fd16a64baa77b3b49698afd2f6165b",
     "blanc/android/junit/src/org/chromium/blanc/firstrun/LaunchPingSenderTest.java": "cacefb50dddf3d36f40185a0f1f1f76f093cf69582f910c7a006278b75cd04ab",
-    "blanc/android/junit/src/org/chromium/blanc/firstrun/LaunchPingTest.java": "59647521c399c2a6e0be9325117d8362de3866771ab7f716b703a2ed5d210983",
+    "blanc/android/junit/src/org/chromium/blanc/firstrun/LaunchPingTest.java": "01aedfe3d6957bf11f47aacb08a9eec3669d242a64d03ee7bc05d3ebe115cc11",
     "blanc/android/junit/src/org/chromium/blanc/firstrun/WalkthroughFlowTest.java": "88f31552aed3845ec354d96ebf57ea9e2bceb54ea16bc691ab6ce69f670efb23",
     "blanc/android/junit/src/org/chromium/blanc/firstrun/WalkthroughSheetTest.java": "de216bc19d53b4240e4dc4278b40993f206cb807d1c21110a21f0971aa5d322a",
     "blanc/android/junit/src/org/chromium/blanc/island/FindCapsuleTest.java": "1fddbd56b5cc4f6812041f94ae5c57545495b335ba5195b9699ed4ce934537ee",
