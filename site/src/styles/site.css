@@ -448,16 +448,6 @@ a:focus-visible, button:focus-visible { outline: 2px solid var(--site-accent); o
 .download-hero { max-width: 740px; margin: 0 auto; text-align: center; }
 .download-hero > p:last-child { max-width: 48ch; margin: 20px auto 0; color: var(--site-text-dim); font-size: 16px; line-height: 1.65; text-wrap: balance; }
 /* Shown only on phones and tablets by handheld-download.js. */
-.download-handheld { max-width: 560px; margin: 32px auto 0; padding: 24px; border: 1px solid var(--site-border); border-radius: 20px; text-align: center; }
-.download-handheld[hidden] { display: none; }
-.download-handheld h2 { margin: 0; font-family: var(--site-font-display); font-size: 28px; font-weight: 400; letter-spacing: 0; }
-.download-handheld p { margin: 8px 0 0; color: var(--site-text-dim); }
-.download-handheld-action[hidden], .download-handheld p[hidden] { display: none; }
-.download-handheld-action.is-secondary { background: transparent; color: var(--site-text); box-shadow: inset 0 0 0 1px currentColor; }
-.download-handheld .download-handheld-action { margin-inline: 4px; }
-.download-handheld-action { display: inline-flex; align-items: center; min-height: 48px; margin-top: 16px; padding: 0 24px; border-radius: 999px; background: var(--site-text); color: var(--site-bg); text-decoration: none; }
-.download-handheld [role="status"] { color: var(--site-text); font-weight: 500; }
-.download-handheld [role="status"]:empty { display: none; }
 /* Cards flex to fill each row, so three or four visible downloads never
    leave an orphan cell. */
 .download-options { display: flex; flex-wrap: wrap; margin: 70px 0 0; border-top: 1px solid var(--site-border); border-left: 1px solid var(--site-border); }
@@ -1173,26 +1163,28 @@ a:focus-visible, button:focus-visible { outline: 2px solid var(--site-accent); o
 .dl-icon { width: 132px; height: 132px; filter: drop-shadow(0 18px 30px rgb(120 80 20 / 0.18)); }
 .dl-hero h1 { margin: 22px 0 0; font-family: var(--site-font-display); font-size: clamp(44px, 6.4vw, 80px); font-weight: 400; letter-spacing: 0; line-height: 1; }
 .dl-lede { margin: 16px 0 0; color: var(--site-text-dim); font-size: 18px; line-height: 1.5; text-wrap: balance; }
-.dl-hero .download-handheld { margin-top: 28px; text-align: left; }
 
 /* Segmented control: four radios, one sliding pill. */
 .dl-chooser { position: relative; display: flex; flex-direction: column; align-items: center; width: 100%; margin-top: 40px; }
 .dl-radio { position: absolute; top: 20px; left: 50%; width: 1px; height: 1px; margin: -1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0; }
-.dl-switch { position: relative; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); width: min(100%, 440px); padding: 4px; border-radius: 999px; background: rgb(32 26 18 / 0.07); }
+.dl-switch { position: relative; display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); width: min(100%, 540px); padding: 4px; border-radius: 999px; background: rgb(32 26 18 / 0.07); }
 .dl-switch label { position: relative; z-index: 1; display: flex; align-items: center; justify-content: center; gap: 7px; height: 40px; border-radius: 999px; color: var(--site-text-dim); font-size: 14px; font-weight: 500; cursor: pointer; user-select: none; transition: color 0.2s ease; -webkit-tap-highlight-color: transparent; }
 .dl-switch label .platform-logo { width: 14px; height: 15px; fill: currentColor; }
-.dl-switch-pill { position: absolute; top: 4px; bottom: 4px; left: 4px; width: calc((100% - 8px) / 4); border-radius: 999px; background: var(--site-bg); box-shadow: 0 1px 2px rgb(32 26 18 / 0.12), 0 6px 16px -6px rgb(32 26 18 / 0.25); transition: transform 0.42s cubic-bezier(0.22, 1, 0.36, 1); }
+.dl-switch-pill { position: absolute; top: 4px; bottom: 4px; left: 4px; width: calc((100% - 8px) / 5); border-radius: 999px; background: var(--site-bg); box-shadow: 0 1px 2px rgb(32 26 18 / 0.12), 0 6px 16px -6px rgb(32 26 18 / 0.25); transition: transform 0.42s cubic-bezier(0.22, 1, 0.36, 1); }
 #dl-os-win:checked ~ .dl-switch .dl-switch-pill { transform: translateX(100%); }
 #dl-os-linux:checked ~ .dl-switch .dl-switch-pill { transform: translateX(200%); }
 #dl-os-iphone:checked ~ .dl-switch .dl-switch-pill { transform: translateX(300%); }
+#dl-os-android:checked ~ .dl-switch .dl-switch-pill { transform: translateX(400%); }
 #dl-os-mac:checked ~ .dl-switch label[for="dl-os-mac"],
 #dl-os-win:checked ~ .dl-switch label[for="dl-os-win"],
 #dl-os-linux:checked ~ .dl-switch label[for="dl-os-linux"],
-#dl-os-iphone:checked ~ .dl-switch label[for="dl-os-iphone"] { color: var(--site-text); }
+#dl-os-iphone:checked ~ .dl-switch label[for="dl-os-iphone"],
+#dl-os-android:checked ~ .dl-switch label[for="dl-os-android"] { color: var(--site-text); }
 #dl-os-mac:focus-visible ~ .dl-switch label[for="dl-os-mac"],
 #dl-os-win:focus-visible ~ .dl-switch label[for="dl-os-win"],
 #dl-os-linux:focus-visible ~ .dl-switch label[for="dl-os-linux"],
-#dl-os-iphone:focus-visible ~ .dl-switch label[for="dl-os-iphone"] { outline: 2px solid var(--site-gold); outline-offset: 2px; }
+#dl-os-iphone:focus-visible ~ .dl-switch label[for="dl-os-iphone"],
+#dl-os-android:focus-visible ~ .dl-switch label[for="dl-os-android"] { outline: 2px solid var(--site-gold); outline-offset: 2px; }
 .dl-switch label:active { transform: scale(0.97); }
 
 /* One panel at a time; it arrives with a short rise. */
@@ -1201,7 +1193,8 @@ a:focus-visible, button:focus-visible { outline: 2px solid var(--site-accent); o
 #dl-os-mac:checked ~ .dl-panels .dl-panel[data-os="mac"],
 #dl-os-win:checked ~ .dl-panels .dl-panel[data-os="win"],
 #dl-os-linux:checked ~ .dl-panels .dl-panel[data-os="linux"],
-#dl-os-iphone:checked ~ .dl-panels .dl-panel[data-os="iphone"] { display: flex; animation: dl-panel-in 0.36s cubic-bezier(0.22, 1, 0.36, 1); }
+#dl-os-iphone:checked ~ .dl-panels .dl-panel[data-os="iphone"],
+#dl-os-android:checked ~ .dl-panels .dl-panel[data-os="android"] { display: flex; animation: dl-panel-in 0.36s cubic-bezier(0.22, 1, 0.36, 1); }
 @keyframes dl-panel-in { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
 .dl-actions { display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 12px 20px; }
 .dl-button { display: inline-flex; align-items: center; min-height: 56px; padding: 0 34px; border-radius: 999px; background: var(--site-text); color: var(--site-bg); font-size: 18px; font-weight: 500; text-decoration: none; box-shadow: 0 12px 28px -14px rgb(18 16 11 / 0.6); transition: background 0.18s ease, transform 0.1s ease-out; }
@@ -1209,15 +1202,18 @@ a:focus-visible, button:focus-visible { outline: 2px solid var(--site-accent); o
 .dl-button:active { transform: scale(0.97); }
 .dl-alt { color: var(--site-text); font-size: 15px; text-decoration: underline; text-decoration-color: var(--site-border); text-underline-offset: 4px; }
 .dl-alt:is(:hover, :focus-visible) { text-decoration-color: var(--site-gold); }
-.dl-meta { margin: 16px 0 0; color: var(--site-text-dim); font-family: var(--font-mono); font-size: 12.5px; }
-.dl-hint { margin: 8px 0 0; color: var(--site-text-dim); font-size: 15px; }
+/* Install lines (owner's pick, November 14, 2026): one face and size, the
+   spec dimmed, the step in full ink, a short gold rule between them. */
+.dl-meta { margin: 18px 0 0; color: var(--site-text-dim); font-size: 14px; }
+.dl-hint { margin: 0; color: var(--site-text); font-size: 14px; }
+.dl-hint::before { content: ""; display: block; width: 28px; height: 1px; margin: 12px auto; background: var(--site-gold); opacity: 0.6; }
 .dl-hint code { padding: 1px 6px; border-radius: 6px; background: rgb(0 0 0 / 0.05); font-size: 13px; }
 .dl-hint a { color: var(--site-text); text-decoration-color: var(--site-gold); text-underline-offset: 3px; }
 .dl-version { margin: 26px 0 0; color: var(--site-text-dim); font-family: var(--font-mono); font-size: 12px; }
 .dl-version a { color: inherit; text-decoration-color: var(--site-border); text-underline-offset: 3px; }
-.dl-hero .download-measurement { display: flex; align-items: center; justify-content: center; gap: 6px 14px; flex-wrap: wrap; margin: 18px 0 0; padding: 0; border: 0; color: var(--site-text-dim); font-size: 12px; }
-.dl-hero .download-measurement p { flex: 0 1 auto; max-width: 100%; margin: 0; text-wrap: balance; }
-.dl-hero .download-measurement button { min-height: 0; padding: 0; border: 0; background: none; color: var(--site-text); font: inherit; text-decoration: underline; text-decoration-color: var(--site-border); text-underline-offset: 3px; cursor: pointer; }
+.dl > .download-measurement { display: flex; align-items: center; justify-content: center; gap: 6px 14px; flex-wrap: wrap; margin: 40px 0 0; padding: 0; border: 0; color: var(--site-text-dim); font-size: 12px; }
+.dl > .download-measurement p { flex: 0 1 auto; max-width: 100%; margin: 0; text-wrap: balance; }
+.dl > .download-measurement button { min-height: 0; padding: 0; border: 0; background: none; color: var(--site-text); font: inherit; text-decoration: underline; text-decoration-color: var(--site-border); text-underline-offset: 3px; cursor: pointer; }
 
 /* Tiles: Blanc Beta first and darkest, so it can't be missed. */
 .dl-more { display: grid; grid-template-columns: 1.15fr 1fr 1fr; gap: 16px; margin-top: 88px; }
@@ -1275,6 +1271,7 @@ a:focus-visible, button:focus-visible { outline: 2px solid var(--site-accent); o
   #dl-os-mac:checked ~ .dl-panels .dl-panel[data-os="mac"],
   #dl-os-win:checked ~ .dl-panels .dl-panel[data-os="win"],
   #dl-os-linux:checked ~ .dl-panels .dl-panel[data-os="linux"],
-  #dl-os-iphone:checked ~ .dl-panels .dl-panel[data-os="iphone"] { animation: none; }
+  #dl-os-iphone:checked ~ .dl-panels .dl-panel[data-os="iphone"],
+  #dl-os-android:checked ~ .dl-panels .dl-panel[data-os="android"] { animation: none; }
   .dl-button:active, .dl-tile-button:active, .dl-switch label:active { transform: none; }
 }

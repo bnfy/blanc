@@ -224,6 +224,22 @@ export class Device {
     throw Error('The palette opened without a focused field');
   }
   paletteRows() { return paletteRows(this.dump()); }
+  // Waits for `text` in the open palette, scrolling its list: rows below the open tabs (the Recently
+  // closed band) can sit under what the keyboard leaves on screen, where a dump doesn't see them.
+  // Swipes inside the list's own bounds, so any screen size and keyboard height works.
+  async scrollPaletteTo(text, what = text, seconds = 15) {
+    await this.waitFor(async () => {
+      const xml = this.dump();
+      if (xml.includes(text)) return true;
+      const list = /<node [^>]*class="android\.widget\.ScrollView"[^>]*scrollable="true"[^>]*bounds="\[(\d+),(\d+)\]\[(\d+),(\d+)\]"/.exec(xml);
+      if (list) {
+        const [left, top, right, bottom] = list.slice(1).map(Number);
+        const x = Math.round((left + right) / 2), span = bottom - top;
+        this.swipe(x, Math.round(bottom - span * 0.15), x, Math.round(top + span * 0.15));
+      }
+      return false;
+    }, what, seconds);
+  }
   runInPalette(text) {
     this.openPalette();
     this.type(text);

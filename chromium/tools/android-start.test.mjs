@@ -30,20 +30,23 @@ function load(page = {}, hash = '') {
   const row = {offsetHeight: 300, getBoundingClientRect: () => ({height: 300, top: page.innerHeight / 2 - 150, bottom: page.innerHeight / 2 + 150})};
   const clock = page.metrics ? {textContent: '5:49', closest: () => row} : null;
   const popover = {showPopover: () => opened.push('customize')};
-  const s = page.shortcuts;
+  const s = page.shortcuts, b = page.blocked, edges = s || b;
   const billboard = {getBoundingClientRect: () => ({top: 120})};
-  const shortcuts = s ? {hidden: false, childElementCount: 4, closest: () => billboard,
+  const shortcuts = s ? {hidden: false, childElementCount: s.count ?? 4, closest: () => billboard, getClientRects: () => [{}],
     getBoundingClientRect: () => ({top: s.top, height: s.height})} : null;
+  // The week's blocked line: {top, height, text}; empty text is a line not yet filled in.
+  const blocked = b ? {hidden: false, textContent: b.text, getClientRects: () => [{}],
+    getBoundingClientRect: () => ({top: b.top, height: b.height})} : null;
   const parts = {
-    '.ledger-footer': s ? {getBoundingClientRect: () => ({top: s.footerTop})} : null,
-    '.start-header': s ? {getBoundingClientRect: () => ({bottom: s.headerBottom})} : null,
+    '.ledger-footer': edges ? {getBoundingClientRect: () => ({top: edges.footerTop})} : null,
+    '.start-header': edges ? {getBoundingClientRect: () => ({bottom: edges.headerBottom})} : null,
   };
   const body = element('body');
   const document = {
     documentElement: {dataset: {}, style: {setProperty: (k, v) => { rootStyle[k] = v; }}},
     head: {append: (...n) => appended.push(...n)}, body,
     createElement: tag => tag === 'canvas' ? canvas : element(tag),
-    getElementById: id => ({bbClock: clock, customizePopover: popover, bbFavorites: shortcuts,
+    getElementById: id => ({bbClock: clock, customizePopover: popover, bbFavorites: shortcuts, bbBlocked: blocked,
       androidShortcutMenu: body.children.find(n => n.id === 'androidShortcutMenu')})[id] ?? null,
     querySelector: selector => parts[selector] ?? null,
     addEventListener: (type, fn) => { (listeners[type] ||= []).push(fn); },
@@ -151,6 +154,40 @@ test('shortcuts that don\'t fit even then shrink the clock, which stays under th
   const half = 150 * fit;
   assert.ok(Math.abs(426 + nudge - half - (107 + 8)) < 0.5, 'its top 8 px under the date');
   assert.ok(Math.abs(426 + nudge + half + 64 + 300 - (680 - 16)) < 0.5, 'the rows end above Customize');
+});
+
+// No shortcuts: the week's blocked line, 12 px under the clock's box (426 + 150), gets the same room.
+const withBlocked = blocked => ({...PIXEL, blocked: {top: 588, height: 22, text: '0 Anzeigen diese Woche blockiert',
+  headerBottom: 107, ...blocked}});
+
+test('with no shortcuts, a blocked line that fits leaves the clock centered and full size', () => {
+  const {fire, rootStyle} = load(withBlocked({footerTop: 760}));
+  fire('DOMContentLoaded');
+  assert.ok(Math.abs(figuresAt(852) + parseFloat(rootStyle['--android-clock-nudge']) - (919 / 2 - 65)) < 0.01);
+  assert.equal(rootStyle['--android-clock-fit'], '1.000');
+});
+
+test('with no shortcuts, a blocked line that would sit on Customize lifts the clock until it ends 16 px above', () => {
+  // A short screen: Customize starts at 600, where the centered clock's line would end at 610.
+  const {fire, rootStyle} = load(withBlocked({footerTop: 600}));
+  fire('DOMContentLoaded');
+  const nudge = parseFloat(rootStyle['--android-clock-nudge']);
+  assert.ok(Math.abs(426 + nudge + 150 + 12 + 22 - (600 - 16)) < 0.01, `moved ${nudge}`);
+  assert.equal(rootStyle['--android-clock-fit'], '1.000');
+});
+
+test('a shortcut list with nothing in it leaves the room to the blocked line', () => {
+  const page = withBlocked({footerTop: 600});
+  const {fire, rootStyle} = load({...page, shortcuts: {top: 640, height: 0, count: 0, footerTop: 600, headerBottom: 107}});
+  fire('DOMContentLoaded');
+  const nudge = parseFloat(rootStyle['--android-clock-nudge']);
+  assert.ok(Math.abs(426 + nudge + 150 + 12 + 22 - (600 - 16)) < 0.01, `moved ${nudge}`);
+});
+
+test('a blocked line with nothing in it yet moves nothing', () => {
+  const {fire, rootStyle} = load(withBlocked({footerTop: 600, text: ''}));
+  fire('DOMContentLoaded');
+  assert.ok(Math.abs(figuresAt(852) + parseFloat(rootStyle['--android-clock-nudge']) - (919 / 2 - 65)) < 0.01);
 });
 
 // A shortcut as the fork draws it: its link, and its pin and × buttons (or only a pin when pinned).

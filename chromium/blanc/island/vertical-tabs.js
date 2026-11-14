@@ -249,7 +249,7 @@ const __blancMarkup = trustedTypes.createPolicy("blanc-static-vertical-tabs", {c
     viewport.style.removeProperty('--vertical-tab-title-duration');
     delete viewport.dataset.overflowing;
     const primary = viewport.closest('.vertical-tab-primary');
-    if (primary && !primary.hasAttribute('title')) {
+    if (primary && !primary.hasAttribute('title') && document.documentElement.dataset.railPreviews !== 'on') {
       primary.title = viewport.textContent;
     }
   }
@@ -368,7 +368,7 @@ const __blancMarkup = trustedTypes.createPolicy("blanc-static-vertical-tabs", {c
       states.length ? blancI18n.t('rail.tab.withStates', { label: rowLabel, states: states.join(', ') }) : rowLabel
     );
     if (active) primary.setAttribute('aria-current', 'page');
-    primary.title = tab.pageTitle || title;
+    if (document.documentElement.dataset.railPreviews !== 'on') primary.title = tab.pageTitle || title;
     // A tab title is page data, not interface copy (pseudo-locale sweep): only
     // this button's title attribute and the title text below are exempt.
     if (tab.title) primary.dataset.i18nIgnore = 'title';

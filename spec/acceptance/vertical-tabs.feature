@@ -264,3 +264,10 @@ Feature: Desktop vertical tabs
     Then both selected tabs are in a group named "Pair"
     When I set the tab layout to "island"
     Then the Space mark leaves the rail and the resting Island does not show it
+
+  @F28-21 @F28 @desktop
+  Scenario: A long Space name in the rail stays clear of the window controls
+    Given a fresh desktop settings profile
+    When I set the tab layout to "vertical"
+    And a space named "Quarterly client research and planning" in this window, colored "#426c4c" with the symbol "briefcase"
+    Then at every rail width the Space mark "Quarterly client research and planning" clears the window controls, its name ending in an ellipsis at the narrowest

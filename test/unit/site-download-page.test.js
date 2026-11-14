@@ -46,14 +46,14 @@ test('each new sentence rests on a claim recorded in an earlier, checked ledger'
 
 test('the system switch works without scripting and every download is a counted link', () => {
   const radios = [...page.matchAll(/<input class="dl-radio" type="radio" name="dl-os" id="dl-os-(\w+)" value="(\w+)"( checked)? \/>/g)];
-  assert.deepEqual(radios.map((m) => m[2]), ['mac', 'win', 'linux', 'iphone']);
+  assert.deepEqual(radios.map((m) => m[2]), ['mac', 'win', 'linux', 'iphone', 'android']);
   assert.deepEqual(radios.filter((m) => m[3]).map((m) => m[2]), ['mac'], 'Mac shows without scripting');
-  for (const os of ['mac', 'win', 'linux', 'iphone']) {
+  for (const os of ['mac', 'win', 'linux', 'iphone', 'android']) {
     assert.match(page, new RegExp(`<label for="dl-os-${os}">`));
     assert.match(page, new RegExp(`<div class="dl-panel" data-os="${os}">`));
   }
   const css = read('site/src/styles/site.css');
-  for (const os of ['mac', 'win', 'linux', 'iphone']) assert.ok(css.includes(`#dl-os-${os}:checked ~ .dl-panels .dl-panel[data-os="${os}"]`), `${os} panel switches in CSS`);
+  for (const os of ['mac', 'win', 'linux', 'iphone', 'android']) assert.ok(css.includes(`#dl-os-${os}:checked ~ .dl-panels .dl-panel[data-os="${os}"]`), `${os} panel switches in CSS`);
   for (const target of ['mac-arm64', 'mac-x64', 'win', 'linux', 'beta']) assert.match(page, new RegExp(`href="/dl/${target}"`));
   assert.match(page, /<h1 id="download-title">Download Blanc<\/h1>/);
   assert.doesNotMatch(main, /<h[12][^>]*>[^<]*\.<\/h[12]>/, 'no full stops after large headings');
@@ -66,7 +66,7 @@ test('the switcher preselects the visitor’s system and nothing else', async ()
   assert.equal(detectSystem('Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7)', 5), 'iphone', 'iPadOS asks for desktop sites');
   assert.equal(detectSystem('Mozilla/5.0 (iPhone; CPU iPhone OS 18_4 like Mac OS X)'), 'iphone');
   assert.equal(detectSystem('Mozilla/5.0 (X11; Linux x86_64)'), 'linux');
-  assert.equal(detectSystem('Mozilla/5.0 (Linux; Android 15)'), null, 'Android keeps the default');
+  assert.equal(detectSystem('Mozilla/5.0 (Linux; Android 15)'), 'android', 'Android opens the Android tab, never Linux');
   const radios = ['mac', 'win', 'linux', 'iphone'].map((value) => ({ value, checked: value === 'mac' }));
   const chooser = { querySelector: (selector) => radios.find((r) => selector.includes(`value="${r.value}"`)) };
   const view = { document: { querySelector: () => chooser }, navigator: { userAgent: 'Mozilla/5.0 (X11; Linux x86_64)', maxTouchPoints: 0 } };

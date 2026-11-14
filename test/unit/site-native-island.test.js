@@ -417,7 +417,7 @@ test('the resting-Island figures draw a native window in the tab states the app 
   assert.ok(rail.rail.includes(verticalTabs.match(/\bclose: '(<svg[^']+)'/)[1]), 'rows close with vertical-tabs.js’s own glyph');
   assert.match(rail.rail, /<kbd id="verticalTabsNewShortcut">⌘T<\/kbd>/);
   assert.doesNotMatch(rail.rail, /data-i18n/);
-  for (const rule of ['.native-window[data-tab-layout="vertical"] #pillDots {', '.native-window[data-tab-layout="vertical"] #pillNewTab {', '.native-window.mac .vertical-tabs-toolbar {', '.vertical-tab-row.active {']) {
+  for (const rule of ['.native-window[data-tab-layout="vertical"] #pillDots {', '.native-window[data-tab-layout="vertical"] #pillNewTab {', '.native-window.mac .vertical-tabs-toolbar {', '.native-window.mac .vertical-tabs-toolbar .vertical-tabs-layout-button {', '.vertical-tab-row.active {']) {
     assert.ok(rail.css.includes(rule), rule);
   }
   assert.match(rail.css, /url\("\/panel-left\.svg"\)/);

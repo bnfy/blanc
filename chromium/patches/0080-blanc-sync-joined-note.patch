@@ -1,0 +1,82 @@
+diff --git a/chrome/browser/resources/settings/blanc_sync_page/blanc_sync_page.html b/chrome/browser/resources/settings/blanc_sync_page/blanc_sync_page.html
+index 1eae8f5..19a9588 100644
+--- a/chrome/browser/resources/settings/blanc_sync_page/blanc_sync_page.html
++++ b/chrome/browser/resources/settings/blanc_sync_page/blanc_sync_page.html
+@@ -176,6 +176,7 @@
+       <p id="syncBusy" role="status" ?hidden="${!this.busy_}">
+         ${this.state_?.status?.enabled ? '$i18n{blancSyncSyncing}' : '$i18n{blancSyncChecking}'}
+       </p>
++      <p id="syncJoined" role="status" ?hidden="${!this.joined_}">${this.joined_}</p>
+       <p id="syncError" role="alert" ?hidden="${!this.notice_ || this.notice_ === this.statusText_()}">${this.notice_}</p>
+       <p id="syncLastError" role="status" ?hidden="${!this.state_?.status?.lastError}">
+         $i18n{blancSyncLastError}: ${this.state_?.status?.lastError ? this.errorText_(this.state_.status.lastError) : ''}
+diff --git a/chrome/browser/resources/settings/blanc_sync_page/blanc_sync_page.ts b/chrome/browser/resources/settings/blanc_sync_page/blanc_sync_page.ts
+index 45c0199..d0bc03b 100644
+--- a/chrome/browser/resources/settings/blanc_sync_page/blanc_sync_page.ts
++++ b/chrome/browser/resources/settings/blanc_sync_page/blanc_sync_page.ts
+@@ -50,6 +50,7 @@ export class BlancSyncPageElement extends CrLitElement implements
+       path_: {type: String},
+       busy_: {type: Boolean},
+       notice_: {type: String},
++      joined_: {type: String},
+       codeValid_: {type: Boolean},
+       credentialsValid_: {type: Boolean},
+       confirming_: {type: Boolean},
+@@ -70,6 +71,9 @@ export class BlancSyncPageElement extends CrLitElement implements
+   protected accessor path_: ''|'code'|'passphrase'|'start' = '';
+   protected accessor busy_: boolean = false;
+   protected accessor notice_: string = '';
++  // Shipping's settings.sync.connectedTo after a join with a code (beta.3's
++  // real-iPhone pass: nothing said what had happened).
++  protected accessor joined_: string = '';
+   protected accessor codeValid_: boolean = false;
+   protected accessor credentialsValid_: boolean = false;
+   protected accessor confirming_: boolean = false;
+@@ -486,12 +490,14 @@ export class BlancSyncPageElement extends CrLitElement implements
+   }
+ 
+   // Effects only run in action handlers, never in render or state observers.
+-  private async act_(effect: () => Promise<BlancSyncResult>) {
++  private async act_(effect: () => Promise<BlancSyncResult>,
++                     joined?: (status: BlancSyncStatus) => string) {
+     if (this.busy_ || !this.state_?.available || !this.state_.status) {
+       return;
+     }
+     this.busy_ = true;
+     this.notice_ = '';
++    this.joined_ = '';
+     const lifetime = this.lifetime_;
+     try {
+       const result = await effect();
+@@ -508,6 +514,9 @@ export class BlancSyncPageElement extends CrLitElement implements
+       }
+       if (result.status?.enabled) {
+         this.path_ = '';
++        if (result.ok && joined) {
++          this.joined_ = joined(result.status);
++        }
+       }
+       await this.refresh_();
+     } catch (error) {
+@@ -533,7 +542,8 @@ export class BlancSyncPageElement extends CrLitElement implements
+     event.preventDefault();
+     if (this.path_ === 'code' && this.codeValid_) {
+       const code = this.$.syncCode.value.trim();
+-      void this.act_(() => blancSync.call('sync.joinWithCode', [code]));
++      void this.act_(() => blancSync.call('sync.joinWithCode', [code]),
++          status => blancString('blancSyncConnectedTo', {name: status.handle}));
+     } else if ((this.path_ === 'passphrase' || this.path_ === 'start') && this.credentialsValid_) {
+       const credentials = {
+         handle: this.$.syncHandle.value.trim(),
+diff --git a/chrome/browser/ui/webui/settings/settings_ui.cc b/chrome/browser/ui/webui/settings/settings_ui.cc
+index 3b07684..784f306 100644
+--- a/chrome/browser/ui/webui/settings/settings_ui.cc
++++ b/chrome/browser/ui/webui/settings/settings_ui.cc
+@@ -337,6 +337,7 @@ SettingsUI::SettingsUI(content::WebUI* web_ui)
+   html_source->AddString("blancSyncLocalKeyUnlock", u"Could not unlock the local sync key");
+   html_source->AddString("blancSyncServer", u"Sync sent an unexpected response — try again later.");
+   html_source->AddString("blancSyncTryAgain", u"Try again");
++  html_source->AddString("blancSyncConnectedTo", u"Connected to “{name}”. Pulling your favorites and settings now.");
+   html_source->AddString("blancSyncLastError", u"Last error");
+   html_source->AddString("blancSyncScope", u"Sync your favorites and settings across your devices, end-to-end encrypted.");
+   html_source->AddString("blancSyncOn", u"Sync is on.");

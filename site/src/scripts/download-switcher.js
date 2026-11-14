@@ -2,12 +2,13 @@
 // panels in CSS, so the page works without scripting (Mac is checked in the
 // markup); this only preselects the visitor's own system. iPadOS asks for
 // desktop sites with a Mac user agent, so touch decides it is an iPad. Nothing
-// is stored or sent.
+// is stored or sent. Android preselects the Android tab, which leads only to
+// the beta signup until Blanc for Android is released.
 
 export function detectSystem(userAgent, maxTouchPoints = 0) {
   if (/Windows/i.test(userAgent)) return 'win';
   if (/iPhone|iPad|iPod/i.test(userAgent)) return 'iphone';
-  if (/Android/i.test(userAgent)) return null;
+  if (/Android/i.test(userAgent)) return 'android';
   if (/Mac OS X|Macintosh/i.test(userAgent)) return maxTouchPoints > 1 ? 'iphone' : 'mac';
   if (/Linux/i.test(userAgent)) return 'linux';
   return null;

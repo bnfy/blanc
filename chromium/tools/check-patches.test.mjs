@@ -38,7 +38,7 @@ test('desktop lane reconstructs its pinned source set', () => {
   const plain = check(tree), desktop = check(tree, '--lane', 'desktop');
   assert.equal(plain.status, 0, plain.stderr);
   assert.equal(desktop.stdout, plain.stdout);
-  assert.match(plain.stdout, /"upstreamFiles": 176/);
+  assert.match(plain.stdout, /"upstreamFiles": 178/);
 });
 
 test('android lane verifies its own inputs', () => withAndroidLane((root, file) => {
