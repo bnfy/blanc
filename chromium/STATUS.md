@@ -2852,7 +2852,7 @@ Android works (and how the iPhone will), and its choices stay on the phone, as t
   Appearance has a Start Page row. Both ask through one app preference (`StartPageCustomize`); the Island opens
   `#customize` on the Start Page in view, or on a new one. This is a divergence from the iPhone, whose Start
   Page row opens native Settings screens: the fork keeps these choices in Customize.
-- **Footer:** Mahjong and Customize stay above the Island, as on the iPhone; what scrolls under them goes behind
+- **Footer:** Customize stays above the Island (Mahjong's button is hidden on Android: the game isn't laid out for phones yet; owner, November 14, 2026), as on the iPhone; what scrolls under them goes behind
   shipping's frosted band, tinted from the page's background (a Color's base for Solid and Gradient) so the
   labels read on any wallpaper. The first emulator run showed white labels lost on a cream fade over a blue
   Color wallpaper; this replaced it.
