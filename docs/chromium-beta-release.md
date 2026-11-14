@@ -717,3 +717,28 @@ signed build run it on the unsigned candidate that produced it and record the
 equivalence. On the local-qualification beta (2026-11-14) all four scenarios
 passed. Not covered here: the Island resources and the EME notice and stable
 handoff (`no-drm-handoff`). Tests: `chromium/release/blocker-evidence.test.mjs`.
+
+### Outbound isolation of the packaged beta (2026-11-14)
+
+The S1.1 harness (`chromium/tests/outbound/`) drives the prototype through
+test hooks, a recording proxy and `--disable-background-networking`, so it
+can't show what a beta contacts on its own. The beta variant runs the app as
+a person does: `setup.sh --refresh --beta APP CONFIG` copies the beta to
+`/Users/Shared/blanc-outbound/beta`; `sudo root.sh start` loads the owner-
+approved pf anchor (2026-10-31: every packet the `blanc-test` user sends off
+the Mac is dropped and logged); in the `blanc-test` session,
+`Run beta outbound check.command` (`beta-user.sh`) runs the negative controls,
+then `beta-scenarios.mjs` (startup and three minutes idle on a loopback page,
+a relaunch, a private window, about six minutes, each with Chromium's
+`--log-net-log`), then the controls again; `sudo root.sh stop`; then
+`node chromium/tests/outbound/analyze-beta.mjs /Users/Shared/blanc-outbound/results-beta`.
+The run is valid only if every control reaches the pf log and every network
+log names the page's unresolvable probe host; it passes only if no blocked
+packet could have come from a Blanc process and no network log names an
+outside host. For a local-qualification beta nothing outside is intended
+(its feed is on loopback, a fresh profile has no Sync); a production run
+names its feed and release hosts with `--allow`. The network log covers
+Chromium's own requests; Sparkle and macOS frameworks are covered by the pf
+log alone. An offline dry run as the owner (2026-11-14, every host resolving
+to nothing) showed only localhost and the probe in all three logs.
+Tests: `chromium/tests/outbound-beta.test.mjs`.
