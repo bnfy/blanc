@@ -13,7 +13,13 @@ export function validateAcceptance(evidence, r, payloads) {
     const e = evidence.arches[arch]; equal(e.candidate, r.candidates[arch], 'acceptance candidate');
     equal(e.dmgSHA256, sha256(payloads[assetName(r, arch)]), 'acceptance must bind final DMG bytes');
     equal(e.gnArgsSHA256, r.gnArgsSHA256[arch], 'acceptance build arguments');
-    for (const gate of GATES) check(e.gates?.[gate]?.status === 'pass' && /^[a-f0-9]{64}$/.test(e.gates[gate].evidenceSHA256), `missing candidate gate: ${gate}`);
+    // A gate passes, or is waived only where the release descriptor carries the owner's
+    // waiver for it (policy GATE_WAIVERS). A waived gate still needs its evidence bundle:
+    // the waiver record itself.
+    for (const gate of GATES) {
+      const g = e.gates?.[gate];
+      check((g?.status === 'pass' || (g?.status === 'waived' && typeof r.gateWaivers?.[gate] === 'string')) && /^[a-f0-9]{64}$/.test(g.evidenceSHA256), `missing candidate gate: ${gate}`);
+    }
   }
 }
 // acceptance.json is an index of attestations. At manifest build the operator must hand over the

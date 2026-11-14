@@ -852,3 +852,13 @@ tried on a local image of the local-qualification beta.
 - **sparkle-N-to-N+1:** the local update proof (good feed installs; wrong key
   and tampered refused) counts for beta.2; the first signed handoff is
   beta.2 → beta.3 after publication, recorded then.
+- **no-drm-handoff (waived for beta.2):** the protected-video notice and its
+  open-in-Electron-Blanc action (D3/X2) are not built yet. The owner waived
+  the gate for 2.0.0-beta.2 only, choosing to ship without the notice: on a
+  site that asks for protected video, playback simply fails. The notice is
+  due in beta.3. `policy.mjs` `GATE_WAIVERS` holds the only waivable gate and
+  release; beta.2's descriptor carries `gateWaivers["no-drm-handoff"]` with
+  the owner's reason, its `acceptance.json` marks the gate `waived`, and the
+  evidence bundle is the waiver record. `manifest.mjs` refuses a `waived`
+  gate without that descriptor entry. Make no public claim about protected
+  video in Blanc Beta.

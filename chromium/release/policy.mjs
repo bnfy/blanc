@@ -9,6 +9,10 @@ export const FEED_ROOT = 'https://blanc.day/updates/chromium-beta/';
 export const UPSTREAM = '681cd621e82e606d7536eae8ea2576afb3c7d65c';
 export const CHROME_VERSION = '158.0.8127.2';
 export const SPARKLE = '2.10.1';
+// Release gates the owner waived in writing, by release. Owner, 2026-11-14: 2.0.0-beta.2
+// ships without the protected-video notice and its Electron Blanc handoff (D3/X2,
+// gate no-drm-handoff); the notice is due in beta.3. Any other waiver is refused.
+export const GATE_WAIVERS = Object.freeze({'2.0.0-beta.2': Object.freeze(['no-drm-handoff'])});
 export const sha256 = bytes => createHash('sha256').update(bytes).digest('hex');
 // The certificate's standard SHA-1 thumbprint: the identifier Keychain, codesign and the
 // pinned identity all use. An identifier for matching the pin, not a security digest.
@@ -52,6 +56,13 @@ export function validateRelease(r, {allowLocalQualification = false} = {}) {
   // The owner's Intel waiver (2026-11-10) covers the first beta: beta.1 is the private
   // local-qualification build, and the first public beta is beta.2 (owner, 2026-11-13).
   if (['2.0.0-beta.1', '2.0.0-beta.2'].includes(r.version)) equal(r.arches, ['arm64'], 'the first beta is Apple Silicon only under the owner Intel waiver');
+  if (r.gateWaivers !== undefined) {
+    check(r.gateWaivers && typeof r.gateWaivers === 'object' && !Array.isArray(r.gateWaivers), 'gate waivers must be an object');
+    for (const [gate, why] of Object.entries(r.gateWaivers)) {
+      check((GATE_WAIVERS[r.version] ?? []).includes(gate), `no owner waiver for gate: ${gate}`);
+      check(typeof why === 'string' && why.trim().length >= 20, `gate waiver needs the owner's reason: ${gate}`);
+    }
+  }
   equal(Object.keys(r.candidates).sort(), [...r.arches].sort(), 'candidate for every architecture');
   for (const arch of r.arches) {
     check(/^macos-[a-f0-9]{16}$/.test(r.candidates[arch]), 'candidate id');

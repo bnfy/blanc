@@ -937,6 +937,11 @@ remain pending. D3 beta-only no-DRM exception accepted; EME notice/handoff requi
   own checks), desktop Sync by the local-build check, and the update gate by
   the local proof; the first signed handoff is beta.2 → beta.3 after release
   (docs/chromium-beta-release.md, Owner gate decisions).
+- **Protected-video gate waived for beta.2 (owner, 2026-11-14):** the EME
+  notice and Electron Blanc handoff (`no-drm-handoff`, D3/X2) are not built;
+  beta.2 ships without them and the notice is due in beta.3. Only that gate
+  and release can be waived (`policy.mjs` `GATE_WAIVERS`); `manifest.mjs`
+  accepts a `waived` gate only with the descriptor's `gateWaivers` entry.
 - **Beta.2 production build (owner, 2026-11-14):** `out/BlancBeta` switched to
   production (2.0.0-beta.2, build 2, the production key, local qualification
   off) and rebuilt through the guard with the owner-approved
