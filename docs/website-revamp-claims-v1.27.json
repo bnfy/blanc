@@ -7026,27 +7026,6 @@
       "verdict": "qualified"
     },
     {
-      "id": "handheld-download-heading",
-      "source": "site/src/pages/download.astro",
-      "exactWording": "On a phone or tablet?",
-      "subject": "Blanc",
-      "evidenceGroups": [
-        "releaseAuthentication"
-      ],
-      "verdict": "qualified"
-    },
-    {
-      "id": "handheld-download-note",
-      "source": "site/src/pages/download.astro",
-      "exactWording": "Blanc is a desktop browser for macOS, Windows and Linux.",
-      "subject": "Blanc",
-      "evidenceGroups": [
-        "navigation",
-        "releaseAuthentication"
-      ],
-      "verdict": "qualified"
-    },
-    {
       "id": "handheld-copied",
       "source": "site/src/scripts/handheld-download.js",
       "exactWording": "Link copied",
@@ -14117,6 +14096,29 @@
       ],
       "verdict": "qualified",
       "reason": "Removed from /download on November 14, 2026, when the owner had the page reimagined with far fewer words (one button per system, three tiles, one line of facts). The new wording is recorded in docs/website-download-redesign-2026-11-14-claims.json."
+    },
+    {
+      "id": "handheld-download-heading",
+      "source": "site/src/pages/download.astro",
+      "exactWording": "On a phone or tablet?",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "releaseAuthentication"
+      ],
+      "verdict": "qualified",
+      "reason": "Removed from /download on November 14, 2026, with the \"On a phone or tablet?\" box: the platform switcher now opens on the iPhone tab for iPhones and iPads and on the Android tab for Android phones, so phone visitors no longer need to send the page to a computer (owner decision recorded in docs/website-download-redesign-2026-11-14-claims.json)."
+    },
+    {
+      "id": "handheld-download-note",
+      "source": "site/src/pages/download.astro",
+      "exactWording": "Blanc is a desktop browser for macOS, Windows and Linux.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "navigation",
+        "releaseAuthentication"
+      ],
+      "verdict": "qualified",
+      "reason": "Removed from /download on November 14, 2026, with the \"On a phone or tablet?\" box: the platform switcher now opens on the iPhone tab for iPhones and iPads and on the Android tab for Android phones, so phone visitors no longer need to send the page to a computer (owner decision recorded in docs/website-download-redesign-2026-11-14-claims.json)."
     }
   ]
 }

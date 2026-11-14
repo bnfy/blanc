@@ -22,6 +22,8 @@ test('the form posts to the Worker route, keeps the address out of the URL and h
   assert.match(form, /button\.disabled = false;\n/);
   assert.match(form, /separate from the Blanc newsletter, and we delete it when the beta ends/);
   assert.match(form, /href="\/privacy#android-beta"/);
+  // The privacy page lists the measured website events; this form adds none.
+  assert.doesNotMatch(form, /data-track/);
 });
 
 test('the privacy page describes the beta list', async () => {
@@ -49,7 +51,7 @@ test('the Download page has an Android tab that leads only to the beta signup', 
   assert.match(page, /<input class="dl-radio" type="radio" name="dl-os" id="dl-os-android" value="android" \/>/);
   assert.match(page, /<label for="dl-os-android"><PlatformLogo platform="android" \/>Android<\/label>/);
   const panel = page.match(/<div class="dl-panel" data-os="android">([\s\S]*?)\n        <\/div>/)?.[1] ?? '';
-  assert.match(panel, /<a class="dl-button" href="\/android-beta" data-track="android_beta_cta"/);
+  assert.match(panel, /<a class="dl-button" href="\/android-beta">Join the Android beta<\/a>/);
   assert.equal([...panel.matchAll(/href="/g)].length, 1, 'the panel links only to the beta signup');
   assert.match(panel, /Blanc for Android isn’t released yet\./);
   assert.doesNotMatch(page, /data-android/, 'the phone-box version is gone');

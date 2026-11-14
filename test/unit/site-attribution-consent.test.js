@@ -10,10 +10,11 @@ test('download measurement choices disclose the default without gating installer
   const html = fs.readFileSync(path.resolve(__dirname, '../../site/src/pages/download.astro'), 'utf8');
   assert.match(html, /<button type="button" data-consent-open aria-controls="consent">Measurement choices<\/button>/);
   assert.match(html, /on by default outside the EEA, UK and Switzerland/);
-  // Redesign of 2026-11-14: the disclosure sits under the download button,
-  // before the rest of the page's download options.
-  assert.ok(html.indexOf('download-measurement') > html.indexOf('data-download-chooser'));
-  assert.ok(html.indexOf('download-measurement') < html.indexOf('id="download-more"'));
+  // Disclaimers sit just above the footer, never in the hero (owner,
+  // 2026-11-14): the disclosure is the last thing in <main>.
+  const main = html.slice(html.indexOf('<main'), html.indexOf('</main>'));
+  assert.ok(main.indexOf('class="download-measurement"') > main.indexOf('class="dl-facts"'));
+  assert.match(main, /<aside class="download-measurement"[\s\S]*?<\/aside>\s*$/);
   for (const platform of ['mac-arm64', 'mac-x64', 'win', 'linux']) {
     assert.match(html, new RegExp(`href="/dl/${platform}"`));
   }

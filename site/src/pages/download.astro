@@ -58,15 +58,6 @@ const latest = releases[0];
     <h1 id="download-title">Download Blanc</h1>
     <p class="dl-lede">Free for Mac, Windows, Linux, iPhone and iPad.</p>
 
-    <aside class="download-handheld" data-handheld-note hidden aria-labelledby="handheld-title">
-      <h2 id="handheld-title">On a phone or tablet?</h2>
-      <p data-not-ios>Blanc is a desktop browser for macOS, Windows and Linux.</p>
-      <p data-ios-store hidden>Blanc for iPhone and iPad is free on the App Store. Blanc for your Mac or PC is a desktop browser for macOS, Windows and Linux.</p>
-      <a class="download-handheld-action" href={ios.storeUrl} rel="noopener" data-ios-store hidden>Get it on the App Store</a>
-      <a class="download-handheld-action" href="/download" data-handheld-share="download-share-status" data-handheld-label="Send to my computer" data-handheld-text="Blanc is a desktop browser for macOS, Windows and Linux.">Send to my computer</a>
-      <p id="download-share-status" role="status" aria-live="polite"></p>
-    </aside>
-
     <div class="dl-chooser" id="download-options" data-download-chooser>
       <input class="dl-radio" type="radio" name="dl-os" id="dl-os-mac" value="mac" checked />
       <input class="dl-radio" type="radio" name="dl-os" id="dl-os-win" value="win" />
@@ -116,7 +107,7 @@ const latest = releases[0];
              signup (CLAUDE.md, Blanc for Android). -->
         <div class="dl-panel" data-os="android">
           <div class="dl-actions">
-            <a class="dl-button" href="/android-beta" data-track="android_beta_cta" data-cta-position="download-hero">Join the Android beta</a>
+            <a class="dl-button" href="/android-beta">Join the Android beta</a>
           </div>
           <p class="dl-meta">Blanc for Android isn’t released yet.</p>
           <p class="dl-hint">You can sign up to test it on Google Play.</p>
@@ -125,11 +116,6 @@ const latest = releases[0];
     </div>
 
     <p class="dl-version">Blanc {latest.version} · <a href="/changelog" data-track="feature_cta_click" data-feature="changelog" data-cta-position="download-options">What’s new</a></p>
-
-    <aside class="download-measurement" aria-label="Optional website measurement">
-      <p>Google analytics and ad measurement are on by default outside the EEA, UK and Switzerland.</p>
-      <button type="button" data-consent-open aria-controls="consent">Measurement choices</button>
-    </aside>
   </section>
 
   <section class="dl-more" id="download-more" aria-label="More ways to get Blanc">
@@ -185,12 +171,17 @@ const latest = releases[0];
     <p>No general extension support. Synced provider passkeys, including iCloud Keychain, are not supported.</p>
     <p>Download didn’t start? <a href="https://github.com/bnfy/blanc/releases/latest" target="_blank" rel="noopener">Open the release page</a> · <!--email_off--><a href="mailto:support@blanc.day">support@blanc.day</a><!--/email_off--></p>
   </section>
+
+  <!-- Disclaimers sit just above the footer, never in the hero (owner,
+       November 14, 2026). -->
+  <aside class="download-measurement" aria-label="Optional website measurement">
+    <p>Google analytics and ad measurement are on by default outside the EEA, UK and Switzerland.</p>
+    <button type="button" data-consent-open aria-controls="consent">Measurement choices</button>
+  </aside>
 </main>
 <script>
-  import { initHandheldDownload } from '../scripts/handheld-download.js';
   import { initTerminalCopy } from '../scripts/terminal-copy.js';
   import { initDownloadSwitcher } from '../scripts/download-switcher.js';
-  initHandheldDownload();
   initTerminalCopy();
   initDownloadSwitcher();
 </script>
