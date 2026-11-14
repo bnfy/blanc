@@ -304,10 +304,14 @@ final class ChromiumSettingsHost implements BlancSettingsScreen.Host {
     }
 
     private void setLanguage(@Nullable String tag) {
-        ApplicationLifetime.setRestartForLocaleSwitch(true);
+        @Nullable LocaleManager manager = null;
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-            LocaleManager manager = mActivity.getSystemService(LocaleManager.class);
+            manager = mActivity.getSystemService(LocaleManager.class);
             if (manager == null) return;
+        }
+        // Before the switch: Android may recreate Settings for it, which restarts Blanc with this set.
+        ApplicationLifetime.setRestartForLocaleSwitch(true);
+        if (manager != null && Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             manager.setApplicationLocales(tag == null ? LocaleList.getEmptyLocaleList() : LocaleList.forLanguageTags(tag));
         } else {
             ContextUtils.getAppSharedPreferences().edit().putString(OVERRIDE_LANGUAGE, tag).commit();

@@ -142,12 +142,31 @@ public final class WalkthroughSheet {
     /** Closes the card by any path (§3.2): the privacy choice on screen is saved if it wasn't. */
     public void close() {
         if (mClosed) return;
+        mStore.setWalkthroughCompletedVersion(WalkthroughFlow.VERSION);
+        end();
+    }
+
+    /**
+     * The activity went away under the card (a configuration or theme change, Android reclaiming it):
+     * the privacy choice on screen is kept, as by any close, but the card isn't counted as seen, so the
+     * next activity shows it again. Safe while the card is hidden for pairing.
+     */
+    public void abandon() {
+        if (mClosed) return;
+        end();
+    }
+
+    private void end() {
         mClosed = true;
         if (mFlow.close()) mStore.setUsagePing(mMeasureUsage);
-        mStore.setWalkthroughCompletedVersion(WalkthroughFlow.VERSION);
         mHandler.removeCallbacksAndMessages(null);
-        if (mDialog.isShowing()) mDialog.dismiss();
+        // Also right for a card hidden while the Sync screen pairs.
+        mDialog.dismiss();
         mHost.finished();
+    }
+
+    private boolean gone() {
+        return mClosed || mActivity.isFinishing() || mActivity.isDestroyed();
     }
 
     private void render() {
@@ -202,7 +221,7 @@ public final class WalkthroughSheet {
             } else {
                 mFlow.pairingClosed();
             }
-            if (mClosed) return;
+            if (gone()) return;
             mDialog.show();
             render();
         }));
@@ -272,7 +291,7 @@ public final class WalkthroughSheet {
                     mFavorites = saved == null ? -1 : countPages(saved);
                     JSONObject shared = value(spaces);
                     if (shared != null) mSpaces = shared;
-                    if (!mClosed && mFlow.current() == Step.ARRIVED) render();
+                    if (!gone() && mFlow.current() == Step.ARRIVED) render();
                 })));
     }
 
@@ -289,14 +308,15 @@ public final class WalkthroughSheet {
         title(R.string.blanc_android_welcome_share_title, false);
         body(text(R.string.blanc_ios_welcome_share_body), false);
         toggle(text(R.string.blanc_ios_settings_share_tabs), mStatus.optBoolean("syncTabs"), "welcome.shareTabs",
-                on -> mHost.call("sync.setSyncTabs", "[" + on + "]", reply -> refreshSync()));
+                on -> mHost.call("sync.setSyncTabs", "[" + on + "]", reply -> refreshSync(false)));
         note(text(R.string.blanc_ios_settings_share_tabs_help));
         toggle(text(R.string.blanc_shared_spaces_switch_android), mSpaces.optBoolean("enabled"), "welcome.spaces",
                 on -> {
                     if (on) {
-                        mHost.openSharedSpaces(this::refreshSync);
+                        // A cancelled chooser leaves Spaces off: the switch is drawn again from the runner.
+                        mHost.openSharedSpaces(() -> refreshSync(true));
                     } else {
-                        mHost.call("spaces.apply", "[{\"enabled\":false}]", reply -> refreshSync());
+                        mHost.call("spaces.apply", "[{\"enabled\":false}]", reply -> refreshSync(false));
                     }
                 });
         note(text(R.string.blanc_shared_spaces_switch_line_android));
@@ -304,22 +324,22 @@ public final class WalkthroughSheet {
             mFlow.next();
             render();
         });
-        if (mSpaces.length() == 0) refreshSync();
+        if (mSpaces.length() == 0) refreshSync(false);
     }
 
-    /** Reads Sync's switches again, so Share back shows what the runner holds. */
-    private void refreshSync() {
+    /** Reads Sync's switches again, so Share back shows what the runner holds; {@code force} redraws anyway. */
+    private void refreshSync(boolean force) {
         mHost.call("sync.status", "[]", status -> mHost.call("spaces.status", "[]", spaces -> {
             JSONObject s = value(status);
             JSONObject shared = value(spaces);
-            boolean changed = false;
+            boolean changed = force;
             if (s != null && s.optBoolean("syncTabs") != mStatus.optBoolean("syncTabs")) changed = true;
             if (s != null) mStatus = s;
             if (shared != null) {
                 if (shared.optBoolean("enabled") != mSpaces.optBoolean("enabled") || mSpaces.length() == 0) changed = true;
                 mSpaces = shared;
             }
-            if (changed && !mClosed && mFlow.current() == Step.SHARE_BACK) render();
+            if (changed && !gone() && mFlow.current() == Step.SHARE_BACK) render();
         }));
     }
 

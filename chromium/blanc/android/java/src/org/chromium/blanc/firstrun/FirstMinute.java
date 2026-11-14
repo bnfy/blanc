@@ -57,8 +57,8 @@ public final class FirstMinute {
                 }
             } else if (state == ActivityState.DESTROYED) {
                 WalkthroughSheet showing = sShowing;
-                // A recreated activity asks again; the card's choices so far are already kept.
-                if (showing != null && showing.isShowing()) showing.close();
+                // Hidden for pairing or not, the card goes with its activity; the next one shows it again.
+                if (showing != null) showing.abandon();
                 sShowing = null;
             }
         }, activity);

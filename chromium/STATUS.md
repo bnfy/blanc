@@ -3055,6 +3055,49 @@ preferences. Each change is now written at once (`CommitPendingWrite`, as the fo
 Blanc for the home screen before stopping it, as a person would. The setters had worked all along (checked by
 hand over DevTools); the check now also fails if saving itself fails.
 
+### A5c The first minute and the rest of Settings
+
+The A5 row's onboarding and Settings, split in two PRs (owner, November 14, 2026): this one is the
+walkthrough and the Settings rows; the launch ping, its native sender and the Worker change adding
+`android` come next.
+
+- **The walkthrough** is Blanc for iPhone's (`WalkthroughFlow.swift`, `WalkthroughSheet.swift`): a card over
+  the bottom of the Start Page on a fresh install, at the iPhone's sizes. Welcome leads with Pair with your
+  Blanc, which opens the Sync screen `/sync` opens (Back returns to Welcome); a join shows What arrived (open
+  tabs per device, Favorites, settings, Spaces, counted once the first pass is in), then Share back (Share
+  open tabs and the Spaces switch), then Your privacy (Measure usage), then the default-browser offer. A
+  phone already paired starts at Share back. Back or the card's × closes it from any step, and it's seen
+  once per version (`blanc.walkthrough_completed_version`, device-local). Android's privacy step has
+  Measure usage only: Android has no search suggestions yet, so the iPhone's walkthrough version 2 is
+  Android's 1 (`WalkthroughFlow.java`). Patch 0114 starts it once the Island exists; background sync
+  launches build no Island, so they never show it.
+- **Measure usage** is saved only when the privacy step was on screen: Continue saves the switch, and
+  closing on that step saves what it shows. A card closed earlier saves nothing, so nothing will be sent
+  and Settings → Privacy reads off until the person chooses. This diverges from the iPhone, which saves
+  the switch's default when Welcome is swiped away (D38). No ping exists yet.
+- **Default browser** asks with Android's browser-role dialog, at most twice (Android stops showing it to
+  someone who turned it down twice), then opens Android's Default apps screen, as it does once Blanc is
+  the default. The walkthrough skips the offer when Blanc already is (D4).
+- **Language** (under More, as the Settings design places it) offers System and the six languages by their
+  endonyms (`AppLanguages.java`, desktop's `i18n-locales.json`). A choice is Android's per-app language
+  (`LocaleManager`, or Chromium's own override before Android 13), and Blanc restarts into it at once,
+  because Chromium loads its pages' language when it starts and otherwise kills itself on a locale change.
+  Patch 0114 names the six as the app's `localeConfig`, so Android's own App languages screen offers the
+  same six. A choice made there closes Blanc, which is Chromium's own behavior (seen on the emulator); that the
+  next launch then opens in it wasn't checked.
+- **Settings rows:** Default browser (Browsing; summary Blanc or Not Blanc), Measure usage (Privacy), Language
+  (More) and Show the welcome again (About).
+- **Strings:** the iPhone's walkthrough and default-browser copy in all six languages, with four Android
+  wordings where the iPhone's names iOS (`android.welcome.shareTitle`, `android.welcome.measureUsageHelp`,
+  `android.defaultBrowser.body`, `android.defaultBrowser.open`).
+- **Emulator checks skip the card** while `/data/local/tmp/blanc-walkthrough-off` exists, which only a debug
+  build reads (`FirstMinute.SKIP_FILE`); every gate script creates it, and `walkthrough.mjs` removes it and
+  puts it back.
+- **Not yet:** the launch ping (next PR). Pairing in under a minute and the walkthrough on the Pixel wait for
+  the owner.
+
+GATE_TABLE_PLACEHOLDER
+
 ### Shield count across a page's commit
 
 The count is fixed in the blocker code desktop shares. A page's first request can

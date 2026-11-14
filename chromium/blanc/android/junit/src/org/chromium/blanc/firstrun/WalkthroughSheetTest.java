@@ -47,6 +47,7 @@ public class WalkthroughSheetTest {
     private SettingsStore mStore;
     private @Nullable Boolean mDefault = false;
     private @Nullable Runnable mPairingClosed;
+    private @Nullable Runnable mSpacesDone;
     private boolean mFinished;
 
     private final WalkthroughSheet.Host mHost = new WalkthroughSheet.Host() {
@@ -59,7 +60,7 @@ public class WalkthroughSheetTest {
         @Override public @Nullable Boolean isDefaultBrowser() { return mDefault; }
         @Override public void requestDefaultBrowser() { mCalls.add("default browser"); }
         @Override public void openPairing(Runnable onClosed) { mCalls.add("pairing"); mPairingClosed = onClosed; }
-        @Override public void openSharedSpaces(Runnable onDone) { mCalls.add("shared spaces"); }
+        @Override public void openSharedSpaces(Runnable onDone) { mCalls.add("shared spaces"); mSpacesDone = onDone; }
         @Override public void finished() { mFinished = true; }
     };
 
@@ -257,5 +258,38 @@ public class WalkthroughSheetTest {
         press("welcome.continue");
         assertFalse(sheet.isShowing());
         assertTrue(mFinished);
+    }
+
+    @Test
+    public void anActivityGoingAwayKeepsTheCardForTheNextOneAndThePrivacyChoiceOnScreen() {
+        WalkthroughSheet sheet = show(new WalkthroughFlow(false, 0, null));
+        press("welcome.browse");
+        sheet.abandon();
+        assertFalse(sheet.isShowing());
+        assertEquals(true, mStore.usagePing());
+        assertEquals(0, mStore.walkthroughCompletedVersion());
+        assertTrue(mFinished);
+    }
+
+    @Test
+    public void anActivityGoingAwayDuringPairingNeverShowsTheCardAgainOverIt() {
+        WalkthroughSheet sheet = show(new WalkthroughFlow(false, 0, null));
+        press("welcome.pair");
+        sheet.abandon();
+        assertNull(mStore.usagePing());
+        assertEquals(0, mStore.walkthroughCompletedVersion());
+        mPairingClosed.run();
+        idle();
+        assertFalse(sheet.isShowing());
+    }
+
+    @Test
+    public void aCancelledSpacesChooserTurnsTheSwitchBackOff() {
+        show(new WalkthroughFlow(true, 0, null));
+        ((CompoundButton) tagged("welcome.spaces")).setChecked(true);
+        assertTrue(mCalls.contains("shared spaces"));
+        mSpacesDone.run();
+        idle();
+        assertFalse(((CompoundButton) tagged("welcome.spaces")).isChecked());
     }
 }
