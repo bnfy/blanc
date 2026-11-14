@@ -1019,3 +1019,26 @@ in this order. Each item says what went wrong the first time.
   hosted smoke check runs the verifier from the dispatching commit, not the
   tag, because the tag's verifier predates this rule. The Touch ID passkey
   gate passed on this notarized build (owner, 2026-11-14).
+
+### Owner gate decisions for beta.3 (2026-11-14)
+
+Beta.3 is 2.0.0-beta.3, build 3, and carries the Sync lockout fix
+(`dc054f0bf`): on beta.2, Settings → Sync could say "Could not check sync"
+until a relaunch after a long first join. Since beta.2's source
+(`058277389`) the fix is the only desktop source change. The owner decided
+these with buttons on 2026-11-14:
+
+- **arch:** Apple Silicon only again (a fresh Intel waiver in `release.json`).
+- **no-drm-handoff:** waived again. The protected-video notice moves to
+  beta.4. `GATE_WAIVERS` lists it for 2.0.0-beta.3, and the descriptor
+  carries the reason.
+- **production-sync-real-device:** runs on the notarized beta.3; not waived.
+  Your iPhone's existing Sync is joined with a code from the regular Blanc.
+- **acceptance and desktop-sync (targeted):** beta.2's full-suite equivalence
+  plus the fork unit suite at the beta.3 source. The Sync fix has its own
+  unit tests (runner always answers, lane release, Sync page). The beta's own
+  checks (blocker, hooks absent, profile, notices and credits, outbound) run
+  on the beta.3 candidate. The real-iPhone pass is the desktop Sync evidence.
+- **sparkle-N-to-N+1:** the updater is unchanged since beta.2, so beta.2's
+  local update proof counts. The first signed handoff, beta.2 → beta.3 from
+  an installed beta.2, is checked after publication.

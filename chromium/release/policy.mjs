@@ -15,7 +15,12 @@ export const SPARKLE = '2.10.1';
 // for 2.0.0-beta.2: no-drm-handoff (no protected-video notice or Electron Blanc handoff,
 // D3/X2; due in beta.3) and production-sync-real-device (the real-iPhone Sync pass, waived
 // after signing for the first fork beta; local and desktop Sync gates still pass).
-export const GATE_WAIVERS = Object.freeze({'2.0.0-beta.2': Object.freeze(['no-drm-handoff', 'production-sync-real-device'])});
+// Owner, 2026-11-14, for 2.0.0-beta.3 (the Sync lockout fix): no-drm-handoff again (the
+// notice moves to beta.4). The real-iPhone Sync pass runs on beta.3; it is not waived.
+export const GATE_WAIVERS = Object.freeze({
+  '2.0.0-beta.2': Object.freeze(['no-drm-handoff', 'production-sync-real-device']),
+  '2.0.0-beta.3': Object.freeze(['no-drm-handoff']),
+});
 export const waiverAllowed = (r, gate) => (GATE_WAIVERS[r.version] ?? []).includes(gate);
 export const waiverReason = why => typeof why === 'string' && why.trim().length >= 20;
 export const sha256 = bytes => createHash('sha256').update(bytes).digest('hex');
