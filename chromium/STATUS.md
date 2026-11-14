@@ -932,6 +932,14 @@ remain pending. D3 beta-only no-DRM exception accepted; EME notice/handoff requi
   16 px at 1000 × 760; it fits at 1280 × 800 and larger, in every
   wallpaper mode). native-start-widgets 8/8; newtab-layouts 24/25 (:21 as
   before).
+- **Production update key and beta.2 (owner, 2026-11-14):** the key ceremony
+  ran split because 1Password kept locking: the production EdDSA key is in
+  the owner's Keychain (`me.bnfy.blanc.beta`) and its public key is pinned
+  for the build; the 1Password copy is pending (`sparkle-key-backup.command`),
+  and `release.mjs` refuses to draft or publish until it is verified. A
+  private local-qualification beta.2 (build 2) had been built for the local
+  update proof; its copies were deleted and the owner kept 2.0.0-beta.2
+  (build 2) for the first public beta.
 - **Hosted smoke workflow (2026-11-14):** `chromium-beta-smoke.yml` +
   `chromium/release/public-smoke.mjs`, the fork's exact-tag hosted check of
   a published beta (assets, manifest, appcasts, pre-release state, verify.mjs,
