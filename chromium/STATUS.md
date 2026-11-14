@@ -58,11 +58,14 @@ remain pending. D3 beta-only no-DRM exception accepted; EME notice/handoff requi
   loading (`warmThumbnail`, two at a time, never private, quiet, Blanc pages
   or what's on screen), so a never-shown tab's first card no longer shows
   its icon for about a second first; 748e0992d, 11 of 11 on screen on
-  candidate macos-a2155191264ea1f7. Not checked on screen: a quiet tab's
-  last picture. Deferred
-  minors: Cmd-Tab away with the page focused doesn't
-  close a card; a permission prompt opening doesn't; a watched tab that goes
-  quiet keeps its watch until the card closes (it never loads the tab).
+  candidate macos-a2155191264ea1f7. Then the two deferred gaps: another app
+  coming to the front (⌘-Tab with the page focused) and a site permission
+  prompt now close a card (a background window may still show cards, as
+  macOS lets it take hover). 2f08fe889: `tests/native-rail-hover.mjs` passes
+  14 of 14 on candidate macos-80a0b0baafd9ca87, including a quiet tab's card
+  showing the picture Chromium kept without waking the tab. Deferred minor:
+  a watched tab that goes quiet keeps its watch until the card closes (it
+  never loads the tab).
 - **2026-11-14 — The Dock icon follows Dark again (owner's report on beta.4):**
   Beta.4 (published from 57e3109dd, with patch 0082) handed the Dock the
   named Icon Composer stacks directly. AppKit draws a stack given to
