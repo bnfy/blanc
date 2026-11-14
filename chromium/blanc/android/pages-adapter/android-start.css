@@ -84,11 +84,13 @@ html[data-platform="android"] .bb-widget-resize { display: none; }
 html[data-platform="android"] #bbWidgets #favoritesList { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 html[data-platform="android"] .fav { min-height: 48px; }
 
-/* The footer floats above the Island. Keyboard hints and Spaces (not on Android yet) go. */
+/* The footer stays above the Island, as on the iPhone; what scrolls under it goes behind a frosted
+   band (below). Keyboard hints and Spaces (not on Android yet) go. */
 html[data-platform="android"] .ledger-footer,
 html[data-platform="android"] body:not([data-layout="ledger"]) .ledger-footer {
   position: fixed;
   inset: auto 0 calc(var(--android-island) + env(safe-area-inset-bottom, 0px));
+  z-index: 3;
   min-height: var(--android-footer);
   margin: 0;
   padding: 12px 16px;
@@ -98,6 +100,23 @@ html[data-platform="android"] body:not([data-layout="ledger"]) .ledger-footer {
   justify-content: center;
   align-items: center;
 }
+/* Shipping's frosted band behind the footer (pages.css's .ledger-footer::before, in the wallpaper's
+   own tint, shown while something scrolls under it), carried down behind the Island. The fork's
+   photo fade (::after) stays off: it assumes a footer at the window's bottom edge. */
+html[data-platform="android"] .ledger-footer::before {
+  inset: -28px 0 calc(-1 * (var(--android-island) + env(safe-area-inset-bottom, 0px))) 0;
+  /* The page's own background, which the wallpaper rules switch to suit the ink (your photo's
+     Light or Dark, a Color's), so the footer's labels always read. Shipping's tint stays Sunrise's. */
+  background: color-mix(in srgb, var(--bg) 72%, transparent);
+}
+html[data-platform="android"] body[data-wallpaper-fill="solid"] .ledger-footer::before,
+html[data-platform="android"] body[data-wallpaper-fill="gradient"] .ledger-footer::before {
+  background: color-mix(in srgb, var(--start-color-base) 72%, transparent);
+}
+html[data-platform="android"] #layoutFooter::after { display: none; }
+/* Shipping shows it once the content's end passes the footer, which here also has the Island under
+   it; with a widget on, something can always be under the footer, so the band always shows. */
+html[data-platform="android"] body:has(.bb-rail[data-empty="false"]) .ledger-footer::before { opacity: 1; }
 html[data-platform="android"] .ledger-footer :is(.footer-left, .footer-appearance) {
   display: flex; align-items: center; gap: 10px; min-width: 0; flex: none; flex-basis: auto;
 }

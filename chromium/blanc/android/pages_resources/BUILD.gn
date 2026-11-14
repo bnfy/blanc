@@ -23,13 +23,14 @@ action("generate") {
     inputs += [ "//blanc/android/pages/" + file ]
     args += [ "--generated", file + "=" + rebase_path("//blanc/android/pages/" + file, root_build_dir) ]
   }
-  foreach(file, pinned.start.files) {
+  start = pinned.start
+  foreach(file, start.files) {
     inputs += [ "//blanc/android/pages/start/" + file ]
     args += [ "--generated", "start/" + file + "=" + rebase_path("//blanc/android/pages/start/" + file, root_build_dir) ]
   }
-  foreach(file, [ "whats-new.js" ]) {
-    inputs += [ "//blanc/android/pages/" + file ]
-    args += [ "--generated", file + "=" + rebase_path("//blanc/android/pages/" + file, root_build_dir) ]
+  foreach(alongside, start.alongside) {
+    inputs += [ "//blanc/android/pages/" + alongside.file ]
+    args += [ "--generated", alongside.file + "=" + rebase_path("//blanc/android/pages/" + alongside.file, root_build_dir) ]
   }
 }
 source_set("pages_resources") {

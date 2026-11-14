@@ -255,6 +255,7 @@ class PagesHandler : public content::WebUIMessageHandler {
         ScopedDictPrefUpdate saved(StartPrefs(), kStartClock);
         for (auto [key, value] : update) saved->Set(key, value.Clone());
       }
+      StartPrefs()->CommitPendingWrite();
       return StartReply(id, true, base::Value(StartClock()));
     }
     // Billboard is the one layout (V24).
@@ -415,6 +416,8 @@ class PagesHandler : public content::WebUIMessageHandler {
     } else if (method != "widgetsRead" || !args.empty()) {
       return StartReply(id, false, base::Value("not-yet"));
     }
+    // A choice is on disk at once, as in the fork: Android may end the app without warning.
+    if (method != "widgetsRead") prefs->CommitPendingWrite();
     const base::DictValue& saved = prefs->GetDict(kStartWidgets);
     base::DictValue out;
     for (std::string_view name : kNames) out.Set(name, saved.FindBool(name).value_or(false));

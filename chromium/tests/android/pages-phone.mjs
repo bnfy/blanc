@@ -154,7 +154,7 @@ async function main(argv) {
       const figures = measured.timedOut ? measured : measured.result?.result?.value ?? null;
       results.push({case: 'the clock\'s figures sit at the middle of the screen', report: figures, problems: clockCenterProblems(figures)});
       // Choose, as Customize does, then relaunch.
-      await tools.send('Runtime.evaluate', {awaitPromise: true, expression: `(async () => {
+      const chose = await tools.send('Runtime.evaluate', {awaitPromise: true, returnByValue: true, expression: `(async () => {
         const start = window.bowserPages.start;
         await start.setWidget('favorites', true);
         await start.setWidget('devices', true);
@@ -162,10 +162,16 @@ async function main(argv) {
         await start.setClock({font: 'inter', weight: 600, style: 'glass'});
         await start.setWallpaper('color');
         await start.setWallpaperColor('sky');
-      })()`});
+        return 'chosen';
+      })().catch(error => String(error))`});
+      const chosen = chose?.result?.result?.value;
+      results.push({case: 'Customize\'s choices save', problems: chosen === 'chosen' ? [] : [`saving failed: ${chosen}`]});
       tools.close();
     }
     {
+      // Leave Blanc as a person does, so it writes what it holds, then end it.
+      adb('shell', 'input', 'keyevent', 'KEYCODE_HOME');
+      sleep(5);
       adb('shell', 'am', 'force-stop', PACKAGE);
       launch();
       const tools = await devtools();

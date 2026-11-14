@@ -101,8 +101,11 @@
       "sunrise-mark.png",
       "type-to-open.js"
     ],
-    "alongside": {
-      "whats-new.js": "blanc/island/whats-new.js"
-    }
+    "alongside": [
+      {
+        "file": "whats-new.js",
+        "from": "blanc/island/whats-new.js"
+      }
+    ]
   }
 }

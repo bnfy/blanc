@@ -54,7 +54,7 @@ export function wanted() {
   for (const file of files) out.push([path.join(PAGES_DIR, file), () => shipped(commit, file), commit.slice(0, 9)]);
   for (const file of start.files)
     out.push([path.join(START_DIR, file), () => fs.readFileSync(path.join(chromium, start.from, file)), start.from]);
-  for (const [file, from] of Object.entries(start.alongside || {}))
+  for (const {file, from} of start.alongside || [])
     out.push([path.join(PAGES_DIR, file), () => fs.readFileSync(path.join(chromium, from)), from]);
   return out;
 }

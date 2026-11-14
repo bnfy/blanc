@@ -39,7 +39,7 @@ test('the lists are flat and sorted, like shipping\'s pages folder', () => {
 
 test('nothing outside the lists sits in the folders', () => {
   const {files, start} = pinned();
-  assert.deepEqual(fs.readdirSync(PAGES_DIR).sort(), [...files, ...Object.keys(start.alongside), 'start'].sort());
+  assert.deepEqual(fs.readdirSync(PAGES_DIR).sort(), [...files, ...start.alongside.map(a => a.file), 'start'].sort());
   assert.deepEqual(fs.readdirSync(START_DIR).sort(), start.files);
 });
 
