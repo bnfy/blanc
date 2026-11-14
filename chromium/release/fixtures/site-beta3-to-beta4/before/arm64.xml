@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<rss version="2.0" xmlns:sparkle="http://www.andymatuschak.org/xml-namespaces/sparkle">
+  <channel>
+    <title>Blanc Beta for macOS (arm64)</title>
+    <link>https://blanc.day/updates/chromium-beta/arm64.xml</link>
+    <description>Blanc Chromium beta updates</description>
+    <item>
+      <title>Blanc Beta 2.0.0-beta.3</title>
+      <sparkle:version>3</sparkle:version>
+      <sparkle:shortVersionString>2.0.0-beta.3</sparkle:shortVersionString>
+      <sparkle:minimumSystemVersion>13.0</sparkle:minimumSystemVersion>
+      <enclosure url="https://github.com/bnfy/blanc/releases/download/chromium-beta-2.0.0-beta.3/Blanc-Beta-2.0.0-beta.3-mac-arm64.dmg" length="217161401" type="application/octet-stream" sparkle:edSignature="UL0Wu+SOgA/E1KQ+MO6pAGw7g5/lOkfXDy2OTkFaEvrptTEefEgS+QUMKrQ+k73lrRnEIfvg4mt7EjBNArI3Ag==" />
+    </item>
+  </channel>
+</rss>
