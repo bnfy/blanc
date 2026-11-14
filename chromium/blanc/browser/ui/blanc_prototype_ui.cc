@@ -9767,13 +9767,15 @@ class Handler : public content::WebUIMessageHandler, public extensions::Extensio
           base::BindOnce(&Handler::StoreIcon, weak_factory_.GetWeakPtr(), id), 256 * 1024);
       return;
     }
-    // The Dock icon (F17). Blanc Beta's Assets.car carries every colorway as
-    // a named Icon Composer stack (blanc/branding/beta), as shipping's
-    // packaged builds do, so the Dock follows Light and Dark by itself; its
-    // app icon is Sunrise Gold. Elsewhere, and before macOS 26, the Dock
-    // takes shipping's flat images, its development-build path: the other
-    // channels' bundle icon is Sunrise Dark, kept for Dock testing, so Sunrise
-    // there takes its flat Light or Dark image like the rest.
+    // The Dock icon (F17), as shipping draws it: the bundle icon live, every
+    // other colorway as a Light or Dark image that host.js asks for again when
+    // the appearance changes. Blanc Beta's bundle icon is Sunrise Gold and its
+    // images are Icon Composer's own renders (blanc/branding/beta/dock); a
+    // named stack handed to the Dock stays drawn in Light. Elsewhere, and
+    // before macOS 26, the Dock takes shipping's flat images, its
+    // development-build path: the other channels' bundle icon is Sunrise
+    // Dark, kept for Dock testing, so Sunrise there takes its flat Light or
+    // Dark image like the rest.
     if (method == "applyAppIcon" && args.size() == 2 && args[0].is_string() && args[1].is_bool()) {
 #if BUILDFLAG(IS_MAC)
       static bool replaced = false;
@@ -9784,7 +9786,8 @@ class Handler : public content::WebUIMessageHandler, public extensions::Extensio
           : icon == "sunrise-dark" ? "SunriseDark"
           : icon == "sunrise-spectrum" ? "SunriseSpectrum"
           : icon == "sunrise-amber" ? "SunriseAmber" : nullptr;
-      if (icon == "sunrise-gold" || (stack && blanc::SetDockIconNamed(stack))) {
+      if (icon == "sunrise-gold" ||
+          (stack && blanc::SetDockIconFromBundle(std::string(stack) + (dark ? "-dark" : "-light")))) {
         if (!stack) blanc::SetDockIcon({});
         replaced = stack != nullptr;
         reply(true, base::Value());
