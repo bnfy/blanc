@@ -97,3 +97,24 @@ test('every area names features the inventory has', () => {
   const files = new Set(inventory.scenarios.map(s => s.file.split('/').pop()));
   for (const f of [...areas.smoke, ...areas.areas.flatMap(a => a.features)]) assert.ok(files.has(f), f);
 });
+
+test('the installer writes the job and its entry point, which brings nightly.mjs in only when nothing is in the way', async () => {
+  const os = await import('node:os'), path = await import('node:path'), { spawnSync } = await import('node:child_process');
+  const home = fs.mkdtempSync(path.join(os.tmpdir(), 'blanc-nightly-')), base = path.join(home, 'Blanc'), bin = path.join(home, 'bin');
+  fs.mkdirSync(path.join(base, 'repo'), { recursive: true }); fs.mkdirSync(bin);
+  for (const name of ['launchctl', 'plutil']) fs.writeFileSync(path.join(bin, name), `#!/bin/sh\necho "${name} $*" >> "${home}/stub.log"\n`, { mode: 0o755 });
+  const env = { PATH: `${bin}:/usr/bin:/bin`, HOME: home, BLANC_STUDIO_BASE: base };
+  const install = spawnSync('bash', [new URL('./daily/install-nightly.sh', import.meta.url).pathname], { env, encoding: 'utf8' });
+  assert.equal(install.status, 0, install.stderr);
+  const plist = fs.readFileSync(path.join(home, 'Library/LaunchAgents/me.bnfy.blanc.beta-nightly.plist'), 'utf8');
+  assert.match(plist, /<string>[^<]*\/Blanc\/scripts\/beta-nightly\.sh<\/string>/);
+  assert.match(plist, /<key>Hour<\/key><integer>2<\/integer>/);
+  assert.match(fs.readFileSync(path.join(home, 'stub.log'), 'utf8'), /launchctl bootstrap gui\/\d+ /);
+  // A checkout without nightly.mjs and with uncommitted work: the entry point leaves it alone.
+  const repo = path.join(base, 'repo');
+  spawnSync('git', ['init', '-q', repo]); fs.writeFileSync(path.join(repo, 'work.txt'), 'unsaved');
+  const boot = spawnSync('bash', [path.join(base, 'scripts/beta-nightly.sh')], { env, encoding: 'utf8' });
+  assert.equal(boot.status, 0, boot.stderr);
+  assert.match(fs.readFileSync(path.join(base, 'records/nightly/skipped.log'), 'utf8'), /bootstrap skipped: uncommitted changes/);
+  assert.ok(fs.existsSync(path.join(repo, 'work.txt')));
+});

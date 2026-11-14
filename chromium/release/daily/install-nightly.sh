@@ -10,7 +10,29 @@ PLIST="$HOME/Library/LaunchAgents/$LABEL.plist"
 DOMAIN="gui/$(id -u)"
 launchctl bootout "$DOMAIN/$LABEL" 2>/dev/null || true
 if [ "${1:-}" = --remove ]; then rm -f "$PLIST"; echo "Removed $LABEL."; exit 0; fi
-mkdir -p "$BASE/records/nightly" "$HOME/Library/LaunchAgents"
+mkdir -p "$BASE/records/nightly" "$HOME/Library/LaunchAgents" "$BASE/scripts"
+# The job's entry point lives outside the checkout, so it can bring nightly.mjs in
+# the first time: if the checkout predates it, and only when nothing is in the way
+# (the same rules nightly.mjs applies), it moves the checkout to chromium/next's tip.
+cat > "$BASE/scripts/beta-nightly.sh" <<'BOOT'
+#!/bin/bash
+set -uo pipefail
+BASE="${BLANC_STUDIO_BASE:-$HOME/Projects/Blanc}"
+cd "$BASE/repo" || exit 1
+echo "$(date -u +%Y-%m-%dT%H:%M:%SZ) start"
+if [ ! -f chromium/release/daily/nightly.mjs ]; then
+  why=""
+  [ -e "$BASE/records/RELEASE-IN-PROGRESS" ] && why="a release is prepared"
+  [ -z "$why" ] && pgrep -f 'siso ninja|chromium/tests/runner.mjs' >/dev/null && why="a build or the runner is going"
+  [ -z "$why" ] && [ -n "$(git status --porcelain)" ] && why="uncommitted changes"
+  [ -z "$why" ] && { git fetch -q origin chromium/next || why="could not fetch"; }
+  [ -z "$why" ] && ! git merge-base --is-ancestor HEAD origin/chromium/next && why="commits chromium/next does not have"
+  if [ -n "$why" ]; then echo "$(date -u +%Y-%m-%dT%H:%M:%SZ) bootstrap skipped: $why" >> "$BASE/records/nightly/skipped.log"; exit 0; fi
+  git checkout -q --detach origin/chromium/next || exit 1
+fi
+exec /usr/local/bin/node chromium/release/daily/nightly.mjs "$@"
+BOOT
+chmod 755 "$BASE/scripts/beta-nightly.sh"
 cat > "$PLIST" <<PLIST
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
@@ -20,8 +42,8 @@ cat > "$PLIST" <<PLIST
   <key>ProgramArguments</key>
   <array>
     <string>/usr/bin/caffeinate</string><string>-i</string>
-    <string>/usr/local/bin/node</string>
-    <string>$BASE/repo/chromium/release/daily/nightly.mjs</string>
+    <string>/bin/bash</string>
+    <string>$BASE/scripts/beta-nightly.sh</string>
   </array>
   <key>WorkingDirectory</key><string>$BASE/repo</string>
   <key>EnvironmentVariables</key>
