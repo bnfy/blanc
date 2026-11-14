@@ -25,6 +25,7 @@
 #include "blanc/browser/sync/runner_wait.h"
 #include "chrome/browser/bookmarks/bookmark_model_factory.h"
 #include "chrome/browser/browser_process.h"
+#include "chrome/browser/profiles/keep_alive/profile_keep_alive_types.h"
 #include "chrome/browser/profiles/profile.h"
 #include "chrome/browser/profiles/profile_manager.h"
 #include "components/bookmarks/browser/bookmark_model.h"
@@ -186,6 +187,8 @@ DesktopSyncService::DesktopSyncService(Profile* profile)
       state_path_(profile->GetPath().AppendASCII("BlancSyncDesktop").AppendASCII("state.json")),
       io_(base::ThreadPool::CreateSequencedTaskRunner({base::MayBlock(), base::TaskShutdownBehavior::BLOCK_SHUTDOWN})) {
   profile_observation_.Observe(profile);
+  profile_keep_alive_ = std::make_unique<ScopedProfileKeepAlive>(
+      profile, ProfileKeepAliveOrigin::kBackgroundMode);
   bookmarks_ = BookmarkModelFactory::GetForBrowserContext(profile);
   if (bookmarks_) {
     bookmark_observation_.Observe(bookmarks_);
@@ -936,6 +939,7 @@ void DesktopSyncService::BookmarkModelBeingDeleted() {
 void DesktopSyncService::OnProfileWillBeDestroyed(Profile*) {
   profile_observation_.Reset(); bookmark_observation_.Reset();
   pref_changes_.RemoveAll(); timer_.Stop(); lane_probe_.Stop();
+  profile_keep_alive_.reset();
   profile_ = nullptr; bookmarks_ = nullptr;
   weak_factory_.InvalidateWeakPtrs();
   if (active_reply_ && *active_reply_) std::move(*active_reply_).Run(false, "profile-closed");

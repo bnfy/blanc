@@ -2491,10 +2491,22 @@ machine has them.
    `site/public/updates/chromium-beta/arm64.xml` together.
 
 5a. **Desktop Sync faults found by beta.3's real-iPhone pass** (2026-11-14,
-   gate waived for beta.3): the beta publishes itself with no open tabs, so
-   other devices don't list it; and joining with a code shows no "what will
-   sync" step. Compare the join with shipping before changing it. Both are
-   due in beta.4.
+   gate waived for beta.3), fixed on `chromium/next` for beta.4 (build check
+   pending):
+   - **Closing every window broke Sync until a relaunch.** On macOS Chromium
+     unloads a profile when its last window closes and loads a new Profile for
+     the next window; the Sync service stays bound to the first, so Settings
+     said "Sync is available only in the default profile" and open tabs
+     stopped publishing. Reproduced on a throwaway beta.3 profile. The service
+     now holds a `kBackgroundMode` keep-alive on its profile while Blanc runs.
+     Known edge: deleting the default profile may now wait until Blanc quits.
+   - **No open tabs.** With windows open the beta publishes its tabs (checked
+     live on the owner's beta.3). At the owner's join only Blanc's own pages
+     were open, so it published none, and after windows closed it stopped
+     publishing (the bug above).
+   - **No word after joining.** Shipping says "Connected to “{name}”. Pulling
+     your favorites and settings now." after a join with a code and has no
+     "what will sync" step; patch 0080 shows the same note.
 
 **Other follow-ups**
 5. **Sync screen** (both apps): Turn on Sync, Connect your iPhone and Add
