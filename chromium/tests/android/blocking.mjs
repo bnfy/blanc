@@ -5,7 +5,7 @@
 //     ad; both last across a relaunch. /allow-ads and /block-ads do the same.
 //   - The engine's process ending starts it again by itself, and pages stay filtered.
 //   - A service worker's fetch and a prefetch are filtered like a page's own requests.
-//   - The Start Page reports whether protection is on.
+//   - The Start Page counts the week's blocks.
 //   - Repeated quick endings leave pages stopped and the menu saying so; Retry recovers.
 //   - A first launch with no network still blocks, from the bundled lists.
 //   - A bundle with the wrong hash stops every page: nothing loads unfiltered.
@@ -184,15 +184,13 @@ async function main(argv) {
       await d.waitFor(() => fixtureRequests().some(r => r.startsWith('lib.example/prefetch-allowed')), 'the allowed prefetch', 20);
       return fixtureRequests().some(r => isAd(r)) ? ['the prefetch reached the ad'] : [];
     });
-    await check('the Start Page reports whether protection is on', async () => {
-      const on = await d.page('window.bowserPages.start.data().then(x=>x.mobileAdblockEnabled)');
-      await d.view('https://off.example/');
-      d.runInPalette('/block-ads');
-      sleep(2);
+    // The Start Page shows the week's blocks (A5b's Billboard), which the cases above added to.
+    await check('the Start Page counts the week\'s blocks', async () => {
       d.tap({id: 'blanc_island_new_tab'});
       await d.waitFor(async () => /^chrome:\/\/blanc\/newtab/.test((await d.visibleUrl()) || ''), 'the Start Page');
-      const off = await d.page('window.bowserPages.start.data().then(x=>x.mobileAdblockEnabled)');
-      return on === true && off === false ? [] : [`on ${on}, off ${off}`];
+      const [available, count] = await d.page(
+          'window.bowserPages.start.data().then(x=>[x.blockerStatisticsAvailable, x.blockedThisWeek])') ?? [];
+      return available === true && count > 0 ? [] : [`statistics ${available}, count ${count}`];
     });
     await check('a private tab blocks the ad and loads the rest', async () => {
       d.menu('New Private Tab');

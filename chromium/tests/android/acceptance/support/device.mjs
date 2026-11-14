@@ -288,5 +288,24 @@ export class Device {
     this.tap({text: entry});
   }
 
+  // Whether Settings' Blanc Blocker switch is on, from the switch after its title; back where it was after.
+  blockerSwitchOn() {
+    this.menu('Settings');
+    try {
+      const {width, height} = this.screenSize();
+      for (let i = 0; i < 10; i++) {
+        const nodes = this.dump().match(/<node [^>]*>/g) ?? [];
+        const title = nodes.findIndex(n => n.includes('text="Blanc Blocker"'));
+        const widget = title < 0 ? null : nodes.slice(title + 1, title + 8).find(n => n.includes('class="android.widget.Switch"'));
+        const state = widget && /checked="(true|false)"/.exec(widget);
+        if (state) return state[1] === 'true';
+        this.swipe(width / 2, height * 0.75, width / 2, height * 0.3, 300, 0.8);
+      }
+      throw Error('Settings shows no Blanc Blocker switch');
+    } finally {
+      this.back();
+    }
+  }
+
   findCount() { return findCount(this.dump()); }
 }
