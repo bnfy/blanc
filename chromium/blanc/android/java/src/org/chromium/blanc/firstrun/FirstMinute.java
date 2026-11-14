@@ -5,6 +5,7 @@ package org.chromium.blanc.firstrun;
 import android.app.Activity;
 import android.content.SharedPreferences;
 import android.content.pm.ApplicationInfo;
+import android.os.Build;
 import android.os.Handler;
 import android.os.Looper;
 
@@ -13,6 +14,7 @@ import org.json.JSONObject;
 
 import org.chromium.base.ActivityState;
 import org.chromium.base.ApplicationStatus;
+import org.chromium.base.CommandLine;
 import org.chromium.base.ContextUtils;
 import org.chromium.blanc.settings.SettingsStore;
 import org.chromium.blanc.sync.PairScanner;
@@ -23,12 +25,13 @@ import org.chromium.build.annotations.NullMarked;
 import org.chromium.build.annotations.Nullable;
 
 import java.io.File;
+import java.util.Random;
 
 /**
  * The first minute on each launch the person opens (patch 0114 calls {@link #start} once the Island
- * exists): the walkthrough card over the Start Page when this phone hasn't finished it, and again
- * after Settings → Show the welcome again. Background launches (sync) build no Island, so they never
- * reach here.
+ * exists): the launch ping when Measure usage is saved on, the walkthrough card over the Start Page
+ * when this phone hasn't finished it, and the card again after Settings → Show the welcome again.
+ * Background launches (sync) build no Island, so they never reach here and never send the ping.
  */
 @NullMarked
 public final class FirstMinute {
@@ -42,11 +45,15 @@ public final class FirstMinute {
     private static final long SHOW_DELAY_MS = 700;
 
     private static boolean sReplay;
+    private static @Nullable LaunchPingSender sPing;
+    // Held here: SharedPreferences keeps its listeners weakly.
+    private static SharedPreferences.@Nullable OnSharedPreferenceChangeListener sConsentListener;
     private static @Nullable WalkthroughSheet sShowing;
 
     private FirstMinute() {}
 
     public static void start(Activity activity, PairScanner.Permissions permissions) {
+        sendLaunchPing(activity);
         ApplicationStatus.registerStateListenerForActivity((a, state) -> {
             if (state == ActivityState.RESUMED) {
                 WalkthroughSheet showing = sShowing;
@@ -63,6 +70,45 @@ public final class FirstMinute {
             }
         }, activity);
         new Handler(Looper.getMainLooper()).postDelayed(() -> maybeShow(activity, permissions, false), SHOW_DELAY_MS);
+    }
+
+    /**
+     * The launch ping (F21), once per process: now if Measure usage is saved on, else as soon as it's
+     * saved on, from the walkthrough or Settings. Nothing is sent before a saved yes.
+     */
+    private static void sendLaunchPing(Activity activity) {
+        SharedPreferences prefs = ContextUtils.getAppSharedPreferences();
+        SettingsStore store = new SettingsStore(prefs);
+        LaunchPingSender sender = sPing;
+        if (sender == null) {
+            sender = new LaunchPingSender(LaunchPingBridge::post, activity.getNoBackupFilesDir(), device(activity),
+                    new Random());
+            sPing = sender;
+            LaunchPingSender listening = sender;
+            SharedPreferences.OnSharedPreferenceChangeListener listener = (p, key) -> {
+                if (SettingsStore.USAGE_PING_KEY.equals(key)) listening.sendIfAllowed(store.usagePing());
+            };
+            sConsentListener = listener;
+            prefs.registerOnSharedPreferenceChangeListener(listener);
+        }
+        sender.sendIfAllowed(store.usagePing());
+    }
+
+    /**
+     * What the ping reports for this phone. A test launch is a debuggable build started with
+     * --blanc-test-ping-host (the switches desktop's --blanc-test-telemetry-host and -version play,
+     * named for the ping alone so no other test hook turns on): it sends only to that loopback
+     * collector, with --blanc-test-ping-version's version.
+     */
+    private static LaunchPingSender.Device device(Activity activity) {
+        boolean debuggable = (activity.getApplicationInfo().flags & ApplicationInfo.FLAG_DEBUGGABLE) != 0;
+        CommandLine line = CommandLine.getInstance();
+        boolean test = debuggable && line.hasSwitch("blanc-test-ping-host");
+        return new LaunchPingSender.Device(test, test ? line.getSwitchValue("blanc-test-ping-host") : null,
+                test ? line.getSwitchValue("blanc-test-ping-version") : null,
+                Build.SUPPORTED_ABIS.length > 0 ? Build.SUPPORTED_ABIS[0] : "",
+                Build.VERSION.RELEASE == null ? "" : Build.VERSION.RELEASE,
+                activity.getResources().getConfiguration().smallestScreenWidthDp);
     }
 
     /** Settings → Show the welcome again: the card shows when the browser is back in front. */

@@ -32,6 +32,7 @@ android_library("island_java") {
 android_library("settings_model_java") {
   sources = [
     "java/src/org/chromium/blanc/firstrun/AppLanguages.java",
+    "java/src/org/chromium/blanc/firstrun/LaunchPing.java",
     "java/src/org/chromium/blanc/firstrun/WalkthroughFlow.java",
     "java/src/org/chromium/blanc/settings/AllowedSites.java",
     "java/src/org/chromium/blanc/settings/SearchEngines.java",
@@ -134,6 +135,23 @@ source_set("top_color_bridge") {
     "//skia",
     "//ui/android",
     "//ui/gfx/geometry",
+  ]
+}
+
+# The launch ping's request (A5c). //chrome/browser depends on launch_ping_bridge (patch 0115).
+generate_jni("first_run_jni") {
+  sources = [ "java/src/org/chromium/blanc/firstrun/LaunchPingBridge.java" ]
+}
+
+source_set("launch_ping_bridge") {
+  sources = [ "browser/launch_ping_bridge.cc" ]
+  deps = [
+    ":first_run_jni",
+    "//base",
+    "//blanc:buildflags",
+    "//net",
+    "//services/network/public/cpp",
+    "//url",
   ]
 }
 
@@ -371,9 +389,12 @@ android_assets("blocker_assets") {
 
 android_library("island_view_java") {
   resources_package = "org.chromium.blanc.island"
+  srcjar_deps = [ ":first_run_jni" ]
   sources = [
     "java/src/org/chromium/blanc/firstrun/DefaultBrowser.java",
     "java/src/org/chromium/blanc/firstrun/FirstMinute.java",
+    "java/src/org/chromium/blanc/firstrun/LaunchPingBridge.java",
+    "java/src/org/chromium/blanc/firstrun/LaunchPingSender.java",
     "java/src/org/chromium/blanc/firstrun/WalkthroughSheet.java",
     "java/src/org/chromium/blanc/island/IslandMenuPopup.java",
     "java/src/org/chromium/blanc/island/IslandProgress.java",
@@ -402,6 +423,7 @@ android_library("island_view_java") {
     ":tabs_java",
     "//base:base_java",
     "//build/android:build_java",
+    "//third_party/jni_zero:jni_zero_java",
   ]
 }
 
@@ -446,6 +468,8 @@ robolectric_binary("blanc_android_junit_tests") {
     "junit/src/org/chromium/blanc/address/AddressInputTest.java",
     "junit/src/org/chromium/blanc/firstrun/AppLanguagesTest.java",
     "junit/src/org/chromium/blanc/firstrun/DefaultBrowserTest.java",
+    "junit/src/org/chromium/blanc/firstrun/LaunchPingSenderTest.java",
+    "junit/src/org/chromium/blanc/firstrun/LaunchPingTest.java",
     "junit/src/org/chromium/blanc/firstrun/WalkthroughFlowTest.java",
     "junit/src/org/chromium/blanc/firstrun/WalkthroughSheetTest.java",
     "junit/src/org/chromium/blanc/island/FindCapsuleTest.java",
