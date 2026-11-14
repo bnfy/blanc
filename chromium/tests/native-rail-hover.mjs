@@ -94,6 +94,27 @@ try{
  await w.waitFor(()=>card('picture'),c=>c===null,'the card closing on a page key',2000);
  check('a key typed into the page closes the card');
  await away();
+ const front=()=>execFileSync('osascript',['-e',`tell application "System Events" to set frontmost of (first process whose unix id is ${f.process.pid}) to true`]);
+
+ // Another app in front (⌘-Tab with the page focused) closes the card.
+ await move(green.cx,green.cy);
+ await w.waitFor(()=>card('picture'),Boolean,'a card before switching apps',2000);
+ execFileSync('osascript',['-e','tell application "Finder" to activate']);
+ await w.waitFor(()=>card('picture'),c=>c===null,'the card closing when another app is in front',3000);
+ front();await w.waitFor(()=>w.snapshot(),s=>s.windowActive===true,'the test window in front again',4000);await away();
+ check('another app coming to the front closes the card');
+
+ // A site's permission prompt closes the card.
+ await move(green.cx,green.cy);
+ await w.waitFor(()=>card('picture'),Boolean,'a card before the prompt',2000);
+ await page.evaluate('navigator.geolocation.getCurrentPosition(()=>{},()=>{})');
+ await w.waitFor(()=>card('picture'),c=>c===null,'the card closing for the permission prompt',3000);
+ const prompt=await w.waitFor(()=>w.hostEval("!document.getElementById('permission').hidden"),Boolean,'the permission prompt',3000);
+ assert.ok(prompt);
+ check('a permission prompt closes the card');
+ await w.hostEval("document.getElementById('permission').contentDocument.querySelector('button')?.click()");
+ await w.waitFor(()=>w.hostEval("document.getElementById('permission').hidden"),Boolean,'the prompt answered',3000).catch(()=>{});
+ await away();
 
  // Dark.
  await f.host.send('Emulation.setEmulatedMedia',{features:[{name:'prefers-color-scheme',value:'dark'}]});
@@ -166,6 +187,20 @@ try{
  assert.equal(firstCard.image,'data:image/jpeg;base64,','the picture is there as the card opens');
  await shot('6-background-tab-card');
  check('a tab opened in the background has its picture when its first card opens');
+ await away();
+
+ // A quiet tab: its card shows the picture Chromium kept, and the rest
+ // doesn't wake it.
+ await w.api('sleepBackgroundTabs');
+ await w.waitFor(()=>w.snapshot(),s=>s.tabs.find(t=>String(t.id)===String(purple.id))?.asleep,'the background tab quiet',8000);
+ await pause(600);
+ const quietRow=await row(purple.id);await move(quietRow.cx,quietRow.cy);
+ const quietCard=await w.waitFor(()=>card('picture'),c=>c?.image,'the quiet tab\'s card with its kept picture',3000);
+ assert.match(quietCard.host,/ · quiet$/,'named quiet as the rail\'s states say it');
+ await pause(2000);
+ assert.equal((await w.snapshot()).tabs.find(t=>String(t.id)===String(purple.id)).asleep,true,'still quiet after the rest');
+ await shot('7-quiet-tab-card');
+ check('a quiet tab\'s card shows the picture Chromium kept, and resting on it doesn\'t wake it');
  await away();
  fs.writeFileSync(path.join(out,'result.json'),JSON.stringify(result,null,1));
  console.log(`${result.checks.length} checks passed on ${config.candidate}`);

@@ -173,3 +173,10 @@ test('warmTargets: a loaded background tab, once per address', () => {
   assert.deepEqual(plain(hover.warmTargets(snapshot, moved)).map(t => t.id), [2], 'a new address gets a new picture');
   assert.deepEqual(plain(hover.warmTargets({...snapshot, glanceTabId: 8}, new Map())).map(t => t.id), [2], 'not the Glance page on screen');
 });
+
+test('suppressed while the window is in the background or a permission prompt is up', () => {
+  const calm = {layout: 'vertical', glanceOpen: false, surfaceOpen: false, dragging: false, railHidden: false};
+  assert.equal(hover.suppressed({...calm, windowActive: true, promptOpen: false}), false);
+  assert.equal(hover.suppressed({...calm, windowActive: false}), true, 'another app in front (⌘-Tab with the page focused)');
+  assert.equal(hover.suppressed({...calm, promptOpen: true}), true, 'a site permission prompt');
+});

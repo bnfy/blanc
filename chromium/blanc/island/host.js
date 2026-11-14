@@ -1498,6 +1498,7 @@
     reportGeometry();
   }
   function permissionPrompt(payload) {
+    railDismiss('surface');
     if (!Number.isInteger(payload?.id) || prompts.has(payload.id)) return;
     prompts.set(payload.id, payload);
     emit('onPermissionPrompt', payload);
@@ -2737,7 +2738,9 @@
     const rail = railElement();
     return BlancRailHover.suppressed({ layout, glanceOpen: snapshot?.glanceTabId != null,
       surfaceOpen: opened || extensionsOpened || !!sheet.page || !settingsSheet.hidden || !!paneMenu,
-      dragging: false, railHidden: !rail || rail.hidden });
+      dragging: false, railHidden: !rail || rail.hidden,
+      // ⌘-Tab away with the page focused never blurs the host; the snapshot knows.
+      windowActive: snapshot?.windowActive !== false, promptOpen: prompts.size > 0 });
   }
   function railStep(event) {
     const next = BlancRailHover.step(railHover.state, event);

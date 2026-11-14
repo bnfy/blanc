@@ -141,8 +141,10 @@
   /** An open group already lists its tabs in the rail; only a collapsed one gets a card. */
   function groupCardFor(group) { return !!group?.collapsed; }
 
-  function suppressed({layout, glanceOpen, surfaceOpen, dragging, railHidden} = {}) {
-    return layout !== 'vertical' || !!glanceOpen || !!surfaceOpen || !!dragging || !!railHidden;
+  // windowActive is false only when the snapshot says another app is in front.
+  function suppressed({layout, glanceOpen, surfaceOpen, dragging, railHidden, windowActive = true, promptOpen = false} = {}) {
+    return layout !== 'vertical' || !!glanceOpen || !!surfaceOpen || !!dragging || !!railHidden ||
+      windowActive === false || !!promptOpen;
   }
 
   root.BlancRailHover = Object.freeze({OPEN_DELAY_MS, LEAVE_GRACE_MS, initialState, step, keyAction, keyboardFocus, pictureFor, warmTargets, groupCardFor, suppressed});
