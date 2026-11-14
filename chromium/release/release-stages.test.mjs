@@ -123,3 +123,18 @@ test('Sigstore signing gets the Terminal, so cosign opens its browser sign-in', 
   assert.equal(seen.find(c => c.line.startsWith('cosign sign-blob')).interactive, true);
   assert.equal(seen.find(c => c.line.startsWith('cosign verify-blob')).interactive, false);
 });
+
+// Owner, 2026-11-14: release stages run from the MacBook Pro over SSH, where Keychain can't
+// ask. The wrapper pipes the 1Password copy of the update key; it reaches sign_update only
+// on stdin, never in argv or a file, and anything that isn't a Sparkle key is refused.
+test('the sparkle stage signs with the Keychain key, or with a key given on stdin', async () => {
+  const {sparkleSigning} = await import('./release.mjs');
+  const dmg = '/work/Blanc-Beta.dmg', seed = Buffer.alloc(32, 7).toString('base64');
+  assert.deepEqual(sparkleSigning(dmg, {}, () => assert.fail('no key read')), {args: ['--account', 'me.bnfy.blanc.beta', '-p', dmg]});
+  const piped = sparkleSigning(dmg, {BLANC_SPARKLE_KEY_STDIN: '1'}, () => `${seed}\n`);
+  assert.deepEqual(piped.args, ['--ed-key-file', '-', '-p', dmg]);
+  assert.equal(piped.input, `${seed}\n`);
+  assert.ok(!piped.args.some(arg => arg.includes(seed)), 'the key is never an argument');
+  for (const bad of ['', 'not base64!', Buffer.alloc(16).toString('base64'), `${seed}${seed}`])
+    assert.throws(() => sparkleSigning(dmg, {BLANC_SPARKLE_KEY_STDIN: '1'}, () => bad), /not a Sparkle private key/);
+});
