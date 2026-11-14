@@ -795,3 +795,18 @@ key) and `tampered` (a byte changed after signing) were downloaded and
 refused, leaving build 1. Keep the throwaway key out of `/tmp`: the first
 one was lost in a restart. It now lives in `records/local-update-key`
 (owner-only, outside Git). Evidence: `evidence/foundation/sparkle-local-update-20261114.json`.
+
+### Desktop Sync on the local beta (2026-11-14)
+
+`node chromium/tests/beta-sync.mjs APP EVIDENCE.json` runs the beta's own
+Sync with no test hooks: the local-qualification build's fixed endpoint
+(`127.0.0.1:49261`) is relayed to the local Worker, and the check drives
+only Settings → Sync's controls over Chromium's standard remote-debugging
+connection (throwaway `HOME`, mock keychain, every other host resolving to
+nothing). It turns Sync on with the embedded runner, pairs an independent
+peer running the iPhone's bundle with the code the beta shows, and, with
+Settings' tab-sharing switch on, the peer lists the beta with its open page.
+It passed on 2026-11-14 (82 Worker requests, all loopback). Favorites, tabs,
+Spaces, recovery and profiles stay with `desktop-sync.mjs` on the prototype,
+whose hooks the beta compiles out; production Sync with a real iPhone is the
+owner's.

@@ -932,6 +932,11 @@ remain pending. D3 beta-only no-DRM exception accepted; EME notice/handoff requi
   16 px at 1000 × 760; it fits at 1280 × 800 and larger, in every
   wallpaper mode). native-start-widgets 8/8; newtab-layouts 24/25 (:21 as
   before).
+- **Desktop Sync on the local beta (2026-11-14):** `chromium/tests/beta-sync.mjs`
+  drives the beta's Settings → Sync (no test hooks) against the local
+  Worker on its fixed loopback endpoint: Sync turns on, an independent
+  iPhone-bundle peer pairs with the code shown, and with tab sharing on the
+  peer sees the beta's open page. Passed.
 - **Local Sparkle update proof (2026-11-14):** `local-update-proof.mjs` on
   local beta.1 and beta.2 builds: the good feed installed build 2; a feed
   signed with another key and one changed after signing were downloaded and
