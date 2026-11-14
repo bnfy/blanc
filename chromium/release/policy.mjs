@@ -22,11 +22,14 @@ export const SPARKLE = '2.10.1';
 // showed Sync on after joining and after a relaunch). Both Sync faults are due in beta.4.
 // Owner, 2026-11-14, for 2.0.0-beta.4 (the Sync faults' fixes, extension popups, the
 // approach swell): no-drm-handoff again (the notice is still unbuilt; it moves to beta.5).
-// The real-iPhone Sync pass runs on the notarized beta.4 and is not waived.
+// The real-iPhone Sync pass ran on the first notarized beta.4 and passed on what
+// iPhone 1.0 can show; on the rebuilt beta.4 (the red-button fix) the iPhone did not
+// list the beta once after the red button although the Sync server had its pages, so
+// the owner waived it for beta.4 (2026-11-14), the notes keeping the Sync caution.
 export const GATE_WAIVERS = Object.freeze({
   '2.0.0-beta.2': Object.freeze(['no-drm-handoff', 'production-sync-real-device']),
   '2.0.0-beta.3': Object.freeze(['no-drm-handoff', 'production-sync-real-device']),
-  '2.0.0-beta.4': Object.freeze(['no-drm-handoff']),
+  '2.0.0-beta.4': Object.freeze(['no-drm-handoff', 'production-sync-real-device']),
 });
 export const waiverAllowed = (r, gate) => (GATE_WAIVERS[r.version] ?? []).includes(gate);
 export const waiverReason = why => typeof why === 'string' && why.trim().length >= 20;
