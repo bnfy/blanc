@@ -69,6 +69,7 @@ public class BlancSettingsScreenTest {
         @Override public void clearSiteData() { mCalls.add("clear"); }
         @Override public void openUrl(String url) { mCalls.add("url " + url); }
         @Override public void openLicenses() { mCalls.add("licenses"); }
+        @Override public void openStartPage() { mCalls.add("start page"); }
     };
 
     @Before
@@ -107,7 +108,7 @@ public class BlancSettingsScreenTest {
         BlancSettingsScreen.apply(mScreen, mHost);
         assertEquals(List.of("blanc_header",
                 "blanc_browsing_section", "blanc_search_engine",
-                "blanc_appearance_section", "blanc_theme", "blanc_island_position",
+                "blanc_appearance_section", "blanc_theme", "blanc_island_position", "blanc_start_page",
                 "blanc_privacy_section", "blanc_blocker", "blanc_allowed_sites", "blanc_clear_site_data",
                 "blanc_sync_section", "blanc_sync",
                 "blanc_more_section", "content_settings", "notifications", "downloads",
@@ -229,6 +230,14 @@ public class BlancSettingsScreenTest {
         row("blanc_licenses").performClick();
         assertEquals(List.of("allowed", "clear", "url https://blanc.day", "url https://blanc.day/privacy",
                 "url mailto:support@blanc.day", "licenses"), mCalls);
+    }
+
+    @Test
+    public void theStartPageRowOpensTheStartPagesCustomize() {
+        BlancSettingsScreen.apply(mScreen, mHost);
+        assertEquals("Start Page", row("blanc_start_page").getTitle().toString());
+        row("blanc_start_page").performClick();
+        assertEquals(List.of("start page"), mCalls);
     }
 
     @Test
