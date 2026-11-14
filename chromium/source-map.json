@@ -146,7 +146,7 @@
     "blanc/android/java/src/org/chromium/blanc/find/FindCapsule.java": "a02f355f5a172da41aa922610e21a2c34ed36920fee9838b0804958eb3608fed",
     "blanc/android/java/src/org/chromium/blanc/firstrun/AppLanguages.java": "1b86e3eceb50ee8ba87f89ef2465e0d577e3b0856f279e7e5694c4a2be2e3613",
     "blanc/android/java/src/org/chromium/blanc/firstrun/DefaultBrowser.java": "1f9ac6076e7a463ddb5c273463748fef620046559954c8708f39ebb605c138ec",
-    "blanc/android/java/src/org/chromium/blanc/firstrun/FirstMinute.java": "c5397f4709ce9bd4c942ec6b67af08c9db00dccb3f9ebbeb6e262b93e6b9e794",
+    "blanc/android/java/src/org/chromium/blanc/firstrun/FirstMinute.java": "bad2109ce4e3d4a1c638f381d3bb70ffd48b0e15752e9b4ba77e288364dde397",
     "blanc/android/java/src/org/chromium/blanc/firstrun/LaunchPing.java": "1c0913d3f6fbc0516ba179989698fffa21dfb9a6d4ac57a98d6ae8fe615579e8",
     "blanc/android/java/src/org/chromium/blanc/firstrun/LaunchPingBridge.java": "3ec39b87e149c1b1f615d2823ee2c18b812da57ca08b63fe406d2312a6eac9a8",
     "blanc/android/java/src/org/chromium/blanc/firstrun/LaunchPingSender.java": "d697fa43598c22e6899936083f0208e299053e3ffa6a8d6432dd03210542dd51",

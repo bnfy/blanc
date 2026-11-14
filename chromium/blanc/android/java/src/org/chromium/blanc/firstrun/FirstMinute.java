@@ -46,7 +46,9 @@ public final class FirstMinute {
 
     private static boolean sReplay;
     private static @Nullable LaunchPingSender sPing;
-    // Held here: SharedPreferences keeps its listeners weakly.
+    // Held here, never read: SharedPreferences keeps its listeners weakly, so this reference is what
+    // keeps the consent listener alive.
+    @SuppressWarnings("UnusedVariable")
     private static SharedPreferences.@Nullable OnSharedPreferenceChangeListener sConsentListener;
     private static @Nullable WalkthroughSheet sShowing;
 
