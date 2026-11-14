@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright 2026 Bananify Creative. MIT; see LICENSE. -->
+<!-- The line under a step's title, or the small heading above What arrived. -->
+<TextView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_marginTop="@dimen/blanc_walkthrough_line_gap"
+    android:textColor="@color/blanc_sunrise_text_dim"
+    android:textSize="@dimen/blanc_walkthrough_body_size" />

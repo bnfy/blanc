@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright 2026 Bananify Creative. MIT; see LICENSE. -->
+<!-- A step's second action: plain text under the main one (Browse without pairing, Not now). -->
+<TextView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_marginTop="@dimen/blanc_walkthrough_line_gap"
+    android:background="?android:attr/selectableItemBackground"
+    android:focusable="true"
+    android:gravity="center"
+    android:minHeight="@dimen/blanc_walkthrough_quiet_height"
+    android:textColor="@color/blanc_sunrise_text"
+    android:textSize="@dimen/blanc_walkthrough_body_size" />

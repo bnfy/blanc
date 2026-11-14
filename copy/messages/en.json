@@ -9865,6 +9865,22 @@
     "message": "Open-source licenses",
     "note": "Android Settings → About: row opening the list of open-source licenses."
   },
+  "android.welcome.shareTitle": {
+    "message": "Share from this phone",
+    "note": "Blanc for Android walkthrough: the iPhone string ios.welcome.shareTitle with \"this phone\"."
+  },
+  "android.welcome.measureUsageHelp": {
+    "message": "Each time you open Blanc, it sends one anonymous count: a random ID for this install, the app version and the Android version. Never what you browse. See blanc.day/privacy.",
+    "note": "Blanc for Android: under the Measure usage switch in the walkthrough and Settings; ios.welcome.measureUsageHelp with the Android version. Says exactly what the launch ping carries."
+  },
+  "android.defaultBrowser.body": {
+    "message": "Make Blanc your default browser so links from other apps open here.",
+    "note": "Blanc for Android walkthrough: the default-browser step, ios.defaultBrowser.body without iPhone app names."
+  },
+  "android.defaultBrowser.open": {
+    "message": "Set as default",
+    "note": "Blanc for Android walkthrough: the button that asks Android to make Blanc the default browser (Android shows its own confirmation)."
+  },
   "android.settings.autoRevokeSummary": {
     "message": "To protect your data, let Blanc remove permissions from sites that you haven’t visited recently",
     "note": "Android Settings → Site settings: summary under the unused-permissions switch (replaces Chromium’s text, which names Chrome)."

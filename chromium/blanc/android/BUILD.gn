@@ -31,6 +31,8 @@ android_library("island_java") {
 # Settings' own rules, with no Chromium dependency, so they run under Robolectric.
 android_library("settings_model_java") {
   sources = [
+    "java/src/org/chromium/blanc/firstrun/AppLanguages.java",
+    "java/src/org/chromium/blanc/firstrun/WalkthroughFlow.java",
     "java/src/org/chromium/blanc/settings/AllowedSites.java",
     "java/src/org/chromium/blanc/settings/SearchEngines.java",
     "java/src/org/chromium/blanc/settings/SettingsDestination.java",
@@ -228,6 +230,7 @@ android_library("settings_chromium_java") {
     "//base:base_java",
     "//build/android:build_java",
     "//chrome/browser/browsing_data/android:java",
+    "//chrome/browser/lifetime/android:java",
     "//chrome/browser/profiles/android:java",
     "//chrome/browser/search_engines/android:java",
     "//components/browsing_data/core:java",
@@ -320,6 +323,9 @@ android_resources("island_view_resources") {
     "island/res/drawable/blanc_sync_back.xml",
     "island/res/drawable/blanc_sync_card.xml",
     "island/res/drawable/blanc_sync_divider.xml",
+    "island/res/drawable/blanc_walkthrough_close_circle.xml",
+    "island/res/drawable/blanc_walkthrough_primary.xml",
+    "island/res/drawable/blanc_walkthrough_sheet.xml",
     "island/res/layout/blanc_island.xml",
     "island/res/layout/blanc_settings_header.xml",
     "island/res/layout/blanc_sync_card.xml",
@@ -329,12 +335,20 @@ android_resources("island_view_resources") {
     "island/res/layout/blanc_sync_rename.xml",
     "island/res/layout/blanc_sync_row.xml",
     "island/res/layout/blanc_sync_screen.xml",
+    "island/res/layout/blanc_walkthrough.xml",
+    "island/res/layout/blanc_walkthrough_body.xml",
+    "island/res/layout/blanc_walkthrough_mark.xml",
+    "island/res/layout/blanc_walkthrough_primary.xml",
+    "island/res/layout/blanc_walkthrough_quiet.xml",
+    "island/res/layout/blanc_walkthrough_title.xml",
     "island/res/values/blanc_grid_ids.xml",
     "island/res/values/blanc_island_dimens.xml",
     "island/res/values/blanc_settings_colors.xml",
     "island/res/values/blanc_settings_dimens.xml",
     "island/res/values/blanc_settings_theme.xml",
     "island/res/values/blanc_sync_dimens.xml",
+    "island/res/values/blanc_walkthrough_dimens.xml",
+    "island/res/xml/blanc_locales_config.xml",
     "island/res/values-night/blanc_settings_colors.xml",
     "island/res/values/blanc_strings.xml",
     "island/res/values-de/blanc_strings.xml",
@@ -358,6 +372,9 @@ android_assets("blocker_assets") {
 android_library("island_view_java") {
   resources_package = "org.chromium.blanc.island"
   sources = [
+    "java/src/org/chromium/blanc/firstrun/DefaultBrowser.java",
+    "java/src/org/chromium/blanc/firstrun/FirstMinute.java",
+    "java/src/org/chromium/blanc/firstrun/WalkthroughSheet.java",
     "java/src/org/chromium/blanc/island/IslandMenuPopup.java",
     "java/src/org/chromium/blanc/island/IslandProgress.java",
     "java/src/org/chromium/blanc/island/IslandView.java",
@@ -427,6 +444,10 @@ robolectric_binary("blanc_android_junit_tests") {
   sources = [
     "junit/src/org/chromium/blanc/address/AddressFixtures.java",
     "junit/src/org/chromium/blanc/address/AddressInputTest.java",
+    "junit/src/org/chromium/blanc/firstrun/AppLanguagesTest.java",
+    "junit/src/org/chromium/blanc/firstrun/DefaultBrowserTest.java",
+    "junit/src/org/chromium/blanc/firstrun/WalkthroughFlowTest.java",
+    "junit/src/org/chromium/blanc/firstrun/WalkthroughSheetTest.java",
     "junit/src/org/chromium/blanc/island/FindCapsuleTest.java",
     "junit/src/org/chromium/blanc/island/IslandMenuPopupTest.java",
     "junit/src/org/chromium/blanc/island/TopColorSamplerTest.java",

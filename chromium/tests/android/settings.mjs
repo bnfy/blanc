@@ -16,9 +16,10 @@ import {execFileSync} from 'node:child_process';
 const PACKAGE = 'me.bnfy.blanc.dev';
 const SETTINGS = `${PACKAGE}/org.chromium.chrome.browser.settings.SettingsActivity`;
 // In order, top to bottom, down the root.
-const ROWS = ['Blanc', 'Browsing', 'Search engine', 'Appearance', 'Theme', 'Island position', 'Privacy', 'Blanc Blocker',
-  'Allowed sites', 'Clear cookies, cache & site data', 'Sync', 'More', 'Site settings', 'Notifications',
-  'Downloads', 'About', 'Version', 'Website', 'Privacy policy', 'Support', 'Open-source licenses'];
+const ROWS = ['Blanc', 'Browsing', 'Search engine', 'Default browser', 'Appearance', 'Theme', 'Island position',
+  'Privacy', 'Blanc Blocker', 'Allowed sites', 'Clear cookies, cache & site data', 'Measure usage', 'Sync', 'More',
+  'Site settings', 'Notifications', 'Downloads', 'Language', 'About', 'Version', 'Website', 'Privacy policy', 'Support',
+  'Open-source licenses', 'Show the welcome again'];
 const BANNED = [/\bChrome\b/, /\bGoogle\b/, /Sign in/, /Safety/, /Homepage/];
 // DuckDuckGo, Google, Bing, Brave Search and Kagi are engine names, not Google wording.
 const ENGINE_NAMES = /^(Google|DuckDuckGo|Bing|Brave Search|Kagi)$/;

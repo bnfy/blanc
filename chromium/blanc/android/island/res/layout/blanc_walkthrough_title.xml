@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright 2026 Bananify Creative. MIT; see LICENSE. -->
+<!-- A step's title. Centered on Welcome and the default-browser step, leading elsewhere. -->
+<TextView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_marginTop="@dimen/blanc_walkthrough_gap"
+    android:textColor="@color/blanc_sunrise_text"
+    android:textSize="@dimen/blanc_walkthrough_title_size"
+    android:textStyle="bold" />

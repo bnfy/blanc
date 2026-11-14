@@ -102,6 +102,9 @@ cap** are identical; only where the bytes land and how you re-open them differ.
   Settings open the system's Default Apps screen. Apple rate-limits the check,
   so a refused one keeps the last answer.
 - **Android:** intent filters + the default-browser role; hand-off via `Intent`.
+  The walkthrough and Settings ask with Android's role dialog, at most twice
+  (Android stops showing it to someone who turned it down twice), then open
+  Android's Default apps screen (A5c, unreleased).
 
 **Parity contract:** a bare `mailto:`/`tel:`/etc. is handed to the OS (never
 treated as a search query), unknown schemes do not reach an OS handler, and Blanc
@@ -986,3 +989,25 @@ and the page staying usable while the bar is open.
 
 **Status:** iOS implemented; Android implemented in A2, unreleased.
 
+---
+
+## D38 — A walkthrough closed before its privacy step saves no choice on Android
+**Features:** F21
+
+**Why:** Measure usage is consent. A choice the person never saw on screen
+isn't one.
+
+- **Desktop:** the fresh-profile privacy choices must be saved before any event.
+- **iOS:** closing the first-minute card at any step saves Measure usage and
+  Search suggestions with the values the privacy step shows, or would show (on
+  by default), so swiping Welcome away saves Measure usage on.
+- **Android:** closing the card saves the privacy step's switch only when that
+  step is on screen. Closed earlier, Measure usage stays unsaved, nothing is
+  sent, and Settings → Privacy reads it off until the person chooses.
+
+**Parity contract that still holds:** nothing is measured before a saved
+choice; the walkthrough is seen once per version; Settings changes the choice
+at any time.
+
+**Status:** Android implemented in A5c, unreleased. Whether the iPhone should
+follow is open.

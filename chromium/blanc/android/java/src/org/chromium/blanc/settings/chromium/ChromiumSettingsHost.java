@@ -4,17 +4,24 @@ package org.chromium.blanc.settings.chromium;
 
 import android.app.Activity;
 import android.app.AlertDialog;
+import android.app.LocaleManager;
 import android.content.ActivityNotFoundException;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageManager;
+import android.content.res.Resources;
 import android.net.Uri;
+import android.os.Build;
+import android.os.LocaleList;
 import android.widget.Toast;
 
 import org.chromium.base.ContextUtils;
 import org.chromium.base.Log;
 import org.chromium.blanc.blocking.BlockerBridge;
+import org.chromium.blanc.firstrun.AppLanguages;
+import org.chromium.blanc.firstrun.DefaultBrowser;
+import org.chromium.blanc.firstrun.FirstMinute;
 import org.chromium.blanc.island.R;
 import org.chromium.blanc.settings.AllowedSites;
 import org.chromium.blanc.settings.AllowedSitesDialog;
@@ -29,6 +36,7 @@ import org.chromium.build.annotations.Nullable;
 import org.chromium.chrome.browser.browsing_data.BrowsingDataBridge;
 import org.chromium.chrome.browser.browsing_data.BrowsingDataType;
 import org.chromium.chrome.browser.browsing_data.TimePeriod;
+import org.chromium.chrome.browser.lifetime.ApplicationLifetime;
 import org.chromium.chrome.browser.profiles.Profile;
 import org.chromium.chrome.browser.profiles.ProfileManager;
 import org.chromium.chrome.browser.search_engines.TemplateUrlServiceFactory;
@@ -212,6 +220,106 @@ final class ChromiumSettingsHost implements BlancSettingsScreen.Host {
     @Override
     public void openLicenses() {
         mLicenses.run();
+    }
+
+    @Override
+    public @Nullable Boolean defaultBrowser() {
+        return DefaultBrowser.roles(mActivity).held();
+    }
+
+    // Android answers in its own dialog or screen; Settings reads the role again when it's back.
+    @Override
+    public void openDefaultBrowser() {
+        DefaultBrowser.request(mActivity, DefaultBrowser.roles(mActivity), ContextUtils.getAppSharedPreferences());
+    }
+
+    @Override
+    public boolean usagePing() {
+        return Boolean.TRUE.equals(mStore.usagePing());
+    }
+
+    @Override
+    public void setUsagePing(boolean on) {
+        mStore.setUsagePing(on);
+    }
+
+    /** Chromium's own override, read at startup before Android 13 (ChromePreferenceKeys). */
+    private static final String OVERRIDE_LANGUAGE = "Chrome.Language.ApplicationOverrideLanguage";
+
+    /** The language Blanc was asked for, or null when it follows the phone's. */
+    private @Nullable String chosenLanguage() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            LocaleManager manager = mActivity.getSystemService(LocaleManager.class);
+            LocaleList locales = manager == null ? LocaleList.getEmptyLocaleList() : manager.getApplicationLocales();
+            return locales.isEmpty() ? null : locales.get(0).toLanguageTag();
+        }
+        return ContextUtils.getAppSharedPreferences().getString(OVERRIDE_LANGUAGE, null);
+    }
+
+    /** "System (Deutsch)": the language Blanc shows when it follows the phone's. */
+    private String systemLabel() {
+        // Android 13's per-app language reaches Resources.getSystem() in Blanc's own process, so there
+        // the phone's language comes from LocaleManager.
+        LocaleList phoneLocales = Resources.getSystem().getConfiguration().getLocales();
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            LocaleManager manager = mActivity.getSystemService(LocaleManager.class);
+            if (manager != null) phoneLocales = manager.getSystemLocales();
+        }
+        String phone = phoneLocales.isEmpty() ? null : phoneLocales.get(0).toLanguageTag();
+        return mActivity.getString(R.string.blanc_settings_language_system, AppLanguages.resolve(phone).endonym);
+    }
+
+    @Override
+    public String languageSummary() {
+        AppLanguages.Language chosen = AppLanguages.chosen(chosenLanguage());
+        return chosen == null ? systemLabel() : chosen.endonym;
+    }
+
+    /**
+     * System and the six languages. A choice is Android's per-app language (LocaleManager, the same
+     * one Android's App languages screen sets) and Blanc restarts into it at once, since Chromium
+     * loads its own pages' language when it starts.
+     */
+    @Override
+    public void openLanguage() {
+        AppLanguages.Language chosen = AppLanguages.chosen(chosenLanguage());
+        CharSequence[] labels = new CharSequence[AppLanguages.ALL.size() + 1];
+        labels[0] = systemLabel();
+        int checked = 0;
+        for (int i = 0; i < AppLanguages.ALL.size(); i++) {
+            AppLanguages.Language language = AppLanguages.ALL.get(i);
+            labels[i + 1] = language.endonym;
+            if (chosen != null && chosen.tag.equals(language.tag)) checked = i + 1;
+        }
+        int current = checked;
+        new AlertDialog.Builder(mActivity)
+                .setTitle(R.string.blanc_settings_language_label)
+                .setSingleChoiceItems(labels, checked, (dialog, which) -> {
+                    dialog.dismiss();
+                    if (which == current) return;
+                    setLanguage(which == 0 ? null : AppLanguages.ALL.get(which - 1).tag);
+                })
+                .setNegativeButton(android.R.string.cancel, null)
+                .show();
+    }
+
+    private void setLanguage(@Nullable String tag) {
+        ApplicationLifetime.setRestartForLocaleSwitch(true);
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            LocaleManager manager = mActivity.getSystemService(LocaleManager.class);
+            if (manager == null) return;
+            manager.setApplicationLocales(tag == null ? LocaleList.getEmptyLocaleList() : LocaleList.forLanguageTags(tag));
+        } else {
+            ContextUtils.getAppSharedPreferences().edit().putString(OVERRIDE_LANGUAGE, tag).commit();
+        }
+        ApplicationLifetime.terminate(true);
+    }
+
+    // The card rises over the browser once Settings has closed.
+    @Override
+    public void showWelcome() {
+        FirstMinute.requestReplay();
+        mActivity.finish();
     }
 
     // The Island opens Customize on the Start Page (StartPageCustomize) as Settings closes over it.

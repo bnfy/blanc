@@ -2701,5 +2701,9 @@ Puoi riprovare con «%2$s» o reinstallare Blanc da blanc.day.</string>
     <string name="android_settings_island_position_top">In alto</string>
     <string name="android_settings_island_position_bottom">In basso</string>
     <string name="android_settings_open_source_licenses">Licenze open source</string>
+    <string name="android_welcome_share_title">Condividi da questo telefono</string>
+    <string name="android_welcome_measure_usage_help">Ogni volta che apri Blanc, invia un conteggio anonimo: un ID casuale per questa installazione, la versione dell’app e la versione di Android. Mai ciò che navighi. Vedi blanc.day/privacy.</string>
+    <string name="android_default_browser_body">Rendi Blanc il tuo browser predefinito, così i link delle altre app si aprono qui.</string>
+    <string name="android_default_browser_open">Imposta come predefinito</string>
     <string name="android_settings_auto_revoke_summary">Per proteggere i tuoi dati, consenti a Blanc di rimuovere le autorizzazioni dai siti che non visiti da un po’</string>
 </resources>

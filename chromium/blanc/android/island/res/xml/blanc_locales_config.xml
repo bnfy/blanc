@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright 2026 Bananify Creative. MIT; see LICENSE. -->
+<!-- Blanc's six interface languages (AppLanguages.java), which Android's App languages screen offers
+     for Blanc: the manifest names this file (patch 0114). -->
+<locale-config xmlns:android="http://schemas.android.com/apk/res/android">
+    <locale android:name="en" />
+    <locale android:name="de" />
+    <locale android:name="es" />
+    <locale android:name="fr" />
+    <locale android:name="it" />
+    <locale android:name="pt-BR" />
+</locale-config>

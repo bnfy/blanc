@@ -107497,6 +107497,174 @@
         }
       }
     },
+    "android.welcome.shareTitle": {
+      "comment": "Blanc for Android walkthrough: the iPhone string ios.welcome.shareTitle with \"this phone\".",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Share from this phone"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Von diesem Telefon teilen"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Compartir desde este teléfono"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Partager depuis ce téléphone"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Condividi da questo telefono"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Compartilhar deste celular"
+          }
+        }
+      }
+    },
+    "android.welcome.measureUsageHelp": {
+      "comment": "Blanc for Android: under the Measure usage switch in the walkthrough and Settings; ios.welcome.measureUsageHelp with the Android version. Says exactly what the launch ping carries.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Each time you open Blanc, it sends one anonymous count: a random ID for this install, the app version and the Android version. Never what you browse. See blanc.day/privacy."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bei jedem Öffnen sendet Blanc einen anonymen Zähler: eine zufällige ID für diese Installation, die App-Version und die Android-Version. Nie, was du ansiehst. Siehe blanc.day/privacy."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cada vez que abres Blanc, envía un recuento anónimo: un ID aleatorio para esta instalación, la versión de la app y la versión de Android. Nunca lo que navegas. Consulta blanc.day/privacy."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "À chaque ouverture, Blanc envoie un comptage anonyme : un identifiant aléatoire pour cette installation, la version de l’app et la version d’Android. Jamais ce que vous consultez. Voir blanc.day/privacy."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ogni volta che apri Blanc, invia un conteggio anonimo: un ID casuale per questa installazione, la versione dell’app e la versione di Android. Mai ciò che navighi. Vedi blanc.day/privacy."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sempre que você abre o Blanc, ele envia uma contagem anônima: um ID aleatório para esta instalação, a versão do app e a versão do Android. Nunca o que você navega. Veja blanc.day/privacy."
+          }
+        }
+      }
+    },
+    "android.defaultBrowser.body": {
+      "comment": "Blanc for Android walkthrough: the default-browser step, ios.defaultBrowser.body without iPhone app names.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Make Blanc your default browser so links from other apps open here."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mach Blanc zu deinem Standardbrowser, damit Links aus anderen Apps hier geöffnet werden."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Haz de Blanc tu navegador predeterminado para que los enlaces de otras apps se abran aquí."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Faites de Blanc votre navigateur par défaut pour que les liens des autres apps s’ouvrent ici."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Rendi Blanc il tuo browser predefinito, così i link delle altre app si aprono qui."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Torne o Blanc seu navegador padrão para que os links de outros apps abram aqui."
+          }
+        }
+      }
+    },
+    "android.defaultBrowser.open": {
+      "comment": "Blanc for Android walkthrough: the button that asks Android to make Blanc the default browser (Android shows its own confirmation).",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Set as default"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Als Standard festlegen"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Establecer como predeterminado"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Définir par défaut"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Imposta come predefinito"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Definir como padrão"
+          }
+        }
+      }
+    },
     "android.settings.autoRevokeSummary": {
       "comment": "Android Settings → Site settings: summary under the unused-permissions switch (replaces Chromium’s text, which names Chrome).",
       "extractionState": "manual",

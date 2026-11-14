@@ -49,6 +49,8 @@ public class BlancSettingsScreenTest {
     private String mEngine = "duckduckgo";
     private String mPosition = "bottom";
     private boolean mBlocker = true;
+    private Boolean mDefault = false;
+    private boolean mUsage;
 
     private final BlancSettingsScreen.Host mHost = new BlancSettingsScreen.Host() {
         @Override public Context context() { return mActivity; }
@@ -70,6 +72,13 @@ public class BlancSettingsScreenTest {
         @Override public void openUrl(String url) { mCalls.add("url " + url); }
         @Override public void openLicenses() { mCalls.add("licenses"); }
         @Override public void openStartPage() { mCalls.add("start page"); }
+        @Override public Boolean defaultBrowser() { return mDefault; }
+        @Override public void openDefaultBrowser() { mCalls.add("default browser"); }
+        @Override public boolean usagePing() { return mUsage; }
+        @Override public void setUsagePing(boolean on) { mUsage = on; mCalls.add("usage " + on); }
+        @Override public String languageSummary() { return "System (English)"; }
+        @Override public void openLanguage() { mCalls.add("language"); }
+        @Override public void showWelcome() { mCalls.add("welcome"); }
     };
 
     @Before
@@ -107,13 +116,14 @@ public class BlancSettingsScreenTest {
     public void rowsFollowTheLayoutOrder() {
         BlancSettingsScreen.apply(mScreen, mHost);
         assertEquals(List.of("blanc_header",
-                "blanc_browsing_section", "blanc_search_engine",
+                "blanc_browsing_section", "blanc_search_engine", "blanc_default_browser",
                 "blanc_appearance_section", "blanc_theme", "blanc_island_position", "blanc_start_page",
                 "blanc_privacy_section", "blanc_blocker", "blanc_allowed_sites", "blanc_clear_site_data",
+                "blanc_measure_usage",
                 "blanc_sync_section", "blanc_sync",
-                "blanc_more_section", "content_settings", "notifications", "downloads",
+                "blanc_more_section", "content_settings", "notifications", "downloads", "blanc_language",
                 "blanc_about_section", "blanc_version", "blanc_website", "blanc_privacy_policy", "blanc_support",
-                "blanc_licenses"), shown());
+                "blanc_licenses", "blanc_show_welcome"), shown());
     }
 
     @Test
@@ -253,8 +263,46 @@ public class BlancSettingsScreenTest {
     @Test
     public void blancRowsNeverWriteToSharedPreferences() {
         BlancSettingsScreen.apply(mScreen, mHost);
-        for (String key : List.of("blanc_search_engine", "blanc_theme", "blanc_island_position", "blanc_blocker")) {
+        for (String key : List.of("blanc_search_engine", "blanc_theme", "blanc_island_position", "blanc_blocker",
+                     "blanc_measure_usage")) {
             assertFalse(key, row(key).isPersistent());
         }
+    }
+
+    @Test
+    public void theDefaultBrowserRowSaysWhetherBlancIsTheDefaultAndAsksAndroid() {
+        BlancSettingsScreen.apply(mScreen, mHost);
+        assertEquals("Default browser", row("blanc_default_browser").getTitle().toString());
+        assertEquals("Not Blanc", row("blanc_default_browser").getSummary().toString());
+        mDefault = true;
+        BlancSettingsScreen.apply(mScreen, mHost);
+        assertEquals("Blanc", row("blanc_default_browser").getSummary().toString());
+        mDefault = null;
+        BlancSettingsScreen.apply(mScreen, mHost);
+        assertNull(row("blanc_default_browser").getSummary());
+        row("blanc_default_browser").performClick();
+        assertEquals(List.of("default browser"), mCalls);
+    }
+
+    @Test
+    public void measureUsageShowsTheSavedChoiceAndWritesIt() {
+        BlancSettingsScreen.apply(mScreen, mHost);
+        SwitchPreferenceCompat usage = (SwitchPreferenceCompat) row("blanc_measure_usage");
+        assertEquals("Measure usage", usage.getTitle().toString());
+        assertTrue(usage.getSummary().toString().contains("Android version"));
+        assertFalse(usage.isChecked());
+        usage.callChangeListener(true);
+        assertEquals(List.of("usage true"), mCalls);
+    }
+
+    @Test
+    public void languageAndShowTheWelcomeAgainRunTheirActions() {
+        BlancSettingsScreen.apply(mScreen, mHost);
+        assertEquals("Language", row("blanc_language").getTitle().toString());
+        assertEquals("System (English)", row("blanc_language").getSummary().toString());
+        assertEquals("Show the welcome again", row("blanc_show_welcome").getTitle().toString());
+        row("blanc_language").performClick();
+        row("blanc_show_welcome").performClick();
+        assertEquals(List.of("language", "welcome"), mCalls);
     }
 }

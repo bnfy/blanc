@@ -2626,5 +2626,9 @@ You can retry with “%2$s”, or reinstall from blanc.day.</string>
     <string name="android_settings_island_position_top">Top</string>
     <string name="android_settings_island_position_bottom">Bottom</string>
     <string name="android_settings_open_source_licenses">Open-source licenses</string>
+    <string name="android_welcome_share_title">Share from this phone</string>
+    <string name="android_welcome_measure_usage_help">Each time you open Blanc, it sends one anonymous count: a random ID for this install, the app version and the Android version. Never what you browse. See blanc.day/privacy.</string>
+    <string name="android_default_browser_body">Make Blanc your default browser so links from other apps open here.</string>
+    <string name="android_default_browser_open">Set as default</string>
     <string name="android_settings_auto_revoke_summary">To protect your data, let Blanc remove permissions from sites that you haven’t visited recently</string>
 </resources>

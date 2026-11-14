@@ -35,6 +35,12 @@ in the lane file in its place. Numbering starts at 0101.
   fork's pinned-shortcut list `blanc.prototype.start_page_pins`
   (`blanc/browser/ui/start_page_pins.inc`), which `blanc_pages_ui.cc` reads and
   writes for the fork's Start Page. None of them syncs.
+- `0114-android-first-minute.patch`: starts the first-minute walkthrough
+  (`org.chromium.blanc.firstrun.FirstMinute`) once the Island exists in
+  `TabbedRootUiCoordinator`, and names Blanc's six interface languages
+  (`blanc/android/island/res/xml/blanc_locales_config.xml`) as the app's
+  `android:localeConfig`, so Android's App languages screen offers those six
+  (A5c).
 
 A file dropped or moved in the lane keeps its applied edits in an existing checkout
 (`apply.py` touches only the lane's files, and never deletes): restore a

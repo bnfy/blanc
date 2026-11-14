@@ -2863,8 +2863,9 @@ Chromium's Site settings, Notifications and Downloads. Ways in: `/settings`, the
 `blanc://settings` with `#sync` and `#privacy`. One Chrome-worded string (auto-revoke summary) is overridden in
 all six languages; Accessibility is left out of More because its page names Chrome.
 
-- **Not built (A5c):** the default-browser row, Language, Measure usage and onboarding. The Start Page's
-  widgets, clock and wallpaper came with A5b (below): Settings has a Start Page row that opens its Customize.
+- **Since built:** the default-browser row, Language, Measure usage and the walkthrough came with A5c
+  (below). The Start Page's widgets, clock and wallpaper came with A5b (below): Settings has a Start Page row
+  that opens its Customize.
 - **Known gaps:** Chromium's own default search engine follows Blanc's choice only after Settings has been
   opened (a startup sync is a follow-up); Settings asks the sync runner for its status on every update; the
   Open-source licenses row opens Chromium's legal page, which the wording scan doesn't cover.

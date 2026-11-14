@@ -9578,6 +9578,26 @@
     "note": "Android Settings → About: row opening the list of open-source licenses.",
     "source": "sha256:ee73136a612e3f11806cd153e9242381073980855674daf373395a55d4bee467"
   },
+  "android.welcome.shareTitle": {
+    "message": "Compartir desde este teléfono",
+    "note": "Blanc for Android walkthrough: the iPhone string ios.welcome.shareTitle with \"this phone\".",
+    "source": "sha256:4734ec05405720aee9f9c2be173c845a1a7c3b3c2a848bb92874cad6d86582ae"
+  },
+  "android.welcome.measureUsageHelp": {
+    "message": "Cada vez que abres Blanc, envía un recuento anónimo: un ID aleatorio para esta instalación, la versión de la app y la versión de Android. Nunca lo que navegas. Consulta blanc.day/privacy.",
+    "note": "Blanc for Android: under the Measure usage switch in the walkthrough and Settings; ios.welcome.measureUsageHelp with the Android version. Says exactly what the launch ping carries.",
+    "source": "sha256:d4696330c340c778e600462c4e853fb7f6c7d774d64f25d0fa42a3a49913b7dc"
+  },
+  "android.defaultBrowser.body": {
+    "message": "Haz de Blanc tu navegador predeterminado para que los enlaces de otras apps se abran aquí.",
+    "note": "Blanc for Android walkthrough: the default-browser step, ios.defaultBrowser.body without iPhone app names.",
+    "source": "sha256:5da61b8d64796e893236b193ddfcafbe8c4185dc942fcca31e150b38aae772e6"
+  },
+  "android.defaultBrowser.open": {
+    "message": "Establecer como predeterminado",
+    "note": "Blanc for Android walkthrough: the button that asks Android to make Blanc the default browser (Android shows its own confirmation).",
+    "source": "sha256:5183a6b5762927630c64cdd4e9f172d64e8284a07f4311b84965a01add5e877f"
+  },
   "android.settings.autoRevokeSummary": {
     "message": "Para proteger tus datos, permite que Blanc quite los permisos de los sitios que no has visitado recientemente",
     "note": "Android Settings → Site settings: summary under the unused-permissions switch (replaces Chromium’s text, which names Chrome).",
