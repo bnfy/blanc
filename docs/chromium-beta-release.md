@@ -864,9 +864,126 @@ proof, native signature, Gatekeeper) and 2 waived (no-drm-handoff,
 production-sync-real-device). Known issue for beta.3: after a relaunch the
 vertical tab rail can reopen at its narrow-window cap (intermittent,
 `vertical-tabs.feature:58`). Sigstore's first attempt hung because cosign ran
-without a terminal; `release.mjs` now gives it one. Owed: the hosted smoke
-check once the workflow is on main, and the website PR (feed, a Download page
-section, `/dl/beta`).
+without a terminal; `release.mjs` now gives it one. After publication the website PRs shipped the feed, the Download page tile
+and `/dl/beta` (#1511, #1512; blanc-ping version `62dc6a5a`), and the hosted
+smoke check passed all six checks (run 43561295021, `check_feed=true`). Still
+owed: the first signed Sparkle handoff, beta.2 to beta.3.
+
+### Runbook for the next beta: lessons from beta.2 (2026-11-14)
+
+Beta.2 shipped, but cost hours on things that are now known. Do the next beta
+in this order. Each item says what went wrong the first time.
+
+**Before building**
+
+1. **Decide every gate waiver first.** `release.json` is bound to each finished
+   stage (`state.json` keeps its digest), so a waiver decided after `preflight`
+   can't be added to it without starting the signing run over. Beta.2's Sync
+   waiver came after signing and had to ride in `acceptance.json` instead
+   (`policy.mjs` `GATE_WAIVERS`). Put every waiver in `release.json`'s
+   `gateWaivers` before `preflight`, and add the release to `GATE_WAIVERS`.
+2. **Know which Mac signs.** The Developer ID certificate (`55283A84…`, with
+   its private key) was only on the MacBook Pro. It was exported as a `.p12`
+   and imported into the Mac Studio's login keychain. A sandboxed
+   `security find-identity` shows no identities at all, so check outside the
+   sandbox before deciding it's missing.
+3. **Have every tool on the signing Mac before starting:**
+   - The pinned Sparkle tools: `~/Projects/Blanc/records/sparkle-2.10.1`.
+   - `cosign`: the Mac Studio had none, so beta.2 used the checksum-verified
+     v3.1.3 copy from the release Mac's Homebrew (`sha256 77bbab24…`).
+   - Node 22 at `/usr/local/bin/node`, which Astro needs; the default
+     `node` on the Mac Studio is 20.
+   - Wrangler: `npx wrangler@4.86.0`, signed in to BNFY.
+4. **Plan for 1Password locking on the Mac Studio.** It re-locks every ~20
+   seconds, which makes `op run` unusable. Instead:
+   - Notarization: `beta2-notarize.command` asks for `APPLE_ID` and the
+     app-specific password with hidden input, pasted from 1Password on the
+     MacBook Pro. The values live only in that window's memory.
+   - Update-key backup: `sparkle-key-airdrop.command` exports the key,
+     proves it against the production public key, waits while it is
+     AirDropped and saved in 1Password (Dev) on the MacBook Pro, then deletes
+     the Mac Studio's copy and clears `BACKUP-PENDING`.
+5. **Run evidence against the real descriptor, not a draft.** Beta.2's first
+   blocker, hooks, profile and notices runs used a draft `release.json` with
+   placeholder hashes and had to run again on the real one. Write
+   `release.json` and `local-inputs.json` first, then run the evidence.
+
+**Acceptance**
+
+6. **The full suite takes about 75 minutes, and the Mac must stay idle.**
+   Pointer and window cases (`island-and-commands.feature:348`/`:372`) fail
+   when someone uses the Mac during the run. Rerun just those with
+   `run-cases.sh` afterwards, rather than the whole suite.
+   `vertical-tabs.feature:58` is a known intermittent failure until beta.3
+   fixes it. Report progress as "N of total" from the run's `progress.json`.
+7. **Quit the installed Blanc Beta before the profile check.** It verifies the
+   real `Blanc Beta` data folder stays untouched, and an open beta writes to it.
+
+**Signing to publishing**
+
+8. **Run every `release.mjs` stage from a one-command wrapper the owner opens
+   in Terminal.** Each wrapper writes a status file that Claude watches. For
+   beta.2: `beta2-sign`, `beta2-notarize`, `beta2-sparkle`, `beta2-draft` and
+   `beta2-publish` in `~/Projects/Blanc/scripts/`. Copy them with the new
+   version. Keychain prompts appear twice:
+   - `codesign` asks for the Developer ID key: choose **Always Allow**.
+   - `sign_update` asks for the update key: choose **Allow**. A Deny fails
+     the stage without writing anything; just run it again.
+9. **Commit nothing to the source branch between writing `release.json` and
+   `preflight`.** Preflight requires a clean tree with HEAD equal to
+   `sourceCommit`. After preflight HEAD may move, and the tag still goes on
+   `sourceCommit`.
+10. **Sigstore needs a terminal.** cosign without one fell back to a hidden
+    device-code sign-in and hung. `release.mjs` now gives it the Terminal
+    (`99bcadb21`); Safari opens the sign-in.
+11. **Checking a public download:** GitHub's file storage answers `HEAD` with
+    404. Check a release file with a ranged `GET` (`curl -r 0-1023`).
+
+**Owner checks**
+
+12. **The Touch ID passkey and Sync checks** run from
+    `beta2-owner-checks.command` (and `beta2-sync-check.command` for Sync
+    alone). If the iPhone already syncs:
+    - in the regular Blanc, open Settings → Sync → **Add another device**;
+    - in Blanc Beta, open Settings → Sync → **Add this device with a code**.
+
+    Ignore Turn on Sync and Connect your iPhone: they start a new Sync. The
+    Sync screen's choices confused the owner; simplifying them is a
+    follow-up.
+
+**Website and checks after publishing**
+
+13. **Update three things in one website PR, after publication:**
+    - `site/src/data/blanc-beta.json`;
+    - `BETA_DOWNLOAD` in `cloudflare/ping-worker/src/dl.js`;
+    - `site/public/updates/chromium-beta/arm64.xml`, the release's appcast
+      byte for byte.
+
+    `test/unit/site-blanc-beta.test.js` keeps them equal.
+14. **Before deploying, check the merged PR's commits.** #1511 was merged ten
+    minutes before the reimagined page was pushed, and the redesign needed its
+    own PR (#1512).
+15. **Deploy the Worker before the site.** Until blanc-ping is deployed,
+    `/dl/beta` falls back to the stable release page.
+    - Worker: deploy from `cloudflare/ping-worker` after comparing bindings
+      with the live version (`wrangler versions view`).
+    - Site: deploy from the clean `main` checkout at
+      `~/Projects/Blanc/worktrees/deploy-main`, with the Blubird fonts
+      installed from `~/Downloads/blubird` (`blubird-fonts.mjs install`).
+    - Confirm Cloudflare reports Production on `main` at the expected SHA.
+16. **The hosted smoke check runs only from `main`.** Bring `chromium/next` to
+    `main` (merge `main` in first) before dispatching
+    `chromium-beta-smoke.yml` with `check_feed=true`.
+17. **`main` requires review conversations to be resolved, and only the owner
+    can resolve them.** CodeQL failed #1513 on code that is now fixed:
+    - checking a file and then reading or writing it separately: open once,
+      `fstat` the descriptor, write `wx`;
+    - file data in a request URL: ask fixed questions;
+    - Node writing downloaded data: download with `curl`;
+    - splicing values into page script without escaping: JSON plus `\u`
+      escapes for `<`, `>`, `/`, U+2028 and U+2029.
+
+    Write new release and test code this way from the start.
 
 ### Owner gate decisions for the first public beta (2026-11-14)
 
