@@ -44,9 +44,31 @@
       "layers": [
         {
           "glass": false,
+          "image-name": "spectrum-rim-dark.png",
+          "name": "DarkRim",
+          "hidden-specializations": [
+            {
+              "value": true
+            },
+            {
+              "appearance": "dark",
+              "value": false
+            },
+            {
+              "appearance": "tinted",
+              "value": true
+            }
+          ]
+        },
+        {
+          "glass": false,
           "image-name": "spectrum-rim.png",
           "name": "Rim",
           "hidden-specializations": [
+            {
+              "appearance": "dark",
+              "value": true
+            },
             {
               "appearance": "tinted",
               "value": true

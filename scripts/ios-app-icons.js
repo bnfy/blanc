@@ -268,6 +268,7 @@ function macPackage(definition) {
     definition.imageName ?? 'sunrise-mark.png',
     ...(definition.extraLayers ?? []).map((extra) => extra.imageName),
     definition.rimImageName,
+    definition.darkRimImageName,
     definition.tileImageName,
     definition.darkTileImageName,
   ].filter(Boolean);

@@ -41,6 +41,7 @@ function createIconDocument({
   darkTileImageName = null,
   extraLayers = [],
   rimImageName = null,
+  darkRimImageName = null,
 }) {
   const layer = {
     ...(!preserveColor ? {
@@ -75,15 +76,31 @@ function createIconDocument({
       ...(lighting ? { lighting } : {}),
       translucency,
     },
-    // A plain white outline behind the glass mark, its sticker edge. It hides
-    // in Clear and Tinted, where macOS draws the mark over its own glass.
+    // A plain white outline behind the glass mark, its sticker edge; a dark
+    // rim, when given, replaces it in Dark. Both hide in Clear and Tinted,
+    // where macOS draws the mark over its own glass.
     ...(rimImageName ? [{
-      layers: [{
-        glass: false,
-        'image-name': rimImageName,
-        name: 'Rim',
-        'hidden-specializations': [{ appearance: 'tinted', value: true }],
-      }],
+      layers: [
+        ...(darkRimImageName ? [{
+          glass: false,
+          'image-name': darkRimImageName,
+          name: 'DarkRim',
+          'hidden-specializations': [
+            { value: true },
+            { appearance: 'dark', value: false },
+            { appearance: 'tinted', value: true },
+          ],
+        }] : []),
+        {
+          glass: false,
+          'image-name': rimImageName,
+          name: 'Rim',
+          'hidden-specializations': [
+            ...(darkRimImageName ? [{ appearance: 'dark', value: true }] : []),
+            { appearance: 'tinted', value: true },
+          ],
+        },
+      ],
       shadow: { kind: 'neutral', opacity: 0.3 },
       translucency: { enabled: false, value: 0.5 },
     }] : []),
@@ -171,6 +188,7 @@ module.exports = async function afterPackAppIcons(context) {
         definition.imageName ?? 'sunrise-mark.png',
         ...(definition.extraLayers ?? []).map((extra) => extra.imageName),
         definition.rimImageName,
+        definition.darkRimImageName,
         definition.tileImageName,
         definition.darkTileImageName,
       ].filter(Boolean);
