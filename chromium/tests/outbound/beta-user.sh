@@ -29,4 +29,6 @@ run() { say "$1"; shift; caffeinate -d -i "$@"; }
 run "controls (before)" $NODE tests/outbound/controls.mjs "$CFG" "$OUT/controls-before.json"
 run "beta scenarios" $NODE tests/outbound/beta-scenarios.mjs "$APP" "$OUT" > "$OUT/beta-scenarios.log" 2>&1
 run "controls (after)" $NODE tests/outbound/controls.mjs "$CFG" "$OUT/controls-after.json"
+# Chromium writes its network logs owner-only; the owner analyzes them.
+chmod -R a+rX "$OUT"
 say "Done ($OUT). Switch back and run: sudo $R/tests/outbound/root.sh stop"
