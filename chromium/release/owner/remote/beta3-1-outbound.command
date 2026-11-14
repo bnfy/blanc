@@ -6,6 +6,8 @@
 # printed, logged or put on a command line.
 set -uo pipefail
 STUDIO=(ssh -i "$HOME/.ssh/id_ed25519_macmini" -o IdentitiesOnly=yes anthonyjloria@Mac-Studio.local)
+# Terminal may close a window when its script ends; keep it so the outcome stays readable.
+trap 'echo; read -r -p "Press Return to close this window. " _' EXIT
 echo "Blanc Beta 2.0.0-beta.3: outbound check (about 12 minutes)"
 echo "When asked, type your Mac Studio password (for sudo)."
 echo
