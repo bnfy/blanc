@@ -536,6 +536,23 @@ a:focus-visible, button:focus-visible { outline: 2px solid var(--site-accent); o
 @media (max-width: 860px) {
   .install-terminal { grid-template-columns: 1fr; gap: 24px; padding: 26px 24px 24px; }
 }
+/* Blanc Beta: an opt-in preview below Install, quieter than the platform cards. */
+.beta-card { display: grid; grid-template-columns: minmax(0, 1.15fr) minmax(0, 0.85fr); gap: 48px; padding: 40px 40px 40px 44px; border: 1px solid var(--site-border); border-radius: 16px; background: var(--site-surface); }
+.beta-label { margin: 0 0 14px; color: var(--site-text-dim); font-family: var(--font-mono); font-size: 12px; letter-spacing: 0.06em; text-transform: uppercase; }
+.beta-copy > p:not([class]) { margin: 16px 0 0; font-size: 16px; line-height: 1.6; }
+.beta-copy .install-requirement { margin-top: 16px; }
+.beta-ctas { display: flex; flex-wrap: wrap; align-items: center; gap: 12px 22px; margin-top: 24px; }
+.beta-ctas .text-link { margin-top: 0; }
+.beta-cta { display: inline-flex; padding: 11px 20px; border-radius: 999px; background: var(--site-text); color: var(--site-bg); font-size: 14px; font-weight: 500; text-decoration: none; transition: background 0.18s ease; }
+.beta-cta:is(:hover, :focus-visible) { background: var(--site-accent); }
+.beta-verify { margin: 18px 0 0; color: var(--site-text-dim); font-family: var(--font-mono); font-size: 12px; line-height: 1.6; }
+.beta-notyet { align-self: start; padding-top: 6px; }
+.beta-notyet h3 { margin: 0; font-size: 15px; font-weight: 600; }
+.beta-notyet ul { display: grid; gap: 10px; margin: 14px 0 0; padding-left: 18px; color: var(--site-text-dim); font-size: 14px; line-height: 1.6; }
+.beta-notyet strong { color: var(--site-text); font-weight: 600; }
+@media (max-width: 860px) {
+  .beta-card { grid-template-columns: 1fr; gap: 28px; padding: 28px 24px; }
+}
 .download-columns { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); margin-top: 36px; border-top: 1px solid var(--site-border); }
 .download-columns article { padding: 24px 28px 0 0; }
 .download-columns article + article { padding-left: 28px; border-left: 1px solid var(--site-border); }

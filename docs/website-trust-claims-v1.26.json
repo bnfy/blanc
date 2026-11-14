@@ -4303,7 +4303,7 @@
     {
       "id": "reddit-414",
       "source": "site/src/pages/download.astro",
-      "exactWording": "What you're actually downloading.",
+      "exactWording": "What you're actually downloading",
       "claimType": "qualified capability or maintainer process statement",
       "evidenceGroups": [
         "trust"

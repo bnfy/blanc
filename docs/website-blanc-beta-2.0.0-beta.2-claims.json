@@ -1,0 +1,33 @@
+{
+  "release": "2.0.0-beta.2",
+  "tag": "chromium-beta-2.0.0-beta.2",
+  "sourceCommit": "058277389292e4a02291be56e496acc7b8d68add",
+  "publicRelease": "2026-11-14",
+  "releaseUrl": "https://github.com/bnfy/blanc/releases/tag/chromium-beta-2.0.0-beta.2",
+  "releaseEvidence": "The release's own acceptance.json (11 gates passed, 2 waived by the owner) and docs/chromium-beta-release.md, 'Blanc Beta 2.0.0-beta.2: the first public beta' on chromium/next.",
+  "ownerDecisions": {
+    "approvedOn": "2026-11-14",
+    "decisions": [
+      "Show Blanc Beta on /download as its own 'Try Blanc Beta' section right under the platform cards (moved up from below Install the same day, owner); the four platform cards stay unchanged.",
+      "The Download button goes to /dl/beta on the blanc-ping Worker, counted like the other /dl/* routes.",
+      "The section names both waived gates as limitations, matching the approved release notes."
+    ]
+  },
+  "page": "site/src/pages/download.astro#beta",
+  "claims": [
+    {"text": "Preview", "kind": "label"},
+    {"text": "Try Blanc Beta", "kind": "label"},
+    {"text": "An early preview of Blanc built directly on Chromium.", "evidence": "The release is built from the fork's Chromium 158 tree (release.json chromiumVersion 158.0.8127.2); the approved release notes say the same."},
+    {"text": "It installs beside Blanc and never replaces it: Blanc Beta keeps its own data and passkeys, and your regular Blanc is left untouched.", "evidence": "Own bundle id me.bnfy.blanc.beta and Blanc Beta data folder (release.json); profile-coexistence gate passed on the notarized app; the owner's webauthn checks on the notarized build confirmed the Electron app and its passkeys were untouched."},
+    {"text": "Apple Silicon Macs · macOS 13 or later · 2.0.0-beta.2", "evidence": "release.json arches [arm64] under the owner's Intel waiver, minimumSystemVersion 13.0, version 2.0.0-beta.2."},
+    {"text": "Download Blanc Beta", "kind": "label"},
+    {"text": "Release notes", "kind": "label"},
+    {"text": "Signed with Developer ID and notarized by Apple.", "evidence": "native-signature and gatekeeper gates passed; the release's verify-public stage passed on the public DMG."},
+    {"text": "Its checksums are signed with Sigstore.", "evidence": "SHA256SUMS.sigstore.json is a public asset and verified against the pinned identity in verify-public."},
+    {"text": "Not in this beta yet", "kind": "label"},
+    {"text": "Protected video (such as Netflix or Spotify) doesn't play.", "evidence": "The beta ships without Widevine (enable_widevine = false); the no-drm-handoff gate is waived by the owner for beta.2."},
+    {"text": "Use the regular Blanc for those sites.", "evidence": "The shipping Electron Blanc plays protected video (castLabs ECS); repeated from the approved release notes."},
+    {"text": "Sync is included but hasn't been checked end to end against the live Sync service, so don't rely on it yet.", "evidence": "desktop-sync passed against the local Worker; production-sync-real-device is waived by the owner for beta.2."},
+    {"text": "There is no build for Intel Macs, Windows or Linux.", "evidence": "The release ships one asset per architecture, arm64 only; no fork build exists for Windows or Linux."}
+  ]
+}

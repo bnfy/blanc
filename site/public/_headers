@@ -88,3 +88,9 @@
 /fonts/instrument-sans/*
   ! Cross-Origin-Resource-Policy
   Access-Control-Allow-Origin: *
+
+# Blanc Beta's Sparkle update feed (docs/chromium-beta-release.md §8): RSS,
+# revalidated within five minutes so a promoted feed reaches installed betas.
+/updates/chromium-beta/*
+  Content-Type: application/rss+xml; charset=utf-8
+  Cache-Control: public, max-age=300, must-revalidate
