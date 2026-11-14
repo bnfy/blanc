@@ -127,7 +127,12 @@ html[data-platform="android"] :is(.fav-pin, .bb-site-pin) { display: none; }
 html[data-platform="android"] :is(#goAnywhere, .footer-right, #version, .wallpaper-follow, #colorWallpaperFollow,
   #colorWallpaperFollowHint, #storeThemeWallpaperPick) { display: none; }
 html[data-platform="android"] .start-customize { min-height: 44px; padding-inline: 20px; font-size: 14px; }
-html[data-platform="android"] .mahjong-pill a { min-height: 44px; }
+/* Mahjong isn't laid out for phones yet (owner, November 14, 2026), so the Start Page doesn't offer
+   it; Customize stands alone. */
+html[data-platform="android"] #mahjongPill { display: none; }
+html[data-platform="android"] .ledger-footer .footer-left:not(:has(#migrationChecklistShell:not([hidden]), #whatsNew:not([hidden]))) {
+  display: none;
+}
 
 /* Customize and the clock's settings: sheets over the bottom of the screen, above the Island. */
 html[data-platform="android"] #customizePopover:popover-open {
