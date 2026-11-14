@@ -57,6 +57,14 @@ void IslandProximityPageMove(Owner* owner, const blink::WebInputEvent& event) {
   }
 }
 
+// The swell changed without a page move: the pointer left the Island's own
+// view, or a surface closed and the host sampled the cursor. The next page
+// move may land beyond reach, where it would go unsent while the pill still
+// shows that swell, so it goes wherever it lands.
+void ArmIslandPointer(Owner* owner) {
+  owner->island_pointer_near = true;
+}
+
 // The extension buttons' transform: the floating pill's slide
 // (extensions_pill_y) and the swell the host measured on their slot. The view
 // keeps the slot's resting bounds; the swell grows it from its own corner and

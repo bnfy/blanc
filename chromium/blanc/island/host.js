@@ -2602,6 +2602,9 @@
       if (event.target !== doc.documentElement) return;
       hover.lastPoint = null;
       updateHover(null);
+      // Native forwards page moves only near the Island; the pointer may land
+      // anywhere, so the next page move must reach the swell wherever it is.
+      armPagePointer();
     }, true);
   }
   hookHover(document, null);
@@ -2639,6 +2642,14 @@
   function wakeProximity(point) {
     proximityK = null;
     updateProximity(point);
+    armPagePointer();
+  }
+  // Native forwards page moves only near the Island and remembers only those.
+  // Whenever the swell changes from anywhere else (the Island's own moves, a
+  // sampled cursor), its next page move is sent wherever it lands, so a
+  // swollen pill always hears that the cursor has gone.
+  function armPagePointer() {
+    request('armIslandPointer').catch(error => notice(error.message));
   }
 
   // Chromium's extension buttons are native views over the pill's slot, so

@@ -57,7 +57,9 @@ enum class Forward {
 };
 
 // One page move. `was_near` is the window's memory of the last move; the first
-// move out of reach still goes, so the host hears the pill should rest.
+// move out of reach still goes, so the host hears the pill should rest. The
+// host arms it too whenever the swell changes without a page move
+// (ArmIslandPointer): the Island's own moves never pass through here.
 inline Forward PageMove(bool& was_near, bool frame_running, Point point, Rect island) {
   const bool near = Near(point, island);
   if (!near && !was_near) return Forward::kNone;

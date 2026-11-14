@@ -10862,6 +10862,13 @@ class Handler : public content::WebUIMessageHandler, public extensions::Extensio
       reply(true, base::Value());
       return;
     }
+    // The swell changed without a page move (host.js armPagePointer): the
+    // next page move goes to the host wherever it lands, so the swell can rest.
+    if (method == "armIslandPointer" && args.empty()) {
+      ArmIslandPointer(owner);
+      reply(true, base::Value());
+      return;
+    }
     // The approach swell on the extension slot, measured by the host
     // (host.js syncExtensionsSwell): its growth and its move, which the
     // native buttons over the slot take as a transform.
