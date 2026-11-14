@@ -32,7 +32,7 @@ function load(page = {}, hash = '') {
   const popover = {showPopover: () => opened.push('customize')};
   const s = page.shortcuts, b = page.blocked, edges = s || b;
   const billboard = {getBoundingClientRect: () => ({top: 120})};
-  const shortcuts = s ? {hidden: false, childElementCount: 4, closest: () => billboard, getClientRects: () => [{}],
+  const shortcuts = s ? {hidden: false, childElementCount: s.count ?? 4, closest: () => billboard, getClientRects: () => [{}],
     getBoundingClientRect: () => ({top: s.top, height: s.height})} : null;
   // The week's blocked line: {top, height, text}; empty text is a line not yet filled in.
   const blocked = b ? {hidden: false, textContent: b.text, getClientRects: () => [{}],
@@ -174,6 +174,14 @@ test('with no shortcuts, a blocked line that would sit on Customize lifts the cl
   const nudge = parseFloat(rootStyle['--android-clock-nudge']);
   assert.ok(Math.abs(426 + nudge + 150 + 12 + 22 - (600 - 16)) < 0.01, `moved ${nudge}`);
   assert.equal(rootStyle['--android-clock-fit'], '1.000');
+});
+
+test('a shortcut list with nothing in it leaves the room to the blocked line', () => {
+  const page = withBlocked({footerTop: 600});
+  const {fire, rootStyle} = load({...page, shortcuts: {top: 640, height: 0, count: 0, footerTop: 600, headerBottom: 107}});
+  fire('DOMContentLoaded');
+  const nudge = parseFloat(rootStyle['--android-clock-nudge']);
+  assert.ok(Math.abs(426 + nudge + 150 + 12 + 22 - (600 - 16)) < 0.01, `moved ${nudge}`);
 });
 
 test('a blocked line with nothing in it yet moves nothing', () => {
