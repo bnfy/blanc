@@ -9691,24 +9691,36 @@ class Handler : public content::WebUIMessageHandler, public extensions::Extensio
           base::BindOnce(&Handler::StoreIcon, weak_factory_.GetWeakPtr(), id), 256 * 1024);
       return;
     }
-    // The Dock icon (F17): shipping's flat images, which is what its
-    // development builds use; the adaptive stacks need Assets.car from a
-    // packaged build. The bundle's own icon follows Light and Dark by itself,
-    // so its colorway goes back to that: Sunrise Gold in Blanc Beta. The
-    // other channels' bundle icon is Sunrise Dark, kept for Dock testing, so
-    // Sunrise there takes its flat Light or Dark image like the rest.
+    // The Dock icon (F17). Blanc Beta's Assets.car carries every colorway as
+    // a named Icon Composer stack (blanc/branding/beta), as shipping's
+    // packaged builds do, so the Dock follows Light and Dark by itself; its
+    // app icon is Sunrise Gold. Elsewhere, and before macOS 26, the Dock
+    // takes shipping's flat images, its development-build path: the other
+    // channels' bundle icon is Sunrise Dark, kept for Dock testing, so Sunrise
+    // there takes its flat Light or Dark image like the rest.
     if (method == "applyAppIcon" && args.size() == 2 && args[0].is_string() && args[1].is_bool()) {
 #if BUILDFLAG(IS_MAC)
       static bool replaced = false;
       const std::string& icon = args[0].GetString();
       const bool dark = args[1].GetBool();
+#if BUILDFLAG(BLANC_BETA_CHANNEL)
+      const char* stack = icon == "sunrise" ? "Icon"
+          : icon == "sunrise-dark" ? "SunriseDark"
+          : icon == "sunrise-spectrum" ? "SunriseSpectrum"
+          : icon == "sunrise-amber" ? "SunriseAmber" : nullptr;
+      if (icon == "sunrise-gold" || (stack && blanc::SetDockIconNamed(stack))) {
+        if (!stack) blanc::SetDockIcon({});
+        replaced = stack != nullptr;
+        reply(true, base::Value());
+        return;
+      }
+#endif
       std::string file;
       if (icon == "sunrise") file = dark ? "pages/icon-sunrise-dark.png" : "pages/icon-sunrise.png";
       else if (icon == "sunrise-dark") file = "pages/icon-sunrise-dark.png";
       else if (icon == "sunrise-gold") file = dark ? "pages/icon-sunrise-gold-dark.png" : "pages/icon-sunrise-gold.png";
       else if (icon == "sunrise-spectrum") file = dark ? "pages/icon-sunrise-spectrum-dark.png" : "pages/icon-sunrise-spectrum.png";
       else if (icon == "sunrise-amber") file = dark ? "pages/icon-sunrise-amber-dark.png" : "pages/icon-sunrise-amber.png";
-      if (BUILDFLAG(BLANC_BETA_CHANNEL) && icon == "sunrise-gold") file.clear();  // the bundle's own
       const auto bytes = file.empty() ? nullptr : blanc::island_resources::Find(file);
       if (bytes) {
         blanc::SetDockIcon(base::span(*bytes));

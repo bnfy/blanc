@@ -25,9 +25,19 @@ remain pending. D3 beta-only no-DRM exception accepted; EME notice/handoff requi
   at it in beta builds only. `blanc.app_icon` defaults to `sunrise-gold` in
   beta (`kDefaultAppIcon`, applied by NormalizeAppIcon with
   SetDefaultPrefValue, so a saved choice is kept), and that choice leaves the
-  Dock on the bundle icon. Sunrise now takes shipping's flat Light or Dark
-  image in every channel instead of the bundle icon. Preview builds keep
-  their Sunrise Dark bundle icon. Checked: the fork unit suite (466 pass), patch
+  Dock on the bundle icon. Preview builds keep their Sunrise Dark bundle
+  icon, and Sunrise there takes shipping's flat Light or Dark image instead.
+  Then (owner, the same day, after comparing renders): the beta's Dock shows
+  the Icon Composer versions, not the flat images. Its Assets.car now carries
+  all five colorways as named stacks (Icon, SunriseDark, BlancDK for Gold,
+  SunriseSpectrum, SunriseAmber), and `blanc::SetDockIconNamed` loads one by
+  name on macOS 26 and later, as shipping's packaged builds do; Clear and
+  Tinted put the app's own icon back, and the flat images stay the fallback
+  on older macOS. Spectrum's and Amber's stacks carry the muted warm Dark
+  rim from bnfy/blanc#1528 (pinned to its commit in `icon-manifest.json`;
+  re-pin to main once it merges). Not handled: a change of Icon & widget
+  style while Blanc runs is picked up at the next icon or appearance change
+  (shipping rechecks every 10 s). Checked: the fork unit suite (466 pass), patch
   reconstruction, and a syntax-only compile with out/BlancBeta's flags. Not
   yet built or seen on screen: that waits for beta.4 to publish (the Mac
   Studio tree stays untouched until then), and it ships in beta.5.
@@ -2635,9 +2645,9 @@ machine has them.
 
 **For beta.5**
 9. **Sunrise Gold bundle icon and the Sunrise Light/Dark Dock fix** (patch
-   0082, see Current work): build out/BlancBeta after beta.4 publishes, then
-   check Finder and the Dock in Light and Dark, with Sunrise and Sunrise Gold
-   selected.
+   0082 and the named Dock stacks, see Current work): build out/BlancBeta
+   after beta.4 publishes, then check Finder and the Dock in Light and Dark
+   with each of the five icons selected, and in a Tinted icon style.
 
 **What lives only on the Mac Studio**
 - The release work folder `~/Projects/Blanc/records/beta2-work`: signed
