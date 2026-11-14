@@ -42,11 +42,13 @@ test('a gate waiver is accepted only where the owner approved it',()=>{
   const two=()=>{const r=fixture();r.version='2.0.0-beta.2';r.tag='chromium-beta-2.0.0-beta.2';r.shortVersion=r.version;r.build=2;r.previousBuild=1;return r;};
   const ok=two();ok.gateWaivers={'no-drm-handoff':why};validateRelease(ok);
   for(const bad of [{'webauthn':why},{'no-drm-handoff':'short'},['no-drm-handoff']]){const r=two();r.gateWaivers=bad;assert.throws(()=>validateRelease(r));}
-  // Owner, 2026-11-14: beta.3 waives the notice again; its real-iPhone Sync pass runs.
+  // Owner, 2026-11-14: beta.3 waives the notice again, and the real-iPhone Sync pass after it
+  // failed on the notarized build; beta.4 waives neither.
   const next=n=>{const r=two();r.version=`2.0.0-beta.${n}`;r.tag=`chromium-beta-${r.version}`;r.shortVersion=r.version;r.build=n;r.previousBuild=n-1;r.arches=['arm64'];return r;};
   const three=next(3);three.gateWaivers={'no-drm-handoff':why};validateRelease(three);
-  const sync=next(3);sync.gateWaivers={'production-sync-real-device':why};assert.throws(()=>validateRelease(sync),/no owner waiver for gate: production-sync-real-device/);
-  const four=next(4);four.gateWaivers={'no-drm-handoff':why};assert.throws(()=>validateRelease(four),/no owner waiver/);
+  const sync=next(3);sync.gateWaivers={'production-sync-real-device':why};validateRelease(sync);
+  for(const gate of ['no-drm-handoff','production-sync-real-device']){const four=next(4);four.gateWaivers={[gate]:why};assert.throws(()=>validateRelease(four),/no owner waiver/);}
+  const other=next(3);other.gateWaivers={'desktop-sync':why};assert.throws(()=>validateRelease(other),/no owner waiver for gate: desktop-sync/);
 });
 test('current release branding cannot masquerade as beta source',()=>{
   assert.throws(()=>validateBetaBranding(fs.readFileSync(new URL('../blanc/branding/release/BRANDING',import.meta.url),'utf8')));
