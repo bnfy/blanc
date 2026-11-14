@@ -26,9 +26,13 @@ remain pending. D3 beta-only no-DRM exception accepted; EME notice/handoff requi
   candidate macos-fc405801653febe3); `F41-named-workspaces.feature:203` and
   `:211` (new since beta.2: the Spaces menu closes without its fade when
   Escape follows the click at once; it fades correctly when driven by hand,
-  and fails the same on both candidates; cause not yet found, and an
-  experiment without the swell's class watcher could not run because the
-  MacBook locked). `island-and-commands.feature:348`/`:372` passed this time.
+  and fails the same on both candidates. Not the swell's: on the MacBook Pro
+  it fails the same on a build without the swell's class watcher and on a
+  prototype built from beta.3's own source c3a3bc898 (candidate
+  macos-225a6eebdcb1a6fb: :203 failed twice, :211 passed only on its retry),
+  while beta.2's full run on the Mac Studio passed both. So it is this
+  machine or a change between beta.2 and beta.3; rerun both on the Mac
+  Studio when its screen can be unlocked). `island-and-commands.feature:348`/`:372` passed this time.
 - **2026-11-14 — Island approach swell, for beta.4 (candidate macos-78921cb9b998cb49):**
   the owner noticed the resting Island ignores an approaching cursor. Shipping's
   resting Island has five pointer behaviors; four were already in the fork's
