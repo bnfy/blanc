@@ -63,10 +63,11 @@ test('a release source that differs from the night needs a targeted rerun', () =
   const r = releaseDescriptor({ ledger: upTo(4), standing, build: { ...beta4, sourceCommit: 'c'.repeat(40) }, profileSHA256 });
   const carried = carriedGates(standing, r, () => []);
   assert.throws(() => gateSources({ r, night, carried, base: '/B' }), /targeted rerun/);
-  const targeted = { summary: '/B/t.json', cases: 12, candidate: 'macos-1111111111111111', evidence: night.evidence };
+  const targeted = { status: 'pass', sourceCommit: 'c'.repeat(40), inputDigest: beta4.inputDigest, suite: { summary: '/B/t.json' }, targeted: { cases: 12 }, prototype: { candidate: 'macos-1111111111111111' }, evidence: night.evidence };
   const { sources } = gateSources({ r, night, carried, base: '/B', targeted });
   assert.deepEqual(sources.arm64.acceptance.files, [night.suite.summary, '/B/t.json']);
   assert.match(sources.arm64.acceptance.basis, /plus 12 targeted cases/);
+  assert.throws(() => gateSources({ r, night, carried, base: '/B', targeted: { ...targeted, sourceCommit: 'd'.repeat(40) } }), /not on the release source/);
 });
 
 test('a night that did not pass is refused', () => {

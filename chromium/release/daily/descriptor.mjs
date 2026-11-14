@@ -73,8 +73,10 @@ export function gateSources({ r, night, carried, base, targeted }) {
   let basis = `full suite on the prototype ${night.prototype.candidate} built from ${night.sourceCommit.slice(0, 9)} the night of ${night.night}`
     + ` (${night.suite.pass} pass; every other result on the known list)`;
   if (targeted) {
-    acceptanceFiles.push(targeted.summary);
-    basis += `, plus ${targeted.cases} targeted cases on the prototype ${targeted.candidate} built from ${r.sourceCommit.slice(0, 9)}`
+    // targeted: nightly.mjs --targeted's result on the release source.
+    check(targeted.status === 'pass' && targeted.sourceCommit === r.sourceCommit && targeted.inputDigest === r.inputDigest, 'the targeted rerun is not on the release source');
+    acceptanceFiles.push(targeted.suite.summary);
+    basis += `, plus ${targeted.targeted.cases} targeted cases on the prototype ${targeted.prototype.candidate} built from ${r.sourceCommit.slice(0, 9)}`
       + ` for the files changed since (owner, 2026-11-14: nightly plus targeted rerun)`;
   } else {
     check(night.sourceCommit === r.sourceCommit && night.inputDigest === r.inputDigest, 'the release source differs from the night; run a targeted rerun');

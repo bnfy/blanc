@@ -1,0 +1,9 @@
+{
+  "note": "Cases a night may leave failing or undefined, with why (nightly.mjs judgeSuite). Anything else that fails twice (the night's run and one rerun) fails the night. Add a case only with its reason and the evidence for it; remove it once fixed.",
+  "cases": [
+    { "id": "spec/acceptance/platform-services.feature:25:plain", "results": ["undefined"], "reason": "runner gap: no fork step adapter yet (undefined in every full run since full-beta2-equivalence)" },
+    { "id": "spec/acceptance/private-tabs.feature:40:plain", "results": ["undefined"], "reason": "runner gap: no fork step adapter yet (undefined in every full run since full-beta2-equivalence)" },
+    { "id": "spec/acceptance/supporter-and-session.feature:12:plain", "results": ["undefined"], "reason": "runner gap: no fork step adapter yet (undefined in every full run since full-beta2-equivalence)" },
+    { "id": "spec/acceptance/vertical-tabs.feature:58:plain", "results": ["fail"], "reason": "known intermittent (the rail can reopen at its narrow cap after a relaunch), listed since beta.2's notes; still open in the beta.4 run" }
+  ]
+}

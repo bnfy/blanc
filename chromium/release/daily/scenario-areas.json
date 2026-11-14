@@ -1,0 +1,24 @@
+{
+  "note": "Which acceptance features a changed source file can affect, for a same-day targeted rerun (targeted.mjs; owner 2026-11-14: nightly plus targeted rerun). Narrow on purpose: a desktop build input no area covers, a build file, a lane or upstream change, or a change to the test runner needs the full suite. Widen an area only with a reason; never map a shared file (blanc_prototype_ui.cc, renderer.js, host.js, overlay.js, styles.css) to a few features.",
+  "smoke": ["internal-pages.feature", "blank-tab-affordance.feature"],
+  "areas": [
+    { "paths": ["chromium/blanc/branding/**"], "features": [], "why": "icons and names the acceptance suite can't see; the native signature and Gatekeeper checks cover the packaged app" },
+    { "paths": ["chromium/blanc/browser/sync/**", "chromium/blanc/services/sync_runner/**", "chromium/patches/*sync*"], "features": ["sync.feature", "shared-spaces.feature", "send-to-device.feature"] },
+    { "paths": ["chromium/blanc/browser/ui/island_proximity*", "chromium/blanc/browser/ui/island_autohide*", "chromium/blanc/island/island-proximity.js", "chromium/blanc/island/island-autohide.js", "chromium/blanc/island/island-hover-open.js", "chromium/blanc/island/hover-panel-leave.js"], "features": ["island-and-commands.feature"] },
+    { "paths": ["chromium/blanc/island/rail-hover*.js"], "features": ["vertical-tabs.feature"] },
+    { "paths": ["chromium/blanc/island/glance-card*.js"], "features": ["glance.feature", "split-view.feature"] },
+    { "paths": ["chromium/blanc/browser/ui/mini_window_controller.inc"], "features": ["mini-window.feature"] },
+    { "paths": ["chromium/blanc/browser/ui/tab_import*.inc", "chromium/blanc/island/pages/tab-import*"], "features": ["tab-migration.feature", "browser-migration.feature", "arc-spaces-import.feature"] },
+    { "paths": ["chromium/blanc/browser/ui/start_page_pin*.inc", "chromium/blanc/browser/ui/billboard_clock_settings.inc", "chromium/blanc/island/pages/newtab*", "chromium/blanc/island/pages/start-*", "chromium/blanc/island/pages/clock-*", "chromium/blanc/island/pages/billboard-clock-adapter.js"], "features": ["newtab-layouts.feature"] },
+    { "paths": ["chromium/blanc/browser/ui/desktop_shared_spaces.inc"], "features": ["shared-spaces.feature"] },
+    { "paths": ["chromium/blanc/browser/ui/first_run.inc", "chromium/blanc/island/pages/onboarding*"], "features": ["onboarding.feature"] },
+    { "paths": ["chromium/blanc/browser/ui/permission_prompt.inc", "chromium/blanc/browser/ui/island_permission_prompt.h", "chromium/blanc/island/permission.*"], "features": ["permissions-and-auth.feature"] },
+    { "paths": ["chromium/blanc/browser/ui/ui_language.h"], "features": ["interface-language.feature"] },
+    { "paths": ["chromium/blanc/browser/ui/blanc_quiet_*.h"], "features": ["quiet-tabs.feature"] },
+    { "paths": ["chromium/blanc/browser/ui/mouse_gesture_controller.inc"], "features": ["navigation-and-context-menu.feature"] },
+    { "paths": ["chromium/blanc/island/pages/mahjong*"], "features": [], "why": "the game page has its own unit tests; no acceptance case drives it" },
+    { "paths": ["chromium/blanc/island/pages/bookmarks*", "chromium/blanc/island/pages/history*", "chromium/blanc/island/pages/bookmark-file.js"], "features": ["find-favorites-history.feature", "internal-pages.feature"] },
+    { "paths": ["chromium/blanc/island/pages/downloads*"], "features": ["downloads.feature", "internal-pages.feature"] },
+    { "paths": ["chromium/blanc/island/pages/bangs*", "chromium/blanc/browser/ui/browser_api/bang*", "chromium/blanc/browser/ui/browser_api/search*", "chromium/blanc/browser/ui/browser_api/suggestion_policy*"], "features": ["island-and-commands.feature", "settings-and-theming.feature"] }
+  ]
+}
