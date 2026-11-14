@@ -691,12 +691,25 @@ html { --stage-w: 100vw; }
 }
 
 /* The rail background owns the entire left edge. On macOS its first row also
-   acts as the title-bar safe area: content starts after the native traffic
-   lights, while the main pane's sampled website gutter remains independent. */
+   acts as the title-bar safe area: the native traffic lights share it only
+   with the layout toggle, centered on them, while the main pane's sampled
+   website gutter remains independent. The Space mark takes a second row
+   beneath, across the rail's whole width and in line with the tab rows, so a
+   long Space name has room and never runs into the traffic lights; at the
+   narrowest rail it still ends in an ellipsis. Both rows fit the strip's
+   height, so the tab list starts where it did and the Spaces menu, which
+   hangs from the mark, still anchors inside the strip (main.js
+   setSpacesAnchor). */
 body.mac .vertical-tabs-toolbar {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  grid-template-rows: 28px 28px;
+  row-gap: 0;
   min-height: var(--strip-h);
-  padding: 8px 10px 7px 103px;
+  padding: 11px 10px 1px 14px;
 }
+body.mac .vertical-tabs-toolbar .vertical-tabs-layout-button { grid-row: 1; grid-column: 2; margin-left: 0; }
+body.mac .vertical-tabs-toolbar #pillSpace { grid-row: 2; grid-column: 1 / -1; justify-self: start; max-width: 100%; }
 
 /* Windows and Linux: with vertical tabs the main-menu button moves out of the
    strip into this row (vertical-tabs.js placeMainMenuButton), leading it as

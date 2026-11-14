@@ -1847,6 +1847,51 @@ Then('the Spaces menu opens below the rail\'s Space mark', async function () {
   await waitForValue(() => this.call('overlayMode'), (mode) => mode == null, 'the Spaces menu closed');
 });
 
+// F28-21: a long Space name. On macOS the traffic lights keep the first row
+// (with the layout toggle) and the mark takes the row below, the rail's full
+// width; on Windows and Linux it sits between the main-menu button and the
+// toggle. At every rail width it stays clear of them, and at the narrowest its
+// name ends in an ellipsis.
+Then('at every rail width the Space mark {string} clears the window controls, its name ending in an ellipsis at the narrowest', async function (spaceName) {
+  const { VERTICAL_TABS_MIN_WIDTH, VERTICAL_TABS_DEFAULT_WIDTH, VERTICAL_TABS_MAX_WIDTH } = SPACES_GEOMETRY;
+  const page = await chromePage();
+  const lights = process.platform === 'darwin'
+    ? await ctx.app.evaluate(({ BrowserWindow }) => BrowserWindow.getAllWindows().find((w) => w.isVisible())?.getWindowButtonPosition() ?? null)
+    : null;
+  for (const width of [VERTICAL_TABS_MIN_WIDTH, VERTICAL_TABS_DEFAULT_WIDTH, VERTICAL_TABS_MAX_WIDTH]) {
+    await this.call('setVerticalTabsWidth', width);
+    const state = await waitForValue(() => page.evaluate(() => {
+      const box = (el) => el.getBoundingClientRect().toJSON();
+      const mark = document.getElementById('pillSpace');
+      const name = document.getElementById('pillSpaceName');
+      const menu = document.getElementById('mainMenuButton');
+      return {
+        rail: box(document.getElementById('verticalTabsRail')),
+        mark: box(mark),
+        toggle: box(document.getElementById('verticalTabsUseIsland')),
+        menu: menu?.closest('.vertical-tabs-toolbar') ? box(menu) : null,
+        text: name.textContent,
+        clipped: name.scrollWidth > name.clientWidth,
+        ellipsis: getComputedStyle(name).textOverflow === 'ellipsis',
+        mac: document.body.classList.contains('mac'),
+      };
+    }), (value) => Math.round(value.rail.right) === width && value.mark.right > value.mark.left, `the rail at ${width}px`);
+    const details = JSON.stringify({ width, lights, state });
+    assert.equal(state.text, spaceName, details);
+    assert.ok(state.mark.left >= state.rail.left && state.mark.right <= state.rail.right, `the mark stays inside the rail: ${details}`);
+    if (state.mac) {
+      // The traffic lights are 14pt buttons at the window's button position.
+      assert.ok(lights, details);
+      assert.ok(state.mark.top >= lights.y + 14, `the mark sits below the traffic lights: ${details}`);
+      assert.ok(Math.abs((state.toggle.top + state.toggle.bottom) / 2 - (lights.y + 7)) <= 3, `the toggle lines up with the traffic lights: ${details}`);
+    } else {
+      assert.ok(state.mark.right <= state.toggle.left, `the mark ends before the layout toggle: ${details}`);
+      if (state.menu) assert.ok(state.mark.left >= state.menu.right, `the mark starts after the main-menu button: ${details}`);
+    }
+    if (width === VERTICAL_TABS_MIN_WIDTH) assert.ok(state.clipped && state.ellipsis, `the name ends in an ellipsis: ${details}`);
+  }
+});
+
 When('I click the rail\'s New group button', async function () {
   this.newGroupTabId = (await this.call('state')).activeTabId;
   await (await chromePage()).locator('#verticalTabsNewGroup').click();
