@@ -160,9 +160,13 @@ function main(argv) {
     adb('shell', 'am', 'start', '-n', SETTINGS);
     sleep(4);
     if (!tapRow('Measure usage')) problems.push('no Measure usage row');
+    // The switch really went off, so a quiet launch below means something.
+    const saved = (() => { try { return adb('shell', 'run-as', PACKAGE, 'cat', `shared_prefs/${PACKAGE}_preferences.xml`); } catch { return ''; } })();
+    if (!/<boolean name="blanc\.usage_ping" value="false"/.test(saved)) problems.push('Measure usage was not saved off');
     stop();
     launch();
     sleep(4);
+    if (!/topResumedActivity=.*me\.bnfy\.blanc\.dev/.test(adb('shell', 'dumpsys', 'activity', 'activities'))) problems.push('Blanc is not running after the launch');
     if (requests().length !== 2) problems.push(`${requests().length - 2} request(s) with Measure usage off`);
     check('with Measure usage off, a launch sends nothing', problems);
 

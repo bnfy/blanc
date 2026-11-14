@@ -12,7 +12,6 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
-import java.util.Locale;
 import java.util.Random;
 import java.util.UUID;
 import java.util.regex.Pattern;
@@ -125,8 +124,9 @@ public final class LaunchPing {
         try {
             if (file.isFile()) {
                 String text = new String(Files.readAllBytes(file.toPath()), StandardCharsets.UTF_8).trim();
-                UUID.fromString(text);
-                if (text.length() == 36) return text.toLowerCase(Locale.ROOT);
+                UUID parsed = UUID.fromString(text);
+                // fromString takes short groups; only a canonical id is kept.
+                if (text.length() == 36) return parsed.toString();
             }
         } catch (IOException | IllegalArgumentException e) {
             // A damaged file is replaced below.
