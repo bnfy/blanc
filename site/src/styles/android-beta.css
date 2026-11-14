@@ -1,0 +1,111 @@
+/* The Blanc for Android beta signup (pages/android-beta.astro,
+   components/AndroidBetaForm.astro). */
+.android-beta-form {
+  max-width: 520px;
+  margin-top: 8px;
+}
+.android-beta-label {
+  display: block;
+  margin-bottom: 10px;
+  font-size: 15px;
+  font-weight: 600;
+}
+.android-beta-controls {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 5px 5px 6px;
+  border: 1px solid var(--site-border);
+  border-radius: 999px;
+  background: var(--site-surface-raised);
+  transition: border-color 160ms ease, box-shadow 160ms ease;
+}
+.android-beta-controls:focus-within {
+  border-color: var(--site-gold);
+  box-shadow: 0 0 0 4px rgba(128, 93, 40, 0.15);
+}
+.android-beta-form input[type="email"] {
+  flex: 1;
+  min-width: 0;
+  padding: 10px 12px;
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  font-size: 16px;
+}
+.android-beta-form input[type="email"]:focus-visible {
+  outline: none;
+}
+.android-beta-form button {
+  padding: 11px 20px;
+  border: 0;
+  border-radius: 999px;
+  background: var(--site-ink-warm);
+  color: var(--site-bg);
+  font: inherit;
+  font-size: 15px;
+  font-weight: 600;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: background-color 160ms ease, transform 100ms ease-out;
+}
+.android-beta-form button:active {
+  transform: scale(0.97);
+}
+@media (hover: hover) {
+  .android-beta-form button:hover {
+    background: color-mix(in srgb, var(--site-ink-warm) 80%, var(--site-bg));
+  }
+}
+.android-beta-form button:focus-visible {
+  outline: 2px solid var(--site-gold);
+  outline-offset: 2px;
+}
+.android-beta-form button:disabled {
+  opacity: 0.6;
+  cursor: progress;
+  transform: none;
+}
+/* The trap field is for programs; people never reach it. */
+.android-beta-form .android-beta-hp {
+  position: absolute;
+  left: -9999px;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  opacity: 0;
+}
+.android-beta-note {
+  margin: 12px 0 0;
+  color: var(--site-text-dim);
+  font-size: 13px;
+  line-height: 1.5;
+}
+.android-beta-note a {
+  color: inherit;
+}
+.android-beta-status {
+  margin: 12px 0 0;
+  font-size: 16px;
+  font-weight: 600;
+}
+.android-beta-status:empty {
+  display: none;
+}
+/* Once the request is sent, only the confirmation message remains. */
+.android-beta-form[data-done] :is(.android-beta-label, .android-beta-controls, .android-beta-note) {
+  display: none;
+}
+@media (max-width: 480px) {
+  .android-beta-controls {
+    flex-direction: column;
+    align-items: stretch;
+    border-radius: 22px;
+    padding: 6px;
+  }
+  .android-beta-form button {
+    padding: 12px 20px;
+  }
+}
