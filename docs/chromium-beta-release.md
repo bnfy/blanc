@@ -869,6 +869,35 @@ and `/dl/beta` (#1511, #1512; blanc-ping version `62dc6a5a`), and the hosted
 smoke check passed all six checks (run 43561295021, `check_feed=true`). Still
 owed: the first signed Sparkle handoff, beta.2 to beta.3.
 
+### Blanc Beta 2.0.0-beta.3 (2026-11-14)
+
+Published at 07:16 UTC as a GitHub pre-release, not latest:
+<https://github.com/bnfy/blanc/releases/tag/chromium-beta-2.0.0-beta.3>, tag at
+`c3a3bc898`, candidate `macos-39d309c3cba37076`, DMG SHA-256
+`a31422ed7f63b4664e03906406827491bae91f513e9ea76abcaad63791bedb57`, nine assets.
+It carries the Sync lockout fix and Safe Browsing off by default (patch 0079).
+The owner never touched the Mac Studio: every `release.mjs` stage ran from
+the MacBook Pro, through `chromium/release/owner/remote/beta3-*.command`
+calling the Mac Studio's `beta3-*.command` over SSH, with the notarization
+values and the update key read from 1Password on the MacBook Pro and sent as
+SSH environment (`chromium/release/owner/README.md`). Gates: 11 passed
+(acceptance and desktop Sync by the targeted decision above, notices and
+credits, blocker payload, outbound isolation, profile coexistence, Touch ID
+passkeys on the notarized app, test hooks absent, the update proof carried
+from beta.2, native signature, Gatekeeper) and 2 waived (no-drm-handoff,
+production-sync-real-device). The outbound check passed only after Safe
+Browsing was turned off and Adobe Creative Cloud was quit for the run (its
+traffic was attributed to the beta's test user). What cost time: the SBOM
+was built before the descriptor's source commit was rebound, so `manifest`
+refused it until it was rebuilt; the first DMG stage failed because the SSH
+session couldn't reach the login keychain (the notarize wrapper now unlocks
+it); `gh` wasn't on the SSH search path for `draft`. After publication the
+website PR shipped the feed, the Download page tile and `/dl/beta` (#1518;
+blanc-ping version `9d4bd37d`), and blanc.day's feed equals the release
+appcast byte for byte. Still owed: the hosted smoke check (it runs from
+`main`, which needs this record and beta.3's `GATE_WAIVERS` first) and the
+first signed Sparkle handoff, beta.2 to beta.3, from an installed beta.2.
+
 ### Runbook for the next beta: lessons from beta.2 (2026-11-14)
 
 Beta.2 shipped, but cost hours on things that are now known. Do the next beta

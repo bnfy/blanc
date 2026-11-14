@@ -965,6 +965,15 @@ remain pending. D3 beta-only no-DRM exception accepted; EME notice/handoff requi
   shipped the feed, the Download page tile and `/dl/beta` (#1511, #1512), and
   the hosted smoke check passed all six checks (run 43561295021 on `main`,
   with the live feed). Still owed: the first signed beta.2 → beta.3 handoff.
+- **Blanc Beta 2.0.0-beta.3 published (owner, 2026-11-14):** a GitHub
+  pre-release at 07:16 UTC (not latest), tag `chromium-beta-2.0.0-beta.3` at
+  `c3a3bc898`, nine assets, DMG `a31422ed…`. It fixes beta.2's Sync lockout
+  and turns Safe Browsing off by default (0079). Run entirely from the
+  MacBook Pro over SSH (`chromium/release/owner/remote/`). 11 gates passed,
+  2 waived (no-drm-handoff, production-sync-real-device: the real-iPhone pass
+  found the Sync faults in item 5a below). The website shipped it (#1518);
+  blanc.day's feed equals the release appcast. Still owed: the hosted smoke
+  check and the first signed beta.2 → beta.3 handoff.
 - **Beta.2 production build (owner, 2026-11-14):** `out/BlancBeta` switched to
   production (2.0.0-beta.2, build 2, the production key, local qualification
   off) and rebuilt through the guard with the owner-approved
