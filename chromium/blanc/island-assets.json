@@ -156,7 +156,7 @@
     "glance-card.js": "3dede7f39231795ee861571c3cd053fb097425f195741eebbab72474a2cdb659",
     "host.css": "8f72fe854de2a8afc53088e58506886ebd464a7310b28fcdbc5d5b6c5445dbd8",
     "host.html": "58f6d2b77d871789a77720f120baede2070935c57c686c33bb251847768d27e7",
-    "host.js": "497d178be64fc30e7d8a607a1cc0c997f5955698d8823adb58548f44ddf0b531",
+    "host.js": "dea17d610dd3292d485e3ed6991b9ddfeb24a9b6fc3e8473c1574df2f815e7a0",
     "hover-panel-leave.js": "b1dec3e1bfc4f53932e651d6345fdea1199b07cdfea6c0926928377b28b7eb1a",
     "i18n.js": "5749b9e67f1876fdd535f6f47908d8a3982ee7c5868b2e23dc50085a1ab27793",
     "icons/chevron-left.svg": "83b0681aa38bf55e9d52a1e4b4cced624abe1fe7678ecafda133a574f1161d93",
@@ -350,7 +350,7 @@
     "tab-drag.js": "dc7c9e93ba6f442c3ae76f56a99201afd0a6c483491e29d4f0be2ad71667d8f6",
     "tab-sections.js": "3e30fbc4dd29173feeda65fbf07af0455898a5f91fc002815644f7efcd74fd78",
     "tab-selection.js": "f7d7fa3faf03823a8a5a344c26e04dc49891ee542bc43a487f48630a154bb2ca",
-    "vertical-tabs.js": "729e55995d342fbe263540c8a646fd7c797b36b0c940dd1d370b6f29d4f1c9ed",
+    "vertical-tabs.js": "af3147c6263a9879afd661636ef011457e2f3db668b0c1ae8a86add83c91784a",
     "whats-new.js": "ed48700b7808264312543422d8576320dfcd95ed3497aa1f20e0e5cd89a5e339",
     "workspace-ui.js": "090c90f174b0c476946de044b997fc05a075695d3e408a05b1df9105a2480abc"
   }

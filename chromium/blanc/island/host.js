@@ -2911,6 +2911,8 @@
   function syncRailHover() {
     const doc = railDoc();
     if (doc?.documentElement) doc.documentElement.dataset.railPreviews = layout === 'vertical' ? 'on' : '';
+    // Rows drawn before previews were on still carry the system tooltip.
+    if (layout === 'vertical') for (const row of doc?.querySelectorAll('#verticalTabsRail .vertical-tab-primary[title]') ?? []) row.removeAttribute('title');
     if (!railHover || railHover.state.phase === 'idle') return;
     if (railSuppressed()) { railDismiss('surface'); return; }
     if ((snapshot?.activeTabId ?? null) !== railHover.activeTabId && railHover.state.phase !== 'waiting') {

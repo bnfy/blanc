@@ -111,3 +111,14 @@ test('the host cleans links and writes invites with shipping\'s modules', () => 
   assert.equal(invite.inviteMailto(invite.inviteMessage(t)), shippingInvite.inviteMailto(shippingInvite.inviteMessage(t)));
   assert.equal(invite.INVITE_URL, shippingInvite.INVITE_URL);
 });
+
+// Rail hover previews (fork): while the host shows hover cards, rail rows
+// leave their tooltip to the card, so the system tooltip and the card never
+// show together. The host sets data-rail-previews="on" on the strip's root.
+test('rail rows drop their tooltip while hover previews are on', () => {
+  const rail = fs.readFileSync(path.join(root, 'blanc/island/vertical-tabs.js'), 'utf8');
+  const guard = "document.documentElement.dataset.railPreviews !== 'on'";
+  assert.ok(rail.includes(`if (${guard}) primary.title = tab.pageTitle || title;`));
+  assert.ok(rail.includes(`if (primary && !primary.hasAttribute('title') && ${guard}) {`));
+  assert.equal(rail.match(/primary\.title = /g)?.length, 2, 'no other assignment');
+});

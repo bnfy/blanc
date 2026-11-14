@@ -85,6 +85,12 @@ export const EDITS = {
     ["  const glanceSurface = window.location.hostname === 'glance';\n",
       "  const glanceSurface = window.location.hostname === 'glance' || window.location.search === '?surface=glance';\n"],
   ],
+  // Rail hover previews (fork): rows leave their tooltip to the host's hover
+  // card while it is on (host.js sets data-rail-previews on the strip's root).
+  'vertical-tabs.js': [
+    ["    primary.title = tab.pageTitle || title;", "    if (document.documentElement.dataset.railPreviews !== 'on') primary.title = tab.pageTitle || title;"],
+    ["    if (primary && !primary.hasAttribute('title')) {", "    if (primary && !primary.hasAttribute('title') && document.documentElement.dataset.railPreviews !== 'on') {"],
+  ],
   'overlay.js': [
     // F3-3: a collapsed group's membership stays explicit in the panel.
     // Use shipping's translated plural string and existing empty-row style.
