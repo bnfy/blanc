@@ -14,6 +14,23 @@ D7, F0.7, cold builds, new machines, D2/D4–D6/D8/V2 and replacement D3
 remain pending. D3 beta-only no-DRM exception accepted; EME notice/handoff required.
 
 ## Current work
+- **2026-11-14 — Island approach swell, for beta.4 (not built yet):** the
+  owner noticed the resting Island ignores an approaching cursor. Shipping's
+  resting Island has five pointer behaviors; four were already in the fork's
+  code (dots bloom into site icons, button hover states, tooltips, opt-in
+  hover-open). The fifth, the approach swell (the pill rises 2px and grows 2%
+  within 250px, settled 80px out; shipping's `island-proximity.js`), was off:
+  `prototype.css` forced `transform: none` because the native extension
+  buttons could not follow it, and nothing sent the cursor's distance. Now the
+  host runs shipping's module (generated `island-proximity.js`), native
+  forwards page moves within 260px of the Island at most once a frame
+  (`island_proximity.h`, `island_proximity_controller.inc`), and the
+  extension buttons take the slot's measured swell as a native transform
+  (owner's choice over keeping the pill flat with extensions). Unit suite:
+  464 of 475 pass, 11 Sync page tests skipped without Chromium's TypeScript;
+  `tools/island-proximity.test.mjs` compiles the native policy beside
+  shipping's module. Not compiled or run in a build: beta.3 was being
+  released from the Mac Studio. See "For beta.4" below.
 - **2026-11-10 — Beta identity patch (preview candidate macos-77c0cea3ecc01285):**
   dedicated gated Blanc Beta identity, profile guards, version metadata and
   release policy implemented. Preview incremental build passes; pure native
@@ -2488,6 +2505,16 @@ machine has them.
 7. **1Password re-locks every ~20 seconds on the Mac Studio** (its security
    options are greyed out). The beta.2 workarounds are in
    `chromium/release/owner/`; fixing it would let `op run` work again.
+
+**For beta.4**
+8. **Island approach swell** (committed on `chromium/next` 2026-11-14,
+   never compiled): build it, then check on the Mac that the pill swells as
+   the cursor approaches from the page and from the strip, stays flat under
+   Reduce motion, in a background window and while a menu is open, and that
+   pinned extension buttons move with it. The owner also asked to recheck in
+   the beta the four hover behaviors already in the code: the dots blooming
+   into site icons, button hover states, tooltips, and hover-open (Settings,
+   off by default).
 
 **What lives only on the Mac Studio**
 - The release work folder `~/Projects/Blanc/records/beta2-work`: signed

@@ -1206,7 +1206,8 @@
         : overlayMode === 'group-menu' ? 'groupMenu' : overlayMode === 'spaces' ? 'workspaceSwitcher' : 'islandPanel')
       : strip.contentDocument?.getElementById('islandPill'));
     if (!slot || !panel) return;
-    const a = slot.getBoundingClientRect();
+    const pill = strip.contentDocument.getElementById('islandPill');
+    const a = pill ? restingRect(pill, slot) : slot.getBoundingClientRect();
     // The palette scrim, and the group menu's transparent layer (a click
     // beside the menu closes it), own outside clicks across the viewport.
     const b = (opened && (overlayMode === 'palette' || overlayMode === 'group-menu')) || (sheet.page && !opened)
@@ -1388,6 +1389,7 @@
     const stripBounds = strip.getBoundingClientRect();
     const point = cursor && { x: cursor.x - stripBounds.x, y: cursor.y - stripBounds.y };
     hover.lastPoint = point;
+    wakeProximity(point);
     updateHover(point, { sampled: true });
   }
 
@@ -2590,6 +2592,7 @@
       const from = frame?.getBoundingClientRect() ?? { x: 0, y: 0 };
       const to = strip.getBoundingClientRect();
       hover.lastPoint = { x: event.clientX + from.x - to.x, y: event.clientY + from.y - to.y };
+      updateProximity(hover.lastPoint);
       updateHover(hover.lastPoint, { buttonsDown: event.buttons !== 0 });
     }, true);
     // A subframe's mouseleave does not bubble, and the root it targets may not
@@ -2602,9 +2605,89 @@
     }, true);
   }
   hookHover(document, null);
+
+  // ---- Island proximity: the resting pill swells as the cursor approaches
+  // (shipping's renderer.js "Island proximity" over main.js
+  // updateIslandProximity and the generated island-proximity.js). Shipping's
+  // main process measures, because the cursor is usually over the page; here
+  // native forwards the page's moves near the Island (blancIslandPointer, in
+  // host coordinates, at most one a frame) and the host sees its own
+  // documents' moves (hookHover). As in shipping, the strip and the floating
+  // pill hear one number, only when it changes, and ease toward it themselves.
+  const Proximity = window.BlancIslandProximity;
+  let proximityK = 0;
+  // Asleep whenever the pill isn't what you're looking at (shipping's
+  // `awake`): another window is in front, or something is open over it.
+  function proximityAwake() {
+    return snapshot?.windowActive !== false && !opened && !extensionsOpened && !paneMenu;
+  }
+  function updateProximity(point) {
+    const k = proximityAwake() && point && pillRect ? Proximity.closeness(point, pillRect) : 0;
+    // Three decimals, as shipping: finer than the effect can render.
+    const next = Number(k.toFixed(3));
+    if (next === proximityK) return;
+    proximityK = next;
+    emit('onIslandProximity', { k: next });
+  }
+  window.blancIslandPointer = (x, y) => {
+    if (!Number.isFinite(x) || !Number.isFinite(y)) return;
+    const s = strip.getBoundingClientRect();
+    updateProximity({ x: x - s.x, y: y - s.y });
+  };
+  // An open surface rested the pill (renderer.js restIsland), so the value it
+  // last heard is no longer what it shows: the next one is always sent.
+  function wakeProximity(point) {
+    proximityK = null;
+    updateProximity(point);
+  }
+
+  // Chromium's extension buttons are native views over the pill's slot, so
+  // they cannot take its CSS transform. Native keeps them at the slot's
+  // resting place (reportGeometry) and draws the swell as a transform of its
+  // own: the slot's move and growth, measured each frame the pill changes.
+  function restingRect(pill, element) {
+    if (!pill.classList.contains('proximity-active')) return element.getBoundingClientRect();
+    pill.classList.remove('proximity-active');
+    const rect = element.getBoundingClientRect();
+    pill.classList.add('proximity-active');
+    return rect;
+  }
+  let swellSent = '1,0,0';
+  function syncExtensionsSwell() {
+    const pill = strip.contentDocument?.getElementById('islandPill');
+    const slot = strip.contentDocument?.getElementById('nativeExtensions');
+    if (!pill || !slot) return;
+    let swell = [1, 0, 0];
+    if (snapshot?.extensionsWidth > 0 && pill.classList.contains('proximity-active')) {
+      const rest = restingRect(pill, slot), now = slot.getBoundingClientRect();
+      if (rest.width > 0) swell = [now.width / rest.width, now.x - rest.x, now.y - rest.y];
+    }
+    swell = swell.map(value => Math.round(value * 1000) / 1000);
+    const next = swell.join(',');
+    if (next === swellSent) return;
+    swellSent = next;
+    request('extensionsSwell', swell).catch(error => notice(error.message));
+  }
+  // The renderer paints the swell on the pill's style and class each display
+  // frame; the native buttons, and the pill's clickable area, follow.
+  const swellWatched = new WeakSet();
+  function watchSwell(doc) {
+    const pill = doc?.getElementById('islandPill');
+    if (!pill || swellWatched.has(pill)) return;
+    swellWatched.add(pill);
+    const observer = new doc.defaultView.MutationObserver(() => {
+      reportGeometry();
+      syncExtensionsSwell();
+      // Measuring the resting slot toggles the class; those records are ours.
+      observer.takeRecords();
+    });
+    observer.observe(pill, { attributes: true, attributeFilter: ['style', 'class'] });
+  }
+
   // A setting turned off, or anything else that ends eligibility, ends a dwell.
   function settleHover() {
     hookHover(strip.contentDocument, strip);
+    watchSwell(strip.contentDocument);
     hookHover(floatPill.contentDocument, floatPill);
     hookHover(overlay.contentDocument, overlay);
     if (hover.state.dwelling && !hoverEligible()) hoverStepWith({ type: 'ineligible' });

@@ -18,8 +18,6 @@
    Everything else in the resting pill keeps shipping's exact spacing, button
    sizes, corners and shadow (owner, 2026-11-13): no overrides here. */
 #nativeExtensions { display: inline-block; flex: 0 0 auto; width: calc(26px / var(--pill-zoom)); height: calc(26px / var(--pill-zoom)); }
-/* Native controls cannot inherit a renderer transform. Keep their shared frame stable. */
-#islandPill.proximity-active { transform: none !important; }
 
 /* At narrow widths the expanded panel crosses the native button cluster.
    Leave the real macOS controls clear and keep the panel's bottom inset. */

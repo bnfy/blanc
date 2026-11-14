@@ -32,6 +32,7 @@
   ],
   "mainFiles": [
     "island-hover-open.js",
+    "island-proximity.js",
     "island-autohide.js",
     "whats-new.js",
     "glance-card.js",

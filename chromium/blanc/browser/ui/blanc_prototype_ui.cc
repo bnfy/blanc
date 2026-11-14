@@ -322,6 +322,7 @@
 #include "ui/gfx/animation/animation.h"
 #include "ui/gfx/geometry/transform.h"
 #include "blanc/browser/ui/island_autohide.h"
+#include "blanc/browser/ui/island_proximity.h"
 #include "blanc/private/private_tabs.h"
 #if BUILDFLAG(IS_MAC)
 #include "chrome/browser/webauthn/chrome_web_authentication_delegate.h"
@@ -1151,6 +1152,8 @@ void AddUtilityPageGate(content::NavigationThrottleRegistry& registry) {
 class Owner;
 // Auto-hide (island_autohide_controller.inc).
 void AutoHidePageMove(Owner* owner, const blink::WebInputEvent& event);
+// The approach swell (island_proximity_controller.inc).
+void IslandProximityPageMove(Owner* owner, const blink::WebInputEvent& event);
 void AutoHideActivated(Owner* owner);
 void EndGlanceSoon(Owner* owner, int next_reference);
 void EndOverlayGlance(Owner* owner, bool focus_active);
@@ -1328,6 +1331,15 @@ class Owner : public base::SupportsUserData::Data,
   double extensions_pill_y = 0;
   double extensions_pill_target = 0;
   bool extensions_pill_had_frame = false;
+  // The approach swell (island_proximity_controller.inc): the page's moves
+  // near the Island go to the host at most once a frame, the newest parked
+  // meanwhile; and the swell the host measured on the extension slot.
+  bool island_pointer_near = false;
+  base::OneShotTimer island_pointer_frame;
+  std::optional<gfx::Point> island_pointer_pending;
+  double extensions_swell_scale = 1;
+  double extensions_swell_dx = 0;
+  double extensions_swell_dy = 0;
   // The traffic lights' state last set by auto-hide (macOS).
   std::optional<bool> window_buttons_visible;
   base::DictValue split_geometry;
@@ -1681,10 +1693,12 @@ class Owner : public base::SupportsUserData::Data,
                     InputEventSource) override {
     // Wheel/gesture updates include inertial scrolling, unlike the
     // WebContents interaction callback which only reports scroll start.
-    if (event.GetType() != blink::WebInputEvent::Type::kMouseMove)
+    if (event.GetType() != blink::WebInputEvent::Type::kMouseMove) {
       RequestSample();
-    else
+    } else {
       AutoHidePageMove(this, event);
+      IslandProximityPageMove(this, event);
+    }
   }
   void RenderWidgetHostDidUpdateVisualProperties(content::RenderWidgetHost*) override {
     RequestSample();
@@ -1811,6 +1825,7 @@ void DispatchMouseGesture(base::WeakPtr<content::WebContents> page,
 }
 
 #include "blanc/browser/ui/island_autohide_controller.inc"
+#include "blanc/browser/ui/island_proximity_controller.inc"
 
 // The transparent area beside the rail must remain owned by the web page.
 class IslandView : public views::WebView, public views::ViewTargeterDelegate {
@@ -7382,6 +7397,11 @@ class Handler : public content::WebUIMessageHandler, public extensions::Extensio
               ? browser_view->toolbar()->extensions_container_for_testing() : nullptr) {
         state.Set("extensionsVisible", extensions->GetVisible());
         state.Set("extensionsPillY", owner->extensions_pill_y);
+        base::ListValue swell;
+        swell.Append(owner->extensions_swell_scale);
+        swell.Append(owner->extensions_swell_dx);
+        swell.Append(owner->extensions_swell_dy);
+        state.Set("extensionsSwell", std::move(swell));
       }
       Reply(id, true, base::Value(std::move(state)));
       return;
@@ -10842,6 +10862,26 @@ class Handler : public content::WebUIMessageHandler, public extensions::Extensio
       reply(true, base::Value());
       return;
     }
+    // The approach swell on the extension slot, measured by the host
+    // (host.js syncExtensionsSwell): its growth and its move, which the
+    // native buttons over the slot take as a transform.
+    if (method == "extensionsSwell" && args.size() == 3 &&
+        std::ranges::all_of(args, [](const auto& v) { return v.is_int() || v.is_double(); })) {
+      const double scale = args[0].GetDouble(), dx = args[1].GetDouble(), dy = args[2].GetDouble();
+      if (!blanc::island_proximity::ValidSwell(scale, dx, dy)) {
+        reply(false, base::Value("Not a swell."));
+        return;
+      }
+      owner->extensions_swell_scale = scale;
+      owner->extensions_swell_dx = dx;
+      owner->extensions_swell_dy = dy;
+      auto* browser_view = BrowserViewFor(owner);
+      if (auto* extensions = browser_view && browser_view->toolbar()
+              ? browser_view->toolbar()->extensions_container_for_testing() : nullptr)
+        SetExtensionsPillOffset(owner, extensions);
+      reply(true, base::Value());
+      return;
+    }
     // /invite (shipping's inviteFriend): its prefilled email in the person's
     // mail app, or, with no mail app, the invite on the clipboard. Under
     // --blanc-test nothing launches, as typed hand-offs are only recorded.
@@ -13545,12 +13585,6 @@ void AdjustSplitLayout(const MultiContentsView* view, views::ProposedLayout* lay
       .Set("originX", origin.x() + 8).Set("usableWidth", std::max(1, card_width - 8));
 }
 
-void SetExtensionsPillOffset(views::View* extensions, double y) {
-  gfx::Transform transform;
-  transform.Translate(0, y);
-  extensions->SetTransform(transform);
-}
-
 void StepExtensionsPillSlide(Owner* owner) {
   auto* browser_view = BrowserViewFor(owner);
   auto* extensions = browser_view && browser_view->toolbar()
@@ -13565,7 +13599,7 @@ void StepExtensionsPillSlide(Owner* owner) {
   const bool done = progress >= 1;
   owner->extensions_pill_y = done ? slide->to
       : slide->from + (slide->to - slide->from) * autohide::EaseOutCubic(progress);
-  SetExtensionsPillOffset(extensions, owner->extensions_pill_y);
+  SetExtensionsPillOffset(owner, extensions);
   if (done) {
     slide.reset();
     owner->extensions_pill_timer.Stop();
@@ -13586,7 +13620,7 @@ void SlideExtensionsWithPill(Owner* owner, views::View* extensions) {
   owner->extensions_pill_slide.reset();
   if (!floating || !had_frame || gfx::Animation::PrefersReducedMotion()) {
     owner->extensions_pill_y = target;
-    SetExtensionsPillOffset(extensions, target);
+    SetExtensionsPillOffset(owner, extensions);
     return;
   }
   // Timed to the pill as measured: leaving, its CSS transition began just
