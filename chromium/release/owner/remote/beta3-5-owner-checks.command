@@ -90,6 +90,8 @@ fi
 
 echo "== Sync with your iPhone (about 10 minutes)"
 echo "   Your iPhone already syncs, so Blanc Beta joins that same Sync."
+echo "   0) Blanc Beta on this Mac already syncs (carried over from beta.2). First, in"
+echo "      BLANC BETA: Settings, Sync, Turn off. Then join again below; joining is what broke in beta.2."
 echo "   a) In your REGULAR Blanc: Settings, Sync, Add another device. It shows a code."
 echo "   b) In BLANC BETA: Settings, Sync, Add this device with a code. Enter that code."
 echo "      (Ignore Turn on Sync and Connect your iPhone: those start a new Sync.)"

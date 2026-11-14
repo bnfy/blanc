@@ -1052,3 +1052,15 @@ these with buttons on 2026-11-14:
   sets `safebrowsing.enabled` to false by default for every profile, so
   Chromium neither updates the lists nor sends download checks; the Settings
   choice stays. The outbound check runs again on the rebuilt candidate.
+- **production-sync-real-device (waived for beta.3 after it failed):** the
+  owner's real-iPhone pass on the notarized beta.3 (2026-11-14, on the
+  MacBook Pro) found two faults. The beta published itself to the account
+  with no open tabs (device `MacBook-Pro`, 0 tabs, while tabs were open), so
+  the iPhone didn't list it. Joining with a code showed no "what will sync"
+  step (possibly by design: nothing new would upload; compare with shipping).
+  The lockout fix itself passed on real hardware: after joining, Settings
+  showed Sync on, with no "Could not check sync", and kept it after a
+  relaunch. Owner: ship beta.3 with the gate waived, its notes keeping
+  beta.2's caution that Sync isn't checked end to end, and fix both faults in
+  beta.4. `GATE_WAIVERS` lists it for 2.0.0-beta.3; the reason goes in the
+  gate sources, because `release.json` was fixed before the check ran.

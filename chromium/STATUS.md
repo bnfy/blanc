@@ -2473,6 +2473,12 @@ machine has them.
    `cloudflare/ping-worker/src/dl.js` and
    `site/public/updates/chromium-beta/arm64.xml` together.
 
+5a. **Desktop Sync faults found by beta.3's real-iPhone pass** (2026-11-14,
+   gate waived for beta.3): the beta publishes itself with no open tabs, so
+   other devices don't list it; and joining with a code shows no "what will
+   sync" step. Compare the join with shipping before changing it. Both are
+   due in beta.4.
+
 **Other follow-ups**
 5. **Sync screen** (both apps): Turn on Sync, Connect your iPhone and Add
    this device with a code, plus a dialog with a third choice, confused the
