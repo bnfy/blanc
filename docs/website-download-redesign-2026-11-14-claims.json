@@ -1,0 +1,39 @@
+{
+  "schemaVersion": 1,
+  "page": "site/src/pages/download.astro",
+  "approvedOn": "2026-11-14",
+  "ownerDecisions": [
+    "Reimagine /download with far fewer words: one button for your system under a Mac / Windows / Linux / iPhone segmented control, three tiles (Blanc Beta first, iPhone and iPad, Homebrew), then one line of facts (the 'One button' direction, chosen 2026-11-14).",
+    "No full stops after large headings.",
+    "Blanc Beta must not be buried: it leads the tiles, in dark ink."
+  ],
+  "publicBaseline": "v1.49.0 for the desktop app, App Store 1.0.3 for iPhone and iPad, chromium-beta-2.0.0-beta.2 for Blanc Beta (its own ledger: docs/website-blanc-beta-2.0.0-beta.2-claims.json).",
+  "retired": "The wording this page dropped stays recorded under retiredForDownloadRedesign in docs/website-revamp-claims-v1.27.json, website-v1.33-claims.json, website-v1.34-claims.json and website-homebrew-claims-v1.40.json, and under supersededClaims in docs/website-ipad-1.0.3-claims.json.",
+  "claims": [
+    {"id": "dl-2026-11-14-01", "exactWording": "Free for Mac, Windows, Linux, iPhone and iPad.", "verdict": "verified", "rests": ["download-2026-10-04-02", "ipad103-004"], "evidence": "The desktop app is free on all three systems (v1.27 ledger); Blanc for iPhone and iPad is free on the App Store (iPad 1.0.3 ledger)."},
+    {"id": "dl-2026-11-14-02", "exactWording": "Apple Silicon · macOS 13 or later", "verdict": "verified", "rests": ["download-2026-10-04-04"], "evidence": "The Mac button downloads the Apple Silicon DMG; LSMinimumSystemVersion 13.0. Intel has its own link beside the button."},
+    {"id": "dl-2026-11-14-03", "exactWording": "Open the DMG and drag Blanc to Applications.", "verdict": "verified", "rests": ["download-2026-10-04-05"], "evidence": "The DMG layout is the app beside an Applications link, as the retired numbered steps said."},
+    {"id": "dl-2026-11-14-04", "exactWording": "Windows 10 or later, 64-bit", "verdict": "verified", "rests": ["download-2026-10-04-06"], "evidence": "Same requirement as the retired 'Windows 10 or later, 64-bit (x64).'"},
+    {"id": "dl-2026-11-14-05", "exactWording": "Run the installer. Windows should name the publisher shown on the release.", "verdict": "qualified", "rests": ["download-2026-10-04-07", "download-2026-10-04-10"], "evidence": "Public Windows installers are Authenticode-signed and the release pipeline refuses an unsigned one; the publisher check is the retired step's advice, shortened."},
+    {"id": "dl-2026-11-14-06", "exactWording": "AppImage, 64-bit", "verdict": "verified", "rests": ["download-2026-10-04-08"], "evidence": "The Linux download is the x64 AppImage."},
+    {"id": "dl-2026-11-14-07", "exactWording": "chmod +x Blanc-*.AppImage, then run it.", "verdict": "verified", "rests": ["download-2026-10-04-08"], "evidence": "The retired Linux steps, as one line."},
+    {"id": "dl-2026-11-14-08", "exactWording": "iOS and iPadOS 18.4 or later", "verdict": "verified", "rests": ["ipad103-008"], "evidence": "IPHONEOS_DEPLOYMENT_TARGET 18.4 in App Store 1.0.3."},
+    {"id": "dl-2026-11-14-09", "exactWording": "Google analytics and ad measurement are on by default outside the EEA, UK and Switzerland.", "verdict": "verified", "rests": [], "evidence": "site/src/scripts/site.js consent defaults, guarded by test/unit/site-attribution-consent.test.js; the retired sentence's second half ('You can change your choice here.') is the Measurement choices button."},
+    {"id": "dl-2026-11-14-10", "exactWording": "Free on the App Store. With Sync, your Favorites and your other devices’ tabs come with you.", "verdict": "verified", "rests": ["ipad103-004"], "evidence": "The retired iPhone paragraph, shortened; Sync joins Favorites and other devices' tabs."},
+    {"id": "dl-2026-11-14-11", "exactWording": "The same signed and notarized build.", "verdict": "verified", "rests": ["homebrew-140-02"], "evidence": "The Homebrew cask installs the same signed and notarized DMG."},
+    {"id": "dl-2026-11-14-12", "exactWording": "Signed and notarized", "verdict": "qualified", "rests": ["download-2026-10-04-10"], "evidence": "Mac builds are signed and notarized by Apple; Windows installers are Authenticode-signed. 'Verify a release' links the full procedure."},
+    {"id": "dl-2026-11-14-13", "exactWording": "Updates itself", "verdict": "verified", "rests": ["reddit-418"], "evidence": "Installed release builds check GitHub Releases and update themselves."},
+    {"id": "dl-2026-11-14-14", "exactWording": "Free, with no account", "verdict": "qualified", "rests": ["site-133-download-02", "reddit-418"], "evidence": "Every feature is free (v1.33); nothing needs an account: updates need none, Sync pairs with a code or a passphrase, and Patron is an optional license key."},
+    {"id": "dl-2026-11-14-15", "exactWording": "No general extension support.", "verdict": "qualified", "rests": ["v134-1p-007"], "evidence": "Blanc has no general third-party extension runtime (the optional managed uBlock Origin provider is not a general extension runtime)."},
+    {"id": "dl-2026-11-14-16", "exactWording": "Synced provider passkeys, including iCloud Keychain, are not supported.", "verdict": "verified", "rests": ["v134-1p-007"], "evidence": "Unchanged from the retired limits paragraph; test/unit/website-revamp-trust.test.js requires it on this page."},
+    {"id": "dl-2026-11-14-17", "exactWording": "Download didn’t start?", "verdict": "verified", "rests": ["reddit-428"], "evidence": "The retired footnote, shortened; the link opens the latest release page."}
+  ],
+  "labels": [
+    "Download Blanc", "Mac", "Windows", "Linux", "iPhone", "Download for Mac", "Intel Mac", "Download for Windows", "Download for Linux",
+    "Get it on the App Store", "Join the beta on TestFlight", "Blanc {latest.version} · What’s new", "Measurement choices",
+    "iPhone and iPad", "Blanc for iPhone and iPad", "App Store", "Mac, from the terminal", "Homebrew", "brew install --cask bnfy/tap/blanc", "Copy",
+    "Verify a release", "No general extension support. Synced provider passkeys, including iCloud Keychain, are not supported.",
+    "Download didn’t start? Open the release page · support@blanc.day", "On a phone or tablet?", "Blanc is a desktop browser for macOS, Windows and Linux.",
+    "Blanc for iPhone and iPad is free on the App Store. Blanc for your Mac or PC is a desktop browser for macOS, Windows and Linux.", "Send to my computer"
+  ]
+}

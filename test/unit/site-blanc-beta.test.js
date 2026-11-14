@@ -15,9 +15,9 @@ const feed = read(`site/public${beta.feed}`);
 const page = read('site/src/pages/download.astro');
 
 const section = () => {
-  const start = page.indexOf('<section class="download-block" id="beta"');
-  assert.ok(start > 0, 'the Download page has the Blanc Beta section');
-  return page.slice(start, page.indexOf('</section>', start));
+  const start = page.indexOf('<article class="dl-tile dl-tile--beta" id="beta"');
+  assert.ok(start > 0, 'the Download page has the Blanc Beta tile');
+  return page.slice(start, page.indexOf('</article>', start));
 };
 const plain = (text) => text
   .replace(/<!--[\s\S]*?-->/g, ' ')
@@ -64,7 +64,10 @@ test('every sentence in the section is in the claims ledger, and nothing else is
   assert.match(section(), /href="\/dl\/beta"/);
 });
 
-test('the four platform cards stay as they were', () => {
-  const cards = page.slice(page.indexOf('id="download-options"'), page.indexOf('</section>', page.indexOf('id="download-options"')));
-  assert.doesNotMatch(cards, /beta/i);
+test('the beta is never one of the platform choices, and leads the tiles', () => {
+  const chooser = page.slice(page.indexOf('data-download-chooser'), page.indexOf('class="dl-version"'));
+  assert.doesNotMatch(chooser, /Blanc Beta/);
+  assert.doesNotMatch(chooser, /dl\/beta/);
+  const tiles = page.slice(page.indexOf('id="download-more"'));
+  assert.ok(tiles.indexOf('id="beta"') < tiles.indexOf('id="iphone"'), 'Blanc Beta is the first tile');
 });
