@@ -14,6 +14,32 @@ D7, F0.7, cold builds, new machines, D2/D4–D6/D8/V2 and replacement D3
 remain pending. D3 beta-only no-DRM exception accepted; EME notice/handoff required.
 
 ## Current work
+- **2026-11-14 — The Dock icon follows Dark again (owner's report on beta.4):**
+  Beta.4 (published from 57e3109dd, with patch 0082) handed the Dock the
+  named Icon Composer stacks directly. AppKit draws a stack given to
+  `NSApp.applicationIconImage` once, in Light, and never redraws it: a
+  rasterized stack is byte-identical under Aqua and Dark Aqua (measured). So
+  in Dark, Sunrise, Spectrum and Amber stayed Light. Shipping never did
+  this: Electron 45's `nativeImage.createFromNamedImage` reads a name
+  without an NS prefix as an SF Symbol, finds none and returns an empty
+  image, so shipping always fell back to a Light or Dark image, reapplied on
+  each appearance change, with only the bundle icon live. The beta now does
+  the same with Icon Composer's own renders:
+  `blanc/branding/beta/render-dock-icons.mjs` exports each non-bundle stack's
+  Default and Dark renditions with ictool (macOS platform), at shipping's
+  Dock geometry (an 824 px tile in a 1024 canvas), into
+  `branding/beta/dock/`, which `//blanc:beta_dock_icons` copies into the
+  app's `Resources/dock`; `blanc::SetDockIconFromBundle` loads the one for
+  the current appearance, and host.js already asks again when it changes.
+  Sunrise Gold (the bundle icon) stays live, and Clear and Tinted still put
+  the bundle icon back. `icon-manifest.json` pins the renders. Checked: the
+  fork unit suite (466 pass), patch reconstruction, and a syntax-only
+  compile of both changed files with out/BlancBeta's flags. Not yet built or
+  seen in the Dock; it ships in beta.5. Also: installing the published
+  beta.4 over an earlier beta.4 candidate on the MacBook Pro left 22
+  LaunchServices registrations of `me.bnfy.blanc.beta` (Trash, scratch
+  folders, mounted images); all but `/Applications/Blanc Beta.app` were
+  unregistered.
 - **2026-11-14 — The red button keeps the main window's tabs (patch 0083
   here, 0082 on beta.4's branch; candidate macos-f390619940f08515, owner's report on beta.4):** shipping's
   macOS Dock close (`windowCloseSessionEffect` → `'dock'`, `dock-reopen.js`)
@@ -2665,10 +2691,11 @@ machine has them.
    window. The strip tooltip's 8px offset stays (owner, 2026-11-14).
 
 **For beta.5**
-9. **Sunrise Gold bundle icon and the Sunrise Light/Dark Dock fix** (patch
-   0082 and the named Dock stacks, see Current work): build out/BlancBeta
-   after beta.4 publishes, then check Finder and the Dock in Light and Dark
-   with each of the five icons selected, and in a Tinted icon style.
+9. **The Dock icon in Light and Dark** (Current work, "The Dock icon follows
+   Dark again"): patch 0082 shipped in beta.4 but its named stacks stayed
+   Light in Dark. Build out/BlancBeta with the Icon Composer images, then
+   check the Dock in Light and Dark with each of the five icons selected,
+   switching appearance while Blanc runs, and in a Tinted icon style.
 
 **What lives only on the Mac Studio**
 - The release work folder `~/Projects/Blanc/records/beta2-work`: signed
