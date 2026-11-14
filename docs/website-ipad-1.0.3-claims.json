@@ -119,39 +119,6 @@
    "replaces": "cinema-data-22"
   },
   {
-   "id": "ipad103-004",
-   "source": "site/src/pages/download.astro",
-   "exactWording": "Blanc for iPhone and iPad is free on the App Store. It joins the Sync you set up in Blanc on your computer, so your other devices' tabs and your Favorites come with you, and it blocks ads and trackers.",
-   "subject": "Blanc",
-   "evidenceGroups": [
-    "ipadAppStore",
-    "iphonePairing"
-   ],
-   "verdict": "verified",
-   "replaces": "iphone10-002"
-  },
-  {
-   "id": "ipad103-005",
-   "source": "site/src/pages/download.astro",
-   "exactWording": "On iPad, Blanc runs as a native full-screen app in every orientation, with Split View (two tabs side by side), a floating Glance card for links, tabs in their own windows, and hardware-keyboard shortcuts like ⌘L and ⌘T. Pages load their desktop layout by default, with Request Mobile Website per site.",
-   "subject": "Blanc",
-   "evidenceGroups": [
-    "ipadAppStore"
-   ],
-   "verdict": "qualified"
-  },
-  {
-   "id": "ipad103-006",
-   "source": "site/src/pages/download.astro",
-   "exactWording": "Needs iOS or iPadOS 18.4 or later. The beta gets new builds first and needs Apple's free TestFlight app.",
-   "subject": "Blanc",
-   "evidenceGroups": [
-    "ipadAppStore"
-   ],
-   "verdict": "verified",
-   "replaces": "iphone10-003"
-  },
-  {
    "id": "ipad103-007",
    "source": "site/src/pages/download.astro",
    "exactWording": "Blanc for iPhone and iPad is free on the App Store. Blanc for your Mac or PC is a desktop browser for macOS, Windows and Linux.",
@@ -161,16 +128,6 @@
    ],
    "verdict": "verified",
    "replaces": "iphone10-007"
-  },
-  {
-   "id": "ipad103-008",
-   "source": "site/src/pages/download.astro",
-   "exactWording": "App Store · iOS and iPadOS 18.4 or later",
-   "subject": "Blanc",
-   "evidenceGroups": [
-    "ipadAppStore"
-   ],
-   "verdict": "verified"
   },
   {
    "id": "ipad103-009",
@@ -327,6 +284,53 @@
    "verdict": "qualified",
    "ledger": "docs/website-cinematic-homepage-claims-v1.34.json",
    "reason": "The homepage’s Blanc vs. Chrome row “Phone and tablet apps” said Blanc was desktop only, which stopped being true when Blanc for iPhone 1.0 reached the App Store on November 6, 2026. Held with this ledger: App Store version 1.0.3 (build 202611121714) adds iPad, and the site names it once App Review approves 1.0.3."
+  },
+  {
+   "id": "ipad103-004",
+   "source": "site/src/pages/download.astro",
+   "exactWording": "Blanc for iPhone and iPad is free on the App Store. It joins the Sync you set up in Blanc on your computer, so your other devices' tabs and your Favorites come with you, and it blocks ads and trackers.",
+   "subject": "Blanc",
+   "evidenceGroups": [
+    "ipadAppStore",
+    "iphonePairing"
+   ],
+   "verdict": "verified",
+   "replaces": "iphone10-002",
+   "reason": "Removed from /download on November 14, 2026, when the owner had the page reimagined with far fewer words (one button per system, three tiles, one line of facts). The new wording is recorded in docs/website-download-redesign-2026-11-14-claims.json."
+  },
+  {
+   "id": "ipad103-005",
+   "source": "site/src/pages/download.astro",
+   "exactWording": "On iPad, Blanc runs as a native full-screen app in every orientation, with Split View (two tabs side by side), a floating Glance card for links, tabs in their own windows, and hardware-keyboard shortcuts like ⌘L and ⌘T. Pages load their desktop layout by default, with Request Mobile Website per site.",
+   "subject": "Blanc",
+   "evidenceGroups": [
+    "ipadAppStore"
+   ],
+   "verdict": "qualified",
+   "reason": "Removed from /download on November 14, 2026, when the owner had the page reimagined with far fewer words (one button per system, three tiles, one line of facts). The new wording is recorded in docs/website-download-redesign-2026-11-14-claims.json."
+  },
+  {
+   "id": "ipad103-006",
+   "source": "site/src/pages/download.astro",
+   "exactWording": "Needs iOS or iPadOS 18.4 or later. The beta gets new builds first and needs Apple's free TestFlight app.",
+   "subject": "Blanc",
+   "evidenceGroups": [
+    "ipadAppStore"
+   ],
+   "verdict": "verified",
+   "replaces": "iphone10-003",
+   "reason": "Removed from /download on November 14, 2026, when the owner had the page reimagined with far fewer words (one button per system, three tiles, one line of facts). The new wording is recorded in docs/website-download-redesign-2026-11-14-claims.json."
+  },
+  {
+   "id": "ipad103-008",
+   "source": "site/src/pages/download.astro",
+   "exactWording": "App Store · iOS and iPadOS 18.4 or later",
+   "subject": "Blanc",
+   "evidenceGroups": [
+    "ipadAppStore"
+   ],
+   "verdict": "verified",
+   "reason": "Removed from /download on November 14, 2026, when the owner had the page reimagined with far fewer words (one button per system, three tiles, one line of facts). The new wording is recorded in docs/website-download-redesign-2026-11-14-claims.json."
   }
  ]
 }

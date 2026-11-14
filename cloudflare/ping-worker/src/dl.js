@@ -4,7 +4,17 @@
 // The four site download targets. Mirrors site/src/scripts/site.js pickAsset:
 // a Mac UA can't reveal arm64 vs x64, so there is deliberately no '/dl/mac' —
 // generic Mac CTAs go to /download where both artifacts are explicit.
-export const DL_TARGETS = new Set(['mac-arm64', 'mac-x64', 'win', 'linux']);
+export const DL_TARGETS = new Set(['mac-arm64', 'mac-x64', 'win', 'linux', 'beta']);
+
+// Blanc Beta, the Chromium preview (owner, 2026-11-14): /dl/beta is counted like
+// the others but always answers with the current beta's DMG, never the latest
+// (stable) release. Update with site/src/data/blanc-beta.json for each beta;
+// test/unit/site-blanc-beta.test.js keeps the two equal.
+export const BETA_DOWNLOAD = 'https://github.com/bnfy/blanc/releases/download/chromium-beta-2.0.0-beta.2/Blanc-Beta-2.0.0-beta.2-mac-arm64.dmg';
+
+export function fixedDownload(target) {
+  return target === 'beta' ? BETA_DOWNLOAD : null;
+}
 
 // Public Ads Manager data-source identifier. The API credential stays in the
 // OPENAI_CONVERSIONS_API_KEY Worker secret and never enters source or the site.

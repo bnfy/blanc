@@ -30,52 +30,72 @@
   },
   "claims": [
     {
+      "id": "homebrew-140-03",
+      "source": "site/src/pages/download.astro",
+      "exactWording": "brew install --cask bnfy/tap/blanc",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "homebrewTap"
+      ],
+      "verdict": "verified"
+    }
+  ],
+  "retiredForDownloadRedesign": [
+    {
       "id": "homebrew-140-01",
       "source": "site/src/pages/download.astro",
       "exactWording": "Or install with Homebrew",
       "subject": "Blanc",
-      "evidenceGroups": ["homebrewTap"],
-      "verdict": "verified"
+      "evidenceGroups": [
+        "homebrewTap"
+      ],
+      "verdict": "verified",
+      "reason": "Removed from /download on November 14, 2026, when the owner had the page reimagined with far fewer words (one button per system, three tiles, one line of facts). The new wording is recorded in docs/website-download-redesign-2026-11-14-claims.json."
     },
     {
       "id": "homebrew-140-02",
       "source": "site/src/pages/download.astro",
       "exactWording": "On a Mac with Homebrew, one command installs the same signed and notarized build as the DMG.",
       "subject": "Blanc",
-      "evidenceGroups": ["homebrewTap"],
-      "verdict": "qualified"
-    },
-    {
-      "id": "homebrew-140-03",
-      "source": "site/src/pages/download.astro",
-      "exactWording": "brew install --cask bnfy/tap/blanc",
-      "subject": "Blanc",
-      "evidenceGroups": ["homebrewTap"],
-      "verdict": "verified"
+      "evidenceGroups": [
+        "homebrewTap"
+      ],
+      "verdict": "qualified",
+      "reason": "Removed from /download on November 14, 2026, when the owner had the page reimagined with far fewer words (one button per system, three tiles, one line of facts). The new wording is recorded in docs/website-download-redesign-2026-11-14-claims.json."
     },
     {
       "id": "homebrew-140-04",
       "source": "site/src/pages/download.astro",
       "exactWording": "Blanc keeps updating itself, so brew upgrade leaves it alone.",
       "subject": "Blanc",
-      "evidenceGroups": ["selfUpdate"],
-      "verdict": "qualified"
+      "evidenceGroups": [
+        "selfUpdate"
+      ],
+      "verdict": "qualified",
+      "reason": "Removed from /download on November 14, 2026, when the owner had the page reimagined with far fewer words (one button per system, three tiles, one line of facts). The new wording is recorded in docs/website-download-redesign-2026-11-14-claims.json."
     },
     {
       "id": "homebrew-140-05",
       "source": "site/src/pages/download.astro",
       "exactWording": "Already installed Blanc from this page? Quit it, move it to the Trash, then run the command. Your tabs, Favorites and settings stay.",
       "subject": "Blanc",
-      "evidenceGroups": ["profileOutsideApp", "homebrewTap"],
-      "verdict": "qualified"
+      "evidenceGroups": [
+        "profileOutsideApp",
+        "homebrewTap"
+      ],
+      "verdict": "qualified",
+      "reason": "Removed from /download on November 14, 2026, when the owner had the page reimagined with far fewer words (one button per system, three tiles, one line of facts). The new wording is recorded in docs/website-download-redesign-2026-11-14-claims.json."
     },
     {
       "id": "homebrew-140-06",
       "source": "site/src/pages/download.astro",
       "exactWording": "See the Homebrew tap",
       "subject": "Blanc",
-      "evidenceGroups": ["homebrewTap"],
-      "verdict": "verified"
+      "evidenceGroups": [
+        "homebrewTap"
+      ],
+      "verdict": "verified",
+      "reason": "Removed from /download on November 14, 2026, when the owner had the page reimagined with far fewer words (one button per system, three tiles, one line of facts). The new wording is recorded in docs/website-download-redesign-2026-11-14-claims.json."
     }
   ]
 }
