@@ -2788,7 +2788,8 @@ Android works (and how the iPhone will), and its choices stay on the phone, as t
   in one column, scrolling with the page; Mahjong and Customize side by side above the Island; Customize and the
   clock's Font & color as sheets over the bottom of the screen, the clock moving to the top as its own preview.
   Card grips and resizing are desktop's (wide windows only). Shortcuts sit four to a row; each one's pin and ×
-  are always on show, as on any touch screen, on the icon's top corners, with finger-sized targets.
+  are always on show, as on any touch screen, on the icon's top corners, their targets growing up and outward
+  but never over the icon (review found a first version's covered most of the icon's top half).
 - **Choices:** the fork's adapter (`start/newtab-adapter.js`) runs unchanged and asks native code over
   `blancNewTab`; `PagesHandler::OnStartCall` answers it. Widgets (Favorites, On your other devices), the 1–12
   Shortcuts count, card places and sizes go in the profile pref `blanc.start.widgets` with the fork's validation;
@@ -2836,13 +2837,13 @@ Android works (and how the iPhone will), and its choices stay on the phone, as t
 
 | Shortcuts gate (November 14) | Result | Evidence (`~/blanc-evidence/android/shortcuts/`) |
 | --- | --- | --- |
-| `start-shortcuts.mjs` (four typed fixture sites ranked by visits, the stepper at 3, a tapped pin leads and survives a relaunch, a second tap unpins and that survives a relaunch) | 6 of 6, first run | `shortcuts/` |
+| `start-shortcuts.mjs` (four typed fixture sites ranked by visits, the stepper at 3, a tapped pin leads and survives a relaunch, a second tap unpins and that survives a relaunch, a tap on an icon near its pin opens the site) | 7 of 7 | `shortcuts/` |
 | `pages-phone.mjs` | 41 of 41 | `pages-phone/`, `pages-phone.log` |
 | `start-page-ways.mjs` | 2 of 2 | `ways/`, `ways.log` |
 | Robolectric (no Java changed) | 808 pass | `robolectric.log` |
 | Tool and adapter tests (`node --test chromium/tools/android-*.test.mjs`, on the Mac) | 108 pass | local |
 | Patch reconstruction, android and desktop lanes | Pass | local |
-| APK (x86_64, emulator; arm64, for the Pixel) | `c2eb53f5…` / `c7929af4…` | `apk.sha256` |
+| APK (x86_64, emulator; arm64, for the Pixel) | `4092f4ff…` / `816aac37…` | `apk.sha256` |
 | Owner hands-on, Pixel | **Pending**: installed on the owner's Pixel 10 Pro November 14 | — |
 
 The first relaunch run failed every choice: the check stopped the app at once, before Chromium had written its
