@@ -96,7 +96,10 @@ if (process.argv[1] === fileURLToPath(import.meta.url)) {
   const run = steps.length > 1 ? {start: Date.parse(steps[0][1]), end: Date.parse(steps.at(-1)[1])} : null;
   const {scenarios} = JSON.parse(read('beta-scenarios.json'));
   const netlogs = Object.fromEntries(scenarios.map(s => [s.name, netlogHosts(read(s.netlog))]));
-  const report = judgeBeta({controls, pflog: parsePflog(read('pflog.txt')), owners: parseNettop(read('nettop.csv')), run, scenarios, netlogs, allow});
+  // root.sh writes the pf log beside the S1.1 results, not into results-beta.
+  const pflogFile = [path.join(results, 'pflog.txt'), path.join(results, '..', 'results', 'pflog.txt')].find(f => fs.existsSync(f));
+  if (!pflogFile) throw Error('no pf log (pflog.txt) beside the results');
+  const report = judgeBeta({controls, pflog: parsePflog(fs.readFileSync(pflogFile, 'utf8')), owners: parseNettop(read('nettop.csv')), run, scenarios, netlogs, allow});
   console.log(JSON.stringify(report, null, 2));
   if (report.verdict !== 'pass') process.exitCode = 1;
 }
