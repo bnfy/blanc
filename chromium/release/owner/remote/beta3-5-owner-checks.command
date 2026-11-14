@@ -11,6 +11,8 @@
 # this Mac's Blanc Beta 2.0.0-beta.2; its data folder and Sync stay.
 set -uo pipefail
 STUDIO=(ssh -i "$HOME/.ssh/id_ed25519_macmini" -o IdentitiesOnly=yes anthonyjloria@Mac-Studio.local)
+# Terminal may close a window when its script ends; keep it so the outcome stays readable.
+trap 'echo; read -r -p "Press Return to close this window. " _' EXIT
 REMOTE_DMG='Projects/Blanc/records/beta3-work/assets/Blanc-Beta-2.0.0-beta.3-mac-arm64.dmg'
 LOCAL=$(mktemp -d /private/tmp/beta3-checks.XXXXXX); trap 'rm -rf "$LOCAL"' EXIT
 DMG="$LOCAL/Blanc-Beta-2.0.0-beta.3-mac-arm64.dmg"
