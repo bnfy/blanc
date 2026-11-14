@@ -1,0 +1,12 @@
+{
+  "note": "Blanc Beta's bundle icon: shipping's Sunrise Gold colorway (src/main/app-icon-assets.js, build/app-icons/colorways), compiled by actool as the BlancDK stack so it follows Light, Dark and the Clear/Tinted styles. Owner decision 2026-11-14: Sunrise Gold is the beta's default icon for now.",
+  "shipping": "8d959565b1d0a1c66deb17af09a0328e6b31bd64",
+  "colorway": "sunrise-gold",
+  "actool": "27.2",
+  "minimumDeploymentTarget": "13.0",
+  "iconJson": "5ae35ee65292285c68b46171af26a6449f9297eba2db60858c8928444243b324",
+  "outputs": {
+    "Assets.car": "2709c9b30aadb14c647a037d154a3dcc5d352969f4d4b61a782e5eb77caf8fbd",
+    "app.icns": "443a0af49b1cda70233ce0b3ca00fb2a50df4d14af97fde641dda1cf99532a5b"
+  }
+}

@@ -392,6 +392,9 @@ double BlancPagesZoom(const PrefService& prefs) {
 }
 // Shipping's appIcon (F17; registered by patch 0029).
 constexpr char kAppIconPref[] = "blanc.app_icon";
+// Blanc Beta's bundle icon is Sunrise Gold (owner, 2026-11-14), so that is
+// its default; the other channels keep shipping's Sunrise.
+constexpr const char* kDefaultAppIcon = BUILDFLAG(BLANC_BETA_CHANNEL) ? "sunrise-gold" : "sunrise";
 // The catalog is independent of Patron. Retired or corrupt saved identifiers
 // fall back before Settings and the Dock read them, as shipping settings does.
 // F62: the default page zoom is device-wide (blanc.page_zoom, a percent),
@@ -439,10 +442,15 @@ void FollowDevicePageZoom(Profile* profile) {
 }
 void NormalizeAppIcon(Profile* profile) {
   auto* prefs = profile->GetOriginalProfile()->GetPrefs();
+  // Patch 0029 registers shipping's Sunrise; a channel with another default
+  // replaces it here, before Settings and the Dock first read it.
+  const base::Value* registered = prefs->GetDefaultPrefValue(kAppIconPref);
+  if (registered && *registered != base::Value(kDefaultAppIcon))
+    prefs->SetDefaultPrefValue(kAppIconPref, base::Value(kDefaultAppIcon));
   const auto& icon = prefs->GetString(kAppIconPref);
   if (icon != "sunrise" && icon != "sunrise-dark" && icon != "sunrise-gold" &&
       icon != "sunrise-spectrum" && icon != "sunrise-amber") {
-    prefs->SetString(kAppIconPref, "sunrise"); prefs->CommitPendingWrite();
+    prefs->ClearPref(kAppIconPref); prefs->CommitPendingWrite();
   }
 }
 
@@ -9685,18 +9693,22 @@ class Handler : public content::WebUIMessageHandler, public extensions::Extensio
     }
     // The Dock icon (F17): shipping's flat images, which is what its
     // development builds use; the adaptive stacks need Assets.car from a
-    // packaged build. Sunrise itself is the bundle's own icon, so the Dock
-    // goes back to that.
+    // packaged build. The bundle's own icon follows Light and Dark by itself,
+    // so its colorway goes back to that: Sunrise Gold in Blanc Beta. The
+    // other channels' bundle icon is Sunrise Dark, kept for Dock testing, so
+    // Sunrise there takes its flat Light or Dark image like the rest.
     if (method == "applyAppIcon" && args.size() == 2 && args[0].is_string() && args[1].is_bool()) {
 #if BUILDFLAG(IS_MAC)
       static bool replaced = false;
       const std::string& icon = args[0].GetString();
       const bool dark = args[1].GetBool();
       std::string file;
-      if (icon == "sunrise-dark") file = "pages/icon-sunrise-dark.png";
+      if (icon == "sunrise") file = dark ? "pages/icon-sunrise-dark.png" : "pages/icon-sunrise.png";
+      else if (icon == "sunrise-dark") file = "pages/icon-sunrise-dark.png";
       else if (icon == "sunrise-gold") file = dark ? "pages/icon-sunrise-gold-dark.png" : "pages/icon-sunrise-gold.png";
       else if (icon == "sunrise-spectrum") file = dark ? "pages/icon-sunrise-spectrum-dark.png" : "pages/icon-sunrise-spectrum.png";
       else if (icon == "sunrise-amber") file = dark ? "pages/icon-sunrise-amber-dark.png" : "pages/icon-sunrise-amber.png";
+      if (BUILDFLAG(BLANC_BETA_CHANNEL) && icon == "sunrise-gold") file.clear();  // the bundle's own
       const auto bytes = file.empty() ? nullptr : blanc::island_resources::Find(file);
       if (bytes) {
         blanc::SetDockIcon(base::span(*bytes));

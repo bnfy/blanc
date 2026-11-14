@@ -14,6 +14,23 @@ D7, F0.7, cold builds, new machines, D2/D4–D6/D8/V2 and replacement D3
 remain pending. D3 beta-only no-DRM exception accepted; EME notice/handoff required.
 
 ## Current work
+- **2026-11-14 — Blanc Beta's icon: Sunrise Gold by default, and Sunrise follows Light and Dark (patch 0082, owner's report):**
+  The beta's bundle icon was the prototype's Sunrise Dark (kept for Dock
+  testing), so the default Sunrise stayed dark in Light mode. Owner decision:
+  Sunrise Gold is the beta's default icon for now. `blanc/branding/beta/`
+  now holds Sunrise Gold compiled by actool 27.2 from shipping's colorway
+  (Light, Dark and Tinted stacks under the same `BlancDK` name, plus the
+  `app.icns` fallback; `icon-manifest.json` records the inputs), and patch
+  0082 points chrome/BUILD.gn's `chrome_app_icon` and `chrome_asset_catalog`
+  at it in beta builds only. `blanc.app_icon` defaults to `sunrise-gold` in
+  beta (`kDefaultAppIcon`, applied by NormalizeAppIcon with
+  SetDefaultPrefValue, so a saved choice is kept), and that choice leaves the
+  Dock on the bundle icon. Sunrise now takes shipping's flat Light or Dark
+  image in every channel instead of the bundle icon. Preview builds keep
+  their Sunrise Dark bundle icon. Checked: the fork unit suite (466 pass), patch
+  reconstruction, and a syntax-only compile with out/BlancBeta's flags. Not
+  yet built or seen on screen: that waits for beta.4 to publish (the Mac
+  Studio tree stays untouched until then), and it ships in beta.5.
 - **2026-11-14 — Extensions can open their own popup (patch 0081, candidate
   macos-cf13e2bc70dce670, owner's report):** 1Password's in-page "Unlock
   1Password" did nothing in Blanc Beta. It calls chrome.action.openPopup, and
@@ -2615,6 +2632,12 @@ machine has them.
    (candidate macos-78921cb9b998cb49, see Current work). Still owed in the
    beta.4 candidate: the full suite, and a look at the swell in a background
    window. The strip tooltip's 8px offset stays (owner, 2026-11-14).
+
+**For beta.5**
+9. **Sunrise Gold bundle icon and the Sunrise Light/Dark Dock fix** (patch
+   0082, see Current work): build out/BlancBeta after beta.4 publishes, then
+   check Finder and the Dock in Light and Dark, with Sunrise and Sunrise Gold
+   selected.
 
 **What lives only on the Mac Studio**
 - The release work folder `~/Projects/Blanc/records/beta2-work`: signed
