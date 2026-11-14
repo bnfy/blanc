@@ -621,6 +621,84 @@ test('unknown paths beside a waitlist are not routes', async () => {
   }
 });
 
+// Signs up through `request`, then returns the confirmation link from the mail.
+async function signUpAndGetLink(env, request, mails) {
+  await worker.fetch(request, env);
+  return mails.at(-1).text.match(/https:\/\/\S+\/confirm\?token=[A-Za-z0-9_-]{43}/)[0];
+}
+
+test('opening a used confirmation link again shows success while the address is on the list, and alerts once', async (t) => {
+  for (const [name, request, member, leave] of [
+    ['newsletter', () => subscribeRequest({ email: 'twice@example.com' }), 'sub:twice@example.com', /\/unsubscribe\?token=/],
+    ['Android beta', () => androidBetaRequest({ email: 'twice@example.com' }), 'androidbeta:twice@example.com', /\/android-beta\/leave\?token=/],
+  ]) {
+    const env = { ...environment(), SIGNUP_ALERT_TO: 'support@blanc.day', ADMIN_TOKEN: 'admin' };
+    const originalFetch = globalThis.fetch;
+    const mails = [];
+    globalThis.fetch = async (_url, init) => { mails.push(JSON.parse(init.body)); return new Response('{}'); };
+    t.after(() => { globalThis.fetch = originalFetch; });
+
+    const link = await signUpAndGetLink(env, request(), mails);
+    const first = await (await worker.fetch(new Request(link), env)).text();
+    const again = await (await worker.fetch(new Request(link), env)).text();
+    assert.doesNotMatch(first, /invalid or expired/, name);
+    assert.equal(again, first, `${name}: the repeat visit gets the same page`);
+    assert.equal(mails.filter((m) => /^New /.test(m.subject)).length, 1, `${name}: one signup notice`);
+
+    // Leaving deletes the record and the marker, so the old link no longer says "on the list".
+    const record = await env.SUBSCRIBERS.get(member, { type: 'json' });
+    const leaveUrl = `https://newsletter.test${leave.source.replaceAll('\\', '').replace('?token=', '')}?token=${record.unsubscribeToken}`;
+    await worker.fetch(new Request(leaveUrl), env);
+    assert.equal(await env.SUBSCRIBERS.get(member), null, name);
+    assert.match(await (await worker.fetch(new Request(link), env)).text(), /invalid or expired/, name);
+    assert.deepEqual([...env.SUBSCRIBERS.values.values()].filter((v) => v.includes('twice@example.com')), [], `${name}: no copy of the address is left`);
+  }
+});
+
+test('admin removal and a second confirmation drop the used-link marker', async (t) => {
+  const env = { ...environment(), ADMIN_TOKEN: 'admin' };
+  const originalFetch = globalThis.fetch;
+  const mails = [];
+  globalThis.fetch = async (_url, init) => { mails.push(JSON.parse(init.body)); return new Response('{}'); };
+  t.after(() => { globalThis.fetch = originalFetch; });
+  const markers = () => [...env.SUBSCRIBERS.values.entries()].filter(([k, v]) => k.startsWith('androidbeta-pending:') && v.includes('confirmedAt'));
+
+  // Two requests pending at once (the cooldown has passed), both confirmed:
+  // the second replaces the first's marker, and the first link stops working.
+  const firstLink = await signUpAndGetLink(env, androidBetaRequest({ email: 'again@example.com' }), mails);
+  await env.SUBSCRIBERS.delete([...env.SUBSCRIBERS.values.keys()].find((k) => k.startsWith('androidbeta-sent:')));
+  const secondLink = await signUpAndGetLink(env, androidBetaRequest({ email: 'again@example.com' }), mails);
+  assert.notEqual(firstLink, secondLink);
+  await worker.fetch(new Request(firstLink), env);
+  assert.equal(markers().length, 1);
+  await worker.fetch(new Request(secondLink), env);
+  assert.equal(markers().length, 1);
+  assert.match(await (await worker.fetch(new Request(firstLink), env)).text(), /invalid or expired/);
+  assert.match(await (await worker.fetch(new Request(secondLink), env)).text(), /on the beta list/);
+
+  assert.equal((await worker.fetch(admin('/android-beta/member?email=again@example.com', 'DELETE'), env)).status, 204);
+  assert.equal(markers().length, 0);
+  assert.deepEqual([...env.SUBSCRIBERS.values.values()].filter((v) => v.includes('again@example.com')), []);
+});
+
+test('a used-link marker expires with the link and the purge deletes it', async (t) => {
+  const env = { ...environment(), ADMIN_TOKEN: 'admin' };
+  const originalFetch = globalThis.fetch;
+  const mails = [];
+  globalThis.fetch = async (_url, init) => { mails.push(JSON.parse(init.body)); return new Response('{}'); };
+  t.after(() => { globalThis.fetch = originalFetch; });
+  const ttls = new Map();
+  const put = env.SUBSCRIBERS.put.bind(env.SUBSCRIBERS);
+  env.SUBSCRIBERS.put = async (key, value, options) => { ttls.set(key, options?.expirationTtl); return put(key, value, options); };
+
+  await worker.fetch(new Request(await signUpAndGetLink(env, androidBetaRequest({ email: 'ttl@example.com' }), mails)), env);
+  const [marker] = [...env.SUBSCRIBERS.values.entries()].find(([, v]) => v.includes('confirmedAt'));
+  assert.equal(ttls.get(marker), 24 * 60 * 60);
+
+  await worker.fetch(admin('/android-beta/members?confirm=delete-all', 'DELETE'), env);
+  assert.equal(env.SUBSCRIBERS.values.has(marker), false);
+});
+
 // Records console.error lines for one test and restores it afterwards.
 function captureErrors(t) {
   const lines = [];
