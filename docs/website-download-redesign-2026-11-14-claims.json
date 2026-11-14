@@ -27,8 +27,8 @@
     {"id": "dl-2026-11-14-15", "exactWording": "No general extension support.", "verdict": "qualified", "rests": ["v134-1p-007"], "evidence": "Blanc has no general third-party extension runtime (the optional managed uBlock Origin provider is not a general extension runtime)."},
     {"id": "dl-2026-11-14-16", "exactWording": "Synced provider passkeys, including iCloud Keychain, are not supported.", "verdict": "verified", "rests": ["v134-1p-007"], "evidence": "Unchanged from the retired limits paragraph; test/unit/website-revamp-trust.test.js requires it on this page."},
     {"id": "dl-2026-11-14-17", "exactWording": "Download didn’t start?", "verdict": "verified", "rests": ["reddit-428"], "evidence": "The retired footnote, shortened; the link opens the latest release page."},
-    {"id": "dl-2026-11-14-18", "exactWording": "Blanc for Android isn’t released yet.", "verdict": "verified", "rests": ["android-beta-01"], "evidence": "Shown only to Android visitors in the phone box ([data-android], site/src/scripts/handheld-download.js); same wording as the beta page."},
-    {"id": "dl-2026-11-14-19", "exactWording": "You can sign up to test it on Google Play.", "verdict": "qualified", "rests": ["android-beta-02"], "evidence": "Android visitors only; the button beside it opens blanc.day/android-beta, whose form joins the beta list. Qualified like android-beta-02: the beta has no date."}
+    {"id": "dl-2026-11-14-18", "exactWording": "Blanc for Android isn’t released yet.", "verdict": "verified", "rests": ["android-beta-01"], "evidence": "The Android tab's panel; same wording as the beta page. The tab leads only to the beta signup."},
+    {"id": "dl-2026-11-14-19", "exactWording": "You can sign up to test it on Google Play.", "verdict": "qualified", "rests": ["android-beta-02"], "evidence": "The Android tab's panel; its button opens blanc.day/android-beta, whose form joins the beta list. Qualified like android-beta-02: the beta has no date."}
   ],
   "labels": [
     "Download Blanc", "Mac", "Windows", "Linux", "iPhone", "Download for Mac", "Intel Mac", "Download for Windows", "Download for Linux",
@@ -36,6 +36,6 @@
     "iPhone and iPad", "Blanc for iPhone and iPad", "App Store", "Mac, from the terminal", "Homebrew", "brew install --cask bnfy/tap/blanc", "Copy",
     "Verify a release", "No general extension support. Synced provider passkeys, including iCloud Keychain, are not supported.",
     "Download didn’t start? Open the release page · support@blanc.day", "On a phone or tablet?", "Blanc is a desktop browser for macOS, Windows and Linux.",
-    "Blanc for iPhone and iPad is free on the App Store. Blanc for your Mac or PC is a desktop browser for macOS, Windows and Linux.", "Send to my computer", "Join the Android beta"
+    "Blanc for iPhone and iPad is free on the App Store. Blanc for your Mac or PC is a desktop browser for macOS, Windows and Linux.", "Send to my computer", "Android", "Join the Android beta"
   ]
 }

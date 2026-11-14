@@ -3,8 +3,7 @@
 // instead of opening it. On an iPhone or iPad, where Blanc for iPhone and iPad
 // is on the App Store, the page also shows its App Store button
 // ([data-ios-store]) and hides copy that is only true of other handhelds
-// ([data-not-ios]). On an Android phone it shows the way to the Blanc for
-// Android beta signup ([data-android]).
+// ([data-not-ios]).
 import { SITE_ORIGIN } from '../lib/site-origin.mjs';
 
 const DOWNLOAD_URL = `${SITE_ORIGIN}/download`;
@@ -24,10 +23,6 @@ export function isAppleHandheld(nav) {
   return /Macintosh/i.test(ua) && Number(nav?.maxTouchPoints) > 1;
 }
 
-export function isAndroid(nav) {
-  return /Android/i.test(String(nav?.userAgent || ''));
-}
-
 export function initHandheldDownload({ document = window.document, view = window } = {}) {
   if (!isHandheld(view.navigator)) return false;
   document.querySelectorAll('[data-handheld-note]').forEach(note => { note.hidden = false; });
@@ -35,9 +30,6 @@ export function initHandheldDownload({ document = window.document, view = window
   if (apple) {
     document.querySelectorAll('[data-ios-store]').forEach(item => { item.hidden = false; });
     document.querySelectorAll('[data-not-ios]').forEach(item => { item.hidden = true; });
-  }
-  if (isAndroid(view.navigator)) {
-    document.querySelectorAll('[data-android]').forEach(item => { item.hidden = false; });
   }
   document.querySelectorAll('a[data-handheld-share]').forEach(link => {
     const status = document.getElementById(link.dataset.handheldShare);

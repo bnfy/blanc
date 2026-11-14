@@ -1178,21 +1178,24 @@ a:focus-visible, button:focus-visible { outline: 2px solid var(--site-accent); o
 /* Segmented control: four radios, one sliding pill. */
 .dl-chooser { position: relative; display: flex; flex-direction: column; align-items: center; width: 100%; margin-top: 40px; }
 .dl-radio { position: absolute; top: 20px; left: 50%; width: 1px; height: 1px; margin: -1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0; }
-.dl-switch { position: relative; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); width: min(100%, 440px); padding: 4px; border-radius: 999px; background: rgb(32 26 18 / 0.07); }
+.dl-switch { position: relative; display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); width: min(100%, 540px); padding: 4px; border-radius: 999px; background: rgb(32 26 18 / 0.07); }
 .dl-switch label { position: relative; z-index: 1; display: flex; align-items: center; justify-content: center; gap: 7px; height: 40px; border-radius: 999px; color: var(--site-text-dim); font-size: 14px; font-weight: 500; cursor: pointer; user-select: none; transition: color 0.2s ease; -webkit-tap-highlight-color: transparent; }
 .dl-switch label .platform-logo { width: 14px; height: 15px; fill: currentColor; }
-.dl-switch-pill { position: absolute; top: 4px; bottom: 4px; left: 4px; width: calc((100% - 8px) / 4); border-radius: 999px; background: var(--site-bg); box-shadow: 0 1px 2px rgb(32 26 18 / 0.12), 0 6px 16px -6px rgb(32 26 18 / 0.25); transition: transform 0.42s cubic-bezier(0.22, 1, 0.36, 1); }
+.dl-switch-pill { position: absolute; top: 4px; bottom: 4px; left: 4px; width: calc((100% - 8px) / 5); border-radius: 999px; background: var(--site-bg); box-shadow: 0 1px 2px rgb(32 26 18 / 0.12), 0 6px 16px -6px rgb(32 26 18 / 0.25); transition: transform 0.42s cubic-bezier(0.22, 1, 0.36, 1); }
 #dl-os-win:checked ~ .dl-switch .dl-switch-pill { transform: translateX(100%); }
 #dl-os-linux:checked ~ .dl-switch .dl-switch-pill { transform: translateX(200%); }
 #dl-os-iphone:checked ~ .dl-switch .dl-switch-pill { transform: translateX(300%); }
+#dl-os-android:checked ~ .dl-switch .dl-switch-pill { transform: translateX(400%); }
 #dl-os-mac:checked ~ .dl-switch label[for="dl-os-mac"],
 #dl-os-win:checked ~ .dl-switch label[for="dl-os-win"],
 #dl-os-linux:checked ~ .dl-switch label[for="dl-os-linux"],
-#dl-os-iphone:checked ~ .dl-switch label[for="dl-os-iphone"] { color: var(--site-text); }
+#dl-os-iphone:checked ~ .dl-switch label[for="dl-os-iphone"],
+#dl-os-android:checked ~ .dl-switch label[for="dl-os-android"] { color: var(--site-text); }
 #dl-os-mac:focus-visible ~ .dl-switch label[for="dl-os-mac"],
 #dl-os-win:focus-visible ~ .dl-switch label[for="dl-os-win"],
 #dl-os-linux:focus-visible ~ .dl-switch label[for="dl-os-linux"],
-#dl-os-iphone:focus-visible ~ .dl-switch label[for="dl-os-iphone"] { outline: 2px solid var(--site-gold); outline-offset: 2px; }
+#dl-os-iphone:focus-visible ~ .dl-switch label[for="dl-os-iphone"],
+#dl-os-android:focus-visible ~ .dl-switch label[for="dl-os-android"] { outline: 2px solid var(--site-gold); outline-offset: 2px; }
 .dl-switch label:active { transform: scale(0.97); }
 
 /* One panel at a time; it arrives with a short rise. */
@@ -1201,7 +1204,8 @@ a:focus-visible, button:focus-visible { outline: 2px solid var(--site-accent); o
 #dl-os-mac:checked ~ .dl-panels .dl-panel[data-os="mac"],
 #dl-os-win:checked ~ .dl-panels .dl-panel[data-os="win"],
 #dl-os-linux:checked ~ .dl-panels .dl-panel[data-os="linux"],
-#dl-os-iphone:checked ~ .dl-panels .dl-panel[data-os="iphone"] { display: flex; animation: dl-panel-in 0.36s cubic-bezier(0.22, 1, 0.36, 1); }
+#dl-os-iphone:checked ~ .dl-panels .dl-panel[data-os="iphone"],
+#dl-os-android:checked ~ .dl-panels .dl-panel[data-os="android"] { display: flex; animation: dl-panel-in 0.36s cubic-bezier(0.22, 1, 0.36, 1); }
 @keyframes dl-panel-in { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
 .dl-actions { display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 12px 20px; }
 .dl-button { display: inline-flex; align-items: center; min-height: 56px; padding: 0 34px; border-radius: 999px; background: var(--site-text); color: var(--site-bg); font-size: 18px; font-weight: 500; text-decoration: none; box-shadow: 0 12px 28px -14px rgb(18 16 11 / 0.6); transition: background 0.18s ease, transform 0.1s ease-out; }
@@ -1275,6 +1279,7 @@ a:focus-visible, button:focus-visible { outline: 2px solid var(--site-accent); o
   #dl-os-mac:checked ~ .dl-panels .dl-panel[data-os="mac"],
   #dl-os-win:checked ~ .dl-panels .dl-panel[data-os="win"],
   #dl-os-linux:checked ~ .dl-panels .dl-panel[data-os="linux"],
-  #dl-os-iphone:checked ~ .dl-panels .dl-panel[data-os="iphone"] { animation: none; }
+  #dl-os-iphone:checked ~ .dl-panels .dl-panel[data-os="iphone"],
+  #dl-os-android:checked ~ .dl-panels .dl-panel[data-os="android"] { animation: none; }
   .dl-button:active, .dl-tile-button:active, .dl-switch label:active { transform: none; }
 }

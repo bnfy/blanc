@@ -4,7 +4,7 @@
   "approvedOn": "2026-11-14",
   "ownerDecisions": [
     "Add an Android beta signup at blanc.day/android-beta, like Nodding Off's; its copy was approved on November 14, 2026 (\"Copy's fine, open PRs\").",
-    "Link it from the Download page's phone box for Android visitors only (owner's choice of the options offered, November 14, 2026).",
+    "Link it from the Download page as an Android tab beside Mac, Windows, Linux and iPhone, preselected for Android visitors (owner, November 14, 2026: \"We have a tab for all other platforms. Why would you not add one for Android?\"; this replaced a line in the phone box).",
     "Say only that Blanc for Android isn't released and a Google Play beta is coming; claim nothing about what the app does (CLAUDE.md, Blanc for Android)."
   ],
   "publicBaseline": "No Blanc for Android release exists: no public Android build, Play listing or tester track is open on November 14, 2026 (chromium/STATUS.md, Android section; docs/android/play-console.md).",

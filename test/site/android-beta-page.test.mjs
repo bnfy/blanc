@@ -43,24 +43,18 @@ test('the built page is noindex, unlisted, and offers no second signup prompt', 
   assert.doesNotMatch(sitemap, /\/android-beta</);
 });
 
-test('the Download page shows the beta line and button to Android phones only', async () => {
-  const { isAndroid, initHandheldDownload } = await import('../../site/src/scripts/handheld-download.js');
+test('the Download page has an Android tab that leads only to the beta signup', async () => {
+  const { detectSystem } = await import('../../site/src/scripts/download-switcher.js');
   const page = await read('site/src/pages/download.astro');
-  assert.match(page, /<p data-android hidden>Blanc for Android isn’t released yet\./);
-  assert.match(page, /<a class="download-handheld-action is-secondary" href="\/android-beta" data-android data-track="android_beta_cta" hidden>Join the Android beta<\/a>/);
-
-  const visit = (userAgent, maxTouchPoints = 5) => {
-    const android = [{ hidden: true }, { hidden: true }];
-    const document = {
-      querySelectorAll: (selector) => (selector === '[data-android]' ? android : []),
-      getElementById: () => null,
-    };
-    initHandheldDownload({ document, view: { navigator: { userAgent, maxTouchPoints } } });
-    return android.every((item) => !item.hidden);
-  };
-  assert.equal(visit('Mozilla/5.0 (Linux; Android 15; Pixel 9)'), true);
-  assert.equal(visit('Mozilla/5.0 (iPhone; CPU iPhone OS 18_0 like Mac OS X)'), false);
-  assert.equal(visit('Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7)', 5), false, 'an iPad asking for the desktop site');
-  assert.equal(visit('Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7)', 0), false, 'a desktop');
-  assert.equal(isAndroid({ userAgent: 'Mozilla/5.0 (X11; Linux x86_64)' }), false, 'desktop Linux is not Android');
+  assert.match(page, /<input class="dl-radio" type="radio" name="dl-os" id="dl-os-android" value="android" \/>/);
+  assert.match(page, /<label for="dl-os-android"><PlatformLogo platform="android" \/>Android<\/label>/);
+  const panel = page.match(/<div class="dl-panel" data-os="android">([\s\S]*?)\n        <\/div>/)?.[1] ?? '';
+  assert.match(panel, /<a class="dl-button" href="\/android-beta" data-track="android_beta_cta"/);
+  assert.equal([...panel.matchAll(/href="/g)].length, 1, 'the panel links only to the beta signup');
+  assert.match(panel, /Blanc for Android isn’t released yet\./);
+  assert.doesNotMatch(page, /data-android/, 'the phone-box version is gone');
+  assert.equal(detectSystem('Mozilla/5.0 (Linux; Android 15; Pixel 9)'), 'android');
+  assert.equal(detectSystem('Mozilla/5.0 (X11; Linux x86_64)'), 'linux');
+  const logo = await read('site/public/revamp/android.svg');
+  assert.match(logo, /Font Awesome Free 6\.7\.2 .*Icons: CC BY 4\.0/, 'the icon keeps its attribution, like the other platform logos');
 });

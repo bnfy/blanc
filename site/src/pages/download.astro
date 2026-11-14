@@ -63,9 +63,7 @@ const latest = releases[0];
       <p data-not-ios>Blanc is a desktop browser for macOS, Windows and Linux.</p>
       <p data-ios-store hidden>Blanc for iPhone and iPad is free on the App Store. Blanc for your Mac or PC is a desktop browser for macOS, Windows and Linux.</p>
       <a class="download-handheld-action" href={ios.storeUrl} rel="noopener" data-ios-store hidden>Get it on the App Store</a>
-      <p data-android hidden>Blanc for Android isn’t released yet. You can sign up to test it on Google Play.</p>
       <a class="download-handheld-action" href="/download" data-handheld-share="download-share-status" data-handheld-label="Send to my computer" data-handheld-text="Blanc is a desktop browser for macOS, Windows and Linux.">Send to my computer</a>
-      <a class="download-handheld-action is-secondary" href="/android-beta" data-android data-track="android_beta_cta" hidden>Join the Android beta</a>
       <p id="download-share-status" role="status" aria-live="polite"></p>
     </aside>
 
@@ -74,12 +72,14 @@ const latest = releases[0];
       <input class="dl-radio" type="radio" name="dl-os" id="dl-os-win" value="win" />
       <input class="dl-radio" type="radio" name="dl-os" id="dl-os-linux" value="linux" />
       <input class="dl-radio" type="radio" name="dl-os" id="dl-os-iphone" value="iphone" />
+      <input class="dl-radio" type="radio" name="dl-os" id="dl-os-android" value="android" />
       <div class="dl-switch" role="presentation">
         <span class="dl-switch-pill" aria-hidden="true"></span>
         <label for="dl-os-mac"><PlatformLogo platform="apple" />Mac</label>
         <label for="dl-os-win"><PlatformLogo platform="windows" />Windows</label>
         <label for="dl-os-linux"><PlatformLogo platform="linux" />Linux</label>
         <label for="dl-os-iphone"><PlatformLogo platform="apple" />iPhone</label>
+        <label for="dl-os-android"><PlatformLogo platform="android" />Android</label>
       </div>
 
       <div class="dl-panels">
@@ -111,6 +111,15 @@ const latest = releases[0];
           </div>
           <p class="dl-meta">iOS and iPadOS 18.4 or later</p>
           <p class="dl-hint"><a href={ios.joinUrl} target="_blank" rel="noopener">Join the beta on TestFlight <span aria-hidden="true">↗</span></a></p>
+        </div>
+        <!-- Blanc for Android isn't released: this panel only leads to the beta
+             signup (CLAUDE.md, Blanc for Android). -->
+        <div class="dl-panel" data-os="android">
+          <div class="dl-actions">
+            <a class="dl-button" href="/android-beta" data-track="android_beta_cta" data-cta-position="download-hero">Join the Android beta</a>
+          </div>
+          <p class="dl-meta">Blanc for Android isn’t released yet.</p>
+          <p class="dl-hint">You can sign up to test it on Google Play.</p>
         </div>
       </div>
     </div>
