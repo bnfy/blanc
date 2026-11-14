@@ -87,6 +87,7 @@
     "patches/0079-blanc-safe-browsing-off.patch",
     "patches/0080-blanc-sync-joined-note.patch",
     "patches/0081-blanc-extension-open-popup.patch",
-    "patches/0082-blanc-beta-app-icon.patch"
+    "patches/0082-blanc-beta-app-icon.patch",
+    "patches/0083-blanc-dock-close.patch"
   ]
 }

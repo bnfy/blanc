@@ -1223,6 +1223,10 @@ class Owner : public base::SupportsUserData::Data,
     blanc::InstallMiniWindowMenu();
 #endif
     Live().insert(this);
+#if BUILDFLAG(IS_MAC)
+    primary = IsIslandWindow(browser) && !IsHoldWindow(browser) &&
+        std::ranges::none_of(Live(), [](const Owner* other) { return other->primary; });
+#endif
     FollowDevicePageZoom(browser->GetProfile());
     height = strip_height = IslandStripHeight(browser->GetProfile());
     browser->GetTabStripModel()->AddObserver(this);
@@ -1249,6 +1253,9 @@ class Owner : public base::SupportsUserData::Data,
   // An extension's action popup is open, anchored on the Island's
   // Extensions button (ExtensionPopupChanged): it holds the Island up.
   bool extension_popup = false;
+  // Shipping's primary runtime (macOS): the first ordinary window of a
+  // launch, whose red button keeps its tabs for the Dock (HoldWindowOnClose).
+  bool primary = false;
   std::optional<blanc::island_autohide::Dwell> autohide_dwell;
   std::optional<gfx::PointF> last_pointer;
   base::OneShotTimer autohide_watch;
@@ -13255,6 +13262,42 @@ bool OpenExtensions(BrowserWindowInterface* browser) {
 // popup, except while a page is fullscreen and the Island is gone.
 bool CanOpenExtensionPopup(BrowserWindowInterface* browser) {
   return IsIslandWindow(browser) && !IsPageFullscreen(browser);
+}
+
+// Shipping's Dock close (window-state-persistence.js windowCloseSessionEffect,
+// dock-reopen.js): on macOS the red button on the primary window takes the
+// window away but keeps its tabs running, in the saved session and in Sync;
+// clicking the Dock icon brings it back as it was. Other windows close as
+// usual. BrowserView asks only for a person's close of a window with tabs,
+// never while quitting or force-closing.
+bool HoldWindowOnClose(BrowserWindowInterface* browser) {
+#if BUILDFLAG(IS_MAC)
+  if (!IsIslandWindow(browser) || IsMiniWindow(browser) || IsHoldWindow(browser)) return false;
+  for (auto* owner : Owner::Live()) {
+    if (owner->browser.get() != browser || !owner->primary) continue;
+    auto* view = BrowserView::GetBrowserViewForBrowser(browser);
+    if (!view || !view->GetWidget()) return false;
+    view->GetWidget()->Hide();
+    return true;
+  }
+#endif
+  return false;
+}
+
+// The Dock icon clicked with no window showing brings the held primary
+// window back (shipping's app 'activate'). False leaves Chromium's reopen.
+bool ReopenHeldWindow() {
+#if BUILDFLAG(IS_MAC)
+  for (auto* owner : Owner::Live()) {
+    if (!owner->primary || owner->browser->IsDeleteScheduled()) continue;
+    auto* view = BrowserView::GetBrowserViewForBrowser(owner->browser.get());
+    auto* widget = view ? view->GetWidget() : nullptr;
+    if (!widget || widget->IsVisible() || widget->IsMinimized()) continue;
+    owner->browser->GetWindow()->Show();
+    return true;
+  }
+#endif
+  return false;
 }
 
 // The popup anchors on the Island's Extensions button, which Auto-hide

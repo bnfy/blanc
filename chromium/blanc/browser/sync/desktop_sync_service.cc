@@ -36,10 +36,32 @@
 #include "components/sync_device_info/local_device_info_util.h"
 #include "content/public/browser/browser_thread.h"
 #include "url/gurl.h"
+#include "build/build_config.h"
+#if BUILDFLAG(IS_MAC)
+#include <SystemConfiguration/SystemConfiguration.h>
+#include "base/apple/scoped_cftyperef.h"
+#include "base/strings/sys_string_conversions.h"
+#endif
 
 namespace blanc {
 namespace {
 constexpr size_t kMaxStateBytes = 32 * 1024 * 1024;
+// The name this device publishes to its synced peers, as shipping's
+// device-name.js picks it: a Mac goes by its computer name (System Settings,
+// General, About; "MacBook Pro"), not Chromium's local host name
+// ("MacBook-Pro"), at most 80 characters. Blocking: read on the thread pool.
+std::string PublishedDeviceName() {
+#if BUILDFLAG(IS_MAC)
+  base::apple::ScopedCFTypeRef<CFStringRef> computer(
+      SCDynamicStoreCopyComputerName(nullptr, nullptr));
+  if (computer) {
+    std::u16string name;
+    base::TrimWhitespace(base::SysCFStringRefToUTF16(computer.get()), base::TRIM_ALL, &name);
+    if (!name.empty()) return base::UTF16ToUTF8(name.substr(0, 80));
+  }
+#endif
+  return syncer::GetPersonalizableDeviceNameBlocking();
+}
 base::DictValue EmptyState() {
   return base::DictValue().Set("version", 1).Set("account", "")
       .Set("consent", "pending").Set("seen", base::DictValue())
@@ -208,7 +230,7 @@ void DesktopSyncService::Loaded(std::optional<base::DictValue> state) {
   state_ = std::move(*state);
   for (auto [url, value] : *state_.FindDict("incoming")) recovered_incoming_.insert(url);
   base::ThreadPool::PostTaskAndReplyWithResult(FROM_HERE, {base::MayBlock()},
-      base::BindOnce(&syncer::GetPersonalizableDeviceNameBlocking),
+      base::BindOnce(&PublishedDeviceName),
       base::BindOnce([](base::WeakPtr<DesktopSyncService> self, std::string name) {
         if (!self) return;
         if (!g_browser_process->os_crypt_async()) { self->Fail("keychain-unavailable"); return; }

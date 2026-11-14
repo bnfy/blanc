@@ -14,6 +14,26 @@ D7, F0.7, cold builds, new machines, D2/D4–D6/D8/V2 and replacement D3
 remain pending. D3 beta-only no-DRM exception accepted; EME notice/handoff required.
 
 ## Current work
+- **2026-11-14 — The red button keeps the main window's tabs (patch 0083
+  here, 0082 on beta.4's branch; candidate macos-f390619940f08515, owner's report on beta.4):** shipping's
+  macOS Dock close (`windowCloseSessionEffect` → `'dock'`, `dock-reopen.js`)
+  was never ported: in the fork the red button closed the window and every
+  tab, so the beta shared no tabs and dropped off the owner's phones. Now a
+  person's close of the primary Island window (the first ordinary window of a
+  launch) hides it with its tabs live, in the session and in Sync
+  (`HoldWindowOnClose`, from `BrowserView::OnWindowCloseRequested`; never
+  while quitting, while Chromium already closes it, on a forced close or with
+  no tabs), and the Dock icon with no window showing brings it back
+  (`ReopenHeldWindow`, from `applicationShouldHandleReopen`). Other windows
+  close as before. Checked by hand on the MacBook Pro with the real red
+  button: same window and same live page back from the Dock, a second window
+  closes normally, quitting while held exits and restores the tab; mini
+  windows and profile removal tests pass. Also: the published device name is
+  the Mac's computer name ("MacBook Pro") as shipping's device-name.js picks
+  it, not Chromium's local host name ("MacBook-Pro");
+  `tests/native-sync-organic-tabs.mjs` (Sync with no pass asked of the Mac:
+  new pages, a saved Space, a relaunch, joining again) passes and its peer
+  sees "MacBook Pro".
 - **2026-11-14 — Blanc Beta's icon: Sunrise Gold by default, and Sunrise follows Light and Dark (patch 0082, owner's report):**
   The beta's bundle icon was the prototype's Sunrise Dark (kept for Dock
   testing), so the default Sunrise stayed dark in Light mode. Owner decision:

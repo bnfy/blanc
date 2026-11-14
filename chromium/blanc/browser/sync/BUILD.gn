@@ -66,4 +66,8 @@ source_set("sync") {
     "//third_party/icu",
     "//url",
   ]
+  # PublishedDeviceName reads the Mac's computer name, as shipping does.
+  if (is_mac) {
+    frameworks = [ "SystemConfiguration.framework" ]
+  }
 }
