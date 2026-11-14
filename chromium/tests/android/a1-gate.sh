@@ -10,7 +10,8 @@ APK=out/AndroidDebugX64/apks/ChromePublic.apk
 export PATH="$PWD/third_party/android_sdk/public/platform-tools:$PWD/third_party/node/linux/node-linux-x64/bin:$HOME/depot_tools:$PATH"
 mkdir -p "$EVIDENCE"
 failed=()
-run() { local name=$1; shift; echo "== $name"; if "$@" > "$EVIDENCE/$name.log" 2>&1; then echo pass; else echo FAIL; failed+=("$name"); fi; tail -12 "$EVIDENCE/$name.log" | grep -E "^(pass|FAIL)|PASSED|FAILED|verdict" || true; }
+source "$(dirname "${BASH_SOURCE[0]}")/gate-lib.sh"
+run() { local name=$1; shift; gate_wants "$name" || return 0; echo "== $name"; if "$@" > "$EVIDENCE/$name.log" 2>&1; then echo pass; else echo FAIL; failed+=("$name"); fi; tail -12 "$EVIDENCE/$name.log" | grep -E "^(pass|FAIL)|PASSED|FAILED|verdict" || true; }
 run junit out/AndroidDebugX64/bin/run_blanc_android_junit_tests
 # Three phones: the emulator's own (360 × 640 dp), a tall one (411 × 914 dp) and a small one (360 × 640 dp, 2x).
 for screen in 1080x1920@480 1080x2400@420 720x1280@320; do

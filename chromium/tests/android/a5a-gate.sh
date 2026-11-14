@@ -10,7 +10,8 @@ APK=out/AndroidDebugX64/apks/ChromePublic.apk
 export PATH="$PWD/third_party/android_sdk/public/platform-tools:$PWD/third_party/node/linux/node-linux-x64/bin:$HOME/depot_tools:$PATH"
 mkdir -p "$EVIDENCE"
 failed=()
-run() { local name=$1; shift; echo "== $name"; if "$@" > "$EVIDENCE/$name.log" 2>&1; then echo pass; else echo FAIL; failed+=("$name"); fi; tail -2 "$EVIDENCE/$name.log"; }
+source "$(dirname "${BASH_SOURCE[0]}")/gate-lib.sh"
+run() { local name=$1; shift; gate_wants "$name" || return 0; echo "== $name"; if "$@" > "$EVIDENCE/$name.log" 2>&1; then echo pass; else echo FAIL; failed+=("$name"); fi; tail -2 "$EVIDENCE/$name.log"; }
 run settings node "$TREE/chromium/tests/android/settings.mjs" --apk "$APK" --evidence "$EVIDENCE/settings"
 run patches-android python3 "$TREE/chromium/tools/check-patches.py" --lane android
 run patches-desktop python3 "$TREE/chromium/tools/check-patches.py" --lane desktop

@@ -9,7 +9,8 @@ APK=out/AndroidDebugX64/apks/ChromePublic.apk
 export PATH="$PWD/third_party/android_sdk/public/platform-tools:$PWD/third_party/node/linux/node-linux-x64/bin:$HOME/depot_tools:$PATH"
 mkdir -p "$EVIDENCE"
 failed=()
-run() { local name=$1; shift; echo "== $name"; if "$@" > "$EVIDENCE/$name.log" 2>&1; then echo pass; else echo FAIL; failed+=("$name"); fi; tail -2 "$EVIDENCE/$name.log"; }
+source "$(dirname "${BASH_SOURCE[0]}")/gate-lib.sh"
+run() { local name=$1; shift; gate_wants "$name" || return 0; echo "== $name"; if "$@" > "$EVIDENCE/$name.log" 2>&1; then echo pass; else echo FAIL; failed+=("$name"); fi; tail -2 "$EVIDENCE/$name.log"; }
 run sync node "$TREE/chromium/tests/android/sync.mjs" --apk "$APK" --evidence "$EVIDENCE/sync"
 run spaces node "$TREE/chromium/tests/android/spaces.mjs" --apk "$APK" --evidence "$EVIDENCE/spaces"
 run shared-spaces node "$TREE/chromium/tests/android/shared-spaces.mjs" --apk "$APK" --evidence "$EVIDENCE/shared-spaces"

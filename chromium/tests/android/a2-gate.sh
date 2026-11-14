@@ -11,7 +11,8 @@ APK=out/AndroidDebugX64/apks/ChromePublic.apk
 export PATH="$PWD/third_party/android_sdk/public/platform-tools:$PWD/third_party/node/linux/node-linux-x64/bin:$HOME/depot_tools:$PATH"
 mkdir -p "$EVIDENCE"
 failed=()
-run() { local name=$1; shift; echo "== $name"; if "$@" > "$EVIDENCE/$name.log" 2>&1; then echo pass; else echo FAIL; failed+=("$name"); fi; tail -12 "$EVIDENCE/$name.log" | grep -E "^(pass|FAIL)|PASSED|FAILED|verdict|scenarios \(" || true; }
+source "$(dirname "${BASH_SOURCE[0]}")/gate-lib.sh"
+run() { local name=$1; shift; gate_wants "$name" || return 0; echo "== $name"; if "$@" > "$EVIDENCE/$name.log" 2>&1; then echo pass; else echo FAIL; failed+=("$name"); fi; tail -12 "$EVIDENCE/$name.log" | grep -E "^(pass|FAIL)|PASSED|FAILED|verdict|scenarios \(" || true; }
 run a1-gate env BLANC_EVIDENCE="$EVIDENCE/a1" bash "$TREE/chromium/tests/android/a1-gate.sh"
 for check in tabs palette tab-grid find session-restore quiet-tabs tab-store; do
   run "$check" node "$TREE/chromium/tests/android/$check.mjs" --apk "$APK" --evidence "$EVIDENCE/$check"

@@ -60,3 +60,13 @@ Give each run its own evidence folder. Ports on this server follow the emulator
 over a host port another run is using. A check that adds a host port takes it through `hostPort()`.
 The outbound check runs on its run's emulator, not merely the first of that AVD. Both emulators run
 the APK from the same `out/AndroidDebugX64`, so don't rebuild while either is running a check.
+
+### Splitting a gate across both
+
+`bash chromium/tests/android/split-gate.sh a5a-gate.sh [evidence dir]` runs a whole gate on both
+emulators at once: lane 2 (`emulator-5556`) takes the steps named in its `LANE2` (the slow sync and
+Spaces checks), lane 1 everything else, including any step added to a gate later. Every gate's
+`run()` asks `gate-lib.sh` whether its run takes a step (`BLANC_GATE_ONLY`, `BLANC_GATE_SKIP`), and
+lower gates always run so the choice reaches the whole chain. Each lane keeps its own evidence
+(`lane1/`, `lane2/` and their logs), and the split passes only when both lanes do.
+`chromium/tools/android-split-gate.test.mjs` checks that the two lanes add up to the whole gate.
