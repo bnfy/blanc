@@ -184,8 +184,11 @@ async function main(argv) {
       await d.waitFor(() => fixtureRequests().some(r => r.startsWith('lib.example/prefetch-allowed')), 'the allowed prefetch', 20);
       return fixtureRequests().some(r => isAd(r)) ? ['the prefetch reached the ad'] : [];
     });
-    // The Start Page shows the week's blocks (A5b's Billboard), which the cases above added to.
+    // The Start Page shows the week's blocks (A5b's Billboard). Each case starts from no data,
+    // so this one blocks an ad first.
     await check('the Start Page counts the week\'s blocks', async () => {
+      await d.view('https://news.example/ads');
+      await pageState(d, 'https://news.example/ads');
       d.tap({id: 'blanc_island_new_tab'});
       await d.waitFor(async () => /^chrome:\/\/blanc\/newtab/.test((await d.visibleUrl()) || ''), 'the Start Page');
       const [available, count] = await d.page(
