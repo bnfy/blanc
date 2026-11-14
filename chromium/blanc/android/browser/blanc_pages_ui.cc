@@ -524,7 +524,8 @@ class PagesHandler : public content::WebUIMessageHandler {
     };
     struct Site {
       std::string key;
-      const history::URLResult* last;  // the site's page visited last
+      GURL url;  // the site's page visited last, and its title
+      std::u16string title;
       int visits = 0;
     };
     std::vector<Site> sites;
@@ -535,7 +536,7 @@ class PagesHandler : public content::WebUIMessageHandler {
       std::string key(url.host());
       if (key.starts_with("www.")) key.erase(0, 4);
       auto [found, added] = by_key.try_emplace(key, sites.size());
-      if (added) sites.push_back({key, &page});
+      if (added) sites.push_back({key, url, page.title()});
       sites[found->second].visits += page.visit_count();
     }
     // Most visits first; between equals, the one visited last.
@@ -543,9 +544,9 @@ class PagesHandler : public content::WebUIMessageHandler {
     base::ListValue items;
     for (size_t i = static_cast<size_t>(offset); i < sites.size() && items.size() < static_cast<size_t>(limit); ++i) {
       items.Append(base::DictValue()
-                       .Set("url", sites[i].last->url().spec())
+                       .Set("url", sites[i].url.spec())
                        .Set("key", sites[i].key)
-                       .Set("title", base::UTF16ToUTF8(sites[i].last->title())));
+                       .Set("title", base::UTF16ToUTF8(sites[i].title)));
     }
     WithIcons(std::move(items), base::BindOnce(&PagesHandler::ReplySites, weak_factory_.GetWeakPtr(), id));
   }

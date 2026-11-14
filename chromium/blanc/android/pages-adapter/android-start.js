@@ -24,11 +24,11 @@
     else if (link && link[1] === 'settings') window.bowserPages?.start?.openSettings?.('settings').catch(() => {});
   });
 
-  // The Billboard clock's height, for the stylesheet: the line under the clock and the shortcuts
-  // sit below it, whatever font and height the clock has.
+  // The Billboard clock's height before any fitting scale (below), for the stylesheet: the line
+  // under the clock and the shortcuts sit below it, whatever font and height the clock has.
   function measureClock(row) {
     new ResizeObserver(() => {
-      root.style.setProperty('--android-clock-height', row.getBoundingClientRect().height + 'px');
+      root.style.setProperty('--android-clock-height', row.offsetHeight + 'px');
     }).observe(row);
   }
 
@@ -54,24 +54,32 @@
       // screen, the keyboard up) on itself.
       const full = innerHeight >= screen.availHeight - 3;
       const middle = full ? screen.height / 2 - screen.availTop : innerHeight / 2;
-      let nudge = middle - figures;
+      let nudge = middle - figures, fit = 1;
       // With shortcuts on show, the clock moves up as far as they need to sit above Customize
-      // (owner, November 14: they landed under it), but never under the date.
+      // (owner, November 14: they landed under it), but never under the date; if that isn't
+      // enough, it also shrinks until every row fits.
       const shortcuts = document.getElementById('bbFavorites');
       const footer = document.querySelector('.ledger-footer');
       const header = document.querySelector('.start-header');
+      // The clock is placed from the page's top, Billboard's content from its own, under the date.
+      const billboard = shortcuts?.closest('.billboard');
+      if (billboard) root.style.setProperty('--android-billboard-top', (billboard.getBoundingClientRect().top + scrollY) + 'px');
       if (shortcuts && !shortcuts.hidden && shortcuts.childElementCount && footer) {
-        const boxRect = (clock.closest('.bb-clock-row') || clock).getBoundingClientRect();
-        const half = boxRect.height / 2;
+        const row = clock.closest('.bb-clock-row') || clock;
+        const height = row.offsetHeight;
+        const drawn = row.getBoundingClientRect();
         const rows = shortcuts.getBoundingClientRect();
-        // How far the shortcuts start below the clock's middle; both move with the clock.
-        const below = rows.top - (boxRect.top + half);
-        // The clock's middle (in the page) that puts the shortcuts' bottom 16 px above Customize.
-        const room = footer.getBoundingClientRect().top - 16 - rows.height - below;
-        const floor = (header ? header.getBoundingClientRect().bottom + scrollY : 0) + 8 + half;
-        nudge = Math.min(nudge, Math.max(floor, room) - innerHeight / 2);
+        // What lies between the clock's bottom and the shortcuts (the line under it and a gap); it
+        // doesn't change as the clock moves or scales.
+        const gap = rows.top - drawn.bottom;
+        const top = (header ? header.getBoundingClientRect().bottom + scrollY : 0) + 8;
+        const bottom = footer.getBoundingClientRect().top - 16 - rows.height - gap;
+        fit = Math.max(0.35, Math.min(1, (bottom - top) / height));
+        const half = height * fit / 2;
+        nudge = Math.min(nudge, Math.max(top + half, bottom - half) - innerHeight / 2);
       }
       root.style.setProperty('--android-clock-nudge', nudge.toFixed(2) + 'px');
+      root.style.setProperty('--android-clock-fit', fit.toFixed(3));
     }
     place();
     new MutationObserver(place).observe(clock, {attributes: true, characterData: true, childList: true, subtree: true});

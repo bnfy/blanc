@@ -98,7 +98,8 @@ async function main(argv) {
     const tile = await d.page(CENTER_OF(tileOf(key)));
     if (!tile) throw Error(`no shortcut for ${key}`);
     sleep(1);
-    tapAt(tile, 1000);
+    // Two seconds: on the emulator a one-second adb press sometimes lands as a tap.
+    tapAt(tile, 2000);
     sleep(1.5);
     const menu = await d.page(MENU);
     screenshot(`menu on ${key}`);
