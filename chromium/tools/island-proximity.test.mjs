@@ -211,3 +211,19 @@ test('the extension buttons are placed at the slot\'s resting place', () => {
   assert.match(host, /hover\.lastPoint = \{[^\n]*\};\n\s*updateProximity\(hover\.lastPoint\);/);
   assert.match(fn('close'), /wakeProximity\(point\);\n\s*updateHover\(point, \{ sampled: true \}\);/);
 });
+
+// Blink repeats a document's last pointer position as a move when what lies
+// under it changes, as the swell does; shipping's main never sees those.
+test('the Island\'s own moves ignore a repeat of the last pointer position', () => {
+  const hook = fn('hookHover');
+  const listeners = {};
+  const doc = {addEventListener: (type, listener) => { listeners[type] = listener; }, documentElement: {}};
+  const seen = [];
+  const context = vm.createContext({hoverHooked: new WeakSet(), hover: {}, strip: {getBoundingClientRect: () => ({x: 0, y: 0})},
+    updateProximity: point => seen.push(['k', point.x]), updateHover: point => seen.push(['hover', point && point.x]), armPagePointer() {}});
+  vm.runInContext(hook, context);
+  context.hookHover(doc, null);
+  const move = (x, y) => listeners.mousemove({clientX: x, clientY: y, screenX: x + 100, screenY: y + 100, buttons: 0});
+  move(10, 20); move(10, 20); move(11, 20);
+  assert.deepEqual(seen, [['k', 10], ['hover', 10], ['k', 11], ['hover', 11]]);
+});

@@ -14,6 +14,21 @@ D7, F0.7, cold builds, new machines, D2/D4–D6/D8/V2 and replacement D3
 remain pending. D3 beta-only no-DRM exception accepted; EME notice/handoff required.
 
 ## Current work
+- **2026-11-14 — Beta.4 full suite (prototype candidate macos-402d768b8c8f6e43, source 75f85e960):**
+  run on the owner's MacBook Pro (the Mac Studio's screen was locked) from a
+  clean checkout: 577 pass, 4 fail, 4 undefined, 27 excluded (636 executed),
+  against beta.2's 578 / 3 / 4. Failures: `vertical-tabs.feature:58` (known
+  intermittent); `island-and-commands.feature:61` (new, the swell's: Blink
+  repeats a document's last pointer position as a move whenever what lies
+  under it changes, and the swell waking under a resting pointer made that
+  stale repeat re-arm a disarmed hover-open; the host now ignores a move that
+  does not move, as shipping's main sees only real input; passes on
+  candidate macos-fc405801653febe3); `F41-named-workspaces.feature:203` and
+  `:211` (new since beta.2: the Spaces menu closes without its fade when
+  Escape follows the click at once; it fades correctly when driven by hand,
+  and fails the same on both candidates; cause not yet found, and an
+  experiment without the swell's class watcher could not run because the
+  MacBook locked). `island-and-commands.feature:348`/`:372` passed this time.
 - **2026-11-14 — Island approach swell, for beta.4 (candidate macos-78921cb9b998cb49):**
   the owner noticed the resting Island ignores an approaching cursor. Shipping's
   resting Island has five pointer behaviors; four were already in the fork's

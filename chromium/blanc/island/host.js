@@ -2588,7 +2588,16 @@
   function hookHover(doc, frame) {
     if (!doc || hoverHooked.has(doc)) return;
     hoverHooked.add(doc);
+    let last = null;
     doc.addEventListener('mousemove', (event) => {
+      // Blink repeats a document's last pointer position as a move whenever
+      // what lies under it changes (the Island swelling, a panel closing).
+      // Shipping's main process sees only real input, so neither hover-open
+      // nor the swell may take that repeat for a move: it would re-arm a
+      // disarmed hover-open from a stale spot. A real move always moves.
+      const at = `${event.screenX},${event.screenY}`;
+      if (at === last) return;
+      last = at;
       const from = frame?.getBoundingClientRect() ?? { x: 0, y: 0 };
       const to = strip.getBoundingClientRect();
       hover.lastPoint = { x: event.clientX + from.x - to.x, y: event.clientY + from.y - to.y };
