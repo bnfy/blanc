@@ -2821,7 +2821,7 @@ Android works (and how the iPhone will), and its choices stay on the phone, as t
 | Robolectric | 808 pass | `robolectric.log` |
 | Tool and adapter tests (`node --test chromium/tools/android-*.test.mjs`, on the Mac) | 105 pass | local |
 | Patch reconstruction, android and desktop lanes | Pass | local |
-| APK (x86_64, emulator) | `5dfee74a…` | `apk.sha256` |
+| APK (x86_64, emulator) | `50d3d27a…` | `apk.sha256` |
 | Owner hands-on, Pixel | **Pending** (no arm64 build yet) | — |
 
 The first relaunch run failed every choice: the check stopped the app at once, before Chromium had written its

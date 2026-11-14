@@ -254,8 +254,8 @@ class PagesHandler : public content::WebUIMessageHandler {
       if (!update.empty()) {
         ScopedDictPrefUpdate saved(StartPrefs(), kStartClock);
         for (auto [key, value] : update) saved->Set(key, value.Clone());
+        StartPrefs()->CommitPendingWrite();
       }
-      StartPrefs()->CommitPendingWrite();
       return StartReply(id, true, base::Value(StartClock()));
     }
     // Billboard is the one layout (V24).
@@ -291,12 +291,14 @@ class PagesHandler : public content::WebUIMessageHandler {
       return StartReply(id, true, off_the_record ? base::Value() : base::Value(::blanc::BlockedThisWeek(profile())));
     if (method == "openMahjong") {
       const bool background = args.size() == 1 && args[0].is_bool() && args[0].GetBool();
-      OpenPage("mahjong", background ? WindowOpenDisposition::NEW_BACKGROUND_TAB : WindowOpenDisposition::NEW_FOREGROUND_TAB);
+      // A private Start Page's game stays private, as its link says (blanc://mahjong/?private=1).
+      OpenPage(off_the_record ? "mahjong.html?private=1" : "mahjong.html",
+               background ? WindowOpenDisposition::NEW_BACKGROUND_TAB : WindowOpenDisposition::NEW_FOREGROUND_TAB);
       return StartReply(id, true, base::Value(true));
     }
     // The Favorites heading opens Android's Favorites page, in this tab.
     if (method == "openSheet" && args.size() == 1 && args[0].is_string() && args[0].GetString() == "bookmarks") {
-      OpenPage("bookmarks", WindowOpenDisposition::CURRENT_TAB);
+      OpenPage("bookmarks.html", WindowOpenDisposition::CURRENT_TAB);
       return StartReply(id, true, base::Value(true));
     }
     // Desktop's installed browser themes, the Island's band, Patron, the moving-in checklist and
@@ -314,8 +316,9 @@ class PagesHandler : public content::WebUIMessageHandler {
     StartReply(id, false, base::Value("not-yet"));
   }
 
+  // `page` is a file the WebUI serves, with any query.
   void OpenPage(const char* page, WindowOpenDisposition disposition) {
-    const GURL url(std::string("chrome://") + kPagesHost + "/" + page + ".html");
+    const GURL url(std::string("chrome://") + kPagesHost + "/" + page);
     web_ui()->GetWebContents()->OpenURL(
         content::OpenURLParams(url, content::Referrer(), disposition, ui::PAGE_TRANSITION_AUTO_BOOKMARK, false),
         /*navigation_handle_callback=*/{});
