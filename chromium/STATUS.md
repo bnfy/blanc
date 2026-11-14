@@ -939,8 +939,10 @@ remain pending. D3 beta-only no-DRM exception accepted; EME notice/handoff requi
   reports 2.0.0-beta.2 (2), trusts the production key and feeds from
   blanc.day. On it, with a local draft descriptor (placeholder hashes), the
   blocker, hooks, profile and notices/credits checks pass; no update check
-  ran. Still to come: the 1Password key backup, the outbound check on this
-  build, signing, notarization, the real descriptor and evidence on the signed
+  ran. The outbound isolation check also passed on it (run
+  beta-20261114T030319Z: controls logged, only the probe's lookups blocked,
+  no outside host in any network log). Still to come: the 1Password key
+  backup, signing, notarization, the real descriptor and evidence on the signed
   DMG, production Sync with a real iPhone and passkeys.
 - **Production update key and beta.2 (owner, 2026-11-14):** the key ceremony
   ran split because 1Password kept locking: the production EdDSA key is in
