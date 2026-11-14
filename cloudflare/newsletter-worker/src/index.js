@@ -1,8 +1,9 @@
-// Consent-first newsletter and Blanc Mail waitlist enrollment. An address is
-// not on either list until its owner follows a one-time confirmation link.
-// Confirmation mail is sent through Resend; the verified lists remain in
-// Blanc's own KV. The two lists share this flow but never share keys: joining
-// the Mail waitlist does not subscribe anyone to the newsletter.
+// Consent-first enrollment for the newsletter, the Blanc Mail waitlist and the
+// Blanc for Android beta list. An address is on none of them until its owner
+// follows a one-time confirmation link. Confirmation mail is sent through
+// Resend; the verified lists remain in Blanc's own KV. The lists share this
+// flow but never share keys: joining the Mail waitlist or the Android beta
+// list does not subscribe anyone to the newsletter.
 
 import { fineLink, renderEmail } from './email.js';
 import { addToSegment, addressToRemove, removeFromSegment, verifyWebhook } from './resend-sync.js';
@@ -32,9 +33,11 @@ const WORKER_ORIGIN = 'https://blanc-newsletter.bnfy-441.workers.dev';
 // most this many keys per request and reports whether more remain.
 const PURGE_BATCH = 900;
 
-// Each list owns a disjoint set of KV prefixes; none of the waitlist prefixes
-// starts with a newsletter prefix, so a newsletter export or removal can
-// never see a waitlist record and vice versa.
+// Each list owns a disjoint set of KV prefixes; no list's prefix starts with
+// another list's prefix, so one list's export, removal or purge can never see
+// another list's records. The waitlists (every list with a `path`) also get
+// the public form route, their own confirm and leave links, and admin export,
+// removal and purge under that path.
 const LISTS = {
   newsletter: {
     member: 'sub:',
@@ -63,6 +66,7 @@ const LISTS = {
     },
   },
   mailWaitlist: {
+    path: '/mail-waitlist',
     member: 'mailwait:',
     pending: 'mailwait-pending:',
     sent: 'mailwait-sent:',
@@ -88,7 +92,38 @@ const LISTS = {
       source: 'the Blanc Mail waitlist',
     },
   },
+  // Testers for Blanc for Android. Google Play invites closed-test testers by
+  // the Google account's email address, so the admin export is the list to
+  // paste into Play Console. Deleted when the beta ends.
+  androidBeta: {
+    path: '/android-beta',
+    member: 'androidbeta:',
+    pending: 'androidbeta-pending:',
+    sent: 'androidbeta-sent:',
+    quarantine: 'androidbeta-hp:',
+    leave: 'androidbeta-leave:',
+    rateScope: 'android-beta',
+    idempotency: 'blanc-android-beta-',
+    confirmPath: '/android-beta/confirm',
+    leavePath: '/android-beta/leave',
+    subject: 'Confirm your place in the Blanc for Android beta',
+    heading: 'Confirm your place in the beta',
+    request: 'Confirm that you want an invitation to test Blanc for Android. This does not subscribe you to the Blanc newsletter, and your address is deleted when the beta ends',
+    confirmLabel: 'Join the beta',
+    confirmed: ['You are on the beta list', 'We will email you an invitation when the Blanc for Android beta opens, and delete your address from the list when the beta ends.'],
+    left: ['Beta list removal complete', 'No beta list entry was found.', 'The address has been removed from the Blanc for Android beta list.'],
+    alert: {
+      subject: 'New Blanc for Android beta signup',
+      heading: 'New Android beta signup',
+      what: 'a place in the Blanc for Android beta',
+      verb: 'joined the Android beta list',
+      one: 'person on the beta list',
+      many: 'people on the beta list',
+      source: 'the Blanc for Android beta list',
+    },
+  },
 };
+const WAITLISTS = Object.values(LISTS).filter((list) => list.path);
 
 const json = (obj, status = 200, headers = {}) => new Response(JSON.stringify(obj), {
   status,
@@ -197,8 +232,8 @@ async function sendConfirmation(env, list, email, confirmationUrl, idempotencyKe
   return response.ok;
 }
 
-// Tells Blanc's own inbox about a genuinely new newsletter subscriber or
-// Blanc Mail waitlist signup. A failure is logged and never undoes or delays
+// Tells Blanc's own inbox about a genuinely new subscriber or waitlist
+// signup. A failure is logged and never undoes or delays
 // the confirmation the person is looking at.
 async function sendSignupAlert(env, list, email, ts) {
   const { alert } = list;
@@ -597,14 +632,14 @@ async function handleResendWebhook(request, env) {
   return new Response(null, { status: 204 });
 }
 
-// The waitlist promise is deletion after the launch announcement. Purging
-// takes an explicit confirmation value so a stray DELETE cannot empty it, and
-// works in bounded batches: repeat the request until `remaining` is false.
-async function purgeWaitlist(env, url) {
+// A waitlist's promise is deletion when it has served its purpose (the Mail
+// launch announcement, the end of the Android beta). Purging takes an explicit
+// confirmation value so a stray DELETE cannot empty it, and works in bounded
+// batches: repeat the request until `remaining` is false.
+async function purgeWaitlist(env, url, list) {
   if (url.searchParams.get('confirm') !== 'delete-all') {
     return json({ error: 'confirm=delete-all required' }, 400);
   }
-  const list = LISTS.mailWaitlist;
   const prefixes = [list.member, list.leave, list.quarantine, list.pending, list.sent];
   let budget = PURGE_BATCH;
   let deleted = 0;
@@ -644,11 +679,12 @@ export default {
     const url = new URL(request.url);
     if (url.pathname === '/confirm' && request.method === 'GET') return handleConfirm(env, url);
     if (url.pathname === '/unsubscribe' && request.method === 'GET') return handleUnsubscribe(env, url);
-    if (url.pathname === LISTS.mailWaitlist.confirmPath && request.method === 'GET') {
-      return handleConfirm(env, url, LISTS.mailWaitlist);
+    const waitlist = WAITLISTS.find((list) => url.pathname === list.path || url.pathname.startsWith(`${list.path}/`));
+    if (waitlist && url.pathname === waitlist.confirmPath && request.method === 'GET') {
+      return handleConfirm(env, url, waitlist);
     }
-    if (url.pathname === LISTS.mailWaitlist.leavePath && request.method === 'GET') {
-      return handleUnsubscribe(env, url, LISTS.mailWaitlist);
+    if (waitlist && url.pathname === waitlist.leavePath && request.method === 'GET') {
+      return handleUnsubscribe(env, url, waitlist);
     }
 
     if (url.pathname === '/subscribe') {
@@ -659,12 +695,12 @@ export default {
         return formRoute(request, cors, url.pathname, () => handleSubscribe(request, env, cors));
       }
     }
-    if (url.pathname === '/mail-waitlist') {
+    if (waitlist && url.pathname === waitlist.path) {
       const cors = allowedCors(request);
       if (!cors) return json({ error: 'origin denied' }, 403);
       if (request.method === 'OPTIONS') return new Response(null, { status: 204, headers: cors });
       if (request.method === 'POST') {
-        return formRoute(request, cors, url.pathname, () => handleSubscribe(request, env, cors, LISTS.mailWaitlist));
+        return formRoute(request, cors, url.pathname, () => handleSubscribe(request, env, cors, waitlist));
       }
     }
     if (url.pathname === '/ambassador-apply') {
@@ -681,15 +717,12 @@ export default {
       if (request.method === 'GET' && url.pathname === '/subscribers') return listMembers(env);
       if (request.method === 'DELETE' && url.pathname === '/subscriber') return handleRemove(env, url);
     }
-    if (url.pathname === '/mail-waitlist/members' || url.pathname === '/mail-waitlist/member') {
+    if (waitlist && (url.pathname === `${waitlist.path}/members` || url.pathname === `${waitlist.path}/member`)) {
       if (!authorized(request, env)) return new Response('unauthorized', { status: 401 });
-      if (request.method === 'GET' && url.pathname === '/mail-waitlist/members') {
-        return listMembers(env, LISTS.mailWaitlist);
-      }
-      if (request.method === 'DELETE' && url.pathname === '/mail-waitlist/members') return purgeWaitlist(env, url);
-      if (request.method === 'DELETE' && url.pathname === '/mail-waitlist/member') {
-        return handleRemove(env, url, LISTS.mailWaitlist);
-      }
+      const all = url.pathname === `${waitlist.path}/members`;
+      if (request.method === 'GET' && all) return listMembers(env, waitlist);
+      if (request.method === 'DELETE' && all) return purgeWaitlist(env, url, waitlist);
+      if (request.method === 'DELETE' && !all) return handleRemove(env, url, waitlist);
     }
     return new Response('not found', { status: 404 });
   },
