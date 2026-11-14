@@ -696,3 +696,24 @@ the credits page only on that list. On the rebuilt local-qualification beta
 that the preview build without the blocker let through (loopback only), and
 the Aperitif helpers link exactly Chromium's libraries.
 Tests: `chromium/release/sbom.test.mjs`.
+
+### Blocker payload evidence (2026-11-14)
+
+`node chromium/release/blocker-evidence.mjs RELEASE.json APP EVIDENCE` writes
+the `blocker-payload` gate evidence (copy it to
+`evidence/<arch>/blocker-payload.evidence` only on a pass). Static: the
+embedded `blanc_blocker/engine.js` is the pinned bundle, its committed
+provenance matches the pinned filter lists, the probe hosts are on the pinned
+EasyList, and the app is the release build. Runtime, with no development
+switch and loopback only (every other host resolves to nothing): an ordinary
+and a private window each load a page whose allowed image arrives and whose
+two EasyList-listed requests never do. A page cookie proves which window ran:
+an ordinary window must save it to the profile, a private one must not, so
+both wait 35 seconds for Chromium's cookie commit. Two APFS clones of the app,
+one with a byte of the engine changed and one with none, must let nothing
+past the page through. Clones need an ad-hoc signed candidate (a changed
+resource can't be tested inside a sealed, signed app), so on the final
+signed build run it on the unsigned candidate that produced it and record the
+equivalence. On the local-qualification beta (2026-11-14) all four scenarios
+passed. Not covered here: the Island resources and the EME notice and stable
+handoff (`no-drm-handoff`). Tests: `chromium/release/blocker-evidence.test.mjs`.

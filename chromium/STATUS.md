@@ -932,6 +932,13 @@ remain pending. D3 beta-only no-DRM exception accepted; EME notice/handoff requi
   16 px at 1000 × 760; it fits at 1280 × 800 and larger, in every
   wallpaper mode). native-start-widgets 8/8; newtab-layouts 24/25 (:21 as
   before).
+- **Blocker payload evidence (2026-11-14):** `chromium/release/blocker-evidence.mjs`
+  writes the blocker-payload gate evidence: the embedded engine is the pinned
+  bundle, and with no development switch and loopback only, ordinary and
+  private windows (each proved by whether a page cookie reaches the profile)
+  block two EasyList hosts while the page loads, and app clones with a
+  changed or missing engine let nothing through. All four passed on the
+  local-qualification beta. Tests 3/3; unit 426/426.
 - **SBOM, NOTICES.txt and the notices-and-credits gate (2026-11-13, owner):**
   `chromium/release/sbom_scan.py` lists what `//chrome:chrome` ships with
   Chromium's own `licenses.py` (322 components on out/BlancBeta, versions for
