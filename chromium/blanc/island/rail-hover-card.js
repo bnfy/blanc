@@ -120,7 +120,8 @@
       return;
     }
     node.append(el(doc, 'div', 'rail-card-title', model.title));
-    const state = model.private ? t('rail.state.private') : model.quiet ? t('rail.state.quiet') : '';
+    // The private chip's own word, as the rail shows it; quiet as the rail's states say it.
+    const state = model.private ? t('rail.private.marker') : model.quiet ? t('rail.state.quiet') : '';
     const meta = [model.host, state].filter(Boolean).join(' · ');
     if (meta) node.append(el(doc, 'div', 'rail-card-host', meta));
     if (model.panes) {

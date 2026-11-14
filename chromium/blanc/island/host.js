@@ -2786,7 +2786,9 @@
     // Off a row (the rail's edges, its buttons, an open group's header): no wait, and a card up goes after the grace.
     if (!found) { if (type === 'enter') railStep({ type: 'leave-row' }); return; }
     railHover.anchors.set(railKey(found.target), railRect(found.row));
-    if (found.target.kind === 'split') railHover.anchors.set('label:' + found.target.splitId, found.row.textContent.trim());
+    // The split row's own label, not its icons' fallback letters.
+    if (found.target.kind === 'split') railHover.anchors.set('label:' + found.target.splitId,
+      found.row.querySelector('.vertical-tab-title-text')?.textContent.trim() ?? '');
     railStep({ type, target: found.target });
   }
   const railHooked = new WeakSet();
