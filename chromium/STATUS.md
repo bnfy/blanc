@@ -42,9 +42,19 @@ remain pending. D3 beta-only no-DRM exception accepted; EME notice/handoff requi
   the fork unit suite (498 pass, 0 fail, 12 skipped), patch reconstruction
   (both lanes), the Island renderer and asset checks, and a syntax-only
   compile of `blanc_prototype_ui.cc` with out/BlancBeta's flags on the Mac
-  Studio (read only). Not yet built or seen on screen: an incremental build,
-  then both themes, a private tab, a quiet tab, a collapsed group and a
-  split row. Deferred minors: Cmd-Tab away with the page focused doesn't
+  Studio (read only). Built incrementally into out/BlancPrototype (GN
+  regenerated with its unchanged October 16 arguments, since served.txt and
+  blanc/BUILD.gn changed; plans of 6 and 1 steps). On screen, on the MacBook
+  Pro against a copied build: `tests/native-rail-hover.mjs` passes 10 of 10
+  on candidate macos-b2d742a39a1021c2 (Chromium's picture on a background
+  tab's card, instant swap, closing on leaving the rail and on a key in the
+  page, no picture for the current tab or a private one, Dark, a collapsed
+  group's list card with a row's picture beside it, a row click opening the
+  group, a split row's two panes). The first on-screen run (macos-9a6ff1dd…)
+  found a split card titled with the row's fallback icon letters and a
+  private card saying "private" for the chip's "Private"; both fixed in
+  c1a1c3d6d. Not checked on screen: a quiet tab's last picture. Deferred
+  minors: Cmd-Tab away with the page focused doesn't
   close a card; a permission prompt opening doesn't; a watched tab that goes
   quiet keeps its watch until the card closes (it never loads the tab).
 - **2026-11-14 — The Dock icon follows Dark again (owner's report on beta.4):**
