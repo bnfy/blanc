@@ -609,6 +609,9 @@ final class TabsManager {
         tab.navigationDelegate.onPageTitle = { [weak self] url, title in
             if !isPrivate { self?.historyStore.updateTitle(url: url, title: title) }
         }
+        tab.navigationDelegate.onFinish = { [weak self] webView in
+            if !isPrivate { self?.services.siteIcons.capture(from: webView) }
+        }
         tab.navigationDelegate.onTitleChange = { [weak self] in
             self?.syncEngine.tabsChanged()
         }
