@@ -44,10 +44,15 @@ concurrency:
 jobs:
   fork-only:
     # A pull-request push that changes only the Chromium fork (chromium/, its
-    # experiment folder) or docs skips the jobs below; they ran for the PR's
-    # earlier commits and nothing they test changed. Every other event, and
-    # any failure here, runs them (scripts/ci-fork-only-push.sh).
+    # experiment folder) or docs skips the jobs below when the previous head's
+    # run of this workflow succeeded, so they passed there and nothing they test
+    # changed. Every other event, and any failure here, runs them
+    # (scripts/ci-fork-only-push.sh).
     runs-on: ubuntu-latest
+    # actions: read lets the classifier check the previous head's run.
+    permissions:
+      contents: read
+      actions: read
     outputs:
       skip: ${{ steps.classify.outputs.skip }}
     steps:
@@ -60,6 +65,7 @@ jobs:
           EVENT_ACTION: ${{ github.event.action }}
           BEFORE: ${{ github.event.before }}
           AFTER: ${{ github.event.pull_request.head.sha }}
+          GH_TOKEN: ${{ github.token }}
         run: echo "skip=$(sh scripts/ci-fork-only-push.sh)" >> "$GITHUB_OUTPUT"
   xctest:
     needs: fork-only

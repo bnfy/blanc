@@ -37,6 +37,10 @@ jobs:
     # The unit suite, lint and drift guards in `substrate` always run: unit tests
     # also guard the website's claims ledgers and read site/ and docs/ files.
     runs-on: ubuntu-latest
+    # actions: read lets the classifier check the previous head's run.
+    permissions:
+      contents: read
+      actions: read
     outputs:
       app: ${{ steps.classify.outputs.app }}
     steps:
@@ -51,11 +55,12 @@ jobs:
           EVENT_ACTION: ${{ github.event.action }}
           BEFORE: ${{ github.event.before }}
           AFTER: ${{ github.event.pull_request.head.sha }}
+          GH_TOKEN: ${{ github.token }}
         run: |
           app=true
           if [ "$(sh scripts/ci-fork-only-push.sh)" = true ]; then
-            # Only the Chromium fork changed since this PR's last run, which
-            # ran these jobs (scripts/ci-fork-only-push.sh).
+            # Only the Chromium fork changed since this PR's last run, and that
+            # run finished with success (scripts/ci-fork-only-push.sh).
             app=false
             echo "Fork-only push." >> "$GITHUB_STEP_SUMMARY"
           elif [ "$GITHUB_EVENT_NAME" = pull_request ] && git rev-parse --verify -q HEAD^2 >/dev/null; then
