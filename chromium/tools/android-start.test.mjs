@@ -24,7 +24,9 @@ function element(tag) {
 // innerHeight, font: computed style, metrics: measureText's}, and `page.shortcuts` Billboard's
 // shortcuts under it: {top, height} of their rows, the date's bottom and Customize's top.
 function load(page = {}, hash = '') {
-  const appended = [], listeners = {}, rootStyle = {}, opened = [], assigned = [], replaced = [];
+  const appended = [], listeners = {}, rootStyle = {}, opened = [], assigned = [], replaced = [], sent = [];
+  // This page's own storage (page.storage: its entries), or none at all (page.storage === null).
+  const storage = page.storage === null ? null : {...page.storage};
   const canvas = {getContext: () => ({font: '', measureText: () => page.metrics})};
   // The clock's box (300 px) as drawn: its middle where the page's middle puts it.
   const row = {offsetHeight: 300, getBoundingClientRect: () => ({height: 300, top: page.innerHeight / 2 - 150, bottom: page.innerHeight / 2 + 150})};
@@ -62,11 +64,17 @@ function load(page = {}, hash = '') {
     setTimeout: fn => fn(), requestAnimationFrame: fn => fn(), scrollY: 0,
     blancI18n: {t: (key, params) => key + (params ? JSON.stringify(params) : '')},
     open: (url, target) => opened.push(`${target} ${url}`),
+    chrome: {send: (message, args) => sent.push([message, args])},
   };
+  if (storage) {
+    window.localStorage = {getItem: k => storage[k] ?? null, setItem: (k, v) => { storage[k] = String(v); }};
+  } else {
+    Object.defineProperty(window, 'localStorage', {get() { throw new Error('SecurityError'); }});
+  }
   window.window = window;
   vm.runInNewContext(fs.readFileSync(SCRIPT, 'utf8'), window);
   const fire = (type, event = {type}) => (listeners[type] || []).forEach(fn => fn(event));
-  return {window, appended, listeners, fire, rootStyle, opened, assigned, replaced};
+  return {window, appended, listeners, fire, rootStyle, opened, assigned, replaced, sent, storage};
 }
 
 test('the page is marked for Android and laid out at the phone\'s width before anything runs', () => {
@@ -87,6 +95,46 @@ const figuresAt = innerHeight => {
   const {fontBoundingBoxAscent: a, fontBoundingBoxDescent: d, actualBoundingBoxAscent: ia, actualBoundingBoxDescent: id} = PIXEL.metrics;
   return innerHeight / 2 + (a - d) / 2 + (id - ia) / 2;
 };
+
+// The Island along the top (Settings → Island position, as on the iPhone): android-start.css lays the
+// page out for it from the mark, which native code answers (blanc_pages_ui.cc).
+test('the page asks where the Island is and marks it, bottom until it knows', () => {
+  const {window, sent} = load();
+  assert.equal(window.document.documentElement.dataset.island, 'bottom');
+  assert.equal(JSON.stringify(sent), JSON.stringify([['blancAndroidIsland', []]]));
+});
+
+test('the answer marks the page, is kept for the next Start Page and places the clock again', () => {
+  const {window, storage, listeners} = load();
+  let placed = 0;
+  (listeners['window.resize'] ||= []).push(() => placed++);
+  window.dispatchEvent = event => (listeners[`window.${event.type}`] || []).forEach(fn => fn(event));
+  window.Event = class { constructor(type) { this.type = type; } };
+  window.blancAndroidIsland('top');
+  assert.equal(window.document.documentElement.dataset.island, 'top');
+  assert.equal(storage['blanc.android.island'], 'top');
+  assert.equal(placed, 1);
+  window.blancAndroidIsland('bottom');
+  assert.equal(window.document.documentElement.dataset.island, 'bottom');
+  assert.equal(storage['blanc.android.island'], 'bottom');
+});
+
+test('a Start Page opened after one that knew starts with its answer, so it never jumps', () => {
+  const {window} = load({storage: {'blanc.android.island': 'top'}});
+  assert.equal(window.document.documentElement.dataset.island, 'top');
+});
+
+test('anything but top is the bottom, and a page without storage still follows the answer', () => {
+  assert.equal(load({storage: {'blanc.android.island': 'sideways'}}).window.document.documentElement.dataset.island, 'bottom');
+  const {window} = load({storage: null});
+  assert.equal(window.document.documentElement.dataset.island, 'bottom');
+  window.dispatchEvent = () => {};
+  window.Event = class { constructor(type) { this.type = type; } };
+  window.blancAndroidIsland('top');
+  assert.equal(window.document.documentElement.dataset.island, 'top');
+  window.blancAndroidIsland('elsewhere');
+  assert.equal(window.document.documentElement.dataset.island, 'bottom');
+});
 
 test('the clock\'s figures center on the screen, not its box in the page', () => {
   const {fire, rootStyle} = load(PIXEL);

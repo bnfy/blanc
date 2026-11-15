@@ -45,17 +45,19 @@ public final class SettingsLayout {
     private SettingsLayout() {}
 
     public static List<Section> sections(State state) {
-        List<String> more = new ArrayList<>(List.of("content_settings", "notifications", "downloads"));
+        List<String> more =
+                new ArrayList<>(List.of("content_settings", "notifications", "downloads", "blanc_language"));
         if (state.debugBuild) more.add("developer");
         return List.of(
                 new Section("blanc_header_section", List.of("blanc_header")),
-                new Section("blanc_browsing_section", List.of("blanc_search_engine")),
+                new Section("blanc_browsing_section", List.of("blanc_search_engine", "blanc_default_browser")),
                 new Section("blanc_appearance_section", List.of("blanc_theme", "blanc_island_position", "blanc_start_page")),
-                new Section("blanc_privacy_section", List.of("blanc_blocker", "blanc_allowed_sites", "blanc_clear_site_data")),
+                new Section("blanc_privacy_section", List.of("blanc_blocker", "blanc_allowed_sites", "blanc_clear_site_data",
+                        "blanc_measure_usage")),
                 new Section("blanc_sync_section", List.of("blanc_sync")),
                 new Section("blanc_more_section", List.copyOf(more)),
                 new Section("blanc_about_section", List.of("blanc_version", "blanc_website", "blanc_privacy_policy",
-                        "blanc_support", "blanc_licenses")));
+                        "blanc_support", "blanc_licenses", "blanc_show_welcome")));
     }
 
     /** Every key the root shows: each section's heading and its rows. */

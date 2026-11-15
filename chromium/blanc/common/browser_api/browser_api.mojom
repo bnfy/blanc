@@ -30,6 +30,7 @@ union FillLoginSuccessOrFillLoginFailureOrBool {
 };
 struct CreateTabOptions {
   bool? is_private;
+  bool? focus_address;
 };
 
 struct TabMoveTarget {
@@ -415,6 +416,7 @@ struct OverlayShowPayload {
   string purpose;
   Rect? pill_rect;
   bool search_priority_results;
+  double? panel_side_clearance;
 };
 
 struct OverlayHidePayload {

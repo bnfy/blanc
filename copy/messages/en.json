@@ -3552,7 +3552,7 @@
     "note": "Settings → General: setting name."
   },
   "settings.general.theme.hint": {
-    "message": "System follows your macOS/Windows theme",
+    "message": "System follows your computer's light or dark mode",
     "note": "Settings → General: explanation under a setting."
   },
   "settings.general.theme.system": {
@@ -3682,22 +3682,22 @@
     "note": "Settings → General: explanation under a setting."
   },
   "settings.general.newtabLayout.ledger": {
-    "message": "ledger",
+    "message": "Ledger",
     "note": "Settings → General: start-page layout name (also shown on the start page).",
     "maxLength": 12
   },
   "settings.general.newtabLayout.billboard": {
-    "message": "billboard",
+    "message": "Billboard",
     "note": "Settings → General: start-page layout name (also shown on the start page).",
     "maxLength": 13
   },
   "settings.general.newtabLayout.shelf": {
-    "message": "shelf",
+    "message": "Shelf",
     "note": "Settings → General: start-page layout name (also shown on the start page).",
     "maxLength": 12
   },
   "settings.general.newtabLayout.tally": {
-    "message": "tally",
+    "message": "Tally",
     "note": "Settings → General: start-page layout name (also shown on the start page).",
     "maxLength": 12
   },
@@ -3782,6 +3782,14 @@
   "settings.general.tabSwitchOrder.hint": {
     "message": "Hold Ctrl and press Tab to go back through the tabs you used last, then let go of Ctrl to switch. Esc stays where you are.",
     "note": "Settings → General: explanation under a setting."
+  },
+  "settings.general.reuseNewTab.label": {
+    "message": "Switch to an unused new tab",
+    "note": "Settings → General → Browsing: label of the switch (on by default) that makes New Tab and New Private Tab go to a new tab in the current window that hasn't been used yet (still on the start page, never navigated) instead of opening another one."
+  },
+  "settings.general.reuseNewTab.hint": {
+    "message": "New Tab goes to a new tab in this window that you haven't used yet, instead of opening another. New Private Tab does the same for private tabs.",
+    "note": "Settings → General → Browsing: hint under Switch to an unused new tab. New Tab and New Private Tab are the File menu items of the same name."
   },
   "settings.general.tabSwitchOrder.recent": {
     "message": "In the order you used them",
@@ -6156,8 +6164,8 @@
     "note": "Start page: announced when pinning is refused because every pin is taken; {count} is the most pins it holds."
   },
   "onboarding.skip": {
-    "message": "skip setup",
-    "note": "Onboarding dialog: button that skips the remaining steps, lowercase by design.",
+    "message": "Skip setup",
+    "note": "Onboarding dialog: button that skips the remaining steps.",
     "maxLength": 16
   },
   "onboarding.stepLabel": {
@@ -6165,28 +6173,28 @@
     "note": "Onboarding dialog: progress above the step, e.g. “2 / 6 — import”; {name} is the step name."
   },
   "onboarding.step.default": {
-    "message": "default browser",
-    "note": "Onboarding dialog: name of step 1, lowercase by design."
+    "message": "Default browser",
+    "note": "Onboarding dialog: name of step 1."
   },
   "onboarding.step.import": {
-    "message": "import",
-    "note": "Onboarding dialog: name of step 2, lowercase by design."
+    "message": "Import",
+    "note": "Onboarding dialog: name of step 2."
   },
   "onboarding.step.island": {
-    "message": "the island",
-    "note": "Onboarding dialog: name of step 3 (the Island), lowercase by design."
+    "message": "The Island",
+    "note": "Onboarding dialog: name of step 3 (the Island)."
   },
   "onboarding.step.blocking": {
-    "message": "ad blocking",
-    "note": "Onboarding dialog: name of step 4, lowercase by design."
+    "message": "Ad blocking",
+    "note": "Onboarding dialog: name of step 4."
   },
   "onboarding.step.privacy": {
-    "message": "privacy",
-    "note": "Onboarding dialog: name of step 5, lowercase by design."
+    "message": "Privacy",
+    "note": "Onboarding dialog: name of step 5."
   },
   "onboarding.step.theme": {
-    "message": "theme",
-    "note": "Onboarding dialog: name of step 6, lowercase by design."
+    "message": "Theme",
+    "note": "Onboarding dialog: name of step 6."
   },
   "onboarding.default.title": {
     "message": "Make Blanc your default",
@@ -6277,7 +6285,7 @@
     "note": "Onboarding → step 2 (import): result when every one was already saved."
   },
   "onboarding.island.title": {
-    "message": "Meet the island",
+    "message": "Meet the Island",
     "note": "Onboarding dialog → step 3: heading; the island is the Island command bar."
   },
   "onboarding.island.body": {
@@ -6313,8 +6321,8 @@
     "note": "Onboarding dialog → step 4: heading."
   },
   "onboarding.blocking.body": {
-    "message": "Blocks known ads and trackers using bundled rules. It cannot stop every tracker. Turn it off per-site with /off-leash.",
-    "note": "Onboarding dialog → step 4: explanation; /off-leash is a command."
+    "message": "Blocks known ads and trackers using bundled rules. It cannot stop every tracker. Turn it off per-site with /allow-ads.",
+    "note": "Onboarding dialog → step 4: explanation; /allow-ads is a command."
   },
   "onboarding.blocking.toggle": {
     "message": "Block ads & trackers",
@@ -6365,12 +6373,12 @@
     "note": "Onboarding dialog → step 6: explanation; /theme is a command."
   },
   "onboarding.theme.light": {
-    "message": "light",
-    "note": "Onboarding dialog → step 6: theme choice, lowercase by design."
+    "message": "Light",
+    "note": "Onboarding dialog → step 6: theme choice."
   },
   "onboarding.theme.dark": {
-    "message": "dark",
-    "note": "Onboarding dialog → step 6: theme choice, lowercase by design."
+    "message": "Dark",
+    "note": "Onboarding dialog → step 6: theme choice."
   },
   "onboarding.back": {
     "message": "Back",
@@ -9864,6 +9872,22 @@
   "android.settings.openSourceLicenses": {
     "message": "Open-source licenses",
     "note": "Android Settings → About: row opening the list of open-source licenses."
+  },
+  "android.welcome.shareTitle": {
+    "message": "Share from this phone",
+    "note": "Blanc for Android walkthrough: the iPhone string ios.welcome.shareTitle with \"this phone\"."
+  },
+  "android.welcome.measureUsageHelp": {
+    "message": "Each time you open Blanc, it sends one anonymous count: a random ID for this install, the app version and the Android version. Never what you browse. See blanc.day/privacy.",
+    "note": "Blanc for Android: under the Measure usage switch in the walkthrough and Settings; ios.welcome.measureUsageHelp with the Android version. Says exactly what the launch ping carries."
+  },
+  "android.defaultBrowser.body": {
+    "message": "Make Blanc your default browser so links from other apps open here.",
+    "note": "Blanc for Android walkthrough: the default-browser step, ios.defaultBrowser.body without iPhone app names."
+  },
+  "android.defaultBrowser.open": {
+    "message": "Set as default",
+    "note": "Blanc for Android walkthrough: the button that asks Android to make Blanc the default browser (Android shows its own confirmation)."
   },
   "android.settings.autoRevokeSummary": {
     "message": "To protect your data, let Blanc remove permissions from sites that you haven’t visited recently",

@@ -25,7 +25,8 @@ test('the label functions could be lifted from source', () => {
 });
 
 function runMode(tab) {
-  const sandbox = { URL };
+  // tabDomain reads the shared location label (tab-sections.js).
+  const sandbox = { URL, TabSections: require('../../src/renderer/tab-sections') };
   vm.runInNewContext(
     `${viewSourceSource}\n${tabDomainSource}\n${modeSource}\nthis.__fn = pillLabelMode;`,
     sandbox,
@@ -176,7 +177,7 @@ test('a pill notice overrides the label briefly and the label returns when it en
   };
   const timers = [];
   const sandbox = {
-    URL, pillDomain: element(), pillSlash: element(), glanceStatus: element(),
+    URL, TabSections: require('../../src/renderer/tab-sections'), pillDomain: element(), pillSlash: element(), glanceStatus: element(),
     blancI18n: { t: (key) => `[${key}]` },
     setTimeout: (fn, ms) => { timers.push({ fn, ms }); return timers.length; },
     clearTimeout: () => {},

@@ -4,11 +4,11 @@ import XCTest
 /// both windows or only the new one, so the checks look for a window with
 /// the expected tabs rather than counting windows.
 final class MultipleWindowsUITests: XCTestCase {
-  private func launch() throws -> XCUIApplication {
+  private func launch(_ arguments: [String] = []) throws -> XCUIApplication {
     continueAfterFailure = false
     try XCTSkipUnless(UIDevice.current.userInterfaceIdiom == .pad, "multiple windows are an iPad feature")
     let app = XCUIApplication()
-    app.launchArguments = ["-BlancUITestTwoTabs"]
+    app.launchArguments = ["-BlancUITestTwoTabs"] + arguments
     app.launch()
     XCTAssertTrue(app.buttons["pill.palette"].firstMatch.waitForExistence(timeout: 15))
     return app
@@ -33,7 +33,10 @@ final class MultipleWindowsUITests: XCTestCase {
   }
 
   func testMoveTabToNewWindowCarriesThePage() throws {
-    let app = try launch()
+    // Without tab dragging: on an iPad the card's long press also lifts it for a drag, and XCTest then
+    // waits 60 s for the app to stop animating after the press and again after the tap (seen on CI and on
+    // an iPad simulator; the test took 140 s and sometimes timed out).
+    let app = try launch(["-BlancUITestNoTabDrag"])
     // A pinch, because iPadOS's "Hidden Windows" hint can sit over the Island's
     // middle after a relaunch, and the previous test leaves a window behind.
     let page = app.webViews.firstMatch
