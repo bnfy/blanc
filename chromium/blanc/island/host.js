@@ -207,6 +207,7 @@
   // The Dock icon (F17) follows the setting, and the appearance for the
   // icons with a Dark image, as shipping reapplies it.
   const darkScheme = matchMedia('(prefers-color-scheme: dark)');
+  let bandColorSent = '';  // syncBandColor
   let dockIconKey = '';
   function syncDockIcon() {
     const key = snapshot?.appIcon ? `${snapshot.appIcon}:${darkScheme.matches}` : '';
@@ -215,6 +216,7 @@
     request('applyAppIcon', [snapshot.appIcon, darkScheme.matches]).catch(() => {});
   }
   darkScheme.addEventListener('change', syncDockIcon);
+  darkScheme.addEventListener('change', () => syncBandColor());
   function paintHeader() {
     syncDockIcon();
     const active = snapshot?.tabs.find(tab => tab.id === snapshot.activeTabId);
@@ -305,7 +307,7 @@
     document.documentElement.toggleAttribute('data-band-backdrop', shown);
     strip.contentDocument?.documentElement?.toggleAttribute('data-band-backdrop', shown);
     bandBackdrop.hidden = !shown;
-    if (!shown) return;
+    if (!shown) { syncBandColor(); return; }
     const zoom = Number(spec.zoom) || 1;
     const band = Number(spec.band) || 0;
     const rail = Number(spec.rail) || 0;
@@ -324,6 +326,23 @@
       element.style.backgroundRepeat = typeof layer.repeat === 'string' ? layer.repeat : '';
       element.style.opacity = String(Math.min(1, Math.max(0, Number(layer.opacity) || 0)));
     });
+    syncBandColor();
+  }
+
+  // The band's color, for Chromium's infobars (owner, 2026-11-14: they are
+  // part of the band): the header's own color, the Start Page backdrop's base
+  // color under it, or host.css's --header-fallback.
+  function syncBandColor() {
+    const color = document.documentElement.style.getPropertyValue('--page-bg').trim();
+    const hex = value => typeof value === 'string' && /^#[0-9a-f]{6}$/i.test(value) ? value.toLowerCase() : '';
+    const layer = document.documentElement.hasAttribute('data-band-backdrop')
+      ? bandLayers.find(element => !element.hidden && element.style.backgroundColor) : null;
+    const rgb = layer?.style.backgroundColor.match(/^rgba?\((\d+),\s*(\d+),\s*(\d+)/);
+    const fromLayer = rgb ? '#' + rgb.slice(1, 4).map(n => Number(n).toString(16).padStart(2, '0')).join('') : '';
+    const next = fromLayer || hex(color) || (darkScheme.matches ? '#0e0e0e' : '#ffffff');
+    if (next === bandColorSent) return;
+    bandColorSent = next;
+    request('bandColor', [next]).catch(() => {});
   }
 
   let splitHeaderKey = '';
