@@ -1236,6 +1236,14 @@ a:focus-visible, button:focus-visible { outline: 2px solid var(--site-accent); o
 .dl-beta-versions dd { order: 3; margin: 4px 0 0; color: rgb(248 242 232 / 0.86); font-family: var(--font-mono); font-size: 12px; }
 .dl-beta-versions .dl-beta-figure { order: 1; margin: 0; color: #F8F2E8; font-family: var(--site-font-display); font-size: 64px; font-variant-numeric: lining-nums; line-height: 0.9; }
 .dl-beta-versions > div:first-child .dl-beta-figure { color: var(--site-gold-on-dark); }
+/* Sized by the tile, not the window: it is narrowest in the three-column row
+   just above 900px and on phones. */
+.dl-tile--beta { container-type: inline-size; }
+@container (max-width: 290px) {
+  .dl-beta-versions > div { padding: 0 16px; }
+  .dl-beta-versions dd { font-size: 11.5px; }
+  .dl-beta-versions .dl-beta-figure { font-size: 48px; }
+}
 .dl-tile-button { display: inline-flex; align-items: center; gap: 8px; margin-top: auto; padding: 12px 22px; border-radius: 999px; background: #F8F2E8; color: var(--site-ink-warm); font-size: 15px; font-weight: 500; text-decoration: none; transition: background 0.18s ease, transform 0.1s ease-out; }
 .dl-tile-button:is(:hover, :focus-visible) { background: var(--site-gold-on-dark); }
 .dl-tile-button:active { transform: scale(0.97); }
@@ -1276,8 +1284,6 @@ a:focus-visible, button:focus-visible { outline: 2px solid var(--site-accent); o
   .dl-more { grid-template-columns: 1fr; margin-top: 64px; }
   .dl-tile { min-height: 0; }
   .dl-tile-button { margin-top: 0; }
-  .dl-beta-versions > div { padding: 0 18px; }
-  .dl-beta-versions .dl-beta-figure { font-size: 52px; }
   .dl-tile--brew .terminal-window { margin-top: 22px; }
 }
 @media (prefers-reduced-motion: reduce) {

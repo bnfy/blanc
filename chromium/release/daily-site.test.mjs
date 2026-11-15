@@ -40,6 +40,17 @@ test('a release without a Chromium version, or a ledger without the version line
   assert.throws(() => siteFiles({ ...input, files: { ...files, prevLedger: JSON.stringify(prev) } }), /no released line/);
 });
 
+test('a ledger from before the version figures keeps its one requirement line', () => {
+  const prev = JSON.parse(files.prevLedger);
+  const at = prev.claims.findIndex(c => c.field);
+  prev.claims = prev.claims.filter(c => !c.field);
+  prev.claims.splice(at, 0, { text: 'Apple Silicon Macs · macOS 13 or later · 2.0.0-beta.3', evidence: 'release.json arches [arm64], minimumSystemVersion 13.0, version 2.0.0-beta.3.' });
+  const ledger = JSON.parse(siteFiles({ ...input, files: { ...files, prevLedger: JSON.stringify(prev) } })['docs/website-blanc-beta-2.0.0-beta.4-claims.json']);
+  assert.equal(ledger.claims.length, prev.claims.length);
+  assert.ok(ledger.claims.some(c => c.text === 'Apple Silicon Macs · macOS 13 or later · 2.0.0-beta.4'));
+  assert.ok(!ledger.claims.some(c => c.field));
+});
+
 test('a release whose waivers differ from the page\'s limitations is refused', () => {
   const one = structuredClone(r);
   delete one.gateWaivers['production-sync-real-device'];
