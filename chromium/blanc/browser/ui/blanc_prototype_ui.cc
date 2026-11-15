@@ -9782,10 +9782,12 @@ class Handler : public content::WebUIMessageHandler, public extensions::Extensio
     }
     // The Dock icon (F17), as shipping draws it: the bundle icon live, every
     // other colorway as a Light or Dark image that host.js asks for again when
-    // the appearance changes. Blanc Beta's bundle icon is Sunrise Gold and its
-    // images are Icon Composer's own renders (blanc/branding/beta/dock); a
-    // named stack handed to the Dock stays drawn in Light. Elsewhere, and
-    // before macOS 26, the Dock takes shipping's flat images, its
+    // the appearance changes. Blanc Beta hands the Dock an image for every
+    // colorway, its bundle icon Sunrise Gold included, from Icon Composer's own
+    // renders (blanc/branding/beta/dock): a named stack handed to the Dock
+    // stays drawn in Light, and the Dock's bundle icon for an app updated in
+    // place can stay the old version's. Clear and Tinted take the bundle
+    // icon. Elsewhere, and before macOS 26, the Dock takes shipping's flat images, its
     // development-build path: the other channels' bundle icon is Sunrise
     // Dark, kept for Dock testing, so Sunrise there takes its flat Light or
     // Dark image like the rest.
@@ -9797,12 +9799,11 @@ class Handler : public content::WebUIMessageHandler, public extensions::Extensio
 #if BUILDFLAG(BLANC_BETA_CHANNEL)
       const char* stack = icon == "sunrise" ? "Icon"
           : icon == "sunrise-dark" ? "SunriseDark"
+          : icon == "sunrise-gold" ? "BlancDK"
           : icon == "sunrise-spectrum" ? "SunriseSpectrum"
           : icon == "sunrise-amber" ? "SunriseAmber" : nullptr;
-      if (icon == "sunrise-gold" ||
-          (stack && blanc::SetDockIconFromBundle(std::string(stack) + (dark ? "-dark" : "-light")))) {
-        if (!stack) blanc::SetDockIcon({});
-        replaced = stack != nullptr;
+      if (stack && blanc::SetDockIconFromBundle(std::string(stack) + (dark ? "-dark" : "-light"))) {
+        replaced = true;
         reply(true, base::Value());
         return;
       }

@@ -1,8 +1,8 @@
 #!/usr/bin/env node
 // Copyright 2026 Bananify Creative. MIT; see LICENSE.
 //
-// Blanc Beta's Dock images: Icon Composer's own Light and Dark renders of the
-// colorways that are not the bundle icon, at shipping's flat Dock geometry
+// Blanc Beta's Dock images: Icon Composer's own Light and Dark renders of
+// every colorway, Sunrise Gold (the bundle icon) included, at shipping's flat Dock geometry
 // (an 824 px tile inset 100 px into a 1024 canvas, as src/renderer/pages'
 // icon-*.png draw it).
 //
@@ -11,7 +11,11 @@
 // Shipping never hands the Dock a stack either: Electron's
 // createFromNamedImage treats names without an NS prefix as SF Symbols, finds
 // none, and shipping falls back to a Light or Dark image, reapplied when the
-// appearance changes. Only the bundle icon (Sunrise Gold here) stays live.
+// appearance changes. Sunrise Gold gets images too: the Dock's bundle icon for
+// an app updated in place can stay the old version's (beta.5 on the owner's
+// Mac kept beta.4's dark icon at /Applications through relaunches, an icon
+// service restart and a rebuilt Dock cache), so the Dock is handed the
+// bundle icon only for the Clear and Tinted styles, which macOS must tint.
 //
 // Usage (a Mac with Icon Composer): node render-dock-icons.mjs <dir holding
 // the .icon packages compiled into Assets.car> — the inputs pinned by
@@ -27,8 +31,8 @@ import { fileURLToPath, pathToFileURL } from 'node:url';
 const here = path.dirname(fileURLToPath(import.meta.url));
 const sharp = createRequire(path.join(here, '../../../../package.json'))('sharp');
 const ICTOOL = '/Applications/Icon Composer.app/Contents/Executables/ictool';
-// The colorways the Dock shows as images; Sunrise Gold (BlancDK) is the bundle icon.
-const DOCK_STACKS = ['Icon', 'SunriseDark', 'SunriseSpectrum', 'SunriseAmber'];
+// The colorways the Dock shows as images; BlancDK is Sunrise Gold, the bundle icon.
+const DOCK_STACKS = ['Icon', 'SunriseDark', 'BlancDK', 'SunriseSpectrum', 'SunriseAmber'];
 const CANVAS = 1024, TILE = 824;
 
 const sha256 = (data) => crypto.createHash('sha256').update(data).digest('hex');
