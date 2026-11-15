@@ -93,8 +93,8 @@ test('activation accepts only Browser benefits: a Mail key is not recognized', a
   assert.equal(rejected.requests.length, 1, 'a rejected activation makes no second request');
 });
 
-test('a Patron key keeps validating after its subscription moves to Suite', async () => {
-  // Suite carries the same Patron benefit, so Polar keeps the grant and key.
+test('a Patron key keeps validating after its subscription moves to Bundle', async () => {
+  // Bundle carries the same Patron benefit, so Polar keeps the grant and key.
   const subject = loadPatron({ initial: subscription(patronID), responses: [response(200, {
     benefit_id: patronID, status: 'granted', expires_at: null,
   })] });

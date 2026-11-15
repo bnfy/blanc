@@ -11,5 +11,6 @@
     "sha256": "7134a1e4506d4bcd4de96a014faa797acfc34d5b8baeffda603b6017f7e8ce85"
   },
   "feed": "/updates/chromium-beta/arm64.xml",
-  "requirement": "Apple Silicon Macs · macOS 13 or later"
+  "requirement": "Apple Silicon Macs · macOS 13 or later",
+  "chromium": "158.0.8127.2"
 }

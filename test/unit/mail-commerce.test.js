@@ -1,7 +1,7 @@
 const assert = require('node:assert/strict');
 const { test } = require('node:test');
 
-test('Mail and Suite checkout selects one production plan and stays closed', async () => {
+test('Mail and Bundle checkout selects one production plan and stays closed', async () => {
   const commerce = await import('../../site/src/data/mail-commerce.mjs');
   const expected = {
     'mail-monthly': 'b39dbdde-a607-4b94-bbba-f20c5acd6439',
@@ -27,7 +27,7 @@ test('Mail and Suite checkout selects one production plan and stays closed', asy
   assert.deepEqual(commerce.productFor('suite-annual').benefits, [
     'ed1cce8c-d87e-4d27-b9d7-d30bda2de402', commerce.mailBenefitId, commerce.noddingOffBenefitId,
   ]);
-  // Nodding Off is only in Suite, never in a Mail-only plan.
+  // Nodding Off is only in Bundle, never in a Mail-only plan.
   assert.ok(!commerce.productFor('mail-monthly').benefits.includes(commerce.noddingOffBenefitId));
   assert.ok(!commerce.productFor('mail-annual').benefits.includes(commerce.noddingOffBenefitId));
 });

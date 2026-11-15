@@ -39,6 +39,30 @@ const swap = (text, from, to, what) => {
   return text.replace(from, to);
 };
 
+// The tile's version lines (download.astro derives the same text from
+// blanc-beta.json): the beta's number, its full version and build, the Chromium
+// it is built on, and its release day. Each ledger claim carrying a `field` is
+// rewritten from the release; every other claim is the page's fixed text.
+const releaseDay = published => new Date(`${published}T00:00:00Z`)
+  .toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric', timeZone: 'UTC' });
+export function versionClaims(r, published) {
+  const n = betaNumber(r.version), major = r.chromiumVersion.split('.')[0];
+  return {
+    'beta-number': { text: `Beta ${n}`, field: 'beta-number',
+      evidence: `release.json version ${r.version}: beta ${n} of Blanc Beta 2.0.0.` },
+    'beta-version': { text: `${r.version} · build ${r.build}`, field: 'beta-version',
+      evidence: `release.json version ${r.version} and build ${r.build}, the appcast's sparkle:version.` },
+    'chromium-major': { text: `Chromium ${major}`, field: 'chromium-major',
+      evidence: `release.json chromiumVersion ${r.chromiumVersion}, the fork's Chromium tree (chrome/VERSION unchanged from upstream).` },
+    'chromium-version': { text: r.chromiumVersion, field: 'chromium-version',
+      evidence: `release.json chromiumVersion ${r.chromiumVersion}; the release's SBOM names the same Chromium.` },
+    requirement: { text: 'Apple Silicon Macs · macOS 13 or later', field: 'requirement',
+      evidence: `release.json arches [arm64] under the owner's standing Intel waiver, minimumSystemVersion 13.0 (${r.version}).` },
+    released: { text: `Released ${releaseDay(published)}`, field: 'released',
+      evidence: `The GitHub pre-release ${r.tag} was published on ${published} (UTC).` },
+  };
+}
+
 // r: the public release.json; appcast: its appcast-arm64.xml text; dmg: {bytes, sha256};
 // published: YYYY-MM-DD; files: the current contents on main.
 export function siteFiles({ r, appcast, dmg, published, files }) {
@@ -59,12 +83,17 @@ export function siteFiles({ r, appcast, dmg, published, files }) {
     version: r.version, build: r.build, tag: r.tag, published,
     releaseUrl: `https://github.com/${REPO}/releases/tag/${r.tag}`,
     dmg: { name, url, bytes: dmg.bytes, sha256: dmg.sha256 },
-    feed: before.feed, requirement: before.requirement,
+    feed: before.feed, requirement: before.requirement, chromium: r.chromiumVersion,
   }, null, 2) + '\n';
   const oldUrl = before.dmg.url;
   const dlJs = swap(files.dlJs, `export const BETA_DOWNLOAD = '${oldUrl}';`, `export const BETA_DOWNLOAD = '${url}';`, 'BETA_DOWNLOAD');
   const inventory = swap(files.inventory, sha256(Buffer.from(files.dlJs)), sha256(Buffer.from(dlJs)), 'dl.js inventory digest');
-  const requirement = `Apple Silicon Macs · macOS 13 or later · `;
+  const fresh = versionClaims(r, published);
+  // A ledger from before the version figures (main before bnfy/blanc#1552) has
+  // one requirement line ending in the version and no `field` lines; it keeps
+  // that line, so this script works on either side of that merge.
+  const legacy = !prev.claims.some(c => c.field);
+  const LEGACY_REQUIREMENT = 'Apple Silicon Macs · macOS 13 or later · ';
   const ledger = {
     ...prev,
     release: r.version, tag: r.tag, sourceCommit: r.sourceCommit, publicRelease: published,
@@ -73,13 +102,14 @@ export function siteFiles({ r, appcast, dmg, published, files }) {
     ownerDecisions: { ...prev.ownerDecisions, decisions: [...prev.ownerDecisions.decisions,
       `Beta.${n} (standing decision, owner 2026-11-14): the tile, its text and both limitations stay as for beta.${betaNumber(before.version)}; only the release it names changes. Its release notes keep the caution that Sync isn't checked end to end.`] },
     claims: prev.claims.map(c => {
-      if (c.text.startsWith(requirement)) return { text: `${requirement}${r.version}`,
-        evidence: `release.json arches [arm64] under the owner's standing Intel waiver, minimumSystemVersion 13.0, version ${r.version}.` };
+      if (c.field) { check(fresh[c.field], `the claims ledger has an unknown field ${c.field}`); return fresh[c.field]; }
+      if (legacy && c.text.startsWith(LEGACY_REQUIREMENT)) return { text: `${LEGACY_REQUIREMENT}${r.version}`, evidence: fresh.requirement.evidence };
       const gate = Object.keys(LIMITATIONS).find(g => LIMITATIONS[g] === c.text);
       return gate ? { text: c.text, evidence: STANDING_EVIDENCE[gate] } : c;
     }),
   };
-  check(ledger.claims.some(c => c.text === `${requirement}${r.version}`), 'the claims ledger has no requirement line');
+  if (legacy) check(ledger.claims.some(c => c.text === `${LEGACY_REQUIREMENT}${r.version}`), 'the claims ledger has no requirement line');
+  else for (const field of Object.keys(fresh)) check(ledger.claims.some(c => c.field === field), `the claims ledger has no ${field} line`);
   return {
     'site/src/data/blanc-beta.json': betaJson,
     'site/public/updates/chromium-beta/arm64.xml': appcast,
@@ -134,7 +164,7 @@ function main(tag, dry = false) {
       if (dry) return `dry run: the PR would change ${Object.keys(out).join(', ')}; the site's beta tests pass`;
       must('git', ['-C', tree, 'add', ...Object.keys(out)], 'could not stage the files');
       const title = `Website: Blanc Beta ${r.version} on the Download page, its update feed and /dl/beta`;
-      must('git', ['-C', tree, 'commit', '-q', '-m', `${title}\n\nGenerated by chromium/release/daily/site-pr.mjs from the public release ${r.tag}: the update feed is its appcast byte for byte, the Download tile and /dl/beta name its DMG, and the claims ledger records it under the owner's standing decisions. The page's text is unchanged.`], 'could not commit');
+      must('git', ['-C', tree, 'commit', '-q', '-m', `${title}\n\nGenerated by chromium/release/daily/site-pr.mjs from the public release ${r.tag}: the update feed is its appcast byte for byte, the Download tile and /dl/beta name its DMG, and the claims ledger records it under the owner's standing decisions. Only the tile's version lines change.`], 'could not commit');
       must('git', ['-C', tree, 'push', '-q', '-u', 'origin', branch], 'could not push the branch');
       const body = `Blanc Beta ${r.version} was published as a pre-release: https://github.com/${REPO}/releases/tag/${r.tag}\n\n`
         + `- \`site/public/updates/chromium-beta/arm64.xml\`: the release's appcast, byte for byte (checked against the Sigstore-signed checksums).\n`

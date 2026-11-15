@@ -97,7 +97,7 @@ Support stopped being pages and became the last three sections of `/mail`, on
 the same dark stage, in their own words:
 
 - **Pricing** (`#pricing`): "A good home for your mail.", the trial line, the
-  purchases-not-open status before any price, the Mail and Suite plans as dark
+  purchases-not-open status before any price, the Mail and Bundle plans as dark
   cards with gilt prices (no checkout link while checkout is closed), and what
   happens when a subscription ends.
 - **Support** (`#support`): the address first, then Accounts and data,

@@ -16,7 +16,10 @@ let expected = runtime.lockedElectronVersion();
 if (process.env.BLANC_ECS_PACKAGE_ROOT) expected = require('./support/ecs-package-version.cjs').expectedEcsElectron(process.env.BLANC_ECS_PACKAGE_ROOT);
 const executablePath = process.env.BLANC_PACKAGED_EXECUTABLE || path.resolve('dist/mac-arm64/Blanc.app/Contents/MacOS/Blanc');
 const scratch = fs.mkdtempSync(path.join(os.tmpdir(), 'blanc-packaged-browser-'));
-fs.writeFileSync(path.join(scratch, 'settings.json'), JSON.stringify({ onboardingVersion: 1, adblockEnabled: false, usagePing: false, searchSuggestions: false }));
+// New Tab reuse (#1505) is off: the launch below opens an unused New Tab page
+// beside its link, and with reuse on the typed tab would switch to that page
+// instead of opening, which v1.49.1's native release run timed out on.
+fs.writeFileSync(path.join(scratch, 'settings.json'), JSON.stringify({ onboardingVersion: 1, adblockEnabled: false, usagePing: false, searchSuggestions: false, reuseNewTab: false }));
 const server = http.createServer((_req, res) => { res.setHeader('Content-Type', 'text/html'); res.end('<!doctype html><title>Packaged browser fixture</title><input>'); });
 await new Promise(resolve => server.listen(0, '127.0.0.1', resolve));
 const origin = `http://127.0.0.1:${server.address().port}`;
