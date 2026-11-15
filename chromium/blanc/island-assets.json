@@ -143,7 +143,7 @@
     "sunrise-hero-mark.png": "site/public/sunrise-hero-mark.png"
   },
   "manifest": {
-    "adapter.js": "5f28230d6279ee01a2dabcf25000b4ec3c23b5b5f1985d0cb43224cff7c23c07",
+    "adapter.js": "bd5228746dff57737a236eca7dd97e4c391ed61a17e27e33627c71008298909b",
     "address-input.js": "7d6e1c7c9294cc135379e6ad69794e120dfb58002c20ce16d548b1f7e65ad609",
     "browser-api-codec.js": "d1c4462f36b048337ec1ce5b46aaa06fce19ecf80eaf8128d4dc4077244f1c28",
     "browser-api.js": "80598d001be4cdd5f48183c37c2ccfdc2fa7e05a815a6ca8ddc9989e2b7fc1f3",
