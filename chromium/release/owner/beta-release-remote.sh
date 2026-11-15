@@ -65,7 +65,10 @@ while :; do
       done
       [ -n "$RUN" ] || stop outbound "No finished run was found."
       mkdir -p "$EV/beta$N"
-      "$NODE" chromium/tests/outbound/analyze-beta.mjs "$RUN" > "$EV/beta$N/outbound-report.json.tmp" \
+      # The tested app's own update feed: Sparkle's check of it is the beta's to make.
+      FEED=$(/usr/libexec/PlistBuddy -c 'Print :SUFeedURL' "/Users/Shared/blanc-outbound/beta/Blanc Beta.app/Contents/Info.plist") \
+        || stop outbound "The tested app has no update feed."
+      "$NODE" chromium/tests/outbound/analyze-beta.mjs "$RUN" --feed "$FEED" > "$EV/beta$N/outbound-report.json.tmp" \
         && mv -n "$EV/beta$N/outbound-report.json.tmp" "$EV/beta$N/outbound-report.json" \
         || { rm -f "$EV/beta$N/outbound-report.json.tmp"; stop outbound "The beta reached something it shouldn't have, or the run was incomplete."; }
       ;;

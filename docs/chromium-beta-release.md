@@ -751,7 +751,14 @@ log names the page's unresolvable probe host; it passes only if no blocked
 packet could have come from a Blanc process and no network log names an
 outside host. For a local-qualification beta nothing outside is intended
 (its feed is on loopback, a fresh profile has no Sync); a production run
-names its feed and release hosts with `--allow`. The network log covers
+names its feed and release hosts with `--allow`. A release build's Sparkle
+checks its feed at launch once the test account's daily check is due, so
+`beta-release-remote.sh` passes the tested app's own `SUFeedURL` with
+`--feed`: blocked HTTPS to that host's addresses counts as the update check
+(listed under `updateFeed` in the report) only when nettop names a Blanc
+process on that exact address; anything else still fails (owner, 2026-11-15:
+beta.5's run showed it, and beta.3 and beta.4 passed only because the check
+wasn't due). The network log covers
 Chromium's own requests; Sparkle and macOS frameworks are covered by the pf
 log alone. An offline dry run as the owner (2026-11-14, every host resolving
 to nothing) showed only localhost and the probe in all three logs. Chromium
