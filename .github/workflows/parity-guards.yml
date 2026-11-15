@@ -53,14 +53,14 @@ jobs:
         env:
           EVENT_NAME: ${{ github.event_name }}
           EVENT_ACTION: ${{ github.event.action }}
-          BEFORE: ${{ github.event.before }}
           AFTER: ${{ github.event.pull_request.head.sha }}
+          HEAD_REF: ${{ github.head_ref }}
           GH_TOKEN: ${{ github.token }}
         run: |
           app=true
           if [ "$(sh scripts/ci-fork-only-push.sh)" = true ]; then
-            # Only the Chromium fork changed since this PR's last run, and that
-            # run finished with success (scripts/ci-fork-only-push.sh).
+            # Only the Chromium fork changed since a head of this PR that
+            # these jobs passed on (scripts/ci-fork-only-push.sh).
             app=false
             echo "Fork-only push." >> "$GITHUB_STEP_SUMMARY"
           elif [ "$GITHUB_EVENT_NAME" = pull_request ] && git rev-parse --verify -q HEAD^2 >/dev/null; then
