@@ -33,9 +33,10 @@
 
   /* Website presentation only. --site-bg is Blanc White, the brand cream. revamp.css
      repeats the page, surface, raised, border, muted and gold values; keep them equal. */
-  /* Since October 15, 2026 every page is set in Blubird (src/styles/blubird.css):
-     headings in Blubird Display at 0 tracking, text in Blubird Text. Product
-     replicas (Island figures, demo UI) keep Inter, the app's own face. */
+  /* Headings on every page are Blubird Display at 0 tracking (October 15,
+     2026; src/styles/blubird.css). Text is Instrument Sans (November 15, 2026),
+     through --font-brand-text. Product replicas (Island figures, demo UI)
+     keep their own faces. */
   --site-font-patron: var(--font-brand-display);
   --site-font-display: var(--font-brand-display);
   --site-bg: #F8F2E8;
@@ -1124,7 +1125,7 @@ a:focus-visible, button:focus-visible { outline: 2px solid var(--site-accent); o
    24px and under, may open up to +0.03em, where the face's own spacing reads
    tight (owner, October 22, 2026); never negative, and headlines stay at 0.
    This rule sits last so it wins over the per-section size rules above; those
-   keep their sizes and line heights. Text is Blubird Text; product replicas
+   keep their sizes and line heights. Text is Instrument Sans; product replicas
    keep Inter. */
 .download-section-head h2, .release-body h2, .about-proof-row h2, .about-close h2, .feature-close h2, .feature-copy-grid h2, .truth-note h2, .ambassador-section-heading h2, .ambassador-promise h2, .ambassador-apply-intro h2, .memchart-heading h2 {
   font-family: var(--site-font-display); font-weight: 400; letter-spacing: 0; font-optical-sizing: auto;
