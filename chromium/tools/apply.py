@@ -48,6 +48,14 @@ with tempfile.TemporaryDirectory(prefix='blanc-source-apply-') as temp:
         if before not in allowed_before:
             raise SystemExit('Unrecognized cached source; preserve and reconcile: '+name)
         changes.append({'path':name,'before':before,'after':expected})
+    # A Blanc file the previous source placed but the current source dropped (or moved) leaves the
+    # checkout, or a clean build still sees it. Only bytes exactly as the previous map placed them.
+    for name, placed in previous.get('canonicalSha256', {}).items():
+        if name in selected: continue
+        before = sha(args.src/name)
+        if before is None: continue
+        if before != placed: raise SystemExit('Unrecognized cached source; preserve and reconcile: '+name)
+        changes.append({'path':name,'before':before,'after':None})
     print(json.dumps({'mode':'apply' if args.apply else 'check','changes':len(changes)}))
     if args.apply and changes:
         if not args.backup or args.backup.exists(): raise SystemExit('A new durable backup directory is required')
@@ -61,4 +69,5 @@ with tempfile.TemporaryDirectory(prefix='blanc-source-apply-') as temp:
         for change in changes:
             p=args.src/change['path']
             if sha(p)!=change['before']:raise SystemExit('Source changed during backup')
+            if change['after'] is None: p.unlink(); continue
             p.parent.mkdir(parents=True,exist_ok=True);shutil.copyfile(work/change['path'],p)
