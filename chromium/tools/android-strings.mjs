@@ -110,7 +110,9 @@ export const ANDROID_PLURALS = ['sharedSpaces.waitingCount', 'newtab.groups.coun
 // docs/android/a5a-settings-spike.md R3): copy key -> Chromium's resource name. Found by the wording
 // check in tests/android/settings.mjs.
 export const CHROMIUM_OVERRIDES = {'android.settings.autoRevokeSummary': 'safety_hub_autorevocation_toggle_summary'};
-const OVERRIDES = path.join(chromium, 'blanc/android/res');
+// Their own folder: Chromium's base-module resources list only the icons from res/, and a resource
+// folder may hold only files its target lists.
+const OVERRIDES = path.join(chromium, 'blanc/android/res_chromium_strings');
 export const LOCALES = [['en', 'values'], ['de', 'values-de'], ['es', 'values-es'], ['fr', 'values-fr'],
   ['it', 'values-it'], ['pt-BR', 'values-pt-rBR']];
 
