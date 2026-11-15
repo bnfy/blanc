@@ -264,6 +264,15 @@ final class MobileStartPageTests: XCTestCase {
         image.lifetime = .keepAlways
         add(image)
 
+        // A long press opens iOS's menu, which asks the page what the tile allows (ios-start.js).
+        let state = try await webView.evaluateJavaScript("JSON.stringify(window.blancIosShortcut.state('https://blanc.day/'))") as? String
+        XCTAssertEqual(state, #"{"title":"Blanc","canPin":true,"pinned":false,"canHide":false}"#)
+        _ = try await webView.evaluateJavaScript("window.blancIosShortcut.pin('https://blanc.day/'); true")
+        for _ in 0..<30 where manager.services.startPage.pins.isEmpty {
+            try await Task.sleep(nanoseconds: 100_000_000)
+        }
+        XCTAssertEqual(manager.services.startPage.pins.first?["url"], "https://blanc.day/", "The menu's Pin pins the site")
+
         // Saved while the page is open (the Island's heart): it appears without a reload.
         _ = try await webView.evaluateJavaScript("window.__sameDocument = true; true")
         save("https://example.com/", "Example")
