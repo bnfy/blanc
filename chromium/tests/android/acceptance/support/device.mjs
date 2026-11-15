@@ -12,8 +12,9 @@ import {findCount} from '../../find.mjs';
 import {renderers} from '../../quiet-tabs.mjs';
 import {gridState, paletteRows, rawPixel} from './parse.mjs';
 import {hostPort} from '../../support/host-ports.mjs';
+import {androidPackage} from '../../release-gate.mjs';
 
-export const PACKAGE = 'me.bnfy.blanc.dev';
+export const PACKAGE = androidPackage();
 const PREFS = `shared_prefs/${PACKAGE}_preferences.xml`;
 // The fixture server's port on the device, which the switches below map the fixture hosts to, and on
 // this server (support/host-ports.mjs: each emulator's runs have their own), joined by adb reverse.
@@ -149,11 +150,17 @@ export class Device {
     sleep(3);
   }
 
-  // Sets a debug-only preference before a launch (the app must have run once to have the file).
+  // Edits an existing preference before launch. Release needs the rooted emulator; this
+  // does not enable preferences the production app ignores (for example quiet-delay).
   async setPref(xmlEntry, name) {
     adb('shell', 'am', 'force-stop', PACKAGE);
-    const prefs = adb('shell', 'run-as', PACKAGE, 'cat', PREFS).replace(new RegExp(`\\s*<[a-z]+ name="${escape(name)}"[^>]*?(/>|>[^<]*</[a-z]+>)`), '');
-    adb('shell', `run-as ${PACKAGE} sh -c 'cat > ${PREFS}' <<'EOF'\n${prefs.replace('</map>', `    ${xmlEntry}\n</map>`)}\nEOF`);
+    const release = PACKAGE === 'me.bnfy.blanc';
+    if (release && adb('shell', 'id', '-u').trim() !== '0') throw Error('Release preferences require rooted emulator adbd');
+    const prefPath = release ? `/data/data/${PACKAGE}/${PREFS}` : PREFS;
+    const prefix = release ? [] : ['run-as', PACKAGE];
+    const prefs = adb('shell', ...prefix, 'cat', prefPath).replace(new RegExp(`\\s*<[a-z]+ name="${escape(name)}"[^>]*?(/>|>[^<]*</[a-z]+>)`), '');
+    // Write in place so the app's existing ownership and SELinux context remain intact.
+    adb('shell', `${release ? '' : `run-as ${PACKAGE} `}sh -c 'cat > ${prefPath}' <<'EOF'\n${prefs.replace('</map>', `    ${xmlEntry}\n</map>`)}\nEOF`);
     await this.launch();
   }
 
@@ -195,7 +202,7 @@ export class Device {
     await this.waitFor(async () => (last = await this.visibleUrl()) === url, () => `the page to be ${url} (it is ${last})`, seconds);
   }
 
-  renderers() { return renderers(adb('shell', 'ps', '-A')); }
+  renderers() { return renderers(adb('shell', 'ps', '-A'), PACKAGE); }
 
   // Ends Blanc's sandboxed processes, the blocker's among them, as Android does under pressure.
   // Needs root (see startFixtures). A kill that fails must fail the check: a check that ends

@@ -17,6 +17,7 @@ import android.os.LocaleList;
 import android.widget.Toast;
 
 import org.chromium.base.ContextUtils;
+import org.chromium.base.IntentUtils;
 import org.chromium.base.Log;
 import org.chromium.blanc.blocking.BlockerBridge;
 import org.chromium.blanc.firstrun.AppLanguages;
@@ -55,7 +56,6 @@ final class ChromiumSettingsHost implements BlancSettingsScreen.Host {
 
     private final Activity mActivity;
     private final Supplier<@Nullable WindowAndroid> mWindow;
-    private final Runnable mLicenses;
     private final boolean mSyncConnected;
     private final Runnable mOnSyncClosed;
     private final SettingsStore mStore = new SettingsStore(ContextUtils.getAppSharedPreferences());
@@ -64,7 +64,7 @@ final class ChromiumSettingsHost implements BlancSettingsScreen.Host {
             boolean syncConnected, Runnable onSyncClosed) {
         mActivity = activity;
         mWindow = window;
-        mLicenses = licenses;
+        // The callback remains in patch 0110's interface; Blanc now opens its own notices page.
         mSyncConnected = syncConnected;
         mOnSyncClosed = onSyncClosed;
     }
@@ -219,7 +219,13 @@ final class ChromiumSettingsHost implements BlancSettingsScreen.Host {
 
     @Override
     public void openLicenses() {
-        mLicenses.run();
+        Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse("chrome://blanc/licenses.html"));
+        // chrome: is absent from the public VIEW filter. Address the app's launcher directly,
+        // with Chromium's trusted-intent token so it accepts this internal page.
+        intent.setClassName(mActivity.getPackageName(),
+                "org.chromium.chrome.browser.document.ChromeLauncherActivity");
+        IntentUtils.addTrustedIntentExtras(intent);
+        mActivity.startActivity(intent);
     }
 
     @Override

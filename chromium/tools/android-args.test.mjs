@@ -20,6 +20,24 @@ for (const [file, cpu] of [['debug-arm64.gn', 'arm64'], ['debug-x64.gn', 'x64']]
   });
 }
 
+for (const [file, cpu] of [['release-arm64.gn', 'arm64'], ['release-x64.gn', 'x64']]) {
+  test(`android release args pin the exact release inputs (${file})`, () => {
+    const args = parse(file);
+    assert.deepEqual(args, {
+      target_os: 'android', target_cpu: cpu, is_debug: false, is_official_build: true,
+      chrome_pgo_phase: 0, is_java_debug: false, is_component_build: false, symbol_level: 0,
+      android_static_analysis: 'on', android_channel: 'stable',
+      chrome_public_manifest_package: 'me.bnfy.blanc', use_official_google_api_keys: false,
+      blanc_channel: 'release',
+    });
+    for (const key of [
+      'google_api_key', 'google_default_client_id', 'google_default_client_secret',
+      'disable_android_lint', 'android_override_version_code', 'android_override_version_name',
+      'blanc_android_version_name',
+    ]) assert.ok(!(key in args), `${file} must not set ${key}`);
+  });
+}
+
 const script = fileURLToPath(new URL('server/bootstrap.sh', root));
 test('bootstrap parses', () => {
   assert.equal(spawnSync('bash', ['-n', script]).status, 0);
