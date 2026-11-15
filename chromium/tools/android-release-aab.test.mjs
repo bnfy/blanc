@@ -5,6 +5,7 @@ import os from 'node:os';
 import path from 'node:path';
 import crypto from 'node:crypto';
 import { pathToFileURL } from 'node:url';
+import { spawnSync } from 'node:child_process';
 const moduleURL = new URL('../android/release/aab.mjs', import.meta.url);
 const pinURL = new URL('../android/release/upload-cert.json', import.meta.url);
 const record = { versionCode: 1, versionName: '1.0.0-beta.1' };
@@ -162,4 +163,42 @@ test('missing signing tool is named without exposing command diagnostics', async
   const f = await fixture(); const stub = signingStub(f, { missing: 'jarsigner' });
   try { withSecrets(() => assert.throws(() => f.api.signBundle(f.input, f.output, refs, stub.run), /jarsigner.*PATH/)); }
   finally { fs.rmSync(f.dir, { recursive: true, force: true }); }
+});
+test('real SIGHUP during a fixture signing command removes the private keystore', async () => {
+  const f = await fixture();
+  const child = `
+    import fs from 'node:fs';
+    import { spawnSync } from 'node:child_process';
+    import { signBundle } from ${JSON.stringify(pathToFileURL(path.join(f.dir, 'aab.mjs')).href)};
+    const run = (command, args) => {
+      if (command === 'op') {
+        if (args.includes('--out-file')) {
+          fs.writeFileSync(args[args.indexOf('--out-file') + 1], 'fixture keystore', { mode: 0o600 });
+          return { status: 0, stdout: '' };
+        }
+        return { status: 0, stdout: args.includes(${JSON.stringify(refs.aliasRef)}) ? 'blanc-upload' : 'fixture-password' };
+      }
+      if (command === 'jarsigner') {
+        // A separate Node fixture sends the real OS signal while the signing
+        // worker is blocked in a synchronous command, as on Terminal closure.
+        spawnSync(process.execPath, ['-e', 'process.kill(Number(process.argv[1]), "SIGHUP")', String(process.pid)], { stdio: 'ignore' });
+        return { status: 1 };
+      }
+      return { status: 0, stdout: '' };
+    };
+    try {
+      signBundle(${JSON.stringify(f.input)}, ${JSON.stringify(f.output)}, ${JSON.stringify(refs)}, run);
+      process.exitCode = 2;
+    } catch { /* Expected injected signing failure after the signal. */ }
+  `;
+  try {
+    const result = spawnSync(process.execPath, ['--input-type=module', '-e', child], {
+      encoding: 'utf8', timeout: 10_000,
+      env: { ...process.env, TMPDIR: f.dir, BLANC_ANDROID_OP_RUN: '1' },
+    });
+    assert.deepEqual(fs.readdirSync(f.dir).filter(name => name.startsWith('blanc-android-sign-')), [], 'SIGHUP removes the keystore directory');
+    assert.equal(result.status, 0);
+    assert.equal(result.stdout, ''); assert.equal(result.stderr, '');
+    assert.equal(fs.existsSync(f.output), false);
+  } finally { fs.rmSync(f.dir, { recursive: true, force: true }); }
 });

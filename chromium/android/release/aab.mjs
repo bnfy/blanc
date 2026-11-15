@@ -92,6 +92,7 @@ export function signBundle(input, output, { keystoreRef, aliasRef, passwordRef }
   // finally also cleans up that path. exit covers explicit worker termination.
   process.on('SIGINT', interrupt);
   process.on('SIGTERM', interrupt);
+  process.on('SIGHUP', interrupt);
   process.on('exit', cleanup);
   try {
     fs.chmodSync(temporary, 0o700);
@@ -133,6 +134,7 @@ export function signBundle(input, output, { keystoreRef, aliasRef, passwordRef }
     cleanup();
     process.off('SIGINT', interrupt);
     process.off('SIGTERM', interrupt);
+    process.off('SIGHUP', interrupt);
     process.off('exit', cleanup);
   }
 }
