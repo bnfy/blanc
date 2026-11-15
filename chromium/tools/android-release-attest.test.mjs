@@ -192,3 +192,23 @@ test('Android SBOM validates the scanner inventory before adding Blanc component
   w.inputs.scanSha256 = sha256(JSON.stringify(w.scan)); w.saveInputs();
   assert.throws(() => mod.attest(w.work, pins, w.run), /too few/);
 });
+test('Android SBOM refuses omitted Lucide geometry even when the inventory claims completeness', async t => {
+  const mod = await api(), w = fixture(t, mod);
+  w.inputs.additions = w.inputs.additions.filter(c => !c.name.startsWith('Lucide')); w.saveInputs();
+  assert.throws(() => mod.attest(w.work, pins, w.run), /missing known Android inventory component: Lucide/);
+  assert.equal(w.calls.filter(c => c.command === 'cosign').length, 0);
+});
+test('Android Lucide provenance binds native and Start Page artifacts to the source commit and ISC text', async t => {
+  const mod = await api(), w = fixture(t, mod);
+  const additions = mod.reviewTemplate(w.record, w.run).additions;
+  for (const file of ['island/res/drawable/blanc_space_book.xml', 'pages/start/space-identity.js']) {
+    const c = additions.find(c => c.artifactFile === `blanc/android/${file}`);
+    assert.ok(c, `Lucide artifact recorded: ${file}`);
+    assert.equal(c.license, 'ISC'); assert.equal(c.version, null, 'no invented Lucide version');
+    assert.equal(c.artifactSha256, sha256(fs.readFileSync(path.join(repo, 'chromium/blanc/android', file))));
+    assert.ok(c.licenseFiles.some(f => f.sha256 === sha256(fs.readFileSync(path.join(repo, 'src/renderer/ublock-popup-icons/lucide-LICENSE.txt')))));
+  }
+  fs.rmSync(path.join(w.work, 'sbom-inputs.json'));
+  fs.appendFileSync(path.join(w.src, 'blanc/android/island/res/drawable/blanc_space_book.xml'), 'changed');
+  assert.throws(() => mod.prepareInputs(w.work, w.src, {...w.inputs.review, upstream, chromiumVersion: w.inputs.chromiumVersion, additions: w.inputs.additions, reviewedSkips: {}}, w.run), /artifact digest mismatch: Lucide/);
+});

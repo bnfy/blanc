@@ -34,9 +34,12 @@ node chromium/android/release/attest.mjs review "$WORK"
 The second command writes `sbom-review.json`, initially `complete: false`.
 It derives known Android additions from committed provenance: ZXing's version
 and JAR hash in `blanc/android/BUILD.gn`, the blocker manifest and package
-licences, and byte-identical third-party page assets listed by Android's
+licences, Lucide geometry in native XML resources and the Start Page, and
+byte-identical third-party page assets listed by Android's
 page catalog and the compliance policy. It excludes Sparkle and desktop
-Island assets. Known components cannot be removed or have their recorded
+Island assets. Lucide records one component per artifact, with the committed ISC licence
+and each artifact's exact source hash; no Lucide version is inferred.
+Known components cannot be removed or have their recorded
 version, licence, artifact path or digest changed.
 
 Review the actual scan, its skipped directories, and the Android payload.

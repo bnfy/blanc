@@ -70,6 +70,17 @@ export function reviewTemplate(record, run = spawnSync) {
     }),
   ];
   const shippedPages = [...pages.files, ...(pages.start?.files || []).map(f => `start/${f}`)];
+  // Native resources are compiled from BUILD.gn's explicit XML inputs; the
+  // Start Page also embeds Lucide geometry. Record each shipped artifact so
+  // preparation verifies all of their bytes without inventing a package version.
+  const lucideArtifacts = new Set([...build.matchAll(/"(island\/res\/drawable\/[^"]+\.xml)"/g)].map(m => m[1]));
+  if (shippedPages.includes('start/space-identity.js')) lucideArtifacts.add('pages/start/space-identity.js');
+  for (const file of lucideArtifacts) {
+    const bytes = source(`chromium/blanc/android/${file}`);
+    if (!/Lucide/i.test(bytes.toString())) continue;
+    additions.push({name: 'Lucide geometry (Android)', dir: `blanc/android/${file}`, type: 'file', version: null, license: 'ISC', url: 'https://github.com/lucide-icons/lucide',
+      artifactFile: `blanc/android/${file}`, artifactSha256: sha256(bytes), licenseFiles: [licence('src/renderer/ublock-popup-icons/lucide-LICENSE.txt')]});
+  }
   for (const a of policy.assets.filter(a => a.licenseFile)) for (const file of shippedPages.filter(f => path.basename(f) === path.basename(a.file))) {
     const bytes = source(`chromium/blanc/android/pages/${file}`);
     // Derived data needs its own reviewed metadata; don't infer its identity
