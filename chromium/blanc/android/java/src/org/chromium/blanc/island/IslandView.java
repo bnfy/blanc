@@ -2,6 +2,7 @@
 
 package org.chromium.blanc.island;
 
+import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.res.ColorStateList;
 import android.content.res.Configuration;
@@ -299,6 +300,8 @@ public class IslandView extends FrameLayout {
         }
     }
 
+    // Only the swipe is handled here; a tap falls through to super, which performs the click.
+    @SuppressLint("ClickableViewAccessibility")
     @Override
     public boolean onTouchEvent(MotionEvent event) {
         if (!mSwiping && !mIntoPage) return super.onTouchEvent(event);

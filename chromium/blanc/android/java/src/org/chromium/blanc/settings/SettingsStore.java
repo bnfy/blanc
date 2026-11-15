@@ -2,6 +2,7 @@
 
 package org.chromium.blanc.settings;
 
+import android.annotation.SuppressLint;
 import android.content.SharedPreferences;
 
 import org.chromium.build.annotations.NullMarked;
@@ -72,6 +73,7 @@ public final class SettingsStore {
     }
 
     /** Written at once (commit), so a ping right after the choice reads it. */
+    @SuppressLint("ApplySharedPref")
     public void setUsagePing(boolean on) {
         mPrefs.edit().putBoolean(USAGE_PING_KEY, on).commit();
     }
@@ -80,6 +82,8 @@ public final class SettingsStore {
         return mPrefs.getInt(WALKTHROUGH_KEY, 0);
     }
 
+    // Written at once (commit): the walkthrough's last step can end with Blanc restarting.
+    @SuppressLint("ApplySharedPref")
     public void setWalkthroughCompletedVersion(int version) {
         mPrefs.edit().putInt(WALKTHROUGH_KEY, version).commit();
     }

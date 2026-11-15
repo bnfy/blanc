@@ -9,7 +9,6 @@
     <dimen name="blanc_island_padding_horizontal">16dp</dimen>
     <dimen name="blanc_island_padding_vertical">10dp</dimen>
     <dimen name="blanc_island_border_width">0.5dp</dimen>
-    <dimen name="blanc_island_shadow_radius">10dp</dimen>
     <dimen name="blanc_island_shadow_y">4dp</dimen>
     <dimen name="blanc_island_chip_stroke">1dp</dimen>
 </resources>

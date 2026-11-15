@@ -75,6 +75,10 @@ import java.util.Set;
  */
 @NullMarked
 public final class PaletteSheet extends Dialog {
+    // Slash commands, typed as is in every language: never translated.
+    private static final String SEND_PREFIX = "/send ";
+    private static final String GROUP_PREFIX = "/group ";
+
     /** What the palette asks of the browser. */
     private final Set<String> mOpenDevices = new HashSet<>();
     private boolean mClosedOpen;
@@ -716,7 +720,7 @@ public final class PaletteSheet extends Dialog {
 
     private void heading(String title, int count) {
         TextView view = new TextView(mActivity);
-        view.setText(title + "  " + count);
+        view.setText(String.format(Locale.getDefault(), "%s  %d", title, count));
         view.setTextSize(TypedValue.COMPLEX_UNIT_SP, 11);
         view.setTypeface(Typeface.DEFAULT_BOLD);
         view.setTextColor(secondary());
@@ -1063,7 +1067,7 @@ public final class PaletteSheet extends Dialog {
             }
             case SEND -> {
                 if (argument.isEmpty()) {
-                    mField.setText("/send ");
+                    mField.setText(SEND_PREFIX);
                     mField.setSelection(mField.length());
                     return;
                 }
@@ -1079,7 +1083,7 @@ public final class PaletteSheet extends Dialog {
             case REOPEN -> mTabs.reopenLast();
             case GROUP -> {
                 if (argument.isEmpty() || active == null) {
-                    mField.setText("/group ");
+                    mField.setText(GROUP_PREFIX);
                     mField.setSelection(mField.length());
                     return;
                 }

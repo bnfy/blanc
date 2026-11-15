@@ -402,6 +402,7 @@ android_resources("island_view_resources") {
     "island/res/values/blanc_sync_dimens.xml",
     "island/res/values/blanc_walkthrough_dimens.xml",
     "island/res/xml/blanc_locales_config.xml",
+    "island/res/raw/blanc_lint_keep.xml",
     "island/res/values-night/blanc_settings_colors.xml",
     "island/res/values/blanc_strings.xml",
     "island/res/values-de/blanc_strings.xml",

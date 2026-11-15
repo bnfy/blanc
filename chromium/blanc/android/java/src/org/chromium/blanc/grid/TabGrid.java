@@ -2,6 +2,7 @@
 
 package org.chromium.blanc.grid;
 
+import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.app.Dialog;
 import android.content.res.ColorStateList;
@@ -630,6 +631,8 @@ public final class TabGrid extends Dialog {
             mTabId = tabId;
         }
 
+        // Returns false for anything but a sideways swipe, so the card's own click still runs.
+        @SuppressLint("ClickableViewAccessibility")
         @Override
         public boolean onTouch(View v, MotionEvent event) {
             VelocityTracker velocity = mVelocity == null ? VelocityTracker.obtain() : mVelocity;
