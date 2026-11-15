@@ -12,6 +12,8 @@
 		502D58412FFED0A000B5B1DE /* pages in Resources */ = {isa = PBXBuildFile; fileRef = 502D58402FFED0A000B5B1DE /* pages */; };
 		502D58422FFED0A000B5B1DE /* generated in Resources */ = {isa = PBXBuildFile; fileRef = 502D58432FFED0A000B5B1DE /* generated */; };
 		502D58442FFED0A000B5B1DE /* bridges.json in Resources */ = {isa = PBXBuildFile; fileRef = 502D58452FFED0A000B5B1DE /* bridges.json */; };
+		7B1A00012FFF100000B5B1DE /* start in Resources */ = {isa = PBXBuildFile; fileRef = 7B1A00022FFF100000B5B1DE /* start */; };
+		7B1A00032FFF100000B5B1DE /* whats-new.js in Resources */ = {isa = PBXBuildFile; fileRef = 7B1A00042FFF100000B5B1DE /* whats-new.js */; };
 		5A5E00012FFF000000B5B1DE /* BlancShare.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = 5A5E00022FFF000000B5B1DE /* BlancShare.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		5A5E00102FFF000000B5B1DE /* SharedLink.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5A5E00112FFF000000B5B1DE /* SharedLink.swift */; };
 /* End PBXBuildFile section */
@@ -61,6 +63,8 @@
 		502D58312FFEC0EE00B5B1DE /* BlancSettings.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BlancSettings.swift; sourceTree = "<group>"; };
 		502D58402FFED0A000B5B1DE /* pages */ = {isa = PBXFileReference; lastKnownFileType = folder; name = pages; path = ../../src/renderer/pages; sourceTree = "<group>"; };
 		502D58432FFED0A000B5B1DE /* generated */ = {isa = PBXFileReference; lastKnownFileType = folder; name = generated; path = ../../adblock/generated; sourceTree = "<group>"; };
+		7B1A00022FFF100000B5B1DE /* start */ = {isa = PBXFileReference; lastKnownFileType = folder; name = start; path = ../../chromium/blanc/android/pages/start; sourceTree = "<group>"; };
+		7B1A00042FFF100000B5B1DE /* whats-new.js */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.javascript; name = "whats-new.js"; path = "../../chromium/blanc/android/pages/whats-new.js"; sourceTree = "<group>"; };
 		502D58452FFED0A000B5B1DE /* bridges.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; name = bridges.json; path = ../../browser-api/bridges.json; sourceTree = "<group>"; };
 		502D59012FFEBF0D00B5B1DE /* BlancUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = BlancUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		5A5E00022FFF000000B5B1DE /* BlancShare.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = BlancShare.appex; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -121,6 +125,8 @@
 				502D58402FFED0A000B5B1DE /* pages */,
 				502D58432FFED0A000B5B1DE /* generated */,
 				502D58452FFED0A000B5B1DE /* bridges.json */,
+				7B1A00022FFF100000B5B1DE /* start */,
+				7B1A00042FFF100000B5B1DE /* whats-new.js */,
 				502D58312FFEC0EE00B5B1DE /* BlancSettings.swift */,
 				502D582F2FFEC0C300B5B1DE /* Tokens.swift */,
 				502D57F92FFEBF0C00B5B1DE /* Blanc */,
@@ -291,6 +297,8 @@
 				502D58412FFED0A000B5B1DE /* pages in Resources */,
 				502D58422FFED0A000B5B1DE /* generated in Resources */,
 				502D58442FFED0A000B5B1DE /* bridges.json in Resources */,
+				7B1A00012FFF100000B5B1DE /* start in Resources */,
+				7B1A00032FFF100000B5B1DE /* whats-new.js in Resources */,
 			);
 		};
 		502D58022FFEBF0D00B5B1DE /* Resources */ = {

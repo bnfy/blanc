@@ -9,24 +9,26 @@ enum WebViewConfiguration {
     static func make(
         schemeHandler: BlancSchemeHandler, bridge: PagesBridge,
         dataStore: WKWebsiteDataStore = .default(),
-        startPageHold: StartPageHold? = nil
+        startPageHold: StartPageHold? = nil,
+        startPageBridge: StartPageBridge? = nil
     ) -> WKWebViewConfiguration {
         let config = WKWebViewConfiguration()
         config.websiteDataStore = dataStore
         config.setURLSchemeHandler(schemeHandler, forURLScheme: "blanc")
 
-        if let url = Bundle.main.url(forResource: "ios-start-rules", withExtension: "js", subdirectory: "pages"),
-           let rules = try? String(contentsOf: url, encoding: .utf8) {
-            config.userContentController.addUserScript(WKUserScript(
-                source: "if (location.protocol === 'blanc:') {\n" + rules + "\n}",
-                injectionTime: .atDocumentStart, forMainFrameOnly: true))
-        }
         let userScript = WKUserScript(
             source: PagesBridge.userScriptSource,
             injectionTime: .atDocumentStart,
             forMainFrameOnly: true)
         config.userContentController.addUserScript(userScript)
         config.userContentController.add(bridge, name: PagesBridge.messageHandlerName)
+        // The Start Page is the desktop fork's, which asks native code over
+        // its own channel (`chrome.send`), as on Android.
+        if let startPageBridge {
+            config.userContentController.addUserScript(WKUserScript(
+                source: StartPageBridge.userScriptSource, injectionTime: .atDocumentStart, forMainFrameOnly: true))
+            config.userContentController.add(startPageBridge, name: StartPageBridge.messageHandlerName)
+        }
         if let startPageHold {
             config.userContentController.addUserScript(WKUserScript(
                 source: StartPageHold.userScriptSource, injectionTime: .atDocumentEnd, forMainFrameOnly: true))
