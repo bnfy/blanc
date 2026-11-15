@@ -41521,6 +41521,90 @@
         }
       }
     },
+    "settings.general.reuseNewTab.label": {
+      "comment": "Settings → General → Browsing: label of the switch (on by default) that makes New Tab and New Private Tab go to a new tab in the current window that hasn't been used yet (still on the start page, never navigated) instead of opening another one.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Switch to an unused new tab"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zu einem unbenutzten neuen Tab wechseln"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ir a una pestaña nueva sin usar"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Aller à un nouvel onglet inutilisé"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Passa a una nuova scheda non usata"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ir para uma nova aba não usada"
+          }
+        }
+      }
+    },
+    "settings.general.reuseNewTab.hint": {
+      "comment": "Settings → General → Browsing: hint under Switch to an unused new tab. New Tab and New Private Tab are the File menu items of the same name.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "New Tab goes to a new tab in this window that you haven't used yet, instead of opening another. New Private Tab does the same for private tabs."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "„Neuer Tab“ wechselt zu einem neuen Tab in diesem Fenster, den du noch nicht benutzt hast, statt einen weiteren zu öffnen. „Neuer privater Tab“ macht dasselbe für private Tabs."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nueva pestaña va a una pestaña nueva de esta ventana que aún no has usado, en lugar de abrir otra. Nueva pestaña privada hace lo mismo con las pestañas privadas."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nouvel onglet va à un nouvel onglet de cette fenêtre que vous n’avez pas encore utilisé, au lieu d’en ouvrir un autre. Nouvel onglet privé fait de même pour les onglets privés."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nuova scheda passa a una nuova scheda di questa finestra che non hai ancora usato, invece di aprirne un’altra. Nuova scheda privata fa lo stesso con le schede private."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nova aba vai para uma nova aba desta janela que você ainda não usou, em vez de abrir outra. Nova aba privada faz o mesmo com as abas privadas."
+          }
+        }
+      }
+    },
     "settings.general.tabSwitchOrder.recent": {
       "comment": "Settings → General → Switch tabs with Ctrl+Tab: option (most recently used first; the default).",
       "extractionState": "manual",

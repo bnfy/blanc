@@ -1053,6 +1053,8 @@ Puedes reintentarlo con «%2$s» o reinstalar desde blanc.day.</string>
     <string name="switcher_opened">Cambiar de pestaña, %1$s, %2$s de %3$s</string>
     <string name="switcher_step">%1$s, %2$s de %3$s</string>
     <string name="settings_general_tab_switch_order_hint">Mantén pulsado Ctrl y pulsa Tab para volver por las pestañas que usaste por última vez; suelta Ctrl para cambiar. Esc te deja donde estás.</string>
+    <string name="settings_general_reuse_new_tab_label">Ir a una pestaña nueva sin usar</string>
+    <string name="settings_general_reuse_new_tab_hint">Nueva pestaña va a una pestaña nueva de esta ventana que aún no has usado, en lugar de abrir otra. Nueva pestaña privada hace lo mismo con las pestañas privadas.</string>
     <string name="settings_general_tab_switch_order_recent">En el orden en que las usaste</string>
     <string name="settings_general_tab_switch_order_list">En el orden de la lista de pestañas</string>
     <string name="settings_general_tab_archive_label">Archivar las pestañas inactivas</string>

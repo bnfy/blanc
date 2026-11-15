@@ -41,8 +41,8 @@ export type ThemePreference = 'system' | 'light' | 'dark';
 /** How an invite left Blanc: opened in the person's mail app, or copied to the clipboard because no mail app opened. */
 export type InviteFriendResult = 'mail' | 'copied';
 
-/** Options for a new tab. Only `private` is read by main today. */
-export type CreateTabOptions = { private?: boolean };
+/** Options for a new tab. `private` opens a private tab; `focusAddress` says whether the address field takes focus (by default only for a plain new tab). */
+export type CreateTabOptions = { private?: boolean, focusAddress?: boolean };
 
 /** Where a dragged or keyboard-moved tab should land. The pinned state never changes. */
 export interface TabMoveTarget {
@@ -951,7 +951,7 @@ export interface BlancBrowserAPI {
    */
   readonly platform: Platform;
   /**
-   * Open a new tab. A plain new tab is always ungrouped. Resolves to the new tab id.
+   * Open a new tab. A plain new tab (no url) is always ungrouped, and when the reuseNewTab setting is on it switches to an unused New Tab page of the same kind already in the window (#1505). Resolves to the new or reused tab id.
    * IPC: invoke `tabs:create`.
    */
   createTab(url?: string, opts?: CreateTabOptions): Promise<TabId>;

@@ -775,6 +775,24 @@
     document.getElementById('tabSwitchOrderSetting')?.remove();
   }
 
+  // #1505: New Tab goes to an unused new tab in the window. On by default.
+  if (supports('reuseNewTab')) {
+    const reuseNewTab = document.getElementById('reuseNewTab');
+    reuseNewTab.checked = settings.reuseNewTab !== false;
+    reuseNewTab.addEventListener('change', async () => {
+      try {
+        const saved = await window.bowserPages.settings.set({ reuseNewTab: reuseNewTab.checked });
+        reuseNewTab.checked = saved.reuseNewTab !== false;
+      } catch {
+        window.bowserPages.settings.get().then(({ settings: saved }) => {
+          reuseNewTab.checked = saved.reuseNewTab !== false;
+        }, () => {});
+      }
+    });
+  } else {
+    document.getElementById('reuseNewTabSetting')?.remove();
+  }
+
   // Mini Window (#1138): the global shortcut, from the choices this platform
   // offers (mini-window.js). Off by default; the status line says when the
   // chosen chord can't be used.

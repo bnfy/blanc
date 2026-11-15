@@ -1053,6 +1053,8 @@ Puoi riprovare con «%2$s» o reinstallare Blanc da blanc.day.</string>
     <string name="switcher_opened">Cambia scheda, %1$s, %2$s di %3$s</string>
     <string name="switcher_step">%1$s, %2$s di %3$s</string>
     <string name="settings_general_tab_switch_order_hint">Tieni premuto Ctrl e premi Tab per tornare alle schede usate più di recente, poi rilascia Ctrl per passarci. Esc ti lascia dove sei.</string>
+    <string name="settings_general_reuse_new_tab_label">Passa a una nuova scheda non usata</string>
+    <string name="settings_general_reuse_new_tab_hint">Nuova scheda passa a una nuova scheda di questa finestra che non hai ancora usato, invece di aprirne un’altra. Nuova scheda privata fa lo stesso con le schede private.</string>
     <string name="settings_general_tab_switch_order_recent">Nell’ordine in cui le hai usate</string>
     <string name="settings_general_tab_switch_order_list">Nell’ordine dell’elenco delle schede</string>
     <string name="settings_general_tab_archive_label">Archivia le schede inattive</string>

@@ -1053,6 +1053,8 @@ Você pode tentar de novo com “%2$s” ou reinstalar a partir de blanc.day.</s
     <string name="switcher_opened">Alternar abas, %1$s, %2$s de %3$s</string>
     <string name="switcher_step">%1$s, %2$s de %3$s</string>
     <string name="settings_general_tab_switch_order_hint">Segure Ctrl e pressione Tab para voltar pelas abas que você usou por último; solte Ctrl para trocar. Esc deixa você onde está.</string>
+    <string name="settings_general_reuse_new_tab_label">Ir para uma nova aba não usada</string>
+    <string name="settings_general_reuse_new_tab_hint">Nova aba vai para uma nova aba desta janela que você ainda não usou, em vez de abrir outra. Nova aba privada faz o mesmo com as abas privadas.</string>
     <string name="settings_general_tab_switch_order_recent">Na ordem em que você as usou</string>
     <string name="settings_general_tab_switch_order_list">Na ordem da lista de abas</string>
     <string name="settings_general_tab_archive_label">Arquivar abas inativas</string>

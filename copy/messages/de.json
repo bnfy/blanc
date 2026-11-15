@@ -3699,6 +3699,14 @@
     "message": "Halte Strg gedrückt und drücke Tab, um durch die zuletzt genutzten Tabs zurückzugehen; lass Strg los, um zu wechseln. Mit Esc bleibst du, wo du bist.",
     "source": "sha256:a1bc7a2aaa5992538e4b286c9711a02136ac03f7e0b81a2febded17a22892803"
   },
+  "settings.general.reuseNewTab.label": {
+    "message": "Zu einem unbenutzten neuen Tab wechseln",
+    "source": "sha256:3cc61e626185cd0b23886d7d9066c4f2432f947eb8767bb4158cebc99187b62d"
+  },
+  "settings.general.reuseNewTab.hint": {
+    "message": "„Neuer Tab“ wechselt zu einem neuen Tab in diesem Fenster, den du noch nicht benutzt hast, statt einen weiteren zu öffnen. „Neuer privater Tab“ macht dasselbe für private Tabs.",
+    "source": "sha256:99e5e05a5800398919ea3cf28d48c41a9b109fb8d2a951a5a2d10206132053a6"
+  },
   "settings.general.tabSwitchOrder.recent": {
     "message": "In der Reihenfolge der Nutzung",
     "source": "sha256:a55a18693b898163b09b865118594e02e3ed5451128acbe81ba66b8938a956a4"
