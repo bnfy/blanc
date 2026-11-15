@@ -70,3 +70,7 @@ Spaces checks), lane 1 everything else, including any step added to a gate later
 lower gates always run so the choice reaches the whole chain. Each lane keeps its own evidence
 (`lane1/`, `lane2/` and their logs), and the split passes only when both lanes do.
 `chromium/tools/android-split-gate.test.mjs` checks that the two lanes add up to the whole gate.
+
+The A5c gate split this way on November 14, 2026 took 102 minutes, against about 3 hours run in
+order: lane 1 finished in 96 and lane 2 (sync, Spaces, Shared Spaces, blocking) in 102. Rebalance
+`LANE2` from each lane's step logs if one lane starts finishing well after the other.

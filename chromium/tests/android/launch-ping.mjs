@@ -14,13 +14,17 @@ import fs from 'node:fs';
 import path from 'node:path';
 import os from 'node:os';
 import {execFileSync, spawn} from 'node:child_process';
+import {hostPort} from './support/host-ports.mjs';
 
 const PACKAGE = 'me.bnfy.blanc.dev';
 const SETTINGS = `${PACKAGE}/org.chromium.chrome.browser.settings.SettingsActivity`;
 const COMMAND_LINE = '/data/local/tmp/chrome-command-line';
 const SKIP_FILE = '/data/local/tmp/blanc-walkthrough-off';
 const DEVICE_NETLOG = `/data/data/${PACKAGE}/cache/blanc-ping-netlog.json`;
+// The collector's port on the device, and on this server (support/host-ports.mjs: each emulator's runs
+// have their own), joined by adb reverse.
 const PORT = 8471;
+const HOST_PORT = hostPort(PORT);
 const VERSION = '0.1.0-test';
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/;
 
@@ -44,7 +48,7 @@ function startCollector(log) {
           type: req.headers['content-type'] || '', cookie: req.headers.cookie || '', body, at: Date.now()}) + '\\n');
         res.writeHead(204); res.end();
       });
-    }).listen(${PORT}, '127.0.0.1');`;
+    }).listen(${HOST_PORT}, '127.0.0.1');`;
   return spawn(process.execPath, ['-e', source], {stdio: 'ignore'});
 }
 
@@ -96,7 +100,7 @@ function main(argv) {
   adb('install', '-r', apk);
   adb('root');
   adb('wait-for-device');
-  adb('reverse', `tcp:${PORT}`, `tcp:${PORT}`);
+  adb('reverse', `tcp:${PORT}`, `tcp:${HOST_PORT}`);
   adb('shell', `echo '_ --blanc-test-ping-host=http://127.0.0.1:${PORT}/ --blanc-test-ping-version=${VERSION} --log-net-log=${DEVICE_NETLOG} --net-log-capture-mode=Default' > ${COMMAND_LINE}`);
   adb('shell', 'chmod', '644', COMMAND_LINE);
   adb('shell', 'rm', '-f', SKIP_FILE);

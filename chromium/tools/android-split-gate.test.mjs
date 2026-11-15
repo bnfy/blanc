@@ -48,3 +48,11 @@ test('a name that only contains another isn\'t taken for it', () => {
   assert.equal(wants('spaces', {BLANC_GATE_ONLY: 'shared-spaces'}), false);
   assert.equal(wants('shared-spaces', {BLANC_GATE_SKIP: 'spaces'}), true);
 });
+
+test('every gate asks gate-lib.sh before each step, so a split never runs a step in both lanes', () => {
+  for (const f of fs.readdirSync(dir).filter(f => /^a\d\w*-gate\.sh$/.test(f))) {
+    const text = fs.readFileSync(dir + f, 'utf8');
+    assert.match(text, /^source "\$\(dirname "\$\{BASH_SOURCE\[0\]\}"\)\/gate-lib\.sh"$/m, `${f} doesn't source gate-lib.sh`);
+    assert.match(text, /^run\(\) \{ local name=\$1; shift; gate_wants "\$name" \|\| return 0;/m, `${f}'s run() doesn't ask gate_wants`);
+  }
+});
