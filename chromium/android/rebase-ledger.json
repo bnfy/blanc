@@ -1,0 +1,5 @@
+{
+  "schema": 1,
+  "note": "One row per Chrome stable rebase of the Android lane (docs/android/rebase.md). Times are UTC; hours is wall time from starting the fetch to the lane PR merging.",
+  "rebases": []
+}
