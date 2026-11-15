@@ -1,0 +1,28 @@
+# Blanc for Android, release channel (x64). The release builder copies this
+# to out/AndroidReleaseX64/args.gn and appends the version for that build. Check
+# every name against `gn args <out> --list` at the pinned milestone; drop one
+# it doesn't define, with a comment saying why.
+target_os = "android"
+# x86_64 is for emulator gates only; it is never uploaded to Play.
+target_cpu = "x64"
+# Optimized native code, with official-build checks and no test hooks.
+is_debug = false
+is_official_build = true
+# This checkout fetches no PGO profiles, so release builds do not use PGO.
+chrome_pgo_phase = 0
+# No Java debugging, run-as, or command-line file in the release app.
+is_java_debug = false
+# Ship one native library with no debugging symbols.
+is_component_build = false
+symbol_level = 0
+# Run lint, Error Prone and bytecode checks, including lint's release checks.
+# "build_server" needs Chromium's autoninja; build.mjs calls Siso directly.
+android_static_analysis = "on"
+# Chromium's stable-channel manifest and packaging rules.
+android_channel = "stable"
+# Permanent release identity, separate from the debug app.
+chrome_public_manifest_package = "me.bnfy.blanc"
+# No Google API keys: features that need them stay off (design §2).
+use_official_google_api_keys = false
+# Blanc test hooks and disk assets are absent from release builds.
+blanc_channel = "release"
