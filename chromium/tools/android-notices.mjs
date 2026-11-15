@@ -42,7 +42,8 @@ function readIfPresent(file) {
   try { return fs.readFileSync(file); } catch (error) { if (error.code === 'ENOENT') return null; throw error; }
 }
 
-if (process.argv[1] === fileURLToPath(import.meta.url)) {
+// Real paths: on macOS a temp or symlinked path (/var → /private/var) would otherwise never match.
+if (process.argv[1] && fs.realpathSync(process.argv[1]) === fs.realpathSync(fileURLToPath(import.meta.url))) {
   const check = process.argv.includes('--check');
   const pages = path.join(ROOT, 'chromium/blanc/android/pages');
   const files = notices().map(({file, source}) => [file, fs.readFileSync(path.join(ROOT, source))]);

@@ -61,7 +61,8 @@ export function wanted() {
   return out;
 }
 
-if (process.argv[1] === fileURLToPath(import.meta.url)) {
+// Real paths: on macOS a temp or symlinked path (/var → /private/var) would otherwise never match.
+if (process.argv[1] && fs.realpathSync(process.argv[1]) === fs.realpathSync(fileURLToPath(import.meta.url))) {
   const check = process.argv.includes('--check');
   const problems = [];
   fs.mkdirSync(START_DIR, {recursive: true});

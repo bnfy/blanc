@@ -96,6 +96,7 @@ function main([apkArg, evidenceArg, ...extra]) {
   console.log(report.verdict === 'pass' ? 'Release gate: pass' : `Release gate: FAIL (${fail.join(', ')})`);
   if (report.verdict !== 'pass') process.exitCode = 1;
 }
-if (process.argv[1] === fileURLToPath(import.meta.url)) {
+// Real paths: on macOS a temp or symlinked path (/var → /private/var) would otherwise never match.
+if (process.argv[1] && fs.realpathSync(process.argv[1]) === fs.realpathSync(fileURLToPath(import.meta.url))) {
   try { main(process.argv.slice(2)); } catch (error) { console.error(`Release gate: FAIL (${error.message})`); process.exitCode = 1; }
 }
